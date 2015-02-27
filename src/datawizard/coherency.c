@@ -407,7 +407,7 @@ static struct _starpu_data_request *_starpu_search_existing_data_request(struct 
 
                 /* perhaps we need to "upgrade" the request */
 		if (is_prefetch < r->prefetch)
-			_starpu_update_prefetch_status(r);
+			_starpu_update_prefetch_status(r, is_prefetch);
 
 		if (mode & STARPU_R)
 		{
@@ -622,7 +622,7 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 }
 
 int _starpu_fetch_data_on_node(starpu_data_handle_t handle, struct _starpu_data_replicate *dst_replicate,
-			       enum starpu_data_access_mode mode, unsigned detached, unsigned async,
+			       enum starpu_data_access_mode mode, unsigned detached, unsigned is_prefetch, unsigned async,
 			       void (*callback_func)(void *), void *callback_arg)
 {
 	unsigned local_node = _starpu_memory_node_get_local_key();
@@ -646,7 +646,7 @@ int _starpu_fetch_data_on_node(starpu_data_handle_t handle, struct _starpu_data_
 
 	struct _starpu_data_request *r;
 	r = _starpu_create_request_to_fetch_data(handle, dst_replicate, mode,
-						 detached, async, callback_func, callback_arg);
+						 is_prefetch, async, callback_func, callback_arg);
 
 	/* If no request was created, the handle was already up-to-date on the
 	 * node. In this case, _starpu_create_request_to_fetch_data has already
@@ -663,12 +663,12 @@ int _starpu_fetch_data_on_node(starpu_data_handle_t handle, struct _starpu_data_
 
 static int prefetch_data_on_node(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, enum starpu_data_access_mode mode)
 {
-	return _starpu_fetch_data_on_node(handle, replicate, mode, 1, 1, NULL, NULL);
+	return _starpu_fetch_data_on_node(handle, replicate, mode, 1, 1, 1, NULL, NULL);
 }
 
 static int fetch_data(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, enum starpu_data_access_mode mode)
 {
-	return _starpu_fetch_data_on_node(handle, replicate, mode, 0, 0, NULL, NULL);
+	return _starpu_fetch_data_on_node(handle, replicate, mode, 0, 0, 0, NULL, NULL);
 }
 
 uint32_t _starpu_get_data_refcnt(starpu_data_handle_t handle, unsigned node)

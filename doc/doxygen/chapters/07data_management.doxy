@@ -104,8 +104,10 @@ setting up an initial statically-computed data distribution on the machine
 before submitting tasks, which will thus guide StarPU toward an initial task
 distribution (since StarPU will try to avoid further transfers).
 
-This can be achieved by giving the function starpu_data_prefetch_on_node()
-the handle and the desired target memory node.
+This can be achieved by giving the function starpu_data_prefetch_on_node() the
+handle and the desired target memory node. The
+starpu_data_idle_prefetch_on_node() variant can be used to issue the transfer
+only when the bus is idle.
 
 \section PartitioningData Partitioning Data
 

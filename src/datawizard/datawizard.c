@@ -51,6 +51,9 @@ int __starpu_datawizard_progress(unsigned memory_node, unsigned may_alloc, unsig
 			/* We pushed all pending requests, we can afford pushing
 			 * prefetch requests */
 			_starpu_handle_node_prefetch_requests(memory_node, may_alloc, &pushed);
+			if (_starpu_check_that_no_data_request_is_pending(memory_node))
+				/* No pending transfer, push some idle transfer */
+				_starpu_handle_node_idle_requests(memory_node, may_alloc, &pushed);
 		}
 		if (pushed)
 			ret = 1;

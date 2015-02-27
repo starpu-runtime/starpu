@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2014  Université de Bordeaux
+ * Copyright (C) 2009-2015  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -55,6 +55,7 @@ struct user_interaction_wrapper
 	starpu_pthread_mutex_t lock;
 	unsigned finished;
 	unsigned async;
+	unsigned prefetch;
 	void (*callback)(void *);
 	void (*callback_fetch_data)(void *); // called after fetch_data
 	void *callback_arg;
@@ -96,7 +97,7 @@ static void _starpu_data_acquire_continuation_non_blocking(void *arg)
 	{
 		struct _starpu_data_replicate *replicate = &handle->per_node[wrapper->node];
 
-		ret = _starpu_fetch_data_on_node(handle, replicate, wrapper->mode, 0, 1,
+		ret = _starpu_fetch_data_on_node(handle, replicate, wrapper->mode, 0, 0, 1,
 						 _starpu_data_acquire_fetch_data_callback, wrapper);
 		STARPU_ASSERT(!ret);
 	}
@@ -216,7 +217,7 @@ static inline void _starpu_data_acquire_continuation(void *arg)
 		int ret;
 		struct _starpu_data_replicate *replicate = &handle->per_node[wrapper->node];
 
-		ret = _starpu_fetch_data_on_node(handle, replicate, wrapper->mode, 0, 0, NULL, NULL);
+		ret = _starpu_fetch_data_on_node(handle, replicate, wrapper->mode, 0, 0, 0, NULL, NULL);
 		STARPU_ASSERT(!ret);
 	}
 
@@ -304,7 +305,7 @@ int starpu_data_acquire_on_node(starpu_data_handle_t handle, int node, enum star
 		{
 			/* no one has locked this data yet, so we proceed immediately */
 			struct _starpu_data_replicate *replicate = &handle->per_node[node];
-			int ret = _starpu_fetch_data_on_node(handle, replicate, mode, 0, 0, NULL, NULL);
+			int ret = _starpu_fetch_data_on_node(handle, replicate, mode, 0, 0, 0, NULL, NULL);
 			STARPU_ASSERT(!ret);
 		}
 	}
@@ -366,7 +367,7 @@ static void _prefetch_data_on_node(void *arg)
         int ret;
 
 	struct _starpu_data_replicate *replicate = &handle->per_node[wrapper->node];
-	ret = _starpu_fetch_data_on_node(handle, replicate, STARPU_R, wrapper->async, wrapper->async, NULL, NULL);
+	ret = _starpu_fetch_data_on_node(handle, replicate, STARPU_R, wrapper->async, wrapper->prefetch, wrapper->async, NULL, NULL);
         STARPU_ASSERT(!ret);
 
 	if (wrapper->async)
@@ -385,7 +386,7 @@ static void _prefetch_data_on_node(void *arg)
 }
 
 static
-int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle_t handle, unsigned node, unsigned async, enum starpu_data_access_mode mode)
+int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle_t handle, unsigned node, unsigned async, enum starpu_data_access_mode mode, unsigned prefetch)
 {
 	STARPU_ASSERT(handle);
 
@@ -397,6 +398,7 @@ int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle_t handle, unsigne
 	wrapper->handle = handle;
 	wrapper->node = node;
 	wrapper->async = async;
+	wrapper->prefetch = prefetch;
 	STARPU_PTHREAD_COND_INIT(&wrapper->cond, NULL);
 	STARPU_PTHREAD_MUTEX_INIT(&wrapper->lock, NULL);
 	wrapper->finished = 0;
@@ -410,7 +412,7 @@ int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle_t handle, unsigne
 		STARPU_PTHREAD_MUTEX_DESTROY(&wrapper->lock);
 		free(wrapper);
 
-		_starpu_fetch_data_on_node(handle, replicate, mode, async, async, NULL, NULL);
+		_starpu_fetch_data_on_node(handle, replicate, mode, async, prefetch, async, NULL, NULL);
 
 		/* remove the "lock"/reference */
 
@@ -447,7 +449,12 @@ int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle_t handle, unsigne
 
 int starpu_data_prefetch_on_node(starpu_data_handle_t handle, unsigned node, unsigned async)
 {
-	return _starpu_prefetch_data_on_node_with_mode(handle, node, async, STARPU_R);
+	return _starpu_prefetch_data_on_node_with_mode(handle, node, async, STARPU_R, 1);
+}
+
+int starpu_data_idle_prefetch_on_node(starpu_data_handle_t handle, unsigned node, unsigned async)
+{
+	return _starpu_prefetch_data_on_node_with_mode(handle, node, async, STARPU_R, 2);
 }
 
 /*
