@@ -96,11 +96,13 @@ stencil_stencil5_LDADD =		\
 
 starpu_mpi_EXAMPLES	+=	\
 	stencil/stencil5
+endif
 
 ##################
 # MPI LU example #
 ##################
 
+if BUILD_EXAMPLES
 if !NO_BLAS_LIB
 
 examplebin_PROGRAMS += 			\
@@ -183,12 +185,13 @@ mpi_lu_plu_outofcore_example_double_SOURCES =	\
 	mpi_lu/pdlu_implicit.c			\
 	../../examples/common/blas.c
 endif
-
+endif
 
 ########################
 # MPI Cholesky example #
 ########################
 
+if BUILD_EXAMPLES
 if !NO_BLAS_LIB
 examplebin_PROGRAMS +=		\
 	matrix_decomposition/mpi_cholesky			\
@@ -224,11 +227,13 @@ starpu_mpi_EXAMPLES +=				\
 	matrix_decomposition/mpi_cholesky			\
 	matrix_decomposition/mpi_cholesky_distributed
 endif
+endif
 
 ###################
 # complex example #
 ###################
 
+if BUILD_EXAMPLES
 examplebin_PROGRAMS +=			\
 	complex/mpi_complex
 
@@ -241,6 +246,21 @@ complex_mpi_complex_LDADD =		\
 
 starpu_mpi_EXAMPLES	+=			\
 	complex/mpi_complex
+endif
+
+###################
+# comm example #
+###################
+
+if BUILD_EXAMPLES
+examplebin_PROGRAMS +=			\
+	comm/comm
+
+comm_comm_LDADD =		\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
+
+starpu_mpi_EXAMPLES	+=			\
+	comm/comm
 endif
 
 
