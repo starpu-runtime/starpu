@@ -590,6 +590,11 @@ int starpu_task_submit(struct starpu_task *task)
 			return -ENODEV;
 		}
 
+		if (task->execute_on_a_specific_worker)
+			/* We already know where it will go, so already push
+			 * idle requests to get the data there */
+			starpu_idle_prefetch_task_input_on_node(task, starpu_worker_get_memory_node(task->workerid));
+
 		/* If this is a continuation, we don't modify the implicit data dependencies detected earlier. */
 		if (!continuation)
 		{
