@@ -17,12 +17,16 @@ This macro is defined when StarPU has been installed with MPI
 support. It should be used in your code to detect the availability of
 MPI.
 
+\fn int starpu_mpi_init_comm(int *argc, char ***argv, int initialize_mpi, MPI_Comm comm)
+\ingroup API_MPI_Support
+Initializes the starpumpi library with the given communicator.
+\p initialize_mpi indicates if MPI should be initialized or not by StarPU.
+If the value is not 0, MPI will be initialized by calling
+<c>MPI_Init_Thread(argc, argv, MPI_THREAD_SERIALIZED, ...)</c>.
+
 \fn int starpu_mpi_init(int *argc, char ***argv, int initialize_mpi)
 \ingroup API_MPI_Support
-Initializes the starpumpi library. \p initialize_mpi indicates if MPI
-should be initialized or not by StarPU. If the value is not 0, MPI
-will be initialized by calling <c>MPI_Init_Thread(argc, argv,
-MPI_THREAD_SERIALIZED, ...)</c>.
+Call starpu_mpi_init_comm() with the MPI communicator MPI_COMM_WORLD.
 
 \fn int starpu_mpi_initialize(void)
 \deprecated

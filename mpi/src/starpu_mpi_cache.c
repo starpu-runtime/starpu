@@ -35,6 +35,8 @@ static starpu_pthread_mutex_t *_cache_received_mutex;
 static struct _starpu_data_entry **_cache_sent_data = NULL;
 static struct _starpu_data_entry **_cache_received_data = NULL;
 int _starpu_cache_enabled=1;
+MPI_Comm _starpu_cache_comm;
+int _starpu_cache_comm_size;
 
 int starpu_mpi_cache_is_enabled()
 {
@@ -52,10 +54,8 @@ int starpu_mpi_cache_set(int enabled)
 		if (_starpu_cache_enabled)
 		{
 			// We need to clean the cache
-			int world_size;
-			starpu_mpi_cache_flush_all_data(MPI_COMM_WORLD);
-			starpu_mpi_comm_size(MPI_COMM_WORLD, &world_size);
-			_starpu_mpi_cache_free(world_size);
+			starpu_mpi_cache_flush_all_data(_starpu_cache_comm);
+			_starpu_mpi_cache_free(_starpu_cache_comm_size);
 		}
 		_starpu_cache_enabled = 0;
 	}
@@ -64,7 +64,6 @@ int starpu_mpi_cache_set(int enabled)
 
 void _starpu_mpi_cache_init(MPI_Comm comm)
 {
-	int nb_nodes;
 	int i;
 
 	_starpu_cache_enabled = starpu_get_env_number("STARPU_MPI_CACHE");
@@ -79,15 +78,16 @@ void _starpu_mpi_cache_init(MPI_Comm comm)
 		return;
 	}
 
-	starpu_mpi_comm_size(comm, &nb_nodes);
+	_starpu_cache_comm = comm;
+	starpu_mpi_comm_size(comm, &_starpu_cache_comm_size);
 	_STARPU_MPI_DEBUG(2, "Initialising htable for cache\n");
 
-	_cache_sent_data = malloc(nb_nodes * sizeof(struct _starpu_data_entry *));
-	_cache_received_data = malloc(nb_nodes * sizeof(struct _starpu_data_entry *));
-	_cache_sent_mutex = malloc(nb_nodes * sizeof(starpu_pthread_mutex_t));
-	_cache_received_mutex = malloc(nb_nodes * sizeof(starpu_pthread_mutex_t));
+	_cache_sent_data = malloc(_starpu_cache_comm_size * sizeof(struct _starpu_data_entry *));
+	_cache_received_data = malloc(_starpu_cache_comm_size * sizeof(struct _starpu_data_entry *));
+	_cache_sent_mutex = malloc(_starpu_cache_comm_size * sizeof(starpu_pthread_mutex_t));
+	_cache_received_mutex = malloc(_starpu_cache_comm_size * sizeof(starpu_pthread_mutex_t));
 
-	for(i=0 ; i<nb_nodes ; i++)
+	for(i=0 ; i<_starpu_cache_comm_size ; i++)
 	{
 		_cache_sent_data[i] = NULL;
 		_cache_received_data[i] = NULL;
@@ -129,17 +129,17 @@ void _starpu_mpi_cache_empty_tables(int world_size)
 	}
 }
 
-void _starpu_mpi_cache_free(int world_size)
+void _starpu_mpi_cache_free()
 {
 	int i;
 
 	if (_starpu_cache_enabled == 0) return;
 
-	_starpu_mpi_cache_empty_tables(world_size);
+	_starpu_mpi_cache_empty_tables(_starpu_cache_comm_size);
 	free(_cache_sent_data);
 	free(_cache_received_data);
 
-	for(i=0 ; i<world_size ; i++)
+	for(i=0 ; i<_starpu_cache_comm_size ; i++)
 	{
 		STARPU_PTHREAD_MUTEX_DESTROY(&_cache_sent_mutex[i]);
 		STARPU_PTHREAD_MUTEX_DESTROY(&_cache_received_mutex[i]);

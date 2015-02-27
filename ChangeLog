@@ -51,6 +51,8 @@ New features:
 	  starpu_mpi_node_selection_unregister_policy()
 	- New environment variable STARPU_MPI_COMM which enables
 	  basic tracing of communications.
+	- New function starpu_mpi_init_comm() which allows to specify
+	  a MPI communicator.
 
   * New STARPU_COMMUTE flag which can be passed along STARPU_W or STARPU_RW to
     let starpu commute write accesses.

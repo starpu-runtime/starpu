@@ -529,15 +529,26 @@ starpu_mpi_gather_detached(data_handles, nblocks, 0, MPI_COMM_WORLD);
 MPI examples are available in the StarPU source code in mpi/examples:
 
 <ul>
-<li><c>complex</c> is a simple example using a user-define data interface over
+<li>
+<c>comm</c> shows how to use communicators with StarPU-MPI
+</li>
+<li>
+<c>complex</c> is a simple example using a user-define data interface over
 MPI (complex numbers),
-<li><c>stencil5</c> is a simple stencil example using starpu_mpi_task_insert(),
-<li><c>matrix_decomposition</c> is a cholesky decomposition example using
+</li>
+<li>
+<c>stencil5</c> is a simple stencil example using starpu_mpi_task_insert(),
+</li>
+<li>
+<c>matrix_decomposition</c> is a cholesky decomposition example using
 starpu_mpi_task_insert(). The non-distributed version can check for
 <algorithm correctness in 1-node configuration, the distributed version uses
 exactly the same source code, to be used over MPI,
-<li><c>mpi_lu</c> is an LU decomposition example, provided in three versions:
+</li>
+<li>
+<c>mpi_lu</c> is an LU decomposition example, provided in three versions:
 <c>plu_example</c> uses explicit MPI data transfers, <c>plu_implicit_example</c>
 uses implicit MPI data transfers, <c>plu_outofcore_example</c> uses implicit MPI
 data transfers and supports data matrices which do not fit in memory (out-of-core).
+</li>
 </ul>

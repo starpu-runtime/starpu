@@ -1126,6 +1126,7 @@ struct _starpu_mpi_argc_argv
 	int initialize_mpi;
 	int *argc;
 	char ***argv;
+	MPI_Comm comm;
 };
 
 static void _starpu_mpi_print_thread_level_support(int thread_level, char *msg)
@@ -1228,9 +1229,9 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 		_starpu_mpi_print_thread_level_support(provided, " has been initialized with");
 	}
 
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	MPI_Comm_size(MPI_COMM_WORLD, &worldsize);
-	MPI_Comm_set_errhandler(MPI_COMM_WORLD, MPI_ERRORS_RETURN);
+	MPI_Comm_rank(argc_argv->comm, &rank);
+	MPI_Comm_size(argc_argv->comm, &worldsize);
+	MPI_Comm_set_errhandler(argc_argv->comm, MPI_ERRORS_RETURN);
 
 #ifdef STARPU_SIMGRID
 	_mpi_world_size = worldsize;
@@ -1247,8 +1248,8 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	}
 
 	_starpu_mpi_add_sync_point_in_fxt();
-	_starpu_mpi_comm_amounts_init(MPI_COMM_WORLD);
-	_starpu_mpi_cache_init(MPI_COMM_WORLD);
+	_starpu_mpi_comm_amounts_init(argc_argv->comm);
+	_starpu_mpi_cache_init(argc_argv->comm);
 	_starpu_mpi_select_node_init();
 	_starpu_mpi_tag_init();
 
@@ -1316,7 +1317,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 		{
 			_STARPU_MPI_DEBUG(3, "Posting a receive to get a data envelop\n");
 			_STARPU_MPI_COMM_FROM_DEBUG(sizeof(struct _starpu_mpi_envelope), MPI_BYTE, MPI_ANY_SOURCE, _STARPU_MPI_TAG_ENVELOPE, _STARPU_MPI_TAG_ENVELOPE);
-			MPI_Irecv(envelope, sizeof(struct _starpu_mpi_envelope), MPI_BYTE, MPI_ANY_SOURCE, _STARPU_MPI_TAG_ENVELOPE, MPI_COMM_WORLD, &envelope_request);
+			MPI_Irecv(envelope, sizeof(struct _starpu_mpi_envelope), MPI_BYTE, MPI_ANY_SOURCE, _STARPU_MPI_TAG_ENVELOPE, argc_argv->comm, &envelope_request);
 			envelope_request_submitted = 1;
 		}
 
@@ -1373,7 +1374,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 							new_req->data_handle = NULL;
 							new_req->srcdst = status.MPI_SOURCE;
 							new_req->data_tag = envelope->data_tag;
-							new_req->comm = MPI_COMM_WORLD;
+							new_req->comm = argc_argv->comm;
 							new_req->detached = 1;
 							new_req->sync = 1;
 							new_req->callback = NULL;
@@ -1387,7 +1388,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 						}
 						else
 						{
-							_starpu_mpi_receive_early_data(envelope, status, MPI_COMM_WORLD);
+							_starpu_mpi_receive_early_data(envelope, status, argc_argv->comm);
 						}
 					}
 					/* Case: a matching application request has been found for
@@ -1513,7 +1514,7 @@ static void _starpu_mpi_add_sync_point_in_fxt(void)
 }
 
 static
-int _starpu_mpi_initialize(int *argc, char ***argv, int initialize_mpi)
+int _starpu_mpi_initialize(int *argc, char ***argv, int initialize_mpi, MPI_Comm comm)
 {
 	STARPU_PTHREAD_MUTEX_INIT(&mutex, NULL);
 	STARPU_PTHREAD_COND_INIT(&cond_progression, NULL);
@@ -1529,6 +1530,7 @@ int _starpu_mpi_initialize(int *argc, char ***argv, int initialize_mpi)
 	argc_argv->initialize_mpi = initialize_mpi;
 	argc_argv->argc = argc;
 	argc_argv->argv = argv;
+	argc_argv->comm = comm;
 
 #ifdef STARPU_MPI_ACTIVITY
 	hookid = starpu_progression_hook_register(_starpu_mpi_progression_hook_func, NULL);
@@ -1559,14 +1561,19 @@ int _starpu_mpi_simgrid_init(int argc, char *argv[])
 }
 #endif
 
-int starpu_mpi_init(int *argc, char ***argv, int initialize_mpi)
+int starpu_mpi_init_comm(int *argc, char ***argv, int initialize_mpi, MPI_Comm comm)
 {
 #ifdef STARPU_SIMGRID
 	STARPU_MPI_ASSERT_MSG(initialize_mpi, "application has to let StarPU initialize MPI");
 	return 0;
 #else
-	return _starpu_mpi_initialize(argc, argv, initialize_mpi);
+	return _starpu_mpi_initialize(argc, argv, initialize_mpi, comm);
 #endif
+}
+
+int starpu_mpi_init(int *argc, char ***argv, int initialize_mpi)
+{
+	return starpu_mpi_init_comm(argc, argv, initialize_mpi, MPI_COMM_WORLD);
 }
 
 int starpu_mpi_initialize(void)
@@ -1575,7 +1582,7 @@ int starpu_mpi_initialize(void)
 	STARPU_MPI_ASSERT_MSG(0, "application has to let StarPU initialize MPI");
 	return 0;
 #else
-	return _starpu_mpi_initialize(NULL, NULL, 0);
+	return _starpu_mpi_initialize(NULL, NULL, 0, MPI_COMM_WORLD);
 #endif
 }
 
@@ -1588,7 +1595,7 @@ int starpu_mpi_initialize_extended(int *rank, int *world_size)
 #else
 	int ret;
 
-	ret = _starpu_mpi_initialize(NULL, NULL, 1);
+	ret = _starpu_mpi_initialize(NULL, NULL, 1, MPI_COMM_WORLD);
 	if (ret == 0)
 	{
 		_STARPU_DEBUG("Calling MPI_Comm_rank\n");
