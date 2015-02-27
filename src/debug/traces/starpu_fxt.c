@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2014  Université de Bordeaux
+ * Copyright (C) 2009-2015  Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -380,15 +380,16 @@ static void handle_new_mem_node(struct fxt_ev_64 *ev, struct starpu_fxt_options 
 		char program_container[STARPU_POTI_STR_LEN];
 		program_container_alias(program_container, STARPU_POTI_STR_LEN, prefix);
 		char new_memnode_container_alias[STARPU_POTI_STR_LEN], new_memnode_container_name[STARPU_POTI_STR_LEN];
+		char new_memmanager_container_alias[STARPU_POTI_STR_LEN], new_memmanager_container_name[STARPU_POTI_STR_LEN];
 		memnode_container_alias (new_memnode_container_alias, STARPU_POTI_STR_LEN, prefix, ev->param[0]);
 		/* TODO: ramkind */
 		snprintf(new_memnode_container_name, STARPU_POTI_STR_LEN, "%sMEMNODE%"PRIu64"", prefix, ev->param[0]);
 		poti_CreateContainer(get_event_time_stamp(ev, options), new_memnode_container_alias, "Mn", program_container, new_memnode_container_name);
 
-		memmanager_container_alias (new_memnode_container_alias, STARPU_POTI_STR_LEN, prefix, ev->param[0]);
+		memmanager_container_alias (new_memmanager_container_alias, STARPU_POTI_STR_LEN, prefix, ev->param[0]);
 		/* TODO: ramkind */
-		snprintf(new_memnode_container_name, STARPU_POTI_STR_LEN, "%sMEMMANAGER%"PRIu64"", prefix, ev->param[0]);
-		poti_CreateContainer(get_event_time_stamp(ev, options), new_memnode_container_alias, "Mm", new_memnode_container_alias, new_memnode_container_name);
+		snprintf(new_memmanager_container_name, STARPU_POTI_STR_LEN, "%sMEMMANAGER%"PRIu64"", prefix, ev->param[0]);
+		poti_CreateContainer(get_event_time_stamp(ev, options), new_memmanager_container_alias, "Mm", new_memnode_container_alias, new_memmanager_container_name);
 #else
 		fprintf(out_paje_file, "7	%.9f	%smn%"PRIu64"	Mn	%sp	%sMEMNODE%"PRIu64"\n", get_event_time_stamp(ev, options), prefix, ev->param[0], prefix, options->file_prefix, ev->param[0]);
 		fprintf(out_paje_file, "7	%.9f	%smm%"PRIu64"	Mm	%smn%"PRIu64"	%sMEMMANAGER%"PRIu64"\n", get_event_time_stamp(ev, options), prefix, ev->param[0], prefix, ev->param[0], options->file_prefix, ev->param[0]);
