@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2014  Université de Bordeaux
+ * Copyright (C) 2010-2015  Université de Bordeaux
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -70,6 +70,7 @@ int starpu_combined_worker_can_execute_task(unsigned workerid, struct starpu_tas
 
 int starpu_get_prefetch_flag(void);
 int starpu_prefetch_task_input_on_node(struct starpu_task *task, unsigned node);
+int starpu_idle_prefetch_task_input_on_node(struct starpu_task *task, unsigned node);
 
 uint32_t starpu_task_footprint(struct starpu_perfmodel *model, struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl);
 uint32_t starpu_task_data_footprint(struct starpu_task *task);

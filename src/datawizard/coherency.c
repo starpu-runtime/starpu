@@ -661,6 +661,11 @@ int _starpu_fetch_data_on_node(starpu_data_handle_t handle, struct _starpu_data_
         return ret;
 }
 
+static int idle_prefetch_data_on_node(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, enum starpu_data_access_mode mode)
+{
+	return _starpu_fetch_data_on_node(handle, replicate, mode, 1, 2, 1, NULL, NULL);
+}
+
 static int prefetch_data_on_node(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, enum starpu_data_access_mode mode)
 {
 	return _starpu_fetch_data_on_node(handle, replicate, mode, 1, 1, 1, NULL, NULL);
@@ -768,6 +773,27 @@ int starpu_prefetch_task_input_on_node(struct starpu_task *task, unsigned node)
 
 	return 0;
 }
+
+int starpu_idle_prefetch_task_input_on_node(struct starpu_task *task, unsigned node)
+{
+	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
+	unsigned index;
+
+	for (index = 0; index < nbuffers; index++)
+	{
+		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, index);
+		enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(task, index);
+
+		if (mode & (STARPU_SCRATCH|STARPU_REDUX))
+			continue;
+
+		struct _starpu_data_replicate *replicate = &handle->per_node[node];
+		idle_prefetch_data_on_node(handle, replicate, mode);
+	}
+
+	return 0;
+}
+
 
 static struct _starpu_data_replicate *get_replicate(starpu_data_handle_t handle, enum starpu_data_access_mode mode, int workerid, unsigned node)
 {

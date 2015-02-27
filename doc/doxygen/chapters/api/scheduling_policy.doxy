@@ -187,6 +187,10 @@ Whether \ref STARPU_PREFETCH was set
 \ingroup API_Scheduling_Policy
 Prefetch data for a given task on a given node
 
+\fn int starpu_idle_prefetch_task_input_on_node(struct starpu_task *task, unsigned node)
+\ingroup API_Scheduling_Policy
+Prefetch data for a given task on a given node when the bus is idle
+
 \fn void starpu_sched_ctx_worker_shares_tasks_lists(int workerid, int sched_ctx_id)
 \ingroup API_Scheduling_Policy
 The scheduling policies indicates if the worker may pop tasks from the list of other workers
