@@ -22,7 +22,7 @@
 #include <starpu_mpi_cache.h>
 #include <starpu_profiling.h>
 #include <starpu_mpi_stats.h>
-#include <starpu_mpi_insert_task.h>
+#include <starpu_mpi_cache.h>
 #include <common/config.h>
 #include <common/thread.h>
 #include <datawizard/coherency.h>

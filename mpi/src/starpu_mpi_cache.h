@@ -29,6 +29,7 @@ extern "C" {
 
 extern int _starpu_cache_enabled;
 void _starpu_mpi_cache_init(MPI_Comm comm);
+void _starpu_mpi_cache_free(int world_size);
 
 /*
  * If the data is already available in the cache, return a pointer to the data
