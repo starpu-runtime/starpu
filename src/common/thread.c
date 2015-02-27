@@ -168,7 +168,7 @@ int starpu_pthread_mutexattr_init(starpu_pthread_mutexattr_t *attr STARPU_ATTRIB
 
 static int used_key[MAX_TSD];
 
-int starpu_pthread_key_create(starpu_pthread_key_t *key, void (*destr_function) (void *))
+int starpu_pthread_key_create(starpu_pthread_key_t *key, void (*destr_function) (void *) STARPU_ATTRIBUTE_UNUSED)
 {
 	unsigned i;
 
