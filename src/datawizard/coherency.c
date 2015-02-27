@@ -789,8 +789,6 @@ int starpu_idle_prefetch_task_input_on_node(struct starpu_task *task, unsigned n
 
 		struct _starpu_data_replicate *replicate = &handle->per_node[node];
 		idle_prefetch_data_on_node(handle, replicate, mode);
-
-		_starpu_set_data_requested_flag_if_needed(handle, replicate);
 	}
 
 	return 0;
