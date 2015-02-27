@@ -408,8 +408,8 @@ do {									\
 #define _STARPU_TRACE_NEW_MEM_NODE(nodeid)			\
 	FUT_DO_PROBE2(_STARPU_FUT_NEW_MEM_NODE, nodeid, _starpu_gettid());
 
-#define _STARPU_TRACE_WORKER_INIT_START(workerkind, workerid, devid, memnode, sync)	\
-	FUT_DO_PROBE6(_STARPU_FUT_WORKER_INIT_START, workerkind, workerid, devid, memnode, sync, _starpu_gettid());
+#define _STARPU_TRACE_WORKER_INIT_START(workerkind, workerid, devid, memnode, bindid, sync)	\
+	FUT_DO_PROBE7(_STARPU_FUT_WORKER_INIT_START, workerkind, workerid, devid, memnode, bindid, sync, _starpu_gettid());
 
 #define _STARPU_TRACE_WORKER_INIT_END(__workerid)				\
 	FUT_DO_PROBE2(_STARPU_FUT_WORKER_INIT_END, _starpu_gettid(), (__workerid));
@@ -818,7 +818,7 @@ do {										\
 
 /* Dummy macros in case FxT is disabled */
 #define _STARPU_TRACE_NEW_MEM_NODE(nodeid)	do {} while(0)
-#define _STARPU_TRACE_WORKER_INIT_START(a,b,c,d,e)	do {} while(0)
+#define _STARPU_TRACE_WORKER_INIT_START(a,b,c,d,e,f)	do {} while(0)
 #define _STARPU_TRACE_WORKER_INIT_END(workerid)	do {} while(0)
 #define _STARPU_TRACE_START_CODELET_BODY(job, nimpl, perf_arch, workerid)	do {} while(0)
 #define _STARPU_TRACE_END_CODELET_BODY(job, nimpl, perf_arch, workerid)	do {} while(0)
