@@ -291,7 +291,7 @@ void *_starpu_scc_src_worker(void *arg)
 	unsigned subworkerid = args->subworkerid;
 	unsigned i;
 
-	_starpu_worker_start(args, _STARPU_FUT_SCC_KEY);
+	_starpu_driver_start(args, _STARPU_FUT_SCC_KEY, 0);
 
 	_starpu_scc_src_init_context(subworkerid);
 

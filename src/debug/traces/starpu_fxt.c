@@ -184,9 +184,10 @@ struct worker_entry
 	UT_hash_handle hh;
 	unsigned long tid;
 	int workerid;
+	int sync;
 } *worker_ids;
 
-static int register_worker_id(unsigned long tid, int workerid)
+static int register_worker_id(unsigned long tid, int workerid, int sync)
 {
 	nworkers++;
 	struct worker_entry *entry;
@@ -202,6 +203,7 @@ static int register_worker_id(unsigned long tid, int workerid)
 	entry = malloc(sizeof(*entry));
 	entry->tid = tid;
 	entry->workerid = workerid;
+	entry->sync = sync;
 
 	HASH_ADD(hh, worker_ids, tid, sizeof(tid), entry);
 	return 1;
@@ -216,6 +218,17 @@ static int find_worker_id(unsigned long tid)
 		return -1;
 
 	return entry->workerid;
+}
+
+static int find_sync(unsigned long tid)
+{
+	struct worker_entry *entry;
+
+	HASH_FIND(hh, worker_ids, &tid, sizeof(tid), entry);
+	if (!entry)
+		return 0;
+
+	return entry->sync;
 }
 
 static void update_accumulated_time(int worker, double sleep_time, double exec_time, double current_timestamp, int forceflush)
@@ -296,17 +309,6 @@ static void memnode_set_state(double time, const char *prefix, unsigned int memn
 #endif
 }
 
-static void thread_set_state(double time, const char *prefix, long unsigned int threadid, const char *name)
-{
-#ifdef STARPU_HAVE_POTI
-	char container[STARPU_POTI_STR_LEN];
-	thread_container_alias(container, STARPU_POTI_STR_LEN, prefix, threadid);
-	poti_SetState(time, container, "S", name);
-#else
-	fprintf(out_paje_file, "10	%.9f	%st%lu	S	%s\n", time, prefix, threadid, name);
-#endif
-}
-
 static void worker_set_state(double time, const char *prefix, long unsigned int workerid, const char *name)
 {
 #ifdef STARPU_HAVE_POTI
@@ -318,8 +320,49 @@ static void worker_set_state(double time, const char *prefix, long unsigned int 
 #endif
 }
 
+static void worker_push_state(double time, const char *prefix, long unsigned int workerid, const char *name)
+{
+#ifdef STARPU_HAVE_POTI
+	char container[STARPU_POTI_STR_LEN];
+	worker_container_alias(container, STARPU_POTI_STR_LEN, prefix, workerid);
+	poti_PushState(time, container, "WS", name);
+#else
+	fprintf(out_paje_file, "11	%.9f	%sw%lu	WS	%s\n", time, prefix, workerid, name);
+#endif
+}
+
+static void worker_pop_state(double time, const char *prefix, long unsigned int workerid)
+{
+#ifdef STARPU_HAVE_POTI
+	char container[STARPU_POTI_STR_LEN];
+	worker_container_alias(container, STARPU_POTI_STR_LEN, prefix, workerid);
+	poti_PopState(time, container, "WS");
+#else
+	fprintf(out_paje_file, "12	%.9f	%sw%lu	WS\n", time, prefix, workerid);
+#endif
+}
+
+static void thread_set_state(double time, const char *prefix, long unsigned int threadid, const char *name)
+{
+	if (!find_sync(threadid))
+		/* Unless using worker sets, collapse thread and worker */
+		return worker_set_state(time, prefix, find_worker_id(threadid), name);
+
+#ifdef STARPU_HAVE_POTI
+	char container[STARPU_POTI_STR_LEN];
+	thread_container_alias(container, STARPU_POTI_STR_LEN, prefix, threadid);
+	poti_SetState(time, container, "S", name);
+#else
+	fprintf(out_paje_file, "10	%.9f	%st%lu	S	%s\n", time, prefix, threadid, name);
+#endif
+}
+
 static void thread_push_state(double time, const char *prefix, long unsigned int threadid, const char *name)
 {
+	if (!find_sync(threadid))
+		/* Unless using worker sets, collapse thread and worker */
+		return worker_push_state(time, prefix, find_worker_id(threadid), name);
+
 #ifdef STARPU_HAVE_POTI
 	char container[STARPU_POTI_STR_LEN];
 	thread_container_alias(container, STARPU_POTI_STR_LEN, prefix, threadid);
@@ -331,6 +374,10 @@ static void thread_push_state(double time, const char *prefix, long unsigned int
 
 static void thread_pop_state(double time, const char *prefix, long unsigned int threadid)
 {
+	if (!find_sync(threadid))
+		/* Unless using worker sets, collapse thread and worker */
+		return worker_pop_state(time, prefix, find_worker_id(threadid));
+
 #ifdef STARPU_HAVE_POTI
 	char container[STARPU_POTI_STR_LEN];
 	thread_container_alias(container, STARPU_POTI_STR_LEN, prefix, threadid);
@@ -416,10 +463,11 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 	int devid = ev->param[2];
 	int workerid = ev->param[1];
 	int nodeid = ev->param[3];
-	int threadid = ev->param[4];
+	int set = ev->param[4];
+	int threadid = ev->param[5];
 	int new_thread;
 
-	new_thread = register_worker_id(threadid, workerid);
+	new_thread = register_worker_id(threadid, workerid, set);
 
 	char *kindstr = "";
 	struct starpu_perfmodel_arch arch;
@@ -2470,7 +2518,7 @@ void starpu_fxt_write_data_trace(char *filename_in)
 		switch (ev.code)
 		{
 		case _STARPU_FUT_WORKER_INIT_START:
-			register_worker_id(ev.param[4], ev.param[1]);
+			register_worker_id(ev.param[5], ev.param[1], ev.param[4]);
 			break;
 
 		case _STARPU_FUT_START_CODELET_BODY:

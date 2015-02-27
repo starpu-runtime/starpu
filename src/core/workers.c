@@ -557,7 +557,16 @@ static void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu
 	/* cpu_set/hwloc_cpu_set initialized in topology.c */
 }
 
-void _starpu_worker_start(struct _starpu_worker *worker, unsigned fut_key)
+#ifdef STARPU_USE_FXT
+void _starpu_worker_start(struct _starpu_worker *worker, unsigned fut_key, unsigned sync)
+{
+	unsigned devid = worker->devid;
+	unsigned memnode = worker->memory_node;
+	_STARPU_TRACE_WORKER_INIT_START(fut_key, worker->workerid, devid, memnode, sync);
+}
+#endif
+
+void _starpu_driver_start(struct _starpu_worker *worker, unsigned fut_key, unsigned sync)
 {
 	(void) fut_key;
 	int devid = worker->devid;
@@ -569,9 +578,7 @@ void _starpu_worker_start(struct _starpu_worker *worker, unsigned fut_key)
 
 #ifdef STARPU_USE_FXT
 	_starpu_fxt_register_thread(worker->bindid);
-
-	unsigned memnode = worker->memory_node;
-	_STARPU_TRACE_WORKER_INIT_START(fut_key, worker->workerid, devid, memnode);
+	_starpu_worker_start(worker, fut_key, sync);
 #endif
 
 	_starpu_bind_thread_on_cpu(worker->config, worker->bindid);

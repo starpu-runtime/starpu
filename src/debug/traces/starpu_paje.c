@@ -183,8 +183,21 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 	poti_DefineEntityValue("Sl", "S", "Sleeping", ".9 .1 .0");
 	poti_DefineEntityValue("P", "S", "Progressing", ".4 .1 .6");
 	poti_DefineEntityValue("U", "S", "Unpartitioning", ".0 .0 1.0");
+	poti_DefineEntityValue("H", "S", "Hypervisor", ".5 .18 .0");
 	poti_DefineStateType("WS", "W", "Worker State");
 	poti_DefineEntityValue("I", "WS", "Idle", ".9 .1 .0");
+	poti_DefineEntityValue("I", "WS", "Initializing", "0.0 .7 1.0");
+	poti_DefineEntityValue("D", "WS", "Deinitializing", "0.0 .1 .7");
+	poti_DefineEntityValue("Fi", "WS", "FetchingInput", "1.0 .1 1.0");
+	poti_DefineEntityValue("Po", "WS", "PushingOutput", "0.1 1.0 1.0");
+	poti_DefineEntityValue("C", "WS", "Callback", ".0 .3 .8");
+	poti_DefineEntityValue("B", "WS", "Overhead", ".5 .18 .0");
+	poti_DefineEntityValue("E", "WS", "Executing", ".0 .6 .5");
+	poti_DefineEntityValue("Sc", "WS", "Scheduling", ".7 .36 .0");
+	poti_DefineEntityValue("Sl", "WS", "Sleeping", ".9 .1 .0");
+	poti_DefineEntityValue("P", "WS", "Progressing", ".4 .1 .6");
+	poti_DefineEntityValue("U", "WS", "Unpartitioning", ".0 .0 1.0");
+	poti_DefineEntityValue("H", "WS", "Hypervisor", ".5 .18 .0");
 
 	/* Types for the MPI Communication Thread of the Memory Node */
 	poti_DefineEventType("MPIev", "MPICt", "MPI event type");
@@ -262,9 +275,21 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 6       Sl       S      Sleeping         \".9 .1 .0\"		\n\
 6       P       S       Progressing         \".4 .1 .6\"		\n\
 6       U       S       Unpartitioning      \".0 .0 1.0\"		\n\
+6       H       S       Hypervisor      \".5 .18 .0\"		\n\
 3       WS       W       \"Worker State\"                        \n\
 6       I       WS       Idle         \".9 .1 .0\"		\n\
-6       H       S       Hypervisor      \".5 .18 .0\"		\n");
+6       I       WS      Initializing       \"0.0 .7 1.0\"            \n\
+6       D       WS      Deinitializing       \"0.0 .1 .7\"            \n\
+6       Fi       WS      FetchingInput       \"1.0 .1 1.0\"            \n\
+6       Po       WS      PushingOutput       \"0.1 1.0 1.0\"            \n\
+6       C       WS       Callback       \".0 .3 .8\"            \n\
+6       B       WS       Overhead         \".5 .18 .0\"		\n\
+6       E       WS       Executing         \".0 .6 .5\"		\n\
+6       Sc       WS      Scheduling         \".7 .36 .0\"		\n\
+6       Sl       WS      Sleeping         \".9 .1 .0\"		\n\
+6       P       WS       Progressing         \".4 .1 .6\"		\n\
+6       U       WS       Unpartitioning      \".0 .0 1.0\"		\n\
+6       H       WS       Hypervisor      \".5 .18 .0\"		\n");
 	fprintf(file, "\
 6       P       CtS       Processing         \"0 0 0\"		\n\
 6       Sl       CtS      Sleeping         \".9 .1 .0\"		\n\

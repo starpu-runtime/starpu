@@ -517,7 +517,7 @@ void *_starpu_mic_src_worker(void *arg)
 
 	/* unsigned memnode = baseworker->memory_node; */
 
-	_starpu_worker_start(baseworker, _STARPU_FUT_MIC_KEY);
+	_starpu_driver_start(baseworker, _STARPU_FUT_MIC_KEY, 0);
 	for (i = 1; i < worker_set->nworkers; i++)
 	{
 		struct _starpu_worker *worker = &worker_set->workers[i];

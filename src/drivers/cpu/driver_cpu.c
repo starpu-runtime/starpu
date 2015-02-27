@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2014  Université de Bordeaux
+ * Copyright (C) 2010-2015  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010-2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
@@ -182,7 +182,7 @@ int _starpu_cpu_driver_init(struct _starpu_worker *cpu_worker)
 {
 	int devid = cpu_worker->devid;
 
-	_starpu_worker_start(cpu_worker, _STARPU_FUT_CPU_KEY);
+	_starpu_driver_start(cpu_worker, _STARPU_FUT_CPU_KEY, 1);
 	/* FIXME: when we have NUMA support, properly turn node number into NUMA node number */
 	_starpu_memory_manager_set_global_memory_size(cpu_worker->memory_node, _starpu_cpu_get_global_mem_size(cpu_worker->memory_node, cpu_worker->config));
 
