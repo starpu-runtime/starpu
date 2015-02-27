@@ -777,7 +777,10 @@ void _starpu_update_prefetch_status(struct _starpu_data_request *r, unsigned pre
 		if (r==r_iter)
 		{
 			_starpu_data_request_list_erase(idle_requests[r->handling_node],r);
-			_starpu_data_request_list_push_front(data_requests[r->handling_node],r);
+			if (prefetch == 1)
+				_starpu_data_request_list_push_front(prefetch_requests[r->handling_node],r);
+			else
+				_starpu_data_request_list_push_front(data_requests[r->handling_node],r);
 			goto found;
 		}
 	}
