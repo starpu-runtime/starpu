@@ -88,6 +88,7 @@ void starpu_data_display_memory_stats();
 
 int starpu_data_request_allocation(starpu_data_handle_t handle, unsigned node);
 
+int starpu_data_fetch_on_node(starpu_data_handle_t handle, unsigned node, unsigned async);
 int starpu_data_prefetch_on_node(starpu_data_handle_t handle, unsigned node, unsigned async);
 int starpu_data_idle_prefetch_on_node(starpu_data_handle_t handle, unsigned node, unsigned async);
 

@@ -447,6 +447,11 @@ int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle_t handle, unsigne
 	return 0;
 }
 
+int starpu_data_fetch_on_node(starpu_data_handle_t handle, unsigned node, unsigned async)
+{
+	return _starpu_prefetch_data_on_node_with_mode(handle, node, async, STARPU_R, 0);
+}
+
 int starpu_data_prefetch_on_node(starpu_data_handle_t handle, unsigned node, unsigned async)
 {
 	return _starpu_prefetch_data_on_node_with_mode(handle, node, async, STARPU_R, 1);
