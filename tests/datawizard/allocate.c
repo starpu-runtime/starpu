@@ -107,8 +107,8 @@ int test_prefetch(unsigned memnodes)
 
 	for(i=0 ; i<4 ; i++)
 	{
-		free(buffers[i]);
 		starpu_data_unregister(handles[i]);
+		free(buffers[i]);
 	}
 
 	for(i=1 ; i<memnodes ; i++)
