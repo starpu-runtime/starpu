@@ -43,6 +43,7 @@ int test_prefetch(unsigned memnodes)
 	buffers[0] = malloc(SIZE_ALLOC*1024*512);
 	STARPU_ASSERT(buffers[0]);
 
+	/* Prefetch half the memory */
 	starpu_variable_data_register(&handles[0], STARPU_MAIN_RAM, (uintptr_t)buffers[0], SIZE_ALLOC*1024*512);
 	for(i=1 ; i<memnodes ; i++)
 	{
@@ -56,6 +57,7 @@ int test_prefetch(unsigned memnodes)
 		STARPU_CHECK_RETURN_VALUE_IS((int) available_size, SIZE_ALLOC*1024*512, "starpu_memory_get_available (node %u)", i);
 	}
 
+	/* Prefetch a quarter of the memory */
 	buffers[1] = malloc(SIZE_ALLOC*1024*256);
 	STARPU_ASSERT(buffers[1]);
 
@@ -72,13 +74,14 @@ int test_prefetch(unsigned memnodes)
 		STARPU_CHECK_RETURN_VALUE_IS((int)available_size, SIZE_ALLOC*1024*256, "starpu_memory_get_available (node %u)", i);
 	}
 
+	/* Fetch a bit more than half of the memory, it should be able to push previous data out */
 	buffers[2] = malloc(SIZE_ALLOC*1024*600);
 	STARPU_ASSERT(buffers[2]);
 
 	starpu_variable_data_register(&handles[2], STARPU_MAIN_RAM, (uintptr_t)buffers[2], SIZE_ALLOC*1024*600);
 	for(i=1 ; i<memnodes ; i++)
 	{
-		starpu_data_prefetch_on_node(handles[2], i, 0);
+		starpu_data_fetch_on_node(handles[2], i, 0);
 	}
 
 	for(i=1 ; i<memnodes ; i++)
@@ -89,13 +92,14 @@ int test_prefetch(unsigned memnodes)
 		STARPU_CHECK_RETURN_VALUE((available_size == 0), "starpu_memory_get_available (node %u)", i);
 	}
 
+	/* Fetch half of the memory, it should be able to push previous data out */
 	buffers[3] = malloc(SIZE_ALLOC*1024*512);
 	STARPU_ASSERT(buffers[3]);
 
 	starpu_variable_data_register(&handles[3], STARPU_MAIN_RAM, (uintptr_t)buffers[3], SIZE_ALLOC*1024*512);
 	for(i=0 ; i<memnodes ; i++)
 	{
-		starpu_data_prefetch_on_node(handles[3], i, 0);
+		starpu_data_fetch_on_node(handles[3], i, 0);
 	}
 
 	for(i=1 ; i<memnodes ; i++)
@@ -130,26 +134,32 @@ void test_malloc()
 	float *buffer3;
 	size_t global_size;
 
+	/* Allocate one byte */
 	ret = starpu_malloc_flags((void **)&buffer, 1, STARPU_MALLOC_COUNT);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_malloc_flags");
 	FPRINTF(stderr, "Allocation succesfull for 1 b\n");
 
+	/* Allocate half the memory */
 	ret = starpu_malloc_flags((void **)&buffer2, SIZE_ALLOC*1024*512, STARPU_MALLOC_COUNT);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_malloc_flags");
 	FPRINTF(stderr, "Allocation succesfull for %d b\n", SIZE_ALLOC*1024*512);
 
+	/* Try to allocate the other half, should fail */
 	ret = starpu_malloc_flags((void **)&buffer3, SIZE_ALLOC*1024*512, STARPU_MALLOC_COUNT);
 	STARPU_CHECK_RETURN_VALUE_IS(ret, -ENOMEM, "starpu_malloc_flags");
 	FPRINTF(stderr, "Allocation failed for %d b\n", SIZE_ALLOC*1024*512);
 
+	/* Try to allocate the other half without counting it, should succeed */
 	ret = starpu_malloc_flags((void **)&buffer3, SIZE_ALLOC*1024*512, 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_malloc_flags");
 	FPRINTF(stderr, "Allocation successful for %d b\n", SIZE_ALLOC*1024*512);
 	starpu_free_flags(buffer3, SIZE_ALLOC*1024*512, 0);
 
+	/* Free the initial half-memory allocation */
 	starpu_free_flags(buffer2, SIZE_ALLOC*1024*512, STARPU_MALLOC_COUNT);
 	FPRINTF(stderr, "Freeing %d b\n", SIZE_ALLOC*1024*512);
 
+	/* Should not be able to allocate half the memory again */
 	ret = starpu_malloc_flags((void **)&buffer3, SIZE_ALLOC*1024*512, STARPU_MALLOC_COUNT);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_malloc_flags");
 	FPRINTF(stderr, "Allocation succesfull for %d b\n", SIZE_ALLOC*1024*512);

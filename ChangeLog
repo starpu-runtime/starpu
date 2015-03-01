@@ -86,6 +86,8 @@ New features:
   * starpu_data_idle_prefetch_on_node and
     starpu_idle_prefetch_task_input_on_node allow to queue prefetches to be done
     only when the bus is idle.
+  * Make starpu_data_prefetch_on_node not forcibly flush data out, introduce
+    starpu_data_fetch_on_node for that.
 
 Small features:
   * Tasks can now have a name (via the field const char *name of

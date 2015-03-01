@@ -168,10 +168,19 @@ modified, it is automatically transfered into those memory node. For
 instance a <c>1<<0</c> write-through mask means that the CUDA workers
 will commit their changes in main memory (node 0).
 
+\fn int starpu_data_fetch_on_node(starpu_data_handle_t handle, unsigned node, unsigned async)
+\ingroup API_Data_Management
+Issue a fetch request for a given data to a given node, i.e.
+requests that the data be replicated to the given node as soon as possible, so that it is
+available there for tasks. If the \p async parameter is 0, the call will
+block until the transfer is achieved, else the call will return immediately,
+after having just queued the request. In the latter case, the request will
+asynchronously wait for the completion of any task writing on the data.
+
 \fn int starpu_data_prefetch_on_node(starpu_data_handle_t handle, unsigned node, unsigned async)
 \ingroup API_Data_Management
 Issue a prefetch request for a given data to a given node, i.e.
-requests that the data be replicated to the given node, so that it is
+requests that the data be replicated to the given node when there is room for it, so that it is
 available there for tasks. If the \p async parameter is 0, the call will
 block until the transfer is achieved, else the call will return immediately,
 after having just queued the request. In the latter case, the request will
