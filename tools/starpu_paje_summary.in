@@ -3,7 +3,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 # 
 # Copyright (C) 2014  Université Joseph Fourier
-# Copyright (C) 2014  Université Bordeaux
+# Copyright (C) 2014-2015  Université Bordeaux
 # 
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -84,8 +84,8 @@ for file in $inputfiles; do
 	exit 5
     fi
 # Sorting traces
-    grep -e '^\(\(%\)\|\(\(1\|2\|3\|4\|5\|6\|7\|9\)\>\)\)' $file > start.trace
-    grep -e '^\(\(%\)\|\(\(1\|2\|3\|4\|5\|6\|7\|9\|18\|19\)\>\)\)' -v  $file > end.trace
+    grep -e '^\(\(%\)\|\(\(0\|1\|2\|3\|4\|5\|6\|7\|9\)\>\)\)' $file > start.trace
+    grep -e '^\(\(%\)\|\(\(0\|1\|2\|3\|4\|5\|6\|7\|9\|18\|19\)\>\)\)' -v  $file > end.trace
     sort -s -V --key=2,2 end.trace > endSorted.trace
     cat start.trace endSorted.trace > outputSorted.trace
 
