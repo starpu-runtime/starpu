@@ -1557,7 +1557,7 @@ int _starpu_mpi_initialize(int *argc, char ***argv, int initialize_mpi, MPI_Comm
  * create MSG processes to run application's main */
 int _starpu_mpi_simgrid_init(int argc, char *argv[])
 {
-	return _starpu_mpi_initialize(&argc, &argv, 1);
+	return _starpu_mpi_initialize(&argc, &argv, 1, MPI_COMM_WORLD);
 }
 #endif
 
