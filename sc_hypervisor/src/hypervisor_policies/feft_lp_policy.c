@@ -20,7 +20,7 @@
 #include <starpu_config.h>
 #include <sys/time.h>
 
-int resize_no = 0;
+unsigned long resize_no = 0;
 #ifdef STARPU_HAVE_GLPK_H
 static void _try_resizing(unsigned *sched_ctxs, int nsched_ctxs, int *workers, int nworkers)
 {
@@ -53,8 +53,8 @@ static void _try_resizing(unsigned *sched_ctxs, int nsched_ctxs, int *workers, i
 	long diff_s = end_time.tv_sec  - start_time.tv_sec;
 	long diff_us = end_time.tv_usec  - start_time.tv_usec;
 	
-	__attribute__((unused))	float timing = (float)(diff_s*1000000 + diff_us)/1000;
-	
+	__attribute__((unused))	float timing = (float)(diff_s*1000000 + diff_us)/1000.0;
+
 	if(vmax != -1.0)
 	{
 /* 		int nworkers_per_ctx_rounded[ns][nw]; */
@@ -124,9 +124,8 @@ static int _get_first_level(unsigned *sched_ctxs, int nsched_ctxs, unsigned *fir
 
 static void _resize(unsigned *sched_ctxs, int nsched_ctxs, int *workers, int nworkers)
 {
-#ifdef STARPU_USE_FXT
 	starpu_fxt_trace_user_event(resize_no);
-#endif
+
 	unsigned nhierarchy_levels = sc_hypervisor_get_nhierarchy_levels();
 	if(nhierarchy_levels > 1)
 	{
@@ -243,9 +242,19 @@ static void _resize_if_speed_diff(unsigned sched_ctx, int worker)
 			_resize(NULL, -1, NULL, -1);
 		}
 	}
-	else if(sc_hypervisor_check_speed_gap_btw_ctxs(NULL, -1, NULL, -1))
+	else 
 	{
-		_resize(NULL, -1, NULL, -1);
+		unsigned criteria = sc_hypervisor_get_resize_criteria();
+		if(criteria != SC_NOTHING && criteria == SC_IDLE)
+		{
+
+			_resize(NULL, -1, NULL, -1);
+		}
+		else
+		{
+			if(sc_hypervisor_check_speed_gap_btw_ctxs(NULL, -1, NULL, -1))
+				_resize(NULL, -1, NULL, -1);
+		}
 	}
 	return;
 }
@@ -253,6 +262,7 @@ static void _resize_if_speed_diff(unsigned sched_ctx, int worker)
 static void feft_lp_handle_poped_task(unsigned sched_ctx, int worker, 
 				      __attribute__((unused))struct starpu_task *task, __attribute__((unused))uint32_t footprint)
 {
+	if(worker == -2) return;
 	unsigned criteria = sc_hypervisor_get_resize_criteria();
 	if(criteria != SC_NOTHING && criteria == SC_SPEED)
 	{
@@ -320,7 +330,6 @@ static void feft_lp_handle_idle_cycle(unsigned sched_ctx, int worker)
 		int ret = starpu_pthread_mutex_trylock(&act_hypervisor_mutex);
 		if(ret != EBUSY)
 		{
-//			printf("trigger idle \n");
 			_resize_leaves(worker);
 			starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
 		}

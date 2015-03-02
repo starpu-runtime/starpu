@@ -772,7 +772,7 @@ int _starpu_task_submit_conversion_task(struct starpu_task *task,
 	_starpu_increment_nsubmitted_tasks_of_sched_ctx(j->task->sched_ctx);
 	STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 	j->submitted = 1;
-	_starpu_increment_nready_tasks_of_sched_ctx(j->task->sched_ctx, j->task->flops);
+	_starpu_increment_nready_tasks_of_sched_ctx(j->task->sched_ctx, j->task->flops, j->task);
 	for (i=0 ; i<nbuffers ; i++)
 	{
 		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(j->task, i);

@@ -1607,7 +1607,6 @@ static void handle_task_wait_for_all(void)
 static void handle_event(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	char *event = (char*)&ev->param[0];
-
 	/* Add an event in the trace */
 	if (out_paje_file)
 	{

@@ -98,15 +98,19 @@ static uint32_t _starpu_worker_exists_and_can_execute(struct starpu_task *task,
 {
 	int i;
 	_starpu_codelet_check_deprecated_fields(task->cl);
-	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
+
+        /* make sure there is a worker on the machine able to execute the 
+	   task, independent of the sched_ctx, this latter may receive latter on 
+	   the necessary worker - the user or the hypervisor should take care this happens */
+	
+	int check_entire_platform = starpu_get_env_number("STARPU_CHECK_ENTIRE_PLATFORM");
+	struct _starpu_sched_ctx *sched_ctx = check_entire_platform == 1 ? _starpu_get_initial_sched_ctx() : _starpu_get_sched_ctx_struct(task->sched_ctx);
 	struct starpu_worker_collection *workers = sched_ctx->workers;
-
 	struct starpu_sched_ctx_iterator it;
-
 	workers->init_iterator(workers, &it);
 	while(workers->has_next(workers, &it))
 	{
-                i = workers->get_next(workers, &it);
+		i = workers->get_next(workers, &it);
 		if (starpu_worker_get_type(i) != arch)
 			continue;
 

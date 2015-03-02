@@ -28,8 +28,8 @@ static int _compute_priority(unsigned sched_ctx)
 	int worker;
 
 	struct starpu_sched_ctx_iterator it;
-
 	workers->init_iterator(workers, &it);
+
 	while(workers->has_next(workers, &it))
 	{
 		worker = workers->get_next(workers, &it);
@@ -117,8 +117,8 @@ int* sc_hypervisor_get_idlest_workers(unsigned sched_ctx, int *nworkers, enum st
 	int considered = 0;
 
 	struct starpu_sched_ctx_iterator it;
-
 	workers->init_iterator(workers, &it);
+
 	for(index = 0; index < *nworkers; index++)
 	{
 		while(workers->has_next(workers, &it))
@@ -183,7 +183,6 @@ int sc_hypervisor_get_movable_nworkers(struct sc_hypervisor_policy_config *confi
 	int worker;
 
 	struct starpu_sched_ctx_iterator it;
-
 	workers->init_iterator(workers, &it);
 	while(workers->has_next(workers, &it))
 	{
@@ -409,6 +408,9 @@ void sc_hypervisor_get_tasks_times(int nw, int nt, double times[nw][nt], int *wo
 {
         struct sc_hypervisor_policy_task_pool *tp;
         int w, t;
+	for(w = 0; w < nw; w++)
+		for(t = 0; t < nt; t++)
+			times[w][t] = NAN;
         for (w = 0; w < nw; w++)
         {
                 for (t = 0, tp = task_pools; tp; t++, tp = tp->next)
@@ -422,7 +424,6 @@ void sc_hypervisor_get_tasks_times(int nw, int nt, double times[nw][nt], int *wo
 			else
 			{
                                 times[w][t] = (length / 1000.);
-
 				double transfer_time = 0.0;
 				unsigned worker_in_ctx = starpu_sched_ctx_contains_worker(worker, tp->sched_ctx_id);
 				enum starpu_worker_archtype arch = starpu_worker_get_type(worker);
@@ -431,18 +432,21 @@ void sc_hypervisor_get_tasks_times(int nw, int nt, double times[nw][nt], int *wo
 					if(arch == STARPU_CUDA_WORKER)
 					{
 						double transfer_speed = starpu_transfer_bandwidth(STARPU_MAIN_RAM, starpu_worker_get_memory_node(worker));
-						transfer_time +=  (tp->data_size / transfer_speed) / 1000. ;
+						if(transfer_speed > 0.0)
+							transfer_time +=  (tp->data_size / transfer_speed) / 1000. ;
+	
 						double latency = starpu_transfer_latency(STARPU_MAIN_RAM, starpu_worker_get_memory_node(worker));
 						transfer_time += latency/1000.;
-						
-						
+//						transfer_time *=4;
 					}
 					else if(arch == STARPU_CPU_WORKER)
 					{
 						if(!starpu_sched_ctx_contains_type_of_worker(arch, tp->sched_ctx_id))
 						{
 							double transfer_speed = starpu_transfer_bandwidth(starpu_worker_get_memory_node(worker), STARPU_MAIN_RAM);
-							transfer_time += (tp->data_size / transfer_speed) / 1000. ;
+							if(transfer_speed > 0.0)
+								transfer_time += (tp->data_size / transfer_speed) / 1000. ;
+
 							double latency = starpu_transfer_latency(starpu_worker_get_memory_node(worker), STARPU_MAIN_RAM);
 							transfer_time += latency / 1000.;
 						}
@@ -465,7 +469,7 @@ unsigned sc_hypervisor_check_idle(unsigned sched_ctx, int worker)
 	{
 		if(sc_w->idle_time[worker] > config->max_idle[worker])
 		{
-//			printf("w%d/ctx%d: current idle %lf all idle %lf max_idle %lf\n", worker, sched_ctx, idle, idle_time, config->max_idle[worker]);
+//			printf("w%d/ctx%d: current idle %lf  max_idle %lf\n", worker, sched_ctx, sc_w->idle_time[worker], config->max_idle[worker]);
 			return 1;
 		}
 	}
@@ -547,7 +551,8 @@ unsigned sc_hypervisor_check_speed_gap_btw_ctxs(unsigned *sched_ctxs_in, int ns_
 			
 			double ctx_v = sc_hypervisor_get_ctx_speed(sc_w);
 			ctx_v = ctx_v < 0.01 ? 0.0 : ctx_v;
-			if(ctx_v != -1.0 && ((ctx_v < 0.8*optimal_v[i]) || ctx_v > 1.2*optimal_v[i])) 
+			double max_vel = _get_max_speed_gap();
+			if(ctx_v != -1.0 && ((ctx_v < (1-max_vel)*optimal_v[i]) || ctx_v > (1+max_vel)*optimal_v[i])) 
 			{
 				return 1;
 			}

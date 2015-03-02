@@ -33,6 +33,7 @@ struct starpu_sched_policy
 	void (*deinit_sched)(unsigned sched_ctx_id);
 
 	int (*push_task)(struct starpu_task *);
+	double (*simulate_push_task)(struct starpu_task *);
 	void (*push_task_notify)(struct starpu_task *, int workerid, int perf_workerid, unsigned sched_ctx_id);
 	struct starpu_task *(*pop_task)(unsigned sched_ctx_id);
 	struct starpu_task *(*pop_every_task)(unsigned sched_ctx_id);

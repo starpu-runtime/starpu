@@ -224,7 +224,7 @@ void starpu_fxt_stop_profiling()
 
 #endif // STARPU_USE_FXT
 
-void starpu_fxt_trace_user_event(unsigned long code STARPU_ATTRIBUTE_UNUSED)
+void starpu_fxt_trace_user_event(unsigned long code)
 {
 #ifdef STARPU_USE_FXT
 	_STARPU_TRACE_USER_EVENT(code);

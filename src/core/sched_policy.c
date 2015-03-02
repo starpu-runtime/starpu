@@ -351,7 +351,7 @@ int _starpu_push_task(struct _starpu_job *j)
 
 	_STARPU_LOG_IN();
 
-	_starpu_increment_nready_tasks_of_sched_ctx(task->sched_ctx, task->flops);
+	unsigned can_push = _starpu_increment_nready_tasks_of_sched_ctx(task->sched_ctx, task->flops, task);
 	task->status = STARPU_TASK_READY;
 
 #ifdef HAVE_AYUDAME_H
@@ -384,8 +384,11 @@ int _starpu_push_task(struct _starpu_job *j)
 #endif
 			return 0;
 		}
+
 	}
 
+	if(!can_push)
+		return 0;
 	/* in case there is no codelet associated to the task (that's a control
 	 * task), we directly execute its callback and enforce the
 	 * corresponding dependencies */
@@ -657,6 +660,14 @@ static
 struct _starpu_sched_ctx* _get_next_sched_ctx_to_pop_into(struct _starpu_worker *worker)
 {
 	struct _starpu_sched_ctx_list *l = NULL;
+	for (l = worker->sched_ctx_list; l; l = l->next)
+	{
+		if(worker->removed_from_ctx[l->sched_ctx] == 1)
+		{
+			return	_starpu_get_sched_ctx_struct(l->sched_ctx);
+		}
+	}
+
 	unsigned are_2_priorities = 0;
 	for (l = worker->sched_ctx_list; l; l = l->next)
 	{

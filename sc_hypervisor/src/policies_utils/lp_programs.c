@@ -30,6 +30,7 @@ double sc_hypervisor_lp_simulate_distrib_tasks(int ns, int nw, int nt, double w_
 	int t, w, s;
 	glp_prob *lp;
 
+	
 	lp = glp_create_prob();
 	glp_set_prob_name(lp, "StarPU theoretical bound");
 	glp_set_obj_dir(lp, GLP_MAX);
@@ -57,12 +58,12 @@ double sc_hypervisor_lp_simulate_distrib_tasks(int ns, int nw, int nt, double w_
 				char name[32];
 				snprintf(name, sizeof(name), "w%dt%dn", w, t);
 				glp_set_col_name(lp, colnum(w, t), name);
-/* 				if (integer) */
-/*                                 { */
-/*                                         glp_set_col_kind(lp, colnum(w, t), GLP_IV); */
-/* 					glp_set_col_bnds(lp, colnum(w, t), GLP_LO, 0, 0); */
-/*                                 } */
-/* 				else */
+				if (is_integer)
+                                {
+                                        glp_set_col_kind(lp, colnum(w, t), GLP_IV);
+					glp_set_col_bnds(lp, colnum(w, t), GLP_LO, 0, 0);
+                                }
+				else
 					glp_set_col_bnds(lp, colnum(w, t), GLP_LO, 0.0, 0.0);
 			}
 		for(s = 0; s < ns; s++)
@@ -115,7 +116,10 @@ double sc_hypervisor_lp_simulate_distrib_tasks(int ns, int nw, int nt, double w_
 						ia[n] = curr_row_idx+s*nw+w+1;
 						ja[n] = colnum(w, t);
 						if (isnan(times[w][t]))
+						{
+							printf("had to insert huge val \n");
 							ar[n] = 1000000000.;
+						}
 						else
 							ar[n] = times[w][t];
 						n++;
@@ -126,7 +130,12 @@ double sc_hypervisor_lp_simulate_distrib_tasks(int ns, int nw, int nt, double w_
 				ja[n] = nw*nt+s*nw+w+1;
 				ar[n] = (-1) * tmax;
 				n++;
-				glp_set_row_bnds(lp, curr_row_idx+s*nw+w+1, GLP_UP, 0.0, 0.0);
+				if (is_integer)
+                                {
+					glp_set_row_bnds(lp, curr_row_idx+s*nw+w+1, GLP_UP, 0, 0);
+                                }
+                                else
+					glp_set_row_bnds(lp, curr_row_idx+s*nw+w+1, GLP_UP, 0.0, 0.0);
 			}
 		}
 
@@ -184,10 +193,10 @@ double sc_hypervisor_lp_simulate_distrib_tasks(int ns, int nw, int nt, double w_
 	parm.msg_lev = GLP_MSG_OFF;
 	int ret = glp_simplex(lp, &parm);
 
-/* 	char str[50]; */
-/* 	sprintf(str, "outpu_lp_%g", tmax); */
+	/* char str[50]; */
+	/* sprintf(str, "outpu_lp_%g", tmax); */
 
-/* 	glp_print_sol(lp, str); */
+	/* glp_print_sol(lp, str); */
 
 	if (ret)
 	{
@@ -213,12 +222,15 @@ double sc_hypervisor_lp_simulate_distrib_tasks(int ns, int nw, int nt, double w_
                 glp_iocp iocp;
                 glp_init_iocp(&iocp);
                 iocp.msg_lev = GLP_MSG_OFF;
+//		iocp.tm_lim = 1000;
 		glp_intopt(lp, &iocp);
 		int stat = glp_mip_status(lp);
 		/* if we don't have a solution return */
-		if(stat == GLP_NOFEAS)
+		if(stat == GLP_NOFEAS || stat == GLP_ETMLIM || stat == GLP_UNDEF)
 		{
 //			printf("no int sol in tmax = %lf\n", tmax);
+			if(stat == GLP_ETMLIM || stat == GLP_UNDEF)
+				printf("timeout \n");
 			glp_delete_prob(lp);
 			lp = NULL;
 			return 0.0;
@@ -228,12 +240,13 @@ double sc_hypervisor_lp_simulate_distrib_tasks(int ns, int nw, int nt, double w_
 	double res = glp_get_obj_val(lp);
 	for (w = 0; w < nw; w++)
 		for (t = 0; t < nt; t++)
-/* 			if (integer) */
-/* 				tasks[w][t] = (double)glp_mip_col_val(lp, colnum(w, t)); */
-/*                         else */
+			if (is_integer)
+				tasks[w][t] = (double)glp_mip_col_val(lp, colnum(w, t));
+                        else
 				tasks[w][t] = glp_get_col_prim(lp, colnum(w, t));
-	
-//	printf("for tmax %lf\n", tmax);
+
+	/* printf("**********************************************\n"); */
+	/* printf("for tmax %lf\n", tmax); */
 	for(s = 0; s < ns; s++)
 		for(w = 0; w < nw; w++)
 		{
@@ -243,8 +256,8 @@ double sc_hypervisor_lp_simulate_distrib_tasks(int ns, int nw, int nt, double w_
 				w_in_s[s][w] = glp_get_col_prim(lp, nw*nt+s*nw+w+1);
 //			printf("w %d in ctx %d = %lf\n", w, s, w_in_s[s][w]);
 		}
-//	printf("\n");
-
+	/* printf("\n"); */
+	/* printf("**********************************************\n"); */
 	glp_delete_prob(lp);
 	return res;
 }
@@ -286,14 +299,14 @@ double sc_hypervisor_lp_simulate_distrib_flops(int ns, int nw, double v[ns][nw],
 			if (integer)
 			{
 				glp_set_col_kind(lp, n, GLP_IV);
-				if(sc_w->consider_max)
-				{
-					if(config->max_nworkers == 0)
-						glp_set_col_bnds(lp, n, GLP_FX, config->min_nworkers, config->max_nworkers);
-					else
-						glp_set_col_bnds(lp, n, GLP_DB, config->min_nworkers, config->max_nworkers);
-				}
-				else
+				/* if(sc_w->consider_max) */
+				/* { */
+				/* 	if(config->max_nworkers == 0) */
+				/* 		glp_set_col_bnds(lp, n, GLP_FX, config->min_nworkers, config->max_nworkers); */
+				/* 	else */
+				/* 		glp_set_col_bnds(lp, n, GLP_DB, config->min_nworkers, config->max_nworkers); */
+				/* } */
+				/* else */
 				{
 					if(total_nw[w] == 0)
 						glp_set_col_bnds(lp, n, GLP_FX, config->min_nworkers, total_nw[w]);
@@ -303,17 +316,17 @@ double sc_hypervisor_lp_simulate_distrib_flops(int ns, int nw, double v[ns][nw],
 			}
 			else
 			{
-				if(sc_w->consider_max)
-				{
-					if(config->max_nworkers == 0)
-						glp_set_col_bnds(lp, n, GLP_FX, config->min_nworkers*1.0, config->max_nworkers*1.0);
-					else
-						glp_set_col_bnds(lp, n, GLP_DB, config->min_nworkers*1.0, config->max_nworkers*1.0);
-#ifdef STARPU_SC_HYPERVISOR_DEBUG
-					printf("%d****************consider max %lf in lp\n", sched_ctxs[s], config->max_nworkers*1.0);
-#endif
-				}
-				else
+/* 				if(sc_w->consider_max) */
+/* 				{ */
+/* 					if(config->max_nworkers == 0) */
+/* 						glp_set_col_bnds(lp, n, GLP_FX, config->min_nworkers*1.0, config->max_nworkers*1.0); */
+/* 					else */
+/* 						glp_set_col_bnds(lp, n, GLP_DB, config->min_nworkers*1.0, config->max_nworkers*1.0); */
+/* #ifdef STARPU_SC_HYPERVISOR_DEBUG */
+/* 					printf("%d****************consider max %lf in lp\n", sched_ctxs[s], config->max_nworkers*1.0); */
+/* #endif */
+/* 				} */
+/* 				else */
 				{
 					if(total_nw[w] == 0)
 						glp_set_col_bnds(lp, n, GLP_FX, config->min_nworkers*1.0, total_nw[w]*1.0);
@@ -418,27 +431,13 @@ double sc_hypervisor_lp_simulate_distrib_flops(int ns, int nw, double v[ns][nw],
 //		printf("ia[%d]=%d ja[%d]=%d ar[%d]=%lf\n", n, ia[n], n, ja[n], n, ar[n]);
 		n++;
 
-//		if(last_vmax == -1.0)
-		{
-			/*sum(all gpus) = 3*/
-			if(w == 0)
-				glp_set_row_bnds(lp, ns+w+1, GLP_UP, 0, total_nw[0]);
-			
-			/*sum(all cpus) = 9*/
-			if(w == 1)
-				glp_set_row_bnds(lp, ns+w+1, GLP_UP, 0, total_nw[1]);
-
-		}
-/* 		else */
-/* 		{ */
-/* 			/\*sum(all gpus) = 3*\/ */
-/* 			if(w == 0) */
-/* 				glp_set_row_bnds(lp, ns+w+1, GLP_FX, total_nw[0], total_nw[0]); */
-			
-/* 			/\*sum(all cpus) = 9*\/ */
-/* 			if(w == 1) */
-/* 				glp_set_row_bnds(lp, ns+w+1, GLP_FX, total_nw[1], total_nw[1]); */
-/* 		} */
+		/*sum(all gpus) = 3*/
+		if(w == 0)
+			glp_set_row_bnds(lp, ns+w+1, GLP_FX, total_nw[0], total_nw[0]);
+		
+		/*sum(all cpus) = 9*/
+		if(w == 1)
+			glp_set_row_bnds(lp, ns+w+1, GLP_FX, total_nw[1], total_nw[1]);
 	}
 
 	STARPU_ASSERT(n == ne);

@@ -69,8 +69,7 @@ void sc_hypervisor_policy_remove_task_from_pool(struct starpu_task *task, uint32
 				free(tp);
 				tp = NULL;
 				
-				if(next_tp)
-					*task_pools = next_tp;
+				*task_pools = next_tp;
 				
 			}
 			else

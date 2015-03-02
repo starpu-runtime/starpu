@@ -144,6 +144,7 @@ void sc_hypervisor_get_leaves(unsigned *sched_ctxs, int nsched_ctxs, unsigned *l
 double sc_hypervisor_get_nready_flops_of_all_sons_of_sched_ctx(unsigned sched_ctx);
 
 void sc_hypervisor_print_overhead();
+
 #ifdef __cplusplus
 }
 #endif

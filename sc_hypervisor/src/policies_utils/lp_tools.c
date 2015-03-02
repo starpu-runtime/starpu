@@ -41,7 +41,7 @@ double sc_hypervisor_lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_work
 		sc_w = sc_hypervisor_get_wrapper(sched_ctxs[i]);
 		int w;
 		for(w = 0; w < nw; w++)
-			v[i][w] = 5.0;//sc_hypervisor_get_speed(sc_w, sc_hypervisor_get_arch_for_index(w, tw)); 
+			v[i][w] = sc_hypervisor_get_speed(sc_w, sc_hypervisor_get_arch_for_index(w, tw)); 
 
 		double ready_flops = starpu_sched_ctx_get_nready_flops(sc_w->sched_ctx);
 		unsigned nhierarchy_levels = sc_hypervisor_get_nhierarchy_levels();
@@ -624,6 +624,7 @@ void sc_hypervisor_lp_redistribute_resources_in_ctxs(int ns, int nw, int res_rou
 				
 		_lp_find_workers_to_remove(nw, tmp_nw_move, tmp_workers_move, 
 					   &nw_move, workers_move);
+
 		if(nw_move > 0)
 			sc_hypervisor_remove_workers_from_sched_ctx(workers_move, nw_move, sched_ctxs[s], !(_sc_hypervisor_use_lazy_resize()));
 	}
@@ -635,8 +636,8 @@ int _lp_get_unwanted_workers(int *workers_add, int nw_add, unsigned sched_ctx, i
 	int worker;
 
 	struct starpu_sched_ctx_iterator it;
-
 	workers->init_iterator(workers, &it);
+
 	while(workers->has_next(workers, &it))
 	{
 		worker = workers->get_next(workers, &it);

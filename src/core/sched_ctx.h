@@ -77,6 +77,12 @@ struct _starpu_sched_ctx
 	/* mutext protecting empty_ctx_tasks list */
 	starpu_pthread_mutex_t empty_ctx_mutex;
 
+	/*ready tasks that couldn't be pushed because the the window of tasks was already full*/
+	struct starpu_task_list waiting_tasks;
+
+	/* mutext protecting waiting_tasks list */
+	starpu_pthread_mutex_t waiting_tasks_mutex;
+
 	/* min CPUs to execute*/
 	int min_ncpus;
 
@@ -184,7 +190,7 @@ int _starpu_get_nsubmitted_tasks_of_sched_ctx(unsigned sched_ctx_id);
 int _starpu_check_nsubmitted_tasks_of_sched_ctx(unsigned sched_ctx_id);
 
 void _starpu_decrement_nready_tasks_of_sched_ctx(unsigned sched_ctx_id, double ready_flops);
-void _starpu_increment_nready_tasks_of_sched_ctx(unsigned sched_ctx_id, double ready_flops);
+unsigned _starpu_increment_nready_tasks_of_sched_ctx(unsigned sched_ctx_id, double ready_flops, struct starpu_task *task);
 int _starpu_wait_for_no_ready_of_sched_ctx(unsigned sched_ctx_id);
 
 /* Return the corresponding index of the workerid in the ctx table */

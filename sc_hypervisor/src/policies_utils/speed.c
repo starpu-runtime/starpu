@@ -127,13 +127,12 @@ double sc_hypervisor_get_speed_per_worker_type(struct sc_hypervisor_wrapper* sc_
 		int worker;
 		
 		struct starpu_sched_ctx_iterator it;
+		workers->init_iterator(workers, &it);
 		
 		double speed = 0.0;
 		unsigned nworkers = 0;
 		double all_workers_flops = 0.0;
 		double max_workers_idle_time = 0.0;
-
-		workers->init_iterator(workers, &it);
 		while(workers->has_next(workers, &it))
 		{
 			worker = workers->get_next(workers, &it);
@@ -168,6 +167,7 @@ double sc_hypervisor_get_speed_per_worker_type(struct sc_hypervisor_wrapper* sc_
 		
 		if(speed != -1.0)
 		{
+
 			/* if ref_speed started being corrupted bc of the old bad distribution
 			   register only the last frame otherwise make the average with the speed 
 			   behavior of the application until now */
@@ -233,8 +233,8 @@ double sc_hypervisor_get_avg_speed(enum starpu_worker_archtype arch)
 		int worker;
 		
 		struct starpu_sched_ctx_iterator it;
-
 		workers->init_iterator(workers, &it);
+
 		while(workers->has_next(workers, &it))
 		{
 			worker = workers->get_next(workers, &it);
