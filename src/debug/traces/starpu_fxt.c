@@ -444,7 +444,7 @@ static void handle_new_mem_node(struct fxt_ev_64 *ev, struct starpu_fxt_options 
 
 		if (!options->no_bus)
 #ifdef STARPU_HAVE_POTI
-			poti_SetVariable(get_event_time_stamp(ev, options), new_memnode_container_alias, "bw", get_event_time_stamp(ev, options));
+			poti_SetVariable(get_event_time_stamp(ev, options), new_memmanager_container_alias, "bw", get_event_time_stamp(ev, options));
 #else
 			fprintf(out_paje_file, "13	%.9f	%smm%"PRIu64"	bw	0.0\n", get_event_time_stamp(ev, options), prefix, ev->param[0]);
 #endif
