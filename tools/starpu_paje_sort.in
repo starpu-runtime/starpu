@@ -16,20 +16,13 @@
 # 
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
-# Script for giving statistical analysis of the paje trace
+# Script for sorting paje traces
 
 set -e # fail fast
 
 # File names
 basename="$PWD"
-outputfile="starpu_paje_state_stats.csv"
-r_script="$(dirname $(which $0))/starpu_paje_state_stats.R"
-r_input=""
 
-# Command line arguments
-range="0:-1"
-name="All"
-verbose=0
 inputfiles=""
 
 help_script()
@@ -40,16 +33,11 @@ Give statistical analysis of the paje trace
 $0 [ options ] paje.trace [paje.trace2 ...]
 
 Options:
-   -r      To fix range x1:x2 ("-1" for infinity)
-   -n      To choose a certain state
-   -v      Print output to command line
    -h      Show this message
 
 Examples:
 
-$0 example.native.trace
-
-$0 -r 100:300 -n FetchingInput -v example.native.trace example.simgrid.trace
+$0 example.trace
 
 Report bugs to <@PACKAGE_BUGREPORT@>
 EOF
@@ -65,17 +53,8 @@ if [ "$1" = "-h" ] || [ "$1" = "--help" ] || [ "$1" = "" ] ; then
     exit 0
 fi
 
-while getopts "r:n:vh" opt; do
+while getopts "h" opt; do
   case $opt in
-     r)
-      range="$OPTARG"
-      ;;
-     n)
-      name="$OPTARG"
-      ;;
-     v)
-      verbose=1
-      ;;
      h)
       help_script
       exit 4
@@ -97,10 +76,6 @@ if [[ $# < 1 ]]; then
     exit 2
 fi
 
-# Getting range
-range1=$(eval echo $range | cut -d: -f1)
-range2=$(eval echo $range | cut -d: -f2)
-
 #####################################
 # Transforming input files into .csv
 for file in $inputfiles; do
@@ -120,26 +95,10 @@ for file in $inputfiles; do
     else
 	cp endSorted.trace endSorted2.trace
     fi
-    cat start.trace endSorted2.trace > outputSorted.trace
-
-# Transferring to .csv
-    pj_dump -n outputSorted.trace > $file.csv
-    perl -i -ne 'print if /^State/' $file.csv
-
-    r_input=$(eval echo "$r_input $file.csv")
+    cat start.trace endSorted2.trace > $file
 done
 
-#####################################
-# Running R file to get actual results
-Rscript $r_script $range1 $range2 $name $outputfile $r_input
-
-# If verbose then write results to stdout
-if [[ $verbose == 1 ]]; then
-    column -s, -t $outputfile
-fi
-
 # Cleanup: delete temporary files
-rm -f outputSorted.trace
 rm -f start.trace
 rm -f end.trace
 rm -f endSorted.trace

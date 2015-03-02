@@ -176,6 +176,7 @@ Small features:
     numbers.
   * New function starpu_mpi_cache_set() to enable or disable the
     communication cache at runtime
+  * Add starpu_paje_sort which sorts Pajé traces.
 
 Changes:
   * Fix complexity of implicit task/data dependency, from quadratic to linear.

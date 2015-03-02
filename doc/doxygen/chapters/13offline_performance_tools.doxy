@@ -376,6 +376,14 @@ $ starpu_paje_summary native.trace simgrid.trace
 it includes gantt charts, execution summaries, as well as state duration charts
 and time distribution histograms.
 
+Other external Pajé analysis tools can be used on these traces, one just needs
+to sort the traces by timestamp order (which not guaranteed to make recording
+more efficient):
+
+\verbatim
+$ starpu_paje_sort paje.trace
+\endverbatim
+
 \section TheoreticalLowerBoundOnExecutionTime Theoretical Lower Bound On Execution Time
 
 StarPU can record a trace of what tasks are needed to complete the
