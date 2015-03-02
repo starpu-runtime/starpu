@@ -2578,11 +2578,8 @@ AC_OUTPUT([
 	tools/starpu_paje_draw_histogram
 	tools/starpu_paje_state_stats
 	tools/starpu_paje_summary
-<<<<<<< .working
-	tools/starpu_smpirun
-=======
 	tools/starpu_paje_sort
->>>>>>> .merge-right.r14672
+	tools/starpu_smpirun
 	socl/Makefile
 	socl/src/Makefile
 	socl/examples/Makefile
