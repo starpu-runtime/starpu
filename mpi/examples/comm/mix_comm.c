@@ -83,20 +83,20 @@ int main(int argc, char **argv)
 	if (rank == 0)
 	{
 		int value = 90;
-		starpu_variable_data_register(&data[2], STARPU_MAIN_RAM, (uintptr_t)&value, sizeof(unsigned));
+		starpu_variable_data_register(&data[2], STARPU_MAIN_RAM, (uintptr_t)&value, sizeof(int));
 	}
 	else
-		starpu_variable_data_register(&data[2], -1, (uintptr_t)NULL, sizeof(unsigned));
+		starpu_variable_data_register(&data[2], -1, (uintptr_t)NULL, sizeof(int));
 	starpu_mpi_data_register_comm(data[2], 44, 0, MPI_COMM_WORLD);
 
 	if (newrank == 0)
 	{
-		starpu_variable_data_register(&data[0], STARPU_MAIN_RAM, (uintptr_t)&rank, sizeof(unsigned));
-		starpu_variable_data_register(&data[1], STARPU_MAIN_RAM, (uintptr_t)&rank, sizeof(unsigned));
+		starpu_variable_data_register(&data[0], STARPU_MAIN_RAM, (uintptr_t)&rank, sizeof(int));
+		starpu_variable_data_register(&data[1], STARPU_MAIN_RAM, (uintptr_t)&rank, sizeof(int));
 		starpu_mpi_data_register_comm(data[1], 22, 0, newcomm);
 	}
 	else
-		starpu_variable_data_register(&data[0], -1, (uintptr_t)NULL, sizeof(unsigned));
+		starpu_variable_data_register(&data[0], -1, (uintptr_t)NULL, sizeof(int));
 	starpu_mpi_data_register_comm(data[0], 12, 0, newcomm);
 
 	if (newrank == 0)
@@ -118,7 +118,7 @@ int main(int argc, char **argv)
 		FPRINTF(stderr, "[%d][%d] received %d\n", rank, newrank, *xx);
 		STARPU_ASSERT_MSG(x==*xx, "Received value %d is incorrect (should be %d)\n", *xx, x);
 
-		starpu_variable_data_register(&data[1], -1, (uintptr_t)NULL, sizeof(unsigned));
+		starpu_variable_data_register(&data[1], -1, (uintptr_t)NULL, sizeof(int));
 		starpu_mpi_data_register_comm(data[1], 22, 0, newcomm);
 		starpu_mpi_recv(data[0], 0, 22, newcomm, NULL);
 		starpu_data_acquire(data[0], STARPU_RW);
@@ -145,12 +145,12 @@ int main(int argc, char **argv)
 	else
 	{
 		int next = (rank == size-1) ? 0 : rank+1;
-		FPRINTF_MPI(stderr, "receiving from %d and sending to %d\n", rank-1, next);
 		starpu_mpi_recv(data[2], rank-1, 44, MPI_COMM_WORLD, NULL);
 		starpu_data_acquire(data[2], STARPU_RW);
 		int *xx = (int *)starpu_variable_get_local_ptr(data[2]);
-		starpu_data_release(data[2]);
+		FPRINTF_MPI(stderr, "receiving %d from %d and sending %d to %d\n", *xx, rank-1, *xx+2, next);
 		*xx = *xx + 2;
+		starpu_data_release(data[2]);
 		starpu_mpi_send(data[2], next, 44, MPI_COMM_WORLD);
 	}
 
