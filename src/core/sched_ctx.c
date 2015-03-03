@@ -961,7 +961,7 @@ void _starpu_fetch_tasks_from_empty_ctx_list(struct _starpu_sched_ctx *sched_ctx
 }
 unsigned _starpu_can_push_task(struct _starpu_sched_ctx *sched_ctx, struct starpu_task *task)
 {
-	if(sched_ctx->sched_policy->simulate_push_task)
+	if(sched_ctx->sched_policy && sched_ctx->sched_policy->simulate_push_task)
 	{
 		const char *env_window_size = getenv("STARPU_WINDOW_TIME_SIZE");
 		if(!env_window_size) return 1;
