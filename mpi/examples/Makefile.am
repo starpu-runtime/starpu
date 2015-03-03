@@ -28,7 +28,7 @@ endif
 
 if STARPU_HAVE_AM111
 TESTS_ENVIRONMENT	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
-LOG_COMPILER	 	=	$(MPIEXEC) -np 2 $(LOADER_BIN)
+LOG_COMPILER	 	=	$(MPIEXEC) -np 4 $(LOADER_BIN)
 else
 TESTS_ENVIRONMENT 	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(MPIEXEC) -np 4
 endif
