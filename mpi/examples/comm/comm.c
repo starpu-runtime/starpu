@@ -103,14 +103,18 @@ int main(int argc, char **argv)
 		int *xx;
 
 		starpu_mpi_recv(data[0], 0, 12, newcomm, NULL);
+		starpu_data_acquire(data[0], STARPU_RW);
 		xx = (int *)starpu_variable_get_local_ptr(data[0]);
+		starpu_data_release(data[0]);
 		FPRINTF(stderr, "[%d][%d] received %d\n", rank, newrank, *xx);
 		STARPU_ASSERT_MSG(x==*xx, "Received value %d is incorrect (should be %d)\n", *xx, x);
 
 		starpu_variable_data_register(&data[1], -1, (uintptr_t)NULL, sizeof(unsigned));
 		starpu_mpi_data_register_comm(data[1], 22, 0, newcomm);
 		starpu_mpi_recv(data[0], 0, 22, newcomm, NULL);
+		starpu_data_acquire(data[0], STARPU_RW);
 		xx = (int *)starpu_variable_get_local_ptr(data[0]);
+		starpu_data_release(data[0]);
 		FPRINTF(stderr, "[%d][%d] received %d\n", rank, newrank, *xx);
 		STARPU_ASSERT_MSG(x==*xx, "Received value %d is incorrect (should be %d)\n", *xx, x);
 	}
