@@ -28,13 +28,13 @@
 extern "C" {
 #endif
 
-void _starpu_mpi_early_request_init(int world_size);
-void _starpu_mpi_early_request_free();
-int _starpu_mpi_early_request_count();
-void _starpu_mpi_early_request_check_termination();
+void _starpu_mpi_early_request_init(void);
+void _starpu_mpi_early_request_free(void);
+int _starpu_mpi_early_request_count(void);
+void _starpu_mpi_early_request_check_termination(void);
 
 void _starpu_mpi_early_request_add(struct _starpu_mpi_req *req);
-struct _starpu_mpi_req* _starpu_mpi_early_request_find(int data_tag, int source);
+struct _starpu_mpi_req* _starpu_mpi_early_request_find(int data_tag, int source, MPI_Comm comm);
 void _starpu_mpi_early_request_delete(struct _starpu_mpi_req *req);
 
 #ifdef __cplusplus

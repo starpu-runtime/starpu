@@ -102,7 +102,7 @@ int _starpu_mpi_data_release_tag(starpu_data_handle_t handle)
 	if (tag != -1)
 	{
 		_starpu_spin_lock(&registered_tag_handles_lock);
-		HASH_FIND_INT(registered_tag_handles, &(((struct _starpu_mpi_data *)(handle->mpi_data))->tag), tag_entry);
+		HASH_FIND_INT(registered_tag_handles, &(((struct _starpu_mpi_node_tag *)(handle->mpi_data))->data_tag), tag_entry);
 		STARPU_ASSERT_MSG((tag_entry != NULL),"Data handle %p with tag %d isn't in the hashmap !",handle,tag);
 
 		HASH_DEL(registered_tag_handles, tag_entry);

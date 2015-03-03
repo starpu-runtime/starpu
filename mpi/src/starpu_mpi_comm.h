@@ -14,29 +14,26 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#ifndef __STARPU_MPI_SYNC_DATA_H__
-#define __STARPU_MPI_SYNC_DATA_H__
+#ifndef __STARPU_MPI_COMM_H__
+#define __STARPU_MPI_COMM_H__
 
 #include <starpu.h>
 #include <stdlib.h>
 #include <mpi.h>
-#include <common/config.h>
-#include <common/list.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void _starpu_mpi_sync_data_init(void);
-void _starpu_mpi_sync_data_check_termination(void);
-void _starpu_mpi_sync_data_free(void);
-
-struct _starpu_mpi_req *_starpu_mpi_sync_data_find(int data_tag, int source, MPI_Comm comm);
-void _starpu_mpi_sync_data_add(struct _starpu_mpi_req *req);
-int _starpu_mpi_sync_data_count();
+void _starpu_mpi_comm_init(MPI_Comm comm);
+void _starpu_mpi_comm_free();
+void _starpu_mpi_comm_register(MPI_Comm comm);
+void _starpu_mpi_comm_post_recv();
+int _starpu_mpi_comm_test_recv(MPI_Status *status, struct _starpu_mpi_envelope **envelope, MPI_Comm *comm);
+void _starpu_mpi_comm_cancel_recv();
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __STARPU_MPI_SYNC_DATA_H__ */
+#endif // __STARPU_MPI_COMM_H__
