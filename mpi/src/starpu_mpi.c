@@ -85,7 +85,7 @@ extern int smpi_simulated_main_(int argc, char *argv[]);
 
 static void _starpu_mpi_request_init(struct _starpu_mpi_req **req)
 {
-	*req = malloc(sizeof(struct _starpu_mpi_req));
+	*req = calloc(1, sizeof(struct _starpu_mpi_req));
 	STARPU_MPI_ASSERT_MSG(*req, "Invalid request");
 
 	/* Initialize the request structure */
