@@ -81,7 +81,7 @@ int do_test(int rank, int sdetached, int rdetached)
 			if (rdetached)
 				starpu_mpi_irecv_detached(data[i], 1, starpu_data_get_tag(data[i]), MPI_COMM_WORLD, callback, &received);
 			else
-				starpu_mpi_recv(data[i], 1, starpu_data_get_tag(data[i]), MPI_COMM_WORLD, NULL);
+				starpu_mpi_recv(data[i], 1, starpu_data_get_tag(data[i]), MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 		}
 
 		if (rdetached)
