@@ -47,6 +47,7 @@ int main(int argc, char **argv)
 	int rank, newrank;
 	int ret;
 	starpu_data_handle_t data[3];
+	int value = 90;
 
         MPI_Init(&argc, &argv);
         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -82,7 +83,6 @@ int main(int argc, char **argv)
 
 	if (rank == 0)
 	{
-		int value = 90;
 		starpu_variable_data_register(&data[2], STARPU_MAIN_RAM, (uintptr_t)&value, sizeof(int));
 	}
 	else
@@ -131,16 +131,16 @@ int main(int argc, char **argv)
 	if (rank == 0)
 	{
 		starpu_data_acquire(data[2], STARPU_RW);
-		int value = *((int *)starpu_variable_get_local_ptr(data[2]));
+		int rvalue = *((int *)starpu_variable_get_local_ptr(data[2]));
 		starpu_data_release(data[2]);
-		FPRINTF_MPI(stderr, "sending value %d to %d and receiving from %d\n", value, 1, size-1);
+		FPRINTF_MPI(stderr, "sending value %d to %d and receiving from %d\n", rvalue, 1, size-1);
 		starpu_mpi_send(data[2], 1, 44, MPI_COMM_WORLD);
 		starpu_mpi_recv(data[2], size-1, 44, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 		starpu_data_acquire(data[2], STARPU_RW);
 		int *xx = (int *)starpu_variable_get_local_ptr(data[2]);
 		starpu_data_release(data[2]);
 		FPRINTF_MPI(stderr, "Value back is %d\n", *xx);
-		STARPU_ASSERT_MSG(*xx == value + (2*(size-1)), "Received value %d is incorrect (should be %d)\n", *xx, value + (2*(size-1)));
+		STARPU_ASSERT_MSG(*xx == rvalue + (2*(size-1)), "Received value %d is incorrect (should be %d)\n", *xx, rvalue + (2*(size-1)));
 	}
 	else
 	{
