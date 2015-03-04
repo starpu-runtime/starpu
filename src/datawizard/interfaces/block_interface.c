@@ -363,7 +363,7 @@ static int copy_cuda_common(void *src_interface, unsigned src_node STARPU_ATTRIB
 	else
 	{
 		/* Default case: we transfer all blocks one by one: nz transfers */
-		/* TODO: use cudaMemcpy3D now that it works */
+		/* TODO: use cudaMemcpy3D now that it works (except on cuda 4.2) */
 		unsigned layer;
 		for (layer = 0; layer < src_block->nz; layer++)
 		{
@@ -434,7 +434,7 @@ static int copy_cuda_async_common(void *src_interface, unsigned src_node STARPU_
 	else
 	{
 		/* Default case: we transfer all blocks one by one: nz 2D transfers */
-		/* TODO: use cudaMemcpy3D now that it works */
+		/* TODO: use cudaMemcpy3D now that it works (except on cuda 4.2) */
 		unsigned layer;
 		for (layer = 0; layer < src_block->nz; layer++)
 		{
