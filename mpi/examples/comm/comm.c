@@ -134,6 +134,7 @@ int main(int argc, char **argv)
 
 	starpu_mpi_shutdown();
 	starpu_shutdown();
+	MPI_Comm_free(&newcomm);
         MPI_Finalize();
 	return 0;
 }
