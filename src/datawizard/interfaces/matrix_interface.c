@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2014  Université de Bordeaux
+ * Copyright (C) 2010-2015  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -27,13 +27,21 @@
 #include <drivers/scc/driver_scc_source.h>
 #include <drivers/mic/driver_mic_source.h>
 
+/* At least CUDA 4.2 still didn't have working memcpy3D */
+#if CUDART_VERSION < 5000
+#define BUGGED_MEMCPY3D
+#endif
+
+static int copy_ram_to_ram(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED);
 #ifdef STARPU_USE_CUDA
 static int copy_ram_to_cuda(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED);
 static int copy_cuda_to_ram(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED);
 static int copy_cuda_to_cuda(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED);
 static int copy_ram_to_cuda_async(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, cudaStream_t stream);
 static int copy_cuda_to_ram_async(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, cudaStream_t stream);
+#ifndef BUGGED_MEMCPY3D
 static int copy_cuda_to_cuda_async(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, cudaStream_t stream);
+#endif
 #endif
 #ifdef STARPU_USE_OPENCL
 static int copy_ram_to_opencl(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED);
@@ -53,11 +61,15 @@ static const struct starpu_data_copy_methods matrix_copy_data_methods_s =
 	.ram_to_cuda_async = copy_ram_to_cuda_async,
 	.cuda_to_ram_async = copy_cuda_to_ram_async,
 	.cuda_to_cuda = copy_cuda_to_cuda,
+#ifndef BUGGED_MEMCPY3D
 	.cuda_to_cuda_async = copy_cuda_to_cuda_async,
+#endif
 #else
 #ifdef STARPU_SIMGRID
+#ifndef BUGGED_MEMCPY3D
 	/* Enable GPU-GPU transfers in simgrid */
 	.cuda_to_cuda_async = (void *)1,
+#endif
 #endif
 #endif
 #ifdef STARPU_USE_OPENCL
@@ -396,6 +408,7 @@ static int copy_cuda_common(void *src_interface, unsigned src_node STARPU_ATTRIB
 	return 0;
 }
 
+#ifndef BUGGED_MEMCPY3D
 static int copy_cuda_peer(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, int is_async, cudaStream_t stream)
 {
 #ifdef HAVE_CUDA_MEMCPY_PEER
@@ -434,9 +447,10 @@ static int copy_cuda_peer(void *src_interface, unsigned src_node STARPU_ATTRIBUT
 
 	return 0;
 #else
-	STARPU_ABORT_MSG("CUDA memcpy peer not available, but core triggered one ?!");
+	STARPU_ABORT_MSG("CUDA memcpy 3D peer not available, but core triggered one ?!");
 #endif
 }
+#endif
 
 static int copy_cuda_to_ram(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED)
 {
@@ -453,7 +467,11 @@ static int copy_cuda_to_cuda(void *src_interface, unsigned src_node STARPU_ATTRI
 	if (src_node == dst_node)
 		return copy_cuda_common(src_interface, src_node, dst_interface, dst_node, cudaMemcpyDeviceToDevice, 0, 0);
 	else
+#ifdef BUGGED_MEMCPY3D
+		STARPU_ABORT_MSG("CUDA memcpy 3D peer not available, but core triggered one?!");
+#else
 		return copy_cuda_peer(src_interface, src_node, dst_interface, dst_node, 0, 0);
+#endif
 }
 
 static int copy_cuda_to_ram_async(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, cudaStream_t stream)
@@ -466,6 +484,7 @@ static int copy_ram_to_cuda_async(void *src_interface, unsigned src_node STARPU_
 	return copy_cuda_common(src_interface, src_node, dst_interface, dst_node, cudaMemcpyHostToDevice, 1, stream);
 }
 
+#ifndef BUGGED_MEMCPY3D
 static int copy_cuda_to_cuda_async(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, cudaStream_t stream)
 {
 	if (src_node == dst_node)
@@ -473,6 +492,7 @@ static int copy_cuda_to_cuda_async(void *src_interface, unsigned src_node STARPU
 	else
 		return copy_cuda_peer(src_interface, src_node, dst_interface, dst_node, 1, stream);
 }
+#endif
 #endif // STARPU_USE_CUDA
 
 #ifdef STARPU_USE_OPENCL
