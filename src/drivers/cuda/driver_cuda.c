@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2014  Université de Bordeaux
+ * Copyright (C) 2009-2015  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
@@ -298,7 +298,6 @@ static void init_context(unsigned devid)
 
 static void deinit_context(int workerid)
 {
-	cudaError_t cures;
 	int devid = starpu_worker_get_devid(workerid);
 	int i;
 
