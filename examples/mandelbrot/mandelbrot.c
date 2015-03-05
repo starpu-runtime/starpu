@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011, 2014  Université de Bordeaux
+ * Copyright (C) 2010, 2011, 2014-2015  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -511,7 +511,6 @@ int main(int argc, char **argv)
 
 	while (niter-- != 0)
 	{
-		int ret;
 		double stepX = (rightX - leftX)/width;
 		double stepY = (topY - bottomY)/height;
 
