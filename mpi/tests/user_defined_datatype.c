@@ -106,12 +106,12 @@ int main(int argc, char **argv)
 			{
 				for(i=0 ; i<ELEMENTS; i++)
 				{
-					foo[i] = 8.0;
-					real[i][0] = 0.0;
-					real[i][1] = 0.0;
-					imaginary[i][0] = 0.0;
-					imaginary[i][1] = 0.0;
-					values[i] = 7;
+					foo[i] = -1.0;
+					real[i][0] = -1.0;
+					real[i][1] = -1.0;
+					imaginary[i][0] = -1.0;
+					imaginary[i][1] = -1.0;
+					values[i] = -1;
 				}
 			}
 			if (rank == 1)
@@ -137,13 +137,14 @@ int main(int argc, char **argv)
 			f(handle_complex, ELEMENTS, rank, 2*ELEMENTS);
 			f(handle_values, ELEMENTS, rank, 4*ELEMENTS);
 
+			starpu_task_wait_for_all();
+
 			for(i=0 ; i<ELEMENTS ; i++)
 			{
 				starpu_data_unregister(handle_complex[i]);
 				starpu_data_unregister(handle_values[i]);
 				starpu_data_unregister(handle_vars[i]);
 			}
-			starpu_task_wait_for_all();
 
 			if (rank == 0)
 			{
@@ -151,40 +152,26 @@ int main(int argc, char **argv)
 				{
 					int j;
 					compare = (foo[i] == foo_compare);
-					if (compare == 0)
-					{
-						FPRINTF_MPI(stderr, "ERROR. foo[%d] == %f != %f\n", i, foo[i], foo_compare);
-						goto end;
-					}
+					FPRINTF_MPI(stderr, "%s. foo[%d] = %f %s %f\n", compare==0?"ERROR":"SUCCESS", i, foo[i], compare==0?"!=":"==", foo_compare);
+
 					compare = (values[i] == value_compare);
-					if (compare == 0)
-					{
-						FPRINTF_MPI(stderr, "ERROR. value[%d] == %d != %d\n", i, values[i], value_compare);
-						goto end;
-					}
+					FPRINTF_MPI(stderr, "%s. value[%d] = %d %s %d\n", compare==0?"ERROR":"SUCCESS", i, values[i], compare==0?"!=":"==", value_compare);
+
 					for(j=0 ; j<2 ; j++)
 					{
 						compare = (real[i][j] == real_compare[j]);
-						if (compare == 0)
-						{
-							FPRINTF_MPI(stderr, "ERROR. real[%d][%d] == %f != %f\n", i, j, real[i][j], real_compare[j]);
-							goto end;
-						}
+						FPRINTF_MPI(stderr, "%s. real[%d][%d] = %f %s %f\n", compare==0?"ERROR":"SUCCESS", i, j, real[i][j], compare==0?"!=":"==", real_compare[j]);
 					}
 					for(j=0 ; j<2 ; j++)
 					{
 						compare = (imaginary[i][j] == imaginary_compare[j]);
-						if (compare == 0)
-						{
-							FPRINTF_MPI(stderr, "ERROR. imaginary[%d][%d] == %f != %f\n", i, j, imaginary[i][j], imaginary_compare[j]);
-							goto end;
-						}
+						FPRINTF_MPI(stderr, "%s. imaginary[%d][%d] = %f %s %f\n", compare==0?"ERROR":"SUCCESS", i, j, imaginary[i][j], compare==0?"!=":"==", imaginary_compare[j]);
 					}
 				}
 			}
 		}
 	}
-end:
+
 	starpu_mpi_shutdown();
 	starpu_shutdown();
 
