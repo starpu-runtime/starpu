@@ -82,12 +82,12 @@ int main(int argc, char **argv)
 
 	if (newrank == 0)
 	{
-		starpu_variable_data_register(&data[0], STARPU_MAIN_RAM, (uintptr_t)&rank, sizeof(unsigned));
-		starpu_variable_data_register(&data[1], STARPU_MAIN_RAM, (uintptr_t)&rank, sizeof(unsigned));
+		starpu_variable_data_register(&data[0], STARPU_MAIN_RAM, (uintptr_t)&rank, sizeof(int));
+		starpu_variable_data_register(&data[1], STARPU_MAIN_RAM, (uintptr_t)&rank, sizeof(int));
 		starpu_mpi_data_register_comm(data[1], 22, 0, newcomm);
 	}
 	else
-		starpu_variable_data_register(&data[0], -1, (uintptr_t)NULL, sizeof(unsigned));
+		starpu_variable_data_register(&data[0], -1, (uintptr_t)NULL, sizeof(int));
 	starpu_mpi_data_register_comm(data[0], 12, 0, newcomm);
 
 	if (newrank == 0)
@@ -109,7 +109,7 @@ int main(int argc, char **argv)
 		FPRINTF(stderr, "[%d][%d] received %d\n", rank, newrank, *xx);
 		STARPU_ASSERT_MSG(x==*xx, "Received value %d is incorrect (should be %d)\n", *xx, x);
 
-		starpu_variable_data_register(&data[1], -1, (uintptr_t)NULL, sizeof(unsigned));
+		starpu_variable_data_register(&data[1], -1, (uintptr_t)NULL, sizeof(int));
 		starpu_mpi_data_register_comm(data[1], 22, 0, newcomm);
 		starpu_mpi_recv(data[0], 0, 22, newcomm, NULL);
 		starpu_data_acquire(data[0], STARPU_RW);
