@@ -27,7 +27,7 @@ loader_SOURCES		=	../../tests/loader.c
 endif
 
 if STARPU_QUICK_CHECK
-MPI			=	$(MPIEXEC) -np 4
+MPI			=	$(MPIEXEC) -np 2
 else
 MPI			=	$(MPIEXEC) -np 4
 endif
