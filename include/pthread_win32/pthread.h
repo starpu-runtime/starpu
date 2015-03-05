@@ -274,7 +274,7 @@ typedef struct {
 } pthread_cond_t;
 #define PTHREAD_COND_INITIALIZER { NULL, 0}
 
-#ifndef STARPU_HAVE_STRUCT_TIMESPEC
+#if !defined(STARPU_HAVE_STRUCT_TIMESPEC) || defined(_MSC_VER)
 #ifndef STARPU_TIMESPEC_DEFINED
 #define STARPU_TIMESPEC_DEFINED 1
 struct timespec {
