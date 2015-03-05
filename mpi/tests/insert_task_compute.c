@@ -51,6 +51,7 @@ int test(int rank, int node, int *before, int *after, int task_insert, int data_
 	{
 		// If there is no cpu to execute the codelet, mpi will block trying to do the post-execution communication
 		ret = -ENODEV;
+		FPRINTF_MPI(stderr, "No CPU is available\n");
 		goto nodata;
 	}
 
@@ -201,7 +202,7 @@ nodata:
 int main(int argc, char **argv)
 {
 	int rank;
-	int ret;
+	int global_ret, ret;
 	int before[4] = {10, 20, 11, 22};
 	int after_node[2][4] = {{220, 20, 11, 22}, {220, 20, 11, 22}};
 	int node, insert_task, data_array;
@@ -209,6 +210,7 @@ int main(int argc, char **argv)
 	MPI_Init(&argc, &argv);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
+	global_ret = 0;
 	for(node=0 ; node<=1 ; node++)
 	{
 		for(insert_task=0 ; insert_task<=1 ; insert_task++)
@@ -216,12 +218,12 @@ int main(int argc, char **argv)
 			for(data_array=0 ; data_array<=2 ; data_array++)
 			{
 				ret = test(rank, node, before, after_node[node], insert_task, data_array);
-				if (ret == -ENODEV || ret) goto end;
+				if (ret == -ENODEV || ret) global_ret = ret;
 			}
 		}
 	}
 
 end:
 	MPI_Finalize();
-	return ret==-ENODEV?STARPU_TEST_SKIPPED:ret;
+	return global_ret==-ENODEV?STARPU_TEST_SKIPPED:global_ret;
 }
