@@ -106,7 +106,6 @@ int main(int argc, char **argv)
 
 	for(n = 0; n < N-1; n++)
 	{
-	     fprintf(stderr, "loop %d\n", n);
 		ret = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet,
 					     STARPU_R, data_A[n],
 					     STARPU_R, data_X[n],
