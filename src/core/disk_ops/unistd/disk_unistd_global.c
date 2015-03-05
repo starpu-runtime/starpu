@@ -424,25 +424,19 @@ starpu_unistd_global_wait_request(void * async_channel)
 int
 starpu_unistd_global_test_request(void * async_channel)
 {
-        struct timespec time_wait_request;
-        time_wait_request.tv_sec = 0;
-        time_wait_request.tv_nsec = 0;
+        struct aiocb * aiocb = async_channel;
+        int ret;
 
-        const struct aiocb * aiocb = async_channel;
-        int values = -1;
-        int error_disk = EAGAIN;
+        /* Test the answer of the request */
+        ret = aio_error(aiocb);
 
-        /* Wait the answer of the request */
-        values = aio_suspend(&aiocb, 1, &time_wait_request);
-        error_disk = errno;
-        /* request is finished */
-        if (values == 0)
+        if (ret == 0)
+                /* request is finished */
                 return 1;
-        /* values == -1 */
-        if (error_disk == EAGAIN)
+        if (ret == EINPROGRESS || ret == EAGAIN)
                 return 0;
         /* an error occured */
-        STARPU_ABORT();
+        STARPU_ABORT_MSG("aio_error returned %d", errno);
 }
 
 void
