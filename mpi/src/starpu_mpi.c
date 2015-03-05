@@ -247,6 +247,7 @@ static void _starpu_mpi_submit_ready_request(void *arg)
 						STARPU_MPI_ASSERT_MSG(req->ptr, "cannot allocate message of size %ld\n", req->count);
 					}
 					_starpu_mpi_req_list_push_front(ready_requests, req);
+					free(sync_req);
 				}
 				else
 				{
