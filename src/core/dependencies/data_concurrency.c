@@ -55,7 +55,7 @@
  * Check to see whether the first queued request can proceed, and return it in
  * such case.
  */
-/* the header lock must be taken by the caller */
+/* the handle header lock must be taken by the caller */
 static struct _starpu_data_requester *may_unlock_data_req_list_head(starpu_data_handle_t handle)
 {
 	struct _starpu_data_requester_list *req_list;
@@ -104,6 +104,7 @@ static struct _starpu_data_requester *may_unlock_data_req_list_head(starpu_data_
  * immediatly, return 0, if there is still a dependency that is not compatible
  * with the current mode, the request is put in the per-handle list of
  * "requesters", and this function returns 1. */
+/* No lock is held, this acquires and releases the handle header lock */
 static unsigned _starpu_attempt_to_submit_data_request(unsigned request_from_codelet,
 						       starpu_data_handle_t handle, enum starpu_data_access_mode mode,
 						       void (*callback)(void *), void *argcb,
@@ -227,12 +228,14 @@ static unsigned _starpu_attempt_to_submit_data_request(unsigned request_from_cod
 
 }
 
+/* No lock is held */
 unsigned _starpu_attempt_to_submit_data_request_from_apps(starpu_data_handle_t handle, enum starpu_data_access_mode mode,
 							  void (*callback)(void *), void *argcb)
 {
 	return _starpu_attempt_to_submit_data_request(0, handle, mode, callback, argcb, NULL, 0);
 }
 
+/* No lock is held */
 static unsigned attempt_to_submit_data_request_from_job(struct _starpu_job *j, unsigned buffer_index)
 {
 	/* Note that we do not access j->task->handles, but j->ordered_buffers
@@ -245,6 +248,7 @@ static unsigned attempt_to_submit_data_request_from_job(struct _starpu_job *j, u
 
 /* Acquire all data of the given job, one by one in handle pointer value order
  */
+/* No lock is held */
 static unsigned _submit_job_enforce_data_deps(struct _starpu_job *j, unsigned start_buffer_index)
 {
 	unsigned buf;
@@ -275,6 +279,7 @@ static unsigned _submit_job_enforce_data_deps(struct _starpu_job *j, unsigned st
 
 /* Sort the data used by the given job by handle pointer value order, and
  * acquire them in that order */
+/* No  lock is held */
 unsigned _starpu_submit_job_enforce_data_deps(struct _starpu_job *j)
 {
 	struct starpu_codelet *cl = j->task->cl;
@@ -305,6 +310,7 @@ unsigned _starpu_submit_job_enforce_data_deps(struct _starpu_job *j)
 
 /* This request got fulfilled, continue with the other requests of the
  * corresponding job */
+/* No lock is held */
 static unsigned unlock_one_requester(struct _starpu_data_requester *r)
 {
 	struct _starpu_job *j = r->j;
