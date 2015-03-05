@@ -254,13 +254,17 @@ endif
 
 if BUILD_EXAMPLES
 examplebin_PROGRAMS +=			\
-	comm/comm
+	comm/comm			\
+	comm/mix_comm
 
 comm_comm_LDADD =		\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
+comm_mix_comm_LDADD =		\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 
 starpu_mpi_EXAMPLES	+=			\
-	comm/comm
+	comm/comm				\
+	comm/mix_comm
 endif
 
 
