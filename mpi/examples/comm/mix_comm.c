@@ -71,7 +71,7 @@ int main(int argc, char **argv)
 	}
 	else if (newrank == 1)
 	{
-		MPI_Recv(&x, 1, MPI_INT, 0, 10, newcomm, NULL);
+		MPI_Recv(&x, 1, MPI_INT, 0, 10, newcomm, MPI_STATUS_IGNORE);
 		FPRINTF(stderr, "[%d][%d] received %d\n", rank, newrank, x);
 	}
 
@@ -104,14 +104,14 @@ int main(int argc, char **argv)
 		starpu_mpi_req req[2];
 		starpu_mpi_issend(data[1], &req[0], 1, 22, newcomm);
 		starpu_mpi_isend(data[0], &req[1], 1, 12, newcomm);
-		starpu_mpi_wait(&req[0], NULL);
-		starpu_mpi_wait(&req[1], NULL);
+		starpu_mpi_wait(&req[0], MPI_STATUS_IGNORE);
+		starpu_mpi_wait(&req[1], MPI_STATUS_IGNORE);
 	}
 	else if (newrank == 1)
 	{
 		int *xx;
 
-		starpu_mpi_recv(data[0], 0, 12, newcomm, NULL);
+		starpu_mpi_recv(data[0], 0, 12, newcomm, MPI_STATUS_IGNORE);
 		starpu_data_acquire(data[0], STARPU_RW);
 		xx = (int *)starpu_variable_get_local_ptr(data[0]);
 		starpu_data_release(data[0]);
@@ -120,7 +120,7 @@ int main(int argc, char **argv)
 
 		starpu_variable_data_register(&data[1], -1, (uintptr_t)NULL, sizeof(int));
 		starpu_mpi_data_register_comm(data[1], 22, 0, newcomm);
-		starpu_mpi_recv(data[0], 0, 22, newcomm, NULL);
+		starpu_mpi_recv(data[0], 0, 22, newcomm, MPI_STATUS_IGNORE);
 		starpu_data_acquire(data[0], STARPU_RW);
 		xx = (int *)starpu_variable_get_local_ptr(data[0]);
 		starpu_data_release(data[0]);
@@ -135,7 +135,7 @@ int main(int argc, char **argv)
 		starpu_data_release(data[2]);
 		FPRINTF_MPI(stderr, "sending value %d to %d and receiving from %d\n", value, 1, size-1);
 		starpu_mpi_send(data[2], 1, 44, MPI_COMM_WORLD);
-		starpu_mpi_recv(data[2], size-1, 44, MPI_COMM_WORLD, NULL);
+		starpu_mpi_recv(data[2], size-1, 44, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 		starpu_data_acquire(data[2], STARPU_RW);
 		int *xx = (int *)starpu_variable_get_local_ptr(data[2]);
 		starpu_data_release(data[2]);
@@ -145,7 +145,7 @@ int main(int argc, char **argv)
 	else
 	{
 		int next = (rank == size-1) ? 0 : rank+1;
-		starpu_mpi_recv(data[2], rank-1, 44, MPI_COMM_WORLD, NULL);
+		starpu_mpi_recv(data[2], rank-1, 44, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 		starpu_data_acquire(data[2], STARPU_RW);
 		int *xx = (int *)starpu_variable_get_local_ptr(data[2]);
 		FPRINTF_MPI(stderr, "receiving %d from %d and sending %d to %d\n", *xx, rank-1, *xx+2, next);
