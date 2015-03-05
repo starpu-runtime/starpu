@@ -43,6 +43,7 @@ noinst_HEADERS =					\
 	starpu_mpi_early_data.h				\
 	starpu_mpi_early_request.h			\
 	starpu_mpi_sync_data.h				\
+	starpu_mpi_comm.h				\
 	starpu_mpi_tag.h
 
 libstarpumpi_@STARPU_EFFECTIVE_VERSION@_la_SOURCES =	\
@@ -59,6 +60,7 @@ libstarpumpi_@STARPU_EFFECTIVE_VERSION@_la_SOURCES =	\
 	starpu_mpi_early_data.c				\
 	starpu_mpi_early_request.c			\
 	starpu_mpi_sync_data.c				\
+	starpu_mpi_comm.c				\
 	starpu_mpi_tag.c
 
 showcheck:

@@ -151,6 +151,13 @@ struct _starpu_mpi_envelope
 
 struct _starpu_mpi_req;
 
+struct _starpu_mpi_node_tag
+{
+	MPI_Comm comm;
+	int rank;
+	int data_tag;
+};
+
 LIST_TYPE(_starpu_mpi_req,
 	/* description of the data at StarPU level */
 	starpu_data_handle_t data_handle;
@@ -162,9 +169,7 @@ LIST_TYPE(_starpu_mpi_req,
 	int user_datatype;
 
 	/* who are we talking to ? */
-	int srcdst;
-	int data_tag;
-	MPI_Comm comm;
+	struct _starpu_mpi_node_tag node_tag;
 
 	void (*func)(struct _starpu_mpi_req *);
 
@@ -186,8 +191,6 @@ LIST_TYPE(_starpu_mpi_req,
 	unsigned completed;
 	unsigned posted;
 
-	UT_hash_handle hh;
-
 	/* In the case of a Wait/Test request, we are going to post a request
 	 * to test the completion of another request */
 	struct _starpu_mpi_req *other_request;
@@ -206,14 +209,9 @@ LIST_TYPE(_starpu_mpi_req,
 	struct _starpu_mpi_req *internal_req;
 
 	int sequential_consistency;
-);
 
-struct _starpu_mpi_data
-{
-	int tag;
-	int rank;
-	MPI_Comm comm;
-};
+     	UT_hash_handle hh;
+);
 
 #ifdef __cplusplus
 }

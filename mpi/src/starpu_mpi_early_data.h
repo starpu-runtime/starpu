@@ -23,6 +23,7 @@
 #include <mpi.h>
 #include <common/config.h>
 #include <common/list.h>
+#include <starpu_mpi_private.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -33,19 +34,18 @@ LIST_TYPE(_starpu_mpi_early_data_handle,
 	  struct _starpu_mpi_envelope *env;
 	  struct _starpu_mpi_req *req;
 	  void *buffer;
-	  int data_tag;
-	  int source;
 	  int req_ready;
+	  struct _starpu_mpi_node_tag node_tag;
 	  starpu_pthread_mutex_t req_mutex;
 	  starpu_pthread_cond_t req_cond;
 );
 
-void _starpu_mpi_early_data_init(int world_size);
-void _starpu_mpi_early_data_check_termination();
-void _starpu_mpi_early_data_free(int world_size);
+void _starpu_mpi_early_data_init(void);
+void _starpu_mpi_early_data_check_termination(void);
+void _starpu_mpi_early_data_free(void);
 
-struct _starpu_mpi_early_data_handle *_starpu_mpi_early_data_create(struct _starpu_mpi_envelope *envelope, int source);
-struct _starpu_mpi_early_data_handle *_starpu_mpi_early_data_find(int data_tag, int source);
+struct _starpu_mpi_early_data_handle *_starpu_mpi_early_data_create(struct _starpu_mpi_envelope *envelope, int source, MPI_Comm comm);
+struct _starpu_mpi_early_data_handle *_starpu_mpi_early_data_find(struct _starpu_mpi_node_tag *node_tag);
 void _starpu_mpi_early_data_add(struct _starpu_mpi_early_data_handle *early_data_handle);
 void _starpu_mpi_early_data_delete(struct _starpu_mpi_early_data_handle *early_data_handle);
 
