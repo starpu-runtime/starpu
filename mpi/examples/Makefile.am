@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2013  Université de Bordeaux
+# Copyright (C) 2009-2013, 2015  Université de Bordeaux
 # Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  Centre National de la Recherche Scientifique
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -62,7 +62,7 @@ EXTRA_DIST = 				\
 	matrix_decomposition/mpi_cholesky_models.h 	\
 	matrix_decomposition/mpi_decomposition_params.h	\
 	matrix_decomposition/mpi_decomposition_matrix.h	\
-	../tests/helper.h
+	helper.h
 
 examplebindir = $(libdir)/starpu/mpi
 
