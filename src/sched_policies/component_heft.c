@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2014  Université de Bordeaux 1
+ * Copyright (C) 2013-2015  Université de Bordeaux 1
  * Copyright (C) 2013  INRIA
  * Copyright (C) 2013  Simon Archipoff
  *
@@ -194,7 +194,7 @@ static int heft_push_task(struct starpu_sched_component * component, struct star
 static int heft_can_push(struct starpu_sched_component *component)
 {
 	heft_progress(component);
-	int ret, j;
+	int ret = 0, j;
 	for(j=0; j < component->nparents; j++)
 	{
 		if(component->parents[j] == NULL)
