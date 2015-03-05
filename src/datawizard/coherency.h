@@ -51,6 +51,7 @@ struct _starpu_data_replicate {
 	/* describes the state of the local data in term of coherency */
 	enum _starpu_cache_state	state;
 
+	/* How many requests or tasks are currently working with this replicate */
 	int refcnt;
 
 	/* A buffer that is used for SCRATCH or reduction cannnot be used with
