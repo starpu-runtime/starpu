@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012, 2013, 2014, 2015  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -63,8 +63,8 @@ int starpu_mpi_scatter_detached(starpu_data_handle_t *data_handles, int count, i
 		{
 			if (data_handles[x])
 			{
-				int owner = starpu_data_get_rank(data_handles[x]);
-				int data_tag = starpu_data_get_tag(data_handles[x]);
+				int owner = starpu_mpi_data_get_rank(data_handles[x]);
+				int data_tag = starpu_mpi_data_get_tag(data_handles[x]);
 				STARPU_ASSERT_MSG(data_tag >= 0, "Invalid tag for data handle");
 				if ((rank == root) && (owner != root))
 				{
@@ -82,8 +82,8 @@ int starpu_mpi_scatter_detached(starpu_data_handle_t *data_handles, int count, i
 	{
 		if (data_handles[x])
 		{
-			int owner = starpu_data_get_rank(data_handles[x]);
-			int data_tag = starpu_data_get_tag(data_handles[x]);
+			int owner = starpu_mpi_data_get_rank(data_handles[x]);
+			int data_tag = starpu_mpi_data_get_tag(data_handles[x]);
 			STARPU_ASSERT_MSG(data_tag >= 0, "Invalid tag for data handle");
 			if ((rank == root) && (owner != root))
 			{
@@ -125,8 +125,8 @@ int starpu_mpi_gather_detached(starpu_data_handle_t *data_handles, int count, in
 		{
 			if (data_handles[x])
 			{
-				int owner = starpu_data_get_rank(data_handles[x]);
-				int data_tag = starpu_data_get_tag(data_handles[x]);
+				int owner = starpu_mpi_data_get_rank(data_handles[x]);
+				int data_tag = starpu_mpi_data_get_tag(data_handles[x]);
 				STARPU_ASSERT_MSG(data_tag >= 0, "Invalid tag for data handle");
 				if ((rank == root) && (owner != root))
 				{
@@ -144,8 +144,8 @@ int starpu_mpi_gather_detached(starpu_data_handle_t *data_handles, int count, in
 	{
 		if (data_handles[x])
 		{
-			int owner = starpu_data_get_rank(data_handles[x]);
-			int data_tag = starpu_data_get_tag(data_handles[x]);
+			int owner = starpu_mpi_data_get_rank(data_handles[x]);
+			int data_tag = starpu_mpi_data_get_tag(data_handles[x]);
 			STARPU_ASSERT_MSG(data_tag >= 0, "Invalid tag for data handle");
 			if ((rank == root) && (owner != root))
 			{

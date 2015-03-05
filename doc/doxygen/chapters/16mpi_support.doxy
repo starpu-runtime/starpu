@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  Centre National de la Recherche Scientifique
  * Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
  * See the file version.doxy for copying conditions.
  */
@@ -241,10 +241,8 @@ first needs to define a distribution function which specifies the
 locality of the data. Note that the data needs to be registered to MPI
 by calling starpu_mpi_data_register(). This function allows to set
 the distribution information and the MPI tag which should be used when
-communicating the data. The function starpu_mpi_data_register() should
-be prefered to starpu_data_set_rank() and starpu_data_set_tag() as
-it also allows to automatically clear the MPI communication cache
-when unregistering the data.
+communicating the data. It also allows to automatically clear the MPI
+communication cache when unregistering the data.
 
 \code{.c}
 /* Returns the MPI node number where data is */
@@ -435,7 +433,7 @@ migrate the data, and register the new location.
                 /* Migrate the data */
                 starpu_mpi_get_data_on_node_detached(MPI_COMM_WORLD, data_handles[x][y], mpi_rank, NULL, NULL);
                 /* And register the new rank of the matrix */
-                starpu_data_set_rank(data_handles[x][y], mpi_rank);
+                starpu_mpi_data_set_rank(data_handles[x][y], mpi_rank);
             }
         }
     }

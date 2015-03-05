@@ -80,7 +80,19 @@ int starpu_mpi_world_rank(void);
 int starpu_mpi_get_communication_tag(void);
 void starpu_mpi_set_communication_tag(int tag);
 
-void starpu_mpi_data_register(starpu_data_handle_t data_handle, int tag, int rank);
+void starpu_mpi_data_register_comm(starpu_data_handle_t data_handle, int tag, int rank, MPI_Comm comm);
+#define starpu_mpi_data_register(data_handle, tag, rank) starpu_mpi_data_register_comm(data_handle, tag, rank, MPI_COMM_WORLD)
+
+void starpu_mpi_data_set_rank_comm(starpu_data_handle_t handle, int rank, MPI_Comm comm);
+#define starpu_mpi_data_set_rank(handle, rank) starpu_mpi_data_set_rank_comm(handle, rank, MPI_COMM_WORLD)
+void starpu_mpi_data_set_tag(starpu_data_handle_t handle, int tag);
+#define starpu_data_set_rank starpu_mpi_data_set_rank
+#define starpu_data_set_tag starpu_mpi_data_set_tag
+
+int starpu_mpi_data_get_rank(starpu_data_handle_t handle);
+int starpu_mpi_data_get_tag(starpu_data_handle_t handle);
+#define starpu_data_get_rank starpu_mpi_data_get_rank
+#define starpu_data_get_tag starpu_mpi_data_get_tag
 
 #define STARPU_MPI_NODE_SELECTION_CURRENT_POLICY -1
 #define STARPU_MPI_NODE_SELECTION_MOST_R_DATA    0

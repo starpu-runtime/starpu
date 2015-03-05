@@ -173,7 +173,7 @@ void _starpu_mpi_cache_sent_data_clear(MPI_Comm comm, starpu_data_handle_t data)
 
 void _starpu_mpi_cache_received_data_clear(starpu_data_handle_t data)
 {
-	int mpi_rank = starpu_data_get_rank(data);
+	int mpi_rank = starpu_mpi_data_get_rank(data);
 	struct _starpu_data_entry *already_received;
 
 	STARPU_PTHREAD_MUTEX_LOCK(&_cache_received_mutex[mpi_rank]);
@@ -209,7 +209,7 @@ void starpu_mpi_cache_flush_all_data(MPI_Comm comm)
 		STARPU_PTHREAD_MUTEX_LOCK(&_cache_sent_mutex[i]);
 		HASH_ITER(hh, _cache_sent_data[i], entry, tmp)
 		{
-			mpi_rank = starpu_data_get_rank(entry->data);
+			mpi_rank = starpu_mpi_data_get_rank(entry->data);
 			if (mpi_rank != my_rank && mpi_rank != -1)
 				starpu_data_invalidate_submit(entry->data);
 			HASH_DEL(_cache_sent_data[i], entry);
@@ -220,7 +220,7 @@ void starpu_mpi_cache_flush_all_data(MPI_Comm comm)
 		STARPU_PTHREAD_MUTEX_LOCK(&_cache_received_mutex[i]);
 		HASH_ITER(hh, _cache_received_data[i], entry, tmp)
 		{
-			mpi_rank = starpu_data_get_rank(entry->data);
+			mpi_rank = starpu_mpi_data_get_rank(entry->data);
 			if (mpi_rank != my_rank && mpi_rank != -1)
 				starpu_data_invalidate_submit(entry->data);
 			HASH_DEL(_cache_received_data[i], entry);
@@ -231,7 +231,7 @@ void starpu_mpi_cache_flush_all_data(MPI_Comm comm)
 	}
 }
 
-void starpu_mpi_cache_flush(MPI_Comm comm, starpu_data_handle_t data_handle)
+void _starpu_mpi_cache_flush(MPI_Comm comm, starpu_data_handle_t data_handle)
 {
 	struct _starpu_data_entry *avail;
 	int i, my_rank, nb_nodes;
@@ -241,7 +241,7 @@ void starpu_mpi_cache_flush(MPI_Comm comm, starpu_data_handle_t data_handle)
 
 	starpu_mpi_comm_size(comm, &nb_nodes);
 	starpu_mpi_comm_rank(comm, &my_rank);
-	mpi_rank = starpu_data_get_rank(data_handle);
+	mpi_rank = starpu_mpi_data_get_rank(data_handle);
 
 	for(i=0 ; i<nb_nodes ; i++)
 	{
@@ -266,7 +266,16 @@ void starpu_mpi_cache_flush(MPI_Comm comm, starpu_data_handle_t data_handle)
 		}
 		STARPU_PTHREAD_MUTEX_UNLOCK(&_cache_received_mutex[i]);
 	}
+}
 
+void starpu_mpi_cache_flush(MPI_Comm comm, starpu_data_handle_t data_handle)
+{
+	int my_rank, mpi_rank;
+
+	_starpu_mpi_cache_flush(comm, data_handle);
+
+	MPI_Comm_rank(comm, &my_rank);
+	mpi_rank = starpu_mpi_data_get_rank(data_handle);
 	if (mpi_rank != my_rank && mpi_rank != -1)
 		starpu_data_invalidate_submit(data_handle);
 }
