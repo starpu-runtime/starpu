@@ -119,13 +119,23 @@ static void _try_resizing(unsigned *sched_ctxs, int nsched_ctxs , int *workers, 
 
 
 	double w_in_s[ns][nw];
-//			double flops_on_w[ns][nw];
+
 	double **flops_on_w = (double**)malloc(ns*sizeof(double*));
 	int i;
 	for(i = 0; i < ns; i++)
 		flops_on_w[i] = (double*)malloc(nw*sizeof(double));
-	
+
+	struct timeval start_time;
+	struct timeval end_time;
+	gettimeofday(&start_time, NULL);
 	unsigned found_sol = _compute_flops_distribution_over_ctxs(ns, nw,  w_in_s, flops_on_w, curr_sched_ctxs, workers);
+	gettimeofday(&end_time, NULL);
+	
+	long diff_s = end_time.tv_sec  - start_time.tv_sec;
+	long diff_us = end_time.tv_usec  - start_time.tv_usec;
+	
+	__attribute__((unused))	float timing = (float)(diff_s*1000000 + diff_us)/1000.0;
+
 	/* if we did find at least one solution redistribute the resources */
 	if(found_sol)
 	{

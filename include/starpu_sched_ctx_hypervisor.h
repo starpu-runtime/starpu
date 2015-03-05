@@ -43,6 +43,8 @@ void starpu_sched_ctx_notify_hypervisor_exists(void);
 
 unsigned starpu_sched_ctx_check_if_hypervisor_exists(void);
 
+void starpu_sched_ctx_update_start_resizing_sample(unsigned sched_ctx_id, double start_sample);
+
 #ifdef __cplusplus
 }
 #endif

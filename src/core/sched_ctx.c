@@ -30,6 +30,7 @@ static double hyp_start_sample[STARPU_NMAX_SCHED_CTXS];
 static double hyp_start_allow_sample[STARPU_NMAX_SCHED_CTXS];
 static double flops[STARPU_NMAX_SCHED_CTXS][STARPU_NMAXWORKERS];
 static size_t data_size[STARPU_NMAX_SCHED_CTXS][STARPU_NMAXWORKERS];
+static double hyp_actual_start_sample[STARPU_NMAX_SCHED_CTXS];
 
 static unsigned _starpu_get_first_free_sched_ctx(struct _starpu_machine_config *config);
 static void _starpu_sched_ctx_add_workers_to_master(unsigned sched_ctx_id, int *workerids, int nworkers, int new_master);
@@ -472,8 +473,11 @@ struct _starpu_sched_ctx* _starpu_create_sched_ctx(struct starpu_sched_policy *p
 	STARPU_ASSERT(nworkers_ctx <= nworkers);
 
 	STARPU_PTHREAD_MUTEX_INIT(&sched_ctx->empty_ctx_mutex, NULL);
-
 	starpu_task_list_init(&sched_ctx->empty_ctx_tasks);
+
+	STARPU_PTHREAD_MUTEX_INIT(&sched_ctx->waiting_tasks_mutex, NULL);
+	starpu_task_list_init(&sched_ctx->waiting_tasks);
+
 
 	sched_ctx->sched_policy = policy ? (struct starpu_sched_policy*)malloc(sizeof(struct starpu_sched_policy)) : NULL;
 	sched_ctx->is_initial_sched = is_initial_sched;
@@ -815,6 +819,7 @@ static void _starpu_delete_sched_ctx(struct _starpu_sched_ctx *sched_ctx)
 	}
 
 	STARPU_PTHREAD_MUTEX_DESTROY(&sched_ctx->empty_ctx_mutex);
+	STARPU_PTHREAD_MUTEX_DESTROY(&sched_ctx->waiting_tasks_mutex);
 	sched_ctx->id = STARPU_NMAX_SCHED_CTXS;
 #ifdef STARPU_HAVE_HWLOC
 	hwloc_bitmap_free(sched_ctx->hwloc_workers_set);
@@ -954,6 +959,55 @@ void _starpu_fetch_tasks_from_empty_ctx_list(struct _starpu_sched_ctx *sched_ctx
 	return;
 
 }
+unsigned _starpu_can_push_task(struct _starpu_sched_ctx *sched_ctx, struct starpu_task *task)
+{
+	if(sched_ctx->sched_policy->simulate_push_task)
+	{
+		const char *env_window_size = getenv("STARPU_WINDOW_TIME_SIZE");
+		if(!env_window_size) return 1;
+		double window_size = atof(env_window_size);
+		
+		starpu_pthread_rwlock_t *changing_ctx_mutex = _starpu_sched_ctx_get_changing_ctx_mutex(sched_ctx->id);
+		STARPU_PTHREAD_RWLOCK_RDLOCK(changing_ctx_mutex);
+		double expected_end = sched_ctx->sched_policy->simulate_push_task(task);
+		STARPU_PTHREAD_RWLOCK_UNLOCK(changing_ctx_mutex);
+		
+		double expected_len = 0.0; 
+		if(hyp_actual_start_sample[sched_ctx->id] != 0.0)
+			expected_len = expected_end - hyp_actual_start_sample[sched_ctx->id] ;
+		else 
+		{
+			printf("%d: sc start is 0.0\n", sched_ctx->id);
+			expected_len = expected_end - starpu_timing_now();
+		}
+		if(expected_len < 0.0)
+			printf("exp len negative %lf \n", expected_len);
+		expected_len /= 1000000.0;
+//		printf("exp_end %lf start %lf expected_len %lf \n", expected_end, hyp_actual_start_sample[sched_ctx->id], expected_len);
+		if(expected_len > (window_size + 0.2*window_size))
+			return 0;
+	}
+	return 1;
+}
+
+void _starpu_fetch_task_from_waiting_list(struct _starpu_sched_ctx *sched_ctx)
+{
+	if(starpu_task_list_empty(&sched_ctx->waiting_tasks))
+		return;
+	struct starpu_task *old_task = starpu_task_list_back(&sched_ctx->waiting_tasks);
+	if(_starpu_can_push_task(sched_ctx, old_task))
+	{
+		old_task = starpu_task_list_pop_back(&sched_ctx->waiting_tasks);
+		int ret =  _starpu_push_task_to_workers(old_task);
+	}
+	return;
+}
+
+void _starpu_push_task_to_waiting_list(struct _starpu_sched_ctx *sched_ctx, struct starpu_task *task)
+{
+	starpu_task_list_push_front(&sched_ctx->waiting_tasks, task);
+	return;
+}
 
 void starpu_sched_ctx_set_priority_on_level(int* workers_to_add, unsigned nworkers_to_add, unsigned sched_ctx, unsigned priority)
 {
@@ -1053,6 +1107,7 @@ void starpu_sched_ctx_remove_workers(int *workers_to_remove, int nworkers_to_rem
 		if(n_removed_workers > 0)
 		{
 			_starpu_update_workers_without_ctx(removed_workers, n_removed_workers, sched_ctx_id, 0);
+			starpu_sched_ctx_set_priority(removed_workers, n_removed_workers, sched_ctx_id, 1);
 		}
 
 	}
@@ -1212,16 +1267,46 @@ int _starpu_check_nsubmitted_tasks_of_sched_ctx(unsigned sched_ctx_id)
 	return _starpu_barrier_counter_check(&sched_ctx->tasks_barrier);
 }
 
-void _starpu_increment_nready_tasks_of_sched_ctx(unsigned sched_ctx_id, double ready_flops)
+unsigned _starpu_increment_nready_tasks_of_sched_ctx(unsigned sched_ctx_id, double ready_flops, struct starpu_task *task)
 {
+	unsigned ret = 1;
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+
+	if(!sched_ctx->is_initial_sched)
+		STARPU_PTHREAD_MUTEX_LOCK(&sched_ctx->waiting_tasks_mutex);
+
 	_starpu_barrier_counter_increment(&sched_ctx->ready_tasks_barrier, ready_flops);
+
+
+	if(!sched_ctx->is_initial_sched)
+	{
+		if(!_starpu_can_push_task(sched_ctx, task))
+		{
+			_starpu_push_task_to_waiting_list(sched_ctx, task);
+			ret = 0;
+		}
+
+		STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->waiting_tasks_mutex);
+	}
+	return ret;
 }
 
 void _starpu_decrement_nready_tasks_of_sched_ctx(unsigned sched_ctx_id, double ready_flops)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+
+	if(!sched_ctx->is_initial_sched)
+		STARPU_PTHREAD_MUTEX_LOCK(&sched_ctx->waiting_tasks_mutex);
+
 	_starpu_barrier_counter_decrement_until_empty_counter(&sched_ctx->ready_tasks_barrier, ready_flops);
+
+
+	if(!sched_ctx->is_initial_sched)
+	{
+		_starpu_fetch_task_from_waiting_list(sched_ctx);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->waiting_tasks_mutex);
+	}
+
 }
 
 int starpu_sched_ctx_get_nready_tasks(unsigned sched_ctx_id)
@@ -1278,12 +1363,18 @@ void starpu_sched_ctx_notify_hypervisor_exists()
 			flops[i][j] = 0.0;
 			data_size[i][j] = 0;
 		}
+		hyp_actual_start_sample[i] = 0.0;
 	}
 }
 
 unsigned starpu_sched_ctx_check_if_hypervisor_exists()
 {
 	return with_hypervisor;
+}
+
+void starpu_sched_ctx_update_start_resizing_sample(unsigned sched_ctx_id, double start_sample)
+{
+	hyp_actual_start_sample[sched_ctx_id] = start_sample;
 }
 
 unsigned _starpu_sched_ctx_allow_hypervisor(unsigned sched_ctx_id)
@@ -1494,19 +1585,20 @@ unsigned starpu_sched_ctx_contains_worker(int workerid, unsigned sched_ctx_id)
         struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 
         struct starpu_worker_collection *workers = sched_ctx->workers;
-        int worker;
+	if(workers)
+	{
+		int worker;
 
-	struct starpu_sched_ctx_iterator it;
-
-	workers->init_iterator(workers, &it);
-        while(workers->has_next(workers, &it))
-        {
-                worker = workers->get_next(workers, &it);
-		if(worker == workerid)
-			return 1;
-        }
-
-
+		struct starpu_sched_ctx_iterator it;
+		
+		workers->init_iterator(workers, &it);
+		while(workers->has_next(workers, &it))
+		{
+			worker = workers->get_next(workers, &it);
+			if(worker == workerid)
+				return 1;
+		}
+	}
 	return 0;
 }
 

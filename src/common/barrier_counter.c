@@ -96,7 +96,6 @@ int _starpu_barrier_counter_increment(struct _starpu_barrier_counter *barrier_c,
 
 	barrier->reached_start++;
 	barrier->reached_flops += flops;
-
 	STARPU_PTHREAD_MUTEX_UNLOCK(&barrier->mutex);
 	return 0;
 }

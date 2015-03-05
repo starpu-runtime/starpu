@@ -673,7 +673,7 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 	*max_exp_endp = max_exp_end;
 }
 
-static int _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned sched_ctx_id)
+static double _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned sched_ctx_id, unsigned simulate)
 {
 	/* find the queue */
 	unsigned worker, worker_ctx = 0;
@@ -791,9 +791,19 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned sch
 
 	//_STARPU_DEBUG("Scheduler dmda: kernel (%u)\n", best_impl);
 	starpu_task_set_implementation(task, selected_impl);
+
+	if(!simulate)
+	{	
+		/* we should now have the best worker in variable "best" */
+		return push_task_on_best_worker(task, best, model_best, transfer_model_best, prio, sched_ctx_id);
+	}
+	else
+	{
+//		double max_len = (max_exp_end - starpu_timing_now());
+		/* printf("%d: dmda max_exp_end %lf best_exp_end %lf max_len %lf \n", sched_ctx_id, max_exp_end/1000000.0, best_exp_end/1000000.0, max_len/1000000.0);	 */
 	
-	/* we should now have the best worker in variable "best" */
-	return push_task_on_best_worker(task, best, model_best, transfer_model_best, prio, sched_ctx_id);
+		return exp_end[best_in_ctx][selected_impl] ;
+	}
 }
 
 static int dmda_push_sorted_task(struct starpu_task *task)
@@ -801,7 +811,7 @@ static int dmda_push_sorted_task(struct starpu_task *task)
 #ifdef STARPU_DEVEL
 #warning TODO: after defining a scheduling window, use that instead of empty_ctx_tasks
 #endif
-	return _dmda_push_task(task, 1, task->sched_ctx);
+	return _dmda_push_task(task, 1, task->sched_ctx, 0);
 }
 
 static int dm_push_task(struct starpu_task *task)
@@ -812,7 +822,12 @@ static int dm_push_task(struct starpu_task *task)
 static int dmda_push_task(struct starpu_task *task)
 {
 	STARPU_ASSERT(task);
-	return _dmda_push_task(task, 0, task->sched_ctx);
+	return _dmda_push_task(task, 0, task->sched_ctx, 0);
+}
+static double dmda_simulate_push_task(struct starpu_task *task)
+{
+	STARPU_ASSERT(task);
+	return _dmda_push_task(task, 0, task->sched_ctx, 1);
 }
 
 static void dmda_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
@@ -1009,6 +1024,7 @@ struct starpu_sched_policy _starpu_sched_dm_policy =
 	.add_workers = dmda_add_workers ,
 	.remove_workers = dmda_remove_workers,
 	.push_task = dm_push_task,
+	.simulate_push_task = NULL,
 	.pop_task = dmda_pop_task,
 	.pre_exec_hook = dmda_pre_exec_hook,
 	.post_exec_hook = dmda_post_exec_hook,
@@ -1024,6 +1040,7 @@ struct starpu_sched_policy _starpu_sched_dmda_policy =
 	.add_workers = dmda_add_workers ,
 	.remove_workers = dmda_remove_workers,
 	.push_task = dmda_push_task,
+	.simulate_push_task = dmda_simulate_push_task,
 	.push_task_notify = dmda_push_task_notify,
 	.pop_task = dmda_pop_task,
 	.pre_exec_hook = dmda_pre_exec_hook,
@@ -1040,6 +1057,7 @@ struct starpu_sched_policy _starpu_sched_dmda_sorted_policy =
 	.add_workers = dmda_add_workers ,
 	.remove_workers = dmda_remove_workers,
 	.push_task = dmda_push_sorted_task,
+	.simulate_push_task = NULL,
 	.push_task_notify = dmda_push_task_notify,
 	.pop_task = dmda_pop_ready_task,
 	.pre_exec_hook = dmda_pre_exec_hook,
@@ -1056,6 +1074,7 @@ struct starpu_sched_policy _starpu_sched_dmda_ready_policy =
 	.add_workers = dmda_add_workers ,
 	.remove_workers = dmda_remove_workers,
 	.push_task = dmda_push_task,
+	.simulate_push_task = dmda_simulate_push_task,
 	.push_task_notify = dmda_push_task_notify,
 	.pop_task = dmda_pop_ready_task,
 	.pre_exec_hook = dmda_pre_exec_hook,
