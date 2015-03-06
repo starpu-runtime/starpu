@@ -772,7 +772,7 @@ _starpu_init_mp_config (struct _starpu_machine_config *config,
 		if (0 == _starpu_init_mic_node (config, i, &handles[i], &process[i]))
 			topology->nmicdevices++;
 
-	
+
 	for (i = 0; i < topology->nmicdevices; i++)
 		_starpu_init_mic_config (config, user_conf, i);
 #endif
@@ -801,7 +801,7 @@ _starpu_deinit_mp_config (struct _starpu_machine_config *config)
 #endif
 
 static int
-_starpu_init_machine_config (struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED)
+_starpu_init_machine_config(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED)
 {
 	int i;
 	for (i = 0; i < STARPU_NMAXWORKERS; i++)
@@ -1108,6 +1108,56 @@ _starpu_init_machine_config (struct _starpu_machine_config *config, int no_mp_co
 		return -ENODEV;
 	}
 	return 0;
+}
+
+void _starpu_destroy_machine_config(struct _starpu_machine_config *config)
+{
+	_starpu_close_debug_logfile();
+
+	unsigned worker;
+	for (worker = 0; worker < config->topology.nworkers; worker++)
+	{
+		struct _starpu_worker *workerarg = &config->workers[worker];
+		free(workerarg->perf_arch.devices);
+#ifdef STARPU_HAVE_HWLOC
+		hwloc_bitmap_free(workerarg->hwloc_cpu_set);
+		if (workerarg->bindid != -1)
+		{
+			hwloc_obj_t worker_obj = hwloc_get_obj_by_depth(config->topology.hwtopology,
+									config->pu_depth,
+									workerarg->bindid);
+			if (worker_obj->userdata)
+			{
+				_starpu_worker_list_delete(worker_obj->userdata);
+				worker_obj->userdata = NULL;
+			}
+		}
+#endif
+	}
+	unsigned combined_worker_id;
+	for(combined_worker_id=0 ; combined_worker_id < config->topology.ncombinedworkers ; combined_worker_id++)
+	{
+		struct _starpu_combined_worker *combined_worker = &config->combined_workers[combined_worker_id];
+		free(combined_worker->perf_arch.devices);
+	}
+
+#ifdef STARPU_HAVE_HWLOC
+	hwloc_topology_destroy(config->topology.hwtopology);
+#endif
+
+	topology_is_initialized = 0;
+#ifdef STARPU_USE_CUDA
+	struct handle_entry *entry, *tmp;
+	HASH_ITER(hh, devices_using_cuda, entry, tmp)
+	{
+		HASH_DEL(devices_using_cuda, entry);
+		free(entry);
+	}
+	devices_using_cuda = NULL;
+#endif
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
+	may_bind_automatically = 0;
+#endif
 }
 
 void
@@ -1558,9 +1608,7 @@ _starpu_build_topology (struct _starpu_machine_config *config, int no_mp_config)
 	return 0;
 }
 
-void
-_starpu_destroy_topology (
-	struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED)
+void _starpu_destroy_topology(struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_MIC
 	_starpu_deinit_mp_config(config);
@@ -1569,51 +1617,7 @@ _starpu_destroy_topology (
 	/* cleanup StarPU internal data structures */
 	_starpu_memory_nodes_deinit();
 
-	unsigned worker;
-	for (worker = 0; worker < config->topology.nworkers; worker++)
-	{
-		struct _starpu_worker *workerarg = &config->workers[worker];
-		free(workerarg->perf_arch.devices);
-#ifdef STARPU_HAVE_HWLOC
-		hwloc_bitmap_free(workerarg->hwloc_cpu_set);
-		if (workerarg->bindid != -1)
-		{
-			hwloc_obj_t worker_obj = hwloc_get_obj_by_depth(config->topology.hwtopology,
-									config->pu_depth,
-									workerarg->bindid);
-			if (worker_obj->userdata)
-			{
-				_starpu_worker_list_delete(worker_obj->userdata);
-				worker_obj->userdata = NULL;
-			}
-		}
-#endif
-	}
-
-	unsigned combined_worker_id;
-	for(combined_worker_id=0 ; combined_worker_id < config->topology.ncombinedworkers ; combined_worker_id++)
-	{
-		struct _starpu_combined_worker *combined_worker = &config->combined_workers[combined_worker_id];
-		free(combined_worker->perf_arch.devices);
-	}
-
-#ifdef STARPU_HAVE_HWLOC
-	hwloc_topology_destroy(config->topology.hwtopology);
-#endif
-
-	topology_is_initialized = 0;
-#ifdef STARPU_USE_CUDA
-	struct handle_entry *entry, *tmp;
-	HASH_ITER(hh, devices_using_cuda, entry, tmp)
-	{
-		HASH_DEL(devices_using_cuda, entry);
-		free(entry);
-	}
-	devices_using_cuda = NULL;
-#endif
-#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
-	may_bind_automatically = 0;
-#endif
+	_starpu_destroy_machine_config(config);
 }
 
 void
