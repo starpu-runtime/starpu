@@ -84,6 +84,7 @@ EXTRA_DIST =				\
 	mvsc/starpu.sln			\
 	mvsc/starpu/starpu.vcxproj	\
 	perfmodels/README		\
+	valgrind/libc.suppr		\
 	valgrind/hwloc.suppr		\
 	valgrind/libnuma.suppr		\
 	valgrind/openmpi.suppr		\
