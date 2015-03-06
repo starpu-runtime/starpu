@@ -22,9 +22,7 @@
 {
    libtool leaves memory behind
    Memcheck:Leak
-   match-leak-kinds: reachable
    fun:malloc
    ...
    fun:lt_dlopenadvise
-   fun:lt_dlpreload_open
 }
