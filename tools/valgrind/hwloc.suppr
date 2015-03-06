@@ -22,7 +22,6 @@
 {
    libtool leaves memory behind
    Memcheck:Leak
-   fun:malloc
    ...
-   fun:lt_dlopenadvise
+   fun:hwloc_plugins_init
 }
