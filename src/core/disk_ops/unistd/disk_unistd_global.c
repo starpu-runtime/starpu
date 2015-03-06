@@ -427,7 +427,7 @@ starpu_unistd_global_test_request(void * async_channel)
         const struct aiocb * aiocb = async_channel;
         int ret, error;
 
-#if defined(__GLIBC__) && !__GLIBC_PREREQ(2,22)
+#if defined(__GLIBC__) && (__GLIBC__ < 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ < 22))
         /* glibc's aio_error was not threadsafe before glibc 2.22 */
         struct timespec ts = { .tv_sec = 0, .tv_nsec = 0 };
         ret = aio_suspend(&aiocb, 1, &ts);
