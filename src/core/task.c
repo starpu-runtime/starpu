@@ -301,11 +301,10 @@ int _starpu_submit_job(struct _starpu_job *j)
 		arch.devices[0].ncores = 1;
 		_starpu_compute_buffers_footprint(j->task->cl->model, &arch, 0, j);
 		free(arch.devices);
-		int i;
 		size_t data_size = 0;
 		if (j->task->cl)
 		{
-			unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(j->task);
+			unsigned i, nbuffers = STARPU_TASK_GET_NBUFFERS(j->task);
 			for(i = 0; i < nbuffers; i++)
 			{
 				starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, i);
