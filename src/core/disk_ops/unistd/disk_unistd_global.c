@@ -424,16 +424,23 @@ starpu_unistd_global_wait_request(void * async_channel)
 int
 starpu_unistd_global_test_request(void * async_channel)
 {
-        struct aiocb * aiocb = async_channel;
-        int ret;
+        const struct aiocb * aiocb = async_channel;
+        int ret, error;
 
+#ifdef __GLIBC__
+        /* glibc's aio_error was not threadsafe at some point */
+        struct timespec ts = { .tv_sec = 0, .tv_nsec = 0 };
+        ret = aio_suspend(&aiocb, 1, &ts);
+        error = errno;
+#else
         /* Test the answer of the request */
         ret = aio_error(aiocb);
-
+        error = ret;
+#endif
         if (ret == 0)
                 /* request is finished */
                 return 1;
-        if (ret == EINPROGRESS || ret == EAGAIN)
+        if (error == EINPROGRESS || error == EAGAIN)
                 return 0;
         /* an error occured */
         STARPU_ABORT_MSG("aio_error returned %d", errno);
