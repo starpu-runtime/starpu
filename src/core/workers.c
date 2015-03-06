@@ -99,10 +99,10 @@ static uint32_t _starpu_worker_exists_and_can_execute(struct starpu_task *task,
 	int i;
 	_starpu_codelet_check_deprecated_fields(task->cl);
 
-        /* make sure there is a worker on the machine able to execute the 
-	   task, independent of the sched_ctx, this latter may receive latter on 
+        /* make sure there is a worker on the machine able to execute the
+	   task, independent of the sched_ctx, this latter may receive latter on
 	   the necessary worker - the user or the hypervisor should take care this happens */
-	
+
 	int check_entire_platform = starpu_get_env_number("STARPU_CHECK_ENTIRE_PLATFORM");
 	struct _starpu_sched_ctx *sched_ctx = check_entire_platform == 1 ? _starpu_get_initial_sched_ctx() : _starpu_get_sched_ctx_struct(task->sched_ctx);
 	struct starpu_worker_collection *workers = sched_ctx->workers;
@@ -176,7 +176,7 @@ uint32_t _starpu_worker_exists(struct starpu_task *task)
 	{
 		if (!(task->cl->where & config.worker_mask))
 			return 0;
-		
+
 		if (!task->cl->can_execute)
 			return 1;
 	}
@@ -393,7 +393,7 @@ int starpu_combined_worker_can_execute_task(unsigned workerid, struct starpu_tas
 	}
 	else
 	{
-		if ((cl->type == STARPU_SPMD) 
+		if ((cl->type == STARPU_SPMD)
 #ifdef STARPU_HAVE_HWLOC
 				|| (cl->type == STARPU_FORKJOIN)
 #else
@@ -1204,7 +1204,9 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 		starpu_perfmodel_free_sampling_directories();
 		STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
 		init_count--;
-		_starpu_destroy_topology(&config);
+
+		_starpu_destroy_machine_config(&config);
+
 #ifdef STARPU_USE_SCC
 		if (_starpu_scc_common_is_mp_initialized())
 			_starpu_scc_src_mp_deinit();
@@ -1623,10 +1625,10 @@ int starpu_asynchronous_mic_copy_disabled(void)
 unsigned starpu_mic_worker_get_count(void)
 {
 	int i = 0, count = 0;
-	
+
 	for (i = 0; i < STARPU_MAXMICDEVS; i++)
 		count += config.topology.nmiccores[i];
-	
+
 	return count;
 }
 
@@ -1737,7 +1739,7 @@ struct _starpu_sched_ctx *_starpu_get_sched_ctx_struct(unsigned id)
 struct _starpu_combined_worker *_starpu_get_combined_worker_struct(unsigned id)
 {
 	unsigned basic_worker_count = starpu_worker_get_count();
-	
+
 	//_STARPU_DEBUG("basic_worker_count:%d\n",basic_worker_count);
 
 	STARPU_ASSERT(id >= basic_worker_count);
