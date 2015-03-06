@@ -245,6 +245,12 @@ _starpu_initialize_workers_opencl_gpuid (struct _starpu_machine_config*config)
                                 nb ++;
                         }
                 }
+		struct handle_entry *entry, *tempo;
+		HASH_ITER(hh, devices_already_used, entry, tempo)
+		{
+			HASH_DEL(devices_already_used, entry);
+			free(entry);
+		}
                 for (i=nb ; i<STARPU_NMAXWORKERS ; i++)
 			tmp[i] = -1;
                 memcpy (topology->workers_opencl_gpuid, tmp,

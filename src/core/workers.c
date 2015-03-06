@@ -1204,6 +1204,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 		starpu_perfmodel_free_sampling_directories();
 		STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
 		init_count--;
+		_starpu_destroy_topology(&config);
 #ifdef STARPU_USE_SCC
 		if (_starpu_scc_common_is_mp_initialized())
 			_starpu_scc_src_mp_deinit();
