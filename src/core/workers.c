@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015  Centre National de la Recherche Scientifique
  * Copyright (C) 2010, 2011  Institut National de Recherche en Informatique et Automatique
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2011-2012  INRIA
@@ -810,7 +810,9 @@ int starpu_init(struct starpu_conf *user_conf)
 		starpu_perfmodel_free_sampling_directories();
 		STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
 		init_count--;
-		_starpu_destroy_topology(&config);
+
+		_starpu_destroy_machine_config(&config);
+
 		initialized = UNINITIALIZED;
 		/* Let somebody else try to do it */
 		STARPU_PTHREAD_COND_SIGNAL(&init_cond);

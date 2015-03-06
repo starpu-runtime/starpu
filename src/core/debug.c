@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2013  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2013, 2015  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -22,7 +22,7 @@
 #ifdef STARPU_VERBOSE
 /* we want a single writer at the same time to have a log that is readable */
 static starpu_pthread_mutex_t logfile_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
-static FILE *logfile;
+static FILE *logfile = NULL;
 #endif
 
 /* Tell gdb whether FXT is compiled in or not */
@@ -52,7 +52,11 @@ void _starpu_open_debug_logfile(void)
 void _starpu_close_debug_logfile(void)
 {
 #ifdef STARPU_VERBOSE
-	fclose(logfile);
+	if (logfile)
+	{
+		fclose(logfile);
+		logfile = NULL;
+	}
 #endif
 }
 

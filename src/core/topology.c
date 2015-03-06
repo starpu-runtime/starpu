@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2014  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013 Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015 Centre National de la Recherche Scientifique
  * Copyright (C) 2011  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -441,7 +441,7 @@ _starpu_topology_get_nhwcpu (struct _starpu_machine_config *config)
 }
 
 static int
-_starpu_init_machine_config (struct _starpu_machine_config *config)
+_starpu_init_machine_config(struct _starpu_machine_config *config)
 {
 	int i;
 	for (i = 0; i < STARPU_NMAXWORKERS; i++)
@@ -638,7 +638,38 @@ _starpu_init_machine_config (struct _starpu_machine_config *config)
 	return 0;
 }
 
+void _starpu_destroy_machine_config(struct _starpu_machine_config *config)
+{
+	_starpu_close_debug_logfile();
 
+	unsigned worker;
+	for (worker = 0; worker < config->topology.nworkers; worker++)
+	{
+#ifdef STARPU_HAVE_HWLOC
+		struct _starpu_worker *workerarg = &config->workers[worker];
+		hwloc_bitmap_free(workerarg->initial_hwloc_cpu_set);
+		hwloc_bitmap_free(workerarg->current_hwloc_cpu_set);
+#endif
+	}
+
+#ifdef STARPU_HAVE_HWLOC
+	hwloc_topology_destroy(config->topology.hwtopology);
+#endif
+
+	topology_is_initialized = 0;
+#ifdef STARPU_USE_CUDA
+	struct handle_entry *entry, *tmp;
+	HASH_ITER(hh, devices_using_cuda, entry, tmp)
+	{
+		HASH_DEL(devices_using_cuda, entry);
+		free(entry);
+	}
+	devices_using_cuda = NULL;
+#endif
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
+	may_bind_automatically = 0;
+#endif
+}
 
 void
 _starpu_bind_thread_on_cpu (
@@ -965,39 +996,12 @@ _starpu_build_topology (struct _starpu_machine_config *config)
 }
 
 void
-_starpu_destroy_topology (
-	struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED)
+_starpu_destroy_topology (struct _starpu_machine_config *config)
 {
 	/* cleanup StarPU internal data structures */
 	_starpu_memory_nodes_deinit();
 
-	unsigned worker;
-	for (worker = 0; worker < config->topology.nworkers; worker++)
-	{
-#ifdef STARPU_HAVE_HWLOC
-		struct _starpu_worker *workerarg = &config->workers[worker];
-		hwloc_bitmap_free(workerarg->initial_hwloc_cpu_set);
-		hwloc_bitmap_free(workerarg->current_hwloc_cpu_set);
-#endif
-	}
-
-#ifdef STARPU_HAVE_HWLOC
-	hwloc_topology_destroy(config->topology.hwtopology);
-#endif
-
-	topology_is_initialized = 0;
-#ifdef STARPU_USE_CUDA
-	struct handle_entry *entry, *tmp;
-	HASH_ITER(hh, devices_using_cuda, entry, tmp)
-	{
-		HASH_DEL(devices_using_cuda, entry);
-		free(entry);
-	}
-	devices_using_cuda = NULL;
-#endif
-#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
-	may_bind_automatically = 0;
-#endif
+	_starpu_destroy_machine_config(config);
 }
 
 void
