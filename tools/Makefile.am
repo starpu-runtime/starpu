@@ -79,6 +79,7 @@ EXTRA_DIST =				\
 	dev/rename.sed			\
 	dev/rename.sh			\
 	perfmodels/README		\
+	valgrind/libc.suppr		\
 	valgrind/hwloc.suppr		\
 	valgrind/libnuma.suppr		\
 	valgrind/openmpi.suppr		\
