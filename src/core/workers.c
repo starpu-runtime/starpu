@@ -810,6 +810,7 @@ int starpu_init(struct starpu_conf *user_conf)
 		starpu_perfmodel_free_sampling_directories();
 		STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
 		init_count--;
+		_starpu_destroy_topology(&config);
 		initialized = UNINITIALIZED;
 		/* Let somebody else try to do it */
 		STARPU_PTHREAD_COND_SIGNAL(&init_cond);
