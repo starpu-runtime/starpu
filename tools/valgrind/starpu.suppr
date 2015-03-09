@@ -79,7 +79,7 @@
 }
 
 {
-   mc / handle locking order. We always take handle before mc, except when we tidy memory, where we use trylock, but helgrind doesn't handle that :/
+   mc / handle locking order. We always take handle before mc, except when we tidy memory, where we use trylock, but helgrind doesn't handle that :/ https://bugs.kde.org/show_bug.cgi?id=243232
    Helgrind:LockOrder
    ...
    fun:_starpu_spin_trylock
