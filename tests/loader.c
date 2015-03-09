@@ -98,7 +98,7 @@ static void launch_gdb(const char *exe)
 		{
 			/* Run gdb with Libtool.  */
 			gdb = alloca(strlen(top_builddir)
-				     + sizeof("libtool") + 1);
+				     + sizeof("/libtool") + 1);
 			strcpy(gdb, top_builddir);
 			strcat(gdb, "/libtool");
 			err = execl(gdb, "gdb", "--mode=execute",
