@@ -232,7 +232,6 @@
 {
    suppr29
    Memcheck:Leak
-   match-leak-kinds: indirect
    ...
    fun:PMPI_Comm_split
    fun:main
