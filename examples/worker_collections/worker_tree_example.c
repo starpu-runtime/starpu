@@ -80,7 +80,10 @@ int main()
 //		FPRINTF(stderr, "pu = %d out of %d workers \n", pu, co->nworkers);
 	}
 
-	for(i = 0; i < 6; i++)
+	int six = 6;
+	if (six < ncpus)
+		six = ncpus/2;
+	for(i = 0; i < six; i++)
 	{
 		co->remove(co, i);
 //		FPRINTF(stderr, "remove %d out of %d workers\n", i, co->nworkers);
