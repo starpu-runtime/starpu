@@ -29,9 +29,7 @@ int main(int argc, char **argv)
 
 	if (size<3)
 	{
-		if (rank == 0)
-			FPRINTF(stderr, "We need more than 2 processes.\n");
-
+		FPRINTF(stderr, "We need more than 2 processes.\n");
 		MPI_Finalize();
 		return STARPU_TEST_SKIPPED;
 	}
@@ -69,8 +67,7 @@ int main(int argc, char **argv)
 
 	starpu_mpi_shutdown();
 	starpu_shutdown();
-
 	MPI_Finalize();
 
-	return ret;
+	return 0;
 }

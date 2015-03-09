@@ -55,7 +55,7 @@ int test(int rank, int node, int *before, int *after, int task_insert, int data_
 		goto nodata;
 	}
 
-	FPRINTF_MPI(stderr, "Testing with task_insert=%d - data_array=%d - node=%d\n", task_insert, data_array, node);
+	FPRINTF_MPI(stderr, "Testing with node=%d - task_insert=%d - data_array=%d - \n", node, task_insert, data_array);
 
 	for(i=0 ; i<2 ; i++)
 	{
@@ -193,6 +193,7 @@ enodev:
 	}
 
 nodata:
+	MPI_Barrier(MPI_COMM_WORLD);
 	starpu_mpi_shutdown();
 	starpu_shutdown();
 
