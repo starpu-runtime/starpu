@@ -308,6 +308,8 @@ void _starpu_sink_common_worker(void)
 		}
 	}
 
+	STARPU_PTHREAD_KEY_DELETE(worker_key);
+
 	/* Deinitialize the node and release it */
 	_starpu_mp_common_node_destroy(node);
 
