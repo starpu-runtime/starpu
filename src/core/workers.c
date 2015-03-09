@@ -570,7 +570,7 @@ void _starpu_worker_start(struct _starpu_worker *worker, unsigned fut_key, unsig
 }
 #endif
 
-void _starpu_driver_start(struct _starpu_worker *worker, unsigned fut_key, unsigned sync)
+void _starpu_driver_start(struct _starpu_worker *worker, unsigned fut_key, unsigned sync STARPU_ATTRIBUTE_UNUSED)
 {
 	(void) fut_key;
 	int devid = worker->devid;
@@ -1524,6 +1524,9 @@ void starpu_shutdown(void)
 	_starpu_omp_dummy_shutdown();
 #endif
 	_starpu_close_debug_logfile();
+
+	STARPU_PTHREAD_KEY_DELETE(worker_key);
+	STARPU_PTHREAD_KEY_DELETE(worker_set_key);
 
 	STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
 	initialized = UNINITIALIZED;

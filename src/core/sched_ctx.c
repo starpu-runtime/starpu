@@ -904,6 +904,8 @@ void _starpu_delete_all_sched_ctxs()
 		STARPU_PTHREAD_RWLOCK_UNLOCK(&changing_ctx_mutex[i]);
 		STARPU_PTHREAD_RWLOCK_DESTROY(&changing_ctx_mutex[i]);
 	}
+
+	STARPU_PTHREAD_KEY_DELETE(sched_ctx_key);
 	return;
 }
 
@@ -1143,7 +1145,7 @@ int _starpu_nworkers_able_to_execute_task(struct starpu_task *task, struct _star
 /* unused sched_ctx have the id STARPU_NMAX_SCHED_CTXS */
 void _starpu_init_all_sched_ctxs(struct _starpu_machine_config *config)
 {
-	starpu_pthread_key_create(&sched_ctx_key, NULL);
+	STARPU_PTHREAD_KEY_CREATE(&sched_ctx_key, NULL);
 
 	unsigned i;
 	for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
