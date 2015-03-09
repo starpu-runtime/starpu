@@ -1090,6 +1090,9 @@ void starpu_shutdown(void)
 
 	_starpu_close_debug_logfile();
 
+	STARPU_PTHREAD_KEY_DELETE(worker_key);
+	STARPU_PTHREAD_KEY_DELETE(worker_set_key);
+
 	STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
 	initialized = UNINITIALIZED;
 	/* Let someone else that wants to initialize it again do it */
