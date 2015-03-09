@@ -253,6 +253,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 				int ret = _starpu_mpi_find_executee_node(data, mode, me, do_execute, &inconsistent_execute, xrank);
 				if (ret == -EINVAL)
 				{
+					free(descrs);
 					return ret;
 				}
 			}
@@ -279,6 +280,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 					int ret = _starpu_mpi_find_executee_node(datas[i], mode, me, do_execute, &inconsistent_execute, xrank);
 					if (ret == -EINVAL)
 					{
+						free(descrs);
 						return ret;
 					}
 				}
@@ -306,6 +308,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 					int ret = _starpu_mpi_find_executee_node(_descrs[i].handle, mode, me, do_execute, &inconsistent_execute, xrank);
 					if (ret == -EINVAL)
 					{
+						free(descrs);
 						return ret;
 					}
 				}

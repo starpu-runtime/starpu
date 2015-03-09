@@ -27,12 +27,12 @@
 #include <drivers/scc/driver_scc_source.h>
 #include <drivers/mic/driver_mic_source.h>
 
+#ifdef STARPU_USE_CUDA
 /* At least CUDA 4.2 still didn't have working memcpy3D */
 #if CUDART_VERSION < 5000
 #define BUGGED_MEMCPY3D
 #endif
 
-#ifdef STARPU_USE_CUDA
 static int copy_ram_to_cuda(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED);
 static int copy_cuda_to_ram(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED);
 static int copy_cuda_to_cuda(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED);

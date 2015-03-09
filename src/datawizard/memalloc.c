@@ -164,11 +164,6 @@ static void transfer_subtree_to_node(starpu_data_handle_t handle, unsigned src_n
 		switch(src_replicate->state)
 		{
 		case STARPU_OWNER:
-			/* the local node has the only copy */
-			/* the owner is now the destination_node */
-			src_replicate->state = STARPU_INVALID;
-			dst_replicate->state = STARPU_OWNER;
-
 #ifdef STARPU_DEVEL
 #warning we should use requests during memory reclaim
 #endif
@@ -179,6 +174,8 @@ static void transfer_subtree_to_node(starpu_data_handle_t handle, unsigned src_n
 			dst_replicate->refcnt++;
 			handle->busy_count+=2;
 
+			/* Note: this may release the header lock if
+			 * destination is not allocated yet */
 			ret = _starpu_driver_copy_data_1_to_1(handle, src_replicate, dst_replicate, 0, NULL, 1);
 			STARPU_ASSERT(ret == 0);
 
@@ -189,7 +186,11 @@ static void transfer_subtree_to_node(starpu_data_handle_t handle, unsigned src_n
 			ret = _starpu_data_check_not_busy(handle);
 			STARPU_ASSERT(ret == 0);
 
-			break;
+			dst_replicate->state = STARPU_SHARED;
+
+			/* NOTE: now that it's SHARED on dst, FALLTHROUGH to
+			 * update src and perhaps make dst OWNER */
+
 		case STARPU_SHARED:
 			/* some other node may have the copy */
 			src_replicate->state = STARPU_INVALID;

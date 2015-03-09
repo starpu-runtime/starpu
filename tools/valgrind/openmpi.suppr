@@ -228,3 +228,11 @@
    fun:ompi_datatype_set_args
    fun:PMPI_Type_vector
 }
+
+{
+   suppr29
+   Memcheck:Leak
+   ...
+   fun:PMPI_Comm_split
+   fun:main
+}

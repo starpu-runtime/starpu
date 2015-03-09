@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -149,13 +149,13 @@ int starpu_data_acquire_on_node_cb_sequential_consistency(starpu_data_handle_t h
 	{
 		struct starpu_task *new_task;
 		wrapper->pre_sync_task = starpu_task_create();
-		wrapper->pre_sync_task->name = "acquire_cb_pre";
+		wrapper->pre_sync_task->name = "_starpu_data_acquire_cb_pre";
 		wrapper->pre_sync_task->detach = 1;
 		wrapper->pre_sync_task->callback_func = starpu_data_acquire_cb_pre_sync_callback;
 		wrapper->pre_sync_task->callback_arg = wrapper;
 
 		wrapper->post_sync_task = starpu_task_create();
-		wrapper->post_sync_task->name = "acquire_cb_post";
+		wrapper->post_sync_task->name = "_starpu_data_acquire_cb_post";
 		wrapper->post_sync_task->detach = 1;
 
 		new_task = _starpu_detect_implicit_data_deps_with_handle(wrapper->pre_sync_task, wrapper->post_sync_task, &_starpu_get_job_associated_to_task(wrapper->post_sync_task)->implicit_dep_slot, handle, mode);
@@ -271,11 +271,11 @@ int starpu_data_acquire_on_node(starpu_data_handle_t handle, int node, enum star
 	{
 		struct starpu_task *new_task;
 		wrapper.pre_sync_task = starpu_task_create();
-		wrapper.pre_sync_task->name = "acquire_pre";
+		wrapper.pre_sync_task->name = "_starpu_data_acquire_pre";
 		wrapper.pre_sync_task->detach = 0;
 
 		wrapper.post_sync_task = starpu_task_create();
-		wrapper.post_sync_task->name = "acquire_post";
+		wrapper.post_sync_task->name = "_starpu_data_acquire_post";
 		wrapper.post_sync_task->detach = 1;
 
 		new_task = _starpu_detect_implicit_data_deps_with_handle(wrapper.pre_sync_task, wrapper.post_sync_task, &_starpu_get_job_associated_to_task(wrapper.post_sync_task)->implicit_dep_slot, handle, mode);
