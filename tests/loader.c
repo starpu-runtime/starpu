@@ -232,7 +232,9 @@ int main(int argc, char *argv[])
 
 	/* get launcher program */
 	launcher=getenv("STARPU_CHECK_LAUNCHER");
-	launcher_args=strdup(getenv("STARPU_CHECK_LAUNCHER_ARGS"));
+	launcher_args=getenv("STARPU_CHECK_LAUNCHER_ARGS");
+	if (launcher_args)
+		launcher_args=strdup(launcher_args);
 
 	/* get user-defined iter_max value */
 	if (getenv("STARPU_TIMEOUT_ENV"))
