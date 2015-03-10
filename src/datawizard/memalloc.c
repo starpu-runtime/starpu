@@ -40,6 +40,8 @@ static struct mc_cache_entry *mc_cache[STARPU_MAXNODES];
 static int mc_cache_nb[STARPU_MAXNODES];
 static starpu_ssize_t mc_cache_size[STARPU_MAXNODES];
 
+/* Whether some thread is currently tidying this node */
+static unsigned tidying[STARPU_MAXNODES];
 
 /* When reclaiming memory to allocate, we reclaim MAX(what_is_to_reclaim_on_device, data_size_coefficient*data_size) */
 const unsigned starpu_memstrategy_data_size_coefficient=2;
@@ -755,9 +757,6 @@ void starpu_memchunk_tidy(unsigned node)
 	if (total <= 0)
 		return;
 
-	/* TODO: only request writebacks to get buffers clean, without waiting
-	 * for it */
-
 	/* Count cached allocation as being available */
 	available += mc_cache_size[node];
 
@@ -769,6 +768,14 @@ void starpu_memchunk_tidy(unsigned node)
 	target = (total * target_p) / 100;
 	amount = target - available;
 
+	if (tidying[node])
+		/* Some thread is already tidying this node, let it do it */
+		return;
+
+	if (STARPU_ATOMIC_ADD(&tidying[node], 1) > 1)
+		/* Some thread got it before us, let it do it */
+		goto out;
+
 	static unsigned warned;
 	if (!warned) {
 		if (STARPU_ATOMIC_ADD(&warned, 1) == 1)
@@ -779,7 +786,12 @@ void starpu_memchunk_tidy(unsigned node)
 		}
 	}
 
+	/* TODO: only request writebacks to get buffers clean, without waiting
+	 * for it */
+
 	free_potentially_in_use_mc(node, 0, amount);
+out:
+	(void) STARPU_ATOMIC_ADD(&tidying[node], -1);
 }
 
 static struct _starpu_mem_chunk *_starpu_memchunk_init(struct _starpu_data_replicate *replicate, size_t interface_size, unsigned automatically_allocated)
