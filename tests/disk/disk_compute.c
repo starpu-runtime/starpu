@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2013 Corentin Salingue
+ * Copyright (C) 2015 Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -31,13 +32,17 @@
 #include "../helper.h"
 
 #ifdef STARPU_HAVE_WINDOWS
-        #include <io.h>
-#if defined(_WIN32) && !defined(__CYGWIN__)
-#define mkdir(path, mode) mkdir(path)
-#endif
+#  include <io.h>
+#  if defined(_WIN32) && !defined(__CYGWIN__)
+#    define mkdir(path, mode) mkdir(path)
+#  endif
 #endif
 
-#define NX (1024)
+#ifdef STARPU_QUICK_CHECK
+#  define NX (128)
+#else
+#  define NX (1024)
+#endif
 
 int dotest(struct starpu_disk_ops *ops, char *base)
 {
