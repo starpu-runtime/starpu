@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2013 Corentin Salingue
+ * Copyright (C) 2015 Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -31,14 +32,17 @@
 #include "../helper.h"
 
 #ifdef STARPU_HAVE_WINDOWS
-        #include <io.h>
-#if defined(_WIN32) && !defined(__CYGWIN__)
-#define mkdir(path, mode) mkdir(path)
+#  include <io.h>
+#  if defined(_WIN32) && !defined(__CYGWIN__)
+#    define mkdir(path, mode) mkdir(path)
+#  endif
 #endif
 
-#endif 
-
-#define NX (1024)
+#ifdef STARPU_QUICK_CHECK
+#  define NX (128)
+#else
+#  define NX (1024)
+#endif
 
 const struct starpu_data_copy_methods my_vector_copy_data_methods_s;
 struct starpu_data_interface_ops starpu_interface_my_vector_ops;
@@ -96,13 +100,13 @@ int dotest(struct starpu_disk_ops *ops, char *base)
 	int new_dd = starpu_disk_register(ops, (void *) base, 1024*1024*1);
 	/* can't write on /tmp/ */
 	if (new_dd == -ENOENT) goto enoent;
-	
+
 	unsigned dd = (unsigned) new_dd;
 
 	/* allocate two memory spaces */
 	starpu_malloc_flags((void **)&A, NX*sizeof(int), STARPU_MALLOC_COUNT);
 	starpu_malloc_flags((void **)&C, NX*sizeof(int), STARPU_MALLOC_COUNT);
-	
+
 	FPRINTF(stderr, "TEST DISK MEMORY \n");
 
 	unsigned int j;
@@ -165,8 +169,8 @@ int dotest(struct starpu_disk_ops *ops, char *base)
 	/* register vector in starpu */
 	starpu_my_vector_data_register(&vector_handleA, dd, (uintptr_t) data, NX, sizeof(int));
 
-	/* and do what you want with it, here we copy it into an other vector */ 
-	starpu_my_vector_data_register(&vector_handleC, dd, (uintptr_t) data_result, NX, sizeof(int));	
+	/* and do what you want with it, here we copy it into an other vector */
+	starpu_my_vector_data_register(&vector_handleC, dd, (uintptr_t) data_result, NX, sizeof(int));
 
 	starpu_data_cpy(vector_handleC, vector_handleA, 0, NULL, NULL);
 
@@ -178,7 +182,7 @@ int dotest(struct starpu_disk_ops *ops, char *base)
 	starpu_disk_close(dd, data, NX*sizeof(int));
 	starpu_disk_close(dd, data_result, NX*sizeof(int));
 
-	/* check results */	
+	/* check results */
 	f = fopen(path_file_end, "rb+");
 	if (f == NULL)
 		goto enoent2;
