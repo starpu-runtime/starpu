@@ -54,10 +54,6 @@ int dotest(struct starpu_disk_ops *ops, char *base)
 	if (ret == -ENODEV) goto enodev;
 
 	/* Initialize path and name */
-	char pid_str[16];
-	int pid = getpid();
-	snprintf(pid_str, 16, "%d", pid);
-
 	const char *name_file_start = "STARPU_DISK_COMPUTE_DATA_";
 	const char *name_file_end = "STARPU_DISK_COMPUTE_DATA_RESULT_";
 
