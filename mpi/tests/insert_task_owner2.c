@@ -99,7 +99,7 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(err, "starpu_mpi_insert_task");
 	starpu_task_wait_for_all();
 
-	int *values = malloc(4 * sizeof(int *));
+	int *values = malloc(4 * sizeof(int));
 	for(i=0 ; i<4 ; i++)
 	{
 		starpu_mpi_get_data_on_node_detached(MPI_COMM_WORLD, data_handles[i], 0, NULL, NULL);
