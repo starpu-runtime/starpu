@@ -36,6 +36,15 @@
 #include <core/simgrid.h>
 #endif
 
+#ifdef STARPU_USE_CUDA
+#if CUDART_VERSION >= 5000
+/* Avoid letting our streams spuriously synchonize with the NULL stream */
+#define starpu_cudaStreamCreate(stream) cudaStreamCreateWithFlags(stream, cudaStreamNonBlocking)
+#else
+#define starpu_cudaStreamCreate(stream) cudaStreamCreate(stream)
+#endif
+#endif
+
 /* the number of CUDA devices */
 static unsigned ncudagpus;
 
@@ -290,20 +299,20 @@ static void init_device_context(unsigned devid)
 	}
 #endif
 
-	cures = cudaStreamCreate(&in_transfer_streams[devid]);
+	cures = starpu_cudaStreamCreate(&in_transfer_streams[devid]);
 	if (STARPU_UNLIKELY(cures))
 		STARPU_CUDA_REPORT_ERROR(cures);
 
-	cures = cudaStreamCreate(&out_transfer_streams[devid]);
+	cures = starpu_cudaStreamCreate(&out_transfer_streams[devid]);
 	if (STARPU_UNLIKELY(cures))
 		STARPU_CUDA_REPORT_ERROR(cures);
 
 	for (i = 0; i < ncudagpus; i++)
 	{
-		cures = cudaStreamCreate(&in_peer_transfer_streams[i][devid]);
+		cures = starpu_cudaStreamCreate(&in_peer_transfer_streams[i][devid]);
 		if (STARPU_UNLIKELY(cures))
 			STARPU_CUDA_REPORT_ERROR(cures);
-		cures = cudaStreamCreate(&out_peer_transfer_streams[devid][i]);
+		cures = starpu_cudaStreamCreate(&out_peer_transfer_streams[devid][i]);
 		if (STARPU_UNLIKELY(cures))
 			STARPU_CUDA_REPORT_ERROR(cures);
 	}
@@ -330,7 +339,7 @@ static void init_worker_context(unsigned workerid)
 			STARPU_CUDA_REPORT_ERROR(cures);
 	}
 
-	cures = cudaStreamCreate(&streams[workerid]);
+	cures = starpu_cudaStreamCreate(&streams[workerid]);
 	if (STARPU_UNLIKELY(cures))
 		STARPU_CUDA_REPORT_ERROR(cures);
 
