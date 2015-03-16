@@ -282,7 +282,7 @@ static void init_context(unsigned devid)
 
 	workerid = starpu_worker_get_id();
 
-	cures = cudaStreamCreate(&streams[workerid]);
+	cures = starpu_cudaStreamCreate(&streams[workerid]);
 	if (STARPU_UNLIKELY(cures))
 		STARPU_CUDA_REPORT_ERROR(cures);
 
@@ -310,7 +310,7 @@ static void deinit_context(int workerid)
 	int devid = starpu_worker_get_devid(workerid);
 	int i;
 
-	starpu_cudaStreamDestroy(streams[workerid]);
+	cudaStreamDestroy(streams[workerid]);
 	cudaStreamDestroy(in_transfer_streams[devid]);
 	cudaStreamDestroy(out_transfer_streams[devid]);
 	for (i = 0; i < ncudagpus; i++)
