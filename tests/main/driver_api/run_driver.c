@@ -38,7 +38,7 @@ dummy(void *buffers[], void *args)
 {
 	(void) buffers;
 	(*(int *)args)++;
-	usleep(1000000);
+	usleep(100000);
 }
 
 static struct starpu_codelet cl =
