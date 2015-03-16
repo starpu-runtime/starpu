@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2013-2014  Université de Bordeaux
+ * Copyright (C) 2010, 2013-2015  Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -347,8 +347,6 @@ void free_memory_on_node(int rank)
 		struct block_description *block = get_block_description(bz);
 
 		int node = block->mpi_node;
-
-		unsigned size_bz = block_sizes_z[bz];
 
 		/* Main blocks */
 		if (node == rank)
