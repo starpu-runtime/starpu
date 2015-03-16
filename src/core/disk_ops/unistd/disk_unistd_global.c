@@ -33,12 +33,13 @@
 #include <core/disk_ops/unistd/disk_unistd_global.h>
 #include <datawizard/copy_driver.h>
 #include <datawizard/memory_manager.h>
+#include <starpu_parameters.h>
 
 #ifdef STARPU_HAVE_WINDOWS
         #include <io.h>
 #endif
 
-#define NITER	64
+#define NITER	_STARPU_CALIBRATION_MINIMUM
 
 #ifdef O_DIRECT
 #  define MEM_SIZE getpagesize()
