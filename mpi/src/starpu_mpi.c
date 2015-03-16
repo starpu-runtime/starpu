@@ -919,7 +919,7 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
 					STARPU_MPI_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Wait returning %s", _starpu_mpi_get_mpi_code(ret));
 					free(req->ptr);
 				}
-				if (req->request_type == RECV_REQ)
+				else if (req->request_type == RECV_REQ)
 				{
 					// req->ptr is freed by starpu_data_unpack
 					starpu_data_unpack(req->data_handle, req->ptr, req->count);

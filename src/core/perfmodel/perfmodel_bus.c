@@ -768,11 +768,8 @@ static void get_bus_path(const char *type, char *path, size_t maxlen)
 {
 	char hostname[65];
 
-	snprintf(path, maxlen, "%s", _starpu_get_perf_model_dir_bus());
 	_starpu_gethostname(hostname, sizeof(hostname));
-	strncat(path, hostname, maxlen);
-	strncat(path, ".", maxlen);
-	strncat(path, type, maxlen);
+	snprintf(path, maxlen, "%s%s.%s", _starpu_get_perf_model_dir_bus(), hostname, type);
 }
 
 /*
