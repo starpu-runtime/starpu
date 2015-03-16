@@ -712,29 +712,19 @@ static void get_model_debug_path(struct starpu_perfmodel *model, const char *arc
 {
 	STARPU_ASSERT(path);
 
-	snprintf(path, maxlen, "%s/%s", _starpu_get_perf_model_dir_debug(), model->symbol);
-
 	char hostname[65];
 	_starpu_gethostname(hostname, sizeof(hostname));
-	strncat(path, ".", maxlen);
-	strncat(path, hostname, maxlen);
-	strncat(path, ".", maxlen);
-	strncat(path, arch, maxlen);
-	strncat(path, ".debug", maxlen);
+
+	snprintf(path, maxlen, "%s/%s.%s.%s.debug", _starpu_get_perf_model_dir_debug(), model->symbol, hostname, arch);
 }
 
 static void get_model_path(struct starpu_perfmodel *model, char *path, size_t maxlen)
 {
-	snprintf(path, maxlen, "%s/%s", _starpu_get_perf_model_dir_codelet(), model->symbol);
-
+	char hostname[65];
+	_starpu_gethostname(hostname, sizeof(hostname));
 	const char *dot = strrchr(model->symbol, '.');
-	if (dot == NULL)
-	{
-		char hostname[65];
-		_starpu_gethostname(hostname, sizeof(hostname));
-		strncat(path, ".", maxlen);
-		strncat(path, hostname, maxlen);
-	}
+
+	snprintf(path, maxlen, "%s/%s%s%s", _starpu_get_perf_model_dir_codelet(), model->symbol, dot?"":".", dot?"":hostname);
 }
 
 #ifndef STARPU_SIMGRID

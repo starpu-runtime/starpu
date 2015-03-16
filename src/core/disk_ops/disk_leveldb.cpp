@@ -292,7 +292,10 @@ get_leveldb_bandwidth_between_disk_and_main_ram(unsigned node)
 	void * mem = _starpu_disk_alloc(node, SIZE_DISK_MIN);
 	/* fail to alloc */
 	if (mem == NULL)
+	{
+		free(buf);
 		return 0;
+	}
 
 	/* Measure upload slowness */
 	start = starpu_timing_now();

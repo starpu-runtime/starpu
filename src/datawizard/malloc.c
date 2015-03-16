@@ -503,9 +503,6 @@ _starpu_malloc_on_node(unsigned dst_node, size_t size)
 	if (addr == 0)
 	{
 		// Allocation failed, gives the memory back to the memory manager
-		const char* file;					
-		file = strrchr(__FILE__,'/');							
-		file += sizeof(char);										
 		_STARPU_TRACE_MEMORY_FULL(size);
 		starpu_memory_deallocate(dst_node, size);
 	}

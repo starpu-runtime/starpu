@@ -341,7 +341,7 @@ int main(int argc, char **argv)
 		if (no_stride)
 		{
 			/* in case the LU decomposition uses non-strided blocks, we _copy_ the matrix into smaller blocks */
-			A_blocks = malloc(nblocks*nblocks*sizeof(TYPE **));
+			A_blocks = malloc(nblocks*nblocks*sizeof(TYPE *));
 			copy_matrix_into_blocks();
 
 			ret = STARPU_LU(lu_decomposition_pivot_no_stride)(A_blocks, ipiv, size, size, nblocks);
