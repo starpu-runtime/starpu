@@ -89,7 +89,7 @@ test_cpu(void)
 	if (ret != 0)
 	{
 		ret = 1;
-		goto out;
+		goto out2;
 	}
 
 	struct starpu_task *task;
@@ -107,14 +107,14 @@ test_cpu(void)
 		goto out;
 	}
 
+	FPRINTF(stderr, "[CPU] Var = %d (expected value: 1)\n", var);
+	ret = !!(var != 1);
 out:
 	starpu_drivers_request_termination();
 	if (starpu_pthread_join(driver_thread, NULL) != 0)
 		return 1;
+out2:
 	starpu_shutdown();
-
-	FPRINTF(stderr, "[CPU] Var = %d (expected value: 1)\n", var);
-	ret = !!(var != 1);
 	return ret;
 }
 #endif /* STARPU_USE_CPU */

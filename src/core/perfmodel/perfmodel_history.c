@@ -673,16 +673,11 @@ int _starpu_register_model(struct starpu_perfmodel *model)
 
 static void get_model_path(struct starpu_perfmodel *model, char *path, size_t maxlen)
 {
-	snprintf(path, maxlen, "%s/%s", _starpu_get_perf_model_dir_codelet(), model->symbol);
-
+	char hostname[65];
+	_starpu_gethostname(hostname, sizeof(hostname));
 	const char *dot = strrchr(model->symbol, '.');
-	if (dot == NULL)
-	{
-		char hostname[65];
-		_starpu_gethostname(hostname, sizeof(hostname));
-		strncat(path, ".", maxlen);
-		strncat(path, hostname, maxlen);
-	}
+
+	snprintf(path, maxlen, "%s/%s%s%s", _starpu_get_perf_model_dir_codelet(), model->symbol, dot?"":".", dot?"":hostname);
 }
 
 static void save_history_based_model(struct starpu_perfmodel *model)
