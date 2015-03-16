@@ -49,7 +49,6 @@ void _starpu_mpi_sync_data_free(void)
 		free(current);
 	}
 	STARPU_PTHREAD_MUTEX_DESTROY(&_starpu_mpi_sync_data_handle_mutex);
-	free(_starpu_mpi_sync_data_handle_hashmap);
 }
 
 #ifdef STARPU_VERBOSE
