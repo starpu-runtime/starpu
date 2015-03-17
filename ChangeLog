@@ -18,7 +18,10 @@ StarPU 1.1.5 (svn revision xxx)
 ==============================================
 The scheduling context release
 
-StarPU 1.1.4 (svn revision xxx)
+  * Add starpu_memory_pin and starpu_memory_unpin to pin memory allocated
+    another way than starpu_malloc.
+
+StarPU 1.1.4 (svn revision 14856)
 ==============================================
 The scheduling context release
 
