@@ -969,10 +969,9 @@ unsigned _starpu_can_push_task(struct _starpu_sched_ctx *sched_ctx, struct starp
 		if(!env_window_size) return 1;
 		double window_size = atof(env_window_size);
 		
-		starpu_pthread_rwlock_t *changing_ctx_mutex = _starpu_sched_ctx_get_changing_ctx_mutex(sched_ctx->id);
-		STARPU_PTHREAD_RWLOCK_RDLOCK(changing_ctx_mutex);
+		STARPU_PTHREAD_RWLOCK_RDLOCK(&changing_ctx_mutex[sched_ctx_id]);
 		double expected_end = sched_ctx->sched_policy->simulate_push_task(task);
-		STARPU_PTHREAD_RWLOCK_UNLOCK(changing_ctx_mutex);
+		STARPU_PTHREAD_RWLOCK_UNLOCK(&changing_ctx_mutex[sched_ctx_id]);
 		
 		double expected_len = 0.0; 
 		if(hyp_actual_start_sample[sched_ctx->id] != 0.0)
