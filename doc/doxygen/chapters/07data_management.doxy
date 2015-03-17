@@ -13,8 +13,9 @@ intro qui parle de coherency entre autres
 \section DataManagement Data Management
 
 When the application allocates data, whenever possible it should use
-the function starpu_malloc(), which will ask CUDA or OpenCL to make
-the allocation itself and pin the corresponding allocated memory. This
+the starpu_malloc() function, which will ask CUDA or OpenCL to make
+the allocation itself and pin the corresponding allocated memory, or to use the
+starpu_memory_pin() function to pin memory allocated by other ways, such as local arrays. This
 is needed to permit asynchronous data transfer, i.e. permit data
 transfer to overlap with computations. Otherwise, the trace will show
 that the <c>DriverCopyAsync</c> state takes a lot of time, this is

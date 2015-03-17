@@ -303,7 +303,7 @@ This permits to test the performance effect of GPU-Direct.
 <dd>
 \anchor STARPU_DISABLE_PINNING
 \addindex __env__STARPU_DISABLE_PINNING
-Disable (1) or Enable (0) pinning host memory allocated through starpu_malloc
+Disable (1) or Enable (0) pinning host memory allocated through starpu_malloc, starpu_memory_pin
 and friends.  The default is Enabled.
 This permits to test the performance effect of memory pinning.
 </dd>

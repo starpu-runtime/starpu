@@ -601,6 +601,32 @@ _starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size)
 
 }
 
+int
+starpu_memory_pin(void *addr STARPU_ATTRIBUTE_UNUSED, size_t size STARPU_ATTRIBUTE_UNUSED)
+{
+	if (STARPU_MALLOC_PINNED && starpu_get_env_number("STARPU_DISABLE_PINNING") <= 0 && RUNNING_ON_VALGRIND == 0)
+	{
+#if defined(STARPU_USE_CUDA) && defined(HAVE_CUDA_MEMCPY_PEER)
+		if (cudaHostRegister(addr, size, cudaHostRegisterPortable) != cudaSuccess)
+			return -1;
+#endif
+	}
+	return 0;
+}
+
+int
+starpu_memory_unpin(void *addr STARPU_ATTRIBUTE_UNUSED, size_t size STARPU_ATTRIBUTE_UNUSED)
+{
+	if (STARPU_MALLOC_PINNED && starpu_get_env_number("STARPU_DISABLE_PINNING") <= 0 && RUNNING_ON_VALGRIND == 0)
+	{
+#if defined(STARPU_USE_CUDA) && defined(HAVE_CUDA_MEMCPY_PEER)
+		if (cudaHostUnregister(addr) != cudaSuccess)
+			return -1;
+#endif
+	}
+	return 0;
+}
+
 /*
  * On CUDA which has very expensive malloc, for small sizes, allocate big
  * chunks divided in blocks, and we actually allocate segments of consecutive
