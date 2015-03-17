@@ -21,7 +21,7 @@
 #include <unistd.h>
 #include "../helper.h"
 
-#ifdef STARPU_QUICK_CHECK
+#ifndef STARPU_QUICK_CHECK
 #define N	1000
 #else
 #define N	100
