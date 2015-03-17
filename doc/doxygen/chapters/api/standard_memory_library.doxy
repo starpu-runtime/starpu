@@ -75,6 +75,17 @@ This function frees memory by specifying its size. The given
 flags should be consistent with the ones given to starpu_malloc_flags()
 when allocating the memory.
 
+\fn int starpu_memory_pin(void *addr, size_t size)
+\ingroup API_Standard_Memory_Library
+This function pins the given memory area, so that CPU-GPU transfers can be done
+asynchronously with DMAs. The memory must be unpinned with
+starpu_memory_unpin() before being freed. Returns 0 on success, -1 on error.
+
+\fn int starpu_memory_unpin(void *addr, size_t size)
+\ingroup API_Standard_Memory_Library
+This function unpins the given memory area previously pinned with
+starpu_memory_pin(). Returns 0 on success, -1 on error.
+
 \fn ssize_t starpu_memory_get_total(unsigned node)
 \ingroup API_Standard_Memory_Library
 If a memory limit is defined on the given node (see Section \ref

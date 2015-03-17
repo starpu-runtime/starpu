@@ -130,6 +130,8 @@ Small features:
     its own allocation to the reclaiming engine.
   * Add STARPU_SIMGRID_CUDA_MALLOC_COST and STARPU_SIMGRID_CUDA_QUEUE_COST to
     disable CUDA costs simulation in simgrid mode.
+  * Add starpu_memory_pin and starpu_memory_unpin to pin memory allocated
+    another way than starpu_malloc.
 
 Changes:
   * Data interfaces (variable, vector, matrix and block) now define
