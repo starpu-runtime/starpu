@@ -1046,6 +1046,10 @@ int _starpu_allocate_memory_on_node(starpu_data_handle_t handle, struct _starpu_
 	if (allocated_memory == -ENOMEM)
 		return -ENOMEM;
 
+	if (replicate->allocated)
+		/* Somebody allocated it in between already */
+		return 0;
+
 	register_mem_chunk(replicate, 1);
 
 	replicate->allocated = 1;
