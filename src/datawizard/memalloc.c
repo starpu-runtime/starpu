@@ -489,7 +489,7 @@ static unsigned try_to_reuse_mem_chunk(struct _starpu_mem_chunk *mc, unsigned no
 			/* in case there was nobody using that buffer, throw it
 			 * away after writing it back to main memory */
 			_STARPU_TRACE_START_WRITEBACK(node);
-			transfer_subtree_to_node(old_data, node, 0);
+			transfer_subtree_to_node(old_data, node, STARPU_MAIN_RAM);
 			_STARPU_TRACE_END_WRITEBACK(node);
 
 			/* now replace the previous data */
