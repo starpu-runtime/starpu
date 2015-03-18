@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011, 2013  Université de Bordeaux
+ * Copyright (C) 2010-2011, 2013, 2015  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
@@ -43,9 +43,15 @@ static starpu_data_handle_t A_handle, B_handle, C_handle;
 
 static unsigned nslicesx = 4;
 static unsigned nslicesy = 4;
+#ifdef STARPU_QUICK_CHECK
+static unsigned xdim = 512;
+static unsigned ydim = 512;
+static unsigned zdim = 256;
+#else
 static unsigned xdim = 1024;
 static unsigned ydim = 1024;
 static unsigned zdim = 512;
+#endif
 
 
 /*
