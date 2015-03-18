@@ -48,6 +48,14 @@
 #  define MEMSIZE 1
 #  define MEMSIZE_STR "1"
 
+#if !defined(STARPU_HAVE_SETENV)
+#warning setenv is not defined. Skipping test
+int main(int argc, char **argv)
+{
+	return STARPU_TEST_SKIPPED;
+}
+#else
+
 const struct starpu_data_copy_methods my_vector_copy_data_methods_s;
 struct starpu_data_interface_ops starpu_interface_my_vector_ops;
 
@@ -180,3 +188,4 @@ int main(void)
 	rmdir(s);
 	return ret;
 }
+#endif
