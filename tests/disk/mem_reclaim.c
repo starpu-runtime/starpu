@@ -129,7 +129,7 @@ int dotest(struct starpu_disk_ops *ops, char *base, void (*vector_data_register)
 	}
 
 	for (i = 0; i < NITER; i++)
-		starpu_task_insert(&inc_cl, STARPU_RW, handles[random()%NDATA], 0);
+		starpu_task_insert(&inc_cl, STARPU_RW, handles[rand()%NDATA], 0);
 
 	/* Free data */
 	for (i = 0; i < NDATA; i++)
