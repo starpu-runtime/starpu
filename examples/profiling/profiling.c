@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013  Université de Bordeaux
+ * Copyright (C) 2010-2013, 2015  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -21,7 +21,11 @@
 
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 
+#ifdef STARPU_QUICK_CHECK
+static unsigned niter = 50;
+#else
 static unsigned niter = 500;
+#endif
 
 void sleep_codelet(STARPU_ATTRIBUTE_UNUSED void *descr[],
 			STARPU_ATTRIBUTE_UNUSED void *_args)
@@ -44,9 +48,15 @@ int main(int argc, char **argv)
 	/* Enable profiling */
 	starpu_profiling_status_set(STARPU_PROFILING_ENABLE);
 
+#ifdef STARPU_QUICK_CHECK
+	/* We should observe at least 50ms in the sleep time reported by every
+	 * worker. */
+	usleep(50000);
+#else
 	/* We should observe at least 500ms in the sleep time reported by every
 	 * worker. */
 	usleep(500000);
+#endif
 
 	struct starpu_codelet cl =
 	{
