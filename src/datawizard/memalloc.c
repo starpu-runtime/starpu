@@ -26,7 +26,7 @@
 static int limit_cpu_mem;
 
 /* This per-node RW-locks protect mc_list and memchunk_cache entries */
-/* Note: handle header lock is always taken before this */
+/* Note: handle header lock is always taken before this (normal add/remove case) */
 static struct _starpu_spinlock mc_lock[STARPU_MAXNODES];
 
 /* Potentially in use memory chunks */
@@ -308,6 +308,7 @@ static size_t free_memory_on_node(struct _starpu_mem_chunk *mc, unsigned node)
 
 
 
+/* mc_lock is held */
 static size_t do_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 {
 	size_t size;
@@ -326,6 +327,11 @@ static size_t do_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 
 	/* remove the mem_chunk from the list */
 	_starpu_mem_chunk_list_erase(&mc_list[node], mc);
+	if (mc->remove_notify)
+	{
+		*(mc->remove_notify) = NULL;
+		mc->remove_notify = NULL;
+	}
 
 	_starpu_mem_chunk_delete(mc);
 
@@ -334,6 +340,7 @@ static size_t do_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 
 /* This function is called for memory chunks that are possibly in used (ie. not
  * in the cache). They should therefore still be associated to a handle. */
+/* mc_lock is held and may be temporarily released! */
 static size_t try_to_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 {
 	size_t freed = 0;
@@ -400,24 +407,45 @@ static size_t try_to_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 
 			if (target != -1) {
 				int res;
+				/* Should have been avoided in our caller */
+				STARPU_ASSERT(!mc->remove_notify);
+				mc->remove_notify = &mc;
+				_starpu_spin_unlock(&mc_lock[node]);
 #ifdef STARPU_MEMORY_STATS
 				if (handle->per_node[node].state == STARPU_OWNER)
 					_starpu_memory_handle_stats_invalidated(handle, node);
 #endif
 
 				_STARPU_TRACE_START_WRITEBACK(node);
+				/* Note: this may need to allocate data etc.
+				 * and thus release the header lock, take
+				 * mc_lock, etc. */
 				res = transfer_subtree_to_node(handle, node, target);
+
 				_STARPU_TRACE_END_WRITEBACK(node);
-				if (res)
-					/* Oops, the handle has disappeared in the meanwhile */
-					return 0;
 #ifdef STARPU_MEMORY_STATS
 				_starpu_memory_handle_stats_loaded_owner(handle, target);
 #endif
+				_starpu_spin_lock(&mc_lock[node]);
 
-				if (handle->per_node[node].refcnt == 0)
-					/* And still nobody on it, now the actual buffer may be freed */
+				if (mc)
+				{
+					STARPU_ASSERT(mc->remove_notify == &mc);
+					mc->remove_notify = NULL;
+				}
+				if (res)
+					/* Oops, the handle has disappeared in the meanwhile */
+					return 0;
+				if (mc)
+				{
+					/* mc is still associated with the old
+					 * handle, now free it.
+					 */
+					STARPU_ASSERT(handle->per_node[node].refcnt == 0);
+
+					/* now the actual buffer may be freed */
 					freed = do_free_mem_chunk(mc, node);
+				}
 			}
 		}
 
@@ -471,11 +499,17 @@ static void reuse_mem_chunk(unsigned node, struct _starpu_data_replicate *new_re
 	if (is_already_in_mc_list)
 	{
 		_starpu_mem_chunk_list_erase(&mc_list[node], mc);
+		if (mc->remove_notify)
+		{
+			*(mc->remove_notify) = NULL;
+			mc->remove_notify = NULL;
+		}
 	}
 
 	free(mc);
 }
 
+/* mc_lock is held and may be temporarily released! */
 static unsigned try_to_reuse_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node, struct _starpu_data_replicate *replicate, unsigned is_already_in_mc_list)
 {
 	unsigned success = 0;
@@ -493,19 +527,34 @@ static unsigned try_to_reuse_mem_chunk(struct _starpu_mem_chunk *mc, unsigned no
 		if (may_free_subtree(old_data, node))
 		{
 			int res;
-			success = 1;
 
+			/* Should have been avoided in our caller */
+			STARPU_ASSERT(!mc->remove_notify);
+			mc->remove_notify = &mc;
 			/* in case there was nobody using that buffer, throw it
 			 * away after writing it back to main memory */
+			_starpu_spin_unlock(&mc_lock[node]);
 			_STARPU_TRACE_START_WRITEBACK(node);
 			res = transfer_subtree_to_node(old_data, node, 0);
 			_STARPU_TRACE_END_WRITEBACK(node);
+			_starpu_spin_lock(&mc_lock[node]);
+
+			if (mc)
+			{
+				STARPU_ASSERT(mc->remove_notify == &mc);
+				mc->remove_notify = NULL;
+			}
 			if (res)
 				/* Oops, the handle has disappeared in the meanwhile */
 				return 0;
-
-			/* now replace the previous data */
-			reuse_mem_chunk(node, replicate, mc, is_already_in_mc_list);
+			if (mc)
+			{
+				/* mc is still associated with the old
+				 * handle, now replace the previous data
+				 */
+				reuse_mem_chunk(node, replicate, mc, is_already_in_mc_list);
+				success = 1;
+			}
 		}
 
 		/* unlock the tree */
@@ -558,54 +607,83 @@ static struct _starpu_mem_chunk *_starpu_memchunk_cache_lookup_locked(unsigned n
 }
 
 /* this function looks for a memory chunk that matches a given footprint in the
- * list of mem chunk that need to be freed. This function must be called with
- * mc_lock[node] taken. */
+ * list of mem chunk that need to be freed. */
 static unsigned try_to_find_reusable_mem_chunk(unsigned node, starpu_data_handle_t data, struct _starpu_data_replicate *replicate, uint32_t footprint)
 {
-	struct _starpu_mem_chunk *mc, *next_mc;
+	struct _starpu_mem_chunk *mc, *orig_next_mc, *next_mc;
+	int success = 0;
 
+	_starpu_spin_lock(&mc_lock[node]);
 	/* go through all buffers in the cache */
 	mc = _starpu_memchunk_cache_lookup_locked(node, data, footprint);
 	if (mc)
 	{
 		/* We found an entry in the cache so we can reuse it */
 		reuse_mem_chunk(node, replicate, mc, 0);
+		_starpu_spin_unlock(&mc_lock[node]);
 		return 1;
 	}
 
 	if (!_starpu_has_not_important_data)
+	{
+		_starpu_spin_unlock(&mc_lock[node]);
 		return 0;
+	}
 
+restart:
 	/* now look for some non essential data in the active list */
 	for (mc = _starpu_mem_chunk_list_begin(&mc_list[node]);
-	     mc != _starpu_mem_chunk_list_end(&mc_list[node]);
+	     mc != _starpu_mem_chunk_list_end(&mc_list[node]) && !success;
 	     mc = next_mc)
 	{
 		/* there is a risk that the memory chunk is freed before next
 		 * iteration starts: so we compute the next element of the list
 		 * now */
-		next_mc = _starpu_mem_chunk_list_next(mc);
+		orig_next_mc = next_mc = _starpu_mem_chunk_list_next(mc);
+		if (mc->remove_notify)
+			/* Somebody already working here, skip */
+			continue;
+		if (next_mc)
+		{
+			if (next_mc->remove_notify)
+				/* Somebody already working here, skip */
+				continue;
+			next_mc->remove_notify = &next_mc;
+		}
 
 		if (mc->data->is_not_important && (mc->footprint == footprint))
 		{
 //			fprintf(stderr, "found a candidate ...\n");
-			if (try_to_reuse_mem_chunk(mc, node, replicate, 1))
-				return 1;
+			/* Note: this may unlock mc_list! */
+			success = try_to_reuse_mem_chunk(mc, node, replicate, 1);
+		}
+
+		if (orig_next_mc)
+		{
+			if (!next_mc)
+				/* Oops, somebody dropped the next item while we were
+				 * not keeping the mc_lock. Restart from the beginning
+				 * of the list */
+				goto restart;
+			else
+			{
+				STARPU_ASSERT(next_mc->remove_notify == &next_mc);
+				next_mc->remove_notify = NULL;
+			}
 		}
 	}
+	_starpu_spin_unlock(&mc_lock[node]);
 
-	return 0;
+	return success;
 }
 #endif
 
 /*
- * Free the memory chuncks that are explicitely tagged to be freed. The
- * mc_lock[node] rw-lock should be taken prior to calling this function.
+ * Free the memory chuncks that are explicitely tagged to be freed.
  */
 static size_t flush_memchunk_cache(unsigned node, size_t reclaim)
 {
 	struct _starpu_mem_chunk *mc;
-	struct _starpu_mem_chunk_list busy_mc_cache;
 	struct mc_cache_entry *entry, *tmp;
 
 	size_t freed = 0;
@@ -613,22 +691,12 @@ static size_t flush_memchunk_cache(unsigned node, size_t reclaim)
 	_starpu_spin_lock(&mc_lock[node]);
 	HASH_ITER(hh, mc_cache[node], entry, tmp)
 	{
-		_starpu_mem_chunk_list_init(&busy_mc_cache);
-
 		while (!_starpu_mem_chunk_list_empty(&entry->list)) {
 			mc = _starpu_mem_chunk_list_pop_front(&entry->list);
-			starpu_data_handle_t handle = mc->data;
-
-			if (handle)
-				if (_starpu_spin_trylock(&handle->header_lock)) {
-					/* The handle is still busy, leave this chunk for later */
-					_starpu_mem_chunk_list_push_back(&busy_mc_cache, mc);
-					continue;
-				}
+			STARPU_ASSERT(!mc->data);
+			STARPU_ASSERT(!mc->replicate);
 
 			freed += free_memory_on_node(mc, node);
-			if (handle)
-				_starpu_spin_unlock(&handle->header_lock);
 
 			free(mc->chunk_interface);
 			_starpu_mem_chunk_delete(mc);
@@ -636,7 +704,6 @@ static size_t flush_memchunk_cache(unsigned node, size_t reclaim)
 			if (reclaim && freed >= reclaim)
 				break;
 		}
-		_starpu_mem_chunk_list_push_list_front(&busy_mc_cache, &entry->list);
 
 		if (reclaim && freed >= reclaim)
 			break;
@@ -667,8 +734,9 @@ static size_t free_potentially_in_use_mc(unsigned node, unsigned force, size_t r
 restart:
 	_starpu_spin_lock(&mc_lock[node]);
 
+restart2:
 	for (mc = _starpu_mem_chunk_list_begin(&mc_list[node]);
-	     mc != _starpu_mem_chunk_list_end(&mc_list[node]);
+	     mc != _starpu_mem_chunk_list_end(&mc_list[node]) && (!reclaim || freed < reclaim);
 	     mc = next_mc)
 	{
 		/* mc hopefully gets out of the list, we thus need to prefetch
@@ -677,13 +745,37 @@ restart:
 
 		if (!force)
 		{
+			struct _starpu_mem_chunk *orig_next_mc = next_mc;
+			if (mc->remove_notify)
+				/* Somebody already working here, skip */
+				continue;
+			if (next_mc)
+			{
+				if (next_mc->remove_notify)
+					/* Somebody already working here, skip */
+					continue;
+				next_mc->remove_notify = &next_mc;
+			}
+			/* Note: this may unlock mc_list! */
 			freed += try_to_free_mem_chunk(mc, node);
 
-			if (reclaim && freed >= reclaim)
-				break;
+			if (orig_next_mc)
+			{
+				if (!next_mc)
+					/* Oops, somebody dropped the next item while we were
+					 * not keeping the mc_lock. Restart from the beginning
+					 * of the list */
+					goto restart2;
+				else
+				{
+					STARPU_ASSERT(next_mc->remove_notify == &next_mc);
+					next_mc->remove_notify = NULL;
+				}
+			}
 		}
 		else
 		{
+			/* Shutting down, really free */
 			starpu_data_handle_t handle = mc->data;
 
 			if (_starpu_spin_trylock(&handle->header_lock))
@@ -751,6 +843,7 @@ static struct _starpu_mem_chunk *_starpu_memchunk_init(struct _starpu_data_repli
 	mc->replicate->mc = mc;
 	mc->chunk_interface = NULL;
 	mc->size_interface = interface_size;
+	mc->remove_notify = NULL;
 
 	return mc;
 }
@@ -783,6 +876,7 @@ void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, struct _star
 	struct _starpu_mem_chunk *mc = replicate->mc;
 
 	STARPU_ASSERT(mc->data == handle);
+	_starpu_spin_checklocked(&handle->header_lock);
 
 	/* Record the allocated size, so that later in memory
 	 * reclaiming we can estimate how much memory we free
@@ -806,6 +900,11 @@ void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, struct _star
 	mc->data = NULL;
 	/* remove it from the main list */
 	_starpu_mem_chunk_list_erase(&mc_list[node], mc);
+	if (mc->remove_notify)
+	{
+		*(mc->remove_notify) = NULL;
+		mc->remove_notify = NULL;
+	}
 
 	_starpu_spin_unlock(&mc_lock[node]);
 
@@ -876,16 +975,11 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 	uint32_t footprint = _starpu_compute_data_footprint(handle);
 
 	_STARPU_TRACE_START_ALLOC_REUSE(dst_node, data_size);
-	_starpu_spin_lock(&mc_lock[dst_node]);
-
 	if (try_to_find_reusable_mem_chunk(dst_node, handle, replicate, footprint))
 	{
-		_starpu_spin_unlock(&mc_lock[dst_node]);
 		_starpu_allocation_cache_hit(dst_node);
 		return data_size;
 	}
-
-	_starpu_spin_unlock(&mc_lock[dst_node]);
 	_STARPU_TRACE_END_ALLOC_REUSE(dst_node);
 #endif
 	STARPU_ASSERT(handle->ops);
@@ -1046,6 +1140,11 @@ void _starpu_memchunk_recently_used(struct _starpu_mem_chunk *mc, unsigned node)
 		return;
 	_starpu_spin_lock(&mc_lock[node]);
 	_starpu_mem_chunk_list_erase(&mc_list[node], mc);
+	if (mc->remove_notify)
+	{
+		*(mc->remove_notify) = NULL;
+		mc->remove_notify = NULL;
+	}
 	_starpu_mem_chunk_list_push_back(&mc_list[node], mc);
 	_starpu_spin_unlock(&mc_lock[node]);
 }
