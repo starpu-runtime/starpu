@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2014  Université de Bordeaux
+ * Copyright (C) 2011-2015  Université de Bordeaux
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2012 inria
  *
@@ -20,6 +20,13 @@
 #include <starpu.h>
 #include <starpu_scheduler.h>
 #include "../helper.h"
+
+#define START 1024
+#ifdef STARPU_QUICK_CHECK
+#define END 1048576
+#else
+#define END 16777216
+#endif
 
 #ifdef STARPU_USE_CUDA
 static void memset_cuda(void *descr[], void *arg)
@@ -159,7 +166,7 @@ int main(int argc, char **argv)
 #endif
 
 	int size;
-	for (size = 1024; size < 16777216; size *= 2)
+	for (size = START; size < END; size *= 2)
 	{
 		/* Use a linear regression */
 		test_memset(size, &memset_cl);

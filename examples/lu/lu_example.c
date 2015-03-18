@@ -25,7 +25,7 @@
 #include "xlu_kernels.h"
 
 #ifdef STARPU_QUICK_CHECK
-static unsigned long size = 960*4;
+static unsigned long size = 320*4;
 static unsigned nblocks = 4;
 #else
 static unsigned long size = 960*16;
