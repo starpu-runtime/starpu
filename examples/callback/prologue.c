@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010, 2013-2014  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -73,6 +73,7 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	starpu_variable_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)&v, sizeof(int));
+	double *x = (double*)malloc(sizeof(double));
 
 	struct starpu_task *task = starpu_task_create();
 	task->cl = &cl;
@@ -88,29 +89,23 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
-	double *x = (double*)malloc(sizeof(double));
 	*x = -999.0;
-	int ret2 = starpu_task_insert(&cl,
-				      STARPU_RW, handle,
-				      STARPU_PROLOGUE_CALLBACK, prologue_callback_func,
-				      STARPU_PROLOGUE_CALLBACK_ARG, x,
-				      STARPU_PROLOGUE_CALLBACK_POP, pop_prologue_callback_func,
-				      STARPU_PROLOGUE_CALLBACK_POP_ARG, 5,
-				      0);
-
+	ret = starpu_task_insert(&cl,
+				 STARPU_RW, handle,
+				 STARPU_PROLOGUE_CALLBACK, prologue_callback_func,
+				 STARPU_PROLOGUE_CALLBACK_ARG, x,
+				 STARPU_PROLOGUE_CALLBACK_POP, pop_prologue_callback_func,
+				 STARPU_PROLOGUE_CALLBACK_POP_ARG, 5,
+				 0);
+	if (ret == -ENODEV) goto enodev;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
 	starpu_task_wait_for_all();
-	starpu_data_unregister(handle);
-
-	FPRINTF(stderr, "v -> %d\n", v);
-
-	free(x);
-
-	starpu_shutdown();
-
-	return 0;
 
 enodev:
+	starpu_data_unregister(handle);
+	free(x);
+	FPRINTF(stderr, "v -> %d\n", v);
 	starpu_shutdown();
-	return 77;
+	return (ret == -ENODEV) ? 77 : 0;
 }
