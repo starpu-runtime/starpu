@@ -125,8 +125,6 @@ int dotest(struct starpu_disk_ops *ops, char *base, void (*vector_data_register)
 	/* can't write on /tmp/ */
 	if (new_dd == -ENOENT) goto enoent;
 
-	unsigned dd = (unsigned) new_dd;
-
 	unsigned int i;
 
 	/* Initialize twice as much data as available memory */

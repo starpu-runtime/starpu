@@ -60,9 +60,10 @@ int main(int argc, char **argv)
 	starpu_data_handle_t v_handle;
 	unsigned *v;
 	int ret;
-
 	struct starpu_conf conf;
+
 	ret = starpu_conf_init(&conf);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_conf_init");
 	conf.sched_policy_name = "pheft";
 	conf.calibrate = 1;
 

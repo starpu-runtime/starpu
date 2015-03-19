@@ -150,7 +150,7 @@ int dotest(struct starpu_disk_ops *ops, char *base)
 	if (f == NULL)
 		goto enoent2;
 	/* take datas */
-	int size = fread(C, sizeof(int), NX, f);
+	fread(C, sizeof(int), NX, f);
 
 	/* close the file */
 	fclose(f);

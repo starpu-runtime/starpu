@@ -999,7 +999,7 @@ void _starpu_fetch_task_from_waiting_list(struct _starpu_sched_ctx *sched_ctx)
 	if(_starpu_can_push_task(sched_ctx, old_task))
 	{
 		old_task = starpu_task_list_pop_back(&sched_ctx->waiting_tasks);
-		int ret =  _starpu_push_task_to_workers(old_task);
+		_starpu_push_task_to_workers(old_task);
 	}
 	return;
 }

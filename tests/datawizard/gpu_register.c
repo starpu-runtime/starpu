@@ -144,7 +144,10 @@ test_cuda(void)
 	if (STARPU_UNLIKELY(cures))
 		STARPU_CUDA_REPORT_ERROR(cures);
 
-	return check_result(foo, size);
+	ret = check_result(foo, size);
+	starpu_free(foo_gpu);
+	free(foo);
+	return ret;
 }
 #endif
 #endif
@@ -249,7 +252,10 @@ test_opencl(void)
 	if (STARPU_UNLIKELY(err != CL_SUCCESS))
 		STARPU_OPENCL_REPORT_ERROR(err);
 	clFinish(queue);
-	return check_result(foo, size);
+	ret = check_result(foo, size);
+	starpu_free(foo_gpu);
+	free(foo);
+	return ret;
 }
 #endif /* !STARPU_USE_OPENCL */
 
