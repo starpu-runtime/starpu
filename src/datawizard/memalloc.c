@@ -29,6 +29,21 @@ static struct _starpu_spinlock mc_lock[STARPU_MAXNODES];
 /* Potentially in use memory chunks */
 static struct _starpu_mem_chunk_list *mc_list[STARPU_MAXNODES];
 
+#define MC_LIST_PUSH_BACK(node, mc) do {				 \
+	_starpu_mem_chunk_list_push_back(mc_list[node], mc);	 \
+} while(0)
+
+#define MC_LIST_ERASE(node, mc) do {					 \
+	/* Remove element */						 \
+	_starpu_mem_chunk_list_erase(mc_list[node], (mc));		 \
+	/* Notify whoever asked for it */				 \
+	if ((mc)->remove_notify)					 \
+	{								 \
+		*((mc)->remove_notify) = NULL;				 \
+		(mc)->remove_notify = NULL;				 \
+	} \
+} while (0)
+
 /* Explicitly caches memory chunks that can be reused */
 struct mc_cache_entry
 {
@@ -325,12 +340,7 @@ static size_t do_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 	size = free_memory_on_node(mc, node);
 
 	/* remove the mem_chunk from the list */
-	_starpu_mem_chunk_list_erase(mc_list[node], mc);
-	if (mc->remove_notify)
-	{
-		*(mc->remove_notify) = NULL;
-		mc->remove_notify = NULL;
-	}
+	MC_LIST_ERASE(node, mc);
 
 	_starpu_mem_chunk_delete(mc);
 
@@ -484,14 +494,7 @@ static void reuse_mem_chunk(unsigned node, struct _starpu_data_replicate *new_re
 
 	/* remove the mem chunk from the list of active memory chunks, register_mem_chunk will put it back later */
 	if (is_already_in_mc_list)
-	{
-		_starpu_mem_chunk_list_erase(mc_list[node], mc);
-		if (mc->remove_notify)
-		{
-			*(mc->remove_notify) = NULL;
-			mc->remove_notify = NULL;
-		}
-	}
+		MC_LIST_ERASE(node, mc);
 
 	free(mc);
 }
@@ -911,9 +914,7 @@ static void register_mem_chunk(struct _starpu_data_replicate *replicate, unsigne
 	mc = _starpu_memchunk_init(replicate, interface_size, automatically_allocated);
 
 	_starpu_spin_lock(&mc_lock[dst_node]);
-
-	_starpu_mem_chunk_list_push_back(mc_list[dst_node], mc);
-
+	MC_LIST_PUSH_BACK(dst_node, mc);
 	_starpu_spin_unlock(&mc_lock[dst_node]);
 }
 
@@ -949,12 +950,7 @@ void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, struct _star
 
 	mc->data = NULL;
 	/* remove it from the main list */
-	_starpu_mem_chunk_list_erase(mc_list[node], mc);
-	if (mc->remove_notify)
-	{
-		*(mc->remove_notify) = NULL;
-		mc->remove_notify = NULL;
-	}
+	MC_LIST_ERASE(node, mc);
 
 	_starpu_spin_unlock(&mc_lock[node]);
 
@@ -1166,13 +1162,8 @@ void _starpu_memchunk_recently_used(struct _starpu_mem_chunk *mc, unsigned node)
 		/* user-allocated memory */
 		return;
 	_starpu_spin_lock(&mc_lock[node]);
-	_starpu_mem_chunk_list_erase(mc_list[node], mc);
-	if (mc->remove_notify)
-	{
-		*(mc->remove_notify) = NULL;
-		mc->remove_notify = NULL;
-	}
-	_starpu_mem_chunk_list_push_back(mc_list[node], mc);
+	MC_LIST_ERASE(node, mc);
+	MC_LIST_PUSH_BACK(node, mc);
 	_starpu_spin_unlock(&mc_lock[node]);
 }
 
