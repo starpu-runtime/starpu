@@ -35,6 +35,7 @@
 #include <core/sched_ctx.h>
 #include <time.h>
 #include <signal.h>
+#include <core/dependencies/data_concurrency.h>
 #ifdef STARPU_HAVE_WINDOWS
 #include <windows.h>
 #endif
@@ -685,6 +686,9 @@ int _starpu_task_submit_nodeps(struct starpu_task *task)
 	}
 
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
+	/* create a job for the task and also sort all the data because 
+	   starpu wants a sorted list of buffers at the end */
+	_starpu_submit_job_sort_data(j);
 
 	if (j->internal)
 	{

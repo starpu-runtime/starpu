@@ -277,16 +277,13 @@ static unsigned _submit_job_enforce_data_deps(struct _starpu_job *j, unsigned st
 	return 0;
 }
 
-/* Sort the data used by the given job by handle pointer value order, and
- * acquire them in that order */
-/* No  lock is held */
-unsigned _starpu_submit_job_enforce_data_deps(struct _starpu_job *j)
+void _starpu_submit_job_sort_data(struct _starpu_job *j)
 {
 	struct starpu_codelet *cl = j->task->cl;
-
+	
 	if ((cl == NULL) || (STARPU_TASK_GET_NBUFFERS(j->task) == 0))
 		return 0;
-
+	
 	/* Compute an ordered list of the different pieces of data so that we
 	 * grab then according to a total order, thus avoiding a deadlock
 	 * condition */
@@ -305,6 +302,14 @@ unsigned _starpu_submit_job_enforce_data_deps(struct _starpu_job *j)
 
 	_starpu_sort_task_handles(_STARPU_JOB_GET_ORDERED_BUFFERS(j), STARPU_TASK_GET_NBUFFERS(j->task));
 
+}
+
+/* Sort the data used by the given job by handle pointer value order, and
+ * acquire them in that order */
+/* No  lock is held */
+unsigned _starpu_submit_job_enforce_data_deps(struct _starpu_job *j)
+{
+	_starpu_submit_job_sort_data(j);
 	return _submit_job_enforce_data_deps(j, 0);
 }
 
