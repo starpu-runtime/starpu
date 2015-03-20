@@ -410,6 +410,7 @@ static void starpu_omp_implicit_task_exec(void *buffers[], void *cl_arg)
 		task->ctx.uc_link                 = NULL;
 		task->ctx.uc_stack.ss_sp          = task->stack;
 		task->ctx.uc_stack.ss_size        = task->stacksize;
+		task->stack_vg_id                 = VALGRIND_STACK_REGISTER(task->stack, task->stack+task->stacksize);
 		makecontext(&task->ctx, (void (*) ()) starpu_omp_implicit_task_entry, 1, task);
 	}
 
@@ -431,6 +432,8 @@ static void starpu_omp_implicit_task_exec(void *buffers[], void *cl_arg)
 	{
 		task->starpu_task->omp_task = NULL;
 		task->starpu_task = NULL;
+		VALGRIND_STACK_DEREGISTER(task->stack_vg_id);
+		task->stack_vg_id = 0;
 		free(task->stack);
 		task->stack = NULL;
 		memset(&task->ctx, 0, sizeof(task->ctx));
@@ -656,6 +659,7 @@ static void omp_initial_thread_setup(void)
 	initial_thread->ctx.uc_link          = NULL;
 	initial_thread->ctx.uc_stack.ss_sp   = initial_thread->initial_thread_stack;
 	initial_thread->ctx.uc_stack.ss_size = _STARPU_INITIAL_THREAD_STACKSIZE;
+	initial_thread->initial_thread_stack_vg_id = VALGRIND_STACK_REGISTER(initial_thread->initial_thread_stack, initial_thread->initial_thread_stack+_STARPU_INITIAL_THREAD_STACKSIZE);
 	makecontext(&initial_thread->ctx, omp_initial_thread_func, 0);
 	/* .starpu_driver */
 	/*
@@ -699,6 +703,7 @@ static void omp_initial_thread_exit()
 	free(_global_state.starpu_cpu_worker_ids);
 	_global_state.starpu_cpu_worker_ids = NULL;
 	_global_state.nb_starpu_cpu_workers = 0;
+	VALGRIND_STACK_DEREGISTER(initial_thread->initial_thread_stack_vg_id);
 	free(initial_thread->initial_thread_stack);
 	initial_thread->initial_thread_stack = NULL;
 	memset(&initial_thread->ctx, 0, sizeof (initial_thread->ctx));
