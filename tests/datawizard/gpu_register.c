@@ -253,7 +253,7 @@ test_opencl(void)
 		STARPU_OPENCL_REPORT_ERROR(err);
 	clFinish(queue);
 	ret = check_result(foo, size);
-	starpu_free_on_node(starpu_worker_get_memory_node(chosen), (uintptr_t) foo_gpu, size * sizeof(*foo_gpu));
+	starpu_free_on_node(starpu_worker_get_memory_node(chosen), (uintptr_t) foo_gpu, size * sizeof(int));
 	free(foo);
 	return ret;
 }
