@@ -1224,7 +1224,11 @@ void starpu_omp_barrier(void)
 	{
 		/* last task reaching the barrier */
 		_starpu_spin_lock(&parallel_region->lock);
+		ANNOTATE_HAPPENS_AFTER(&parallel_region->barrier_count);
+		ANNOTATE_HAPPENS_BEFORE_FORGET_ALL(&parallel_region->barrier_count);
 		parallel_region->barrier_count = 0;
+		ANNOTATE_HAPPENS_AFTER(&parallel_region->barrier_count);
+		ANNOTATE_HAPPENS_BEFORE_FORGET_ALL(&parallel_region->barrier_count);
 		if (parallel_region->bound_explicit_task_count > 0)
 		{
 			task->wait_on |= starpu_omp_task_wait_on_region_tasks;
@@ -1241,6 +1245,7 @@ void starpu_omp_barrier(void)
 	}
 	else
 	{
+		ANNOTATE_HAPPENS_BEFORE(&parallel_region->barrier_count);
 		/* not the last task reaching the barrier
 		 * . prepare for conditional continuation 
 		 * . sleep
@@ -1524,6 +1529,7 @@ static void explicit_task__destroy_callback(void *_task)
 	}
 	else
 	{
+		_starpu_spin_unlock(&task->lock);
 		destroy_omp_task_struct(task);
 	}
 }

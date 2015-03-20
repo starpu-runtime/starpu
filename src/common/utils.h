@@ -42,6 +42,9 @@
 #ifndef ANNOTATE_HAPPENS_BEFORE
 #define ANNOTATE_HAPPENS_BEFORE(obj) ((void)0)
 #endif
+#ifndef ANNOTATE_HAPPENS_BEFORE_FORGET_ALL
+#define ANNOTATE_HAPPENS_BEFORE_FORGET_ALL(obj) ((void)0)
+#endif
 #ifndef ANNOTATE_HAPPENS_AFTER
 #define ANNOTATE_HAPPENS_AFTER(obj) ((void)0)
 #endif
