@@ -248,6 +248,11 @@ LIST_TYPE(starpu_omp_task,
 	 */
 	void *stack;
 
+	/*
+	 * Valgrind stack id
+	 */
+	int stack_vg_id;
+
 	size_t stacksize;
 )
 
@@ -263,6 +268,10 @@ LIST_TYPE(starpu_omp_thread,
 	 * note: should not be used for other threads
 	 */
 	void *initial_thread_stack;
+	/*
+	 * Valgrind stack id
+	 */
+	int initial_thread_stack_vg_id;
 
 	/*
 	 * context to store the 'scheduler' state of the thread,
