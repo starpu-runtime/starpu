@@ -31,6 +31,12 @@
 #include <common/config.h>
 #include "../helper.h"
 
+#ifdef STARPU_HAVE_MEMCHECK_H
+#include <valgrind/memcheck.h>
+#else
+#define VALGRIND_MAKE_MEM_DEFINED(addr, size) (void)0
+#endif
+
 #ifdef STARPU_HAVE_WINDOWS
 #  include <io.h>
 #  if defined(_WIN32) && !defined(__CYGWIN__)
@@ -81,6 +87,7 @@ static void zero(void *buffers[], void *args)
 	struct starpu_vector_interface *vector = (struct starpu_vector_interface *) buffers[0];
 	char *val = (char*) STARPU_VECTOR_GET_PTR(vector);
 	*val = 0;
+	VALGRIND_MAKE_MEM_DEFINED(val, STARPU_VECTOR_GET_NX(vector) * STARPU_VECTOR_GET_ELEMSIZE(vector));
 }
 
 static void inc(void *buffers[], void *args)
