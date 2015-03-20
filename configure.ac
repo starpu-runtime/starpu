@@ -307,6 +307,7 @@ AC_ARG_ENABLE(valgrind, [AS_HELP_STRING([--disable-valgrind],
 				   enable_valgrind=$enableval, enable_valgrind=yes)
 if test "$enable_valgrind" != "no" ; then
    AC_CHECK_HEADERS([valgrind/valgrind.h], [AC_DEFINE([STARPU_HAVE_VALGRIND_H], [1], [Define to 1 if you have the <valgrind/valgrind.h> header file.])])
+   AC_CHECK_HEADERS([valgrind/memcheck.h], [AC_DEFINE([STARPU_HAVE_MEMCHECK_H], [1], [Define to 1 if you have the <valgrind/memcheck.h> header file.])])
    AC_CHECK_HEADERS([valgrind/helgrind.h], [AC_DEFINE([STARPU_HAVE_HELGRIND_H], [1], [Define to 1 if you have the <valgrind/helgrind.h> header file.])])
 fi
 if test "$enable_valgrind" = "full" ; then
