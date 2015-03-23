@@ -208,6 +208,7 @@ LIST_TYPE(starpu_omp_task,
 	int child_task_count;
 	struct starpu_omp_task_group *task_group;
 	struct _starpu_spinlock lock;
+	int transaction_pending;
 	int wait_on;
 	int barrier_count;
 	int single_id;
