@@ -162,10 +162,10 @@ int _starpu_test_job_termination(struct _starpu_job *j)
 	STARPU_ASSERT(j->task);
 	STARPU_ASSERT(!j->task->detach);
 	/* Disable Helgrind race complaint, since we really just want to poll j->terminated */
-	STARPU_HG_DISABLE_CHECKING(*j);
+	STARPU_HG_DISABLE_CHECKING(j->terminated);
 	STARPU_SYNCHRONIZE();
 	int ret = (j->terminated == 2);
-	STARPU_HG_ENABLE_CHECKING(*j);
+	STARPU_HG_ENABLE_CHECKING(j->terminated);
 	return ret;
 }
 void _starpu_job_prepare_for_continuation_ext(struct _starpu_job *j, unsigned continuation_resubmit,
