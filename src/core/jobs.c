@@ -162,11 +162,22 @@ int _starpu_test_job_termination(struct _starpu_job *j)
 	STARPU_ASSERT(j->task);
 	STARPU_ASSERT(!j->task->detach);
 	/* Disable Helgrind race complaint, since we really just want to poll j->terminated */
-	STARPU_HG_DISABLE_CHECKING(j->terminated);
+#ifdef RUNNING_ON_VALGRIND
+	{
+		int v = STARPU_PTHREAD_MUTEX_TRYLOCK(&j->sync_mutex);
+		if (v != EBUSY) {
+			STARPU_ASSERT(v == 0);
+			int ret = (j->terminated == 2);
+			STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
+			return ret;
+		} else {
+			return 0;
+		}
+	}
+#else
 	STARPU_SYNCHRONIZE();
-	int ret = (j->terminated == 2);
-	STARPU_HG_ENABLE_CHECKING(j->terminated);
-	return ret;
+	return (j->terminated == 2);
+#endif /* RUNNING_ON_VALGRIND */
 }
 void _starpu_job_prepare_for_continuation_ext(struct _starpu_job *j, unsigned continuation_resubmit,
 		void (*continuation_callback_on_sleep)(void *arg), void *continuation_callback_on_sleep_arg)
