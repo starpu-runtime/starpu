@@ -18,6 +18,9 @@
 StarPU 1.3.0 (svn revision xxxx)
 ==============================================
 
+New features:
+  * Enable anticipative writeback by default.
+
 StarPU 1.2.0 (svn revision xxxx)
 ==============================================
 
@@ -88,6 +91,9 @@ New features:
     only when the bus is idle.
   * Make starpu_data_prefetch_on_node not forcibly flush data out, introduce
     starpu_data_fetch_on_node for that.
+  * Anticipative writeback, to flush dirty data asynchronously before the
+    GPU device is full. Disabled by default. Use STARPU_MINIMUM_CLEAN_BUFFERS
+    and STARPU_TARGET_CLEAN_BUFFERS to enable it.
 
 Small features:
   * Tasks can now have a name (via the field const char *name of
