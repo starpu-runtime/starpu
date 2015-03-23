@@ -277,6 +277,29 @@ static unsigned _submit_job_enforce_data_deps(struct _starpu_job *j, unsigned st
 	return 0;
 }
 
+void _starpu_job_set_ordered_buffers(struct _starpu_job *j)
+{
+	/* Compute an ordered list of the different pieces of data so that we
+	 * grab then according to a total order, thus avoiding a deadlock
+	 * condition */
+	unsigned i;
+	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(j->task);
+	struct starpu_task *task = j->task;
+
+	for (i=0 ; i<nbuffers; i++)
+	{
+		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, i);
+		_STARPU_JOB_SET_ORDERED_BUFFER_HANDLE(j, handle, i);
+		enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(task, i);
+		_STARPU_JOB_SET_ORDERED_BUFFER_MODE(j, mode, i);
+		int node = -1;
+		if (task->cl->specific_nodes)
+			node = STARPU_CODELET_GET_NODE(task->cl, i);
+		_STARPU_JOB_SET_ORDERED_BUFFER_NODE(j, node, i);
+	}
+	_starpu_sort_task_handles(_STARPU_JOB_GET_ORDERED_BUFFERS(j), nbuffers);
+}
+
 /* Sort the data used by the given job by handle pointer value order, and
  * acquire them in that order */
 /* No  lock is held */
@@ -287,23 +310,7 @@ unsigned _starpu_submit_job_enforce_data_deps(struct _starpu_job *j)
 	if ((cl == NULL) || (STARPU_TASK_GET_NBUFFERS(j->task) == 0))
 		return 0;
 
-	/* Compute an ordered list of the different pieces of data so that we
-	 * grab then according to a total order, thus avoiding a deadlock
-	 * condition */
-	unsigned i;
-	for (i=0 ; i<STARPU_TASK_GET_NBUFFERS(j->task); i++)
-	{
-		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(j->task, i);
-		_STARPU_JOB_SET_ORDERED_BUFFER_HANDLE(j, handle, i);
-		enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(j->task, i);
-		_STARPU_JOB_SET_ORDERED_BUFFER_MODE(j, mode, i);
-		int node = -1;
-		if (j->task->cl->specific_nodes)
-			node = STARPU_CODELET_GET_NODE(j->task->cl, i);
-		_STARPU_JOB_SET_ORDERED_BUFFER_NODE(j, node, i);
-	}
-
-	_starpu_sort_task_handles(_STARPU_JOB_GET_ORDERED_BUFFERS(j), STARPU_TASK_GET_NBUFFERS(j->task));
+	_starpu_job_set_ordered_buffers(j);
 
 	return _submit_job_enforce_data_deps(j, 0);
 }
