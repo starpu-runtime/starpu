@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2015  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -251,13 +251,9 @@ static unsigned attempt_to_submit_data_request_from_job(struct _starpu_job *j, u
 /* No lock is held */
 static unsigned _submit_job_enforce_data_deps(struct _starpu_job *j, unsigned start_buffer_index)
 {
-	unsigned nbuffers;
 	unsigned buf;
 
-	if (j->task->cl == NULL)
-		return 0;
-
-	nbuffers = STARPU_TASK_GET_NBUFFERS(j->task);
+	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(j->task);
 	for (buf = start_buffer_index; buf < nbuffers; buf++)
 	{
 		if (buf)
@@ -281,13 +277,16 @@ static unsigned _submit_job_enforce_data_deps(struct _starpu_job *j, unsigned st
 	return 0;
 }
 
-void _starpu_submit_job_sort_data(struct _starpu_job *j)
+/* Sort the data used by the given job by handle pointer value order, and
+ * acquire them in that order */
+/* No  lock is held */
+unsigned _starpu_submit_job_enforce_data_deps(struct _starpu_job *j)
 {
 	struct starpu_codelet *cl = j->task->cl;
-	
+
 	if ((cl == NULL) || (STARPU_TASK_GET_NBUFFERS(j->task) == 0))
-		return;
-	
+		return 0;
+
 	/* Compute an ordered list of the different pieces of data so that we
 	 * grab then according to a total order, thus avoiding a deadlock
 	 * condition */
@@ -306,14 +305,6 @@ void _starpu_submit_job_sort_data(struct _starpu_job *j)
 
 	_starpu_sort_task_handles(_STARPU_JOB_GET_ORDERED_BUFFERS(j), STARPU_TASK_GET_NBUFFERS(j->task));
 
-}
-
-/* Sort the data used by the given job by handle pointer value order, and
- * acquire them in that order */
-/* No  lock is held */
-unsigned _starpu_submit_job_enforce_data_deps(struct _starpu_job *j)
-{
-	_starpu_submit_job_sort_data(j);
 	return _submit_job_enforce_data_deps(j, 0);
 }
 
