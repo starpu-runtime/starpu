@@ -874,7 +874,9 @@ void starpu_memchunk_tidy(unsigned node)
 	/* TODO: only request writebacks to get buffers clean, without waiting
 	 * for it */
 
+	_STARPU_TRACE_START_MEMRECLAIM(node,2);
 	free_potentially_in_use_mc(node, 0, amount);
+	_STARPU_TRACE_END_MEMRECLAIM(node,2);
 out:
 	(void) STARPU_ATOMIC_ADD(&tidying[node], -1);
 }
