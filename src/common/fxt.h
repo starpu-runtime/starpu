@@ -156,6 +156,9 @@
 #define _STARPU_FUT_SCHED_COMPONENT_PUSH_PRIO 	0x515a
 #define _STARPU_FUT_SCHED_COMPONENT_POP_PRIO 	0x515b
 
+#define	_STARPU_FUT_START_WRITEBACK_ASYNC	0x515c
+#define	_STARPU_FUT_END_WRITEBACK_ASYNC	0x515d
+
 #define	_STARPU_FUT_HYPERVISOR_BEGIN    0x5160
 #define	_STARPU_FUT_HYPERVISOR_END	0x5161
 
@@ -606,6 +609,12 @@ do {										\
 #define _STARPU_TRACE_END_MEMRECLAIM(memnode, is_prefetch)		\
 	FUT_DO_PROBE3(_STARPU_FUT_END_MEMRECLAIM, memnode, is_prefetch, _starpu_gettid());
 	
+#define _STARPU_TRACE_START_WRITEBACK_ASYNC(memnode)		\
+	FUT_DO_PROBE2(_STARPU_FUT_START_WRITEBACK_ASYNC, memnode, _starpu_gettid());
+	
+#define _STARPU_TRACE_END_WRITEBACK_ASYNC(memnode)		\
+	FUT_DO_PROBE2(_STARPU_FUT_END_WRITEBACK_ASYNC, memnode, _starpu_gettid());
+	
 /* We skip these events becasue they are called so often that they cause FxT to
  * fail and make the overall trace unreadable anyway. */
 #define _STARPU_TRACE_START_PROGRESS(memnode)		\
@@ -865,6 +874,8 @@ do {										\
 #define _STARPU_TRACE_END_WRITEBACK(memnode)		do {} while(0)
 #define _STARPU_TRACE_START_MEMRECLAIM(memnode,is_prefetch)	do {} while(0)
 #define _STARPU_TRACE_END_MEMRECLAIM(memnode,is_prefetch)	do {} while(0)
+#define _STARPU_TRACE_START_WRITEBACK_ASYNC(memnode)	do {} while(0)
+#define _STARPU_TRACE_END_WRITEBACK_ASYNC(memnode)	do {} while(0)
 #define _STARPU_TRACE_START_PROGRESS(memnode)	do {} while(0)
 #define _STARPU_TRACE_END_PROGRESS(memnode)	do {} while(0)
 #define _STARPU_TRACE_USER_EVENT(code)		do {} while(0)
