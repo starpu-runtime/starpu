@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012, 2014  Université de Bordeaux
+ * Copyright (C) 2009-2012, 2014-2015  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  *
@@ -80,6 +80,7 @@ void unregister_data(void)
 	starpu_data_unpartition(vector_in, STARPU_MAIN_RAM);
 	starpu_data_unregister(vector_in);
 
+	starpu_data_unpartition(vector_out, STARPU_MAIN_RAM);
 	starpu_data_unregister(vector_out);
 }
 
@@ -96,9 +97,6 @@ void init_problem_callback(void *arg)
 	{
 		printf("DONE ...\n");
 		end = starpu_timing_now();
-
-/*		starpu_data_unpartition(sparse_matrix, STARPU_MAIN_RAM); */
-		starpu_data_unpartition(vector_out, STARPU_MAIN_RAM);
 
 		sem_post(&sem);
 	}
