@@ -71,16 +71,19 @@ struct starpu_omp_task *_starpu_omp_get_task(void)
 	return task;
 }
 
-static void weak_task_lock(struct starpu_omp_task *task) {
+static void weak_task_lock(struct starpu_omp_task *task)
+{
 	_starpu_spin_lock(&task->lock);
-	while (task->transaction_pending) {
+	while (task->transaction_pending)
+	{
 		_starpu_spin_unlock(&task->lock);
 		STARPU_UYIELD();
 		_starpu_spin_lock(&task->lock);
 	}
 }
 
-static void weak_task_unlock(struct starpu_omp_task *task) {
+static void weak_task_unlock(struct starpu_omp_task *task)
+{
 	_starpu_spin_unlock(&task->lock);
 }
 

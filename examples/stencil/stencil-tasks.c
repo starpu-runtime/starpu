@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2013-2014  Université de Bordeaux
- * Copyright (C) 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2012, 2013, 2015  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -140,7 +140,8 @@ void create_task_save(unsigned iter, unsigned z, int dir, int local_rank)
 		/* Save data from update */
 		create_task_save_local(iter, z, dir, local_rank);
 		if (node_z_and_d != local_rank)
-		{ /* R(z) = local & R(z+d) != local, We have to send the data */
+		{
+			/* R(z) = local & R(z+d) != local, We have to send the data */
 			create_task_save_mpi_send(iter, z, dir, local_rank);
 		}
 
@@ -152,9 +153,10 @@ void create_task_save(unsigned iter, unsigned z, int dir, int local_rank)
 			create_task_save_mpi_recv(iter, z, dir, local_rank);
 		}
 		else
-		{ /* R(z) != local & R(z+d) != local We don't have
-			      the saved data and don't need it, we shouldn't
-			      even have been called! */
+		{
+			/* R(z) != local & R(z+d) != local We don't have
+			   the saved data and don't need it, we shouldn't
+			   even have been called! */
 			STARPU_ABORT();
 		}
 	}
@@ -212,7 +214,9 @@ void create_task_update(unsigned iter, unsigned z, int local_rank)
 }
 
 /* Dummy empty codelet taking one buffer */
-void null_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE_UNUSED) { }
+void null_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE_UNUSED)
+{
+}
 
 static double null_cost_function(struct starpu_task *task, unsigned nimpl)
 {

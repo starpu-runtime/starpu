@@ -26,7 +26,8 @@ int main(int argc, char **argv)
 }
 #else
 int
-main (int argc, char *argv[]) {
+main (int argc, char *argv[])
+{
 	setenv("OMP_DYNAMIC","false", 1);
 	setenv("OMP_NESTED","false", 1);
 	setenv("OMP_SCHEDULE","auto", 1);

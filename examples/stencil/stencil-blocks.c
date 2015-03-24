@@ -325,7 +325,7 @@ void allocate_memory_on_node(int rank)
 						(sizex + 2*K), (sizey + 2*K), K);
 			allocate_block_on_node(&block->boundaries_handle[T][1], &block->boundaries[T][1],
 						(sizex + 2*K), (sizey + 2*K), K);
-		} 
+		}
 
 		/* Boundary blocks : Bottom */
 		int bottom_node = block->boundary_blocks[B]->mpi_node;
@@ -335,7 +335,7 @@ void allocate_memory_on_node(int rank)
 						(sizex + 2*K), (sizey + 2*K), K);
 			allocate_block_on_node(&block->boundaries_handle[B][1], &block->boundaries[B][1],
 						(sizex + 2*K), (sizey + 2*K), K);
-		} 
+		}
 	}
 }
 

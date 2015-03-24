@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2011, 2014  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2015  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -136,7 +136,8 @@ static int dw_codelet_facto_v3(starpu_data_handle_t dataA, unsigned nblocks)
 		}
 
 		for (i = k+1; i<nblocks; i++)
-		     for (j = k+1; j<nblocks; j++) {
+		     for (j = k+1; j<nblocks; j++)
+		     {
 			  ret = create_task_22(dataA, k, i, j);
 			  if (ret == -ENODEV) return ret;
 		     }

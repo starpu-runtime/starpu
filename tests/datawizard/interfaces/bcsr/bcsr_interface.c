@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015  Centre National de la Recherche Scientifique
  * Copyright (C) 2011, 2012  inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -53,7 +53,8 @@ extern void test_bcsr_opencl_func(void *buffers[], void *args);
 #endif /* !STARPU_USE_OPENCL */
 
 
-static int nzval[NZVAL_SIZE]  = {
+static int nzval[NZVAL_SIZE]  =
+{
 	0, 1, 2, 3,    /* Fisrt block  */
 	4, 5, 6, 7,    /* Second block */
 	8, 9, 10, 11   /* Third block  */

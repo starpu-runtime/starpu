@@ -57,7 +57,8 @@ void parallel_region_f(void *buffers[], void *args)
 }
 
 int
-main (int argc, char *argv[]) {
+main (int argc, char *argv[])
+{
 	pthread_t tid;
 	struct starpu_omp_parallel_region_attr attr;
 	tid = pthread_self();

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -173,78 +173,66 @@ static void STARPU_ATTRIBUTE_UNUSED parse_args(int argc, char **argv)
 		{
 			with_ctxs = 1;
 			break;
-		} else
-		if (strcmp(argv[i], "-with_noctxs") == 0) 
+		}
+		else if (strcmp(argv[i], "-with_noctxs") == 0) 
 		{
 			with_noctxs = 1;
 			break;
-		} else
-		
-		if (strcmp(argv[i], "-chole1") == 0) 
+		}
+		else if (strcmp(argv[i], "-chole1") == 0) 
 		{
 			chole1 = 1;
 			break;
-		} else
-
-		if (strcmp(argv[i], "-chole2") == 0) 
+		}
+		else if (strcmp(argv[i], "-chole2") == 0) 
 		{
 			chole2 = 1;
 			break;
-		} else
-
-		if (strcmp(argv[i], "-size") == 0)
+		}
+		else if (strcmp(argv[i], "-size") == 0)
 		{
 		        char *argptr;
 			size = strtol(argv[++i], &argptr, 10);
-		} else
-
-		if (strcmp(argv[i], "-nblocks") == 0)
+		}
+		else if (strcmp(argv[i], "-nblocks") == 0)
 		{
 		        char *argptr;
 			nblocks = strtol(argv[++i], &argptr, 10);
-		} else
-
-		if (strcmp(argv[i], "-nbigblocks") == 0)
+		}
+		else if (strcmp(argv[i], "-nbigblocks") == 0)
 		{
 		        char *argptr;
 			nbigblocks = strtol(argv[++i], &argptr, 10);
-		} else
-
-		if (strcmp(argv[i], "-no-pin") == 0)
+		}
+		else if (strcmp(argv[i], "-no-pin") == 0)
 		{
 			pinned = 0;
-		} else
-
-		if (strcmp(argv[i], "-no-prio") == 0)
+		}
+		else if (strcmp(argv[i], "-no-prio") == 0)
 		{
 			noprio = 1;
-		} else
-
-		if (strcmp(argv[i], "-bound") == 0)
+		}
+		else if (strcmp(argv[i], "-bound") == 0)
 		{
 			bound = 1;
-		} else
-
-		if (strcmp(argv[i], "-bound-lp") == 0)
+		}
+		else if (strcmp(argv[i], "-bound-lp") == 0)
 		{
 			bound_lp = 1;
-		} else
-
-		if (strcmp(argv[i], "-bound-mps") == 0)
+		}
+		else if (strcmp(argv[i], "-bound-mps") == 0)
 		{
 			bound_mps = 1;
-		} else
-
-		if (strcmp(argv[i], "-bound-deps") == 0)
+		}
+		else if (strcmp(argv[i], "-bound-deps") == 0)
 		{
 			bound_deps = 1;
-		} else
-
-		if (strcmp(argv[i], "-check") == 0)
+		}
+		else if (strcmp(argv[i], "-check") == 0)
 		{
 			check = 1;
-		} else
-
+		}
+		else
 		/* if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i],"--help") == 0) */
 		{
 			fprintf(stderr,"usage : %s [-size size] [-nblocks nblocks] [-no-pin] [-no-prio] [-bound] [-bound-deps] [-bound-lp] [-check]\n", argv[0]);
