@@ -156,8 +156,6 @@ enodev:
 	starpu_data_unregister(C_handle);
 	starpu_data_unregister(D_handle);
 
-	starpu_data_unregister(var_handle);
-
 	free(A);
 	free(B);
 	free(C);
