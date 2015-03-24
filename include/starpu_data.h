@@ -92,6 +92,8 @@ int starpu_data_fetch_on_node(starpu_data_handle_t handle, unsigned node, unsign
 int starpu_data_prefetch_on_node(starpu_data_handle_t handle, unsigned node, unsigned async);
 int starpu_data_idle_prefetch_on_node(starpu_data_handle_t handle, unsigned node, unsigned async);
 
+void starpu_data_wont_use(starpu_data_handle_t handle);
+
 #define STARPU_MAIN_RAM 0
 
 enum starpu_node_kind

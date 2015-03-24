@@ -94,6 +94,8 @@ New features:
   * Anticipative writeback, to flush dirty data asynchronously before the
     GPU device is full. Disabled by default. Use STARPU_MINIMUM_CLEAN_BUFFERS
     and STARPU_TARGET_CLEAN_BUFFERS to enable it.
+  * Add starpu_data_wont_use to advise that a piece of data will not be used
+    in the close future.
 
 Small features:
   * Tasks can now have a name (via the field const char *name of

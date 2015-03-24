@@ -39,18 +39,23 @@ static struct _starpu_mem_chunk *mc_dirty_head[STARPU_MAXNODES];
 static unsigned mc_nb[STARPU_MAXNODES], mc_clean_nb[STARPU_MAXNODES];
 
 /* TODO: no home doesn't mean always clean, should push to larger memory nodes */
-/* TODO: REDUX always dirty */
-
 #define MC_LIST_PUSH_BACK(node, mc) do {				 \
 	_starpu_mem_chunk_list_push_back(mc_list[node], mc);		 \
 	if ((mc)->clean || (mc)->home)					 \
-		/* This is clean */				 \
+		/* This is clean */					 \
 		mc_clean_nb[node]++;					 \
 	else if (!mc_dirty_head[node])					 \
 		/* This is the only dirty element for now */		 \
 		mc_dirty_head[node] = mc;				 \
 	mc_nb[node]++;							 \
 } while(0)
+
+#define MC_LIST_PUSH_CLEAN(node, mc) do {				 \
+	_starpu_mem_chunk_list_push_front(mc_list[node], mc);		 \
+	/* This is clean */						 \
+	mc_clean_nb[node]++;						 \
+	mc_nb[node]++;							 \
+} while (0)
 
 #define MC_LIST_ERASE(node, mc) do {					 \
 	if ((mc)->clean || (mc)->home)					 \
@@ -1327,6 +1332,21 @@ void _starpu_memchunk_recently_used(struct _starpu_mem_chunk *mc, unsigned node)
 	_starpu_spin_lock(&mc_lock[node]);
 	MC_LIST_ERASE(node, mc);
 	MC_LIST_PUSH_BACK(node, mc);
+	_starpu_spin_unlock(&mc_lock[node]);
+}
+
+/* This memchunk will not be used in the close future, put it on the clean
+ * list, so we will to evict it first */
+void _starpu_memchunk_wont_use(struct _starpu_mem_chunk *mc, unsigned node)
+{
+	if (!mc)
+		/* user-allocated memory */
+		return;
+	_starpu_spin_lock(&mc_lock[node]);
+	MC_LIST_ERASE(node, mc);
+	/* Caller will schedule a clean transfer */
+	mc->clean = 1;
+	MC_LIST_PUSH_CLEAN(node, mc);
 	_starpu_spin_unlock(&mc_lock[node]);
 }
 
