@@ -188,7 +188,7 @@ static int dw_codelet_facto_pivot(starpu_data_handle_t *dataAp,
 		     ret = create_task_21(dataAp, nblocks, k, i, get_block);
 		     if (ret == -ENODEV) return ret;
 		}
-		starpu_data_wont_use(starpu_data_get_sub_data(dataA, 2, k, k));
+		starpu_data_wont_use(get_block(dataAp, nblocks, k, k));
 
 		for (i = k+1; i<nblocks; i++)
 		     for (j = k+1; j<nblocks; j++)
@@ -198,8 +198,8 @@ static int dw_codelet_facto_pivot(starpu_data_handle_t *dataAp,
 		     }
 		for (i = k+1; i<nblocks; i++)
 		{
-		    starpu_data_wont_use(starpu_data_get_sub_data(dataA, 2, k, i));
-		    starpu_data_wont_use(starpu_data_get_sub_data(dataA, 2, i, k));
+		    starpu_data_wont_use(get_block(dataAp, nblocks, k, i));
+		    starpu_data_wont_use(get_block(dataAp, nblocks, i, k));
 		}
 	}
 
