@@ -849,7 +849,7 @@ size_t _starpu_memory_reclaim_generic(unsigned node, unsigned force, size_t recl
 	freed += flush_memchunk_cache(node, reclaim);
 
 	/* try to free all allocated data potentially in use */
-	if (reclaim && freed<reclaim)
+	if (force || (reclaim && freed<reclaim))
 		freed += free_potentially_in_use_mc(node, force, reclaim);
 
 	return freed;
