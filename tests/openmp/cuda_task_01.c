@@ -167,6 +167,11 @@ main (int argc, char *argv[])
 	(void)argv;
 	struct starpu_omp_parallel_region_attr attr;
 
+	if (starpu_cuda_worker_get_count() < 1)
+	{
+		return STARPU_TEST_SKIPPED;
+	}
+
 	memset(&attr, 0, sizeof(attr));
 	attr.cl.cpu_funcs[0] = parallel_region_f;
 	attr.cl.where        = STARPU_CPU;
