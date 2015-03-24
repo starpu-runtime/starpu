@@ -1072,7 +1072,7 @@ static void register_mem_chunk(starpu_data_handle_t handle, struct _starpu_data_
 	size_t interface_size = replicate->handle->ops->interface_size;
 
 	/* Put this memchunk in the list of memchunk in use */
-	mc = _starpu_memchunk_init(replicate, interface_size, handle->home_node == -1 || dst_node == handle->home_node, automatically_allocated);
+	mc = _starpu_memchunk_init(replicate, interface_size, handle->home_node == -1 || (int) dst_node == handle->home_node, automatically_allocated);
 
 	_starpu_spin_lock(&mc_lock[dst_node]);
 	MC_LIST_PUSH_BACK(dst_node, mc);
