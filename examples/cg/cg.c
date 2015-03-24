@@ -427,7 +427,11 @@ int main(int argc, char **argv)
 	partition_data();
 
 	ret = cg();
-	if (ret == -ENODEV) goto enodev;
+	if (ret == -ENODEV) 
+	{
+		ret = 77;
+		goto enodev;
+	}
 
 	ret = check();
 
