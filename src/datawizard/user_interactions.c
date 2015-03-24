@@ -462,6 +462,35 @@ int starpu_data_idle_prefetch_on_node(starpu_data_handle_t handle, unsigned node
 	return _starpu_prefetch_data_on_node_with_mode(handle, node, async, STARPU_R, 2);
 }
 
+static void _starpu_data_wont_use(void *data)
+{
+	unsigned node, worker, nworkers = starpu_worker_get_count();
+	starpu_data_handle_t handle = data;
+
+	_starpu_spin_lock(&handle->header_lock);
+	for (node = 0; node < STARPU_MAXNODES; node++)
+	{
+		struct _starpu_data_replicate *local = &handle->per_node[node];
+		if (local->allocated && local->automatically_allocated)
+			_starpu_memchunk_wont_use(local->mc, node);
+	}
+	for (worker = 0; worker < nworkers; worker++)
+	{
+		struct _starpu_data_replicate *local = &handle->per_worker[node];
+		if (local->allocated && local->automatically_allocated)
+			_starpu_memchunk_wont_use(local->mc, node);
+	}
+	_starpu_spin_unlock(&handle->header_lock);
+	starpu_data_release_on_node(handle, -1);
+	if (handle->home_node != -1)
+		starpu_data_idle_prefetch_on_node(handle, handle->home_node, 1);
+}
+
+void starpu_data_wont_use(starpu_data_handle_t handle)
+{
+	starpu_data_acquire_on_node_cb(handle, -1, STARPU_R, _starpu_data_wont_use, handle);
+}
+
 /*
  *	It is possible to specify that a piece of data can be discarded without
  *	impacting the application.

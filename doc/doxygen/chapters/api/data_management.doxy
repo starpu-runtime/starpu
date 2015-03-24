@@ -195,6 +195,13 @@ block until the transfer is achieved, else the call will return immediately,
 after having just queued the request. In the latter case, the request will
 asynchronously wait for the completion of any task writing on the data.
 
+\fn void star_data_wont_use(starpu_data_handle handle)
+\ingroup API_Data_Management
+Advise StarPU that this handle will not be used in the close future, and is
+thus a good candidate for eviction from GPUs. StarPU will thus write its value
+back to its home node when the bus is idle, and select this data in priority
+for eviction when memory gets low.
+
 \fn starpu_data_handle_t starpu_data_lookup(const void *ptr)
 \ingroup API_Data_Management
 Return the handle corresponding to the data pointed to by the \p ptr host pointer.

@@ -110,6 +110,10 @@ handle and the desired target memory node. The
 starpu_data_idle_prefetch_on_node() variant can be used to issue the transfer
 only when the bus is idle.
 
+Conversely, one can advise StarPU that some data will not be useful in the
+close future by calling starpu_data_wont_use. StarPU will then write its value
+back to its home node, and evict it from GPUs when room is needed.
+
 \section PartitioningData Partitioning Data
 
 An existing piece of data can be partitioned in sub parts to be used by different tasks, for instance:
