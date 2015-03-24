@@ -38,7 +38,8 @@ static void omp_destructor(void)
 }
 
 int
-main (int argc, char *argv[]) {
+main (int argc, char *argv[])
+{
 	return 0;
 }
 #endif

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2014  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2011-2012  INRIA
  *
@@ -793,7 +793,7 @@ static double _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned 
 	starpu_task_set_implementation(task, selected_impl);
 
 	if(!simulate)
-	{	
+	{
 		/* we should now have the best worker in variable "best" */
 		return push_task_on_best_worker(task, best, model_best, transfer_model_best, prio, sched_ctx_id);
 	}
@@ -801,7 +801,6 @@ static double _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned 
 	{
 //		double max_len = (max_exp_end - starpu_timing_now());
 		/* printf("%d: dmda max_exp_end %lf best_exp_end %lf max_len %lf \n", sched_ctx_id, max_exp_end/1000000.0, best_exp_end/1000000.0, max_len/1000000.0);	 */
-	
 		return exp_end[best_in_ctx][selected_impl] ;
 	}
 }

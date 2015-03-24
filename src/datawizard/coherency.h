@@ -101,7 +101,8 @@ struct _starpu_task_wrapper_list
 };
 
 /* This structure describes a doubly-linked list of task */
-struct _starpu_task_wrapper_dlist {
+struct _starpu_task_wrapper_dlist
+{
 	struct starpu_task *task;
 	struct _starpu_task_wrapper_dlist *next;
 	struct _starpu_task_wrapper_dlist *prev;

@@ -25,7 +25,8 @@ int main(int argc, char **argv)
 }
 #else
 int
-main (int argc, char *argv[]) {
+main (int argc, char *argv[])
+{
 	int ret = starpu_omp_init();
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_omp_init");
 	starpu_omp_shutdown();

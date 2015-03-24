@@ -183,7 +183,8 @@ void parallel_region_f(void *buffers[], void *args)
 }
 
 int
-main (int argc, char *argv[]) {
+main (int argc, char *argv[])
+{
 	struct starpu_omp_parallel_region_attr attr;
 
 	memset(&attr, 0, sizeof(attr));
