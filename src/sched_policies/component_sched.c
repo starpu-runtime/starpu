@@ -428,7 +428,8 @@ static void starpu_sched_component_add_child(struct starpu_sched_component* comp
 	STARPU_ASSERT(component && child);
 	STARPU_ASSERT(!starpu_sched_component_is_worker(component));
 	int i;
-	for(i = 0; i < component->nchildren; i++){
+	for(i = 0; i < component->nchildren; i++)
+	{
 		STARPU_ASSERT(component->children[i] != component);
 		STARPU_ASSERT(component->children[i] != NULL);
 	}
@@ -454,7 +455,8 @@ static void starpu_sched_component_add_parent(struct starpu_sched_component* com
 {
 	STARPU_ASSERT(component && parent);
 	int i;
-	for(i = 0; i < component->nparents; i++){
+	for(i = 0; i < component->nparents; i++)
+	{
 		STARPU_ASSERT(component->parents[i] != component);
 		STARPU_ASSERT(component->parents[i] != NULL);
 	}

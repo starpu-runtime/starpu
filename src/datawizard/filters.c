@@ -335,7 +335,8 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 			/* Acquire the child data on the gathering node. This will trigger collapsing the reduction */
 			ret = starpu_data_acquire_on_node(child_handle, gathering_node, STARPU_RW);
 			_starpu_unlock_post_sync_tasks(child_handle);
-		} else
+		}
+		else
 		{
 			/* Simply transfer any pending data */
 			ret = _starpu_fetch_data_on_node(child_handle, &child_handle->per_node[gathering_node], STARPU_R, 0, 0, 0, NULL, NULL);

@@ -192,8 +192,7 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
 		STARPU_PTHREAD_BARRIER_INIT(&node->init_completed_barrier, NULL, node->nb_cores+1);
 
 		node->launch_workers(node);
-	}	
-
+	}
 
 	return node;
 }

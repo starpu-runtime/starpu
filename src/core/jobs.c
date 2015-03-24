@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2011, 2014  INRIA
  *
@@ -165,12 +165,15 @@ int _starpu_test_job_termination(struct _starpu_job *j)
 #ifdef RUNNING_ON_VALGRIND
 	{
 		int v = STARPU_PTHREAD_MUTEX_TRYLOCK(&j->sync_mutex);
-		if (v != EBUSY) {
+		if (v != EBUSY)
+		{
 			STARPU_ASSERT(v == 0);
 			int ret = (j->terminated == 2);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 			return ret;
-		} else {
+		}
+		else
+		{
 			return 0;
 		}
 	}

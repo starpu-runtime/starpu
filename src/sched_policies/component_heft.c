@@ -55,7 +55,8 @@ static int heft_progress_one(struct starpu_sched_component *component)
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
 
-	if (!ntasks) {
+	if (!ntasks)
+	{
 		return 1;
 	}
 

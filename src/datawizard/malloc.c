@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2010, 2012-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -359,8 +359,9 @@ int starpu_free_flags(void *A, size_t dim, int flags)
 #ifdef STARPU_USE_SCC
 		_starpu_scc_free_shared_memory(A);
 #endif
-	} else
-	free(A);
+	}
+	else
+		free(A);
 
 #ifndef STARPU_SIMGRID
 out:
@@ -653,7 +654,8 @@ starpu_memory_unpin(void *addr STARPU_ATTRIBUTE_UNUSED, size_t size STARPU_ATTRI
 #define CHUNK_NBLOCKS (CHUNK_SIZE/CHUNK_ALLOC_MIN)
 
 /* Linked list for available segments */
-struct block {
+struct block
+{
 	int length;	/* Number of consecutive free blocks */
 	int next;	/* next free segment */
 };
@@ -771,7 +773,8 @@ starpu_malloc_on_node(unsigned dst_node, size_t size)
 		{
 			STARPU_ASSERT(block >= 0 && block <= CHUNK_NBLOCKS);
 			int length = bitmap[block].length;
-			if (length >= nblocks) {
+			if (length >= nblocks)
+			{
 
 				if (length >= 2*nblocks)
 				{
@@ -908,12 +911,14 @@ starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size)
 	{
 		/* This chunk is now empty, but avoid chunk free/alloc
 		 * ping-pong by keeping some of these.  */
-		if (nfreechunks[dst_node] >= 1) {
+		if (nfreechunks[dst_node] >= 1)
+		{
 			/* We already have free chunks, release this one */
 			_starpu_free_on_node(dst_node, chunk->base, CHUNK_SIZE);
 			_starpu_chunk_list_erase(chunks[dst_node], chunk);
 			free(chunk);
-		} else
+		}
+		else
 			nfreechunks[dst_node]++;
 	}
 	else

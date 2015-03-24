@@ -374,7 +374,8 @@ _starpu_init_mic_node (struct _starpu_machine_config *config, int mic_idx,
 					    (argv ? (*argv)[0] : NULL),
 					    suffixes);
 
-	if (0 != mic_file_found) {
+	if (0 != mic_file_found)
+	{
 		fprintf(stderr, "No MIC program specified, use the environment\n"
 			"variable STARPU_MIC_SINK_PROGRAM_NAME or the environment\n"
 			"or the field 'starpu_conf.mic_sink_program_path'\n"
@@ -446,7 +447,8 @@ _starpu_init_topology (struct _starpu_machine_config *config)
 	/* Would be very odd */
 	STARPU_ASSERT(config->cpu_depth != HWLOC_TYPE_DEPTH_MULTIPLE);
 
-	if (config->cpu_depth == HWLOC_TYPE_DEPTH_UNKNOWN) {
+	if (config->cpu_depth == HWLOC_TYPE_DEPTH_UNKNOWN)
+	{
 		/* unknown, using logical procesors as fallback */
 		_STARPU_DISP("Warning: The OS did not report CPU cores. Assuming there is only one hardware thread per core.\n");
 		config->cpu_depth = hwloc_get_type_depth(topology->hwtopology,

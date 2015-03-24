@@ -23,7 +23,8 @@
 #define O_BINARY 0
 #endif
 
-struct starpu_unistd_global_obj {
+struct starpu_unistd_global_obj
+{
         int descriptor;
         char * path;
         size_t size;

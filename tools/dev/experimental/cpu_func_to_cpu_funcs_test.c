@@ -21,7 +21,8 @@
 /*
  * Old format
  */
-struct starpu_codelet cl1 = {
+struct starpu_codelet cl1 =
+{
 	.where = STARPU_CPU,
 	.cpu_func = foo
 };
@@ -29,14 +30,16 @@ struct starpu_codelet cl1 = {
 /*
  * New format : it must not be changed !
  */
-struct starpu_codelet cl2 = {
+struct starpu_codelet cl2 =
+{
 	.cpu_funcs = {foo}
 };
 
 /*
  * Maybe we added the cpu_funcs fields, but forgot to remove the cpu_func one.
  */
-struct starpu_codelet cl3 = {
+struct starpu_codelet cl3 =
+{
 	.cpu_func = foo,
 	.cpu_funcs = { foo }
 };
@@ -45,7 +48,8 @@ struct starpu_codelet cl3 = {
  * Old multiimplementations format, but not terminated by NULL
  * XXX : NULL is not added.
  */
-struct starpu_codelet cl4 = {
+struct starpu_codelet cl4 =
+{
 	.cpu_func = STARPU_MULTIPLE_CPU_IMPLEMENTATIONS,
 	.cpu_funcs = { foo, bar }
 };
@@ -53,7 +57,8 @@ struct starpu_codelet cl4 = {
 /*
  * Old multiimplementations format, terminated by NULL
  */
-struct starpu_codelet cl5 = {
+struct starpu_codelet cl5 =
+{
 	.cpu_func = STARPU_MULTIPLE_CPU_IMPLEMENTATIONS,
 	.cpu_funcs = { foo, bar }
 };
