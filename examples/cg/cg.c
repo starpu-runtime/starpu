@@ -432,14 +432,11 @@ int main(int argc, char **argv)
 	ret = check();
 
 	starpu_task_wait_for_all();
+
+enodev:
 	unregister_data();
 	free_data();
 	starpu_cublas_shutdown();
 	starpu_shutdown();
-
 	return ret;
-
-enodev:
-	starpu_shutdown();
-	return 77;
 }
