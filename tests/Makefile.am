@@ -185,6 +185,7 @@ noinst_PROGRAMS =				\
 	datawizard/handle_to_pointer		\
 	datawizard/lazy_allocation		\
 	datawizard/lazy_unregister		\
+	datawizard/no_unregister		\
 	datawizard/noreclaim			\
 	datawizard/interfaces/copy_interfaces	\
 	datawizard/interfaces/block/block_interface \
