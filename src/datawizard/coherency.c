@@ -523,7 +523,8 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 		/* if the data is in write only mode (and not SCRATCH or REDUX), there is no need for a source, data will be initialized by the task itself */
 		if (mode & STARPU_W)
 			dst_replicate->initialized = 1;
-		if (requesting_node == STARPU_MAIN_RAM) {
+		if (requesting_node == STARPU_MAIN_RAM)
+		{
 			/* And this is the main RAM, really no need for a
 			 * request, just allocate */
 			if (_starpu_allocate_memory_on_node(handle, dst_replicate, is_prefetch) == 0)

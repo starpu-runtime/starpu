@@ -198,7 +198,8 @@ void composed_component_deinit_data(struct starpu_sched_component * _component)
 		component->workers = NULL;
 		next = component->children ? component->children[0] : NULL;
 		starpu_sched_component_destroy(component);
-	}while(next);
+	}
+	while(next);
 	free(c);
 	_component->data = NULL;
 }

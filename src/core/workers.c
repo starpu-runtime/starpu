@@ -324,15 +324,19 @@ int starpu_worker_can_execute_task_impl(unsigned workerid, struct starpu_task *t
 	if (!task->cl->can_execute)
 	{
 		for (i = 0; i < STARPU_MAXIMPLEMENTATIONS; i++)
-			if (_starpu_can_use_nth_implementation(arch, cl, i)) {
+			if (_starpu_can_use_nth_implementation(arch, cl, i))
+			{
 				mask |= 1U << i;
 				if (!impl_mask)
 					break;
 			}
-	} else {
+	}
+	else
+	{
 		for (i = 0; i < STARPU_MAXIMPLEMENTATIONS; i++)
 			if (_starpu_can_use_nth_implementation(arch, cl, i)
-			 && (!task->cl->can_execute || task->cl->can_execute(workerid, task, i))) {
+			 && (!task->cl->can_execute || task->cl->can_execute(workerid, task, i)))
+			{
 				mask |= 1U << i;
 				if (!impl_mask)
 					break;
@@ -358,15 +362,19 @@ int starpu_worker_can_execute_task_first_impl(unsigned workerid, struct starpu_t
 	if (!task->cl->can_execute)
 	{
 		for (i = 0; i < STARPU_MAXIMPLEMENTATIONS; i++)
-			if (_starpu_can_use_nth_implementation(arch, cl, i)) {
+			if (_starpu_can_use_nth_implementation(arch, cl, i))
+			{
 				if (nimpl)
 					*nimpl = i;
 				return 1;
 			}
-	} else {
+	}
+	else
+	{
 		for (i = 0; i < STARPU_MAXIMPLEMENTATIONS; i++)
 			if (_starpu_can_use_nth_implementation(arch, cl, i)
-			 && (!task->cl->can_execute || task->cl->can_execute(workerid, task, i))) {
+			 && (!task->cl->can_execute || task->cl->can_execute(workerid, task, i)))
+			{
 				if (nimpl)
 					*nimpl = i;
 				return 1;
@@ -1259,7 +1267,8 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	/* Finally, if we are a MP sink, we never leave this function. Else,
 	 * we enter an infinite event loop which listen for MP commands from
 	 * the source. */
-	if (is_a_sink) {
+	if (is_a_sink)
+	{
 		_starpu_sink_common_worker();
 
 		/* We should normally never leave the loop as we don't want to
@@ -1349,9 +1358,11 @@ void _starpu_may_pause(void)
 	/* pause_depth is just protected by a memory barrier */
 	STARPU_RMB();
 
-	if (STARPU_UNLIKELY(config.pause_depth > 0)) {
+	if (STARPU_UNLIKELY(config.pause_depth > 0))
+	{
 		STARPU_PTHREAD_MUTEX_LOCK(&pause_mutex);
-		if (config.pause_depth > 0) {
+		if (config.pause_depth > 0)
+		{
 			STARPU_PTHREAD_COND_WAIT(&pause_cond, &pause_mutex);
 		}
 		STARPU_PTHREAD_MUTEX_UNLOCK(&pause_mutex);
@@ -1380,7 +1391,8 @@ void starpu_resume()
 {
 	STARPU_PTHREAD_MUTEX_LOCK(&pause_mutex);
 	config.pause_depth -= 1;
-	if (!config.pause_depth) {
+	if (!config.pause_depth)
+	{
 		STARPU_PTHREAD_COND_BROADCAST(&pause_cond);
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&pause_mutex);

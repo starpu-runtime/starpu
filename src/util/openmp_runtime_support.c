@@ -210,7 +210,8 @@ static struct starpu_omp_thread *get_local_thread(void)
 			STARPU_ASSERT(thread != NULL);
 		}
 
-		if (thread != NULL) {
+		if (thread != NULL)
+		{
 			STARPU_PTHREAD_SETSPECIFIC(omp_thread_key, thread);
 		}
 	}
@@ -1360,12 +1361,12 @@ void starpu_omp_single_copyprivate(void (*f)(void *arg, void *data, unsigned lon
 	{
 		region->copy_private_data = data;
 		f(arg, data, data_size);
-	} 
+	}
 	starpu_omp_barrier();
 	if (!first)
 	{
 		memcpy(data, region->copy_private_data, data_size);
-	} 
+	}
 	starpu_omp_barrier();
 }
 
@@ -1381,7 +1382,7 @@ void *starpu_omp_single_copyprivate_inline_begin(void *data)
 	{
 		task->single_first = 1;
 		region->copy_private_data = data;
-	} 
+	}
 	else
 	{
 		starpu_omp_barrier();
@@ -1398,7 +1399,7 @@ void starpu_omp_single_copyprivate_inline_end(void)
 	{
 		task->single_first = 0;
 		starpu_omp_barrier();
-	} 
+	}
 	starpu_omp_barrier();
 }
 

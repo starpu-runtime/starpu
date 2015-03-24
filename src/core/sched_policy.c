@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2015  Université de Bordeaux
- * Copyright (C) 2010-2014  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010-2015  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -458,7 +458,8 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 		/* When a task can only be executed on a given arch and we have
 		 * only one memory node for that arch, we can systematically
 		 * prefetch before the scheduling decision. */
-		if (starpu_get_prefetch_flag()) {
+		if (starpu_get_prefetch_flag())
+		{
 			if (task->cl->where == STARPU_CPU && config->cpus_nodeid >= 0)
 				starpu_prefetch_task_input_on_node(task, config->cpus_nodeid);
 			else if (task->cl->where == STARPU_CUDA && config->cuda_nodeid >= 0)
@@ -714,7 +715,7 @@ struct _starpu_sched_ctx* _get_next_sched_ctx_to_pop_into(struct _starpu_worker 
 		worker->reverse_phase[worker->pop_ctx_priority] = !worker->reverse_phase[worker->pop_ctx_priority];
 		if(are_2_priorities)
 			worker->pop_ctx_priority = !worker->pop_ctx_priority;
-	}	
+	}
 
 	unsigned first_sched_ctx = STARPU_NMAX_SCHED_CTXS;
 	for (l = worker->sched_ctx_list; l; l = l->next)
@@ -754,7 +755,7 @@ pick:
 
 	/* get tasks from the stacks of the strategy */
 	if(!task)
-	{		
+	{
 		struct _starpu_sched_ctx *sched_ctx ;
 #ifndef STARPU_NON_BLOCKING_DRIVERS
 		int been_here[STARPU_NMAX_SCHED_CTXS];

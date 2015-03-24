@@ -170,7 +170,7 @@ static struct starpu_sched_component * where_should_we_plug_this(struct starpu_s
 			return parent->children[i];
 	}
 	if(obj->type == HWLOC_OBJ_NODE)
-	{	
+	{
 		struct starpu_sched_component * component = starpu_sched_component_composed_component_create(root->tree, specs.hwloc_component_composed_sched_component);
 		component->obj = obj;
 		parent->add_child(parent, component);
@@ -198,7 +198,6 @@ static void set_worker_leaf(struct starpu_sched_component * root, struct starpu_
 		starpu_sched_component_add_parent(tmp, component);
 		component->add_child(component, tmp);
 		component = tmp;
-		
 	}
 	starpu_sched_component_composed_recipe_destroy(recipe);
 	starpu_sched_component_add_parent(worker_component, component);

@@ -40,7 +40,8 @@ enum _starpu_cache_state
 };
 
 /* this should contain the information relative to a given data replicate  */
-struct _starpu_data_replicate {
+struct _starpu_data_replicate
+{
 	starpu_data_handle_t handle;
 
 	/* describe the actual data layout, as manipulated by data interfaces in *_interface.c */

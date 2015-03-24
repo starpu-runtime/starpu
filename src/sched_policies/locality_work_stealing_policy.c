@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2014  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  Centre National de la Recherche Scientifique
  * Copyright (C) 2011, 2012  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -48,7 +48,8 @@ static unsigned select_victim_neighborhood(unsigned sched_ctx_id, int workerid)
 
 	int i;
 	int neighbor;
-	for(i=0; i<nworkers; i++){
+	for(i=0; i<nworkers; i++)
+	{
 		neighbor = ws->proxlist[workerid][i];
 		int ntasks = ws->queue_array[neighbor]->ntasks;
 		

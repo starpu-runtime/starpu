@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -157,7 +157,8 @@ static int lock_all_subtree(starpu_data_handle_t handle)
 	/* lock all sub-subtrees children */
 	for (child = 0; child < (int) handle->nchildren; child++)
 	{
-		if (!lock_all_subtree(starpu_data_get_child(handle, child))) {
+		if (!lock_all_subtree(starpu_data_get_child(handle, child)))
+		{
 			/* Some child is busy, abort */
 			while (--child >= 0)
 				/* Unlock what we have already uselessly locked */
@@ -359,7 +360,8 @@ static size_t do_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 	size_t size;
 	starpu_data_handle_t handle = mc->data;
 
-	if (handle) {
+	if (handle)
+	{
 		_starpu_spin_checklocked(&handle->header_lock);
 		mc->size = _starpu_data_get_size(handle);
 	}
@@ -442,7 +444,8 @@ static size_t try_to_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 			/* choose the best target */
 			target = choose_target(handle, node);
 
-			if (target != -1) {
+			if (target != -1)
+			{
 				/* Should have been avoided in our caller */
 				STARPU_ASSERT(!mc->remove_notify);
 				mc->remove_notify = &mc;
@@ -708,7 +711,8 @@ static size_t flush_memchunk_cache(unsigned node, size_t reclaim)
 	_starpu_spin_lock(&mc_lock[node]);
 	HASH_ITER(hh, mc_cache[node], entry, tmp)
 	{
-		while (!_starpu_mem_chunk_list_empty(entry->list)) {
+		while (!_starpu_mem_chunk_list_empty(entry->list))
+		{
 			mc = _starpu_mem_chunk_list_pop_front(entry->list);
 			STARPU_ASSERT(!mc->data);
 			STARPU_ASSERT(!mc->replicate);
@@ -830,7 +834,8 @@ size_t _starpu_memory_reclaim_generic(unsigned node, unsigned force, size_t recl
 	if (reclaim && !force)
 	{
 		static unsigned warned;
-		if (!warned) {
+		if (!warned)
+		{
 			if (STARPU_ATOMIC_ADD(&warned, 1) == 1)
 			{
 				char name[32];
@@ -927,18 +932,22 @@ void starpu_memchunk_tidy(unsigned node)
 			     || (_starpu_get_data_refcnt(handle, node) && handle->current_mode == STARPU_W)
 				/* REDUX, can't do anything with it, skip it */
 			     || mc->relaxed_coherency == 2
-			) {
+			)
+			{
 				_starpu_spin_unlock(&handle->header_lock);
 				continue;
 			}
 
 			/* This should have been marked as clean already */
 			STARPU_ASSERT(mc->relaxed_coherency != 1);
-			if (handle->per_node[handle->home_node].state != STARPU_INVALID) {
+			if (handle->per_node[handle->home_node].state != STARPU_INVALID)
+			{
 				/* it's actually clean */
 				mc->clean = 1;
 				mc_clean_nb[node]++;
-			} else {
+			}
+			else
+			{
 				/* MC is dirty, submit writeback */
 
 				/* MC will be clean, consider it as such */
@@ -1006,7 +1015,8 @@ void starpu_memchunk_tidy(unsigned node)
 		goto out;
 
 	static unsigned warned;
-	if (!warned) {
+	if (!warned)
+	{
 		if (STARPU_ATOMIC_ADD(&warned, 1) == 1)
 		{
 			char name[32];
@@ -1130,7 +1140,8 @@ void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, struct _star
 		struct mc_cache_entry *entry;
 		_starpu_spin_lock(&mc_lock[node]);
 		HASH_FIND(hh, mc_cache[node], &footprint, sizeof(footprint), entry);
-		if (!entry) {
+		if (!entry)
+		{
 			entry = malloc(sizeof(*entry));
 			entry->list = _starpu_mem_chunk_list_new();
 			entry->footprint = footprint;
@@ -1338,7 +1349,9 @@ void _starpu_memchunk_dirty(struct _starpu_mem_chunk *mc, unsigned node)
 			mc_clean_nb[node]++;
 			mc->clean = 1;
 		}
-	} else {
+	}
+	else
+	{
 		if (mc->clean)
 		{
 			mc_clean_nb[node]--;
@@ -1415,7 +1428,7 @@ get_better_disk_can_accept_size(starpu_data_handle_t handle, unsigned node)
 					target = i;
 					time_disk = time_tmp;
 				}
-			}	
+			}
 		}
 	}
 	return target;

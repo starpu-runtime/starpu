@@ -87,7 +87,8 @@ starpu_unistd_o_direct_plug (void *parameter, starpu_ssize_t size)
 	return starpu_unistd_global_plug (parameter, size);
 }
 
-struct starpu_disk_ops starpu_disk_unistd_o_direct_ops = {
+struct starpu_disk_ops starpu_disk_unistd_o_direct_ops =
+{
 	.alloc = starpu_unistd_o_direct_alloc,
 	.free = starpu_unistd_global_free,
 	.open = starpu_unistd_o_direct_open,

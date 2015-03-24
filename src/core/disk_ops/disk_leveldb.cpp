@@ -32,13 +32,15 @@
 
 /* ------------------- use leveldb to write on disk -------------------  */
 
-struct starpu_leveldb_obj {
+struct starpu_leveldb_obj
+{
 	char * key;
 	size_t size;
 	starpu_pthread_mutex_t mutex;
 };
 
-struct starpu_leveldb_base {
+struct starpu_leveldb_base
+{
 	leveldb::DB* db;
 	/* if StarPU creates the leveldb */
 	bool created;
@@ -46,8 +48,7 @@ struct starpu_leveldb_base {
 
 
 /* allocation memory on disk */
-static void * 
-starpu_leveldb_alloc (void *base, size_t size)
+static void *starpu_leveldb_alloc (void *base, size_t size)
 {
 	struct starpu_leveldb_base * base_tmp = (struct starpu_leveldb_base *) base;
 	struct starpu_leveldb_obj * obj = (struct starpu_leveldb_obj *) malloc(sizeof(struct starpu_leveldb_obj));
@@ -72,8 +73,7 @@ starpu_leveldb_alloc (void *base, size_t size)
 
 
 /* free memory on disk */
-static void
-starpu_leveldb_free (void *base , void *obj, size_t size STARPU_ATTRIBUTE_UNUSED)
+static void starpu_leveldb_free (void *base , void *obj, size_t size STARPU_ATTRIBUTE_UNUSED)
 {
 	struct starpu_leveldb_obj * tmp = (struct starpu_leveldb_obj *) obj;
 	struct starpu_leveldb_base * base_tmp = (struct starpu_leveldb_base *) base;
@@ -88,8 +88,7 @@ starpu_leveldb_free (void *base , void *obj, size_t size STARPU_ATTRIBUTE_UNUSED
 
 
 /* open an existing memory on disk */
-static void * 
-starpu_leveldb_open (void *base, void *pos, size_t size)
+static void *starpu_leveldb_open (void *base, void *pos, size_t size)
 {
 	struct starpu_leveldb_obj * obj = (struct starpu_leveldb_obj *) malloc(sizeof(struct starpu_leveldb_obj));
 	STARPU_ASSERT(obj != NULL);
@@ -100,31 +99,26 @@ starpu_leveldb_open (void *base, void *pos, size_t size)
 	obj->size = size;
 
 	return (void *) obj;
-	
 }
 
-
 /* free memory without delete it */
-static void 
-starpu_leveldb_close (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, size_t size STARPU_ATTRIBUTE_UNUSED)
+static void starpu_leveldb_close (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, size_t size STARPU_ATTRIBUTE_UNUSED)
 {
 	struct starpu_leveldb_obj * tmp = (struct starpu_leveldb_obj *) obj;
 
 	STARPU_PTHREAD_MUTEX_DESTROY(&tmp->mutex);
 
 	free(tmp->key);
-	free(tmp);	
+	free(tmp);
 }
 
-
-/* in the leveldb, we are obliged to read and to write the entire data 
+/* in the leveldb, we are obliged to read and to write the entire data
  * so, we have to use buffers to have offset and size options */
-static int 
-starpu_leveldb_read (void *base, void *obj, void *buf, off_t offset, size_t size)
+static int starpu_leveldb_read (void *base, void *obj, void *buf, off_t offset, size_t size)
 {
 	struct starpu_leveldb_obj * tmp = (struct starpu_leveldb_obj *) obj;
-	struct starpu_leveldb_base * base_tmp = (struct starpu_leveldb_base *) base;	
-	
+	struct starpu_leveldb_base * base_tmp = (struct starpu_leveldb_base *) base;
+
 	STARPU_PTHREAD_MUTEX_LOCK(&tmp->mutex);
 
 	/* leveldb need a string to store datas */
@@ -143,8 +137,7 @@ starpu_leveldb_read (void *base, void *obj, void *buf, off_t offset, size_t size
 	return 0;
 }
 
-static int
-starpu_leveldb_full_read(void *base, void * obj, void ** ptr, size_t * size)
+static int starpu_leveldb_full_read(void *base, void * obj, void ** ptr, size_t * size)
 {
         struct starpu_leveldb_obj * tmp = (struct starpu_leveldb_obj *) obj;
         struct starpu_leveldb_base * base_tmp = (struct starpu_leveldb_base *) base;
@@ -169,8 +162,7 @@ starpu_leveldb_full_read(void *base, void * obj, void ** ptr, size_t * size)
 }
 
 /* write on the memory disk */
-static int 
-starpu_leveldb_write (void *base, void *obj, const void *buf, off_t offset, size_t size)
+static int starpu_leveldb_write (void *base, void *obj, const void *buf, off_t offset, size_t size)
 {
         struct starpu_leveldb_obj * tmp = (struct starpu_leveldb_obj *) obj;
         struct starpu_leveldb_base * base_tmp = (struct starpu_leveldb_base *) base;
@@ -199,12 +191,12 @@ starpu_leveldb_write (void *base, void *obj, const void *buf, off_t offset, size
 		memcpy(buffer, (void *) value_read, tmp->size);
 
 		/* put the new data on their new place */
-		memcpy(buffer, (void *) (buf_tmp+offset), size); 
+		memcpy(buffer, (void *) (buf_tmp+offset), size);
 	}
 
 	/* and write them */
 	s = base_tmp->db->Put(leveldb::WriteOptions(), tmp->key, (char *)buffer);
-	STARPU_ASSERT(s.ok());	
+	STARPU_ASSERT(s.ok());
 
 	/* if the new size is higher than the old, we update it - first write after the alloc */
 	tmp->size = (tmp->size > size) ? tmp->size : size;
@@ -215,8 +207,7 @@ starpu_leveldb_write (void *base, void *obj, const void *buf, off_t offset, size
 	return 0;
 }
 
-static int
-starpu_leveldb_full_write (void * base, void * obj, void * ptr, size_t size)
+static int starpu_leveldb_full_write (void * base, void * obj, void * ptr, size_t size)
 {
 	struct starpu_leveldb_obj * tmp = (struct starpu_leveldb_obj *) obj;
 	struct starpu_leveldb_base * base_tmp = (struct starpu_leveldb_base *) base;
@@ -234,8 +225,7 @@ starpu_leveldb_full_write (void * base, void * obj, void * ptr, size_t size)
 
 
 /* create a new copy of parameter == base */
-static void * 
-starpu_leveldb_plug (void *parameter, starpu_ssize_t size STARPU_ATTRIBUTE_UNUSED)
+static void *starpu_leveldb_plug (void *parameter, starpu_ssize_t size STARPU_ATTRIBUTE_UNUSED)
 {
 	struct starpu_leveldb_base * tmp = (struct starpu_leveldb_base *) malloc(sizeof(struct starpu_leveldb_base));
 	STARPU_ASSERT(tmp != NULL);
@@ -244,12 +234,12 @@ starpu_leveldb_plug (void *parameter, starpu_ssize_t size STARPU_ATTRIBUTE_UNUSE
 	leveldb::DB* db;
 	leveldb::Options options;
 	options.create_if_missing = true;
-	
+
 	/* try to create the database */
 	options.error_if_exists = true;
 	status = leveldb::DB::Open(options, (char *) parameter, &db);
 	tmp->created = true;
-	
+
 	/* if it has already been created  before */
 	if (!status.ok())
 	{
@@ -261,13 +251,11 @@ starpu_leveldb_plug (void *parameter, starpu_ssize_t size STARPU_ATTRIBUTE_UNUSE
 
 	tmp->db = db;
 	STARPU_ASSERT(status.ok());
-	return (void *) tmp;	
+	return (void *) tmp;
 }
 
-
 /* free memory allocated for the base */
-static void
-starpu_leveldb_unplug (void *base)
+static void starpu_leveldb_unplug (void *base)
 {
 	struct starpu_leveldb_base * base_tmp = (struct starpu_leveldb_base *) base;
 	if(base_tmp->created)
@@ -275,20 +263,17 @@ starpu_leveldb_unplug (void *base)
 	free(base);
 }
 
-
-static int
-get_leveldb_bandwidth_between_disk_and_main_ram(unsigned node)
+static int get_leveldb_bandwidth_between_disk_and_main_ram(unsigned node)
 {
-
 	unsigned iter;
 	double timing_slowness, timing_latency;
 	double start;
 	double end;
-	
-	srand (time (NULL)); 
+
+	srand (time (NULL));
 	char * buf = (char *) malloc(SIZE_DISK_MIN*sizeof(char));
 	STARPU_ASSERT(buf != NULL);
-	
+
 	/* allocate memory */
 	void * mem = _starpu_disk_alloc(node, SIZE_DISK_MIN);
 	/* fail to alloc */
@@ -332,7 +317,8 @@ get_leveldb_bandwidth_between_disk_and_main_ram(unsigned node)
 }
 
 #if __cplusplus >= 201103L
-struct starpu_disk_ops starpu_disk_leveldb_ops = {
+struct starpu_disk_ops starpu_disk_leveldb_ops =
+{
 	.plug = starpu_leveldb_plug,
 	.unplug = starpu_leveldb_unplug,
 	.bandwidth = get_leveldb_bandwidth_between_disk_and_main_ram,
@@ -354,7 +340,8 @@ struct starpu_disk_ops starpu_disk_leveldb_ops = {
 	.free_request = NULL
 };
 #else
-struct starpu_disk_ops starpu_disk_leveldb_ops = {
+struct starpu_disk_ops starpu_disk_leveldb_ops =
+{
 	starpu_leveldb_plug,
 	starpu_leveldb_unplug,
 	get_leveldb_bandwidth_between_disk_and_main_ram,

@@ -2177,7 +2177,8 @@ static int _starpu_sched_ctx_find_master(unsigned sched_ctx_id, int *workerids, 
                         awake_workers[nawake_workers++] = workerids[w];
         }
 
-        for (i = 0 ; i < npotential_masters ; i++) {
+        for (i = 0 ; i < npotential_masters ; i++)
+	{
 		int master_is_in_section = 0;
 		//Could create a function for this. Basically searching an element in an array.
 		for (w = 0 ; w < nworkers ; w++)
