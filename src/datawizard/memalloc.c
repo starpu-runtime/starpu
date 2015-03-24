@@ -939,8 +939,7 @@ void starpu_memchunk_tidy(unsigned node)
 			}
 
 			/* This should have been marked as clean already */
-			STARPU_ASSERT(mc->relaxed_coherency != 1);
-			if (handle->per_node[handle->home_node].state != STARPU_INVALID)
+			if (handle->per_node[handle->home_node].state != STARPU_INVALID || mc->relaxed_coherency == 1)
 			{
 				/* it's actually clean */
 				mc->clean = 1;
