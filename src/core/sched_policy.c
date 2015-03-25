@@ -343,7 +343,7 @@ int _starpu_push_task(struct _starpu_job *j)
 	if(j->task->prologue_callback_func)
 		j->task->prologue_callback_func(j->task->prologue_callback_arg);
 
-	_starpu_repush_task(j);
+	return _starpu_repush_task(j);
 }
 
 int _starpu_repush_task(struct _starpu_job *j)
