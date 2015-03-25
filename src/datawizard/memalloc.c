@@ -50,8 +50,12 @@ static unsigned mc_nb[STARPU_MAXNODES], mc_clean_nb[STARPU_MAXNODES];
 	mc_nb[node]++;							 \
 } while(0)
 
+/* Put new clean mc at the end of the clean part of mc_list, i.e. just before mc_dirty_head (if any) */
 #define MC_LIST_PUSH_CLEAN(node, mc) do {				 \
-	_starpu_mem_chunk_list_push_front(mc_list[node], mc);		 \
+	if (mc_dirty_head[node])						 \
+		_starpu_mem_chunk_list_insert_before(mc_list[node], mc, mc_dirty_head[node]); \
+	else								 \
+		_starpu_mem_chunk_list_push_back(mc_list[node], mc);	 \
 	/* This is clean */						 \
 	mc_clean_nb[node]++;						 \
 	mc_nb[node]++;							 \
@@ -218,10 +222,6 @@ static void transfer_subtree_to_node(starpu_data_handle_t handle, unsigned src_n
 		switch(src_replicate->state)
 		{
 		case STARPU_OWNER:
-#ifdef STARPU_DEVEL
-#warning we should use requests during memory reclaim
-#endif
-			/* TODO use request !! */
 			/* Take temporary references on the replicates */
 			_starpu_spin_checklocked(&handle->header_lock);
 			src_replicate->refcnt++;
