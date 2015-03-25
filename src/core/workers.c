@@ -620,7 +620,10 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 	unsigned nworkers = pconfig->topology.nworkers;
 
 	/* Launch workers asynchronously */
-	unsigned worker, i;
+	unsigned worker;
+#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID) || defined(STARPU_USE_MIC)
+	unsigned i;
+#endif
 
 #if defined(STARPU_PERF_DEBUG) && !defined(STARPU_SIMGRID)
 	/* Get itimer of the main thread, to set it for the worker threads */
