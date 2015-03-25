@@ -156,7 +156,7 @@ Small changes:
   * Rename function starpu_trace_user_event() as
     starpu_fxt_trace_user_event()
 
-StarPU 1.1.4 (svn revision xxx)
+StarPU 1.1.4 (svn revision 14856)
 ==============================================
 The scheduling context release
 
