@@ -262,7 +262,8 @@ STARPU_EXAMPLES +=				\
 	sched_ctx/sched_ctx_without_sched_policy\
 	sched_ctx/nested_sched_ctxs		\
 	sched_ctx/sched_ctx_without_sched_policy\
-	sched_ctx/sched_ctx_without_sched_policy_awake 
+	sched_ctx/sched_ctx_without_sched_policy_awake\
+	sched_ctx/parallel_tasks_reuse_handle
 
 if STARPU_LONG_CHECK
 STARPU_EXAMPLES +=				\
@@ -896,6 +897,9 @@ sched_ctx_sched_ctx_without_sched_policy_CFLAGS = \
 	$(AM_CFLAGS) -fopenmp
 
 sched_ctx_nested_sched_ctxs_CFLAGS = \
+	$(AM_CFLAGS) -fopenmp
+
+sched_ctx_parallel_tasks_reuse_handle_CFLAGS = \
 	$(AM_CFLAGS) -fopenmp
 
 endif
