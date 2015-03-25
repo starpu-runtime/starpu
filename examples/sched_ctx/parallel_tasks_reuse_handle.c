@@ -14,7 +14,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#define _GNU_SOURCE
 #include <starpu.h>
 #include <omp.h>
 
