@@ -1548,18 +1548,19 @@ static void explicit_task__destroy_callback(void *_task)
 	task->starpu_task->omp_task = NULL;
 	task->starpu_task = NULL;
 	_starpu_spin_lock(&task->lock);
-	STARPU_ASSERT(task->transaction_pending == 1);
-	task->transaction_pending = 0;
-	if (task->child_task_count != 0)
+	if (task->state != starpu_omp_task_state_target)
 	{
-		task->state = starpu_omp_task_state_zombie;
-		_starpu_spin_unlock(&task->lock);
+		STARPU_ASSERT(task->transaction_pending == 1);
+		task->transaction_pending = 0;
+		if (task->child_task_count != 0)
+		{
+			task->state = starpu_omp_task_state_zombie;
+			_starpu_spin_unlock(&task->lock);
+			return;
+		}
 	}
-	else
-	{
-		_starpu_spin_unlock(&task->lock);
-		destroy_omp_task_struct(task);
-	}
+	_starpu_spin_unlock(&task->lock);
+	destroy_omp_task_struct(task);
 }
 
 void starpu_omp_task_region(const struct starpu_omp_task_region_attr *attr)
