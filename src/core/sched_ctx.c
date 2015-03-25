@@ -1957,7 +1957,7 @@ void starpu_sched_ctx_move_task_to_ctx(struct starpu_task *task, unsigned sched_
 
 	_starpu_increment_nsubmitted_tasks_of_sched_ctx(j->task->sched_ctx);
 
-	_starpu_push_task(j);
+	_starpu_repush_task(j);
 
 	if(workerid != -1)
 		STARPU_PTHREAD_MUTEX_LOCK(&worker->sched_mutex);

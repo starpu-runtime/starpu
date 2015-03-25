@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012-2013  Université de Bordeaux
+ * Copyright (C) 2010, 2012-2013, 2015  Université de Bordeaux
  * Copyright (C) 2011  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -34,6 +34,7 @@ void _starpu_deinit_sched_policy(struct _starpu_sched_ctx *sched_ctx);
 struct starpu_sched_policy *_starpu_select_sched_policy(struct _starpu_machine_config *config, const char *required_policy);
 
 int _starpu_push_task(struct _starpu_job *task);
+int _starpu_repush_task(struct _starpu_job *task);
 
 /* actually pushes the tasks to the specific worker or to the scheduler */
 int _starpu_push_task_to_workers(struct starpu_task *task);
