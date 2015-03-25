@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2014  Université de Bordeaux
+ * Copyright (C) 2010-2015  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  Centre National de la Recherche Scientifique
  * Copyright (C) 2011, 2012  INRIA
  *
@@ -119,9 +119,8 @@ static unsigned select_worker_round_robin(unsigned sched_ctx_id)
 /**
  * Return a worker from which a task can be stolen.
  */
-static inline unsigned select_victim(unsigned sched_ctx_id, int workerid)
+static inline unsigned select_victim(unsigned sched_ctx_id, int workerid STARPU_ATTRIBUTE_UNUSED)
 {
-
 #ifdef STARPU_HAVE_HWLOC
 	return select_victim_neighborhood(sched_ctx_id, workerid);
 #else
