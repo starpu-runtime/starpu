@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2010, 2012-2014  Université de Bordeaux
+ * Copyright (C) 2009-2010, 2012-2015  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -209,7 +209,9 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 				ret = -ENOMEM;
 		}
 
+#if !defined(STARPU_SIMGRID) && defined(STARPU_USE_CUDA)
 end:
+#endif
 	if (ret == 0)
 	{
 		STARPU_ASSERT(*A);
@@ -333,7 +335,9 @@ int starpu_free_flags(void *A, size_t dim, int flags)
 
 	free(A);
 
+#if !defined(STARPU_SIMGRID) && defined(STARPU_USE_CUDA)
 out:
+#endif
 	if (flags & STARPU_MALLOC_COUNT)
 	{
 		_starpu_memory_manager_deallocate_size(dim, 0);
