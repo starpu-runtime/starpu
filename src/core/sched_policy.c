@@ -341,9 +341,6 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 int _starpu_push_task(struct _starpu_job *j)
 {
 
-	if(j->task->prologue_callback_func)
-		j->task->prologue_callback_func(j->task->prologue_callback_arg);
-
 	struct starpu_task *task = j->task;
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
 	unsigned nworkers = 0;
@@ -475,7 +472,12 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 		if(!sched_ctx->sched_policy)
 		{
 			if(!sched_ctx->awake_workers)
+			{
+				if(task->prologue_callback_func)
+					task->prologue_callback_func(task->prologue_callback_arg);
+
 				ret = _starpu_push_task_on_specific_worker(task, sched_ctx->main_master);
+			}
 			else
 			{
 				struct starpu_worker_collection *workers = sched_ctx->workers;
