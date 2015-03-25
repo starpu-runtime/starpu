@@ -228,7 +228,7 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 				ret = -ENOMEM;
 		}
 
-#ifndef STARPU_SIMGRID
+#if !defined(STARPU_SIMGRID) && defined(STARPU_USE_CUDA)
 end:
 #endif
 	if (ret == 0)
@@ -363,7 +363,7 @@ int starpu_free_flags(void *A, size_t dim, int flags)
 	else
 		free(A);
 
-#ifndef STARPU_SIMGRID
+#if !defined(STARPU_SIMGRID) && defined(STARPU_USE_CUDA)
 out:
 #endif
 	if (flags & STARPU_MALLOC_COUNT)
