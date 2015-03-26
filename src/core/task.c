@@ -604,6 +604,16 @@ int starpu_task_submit(struct starpu_task *task)
 #endif
 		;
 
+	if (!j->internal)
+	{
+		int limit_min_submitted_tasks = starpu_get_env_number("STARPU_LIMIT_MIN_SUBMITTED_TASKS");
+		int limit_max_submitted_tasks = starpu_get_env_number("STARPU_LIMIT_MAX_SUBMITTED_TASKS");
+		int nsubmitted_tasks = starpu_task_nsubmitted();
+		if (limit_max_submitted_tasks >= 0 && limit_max_submitted_tasks > nsubmitted_tasks
+			&& limit_min_submitted_tasks >= 0 && limit_min_submitted_tasks < nsubmitted_tasks)
+			starpu_task_wait_for_n_submitted(limit_min_submitted_tasks);
+	}
+
 
 	ret = _starpu_task_submit_head(task);
 	if (ret)
@@ -832,6 +842,55 @@ int starpu_task_wait_for_all_in_ctx(unsigned sched_ctx)
 	/* TODO: improve Temanejo into knowing about contexts ... */
 	if (AYU_event) AYU_event(AYU_BARRIER, 0, NULL);
 #endif
+	return 0;
+}
+
+/*
+ * We wait until there's a certain number of the tasks that have already been
+ * submitted left. Note that a regenerable is not considered finished until it
+ * was explicitely set as non-regenerale anymore (eg. from a callback).
+ */
+int starpu_task_wait_for_n_submitted(unsigned n)
+{
+	unsigned nsched_ctxs = _starpu_get_nsched_ctxs();
+	unsigned sched_ctx_id = nsched_ctxs == 1 ? 0 : starpu_sched_ctx_get_context();
+
+	/* if there is no indication about which context to wait,
+	   we wait for all tasks submitted to starpu */
+	if (sched_ctx_id == STARPU_NMAX_SCHED_CTXS)
+	{
+		_STARPU_DEBUG("Waiting for all tasks\n");
+		STARPU_ASSERT_MSG(_starpu_worker_may_perform_blocking_calls(), "starpu_task_wait_for_n_submitted must not be called from a task or callback");
+
+		struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
+		if(config->topology.nsched_ctxs == 1)
+			_starpu_wait_for_n_submitted_tasks_of_sched_ctx(0, n);
+		else
+		{
+			int s;
+			for(s = 0; s < STARPU_NMAX_SCHED_CTXS; s++)
+			{
+				if(config->sched_ctxs[s].id != STARPU_NMAX_SCHED_CTXS)
+				{
+					_starpu_wait_for_n_submitted_tasks_of_sched_ctx(config->sched_ctxs[s].id, n);
+				}
+			}
+		}
+
+		return 0;
+	}
+	else
+	{
+		_STARPU_DEBUG("Waiting for tasks submitted to context %u\n", sched_ctx_id);
+		_starpu_wait_for_n_submitted_tasks_of_sched_ctx(sched_ctx_id, n);
+	}
+	return 0;
+}
+
+int starpu_task_wait_for_n_submitted_in_ctx(unsigned sched_ctx, unsigned n)
+{
+	_starpu_wait_for_n_submitted_tasks_of_sched_ctx(sched_ctx, n);
+
 	return 0;
 }
 /*

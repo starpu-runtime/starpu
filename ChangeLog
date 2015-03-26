@@ -156,6 +156,17 @@ Small changes:
   * Rename function starpu_trace_user_event() as
     starpu_fxt_trace_user_event()
 
+StarPU 1.1.5 (svn revision xxx)
+==============================================
+The scheduling context release
+
+  * Add starpu_memory_pin and starpu_memory_unpin to pin memory allocated
+    another way than starpu_malloc.
+  * Add starpu_task_wait_for_n_submitted() and
+    STARPU_LIMIT_MAX_NSUBMITTED_TASKS/STARPU_LIMIT_MIN_NSUBMITTED_TASKS to
+    easily control the number of submitted tasks by making task submission
+    block.
+
 StarPU 1.1.4 (svn revision 14856)
 ==============================================
 The scheduling context release

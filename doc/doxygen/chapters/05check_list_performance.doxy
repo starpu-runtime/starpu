@@ -141,6 +141,30 @@ execution. For example, in the Cholesky factorization (dense linear algebra
 application), the GEMM task uses up to 3 buffers, so it is possible to set the
 maximum number of task buffers to 3 to run a Cholesky factorization on StarPU.
 
+\section HowtoReuseMemory How to reuse memory
+
+When your application needs to allocate more data than the available amount of
+memory usable by StarPU (given by \ref starpu_memory_get_available() ), the
+allocation cache system can reuse data buffers used by previously executed
+tasks. For that system to work with MPI tasks, you need to submit tasks progressively instead
+of as soon as possible, because in the case of MPI receives, the allocation cache check for reusing data
+buffers will be done at submission time, not at execution time.
+
+You have two options to control the task submission flow. The first one is by
+controlling the number of submitted tasks during the whole execution. This can
+be done whether by setting the environment variables \ref
+STARPU_LIMIT_MAX_NSUBMITTED_TASKS and \ref STARPU_LIMIT_MIN_NSUBMITTED_TASKS to
+tell StarPU when to stop submitting tasks and when to wake up and submit tasks
+again, or by explicitely calling \ref starpu_task_wait_for_n_submitted() in
+your application code for finest grain control (for example, between two
+iterations of a submission loop).
+
+The second option is to control the memory size of the allocation cache. This
+can be done in the application by using jointly \ref
+starpu_memory_get_available() and \ref starpu_memory_wait_available() to submit
+tasks only when there is enough memory space to allocate the data needed by the
+task, i.e when enough data are available for reuse in the allocation cache.
+
 \section PerformanceModelCalibration Performance Model Calibration
 
 Most schedulers are based on an estimation of codelet duration on each kind
