@@ -229,8 +229,10 @@ int starpu_task_submit_to_ctx(struct starpu_task *task, unsigned sched_ctx_id);
 int starpu_task_wait(struct starpu_task *task) STARPU_WARN_UNUSED_RESULT;
 
 int starpu_task_wait_for_all(void);
+int starpu_task_wait_for_n_submitted(unsigned n);
 
 int starpu_task_wait_for_all_in_ctx(unsigned sched_ctx_id);
+int starpu_task_wait_for_n_submitted_in_ctx(unsigned sched_ctx_id, unsigned n);
 
 int starpu_task_wait_for_no_ready(void);
 

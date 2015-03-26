@@ -21,9 +21,9 @@
 
 struct _starpu_barrier
 {
-	int count;
-	int reached_start;
-	int reached_exit;
+	unsigned count;
+	unsigned reached_start;
+	unsigned reached_exit;
 	double reached_flops;
 	starpu_pthread_mutex_t mutex;
 	starpu_pthread_mutex_t mutex_exit;
