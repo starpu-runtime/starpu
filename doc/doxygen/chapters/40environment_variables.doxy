@@ -665,6 +665,28 @@ This specifies then size to be used by StarPU to push data when the main
 memory is getting full. The default is unlimited.
 </dd>
 
+<dt>STARPU_LIMIT_MAX_NSUBMITTED_TASKS</dt>
+<dd>
+\anchor STARPU_LIMIT_MAX_NSUBMITTED_TASKS
+\addindex __env__STARPU_LIMIT_MAX_NSUBMITTED_TASKS    
+This variable allows the user to control the task submission flow by specifying
+to StarPU a maximum number of submitted tasks allowed at a given time, i.e. when
+this limit is reached task submission becomes blocking until enough tasks have
+completed, specified by STARPU_LIMIT_MIN_NSUBMITTED_TASKS.
+Setting it enables allocation cache buffer reuse in main memory.
+</dd>
+
+<dt>STARPU_LIMIT_MIN_NSUBMITTED_TASKS</dt>
+<dd>
+\anchor STARPU_LIMIT_MIN_NSUBMITTED_TASKS
+\addindex __env__STARPU_LIMIT_MIN_NSUBMITTED_TASKS    
+This variable allows the user to control the task submission flow by specifying
+to StarPU a submitted task threshold to wait before unblocking task submission. This
+variable has to be used in conjunction with \ref
+STARPU_LIMIT_MAX_NSUBMITTED_TASKS which puts the task submission thread to
+sleep.  Setting it enables allocation cache buffer reuse in main memory.
+</dd>
+
 <dt>STARPU_TRACE_BUFFER_SIZE</dt>
 <dd>
 \anchor STARPU_TRACE_BUFFER_SIZE

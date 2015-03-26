@@ -182,6 +182,9 @@ void _starpu_delete_all_sched_ctxs();
  * context have been executed. */
 int _starpu_wait_for_all_tasks_of_sched_ctx(unsigned sched_ctx_id);
 
+/* This function waits until at most n tasks are still submitted. */
+int _starpu_wait_for_n_submitted_tasks_of_sched_ctx(unsigned sched_ctx_id, unsigned n);
+
 /* In order to implement starpu_wait_for_all_tasks_of_ctx, we keep track of the number of
  * task currently submitted to the context */
 void _starpu_decrement_nsubmitted_tasks_of_sched_ctx(unsigned sched_ctx_id);

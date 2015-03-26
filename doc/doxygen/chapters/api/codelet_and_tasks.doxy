@@ -796,6 +796,17 @@ terminated. It does not destroy these tasks.
 This function waits until all the tasks that were already
 submitted to the context \p sched_ctx_id have been executed
 
+\fn int starpu_task_wait_for_n_submitted(unsigned n)
+\ingroup API_Codelet_And_Tasks
+This function blocks until there are <c> n </c> submitted tasks left (to the
+current context or the global one if there aren't any) to be executed. It does
+not destroy these tasks.
+
+\fn int starpu_task_wait_for_n_submitted_in_ctx(unsigned sched_ctx, unsigned n) 
+\ingroup API_Codelet_And_Tasks
+This function waits until there are <c> n </c> tasks submitted left to be
+executed that were already submitted to the context <c> sched_ctx_id </c>.
+
 \fn int starpu_task_nready(void)
 \ingroup API_Codelet_And_Tasks
 TODO
