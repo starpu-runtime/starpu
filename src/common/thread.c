@@ -72,7 +72,7 @@ int starpu_pthread_join(starpu_pthread_t thread STARPU_ATTRIBUTE_UNUSED, void **
 int starpu_pthread_exit(void *retval STARPU_ATTRIBUTE_UNUSED)
 {
 	MSG_process_kill(MSG_process_self());
-	return 0;
+	STARPU_ABORT_MSG("MSG_process_kill(MSG_process_self()) returned?!");
 }
 
 
