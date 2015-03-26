@@ -284,6 +284,18 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 	/* leave the mutex how it was found before this */
 	STARPU_PTHREAD_MUTEX_LOCK(curr_sched_mutex);
 
+	if(chosen_task)
+	{
+		unsigned child_sched_ctx = starpu_sched_ctx_worker_is_master_for_child_ctx(workerid, sched_ctx_id);
+		if(child_sched_ctx != STARPU_NMAX_SCHED_CTXS)
+		{
+			starpu_sched_ctx_move_task_to_ctx(chosen_task, child_sched_ctx);
+			starpu_sched_ctx_revert_task_counters(sched_ctx_id, chosen_task->flops);
+			return NULL;
+		}
+	}
+
+
 	return chosen_task;
 }
 

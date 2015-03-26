@@ -92,7 +92,7 @@ void parallel_task_init()
 	
 	main_context.id = starpu_sched_ctx_create(main_context.cpus,
 						  main_context.ncpus,"main_ctx",
-						  STARPU_SCHED_CTX_POLICY_NAME,"eager",
+						  STARPU_SCHED_CTX_POLICY_NAME,"prio",
 						  0);
 	
 	
