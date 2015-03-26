@@ -201,11 +201,14 @@ int main(int argc, char **argv)
 				    STARPU_SCHED_CTX, main_context.id,
 				    0);
 		ret=starpu_task_submit(t);
+		if (ret == -ENODEV)
+			goto out;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 	
 	
 
+out:
 	/* wait for all tasks at the end*/
 	starpu_task_wait_for_all();
 	
