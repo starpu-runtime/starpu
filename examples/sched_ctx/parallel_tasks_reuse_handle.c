@@ -200,6 +200,7 @@ int main(int argc, char **argv)
 				    STARPU_VALUE,&size,sizeof(int),
 				    STARPU_SCHED_CTX, main_context.id,
 				    0);
+		t->cl_arg_free = 1;
 		ret=starpu_task_submit(t);
 		if (ret == -ENODEV)
 			goto out;
