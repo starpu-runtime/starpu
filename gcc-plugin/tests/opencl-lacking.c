@@ -1,5 +1,5 @@
 /* GCC-StarPU
-   Copyright (C) 2012 Institut National de Recherche en Informatique et Automatique
+   Copyright (C) 2012 INRIA
 
    GCC-StarPU is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
