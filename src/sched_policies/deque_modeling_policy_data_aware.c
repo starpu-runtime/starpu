@@ -530,7 +530,7 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 						double *best_exp_endp,
 						double local_data_penalty[nworkers][STARPU_MAXIMPLEMENTATIONS],
 						double local_power[nworkers][STARPU_MAXIMPLEMENTATIONS],
-						int *forced_worker, int *forced_impl, unsigned sched_ctx_id)
+						int *forced_worker, int *forced_impl, unsigned sched_ctx_id, unsigned sorted_decision)
 {
 	int calibrating = 0;
 	double max_exp_end = DBL_MIN;
@@ -573,9 +573,23 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 				/* no one on that queue may execute this task */
 				continue;
 			}
-
 			STARPU_ASSERT_MSG(fifo != NULL, "worker %d ctx %d\n", worker, sched_ctx_id);
-			exp_end[worker_ctx][nimpl] = exp_start + fifo->exp_len;
+
+			int fifo_ntasks = fifo->ntasks;
+			double prev_exp_len = fifo->exp_len;
+			/* consider the priority of the task when deciding on which worker to schedule, 
+			   compute the expected_end of the task if it is inserted before other tasks already scheduled */
+			if(sorted_decision)
+			{
+				starpu_pthread_mutex_t *sched_mutex;
+				starpu_pthread_cond_t *sched_cond;
+				starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
+				STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
+				prev_exp_len = _starpu_fifo_get_exp_len_prev_task_list(fifo, task, worker, nimpl, &fifo_ntasks);
+				STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
+			}
+				
+			exp_end[worker_ctx][nimpl] = exp_start + prev_exp_len;
 			if (exp_end[worker_ctx][nimpl] > max_exp_end)
 				max_exp_end = exp_end[worker_ctx][nimpl];
 
@@ -598,7 +612,7 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 				if (conversion_time > 0.0)
 					local_task_length[worker_ctx][nimpl] += conversion_time;
 			}
-			double ntasks_end = fifo->ntasks / starpu_worker_get_relative_speedup(perf_arch);
+			double ntasks_end = fifo_ntasks / starpu_worker_get_relative_speedup(perf_arch);
 
 			/*
 			 * This implements a default greedy scheduler for the
@@ -650,7 +664,7 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 			if (unknown)
 				continue;
 
-			exp_end[worker_ctx][nimpl] = exp_start + fifo->exp_len + local_task_length[worker_ctx][nimpl];
+			exp_end[worker_ctx][nimpl] = exp_start + prev_exp_len + local_task_length[worker_ctx][nimpl];
 
 			if (exp_end[worker_ctx][nimpl] < best_exp_end)
 			{
@@ -673,7 +687,7 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 	*max_exp_endp = max_exp_end;
 }
 
-static double _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned sched_ctx_id, unsigned simulate)
+static double _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned sched_ctx_id, unsigned simulate, unsigned sorted_decision)
 {
 	/* find the queue */
 	unsigned worker, worker_ctx = 0;
@@ -705,6 +719,7 @@ static double _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned 
 
 	double fitness[nworkers_ctx][STARPU_MAXIMPLEMENTATIONS];
 
+
 	compute_all_performance_predictions(task,
 					    nworkers_ctx,
 					    local_task_length,
@@ -714,7 +729,8 @@ static double _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned 
 					    local_data_penalty,
 					    local_power,
 					    &forced_best,
-					    &forced_impl, sched_ctx_id);
+					    &forced_impl, sched_ctx_id, sorted_decision);
+	
 	
 	double best_fitness = -1;
 
@@ -805,12 +821,17 @@ static double _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned 
 	}
 }
 
+static int dmda_push_sorted_decision_task(struct starpu_task *task)
+{
+	return _dmda_push_task(task, 1, task->sched_ctx, 0, 1);
+}
+
 static int dmda_push_sorted_task(struct starpu_task *task)
 {
 #ifdef STARPU_DEVEL
 #warning TODO: after defining a scheduling window, use that instead of empty_ctx_tasks
 #endif
-	return _dmda_push_task(task, 1, task->sched_ctx, 0);
+	return _dmda_push_task(task, 1, task->sched_ctx, 0, 0);
 }
 
 static int dm_push_task(struct starpu_task *task)
@@ -821,12 +842,24 @@ static int dm_push_task(struct starpu_task *task)
 static int dmda_push_task(struct starpu_task *task)
 {
 	STARPU_ASSERT(task);
-	return _dmda_push_task(task, 0, task->sched_ctx, 0);
+	return _dmda_push_task(task, 0, task->sched_ctx, 0, 0);
 }
 static double dmda_simulate_push_task(struct starpu_task *task)
 {
 	STARPU_ASSERT(task);
-	return _dmda_push_task(task, 0, task->sched_ctx, 1);
+	return _dmda_push_task(task, 0, task->sched_ctx, 1, 0);
+}
+
+static double dmda_simulate_push_sorted_task(struct starpu_task *task)
+{
+	STARPU_ASSERT(task);
+	return _dmda_push_task(task, 1, task->sched_ctx, 1, 0);
+}
+
+static double dmda_simulate_push_sorted_decision_task(struct starpu_task *task)
+{
+	STARPU_ASSERT(task);
+	return _dmda_push_task(task, 1, task->sched_ctx, 1, 1);
 }
 
 static void dmda_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
@@ -1056,7 +1089,7 @@ struct starpu_sched_policy _starpu_sched_dmda_sorted_policy =
 	.add_workers = dmda_add_workers ,
 	.remove_workers = dmda_remove_workers,
 	.push_task = dmda_push_sorted_task,
-	.simulate_push_task = NULL,
+	.simulate_push_task = dmda_simulate_push_sorted_task,
 	.push_task_notify = dmda_push_task_notify,
 	.pop_task = dmda_pop_ready_task,
 	.pre_exec_hook = dmda_pre_exec_hook,
@@ -1064,6 +1097,23 @@ struct starpu_sched_policy _starpu_sched_dmda_sorted_policy =
 	.pop_every_task = dmda_pop_every_task,
 	.policy_name = "dmdas",
 	.policy_description = "data-aware performance model (sorted)"
+};
+
+struct starpu_sched_policy _starpu_sched_dmda_sorted_decision_policy =
+{
+	.init_sched = initialize_dmda_sorted_policy,
+	.deinit_sched = deinitialize_dmda_policy,
+	.add_workers = dmda_add_workers ,
+	.remove_workers = dmda_remove_workers,
+	.push_task = dmda_push_sorted_decision_task,
+	.simulate_push_task = dmda_simulate_push_sorted_decision_task,
+	.push_task_notify = dmda_push_task_notify,
+	.pop_task = dmda_pop_ready_task,
+	.pre_exec_hook = dmda_pre_exec_hook,
+	.post_exec_hook = dmda_post_exec_hook,
+	.pop_every_task = dmda_pop_every_task,
+	.policy_name = "dmdasd",
+	.policy_description = "data-aware performance model (sorted decision)"
 };
 
 struct starpu_sched_policy _starpu_sched_dmda_ready_policy =
