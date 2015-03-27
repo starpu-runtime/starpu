@@ -123,6 +123,9 @@ struct starpu_conf
 	unsigned n_not_launched_drivers;
 
 	unsigned trace_buffer_size;
+	int global_sched_ctx_min_priority;
+	int global_sched_ctx_max_priority;
+
 };
 
 int starpu_conf_init(struct starpu_conf *conf);

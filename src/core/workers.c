@@ -921,6 +921,8 @@ int starpu_conf_init(struct starpu_conf *conf)
 	conf->magic = 42;
 	conf->sched_policy_name = getenv("STARPU_SCHED");
 	conf->sched_policy = NULL;
+	conf->global_sched_ctx_min_priority = starpu_get_env_number("STARPU_MIN_PRIO");
+	conf->global_sched_ctx_max_priority = starpu_get_env_number("STARPU_MAX_PRIO");
 
 	/* Note that starpu_get_env_number returns -1 in case the variable is
 	 * not defined */
@@ -1247,7 +1249,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	if (!is_a_sink)
 	{
 		struct starpu_sched_policy *selected_policy = _starpu_select_sched_policy(&config, config.conf->sched_policy_name);
-		_starpu_create_sched_ctx(selected_policy, NULL, -1, 1, "init", 0, 0, 0, 0, 1);
+		_starpu_create_sched_ctx(selected_policy, NULL, -1, 1, "init", (config.conf->global_sched_ctx_min_priority != -1), config.conf->global_sched_ctx_min_priority, (config.conf->global_sched_ctx_min_priority != -1), config.conf->global_sched_ctx_max_priority, 1);
 	}
 
 	_starpu_initialize_registered_performance_models();
