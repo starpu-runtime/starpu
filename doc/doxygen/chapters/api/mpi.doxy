@@ -130,7 +130,7 @@ Performs a synchronous-mode, non-blocking send of \p data_handle to the node
 \p dest using the message tag \p mpi_tag within the communicator \p
 comm.
 
-int starpu_mpi_issend_detached(starpu_data_handle_t data_handle, starpu_mpi_req *req, int dest, int mpi_tag, MPI_Comm comm, void (*callback)(void *), void *arg)
+\fn int starpu_mpi_issend_detached(starpu_data_handle_t data_handle, starpu_mpi_req *req, int dest, int mpi_tag, MPI_Comm comm, void (*callback)(void *), void *arg)
 \ingroup API_MPI_Support
 Performs a synchronous-mode, non-blocking send of \p data_handle to the node
 \p dest using the message tag \p mpi_tag within the communicator \p
@@ -226,7 +226,7 @@ function does nothing if the cache mechanism is disabled (see
 Register to MPI a StarPU data handle with the given tag, rank and MPI communicator.
 It also automatically clears the MPI communication cache when unregistering the data.
 
-\fn int starpu_mpi_data_register(starpu_data_handle_t handle, int tag, int rank)
+\def starpu_mpi_data_register(data_handle, tag, rank)
 \ingroup API_MPI_Support
 Register to MPI a StarPU data handle with the given tag, rank and the MPI communicator MPI_COMM_WORLD.
 It also automatically clears the MPI communication cache when unregistering the data.
@@ -240,22 +240,40 @@ It also automatically clears the MPI communication cache when unregistering the 
 \ingroup API_MPI_Support
 Symbol kept for backward compatibility. Calling function starpu_mpi_data_set_tag
 
-\int starpu_mpi_data_set_rank(starpu_data_handle_t handle, int rank)
+\fn void starpu_mpi_data_set_rank_comm(starpu_data_handle_t handle, int rank, MPI_Comm comm)
+\ingroup API_MPI_Support
+Register to MPI a StarPU data handle with the given rank and given communicator. No tag will be defined.
+It also automatically clears the MPI communication cache when unregistering the data.
+
+\def starpu_mpi_data_set_rank
 \ingroup API_MPI_Support
 Register to MPI a StarPU data handle with the given rank and the MPI communicator MPI_COMM_WORLD. No tag will be defined.
 It also automatically clears the MPI communication cache when unregistering the data.
+Symbol kept for backward compatibility. Calling function starpu_mpi_data_set_rank
 
 \def starpu_data_set_rank
 \ingroup API_MPI_Support
+Register to MPI a StarPU data handle with the given rank and the MPI communicator MPI_COMM_WORLD. No tag will be defined.
+It also automatically clears the MPI communication cache when unregistering the data.
 Symbol kept for backward compatibility. Calling function starpu_mpi_data_set_rank
 
 \fn int starpu_mpi_data_get_rank(starpu_data_handle_t handle)
 \ingroup API_MPI_Support
 Return the rank of the given data.
 
+\def starpu_data_get_rank(handle)
+\ingroup API_MPI_Support
+Return the rank of the given data.
+Symbol kept for backward compatibility. Calling function starpu_mpi_data_get_rank
+
 \fn int starpu_mpi_data_get_tag(starpu_data_handle_t handle)
 \ingroup API_MPI_Support
 Return the tag of the given data.
+
+\def starpu_data_get_tag(handle)
+\ingroup API_MPI_Support
+Return the tag of the given data.
+Symbol kept for backward compatibility. Calling function starpu_mpi_data_get_tag
 
 \def STARPU_EXECUTE_ON_NODE
 \ingroup API_MPI_Support
