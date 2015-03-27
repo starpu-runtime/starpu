@@ -223,6 +223,7 @@ STARPU_EXAMPLES +=				\
 	cholesky/cholesky_tile_tag		\
 	cholesky/cholesky_grain_tag		\
 	cholesky/cholesky_implicit		\
+	cholesky/test_prio		\
 	lu/lu_example_float			\
 	lu/lu_example_double			\
 	lu/lu_implicit_example_float		\
@@ -516,6 +517,16 @@ cholesky_cholesky_implicit_SOURCES =		\
 	common/blas.c
 
 cholesky_cholesky_implicit_LDADD =		\
+	$(STARPU_BLAS_LDFLAGS)
+
+cholesky_test_prio_SOURCES =		\
+	cholesky/test_prio.c		\
+	cholesky/cholesky_models.c		\
+	cholesky/cholesky_kernels.c		\
+	sched_ctx_utils/sched_ctx_utils.c	\
+	common/blas.c
+
+cholesky_test_prio_LDADD =		\
 	$(STARPU_BLAS_LDFLAGS)
 
 endif
