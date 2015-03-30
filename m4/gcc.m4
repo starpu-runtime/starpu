@@ -1,6 +1,6 @@
 dnl -*- Autoconf -*-
 dnl
-dnl Copyright (C) 2011, 2012, 2013 Inria
+dnl Copyright (C) 2011, 2012, 2013 INRIA
 dnl
 dnl StarPU is free software; you can redistribute it and/or modify
 dnl it under the terms of the GNU Lesser General Public License as published by
