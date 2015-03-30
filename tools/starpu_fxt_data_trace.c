@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2013       Joris Pablo
  * Copyright (C) 2011-2014  Universite de Bordeaux
- * Copyright (C) 2014, 2015       Centre National de la Recherche Scientifique
+ * Copyright (C) 2014, 2015       CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
