@@ -150,9 +150,6 @@ int _starpu_LockOrDelegatePostOrPerform(int (*func)(void*), void* data)
 /* We cannot rely on the C11 atomics */
 #warning Lock based version of Lock or Delegate
 
-#include <pthread.h>
-#include <errno.h>
-
 /* The list of task to perform */
 static struct LockOrDelegateListNode* dlTaskListHead = NULL;
 
