@@ -50,6 +50,9 @@
  *
  * The same mechanism is used for application data aquisition
  * (starpu_data_acquire).
+ *
+ * For COMMUTE data, we have a second step, performed after this first step,
+ * implemented in data_commute_concurrency.c
  */
 
 /*

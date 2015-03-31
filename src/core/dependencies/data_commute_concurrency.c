@@ -23,44 +23,62 @@
 
 //#define NO_LOCK_OR_DELEGATE
 
-/* Here are the high level algorithms which have been discussed in order
- * to manage the commutes.
-    Pour chaque handle h en commute:
-        mutex_lock(&arbiter)
-        relâcher h
-        Pour chaque tâche Tc en attente sur le handle:
-            // Juste tester si on peut prendre:
-            Pour chaque donnée Tc_h qu’il attend:
-                Si Tc_h est occupé, goto fail
-            // Vraiment prendre
-            Pour chaque donnée Tc_h qu’il attend:
-                lock(Tc_h)
-                prendre(h) (il devrait être encore disponible si tout le reste utilise bien le mutex arbiter)
-                lock(Tc_h)
-            // on a trouvé quelqu’un, on a fini!
-            _starpu_push_task(Tc);
-            break;
-            fail:
-                // Pas de bol, on essaie une autre tâche
-                continue;
-        // relâcher un peu le mutex arbiter de temps en temps
-        mutex_unlock(&arbiter)
-
-    mutex_lock(&arbiter)
-    Pour chaque handle h en commute:
-        lock(h)
-        essayer de prendre h, si échec goto fail;
-        unlock(h)
-        mutex_unlock(&arbiter)
-        return 0
-
-        fail:
-            // s’enregistrer sur la liste des requêtes de h
-            Pour chaque handle déjà pris:
-                lock(handle)
-                relâcher handle
-                unlock(handle)
-     mutex_unlock(&arbiter)
+/*
+ * This implements a solution for the dining philosophers problem (see
+ * data_concurrency.c for the rationale) based on a centralized arbiter.  This
+ * allows to get a more parallel solution than the Dijkstra solution, by
+ * avoiding strictly serialized executions, and instead opportunistically find
+ * which tasks can take data.
+ *
+ * These are the algorithms implemented below:
+ *
+ *
+ * at termination of task T:
+ *
+ * - for each handle h of T:
+ *   - mutex_lock(&arbiter)
+ *   - release reference on h
+ *   - for each task Tc waiting for h:
+ *     - for each data Tc_h it is waiting:
+ *       - if Tc_h is busy, goto fail
+ *     // Ok, now really take them
+ *     - For each data Tc_h it is waiting:
+ *       - lock(Tc_h)
+ *       - take reference on h (it should be still available since we hold the arbiter)
+ *       - unlock(Tc_h)
+ *     // Ok, we managed to find somebody, we're finished!
+ *     _starpu_push_task(Tc);
+ *     break;
+ *     fail:
+ *       // No luck, let's try another task
+ *       continue;
+ *   // Release the arbiter mutex a bit from time to time
+ *   - mutex_unlock(&arbiter)
+ *
+ *
+ * at submission of task T:
+ *
+ * - mutex_lock(&arbiter)
+ * - for each handle h of T:
+ *   - lock(h)
+ *   - try to take a reference on h, goto fail on failure
+ *   - unlock(h)
+ * // Success!
+ * - mutex_unlock(&arbiter);
+ * - return 0;
+ *
+ * fail:
+ * // couldn't take everything, abort and record task T
+ * // drop spurious references
+ * - for each handle h of T already taken:
+ *   - lock(h)
+ *   - release reference on h
+ *   - unlock(h)
+ * // record T on the list of requests for h
+ * - for each handle h of T:
+ *   - record T as waiting on h
+ * - mutex_unlock(&arbiter)
+ * - return 1;
  */
 
 /* Here are the LockOrDelegate functions
