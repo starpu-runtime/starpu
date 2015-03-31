@@ -18,10 +18,3 @@
    ...
    fun:xmlDictCreate
 }
-
-{
-   libtool leaves memory behind
-   Memcheck:Leak
-   ...
-   fun:hwloc_components_init
-}

@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012, 2015  Université de Bordeaux
+ * Copyright (C) 2009-2012  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -63,7 +63,7 @@ void matrix_init(float ****bmat, int rank, int nodes, int alloc_everywhere)
 {
 	unsigned i,j,x,y;
 
-	*bmat = malloc(nblocks * sizeof(float **));
+	*bmat = malloc(nblocks * sizeof(float *));
 	for(x=0 ; x<nblocks ; x++)
 	{
 		(*bmat)[x] = malloc(nblocks * sizeof(float *));

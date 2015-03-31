@@ -83,7 +83,7 @@ static double prio_estimated_load(struct starpu_sched_component * component)
 	double relative_speedup = 0.0;
 	double load;
 	if(STARPU_SCHED_COMPONENT_IS_HOMOGENEOUS(component))
-	{
+	{		
 		int first_worker = starpu_bitmap_first(component->workers_in_ctx);
 		relative_speedup = starpu_worker_get_relative_speedup(starpu_worker_get_perf_archtype(first_worker, component->tree->sched_ctx_id));
 		STARPU_PTHREAD_MUTEX_LOCK(mutex);
@@ -247,7 +247,7 @@ static int prio_can_push(struct starpu_sched_component * component)
 		task = component->pull_task(component);
 		if(task)
 			ret = child->push_task(child,task);	
-	}
+	} 
 	if(task && ret)
 		prio_push_local_task(component,task,1); 
 

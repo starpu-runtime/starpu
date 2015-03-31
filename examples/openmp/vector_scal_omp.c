@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2010-2013  Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -44,8 +44,7 @@ void scal_cpu_func(void *buffers[], void *_args)
 	FPRINTF(stderr, "running task with %d CPUs.\n", starpu_combined_worker_get_size());
 
 #pragma omp parallel for num_threads(starpu_combined_worker_get_size())
-	for (i = 0; i < n; i++)
-	{
+	for (i = 0; i < n; i++) {
 		float v = val[i];
 		int j;
 		for (j = 0; j < 100; j++)

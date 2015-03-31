@@ -904,8 +904,6 @@ void _starpu_delete_all_sched_ctxs()
 		STARPU_PTHREAD_RWLOCK_UNLOCK(&changing_ctx_mutex[i]);
 		STARPU_PTHREAD_RWLOCK_DESTROY(&changing_ctx_mutex[i]);
 	}
-
-	STARPU_PTHREAD_KEY_DELETE(sched_ctx_key);
 	return;
 }
 
@@ -969,9 +967,10 @@ unsigned _starpu_can_push_task(struct _starpu_sched_ctx *sched_ctx, struct starp
 		if(!env_window_size) return 1;
 		double window_size = atof(env_window_size);
 		
-		STARPU_PTHREAD_RWLOCK_RDLOCK(&changing_ctx_mutex[sched_ctx->id]);
+		starpu_pthread_rwlock_t *changing_ctx_mutex = _starpu_sched_ctx_get_changing_ctx_mutex(sched_ctx->id);
+		STARPU_PTHREAD_RWLOCK_RDLOCK(changing_ctx_mutex);
 		double expected_end = sched_ctx->sched_policy->simulate_push_task(task);
-		STARPU_PTHREAD_RWLOCK_UNLOCK(&changing_ctx_mutex[sched_ctx->id]);
+		STARPU_PTHREAD_RWLOCK_UNLOCK(changing_ctx_mutex);
 		
 		double expected_len = 0.0; 
 		if(hyp_actual_start_sample[sched_ctx->id] != 0.0)
@@ -999,7 +998,7 @@ void _starpu_fetch_task_from_waiting_list(struct _starpu_sched_ctx *sched_ctx)
 	if(_starpu_can_push_task(sched_ctx, old_task))
 	{
 		old_task = starpu_task_list_pop_back(&sched_ctx->waiting_tasks);
-		_starpu_push_task_to_workers(old_task);
+		int ret =  _starpu_push_task_to_workers(old_task);
 	}
 	return;
 }
@@ -1144,7 +1143,7 @@ int _starpu_nworkers_able_to_execute_task(struct starpu_task *task, struct _star
 /* unused sched_ctx have the id STARPU_NMAX_SCHED_CTXS */
 void _starpu_init_all_sched_ctxs(struct _starpu_machine_config *config)
 {
-	STARPU_PTHREAD_KEY_CREATE(&sched_ctx_key, NULL);
+	starpu_pthread_key_create(&sched_ctx_key, NULL);
 
 	unsigned i;
 	for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
@@ -1174,15 +1173,6 @@ int _starpu_wait_for_all_tasks_of_sched_ctx(unsigned sched_ctx_id)
 	STARPU_ASSERT_MSG(_starpu_worker_may_perform_blocking_calls(), "starpu_task_wait_for_all must not be called from a task or callback");
 
 	return _starpu_barrier_counter_wait_for_empty_counter(&sched_ctx->tasks_barrier);
-}
-
-int _starpu_wait_for_n_submitted_tasks_of_sched_ctx(unsigned sched_ctx_id, unsigned n)
-{
-	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
-
-	STARPU_ASSERT_MSG(_starpu_worker_may_perform_blocking_calls(), "starpu_task_wait_for_n_submitted_tasks must not be called from a task or callback");
-
-	return _starpu_barrier_counter_wait_until_counter_reaches_n(&sched_ctx->tasks_barrier, n);
 }
 
 void _starpu_decrement_nsubmitted_tasks_of_sched_ctx(unsigned sched_ctx_id)
@@ -1961,12 +1951,7 @@ void starpu_sched_ctx_move_task_to_ctx(struct starpu_task *task, unsigned sched_
 	}
 
 	task->sched_ctx = sched_ctx;
-
-	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
-
-	_starpu_increment_nsubmitted_tasks_of_sched_ctx(j->task->sched_ctx);
-
-	_starpu_repush_task(j);
+	_starpu_task_submit_nodeps(task);
 
 	if(workerid != -1)
 		STARPU_PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
@@ -2191,8 +2176,7 @@ static int _starpu_sched_ctx_find_master(unsigned sched_ctx_id, int *workerids, 
                         awake_workers[nawake_workers++] = workerids[w];
         }
 
-        for (i = 0 ; i < npotential_masters ; i++)
-	{
+        for (i = 0 ; i < npotential_masters ; i++) {
 		int master_is_in_section = 0;
 		//Could create a function for this. Basically searching an element in an array.
 		for (w = 0 ; w < nworkers ; w++)

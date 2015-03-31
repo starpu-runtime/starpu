@@ -36,8 +36,7 @@
 #include <profiling/profiling.h>
 #include <common/uthash.h>
 
-struct disk_register
-{
+struct disk_register {
 	unsigned node;
 	void * base;
 	struct starpu_disk_ops * functions;
@@ -273,7 +272,7 @@ int starpu_disk_test_request(struct _starpu_async_channel *async_channel)
 {
 	int position = get_location_with_node(async_channel->event.disk_event.memory_node);
 	return disk_register_list[position]->functions->test_request(async_channel->event.disk_event.backend_event);
-}
+}	
 
 void starpu_disk_free_request(struct _starpu_async_channel *async_channel)
 {

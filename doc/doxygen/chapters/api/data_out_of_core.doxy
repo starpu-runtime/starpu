@@ -82,7 +82,7 @@ asynchronous read, write or copy. Returns 1 on completion, 0 otherwise.
 \var void (*starpu_disk_ops::free_request)(void *async_channel)
 Free the request allocated by a previous asynchronous read, write or copy.
 
-\fn int starpu_disk_register(struct starpu_disk_ops *func, void *parameter, starpu_ssize_t size)
+\fn int starpu_disk_register(struct starpu_disk_ops *func, void *parameter, size_t size)
 \ingroup API_Out_Of_Core
 Register a disk memory node with a set of functions to manipulate datas. The \c
 plug member of \p func will be passed \p parameter, and return a \c base which will be passed to all \p func methods. <br />

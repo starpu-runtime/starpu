@@ -40,19 +40,16 @@ void dummy(void *buffers[], void *cl_arg)
 	printf("Codelet done\n");
 }
 
-struct starpu_codelet cl =
-{
+struct starpu_codelet cl = {
 	.cuda_funcs = { dummy },
 	.nbuffers = 1,
 	.modes = { STARPU_W },
 };
 
-void foo(void)
-{
+void foo(void) {
 }
 
-void display(float i)
-{
+void display(float i) {
 	glClear(GL_COLOR_BUFFER_BIT);
 	glColor3f(1, 1, 1);
 	glBegin(GL_LINES);
@@ -64,12 +61,10 @@ void display(float i)
 	glutMainLoopEvent();
 }
 
-void callback_func(void *foo)
-{
+void callback_func(void *foo) {
 	printf("Callback running, rendering\n");
 	float i = 1.;
-	while (i > 0)
-	{
+	while (i > 0) {
 		usleep(100000);
 		display(i);
 		i -= 0.1;
@@ -89,8 +84,7 @@ int main(int argc, char **argv)
 	struct starpu_conf conf;
 	int cuda_device = 0;
 	int cuda_devices[] = { cuda_device };
-	struct starpu_driver drivers[] =
-	{
+	struct starpu_driver drivers[] = {
 		{ .type = STARPU_CUDA_WORKER, .id.cuda_id = cuda_device }
 	};
 	int ret;

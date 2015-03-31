@@ -33,13 +33,12 @@
 #include <core/disk_ops/unistd/disk_unistd_global.h>
 #include <datawizard/copy_driver.h>
 #include <datawizard/memory_manager.h>
-#include <starpu_parameters.h>
 
 #ifdef STARPU_HAVE_WINDOWS
         #include <io.h>
 #endif
 
-#define NITER	_STARPU_CALIBRATION_MINIMUM
+#define NITER	64
 
 #ifdef O_DIRECT
 #  define MEM_SIZE getpagesize()
@@ -425,23 +424,16 @@ starpu_unistd_global_wait_request(void * async_channel)
 int
 starpu_unistd_global_test_request(void * async_channel)
 {
-        const struct aiocb * aiocb = async_channel;
-        int ret, error;
+        struct aiocb * aiocb = async_channel;
+        int ret;
 
-#if defined(__GLIBC__) && (__GLIBC__ < 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ < 22))
-        /* glibc's aio_error was not threadsafe before glibc 2.22 */
-        struct timespec ts = { .tv_sec = 0, .tv_nsec = 0 };
-        ret = aio_suspend(&aiocb, 1, &ts);
-        error = errno;
-#else
         /* Test the answer of the request */
         ret = aio_error(aiocb);
-        error = ret;
-#endif
+
         if (ret == 0)
                 /* request is finished */
                 return 1;
-        if (error == EINPROGRESS || error == EAGAIN)
+        if (ret == EINPROGRESS || ret == EAGAIN)
                 return 0;
         /* an error occured */
         STARPU_ABORT_MSG("aio_error returned %d", errno);

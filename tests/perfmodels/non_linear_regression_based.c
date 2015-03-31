@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2012, 2014-2015  Université de Bordeaux
- * Copyright (C) 2012, 2013  CNRS
- * Copyright (C) 2012 INRIA
+ * Copyright (C) 2011-2012, 2014  Université de Bordeaux
+ * Copyright (C) 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2012 inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,13 +19,6 @@
 #include <config.h>
 #include <starpu.h>
 #include "../helper.h"
-
-#define START_LOG 8
-#ifdef STARPU_QUICK_CHECK
-#define END_LOG 20
-#else
-#define END_LOG 25
-#endif
 
 #ifdef STARPU_USE_CUDA
 static void memset_cuda(void *descr[], void *arg)
@@ -125,7 +118,7 @@ int main(int argc, char **argv)
 #endif
 
 	int slog;
-	for (slog = START_LOG; slog < END_LOG; slog++)
+	for (slog = 8; slog < 25; slog++)
 	{
 		int size = 1 << slog;
 		test_memset(size);

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2015  Université de Bordeaux
+ * Copyright (C) 2013-2015  Université de Bordeaux 1
  * Copyright (C) 2013  INRIA
  * Copyright (C) 2013  Simon Archipoff
  *
@@ -55,8 +55,7 @@ static int heft_progress_one(struct starpu_sched_component *component)
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
 
-	if (!ntasks)
-	{
+	if (!ntasks) {
 		return 1;
 	}
 

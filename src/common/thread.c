@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2012-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -72,7 +72,7 @@ int starpu_pthread_join(starpu_pthread_t thread STARPU_ATTRIBUTE_UNUSED, void **
 int starpu_pthread_exit(void *retval STARPU_ATTRIBUTE_UNUSED)
 {
 	MSG_process_kill(MSG_process_self());
-	STARPU_ABORT_MSG("MSG_process_kill(MSG_process_self()) returned?!");
+	return 0;
 }
 
 
@@ -370,9 +370,7 @@ int starpu_pthread_barrier_wait(starpu_pthread_barrier_t *barrier)
 		barrier->done = 0;
 		starpu_pthread_cond_broadcast(&barrier->cond);
 		ret = STARPU_PTHREAD_BARRIER_SERIAL_THREAD;
-	}
-	else
-	{
+	} else {
 		starpu_pthread_cond_wait(&barrier->cond, &barrier->mutex);
 	}
 

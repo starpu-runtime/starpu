@@ -1,8 +1,8 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
- * Copyright (C) 2011, 2012 INRIA
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
  * See the file version.doxy for copying conditions.
  */
 
@@ -13,9 +13,8 @@ intro qui parle de coherency entre autres
 \section DataManagement Data Management
 
 When the application allocates data, whenever possible it should use
-the starpu_malloc() function, which will ask CUDA or OpenCL to make
-the allocation itself and pin the corresponding allocated memory, or to use the
-starpu_memory_pin() function to pin memory allocated by other ways, such as local arrays. This
+the function starpu_malloc(), which will ask CUDA or OpenCL to make
+the allocation itself and pin the corresponding allocated memory. This
 is needed to permit asynchronous data transfer, i.e. permit data
 transfer to overlap with computations. Otherwise, the trace will show
 that the <c>DriverCopyAsync</c> state takes a lot of time, this is
@@ -109,10 +108,6 @@ This can be achieved by giving the function starpu_data_prefetch_on_node() the
 handle and the desired target memory node. The
 starpu_data_idle_prefetch_on_node() variant can be used to issue the transfer
 only when the bus is idle.
-
-Conversely, one can advise StarPU that some data will not be useful in the
-close future by calling starpu_data_wont_use. StarPU will then write its value
-back to its home node, and evict it from GPUs when room is needed.
 
 \section PartitioningData Partitioning Data
 

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2014  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2013  CNRS
+ * Copyright (C) 2010, 2011, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -67,52 +67,6 @@ void _starpu_destroy_fifo(struct _starpu_fifo_taskq *fifo)
 int _starpu_fifo_empty(struct _starpu_fifo_taskq *fifo)
 {
 	return fifo->ntasks == 0;
-}
-
-double 
-_starpu_fifo_get_exp_len_prev_task_list(struct _starpu_fifo_taskq *fifo_queue, struct starpu_task *task, int workerid, int nimpl, int *fifo_ntasks)
-{
-	struct starpu_task_list *list = &fifo_queue->taskq;
-	struct starpu_perfmodel_arch* perf_arch = starpu_worker_get_perf_archtype(workerid, task->sched_ctx);
-	double exp_len = 0.0;
-	
-	if (list->head != NULL)
-	{
-		struct starpu_task *current = list->head;
-		struct starpu_task *prev = NULL;
-
-		while (current)
-		{
-			if (current->priority < task->priority)
-				break;
-
-			prev = current;
-			current = current->next;
-		}
-
-		if (prev != NULL)
-		{
-			if (current)
-			{
-				/* the task's place is between prev and current */
-				struct starpu_task *it;
-				for(it = list->head; it != current; it = it->next)
-				{
-					exp_len += starpu_task_expected_length(it, perf_arch, nimpl);
-					(*fifo_ntasks) ++;
-				}
-			}
-			else
-			{
-				/* the task's place is at the tail of the list */
-				exp_len = fifo_queue->exp_len;
-				*fifo_ntasks = fifo_queue->ntasks;
-			}
-		}
-	}
-
-
-	return exp_len;
 }
 
 int

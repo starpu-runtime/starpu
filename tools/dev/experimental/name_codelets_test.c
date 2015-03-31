@@ -1,7 +1,7 @@
 /*
  * StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012 INRIA
+ * Copyright (C) 2012 inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,20 +14,17 @@
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
-struct starpu_codelet good_beginning =
-{
+struct starpu_codelet good_beginning = {
 	.where = STARPU_CPU,
 	.name = "lol"
 };
 
-struct starpu_codelet good_middle =
-{
+struct starpu_codelet good_middle = { 
 	.where = STARPU_CPU,
 	.name = "lol",
 	.cpu_funcs = { foo }
 };
-struct starpu_codelet good_end =
-{
+struct starpu_codelet good_end = {
 	.where = STARPU_CPU,
 	.name = "lol"
 };

@@ -1,8 +1,8 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2009-2015  Université de Bordeaux
-# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
-# Copyright (C) 2014 INRIA
+# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  Centre National de la Recherche Scientifique
+# Copyright (C) 2014 Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -17,9 +17,6 @@
 
 StarPU 1.3.0 (svn revision xxxx)
 ==============================================
-
-New features:
-  * Enable anticipative writeback by default.
 
 StarPU 1.2.0 (svn revision xxxx)
 ==============================================
@@ -91,11 +88,6 @@ New features:
     only when the bus is idle.
   * Make starpu_data_prefetch_on_node not forcibly flush data out, introduce
     starpu_data_fetch_on_node for that.
-  * Anticipative writeback, to flush dirty data asynchronously before the
-    GPU device is full. Disabled by default. Use STARPU_MINIMUM_CLEAN_BUFFERS
-    and STARPU_TARGET_CLEAN_BUFFERS to enable it.
-  * Add starpu_data_wont_use to advise that a piece of data will not be used
-    in the close future.
 
 Small features:
   * Tasks can now have a name (via the field const char *name of
@@ -138,8 +130,6 @@ Small features:
     its own allocation to the reclaiming engine.
   * Add STARPU_SIMGRID_CUDA_MALLOC_COST and STARPU_SIMGRID_CUDA_QUEUE_COST to
     disable CUDA costs simulation in simgrid mode.
-  * Add starpu_memory_pin and starpu_memory_unpin to pin memory allocated
-    another way than starpu_malloc.
 
 Changes:
   * Data interfaces (variable, vector, matrix and block) now define
@@ -156,18 +146,7 @@ Small changes:
   * Rename function starpu_trace_user_event() as
     starpu_fxt_trace_user_event()
 
-StarPU 1.1.5 (svn revision xxx)
-==============================================
-The scheduling context release
-
-  * Add starpu_memory_pin and starpu_memory_unpin to pin memory allocated
-    another way than starpu_malloc.
-  * Add starpu_task_wait_for_n_submitted() and
-    STARPU_LIMIT_MAX_NSUBMITTED_TASKS/STARPU_LIMIT_MIN_NSUBMITTED_TASKS to
-    easily control the number of submitted tasks by making task submission
-    block.
-
-StarPU 1.1.4 (svn revision 14856)
+StarPU 1.1.4 (svn revision xxx)
 ==============================================
 The scheduling context release
 

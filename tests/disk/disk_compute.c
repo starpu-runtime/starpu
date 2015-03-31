@@ -1,7 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2013 Corentin Salingue
- * Copyright (C) 2015 CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -32,10 +31,10 @@
 #include "../helper.h"
 
 #ifdef STARPU_HAVE_WINDOWS
-#  include <io.h>
-#  if defined(_WIN32) && !defined(__CYGWIN__)
-#    define mkdir(path, mode) mkdir(path)
-#  endif
+        #include <io.h>
+#if defined(_WIN32) && !defined(__CYGWIN__)
+#define mkdir(path, mode) mkdir(path)
+#endif
 #endif
 
 #define NX (1024)
@@ -50,6 +49,10 @@ int dotest(struct starpu_disk_ops *ops, char *base)
 	if (ret == -ENODEV) goto enodev;
 
 	/* Initialize path and name */
+	char pid_str[16];
+	int pid = getpid();
+	snprintf(pid_str, 16, "%d", pid);
+
 	const char *name_file_start = "STARPU_DISK_COMPUTE_DATA_";
 	const char *name_file_end = "STARPU_DISK_COMPUTE_DATA_RESULT_";
 
@@ -150,7 +153,7 @@ int dotest(struct starpu_disk_ops *ops, char *base)
 	if (f == NULL)
 		goto enoent2;
 	/* take datas */
-	fread(C, sizeof(int), NX, f);
+	int size = fread(C, sizeof(int), NX, f);
 
 	/* close the file */
 	fclose(f);

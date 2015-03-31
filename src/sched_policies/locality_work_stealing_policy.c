@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2010-2014  Université de Bordeaux
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011, 2012  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -48,11 +48,10 @@ static unsigned select_victim_neighborhood(unsigned sched_ctx_id, int workerid)
 
 	int i;
 	int neighbor;
-	for(i=0; i<nworkers; i++)
-	{
+	for(i=0; i<nworkers; i++){
 		neighbor = ws->proxlist[workerid][i];
 		int ntasks = ws->queue_array[neighbor]->ntasks;
-
+		
 		if (ntasks)
 			return neighbor;
 	}
@@ -119,8 +118,9 @@ static unsigned select_worker_round_robin(unsigned sched_ctx_id)
 /**
  * Return a worker from which a task can be stolen.
  */
-static inline unsigned select_victim(unsigned sched_ctx_id, int workerid STARPU_ATTRIBUTE_UNUSED)
+static inline unsigned select_victim(unsigned sched_ctx_id, int workerid)
 {
+
 #ifdef STARPU_HAVE_HWLOC
 	return select_victim_neighborhood(sched_ctx_id, workerid);
 #else
@@ -161,7 +161,7 @@ static struct starpu_task *lws_pop_task(unsigned sched_ctx_id)
 
 	/* Note: Releasing this mutex before taking the victim mutex, to avoid interlock*/
 	STARPU_PTHREAD_MUTEX_UNLOCK(worker_sched_mutex);
-
+       
 
 	/* we need to steal someone's job */
 	unsigned victim = select_victim(sched_ctx_id, workerid);
@@ -209,14 +209,14 @@ static int lws_push_task(struct starpu_task *task)
 
 	/* int workerid = starpu_worker_get_id(); */
 	/* print_neighborhood(sched_ctx_id, 0); */
-
+	
 	starpu_pthread_mutex_t *sched_mutex;
 	starpu_pthread_cond_t *sched_cond;
 	starpu_worker_get_sched_condition(workerid, &sched_mutex, &sched_cond);
 	STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 
 	_starpu_fifo_push_task(ws->queue_array[workerid], task);
-
+	
 	starpu_push_task_end(task);
 
 	STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
@@ -237,7 +237,7 @@ static int lws_push_task(struct starpu_task *task)
 #endif
 
 
-
+	
 	return 0;
 }
 
@@ -276,7 +276,7 @@ static void lws_add_workers(unsigned sched_ctx_id, int *workerids,unsigned nwork
 		workerid = workerids[i];
 		ws->proxlist[workerid] = (int*)malloc(nworkers*sizeof(int));
 		int bindid;
-
+		
 		struct starpu_tree *neighbour = NULL;
 		struct starpu_sched_ctx_iterator it;
 
@@ -303,9 +303,9 @@ static void lws_add_workers(unsigned sched_ctx_id, int *workerids,unsigned nwork
 				break;
 			it.value = it.possible_value;
 			it.possible_value = NULL;
-		}
+		} 
 	}
-#endif
+#endif	
 }
 
 static void lws_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
@@ -344,7 +344,7 @@ static void lws_initialize_policy(unsigned sched_ctx_id)
 	ws->queue_array = (struct _starpu_fifo_taskq**)malloc(nw*sizeof(struct _starpu_fifo_taskq*));
 
 }
-
+	
 static void lws_deinit_policy(unsigned sched_ctx_id)
 {
 	struct _starpu_lws_data *ws = (struct _starpu_lws_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);

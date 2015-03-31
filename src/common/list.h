@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012, 2015  Université de Bordeaux
- * Copyright (C) 2010, 2011  CNRS
+ * Copyright (C) 2009-2012  Université de Bordeaux
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -42,12 +42,8 @@
  *   void		FOO_list_erase(struct FOO_list*, struct FOO*);
  *     * ajoute une élément en queue de liste
  *   void		FOO_list_push_back(struct FOO_list*, struct FOO*);
- *     * ajoute un élément en tête de liste
+ *     * ajoute un élément en tête de list
  *   void		FOO_list_push_front(struct FOO_list*, struct FOO*);
- *     * ajoute un élément avant un élément
- *   void		FOO_list_insert_before(struct FOO_list*, struct FOO*new, struct FOO*);
- *     * ajoute un élément après un élément
- *   void		FOO_list_insert_after(struct FOO_list*, struct FOO*new, struct FOO*);
  *     * ajoute la deuxième liste à la fin de la première liste
  *   struct FOO*	FOO_list_push_list_back(struct FOO_list*, struct FOO_list*);
  *     * ajoute la première liste au début de la deuxième liste
@@ -136,12 +132,6 @@
   /** @internal */static inline void ENAME##_list_push_back(struct ENAME##_list *l, struct ENAME *e) \
     { if(l->_head == NULL) l->_head = e; else l->_tail->_next = e; \
       e->_next = NULL; e->_prev = l->_tail; l->_tail = e; } \
-  /** @internal */static inline void ENAME##_list_insert_before(struct ENAME##_list *l, struct ENAME *e, struct ENAME *o) \
-    { struct ENAME *p = o->_prev; if (p) { p->_next = e; e->_prev = p; } else { l->_head = e; e->_prev = NULL; } \
-      e->_next = o; o->_prev = e; } \
-  /** @internal */static inline void ENAME##_list_insert_after(struct ENAME##_list *l, struct ENAME *e, struct ENAME *o) \
-    { struct ENAME *n = o->_next; if (n) { n->_prev = e; e->_next = n; } else { l->_tail = e; e->_next = NULL; } \
-      e->_prev = o; o->_next = e; } \
   /** @internal */static inline void ENAME##_list_push_list_front(struct ENAME##_list *l1, struct ENAME##_list *l2) \
     { if (l2->_head == NULL) { l2->_head = l1->_head; l2->_tail = l1->_tail; } \
       else if (l1->_head != NULL) { l1->_tail->_next = l2->_head; l2->_head->_prev = l1->_tail; l2->_head = l1->_head; } } \

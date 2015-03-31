@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012-2014  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -100,8 +100,7 @@ void cuda_func(void *buffers[], void *cl_arg)
 	STARPU_ASSERT(x == x2);
 	STARPU_ASSERT(y == y2);
 	STARPU_ASSERT(z == z2);
-	for (k = 0; k < z; k++)
-	{
+	for (k = 0; k < z; k++) {
 		cures = cudaMemcpy2DAsync(val2+k*ldz2, ldy2*sizeof(*val2), val+k*ldz, ldy*sizeof(*val),
 				x*sizeof(*val), y, cudaMemcpyDeviceToDevice, starpu_cuda_get_local_stream());
 		STARPU_ASSERT(!cures);
@@ -138,22 +137,19 @@ int main(int argc, char **argv)
 	/* Copy planes */
 	for (k = SHADOWZ ; k<SHADOWZ+NZ ; k++)
 		for (j = SHADOWY ; j<SHADOWY+NY ; j++)
-			for(i=0 ; i<SHADOWX ; i++)
-			{
+			for(i=0 ; i<SHADOWX ; i++) {
 				matrix[k][j][i] = matrix[k][j][i+NX];
 				matrix[k][j][SHADOWX+NX+i] = matrix[k][j][SHADOWX+i];
 			}
 	for(k=SHADOWZ ; k<SHADOWZ+NZ ; k++)
 		for(j=0 ; j<SHADOWY ; j++)
-			for(i=SHADOWX ; i<SHADOWX+NX ; i++)
-			{
+			for(i=SHADOWX ; i<SHADOWX+NX ; i++) {
 				matrix[k][j][i] = matrix[k][j+NY][i];
 				matrix[k][SHADOWY+NY+j][i] = matrix[k][SHADOWY+j][i];
 			}
 	for(k=0 ; k<SHADOWZ ; k++)
 		for(j=SHADOWY ; j<SHADOWY+NY ; j++)
-			for(i=SHADOWX ; i<SHADOWX+NX ; i++)
-			{
+			for(i=SHADOWX ; i<SHADOWX+NX ; i++) {
 				matrix[k][j][i] = matrix[k+NZ][j][i];
 				matrix[SHADOWZ+NZ+k][j][i] = matrix[SHADOWZ+k][j][i];
 			}
@@ -161,8 +157,7 @@ int main(int argc, char **argv)
 	/* Copy borders */
 	for (k = SHADOWZ ; k<SHADOWZ+NZ ; k++)
 		for(j=0 ; j<SHADOWY ; j++)
-			for(i=0 ; i<SHADOWX ; i++)
-			{
+			for(i=0 ; i<SHADOWX ; i++) {
 				matrix[k][j][i] = matrix[k][j+NY][i+NX];
 				matrix[k][SHADOWY+NY+j][i] = matrix[k][SHADOWY+j][i+NX];
 				matrix[k][SHADOWY+NY+j][SHADOWX+NX+i] = matrix[k][SHADOWY+j][SHADOWX+i];
@@ -170,8 +165,7 @@ int main(int argc, char **argv)
 			}
 	for(k=0 ; k<SHADOWZ ; k++)
 		for (j = SHADOWY ; j<SHADOWY+NY ; j++)
-			for(i=0 ; i<SHADOWX ; i++)
-			{
+			for(i=0 ; i<SHADOWX ; i++) {
 				matrix[k][j][i] = matrix[k+NZ][j][i+NX];
 				matrix[SHADOWZ+NZ+k][j][i] = matrix[SHADOWZ+k][j][i+NX];
 				matrix[SHADOWZ+NZ+k][j][SHADOWX+NX+i] = matrix[SHADOWZ+k][j][SHADOWX+i];
@@ -179,8 +173,7 @@ int main(int argc, char **argv)
 			}
 	for(k=0 ; k<SHADOWZ ; k++)
 		for(j=0 ; j<SHADOWY ; j++)
-			for(i=SHADOWX ; i<SHADOWX+NX ; i++)
-			{
+			for(i=SHADOWX ; i<SHADOWX+NX ; i++) {
 				matrix[k][j][i] = matrix[k+NZ][j+NY][i];
 				matrix[SHADOWZ+NZ+k][j][i] = matrix[SHADOWZ+k][j+NY][i];
 				matrix[SHADOWZ+NZ+k][SHADOWY+NY+j][i] = matrix[SHADOWZ+k][SHADOWY+j][i];
@@ -190,8 +183,7 @@ int main(int argc, char **argv)
 	/* Copy corners */
 	for(k=0 ; k<SHADOWZ ; k++)
 		for(j=0 ; j<SHADOWY ; j++)
-			for(i=0 ; i<SHADOWX ; i++)
-			{
+			for(i=0 ; i<SHADOWX ; i++) {
 				matrix[k][j][i] = matrix[k+NZ][j+NY][i+NX];
 				matrix[k][j][SHADOWX+NX+i] = matrix[k+NZ][j+NY][SHADOWX+i];
 				matrix[k][SHADOWY+NY+j][i] = matrix[k+NZ][SHADOWY+j][i+NX];
@@ -308,8 +300,7 @@ int main(int argc, char **argv)
 	{
 		for(j=0 ; j<NY + PARTSY*2*SHADOWY ; j++)
 		{
-			for(i=0 ; i<NX + PARTSX*2*SHADOWX ; i++)
-			{
+			for(i=0 ; i<NX + PARTSX*2*SHADOWX ; i++) {
 				FPRINTF(stderr, "%5d ", matrix2[k][j][i]);
 			}
 			FPRINTF(stderr,"\n");

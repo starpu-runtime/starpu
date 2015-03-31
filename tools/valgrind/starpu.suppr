@@ -72,42 +72,6 @@
 }
 
 {
-   mc / handle locking order. We always take handle before mc, except when we tidy memory, where we use trylock, but helgrind doesn't handle that :/ https://bugs.kde.org/show_bug.cgi?id=243232
-   Helgrind:LockOrder
-   ...
-   fun:_starpu_spin_trylock
-   fun:lock_all_subtree
-   ...
-}
-
-{
-   mc / handle locking order2
-   Helgrind:LockOrder
-   ...
-   fun:_starpu_spin_lock
-   fun:_starpu_memchunk_recently_used
-   ...
-}
-
-{
-   mc / handle locking order3
-   Helgrind:LockOrder
-   ...
-   fun:_starpu_spin_lock
-   fun:_starpu_request_mem_chunk_removal
-   ...
-}
-
-{
-   mc / handle locking order4
-   Helgrind:LockOrder
-   ...
-   fun:_starpu_spin_lock
-   fun:_starpu_allocate_interface
-   ...
-}
-
-{
    TODO1: This is temporary. It perhaps does not pose problem because only the worker takes this mutex. Fixing this will require changing the scheduler interface, so that the schedulers themselves take the scheduling lock, not the caller. Filter it out for now, so we can see other races more easily.
    Helgrind:LockOrder
    fun:pthread_mutex_lock

@@ -72,12 +72,12 @@ static int random_push_task(struct starpu_sched_component * component, struct st
 	double random = starpu_drand48()*alpha_sum;
 	double alpha = 0.0;
 	struct starpu_sched_component * select  = NULL;
-
+	
 	for(i = 0; i < size ; i++)
 	{
 		int index = indexes_components[i];
 		if(alpha + speedup[i] >= random)
-		{
+		{	
 			select = component->children[index];
 			break;
 		}

@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011, 2013-2015  Université de Bordeaux
+ * Copyright (C) 2010-2011, 2013-2014  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012, 2013  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -270,13 +270,6 @@ int main(int argc, char **argv)
 		starpu_data_unregister(new_frame_u_handle[frame]);
 		starpu_data_unregister(new_frame_v_handle[frame]);
 	}
-
-	free(frame_y_handle);
-	free(frame_u_handle);
-	free(frame_v_handle);
-	free(new_frame_y_handle);
-	free(new_frame_u_handle);
-	free(new_frame_v_handle);
 
 	/* There is an implicit barrier: the unregister methods will block
 	 * until the computation is done and that the result was put back into

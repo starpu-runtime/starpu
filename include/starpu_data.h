@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -91,8 +91,6 @@ int starpu_data_request_allocation(starpu_data_handle_t handle, unsigned node);
 int starpu_data_fetch_on_node(starpu_data_handle_t handle, unsigned node, unsigned async);
 int starpu_data_prefetch_on_node(starpu_data_handle_t handle, unsigned node, unsigned async);
 int starpu_data_idle_prefetch_on_node(starpu_data_handle_t handle, unsigned node, unsigned async);
-
-void starpu_data_wont_use(starpu_data_handle_t handle);
 
 #define STARPU_MAIN_RAM 0
 

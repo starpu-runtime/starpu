@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2013       Joris Pablo
  * Copyright (C) 2011-2014  Universite de Bordeaux
- * Copyright (C) 2014, 2015       CNRS
+ * Copyright (C) 2014       Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -75,8 +75,7 @@ static void write_gp(int argc, char **argv)
 	}
 	char codelet_name[MAX_LINE_SIZE];
 	FILE *plt = fopen("data_trace.gp", "w+");
-	if(!plt)
-	{
+	if(!plt){
 		perror("Error while creating data_trace.gp:");
 		exit(-1);
 	}

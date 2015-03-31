@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011, 2013, 2014  CNRS
+ * Copyright (C) 2010, 2011, 2013, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -21,9 +21,9 @@
 
 struct _starpu_barrier
 {
-	unsigned count;
-	unsigned reached_start;
-	unsigned reached_exit;
+	int count;
+	int reached_start;
+	int reached_exit;
 	double reached_flops;
 	starpu_pthread_mutex_t mutex;
 	starpu_pthread_mutex_t mutex_exit;

@@ -35,7 +35,7 @@ static __global__ void monte_carlo(float *x, float *y, unsigned n, unsigned long
 	__syncthreads();
 	int ind;
 	for (ind = tid; ind < n; ind += nthreads)
-	{
+	{ 
 		float xval = (2.0f * x[ind] - 1.0f);
 		float yval = (2.0f * y[ind] - 1.0f);
 		float dist = (xval*xval + yval*yval);
@@ -98,11 +98,11 @@ extern "C" void pi_redux_cuda_kernel(float *x, float *y, unsigned n, unsigned lo
 {
 	cudaError_t cures;
 
-	/* How many blocks do we use ? */
+	/* How many blocks do we use ? */ 
 	unsigned nblocks = 128; // TODO
 	STARPU_ASSERT(nblocks <= MAXNBLOCKS);
 	STARPU_ASSERT((n % nblocks) == 0);
-
+	
 	unsigned long *per_block_cnt;
 	cudaMalloc((void **)&per_block_cnt, nblocks*sizeof(unsigned long));
 

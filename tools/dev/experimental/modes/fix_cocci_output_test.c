@@ -1,5 +1,4 @@
-struct starpu_codelet cl =
-{
+struct starpu_codelet cl = {
 	.where = STARPU_CPU,
 	/* => .modes = { STARPU_R, STARPU_W }, */
 	.modes[1] = STARPU_W,
@@ -11,10 +10,9 @@ struct starpu_codelet cl =
 static void
 foo(void)
 {
-	struct starpu_codelet cl =
-	{
+	struct starpu_codelet cl = {
 		.where = STARPU_CPU,
-		/* .modes = { STARPU_R, STARPU_RW, STARPU_W } */
+		/* .modes = STARPU_R, STARPU_RW, STARPU_W } */
 		.modes[2] = STARPU_W,
 		.modes[1] = STARPU_RW,
 		.modes[0] = STARPU_R

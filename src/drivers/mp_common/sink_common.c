@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012  INRIA
+ * Copyright (C) 2012  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -307,8 +307,6 @@ void _starpu_sink_common_worker(void)
 			STARPU_PTHREAD_MUTEX_UNLOCK(&node->message_queue_mutex);
 		}
 	}
-
-	STARPU_PTHREAD_KEY_DELETE(worker_key);
 
 	/* Deinitialize the node and release it */
 	_starpu_mp_common_node_destroy(node);

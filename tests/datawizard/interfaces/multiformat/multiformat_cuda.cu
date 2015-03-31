@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011  INRIA
+ * Copyright (C) 2011  Institut National de Recherche en Informatique et Automatique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -70,9 +70,7 @@ extern "C" void test_multiformat_cuda_func(void *buffers[], void *args)
 			   ret,
 			   sizeof(int),
 			   cudaMemcpyDeviceToHost);
-	if (error != cudaSuccess)
-		STARPU_CUDA_REPORT_ERROR(error);
-
+	
 	cudaFree(ret);
 	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }

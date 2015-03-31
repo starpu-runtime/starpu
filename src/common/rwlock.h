@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2015  CNRS
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -22,8 +22,7 @@
 #include <starpu.h>
 
 /* Dummy implementation of a RW-lock using a spinlock. */
-struct _starpu_rw_lock
-{
+struct _starpu_rw_lock {
 	uint32_t busy;
 	uint8_t writer;
 	uint16_t readercnt;

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
+ * Copyright (C) 2009-2014  Université de Bordeaux
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -24,13 +24,8 @@
 #include "xlu.h"
 #include "xlu_kernels.h"
 
-#ifdef STARPU_QUICK_CHECK
-static unsigned long size = 320*4;
-static unsigned nblocks = 4;
-#else
 static unsigned long size = 960*16;
 static unsigned nblocks = 16;
-#endif
 static unsigned check = 0;
 static unsigned pivot = 0;
 static unsigned no_stride = 0;
@@ -341,7 +336,7 @@ int main(int argc, char **argv)
 		if (no_stride)
 		{
 			/* in case the LU decomposition uses non-strided blocks, we _copy_ the matrix into smaller blocks */
-			A_blocks = malloc(nblocks*nblocks*sizeof(TYPE *));
+			A_blocks = malloc(nblocks*nblocks*sizeof(TYPE **));
 			copy_matrix_into_blocks();
 
 			ret = STARPU_LU(lu_decomposition_pivot_no_stride)(A_blocks, ipiv, size, size, nblocks);
@@ -405,8 +400,7 @@ int main(int argc, char **argv)
 	if (check)
 	{
 		FPRINTF(stderr, "Checking result\n");
-		if (pivot)
-		{
+		if (pivot) {
 			pivot_saved_matrix(ipiv);
 			free(ipiv);
 		}

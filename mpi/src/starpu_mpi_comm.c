@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2011, 2012, 2013, 2014, 2015  Centre National de la Recherche Scientifique
  * Copyright (C) 2011-2015  Université de Bordeaux
  * Copyright (C) 2014 INRIA
  *
@@ -44,7 +44,7 @@ void _starpu_mpi_comm_init(MPI_Comm comm)
 {
 	_STARPU_MPI_DEBUG(10, "allocating for %d communicators\n", _starpu_mpi_comm_allocated);
 	_starpu_mpi_comm_allocated=10;
-	_starpu_mpi_comms = calloc(_starpu_mpi_comm_allocated, sizeof(struct _starpu_mpi_comm *));
+	_starpu_mpi_comms = malloc(_starpu_mpi_comm_allocated * sizeof(struct _starpu_mpi_comm *));
 	_starpu_mpi_comm_nb=0;
 	_starpu_mpi_comm_tested=0;
 	_starpu_mpi_comms_cache = NULL;
@@ -75,7 +75,7 @@ void _starpu_mpi_comm_register(MPI_Comm comm)
 {
 	struct _starpu_mpi_comm_hashtable *found;
 
-	HASH_FIND(hh, _starpu_mpi_comms_cache, &comm, sizeof(MPI_Comm), found);
+	HASH_FIND_PTR(_starpu_mpi_comms_cache, &comm, found);
 	if (found)
 	{
 		_STARPU_MPI_DEBUG(10, "comm %p (%p) already registered\n", comm, MPI_COMM_WORLD);
@@ -97,7 +97,7 @@ void _starpu_mpi_comm_register(MPI_Comm comm)
 		_starpu_mpi_comm_nb++;
 		struct _starpu_mpi_comm_hashtable *entry = (struct _starpu_mpi_comm_hashtable *)malloc(sizeof(*entry));
 		entry->comm = comm;
-		HASH_ADD(hh, _starpu_mpi_comms_cache, comm, sizeof(entry->comm), entry);
+		HASH_ADD_PTR(_starpu_mpi_comms_cache, comm, entry);
 	}
 }
 
@@ -109,7 +109,7 @@ void _starpu_mpi_comm_post_recv()
 		struct _starpu_mpi_comm *_comm = _starpu_mpi_comms[i]; // get the ith _comm;
 		if (_comm->posted == 0)
 		{
-			_STARPU_MPI_DEBUG(3, "Posting a receive to get a data envelop on comm %d %p\n", i, _comm->comm);
+			_STARPU_MPI_DEBUG(3, "Posting a receive to get a data envelop\n");
 			_STARPU_MPI_COMM_FROM_DEBUG(sizeof(struct _starpu_mpi_envelope), MPI_BYTE, MPI_ANY_SOURCE, _STARPU_MPI_TAG_ENVELOPE, _STARPU_MPI_TAG_ENVELOPE);
 			MPI_Irecv(_comm->envelope, sizeof(struct _starpu_mpi_envelope), MPI_BYTE, MPI_ANY_SOURCE, _STARPU_MPI_TAG_ENVELOPE, _comm->comm, &_comm->request);
 			_comm->posted = 1;

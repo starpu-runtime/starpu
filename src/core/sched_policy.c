@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2015  Université de Bordeaux
- * Copyright (C) 2010-2015  CNRS
+ * Copyright (C) 2010-2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -55,7 +55,6 @@ static struct starpu_sched_policy *predefined_policies[] =
 	&_starpu_sched_dmda_policy,
 	&_starpu_sched_dmda_ready_policy,
 	&_starpu_sched_dmda_sorted_policy,
-	&_starpu_sched_dmda_sorted_decision_policy,
 	&_starpu_sched_parallel_heft_policy,
 	&_starpu_sched_peager_policy,
 	NULL
@@ -341,14 +340,10 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 
 int _starpu_push_task(struct _starpu_job *j)
 {
+
 	if(j->task->prologue_callback_func)
 		j->task->prologue_callback_func(j->task->prologue_callback_arg);
 
-	return _starpu_repush_task(j);
-}
-
-int _starpu_repush_task(struct _starpu_job *j)
-{
 	struct starpu_task *task = j->task;
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
 	unsigned nworkers = 0;
@@ -399,9 +394,6 @@ int _starpu_repush_task(struct _starpu_job *j)
 	 * corresponding dependencies */
 	if (task->cl == NULL)
 	{
-		if(task->prologue_callback_pop_func)
-			task->prologue_callback_pop_func(task->prologue_callback_pop_arg);
-
 		_starpu_handle_job_termination(j);
 		_STARPU_LOG_OUT_TAG("handle_job_termination");
 		return 0;
@@ -466,8 +458,7 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 		/* When a task can only be executed on a given arch and we have
 		 * only one memory node for that arch, we can systematically
 		 * prefetch before the scheduling decision. */
-		if (starpu_get_prefetch_flag())
-		{
+		if (starpu_get_prefetch_flag()) {
 			if (task->cl->where == STARPU_CPU && config->cpus_nodeid >= 0)
 				starpu_prefetch_task_input_on_node(task, config->cpus_nodeid);
 			else if (task->cl->where == STARPU_CUDA && config->cuda_nodeid >= 0)
@@ -723,7 +714,7 @@ struct _starpu_sched_ctx* _get_next_sched_ctx_to_pop_into(struct _starpu_worker 
 		worker->reverse_phase[worker->pop_ctx_priority] = !worker->reverse_phase[worker->pop_ctx_priority];
 		if(are_2_priorities)
 			worker->pop_ctx_priority = !worker->pop_ctx_priority;
-	}
+	}	
 
 	unsigned first_sched_ctx = STARPU_NMAX_SCHED_CTXS;
 	for (l = worker->sched_ctx_list; l; l = l->next)
@@ -763,7 +754,7 @@ pick:
 
 	/* get tasks from the stacks of the strategy */
 	if(!task)
-	{
+	{		
 		struct _starpu_sched_ctx *sched_ctx ;
 #ifndef STARPU_NON_BLOCKING_DRIVERS
 		int been_here[STARPU_NMAX_SCHED_CTXS];

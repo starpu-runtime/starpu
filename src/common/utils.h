@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  CNRS
+ * Copyright (C) 2010, 2012-2014  Université de Bordeaux
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -42,9 +42,6 @@
 #ifndef ANNOTATE_HAPPENS_BEFORE
 #define ANNOTATE_HAPPENS_BEFORE(obj) ((void)0)
 #endif
-#ifndef ANNOTATE_HAPPENS_BEFORE_FORGET_ALL
-#define ANNOTATE_HAPPENS_BEFORE_FORGET_ALL(obj) ((void)0)
-#endif
 #ifndef ANNOTATE_HAPPENS_AFTER
 #define ANNOTATE_HAPPENS_AFTER(obj) ((void)0)
 #endif
@@ -53,12 +50,6 @@
 #endif
 #ifndef VALGRIND_HG_ENABLE_CHECKING
 #define VALGRIND_HG_ENABLE_CHECKING(start, len) ((void)0)
-#endif
-#ifndef VALGRIND_STACK_REGISTER
-#define VALGRIND_STACK_REGISTER(stackbottom, stacktop) (void)0
-#endif
-#ifndef VALGRIND_STACK_DEREGISTER
-#define VALGRIND_STACK_DEREGISTER(id) ((void)0)
 #endif
 #ifndef RUNNING_ON_VALGRIND
 #define RUNNING_ON_VALGRIND 0

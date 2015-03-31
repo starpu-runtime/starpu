@@ -2,7 +2,7 @@
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2013        Simon Archipoff
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2014, 2015        CNRS
+ * Copyright (C) 2014        Centre National de la Recherche Scientifique
  * Copyright (C) 2013, 2014  INRIA
  * See the file version.doxy for copying conditions.
  */
@@ -235,13 +235,6 @@ The actual scheduler
 @name Flow-control Fifo Component API
 \ingroup API_Modularized_Scheduler
 
-\struct starpu_sched_component_fifo_data
-\ingroup API_Modularized_Scheduler
-\var unsigned starpu_sched_component_fifo_data::ntasks_threshold
-todo
-\var double starpu_sched_component_fifo_data::exp_len_threshold
-todo
-
 \fn struct starpu_sched_component *starpu_sched_component_fifo_create(struct starpu_sched_tree *tree, struct starpu_sched_component_fifo_data *fifo_data)
 \ingroup API_Modularized_Scheduler
 	 Return a struct starpu_sched_component with a fifo. A stable sort is performed according to tasks priorities.
@@ -254,13 +247,6 @@ todo
 
 @name Flow-control Prio Component API
 \ingroup API_Modularized_Scheduler
-
-\struct starpu_sched_component_prio_data
-\ingroup API_Modularized_Scheduler
-\var unsigned starpu_sched_component_prio_data::ntasks_threshold
-todo
-\var double starpu_sched_component_prio_data::exp_len_threshold
-todo
 
 \fn struct starpu_sched_component *starpu_sched_component_prio_create(struct starpu_sched_tree *tree, struct starpu_sched_component_prio_data *prio_data)
 \ingroup API_Modularized_Scheduler
@@ -321,17 +307,6 @@ todo
 @name Resource-mapping MCT Component API
 \ingroup API_Modularized_Scheduler
 
-\struct starpu_sched_component_mct_data
-\ingroup API_Modularized_Scheduler
-\var double starpu_sched_component_mct_data::alpha
-todo
-\var double starpu_sched_component_mct_data::beta
-todo
-\var double starpu_sched_component_mct_data::_gamma
-todo
-\var double starpu_sched_component_mct_data::idle_power
-todo
-
 \fn struct starpu_sched_component *starpu_sched_component_mct_create(struct starpu_sched_tree *tree, struct starpu_sched_component_mct_data *mct_data)
 \ingroup API_Modularized_Scheduler
 create a component with mct_data paremeters. the mct component doesnt
@@ -365,15 +340,6 @@ todo
 
 @name Special-purpose Perfmodel_Select Component API
 \ingroup API_Modularized_Scheduler
-
-\struct starpu_sched_component_perfmodel_select_data
-\ingroup API_Modularized_Scheduler
-\var struct starpu_sched_component *starpu_sched_component_perfmodel_select_data::calibrator_component
-todo
-\var struct starpu_sched_component *starpu_sched_component_perfmodel_select_data::no_perfmodel_component
-todo
-\var struct starpu_sched_component *starpu_sched_component_perfmodel_select_data::perfmodel_component
-todo
 
 \fn struct starpu_sched_component *starpu_sched_component_perfmodel_select_create(struct starpu_sched_tree *tree, struct starpu_sched_component_perfmodel_select_data *perfmodel_select_data)
 \ingroup API_Modularized_Scheduler

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2014  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2013, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -90,8 +90,7 @@ static void _starpu_add_accessor(starpu_data_handle_t handle, struct starpu_task
 		_STARPU_DEP_DEBUG("dep ID%lu -> %p\n", handle->last_submitted_ghost_sync_id, pre_sync_task);
 	}
 
-	if (!pre_sync_task->cl)
-	{
+	if (!pre_sync_task->cl) {
 		/* Add a reference to be released in _starpu_handle_job_termination */
 		_starpu_spin_lock(&handle->header_lock);
 		handle->busy_count++;
@@ -163,8 +162,7 @@ static void _starpu_add_sync_task(starpu_data_handle_t handle, struct starpu_tas
 	handle->last_submitted_accessors.prev = &handle->last_submitted_accessors;
 	handle->last_sync_task = post_sync_task;
 
-	if (!post_sync_task->cl)
-	{
+	if (!post_sync_task->cl) {
 		/* Add a reference to be released in _starpu_handle_job_termination */
 		_starpu_spin_lock(&handle->header_lock);
 		handle->busy_count++;
@@ -254,9 +252,7 @@ struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_
 					 * as synchronization task by making it
 					 * wait for the previous ones. */
 					_starpu_add_sync_task(handle, pre_sync_task, post_sync_task, post_sync_task);
-				}
-				else
-				{
+				} else {
 					_STARPU_DEP_DEBUG("several predecessors, adding sync task\n");
 					/* insert an empty synchronization task
 					 * which waits for the whole set,

@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
- * Copyright (C) 2014  INRIA
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  Centre National de la Recherche Scientifique
+ * Copyright (C) 2014  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -750,8 +750,7 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 
 	/* Wait for all requests to finish (notably WT requests) */
 	STARPU_PTHREAD_MUTEX_LOCK(&handle->busy_mutex);
-	while (1)
-	{
+	while (1) {
 		/* Here helgrind would shout that this an unprotected access,
 		 * but this is actually fine: all threads who do busy_count--
 		 * are supposed to call _starpu_data_check_not_busy, which will

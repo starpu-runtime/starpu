@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012, 2014-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  CNRS
+ * Copyright (C) 2010, 2012, 2014  Université de Bordeaux
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -21,11 +21,7 @@
 #include <unistd.h>
 #include "../helper.h"
 
-#ifndef STARPU_QUICK_CHECK
 #define N	1000
-#else
-#define N	100
-#endif
 #define VECTORSIZE	1024
 
 void codelet_null(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
@@ -60,10 +56,9 @@ int main(int argc, char **argv)
 	starpu_data_handle_t v_handle;
 	unsigned *v;
 	int ret;
-	struct starpu_conf conf;
 
+	struct starpu_conf conf;
 	ret = starpu_conf_init(&conf);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_conf_init");
 	conf.sched_policy_name = "pheft";
 	conf.calibrate = 1;
 

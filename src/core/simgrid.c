@@ -63,8 +63,7 @@ static msg_as_t __starpu_simgrid_get_as_by_name(msg_as_t root, const char *name)
 	const char *key;
 	msg_as_t as, ret;
 	dict = MSG_environment_as_get_routing_sons(root);
-	xbt_dict_foreach(dict, cursor, key, as)
-	{
+	xbt_dict_foreach(dict, cursor, key, as) {
 		if (!strcmp(MSG_environment_as_get_name(as), name))
 			return as;
 		ret = __starpu_simgrid_get_as_by_name(as, name);
@@ -106,8 +105,7 @@ int _starpu_simgrid_get_nbhosts(const char *prefix)
 	nb = xbt_dynar_length(hosts);
 
 	ret = 0;
-	for (i = 0; i < nb; i++)
-	{
+	for (i = 0; i < nb; i++) {
 		const char *name;
 		name = MSG_host_get_name(xbt_dynar_get_as(hosts, i, msg_host_t));
 		if (!strncmp(name, prefix, len))
@@ -157,8 +155,7 @@ msg_host_t _starpu_simgrid_get_host_by_worker(struct _starpu_worker *worker)
 	char *prefix;
 	char name[16];
 	msg_host_t host;
-	switch (worker->arch)
-	{
+	switch (worker->arch) {
 		case STARPU_CPU_WORKER:
 			prefix = "CPU";
 			break;
@@ -257,8 +254,7 @@ void _starpu_simgrid_init()
  * Tasks
  */
 
-struct task
-{
+struct task {
 	msg_task_t task;
 	int workerid;
 

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -247,7 +247,6 @@ static void _starpu_mpi_submit_ready_request(void *arg)
 						STARPU_MPI_ASSERT_MSG(req->ptr, "cannot allocate message of size %ld\n", req->count);
 					}
 					_starpu_mpi_req_list_push_front(ready_requests, req);
-					free(sync_req);
 				}
 				else
 				{
@@ -919,7 +918,7 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
 					STARPU_MPI_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Wait returning %s", _starpu_mpi_get_mpi_code(ret));
 					free(req->ptr);
 				}
-				else if (req->request_type == RECV_REQ)
+				if (req->request_type == RECV_REQ)
 				{
 					// req->ptr is freed by starpu_data_unpack
 					starpu_data_unpack(req->data_handle, req->ptr, req->count);

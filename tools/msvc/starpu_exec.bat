@@ -2,7 +2,7 @@
 
 REM StarPU --- Runtime system for heterogeneous multicore architectures.
 REM
-REM Copyright (C) 2013, 2014  CNRS
+REM Copyright (C) 2013, 2014  Centre National de la Recherche Scientifique
 REM
 REM StarPU is free software; you can redistribute it and/or modify
 REM it under the terms of the GNU Lesser General Public License as published by

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2014  INRIA
+ * Copyright (C) 2014  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -148,8 +148,7 @@ static void check_array(void)
 }
 
 int
-main (int argc, char *argv[])
-{
+main (int argc, char *argv[]) {
 	struct starpu_omp_parallel_region_attr attr;
 
 	memset(&attr, 0, sizeof(attr));

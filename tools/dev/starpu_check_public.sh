@@ -4,8 +4,8 @@
 
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2011, 2012, 2015 CNRS
-# Copyright (C) 2011 INRIA
+# Copyright (C) 2011, 2012 Centre National de la Recherche Scientifique
+# Copyright (C) 2011 Institut National de Recherche en Informatique et Automatique
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -22,7 +22,7 @@ stcolor=$(tput sgr0)
 redcolor=$(tput setaf 1)
 greencolor=$(tput setaf 2)
 
-functions=$(spatch -very_quiet -sp_file doc/doxygen/dev/starpu_funcs.cocci $(find include -name '*.h'))
+functions=$(spatch -very_quiet -sp_file tools/dev/starpu_funcs.cocci $(find include -name '*.h'))
 for func in $functions ; do
 	fname=$(echo $func|awk -F ',' '{print $1}')
 	location=$(echo $func|awk -F ',' '{print $2}')

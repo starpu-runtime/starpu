@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2011, 2014  INRIA
  *
@@ -161,26 +161,7 @@ int _starpu_test_job_termination(struct _starpu_job *j)
 {
 	STARPU_ASSERT(j->task);
 	STARPU_ASSERT(!j->task->detach);
-	/* Disable Helgrind race complaint, since we really just want to poll j->terminated */
-#ifdef RUNNING_ON_VALGRIND
-	{
-		int v = STARPU_PTHREAD_MUTEX_TRYLOCK(&j->sync_mutex);
-		if (v != EBUSY)
-		{
-			STARPU_ASSERT(v == 0);
-			int ret = (j->terminated == 2);
-			STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
-			return ret;
-		}
-		else
-		{
-			return 0;
-		}
-	}
-#else
-	STARPU_SYNCHRONIZE();
 	return (j->terminated == 2);
-#endif /* RUNNING_ON_VALGRIND */
 }
 void _starpu_job_prepare_for_continuation_ext(struct _starpu_job *j, unsigned continuation_resubmit,
 		void (*continuation_callback_on_sleep)(void *arg), void *continuation_callback_on_sleep_arg)

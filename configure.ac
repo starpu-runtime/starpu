@@ -1,9 +1,9 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2009-2015  Université de Bordeaux
-# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  Centre National de la Recherche Scientifique
 # Copyright (C) 2011  Télécom-SudParis
-# Copyright (C) 2011, 2012, 2014  INRIA
+# Copyright (C) 2011, 2012, 2014  Institut National de Recherche en Informatique et Automatique
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -307,7 +307,6 @@ AC_ARG_ENABLE(valgrind, [AS_HELP_STRING([--disable-valgrind],
 				   enable_valgrind=$enableval, enable_valgrind=yes)
 if test "$enable_valgrind" != "no" ; then
    AC_CHECK_HEADERS([valgrind/valgrind.h], [AC_DEFINE([STARPU_HAVE_VALGRIND_H], [1], [Define to 1 if you have the <valgrind/valgrind.h> header file.])])
-   AC_CHECK_HEADERS([valgrind/memcheck.h], [AC_DEFINE([STARPU_HAVE_MEMCHECK_H], [1], [Define to 1 if you have the <valgrind/memcheck.h> header file.])])
    AC_CHECK_HEADERS([valgrind/helgrind.h], [AC_DEFINE([STARPU_HAVE_HELGRIND_H], [1], [Define to 1 if you have the <valgrind/helgrind.h> header file.])])
 fi
 if test "$enable_valgrind" = "full" ; then
@@ -2122,12 +2121,11 @@ AM_CONDITIONAL([STARPU_USE_SOCL], [test "x$build_socl" = "xyes"])
 
 if test "$build_socl" = "yes" ; then
    AC_CHECK_FUNCS([clGetExtensionFunctionAddressForPlatform])
-   if test -n "$SOCL_OCL_LIB_OPENCL" -a -f $SOCL_OCL_LIB_OPENCL ; then
-      run_socl_check=yes
-      SOCL_OCL_LIB_OPENCL_DIR=$(dirname $SOCL_OCL_LIB_OPENCL)
-      AC_SUBST(SOCL_OCL_LIB_OPENCL_DIR)
-   else
+   if test -z "$SOCL_OCL_LIB_OPENCL" ; then
       run_socl_check=no
+   else
+       run_socl_check=yes
+       AC_SUBST(SOCL_OCL_LIB_OPENCL)
    fi
 else
    run_socl_check=no

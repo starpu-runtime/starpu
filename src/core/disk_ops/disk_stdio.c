@@ -26,13 +26,12 @@
 #include <core/perfmodel/perfmodel.h>
 #include <datawizard/copy_driver.h>
 #include <datawizard/memory_manager.h>
-#include <starpu_parameters.h>
 
 #ifdef STARPU_HAVE_WINDOWS
         #include <io.h>
 #endif
 
-#define NITER	_STARPU_CALIBRATION_MINIMUM
+#define NITER	64
 
 /* ------------------- use STDIO to write on disk -------------------  */
 

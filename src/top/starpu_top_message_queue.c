@@ -34,7 +34,6 @@ struct _starpu_top_message_queue* _starpu_top_message_add(struct _starpu_top_mes
 	if( NULL == p )
 	{
 		fprintf(stderr, "IN %s, %s: malloc() failed\n", __FILE__, "list_add");
-		free(msg);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&(s->mutex));
 		return s;
 	}
@@ -45,8 +44,6 @@ struct _starpu_top_message_queue* _starpu_top_message_add(struct _starpu_top_mes
 	if( NULL == s )
 	{
 		printf("Queue not initialized\n");
-		free(msg);
-		free(p);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&(s->mutex));
 		return s;
 	}

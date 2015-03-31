@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2011, 2014  INRIA
  *
@@ -24,7 +24,6 @@
 #include <core/jobs.h>
 #include <core/task.h>
 #include <core/task_bundle.h>
-#include <core/dependencies/data_concurrency.h>
 #include <common/config.h>
 #include <common/utils.h>
 #include <common/fxt.h>
@@ -302,10 +301,11 @@ int _starpu_submit_job(struct _starpu_job *j)
 		arch.devices[0].ncores = 1;
 		_starpu_compute_buffers_footprint(j->task->cl->model, &arch, 0, j);
 		free(arch.devices);
+		int i;
 		size_t data_size = 0;
 		if (j->task->cl)
 		{
-			unsigned i, nbuffers = STARPU_TASK_GET_NBUFFERS(j->task);
+			unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(j->task);
 			for(i = 0; i < nbuffers; i++)
 			{
 				starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, i);
@@ -503,10 +503,28 @@ void _starpu_task_check_deprecated_fields(struct starpu_task *task STARPU_ATTRIB
 	/* None any more */
 }
 
-static int _starpu_task_submit_head(struct starpu_task *task)
+/* application should submit new tasks to StarPU through this function */
+int starpu_task_submit(struct starpu_task *task)
 {
+	_STARPU_LOG_IN();
+	STARPU_ASSERT(task);
+	STARPU_ASSERT_MSG(task->magic == 42, "Tasks must be created with starpu_task_create, or initialized with starpu_task_init.");
+
+	int ret;
 	unsigned is_sync = task->synchronous;
+	starpu_task_bundle_t bundle = task->bundle;
+	/* internally, StarPU manipulates a struct _starpu_job * which is a wrapper around a
+	* task structure, it is possible that this job structure was already
+	* allocated. */
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
+	const unsigned continuation =
+#ifdef STARPU_OPENMP
+		j->continuation
+#else
+		0
+#endif
+		;
+
 
 	if (j->internal)
 	{
@@ -572,56 +590,18 @@ static int _starpu_task_submit_head(struct starpu_task *task)
 			return -ENODEV;
 		}
 
+		/* If this is a continuation, we don't modify the implicit data dependencies detected earlier. */
+		if (!continuation)
+		{
+			_starpu_detect_implicit_data_deps(task);
+		}
+
 		if (task->cl->model)
 			_starpu_init_and_load_perfmodel(task->cl->model);
 
 		if (task->cl->power_model)
 			_starpu_init_and_load_perfmodel(task->cl->power_model);
 	}
-
-	return 0;
-}
-
-/* application should submit new tasks to StarPU through this function */
-int starpu_task_submit(struct starpu_task *task)
-{
-	_STARPU_LOG_IN();
-	STARPU_ASSERT(task);
-	STARPU_ASSERT_MSG(task->magic == 42, "Tasks must be created with starpu_task_create, or initialized with starpu_task_init.");
-
-	int ret;
-	unsigned is_sync = task->synchronous;
-	starpu_task_bundle_t bundle = task->bundle;
-	/* internally, StarPU manipulates a struct _starpu_job * which is a wrapper around a
-	* task structure, it is possible that this job structure was already
-	* allocated. */
-	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
-	const unsigned continuation =
-#ifdef STARPU_OPENMP
-		j->continuation
-#else
-		0
-#endif
-		;
-
-	if (!j->internal)
-	{
-		int limit_min_submitted_tasks = starpu_get_env_number("STARPU_LIMIT_MIN_SUBMITTED_TASKS");
-		int limit_max_submitted_tasks = starpu_get_env_number("STARPU_LIMIT_MAX_SUBMITTED_TASKS");
-		int nsubmitted_tasks = starpu_task_nsubmitted();
-		if (limit_max_submitted_tasks >= 0 && limit_max_submitted_tasks > nsubmitted_tasks
-			&& limit_min_submitted_tasks >= 0 && limit_min_submitted_tasks < nsubmitted_tasks)
-			starpu_task_wait_for_n_submitted(limit_min_submitted_tasks);
-	}
-
-
-	ret = _starpu_task_submit_head(task);
-	if (ret)
-		return ret;
-
-	/* If this is a continuation, we don't modify the implicit data dependencies detected earlier. */
-	if (task->cl && !continuation)
-		_starpu_detect_implicit_data_deps(task);
 
 	if (bundle)
 	{
@@ -658,6 +638,7 @@ int starpu_task_submit(struct starpu_task *task)
 	 * dependency. */
 	task->status = STARPU_TASK_BLOCKED;
 
+
 	if (profiling)
 		_starpu_clock_gettime(&info->submit_time);
 
@@ -692,21 +673,54 @@ int starpu_task_submit_to_ctx(struct starpu_task *task, unsigned sched_ctx_id)
  * skipping dependencies completely (when it knows what it is doing).  */
 int _starpu_task_submit_nodeps(struct starpu_task *task)
 {
-	int ret;
-	ret = _starpu_task_submit_head(task);
-	STARPU_ASSERT(ret == 0);
+	_starpu_task_check_deprecated_fields(task);
+	_starpu_codelet_check_deprecated_fields(task->cl);
+
+	if (task->cl)
+	{
+		if (task->cl->model)
+			_starpu_init_and_load_perfmodel(task->cl->model);
+
+		if (task->cl->power_model)
+			_starpu_init_and_load_perfmodel(task->cl->power_model);
+	}
 
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 
-	_starpu_increment_nsubmitted_tasks_of_sched_ctx(j->task->sched_ctx);
+	if (j->internal)
+	{
+		// Internal tasks are submitted to initial context
+		j->task->sched_ctx = _starpu_get_initial_sched_ctx()->id;
+	}
+	else if (task->sched_ctx == STARPU_NMAX_SCHED_CTXS)
+	{
+		// If the task has not specified a context, we set the current context
+		j->task->sched_ctx = _starpu_sched_ctx_get_current_context();
+	}
 
+	_starpu_increment_nsubmitted_tasks_of_sched_ctx(j->task->sched_ctx);
 	STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
+
 	j->submitted = 1;
-	_starpu_increment_nready_tasks_of_sched_ctx(j->task->sched_ctx, j->task->flops, j->task);
+
 	if (task->cl)
+	{
 		/* This would be done by data dependencies checking */
-		_starpu_job_set_ordered_buffers(j);
-	task->status = STARPU_TASK_READY;
+		unsigned i;
+		unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
+		for (i=0 ; i<nbuffers ; i++)
+		{
+			starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(j->task, i);
+			_STARPU_JOB_SET_ORDERED_BUFFER_HANDLE(j, handle, i);
+			enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(j->task, i);
+			_STARPU_JOB_SET_ORDERED_BUFFER_MODE(j, mode, i);
+			int node = -1;
+			if (j->task->cl->specific_nodes)
+				node = STARPU_CODELET_GET_NODE(j->task->cl, i);
+			_STARPU_JOB_SET_ORDERED_BUFFER_NODE(j, node, i);
+		}
+	}
+
 	STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 
 	return _starpu_push_task(j);
@@ -718,14 +732,20 @@ int _starpu_task_submit_nodeps(struct starpu_task *task)
 int _starpu_task_submit_conversion_task(struct starpu_task *task,
 					unsigned int workerid)
 {
-	int ret;
 	STARPU_ASSERT(task->cl);
 	STARPU_ASSERT(task->execute_on_a_specific_worker);
 
-	ret = _starpu_task_submit_head(task);
-	STARPU_ASSERT(ret == 0);
+	_starpu_task_check_deprecated_fields(task);
+	_starpu_codelet_check_deprecated_fields(task->cl);
 
-	/* We retain handle reference count that would have been acquired by data dependencies.  */
+	/* We should factorize that */
+	if (task->cl->model)
+		_starpu_init_and_load_perfmodel(task->cl->model);
+
+	if (task->cl->power_model)
+		_starpu_init_and_load_perfmodel(task->cl->power_model);
+
+	/* We retain handle reference count */
 	unsigned i;
 	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
 	for (i=0; i<nbuffers; i++)
@@ -738,12 +758,34 @@ int _starpu_task_submit_conversion_task(struct starpu_task *task,
 
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 
-	_starpu_increment_nsubmitted_tasks_of_sched_ctx(j->task->sched_ctx);
+	if (j->internal)
+	{
+		// Internal tasks are submitted to initial context
+		j->task->sched_ctx = _starpu_get_initial_sched_ctx()->id;
+	}
+	else if (task->sched_ctx == STARPU_NMAX_SCHED_CTXS)
+	{
+		// If the task has not specified a context, we set the current context
+		j->task->sched_ctx = _starpu_sched_ctx_get_current_context();
+	}
 
+	_starpu_increment_nsubmitted_tasks_of_sched_ctx(j->task->sched_ctx);
 	STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 	j->submitted = 1;
 	_starpu_increment_nready_tasks_of_sched_ctx(j->task->sched_ctx, j->task->flops, j->task);
-	_starpu_job_set_ordered_buffers(j);
+	for (i=0 ; i<nbuffers ; i++)
+	{
+		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(j->task, i);
+		_STARPU_JOB_SET_ORDERED_BUFFER_HANDLE(j, handle, i);
+		enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(j->task, i);
+		_STARPU_JOB_SET_ORDERED_BUFFER_MODE(j, mode, i);
+		int node = -1;
+		if (j->task->cl->specific_nodes)
+			node = STARPU_CODELET_GET_NODE(j->task->cl, i);
+		_STARPU_JOB_SET_ORDERED_BUFFER_NODE(j, node, i);
+	}
+
+        _STARPU_LOG_IN();
 
 	task->status = STARPU_TASK_READY;
 	_starpu_profiling_set_task_push_start_time(task);
@@ -758,7 +800,9 @@ int _starpu_task_submit_conversion_task(struct starpu_task *task,
 
 	_starpu_profiling_set_task_push_end_time(task);
 
+        _STARPU_LOG_OUT();
 	STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
+
 	return 0;
 }
 
@@ -842,55 +886,6 @@ int starpu_task_wait_for_all_in_ctx(unsigned sched_ctx)
 	/* TODO: improve Temanejo into knowing about contexts ... */
 	if (AYU_event) AYU_event(AYU_BARRIER, 0, NULL);
 #endif
-	return 0;
-}
-
-/*
- * We wait until there's a certain number of the tasks that have already been
- * submitted left. Note that a regenerable is not considered finished until it
- * was explicitely set as non-regenerale anymore (eg. from a callback).
- */
-int starpu_task_wait_for_n_submitted(unsigned n)
-{
-	unsigned nsched_ctxs = _starpu_get_nsched_ctxs();
-	unsigned sched_ctx_id = nsched_ctxs == 1 ? 0 : starpu_sched_ctx_get_context();
-
-	/* if there is no indication about which context to wait,
-	   we wait for all tasks submitted to starpu */
-	if (sched_ctx_id == STARPU_NMAX_SCHED_CTXS)
-	{
-		_STARPU_DEBUG("Waiting for all tasks\n");
-		STARPU_ASSERT_MSG(_starpu_worker_may_perform_blocking_calls(), "starpu_task_wait_for_n_submitted must not be called from a task or callback");
-
-		struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
-		if(config->topology.nsched_ctxs == 1)
-			_starpu_wait_for_n_submitted_tasks_of_sched_ctx(0, n);
-		else
-		{
-			int s;
-			for(s = 0; s < STARPU_NMAX_SCHED_CTXS; s++)
-			{
-				if(config->sched_ctxs[s].id != STARPU_NMAX_SCHED_CTXS)
-				{
-					_starpu_wait_for_n_submitted_tasks_of_sched_ctx(config->sched_ctxs[s].id, n);
-				}
-			}
-		}
-
-		return 0;
-	}
-	else
-	{
-		_STARPU_DEBUG("Waiting for tasks submitted to context %u\n", sched_ctx_id);
-		_starpu_wait_for_n_submitted_tasks_of_sched_ctx(sched_ctx_id, n);
-	}
-	return 0;
-}
-
-int starpu_task_wait_for_n_submitted_in_ctx(unsigned sched_ctx, unsigned n)
-{
-	_starpu_wait_for_n_submitted_tasks_of_sched_ctx(sched_ctx, n);
-
 	return 0;
 }
 /*

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012 INRIA
+ * Copyright (C) 2012 Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -38,7 +38,7 @@ dummy(void *buffers[], void *args)
 {
 	(void) buffers;
 	(*(int *)args)++;
-	usleep(100000);
+	usleep(1000000);
 }
 
 static struct starpu_codelet cl =
@@ -89,7 +89,7 @@ test_cpu(void)
 	if (ret != 0)
 	{
 		ret = 1;
-		goto out2;
+		goto out;
 	}
 
 	struct starpu_task *task;
@@ -107,14 +107,14 @@ test_cpu(void)
 		goto out;
 	}
 
-	FPRINTF(stderr, "[CPU] Var = %d (expected value: 1)\n", var);
-	ret = !!(var != 1);
 out:
 	starpu_drivers_request_termination();
 	if (starpu_pthread_join(driver_thread, NULL) != 0)
 		return 1;
-out2:
 	starpu_shutdown();
+
+	FPRINTF(stderr, "[CPU] Var = %d (expected value: 1)\n", var);
+	ret = !!(var != 1);
 	return ret;
 }
 #endif /* STARPU_USE_CPU */

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2012-2014  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -136,15 +136,12 @@ int _starpu_frdlock(FILE *file)
 {
 #if defined(_WIN32) && !defined(__CYGWIN__)
 	int ret;
-	do
-	{
+	do {
 		ret = _locking(fileno(file), _LK_RLCK, 10);
-	}
-	while (ret == EDEADLOCK);
+	} while (ret == EDEADLOCK);
 	return ret;
 #else
-	struct flock lock =
-	{
+	struct flock lock = {
 		.l_type = F_RDLCK,
 		.l_whence = SEEK_SET,
 		.l_start = 0,
@@ -162,8 +159,7 @@ int _starpu_frdunlock(FILE *file)
 #  endif
 	return _locking(fileno(file), _LK_UNLCK, 10);
 #else
-	struct flock lock =
-	{
+	struct flock lock = {
 		.l_type = F_UNLCK,
 		.l_whence = SEEK_SET,
 		.l_start = 0,
@@ -177,15 +173,12 @@ int _starpu_fwrlock(FILE *file)
 {
 #if defined(_WIN32) && !defined(__CYGWIN__)
 	int ret;
-	do
-	{
+	do {
 		ret = _locking(fileno(file), _LK_LOCK, 10);
-	}
-	while (ret == EDEADLOCK);
+	} while (ret == EDEADLOCK);
 	return ret;
 #else
-	struct flock lock =
-	{
+	struct flock lock = {
 		.l_type = F_WRLCK,
 		.l_whence = SEEK_SET,
 		.l_start = 0,
@@ -227,11 +220,9 @@ char *_starpu_get_home_path(void)
 		path = getenv("HOME");
 	if (!path)
 		path = getenv("USERPROFILE");
-	if (!path)
-	{
+	if (!path) {
 		static int warn;
-		if (!warn)
-		{
+		if (!warn) {
 			warn = 1;
 			_STARPU_DISP("couldn't find a $STARPU_HOME place to put .starpu data, using /tmp\n");
 		}
