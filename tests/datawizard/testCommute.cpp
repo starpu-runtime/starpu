@@ -55,12 +55,13 @@ void callback_slow(void * /*buffers*/[], void * /*cl_arg*/)
 
 int main(int /*argc*/, char** /*argv*/)
 {
-	unsigned ret;
+	int ret;
 	struct starpu_conf conf;
 	ret = starpu_conf_init(&conf);
 	STARPU_ASSERT(ret == 0);
 	//conf.ncpus = 1;//// 4
 	ret = starpu_init(&conf);
+	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_ASSERT(ret == 0);
 
 	FPRINTF(stdout, "Max Thread %d\n", starpu_worker_get_count());
@@ -111,17 +112,19 @@ int main(int /*argc*/, char** /*argv*/)
 
 	for(int idxHandleA1 = 0 ; idxHandleA1 < nbA ; ++idxHandleA1)
 	{
-		starpu_insert_task(&slowCodelete,
+		ret = starpu_task_insert(&slowCodelete,
 				(STARPU_RW|STARPU_COMMUTE), handleA[idxHandleA1],
 				0);
+		if (ret == -ENODEV) goto out;
 		for(int idxHandleA2 = 0 ; idxHandleA2 < nbA ; ++idxHandleA2)
 		{
 			if(idxHandleA1 != idxHandleA2)
 			{
-				starpu_insert_task(&normalCodelete,
+				ret = starpu_task_insert(&normalCodelete,
 						(STARPU_RW|STARPU_COMMUTE), handleA[idxHandleA1],
 						(STARPU_RW|STARPU_COMMUTE), handleA[idxHandleA2],
 						0);
+				if (ret == -ENODEV) goto out;
 			}
 		}
 	}
@@ -129,6 +132,7 @@ int main(int /*argc*/, char** /*argv*/)
 	//////////////////////////////////////////////////////
 	FPRINTF(stdout,"Wait task\n");
 
+out:
 	starpu_task_wait_for_all();
 
 	//////////////////////////////////////////////////////
