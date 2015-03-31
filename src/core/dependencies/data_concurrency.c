@@ -82,15 +82,15 @@ static struct _starpu_data_requester *may_unlock_data_req_list_head(starpu_data_
 		return _starpu_data_requester_list_pop_front(req_list);
 
 	/* Already writing to it, do not let another write access through */
-	if (handle->current_mode & STARPU_W)
+	if (handle->current_mode == STARPU_W)
 		return NULL;
 
 	/* data->current_mode == STARPU_R, so we can process more readers */
 	struct _starpu_data_requester *r = _starpu_data_requester_list_front(req_list);
 
 	enum starpu_data_access_mode r_mode = r->mode;
-	if ((r_mode & STARPU_RW) == STARPU_RW)
-		r_mode &= ~STARPU_R;
+	if (r_mode == STARPU_RW)
+		r_mode = STARPU_W;
 
 	/* If this is a STARPU_R, STARPU_SCRATCH or STARPU_REDUX type of
 	 * access, we only proceed if the current mode is the same as the
@@ -106,14 +106,10 @@ static struct _starpu_data_requester *may_unlock_data_req_list_head(starpu_data_
  * with the current mode, the request is put in the per-handle list of
  * "requesters", and this function returns 1. */
 static unsigned _starpu_attempt_to_submit_data_request(unsigned request_from_codelet,
-						       starpu_data_handle_t handle, enum starpu_data_access_mode current_mode,
+						       starpu_data_handle_t handle, enum starpu_data_access_mode mode,
 						       void (*callback)(void *), void *argcb,
 						       struct _starpu_job *j, unsigned buffer_index)
 {
-	// WIP_COMMUTE Begin
-	enum starpu_data_access_mode mode = (current_mode & ~STARPU_COMMUTE);
-	// WIP_COMMUTE End
-
 	if (mode == STARPU_RW)
 		mode = STARPU_W;
 
@@ -154,11 +150,7 @@ static unsigned _starpu_attempt_to_submit_data_request(unsigned request_from_cod
 	 * current one, we can proceed. */
 	unsigned put_in_list = 1;
 
-	// WIP_COMMUTE Was
-	//enum starpu_data_access_mode previous_mode = handle->current_mode;
-	// WIP_COMMUTE Begin
-	enum starpu_data_access_mode previous_mode = (handle->current_mode & ~STARPU_COMMUTE);
-	// WIP_COMMUTE End
+	enum starpu_data_access_mode previous_mode = handle->current_mode;
 
 	if (!frozen && ((handle->refcnt == 0) || (!(mode == STARPU_W) && (handle->current_mode == mode))))
 	{
@@ -188,7 +180,7 @@ static unsigned _starpu_attempt_to_submit_data_request(unsigned request_from_cod
 		handle->busy_count++;
 		/* enqueue the request */
 		struct _starpu_data_requester *r = _starpu_data_requester_new();
-		r->mode = current_mode;
+		r->mode = mode;
 		r->is_requested_by_codelet = request_from_codelet;
 		r->j = j;
 		r->buffer_index = buffer_index;
@@ -222,7 +214,7 @@ static unsigned _starpu_attempt_to_submit_data_request(unsigned request_from_cod
 		 * shared R acquisition.
 		 */
 		if (mode != STARPU_R || handle->current_mode != mode)
-			handle->current_mode = current_mode;
+			handle->current_mode = mode;
 
 		if ((mode == STARPU_REDUX) && (previous_mode != STARPU_REDUX))
 			_starpu_data_start_reduction_mode(handle);
@@ -247,11 +239,7 @@ static unsigned attempt_to_submit_data_request_from_job(struct _starpu_job *j, u
 	/* Note that we do not access j->task->handles, but j->ordered_buffers
 	 * which is a sorted copy of it. */
 	starpu_data_handle_t handle = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, buffer_index);
-	// WIP_COMMUTE Was
-	// enum starpu_data_access_mode mode = _STARPU_JOB_GET_ORDERED_BUFFER_MODE(j, buffer_index) & ~STARPU_COMMUTE;
-	// WIP_COMMUTE Begin
-	enum starpu_data_access_mode mode = _STARPU_JOB_GET_ORDERED_BUFFER_MODE(j, buffer_index);
-	// WIP_COMMUTE End
+	enum starpu_data_access_mode mode = _STARPU_JOB_GET_ORDERED_BUFFER_MODE(j, buffer_index) & ~STARPU_COMMUTE;
 
 	return _starpu_attempt_to_submit_data_request(1, handle, mode, NULL, NULL, j, buffer_index);
 }
