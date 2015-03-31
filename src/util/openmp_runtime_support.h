@@ -228,10 +228,10 @@ LIST_TYPE(starpu_omp_task,
 
 	/* actual task function to be run */
 	void (*cpu_f)(void **starpu_buffers, void *starpu_cl_arg);
-#if STARPU_USE_CUDA
+#ifdef STARPU_USE_CUDA
 	void (*cuda_f)(void **starpu_buffers, void *starpu_cl_arg);
 #endif
-#if STARPU_USE_OPENCL
+#ifdef STARPU_USE_OPENCL
 	void (*opencl_f)(void **starpu_buffers, void *starpu_cl_arg);
 #endif
 
