@@ -53,7 +53,7 @@
 
 // WIP_COMMUTE Begin
 
-#define NO_LOCK_OR_DELEGATE
+//#define NO_LOCK_OR_DELEGATE
 
 /* Here are the high level algorithms which have been discussed in order
  * to manage the commutes.
