@@ -2121,11 +2121,12 @@ AM_CONDITIONAL([STARPU_USE_SOCL], [test "x$build_socl" = "xyes"])
 
 if test "$build_socl" = "yes" ; then
    AC_CHECK_FUNCS([clGetExtensionFunctionAddressForPlatform])
-   if test -z "$SOCL_OCL_LIB_OPENCL" ; then
-      run_socl_check=no
+   if test -n "$SOCL_OCL_LIB_OPENCL" -a -f $SOCL_OCL_LIB_OPENCL ; then
+      run_socl_check=yes
+      SOCL_OCL_LIB_OPENCL_DIR=$(dirname $SOCL_OCL_LIB_OPENCL)
+      AC_SUBST(SOCL_OCL_LIB_OPENCL_DIR)
    else
-       run_socl_check=yes
-       AC_SUBST(SOCL_OCL_LIB_OPENCL)
+      run_socl_check=no
    fi
 else
    run_socl_check=no
