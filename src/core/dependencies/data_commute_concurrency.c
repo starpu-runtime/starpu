@@ -126,14 +126,15 @@ int _starpu_LockOrDelegatePostOrPerform(int (*func)(void*), void* data)
 
 		/* Compute task of other and manage ticket */
 		while(1)
-	{
+		{
 			STARPU_ASSERT(atomic_load(&dlAtomicCounter) > 0);
 
 			/* Dec ticket and see if something else has to be done */
 			int removedPosition = atomic_load(&dlAtomicCounter);
-			while(!atomic_compare_exchange_weak(&dlAtomicCounter, &removedPosition,removedPosition-1));
+			while(!atomic_compare_exchange_weak(&dlAtomicCounter, &removedPosition,removedPosition-1))
+				;
 			if(removedPosition-1 == 0)
-		{
+			{
 				break;
 			}
 
@@ -141,7 +142,7 @@ int _starpu_LockOrDelegatePostOrPerform(int (*func)(void*), void* data)
 			struct LockOrDelegateListNode* removedNode = (struct LockOrDelegateListNode*)atomic_load(&dlListHead);
 			// Maybe it has not been pushed yet (listHead.load() == nullptr)
 			while((removedNode = (struct LockOrDelegateListNode*)atomic_load(&dlListHead)) == NULL || !atomic_compare_exchange_weak(&dlListHead, &removedNode,removedNode->next))
-			;
+				;
 			STARPU_ASSERT(removedNode);
 			/* call the task */
 			(*removedNode->func)(removedNode->data);
