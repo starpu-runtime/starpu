@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011, 2014  Université de Bordeaux
+ * Copyright (C) 2010-2011, 2014-2015  Université de Bordeaux
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2015  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -70,14 +71,17 @@ static int _starpu_compar_handles(const struct _starpu_data_descr *descrA,
 	struct _starpu_data_state *dataA = descrA->handle;
 	struct _starpu_data_state *dataB = descrB->handle;
 
-    // WIP_COMMUTE Begin
-    if(descrA->mode & STARPU_COMMUTE){
-        return 1;
-    }
-    if(descrB->mode & STARPU_COMMUTE){
-        return -1;
-    }
-    // WIP_COMMUTE End
+	// WIP_COMMUTE Begin
+	/* Put commute accesses last (without caring about the order) */
+	if(descrA->mode & STARPU_COMMUTE)
+	{
+		return 1;
+	}
+	if(descrB->mode & STARPU_COMMUTE)
+	{
+		return -1;
+	}
+	// WIP_COMMUTE End
 
 	/* Perhaps we have the same piece of data */
 	if (dataA == dataB)
