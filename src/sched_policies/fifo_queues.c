@@ -55,6 +55,7 @@ struct _starpu_fifo_taskq *_starpu_create_fifo(void)
 	fifo->exp_start = starpu_timing_now();
 	fifo->exp_len = 0.0;
 	fifo->exp_end = fifo->exp_start;
+	fifo->exp_len_per_priority = NULL;
 
 	return fifo;
 }
