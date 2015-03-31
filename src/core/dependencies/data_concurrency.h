@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012  Université de Bordeaux
+ * Copyright (C) 2010, 2012, 2015  Université de Bordeaux
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -21,8 +21,20 @@
 #include <core/jobs.h>
 
 unsigned _starpu_submit_job_enforce_data_deps(struct _starpu_job *j);
+int _starpu_submit_job_enforce_commute_deps(void* inData);
+
+/* These are the arguments passed to _submit_job_enforce_commute_deps */
+struct starpu_enforce_commute_args
+{
+	struct _starpu_job *j;
+	unsigned buf;
+	unsigned nbuffers;
+};
+
+int _starpu_LockOrDelegatePostOrPerform(int (*func)(void*), void* data);
 
 int _starpu_notify_data_dependencies(starpu_data_handle_t handle);
+int _starpu_notify_commute_dependencies(void* inData);
 
 unsigned _starpu_attempt_to_submit_data_request_from_apps(starpu_data_handle_t handle,
 							  enum starpu_data_access_mode mode,
