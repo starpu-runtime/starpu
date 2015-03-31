@@ -157,9 +157,9 @@ int _starpu_LockOrDelegatePostOrPerform(int (*func)(void*), void* data)
 static struct LockOrDelegateListNode* dlTaskListHead = NULL;
 
 /* To protect the list of tasks */
-static pthread_mutex_t dlListLock = PTHREAD_MUTEX_INITIALIZER;
+static starpu_pthread_mutex_t dlListLock = STARPU_PTHREAD_MUTEX_INITIALIZER;
 /* To know who is responsible to compute all the tasks */
-static pthread_mutex_t dlWorkLock = PTHREAD_MUTEX_INITIALIZER;
+static starpu_pthread_mutex_t dlWorkLock = STARPU_PTHREAD_MUTEX_INITIALIZER;
 
 /* Post a task to perfom if possible, otherwise put it in the list
  * If we can perfom this task, we may also perfom all the tasks in the list
@@ -174,38 +174,32 @@ int _starpu_LockOrDelegatePostOrPerform(int (*func)(void*), void* data)
 	STARPU_ASSERT(newNode);
 	newNode->data = data;
 	newNode->func = func;
+	int ret;
 
 	/* insert the node */
-	int ret = pthread_mutex_lock(&dlListLock);
-	STARPU_ASSERT(ret == 0);
+	STARPU_PTHREAD_MUTEX_LOCK(&dlListLock);
 	newNode->next = dlTaskListHead;
 	dlTaskListHead = newNode;
-	ret = pthread_mutex_unlock(&dlListLock);
-	STARPU_ASSERT(ret == 0);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&dlListLock);
 
 	/* See if we can compute all the tasks */
-	if((ret = pthread_mutex_trylock(&dlWorkLock)) == 0)
+	if((ret = STARPU_PTHREAD_MUTEX_TRYLOCK(&dlWorkLock)) == 0)
 	{
-		ret = pthread_mutex_lock(&dlListLock);
-		STARPU_ASSERT(ret == 0);
+		STARPU_PTHREAD_MUTEX_LOCK(&dlListLock);
 		while(dlTaskListHead != 0)
 		{
 			struct LockOrDelegateListNode* iter = dlTaskListHead;
 			dlTaskListHead = dlTaskListHead->next;
-			ret = pthread_mutex_unlock(&dlListLock);
-			STARPU_ASSERT(ret == 0);
+			STARPU_PTHREAD_MUTEX_UNLOCK(&dlListLock);
 
 			(*iter->func)(iter->data);
 			free(iter);
-			ret = pthread_mutex_lock(&dlListLock);
-			STARPU_ASSERT(ret == 0);
+			STARPU_PTHREAD_MUTEX_LOCK(&dlListLock);
 		}
 
 		/* First unlock the list! this is important */
-		ret = pthread_mutex_unlock(&dlWorkLock);
-		STARPU_ASSERT(ret == 0);
-		ret = pthread_mutex_unlock(&dlListLock);
-		STARPU_ASSERT(ret == 0);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&dlWorkLock);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&dlListLock);
 
 		return 1;
 	}
@@ -217,7 +211,7 @@ int _starpu_LockOrDelegatePostOrPerform(int (*func)(void*), void* data)
 
 #else // NO_LOCK_OR_DELEGATE
 
-pthread_mutex_t commute_global_mutex = PTHREAD_MUTEX_INITIALIZER;
+starpu_pthread_mutex_t commute_global_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 
 #endif
 
@@ -254,8 +248,7 @@ int _starpu_submit_job_enforce_commute_deps(void* inData)
 #else // NO_LOCK_OR_DELEGATE
 int _submit_job_enforce_commute_deps(struct _starpu_job *j, unsigned buf, unsigned nbuffers)
 {
-	int ret = pthread_mutex_lock(&commute_global_mutex);
-	STARPU_ASSERT(ret == 0);
+	STARPU_PTHREAD_MUTEX_LOCK(&commute_global_mutex);
 #endif
 
 	const unsigned nb_non_commute_buff = buf;
@@ -332,8 +325,7 @@ int _submit_job_enforce_commute_deps(struct _starpu_job *j, unsigned buf, unsign
 		}
 
 #ifdef NO_LOCK_OR_DELEGATE
-		ret = pthread_mutex_unlock(&commute_global_mutex);
-		STARPU_ASSERT(ret == 0);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&commute_global_mutex);
 #endif
 		return 1;
 	}
@@ -341,8 +333,7 @@ int _submit_job_enforce_commute_deps(struct _starpu_job *j, unsigned buf, unsign
 	// all_commutes_available is true
 	_starpu_push_task(j);
 #ifdef NO_LOCK_OR_DELEGATE
-	ret = pthread_mutex_unlock(&commute_global_mutex);
-	STARPU_ASSERT(ret == 0);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&commute_global_mutex);
 #endif
 	return 0;
 }
@@ -354,15 +345,13 @@ int _starpu_notify_commute_dependencies(void* inData)
 #else // NO_LOCK_OR_DELEGATE
 int _starpu_notify_commute_dependencies(starpu_data_handle_t handle)
 {
-	int ret = pthread_mutex_lock(&commute_global_mutex);
-	STARPU_ASSERT(ret == 0);
+	STARPU_PTHREAD_MUTEX_LOCK(&commute_global_mutex);
 #endif
 	/* Since the request has been posted the handle may have been proceed and released */
 	if(handle->commute_req_list == NULL)
 	{
 #ifdef NO_LOCK_OR_DELEGATE
-		ret = pthread_mutex_unlock(&commute_global_mutex);
-		STARPU_ASSERT(ret == 0);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&commute_global_mutex);
 #endif
 		return 1;
 	}
@@ -446,8 +435,7 @@ int _starpu_notify_commute_dependencies(starpu_data_handle_t handle)
 
 			/* release global mutex */
 #ifdef NO_LOCK_OR_DELEGATE
-			ret = pthread_mutex_unlock(&commute_global_mutex);
-			STARPU_ASSERT(ret == 0);
+			STARPU_PTHREAD_MUTEX_UNLOCK(&commute_global_mutex);
 #endif
 			/* We need to lock when returning 0 */
 			return 0;
@@ -470,8 +458,7 @@ int _starpu_notify_commute_dependencies(starpu_data_handle_t handle)
 	}
 	/* no task has been pushed */
 #ifdef NO_LOCK_OR_DELEGATE
-	ret = pthread_mutex_unlock(&commute_global_mutex);
-	STARPU_ASSERT(ret == 0);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&commute_global_mutex);
 #endif
 	return 1;
 }
