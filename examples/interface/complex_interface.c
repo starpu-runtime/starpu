@@ -116,16 +116,6 @@ static uint32_t complex_footprint(starpu_data_handle_t handle)
 	return starpu_hash_crc32c_be(starpu_complex_get_nx(handle), 0);
 }
 
-static void *complex_handle_to_pointer(starpu_data_handle_t handle, unsigned node)
-{
-	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
-
-	struct starpu_complex_interface *complex_interface = (struct starpu_complex_interface *)
-		starpu_data_get_interface_on_node(handle, node);
-
-	return (void*) complex_interface->real;
-}
-
 static int complex_pack_data(starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count)
 {
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
@@ -203,7 +193,7 @@ static struct starpu_data_interface_ops interface_complex_ops =
 	.footprint = complex_footprint,
 	.interfaceid = STARPU_UNKNOWN_INTERFACE_ID,
 	.interface_size = sizeof(struct starpu_complex_interface),
-	.handle_to_pointer = complex_handle_to_pointer,
+	.handle_to_pointer = NULL,
 	.pack_data = complex_pack_data,
 	.unpack_data = complex_unpack_data,
 	.describe = complex_describe
