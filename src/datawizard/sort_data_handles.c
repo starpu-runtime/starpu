@@ -70,6 +70,15 @@ static int _starpu_compar_handles(const struct _starpu_data_descr *descrA,
 	struct _starpu_data_state *dataA = descrA->handle;
 	struct _starpu_data_state *dataB = descrB->handle;
 
+    // WIP_COMMUTE Begin
+    if(descrA->mode & STARPU_COMMUTE){
+        return 1;
+    }
+    if(descrB->mode & STARPU_COMMUTE){
+        return -1;
+    }
+    // WIP_COMMUTE End
+
 	/* Perhaps we have the same piece of data */
 	if (dataA == dataB)
 	{
