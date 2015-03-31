@@ -36,11 +36,7 @@
 
 /* size of one vector */
 #ifdef STARPU_QUICK_CHECK
-#  if SIZEOF_VOID_P == 4
-#    define	NX	(32*128/sizeof(double))
-#  else
-#    define	NX	(32*65536/sizeof(double))
-#  endif
+#  define	NX	(32*128/sizeof(double))
 #else
 #  if SIZEOF_VOID_P == 4
 #    define	NX	(32*1024/sizeof(double))
