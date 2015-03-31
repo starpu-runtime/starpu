@@ -82,25 +82,15 @@ static struct _starpu_data_requester *may_unlock_data_req_list_head(starpu_data_
 		return _starpu_data_requester_list_pop_front(req_list);
 
 	/* Already writing to it, do not let another write access through */
-	// WIP_COMMUTE Was
-	// if (handle->current_mode == STARPU_W)
-	//	return NULL;
-	// WIP_COMMUTE Begin
 	if (handle->current_mode & STARPU_W)
 		return NULL;
-	// WIP_COMMUTE End
 
 	/* data->current_mode == STARPU_R, so we can process more readers */
 	struct _starpu_data_requester *r = _starpu_data_requester_list_front(req_list);
 
 	enum starpu_data_access_mode r_mode = r->mode;
-	// WIP_COMMUTE Was
-	// if (r_mode == STARPU_RW)
-	//	r_mode = STARPU_W;
-	// WIP_COMMUTE Begin
-	if (r_mode & STARPU_RW)
+	if ((r_mode & STARPU_RW) == STARPU_RW)
 		r_mode &= ~STARPU_R;
-	// WIP_COMMUTE End
 
 	/* If this is a STARPU_R, STARPU_SCRATCH or STARPU_REDUX type of
 	 * access, we only proceed if the current mode is the same as the
