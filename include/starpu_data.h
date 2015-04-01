@@ -81,6 +81,10 @@ int starpu_data_acquire_on_node_cb_sequential_consistency(starpu_data_handle_t h
 void starpu_data_release(starpu_data_handle_t handle);
 void starpu_data_release_on_node(starpu_data_handle_t handle, int node);
 
+typedef struct starpu_arbiter *starpu_arbiter_t;
+starpu_arbiter_t starpu_arbiter_create(void);
+void starpu_data_assign_arbiter(starpu_data_handle_t handle, starpu_arbiter_t arbiter);
+
 void starpu_data_display_memory_stats();
 
 #define starpu_data_malloc_pinned_if_possible	starpu_malloc

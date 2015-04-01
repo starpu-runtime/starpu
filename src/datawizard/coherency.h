@@ -233,6 +233,7 @@ struct _starpu_data_state
 	_starpu_data_handle_unregister_hook unregister_hook;
 
 	// WIP_COMMUTE Begin
+	struct starpu_arbiter *arbiter;
 	struct _starpu_data_requester_list *commute_req_list;
 	// WIP_COMMUTE End
 };

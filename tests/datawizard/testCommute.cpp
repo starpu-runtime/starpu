@@ -67,6 +67,7 @@ int main(int /*argc*/, char** /*argv*/)
 {
 	int ret;
 	struct starpu_conf conf;
+	starpu_arbiter_t arbiter, arbiter2;
 	ret = starpu_conf_init(&conf);
 	STARPU_ASSERT(ret == 0);
 	//conf.ncpus = 1;//// 4
@@ -107,6 +108,8 @@ int main(int /*argc*/, char** /*argv*/)
 
 	std::vector<starpu_data_handle_t> handleA(nbA);
 	std::vector<int> dataA(nbA);
+	arbiter = starpu_arbiter_create();
+	arbiter2 = starpu_arbiter_create();
 	for(int idx = 0 ; idx < nbA ; ++idx)
 	{
 		dataA[idx] = idx;
@@ -114,6 +117,7 @@ int main(int /*argc*/, char** /*argv*/)
 	for(int idxHandle = 0 ; idxHandle < nbA ; ++idxHandle)
 	{
 		starpu_variable_data_register(&handleA[idxHandle], 0, (uintptr_t)&dataA[idxHandle], sizeof(dataA[idxHandle]));
+		starpu_data_assign_arbiter(handleA[idxHandle], arbiter);
 	}
 
 	//////////////////////////////////////////////////////
@@ -141,6 +145,53 @@ int main(int /*argc*/, char** /*argv*/)
 
 	//////////////////////////////////////////////////////
 	FPRINTF(stdout,"Wait task\n");
+
+	starpu_task_wait_for_all();
+
+	//////////////////////////////////////////////////////
+	FPRINTF(stdout,"Release data\n");
+
+	for(int idxHandle = 0 ; idxHandle < nbA ; ++idxHandle)
+	{
+		starpu_data_unregister(handleA[idxHandle]);
+	}
+
+	//////////////////////////////////////////////////////
+	FPRINTF(stdout,"Proceed gain, with several arbiters\n");
+
+	for(int idxHandle = 0 ; idxHandle < nbA ; ++idxHandle)
+	{
+		starpu_variable_data_register(&handleA[idxHandle], 0, (uintptr_t)&dataA[idxHandle], sizeof(dataA[idxHandle]));
+		starpu_data_assign_arbiter(handleA[idxHandle], idxHandle%2?arbiter:arbiter2);
+	}
+
+#ifdef NOTYET
+	//////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////
+	FPRINTF(stdout,"Submit tasks\n");
+
+	for(int idxHandleA1 = 0 ; idxHandleA1 < nbA ; ++idxHandleA1)
+	{
+		ret = starpu_task_insert(&slowCodelete,
+				(STARPU_RW|STARPU_COMMUTE), handleA[idxHandleA1],
+				0);
+		if (ret == -ENODEV) goto out;
+		for(int idxHandleA2 = 0 ; idxHandleA2 < nbA ; ++idxHandleA2)
+		{
+			if(idxHandleA1 != idxHandleA2)
+			{
+				ret = starpu_task_insert(&normalCodelete,
+						(STARPU_RW|STARPU_COMMUTE), handleA[idxHandleA1],
+						(STARPU_RW|STARPU_COMMUTE), handleA[idxHandleA2],
+						0);
+				if (ret == -ENODEV) goto out;
+			}
+		}
+	}
+
+	//////////////////////////////////////////////////////
+	FPRINTF(stdout,"Wait task\n");
+#endif
 
 out:
 	starpu_task_wait_for_all();

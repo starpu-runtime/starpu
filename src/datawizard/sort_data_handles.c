@@ -94,12 +94,16 @@ static int _starpu_compar_handles(const struct _starpu_data_descr *descrA,
 	}
 
 	// WIP_COMMUTE Begin
-	/* Put commute accesses after non-commute */
-	if (descrA->mode & STARPU_COMMUTE && !(descrB->mode & STARPU_COMMUTE))
+	/* Put arbitered accesses after non-arbitered */
+	if (dataA->arbiter && !(dataB->arbiter))
 		return 1;
-	if (descrB->mode & STARPU_COMMUTE && !(descrA->mode & STARPU_COMMUTE))
+	if (dataB->arbiter && !(dataA->arbiter))
 		return -1;
-	/* If both are commute, we'll sort them by handle */
+	if (dataA->arbiter != dataB->arbiter)
+		/* Both are arbitered, sort by arbiter pointer order */
+		return ((dataA->arbiter < dataB->arbiter)?-1:1);
+	/* If both are arbitered by the same arbiter (or they are both not
+	 * arbitered), we'll sort them by handle */
 	// WIP_COMMUTE End
 
 	/* In case we have data/subdata from different trees */

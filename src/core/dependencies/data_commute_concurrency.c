@@ -21,7 +21,7 @@
 #include <common/starpu_spinlock.h>
 #include <datawizard/sort_data_handles.h>
 
-#define LOCK_OR_DELEGATE
+//#define LOCK_OR_DELEGATE
 
 /*
  * This implements a solution for the dining philosophers problem (see
@@ -81,6 +81,21 @@
  * - return 1;
  */
 
+struct starpu_arbiter
+{
+#ifdef LOCK_OR_DELEGATE
+/* The list of task to perform */
+	struct LockOrDelegateListNode* dlTaskListHead;
+
+/* To protect the list of tasks */
+	struct _starpu_spinlock dlListLock;
+/* Whether somebody is working on the list */
+	int working;
+#else /* LOCK_OR_DELEGATE */
+	starpu_pthread_mutex_t mutex;
+#endif /* LOCK_OR_DELEGATE */
+};
+
 #ifdef LOCK_OR_DELEGATE
 
 /* In case of congestion, we don't want to needlessly wait for the arbiter lock
@@ -99,20 +114,12 @@ struct LockOrDelegateListNode
 	struct LockOrDelegateListNode* next;
 };
 
-/* The list of task to perform */
-static struct LockOrDelegateListNode* dlTaskListHead = NULL;
-
-/* To protect the list of tasks */
-static starpu_pthread_mutex_t dlListLock = STARPU_PTHREAD_MUTEX_INITIALIZER;
-/* Whether somebody is working on the list */
-static int working;
-
 /* Post a task to perfom if possible, otherwise put it in the list
  * If we can perfom this task, we may also perfom all the tasks in the list
  * This function return 1 if the task (and maybe some others) has been done
  * by the calling thread and 0 otherwise (if the task has just been put in the list)
  */
-static int _starpu_LockOrDelegatePostOrPerform(void (*func)(void*), void* data)
+static int _starpu_LockOrDelegatePostOrPerform(starpu_arbiter_t arbiter, void (*func)(void*), void* data)
 {
 	struct LockOrDelegateListNode* newNode = malloc(sizeof(*newNode)), *iter;
 	int did = 0;
@@ -120,25 +127,24 @@ static int _starpu_LockOrDelegatePostOrPerform(void (*func)(void*), void* data)
 	newNode->data = data;
 	newNode->func = func;
 
-	STARPU_PTHREAD_MUTEX_LOCK(&dlListLock);
-	if (working)
+	_starpu_spin_lock(&arbiter->dlListLock);
+	if (arbiter->working)
 	{
 		/* Somebody working on it, insert the node */
-		newNode->next = dlTaskListHead;
-		dlTaskListHead = newNode;
+		newNode->next = arbiter->dlTaskListHead;
+		arbiter->dlTaskListHead = newNode;
 	}
 	else
 	{
 		/* Nobody working on the list, we'll work */
-		working = 1;
+		arbiter->working = 1;
 
 		/* work on what was pushed so far first */
-		iter = dlTaskListHead;
-		dlTaskListHead = NULL;
-		STARPU_PTHREAD_MUTEX_UNLOCK(&dlListLock);
-		while(iter != NULL)
+		iter = arbiter->dlTaskListHead;
+		arbiter->dlTaskListHead = NULL;
+		_starpu_spin_unlock(&arbiter->dlListLock);
+		while (iter != NULL)
 		{
-
 			(*iter->func)(iter->data);
 			free(iter);
 			iter = iter->next;
@@ -149,32 +155,29 @@ static int _starpu_LockOrDelegatePostOrPerform(void (*func)(void*), void* data)
 		free(newNode);
 		did = 1;
 
-		STARPU_PTHREAD_MUTEX_LOCK(&dlListLock);
+		_starpu_spin_lock(&arbiter->dlListLock);
 		/* And finish working on anything that could have been pushed
 		 * in the meanwhile */
-		while(dlTaskListHead != 0)
+		while (arbiter->dlTaskListHead != 0)
 		{
-			iter = dlTaskListHead;
-			dlTaskListHead = dlTaskListHead->next;
-			STARPU_PTHREAD_MUTEX_UNLOCK(&dlListLock);
+			iter = arbiter->dlTaskListHead;
+			arbiter->dlTaskListHead = arbiter->dlTaskListHead->next;
+			_starpu_spin_unlock(&arbiter->dlListLock);
 
 			(*iter->func)(iter->data);
 			free(iter);
-			STARPU_PTHREAD_MUTEX_LOCK(&dlListLock);
+			_starpu_spin_lock(&arbiter->dlListLock);
 		}
 
-		working = 0;
+		arbiter->working = 0;
 	}
 
-	STARPU_PTHREAD_MUTEX_UNLOCK(&dlListLock);
+	_starpu_spin_unlock(&arbiter->dlListLock);
 	return did;
 }
 
-#else // LOCK_OR_DELEGATE
-
-starpu_pthread_mutex_t commute_global_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
-
 #endif
+
 
 /* This function find a node that contains the parameter j as job and remove it from the list
  * the function return 0 if a node was found and deleted, 1 otherwise
@@ -220,20 +223,24 @@ static void __starpu_submit_job_enforce_commute_deps(void* inData)
 void _starpu_submit_job_enforce_commute_deps(struct _starpu_job *j, unsigned buf, unsigned nbuffers)
 {
 	struct starpu_enforce_commute_args* args = malloc(sizeof(*args));
+	starpu_data_handle_t handle = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, buf);
 	args->j = j;
 	args->buf = buf;
 	args->nbuffers = nbuffers;
 	/* The function will delete args */
-	_starpu_LockOrDelegatePostOrPerform(&__starpu_submit_job_enforce_commute_deps, args);
+	_starpu_LockOrDelegatePostOrPerform(handle->arbiter, &__starpu_submit_job_enforce_commute_deps, args);
 }
 
 static void ___starpu_submit_job_enforce_commute_deps(struct _starpu_job *j, unsigned buf, unsigned nbuffers)
 {
+	starpu_arbiter_t arbiter = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, buf)->arbiter;
 #else // LOCK_OR_DELEGATE
 void _starpu_submit_job_enforce_commute_deps(struct _starpu_job *j, unsigned buf, unsigned nbuffers)
 {
-	STARPU_PTHREAD_MUTEX_LOCK(&commute_global_mutex);
+	starpu_arbiter_t arbiter = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, buf)->arbiter;
+	STARPU_PTHREAD_MUTEX_LOCK(&arbiter->mutex);
 #endif
+	STARPU_ASSERT(arbiter);
 
 	const unsigned nb_non_commute_buff = buf;
 	unsigned idx_buf_commute;
@@ -250,7 +257,7 @@ void _starpu_submit_job_enforce_commute_deps(struct _starpu_job *j, unsigned buf
 			 * _starpu_compar_handles.  */
 			continue;
 		/* we post all commute  */
-		STARPU_ASSERT(mode & STARPU_COMMUTE);
+		STARPU_ASSERT(handle->arbiter == arbiter);
 
 		_starpu_spin_lock(&handle->header_lock);
 		if(handle->refcnt == 0)
@@ -291,7 +298,7 @@ void _starpu_submit_job_enforce_commute_deps(struct _starpu_job *j, unsigned buf
 			starpu_data_handle_t cancel_handle = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, idx_buf_cancel);
 			enum starpu_data_access_mode cancel_mode = _STARPU_JOB_GET_ORDERED_BUFFER_MODE(j, idx_buf_cancel);
 
-			STARPU_ASSERT(cancel_mode & STARPU_COMMUTE);
+			STARPU_ASSERT(cancel_handle->arbiter == arbiter);
 
 			struct _starpu_data_requester *r = _starpu_data_requester_new();
 			r->mode = cancel_mode;
@@ -314,7 +321,7 @@ void _starpu_submit_job_enforce_commute_deps(struct _starpu_job *j, unsigned buf
 		}
 
 #ifndef LOCK_OR_DELEGATE
-		STARPU_PTHREAD_MUTEX_UNLOCK(&commute_global_mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&arbiter->mutex);
 #endif
 		return 1;
 	}
@@ -322,7 +329,7 @@ void _starpu_submit_job_enforce_commute_deps(struct _starpu_job *j, unsigned buf
 	// all_commutes_available is true
 	_starpu_push_task(j);
 #ifndef LOCK_OR_DELEGATE
-	STARPU_PTHREAD_MUTEX_UNLOCK(&commute_global_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&arbiter->mutex);
 #endif
 	return 0;
 }
@@ -336,31 +343,34 @@ void __starpu_notify_commute_dependencies(void* inData)
 }
 void _starpu_notify_commute_dependencies(starpu_data_handle_t handle)
 {
-	_starpu_LockOrDelegatePostOrPerform(&__starpu_notify_commute_dependencies, handle);
+	_starpu_LockOrDelegatePostOrPerform(handle->arbiter, &__starpu_notify_commute_dependencies, handle);
 }
 void ___starpu_notify_commute_dependencies(starpu_data_handle_t handle)
 {
 #else // LOCK_OR_DELEGATE
 void _starpu_notify_commute_dependencies(starpu_data_handle_t handle)
 {
-	STARPU_PTHREAD_MUTEX_LOCK(&commute_global_mutex);
 #endif
+	starpu_arbiter_t arbiter = handle->arbiter;
+#ifndef LOCK_OR_DELEGATE
+	STARPU_PTHREAD_MUTEX_LOCK(&arbiter->mutex);
+#endif
+
 	/* Since the request has been posted the handle may have been proceed and released */
 	if(handle->commute_req_list == NULL)
 	{
 #ifndef LOCK_OR_DELEGATE
-		STARPU_PTHREAD_MUTEX_UNLOCK(&commute_global_mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&arbiter->mutex);
 #endif
 		return 1;
 	}
-	/* no one has the right to work on commute_req_list without a lock on commute_global_mutex
+	/* no one has the right to work on commute_req_list without a lock on mutex
 	   so we do not need to lock the handle for safety */
 	struct _starpu_data_requester *r;
 	r = _starpu_data_requester_list_begin(handle->commute_req_list); //_head;
 	while(r)
 	{
 		struct _starpu_job* j = r->j;
-		STARPU_ASSERT(r->mode & STARPU_COMMUTE);
 		unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(j->task);
 		unsigned nb_non_commute_buff;
 		/* find the position of commute buffers */
@@ -373,7 +383,7 @@ void _starpu_notify_commute_dependencies(starpu_data_handle_t handle)
 				 * _starpu_compar_handles.  */
 				continue;
 			enum starpu_data_access_mode mode = _STARPU_JOB_GET_ORDERED_BUFFER_MODE(j, nb_non_commute_buff);
-			if(mode & STARPU_COMMUTE)
+			if(handle_commute->arbiter == arbiter)
 			{
 				break;
 			}
@@ -392,12 +402,12 @@ void _starpu_notify_commute_dependencies(starpu_data_handle_t handle)
 				continue;
 			/* we post all commute  */
 			enum starpu_data_access_mode mode = _STARPU_JOB_GET_ORDERED_BUFFER_MODE(j, idx_buf_commute);
-			STARPU_ASSERT(mode & STARPU_COMMUTE);
+			STARPU_ASSERT(handle_commute->arbiter == arbiter);
 
 			_starpu_spin_lock(&handle_commute->header_lock);
 			if(handle_commute->refcnt != 0)
 			{
-				/* handle is not available */
+				/* handle is not available, record ourself */
 				_starpu_spin_unlock(&handle_commute->header_lock);
 				all_commutes_available = 0;
 				break;
@@ -417,7 +427,7 @@ void _starpu_notify_commute_dependencies(starpu_data_handle_t handle)
 					continue;
 				/* we post all commute  */
 				enum starpu_data_access_mode mode = _STARPU_JOB_GET_ORDERED_BUFFER_MODE(j, idx_buf_commute);
-				STARPU_ASSERT(mode & STARPU_COMMUTE);
+				STARPU_ASSERT(handle_commute->arbiter == arbiter);
 
 				_starpu_spin_lock(&handle_commute->header_lock);
 				STARPU_ASSERT(handle_commute->refcnt == 1);
@@ -432,7 +442,7 @@ void _starpu_notify_commute_dependencies(starpu_data_handle_t handle)
 				}
 				_starpu_spin_unlock(&handle_commute->header_lock);
 			}
-			/* delete list node */
+			/* Remove and delete list node */
 			_starpu_data_requester_delete(r);
 
 			/* push the task */
@@ -440,7 +450,7 @@ void _starpu_notify_commute_dependencies(starpu_data_handle_t handle)
 
 			/* release global mutex */
 #ifndef LOCK_OR_DELEGATE
-			STARPU_PTHREAD_MUTEX_UNLOCK(&commute_global_mutex);
+			STARPU_PTHREAD_MUTEX_UNLOCK(&arbiter->mutex);
 #endif
 			/* We need to lock when returning 0 */
 			return 0;
@@ -463,7 +473,30 @@ void _starpu_notify_commute_dependencies(starpu_data_handle_t handle)
 	}
 	/* no task has been pushed */
 #ifndef LOCK_OR_DELEGATE
-	STARPU_PTHREAD_MUTEX_UNLOCK(&commute_global_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&arbiter->mutex);
 #endif
 	return 1;
+}
+
+starpu_arbiter_t starpu_arbiter_create(void)
+{
+	starpu_arbiter_t res = malloc(sizeof(*res));
+
+#ifdef LOCK_OR_DELEGATE
+	res->dlTaskListHead = NULL;
+	_starpu_spin_init(&res->dlListLock);
+	res->working = 0;
+#else /* LOCK_OR_DELEGATE */
+	STARPU_PTHREAD_MUTEX_INIT(&res->mutex, NULL);
+#endif /* LOCK_OR_DELEGATE */
+
+	return res;
+}
+
+void starpu_data_assign_arbiter(starpu_data_handle_t handle, starpu_arbiter_t arbiter)
+{
+	STARPU_ASSERT_MSG(!handle->arbiter, "handle can only be assigned one arbiter");
+	STARPU_ASSERT_MSG(!handle->refcnt, "arbiter can be assigned to handle only right after initialization");
+	STARPU_ASSERT_MSG(!handle->busy_count, "arbiter can be assigned to handle only right after initialization");
+	handle->arbiter = arbiter;
 }

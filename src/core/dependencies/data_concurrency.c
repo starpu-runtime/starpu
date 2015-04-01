@@ -51,8 +51,8 @@
  * The same mechanism is used for application data aquisition
  * (starpu_data_acquire).
  *
- * For COMMUTE data, we have a second step, performed after this first step,
- * implemented in data_commute_concurrency.c
+ * For data with an arbiter, we have a second step, performed after this first
+ * step, implemented in data_commute_concurrency.c
  */
 
 /*
@@ -256,10 +256,10 @@ static unsigned _submit_job_enforce_data_deps(struct _starpu_job *j, unsigned st
 	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(j->task);
 	for (buf = start_buffer_index; buf < nbuffers; buf++)
 	{
+		starpu_data_handle_t handle = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, buf);
 		if (buf)
 		{
 			starpu_data_handle_t handle_m1 = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, buf-1);
-			starpu_data_handle_t handle = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, buf);
 			if (handle_m1 == handle)
 				/* We have already requested this data, skip it. This
 				 * depends on ordering putting writes before reads, see
@@ -270,10 +270,10 @@ static unsigned _submit_job_enforce_data_deps(struct _starpu_job *j, unsigned st
                 j->task->status = STARPU_TASK_BLOCKED_ON_DATA;
 
 		// WIP_COMMUTE Begin
-		enum starpu_data_access_mode mode = _STARPU_JOB_GET_ORDERED_BUFFER_MODE(j, buf);
-		if(mode & STARPU_COMMUTE)
+		if(handle->arbiter)
 		{
-			/* We arrived on the commute we stop and proceed with the commute second step.  */
+			/* We arrived on an arbitered data, we stop and proceed
+			 * with the arbiter second step.  */
 			_starpu_submit_job_enforce_commute_deps(j, buf, nbuffers);
 			return 1;
 		}
@@ -436,12 +436,10 @@ int _starpu_notify_data_dependencies(starpu_data_handle_t handle)
 
 	if(handle->refcnt == 0 && handle->commute_req_list != NULL)
 	{
-		/* We need to delloc current handle because it is currently locked
-		 * but we alloc fist the global mutex and than the handles mutex
-		 */
 		_starpu_spin_unlock(&handle->header_lock);
+		/* _starpu_notify_commute_dependencies will handle its own locking */
 		_starpu_notify_commute_dependencies(handle);
-		/* We need to lock when returning 0 */
+		/* We have already unlocked */
 		return 1;
 	}
 	// WIP_COMMUTE End
