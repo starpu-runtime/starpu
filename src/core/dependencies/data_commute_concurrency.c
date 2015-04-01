@@ -21,7 +21,7 @@
 #include <common/starpu_spinlock.h>
 #include <datawizard/sort_data_handles.h>
 
-#define NO_LOCK_OR_DELEGATE
+#define LOCK_OR_DELEGATE
 
 /*
  * This implements a solution for the dining philosophers problem (see
@@ -86,7 +86,7 @@
  * support from the compiler
  */
 
-#ifndef NO_LOCK_OR_DELEGATE
+#ifdef LOCK_OR_DELEGATE
 
 /* A LockOrDelegate task list */
 struct LockOrDelegateListNode
@@ -224,7 +224,7 @@ static int _starpu_LockOrDelegatePostOrPerform(void (*func)(void*), void* data)
 
 #endif
 
-#else // NO_LOCK_OR_DELEGATE
+#else // LOCK_OR_DELEGATE
 
 starpu_pthread_mutex_t commute_global_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 
@@ -248,7 +248,7 @@ static unsigned remove_job_from_requester_list(struct _starpu_data_requester_lis
 	return 1;
 }
 
-#ifndef NO_LOCK_OR_DELEGATE
+#ifdef LOCK_OR_DELEGATE
 /* These are the arguments passed to _submit_job_enforce_commute_deps */
 struct starpu_enforce_commute_args
 {
@@ -283,7 +283,7 @@ void _starpu_submit_job_enforce_commute_deps(struct _starpu_job *j, unsigned buf
 
 static void ___starpu_submit_job_enforce_commute_deps(struct _starpu_job *j, unsigned buf, unsigned nbuffers)
 {
-#else // NO_LOCK_OR_DELEGATE
+#else // LOCK_OR_DELEGATE
 void _starpu_submit_job_enforce_commute_deps(struct _starpu_job *j, unsigned buf, unsigned nbuffers)
 {
 	STARPU_PTHREAD_MUTEX_LOCK(&commute_global_mutex);
@@ -362,7 +362,7 @@ void _starpu_submit_job_enforce_commute_deps(struct _starpu_job *j, unsigned buf
 			_starpu_spin_unlock(&cancel_handle->header_lock);
 		}
 
-#ifdef NO_LOCK_OR_DELEGATE
+#ifndef LOCK_OR_DELEGATE
 		STARPU_PTHREAD_MUTEX_UNLOCK(&commute_global_mutex);
 #endif
 		return 1;
@@ -370,13 +370,13 @@ void _starpu_submit_job_enforce_commute_deps(struct _starpu_job *j, unsigned buf
 
 	// all_commutes_available is true
 	_starpu_push_task(j);
-#ifdef NO_LOCK_OR_DELEGATE
+#ifndef LOCK_OR_DELEGATE
 	STARPU_PTHREAD_MUTEX_UNLOCK(&commute_global_mutex);
 #endif
 	return 0;
 }
 
-#ifndef NO_LOCK_OR_DELEGATE
+#ifdef LOCK_OR_DELEGATE
 void ___starpu_notify_commute_dependencies(starpu_data_handle_t handle);
 void __starpu_notify_commute_dependencies(void* inData)
 {
@@ -389,7 +389,7 @@ void _starpu_notify_commute_dependencies(starpu_data_handle_t handle)
 }
 void ___starpu_notify_commute_dependencies(starpu_data_handle_t handle)
 {
-#else // NO_LOCK_OR_DELEGATE
+#else // LOCK_OR_DELEGATE
 void _starpu_notify_commute_dependencies(starpu_data_handle_t handle)
 {
 	STARPU_PTHREAD_MUTEX_LOCK(&commute_global_mutex);
@@ -397,7 +397,7 @@ void _starpu_notify_commute_dependencies(starpu_data_handle_t handle)
 	/* Since the request has been posted the handle may have been proceed and released */
 	if(handle->commute_req_list == NULL)
 	{
-#ifdef NO_LOCK_OR_DELEGATE
+#ifndef LOCK_OR_DELEGATE
 		STARPU_PTHREAD_MUTEX_UNLOCK(&commute_global_mutex);
 #endif
 		return 1;
@@ -481,7 +481,7 @@ void _starpu_notify_commute_dependencies(starpu_data_handle_t handle)
 			_starpu_push_task(j);
 
 			/* release global mutex */
-#ifdef NO_LOCK_OR_DELEGATE
+#ifndef LOCK_OR_DELEGATE
 			STARPU_PTHREAD_MUTEX_UNLOCK(&commute_global_mutex);
 #endif
 			/* We need to lock when returning 0 */
@@ -504,7 +504,7 @@ void _starpu_notify_commute_dependencies(starpu_data_handle_t handle)
 		r = r->_next;
 	}
 	/* no task has been pushed */
-#ifdef NO_LOCK_OR_DELEGATE
+#ifndef LOCK_OR_DELEGATE
 	STARPU_PTHREAD_MUTEX_UNLOCK(&commute_global_mutex);
 #endif
 	return 1;
