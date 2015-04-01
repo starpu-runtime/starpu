@@ -165,7 +165,6 @@ int main(int /*argc*/, char** /*argv*/)
 		starpu_data_assign_arbiter(handleA[idxHandle], idxHandle%2?arbiter:arbiter2);
 	}
 
-#ifdef NOTYET
 	//////////////////////////////////////////////////////
 	//////////////////////////////////////////////////////
 	FPRINTF(stdout,"Submit tasks\n");
@@ -191,7 +190,6 @@ int main(int /*argc*/, char** /*argv*/)
 
 	//////////////////////////////////////////////////////
 	FPRINTF(stdout,"Wait task\n");
-#endif
 
 out:
 	starpu_task_wait_for_all();

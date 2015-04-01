@@ -113,6 +113,10 @@ static unsigned _starpu_attempt_to_submit_data_request(unsigned request_from_cod
 						       void (*callback)(void *), void *argcb,
 						       struct _starpu_job *j, unsigned buffer_index)
 {
+	/* TODO: implement */
+	if (handle->arbiter)
+		_STARPU_DISP("data acquisition not completely safe with arbitered handles\n");
+
 	if (mode == STARPU_RW)
 		mode = STARPU_W;
 
