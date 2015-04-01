@@ -22,20 +22,10 @@
 #include <core/jobs.h>
 
 unsigned _starpu_submit_job_enforce_data_deps(struct _starpu_job *j);
-int _starpu_submit_job_enforce_commute_deps(void* inData);
-
-/* These are the arguments passed to _submit_job_enforce_commute_deps */
-struct starpu_enforce_commute_args
-{
-	struct _starpu_job *j;
-	unsigned buf;
-	unsigned nbuffers;
-};
-
-int _starpu_LockOrDelegatePostOrPerform(int (*func)(void*), void* data);
+void _starpu_submit_job_enforce_commute_deps(struct _starpu_job *j, unsigned buf, unsigned nbuffers);
 
 int _starpu_notify_data_dependencies(starpu_data_handle_t handle);
-int _starpu_notify_commute_dependencies(void* inData);
+void _starpu_notify_commute_dependencies(starpu_data_handle_t handle);
 
 unsigned _starpu_attempt_to_submit_data_request_from_apps(starpu_data_handle_t handle,
 							  enum starpu_data_access_mode mode,

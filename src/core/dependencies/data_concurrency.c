@@ -288,16 +288,7 @@ static unsigned _submit_job_enforce_data_deps(struct _starpu_job *j, unsigned st
 	/* We arrive on the commutes */
 	if(buf != nbuffers)
 	{
-#ifndef NO_LOCK_OR_DELEGATE
-		struct starpu_enforce_commute_args* args = (struct starpu_enforce_commute_args*)malloc(sizeof(struct starpu_enforce_commute_args));
-		args->j = j;
-		args->buf = buf;
-		args->nbuffers = nbuffers;
-		/* The function will delete args */
-		_starpu_LockOrDelegatePostOrPerform(&_starpu_submit_job_enforce_commute_deps, args);
-#else // NO_LOCK_OR_DELEGATE
 		_starpu_submit_job_enforce_commute_deps(j, buf, nbuffers);
-#endif
 		return 1;
 	}
 	// WIP_COMMUTE End
@@ -457,11 +448,7 @@ int _starpu_notify_data_dependencies(starpu_data_handle_t handle)
 		 * but we alloc fist the global mutex and than the handles mutex
 		 */
 		_starpu_spin_unlock(&handle->header_lock);
-#ifndef NO_LOCK_OR_DELEGATE
-		_starpu_LockOrDelegatePostOrPerform(&_starpu_notify_commute_dependencies, handle);
-#else // NO_LOCK_OR_DELEGATE
 		_starpu_notify_commute_dependencies(handle);
-#endif
 		/* We need to lock when returning 0 */
 		return 1;
 	}

@@ -21,7 +21,7 @@
 #include <common/starpu_spinlock.h>
 #include <datawizard/sort_data_handles.h>
 
-//#define NO_LOCK_OR_DELEGATE
+#define NO_LOCK_OR_DELEGATE
 
 /*
  * This implements a solution for the dining philosophers problem (see
@@ -91,7 +91,7 @@
 /* A LockOrDelegate task list */
 struct LockOrDelegateListNode
 {
-	int (*func)(void*);
+	void (*func)(void*);
 	void* data;
 	struct LockOrDelegateListNode* next;
 };
@@ -111,7 +111,7 @@ static _Atomic struct LockOrDelegateListNode* dlListHead;
  * This function return 1 if the task (and maybe some others) has been done
  * by the calling thread and 0 otherwise (if the task has just been put in the list)
  */
-int _starpu_LockOrDelegatePostOrPerform(int (*func)(void*), void* data)
+static int _starpu_LockOrDelegatePostOrPerform(void (*func)(void*), void* data)
 {
 	/* Get our ticket */
 	int insertionPosition = atomic_load(&dlAtomicCounter);
@@ -181,7 +181,7 @@ static starpu_pthread_mutex_t dlWorkLock = STARPU_PTHREAD_MUTEX_INITIALIZER;
  * This function return 1 if the task (and maybe some others) has been done
  * by the calling thread and 0 otherwise (if the task has just been put in the list)
  */
-int _starpu_LockOrDelegatePostOrPerform(int (*func)(void*), void* data)
+static int _starpu_LockOrDelegatePostOrPerform(void (*func)(void*), void* data)
 {
 	/* We could avoid to allocate if we will be responsible but for simplicity
 	 * we always push the task in the list */
@@ -249,8 +249,16 @@ static unsigned remove_job_from_requester_list(struct _starpu_data_requester_lis
 }
 
 #ifndef NO_LOCK_OR_DELEGATE
+/* These are the arguments passed to _submit_job_enforce_commute_deps */
+struct starpu_enforce_commute_args
+{
+	struct _starpu_job *j;
+	unsigned buf;
+	unsigned nbuffers;
+};
 
-int _starpu_submit_job_enforce_commute_deps(void* inData)
+static void ___starpu_submit_job_enforce_commute_deps(struct _starpu_job *j, unsigned buf, unsigned nbuffers);
+static void __starpu_submit_job_enforce_commute_deps(void* inData)
 {
 	struct starpu_enforce_commute_args* args = (struct starpu_enforce_commute_args*)inData;
 	struct _starpu_job *j = args->j;
@@ -260,8 +268,23 @@ int _starpu_submit_job_enforce_commute_deps(void* inData)
 	free(args);
 	args = NULL;
 	inData = NULL;
+	___starpu_submit_job_enforce_commute_deps(j, buf, nbuffers);
+}
+
+void _starpu_submit_job_enforce_commute_deps(struct _starpu_job *j, unsigned buf, unsigned nbuffers)
+{
+	struct starpu_enforce_commute_args* args = (struct starpu_enforce_commute_args*)malloc(sizeof(struct starpu_enforce_commute_args));
+	args->j = j;
+	args->buf = buf;
+	args->nbuffers = nbuffers;
+	/* The function will delete args */
+	_starpu_LockOrDelegatePostOrPerform(&__starpu_submit_job_enforce_commute_deps, args);
+}
+
+static void ___starpu_submit_job_enforce_commute_deps(struct _starpu_job *j, unsigned buf, unsigned nbuffers)
+{
 #else // NO_LOCK_OR_DELEGATE
-int _submit_job_enforce_commute_deps(struct _starpu_job *j, unsigned buf, unsigned nbuffers)
+void _starpu_submit_job_enforce_commute_deps(struct _starpu_job *j, unsigned buf, unsigned nbuffers)
 {
 	STARPU_PTHREAD_MUTEX_LOCK(&commute_global_mutex);
 #endif
@@ -354,11 +377,20 @@ int _submit_job_enforce_commute_deps(struct _starpu_job *j, unsigned buf, unsign
 }
 
 #ifndef NO_LOCK_OR_DELEGATE
-int _starpu_notify_commute_dependencies(void* inData)
+void ___starpu_notify_commute_dependencies(starpu_data_handle_t handle);
+void __starpu_notify_commute_dependencies(void* inData)
 {
 	starpu_data_handle_t handle = (starpu_data_handle_t)inData;
+	___starpu_notify_commute_dependencies(handle);
+}
+void _starpu_notify_commute_dependencies(starpu_data_handle_t handle)
+{
+	_starpu_LockOrDelegatePostOrPerform(&__starpu_notify_commute_dependencies, handle);
+}
+void ___starpu_notify_commute_dependencies(starpu_data_handle_t handle)
+{
 #else // NO_LOCK_OR_DELEGATE
-int _starpu_notify_commute_dependencies(starpu_data_handle_t handle)
+void _starpu_notify_commute_dependencies(starpu_data_handle_t handle)
 {
 	STARPU_PTHREAD_MUTEX_LOCK(&commute_global_mutex);
 #endif
