@@ -273,7 +273,6 @@ static unsigned _submit_job_enforce_data_deps(struct _starpu_job *j, unsigned st
 
                 j->task->status = STARPU_TASK_BLOCKED_ON_DATA;
 
-		// WIP_COMMUTE Begin
 		if(handle->arbiter)
 		{
 			/* We arrived on an arbitered data, we stop and proceed
@@ -281,7 +280,6 @@ static unsigned _submit_job_enforce_data_deps(struct _starpu_job *j, unsigned st
 			_starpu_submit_job_enforce_arbitered_deps(j, buf, nbuffers);
 			return 1;
 		}
-		// WIP_COMMUTE End
 
                 if (attempt_to_submit_data_request_from_job(j, buf))
 		{
@@ -437,6 +435,8 @@ int _starpu_notify_data_dependencies(starpu_data_handle_t handle)
 	}
 
 	// WIP_COMMUTE Begin
+
+	/* TODO: directly call that */
 
 	if(handle->refcnt == 0 && handle->arbitered_req_list != NULL)
 	{

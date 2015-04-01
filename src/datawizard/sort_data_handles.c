@@ -93,7 +93,6 @@ static int _starpu_compar_handles(const struct _starpu_data_descr *descrA,
 			return 1;
 	}
 
-	// WIP_COMMUTE Begin
 	/* Put arbitered accesses after non-arbitered */
 	if (dataA->arbiter && !(dataB->arbiter))
 		return 1;
@@ -104,7 +103,6 @@ static int _starpu_compar_handles(const struct _starpu_data_descr *descrA,
 		return ((dataA->arbiter < dataB->arbiter)?-1:1);
 	/* If both are arbitered by the same arbiter (or they are both not
 	 * arbitered), we'll sort them by handle */
-	// WIP_COMMUTE End
 
 	/* In case we have data/subdata from different trees */
 	if (dataA->root_handle != dataB->root_handle)

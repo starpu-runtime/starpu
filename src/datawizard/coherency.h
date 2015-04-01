@@ -232,10 +232,8 @@ struct _starpu_data_state
 	/* hook to be called when unregistering the data */
 	_starpu_data_handle_unregister_hook unregister_hook;
 
-	// WIP_COMMUTE Begin
 	struct starpu_arbiter *arbiter;
 	struct _starpu_data_requester_list *arbitered_req_list;
-	// WIP_COMMUTE End
 };
 
 void _starpu_display_msi_stats(void);
