@@ -52,7 +52,7 @@
  * (starpu_data_acquire).
  *
  * For data with an arbiter, we have a second step, performed after this first
- * step, implemented in data_commute_concurrency.c
+ * step, implemented in data_arbiter_concurrency.c
  */
 
 /*

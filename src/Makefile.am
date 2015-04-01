@@ -165,7 +165,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	core/dependencies/tags.c				\
 	core/dependencies/task_deps.c				\
 	core/dependencies/data_concurrency.c			\
-	core/dependencies/data_commute_concurrency.c		\
+	core/dependencies/data_arbiter_concurrency.c		\
 	core/disk_ops/disk_stdio.c				\
 	core/disk_ops/disk_unistd.c                             \
 	core/disk_ops/unistd/disk_unistd_global.c		\
