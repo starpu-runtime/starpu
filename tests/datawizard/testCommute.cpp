@@ -40,16 +40,26 @@
 #include <vector>
 #include <unistd.h>
 
+static unsigned nb, nb_slow;
+
 void callback(void * /*buffers*/[], void * /*cl_arg*/)
 {
+	unsigned val;
+	val = STARPU_ATOMIC_ADD(&nb, 1);
+	FPRINTF(stdout,"callback in (%d)\n", val); fflush(stdout);
 	usleep(SLEEP_FAST);
-	FPRINTF(stdout,"COMMUTE_LOG] callback\n"); fflush(stdout);
+	val = STARPU_ATOMIC_ADD(&nb, -1);
+	FPRINTF(stdout,"callback out (%d)\n", val); fflush(stdout);
 }
 
 void callback_slow(void * /*buffers*/[], void * /*cl_arg*/)
 {
+	unsigned val;
+	val = STARPU_ATOMIC_ADD(&nb_slow, 1);
+	FPRINTF(stdout,"callback_slow in (%d)\n", val); fflush(stdout);
 	usleep(SLEEP_SLOW);
-	FPRINTF(stdout,"COMMUTE_LOG] callback_slow\n"); fflush(stdout);
+	val = STARPU_ATOMIC_ADD(&nb_slow, -1);
+	FPRINTF(stdout,"callback_slow out (%d)\n", val); fflush(stdout);
 }
 
 
