@@ -234,7 +234,7 @@ struct _starpu_data_state
 
 	// WIP_COMMUTE Begin
 	struct starpu_arbiter *arbiter;
-	struct _starpu_data_requester_list *commute_req_list;
+	struct _starpu_data_requester_list *arbitered_req_list;
 	// WIP_COMMUTE End
 };
 

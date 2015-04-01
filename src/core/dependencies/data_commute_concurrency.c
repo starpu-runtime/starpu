@@ -198,18 +198,18 @@ static unsigned remove_job_from_requester_list(struct _starpu_data_requester_lis
 }
 
 #ifdef LOCK_OR_DELEGATE
-/* These are the arguments passed to _submit_job_enforce_commute_deps */
-struct starpu_enforce_commute_args
+/* These are the arguments passed to _submit_job_enforce_arbitered_deps */
+struct starpu_enforce_arbitered_args
 {
 	struct _starpu_job *j;
 	unsigned buf;
 	unsigned nbuffers;
 };
 
-static void ___starpu_submit_job_enforce_commute_deps(struct _starpu_job *j, unsigned buf, unsigned nbuffers);
-static void __starpu_submit_job_enforce_commute_deps(void* inData)
+static void ___starpu_submit_job_enforce_arbitered_deps(struct _starpu_job *j, unsigned buf, unsigned nbuffers);
+static void __starpu_submit_job_enforce_arbitered_deps(void* inData)
 {
-	struct starpu_enforce_commute_args* args = (struct starpu_enforce_commute_args*)inData;
+	struct starpu_enforce_arbitered_args* args = (struct starpu_enforce_arbitered_args*)inData;
 	struct _starpu_job *j = args->j;
 	unsigned buf		  = args->buf;
 	unsigned nbuffers	 = args->nbuffers;
@@ -217,36 +217,36 @@ static void __starpu_submit_job_enforce_commute_deps(void* inData)
 	free(args);
 	args = NULL;
 	inData = NULL;
-	___starpu_submit_job_enforce_commute_deps(j, buf, nbuffers);
+	___starpu_submit_job_enforce_arbitered_deps(j, buf, nbuffers);
 }
 
-void _starpu_submit_job_enforce_commute_deps(struct _starpu_job *j, unsigned buf, unsigned nbuffers)
+void _starpu_submit_job_enforce_arbitered_deps(struct _starpu_job *j, unsigned buf, unsigned nbuffers)
 {
-	struct starpu_enforce_commute_args* args = malloc(sizeof(*args));
+	struct starpu_enforce_arbitered_args* args = malloc(sizeof(*args));
 	starpu_data_handle_t handle = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, buf);
 	args->j = j;
 	args->buf = buf;
 	args->nbuffers = nbuffers;
 	/* The function will delete args */
-	_starpu_LockOrDelegatePostOrPerform(handle->arbiter, &__starpu_submit_job_enforce_commute_deps, args);
+	_starpu_LockOrDelegatePostOrPerform(handle->arbiter, &__starpu_submit_job_enforce_arbitered_deps, args);
 }
 
-static void ___starpu_submit_job_enforce_commute_deps(struct _starpu_job *j, unsigned buf, unsigned nbuffers)
+static void ___starpu_submit_job_enforce_arbitered_deps(struct _starpu_job *j, unsigned buf, unsigned nbuffers)
 {
 	starpu_arbiter_t arbiter = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, buf)->arbiter;
 #else // LOCK_OR_DELEGATE
-void _starpu_submit_job_enforce_commute_deps(struct _starpu_job *j, unsigned buf, unsigned nbuffers)
+void _starpu_submit_job_enforce_arbitered_deps(struct _starpu_job *j, unsigned buf, unsigned nbuffers)
 {
 	starpu_arbiter_t arbiter = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, buf)->arbiter;
 	STARPU_PTHREAD_MUTEX_LOCK(&arbiter->mutex);
 #endif
 	STARPU_ASSERT(arbiter);
 
-	const unsigned nb_non_commute_buff = buf;
+	const unsigned nb_non_arbitered_buff = buf;
 	unsigned idx_buf_commute;
 	unsigned all_commutes_available = 1;
 
-	for (idx_buf_commute = nb_non_commute_buff; idx_buf_commute < nbuffers; idx_buf_commute++)
+	for (idx_buf_commute = nb_non_arbitered_buff; idx_buf_commute < nbuffers; idx_buf_commute++)
 	{
 		starpu_data_handle_t handle = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, idx_buf_commute);
 		enum starpu_data_access_mode mode = _STARPU_JOB_GET_ORDERED_BUFFER_MODE(j, idx_buf_commute);
@@ -279,7 +279,7 @@ void _starpu_submit_job_enforce_commute_deps(struct _starpu_job *j, unsigned buf
 	{
 		/* Oups cancel all taken and put req in commute list */
 		unsigned idx_buf_cancel;
-		for (idx_buf_cancel = nb_non_commute_buff; idx_buf_cancel < idx_buf_commute ; idx_buf_cancel++)
+		for (idx_buf_cancel = nb_non_arbitered_buff; idx_buf_cancel < idx_buf_commute ; idx_buf_cancel++)
 		{
 			starpu_data_handle_t cancel_handle = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, idx_buf_cancel);
 
@@ -293,7 +293,7 @@ void _starpu_submit_job_enforce_commute_deps(struct _starpu_job *j, unsigned buf
 			_starpu_spin_unlock(&cancel_handle->header_lock);
 		}
 
-		for (idx_buf_cancel = nb_non_commute_buff; idx_buf_cancel < nbuffers ; idx_buf_cancel++)
+		for (idx_buf_cancel = nb_non_arbitered_buff; idx_buf_cancel < nbuffers ; idx_buf_cancel++)
 		{
 			starpu_data_handle_t cancel_handle = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, idx_buf_cancel);
 			enum starpu_data_access_mode cancel_mode = _STARPU_JOB_GET_ORDERED_BUFFER_MODE(j, idx_buf_cancel);
@@ -310,10 +310,10 @@ void _starpu_submit_job_enforce_commute_deps(struct _starpu_job *j, unsigned buf
 
 			_starpu_spin_lock(&cancel_handle->header_lock);
 			/* create list if needed */
-			if(cancel_handle->commute_req_list == NULL)
-				cancel_handle->commute_req_list = _starpu_data_requester_list_new();
+			if(cancel_handle->arbitered_req_list == NULL)
+				cancel_handle->arbitered_req_list = _starpu_data_requester_list_new();
 			/* store node in list */
-			_starpu_data_requester_list_push_front(cancel_handle->commute_req_list, r);
+			_starpu_data_requester_list_push_front(cancel_handle->arbitered_req_list, r);
 			/* inc the busy count if it has not been changed in the previous loop */
 			if(idx_buf_commute <= idx_buf_cancel)
 				cancel_handle->busy_count += 1;
@@ -335,20 +335,20 @@ void _starpu_submit_job_enforce_commute_deps(struct _starpu_job *j, unsigned buf
 }
 
 #ifdef LOCK_OR_DELEGATE
-void ___starpu_notify_commute_dependencies(starpu_data_handle_t handle);
-void __starpu_notify_commute_dependencies(void* inData)
+void ___starpu_notify_arbitered_dependencies(starpu_data_handle_t handle);
+void __starpu_notify_arbitered_dependencies(void* inData)
 {
 	starpu_data_handle_t handle = (starpu_data_handle_t)inData;
-	___starpu_notify_commute_dependencies(handle);
+	___starpu_notify_arbitered_dependencies(handle);
 }
-void _starpu_notify_commute_dependencies(starpu_data_handle_t handle)
+void _starpu_notify_arbitered_dependencies(starpu_data_handle_t handle)
 {
-	_starpu_LockOrDelegatePostOrPerform(handle->arbiter, &__starpu_notify_commute_dependencies, handle);
+	_starpu_LockOrDelegatePostOrPerform(handle->arbiter, &__starpu_notify_arbitered_dependencies, handle);
 }
-void ___starpu_notify_commute_dependencies(starpu_data_handle_t handle)
+void ___starpu_notify_arbitered_dependencies(starpu_data_handle_t handle)
 {
 #else // LOCK_OR_DELEGATE
-void _starpu_notify_commute_dependencies(starpu_data_handle_t handle)
+void _starpu_notify_arbitered_dependencies(starpu_data_handle_t handle)
 {
 #endif
 	starpu_arbiter_t arbiter = handle->arbiter;
@@ -357,32 +357,32 @@ void _starpu_notify_commute_dependencies(starpu_data_handle_t handle)
 #endif
 
 	/* Since the request has been posted the handle may have been proceed and released */
-	if(handle->commute_req_list == NULL)
+	if(handle->arbitered_req_list == NULL)
 	{
 #ifndef LOCK_OR_DELEGATE
 		STARPU_PTHREAD_MUTEX_UNLOCK(&arbiter->mutex);
 #endif
 		return 1;
 	}
-	/* no one has the right to work on commute_req_list without a lock on mutex
+	/* no one has the right to work on arbitered_req_list without a lock on mutex
 	   so we do not need to lock the handle for safety */
 	struct _starpu_data_requester *r;
-	r = _starpu_data_requester_list_begin(handle->commute_req_list); //_head;
+	r = _starpu_data_requester_list_begin(handle->arbitered_req_list); //_head;
 	while(r)
 	{
 		struct _starpu_job* j = r->j;
 		unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(j->task);
-		unsigned nb_non_commute_buff;
+		unsigned nb_non_arbitered_buff;
 		/* find the position of commute buffers */
-		for (nb_non_commute_buff = 0; nb_non_commute_buff < nbuffers; nb_non_commute_buff++)
+		for (nb_non_arbitered_buff = 0; nb_non_arbitered_buff < nbuffers; nb_non_arbitered_buff++)
 		{
-			starpu_data_handle_t handle_commute = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, nb_non_commute_buff);
-			if (nb_non_commute_buff && (_STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, nb_non_commute_buff-1) == handle_commute))
+			starpu_data_handle_t handle_commute = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, nb_non_arbitered_buff);
+			if (nb_non_arbitered_buff && (_STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, nb_non_arbitered_buff-1) == handle_commute))
 				/* We have already requested this data, skip it. This
 				 * depends on ordering putting writes before reads, see
 				 * _starpu_compar_handles.  */
 				continue;
-			enum starpu_data_access_mode mode = _STARPU_JOB_GET_ORDERED_BUFFER_MODE(j, nb_non_commute_buff);
+			enum starpu_data_access_mode mode = _STARPU_JOB_GET_ORDERED_BUFFER_MODE(j, nb_non_arbitered_buff);
 			if(handle_commute->arbiter == arbiter)
 			{
 				break;
@@ -392,7 +392,7 @@ void _starpu_notify_commute_dependencies(starpu_data_handle_t handle)
 		unsigned idx_buf_commute;
 		unsigned all_commutes_available = 1;
 
-		for (idx_buf_commute = nb_non_commute_buff; idx_buf_commute < nbuffers; idx_buf_commute++)
+		for (idx_buf_commute = nb_non_arbitered_buff; idx_buf_commute < nbuffers; idx_buf_commute++)
 		{
 			starpu_data_handle_t handle_commute = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, idx_buf_commute);
 			if (idx_buf_commute && (_STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, idx_buf_commute-1)==handle_commute))
@@ -420,7 +420,7 @@ void _starpu_notify_commute_dependencies(starpu_data_handle_t handle)
 
 		if(all_commutes_available)
 		{
-			for (idx_buf_commute = nb_non_commute_buff; idx_buf_commute < nbuffers; idx_buf_commute++)
+			for (idx_buf_commute = nb_non_arbitered_buff; idx_buf_commute < nbuffers; idx_buf_commute++)
 			{
 				starpu_data_handle_t handle_commute = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, idx_buf_commute);
 				if (idx_buf_commute && (_STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, idx_buf_commute-1)==handle_commute))
@@ -433,12 +433,12 @@ void _starpu_notify_commute_dependencies(starpu_data_handle_t handle)
 				STARPU_ASSERT(handle_commute->refcnt == 1);
 				STARPU_ASSERT( handle_commute->busy_count >= 1);
 				STARPU_ASSERT( handle_commute->current_mode == mode);
-				const unsigned correctly_deleted = remove_job_from_requester_list(handle_commute->commute_req_list, j);
+				const unsigned correctly_deleted = remove_job_from_requester_list(handle_commute->arbitered_req_list, j);
 				STARPU_ASSERT(correctly_deleted == 0);
-				if(_starpu_data_requester_list_empty(handle_commute->commute_req_list)) // If size == 0
+				if(_starpu_data_requester_list_empty(handle_commute->arbitered_req_list)) // If size == 0
 				{
-					_starpu_data_requester_list_delete(handle_commute->commute_req_list);
-					handle_commute->commute_req_list = NULL;
+					_starpu_data_requester_list_delete(handle_commute->arbitered_req_list);
+					handle_commute->arbitered_req_list = NULL;
 				}
 				_starpu_spin_unlock(&handle_commute->header_lock);
 			}
@@ -459,7 +459,7 @@ void _starpu_notify_commute_dependencies(starpu_data_handle_t handle)
 		{
 			unsigned idx_buf_cancel;
 			/* all handles are not available - revert the mark */
-			for (idx_buf_cancel = nb_non_commute_buff; idx_buf_cancel < idx_buf_commute ; idx_buf_cancel++)
+			for (idx_buf_cancel = nb_non_arbitered_buff; idx_buf_cancel < idx_buf_commute ; idx_buf_cancel++)
 			{
 				starpu_data_handle_t cancel_handle = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, idx_buf_cancel);
 				_starpu_spin_lock(&cancel_handle->header_lock);

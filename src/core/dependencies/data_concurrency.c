@@ -274,7 +274,7 @@ static unsigned _submit_job_enforce_data_deps(struct _starpu_job *j, unsigned st
 		{
 			/* We arrived on an arbitered data, we stop and proceed
 			 * with the arbiter second step.  */
-			_starpu_submit_job_enforce_commute_deps(j, buf, nbuffers);
+			_starpu_submit_job_enforce_arbitered_deps(j, buf, nbuffers);
 			return 1;
 		}
 		// WIP_COMMUTE End
@@ -434,11 +434,11 @@ int _starpu_notify_data_dependencies(starpu_data_handle_t handle)
 
 	// WIP_COMMUTE Begin
 
-	if(handle->refcnt == 0 && handle->commute_req_list != NULL)
+	if(handle->refcnt == 0 && handle->arbitered_req_list != NULL)
 	{
 		_starpu_spin_unlock(&handle->header_lock);
-		/* _starpu_notify_commute_dependencies will handle its own locking */
-		_starpu_notify_commute_dependencies(handle);
+		/* _starpu_notify_arbitered_dependencies will handle its own locking */
+		_starpu_notify_arbitered_dependencies(handle);
 		/* We have already unlocked */
 		return 1;
 	}
