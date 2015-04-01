@@ -273,8 +273,9 @@ static unsigned _submit_job_enforce_data_deps(struct _starpu_job *j, unsigned st
 		enum starpu_data_access_mode mode = _STARPU_JOB_GET_ORDERED_BUFFER_MODE(j, buf);
 		if(mode & STARPU_COMMUTE)
 		{
-			/* We arrived on the commute we stop and do not proceed as usual */
-			break;
+			/* We arrived on the commute we stop and proceed with the commute second step.  */
+			_starpu_submit_job_enforce_commute_deps(j, buf, nbuffers);
+			return 1;
 		}
 		// WIP_COMMUTE End
 
@@ -283,15 +284,6 @@ static unsigned _submit_job_enforce_data_deps(struct _starpu_job *j, unsigned st
 			return 1;
                 }
 	}
-
-	// WIP_COMMUTE Begin
-	/* We arrive on the commutes */
-	if(buf != nbuffers)
-	{
-		_starpu_submit_job_enforce_commute_deps(j, buf, nbuffers);
-		return 1;
-	}
-	// WIP_COMMUTE End
 
 	return 0;
 }
