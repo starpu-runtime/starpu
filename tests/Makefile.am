@@ -211,7 +211,7 @@ noinst_PROGRAMS =				\
 	datawizard/readonly			\
 	datawizard/specific_node		\
 	datawizard/task_with_multiple_time_the_same_handle	\
-	datawizard/testCommute			\
+	datawizard/test_arbiter			\
 	disk/disk_copy				\
 	disk/disk_compute			\
 	disk/disk_pack				\
@@ -456,8 +456,8 @@ datawizard_specific_node_SOURCES +=			\
 	datawizard/opencl_codelet_unsigned_inc.c
 endif
 
-datawizard_testCommute_SOURCES =	\
-	datawizard/testCommute.cpp
+datawizard_test_arbiter_SOURCES =	\
+	datawizard/test_arbiter.cpp
 
 main_deprecated_func_CFLAGS = $(AM_CFLAGS) -Wno-deprecated-declarations
 
