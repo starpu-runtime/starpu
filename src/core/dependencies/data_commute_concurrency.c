@@ -96,78 +96,6 @@ struct LockOrDelegateListNode
 	struct LockOrDelegateListNode* next;
 };
 
-/* If the compiler support C11 and the usage of atomic functions */
-#if (201112L <= __STDC_VERSION__) && !(defined(__STDC_NO_ATOMICS__))
-
-#include <stdatomic.h>
-
-/* To know the number of task to perform and attributes the tickets */
-static atomic_int dlAtomicCounter;
-/* The list of task to perform */
-static _Atomic struct LockOrDelegateListNode* dlListHead;
-
-/* Post a task to perform if possible, otherwise put it in the list
- * If we can perform this task, we may also perform all the tasks in the list
- * This function return 1 if the task (and maybe some others) has been done
- * by the calling thread and 0 otherwise (if the task has just been put in the list)
- */
-static int _starpu_LockOrDelegatePostOrPerform(void (*func)(void*), void* data)
-{
-	/* Get our ticket */
-	int insertionPosition = atomic_load(&dlAtomicCounter);
-	while (!atomic_compare_exchange_weak(&dlAtomicCounter, &insertionPosition, insertionPosition+1))
-		;
-
-	/* If we obtain 0 we are responsible of computing all the tasks */
-	if(insertionPosition == 0)
-	{
-		/* start by our current task */
-		(*func)(data);
-
-		/* Compute task of other and manage ticket */
-		while(1)
-		{
-			STARPU_ASSERT(atomic_load(&dlAtomicCounter) > 0);
-
-			/* Dec ticket and see if something else has to be done */
-			int removedPosition = atomic_load(&dlAtomicCounter);
-			while(!atomic_compare_exchange_weak(&dlAtomicCounter, &removedPosition,removedPosition-1))
-				;
-			if(removedPosition-1 == 0)
-			{
-				break;
-			}
-
-			/* Get the next task */
-			struct LockOrDelegateListNode* removedNode = (struct LockOrDelegateListNode*)atomic_load(&dlListHead);
-			// Maybe it has not been pushed yet (listHead.load() == nullptr)
-			while((removedNode = (struct LockOrDelegateListNode*)atomic_load(&dlListHead)) == NULL || !atomic_compare_exchange_weak(&dlListHead, &removedNode,removedNode->next))
-				;
-			STARPU_ASSERT(removedNode);
-			/* call the task */
-			(*removedNode->func)(removedNode->data);
-			// Delete node
-			free(removedNode);
-		}
-
-		return 1;
-	}
-
-	struct LockOrDelegateListNode* newNode = (struct LockOrDelegateListNode*)malloc(sizeof(struct LockOrDelegateListNode));
-	STARPU_ASSERT(newNode);
-	newNode->data = data;
-	newNode->func = func;
-	newNode->next = (struct LockOrDelegateListNode*)atomic_load(&dlListHead);
-	while(!atomic_compare_exchange_weak(&dlListHead, &newNode->next, newNode))
-		;
-
-	return 0;
-}
-
-#else
-/* We cannot rely on the C11 atomics */
-#warning Lock based version of Lock or Delegate
-
 /* The list of task to perform */
 static struct LockOrDelegateListNode* dlTaskListHead = NULL;
 
@@ -221,8 +149,6 @@ static int _starpu_LockOrDelegatePostOrPerform(void (*func)(void*), void* data)
 	STARPU_ASSERT(ret == EBUSY);
 	return 0;
 }
-
-#endif
 
 #else // LOCK_OR_DELEGATE
 
