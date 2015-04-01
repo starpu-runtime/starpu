@@ -71,18 +71,6 @@ static int _starpu_compar_handles(const struct _starpu_data_descr *descrA,
 	struct _starpu_data_state *dataA = descrA->handle;
 	struct _starpu_data_state *dataB = descrB->handle;
 
-	// WIP_COMMUTE Begin
-	/* Put commute accesses last (without caring about the order) */
-	if(descrA->mode & STARPU_COMMUTE)
-	{
-		return 1;
-	}
-	if(descrB->mode & STARPU_COMMUTE)
-	{
-		return -1;
-	}
-	// WIP_COMMUTE End
-
 	/* Perhaps we have the same piece of data */
 	if (dataA == dataB)
 	{
@@ -104,6 +92,15 @@ static int _starpu_compar_handles(const struct _starpu_data_descr *descrA,
 			/* A doesn't write, take B before */
 			return 1;
 	}
+
+	// WIP_COMMUTE Begin
+	/* Put commute accesses after non-commute */
+	if (descrA->mode & STARPU_COMMUTE && !(descrB->mode & STARPU_COMMUTE))
+		return 1;
+	if (descrB->mode & STARPU_COMMUTE && !(descrA->mode & STARPU_COMMUTE))
+		return -1;
+	/* If both are commute, we'll sort them by handle */
+	// WIP_COMMUTE End
 
 	/* In case we have data/subdata from different trees */
 	if (dataA->root_handle != dataB->root_handle)
