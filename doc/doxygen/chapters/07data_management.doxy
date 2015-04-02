@@ -56,7 +56,7 @@ implicit dependencies on that data.
 In the same vein, accumulation of results in the same data can become a
 bottleneck. The use of the mode ::STARPU_REDUX permits to optimize such
 accumulation (see \ref DataReduction). To a lesser extent, the use of
-the flag ::STARPU_COMMUTE keeps the bottleneck, but at least permits
+the flag ::STARPU_COMMUTE keeps the bottleneck (see \ref DataCommute), but at least permits
 the accumulation to happen in any order.
 
 Applications often need a data just for temporary results.  In such a case,
@@ -293,6 +293,41 @@ for (i = 0; i < 100; i++) {
     starpu_mpi_task_insert(MPI_COMM_WORLD, &work2, STARPU_RW, B, STARPU_R, res, 0);
 }
 \endcode
+
+\section DataCommute Commute Data Access
+
+By default, the implicit dependencies computed from data access use the
+sequential semantic. Notably, write accesses are always serialized in the order
+of submission. In some applicative cases, the write contributions can actually
+be performed in any order without affecting the eventual result. In that case
+it is useful to drop the strictly sequential semantic, to improve parallelism
+by allowing StarPU to reorder the write accesses. This can be done by using
+the ::STARPU_COMMUTE data access flag. Accesses without this flag will however
+properly be serialized against accesses with this flag. For instance:
+
+\code{.c}
+    starpu_task_insert(&cl1,
+        STARPU_R, h,
+        STARPU_RW, handle,
+        0);
+    starpu_task_insert(&cl2,
+        STARPU_R, handle1,
+        STARPU_RW|STARPU_COMMUTE, handle,
+        0);
+    starpu_task_insert(&cl2,
+        STARPU_R, handle2,
+        STARPU_RW|STARPU_COMMUTE, handle,
+        0);
+    starpu_task_insert(&cl3,
+        STARPU_R, g,
+        STARPU_RW, handle,
+        0);
+\endcode
+
+The two tasks running cl2 will be able to commute: depending on whether the
+value of handle1 or handle2 becomes available first, the corresponding task
+running cl2 will start first. The task running cl1 will however always be run
+before them, and the task running cl3 will always be run after them.
 
 \section TemporaryBuffers Temporary Buffers
 
