@@ -530,9 +530,37 @@ void _starpu_notify_arbitered_dependencies(starpu_data_handle_t handle)
 	/* no one has the right to work on arbitered_req_list without a lock on mutex
 	   so we do not need to lock the handle for safety */
 	struct _starpu_data_requester *r;
-	r = _starpu_data_requester_list_begin(handle->arbitered_req_list); //_head;
-	while (r != _starpu_data_requester_list_end(handle->arbitered_req_list))
+	for (r = _starpu_data_requester_list_begin(handle->arbitered_req_list);
+	     r != _starpu_data_requester_list_end(handle->arbitered_req_list);
+	     r = _starpu_data_requester_list_next(r))
 	{
+		if (!r->is_requested_by_codelet)
+		{
+			/* data_acquire_cb, process it */
+			enum starpu_data_access_mode r_mode = r->mode;
+			if (r_mode == STARPU_RW)
+				r_mode = STARPU_W;
+
+			_starpu_spin_lock(&handle->header_lock);
+			handle->refcnt++;
+			handle->busy_count++;
+			handle->current_mode = r_mode;
+			_starpu_spin_unlock(&handle->header_lock);
+			_starpu_data_requester_list_erase(handle->arbitered_req_list, r);
+#ifndef LOCK_OR_DELEGATE
+			STARPU_PTHREAD_MUTEX_UNLOCK(&arbiter->mutex);
+#endif
+			r->ready_data_callback(r->argcb);
+			_starpu_data_requester_delete(r);
+
+			_starpu_spin_lock(&handle->header_lock);
+			STARPU_ASSERT(handle->busy_count > 0);
+			handle->busy_count--;
+			if (!_starpu_data_check_not_busy(handle))
+				_starpu_spin_unlock(&handle->header_lock);
+			return;
+		}
+
 		struct _starpu_job* j = r->j;
 		unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(j->task);
 		unsigned nb_non_arbitered_buff;
@@ -638,8 +666,6 @@ void _starpu_notify_arbitered_dependencies(starpu_data_handle_t handle)
 				_starpu_spin_unlock(&cancel_handle->header_lock);
 			}
 		}
-
-		r = _starpu_data_requester_list_next(r);
 	}
 	/* no task has been pushed */
 #ifndef LOCK_OR_DELEGATE
