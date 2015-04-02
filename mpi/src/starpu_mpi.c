@@ -103,7 +103,7 @@ static void _starpu_mpi_request_init(struct _starpu_mpi_req **req)
 	(*req)->func = NULL;
 
 	(*req)->status = NULL;
-	(*req)->request = 0;
+	(*req)->data_request = 0;
 	(*req)->flag = NULL;
 
 	(*req)->ret = -1;
@@ -328,7 +328,7 @@ static void _starpu_mpi_isend_data_func(struct _starpu_mpi_req *req)
 	if (req->sync == 0)
 	{
 		_STARPU_MPI_COMM_TO_DEBUG(req->count, req->datatype, req->node_tag.rank, _STARPU_MPI_TAG_DATA, req->node_tag.data_tag, req->node_tag.comm);
-		req->ret = MPI_Isend(req->ptr, req->count, req->datatype, req->node_tag.rank, _STARPU_MPI_TAG_DATA, req->node_tag.comm, &req->request);
+		req->ret = MPI_Isend(req->ptr, req->count, req->datatype, req->node_tag.rank, _STARPU_MPI_TAG_DATA, req->node_tag.comm, &req->data_request);
 		STARPU_MPI_ASSERT_MSG(req->ret == MPI_SUCCESS, "MPI_Isend returning %s", _starpu_mpi_get_mpi_code(req->ret));
 	}
 	else
@@ -527,7 +527,7 @@ static void _starpu_mpi_irecv_data_func(struct _starpu_mpi_req *req)
 	else
 	{
 		_STARPU_MPI_COMM_FROM_DEBUG(req->count, req->datatype, req->node_tag.rank, _STARPU_MPI_TAG_DATA, req->node_tag.data_tag, req->node_tag.comm);
-		req->ret = MPI_Irecv(req->ptr, req->count, req->datatype, req->node_tag.rank, _STARPU_MPI_TAG_DATA, req->node_tag.comm, &req->request);
+		req->ret = MPI_Irecv(req->ptr, req->count, req->datatype, req->node_tag.rank, _STARPU_MPI_TAG_DATA, req->node_tag.comm, &req->data_request);
 	}
 	STARPU_MPI_ASSERT_MSG(req->ret == MPI_SUCCESS, "MPI_IRecv returning %s", _starpu_mpi_get_mpi_code(req->ret));
 
@@ -638,7 +638,7 @@ static void _starpu_mpi_wait_func(struct _starpu_mpi_req *waiting_req)
 
 	_STARPU_MPI_TRACE_UWAIT_BEGIN(req->node_tag.rank, req->node_tag.data_tag);
 
-	req->ret = MPI_Wait(&req->request, waiting_req->status);
+	req->ret = MPI_Wait(&req->data_request, waiting_req->status);
 	STARPU_MPI_ASSERT_MSG(req->ret == MPI_SUCCESS, "MPI_Wait returning %s", _starpu_mpi_get_mpi_code(req->ret));
 
 	_STARPU_MPI_TRACE_UWAIT_END(req->node_tag.rank, req->node_tag.data_tag);
@@ -710,7 +710,7 @@ static void _starpu_mpi_test_func(struct _starpu_mpi_req *testing_req)
 
 	_STARPU_MPI_TRACE_UTESTING_BEGIN(req->node_tag.rank, req->node_tag.data_tag);
 
-	req->ret = MPI_Test(&req->request, testing_req->flag, testing_req->status);
+	req->ret = MPI_Test(&req->data_request, testing_req->flag, testing_req->status);
 	STARPU_MPI_ASSERT_MSG(req->ret == MPI_SUCCESS, "MPI_Test returning %s", _starpu_mpi_get_mpi_code(req->ret));
 
 	_STARPU_MPI_TRACE_UTESTING_END(req->node_tag.rank, req->node_tag.data_tag);
@@ -960,7 +960,7 @@ static void _starpu_mpi_early_data_cb(void* arg)
 
 	// We store in the application request the internal MPI
 	// request so that it can be used by starpu_mpi_wait
-	args->req->request = args->req->internal_req->request;
+	args->req->data_request = args->req->internal_req->data_request;
 	args->req->submitted = 1;
 
 	if (args->buffer)
@@ -1046,8 +1046,8 @@ static void _starpu_mpi_test_detached_requests(void)
 
 		STARPU_PTHREAD_MUTEX_UNLOCK(&detached_requests_mutex);
 
-		//_STARPU_MPI_DEBUG(3, "Test detached request %p - mpitag %d - TYPE %s %d\n", &req->request, req->node_tag.data_tag, _starpu_mpi_request_type(req->request_type), req->node_tag.rank);
-		req->ret = MPI_Test(&req->request, &flag, &status);
+		//_STARPU_MPI_DEBUG(3, "Test detached request %p - mpitag %d - TYPE %s %d\n", &req->data_request, req->node_tag.data_tag, _starpu_mpi_request_type(req->request_type), req->node_tag.rank);
+		req->ret = MPI_Test(&req->data_request, &flag, &status);
 
 		STARPU_MPI_ASSERT_MSG(req->ret == MPI_SUCCESS, "MPI_Test returning %s", _starpu_mpi_get_mpi_code(req->ret));
 
