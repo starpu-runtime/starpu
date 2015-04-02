@@ -233,6 +233,7 @@ struct _starpu_data_state
 	_starpu_data_handle_unregister_hook unregister_hook;
 
 	struct starpu_arbiter *arbiter;
+	/* This is protected by the arbiter mutex */
 	struct _starpu_data_requester_list *arbitered_req_list;
 };
 

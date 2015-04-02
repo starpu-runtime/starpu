@@ -113,9 +113,8 @@ static unsigned _starpu_attempt_to_submit_data_request(unsigned request_from_cod
 						       void (*callback)(void *), void *argcb,
 						       struct _starpu_job *j, unsigned buffer_index)
 {
-	/* TODO: implement */
 	if (handle->arbiter)
-		_STARPU_DISP("data acquisition not completely safe with arbitered handles\n");
+		return _starpu_attempt_to_submit_arbitered_data_request(request_from_codelet, handle, mode, callback, argcb, j, buffer_index);
 
 	if (mode == STARPU_RW)
 		mode = STARPU_W;
@@ -354,6 +353,20 @@ int _starpu_notify_data_dependencies(starpu_data_handle_t handle)
 		/* Handle was destroyed, nothing left to do.  */
 		return 1;
 
+	if (handle->arbiter)
+	{
+		unsigned refcnt = handle->refcnt;
+		STARPU_ASSERT(_starpu_data_requester_list_empty(handle->req_list));
+		STARPU_ASSERT(_starpu_data_requester_list_empty(handle->reduction_req_list));
+		_starpu_spin_unlock(&handle->header_lock);
+		/* _starpu_notify_arbitered_dependencies will handle its own locking */
+		if (!refcnt)
+			_starpu_notify_arbitered_dependencies(handle);
+		/* We have already unlocked */
+		return 1;
+	}
+	STARPU_ASSERT(_starpu_data_requester_list_empty(handle->arbitered_req_list));
+
 	/* In case there is a pending reduction, and that this is the last
 	 * requester, we may go back to a "normal" coherency model. */
 	if (handle->reduction_refcnt > 0)
@@ -433,20 +446,6 @@ int _starpu_notify_data_dependencies(starpu_data_handle_t handle)
 				return 1;
 		}
 	}
-
-	// WIP_COMMUTE Begin
-
-	/* TODO: directly call that */
-
-	if(handle->refcnt == 0 && handle->arbitered_req_list != NULL)
-	{
-		_starpu_spin_unlock(&handle->header_lock);
-		/* _starpu_notify_arbitered_dependencies will handle its own locking */
-		_starpu_notify_arbitered_dependencies(handle);
-		/* We have already unlocked */
-		return 1;
-	}
-	// WIP_COMMUTE End
 
 	return 0;
 }

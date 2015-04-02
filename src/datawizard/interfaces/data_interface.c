@@ -41,12 +41,17 @@ struct handle_entry
 static struct handle_entry *registered_handles;
 static struct _starpu_spinlock    registered_handles_lock;
 static int _data_interface_number = STARPU_MAX_INTERFACE_ID;
+starpu_arbiter_t _starpu_global_arbiter;
 
 static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned coherent, unsigned nowait);
 
 void _starpu_data_interface_init(void)
 {
 	_starpu_spin_init(&registered_handles_lock);
+
+	/* Just for testing purpose */
+	if (starpu_get_env_number_default("STARPU_ARBITER", 0) > 0)
+		_starpu_global_arbiter = starpu_arbiter_create();
 }
 
 void _starpu_data_interface_shutdown()
@@ -290,6 +295,13 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 	handle->footprint = _starpu_compute_data_footprint(handle);
 
 	handle->home_node = home_node;
+
+	if (_starpu_global_arbiter)
+		/* Just for testing purpose */
+		starpu_data_assign_arbiter(handle, _starpu_global_arbiter);
+	else
+		handle->arbiter = NULL;
+	handle->arbitered_req_list = _starpu_data_requester_list_new();
 
 	/* that new data is invalid from all nodes perpective except for the
 	 * home node */
@@ -791,6 +803,7 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 	_starpu_data_free_interfaces(handle);
 
 	_starpu_memory_stats_free(handle);
+	_starpu_data_requester_list_delete(handle->arbitered_req_list);
 	_starpu_data_requester_list_delete(handle->req_list);
 	_starpu_data_requester_list_delete(handle->reduction_req_list);
 

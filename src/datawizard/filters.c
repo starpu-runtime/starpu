@@ -209,6 +209,13 @@ void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_da
 		child->last_submitted_ghost_accessors_id = NULL;
 #endif
 
+		if (_starpu_global_arbiter)
+			/* Just for testing purpose */
+			starpu_data_assign_arbiter(child, _starpu_global_arbiter);
+		else
+			child->arbiter = NULL;
+		child->arbitered_req_list = _starpu_data_requester_list_new();
+
 		for (node = 0; node < STARPU_MAXNODES; node++)
 		{
 			struct _starpu_data_replicate *initial_replicate;

@@ -31,5 +31,10 @@ unsigned _starpu_attempt_to_submit_data_request_from_apps(starpu_data_handle_t h
 							  enum starpu_data_access_mode mode,
 							  void (*callback)(void *), void *argcb);
 
+unsigned _starpu_attempt_to_submit_arbitered_data_request(unsigned request_from_codelet,
+						       starpu_data_handle_t handle, enum starpu_data_access_mode mode,
+						       void (*callback)(void *), void *argcb,
+						       struct _starpu_job *j, unsigned buffer_index);
+
 #endif // __DATA_CONCURRENCY_H__
 
