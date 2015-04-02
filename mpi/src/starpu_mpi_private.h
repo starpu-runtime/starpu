@@ -174,7 +174,7 @@ LIST_TYPE(_starpu_mpi_req,
 	void (*func)(struct _starpu_mpi_req *);
 
 	MPI_Status *status;
-	MPI_Request request;
+	MPI_Request data_request;
 	int *flag;
 	unsigned sync;
 
