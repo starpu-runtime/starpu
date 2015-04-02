@@ -50,7 +50,7 @@ void _starpu_data_interface_init(void)
 	_starpu_spin_init(&registered_handles_lock);
 
 	/* Just for testing purpose */
-	if (starpu_get_env_number_default("STARPU_ARBITER", 0) > 0)
+	if (starpu_get_env_number_default("STARPU_GLOBAL_ARBITER", 0) > 0)
 		_starpu_global_arbiter = starpu_arbiter_create();
 }
 
