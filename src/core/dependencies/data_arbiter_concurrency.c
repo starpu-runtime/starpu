@@ -532,3 +532,19 @@ void starpu_data_assign_arbiter(starpu_data_handle_t handle, starpu_arbiter_t ar
 	STARPU_ASSERT_MSG(!handle->busy_count, "arbiter can be assigned to handle only right after initialization");
 	handle->arbiter = arbiter;
 }
+
+void starpu_arbiter_destroy(starpu_arbiter_t arbiter)
+{
+#ifdef LOCK_OR_DELEGATE
+	_starpu_spin_lock(&arbiter->dlListLock);
+	STARPU_ASSERT(!arbiter->dlTaskListHead);
+	STARPU_ASSERT(!arbiter->working);
+	_starpu_spin_unlock(&arbiter->dlListLock);
+	_starpu_spin_destroy(&arbiter->dlListLock);
+#else /* LOCK_OR_DELEGATE */
+	STARPU_PTHREAD_MUTEX_LOCK(&arbiter->mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&arbiter->mutex);
+	STARPU_PTHREAD_MUTEX_DESTROY(&arbiter->mutex);
+#endif /* LOCK_OR_DELEGATE */
+	free(arbiter);
+}

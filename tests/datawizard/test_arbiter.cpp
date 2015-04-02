@@ -201,6 +201,8 @@ out:
 	{
 		starpu_data_unregister(handleA[idxHandle]);
 	}
+	starpu_arbiter_destroy(arbiter);
+	starpu_arbiter_destroy(arbiter2);
 
 	//////////////////////////////////////////////////////
 	FPRINTF(stdout,"Shutdown\n");

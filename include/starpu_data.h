@@ -84,6 +84,7 @@ void starpu_data_release_on_node(starpu_data_handle_t handle, int node);
 typedef struct starpu_arbiter *starpu_arbiter_t;
 starpu_arbiter_t starpu_arbiter_create(void);
 void starpu_data_assign_arbiter(starpu_data_handle_t handle, starpu_arbiter_t arbiter);
+void starpu_arbiter_destroy(starpu_arbiter_t);
 
 void starpu_data_display_memory_stats();
 
