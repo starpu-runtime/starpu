@@ -21,6 +21,11 @@ StarPU, it is associated to a ::starpu_data_handle_t which keeps track
 of the state of the piece of data over the entire machine, so that we
 can maintain data consistency and locate data replicates for instance.
 
+\typedef starpu_arbiter_t
+\ingroup API_Data_Management
+This is an arbiter, which implements an advanced but centralized management of
+concurrent data accesses, see \ref ConcurrentDataAccess for the details.
+
 \enum starpu_data_access_mode
 \ingroup API_Data_Management
 This datatype describes a data access mode.
@@ -308,5 +313,18 @@ starpu_data_acquire_cb().
 \ingroup API_Data_Management
 This is the same as starpu_data_release(), except that the data
 will be available on the given memory \p node instead of main memory.
+
+\fn starpu_arbiter_t starpu_arbiter_create(void)
+\ingroup API_Data_Management
+This creates a data access arbiter, see \ref ConcurrentDataAccess for the details
+
+\fn void starpu_data_assign_arbiter(starpu_data_handle_t handle, starpu_arbiter_t arbiter)
+\ingroup API_Data_Management
+This makes accesses to \p handle managed by \p arbiter
+
+\fn void starpu_arbiter_destroy(starpu_arbiter_t arbiter)
+\ingroup API_Data_Management
+This destroys the \p arbiter . This must only be called after all data assigned
+to it have been unregistered.
 
 */
