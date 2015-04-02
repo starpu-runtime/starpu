@@ -75,6 +75,7 @@
  *   - release reference on h
  *   - unlock(h)
  * // record T on the list of requests for h
+ * TODO: record on only one handle
  * - for each handle h of T:
  *   - record T as waiting on h
  * - mutex_unlock(&arbiter)
