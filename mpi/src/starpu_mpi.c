@@ -284,6 +284,8 @@ static struct _starpu_mpi_req *_starpu_mpi_isend_irecv_common(starpu_data_handle
 	_STARPU_MPI_LOG_IN();
 	_STARPU_MPI_INC_POSTED_REQUESTS(1);
 
+	_starpu_mpi_comm_register(comm);
+
 	/* Initialize the request structure */
 	_starpu_mpi_request_init(&req);
 	req->request_type = request_type;
