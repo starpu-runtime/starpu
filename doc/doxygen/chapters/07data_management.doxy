@@ -357,6 +357,8 @@ will acquire them arbiter by arbiter, in arbiter pointer value order.
 
 See the tests/datawizard/test_arbiter.cpp example.
 
+Arbiters however do not support the STARPU_REDUX flag yet.
+
 \section TemporaryBuffers Temporary Buffers
 
 There are two kinds of temporary buffers: temporary data which just pass results
