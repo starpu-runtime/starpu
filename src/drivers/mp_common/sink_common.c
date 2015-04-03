@@ -200,7 +200,6 @@ static void _starpu_sink_common_recv_workers(struct _starpu_mp_node * node, void
 
 		workers[i].current_task = NULL;
 		workers[i].set = NULL;
-		workers[i].terminated_jobs = NULL;
 	}
 
 	/* Retrieve combined workers */
