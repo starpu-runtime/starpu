@@ -291,10 +291,10 @@ void _starpu_sink_common_worker(void)
 
 		STARPU_PTHREAD_MUTEX_LOCK(&node->message_queue_mutex);
 		/* If the list is not empty */
-		if(!mp_message_list_empty(node->message_queue))
+		if(!mp_message_list_empty(&node->message_queue))
 		{
 			/* We pop a message and send it to the host */
-			struct mp_message * message = mp_message_list_pop_back(node->message_queue);
+			struct mp_message * message = mp_message_list_pop_back(&node->message_queue);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&node->message_queue_mutex);
 			//_STARPU_DEBUG("telling host that we have finished the task %p sur %d.\n", task->kernel, task->coreid);
 			_starpu_mp_common_send_command(node, message->type,
@@ -324,8 +324,8 @@ static struct mp_barrier * _starpu_sink_common_get_barrier(struct _starpu_mp_nod
 	struct mp_barrier * b = NULL;
 	STARPU_PTHREAD_MUTEX_LOCK(&node->barrier_mutex);
 	/* Search if the barrier already exist */
-	for(b = mp_barrier_list_begin(node->barrier_list);
-			b != mp_barrier_list_end(node->barrier_list) && b->id != cb_workerid;
+	for(b = mp_barrier_list_begin(&node->barrier_list);
+			b != mp_barrier_list_end(&node->barrier_list) && b->id != cb_workerid;
 			b = mp_barrier_list_next(b));
 
 	/* If we found the barrier */
@@ -342,7 +342,7 @@ static struct mp_barrier * _starpu_sink_common_get_barrier(struct _starpu_mp_nod
 		b->id = cb_workerid;
 		STARPU_PTHREAD_BARRIER_INIT(&b->before_work_barrier,NULL,cb_workersize);
 		STARPU_PTHREAD_BARRIER_INIT(&b->after_work_barrier,NULL,cb_workersize);
-		mp_barrier_list_push_back(node->barrier_list,b);
+		mp_barrier_list_push_back(&node->barrier_list,b);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&node->barrier_mutex);
 		return b;
 	}
@@ -354,7 +354,7 @@ static struct mp_barrier * _starpu_sink_common_get_barrier(struct _starpu_mp_nod
 static void _starpu_sink_common_erase_barrier(struct _starpu_mp_node * node, struct mp_barrier *barrier)
 {
 	STARPU_PTHREAD_MUTEX_LOCK(&node->barrier_mutex);
-	mp_barrier_list_erase(node->barrier_list,barrier);
+	mp_barrier_list_erase(&node->barrier_list,barrier);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&node->barrier_mutex);
 }
 
@@ -363,7 +363,7 @@ static void _starpu_sink_common_erase_barrier(struct _starpu_mp_node * node, str
 static void _starpu_sink_common_append_message(struct _starpu_mp_node *node, struct mp_message * message)
 {
 	STARPU_PTHREAD_MUTEX_LOCK(&node->message_queue_mutex);
-	mp_message_list_push_front(node->message_queue,message);
+	mp_message_list_push_front(&node->message_queue,message);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&node->message_queue_mutex);
 
 }

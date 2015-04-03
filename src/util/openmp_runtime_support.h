@@ -327,9 +327,9 @@ struct starpu_omp_region
 	struct starpu_omp_device *owner_device;
 	struct starpu_omp_thread *master_thread;
 	/* note: the list of threads does not include the master_thread */
-	struct starpu_omp_thread_list *thread_list;
+	struct starpu_omp_thread_list thread_list;
 	/* list of implicit omp tasks created to run the region */
-	struct starpu_omp_task_list *implicit_task_list;
+	struct starpu_omp_task_list implicit_task_list;
 	/* include both the master thread and the region own threads */
 	int nb_threads;
 	struct _starpu_spinlock lock;

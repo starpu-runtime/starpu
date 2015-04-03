@@ -184,11 +184,11 @@ struct _starpu_mp_node
 	void* thread_table;
 
         /*list where threads add messages to send to the source node */
-        struct mp_message_list* message_queue;
+        struct mp_message_list message_queue;
 	starpu_pthread_mutex_t message_queue_mutex;
 
 	/*list of barrier for combined worker*/
-	struct mp_barrier_list* barrier_list;
+	struct mp_barrier_list barrier_list;
 	starpu_pthread_mutex_t barrier_mutex;
 
 	/*table where worker comme pick task*/

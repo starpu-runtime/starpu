@@ -133,10 +133,10 @@ static void _starpu_src_common_handle_stored_async(struct _starpu_mp_node *node)
 {
 	STARPU_PTHREAD_MUTEX_LOCK(&node->message_queue_mutex);
 	/* while the list is not empty */
-	while(!mp_message_list_empty(node->message_queue))
+	while(!mp_message_list_empty(&node->message_queue))
 	{
 		/* We pop a message and handle it */
-		struct mp_message * message = mp_message_list_pop_back(node->message_queue);
+		struct mp_message * message = mp_message_list_pop_back(&node->message_queue);
 		_starpu_src_common_handle_async(node, message->buffer,
 				message->size, message->type);
 		mp_message_delete(message);
@@ -161,7 +161,7 @@ int _starpu_src_common_store_message(struct _starpu_mp_node *node,
 			message->size = arg_size;
 
 			STARPU_PTHREAD_MUTEX_LOCK(&node->message_queue_mutex);
-			mp_message_list_push_front(node->message_queue,message);
+			mp_message_list_push_front(&node->message_queue,message);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&node->message_queue_mutex);
 			return 1;
 			break;

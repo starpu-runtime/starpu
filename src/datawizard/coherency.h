@@ -31,6 +31,7 @@
 #include <datawizard/interfaces/data_interface.h>
 #include <datawizard/datastats.h>
 #include <datawizard/memstats.h>
+#include <datawizard/data_request.h>
 
 enum _starpu_cache_state
 {
@@ -114,7 +115,7 @@ typedef void (*_starpu_data_handle_unregister_hook)(starpu_data_handle_t);
 
 struct _starpu_data_state
 {
-	struct _starpu_data_requester_list *req_list;
+	struct _starpu_data_requester_list req_list;
 	/* the number of requests currently in the scheduling engine (not in
 	 * the req_list anymore), i.e. the number of holders of the
 	 * current_mode rwlock */
@@ -215,7 +216,7 @@ struct _starpu_data_state
 	/* List of requesters that are specific to the pending reduction. This
 	 * list is used when the requests in the req_list list are frozen until
 	 * the end of the reduction. */
-	struct _starpu_data_requester_list *reduction_req_list;
+	struct _starpu_data_requester_list reduction_req_list;
 
 	starpu_data_handle_t *reduction_tmp_handles;
 
@@ -237,7 +238,7 @@ struct _starpu_data_state
 
 	struct starpu_arbiter *arbiter;
 	/* This is protected by the arbiter mutex */
-	struct _starpu_data_requester_list *arbitered_req_list;
+	struct _starpu_data_requester_list arbitered_req_list;
 };
 
 void _starpu_display_msi_stats(void);

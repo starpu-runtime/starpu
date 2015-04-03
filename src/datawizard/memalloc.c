@@ -16,6 +16,7 @@
  */
 
 #include <datawizard/memory_manager.h>
+#include <datawizard/memory_nodes.h>
 #include <datawizard/memalloc.h>
 #include <datawizard/footprint.h>
 #include <core/disk.h>
@@ -29,7 +30,7 @@ static struct _starpu_spinlock mc_lock[STARPU_MAXNODES];
 /* Potentially in use memory chunks. The beginning of the list is clean (home
  * node has a copy of the data, or the data is being transferred there), the
  * remainder of the list may not be clean. */
-static struct _starpu_mem_chunk_list *mc_list[STARPU_MAXNODES];
+static struct _starpu_mem_chunk_list mc_list[STARPU_MAXNODES];
 /* This is a shortcut inside the mc_list to the first potentially dirty MC. All
  * MC before this are clean, MC before this only *may* be clean. */
 static struct _starpu_mem_chunk *mc_dirty_head[STARPU_MAXNODES];
@@ -40,7 +41,7 @@ static unsigned mc_nb[STARPU_MAXNODES], mc_clean_nb[STARPU_MAXNODES];
 
 /* TODO: no home doesn't mean always clean, should push to larger memory nodes */
 #define MC_LIST_PUSH_BACK(node, mc) do {				 \
-	_starpu_mem_chunk_list_push_back(mc_list[node], mc);		 \
+	_starpu_mem_chunk_list_push_back(&mc_list[node], mc);		 \
 	if ((mc)->clean || (mc)->home)					 \
 		/* This is clean */					 \
 		mc_clean_nb[node]++;					 \
@@ -53,9 +54,9 @@ static unsigned mc_nb[STARPU_MAXNODES], mc_clean_nb[STARPU_MAXNODES];
 /* Put new clean mc at the end of the clean part of mc_list, i.e. just before mc_dirty_head (if any) */
 #define MC_LIST_PUSH_CLEAN(node, mc) do {				 \
 	if (mc_dirty_head[node])						 \
-		_starpu_mem_chunk_list_insert_before(mc_list[node], mc, mc_dirty_head[node]); \
+		_starpu_mem_chunk_list_insert_before(&mc_list[node], mc, mc_dirty_head[node]); \
 	else								 \
-		_starpu_mem_chunk_list_push_back(mc_list[node], mc);	 \
+		_starpu_mem_chunk_list_push_back(&mc_list[node], mc);	 \
 	/* This is clean */						 \
 	mc_clean_nb[node]++;						 \
 	mc_nb[node]++;							 \
@@ -70,7 +71,7 @@ static unsigned mc_nb[STARPU_MAXNODES], mc_clean_nb[STARPU_MAXNODES];
 	/* One element less */						 \
 	mc_nb[node]--;							 \
 	/* Remove element */						 \
-	_starpu_mem_chunk_list_erase(mc_list[node], (mc));		 \
+	_starpu_mem_chunk_list_erase(&mc_list[node], (mc));		 \
 	/* Notify whoever asked for it */				 \
 	if ((mc)->remove_notify)					 \
 	{								 \
@@ -83,7 +84,7 @@ static unsigned mc_nb[STARPU_MAXNODES], mc_clean_nb[STARPU_MAXNODES];
 struct mc_cache_entry
 {
 	UT_hash_handle hh;
-	struct _starpu_mem_chunk_list *list;
+	struct _starpu_mem_chunk_list list;
 	uint32_t footprint;
 };
 static struct mc_cache_entry *mc_cache[STARPU_MAXNODES];
@@ -105,7 +106,7 @@ void _starpu_init_mem_chunk_lists(void)
 	for (i = 0; i < STARPU_MAXNODES; i++)
 	{
 		_starpu_spin_init(&mc_lock[i]);
-		mc_list[i] = _starpu_mem_chunk_list_new();
+		_starpu_mem_chunk_list_init(&mc_list[i]);
 		STARPU_HG_DISABLE_CHECKING(mc_cache_size[i]);
 		STARPU_HG_DISABLE_CHECKING(mc_nb[i]);
 		STARPU_HG_DISABLE_CHECKING(mc_clean_nb[i]);
@@ -121,11 +122,9 @@ void _starpu_deinit_mem_chunk_lists(void)
 		STARPU_ASSERT(mc_nb[i] == 0);
 		STARPU_ASSERT(mc_clean_nb[i] == 0);
 		STARPU_ASSERT(mc_dirty_head[i] == NULL);
-		_starpu_mem_chunk_list_delete(mc_list[i]);
 		HASH_ITER(hh, mc_cache[i], entry, tmp)
 		{
 			HASH_DEL(mc_cache[i], entry);
-			_starpu_mem_chunk_list_delete(entry->list);
 			free(entry);
 		}
 		STARPU_ASSERT(mc_cache_nb[i] == 0);
@@ -608,8 +607,8 @@ static struct _starpu_mem_chunk *_starpu_memchunk_cache_lookup_locked(unsigned n
 		return NULL;
 
 	struct _starpu_mem_chunk *mc;
-	for (mc = _starpu_mem_chunk_list_begin(entry->list);
-	     mc != _starpu_mem_chunk_list_end(entry->list);
+	for (mc = _starpu_mem_chunk_list_begin(&entry->list);
+	     mc != _starpu_mem_chunk_list_end(&entry->list);
 	     mc = _starpu_mem_chunk_list_next(mc))
 	{
 		/* Is that a false hit ? (this is _very_ unlikely) */
@@ -619,7 +618,7 @@ static struct _starpu_mem_chunk *_starpu_memchunk_cache_lookup_locked(unsigned n
 		/* Cache hit */
 
 		/* Remove from the cache */
-		_starpu_mem_chunk_list_erase(entry->list, mc);
+		_starpu_mem_chunk_list_erase(&entry->list, mc);
 		mc_cache_nb[node]--;
 		STARPU_ASSERT(mc_cache_nb[node] >= 0);
 		mc_cache_size[node] -= mc->size;
@@ -657,8 +656,8 @@ static unsigned try_to_find_reusable_mem_chunk(unsigned node, starpu_data_handle
 
 restart:
 	/* now look for some non essential data in the active list */
-	for (mc = _starpu_mem_chunk_list_begin(mc_list[node]);
-	     mc != _starpu_mem_chunk_list_end(mc_list[node]) && !success;
+	for (mc = _starpu_mem_chunk_list_begin(&mc_list[node]);
+	     mc != _starpu_mem_chunk_list_end(&mc_list[node]) && !success;
 	     mc = next_mc)
 	{
 		/* there is a risk that the memory chunk is freed before next
@@ -716,9 +715,9 @@ static size_t flush_memchunk_cache(unsigned node, size_t reclaim)
 	_starpu_spin_lock(&mc_lock[node]);
 	HASH_ITER(hh, mc_cache[node], entry, tmp)
 	{
-		while (!_starpu_mem_chunk_list_empty(entry->list))
+		while (!_starpu_mem_chunk_list_empty(&entry->list))
 		{
-			mc = _starpu_mem_chunk_list_pop_front(entry->list);
+			mc = _starpu_mem_chunk_list_pop_front(&entry->list);
 			STARPU_ASSERT(!mc->data);
 			STARPU_ASSERT(!mc->replicate);
 
@@ -766,8 +765,8 @@ restart:
 	_starpu_spin_lock(&mc_lock[node]);
 
 restart2:
-	for (mc = _starpu_mem_chunk_list_begin(mc_list[node]);
-	     mc != _starpu_mem_chunk_list_end(mc_list[node]) && (!reclaim || freed < reclaim);
+	for (mc = _starpu_mem_chunk_list_begin(&mc_list[node]);
+	     mc != _starpu_mem_chunk_list_end(&mc_list[node]) && (!reclaim || freed < reclaim);
 	     mc = next_mc)
 	{
 		/* mc hopefully gets out of the list, we thus need to prefetch
@@ -1147,13 +1146,13 @@ void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, struct _star
 		if (!entry)
 		{
 			entry = malloc(sizeof(*entry));
-			entry->list = _starpu_mem_chunk_list_new();
+			_starpu_mem_chunk_list_init(&entry->list);
 			entry->footprint = footprint;
 			HASH_ADD(hh, mc_cache[node], footprint, sizeof(entry->footprint), entry);
 		}
 		mc_cache_nb[node]++;
 		mc_cache_size[node] += mc->size;
-		_starpu_mem_chunk_list_push_front(entry->list, mc);
+		_starpu_mem_chunk_list_push_front(&entry->list, mc);
 		_starpu_spin_unlock(&mc_lock[node]);
 	}
 }
@@ -1385,15 +1384,15 @@ void _starpu_memory_display_stats_by_node(int node)
 {
 	_starpu_spin_lock(&mc_lock[node]);
 
-	if (!_starpu_mem_chunk_list_empty(mc_list[node]))
+	if (!_starpu_mem_chunk_list_empty(&mc_list[node]))
 	{
 		struct _starpu_mem_chunk *mc;
 
 		fprintf(stderr, "#-------\n");
 		fprintf(stderr, "Data on Node #%d\n",node);
 
-		for (mc = _starpu_mem_chunk_list_begin(mc_list[node]);
-		     mc != _starpu_mem_chunk_list_end(mc_list[node]);
+		for (mc = _starpu_mem_chunk_list_begin(&mc_list[node]);
+		     mc != _starpu_mem_chunk_list_end(&mc_list[node]);
 		     mc = _starpu_mem_chunk_list_next(mc))
 		{
 			if (mc->automatically_allocated == 0)
