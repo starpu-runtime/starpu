@@ -29,6 +29,9 @@ struct _starpu_fifo_taskq
 	/* the number of tasks currently in the queue */
 	unsigned ntasks;
 
+	/* the number of tasks currently in the queue corresponding to each priority */
+	unsigned *ntasks_per_priority;
+
 	/* the number of tasks that were processed */
 	unsigned nprocessed;
 
@@ -38,6 +41,7 @@ struct _starpu_fifo_taskq
 			   * when we start it. */
 	double exp_end; /* Expected end date of last task in the queue */
 	double exp_len; /* Expected duration of the set of tasks in the queue */
+	double *exp_len_per_priority; /* Expected duration of the set of tasks in the queue corresponding to each priority */
 };
 
 struct _starpu_fifo_taskq*_starpu_create_fifo(void);
