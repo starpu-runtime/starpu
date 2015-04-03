@@ -511,9 +511,14 @@ void _starpu_notify_arbitered_dependencies(starpu_data_handle_t handle)
 		return;
 	}
 
-	while (!_starpu_data_requester_list_empty(&handle->arbitered_req_list))
+	/* Note: we may be putting back our own requests, so avoid looping by
+	 * extracting the list */
+	struct _starpu_data_requester_list l = handle->arbitered_req_list;
+	_starpu_data_requester_list_init(&handle->arbitered_req_list);
+
+	while (!_starpu_data_requester_list_empty(&l))
 	{
-		struct _starpu_data_requester *r = _starpu_data_requester_list_pop_front(&handle->arbitered_req_list);
+		struct _starpu_data_requester *r = _starpu_data_requester_list_pop_front(&l);
 
 		if (!r->is_requested_by_codelet)
 		{
@@ -527,6 +532,9 @@ void _starpu_notify_arbitered_dependencies(starpu_data_handle_t handle)
 			handle->busy_count++;
 			handle->current_mode = r_mode;
 			_starpu_spin_unlock(&handle->header_lock);
+
+			/* Put back remaining requests */
+			_starpu_data_requester_list_push_list_back(&handle->arbitered_req_list, &l);
 #ifndef LOCK_OR_DELEGATE
 			STARPU_PTHREAD_MUTEX_UNLOCK(&arbiter->mutex);
 #endif
@@ -594,6 +602,8 @@ void _starpu_notify_arbitered_dependencies(starpu_data_handle_t handle)
 			if (!_starpu_data_check_not_busy(handle))
 				_starpu_spin_unlock(&handle->header_lock);
 
+			/* Put back remaining requests */
+			_starpu_data_requester_list_push_list_back(&handle->arbitered_req_list, &l);
 #ifndef LOCK_OR_DELEGATE
 			STARPU_PTHREAD_MUTEX_UNLOCK(&arbiter->mutex);
 #endif
