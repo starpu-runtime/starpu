@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2014  Université de Bordeaux
+ * Copyright (C) 2010-2015  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2013  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -37,7 +37,7 @@ struct _starpu_stack_jobq *_starpu_create_stack(void)
 	struct _starpu_stack_jobq *stack;
 	stack = (struct _starpu_stack_jobq *) malloc(sizeof(struct _starpu_stack_jobq));
 
-	stack->jobq = _starpu_job_list_new();
+	_starpu_job_list_init(&stack->jobq);
 	stack->njobs = 0;
 	stack->nprocessed = 0;
 
@@ -64,9 +64,9 @@ void _starpu_stack_push_task(struct _starpu_stack_jobq *stack_queue, starpu_pthr
 	total_number_of_jobs++;
 
 	if (task->task->priority)
-		_starpu_job_list_push_back(stack_queue->jobq, task);
+		_starpu_job_list_push_back(&stack_queue->jobq, task);
 	else
-		_starpu_job_list_push_front(stack_queue->jobq, task);
+		_starpu_job_list_push_front(&stack_queue->jobq, task);
 	stack_queue->njobs++;
 	stack_queue->nprocessed++;
 
@@ -87,7 +87,7 @@ struct _starpu_job *_starpu_stack_pop_task(struct _starpu_stack_jobq *stack_queu
 	if (stack_queue->njobs > 0)
 	{
 		/* there is a task */
-		j = _starpu_job_list_pop_back(stack_queue->jobq);
+		j = _starpu_job_list_pop_back(&stack_queue->jobq);
 
 		STARPU_ASSERT(j);
 		stack_queue->njobs--;

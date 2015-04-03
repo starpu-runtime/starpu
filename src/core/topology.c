@@ -28,6 +28,7 @@
 #include <drivers/mp_common/source_common.h>
 #include <drivers/opencl/driver_opencl.h>
 #include <profiling/profiling.h>
+#include <datawizard/memory_nodes.h>
 #include <common/uthash.h>
 
 #ifdef STARPU_HAVE_HWLOC

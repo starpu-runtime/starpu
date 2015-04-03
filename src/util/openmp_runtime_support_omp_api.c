@@ -50,8 +50,8 @@ static int _starpu_omp_get_region_thread_num(const struct starpu_omp_region * co
 		return 0;
 	struct starpu_omp_thread * region_thread;
 	int tid = 1;
-	for (region_thread  = starpu_omp_thread_list_begin(region->thread_list);
-			region_thread != starpu_omp_thread_list_end(region->thread_list);
+	for (region_thread  = starpu_omp_thread_list_begin(&region->thread_list);
+			region_thread != starpu_omp_thread_list_end(&region->thread_list);
 			region_thread  = starpu_omp_thread_list_next(region_thread))
 	{
 		if (thread == region_thread)

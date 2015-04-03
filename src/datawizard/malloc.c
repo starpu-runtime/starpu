@@ -24,6 +24,7 @@
 #include <starpu.h>
 #include <drivers/opencl/driver_opencl.h>
 #include <datawizard/memory_manager.h>
+#include <datawizard/memory_nodes.h>
 #include <datawizard/malloc.h>
 #include <core/simgrid.h>
 
@@ -676,7 +677,7 @@ LIST_TYPE(_starpu_chunk,
 )
 
 /* One list of chunks per node */
-static struct _starpu_chunk_list *chunks[STARPU_MAXNODES];
+static struct _starpu_chunk_list chunks[STARPU_MAXNODES];
 /* Number of completely free chunks */
 static int nfreechunks[STARPU_MAXNODES];
 /* This protects chunks and nfreechunks */
@@ -685,7 +686,7 @@ static starpu_pthread_mutex_t chunk_mutex[STARPU_MAXNODES];
 void
 _starpu_malloc_init(unsigned dst_node)
 {
-	chunks[dst_node] = _starpu_chunk_list_new();
+	_starpu_chunk_list_init(&chunks[dst_node]);
 	nfreechunks[dst_node] = 0;
 	STARPU_PTHREAD_MUTEX_INIT(&chunk_mutex[dst_node], NULL);
 }
@@ -695,21 +696,16 @@ _starpu_malloc_shutdown(unsigned dst_node)
 {
 	struct _starpu_chunk *chunk, *next_chunk;
 
-	if (!chunks[dst_node])
-		return;
-
 	STARPU_PTHREAD_MUTEX_LOCK(&chunk_mutex[dst_node]);
-	for (chunk = _starpu_chunk_list_begin(chunks[dst_node]);
-	     chunk != _starpu_chunk_list_end(chunks[dst_node]);
+	for (chunk = _starpu_chunk_list_begin(&chunks[dst_node]);
+	     chunk != _starpu_chunk_list_end(&chunks[dst_node]);
 	     chunk = next_chunk)
 	{
 		next_chunk = _starpu_chunk_list_next(chunk);
 		_starpu_free_on_node(dst_node, chunk->base, CHUNK_SIZE);
-		_starpu_chunk_list_erase(chunks[dst_node], chunk);
+		_starpu_chunk_list_erase(&chunks[dst_node], chunk);
 		free(chunk);
 	}
-	_starpu_chunk_list_delete(chunks[dst_node]);
-	chunks[dst_node] = NULL;
 	STARPU_PTHREAD_MUTEX_UNLOCK(&chunk_mutex[dst_node]);
 	STARPU_PTHREAD_MUTEX_DESTROY(&chunk_mutex[dst_node]);
 }
@@ -758,8 +754,8 @@ starpu_malloc_on_node(unsigned dst_node, size_t size)
 	STARPU_PTHREAD_MUTEX_LOCK(&chunk_mutex[dst_node]);
 
 	/* Try to find a big enough segment among the chunks */
-	for (chunk = _starpu_chunk_list_begin(chunks[dst_node]);
-	     chunk != _starpu_chunk_list_end(chunks[dst_node]);
+	for (chunk = _starpu_chunk_list_begin(&chunks[dst_node]);
+	     chunk != _starpu_chunk_list_end(&chunks[dst_node]);
 	     chunk = _starpu_chunk_list_next(chunk))
 	{
 		if (chunk->available_max < nblocks)
@@ -781,8 +777,8 @@ starpu_malloc_on_node(unsigned dst_node, size_t size)
 					/* This one this has quite some room,
 					 * put it front, to make finding it
 					 * easier next time. */
-					_starpu_chunk_list_erase(chunks[dst_node], chunk);
-					_starpu_chunk_list_push_front(chunks[dst_node], chunk);
+					_starpu_chunk_list_erase(&chunks[dst_node], chunk);
+					_starpu_chunk_list_push_front(&chunks[dst_node], chunk);
 				}
 				if (chunk->available == CHUNK_NBLOCKS)
 					/* This one was empty, it's not empty any more */
@@ -809,7 +805,7 @@ starpu_malloc_on_node(unsigned dst_node, size_t size)
 	}
 
 	/* And make it easy to find. */
-	_starpu_chunk_list_push_front(chunks[dst_node], chunk);
+	_starpu_chunk_list_push_front(&chunks[dst_node], chunk);
 	bitmap = chunk->bitmap;
 	prevblock = 0;
 	block = 1;
@@ -854,12 +850,12 @@ starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size)
 	int nblocks = (size + CHUNK_ALLOC_MIN - 1) / CHUNK_ALLOC_MIN;
 
 	STARPU_PTHREAD_MUTEX_LOCK(&chunk_mutex[dst_node]);
-	for (chunk = _starpu_chunk_list_begin(chunks[dst_node]);
-	     chunk != _starpu_chunk_list_end(chunks[dst_node]);
+	for (chunk = _starpu_chunk_list_begin(&chunks[dst_node]);
+	     chunk != _starpu_chunk_list_end(&chunks[dst_node]);
 	     chunk = _starpu_chunk_list_next(chunk))
 		if (addr >= chunk->base && addr < chunk->base + CHUNK_SIZE)
 			break;
-	STARPU_ASSERT(chunk != _starpu_chunk_list_end(chunks[dst_node]));
+	STARPU_ASSERT(chunk != _starpu_chunk_list_end(&chunks[dst_node]));
 
 	struct block *bitmap = chunk->bitmap;
 	int block = ((addr - chunk->base) / CHUNK_ALLOC_MIN) + 1, prevblock, nextblock;
@@ -915,7 +911,7 @@ starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size)
 		{
 			/* We already have free chunks, release this one */
 			_starpu_free_on_node(dst_node, chunk->base, CHUNK_SIZE);
-			_starpu_chunk_list_erase(chunks[dst_node], chunk);
+			_starpu_chunk_list_erase(&chunks[dst_node], chunk);
 			free(chunk);
 		}
 		else
@@ -924,8 +920,8 @@ starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size)
 	else
 	{
 		/* Freed some room, put this first in chunks list */
-		_starpu_chunk_list_erase(chunks[dst_node], chunk);
-		_starpu_chunk_list_push_front(chunks[dst_node], chunk);
+		_starpu_chunk_list_erase(&chunks[dst_node], chunk);
+		_starpu_chunk_list_push_front(&chunks[dst_node], chunk);
 	}
 
 	STARPU_PTHREAD_MUTEX_UNLOCK(&chunk_mutex[dst_node]);

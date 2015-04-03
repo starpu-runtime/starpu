@@ -28,6 +28,7 @@
 #include <core/workers.h>
 #include <core/perfmodel/perfmodel.h>
 #include <core/topology.h>
+#include <datawizard/memory_nodes.h>
 #include <datawizard/memory_manager.h>
 #include <datawizard/memalloc.h>
 

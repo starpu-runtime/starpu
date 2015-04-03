@@ -31,6 +31,7 @@
 #include <profiling/profiling.h>
 #include <starpu_task_list.h>
 #include <sched_policies/sched_component.h>
+#include <datawizard/memory_nodes.h>
 #include <drivers/mp_common/sink_common.h>
 #include <drivers/scc/driver_scc_common.h>
 

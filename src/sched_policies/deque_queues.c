@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011, 2014  Université de Bordeaux
+ * Copyright (C) 2010-2011, 2014-2015  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2013  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  *
@@ -30,7 +30,7 @@ struct _starpu_deque_jobq *_starpu_create_deque(void)
 	deque = (struct _starpu_deque_jobq *) malloc(sizeof(struct _starpu_deque_jobq));
 
 	/* note that not all mechanisms (eg. the semaphore) have to be used */
-	deque->jobq = _starpu_job_list_new();
+	_starpu_job_list_init(&deque->jobq);
 	deque->njobs = 0;
 	deque->nprocessed = 0;
 
@@ -43,7 +43,6 @@ struct _starpu_deque_jobq *_starpu_create_deque(void)
 
 void _starpu_destroy_deque(struct _starpu_deque_jobq *deque)
 {
-	_starpu_job_list_delete(deque->jobq);
 	free(deque);
 }
 
@@ -67,8 +66,8 @@ struct starpu_task *_starpu_deque_pop_task(struct _starpu_deque_jobq *deque_queu
 	}
 
 	/* TODO find a task that suits workerid */
-	for (j  = _starpu_job_list_begin(deque_queue->jobq);
-	     j != _starpu_job_list_end(deque_queue->jobq);
+	for (j  = _starpu_job_list_begin(&deque_queue->jobq);
+	     j != _starpu_job_list_end(&deque_queue->jobq);
 	     j  = _starpu_job_list_next(j))
 	{
 		unsigned nimpl;
@@ -77,7 +76,7 @@ struct starpu_task *_starpu_deque_pop_task(struct _starpu_deque_jobq *deque_queu
 		if (starpu_worker_can_execute_task_first_impl(workerid, j->task, &nimpl))
 		{
 			j->nimpl = nimpl;
-			j = _starpu_job_list_pop_front(deque_queue->jobq);
+			j = _starpu_job_list_pop_front(&deque_queue->jobq);
 			_STARPU_TRACE_JOB_POP(j, 0);
 			return j->task;
 		}
@@ -100,7 +99,7 @@ struct _starpu_job_list *_starpu_deque_pop_every_task(struct _starpu_deque_jobq 
 	else
 	{
 		/* there is a task */
-		old_list = deque_queue->jobq;
+		old_list = &deque_queue->jobq;
 		new_list = _starpu_job_list_new();
 
 		unsigned new_list_size = 0;

@@ -26,6 +26,7 @@
 #include <core/perfmodel/perfmodel.h>
 #include <datawizard/copy_driver.h>
 #include <datawizard/memory_manager.h>
+#include <datawizard/memory_nodes.h>
 #include <starpu_parameters.h>
 
 #ifdef STARPU_HAVE_WINDOWS

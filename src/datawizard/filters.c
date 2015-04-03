@@ -174,8 +174,8 @@ void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_da
 		child->is_readonly = initial_handle->is_readonly;
 
 		/* initialize the chunk lock */
-		child->req_list = _starpu_data_requester_list_new();
-		child->reduction_req_list = _starpu_data_requester_list_new();
+		_starpu_data_requester_list_init(&child->req_list);
+		_starpu_data_requester_list_init(&child->reduction_req_list);
 		child->reduction_tmp_handles = NULL;
 		child->refcnt = 0;
 		child->busy_count = 0;
@@ -214,7 +214,7 @@ void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_da
 			starpu_data_assign_arbiter(child, _starpu_global_arbiter);
 		else
 			child->arbiter = NULL;
-		child->arbitered_req_list = _starpu_data_requester_list_new();
+		_starpu_data_requester_list_init(&child->arbitered_req_list);
 
 		for (node = 0; node < STARPU_MAXNODES; node++)
 		{
@@ -375,8 +375,6 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 		}
 
 		_starpu_memory_stats_free(child_handle);
-		_starpu_data_requester_list_delete(child_handle->req_list);
-		_starpu_data_requester_list_delete(child_handle->reduction_req_list);
 	}
 
 	/* the gathering_node should now have a valid copy of all the children.
