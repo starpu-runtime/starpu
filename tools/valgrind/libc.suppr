@@ -18,8 +18,7 @@
    Ignore libc aio errors
    Memcheck:Leak
    match-leak-kinds: reachable
-   fun:malloc
-   fun:realloc
+   ...
    fun:get_elem
    fun:__aio_enqueue_request
    fun:aio_read

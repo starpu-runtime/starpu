@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -41,6 +41,7 @@ extern "C"
 #  define STARPU_UNLIKELY(expr)          (__builtin_expect(!!(expr),0))
 #  define STARPU_LIKELY(expr)            (__builtin_expect(!!(expr),1))
 #  define STARPU_ATTRIBUTE_UNUSED                  __attribute__((unused))
+#  define STARPU_ATTRIBUTE_NORETURN                  __attribute__((noreturn))
 #  define STARPU_ATTRIBUTE_INTERNAL      __attribute__ ((visibility ("internal")))
 #  define STARPU_ATTRIBUTE_MALLOC                  __attribute__((malloc))
 #  define STARPU_ATTRIBUTE_WARN_UNUSED_RESULT      __attribute__((warn_unused_result))
@@ -50,6 +51,7 @@ extern "C"
 #  define STARPU_UNLIKELY(expr)          (expr)
 #  define STARPU_LIKELY(expr)            (expr)
 #  define STARPU_ATTRIBUTE_UNUSED
+#  define STARPU_ATTRIBUTE_NORETURN
 #  define STARPU_ATTRIBUTE_INTERNAL
 #  define STARPU_ATTRIBUTE_MALLOC
 #  define STARPU_ATTRIBUTE_WARN_UNUSED_RESULT

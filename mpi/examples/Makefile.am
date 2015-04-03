@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2009-2013, 2015  Université de Bordeaux
-# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  Centre National de la Recherche Scientifique
+# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -26,11 +26,17 @@ LOADER_BIN		=	$(abs_top_builddir)/mpi/tests/$(LOADER)
 loader_SOURCES		=	../../tests/loader.c
 endif
 
+if STARPU_QUICK_CHECK
+MPI			=	$(MPIEXEC) -np 2
+else
+MPI			=	$(MPIEXEC) -np 4
+endif
+
 if STARPU_HAVE_AM111
 TESTS_ENVIRONMENT	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
-LOG_COMPILER	 	=	$(MPIEXEC) -np 4 $(LOADER_BIN)
+LOG_COMPILER	 	=	$(MPI) $(LOADER_BIN)
 else
-TESTS_ENVIRONMENT 	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(MPIEXEC) -np 4
+TESTS_ENVIRONMENT 	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(MPI) $(LOADER_BIN)
 endif
 
 if STARPU_MPI_CHECK

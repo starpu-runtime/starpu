@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010,2011 University of Bordeaux
+ * Copyright (C) 2010,2011, 2015 University of Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -35,7 +35,11 @@
 
 // Basic Matrix dimensions
 #define WA (128L * BLOCK_SIZE) // Matrix A width
+#ifdef STARPU_QUICK_CHECK
+#define HA (128L * BLOCK_SIZE) // Matrix A height
+#else
 #define HA (512L * BLOCK_SIZE) // Matrix A height
+#endif
 #define WB (128L * BLOCK_SIZE) // Matrix B width
 #define HB WA  // Matrix B height
 #define WC WB  // Matrix C width

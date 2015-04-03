@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures. *
  * Copyright (C) 2009-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  Centre National de la Recherche Scientifique
- * Copyright (C) 2014  Inria
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2014  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -186,6 +186,9 @@ void _starpu_update_data_state(starpu_data_handle_t handle,
 			handle->per_node[node].state = STARPU_INVALID;
 
 		requesting_replicate->state = STARPU_OWNER;
+		if (handle->home_node != -1 && handle->per_node[handle->home_node].state == STARPU_INVALID)
+			/* Notify that this MC is now dirty */
+			_starpu_memchunk_dirty(requesting_replicate->mc, requesting_replicate->memory_node);
 	}
 	else
 	{ /* read only */
@@ -520,7 +523,8 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 		/* if the data is in write only mode (and not SCRATCH or REDUX), there is no need for a source, data will be initialized by the task itself */
 		if (mode & STARPU_W)
 			dst_replicate->initialized = 1;
-		if (requesting_node == STARPU_MAIN_RAM) {
+		if (requesting_node == STARPU_MAIN_RAM)
+		{
 			/* And this is the main RAM, really no need for a
 			 * request, just allocate */
 			if (_starpu_allocate_memory_on_node(handle, dst_replicate, is_prefetch) == 0)

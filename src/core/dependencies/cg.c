@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2012, 2014  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
- * Copyright (C) 2012 inria
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
+ * Copyright (C) 2012 INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -163,7 +163,8 @@ void _starpu_notify_cg(struct _starpu_cg *cg)
 					/* That task has already passed tag checks,
 					 * do not do them again since the tag has been cleared! */
 					_starpu_enforce_deps_starting_from_task(j);
-				} else
+				}
+				else
 					STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 
 

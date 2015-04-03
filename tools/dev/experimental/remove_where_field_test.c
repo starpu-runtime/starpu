@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011  Institut National de Recherche en Informatique et Automatique
+ * Copyright (C) 2011  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -21,7 +21,8 @@ struct dummy_struct
 
 
 /* Simple example : remove the where field */
-struct starpu_codelet cl = {
+struct starpu_codelet cl =
+{
 	.cuda_func = bar,
 	.where = STARPU_CPU | STARPU_OPENCL,
 	.cpu_func = foo
@@ -38,5 +39,5 @@ dummy(void)
 	struct dummy_struct ds;
 	struct dummy_struct *dsp = &ds;
 	ds.where = 12;   /* Must not be removed */
-	dsp->where = 12; /* Must not be removed */ 
+	dsp->where = 12; /* Must not be removed */
 }

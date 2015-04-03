@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
  * Copyright (C) 2014-2015  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -40,7 +40,8 @@ enum _starpu_cache_state
 };
 
 /* this should contain the information relative to a given data replicate  */
-struct _starpu_data_replicate {
+struct _starpu_data_replicate
+{
 	starpu_data_handle_t handle;
 
 	/* describe the actual data layout, as manipulated by data interfaces in *_interface.c */
@@ -51,6 +52,7 @@ struct _starpu_data_replicate {
 	/* describes the state of the local data in term of coherency */
 	enum _starpu_cache_state	state;
 
+	/* How many requests or tasks are currently working with this replicate */
 	int refcnt;
 
 	/* A buffer that is used for SCRATCH or reduction cannnot be used with
@@ -99,7 +101,8 @@ struct _starpu_task_wrapper_list
 };
 
 /* This structure describes a doubly-linked list of task */
-struct _starpu_task_wrapper_dlist {
+struct _starpu_task_wrapper_dlist
+{
 	struct starpu_task *task;
 	struct _starpu_task_wrapper_dlist *next;
 	struct _starpu_task_wrapper_dlist *prev;

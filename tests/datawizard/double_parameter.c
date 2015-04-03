@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011  Université de Bordeaux
- * Copyright (C) 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2012, 2013, 2015  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -34,7 +34,7 @@ static struct starpu_codelet codelet_R_R =
 static struct starpu_codelet codelet_R_W =
 {
         .cpu_funcs = { dummy_func },
-		.cpu_funcs_name = {"dummy_func"},
+	.cpu_funcs_name = {"dummy_func"},
         .model = NULL,
         .nbuffers = 2,
 	.modes = {STARPU_R, STARPU_W}
@@ -43,7 +43,7 @@ static struct starpu_codelet codelet_R_W =
 static struct starpu_codelet codelet_R_RW =
 {
         .cpu_funcs = { dummy_func },
-		.cpu_funcs_name = {"dummy_func"},
+	.cpu_funcs_name = {"dummy_func"},
         .model = NULL,
         .nbuffers = 2,
 	.modes = {STARPU_R, STARPU_RW}
@@ -52,7 +52,7 @@ static struct starpu_codelet codelet_R_RW =
 static struct starpu_codelet codelet_W_R =
 {
         .cpu_funcs = { dummy_func },
-		.cpu_funcs_name = {"dummy_func"},
+	.cpu_funcs_name = {"dummy_func"},
         .model = NULL,
         .nbuffers = 2,
 	.modes = {STARPU_W, STARPU_R}
@@ -61,7 +61,7 @@ static struct starpu_codelet codelet_W_R =
 static struct starpu_codelet codelet_W_W =
 {
         .cpu_funcs = { dummy_func },
-		.cpu_funcs_name = {"dummy_func"},
+	.cpu_funcs_name = {"dummy_func"},
         .model = NULL,
         .nbuffers = 2,
 	.modes = {STARPU_W, STARPU_W}
@@ -70,7 +70,7 @@ static struct starpu_codelet codelet_W_W =
 static struct starpu_codelet codelet_W_RW =
 {
         .cpu_funcs = { dummy_func },
-		.cpu_funcs_name = {"dummy_func"},
+	.cpu_funcs_name = {"dummy_func"},
         .model = NULL,
         .nbuffers = 2,
 	.modes = {STARPU_W, STARPU_RW}
@@ -79,7 +79,7 @@ static struct starpu_codelet codelet_W_RW =
 static struct starpu_codelet codelet_RW_R =
 {
         .cpu_funcs = { dummy_func },
-		.cpu_funcs_name = {"dummy_func"},
+	.cpu_funcs_name = {"dummy_func"},
         .model = NULL,
         .nbuffers = 2,
 	.modes = {STARPU_RW, STARPU_R}
@@ -88,7 +88,7 @@ static struct starpu_codelet codelet_RW_R =
 static struct starpu_codelet codelet_RW_W =
 {
         .cpu_funcs = { dummy_func },
-		.cpu_funcs_name = {"dummy_func"},
+	.cpu_funcs_name = {"dummy_func"},
         .model = NULL,
         .nbuffers = 2,
 	.modes = {STARPU_RW, STARPU_W}
@@ -97,7 +97,7 @@ static struct starpu_codelet codelet_RW_W =
 static struct starpu_codelet codelet_RW_RW =
 {
         .cpu_funcs = { dummy_func },
-		.cpu_funcs_name = {"dummy_func"},
+	.cpu_funcs_name = {"dummy_func"},
         .model = NULL,
         .nbuffers = 2,
 	.modes = {STARPU_RW, STARPU_RW}

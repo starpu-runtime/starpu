@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010, 2014  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2015  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -202,7 +202,8 @@ int exchange_complex(int rank, int detached)
 
 int main(int argc, char **argv)
 {
-	int ret=0, rank, size;
+	int ret=0, global_ret=0;
+	int rank, size;
 
 	MPI_Init(&argc, &argv);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -210,9 +211,7 @@ int main(int argc, char **argv)
 
 	if (size%2 != 0)
 	{
-		if (rank == 0)
-			FPRINTF(stderr, "We need a even number of processes.\n");
-
+		FPRINTF(stderr, "We need a even number of processes.\n");
 		MPI_Finalize();
 		return STARPU_TEST_SKIPPED;
 	}
@@ -223,21 +222,27 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
 
 	ret = exchange_variable(rank, 0);
-	if (ret == 0)
-		ret = exchange_variable(rank, 1);
-	if (ret == 0)
-		ret = exchange_void(rank, 0);
-	if (ret == 0)
-		ret = exchange_void(rank, 1);
-	if (ret == 0)
-		ret = exchange_complex(rank, 0);
-	if (ret == 0)
-		ret = exchange_complex(rank, 1);
+	if (ret != 0) global_ret = ret;
+
+	ret = exchange_variable(rank, 1);
+	if (ret != 0) global_ret = ret;
+
+	ret = exchange_void(rank, 0);
+	if (ret != 0) global_ret = ret;
+
+	ret = exchange_void(rank, 1);
+	if (ret != 0) global_ret = ret;
+
+	ret = exchange_complex(rank, 0);
+	if (ret != 0) global_ret = ret;
+
+	ret = exchange_complex(rank, 1);
+	if (ret != 0) global_ret = ret;
 
 	starpu_mpi_shutdown();
 	starpu_shutdown();
 
 	MPI_Finalize();
 
-	return ret;
+	return global_ret;
 }

@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2009-2014  Université de Bordeaux
-# Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
+# Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
 # Copyright (C) 2011  Télécom-SudParis
 # Copyright (C) 2011-2012  INRIA
 #
@@ -262,7 +262,8 @@ STARPU_EXAMPLES +=				\
 	sched_ctx/sched_ctx_without_sched_policy\
 	sched_ctx/nested_sched_ctxs		\
 	sched_ctx/sched_ctx_without_sched_policy\
-	sched_ctx/sched_ctx_without_sched_policy_awake 
+	sched_ctx/sched_ctx_without_sched_policy_awake\
+	sched_ctx/parallel_tasks_reuse_handle
 
 if STARPU_LONG_CHECK
 STARPU_EXAMPLES +=				\
@@ -896,6 +897,9 @@ sched_ctx_sched_ctx_without_sched_policy_CFLAGS = \
 	$(AM_CFLAGS) -fopenmp
 
 sched_ctx_nested_sched_ctxs_CFLAGS = \
+	$(AM_CFLAGS) -fopenmp
+
+sched_ctx_parallel_tasks_reuse_handle_CFLAGS = \
 	$(AM_CFLAGS) -fopenmp
 
 endif

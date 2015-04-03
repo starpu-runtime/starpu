@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
- * Copyright (C) 2010-2013  Université de Bordeaux
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
+ * Copyright (C) 2010-2013, 2015  Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -29,6 +29,12 @@
 
 #define	NX	204800
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
+
+#ifdef STARPU_QUICK_CHECK
+#define ITER 10
+#else
+#define ITER 100
+#endif
 
 static int get_first_element_rank(int nel, int rank, int nb_workers)
 {
@@ -61,7 +67,8 @@ void scal_cpu_func(void *buffers[], void *_args)
 	int begin = get_first_element_rank(n, rank, nb_workers);
 
 
-	for (i = 0; i < nel_worker; i++) {
+	for (i = 0; i < nel_worker; i++)
+	{
 		rank = i + begin;
 
 		float v = val[rank];
@@ -118,7 +125,8 @@ int main(int argc, char **argv)
 
 	float factor = 1.001;
 
-	for (i = 0; i < 100; i++) {
+	for (i = 0; i < ITER; i++)
+	{
 		struct starpu_task *task = starpu_task_create();
 
 		task->cl = &cl;
@@ -128,7 +136,8 @@ int main(int argc, char **argv)
 		task->cl_arg_size = sizeof(factor);
 
 		ret = starpu_task_submit(task);
-		if (ret == -ENODEV) {
+		if (ret == -ENODEV)
+		{
 		     ret = 77;
 		     break;
 		}

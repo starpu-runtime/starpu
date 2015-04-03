@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -207,7 +207,8 @@ int exchange_complex(int rank)
 
 int main(int argc, char **argv)
 {
-	int ret=0, rank, size;
+	int ret=0, global_ret=0;
+	int rank, size;
 
 	MPI_Init(&argc, &argv);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -215,21 +216,21 @@ int main(int argc, char **argv)
 
 	if (size%2 != 0)
 	{
-		if (rank == 0)
-			FPRINTF(stderr, "We need a even number of processes.\n");
-
+		FPRINTF(stderr, "We need a even number of processes.\n");
 		MPI_Finalize();
 		return STARPU_TEST_SKIPPED;
 	}
 
 	ret = exchange_variable(rank);
-	ret = exchange_variable(rank);
-//	if (ret == 0)
-//	ret = exchange_void(rank);
-//	if (ret == 0)
-//		ret = exchange_complex(rank);
+	if (ret != 0) global_ret = ret;
+
+	ret = exchange_void(rank);
+	if (ret != 0) global_ret = ret;
+
+	ret = exchange_complex(rank);
+	if (ret != 0) global_ret = ret;
 
 	MPI_Finalize();
 
-	return ret;
+	return global_ret;
 }

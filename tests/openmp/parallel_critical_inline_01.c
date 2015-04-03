@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2014  Inria
+ * Copyright (C) 2014  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -68,7 +68,8 @@ void parallel_region_f(void *buffers[], void *args)
 }
 
 int
-main (int argc, char *argv[]) {
+main (int argc, char *argv[])
+{
 	struct starpu_omp_parallel_region_attr attr;
 	pthread_t tid;
 	tid = pthread_self();

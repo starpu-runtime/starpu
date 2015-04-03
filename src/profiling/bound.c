@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
- * Copyright (C) 2010-2014  Université de Bordeaux
+ * Copyright (C) 2010, 2011, 2012, 2013  CNRS
+ * Copyright (C) 2010-2015  Université de Bordeaux
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -492,6 +492,9 @@ void starpu_bound_print_lp(FILE *output)
 
 	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	nw = starpu_worker_get_count();
+	if (!nw)
+		/* Make llvm happy about the VLA below */
+		return;
 
 	if (recorddeps)
 	{
@@ -527,6 +530,8 @@ void starpu_bound_print_lp(FILE *output)
 			}
 			nt++;
 		}
+		if (!nt)
+			return;
 		fprintf(output, "/* StarPU upper bound linear programming problem, to be run in lp_solve. */\n\n");
 		fprintf(output, "/* !! This is a big system, it will be long to solve !! */\n\n");
 
@@ -772,6 +777,8 @@ void starpu_bound_print_lp(FILE *output)
 		nt = 0;
 		for (tp = task_pools; tp; tp = tp->next)
 			nt++;
+		if (!nt)
+			return;
 
 		{
 			double times[nw*nt];
@@ -860,9 +867,15 @@ void starpu_bound_print_mps(FILE *output)
 	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 
 	nw = starpu_worker_get_count();
+	if (!nw)
+		/* Make llvm happy about the VLA below */
+		return;
 	nt = 0;
 	for (tp = task_pools; tp; tp = tp->next)
 		nt++;
+	if (!nt)
+		return;
+
 	{
 		double times[nw*nt];
 
@@ -935,9 +948,14 @@ static glp_prob *_starpu_bound_glp_resolve(int integer)
 	int ret;
 
 	nw = starpu_worker_get_count();
+	if (!nw)
+		/* Make llvm happy about the VLA below */
+		return NULL;
 	nt = 0;
 	for (tp = task_pools; tp; tp = tp->next)
 		nt++;
+	if (!nt)
+		return NULL;
 
 	lp = glp_create_prob();
 	glp_set_prob_name(lp, "StarPU theoretical bound");

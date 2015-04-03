@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  CNRS
  * Copyright (C) 2015  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -59,7 +59,7 @@
  * Check to see whether the first queued request can proceed, and return it in
  * such case.
  */
-/* the header lock must be taken by the caller */
+/* the handle header lock must be taken by the caller */
 static struct _starpu_data_requester *may_unlock_data_req_list_head(starpu_data_handle_t handle)
 {
 	struct _starpu_data_requester_list *req_list;
@@ -108,6 +108,7 @@ static struct _starpu_data_requester *may_unlock_data_req_list_head(starpu_data_
  * immediatly, return 0, if there is still a dependency that is not compatible
  * with the current mode, the request is put in the per-handle list of
  * "requesters", and this function returns 1. */
+/* No lock is held, this acquires and releases the handle header lock */
 static unsigned _starpu_attempt_to_submit_data_request(unsigned request_from_codelet,
 						       starpu_data_handle_t handle, enum starpu_data_access_mode mode,
 						       void (*callback)(void *), void *argcb,
@@ -234,12 +235,14 @@ static unsigned _starpu_attempt_to_submit_data_request(unsigned request_from_cod
 
 }
 
+/* No lock is held */
 unsigned _starpu_attempt_to_submit_data_request_from_apps(starpu_data_handle_t handle, enum starpu_data_access_mode mode,
 							  void (*callback)(void *), void *argcb)
 {
 	return _starpu_attempt_to_submit_data_request(0, handle, mode, callback, argcb, NULL, 0);
 }
 
+/* No lock is held */
 static unsigned attempt_to_submit_data_request_from_job(struct _starpu_job *j, unsigned buffer_index)
 {
 	/* Note that we do not access j->task->handles, but j->ordered_buffers
@@ -252,6 +255,7 @@ static unsigned attempt_to_submit_data_request_from_job(struct _starpu_job *j, u
 
 /* Acquire all data of the given job, one by one in handle pointer value order
  */
+/* No lock is held */
 static unsigned _submit_job_enforce_data_deps(struct _starpu_job *j, unsigned start_buffer_index)
 {
 	unsigned buf;
@@ -289,8 +293,32 @@ static unsigned _submit_job_enforce_data_deps(struct _starpu_job *j, unsigned st
 	return 0;
 }
 
+void _starpu_job_set_ordered_buffers(struct _starpu_job *j)
+{
+	/* Compute an ordered list of the different pieces of data so that we
+	 * grab then according to a total order, thus avoiding a deadlock
+	 * condition */
+	unsigned i;
+	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(j->task);
+	struct starpu_task *task = j->task;
+
+	for (i=0 ; i<nbuffers; i++)
+	{
+		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, i);
+		_STARPU_JOB_SET_ORDERED_BUFFER_HANDLE(j, handle, i);
+		enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(task, i);
+		_STARPU_JOB_SET_ORDERED_BUFFER_MODE(j, mode, i);
+		int node = -1;
+		if (task->cl->specific_nodes)
+			node = STARPU_CODELET_GET_NODE(task->cl, i);
+		_STARPU_JOB_SET_ORDERED_BUFFER_NODE(j, node, i);
+	}
+	_starpu_sort_task_handles(_STARPU_JOB_GET_ORDERED_BUFFERS(j), nbuffers);
+}
+
 /* Sort the data used by the given job by handle pointer value order, and
  * acquire them in that order */
+/* No  lock is held */
 unsigned _starpu_submit_job_enforce_data_deps(struct _starpu_job *j)
 {
 	struct starpu_codelet *cl = j->task->cl;
@@ -298,29 +326,14 @@ unsigned _starpu_submit_job_enforce_data_deps(struct _starpu_job *j)
 	if ((cl == NULL) || (STARPU_TASK_GET_NBUFFERS(j->task) == 0))
 		return 0;
 
-	/* Compute an ordered list of the different pieces of data so that we
-	 * grab then according to a total order, thus avoiding a deadlock
-	 * condition */
-	unsigned i;
-	for (i=0 ; i<STARPU_TASK_GET_NBUFFERS(j->task); i++)
-	{
-		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(j->task, i);
-		_STARPU_JOB_SET_ORDERED_BUFFER_HANDLE(j, handle, i);
-		enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(j->task, i);
-		_STARPU_JOB_SET_ORDERED_BUFFER_MODE(j, mode, i);
-		int node = -1;
-		if (j->task->cl->specific_nodes)
-			node = STARPU_CODELET_GET_NODE(j->task->cl, i);
-		_STARPU_JOB_SET_ORDERED_BUFFER_NODE(j, node, i);
-	}
-
-	_starpu_sort_task_handles(_STARPU_JOB_GET_ORDERED_BUFFERS(j), STARPU_TASK_GET_NBUFFERS(j->task));
+	_starpu_job_set_ordered_buffers(j);
 
 	return _submit_job_enforce_data_deps(j, 0);
 }
 
 /* This request got fulfilled, continue with the other requests of the
  * corresponding job */
+/* No lock is held */
 static unsigned unlock_one_requester(struct _starpu_data_requester *r)
 {
 	struct _starpu_job *j = r->j;

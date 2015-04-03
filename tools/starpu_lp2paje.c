@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2011, 2013-2014  Université de Bordeaux
- * Copyright (C) 2014                  Centre National de la Recherche Scientifique
+ * Copyright (C) 2014, 2015                  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -110,36 +110,45 @@ int main(int argc, char *argv[])
 	{
 		struct task task[nt];
 		memset(&task, 0, sizeof(task));
-		for (t = nt-1; t >= 0; t--) {
+		for (t = nt-1; t >= 0; t--)
+		{
 			assert(scanf("c%d %lf\n", &foo, &task[t].stop) == 2);
 		}
 
 		for (t = nt-1; t >= 0; t--)
-			for (w = 0; w < nw; w++) {
+			for (w = 0; w < nw; w++)
+			{
 				assert(scanf("t%dw%d %lf\n", &tt, &ww, &bar) == 3);
 				assert(ww == w);
 
-				if (bar > 0.5) {
+				if (bar > 0.5)
+				{
 					task[t].num = tt;
 					task[t].worker = w;
 				}
 		}
-		for (t = nt-1; t >= 0; t--) {
+		for (t = nt-1; t >= 0; t--)
+		{
 			assert(scanf("s%d %lf\n", &tt, &task[t].start) == 2);
 			fprintf(stderr,"%d: task %d on %d: %f - %f\n", nt-1-t, tt, task[t].worker, task[t].start, task[t].stop);
 			assert(tt == task[t].num);
 		}
 
-		for (t = 0; t < nt; t++) {
+		for (t = 0; t < nt; t++)
+		{
 			printf("6 %f S W%d R%d\n", task[t].start, task[t].worker, t);
 			printf("6 %f S W%d F\n", task[t].stop, task[t].worker);
 		}
 
-		for (t = 0; t < nt; t++) {
-			for (t2 = 0; t2 < nt; t2++) {
-				if (t != t2 && task[t].worker == task[t2].worker) {
+		for (t = 0; t < nt; t++)
+		{
+			for (t2 = 0; t2 < nt; t2++)
+			{
+				if (t != t2 && task[t].worker == task[t2].worker)
+				{
 					if (!(task[t].start >= task[t2].stop
-					    || task[t2].start >= task[t].stop)) {
+					    || task[t2].start >= task[t].stop))
+					{
 						fprintf(stderr,"oops, %d and %d sharing worker %d !!\n", task[t].num, task[t2].num, task[t].worker);
 					}
 				}

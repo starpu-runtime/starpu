@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
  * Copyright (C) 2013 Corentin Salingue
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -768,11 +768,8 @@ static void get_bus_path(const char *type, char *path, size_t maxlen)
 {
 	char hostname[65];
 
-	snprintf(path, maxlen, "%s", _starpu_get_perf_model_dir_bus());
 	_starpu_gethostname(hostname, sizeof(hostname));
-	strncat(path, hostname, maxlen);
-	strncat(path, ".", maxlen);
-	strncat(path, type, maxlen);
+	snprintf(path, maxlen, "%s%s.%s", _starpu_get_perf_model_dir_bus(), hostname, type);
 }
 
 /*
@@ -1700,7 +1697,8 @@ void _starpu_simgrid_get_platform_path(char *path, size_t maxlen)
 #if defined(STARPU_USE_CUDA) && HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX && defined(HAVE_CUDA_MEMCPY_PEER)
 
 /* Records, for each PCI link and hub, the maximum bandwidth seen through it */
-struct pci_userdata {
+struct pci_userdata
+{
 	/* Uplink max measurement */
 	double bw_up;
 	double bw_down;
@@ -1895,7 +1893,8 @@ static void emit_pci_dev(FILE *f, struct hwloc_pcidev_attr_s *pcidev)
 static void emit_topology_bandwidths(FILE *f, hwloc_obj_t obj)
 {
 	unsigned i;
-	if (obj->userdata) {
+	if (obj->userdata)
+	{
 		struct pci_userdata *data = obj->userdata;
 
 		if (obj->type == HWLOC_OBJ_BRIDGE)
@@ -2250,7 +2249,8 @@ static void write_bus_platform_file_content(void)
 
 #if HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX && defined(HAVE_CUDA_MEMCPY_PEER)
 	/* If we have enough hwloc information, write PCI bandwidths and routes */
-	if (!starpu_get_env_number_default("STARPU_PCI_FLAT", 0)) {
+	if (!starpu_get_env_number_default("STARPU_PCI_FLAT", 0))
+	{
 		hwloc_topology_t topology;
 		hwloc_topology_init(&topology);
 		hwloc_topology_set_flags(topology, HWLOC_TOPOLOGY_FLAG_IO_DEVICES | HWLOC_TOPOLOGY_FLAG_IO_BRIDGES);
@@ -2304,7 +2304,9 @@ static void write_bus_platform_file_content(void)
 
 		clean_topology(hwloc_get_root_obj(topology));
 		hwloc_topology_destroy(topology);
-	} else {
+	}
+	else
+	{
 flat_cuda:
 #else
 	{
@@ -2508,7 +2510,7 @@ void _starpu_save_bandwidth_and_latency_disk(double bandwidth_write, double band
 				latency_matrix[i][j] = 0;
 			}
 			else if (i == node) /* source == disk */
-			{			
+			{
 				latency_matrix[i][j] = (latency_write+latency_matrix[STARPU_MAIN_RAM][j]);
 			}
 			else if (j == node) /* destination == disk */

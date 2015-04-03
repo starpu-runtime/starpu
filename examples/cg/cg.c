@@ -74,7 +74,11 @@ static int use_reduction = 1;
 static starpu_data_handle_t A_handle, b_handle, x_handle;
 static TYPE *A, *b, *x;
 
+#ifdef STARPU_QUICK_CHECK
+static int i_max = 100;
+#else
 static int i_max = 1000;
+#endif
 static double eps = (10e-14);
 
 static starpu_data_handle_t r_handle, d_handle, q_handle;
@@ -427,19 +431,20 @@ int main(int argc, char **argv)
 	partition_data();
 
 	ret = cg();
-	if (ret == -ENODEV) goto enodev;
+	if (ret == -ENODEV) 
+	{
+		ret = 77;
+		goto enodev;
+	}
 
 	ret = check();
 
 	starpu_task_wait_for_all();
+
+enodev:
 	unregister_data();
 	free_data();
 	starpu_cublas_shutdown();
 	starpu_shutdown();
-
 	return ret;
-
-enodev:
-	starpu_shutdown();
-	return 77;
 }

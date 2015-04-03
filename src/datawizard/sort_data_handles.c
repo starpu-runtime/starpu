@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2011, 2014-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2015  CNRS
  * Copyright (C) 2015  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -88,7 +88,8 @@ static int _starpu_compar_handles(const struct _starpu_data_descr *descrA,
 			else
 				/* Only A writes, take it first */
 				return -1;
-		} else
+		}
+		else
 			/* A doesn't write, take B before */
 			return 1;
 	}

@@ -4,8 +4,8 @@
 
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2011, 2012, 2013, 2014 Centre National de la Recherche Scientifique
-# Copyright (C) 2011 Institut National de Recherche en Informatique et Automatique
+# Copyright (C) 2011, 2012, 2013, 2014 CNRS
+# Copyright (C) 2011 INRIA
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -92,7 +92,7 @@ if [ "$1" == "--macro" ] || [ "$1" == "" ] ; then
 fi
 
 if [ "$1" == "--var" ] || [ "$1" == "" ] ; then
-    variables=$(grep --exclude-dir=.svn -rs -E "(getenv|get_env)" $SRC| tr ' ' '\012'|grep -E "(getenv|get_env)" | grep "\"" | sed 's/.*("//' | sed 's/").*//'|sort|uniq)
+    variables=$(grep --exclude-dir=.svn -rs -E "(getenv|get_env)" $SRC| tr ' ' '\012'|grep -E "(getenv|get_env)" | grep "\"" | sed 's/.*("//' | sed 's/").*//'|tr -d '",'|sort|uniq)
     for variable in $variables ; do
 	x=$(grep "$variable" $dirname/../chapters/40environment_variables.doxy | grep "\\anchor")
 	if test "$x" == "" ; then

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2014  Université de Bordeaux
+ * Copyright (C) 2010, 2014-2015  Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -98,7 +98,7 @@ static void launch_gdb(const char *exe)
 		{
 			/* Run gdb with Libtool.  */
 			gdb = alloca(strlen(top_builddir)
-				     + sizeof("libtool") + 1);
+				     + sizeof("/libtool") + 1);
 			strcpy(gdb, top_builddir);
 			strcat(gdb, "/libtool");
 			err = execl(gdb, "gdb", "--mode=execute",
@@ -233,6 +233,8 @@ int main(int argc, char *argv[])
 	/* get launcher program */
 	launcher=getenv("STARPU_CHECK_LAUNCHER");
 	launcher_args=getenv("STARPU_CHECK_LAUNCHER_ARGS");
+	if (launcher_args)
+		launcher_args=strdup(launcher_args);
 
 	/* get user-defined iter_max value */
 	if (getenv("STARPU_TIMEOUT_ENV"))

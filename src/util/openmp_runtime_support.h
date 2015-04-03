@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2014  Inria
+ * Copyright (C) 2014  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -208,6 +208,7 @@ LIST_TYPE(starpu_omp_task,
 	int child_task_count;
 	struct starpu_omp_task_group *task_group;
 	struct _starpu_spinlock lock;
+	int transaction_pending;
 	int wait_on;
 	int barrier_count;
 	int single_id;
@@ -227,10 +228,10 @@ LIST_TYPE(starpu_omp_task,
 
 	/* actual task function to be run */
 	void (*cpu_f)(void **starpu_buffers, void *starpu_cl_arg);
-#if STARPU_USE_CUDA
+#ifdef STARPU_USE_CUDA
 	void (*cuda_f)(void **starpu_buffers, void *starpu_cl_arg);
 #endif
-#if STARPU_USE_OPENCL
+#ifdef STARPU_USE_OPENCL
 	void (*opencl_f)(void **starpu_buffers, void *starpu_cl_arg);
 #endif
 
@@ -248,6 +249,11 @@ LIST_TYPE(starpu_omp_task,
 	 */
 	void *stack;
 
+	/*
+	 * Valgrind stack id
+	 */
+	int stack_vg_id;
+
 	size_t stacksize;
 )
 
@@ -263,6 +269,10 @@ LIST_TYPE(starpu_omp_thread,
 	 * note: should not be used for other threads
 	 */
 	void *initial_thread_stack;
+	/*
+	 * Valgrind stack id
+	 */
+	int initial_thread_stack_vg_id;
 
 	/*
 	 * context to store the 'scheduler' state of the thread,

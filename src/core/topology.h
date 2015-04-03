@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2010, 2012, 2014  Université de Bordeaux
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2015  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -28,6 +28,9 @@ struct _starpu_machine_config;
 
 /* Detect the number of memory nodes and where to bind the different workers. */
 int _starpu_build_topology(struct _starpu_machine_config *config, int no_mp_config);
+
+/* Should be called instead of _starpu_destroy_topology when _starpu_build_topology returns a non zero value. */
+void _starpu_destroy_machine_config(struct _starpu_machine_config *config);
 
 /* Destroy all resources used to store the topology of the machine. */
 void _starpu_destroy_topology(struct _starpu_machine_config *config);

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2014  Université de Bordeaux
- * Copyright (C) 2010-2014  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010-2015  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -69,7 +69,7 @@ static struct starpu_codelet sched_ctx_codelet =
 void *th(void* p)
 {
 	unsigned sched_ctx = (unsigned)p;
-	tasks_executed[sched_ctx-1] += (int)starpu_sched_ctx_exec_parallel_code((void*)parallel_code, (void*)sched_ctx, sched_ctx); 
+	tasks_executed[sched_ctx-1] += (int)starpu_sched_ctx_exec_parallel_code((void*)parallel_code, (void*)sched_ctx, sched_ctx);
 }
 
 int main(int argc, char **argv)
@@ -157,6 +157,7 @@ int main(int argc, char **argv)
 
 		/*submit tasks to context*/
 		ret = starpu_task_submit_to_ctx(task,sched_ctx1);
+		if (ret == -ENODEV) goto enodev;
 
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
@@ -170,6 +171,7 @@ int main(int argc, char **argv)
 
 		/*submit tasks to context*/
 		ret = starpu_task_submit_to_ctx(task,sched_ctx2);
+		if (ret == -ENODEV) goto enodev;
 
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
@@ -180,6 +182,7 @@ int main(int argc, char **argv)
 	   when its corresponding tasks finished executing */
 
 
+enodev:
 
 	/* wait for all tasks at the end*/
 	starpu_task_wait_for_all();
@@ -206,5 +209,5 @@ int main(int argc, char **argv)
 	printf("ctx%d: tasks starpu executed %d out of %d\n", sched_ctx2, tasks_executed[1], NTASKS);
 	starpu_shutdown();
 
-	return 0;
+	return (ret == -ENODEV ? 77 : 0);
 }

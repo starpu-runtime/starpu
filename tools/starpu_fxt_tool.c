@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2014  Universite de Bordeaux
- * Copyright (C) 2012-2014  Centre National de la Recherche Scientifique
+ * Copyright (C) 2012-2015  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -97,7 +97,8 @@ static void parse_args(int argc, char **argv)
 		}
 
 		if (strcmp(argv[i], "-v") == 0
-		 || strcmp(argv[i], "--version") == 0) {
+		 || strcmp(argv[i], "--version") == 0)
+		{
 		        fputs(PROGNAME " (" PACKAGE_NAME ") " PACKAGE_VERSION "\n", stderr);
 			exit(EXIT_SUCCESS);
 		}

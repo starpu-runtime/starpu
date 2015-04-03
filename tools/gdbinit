@@ -2,7 +2,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2010-2015  Université de Bordeaux
-# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  Centre National de la Recherche Scientifique
+# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -615,15 +615,54 @@ end
 
 define starpu-mpi-print-request
     set $request = (struct _starpu_mpi_req *)$arg0
-    printf "Request %p data %p type %d\n", $request, $request->data_handle, $request->request_type
+    set $request_type = "unknown_type"
+    if $request->request_type == SEND_REQ
+       set $request_type = "SEND_REQ"
+    end
+    if $request->request_type == RECV_REQ
+       set $request_type = "RECV_REQ"
+    end
+    if $request->request_type == WAIT_REQ
+       set $request_type = "WAIT_REQ"
+    end
+    if $request->request_type == TEST_REQ
+       set $request_type = "TEST_REQ"
+    end
+    if $request->request_type == BARRIER_REQ
+       set $request_type = "BARRIER_REQ"
+    end
+    if $request->request_type == PROBE_REQ
+       set $request_type = "PROBE_REQ"
+    end
+    if $request->request_type == UNKNOWN_REQ
+       set $request_type = "UNKNOWN_REQ"
+    end
+    printf "Request (struct _starpu_mpi_req *) %p data %p type %s submitted %d completed %d posted %d detached %d\n", $request, $request->data_handle, $request_type, $request->submitted, $request->completed, $request->posted, $request->detached
 end
 
 define starpu-mpi-print-ready-requests
-    set $entry = ready_requests
-    while $entry->_head
-        starpu-mpi-print-request $entry->_head
-        printf "\n"
-        set $entry = (struct handle_entry *) $entry.hh.next
+    set $list = (struct _starpu_mpi_req_list *) ready_requests
+    if $list
+	set $request = $list->_head
+        while $request
+            starpu-mpi-print-request $request
+	    set $request = $request._next
+	end
+    else
+	printf "No ready requests"
+    end
+end
+
+define starpu-mpi-print-detached-requests
+    set $list = (struct _starpu_mpi_req_list *) detached_requests
+    if $list
+	set $request = $list->_head
+        while $request
+            starpu-mpi-print-request $request
+	    set $request = $request._next
+	end
+    else
+	printf "No detached requests"
     end
 end
 
@@ -653,5 +692,6 @@ end
 
 document starpu-mpi
 List of StarPU-MPI-specific gdb functions:
-starpu-mpi-print-ready-requests prints all ready requests
+starpu-mpi-print-ready-requests    prints all ready requests
+starpu-mpi-print-detached-requests prints all detached requests
 end

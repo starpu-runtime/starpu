@@ -53,7 +53,8 @@ starpu_unistd_open (void *base, void *pos, size_t size)
 
 }
 
-struct starpu_disk_ops starpu_disk_unistd_ops = {
+struct starpu_disk_ops starpu_disk_unistd_ops =
+{
 	.alloc = starpu_unistd_alloc,
 	.free = starpu_unistd_global_free,
 	.open = starpu_unistd_open,

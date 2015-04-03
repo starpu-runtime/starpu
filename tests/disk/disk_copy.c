@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2013 Corentin Salingue
+ * Copyright (C) 2015 CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -27,16 +28,24 @@
 #include "../helper.h"
 
 #ifdef STARPU_HAVE_WINDOWS
-#if defined(_WIN32) && !defined(__CYGWIN__)
-#define mkdir(path, mode) mkdir(path)
-#endif
+#  include <io.h>
+#  if defined(_WIN32) && !defined(__CYGWIN__)
+#    define mkdir(path, mode) mkdir(path)
+#  endif
 #endif
 
+/* RAM is not enough to hold 6 times NX
+ * DISK is just enough to hold 6 times NX */
+
 /* size of one vector */
-#if SIZEOF_VOID_P == 4
-#define	NX	(32*1024/sizeof(double))
+#ifdef STARPU_QUICK_CHECK
+#  define	RAM	"1"
+#  define	DISK	2
+#  define	NX	(256*1024/sizeof(double))
 #else
-#define	NX	(32*1048576/sizeof(double))
+#  define	NX	(32*1048576/sizeof(double))
+#  define	RAM	"160"
+#  define	DISK	200
 #endif
 
 #if !defined(STARPU_HAVE_SETENV)
@@ -53,7 +62,7 @@ int dotest(struct starpu_disk_ops *ops, void *param)
 	int ret;
 
 	/* limit main ram to force to push in disk */
-	setenv("STARPU_LIMIT_CPU_MEM", "160", 1);
+	setenv("STARPU_LIMIT_CPU_MEM", RAM, 1);
 
 	/* Initialize StarPU without GPU devices to make sure the memory of the GPU devices will not be used */
 	struct starpu_conf conf;
@@ -66,7 +75,7 @@ int dotest(struct starpu_disk_ops *ops, void *param)
 	if (ret == -ENODEV) goto enodev;
 
 	/* register a disk */
-	int new_dd = starpu_disk_register(ops, param, 1024*1024*200);
+	int new_dd = starpu_disk_register(ops, param, 1024*1024*DISK);
 	/* can't write on /tmp/ */
 	if (new_dd == -ENOENT) goto enoent;
 

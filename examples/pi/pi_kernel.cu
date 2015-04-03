@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2013  Université de Bordeaux
- * Copyright (C) 2010, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2012, 2015  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -38,7 +38,7 @@ static __global__ void monte_carlo(TYPE *random_numbers_x, TYPE *random_numbers_
 	__syncthreads();
 	int ind;
 	for (ind = tid; ind < n; ind += nthreads)
-	{ 
+	{
 		TYPE x = random_numbers_x[ind];
 		TYPE y = random_numbers_y[ind];
 		TYPE dist = (x*x + y*y);
@@ -109,7 +109,7 @@ extern "C" void cuda_kernel(void *descr[], void *cl_arg)
 	float *random_numbers;
 	cudaMalloc((void **)&random_numbers, 2*nx*sizeof(float));
 	STARPU_ASSERT(random_numbers);
-	
+
 	sobolGPU(2*nx/n_dimensions, n_dimensions, directions, random_numbers);
 	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 
@@ -118,11 +118,11 @@ extern "C" void cuda_kernel(void *descr[], void *cl_arg)
 
 	unsigned *cnt = (unsigned *)STARPU_VECTOR_GET_PTR(descr[1]);
 
-	/* How many blocks do we use ? */ 
+	/* How many blocks do we use ? */
 	unsigned nblocks = 128; // TODO
 
 	STARPU_ASSERT(nblocks <= MAXNBLOCKS);
-	
+
 	unsigned *per_block_cnt;
 	cudaMalloc((void **)&per_block_cnt, nblocks*sizeof(unsigned));
 

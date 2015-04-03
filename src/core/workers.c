@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  Centre National de la Recherche Scientifique
- * Copyright (C) 2010, 2011  Institut National de Recherche en Informatique et Automatique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2010, 2011  INRIA
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2011-2012  INRIA
  *
@@ -99,10 +99,10 @@ static uint32_t _starpu_worker_exists_and_can_execute(struct starpu_task *task,
 	int i;
 	_starpu_codelet_check_deprecated_fields(task->cl);
 
-        /* make sure there is a worker on the machine able to execute the 
-	   task, independent of the sched_ctx, this latter may receive latter on 
+        /* make sure there is a worker on the machine able to execute the
+	   task, independent of the sched_ctx, this latter may receive latter on
 	   the necessary worker - the user or the hypervisor should take care this happens */
-	
+
 	int check_entire_platform = starpu_get_env_number("STARPU_CHECK_ENTIRE_PLATFORM");
 	struct _starpu_sched_ctx *sched_ctx = check_entire_platform == 1 ? _starpu_get_initial_sched_ctx() : _starpu_get_sched_ctx_struct(task->sched_ctx);
 	struct starpu_worker_collection *workers = sched_ctx->workers;
@@ -176,7 +176,7 @@ uint32_t _starpu_worker_exists(struct starpu_task *task)
 	{
 		if (!(task->cl->where & config.worker_mask))
 			return 0;
-		
+
 		if (!task->cl->can_execute)
 			return 1;
 	}
@@ -324,15 +324,19 @@ int starpu_worker_can_execute_task_impl(unsigned workerid, struct starpu_task *t
 	if (!task->cl->can_execute)
 	{
 		for (i = 0; i < STARPU_MAXIMPLEMENTATIONS; i++)
-			if (_starpu_can_use_nth_implementation(arch, cl, i)) {
+			if (_starpu_can_use_nth_implementation(arch, cl, i))
+			{
 				mask |= 1U << i;
 				if (!impl_mask)
 					break;
 			}
-	} else {
+	}
+	else
+	{
 		for (i = 0; i < STARPU_MAXIMPLEMENTATIONS; i++)
 			if (_starpu_can_use_nth_implementation(arch, cl, i)
-			 && (!task->cl->can_execute || task->cl->can_execute(workerid, task, i))) {
+			 && (!task->cl->can_execute || task->cl->can_execute(workerid, task, i)))
+			{
 				mask |= 1U << i;
 				if (!impl_mask)
 					break;
@@ -358,15 +362,19 @@ int starpu_worker_can_execute_task_first_impl(unsigned workerid, struct starpu_t
 	if (!task->cl->can_execute)
 	{
 		for (i = 0; i < STARPU_MAXIMPLEMENTATIONS; i++)
-			if (_starpu_can_use_nth_implementation(arch, cl, i)) {
+			if (_starpu_can_use_nth_implementation(arch, cl, i))
+			{
 				if (nimpl)
 					*nimpl = i;
 				return 1;
 			}
-	} else {
+	}
+	else
+	{
 		for (i = 0; i < STARPU_MAXIMPLEMENTATIONS; i++)
 			if (_starpu_can_use_nth_implementation(arch, cl, i)
-			 && (!task->cl->can_execute || task->cl->can_execute(workerid, task, i))) {
+			 && (!task->cl->can_execute || task->cl->can_execute(workerid, task, i)))
+			{
 				if (nimpl)
 					*nimpl = i;
 				return 1;
@@ -393,7 +401,7 @@ int starpu_combined_worker_can_execute_task(unsigned workerid, struct starpu_tas
 	}
 	else
 	{
-		if ((cl->type == STARPU_SPMD) 
+		if ((cl->type == STARPU_SPMD)
 #ifdef STARPU_HAVE_HWLOC
 				|| (cl->type == STARPU_FORKJOIN)
 #else
@@ -570,7 +578,7 @@ void _starpu_worker_start(struct _starpu_worker *worker, unsigned fut_key, unsig
 }
 #endif
 
-void _starpu_driver_start(struct _starpu_worker *worker, unsigned fut_key, unsigned sync)
+void _starpu_driver_start(struct _starpu_worker *worker, unsigned fut_key, unsigned sync STARPU_ATTRIBUTE_UNUSED)
 {
 	(void) fut_key;
 	int devid = worker->devid;
@@ -612,7 +620,10 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 	unsigned nworkers = pconfig->topology.nworkers;
 
 	/* Launch workers asynchronously */
-	unsigned worker, i;
+	unsigned worker;
+#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID) || defined(STARPU_USE_MIC)
+	unsigned i;
+#endif
 
 #if defined(STARPU_PERF_DEBUG) && !defined(STARPU_SIMGRID)
 	/* Get itimer of the main thread, to set it for the worker threads */
@@ -910,6 +921,8 @@ int starpu_conf_init(struct starpu_conf *conf)
 	conf->magic = 42;
 	conf->sched_policy_name = getenv("STARPU_SCHED");
 	conf->sched_policy = NULL;
+	conf->global_sched_ctx_min_priority = starpu_get_env_number("STARPU_MIN_PRIO");
+	conf->global_sched_ctx_max_priority = starpu_get_env_number("STARPU_MAX_PRIO");
 
 	/* Note that starpu_get_env_number returns -1 in case the variable is
 	 * not defined */
@@ -1204,6 +1217,9 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 		starpu_perfmodel_free_sampling_directories();
 		STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
 		init_count--;
+
+		_starpu_destroy_machine_config(&config);
+
 #ifdef STARPU_USE_SCC
 		if (_starpu_scc_common_is_mp_initialized())
 			_starpu_scc_src_mp_deinit();
@@ -1233,7 +1249,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	if (!is_a_sink)
 	{
 		struct starpu_sched_policy *selected_policy = _starpu_select_sched_policy(&config, config.conf->sched_policy_name);
-		_starpu_create_sched_ctx(selected_policy, NULL, -1, 1, "init", 0, 0, 0, 0, 1);
+		_starpu_create_sched_ctx(selected_policy, NULL, -1, 1, "init", (config.conf->global_sched_ctx_min_priority != -1), config.conf->global_sched_ctx_min_priority, (config.conf->global_sched_ctx_min_priority != -1), config.conf->global_sched_ctx_max_priority, 1);
 	}
 
 	_starpu_initialize_registered_performance_models();
@@ -1256,7 +1272,8 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	/* Finally, if we are a MP sink, we never leave this function. Else,
 	 * we enter an infinite event loop which listen for MP commands from
 	 * the source. */
-	if (is_a_sink) {
+	if (is_a_sink)
+	{
 		_starpu_sink_common_worker();
 
 		/* We should normally never leave the loop as we don't want to
@@ -1346,9 +1363,11 @@ void _starpu_may_pause(void)
 	/* pause_depth is just protected by a memory barrier */
 	STARPU_RMB();
 
-	if (STARPU_UNLIKELY(config.pause_depth > 0)) {
+	if (STARPU_UNLIKELY(config.pause_depth > 0))
+	{
 		STARPU_PTHREAD_MUTEX_LOCK(&pause_mutex);
-		if (config.pause_depth > 0) {
+		if (config.pause_depth > 0)
+		{
 			STARPU_PTHREAD_COND_WAIT(&pause_cond, &pause_mutex);
 		}
 		STARPU_PTHREAD_MUTEX_UNLOCK(&pause_mutex);
@@ -1377,7 +1396,8 @@ void starpu_resume()
 {
 	STARPU_PTHREAD_MUTEX_LOCK(&pause_mutex);
 	config.pause_depth -= 1;
-	if (!config.pause_depth) {
+	if (!config.pause_depth)
+	{
 		STARPU_PTHREAD_COND_BROADCAST(&pause_cond);
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&pause_mutex);
@@ -1522,6 +1542,9 @@ void starpu_shutdown(void)
 #endif
 	_starpu_close_debug_logfile();
 
+	STARPU_PTHREAD_KEY_DELETE(worker_key);
+	STARPU_PTHREAD_KEY_DELETE(worker_set_key);
+
 	STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
 	initialized = UNINITIALIZED;
 	/* Let someone else that wants to initialize it again do it */
@@ -1622,10 +1645,10 @@ int starpu_asynchronous_mic_copy_disabled(void)
 unsigned starpu_mic_worker_get_count(void)
 {
 	int i = 0, count = 0;
-	
+
 	for (i = 0; i < STARPU_MAXMICDEVS; i++)
 		count += config.topology.nmiccores[i];
-	
+
 	return count;
 }
 
@@ -1736,7 +1759,7 @@ struct _starpu_sched_ctx *_starpu_get_sched_ctx_struct(unsigned id)
 struct _starpu_combined_worker *_starpu_get_combined_worker_struct(unsigned id)
 {
 	unsigned basic_worker_count = starpu_worker_get_count();
-	
+
 	//_STARPU_DEBUG("basic_worker_count:%d\n",basic_worker_count);
 
 	STARPU_ASSERT(id >= basic_worker_count);

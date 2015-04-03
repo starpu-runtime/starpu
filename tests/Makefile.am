@@ -1,8 +1,8 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2009-2015  Université de Bordeaux
-# Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
-# Copyright (C) 2010, 2011, 2012  Institut National de Recherche en Informatique et Automatique
+# Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
+# Copyright (C) 2010, 2011, 2012  INRIA
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -185,6 +185,7 @@ noinst_PROGRAMS =				\
 	datawizard/handle_to_pointer		\
 	datawizard/lazy_allocation		\
 	datawizard/lazy_unregister		\
+	datawizard/no_unregister		\
 	datawizard/noreclaim			\
 	datawizard/interfaces/copy_interfaces	\
 	datawizard/interfaces/block/block_interface \
@@ -215,6 +216,7 @@ noinst_PROGRAMS =				\
 	disk/disk_copy				\
 	disk/disk_compute			\
 	disk/disk_pack				\
+	disk/mem_reclaim			\
 	errorcheck/starpu_init_noworker		\
 	errorcheck/invalid_blocking_calls	\
 	errorcheck/invalid_tasks		\

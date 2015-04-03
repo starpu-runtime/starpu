@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -159,7 +159,7 @@ static 	void _free_arch_combs(void)
 	STARPU_PTHREAD_MUTEX_DESTROY(&arch_combs_mutex);
 }
 
-int starpu_get_narch_combs()
+int starpu_perfmodel_get_narch_combs()
 {
 	return current_arch_comb;
 }
@@ -712,29 +712,19 @@ static void get_model_debug_path(struct starpu_perfmodel *model, const char *arc
 {
 	STARPU_ASSERT(path);
 
-	snprintf(path, maxlen, "%s/%s", _starpu_get_perf_model_dir_debug(), model->symbol);
-
 	char hostname[65];
 	_starpu_gethostname(hostname, sizeof(hostname));
-	strncat(path, ".", maxlen);
-	strncat(path, hostname, maxlen);
-	strncat(path, ".", maxlen);
-	strncat(path, arch, maxlen);
-	strncat(path, ".debug", maxlen);
+
+	snprintf(path, maxlen, "%s/%s.%s.%s.debug", _starpu_get_perf_model_dir_debug(), model->symbol, hostname, arch);
 }
 
 static void get_model_path(struct starpu_perfmodel *model, char *path, size_t maxlen)
 {
-	snprintf(path, maxlen, "%s/%s", _starpu_get_perf_model_dir_codelet(), model->symbol);
-
+	char hostname[65];
+	_starpu_gethostname(hostname, sizeof(hostname));
 	const char *dot = strrchr(model->symbol, '.');
-	if (dot == NULL)
-	{
-		char hostname[65];
-		_starpu_gethostname(hostname, sizeof(hostname));
-		strncat(path, ".", maxlen);
-		strncat(path, hostname, maxlen);
-	}
+
+	snprintf(path, maxlen, "%s/%s%s%s", _starpu_get_perf_model_dir_codelet(), model->symbol, dot?"":".", dot?"":hostname);
 }
 
 #ifndef STARPU_SIMGRID

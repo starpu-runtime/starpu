@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2012-2013, 2015  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -42,6 +42,9 @@ int _starpu_memory_manager_init()
 	{
 		global_size[i] = 0;
 		used_size[i] = 0;
+		/* This is accessed for statistics outside the lock, don't care
+		 * about that */
+		STARPU_HG_DISABLE_CHECKING(used_size[i]);
 		min_waiting_size[i] = 0;
 		STARPU_PTHREAD_MUTEX_INIT(&lock_nodes[i], NULL);
 		STARPU_PTHREAD_COND_INIT(&cond_nodes[i], NULL);
@@ -51,8 +54,17 @@ int _starpu_memory_manager_init()
 
 void _starpu_memory_manager_set_global_memory_size(unsigned node, size_t size)
 {
-	global_size[node] = size;
-	_STARPU_DEBUG("Global size for node %d is %ld\n", node, (long)global_size[node]);
+	STARPU_PTHREAD_MUTEX_LOCK(&lock_nodes[node]);
+	if (!global_size[node])
+	{
+		global_size[node] = size;
+		_STARPU_DEBUG("Global size for node %d is %ld\n", node, (long)global_size[node]);
+	}
+	else
+	{
+		STARPU_ASSERT(global_size[node] == size);
+	}
+	STARPU_PTHREAD_MUTEX_UNLOCK(&lock_nodes[node]);
 }
 
 size_t _starpu_memory_manager_get_global_memory_size(unsigned node)
@@ -126,10 +138,12 @@ starpu_ssize_t starpu_memory_get_total(unsigned node)
 
 starpu_ssize_t starpu_memory_get_available(unsigned node)
 {
+	starpu_ssize_t ret;
 	if (global_size[node] == 0)
 		return -1;
-	else
-		return global_size[node] - used_size[node];
+
+	ret = global_size[node] - used_size[node];
+	return ret;
 }
 
 void starpu_memory_wait_available(unsigned node, size_t size)

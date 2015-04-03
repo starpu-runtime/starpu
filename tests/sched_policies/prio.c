@@ -76,13 +76,17 @@ run(struct starpu_sched_policy *policy)
 
         starpu_srand48(0);
 
-	for (i = 0; i < NTASKS; i++) {
+	for (i = 0; i < NTASKS; i++)
+	{
 		struct starpu_task *task = starpu_task_create();
 
-		if (((int)(starpu_drand48()*2))%2) {
+		if (((int)(starpu_drand48()*2))%2)
+		{
 			task->cl = &clA;
 			task->priority=STARPU_MIN_PRIO;
-		} else {
+		}
+		else
+		{
 			task->cl = &clB;
 			task->priority=STARPU_MAX_PRIO;
 		}

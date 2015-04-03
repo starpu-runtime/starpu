@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2012-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -69,7 +69,7 @@ int _starpu_debug_rank;
 #endif
 
 #ifdef STARPU_VERBOSE
-#  define _STARPU_MPI_COMM_DEBUG(count, datatype, node, tag, utag, way)	\
+#  define _STARPU_MPI_COMM_DEBUG(count, datatype, node, tag, utag, comm, way) \
 	do \
 	{ \
 	     	if (getenv("STARPU_MPI_COMM"))	\
@@ -77,12 +77,12 @@ int _starpu_debug_rank;
      			int __size; \
 			if (_starpu_debug_rank == -1) starpu_mpi_comm_rank(MPI_COMM_WORLD, &_starpu_debug_rank); \
 			MPI_Type_size(datatype, &__size); \
-			fprintf(stderr, "[%d][starpu_mpi] %s %d:%d(%d) %12ld     [%s:%d]\n", _starpu_debug_rank, way, node, tag, utag, count*__size, __starpu_func__ , __LINE__); \
+			fprintf(stderr, "[%d][starpu_mpi] %s %d:%d(%d):%p %12s %ld     [%s:%d]\n", _starpu_debug_rank, way, node, tag, utag, comm, " ", count*__size, __starpu_func__ , __LINE__); \
 			fflush(stderr); \
 		} \
 	} while(0);
-#  define _STARPU_MPI_COMM_TO_DEBUG(count, datatype, dest, tag, utag) 		_STARPU_MPI_COMM_DEBUG(count, datatype, dest, tag, utag, "-->")
-#  define _STARPU_MPI_COMM_FROM_DEBUG(count, datatype, source, tag, utag) 	_STARPU_MPI_COMM_DEBUG(count, datatype, source, tag, utag, "<--")
+#  define _STARPU_MPI_COMM_TO_DEBUG(count, datatype, dest, tag, utag, comm) 		_STARPU_MPI_COMM_DEBUG(count, datatype, dest, tag, utag, comm, "-->")
+#  define _STARPU_MPI_COMM_FROM_DEBUG(count, datatype, source, tag, utag, comm) 	_STARPU_MPI_COMM_DEBUG(count, datatype, source, tag, utag, comm, "<--")
 #  define _STARPU_MPI_DEBUG(level, fmt, ...) \
 	do \
 	{								\
@@ -94,9 +94,9 @@ int _starpu_debug_rank;
 		}			\
 	} while(0);
 #else
-#  define _STARPU_MPI_COMM_DEBUG(count, datatype, node, tag, utag, way)		do { } while(0)
-#  define _STARPU_MPI_COMM_TO_DEBUG(count, datatype, dest, tag, utag)		do { } while(0)
-#  define _STARPU_MPI_COMM_FROM_DEBUG(count, datatype, source, tag, utag)	do { } while(0)
+#  define _STARPU_MPI_COMM_DEBUG(count, datatype, node, tag, utag, comm, way)		do { } while(0)
+#  define _STARPU_MPI_COMM_TO_DEBUG(count, datatype, dest, tag, comm, utag)		do { } while(0)
+#  define _STARPU_MPI_COMM_FROM_DEBUG(count, datatype, source, tag, comm, utag)	do { } while(0)
 #  define _STARPU_MPI_DEBUG(level, fmt, ...)		do { } while(0)
 #endif
 
@@ -174,7 +174,7 @@ LIST_TYPE(_starpu_mpi_req,
 	void (*func)(struct _starpu_mpi_req *);
 
 	MPI_Status *status;
-	MPI_Request request;
+	MPI_Request data_request;
 	int *flag;
 	unsigned sync;
 

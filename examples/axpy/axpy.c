@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009-2014  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -100,7 +100,8 @@ check(void)
 	for (i = 0; i < N; i++)
 	{
 		TYPE expected_value = _alpha * _vec_x[i] + 4.0;
-		if (fabs(_vec_y[i] - expected_value) > expected_value * EPSILON) {
+		if (fabs(_vec_y[i] - expected_value) > expected_value * EPSILON)
+		{
 			FPRINTF(stderr,"at %d, %f*%f+%f=%f, expected %f\n", i, _alpha, _vec_x[i], 4.0, _vec_y[i], expected_value);
 			return EXIT_FAILURE;
 		}

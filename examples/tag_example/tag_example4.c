@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010, 2012-2013  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -48,7 +48,8 @@ void cpu_codelet_B(void *descr[], void *_args)
 	fprintf(stderr,"B");
 }
 
-struct starpu_codelet cl_A = {
+struct starpu_codelet cl_A =
+{
 	.cpu_funcs = { cpu_codelet_A},
 	.cuda_funcs = { cpu_codelet_A},
 	.opencl_funcs = { cpu_codelet_A},
@@ -56,7 +57,8 @@ struct starpu_codelet cl_A = {
 	.name = "dummyA"
 };
 
-struct starpu_codelet cl_B = {
+struct starpu_codelet cl_B =
+{
 	.cpu_funcs = { cpu_codelet_B},
 	.cuda_funcs = { cpu_codelet_B},
 	.opencl_funcs = { cpu_codelet_B},
@@ -107,7 +109,8 @@ int main(int argc STARPU_ATTRIBUTE_UNUSED , char **argv STARPU_ATTRIBUTE_UNUSED)
 
 		for (i = 1; i < ni; i++)
 		{
-			for (j = 1; j < i; j++) {
+			for (j = 1; j < i; j++)
+			{
 				struct starpu_task *task_A = starpu_task_create();
 				task_A->cl = &cl_A;
 				task_A->cl_arg = &array[i];
@@ -119,7 +122,8 @@ int main(int argc STARPU_ATTRIBUTE_UNUSED , char **argv STARPU_ATTRIBUTE_UNUSED)
 				STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 			}
 
-			for (j = 1; j < i; j++) {
+			for (j = 1; j < i; j++)
+			{
 				struct starpu_task *task_B = starpu_task_create();
 				task_B->cl = &cl_B;
 				task_B->cl_arg = &array[i];

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2011, 2013-2014  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -113,7 +113,6 @@ int main(int argc, char **argv)
 	/* submit tasks (but don't execute them yet !) */
 	tasks = (struct starpu_task *) calloc(1, ntasks*sizeof(struct starpu_task));
 
-	start_submit = starpu_timing_now();
 	for (i = 0; i < ntasks; i++)
 	{
 		starpu_task_init(&tasks[i]);
