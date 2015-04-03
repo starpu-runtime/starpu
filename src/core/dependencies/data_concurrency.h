@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2010, 2012, 2015  Université de Bordeaux
  * Copyright (C) 2010, 2011  CNRS
+ * Copyright (C) 2015  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -23,12 +24,19 @@
 void _starpu_job_set_ordered_buffers(struct _starpu_job *j);
 
 unsigned _starpu_submit_job_enforce_data_deps(struct _starpu_job *j);
+void _starpu_submit_job_enforce_arbitered_deps(struct _starpu_job *j, unsigned buf, unsigned nbuffers);
 
 int _starpu_notify_data_dependencies(starpu_data_handle_t handle);
+void _starpu_notify_arbitered_dependencies(starpu_data_handle_t handle);
 
 unsigned _starpu_attempt_to_submit_data_request_from_apps(starpu_data_handle_t handle,
 							  enum starpu_data_access_mode mode,
 							  void (*callback)(void *), void *argcb);
+
+unsigned _starpu_attempt_to_submit_arbitered_data_request(unsigned request_from_codelet,
+						       starpu_data_handle_t handle, enum starpu_data_access_mode mode,
+						       void (*callback)(void *), void *argcb,
+						       struct _starpu_job *j, unsigned buffer_index);
 
 #endif // __DATA_CONCURRENCY_H__
 

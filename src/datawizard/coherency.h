@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009-2015  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
- * Copyright (C) 2014  INRIA
+ * Copyright (C) 2014-2015  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -234,6 +234,10 @@ struct _starpu_data_state
 
 	/* hook to be called when unregistering the data */
 	_starpu_data_handle_unregister_hook unregister_hook;
+
+	struct starpu_arbiter *arbiter;
+	/* This is protected by the arbiter mutex */
+	struct _starpu_data_requester_list *arbitered_req_list;
 };
 
 void _starpu_display_msi_stats(void);
