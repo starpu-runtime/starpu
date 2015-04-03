@@ -15,11 +15,13 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+/* This one includes us, so make sure to include it first */
+#include <datawizard/coherency.h>
+
 #ifndef __DATA_REQUEST_H__
 #define __DATA_REQUEST_H__
 
 #include <semaphore.h>
-#include <datawizard/coherency.h>
 #include <datawizard/copy_driver.h>
 #include <common/list.h>
 #include <common/starpu_spinlock.h>

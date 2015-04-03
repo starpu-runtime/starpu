@@ -34,6 +34,8 @@
  *   void		FOO_delete(struct FOO*);
  *     * création d'une liste (vide)
  *   struct FOO_list*	FOO_list_new(void);
+ *     * initialisation d'une liste (vide)
+ *   void		FOO_list_init(struct FOO_list*);
  *     * suppression d'une liste
  *   void		FOO_list_delete(struct FOO_list*);
  *     * teste si une liste est vide
@@ -152,9 +154,11 @@
     { return l->_head; } \
   /** @internal */static inline struct ENAME *ENAME##_list_back(struct ENAME##_list *l) \
     { return l->_tail; } \
+  /** @internal */static inline void ENAME##_list_init(struct ENAME##_list *l) \
+    { l->_head=NULL; l->_tail=l->_head; } \
   /** @internal */static inline struct ENAME##_list *ENAME##_list_new(void) \
     { struct ENAME##_list *l; l=(struct ENAME##_list *)malloc(sizeof(struct ENAME##_list)); \
-      l->_head=NULL; l->_tail=l->_head; return l; } \
+      ENAME##_list_init(l); return l; } \
   /** @internal */static inline int ENAME##_list_empty(struct ENAME##_list *l) \
     { return (l->_head == NULL); } \
   /** @internal */static inline void ENAME##_list_delete(struct ENAME##_list *l) \

@@ -170,7 +170,7 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
 	if (node->init)
 		node->init(node);
 
-	node->message_queue = mp_message_list_new();
+	mp_message_list_init(&node->message_queue);
 	STARPU_PTHREAD_MUTEX_INIT(&node->message_queue_mutex,NULL);
 
 	/* If the node is a sink then we must initialize some field */
@@ -186,7 +186,7 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
 			node->run_table[i] = NULL;
 			sem_init(&node->sem_run_table[i],0,0);
 		}
-		node->barrier_list = mp_barrier_list_new();
+		mp_barrier_list_init(&node->barrier_list);
 		STARPU_PTHREAD_MUTEX_INIT(&node->barrier_mutex,NULL);
 
 		STARPU_PTHREAD_BARRIER_INIT(&node->init_completed_barrier, NULL, node->nb_cores+1);
@@ -203,7 +203,6 @@ void _starpu_mp_common_node_destroy(struct _starpu_mp_node *node)
 	if (node->deinit)
 		node->deinit(node);
 		
-	mp_message_list_delete(node->message_queue);
 	STARPU_PTHREAD_MUTEX_DESTROY(&node->message_queue_mutex);
 
 	/* If the node is a sink then we must destroy some field */
@@ -217,8 +216,6 @@ void _starpu_mp_common_node_destroy(struct _starpu_mp_node *node)
 
 		free(node->run_table);
 		free(node->sem_run_table);
-
-		mp_barrier_list_delete(node->barrier_list);
 
 		STARPU_PTHREAD_MUTEX_DESTROY(&node->barrier_mutex);
 		STARPU_PTHREAD_BARRIER_DESTROY(&node->init_completed_barrier);

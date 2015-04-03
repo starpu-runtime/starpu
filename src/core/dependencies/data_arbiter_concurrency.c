@@ -20,6 +20,8 @@
 #include <core/sched_policy.h>
 #include <common/starpu_spinlock.h>
 #include <datawizard/sort_data_handles.h>
+#include <datawizard/memalloc.h>
+#include <datawizard/memory_nodes.h>
 
 /* TODO factorize with data_concurrency.c and btw support redux */
 
@@ -295,7 +297,7 @@ unsigned _starpu_attempt_to_submit_arbitered_data_request(unsigned request_from_
 		r->ready_data_callback = callback;
 		r->argcb = argcb;
 
-		_starpu_data_requester_list_push_back(handle->arbitered_req_list, r);
+		_starpu_data_requester_list_push_back(&handle->arbitered_req_list, r);
 
 		/* failed */
 		put_in_list = 1;
@@ -473,7 +475,7 @@ void _starpu_submit_job_enforce_arbitered_deps(struct _starpu_job *j, unsigned b
 
 			_starpu_spin_lock(&cancel_handle->header_lock);
 			/* store node in list */
-			_starpu_data_requester_list_push_front(cancel_handle->arbitered_req_list, r);
+			_starpu_data_requester_list_push_front(&cancel_handle->arbitered_req_list, r);
 			/* inc the busy count if it has not been changed in the previous loop */
 			if (idx_buf_arbiter <= idx_buf_cancel)
 				cancel_handle->busy_count += 1;
@@ -520,7 +522,7 @@ void _starpu_notify_arbitered_dependencies(starpu_data_handle_t handle)
 #endif
 
 	/* Since the request has been posted the handle may have been proceed and released */
-	if (_starpu_data_requester_list_empty(handle->arbitered_req_list))
+	if (_starpu_data_requester_list_empty(&handle->arbitered_req_list))
 	{
 #ifndef LOCK_OR_DELEGATE
 		STARPU_PTHREAD_MUTEX_UNLOCK(&arbiter->mutex);
@@ -530,8 +532,8 @@ void _starpu_notify_arbitered_dependencies(starpu_data_handle_t handle)
 	/* no one has the right to work on arbitered_req_list without a lock on mutex
 	   so we do not need to lock the handle for safety */
 	struct _starpu_data_requester *r;
-	for (r = _starpu_data_requester_list_begin(handle->arbitered_req_list);
-	     r != _starpu_data_requester_list_end(handle->arbitered_req_list);
+	for (r = _starpu_data_requester_list_begin(&handle->arbitered_req_list);
+	     r != _starpu_data_requester_list_end(&handle->arbitered_req_list);
 	     r = _starpu_data_requester_list_next(r))
 	{
 		if (!r->is_requested_by_codelet)
@@ -546,7 +548,7 @@ void _starpu_notify_arbitered_dependencies(starpu_data_handle_t handle)
 			handle->busy_count++;
 			handle->current_mode = r_mode;
 			_starpu_spin_unlock(&handle->header_lock);
-			_starpu_data_requester_list_erase(handle->arbitered_req_list, r);
+			_starpu_data_requester_list_erase(&handle->arbitered_req_list, r);
 #ifndef LOCK_OR_DELEGATE
 			STARPU_PTHREAD_MUTEX_UNLOCK(&arbiter->mutex);
 #endif
@@ -628,7 +630,7 @@ void _starpu_notify_arbitered_dependencies(starpu_data_handle_t handle)
 				STARPU_ASSERT(handle_arbiter->refcnt == 1);
 				STARPU_ASSERT( handle_arbiter->busy_count >= 1);
 				STARPU_ASSERT( handle_arbiter->current_mode == mode);
-				const unsigned correctly_deleted = remove_job_from_requester_list(handle_arbiter->arbitered_req_list, j);
+				const unsigned correctly_deleted = remove_job_from_requester_list(&handle_arbiter->arbitered_req_list, j);
 				STARPU_ASSERT(correctly_deleted == 0);
 				_starpu_spin_unlock(&handle_arbiter->header_lock);
 			}

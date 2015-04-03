@@ -86,7 +86,6 @@ LIST_TYPE(_starpu_worker,
 	unsigned char pipeline_length; /* number of tasks to be put in the pipeline */
 	unsigned char pipeline_stuck; /* whether a task prevents us from pipelining */
 	struct _starpu_worker_set *set; /* in case this worker belongs to a set */
-	struct _starpu_job_list *terminated_jobs; /* list of pending jobs which were executed */
 	unsigned worker_is_running;
 	unsigned worker_is_initialized;
 	enum _starpu_worker_status status; /* what is the worker doing now ? (eg. CALLBACK) */

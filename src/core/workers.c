@@ -31,6 +31,7 @@
 #include <profiling/profiling.h>
 #include <starpu_task_list.h>
 #include <sched_policies/sched_component.h>
+#include <datawizard/memory_nodes.h>
 #include <drivers/mp_common/sink_common.h>
 #include <drivers/scc/driver_scc_common.h>
 
@@ -526,14 +527,6 @@ static void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu
 	workerarg->pipeline_length = 0;
 	workerarg->pipeline_stuck = 0;
 	workerarg->set = NULL;
-
-	/* if some codelet's termination cannot be handled directly :
-	 * for instance in the Gordon driver, Gordon tasks' callbacks
-	 * may be executed by another thread than that of the Gordon
-	 * driver so that we cannot call the push_codelet_output method
-	 * directly */
-	workerarg->terminated_jobs = _starpu_job_list_new();
-
 	workerarg->worker_is_running = 0;
 	workerarg->worker_is_initialized = 0;
 	workerarg->status = STATUS_INITIALIZING;
@@ -1349,7 +1342,6 @@ out:
 		for (n = 0; n < worker->local_ordered_tasks_size; n++)
 			STARPU_ASSERT(worker->local_ordered_tasks[n] == NULL);
 		_starpu_sched_ctx_list_delete(&worker->sched_ctx_list);
-		_starpu_job_list_delete(worker->terminated_jobs);
 		free(worker->local_ordered_tasks);
 	}
 }

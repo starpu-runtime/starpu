@@ -30,14 +30,14 @@ LIST_TYPE(fun_create_component,
 
 struct starpu_sched_component_composed_recipe
 {
-	struct fun_create_component_list * list;
+	struct fun_create_component_list list;
 };
 
 
 struct starpu_sched_component_composed_recipe * starpu_sched_component_composed_recipe_create(void)
 {
 	struct starpu_sched_component_composed_recipe * recipe = malloc(sizeof(*recipe));
-	recipe->list = fun_create_component_list_new();
+	fun_create_component_list_init(&recipe->list);
 	return recipe;
 }
 
@@ -48,7 +48,7 @@ void starpu_sched_component_composed_recipe_add(struct starpu_sched_component_co
 	struct fun_create_component * e = fun_create_component_new();
 	e->create_component = create_component;
 	e->arg = arg;
-	fun_create_component_list_push_back(recipe->list, e);
+	fun_create_component_list_push_back(&recipe->list, e);
 }
 struct starpu_sched_component_composed_recipe * starpu_sched_component_composed_recipe_create_singleton(struct starpu_sched_component *(*create_component)(struct starpu_sched_tree *tree, void * arg),
 										      void * arg)
@@ -61,9 +61,8 @@ void starpu_sched_component_composed_recipe_destroy(struct starpu_sched_componen
 {
 	if(!recipe)
 		return;
-	while(!fun_create_component_list_empty(recipe->list))
-		fun_create_component_delete(fun_create_component_list_pop_back(recipe->list));
-	fun_create_component_list_delete(recipe->list);
+	while(!fun_create_component_list_empty(&recipe->list))
+		fun_create_component_delete(fun_create_component_list_pop_back(&recipe->list));
 	free(recipe);
 }
 
@@ -86,7 +85,7 @@ struct composed_component create_composed_component(struct starpu_sched_tree *tr
 	struct composed_component c;
 	STARPU_ASSERT(recipe);
 
-	struct fun_create_component_list * list = recipe->list;
+	struct fun_create_component_list * list = &recipe->list;
 	struct fun_create_component * i = fun_create_component_list_begin(list);
 	STARPU_ASSERT(i);
 	STARPU_ASSERT(i->create_component);
@@ -206,8 +205,8 @@ void composed_component_deinit_data(struct starpu_sched_component * _component)
 
 struct starpu_sched_component * starpu_sched_component_composed_component_create(struct starpu_sched_tree *tree, struct starpu_sched_component_composed_recipe * recipe)
 {
-	STARPU_ASSERT(!fun_create_component_list_empty(recipe->list));
-	struct fun_create_component_list * l = recipe->list;
+	STARPU_ASSERT(!fun_create_component_list_empty(&recipe->list));
+	struct fun_create_component_list * l = &recipe->list;
 	if(l->_head == l->_tail)
 		return l->_head->create_component(tree, l->_head->arg);
 	struct starpu_sched_component * component = starpu_sched_component_create(tree);

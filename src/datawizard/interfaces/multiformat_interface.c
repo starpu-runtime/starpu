@@ -19,6 +19,7 @@
 #include <datawizard/coherency.h>
 #include <datawizard/copy_driver.h>
 #include <datawizard/filters.h>
+#include <datawizard/memory_nodes.h>
 #include <starpu_hash.h>
 #include <starpu_cuda.h>
 #include <starpu_opencl.h>

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011  Université de Bordeaux
+ * Copyright (C) 2010-2011, 2015  Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -25,7 +25,7 @@
 struct _starpu_deque_jobq
 {
 	/* the actual list */
-	struct _starpu_job_list *jobq;
+	struct _starpu_job_list jobq;
 
 	/* the number of tasks currently in the queue */
 	unsigned njobs;
