@@ -526,14 +526,6 @@ static void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu
 	workerarg->pipeline_length = 0;
 	workerarg->pipeline_stuck = 0;
 	workerarg->set = NULL;
-
-	/* if some codelet's termination cannot be handled directly :
-	 * for instance in the Gordon driver, Gordon tasks' callbacks
-	 * may be executed by another thread than that of the Gordon
-	 * driver so that we cannot call the push_codelet_output method
-	 * directly */
-	workerarg->terminated_jobs = _starpu_job_list_new();
-
 	workerarg->worker_is_running = 0;
 	workerarg->worker_is_initialized = 0;
 	workerarg->status = STATUS_INITIALIZING;
