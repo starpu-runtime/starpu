@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2010-2015  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  CNRS
+ * Copyright (C) 2015  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -49,6 +50,9 @@
  *
  * The same mechanism is used for application data aquisition
  * (starpu_data_acquire).
+ *
+ * For data with an arbiter, we have a second step, performed after this first
+ * step, implemented in data_arbiter_concurrency.c
  */
 
 /*
@@ -110,6 +114,9 @@ static unsigned _starpu_attempt_to_submit_data_request(unsigned request_from_cod
 						       void (*callback)(void *), void *argcb,
 						       struct _starpu_job *j, unsigned buffer_index)
 {
+	if (handle->arbiter)
+		return _starpu_attempt_to_submit_arbitered_data_request(request_from_codelet, handle, mode, callback, argcb, j, buffer_index);
+
 	if (mode == STARPU_RW)
 		mode = STARPU_W;
 
@@ -256,10 +263,10 @@ static unsigned _submit_job_enforce_data_deps(struct _starpu_job *j, unsigned st
 	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(j->task);
 	for (buf = start_buffer_index; buf < nbuffers; buf++)
 	{
+		starpu_data_handle_t handle = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, buf);
 		if (buf)
 		{
 			starpu_data_handle_t handle_m1 = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, buf-1);
-			starpu_data_handle_t handle = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, buf);
 			if (handle_m1 == handle)
 				/* We have already requested this data, skip it. This
 				 * depends on ordering putting writes before reads, see
@@ -268,6 +275,15 @@ static unsigned _submit_job_enforce_data_deps(struct _starpu_job *j, unsigned st
 		}
 
                 j->task->status = STARPU_TASK_BLOCKED_ON_DATA;
+
+		if(handle->arbiter)
+		{
+			/* We arrived on an arbitered data, we stop and proceed
+			 * with the arbiter second step.  */
+			_starpu_submit_job_enforce_arbitered_deps(j, buf, nbuffers);
+			return 1;
+		}
+
                 if (attempt_to_submit_data_request_from_job(j, buf))
 		{
 			return 1;
@@ -349,6 +365,20 @@ int _starpu_notify_data_dependencies(starpu_data_handle_t handle)
 	if (_starpu_data_check_not_busy(handle))
 		/* Handle was destroyed, nothing left to do.  */
 		return 1;
+
+	if (handle->arbiter)
+	{
+		unsigned refcnt = handle->refcnt;
+		STARPU_ASSERT(_starpu_data_requester_list_empty(handle->req_list));
+		STARPU_ASSERT(_starpu_data_requester_list_empty(handle->reduction_req_list));
+		_starpu_spin_unlock(&handle->header_lock);
+		/* _starpu_notify_arbitered_dependencies will handle its own locking */
+		if (!refcnt)
+			_starpu_notify_arbitered_dependencies(handle);
+		/* We have already unlocked */
+		return 1;
+	}
+	STARPU_ASSERT(_starpu_data_requester_list_empty(handle->arbitered_req_list));
 
 	/* In case there is a pending reduction, and that this is the last
 	 * requester, we may go back to a "normal" coherency model. */

@@ -98,6 +98,8 @@ New features:
     in the close future.
   * New scheduler 'dmdasd' that considers priority when deciding on
     which worker to schedule
+  * Add data access arbiters, to improve parallelism of concurrent data
+    accesses, notably with STARPU_COMMUTE.
 
 Small features:
   * Tasks can now have a name (via the field const char *name of

@@ -334,6 +334,36 @@ value of handle1 or handle2 becomes available first, the corresponding task
 running cl2 will start first. The task running cl1 will however always be run
 before them, and the task running cl3 will always be run after them.
 
+If a lot of tasks use the commute access on the same set of data and a lot of
+them are ready at the same time, it may become interesting to use an arbiter,
+see \ref ConcurrentDataAccess .
+
+\section ConcurrentDataAccess Concurrent Data accesses
+
+When several tasks are ready and will work on several data, StarPU is faced with
+the classical Dining Philosophers problem, and has to determine the order in
+which it will run the tasks.
+
+Data accesses usually use sequential ordering, so data accesses are usually
+already serialized, and thus by default StarPU uses the Dijkstra solution which
+scales very well in terms of overhead: tasks will just acquire data one by one
+by data handle pointer value order.
+
+When sequential ordering is disabled or the ::STARPU_COMMUTE flag is used, there
+may be a lot of concurrent accesses to the same data, and the Dijkstra solution
+gets only poor parallelism, typically in some pathological cases which do happen
+in various applications. In that case, one can use a data access arbiter, which
+implements the classical centralized solution for the Dining Philosophers
+problem. This is more expensive in terms of overhead since it is centralized,
+but it opportunistically gets a lot of parallelism. The centralization can also
+be avoided by using several arbiters, thus separating sets of data for which
+arbitration will be done.  If a task accesses data from different arbiters, it
+will acquire them arbiter by arbiter, in arbiter pointer value order.
+
+See the tests/datawizard/test_arbiter.cpp example.
+
+Arbiters however do not support the STARPU_REDUX flag yet.
+
 \section TemporaryBuffers Temporary Buffers
 
 There are two kinds of temporary buffers: temporary data which just pass results

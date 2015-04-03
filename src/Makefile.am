@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2014  Université de Bordeaux
+# Copyright (C) 2009-2015  Université de Bordeaux
 # Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
 # Copyright (C) 2011, 2014  INRIA
 #
@@ -165,6 +165,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	core/dependencies/tags.c				\
 	core/dependencies/task_deps.c				\
 	core/dependencies/data_concurrency.c			\
+	core/dependencies/data_arbiter_concurrency.c		\
 	core/disk_ops/disk_stdio.c				\
 	core/disk_ops/disk_unistd.c                             \
 	core/disk_ops/unistd/disk_unistd_global.c		\

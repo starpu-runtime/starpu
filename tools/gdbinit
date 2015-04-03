@@ -311,6 +311,15 @@ define starpu-print-data
     starpu-print-job $requesterlist->j
     set $requesterlist = $requesterlist->_next
   end
+  printf "Arbitered requester tasks\n"
+  set $requesterlist = $data->arbitered_req_list._head
+  while $requesterlist != 0x0
+    printf "mode: "
+    starpu-print-mode $requesterlist->mode
+    printf "\n"
+    starpu-print-job $requesterlist->j
+    set $requesterlist = $requesterlist->_next
+  end
   if ($data->nchildren)
     printf "%d children\n", $data->nchildren
   end
