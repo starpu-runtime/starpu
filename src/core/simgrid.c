@@ -209,7 +209,7 @@ LIST_TYPE(transfer,
 	unsigned nwait;
 )
 
-struct transfer_list *pending;
+struct transfer_list pending;
 
 /* Tell for two transfers whether they should be handled in sequence */
 static int transfers_are_sequential(struct transfer *new_transfer, struct transfer *old_transfer)
@@ -295,7 +295,7 @@ static int transfer_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARP
 	}
 
 	free(transfer->wake);
-	transfer_list_erase(pending, transfer);
+	transfer_list_erase(&pending, transfer);
 	transfer_delete(transfer);
 	return 0;
 }
@@ -305,11 +305,8 @@ static void transfer_submit(struct transfer *transfer)
 {
 	struct transfer *old;
 
-	if (!pending)
-		pending = transfer_list_new();
-
-	for (old  = transfer_list_begin(pending);
-	     old != transfer_list_end(pending);
+	for (old  = transfer_list_begin(&pending);
+	     old != transfer_list_end(&pending);
 	     old  = transfer_list_next(old))
 	{
 		if (transfers_are_sequential(transfer, old))
@@ -326,7 +323,7 @@ static void transfer_submit(struct transfer *transfer)
 		}
 	}
 
-	transfer_list_push_front(pending, transfer);
+	transfer_list_push_front(&pending, transfer);
 
 	if (!transfer->nwait)
 	{
