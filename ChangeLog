@@ -88,6 +88,8 @@ New features:
     only when the bus is idle.
   * Make starpu_data_prefetch_on_node not forcibly flush data out, introduce
     starpu_data_fetch_on_node for that.
+  * Add data access arbiters, to improve parallelism of concurrent data
+    accesses, notably with STARPU_COMMUTE.
 
 Small features:
   * Tasks can now have a name (via the field const char *name of
