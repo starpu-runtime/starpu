@@ -16,7 +16,18 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
 New features:
+  * Anticipative writeback, to flush dirty data asynchronously before the
+    GPU device is full. Disabled by default. Use STARPU_MINIMUM_CLEAN_BUFFERS
+    and STARPU_TARGET_CLEAN_BUFFERS to enable it.
+  * Add starpu_data_wont_use to advise that a piece of data will not be used
+    in the close future.
   * Enable anticipative writeback by default.
+  * New scheduler 'dmdasd' that considers priority when deciding on
+    which worker to schedule
+
+Small features:
+  * Add starpu_memory_pin and starpu_memory_unpin to pin memory allocated
+    another way than starpu_malloc.
 
 StarPU 1.2.0 (svn revision xxxx)
 ==============================================
@@ -88,11 +99,6 @@ New features:
     only when the bus is idle.
   * Make starpu_data_prefetch_on_node not forcibly flush data out, introduce
     starpu_data_fetch_on_node for that.
-  * Anticipative writeback, to flush dirty data asynchronously before the
-    GPU device is full. Disabled by default. Use STARPU_MINIMUM_CLEAN_BUFFERS
-    and STARPU_TARGET_CLEAN_BUFFERS to enable it.
-  * Add starpu_data_wont_use to advise that a piece of data will not be used
-    in the close future.
 
 Small features:
   * Tasks can now have a name (via the field const char *name of
@@ -135,8 +141,6 @@ Small features:
     its own allocation to the reclaiming engine.
   * Add STARPU_SIMGRID_CUDA_MALLOC_COST and STARPU_SIMGRID_CUDA_QUEUE_COST to
     disable CUDA costs simulation in simgrid mode.
-  * Add starpu_memory_pin and starpu_memory_unpin to pin memory allocated
-    another way than starpu_malloc.
 
 Changes:
   * Data interfaces (variable, vector, matrix and block) now define
