@@ -24,6 +24,7 @@
 #include <starpu.h>
 #include <drivers/opencl/driver_opencl.h>
 #include <datawizard/memory_manager.h>
+#include <datawizard/memory_nodes.h>
 #include <datawizard/malloc.h>
 #include <core/simgrid.h>
 
