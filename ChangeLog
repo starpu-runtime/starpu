@@ -96,6 +96,8 @@ New features:
     and STARPU_TARGET_CLEAN_BUFFERS to enable it.
   * Add starpu_data_wont_use to advise that a piece of data will not be used
     in the close future.
+  * New scheduler 'dmdasd' that considers priority when deciding on
+    which worker to schedule
 
 Small features:
   * Tasks can now have a name (via the field const char *name of
