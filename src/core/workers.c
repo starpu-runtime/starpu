@@ -29,6 +29,7 @@
 #include <datawizard/malloc.h>
 #include <profiling/profiling.h>
 #include <starpu_task_list.h>
+#include <datawizard/memory_nodes.h>
 
 #include <drivers/cpu/driver_cpu.h>
 #include <drivers/cuda/driver_cuda.h>

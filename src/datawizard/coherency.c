@@ -18,6 +18,7 @@
 #include <datawizard/coherency.h>
 #include <datawizard/copy_driver.h>
 #include <datawizard/write_back.h>
+#include <datawizard/memory_nodes.h>
 #include <core/dependencies/data_concurrency.h>
 #include <profiling/profiling.h>
 #include <math.h>

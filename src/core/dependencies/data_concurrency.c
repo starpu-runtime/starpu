@@ -20,6 +20,7 @@
 #include <core/sched_policy.h>
 #include <common/starpu_spinlock.h>
 #include <datawizard/sort_data_handles.h>
+#include <datawizard/memory_nodes.h>
 
 /*
  * We have a kind of dining philosophers problem: various tasks are accessing
@@ -62,14 +63,14 @@ static struct _starpu_data_requester *may_unlock_data_req_list_head(starpu_data_
 
 	if (handle->reduction_refcnt > 0)
 	{
-		req_list = handle->reduction_req_list;
+		req_list = &handle->reduction_req_list;
 	}
 	else
 	{
-		if (_starpu_data_requester_list_empty(handle->reduction_req_list))
-			req_list = handle->req_list;
+		if (_starpu_data_requester_list_empty(&handle->reduction_req_list))
+			req_list = &handle->req_list;
 		else
-			req_list = handle->reduction_req_list;
+			req_list = &handle->reduction_req_list;
 	}
 
 	/* if there is no one to unlock ... */
@@ -187,7 +188,7 @@ static unsigned _starpu_attempt_to_submit_data_request(unsigned request_from_cod
 
 		/* We put the requester in a specific list if this is a reduction task */
 		struct _starpu_data_requester_list *req_list =
-			is_a_reduction_task?handle->reduction_req_list:handle->req_list;
+			is_a_reduction_task?&handle->reduction_req_list:&handle->req_list;
 
 		_starpu_data_requester_list_push_back(req_list, r);
 
@@ -372,7 +373,7 @@ int _starpu_notify_data_dependencies(starpu_data_handle_t handle)
 		{
 			/* We need to put the request back because we must
 			 * perform a reduction before. */
-			_starpu_data_requester_list_push_front(handle->req_list, r);
+			_starpu_data_requester_list_push_front(&handle->req_list, r);
 		}
 		else
 		{

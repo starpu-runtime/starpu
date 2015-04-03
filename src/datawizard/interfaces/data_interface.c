@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2014  Université de Bordeaux
+ * Copyright (C) 2009-2015  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -18,6 +18,7 @@
 #include <stdint.h>
 
 #include <datawizard/datawizard.h>
+#include <datawizard/memory_nodes.h>
 #include <core/dependencies/data_concurrency.h>
 #include <common/uthash.h>
 #include <common/starpu_spinlock.h>
@@ -113,7 +114,7 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 	STARPU_ASSERT(handle);
 
 	/* initialize the new lock */
-	handle->req_list = _starpu_data_requester_list_new();
+	_starpu_data_requester_list_init(&handle->req_list);
 	handle->refcnt = 0;
 	handle->busy_count = 0;
 	handle->busy_waiting = 0;
@@ -154,7 +155,7 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 	handle->init_cl = NULL;
 
 	handle->reduction_refcnt = 0;
-	handle->reduction_req_list = _starpu_data_requester_list_new();
+	_starpu_data_requester_list_init(&handle->reduction_req_list);
 	handle->reduction_tmp_handles = NULL;
 
 #ifdef STARPU_USE_FXT
@@ -602,8 +603,6 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 	_starpu_data_free_interfaces(handle);
 
 	_starpu_memory_stats_free(handle);
-	_starpu_data_requester_list_delete(handle->req_list);
-	_starpu_data_requester_list_delete(handle->reduction_req_list);
 
 	_starpu_spin_unlock(&handle->header_lock);
 	_starpu_spin_destroy(&handle->header_lock);

@@ -29,6 +29,7 @@
 #include "driver_opencl_utils.h"
 #include <common/utils.h>
 #include <datawizard/memory_manager.h>
+#include <datawizard/memory_nodes.h>
 #include <datawizard/malloc.h>
 
 #ifdef STARPU_SIMGRID
