@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012  Université de Bordeaux
+ * Copyright (C) 2010-2012, 2015  Université de Bordeaux
  * Copyright (C) 2012  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -46,7 +46,7 @@ static uint64_t get_total_memory_size(void)
 	hwloc_topology_load(hwtopology);
 	hwloc_obj_t root = hwloc_get_root_obj(hwtopology);
 	size = root->memory.total_memory;
-	hwloc_topology_destroy(topology);
+	hwloc_topology_destroy(hwtopology);
 	return size;
 }
 #endif
