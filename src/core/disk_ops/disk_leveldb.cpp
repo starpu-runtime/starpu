@@ -48,7 +48,7 @@ struct starpu_leveldb_base
 
 
 /* allocation memory on disk */
-static void *starpu_leveldb_alloc (void *base, size_t size)
+static void *starpu_leveldb_alloc (void *base, size_t size STARPU_ATTRIBUTE_UNUSED)
 {
 	struct starpu_leveldb_base * base_tmp = (struct starpu_leveldb_base *) base;
 	struct starpu_leveldb_obj * obj = (struct starpu_leveldb_obj *) malloc(sizeof(struct starpu_leveldb_obj));
@@ -88,7 +88,7 @@ static void starpu_leveldb_free (void *base , void *obj, size_t size STARPU_ATTR
 
 
 /* open an existing memory on disk */
-static void *starpu_leveldb_open (void *base, void *pos, size_t size)
+static void *starpu_leveldb_open (void *base STARPU_ATTRIBUTE_UNUSED, void *pos, size_t size)
 {
 	struct starpu_leveldb_obj * obj = (struct starpu_leveldb_obj *) malloc(sizeof(struct starpu_leveldb_obj));
 	STARPU_ASSERT(obj != NULL);
