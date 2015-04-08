@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2013              Université Bordeaux
+ * Copyright (C) 2011, 2013, 2015              Université Bordeaux
  * Copyright (C) 2011, 2012, 2013, 2014, 2015  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -49,7 +49,7 @@ struct starpu_codelet stencil5_cl =
 #  define X         	5
 #  define Y         	5
 #else
-#  define NITER_DEF	500
+#  define NITER_DEF	100
 #  define X         	20
 #  define Y         	20
 #endif
