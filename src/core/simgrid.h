@@ -25,6 +25,7 @@
 #endif
 
 #include <datawizard/data_request.h>
+#include <core/workers.h>
 
 struct _starpu_pthread_args
 {
