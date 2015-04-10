@@ -22,7 +22,7 @@
 #include <core/workers.h>
 #include <core/progress_hook.h>
 #ifdef STARPU_SIMGRID
-#include <msg/msg.h>
+#include <core/simgrid.h>
 #endif
 
 int __starpu_datawizard_progress(unsigned memory_node, unsigned may_alloc, unsigned push_requests)

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012, 2014  Université de Bordeaux
+ * Copyright (C) 2009-2012, 2014-2015  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -23,7 +23,7 @@
 #include <math.h>
 
 #ifdef STARPU_SIMGRID
-#include <msg/msg.h>
+#include <core/simgrid.h>
 #endif
 
 #if defined(_WIN32) && !defined(__MINGW32__) && !defined(__CYGWIN__)
