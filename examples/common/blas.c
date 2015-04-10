@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2014  Université de Bordeaux
+ * Copyright (C) 2009, 2010, 2014-2015  Université de Bordeaux
  * Copyright (C) 2010  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -443,9 +443,9 @@ inline void STARPU_SGEMV(char *transa, int M, int N, float alpha, float *A, int 
 inline void STARPU_DGEMV(char *transa, int M, int N, double alpha, double *A, int lda,
 		double *X, int incX, double beta, double *Y, int incY) { }
 
-inline float STARPU_SASUM(int N, float *X, int incX) { }
+inline float STARPU_SASUM(int N, float *X, int incX) { return 0.; }
 
-inline double STARPU_DASUM(int N, double *X, int incX) { }
+inline double STARPU_DASUM(int N, double *X, int incX) { return 0.; }
 
 void STARPU_SSCAL(int N, float alpha, float *X, int incX) { }
 
@@ -499,13 +499,13 @@ void STARPU_SAXPY(const int n, const float alpha, float *X, const int incX, floa
 
 void STARPU_DAXPY(const int n, const double alpha, double *X, const int incX, double *Y, const int incY) { }
 
-int STARPU_ISAMAX (const int n, float *X, const int incX) { }
+int STARPU_ISAMAX (const int n, float *X, const int incX) { return 0; }
 
-int STARPU_IDAMAX (const int n, double *X, const int incX) { }
+int STARPU_IDAMAX (const int n, double *X, const int incX) { return 0; }
 
-float STARPU_SDOT(const int n, const float *x, const int incx, const float *y, const int incy) { }
+float STARPU_SDOT(const int n, const float *x, const int incx, const float *y, const int incy) { return 0.; }
 
-double STARPU_DDOT(const int n, const double *x, const int incx, const double *y, const int incy) { }
+double STARPU_DDOT(const int n, const double *x, const int incx, const double *y, const int incy) { return 0.; }
 
 void STARPU_SSWAP(const int n, float *X, const int incX, float *Y, const int incY) { }
 
