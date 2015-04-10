@@ -25,7 +25,6 @@
 #include <core/simgrid.h>
 
 #ifdef STARPU_SIMGRID
-#include <msg/msg.h>
 #include <sys/resource.h>
 
 #pragma weak starpu_main
