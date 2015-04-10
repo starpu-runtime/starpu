@@ -29,7 +29,6 @@
 #include <core/workers.h>
 
 #ifdef STARPU_SIMGRID
-#include <msg/msg.h>
 #include <core/simgrid.h>
 #endif
 

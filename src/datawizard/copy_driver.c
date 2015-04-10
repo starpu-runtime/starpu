@@ -32,7 +32,6 @@
 
 #ifdef STARPU_SIMGRID
 #include <core/simgrid.h>
-#include <msg/msg.h>
 #endif
 
 void _starpu_wake_all_blocked_workers_on_node(unsigned nodeid)

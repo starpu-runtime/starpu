@@ -17,10 +17,14 @@
 #ifndef __SIMGRID_H__
 #define __SIMGRID_H__
 
-#include <datawizard/data_request.h>
-
 #ifdef STARPU_SIMGRID
+#ifdef STARPU_HAVE_SIMGRID_MSG_H
+#include <simgrid/msg.h>
+#else
 #include <msg/msg.h>
+#endif
+
+#include <datawizard/data_request.h>
 
 struct _starpu_pthread_args
 {

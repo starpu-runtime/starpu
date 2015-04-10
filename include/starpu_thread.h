@@ -27,7 +27,11 @@ extern "C"
 #include <starpu_util.h>
 #ifdef STARPU_SIMGRID
 #include <xbt/synchro_core.h>
+#ifdef STARPU_HAVE_SIMGRID_MSG_H
+#include <simgrid/msg.h>
+#else
 #include <msg/msg.h>
+#endif
 #elif !defined(_MSC_VER) || defined(BUILDING_STARPU)
 #include <pthread.h>
 #endif
