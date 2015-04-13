@@ -423,7 +423,7 @@ int _starpu_handle_node_data_requests(unsigned src_node, unsigned may_alloc)
 	/* This is racy, but not posing problems actually, since we know we
 	 * will come back here to probe again regularly anyway.
 	 * Thus, do not expose this optimization to helgrind */
-	if (!RUNNING_ON_VALGRIND && _starpu_data_request_list_empty(&data_requests[src_node]))
+	if (!STARPU_RUNNING_ON_VALGRIND && _starpu_data_request_list_empty(&data_requests[src_node]))
 		return 0;
 #endif
 
@@ -512,7 +512,7 @@ void _starpu_handle_node_prefetch_requests(unsigned src_node, unsigned may_alloc
 	/* This is racy, but not posing problems actually, since we know we
 	 * will come back here to probe again regularly anyway.
 	 * Thus, do not expose this optimization to valgrind */
-	if (!RUNNING_ON_VALGRIND && _starpu_data_request_list_empty(&prefetch_requests[src_node]))
+	if (!STARPU_RUNNING_ON_VALGRIND && _starpu_data_request_list_empty(&prefetch_requests[src_node]))
 		return;
 #endif
 
@@ -609,7 +609,7 @@ static void _handle_pending_node_data_requests(unsigned src_node, unsigned force
 	/* Here helgrind would should that this is an un protected access.
 	 * We however don't care about missing an entry, we will get called
 	 * again sooner or later. */
-	if (!RUNNING_ON_VALGRIND && _starpu_data_request_list_empty(&data_requests_pending[src_node]))
+	if (!STARPU_RUNNING_ON_VALGRIND && _starpu_data_request_list_empty(&data_requests_pending[src_node]))
 		return;
 #endif
 
