@@ -89,7 +89,8 @@ EXTRA_DIST =				\
 	valgrind/libnuma.suppr		\
 	valgrind/openmpi.suppr		\
 	valgrind/pthread.suppr		\
-	valgrind/starpu.suppr
+	valgrind/starpu.suppr		\
+	tsan/starpu.suppr
 
 CLEANFILES = *.gcno *.gcda *.linkinfo
 
