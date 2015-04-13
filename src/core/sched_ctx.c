@@ -1200,8 +1200,10 @@ int _starpu_wait_for_n_submitted_tasks_of_sched_ctx(unsigned sched_ctx_id, unsig
 void _starpu_decrement_nsubmitted_tasks_of_sched_ctx(unsigned sched_ctx_id)
 {
 	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
+#ifndef STARPU_SANITIZE_THREAD
 	if (!config->watchdog_ok)
 		config->watchdog_ok = 1;
+#endif
 
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	int reached = _starpu_barrier_counter_get_reached_start(&sched_ctx->tasks_barrier);
