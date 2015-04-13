@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2014  Université de Bordeaux
+ * Copyright (C) 2010-2015  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2013, 2015  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -493,9 +493,7 @@ void _starpu_unlock_post_sync_tasks(starpu_data_handle_t handle)
 	/* Here helgrind would shout that this is an unprotected access, but
 	 * count can only be zero if we don't have to care about
 	 * post_sync_tasks_cnt at all.  */
-	unsigned count = handle->post_sync_tasks_cnt;
-
-	if (count)
+	if (STARPU_RUNNING_ON_VALGRIND || handle->post_sync_tasks_cnt)
 	{
 		STARPU_PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
 		if (--handle->post_sync_tasks_cnt == 0)

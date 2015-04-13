@@ -9,9 +9,9 @@ race:^fun:starpu_task_nready$
 # The config.running/pause_depth state is only protected by memory barriers
 race:^_starpu_machine_is_running$
 race:^_starpu_kill_all_workers$
-race:^_starpu_pause$
+race:^starpu_pause$
 race:^_starpu_may_pause$
-race:^_starpu_resume$
+race:^starpu_resume$
 
 # The integer access is atomic, and we use the sched mutex to avoid missing wake ups
 race:^_starpu_fifo_empty$
@@ -22,3 +22,14 @@ race:^starpu_memory_get_available$
 race:^mc_cache_size$
 race:^mc_nb$
 race:^mc_clean_nb$
+race:^alloc_cnt$
+race:^data_requests_npending$
+race:^_starpu_profiling$
+race:^_starpu_history_based_job_expected_perf$
+race:^compute_ntasks_end$
+race:^compute_expected_end$
+race:^compute_all_performance_predictions$
+
+# ignore other libraries' races
+race:^libmpi.so$
+race:^libhwloc*.so$
