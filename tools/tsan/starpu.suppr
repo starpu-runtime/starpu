@@ -31,5 +31,5 @@ race:^compute_expected_end$
 race:^compute_all_performance_predictions$
 
 # ignore other libraries' races
-race:^libmpi.so$
-race:^libhwloc*.so$
+called_from_lib:^libmpi.so$
+called_from_lib:^libhwloc*.so$
