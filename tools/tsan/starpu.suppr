@@ -23,12 +23,16 @@ race:^mc_cache_size$
 race:^mc_nb$
 race:^mc_clean_nb$
 race:^alloc_cnt$
+race:^used_size$
 race:^data_requests_npending$
 race:^_starpu_profiling$
 race:^_starpu_history_based_job_expected_perf$
 race:^compute_ntasks_end$
 race:^compute_expected_end$
 race:^compute_all_performance_predictions$
+
+# There is actually no race with busy_count, see comment
+race:_starpu_data_unregister
 
 # ignore other libraries' races
 called_from_lib:^libmpi.so$
