@@ -85,6 +85,7 @@ EXTRA_DIST =				\
 	valgrind/openmpi.suppr		\
 	valgrind/pthread.suppr		\
 	valgrind/starpu.suppr		\
+	tsan/starpu.suppr		\
 	msvc/starpu_clean.bat		\
 	msvc/starpu_open.bat		\
 	msvc/starpu_exec.bat		\
