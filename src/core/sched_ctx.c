@@ -2075,7 +2075,6 @@ static void _starpu_sched_ctx_wake_up_workers(unsigned sched_ctx_id, int master)
 			if((current_worker_id == -1 || workerid != current_worker_id) && sched_ctx->sleeping[workerid])
 			{
 				STARPU_PTHREAD_MUTEX_LOCK(&sched_ctx->parallel_sect_mutex[workerid]);
-				fprintf(stderr, "_starpu_sched_ctx_wake_up_workers: sched_ctx_id=%u, master=%d\n", sched_ctx_id, master);
 				STARPU_PTHREAD_COND_SIGNAL(&sched_ctx->parallel_sect_cond[workerid]);
 				STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->parallel_sect_mutex[workerid]);
 				sem_wait(&sched_ctx->wake_up_sem[master]);
@@ -2142,7 +2141,6 @@ static void _starpu_sched_ctx_wake_these_workers_up(unsigned sched_ctx_id, int *
 		if(current_worker_id == -1 || workerid != current_worker_id)
 		{
 			STARPU_PTHREAD_MUTEX_LOCK(&sched_ctx->parallel_sect_mutex[workerid]);
-			fprintf(stderr, "_starpu_sched_ctx_wake_these_workers_up: sched_ctx_id=%u, nworkers=%d\n", sched_ctx_id, nworkers);
 			STARPU_PTHREAD_COND_SIGNAL(&sched_ctx->parallel_sect_cond[workerid]);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->parallel_sect_mutex[workerid]);
 		}
