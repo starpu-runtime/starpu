@@ -45,7 +45,7 @@ static int _starpu_valgrind_print_once STARPU_ATTRIBUTE_UNUSED = 0;
 #  define STARPU_SKIP_IF_VALGRIND \
 	do \
 	{								\
-		if(RUNNING_ON_VALGRIND)					\
+		if(STARPU_RUNNING_ON_VALGRIND)					\
 		{							\
 			if (!_starpu_valgrind_print_once)		\
 			{						\
@@ -59,7 +59,7 @@ static int _starpu_valgrind_print_once STARPU_ATTRIBUTE_UNUSED = 0;
 #  define STARPU_RETURN(ret) \
 	do								\
 	{								\
-		if(RUNNING_ON_VALGRIND)					\
+		if(STARPU_RUNNING_ON_VALGRIND)					\
 		{							\
 			FPRINTF(stderr, "Running on valgrind, ignoring return value\n"); \
 			return 0;					\
