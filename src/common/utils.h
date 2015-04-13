@@ -63,6 +63,11 @@
 #ifndef RUNNING_ON_VALGRIND
 #define RUNNING_ON_VALGRIND 0
 #endif
+#ifdef STARPU_SANITIZE_THREAD
+#define STARPU_RUNNING_ON_VALGRIND 1
+#else
+#define STARPU_RUNNING_ON_VALGRIND RUNNING_ON_VALGRIND
+#endif
 #define STARPU_HG_DISABLE_CHECKING(variable) VALGRIND_HG_DISABLE_CHECKING(&(variable), sizeof(variable))
 #define STARPU_HG_ENABLE_CHECKING(variable)  VALGRIND_HG_ENABLE_CHECKING(&(variable), sizeof(variable))
 
