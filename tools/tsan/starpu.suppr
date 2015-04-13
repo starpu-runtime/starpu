@@ -1,6 +1,10 @@
 # don't care about cache hit stats
-race: ^_starpu_msi_cache_hit$
-race: ^_starpu_msi_cache_miss$
+race:^_starpu_msi_cache_hit$
+race:^_starpu_msi_cache_miss$
+
+# This is racy, but we don't care, it's only a statistic
+race:^fun:starpu_task_nsubmitted$
+race:^fun:starpu_task_nready$
 
 # The config.running/pause_depth state is only protected by memory barriers
 race:^_starpu_machine_is_running$
@@ -14,7 +18,7 @@ race:^_starpu_fifo_empty$
 race:^push_task_eager_policy$
 
 # These are just statistics
-race: ^starpu_memory_get_available$
-race: ^mc_cache_size$
-race: ^mc_nb$
-race: ^mc_clean_nb$
+race:^starpu_memory_get_available$
+race:^mc_cache_size$
+race:^mc_nb$
+race:^mc_clean_nb$
