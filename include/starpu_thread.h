@@ -212,8 +212,10 @@ typedef int starpu_pthread_barrierattr_t;
 typedef struct {
 	starpu_pthread_mutex_t mutex;
 	starpu_pthread_cond_t cond;
+	starpu_pthread_cond_t cond_destroy;
 	unsigned count;
 	unsigned done;
+	unsigned busy;
 } starpu_pthread_barrier_t;
 typedef int starpu_pthread_barrierattr_t;
 #define STARPU_PTHREAD_BARRIER_SERIAL_THREAD -1

@@ -345,16 +345,26 @@ int starpu_pthread_barrier_init(starpu_pthread_barrier_t *restrict barrier, cons
 	int ret = starpu_pthread_mutex_init(&barrier->mutex, NULL);
 	if (!ret)
 		ret = starpu_pthread_cond_init(&barrier->cond, NULL);
+	if (!ret)
+		ret = starpu_pthread_cond_init(&barrier->cond_destroy, NULL);
 	barrier->count = count;
 	barrier->done = 0;
+	barrier->busy = 0;
 	return ret;
 }
 
 int starpu_pthread_barrier_destroy(starpu_pthread_barrier_t *barrier)
 {
+	starpu_pthread_mutex_lock(&barrier->mutex);
+	while (barrier->busy) {
+		starpu_pthread_cond_wait(&barrier->cond_destroy, &barrier->mutex);
+	}
+	starpu_pthread_mutex_unlock(&barrier->mutex);
 	int ret = starpu_pthread_mutex_destroy(&barrier->mutex);
 	if (!ret)
 		ret = starpu_pthread_cond_destroy(&barrier->cond);
+	if (!ret)
+		ret = starpu_pthread_cond_destroy(&barrier->cond_destroy);
 	return ret;
 }
 
@@ -373,7 +383,10 @@ int starpu_pthread_barrier_wait(starpu_pthread_barrier_t *barrier)
 	}
 	else
 	{
+		barrier->busy++;
 		starpu_pthread_cond_wait(&barrier->cond, &barrier->mutex);
+		barrier->busy--;
+		starpu_pthread_cond_broadcast(&barrier->cond_destroy);
 	}
 
 	starpu_pthread_mutex_unlock(&barrier->mutex);
