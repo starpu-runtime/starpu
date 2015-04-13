@@ -1009,7 +1009,7 @@ void starpu_memchunk_tidy(unsigned node)
 	target = (total * target_p) / 100;
 	amount = target - available;
 
-	if (tidying[node])
+	if (!STARPU_RUNNING_ON_VALGRIND && tidying[node])
 		/* Some thread is already tidying this node, let it do it */
 		return;
 

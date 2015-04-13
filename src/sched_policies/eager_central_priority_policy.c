@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2014  Université de Bordeaux
+ * Copyright (C) 2010-2015  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
  * Copyright (C) 2011  INRIA
  *
@@ -199,7 +199,7 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 	/* Here helgrind would shout that this is unprotected, this is just an
 	 * integer access, and we hold the sched mutex, so we can not miss any
 	 * wake up. */
-	if (taskq->total_ntasks == 0)
+	if (!STARPU_RUNNING_ON_VALGRIND && taskq->total_ntasks == 0)
 		return NULL;
 
 #ifdef STARPU_NON_BLOCKING_DRIVERS
