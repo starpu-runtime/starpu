@@ -107,6 +107,6 @@ showcheck:
 	! grep -q " runtime error: " $(TEST_LOGS) /dev/null
 	RET=0 ; \
 	for i in $(SUBDIRS) ; do \
-		make -C $$i showcheck || RET=1 \
+		make -C $$i showcheck || RET=1 ; \
 	done ; \
 	exit $$RET
