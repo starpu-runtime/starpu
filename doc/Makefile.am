@@ -30,6 +30,8 @@ txtdir = ${docdir}/tutorial
 txt_DATA = $(EXTRA_DIST)
 
 showcheck:
+	RET=0 ; \
 	for i in $(SUBDIRS) ; do \
-		make -C $$i showcheck ; \
-	done
+		make -C $$i showcheck || RET=1 \
+	done ; \
+	exit $$RET

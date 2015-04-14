@@ -21,6 +21,8 @@ SOCL_vendorsdir = @datarootdir@/starpu/opencl/vendors
 dist_SOCL_vendors_DATA = @SOCL_VENDORS@
 
 showcheck:
+	RET=0 ; \
 	for i in $(SUBDIRS) ; do \
-		make -C $$i showcheck || break \
-	done
+		make -C $$i showcheck || RET=1 \
+	done ; \
+	exit $$RET

@@ -152,9 +152,11 @@ DISTCLEANFILES = STARPU-REVISION
 include starpu-top/extradist
 
 showcheck:
+	RET=0 ; \
 	for i in $(SUBDIRS) ; do \
-		make -C $$i showcheck ; \
-	done
+		make -C $$i showcheck || RET=1 \
+	done ; \
+	exit $$RET
 
 ctags-local:
 	cd $(top_srcdir) ; $(CTAGS) -R -I LIST_TYPE
