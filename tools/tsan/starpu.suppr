@@ -2,6 +2,9 @@
 race:^_starpu_msi_cache_hit$
 race:^_starpu_msi_cache_miss$
 
+# This is racy, but since we'll always put the same values, this is not a problem.
+race:^_starpu_codelet_check_deprecated_fields$
+
 # This is racy, but we don't care, it's only a statistic
 race:^fun:starpu_task_nsubmitted$
 race:^fun:starpu_task_nready$
