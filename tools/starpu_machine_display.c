@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2012, 2014  Université de Bordeaux
+ * Copyright (C) 2011-2012, 2014-2015  Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -24,6 +24,8 @@
 static void display_worker_names(enum starpu_worker_archtype type)
 {
 	unsigned nworkers = starpu_worker_get_count_by_type(type);
+	if (!nworkers)
+		return;
 
 	int ids[nworkers];
 	starpu_worker_get_ids_by_type(type, ids, nworkers);
