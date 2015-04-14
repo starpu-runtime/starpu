@@ -300,4 +300,4 @@ mpi_earlyrecv2_sync_SOURCES += ../../examples/interface/complex_interface.c
 
 showcheck:
 	-cat $(TEST_LOGS) /dev/null
-	! grep " runtime error: " $(TEST_LOGS) /dev/null
+	! grep -q " runtime error: " $(TEST_LOGS) /dev/null

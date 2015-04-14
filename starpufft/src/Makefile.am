@@ -59,4 +59,4 @@ endif
 
 showcheck:
 	-cat /dev/null
-	! grep " runtime error: " $(TEST_LOGS) /dev/null
+	! grep -q " runtime error: " $(TEST_LOGS) /dev/null

@@ -31,9 +31,11 @@ noinst_HEADERS =				\
 
 
 showcheck:
+	RET=0 ; \
 	for i in $(SUBDIRS) ; do \
-		make -C $$i showcheck ; \
-	done
+		make -C $$i showcheck || RET=1 \
+	done ; \
+	exit $$RET
 
 # Generate a GNU-style ChangeLog for inclusion in the tarball.
 # It requires network access and may be slow.

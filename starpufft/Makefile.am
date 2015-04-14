@@ -29,6 +29,8 @@ pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libstarpufft.pc starpufft-1.0.pc starpufft-1.1.pc starpufft-1.2.pc starpufft-1.3.pc
 
 showcheck:
+	RET=0 ; \
 	for i in $(SUBDIRS) ; do \
-		make -C $$i showcheck ; \
-	done
+		make -C $$i showcheck || RET=1 \
+	done ; \
+	exit $$RET
