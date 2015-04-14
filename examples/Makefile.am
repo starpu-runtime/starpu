@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2014  Université de Bordeaux
+# Copyright (C) 2009-2015  Université de Bordeaux
 # Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
 # Copyright (C) 2011  Télécom-SudParis
 # Copyright (C) 2011-2012  INRIA
@@ -906,6 +906,7 @@ endif
 
 showcheck:
 	-cat $(TEST_LOGS) /dev/null
+	! grep " runtime error: " $(TEST_LOGS) /dev/null
 	for i in $(SUBDIRS) ; do \
 		make -C $$i showcheck ; \
 	done
