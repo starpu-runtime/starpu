@@ -613,3 +613,4 @@ sched_policies_execute_all_tasks_LDFLAGS = -lm
 
 showcheck:
 	-cat $(TEST_LOGS) /dev/null
+	! grep " runtime error: " $(TEST_LOGS) /dev/null

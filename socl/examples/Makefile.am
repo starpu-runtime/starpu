@@ -77,3 +77,4 @@ mansched_mansched_SOURCES = mansched/mansched.c
 
 showcheck:
 	-cat $(TEST_LOGS) /dev/null
+	! grep " runtime error: " $(TEST_LOGS) /dev/null

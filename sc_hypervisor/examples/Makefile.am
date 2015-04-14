@@ -56,3 +56,4 @@ app_driven_test_app_driven_test_LDADD =		\
 
 showcheck:
 	-cat $(TEST_LOGS) /dev/null
+	! grep " runtime error: " $(TEST_LOGS) /dev/null
