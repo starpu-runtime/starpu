@@ -33,7 +33,7 @@ noinst_HEADERS =				\
 showcheck:
 	RET=0 ; \
 	for i in $(SUBDIRS) ; do \
-		make -C $$i showcheck || RET=1 \
+		make -C $$i showcheck || RET=1 ; \
 	done ; \
 	exit $$RET
 
