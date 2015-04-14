@@ -22,5 +22,5 @@ dist_SOCL_vendors_DATA = @SOCL_VENDORS@
 
 showcheck:
 	for i in $(SUBDIRS) ; do \
-		make -C $$i showcheck ; \
+		make -C $$i showcheck || break \
 	done

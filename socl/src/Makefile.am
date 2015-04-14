@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2012, 2014  Université de Bordeaux
+# Copyright (C) 2009-2012, 2014-2015  Université de Bordeaux
 # Copyright (C) 2010, 2011, 2012, 2013  CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -134,3 +134,4 @@ libsocl_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
 
 showcheck:
 	-cat /dev/null
+	! grep " runtime error: " $(TEST_LOGS) /dev/null
