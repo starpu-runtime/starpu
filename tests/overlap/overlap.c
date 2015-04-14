@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012  Université de Bordeaux
+ * Copyright (C) 2009-2012, 2015  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012, 2013  CNRS
  *
@@ -26,7 +26,7 @@
 #include <common/thread.h>
 
 #ifdef STARPU_QUICK_CHECK
-#define NTASKS	1000
+#define NTASKS	100
 #else
 #define NTASKS	10000
 #endif
