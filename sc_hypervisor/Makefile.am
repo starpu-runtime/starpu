@@ -23,7 +23,8 @@ versinclude_HEADERS = 	include/sc_hypervisor.h			\
 			include/sc_hypervisor_policy.h 		\
 			include/sc_hypervisor_lp.h
 showcheck:
+	RET=0 ; \
 	for i in $(SUBDIRS) ; do \
-		make -C $$i showcheck ; \
-	done
-
+		make -C $$i showcheck || RET=1 \
+	done ; \
+	exit $$RET

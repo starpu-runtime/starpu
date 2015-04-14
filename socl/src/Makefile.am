@@ -134,4 +134,4 @@ libsocl_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
 
 showcheck:
 	-cat /dev/null
-	! grep " runtime error: " $(TEST_LOGS) /dev/null
+	! grep -q " runtime error: " $(TEST_LOGS) /dev/null

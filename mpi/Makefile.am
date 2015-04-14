@@ -24,6 +24,8 @@ versinclude_HEADERS = 					\
 	include/starpu_mpi.h
 
 showcheck:
+	RET=0 ; \
 	for i in $(SUBDIRS) ; do \
-		make -C $$i showcheck ; \
-	done
+		make -C $$i showcheck || RET=1 \
+	done ; \
+	exit $$RET
