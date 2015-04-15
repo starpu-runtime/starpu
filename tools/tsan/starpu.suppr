@@ -1,6 +1,7 @@
 # Disabled checking
 race:^active_hook_cnt$
 race:^worker_exp_start$
+race:^worker_exp_end$
 race:^worker_exp_len$
 race:^ntasks$
 race:^mc_cache_size$
@@ -16,6 +17,7 @@ race:^miss_cnt$
 race:^alloc_cache_hit_cnt$
 race:^alloc_cnt$
 race:^comm_amount$
+race:^_starpu_valgrind_print_once$
 
 # don't care about cache hit stats
 race:^_starpu_msi_cache_hit$
