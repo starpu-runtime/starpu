@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012 inria
- * Copyright (C) 2010-2013  Université de Bordeaux
+ * Copyright (C) 2010-2013, 2015  Université de Bordeaux
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -584,6 +584,7 @@ static void initialize_parallel_heft_policy(unsigned sched_ctx_id)
 	/* Tell helgrind that we are fine with getting outdated values when
 	 * estimating schedules */
 	STARPU_HG_DISABLE_CHECKING(worker_exp_start);
+	STARPU_HG_DISABLE_CHECKING(worker_exp_end);
 	STARPU_HG_DISABLE_CHECKING(worker_exp_len);
 	STARPU_HG_DISABLE_CHECKING(ntasks);
 }
