@@ -45,7 +45,7 @@
 static struct starpu_perfmodel_arch **arch_combs;
 static int current_arch_comb;
 static int nb_arch_combs;
-static starpu_pthread_mutex_t arch_combs_mutex;
+static starpu_pthread_rwlock_t arch_combs_mutex;
 
 struct starpu_perfmodel_history_table
 {
@@ -84,41 +84,11 @@ void _starpu_perfmodel_malloc_per_arch_is_set(struct starpu_perfmodel *model, in
 	}
 }
 
-void _starpu_perfmodel_arch_combs_realloc_and_set_nb_arch_combs(int new_nb_arch_combs)
+int _starpu_perfmodel_arch_comb_get(int ndevices, struct starpu_perfmodel_device *devices)
 {
-	STARPU_PTHREAD_MUTEX_LOCK(&arch_combs_mutex);
-	nb_arch_combs = new_nb_arch_combs;
-	arch_combs = (struct starpu_perfmodel_arch**) realloc(arch_combs, nb_arch_combs*sizeof(struct starpu_perfmodel_arch*));
-	STARPU_PTHREAD_MUTEX_UNLOCK(&arch_combs_mutex);
-}
-
-int starpu_perfmodel_arch_comb_add(int ndevices, struct starpu_perfmodel_device* devices)
-{
-	if (current_arch_comb >= nb_arch_combs)
-	{
-		// We need to allocate more arch_combs
-		_starpu_perfmodel_arch_combs_realloc_and_set_nb_arch_combs(nb_arch_combs + 10);
-	}
-	STARPU_PTHREAD_MUTEX_LOCK(&arch_combs_mutex);
-	arch_combs[current_arch_comb] = (struct starpu_perfmodel_arch*)malloc(sizeof(struct starpu_perfmodel_arch));
-	arch_combs[current_arch_comb]->devices = (struct starpu_perfmodel_device*)malloc(ndevices*sizeof(struct starpu_perfmodel_device));
-	arch_combs[current_arch_comb]->ndevices = ndevices;
-	int dev;
-	for(dev = 0; dev < ndevices; dev++)
-	{
-		arch_combs[current_arch_comb]->devices[dev].type = devices[dev].type;
-		arch_combs[current_arch_comb]->devices[dev].devid = devices[dev].devid;
-		arch_combs[current_arch_comb]->devices[dev].ncores = devices[dev].ncores;
-	}
-	current_arch_comb++;
-	STARPU_PTHREAD_MUTEX_UNLOCK(&arch_combs_mutex);
-	return current_arch_comb-1;
-}
-
-int starpu_perfmodel_arch_comb_get(int ndevices, struct starpu_perfmodel_device *devices)
-{
-	int comb;
-	for(comb = 0; comb < current_arch_comb; comb++)
+	int comb, ncomb;
+	ncomb = current_arch_comb;
+	for(comb = 0; comb < ncomb; comb++)
 	{
 		int found = 0;
 		if(arch_combs[comb]->ndevices == ndevices)
@@ -144,10 +114,50 @@ int starpu_perfmodel_arch_comb_get(int ndevices, struct starpu_perfmodel_device 
 	return -1;
 }
 
+int starpu_perfmodel_arch_comb_get(int ndevices, struct starpu_perfmodel_device *devices)
+{
+	int ret;
+	STARPU_PTHREAD_RWLOCK_RDLOCK(&arch_combs_mutex);
+	ret = _starpu_perfmodel_arch_comb_get(ndevices, devices);
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&arch_combs_mutex);
+	return ret;
+}
+
+int starpu_perfmodel_arch_comb_add(int ndevices, struct starpu_perfmodel_device* devices)
+{
+	STARPU_PTHREAD_RWLOCK_WRLOCK(&arch_combs_mutex);
+	int comb = _starpu_perfmodel_arch_comb_get(ndevices, devices);
+	if (comb != -1)
+	{
+		/* Somebody else added it in between */
+		STARPU_PTHREAD_RWLOCK_UNLOCK(&arch_combs_mutex);
+		return comb;
+	}
+	if (current_arch_comb >= nb_arch_combs)
+	{
+		// We need to allocate more arch_combs
+		nb_arch_combs = current_arch_comb+10;
+		arch_combs = (struct starpu_perfmodel_arch**) realloc(arch_combs, nb_arch_combs*sizeof(struct starpu_perfmodel_arch*));
+	}
+	arch_combs[current_arch_comb] = (struct starpu_perfmodel_arch*)malloc(sizeof(struct starpu_perfmodel_arch));
+	arch_combs[current_arch_comb]->devices = (struct starpu_perfmodel_device*)malloc(ndevices*sizeof(struct starpu_perfmodel_device));
+	arch_combs[current_arch_comb]->ndevices = ndevices;
+	int dev;
+	for(dev = 0; dev < ndevices; dev++)
+	{
+		arch_combs[current_arch_comb]->devices[dev].type = devices[dev].type;
+		arch_combs[current_arch_comb]->devices[dev].devid = devices[dev].devid;
+		arch_combs[current_arch_comb]->devices[dev].ncores = devices[dev].ncores;
+	}
+	comb = current_arch_comb++;
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&arch_combs_mutex);
+	return comb;
+}
+
 static 	void _free_arch_combs(void)
 {
 	int i;
-	STARPU_PTHREAD_MUTEX_LOCK(&arch_combs_mutex);
+	STARPU_PTHREAD_RWLOCK_WRLOCK(&arch_combs_mutex);
 	for(i = 0; i < current_arch_comb; i++)
 	{
 		free(arch_combs[i]->devices);
@@ -155,8 +165,8 @@ static 	void _free_arch_combs(void)
 	}
 	current_arch_comb = 0;
 	free(arch_combs);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&arch_combs_mutex);
-	STARPU_PTHREAD_MUTEX_DESTROY(&arch_combs_mutex);
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&arch_combs_mutex);
+	STARPU_PTHREAD_RWLOCK_DESTROY(&arch_combs_mutex);
 }
 
 int starpu_perfmodel_get_narch_combs()
@@ -518,11 +528,10 @@ static void parse_model_file(FILE *f, struct starpu_perfmodel *model, unsigned s
 		model->state->ncombs = ncombs;
 	}
 
-	if (ncombs > nb_arch_combs)
+	if (ncombs >= model->state->ncombs_set)
 	{
 		// The model has more combs than the original number of arch_combs, we need to reallocate
-		_starpu_perfmodel_arch_combs_realloc_and_set_nb_arch_combs(ncombs);
-		_starpu_perfmodel_realloc(model, nb_arch_combs);
+		_starpu_perfmodel_realloc(model, ncombs);
 	}
 
 	int comb;
@@ -651,7 +660,7 @@ void _starpu_perfmodel_realloc(struct starpu_perfmodel *model, int nb)
 void starpu_perfmodel_init(FILE *f, struct starpu_perfmodel *model)
 {
 	int already_init;
-	int i;
+	int i, ncombs;
 
 	STARPU_ASSERT(model);
 
@@ -676,15 +685,17 @@ void starpu_perfmodel_init(FILE *f, struct starpu_perfmodel *model)
 	model->state = malloc(sizeof(struct _starpu_perfmodel_state));
 	STARPU_PTHREAD_RWLOCK_INIT(&model->state->model_rwlock, NULL);
 
-	model->state->per_arch = (struct starpu_perfmodel_per_arch**) malloc(nb_arch_combs*sizeof(struct starpu_perfmodel_per_arch*));
-	model->state->per_arch_is_set = (int**) malloc(nb_arch_combs*sizeof(int*));
-	model->state->nimpls = (int *)malloc(nb_arch_combs*sizeof(int));
-	model->state->nimpls_set = (int *)malloc(nb_arch_combs*sizeof(int));
-	model->state->combs = (int*)malloc(nb_arch_combs*sizeof(int));
+	STARPU_PTHREAD_RWLOCK_RDLOCK(&arch_combs_mutex);
+	model->state->ncombs_set = ncombs = nb_arch_combs;
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&arch_combs_mutex);
+	model->state->per_arch = (struct starpu_perfmodel_per_arch**) malloc(ncombs*sizeof(struct starpu_perfmodel_per_arch*));
+	model->state->per_arch_is_set = (int**) malloc(ncombs*sizeof(int*));
+	model->state->nimpls = (int *)malloc(ncombs*sizeof(int));
+	model->state->nimpls_set = (int *)malloc(ncombs*sizeof(int));
+	model->state->combs = (int*)malloc(ncombs*sizeof(int));
 	model->state->ncombs = 0;
-	model->state->ncombs_set = nb_arch_combs;
 
-	for(i = 0; i < nb_arch_combs; i++)
+	for(i = 0; i < ncombs; i++)
 	{
 		model->state->per_arch[i] = NULL;
 		model->state->per_arch_is_set[i] = NULL;
@@ -800,7 +811,7 @@ void _starpu_initialize_registered_performance_models(void)
 	nb_arch_combs = 2 * (ncores + ncuda + nopencl + nmic + nscc);
 	arch_combs = (struct starpu_perfmodel_arch**) malloc(nb_arch_combs*sizeof(struct starpu_perfmodel_arch*));
 	current_arch_comb = 0;
-	STARPU_PTHREAD_MUTEX_INIT(&arch_combs_mutex, NULL);
+	STARPU_PTHREAD_RWLOCK_INIT(&arch_combs_mutex, NULL);
 }
 
 void _starpu_deinitialize_performance_model(struct starpu_perfmodel *model)
@@ -1555,9 +1566,7 @@ struct starpu_perfmodel_per_arch *_starpu_perfmodel_get_model_per_devices(struct
 	va_end(varg_list_copy);
 
 	// Get the combination for this set of devices
-	int comb = starpu_perfmodel_arch_comb_get(arch.ndevices, arch.devices);
-	if (comb == -1)
-		comb = starpu_perfmodel_arch_comb_add(arch.ndevices, arch.devices);
+	int comb = _starpu_perfmodel_create_comb_if_needed(&arch);
 
 	free(arch.devices);
 
