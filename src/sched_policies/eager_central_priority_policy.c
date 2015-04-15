@@ -203,7 +203,7 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 		return NULL;
 
 #ifdef STARPU_NON_BLOCKING_DRIVERS
-	if (starpu_bitmap_get(data->waiters, workerid))
+	if (!STARPU_RUNNING_ON_VALGRIND && starpu_bitmap_get(data->waiters, workerid))
 		/* Nobody woke us, avoid bothering the mutex */
 		return NULL;
 #endif
