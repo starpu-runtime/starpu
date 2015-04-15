@@ -159,11 +159,11 @@ static struct starpu_task *pop_task_eager_policy(unsigned sched_ctx_id)
 	/* Here helgrind would shout that this is unprotected, this is just an
 	 * integer access, and we hold the sched mutex, so we can not miss any
 	 * wake up. */
-	if (_starpu_fifo_empty(data->fifo))
+	if (!STARPU_RUNNING_ON_VALGRIND && _starpu_fifo_empty(data->fifo))
 		return NULL;
 
 #ifdef STARPU_NON_BLOCKING_DRIVERS
-	if (starpu_bitmap_get(data->waiters, workerid))
+	if (!STARPU_RUNNING_ON_VALGRIND && starpu_bitmap_get(data->waiters, workerid))
 		/* Nobody woke us, avoid bothering the mutex */
 		return NULL;
 #endif
