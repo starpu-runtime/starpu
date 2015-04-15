@@ -63,6 +63,13 @@
 }
 
 {
+   This is racy, but we don't care, it's only a statistic
+   Helgrind:Race
+   fun:_starpu_bus_update_profiling_info
+   ...
+}
+
+{
    fscanf error
    Memcheck:Cond
    ...
