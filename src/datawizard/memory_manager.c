@@ -87,7 +87,6 @@ int starpu_memory_allocate(unsigned node, size_t size, int flags)
 			min_waiting_size[node] = size;
 
 		/* Wait for it */
-		/* TODO: utiliser plutôt l'approche de MArc*/
 		while (used_size[node] + size > global_size[node])
 			STARPU_PTHREAD_COND_WAIT(&cond_nodes[node], &lock_nodes[node]);
 
