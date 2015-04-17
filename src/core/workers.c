@@ -756,8 +756,7 @@ int starpu_init(struct starpu_conf *user_conf)
 
 #ifdef HAVE_AYUDAME_H
 #ifndef AYU_RT_STARPU
-/* Dumb value for now */
-#define AYU_RT_STARPU 32
+#define AYU_RT_STARPU 4
 #endif
 	if (AYU_event)
 	{
