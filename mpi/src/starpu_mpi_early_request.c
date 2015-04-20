@@ -22,7 +22,14 @@
 #include <common/uthash.h>
 
 /** stores application requests for which data have not been received yet */
-struct _starpu_mpi_req *_starpu_mpi_early_request_hash;
+struct _starpu_mpi_early_request_hashlist
+{
+	struct _starpu_mpi_req_list *list;
+	UT_hash_handle hh;
+	struct _starpu_mpi_node_tag node_tag;
+};
+
+struct _starpu_mpi_early_request_hashlist *_starpu_mpi_early_request_hash;
 int _starpu_mpi_early_request_hash_count;
 
 void _starpu_mpi_early_request_init()
@@ -46,63 +53,52 @@ void _starpu_mpi_early_request_check_termination()
 	STARPU_ASSERT_MSG(_starpu_mpi_early_request_count() == 0, "Number of early requests left is not zero");
 }
 
-struct _starpu_mpi_req* _starpu_mpi_early_request_find(int data_tag, int source, MPI_Comm comm)
+struct _starpu_mpi_req* _starpu_mpi_early_request_dequeue(int data_tag, int source, MPI_Comm comm)
 {
 	struct _starpu_mpi_node_tag node_tag;
 	struct _starpu_mpi_req *found;
+	struct _starpu_mpi_early_request_hashlist *hashlist;
 
 	memset(&node_tag, 0, sizeof(struct _starpu_mpi_node_tag));
 	node_tag.comm = comm;
 	node_tag.rank = source;
 	node_tag.data_tag = data_tag;
 
-	HASH_FIND(hh, _starpu_mpi_early_request_hash, &node_tag, sizeof(struct _starpu_mpi_node_tag), found);
-
-	return found;
-}
-
-void _starpu_mpi_early_request_add(struct _starpu_mpi_req *req)
-{
-	struct _starpu_mpi_req *test_req;
-
-	test_req = _starpu_mpi_early_request_find(req->node_tag.data_tag, req->node_tag.rank, req->node_tag.comm);
-
-	if (test_req == NULL)
+	_STARPU_MPI_DEBUG(100, "Looking for early_request with comm %p source %d tag %d\n", node_tag.comm, node_tag.rank, node_tag.data_tag);
+	HASH_FIND(hh, _starpu_mpi_early_request_hash, &node_tag, sizeof(struct _starpu_mpi_node_tag), hashlist);
+	if (hashlist == NULL)
 	{
-		HASH_ADD(hh, _starpu_mpi_early_request_hash, node_tag, sizeof(req->node_tag), req);
-		_starpu_mpi_early_request_hash_count ++;
-		_STARPU_MPI_DEBUG(3, "Adding request %p with comm %p source %d tag %d in the application request hashmap\n", req, req->node_tag.comm, req->node_tag.rank, req->node_tag.data_tag);
+		found = NULL;
 	}
 	else
 	{
-		_STARPU_MPI_DEBUG(3, "[Error] request %p with comm %p source %d tag %d already in the application request hashmap\n", req, req->node_tag.comm, req->node_tag.rank, req->node_tag.data_tag);
-		int seq_const = starpu_data_get_sequential_consistency_flag(req->data_handle);
-		if (seq_const &&  req->sequential_consistency)
+		if (_starpu_mpi_req_list_empty(hashlist->list))
 		{
-			STARPU_ASSERT_MSG(!test_req, "[Error] request %p with comm %p source %d tag %d wanted to be added to the application request hashmap, while another request %p with the same tag is already in it. \n Sequential consistency is activated : this is not supported by StarPU.", req, req->node_tag.comm, req->node_tag.rank, req->node_tag.data_tag, test_req);
+			found = NULL;
 		}
 		else
 		{
-			STARPU_ASSERT_MSG(!test_req, "[Error] request %p with comm %p source %d tag %d wanted to be added to the application request hashmap, while another request %p with the same tag is already in it. \n Sequential consistency isn't activated for this handle : you should want to add dependencies between requests for which the sequential consistency is deactivated.", req, req->node_tag.comm, req->node_tag.rank, req->node_tag.data_tag, test_req);
+			found = _starpu_mpi_req_list_pop_front(hashlist->list);
+			_starpu_mpi_early_request_hash_count --;
 		}
 	}
+	_STARPU_MPI_DEBUG(100, "Found early_request %p with comm %p source %d tag %d\n", found, node_tag.comm, node_tag.rank, node_tag.data_tag);
+	return found;
 }
 
-void _starpu_mpi_early_request_delete(struct _starpu_mpi_req *req)
+void _starpu_mpi_early_request_enqueue(struct _starpu_mpi_req *req)
 {
-	struct _starpu_mpi_req *test_req;
+	_STARPU_MPI_DEBUG(100, "Adding request %p with comm %p source %d tag %d in the application request hashmap\n", req, req->node_tag.comm, req->node_tag.rank, req->node_tag.data_tag);
 
-	test_req = _starpu_mpi_early_request_find(req->node_tag.data_tag, req->node_tag.rank, req->node_tag.comm);
-
-	if (test_req != NULL)
+	struct _starpu_mpi_early_request_hashlist *hashlist;
+	HASH_FIND(hh, _starpu_mpi_early_request_hash, &req->node_tag, sizeof(struct _starpu_mpi_node_tag), hashlist);
+	if (hashlist == NULL)
 	{
-		HASH_DEL(_starpu_mpi_early_request_hash, req);
-		_starpu_mpi_early_request_hash_count --;
-		_STARPU_MPI_DEBUG(3, "Deleting application request %p with comm %p source %d tag %d from the application request hashmap\n", req, req->node_tag.comm, req->node_tag.rank, req->node_tag.data_tag);
+		hashlist = malloc(sizeof(struct _starpu_mpi_early_request_hashlist));
+		hashlist->list = _starpu_mpi_req_list_new();
+		hashlist->node_tag = req->node_tag;
+		HASH_ADD(hh, _starpu_mpi_early_request_hash, node_tag, sizeof(hashlist->node_tag), hashlist);
 	}
-	else
-	{
-		_STARPU_MPI_DEBUG(3, "[Warning] request %p with comm %p source %d tag %d is NOT in the application request hashmap\n", req, req->node_tag.comm, req->node_tag.rank, req->node_tag.data_tag);
-	}
+	_starpu_mpi_req_list_push_back(hashlist->list, req);
+	_starpu_mpi_early_request_hash_count ++;
 }
-

@@ -252,7 +252,7 @@ static void _starpu_mpi_submit_ready_request(void *arg)
 				else
 				{
 					_STARPU_MPI_DEBUG(3, "Adding the pending receive request %p (srcdst %d tag %d) into the request hashmap\n", req, req->node_tag.rank, req->node_tag.data_tag);
-					_starpu_mpi_early_request_add(req);
+					_starpu_mpi_early_request_enqueue(req);
 				}
 			}
 		}
@@ -1352,7 +1352,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 				{
 					_STARPU_MPI_DEBUG(3, "Searching for application request with tag %d and source %d (size %ld)\n", envelope->data_tag, envelope_status.MPI_SOURCE, envelope->size);
 
-					struct _starpu_mpi_req *early_request = _starpu_mpi_early_request_find(envelope->data_tag, envelope_status.MPI_SOURCE, envelope_comm);
+					struct _starpu_mpi_req *early_request = _starpu_mpi_early_request_dequeue(envelope->data_tag, envelope_status.MPI_SOURCE, envelope_comm);
 
 					/* Case: a data will arrive before a matching receive is
 					 * posted by the application. Create a temporary handle to
@@ -1399,8 +1399,6 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 					{
 						_STARPU_MPI_DEBUG(2000, "A matching application request has been found for the incoming data with tag %d\n", envelope->data_tag);
 						_STARPU_MPI_DEBUG(2000, "Request sync %d\n", envelope->sync);
-
-						_starpu_mpi_early_request_delete(early_request);
 
 						early_request->sync = envelope->sync;
 						_starpu_mpi_handle_allocate_datatype(early_request->data_handle, &early_request->datatype, &early_request->user_datatype);
