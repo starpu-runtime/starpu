@@ -124,7 +124,8 @@ starpu_mpi_TESTS =				\
 	policy_register				\
 	policy_register_many			\
 	policy_register_toomany			\
-	policy_unregister
+	policy_unregister			\
+	early_request
 
 noinst_PROGRAMS =				\
 	datatypes				\
@@ -173,7 +174,8 @@ noinst_PROGRAMS =				\
 	policy_register				\
 	policy_register_many			\
 	policy_register_toomany			\
-	policy_unregister
+	policy_unregister			\
+	early_request
 
 XFAIL_TESTS=					\
 	policy_register_toomany			\
@@ -272,6 +274,8 @@ policy_register_many_LDADD =			\
 policy_register_toomany_LDADD =			\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 policy_unregister_LDADD =			\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
+early_request_LDADD =					\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 
 ring_SOURCES = ring.c
