@@ -55,7 +55,6 @@ static int check_cpu(int env_cpu, int conf_cpu, int expected_cpu, int *cpu)
 
 	if (ret == -ENODEV)
 	{
-		starpu_shutdown();
 		return STARPU_TEST_SKIPPED;
 	}
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
