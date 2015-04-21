@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2014  Université de Bordeaux
+ * Copyright (C) 2010-2015  Université de Bordeaux
  * Copyright (C) 2010-2014  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -126,10 +126,19 @@ int main(int argc, char **argv)
 	int nprocs4 = nprocs1/2;
 	int nprocs5 = nprocs2/2;
 	int nprocs6 = nprocs2/2;
-	int procs3[nprocs3];
-	int procs4[nprocs4];
-	int procs5[nprocs5];
-	int procs6[nprocs6];
+	int *procs3 = NULL;
+	int *procs4 = NULL;
+	int *procs5 = NULL;
+	int *procs6 = NULL;
+
+	if (nprocs3)
+		procs3 = malloc(nprocs3 * sizeof(*procs3));
+	if (nprocs4)
+		procs4 = malloc(nprocs4 * sizeof(*procs4));
+	if (nprocs5)
+		procs5 = malloc(nprocs5 * sizeof(*procs5));
+	if (nprocs6)
+		procs6 = malloc(nprocs6 * sizeof(*procs6));
 
 	k = 0;
 	for(j = 0; j < nprocs3; j++)
@@ -145,11 +154,19 @@ int main(int argc, char **argv)
 	for(j = nprocs5; j < nprocs5+nprocs6; j++)
 		procs6[k++] = procs2[j];
 
-	unsigned sched_ctx3 = starpu_sched_ctx_create(procs3, nprocs3, "ctx3", STARPU_SCHED_CTX_NESTED, sched_ctx1, 0);
-	unsigned sched_ctx4 = starpu_sched_ctx_create(procs4, nprocs4, "ctx4", STARPU_SCHED_CTX_NESTED, sched_ctx1, 0);
+	int sched_ctx3 = -1;
+	int sched_ctx4 = -1;
+	int sched_ctx5 = -1;
+	int sched_ctx6 = -1;
 
-	unsigned sched_ctx5 = starpu_sched_ctx_create(procs5, nprocs5, "ctx5", STARPU_SCHED_CTX_NESTED, sched_ctx2, 0);
-	unsigned sched_ctx6 = starpu_sched_ctx_create(procs6, nprocs6, "ctx6", STARPU_SCHED_CTX_NESTED, sched_ctx2, 0);
+	if (nprocs3)
+		sched_ctx3 = starpu_sched_ctx_create(procs3, nprocs3, "ctx3", STARPU_SCHED_CTX_NESTED, sched_ctx1, 0);
+	if (nprocs4)
+		sched_ctx4 = starpu_sched_ctx_create(procs4, nprocs4, "ctx4", STARPU_SCHED_CTX_NESTED, sched_ctx1, 0);
+	if (nprocs5)
+		sched_ctx5 = starpu_sched_ctx_create(procs5, nprocs5, "ctx5", STARPU_SCHED_CTX_NESTED, sched_ctx2, 0);
+	if (nprocs6)
+		sched_ctx6 = starpu_sched_ctx_create(procs6, nprocs6, "ctx6", STARPU_SCHED_CTX_NESTED, sched_ctx2, 0);
 
 
 	int i;
@@ -191,11 +208,26 @@ int main(int argc, char **argv)
 	/* wait for all tasks at the end*/
 	starpu_task_wait_for_all();
 
-	starpu_sched_ctx_delete(sched_ctx3);
-	starpu_sched_ctx_delete(sched_ctx4);
-
-	starpu_sched_ctx_delete(sched_ctx5);
-	starpu_sched_ctx_delete(sched_ctx6);
+	if (nprocs3)
+	{
+		starpu_sched_ctx_delete(sched_ctx3);
+		free(procs3);
+	}
+	if (nprocs4)
+	{
+		starpu_sched_ctx_delete(sched_ctx4);
+		free(procs4);
+	}
+	if (nprocs5)
+	{
+		starpu_sched_ctx_delete(sched_ctx5);
+		free(procs5);
+	}
+	if (nprocs6)
+	{
+		starpu_sched_ctx_delete(sched_ctx6);
+		free(procs6);
+	}
 
 	starpu_sched_ctx_delete(sched_ctx1);
 	starpu_sched_ctx_delete(sched_ctx2);
