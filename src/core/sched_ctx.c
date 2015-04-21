@@ -147,6 +147,8 @@ static void _starpu_add_workers_to_sched_ctx(struct _starpu_sched_ctx *sched_ctx
 	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
 
 	int nworkers_to_add = nworkers == -1 ? (int)config->topology.nworkers : nworkers;
+	if (!nworkers_to_add)
+		return;
 	int workers_to_add[nworkers_to_add];
 
 	struct starpu_perfmodel_device devices[nworkers_to_add];
