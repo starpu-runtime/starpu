@@ -23,6 +23,8 @@
 struct _starpu_barrier_counter
 {
 	struct _starpu_barrier barrier;
+	unsigned min_threshold;
+	unsigned max_threshold;
 	starpu_pthread_cond_t cond2;
 };
 
@@ -32,7 +34,8 @@ int _starpu_barrier_counter_destroy(struct _starpu_barrier_counter *barrier_c);
 
 int _starpu_barrier_counter_wait_for_empty_counter(struct _starpu_barrier_counter *barrier_c);
 
-int _starpu_barrier_counter_wait_until_counter_reaches_n(struct _starpu_barrier_counter *barrier_c, unsigned n);
+int _starpu_barrier_counter_wait_until_counter_reaches_down_to_n(struct _starpu_barrier_counter *barrier_c, unsigned n);
+int _starpu_barrier_counter_wait_until_counter_reaches_up_to_n(struct _starpu_barrier_counter *barrier_c, unsigned n);
 
 int _starpu_barrier_counter_wait_for_full_counter(struct _starpu_barrier_counter *barrier_c);
 
