@@ -22,6 +22,7 @@
 #include <core/disk.h>
 #include <starpu.h>
 #include <common/uthash.h>
+#include <alloca.h>
 
 /* This per-node RW-locks protect mc_list and memchunk_cache entries */
 /* Note: handle header lock is always taken before this (normal add/remove case) */
