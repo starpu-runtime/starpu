@@ -609,7 +609,7 @@ int starpu_task_submit(struct starpu_task *task)
 		int limit_min_submitted_tasks = starpu_get_env_number("STARPU_LIMIT_MIN_SUBMITTED_TASKS");
 		int limit_max_submitted_tasks = starpu_get_env_number("STARPU_LIMIT_MAX_SUBMITTED_TASKS");
 		int nsubmitted_tasks = starpu_task_nsubmitted();
-		if (limit_max_submitted_tasks >= 0 && limit_max_submitted_tasks > nsubmitted_tasks
+		if (limit_max_submitted_tasks >= 0 && limit_max_submitted_tasks < nsubmitted_tasks
 			&& limit_min_submitted_tasks >= 0 && limit_min_submitted_tasks < nsubmitted_tasks)
 			starpu_task_wait_for_n_submitted(limit_min_submitted_tasks);
 	}
