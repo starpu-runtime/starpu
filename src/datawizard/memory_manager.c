@@ -27,9 +27,7 @@ static size_t used_size[STARPU_MAXNODES];
  * each and every deallocation, only to find that there is still not enough
  * room.  */
 /* Minimum amount being waited for */
-static size_t min_waiting_size[STARPU_MAXNODES];
-/* Number of waiters */
-static int waiters[STARPU_MAXNODES];
+static size_t waiting_size[STARPU_MAXNODES];
 
 static starpu_pthread_mutex_t lock_nodes[STARPU_MAXNODES];
 static starpu_pthread_cond_t cond_nodes[STARPU_MAXNODES];
@@ -45,7 +43,7 @@ int _starpu_memory_manager_init()
 		/* This is accessed for statistics outside the lock, don't care
 		 * about that */
 		STARPU_HG_DISABLE_CHECKING(used_size[i]);
-		min_waiting_size[i] = 0;
+		waiting_size[i] = 0;
 		STARPU_PTHREAD_MUTEX_INIT(&lock_nodes[i], NULL);
 		STARPU_PTHREAD_COND_INIT(&cond_nodes[i], NULL);
 	}
@@ -80,24 +78,19 @@ int starpu_memory_allocate(unsigned node, size_t size, int flags)
 	STARPU_PTHREAD_MUTEX_LOCK(&lock_nodes[node]);
 	if (flags == STARPU_MEMORY_WAIT)
 	{
-		waiters[node]++;
-
-		/* Tell deallocators we need this amount */
-		if (!min_waiting_size[node] || size < min_waiting_size[node])
-			min_waiting_size[node] = size;
-
-		/* Wait for it */
 		while (used_size[node] + size > global_size[node])
+		{
+			/* Tell deallocators we need this amount */
+			if (!waiting_size[node] || size < waiting_size[node])
+				waiting_size[node] = size;
+
+			/* Wait for it */
 			STARPU_PTHREAD_COND_WAIT(&cond_nodes[node], &lock_nodes[node]);
+		}
 
 		/* And take it */
 		used_size[node] += size;
 		ret = 0;
-
-		if (!--waiters[node])
-			/* Nobody is waiting any more, we can reset the minimum
-			 */
-			min_waiting_size[node] = 0;
 	}
 	else if (flags == STARPU_MEMORY_OVERFLOW
 			|| global_size[node] == 0
@@ -121,9 +114,13 @@ void starpu_memory_deallocate(unsigned node, size_t size)
 	used_size[node] -= size;
 
 	/* If there's now room for waiters, wake them */
-	if (min_waiting_size[node] &&
-		global_size[node] - used_size[node] >= min_waiting_size[node])
+	if (waiting_size[node] &&
+		global_size[node] - used_size[node] >= waiting_size[node])
+	{
+		/* And have those not happy enough tell us the size again */
+		waiting_size[node] = 0;
 		STARPU_PTHREAD_COND_BROADCAST(&cond_nodes[node]);
+	}
 
 	STARPU_PTHREAD_MUTEX_UNLOCK(&lock_nodes[node]);
 }
@@ -149,20 +146,15 @@ starpu_ssize_t starpu_memory_get_available(unsigned node)
 void starpu_memory_wait_available(unsigned node, size_t size)
 {
 	STARPU_PTHREAD_MUTEX_LOCK(&lock_nodes[node]);
-	waiters[node]++;
-
-	/* Tell deallocators we need this amount */
-	if (!min_waiting_size[node] || size < min_waiting_size[node])
-		min_waiting_size[node] = size;
-
-	/* Wait for it */
 	while (used_size[node] + size > global_size[node])
-		STARPU_PTHREAD_COND_WAIT(&cond_nodes[node], &lock_nodes[node]);
+	{
+		/* Tell deallocators we need this amount */
+		if (!waiting_size[node] || size < waiting_size[node])
+			waiting_size[node] = size;
 
-	if (!--waiters[node])
-		/* Nobody is waiting any more, we can reset the minimum
-		 */
-		min_waiting_size[node] = 0;
+		/* Wait for it */
+		STARPU_PTHREAD_COND_WAIT(&cond_nodes[node], &lock_nodes[node]);
+	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&lock_nodes[node]);
 }
 
