@@ -22,7 +22,6 @@
 #include <core/disk.h>
 #include <starpu.h>
 #include <common/uthash.h>
-#include <alloca.h>
 
 /* This per-node RW-locks protect mc_list and memchunk_cache entries */
 /* Note: handle header lock is always taken before this (normal add/remove case) */
@@ -1197,13 +1196,13 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 	STARPU_ASSERT(handle->ops->allocate_data_on_node);
 	STARPU_ASSERT(replicate->data_interface);
 
-	char *data_interface = NULL;
-	
-	if (handle->ops->interface_size)
-	{
-		data_interface = alloca(handle->ops->interface_size);
-		memcpy(data_interface, replicate->data_interface, handle->ops->interface_size);
-	}
+	size_t size = handle->ops->interface_size;
+	if (!size)
+		/* nul-size VLA is undefined... */
+		size = 1;
+	char data_interface[size];
+
+	memcpy(data_interface, replicate->data_interface, handle->ops->interface_size);
 
 	/* Take temporary reference on the replicate */
 	replicate->refcnt++;
@@ -1280,11 +1279,8 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 		allocated_memory = 0;
 	}
 	else
-	{
 		/* Install allocated interface */
-		if (handle->ops->interface_size)
-			memcpy(replicate->data_interface, data_interface, handle->ops->interface_size);
-	}
+		memcpy(replicate->data_interface, data_interface, handle->ops->interface_size);
 
 out:
 	return allocated_memory;
