@@ -378,19 +378,30 @@ _starpu_swap_init(void)
 
 	backend = getenv("STARPU_DISK_SWAP_BACKEND");
 	if (!backend)
+	{
+		_starpu_mkpath(path, S_IRWXU);
 		ops = &starpu_disk_unistd_ops;
+	}
 	else if (!strcmp(backend, "stdio"))
+	{
+		_starpu_mkpath(path, S_IRWXU);
 		ops = &starpu_disk_stdio_ops;
+	}
 	else if (!strcmp(backend, "unistd"))
+	{
+		_starpu_mkpath(path, S_IRWXU);
 		ops = &starpu_disk_unistd_ops;
+	}
 	else if (!strcmp(backend, "unistd_o_direct"))
 	{
 #ifdef STARPU_LINUX_SYS
+		_starpu_mkpath(path, S_IRWXU);
 		ops = &starpu_disk_unistd_o_direct_ops;
 #else
 		_STARPU_DISP("Warning: o_direct support is not compiled in, could not enable disk swap");
 		return;
 #endif
+
 	}
 	else if (!strcmp(backend, "leveldb"))
 	{
