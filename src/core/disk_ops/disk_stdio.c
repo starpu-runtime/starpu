@@ -269,6 +269,15 @@ static void *starpu_stdio_plug(void *parameter, starpu_ssize_t size STARPU_ATTRI
 	char *tmp = malloc(sizeof(char)*(strlen(parameter)+1));
 	STARPU_ASSERT(tmp != NULL);
 	strcpy(tmp,(char *) parameter);
+
+	{
+		struct stat buf;
+		if (!(stat(tmp, &buf) == 0 && S_ISDIR(buf.st_mode)))
+		{
+			_STARPU_ERROR("Directory '%s' does not exist\n", tmp);
+		}
+	}
+
 	return (void *) tmp;
 }
 

@@ -306,6 +306,14 @@ void *starpu_unistd_global_plug(void *parameter, starpu_ssize_t size STARPU_ATTR
 	STARPU_ASSERT(tmp != NULL);
 	strcpy(tmp,(char *) parameter);
 
+	{
+		struct stat buf;
+		if (!(stat(tmp, &buf) == 0 && S_ISDIR(buf.st_mode)))
+		{
+			_STARPU_ERROR("Directory '%s' does not exist\n", tmp);
+		}
+	}
+
 	return (void *) tmp;
 }
 
