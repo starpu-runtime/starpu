@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2013 Corentin Salingue
+ * Copyright (C) 2015 CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -30,7 +31,7 @@
 #include <starpu_parameters.h>
 
 #ifdef STARPU_HAVE_WINDOWS
-        #include <io.h>
+#  include <io.h>
 #endif
 
 #define NITER	_STARPU_CALIBRATION_MINIMUM
@@ -47,15 +48,15 @@ struct starpu_stdio_obj
 };
 
 /* allocation memory on disk */
-static void *starpu_stdio_alloc (void *base, size_t size)
+static void *starpu_stdio_alloc(void *base, size_t size)
 {
-	struct starpu_stdio_obj * obj = malloc(sizeof(struct starpu_stdio_obj));
+	struct starpu_stdio_obj *obj = malloc(sizeof(struct starpu_stdio_obj));
 	STARPU_ASSERT(obj != NULL);
 	int id = -1;
 
 	/* create template for mkstemp */
-	char * tmp = "STARPU_XXXXXX";
-	char * baseCpy = malloc(strlen(base)+1+strlen(tmp)+1);
+	char *tmp = "STARPU_XXXXXX";
+	char *baseCpy = malloc(strlen(base)+1+strlen(tmp)+1);
 	STARPU_ASSERT(baseCpy != NULL);
 
 	strcpy(baseCpy, (char *) base);
@@ -77,7 +78,7 @@ static void *starpu_stdio_alloc (void *base, size_t size)
 		return NULL;
 	}
 
-	FILE * f = fdopen(id, "rb+");
+	FILE *f = fdopen(id, "rb+");
 	/* fail */
 	if (f == NULL)
 	{
@@ -118,7 +119,7 @@ static void *starpu_stdio_alloc (void *base, size_t size)
 /* free memory on disk */
 static void starpu_stdio_free(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, size_t size STARPU_ATTRIBUTE_UNUSED)
 {
-	struct starpu_stdio_obj * tmp = (struct starpu_stdio_obj *) obj;
+	struct starpu_stdio_obj *tmp = (struct starpu_stdio_obj *) obj;
 
 	STARPU_PTHREAD_MUTEX_DESTROY(&tmp->mutex);
 
@@ -131,13 +132,13 @@ static void starpu_stdio_free(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, siz
 }
 
 /* open an existing memory on disk */
-static void *starpu_stdio_open (void *base, void *pos, size_t size)
+static void *starpu_stdio_open(void *base, void *pos, size_t size)
 {
-	struct starpu_stdio_obj * obj = malloc(sizeof(struct starpu_stdio_obj));
+	struct starpu_stdio_obj *obj = malloc(sizeof(struct starpu_stdio_obj));
 	STARPU_ASSERT(obj != NULL);
 
 	/* create template */
-	char * baseCpy = malloc(strlen(base)+1+strlen(pos)+1);
+	char *baseCpy = malloc(strlen(base)+1+strlen(pos)+1);
 	STARPU_ASSERT(baseCpy != NULL);
 	strcpy(baseCpy,(char *) base);
 	strcat(baseCpy,(char *) "/");
@@ -151,7 +152,7 @@ static void *starpu_stdio_open (void *base, void *pos, size_t size)
 		return NULL;
 	}
 
-	FILE * f = fdopen(id,"rb+");
+	FILE *f = fdopen(id,"rb+");
 	if (f == NULL)
 	{
 		free(obj);
@@ -169,11 +170,10 @@ static void *starpu_stdio_open (void *base, void *pos, size_t size)
 	return (void *) obj;
 }
 
-
 /* free memory without delete it */
 static void starpu_stdio_close(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, size_t size STARPU_ATTRIBUTE_UNUSED)
 {
-	struct starpu_stdio_obj * tmp = (struct starpu_stdio_obj *) obj;
+	struct starpu_stdio_obj *tmp = (struct starpu_stdio_obj *) obj;
 
 	STARPU_PTHREAD_MUTEX_DESTROY(&tmp->mutex);
 
@@ -186,14 +186,14 @@ static void starpu_stdio_close(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, si
 /* read the memory disk */
 static int starpu_stdio_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size)
 {
-	struct starpu_stdio_obj * tmp = (struct starpu_stdio_obj *) obj;
+	struct starpu_stdio_obj *tmp = (struct starpu_stdio_obj *) obj;
 
 	STARPU_PTHREAD_MUTEX_LOCK(&tmp->mutex);
 
 	int res = fseek(tmp->file, offset, SEEK_SET);
 	STARPU_ASSERT_MSG(res == 0, "Stdio read failed");
 
-	starpu_ssize_t nb = fread (buf, 1, size, tmp->file);
+	starpu_ssize_t nb = fread(buf, 1, size, tmp->file);
 	STARPU_ASSERT_MSG(nb >= 0, "Stdio read failed");
 
 	STARPU_PTHREAD_MUTEX_UNLOCK(&tmp->mutex);
@@ -201,9 +201,9 @@ static int starpu_stdio_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void
 	return 0;
 }
 
-static int starpu_stdio_full_read(void *base STARPU_ATTRIBUTE_UNUSED, void * obj, void ** ptr, size_t * size)
+static int starpu_stdio_full_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void **ptr, size_t *size)
 {
-	struct starpu_stdio_obj * tmp = (struct starpu_stdio_obj *) obj;
+	struct starpu_stdio_obj *tmp = (struct starpu_stdio_obj *) obj;
 
 	STARPU_PTHREAD_MUTEX_LOCK(&tmp->mutex);
 
@@ -221,23 +221,23 @@ static int starpu_stdio_full_read(void *base STARPU_ATTRIBUTE_UNUSED, void * obj
 /* write on the memory disk */
 static int starpu_stdio_write(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, const void *buf, off_t offset, size_t size)
 {
-	struct starpu_stdio_obj * tmp = (struct starpu_stdio_obj *) obj;
+	struct starpu_stdio_obj *tmp = (struct starpu_stdio_obj *) obj;
 
 	STARPU_PTHREAD_MUTEX_LOCK(&tmp->mutex);
 
 	int res = fseek(tmp->file, offset, SEEK_SET);
 	STARPU_ASSERT_MSG(res == 0, "Stdio write failed");
 
-	fwrite (buf, 1, size, tmp->file);
+	fwrite(buf, 1, size, tmp->file);
 
 	STARPU_PTHREAD_MUTEX_UNLOCK(&tmp->mutex);
 
 	return 0;
 }
 
-static int starpu_stdio_full_write(void * base STARPU_ATTRIBUTE_UNUSED, void * obj, void * ptr, size_t size)
+static int starpu_stdio_full_write(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *ptr, size_t size)
 {
-	struct starpu_stdio_obj * tmp = (struct starpu_stdio_obj *) obj;
+	struct starpu_stdio_obj *tmp = (struct starpu_stdio_obj *) obj;
 
 	/* update file size to realise the next good full_read */
 	if(size != tmp->size)
@@ -260,7 +260,7 @@ static int starpu_stdio_full_write(void * base STARPU_ATTRIBUTE_UNUSED, void * o
 /* create a new copy of parameter == base */
 static void *starpu_stdio_plug(void *parameter, starpu_ssize_t size STARPU_ATTRIBUTE_UNUSED)
 {
-	char * tmp = malloc(sizeof(char)*(strlen(parameter)+1));
+	char *tmp = malloc(sizeof(char)*(strlen(parameter)+1));
 	STARPU_ASSERT(tmp != NULL);
 	strcpy(tmp,(char *) parameter);
 	return (void *) tmp;
@@ -280,16 +280,16 @@ static int get_stdio_bandwidth_between_disk_and_main_ram(unsigned node)
 	double end;
 	char *buf;
 
-	srand (time (NULL));
+	srand(time(NULL));
 	starpu_malloc_flags((void **) &buf, SIZE_DISK_MIN, 0);
 	STARPU_ASSERT(buf != NULL);
 
 	/* allocate memory */
-	void * mem = _starpu_disk_alloc(node, SIZE_DISK_MIN);
+	void *mem = _starpu_disk_alloc(node, SIZE_DISK_MIN);
 	/* fail to alloc */
 	if (mem == NULL)
 		return 0;
-	struct starpu_stdio_obj * tmp = (struct starpu_stdio_obj *) mem;
+	struct starpu_stdio_obj *tmp = (struct starpu_stdio_obj *) mem;
 
 	memset(buf, 0, SIZE_DISK_MIN);
 
@@ -299,7 +299,7 @@ static int get_stdio_bandwidth_between_disk_and_main_ram(unsigned node)
 	{
 		_starpu_disk_write(STARPU_MAIN_RAM, node, mem, buf, 0, SIZE_DISK_MIN, NULL);
 		/* clean cache memory */
-		int res = fflush (tmp->file);
+		int res = fflush(tmp->file);
 		STARPU_ASSERT_MSG(res == 0, "Slowness computation failed \n");
 
 #ifdef STARPU_HAVE_WINDOWS
@@ -311,7 +311,6 @@ static int get_stdio_bandwidth_between_disk_and_main_ram(unsigned node)
 	}
 	end = starpu_timing_now();
 	timing_slowness = end - start;
-
 
 	/* free memory */
 	starpu_free_flags(buf, SIZE_DISK_MIN, 0);
@@ -327,7 +326,7 @@ static int get_stdio_bandwidth_between_disk_and_main_ram(unsigned node)
 	{
 		_starpu_disk_write(STARPU_MAIN_RAM, node, mem, buf, rand() % (SIZE_DISK_MIN -1) , 1, NULL);
 
-		int res = fflush (tmp->file);
+		int res = fflush(tmp->file);
 		STARPU_ASSERT_MSG(res == 0, "Latency computation failed");
 
 #ifdef STARPU_HAVE_WINDOWS
