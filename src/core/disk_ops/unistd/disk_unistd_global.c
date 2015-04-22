@@ -81,6 +81,7 @@ void *starpu_unistd_global_alloc(struct starpu_unistd_global_obj *obj, void *bas
 	/* fail */
 	if (id < 0)
 	{
+		_STARPU_DISP("Could not create temporary file in directory '%s', mskostemp failed with error '%s'\n", (char*)base, strerror(errno));
 		free(baseCpy);
 		free(obj);
 		return NULL;
@@ -94,6 +95,11 @@ void *starpu_unistd_global_alloc(struct starpu_unistd_global_obj *obj, void *bas
 	/* fail */
 	if (val < 0)
 	{
+#ifdef STARPU_HAVE_WINDOWS
+		_STARPU_DISP("Could not truncate file, _chsize failed with error '%s'\n", strerror(errno));
+#else
+		_STARPU_DISP("Could not truncate file, ftruncate failed with error '%s'\n", strerror(errno));
+#endif
 		close(id);
 		unlink(baseCpy);
 		free(baseCpy);
