@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2013 Corentin Salingue
+ * Copyright (C) 2015 CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -25,7 +26,7 @@
 
 #include <common/config.h>
 #ifdef HAVE_UNISTD_H
-#include <unistd.h>
+#  include <unistd.h>
 #endif
 #include <starpu.h>
 #include <core/disk.h>
@@ -36,7 +37,7 @@
 #include <starpu_parameters.h>
 
 #ifdef STARPU_HAVE_WINDOWS
-        #include <io.h>
+#  include <io.h>
 #endif
 
 #define NITER	_STARPU_CALIBRATION_MINIMUM
@@ -52,8 +53,7 @@
 /* ------------------- use UNISTD to write on disk -------------------  */
 
 /* allocation memory on disk */
- void * 
-starpu_unistd_global_alloc (struct starpu_unistd_global_obj * obj, void *base, size_t size)
+void *starpu_unistd_global_alloc(struct starpu_unistd_global_obj *obj, void *base, size_t size)
 {
 	int id = -1;
 	const char *template = "STARPU_XXXXXX";
@@ -61,7 +61,7 @@ starpu_unistd_global_alloc (struct starpu_unistd_global_obj * obj, void *base, s
 	/* create template for mkstemp */
 	unsigned int sizeBase = strlen(base) + 1 + strlen(template)+1;
 
-	char * baseCpy = malloc(sizeBase*sizeof(char));
+	char *baseCpy = malloc(sizeBase*sizeof(char));
 	STARPU_ASSERT(baseCpy != NULL);
 
 	strcpy(baseCpy, (char *) base);
@@ -85,10 +85,10 @@ starpu_unistd_global_alloc (struct starpu_unistd_global_obj * obj, void *base, s
 		free(obj);
 		return NULL;
 	}
-	
+
 #ifdef STARPU_HAVE_WINDOWS
 	int val = _chsize(id, size);
-#else 
+#else
 	int val = ftruncate(id,size);
 #endif
 	/* fail */
@@ -110,12 +110,10 @@ starpu_unistd_global_alloc (struct starpu_unistd_global_obj * obj, void *base, s
 	return (void *) obj;
 }
 
-
 /* free memory on disk */
- void
-starpu_unistd_global_free (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, size_t size STARPU_ATTRIBUTE_UNUSED)
+void starpu_unistd_global_free(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, size_t size STARPU_ATTRIBUTE_UNUSED)
 {
-	struct starpu_unistd_global_obj * tmp = (struct starpu_unistd_global_obj *) obj;
+	struct starpu_unistd_global_obj *tmp = (struct starpu_unistd_global_obj *) obj;
 
 	STARPU_PTHREAD_MUTEX_DESTROY(&tmp->mutex);
 
@@ -126,13 +124,11 @@ starpu_unistd_global_free (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, size_t
 	free(tmp);
 }
 
-
 /* open an existing memory on disk */
- void * 
-starpu_unistd_global_open (struct starpu_unistd_global_obj * obj, void *base, void *pos, size_t size)
+void *starpu_unistd_global_open(struct starpu_unistd_global_obj *obj, void *base, void *pos, size_t size)
 {
 	/* create template */
-	char * baseCpy = malloc(strlen(base)+1+strlen(pos)+1);
+	char *baseCpy = malloc(strlen(base)+1+strlen(pos)+1);
 	STARPU_ASSERT(baseCpy != NULL);
 	strcpy(baseCpy,(char *) base);
 	strcat(baseCpy,(char *) "/");
@@ -153,29 +149,24 @@ starpu_unistd_global_open (struct starpu_unistd_global_obj * obj, void *base, vo
 	obj->size = size;
 
 	return (void *) obj;
-	
 }
 
-
 /* free memory without delete it */
- void 
-starpu_unistd_global_close (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, size_t size STARPU_ATTRIBUTE_UNUSED)
+void starpu_unistd_global_close(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, size_t size STARPU_ATTRIBUTE_UNUSED)
 {
-	struct starpu_unistd_global_obj * tmp = (struct starpu_unistd_global_obj *) obj;
+	struct starpu_unistd_global_obj *tmp = (struct starpu_unistd_global_obj *) obj;
 
 	STARPU_PTHREAD_MUTEX_DESTROY(&tmp->mutex);
 
 	close(tmp->descriptor);
 	free(tmp->path);
-	free(tmp);	
+	free(tmp);
 }
 
-
 /* read the memory disk */
- int 
-starpu_unistd_global_read (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size)
+int starpu_unistd_global_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size)
 {
-	struct starpu_unistd_global_obj * tmp = (struct starpu_unistd_global_obj *) obj;
+	struct starpu_unistd_global_obj *tmp = (struct starpu_unistd_global_obj *) obj;
 	starpu_ssize_t nb;
 
 #ifdef HAVE_PREAD
@@ -183,7 +174,7 @@ starpu_unistd_global_read (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *
 #else
 	STARPU_PTHREAD_MUTEX_LOCK(&tmp->mutex);
 
-	int res = lseek(tmp->descriptor, offset, SEEK_SET); 
+	int res = lseek(tmp->descriptor, offset, SEEK_SET);
 	STARPU_ASSERT_MSG(res >= 0, "Starpu Disk unistd lseek for read failed: offset %lu got errno %d", (unsigned long) offset, errno);
 
 	nb = read(tmp->descriptor, buf, size);
@@ -192,16 +183,13 @@ starpu_unistd_global_read (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *
 #endif
 
 	STARPU_ASSERT_MSG(nb >= 0, "Starpu Disk unistd read failed: size %lu got errno %d", (unsigned long) size, errno);
-
 	return nb;
 }
 
-
 #ifdef HAVE_AIO_H
-void *
-starpu_unistd_global_async_read (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size)
+void *starpu_unistd_global_async_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size)
 {
-        struct starpu_unistd_global_obj * tmp = obj;
+        struct starpu_unistd_global_obj *tmp = obj;
 
         struct aiocb *aiocb = calloc(1,sizeof(*aiocb));
 
@@ -222,10 +210,9 @@ starpu_unistd_global_async_read (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, 
 }
 #endif
 
-int
-starpu_unistd_global_full_read(void *base STARPU_ATTRIBUTE_UNUSED, void * obj, void ** ptr, size_t * size)
+int starpu_unistd_global_full_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void **ptr, size_t *size)
 {
-        struct starpu_unistd_global_obj * tmp = (struct starpu_unistd_global_obj *) obj;
+        struct starpu_unistd_global_obj *tmp = (struct starpu_unistd_global_obj *) obj;
 
 #ifdef STARPU_HAVE_WINDOWS
 	*size = _filelength(tmp->descriptor);
@@ -241,38 +228,33 @@ starpu_unistd_global_full_read(void *base STARPU_ATTRIBUTE_UNUSED, void * obj, v
 	return starpu_unistd_global_read(base, obj, *ptr, 0, *size);
 }
 
-
 /* write on the memory disk */
- int 
-starpu_unistd_global_write (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, const void *buf, off_t offset, size_t size)
+int starpu_unistd_global_write(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, const void *buf, off_t offset, size_t size)
 {
-	struct starpu_unistd_global_obj * tmp = (struct starpu_unistd_global_obj *) obj;
+	struct starpu_unistd_global_obj *tmp = (struct starpu_unistd_global_obj *) obj;
 	int res;
 
 #ifdef HAVE_PWRITE
-	res = pwrite (tmp->descriptor, buf, size, offset);
+	res = pwrite(tmp->descriptor, buf, size, offset);
 #else
 	STARPU_PTHREAD_MUTEX_LOCK(&tmp->mutex);
-	
-	res = lseek(tmp->descriptor, offset, SEEK_SET); 
+
+	res = lseek(tmp->descriptor, offset, SEEK_SET);
 	STARPU_ASSERT_MSG(res >= 0, "Starpu Disk unistd lseek for write failed: offset %lu got errno %d", (unsigned long) offset, errno);
 
-	res = write (tmp->descriptor, buf, size);
+	res = write(tmp->descriptor, buf, size);
 
 	STARPU_PTHREAD_MUTEX_UNLOCK(&tmp->mutex);
 #endif
 
 	STARPU_ASSERT_MSG(res >= 0, "Starpu Disk unistd write failed: size %lu got errno %d", (unsigned long) size, errno);
-
 	return 0;
 }
 
-
 #ifdef HAVE_AIO_H
-void *
-starpu_unistd_global_async_write (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size)
+void *starpu_unistd_global_async_write(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size)
 {
-        struct starpu_unistd_global_obj * tmp = obj;
+        struct starpu_unistd_global_obj *tmp = obj;
         struct aiocb *aiocb = calloc(1,sizeof(*aiocb));
 
         aiocb->aio_fildes = tmp->descriptor;
@@ -292,10 +274,9 @@ starpu_unistd_global_async_write (void *base STARPU_ATTRIBUTE_UNUSED, void *obj,
 }
 #endif
 
-int
-starpu_unistd_global_full_write (void * base STARPU_ATTRIBUTE_UNUSED, void * obj, void * ptr, size_t size)
+int starpu_unistd_global_full_write(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *ptr, size_t size)
 {
-        struct starpu_unistd_global_obj * tmp = (struct starpu_unistd_global_obj *) obj;
+        struct starpu_unistd_global_obj *tmp = (struct starpu_unistd_global_obj *) obj;
 
         /* update file size to realise the next good full_read */
         if(size != tmp->size)
@@ -312,29 +293,23 @@ starpu_unistd_global_full_write (void * base STARPU_ATTRIBUTE_UNUSED, void * obj
 	return starpu_unistd_global_write(base, obj, ptr, 0, size);
 }
 
-
 /* create a new copy of parameter == base */
- void * 
-starpu_unistd_global_plug (void *parameter, starpu_ssize_t size STARPU_ATTRIBUTE_UNUSED)
+void *starpu_unistd_global_plug(void *parameter, starpu_ssize_t size STARPU_ATTRIBUTE_UNUSED)
 {
-	char * tmp = malloc(sizeof(char)*(strlen(parameter)+1));
+	char *tmp = malloc(sizeof(char)*(strlen(parameter)+1));
 	STARPU_ASSERT(tmp != NULL);
 	strcpy(tmp,(char *) parameter);
 
-	return (void *) tmp;	
+	return (void *) tmp;
 }
 
-
 /* free memory allocated for the base */
- void
-starpu_unistd_global_unplug (void *base)
+void starpu_unistd_global_unplug(void *base)
 {
 	free(base);
 }
 
-
- int
-get_unistd_global_bandwidth_between_disk_and_main_ram(unsigned node)
+int get_unistd_global_bandwidth_between_disk_and_main_ram(unsigned node)
 {
 	int res;
 	unsigned iter;
@@ -342,19 +317,19 @@ get_unistd_global_bandwidth_between_disk_and_main_ram(unsigned node)
 	double start;
 	double end;
 
-	srand (time (NULL)); 
-	char * buf;
+	srand(time(NULL));
+	char *buf;
 	starpu_malloc_flags((void *) &buf, SIZE_DISK_MIN, 0);
 	STARPU_ASSERT(buf != NULL);
 	memset(buf, 0, SIZE_DISK_MIN);
-	
+
 	/* allocate memory */
-	void * mem = _starpu_disk_alloc(node, SIZE_DISK_MIN);
+	void *mem = _starpu_disk_alloc(node, SIZE_DISK_MIN);
 	/* fail to alloc */
 	if (mem == NULL)
 		return 0;
-	
-	struct starpu_unistd_global_obj * tmp = (struct starpu_unistd_global_obj *) mem;
+
+	struct starpu_unistd_global_obj *tmp = (struct starpu_unistd_global_obj *) mem;
 
 	/* Measure upload slowness */
 	start = starpu_timing_now();
@@ -372,7 +347,6 @@ get_unistd_global_bandwidth_between_disk_and_main_ram(unsigned node)
 	}
 	end = starpu_timing_now();
 	timing_slowness = end - start;
-
 
 	/* free memory */
 	starpu_free_flags(buf, SIZE_DISK_MIN, 0);
@@ -408,10 +382,9 @@ get_unistd_global_bandwidth_between_disk_and_main_ram(unsigned node)
 }
 
 #ifdef HAVE_AIO_H
-void
-starpu_unistd_global_wait_request(void * async_channel)
+void starpu_unistd_global_wait_request(void *async_channel)
 {
-        const struct aiocb * aiocb = async_channel;
+        const struct aiocb *aiocb = async_channel;
         int values = -1;
         int error_disk = EAGAIN;
         while(values < 0 || error_disk == EAGAIN)
@@ -422,10 +395,9 @@ starpu_unistd_global_wait_request(void * async_channel)
         }
 }
 
-int
-starpu_unistd_global_test_request(void * async_channel)
+int starpu_unistd_global_test_request(void *async_channel)
 {
-        const struct aiocb * aiocb = async_channel;
+        const struct aiocb *aiocb = async_channel;
         int ret, error;
 
 #if defined(__GLIBC__) && (__GLIBC__ < 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ < 22))
@@ -447,10 +419,9 @@ starpu_unistd_global_test_request(void * async_channel)
         STARPU_ABORT_MSG("aio_error returned %d", errno);
 }
 
-void
-starpu_unistd_global_free_request(void *async_channel)
+void starpu_unistd_global_free_request(void *async_channel)
 {
-        struct aiocb * aiocb = async_channel;
+        struct aiocb *aiocb = async_channel;
         aio_return(aiocb);
         free(aiocb);
 }
