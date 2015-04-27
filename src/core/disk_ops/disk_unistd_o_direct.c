@@ -31,10 +31,9 @@
 /* ------------------- use UNISTD to write on disk -------------------  */
 
 /* allocation memory on disk */
-static void *
-starpu_unistd_o_direct_alloc (void *base, size_t size)
+static void *starpu_unistd_o_direct_alloc(void *base, size_t size)
 {
-        struct starpu_unistd_global_obj * obj = malloc(sizeof(struct starpu_unistd_global_obj));
+        struct starpu_unistd_global_obj *obj = malloc(sizeof(struct starpu_unistd_global_obj));
         STARPU_ASSERT(obj != NULL);
         /* only flags change between unistd and unistd_o_direct */
         obj->flags = O_RDWR | O_DIRECT | O_BINARY;
@@ -42,21 +41,17 @@ starpu_unistd_o_direct_alloc (void *base, size_t size)
 }
 
 /* open an existing memory on disk */
-static void *
-starpu_unistd_o_direct_open (void *base, void *pos, size_t size)
+static void *starpu_unistd_o_direct_open(void *base, void *pos, size_t size)
 {
         struct starpu_unistd_global_obj * obj = malloc(sizeof(struct starpu_unistd_global_obj));
         STARPU_ASSERT(obj != NULL);
         /* only flags change between unistd and unistd_o_direct */
         obj->flags = O_RDWR | O_DIRECT | O_BINARY;
         return starpu_unistd_global_open (obj, base, pos, size);
-
 }
 
-
 /* read the memory disk */
-static int 
-starpu_unistd_o_direct_read (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size)
+static int starpu_unistd_o_direct_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size)
 {
 	STARPU_ASSERT_MSG((size % getpagesize()) == 0, "You can only read a multiple of page size %u Bytes (Here %u)", getpagesize(), (int) size);
 
@@ -65,10 +60,8 @@ starpu_unistd_o_direct_read (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void
 	return starpu_unistd_global_read (base, obj, buf, offset, size);
 }
 
-
 /* write on the memory disk */
-static int 
-starpu_unistd_o_direct_write (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, const void *buf, off_t offset, size_t size)
+static int starpu_unistd_o_direct_write(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, const void *buf, off_t offset, size_t size)
 {
 	STARPU_ASSERT_MSG((size % getpagesize()) == 0, "You can only write a multiple of page size %u Bytes (Here %u)", getpagesize(), (int) size);
 
@@ -77,10 +70,8 @@ starpu_unistd_o_direct_write (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, con
 	return starpu_unistd_global_write (base, obj, buf, offset, size);
 }
 
-
 /* create a new copy of parameter == base */
-static void * 
-starpu_unistd_o_direct_plug (void *parameter, starpu_ssize_t size)
+static void *starpu_unistd_o_direct_plug(void *parameter, starpu_ssize_t size)
 {
 	starpu_malloc_set_align(getpagesize());
 
