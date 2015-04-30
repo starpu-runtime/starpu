@@ -126,6 +126,8 @@ struct starpu_conf
 	int global_sched_ctx_min_priority;
 	int global_sched_ctx_max_priority;
 
+	void (*sched_policy_init)(void);
+
 };
 
 int starpu_conf_init(struct starpu_conf *conf);

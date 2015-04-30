@@ -192,6 +192,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	sched_policies/fifo_queues.c				\
 	sched_policies/parallel_heft.c				\
 	sched_policies/parallel_eager.c				\
+	sched_policies/heteroprio.c				\
 	drivers/driver_common/driver_common.c			\
 	drivers/disk/driver_disk.c				\
 	datawizard/memory_nodes.c				\

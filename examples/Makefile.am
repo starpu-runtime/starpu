@@ -195,6 +195,7 @@ STARPU_EXAMPLES =				\
 	matvecmult/matvecmult			\
 	profiling/profiling			\
 	scheduler/dummy_sched			\
+	scheduler/heteroprio_test		\
 	sched_ctx/sched_ctx			\
 	sched_ctx/prio				\
 	sched_ctx/dummy_sched_with_ctx		\

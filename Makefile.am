@@ -74,7 +74,8 @@ versinclude_HEADERS = 				\
 	include/starpu_profiling.h		\
 	include/starpu_bound.h			\
 	include/starpu_scheduler.h		\
-	include/starpu_sched_component.h		\
+	include/schedulers/heteroprio.h		\
+	include/starpu_sched_component.h	\
 	include/starpu_sched_ctx.h		\
 	include/starpu_sched_ctx_hypervisor.h	\
 	include/starpu_top.h			\
