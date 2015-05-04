@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011, 2012, 2013  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -37,7 +37,7 @@ void cpu_func(void *buffers[], void *cl_arg)
         for(j=0; j<ny ; j++)
 	{
                 for(i=0; i<nx ; i++)
-                        val[(j*ld)+i] = *factor;
+                        val[(j*ld)+i] *= *factor;
         }
 }
 
@@ -46,6 +46,7 @@ int main(int argc, char **argv)
 	unsigned j, n=1;
         int matrix[NX*NY];
 	int ret, i;
+	int factor = 12;
 
         FPRINTF(stderr,"IN  Matrix: \n");
         for(j=0 ; j<NY ; j++)
@@ -53,7 +54,7 @@ int main(int argc, char **argv)
                 for(i=0 ; i<NX ; i++)
 		{
                         matrix[(j*NX)+i] = n++;
-                        FPRINTF(stderr, "%2d ", matrix[(j*NX)+i]);
+                        FPRINTF(stderr, "%4d ", matrix[(j*NX)+i]);
                 }
                 FPRINTF(stderr,"\n");
         }
@@ -89,7 +90,6 @@ int main(int argc, char **argv)
 	for (i=0; i<starpu_data_get_nb_children(handle); i++)
 	{
                 struct starpu_task *task = starpu_task_create();
-                int factor = i;
 		task->handles[0] = starpu_data_get_sub_data(handle, 1, i);
                 task->cl = &cl;
                 task->synchronous = 1;
@@ -107,18 +107,25 @@ int main(int argc, char **argv)
 	starpu_shutdown();
 
         /* Print result matrix */
+	n=1;
         FPRINTF(stderr,"OUT Matrix: \n");
         for(j=0 ; j<NY ; j++)
 	{
                 for(i=0 ; i<NX ; i++)
 		{
-                        FPRINTF(stderr, "%2d ", matrix[(j*NX)+i]);
+                        FPRINTF(stderr, "%4d ", matrix[(j*NX)+i]);
+			if (matrix[(j*NX)+i] != n*12)
+			{
+				FPRINTF(stderr, "Incorrect result %4d != %4d", matrix[(j*NX)+i], n*12);
+				ret=1;
+			}
+			n++;
                 }
                 FPRINTF(stderr,"\n");
         }
         FPRINTF(stderr,"\n");
 
-	return 0;
+	return ret;
 
 enodev:
 	starpu_shutdown();
