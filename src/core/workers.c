@@ -293,11 +293,6 @@ int starpu_worker_can_execute_task(unsigned workerid, struct starpu_task *task, 
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
 
-	/* if the task can't be parallel don't submit it to a ctx */
-	unsigned child_sched_ctx = starpu_sched_ctx_worker_is_master_for_child_ctx(workerid, sched_ctx->id);
-        if(child_sched_ctx != STARPU_NMAX_SCHED_CTXS)
-		if(!task->possibly_parallel) return 0;
-
 	/* if the worker is blocked in a parallel ctx don't submit tasks on it */
 	if(sched_ctx->parallel_sect[workerid] ) return 0;
 
