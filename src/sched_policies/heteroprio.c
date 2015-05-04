@@ -152,6 +152,25 @@ inline void starpu_heteroprio_set_arch_slow_factor(unsigned sched_ctx_id, enum s
 	hp->buckets[bucket_id].slow_factors_per_index[arch] = slow_factor;
 }
 
+
+/** If the user does not provide an init callback we create a single bucket for all architectures */
+inline void default_init_sched(unsigned sched_ctx_id)
+{
+	// By default CPU uses 1 bucket and no slow factor
+	starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_CPU_IDX, 1);
+	// Direct mapping 0 to 0
+	starpu_heteroprio_set_mapping(sched_ctx_id, STARPU_CPU_IDX, 0, 0);
+	// We do the same for any archs
+#ifdef STARPU_USE_OPENCL
+	starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_OPENCL_IDX, 1);
+	starpu_heteroprio_set_mapping(sched_ctx_id, STARPU_OPENCL_IDX, 0, 0);
+#endif
+#ifdef STARPU_USE_CUDA
+	starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_CUDA_IDX, 1);
+	starpu_heteroprio_set_mapping(sched_ctx_id, STARPU_CUDA_IDX, 0, 0);
+#endif
+}
+
 static void initialize_heteroprio_policy(unsigned sched_ctx_id)
 {
 #ifdef STARPU_HAVE_HWLOC
@@ -178,6 +197,8 @@ static void initialize_heteroprio_policy(unsigned sched_ctx_id)
 
 	if(init_sched)
 		init_sched();
+    else
+        default_init_sched(sched_ctx_id);
 
 	/* Ensure that information have been correctly filled */
 	unsigned check_all_archs[STARPU_HETEROPRIO_MAX_PRIO];
@@ -443,8 +464,6 @@ static struct starpu_task *pop_task_heteroprio_policy(unsigned sched_ctx_id)
 				nb_tasks_to_prefetch = 0;
 		}
 
-		nb_added_tasks = nb_tasks_to_prefetch;
-
 		unsigned idx_prio, arch_index;
 		/* We iterate until we found all the tasks we need */
 		for(idx_prio = 0; nb_tasks_to_prefetch && idx_prio < hp->nb_prio_per_arch_index[worker->arch_index]; ++idx_prio)
@@ -478,10 +497,10 @@ static struct starpu_task *pop_task_heteroprio_policy(unsigned sched_ctx_id)
 				}
 				/* Decrease the number of tasks to found */
 				nb_tasks_to_prefetch -= 1;
+		        nb_added_tasks       += 1;
 				// TODO starpu_prefetch_task_input_on_node(task, workerid);
 			}
-		}
-		STARPU_ASSERT_MSG(nb_tasks_to_prefetch == 0, "nb_tasks_to_prefetch is %d on worker %d \n", nb_tasks_to_prefetch, workerid);
+		}		
 	}
 
 	struct starpu_task* task = NULL;
