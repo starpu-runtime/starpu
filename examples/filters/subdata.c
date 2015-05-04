@@ -158,11 +158,16 @@ int main(int argc, char **argv)
                 task->cl = &split_cl;
                 task->cl_arg = &factor;
                 task->cl_arg_size = sizeof(factor);
-                task->synchronous = 1;
 
 		ret = starpu_task_submit(task);
 		if (ret == -ENODEV) goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	}
+
+	starpu_task_wait_for_all();
+	for (i=0; i<starpu_data_get_nb_children(handle); i++)
+	{
+		starpu_data_handle_t subdata = starpu_data_get_sub_data(handle, 1, i);
 		starpu_data_unpartition(subdata, STARPU_MAIN_RAM);
 	}
 
