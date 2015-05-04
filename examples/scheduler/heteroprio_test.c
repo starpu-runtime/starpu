@@ -190,12 +190,9 @@ int main(int argc, char** argv)
 	}
 
 	FPRINTF(stderr, "Wait task\n");
-
 	starpu_task_wait_for_all();
-	starpu_pause();
 
 	FPRINTF(stderr, "Release data\n");
-
 	for(idxHandle = 0 ; idxHandle < nbHandles ; ++idxHandle)
 	{
 		starpu_data_unregister(handles[idxHandle]);
@@ -203,8 +200,6 @@ int main(int argc, char** argv)
 
 	FPRINTF(stderr, "Shutdown\n");
 
-	starpu_resume();
 	starpu_shutdown();
-
 	return 0;
 }
