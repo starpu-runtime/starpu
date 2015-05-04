@@ -311,11 +311,6 @@ int starpu_worker_can_execute_task_impl(unsigned workerid, struct starpu_task *t
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
 
-	/* if the task can't be parallel don't submit it to a ctx */
-	unsigned child_sched_ctx = starpu_sched_ctx_worker_is_master_for_child_ctx(workerid, sched_ctx->id);
-        if(child_sched_ctx != STARPU_NMAX_SCHED_CTXS)
-		if(!task->possibly_parallel) return 0;
-
 	/* if the worker is blocked in a parallel ctx don't submit tasks on it */
 	if(sched_ctx->parallel_sect[workerid]) return 0;
 
@@ -564,7 +559,8 @@ static void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu
 	workerarg->reverse_phase[1] = 0;
 	workerarg->pop_ctx_priority = 1;
 	workerarg->sched_mutex_locked = 0;
-	workerarg->slave = 0;
+	workerarg->blocked = 0;
+	workerarg->is_slave_somewhere = 0;
 
 	/* cpu_set/hwloc_cpu_set initialized in topology.c */
 }
@@ -1581,9 +1577,14 @@ unsigned starpu_worker_get_count(void)
 	return config.topology.nworkers;
 }
 
-unsigned starpu_worker_is_slave(int workerid)
+unsigned starpu_worker_is_blocked(int workerid)
 {
-	return config.workers[workerid].slave;
+	return config.workers[workerid].blocked;
+}
+
+unsigned starpu_worker_is_slave_somewhere(int workerid)
+{
+	return config.workers[workerid].is_slave_somewhere;
 }
 
 int starpu_worker_get_count_by_type(enum starpu_worker_archtype type)

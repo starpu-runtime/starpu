@@ -1465,6 +1465,8 @@ struct starpu_worker_collection* starpu_sched_ctx_create_worker_collection(unsig
 	case STARPU_WORKER_TREE:
 		sched_ctx->workers->has_next = worker_tree.has_next;
 		sched_ctx->workers->get_next = worker_tree.get_next;
+		sched_ctx->workers->has_next_unblocked_worker = worker_tree.has_next_unblocked_worker;
+		sched_ctx->workers->get_next_unblocked_worker = worker_tree.get_next_unblocked_worker;
 		sched_ctx->workers->has_next_master = worker_tree.has_next_master;
 		sched_ctx->workers->get_next_master = worker_tree.get_next_master;
 		sched_ctx->workers->add = worker_tree.add;
@@ -1479,6 +1481,8 @@ struct starpu_worker_collection* starpu_sched_ctx_create_worker_collection(unsig
 	default:
 		sched_ctx->workers->has_next = worker_list.has_next;
 		sched_ctx->workers->get_next = worker_list.get_next;
+		sched_ctx->workers->has_next_unblocked_worker = worker_list.has_next_unblocked_worker;
+		sched_ctx->workers->get_next_unblocked_worker = worker_list.get_next_unblocked_worker;
 		sched_ctx->workers->has_next_master = worker_list.has_next_master;
 		sched_ctx->workers->get_next_master = worker_list.get_next_master;
 		sched_ctx->workers->add = worker_list.add;
@@ -2046,7 +2050,7 @@ static void _starpu_sched_ctx_get_workers_to_sleep(unsigned sched_ctx_id, int *w
 void _starpu_sched_ctx_signal_worker_blocked(unsigned sched_ctx_id, int workerid)
 {
 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
-	worker->slave = 1;
+	worker->blocked = 1;
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	sched_ctx->sleeping[workerid] = 1;
 	int master = sched_ctx->master[workerid];
@@ -2063,7 +2067,7 @@ void _starpu_sched_ctx_signal_worker_woke_up(unsigned sched_ctx_id, int workerid
 	sched_ctx->sleeping[workerid] = 0;
 	sched_ctx->master[workerid] = -1;
 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
-	worker->slave = 0;
+	worker->blocked = 0;
 
 	return;
 }
@@ -2125,6 +2129,7 @@ void starpu_sched_ctx_get_available_cpuids(unsigned sched_ctx_id, int **cpuids, 
 	int workerid;
 
 	workers->init_iterator(workers, &it);
+
 	while(workers->has_next(workers, &it))
 	{
 		workerid = workers->get_next(workers, &it);

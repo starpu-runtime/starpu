@@ -122,8 +122,11 @@ LIST_TYPE(_starpu_worker,
 	/* flag to know if sched_mutex is locked or not */
 	unsigned sched_mutex_locked;
 
+	/* bool to indicate if the worker is blocked in a ctx */
+	unsigned blocked;
+
 	/* bool to indicate if the worker is slave in a ctx */
-	unsigned slave;
+	unsigned is_slave_somewhere;
 
 #ifdef __GLIBC__
 	cpu_set_t cpu_set;

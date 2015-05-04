@@ -132,7 +132,7 @@ int main(int argc, char **argv)
 
 		task->cl = &sched_ctx_codelet;
 		task->cl_arg = (void*)(uintptr_t) sched_ctx1;
-
+		
 		/*submit tasks to context*/
 		ret = starpu_task_submit_to_ctx(task,sched_ctx1);
 

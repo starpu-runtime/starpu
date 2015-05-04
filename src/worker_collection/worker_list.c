@@ -42,6 +42,30 @@ static int list_get_next(struct starpu_worker_collection *workers, struct starpu
 	return ret;
 }
 
+static unsigned list_has_next_unblocked_worker(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it)
+{
+	int nworkers = workers->nunblocked_workers;
+	STARPU_ASSERT(it != NULL);
+
+	unsigned ret = it->cursor < nworkers ;
+
+	if(!ret) it->cursor = 0;
+
+	return ret;
+}
+
+static int list_get_next_unblocked_worker(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it)
+{
+	int *workerids = (int *)workers->unblocked_workers;
+	int nworkers = (int)workers->nunblocked_workers;
+
+	STARPU_ASSERT(it->cursor < nworkers);
+
+	int ret = workerids[it->cursor++];
+
+	return ret;
+}
+
 static unsigned list_has_next_master(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it)
 {
 	int nworkers = workers->nmasters;
@@ -133,6 +157,9 @@ static int list_remove(struct starpu_worker_collection *workers, int worker)
 	int *workerids = (int *)workers->workerids;
 	unsigned nworkers = workers->nworkers;
 
+	int *unblocked_workers = (int *)workers->unblocked_workers;
+	unsigned nunblocked_workers = workers->nunblocked_workers;
+
 	int *masters = (int *)workers->masters;
 	unsigned nmasters = workers->nmasters;
 	
@@ -151,6 +178,21 @@ static int list_remove(struct starpu_worker_collection *workers, int worker)
 	_rearange_workerids(workerids, nworkers);
 	if(found_worker != -1)
 		workers->nworkers--;
+
+	int found_unblocked = -1;
+	for(i = 0; i < nunblocked_workers; i++)
+	{
+		if(unblocked_workers[i] == worker)
+		{
+			unblocked_workers[i] = -1;
+			found_unblocked = worker;
+			break;
+		}
+	}
+
+	_rearange_workerids(unblocked_workers, nunblocked_workers);
+	if(found_unblocked != -1)
+		workers->nunblocked_workers--;
 
 	int found_master = -1;
 	for(i = 0; i < nmasters; i++)
@@ -182,12 +224,16 @@ static void _init_workers(int *workerids)
 static void list_init(struct starpu_worker_collection *workers)
 {
 	int *workerids = (int*)malloc(STARPU_NMAXWORKERS * sizeof(int));
+	int *unblocked_workers = (int*)malloc(STARPU_NMAXWORKERS * sizeof(int));
 	int *masters = (int*)malloc(STARPU_NMAXWORKERS * sizeof(int));
 	_init_workers(workerids);
+	_init_workers(unblocked_workers);
 	_init_workers(masters);
 
 	workers->workerids = (void*)workerids;
 	workers->nworkers = 0;
+	workers->unblocked_workers = (void*)unblocked_workers;
+	workers->nunblocked_workers = 0;
 	workers->masters = (void*)masters;
 	workers->nmasters = 0;
 
@@ -197,6 +243,7 @@ static void list_init(struct starpu_worker_collection *workers)
 static void list_deinit(struct starpu_worker_collection *workers)
 {
 	free(workers->workerids);
+	free(workers->unblocked_workers);
 	free(workers->masters);
 }
 
@@ -207,11 +254,15 @@ static void list_init_iterator(struct starpu_worker_collection *workers, struct 
 	int *workerids = (int *)workers->workerids;
 	unsigned nworkers = workers->nworkers;
 	unsigned i;
-	int nm = 0;
+	int nm = 0, nub = 0;
 	for(i = 0;  i < nworkers; i++)
 	{
-		if(!starpu_worker_is_slave(workerids[i]))
-			((int*)workers->masters)[nm++] = workerids[i];
+		if(!starpu_worker_is_blocked(workerids[i]))
+		{
+			((int*)workers->unblocked_workers)[nub++] = workerids[i];
+			if(!starpu_worker_is_slave_somewhere(workerids[i]))
+				((int*)workers->masters)[nm++] = workerids[i];
+		}
 	}
 	workers->nmasters = nm;
 
@@ -221,6 +272,8 @@ struct starpu_worker_collection worker_list =
 {
 	.has_next = list_has_next,
 	.get_next = list_get_next,
+	.has_next_unblocked_worker = list_has_next_unblocked_worker,
+	.get_next_unblocked_worker = list_get_next_unblocked_worker,
 	.has_next_master = list_has_next_master,
 	.get_next_master = list_get_next_master,
 	.add = list_add,

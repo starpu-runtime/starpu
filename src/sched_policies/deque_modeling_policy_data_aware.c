@@ -476,8 +476,23 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio, unsigned sched
 	struct starpu_sched_ctx_iterator it;
 
 	workers->init_iterator(workers, &it);
-	while(workers->has_next_master(workers, &it))
+	while(1)
 	{
+		if(task->possibly_parallel)
+		{
+			if(workers->has_next_master(workers, &it))
+				worker = workers->get_next_master(workers, &it);
+			else
+				break;	
+		}
+		else
+		{
+			if(workers->has_next_unblocked_worker(workers, &it))
+				worker = workers->get_next_unblocked_worker(workers, &it);
+			else
+				break;	
+		}
+
 		worker = workers->get_next_master(workers, &it);
 		struct _starpu_fifo_taskq *fifo  = dt->queue_array[worker];
 		unsigned memory_node = starpu_worker_get_memory_node(worker);
@@ -622,9 +637,23 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 	struct starpu_sched_ctx_iterator it;
 
 	workers->init_iterator(workers, &it);
-	while(workers->has_next_master(workers, &it))
+	while(1)
 	{
-		worker = workers->get_next_master(workers, &it);
+		if(task->possibly_parallel)
+		{
+			if(workers->has_next_master(workers, &it))
+				worker = workers->get_next_master(workers, &it);
+			else
+				break;	
+		}
+		else
+		{
+			if(workers->has_next_unblocked_worker(workers, &it))
+				worker = workers->get_next_unblocked_worker(workers, &it);
+			else
+				break;	
+		}
+
 
 		struct _starpu_fifo_taskq *fifo = dt->queue_array[worker];
 		struct starpu_perfmodel_arch* perf_arch = starpu_worker_get_perf_archtype(worker, sched_ctx_id);
@@ -818,11 +847,27 @@ static double _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned 
 		struct starpu_sched_ctx_iterator it;
 
 		workers->init_iterator(workers, &it);
-		while(workers->has_next_master(workers, &it))
+		
+		while(1)
 		{
-			worker = workers->get_next_master(workers, &it);
+			if(task->possibly_parallel)
+			{
+				if(workers->has_next_master(workers, &it))
+					worker = workers->get_next_master(workers, &it);
+				else
+					break;	
+			}
+			else
+			{
+				if(workers->has_next_unblocked_worker(workers, &it))
+					worker = workers->get_next_unblocked_worker(workers, &it);
+				else
+					break;	
+			}
+
 			if (!starpu_worker_can_execute_task_impl(worker, task, &impl_mask))
 				continue;
+
 			for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 			{
 				if (!(impl_mask & (1U << nimpl)))

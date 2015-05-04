@@ -96,9 +96,23 @@ static int push_task_eager_policy(struct starpu_task *task)
 #endif
 
 	workers->init_iterator(workers, &it);
-	while(workers->has_next_master(workers, &it))
+	while(1)
 	{
-		worker = workers->get_next_master(workers, &it);
+		if(task->possibly_parallel)
+		{
+			if(workers->has_next_master(workers, &it))
+				worker = workers->get_next_master(workers, &it);
+			else
+				break;	
+		}
+		else
+		{
+			if(workers->has_next_unblocked_worker(workers, &it))
+				worker = workers->get_next_unblocked_worker(workers, &it);
+			else
+				break;	
+		}
+
 
 #ifdef STARPU_NON_BLOCKING_DRIVERS
 		if (!starpu_bitmap_get(data->waiters, worker))

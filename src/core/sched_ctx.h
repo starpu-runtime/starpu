@@ -165,7 +165,7 @@ struct _starpu_sched_ctx
 	   the threads to sleep in order to replace them with other threads or leave
 	   them awake & use them in the parallel code*/
 	unsigned awake_workers;
-	
+
 	/* function called when initializing the scheduler */
 	void (*init_sched)();
 };

@@ -144,9 +144,22 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 #endif
 
 	workers->init_iterator(workers, &it);
-	while(workers->has_next(workers, &it))
+	while(1)
 	{
-		worker = workers->get_next(workers, &it);
+		if(task->possibly_parallel)
+		{
+			if(workers->has_next_master(workers, &it))
+				worker = workers->get_next_master(workers, &it);
+			else
+				break;	
+		}
+		else
+		{
+			if(workers->has_next_unblocked_worker(workers, &it))
+				worker = workers->get_next(workers, &it);
+			else
+				break;	
+		}
 
 #ifdef STARPU_NON_BLOCKING_DRIVERS
 		if (!starpu_bitmap_get(data->waiters, worker))
@@ -257,9 +270,9 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 		struct starpu_sched_ctx_iterator it;
 
 		workers->init_iterator(workers, &it);
-		while(workers->has_next(workers, &it))
+		while(workers->has_next_unblocked_worker(workers, &it))
 		{
-			worker = workers->get_next(workers, &it);
+			worker = workers->get_next_unblocked_worker(workers, &it);
 			if(worker != workerid)
 			{
 #ifdef STARPU_NON_BLOCKING_DRIVERS

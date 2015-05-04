@@ -204,6 +204,8 @@ int main(int argc, char **argv)
 				    0);
 		t->cl_arg_free = 1;
 		t->destroy = 1;
+		t->possibly_parallel = 1;
+
 		ret=starpu_task_submit(t);
 		if (ret == -ENODEV)
 			goto out;
