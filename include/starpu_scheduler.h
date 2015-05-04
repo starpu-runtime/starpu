@@ -87,6 +87,7 @@ double starpu_task_bundle_expected_data_transfer_time(starpu_task_bundle_t bundl
 double starpu_task_bundle_expected_power(starpu_task_bundle_t bundle, struct starpu_perfmodel_arch *arch, unsigned nimpl);
 
 void starpu_sched_ctx_worker_shares_tasks_lists(int workerid, int sched_ctx_id);
+
 #ifdef __cplusplus
 }
 #endif

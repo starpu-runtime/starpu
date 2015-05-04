@@ -15,68 +15,78 @@
  */
 
 #include <starpu.h>
-#include <schedulers/heteroprio.h>
+#include <schedulers/starpu_heteroprio.h>
 #include <unistd.h>
 
-void initSchedulerCallback(){
+#define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
+
+void initSchedulerCallback()
+{
 	// CPU uses 3 buckets
-	starpu_heteroprio_set_nb_prios(0, FSTARPU_CPU_IDX, 3);
+	starpu_heteroprio_set_nb_prios(0, STARPU_CPU_IDX, 3);
 	// It uses direct mapping idx => idx
 	unsigned idx;
-	for(idx = 0; idx < 3; ++idx){
-		starpu_heteroprio_set_mapping(0, FSTARPU_CPU_IDX, idx, idx);
-		starpu_heteroprio_set_faster_arch(0, FSTARPU_CPU_IDX, idx);
+	for(idx = 0; idx < 3; ++idx)
+	{
+		starpu_heteroprio_set_mapping(0, STARPU_CPU_IDX, idx, idx);
+		starpu_heteroprio_set_faster_arch(0, STARPU_CPU_IDX, idx);
 	}
 #ifdef STARPU_USE_OPENCL
 	// OpenCL is enabled and uses 2 buckets
-	starpu_heteroprio_set_nb_prios(0, FSTARPU_OPENCL_IDX, 2);
+	starpu_heteroprio_set_nb_prios(0, STARPU_OPENCL_IDX, 2);
 	// OpenCL will first look to priority 2
-	starpu_heteroprio_set_mapping(0, FSTARPU_OPENCL_IDX, 0, 2);
+	starpu_heteroprio_set_mapping(0, STARPU_OPENCL_IDX, 0, 2);
 	// For this bucket OpenCL is the fastest
-	starpu_heteroprio_set_faster_arch(0, FSTARPU_OPENCL_IDX, 2);
+	starpu_heteroprio_set_faster_arch(0, STARPU_OPENCL_IDX, 2);
 	// And CPU is 4 times slower
-	starpu_heteroprio_set_arch_slow_factor(0, FSTARPU_CPU_IDX, 2, 4.0f);
+	starpu_heteroprio_set_arch_slow_factor(0, STARPU_CPU_IDX, 2, 4.0f);
 
-	starpu_heteroprio_set_mapping(0, FSTARPU_OPENCL_IDX, 1, 1);
+	starpu_heteroprio_set_mapping(0, STARPU_OPENCL_IDX, 1, 1);
 	// We let the CPU as the fastest and tell that OpenCL is 1.7 times slower
-	starpu_heteroprio_set_arch_slow_factor(0, FSTARPU_OPENCL_IDX, 1, 1.7f);
+	starpu_heteroprio_set_arch_slow_factor(0, STARPU_OPENCL_IDX, 1, 1.7f);
 #endif
 }
 
-
-void callback_a_cpu(void *buffers[], void *cl_arg){
+void callback_a_cpu(void *buffers[], void *cl_arg)
+{
 	usleep(100000);
-	printf("COMMUTE_LOG] callback %s\n", __FUNCTION__); fflush(stdout);
+	FPRINTF(stderr, "[COMMUTE_LOG] callback %s\n", __FUNCTION__); fflush(stdout);
 }
 
-void callback_b_cpu(void *buffers[], void *cl_arg){
+void callback_b_cpu(void *buffers[], void *cl_arg)
+{
 	usleep(100000);
-	printf("COMMUTE_LOG] callback %s\n", __FUNCTION__); fflush(stdout);
+	FPRINTF(stderr, "[COMMUTE_LOG] callback %s\n", __FUNCTION__); fflush(stdout);
 }
 
-void callback_c_cpu(void *buffers[], void *cl_arg){
+void callback_c_cpu(void *buffers[], void *cl_arg)
+{
 	usleep(100000);
-	printf("COMMUTE_LOG] callback %s\n", __FUNCTION__); fflush(stdout);
+	FPRINTF(stderr, "[COMMUTE_LOG] callback %s\n", __FUNCTION__); fflush(stdout);
 }
 
 #ifdef STARPU_USE_OPENCL
-void callback_a_opencl(void *buffers[], void *cl_arg){
+void callback_a_opencl(void *buffers[], void *cl_arg)
+{
 	usleep(100000);
-	printf("COMMUTE_LOG] callback %s\n", __FUNCTION__); fflush(stdout);
+	FPRINTF(stderr, "[COMMUTE_LOG] callback %s\n", __FUNCTION__); fflush(stdout);
 }
 
-void callback_b_opencl(void *buffers[], void *cl_arg){
+void callback_b_opencl(void *buffers[], void *cl_arg)
+{
 	usleep(100000);
-	printf("COMMUTE_LOG] callback %s\n", __FUNCTION__); fflush(stdout);
+	FPRINTF(stderr, "[COMMUTE_LOG] callback %s\n", __FUNCTION__); fflush(stdout);
 }
 
-void callback_c_opencl(void *buffers[], void *cl_arg){
+void callback_c_opencl(void *buffers[], void *cl_arg)
+{
 	usleep(100000);
-	printf("COMMUTE_LOG] callback %s\n", __FUNCTION__); fflush(stdout);
+	FPRINTF(stderr, "[COMMUTE_LOG] callback %s\n", __FUNCTION__); fflush(stdout);
 }
 #endif
 
-int main(int argc, char** argv){
+int main(int argc, char** argv)
+{
 	unsigned ret;
 	struct starpu_conf conf;
 	ret = starpu_conf_init(&conf);
@@ -90,10 +100,10 @@ int main(int argc, char** argv){
 
 	starpu_pause();
 
-	printf("Worker = %d\n",  starpu_worker_get_count());
-	printf("Worker CPU = %d\n", starpu_cpu_worker_get_count());
+	FPRINTF(stderr, "Worker = %d\n",  starpu_worker_get_count());
+	FPRINTF(stderr, "Worker CPU = %d\n", starpu_cpu_worker_get_count());
 #ifdef STARPU_USE_OPENCL
-	printf("Worker OpenCL = %d\n", starpu_cpu_worker_get_count());
+	FPRINTF(stderr, "Worker OpenCL = %d\n", starpu_opencl_worker_get_count());
 #endif
 
 	struct starpu_codelet codeleteA;
@@ -107,7 +117,7 @@ int main(int argc, char** argv){
 		codeleteA.cpu_funcs[0] = callback_a_cpu;
 #ifdef STARPU_USE_OPENCL
 		codeleteA.where |= STARPU_OPENCL;
-		codeleteA.cpu_funcs[0] = callback_a_opencl;
+		codeleteA.opencl_funcs[0] = callback_a_opencl;
 #endif
 	}
 	struct starpu_codelet codeleteB;
@@ -121,7 +131,7 @@ int main(int argc, char** argv){
 		codeleteB.cpu_funcs[0] = callback_b_cpu;
 #ifdef STARPU_USE_OPENCL
 		codeleteB.where |= STARPU_OPENCL;
-		codeleteB.cpu_funcs[0] = callback_b_opencl;
+		codeleteB.opencl_funcs[0] = callback_b_opencl;
 #endif
 	}
 	struct starpu_codelet codeleteC;
@@ -135,12 +145,12 @@ int main(int argc, char** argv){
 		codeleteC.cpu_funcs[0] = callback_c_cpu;
 #ifdef STARPU_USE_OPENCL
 		codeleteC.where |= STARPU_OPENCL;
-		codeleteC.cpu_funcs[0] = callback_c_opencl;
+		codeleteC.opencl_funcs[0] = callback_c_opencl;
 #endif
 	}
 
 	const int nbHandles = 10;
-	printf("Nb handles = %d\n", nbHandles);
+	FPRINTF(stderr, "Nb handles = %d\n", nbHandles);
 
 	starpu_data_handle_t handles[nbHandles];
 	memset(handles, 0, sizeof(handles[0])*nbHandles);
@@ -155,12 +165,13 @@ int main(int argc, char** argv){
 	}
 
 	const int nbTasks = 40;
-	printf("Submit %d tasks \n", nbTasks);
+	FPRINTF(stderr, "Submit %d tasks \n", nbTasks);
 
 	starpu_resume();
-	
+
 	int idxTask;
-	for(idxTask = 0; idxTask < nbTasks; ++idxTask){
+	for(idxTask = 0; idxTask < nbTasks; ++idxTask)
+	{
 		starpu_insert_task(&codeleteA,
 				   STARPU_PRIORITY, 0,
 				   (STARPU_RW), handles[(idxTask*2)%nbHandles],
@@ -178,19 +189,19 @@ int main(int argc, char** argv){
 				   0);
 	}
 
-	printf("Wait task\n");
+	FPRINTF(stderr, "Wait task\n");
 
 	starpu_task_wait_for_all();
 	starpu_pause();
 
-	printf("Release data\n");
+	FPRINTF(stderr, "Release data\n");
 
-	for(idxHandle = 0 ; idxHandle < nbHandles ; ++idxHandle){
+	for(idxHandle = 0 ; idxHandle < nbHandles ; ++idxHandle)
+	{
 		starpu_data_unregister(handles[idxHandle]);
 	}
-	
-	printf("Shutdown\n");
 
+	FPRINTF(stderr, "Shutdown\n");
 
 	starpu_resume();
 	starpu_shutdown();

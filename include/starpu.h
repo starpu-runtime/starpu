@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2014  Université de Bordeaux
- * Copyright (C) 2010-2014  CNRS
+ * Copyright (C) 2010-2015  CNRS
  * Copyright (C) 2014  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -79,9 +79,10 @@ extern "C"
 struct starpu_conf
 {
 	int magic;
-	const char *sched_policy_name;
 
+	const char *sched_policy_name;
 	struct starpu_sched_policy *sched_policy;
+	void (*sched_policy_init)(void);
 
 	int ncpus;
 	int ncuda;
@@ -125,9 +126,6 @@ struct starpu_conf
 	unsigned trace_buffer_size;
 	int global_sched_ctx_min_priority;
 	int global_sched_ctx_max_priority;
-
-	void (*sched_policy_init)(void);
-
 };
 
 int starpu_conf_init(struct starpu_conf *conf);
