@@ -46,6 +46,8 @@ run(struct starpu_sched_policy *policy)
 	struct starpu_codelet cl =
 	{
 		.cpu_funcs = {dummy},
+		.opencl_funcs = {dummy},
+		.cuda_funcs = {dummy},
 		.nbuffers = 0
 	};
 

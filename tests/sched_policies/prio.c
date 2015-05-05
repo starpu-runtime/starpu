@@ -65,12 +65,16 @@ run(struct starpu_sched_policy *policy)
 	struct starpu_codelet clA =
 	{
 		.cpu_funcs = {A},
+		.opencl_funcs = {A},
+		.cuda_funcs = {A},
 		.nbuffers = 0
 	};
 
 	struct starpu_codelet clB =
 	{
 		.cpu_funcs = {B},
+		.opencl_funcs = {B},
+		.cuda_funcs = {B},
 		.nbuffers = 0
 	};
 
