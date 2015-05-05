@@ -493,7 +493,6 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio, unsigned sched
 				break;	
 		}
 
-		worker = workers->get_next_master(workers, &it);
 		struct _starpu_fifo_taskq *fifo  = dt->queue_array[worker];
 		unsigned memory_node = starpu_worker_get_memory_node(worker);
 		struct starpu_perfmodel_arch* perf_arch = starpu_worker_get_perf_archtype(worker, sched_ctx_id);

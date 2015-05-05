@@ -265,6 +265,7 @@ static void list_init_iterator(struct starpu_worker_collection *workers, struct 
 		}
 	}
 	workers->nmasters = nm;
+	workers->nunblocked_workers = nub;
 
 }
 
