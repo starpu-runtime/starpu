@@ -264,10 +264,10 @@ static void list_init_iterator(struct starpu_worker_collection *workers, struct 
 
 }
 
-static void list_init_iterator_for_parallel_tasks(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it, unsigned possibly_parallel)
+static void list_init_iterator_for_parallel_tasks(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it, struct starpu_task *task)
 {
 	list_init_iterator(workers, it);
-	it->possibly_parallel = possibly_parallel; /* 0/1 => this field indicates if we consider masters only or slaves not blocked too */
+	it->possibly_parallel = task->possibly_parallel; /* 0/1 => this field indicates if we consider masters only or slaves not blocked too */
 
 	int *workerids = (int *)workers->workerids;
 	unsigned nworkers = workers->nworkers;
@@ -278,7 +278,7 @@ static void list_init_iterator_for_parallel_tasks(struct starpu_worker_collectio
 		if(!starpu_worker_is_blocked(workerids[i]))
 		{
 			((int*)workers->unblocked_workers)[nub++] = workerids[i];
-			if(!possibly_parallel) /* don't bother filling the table with masters we won't use it anyway */
+			if(!it->possibly_parallel) /* don't bother filling the table with masters we won't use it anyway */
 				continue;
 			if(!starpu_worker_is_slave_somewhere(workerids[i]))
 				((int*)workers->masters)[nm++] = workerids[i];

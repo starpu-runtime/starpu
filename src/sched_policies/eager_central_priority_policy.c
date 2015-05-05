@@ -142,7 +142,7 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 #ifndef STARPU_NON_BLOCKING_DRIVERS
 	char dowake[STARPU_NMAXWORKERS] = { 0 };
 #endif
-	workers->init_iterator_for_parallel_tasks(workers, &it, task->possibly_parallel);
+	workers->init_iterator_for_parallel_tasks(workers, &it, task);
 	while(workers->has_next(workers, &it))
 	{
 		worker = workers->get_next(workers, &it);
@@ -254,7 +254,7 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 		struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 
 		struct starpu_sched_ctx_iterator it;
-		workers->init_iterator_for_parallel_tasks(workers, &it, chosen_task->possibly_parallel);
+		workers->init_iterator_for_parallel_tasks(workers, &it, chosen_task);
 		while(workers->has_next(workers, &it))
 		{
 			worker = workers->get_next(workers, &it);

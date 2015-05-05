@@ -475,7 +475,7 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio, unsigned sched
 
 	struct starpu_sched_ctx_iterator it;
 
-	workers->init_iterator_for_parallel_tasks(workers, &it, task->possibly_parallel);
+	workers->init_iterator_for_parallel_tasks(workers, &it, task);
 	while(workers->has_next(workers, &it))
 	{
 		worker = workers->get_next(workers, &it);
@@ -620,7 +620,7 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 
 	struct starpu_sched_ctx_iterator it;
-	workers->init_iterator_for_parallel_tasks(workers, &it, task->possibly_parallel);
+	workers->init_iterator_for_parallel_tasks(workers, &it, task);
 	while(workers->has_next(workers, &it))
 	{
 		worker = workers->get_next(workers, &it);
@@ -814,7 +814,7 @@ static double _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned 
 	if (forced_best == -1)
 	{
 		struct starpu_sched_ctx_iterator it;
-		workers->init_iterator_for_parallel_tasks(workers, &it, task->possibly_parallel);
+		workers->init_iterator_for_parallel_tasks(workers, &it, task);
 		while(workers->has_next(workers, &it))
 		{
 			worker = workers->get_next(workers, &it);

@@ -294,16 +294,16 @@ static void tree_init_iterator(struct starpu_worker_collection *workers, struct 
 		it->visited[i] = 0;
 }
 
-static void tree_init_iterator_for_parallel_tasks(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it, unsigned possibly_parallel)
+static void tree_init_iterator_for_parallel_tasks(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it, struct starpu_task *task)
 {
 	tree_init_iterator(workers, it);
-	it->possibly_parallel = possibly_parallel;
+	it->possibly_parallel = task->possibly_parallel;
 	int i;
 	int nworkers = starpu_worker_get_count();
 	for(i = 0; i < nworkers; i++)
 	{
 		workers->is_unblocked[i] = (workers->present[i] && !starpu_worker_is_blocked(i));
-		if(!possibly_parallel) /* don't bother filling the table with masters we won't use it anyway */
+		if(!it->possibly_parallel) /* don't bother filling the table with masters we won't use it anyway */
 			continue;
 		workers->is_master[i] = (workers->present[i] && !starpu_worker_is_blocked(i) && !starpu_worker_is_slave_somewhere(i));
 	}

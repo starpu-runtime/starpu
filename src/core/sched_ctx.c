@@ -1149,7 +1149,7 @@ int _starpu_nworkers_able_to_execute_task(struct starpu_task *task, struct _star
 
 	struct starpu_sched_ctx_iterator it;
 
-	workers->init_iterator_for_parallel_tasks(workers, &it, task->possibly_parallel);
+	workers->init_iterator_for_parallel_tasks(workers, &it, task);
 	while(workers->has_next(workers, &it))
 	{
 		worker = workers->get_next(workers, &it);

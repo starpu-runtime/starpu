@@ -72,7 +72,7 @@ struct starpu_worker_collection
 	void (*init)(struct starpu_worker_collection *workers);
 	void (*deinit)(struct starpu_worker_collection *workers);
 	void (*init_iterator)(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it);
-	void (*init_iterator_for_parallel_tasks)(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it, unsigned possibly_parallel);
+	void (*init_iterator_for_parallel_tasks)(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it, struct starpu_task *task);
 };
 
 extern struct starpu_worker_collection worker_list;
