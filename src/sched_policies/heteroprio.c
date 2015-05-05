@@ -159,15 +159,15 @@ inline void default_init_sched(unsigned sched_ctx_id)
 	// By default CPU uses 1 bucket and no slow factor
 	starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_CPU_IDX, 1);
 	// Direct mapping 0 to 0
-	starpu_heteroprio_set_mapping(sched_ctx_id, STARPU_CPU_IDX, 0, 0);
+	starpu_heteroprio_set_mapping(sched_ctx_id, STARPU_CPU_IDX, 0, 1);
 	// We do the same for any archs
 #ifdef STARPU_USE_OPENCL
 	starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_OPENCL_IDX, 1);
-	starpu_heteroprio_set_mapping(sched_ctx_id, STARPU_OPENCL_IDX, 0, 0);
+	starpu_heteroprio_set_mapping(sched_ctx_id, STARPU_OPENCL_IDX, 0, 1);
 #endif
 #ifdef STARPU_USE_CUDA
 	starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_CUDA_IDX, 1);
-	starpu_heteroprio_set_mapping(sched_ctx_id, STARPU_CUDA_IDX, 0, 0);
+	starpu_heteroprio_set_mapping(sched_ctx_id, STARPU_CUDA_IDX, 0, 1);
 #endif
 }
 
@@ -192,13 +192,12 @@ static void initialize_heteroprio_policy(unsigned sched_ctx_id)
 	for(idx_prio = 0; idx_prio < STARPU_HETEROPRIO_MAX_PRIO; ++idx_prio)
 		_heteroprio_bucket_init(&hp->buckets[idx_prio]);
 
-	/* TODO call the callback */
 	void (*init_sched)(void) = starpu_sched_ctx_get_sched_policy_init(sched_ctx_id);
 
 	if(init_sched)
 		init_sched();
-    else
-        default_init_sched(sched_ctx_id);
+	else
+		default_init_sched(sched_ctx_id);
 
 	/* Ensure that information have been correctly filled */
 	unsigned check_all_archs[STARPU_HETEROPRIO_MAX_PRIO];
@@ -343,8 +342,9 @@ static int push_task_heteroprio_policy(struct starpu_task *task)
 	STARPU_ASSERT(task->priority < STARPU_HETEROPRIO_MAX_PRIO);
 	struct _heteroprio_bucket* bucket = &hp->buckets[task->priority];
 	/* Ensure that any worker that check that list can compute the task */
-	STARPU_ASSERT(bucket->valid_archs
-		      && ((bucket->valid_archs ^ task->cl->where) & bucket->valid_archs) == 0);
+	STARPU_ASSERT(bucket->valid_archs);
+//	printf("valid arch %u where %u \n", bucket->valid_archs, task->cl->where);
+	STARPU_ASSERT(((bucket->valid_archs ^ task->cl->where) & bucket->valid_archs) == 0);
 	/* save the task */
 	_starpu_fifo_push_back_task(bucket->tasks_queue,task);
 
@@ -432,7 +432,6 @@ static struct starpu_task *pop_task_heteroprio_policy(unsigned sched_ctx_id)
 		return NULL;
 	}
 #endif
-/* TOTO beranger check this out */
 	starpu_pthread_mutex_t *worker_sched_mutex;
 	starpu_pthread_cond_t *worker_sched_cond;
 	starpu_worker_get_sched_condition(workerid, &worker_sched_mutex, &worker_sched_cond);
@@ -497,7 +496,7 @@ static struct starpu_task *pop_task_heteroprio_policy(unsigned sched_ctx_id)
 				}
 				/* Decrease the number of tasks to found */
 				nb_tasks_to_prefetch -= 1;
-		        nb_added_tasks       += 1;
+				nb_added_tasks       += 1;
 				// TODO starpu_prefetch_task_input_on_node(task, workerid);
 			}
 		}		
@@ -591,18 +590,7 @@ static struct starpu_task *pop_task_heteroprio_policy(unsigned sched_ctx_id)
 	{
 		const unsigned memory_node = starpu_worker_get_memory_node(workerid);
 
-		/* prefetch the new task that I own but protecte my node from work stealing during the prefetch */
-//		STARPU_PTHREAD_MUTEX_LOCK(&worker->ws_prefetch_mutex);
-		/*already protected - the lock of the worker is taken */
-
-		/* prefetch task but stop in case we now some one may steal a task from us */
-		/* while(nb_added_tasks && hp->nb_remaining_tasks_per_arch_index[worker->arch_index] != 0){ */
-		/* 	/\* prefetch from closest to end task *\/ */
-		/* 	starpu_prefetch_task_input_on_node(worker->tasks_queue[(worker->tasks_queue_index+worker->tasks_queue_size-nb_added_tasks)%STARPU_HETEROPRIO_MAX_PREFETCH], memory_node); */
-		/* 	nb_added_tasks -= 1; */
-		/* } */
-
-/* TOTO beranger check this out - is this how you planned to prefetch tasks ? */
+/* TOTO berenger: iterate in the other sense */
 		struct starpu_task *task_to_prefetch = NULL;
 		for (task_to_prefetch  = starpu_task_list_begin(&worker->tasks_queue->taskq);
 		     (task_to_prefetch != starpu_task_list_end(&worker->tasks_queue->taskq) &&
@@ -613,9 +601,6 @@ static struct starpu_task *pop_task_heteroprio_policy(unsigned sched_ctx_id)
 			starpu_prefetch_task_input_on_node(task_to_prefetch, memory_node);
 			nb_added_tasks -= 1;
 		}
-
-
-//		STARPU_PTHREAD_MUTEX_UNLOCK(&worker->ws_prefetch_mutex);
 	}
 
 	return task;
