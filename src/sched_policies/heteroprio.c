@@ -156,19 +156,27 @@ inline void starpu_heteroprio_set_arch_slow_factor(unsigned sched_ctx_id, enum s
 /** If the user does not provide an init callback we create a single bucket for all architectures */
 inline void default_init_sched(unsigned sched_ctx_id)
 {
-	// By default CPU uses 1 bucket and no slow factor
-	starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_CPU_IDX, 1);
-	// Direct mapping 0 to 0
-	starpu_heteroprio_set_mapping(sched_ctx_id, STARPU_CPU_IDX, 0, 1);
-	// We do the same for any archs
+	// By default each type of devices uses 1 bucket and no slow factor
+	starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_CPU_IDX, STARPU_MAX_PRIO-STARPU_MIN_PRIO+1);
 #ifdef STARPU_USE_OPENCL
-	starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_OPENCL_IDX, 1);
-	starpu_heteroprio_set_mapping(sched_ctx_id, STARPU_OPENCL_IDX, 0, 1);
+	starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_OPENCL_IDX, STARPU_MAX_PRIO-STARPU_MIN_PRIO+1);
 #endif
 #ifdef STARPU_USE_CUDA
-	starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_CUDA_IDX, 1);
-	starpu_heteroprio_set_mapping(sched_ctx_id, STARPU_CUDA_IDX, 0, 1);
+	starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_CUDA_IDX, STARPU_MAX_PRIO-STARPU_MIN_PRIO+1);
 #endif
+
+	// Direct mapping
+	int prio;
+	for(prio=STARPU_MIN_PRIO ; prio<=STARPU_MAX_PRIO ; prio++)
+	{
+		starpu_heteroprio_set_mapping(sched_ctx_id, STARPU_CPU_IDX, prio, prio);
+#ifdef STARPU_USE_OPENCL
+		starpu_heteroprio_set_mapping(sched_ctx_id, STARPU_OPENCL_IDX, prio, prio);
+#endif
+#ifdef STARPU_USE_CUDA
+		starpu_heteroprio_set_mapping(sched_ctx_id, STARPU_CUDA_IDX, prio, prio);
+#endif
+	}
 }
 
 static void initialize_heteroprio_policy(unsigned sched_ctx_id)
@@ -238,7 +246,7 @@ static void initialize_heteroprio_policy(unsigned sched_ctx_id)
 				nb_arch_on_bucket += 1;
 			}
 		}
-		STARPU_ASSERT(check_all_archs[idx_prio] == nb_arch_on_bucket);
+		STARPU_ASSERT_MSG(check_all_archs[idx_prio] == nb_arch_on_bucket, "check_all_archs[idx_prio(%d)] = %d != nb_arch_on_bucket = %d\n", idx_prio, check_all_archs[idx_prio], nb_arch_on_bucket);
 	}
 }
 
@@ -343,8 +351,8 @@ static int push_task_heteroprio_policy(struct starpu_task *task)
 	struct _heteroprio_bucket* bucket = &hp->buckets[task->priority];
 	/* Ensure that any worker that check that list can compute the task */
 	STARPU_ASSERT(bucket->valid_archs);
-//	printf("valid arch %u where %u \n", bucket->valid_archs, task->cl->where);
 	STARPU_ASSERT(((bucket->valid_archs ^ task->cl->where) & bucket->valid_archs) == 0);
+
 	/* save the task */
 	_starpu_fifo_push_back_task(bucket->tasks_queue,task);
 
