@@ -43,6 +43,7 @@ struct starpu_sched_ctx_iterator
 	void *value;
 	void *possible_value;
 	int visited[STARPU_NMAXWORKERS];
+	int possibly_parallel; 
 };
 
 enum starpu_worker_collection_type
@@ -66,15 +67,12 @@ struct starpu_worker_collection
 	enum starpu_worker_collection_type type;
 	unsigned (*has_next)(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it);
 	int (*get_next)(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it);
-	unsigned (*has_next_unblocked_worker)(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it);
-	int (*get_next_unblocked_worker)(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it);
-	unsigned (*has_next_master)(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it);
-	int (*get_next_master)(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it);
 	int (*add)(struct starpu_worker_collection *workers, int worker);
 	int (*remove)(struct starpu_worker_collection *workers, int worker);
 	void (*init)(struct starpu_worker_collection *workers);
 	void (*deinit)(struct starpu_worker_collection *workers);
 	void (*init_iterator)(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it);
+	void (*init_iterator_for_parallel_tasks)(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it, unsigned possibly_parallel);
 };
 
 extern struct starpu_worker_collection worker_list;

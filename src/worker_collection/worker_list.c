@@ -18,30 +18,6 @@
 
 #include <starpu.h>
 
-static unsigned list_has_next(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it)
-{
-	int nworkers = workers->nworkers;
-	STARPU_ASSERT(it != NULL);
-
-	unsigned ret = it->cursor < nworkers ;
-
-	if(!ret) it->cursor = 0;
-
-	return ret;
-}
-
-static int list_get_next(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it)
-{
-	int *workerids = (int *)workers->workerids;
-	int nworkers = (int)workers->nworkers;
-
-	STARPU_ASSERT(it->cursor < nworkers);
-
-	int ret = workerids[it->cursor++];
-
-	return ret;
-}
-
 static unsigned list_has_next_unblocked_worker(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it)
 {
 	int nworkers = workers->nunblocked_workers;
@@ -84,6 +60,40 @@ static int list_get_next_master(struct starpu_worker_collection *workers, struct
 	int nworkers = (int)workers->nmasters;
 
 	STARPU_ASSERT_MSG(it->cursor < nworkers, "cursor %d nworkers %d\n", it->cursor, nworkers);
+
+	int ret = workerids[it->cursor++];
+
+	return ret;
+}
+
+static unsigned list_has_next(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it)
+{
+	if(it->possibly_parallel == 1)
+		return list_has_next_master(workers, it);
+	else if(it->possibly_parallel == 0)
+		return list_has_next_unblocked_worker(workers, it);
+
+	int nworkers = workers->nworkers;
+	STARPU_ASSERT(it != NULL);
+
+	unsigned ret = it->cursor < nworkers ;
+
+	if(!ret) it->cursor = 0;
+
+	return ret;
+}
+
+static int list_get_next(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it)
+{
+	if(it->possibly_parallel == 1)
+		return list_get_next_master(workers, it);
+	else if(it->possibly_parallel == 0)
+		return list_get_next_unblocked_worker(workers, it);
+
+	int *workerids = (int *)workers->workerids;
+	int nworkers = (int)workers->nworkers;
+
+	STARPU_ASSERT(it->cursor < nworkers);
 
 	int ret = workerids[it->cursor++];
 
@@ -250,6 +260,14 @@ static void list_deinit(struct starpu_worker_collection *workers)
 static void list_init_iterator(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it)
 {
 	it->cursor = 0;
+	it->possibly_parallel = -1; /* -1 => we don't care about this field */
+
+}
+
+static void list_init_iterator_for_parallel_tasks(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it, unsigned possibly_parallel)
+{
+	list_init_iterator(workers, it);
+	it->possibly_parallel = possibly_parallel; /* 0/1 => this field indicates if we consider masters only or slaves not blocked too */
 
 	int *workerids = (int *)workers->workerids;
 	unsigned nworkers = workers->nworkers;
@@ -260,28 +278,26 @@ static void list_init_iterator(struct starpu_worker_collection *workers, struct 
 		if(!starpu_worker_is_blocked(workerids[i]))
 		{
 			((int*)workers->unblocked_workers)[nub++] = workerids[i];
+			if(!possibly_parallel) /* don't bother filling the table with masters we won't use it anyway */
+				continue;
 			if(!starpu_worker_is_slave_somewhere(workerids[i]))
 				((int*)workers->masters)[nm++] = workerids[i];
 		}
 	}
 	workers->nmasters = nm;
 	workers->nunblocked_workers = nub;
-
 }
 
 struct starpu_worker_collection worker_list =
 {
 	.has_next = list_has_next,
 	.get_next = list_get_next,
-	.has_next_unblocked_worker = list_has_next_unblocked_worker,
-	.get_next_unblocked_worker = list_get_next_unblocked_worker,
-	.has_next_master = list_has_next_master,
-	.get_next_master = list_get_next_master,
 	.add = list_add,
 	.remove = list_remove,
 	.init = list_init,
 	.deinit = list_deinit,
 	.init_iterator = list_init_iterator,
+	.init_iterator_for_parallel_tasks = list_init_iterator_for_parallel_tasks,
 	.type = STARPU_WORKER_LIST
 };
 

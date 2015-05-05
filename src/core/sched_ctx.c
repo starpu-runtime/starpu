@@ -1149,10 +1149,10 @@ int _starpu_nworkers_able_to_execute_task(struct starpu_task *task, struct _star
 
 	struct starpu_sched_ctx_iterator it;
 
-	workers->init_iterator(workers, &it);
-	while(workers->has_next_master(workers, &it))
+	workers->init_iterator_for_parallel_tasks(workers, &it, task->possibly_parallel);
+	while(workers->has_next(workers, &it))
 	{
-		worker = workers->get_next_master(workers, &it);
+		worker = workers->get_next(workers, &it);
 		STARPU_ASSERT_MSG(worker < STARPU_NMAXWORKERS, "worker id %d", worker);
 		if (starpu_worker_can_execute_task_first_impl(worker, task, NULL))
 			nworkers++;
@@ -1465,15 +1465,12 @@ struct starpu_worker_collection* starpu_sched_ctx_create_worker_collection(unsig
 	case STARPU_WORKER_TREE:
 		sched_ctx->workers->has_next = worker_tree.has_next;
 		sched_ctx->workers->get_next = worker_tree.get_next;
-		sched_ctx->workers->has_next_unblocked_worker = worker_tree.has_next_unblocked_worker;
-		sched_ctx->workers->get_next_unblocked_worker = worker_tree.get_next_unblocked_worker;
-		sched_ctx->workers->has_next_master = worker_tree.has_next_master;
-		sched_ctx->workers->get_next_master = worker_tree.get_next_master;
 		sched_ctx->workers->add = worker_tree.add;
 		sched_ctx->workers->remove = worker_tree.remove;
 		sched_ctx->workers->init = worker_tree.init;
 		sched_ctx->workers->deinit = worker_tree.deinit;
 		sched_ctx->workers->init_iterator = worker_tree.init_iterator;
+		sched_ctx->workers->init_iterator_for_parallel_tasks = worker_tree.init_iterator_for_parallel_tasks;
 		sched_ctx->workers->type = STARPU_WORKER_LIST;
 		break;
 #endif
@@ -1481,15 +1478,12 @@ struct starpu_worker_collection* starpu_sched_ctx_create_worker_collection(unsig
 	default:
 		sched_ctx->workers->has_next = worker_list.has_next;
 		sched_ctx->workers->get_next = worker_list.get_next;
-		sched_ctx->workers->has_next_unblocked_worker = worker_list.has_next_unblocked_worker;
-		sched_ctx->workers->get_next_unblocked_worker = worker_list.get_next_unblocked_worker;
-		sched_ctx->workers->has_next_master = worker_list.has_next_master;
-		sched_ctx->workers->get_next_master = worker_list.get_next_master;
 		sched_ctx->workers->add = worker_list.add;
 		sched_ctx->workers->remove = worker_list.remove;
 		sched_ctx->workers->init = worker_list.init;
 		sched_ctx->workers->deinit = worker_list.deinit;
 		sched_ctx->workers->init_iterator = worker_list.init_iterator;
+		sched_ctx->workers->init_iterator_for_parallel_tasks = worker_list.init_iterator_for_parallel_tasks;
 		sched_ctx->workers->type = STARPU_WORKER_LIST;
 		break;
 
