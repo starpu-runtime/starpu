@@ -1471,7 +1471,7 @@ struct starpu_worker_collection* starpu_sched_ctx_create_worker_collection(unsig
 		sched_ctx->workers->deinit = worker_tree.deinit;
 		sched_ctx->workers->init_iterator = worker_tree.init_iterator;
 		sched_ctx->workers->init_iterator_for_parallel_tasks = worker_tree.init_iterator_for_parallel_tasks;
-		sched_ctx->workers->type = STARPU_WORKER_LIST;
+		sched_ctx->workers->type = STARPU_WORKER_TREE;
 		break;
 #endif
 //	case STARPU_WORKER_LIST:
