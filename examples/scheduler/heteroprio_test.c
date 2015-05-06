@@ -23,6 +23,7 @@
 void initSchedulerCallback()
 {
 	// CPU uses 3 buckets
+#ifdef STARPU_USE_CPU
 	starpu_heteroprio_set_nb_prios(0, STARPU_CPU_IDX, 3);
 	// It uses direct mapping idx => idx
 	unsigned idx;
@@ -31,6 +32,7 @@ void initSchedulerCallback()
 		starpu_heteroprio_set_mapping(0, STARPU_CPU_IDX, idx, idx);
 		starpu_heteroprio_set_faster_arch(0, STARPU_CPU_IDX, idx);
 	}
+#endif
 #ifdef STARPU_USE_OPENCL
 	// OpenCL is enabled and uses 2 buckets
 	starpu_heteroprio_set_nb_prios(0, STARPU_OPENCL_IDX, 2);
@@ -39,7 +41,9 @@ void initSchedulerCallback()
 	// For this bucket OpenCL is the fastest
 	starpu_heteroprio_set_faster_arch(0, STARPU_OPENCL_IDX, 2);
 	// And CPU is 4 times slower
+#ifdef STARPU_USE_CPU
 	starpu_heteroprio_set_arch_slow_factor(0, STARPU_CPU_IDX, 2, 4.0f);
+#endif
 
 	starpu_heteroprio_set_mapping(0, STARPU_OPENCL_IDX, 1, 1);
 	// We let the CPU as the fastest and tell that OpenCL is 1.7 times slower
@@ -49,39 +53,39 @@ void initSchedulerCallback()
 
 void callback_a_cpu(void *buffers[], void *cl_arg)
 {
-	usleep(100000);
-	FPRINTF(stderr, "[COMMUTE_LOG] callback %s\n", __FUNCTION__); fflush(stdout);
+     //usleep(100000);
+	FPRINTF(stderr, "[COMMUTE_LOG] callback %s\n", __FUNCTION__); fflush(stderr);
 }
 
 void callback_b_cpu(void *buffers[], void *cl_arg)
 {
-	usleep(100000);
-	FPRINTF(stderr, "[COMMUTE_LOG] callback %s\n", __FUNCTION__); fflush(stdout);
+//	usleep(100000);
+	FPRINTF(stderr, "[COMMUTE_LOG] callback %s\n", __FUNCTION__); fflush(stderr);
 }
 
 void callback_c_cpu(void *buffers[], void *cl_arg)
 {
-	usleep(100000);
-	FPRINTF(stderr, "[COMMUTE_LOG] callback %s\n", __FUNCTION__); fflush(stdout);
+//	usleep(100000);
+	FPRINTF(stderr, "[COMMUTE_LOG] callback %s\n", __FUNCTION__); fflush(stderr);
 }
 
 #ifdef STARPU_USE_OPENCL
 void callback_a_opencl(void *buffers[], void *cl_arg)
 {
 	usleep(100000);
-	FPRINTF(stderr, "[COMMUTE_LOG] callback %s\n", __FUNCTION__); fflush(stdout);
+	FPRINTF(stderr, "[COMMUTE_LOG] callback %s\n", __FUNCTION__); fflush(stderr);
 }
 
 void callback_b_opencl(void *buffers[], void *cl_arg)
 {
 	usleep(100000);
-	FPRINTF(stderr, "[COMMUTE_LOG] callback %s\n", __FUNCTION__); fflush(stdout);
+	FPRINTF(stderr, "[COMMUTE_LOG] callback %s\n", __FUNCTION__); fflush(stderr);
 }
 
 void callback_c_opencl(void *buffers[], void *cl_arg)
 {
 	usleep(100000);
-	FPRINTF(stderr, "[COMMUTE_LOG] callback %s\n", __FUNCTION__); fflush(stdout);
+	FPRINTF(stderr, "[COMMUTE_LOG] callback %s\n", __FUNCTION__); fflush(stderr);
 }
 #endif
 
@@ -89,22 +93,29 @@ int main(int argc, char** argv)
 {
 	unsigned ret;
 	struct starpu_conf conf;
+	int ncpus, nopencls;
+
 	ret = starpu_conf_init(&conf);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_conf_init");
 	assert(ret == 0);
 
 	conf.sched_policy_name = "heteroprio";
 	conf.sched_policy_init = &initSchedulerCallback;
-
 	ret = starpu_init(&conf);
-	assert(ret == 0);
+	if (ret == -ENODEV)
+		return 77;
 
-	starpu_pause();
-
+	ncpus = starpu_cpu_worker_get_count();
+	nopencls = starpu_opencl_worker_get_count();
 	FPRINTF(stderr, "Worker = %d\n",  starpu_worker_get_count());
-	FPRINTF(stderr, "Worker CPU = %d\n", starpu_cpu_worker_get_count());
-#ifdef STARPU_USE_OPENCL
-	FPRINTF(stderr, "Worker OpenCL = %d\n", starpu_opencl_worker_get_count());
-#endif
+	FPRINTF(stderr, "Worker CPU = %d\n", ncpus);
+	FPRINTF(stderr, "Worker OpenCL = %d\n", nopencls);
+	if (ncpus + nopencls == 0)
+	{
+		FPRINTF(stderr, "Needs at least one CPU or OpenCL device\n");
+		starpu_shutdown();
+		return 77;
+	}
 
 	struct starpu_codelet codeleteA;
 	{
@@ -113,8 +124,10 @@ int main(int argc, char** argv)
 		codeleteA.modes[0] = STARPU_RW;
 		codeleteA.modes[1] = STARPU_RW;
 		codeleteA.name = "codeleteA";
+#ifdef STARPU_USE_CPU
 		codeleteA.where = STARPU_CPU;
 		codeleteA.cpu_funcs[0] = callback_a_cpu;
+#endif
 #ifdef STARPU_USE_OPENCL
 		codeleteA.where |= STARPU_OPENCL;
 		codeleteA.opencl_funcs[0] = callback_a_opencl;
@@ -164,10 +177,8 @@ int main(int argc, char** argv)
 		starpu_variable_data_register(&handles[idxHandle], 0, (uintptr_t)&dataA[idxHandle], sizeof(dataA[idxHandle]));
 	}
 
-	const int nbTasks = 40;
+	const int nbTasks = 4;
 	FPRINTF(stderr, "Submit %d tasks \n", nbTasks);
-
-	starpu_resume();
 
 	int idxTask;
 	for(idxTask = 0; idxTask < nbTasks; ++idxTask)
