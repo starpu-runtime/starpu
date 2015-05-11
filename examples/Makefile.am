@@ -31,6 +31,7 @@ nobase_STARPU_OPENCL_DATA_DATA =
 endif
 
 EXTRA_DIST = 					\
+	README.txt				\
 	axpy/axpy.h				\
 	axpy/axpy_opencl_kernel.cl		\
 	basic_examples/vector_scal_opencl_kernel.cl \
