@@ -55,7 +55,7 @@
 #define VALGRIND_HG_ENABLE_CHECKING(start, len) ((void)0)
 #endif
 #ifndef VALGRIND_STACK_REGISTER
-#define VALGRIND_STACK_REGISTER(stackbottom, stacktop) (void)0
+#define VALGRIND_STACK_REGISTER(stackbottom, stacktop) 0
 #endif
 #ifndef VALGRIND_STACK_DEREGISTER
 #define VALGRIND_STACK_DEREGISTER(id) ((void)0)
