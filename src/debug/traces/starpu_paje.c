@@ -173,7 +173,8 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 	poti_DefineEventType("user_event", "T", "user event type");
 	poti_DefineEventType("thread_event", "T", "thread event type");
 	poti_DefineStateType("S", "T", "Thread State");
-	poti_DefineEntityValue("I", "S", "Initializing", "0.0 .7 1.0");
+	poti_DefineEntityValue("I", "S", "Idle", ".9 .1 0");
+	poti_DefineEntityValue("In", "S", "Initializing", "0.0 .7 1.0");
 	poti_DefineEntityValue("D", "S", "Deinitializing", "0.0 .1 .7");
 	poti_DefineEntityValue("Fi", "S", "FetchingInput", "1.0 .1 1.0");
 	poti_DefineEntityValue("Po", "S", "PushingOutput", "0.1 1.0 1.0");
@@ -187,7 +188,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 	poti_DefineEntityValue("H", "S", "Hypervisor", ".5 .18 .0");
 	poti_DefineStateType("WS", "W", "Worker State");
 	poti_DefineEntityValue("I", "WS", "Idle", ".9 .1 .0");
-	poti_DefineEntityValue("I", "WS", "Initializing", "0.0 .7 1.0");
+	poti_DefineEntityValue("In", "WS", "Initializing", "0.0 .7 1.0");
 	poti_DefineEntityValue("D", "WS", "Deinitializing", "0.0 .1 .7");
 	poti_DefineEntityValue("Fi", "WS", "FetchingInput", "1.0 .1 1.0");
 	poti_DefineEntityValue("Po", "WS", "PushingOutput", "0.1 1.0 1.0");
@@ -218,7 +219,8 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 		snprintf(inctx, sizeof(inctx), "InCtx%u", i);
 		char *ctx = inctx+2;
 		poti_DefineStateType(ctx, "T", inctx);
-		poti_DefineEntityValue("I", ctx, "Initializing", "0.0 .7 1.0");
+		poti_DefineEntityValue("I", ctx, "Idle", ".9 .1 .0");
+		poti_DefineEntityValue("In", ctx, "Initializing", "0.0 .7 1.0");
 		poti_DefineEntityValue("D", ctx, "Deinitializing", "0.0 .1 .7");
 		poti_DefineEntityValue("Fi", ctx, "FetchingInput", "1.0 .1 1.0");
 		poti_DefineEntityValue("Po", ctx, "PushingOutput", "0.1 1.0 1.0");
@@ -265,7 +267,8 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 4       nsubmitted    Sc       \"Number of Submitted Uncompleted Tasks\"                        \n\
 4       nready    Sc       \"Number of Ready Tasks\"                        \n\
 4       bw      Mm       \"Bandwidth\"                        \n\
-6       I       S      Initializing       \"0.0 .7 1.0\"            \n\
+6       I       S       Idle         \".9 .1 .0\"		\n\
+6       In       S      Initializing       \"0.0 .7 1.0\"            \n\
 6       D       S      Deinitializing       \"0.0 .1 .7\"            \n\
 6       Fi       S      FetchingInput       \"1.0 .1 1.0\"            \n\
 6       Po       S      PushingOutput       \"0.1 1.0 1.0\"            \n\
@@ -279,7 +282,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 6       H       S       Hypervisor      \".5 .18 .0\"		\n\
 3       WS       W       \"Worker State\"                        \n\
 6       I       WS       Idle         \".9 .1 .0\"		\n\
-6       I       WS      Initializing       \"0.0 .7 1.0\"            \n\
+6       In       WS      Initializing       \"0.0 .7 1.0\"            \n\
 6       D       WS      Deinitializing       \"0.0 .1 .7\"            \n\
 6       Fi       WS      FetchingInput       \"1.0 .1 1.0\"            \n\
 6       Po       WS      PushingOutput       \"0.1 1.0 1.0\"            \n\
@@ -302,7 +305,8 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 6       RvC       CtS      RecieveCompleted  \"0.5 1.0 1.0\"	\n");
 	for (i=1; i<STARPU_NMAX_SCHED_CTXS; i++)
 		fprintf(file, "\
-6       I       Ctx%u      Initializing       \"0.0 .7 1.0\"            \n\
+6       I       Ctx%u      Idle         \".9 .1 .0\"		\n\
+6       In       Ctx%u      Initializing       \"0.0 .7 1.0\"            \n\
 6       D       Ctx%u      Deinitializing       \"0.0 .1 .7\"            \n\
 6       Fi       Ctx%u      FetchingInput       \"1.0 .1 1.0\"            \n\
 6       Po       Ctx%u      PushingOutput       \"0.1 1.0 1.0\"            \n\
