@@ -547,7 +547,7 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 
 	/* start initialization */
 	if (out_paje_file)
-		thread_set_state(get_event_time_stamp(ev, options), prefix, threadid, "I");
+		thread_set_state(get_event_time_stamp(ev, options), prefix, threadid, "In");
 
 	if (activity_file)
 		fprintf(activity_file, "name\t%d\t%s %d\n", workerid, kindstr, devid);
