@@ -656,8 +656,6 @@ cg_cg_SOURCES =					\
 if STARPU_USE_CUDA
 cg_cg_SOURCES +=				\
 	cg/cg_dot_kernel.cu
-cg/cg_dot_kernel.o: cg/cg_dot_kernel.cu
-	$(NVCC) $< -c -o $@ $(NVCCFLAGS) -arch sm_13
 endif
 
 cg_cg_LDADD =					\
@@ -750,8 +748,6 @@ interface_complex_SOURCES	=	\
 if STARPU_USE_CUDA
 interface_complex_SOURCES	+=	\
 	interface/complex_kernels.cu
-interface/complex_kernels.o: interface/complex_kernels.cu
-	$(NVCC) $< -c -o $@ $(NVCCFLAGS) -arch sm_13
 endif
 
 if STARPU_USE_OPENCL
@@ -779,8 +775,6 @@ reductions_dot_product_SOURCES =		\
 if STARPU_USE_CUDA
 reductions_dot_product_SOURCES +=		\
 	reductions/dot_product_kernels.cu
-reductions/dot_product_kernels.o: reductions/dot_product_kernels.cu
-	$(NVCC) $< -c -o $@ $(NVCCFLAGS) -arch sm_13
 endif
 if STARPU_USE_OPENCL
 nobase_STARPU_OPENCL_DATA_DATA += \
