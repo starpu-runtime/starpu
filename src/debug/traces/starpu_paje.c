@@ -317,7 +317,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 6       Sl       Ctx%u      Sleeping         \".9 .1 .0\"		\n\
 6       P       Ctx%u       Progressing         \".4 .1 .6\"		\n\
 6       U       Ctx%u       Unpartitioning         \".0 .0 1.0\"		\n",
-		i, i, i, i, i, i, i, i, i, i, i);
+		i, i, i, i, i, i, i, i, i, i, i, i);
 	fprintf(file, "\
 6       A       MS      Allocating         \".4 .1 .0\"		\n\
 6       Ar       MS      AllocatingReuse       \".1 .1 .8\"		\n\
