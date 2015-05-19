@@ -20,6 +20,7 @@ StarPU 1.3.0 (svn revision xxxx)
 
 New features:
   * Enable anticipative writeback by default.
+  * New scheduler with heterogeneous priorities
 
 StarPU 1.2.0 (svn revision xxxx)
 ==============================================
