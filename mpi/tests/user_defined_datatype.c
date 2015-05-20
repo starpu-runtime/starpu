@@ -69,8 +69,8 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 	ret = starpu_mpi_init(&argc, &argv, 1);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	MPI_Comm_size(MPI_COMM_WORLD, &nodes);
+	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
+	starpu_mpi_comm_size(MPI_COMM_WORLD, &nodes);
 
 	if (nodes < 2)
 	{

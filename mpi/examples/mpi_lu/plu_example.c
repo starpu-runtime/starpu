@@ -419,8 +419,8 @@ int main(int argc, char **argv)
 	if (thread_support < MPI_THREAD_FUNNELED)
 		fprintf(stderr,"Warning: MPI does not have thread support!\n");
 
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
+	starpu_mpi_comm_size(MPI_COMM_WORLD, &world_size);
 
 	starpu_srand48((long int)time(NULL));
 

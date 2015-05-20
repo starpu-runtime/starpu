@@ -113,7 +113,7 @@ void init_element(struct element *el, int size, int foreign_domain)
 	el->foreign_domain=foreign_domain;
 
 	int mpi_rank, mpi_size;
-	MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+	starpu_mpi_comm_rank(MPI_COMM_WORLD, &mpi_rank);
 
 	starpu_vector_data_register(&el->recv, 0, (uintptr_t)el->array_recv, size, sizeof(int));
 	starpu_vector_data_register(&el->send, 0, (uintptr_t)el->array_send, size, sizeof(int));
@@ -170,8 +170,8 @@ int main(int argc, char * argv[])
 	int ret;
 	int mpi_rank, mpi_size;
 	MPI_Init(&argc, &argv);
-	MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
-	MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+	starpu_mpi_comm_rank(MPI_COMM_WORLD, &mpi_rank);
+	starpu_mpi_comm_size(MPI_COMM_WORLD, &mpi_size);
 
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
