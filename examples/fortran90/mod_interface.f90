@@ -51,21 +51,4 @@ MODULE mod_interface
      END SUBROUTINE starpu_copy_element_task_c
   END INTERFACE
 
-  INTERFACE
-     FUNCTION starpu_init_c() BIND(C)
-       USE iso_c_binding
-       INTEGER(KIND=C_INT)                   :: main_starpu_init_c
-     END FUNCTION starpu_init_c
-  END INTERFACE
-
-  INTERFACE starpu_task_wait_for_all_c
-     SUBROUTINE starpu_task_wait_for_all() BIND(C)
-     END SUBROUTINE starpu_task_wait_for_all
-  END INTERFACE
-
-  INTERFACE starpu_shutdown_c
-     SUBROUTINE starpu_shutdown() BIND(C)
-     END SUBROUTINE starpu_shutdown
-  END INTERFACE
-
 END MODULE mod_interface

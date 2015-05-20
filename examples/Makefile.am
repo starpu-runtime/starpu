@@ -330,6 +330,7 @@ endif
 if STARPU_HAVE_FC
 fortran90_f90_example_SOURCES =	\
 	fortran90/mod_types.f90		\
+	$(top_srcdir)/include/mod_starpu.f90	\
 	fortran90/mod_interface.f90	\
 	fortran90/mod_compute.f90	\
 	fortran90/marshalling.c		\
@@ -935,8 +936,12 @@ if STARPU_HAVE_FC
 mod_types.mod: fortran90_f90_example-mod_types.o
 mod_compute.mod: fortran90_f90_example-mod_compute.o
 mod_interface.mod: fortran90_f90_example-mod_interface.o
+mod_starpu.mod: fortran90_f90_example-mod_starpu.o
 
-fortran90_f90_example-mod_compute.o: fortran90/mod_compute.f90 mod_types.mod mod_interface.mod
+fortran90_f90_example-mod_starpu.o: 
+	$(AM_V_FC)$(FC) $(fortran90_f90_example_FCFLAGS) $(FCFLAGS) -c -o fortran90_f90_example-mod_starpu.o '$(top_srcdir)/'include/mod_starpu.f90
+
+fortran90_f90_example-mod_compute.o: fortran90/mod_compute.f90 mod_types.mod mod_interface.mod mod_starpu.mod
 	$(AM_V_FC)$(FC) $(fortran90_f90_example_FCFLAGS) $(FCFLAGS) -c -o fortran90_f90_example-mod_compute.o `test -f 'fortran90/mod_compute.f90' || echo '$(srcdir)/'`fortran90/mod_compute.f90
 
 fortran90_f90_example-f90_example.o: fortran90/f90_example.f90 mod_types.mod mod_interface.mod mod_compute.mod

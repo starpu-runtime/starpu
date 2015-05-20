@@ -89,7 +89,8 @@ versinclude_HEADERS = 				\
 	include/starpu_thread.h			\
 	include/starpu_thread_util.h		\
 	include/starpu_tree.h			\
-	include/starpu_simgrid_wrap.h
+	include/starpu_simgrid_wrap.h		\
+	include/mod_starpu.f90
 
 nodist_versinclude_HEADERS = 			\
 	include/starpu_config.h
