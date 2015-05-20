@@ -20,11 +20,12 @@
 prefix=@prefix@
 SMPIRUN=@smpirun_path@
 STARPU_DATADIR=@datarootdir@
+STARPU_XSLTDIR=$STARPU_DATADIR/starpu
 SOURCE_DATADIR=@abs_srcdir@
 BUILDDIR=@abs_builddir@
 
 # When executed from source, take xslt from source
-[ "$(realpath $0)" = $BUILDDIR/starpu_smpirun ] && STARPU_DATADIR=$SOURCE_DATADIR
+[ "$(realpath $0)" = $BUILDDIR/starpu_smpirun ] && STARPU_XSLTDIR=$SOURCE_DATADIR
 
 MPI_PLATFORM=""
 MPI_HOSTFILE=""
@@ -79,7 +80,7 @@ NODE_PLATFORM=$STARPU_PERF_MODEL_DIR/bus/${STARPU_HOSTNAME}.platform.xml
 EOF
 	tail -n +3 $MPI_PLATFORM | grep -v '<platform' | grep -v '</platform'
 	for i in $(seq 0 $((NP - 1))) ; do
-		xsltproc --novalid --stringparam ASname StarPU-MPI$i $STARPU_DATADIR/starpu/starpu_smpi.xslt $NODE_PLATFORM | grep -v network/ | tail -n +4 | head -n -1
+		xsltproc --novalid --stringparam ASname StarPU-MPI$i $STARPU_XSLTDIR/starpu_smpi.xslt $NODE_PLATFORM | grep -v network/ | tail -n +4 | head -n -1
 	done
 	cat << \EOF
 </AS>
