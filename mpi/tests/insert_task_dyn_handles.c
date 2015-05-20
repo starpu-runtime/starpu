@@ -59,7 +59,7 @@ int main(int argc, char **argv)
 	struct starpu_data_descr *descrs;
 
 	MPI_Init(&argc, &argv);
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");

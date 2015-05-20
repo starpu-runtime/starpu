@@ -115,8 +115,8 @@ int main(int argc, char **argv)
 	size_t *comm_amount_without_cache;
 
 	MPI_Init(&argc, &argv);
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	MPI_Comm_size(MPI_COMM_WORLD, &size);
+	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
+	starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
 
 	setenv("STARPU_COMM_STATS", "1", 1);
 	setenv("STARPU_MPI_CACHE_STATS", "1", 1);

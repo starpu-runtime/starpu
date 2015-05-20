@@ -209,7 +209,7 @@ int main(int argc, char **argv)
 	int node, insert_task, data_array;
 
 	MPI_Init(&argc, &argv);
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 
 	global_ret = 0;
 	for(node=0 ; node<=1 ; node++)

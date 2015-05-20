@@ -44,7 +44,7 @@ static inline void STARPU_PLU(common_u22)(void *descr[],
 	struct debug_info *info = _args;
 
 	int rank;
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 	fprintf(stderr, "KERNEL 22 %d - k = %d i = %d j = %d\n", rank, info->k, info->i, info->j);
 #endif
 
@@ -142,7 +142,7 @@ static inline void STARPU_PLU(common_u12)(void *descr[],
 	struct debug_info *info = _args;
 
 	int rank;
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 #warning fixed debugging according to other tweak
 	//fprintf(stderr, "KERNEL 12 %d - k = %d i %d\n", rank, info->k, info->i);
 	fprintf(stderr, "KERNEL 21 %d - k = %d i %d\n", rank, info->k, info->j);
@@ -250,7 +250,7 @@ static inline void STARPU_PLU(common_u21)(void *descr[],
 	struct debug_info *info = _args;
 
 	int rank;
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 #warning fixed debugging according to other tweak
 	//fprintf(stderr, "KERNEL 21 %d (k = %d, i = %d)\n", rank, info->k, info->i);
 	fprintf(stderr, "KERNEL 12 %d (k = %d, j = %d)\n", rank, info->k, info->j);
@@ -356,7 +356,7 @@ static inline void STARPU_PLU(common_u11)(void *descr[],
 	struct debug_info *info = _args;
 
 	int rank;
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 	fprintf(stderr, "KERNEL 11 %d - k = %d\n", rank, info->k);
 #endif
 

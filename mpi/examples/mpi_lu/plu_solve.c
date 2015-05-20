@@ -233,7 +233,7 @@ TYPE *STARPU_PLU(reconstruct_matrix)(unsigned size, unsigned nblocks)
 	unsigned block_size = size/nblocks;
 
 	int rank;
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 
 	unsigned bi, bj;
 	for (bj = 0; bj < nblocks; bj++)
@@ -331,7 +331,7 @@ void STARPU_PLU(compute_lu_matrix)(unsigned size, unsigned nblocks, TYPE *Asaved
 	unsigned display = STARPU_PLU(display_flag)();
 
 	int rank;
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 
 	if (rank == 0)
 	{
