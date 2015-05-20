@@ -16,7 +16,7 @@
 
 PROG = f90_example
 
-STARPU_MOD = $(shell pkg-config --cflags-only-I starpu-1.3|sed -e 's/^-I//;s/  *//g')/mod_starpu.f90
+STARPU_MOD = $(shell pkg-config --cflags-only-I starpu-1.1|sed -e 's/^-I//;s/  *//g')/mod_starpu.f90
 
 SRCSF = mod_types.f90		\
 	mod_interface.f90	\
@@ -27,9 +27,9 @@ SRCSC = marshalling.c
 FC = gfortran
 CC = gcc
 
-CFLAGS = -g $(shell pkg-config --cflags starpu-1.3)
+CFLAGS = -g $(shell pkg-config --cflags starpu-1.1)
 FCFLAGS = -fdefault-real-8 -J. -g
-LDLIBS =  $(shell pkg-config --libs starpu-1.3)
+LDLIBS =  $(shell pkg-config --libs starpu-1.1)
 
 OBJS = $(SRCSC:%.c=%.o) mod_starpu.o $(SRCSF:%.f90=%.o)
 
