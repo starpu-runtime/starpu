@@ -51,7 +51,7 @@ enum starpu_heteroprio_types
 	STARPU_NB_TYPES
 };
 
-const unsigned starpu_heteroprio_types_to_arch[STARPU_NB_TYPES+1] =
+static const unsigned starpu_heteroprio_types_to_arch[STARPU_NB_TYPES+1] =
 {
 #ifdef STARPU_USE_CPU
 	STARPU_CPU,
