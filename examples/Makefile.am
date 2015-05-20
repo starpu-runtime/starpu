@@ -4,6 +4,7 @@
 # Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
 # Copyright (C) 2011  Télécom-SudParis
 # Copyright (C) 2011-2012  INRIA
+# Copyright (C) 2015  Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -215,6 +216,11 @@ STARPU_EXAMPLES +=				\
 	basic_examples/vector_scal_fortran	\
 	fortran/hello
 endif
+
+if STARPU_HAVE_FC
+STARPU_EXAMPLES +=				\
+	fortran90/f90_example
+endif
 endif
 
 if !NO_BLAS_LIB
@@ -319,6 +325,17 @@ fortran_hello_SOURCES	=		\
 	fortran/hello_c.c		\
 	fortran/hello.F			\
 	fortran/StarPU_fortran.h
+endif
+
+if STARPU_HAVE_FC
+fortran90_f90_example_SOURCES =	\
+	fortran90/mod_types.f90		\
+	fortran90/mod_interface.f90	\
+	fortran90/mod_compute.f90	\
+	fortran90/marshalling.c		\
+	fortran90/f90_example.f90
+
+fortran90_f90_example_FCFLAGS = -fdefault-real-8 -J$(top_builddir)/examples
 endif
 
 #######################
@@ -910,3 +927,18 @@ showcheck:
 	done ; \
 	exit $$RET
 
+if STARPU_HAVE_FC
+# Fortran90 example
+# - list explicit dependences to control proper module files generation
+# - the overriding rule fully disables the corresponing default rule, thus
+#   the default rule body must be copied entirely
+mod_types.mod: fortran90_f90_example-mod_types.o
+mod_compute.mod: fortran90_f90_example-mod_compute.o
+mod_interface.mod: fortran90_f90_example-mod_interface.o
+
+fortran90_f90_example-mod_compute.o: fortran90/mod_compute.f90 mod_types.mod mod_interface.mod
+	$(AM_V_FC)$(FC) $(fortran90_f90_example_FCFLAGS) $(FCFLAGS) -c -o fortran90_f90_example-mod_compute.o `test -f 'fortran90/mod_compute.f90' || echo '$(srcdir)/'`fortran90/mod_compute.f90
+
+fortran90_f90_example-f90_example.o: fortran90/f90_example.f90 mod_types.mod mod_interface.mod mod_compute.mod
+	$(AM_V_FC)$(FC) $(fortran90_f90_example_FCFLAGS) $(FCFLAGS) -c -o fortran90_f90_example-f90_example.o `test -f 'fortran90/f90_example.f90' || echo '$(srcdir)/'`fortran90/f90_example.f90
+endif
