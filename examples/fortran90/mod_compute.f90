@@ -17,6 +17,7 @@
 MODULE mod_compute
 
   USE mod_types
+  USE mod_starpu
   USE mod_interface
   USE iso_c_binding
 

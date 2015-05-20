@@ -16,6 +16,8 @@
 
 PROG = f90_example
 
+STARPU_MOD = $(shell pkg-config --cflags-only-I starpu-1.3|sed -e 's/^-I//;s/  *//g')/mod_starpu.f90
+
 SRCSF = mod_types.f90		\
 	mod_interface.f90	\
 	mod_compute.f90		\
@@ -29,7 +31,7 @@ CFLAGS = -g $(shell pkg-config --cflags starpu-1.3)
 FCFLAGS = -fdefault-real-8 -J. -g
 LDLIBS =  $(shell pkg-config --libs starpu-1.3)
 
-OBJS = $(SRCSC:%.c=%.o) $(SRCSF:%.f90=%.o)
+OBJS = $(SRCSC:%.c=%.o) mod_starpu.o $(SRCSF:%.f90=%.o)
 
 .phony: all clean
 all: $(PROG)
@@ -40,6 +42,9 @@ $(PROG): $(OBJS)
 %.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
+mod_starpu.o: $(STARPU_MOD)
+	$(FC) $(FCFLAGS) -c -o $@ $<
+
 %.o: %.f90
 	$(FC) $(FCFLAGS) -c -o $@ $<
 
@@ -47,5 +52,5 @@ clean:
 	rm -fv *.o *.mod $(PROG)
 
 # modfiles generation dependences
-mod_compute.o: mod_compute.f90 mod_types.o mod_interface.o
+mod_compute.o: mod_compute.f90 mod_types.o mod_interface.o mod_starpu.o
 f90_example.o: f90_example.f90 mod_types.o mod_interface.o mod_compute.o

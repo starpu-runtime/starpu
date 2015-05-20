@@ -17,6 +17,7 @@
 PROGRAM f90_example
 
   USE mod_types
+  USE mod_starpu
   USE mod_interface
   USE mod_compute
   USE iso_c_binding
@@ -47,7 +48,7 @@ PROGRAM f90_example
   ENDDO
 
   !Initialization of StarPU
-  res = starpu_init_c()
+  res = starpu_init_c(C_NULL_PTR)
 
   !Registration of elements
   DO i = 1,Nelt
