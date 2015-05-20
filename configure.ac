@@ -4,6 +4,7 @@
 # Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  Centre National de la Recherche Scientifique
 # Copyright (C) 2011  Télécom-SudParis
 # Copyright (C) 2011, 2012  Institut National de Recherche en Informatique et Automatique
+# Copyright (C) 2015  Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -76,6 +77,7 @@ AC_PROG_CPP
 AC_PROG_SED
 AC_PROG_LN_S
 AC_PROG_F77
+AC_PROG_FC
 
 LT_PREREQ([2.2])
 LT_INIT([win32-dll])
@@ -588,7 +590,7 @@ if test x$enable_cuda = xyes; then
 	STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lcuda"
 	STARPU_CUFFT_LDFLAGS="-lcufft"
 
-        if test "$F77" = "gfortran" ; then
+        if test "$F77" = "gfortran" -o "$FC" = "gfortran" ; then
             STARPU_CUDA_FORTRAN_LDFLAGS="-lgfortran"
             AC_SUBST(STARPU_CUDA_FORTRAN_LDFLAGS)
         fi
@@ -1947,6 +1949,12 @@ if test "$enable_cuda" = "yes" -a "$ICC" != ""; then
    CC="$OLD_CC"
    CFLAGS="$OLD_CFLAGS"
 fi
+
+# Fortran compiler
+if test "x$FC" != "x"; then
+  AC_DEFINE(STARPU_HAVE_FC, [], [Define this if a Fortran compiler is available])
+fi
+AM_CONDITIONAL([STARPU_HAVE_FC], [test "x$FC" != "x"])
 
 # Disable ICC on windows
 if test "x$ICC" != "x" -a "$starpu_windows" = "yes" ; then
