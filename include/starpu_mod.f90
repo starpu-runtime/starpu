@@ -26,10 +26,11 @@ MODULE starpu_mod
 
   ! starpu_init
   INTERFACE
-     SUBROUTINE starpu_init(conf) BIND(C)
+     FUNCTION starpu_init(conf) BIND(C)
        USE iso_c_binding
        TYPE(C_PTR), VALUE :: conf
-     END SUBROUTINE starpu_init
+       INTEGER(KIND=C_INT) :: starpu_init
+     END FUNCTION starpu_init
   END INTERFACE
 
   ! starpu_initialize
