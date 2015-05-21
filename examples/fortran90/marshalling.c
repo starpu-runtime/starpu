@@ -95,7 +95,7 @@ void starpu_loop_element_task_c(double coeff, void **ro_h, void **dro_h, void **
 	starpu_data_handle_t basis_handle = *basis_h;
 
 	/* execute the task on any eligible computational ressource */
-	ret = starpu_task_insert(&cl_loop_element,
+	ret = starpu_insert_task(&cl_loop_element,
 				 STARPU_VALUE, &coeff, sizeof(double),
 				 STARPU_R,     ro_handle,
 				 STARPU_RW,    dro_handle,
