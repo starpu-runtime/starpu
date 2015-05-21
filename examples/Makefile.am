@@ -931,17 +931,17 @@ if STARPU_HAVE_FC
 # - list explicit dependences to control proper module files generation
 # - the overriding rule fully disables the corresponing default rule, thus
 #   the default rule body must be copied entirely
-mod_types.mod: fortran90_f90_example-mod_types.o
-mod_compute.mod: fortran90_f90_example-mod_compute.o
-mod_interface.mod: fortran90_f90_example-mod_interface.o
-starpu_mod.mod: fortran90_f90_example-starpu_mod.o
+mod_types.mod: mod_types.o
+mod_compute.mod: mod_compute.o
+mod_interface.mod: mod_interface.o
+starpu_mod.mod: starpu_mod.o
 
-fortran90_f90_example-starpu_mod.o:
-	$(AM_V_FC)$(FC) $(fortran90_f90_example_FCFLAGS) $(FCFLAGS) -c -o fortran90_f90_example-starpu_mod.o '$(top_srcdir)/'include/starpu_mod.f90
+starpu_mod.o: $(top_srcdir)/include/starpu_mod.f90
+	$(AM_V_FC)$(FC) $(fortran90_f90_example_FCFLAGS) $(FCFLAGS) -c -o $@ '$(top_srcdir)/'include/starpu_mod.f90
 
-fortran90_f90_example-mod_compute.o: fortran90/mod_compute.f90 mod_types.mod mod_interface.mod starpu_mod.mod
-	$(AM_V_FC)$(FC) $(fortran90_f90_example_FCFLAGS) $(FCFLAGS) -c -o fortran90_f90_example-mod_compute.o `test -f 'fortran90/mod_compute.f90' || echo '$(srcdir)/'`fortran90/mod_compute.f90
+mod_compute.o: $(top_srcdir)/examples/fortran90/mod_compute.f90 mod_types.mod mod_interface.mod starpu_mod.mod
+	$(AM_V_FC)$(FC) $(fortran90_f90_example_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'fortran90/mod_compute.f90' || echo '$(srcdir)/'`fortran90/mod_compute.f90
 
-fortran90_f90_example-f90_example.o: fortran90/f90_example.f90 mod_types.mod mod_interface.mod mod_compute.mod
-	$(AM_V_FC)$(FC) $(fortran90_f90_example_FCFLAGS) $(FCFLAGS) -c -o fortran90_f90_example-f90_example.o `test -f 'fortran90/f90_example.f90' || echo '$(srcdir)/'`fortran90/f90_example.f90
+f90_example.o: $(top_srcdir)/examples/fortran90/f90_example.f90 $(top_srcdir)/examples/fortran90/marshalling.c mod_types.mod mod_interface.mod mod_compute.mod starpu_mod.mod
+	$(AM_V_FC)$(FC) $(fortran90_f90_example_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'fortran90/f90_example.f90' || echo '$(srcdir)/'`fortran90/f90_example.f90
 endif
