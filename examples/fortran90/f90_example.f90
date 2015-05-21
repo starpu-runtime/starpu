@@ -17,7 +17,7 @@
 PROGRAM f90_example
 
   USE mod_types
-  USE mod_starpu
+  USE starpu_mod
   USE mod_interface
   USE mod_compute
   USE iso_c_binding
@@ -51,7 +51,7 @@ PROGRAM f90_example
   res = starpu_my_init_c()
   cpus = starpu_cpu_worker_get_count()
   IF (cpus == 0) THEN
-     CALL starpu_shutdown_c()
+     CALL starpu_shutdown()
      STOP 77
   END IF
 
@@ -70,7 +70,7 @@ PROGRAM f90_example
         CALL starpu_loop_element_task_c(numpar%coeff,elt%ro_h,elt%dro_h,elt%basis_h)
      ENDDO
      ! sync (if needed by the algorithm)
-     CALL starpu_task_wait_for_all_c()
+     CALL starpu_task_wait_for_all()
 
      ! - - - - -
 
@@ -80,7 +80,7 @@ PROGRAM f90_example
          CALL starpu_copy_element_task_c(elt%ro_h,elt%dro_h)
      ENDDO
      ! sync (if needed by the algorithm)
-     CALL starpu_task_wait_for_all_c()
+     CALL starpu_task_wait_for_all()
 
   ENDDO
   !Unregistration of elements
@@ -90,7 +90,7 @@ PROGRAM f90_example
   ENDDO
 
   !Terminate StarPU, no task can be submitted after
-  CALL starpu_shutdown_c()
+  CALL starpu_shutdown()
 
   !Check data with StarPU
   WRITE(6,'(a)') " "
