@@ -20,7 +20,7 @@ MODULE starpu_mod
   INTERFACE
      SUBROUTINE starpu_conf_init(conf) BIND(C)
        USE iso_c_binding
-       TYPE(C_PTR), INTENT(INOUT) :: conf
+       TYPE(C_PTR), VALUE :: conf
      END SUBROUTINE starpu_conf_init
   END INTERFACE
 
@@ -28,7 +28,7 @@ MODULE starpu_mod
   INTERFACE
      SUBROUTINE starpu_init(conf) BIND(C)
        USE iso_c_binding
-       TYPE(C_PTR), INTENT(IN) :: conf
+       TYPE(C_PTR), VALUE :: conf
      END SUBROUTINE starpu_init
   END INTERFACE
 
@@ -96,7 +96,7 @@ MODULE starpu_mod
   INTERFACE
      SUBROUTINE starpu_get_version(major,minor,release) BIND(C)
        USE iso_c_binding
-       TYPE(C_PTR), INTENT(OUT) :: major,minor,release
+       INTEGER(KIND=C_INT), INTENT(OUT) :: major,minor,release
      END SUBROUTINE starpu_get_version
   END INTERFACE
 
