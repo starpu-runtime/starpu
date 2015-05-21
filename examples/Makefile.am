@@ -330,7 +330,7 @@ endif
 if STARPU_HAVE_FC
 fortran90_f90_example_SOURCES =	\
 	fortran90/mod_types.f90		\
-	$(top_srcdir)/include/mod_starpu.f90	\
+	$(top_srcdir)/include/starpu_mod.f90	\
 	fortran90/mod_interface.f90	\
 	fortran90/mod_compute.f90	\
 	fortran90/marshalling.c		\
