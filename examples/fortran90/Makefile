@@ -16,7 +16,7 @@
 
 PROG = f90_example
 
-MOD_STARPU = $(shell pkg-config --cflags-only-I starpu-1.3|sed -e 's/^-I//;s/  *//g')/starpu_mod.f90
+STARPU_MOD = $(shell pkg-config --cflags-only-I starpu-1.3|sed -e 's/^-I//;s/  *//g')/starpu_mod.f90
 
 SRCSF = mod_types.f90		\
 	mod_interface.f90	\
@@ -42,7 +42,7 @@ $(PROG): $(OBJS)
 %.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-starpu_mod.o: $(MOD_STARPU)
+starpu_mod.o: $(STARPU_MOD)
 	$(FC) $(FCFLAGS) -c -o $@ $<
 
 %.o: %.f90
