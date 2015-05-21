@@ -28,6 +28,7 @@ PROGRAM f90_example
   TYPE(type_numpar)              :: numpar
   TYPE(type_mesh_elt),POINTER    :: elt   => NULL()
   INTEGER(KIND=C_INT)            :: i,Nelt,res,cpus
+  INTEGER(KIND=C_INT)            :: starpu_maj,starpu_min,starpu_rev
   INTEGER(KIND=C_INT)            :: neq,ng,nb,it,it_tot
   REAL(KIND=C_DOUBLE)            :: r, coeff2
 
@@ -49,6 +50,8 @@ PROGRAM f90_example
 
   !Initialization of StarPU
   res = starpu_my_init_c()
+  call starpu_get_version(starpu_maj,starpu_min,starpu_rev)
+  WRITE(6,'(a,i4,a,i4,a,i4)')      "StarPU version: ", starpu_maj , "." , starpu_min , "." , starpu_rev
   cpus = starpu_cpu_worker_get_count()
   IF (cpus == 0) THEN
      CALL starpu_shutdown()
