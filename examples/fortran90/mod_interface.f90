@@ -17,6 +17,13 @@
 MODULE mod_interface
 
   INTERFACE
+     FUNCTION starpu_my_init_c() BIND(C)
+       USE iso_c_binding
+       INTEGER(KIND=C_INT)                   :: starpu_my_init_c
+     END FUNCTION starpu_my_init_c
+  END INTERFACE
+
+  INTERFACE
      SUBROUTINE starpu_register_element_c(Neq,Np,Ng,ro,dro,basis,ro_h,dro_h,basis_h) BIND(C)
        USE iso_c_binding
        INTEGER(KIND=C_INT),VALUE             :: Neq,Np,Ng

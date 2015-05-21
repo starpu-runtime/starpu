@@ -152,7 +152,7 @@ void starpu_copy_element_task_c(void **ro_h, void **dro_h)
 }
 
 //--------------------------------------------------------------//
-int starpu_init_c()
+int starpu_my_init_c()
 {
 	/* Initialize StarPU with default configuration */
 	int ret;
