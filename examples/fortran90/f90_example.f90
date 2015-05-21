@@ -15,7 +15,7 @@
 ! See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
 PROGRAM f90_example
-
+  
   USE mod_types
   USE mod_starpu
   USE mod_interface
@@ -27,9 +27,9 @@ PROGRAM f90_example
   TYPE(type_mesh)                :: mesh
   TYPE(type_numpar)              :: numpar
   TYPE(type_mesh_elt),POINTER    :: elt   => NULL()
-  INTEGER                        :: i,Nelt,res
-  INTEGER                        :: neq,ng,nb,it,it_tot
-  REAL                           :: r, coeff2
+  INTEGER(KIND=C_INT)            :: i,Nelt,res
+  INTEGER(KIND=C_INT)            :: neq,ng,nb,it,it_tot
+  REAL(KIND=C_DOUBLE)            :: r, coeff2
 
   !Initialization with arbitrary data
   Nelt           = 2

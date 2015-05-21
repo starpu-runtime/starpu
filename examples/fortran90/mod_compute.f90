@@ -27,10 +27,10 @@ CONTAINS
 
   !--------------------------------------------------------------!
   SUBROUTINE init_element(ro,dro,basis,Neq_max,Np,Ng,i)
-    INTEGER,INTENT(IN)                        :: Neq_max,Np,Ng,i
-    REAL,DIMENSION(:,:),POINTER,INTENT(INOUT) :: ro,basis,dro
+    INTEGER(KIND=C_INT),INTENT(IN)                           :: Neq_max,Np,Ng,i
+    REAL(KIND=C_DOUBLE),DIMENSION(:,:),POINTER,INTENT(INOUT) :: ro,basis,dro
     !Local variables
-    INTEGER                                   :: n,nb,neq
+    INTEGER(KIND=C_INT)                                      :: n,nb,neq
 
     DO nb=1,Np
        DO neq= 1,Neq_max
@@ -54,30 +54,30 @@ CONTAINS
 
   !--------------------------------------------------------------!
   SUBROUTINE loop_element_cpu_fortran(coeff,Neq_max,Np,Ng, &
-       &   ro_ptr,dro_ptr,basis_ptr) BIND(C) 
-    INTEGER(KIND=C_INT),VALUE                 :: Neq_max,Np,Ng
-    REAL(KIND=C_DOUBLE),VALUE                 :: coeff
-    TYPE(C_PTR)                               :: ro_ptr,dro_ptr,basis_ptr
-    !Local variables 
-    REAL,DIMENSION(:,:),POINTER               :: ro,dro,basis
+       &   ro_ptr,dro_ptr,basis_ptr) BIND(C)
+    INTEGER(KIND=C_INT),VALUE                  :: Neq_max,Np,Ng
+    REAL(KIND=C_DOUBLE),VALUE                  :: coeff
+    TYPE(C_PTR)                                :: ro_ptr,dro_ptr,basis_ptr
+    !Local variables
+    REAL(KIND=C_DOUBLE),DIMENSION(:,:),POINTER :: ro,dro,basis
 
     CALL C_F_POINTER(ro_ptr,ro,[Neq_max,Np])
     CALL C_F_POINTER(dro_ptr,dro,[Neq_max,Np])
     CALL C_F_POINTER(basis_ptr,basis,[Np,Ng])
-  
+
     CALL loop_element_cpu(ro,dro,basis,coeff,Neq_max,Ng,Np)
 
   END SUBROUTINE loop_element_cpu_fortran
 
   !--------------------------------------------------------------!
   SUBROUTINE loop_element_cpu(ro,dro,basis,coeff,Neq_max,Ng,Np)
-    REAL,INTENT(IN)                           :: coeff
-    INTEGER,INTENT(IN)                        :: Neq_max,Ng,Np
-    REAL,DIMENSION(:,:),POINTER,INTENT(IN)    :: ro,basis
-    REAL,DIMENSION(:,:),POINTER,INTENT(INOUT) :: dro
+    REAL(KIND=C_DOUBLE),INTENT(IN)                           :: coeff
+    INTEGER(KIND=C_INT),INTENT(IN)                           :: Neq_max,Ng,Np
+    REAL(KIND=C_DOUBLE),DIMENSION(:,:),POINTER,INTENT(IN)    :: ro,basis
+    REAL(KIND=C_DOUBLE),DIMENSION(:,:),POINTER,INTENT(INOUT) :: dro
     !Local variables
-    REAL                                      :: coeff2,r
-    INTEGER                                   :: n,nb,neq
+    REAL(KIND=C_DOUBLE)                                      :: coeff2,r
+    INTEGER(KIND=C_INT)                                      :: n,nb,neq
 
     DO n=1,Ng
        r = 0.
@@ -100,23 +100,23 @@ CONTAINS
 
   !--------------------------------------------------------------!
   SUBROUTINE copy_element_cpu_fortran(Neq_max,Np, &
-       &   ro_ptr,dro_ptr) BIND(C) 
-    INTEGER(KIND=C_INT),VALUE                 :: Neq_max,Np
-    TYPE(C_PTR)                               :: ro_ptr,dro_ptr
-    !Local variables 
-    REAL,DIMENSION(:,:),POINTER               :: ro,dro
+       &   ro_ptr,dro_ptr) BIND(C)
+    INTEGER(KIND=C_INT),VALUE                  :: Neq_max,Np
+    TYPE(C_PTR)                                :: ro_ptr,dro_ptr
+    !Local variables
+    REAL(KIND=C_DOUBLE),DIMENSION(:,:),POINTER :: ro,dro
 
     CALL C_F_POINTER(ro_ptr,ro,[Neq_max,Np])
     CALL C_F_POINTER(dro_ptr,dro,[Neq_max,Np])
-  
+
     CALL copy_element_cpu(ro,dro)
 
   END SUBROUTINE copy_element_cpu_fortran
 
   !--------------------------------------------------------------!
   SUBROUTINE copy_element_cpu(ro,dro)
-    REAL,DIMENSION(:,:),POINTER,INTENT(INOUT) :: ro
-    REAL,DIMENSION(:,:),POINTER,INTENT(IN)    :: dro
+    REAL(KIND=C_DOUBLE),DIMENSION(:,:),POINTER,INTENT(INOUT) :: ro
+    REAL(KIND=C_DOUBLE),DIMENSION(:,:),POINTER,INTENT(IN)    :: dro
 
     ro = ro + dro
 
