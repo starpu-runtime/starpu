@@ -204,7 +204,7 @@ examplebin_PROGRAMS +=				\
 endif
 
 if STARPU_HAVE_FC
-STARPU_EXAMPLES +=				\
+examplebin_PROGRAMS +=				\
 	fortran90/f90_example
 endif
 endif
@@ -306,6 +306,11 @@ endif
 if ATLAS_BLAS_LIB
 STARPU_EXAMPLES +=				\
 	spmv/dw_block_spmv
+endif
+
+if STARPU_HAVE_FC
+STARPU_EXAMPLES +=				\
+	fortran90/f90_example
 endif
 
 ##################
