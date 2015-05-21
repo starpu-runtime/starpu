@@ -15,7 +15,7 @@
 ! See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
 PROGRAM f90_example
-  
+
   USE mod_types
   USE mod_starpu
   USE mod_interface
@@ -27,7 +27,7 @@ PROGRAM f90_example
   TYPE(type_mesh)                :: mesh
   TYPE(type_numpar)              :: numpar
   TYPE(type_mesh_elt),POINTER    :: elt   => NULL()
-  INTEGER(KIND=C_INT)            :: i,Nelt,res
+  INTEGER(KIND=C_INT)            :: i,Nelt,res,cpus
   INTEGER(KIND=C_INT)            :: neq,ng,nb,it,it_tot
   REAL(KIND=C_DOUBLE)            :: r, coeff2
 
@@ -49,6 +49,11 @@ PROGRAM f90_example
 
   !Initialization of StarPU
   res = starpu_my_init_c()
+  cpus = starpu_cpu_worker_get_count()
+  IF (cpus == 0) THEN
+     CALL starpu_shutdown_c()
+     STOP 77
+  END IF
 
   !Registration of elements
   DO i = 1,Nelt
