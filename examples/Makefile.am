@@ -934,12 +934,12 @@ if STARPU_HAVE_FC
 mod_types.mod: fortran90_f90_example-mod_types.o
 mod_compute.mod: fortran90_f90_example-mod_compute.o
 mod_interface.mod: fortran90_f90_example-mod_interface.o
-mod_starpu.mod: fortran90_f90_example-mod_starpu.o
+starpu_mod.mod: fortran90_f90_example-starpu_mod.o
 
-fortran90_f90_example-mod_starpu.o: 
-	$(AM_V_FC)$(FC) $(fortran90_f90_example_FCFLAGS) $(FCFLAGS) -c -o fortran90_f90_example-mod_starpu.o '$(top_srcdir)/'include/mod_starpu.f90
+fortran90_f90_example-starpu_mod.o:
+	$(AM_V_FC)$(FC) $(fortran90_f90_example_FCFLAGS) $(FCFLAGS) -c -o fortran90_f90_example-starpu_mod.o '$(top_srcdir)/'include/starpu_mod.f90
 
-fortran90_f90_example-mod_compute.o: fortran90/mod_compute.f90 mod_types.mod mod_interface.mod mod_starpu.mod
+fortran90_f90_example-mod_compute.o: fortran90/mod_compute.f90 mod_types.mod mod_interface.mod starpu_mod.mod
 	$(AM_V_FC)$(FC) $(fortran90_f90_example_FCFLAGS) $(FCFLAGS) -c -o fortran90_f90_example-mod_compute.o `test -f 'fortran90/mod_compute.f90' || echo '$(srcdir)/'`fortran90/mod_compute.f90
 
 fortran90_f90_example-f90_example.o: fortran90/f90_example.f90 mod_types.mod mod_interface.mod mod_compute.mod
