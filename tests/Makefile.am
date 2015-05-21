@@ -232,6 +232,11 @@ noinst_PROGRAMS =				\
 	sched_policies/simple_deps              \
 	sched_policies/simple_cpu_gpu_sched
 
+if STARPU_HAVE_FC
+noinst_PROGRAMS +=				\
+	fortran90/init_01
+endif
+
 if STARPU_LONG_CHECK
 noinst_PROGRAMS +=				\
 	main/tag_task_data_deps			\
@@ -406,6 +411,12 @@ endif
 
 main_deprecated_func_CFLAGS = $(AM_CFLAGS) -Wno-deprecated-declarations
 main_deprecated_buffer_CFLAGS = $(AM_CFLAGS) -Wno-deprecated-declarations
+
+if STARPU_HAVE_FC
+fortran90_init_01_SOURCES =	\
+	$(top_srcdir)/include/starpu_mod.f90	\
+	fortran90/init_01.f90
+endif
 
 ###################
 # Block interface #
@@ -614,3 +625,18 @@ sched_policies_execute_all_tasks_LDFLAGS = -lm
 showcheck:
 	-cat $(TEST_LOGS) /dev/null
 	! grep -q " runtime error: " $(TEST_LOGS) /dev/null
+
+
+if STARPU_HAVE_FC
+# Fortran90 tests
+# - list explicit dependences to control proper module files generation
+# - the overriding rule fully disables the corresponing default rule, thus
+#   the default rule body must be copied entirely
+starpu_mod.mod: starpu_mod.o
+
+starpu_mod.o: $(top_srcdir)/include/starpu_mod.f90
+	$(AM_V_FC)$(FC) $(fortran90_init_01_FCFLAGS) $(FCFLAGS) -c -o $@ '$(top_srcdir)/'include/starpu_mod.f90
+
+init_01.o: $(top_srcdir)/tests/fortran90/init_01.f90 starpu_mod.mod
+	$(AM_V_FC)$(FC) $(fortran90_init_01_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'fortran90/init_01.f90' || echo '$(srcdir)/'`fortran90/init_01.f90
+endif
