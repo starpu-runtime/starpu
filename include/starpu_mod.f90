@@ -92,6 +92,14 @@ MODULE mod_starpu
                 END FUNCTION starpu_get_version
         END INTERFACE
 
+        ! starpu_cpu_worker_get_count
+        INTERFACE
+           FUNCTION starpu_cpu_worker_get_count() BIND(C)
+             USE iso_c_binding
+             INTEGER(KIND=C_INT)              :: starpu_cpu_worker_get_count
+           END FUNCTION starpu_cpu_worker_get_count
+        END INTERFACE
+
         ! == starpu_task.h ==
 
         ! starpu_tag_declare_deps
