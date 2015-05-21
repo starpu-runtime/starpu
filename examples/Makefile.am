@@ -335,8 +335,6 @@ fortran90_f90_example_SOURCES =	\
 	fortran90/mod_compute.f90	\
 	fortran90/marshalling.c		\
 	fortran90/f90_example.f90
-
-fortran90_f90_example_FCFLAGS = -J$(top_builddir)/examples
 endif
 
 #######################
