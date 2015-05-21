@@ -48,7 +48,7 @@ PROGRAM f90_example
   ENDDO
 
   !Initialization of StarPU
-  res = starpu_init_c(C_NULL_PTR)
+  res = starpu_my_init_c()
 
   !Registration of elements
   DO i = 1,Nelt
