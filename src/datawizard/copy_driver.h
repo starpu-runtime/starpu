@@ -43,7 +43,7 @@ struct _starpu_data_request;
 struct _starpu_data_replicate;
 
 #ifdef STARPU_USE_MIC
-/* MIC need memory_node to now which MIC is concerned.
+/* MIC needs memory_node to know which MIC is concerned.
  * mark is used to wait asynchronous request.
  * signal is used to test asynchronous request. */
 struct _starpu_mic_async_event
