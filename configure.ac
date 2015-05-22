@@ -551,6 +551,28 @@ AC_DEFUN([STARPU_CHECK_CUDA],
 	CPPFLAGS="${SAVED_CPPFLAGS}"
 	unset STARPU_CUDA_LDFLAGS
     else
+   	if test "$NVCC" = "" ; then
+            AC_PATH_PROG([NVCC], [nvcc], [not-found],
+	   	[$cuda_dir/bin:$PATH:/usr/local/cuda/bin:/usr/bin:/bin])
+	fi
+	if test "x$NVCC" = "xnot-found"; then
+	    AC_MSG_WARN(['nvcc' not found, disabling CUDA])
+	    have_valid_cuda=no
+	else
+	    AC_MSG_CHECKING(whether nvcc supports sm_13 architecture)
+	    OLD_NVCCFLAGS="$NVCCFLAGS"
+	    NVCCFLAGS="$NVCCFLAGS -arch sm_13"
+	    echo "int main(int argc, char **argv) { return 0;}" > cuda_test.cu
+	    $NVCC $NVCCFLAGS -c cuda_test.cu >/dev/null 2>&1
+	    if test $? -eq 0
+	    then
+		AC_MSG_RESULT(yes)
+	    else
+		AC_MSG_RESULT(no)
+		NVCCFLAGS="$OLD_NVCCFLAGS"
+	    fi
+	fi
+
 	# nvcc is a wrapper around GCC, and calls it with the -dumpspecs
 	# option, which is GCC specific. If $CC does not support -dumpspecs, we
 	# should let nvcc choose another compiler (by default, gcc, if it is
@@ -620,17 +642,6 @@ if test x$enable_cuda = xyes -o x$enable_cuda = xmaybe; then
     fi
     # now we enable CUDA if and only if a proper setup is available
     enable_cuda=$have_valid_cuda
-fi
-
-if test x$enable_cuda = xyes; then
-   	if test "$NVCC" = "" ; then
-            AC_PATH_PROG([NVCC], [nvcc], [not-found],
-	   	[$cuda_dir/bin:$PATH:/usr/local/cuda/bin:/usr/bin:/bin])
-	fi
-	if test "x$NVCC" = "xnot-found"; then
-	   AC_MSG_WARN(['nvcc' not found, disabling CUDA])
-	   enable_cuda=no
-	fi
 fi
 
 AC_MSG_CHECKING(whether CUDA should be used)
