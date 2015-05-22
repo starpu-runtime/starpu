@@ -218,8 +218,10 @@ STARPU_EXAMPLES +=				\
 endif
 
 if STARPU_HAVE_FC
+if !STARPU_SANITIZE
 STARPU_EXAMPLES +=				\
 	fortran90/f90_example
+endif
 endif
 endif
 
