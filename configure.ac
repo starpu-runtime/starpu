@@ -2093,6 +2093,9 @@ AH_BOTTOM([
 #endif
 ])
 
+SANITIZE=$(echo $CFLAGS | grep sanitize)
+AM_CONDITIONAL(STARPU_SANITIZE, test -n "$SANITIZE")
+
 AC_OUTPUT([
 	Makefile
 	src/Makefile

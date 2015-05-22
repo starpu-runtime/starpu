@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2009-2013, 2015  Université de Bordeaux
-# Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+# Copyright (C) 2010, 2011, 2012, 2013, 2015  Centre National de la Recherche Scientifique
 # Copyright (C) 2011  Télécom-SudParis
 # Copyright (C) 2011-2012  INRIA
 # Copyright (C) 2015  Inria
@@ -204,8 +204,10 @@ examplebin_PROGRAMS +=				\
 endif
 
 if STARPU_HAVE_FC
+if !STARPU_SANITIZE
 examplebin_PROGRAMS +=				\
 	fortran90/f90_example
+endif
 endif
 endif
 

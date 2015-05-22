@@ -1,8 +1,8 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2009-2015  Université de Bordeaux
-# Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
-# Copyright (C) 2010, 2011, 2012  Institut National de Recherche en Informatique et Automatique
+# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+# Copyright (C) 2010, 2011, 2012  INRIA
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -233,8 +233,10 @@ noinst_PROGRAMS =				\
 	sched_policies/simple_cpu_gpu_sched
 
 if STARPU_HAVE_FC
+if !STARPU_SANITIZE
 noinst_PROGRAMS +=				\
 	fortran90/init_01
+endif
 endif
 
 if STARPU_LONG_CHECK
@@ -442,7 +444,7 @@ endif
 ##################
 datawizard_interfaces_bcsr_bcsr_interface_SOURCES= \
 	datawizard/interfaces/test_interfaces.c \
-	datawizard/interfaces/bcsr/bcsr_interface.c 
+	datawizard/interfaces/bcsr/bcsr_interface.c
 
 if STARPU_USE_CUDA
 datawizard_interfaces_bcsr_bcsr_interface_SOURCES+= \
@@ -461,7 +463,7 @@ endif
 #################
 datawizard_interfaces_coo_coo_interface_SOURCES= \
 	datawizard/interfaces/test_interfaces.c \
-	datawizard/interfaces/coo/coo_interface.c 
+	datawizard/interfaces/coo/coo_interface.c
 
 if STARPU_USE_CUDA
 datawizard_interfaces_coo_coo_interface_SOURCES+= \
@@ -506,7 +508,7 @@ endif
 
 if STARPU_USE_OPENCL
 datawizard_interfaces_vector_test_vector_interface_SOURCES +=               \
-	datawizard/interfaces/vector/test_vector_opencl.c 
+	datawizard/interfaces/vector/test_vector_opencl.c
 nobase_STARPU_OPENCL_DATA_DATA += \
 	datawizard/interfaces/vector/test_vector_opencl_kernel.cl
 endif
