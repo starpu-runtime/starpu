@@ -162,9 +162,5 @@ int starpu_my_init_c()
 
 	ret = starpu_init(&conf);
 	/*     int ret = starpu_init(NULL); */
-	if (ret == -ENODEV) goto enodev;
-
 	return ret;
-enodev:
-	return 77;
 }

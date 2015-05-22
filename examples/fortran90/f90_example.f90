@@ -50,6 +50,9 @@ PROGRAM f90_example
 
   !Initialization of StarPU
   res = starpu_my_init_c()
+  IF (res == -19) THEN
+     STOP 77
+  END IF
   call starpu_get_version(starpu_maj,starpu_min,starpu_rev)
   WRITE(6,'(a,i4,a,i4,a,i4)')      "StarPU version: ", starpu_maj , "." , starpu_min , "." , starpu_rev
   cpus = starpu_cpu_worker_get_count()
