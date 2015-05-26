@@ -571,6 +571,7 @@ AC_DEFUN([STARPU_CHECK_CUDA],
 		AC_MSG_RESULT(no)
 		NVCCFLAGS="$OLD_NVCCFLAGS"
 	    fi
+	    rm -f test_cuda*
 	fi
 
 	# nvcc is a wrapper around GCC, and calls it with the -dumpspecs
