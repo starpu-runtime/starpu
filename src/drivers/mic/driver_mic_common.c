@@ -63,7 +63,7 @@ void _starpu_mic_common_recv(const struct _starpu_mp_node *node, void *msg, int 
 
 /* Handles the error so the caller (which must be generic) doesn't have to
  * care about it.
-x */
+ */
 void _starpu_mic_common_dt_send(const struct _starpu_mp_node *mp_node, void *msg, int len)
 {
 	if ((scif_send(mp_node->host_sink_dt_connection.mic_endpoint, msg, len, SCIF_SEND_BLOCK)) < 0)
