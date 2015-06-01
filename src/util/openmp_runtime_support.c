@@ -900,6 +900,7 @@ int starpu_omp_init(void)
 	_global_state.initial_task = create_omp_task_struct(NULL,
 			_global_state.initial_thread, _global_state.initial_region, 1);
 	_global_state.default_critical = create_omp_critical_struct();
+        _global_state.default_arbiter = starpu_arbiter_create();
 	_global_state.named_criticals = NULL;
 	_starpu_spin_init(&_global_state.named_criticals_lock);
 	_global_state.hash_workers = NULL;
@@ -929,6 +930,8 @@ void starpu_omp_shutdown(void)
 	_global_state.initial_device = NULL;
 	destroy_omp_critical_struct(_global_state.default_critical);
 	_global_state.default_critical = NULL;
+        starpu_arbiter_destroy(_global_state.default_arbiter);
+        _global_state.default_arbiter = NULL;
 	_starpu_spin_lock(&_global_state.named_criticals_lock);
 	{
 		struct starpu_omp_critical *critical, *tmp;
@@ -2478,6 +2481,11 @@ void starpu_omp_vector_annotate(starpu_data_handle_t handle, uint32_t slice_base
 		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 	assert(vector_interface->id == STARPU_VECTOR_INTERFACE_ID);
 	vector_interface->slice_base = slice_base;
+}
+
+struct starpu_arbiter *starpu_omp_get_default_arbiter(void)
+{
+	return _global_state.default_arbiter;
 }
 
 /*
