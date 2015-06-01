@@ -161,6 +161,7 @@ extern void starpu_omp_atomic_fallback_inline_end(void) __STARPU_OMP_NOTHROW;
 extern double starpu_omp_get_wtime(void) __STARPU_OMP_NOTHROW;
 extern double starpu_omp_get_wtick(void) __STARPU_OMP_NOTHROW;
 extern void starpu_omp_vector_annotate(starpu_data_handle_t handle, uint32_t slice_base) __STARPU_OMP_NOTHROW;
+extern struct starpu_arbiter *starpu_omp_get_default_arbiter(void) __STARPU_OMP_NOTHROW;
 
 #ifdef __cplusplus
 }
