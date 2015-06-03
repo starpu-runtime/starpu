@@ -1701,6 +1701,7 @@ void starpu_omp_task_region(const struct starpu_omp_task_region_attr *attr)
 		generated_task->starpu_task->cl_arg = attr->cl_arg;
 		generated_task->starpu_task->cl_arg_size = attr->cl_arg_size;
 		generated_task->starpu_task->cl_arg_free = attr->cl_arg_free;
+		generated_task->starpu_task->priority = attr->priority;
 		{
 			int i;
 			for (i = 0; i < generated_task->cl.nbuffers; i++)
