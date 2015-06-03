@@ -585,7 +585,6 @@ static struct starpu_task *pop_task_heteroprio_policy(unsigned sched_ctx_id)
 		starpu_bitmap_set(hp->waiters, workerid);
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&hp->policy_mutex);
-	STARPU_PTHREAD_MUTEX_LOCK(worker_sched_mutex);
 
 	if(task)
 	{
@@ -598,6 +597,7 @@ static struct starpu_task *pop_task_heteroprio_policy(unsigned sched_ctx_id)
 		}
 	}
 
+	STARPU_PTHREAD_MUTEX_LOCK(worker_sched_mutex);
 	/* if we have task (task) me way have some in the queue (worker->tasks_queue_size) that was freshly addeed (nb_added_tasks) */
 	if(task && worker->tasks_queue->ntasks && nb_added_tasks && starpu_get_prefetch_flag())
 	{

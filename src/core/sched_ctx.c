@@ -1973,14 +1973,6 @@ void starpu_sched_ctx_revert_task_counters(unsigned sched_ctx_id, double ready_f
 
 void starpu_sched_ctx_move_task_to_ctx(struct starpu_task *task, unsigned sched_ctx)
 {
-	int workerid = starpu_worker_get_id();
-	struct _starpu_worker *worker  = NULL;
-	if(workerid != -1)
-	{
-		worker = _starpu_get_worker_struct(workerid);
-		STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
-	}
-
 	task->sched_ctx = sched_ctx;
 
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
@@ -1988,9 +1980,6 @@ void starpu_sched_ctx_move_task_to_ctx(struct starpu_task *task, unsigned sched_
 	_starpu_increment_nsubmitted_tasks_of_sched_ctx(j->task->sched_ctx);
 
 	_starpu_repush_task(j);
-
-	if(workerid != -1)
-		STARPU_PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
 }
 
 static unsigned _worker_sleeping_in_other_ctx(unsigned sched_ctx_id, int workerid)
