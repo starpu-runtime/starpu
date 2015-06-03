@@ -133,6 +133,10 @@ void starpu_sched_ctx_unbook_workers_for_task(unsigned sched_ctx_id, int master)
 /* return the first context (child of sched_ctx_id) where the workerid is master */
 unsigned starpu_sched_ctx_worker_is_master_for_child_ctx(int workerid, unsigned sched_ctx_id);
 
+/* Returns the context id of masterid if it master of a context. */
+/* If not, returns STARPU_NMAX_SCHED_CTXS. */
+unsigned starpu_sched_ctx_master_get_context(int masterid);
+
 void starpu_sched_ctx_revert_task_counters(unsigned sched_ctx_id, double flops);
 
 void starpu_sched_ctx_move_task_to_ctx(struct starpu_task *task, unsigned sched_ctx);

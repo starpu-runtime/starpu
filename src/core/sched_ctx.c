@@ -1942,6 +1942,24 @@ unsigned starpu_sched_ctx_worker_is_master_for_child_ctx(int workerid, unsigned 
 	return STARPU_NMAX_SCHED_CTXS;
 }
 
+unsigned starpu_sched_ctx_master_get_context(int masterid)
+{
+	struct _starpu_worker *worker = _starpu_get_worker_struct(masterid);
+	struct _starpu_sched_ctx_elt *e = NULL;
+	struct _starpu_sched_ctx_list_iterator list_it;
+	struct _starpu_sched_ctx *sched_ctx = NULL;
+
+	_starpu_sched_ctx_list_iterator_init(worker->sched_ctx_list, &list_it);
+	while (_starpu_sched_ctx_list_iterator_has_next(&list_it))
+	{
+		e = _starpu_sched_ctx_list_iterator_get_next(&list_it);
+		sched_ctx = _starpu_get_sched_ctx_struct(e->sched_ctx);
+		if(sched_ctx->main_master == masterid)
+			return sched_ctx->id;
+	}
+	return STARPU_NMAX_SCHED_CTXS;
+}
+
 struct _starpu_sched_ctx *_starpu_sched_ctx_get_sched_ctx_for_worker_and_job(struct _starpu_worker *worker, struct _starpu_job *j)
 {
 	struct _starpu_sched_ctx_elt *e = NULL;
