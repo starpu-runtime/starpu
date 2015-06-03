@@ -208,10 +208,14 @@ static void _starpu_push_task_on_specific_worker_notify_sched(struct starpu_task
 {
 	/* if we push a task on a specific worker, notify all the sched_ctxs the worker belongs to */
 	struct _starpu_sched_ctx *sched_ctx;
-	struct _starpu_sched_ctx_list *l = NULL;
-        for (l = worker->sched_ctx_list; l; l = l->next)
-        {
-		sched_ctx = _starpu_get_sched_ctx_struct(l->sched_ctx);
+	struct _starpu_sched_ctx_elt *e = NULL;
+	struct _starpu_sched_ctx_list_iterator list_it;
+
+	_starpu_sched_ctx_list_iterator_init(worker->sched_ctx_list, &list_it);
+	while (_starpu_sched_ctx_list_iterator_has_next(&list_it))
+	{
+		e = _starpu_sched_ctx_list_iterator_get_next(&list_it);
+		sched_ctx = _starpu_get_sched_ctx_struct(e->sched_ctx);
 		if (sched_ctx->sched_policy != NULL && sched_ctx->sched_policy->push_task_notify)
 		{
 			_STARPU_TRACE_WORKER_SCHEDULING_PUSH;
@@ -669,79 +673,18 @@ struct starpu_task *_starpu_create_conversion_task_for_arch(starpu_data_handle_t
 static
 struct _starpu_sched_ctx* _get_next_sched_ctx_to_pop_into(struct _starpu_worker *worker)
 {
-	struct _starpu_sched_ctx_list *l = NULL;
-	for (l = worker->sched_ctx_list; l; l = l->next)
-	{
-		if(worker->removed_from_ctx[l->sched_ctx] == 1)
-		{
-			return	_starpu_get_sched_ctx_struct(l->sched_ctx);
-		}
-	}
+	struct _starpu_sched_ctx_elt *e = NULL;
+	struct _starpu_sched_ctx_list_iterator list_it;
+	unsigned first_sched_ctx = _starpu_get_initial_sched_ctx()->id;
 
-	unsigned are_2_priorities = 0;
-	for (l = worker->sched_ctx_list; l; l = l->next)
+	_starpu_sched_ctx_list_iterator_init(worker->sched_ctx_list, &list_it);
+	while (_starpu_sched_ctx_list_iterator_has_next(&list_it))
 	{
-		if(l->priority != worker->pop_ctx_priority)
-		{
-			are_2_priorities = 1;
-			break;
-		}
+		e = _starpu_sched_ctx_list_iterator_get_next(&list_it);
+		if (e->task_number > 0)
+			return _starpu_get_sched_ctx_struct(e->sched_ctx);
 	}
-
-	if(!worker->reverse_phase[worker->pop_ctx_priority])
-	{
-		/* find a context in which the worker hasn't poped yet */
-		for (l = worker->sched_ctx_list; l; l = l->next)
-		{
-			if(l->priority == worker->pop_ctx_priority)
-			{
-				if(!worker->poped_in_ctx[l->sched_ctx])
-				{
-					worker->poped_in_ctx[l->sched_ctx] = !worker->poped_in_ctx[l->sched_ctx];
-					return	_starpu_get_sched_ctx_struct(l->sched_ctx);
-				}
-			}
-		}
-		worker->reverse_phase[worker->pop_ctx_priority] = !worker->reverse_phase[worker->pop_ctx_priority];
-		if(are_2_priorities)
-			worker->pop_ctx_priority = !worker->pop_ctx_priority;
-	}
-	are_2_priorities = 0;
-	if(worker->reverse_phase[worker->pop_ctx_priority])
-	{
-		/* if the context has already poped in every one start from the begining */
-		for (l = worker->sched_ctx_list; l; l = l->next)
-		{
-			if(l->priority == worker->pop_ctx_priority)
-			{
-				if(worker->poped_in_ctx[l->sched_ctx])
-				{
-					worker->poped_in_ctx[l->sched_ctx] = !worker->poped_in_ctx[l->sched_ctx];
-					return	_starpu_get_sched_ctx_struct(l->sched_ctx);
-				}
-			}
-		}
-		worker->reverse_phase[worker->pop_ctx_priority] = !worker->reverse_phase[worker->pop_ctx_priority];
-		if(are_2_priorities)
-			worker->pop_ctx_priority = !worker->pop_ctx_priority;
-	}
-
-	unsigned first_sched_ctx = STARPU_NMAX_SCHED_CTXS;
-	for (l = worker->sched_ctx_list; l; l = l->next)
-	{
-		if(l->priority == worker->pop_ctx_priority)
-		{
-			first_sched_ctx = l->sched_ctx;
-			break;
-		}
-	}
-
-//	if(worker->pop_ctx_priority == 0 && first_sched_ctx == STARPU_NMAX_SCHED_CTXS)
-	if(first_sched_ctx == STARPU_NMAX_SCHED_CTXS)
-		first_sched_ctx = worker->sched_ctx_list->sched_ctx;
-
-	worker->poped_in_ctx[first_sched_ctx] = !worker->poped_in_ctx[first_sched_ctx];
-	return _starpu_get_sched_ctx_struct(first_sched_ctx);
+	return _starpu_get_sched_ctx_struct(STARPU_GLOBAL_SCHED_CTX);
 }
 
 struct starpu_task *_starpu_pop_task(struct _starpu_worker *worker)
@@ -781,6 +724,13 @@ pick:
 			{
 				while(1)
 				{
+					/** Caution
+					 * If you use multiple contexts your scheduler *needs*
+					 * to update the variable task_number of the ctx list.
+					 * This is done using functions :
+					 *   _starpu_sched_ctx_list_pop_event(...)
+					 *   _starpu_sched_ctx_list_push_event(...)
+					**/
 					sched_ctx = _get_next_sched_ctx_to_pop_into(worker);
 
 					if(worker->removed_from_ctx[sched_ctx->id] == 1 && worker->shares_tasks_lists[sched_ctx->id] == 1)

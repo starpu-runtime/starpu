@@ -233,6 +233,7 @@ noinst_PROGRAMS =				\
 	microbenchs/redundant_buffer		\
 	microbenchs/local_pingpong		\
 	microbenchs/matrix_as_vector		\
+	sched_ctx/sched_ctx_list		\
 	openmp/init_exit_01			\
 	openmp/init_exit_02			\
 	openmp/environment			\
@@ -497,6 +498,9 @@ if STARPU_USE_CUDA
 main_subgraph_repeat_regenerate_tag_SOURCES +=		\
 	main/increment.cu
 endif
+
+sched_ctx_sched_ctx_list_SOURCES =	\
+	sched_ctx/sched_ctx_list.c
 
 openmp_init_exit_01_SOURCES = 	\
 	openmp/init_exit_01.c

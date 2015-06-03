@@ -342,10 +342,14 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 	while(needed)
 	{
 		struct _starpu_sched_ctx *sched_ctx = NULL;
-		struct _starpu_sched_ctx_list *l = NULL;
-		for (l = worker->sched_ctx_list; l; l = l->next)
+		struct _starpu_sched_ctx_elt *e = NULL;
+		struct _starpu_sched_ctx_list_iterator list_it;
+
+		_starpu_sched_ctx_list_iterator_init(worker->sched_ctx_list, &list_it);
+		while (_starpu_sched_ctx_list_iterator_has_next(&list_it))
 		{
-			sched_ctx = _starpu_get_sched_ctx_struct(l->sched_ctx);
+			e = _starpu_sched_ctx_list_iterator_get_next(&list_it);
+			sched_ctx = _starpu_get_sched_ctx_struct(e->sched_ctx);
 			if(sched_ctx && sched_ctx->id > 0 && sched_ctx->id < STARPU_NMAX_SCHED_CTXS)
 			{
 				STARPU_PTHREAD_MUTEX_LOCK(&sched_ctx->parallel_sect_mutex[workerid]);

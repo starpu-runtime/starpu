@@ -2178,10 +2178,14 @@ unsigned starpu_worker_get_sched_ctx_list(int workerid, unsigned **sched_ctxs)
 	unsigned nsched_ctxs = _starpu_worker_get_nsched_ctxs(workerid);
 	*sched_ctxs = (unsigned*)malloc(nsched_ctxs*sizeof(unsigned));
 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
-	struct _starpu_sched_ctx_list *l = NULL;
-	for (l = worker->sched_ctx_list; l; l = l->next)
+	struct _starpu_sched_ctx_elt *e = NULL;
+	struct _starpu_sched_ctx_list_iterator list_it;
+
+	_starpu_sched_ctx_list_iterator_init(worker->sched_ctx_list, &list_it);
+	while (_starpu_sched_ctx_list_iterator_has_next(&list_it))
 	{
-		(*sched_ctxs)[s++] = l->sched_ctx;
+		e = _starpu_sched_ctx_list_iterator_get_next(&list_it);
+		(*sched_ctxs)[s++] = e->sched_ctx;
 	}
 	return nsched_ctxs;
 }
