@@ -62,6 +62,7 @@ struct starpu_omp_task_region_attr
 	void     *cl_arg;
 	size_t    cl_arg_size;
 	unsigned  cl_arg_free;
+	int       priority;
 
 	int if_clause;
 	int final_clause;
