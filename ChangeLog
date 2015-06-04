@@ -104,6 +104,8 @@ New features:
     starpu_data_fetch_on_node for that.
   * Add data access arbiters, to improve parallelism of concurrent data
     accesses, notably with STARPU_COMMUTE.
+  * Add the capability to define specific MPI datatypes for
+    StarPU user-defined interfaces.
 
 Small features:
   * Tasks can now have a name (via the field const char *name of

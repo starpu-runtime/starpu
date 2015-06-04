@@ -108,6 +108,11 @@ int starpu_mpi_node_selection_set_current_policy(int policy);
 int starpu_mpi_cache_is_enabled();
 int starpu_mpi_cache_set(int enabled);
 
+typedef void (*starpu_mpi_datatype_allocate_func_t)(starpu_data_handle_t, MPI_Datatype *);
+typedef void (*starpu_mpi_datatype_free_func_t)(MPI_Datatype *);
+int starpu_mpi_datatype_register(starpu_data_handle_t handle, starpu_mpi_datatype_allocate_func_t allocate_datatype_func, starpu_mpi_datatype_free_func_t free_datatype_func);
+int starpu_mpi_datatype_unregister(starpu_data_handle_t handle);
+
 #ifdef __cplusplus
 }
 #endif

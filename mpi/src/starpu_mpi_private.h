@@ -166,7 +166,7 @@ LIST_TYPE(_starpu_mpi_req,
 	MPI_Datatype datatype;
 	void *ptr;
 	starpu_ssize_t count;
-	int user_datatype;
+	int registered_datatype;
 
 	/* who are we talking to ? */
 	struct _starpu_mpi_node_tag node_tag;
