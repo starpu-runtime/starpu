@@ -68,6 +68,7 @@ EXTRA_DIST = 				\
 	matrix_decomposition/mpi_cholesky_models.h 	\
 	matrix_decomposition/mpi_decomposition_params.h	\
 	matrix_decomposition/mpi_decomposition_matrix.h	\
+	user_datatype/my_interface.h			\
 	helper.h
 
 examplebindir = $(libdir)/starpu/mpi
@@ -252,6 +253,25 @@ complex_mpi_complex_LDADD =		\
 
 starpu_mpi_EXAMPLES	+=			\
 	complex/mpi_complex
+endif
+
+#########################
+# user_datatype example #
+#########################
+
+if BUILD_EXAMPLES
+examplebin_PROGRAMS +=				\
+	user_datatype/user_datatype
+
+user_datatype_user_datatype_SOURCES =		\
+	user_datatype/user_datatype.c		\
+	user_datatype/my_interface.c
+
+user_datatype_user_datatype_LDADD =		\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
+
+starpu_mpi_EXAMPLES	+=			\
+	user_datatype/user_datatype
 endif
 
 ###################
