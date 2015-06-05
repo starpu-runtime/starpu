@@ -1196,7 +1196,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	_starpu_init_tags();
 
 #ifdef STARPU_USE_FXT
-	_starpu_init_fxt_profiling(config.conf->trace_buffer_size);
+	_starpu_fxt_init_profiling(config.conf->trace_buffer_size);
 #endif
 
 	_starpu_open_debug_logfile();
