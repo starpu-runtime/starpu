@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
  * Copyright (C) 2011, 2012 INRIA
  * See the file version.doxy for copying conditions.
  */
@@ -74,7 +74,7 @@ initialized on every device.
 This function synchronously deinitializes the CUBLAS library on
 every CUDA device.
 
-\fn void starpu_cublas_report_error(const char *func, const char *file, int line, cublasStatus status)
+\fn void starpu_cublas_report_error(const char *func, const char *file, int line, int status)
 \ingroup API_CUDA_Extensions
 Report a cublas error.
 
