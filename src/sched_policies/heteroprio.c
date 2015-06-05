@@ -155,7 +155,7 @@ inline void starpu_heteroprio_set_arch_slow_factor(unsigned sched_ctx_id, enum s
 
 
 /** If the user does not provide an init callback we create a single bucket for all architectures */
-inline void default_init_sched(unsigned sched_ctx_id)
+static inline void default_init_sched(unsigned sched_ctx_id)
 {
 	// By default each type of devices uses 1 bucket and no slow factor
 #ifdef STARPU_USE_CPU
