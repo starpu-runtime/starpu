@@ -482,6 +482,7 @@ struct _starpu_sched_ctx* _starpu_create_sched_ctx(struct starpu_sched_policy *p
 	STARPU_PTHREAD_MUTEX_INIT(&sched_ctx->waiting_tasks_mutex, NULL);
 	starpu_task_list_init(&sched_ctx->waiting_tasks);
 
+	STARPU_PTHREAD_MUTEX_INIT(&sched_ctx->sched_ctx_list_mutex, NULL);
 
 	sched_ctx->sched_policy = policy ? (struct starpu_sched_policy*)malloc(sizeof(struct starpu_sched_policy)) : NULL;
 	sched_ctx->is_initial_sched = is_initial_sched;
@@ -840,6 +841,7 @@ static void _starpu_delete_sched_ctx(struct _starpu_sched_ctx *sched_ctx)
 
 	STARPU_PTHREAD_MUTEX_DESTROY(&sched_ctx->empty_ctx_mutex);
 	STARPU_PTHREAD_MUTEX_DESTROY(&sched_ctx->waiting_tasks_mutex);
+	STARPU_PTHREAD_MUTEX_DESTROY(&sched_ctx->sched_ctx_list_mutex);
 	sched_ctx->id = STARPU_NMAX_SCHED_CTXS;
 #ifdef STARPU_HAVE_HWLOC
 	hwloc_bitmap_free(sched_ctx->hwloc_workers_set);
@@ -1991,6 +1993,124 @@ void starpu_sched_ctx_move_task_to_ctx(struct starpu_task *task, unsigned sched_
 	_starpu_increment_nsubmitted_tasks_of_sched_ctx(j->task->sched_ctx);
 
 	_starpu_repush_task(j);
+}
+
+void starpu_sched_ctx_list_task_counters_increment(unsigned sched_ctx_id, int workerid)
+{
+	/* Note : often we don't have any sched_mutex taken here but we
+	    should, so take it */
+	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
+	if (worker->nsched_ctxs > 1)
+	{
+		STARPU_PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
+		_starpu_sched_ctx_list_push_event(worker->sched_ctx_list, sched_ctx_id);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
+	}
+}
+
+void starpu_sched_ctx_list_task_counters_decrement(unsigned sched_ctx_id, int workerid)
+{
+	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
+	if (worker->nsched_ctxs > 1)
+		_starpu_sched_ctx_list_pop_event(worker->sched_ctx_list, sched_ctx_id);
+}
+
+void starpu_sched_ctx_list_task_counters_reset(unsigned sched_ctx_id, int workerid)
+{
+	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
+	if (worker->nsched_ctxs > 1)
+		_starpu_sched_ctx_list_pop_all_event(worker->sched_ctx_list, sched_ctx_id);
+}
+
+void starpu_sched_ctx_list_task_counters_increment_all(struct starpu_task *task, unsigned sched_ctx_id)
+{
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
+	unsigned worker = 0;
+	struct starpu_sched_ctx_iterator it;
+
+	workers->init_iterator_for_parallel_tasks(workers, &it, task);
+	STARPU_PTHREAD_MUTEX_LOCK(&sched_ctx->sched_ctx_list_mutex);
+	while(workers->has_next(workers, &it))
+	{
+		worker = workers->get_next(workers, &it);
+
+		starpu_sched_ctx_list_task_counters_increment(sched_ctx_id, worker);
+	}
+	STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->sched_ctx_list_mutex);
+}
+
+void starpu_sched_ctx_list_task_counters_decrement_all(struct starpu_task *task, unsigned sched_ctx_id)
+{
+	int curr_workerid = starpu_worker_get_id();
+	if(curr_workerid != -1)
+	{
+		struct _starpu_worker *worker_str = _starpu_get_worker_struct(curr_workerid);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&worker_str->sched_mutex);
+	}
+
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
+	unsigned worker = 0;
+	struct starpu_sched_ctx_iterator it;
+	workers->init_iterator_for_parallel_tasks(workers, &it, task);
+	STARPU_PTHREAD_MUTEX_LOCK(&sched_ctx->sched_ctx_list_mutex);
+	while(workers->has_next(workers, &it))
+	{
+		worker = workers->get_next(workers, &it);
+
+		struct _starpu_worker *worker_str = _starpu_get_worker_struct(worker);
+		if (worker_str->nsched_ctxs > 1)
+		{
+			STARPU_PTHREAD_MUTEX_LOCK(&worker_str->sched_mutex);
+			starpu_sched_ctx_list_task_counters_decrement(sched_ctx_id, worker);
+			STARPU_PTHREAD_MUTEX_UNLOCK(&worker_str->sched_mutex);
+		}
+	}
+	STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->sched_ctx_list_mutex);
+
+	if(curr_workerid != -1)
+	{
+		struct _starpu_worker *worker_str = _starpu_get_worker_struct(curr_workerid);
+		STARPU_PTHREAD_MUTEX_LOCK(&worker_str->sched_mutex);
+	}
+}
+
+void starpu_sched_ctx_list_task_counters_reset_all(struct starpu_task *task, unsigned sched_ctx_id)
+{
+	struct _starpu_worker *worker_str;
+	int curr_workerid = starpu_worker_get_id();
+	if(curr_workerid != -1)
+	{
+		worker_str = _starpu_get_worker_struct(curr_workerid);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&worker_str->sched_mutex);
+	}
+
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
+	unsigned worker = 0;
+	struct starpu_sched_ctx_iterator it;
+	workers->init_iterator_for_parallel_tasks(workers, &it, task);
+	STARPU_PTHREAD_MUTEX_LOCK(&sched_ctx->sched_ctx_list_mutex);
+	while(workers->has_next(workers, &it))
+	{
+		worker = workers->get_next(workers, &it);
+
+		worker_str = _starpu_get_worker_struct(worker);
+		if (worker_str->nsched_ctxs > 1)
+		{
+			STARPU_PTHREAD_MUTEX_LOCK(&worker_str->sched_mutex);
+			starpu_sched_ctx_list_task_counters_reset(sched_ctx_id, worker);
+			STARPU_PTHREAD_MUTEX_UNLOCK(&worker_str->sched_mutex);
+		}
+	}
+	STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->sched_ctx_list_mutex);
+
+	if(curr_workerid != -1)
+	{
+		worker_str = _starpu_get_worker_struct(curr_workerid);
+		STARPU_PTHREAD_MUTEX_LOCK(&worker_str->sched_mutex);
+	}
 }
 
 static unsigned _worker_sleeping_in_other_ctx(unsigned sched_ctx_id, int workerid)

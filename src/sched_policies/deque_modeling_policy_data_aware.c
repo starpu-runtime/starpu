@@ -23,7 +23,6 @@
 #include <starpu_scheduler.h>
 
 #include <common/fxt.h>
-#include <core/workers.h>
 #include <core/task.h>
 
 #include <sched_policies/fifo_queues.h>
@@ -186,7 +185,6 @@ static struct starpu_task *dmda_pop_ready_task(unsigned sched_ctx_id)
 	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
 	struct starpu_task *task;
-	struct _starpu_sched_ctx_list *ctx_list;
 
 	int workerid = starpu_worker_get_id();
 	struct _starpu_fifo_taskq *fifo = dt->queue_array[workerid];
@@ -214,8 +212,7 @@ static struct starpu_task *dmda_pop_ready_task(unsigned sched_ctx_id)
 			
 		}
 
-		ctx_list = _starpu_get_worker_struct(workerid)->sched_ctx_list;
-		_starpu_sched_ctx_list_pop_event(ctx_list, sched_ctx_id);
+		starpu_sched_ctx_list_task_counters_decrement(sched_ctx_id, workerid);
 
 #ifdef STARPU_VERBOSE
 		if (task->cl)
@@ -237,7 +234,6 @@ static struct starpu_task *dmda_pop_task(unsigned sched_ctx_id)
 	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
 	struct starpu_task *task;
-	struct _starpu_sched_ctx_list *ctx_list;
 
 	int workerid = starpu_worker_get_id();
 	struct _starpu_fifo_taskq *fifo = dt->queue_array[workerid];
@@ -267,8 +263,7 @@ static struct starpu_task *dmda_pop_task(unsigned sched_ctx_id)
 
 		}
 
-		ctx_list = _starpu_get_worker_struct(workerid)->sched_ctx_list;
-		_starpu_sched_ctx_list_pop_event(ctx_list, sched_ctx_id);
+		starpu_sched_ctx_list_task_counters_decrement(sched_ctx_id, workerid);
 		  
 #ifdef STARPU_VERBOSE
 		if (task->cl)
@@ -288,7 +283,6 @@ static struct starpu_task *dmda_pop_task(unsigned sched_ctx_id)
 static struct starpu_task *dmda_pop_every_task(unsigned sched_ctx_id)
 {
 	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-	struct _starpu_sched_ctx_list *ctx_list;
 
 	struct starpu_task *new_list;
 
@@ -302,8 +296,7 @@ static struct starpu_task *dmda_pop_every_task(unsigned sched_ctx_id)
 	new_list = _starpu_fifo_pop_every_task(fifo, workerid);
 	STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 
-	ctx_list = _starpu_get_worker_struct(workerid)->sched_ctx_list;
-	_starpu_sched_ctx_list_pop_all_event(ctx_list, sched_ctx_id);
+	starpu_sched_ctx_list_task_counters_reset(sched_ctx_id, workerid);
 
 	while (new_list)
 	{
@@ -338,7 +331,6 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 	/* make sure someone could execute that task ! */
 	STARPU_ASSERT(best_workerid != -1);
 	unsigned child_sched_ctx = starpu_sched_ctx_worker_is_master_for_child_ctx(best_workerid, sched_ctx_id);
-	struct _starpu_sched_ctx_list *ctx_list;
 
         if(child_sched_ctx != STARPU_NMAX_SCHED_CTXS)
         {
@@ -461,8 +453,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 		STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 	}
 
-	ctx_list = _starpu_get_worker_struct(best_workerid)->sched_ctx_list;
-	_starpu_sched_ctx_list_push_event(ctx_list, sched_ctx_id);
+	starpu_sched_ctx_list_task_counters_increment(sched_ctx_id, best_workerid);
 
 	return ret;
 }
@@ -1104,7 +1095,6 @@ static void dmda_pre_exec_hook(struct starpu_task *task)
 
 static void dmda_push_task_notify(struct starpu_task *task, int workerid, int perf_workerid, unsigned sched_ctx_id)
 {
-	struct _starpu_sched_ctx_list *ctx_list;
 	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	struct _starpu_fifo_taskq *fifo = dt->queue_array[workerid];
 	/* Compute the expected penality */

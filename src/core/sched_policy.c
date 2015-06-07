@@ -675,7 +675,7 @@ struct _starpu_sched_ctx* _get_next_sched_ctx_to_pop_into(struct _starpu_worker 
 {
 	struct _starpu_sched_ctx_elt *e = NULL;
 	struct _starpu_sched_ctx_list_iterator list_it;
-	unsigned first_sched_ctx = _starpu_get_initial_sched_ctx()->id;
+	int found = 0;
 
 	_starpu_sched_ctx_list_iterator_init(worker->sched_ctx_list, &list_it);
 	while (_starpu_sched_ctx_list_iterator_has_next(&list_it))
@@ -684,7 +684,27 @@ struct _starpu_sched_ctx* _get_next_sched_ctx_to_pop_into(struct _starpu_worker 
 		if (e->task_number > 0)
 			return _starpu_get_sched_ctx_struct(e->sched_ctx);
 	}
-	return _starpu_get_sched_ctx_struct(STARPU_GLOBAL_SCHED_CTX);
+
+	_starpu_sched_ctx_list_iterator_init(worker->sched_ctx_list, &list_it);
+	while (_starpu_sched_ctx_list_iterator_has_next(&list_it))
+	{
+		e = _starpu_sched_ctx_list_iterator_get_next(&list_it);
+		if (e->last_poped)
+		{
+			e->last_poped = 0;
+			if (_starpu_sched_ctx_list_iterator_has_next(&list_it))
+			{
+				e = _starpu_sched_ctx_list_iterator_get_next(&list_it);
+				found = 1;
+			}
+			break;
+		}
+	}
+	if (!found)
+		e = worker->sched_ctx_list->head;
+	e->last_poped = 1;
+
+	return _starpu_get_sched_ctx_struct(e->sched_ctx);
 }
 
 struct starpu_task *_starpu_pop_task(struct _starpu_worker *worker)
@@ -727,9 +747,10 @@ pick:
 					/** Caution
 					 * If you use multiple contexts your scheduler *needs*
 					 * to update the variable task_number of the ctx list.
+					 * In order to get the best performances.
 					 * This is done using functions :
-					 *   _starpu_sched_ctx_list_pop_event(...)
-					 *   _starpu_sched_ctx_list_push_event(...)
+					 *   starpu_sched_ctx_list_task_counters_increment...(...)
+					 *   starpu_sched_ctx_list_task_counters_decrement...(...)
 					**/
 					sched_ctx = _get_next_sched_ctx_to_pop_into(worker);
 

@@ -26,7 +26,6 @@
 #include <starpu_bitmap.h>
 
 #include <common/fxt.h>
-#include <core/workers.h>
 
 #define DEFAULT_MIN_LEVEL	(-5)
 #define DEFAULT_MAX_LEVEL	(+5)
@@ -125,7 +124,6 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 	unsigned sched_ctx_id = task->sched_ctx;
 	struct _starpu_eager_central_prio_data *data = (struct _starpu_eager_central_prio_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	struct _starpu_priority_taskq *taskq = data->taskq;
-	struct _starpu_sched_ctx_list *ctx_list;
 
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 	unsigned priolevel = task->priority - STARPU_MIN_PRIO;
@@ -165,11 +163,6 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 #else
 			dowake[worker] = 1;
 #endif
-			if (_starpu_get_nsched_ctxs() > 1)
-			{
-				ctx_list = _starpu_get_worker_struct(worker)->sched_ctx_list;
-				_starpu_sched_ctx_list_push_event(ctx_list, sched_ctx_id);
-			}
 		}
 	}
 	/* Let the task free */
@@ -188,6 +181,8 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 	}
 #endif
 
+	starpu_sched_ctx_list_task_counters_increment_all(task, sched_ctx_id);
+
 	return 0;
 }
 
@@ -200,7 +195,6 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 	struct _starpu_eager_central_prio_data *data = (struct _starpu_eager_central_prio_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
 	struct _starpu_priority_taskq *taskq = data->taskq;
-	struct _starpu_sched_ctx_list *ctx_list;
 
 	/* block until some event happens */
 	/* Here helgrind would shout that this is unprotected, this is just an
@@ -293,25 +287,7 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 
 	if(chosen_task)
 	{
-		/* If we have only one sched_ctx we don't need to use these. */
-		/* We will use the global one anyway. */
-		if (_starpu_get_nsched_ctxs() > 1)
-		{
-			unsigned worker = 0;
-			struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
-			struct starpu_sched_ctx_iterator it;
-			workers->init_iterator_for_parallel_tasks(workers, &it, chosen_task);
-			while(workers->has_next(workers, &it))
-			{
-				worker = workers->get_next(workers, &it);
-
-				unsigned nimpl;
-				if (starpu_worker_can_execute_task_first_impl(workerid, chosen_task, &nimpl)) {
-					ctx_list = _starpu_get_worker_struct(workerid)->sched_ctx_list;
-					_starpu_sched_ctx_list_pop_event(ctx_list, sched_ctx_id);
-				}
-			}
-		}
+		starpu_sched_ctx_list_task_counters_decrement_all(chosen_task, sched_ctx_id);
 
                 unsigned child_sched_ctx = starpu_sched_ctx_worker_is_master_for_child_ctx(workerid, sched_ctx_id);
 		if(child_sched_ctx != STARPU_NMAX_SCHED_CTXS)

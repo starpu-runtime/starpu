@@ -116,6 +116,18 @@ int starpu_sched_ctx_get_nready_tasks(unsigned sched_ctx_id);
 
 double starpu_sched_ctx_get_nready_flops(unsigned sched_ctx_id);
 
+void starpu_sched_ctx_list_task_counters_increment(unsigned sched_ctx_id, int workerid);
+
+void starpu_sched_ctx_list_task_counters_decrement(unsigned sched_ctx_id, int workerid);
+
+void starpu_sched_ctx_list_task_counters_reset(unsigned sched_ctx_id, int workerid);
+
+void starpu_sched_ctx_list_task_counters_increment_all(struct starpu_task *task, unsigned sched_ctx_id);
+
+void starpu_sched_ctx_list_task_counters_decrement_all(struct starpu_task *task, unsigned sched_ctx_id);
+
+void starpu_sched_ctx_list_task_counters_reset_all(struct starpu_task *task, unsigned sched_ctx_id);
+
 void starpu_sched_ctx_set_priority(int *workers, int nworkers, unsigned sched_ctx_id, unsigned priority);
 
 void starpu_sched_ctx_set_priority_on_level(int* workers_to_add, unsigned nworkers_to_add, unsigned sched_ctx, unsigned priority);

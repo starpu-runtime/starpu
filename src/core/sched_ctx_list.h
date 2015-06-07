@@ -35,6 +35,7 @@ struct _starpu_sched_ctx_elt
 	struct _starpu_sched_ctx_list *parent;
 	unsigned sched_ctx;
 	long task_number;
+	unsigned last_poped;
 };
 
 struct _starpu_sched_ctx_list_iterator

@@ -46,6 +46,7 @@ void _starpu_sched_ctx_elt_init(struct _starpu_sched_ctx_elt *elt, unsigned sche
 {
 	elt->sched_ctx = sched_ctx;
 	elt->task_number = 0;
+	elt->last_poped = 0;
 	elt->parent = NULL;
 	elt->next = NULL;
 	elt->prev = NULL;
@@ -390,10 +391,7 @@ int _starpu_sched_ctx_list_push_event(struct _starpu_sched_ctx_list *list, unsig
 	if (elt == NULL)
 		return -1;
 
-	if (elt->task_number < 0)
-		elt->task_number = 1;
-	else
-		elt->task_number++;
+	elt->task_number++;
 
 	return 0;
 }
@@ -405,8 +403,7 @@ int _starpu_sched_ctx_list_pop_event(struct _starpu_sched_ctx_list *list, unsign
 	if (elt == NULL)
 		return -1;
 
-	if (elt->task_number > 0)
-		elt->task_number--;
+	elt->task_number--;
 
 	/** Balance circular lists **/
 	elt->parent->head = elt->next;

@@ -83,6 +83,9 @@ struct _starpu_sched_ctx
 	/* mutext protecting waiting_tasks list */
 	starpu_pthread_mutex_t waiting_tasks_mutex;
 
+	/* mutext protecting write to all worker's sched_ctx_list structure for this sched_ctx */
+	starpu_pthread_mutex_t sched_ctx_list_mutex;
+
 	/* min CPUs to execute*/
 	int min_ncpus;
 
