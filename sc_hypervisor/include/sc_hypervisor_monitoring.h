@@ -78,7 +78,7 @@ struct sc_hypervisor_wrapper
 	/* number of flops the context has to execute */
 	double total_flops;
 
-	/* number of flops executed since the biginning until now */
+	/* number of flops executed since the beginning until now */
 	double total_elapsed_flops[STARPU_NMAXWORKERS];
 
 	/* number of flops executed since last resizing */
