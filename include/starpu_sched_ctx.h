@@ -151,7 +151,7 @@ unsigned starpu_sched_ctx_master_get_context(int masterid);
 
 void starpu_sched_ctx_revert_task_counters(unsigned sched_ctx_id, double flops);
 
-void starpu_sched_ctx_move_task_to_ctx(struct starpu_task *task, unsigned sched_ctx);
+void starpu_sched_ctx_move_task_to_ctx(struct starpu_task *task, unsigned sched_ctx, unsigned manage_mutex);
 
 int starpu_sched_ctx_get_worker_rank(unsigned sched_ctx_id);
 

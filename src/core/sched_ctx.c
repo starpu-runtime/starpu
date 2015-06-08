@@ -1984,8 +1984,19 @@ void starpu_sched_ctx_revert_task_counters(unsigned sched_ctx_id, double ready_f
         _starpu_decrement_nready_tasks_of_sched_ctx(sched_ctx_id, ready_flops);
 }
 
-void starpu_sched_ctx_move_task_to_ctx(struct starpu_task *task, unsigned sched_ctx)
+void starpu_sched_ctx_move_task_to_ctx(struct starpu_task *task, unsigned sched_ctx, unsigned manage_mutex)
 {
+	/* TODO: make something cleaner which differentiates between calls
+	   from push or pop (have mutex or not) and from another worker or not */
+	int workerid = starpu_worker_get_id();
+	struct _starpu_worker *worker  = NULL;
+	if(workerid != -1 && manage_mutex)
+	{
+		worker = _starpu_get_worker_struct(workerid);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
+	}
+
+
 	task->sched_ctx = sched_ctx;
 
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
@@ -1993,6 +2004,9 @@ void starpu_sched_ctx_move_task_to_ctx(struct starpu_task *task, unsigned sched_
 	_starpu_increment_nsubmitted_tasks_of_sched_ctx(j->task->sched_ctx);
 
 	_starpu_repush_task(j);
+
+	if(workerid != -1 && manage_mutex)
+		STARPU_PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
 }
 
 void starpu_sched_ctx_list_task_counters_increment(unsigned sched_ctx_id, int workerid)

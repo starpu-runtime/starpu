@@ -334,7 +334,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 
         if(child_sched_ctx != STARPU_NMAX_SCHED_CTXS)
         {
-                starpu_sched_ctx_move_task_to_ctx(task, child_sched_ctx);
+                starpu_sched_ctx_move_task_to_ctx(task, child_sched_ctx, 0);
 		starpu_sched_ctx_revert_task_counters(sched_ctx_id, task->flops);
                 return 0;
         }
