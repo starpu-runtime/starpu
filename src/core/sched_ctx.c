@@ -1675,6 +1675,16 @@ unsigned starpu_sched_ctx_worker_get_id(unsigned sched_ctx_id)
 	return -1;
 }
 
+unsigned starpu_sched_ctx_get_ctx_for_task(struct starpu_task *task)
+{
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
+	unsigned ret_sched_ctx = task->sched_ctx;
+	if (task->possibly_parallel && !sched_ctx->sched_policy
+	    && sched_ctx->nesting_sched_ctx != STARPU_NMAX_SCHED_CTXS)
+		 ret_sched_ctx = sched_ctx->nesting_sched_ctx;
+	return ret_sched_ctx;
+}
+
 unsigned starpu_sched_ctx_overlapping_ctxs_on_worker(int workerid)
 {
 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);

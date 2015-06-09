@@ -1062,7 +1062,7 @@ static void deinitialize_dmda_policy(unsigned sched_ctx_id)
  * value of the expected start, end, length, etc... */
 static void dmda_pre_exec_hook(struct starpu_task *task)
 {
-	unsigned sched_ctx_id = task->sched_ctx;
+	unsigned sched_ctx_id = starpu_sched_ctx_get_ctx_for_task(task);
 	int workerid = starpu_worker_get_id();
 	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	struct _starpu_fifo_taskq *fifo = dt->queue_array[workerid];
@@ -1174,8 +1174,8 @@ static void dmda_push_task_notify(struct starpu_task *task, int workerid, int pe
 
 static void dmda_post_exec_hook(struct starpu_task * task)
 {
-
-	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)starpu_sched_ctx_get_policy_data(task->sched_ctx);
+	unsigned sched_ctx_id = starpu_sched_ctx_get_ctx_for_task(task);
+	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	int workerid = starpu_worker_get_id();
 	struct _starpu_fifo_taskq *fifo = dt->queue_array[workerid];
 	starpu_pthread_mutex_t *sched_mutex;
