@@ -53,7 +53,7 @@ CONTAINS
   END SUBROUTINE init_element
 
   !--------------------------------------------------------------!
-  SUBROUTINE loop_element_cpu_fortran(coeff,Neq_max,Np,Ng, &
+  RECURSIVE SUBROUTINE loop_element_cpu_fortran(coeff,Neq_max,Np,Ng, &
        &   ro_ptr,dro_ptr,basis_ptr) BIND(C)
     INTEGER(KIND=C_INT),VALUE                  :: Neq_max,Np,Ng
     REAL(KIND=C_DOUBLE),VALUE                  :: coeff
@@ -70,7 +70,7 @@ CONTAINS
   END SUBROUTINE loop_element_cpu_fortran
 
   !--------------------------------------------------------------!
-  SUBROUTINE loop_element_cpu(ro,dro,basis,coeff,Neq_max,Ng,Np)
+  RECURSIVE SUBROUTINE loop_element_cpu(ro,dro,basis,coeff,Neq_max,Ng,Np)
     REAL(KIND=C_DOUBLE),INTENT(IN)                           :: coeff
     INTEGER(KIND=C_INT),INTENT(IN)                           :: Neq_max,Ng,Np
     REAL(KIND=C_DOUBLE),DIMENSION(:,:),POINTER,INTENT(IN)    :: ro,basis
@@ -99,7 +99,7 @@ CONTAINS
   END SUBROUTINE loop_element_cpu
 
   !--------------------------------------------------------------!
-  SUBROUTINE copy_element_cpu_fortran(Neq_max,Np, &
+  RECURSIVE SUBROUTINE copy_element_cpu_fortran(Neq_max,Np, &
        &   ro_ptr,dro_ptr) BIND(C)
     INTEGER(KIND=C_INT),VALUE                  :: Neq_max,Np
     TYPE(C_PTR)                                :: ro_ptr,dro_ptr
@@ -114,7 +114,7 @@ CONTAINS
   END SUBROUTINE copy_element_cpu_fortran
 
   !--------------------------------------------------------------!
-  SUBROUTINE copy_element_cpu(ro,dro)
+  RECURSIVE SUBROUTINE copy_element_cpu(ro,dro)
     REAL(KIND=C_DOUBLE),DIMENSION(:,:),POINTER,INTENT(INOUT) :: ro
     REAL(KIND=C_DOUBLE),DIMENSION(:,:),POINTER,INTENT(IN)    :: dro
 
