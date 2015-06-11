@@ -220,6 +220,7 @@ noinst_PROGRAMS =				\
 	errorcheck/starpu_init_noworker		\
 	errorcheck/invalid_blocking_calls	\
 	errorcheck/invalid_tasks		\
+	errorcheck/workers_cpuid		\
 	helper/cublas_init			\
 	helper/starpu_data_cpy			\
 	helper/pinned_memory			\
