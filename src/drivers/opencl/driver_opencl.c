@@ -652,7 +652,7 @@ int _starpu_opencl_driver_init(struct _starpu_worker *worker)
 	{
 		/* We need non-blocking drivers, to poll for OPENCL task
 		 * termination */
-		_STARPU_DISP("Warning: reducing STARPU_OPENCL_PIPELINE to 0 because blocking drivers are not enabled (and simgrid is not enabled)\n");
+		_STARPU_DISP("Warning: reducing STARPU_OPENCL_PIPELINE to 0 because blocking drivers are enabled (and simgrid is not enabled)\n");
 		worker->pipeline_length = 0;
 	}
 #endif
