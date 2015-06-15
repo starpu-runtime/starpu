@@ -179,7 +179,13 @@ int main(int argc, char **argv)
 		{
 			init_array(cpuids, nhwpus);
 			generate_arrangement(i, cpuids, nhwpus);
-			test_combination(cpuids, i);
+			ret = test_combination(cpuids, i);
+			if (!ret)
+			{
+				free(cpuids);
+				hwloc_topology_destroy(topology);
+				return EXIT_FAILURE;
+			}
 		}
 	}
 			
