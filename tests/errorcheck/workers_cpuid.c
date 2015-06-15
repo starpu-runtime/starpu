@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012  Université de Bordeaux
+ * Copyright (C) 2010-2012, 2015  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -18,16 +18,17 @@
 #include <starpu.h>
 #include "../helper.h"
 #include <common/config.h>
-#include <hwloc.h>
 
 
-#if !defined(STARPU_HAVE_UNSETENV) || !defined(STARPU_USE_CPU)
+#if !defined(STARPU_HAVE_UNSETENV) || !defined(STARPU_USE_CPU) || !defined(STARPU_HAVE_HWLOC)
 #warning unsetenv is not defined or no cpu are available. Skipping test
 int main(int argc, char **argv)
 {
 	return STARPU_TEST_SKIPPED;
 }
 #else
+
+#include <hwloc.h>
 
 #define NB_TESTS 5
 
