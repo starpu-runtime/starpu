@@ -61,7 +61,7 @@ struct handle_entry
 static struct handle_entry *devices_using_cuda;
 #  endif
 
-static unsigned may_bind_automatically = 0;
+static unsigned may_bind_automatically[STARPU_NARCH] = { 0 };
 
 #endif // defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 
@@ -74,7 +74,8 @@ static unsigned may_bind_automatically = 0;
 static void
 _starpu_initialize_workers_deviceid (int *explicit_workers_gpuid,
 				  int *current, int *workers_gpuid,
-				  const char *varname, unsigned nhwgpus)
+				  const char *varname, unsigned nhwgpus,
+				  enum starpu_worker_archtype type)
 {
 	char *strval;
 	unsigned i;
@@ -147,9 +148,8 @@ _starpu_initialize_workers_deviceid (int *explicit_workers_gpuid,
 			  workers_gpuid[i] = (unsigned)(i % nhwgpus);
 
 		/* StarPU can use sampling techniques to bind threads
-		 * correctly
-		 * TODO: use a private value for each kind of device */
-		may_bind_automatically = 1;
+		 * correctly */
+		may_bind_automatically[type] = 1;
 	}
 }
 #endif
@@ -168,7 +168,8 @@ _starpu_initialize_workers_cuda_gpuid (struct _starpu_machine_config *config)
 		&(config->current_cuda_gpuid),
 		(int *)topology->workers_cuda_gpuid,
 		"STARPU_WORKERS_CUDAID",
-		topology->nhwcudagpus);
+		topology->nhwcudagpus,
+		STARPU_CUDA_WORKER);
 }
 
 static inline int
@@ -195,7 +196,8 @@ _starpu_initialize_workers_opencl_gpuid (struct _starpu_machine_config*config)
 		&(config->current_opencl_gpuid),
 		(int *)topology->workers_opencl_gpuid,
 		"STARPU_WORKERS_OPENCLID",
-		topology->nhwopenclgpus);
+		topology->nhwopenclgpus,
+		STARPU_OPENCL_WORKER);
 
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
         // Detect devices which are already used with CUDA
@@ -282,7 +284,8 @@ static void _starpu_initialize_workers_mic_deviceid(struct _starpu_machine_confi
 		&(config->current_mic_deviceid),
 		(int *)topology->workers_mic_deviceid,
 		"STARPU_WORKERS_MICID",
-		topology->nhwmiccores);
+		topology->nhwmiccores,
+		STARPU_MIC_WORKER);
 }
 #endif
 #endif
@@ -300,7 +303,8 @@ static void _starpu_initialize_workers_scc_deviceid(struct _starpu_machine_confi
 		&(config->current_scc_deviceid),
 		(int *)topology->workers_scc_deviceid,
 		"STARPU_WORKERS_SCCID",
-		topology->nhwscc);
+		topology->nhwscc,
+		STARPU_SCC_WORKER);
 }
 #endif /* STARPU_USE_SCC */
 
@@ -1158,7 +1162,9 @@ void _starpu_destroy_machine_config(struct _starpu_machine_config *config)
 	devices_using_cuda = NULL;
 #endif
 #if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
-	may_bind_automatically = 0;
+	int i;
+	for (i=0; i<STARPU_NARCH; i++)
+		may_bind_automatically[i] = 0;
 #endif
 }
 
@@ -1368,7 +1374,7 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 			case STARPU_CUDA_WORKER:
 #ifndef STARPU_SIMGRID
-				if (may_bind_automatically)
+				if (may_bind_automatically[STARPU_CUDA_WORKER])
 				{
 					/* StarPU is allowed to bind threads automatically */
 					preferred_binding = _starpu_get_cuda_affinity_vector(devid);
@@ -1430,7 +1436,7 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 		        case STARPU_OPENCL_WORKER:
 #ifndef STARPU_SIMGRID
-				if (may_bind_automatically)
+				if (may_bind_automatically[STARPU_OPENCL_WORKER])
 				{
 					/* StarPU is allowed to bind threads automatically */
 					preferred_binding = _starpu_get_opencl_affinity_vector(devid);
