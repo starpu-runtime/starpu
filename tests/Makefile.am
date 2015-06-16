@@ -290,8 +290,10 @@ noinst_PROGRAMS =				\
 
 if STARPU_HAVE_FC
 if !STARPU_SANITIZE
+if !STARPU_SIMGRID
 noinst_PROGRAMS +=				\
 	fortran90/init_01
+endif
 endif
 endif
 
