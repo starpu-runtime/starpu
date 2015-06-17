@@ -261,10 +261,12 @@ STARPU_EXAMPLES +=				\
 	sched_ctx/parallel_code
 endif
 
+if !STARPU_SIMGRID
 if STARPU_HAVE_F77_H
 STARPU_EXAMPLES +=				\
 	basic_examples/vector_scal_fortran	\
 	fortran/hello
+endif
 endif
 
 if !STARPU_HAVE_WINDOWS
