@@ -1125,12 +1125,12 @@ static void handle_work_stealing(struct fxt_ev_64 *ev, struct starpu_fxt_options
 		program_container_alias(program_container, STARPU_POTI_STR_LEN, prefix);
 		worker_container_alias(src_worker_container, STARPU_POTI_STR_LEN, prefix, src);
 		worker_container_alias(dst_worker_container, STARPU_POTI_STR_LEN, prefix, dst);
-		poti_StartLink(time, program_container, "L", src_worker_container, paje_value, paje_key);
-		poti_EndLink(time+0.000000001, program_container, "L", dst_worker_container, paje_value, paje_key);
+		poti_StartLink(time, program_container, "WSL", src_worker_container, paje_value, paje_key);
+		poti_EndLink(time+0.000000001, program_container, "WSL", dst_worker_container, paje_value, paje_key);
 #else
 
-		fprintf(out_paje_file, "18	%.9f	L	%sp	%u	%sw%d	steal_%u\n", time, prefix, size, prefix, src, comid);
-		fprintf(out_paje_file, "19	%.9f	L	%sp	%u	%sw%d	steal_%u\n", time+0.000000001, prefix, size, prefix, dst, comid);
+		fprintf(out_paje_file, "18	%.9f	WSL	%sp	%u	%sw%d	steal_%u\n", time, prefix, size, prefix, src, comid);
+		fprintf(out_paje_file, "19	%.9f	WSL	%sp	%u	%sw%d	steal_%u\n", time+0.000000001, prefix, size, prefix, dst, comid);
 #endif
 	}
 

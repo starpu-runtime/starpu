@@ -239,8 +239,9 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 	poti_DefineVariableType("nready", "Sc", "Number of Ready Tasks", "0 0 0");
 
 	/* Link types */
-	poti_DefineLinkType("MPIL", "P", "MPICt", "MPICt", "Links between two MPI Communication Threads");
-	poti_DefineLinkType("L", "P", "Mm", "Mm", "Links between two Memory Managers");
+	poti_DefineLinkType("MPIL", "P", "MPICt", "MPICt", "MPI communications");
+	poti_DefineLinkType("L", "P", "Mm", "Mm", "Intra-node communications");
+	poti_DefineLinkType("WSL", "P", "W", "W", "Work steals");
 
 	/* Creating the MPI Program */
 	poti_CreateContainer(0, "MPIroot", "MPIP", "0", "root");
@@ -329,7 +330,8 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 6       CoA      MS     DriverCopyAsync         \".1 .3 .1\"		\n\
 6       No       MS     Nothing         \".0 .0 .0\"		\n\
 5       MPIL     P	MPICt	MPICt   MPIL			\n\
-5       L       P	Mm	Mm      L\n");
+5       L       P	Mm	Mm      L\n\
+5       WSL     P	W	W       WSL\n");
 
 	fprintf(file, "7      0.0 MPIroot      MPIP      0       root\n");
 #endif
