@@ -144,6 +144,8 @@ static double accumulated_sleep_time[STARPU_NMAXWORKERS];
 static double accumulated_exec_time[STARPU_NMAXWORKERS];
 static double reclaiming[STARPU_MAXNODES];
 
+static unsigned steal_number = 0;
+
 LIST_TYPE(_starpu_symbol_name,
 	char *name;
 )
@@ -1109,7 +1111,6 @@ static void handle_work_stealing(struct fxt_ev_64 *ev, struct starpu_fxt_options
 	unsigned dst = ev->param[0];
 	unsigned src = ev->param[1];
 	unsigned size = 0;
-	unsigned comid = 0;
 
 	char *prefix = options->file_prefix;
 
@@ -1121,7 +1122,7 @@ static void handle_work_stealing(struct fxt_ev_64 *ev, struct starpu_fxt_options
 		char paje_value[STARPU_POTI_STR_LEN], paje_key[STARPU_POTI_STR_LEN], src_worker_container[STARPU_POTI_STR_LEN], dst_worker_container[STARPU_POTI_STR_LEN];
 		char program_container[STARPU_POTI_STR_LEN];
 		snprintf(paje_value, STARPU_POTI_STR_LEN, "%u", size);
-		snprintf(paje_key, STARPU_POTI_STR_LEN, "steal_%u", comid);
+		snprintf(paje_key, STARPU_POTI_STR_LEN, "steal_%u", steal_number);
 		program_container_alias(program_container, STARPU_POTI_STR_LEN, prefix);
 		worker_container_alias(src_worker_container, STARPU_POTI_STR_LEN, prefix, src);
 		worker_container_alias(dst_worker_container, STARPU_POTI_STR_LEN, prefix, dst);
@@ -1129,11 +1130,12 @@ static void handle_work_stealing(struct fxt_ev_64 *ev, struct starpu_fxt_options
 		poti_EndLink(time+0.000000001, program_container, "WSL", dst_worker_container, paje_value, paje_key);
 #else
 
-		fprintf(out_paje_file, "18	%.9f	WSL	%sp	%u	%sw%d	steal_%u\n", time, prefix, size, prefix, src, comid);
-		fprintf(out_paje_file, "19	%.9f	WSL	%sp	%u	%sw%d	steal_%u\n", time+0.000000001, prefix, size, prefix, dst, comid);
+		fprintf(out_paje_file, "18	%.9f	WSL	%sp	%u	%sw%d	steal_%u\n", time, prefix, size, prefix, src, steal_number);
+		fprintf(out_paje_file, "19	%.9f	WSL	%sp	%u	%sw%d	steal_%u\n", time+0.000000001, prefix, size, prefix, dst, steal_number);
 #endif
 	}
 
+	steal_number++;
 }
 
 
