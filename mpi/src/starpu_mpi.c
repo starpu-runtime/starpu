@@ -1238,13 +1238,6 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	MPI_Comm_size(argc_argv->comm, &worldsize);
 	MPI_Comm_set_errhandler(argc_argv->comm, MPI_ERRORS_RETURN);
 
-#ifdef STARPU_SIMGRID
-	_mpi_world_size = worldsize;
-	_mpi_world_rank = rank;
-	/* Now that MPI is set up, let the rest of simgrid get initialized */
-	MSG_process_create_with_arguments("main", smpi_simulated_main_, NULL, _starpu_simgrid_get_host_by_name("MAIN"), *(argc_argv->argc), *(argc_argv->argv));
-#endif
-
 	{
 		_STARPU_MPI_TRACE_START(rank, worldsize);
 #ifdef STARPU_USE_FXT
@@ -1268,6 +1261,13 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	running = 1;
 	STARPU_PTHREAD_COND_SIGNAL(&cond_progression);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+
+#ifdef STARPU_SIMGRID
+	_mpi_world_size = worldsize;
+	_mpi_world_rank = rank;
+	/* Now that MPI is set up, let the rest of simgrid get initialized */
+	MSG_process_create_with_arguments("main", smpi_simulated_main_, NULL, _starpu_simgrid_get_host_by_name("MAIN"), *(argc_argv->argc), *(argc_argv->argv));
+#endif
 
 	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 
