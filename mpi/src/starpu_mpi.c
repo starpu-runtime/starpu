@@ -1212,11 +1212,8 @@ static void _starpu_mpi_receive_early_data(struct _starpu_mpi_envelope *envelope
 	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 }
 
-static void *_starpu_mpi_progress_thread_func(void *arg)
+static void _starpu_mpi_do_initialize(struct _starpu_mpi_argc_argv *argc_argv)
 {
-	struct _starpu_mpi_argc_argv *argc_argv = (struct _starpu_mpi_argc_argv *) arg;
-	int rank, worldsize;
-
 	if (argc_argv->initialize_mpi)
 	{
 		int thread_support;
@@ -1233,6 +1230,16 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 		MPI_Query_thread(&provided);
 		_starpu_mpi_print_thread_level_support(provided, " has been initialized with");
 	}
+}
+
+static void *_starpu_mpi_progress_thread_func(void *arg)
+{
+	struct _starpu_mpi_argc_argv *argc_argv = (struct _starpu_mpi_argc_argv *) arg;
+	int rank, worldsize;
+
+#ifndef STARPU_SIMGRID
+	_starpu_mpi_do_initialize(argc_argv);
+#endif
 
 	MPI_Comm_rank(argc_argv->comm, &rank);
 	MPI_Comm_size(argc_argv->comm, &worldsize);
@@ -1511,6 +1518,18 @@ static void _starpu_mpi_add_sync_point_in_fxt(void)
 static
 int _starpu_mpi_initialize(int *argc, char ***argv, int initialize_mpi, MPI_Comm comm)
 {
+	struct _starpu_mpi_argc_argv *argc_argv = malloc(sizeof(struct _starpu_mpi_argc_argv));
+	argc_argv->initialize_mpi = initialize_mpi;
+	argc_argv->argc = argc;
+	argc_argv->argv = argv;
+	argc_argv->comm = comm;
+
+#ifdef STARPU_SIMGRID
+	/* Call MPI_Init_thread as early as possible, to initialize simgrid
+	 * before working with mutexes etc. */
+	_starpu_mpi_do_initialize(argc_argv);
+#endif
+
 	STARPU_PTHREAD_MUTEX_INIT(&mutex, NULL);
 	STARPU_PTHREAD_COND_INIT(&cond_progression, NULL);
 	STARPU_PTHREAD_COND_INIT(&cond_finished, NULL);
@@ -1520,12 +1539,6 @@ int _starpu_mpi_initialize(int *argc, char ***argv, int initialize_mpi, MPI_Comm
 	detached_requests = _starpu_mpi_req_list_new();
 
 	STARPU_PTHREAD_MUTEX_INIT(&mutex_posted_requests, NULL);
-
-	struct _starpu_mpi_argc_argv *argc_argv = malloc(sizeof(struct _starpu_mpi_argc_argv));
-	argc_argv->initialize_mpi = initialize_mpi;
-	argc_argv->argc = argc;
-	argc_argv->argv = argv;
-	argc_argv->comm = comm;
 
 #ifdef STARPU_MPI_ACTIVITY
 	hookid = starpu_progression_hook_register(_starpu_mpi_progression_hook_func, NULL);
