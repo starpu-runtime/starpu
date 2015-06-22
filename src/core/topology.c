@@ -58,7 +58,7 @@ struct handle_entry
 static struct handle_entry *devices_using_cuda;
 #  endif
 
-static unsigned may_bind_automatically[STARPU_NARCH] = { 0 };
+static unsigned may_bind_automatically[STARPU_OPENCL_WORKER+1] = { 0 };
 
 #endif // defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 
@@ -671,7 +671,7 @@ void _starpu_destroy_machine_config(struct _starpu_machine_config *config)
 #endif
 #if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 	int i;
-	for (i=0; i<STARPU_NARCH; i++)
+	for (i=0; i<STARPU_OPENCL_WORKER+1; i++)
 		may_bind_automatically[i] = 0;
 #endif
 }
