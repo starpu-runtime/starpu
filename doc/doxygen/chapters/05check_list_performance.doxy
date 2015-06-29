@@ -108,18 +108,52 @@ raises SIGABRT in that condition, thus allowing to catch the situation in gdb.
 It can also be useful to type "handle SIGABRT nopass" in gdb to be able to let
 the process continue, after inspecting the state of the process.
 
-\section HowToLimitMemoryPerNode How to limit memory per node
+\section HowToLimitMemoryPerNode How to limit memory used by StarPU and cache buffer allocations
 
-TODO
+By default, StarPU makes sure to use at most 90% of the memory of GPU devices,
+moving data in and out of the device as appropriate and with prefetch and
+writeback optimizations. Concerning the main memory, by default it will not
+limit its consumption, since by default it has nowhere to push the data to when
+memory gets tight. This also means that by default StarPU will not cache buffer
+allocations in main memory, since it does not know how much of the system memory
+it can afford.
 
-Talk about
-\ref STARPU_LIMIT_CUDA_devid_MEM, \ref STARPU_LIMIT_CUDA_MEM,
-\ref STARPU_LIMIT_OPENCL_devid_MEM, \ref STARPU_LIMIT_OPENCL_MEM
-and \ref STARPU_LIMIT_CPU_MEM
+In the case of GPUs, the \ref STARPU_LIMIT_CUDA_MEM, \ref
+STARPU_LIMIT_CUDA_devid_MEM, \ref STARPU_LIMIT_OPENCL_MEM, and \ref
+STARPU_LIMIT_OPENCL_devid_MEM environment variables can be used to control how
+much (in MiB) of the GPU device memory should be used at most by StarPU (their
+default values are 90% of the available memory).
 
-starpu_memory_get_total()
+In the case of the main memory, the \ref STARPU_LIMIT_CPU_MEM environment
+variable can be used to specify how much (in MiB) of the main memory should be
+used at most by StarPU for buffer allocations. This way, StarPU will be able to
+cache buffer allocations (which can be a real benefit if a lot of bufferes are
+involved, or if allocation fragmentation can become a problem), and when using
+\ref OutOfCore, StarPU will know when it should evict data out to the disk.
 
-starpu_memory_get_available()
+It should be noted that by default only buffer allocations automatically
+done by StarPU are accounted here, i.e. allocations performed through
+<c>starpu_malloc_on_node()</c> which are used by the data interfaces
+(matrix, vector, etc.).  This does not include allocations performed by
+the application through e.g. malloc(). It does not include allocations
+performed through <c>starpu_malloc()</c> either, only allocations
+performed explicitly with the \ref STARPU_MALLOC_COUNT flag (i.e. through
+<c>starpu_malloc_flags(STARPU_MALLOC_COUNT)</c>) are taken into account.  If the
+application wants to make StarPU aware of its own allocations, so that StarPU
+knows precisely how much data is allocated, and thus when to evict allocation
+caches or data out to the disk, \ref starpu_memory_allocate can be used to
+specify an amount of memory to be accounted for. \ref starpu_memory_deallocate
+can be used to account freed memory back. Those can for instance be used by data
+interfaces with dynamic data buffers: instead of using starpu_malloc_on_node,
+they would dynamically allocate data with malloc/realloc, and notify starpu of
+the delta thanks to starpu_memory_allocate and starpu_memory_deallocate calls.
+
+\ref starpu_memory_get_total and \ref starpu_memory_get_available
+can be used to get an estimation of how much memory is available.
+\ref starpu_memory_wait_available can also be used to block until an
+amount of memory becomes available (but it may be preferrable to use
+<c>starpu_memory_allocate(STARPU_MEMORY_WAIT)</c> to reserve that amount
+immediately).
 
 \section HowToReduceTheMemoryFootprintOfInternalDataStructures How To Reduce The Memory Footprint Of Internal Data Structures
 
