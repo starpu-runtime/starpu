@@ -96,7 +96,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 								 STARPU_PRIORITY, ((i == k+1) && (j == k+1))?prio_level:STARPU_DEFAULT_PRIO,
 								 STARPU_R, sdataki,
 								 STARPU_R, sdatakj,
-								 STARPU_RW | STARPU_COMMUTE, sdataij,
+								 cl22.modes[2], sdataij,
 								 STARPU_FLOPS, (double) FLOPS_SGEMM(nn, nn, nn),
 								 STARPU_TAG_ONLY, TAG22(k,i,j),
 								 0);
