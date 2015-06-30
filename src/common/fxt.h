@@ -423,10 +423,10 @@ do {									\
 	if (model_name)                                                 \
 	{								\
 		/* we include the symbol name */			\
-		_STARPU_FUT_DO_PROBE4STR(_STARPU_FUT_START_CODELET_BODY, (job), ((job)->task)->sched_ctx, workerid, 1, model_name); \
+		_STARPU_FUT_DO_PROBE4STR(_STARPU_FUT_START_CODELET_BODY, (job)->job_id, ((job)->task)->sched_ctx, workerid, 1, model_name); \
 	}								\
 	else {                                                          \
-		FUT_DO_PROBE4(_STARPU_FUT_START_CODELET_BODY, (job), ((job)->task)->sched_ctx, workerid, 0); \
+		FUT_DO_PROBE4(_STARPU_FUT_START_CODELET_BODY, (job)->job_id, ((job)->task)->sched_ctx, workerid, 0); \
 	}								\
 	{								\
 		if ((job)->task->cl)					\
@@ -457,7 +457,7 @@ do {									\
 	const uint32_t job_hash = _starpu_compute_buffers_footprint((job)->task->cl?(job)->task->cl->model:NULL, perf_arch, nimpl, (job));\
 	char _archname[32]=""; \
 	starpu_perfmodel_get_arch_name(perf_arch, _archname, 32, 0);	\
-	_STARPU_FUT_DO_PROBE4STR(_STARPU_FUT_END_CODELET_BODY, (job), (job_size), (job_hash), workerid, _archname); \
+	_STARPU_FUT_DO_PROBE4STR(_STARPU_FUT_END_CODELET_BODY, (job)->job_id, (job_size), (job_hash), workerid, _archname); \
 } while(0);
 
 #define _STARPU_TRACE_START_EXECUTING()				\
