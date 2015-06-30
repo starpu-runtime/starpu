@@ -1384,7 +1384,22 @@ static void handle_task_deps(struct fxt_ev_64 *ev)
 	unsigned long dep_succ = ev->param[1];
 
 	struct task_info *task = get_task(dep_succ);
-	task->dependencies = realloc(task->dependencies, sizeof(*task->dependencies) * (task->ndeps+1));
+	unsigned alloc = 0;
+
+	if (task->ndeps == 0)
+		/* Start with 8=2^3, should be plenty in most cases */
+		alloc = 8;
+	else if (task->ndeps >= 8)
+	{
+		/* Allocate dependencies array by powers of two */
+		if (! ((task->ndeps - 1) & task->ndeps)) /* Is task->ndeps a power of two? */
+		{
+			/* We have filled the previous power of two, get another one */
+			alloc = task->ndeps * 2;
+		}
+	}
+	if (alloc)
+		task->dependencies = realloc(task->dependencies, sizeof(*task->dependencies) * alloc);
 	task->dependencies[task->ndeps++] = dep_prev;
 
 	/* There is a dependency between both job id : dep_prev -> dep_succ */
