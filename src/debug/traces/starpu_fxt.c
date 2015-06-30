@@ -51,6 +51,53 @@ static unsigned mic_index = 0;
 static unsigned scc_index = 0;
 static unsigned other_index = 0;
 
+struct task_info {
+	UT_hash_handle hh;
+	char *name;
+	int exclude_from_dag;
+	unsigned long job_id;
+	uint64_t tag;
+	int workerid;
+	/* TODO: double submit_time; */
+	double start_time;
+	double end_time;
+	unsigned long footprint;
+	char *parameters;
+	unsigned int ndeps;
+	unsigned long *dependencies;
+	/* TODO: handles, datasizes */
+};
+
+struct task_info *tasks_info;
+
+static struct task_info *get_task(unsigned long job_id)
+{
+	struct task_info *task;
+
+	HASH_FIND(hh, tasks_info, &job_id, sizeof(job_id), task);
+	if (!task)
+	{
+		task = malloc(sizeof(*task));
+		task->name = NULL;
+		task->exclude_from_dag = 0;
+		task->job_id = job_id;
+		task->tag = 0;
+		task->workerid = -1;
+		/* task->submit_time = 0.; */
+		task->start_time = 0.;
+		task->end_time = 0.;
+		task->footprint = 0;
+		task->parameters = NULL;
+		task->ndeps = 0;
+		task->dependencies = NULL;
+		/* task->handles */
+		/* task->datasizes */
+		HASH_ADD(hh, tasks_info, job_id, sizeof(task->job_id), task);
+	}
+
+	return task;
+}
+
 static void set_next_other_worker_color(int workerid)
 {
 	if (workerid >= STARPU_NMAXWORKERS)
@@ -132,9 +179,7 @@ static double last_codelet_start[STARPU_NMAXWORKERS];
 static char last_codelet_symbol[STARPU_NMAXWORKERS][4*sizeof(unsigned long)];
 static int last_codelet_parameter[STARPU_NMAXWORKERS];
 #define MAX_PARAMETERS 8
-#ifdef STARPU_ENABLE_PAJE_CODELET_DETAILS
 static char last_codelet_parameter_description[STARPU_NMAXWORKERS][MAX_PARAMETERS][FXT_MAX_PARAMS*sizeof(unsigned long)];
-#endif
 
 /* If more than a period of time has elapsed, we flush the profiling info,
  * otherwise they are accumulated everytime there is a new relevant event. */
@@ -760,6 +805,11 @@ static void handle_start_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_op
 
 	create_paje_state_if_not_found(name, options);
 
+	struct task_info *task = get_task(ev->param[0]);
+	task->start_time = start_codelet_time;
+	task->workerid = worker;
+	task->name = strdup(name);
+
 #ifndef STARPU_ENABLE_PAJE_CODELET_DETAILS
 	if (out_paje_file)
 	{
@@ -786,22 +836,16 @@ static void handle_start_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_op
 
 static void handle_codelet_data(struct fxt_ev_64 *ev STARPU_ATTRIBUTE_UNUSED, struct starpu_fxt_options *options STARPU_ATTRIBUTE_UNUSED)
 {
-#ifdef STARPU_ENABLE_PAJE_CODELET_DETAILS
 	int worker = ev->param[0];
 	if (worker < 0) return;
-	if (out_paje_file)
-	{
-		int num = last_codelet_parameter[worker]++;
-		if (num >= MAX_PARAMETERS)
-			return;
-		snprintf(last_codelet_parameter_description[worker][num], sizeof(last_codelet_parameter_description[worker][num]), "%s", (char*) &ev->param[1]);
-	}
-#endif /* STARPU_ENABLE_PAJE_CODELET_DETAILS */
+	int num = last_codelet_parameter[worker]++;
+	if (num >= MAX_PARAMETERS)
+		return;
+	snprintf(last_codelet_parameter_description[worker][num], sizeof(last_codelet_parameter_description[worker][num]), "%s", (char*) &ev->param[1]);
 }
 
 static void handle_codelet_details(struct fxt_ev_64 *ev STARPU_ATTRIBUTE_UNUSED, struct starpu_fxt_options *options STARPU_ATTRIBUTE_UNUSED)
 {
-#ifdef STARPU_ENABLE_PAJE_CODELET_DETAILS
 	int worker = ev->param[5];
 	unsigned long job_id = ev->param[6];
 
@@ -810,19 +854,26 @@ static void handle_codelet_details(struct fxt_ev_64 *ev STARPU_ATTRIBUTE_UNUSED,
 
 	char *prefix = options->file_prefix;
 
+	int i;
+	char parameters[256];
+	size_t eaten = 0;
+	if (!last_codelet_parameter[worker])
+		eaten += snprintf(parameters + eaten, sizeof(parameters) - eaten, "nodata");
+	else
+	for (i = 0; i < last_codelet_parameter[worker] && i < MAX_PARAMETERS; i++)
+	{
+		eaten += snprintf(parameters + eaten, sizeof(parameters) - eaten, "%s%s", i?"_":"", last_codelet_parameter_description[worker][i]);
+	}
+
+	struct task_info *task = get_task(job_id);
+	task->parameters = strdup(parameters);
+	task->footprint = ev->param[3];
+	task->tag = ev->param[4];
+
 	if (out_paje_file)
 	{
-		int i;
-		char parameters[256];
-		size_t eaten = 0;
-		if (!last_codelet_parameter[worker])
-			eaten += snprintf(parameters + eaten, sizeof(parameters) - eaten, "nodata");
-		else
-		for (i = 0; i < last_codelet_parameter[worker] && i < MAX_PARAMETERS; i++)
-		{
-			eaten += snprintf(parameters + eaten, sizeof(parameters) - eaten, "%s%s", i?"_":"", last_codelet_parameter_description[worker][i]);
-		}
 
+#ifdef STARPU_ENABLE_PAJE_CODELET_DETAILS
 		worker_set_detailed_state(last_codelet_start[worker], prefix, worker, last_codelet_symbol[worker], ev->param[2], parameters, ev->param[3], ev->param[4], job_id);
 		if (sched_ctx != 0)
 		{
@@ -836,8 +887,8 @@ static void handle_codelet_details(struct fxt_ev_64 *ev STARPU_ATTRIBUTE_UNUSED,
 			fprintf(out_paje_file, "20	%.9f	%sw%"PRIu64"	Ctx%d	%s	%lu	%s	%08lx	%016llx	%lu\n", last_codelet_start[worker], prefix, ev->param[2], sched_ctx, last_codelet_symbol[worker], (unsigned long) ev->param[2], parameters, (unsigned long) ev->param[3], (unsigned long long) ev->param[4], job_id);
 #endif
 		}
-	}
 #endif /* STARPU_ENABLE_PAJE_CODELET_DETAILS */
+	}
 }
 
 static long dumped_codelets_count;
@@ -859,6 +910,8 @@ static void handle_end_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 		worker_set_state(end_codelet_time, prefix, worker, "I");
 
 	double codelet_length = (end_codelet_time - last_codelet_start[worker]);
+
+	get_task(ev->param[0])->end_time = end_codelet_time;
 
 	update_accumulated_time(worker, 0.0, codelet_length, end_codelet_time, 0);
 
@@ -1330,6 +1383,10 @@ static void handle_task_deps(struct fxt_ev_64 *ev)
 	unsigned long dep_prev = ev->param[0];
 	unsigned long dep_succ = ev->param[1];
 
+	struct task_info *task = get_task(dep_succ);
+	task->dependencies = realloc(task->dependencies, sizeof(*task->dependencies) * (task->ndeps+1));
+	task->dependencies[task->ndeps++] = dep_prev;
+
 	/* There is a dependency between both job id : dep_prev -> dep_succ */
 	_starpu_fxt_dag_add_task_deps(dep_prev, dep_succ);
 }
@@ -1361,6 +1418,7 @@ static void handle_task_done(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 	}
 
 	unsigned exclude_from_dag = ev->param[2];
+	get_task(job_id)->exclude_from_dag = exclude_from_dag;
 
 	if (!exclude_from_dag)
 		_starpu_fxt_dag_set_task_done(job_id, name, colour);
@@ -1676,6 +1734,52 @@ void _starpu_fxt_display_bandwidth(struct starpu_fxt_options *options)
 				itor->comm_start, prefix, itor->dst_node, current_bandwidth_per_node[itor->dst_node]);
 #endif
 		}
+	}
+}
+
+static
+void tasks_output(char *filename_out)
+{
+	FILE *f = fopen(filename_out, "w+");
+	struct task_info *task, *tmp;
+	unsigned i;
+
+	HASH_ITER(hh, tasks_info, task, tmp)
+	{
+		if (!task->exclude_from_dag && task->start_time != 0.)
+		{
+			fprintf(f, "JobId: %lu\n", task->job_id);
+			if (task->name)
+			{
+				fprintf(f, "Name: %s\n", task->name);
+				free(task->name);
+			}
+			fprintf(f, "Tag: %"PRIx64"\n", task->tag);
+			if (task->workerid >= 0)
+				fprintf(f, "WorkerId: %d\n", task->workerid);
+			/* fprintf(f, "SubmitTime: %f\n", task->submit_time); */
+			fprintf(f, "StartTime: %f\n", task->start_time);
+			fprintf(f, "EndTime: %f\n", task->end_time);
+			fprintf(f, "DataFootprint: %lx\n", task->footprint);
+			if (task->parameters)
+			{
+				fprintf(f, "Parameters: %s\n", task->parameters);
+				free(task->parameters);
+			}
+			if (task->dependencies)
+			{
+				fprintf(f, "DependsOn:");
+				for (i = 0; i < task->ndeps; i++)
+					fprintf(f, " %lu", task->dependencies[i]);
+				fprintf(f, "\n");
+				free(task->dependencies);
+			}
+			/* fprintf(f, "Handles: %lx\n", task->handles); */
+			/* fprintf(f, "DataSizes: %lx\n", task->datasizes); */
+			fprintf(f, "\n");
+		}
+		HASH_DEL(tasks_info, task);
+		free(task);
 	}
 }
 
@@ -2191,6 +2295,8 @@ void starpu_fxt_options_init(struct starpu_fxt_options *options)
 	options->ninputfiles = 0;
 	options->out_paje_path = "paje.trace";
 	options->dag_path = "dag.dot";
+	/* TODO */
+	/* options->tasks_path = "tasks.rec"; */
 	options->distrib_time_path = "distrib.data";
 	options->dumped_codelets = NULL;
 	options->activity_path = "activity.data";
@@ -2444,6 +2550,8 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 	_starpu_fxt_distrib_file_close(options);
 
 	_starpu_fxt_dag_terminate();
+
+	tasks_output("tasks.rec");
 
 	options->nworkers = nworkers;
 }
