@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013  Université de Bordeaux
+ * Copyright (C) 2010-2013, 2015  Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -67,8 +67,8 @@ void _starpu_fxt_dag_terminate(void)
 void _starpu_fxt_dag_add_tag(uint64_t tag, unsigned long job_id)
 {
 	if (out_file)
-		fprintf(out_file, "\t \"tag_%llx\"->\"task_%llx\"->\"tag_%llx\" [style=dashed]\n",
-			(unsigned long long)tag, (unsigned long long)job_id, (unsigned long long) tag);
+		fprintf(out_file, "\t \"tag_%llx\"->\"task_%lu\"->\"tag_%llx\" [style=dashed]\n",
+			(unsigned long long)tag, (unsigned long)job_id, (unsigned long long) tag);
 }
 
 void _starpu_fxt_dag_add_tag_deps(uint64_t child, uint64_t father)
@@ -81,7 +81,7 @@ void _starpu_fxt_dag_add_tag_deps(uint64_t child, uint64_t father)
 void _starpu_fxt_dag_add_task_deps(unsigned long dep_prev, unsigned long dep_succ)
 {
 	if (out_file)
-		fprintf(out_file, "\t \"task_%lx\"->\"task_%lx\"\n", dep_prev, dep_succ);
+		fprintf(out_file, "\t \"task_%lu\"->\"task_%lu\"\n", dep_prev, dep_succ);
 }
 
 void _starpu_fxt_dag_set_tag_done(uint64_t tag, const char *color)
@@ -94,7 +94,7 @@ void _starpu_fxt_dag_set_tag_done(uint64_t tag, const char *color)
 void _starpu_fxt_dag_set_task_done(unsigned long job_id, const char *label, const char *color)
 {
 	if (out_file)
-		fprintf(out_file, "\t \"task_%lx\" [ style=filled, label=\"%s\", color=\"%s\"]\n", job_id, label, color);
+		fprintf(out_file, "\t \"task_%lu\" [ style=filled, label=\"%s\", color=\"%s\"]\n", job_id, label, color);
 }
 
 void _starpu_fxt_dag_add_sync_point(void)
