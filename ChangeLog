@@ -103,6 +103,7 @@ New features:
     accesses, notably with STARPU_COMMUTE.
   * Add the capability to define specific MPI datatypes for
     StarPU user-defined interfaces.
+  * Add tasks.rec trace output to make scheduling analysis easier.
 
 Small features:
   * Tasks can now have a name (via the field const char *name of
