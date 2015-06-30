@@ -71,6 +71,8 @@
 #define _STARPU_FUT_WORKER_SLEEP_START	0x5118
 #define _STARPU_FUT_WORKER_SLEEP_END	0x5119
 
+#define _STARPU_FUT_TASK_SUBMIT		0x511a
+
 #define _STARPU_FUT_USER_DEFINED_START	0x5120
 #define _STARPU_FUT_USER_DEFINED_END	0x5121
 
@@ -573,6 +575,9 @@ do {										\
 #define _STARPU_TRACE_WORKER_SLEEP_END	\
 	FUT_DO_PROBE1(_STARPU_FUT_WORKER_SLEEP_END, _starpu_gettid());
 
+#define _STARPU_TRACE_TASK_SUBMIT(job)	\
+	FUT_DO_PROBE2(_STARPU_FUT_TASK_SUBMIT, (job)->job_id, _starpu_gettid());
+
 #define _STARPU_TRACE_USER_DEFINED_START	\
 	FUT_DO_PROBE1(_STARPU_FUT_USER_DEFINED_START, _starpu_gettid());
 
@@ -862,6 +867,7 @@ do {										\
 #define _STARPU_TRACE_WORKER_SCHEDULING_POP		do {} while(0)
 #define _STARPU_TRACE_WORKER_SLEEP_START		do {} while(0)
 #define _STARPU_TRACE_WORKER_SLEEP_END		do {} while(0)
+#define _STARPU_TRACE_TASK_SUBMIT(job)		do {} while(0)
 #define _STARPU_TRACE_USER_DEFINED_START		do {} while(0)
 #define _STARPU_TRACE_USER_DEFINED_END		do {} while(0)
 #define _STARPU_TRACE_START_ALLOC(memnode, size)	do {} while(0)

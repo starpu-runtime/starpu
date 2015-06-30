@@ -58,7 +58,7 @@ struct task_info {
 	unsigned long job_id;
 	uint64_t tag;
 	int workerid;
-	/* TODO: double submit_time; */
+	double submit_time;
 	double start_time;
 	double end_time;
 	unsigned long footprint;
@@ -83,7 +83,7 @@ static struct task_info *get_task(unsigned long job_id)
 		task->job_id = job_id;
 		task->tag = 0;
 		task->workerid = -1;
-		/* task->submit_time = 0.; */
+		task->submit_time = 0.;
 		task->start_time = 0.;
 		task->end_time = 0.;
 		task->footprint = 0;
@@ -1406,6 +1406,17 @@ static void handle_task_deps(struct fxt_ev_64 *ev)
 	_starpu_fxt_dag_add_task_deps(dep_prev, dep_succ);
 }
 
+static void handle_task_submit(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	unsigned long job_id;
+	job_id = ev->param[0];
+
+        int worker;
+        worker = find_worker_id(ev->param[1]);
+
+	get_task(job_id)->submit_time = get_event_time_stamp(ev, options);
+}
+
 static void handle_task_done(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	unsigned long job_id;
@@ -1772,7 +1783,8 @@ void tasks_output(char *filename_out)
 			fprintf(f, "Tag: %"PRIx64"\n", task->tag);
 			if (task->workerid >= 0)
 				fprintf(f, "WorkerId: %d\n", task->workerid);
-			/* fprintf(f, "SubmitTime: %f\n", task->submit_time); */
+			if (task->start_time != 0.)
+				fprintf(f, "SubmitTime: %f\n", task->submit_time);
 			if (task->start_time != 0.)
 				fprintf(f, "StartTime: %f\n", task->start_time);
 			if (task->end_time != 0.)
@@ -1975,6 +1987,10 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 
 			case _STARPU_FUT_TASK_DEPS:
 				handle_task_deps(&ev);
+				break;
+
+			case _STARPU_FUT_TASK_SUBMIT:
+				handle_task_submit(&ev, options);
 				break;
 
 			case _STARPU_FUT_TASK_DONE:
