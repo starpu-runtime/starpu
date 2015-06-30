@@ -212,6 +212,10 @@ static void STARPU_ATTRIBUTE_UNUSED parse_args(int argc, char **argv)
 		{
 			noprio = 1;
 		}
+		else if (strcmp(argv[i], "-commute") == 0)
+		{
+			cl22.modes[2] |= STARPU_COMMUTE;
+		}
 		else if (strcmp(argv[i], "-bound") == 0)
 		{
 			bound = 1;
