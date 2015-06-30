@@ -1746,7 +1746,7 @@ void tasks_output(char *filename_out)
 
 	HASH_ITER(hh, tasks_info, task, tmp)
 	{
-		if (!task->exclude_from_dag && task->start_time != 0.)
+		if (!task->exclude_from_dag)
 		{
 			fprintf(f, "JobId: %lu\n", task->job_id);
 			if (task->name)
@@ -1758,8 +1758,10 @@ void tasks_output(char *filename_out)
 			if (task->workerid >= 0)
 				fprintf(f, "WorkerId: %d\n", task->workerid);
 			/* fprintf(f, "SubmitTime: %f\n", task->submit_time); */
-			fprintf(f, "StartTime: %f\n", task->start_time);
-			fprintf(f, "EndTime: %f\n", task->end_time);
+			if (task->start_time != 0.)
+				fprintf(f, "StartTime: %f\n", task->start_time);
+			if (task->end_time != 0.)
+				fprintf(f, "EndTime: %f\n", task->end_time);
 			fprintf(f, "DataFootprint: %lx\n", task->footprint);
 			if (task->parameters)
 			{
