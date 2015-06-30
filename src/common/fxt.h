@@ -72,6 +72,7 @@
 #define _STARPU_FUT_WORKER_SLEEP_END	0x5119
 
 #define _STARPU_FUT_TASK_SUBMIT		0x511a
+#define _STARPU_FUT_CODELET_DATA_HANDLE	0x511b
 
 #define _STARPU_FUT_USER_DEFINED_START	0x5120
 #define _STARPU_FUT_USER_DEFINED_END	0x5121
@@ -445,6 +446,7 @@ do {									\
 					__handle->ops->describe(__interface, __buf, sizeof(__buf));	\
 					_STARPU_FUT_DO_PROBE1STR(_STARPU_FUT_CODELET_DATA, workerid, __buf);	\
 				}					\
+				FUT_DO_PROBE4(_STARPU_FUT_CODELET_DATA_HANDLE, (job)->job_id, (__handle), _starpu_data_get_size(__handle), STARPU_TASK_GET_MODE((job)->task, __i));	\
 			}						\
 		}							\
 		const size_t __job_size = _starpu_job_get_data_size((job)->task->cl?(job)->task->cl->model:NULL, perf_arch, nimpl, (job));	\

@@ -51,6 +51,12 @@ static unsigned mic_index = 0;
 static unsigned scc_index = 0;
 static unsigned other_index = 0;
 
+struct data_info {
+	unsigned long handle;
+	unsigned long size;
+	int mode;
+};
+
 struct task_info {
 	UT_hash_handle hh;
 	char *name;
@@ -65,7 +71,8 @@ struct task_info {
 	char *parameters;
 	unsigned int ndeps;
 	unsigned long *dependencies;
-	/* TODO: handles, datasizes */
+	unsigned long ndata;
+	struct data_info *data;
 };
 
 struct task_info *tasks_info;
@@ -90,8 +97,8 @@ static struct task_info *get_task(unsigned long job_id)
 		task->parameters = NULL;
 		task->ndeps = 0;
 		task->dependencies = NULL;
-		/* task->handles */
-		/* task->datasizes */
+		task->ndata = 0;
+		task->data = NULL;
 		HASH_ADD(hh, tasks_info, job_id, sizeof(task->job_id), task);
 	}
 
@@ -842,6 +849,31 @@ static void handle_codelet_data(struct fxt_ev_64 *ev STARPU_ATTRIBUTE_UNUSED, st
 	if (num >= MAX_PARAMETERS)
 		return;
 	snprintf(last_codelet_parameter_description[worker][num], sizeof(last_codelet_parameter_description[worker][num]), "%s", (char*) &ev->param[1]);
+}
+
+static void handle_codelet_data_handle(struct fxt_ev_64 *ev STARPU_ATTRIBUTE_UNUSED, struct starpu_fxt_options *options STARPU_ATTRIBUTE_UNUSED)
+{
+	struct task_info *task = get_task(ev->param[0]);
+	unsigned alloc = 0;
+
+	if (task->ndata == 0)
+		/* Start with 8=2^3, should be plenty in most cases */
+		alloc = 8;
+	else if (task->ndata >= 8)
+	{
+		/* Allocate dependencies array by powers of two */
+		if (! ((task->ndata - 1) & task->ndata)) /* Is task->ndata a power of two? */
+		{
+			/* We have filled the previous power of two, get another one */
+			alloc = task->ndata * 2;
+		}
+	}
+	if (alloc)
+		task->data = realloc(task->data, sizeof(*task->data) * alloc);
+	task->data[task->ndata].handle = ev->param[1];
+	task->data[task->ndata].size = ev->param[2];
+	task->data[task->ndata].mode = ev->param[3];
+	task->ndata++;
 }
 
 static void handle_codelet_details(struct fxt_ev_64 *ev STARPU_ATTRIBUTE_UNUSED, struct starpu_fxt_options *options STARPU_ATTRIBUTE_UNUSED)
@@ -1774,11 +1806,19 @@ void tasks_output(char *filename_out)
 	{
 		if (!task->exclude_from_dag)
 		{
-			fprintf(f, "JobId: %lu\n", task->job_id);
 			if (task->name)
 			{
 				fprintf(f, "Name: %s\n", task->name);
 				free(task->name);
+			}
+			fprintf(f, "JobId: %lu\n", task->job_id);
+			if (task->dependencies)
+			{
+				fprintf(f, "DependsOn:");
+				for (i = 0; i < task->ndeps; i++)
+					fprintf(f, " %lu", task->dependencies[i]);
+				fprintf(f, "\n");
+				free(task->dependencies);
 			}
 			fprintf(f, "Tag: %"PRIx64"\n", task->tag);
 			if (task->workerid >= 0)
@@ -1789,22 +1829,32 @@ void tasks_output(char *filename_out)
 				fprintf(f, "StartTime: %f\n", task->start_time);
 			if (task->end_time != 0.)
 				fprintf(f, "EndTime: %f\n", task->end_time);
-			fprintf(f, "DataFootprint: %lx\n", task->footprint);
+			fprintf(f, "Footprint: %lx\n", task->footprint);
 			if (task->parameters)
 			{
 				fprintf(f, "Parameters: %s\n", task->parameters);
 				free(task->parameters);
 			}
-			if (task->dependencies)
+			if (task->data)
 			{
-				fprintf(f, "DependsOn:");
-				for (i = 0; i < task->ndeps; i++)
-					fprintf(f, " %lu", task->dependencies[i]);
+				fprintf(f, "Handles:");
+				for (i = 0; i < task->ndata; i++)
+					fprintf(f, " %lx", task->data[i].handle);
 				fprintf(f, "\n");
-				free(task->dependencies);
+				fprintf(f, "Modes:");
+				for (i = 0; i < task->ndata; i++)
+					fprintf(f, " %s%s%s%s%s",
+						(task->data[i].mode & STARPU_R)?"R":"",
+						(task->data[i].mode & STARPU_W)?"W":"",
+						(task->data[i].mode & STARPU_SCRATCH)?"S":"",
+						(task->data[i].mode & STARPU_REDUX)?"X":"",
+						(task->data[i].mode & STARPU_COMMUTE)?"C":"");
+				fprintf(f, "\n");
+				fprintf(f, "Sizes:");
+				for (i = 0; i < task->ndata; i++)
+					fprintf(f, " %lu", task->data[i].size);
+				fprintf(f, "\n");
 			}
-			/* fprintf(f, "Handles: %lx\n", task->handles); */
-			/* fprintf(f, "DataSizes: %lx\n", task->datasizes); */
 			fprintf(f, "\n");
 		}
 		HASH_DEL(tasks_info, task);
@@ -1899,6 +1949,9 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 				break;
 			case _STARPU_FUT_CODELET_DATA:
 				handle_codelet_data(&ev, options);
+				break;
+			case _STARPU_FUT_CODELET_DATA_HANDLE:
+				handle_codelet_data_handle(&ev, options);
 				break;
 			case _STARPU_FUT_CODELET_DETAILS:
 				handle_codelet_details(&ev, options);

@@ -164,6 +164,20 @@ graphical output of the graph by using the graphviz library:
 $ dot -Tpdf dag.dot -o output.pdf
 \endverbatim
 
+\subsection TraceTaskDetails Getting task details
+
+When the FxT trace file <c>filename</c> has been generated, details on the
+executed tasks can be retrieved by calling:
+
+\verbatim
+$ starpu_fxt_tool -i filename
+\endverbatim
+
+This will create a <c>tasks.rec</c> file in the current directory.  This file
+is in the recutils format, i.e. <c>Field: value</c> lines, and empty lines to
+separate each task.  This can be used as a convenient input for various ad-hoc
+analysis tools.
+
 \subsection MonitoringActivity Monitoring Activity
 
 When the FxT trace file <c>filename</c> has been generated, it is possible to
