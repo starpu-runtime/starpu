@@ -320,7 +320,7 @@ AC_CHECK_FUNC([sched_yield], [AC_DEFINE([STARPU_HAVE_SCHED_YIELD], [1], [Define 
 
 AC_CHECK_HEADERS([aio.h])
 
-AC_CHECK_FUNCS([mkstemps])
+AC_CHECK_FUNCS([mkostemp])
 
 AC_CHECK_FUNCS([pread pwrite])
 

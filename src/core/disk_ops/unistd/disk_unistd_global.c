@@ -67,14 +67,14 @@ void *starpu_unistd_global_alloc(struct starpu_unistd_global_obj *obj, void *bas
 	strcpy(baseCpy, (char *) base);
 	strcat(baseCpy,"/");
 	strcat(baseCpy,template);
-#ifdef STARPU_LINUX_SYS
-	id = mkostemp(baseCpy, obj->flags);
-#elif defined(STARPU_HAVE_WINDOWS)
+#if defined(STARPU_HAVE_WINDOWS)
 	/* size in windows is a multiple of char */
 	_mktemp(baseCpy);
 	id = open(baseCpy, obj->flags);
+#elif defined (HAVE_MKOSTEMP)
+	id = mkostemp(baseCpy, obj->flags);
 #else
-	STARPU_ASSERT(obj->flags == O_RDWR);
+	STARPU_ASSERT(obj->flags == (O_RDWR | O_BINARY));
 	id = mkstemp(baseCpy);
 #endif
 
