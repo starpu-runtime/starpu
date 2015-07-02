@@ -50,6 +50,23 @@
  * possible that we have a task with a NULL codelet, which means its callback
  * could be executed by a user thread as well. */
 static starpu_pthread_key_t current_task_key;
+static int limit_min_submitted_tasks;
+static int limit_max_submitted_tasks;
+static int watchdog_crash;
+
+/* Called once at starpu_init */
+void _starpu_task_init(void)
+{
+	STARPU_PTHREAD_KEY_CREATE(&current_task_key, NULL);
+	limit_min_submitted_tasks = starpu_get_env_number("STARPU_LIMIT_MIN_SUBMITTED_TASKS");
+	limit_max_submitted_tasks = starpu_get_env_number("STARPU_LIMIT_MAX_SUBMITTED_TASKS");
+	watchdog_crash = starpu_get_env_number("STARPU_WATCHDOG_CRASH");
+}
+
+void _starpu_task_deinit(void)
+{
+	STARPU_PTHREAD_KEY_DELETE(current_task_key);
+}
 
 void starpu_task_init(struct starpu_task *task)
 {
@@ -606,8 +623,6 @@ int starpu_task_submit(struct starpu_task *task)
 
 	if (!j->internal)
 	{
-		int limit_min_submitted_tasks = starpu_get_env_number("STARPU_LIMIT_MIN_SUBMITTED_TASKS");
-		int limit_max_submitted_tasks = starpu_get_env_number("STARPU_LIMIT_MAX_SUBMITTED_TASKS");
 		int nsubmitted_tasks = starpu_task_nsubmitted();
 		if (limit_max_submitted_tasks >= 0 && limit_max_submitted_tasks < nsubmitted_tasks
 			&& limit_min_submitted_tasks >= 0 && limit_min_submitted_tasks < nsubmitted_tasks)
@@ -991,16 +1006,6 @@ int starpu_task_nready(void)
 	return nready;
 }
 
-void _starpu_initialize_current_task_key(void)
-{
-	STARPU_PTHREAD_KEY_CREATE(&current_task_key, NULL);
-}
-
-void _starpu_deinitialize_current_task_key(void)
-{
-	STARPU_PTHREAD_KEY_DELETE(current_task_key);
-}
-
 /* Return the task currently executed by the worker, or NULL if this is called
  * either from a thread that is not a task or simply because there is no task
  * being executed at the moment. */
@@ -1158,7 +1163,7 @@ static void *watchdog_func(void *arg)
 				&& last_nsubmitted == starpu_task_nsubmitted())
 		{
 			fprintf(stderr,"The StarPU watchdog detected that no task finished for %u.%06us (can be configure through STARPU_WATCHDOG_TIMEOUT)\n", (unsigned)ts.tv_sec, (unsigned)ts.tv_nsec/1000);
-			if (getenv("STARPU_WATCHDOG_CRASH"))
+			if (watchdog_crash)
 			{
 				fprintf(stderr,"Crashing the process\n");
 				raise(SIGABRT);

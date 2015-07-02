@@ -46,6 +46,11 @@ static struct starpu_perfmodel_arch **arch_combs;
 static int current_arch_comb;
 static int nb_arch_combs;
 static starpu_pthread_rwlock_t arch_combs_mutex;
+static int historymaxerror;
+
+/* How many executions a codelet will have to be measured before we
+ * consider that calibration will provide a value good enough for scheduling */
+unsigned _starpu_calibration_minimum;
 
 struct starpu_perfmodel_history_table
 {
@@ -56,7 +61,7 @@ struct starpu_perfmodel_history_table
 
 /* We want more than 10% variance on X to trust regression */
 #define VALID_REGRESSION(reg_model) \
-	((reg_model)->minx < (9*(reg_model)->maxx)/10 && (reg_model)->nsample >= _STARPU_CALIBRATION_MINIMUM)
+	((reg_model)->minx < (9*(reg_model)->maxx)/10 && (reg_model)->nsample >= _starpu_calibration_minimum)
 
 static starpu_pthread_rwlock_t registered_models_rwlock;
 static struct _starpu_perfmodel_list *registered_models = NULL;
@@ -812,6 +817,8 @@ void _starpu_initialize_registered_performance_models(void)
 	arch_combs = (struct starpu_perfmodel_arch**) malloc(nb_arch_combs*sizeof(struct starpu_perfmodel_arch*));
 	current_arch_comb = 0;
 	STARPU_PTHREAD_RWLOCK_INIT(&arch_combs_mutex, NULL);
+	historymaxerror = starpu_get_env_number_default("STARPU_HISTORY_MAX_ERROR", STARPU_HISTORYMAXERROR);
+	_starpu_calibration_minimum = starpu_get_env_number_default("STARPU_CALIBRATE_MINIMUM", 10);
 }
 
 void _starpu_deinitialize_performance_model(struct starpu_perfmodel *model)
@@ -1188,7 +1195,7 @@ double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfm
 		 * We do not care about racing access to the mean, we only want
 		 * a good-enough estimation */
 
-		if (entry && entry->history_entry && entry->history_entry->nsample >= _STARPU_CALIBRATION_MINIMUM)
+		if (entry && entry->history_entry && entry->history_entry->nsample >= _starpu_calibration_minimum)
 			exp = entry->history_entry->mean;
 
 docal:
@@ -1236,7 +1243,7 @@ double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, s
 	 * We do not care about racing access to the mean, we only want
 	 * a good-enough estimation */
 
-	if (entry && entry->nsample >= _STARPU_CALIBRATION_MINIMUM)
+	if (entry && entry->nsample >= _starpu_calibration_minimum)
 		/* TODO: report differently if we've scheduled really enough
 		 * of that task and the scheduler should perhaps put it aside */
 		/* Calibrated enough */
@@ -1364,7 +1371,6 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 				/* There is already an entry with the same footprint */
 
 				double local_deviation = measured/entry->mean;
-				int historymaxerror = starpu_get_env_number_default("STARPU_HISTORY_MAX_ERROR", STARPU_HISTORYMAXERROR);
 
 				if (entry->nsample &&
 					(100 * local_deviation > (100 + historymaxerror)

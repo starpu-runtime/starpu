@@ -40,7 +40,7 @@
 #  include <io.h>
 #endif
 
-#define NITER	_STARPU_CALIBRATION_MINIMUM
+#define NITER	_starpu_calibration_minimum
 
 #ifdef O_DIRECT
 #  define MEM_SIZE getpagesize()

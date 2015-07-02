@@ -466,7 +466,7 @@ static void _starpu_sink_common_execute_kernel(struct _starpu_mp_node *node, int
 	}
 	if(task->type != STARPU_FORKJOIN || worker->current_rank == 0)
 	{
-		if (starpu_get_env_number("STARPU_DISABLE_KERNELS") <= 0)
+		if (_starpu_get_disable_kernels <= 0)
 		{
 			/* execute the task */
 			task->kernel(task->interfaces,task->cl_arg);

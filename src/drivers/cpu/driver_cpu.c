@@ -100,7 +100,7 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 			/* bind to parallel worker */
 			_starpu_bind_thread_on_cpus(cpu_args->config, _starpu_get_combined_worker_struct(j->combined_workerid));
 		STARPU_ASSERT_MSG(func, "when STARPU_CPU is defined in 'where', cpu_func or cpu_funcs has to be defined");
-		if (starpu_get_env_number("STARPU_DISABLE_KERNELS") <= 0)
+		if (_starpu_get_disable_kernels() <= 0)
 		{
 			_STARPU_TRACE_START_EXECUTING();
 #ifdef STARPU_SIMGRID

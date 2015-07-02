@@ -28,7 +28,7 @@
 #include <datawizard/memory_manager.h>
 #include <starpu_parameters.h>
 
-#define NITER	_STARPU_CALIBRATION_MINIMUM
+#define NITER	_starpu_calibration_minimum
 
 /* ------------------- use leveldb to write on disk -------------------  */
 
