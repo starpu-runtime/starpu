@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012-2014  Université de Bordeaux
+ * Copyright (C) 2010, 2012-2015  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -76,22 +76,22 @@
 #endif
 
 #ifdef STARPU_VERBOSE
-#  define _STARPU_DEBUG(fmt, ...) do { if (!getenv("STARPU_SILENT")) {fprintf(stderr, "[starpu][%s] " fmt ,__starpu_func__ ,## __VA_ARGS__); fflush(stderr); }} while(0)
+#  define _STARPU_DEBUG(fmt, ...) do { if (!_starpu_silent) {fprintf(stderr, "[starpu][%s] " fmt ,__starpu_func__ ,## __VA_ARGS__); fflush(stderr); }} while(0)
 #else
 #  define _STARPU_DEBUG(fmt, ...) do { } while (0)
 #endif
 
 #ifdef STARPU_VERBOSE0
-#  define _STARPU_LOG_IN()             do { if (!getenv("STARPU_SILENT")) {fprintf(stderr, "[starpu][%ld][%s] -->\n", pthread_self(), __starpu_func__ ); }} while(0)
-#  define _STARPU_LOG_OUT()            do { if (!getenv("STARPU_SILENT")) {fprintf(stderr, "[starpu][%ld][%s] <--\n", pthread_self(), __starpu_func__ ); }} while(0)
-#  define _STARPU_LOG_OUT_TAG(outtag)  do { if (!getenv("STARPU_SILENT")) {fprintf(stderr, "[starpu][%ld][%s] <-- (%s)\n", pthread_self(), __starpu_func__, outtag); }} while(0)
+#  define _STARPU_LOG_IN()             do { if (!_starpu_silent) {fprintf(stderr, "[starpu][%ld][%s] -->\n", pthread_self(), __starpu_func__ ); }} while(0)
+#  define _STARPU_LOG_OUT()            do { if (!_starpu_silent) {fprintf(stderr, "[starpu][%ld][%s] <--\n", pthread_self(), __starpu_func__ ); }} while(0)
+#  define _STARPU_LOG_OUT_TAG(outtag)  do { if (!_starpu_silent) {fprintf(stderr, "[starpu][%ld][%s] <-- (%s)\n", pthread_self(), __starpu_func__, outtag); }} while(0)
 #else
 #  define _STARPU_LOG_IN()
 #  define _STARPU_LOG_OUT()
 #  define _STARPU_LOG_OUT_TAG(outtag)
 #endif
 
-#define _STARPU_DISP(fmt, ...) do { if (!getenv("STARPU_SILENT")) {fprintf(stderr, "[starpu][%s] " fmt ,__starpu_func__ ,## __VA_ARGS__); }} while(0)
+#define _STARPU_DISP(fmt, ...) do { if (!_starpu_silent) {fprintf(stderr, "[starpu][%s] " fmt ,__starpu_func__ ,## __VA_ARGS__); }} while(0)
 #define _STARPU_ERROR(fmt, ...)                                                  \
 	do {                                                                          \
                 fprintf(stderr, "\n\n[starpu][%s] Error: " fmt ,__starpu_func__ ,## __VA_ARGS__);    \
@@ -128,5 +128,9 @@ struct starpu_codelet;
 const char *_starpu_codelet_get_model_name(struct starpu_codelet *cl);
 
 int _starpu_check_mutex_deadlock(starpu_pthread_mutex_t *mutex);
+
+extern int _starpu_silent;
+
+void _starpu_util_init(void);
 
 #endif // __COMMON_UTILS_H__

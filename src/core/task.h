@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2014  Université de Bordeaux
+ * Copyright (C) 2009-2015  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011 INRIA
  *
@@ -27,9 +27,10 @@
 void _starpu_task_destroy(struct starpu_task *task);
 
 /* A pthread key is used to store the task currently executed on the thread.
- * _starpu_initialize_current_task_key initializes this pthread key and
+ * _starpu_task_init initializes this pthread key and
  * _starpu_set_current_task updates its current value. */
-void _starpu_initialize_current_task_key(void);
+void _starpu_task_init(void);
+void _starpu_task_deinit(void);
 void _starpu_set_current_task(struct starpu_task *task);
 
 /* NB the second argument makes it possible to count regenerable tasks only

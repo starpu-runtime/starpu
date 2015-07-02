@@ -22,6 +22,9 @@
 #include <starpu.h>
 #include <common/uthash.h>
 
+/* Whether CPU memory has been explicitly limited by user */
+static int limit_cpu_mem;
+
 /* This per-node RW-locks protect mc_list and memchunk_cache entries */
 /* Note: handle header lock is always taken before this */
 static struct _starpu_spinlock mc_lock[STARPU_MAXNODES];
@@ -50,6 +53,7 @@ void _starpu_init_mem_chunk_lists(void)
 		_starpu_spin_init(&mc_lock[i]);
 		_starpu_mem_chunk_list_init(&mc_list[i]);
 	}
+	limit_cpu_mem = starpu_get_env_number("STARPU_LIMIT_CPU_MEM");
 }
 
 void _starpu_deinit_mem_chunk_lists(void)
@@ -799,7 +803,7 @@ void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, struct _star
 	 * STARPU_USE_ALLOCATION_CACHE is not enabled, as we
 	 * wouldn't even re-use these allocations!
 	 */
-	if (starpu_node_get_kind(node) == STARPU_CPU_RAM && starpu_get_env_number("STARPU_LIMIT_CPU_MEM") < 0)
+	if (starpu_node_get_kind(node) == STARPU_CPU_RAM && limit_cpu_mem < 0)
 	{
 		free_memory_on_node(mc, node);
 

@@ -392,7 +392,7 @@ static int execute_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *arg
 	starpu_cuda_func_t func = _starpu_task_get_cuda_nth_implementation(cl, j->nimpl);
 	STARPU_ASSERT_MSG(func, "when STARPU_CUDA is defined in 'where', cuda_func or cuda_funcs has to be defined");
 
-	if (starpu_get_env_number("STARPU_DISABLE_KERNELS") <= 0)
+	if (_starpu_get_disable_kernels <= 0)
 	{
 #ifdef STARPU_SIMGRID
 		_starpu_simgrid_execute_job(j, args->perf_arch, NAN);

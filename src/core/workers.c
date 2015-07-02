@@ -53,6 +53,8 @@ static starpu_pthread_key_t worker_key;
 
 static struct _starpu_machine_config config;
 
+static int disable_kernels;
+
 int _starpu_is_initialized(void)
 {
 	return initialized == INITIALIZED;
@@ -61,6 +63,11 @@ int _starpu_is_initialized(void)
 struct _starpu_machine_config *_starpu_get_machine_config(void)
 {
 	return &config;
+}
+
+int _starpu_get_disable_kernels(void)
+{
+	return disable_kernels;
 }
 
 /* Makes sure that at least one of the workers of type <arch> can execute
@@ -754,6 +761,8 @@ int starpu_init(struct starpu_conf *user_conf)
 
 	srand(2008);
 
+	_starpu_util_init();
+
 #ifdef HAVE_AYUDAME_H
 #ifndef AYU_RT_STARPU
 #define AYU_RT_STARPU 4
@@ -821,13 +830,12 @@ int starpu_init(struct starpu_conf *user_conf)
 		return ret;
 	}
 
-	/* We need to store the current task handled by the different
-	 * threads */
-	_starpu_initialize_current_task_key();
+	_starpu_task_init();
 
 	for (worker = 0; worker < config.topology.nworkers; worker++)
 		_starpu_worker_init(&config.workers[worker], &config);
 
+	disable_kernels = starpu_get_env_number("STARPU_DISABLE_KERNELS");
 	STARPU_PTHREAD_KEY_CREATE(&worker_key, NULL);
 
 	struct starpu_sched_policy *selected_policy = _starpu_select_sched_policy(&config, config.conf->sched_policy_name);
@@ -1091,6 +1099,8 @@ void starpu_shutdown(void)
 	_starpu_close_debug_logfile();
 
 	STARPU_PTHREAD_KEY_DELETE(worker_key);
+
+	_starpu_task_deinit();
 
 	STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
 	initialized = UNINITIALIZED;

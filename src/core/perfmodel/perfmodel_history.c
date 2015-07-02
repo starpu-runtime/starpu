@@ -42,6 +42,10 @@
 #define HASH_ADD_UINT32_T(head,field,add) HASH_ADD(hh,head,field,sizeof(uint32_t),add)
 #define HASH_FIND_UINT32_T(head,find,out) HASH_FIND(hh,head,find,sizeof(uint32_t),out)
 
+/* How many executions a codelet will have to be measured before we
+ * consider that calibration will provide a value good enough for scheduling */
+unsigned _starpu_calibration_minimum;
+
 struct starpu_perfmodel_history_table
 {
 	UT_hash_handle hh;
@@ -51,7 +55,7 @@ struct starpu_perfmodel_history_table
 
 /* We want more than 10% variance on X to trust regression */
 #define VALID_REGRESSION(reg_model) \
-	((reg_model)->minx < (9*(reg_model)->maxx)/10 && (reg_model)->nsample >= _STARPU_CALIBRATION_MINIMUM)
+	((reg_model)->minx < (9*(reg_model)->maxx)/10 && (reg_model)->nsample >= _starpu_calibration_minimum)
 
 static starpu_pthread_rwlock_t registered_models_rwlock;
 static struct _starpu_perfmodel_list *registered_models = NULL;
@@ -731,6 +735,7 @@ void _starpu_initialize_registered_performance_models(void)
 	registered_models = NULL;
 
 	STARPU_PTHREAD_RWLOCK_INIT(&registered_models_rwlock, NULL);
+	_starpu_calibration_minimum = starpu_get_env_number_default("STARPU_CALIBRATE_MINIMUM", 10);
 }
 
 void _starpu_deinitialize_performance_model(struct starpu_perfmodel *model)
@@ -1133,7 +1138,7 @@ double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfm
 		 * We do not care about racing access to the mean, we only want
 		 * a good-enough estimation */
 
-		if (entry && entry->history_entry && entry->history_entry->nsample >= _STARPU_CALIBRATION_MINIMUM)
+		if (entry && entry->history_entry && entry->history_entry->nsample >= _starpu_calibration_minimum)
 			exp = entry->history_entry->mean;
 
 		STARPU_HG_DISABLE_CHECKING(model->benchmarking);
@@ -1172,7 +1177,7 @@ double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, e
 	 * We do not care about racing access to the mean, we only want
 	 * a good-enough estimation */
 
-	if (entry && entry->nsample >= _STARPU_CALIBRATION_MINIMUM)
+	if (entry && entry->nsample >= _starpu_calibration_minimum)
 		/* TODO: report differently if we've scheduled really enough
 		 * of that task and the scheduler should perhaps put it aside */
 		/* Calibrated enough */

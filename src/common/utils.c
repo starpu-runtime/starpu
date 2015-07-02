@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012-2013  Université de Bordeaux
+ * Copyright (C) 2010, 2012-2013, 2015  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -33,6 +33,13 @@
 #define ftruncate(fd, length) _chsize(fd, length)
 #endif
 #endif
+
+int _starpu_silent;
+
+void _starpu_util_init(void)
+{
+	_starpu_silent = starpu_get_env_number_default("STARPU_SILENT", 0);
+}
 
 #if defined(_WIN32) && !defined(__CYGWIN__) && !defined(__MINGW32__)
 #include <direct.h>
