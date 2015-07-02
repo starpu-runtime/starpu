@@ -50,6 +50,8 @@ static void _starpu_add_dependency(starpu_data_handle_t handle STARPU_ATTRIBUTE_
 static void _starpu_add_accessor(starpu_data_handle_t handle, struct starpu_task *pre_sync_task, struct starpu_task *post_sync_task, struct _starpu_task_wrapper_dlist *post_sync_task_dependency_slot)
 {
 	/* Add this task to the list of readers */
+	STARPU_ASSERT(!post_sync_task_dependency_slot->prev);
+	STARPU_ASSERT(!post_sync_task_dependency_slot->next);
 	post_sync_task_dependency_slot->task = post_sync_task;
 	post_sync_task_dependency_slot->next = handle->last_submitted_accessors.next;
 	post_sync_task_dependency_slot->prev = &handle->last_submitted_accessors;
