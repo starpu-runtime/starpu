@@ -896,7 +896,7 @@ static int _starpu_opencl_start_job(struct _starpu_job *j, struct _starpu_worker
 	starpu_opencl_func_t func = _starpu_task_get_opencl_nth_implementation(cl, j->nimpl);
 	STARPU_ASSERT_MSG(func, "when STARPU_OPENCL is defined in 'where', opencl_func or opencl_funcs has to be defined");
 
-	if (_starpu_get_disable_kernels <= 0)
+	if (_starpu_get_disable_kernels() <= 0)
 	{
 		_STARPU_TRACE_START_EXECUTING();
 #ifdef STARPU_SIMGRID
