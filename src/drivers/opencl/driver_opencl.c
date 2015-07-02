@@ -778,7 +778,7 @@ static int _starpu_opencl_execute_job(struct _starpu_job *j, struct _starpu_work
 	starpu_opencl_func_t func = _starpu_task_get_opencl_nth_implementation(cl, j->nimpl);
 	STARPU_ASSERT_MSG(func, "when STARPU_OPENCL is defined in 'where', opencl_func or opencl_funcs has to be defined");
 
-	if (_starpu_get_disable_kernels <= 0)
+	if (_starpu_get_disable_kernels() <= 0)
 	{
 #ifdef STARPU_SIMGRID
 		double length = NAN;
