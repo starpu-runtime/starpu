@@ -58,6 +58,9 @@ static starpu_pthread_key_t worker_set_key;
 
 static struct _starpu_machine_config config;
 
+static int check_entire_platform;
+static int disable_kernels;
+
 /* Pointers to argc and argv
  */
 static int *my_argc = 0;
@@ -91,6 +94,11 @@ struct _starpu_machine_config *_starpu_get_machine_config(void)
 	return &config;
 }
 
+int _starpu_get_disable_kernels(void)
+{
+	return disable_kernels;
+}
+
 /* Makes sure that at least one of the workers of type <arch> can execute
  * <task>, for at least one of its implementations. */
 static uint32_t _starpu_worker_exists_and_can_execute(struct starpu_task *task,
@@ -103,7 +111,6 @@ static uint32_t _starpu_worker_exists_and_can_execute(struct starpu_task *task,
 	   task, independent of the sched_ctx, this latter may receive latter on
 	   the necessary worker - the user or the hypervisor should take care this happens */
 
-	int check_entire_platform = starpu_get_env_number("STARPU_CHECK_ENTIRE_PLATFORM");
 	struct _starpu_sched_ctx *sched_ctx = check_entire_platform == 1 ? _starpu_get_initial_sched_ctx() : _starpu_get_sched_ctx_struct(task->sched_ctx);
 	struct starpu_worker_collection *workers = sched_ctx->workers;
 	struct starpu_sched_ctx_iterator it;
@@ -1158,6 +1165,8 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 
 	srand(2008);
 
+	_starpu_util_init();
+
 #ifdef HAVE_AYUDAME_H
 #ifndef AYU_RT_STARPU
 #define AYU_RT_STARPU 4
@@ -1231,16 +1240,13 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 		return ret;
 	}
 
-	/* Allocate swap, if any */
-	_starpu_swap_init();
-
-	/* We need to store the current task handled by the different
-	 * threads */
-	_starpu_initialize_current_task_key();
+	_starpu_task_init();
 
 	for (worker = 0; worker < config.topology.nworkers; worker++)
 		_starpu_worker_init(&config.workers[worker], &config);
 
+	check_entire_platform = starpu_get_env_number("STARPU_CHECK_ENTIRE_PLATFORM");
+	disable_kernels = starpu_get_env_number("STARPU_DISABLE_KERNELS");
 	STARPU_PTHREAD_KEY_CREATE(&worker_key, NULL);
 	STARPU_PTHREAD_KEY_CREATE(&worker_set_key, NULL);
 
@@ -1257,6 +1263,9 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	/* Launch "basic" workers (ie. non-combined workers) */
 	if (!is_a_sink)
 		_starpu_launch_drivers(&config);
+
+	/* Allocate swap, if any */
+	_starpu_swap_init();
 
 	_starpu_watchdog_init();
 
@@ -1501,7 +1510,6 @@ void starpu_shutdown(void)
 	starpu_profiling_bus_helper_display_summary();
 	starpu_profiling_worker_helper_display_summary();
 
-	_starpu_deinitialize_current_task_key();
 	_starpu_deinitialize_registered_performance_models();
 
 	_starpu_watchdog_shutdown();
@@ -1543,6 +1551,8 @@ void starpu_shutdown(void)
 
 	STARPU_PTHREAD_KEY_DELETE(worker_key);
 	STARPU_PTHREAD_KEY_DELETE(worker_set_key);
+
+	_starpu_task_deinit();
 
 	STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
 	initialized = UNINITIALIZED;

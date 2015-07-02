@@ -425,6 +425,9 @@ int _starpu_is_initialized(void);
  * all workers and topology). */
 struct _starpu_machine_config *_starpu_get_machine_config(void);
 
+/* Return whether kernels should be run (<=0) or not (>0) */
+int _starpu_get_disable_kernels(void);
+
 /* Retrieve the status which indicates what the worker is currently doing. */
 enum _starpu_worker_status _starpu_worker_get_status(int workerid);
 

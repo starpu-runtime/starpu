@@ -29,6 +29,7 @@
 #include <core/simgrid.h>
 
 static size_t _malloc_align = sizeof(void*);
+static int disable_pinning;
 
 void starpu_malloc_set_align(size_t align)
 {
@@ -114,7 +115,7 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 			starpu_memory_allocate(STARPU_MAIN_RAM, dim, STARPU_MEMORY_OVERFLOW);
 	}
 
-	if (flags & STARPU_MALLOC_PINNED && starpu_get_env_number("STARPU_DISABLE_PINNING") <= 0 && STARPU_RUNNING_ON_VALGRIND == 0)
+	if (flags & STARPU_MALLOC_PINNED && disable_pinning <= 0 && STARPU_RUNNING_ON_VALGRIND == 0)
 	{
 #ifdef STARPU_SIMGRID
 		/* FIXME: CUDA seems to be taking 650µs every 1MiB.
@@ -289,7 +290,7 @@ static struct starpu_codelet free_pinned_cl =
 int starpu_free_flags(void *A, size_t dim, int flags)
 {
 #ifndef STARPU_SIMGRID
-	if (flags & STARPU_MALLOC_PINNED && starpu_get_env_number("STARPU_DISABLE_PINNING") <= 0 && STARPU_RUNNING_ON_VALGRIND == 0)
+	if (flags & STARPU_MALLOC_PINNED && disable_pinning <= 0 && STARPU_RUNNING_ON_VALGRIND == 0)
 	{
 		if (_starpu_can_submit_cuda_task())
 		{
@@ -606,7 +607,7 @@ _starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size)
 int
 starpu_memory_pin(void *addr STARPU_ATTRIBUTE_UNUSED, size_t size STARPU_ATTRIBUTE_UNUSED)
 {
-	if (STARPU_MALLOC_PINNED && starpu_get_env_number("STARPU_DISABLE_PINNING") <= 0 && STARPU_RUNNING_ON_VALGRIND == 0)
+	if (STARPU_MALLOC_PINNED && disable_pinning <= 0 && STARPU_RUNNING_ON_VALGRIND == 0)
 	{
 #if defined(STARPU_USE_CUDA) && defined(HAVE_CUDA_MEMCPY_PEER)
 		if (cudaHostRegister(addr, size, cudaHostRegisterPortable) != cudaSuccess)
@@ -619,7 +620,7 @@ starpu_memory_pin(void *addr STARPU_ATTRIBUTE_UNUSED, size_t size STARPU_ATTRIBU
 int
 starpu_memory_unpin(void *addr STARPU_ATTRIBUTE_UNUSED, size_t size STARPU_ATTRIBUTE_UNUSED)
 {
-	if (STARPU_MALLOC_PINNED && starpu_get_env_number("STARPU_DISABLE_PINNING") <= 0 && STARPU_RUNNING_ON_VALGRIND == 0)
+	if (STARPU_MALLOC_PINNED && disable_pinning <= 0 && STARPU_RUNNING_ON_VALGRIND == 0)
 	{
 #if defined(STARPU_USE_CUDA) && defined(HAVE_CUDA_MEMCPY_PEER)
 		if (cudaHostUnregister(addr) != cudaSuccess)
@@ -689,6 +690,7 @@ _starpu_malloc_init(unsigned dst_node)
 	_starpu_chunk_list_init(&chunks[dst_node]);
 	nfreechunks[dst_node] = 0;
 	STARPU_PTHREAD_MUTEX_INIT(&chunk_mutex[dst_node], NULL);
+	disable_pinning = starpu_get_env_number("STARPU_DISABLE_PINNING");
 }
 
 void

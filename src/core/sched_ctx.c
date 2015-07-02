@@ -31,6 +31,7 @@ static double hyp_start_allow_sample[STARPU_NMAX_SCHED_CTXS];
 static double flops[STARPU_NMAX_SCHED_CTXS][STARPU_NMAXWORKERS];
 static size_t data_size[STARPU_NMAX_SCHED_CTXS][STARPU_NMAXWORKERS];
 static double hyp_actual_start_sample[STARPU_NMAX_SCHED_CTXS];
+static double window_size;
 
 static unsigned _starpu_get_first_free_sched_ctx(struct _starpu_machine_config *config);
 static void _starpu_sched_ctx_add_workers_to_master(unsigned sched_ctx_id, int *workerids, int nworkers, int new_master);
@@ -986,9 +987,7 @@ unsigned _starpu_can_push_task(struct _starpu_sched_ctx *sched_ctx, struct starp
 {
 	if(sched_ctx->sched_policy && sched_ctx->sched_policy->simulate_push_task)
 	{
-		const char *env_window_size = getenv("STARPU_WINDOW_TIME_SIZE");
-		if(!env_window_size) return 1;
-		double window_size = atof(env_window_size);
+		if (window_size == 0.0) return 1;
 		
 		STARPU_PTHREAD_RWLOCK_RDLOCK(&changing_ctx_mutex[sched_ctx->id]);
 		double expected_end = sched_ctx->sched_policy->simulate_push_task(task);
@@ -1166,6 +1165,7 @@ int _starpu_nworkers_able_to_execute_task(struct starpu_task *task, struct _star
 void _starpu_init_all_sched_ctxs(struct _starpu_machine_config *config)
 {
 	STARPU_PTHREAD_KEY_CREATE(&sched_ctx_key, NULL);
+	window_size = starpu_get_env_float_default("STARPU_WINDOW_TIME_SIZE", 0.0);
 
 	unsigned i;
 	for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)

@@ -23,6 +23,15 @@
 #include <starpu.h>
 #include <common/uthash.h>
 
+/* Minimum percentage of available memory in each node */
+static unsigned minimum_p;
+static unsigned target_p;
+/* Minimum percentage of number of clean buffer in each node */
+static unsigned minimum_clean_p;
+static unsigned target_clean_p;
+/* Whether CPU memory has been explicitly limited by user */
+static int limit_cpu_mem;
+
 /* This per-node RW-locks protect mc_list and memchunk_cache entries */
 /* Note: handle header lock is always taken before this (normal add/remove case) */
 static struct _starpu_spinlock mc_lock[STARPU_MAXNODES];
@@ -111,6 +120,11 @@ void _starpu_init_mem_chunk_lists(void)
 		STARPU_HG_DISABLE_CHECKING(mc_nb[i]);
 		STARPU_HG_DISABLE_CHECKING(mc_clean_nb[i]);
 	}
+	minimum_p = starpu_get_env_number_default("STARPU_MINIMUM_AVAILABLE_MEM", 5);
+	target_p = starpu_get_env_number_default("STARPU_TARGET_AVAILABLE_MEM", 10);
+	minimum_clean_p = starpu_get_env_number_default("STARPU_MINIMUM_CLEAN_BUFFERS", 10);
+	target_clean_p = starpu_get_env_number_default("STARPU_TARGET_CLEAN_BUFFERS", 25);
+	limit_cpu_mem = starpu_get_env_number("STARPU_LIMIT_CPU_MEM");
 }
 
 void _starpu_deinit_mem_chunk_lists(void)
@@ -876,10 +890,6 @@ void starpu_memchunk_tidy(unsigned node)
 	starpu_ssize_t total = starpu_memory_get_total(node);
 	starpu_ssize_t available = starpu_memory_get_available(node);
 	size_t target, amount;
-	unsigned minimum_p = starpu_get_env_number_default("STARPU_MINIMUM_AVAILABLE_MEM", 5);
-	unsigned target_p = starpu_get_env_number_default("STARPU_TARGET_AVAILABLE_MEM", 10);
-	unsigned minimum_clean_p = starpu_get_env_number_default("STARPU_MINIMUM_CLEAN_BUFFERS", 10);
-	unsigned target_clean_p = starpu_get_env_number_default("STARPU_TARGET_CLEAN_BUFFERS", 25);
 
 	if (mc_clean_nb[node] < (mc_nb[node] * minimum_clean_p) / 100)
 	{
@@ -1128,7 +1138,7 @@ void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, struct _star
 	 * STARPU_USE_ALLOCATION_CACHE is not enabled, as we
 	 * wouldn't even re-use these allocations!
 	 */
-	if (handle->ops->dontcache || (starpu_node_get_kind(node) == STARPU_CPU_RAM && starpu_get_env_number("STARPU_LIMIT_CPU_MEM") < 0))
+	if (handle->ops->dontcache || (starpu_node_get_kind(node) == STARPU_CPU_RAM && limit_cpu_mem < 0))
 	{
 		/* Free data immediately */
 		free_memory_on_node(mc, node);
