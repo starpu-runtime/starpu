@@ -1181,7 +1181,7 @@ static void *watchdog_func(void *arg)
 void _starpu_watchdog_init(void)
 {
 	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
-	char *timeout_env = getenv("STARPU_WATCHDOG_TIMEOUT");
+	char *timeout_env = starpu_getenv("STARPU_WATCHDOG_TIMEOUT");
 
 	STARPU_PTHREAD_MUTEX_INIT(&config->submitted_mutex, NULL);
 
@@ -1193,7 +1193,7 @@ void _starpu_watchdog_init(void)
 
 void _starpu_watchdog_shutdown(void)
 {
-	char *timeout_env = getenv("STARPU_WATCHDOG_TIMEOUT");
+	char *timeout_env = starpu_getenv("STARPU_WATCHDOG_TIMEOUT");
 
 	if (!timeout_env)
 		return;

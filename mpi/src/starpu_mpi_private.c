@@ -21,6 +21,7 @@ int _starpu_debug_rank=-1;
 int _starpu_debug_level_min=0;
 int _starpu_debug_level_max=0;
 int _starpu_mpi_tag = 42;
+int _starpu_mpi_comm;
 
 void _starpu_mpi_set_debug_level_min(int level)
 {

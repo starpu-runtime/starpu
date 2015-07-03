@@ -1539,6 +1539,7 @@ int _starpu_mpi_initialize(int *argc, char ***argv, int initialize_mpi, MPI_Comm
 	detached_requests = _starpu_mpi_req_list_new();
 
 	STARPU_PTHREAD_MUTEX_INIT(&mutex_posted_requests, NULL);
+	_starpu_mpi_comm = starpu_getenv("STARPU_MPI_COMM") != NULL;
 
 #ifdef STARPU_MPI_ACTIVITY
 	hookid = starpu_progression_hook_register(_starpu_mpi_progression_hook_func, NULL);

@@ -35,7 +35,7 @@ struct _starpu_pthread_args
 #define MAX_TSD 16
 
 #define STARPU_MPI_AS_PREFIX "StarPU-MPI"
-#define _starpu_simgrid_running_smpi() (getenv("SMPI_GLOBAL_SIZE") != NULL)
+#define _starpu_simgrid_running_smpi() (starpu_getenv("SMPI_GLOBAL_SIZE") != NULL)
 
 void _starpu_simgrid_init(void);
 void _starpu_simgrid_wait_tasks(int workerid);

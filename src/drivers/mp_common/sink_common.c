@@ -38,7 +38,7 @@ static enum _starpu_mp_node_kind _starpu_sink_common_get_kind(void)
 {
 	/* Environment varible STARPU_SINK must be defined when running on sink
 	 * side : let's use it to get the kind of node we're running on */
-	char *node_kind = getenv("STARPU_SINK");
+	char *node_kind = starpu_getenv("STARPU_SINK");
 	STARPU_ASSERT(node_kind);
 
 	if (!strcmp(node_kind, "STARPU_MIC"))

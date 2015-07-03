@@ -550,6 +550,7 @@ void *_starpu_mic_src_worker(void *arg)
 
 	_STARPU_TRACE_WORKER_DEINIT_START;
 
+	worker->worker_is_initialized = 0;
 	_STARPU_TRACE_WORKER_DEINIT_END(_STARPU_FUT_CUDA_KEY);
 
 	return NULL;

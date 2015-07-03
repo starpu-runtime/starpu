@@ -571,7 +571,7 @@ void _starpu_opencl_init(void)
 		}
 
                 // Get location of OpenCl kernel source files
-                _starpu_opencl_program_dir = getenv("STARPU_OPENCL_PROGRAM_DIR");
+                _starpu_opencl_program_dir = starpu_getenv("STARPU_OPENCL_PROGRAM_DIR");
 
 		if (nb_devices > STARPU_MAXOPENCLDEVS)
 		{
@@ -794,6 +794,7 @@ int _starpu_opencl_driver_deinit(struct _starpu_worker *worker)
 	unsigned devid   = worker->devid;
         _starpu_opencl_deinit_context(devid);
 
+	worker->worker_is_initialized = 0;
 	_STARPU_TRACE_WORKER_DEINIT_END(_STARPU_FUT_OPENCL_KEY);
 
 	return 0;

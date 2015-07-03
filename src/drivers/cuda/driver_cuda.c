@@ -859,6 +859,7 @@ int _starpu_cuda_driver_deinit(struct _starpu_worker_set *worker_set)
 		deinit_worker_context(workerid);
 	}
 
+	worker_set->workers[0].worker_is_initialized = 0;
 	_STARPU_TRACE_WORKER_DEINIT_END(_STARPU_FUT_CUDA_KEY);
 
 	return 0;

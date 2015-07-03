@@ -74,8 +74,8 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
 
 	case STARPU_MIC_SINK:
 	{
-		node->devid = atoi(getenv("_STARPU_MIC_DEVID"));
-		node->nb_mp_sinks = atoi(getenv("_STARPU_MIC_NB"));
+		node->devid = atoi(starpu_getenv("_STARPU_MIC_DEVID"));
+		node->nb_mp_sinks = atoi(starpu_getenv("_STARPU_MIC_NB"));
 
 		node->init = _starpu_mic_sink_init;
 		node->launch_workers = _starpu_mic_sink_launch_workers;

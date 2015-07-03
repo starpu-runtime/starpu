@@ -34,7 +34,7 @@ void _starpu_mpi_comm_amounts_init(MPI_Comm comm)
 
 	if (stats_enabled == 0) return;
 
-	if (!getenv("STARPU_SILENT")) fprintf(stderr,"Warning: StarPU is executed with STARPU_COMM_STATS=1, which slows down a bit\n");
+	if (!_starpu_silent) fprintf(stderr,"Warning: StarPU is executed with STARPU_COMM_STATS=1, which slows down a bit\n");
 
 	starpu_mpi_comm_size(comm, &world_size);
 	_STARPU_MPI_DEBUG(1, "allocating for %d nodes\n", world_size);
