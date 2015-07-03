@@ -111,9 +111,27 @@ static void _starpu_add_sync_task(starpu_data_handle_t handle, struct starpu_tas
 	l = handle->last_submitted_accessors.next;
 	while (l != &handle->last_submitted_accessors)
 	{
-		if (l->task != ignored_task)
+		if (l->task == ignored_task)
+		{
+			/* Don't make pre_sync_task depend on post_sync_task!
+			 * but still drop from the list.
+			 * This happens notably when a task accesses several
+			 * times to the same data.
+			 */
+			struct _starpu_task_wrapper_dlist *next;
+			l->prev->next = l->next;
+			l->next->prev = l->prev;
+			l->task = NULL;
+			l->prev = NULL;
+			next = l->next;
+			l->next = NULL;
+			l = next;
+		}
+		else
+		{
 			naccessors++;
-		l = l->next;
+			l = l->next;
+		}
 	}
 	_STARPU_DEP_DEBUG("%d accessors\n", naccessors);
 
@@ -126,15 +144,14 @@ static void _starpu_add_sync_task(starpu_data_handle_t handle, struct starpu_tas
 		while (l != &handle->last_submitted_accessors)
 		{
 			STARPU_ASSERT(l->task);
-			if (l->task != ignored_task)
-			{
-				task_array[i++] = l->task;
-				_starpu_add_dependency(handle, l->task, pre_sync_task);
-				_STARPU_DEP_DEBUG("dep %p -> %p\n", l->task, pre_sync_task);
-			}
+			STARPU_ASSERT(l->task != ignored_task);
+			task_array[i++] = l->task;
+			_starpu_add_dependency(handle, l->task, pre_sync_task);
+			_STARPU_DEP_DEBUG("dep %p -> %p\n", l->task, pre_sync_task);
 
 			struct _starpu_task_wrapper_dlist *prev = l;
 			l = l->next;
+			prev->task = NULL;
 			prev->next = NULL;
 			prev->prev = NULL;
 		}
@@ -404,9 +421,13 @@ void _starpu_release_data_enforce_sequential_consistency(struct starpu_task *tas
 				;
 			STARPU_ASSERT(l == &handle->last_submitted_accessors);
 #endif
+			STARPU_ASSERT(task_dependency_slot->task == task);
 
 			task_dependency_slot->next->prev = task_dependency_slot->prev;
 			task_dependency_slot->prev->next = task_dependency_slot->next;
+			task_dependency_slot->task = NULL;
+			task_dependency_slot->next = NULL;
+			task_dependency_slot->prev = NULL;
 #ifndef STARPU_USE_FXT
 			if (_starpu_bound_recording)
 #endif
