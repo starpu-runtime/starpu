@@ -27,6 +27,8 @@ extern "C"
 #warning Your application is using deprecated types. You may want to update to use the latest API, by using tools/dev/rename.sh.
 #endif /* defined(STARPU_USE_DEPRECATED_API) || defined(STARPU_USE_DEPRECATED_ONE_ZERO_API) */
 
+#define starpu_permodel_history_based_expected_perf	starpu_perfmodel_history_based_expected_perf
+
 #ifdef STARPU_USE_DEPRECATED_ONE_ZERO_API
 
 #define starpu_allocate_buffer_on_node	starpu_malloc_on_node

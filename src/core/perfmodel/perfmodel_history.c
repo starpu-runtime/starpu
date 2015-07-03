@@ -1264,7 +1264,7 @@ docal:
 	return exp;
 }
 
-double starpu_permodel_history_based_expected_perf(struct starpu_perfmodel *model, struct starpu_perfmodel_arch * arch, uint32_t footprint)
+double starpu_perfmodel_history_based_expected_perf(struct starpu_perfmodel *model, struct starpu_perfmodel_arch * arch, uint32_t footprint)
 {
 	struct _starpu_job j =
 		{
