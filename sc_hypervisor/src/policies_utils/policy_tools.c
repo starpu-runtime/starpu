@@ -417,7 +417,7 @@ void sc_hypervisor_get_tasks_times(int nw, int nt, double times[nw][nt], int *wo
                 {
 			int worker = workers == NULL ? w : workers[w];
                         enum starpu_perfmodel_archtype arch = starpu_worker_get_perf_archtype(worker);
-                        double length = starpu_permodel_history_based_expected_perf(tp->cl->model, arch, tp->footprint);
+                        double length = starpu_perfmodel_history_based_expected_perf(tp->cl->model, arch, tp->footprint);
 
                         if (isnan(length))
                                 times[w][t] = NAN;
