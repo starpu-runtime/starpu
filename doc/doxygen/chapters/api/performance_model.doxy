@@ -286,8 +286,8 @@ Return the latency of data transfer between two memory nodes
 \ingroup API_Performance_Model
 Return the estimated time to transfer a given size between two memory nodes.
 
-\fn double starpu_permodel_history_based_expected_perf(struct starpu_perfmodel *model, struct starpu_perfmodel_arch* arch, uint32_t footprint)
+\fn double starpu_perfmodel_history_based_expected_perf(struct starpu_perfmodel *model, struct starpu_perfmodel_arch* arch, uint32_t footprint)
 \ingroup API_Performance_Model
-todo
+Return the estimated time of a task whose model is named \p and whose footprint is \p footprint
 
 */

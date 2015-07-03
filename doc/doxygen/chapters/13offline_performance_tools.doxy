@@ -176,7 +176,9 @@ $ starpu_fxt_tool -i filename
 This will create a <c>tasks.rec</c> file in the current directory.  This file
 is in the recutils format, i.e. <c>Field: value</c> lines, and empty lines to
 separate each task.  This can be used as a convenient input for various ad-hoc
-analysis tools.
+analysis tools.  The performance models can be opened for instance by using
+\ref starpu_perfmodel_load_symbol and then using
+\ref starpu_perfmodel_history_based_expected_perf
 
 \subsection MonitoringActivity Monitoring Activity
 
