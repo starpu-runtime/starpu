@@ -32,6 +32,7 @@ static double flops[STARPU_NMAX_SCHED_CTXS][STARPU_NMAXWORKERS];
 static size_t data_size[STARPU_NMAX_SCHED_CTXS][STARPU_NMAXWORKERS];
 static double hyp_actual_start_sample[STARPU_NMAX_SCHED_CTXS];
 static double window_size;
+static int nobind;
 
 static unsigned _starpu_get_first_free_sched_ctx(struct _starpu_machine_config *config);
 static void _starpu_sched_ctx_add_workers_to_master(unsigned sched_ctx_id, int *workerids, int nworkers, int new_master);
@@ -1166,6 +1167,7 @@ void _starpu_init_all_sched_ctxs(struct _starpu_machine_config *config)
 {
 	STARPU_PTHREAD_KEY_CREATE(&sched_ctx_key, NULL);
 	window_size = starpu_get_env_float_default("STARPU_WINDOW_TIME_SIZE", 0.0);
+	nobind = starpu_get_env_number("STARPU_WORKERS_NOBIND");
 
 	unsigned i;
 	for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
@@ -1885,7 +1887,7 @@ void starpu_sched_ctx_bind_current_thread_to_cpuid(unsigned cpuid STARPU_ATTRIBU
 
 	/* FIXME: why not factorize with _starpu_bind_thread_on_cpu? */
 
-	if (starpu_get_env_number("STARPU_WORKERS_NOBIND") > 0)
+	if (nobind > 0)
 		return;
 
 #ifdef STARPU_HAVE_HWLOC

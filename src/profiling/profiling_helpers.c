@@ -23,7 +23,7 @@ void starpu_profiling_bus_helper_display_summary(void)
 	const char *stats;
 	int long long sum_transferred = 0;
 
-	if (!((stats = getenv("STARPU_BUS_STATS")) && atoi(stats))) return;
+	if (!((stats = starpu_getenv("STARPU_BUS_STATS")) && atoi(stats))) return;
 
 	fprintf(stderr, "\nData transfer statistics:\n");
 	fprintf(stderr,   "*************************\n");
@@ -61,7 +61,7 @@ void starpu_profiling_worker_helper_display_summary(void)
 	int workerid;
 	int worker_cnt = starpu_worker_get_count();
 
-	if (!((stats = getenv("STARPU_WORKER_STATS")) && atoi(stats))) return;
+	if (!((stats = starpu_getenv("STARPU_WORKER_STATS")) && atoi(stats))) return;
 
 	fprintf(stderr, "\nWorker statistics:\n");
 	fprintf(stderr,   "******************\n");
@@ -99,7 +99,7 @@ void starpu_profiling_worker_helper_display_summary(void)
 
 	if (profiling)
 	{
-		const char *strval_idle_power = getenv("STARPU_IDLE_POWER");
+		const char *strval_idle_power = starpu_getenv("STARPU_IDLE_POWER");
 		if (strval_idle_power)
 		{
 			double idle_power = atof(strval_idle_power); /* Watt */

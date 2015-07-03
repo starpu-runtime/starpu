@@ -317,6 +317,7 @@ int _starpu_cpu_driver_deinit(struct _starpu_worker *cpu_worker)
 	 * coherency is not maintained anymore at that point ! */
 	_starpu_free_all_automatically_allocated_buffers(memnode);
 
+	cpu_worker->worker_is_initialized = 0;
 	_STARPU_TRACE_WORKER_DEINIT_END(_STARPU_FUT_CPU_KEY);
 
 	return 0;

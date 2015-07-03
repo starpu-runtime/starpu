@@ -917,7 +917,7 @@ int starpu_conf_init(struct starpu_conf *conf)
 
 	memset(conf, 0, sizeof(*conf));
 	conf->magic = 42;
-	conf->sched_policy_name = getenv("STARPU_SCHED");
+	conf->sched_policy_name = starpu_getenv("STARPU_SCHED");
 	conf->sched_policy = NULL;
 	conf->global_sched_ctx_min_priority = starpu_get_env_number("STARPU_MIN_PRIO");
 	conf->global_sched_ctx_max_priority = starpu_get_env_number("STARPU_MAX_PRIO");
@@ -935,7 +935,7 @@ int starpu_conf_init(struct starpu_conf *conf)
 	conf->nscc = starpu_get_env_number("STARPU_NSCC");
 	conf->calibrate = starpu_get_env_number("STARPU_CALIBRATE");
 	conf->bus_calibrate = starpu_get_env_number("STARPU_BUS_CALIBRATE");
-	conf->mic_sink_program_path = getenv("STARPU_MIC_PROGRAM_PATH");
+	conf->mic_sink_program_path = starpu_getenv("STARPU_MIC_PROGRAM_PATH");
 
 	if (conf->calibrate == -1)
 	     conf->calibrate = 0;
@@ -1002,7 +1002,7 @@ static void _starpu_conf_set_value_against_environment(char *name, int *value)
 
 void _starpu_conf_check_environment(struct starpu_conf *conf)
 {
-	char *sched = getenv("STARPU_SCHED");
+	char *sched = starpu_getenv("STARPU_SCHED");
 	if (sched)
 	{
 		conf->sched_policy_name = sched;
@@ -1090,7 +1090,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 
 	/* If StarPU was configured to use MP sinks, we have to control the
 	 * kind on node we are running on : host or sink ? */
-	if (getenv("STARPU_SINK"))
+	if (starpu_getenv("STARPU_SINK"))
 		is_a_sink = 1;
 #else
 	(void)argc;
@@ -1107,7 +1107,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	_starpu_simgrid_init();
 	/* Warn when the lots of stacks malloc()-ated by simgrid for transfer
 	 * processes will take a long time to get initialized */
-	if (getenv("MALLOC_PERTURB_"))
+	if (starpu_getenv("MALLOC_PERTURB_"))
 		_STARPU_DISP("Warning: MALLOC_PERTURB_ is set, this makes simgrid runs very slow\n");
 #else
 #ifdef __GNUC__

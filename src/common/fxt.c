@@ -78,7 +78,7 @@ static void _starpu_profile_set_tracefile(void *last, ...)
 	va_list vl;
 	char *user;
 
-	char *fxt_prefix = getenv("STARPU_FXT_PREFIX");
+	char *fxt_prefix = starpu_getenv("STARPU_FXT_PREFIX");
 	if (!fxt_prefix)
 	     fxt_prefix = "/tmp/";
 
@@ -86,7 +86,7 @@ static void _starpu_profile_set_tracefile(void *last, ...)
 	vsprintf(_STARPU_PROF_FILE_USER, fxt_prefix, vl);
 	va_end(vl);
 
-	user = getenv("USER");
+	user = starpu_getenv("USER");
 	if (!user)
 		user = "";
 

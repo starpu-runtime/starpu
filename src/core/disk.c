@@ -351,11 +351,11 @@ void _starpu_swap_init(void)
 	struct starpu_disk_ops *ops;
 	int dd;
 
-	path = getenv("STARPU_DISK_SWAP");
+	path = starpu_getenv("STARPU_DISK_SWAP");
 	if (!path)
 		return;
 
-	backend = getenv("STARPU_DISK_SWAP_BACKEND");
+	backend = starpu_getenv("STARPU_DISK_SWAP_BACKEND");
 	if (!backend)
 	{
 		_starpu_mkpath(path, S_IRWXU);

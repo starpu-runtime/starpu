@@ -47,6 +47,7 @@
 #endif
 
 static unsigned topology_is_initialized = 0;
+static int nobind;
 
 #if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) || defined(STARPU_USE_SCC) || defined(STARPU_SIMGRID)
 
@@ -90,7 +91,7 @@ _starpu_initialize_workers_deviceid (int *explicit_workers_gpuid,
 	 * cores. */
 
 	/* what do we use, explicit value, env. variable, or round-robin ? */
-	if ((strval = getenv(varname)))
+	if ((strval = starpu_getenv(varname)))
 	{
 		/* STARPU_WORKERS_CUDAID certainly contains less entries than
 		 * STARPU_NMAXWORKERS, so we reuse its entries in a round
@@ -372,8 +373,8 @@ _starpu_init_mic_node (struct _starpu_machine_config *config, int mic_idx,
 	/* Let's get the helper program to run on the MIC device */
 	int mic_file_found =
 	    _starpu_src_common_locate_file (mic_sink_program_path,
-					    getenv("STARPU_MIC_SINK_PROGRAM_NAME"),
-					    getenv("STARPU_MIC_SINK_PROGRAM_PATH"),
+					    starpu_getenv("STARPU_MIC_SINK_PROGRAM_NAME"),
+					    starpu_getenv("STARPU_MIC_SINK_PROGRAM_PATH"),
 					    user_conf->mic_sink_program_path,
 					    (argv ? (*argv)[0] : NULL),
 					    suffixes);
@@ -425,6 +426,8 @@ _starpu_init_topology (struct _starpu_machine_config *config)
 
 	if (topology_is_initialized)
 		return;
+
+	nobind = starpu_get_env_number("STARPU_WORKERS_NOBIND");
 
 	topology->nhwcpus = 0;
 	topology->nhwpus = 0;
@@ -511,7 +514,7 @@ _starpu_initialize_workers_bindid (struct _starpu_machine_config *config)
 	 * cores. */
 
 	/* what do we use, explicit value, env. variable, or round-robin ? */
-	if ((strval = getenv("STARPU_WORKERS_CPUID")))
+	if ((strval = starpu_getenv("STARPU_WORKERS_CPUID")))
 	{
 		/* STARPU_WORKERS_CPUID certainly contains less entries than
 		 * STARPU_NMAXWORKERS, so we reuse its entries in a round
@@ -1176,7 +1179,7 @@ _starpu_bind_thread_on_cpu (
 #ifdef STARPU_SIMGRID
 	return;
 #else
-	if (starpu_get_env_number("STARPU_WORKERS_NOBIND") > 0)
+	if (nobind > 0)
 		return;
 	if (cpuid < 0)
 		return;

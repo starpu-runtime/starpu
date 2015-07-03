@@ -104,7 +104,7 @@ static int stringsn_cmp(const char *strings[], const char *str, size_t n)
 /* TODO: move to utils */
 static void read_boolean_var(const char *var, int *dest)
 {
-	const char *env = getenv(var);
+	const char *env = starpu_getenv(var);
 	if (env)
 	{
 		char *str = strdup(env);
@@ -128,7 +128,7 @@ static void read_boolean_var(const char *var, int *dest)
 /* TODO: move to utils */
 static void read_int_var(const char *var, int *dest)
 {
-	const char *env = getenv(var);
+	const char *env = starpu_getenv(var);
 	if (env)
 	{
 		char *str = strdup(env);
@@ -151,7 +151,7 @@ static void read_int_var(const char *var, int *dest)
 
 static void read_size_var(const char *var, int *dest)
 {
-	const char *env = getenv(var);
+	const char *env = starpu_getenv(var);
 	if (env)
 	{
 		char *str = strdup(env);
@@ -192,7 +192,7 @@ static void read_size_var(const char *var, int *dest)
 
 static void read_sched_var(const char *var, int *dest, unsigned long long *dest_chunk)
 {
-	const char *env = getenv(var);
+	const char *env = starpu_getenv(var);
 	if (env)
 	{
 		char *str = strdup(env);
@@ -232,7 +232,7 @@ static void read_sched_var(const char *var, int *dest, unsigned long long *dest_
 
 static void read_wait_policy_var(const char *var, int *dest)
 {
-	const char *env = getenv(var);
+	const char *env = starpu_getenv(var);
 	if (env)
 	{
 		char *str = strdup(env);
@@ -255,7 +255,7 @@ static void read_wait_policy_var(const char *var, int *dest)
 
 static void read_display_env_var(const char *var, int *dest)
 {
-	const char *env = getenv(var);
+	const char *env = starpu_getenv(var);
 	if (env)
 	{
 		char *str = strdup(env);
@@ -693,7 +693,7 @@ static void read_omp_environment(void)
 			/* TODO: check what should be used as default value */
 			bind_list[level] = starpu_omp_proc_bind_undefined;
 		}
-		const char *env = getenv("OMP_PROC_BIND");
+		const char *env = starpu_getenv("OMP_PROC_BIND");
 		if (env)
 		{
 			convert_bind_string(env, bind_list, max_levels);
@@ -712,7 +712,7 @@ static void read_omp_environment(void)
 			/* TODO: check what should be used as default value */
 			num_threads_list[level] = 0;
 		}
-		const char *env = getenv("OMP_NUM_THREADS");
+		const char *env = starpu_getenv("OMP_NUM_THREADS");
 		if (env)
 		{
 			convert_num_threads_string(env, num_threads_list, max_levels);
@@ -724,7 +724,7 @@ static void read_omp_environment(void)
 	{
 		memset(&_initial_icv_values.places, 0, sizeof(_initial_icv_values.places));
 		_initial_icv_values.places.abstract_name = starpu_omp_place_undefined;
-		const char *env = getenv("OMP_PLACES");
+		const char *env = starpu_getenv("OMP_PLACES");
 		if (env)
 		{
 			convert_places_string(env, &_initial_icv_values.places);

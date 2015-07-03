@@ -74,7 +74,7 @@ void _starpu_mpi_cache_init(MPI_Comm comm)
 
 	if (_starpu_cache_enabled == 0)
 	{
-		if (!getenv("STARPU_SILENT")) fprintf(stderr,"Warning: StarPU MPI Communication cache is disabled\n");
+		if (!_starpu_silent) fprintf(stderr,"Warning: StarPU MPI Communication cache is disabled\n");
 		return;
 	}
 

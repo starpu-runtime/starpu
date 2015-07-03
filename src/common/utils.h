@@ -147,8 +147,6 @@ int _starpu_check_mutex_deadlock(starpu_pthread_mutex_t *mutex);
 
 void _starpu_sleep(struct timespec ts);
 
-extern int _starpu_silent;
-
 void _starpu_util_init(void);
 
 #endif // __COMMON_UTILS_H__
