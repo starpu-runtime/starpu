@@ -51,6 +51,15 @@ static unsigned mic_index = 0;
 static unsigned scc_index = 0;
 static unsigned other_index = 0;
 
+/*
+ * Paje trace file tools
+ */
+
+static FILE *out_paje_file;
+static FILE *distrib_time;
+static FILE *activity_file;
+static FILE *tasks_file;
+
 struct data_info {
 	unsigned long handle;
 	unsigned long size;
@@ -103,6 +112,70 @@ static struct task_info *get_task(unsigned long job_id)
 	}
 
 	return task;
+}
+
+static void task_dump(unsigned long job_id)
+{
+	struct task_info *task = get_task(job_id);
+	unsigned i;
+
+	if (task->exclude_from_dag)
+		goto out;
+
+	if (task->name)
+	{
+		fprintf(tasks_file, "Name: %s\n", task->name);
+		free(task->name);
+	}
+	fprintf(tasks_file, "JobId: %lu\n", task->job_id);
+	if (task->dependencies)
+	{
+		fprintf(tasks_file, "DependsOn:");
+		for (i = 0; i < task->ndeps; i++)
+			fprintf(tasks_file, " %lu", task->dependencies[i]);
+		fprintf(tasks_file, "\n");
+		free(task->dependencies);
+	}
+	fprintf(tasks_file, "Tag: %"PRIx64"\n", task->tag);
+	if (task->workerid >= 0)
+		fprintf(tasks_file, "WorkerId: %d\n", task->workerid);
+	if (task->start_time != 0.)
+		fprintf(tasks_file, "SubmitTime: %f\n", task->submit_time);
+	if (task->start_time != 0.)
+		fprintf(tasks_file, "StartTime: %f\n", task->start_time);
+	if (task->end_time != 0.)
+		fprintf(tasks_file, "EndTime: %f\n", task->end_time);
+	fprintf(tasks_file, "Footprint: %lx\n", task->footprint);
+	if (task->parameters)
+	{
+		fprintf(tasks_file, "Parameters: %s\n", task->parameters);
+		free(task->parameters);
+	}
+	if (task->data)
+	{
+		fprintf(tasks_file, "Handles:");
+		for (i = 0; i < task->ndata; i++)
+			fprintf(tasks_file, " %lx", task->data[i].handle);
+		fprintf(tasks_file, "\n");
+		fprintf(tasks_file, "Modes:");
+		for (i = 0; i < task->ndata; i++)
+			fprintf(tasks_file, " %s%s%s%s%s",
+				(task->data[i].mode & STARPU_R)?"R":"",
+				(task->data[i].mode & STARPU_W)?"W":"",
+				(task->data[i].mode & STARPU_SCRATCH)?"S":"",
+				(task->data[i].mode & STARPU_REDUX)?"X":"",
+				(task->data[i].mode & STARPU_COMMUTE)?"C":"");
+		fprintf(tasks_file, "\n");
+		fprintf(tasks_file, "Sizes:");
+		for (i = 0; i < task->ndata; i++)
+			fprintf(tasks_file, " %lu", task->data[i].size);
+		fprintf(tasks_file, "\n");
+	}
+	fprintf(tasks_file, "\n");
+
+out:
+	HASH_DEL(tasks_info, task);
+	free(task);
 }
 
 static void set_next_other_worker_color(int workerid)
@@ -213,14 +286,6 @@ LIST_TYPE(_starpu_communication,
 )
 
 static struct _starpu_communication_list communication_list;
-
-/*
- * Paje trace file tools
- */
-
-static FILE *out_paje_file;
-static FILE *distrib_time;
-static FILE *activity_file;
 
 /*
  * Generic tools
@@ -1477,6 +1542,7 @@ static void handle_task_done(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 
 	unsigned exclude_from_dag = ev->param[2];
 	get_task(job_id)->exclude_from_dag = exclude_from_dag;
+	task_dump(job_id);
 
 	if (!exclude_from_dag)
 		_starpu_fxt_dag_set_task_done(job_id, name, colour);
@@ -1798,68 +1864,10 @@ void _starpu_fxt_display_bandwidth(struct starpu_fxt_options *options)
 static
 void tasks_output(char *filename_out)
 {
-	FILE *f = fopen(filename_out, "w+");
 	struct task_info *task, *tmp;
-	unsigned i;
 
 	HASH_ITER(hh, tasks_info, task, tmp)
-	{
-		if (!task->exclude_from_dag)
-		{
-			if (task->name)
-			{
-				fprintf(f, "Name: %s\n", task->name);
-				free(task->name);
-			}
-			fprintf(f, "JobId: %lu\n", task->job_id);
-			if (task->dependencies)
-			{
-				fprintf(f, "DependsOn:");
-				for (i = 0; i < task->ndeps; i++)
-					fprintf(f, " %lu", task->dependencies[i]);
-				fprintf(f, "\n");
-				free(task->dependencies);
-			}
-			fprintf(f, "Tag: %"PRIx64"\n", task->tag);
-			if (task->workerid >= 0)
-				fprintf(f, "WorkerId: %d\n", task->workerid);
-			if (task->start_time != 0.)
-				fprintf(f, "SubmitTime: %f\n", task->submit_time);
-			if (task->start_time != 0.)
-				fprintf(f, "StartTime: %f\n", task->start_time);
-			if (task->end_time != 0.)
-				fprintf(f, "EndTime: %f\n", task->end_time);
-			fprintf(f, "Footprint: %lx\n", task->footprint);
-			if (task->parameters)
-			{
-				fprintf(f, "Parameters: %s\n", task->parameters);
-				free(task->parameters);
-			}
-			if (task->data)
-			{
-				fprintf(f, "Handles:");
-				for (i = 0; i < task->ndata; i++)
-					fprintf(f, " %lx", task->data[i].handle);
-				fprintf(f, "\n");
-				fprintf(f, "Modes:");
-				for (i = 0; i < task->ndata; i++)
-					fprintf(f, " %s%s%s%s%s",
-						(task->data[i].mode & STARPU_R)?"R":"",
-						(task->data[i].mode & STARPU_W)?"W":"",
-						(task->data[i].mode & STARPU_SCRATCH)?"S":"",
-						(task->data[i].mode & STARPU_REDUX)?"X":"",
-						(task->data[i].mode & STARPU_COMMUTE)?"C":"");
-				fprintf(f, "\n");
-				fprintf(f, "Sizes:");
-				for (i = 0; i < task->ndata; i++)
-					fprintf(f, " %lu", task->data[i].size);
-				fprintf(f, "\n");
-			}
-			fprintf(f, "\n");
-		}
-		HASH_DEL(tasks_info, task);
-		free(task);
-	}
+		task_dump(task->job_id);
 }
 
 static
@@ -2427,10 +2435,31 @@ void _starpu_fxt_activity_file_init(struct starpu_fxt_options *options)
 }
 
 static
+void _starpu_fxt_tasks_file_init(struct starpu_fxt_options *options)
+{
+#if 0
+	//TODO
+	if (options->activity_path)
+		tasks_file = fopen(options->tasks_path, "w+");
+	else
+		tasks_file = NULL;
+#endif
+
+	tasks_file = fopen("tasks.rec", "w+");
+}
+
+static
 void _starpu_fxt_activity_file_close(void)
 {
 	if (activity_file)
 		fclose(activity_file);
+}
+
+static
+void _starpu_fxt_tasks_file_close(void)
+{
+	if (tasks_file)
+		fclose(tasks_file);
 }
 
 static
@@ -2507,6 +2536,7 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 	_starpu_fxt_dag_init(options->dag_path);
 	_starpu_fxt_distrib_file_init(options);
 	_starpu_fxt_activity_file_init(options);
+	_starpu_fxt_tasks_file_init(options);
 
 	_starpu_fxt_paje_file_init(options);
 
@@ -2634,10 +2664,9 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 	_starpu_fxt_paje_file_close();
 	_starpu_fxt_activity_file_close();
 	_starpu_fxt_distrib_file_close(options);
+	_starpu_fxt_tasks_file_close();
 
 	_starpu_fxt_dag_terminate();
-
-	tasks_output("tasks.rec");
 
 	options->nworkers = nworkers;
 }
