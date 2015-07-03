@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013  Université de Bordeaux
+ * Copyright (C) 2010-2013, 2015  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -67,7 +67,7 @@ extern "C"
 #define starpu_crc32_be					starpu_hash_crc32c_be
 #define starpu_crc32_string				starpu_hash_crc32c_string
 #define starpu_perf_archtype				starpu_perfmodel_archtype
-#define starpu_history_based_expected_perf		starpu_permodel_history_based_expected_perf
+#define starpu_history_based_expected_perf		starpu_perfmodel_history_based_expected_perf
 #define starpu_task_profiling_info			starpu_profiling_task_info
 #define starpu_worker_profiling_info			starpu_profiling_worker_info
 #define starpu_bus_profiling_info			starpu_profiling_bus_info
