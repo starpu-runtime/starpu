@@ -129,8 +129,6 @@ const char *_starpu_codelet_get_model_name(struct starpu_codelet *cl);
 
 int _starpu_check_mutex_deadlock(starpu_pthread_mutex_t *mutex);
 
-extern int _starpu_silent;
-
 void _starpu_util_init(void);
 
 #endif // __COMMON_UTILS_H__

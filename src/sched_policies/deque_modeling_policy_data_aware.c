@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2014  Université de Bordeaux
+ * Copyright (C) 2010-2015  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2011-2012  INRIA
@@ -855,19 +855,19 @@ static void initialize_dmda_policy(unsigned sched_ctx_id)
 	for(i = 0; i < STARPU_NMAXWORKERS; i++)
 		dt->queue_array[i] = NULL;
 
-	const char *strval_alpha = getenv("STARPU_SCHED_ALPHA");
+	const char *strval_alpha = starpu_getenv("STARPU_SCHED_ALPHA");
 	if (strval_alpha)
 		dt->alpha = atof(strval_alpha);
 
-	const char *strval_beta = getenv("STARPU_SCHED_BETA");
+	const char *strval_beta = starpu_getenv("STARPU_SCHED_BETA");
 	if (strval_beta)
 		dt->beta = atof(strval_beta);
 
-	const char *strval_gamma = getenv("STARPU_SCHED_GAMMA");
+	const char *strval_gamma = starpu_getenv("STARPU_SCHED_GAMMA");
 	if (strval_gamma)
 		dt->_gamma = atof(strval_gamma);
 
-	const char *strval_idle_power = getenv("STARPU_IDLE_POWER");
+	const char *strval_idle_power = starpu_getenv("STARPU_IDLE_POWER");
 	if (strval_idle_power)
 		dt->idle_power = atof(strval_idle_power);
 

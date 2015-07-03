@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2014  Université de Bordeaux
+ * Copyright (C) 2009-2015  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2015 Centre National de la Recherche Scientifique
  * Copyright (C) 2011  INRIA
  *
@@ -44,6 +44,7 @@
 #endif
 
 static unsigned topology_is_initialized = 0;
+static int nobind;
 
 #if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 
@@ -87,7 +88,7 @@ _starpu_initialize_workers_gpuid (int *explicit_workers_gpuid,
 	 * cpus. */
 
 	/* what do we use, explicit value, env. variable, or round-robin ? */
-	if ((strval = getenv(varname)))
+	if ((strval = starpu_getenv(varname)))
 	{
 		/* STARPU_WORKERS_CUDAID certainly contains less entries than
 		 * STARPU_NMAXWORKERS, so we reuse its entries in a round
@@ -281,6 +282,8 @@ _starpu_init_topology (struct _starpu_machine_config *config)
 	if (topology_is_initialized)
 		return;
 
+	nobind = starpu_get_env_number("STARPU_WORKERS_NOBIND");
+
 	topology->nhwcpus = 0;
 
 #ifndef STARPU_SIMGRID
@@ -318,7 +321,7 @@ _starpu_initialize_workers_bindid (struct _starpu_machine_config *config)
 	 * cpus. */
 
 	/* what do we use, explicit value, env. variable, or round-robin ? */
-	if ((strval = getenv("STARPU_WORKERS_CPUID")))
+	if ((strval = starpu_getenv("STARPU_WORKERS_CPUID")))
 	{
 		/* STARPU_WORKERS_CPUID certainly contains less entries than
 		 * STARPU_NMAXWORKERS, so we reuse its entries in a round
@@ -684,7 +687,7 @@ _starpu_bind_thread_on_cpu (
 #ifdef STARPU_SIMGRID
 	return;
 #endif
-	if (starpu_get_env_number("STARPU_WORKERS_NOBIND") > 0)
+	if (nobind > 0)
 		return;
 #ifdef STARPU_HAVE_HWLOC
 	const struct hwloc_topology_support *support;

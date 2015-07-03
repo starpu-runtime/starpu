@@ -563,19 +563,19 @@ static void initialize_parallel_heft_policy(unsigned sched_ctx_id)
 
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)hd);
 
-	const char *strval_alpha = getenv("STARPU_SCHED_ALPHA");
+	const char *strval_alpha = starpu_getenv("STARPU_SCHED_ALPHA");
 	if (strval_alpha)
 		hd->alpha = atof(strval_alpha);
 
-	const char *strval_beta = getenv("STARPU_SCHED_BETA");
+	const char *strval_beta = starpu_getenv("STARPU_SCHED_BETA");
 	if (strval_beta)
 		hd->beta = atof(strval_beta);
 
-	const char *strval_gamma = getenv("STARPU_SCHED_GAMMA");
+	const char *strval_gamma = starpu_getenv("STARPU_SCHED_GAMMA");
 	if (strval_gamma)
 		hd->_gamma = atof(strval_gamma);
 
-	const char *strval_idle_power = getenv("STARPU_IDLE_POWER");
+	const char *strval_idle_power = starpu_getenv("STARPU_IDLE_POWER");
 	if (strval_idle_power)
 		hd->idle_power = atof(strval_idle_power);
 

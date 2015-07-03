@@ -223,11 +223,16 @@ extern "C"
 {
 #endif
 
+extern int _starpu_silent;
+
+char *starpu_getenv(const char *str);
+
+
 static __starpu_inline int starpu_get_env_number(const char *str)
 {
 	char *strval;
 
-	strval = getenv(str);
+	strval = starpu_getenv(str);
 	if (strval)
 	{
 		/* the env variable was actually set */

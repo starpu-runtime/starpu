@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2014  Université de Bordeaux
+ * Copyright (C) 2010-2015  Université de Bordeaux
  * Copyright (C) 2010-2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  INRIA
  *
@@ -112,7 +112,7 @@ static struct starpu_sched_policy *find_sched_policy_from_name(const char *polic
 
 static void display_sched_help_message(void)
 {
-	const char *sched_env = getenv("STARPU_SCHED");
+	const char *sched_env = starpu_getenv("STARPU_SCHED");
 	if (sched_env && (strcmp(sched_env, "help") == 0))
 	{
 		/* display the description of all predefined policies */
@@ -142,7 +142,7 @@ struct starpu_sched_policy *_starpu_select_sched_policy(struct _starpu_machine_c
 
 	/* Otherwise, we look if the application specified the name of a policy to load */
 	const char *sched_pol_name;
-	sched_pol_name = getenv("STARPU_SCHED");
+	sched_pol_name = starpu_getenv("STARPU_SCHED");
 	if (sched_pol_name == NULL && user_conf && user_conf->sched_policy_name)
 		sched_pol_name = user_conf->sched_policy_name;
 

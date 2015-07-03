@@ -596,7 +596,7 @@ int starpu_conf_init(struct starpu_conf *conf)
 
 	memset(conf, 0, sizeof(*conf));
 	conf->magic = 42;
-	conf->sched_policy_name = getenv("STARPU_SCHED");
+	conf->sched_policy_name = starpu_getenv("STARPU_SCHED");
 	conf->sched_policy = NULL;
 
 	/* Note that starpu_get_env_number returns -1 in case the variable is
@@ -666,7 +666,7 @@ static void _starpu_conf_set_value_against_environment(char *name, int *value)
 
 void _starpu_conf_check_environment(struct starpu_conf *conf)
 {
-	char *sched = getenv("STARPU_SCHED");
+	char *sched = starpu_getenv("STARPU_SCHED");
 	if (sched)
 	{
 		conf->sched_policy_name = sched;
@@ -703,7 +703,7 @@ int starpu_init(struct starpu_conf *user_conf)
 	_starpu_simgrid_init();
 	/* Warn when the lots of stacks malloc()-ated by simgrid for transfer
 	 * processes will take a long time to get initialized */
-	if (getenv("MALLOC_PERTURB_"))
+	if (starpu_getenv("MALLOC_PERTURB_"))
 		_STARPU_DISP("Warning: MALLOC_PERTURB_ is set, this makes simgrid runs very slow\n");
 #else
 #ifdef __GNUC__

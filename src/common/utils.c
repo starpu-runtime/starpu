@@ -19,6 +19,7 @@
 #include <common/config.h>
 #include <common/utils.h>
 #include <common/thread.h>
+#include <core/workers.h>
 #include <errno.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -221,13 +222,13 @@ int _starpu_check_mutex_deadlock(starpu_pthread_mutex_t *mutex)
 
 char *_starpu_get_home_path(void)
 {
-	char *path = getenv("XDG_CACHE_HOME");
+	char *path = starpu_getenv("XDG_CACHE_HOME");
 	if (!path)
-		path = getenv("STARPU_HOME");
+		path = starpu_getenv("STARPU_HOME");
 	if (!path)
-		path = getenv("HOME");
+		path = starpu_getenv("HOME");
 	if (!path)
-		path = getenv("USERPROFILE");
+		path = starpu_getenv("USERPROFILE");
 	if (!path)
 		_STARPU_ERROR("couldn't find a home place to put starpu data\n");
 	return path;
@@ -235,7 +236,7 @@ char *_starpu_get_home_path(void)
 
 void _starpu_gethostname(char *hostname, size_t size)
 {
-	char *forced_hostname = getenv("STARPU_HOSTNAME");
+	char *forced_hostname = starpu_getenv("STARPU_HOSTNAME");
 	if (forced_hostname && forced_hostname[0])
 	{
 		snprintf(hostname, size-1, "%s", forced_hostname);
@@ -250,4 +251,17 @@ void _starpu_gethostname(char *hostname, size_t size)
 		if (c)
 			*c = 0;
 	}
+}
+
+char *starpu_getenv(const char *str)
+{
+	struct _starpu_worker * worker;
+
+	worker = _starpu_get_local_worker_key();
+
+#if defined(STARPU_DEVEL) || defined(STARPU_DEBUG)
+	if (worker && worker->worker_is_initialized)
+		_STARPU_DISP( "getenv should not be called from running workers, only for main() or worker initialization, since it is not reentrant\n");
+#endif
+	return getenv(str);
 }

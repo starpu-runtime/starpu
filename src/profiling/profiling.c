@@ -119,7 +119,7 @@ void _starpu_profiling_init(void)
 
 	_starpu_profiling_reset_counters();
 
-	if ((env = getenv("STARPU_PROFILING")) && atoi(env))
+	if ((env = starpu_getenv("STARPU_PROFILING")) && atoi(env))
 	{
 		ANNOTATE_HAPPENS_AFTER(&_starpu_profiling);
 		_starpu_profiling = STARPU_PROFILING_ENABLE;
