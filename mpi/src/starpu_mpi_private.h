@@ -73,7 +73,7 @@ int _starpu_debug_rank;
 #  define _STARPU_MPI_COMM_DEBUG(count, datatype, node, tag, utag, comm, way) \
 	do \
 	{ \
-	     	if (_starpu_mpi_commgetenv("STARPU_MPI_COMM"))	\
+	     	if (_starpu_mpi_comm)	\
 	     	{ \
      			int __size; \
 			if (_starpu_debug_rank == -1) starpu_mpi_comm_rank(MPI_COMM_WORLD, &_starpu_debug_rank); \
