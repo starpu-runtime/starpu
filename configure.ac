@@ -2020,6 +2020,19 @@ AC_SUBST(GLOBAL_AM_CFLAGS)
 pkglibdir="\${libdir}/$PACKAGE"
 AC_SUBST([pkglibdir])
 
+###############################################################################
+#                                                                             #
+#                               Fortran                                       #
+#                                                                             #
+###############################################################################
+
+AC_ARG_ENABLE(fortran, [AS_HELP_STRING([--disable-fortran],
+			[disable build of fortran examples])],
+			enable_build_fortran=$enableval, enable_build_fortran=yes)
+if test "x$FC" != "x" -a "x$enable_build_fortran" = "xyes" ; then
+  AC_DEFINE(STARPU_HAVE_FC, [], [Define this if a Fortran compiler is available])
+fi
+AM_CONDITIONAL([STARPU_HAVE_FC], [test "x$FC" != "x" -a "x$enable_build_fortran" = "xyes"])
 
 ###############################################################################
 #                                                                             #
@@ -2470,12 +2483,6 @@ if test "$enable_cuda" = "yes" -a "$ICC" != ""; then
    CC="$OLD_CC"
    CFLAGS="$OLD_CFLAGS"
 fi
-
-# Fortran compiler
-if test "x$FC" != "x"; then
-  AC_DEFINE(STARPU_HAVE_FC, [], [Define this if a Fortran compiler is available])
-fi
-AM_CONDITIONAL([STARPU_HAVE_FC], [test "x$FC" != "x"])
 
 # Disable ICC on windows
 if test "x$ICC" != "x" -a "$starpu_windows" = "yes" ; then
