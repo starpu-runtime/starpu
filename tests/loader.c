@@ -32,7 +32,7 @@
 #include <sys/time.h>
 #endif
 
-#define  DEFAULT_TIMEOUT       600
+#define  DEFAULT_TIMEOUT       1800
 #define  AUTOTEST_SKIPPED_TEST 77
 
 static pid_t child_pid = 0;
