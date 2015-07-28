@@ -115,7 +115,7 @@ if STARPU_DEVEL
 		echo "Please do not use ssize_t, it is not available on Windows, use starpu_ssize_t instead"; \
 		false ; \
 	fi
-	@if grep -re '\<getenv\>' $$( find $(srcdir)/src $(srcdir)/mpi/src $(srcdir)/include -name \*.[ch] -a \! -name starpu_util.h -a \! -name utils.c) ; \
+	@if grep -re '\<getenv\>' $$( find $(srcdir)/src $(srcdir)/mpi/src $(srcdir)/include -name \*.[ch] -a \! -name starpu_util.h -a \! -name utils.c -a \! -name simgrid.h) ; \
 	then \
 		echo "Please do not use getenv, use starpu_getenv instead, which catches unsafe uses"; \
 		false ; \
