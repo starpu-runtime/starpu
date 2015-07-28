@@ -60,35 +60,17 @@ int _starpu_mpi_find_executee_node(starpu_data_handle_t data, enum starpu_data_a
 			_STARPU_ERROR("Data %p with mode STARPU_W needs to have a valid rank", data);
 		}
 
-		if (mpi_rank == me)
+		if (*xrank == -1)
 		{
-			// This node owns the data
-			if (*do_execute == 0)
-			{
-				_STARPU_MPI_DEBUG(100, "Another node has already been selected to execute the codelet\n");
-				*inconsistent_execute = 1;
-			}
-			else
-			{
-				_STARPU_MPI_DEBUG(100, "This node is going to execute the codelet\n");
-				*xrank = me;
-				*do_execute = 1;
-			}
+			// No node has been selected yet
+			*xrank = mpi_rank;
+			_STARPU_MPI_DEBUG(100, "Codelet is going to be executed by node %d\n", *xrank);
+			*do_execute = (mpi_rank == me);
 		}
-		else
+		else if (mpi_rank != *xrank)
 		{
-			// Another node owns the data
-			if (*do_execute == 1)
-			{
-				_STARPU_MPI_DEBUG(100, "Another node owns the data but this node has already been selected to execute the codelet\n");
-				*inconsistent_execute = 1;
-			}
-			else
-			{
-				_STARPU_MPI_DEBUG(100, "This node will not execute the codelet\n");
-				*do_execute = 0;
-				*xrank = mpi_rank;
-			}
+			_STARPU_MPI_DEBUG(100, "Another node %d had already been selected to execute the codelet\n", *xrank);
+			*inconsistent_execute = 1;
 		}
 	}
 	_STARPU_MPI_DEBUG(100, "Executing: inconsistent=%d, do_execute=%d, xrank=%d\n", *inconsistent_execute, *do_execute, *xrank);
@@ -415,7 +397,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 	if (inconsistent_execute == 1 || *xrank == -1)
 	{
 		// We need to find out which node is going to execute the codelet.
-		_STARPU_MPI_DISP("Different nodes are owning W data. Need to specify which node is going to execute the codelet, using STARPU_EXECUTE_ON_NODE or STARPU_EXECUTE_ON_DATA\n");
+		_STARPU_MPI_DISP("Different nodes are owning W data. The node to execute the codelet is going to be selected with the current selection node policy. See starpu_mpi_node_selection_set_current_policy() to change the policy, or use STARPU_EXECUTE_ON_NODE or STARPU_EXECUTE_ON_DATA to specify the node\n");
 		*xrank = _starpu_mpi_select_node(me, nb_nodes, descrs, nb_data, select_node_policy);
 		*do_execute = (me == *xrank);
 	}
