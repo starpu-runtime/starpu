@@ -125,6 +125,7 @@ starpu_mpi_TESTS =				\
 	policy_register_many			\
 	policy_register_toomany			\
 	policy_unregister			\
+	policy_selection			\
 	early_request				\
 	starpu_redefine
 
@@ -176,6 +177,7 @@ noinst_PROGRAMS =				\
 	policy_register_many			\
 	policy_register_toomany			\
 	policy_unregister			\
+	policy_selection			\
 	early_request				\
 	starpu_redefine
 
@@ -278,6 +280,8 @@ policy_register_many_LDADD =			\
 policy_register_toomany_LDADD =			\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 policy_unregister_LDADD =			\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
+policy_selection_LDADD =			\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 early_request_LDADD =					\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
