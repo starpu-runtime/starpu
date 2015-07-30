@@ -669,16 +669,20 @@ end
 define starpu-mpi-print-early-data
   set $hash = (struct _starpu_mpi_early_data_handle_hashlist *)_starpu_mpi_early_data_handle_hashmap
   if $hash
-     printf "Communicator %p Rank %d Data_tag %d\n", $hash->node_tag->comm, $hash->node_tag->rank, $hash->node_tag->data_tag
-     set $list = (struct _starpu_mpi_early_data_handle_list *) $hash->list
-     if $list
-	set $request = $list->_head
-        while $request
-            starpu-mpi-print-request $request
-	    set $request = $request._next
-	end
+     while $hash
+       printf "Communicator %p Rank %d Data_tag %d\n", $hash->node_tag->comm, $hash->node_tag->rank, $hash->node_tag->data_tag
+       set $list = (struct _starpu_mpi_early_data_handle_list *) $hash->list
+       if $list
+  	  set $data = (struct _starpu_mpi_early_data_handle *)$list->_head
+          while $data
+             starpu-mpi-print-request $data->req
+	     set $data = $data->_next
+	  end
+       end
+       set $hash = (struct _starpu_mpi_early_data_handle_hashlist *) $hash.hh.next
+     end 
   else
-     printf "No early data"
+     printf "No early data\n"
   end
 end
 
