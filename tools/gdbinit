@@ -196,7 +196,7 @@ define starpu-tasks
   set $nsubmitted=0
   set $nready=0
   while $num<config->topology->nsched_ctxs
-  	set $nsubmitted = $nsubmitted + config->sched_ctxs[$num]->tasks_barrier->barrier->reached_start 
+  	set $nsubmitted = $nsubmitted + config->sched_ctxs[$num]->tasks_barrier->barrier->reached_start
   	set $nready = $nready + config->sched_ctxs[$num]->ready_tasks_barrier->barrier->reached_start
 	set $num = $num + 1
   end
@@ -354,7 +354,7 @@ define starpu-print-datas-summary
 
   while $entry
     set $data = (starpu_data_handle_t) $entry->handle
-  
+
     if $data->current_mode & (4|8)
       set $pw_data_n = $pw_data_n + 1
       set $n = 0
@@ -680,9 +680,49 @@ define starpu-mpi-print-early-data
 	  end
        end
        set $hash = (struct _starpu_mpi_early_data_handle_hashlist *) $hash.hh.next
-     end 
+     end
   else
      printf "No early data\n"
+  end
+end
+
+define starpu-mpi-print-early-requests
+  set $hash = (struct _starpu_mpi_early_request_hashlist *)_starpu_mpi_early_request_hash
+  if $hash
+     while $hash
+       printf "Communicator %p Rank %d Data_tag %d\n", $hash->node_tag->comm, $hash->node_tag->rank, $hash->node_tag->data_tag
+       set $list = (struct _starpu_mpi_req_list) $hash->list
+       if $list
+  	  set $request = $list->_head
+          while $request
+             starpu-mpi-print-request $request
+	     set $request = $request._next
+	  end
+       end
+       set $hash = (struct _starpu_mpi_early_request_hashlist *) $hash.hh.next
+     end
+  else
+     printf "No early request\n"
+  end
+end
+
+define starpu-mpi-print-sync-data
+  set $hash = (struct _starpu_mpi_sync_data_handle_hashlist *)_starpu_mpi_sync_data_handle_hashmap
+  if $hash
+     while $hash
+       printf "Communicator %p Rank %d Data_tag %d\n", $hash->node_tag->comm, $hash->node_tag->rank, $hash->node_tag->data_tag
+       set $list = (struct _starpu_mpi_req_list) $hash->list
+       if $list
+  	  set $request = $list->_head
+          while $request
+             starpu-mpi-print-request $request
+	     set $request = $request._next
+	  end
+       end
+       set $hash = (struct _starpu_mpi_sync_data_handle_hashlist *) $hash.hh.next
+     end
+  else
+     printf "No sync data\n"
   end
 end
 
@@ -715,4 +755,6 @@ List of StarPU-MPI-specific gdb functions:
 starpu-mpi-print-ready-requests    prints all ready requests
 starpu-mpi-print-detached-requests prints all detached requests
 starpu-mpi-print-early-data        prints all early received data
+starpu-mpi-print-early-requests    prints all early requests
+starpu-mpi-print-sync-data         prints all sync data
 end
