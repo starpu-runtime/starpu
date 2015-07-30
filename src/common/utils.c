@@ -284,6 +284,7 @@ void _starpu_sleep(struct timespec ts)
 
 char *starpu_getenv(const char *str)
 {
+#ifndef STARPU_SIMGRID
 	struct _starpu_worker * worker;
 
 	worker = _starpu_get_local_worker_key();
@@ -291,6 +292,7 @@ char *starpu_getenv(const char *str)
 #if defined(STARPU_DEVEL) || defined(STARPU_DEBUG)
 	if (worker && worker->worker_is_initialized)
 		_STARPU_DISP( "getenv should not be called from running workers, only for main() or worker initialization, since it is not reentrant\n");
+#endif
 #endif
 	return getenv(str);
 }

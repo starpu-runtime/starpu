@@ -42,9 +42,9 @@ struct main_args
 	char **argv;
 };
 
-int do_starpu_main(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED)
+int do_starpu_main(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[])
 {
-	struct main_args *args = MSG_process_get_data(MSG_process_self());
+	struct main_args *args = (void*) argv;
 	return starpu_main(args->argc, args->argv);
 }
 
@@ -215,8 +215,10 @@ int main(int argc, char **argv)
 	_starpu_simgrid_get_platform_path(path, sizeof(path));
 	MSG_create_environment(path);
 
-	struct main_args args = { .argc = argc, .argv = argv };
-	MSG_process_create("main", &do_starpu_main, &args, MSG_get_host_by_name("MAIN"));
+	struct main_args *args = malloc(sizeof(*args));
+	args->argc = argc;
+	args->argv = argv;
+	MSG_process_create_with_arguments("main", &do_starpu_main, calloc(MAX_TSD, sizeof(void*)), MSG_get_host_by_name("MAIN"), 0, (char**) args);
 
 	MSG_main();
 	return 0;
@@ -224,32 +226,11 @@ int main(int argc, char **argv)
 
 void _starpu_simgrid_init()
 {
-	xbt_dynar_t hosts;
-	int i;
-
 	if (!starpu_main && !(smpi_main && smpi_simulated_main_))
 	{
 		_STARPU_ERROR("In simgrid mode, the file containing the main() function of this application needs to be compiled with starpu.h included, to properly rename it into starpu_main\n");
 		exit(EXIT_FAILURE);
 	}
-
-#ifdef HAVE_MSG_ENVIRONMENT_GET_ROUTING_ROOT
-	if (_starpu_simgrid_running_smpi())
-	{
-		char asname[32];
-		STARPU_ASSERT(starpu_mpi_world_rank);
-		snprintf(asname, sizeof(asname), STARPU_MPI_AS_PREFIX"%u", starpu_mpi_world_rank());
-		hosts = MSG_environment_as_get_hosts(_starpu_simgrid_get_as_by_name(asname));
-	}
-	else
-#endif /* HAVE_MSG_ENVIRONMENT_GET_ROUTING_ROOT */
-		hosts = MSG_hosts_as_dynar();
-
-	int nb = xbt_dynar_length(hosts);
-	for (i = 0; i < nb; i++)
-		MSG_host_set_data(xbt_dynar_get_as(hosts, i, msg_host_t), calloc(MAX_TSD, sizeof(void*)));
-
-	xbt_dynar_free(&hosts);
 }
 
 /*
@@ -273,9 +254,9 @@ struct task
 static struct task *last_task[STARPU_NMAXWORKERS];
 
 /* Actually execute the task.  */
-static int task_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED)
+static int task_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[])
 {
-	struct task *task = MSG_process_get_data(MSG_process_self());
+	struct task *task = (void*) argv;
 	_STARPU_DEBUG("task %p started\n", task);
 	MSG_task_execute(task->task);
 	MSG_task_destroy(task->task);
@@ -291,8 +272,8 @@ static int task_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_AT
 	if (last_task[task->workerid] == task)
 		last_task[task->workerid] = NULL;
 	if (task->next)
-		MSG_process_create("task", task_execute, task->next, MSG_host_self());
-	free(task);
+		MSG_process_create_with_arguments("task", task_execute, calloc(MAX_TSD, sizeof(void*)), MSG_host_self(), 0, (char**) task->next);
+	/* Task is freed with process context */
 	return 0;
 }
 
@@ -366,7 +347,7 @@ void _starpu_simgrid_submit_job(int workerid, struct _starpu_job *j, struct star
 		else
 		{
 			last_task[workerid] = task;
-			MSG_process_create("task", task_execute, task, MSG_host_self());
+			MSG_process_create_with_arguments("task", task_execute, calloc(MAX_TSD, sizeof(void*)), MSG_host_self(), 0, (char**) task);
 		}
 	}
 }
@@ -449,9 +430,9 @@ static int transfers_are_sequential(struct transfer *new_transfer, struct transf
 }
 
 /* Actually execute the transfer, and then start transfers waiting for this one.  */
-static int transfer_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED)
+static int transfer_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[])
 {
-	struct transfer *transfer = MSG_process_get_data(MSG_process_self());
+	struct transfer *transfer = (void*) argv;
 	unsigned i;
 	_STARPU_DEBUG("transfer %p started\n", transfer);
 	MSG_task_execute(transfer->task);
@@ -476,13 +457,13 @@ static int transfer_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARP
 		if (!wake->nwait)
 		{
 			_STARPU_DEBUG("triggering transfer %p\n", wake);
-			MSG_process_create("transfer task", transfer_execute, wake, _starpu_simgrid_get_host_by_name("MAIN"));
+			MSG_process_create_with_arguments("transfer task", transfer_execute, calloc(MAX_TSD, sizeof(void*)), _starpu_simgrid_get_host_by_name("MAIN"), 0, (char**) wake);
 		}
 	}
 
 	free(transfer->wake);
 	transfer_list_erase(&pending, transfer);
-	transfer_delete(transfer);
+	/* transfer is freed with process context */
 	return 0;
 }
 
@@ -514,7 +495,7 @@ static void transfer_submit(struct transfer *transfer)
 	if (!transfer->nwait)
 	{
 		_STARPU_DEBUG("transfer %p waits for nobody, starting\n", transfer);
-		MSG_process_create("transfer task", transfer_execute, transfer, _starpu_simgrid_get_host_by_name("MAIN"));
+		MSG_process_create_with_arguments("transfer task", transfer_execute, calloc(MAX_TSD, sizeof(void*)), _starpu_simgrid_get_host_by_name("MAIN"), 0, (char**) transfer);
 	}
 }
 
@@ -592,11 +573,11 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 }
 
 int
-_starpu_simgrid_thread_start(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED)
+_starpu_simgrid_thread_start(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[])
 {
-	struct _starpu_pthread_args *_args = MSG_process_get_data(MSG_process_self());
+	struct _starpu_pthread_args *_args = (void*) argv;
 	struct _starpu_pthread_args args = *_args;
-	free(_args);
+	/* _args is freed with process context */
 	args.f(args.arg);
 	return 0;
 }

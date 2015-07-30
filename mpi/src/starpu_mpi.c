@@ -1273,7 +1273,11 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	_mpi_world_size = worldsize;
 	_mpi_world_rank = rank;
 	/* Now that MPI is set up, let the rest of simgrid get initialized */
-	MSG_process_create_with_arguments("main", smpi_simulated_main_, NULL, _starpu_simgrid_get_host_by_name("MAIN"), *(argc_argv->argc), *(argc_argv->argv));
+	char ** argv_cpy = malloc(*(argc_argv->argc) * sizeof(char*));
+	int i;
+	for (i = 0; i < *(argc_argv->argc); i++)
+		argv_cpy[i] = strdup(*(argc_argv->argv)[i]);
+	MSG_process_create_with_arguments("main", smpi_simulated_main_, NULL, _starpu_simgrid_get_host_by_name("MAIN"), *(argc_argv->argc), argv_cpy);
 #endif
 
 	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
@@ -1570,10 +1574,9 @@ int _starpu_mpi_simgrid_init(int argc, char *argv[])
 }
 #endif
 
-int starpu_mpi_init_comm(int *argc, char ***argv, int initialize_mpi, MPI_Comm comm)
+int starpu_mpi_init_comm(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv STARPU_ATTRIBUTE_UNUSED, int initialize_mpi STARPU_ATTRIBUTE_UNUSED, MPI_Comm comm STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_SIMGRID
-	STARPU_MPI_ASSERT_MSG(initialize_mpi, "application has to let StarPU initialize MPI");
 	return 0;
 #else
 	return _starpu_mpi_initialize(argc, argv, initialize_mpi, comm);
@@ -1588,7 +1591,6 @@ int starpu_mpi_init(int *argc, char ***argv, int initialize_mpi)
 int starpu_mpi_initialize(void)
 {
 #ifdef STARPU_SIMGRID
-	STARPU_MPI_ASSERT_MSG(0, "application has to let StarPU initialize MPI");
 	return 0;
 #else
 	return _starpu_mpi_initialize(NULL, NULL, 0, MPI_COMM_WORLD);
