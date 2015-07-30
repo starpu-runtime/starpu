@@ -21,6 +21,7 @@
 
 #ifdef STARPU_SIMGRID
 #include <xbt/synchro_core.h>
+#include <smpi/smpi.h>
 #else
 
 #if defined(STARPU_LINUX_SYS) && defined(STARPU_HAVE_XCHG)
@@ -50,7 +51,7 @@ int starpu_pthread_create_on(char *name, starpu_pthread_t *thread, const starpu_
 	_args->arg = arg;
 	if (!host)
 		host = MSG_get_host_by_name("MAIN");
-	*thread = MSG_process_create(name, _starpu_simgrid_thread_start, _args, host);
+	*thread = MSG_process_create_with_arguments(name, _starpu_simgrid_thread_start, calloc(MAX_TSD, sizeof(void*)), host, 0, (char **) _args);
 	return 0;
 }
 
@@ -192,17 +193,30 @@ int starpu_pthread_key_delete(starpu_pthread_key_t key)
 
 int starpu_pthread_setspecific(starpu_pthread_key_t key, const void *pointer)
 {
-	void **array = MSG_host_get_data(MSG_host_self());
+	void **array;
+#ifdef STARPU_SIMGRID_HAVE_SIMIX_PROCESS_GET_CODE
+	if (SIMIX_process_get_code() == _starpu_mpi_simgrid_init)
+		/* Special-case the SMPI process */
+		array = smpi_process_get_user_data();
+	else
+#endif
+		array = MSG_process_get_data(MSG_process_self());
 	array[key] = (void*) pointer;
 	return 0;
 }
 
 void* starpu_pthread_getspecific(starpu_pthread_key_t key)
 {
-	msg_host_t host = MSG_host_self();
-	if (!host)
+	void **array;
+#ifdef STARPU_SIMGRID_HAVE_SIMIX_PROCESS_GET_CODE
+	if (SIMIX_process_get_code() == _starpu_mpi_simgrid_init)
+		/* Special-case the SMPI process */
+		array = smpi_process_get_user_data();
+	else
+#endif
+		array = MSG_process_get_data(MSG_process_self());
+	if (!array)
 		return NULL;
-	void **array = MSG_host_get_data(host);
 	return array[key];
 }
 
