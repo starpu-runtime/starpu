@@ -81,6 +81,7 @@ struct starpu_sched_component * starpu_sched_component_eager_calibration_create(
 {
 	struct starpu_sched_component * component = starpu_sched_component_create(tree);
 	component->push_task = eager_calibration_push_task;
+	component->name = "eager_calibration";
 
 	return component;
 }

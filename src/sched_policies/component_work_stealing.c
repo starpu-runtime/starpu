@@ -348,5 +348,6 @@ struct starpu_sched_component * starpu_sched_component_work_stealing_create(stru
 	component->estimated_load = _ws_estimated_load;
 	component->deinit_data = _work_stealing_component_deinit_data;
 	component->data = wsd;
+	component->name = "work_stealing";
 	return  component;
 }

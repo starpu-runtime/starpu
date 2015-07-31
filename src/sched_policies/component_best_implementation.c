@@ -109,5 +109,6 @@ struct starpu_sched_component * starpu_sched_component_best_implementation_creat
 	struct starpu_sched_component * component = starpu_sched_component_create(tree);
 	component->push_task = best_implementation_push_task;
 	component->pull_task = best_implementation_pull_task;
+	component->name = "best_implementation";
 	return component;
 }

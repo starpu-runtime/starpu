@@ -68,6 +68,7 @@ struct starpu_sched_component * starpu_sched_component_eager_create(struct starp
 {
 	struct starpu_sched_component * component = starpu_sched_component_create(tree);
 	component->push_task = eager_push_task;
+	component->name = "eager";
 
 	return component;
 }

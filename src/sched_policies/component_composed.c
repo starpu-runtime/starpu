@@ -229,5 +229,6 @@ struct starpu_sched_component * starpu_sched_component_composed_component_create
 	component->add_child = composed_component_add_child;
 	component->remove_child = composed_component_remove_child;
 	component->notify_change_workers = composed_component_notify_change_workers;
+	component->name = "composed";
 	return component;
 }

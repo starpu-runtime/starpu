@@ -116,5 +116,6 @@ struct starpu_sched_component * starpu_sched_component_random_create(struct star
 	struct starpu_sched_component * component = starpu_sched_component_create(tree);
 	component->estimated_end = random_estimated_end;
 	component->push_task = random_push_task;
+	component->name = "random";
 	return component;
 }

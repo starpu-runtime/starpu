@@ -238,6 +238,7 @@ struct starpu_sched_component * starpu_sched_component_heft_create(struct starpu
 	component->push_task = heft_push_task;
 	component->can_push = heft_can_push;
 	component->deinit_data = heft_component_deinit_data;
+	component->name = "heft";
 
 	return component;
 }

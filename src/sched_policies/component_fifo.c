@@ -250,6 +250,7 @@ struct starpu_sched_component * starpu_sched_component_fifo_create(struct starpu
 	component->pull_task = fifo_pull_task;
 	component->can_push = fifo_can_push;
 	component->deinit_data = fifo_component_deinit_data;
+	component->name = "fifo";
 
 	if(params)
 	{

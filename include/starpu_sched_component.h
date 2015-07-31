@@ -44,6 +44,7 @@ struct starpu_sched_component
 	struct starpu_bitmap *workers;
 	struct starpu_bitmap *workers_in_ctx;
 	void *data;
+	char *name;
 	int nchildren;
 	struct starpu_sched_component **children;
 	int nparents;
