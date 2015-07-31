@@ -273,6 +273,7 @@ struct starpu_sched_component * starpu_sched_component_prio_create(struct starpu
 	component->can_push = prio_can_push;
 	component->deinit_data = prio_component_deinit_data;
 
+	component->name = "prio";
 	if(params)
 	{
 		data->ntasks_threshold=params->ntasks_threshold;

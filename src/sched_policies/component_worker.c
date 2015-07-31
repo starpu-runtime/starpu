@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2014  Université de Bordeaux
+ * Copyright (C) 2010-2015  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2014, 2015  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2011-2013  INRIA
@@ -607,6 +607,7 @@ static struct starpu_sched_component * starpu_sched_component_worker_create(stru
 	starpu_bitmap_set(component->workers, workerid);
 	starpu_bitmap_or(component->workers_in_ctx, component->workers);
 	_worker_components[tree->sched_ctx_id][workerid] = component;
+	component->name = "worker";
 
 	/*
 #ifdef STARPU_HAVE_HWLOC
@@ -785,6 +786,7 @@ static struct starpu_sched_component  * starpu_sched_component_combined_worker_c
 	starpu_bitmap_set(component->workers, workerid);
 	starpu_bitmap_or(component->workers_in_ctx, component->workers);
 	_worker_components[tree->sched_ctx_id][workerid] = component;
+	component->name = "combined worker";
 
 #ifdef STARPU_HAVE_HWLOC
 	struct _starpu_machine_config *config = _starpu_get_machine_config();

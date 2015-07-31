@@ -583,5 +583,6 @@ struct starpu_sched_component * starpu_sched_component_create(struct starpu_sche
 	component->estimated_end = starpu_sched_component_estimated_end_min;
 	component->deinit_data = take_component_and_does_nothing;
 	component->notify_change_workers = take_component_and_does_nothing;
+	component->name = "sched";
 	return component;
 }
