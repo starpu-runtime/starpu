@@ -15,6 +15,16 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
+StarPU 1.2.0rc3 (svn revision xxxxx)
+==============================================
+
+New features:
+  * Add the capability to define specific MPI datatypes for
+    StarPU user-defined interfaces.
+  * Add tasks.rec trace output to make scheduling analysis easier.
+  * Add Fortran 90 module and example using it
+  * New StarPU-MPI gdb debug functions
+
 StarPU 1.2.0rc2 (svn revision 15435)
 ==============================================
 
@@ -104,9 +114,6 @@ New features:
     starpu_data_fetch_on_node for that.
   * Add data access arbiters, to improve parallelism of concurrent data
     accesses, notably with STARPU_COMMUTE.
-  * Add the capability to define specific MPI datatypes for
-    StarPU user-defined interfaces.
-  * Add tasks.rec trace output to make scheduling analysis easier.
 
 Small features:
   * Tasks can now have a name (via the field const char *name of
