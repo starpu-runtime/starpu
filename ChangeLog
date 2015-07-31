@@ -104,6 +104,8 @@ New features:
   * Add the capability to define specific MPI datatypes for
     StarPU user-defined interfaces.
   * Add tasks.rec trace output to make scheduling analysis easier.
+  * Add Fortran 90 module and example using it
+  * New StarPU-MPI gdb debug functions
 
 Small features:
   * Tasks can now have a name (via the field const char *name of
