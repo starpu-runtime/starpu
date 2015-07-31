@@ -99,7 +99,7 @@ static int mct_push_task(struct starpu_sched_component * component, struct starp
 		return 1;
 	}
 
-	int ret = best_component->push_task(best_component, task);
+	int ret = starpu_sched_component_push_task(best_component, task);
 	return ret;
 }
 

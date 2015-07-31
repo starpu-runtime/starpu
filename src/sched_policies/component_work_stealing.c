@@ -161,7 +161,7 @@ static struct starpu_task * pull_task(struct starpu_sched_component * component)
 			continue;
 		else
 		{
-			task = component->parents[i]->pull_task(component->parents[i]);
+			task = starpu_sched_component_pull_task(component->parents[i]);
 			if(task)
 				break;
 		}
@@ -319,7 +319,7 @@ void _ws_remove_child(struct starpu_sched_component * component, struct starpu_s
 	struct starpu_task * task;
 	while((task = _starpu_prio_deque_pop_task(tmp_fifo)))
 	{
-		component->push_task(component, task);
+		starpu_sched_component_push_task(component, task);
 	}
 	_starpu_prio_deque_destroy(tmp_fifo);
 	free(tmp_fifo);

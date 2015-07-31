@@ -44,10 +44,10 @@ static int perfmodel_select_push_task(struct starpu_sched_component * component,
 	if(can_execute)
 	{
 		if(isnan(length))
-			return data->calibrator_component->push_task(data->calibrator_component,task);
+			return starpu_sched_component_push_task(data->calibrator_component,task);
 		if(_STARPU_IS_ZERO(length))
-			return data->no_perfmodel_component->push_task(data->no_perfmodel_component,task);
-		return data->perfmodel_component->push_task(data->perfmodel_component,task);
+			return starpu_sched_component_push_task(data->no_perfmodel_component,task);
+		return starpu_sched_component_push_task(data->perfmodel_component,task);
 	}
 	else
 		return 1;

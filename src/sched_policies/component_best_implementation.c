@@ -75,7 +75,7 @@ static int best_implementation_push_task(struct starpu_sched_component * compone
 {
 	STARPU_ASSERT(component->nchildren == 1);
 	select_best_implementation_and_set_preds(component->tree->sched_ctx_id, component->workers_in_ctx, task);
-	return component->children[0]->push_task(component->children[0],task);
+	return starpu_sched_component_push_task(component->children[0],task);
 }
 
 int starpu_sched_component_is_best_implementation(struct starpu_sched_component * component)
@@ -93,7 +93,7 @@ static struct starpu_task * best_implementation_pull_task(struct starpu_sched_co
 			continue;
 		else
 		{
-			task = component->parents[i]->pull_task(component->parents[i]);
+			task = starpu_sched_component_pull_task(component->parents[i]);
 			if(task)
 				break;
 		}
