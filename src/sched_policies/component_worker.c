@@ -501,7 +501,7 @@ static struct starpu_task * simple_worker_pull_task(struct starpu_sched_componen
 			else
 			{
 				_starpu_sched_component_worker_unlock_scheduling(component->tree->sched_ctx_id);
-				task = component->parents[i]->pull_task(component->parents[i]);
+				task = starpu_sched_component_pull_task(component->parents[i]);
 				_starpu_sched_component_worker_lock_scheduling(component->tree->sched_ctx_id);
 				if(task)
 					break;
@@ -521,7 +521,7 @@ static struct starpu_task * simple_worker_pull_task(struct starpu_sched_componen
 			return task;
 		}
 		struct starpu_sched_component * combined_worker_component = starpu_sched_component_worker_get(component->tree->sched_ctx_id, workerid);
-		(void)combined_worker_component->push_task(combined_worker_component, task);
+		starpu_sched_component_push_task(combined_worker_component, task);
 		/* we have pushed a task in queue, so can make a recursive call */
 		return simple_worker_pull_task(component);
 

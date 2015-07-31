@@ -162,6 +162,10 @@ The actual scheduler
 \ingroup API_Modularized_Scheduler
 	 compatibility with starpu_sched_policy interface
 
+\fn void starpu_sched_component_connect(struct starpu_sched_component *parent, struct starpu_sched_component *child)
+\ingroup API_Modularized_Scheduler
+	 Attaches component \p child to parent \p parent. Some component may accept only one child, others accept several (e.g. MCT)
+
 @name Generic Scheduling Component API
 \ingroup API_Modularized_Scheduler
 
@@ -436,5 +440,11 @@ todo
 \fn struct starpu_sched_tree *starpu_sched_component_make_scheduler(unsigned sched_ctx_id, struct starpu_sched_component_specs s)
 \ingroup API_Modularized_Scheduler
 	 this function build a scheduler for \p sched_ctx_id according to \p s and the hwloc topology of the machine.
+
+\fn int starpu_sched_component_push_task(struct starpu_sched_component *component, struct starpu_task *task);
+	Push a task to a component. This is a helper for <c>component->push_task(component, task)</c> plus tracing.
+
+\fn struct starpu_task *starpu_sched_component_pull_task(struct starpu_sched_component *component);
+	Pull a task from a component. This is a helper for <c>component->pull_task(component)</c> plus tracing.
 
 */

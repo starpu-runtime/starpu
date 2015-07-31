@@ -153,7 +153,7 @@ static int heft_progress_one(struct starpu_sched_component *component)
 			return 1;
 		}
 
-		int ret = best_component->push_task(best_component, tasks[best_task]);
+		int ret = starpu_sched_component_push_task(best_component, tasks[best_task]);
 
 		if (ret)
 		{

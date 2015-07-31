@@ -90,7 +90,7 @@ static int random_push_task(struct starpu_sched_component * component, struct st
 		return 1;
 	}
 
-	int ret_val = select->push_task(select,task);
+	int ret_val = starpu_sched_component_push_task(select,task);
 	return ret_val;
 }
 

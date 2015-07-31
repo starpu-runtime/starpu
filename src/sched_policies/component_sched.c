@@ -330,9 +330,14 @@ int starpu_sched_tree_push_task(struct starpu_task * task)
 	unsigned sched_ctx_id = task->sched_ctx;
 	struct starpu_sched_tree *tree = starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
-	int ret_val = tree->root->push_task(tree->root,task);
+	int ret_val = starpu_sched_component_push_task(tree->root,task);
 	
 	return ret_val;
+}
+
+int starpu_sched_component_push_task(struct starpu_sched_component *component, struct starpu_task *task)
+{
+	return component->push_task(component, task);
 }
 
 struct starpu_task * starpu_sched_tree_pop_task(unsigned sched_ctx)
@@ -342,8 +347,13 @@ struct starpu_task * starpu_sched_tree_pop_task(unsigned sched_ctx)
 
 	/* _starpu_sched_component_lock_worker(workerid) is called by component->pull_task()
 	 */
-	struct starpu_task * task = component->pull_task(component);
+	struct starpu_task * task = starpu_sched_component_pull_task(component);
 	return task;
+}
+
+struct starpu_task * starpu_sched_component_pull_task(struct starpu_sched_component *component)
+{
+	return component->pull_task(component);
 }
 
 void starpu_sched_tree_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
@@ -480,7 +490,7 @@ static void starpu_sched_component_remove_parent(struct starpu_sched_component *
 /* default implementation for component->pull_task()
  * just perform a recursive call on parent
  */
-static struct starpu_task * starpu_sched_component_pull_task(struct starpu_sched_component * component)
+static struct starpu_task * starpu_sched_component_parents_pull_task(struct starpu_sched_component * component)
 {
 	STARPU_ASSERT(component);
 	struct starpu_task * task = NULL;
@@ -491,7 +501,7 @@ static struct starpu_task * starpu_sched_component_pull_task(struct starpu_sched
 			continue;
 		else
 		{
-			task = component->parents[i]->pull_task(component->parents[i]);
+			task = starpu_sched_component_pull_task(component->parents[i]);
 			if(task)
 				break;
 		}
@@ -576,7 +586,7 @@ struct starpu_sched_component * starpu_sched_component_create(struct starpu_sche
 	component->remove_child = starpu_sched_component_remove_child;
 	component->add_parent = starpu_sched_component_add_parent;
 	component->remove_parent = starpu_sched_component_remove_parent;
-	component->pull_task = starpu_sched_component_pull_task;
+	component->pull_task = starpu_sched_component_parents_pull_task;
 	component->can_push = starpu_sched_component_can_push;
 	component->can_pull = starpu_sched_component_can_pull;
 	component->estimated_load = starpu_sched_component_estimated_load;

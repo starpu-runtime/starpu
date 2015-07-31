@@ -61,7 +61,7 @@ static int eager_calibration_push_task(struct starpu_sched_component * component
 									return 1;
 								}
 								else
-									return component->children[i]->push_task(component->children[i],task);
+									return starpu_sched_component_push_task(component->children[i],task);
 							}
 						}
 					}

@@ -120,14 +120,14 @@ struct composed_component create_composed_component(struct starpu_sched_tree *tr
 static int composed_component_push_task(struct starpu_sched_component * component, struct starpu_task * task)
 {
 	struct composed_component *c = component->data;
-	return c->top->push_task(c->top,task);
+	return starpu_sched_component_push_task(c->top,task);
 }
 struct starpu_task * composed_component_pull_task(struct starpu_sched_component *component)
 {
 	struct composed_component *c = component->data;
 	struct starpu_task * task = NULL;
 	
-	task = c->bottom->pull_task(c->bottom);
+	task = starpu_sched_component_pull_task(c->bottom);
 	if(task)
 		return task;
 
@@ -138,7 +138,7 @@ struct starpu_task * composed_component_pull_task(struct starpu_sched_component 
 			continue;
 		else
 		{
-			task = component->parents[i]->pull_task(component->parents[i]);
+			task = starpu_sched_component_pull_task(component->parents[i]);
 			if(task)
 				break;
 		}
