@@ -1508,9 +1508,6 @@ static void handle_task_submit(struct fxt_ev_64 *ev, struct starpu_fxt_options *
 	unsigned long job_id;
 	job_id = ev->param[0];
 
-        int worker;
-        worker = find_worker_id(ev->param[1]);
-
 	get_task(job_id)->submit_time = get_event_time_stamp(ev, options);
 }
 
@@ -1859,15 +1856,6 @@ void _starpu_fxt_display_bandwidth(struct starpu_fxt_options *options)
 #endif
 		}
 	}
-}
-
-static
-void tasks_output(char *filename_out)
-{
-	struct task_info *task, *tmp;
-
-	HASH_ITER(hh, tasks_info, task, tmp)
-		task_dump(task->job_id);
 }
 
 static
