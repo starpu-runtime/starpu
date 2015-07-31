@@ -89,7 +89,7 @@ struct starpu_sched_tree *starpu_sched_tree_get(unsigned sched_ctx_id);
 void starpu_sched_tree_update_workers(struct starpu_sched_tree *t);
 void starpu_sched_tree_update_workers_in_ctx(struct starpu_sched_tree *t);
 int starpu_sched_tree_push_task(struct starpu_task *task);
-struct starpu_task *starpu_sched_tree_pop_task();
+struct starpu_task *starpu_sched_tree_pop_task(unsigned sched_ctx);
 void starpu_sched_tree_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers);
 void starpu_sched_tree_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers);
 
