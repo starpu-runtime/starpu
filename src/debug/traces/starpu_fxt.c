@@ -946,7 +946,6 @@ static void handle_codelet_details(struct fxt_ev_64 *ev STARPU_ATTRIBUTE_UNUSED,
 	int worker = ev->param[5];
 	unsigned long job_id = ev->param[6];
 
-	unsigned sched_ctx = ev->param[1];
 	if (worker < 0) return;
 
 	int i;
@@ -970,6 +969,7 @@ static void handle_codelet_details(struct fxt_ev_64 *ev STARPU_ATTRIBUTE_UNUSED,
 
 #ifdef STARPU_ENABLE_PAJE_CODELET_DETAILS
 		char *prefix = options->file_prefix;
+		unsigned sched_ctx = ev->param[1];
 
 		worker_set_detailed_state(last_codelet_start[worker], prefix, worker, last_codelet_symbol[worker], ev->param[2], parameters, ev->param[3], ev->param[4], job_id);
 		if (sched_ctx != 0)
