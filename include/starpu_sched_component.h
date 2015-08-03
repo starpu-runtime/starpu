@@ -104,11 +104,7 @@ int STARPU_WARN_UNUSED_RESULT starpu_sched_component_execute_preds(struct starpu
 double starpu_sched_component_transfer_length(struct starpu_sched_component *component, struct starpu_task *task);
 void starpu_sched_component_prefetch_on_node(struct starpu_sched_component *component, struct starpu_task *task);
 
-static __starpu_inline void starpu_sched_component_connect(struct starpu_sched_component *parent, struct starpu_sched_component *child)
-{
-	parent->add_child(parent, child);
-	child->add_parent(child, parent);
-}
+void starpu_sched_component_connect(struct starpu_sched_component *parent, struct starpu_sched_component *child);
 
 struct starpu_sched_component *starpu_sched_component_worker_get(unsigned sched_ctx, int workerid);
 int starpu_sched_component_worker_get_workerid(struct starpu_sched_component *worker_component);

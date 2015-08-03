@@ -322,7 +322,11 @@ void starpu_sched_tree_update_workers(struct starpu_sched_tree * t)
  *  	Most of them are used to define the starpu_sched_policy interface     *
  ******************************************************************************/
 
-
+void starpu_sched_component_connect(struct starpu_sched_component *parent, struct starpu_sched_component *child)
+{
+	parent->add_child(parent, child);
+	child->add_parent(child, parent);
+}
 
 int starpu_sched_tree_push_task(struct starpu_task * task)
 {
