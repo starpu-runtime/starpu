@@ -1192,6 +1192,8 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 		}
 		config.conf = *user_conf;
 	}
+	_starpu_conf_check_environment(&config.conf);
+
 	/* Make a copy of arrays */
 	if (config.conf.sched_policy_name)
 		config.conf.sched_policy_name = strdup(config.conf.sched_policy_name);
@@ -1211,8 +1213,6 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 		memcpy(copy, config.conf.not_launched_drivers, size);
 		config.conf.not_launched_drivers = copy;
 	}
-
-	_starpu_conf_check_environment(&config.conf);
 
 	_starpu_init_all_sched_ctxs(&config);
 	_starpu_init_progression_hooks();
