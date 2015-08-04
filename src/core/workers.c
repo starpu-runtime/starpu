@@ -699,6 +699,8 @@ int starpu_init(struct starpu_conf *user_conf)
 	unsigned worker;
 	int ret;
 
+	_starpu_util_init();
+
 #ifdef STARPU_SIMGRID
 	_starpu_simgrid_init();
 	/* Warn when the lots of stacks malloc()-ated by simgrid for transfer
@@ -760,8 +762,6 @@ int starpu_init(struct starpu_conf *user_conf)
 #endif
 
 	srand(2008);
-
-	_starpu_util_init();
 
 #ifdef HAVE_AYUDAME_H
 #ifndef AYU_RT_STARPU
