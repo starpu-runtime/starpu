@@ -239,7 +239,7 @@ void _starpu_mp_common_send_command(const struct _starpu_mp_node *node,
 
 	/* Let's copy the data into the command line buffer */
 	memcpy(node->buffer, &command, command_size);
-	memcpy(node->buffer + command_size, &arg_size, arg_size_size);
+	memcpy((void*) ((uintptr_t)node->buffer + command_size), &arg_size, arg_size_size);
 
 	node->mp_send(node, node->buffer, command_size + arg_size_size);
 
@@ -265,7 +265,7 @@ enum _starpu_mp_command _starpu_mp_common_recv_command(const struct _starpu_mp_n
 	node->mp_recv(node, node->buffer, command_size + arg_size_size);
 
 	command = *((enum _starpu_mp_command *) node->buffer);
-	*arg_size = *((int *) (node->buffer + command_size));
+	*arg_size = *((int *) ((uintptr_t)node->buffer + command_size));
 
 	/* If there is no argument (ie. arg_size == 0),
 	 * let's return the command right now */

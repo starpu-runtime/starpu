@@ -156,7 +156,7 @@ static void _starpu_sink_common_recv_workers(struct _starpu_mp_node * node, void
 {
 	/* Retrieve information from the message */
 	STARPU_ASSERT(arg_size == (sizeof(int)*5));
-	void * arg_ptr = arg;
+	uintptr_t arg_ptr = (uintptr_t) arg;
 	int i;
 
 	int nworkers = *(int *)arg_ptr;
@@ -559,7 +559,7 @@ void _starpu_sink_common_execute(struct _starpu_mp_node *node,
 {
 	unsigned i;
 
-	void *arg_ptr = arg;
+	uintptr_t arg_ptr = (uintptr_t) arg;
 	struct mp_task *task = malloc(sizeof(struct mp_task));
 
 	task->kernel = *(void(**)(void **, void *)) arg_ptr;
@@ -592,15 +592,15 @@ void _starpu_sink_common_execute(struct _starpu_mp_node *node,
 	for (i = 0; i < task->nb_interfaces; i++)
 	{
 		union _starpu_interface * interface = malloc(sizeof(union _starpu_interface));
-		memcpy(interface, arg_ptr,
+		memcpy(interface, (void*) arg_ptr,
 				sizeof(union _starpu_interface));
 		task->interfaces[i] = interface;
 		arg_ptr += sizeof(union _starpu_interface);
 	}
 
 	/* Was cl_arg sent ? */
-	if (arg_size > arg_ptr - arg)
-		task->cl_arg = arg_ptr;
+	if (arg_size > arg_ptr - (uintptr_t) arg)
+		task->cl_arg = (void*) arg_ptr;
 	else
 		task->cl_arg = NULL;
 

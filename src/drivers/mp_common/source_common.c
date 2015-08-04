@@ -313,7 +313,8 @@ int _starpu_src_common_execute_kernel(struct _starpu_mp_node *node,
 		void *cl_arg, size_t cl_arg_size)
 {
 
-	void *buffer, *buffer_ptr, *arg =NULL;
+	void *buffer, *arg =NULL;
+	uintptr_t buffer_ptr;
 	int buffer_size = 0, arg_size =0;
 	unsigned i;
 
@@ -337,7 +338,8 @@ int _starpu_src_common_execute_kernel(struct _starpu_mp_node *node,
 	 * a pointer to the function (sink-side), core on which execute this
 	 * function (sink-side), number of interfaces we send,
 	 * an array of generic (union) interfaces and the value of cl_arg */
-	buffer_ptr = buffer = (void *) malloc(buffer_size);
+	buffer = (void *) malloc(buffer_size);
+	buffer_ptr = (uintptr_t) buffer;
 
 	*(void(**)(void)) buffer = kernel;
 	buffer_ptr += sizeof(kernel);
@@ -369,7 +371,7 @@ int _starpu_src_common_execute_kernel(struct _starpu_mp_node *node,
 	{
 		starpu_data_handle_t handle = handles[i];
 
-		memcpy (buffer_ptr, interfaces[i],
+		memcpy ((void*) buffer_ptr, interfaces[i],
 				handle->ops->interface_size);
 		/* The sink side has no mean to get the type of each
 		 * interface, we use a union to make it generic and permit the
@@ -378,7 +380,7 @@ int _starpu_src_common_execute_kernel(struct _starpu_mp_node *node,
 	}
 
 	if (cl_arg)
-		memcpy(buffer_ptr, cl_arg, cl_arg_size);
+		memcpy((void*) buffer_ptr, cl_arg, cl_arg_size);
 
 	_starpu_mp_common_send_command(node, STARPU_EXECUTE, buffer, buffer_size);
 	enum _starpu_mp_command answer = _starpu_src_common_wait_command_sync(node, &arg, &arg_size);
