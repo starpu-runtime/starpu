@@ -160,7 +160,7 @@ static void
 _starpu_initialize_workers_cuda_gpuid (struct _starpu_machine_config *config)
 {
 	struct _starpu_machine_topology *topology = &config->topology;
-	struct starpu_conf *uconf = config->conf;
+	struct starpu_conf *uconf = &config->conf;
 
         _starpu_initialize_workers_deviceid (
 		uconf->use_explicit_workers_cuda_gpuid == 0
@@ -188,7 +188,7 @@ static void
 _starpu_initialize_workers_opencl_gpuid (struct _starpu_machine_config*config)
 {
 	struct _starpu_machine_topology *topology = &config->topology;
-	struct starpu_conf *uconf = config->conf;
+	struct starpu_conf *uconf = &config->conf;
 
         _starpu_initialize_workers_deviceid(
 		uconf->use_explicit_workers_opencl_gpuid == 0
@@ -276,7 +276,7 @@ _starpu_get_next_opencl_gpuid (struct _starpu_machine_config *config)
 static void _starpu_initialize_workers_mic_deviceid(struct _starpu_machine_config *config)
 {
 	struct _starpu_machine_topology *topology = &config->topology;
-	struct starpu_conf *uconf = config->conf;
+	struct starpu_conf *uconf = &config->conf;
 
 	_starpu_initialize_workers_deviceid(
 		uconf->use_explicit_workers_mic_deviceid == 0
@@ -295,7 +295,7 @@ static void _starpu_initialize_workers_mic_deviceid(struct _starpu_machine_confi
 static void _starpu_initialize_workers_scc_deviceid(struct _starpu_machine_config *config)
 {
 	struct _starpu_machine_topology *topology = &config->topology;
-	struct starpu_conf *uconf = config->conf;
+	struct starpu_conf *uconf = &config->conf;
 
 	_starpu_initialize_workers_deviceid(
 		uconf->use_explicit_workers_scc_deviceid == 0
@@ -351,7 +351,7 @@ _starpu_init_mic_node (struct _starpu_machine_config *config, int mic_idx,
 {
 	/* Initialize the MIC node of index MIC_IDX. */
 
-	struct starpu_conf *user_conf = config->conf;
+	struct starpu_conf *user_conf = &config->conf;
 
 	char ***argv = _starpu_get_argv();
 	const char *suffixes[] = {"-mic", "_mic", NULL};
@@ -559,11 +559,11 @@ _starpu_initialize_workers_bindid (struct _starpu_machine_config *config)
 			}
 		}
 	}
-	else if (config->conf->use_explicit_workers_bindid)
+	else if (config->conf.use_explicit_workers_bindid)
 	{
 		/* we use the explicit value from the user */
 		memcpy(topology->workers_bindid,
-			config->conf->workers_bindid,
+			config->conf.workers_bindid,
 			STARPU_NMAXWORKERS*sizeof(unsigned));
 	}
 	else
@@ -833,7 +833,7 @@ _starpu_init_machine_config(struct _starpu_machine_config *config, int no_mp_con
 	_starpu_initialize_workers_bindid(config);
 
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
-	int ncuda = config->conf->ncuda;
+	int ncuda = config->conf.ncuda;
 	int nworker_per_cuda = starpu_get_env_number_default("STARPU_NWORKER_PER_CUDA", 1);
 
 	STARPU_ASSERT_MSG(nworker_per_cuda > 0, "STARPU_NWORKER_PER_CUDA has to be > 0");
@@ -909,7 +909,7 @@ _starpu_init_machine_config(struct _starpu_machine_config *config, int no_mp_con
 #endif
 
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
-	int nopencl = config->conf->nopencl;
+	int nopencl = config->conf.nopencl;
 
 	if (nopencl != 0)
 	{
@@ -979,7 +979,7 @@ _starpu_init_machine_config(struct _starpu_machine_config *config, int no_mp_con
 #endif
 
 #ifdef STARPU_USE_SCC
-	int nscc = config->conf->nscc;
+	int nscc = config->conf.nscc;
 
 	unsigned nb_scc_nodes = _starpu_scc_src_get_device_count();
 
@@ -1051,13 +1051,13 @@ _starpu_init_machine_config(struct _starpu_machine_config *config, int no_mp_con
 	 * ones of the mp nodes. */
 #ifdef STARPU_USE_MIC
 	if (! no_mp_config)
-	    _starpu_init_mp_config (config, config->conf);
+	    _starpu_init_mp_config (config, &config->conf);
 #endif
 
 /* we put the CPU section after the accelerator : in case there was an
  * accelerator found, we devote one cpu */
 #if defined(STARPU_USE_CPU) || defined(STARPU_SIMGRID)
-	int ncpu = config->conf->ncpus;
+	int ncpu = config->conf.ncpus;
 
 	if (ncpu != 0)
 	{
