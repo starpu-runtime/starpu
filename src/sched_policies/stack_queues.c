@@ -92,8 +92,6 @@ struct _starpu_job *_starpu_stack_pop_task(struct _starpu_stack_jobq *stack_queu
 		STARPU_ASSERT(j);
 		stack_queue->njobs--;
 
-		_STARPU_TRACE_JOB_POP(j, 0);
-
 		/* we are sure that we got it now, so at worst, some people thought
 		 * there remained some work and will soon discover it is not true */
 		STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
