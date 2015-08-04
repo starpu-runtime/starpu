@@ -528,7 +528,7 @@ int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT _starpu_driver_copy_data_1_to_1(starpu_d
 }
 
 /* This can be used by interfaces to easily transfer a piece of data without
- * caring about the particular CUDA/OpenCL methods.  */
+ * caring about the particular transfer methods.  */
 
 /* This should either return 0 if the transfer is complete, or -EAGAIN if the
  * transfer is still pending, and will have to be waited for by

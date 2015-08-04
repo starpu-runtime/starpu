@@ -104,7 +104,6 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
 	{
 		node->init = _starpu_scc_src_init;
 		node->deinit = NULL;
-		node->deinit = NULL;
 		node->report_error = _starpu_scc_common_report_rcce_error;
 				
 		node->mp_recv_is_ready = _starpu_scc_common_recv_is_ready;
