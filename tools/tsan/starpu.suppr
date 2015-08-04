@@ -18,6 +18,7 @@ race:^alloc_cache_hit_cnt$
 race:^alloc_cnt$
 race:^comm_amount$
 race:^_starpu_valgrind_print_once$
+race:^_starpu_silent$
 
 # don't care about cache hit stats
 race:^_starpu_msi_cache_hit$
@@ -37,6 +38,11 @@ race:^_starpu_kill_all_workers$
 race:^starpu_pause$
 race:^_starpu_may_pause$
 race:^starpu_resume$
+
+# worker_is_initialized is not actually racy since deinit happens only after main set running to 0
+race:^_starpu_opencl_driver_deinit$
+race:^_starpu_cuda_driver_deinit$
+race:^_starpu_cpu_driver_deinit$
 
 # The integer access is atomic, and we use the sched mutex to avoid missing wake ups
 race:^_starpu_fifo_empty$
