@@ -1919,7 +1919,10 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 	struct fxt_ev_64 ev;
 	while(1)
 	{
+		unsigned i;
 		int ret = fxt_next_ev(block, FXT_EV_TYPE_64, (struct fxt_ev *)&ev);
+		for (i = ev.nb_params; i < FXT_MAX_PARAMS; i++)
+			ev.param[i] = 0;
 		if (ret != FXT_EV_OK)
 		{
 			break;
