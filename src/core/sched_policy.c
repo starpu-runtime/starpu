@@ -554,6 +554,7 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
  */
 int starpu_push_task_end(struct starpu_task *task)
 {
+	_STARPU_TRACE_JOB_POP(task, task->priority > 0);
 	_starpu_profiling_set_task_push_end_time(task);
 	task->scheduled = 1;
 	return 0;
