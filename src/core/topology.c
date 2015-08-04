@@ -157,7 +157,7 @@ static void
 _starpu_initialize_workers_cuda_gpuid (struct _starpu_machine_config *config)
 {
 	struct _starpu_machine_topology *topology = &config->topology;
-	struct starpu_conf *uconf = config->conf;
+	struct starpu_conf *uconf = &config->conf;
 
         _starpu_initialize_workers_gpuid (
 		uconf->use_explicit_workers_cuda_gpuid == 0
@@ -185,7 +185,7 @@ static void
 _starpu_initialize_workers_opencl_gpuid (struct _starpu_machine_config*config)
 {
 	struct _starpu_machine_topology *topology = &config->topology;
-	struct starpu_conf *uconf = config->conf;
+	struct starpu_conf *uconf = &config->conf;
 
         _starpu_initialize_workers_gpuid(
 		uconf->use_explicit_workers_opencl_gpuid == 0
@@ -366,11 +366,11 @@ _starpu_initialize_workers_bindid (struct _starpu_machine_config *config)
 			}
 		}
 	}
-	else if (config->conf->use_explicit_workers_bindid)
+	else if (config->conf.use_explicit_workers_bindid)
 	{
 		/* we use the explicit value from the user */
 		memcpy(topology->workers_bindid,
-			config->conf->workers_bindid,
+			config->conf.workers_bindid,
 			STARPU_NMAXWORKERS*sizeof(unsigned));
 	}
 	else
@@ -470,7 +470,7 @@ _starpu_init_machine_config(struct _starpu_machine_config *config)
 	_starpu_initialize_workers_bindid(config);
 
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
-	int ncuda = config->conf->ncuda;
+	int ncuda = config->conf.ncuda;
 
 	if (ncuda != 0)
 	{
@@ -526,7 +526,7 @@ _starpu_init_machine_config(struct _starpu_machine_config *config)
 #endif
 
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
-	int nopencl = config->conf->nopencl;
+	int nopencl = config->conf.nopencl;
 
 	if (nopencl != 0)
 	{
@@ -595,7 +595,7 @@ _starpu_init_machine_config(struct _starpu_machine_config *config)
 /* we put the CPU section after the accelerator : in case there was an
  * accelerator found, we devote one cpu */
 #if defined(STARPU_USE_CPU) || defined(STARPU_SIMGRID)
-	int ncpu = config->conf->ncpus;
+	int ncpu = config->conf.ncpus;
 
 	if (ncpu != 0)
 	{

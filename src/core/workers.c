@@ -439,7 +439,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 #if defined(STARPU_USE_CPU) || defined(STARPU_SIMGRID)
 			case STARPU_CPU_WORKER:
 				driver.id.cpu_id = cpu;
-				if (_starpu_may_launch_driver(pconfig->conf, &driver))
+				if (_starpu_may_launch_driver(&pconfig->conf, &driver))
 				{
 					STARPU_PTHREAD_CREATE_ON(
 						workerarg->name,
@@ -465,7 +465,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 			case STARPU_CUDA_WORKER:
 				driver.id.cuda_id = cuda;
-				if (_starpu_may_launch_driver(pconfig->conf, &driver))
+				if (_starpu_may_launch_driver(&pconfig->conf, &driver))
 				{
 					STARPU_PTHREAD_CREATE_ON(
 						workerarg->name,
@@ -492,7 +492,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 			case STARPU_OPENCL_WORKER:
 #ifndef STARPU_SIMGRID
 				starpu_opencl_get_device(workerarg->devid, &driver.id.opencl_id);
-				if (!_starpu_may_launch_driver(pconfig->conf, &driver))
+				if (!_starpu_may_launch_driver(&pconfig->conf, &driver))
 				{
 					workerarg->run_by_starpu = 0;
 					break;
@@ -530,7 +530,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 		{
 			case STARPU_CPU_WORKER:
 				driver.id.cpu_id = cpu;
-				if (!_starpu_may_launch_driver(pconfig->conf, &driver))
+				if (!_starpu_may_launch_driver(&pconfig->conf, &driver))
 				{
 					cpu++;
 					break;
@@ -544,7 +544,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				break;
 			case STARPU_CUDA_WORKER:
 				driver.id.cuda_id = cuda;
-				if (!_starpu_may_launch_driver(pconfig->conf, &driver))
+				if (!_starpu_may_launch_driver(&pconfig->conf, &driver))
 				{
 					cuda++;
 					break;
@@ -560,7 +560,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 			case STARPU_OPENCL_WORKER:
 #ifndef STARPU_SIMGRID
 				starpu_opencl_get_device(workerarg->devid, &driver.id.opencl_id);
-				if (!_starpu_may_launch_driver(pconfig->conf, &driver))
+				if (!_starpu_may_launch_driver(&pconfig->conf, &driver))
 					break;
 #endif
 				_STARPU_DEBUG("waiting for worker %u initialization\n", worker);
@@ -776,24 +776,35 @@ int starpu_init(struct starpu_conf *user_conf)
 	/* store the pointer to the user explicit configuration during the
 	 * initialization */
 	if (user_conf == NULL)
-	{
-	     struct starpu_conf *conf = malloc(sizeof(struct starpu_conf));
-	     starpu_conf_init(conf);
-	     config.conf = conf;
-	     config.default_conf = 1;
-	}
+		 starpu_conf_init(&config.conf);
 	else
 	{
-	     if (user_conf->magic != 42)
-	     {
-		  _STARPU_DISP("starpu_conf structure needs to be initialized with starpu_conf_init\n");
-		  return -EINVAL;
-	     }
-	     config.conf = user_conf;
-	     config.default_conf = 0;
+		if (user_conf->magic != 42)
+		{
+			_STARPU_DISP("starpu_conf structure needs to be initialized with starpu_conf_init\n");
+			return -EINVAL;
+		}
+		config.conf = *user_conf;
+	}
+	/* Make a copy of arrays */
+	if (config.conf.sched_policy_name)
+		config.conf.sched_policy_name = strdup(config.conf.sched_policy_name);
+	if (config.conf.n_cuda_opengl_interoperability)
+	{
+		size_t size = config.conf.n_cuda_opengl_interoperability * sizeof(*config.conf.cuda_opengl_interoperability);
+		unsigned *copy = malloc(size);
+		memcpy(copy, config.conf.cuda_opengl_interoperability, size);
+		config.conf.cuda_opengl_interoperability = copy;
+	}
+	if (config.conf.n_not_launched_drivers)
+	{
+		size_t size = config.conf.n_not_launched_drivers * sizeof(*config.conf.not_launched_drivers);
+		struct starpu_driver *copy = malloc(size);
+		memcpy(copy, config.conf.not_launched_drivers, size);
+		config.conf.not_launched_drivers = copy;
 	}
 
-	_starpu_conf_check_environment(config.conf);
+	_starpu_conf_check_environment(&config.conf);
 
 	_starpu_init_all_sched_ctxs(&config);
 	_starpu_init_progression_hooks();
@@ -801,7 +812,7 @@ int starpu_init(struct starpu_conf *user_conf)
 	_starpu_init_tags();
 
 #ifdef STARPU_USE_FXT
-	_starpu_init_fxt_profiling(config.conf->trace_buffer_size);
+	_starpu_init_fxt_profiling(config.conf.trace_buffer_size);
 #endif
 
 	_starpu_open_debug_logfile();
@@ -838,7 +849,7 @@ int starpu_init(struct starpu_conf *user_conf)
 	disable_kernels = starpu_get_env_number("STARPU_DISABLE_KERNELS");
 	STARPU_PTHREAD_KEY_CREATE(&worker_key, NULL);
 
-	struct starpu_sched_policy *selected_policy = _starpu_select_sched_policy(&config, config.conf->sched_policy_name);
+	struct starpu_sched_policy *selected_policy = _starpu_select_sched_policy(&config, config.conf.sched_policy_name);
 	_starpu_create_sched_ctx(selected_policy, NULL, -1, 1, "init", 0, 0, 0, 0);
 
 	_starpu_initialize_registered_performance_models();
@@ -993,7 +1004,7 @@ unsigned _starpu_worker_can_block(unsigned memnode STARPU_ATTRIBUTE_UNUSED, stru
 	default:
 		goto always_launch;
 	}
-	if (!_starpu_may_launch_driver(config.conf, &driver))
+	if (!_starpu_may_launch_driver(&config.conf, &driver))
 		return 0;
 
 always_launch:
@@ -1108,9 +1119,12 @@ void starpu_shutdown(void)
 	STARPU_PTHREAD_COND_SIGNAL(&init_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&init_mutex);
 
-	/* Clear memory if it was allocated by StarPU */
-	if (config.default_conf)
-	     free(config.conf);
+	/* Clear memory */
+	free((char*) config.conf.sched_policy_name);
+	if (config.conf.n_cuda_opengl_interoperability)
+		free(config.conf.cuda_opengl_interoperability);
+	if (config.conf.n_not_launched_drivers)
+		free(config.conf.not_launched_drivers);
 
 #ifdef HAVE_AYUDAME_H
 	if (AYU_event) AYU_event(AYU_FINISH, 0, NULL);
@@ -1165,17 +1179,17 @@ unsigned starpu_opencl_worker_get_count(void)
 
 int starpu_asynchronous_copy_disabled(void)
 {
-	return config.conf->disable_asynchronous_copy;
+	return config.conf.disable_asynchronous_copy;
 }
 
 int starpu_asynchronous_cuda_copy_disabled(void)
 {
-	return config.conf->disable_asynchronous_cuda_copy;
+	return config.conf.disable_asynchronous_cuda_copy;
 }
 
 int starpu_asynchronous_opencl_copy_disabled(void)
 {
-	return config.conf->disable_asynchronous_opencl_copy;
+	return config.conf.disable_asynchronous_opencl_copy;
 }
 
 /* When analyzing performance, it is useful to see what is the processing unit
