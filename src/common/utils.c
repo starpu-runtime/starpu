@@ -39,6 +39,7 @@ int _starpu_silent;
 void _starpu_util_init(void)
 {
 	_starpu_silent = starpu_get_env_number_default("STARPU_SILENT", 0);
+	STARPU_HG_DISABLE_CHECKING(_starpu_silent);
 }
 
 #if defined(_WIN32) && !defined(__CYGWIN__) && !defined(__MINGW32__)
