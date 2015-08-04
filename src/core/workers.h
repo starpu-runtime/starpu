@@ -324,11 +324,7 @@ struct _starpu_machine_config
 	uint32_t worker_mask;
 
         /* either the user given configuration passed to starpu_init or a default configuration */
-	struct starpu_conf *conf;
-	/* set to 1 if no conf has been given by the user, it
-	 * indicates the memory allocated for the default
-	 * configuration should be freed on shutdown */
-	int default_conf;
+	struct starpu_conf conf;
 
 	/* this flag is set until the runtime is stopped */
 	unsigned running;

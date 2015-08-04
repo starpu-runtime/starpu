@@ -1561,7 +1561,7 @@ static void check_bus_config_file(void)
 
         get_config_path(path, sizeof(path));
         res = access(path, F_OK);
-	if (res || config->conf->bus_calibrate > 0)
+	if (res || config->conf.bus_calibrate > 0)
 	{
 		if (res)
 			_STARPU_DISP("No performance model for the bus, calibrating...\n");

@@ -147,7 +147,7 @@ static void display_sched_help_message(void)
 struct starpu_sched_policy *_starpu_select_sched_policy(struct _starpu_machine_config *config, const char *required_policy)
 {
 	struct starpu_sched_policy *selected_policy = NULL;
-	struct starpu_conf *user_conf = config->conf;
+	struct starpu_conf *user_conf = &config->conf;
 
 	if(required_policy)
 		selected_policy = find_sched_policy_from_name(required_policy);
@@ -184,7 +184,7 @@ void _starpu_init_sched_policy(struct _starpu_machine_config *config, struct _st
 		use_prefetch = 1;
 
 	/* Set calibrate flag */
-	_starpu_set_calibrate_flag(config->conf->calibrate);
+	_starpu_set_calibrate_flag(config->conf.calibrate);
 
 	load_sched_policy(selected_policy, sched_ctx);
 

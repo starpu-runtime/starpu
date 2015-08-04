@@ -355,7 +355,7 @@ void _starpu_sched_find_worker_combinations(int *workerids, int nworkers)
 {
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
 
-	if (config->conf->single_combined_worker > 0)
+	if (config->conf.single_combined_worker > 0)
 		combine_all_cpu_workers(workerids, nworkers);
 	else
 	{

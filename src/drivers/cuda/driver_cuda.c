@@ -197,7 +197,7 @@ void starpu_cuda_set_device(unsigned devid STARPU_ATTRIBUTE_UNUSED)
 	STARPU_ABORT();
 #else
 	cudaError_t cures;
-	struct starpu_conf *conf = _starpu_get_machine_config()->conf;
+	struct starpu_conf *conf = &_starpu_get_machine_config()->conf;
 #if !defined(HAVE_CUDA_MEMCPY_PEER) && defined(HAVE_CUDA_GL_INTEROP_H)
 	unsigned i;
 #endif
