@@ -153,7 +153,7 @@ static int heft_progress_one(struct starpu_sched_component *component)
 			return 1;
 		}
 
-		int ret = starpu_sched_component_push_task(best_component, tasks[best_task]);
+		int ret = starpu_sched_component_push_task(component, best_component, tasks[best_task]);
 
 		if (ret)
 		{
@@ -226,7 +226,7 @@ int starpu_sched_component_is_heft(struct starpu_sched_component * component)
 
 struct starpu_sched_component * starpu_sched_component_heft_create(struct starpu_sched_tree *tree, struct starpu_sched_component_mct_data * params)
 {
-	struct starpu_sched_component * component = starpu_sched_component_create(tree);
+	struct starpu_sched_component * component = starpu_sched_component_create(tree, "heft");
 	struct _starpu_mct_data *mct_data = starpu_mct_init_parameters(params);
 	struct _starpu_heft_data *data = malloc(sizeof(*data));
 
@@ -238,7 +238,6 @@ struct starpu_sched_component * starpu_sched_component_heft_create(struct starpu
 	component->push_task = heft_push_task;
 	component->can_push = heft_can_push;
 	component->deinit_data = heft_component_deinit_data;
-	component->name = "heft";
 
 	return component;
 }

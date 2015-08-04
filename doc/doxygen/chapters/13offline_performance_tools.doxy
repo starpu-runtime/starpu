@@ -96,11 +96,11 @@ the execution.
 
 \subsection CreatingAGanttDiagram Creating a Gantt Diagram
 
-When the FxT trace file <c>filename</c> has been generated, it is possible to
+When the FxT trace file <c>prof_file_something</c> has been generated, it is possible to
 generate a trace in the Paje format by calling:
 
 \verbatim
-$ starpu_fxt_tool -i filename
+$ starpu_fxt_tool -i /tmp/prof_file_something
 \endverbatim
 
 Or alternatively, setting the environment variable \ref STARPU_GENERATE_TRACE
@@ -127,7 +127,7 @@ In the MPI execution case, collect the trace files from the MPI nodes, and
 specify them all on the command <c>starpu_fxt_tool</c>, for instance:
 
 \verbatim
-$ starpu_fxt_tool -i filename1 -i filename2
+$ starpu_fxt_tool -i /tmp/prof_file_something1 -i /tmp/prof_file_something2
 \endverbatim
 
 By default, all tasks are displayed using a green color. To display tasks with
@@ -142,18 +142,18 @@ StarPU configure option, the value of the tag will show up in the trace.
 Traces can also be inspected by hand by using the tool <c>fxt_print</c>, for instance:
 
 \verbatim
-$ fxt_print -o -f filename
+$ fxt_print -o -f /tmp/prof_file_something
 \endverbatim
 
 Timings are in nanoseconds (while timings as seen in <c>vite</c> are in milliseconds).
 
 \subsection CreatingADAGWithGraphviz Creating a DAG With Graphviz
 
-When the FxT trace file <c>filename</c> has been generated, it is possible to
+When the FxT trace file <c>prof_file_something</c> has been generated, it is possible to
 generate a task graph in the DOT format by calling:
 
 \verbatim
-$ starpu_fxt_tool -i filename
+$ starpu_fxt_tool -i /tmp/prof_file_something
 \endverbatim
 
 This will create a <c>dag.dot</c> file in the current directory. This file is a
@@ -166,11 +166,11 @@ $ dot -Tpdf dag.dot -o output.pdf
 
 \subsection TraceTaskDetails Getting task details
 
-When the FxT trace file <c>filename</c> has been generated, details on the
+When the FxT trace file <c>prof_file_something</c> has been generated, details on the
 executed tasks can be retrieved by calling:
 
 \verbatim
-$ starpu_fxt_tool -i filename
+$ starpu_fxt_tool -i /tmp/prof_file_something
 \endverbatim
 
 This will create a <c>tasks.rec</c> file in the current directory.  This file
@@ -182,11 +182,11 @@ analysis tools.  The performance models can be opened for instance by using
 
 \subsection MonitoringActivity Monitoring Activity
 
-When the FxT trace file <c>filename</c> has been generated, it is possible to
+When the FxT trace file <c>prof_file_something</c> has been generated, it is possible to
 generate an activity trace by calling:
 
 \verbatim
-$ starpu_fxt_tool -i filename
+$ starpu_fxt_tool -i /tmp/prof_file_something
 \endverbatim
 
 This will create a file <c>activity.data</c> in the current
@@ -212,6 +212,19 @@ The second part of the picture <c>activity.eps</c> is a graph showing the
 evolution of the number of tasks available in the system during the execution.
 Ready tasks are shown in black, and tasks that are submitted but not
 schedulable yet are shown in grey.
+
+\subsection Animation Getting modular schedular animation
+
+When using modular schedulers (i.e. schedulers which use a modular architecture,
+and whose name start with "modular-"), the command
+
+\verbatim
+$ starpu_fxt_tool -i /tmp/prof_file_something
+\endverbatim
+
+will also produce a <c>trace.html</c> file which can be viewed in a
+javascript-enabled web browser. It shows the flow of tasks between the
+components of the modular scheduler.
 
 \section PerformanceOfCodelets Performance Of Codelets
 
@@ -299,11 +312,11 @@ compute GFlops.
 \image html starpu_chol_model_11_type.png
 \image latex starpu_chol_model_11_type.eps "" width=\textwidth
 
-When the FxT trace file <c>filename</c> has been generated, it is possible to
+When the FxT trace file <c>prof_file_something</c> has been generated, it is possible to
 get a profiling of each codelet by calling:
 
 \verbatim
-$ starpu_fxt_tool -i filename
+$ starpu_fxt_tool -i /tmp/prof_file_something
 $ starpu_codelet_profile distrib.data codelet_name
 \endverbatim
 

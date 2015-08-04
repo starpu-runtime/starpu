@@ -214,17 +214,17 @@ static int fifo_can_push(struct starpu_sched_component * component)
 	STARPU_ASSERT(component->nchildren == 1);
 	struct starpu_sched_component * child = component->children[0];
 
-	struct starpu_task * task = starpu_sched_component_pull_task(component);
+	struct starpu_task * task = starpu_sched_component_pull_task(component,NULL);
 	if(task)
-		ret = starpu_sched_component_push_task(child,task);	
+		ret = starpu_sched_component_push_task(NULL,child,task);	
 	while(task && !ret) 
 	{
 		if(!res)
 			res = 1;
 
-		task = starpu_sched_component_pull_task(component);
+		task = starpu_sched_component_pull_task(component,NULL);
 		if(task)
-			ret = starpu_sched_component_push_task(child,task);	
+			ret = starpu_sched_component_push_task(NULL,child,task);	
 	}
 	if(task && ret)
 		fifo_push_local_task(component,task,1); 
@@ -239,7 +239,7 @@ int starpu_sched_component_is_fifo(struct starpu_sched_component * component)
 
 struct starpu_sched_component * starpu_sched_component_fifo_create(struct starpu_sched_tree *tree, struct starpu_sched_component_fifo_data * params)
 {
-	struct starpu_sched_component * component = starpu_sched_component_create(tree);
+	struct starpu_sched_component * component = starpu_sched_component_create(tree, "fifo");
 	struct _starpu_fifo_data * data = malloc(sizeof(*data));
 	data->fifo = _starpu_create_fifo();
 	STARPU_PTHREAD_MUTEX_INIT(&data->mutex,NULL);
@@ -250,7 +250,6 @@ struct starpu_sched_component * starpu_sched_component_fifo_create(struct starpu
 	component->pull_task = fifo_pull_task;
 	component->can_push = fifo_can_push;
 	component->deinit_data = fifo_component_deinit_data;
-	component->name = "fifo";
 
 	if(params)
 	{

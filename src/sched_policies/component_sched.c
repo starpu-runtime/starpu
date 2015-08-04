@@ -192,6 +192,7 @@ void starpu_sched_component_destroy(struct starpu_sched_component *component)
 	component->deinit_data(component);
 	free(component->children);
 	free(component->parents);
+	free(component->name);
 	starpu_bitmap_destroy(component->workers);
 	starpu_bitmap_destroy(component->workers_in_ctx);
 	free(component);
@@ -326,6 +327,7 @@ void starpu_sched_component_connect(struct starpu_sched_component *parent, struc
 {
 	parent->add_child(parent, child);
 	child->add_parent(child, parent);
+	_STARPU_TRACE_SCHED_COMPONENT_CONNECT(parent,child);
 }
 
 int starpu_sched_tree_push_task(struct starpu_task * task)
@@ -334,14 +336,15 @@ int starpu_sched_tree_push_task(struct starpu_task * task)
 	unsigned sched_ctx_id = task->sched_ctx;
 	struct starpu_sched_tree *tree = starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
-	int ret_val = starpu_sched_component_push_task(tree->root,task);
+	int ret_val = starpu_sched_component_push_task(NULL, tree->root,task);
 	
 	return ret_val;
 }
 
-int starpu_sched_component_push_task(struct starpu_sched_component *component, struct starpu_task *task)
+int starpu_sched_component_push_task(struct starpu_sched_component *from STARPU_ATTRIBUTE_UNUSED, struct starpu_sched_component *to, struct starpu_task *task)
 {
-	return component->push_task(component, task);
+	_STARPU_TRACE_SCHED_COMPONENT_PUSH(from, to, task);
+	return to->push_task(to, task);
 }
 
 struct starpu_task * starpu_sched_tree_pop_task(unsigned sched_ctx)
@@ -351,13 +354,16 @@ struct starpu_task * starpu_sched_tree_pop_task(unsigned sched_ctx)
 
 	/* _starpu_sched_component_lock_worker(workerid) is called by component->pull_task()
 	 */
-	struct starpu_task * task = starpu_sched_component_pull_task(component);
+	struct starpu_task * task = starpu_sched_component_pull_task(component,NULL);
 	return task;
 }
 
-struct starpu_task * starpu_sched_component_pull_task(struct starpu_sched_component *component)
+struct starpu_task * starpu_sched_component_pull_task(struct starpu_sched_component *from, struct starpu_sched_component *to STARPU_ATTRIBUTE_UNUSED)
 {
-	return component->pull_task(component);
+	struct starpu_task *task = from->pull_task(from);
+	if (task)
+		_STARPU_TRACE_SCHED_COMPONENT_PULL(from, to, task);
+	return task;
 }
 
 void starpu_sched_tree_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
@@ -505,7 +511,7 @@ static struct starpu_task * starpu_sched_component_parents_pull_task(struct star
 			continue;
 		else
 		{
-			task = starpu_sched_component_pull_task(component->parents[i]);
+			task = starpu_sched_component_pull_task(component->parents[i], component);
 			if(task)
 				break;
 		}
@@ -579,7 +585,7 @@ static void take_component_and_does_nothing(struct starpu_sched_component * comp
 {
 }
 
-struct starpu_sched_component * starpu_sched_component_create(struct starpu_sched_tree *tree)
+struct starpu_sched_component * starpu_sched_component_create(struct starpu_sched_tree *tree, const char *name)
 {
 	struct starpu_sched_component * component = malloc(sizeof(*component));
 	memset(component,0,sizeof(*component));
@@ -597,6 +603,7 @@ struct starpu_sched_component * starpu_sched_component_create(struct starpu_sche
 	component->estimated_end = starpu_sched_component_estimated_end_min;
 	component->deinit_data = take_component_and_does_nothing;
 	component->notify_change_workers = take_component_and_does_nothing;
-	component->name = "sched";
+	component->name = strdup(name);
+	_STARPU_TRACE_SCHED_COMPONENT_NEW(component);
 	return component;
 }

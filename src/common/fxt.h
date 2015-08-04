@@ -176,6 +176,11 @@
 #define	_STARPU_FUT_START_EXECUTING	0x5168
 #define	_STARPU_FUT_END_EXECUTING	0x5169
 
+#define _STARPU_FUT_SCHED_COMPONENT_NEW		0x516a
+#define _STARPU_FUT_SCHED_COMPONENT_CONNECT	0x516b
+#define _STARPU_FUT_SCHED_COMPONENT_PUSH	0x516c
+#define _STARPU_FUT_SCHED_COMPONENT_PULL	0x516d
+
 #ifdef STARPU_USE_FXT
 #include <fxt/fxt.h>
 #include <fxt/fut.h>
@@ -830,6 +835,18 @@ do {										\
 #define _STARPU_TRACE_SCHED_COMPONENT_POP_PRIO(workerid, ntasks, exp_len)		\
 	FUT_DO_PROBE4(_STARPU_FUT_SCHED_COMPONENT_POP_PRIO, _starpu_gettid(), workerid, ntasks, exp_len);
 
+#define _STARPU_TRACE_SCHED_COMPONENT_NEW(component)		\
+	_STARPU_FUT_DO_PROBE1STR(_STARPU_FUT_SCHED_COMPONENT_NEW, component, (component)->name);
+
+#define _STARPU_TRACE_SCHED_COMPONENT_CONNECT(parent, child)		\
+	FUT_DO_PROBE2(_STARPU_FUT_SCHED_COMPONENT_CONNECT, parent, child);
+
+#define _STARPU_TRACE_SCHED_COMPONENT_PUSH(from, to, task)		\
+	FUT_DO_PROBE5(_STARPU_FUT_SCHED_COMPONENT_PUSH, _starpu_gettid(), from, to, task, (task)->priority);
+
+#define _STARPU_TRACE_SCHED_COMPONENT_PULL(from, to, task)		\
+	FUT_DO_PROBE5(_STARPU_FUT_SCHED_COMPONENT_PULL, _starpu_gettid(), from, to, task, (task)->priority);
+
 #else // !STARPU_USE_FXT
 
 /* Dummy macros in case FxT is disabled */
@@ -919,6 +936,10 @@ do {										\
 #define _STARPU_TRACE_SCHED_COMPONENT_POP_PRIO(workerid, ntasks, exp_len)	do {} while(0)
 #define _STARPU_TRACE_HYPERVISOR_BEGIN()        do {} while(0)
 #define _STARPU_TRACE_HYPERVISOR_END()                  do {} while(0)
+#define _STARPU_TRACE_SCHED_COMPONENT_NEW(component)	do {} while (0)
+#define _STARPU_TRACE_SCHED_COMPONENT_CONNECT(parent, child)	do {} while (0)
+#define _STARPU_TRACE_SCHED_COMPONENT_PUSH(from, to, task)	do {} while (0)
+#define _STARPU_TRACE_SCHED_COMPONENT_PULL(from, to, task)	do {} while (0)
 
 #endif // STARPU_USE_FXT
 
