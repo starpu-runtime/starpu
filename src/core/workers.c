@@ -1079,6 +1079,9 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	int is_a_sink = 0; /* Always defined. If the MP infrastructure is not
 			    * used, we cannot be a sink. */
 	unsigned worker;
+
+	_starpu_util_init();
+
 #ifdef STARPU_USE_MP
 	_starpu_set_argc_argv(argc, argv);
 
@@ -1103,6 +1106,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 #ifdef STARPU_OPENMP
 	_starpu_omp_dummy_init();
 #endif
+
 #ifdef STARPU_SIMGRID
 	_starpu_simgrid_init();
 	/* Warn when the lots of stacks malloc()-ated by simgrid for transfer
@@ -1164,8 +1168,6 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 #endif
 
 	srand(2008);
-
-	_starpu_util_init();
 
 #ifdef HAVE_AYUDAME_H
 #ifndef AYU_RT_STARPU
