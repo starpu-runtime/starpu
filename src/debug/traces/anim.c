@@ -21,6 +21,7 @@
 #include <starpu.h>
 #include "starpu_fxt.h"
 
+#ifdef STARPU_FXT
 static struct component {
 	UT_hash_handle hh;
 	char *name;
@@ -511,3 +512,4 @@ void _starpu_fxt_component_finish(FILE *file)
 	fprintf(file, "\t</body>\n");
 	fprintf(file, "</html>\n");
 }
+#endif
