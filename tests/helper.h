@@ -47,6 +47,7 @@ static int _starpu_valgrind_print_once STARPU_ATTRIBUTE_UNUSED = 0;
 	{								\
 		if(STARPU_RUNNING_ON_VALGRIND)					\
 		{							\
+			STARPU_HG_DISABLE_CHECKING(_starpu_valgrind_print_once);	\
 			if (!_starpu_valgrind_print_once)		\
 			{						\
 				FPRINTF(stderr, "Running on valgrind, skipping the actual computations\n"); \
