@@ -120,14 +120,14 @@ struct composed_component create_composed_component(struct starpu_sched_tree *tr
 static int composed_component_push_task(struct starpu_sched_component * component, struct starpu_task * task)
 {
 	struct composed_component *c = component->data;
-	return starpu_sched_component_push_task(c->top,task);
+	return starpu_sched_component_push_task(component,c->top,task);
 }
 struct starpu_task * composed_component_pull_task(struct starpu_sched_component *component)
 {
 	struct composed_component *c = component->data;
 	struct starpu_task * task = NULL;
 	
-	task = starpu_sched_component_pull_task(c->bottom);
+	task = starpu_sched_component_pull_task(c->bottom,component);
 	if(task)
 		return task;
 
@@ -138,7 +138,7 @@ struct starpu_task * composed_component_pull_task(struct starpu_sched_component 
 			continue;
 		else
 		{
-			task = starpu_sched_component_pull_task(component->parents[i]);
+			task = starpu_sched_component_pull_task(component->parents[i],component);
 			if(task)
 				break;
 		}
@@ -209,7 +209,7 @@ struct starpu_sched_component * starpu_sched_component_composed_component_create
 	struct fun_create_component_list * l = &recipe->list;
 	if(l->_head == l->_tail)
 		return l->_head->create_component(tree, l->_head->arg);
-	struct starpu_sched_component * component = starpu_sched_component_create(tree);
+	struct starpu_sched_component * component = starpu_sched_component_create(tree, "composed");
 
 	struct composed_component * c = malloc(sizeof(struct composed_component));
 	*c = create_composed_component(tree, recipe
@@ -229,6 +229,5 @@ struct starpu_sched_component * starpu_sched_component_composed_component_create
 	component->add_child = composed_component_add_child;
 	component->remove_child = composed_component_remove_child;
 	component->notify_change_workers = composed_component_notify_change_workers;
-	component->name = "composed";
 	return component;
 }

@@ -90,13 +90,13 @@ struct starpu_sched_tree *starpu_sched_tree_get(unsigned sched_ctx_id);
 void starpu_sched_tree_update_workers(struct starpu_sched_tree *t);
 void starpu_sched_tree_update_workers_in_ctx(struct starpu_sched_tree *t);
 int starpu_sched_tree_push_task(struct starpu_task *task);
-int starpu_sched_component_push_task(struct starpu_sched_component *component, struct starpu_task *task);
+int starpu_sched_component_push_task(struct starpu_sched_component *from, struct starpu_sched_component *to, struct starpu_task *task);
 struct starpu_task *starpu_sched_tree_pop_task(unsigned sched_ctx);
-struct starpu_task *starpu_sched_component_pull_task(struct starpu_sched_component * component);
+struct starpu_task *starpu_sched_component_pull_task(struct starpu_sched_component *from, struct starpu_sched_component *to);
 void starpu_sched_tree_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers);
 void starpu_sched_tree_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers);
 
-struct starpu_sched_component *starpu_sched_component_create(struct starpu_sched_tree *tree);
+struct starpu_sched_component *starpu_sched_component_create(struct starpu_sched_tree *tree, const char *name);
 void starpu_sched_component_destroy(struct starpu_sched_component *component);
 void starpu_sched_component_destroy_rec(struct starpu_sched_component *component);
 int starpu_sched_component_can_execute_task(struct starpu_sched_component *component, struct starpu_task *task);

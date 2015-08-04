@@ -44,10 +44,10 @@ static int perfmodel_select_push_task(struct starpu_sched_component * component,
 	if(can_execute)
 	{
 		if(isnan(length))
-			return starpu_sched_component_push_task(data->calibrator_component,task);
+			return starpu_sched_component_push_task(component,data->calibrator_component,task);
 		if(_STARPU_IS_ZERO(length))
-			return starpu_sched_component_push_task(data->no_perfmodel_component,task);
-		return starpu_sched_component_push_task(data->perfmodel_component,task);
+			return starpu_sched_component_push_task(component,data->no_perfmodel_component,task);
+		return starpu_sched_component_push_task(component,data->perfmodel_component,task);
 	}
 	else
 		return 1;
@@ -70,7 +70,7 @@ struct starpu_sched_component * starpu_sched_component_perfmodel_select_create(s
 {
 	STARPU_ASSERT(params);
 	STARPU_ASSERT(params->calibrator_component && params->no_perfmodel_component && params->perfmodel_component);
-	struct starpu_sched_component * component = starpu_sched_component_create(tree);
+	struct starpu_sched_component * component = starpu_sched_component_create(tree, "perfmodel_selector");
 
 	struct _starpu_perfmodel_select_data * data = malloc(sizeof(*data));
 	data->calibrator_component = params->calibrator_component;
@@ -80,7 +80,6 @@ struct starpu_sched_component * starpu_sched_component_perfmodel_select_create(s
 	component->data = data;
 	component->push_task = perfmodel_select_push_task;
 	component->deinit_data = perfmodel_select_component_deinit_data;
-	component->name = "perfmodel_selector";
 
 	return component;
 }

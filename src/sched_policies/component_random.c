@@ -90,7 +90,7 @@ static int random_push_task(struct starpu_sched_component * component, struct st
 		return 1;
 	}
 
-	int ret_val = starpu_sched_component_push_task(select,task);
+	int ret_val = starpu_sched_component_push_task(component,select,task);
 	return ret_val;
 }
 
@@ -113,9 +113,8 @@ int starpu_sched_component_is_random(struct starpu_sched_component *component)
 
 struct starpu_sched_component * starpu_sched_component_random_create(struct starpu_sched_tree *tree, void * arg STARPU_ATTRIBUTE_UNUSED)
 {
-	struct starpu_sched_component * component = starpu_sched_component_create(tree);
+	struct starpu_sched_component * component = starpu_sched_component_create(tree, "random");
 	component->estimated_end = random_estimated_end;
 	component->push_task = random_push_task;
-	component->name = "random";
 	return component;
 }

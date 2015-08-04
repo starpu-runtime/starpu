@@ -99,7 +99,7 @@ static int mct_push_task(struct starpu_sched_component * component, struct starp
 		return 1;
 	}
 
-	int ret = starpu_sched_component_push_task(best_component, task);
+	int ret = starpu_sched_component_push_task(component, best_component, task);
 	return ret;
 }
 
@@ -117,14 +117,13 @@ int starpu_sched_component_is_mct(struct starpu_sched_component * component)
 
 struct starpu_sched_component * starpu_sched_component_mct_create(struct starpu_sched_tree *tree, struct starpu_sched_component_mct_data * params)
 {
-	struct starpu_sched_component * component = starpu_sched_component_create(tree);
+	struct starpu_sched_component * component = starpu_sched_component_create(tree, "mct");
 	struct _starpu_mct_data *data = starpu_mct_init_parameters(params);
 
 	component->data = data;
 
 	component->push_task = mct_push_task;
 	component->deinit_data = mct_component_deinit_data;
-	component->name = "mct";
 
 	return component;
 }

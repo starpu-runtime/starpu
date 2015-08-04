@@ -161,7 +161,7 @@ static struct starpu_task * pull_task(struct starpu_sched_component * component)
 			continue;
 		else
 		{
-			task = starpu_sched_component_pull_task(component->parents[i]);
+			task = starpu_sched_component_pull_task(component->parents[i],component);
 			if(task)
 				break;
 		}
@@ -319,7 +319,7 @@ void _ws_remove_child(struct starpu_sched_component * component, struct starpu_s
 	struct starpu_task * task;
 	while((task = _starpu_prio_deque_pop_task(tmp_fifo)))
 	{
-		starpu_sched_component_push_task(component, task);
+		starpu_sched_component_push_task(NULL, component, task);
 	}
 	_starpu_prio_deque_destroy(tmp_fifo);
 	free(tmp_fifo);
@@ -337,7 +337,7 @@ int starpu_sched_component_is_work_stealing(struct starpu_sched_component * comp
 
 struct starpu_sched_component * starpu_sched_component_work_stealing_create(struct starpu_sched_tree *tree, void * arg STARPU_ATTRIBUTE_UNUSED)
 {
-	struct starpu_sched_component * component = starpu_sched_component_create(tree);
+	struct starpu_sched_component * component = starpu_sched_component_create(tree, "work_stealing");
 	struct _starpu_work_stealing_data * wsd = malloc(sizeof(*wsd));
 	memset(wsd, 0, sizeof(*wsd));
 	component->pull_task = pull_task;
@@ -348,6 +348,5 @@ struct starpu_sched_component * starpu_sched_component_work_stealing_create(stru
 	component->estimated_load = _ws_estimated_load;
 	component->deinit_data = _work_stealing_component_deinit_data;
 	component->data = wsd;
-	component->name = "work_stealing";
 	return  component;
 }

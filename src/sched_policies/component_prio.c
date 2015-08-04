@@ -236,17 +236,17 @@ static int prio_can_push(struct starpu_sched_component * component)
 	STARPU_ASSERT(component->nchildren == 1);
 	struct starpu_sched_component * child = component->children[0];
 
-	struct starpu_task * task = starpu_sched_component_pull_task(component);
+	struct starpu_task * task = starpu_sched_component_pull_task(component, component);
 	if(task)
-		ret = starpu_sched_component_push_task(child,task);	
+		ret = starpu_sched_component_push_task(component,child,task);	
 	while(task && !ret) 
 	{
 		if(!res)
 			res = 1;
 
-		task = starpu_sched_component_pull_task(component);
+		task = starpu_sched_component_pull_task(component,component);
 		if(task)
-			ret = starpu_sched_component_push_task(child,task);	
+			ret = starpu_sched_component_push_task(component,child,task);	
 	}
 	if(task && ret)
 		prio_push_local_task(component,task,1); 
@@ -261,7 +261,7 @@ int starpu_sched_component_is_prio(struct starpu_sched_component * component)
 
 struct starpu_sched_component * starpu_sched_component_prio_create(struct starpu_sched_tree *tree, struct starpu_sched_component_prio_data * params)
 {
-	struct starpu_sched_component * component = starpu_sched_component_create(tree);
+	struct starpu_sched_component * component = starpu_sched_component_create(tree, "prio");
 	struct _starpu_prio_data * data = malloc(sizeof(*data));
 	_starpu_prio_deque_init(&data->prio);
 	STARPU_PTHREAD_MUTEX_INIT(&data->mutex,NULL);
@@ -273,7 +273,6 @@ struct starpu_sched_component * starpu_sched_component_prio_create(struct starpu
 	component->can_push = prio_can_push;
 	component->deinit_data = prio_component_deinit_data;
 
-	component->name = "prio";
 	if(params)
 	{
 		data->ntasks_threshold=params->ntasks_threshold;

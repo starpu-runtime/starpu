@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2014  Université de Bordeaux
+ * Copyright (C) 2013-2015  Université de Bordeaux
  * Copyright (C) 2013  INRIA
  * Copyright (C) 2013  Simon Archipoff
  *
@@ -87,8 +87,8 @@ static void initialize_heft_center_policy(unsigned sched_ctx_id)
 	t->root = window_component;
 	starpu_sched_component_connect(window_component, perfmodel_select_component);
 
-	starpu_sched_component_connect(perfmodel_select_component, calibrator_component);
 	starpu_sched_component_connect(perfmodel_select_component, perfmodel_component);
+	starpu_sched_component_connect(perfmodel_select_component, calibrator_component);
 	starpu_sched_component_connect(perfmodel_select_component, no_perfmodel_component);
 
 	struct starpu_sched_component_prio_data prio_data =

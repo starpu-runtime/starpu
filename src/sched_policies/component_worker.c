@@ -501,7 +501,7 @@ static struct starpu_task * simple_worker_pull_task(struct starpu_sched_componen
 			else
 			{
 				_starpu_sched_component_worker_unlock_scheduling(component->tree->sched_ctx_id);
-				task = starpu_sched_component_pull_task(component->parents[i]);
+				task = starpu_sched_component_pull_task(component->parents[i],component);
 				_starpu_sched_component_worker_lock_scheduling(component->tree->sched_ctx_id);
 				if(task)
 					break;
@@ -521,7 +521,7 @@ static struct starpu_task * simple_worker_pull_task(struct starpu_sched_componen
 			return task;
 		}
 		struct starpu_sched_component * combined_worker_component = starpu_sched_component_worker_get(component->tree->sched_ctx_id, workerid);
-		starpu_sched_component_push_task(combined_worker_component, task);
+		starpu_sched_component_push_task(component, combined_worker_component, task);
 		/* we have pushed a task in queue, so can make a recursive call */
 		return simple_worker_pull_task(component);
 
@@ -588,7 +588,9 @@ static struct starpu_sched_component * starpu_sched_component_worker_create(stru
 	struct _starpu_worker * worker = _starpu_get_worker_struct(workerid);
 	if(worker == NULL)
 		return NULL;
-	struct starpu_sched_component * component = starpu_sched_component_create(tree);
+	char name[32];
+	snprintf(name, sizeof(name), "worker %u", workerid);
+	struct starpu_sched_component * component = starpu_sched_component_create(tree, name);
 	struct _starpu_worker_component_data * data = malloc(sizeof(*data));
 	memset(data, 0, sizeof(*data));
 
@@ -607,7 +609,6 @@ static struct starpu_sched_component * starpu_sched_component_worker_create(stru
 	starpu_bitmap_set(component->workers, workerid);
 	starpu_bitmap_or(component->workers_in_ctx, component->workers);
 	_worker_components[tree->sched_ctx_id][workerid] = component;
-	component->name = "worker";
 
 	/*
 #ifdef STARPU_HAVE_HWLOC
@@ -770,7 +771,7 @@ static struct starpu_sched_component  * starpu_sched_component_combined_worker_c
 	struct _starpu_combined_worker * combined_worker = _starpu_get_combined_worker_struct(workerid);
 	if(combined_worker == NULL)
 		return NULL;
-	struct starpu_sched_component * component = starpu_sched_component_create(tree);
+	struct starpu_sched_component * component = starpu_sched_component_create(tree, "combined_worker");
 	struct _starpu_worker_component_data * data = malloc(sizeof(*data));
 	memset(data, 0, sizeof(*data));
 	data->combined_worker = combined_worker;
@@ -786,7 +787,6 @@ static struct starpu_sched_component  * starpu_sched_component_combined_worker_c
 	starpu_bitmap_set(component->workers, workerid);
 	starpu_bitmap_or(component->workers_in_ctx, component->workers);
 	_worker_components[tree->sched_ctx_id][workerid] = component;
-	component->name = "combined worker";
 
 #ifdef STARPU_HAVE_HWLOC
 	struct _starpu_machine_config *config = _starpu_get_machine_config();

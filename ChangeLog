@@ -114,6 +114,7 @@ New features:
     starpu_data_fetch_on_node for that.
   * Add data access arbiters, to improve parallelism of concurrent data
     accesses, notably with STARPU_COMMUTE.
+  * Generate animated html trace of modular schedulers.
 
 Small features:
   * Tasks can now have a name (via the field const char *name of

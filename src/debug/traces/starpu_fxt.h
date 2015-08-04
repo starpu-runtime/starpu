@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012  Université de Bordeaux
+ * Copyright (C) 2009-2012, 2015  Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -38,6 +38,8 @@
 #include <starpu.h>
 #include "../../../include/starpu_fxt.h"
 
+extern char _starpu_last_codelet_symbol[STARPU_NMAXWORKERS][4*sizeof(unsigned long)];
+
 void _starpu_fxt_dag_init(char *dag_filename);
 void _starpu_fxt_dag_terminate(void);
 void _starpu_fxt_dag_add_tag(uint64_t tag, unsigned long job_id);
@@ -57,6 +59,18 @@ void _starpu_fxt_mpi_add_recv_transfer(int src, int dst, int mpi_tag, float date
 void _starpu_fxt_display_mpi_transfers(struct starpu_fxt_options *options, int *ranks, FILE *out_paje_file);
 
 void _starpu_fxt_write_paje_header(FILE *file);
+
+/*
+ * Animation
+ */
+void _starpu_fxt_component_print_header(FILE *output);
+void _starpu_fxt_component_new(uint64_t component, char *name);
+void _starpu_fxt_component_connect(uint64_t parent, uint64_t child);
+void _starpu_fxt_component_update_ntasks(unsigned nsubmitted, unsigned curq_size);
+void _starpu_fxt_component_push(FILE *output, struct starpu_fxt_options *options, double timestamp, int workerid, uint64_t from, uint64_t to, uint64_t task, unsigned prio);
+void _starpu_fxt_component_pull(FILE *output, struct starpu_fxt_options *options, double timestamp, int workerid, uint64_t from, uint64_t to, uint64_t task, unsigned prio);
+void _starpu_fxt_component_dump(FILE *output);
+void _starpu_fxt_component_finish(FILE *output);
 
 #endif // STARPU_USE_FXT
 

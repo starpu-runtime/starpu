@@ -61,7 +61,7 @@ static int eager_calibration_push_task(struct starpu_sched_component * component
 									return 1;
 								}
 								else
-									return starpu_sched_component_push_task(component->children[i],task);
+									return starpu_sched_component_push_task(component,component->children[i],task);
 							}
 						}
 					}
@@ -79,9 +79,8 @@ int starpu_sched_component_is_eager_calibration(struct starpu_sched_component * 
 
 struct starpu_sched_component * starpu_sched_component_eager_calibration_create(struct starpu_sched_tree *tree, void * arg STARPU_ATTRIBUTE_UNUSED)
 {
-	struct starpu_sched_component * component = starpu_sched_component_create(tree);
+	struct starpu_sched_component * component = starpu_sched_component_create(tree, "eager_calibration");
 	component->push_task = eager_calibration_push_task;
-	component->name = "eager_calibration";
 
 	return component;
 }
