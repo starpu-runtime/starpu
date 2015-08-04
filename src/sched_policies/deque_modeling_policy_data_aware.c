@@ -173,8 +173,6 @@ static struct starpu_task *_starpu_fifo_pop_first_ready_task(struct _starpu_fifo
 		}
 
 		starpu_task_list_erase(&fifo_queue->taskq, task);
-
-		_STARPU_TRACE_JOB_POP(task, 0);
 	}
 
 	return task;
