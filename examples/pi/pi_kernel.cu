@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2013  Université de Bordeaux
+ * Copyright (C) 2010, 2013, 2015  Université de Bordeaux
  * Copyright (C) 2010, 2012, 2015  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -14,6 +14,9 @@
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
+
+/* First draw a series of coordinates, then count how many fall inside the
+ * circle quarter */
 
 #include "SobolQRNG/sobol_gpu.h"
 #include "pi.h"

@@ -16,6 +16,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+/* LU StarPU implementation using implicit task dependencies. */
+
 #include "xlu.h"
 #include "xlu_kernels.h"
 

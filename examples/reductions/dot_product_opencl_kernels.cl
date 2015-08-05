@@ -14,6 +14,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+/* Trivial dot reduction OpenCL kernel */
+
 #include "dot_product.h"
 
 #pragma OPENCL EXTENSION cl_khr_fp64 : enable

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2011  Université de Bordeaux
+ * Copyright (C) 2009, 2010, 2011, 2015  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -17,6 +17,7 @@
 
 /*
  * Conjugate gradients for Sparse matrices
+ * The task graph is declared through tag dependencies
  */
 
 #include "dw_sparse_cg.h"

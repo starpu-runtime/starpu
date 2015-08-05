@@ -182,7 +182,6 @@ STARPU_EXAMPLES =				\
 	filters/fvector				\
 	filters/fblock				\
 	filters/fmatrix				\
-	filters/subdata				\
 	tag_example/tag_example			\
 	tag_example/tag_example2		\
 	tag_example/tag_example3		\

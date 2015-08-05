@@ -14,6 +14,11 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+/*
+ * This examplifies how to use partitioning filters.  We here just split a
+ * vector into slices, and run a dumb kernel on them.
+ */
+
 #include <starpu.h>
 
 #define NX    21

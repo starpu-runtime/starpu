@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010-2011  Université de Bordeaux
+ * Copyright (C) 2009, 2010-2011, 2015  Université de Bordeaux
  * Copyright (C) 2010, 2011  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -15,6 +15,9 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+/*
+ * Standard GEMV kernel (on one matrix block of the sparse matrix)
+ */
 #include "dw_block_spmv.h"
 
 /*

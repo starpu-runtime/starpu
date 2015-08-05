@@ -14,6 +14,8 @@
 !
 ! See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
+! Fortran module interface for StarPU initialization and element registration
+
 MODULE mod_interface
 
   INTERFACE

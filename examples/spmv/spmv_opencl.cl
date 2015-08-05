@@ -14,6 +14,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+/* OpenCL kernel for SPMV */
+
 __kernel void spmv(int nnz, int nrow,
                    __global float* nzval, __global unsigned* colind,
                    __global unsigned* rowptr, int firstentry,

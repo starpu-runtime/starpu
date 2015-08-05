@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux
+ * Copyright (C) 2009, 2010, 2015  Université de Bordeaux
  * Copyright (C) 2010, 2012  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -14,6 +14,8 @@
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
+
+/* Complex float LU kernels */
 
 #include "complex_float.h"
 #include "xlu_kernels.c"

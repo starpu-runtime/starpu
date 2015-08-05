@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2011, 2013-2014  Université de Bordeaux
+ * Copyright (C) 2009, 2010, 2011, 2013-2015  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012  CNRS
  *
@@ -16,6 +16,10 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+/*
+ * This computes an SPMV with a CSR sparse matrix, by splitting it in
+ * horizontal stripes and processing them in parallel.
+ */
 #include "spmv.h"
 
 unsigned nblocks = 4;
@@ -44,7 +48,7 @@ static void parse_args(int argc, char **argv)
 }
 
 /* This filter function takes a CSR matrix, and divides it into nparts with the
- * same number of non-zero entries. */
+ * same number of rows. */
 static void csr_filter_func(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts)
 {
 	struct starpu_csr_interface *csr_father = (struct starpu_csr_interface *) father_interface;

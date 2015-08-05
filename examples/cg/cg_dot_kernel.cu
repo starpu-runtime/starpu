@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux
+ * Copyright (C) 2010, 2015  Université de Bordeaux
  * Copyright (C) 2010, 2012, 2015  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -21,6 +21,12 @@
 
 #define MAXNBLOCKS	128
 #define MAXTHREADSPERBLOCK	256
+
+/*
+ * Dot product kernel
+ * We first perform dot computation in parallel in dot_device, and then we
+ * gather the dot values into one in gather_dot_device.
+ */
 
 static __global__ void dot_device(TYPE *vx, TYPE *vy, unsigned n, TYPE *dot_array)
 {
@@ -125,6 +131,10 @@ extern "C" void dot_host(TYPE *x, TYPE *y, unsigned nelems, TYPE *dot)
 
 	cudaFree(per_block_sum);
 }
+
+/*
+ * Fill a vector with zeroes
+ */
 
 static __global__ void zero_vector_device(TYPE *x, unsigned nelems, unsigned nelems_per_thread)
 {
