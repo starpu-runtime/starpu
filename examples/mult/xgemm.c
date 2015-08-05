@@ -16,6 +16,11 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+/*
+ * Simple parallel GEMM implementation: partition the output matrix in the two
+ * dimensions, and the input matrices in the corresponding dimension, and
+ * perform the output computations in parallel.
+ */
 #ifndef TYPE
 #error "Do not compile xgemm.c directly, compile sgemm.c or dgemm.c"
 #endif

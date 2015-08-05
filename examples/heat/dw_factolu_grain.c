@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010-2011, 2014  Université de Bordeaux
+ * Copyright (C) 2009, 2010-2011, 2014-2015  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012  CNRS
  *
@@ -14,6 +14,15 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
+ */
+
+/*
+ * This implements an LU factorization.
+ * The task graph is submitted through dependency tags.
+ * It also changes the partitioning during execution: when called first,
+ * dw_factoLU_grain_inner splits the matrix with a big granularity (nblocks)
+ * and processes nbigblocks blocks, before calling itself again, to process the
+ * remainder of the matrix with a smaller granularity.
  */
 
 #include "dw_factolu.h"

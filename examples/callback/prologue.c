@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2013-2014  Université de Bordeaux
+ * Copyright (C) 2009, 2010, 2013-2015  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -13,6 +13,13 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
+ */
+
+/*
+ * This is an example of using a prologue callback. We submit a task, whose
+ * prologue callback (i.e. before task gets scheduled) prints a value, and
+ * whose pop_prologue callback (i.e. after task gets scheduled, but before task
+ * execution) prints another value.
  */
 
 #include <starpu.h>
@@ -37,28 +44,18 @@ struct starpu_codelet cl =
 	.name = "callback"
 };
 
-void callback_func(void *callback_arg)
-{
-	int ret;
-
-	struct starpu_task *task = starpu_task_create();
-	task->cl = &cl;
-	task->handles[0] = handle;
-
-	ret = starpu_task_submit(task);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
-}
-
 void prologue_callback_func(void *callback_arg)
 {
 	double *x = (double*)callback_arg;
 	printf("x = %lf\n", *x);
+	STARPU_ASSERT(*x == -999.0);
 }
 
 void pop_prologue_callback_func(void *args)
 {
 	unsigned val = (uintptr_t) args;
 	printf("pop_prologue_callback val %d \n", val);
+	STARPU_ASSERT(val == 5);
 }
 
 
@@ -73,12 +70,12 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	starpu_variable_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)&v, sizeof(int));
-	double *x = (double*)malloc(sizeof(double));
+	double x = -999.0;
 
 	struct starpu_task *task = starpu_task_create();
 	task->cl = &cl;
-	task->prologue_callback_func = callback_func;
-	task->prologue_callback_arg = NULL;
+	task->prologue_callback_func = prologue_callback_func;
+	task->prologue_callback_arg = &x;
 
 	task->prologue_callback_pop_func = pop_prologue_callback_func;
 	task->prologue_callback_pop_arg = (void*) 5;
@@ -89,11 +86,10 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
-	*x = -999.0;
 	ret = starpu_task_insert(&cl,
 				 STARPU_RW, handle,
 				 STARPU_PROLOGUE_CALLBACK, prologue_callback_func,
-				 STARPU_PROLOGUE_CALLBACK_ARG, x,
+				 STARPU_PROLOGUE_CALLBACK_ARG, &x,
 				 STARPU_PROLOGUE_CALLBACK_POP, pop_prologue_callback_func,
 				 STARPU_PROLOGUE_CALLBACK_POP_ARG, 5,
 				 0);
@@ -104,7 +100,6 @@ int main(int argc, char **argv)
 
 enodev:
 	starpu_data_unregister(handle);
-	free(x);
 	FPRINTF(stderr, "v -> %d\n", v);
 	starpu_shutdown();
 	return (ret == -ENODEV) ? 77 : 0;

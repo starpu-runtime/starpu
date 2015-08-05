@@ -16,6 +16,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+/* Helper functions to initialize StarPU and register element matrices */
+
 #include <starpu.h>
 
 //--------------------------------------------------------------//

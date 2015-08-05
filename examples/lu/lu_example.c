@@ -15,6 +15,9 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+/* Main body for the LU factorization: matrix initialization and result
+ * checking */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>

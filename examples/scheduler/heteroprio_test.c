@@ -14,6 +14,10 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+/*
+ * This is an example making use of the heteroprio scheduler, it shows how
+ * priorities are taken into account.
+ */
 #include <starpu.h>
 #include <schedulers/starpu_heteroprio.h>
 #include <unistd.h>

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012, 2014  Université de Bordeaux
+ * Copyright (C) 2010-2012, 2014-2015  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012, 2013  CNRS
  *
@@ -14,6 +14,12 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
+ */
+
+/*
+ * This reads a wave file, splits it into chunks, and on each of them run a
+ * task which performs an fft, drop some high and low frequencies, and performs
+ * the inverse fft.  It then writes the output to a wave file.
  */
 
 #include <stdio.h>

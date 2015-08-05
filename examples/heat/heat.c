@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2012  Université de Bordeaux
+ * Copyright (C) 2009, 2010, 2012, 2015  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -15,6 +15,10 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+/*
+ * heat propagation simulation through either direct LU factorization or
+ * iterative conjugate gradient.
+ */
 #include "heat.h"
 
 /* default values */

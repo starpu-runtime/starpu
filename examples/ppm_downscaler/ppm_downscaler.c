@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux
+ * Copyright (C) 2010, 2015  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2013  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -14,6 +14,9 @@
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
+
+/* This uses a dummy algorithm to downscale a ppm file. */
+/* TODO: turn this into StarPU. */
 
 #include "ppm_downscaler.h"
 

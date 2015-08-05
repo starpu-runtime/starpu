@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011, 2013-2014  Université de Bordeaux
+ * Copyright (C) 2010-2011, 2013-2015  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012, 2013  CNRS
  *
@@ -14,6 +14,15 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
+ */
+
+/*
+ * This computes Pi by using drawing random coordinates (thanks to the sobol
+ * generator) and check whether they fall within one quarter of a circle.  The
+ * proportion gives an approximation of Pi. For each task, we draw a number of
+ * coordinates, and we gather the number of successful draws.
+ *
+ * TODO: use curandGenerateUniform instead of the sobol generator, like pi_redux.c does
  */
 
 #include "SobolQRNG/sobol.h"

@@ -14,6 +14,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+/* OpenCL codelet for axpy */
+
 #include <starpu.h>
 #include "axpy.h"
 

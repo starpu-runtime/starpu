@@ -16,6 +16,11 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+/*
+ * This uses a dummy algorithm to downscale a 1920x1080 yuv film.
+ * Each frame is split in horizontal stripes which are processed in parallel.
+ */
+
 #include <starpu.h>
 
 #include <sys/types.h>
