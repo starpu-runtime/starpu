@@ -15,6 +15,12 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+/*
+ * This shows how to implement an spmd parallel StarPU task: scal_cpu_func is
+ * called in parallel over several cores, and has to split the work accordingly.
+ * This is a mere vector scaling example.
+ */
+
 /* gcc build:
 
    gcc -O2 -g vector_scal.c -o vector_scal $(pkg-config --cflags starpu-1.0) $(pkg-config --libs starpu-1.0)

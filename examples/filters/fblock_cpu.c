@@ -14,6 +14,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+/* dumb kernel to fill a 3D matrix */
+
 #include <starpu.h>
 
 void cpu_func(void *buffers[], void *cl_arg)

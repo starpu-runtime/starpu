@@ -29,15 +29,12 @@ cpp
 filters
 	This contains several partitioning examples
 
-fortran
-	This shows how to use StarPU from Fortran
+fortran90
+	This shows how to use StarPU from Fortran90
 
 gl_interop
 	This shows how interoperation can be done between StarPU CUDA
 	computations and OpenGL rendering
-
-gordon
-	This was an example for the Cell architecture, now deprecated
 
 heat
         This uses a finite element method to compute heat propagation thanks to

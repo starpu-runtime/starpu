@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010-2011, 2013  Université de Bordeaux
+ * Copyright (C) 2009, 2010-2011, 2013, 2015  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2012 inria
  *
@@ -14,6 +14,11 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
+ */
+
+/*
+ * This is a small example of a C++ program using starpu.  We here just
+ * increment two values of a vector several times.
  */
 
 #include <starpu.h>

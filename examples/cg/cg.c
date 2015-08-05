@@ -62,7 +62,9 @@
  *			d <- r + beta d
  *			i <- i + 1
  *		}
- *	
+ *
+ *	The dot() operations makes use of reduction to optimize parallelism.
+ *
  */
 
 #include "cg.h"

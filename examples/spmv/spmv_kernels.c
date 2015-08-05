@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2011  Université de Bordeaux
+ * Copyright (C) 2009, 2010, 2011, 2015  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
@@ -15,6 +15,8 @@
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
+
+/* OpenCL codelet for SPMV */
 
 #include "spmv.h"
 

@@ -15,6 +15,13 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+/*
+ * Standard kernels for the Cholesky factorization
+ * U22 is the gemm update
+ * U21 is the trsm update
+ * U11 is the cholesky factorization
+ */
+
 #include <starpu.h>
 #include "cholesky.h"
 #include "../common/blas.h"

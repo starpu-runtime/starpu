@@ -14,6 +14,8 @@
 !
 ! See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
+! Computation kernels for the simulation
+
 MODULE mod_compute
 
   USE mod_types

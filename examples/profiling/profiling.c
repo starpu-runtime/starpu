@@ -15,6 +15,10 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+/*
+ * This examplifies how to get task execution profiling from the application.
+ */
+
 #include <starpu.h>
 #include <assert.h>
 #include <unistd.h>

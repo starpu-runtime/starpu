@@ -14,6 +14,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+/* OpenCL kernel for incrementation */
+
 __kernel void incrementer(__global float* input) 
 {
 	const int i = get_global_id(0);

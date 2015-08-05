@@ -14,6 +14,10 @@
 !
 ! See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
+! This is an example of Fortran90 program making use of StarPU.
+! It registers a few matrices for each element of a domain, performs
+! update computations on them, and checks the result.
+
 PROGRAM f90_example
 
   USE mod_types

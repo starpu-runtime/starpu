@@ -16,6 +16,11 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+/*
+ * This computes an SPMV on a BCSR sparse matrix. It simply splits the matrix
+ * into its blocks, thus turning the problem into mere matrix-vector products
+ * (GEMV) which can be run in parallel.
+ */
 #include "dw_block_spmv.h"
 #include "matrix_market/mm_to_bcsr.h"
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)

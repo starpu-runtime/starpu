@@ -14,6 +14,11 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+/*
+ * This computes the minimum and maximum values of a big vector, using data
+ * reduction to optimize the computation.
+ */
+
 #include <assert.h>
 #include <float.h>
 #include <limits.h>

@@ -14,6 +14,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+/* OpenCL kernel implementing axpy */
+
 #include "axpy.h"
 
 __kernel void _axpy_opencl(__global TYPE *x,

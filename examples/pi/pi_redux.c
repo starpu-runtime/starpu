@@ -14,6 +14,16 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+/*
+ * This computes Pi by using drawing random coordinates (thanks to the sobol
+ * generator) and check whether they fall within one quarter of a circle.  The
+ * proportion gives an approximation of Pi. For each task, we draw a number of
+ * coordinates, and we gather the number of successful draws.
+ *
+ * This version uses reduction to optimize gathering the number of successful
+ * draws.
+ */
+
 #include <starpu.h>
 #include <stdlib.h>
 

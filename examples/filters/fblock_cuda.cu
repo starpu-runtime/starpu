@@ -14,6 +14,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+/* dumb CUDA kernel to fill a 3D matrix */
+
 #include <starpu.h>
 
 static __global__ void fblock_cuda(int *block, int nx, int ny, int nz, unsigned ldy, unsigned ldz, float factor)

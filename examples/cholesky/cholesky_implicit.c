@@ -16,6 +16,11 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+/*
+ * This version of the Cholesky factorization uses implicit dependency computation.
+ * The whole algorithm thus appears clearly in the task submission loop in _cholesky().
+ */
+
 #include "cholesky.h"
 #include "../sched_ctx_utils/sched_ctx_utils.h"
 

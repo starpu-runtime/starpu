@@ -15,6 +15,12 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+/*
+ * This computes the Mandelbrot set: the output image is split in horizontal
+ * stripes, which are computed in parallel.  We also make the same computation
+ * several times, so that OpenGL interaction allows to browse through the set.
+ */
+
 #include <starpu.h>
 #include <math.h>
 #include <limits.h>

@@ -15,6 +15,11 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+/*
+ * This computes the dot product of a big vector, using data reduction to
+ * optimize the dot reduction.
+ */
+
 #include <starpu.h>
 #include <assert.h>
 #include <math.h>
