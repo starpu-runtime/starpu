@@ -21,7 +21,7 @@
 #include <starpu.h>
 #include "starpu_fxt.h"
 
-#ifdef STARPU_FXT
+#ifdef STARPU_USE_FXT
 static struct component {
 	UT_hash_handle hh;
 	char *name;
