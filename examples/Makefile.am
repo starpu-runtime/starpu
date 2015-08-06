@@ -168,6 +168,7 @@ examplebin_PROGRAMS +=				\
 	filters/fvector				\
 	filters/fblock				\
 	filters/fmatrix				\
+	filters/fmultiple_manual		\
 	tag_example/tag_example			\
 	tag_example/tag_example2		\
 	tag_example/tag_example3		\
@@ -443,6 +444,13 @@ nobase_STARPU_OPENCL_DATA_DATA += \
 	filters/fblock_opencl_kernel.cl
 endif
 
+filters_fmultiple_manual_SOURCES =		\
+	filters/fmultiple_manual.c
+
+if STARPU_USE_CUDA
+filters_fmultiple_manual_SOURCES +=		\
+	filters/fmultiple_cuda.cu
+endif
 
 #############################
 # Custom multiformat filter #
