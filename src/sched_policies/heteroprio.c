@@ -573,7 +573,7 @@ static struct starpu_task *pop_task_heteroprio_policy(unsigned sched_ctx_id)
 					   && hp->workers_heteroprio[victim].tasks_queue->ntasks)
 					{
 						/* steal the last added task */
-						task = starpu_task_list_pop_back(&hp->workers_heteroprio[victim].tasks_queue->taskq);
+						task = _starpu_fifo_pop_task(hp->workers_heteroprio[victim].tasks_queue, workerid);
 						/* we steal a task update global counter */
 						hp->nb_prefetched_tasks_per_arch_index[hp->workers_heteroprio[victim].arch_index] -= 1;
 
