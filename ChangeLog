@@ -152,6 +152,7 @@ Small features:
   * Add starpu_memory_pin and starpu_memory_unpin to pin memory allocated
     another way than starpu_malloc.
   * Add STARPU_NOWHERE to create synchronization tasks with data.
+  * Document how to switch between differents views of the same data.
 
 Changes:
   * Data interfaces (variable, vector, matrix and block) now define
