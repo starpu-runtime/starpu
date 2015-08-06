@@ -534,25 +534,30 @@ static struct starpu_task *pop_task_heteroprio_policy(unsigned sched_ctx_id)
 		struct starpu_sched_ctx_iterator it;
 
 		workers->init_iterator(workers, &it);
-		unsigned victim = workerid;
+		unsigned victim;
 		unsigned current_worker;
 
 		/* Start stealing from just after ourself */
 		while(workers->has_next(workers, &it))
 		{
 			current_worker = workers->get_next(workers, &it);
-			if(current_worker == victim)
+			if(current_worker == workerid)
 				break;
 		}
 
 		/* circular loop */
-		{
+		while (1) {
+			if (!workers->has_next(workers, &it))
+			{
+				/* End of the list, restart from the beginning */
+				workers->init_iterator(workers, &it);
+			}
 			while(workers->has_next(workers, &it))
 			{
 				victim = workers->get_next(workers, &it);
-				/* Skip ourself */
+				/* When getting on ourself again, we're done trying to find work */
 				if(victim == workerid)
-					continue;
+					goto done;
 
 				/* If it is the same arch and there is a task to steal */
 				if(hp->workers_heteroprio[victim].arch_index == worker->arch_index
@@ -573,12 +578,13 @@ static struct starpu_task *pop_task_heteroprio_policy(unsigned sched_ctx_id)
 						hp->nb_prefetched_tasks_per_arch_index[hp->workers_heteroprio[victim].arch_index] -= 1;
 
 						STARPU_PTHREAD_MUTEX_UNLOCK(victim_sched_mutex);
-						break;
+						goto done;
 					}
 					STARPU_PTHREAD_MUTEX_UNLOCK(victim_sched_mutex);
 				}
 			}
 		}
+done:		;
 	}
 
 	if (!task)
