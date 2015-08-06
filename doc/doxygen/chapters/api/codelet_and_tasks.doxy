@@ -56,6 +56,13 @@ The task is waiting for a task.
 \ingroup API_Codelet_And_Tasks
 The task is waiting for some data.
 
+\def STARPU_NOWHERE
+\ingroup API_Codelet_And_Tasks
+This macro is used when setting the field starpu_codelet::where
+to specify that the codelet has no computation part, and thus does not need
+to be scheduled, and data does not need to be actually loaded. This is thus
+essentially used for synchronization tasks.
+
 \def STARPU_CPU
 \ingroup API_Codelet_And_Tasks
 This macro is used when setting the field starpu_codelet::where
@@ -170,6 +177,8 @@ indicates that the codelet is implemented for both CPU cores and CUDA
 devices while ::STARPU_OPENCL indicates that it is only available on
 OpenCL devices. If the field is unset, its value will be automatically
 set based on the availability of the XXX_funcs fields defined below.
+It can also be set to ::STARPU_NOWHERE to specify that no computation
+has to be actually done.
 
 \var int (*starpu_codelet::can_execute)(unsigned workerid, struct starpu_task *task, unsigned nimpl)
 Define a function which should return 1 if the worker designated by

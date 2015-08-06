@@ -35,6 +35,7 @@ extern "C"
 {
 #endif
 
+#define STARPU_NOWHERE	((1ULL)<<0)
 #define STARPU_CPU	((1ULL)<<1)
 #define STARPU_CUDA	((1ULL)<<3)
 #define STARPU_OPENCL	((1ULL)<<6)

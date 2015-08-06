@@ -971,6 +971,47 @@ void _starpu_push_task_output(struct _starpu_job *j)
 	_STARPU_TRACE_END_PUSH_OUTPUT(NULL);
 }
 
+/* Version of _starpu_push_task_output used by NOWHERE tasks, for which
+ * _starpu_fetch_task_input was not called. We just release the handle */
+void _starpu_release_nowhere_task_output(struct _starpu_job *j)
+{
+#ifdef STARPU_OPENMP
+	STARPU_ASSERT(!j->continuation);
+#endif
+	int profiling = starpu_profiling_status_get();
+	struct starpu_task *task = j->task;
+	if (profiling && task->profiling_info)
+		_starpu_clock_gettime(&task->profiling_info->release_data_start_time);
+
+        struct _starpu_data_descr *descrs = _STARPU_JOB_GET_ORDERED_BUFFERS(j);
+        unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
+
+	unsigned index;
+	for (index = 0; index < nbuffers; index++)
+	{
+		starpu_data_handle_t handle = descrs[index].handle;
+
+		if (index && descrs[index-1].handle == descrs[index].handle)
+			/* We have already released this data, skip it. This
+			 * depends on ordering putting writes before reads, see
+			 * _starpu_compar_handles */
+			continue;
+
+		/* Keep a reference for future
+		 * _starpu_release_task_enforce_sequential_consistency call */
+		_starpu_spin_lock(&handle->header_lock);
+		handle->busy_count++;
+		_starpu_spin_unlock(&handle->header_lock);
+
+		_starpu_spin_lock(&handle->header_lock);
+		if (!_starpu_notify_data_dependencies(handle))
+			_starpu_spin_unlock(&handle->header_lock);
+	}
+
+	if (profiling && task->profiling_info)
+		_starpu_clock_gettime(&task->profiling_info->release_data_end_time);
+}
+
 /* NB : this value can only be an indication of the status of a data
 	at some point, but there is no strong garantee ! */
 unsigned _starpu_is_data_present_or_requested(starpu_data_handle_t handle, unsigned node)
