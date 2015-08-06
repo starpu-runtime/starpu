@@ -25,10 +25,8 @@ static __global__ void _fmultiple_check_cuda(int *val, int nx, int ny, unsigned 
 	{
 		for(i=0; i<nx ; i++)
 		{
-#if 0
 			if (val[(j*ld)+i] != start + factor*(i+100*j))
 				asm("trap;");
-#endif
 			val[(j*ld)+i] *= 2;
 		}
         }
