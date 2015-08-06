@@ -254,6 +254,8 @@ uint32_t _starpu_data_get_footprint(starpu_data_handle_t handle);
 
 void _starpu_push_task_output(struct _starpu_job *j, uint32_t mask);
 
+void _starpu_release_nowhere_task_output(struct _starpu_job *j);
+
 STARPU_ATTRIBUTE_WARN_UNUSED_RESULT
 int _starpu_fetch_task_input(struct _starpu_job *j, uint32_t mask);
 
