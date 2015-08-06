@@ -402,7 +402,7 @@ int _starpu_repush_task(struct _starpu_job *j)
 	/* in case there is no codelet associated to the task (that's a control
 	 * task), we directly execute its callback and enforce the
 	 * corresponding dependencies */
-	if (task->cl == NULL)
+	if (task->cl == NULL || task->cl->where == STARPU_NOWHERE)
 	{
 		if(task->prologue_callback_pop_func)
 			task->prologue_callback_pop_func(task->prologue_callback_pop_arg);

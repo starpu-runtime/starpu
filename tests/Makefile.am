@@ -187,6 +187,7 @@ noinst_PROGRAMS =				\
 	datawizard/lazy_unregister		\
 	datawizard/no_unregister		\
 	datawizard/noreclaim			\
+	datawizard/nowhere			\
 	datawizard/interfaces/copy_interfaces	\
 	datawizard/interfaces/block/block_interface \
 	datawizard/interfaces/bcsr/bcsr_interface \

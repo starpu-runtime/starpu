@@ -174,6 +174,8 @@ static uint32_t _starpu_worker_exists_and_can_execute(struct starpu_task *task,
 uint32_t _starpu_worker_exists(struct starpu_task *task)
 {
 	_starpu_codelet_check_deprecated_fields(task->cl);
+	if (task->cl->where == STARPU_NOWHERE)
+		return 1;
 
 	/* if the task belongs to the init context we can
 	   check out all the worker mask of the machine

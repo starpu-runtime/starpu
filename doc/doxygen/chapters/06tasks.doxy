@@ -469,5 +469,37 @@ CPU and GPU tasks are not affected and can be run concurrently). The parallel
 task scheduler will however still however still try varying combined worker
 sizes to look for the most efficient ones.
 
+\subsection SynchronizationTasks Synchronization tasks
+
+For the application conveniency, it may be useful to define tasks which do not
+actually make any computation, but wear for instance dependencies between other
+tasks or tags, or to be submitted in callbacks, etc.
+
+The obvious way is of course to make kernel functions empty, but such task will
+thus have to wait for a worker to become ready, transfer data, etc.
+
+A much lighter way to define a synchronization task is to set its <c>cl</c>
+field to <c>NULL</c>. The task will thus be a mere synchronization point,
+without any data access or execution content: as soon as its dependencies become
+available, it will terminate, call the callbacks, and release dependencies.
+
+An intermediate solution is to define a codelet with its <c>where</c> field set
+to STARPU_NOWHERE, for instance this:
+
+\code{.c}
+struct starpu_codelet {
+	.where = NOWHERE,
+	.nbuffers = 1,
+	.modes = { STARPU_R },
+}
+
+task = starpu_task_create();
+task->cl = starpu_codelet;
+task->handles[0] = handle;
+starpu_task_submit(task);
+\endcode
+
+will create a task which simply waits for the value of <c>handle</c> to be
+available for read. This task can then be depended on, etc.
 
 */

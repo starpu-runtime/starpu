@@ -246,6 +246,10 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	size_t data_size = 0;
 #endif //STARPU_USE_SC_HYPERVISOR
 
+	if (task->cl && task->cl->where == STARPU_NOWHERE)
+		/* push_task_output hasn't been done */
+		_starpu_release_nowhere_task_output(j);
+
 	/* We release handle reference count */
 	if (task->cl && !continuation)
 	{
