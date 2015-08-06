@@ -892,7 +892,7 @@ void _starpu_release_nowhere_task_output(struct _starpu_job *j)
 		_starpu_clock_gettime(&task->profiling_info->release_data_start_time);
 
         struct _starpu_data_descr *descrs = _STARPU_JOB_GET_ORDERED_BUFFERS(j);
-        unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
+	unsigned nbuffers = task->cl->nbuffers;
 
 	unsigned index;
 	for (index = 0; index < nbuffers; index++)

@@ -74,8 +74,8 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	starpu_variable_data_register(&handle_x, STARPU_MAIN_RAM, (uintptr_t)&x, sizeof(x));
-	starpu_variable_data_register(&handle_y, STARPU_MAIN_RAM, (uintptr_t)&y, sizeof(y));
+	starpu_variable_data_register(&handle_x, 0, (uintptr_t)&x, sizeof(x));
+	starpu_variable_data_register(&handle_y, 0, (uintptr_t)&y, sizeof(y));
 
 	ret = starpu_task_insert(&cl_prod, STARPU_W, handle_x, 0);
 	if (ret == -ENODEV) goto enodev;
