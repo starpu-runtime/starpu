@@ -77,25 +77,25 @@ int main(int argc, char **argv)
 	starpu_variable_data_register(&handle_x, 0, (uintptr_t)&x, sizeof(x));
 	starpu_variable_data_register(&handle_y, 0, (uintptr_t)&y, sizeof(y));
 
-	ret = starpu_task_insert(&cl_prod, STARPU_W, handle_x, 0);
+	ret = starpu_insert_task(&cl_prod, STARPU_W, handle_x, 0);
 	if (ret == -ENODEV) goto enodev;
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
 
-	ret = starpu_task_insert(&cl_prod, STARPU_W, handle_y, 0);
+	ret = starpu_insert_task(&cl_prod, STARPU_W, handle_y, 0);
 	if (ret == -ENODEV) goto enodev;
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
 
-	ret = starpu_task_insert(&cl_nowhere, STARPU_R, handle_x, STARPU_R, handle_y, STARPU_CALLBACK, callback, 0);
+	ret = starpu_insert_task(&cl_nowhere, STARPU_R, handle_x, STARPU_R, handle_y, STARPU_CALLBACK, callback, 0);
 	if (ret == -ENODEV) goto enodev;
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
 
-	ret = starpu_task_insert(&cl_cons, STARPU_RW, handle_x, 0);
+	ret = starpu_insert_task(&cl_cons, STARPU_RW, handle_x, 0);
 	if (ret == -ENODEV) goto enodev;
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
 
-	ret = starpu_task_insert(&cl_cons, STARPU_RW, handle_y, 0);
+	ret = starpu_insert_task(&cl_cons, STARPU_RW, handle_y, 0);
 	if (ret == -ENODEV) goto enodev;
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
 
 	ret = starpu_task_wait_for_all();
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
