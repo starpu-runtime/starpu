@@ -809,6 +809,8 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 	_starpu_spin_unlock(&handle->header_lock);
 	_starpu_spin_destroy(&handle->header_lock);
 
+	_starpu_data_clear_implicit(handle);
+
 	STARPU_PTHREAD_MUTEX_DESTROY(&handle->busy_mutex);
 	STARPU_PTHREAD_COND_DESTROY(&handle->busy_cond);
 	STARPU_PTHREAD_MUTEX_DESTROY(&handle->sequential_consistency_mutex);

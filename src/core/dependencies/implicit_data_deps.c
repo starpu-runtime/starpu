@@ -586,3 +586,19 @@ int _starpu_data_wait_until_available(starpu_data_handle_t handle, enum starpu_d
 
 	return 0;
 }
+
+/* This data is about to be freed, clean our stuff */
+void _starpu_data_clear_implicit(starpu_data_handle_t handle)
+{
+	struct _starpu_jobid_list *list;
+
+	STARPU_PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
+	list = handle->last_submitted_ghost_accessors_id;
+	while (list)
+	{
+		struct _starpu_jobid_list *next = list->next;
+		free(list);
+		list = next;
+	}
+	STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
+}
