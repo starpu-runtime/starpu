@@ -158,6 +158,7 @@ Small features:
   * Add STARPU_SIMGRID_CUDA_MALLOC_COST and STARPU_SIMGRID_CUDA_QUEUE_COST to
     disable CUDA costs simulation in simgrid mode.
   * Add STARPU_NOWHERE to create synchronization tasks with data.
+  * Document how to switch between differents views of the same data.
 
 Changes:
   * Data interfaces (variable, vector, matrix and block) now define

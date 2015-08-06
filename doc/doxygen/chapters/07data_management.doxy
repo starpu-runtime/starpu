@@ -191,6 +191,63 @@ StarPU provides various interfaces and filters for matrices, vectors, etc.,
 but applications can also write their own data interfaces and filters, see
 <c>examples/interface</c> and <c>examples/filters/custom_mf</c> for an example.
 
+\section MultipleView Multiple views
+
+Partitioning is synchronous, which can be a problem for dynamic applications.
+Another way is to register several views on the same piece of data.
+<c>fmultiple_manual</c> is a complete example using this technique.
+
+In short, we first register the same matrix several times:
+
+\code{.c}
+starpu_matrix_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)matrix, NX, NX, NY, sizeof(matrix[0]));
+
+for (i = 0; i < PARTS; i++)
+	starpu_matrix_data_register(&vert_handle[i], STARPU_MAIN_RAM, (uintptr_t)&matrix[0][i*(NX/PARTS)], NX, NX/PARTS, NY, sizeof(matrix[0][0]));
+\endcode
+
+Since StarPU is not aware that the two handles are actually pointing to the same
+data, we have a danger of inadvertently submitting tasks to both views, which
+will bring a mess since StarPU will not guarantee any coherency between the two
+views.  To make sure we don't do this, we invalidate the view that we will not
+use:
+
+\code{.c}
+for (i = 0; i < PARTS; i++)
+	starpu_data_invalidate(vert_handle[i]);
+\endcode
+
+Then we can safely work on <c>handle</c>.
+
+When we want to switch to the vertical slice view, all we need to do is bring
+coherency between them by running an empty task on the home node of the data:
+
+\code{.c}
+void empty(void *buffers[] STARPU_ATTRIBUTE_UNUSED, void *cl_arg STARPU_ATTRIBUTE_UNUSED)
+{ }
+struct starpu_codelet cl_switch =
+{
+	.cpu_funcs = {empty},
+	.nbuffers = STARPU_VARIABLE_NBUFFERS,
+};
+
+ret = starpu_task_insert(&cl_switch, STARPU_RW, handle,
+			STARPU_W, vert_handle[0], 
+			STARPU_W, vert_handle[1], 
+			0);
+\endcode
+
+The execution of the <c>switch</c> task will get back the matrix data into the
+main memory, and thus the vertical slices will get the updated value there.
+
+Again, we prefer to make sure that we don't accidentally access the matrix through the whole-matrix handle:
+
+\code{.c}
+starpu_data_invalidate_submit(handle);
+\end
+
+And now we can start using vertical slices, etc.
+
 \section DataReduction Data Reduction
 
 In various cases, some piece of data is used to accumulate intermediate
