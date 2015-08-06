@@ -536,6 +536,8 @@ static struct starpu_task *pop_task_heteroprio_policy(unsigned sched_ctx_id)
 		workers->init_iterator(workers, &it);
 		unsigned victim = workerid;
 		unsigned current_worker;
+
+		/* Start stealing from just after ourself */
 		while(workers->has_next(workers, &it))
 		{
 			current_worker = workers->get_next(workers, &it);
@@ -544,11 +546,11 @@ static struct starpu_task *pop_task_heteroprio_policy(unsigned sched_ctx_id)
 		}
 
 		/* circular loop */
-		while(1)
 		{
 			while(workers->has_next(workers, &it))
 			{
 				victim = workers->get_next(workers, &it);
+				/* Skip ourself */
 				if(victim == workerid)
 					continue;
 
