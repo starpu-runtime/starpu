@@ -62,7 +62,7 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	starpu_variable_data_register(&handle, 0, (uintptr_t)&v, sizeof(int));
-	double x;
+	double x = -999.0;
 
 	struct starpu_task *task = starpu_task_create();
 	task->cl = &cl;
@@ -74,7 +74,6 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
-	x = -999.0;
 	int ret2 = starpu_insert_task(&cl,
 				      STARPU_RW, handle,
 				      STARPU_PROLOGUE_CALLBACK, prologue_callback_func,
