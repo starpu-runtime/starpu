@@ -264,8 +264,10 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 		int j;
 		for (j = 0; j < worker_size; j++)
 		{
+			struct starpu_task *alias = starpu_task_dup(task);
 			int subworkerid = combined_workerid[j];
-			_starpu_push_task_on_specific_worker_notify_sched(task, _starpu_get_worker_struct(subworkerid), subworkerid, workerid);
+			alias->destroy = 1;
+			_starpu_push_task_on_specific_worker_notify_sched(alias, _starpu_get_worker_struct(subworkerid), subworkerid, workerid);
 		}
 	}
 
