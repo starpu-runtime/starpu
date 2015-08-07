@@ -701,10 +701,30 @@ int starpu_init(struct starpu_conf *user_conf)
 	unsigned worker;
 	int ret;
 
+	/* This initializes _starpu_silent, thus needs to be early */
 	_starpu_util_init();
 
 #ifdef STARPU_SIMGRID
+	/* This initializes the simgrid thread library, thus needs to be early */
 	_starpu_simgrid_init();
+#endif
+
+	STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
+	while (initialized == CHANGING)
+		/* Wait for the other one changing it */
+		STARPU_PTHREAD_COND_WAIT(&init_cond, &init_mutex);
+	init_count++;
+	if (initialized == INITIALIZED)
+	{
+		/* He initialized it, don't do it again, and let the others get the mutex */
+		STARPU_PTHREAD_MUTEX_UNLOCK(&init_mutex);
+		return 0;
+	}
+	/* initialized == UNINITIALIZED */
+	initialized = CHANGING;
+	STARPU_PTHREAD_MUTEX_UNLOCK(&init_mutex);
+
+#ifdef STARPU_SIMGRID
 	/* Warn when the lots of stacks malloc()-ated by simgrid for transfer
 	 * processes will take a long time to get initialized */
 	if (starpu_getenv("MALLOC_PERTURB_"))
@@ -742,21 +762,6 @@ int starpu_init(struct starpu_conf *user_conf)
 	_STARPU_DISP("Warning: StarPU was configured with --enable-stats, which slows down a bit\n");
 #endif
 #endif
-
-	STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
-	while (initialized == CHANGING)
-		/* Wait for the other one changing it */
-		STARPU_PTHREAD_COND_WAIT(&init_cond, &init_mutex);
-	init_count++;
-	if (initialized == INITIALIZED)
-	{
-		/* He initialized it, don't do it again, and let the others get the mutex */
-		STARPU_PTHREAD_MUTEX_UNLOCK(&init_mutex);
-		return 0;
-	}
-	/* initialized == UNINITIALIZED */
-	initialized = CHANGING;
-	STARPU_PTHREAD_MUTEX_UNLOCK(&init_mutex);
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
 	WSADATA wsadata;
