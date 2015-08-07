@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012, 2014  Université de Bordeaux
+ * Copyright (C) 2010-2012, 2014-2015  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
  * Copyright (C) 2012 INRIA
  *
@@ -99,9 +99,11 @@ void _starpu_notify_cg(struct _starpu_cg *cg)
 {
 	STARPU_ASSERT(cg);
 	unsigned remaining = STARPU_ATOMIC_ADD(&cg->remaining, -1);
+	ANNOTATE_HAPPENS_BEFORE(&cg->remaining);
 
 	if (remaining == 0)
 	{
+		ANNOTATE_HAPPENS_AFTER(&cg->remaining);
 		cg->remaining = cg->ntags;
 
 		struct _starpu_tag *tag;
