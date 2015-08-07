@@ -107,6 +107,7 @@ void _starpu_job_destroy(struct _starpu_job *j)
 	{
 		STARPU_PTHREAD_BARRIER_DESTROY(&j->before_work_barrier);
 		STARPU_PTHREAD_BARRIER_DESTROY(&j->after_work_barrier);
+		STARPU_ASSERT(j->after_work_busy_barrier == 0);
 	}
 
 	_starpu_cg_list_deinit(&j->job_successors);
