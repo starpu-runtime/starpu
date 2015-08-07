@@ -815,6 +815,9 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 	STARPU_PTHREAD_COND_DESTROY(&handle->busy_cond);
 	STARPU_PTHREAD_MUTEX_DESTROY(&handle->sequential_consistency_mutex);
 
+	STARPU_HG_ENABLE_CHECKING(handle->post_sync_tasks_cnt);
+	STARPU_HG_ENABLE_CHECKING(handle->busy_count);
+
 	free(handle);
 }
 
