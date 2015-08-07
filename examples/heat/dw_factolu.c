@@ -24,6 +24,16 @@
 
 #include "dw_factolu.h"
 
+#ifdef STARPU_HAVE_HELGRIND_H
+#include <valgrind/helgrind.h>
+#endif
+#ifndef ANNOTATE_HAPPENS_BEFORE
+#define ANNOTATE_HAPPENS_BEFORE(obj) ((void)0)
+#endif
+#ifndef ANNOTATE_HAPPENS_AFTER
+#define ANNOTATE_HAPPENS_AFTER(obj) ((void)0)
+#endif
+
 #if 0
 #define debug(fmt, ...) fprintf(stderr, fmt, ## __VA_ARGS__)
 #else
@@ -531,9 +541,12 @@ void dw_callback_codelet_update_u22(void *argcb)
 {
 	int ret;
 	cl_args *args = argcb;	
+	unsigned remaining = STARPU_ATOMIC_ADD(args->remaining, (-1));
+	ANNOTATE_HAPPENS_BEFORE(args->remaining);
 
-	if (STARPU_ATOMIC_ADD(args->remaining, (-1)) == 0)
+	if (remaining == 0)
 	{
+		ANNOTATE_HAPPENS_AFTER(args->remaining);
 		/* all worker already used the counter */
 		free(args->remaining);
 
@@ -564,9 +577,12 @@ void dw_callback_codelet_update_u12_21(void *argcb)
 {
 	int ret;
 	cl_args *args = argcb;	
+	unsigned remaining = STARPU_ATOMIC_ADD(args->remaining, -1);
+	ANNOTATE_HAPPENS_BEFORE(args->remaining);
 
-	if (STARPU_ATOMIC_ADD(args->remaining, -1) == 0)
+	if (remaining == 0)
 	{
+		ANNOTATE_HAPPENS_AFTER(args->remaining);
 		/* now launch the update of LU22 */
 		unsigned i = args->i;
 		unsigned nblocks = args->nblocks;

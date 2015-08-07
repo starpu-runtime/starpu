@@ -30,6 +30,16 @@
 int use_x11 = 1;
 #endif
 
+#ifdef STARPU_HAVE_HELGRIND_H
+#include <valgrind/helgrind.h>
+#endif
+#ifndef ANNOTATE_HAPPENS_BEFORE
+#define ANNOTATE_HAPPENS_BEFORE(obj) ((void)0)
+#endif
+#ifndef ANNOTATE_HAPPENS_AFTER
+#define ANNOTATE_HAPPENS_AFTER(obj) ((void)0)
+#endif
+
 int demo = 0;
 static double demozoom = 0.05;
 
@@ -336,8 +346,12 @@ static void compute_block_spmd(void *descr[], void *cl_arg)
 	while (1)
 	{
 		local_iy = STARPU_ATOMIC_ADD((unsigned int *)pcnt, 1) - 1;
+		ANNOTATE_HAPPENS_BEFORE(pcnt);
 		if (local_iy >= block_size)
+		{
+			ANNOTATE_HAPPENS_AFTER(pcnt);
 			break;
+		}
 
 		iy = iby*block_size + local_iy;
 

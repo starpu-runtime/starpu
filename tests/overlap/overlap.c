@@ -44,9 +44,11 @@ static unsigned cnt = NTASKS;
 static void callback(void *arg)
 {
 	unsigned res = STARPU_ATOMIC_ADD(&cnt, -1);
+	ANNOTATE_HAPPENS_BEFORE(&cnt);
 
 	if (res == 0)
 	{
+		ANNOTATE_HAPPENS_AFTER(&cnt);
 		STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 		finished = 1;
 		STARPU_PTHREAD_COND_SIGNAL(&cond);
