@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2010, 2012-2013  Université de Bordeaux
+ * Copyright (C) 2009-2010, 2012-2013, 2015  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -32,6 +32,16 @@
 #include <signal.h>
 
 #include <starpu.h>
+
+#ifdef STARPU_HAVE_HELGRIND_H
+#include <valgrind/helgrind.h>
+#endif
+#ifndef ANNOTATE_HAPPENS_BEFORE
+#define ANNOTATE_HAPPENS_BEFORE(obj) ((void)0)
+#endif
+#ifndef ANNOTATE_HAPPENS_AFTER
+#define ANNOTATE_HAPPENS_AFTER(obj) ((void)0)
+#endif
 
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 #define TAG(i, j, iter)	((starpu_tag_t) ( ((uint64_t)(iter)<<48) |  ((uint64_t)(j)<<24) | (i)) )
@@ -152,9 +162,11 @@ static int create_task_grid(unsigned piter)
 void callback_cpu(void *argcb STARPU_ATTRIBUTE_UNUSED)
 {
 	unsigned newcnt = STARPU_ATOMIC_ADD(&callback_cnt, -1);	
+	ANNOTATE_HAPPENS_BEFORE(&callback_cnt);
 
 	if (newcnt == 0)
 	{
+		ANNOTATE_HAPPENS_AFTER(&callback_cnt);
 		if (++iter < nk)
 		{
 			/* cleanup old grids ... */
