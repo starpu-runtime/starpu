@@ -41,8 +41,8 @@ void callback(void *arg)
 	unsigned *cnt = arg;
 	unsigned res;
 
-	res = STARPU_ATOMIC_ADD(cnt, 1);
 	ANNOTATE_HAPPENS_BEFORE(&cnt);
+	res = STARPU_ATOMIC_ADD(cnt, 1);
 
 	if (res == ntasks)
 	{

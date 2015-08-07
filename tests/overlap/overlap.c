@@ -43,8 +43,8 @@ static unsigned cnt = NTASKS;
 
 static void callback(void *arg)
 {
-	unsigned res = STARPU_ATOMIC_ADD(&cnt, -1);
 	ANNOTATE_HAPPENS_BEFORE(&cnt);
+	unsigned res = STARPU_ATOMIC_ADD(&cnt, -1);
 
 	if (res == 0)
 	{

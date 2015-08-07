@@ -120,8 +120,8 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 	if (is_parallel_task)
 	{
 		STARPU_PTHREAD_BARRIER_WAIT(&j->after_work_barrier);
-		(void) STARPU_ATOMIC_ADD(&j->after_work_busy_barrier, -1);
 		ANNOTATE_HAPPENS_BEFORE(&j->after_work_busy_barrier);
+		(void) STARPU_ATOMIC_ADD(&j->after_work_busy_barrier, -1);
 		if (rank == 0)
 		{
 			/* Wait with a busy barrier for other workers to have

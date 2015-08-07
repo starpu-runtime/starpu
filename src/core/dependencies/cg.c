@@ -98,8 +98,8 @@ int _starpu_add_successor_to_cg_list(struct _starpu_cg_list *successors, struct 
 void _starpu_notify_cg(struct _starpu_cg *cg)
 {
 	STARPU_ASSERT(cg);
-	unsigned remaining = STARPU_ATOMIC_ADD(&cg->remaining, -1);
 	ANNOTATE_HAPPENS_BEFORE(&cg->remaining);
+	unsigned remaining = STARPU_ATOMIC_ADD(&cg->remaining, -1);
 
 	if (remaining == 0)
 	{
