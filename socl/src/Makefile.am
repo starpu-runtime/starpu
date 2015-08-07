@@ -134,4 +134,7 @@ libsocl_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
 
 showcheck:
 	-cat /dev/null
-	! grep -q " runtime error: " $(TEST_LOGS) /dev/null
+	! grep -q " ERROR: AddressSanitizer: " $(TEST_LOGS) /dev/null
+	! grep -q " WARNING: AddressSanitizer: " $(TEST_LOGS) /dev/null
+	! grep -q " ERROR: ThreadSanitizer: " $(TEST_LOGS) /dev/null
+	! grep -q " WARNING: ThreadSanitizer: " $(TEST_LOGS) /dev/null
