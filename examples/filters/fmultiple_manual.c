@@ -87,7 +87,6 @@ struct starpu_codelet cl_check =
 #else
 	/* Only enable it on CPUs if we don't have a CUDA device, to force remote execution on the CUDA device */
 	.cpu_funcs = {fmultiple_check},
-	.cpu_funcs_name = {"fmultiple_check"},
 #endif
 	.nbuffers = 1,
 	.modes = {STARPU_RW},
