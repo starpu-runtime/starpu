@@ -869,8 +869,11 @@ void _starpu_omp_dummy_init(void)
  */
 void _starpu_omp_dummy_shutdown(void)
 {
-	STARPU_PTHREAD_KEY_DELETE(omp_thread_key);
-	STARPU_PTHREAD_KEY_DELETE(omp_task_key);
+	if (_starpu_omp_global_state != &_global_state)
+	{
+		STARPU_PTHREAD_KEY_DELETE(omp_thread_key);
+		STARPU_PTHREAD_KEY_DELETE(omp_task_key);
+	}
 }
 
 /*
