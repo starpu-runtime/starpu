@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012  Université de Bordeaux
+ * Copyright (C) 2010-2012, 2015  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -24,8 +24,8 @@ static int i = 0, j;
 
 void dummy_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE_UNUSED)
 {
-	i++;
-	FPRINTF(stdout, "called third task, i = %d\n", i);
+	int old_i = STARPU_ATOMIC_ADD(&i, 1);
+	FPRINTF(stdout, "called third task, i = %d\n", old_i+1);
 }
 
 static struct starpu_codelet dummy_codelet =
@@ -64,8 +64,8 @@ static void task_submit_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg ST
 	task->detach = 1;
 	if (starpu_task_submit(task) == ENODEV)
 		exit(STARPU_TEST_SKIPPED);
-	i++;
-	FPRINTF(stdout, "submitted second task, i = %d\n", i);
+	int old_i = STARPU_ATOMIC_ADD(&i, 1);
+	FPRINTF(stdout, "submitted second task, i = %d\n", old_i + 1);
 }
 
 static struct starpu_codelet task_submit_codelet =
