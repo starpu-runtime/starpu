@@ -432,14 +432,15 @@ static struct starpu_task *pop_task_heteroprio_policy(unsigned sched_ctx_id)
 	struct _starpu_heteroprio_data *hp = (struct _starpu_heteroprio_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	struct _heteroprio_worker_wrapper* worker = &hp->workers_heteroprio[workerid];
 
+#ifdef STARPU_NON_BLOCKING_DRIVERS
 	/* If no tasks available, no tasks in worker queue or some arch worker queue just return NULL */
-	if ((hp->total_tasks_in_buckets == 0 || hp->nb_remaining_tasks_per_arch_index[worker->arch_index] == 0)
+	if (!STARPU_RUNNING_ON_VALGRIND
+	    && (hp->total_tasks_in_buckets == 0 || hp->nb_remaining_tasks_per_arch_index[worker->arch_index] == 0)
             && worker->tasks_queue->ntasks == 0 && hp->nb_prefetched_tasks_per_arch_index[worker->arch_index] == 0){
 		return NULL;
 	}
 
-#ifdef STARPU_NON_BLOCKING_DRIVERS
-	if (starpu_bitmap_get(hp->waiters, workerid))
+	if (!STARPU_RUNNING_ON_VALGRIND && starpu_bitmap_get(hp->waiters, workerid))
 	{
 		/* Nobody woke us, avoid bothering the mutex */
 		return NULL;
