@@ -161,6 +161,8 @@ int main(int argc, char **argv)
 	hwloc_topology_init(&topology);
 	hwloc_topology_load(topology);
 	nhwpus = hwloc_get_nbobjs_by_type(topology, HWLOC_OBJ_PU);
+	if (nhwpus > STARPU_NMAXWORKERS)
+		nhwpus = STARPU_NMAXWORKERS;
 
 	unsetenv("STARPU_NCUDA");
 	unsetenv("STARPU_NOPENCL");
