@@ -174,9 +174,10 @@ int _starpu_wait_data_request_completion(struct _starpu_data_request *r, unsigne
 	do
 	{
 		STARPU_SYNCHRONIZE();
-		STARPU_HG_DISABLE_CHECKING(r->completed);
-		completed = r->completed;
-		STARPU_HG_ENABLE_CHECKING(r->completed);
+		if (STARPU_RUNNING_ON_VALGRIND)
+			completed = 1;
+		else
+			completed = r->completed;
 		if (completed)
 		{
 			_starpu_spin_lock(&r->lock);
