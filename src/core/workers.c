@@ -1083,7 +1083,31 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 			    * used, we cannot be a sink. */
 	unsigned worker;
 
+	(void)argc;
+	(void)argv;
+
+	/* This initializes _starpu_silent, thus needs to be early */
 	_starpu_util_init();
+
+#ifdef STARPU_SIMGRID
+	/* This initializes the simgrid thread library, thus needs to be early */
+	_starpu_simgrid_init();
+#endif
+
+	STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
+	while (initialized == CHANGING)
+		/* Wait for the other one changing it */
+		STARPU_PTHREAD_COND_WAIT(&init_cond, &init_mutex);
+	init_count++;
+	if (initialized == INITIALIZED)
+	{
+		/* He initialized it, don't do it again, and let the others get the mutex */
+		STARPU_PTHREAD_MUTEX_UNLOCK(&init_mutex);
+		return 0;
+	}
+	/* initialized == UNINITIALIZED */
+	initialized = CHANGING;
+	STARPU_PTHREAD_MUTEX_UNLOCK(&init_mutex);
 
 #ifdef STARPU_USE_MP
 	_starpu_set_argc_argv(argc, argv);
@@ -1098,10 +1122,6 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	 * kind on node we are running on : host or sink ? */
 	if (starpu_getenv("STARPU_SINK"))
 		is_a_sink = 1;
-#else
-	(void)argc;
-	(void)argv;
-
 #endif /* STARPU_USE_MP */
 
 	int ret;
@@ -1111,7 +1131,6 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 #endif
 
 #ifdef STARPU_SIMGRID
-	_starpu_simgrid_init();
 	/* Warn when the lots of stacks malloc()-ated by simgrid for transfer
 	 * processes will take a long time to get initialized */
 	if (starpu_getenv("MALLOC_PERTURB_"))
@@ -1149,21 +1168,6 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	_STARPU_DISP("Warning: StarPU was configured with --enable-stats, which slows down a bit\n");
 #endif
 #endif
-
-	STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
-	while (initialized == CHANGING)
-		/* Wait for the other one changing it */
-		STARPU_PTHREAD_COND_WAIT(&init_cond, &init_mutex);
-	init_count++;
-	if (initialized == INITIALIZED)
-	{
-		/* He initialized it, don't do it again, and let the others get the mutex */
-		STARPU_PTHREAD_MUTEX_UNLOCK(&init_mutex);
-		return 0;
-	}
-	/* initialized == UNINITIALIZED */
-	initialized = CHANGING;
-	STARPU_PTHREAD_MUTEX_UNLOCK(&init_mutex);
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
 	WSADATA wsadata;

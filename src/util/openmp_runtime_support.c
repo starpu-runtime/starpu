@@ -39,7 +39,6 @@ static struct starpu_omp_global _global_state;
 static starpu_pthread_key_t omp_thread_key;
 static starpu_pthread_key_t omp_task_key;
 static struct starpu_conf omp_starpu_conf;
-static int omp_dummy_init = 0;
 
 struct starpu_omp_global *_starpu_omp_global_state = NULL;
 double _starpu_omp_clock_ref = 0.0; /* clock reference for starpu_omp_get_wtick */
@@ -860,12 +859,8 @@ void _starpu_omp_dummy_init(void)
 {
 	if (_starpu_omp_global_state != &_global_state)
 	{
-		if (omp_dummy_init == 0)
-		{
-			STARPU_PTHREAD_KEY_CREATE(&omp_thread_key, NULL);
-			STARPU_PTHREAD_KEY_CREATE(&omp_task_key, NULL);
-		}
-		omp_dummy_init++;
+		STARPU_PTHREAD_KEY_CREATE(&omp_thread_key, NULL);
+		STARPU_PTHREAD_KEY_CREATE(&omp_task_key, NULL);
 	}
 }
 
@@ -874,15 +869,8 @@ void _starpu_omp_dummy_init(void)
  */
 void _starpu_omp_dummy_shutdown(void)
 {
-	if (omp_dummy_init > 0)
-	{
-		if (omp_dummy_init == 1)
-		{
-			STARPU_PTHREAD_KEY_DELETE(omp_thread_key);
-			STARPU_PTHREAD_KEY_DELETE(omp_task_key);
-		}
-		omp_dummy_init--;
-	}
+	STARPU_PTHREAD_KEY_DELETE(omp_thread_key);
+	STARPU_PTHREAD_KEY_DELETE(omp_task_key);
 }
 
 /*
