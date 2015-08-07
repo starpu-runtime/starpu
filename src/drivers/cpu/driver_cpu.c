@@ -118,7 +118,23 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 	_starpu_driver_end_job(cpu_args, j, perf_arch, &codelet_end, rank, profiling);
 
 	if (is_parallel_task)
+	{
 		STARPU_PTHREAD_BARRIER_WAIT(&j->after_work_barrier);
+		(void) STARPU_ATOMIC_ADD(&j->after_work_busy_barrier, -1);
+		ANNOTATE_HAPPENS_BEFORE(&j->after_work_busy_barrier);
+		if (rank == 0)
+		{
+			/* Wait with a busy barrier for other workers to have
+			 * finished with the blocking barrier before we can
+			 * safely drop the job structure */
+			while (j->after_work_busy_barrier > 0)
+			{
+				STARPU_UYIELD();
+				STARPU_SYNCHRONIZE();
+			}
+			ANNOTATE_HAPPENS_AFTER(&j->after_work_busy_barrier);
+		}
+	}
 
 	if (rank == 0)
 	{
