@@ -23,6 +23,17 @@
  */
 #include "dw_block_spmv.h"
 #include "matrix_market/mm_to_bcsr.h"
+
+#ifdef STARPU_HAVE_HELGRIND_H
+#include <valgrind/helgrind.h>
+#endif
+#ifndef ANNOTATE_HAPPENS_BEFORE
+#define ANNOTATE_HAPPENS_BEFORE(obj) ((void)0)
+#endif
+#ifndef ANNOTATE_HAPPENS_AFTER
+#define ANNOTATE_HAPPENS_AFTER(obj) ((void)0)
+#endif
+
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 
 static double start;
@@ -94,12 +105,14 @@ void init_problem_callback(void *arg)
 	unsigned *remaining = arg;
 
 	unsigned val = STARPU_ATOMIC_ADD(remaining, -1);
+	ANNOTATE_HAPPENS_BEFORE(&remaining);
 
 /*	if (val < 10)
 		printf("callback %d remaining \n", val); */
 
 	if ( val == 0 )
 	{
+		ANNOTATE_HAPPENS_AFTER(&remaining);
 		printf("DONE ...\n");
 		end = starpu_timing_now();
 

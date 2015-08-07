@@ -23,6 +23,10 @@
 #include <valgrind/valgrind.h>
 #endif
 
+#ifdef STARPU_HAVE_HELGRIND_H
+#include <valgrind/helgrind.h>
+#endif
+
 #define STARPU_TEST_SKIPPED 77
 
 //void *ALL_IS_OK = (void *)123456789L;
@@ -72,5 +76,15 @@ static int _starpu_valgrind_print_once STARPU_ATTRIBUTE_UNUSED = 0;
 #  define STARPU_RETURN(ret) return ret
 #  define STARPU_SKIP_IF_VALGRIND
 #endif  /* defined(STARPU_HAVE_VALGRIND_H) && !defined(STARPU_VALGRIND_FULL) */
+
+#ifndef ANNOTATE_HAPPENS_BEFORE
+#define ANNOTATE_HAPPENS_BEFORE(obj) ((void)0)
+#endif
+#ifndef ANNOTATE_HAPPENS_BEFORE_FORGET_ALL
+#define ANNOTATE_HAPPENS_BEFORE_FORGET_ALL(obj) ((void)0)
+#endif
+#ifndef ANNOTATE_HAPPENS_AFTER
+#define ANNOTATE_HAPPENS_AFTER(obj) ((void)0)
+#endif
 
 #endif /* _TESTS_HELPER_H */
