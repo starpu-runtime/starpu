@@ -168,6 +168,7 @@ int main(int argc, char **argv)
 	/* Delete this list, the function is internal only so we need to modify the list pointers too */
 	ret = 1;
 	found_list = ctx_list->next;
+	found_list->prev = ctx_list->prev;
 	_starpu_sched_ctx_list_remove_all(ctx_list);
 	ctx_list = found_list;
 	found_list = _starpu_sched_ctx_list_find(ctx_list, 999);
