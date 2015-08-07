@@ -165,6 +165,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 			alias->predicted = exp_end_predicted - worker_exp_end[local_worker];
 			/* TODO */
 			alias->predicted_transfer = 0;
+			alias->destroy = 1;
 			starpu_pthread_mutex_t *sched_mutex;
 			starpu_pthread_cond_t *sched_cond;
 			starpu_worker_get_sched_condition(local_worker, &sched_mutex, &sched_cond);
@@ -180,8 +181,6 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 		}
 
 		STARPU_PTHREAD_MUTEX_UNLOCK(&hd->global_push_mutex);
-
-		//TODO : free task
 
 	}
 

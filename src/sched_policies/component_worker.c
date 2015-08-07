@@ -670,6 +670,7 @@ static int combined_worker_push_task(struct starpu_sched_component * component, 
 	task_alias[0] = _starpu_task_grid_create();
 	task_alias[0]->task = starpu_task_dup(task);
 	task_alias[0]->task->workerid = combined_worker->combined_workerid[0];
+	task_alias[0]->task->destroy = 1;
 	task_alias[0]->left = NULL;
 	task_alias[0]->ntasks = combined_worker->worker_size;
 	int i;
@@ -677,6 +678,7 @@ static int combined_worker_push_task(struct starpu_sched_component * component, 
 	{
 		task_alias[i] = _starpu_task_grid_create();
 		task_alias[i]->task = starpu_task_dup(task);
+		task_alias[i]->task->destroy = 1;
 		task_alias[i]->task->workerid = combined_worker->combined_workerid[i];
 		task_alias[i]->left = task_alias[i-1];
 		task_alias[i - 1]->right = task_alias[i];
