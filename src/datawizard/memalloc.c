@@ -281,7 +281,7 @@ static size_t free_memory_on_node(struct _starpu_mem_chunk *mc, unsigned node)
 			data_interface = mc->chunk_interface;
 		STARPU_ASSERT(data_interface);
 
-		if (handle && node == STARPU_MAIN_RAM)
+		if (handle && node == 0)
 			_starpu_data_unregister_ram_pointer(handle);
 
 		_STARPU_TRACE_START_FREE(node, mc->size);
