@@ -520,6 +520,21 @@ define starpu-print-frequests
   end
 end
 
+define starpu-print-irequests
+  set $node = 0
+  while $node < descr.nnodes
+    printf "Node %u:\n", $node
+    set $request = idle_requests[$node]._head
+    while $request != 0
+      printf " Request %p: handle %p ", $request, $request->handle
+      starpu-print-mode $request->mode
+      printf "\n"
+      set $request = $request->_next
+    end
+    set $node = $node + 1
+  end
+end
+
 define starpu-memusage
   set scheduler-locking on
   set $node = 0
@@ -741,6 +756,7 @@ starpu-print-request    prints a StarPU data request
 starpu-print-requests   prints all StarPU data requests
 starpu-print-prequests  prints all pending StarPU data requests
 starpu-print-frequests  prints all StarPU prefetch data requests
+starpu-print-irequests  prints all StarPU idle data requests
 starpu-tasks            prints a list of the tasks flowing in StarPU
 starpu-tags             prints a list of the tags known to StarPU
 starpu-memusage         prints the memory node usage
