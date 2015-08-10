@@ -76,10 +76,13 @@ void _starpu_deinit_data_request_lists(void)
 	}
 }
 
+/* Unlink the request from the handle. New requests can then be made. */
 /* this should be called with the lock r->handle->header_lock taken */
-static void starpu_data_request_destroy(struct _starpu_data_request *r)
+static void _starpu_data_request_unlink(struct _starpu_data_request *r)
 {
 	unsigned node;
+
+	_starpu_spin_checklocked(&r->handle->header_lock);
 
 	/* If this is a write only request, then there is no source and we use
 	 * the destination node to cache the request. Otherwise we store the
@@ -95,7 +98,10 @@ static void starpu_data_request_destroy(struct _starpu_data_request *r)
 
 	STARPU_ASSERT(r->dst_replicate->request[node] == r);
 	r->dst_replicate->request[node] = NULL;
+}
 
+static void _starpu_data_request_destroy(struct _starpu_data_request *r)
+{
 	switch (r->async_channel.type)
 	{
 		case STARPU_DISK_RAM:
@@ -145,6 +151,7 @@ struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t ha
 	if (mode & STARPU_R)
 	{
 		unsigned src_node = src_replicate->memory_node;
+		STARPU_ASSERT(!dst_replicate->request[src_node]);
 		dst_replicate->request[src_node] = r;
 		/* Take a reference on the source for the request to be able to read it */
 		src_replicate->refcnt++;
@@ -153,6 +160,7 @@ struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t ha
 	else
 	{
 		unsigned dst_node = dst_replicate->memory_node;
+		STARPU_ASSERT(!dst_replicate->request[dst_node]);
 		dst_replicate->request[dst_node] = r;
 	}
 
@@ -211,7 +219,7 @@ int _starpu_wait_data_request_completion(struct _starpu_data_request *r, unsigne
 	_starpu_spin_unlock(&r->lock);
 
 	if (do_delete)
-		starpu_data_request_destroy(r);
+		_starpu_data_request_destroy(r);
 
 	return retval;
 }
@@ -339,6 +347,7 @@ static void starpu_handle_data_request_completion(struct _starpu_data_request *r
 		STARPU_ASSERT(handle->busy_count > 0);
 		handle->busy_count--;
 	}
+	_starpu_data_request_unlink(r);
 
 	unsigned destroyed = _starpu_data_check_not_busy(handle);
 
@@ -356,7 +365,7 @@ static void starpu_handle_data_request_completion(struct _starpu_data_request *r
 	_starpu_spin_unlock(&r->lock);
 
 	if (do_delete)
-		starpu_data_request_destroy(r);
+		_starpu_data_request_destroy(r);
 
 	if (!destroyed)
 		_starpu_spin_unlock(&handle->header_lock);
