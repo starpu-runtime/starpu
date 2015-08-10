@@ -229,7 +229,6 @@ static void transfer_subtree_to_node(starpu_data_handle_t handle, unsigned src_n
 	unsigned i;
 	unsigned last = 0;
 	unsigned cnt;
-	int ret;
 
 	STARPU_ASSERT(dst_node != src_node);
 
@@ -239,33 +238,27 @@ static void transfer_subtree_to_node(starpu_data_handle_t handle, unsigned src_n
 		struct _starpu_data_replicate *dst_replicate = &handle->per_node[dst_node];
 
 		/* this is a leaf */
-		switch(src_replicate->state)
+
+		while (src_replicate->state == STARPU_OWNER)
 		{
-		case STARPU_OWNER:
-			/* Take temporary references on the replicates */
-			_starpu_spin_checklocked(&handle->header_lock);
-			src_replicate->refcnt++;
-			dst_replicate->refcnt++;
-			handle->busy_count+=2;
+			/* This is the only copy, push it to destination */
+			struct _starpu_data_request *r;
+			r = _starpu_create_request_to_fetch_data(handle, dst_replicate, STARPU_R, 0, 0, NULL, NULL);
+			/* There is no way we don't need a request, since
+			 * source is OWNER, destination can't be having it */
+			STARPU_ASSERT(r);
+			/* Keep the handle alive while we are working on it */
+			handle->busy_count++;
+			_starpu_spin_unlock(&handle->header_lock);
+			_starpu_wait_data_request_completion(r, 1);
+			_starpu_spin_lock(&handle->header_lock);
+			handle->busy_count--;
+			int ret = _starpu_data_check_not_busy(handle);
+			STARPU_ASSERT(!ret);
+		}
 
-			/* Note: this may release the header lock if
-			 * destination is not allocated yet */
-			ret = _starpu_driver_copy_data_1_to_1(handle, src_replicate, dst_replicate, 0, NULL, 1);
-			STARPU_ASSERT(ret == 0);
-
-			src_replicate->refcnt--;
-			dst_replicate->refcnt--;
-			STARPU_ASSERT(handle->busy_count >= 2);
-			handle->busy_count -= 2;
-			ret = _starpu_data_check_not_busy(handle);
-			STARPU_ASSERT(ret == 0);
-
-			dst_replicate->state = STARPU_SHARED;
-
-			/* NOTE: now that it's SHARED on dst, FALLTHROUGH to
-			 * update src and perhaps make dst OWNER */
-
-		case STARPU_SHARED:
+		if (src_replicate->state == STARPU_SHARED)
+		{
 			/* some other node may have the copy */
 			src_replicate->state = STARPU_INVALID;
 
@@ -284,14 +277,10 @@ static void transfer_subtree_to_node(starpu_data_handle_t handle, unsigned src_n
 			if (cnt == 1)
 				handle->per_node[last].state = STARPU_OWNER;
 
-			break;
-		case STARPU_INVALID:
-			/* nothing to be done */
-			break;
-		default:
-			STARPU_ABORT();
-			break;
 		}
+		else
+			STARPU_ASSERT(src_replicate->state == STARPU_INVALID);
+			/* Already dropped by somebody, in which case there is nothing to be done */
 	}
 	else
 	{
