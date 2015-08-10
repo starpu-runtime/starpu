@@ -493,10 +493,10 @@ static size_t try_to_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 					/* mc is still associated with the old
 					 * handle, now free it.
 					 */
-					STARPU_ASSERT(handle->per_node[node].refcnt == 0);
 
-					/* now the actual buffer may be freed */
-					freed = do_free_mem_chunk(mc, node);
+					if (handle->per_node[node].refcnt == 0)
+						/* And still nobody on it, now the actual buffer may be freed */
+						freed = do_free_mem_chunk(mc, node);
 				}
 			}
 		}
