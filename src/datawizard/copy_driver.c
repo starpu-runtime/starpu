@@ -488,7 +488,8 @@ int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT _starpu_driver_copy_data_1_to_1(starpu_d
 	/* first make sure the destination has an allocated buffer */
 	if (!dst_replicate->allocated)
 	{
-		if (!may_alloc)
+		if (!may_alloc || _starpu_is_reclaiming(dst_node))
+			/* We're not supposed to allocate there at the moment */
 			return -ENOMEM;
 
 		ret_alloc = _starpu_allocate_memory_on_node(handle, dst_replicate, req ? req->prefetch : 0);
