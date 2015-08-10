@@ -421,7 +421,7 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 			void * ptr = NULL;
 			starpu_ssize_t size = 0;
 			handle->ops->pack_data(handle, src_node, &ptr, &size);
-			ret = _starpu_disk_full_write(src_node, dst_node, obj, ptr, size, &req->async_channel);
+			ret = _starpu_disk_full_write(src_node, dst_node, obj, ptr, size, req && !starpu_asynchronous_copy_disabled() ? &req->async_channel : NULL);
 			if (ret == 0)
 				/* write is already finished, ptr was allocated in pack_data */
 				free(ptr);
@@ -439,7 +439,7 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 			void *obj = starpu_data_handle_to_pointer(handle, src_node);
 			void * ptr = NULL;
 			size_t size = 0;
-			ret = _starpu_disk_full_read(src_node, dst_node, obj, &ptr, &size, &req->async_channel);
+			ret = _starpu_disk_full_read(src_node, dst_node, obj, &ptr, &size, req && !starpu_asynchronous_copy_disabled() ? &req->async_channel : NULL);
 			if (ret == 0)
 			{
 				/* read is already finished, we can already unpack */
