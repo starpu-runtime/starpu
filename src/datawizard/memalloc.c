@@ -41,6 +41,13 @@ struct mc_cache_entry
 };
 static struct mc_cache_entry *mc_cache[STARPU_MAXNODES];
 
+/* Whether some thread is currently reclaiming memory for this node */
+static unsigned reclaiming[STARPU_MAXNODES];
+
+int _starpu_is_reclaiming(unsigned node)
+{
+	return reclaiming[node];
+}
 
 /* When reclaiming memory to allocate, we reclaim MAX(what_is_to_reclaim_on_device, data_size_coefficient*data_size) */
 const unsigned starpu_memstrategy_data_size_coefficient=2;
@@ -852,6 +859,7 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 	starpu_ssize_t allocated_memory;
 	int ret;
 	starpu_ssize_t data_size = _starpu_data_get_size(handle);
+	int told_reclaiming = 0;
 
 	_starpu_spin_checklocked(&handle->header_lock);
 
@@ -911,6 +919,12 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 
 		if (allocated_memory == -ENOMEM)
 		{
+			if (!told_reclaiming)
+			{
+				/* Prevent prefetches and such from happening */
+				(void) STARPU_ATOMIC_ADD(&reclaiming[dst_node], 1);
+				told_reclaiming = 1;
+			}
 			size_t reclaim = 0.25*_starpu_memory_manager_get_global_memory_size(dst_node);
 			size_t handle_size = handle->ops->get_size(handle);
 			if (starpu_memstrategy_data_size_coefficient*handle_size > reclaim)
@@ -943,6 +957,10 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 	handle->busy_count--;
 	ret = _starpu_data_check_not_busy(handle);
 	STARPU_ASSERT(ret == 0);
+
+	if (told_reclaiming)
+		/* We've finished with reclaiming memory, let prefetches start again */
+		(void) STARPU_ATOMIC_ADD(&reclaiming[dst_node], -1);
 
 	if (allocated_memory == -ENOMEM)
 	{

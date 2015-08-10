@@ -489,7 +489,6 @@ int _starpu_handle_node_data_requests(unsigned src_node, unsigned may_alloc)
 			/* handle is busy, or not enough memory, postpone for now */
 			ret = res;
 			_starpu_data_request_list_push_back(&new_data_requests, r);
-			break;
 		}
 	}
 
