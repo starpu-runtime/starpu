@@ -524,7 +524,9 @@ static int __starpu_handle_node_data_requests(struct _starpu_data_request_list *
 			ret = res;
 			/* Prefetch requests might have gotten promoted while in tmp list */
 			_starpu_data_request_list_push_back(&new_data_requests[r->prefetch], r);
-			break;
+			if (prefetch)
+				/* Prefetching more there would make the situation even worse */
+				break;
 		}
 
 		(*pushed)++;
