@@ -226,7 +226,8 @@ void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_da
 
 			child_replicate->state = initial_replicate->state;
 			child_replicate->allocated = initial_replicate->allocated;
-			child_replicate->automatically_allocated = initial_replicate->automatically_allocated;
+			/* Do not allow memory reclaiming within the child for parent bits */
+			child_replicate->automatically_allocated = 0;
 			child_replicate->refcnt = 0;
 			child_replicate->memory_node = node;
 			child_replicate->relaxed_coherency = 0;
@@ -403,9 +404,9 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 			starpu_data_handle_t child_handle = starpu_data_get_child(root_handle, child);
 			local = &child_handle->per_node[node];
 
-			if (local->state == STARPU_INVALID)
+			if (local->state == STARPU_INVALID || local->automatically_allocated == 1)
 			{
-				/* One of the bits is missing */
+				/* One of the bits is missing or is not inside the parent */
 				isvalid = 0;
 			}
 
