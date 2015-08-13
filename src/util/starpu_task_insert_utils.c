@@ -152,6 +152,10 @@ int _starpu_codelet_pack_args(void **arg_buffer, size_t *arg_buffer_size, va_lis
 		{
 			(void)va_arg(varg_list, starpu_tag_t);
 		}
+		else if (arg_type==STARPU_NAME)
+		{
+			(void)va_arg(varg_list, const char *);
+		}
 		else if (arg_type==STARPU_NODE_SELECTION_POLICY)
 		{
 			(void)va_arg(varg_list, int);
@@ -446,6 +450,11 @@ void _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task **
 		{
 			starpu_tag_t tag = va_arg(varg_list, starpu_tag_t);
 			(*task)->tag_id = tag;
+		}
+		else if (arg_type==STARPU_NAME)
+		{
+			const char *name = va_arg(varg_list, const char *);
+			(*task)->name = name;
 		}
 		else if (arg_type==STARPU_NODE_SELECTION_POLICY)
 		{
