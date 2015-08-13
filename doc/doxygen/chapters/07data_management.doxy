@@ -202,7 +202,7 @@ consistency. The principle is to first plan the partitioning, which returns
 data handles of the partition, which are not functional yet. Along other task
 submission, one can submit the actual partitioning, and then use the handles
 of the partition. Before using the handle of the whole data, one has to submit
-the unpartitioning. <c>fmultiple_automatic</c> is a complete example using this
+the unpartitioning. <c>fmultiple_submit</c> is a complete example using this
 technique.
 
 In short, we first register a matrix and plan the partitioning:
