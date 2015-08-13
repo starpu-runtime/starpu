@@ -230,7 +230,7 @@ And now we can submit tasks working on vert_handle handles (and not on the main
 handle any more). Eventually we want to work on the main handle again, so we
 submit the unpartitioning:
 
-starpu_data_unpartition_submit(handle, PARTS, vert_handle);
+starpu_data_unpartition_submit(handle, PARTS, vert_handle, -1);
 
 And now we can submit tasks working on the main handle again.
 
@@ -241,7 +241,9 @@ Planning several partitioning of the same data is also possible, one just has
 to submit unpartitioning (to get back to the initial handle) before submitting
 another partitioning.
 
-It is also possible to activate several partitioning at the same time, in read-only mode.
+It is also possible to activate several partitioning at the same time, in
+read-only mode, by using starpu_data_partition_readonly_submit.  A complete
+example is available in <c>examples/filters/fmultiple_submit_readonly.c</c>.
 
 \section ManualPartitioning Manual Partitioning
 

@@ -17,10 +17,15 @@
 /*
  * This examplifies how to access the same matrix with different partitioned
  * views, doing the coherency through partition planning.
- * We first run a kernel on the whole matrix to fill it, then run a kernel on
- * each vertical slice to check the value,
- * and multiply it by two, then run a
- * kernel on each horizontal slice to do the same.
+ *
+ * We first run a kernel on the whole matrix to fill it, then check the value
+ * in parallel from the whole handle, from the horizontal slices, and from the
+ * vertical slices. Then we switch back to the whole matrix to check and scale
+ * it. Then we check the result again from the whole handle, the horizontal
+ * slices, and the vertical slices. Then we switch to read-write on the
+ * horizontal slices to check and scale them. Then we check again from the
+ * whole handle, the horizontal slices, and the vertical slices. Eventually we
+ * switch back to the whole matrix to check and scale it.
  */
 
 #include <starpu.h>
