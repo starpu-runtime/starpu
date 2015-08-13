@@ -51,7 +51,9 @@ static unsigned _entries_per_block = 1024;
 static DOT_TYPE _dot = 0.0f;
 static starpu_data_handle_t _dot_handle;
 
+#ifdef STARPU_USE_CUDA
 static int cublas_version;
+#endif
 
 static int can_execute(unsigned workerid, struct starpu_task *task, unsigned nimpl)
 {
@@ -354,10 +356,12 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_load_opencl_from_file");
 #endif
 
+#ifdef STARPU_USE_CUDA
 	/* cublasSdot has synchronization issues when using a non-blocking stream */
 	cublasGetVersion(&cublas_version);
 	if (cublas_version >= 7050)
 		starpu_cublas_init();
+#endif
 
 	unsigned long nelems = _nblocks*_entries_per_block;
 	size_t size = nelems*sizeof(float);
@@ -424,8 +428,10 @@ int main(int argc, char **argv)
 
 	FPRINTF(stderr, "Reference : %e vs. %e (Delta %e)\n", reference_dot, _dot, reference_dot - _dot);
 
+#ifdef STARPU_USE_CUDA
 	if (cublas_version >= 7050)
 		starpu_cublas_shutdown();
+#endif
 
 #ifdef STARPU_USE_OPENCL
         ret = starpu_opencl_unload_opencl(&_opencl_program);
