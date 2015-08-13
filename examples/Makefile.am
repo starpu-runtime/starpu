@@ -183,6 +183,8 @@ STARPU_EXAMPLES =				\
 	filters/fblock				\
 	filters/fmatrix				\
 	filters/fmultiple_manual		\
+	filters/fmultiple_submit		\
+	filters/fmultiple_submit_readonly	\
 	tag_example/tag_example			\
 	tag_example/tag_example2		\
 	tag_example/tag_example3		\
@@ -427,6 +429,22 @@ filters_fmultiple_manual_SOURCES =		\
 
 if STARPU_USE_CUDA
 filters_fmultiple_manual_SOURCES +=		\
+	filters/fmultiple_cuda.cu
+endif
+
+filters_fmultiple_submit_SOURCES =		\
+	filters/fmultiple_submit.c
+
+if STARPU_USE_CUDA
+filters_fmultiple_submit_SOURCES +=		\
+	filters/fmultiple_cuda.cu
+endif
+
+filters_fmultiple_submit_readonly_SOURCES =	\
+	filters/fmultiple_submit_readonly.c
+
+if STARPU_USE_CUDA
+filters_fmultiple_submit_readonly_SOURCES +=	\
 	filters/fmultiple_cuda.cu
 endif
 

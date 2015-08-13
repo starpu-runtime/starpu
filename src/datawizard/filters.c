@@ -22,8 +22,6 @@
 #include <datawizard/interfaces/data_interface.h>
 #include <core/task.h>
 
-static void starpu_data_create_children(starpu_data_handle_t handle, unsigned nchildren, struct starpu_data_filter *f);
-
 /*
  * This function applies a data filter on all the elements of a partition
  */
@@ -114,27 +112,37 @@ starpu_data_handle_t starpu_data_vget_sub_data(starpu_data_handle_t root_handle,
 	return current_handle;
 }
 
-void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_data_filter *f)
+static unsigned _starpu_data_partition_nparts(starpu_data_handle_t initial_handle, struct starpu_data_filter *f)
 {
-	unsigned nparts;
+	/* how many parts ? */
+	if (f->get_nchildren)
+	  return f->get_nchildren(f, initial_handle);
+	else
+	  return f->nchildren;
+
+}
+
+static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_data_handle_t *childrenp, unsigned nparts, struct starpu_data_filter *f, int inherit_state)
+{
 	unsigned i;
 	unsigned node;
 
 	/* first take care to properly lock the data header */
 	_starpu_spin_lock(&initial_handle->header_lock);
 
-	STARPU_ASSERT_MSG(initial_handle->nchildren == 0, "there should not be mutiple filters applied on the same data %p, futher filtering has to be done on children", initial_handle);
-
-	/* how many parts ? */
-	if (f->get_nchildren)
-	  nparts = f->get_nchildren(f, initial_handle);
-	else
-	  nparts = f->nchildren;
+	initial_handle->nplans++;
 
 	STARPU_ASSERT_MSG(nparts > 0, "Partitioning data %p in 0 piece does not make sense", initial_handle);
 
 	/* allocate the children */
-	starpu_data_create_children(initial_handle, nparts, f);
+	if (inherit_state)
+	{
+		initial_handle->children = (struct _starpu_data_state *) calloc(nparts, sizeof(struct _starpu_data_state));
+		STARPU_ASSERT(initial_handle->children);
+
+		/* this handle now has children */
+		initial_handle->nchildren = nparts;
+	}
 
 	unsigned nworkers = starpu_worker_get_count();
 
@@ -147,6 +155,7 @@ void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_da
 	{
 		/* This is lazy allocation, allocate it now in main RAM, so as
 		 * to have somewhere to gather pieces later */
+		/* FIXME: mark as unevictable! */
 		int ret = _starpu_allocate_memory_on_node(initial_handle, &initial_handle->per_node[0], 0);
 #ifdef STARPU_DEVEL
 #warning we should reclaim memory if allocation failed
@@ -156,12 +165,29 @@ void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_da
 
 	for (i = 0; i < nparts; i++)
 	{
-		starpu_data_handle_t child =
-			starpu_data_get_child(initial_handle, i);
+		starpu_data_handle_t child;
 
+		if (inherit_state)
+			child = &initial_handle->children[i];
+		else
+			child = childrenp[i];
 		STARPU_ASSERT(child);
 
+		struct starpu_data_interface_ops *ops;
+
+		/* each child may have his own interface type */
+		/* what's this child's interface ? */
+		if (f->get_child_ops)
+			ops = f->get_child_ops(f, i);
+		else
+			ops = initial_handle->ops;
+
+		_starpu_data_handle_init(child, ops, initial_handle->mf_node);
+
 		child->nchildren = 0;
+		child->nplans = 0;
+		child->partitioned = 0;
+		child->readonly = 0;
                 child->mpi_data = initial_handle->mpi_data;
 		child->root_handle = initial_handle->root_handle;
 		child->father_handle = initial_handle;
@@ -224,19 +250,29 @@ void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_da
 			initial_replicate = &initial_handle->per_node[node];
 			child_replicate = &child->per_node[node];
 
-			child_replicate->state = initial_replicate->state;
-			child_replicate->allocated = initial_replicate->allocated;
+			if (inherit_state)
+				child_replicate->state = initial_replicate->state;
+			else
+				child_replicate->state = STARPU_INVALID;
+			if (inherit_state || !initial_replicate->automatically_allocated)
+				child_replicate->allocated = initial_replicate->allocated;
+			else
+				child_replicate->allocated = 0;
 			/* Do not allow memory reclaiming within the child for parent bits */
 			child_replicate->automatically_allocated = 0;
 			child_replicate->refcnt = 0;
 			child_replicate->memory_node = node;
 			child_replicate->relaxed_coherency = 0;
-			child_replicate->initialized = initial_replicate->initialized;
+			if (inherit_state)
+				child_replicate->initialized = initial_replicate->initialized;
+			else
+				child_replicate->initialized = 0;
 
 			/* update the interface */
 			void *initial_interface = starpu_data_get_interface_on_node(initial_handle, node);
 			void *child_interface = starpu_data_get_interface_on_node(child, node);
 
+			STARPU_ASSERT_MSG(!(!inherit_state && child_replicate->automatically_allocated && child_replicate->allocated), "partition planning is currently not supported when handle has some automatically allocated buffers");
 			f->filter_func(initial_interface, child_interface, f, i, nparts);
 		}
 
@@ -459,6 +495,7 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 	starpu_data_handle_t children = root_handle->children;
 	root_handle->children = NULL;
 	root_handle->nchildren = 0;
+	root_handle->nplans--;
 
 	/* now the parent may be used again so we release the lock */
 	_starpu_spin_unlock(&root_handle->header_lock);
@@ -468,31 +505,164 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 	_STARPU_TRACE_END_UNPARTITION(root_handle, gathering_node);
 }
 
-/* each child may have his own interface type */
-static void starpu_data_create_children(starpu_data_handle_t handle, unsigned nchildren, struct starpu_data_filter *f)
+void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_data_filter *f)
 {
-	handle->children = (struct _starpu_data_state *) calloc(nchildren, sizeof(struct _starpu_data_state));
-	STARPU_ASSERT(handle->children);
+	unsigned nparts = _starpu_data_partition_nparts(initial_handle, f);
+	STARPU_ASSERT_MSG(initial_handle->nchildren == 0, "there should not be mutiple filters applied on the same data %p, futher filtering has to be done on children", initial_handle);
+	STARPU_ASSERT_MSG(initial_handle->nplans == 0, "partition planning and synchronous partitioning is not supported");
 
-	unsigned child;
+	initial_handle->children = NULL;
+	_starpu_data_partition(initial_handle, NULL, nparts, f, 1);
+}
 
-	for (child = 0; child < nchildren; child++)
+void starpu_data_partition_plan(starpu_data_handle_t initial_handle, struct starpu_data_filter *f, starpu_data_handle_t *childrenp)
+{
+	unsigned i;
+	unsigned nparts = _starpu_data_partition_nparts(initial_handle, f);
+	STARPU_ASSERT_MSG(initial_handle->nchildren == 0, "partition planning and synchronous partitioning is not supported");
+	STARPU_ASSERT_MSG(initial_handle->home_node == STARPU_MAIN_RAM, "partition planning is currently only supported from main RAM");
+	STARPU_ASSERT_MSG(initial_handle->sequential_consistency, "partition planning is currently only supported for data with sequential consistency");
+
+	for (i = 0; i < nparts; i++)
+		childrenp[i] = calloc(1, sizeof(struct _starpu_data_state));
+	_starpu_data_partition(initial_handle, childrenp, nparts, f, 0);
+}
+
+void starpu_data_partition_clean(starpu_data_handle_t root_handle, unsigned nparts, starpu_data_handle_t *children)
+{
+	unsigned i;
+
+	for (i = 0; i < nparts; i++)
+		starpu_data_unregister_submit(children[i]);
+
+	_starpu_spin_lock(&root_handle->header_lock);
+	root_handle->nplans--;
+	_starpu_spin_unlock(&root_handle->header_lock);
+}
+
+static void empty(void *buffers[] STARPU_ATTRIBUTE_UNUSED, void *cl_arg STARPU_ATTRIBUTE_UNUSED)
+{
+	/* This doesn't need to do anything, it's simply used to make coherency
+	 * between the two views, by simply running on the home node of the
+	 * data, thus getting back all data pieces there.  */
+}
+
+static struct starpu_codelet cl_switch =
+{
+	.cpu_funcs = {empty},
+	.nbuffers = STARPU_VARIABLE_NBUFFERS,
+	.name = "data_partition_switch"
+};
+
+void starpu_data_partition_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children)
+{
+	STARPU_ASSERT_MSG(initial_handle->sequential_consistency, "partition planning is currently only supported for data with sequential consistency");
+	_starpu_spin_lock(&initial_handle->header_lock);
+	STARPU_ASSERT_MSG(initial_handle->partitioned == 0, "One can't submit several partition plannings at the same time");
+	STARPU_ASSERT_MSG(initial_handle->readonly == 0, "One can't submit a partition planning while a readonly partitioning is active");
+	initial_handle->partitioned++;
+	_starpu_spin_unlock(&initial_handle->header_lock);
+
+	unsigned i;
+	struct starpu_data_descr descr[nparts];
+	for (i = 0; i < nparts; i++)
 	{
-		starpu_data_handle_t handle_child;
-		struct starpu_data_interface_ops *ops;
-
-		/* what's this child's interface ? */
-		if (f->get_child_ops)
-		  ops = f->get_child_ops(f, child);
-		else
-		  ops = handle->ops;
-
-		handle_child = &handle->children[child];
-		_starpu_data_handle_init(handle_child, ops, handle->mf_node);
+		STARPU_ASSERT_MSG(children[i]->father_handle == initial_handle, "children parameter of starpu_data_partition_submit must be the children of the parent parameter");
+		descr[i].handle = children[i];
+		descr[i].mode = STARPU_W;
 	}
+	/* TODO: assert nparts too */
+	starpu_task_insert(&cl_switch, STARPU_RW, initial_handle, STARPU_DATA_MODE_ARRAY, descr, nparts, 0);
+	starpu_data_invalidate_submit(initial_handle);
+}
 
-	/* this handle now has children */
-	handle->nchildren = nchildren;
+void starpu_data_partition_readonly_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children)
+{
+	STARPU_ASSERT_MSG(initial_handle->sequential_consistency, "partition planning is currently only supported for data with sequential consistency");
+	_starpu_spin_lock(&initial_handle->header_lock);
+	STARPU_ASSERT_MSG(initial_handle->partitioned == 0 || initial_handle->readonly, "One can't submit a readonly partition planning at the same time as a readwrite partition planning");
+	initial_handle->partitioned++;
+	initial_handle->readonly = 1;
+	_starpu_spin_unlock(&initial_handle->header_lock);
+
+	unsigned i;
+	struct starpu_data_descr descr[nparts];
+	for (i = 0; i < nparts; i++)
+	{
+		STARPU_ASSERT_MSG(children[i]->father_handle == initial_handle, "children parameter of starpu_data_partition_submit must be the children of the parent parameter");
+		descr[i].handle = children[i];
+		descr[i].mode = STARPU_W;
+	}
+	/* TODO: assert nparts too */
+	starpu_task_insert(&cl_switch, STARPU_R, initial_handle, STARPU_DATA_MODE_ARRAY, descr, nparts, 0);
+}
+
+void starpu_data_partition_readwrite_upgrade_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children)
+{
+	STARPU_ASSERT_MSG(initial_handle->sequential_consistency, "partition planning is currently only supported for data with sequential consistency");
+	_starpu_spin_lock(&initial_handle->header_lock);
+	STARPU_ASSERT_MSG(initial_handle->partitioned == 1, "One can't upgrade a readonly partition planning to readwrite while other readonly partition plannings are active");
+	STARPU_ASSERT_MSG(initial_handle->readonly == 1, "One can only upgrade a readonly partition planning");
+	initial_handle->readonly = 0;
+	_starpu_spin_unlock(&initial_handle->header_lock);
+
+	unsigned i;
+	struct starpu_data_descr descr[nparts];
+	for (i = 0; i < nparts; i++)
+	{
+		STARPU_ASSERT_MSG(children[i]->father_handle == initial_handle, "children parameter of starpu_data_partition_submit must be the children of the parent parameter");
+		descr[i].handle = children[i];
+		descr[i].mode = STARPU_W;
+	}
+	/* TODO: assert nparts too */
+	starpu_task_insert(&cl_switch, STARPU_RW, initial_handle, STARPU_DATA_MODE_ARRAY, descr, nparts, 0);
+	starpu_data_invalidate_submit(initial_handle);
+}
+
+void starpu_data_unpartition_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int gather_node)
+{
+	STARPU_ASSERT_MSG(initial_handle->sequential_consistency, "partition planning is currently only supported for data with sequential consistency");
+	STARPU_ASSERT_MSG(gather_node == STARPU_MAIN_RAM || gather_node == -1, "gathering node different from main RAM is currently not supported");
+	_starpu_spin_lock(&initial_handle->header_lock);
+	STARPU_ASSERT_MSG(initial_handle->partitioned >= 1, "No partition planning is active for this handle");
+	initial_handle->partitioned--;
+	if (!initial_handle->partitioned)
+		initial_handle->readonly = 0;
+	_starpu_spin_unlock(&initial_handle->header_lock);
+
+	unsigned i;
+	struct starpu_data_descr descr[nparts];
+	for (i = 0; i < nparts; i++)
+	{
+		STARPU_ASSERT_MSG(children[i]->father_handle == initial_handle, "children parameter of starpu_data_partition_submit must be the children of the parent parameter");
+		descr[i].handle = children[i];
+		descr[i].mode = STARPU_RW;
+	}
+	/* TODO: assert nparts too */
+	starpu_task_insert(&cl_switch, STARPU_W, initial_handle, STARPU_DATA_MODE_ARRAY, descr, nparts, 0);
+	for (i = 0; i < nparts; i++)
+		starpu_data_invalidate_submit(children[i]);
+}
+
+void starpu_data_unpartition_readonly_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int gather_node)
+{
+	STARPU_ASSERT_MSG(initial_handle->sequential_consistency, "partition planning is currently only supported for data with sequential consistency");
+	STARPU_ASSERT_MSG(gather_node == STARPU_MAIN_RAM || gather_node == -1, "gathering node different from main RAM is currently not supported");
+	_starpu_spin_lock(&initial_handle->header_lock);
+	STARPU_ASSERT_MSG(initial_handle->partitioned >= 1, "No partition planning is active for this handle");
+	initial_handle->readonly = 1;
+	_starpu_spin_unlock(&initial_handle->header_lock);
+
+	unsigned i;
+	struct starpu_data_descr descr[nparts];
+	for (i = 0; i < nparts; i++)
+	{
+		STARPU_ASSERT_MSG(children[i]->father_handle == initial_handle, "children parameter of starpu_data_partition_submit must be the children of the parent parameter");
+		descr[i].handle = children[i];
+		descr[i].mode = STARPU_R;
+	}
+	/* TODO: assert nparts too */
+	starpu_task_insert(&cl_switch, STARPU_W, initial_handle, STARPU_DATA_MODE_ARRAY, descr, nparts, 0);
 }
 
 /*

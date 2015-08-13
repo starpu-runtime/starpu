@@ -16,7 +16,7 @@
 
 /*
  * This examplifies how to access the same matrix with different partitioned
- * views, doing the coherency by hand.
+ * views, doing the coherency through partition planning.
  * We first run a kernel on the whole matrix to fill it, then run a kernel on
  * each vertical slice to check the value and multiply it by two, then run a
  * kernel on each horizontal slice to do the same.
@@ -97,20 +97,6 @@ struct starpu_codelet cl_check_scale =
 	.name = "fmultiple_check_scale"
 };
 
-void empty(void *buffers[] STARPU_ATTRIBUTE_UNUSED, void *cl_arg STARPU_ATTRIBUTE_UNUSED)
-{
-	/* This doesn't need to do anything, it's simply used to make coherency
-	 * between the two views, by simply running on the home node of the
-	 * data, thus getting back all data pieces there.  */
-}
-
-struct starpu_codelet cl_switch =
-{
-	.cpu_funcs = {empty},
-	.nbuffers = STARPU_VARIABLE_NBUFFERS,
-	.name = "switch"
-};
-
 int main(int argc, char **argv)
 {
 	unsigned j, n=1;
@@ -133,19 +119,21 @@ int main(int argc, char **argv)
 	/* Declare the whole matrix to StarPU */
 	starpu_matrix_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)matrix, NX, NX, NY, sizeof(matrix[0][0]));
 
-	/* Also declare the vertical slices to StarPU */
-	for (i = 0; i < PARTS; i++)
+	/* Partition the matrix in PARTS vertical slices */
+	struct starpu_data_filter f_vert =
 	{
-		starpu_matrix_data_register(&vert_handle[i], STARPU_MAIN_RAM, (uintptr_t)&matrix[0][i*(NX/PARTS)], NX, NX/PARTS, NY, sizeof(matrix[0][0]));
-		/* But make it invalid for now, we'll access data through the whole matrix first */
-		starpu_data_invalidate(vert_handle[i]);
-	}
-	/* And the horizontal slices to StarPU */
-	for (i = 0; i < PARTS; i++)
+		.filter_func = starpu_matrix_filter_block,
+		.nchildren = PARTS
+	};
+	starpu_data_partition_plan(handle, &f_vert, vert_handle);
+
+	/* Partition the matrix in PARTS horizontal slices */
+	struct starpu_data_filter f_horiz =
 	{
-		starpu_matrix_data_register(&horiz_handle[i], STARPU_MAIN_RAM, (uintptr_t)&matrix[i*(NY/PARTS)][0], NX, NX, NY/PARTS, sizeof(matrix[0][0]));
-		starpu_data_invalidate(horiz_handle[i]);
-	}
+		.filter_func = starpu_matrix_filter_vertical_block,
+		.nchildren = PARTS
+	};
+	starpu_data_partition_plan(handle, &f_horiz, horiz_handle);
 
 	/* Fill the matrix */
 	ret = starpu_task_insert(&cl_fill, STARPU_W, handle, 0);
@@ -153,17 +141,7 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 	/* Now switch to vertical view of the matrix */
-	struct starpu_data_descr vert_descr[PARTS];
-	for (i = 0; i < PARTS; i++)
-	{
-		vert_descr[i].handle = vert_handle[i];
-		vert_descr[i].mode = STARPU_W;
-	}
-	ret = starpu_task_insert(&cl_switch, STARPU_RW, handle, STARPU_DATA_MODE_ARRAY, vert_descr, PARTS, 0);
-	if (ret == -ENODEV) goto enodev;
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
-	/* And make sure we don't accidentally access the matrix through the whole-matrix handle */
-	starpu_data_invalidate_submit(handle);
+	starpu_data_partition_submit(handle, PARTS, vert_handle);
 
 	/* Check the values of the vertical slices */
 	for (i = 0; i < PARTS; i++)
@@ -180,27 +158,10 @@ int main(int argc, char **argv)
 	}
 
 	/* Now switch back to total view of the matrix */
-	for (i = 0; i < PARTS; i++)
-		vert_descr[i].mode = STARPU_RW;
-	ret = starpu_task_insert(&cl_switch, STARPU_DATA_MODE_ARRAY, vert_descr, PARTS, STARPU_W, handle, 0);
-	if (ret == -ENODEV) goto enodev;
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
-	/* And make sure we don't accidentally access the matrix through the vertical slices */
-	for (i = 0; i < PARTS; i++)
-		starpu_data_invalidate_submit(vert_handle[i]);
+	starpu_data_unpartition_submit(handle, PARTS, vert_handle, -1);
 
 	/* And switch to horizontal view of the matrix */
-	struct starpu_data_descr horiz_descr[PARTS];
-	for (i = 0; i < PARTS; i++)
-	{
-		horiz_descr[i].handle = horiz_handle[i];
-		horiz_descr[i].mode = STARPU_W;
-	}
-	ret = starpu_task_insert(&cl_switch, STARPU_RW, handle, STARPU_DATA_MODE_ARRAY, horiz_descr, PARTS, 0);
-	if (ret == -ENODEV) goto enodev;
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
-	/* And make sure we don't accidentally access the matrix through the whole-matrix handle */
-	starpu_data_invalidate_submit(handle);
+	starpu_data_partition_submit(handle, PARTS, horiz_handle);
 
 	/* Check the values of the horizontal slices */
 	for (i = 0; i < PARTS; i++)
@@ -216,16 +177,25 @@ int main(int argc, char **argv)
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
+	/* Now switch back to total view of the matrix */
+	starpu_data_unpartition_submit(handle, PARTS, horiz_handle, -1);
+
+	/* And check the values of the whole matrix */
+	int factor = 4;
+	int start = 0;
+	ret = starpu_task_insert(&cl_check_scale,
+			STARPU_RW, handle,
+			STARPU_VALUE, &start, sizeof(start),
+			STARPU_VALUE, &factor, sizeof(factor),
+			0);
+	if (ret == -ENODEV) goto enodev;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+
 	/*
-	 * Unregister data from StarPU and shutdown It does not really matter
-	 * which view is active at unregistration here, since all views cover
-	 * the whole matrix, so it will be completely updated in the main memory.
+	 * Unregister data from StarPU and shutdown.
 	 */
-	for (i = 0; i < PARTS; i++)
-	{
-		starpu_data_unregister(vert_handle[i]);
-		starpu_data_unregister(horiz_handle[i]);
-	}
+	starpu_data_partition_clean(handle, PARTS, vert_handle);
+	starpu_data_partition_clean(handle, PARTS, horiz_handle);
 	starpu_data_unregister(handle);
 	starpu_shutdown();
 
