@@ -161,6 +161,7 @@ Small features:
     disable CUDA costs simulation in simgrid mode.
   * Add STARPU_NOWHERE to create synchronization tasks with data.
   * Document how to switch between differents views of the same data.
+  * Add STARPU_NAME to specify a task name from a starpu_task_insert call.
 
 Changes:
   * Data interfaces (variable, vector, matrix and block) now define

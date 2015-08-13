@@ -139,6 +139,10 @@ enough version of vite (>= r1430) and the
 \ref enable-paje-codelet-details "--enable-paje-codelet-details"
 StarPU configure option, the value of the tag will show up in the trace.
 
+It can also set the starpu_task::name field of the task (or use STARPU_NAME)
+when using starpu_task_insert()), to replace in traces the name of the codelet
+with an arbitrarily chosen name.
+
 Traces can also be inspected by hand by using the tool <c>fxt_print</c>, for instance:
 
 \verbatim
