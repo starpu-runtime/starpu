@@ -29,7 +29,7 @@ appropriated objects as defined elsewhere.
 </ul>
 
 When using ::STARPU_DATA_ARRAY, the access mode of the data handles is
-not defined, it will be taken from the codelet ::modes or ::dyn_modes field.
+not defined, it will be taken from the codelet starpu_codelet::modes or starpu_codelet::dyn_modes field.
 
 Parameters to be passed to the codelet implementation are defined
 through the type ::STARPU_VALUE. The function
