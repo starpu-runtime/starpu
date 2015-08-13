@@ -252,6 +252,9 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 
 	/* there is no hierarchy yet */
 	handle->nchildren = 0;
+	handle->nplans = 0;
+	handle->partitioned = 0;
+	handle->readonly = 0;
 	handle->root_handle = handle;
 	handle->father_handle = NULL;
 	handle->sibling_index = 0; /* could be anything for the root */
@@ -641,6 +644,9 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 {
 	STARPU_ASSERT(handle);
 	STARPU_ASSERT_MSG(handle->nchildren == 0, "data %p needs to be unpartitioned before unregistration", handle);
+	STARPU_ASSERT_MSG(handle->nplans == 0, "data %p needs its partition plans to be cleaned before unregistration", handle);
+	STARPU_ASSERT_MSG(handle->partitioned == 0, "data %p needs its partitioned plans to be unpartitioned before unregistration", handle);
+	/* TODO: also check that it has the latest coherency */
 	STARPU_ASSERT(!(nowait && handle->busy_count != 0));
 
 	int sequential_consistency = handle->sequential_consistency;

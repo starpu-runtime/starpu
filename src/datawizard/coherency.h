@@ -145,6 +145,17 @@ struct _starpu_data_state
 
 	starpu_data_handle_t children;
 	unsigned nchildren;
+	/* How many partition plans this handle has */
+	unsigned nplans;
+	/* Whether a partition plan is currently submitted and the
+	 * corresponding unpartition has not been yet
+	 *
+	 * Or the number of partition plans currently submitted in readonly
+	 * mode.
+	 */
+	unsigned partitioned;
+	/* Whether a partition plan is currently submitted in readonly mode */
+	unsigned readonly;
 
 	/* describe the state of the data in term of coherency */
 	struct _starpu_data_replicate per_node[STARPU_MAXNODES];

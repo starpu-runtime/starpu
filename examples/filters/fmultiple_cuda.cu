@@ -18,7 +18,7 @@
 
 #include <starpu.h>
 
-static __global__ void _fmultiple_check_cuda(int *val, int nx, int ny, unsigned ld, int start, int factor)
+static __global__ void _fmultiple_check_scale_cuda(int *val, int nx, int ny, unsigned ld, int start, int factor)
 {
         int i, j;
 	for(j=0; j<ny ; j++)
@@ -28,6 +28,33 @@ static __global__ void _fmultiple_check_cuda(int *val, int nx, int ny, unsigned 
 			if (val[(j*ld)+i] != start + factor*(i+100*j))
 				asm("trap;");
 			val[(j*ld)+i] *= 2;
+		}
+        }
+}
+
+extern "C" void fmultiple_check_scale_cuda(void *buffers[], void *cl_arg)
+{
+	int start, factor;
+	int nx = (int)STARPU_MATRIX_GET_NX(buffers[0]);
+	int ny = (int)STARPU_MATRIX_GET_NY(buffers[0]);
+        unsigned ld = STARPU_MATRIX_GET_LD(buffers[0]);
+	int *val = (int *)STARPU_MATRIX_GET_PTR(buffers[0]);
+
+	starpu_codelet_unpack_args(cl_arg, &start, &factor);
+
+        /* TODO: use more vals and threads in vals */
+	_fmultiple_check_scale_cuda<<<1,1, 0, starpu_cuda_get_local_stream()>>>(val, nx, ny, ld, start, factor);
+}
+
+static __global__ void _fmultiple_check_cuda(int *val, int nx, int ny, unsigned ld, int start, int factor)
+{
+        int i, j;
+	for(j=0; j<ny ; j++)
+	{
+		for(i=0; i<nx ; i++)
+		{
+			if (val[(j*ld)+i] != start + factor*(i+100*j))
+				asm("trap;");
 		}
         }
 }

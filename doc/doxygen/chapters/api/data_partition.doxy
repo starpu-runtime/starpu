@@ -43,9 +43,7 @@ Here an example of how to use the function.
 \code{.c}
 struct starpu_data_filter f = {
         .filter_func = starpu_matrix_filter_block,
-        .nchildren = nslicesx,
-        .get_nchildren = NULL,
-        .get_child_ops = NULL
+        .nchildren = nslicesx
 };
 starpu_data_partition(A_handle, &f);
 \endcode
@@ -102,6 +100,100 @@ starpu_data_filter should be given.
 Applies \p nfilters filters to the handle designated by
 \p root_handle recursively. It uses a va_list of pointers to variables of
 the type starpu_data_filter.
+
+@name Asynchronous API
+\ingroup API_Data_Partition
+
+\fn void starpu_data_partition_plan(starpu_data_handle_t initial_handle, struct starpu_data_filter *f, starpu_data_handle_t *children)
+\ingroup API_Data_Partition
+This plans for partitioning one StarPU data handle \p initial_handle into
+several subdata according to the filter \p f. The handles are returned into
+the \p children array, which has to be the same size as the number of parts
+described in \p f. These handles are not immediately usable,
+starpu_data_partition_submit has to be called to submit the actual partitioning.
+
+Here is an example of how to use the function:
+
+\code{.c}
+starpu_data_handle_t children[nslicesx];
+struct starpu_data_filter f = {
+        .filter_func = starpu_matrix_filter_block,
+        .nchildren = nslicesx
+};
+starpu_data_partition_plan(A_handle, &f, children);
+\endcode
+
+\fn void starpu_data_partition_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children)
+\ingroup API_Data_Partition
+
+This submits the actual partitioning of \p initial_handle into the \p nparts
+\p children handles. This call is asynchronous, it only submits that the
+partitioning should be done, so that the \p children handles can now be used to
+submit tasks, and \p initial_handle can not be used to submit tasks any more (to
+guarantee coherency).
+
+For instance,
+
+\code{.c}
+starpu_data_partition_submit(A_handle, nslicesx, children);
+\endcode
+
+\fn void starpu_data_partition_readonly_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children)
+\ingroup API_Data_Partition
+
+This is the same as starpu_data_partition_submit, but does not invalidate \p
+initial_handle. This allows to continue using it, but the application has to be
+careful not to write to \p initial_handle or \p children handles, only read from
+them, since the coherency is otherwise not guaranteed.  This thus allows to
+submit various tasks which concurrently read from various partitions of the data.
+
+When the application wants to write to \p initial_handle again, it should call
+starpu_data_unpartition_submit, which will properly add dependencies between the
+reads on the \p children and the writes to be submitted.
+
+If instead the application wants to write to \p children handles, it should
+call starpu_data_partition_readwrite_upgrade_submit, which will properly add
+dependencies between the reads on the \p initial_handle and the writes to be
+submitted.
+
+\fn void starpu_data_partition_readwrite_upgrade_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children)
+\ingroup API_Data_Partition
+
+This assumes that a partitioning of \p initial_handle has already been submited
+in readonly mode through starpu_data_partition_readonly_submit, and will upgrade
+that partitioning into read-write mode for the \p children, by invalidating \p
+initial_handle, and adding the necessary dependencies.
+
+\fn void starpu_data_unpartition_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int gathering_node)
+\ingroup API_Data_Partition
+
+This assumes that \p initial_handle is partitioned into \p children, and submits
+an unpartitionning of it, i.e. submitting a gathering of the pieces on the
+requested \p gathering_node memory node, and submitting an invalidation of the
+children.
+
+\p gathering_node can be set to -1 to let the runtime decide which memory node
+should be used to gather the pieces.
+
+\fn void starpu_data_unpartition_readonly_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int gathering_node)
+\ingroup API_Data_Partition
+
+This assumes that \p initial_handle is partitioned into \p children, and submits
+just a readonly unpartitionning of it, i.e. submitting a gathering of the pieces
+on the requested \p gathering_node memory node. It does not invalidate the
+children. This brings \p initial_handle and \p children handles to the same
+state as obtained with starpu_data_partition_readonly_submit.
+
+\p gathering_node can be set to -1 to let the runtime decide which memory node
+should be used to gather the pieces.
+
+\fn void starpu_data_partition_clean(starpu_data_handle_t root_data, unsigned nparts, starpu_data_handle_t *children)
+\ingroup API_Data_Partition
+
+This should be used to clear the partition planning established between \p
+root_data and \p children with starpu_data_partition_plan. This will notably
+submit an unregister all the \p children, which can thus not be used any more
+afterwards.
 
 @name Predefined Vector Filter Functions
 \ingroup API_Data_Partition
