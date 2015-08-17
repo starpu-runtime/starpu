@@ -488,7 +488,7 @@ to STARPU_NOWHERE, for instance this:
 
 \code{.c}
 struct starpu_codelet {
-	.where = NOWHERE,
+	.where = STARPU_NOWHERE,
 	.nbuffers = 1,
 	.modes = { STARPU_R },
 }
