@@ -15,6 +15,19 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
+StarPU 1.2.0rc4 (svn revision 15946)
+==============================================
+
+New features:
+  * Generate animated html trace of modular schedulers.
+  * Add asynchronous partition planning. It only supports coherency through
+    the main RAM for now.
+
+Small features:
+  * Add STARPU_NOWHERE to create synchronization tasks with data.
+  * Document how to switch between differents views of the same data.
+  * Add STARPU_NAME to specify a task name from a starpu_task_insert call.
+
 StarPU 1.2.0rc3 (svn revision xxxxx)
 ==============================================
 
@@ -114,9 +127,6 @@ New features:
     starpu_data_fetch_on_node for that.
   * Add data access arbiters, to improve parallelism of concurrent data
     accesses, notably with STARPU_COMMUTE.
-  * Generate animated html trace of modular schedulers.
-  * Add asynchronous partition planning. It only supports coherency through
-    the main RAM for now.
 
 Small features:
   * Tasks can now have a name (via the field const char *name of
@@ -159,9 +169,6 @@ Small features:
     its own allocation to the reclaiming engine.
   * Add STARPU_SIMGRID_CUDA_MALLOC_COST and STARPU_SIMGRID_CUDA_QUEUE_COST to
     disable CUDA costs simulation in simgrid mode.
-  * Add STARPU_NOWHERE to create synchronization tasks with data.
-  * Document how to switch between differents views of the same data.
-  * Add STARPU_NAME to specify a task name from a starpu_task_insert call.
 
 Changes:
   * Data interfaces (variable, vector, matrix and block) now define
