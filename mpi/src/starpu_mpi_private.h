@@ -197,7 +197,7 @@ LIST_TYPE(_starpu_mpi_req,
 	struct _starpu_mpi_req *other_request;
 
 	/* in the case of detached requests */
-	unsigned detached;
+	int detached;
 	void *callback_arg;
 	void (*callback)(void *);
 
