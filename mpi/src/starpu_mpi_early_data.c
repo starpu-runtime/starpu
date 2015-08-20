@@ -29,6 +29,7 @@ struct _starpu_mpi_early_data_handle_hashlist
 };
 
 /** stores data which have been received by MPI but have not been requested by the application */
+static starpu_pthread_mutex_t _starpu_mpi_early_data_handle_mutex;
 static struct _starpu_mpi_early_data_handle_hashlist *_starpu_mpi_early_data_handle_hashmap = NULL;
 static int _starpu_mpi_early_data_handle_hashmap_count = 0;
 
@@ -36,6 +37,7 @@ void _starpu_mpi_early_data_init(void)
 {
 	_starpu_mpi_early_data_handle_hashmap = NULL;
 	_starpu_mpi_early_data_handle_hashmap_count = 0;
+	STARPU_PTHREAD_MUTEX_INIT(&_starpu_mpi_early_data_handle_mutex, NULL);
 }
 
 void _starpu_mpi_early_data_check_termination(void)
@@ -52,6 +54,7 @@ void _starpu_mpi_early_data_free(void)
 		HASH_DEL(_starpu_mpi_early_data_handle_hashmap, current);
 		free(current);
 	}
+	STARPU_PTHREAD_MUTEX_DESTROY(&_starpu_mpi_early_data_handle_mutex);
 }
 
 struct _starpu_mpi_early_data_handle *_starpu_mpi_early_data_create(struct _starpu_mpi_envelope *envelope, int source, MPI_Comm comm)
@@ -100,6 +103,7 @@ struct _starpu_mpi_early_data_handle *_starpu_mpi_early_data_pop(struct _starpu_
 	struct _starpu_mpi_early_data_handle_hashlist *hashlist;
 	struct _starpu_mpi_early_data_handle *early_data_handle;
 
+	STARPU_PTHREAD_MUTEX_LOCK(&_starpu_mpi_early_data_handle_mutex);
 	_STARPU_MPI_DEBUG(60, "Looking for early_data_handle with comm %p source %d tag %d\n", node_tag->comm, node_tag->rank, node_tag->data_tag);
 	HASH_FIND(hh, _starpu_mpi_early_data_handle_hashmap, node_tag, sizeof(struct _starpu_mpi_node_tag), hashlist);
 	if (hashlist == NULL)
@@ -125,6 +129,7 @@ struct _starpu_mpi_early_data_handle *_starpu_mpi_early_data_pop(struct _starpu_
 		}
 	}
 	_STARPU_MPI_DEBUG(60, "Found early_data_handle %p with comm %p source %d tag %d\n", early_data_handle, node_tag->comm, node_tag->rank, node_tag->data_tag);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_mpi_early_data_handle_mutex);
 	return early_data_handle;
 }
 
@@ -135,6 +140,7 @@ struct _starpu_mpi_early_data_handle *_starpu_mpi_early_data_find(struct _starpu
 
 void _starpu_mpi_early_data_add(struct _starpu_mpi_early_data_handle *early_data_handle)
 {
+	STARPU_PTHREAD_MUTEX_LOCK(&_starpu_mpi_early_data_handle_mutex);
 	_STARPU_MPI_DEBUG(60, "Trying to add early_data_handle %p with comm %p source %d tag %d\n", early_data_handle, early_data_handle->node_tag.comm,
 			  early_data_handle->node_tag.rank, early_data_handle->node_tag.data_tag);
 
@@ -152,10 +158,12 @@ void _starpu_mpi_early_data_add(struct _starpu_mpi_early_data_handle *early_data
 #ifdef STARPU_VERBOSE
 	_starpu_mpi_early_data_handle_display_hash(&hashlist->node_tag);
 #endif
+	STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_mpi_early_data_handle_mutex);
 }
 
 void _starpu_mpi_early_data_delete(struct _starpu_mpi_early_data_handle *early_data_handle)
 {
+	STARPU_PTHREAD_MUTEX_LOCK(&_starpu_mpi_early_data_handle_mutex);
 	_STARPU_MPI_DEBUG(60, "Trying to delete early_data_handle %p with comm %p source %d tag %d\n", early_data_handle, early_data_handle->node_tag.comm,
 			  early_data_handle->node_tag.rank, early_data_handle->node_tag.data_tag);
 	struct _starpu_mpi_early_data_handle *found = _starpu_mpi_early_data_pop(&early_data_handle->node_tag, 1);
@@ -168,5 +176,6 @@ void _starpu_mpi_early_data_delete(struct _starpu_mpi_early_data_handle *early_d
 #ifdef STARPU_VERBOSE
 	_starpu_mpi_early_data_handle_display_hash(&early_data_handle->node_tag);
 #endif
+	STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_mpi_early_data_handle_mutex);
 }
 
