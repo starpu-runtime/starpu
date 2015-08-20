@@ -163,7 +163,6 @@ void _starpu_mpi_early_data_add(struct _starpu_mpi_early_data_handle *early_data
 
 void _starpu_mpi_early_data_delete(struct _starpu_mpi_early_data_handle *early_data_handle)
 {
-	STARPU_PTHREAD_MUTEX_LOCK(&_starpu_mpi_early_data_handle_mutex);
 	_STARPU_MPI_DEBUG(60, "Trying to delete early_data_handle %p with comm %p source %d tag %d\n", early_data_handle, early_data_handle->node_tag.comm,
 			  early_data_handle->node_tag.rank, early_data_handle->node_tag.data_tag);
 	struct _starpu_mpi_early_data_handle *found = _starpu_mpi_early_data_pop(&early_data_handle->node_tag, 1);
@@ -176,6 +175,5 @@ void _starpu_mpi_early_data_delete(struct _starpu_mpi_early_data_handle *early_d
 #ifdef STARPU_VERBOSE
 	_starpu_mpi_early_data_handle_display_hash(&early_data_handle->node_tag);
 #endif
-	STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_mpi_early_data_handle_mutex);
 }
 
