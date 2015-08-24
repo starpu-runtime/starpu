@@ -661,7 +661,7 @@ define starpu-mpi-print-ready-requests
 	set $request = $list->_head
         while $request
             starpu-mpi-print-request $request
-	    set $request = $request._next
+	    set $request = $request->_next
 	end
     else
 	printf "No ready requests"
@@ -674,7 +674,7 @@ define starpu-mpi-print-detached-requests
 	set $request = $list->_head
         while $request
             starpu-mpi-print-request $request
-	    set $request = $request._next
+	    set $request = $request->_next
 	end
     else
 	printf "No detached requests"
@@ -694,7 +694,7 @@ define starpu-mpi-print-early-data
 	     set $data = $data->_next
 	  end
        end
-       set $hash = (struct _starpu_mpi_early_data_handle_hashlist *) $hash.hh.next
+       set $hash = (struct _starpu_mpi_early_data_handle_hashlist *) $hash->hh.next
      end
   else
      printf "No early data\n"
@@ -706,15 +706,15 @@ define starpu-mpi-print-early-requests
   if $hash
      while $hash
        printf "Communicator %p Rank %d Data_tag %d\n", $hash->node_tag->comm, $hash->node_tag->rank, $hash->node_tag->data_tag
-       set $list = (struct _starpu_mpi_req_list) $hash->list
+       set $list = (struct _starpu_mpi_req_list*) $hash->list
        if $list
   	  set $request = $list->_head
           while $request
              starpu-mpi-print-request $request
-	     set $request = $request._next
+	     set $request = $request->_next
 	  end
        end
-       set $hash = (struct _starpu_mpi_early_request_hashlist *) $hash.hh.next
+       set $hash = (struct _starpu_mpi_early_request_hashlist *) $hash->hh.next
      end
   else
      printf "No early request\n"
@@ -726,15 +726,15 @@ define starpu-mpi-print-sync-data
   if $hash
      while $hash
        printf "Communicator %p Rank %d Data_tag %d\n", $hash->node_tag->comm, $hash->node_tag->rank, $hash->node_tag->data_tag
-       set $list = (struct _starpu_mpi_req_list) $hash->list
+       set $list = (struct _starpu_mpi_req_list *) $hash->list
        if $list
   	  set $request = $list->_head
           while $request
              starpu-mpi-print-request $request
-	     set $request = $request._next
+	     set $request = $request->_next
 	  end
        end
-       set $hash = (struct _starpu_mpi_sync_data_handle_hashlist *) $hash.hh.next
+       set $hash = (struct _starpu_mpi_sync_data_handle_hashlist *) $hash->hh.next
      end
   else
      printf "No sync data\n"
@@ -743,34 +743,30 @@ end
 
 document starpu
 List of StarPU-specific gdb functions:
-starpu-workers          prints a list of the StarPU workers
-starpu-tasks-on-workers prints a list of the tasks currently running on workers
-starpu-tasks-on-worker  prints a list of the tasks running on the given worker
-starpu-print-job        prints a StarPU job
-starpu-print-task       prints a StarPU task
-starpu-print-task-and-successor  prints a StarPU task and its successors
-starpu-print-data       prints a StarPU data handle
-starpu-print-datas      prints all StarPU data handles
-starpu-print-datas-summary  prints a summary of data handles
-starpu-print-request    prints a StarPU data request
-starpu-print-requests   prints all StarPU data requests
-starpu-print-prequests  prints all pending StarPU data requests
-starpu-print-frequests  prints all StarPU prefetch data requests
-starpu-print-irequests  prints all StarPU idle data requests
-starpu-tasks            prints a list of the tasks flowing in StarPU
-starpu-tags             prints a list of the tags known to StarPU
-starpu-memusage         prints the memory node usage
-starpu-print-archs      prints all known arch combinations
-starpu-print-arch       prints a given arch combination
-starpu-print-registered-models prints all registered performance models
-starpu-print-model      prints a given performance model
-end
-
-document starpu-mpi
-List of StarPU-MPI-specific gdb functions:
-starpu-mpi-print-ready-requests    prints all ready requests
-starpu-mpi-print-detached-requests prints all detached requests
-starpu-mpi-print-early-data        prints all early received data
-starpu-mpi-print-early-requests    prints all early requests
-starpu-mpi-print-sync-data         prints all sync data
+starpu-workers                     prints a list of the StarPU workers
+starpu-tasks-on-workers            prints a list of the tasks currently running on workers
+starpu-tasks-on-worker             prints a list of the tasks running on the given worker
+starpu-print-job                   prints a StarPU job
+starpu-print-task                  prints a StarPU task
+starpu-print-task-and-successor    prints a StarPU task and its successors
+starpu-print-data                  prints a StarPU data handle
+starpu-print-datas                 prints all StarPU data handles
+starpu-print-datas-summary         prints a summary of data handles
+starpu-print-request               prints a StarPU data request
+starpu-print-requests              prints all StarPU data requests
+starpu-print-prequests             prints all pending StarPU data requests
+starpu-print-frequests             prints all StarPU prefetch data requests
+starpu-print-irequests             prints all StarPU idle data requests
+starpu-tasks                       prints a list of the tasks flowing in StarPU
+starpu-tags                        prints a list of the tags known to StarPU
+starpu-memusage                    prints the memory node usage
+starpu-print-archs                 prints all known arch combinations
+starpu-print-arch                  prints a given arch combination
+starpu-print-registered-models     prints all registered performance models
+starpu-print-model                 prints a given performance model
+starpu-mpi-print-ready-requests    prints all MPI ready requests
+starpu-mpi-print-detached-requests prints all MPI detached requests
+starpu-mpi-print-early-data        prints all MPI early received data
+starpu-mpi-print-early-requests    prints all MPI early requests
+starpu-mpi-print-sync-data         prints all MPI sync data
 end
