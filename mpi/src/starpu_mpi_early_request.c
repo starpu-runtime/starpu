@@ -107,5 +107,5 @@ void _starpu_mpi_early_request_enqueue(struct _starpu_mpi_req *req)
 	}
 	_starpu_mpi_req_list_push_back(hashlist->list, req);
 	_starpu_mpi_early_request_hash_count ++;
-	STARPU_PTHREAD_MUTEX_LOCK(&_starpu_mpi_early_request_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_mpi_early_request_mutex);
 }
