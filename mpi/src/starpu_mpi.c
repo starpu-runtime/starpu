@@ -1158,10 +1158,11 @@ static void _starpu_mpi_print_thread_level_support(int thread_level, char *msg)
 
 static void _starpu_mpi_receive_early_data(struct _starpu_mpi_envelope *envelope, MPI_Status status, MPI_Comm comm)
 {
-	_STARPU_MPI_DEBUG(20, "Request with tag %d and source %d not found, creating a early_handle to receive incoming data..\n", envelope->data_tag, status.MPI_SOURCE);
+	_STARPU_MPI_DEBUG(20, "Request with tag %d and source %d not found, creating a early_data_handle to receive incoming data..\n", envelope->data_tag, status.MPI_SOURCE);
 	_STARPU_MPI_DEBUG(20, "Request sync %d\n", envelope->sync);
 
 	struct _starpu_mpi_early_data_handle* early_data_handle = _starpu_mpi_early_data_create(envelope, status.MPI_SOURCE, comm);
+	_starpu_mpi_early_data_add(early_data_handle);
 
 	starpu_data_handle_t data_handle = NULL;
 	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
@@ -1173,7 +1174,7 @@ static void _starpu_mpi_receive_early_data(struct _starpu_mpi_envelope *envelope
 		/* We know which data will receive it and we won't have to unpack, use just the same kind of data.  */
 		early_data_handle->buffer = NULL;
 		starpu_data_register_same(&early_data_handle->handle, data_handle);
-		_starpu_mpi_early_data_add(early_data_handle);
+		//_starpu_mpi_early_data_add(early_data_handle);
 	}
 	else
 	{
@@ -1184,10 +1185,10 @@ static void _starpu_mpi_receive_early_data(struct _starpu_mpi_envelope *envelope
 		_STARPU_MPI_DEBUG(3, "Posting a receive for a data of size %d which has not yet been registered\n", (int)early_data_handle->env->size);
 		early_data_handle->buffer = malloc(early_data_handle->env->size);
 		starpu_variable_data_register(&early_data_handle->handle, STARPU_MAIN_RAM, (uintptr_t) early_data_handle->buffer, early_data_handle->env->size);
-		_starpu_mpi_early_data_add(early_data_handle);
+		//_starpu_mpi_early_data_add(early_data_handle);
 	}
 
-	_STARPU_MPI_DEBUG(20, "Posting internal detached irecv on early_handle with tag %d from comm %p src %d ..\n", early_data_handle->node_tag.data_tag, comm, status.MPI_SOURCE);
+	_STARPU_MPI_DEBUG(20, "Posting internal detached irecv on early_data_handle with tag %d from comm %p src %d ..\n", early_data_handle->node_tag.data_tag, comm, status.MPI_SOURCE);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 	early_data_handle->req = _starpu_mpi_irecv_common(early_data_handle->handle, status.MPI_SOURCE,
 							  early_data_handle->node_tag.data_tag, comm, 1, 0,
