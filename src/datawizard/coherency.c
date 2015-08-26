@@ -921,7 +921,7 @@ enomem:
 }
 
 /* Release task data dependencies */
-static void __starpu_push_task_output(struct _starpu_job *j)
+void __starpu_push_task_output(struct _starpu_job *j)
 {
 #ifdef STARPU_OPENMP
 	STARPU_ASSERT(!j->continuation);
@@ -1018,6 +1018,7 @@ void _starpu_fetch_nowhere_task_input(struct _starpu_job *j)
 	if (!nfetchbuffers)
 	{
 		/* Nothing to fetch actually, already finished! */
+		__starpu_push_task_output(j);
 		_starpu_handle_job_termination(j);
 		_STARPU_LOG_OUT_TAG("handle_job_termination");
 		return;

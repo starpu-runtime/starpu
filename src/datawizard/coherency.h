@@ -279,6 +279,8 @@ size_t _starpu_data_get_size(starpu_data_handle_t handle);
 
 uint32_t _starpu_data_get_footprint(starpu_data_handle_t handle);
 
+void __starpu_push_task_output(struct _starpu_job *j);
+/* Version with driver trace */
 void _starpu_push_task_output(struct _starpu_job *j);
 
 void _starpu_release_nowhere_task_output(struct _starpu_job *j);

@@ -416,6 +416,8 @@ int _starpu_repush_task(struct _starpu_job *j)
 		}
 		else
 		{
+			if (task->cl)
+				__starpu_push_task_output(j);
 			_starpu_handle_job_termination(j);
 			_STARPU_LOG_OUT_TAG("handle_job_termination");
 		}
