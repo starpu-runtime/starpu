@@ -159,6 +159,7 @@ int starpu_sched_ctx_get_worker_rank(unsigned sched_ctx_id);
 
 void (*starpu_sched_ctx_get_sched_policy_init(unsigned sched_ctx_id))(void);
 
+unsigned starpu_sched_ctx_has_starpu_scheduler(unsigned sched_ctx_id, unsigned *awake_workers);
 #ifdef STARPU_USE_SC_HYPERVISOR
 void starpu_sched_ctx_call_pushed_task_cb(int workerid, unsigned sched_ctx_id);
 #endif /* STARPU_USE_SC_HYPERVISOR */

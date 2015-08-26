@@ -349,6 +349,7 @@ struct sc_hypervisor_policy throughput_lp_policy = {
 	.handle_post_exec_hook = NULL,
 	.handle_submitted_job = NULL,
 	.end_ctx = throughput_lp_end_ctx,
+	.init_worker = NULL,
 	.custom = 0,
 	.name = "throughput_lp"
 };

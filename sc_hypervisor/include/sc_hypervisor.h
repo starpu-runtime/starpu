@@ -66,6 +66,12 @@ struct sc_hypervisor_policy
 	
 	/* the hypervisor takes a decision when a certain ctx was deleted */
 	void (*end_ctx)(unsigned sched_ctx);
+
+	/* the hypervisor takes a decision when a certain ctx was registerd */
+	void (*start_ctx)(unsigned sched_ctx);
+	
+	/* the hypervisor initializes values for the workers */
+	void (*init_worker)(int workerid, unsigned sched_ctx);
 };
 
 /* start the hypervisor indicating the resizing policy to user */
@@ -145,6 +151,7 @@ double sc_hypervisor_get_nready_flops_of_all_sons_of_sched_ctx(unsigned sched_ct
 
 void sc_hypervisor_print_overhead();
 
+void sc_hypervisor_init_worker(int workerid, unsigned sched_ctx);
 #ifdef __cplusplus
 }
 #endif

@@ -30,6 +30,7 @@ struct sc_hypervisor_policy app_driven_policy =
 	.handle_post_exec_hook = app_driven_handle_post_exec_hook,
 	.handle_submitted_job = NULL,
 	.end_ctx = NULL,
+	.init_worker = NULL,
 	.custom = 0,
 	.name = "app_driven"
 };

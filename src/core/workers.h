@@ -440,9 +440,6 @@ int starpu_worker_get_nids_by_type(enum starpu_worker_archtype type, int *worker
    the list might not be updated */
 int starpu_worker_get_nids_ctx_free_by_type(enum starpu_worker_archtype type, int *workerids, int maxsize);
 
-/* geet starpu workerids corresponding to the os physical id bindid */
-int _starpu_worker_get_workerids(int bindid, int *workerids);
-
 /* if the current worker has the lock release it */
 void _starpu_unlock_mutex_if_prev_locked();
 

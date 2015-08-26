@@ -39,14 +39,24 @@ static unsigned tree_has_next_unblocked_worker(struct starpu_worker_collection *
 	}
 	int id = -1;
 	int workerids[STARPU_NMAXWORKERS];
-	int nworkers = _starpu_worker_get_workerids(neighbour->id, workerids);
+	int nworkers = starpu_worker_get_workerids(neighbour->id, workerids);
 	int w;
 	for(w = 0; w < nworkers; w++)
 	{
-		if(!it->visited[workerids[w]] && workers->present[workerids[w]] && workers->is_unblocked[workerids[w]])
+		if(!it->visited[workerids[w]] && workers->present[workerids[w]])
 		{
-			id = workerids[w];
-			it->possible_value = neighbour;
+			if(workers->is_unblocked[workerids[w]])
+			{	
+				id = workerids[w];
+				it->possible_value = neighbour;
+			}
+			else
+			{
+				it->visited[workerids[w]] = 1;
+				it->value = neighbour;
+			
+				return tree_has_next_unblocked_worker(workers, it);
+			}
 		}
 	}
 
@@ -73,7 +83,7 @@ static int tree_get_next_unblocked_worker(struct starpu_worker_collection *worke
 
 
 	int workerids[STARPU_NMAXWORKERS];
-	int nworkers = _starpu_worker_get_workerids(neighbour->id, workerids);
+	int nworkers = starpu_worker_get_workerids(neighbour->id, workerids);
 	int w;
 	for(w = 0; w < nworkers; w++)
 	{
@@ -106,7 +116,7 @@ static unsigned tree_has_next_master(struct starpu_worker_collection *workers, s
 	}
 	int id = -1;
 	int workerids[STARPU_NMAXWORKERS];
-	int nworkers = _starpu_worker_get_workerids(neighbour->id, workerids);
+	int nworkers = starpu_worker_get_workerids(neighbour->id, workerids);
 	int w;
 	for(w = 0; w < nworkers; w++)
 	{
@@ -140,7 +150,7 @@ static int tree_get_next_master(struct starpu_worker_collection *workers, struct
 
 
 	int workerids[STARPU_NMAXWORKERS];
-	int nworkers = _starpu_worker_get_workerids(neighbour->id, workerids);
+	int nworkers = starpu_worker_get_workerids(neighbour->id, workerids);
 	int w;
 	for(w = 0; w < nworkers; w++)
 	{
@@ -179,7 +189,7 @@ static unsigned tree_has_next(struct starpu_worker_collection *workers, struct s
 	}
 	int id = -1;
 	int workerids[STARPU_NMAXWORKERS];
-	int nworkers = _starpu_worker_get_workerids(neighbour->id, workerids);
+	int nworkers = starpu_worker_get_workerids(neighbour->id, workerids);
 	int w;
 	for(w = 0; w < nworkers; w++)
 	{
@@ -218,7 +228,7 @@ static int tree_get_next(struct starpu_worker_collection *workers, struct starpu
 
 
 	int workerids[STARPU_NMAXWORKERS];
-	int nworkers = _starpu_worker_get_workerids(neighbour->id, workerids);
+	int nworkers = starpu_worker_get_workerids(neighbour->id, workerids);
 	int w;
 	for(w = 0; w < nworkers; w++)
 	{

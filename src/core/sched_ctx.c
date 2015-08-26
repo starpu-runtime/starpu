@@ -2479,3 +2479,10 @@ void (*starpu_sched_ctx_get_sched_policy_init(unsigned sched_ctx_id))(void)
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	return sched_ctx->init_sched;
 }
+
+unsigned starpu_sched_ctx_has_starpu_scheduler(unsigned sched_ctx_id, unsigned *awake_workers)
+{
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+	*awake_workers = sched_ctx->awake_workers;
+	return sched_ctx->sched_policy != NULL;
+}

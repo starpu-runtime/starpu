@@ -123,6 +123,8 @@ unsigned starpu_worker_is_slave_somewhere(int workerid);
 
 char *starpu_worker_get_type_as_string(enum starpu_worker_archtype type);
 
+int starpu_worker_get_workerids(int bindid, int *workerids);
+
 #ifdef __cplusplus
 }
 #endif

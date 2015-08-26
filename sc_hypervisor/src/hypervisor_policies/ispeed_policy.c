@@ -189,6 +189,7 @@ struct sc_hypervisor_policy ispeed_policy = {
 	.handle_post_exec_hook = NULL,
 	.handle_submitted_job = NULL,
 	.end_ctx = NULL,
+	.init_worker = NULL,
 	.custom = 0,
 	.name = "ispeed"
 };

@@ -43,6 +43,7 @@ extern struct sc_hypervisor_policy throughput_lp_policy;
 #endif // STARPU_HAVE_GLPK_
 extern struct sc_hypervisor_policy ispeed_policy;
 extern struct sc_hypervisor_policy hard_coded_policy;
+extern struct sc_hypervisor_policy perf_count_policy;
 
 
 static struct sc_hypervisor_policy *predefined_policies[] =
@@ -57,7 +58,8 @@ static struct sc_hypervisor_policy *predefined_policies[] =
 #endif // STARPU_HAVE_GLPK_H
 	&gflops_rate_policy,
 	&ispeed_policy,
-	&hard_coded_policy
+	&hard_coded_policy,
+	&perf_count_policy
 };
 
 static void _load_hypervisor_policy(struct sc_hypervisor_policy *policy)
@@ -74,6 +76,8 @@ static void _load_hypervisor_policy(struct sc_hypervisor_policy *policy)
 	hypervisor.policy.handle_post_exec_hook = policy->handle_post_exec_hook;
 	hypervisor.policy.handle_submitted_job = policy->handle_submitted_job;
 	hypervisor.policy.end_ctx = policy->end_ctx;
+	hypervisor.policy.start_ctx = policy->start_ctx;
+	hypervisor.policy.init_worker = policy->init_worker;
 }
 
 
@@ -331,6 +335,9 @@ void sc_hypervisor_print_overhead()
 /* the hypervisor is in charge only of the contexts registered to it*/
 void sc_hypervisor_register_ctx(unsigned sched_ctx, double total_flops)
 {
+	if(hypervisor.policy.start_ctx)
+		hypervisor.policy.start_ctx(sched_ctx);
+
 	starpu_pthread_mutex_lock(&act_hypervisor_mutex);
 	hypervisor.configurations[sched_ctx] = NULL;
 	hypervisor.resize_requests[sched_ctx] = NULL;
@@ -1684,3 +1691,9 @@ void sc_hypervisor_get_leaves(unsigned *sched_ctxs, int nsched_ctxs, unsigned *l
 	return;
 }
 
+
+void sc_hypervisor_init_worker(int workerid, unsigned sched_ctx)
+{
+	if(hypervisor.policy.init_worker)
+                hypervisor.policy.init_worker(workerid, sched_ctx);
+}

@@ -1878,7 +1878,7 @@ int starpu_worker_get_bindid(int workerid)
 	return config.workers[workerid].bindid;
 }
 
-int _starpu_worker_get_workerids(int bindid, int *workerids)
+int starpu_worker_get_workerids(int bindid, int *workerids)
 {
 	unsigned nworkers = starpu_worker_get_count();
 	int nw = 0;
