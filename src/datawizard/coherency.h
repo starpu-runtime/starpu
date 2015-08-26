@@ -147,6 +147,8 @@ struct _starpu_data_state
 	unsigned nchildren;
 	/* How many partition plans this handle has */
 	unsigned nplans;
+	/* Switch codelet for asynchronous partitioning */
+	struct starpu_codelet *switch_cl;
 	/* Whether a partition plan is currently submitted and the
 	 * corresponding unpartition has not been yet
 	 *
@@ -283,6 +285,7 @@ void _starpu_release_nowhere_task_output(struct _starpu_job *j);
 
 STARPU_ATTRIBUTE_WARN_UNUSED_RESULT
 int _starpu_fetch_task_input(struct _starpu_job *j);
+void _starpu_fetch_nowhere_task_input(struct _starpu_job *j);
 
 unsigned _starpu_is_data_present_or_requested(struct _starpu_data_state *state, unsigned node);
 
