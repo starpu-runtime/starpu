@@ -253,6 +253,7 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 	/* there is no hierarchy yet */
 	handle->nchildren = 0;
 	handle->nplans = 0;
+	handle->switch_cl = NULL;
 	handle->partitioned = 0;
 	handle->readonly = 0;
 	handle->root_handle = handle;
@@ -824,6 +825,11 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 	STARPU_HG_ENABLE_CHECKING(handle->post_sync_tasks_cnt);
 	STARPU_HG_ENABLE_CHECKING(handle->busy_count);
 
+	if (handle->switch_cl)
+	{
+		free(handle->switch_cl->dyn_nodes);
+		free(handle->switch_cl);
+	}
 	free(handle);
 }
 

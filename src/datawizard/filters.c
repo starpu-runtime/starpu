@@ -186,6 +186,7 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 
 		child->nchildren = 0;
 		child->nplans = 0;
+		child->switch_cl = NULL;
 		child->partitioned = 0;
 		child->readonly = 0;
                 child->mpi_data = initial_handle->mpi_data;
@@ -520,12 +521,24 @@ void starpu_data_partition_plan(starpu_data_handle_t initial_handle, struct star
 	unsigned i;
 	unsigned nparts = _starpu_data_partition_nparts(initial_handle, f);
 	STARPU_ASSERT_MSG(initial_handle->nchildren == 0, "partition planning and synchronous partitioning is not supported");
-	STARPU_ASSERT_MSG(initial_handle->home_node == STARPU_MAIN_RAM, "partition planning is currently only supported from main RAM");
 	STARPU_ASSERT_MSG(initial_handle->sequential_consistency, "partition planning is currently only supported for data with sequential consistency");
 
 	for (i = 0; i < nparts; i++)
 		childrenp[i] = calloc(1, sizeof(struct _starpu_data_state));
 	_starpu_data_partition(initial_handle, childrenp, nparts, f, 0);
+
+	if (!initial_handle->switch_cl)
+	{
+		/* Create a codelet that will make the coherency on the home node */
+		struct starpu_codelet *cl = initial_handle->switch_cl = calloc(1, sizeof(*initial_handle->switch_cl));
+		cl->where = STARPU_NOWHERE;
+		cl->nbuffers = STARPU_VARIABLE_NBUFFERS;
+		cl->name = "data_partition_switch";
+		cl->specific_nodes = 1;
+		cl->dyn_nodes = malloc((nparts+1) * sizeof(*cl->dyn_nodes));
+		for (i = 0; i < nparts+1; i++)
+			cl->dyn_nodes[i] = initial_handle->home_node;
+	}
 }
 
 void starpu_data_partition_clean(starpu_data_handle_t root_handle, unsigned nparts, starpu_data_handle_t *children)
@@ -539,20 +552,6 @@ void starpu_data_partition_clean(starpu_data_handle_t root_handle, unsigned npar
 	root_handle->nplans--;
 	_starpu_spin_unlock(&root_handle->header_lock);
 }
-
-static void empty(void *buffers[] STARPU_ATTRIBUTE_UNUSED, void *cl_arg STARPU_ATTRIBUTE_UNUSED)
-{
-	/* This doesn't need to do anything, it's simply used to make coherency
-	 * between the two views, by simply running on the home node of the
-	 * data, thus getting back all data pieces there.  */
-}
-
-static struct starpu_codelet cl_switch =
-{
-	.cpu_funcs = {empty},
-	.nbuffers = STARPU_VARIABLE_NBUFFERS,
-	.name = "data_partition_switch"
-};
 
 void starpu_data_partition_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children)
 {
@@ -572,7 +571,7 @@ void starpu_data_partition_submit(starpu_data_handle_t initial_handle, unsigned 
 		descr[i].mode = STARPU_W;
 	}
 	/* TODO: assert nparts too */
-	starpu_task_insert(&cl_switch, STARPU_RW, initial_handle, STARPU_DATA_MODE_ARRAY, descr, nparts, 0);
+	starpu_task_insert(initial_handle->switch_cl, STARPU_RW, initial_handle, STARPU_DATA_MODE_ARRAY, descr, nparts, 0);
 	starpu_data_invalidate_submit(initial_handle);
 }
 
@@ -594,7 +593,7 @@ void starpu_data_partition_readonly_submit(starpu_data_handle_t initial_handle, 
 		descr[i].mode = STARPU_W;
 	}
 	/* TODO: assert nparts too */
-	starpu_task_insert(&cl_switch, STARPU_R, initial_handle, STARPU_DATA_MODE_ARRAY, descr, nparts, 0);
+	starpu_task_insert(initial_handle->switch_cl, STARPU_R, initial_handle, STARPU_DATA_MODE_ARRAY, descr, nparts, 0);
 }
 
 void starpu_data_partition_readwrite_upgrade_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children)
@@ -615,14 +614,14 @@ void starpu_data_partition_readwrite_upgrade_submit(starpu_data_handle_t initial
 		descr[i].mode = STARPU_W;
 	}
 	/* TODO: assert nparts too */
-	starpu_task_insert(&cl_switch, STARPU_RW, initial_handle, STARPU_DATA_MODE_ARRAY, descr, nparts, 0);
+	starpu_task_insert(initial_handle->switch_cl, STARPU_RW, initial_handle, STARPU_DATA_MODE_ARRAY, descr, nparts, 0);
 	starpu_data_invalidate_submit(initial_handle);
 }
 
 void starpu_data_unpartition_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int gather_node)
 {
 	STARPU_ASSERT_MSG(initial_handle->sequential_consistency, "partition planning is currently only supported for data with sequential consistency");
-	STARPU_ASSERT_MSG(gather_node == STARPU_MAIN_RAM || gather_node == -1, "gathering node different from main RAM is currently not supported");
+	STARPU_ASSERT_MSG(gather_node == initial_handle->home_node || gather_node == -1, "gathering node different from home node is currently not supported");
 	_starpu_spin_lock(&initial_handle->header_lock);
 	STARPU_ASSERT_MSG(initial_handle->partitioned >= 1, "No partition planning is active for this handle");
 	initial_handle->partitioned--;
@@ -639,7 +638,7 @@ void starpu_data_unpartition_submit(starpu_data_handle_t initial_handle, unsigne
 		descr[i].mode = STARPU_RW;
 	}
 	/* TODO: assert nparts too */
-	starpu_task_insert(&cl_switch, STARPU_W, initial_handle, STARPU_DATA_MODE_ARRAY, descr, nparts, 0);
+	starpu_task_insert(initial_handle->switch_cl, STARPU_W, initial_handle, STARPU_DATA_MODE_ARRAY, descr, nparts, 0);
 	for (i = 0; i < nparts; i++)
 		starpu_data_invalidate_submit(children[i]);
 }
@@ -647,7 +646,7 @@ void starpu_data_unpartition_submit(starpu_data_handle_t initial_handle, unsigne
 void starpu_data_unpartition_readonly_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int gather_node)
 {
 	STARPU_ASSERT_MSG(initial_handle->sequential_consistency, "partition planning is currently only supported for data with sequential consistency");
-	STARPU_ASSERT_MSG(gather_node == STARPU_MAIN_RAM || gather_node == -1, "gathering node different from main RAM is currently not supported");
+	STARPU_ASSERT_MSG(gather_node == initial_handle->home_node || gather_node == -1, "gathering node different from home node is currently not supported");
 	_starpu_spin_lock(&initial_handle->header_lock);
 	STARPU_ASSERT_MSG(initial_handle->partitioned >= 1, "No partition planning is active for this handle");
 	initial_handle->readonly = 1;
@@ -662,7 +661,7 @@ void starpu_data_unpartition_readonly_submit(starpu_data_handle_t initial_handle
 		descr[i].mode = STARPU_R;
 	}
 	/* TODO: assert nparts too */
-	starpu_task_insert(&cl_switch, STARPU_W, initial_handle, STARPU_DATA_MODE_ARRAY, descr, nparts, 0);
+	starpu_task_insert(initial_handle->switch_cl, STARPU_W, initial_handle, STARPU_DATA_MODE_ARRAY, descr, nparts, 0);
 }
 
 /*

@@ -808,6 +808,7 @@ static struct _starpu_data_replicate *get_replicate(starpu_data_handle_t handle,
 		return &handle->per_node[node];
 }
 
+/* Synchronously fetch data for a given task (if it's not there already) */
 int _starpu_fetch_task_input(struct _starpu_job *j)
 {
 	_STARPU_TRACE_START_FETCH_INPUT(NULL);
@@ -919,13 +920,12 @@ enomem:
 	return -1;
 }
 
-void _starpu_push_task_output(struct _starpu_job *j)
+/* Release task data dependencies */
+static void __starpu_push_task_output(struct _starpu_job *j)
 {
 #ifdef STARPU_OPENMP
 	STARPU_ASSERT(!j->continuation);
 #endif
-	_STARPU_TRACE_START_PUSH_OUTPUT(NULL);
-
 	int profiling = starpu_profiling_status_get();
 	struct starpu_task *task = j->task;
 	if (profiling && task->profiling_info)
@@ -943,7 +943,7 @@ void _starpu_push_task_output(struct _starpu_job *j)
 		starpu_data_handle_t handle = descrs[index].handle;
 		enum starpu_data_access_mode mode = descrs[index].mode;
 		int node = descrs[index].node;
-		if (node == -1)
+		if (node == -1 && task->cl->where != STARPU_NOWHERE)
 			node = local_memory_node;
 
 		struct _starpu_data_replicate *local_replicate;
@@ -954,62 +954,122 @@ void _starpu_push_task_output(struct _starpu_job *j)
 			 * _starpu_compar_handles */
 			continue;
 
-		local_replicate = get_replicate(handle, mode, workerid, node);
+		if (node != -1)
+			local_replicate = get_replicate(handle, mode, workerid, node);
 
 		/* Keep a reference for future
 		 * _starpu_release_task_enforce_sequential_consistency call */
 		_starpu_spin_lock(&handle->header_lock);
 		handle->busy_count++;
-		_starpu_spin_unlock(&handle->header_lock);
 
-		_starpu_release_data_on_node(handle, 0, local_replicate);
+		if (node == -1)
+		{
+			/* NOWHERE case, just notify dependencies */
+			if (!_starpu_notify_data_dependencies(handle))
+				_starpu_spin_unlock(&handle->header_lock);
+		}
+		else
+		{
+			_starpu_spin_unlock(&handle->header_lock);
+			_starpu_release_data_on_node(handle, 0, local_replicate);
+		}
 	}
 
 	if (profiling && task->profiling_info)
 		_starpu_clock_gettime(&task->profiling_info->release_data_end_time);
+}
 
+/* Version for a driver running on a worker: we show the driver state in the trace */
+void _starpu_push_task_output(struct _starpu_job *j)
+{
+	_STARPU_TRACE_START_PUSH_OUTPUT(NULL);
+	__starpu_push_task_output(j);
 	_STARPU_TRACE_END_PUSH_OUTPUT(NULL);
 }
 
-/* Version of _starpu_push_task_output used by NOWHERE tasks, for which
- * _starpu_fetch_task_input was not called. We just release the handle */
-void _starpu_release_nowhere_task_output(struct _starpu_job *j)
+struct fetch_nowhere_wrapper
 {
-#ifdef STARPU_OPENMP
-	STARPU_ASSERT(!j->continuation);
-#endif
+	struct _starpu_job *j;
+	unsigned pending;
+};
+
+static void _starpu_fetch_nowhere_task_input_cb(void *arg);
+/* Asynchronously fetch data for a task which will have no content */
+void _starpu_fetch_nowhere_task_input(struct _starpu_job *j)
+{
 	int profiling = starpu_profiling_status_get();
 	struct starpu_task *task = j->task;
 	if (profiling && task->profiling_info)
-		_starpu_clock_gettime(&task->profiling_info->release_data_start_time);
+		_starpu_clock_gettime(&task->profiling_info->acquire_data_start_time);
 
-        struct _starpu_data_descr *descrs = _STARPU_JOB_GET_ORDERED_BUFFERS(j);
-        unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
+	struct _starpu_data_descr *descrs = _STARPU_JOB_GET_ORDERED_BUFFERS(j);
+	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
+	unsigned nfetchbuffers = 0;
+	struct fetch_nowhere_wrapper *wrapper;
 
 	unsigned index;
 	for (index = 0; index < nbuffers; index++)
 	{
-		starpu_data_handle_t handle = descrs[index].handle;
+		int node = descrs[index].node;
+		if (node != -1)
+			nfetchbuffers++;
+	}
 
-		if (index && descrs[index-1].handle == descrs[index].handle)
-			/* We have already released this data, skip it. This
-			 * depends on ordering putting writes before reads, see
-			 * _starpu_compar_handles */
+	if (!nfetchbuffers)
+	{
+		/* Nothing to fetch actually, already finished! */
+		_starpu_handle_job_termination(j);
+		_STARPU_LOG_OUT_TAG("handle_job_termination");
+		return;
+	}
+
+	wrapper = malloc(sizeof(*wrapper));
+	wrapper->j = j;
+	wrapper->pending = nfetchbuffers;
+
+	for (index = 0; index < nbuffers; index++)
+	{
+		starpu_data_handle_t handle = descrs[index].handle;
+		enum starpu_data_access_mode mode = descrs[index].mode;
+		int node = descrs[index].node;
+		if (node == -1)
 			continue;
 
-		/* Keep a reference for future
-		 * _starpu_release_task_enforce_sequential_consistency call */
-		_starpu_spin_lock(&handle->header_lock);
-		handle->busy_count++;
-		_starpu_spin_unlock(&handle->header_lock);
+		if (mode == STARPU_NONE ||
+			(mode & ((1<<STARPU_MODE_SHIFT) - 1)) >= STARPU_ACCESS_MODE_MAX ||
+			(mode >> STARPU_MODE_SHIFT) >= STARPU_SHIFTED_MODE_MAX)
+			STARPU_ASSERT_MSG(0, "mode %d (0x%x) is bogus\n", mode, mode);
+		STARPU_ASSERT(mode != STARPU_SCRATCH && mode != STARPU_REDUX);
 
-		_starpu_spin_lock(&handle->header_lock);
-		if (!_starpu_notify_data_dependencies(handle))
-			_starpu_spin_unlock(&handle->header_lock);
+		struct _starpu_data_replicate *local_replicate;
+
+		local_replicate = get_replicate(handle, mode, -1, node);
+
+		_starpu_fetch_data_on_node(handle, local_replicate, mode, 0, 0, 1, _starpu_fetch_nowhere_task_input_cb, wrapper);
 	}
 
 	if (profiling && task->profiling_info)
-		_starpu_clock_gettime(&task->profiling_info->release_data_end_time);
+		_starpu_clock_gettime(&task->profiling_info->acquire_data_end_time);
+}
+
+static void _starpu_fetch_nowhere_task_input_cb(void *arg)
+{
+	/* One more transfer finished */
+	struct fetch_nowhere_wrapper *wrapper = arg;
+
+	ANNOTATE_HAPPENS_BEFORE(&wrapper->pending);
+	unsigned pending = STARPU_ATOMIC_ADD(&wrapper->pending, -1);
+	if (pending == 0)
+	{
+		ANNOTATE_HAPPENS_AFTER(&wrapper->pending);
+
+		/* Finished transferring, task is over */
+		struct _starpu_job *j = wrapper->j;
+		free(wrapper);
+		__starpu_push_task_output(j);
+		_starpu_handle_job_termination(j);
+		_STARPU_LOG_OUT_TAG("handle_job_termination");
+	}
 }
 
 /* NB : this value can only be an indication of the status of a data

@@ -108,7 +108,7 @@ New features:
   * New StarPU-MPI gdb debug functions
   * Generate animated html trace of modular schedulers.
   * Add asynchronous partition planning. It only supports coherency through
-    the main RAM for now.
+    the home node of data for now.
 
 Small features:
   * Tasks can now have a name (via the field const char *name of

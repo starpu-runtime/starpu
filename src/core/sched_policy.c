@@ -406,11 +406,19 @@ int _starpu_repush_task(struct _starpu_job *j)
 	 * corresponding dependencies */
 	if (task->cl == NULL || task->cl->where == STARPU_NOWHERE)
 	{
-		if(task->prologue_callback_pop_func)
+		if (task->prologue_callback_pop_func)
 			task->prologue_callback_pop_func(task->prologue_callback_pop_arg);
 
-		_starpu_handle_job_termination(j);
-		_STARPU_LOG_OUT_TAG("handle_job_termination");
+		if (task->cl && task->cl->specific_nodes)
+		{
+			/* Nothing to do, but we are asked to fetch data on some memory nodes */
+			_starpu_fetch_nowhere_task_input(j);
+		}
+		else
+		{
+			_starpu_handle_job_termination(j);
+			_STARPU_LOG_OUT_TAG("handle_job_termination");
+		}
 		return 0;
 	}
 
