@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2014 Université Bordeaux
+ * Copyright (C) 2014-2015 Université Bordeaux
  * Copyright (C) 2014 INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -28,6 +28,7 @@ static unsigned cnt;
 static void cpu_memcpy(void *descr[], void *cl_arg)
 {
 	int me = (uintptr_t)cl_arg;
+	int res;
 
 	FPRINTF(stderr,"%d\n", me);
 
@@ -35,10 +36,14 @@ static void cpu_memcpy(void *descr[], void *cl_arg)
 	{
 		/* let commute tasks potentially happen */
 		usleep(100000);
-		STARPU_ASSERT(STARPU_ATOMIC_ADD(&cnt,1) == 1);
+		res = STARPU_ATOMIC_ADD(&cnt,1);
+		STARPU_ASSERT(res == 1);
 	}
 	else
-		STARPU_ASSERT(STARPU_ATOMIC_ADD(&cnt,1) != 1);
+	{
+		res = STARPU_ATOMIC_ADD(&cnt,1);
+		STARPU_ASSERT(res != 1);
+	}
 }
 
 static struct starpu_codelet my_cl =
