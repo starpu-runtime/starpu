@@ -486,9 +486,6 @@ static size_t try_to_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 				 * mc_lock, etc. */
 				res = transfer_subtree_to_node(handle, node, target);
 				_STARPU_TRACE_END_WRITEBACK(node);
-				if (res)
-					/* Oops, the handle has disappeared in the meanwhile */
-					return 0;
 #ifdef STARPU_MEMORY_STATS
 				_starpu_memory_handle_stats_loaded_owner(handle, target);
 #endif
@@ -498,13 +495,17 @@ static size_t try_to_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 				{
 					STARPU_ASSERT(mc->remove_notify == &mc);
 					mc->remove_notify = NULL;
-					/* mc is still associated with the old
-					 * handle, now free it.
-					 */
 
-					if (handle->per_node[node].refcnt == 0)
-						/* And still nobody on it, now the actual buffer may be freed */
-						freed = do_free_mem_chunk(mc, node);
+					if (!res)
+					{
+						/* mc is still associated with the old
+						 * handle, now free it.
+						 */
+
+						if (handle->per_node[node].refcnt == 0)
+							/* And still nobody on it, now the actual buffer may be freed */
+							freed = do_free_mem_chunk(mc, node);
+					}
 				}
 			}
 		}
@@ -589,20 +590,20 @@ static unsigned try_to_reuse_mem_chunk(struct _starpu_mem_chunk *mc, unsigned no
 			_STARPU_TRACE_START_WRITEBACK(node);
 			res = transfer_subtree_to_node(old_data, node, STARPU_MAIN_RAM);
 			_STARPU_TRACE_END_WRITEBACK(node);
-			if (res)
-				/* Oops, the handle has disappeared in the meanwhile */
-				return 0;
 			_starpu_spin_lock(&mc_lock[node]);
 
 			if (mc)
 			{
 				STARPU_ASSERT(mc->remove_notify == &mc);
 				mc->remove_notify = NULL;
-				/* mc is still associated with the old
-				 * handle, now replace the previous data
-				 */
-				reuse_mem_chunk(node, replicate, mc, is_already_in_mc_list);
-				success = 1;
+				if (!res)
+				{
+					/* mc is still associated with the old
+					 * handle, now replace the previous data
+					 */
+					reuse_mem_chunk(node, replicate, mc, is_already_in_mc_list);
+					success = 1;
+				}
 			}
 		}
 
