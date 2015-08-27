@@ -25,6 +25,10 @@
 
 #include <starpu_config.h>
 
+#ifdef __GLIBC__
+#include <execinfo.h>
+#endif
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -86,6 +90,17 @@ extern "C"
 #define STARPU_MIN(a,b)	((a)<(b)?(a):(b))
 #define STARPU_MAX(a,b)	((a)<(b)?(b):(a))
 
+#define STARPU_BACKTRACE_LENGTH	32
+#ifdef __GLIBC__
+#  define STARPU_DUMP_BACKTRACE() do { \
+	void *__ptrs[STARPU_BACKTRACE_LENGTH]; \
+	int __n = backtrace(__ptrs, STARPU_BACKTRACE_LENGTH); \
+	backtrace_symbols_fd(__ptrs, __n, 2); \
+} while (0)
+#else
+#  define STARPU_DUMP_BACKTRACE() do { } while (0)
+#endif
+
 #ifdef STARPU_NO_ASSERT
 #define STARPU_ASSERT(x)		do { } while(0)
 #define STARPU_ASSERT_MSG(x, msg, ...)	do { } while(0)
@@ -94,8 +109,8 @@ extern "C"
 #    define STARPU_ASSERT(x)		do { if (STARPU_UNLIKELY(!(x))) *(int*)NULL = 0; } while(0)
 #    define STARPU_ASSERT_MSG(x, msg, ...)	do { if (STARPU_UNLIKELY(!(x))) { fprintf(stderr, "\n[starpu][%s][assert failure] " msg "\n\n", __starpu_func__, ## __VA_ARGS__); *(int*)NULL = 0; }} while(0)
 #  else
-#    define STARPU_ASSERT(x)		assert(x)
-#    define STARPU_ASSERT_MSG(x, msg, ...)	do { if (STARPU_UNLIKELY(!(x))) { fprintf(stderr, "\n[starpu][%s][assert failure] " msg "\n\n", __starpu_func__, ## __VA_ARGS__); } ; assert(x); } while(0)
+#    define STARPU_ASSERT(x)		do { if (STARPU_UNLIKELY(!(x))) STARPU_DUMP_BACKTRACE(); assert(x); } while (0)
+#    define STARPU_ASSERT_MSG(x, msg, ...)	do { if (STARPU_UNLIKELY(!(x))) { fprintf(stderr, "\n[starpu][%s][assert failure] " msg "\n\n", __starpu_func__, ## __VA_ARGS__); STARPU_DUMP_BACKTRACE(); } assert(x); } while(0)
 
 #  endif
 #endif
