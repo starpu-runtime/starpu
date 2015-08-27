@@ -56,6 +56,40 @@
  * step, implemented in data_arbiter_concurrency.c
  */
 
+/* Just try to acquire in R or W mode, used for eviction */
+int _starpu_attempt_to_acquire_data(starpu_data_handle_t handle, enum starpu_data_access_mode mode)
+{
+	if (mode == STARPU_RW)
+		mode = STARPU_W;
+	STARPU_ASSERT(!(mode & ~STARPU_RW));
+	_starpu_spin_checklocked(&handle->header_lock);
+
+	if (handle->arbiter)
+		/* TODO: Not implemented for now */
+		return 0;
+
+	if (handle->current_mode & ~STARPU_RW || handle->reduction_refcnt)
+		/* Not just R or W, do not bother trying to acquire it */
+		return 0;
+
+	if (handle->refcnt)
+	{
+		if (handle->current_mode == STARPU_W)
+			/* Currently held in W mode, not possible */
+			return 0;
+		if (handle->current_mode == STARPU_R && mode == STARPU_W)
+			/* Currently held in R mode, not possible */
+			return 0;
+	}
+
+	handle->refcnt++;
+	handle->busy_count++;
+	if (mode != STARPU_R || handle->current_mode != mode)
+		handle->current_mode = mode;
+
+	return 1;
+}
+
 /*
  * Check to see whether the first queued request can proceed, and return it in
  * such case.

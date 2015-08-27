@@ -19,6 +19,7 @@
 #include <datawizard/memory_nodes.h>
 #include <datawizard/memalloc.h>
 #include <datawizard/footprint.h>
+#include <core/dependencies/data_concurrency.h>
 #include <core/disk.h>
 #include <starpu.h>
 #include <common/uthash.h>
@@ -174,6 +175,7 @@ static void unlock_all_subtree(starpu_data_handle_t handle)
 	_starpu_spin_unlock(&handle->header_lock);
 }
 
+/* This locks header_lock for all the subdatas */
 static int lock_all_subtree(starpu_data_handle_t handle)
 {
 	int child;
@@ -199,28 +201,66 @@ static int lock_all_subtree(starpu_data_handle_t handle)
 	return 1;
 }
 
-static unsigned may_free_subtree(starpu_data_handle_t handle, unsigned node)
+static unsigned release_all_subtree(starpu_data_handle_t handle);
+/* This checks that all subdatas are available, and acquire the rw lock */
+static int may_free_subtree(starpu_data_handle_t handle, unsigned node)
 {
 	/* we only free if no one refers to the leaf */
 	uint32_t refcnt = _starpu_get_data_refcnt(handle, node);
 	if (refcnt)
 		return 0;
 
-	if (!handle->nchildren)
-		return 1;
+	if (!_starpu_attempt_to_acquire_data(handle, STARPU_R))
+		return 0;
 
 	/* look into all sub-subtrees children */
-	unsigned child;
-	for (child = 0; child < handle->nchildren; child++)
+	int child;
+	for (child = 0; child < (int) handle->nchildren; child++)
 	{
-		unsigned res;
+		int res;
 		starpu_data_handle_t child_handle = starpu_data_get_child(handle, child);
 		res = may_free_subtree(child_handle, node);
-		if (!res) return 0;
+		/* The children can't have disappeared since we still hold the
+		 * parent header_lock */
+		STARPU_ASSERT(res >= 0);
+		if (!res)
+		{
+			/* Oops, can't free a child, undo what we did */
+			for (child-- ; child >= 0; child--)
+			{
+				child_handle = starpu_data_get_child(handle, child);
+				res = release_all_subtree(child_handle);
+				/* The children can't have disappeared since we still hold the
+				 * parent header_lock */
+				STARPU_ASSERT(!res);
+			}
+			res = _starpu_notify_data_dependencies(handle);
+			if (res)
+				/* Urgl, it even disappeared, tell caller that it shouldn't even unlock it */
+				return -1;
+			return 0;
+		}
 	}
 
 	/* no problem was found */
 	return 1;
+}
+
+/* This releases the rw lock of all subdatas */
+static unsigned release_all_subtree(starpu_data_handle_t handle)
+{
+	unsigned child;
+
+	for (child = 0; child < handle->nchildren; child++)
+	{
+		unsigned res;
+		starpu_data_handle_t child_handle = starpu_data_get_child(handle, child);
+		res = release_all_subtree(child_handle);
+		/* The children can't have disappeared since we still hold the
+		 * parent header_lock */
+		STARPU_ASSERT(!res);
+	}
+	return _starpu_notify_data_dependencies(handle);
 }
 
 /* Warn: this releases the header lock of the handle during the transfer
@@ -250,12 +290,9 @@ static int transfer_subtree_to_node(starpu_data_handle_t handle, unsigned src_no
 			/* There is no way we don't need a request, since
 			 * source is OWNER, destination can't be having it */
 			STARPU_ASSERT(r);
-			/* Keep the handle alive while we are working on it */
-			handle->busy_count++;
 			_starpu_spin_unlock(&handle->header_lock);
 			_starpu_wait_data_request_completion(r, 1);
 			_starpu_spin_lock(&handle->header_lock);
-			handle->busy_count--;
 			if (_starpu_data_check_not_busy(handle))
 				return 1;
 		}
@@ -455,7 +492,9 @@ static size_t try_to_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 	else if (lock_all_subtree(handle))
 	{
 		/* check if they are all "free" */
-		if (may_free_subtree(handle, node))
+		int res = may_free_subtree(handle, node);
+
+		if (res == 1)
 		{
 			int target = -1;
 
@@ -471,7 +510,6 @@ static size_t try_to_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 
 			if (target != -1)
 			{
-				int res;
 				/* Should have been avoided in our caller */
 				STARPU_ASSERT(!mc->remove_notify);
 				mc->remove_notify = &mc;
@@ -508,10 +546,22 @@ static size_t try_to_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 					}
 				}
 			}
-		}
 
-		/* unlock the tree */
-		unlock_all_subtree(handle);
+			/* release the tree */
+			if (!release_all_subtree(handle))
+				/* unlock the tree */
+				unlock_all_subtree(handle);
+		}
+		else if (res == 0)
+		{
+			/* busy, unlock the tree */
+			unlock_all_subtree(handle);
+		}
+		else
+		{
+			STARPU_ASSERT(res == -1);
+			/* busy and disappeared, don't even unlock */
+		}
 	}
 	return freed;
 }
@@ -578,9 +628,9 @@ static unsigned try_to_reuse_mem_chunk(struct _starpu_mem_chunk *mc, unsigned no
 	/* and check if they are all "free" */
 	if (lock_all_subtree(old_data))
 	{
-		if (may_free_subtree(old_data, node))
+		int res = may_free_subtree(old_data, node);
+		if (res == 1)
 		{
-			int res;
 			/* Should have been avoided in our caller */
 			STARPU_ASSERT(!mc->remove_notify);
 			mc->remove_notify = &mc;
@@ -605,10 +655,22 @@ static unsigned try_to_reuse_mem_chunk(struct _starpu_mem_chunk *mc, unsigned no
 					success = 1;
 				}
 			}
-		}
 
-		/* unlock the tree */
-		unlock_all_subtree(old_data);
+			/* release the tree */
+			if (!release_all_subtree(old_data))
+				/* unlock the tree */
+				unlock_all_subtree(old_data);
+		}
+		else if (res == 0)
+		{
+			/* busy, unlock the tree */
+			unlock_all_subtree(old_data);
+		}
+		else
+		{
+			STARPU_ASSERT(res == -1);
+			/* busy and disappeared, don't even unlock */
+		}
 	}
 
 	return success;

@@ -49,7 +49,7 @@
 #  define NITER 16
 #else
 #  define NDATA 128
-#  define NITER 1024
+#  define NITER 32
 #endif
 #  define MEMSIZE 1
 #  define MEMSIZE_STR "1"
@@ -82,10 +82,12 @@ void starpu_my_vector_data_register(starpu_data_handle_t *handleptr, unsigned ho
 	starpu_data_register(handleptr, home_node, &vector, &starpu_interface_my_vector_ops);
 }
 
+static unsigned values[NDATA];
+
 static void zero(void *buffers[], void *args)
 {
 	struct starpu_vector_interface *vector = (struct starpu_vector_interface *) buffers[0];
-	char *val = (char*) STARPU_VECTOR_GET_PTR(vector);
+	unsigned *val = (unsigned*) STARPU_VECTOR_GET_PTR(vector);
 	*val = 0;
 	VALGRIND_MAKE_MEM_DEFINED(val, STARPU_VECTOR_GET_NX(vector) * STARPU_VECTOR_GET_ELEMSIZE(vector));
 }
@@ -93,8 +95,20 @@ static void zero(void *buffers[], void *args)
 static void inc(void *buffers[], void *args)
 {
 	struct starpu_vector_interface *vector = (struct starpu_vector_interface *) buffers[0];
-	char *val = (char*) STARPU_VECTOR_GET_PTR(vector);
-	*val++;
+	unsigned *val = (unsigned*) STARPU_VECTOR_GET_PTR(vector);
+	unsigned i;
+	starpu_codelet_unpack_args(args, &i);
+	(*val)++;
+	STARPU_ATOMIC_ADD(&values[i], 1);
+}
+
+static void check(void *buffers[], void *args)
+{
+	struct starpu_vector_interface *vector = (struct starpu_vector_interface *) buffers[0];
+	unsigned *val = (unsigned*) STARPU_VECTOR_GET_PTR(vector);
+	unsigned i;
+	starpu_codelet_unpack_args(args, &i);
+	STARPU_ASSERT(*val == values[i]);
 }
 
 static struct starpu_codelet zero_cl =
@@ -109,6 +123,13 @@ static struct starpu_codelet inc_cl =
 	.cpu_funcs = { inc },
 	.nbuffers = 1,
 	.modes = { STARPU_RW },
+};
+
+static struct starpu_codelet check_cl =
+{
+	.cpu_funcs = { check },
+	.nbuffers = 1,
+	.modes = { STARPU_R },
 };
 
 int dotest(struct starpu_disk_ops *ops, char *base, void (*vector_data_register)(starpu_data_handle_t *handleptr, unsigned home_node, uintptr_t ptr, uint32_t nx, size_t elemsize))
@@ -132,21 +153,40 @@ int dotest(struct starpu_disk_ops *ops, char *base, void (*vector_data_register)
 	/* can't write on /tmp/ */
 	if (new_dd == -ENOENT) goto enoent;
 
-	unsigned int i;
+	unsigned int i, j, k;
 
 	/* Initialize twice as much data as available memory */
 	for (i = 0; i < NDATA; i++)
 	{
 		vector_data_register(&handles[i], -1, 0, (MEMSIZE*1024*1024*2) / NDATA, sizeof(char));
 		starpu_task_insert(&zero_cl, STARPU_W, handles[i], 0);
+		if ((i % (NDATA/4)) == 0)
+			/* Wait for 1/4 of the tasks (i.e. half of the memory)
+			 * to finish before filling with others */
+			starpu_task_wait_for_all();
 	}
+	memset(values, 0, sizeof(values));
 
 	for (i = 0; i < NITER; i++)
-		starpu_task_insert(&inc_cl, STARPU_RW, handles[rand()%NDATA], 0);
+	{
+		/* submit tasks dealing with half of the memory */
+		for (j = 0; j < NDATA/4; j++)
+		{
+			k = rand()%NDATA;
+			starpu_task_insert(&inc_cl, STARPU_RW, handles[k], STARPU_VALUE, &k, sizeof(k), 0);
+		}
+		/* and wait for them before submitting more */
+		starpu_task_wait_for_all();
+	}
 
-	/* Free data */
+	/* Check and free data */
 	for (i = 0; i < NDATA; i++)
+	{
+		/* No need to be careful, reclaiming can run concurrently with
+		 * tasks reading data */
+		starpu_task_insert(&check_cl, STARPU_R, handles[i], STARPU_VALUE, &i, sizeof(i), 0);
 		starpu_data_unregister(handles[i]);
+	}
 
 	/* terminate StarPU, no task can be submitted after */
 	starpu_shutdown();
