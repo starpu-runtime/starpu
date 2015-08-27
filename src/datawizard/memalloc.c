@@ -146,7 +146,10 @@ static unsigned may_free_subtree(starpu_data_handle_t handle, unsigned node)
 	return 1;
 }
 
-static void transfer_subtree_to_node(starpu_data_handle_t handle, unsigned src_node,
+/* Warn: this releases the header lock of the handle during the transfer
+ * The handle may thus unexpectedly disappear. This returns 1 in that case.
+ */
+static int transfer_subtree_to_node(starpu_data_handle_t handle, unsigned src_node,
 				     unsigned dst_node)
 {
 	unsigned i;
@@ -176,8 +179,8 @@ static void transfer_subtree_to_node(starpu_data_handle_t handle, unsigned src_n
 			_starpu_wait_data_request_completion(r, 1);
 			_starpu_spin_lock(&handle->header_lock);
 			handle->busy_count--;
-			int ret = _starpu_data_check_not_busy(handle);
-			STARPU_ASSERT(!ret);
+			if (_starpu_data_check_not_busy(handle))
+				return 1;
 		}
 
 		if (src_replicate->state == STARPU_SHARED)
@@ -209,12 +212,17 @@ static void transfer_subtree_to_node(starpu_data_handle_t handle, unsigned src_n
 	{
 		/* lock all sub-subtrees children */
 		unsigned child;
+		int res;
 		for (child = 0; child < handle->nchildren; child++)
 		{
 			starpu_data_handle_t child_handle = starpu_data_get_child(handle, child);
-			transfer_subtree_to_node(child_handle, src_node, dst_node);
+			res = transfer_subtree_to_node(child_handle, src_node, dst_node);
+			/* There is no way children have disappeared since we
+			 * keep the parent lock held */
+			STARPU_ASSERT(!res);
 		}
 	}
+	return 0;
 }
 
 static void notify_handle_children(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, unsigned node)
@@ -385,14 +393,18 @@ static size_t try_to_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 					target = 0;
 
 			if (target != -1) {
+				int res;
 #ifdef STARPU_MEMORY_STATS
 				if (handle->per_node[node].state == STARPU_OWNER)
 					_starpu_memory_handle_stats_invalidated(handle, node);
 #endif
 
 				_STARPU_TRACE_START_WRITEBACK(node);
-				transfer_subtree_to_node(handle, node, target);
+				res = transfer_subtree_to_node(handle, node, target);
 				_STARPU_TRACE_END_WRITEBACK(node);
+				if (res)
+					/* Oops, the handle has disappeared in the meanwhile */
+					return 0;
 #ifdef STARPU_MEMORY_STATS
 				_starpu_memory_handle_stats_loaded_owner(handle, target);
 #endif
@@ -474,13 +486,17 @@ static unsigned try_to_reuse_mem_chunk(struct _starpu_mem_chunk *mc, unsigned no
 	{
 		if (may_free_subtree(old_data, node))
 		{
+			int res;
 			success = 1;
 
 			/* in case there was nobody using that buffer, throw it
 			 * away after writing it back to main memory */
 			_STARPU_TRACE_START_WRITEBACK(node);
-			transfer_subtree_to_node(old_data, node, 0);
+			res = transfer_subtree_to_node(old_data, node, 0);
 			_STARPU_TRACE_END_WRITEBACK(node);
+			if (res)
+				/* Oops, the handle has disappeared in the meanwhile */
+				return 0;
 
 			/* now replace the previous data */
 			reuse_mem_chunk(node, replicate, mc, is_already_in_mc_list);
