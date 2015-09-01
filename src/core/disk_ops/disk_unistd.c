@@ -31,26 +31,23 @@
 /* ------------------- use UNISTD to write on disk -------------------  */
 
 /* allocation memory on disk */
-static void * 
-starpu_unistd_alloc (void *base, size_t size)
+static void *starpu_unistd_alloc(void *base, size_t size)
 {
-        struct starpu_unistd_global_obj * obj = malloc(sizeof(struct starpu_unistd_global_obj));
+        struct starpu_unistd_global_obj *obj = malloc(sizeof(struct starpu_unistd_global_obj));
         STARPU_ASSERT(obj != NULL);
 	/* only flags change between unistd and unistd_o_direct */
 	obj->flags = O_RDWR | O_BINARY;
-	return starpu_unistd_global_alloc (obj, base, size);
+	return starpu_unistd_global_alloc(obj, base, size);
 }
 
 /* open an existing memory on disk */
-static void * 
-starpu_unistd_open (void *base, void *pos, size_t size)
+static void *starpu_unistd_open(void *base, void *pos, size_t size)
 {
-	struct starpu_unistd_global_obj * obj = malloc(sizeof(struct starpu_unistd_global_obj));
+	struct starpu_unistd_global_obj *obj = malloc(sizeof(struct starpu_unistd_global_obj));
 	STARPU_ASSERT(obj != NULL);
 	/* only flags change between unistd and unistd_o_direct */
 	obj->flags = O_RDWR | O_BINARY;
-	return starpu_unistd_global_open (obj, base, pos, size);	
-
+	return starpu_unistd_global_open(obj, base, pos, size);
 }
 
 struct starpu_disk_ops starpu_disk_unistd_ops =
