@@ -18,10 +18,6 @@
 #ifndef __DRIVER_CUDA_H__
 #define __DRIVER_CUDA_H__
 
-#include <assert.h>
-#include <math.h>
-#include <stdio.h>
-
 #ifdef STARPU_USE_CUDA
 #include <cuda.h>
 #include <cuda_runtime_api.h>
