@@ -128,18 +128,18 @@ struct _starpu_sched_ctx_elt* _starpu_sched_ctx_elt_add(struct _starpu_sched_ctx
 
 /* Remove elt from list */
 void _starpu_sched_ctx_elt_remove(struct _starpu_sched_ctx_list *list,
-				 struct _starpu_sched_ctx_elt **elt)
+				 struct _starpu_sched_ctx_elt *elt)
 {
-	(*elt)->prev->next = (*elt)->next;
-	(*elt)->next->prev = (*elt)->prev;
+	elt->prev->next = elt->next;
+	elt->next->prev = elt->prev;
 
-	if ((*elt)->next == (*elt)) //singleton
+	if (elt->next == elt) //singleton
 		list->head = NULL;
-	else if ((*elt)->next != (*elt) && list->head == (*elt))
-		list->head = (*elt)->next;
+	else if (elt->next != elt && list->head == elt)
+		list->head = elt->next;
 
-	free(*elt);
-	*elt = NULL;
+	free(elt);
+	elt = NULL;
 	return;
 }
 
@@ -243,7 +243,7 @@ void _starpu_sched_ctx_list_remove_elt(struct _starpu_sched_ctx_list **list,
 
 	parent = rm->parent;
 
-	_starpu_sched_ctx_elt_remove(parent, &rm);
+	_starpu_sched_ctx_elt_remove(parent, rm);
 
 	/* Automatically clean up useless prio list */
 	if (parent->head == NULL)
@@ -307,7 +307,7 @@ void _starpu_sched_ctx_list_remove_all(struct _starpu_sched_ctx_list *list)
 	struct _starpu_sched_ctx_elt *next = NULL;
 
 	while (list->head != NULL)
-		_starpu_sched_ctx_elt_remove(list, &list->head);
+		_starpu_sched_ctx_elt_remove(list, list->head);
 
 	free(list);
 }

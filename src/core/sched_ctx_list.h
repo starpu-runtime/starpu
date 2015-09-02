@@ -51,7 +51,7 @@ void _starpu_sched_ctx_elt_init(struct _starpu_sched_ctx_elt *elt, unsigned sche
 struct _starpu_sched_ctx_elt* _starpu_sched_ctx_elt_add_after(struct _starpu_sched_ctx_list *list, unsigned sched_ctx);
 struct _starpu_sched_ctx_elt* _starpu_sched_ctx_elt_add_before(struct _starpu_sched_ctx_list *list, unsigned sched_ctx);
 struct _starpu_sched_ctx_elt* _starpu_sched_ctx_elt_add(struct _starpu_sched_ctx_list *list, unsigned sched_ctx);
-void _starpu_sched_ctx_elt_remove(struct _starpu_sched_ctx_list *list, struct _starpu_sched_ctx_elt **elt);
+void _starpu_sched_ctx_elt_remove(struct _starpu_sched_ctx_list *list, struct _starpu_sched_ctx_elt *elt);
 int _starpu_sched_ctx_elt_exists(struct _starpu_sched_ctx_list *list, unsigned sched_ctx);
 int _starpu_sched_ctx_elt_get_priority(struct _starpu_sched_ctx_list *list, unsigned sched_ctx);
 
