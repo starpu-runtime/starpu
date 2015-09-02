@@ -63,19 +63,21 @@ int main(int argc, char **argv)
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
 
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+	ret = starpu_mpi_init(NULL, NULL, 0);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
+
 	if (size < 3)
 	{
 		if (rank == 0)
 			FPRINTF(stderr, "We need at least 3 processes.\n");
 
+		starpu_mpi_shutdown();
+		starpu_shutdown();
 		MPI_Finalize();
 		return STARPU_TEST_SKIPPED;
 	}
-
-	ret = starpu_init(NULL);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-	ret = starpu_mpi_init(NULL, NULL, 0);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
 
 	for(n = 0; n < N; n++)
 	{
@@ -141,10 +143,12 @@ int main(int argc, char **argv)
 
 	FPRINTF(stdout, "[%d] X[%d]=%u\n", rank, N-1, X[N-1]);
 
+#ifndef STARPU_SIMGRID
 	if (rank == 2)
 	{
 		STARPU_ASSERT_MSG(X[N-1]==144, "Error when calculating X[N-1]=%u\n", X[N-1]);
 	}
+#endif
 
 	MPI_Finalize();
 	return 0;
