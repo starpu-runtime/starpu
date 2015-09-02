@@ -1,7 +1,7 @@
 <!--
 StarPU   Runtime system for heterogeneous multicore architectures.
 
-Copyright (C) 2014  Université de Bordeaux
+Copyright (C) 2014-2015  Université de Bordeaux
 
 StarPU is free software; you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -24,7 +24,7 @@ See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
 -->
     <!-- Copy everything by default but keep applying templates.  -->
-    <xsl:template match="platform|AS|host|link|prop|@*">
+    <xsl:template match="platform|AS|host|link|prop|route|link_ctn|@*">
         <xsl:copy>
             <xsl:apply-templates select="node()|@*"/>
         </xsl:copy>
@@ -42,6 +42,15 @@ See the GNU Lesser General Public License in COPYING.LGPL for more details.
 	    <xsl:attribute name="id"><xsl:value-of select="$ASname"/>-<xsl:value-of select="."/></xsl:attribute>
     </xsl:template>
     <xsl:template match="platform/AS/link/@id">
+	    <xsl:attribute name="id"><xsl:value-of select="$ASname"/>-<xsl:value-of select="."/></xsl:attribute>
+    </xsl:template>
+    <xsl:template match="platform/AS/route/@src">
+	    <xsl:attribute name="src"><xsl:value-of select="$ASname"/>-<xsl:value-of select="."/></xsl:attribute>
+    </xsl:template>
+    <xsl:template match="platform/AS/route/@dst">
+	    <xsl:attribute name="dst"><xsl:value-of select="$ASname"/>-<xsl:value-of select="."/></xsl:attribute>
+    </xsl:template>
+    <xsl:template match="platform/AS/route/link_ctn/@id">
 	    <xsl:attribute name="id"><xsl:value-of select="$ASname"/>-<xsl:value-of select="."/></xsl:attribute>
     </xsl:template>
 
