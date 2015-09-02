@@ -27,6 +27,7 @@ New features:
     block.
   * Add STARPU_NOWHERE to create synchronization tasks with data.
   * Document how to switch between differents views of the same data.
+  * Add Fortran 90 module and example using it
 
 StarPU 1.1.4 (svn revision 14856)
 ==============================================
