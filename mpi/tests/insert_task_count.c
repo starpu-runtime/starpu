@@ -66,19 +66,21 @@ int main(int argc, char **argv)
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
 
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+	ret = starpu_mpi_init(NULL, NULL, 0);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
+
 	if (size < 2)
 	{
 		if (rank == 0)
 			FPRINTF(stderr, "We need at least 2 processes.\n");
 
+		starpu_mpi_shutdown();
+		starpu_shutdown();
 		MPI_Finalize();
 		return STARPU_TEST_SKIPPED;
 	}
-
-	ret = starpu_init(NULL);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-	ret = starpu_mpi_init(NULL, NULL, 0);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
 
 	if (rank == 1)
 		starpu_vector_data_register(&token_handle, 0, (uintptr_t)&token, 1, sizeof(token));
@@ -114,6 +116,7 @@ int main(int argc, char **argv)
 
 	MPI_Finalize();
 
+#ifndef STARPU_SIMGRID
 	if (rank == 1)
 	{
 		STARPU_ASSERT_MSG(token == nloops, "token==%d != expected_value==%d\n", token, nloops);
@@ -123,6 +126,7 @@ int main(int argc, char **argv)
 		STARPU_ASSERT_MSG(token == 0, "token==%d != expected_value==0\n", token);
 
 	}
+#endif
 
 	return 0;
 }

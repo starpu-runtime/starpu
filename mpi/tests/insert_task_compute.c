@@ -194,6 +194,7 @@ enodev:
 	}
 
 	ok = 1;
+#ifndef STARPU_SIMGRID
 	if (rank <= 1)
 	{
 		for(i=0; i<2; i++)
@@ -203,6 +204,7 @@ enodev:
 		}
 		FPRINTF_MPI(stderr, "result is %s\n", ok?"CORRECT":"NOT CORRECT");
 	}
+#endif
 
 nodata:
 	MPI_Barrier(MPI_COMM_WORLD);

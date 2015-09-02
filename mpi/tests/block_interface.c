@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2014  Université de Bordeaux
+ * Copyright (C) 2009, 2010, 2014-2015  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2014  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -32,19 +32,21 @@ int main(int argc, char **argv)
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
 
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+	ret = starpu_mpi_init(NULL, NULL, 0);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
+
 	if (size < 2)
 	{
 		if (rank == 0)
 			FPRINTF(stderr, "We need at least 2 processes.\n");
 
+		starpu_mpi_shutdown();
+		starpu_shutdown();
 		MPI_Finalize();
 		return STARPU_TEST_SKIPPED;
 	}
-
-	ret = starpu_init(NULL);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-	ret = starpu_mpi_init(NULL, NULL, 0);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
 
 	/* Node 0 will allocate a big block and only register an inner part of
 	 * it as the block data, Node 1 will allocate a block of small size and

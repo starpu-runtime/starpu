@@ -133,11 +133,13 @@ int main(int argc, char **argv)
 	starpu_mpi_shutdown();
 	starpu_shutdown();
 
+#ifndef STARPU_SIMGRID
 	if (rank == last_rank)
 	{
 		FPRINTF(stderr, "[%d] token = %u == %u * %d ?\n", rank, token, nloops, size);
 		STARPU_ASSERT(token == nloops*size);
 	}
+#endif
 
 	return 0;
 }
