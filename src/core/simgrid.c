@@ -231,6 +231,10 @@ void _starpu_simgrid_init()
 		_STARPU_ERROR("In simgrid mode, the file containing the main() function of this application needs to be compiled with starpu.h included, to properly rename it into starpu_main\n");
 		exit(EXIT_FAILURE);
 	}
+	if (_starpu_simgrid_running_smpi())
+	{
+		MSG_process_set_data(MSG_process_self(), calloc(MAX_TSD, sizeof(void*)));
+	}
 }
 
 /*

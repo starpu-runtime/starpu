@@ -1245,6 +1245,10 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	MPI_Comm_rank(argc_argv->comm, &rank);
 	MPI_Comm_size(argc_argv->comm, &worldsize);
 	MPI_Comm_set_errhandler(argc_argv->comm, MPI_ERRORS_RETURN);
+#ifdef STARPU_SIMGRID
+	_mpi_world_size = worldsize;
+	_mpi_world_rank = rank;
+#endif
 
 	{
 		_STARPU_MPI_TRACE_START(rank, worldsize);
@@ -1271,14 +1275,14 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 
 #ifdef STARPU_SIMGRID
-	_mpi_world_size = worldsize;
-	_mpi_world_rank = rank;
 	/* Now that MPI is set up, let the rest of simgrid get initialized */
 	char ** argv_cpy = malloc(*(argc_argv->argc) * sizeof(char*));
 	int i;
 	for (i = 0; i < *(argc_argv->argc); i++)
 		argv_cpy[i] = strdup(*(argc_argv->argv)[i]);
 	MSG_process_create_with_arguments("main", smpi_simulated_main_, NULL, _starpu_simgrid_get_host_by_name("MAIN"), *(argc_argv->argc), argv_cpy);
+	/* And set TSD for us */
+	smpi_process_set_user_data(calloc(MAX_TSD, sizeof(void*)));
 #endif
 
 	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
