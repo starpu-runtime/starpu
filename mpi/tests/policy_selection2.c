@@ -28,11 +28,23 @@ void func_cpu(void *descr[], void *_args)
 	*data2 += *data0;
 }
 
+/* Dummy cost function for simgrid */
+static double cost_function(struct starpu_task *task STARPU_ATTRIBUTE_UNUSED, unsigned nimpl STARPU_ATTRIBUTE_UNUSED)
+{
+	return 0.000001;
+}
+static struct starpu_perfmodel dumb_model =
+{
+	.type		= STARPU_COMMON,
+	.cost_function	= cost_function
+};
+
 struct starpu_codelet mycodelet =
 {
 	.cpu_funcs = {func_cpu},
 	.nbuffers = 3,
-	.modes = {STARPU_R, STARPU_W, STARPU_W}
+	.modes = {STARPU_R, STARPU_W, STARPU_W},
+	.model = &dumb_model
 };
 
 int main(int argc, char **argv)

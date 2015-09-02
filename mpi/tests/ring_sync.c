@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2014  Université de Bordeaux
+ * Copyright (C) 2009, 2010, 2014-2015  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -37,6 +37,17 @@ void increment_cpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 	(*tokenptr)++;
 }
 
+/* Dummy cost function for simgrid */
+static double cost_function(struct starpu_task *task STARPU_ATTRIBUTE_UNUSED, unsigned nimpl STARPU_ATTRIBUTE_UNUSED)
+{
+	return 0.000001;
+}
+static struct starpu_perfmodel dumb_model =
+{
+	.type		= STARPU_COMMON,
+	.cost_function	= cost_function
+};
+
 static struct starpu_codelet increment_cl =
 {
 #ifdef STARPU_USE_CUDA
@@ -44,7 +55,8 @@ static struct starpu_codelet increment_cl =
 #endif
 	.cpu_funcs = {increment_cpu},
 	.nbuffers = 1,
-	.modes = {STARPU_RW}
+	.modes = {STARPU_RW},
+	.model = &dumb_model
 };
 
 void increment_token(void)

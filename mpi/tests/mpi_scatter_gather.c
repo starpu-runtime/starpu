@@ -38,11 +38,27 @@ void cpu_codelet(void *descr[], void *_args)
 	}
 }
 
+#ifdef STARPU_SIMGRID
+/* Dummy cost function for simgrid */
+static double cost_function(struct starpu_task *task STARPU_ATTRIBUTE_UNUSED, unsigned nimpl STARPU_ATTRIBUTE_UNUSED)
+{
+	return 0.000001;
+}
+static struct starpu_perfmodel dumb_model =
+{
+	.type		= STARPU_COMMON,
+	.cost_function	= cost_function
+};
+#endif
+
 static struct starpu_codelet cl =
 {
 	.cpu_funcs = {cpu_codelet},
 	.nbuffers = 1,
 	.modes = {STARPU_RW},
+#ifdef STARPU_SIMGRID
+	.model = &dumb_model,
+#endif
 };
 
 void scallback(void *arg STARPU_ATTRIBUTE_UNUSED)
