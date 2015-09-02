@@ -45,7 +45,7 @@ All 5 tests passed
 \endverbatim
 
 The environment variable \ref OCL_ICD_VENDORS has to point to the directory
-where the ICD files are installed. When compiling StarPU, the files
+where the socl.icd ICD file is installed. When compiling StarPU, the files
 are in the directory <c>socl/vendors</c>. With an installed version of
 StarPU, the files are installed in the directory
 <c>$prefix/share/starpu/opencl/vendors</c>.
