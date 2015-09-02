@@ -27,29 +27,23 @@ void my_func(STARPU_ATTRIBUTE_UNUSED void *descr[], STARPU_ATTRIBUTE_UNUSED void
 	FPRINTF_MPI(stderr, "i am here\n");
 }
 
-#ifdef STARPU_SIMGRID
-static double cost_function(struct starpu_task *task, unsigned nimpl)
+/* Dummy cost function for simgrid */
+static double cost_function(struct starpu_task *task STARPU_ATTRIBUTE_UNUSED, unsigned nimpl STARPU_ATTRIBUTE_UNUSED)
 {
-	(void) task;
-	(void) nimpl;
 	return 0.000001;
 }
-
-static struct starpu_perfmodel model =
+static struct starpu_perfmodel dumb_model =
 {
-	.type = STARPU_COMMON,
-	.cost_function = cost_function,
+	.type		= STARPU_COMMON,
+	.cost_function	= cost_function
 };
-#endif
 
 struct starpu_codelet my_codelet =
 {
 	.cpu_funcs = {my_func},
 	.cuda_funcs = {my_func},
 	.opencl_funcs = {my_func},
-#ifdef STARPU_SIMGRID
-	.model = &model
-#endif
+	.model = &dumb_model
 };
 
 static

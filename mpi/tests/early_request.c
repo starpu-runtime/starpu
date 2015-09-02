@@ -60,12 +60,28 @@ void fill_tmp_buffer(void *buffers[], void *cl_arg)
 		tmp[i]=nx+i;
 }
 
+#ifdef STARPU_SIMGRID
+/* Dummy cost function for simgrid */
+static double cost_function(struct starpu_task *task STARPU_ATTRIBUTE_UNUSED, unsigned nimpl STARPU_ATTRIBUTE_UNUSED)
+{
+	return 0.000001;
+}
+static struct starpu_perfmodel dumb_model =
+{
+	.type		= STARPU_COMMON,
+	.cost_function	= cost_function
+};
+#endif
+
 static struct starpu_codelet fill_tmp_buffer_cl =
 {
 	.where = STARPU_CPU,
 	.cpu_funcs = {fill_tmp_buffer, NULL},
 	.nbuffers = 1,
 	.modes = {STARPU_W},
+#ifdef STARPU_SIMGRID
+	.model = &dumb_model,
+#endif
 	.name = "fill_tmp_buffer"
 };
 
@@ -86,6 +102,9 @@ static struct starpu_codelet read_ghost_value_cl =
 	.cpu_funcs = {read_ghost, NULL},
 	.nbuffers = 1,
 	.modes = {STARPU_R},
+#ifdef STARPU_SIMGRID
+	.model = &dumb_model,
+#endif
 	.name = "read_ghost_value"
 };
 
@@ -104,6 +123,9 @@ static struct starpu_codelet submitted_order =
 	.cpu_funcs = {submitted_order_fun, NULL},
 	.nbuffers = 2,
 	.modes = {STARPU_RW, STARPU_W},
+#ifdef STARPU_SIMGRID
+	.model = &dumb_model,
+#endif
 	.name = "submitted_order_enforcer"
 };
 

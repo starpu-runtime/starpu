@@ -645,6 +645,17 @@ void _starpu_mpi_redux_data_dummy_func(STARPU_ATTRIBUTE_UNUSED void *buffers[], 
 {
 }
 
+/* Dummy cost function for simgrid */
+static double cost_function(struct starpu_task *task STARPU_ATTRIBUTE_UNUSED, unsigned nimpl STARPU_ATTRIBUTE_UNUSED)
+{
+	return 0.000001;
+}
+static struct starpu_perfmodel dumb_model =
+{
+	.type		= STARPU_COMMON,
+	.cost_function	= cost_function
+};
+
 static
 struct starpu_codelet _starpu_mpi_redux_data_read_cl =
 {
@@ -653,6 +664,7 @@ struct starpu_codelet _starpu_mpi_redux_data_read_cl =
 	.opencl_funcs = {_starpu_mpi_redux_data_dummy_func},
 	.nbuffers = 1,
 	.modes = {STARPU_R},
+	.model = &dumb_model,
 	.name = "_starpu_mpi_redux_data_read_cl"
 };
 
@@ -663,6 +675,7 @@ struct starpu_codelet _starpu_mpi_redux_data_readwrite_cl =
 	.opencl_funcs = {_starpu_mpi_redux_data_dummy_func},
 	.nbuffers = 1,
 	.modes = {STARPU_RW},
+	.model = &dumb_model,
 	.name = "_starpu_mpi_redux_data_write_cl"
 };
 
