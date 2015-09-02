@@ -192,12 +192,16 @@ int main(int argc, char **argv)
 	starpu_mpi_shutdown();
 	starpu_shutdown();
 
+#ifndef STARPU_SIMGRID
 	if (my_rank == 0)
 	{
 		FPRINTF(stderr, "[%d] sum=%ld\n", my_rank, sum);
 		FPRINTF(stderr, "[%d] dot=%ld\n", my_rank, dot);
 		FPRINTF(stderr, "%s when computing reduction\n", (sum == dot) ? "Success" : "Error");
+		if (sum != dot)
+			return 1;
 	}
+#endif
 
 	return 0;
 }

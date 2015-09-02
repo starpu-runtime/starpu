@@ -135,10 +135,12 @@ int main(int argc, char **argv)
 
 	FPRINTF(stdout, "[%d] Y=%u\n", rank, Y);
 
+#ifndef STARPU_SIMGRID
 	if (rank == 0)
 	{
 		STARPU_ASSERT_MSG(Y==300, "Error when calculating Y=%u\n", Y);
 	}
+#endif
 
 	return 0;
 }

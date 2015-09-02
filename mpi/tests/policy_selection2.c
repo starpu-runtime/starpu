@@ -60,20 +60,21 @@ int main(int argc, char **argv)
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
 
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+	ret = starpu_mpi_init(NULL, NULL, 0);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
+
 	if (size < 3)
 	{
 		if (rank == 0)
 			FPRINTF(stderr, "We need at least 3 processes.\n");
 
+		starpu_mpi_shutdown();
+		starpu_shutdown();
 		MPI_Finalize();
 		return STARPU_TEST_SKIPPED;
 	}
-
-	ret = starpu_init(NULL);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-	ret = starpu_mpi_init(NULL, NULL, 0);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
 
 	data[0] = 12;
 	starpu_variable_data_register(&handles[0], STARPU_MAIN_RAM, (uintptr_t)&data[0], sizeof(int));
