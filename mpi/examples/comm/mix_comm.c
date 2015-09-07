@@ -156,7 +156,7 @@ int main(int argc, char **argv)
 
 	if (newrank == 0 || newrank == 1)
 	{
-		starpu_mpi_insert_task(newcomm, &mycodelet,
+		starpu_mpi_task_insert(newcomm, &mycodelet,
 				       STARPU_RW, data[0],
 				       STARPU_VALUE, &x, sizeof(x),
 				       STARPU_EXECUTE_ON_NODE, 1,

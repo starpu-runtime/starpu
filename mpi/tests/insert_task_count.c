@@ -96,12 +96,12 @@ int main(int argc, char **argv)
 	for (loop = 0; loop < nloops; loop++)
 	{
 		if (loop % 2)
-			starpu_mpi_insert_task(MPI_COMM_WORLD, &increment_cl,
+			starpu_mpi_task_insert(MPI_COMM_WORLD, &increment_cl,
 					       STARPU_RW|STARPU_SSEND, token_handle,
 					       STARPU_EXECUTE_ON_NODE, 0,
 					       0);
 		else
-			starpu_mpi_insert_task(MPI_COMM_WORLD, &increment_cl,
+			starpu_mpi_task_insert(MPI_COMM_WORLD, &increment_cl,
 					       STARPU_RW, token_handle,
 					       STARPU_EXECUTE_ON_NODE, 0,
 					       0);
