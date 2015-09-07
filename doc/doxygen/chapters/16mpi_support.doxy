@@ -333,7 +333,7 @@ A way to do some of this quite easily can be to just add an <c>if</c> like this:
                  || my_distrib(x+1,y,size) == my_rank
                  || my_distrib(x,y-1,size) == my_rank
                  || my_distrib(x,y+1,size) == my_rank)
-                    starpu_mpi_insert_task(MPI_COMM_WORLD, &stencil5_cl,
+                    starpu_mpi_task_insert(MPI_COMM_WORLD, &stencil5_cl,
                                            STARPU_RW, data_handles[x][y],
                                            STARPU_R, data_handles[x-1][y],
                                            STARPU_R, data_handles[x+1][y],
