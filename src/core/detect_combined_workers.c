@@ -112,7 +112,7 @@ static void find_and_assign_combinations(hwloc_obj_t obj, unsigned min, unsigned
 	unsigned i, n, nworkers;
 	int cpu_workers[STARPU_NMAXWORKERS];
 
-#if HWLOC_API_VERSION >= 0x10800
+#if HWLOC_API_VERSION >= 0x10000
 	hwloc_obj_attr_snprintf(name, sizeof(name), obj, "#", 0);
 #else
 	hwloc_obj_snprintf(name, sizeof(name), _starpu_get_machine_config()->topology.hwtopology, obj, "#", 0);
