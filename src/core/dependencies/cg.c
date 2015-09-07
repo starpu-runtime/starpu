@@ -94,6 +94,46 @@ int _starpu_add_successor_to_cg_list(struct _starpu_cg_list *successors, struct 
 	return ret;
 }
 
+int _starpu_list_task_successors_in_cg_list(struct _starpu_cg_list *successors, unsigned ndeps, struct starpu_task *task_array[])
+{
+	unsigned i;
+	unsigned n = 0;
+	_starpu_spin_lock(&successors->lock);
+	for (i = 0; i < successors->nsuccs; i++)
+	{
+		struct _starpu_cg *cg = successors->succ[i];
+		if (cg->cg_type != STARPU_CG_TASK)
+			continue;
+		if (n < ndeps)
+		{
+			task_array[n] = cg->succ.job->task;
+			n++;
+		}
+	}
+	_starpu_spin_unlock(&successors->lock);
+	return n;
+}
+
+int _starpu_list_tag_successors_in_cg_list(struct _starpu_cg_list *successors, unsigned ndeps, starpu_tag_t tag_array[])
+{
+	unsigned i;
+	unsigned n = 0;
+	_starpu_spin_lock(&successors->lock);
+	for (i = 0; i < successors->nsuccs; i++)
+	{
+		struct _starpu_cg *cg = successors->succ[i];
+		if (cg->cg_type != STARPU_CG_TAG)
+			continue;
+		if (n < ndeps)
+		{
+			tag_array[n] = cg->succ.tag->id;
+			n++;
+		}
+	}
+	_starpu_spin_unlock(&successors->lock);
+	return n;
+}
+
 /* Note: in case of a tag, it must be already locked */
 void _starpu_notify_cg(struct _starpu_cg *cg)
 {

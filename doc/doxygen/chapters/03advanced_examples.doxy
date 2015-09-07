@@ -830,6 +830,17 @@ not matter.
 
 The example <c>examples/pi</c> uses scratches for some temporary buffer.
 
+\section GettingTaskChildren Getting Task Children
+
+It may be interesting to get the list of tasks which depend on a given task,
+notably when using implicit dependencies, since this list is computed by StarPU.
+starpu_task_get_task_succs() provides it. For instance:
+
+\code{.c}
+struct starpu_task *tasks[4];
+ret = starpu_task_get_task_succs(task, sizeof(tasks)/sizeof(*tasks), tasks);
+\endcode
+
 \section ParallelTasks Parallel Tasks
 
 StarPU can leverage existing parallel computation libraries by the means of

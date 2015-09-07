@@ -140,6 +140,7 @@ noinst_PROGRAMS =				\
 	main/submit				\
 	main/pause_resume			\
 	main/pack				\
+	main/get_children_tasks			\
 	datawizard/allocate			\
 	datawizard/acquire_cb			\
 	datawizard/acquire_cb_insert		\
