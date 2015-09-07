@@ -341,6 +341,17 @@ be executed, and is allowed to read from <c>i</c> to use it e.g. as an
 index. Note that this macro is only avaible when compiling StarPU with
 the compiler <c>gcc</c>.
 
+\section GettingTaskChildren Getting Task Children
+
+It may be interesting to get the list of tasks which depend on a given task,
+notably when using implicit dependencies, since this list is computed by StarPU.
+starpu_task_get_task_succs() provides it. For instance:
+
+\code{.c}
+struct starpu_task *tasks[4];
+ret = starpu_task_get_task_succs(task, sizeof(tasks)/sizeof(*tasks), tasks);
+\endcode
+
 \section ParallelTasks Parallel Tasks
 
 StarPU can leverage existing parallel computation libraries by the means of

@@ -22,6 +22,16 @@ call starpu_task_declare_deps_array() several times on the same task,
 in this case, the dependencies are added. It is possible to have
 redundancy in the task dependencies.
 
+\fn int starpu_task_get_task_succs(struct starpu_task *task, unsigned ndeps, struct starpu_task *task_array[])
+\ingroup API_Explicit_Dependencies
+Fills \p task_array with the list of tasks which are direct children of \p task.
+\p ndeps is the size of \p task_array.  This function returns the number of
+direct children. \p task_array can be set to NULL if \p ndeps is 0, which allows
+to compute the number of children before allocating an array to store them.
+This function can only be called if \p task has not completed yet, otherwise
+the results are undefined. The result may also be outdated if some additional
+dependency has been added in the meanwhile.
+
 \typedef starpu_tag_t
 \ingroup API_Explicit_Dependencies
 This type defines a task logical identifer. It is possible to
