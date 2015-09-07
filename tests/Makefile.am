@@ -149,6 +149,7 @@ noinst_PROGRAMS =				\
 	main/pause_resume			\
 	main/codelet_null_callback		\
 	main/pack				\
+	main/get_children_tasks			\
 	datawizard/allocate			\
 	datawizard/acquire_cb			\
 	datawizard/acquire_cb_insert		\
