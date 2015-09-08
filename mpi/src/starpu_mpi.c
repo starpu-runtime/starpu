@@ -1282,7 +1282,9 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 		argv_cpy[i] = strdup((*(argc_argv->argv))[i]);
 	MSG_process_create_with_arguments("main", smpi_simulated_main_, NULL, _starpu_simgrid_get_host_by_name("MAIN"), *(argc_argv->argc), argv_cpy);
 	/* And set TSD for us */
+#ifdef HAVE_SMPI_PROCESS_SET_USER_DATA
 	smpi_process_set_user_data(calloc(MAX_TSD, sizeof(void*)));
+#endif
 #endif
 
 	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
