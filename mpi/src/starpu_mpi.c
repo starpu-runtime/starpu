@@ -83,6 +83,12 @@ static int posted_requests = 0, newer_requests, barrier_running = 0;
 #pragma weak smpi_simulated_main_
 extern int smpi_simulated_main_(int argc, char *argv[]);
 
+#ifdef HAVE_SMPI_PROCESS_SET_USER_DATA
+#if !HAVE_DECL_SMPI_PROCESS_SET_USER_DATA
+extern void smpi_process_set_user_data(void *);
+#endif
+#endif
+
 static void _starpu_mpi_request_init(struct _starpu_mpi_req **req)
 {
 	*req = calloc(1, sizeof(struct _starpu_mpi_req));
