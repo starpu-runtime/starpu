@@ -1059,7 +1059,7 @@ if test x$enable_simgrid = xyes ; then
 		]
 	)
 	AC_CHECK_HEADERS([simgrid/msg.h], [AC_DEFINE([STARPU_HAVE_SIMGRID_MSG_H], [1], [Define to 1 if you have msg.h in simgrid/.])])
-   	AC_CHECK_FUNCS([MSG_process_join MSG_get_as_by_name MSG_environment_get_routing_root xbt_mutex_try_acquire])
+   	AC_CHECK_FUNCS([MSG_process_join MSG_get_as_by_name MSG_environment_get_routing_root xbt_mutex_try_acquire smpi_process_set_user_data])
 	AC_CHECK_FUNCS([xbt_barrier_init], [AC_DEFINE([STARPU_SIMGRID_HAVE_XBT_BARRIER_INIT], [1], [Define to 1 if you have the `xbt_barrier_init' function.])])
 	AC_CHECK_FUNCS([SIMIX_process_get_code], [AC_DEFINE([STARPU_SIMGRID_HAVE_SIMIX_PROCESS_GET_CODE], [1], [Define to 1 if you have the `SIMIX_process_get_code' function.])])
 	AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
