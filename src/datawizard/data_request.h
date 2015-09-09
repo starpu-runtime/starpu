@@ -83,7 +83,7 @@ LIST_TYPE(_starpu_data_request,
 
 	/* in case we have a chain of request (eg. for nvidia multi-GPU), this
 	 * is the list of requests which are waiting for this one. */
-	struct _starpu_data_request *next_req[STARPU_MAXNODES];
+	struct _starpu_data_request *next_req[STARPU_MAXNODES+1];
 	/* The number of requests in next_req */
 	unsigned next_req_count;
 
@@ -132,7 +132,8 @@ struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t ha
 							 unsigned handling_node,
 							 enum starpu_data_access_mode mode,
 							 unsigned ndeps,
-							 unsigned is_prefetch);
+							 unsigned is_prefetch,
+							 unsigned is_write_invalidation);
 
 int _starpu_wait_data_request_completion(struct _starpu_data_request *r, unsigned may_alloc);
 

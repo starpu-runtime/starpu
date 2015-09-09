@@ -206,9 +206,6 @@ static unsigned may_free_subtree(starpu_data_handle_t handle, unsigned node)
 	if (refcnt)
 		return 0;
 
-	if (!handle->nchildren)
-		return 1;
-
 	/* look into all sub-subtrees children */
 	unsigned child;
 	for (child = 0; child < handle->nchildren; child++)
@@ -257,8 +254,14 @@ static int transfer_subtree_to_node(starpu_data_handle_t handle, unsigned src_no
 			_starpu_spin_lock(&handle->header_lock);
 			handle->busy_count--;
 			if (_starpu_data_check_not_busy(handle))
-				return 1;
+				/* Actually disappeared, abort completely */
+				return -1;
+			if (!may_free_subtree(handle, src_node))
+				/* Oops, while we released the header lock, a
+				 * task got in, abort. */
+				return 0;
 		}
+		STARPU_ASSERT(may_free_subtree(handle, src_node));
 
 		if (src_replicate->state == STARPU_SHARED)
 		{
@@ -294,12 +297,15 @@ static int transfer_subtree_to_node(starpu_data_handle_t handle, unsigned src_no
 		{
 			starpu_data_handle_t child_handle = starpu_data_get_child(handle, child);
 			res = transfer_subtree_to_node(child_handle, src_node, dst_node);
+			if (res == 0)
+				return 0;
 			/* There is no way children have disappeared since we
 			 * keep the parent lock held */
-			STARPU_ASSERT(!res);
+			STARPU_ASSERT(res != -1);
 		}
 	}
-	return 0;
+	/* Success! */
+	return 1;
 }
 
 static void notify_handle_children(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, unsigned node)
@@ -496,7 +502,13 @@ static size_t try_to_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 					STARPU_ASSERT(mc->remove_notify == &mc);
 					mc->remove_notify = NULL;
 
-					if (!res)
+					if (res == -1)
+					{
+						/* handle disappeared, abort without unlocking it */
+						return 0;
+					}
+
+					if (res == 1)
 					{
 						/* mc is still associated with the old
 						 * handle, now free it.
@@ -596,7 +608,14 @@ static unsigned try_to_reuse_mem_chunk(struct _starpu_mem_chunk *mc, unsigned no
 			{
 				STARPU_ASSERT(mc->remove_notify == &mc);
 				mc->remove_notify = NULL;
-				if (!res)
+
+				if (res == -1)
+				{
+					/* handle disappeared, abort without unlocking it */
+					return 0;
+				}
+
+				if (res == 1)
 				{
 					/* mc is still associated with the old
 					 * handle, now replace the previous data

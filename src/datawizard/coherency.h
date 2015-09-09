@@ -233,6 +233,9 @@ struct _starpu_data_state
 
 	starpu_data_handle_t *reduction_tmp_handles;
 
+	/* Final request for write invalidation */
+	struct _starpu_data_request *write_invalidation_req;
+
 	unsigned lazy_unregister;
 
 #ifdef STARPU_OPENMP

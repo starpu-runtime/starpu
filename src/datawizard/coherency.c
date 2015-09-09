@@ -470,13 +470,35 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 	_starpu_spin_checklocked(&handle->header_lock);
 
 	unsigned requesting_node = dst_replicate->memory_node;
+	unsigned nwait = 0;
 
-	if (dst_replicate->state != STARPU_INVALID)
+	if (mode & STARPU_W)
+	{
+		/* We will write to the buffer. We will have to wait for all
+		 * existing requests before the last request which will
+		 * invalidate all their results (which were possibly spurious,
+		 * e.g. too aggressive eviction).
+		 */
+		unsigned i, j;
+		unsigned nnodes = starpu_memory_nodes_get_count();
+		for (i = 0; i < nnodes; i++)
+			for (j = 0; j < nnodes; j++)
+				if (handle->per_node[i].request[j])
+					nwait++;
+		/* If the request is not detached (i.e. the caller really wants
+		 * proper ownership), no new requests will appear because a
+		 * reference will be kept on the dst replicate, which will
+		 * notably prevent data reclaiming.
+		 */
+	}
+
+	if (dst_replicate->state != STARPU_INVALID && !nwait)
 	{
 #ifdef STARPU_MEMORY_STATS
 		enum _starpu_cache_state old_state = dst_replicate->state;
 #endif
-		/* the data is already available so we can stop */
+		/* the data is already available and we don't have to wait for
+		 * any request, so we can stop */
 		_starpu_update_data_state(handle, dst_replicate, mode);
 		_starpu_msi_cache_hit(requesting_node);
 
@@ -503,15 +525,17 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 	_starpu_msi_cache_miss(requesting_node);
 
 	/* the only remaining situation is that the local copy was invalid */
-	STARPU_ASSERT(dst_replicate->state == STARPU_INVALID);
+	STARPU_ASSERT(dst_replicate->state == STARPU_INVALID || nwait);
 
 	/* find someone who already has the data */
-	int src_node = 0;
+	int src_node = -1;
 
 	if (mode & STARPU_R)
 	{
-		src_node = _starpu_select_src_node(handle, requesting_node);
-		STARPU_ASSERT(src_node != (int) requesting_node);
+		if (dst_replicate->state == STARPU_INVALID)
+			src_node = _starpu_select_src_node(handle, requesting_node);
+		else
+			src_node = requesting_node;
 		if (src_node < 0)
 		{
 			/* We will create it, no need to read an existing value */
@@ -523,7 +547,7 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 		/* if the data is in write only mode (and not SCRATCH or REDUX), there is no need for a source, data will be initialized by the task itself */
 		if (mode & STARPU_W)
 			dst_replicate->initialized = 1;
-		if (requesting_node == STARPU_MAIN_RAM)
+		if (requesting_node == STARPU_MAIN_RAM && !nwait)
 		{
 			/* And this is the main RAM, really no need for a
 			 * request, just allocate */
@@ -541,14 +565,17 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 		}
 	}
 
+#define MAX_REQUESTS 4
 	/* We can safely assume that there won't be more than 2 hops in the
 	 * current implementation */
-	unsigned src_nodes[4], dst_nodes[4], handling_nodes[4];
-	int nhops = determine_request_path(handle, src_node, requesting_node, mode, 4,
+	unsigned src_nodes[MAX_REQUESTS], dst_nodes[MAX_REQUESTS], handling_nodes[MAX_REQUESTS];
+	int nhops = determine_request_path(handle, src_node, requesting_node, mode, MAX_REQUESTS,
 					src_nodes, dst_nodes, handling_nodes);
 
-	STARPU_ASSERT(nhops >= 1 && nhops <= 4);
-	struct _starpu_data_request *requests[nhops];
+	/* keep one slot for the last W request, if any */
+	int write_invalidation = mode & STARPU_W && nwait && !is_prefetch;
+	STARPU_ASSERT(nhops >= 0 && nhops <= MAX_REQUESTS-1);
+	struct _starpu_data_request *requests[nhops + write_invalidation];
 
 	/* Did we reuse a request for that hop ? */
 	int reused_requests[nhops];
@@ -584,7 +611,8 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 			/* Create a new request if there was no request to reuse */
 			r = _starpu_create_data_request(handle, hop_src_replicate,
 							hop_dst_replicate, hop_handling_node,
-							mode, ndeps, is_prefetch);
+							mode, ndeps, is_prefetch, 0);
+			nwait++;
 		}
 
 		requests[hop] = r;
@@ -604,13 +632,52 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 				STARPU_ASSERT(r->next_req_count <= STARPU_MAXNODES);
 			}
 		}
-		else
+		else if (!write_invalidation)
 			/* The last request will perform the callback after termination */
 			_starpu_data_request_append_callback(r, callback_func, callback_arg);
 
 
 		if (reused_requests[hop])
 			_starpu_spin_unlock(&r->lock);
+	}
+
+	if (write_invalidation)
+	{
+		/* Some requests were still pending, we have to add yet another
+		 * request, depending on them, which will invalidate their
+		 * result.
+		 */
+		struct _starpu_data_request *r = _starpu_create_data_request(handle, dst_replicate,
+							dst_replicate, requesting_node,
+							STARPU_W, nwait, is_prefetch, 1);
+
+		/* and perform the callback after termination */
+		_starpu_data_request_append_callback(r, callback_func, callback_arg);
+
+		/* We will write to the buffer. We will have to wait for all
+		 * existing requests before the last request which will
+		 * invalidate all their results (which were possibly spurious,
+		 * e.g. too aggressive eviction).
+		 */
+		unsigned i, j;
+		unsigned nnodes = starpu_memory_nodes_get_count();
+		for (i = 0; i < nnodes; i++)
+			for (j = 0; j < nnodes; j++)
+			{
+				struct _starpu_data_request *r2 = handle->per_node[i].request[j];
+				if (r2)
+				{
+					_starpu_spin_lock(&r2->lock);
+					r2->next_req[r2->next_req_count++] = r;
+					STARPU_ASSERT(r2->next_req_count <= STARPU_MAXNODES + 1);
+					_starpu_spin_unlock(&r2->lock);
+					nwait--;
+				}
+			}
+		STARPU_ASSERT(nwait == 0);
+
+		nhops++;
+		requests[nhops - 1] = r;
 	}
 
 	if (!async)

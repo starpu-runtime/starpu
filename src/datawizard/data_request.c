@@ -80,24 +80,32 @@ void _starpu_deinit_data_request_lists(void)
 /* this should be called with the lock r->handle->header_lock taken */
 static void _starpu_data_request_unlink(struct _starpu_data_request *r)
 {
-	unsigned node;
-
 	_starpu_spin_checklocked(&r->handle->header_lock);
 
-	/* If this is a write only request, then there is no source and we use
-	 * the destination node to cache the request. Otherwise we store the
-	 * pending requests between src and dst. */
-	if (r->mode & STARPU_R)
+	/* If this is a write invalidation request, we store it in the handle
+	 */
+	if (r->handle->write_invalidation_req == r)
 	{
-		node = r->src_replicate->memory_node;
+		STARPU_ASSERT(r->mode == STARPU_W);
+		r->handle->write_invalidation_req = NULL;
+	}
+	else if (r->mode & STARPU_R)
+	{
+		/* If this is a read request, we store the pending requests
+		 * between src and dst. */
+		unsigned node = r->src_replicate->memory_node;
+		STARPU_ASSERT(r->dst_replicate->request[node] == r);
+		r->dst_replicate->request[node] = NULL;
 	}
 	else
 	{
-		node = r->dst_replicate->memory_node;
+		/* If this is a write only request, then there is no source and
+		 * we use the destination node to cache the request. */
+		unsigned node = r->dst_replicate->memory_node;
+		STARPU_ASSERT(r->dst_replicate->request[node] == r);
+		r->dst_replicate->request[node] = NULL;
 	}
 
-	STARPU_ASSERT(r->dst_replicate->request[node] == r);
-	r->dst_replicate->request[node] = NULL;
 }
 
 static void _starpu_data_request_destroy(struct _starpu_data_request *r)
@@ -121,7 +129,8 @@ struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t ha
 							 unsigned handling_node,
 							 enum starpu_data_access_mode mode,
 							 unsigned ndeps,
-							 unsigned is_prefetch)
+							 unsigned is_prefetch,
+							 unsigned is_write_invalidation)
 {
 	struct _starpu_data_request *r = _starpu_data_request_new();
 
@@ -148,7 +157,12 @@ struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t ha
 	dst_replicate->refcnt++;
 	handle->busy_count++;
 
-	if (mode & STARPU_R)
+	if (is_write_invalidation)
+	{
+		STARPU_ASSERT(!handle->write_invalidation_req);
+		handle->write_invalidation_req = r;
+	}
+	else if (mode & STARPU_R)
 	{
 		unsigned src_node = src_replicate->memory_node;
 		STARPU_ASSERT(!dst_replicate->request[src_node]);
@@ -420,8 +434,12 @@ static int starpu_handle_data_request(struct _starpu_data_request *r, unsigned m
 	/* the header of the data must be locked by the worker that submitted the request */
 
 
-	r->retval = _starpu_driver_copy_data_1_to_1(handle, src_replicate,
+	if (dst_replicate->state == STARPU_INVALID)
+		r->retval = _starpu_driver_copy_data_1_to_1(handle, src_replicate,
 						    dst_replicate, !(r_mode & STARPU_R), r, may_alloc);
+	else
+		/* Already valid actually, no need to transfer anything */
+		r->retval = 0;
 
 	if (r->retval == -ENOMEM)
 	{
