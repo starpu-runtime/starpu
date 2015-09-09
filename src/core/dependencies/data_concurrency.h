@@ -38,7 +38,5 @@ unsigned _starpu_attempt_to_submit_arbitered_data_request(unsigned request_from_
 						       void (*callback)(void *), void *argcb,
 						       struct _starpu_job *j, unsigned buffer_index);
 
-int _starpu_attempt_to_acquire_data(starpu_data_handle_t handle, enum starpu_data_access_mode mode);
-
 #endif // __DATA_CONCURRENCY_H__
 
