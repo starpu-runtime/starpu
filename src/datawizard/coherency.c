@@ -318,7 +318,7 @@ static int determine_request_path(starpu_data_handle_t handle,
 				  unsigned *src_nodes, unsigned *dst_nodes,
 				  unsigned *handling_nodes)
 {
-	if (!(mode & STARPU_R))
+	if (src_node == dst_node || !(mode & STARPU_R))
 	{
 		/* The destination node should only allocate the data, no transfer is required */
 		STARPU_ASSERT(max_len >= 1);
@@ -492,7 +492,7 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 		 */
 	}
 
-	if (dst_replicate->state != STARPU_INVALID && !nwait)
+	if (dst_replicate->state != STARPU_INVALID && (!nwait || is_prefetch))
 	{
 #ifdef STARPU_MEMORY_STATS
 		enum _starpu_cache_state old_state = dst_replicate->state;
@@ -573,8 +573,8 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 					src_nodes, dst_nodes, handling_nodes);
 
 	/* keep one slot for the last W request, if any */
-	int write_invalidation = mode & STARPU_W && nwait && !is_prefetch;
-	STARPU_ASSERT(nhops >= 0 && nhops <= MAX_REQUESTS-1);
+	int write_invalidation = (mode & STARPU_W) && nwait && !is_prefetch;
+	STARPU_ASSERT(nhops >= 1 && nhops <= MAX_REQUESTS-1);
 	struct _starpu_data_request *requests[nhops + write_invalidation];
 
 	/* Did we reuse a request for that hop ? */
@@ -678,6 +678,8 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 
 		nhops++;
 		requests[nhops - 1] = r;
+		/* existing requests will post this one */
+		reused_requests[nhops - 1] = 1;
 	}
 
 	if (!async)
