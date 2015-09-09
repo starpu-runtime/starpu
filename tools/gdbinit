@@ -293,7 +293,18 @@ define starpu-print-data
         printf " initialized"
       end
       printf "\n"
+      set $m = 0
+      while $m < descr.nnodes
+        if $replicate->request[$m]
+	  printf " request %p from %d\n", $replicate->request[$m], $m
+	end
+        set $m = $m + 1
+      end
       set $n = $n + 1
+    end
+    set $r = $data->write_invalidation_req
+    if $r
+      printf "w_req %p for %d\n", $r, $r->dst_replicate->memory_node
     end
   end
   printf "Post sync tasks\n"
