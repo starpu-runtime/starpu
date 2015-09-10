@@ -316,10 +316,14 @@ static int determine_request_path(starpu_data_handle_t handle,
 				  unsigned src_node, unsigned dst_node,
 				  enum starpu_data_access_mode mode, int max_len,
 				  unsigned *src_nodes, unsigned *dst_nodes,
-				  unsigned *handling_nodes)
+				  unsigned *handling_nodes, unsigned write_invalidation)
 {
 	if (src_node == dst_node || !(mode & STARPU_R))
 	{
+		if (write_invalidation)
+			/* The invalidation request will be enough */
+			return 0;
+
 		/* The destination node should only allocate the data, no transfer is required */
 		STARPU_ASSERT(max_len >= 1);
 		src_nodes[0] = STARPU_MAIN_RAM; // ignored
@@ -483,7 +487,7 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 		unsigned nnodes = starpu_memory_nodes_get_count();
 		for (i = 0; i < nnodes; i++)
 			for (j = 0; j < nnodes; j++)
-				if (handle->per_node[i].request[j])
+				if (j != requesting_node && handle->per_node[i].request[j])
 					nwait++;
 		/* If the request is not detached (i.e. the caller really wants
 		 * proper ownership), no new requests will appear because a
@@ -569,12 +573,12 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 	/* We can safely assume that there won't be more than 2 hops in the
 	 * current implementation */
 	unsigned src_nodes[MAX_REQUESTS], dst_nodes[MAX_REQUESTS], handling_nodes[MAX_REQUESTS];
-	int nhops = determine_request_path(handle, src_node, requesting_node, mode, MAX_REQUESTS,
-					src_nodes, dst_nodes, handling_nodes);
-
 	/* keep one slot for the last W request, if any */
 	int write_invalidation = (mode & STARPU_W) && nwait && !is_prefetch;
-	STARPU_ASSERT(nhops >= 1 && nhops <= MAX_REQUESTS-1);
+	int nhops = determine_request_path(handle, src_node, requesting_node, mode, MAX_REQUESTS,
+					   src_nodes, dst_nodes, handling_nodes, write_invalidation);
+
+	STARPU_ASSERT(nhops >= 0 && nhops <= MAX_REQUESTS-1);
 	struct _starpu_data_request *requests[nhops + write_invalidation];
 
 	/* Did we reuse a request for that hop ? */
@@ -681,6 +685,7 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 		/* existing requests will post this one */
 		reused_requests[nhops - 1] = 1;
 	}
+	STARPU_ASSERT(nhops);
 
 	if (!async)
 		requests[nhops - 1]->refcnt++;
