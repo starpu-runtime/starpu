@@ -132,11 +132,12 @@ static struct starpu_codelet check_cl =
 	.modes = { STARPU_R },
 };
 
-int dotest(struct starpu_disk_ops *ops, char *base, void (*vector_data_register)(starpu_data_handle_t *handleptr, unsigned home_node, uintptr_t ptr, uint32_t nx, size_t elemsize))
+int dotest(struct starpu_disk_ops *ops, char *base, void (*vector_data_register)(starpu_data_handle_t *handleptr, unsigned home_node, uintptr_t ptr, uint32_t nx, size_t elemsize), const char *text)
 {
 	int *A, *C;
 	starpu_data_handle_t handles[NDATA];
 
+	FPRINTF(stderr, "Testing <%s>\n", text);
 	/* Initialize StarPU without GPU devices to make sure the memory of the GPU devices will not be used */
 	struct starpu_conf conf;
 	int ret = starpu_conf_init(&conf);
@@ -210,13 +211,13 @@ int main(void)
 	memcpy(&starpu_interface_my_vector_ops, &starpu_interface_vector_ops, sizeof(starpu_interface_my_vector_ops));
 	starpu_interface_my_vector_ops.copy_methods = &my_vector_copy_data_methods_s;
 
-	ret = merge_result(ret, dotest(&starpu_disk_stdio_ops, s, starpu_vector_data_register));
-	ret = merge_result(ret, dotest(&starpu_disk_stdio_ops, s, starpu_my_vector_data_register));
-	ret = merge_result(ret, dotest(&starpu_disk_unistd_ops, s, starpu_vector_data_register));
-	ret = merge_result(ret, dotest(&starpu_disk_unistd_ops, s, starpu_my_vector_data_register));
+	ret = merge_result(ret, dotest(&starpu_disk_stdio_ops, s, starpu_vector_data_register, "Stdio with UNmodified vector ops"));
+	ret = merge_result(ret, dotest(&starpu_disk_stdio_ops, s, starpu_my_vector_data_register, "Stdio with MODIFIED vector ops"));
+	ret = merge_result(ret, dotest(&starpu_disk_unistd_ops, s, starpu_vector_data_register, "unistd with UNmodified vector ops"));
+	ret = merge_result(ret, dotest(&starpu_disk_unistd_ops, s, starpu_my_vector_data_register, "unistd with MODIFIED vector ops"));
 #ifdef STARPU_LINUX_SYS
-	ret = merge_result(ret, dotest(&starpu_disk_unistd_o_direct_ops, s, starpu_vector_data_register));
-	ret = merge_result(ret, dotest(&starpu_disk_unistd_o_direct_ops, s, starpu_my_vector_data_register));
+	ret = merge_result(ret, dotest(&starpu_disk_unistd_o_direct_ops, s, starpu_vector_data_register, "unistd_direct with UNmodified vector ops"));
+	ret = merge_result(ret, dotest(&starpu_disk_unistd_o_direct_ops, s, starpu_my_vector_data_register, "unistd_direct with MODIFIED vector ops"));
 #endif
 	rmdir(s);
 	return ret;
