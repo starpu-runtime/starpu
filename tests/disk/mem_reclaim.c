@@ -211,13 +211,13 @@ int main(void)
 	memcpy(&starpu_interface_my_vector_ops, &starpu_interface_vector_ops, sizeof(starpu_interface_my_vector_ops));
 	starpu_interface_my_vector_ops.copy_methods = &my_vector_copy_data_methods_s;
 
-	ret = merge_result(ret, dotest(&starpu_disk_stdio_ops, s, starpu_vector_data_register, "Stdio with UNmodified vector ops"));
-	ret = merge_result(ret, dotest(&starpu_disk_stdio_ops, s, starpu_my_vector_data_register, "Stdio with MODIFIED vector ops"));
-	ret = merge_result(ret, dotest(&starpu_disk_unistd_ops, s, starpu_vector_data_register, "unistd with UNmodified vector ops"));
-	ret = merge_result(ret, dotest(&starpu_disk_unistd_ops, s, starpu_my_vector_data_register, "unistd with MODIFIED vector ops"));
+	ret = merge_result(ret, dotest(&starpu_disk_stdio_ops, s, starpu_vector_data_register, "Stdio with read/write vector ops"));
+	ret = merge_result(ret, dotest(&starpu_disk_stdio_ops, s, starpu_my_vector_data_register, "Stdio with pack/unpack vector ops"));
+	ret = merge_result(ret, dotest(&starpu_disk_unistd_ops, s, starpu_vector_data_register, "unistd with read/write vector ops"));
+	ret = merge_result(ret, dotest(&starpu_disk_unistd_ops, s, starpu_my_vector_data_register, "unistd with pack/unpack vector ops"));
 #ifdef STARPU_LINUX_SYS
-	ret = merge_result(ret, dotest(&starpu_disk_unistd_o_direct_ops, s, starpu_vector_data_register, "unistd_direct with UNmodified vector ops"));
-	ret = merge_result(ret, dotest(&starpu_disk_unistd_o_direct_ops, s, starpu_my_vector_data_register, "unistd_direct with MODIFIED vector ops"));
+	ret = merge_result(ret, dotest(&starpu_disk_unistd_o_direct_ops, s, starpu_vector_data_register, "unistd_direct with read/write vector ops"));
+	ret = merge_result(ret, dotest(&starpu_disk_unistd_o_direct_ops, s, starpu_my_vector_data_register, "unistd_direct with pack/unpack vector ops"));
 #endif
 	rmdir(s);
 	return ret;
