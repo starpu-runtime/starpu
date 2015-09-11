@@ -67,7 +67,6 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 					 STARPU_CALLBACK, (k == 3*nblocks/4)?callback_turn_spmd_on:NULL,
 					 STARPU_FLOPS, (double) FLOPS_SPOTRF(nn),
 					 STARPU_TAG_ONLY, TAG11(k),
-					 STARPU_NAME, "cl11",
 					 0);
 		if (ret == -ENODEV) return 77;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
@@ -82,7 +81,6 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 						 STARPU_RW, sdatakj,
 						 STARPU_FLOPS, (double) FLOPS_STRSM(nn, nn),
 						 STARPU_TAG_ONLY, TAG21(k,j),
-						 STARPU_NAME, "cl21",
 						 0);
 			if (ret == -ENODEV) return 77;
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
@@ -106,7 +104,6 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 								 cl22.modes[2], sdataij,
 								 STARPU_FLOPS, (double) FLOPS_SGEMM(nn, nn, nn),
 								 STARPU_TAG_ONLY, TAG22(k,i,j),
-								 STARPU_NAME,  ((i == k+1) && (j == k+1))?"cl22_p":"cl22",
 								 0);
 					if (ret == -ENODEV) return 77;
 					STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
