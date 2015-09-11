@@ -69,6 +69,7 @@ struct data_info {
 
 struct task_info {
 	UT_hash_handle hh;
+	char *model_name;
 	char *name;
 	int exclude_from_dag;
 	unsigned long job_id;
@@ -95,6 +96,7 @@ static struct task_info *get_task(unsigned long job_id)
 	if (!task)
 	{
 		task = malloc(sizeof(*task));
+		task->model_name = NULL;
 		task->name = NULL;
 		task->exclude_from_dag = 0;
 		task->job_id = job_id;
@@ -126,7 +128,14 @@ static void task_dump(unsigned long job_id)
 	if (task->name)
 	{
 		fprintf(tasks_file, "Name: %s\n", task->name);
+		if (!task->model_name)
+			fprintf(tasks_file, "Model: %s\n", task->name);
 		free(task->name);
+	}
+	if (task->model_name)
+	{
+		fprintf(tasks_file, "Model: %s\n", task->model_name);
+		free(task->model_name);
 	}
 	fprintf(tasks_file, "JobId: %lu\n", task->job_id);
 	if (task->dependencies)
@@ -905,6 +914,13 @@ static void handle_start_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_op
 	}
 #endif /* STARPU_ENABLE_PAJE_CODELET_DETAILS */
 
+}
+
+static void handle_model_name(struct fxt_ev_64 *ev, struct starpu_fxt_options *options STARPU_ATTRIBUTE_UNUSED)
+{
+	struct task_info *task = get_task(ev->param[0]);
+	char *name = (char *)&ev->param[1];
+	task->model_name = strdup(name);
 }
 
 static void handle_codelet_data(struct fxt_ev_64 *ev STARPU_ATTRIBUTE_UNUSED, struct starpu_fxt_options *options STARPU_ATTRIBUTE_UNUSED)
@@ -1975,6 +1991,9 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 			/* detect when the workers were idling or not */
 			case _STARPU_FUT_START_CODELET_BODY:
 				handle_start_codelet_body(&ev, options);
+				break;
+			case _STARPU_FUT_MODEL_NAME:
+				handle_model_name(&ev, options);
 				break;
 			case _STARPU_FUT_CODELET_DATA:
 				handle_codelet_data(&ev, options);

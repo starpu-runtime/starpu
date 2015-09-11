@@ -74,6 +74,8 @@
 #define _STARPU_FUT_TASK_SUBMIT		0x511a
 #define _STARPU_FUT_CODELET_DATA_HANDLE	0x511b
 
+#define _STARPU_FUT_MODEL_NAME		0x511c
+
 #define _STARPU_FUT_USER_DEFINED_START	0x5120
 #define _STARPU_FUT_USER_DEFINED_END	0x5121
 
@@ -427,11 +429,13 @@ do {									\
 
 #define _STARPU_TRACE_START_CODELET_BODY(job, nimpl, perf_arch, workerid)				\
 do {									\
-        const char *model_name = _starpu_job_get_model_name((job));         \
-	if (model_name)                                                 \
+        const char *model_name = _starpu_job_get_model_name((job)), *name = _starpu_job_get_task_name((job));         \
+	if (name)                                                 \
 	{								\
-		/* we include the symbol name */			\
-		_STARPU_FUT_DO_PROBE4STR(_STARPU_FUT_START_CODELET_BODY, (job)->job_id, ((job)->task)->sched_ctx, workerid, 1, model_name); \
+		/* we include the task name */			\
+		_STARPU_FUT_DO_PROBE4STR(_STARPU_FUT_START_CODELET_BODY, (job)->job_id, ((job)->task)->sched_ctx, workerid, 1, name); \
+		if (strcmp(model_name, name))				\
+			_STARPU_FUT_DO_PROBE1STR(_STARPU_FUT_MODEL_NAME, (job)->job_id, model_name); \
 	}								\
 	else {                                                          \
 		FUT_DO_PROBE4(_STARPU_FUT_START_CODELET_BODY, (job)->job_id, ((job)->task)->sched_ctx, workerid, 0); \
@@ -517,7 +521,7 @@ do {									\
 #define _STARPU_TRACE_TASK_DONE(job)						\
 do {										\
 	unsigned exclude_from_dag = (job)->exclude_from_dag;			\
-        const char *model_name = _starpu_job_get_model_name((job));                       \
+        const char *model_name = _starpu_job_get_task_name((job));                       \
 	if (model_name)					                        \
 	{									\
 		_STARPU_FUT_DO_PROBE4STR(_STARPU_FUT_TASK_DONE, (job)->job_id, _starpu_gettid(), (long unsigned)exclude_from_dag, 1, model_name);\
@@ -530,7 +534,7 @@ do {										\
 #define _STARPU_TRACE_TAG_DONE(tag)						\
 do {										\
         struct _starpu_job *job = (tag)->job;                                  \
-        const char *model_name = _starpu_job_get_model_name((job));                       \
+        const char *model_name = _starpu_job_get_task_name((job));                       \
 	if (model_name)                                                         \
 	{									\
           _STARPU_FUT_DO_PROBE3STR(_STARPU_FUT_TAG_DONE, (tag)->id, _starpu_gettid(), 1, model_name); \

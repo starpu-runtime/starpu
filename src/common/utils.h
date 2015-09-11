@@ -138,6 +138,8 @@ void _starpu_drop_comments(FILE *f);
 struct _starpu_job;
 /* Returns the symbol associated to that job if any. */
 const char *_starpu_job_get_model_name(struct _starpu_job *j);
+/* Returns the name associated to that job if any. */
+const char *_starpu_job_get_task_name(struct _starpu_job *j);
 
 struct starpu_codelet;
 /* Returns the symbol associated to that job if any. */

@@ -31,19 +31,27 @@ const char *_starpu_codelet_get_model_name(struct starpu_codelet *cl)
 
 const char *_starpu_job_get_model_name(struct _starpu_job *j)
 {
-	const char *ret = NULL;
-
 	if (!j)
 		return NULL;
 
 	struct starpu_task *task = j->task;
-	if (task)
-	{
-		if (task->name)
-			ret = task->name;
-		else
-			ret = _starpu_codelet_get_model_name(task->cl);
-	}
+	if (!task)
+		return NULL;
 
-	return ret;
+	return _starpu_codelet_get_model_name(task->cl);
+}
+
+const char *_starpu_job_get_task_name(struct _starpu_job *j)
+{
+	if (!j)
+		return NULL;
+
+	struct starpu_task *task = j->task;
+	if (!task)
+		return NULL;
+
+	if (task->name)
+		return task->name;
+	else
+		return _starpu_job_get_model_name(j);
 }
