@@ -316,7 +316,7 @@ void _starpu_simgrid_submit_job(int workerid, struct _starpu_job *j, struct star
 			_starpu_job_get_model_name(j));
 	}
 
-	simgrid_task = MSG_task_create(_starpu_job_get_model_name(j),
+	simgrid_task = MSG_task_create(_starpu_job_get_task_name(j),
 			length/1000000.0*MSG_get_host_speed(MSG_host_self()),
 			0, NULL);
 
