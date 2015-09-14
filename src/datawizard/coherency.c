@@ -474,7 +474,7 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 	_starpu_spin_checklocked(&handle->header_lock);
 
 	unsigned requesting_node = dst_replicate->memory_node;
-	unsigned nwait = 0, nwaitself = 0;
+	unsigned nwait = 0;
 
 	if (mode & STARPU_W)
 	{
@@ -488,12 +488,7 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 		for (i = 0; i < nnodes; i++)
 			for (j = 0; j < nnodes; j++)
 				if (handle->per_node[i].request[j])
-				{
-					if (j != requesting_node)
-						nwait++;
-					else
-						nwaitself++;
-				}
+					nwait++;
 		/* If the request is not detached (i.e. the caller really wants
 		 * proper ownership), no new requests will appear because a
 		 * reference will be kept on the dst replicate, which will
@@ -652,7 +647,6 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 
 	if (write_invalidation)
 	{
-		nwait += nwaitself;
 		/* Some requests were still pending, we have to add yet another
 		 * request, depending on them, which will invalidate their
 		 * result.
