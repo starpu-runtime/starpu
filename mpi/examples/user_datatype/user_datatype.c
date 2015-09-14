@@ -25,8 +25,18 @@ int main(int argc, char **argv)
 	int ret=0;
 	int compare=0;
 
+	struct starpu_my_interface my1 = {.d = 98 , .c = 'z'};
+	struct starpu_my_interface my0 = {.d = 42 , .c = 'n'};
+
+	starpu_data_handle_t handle0;
+	starpu_data_handle_t handle1;
+
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+
+	starpu_my_interface_data_register(&handle1, -1, &my1);
+	starpu_mpi_datatype_register(handle1, starpu_my_interface_datatype_allocate, starpu_my_interface_datatype_free);
+
 	ret = starpu_mpi_init(&argc, &argv, 1);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
@@ -40,21 +50,12 @@ int main(int argc, char **argv)
 		return 77;
 	}
 
-	starpu_data_handle_t handle0;
-	starpu_data_handle_t handle1;
-
-	struct starpu_my_interface my0 = {.d = 42 , .c = 'n'};
-	struct starpu_my_interface my1 = {.d = 98 , .c = 'z'};
-
 	if (rank == 1)
 	{
 		my0.d = 0;
 		my0.c = 'z';
 	}
-
 	starpu_my_interface_data_register(&handle0, STARPU_MAIN_RAM, &my0);
-	starpu_my_interface_data_register(&handle1, -1, &my1);
-	starpu_mpi_datatype_register(handle0, starpu_my_interface_datatype_allocate, starpu_my_interface_datatype_free);
 
 	if (rank == 0)
 	{
@@ -68,7 +69,7 @@ int main(int argc, char **argv)
 		MPI_Status status;
 		_starpu_my_interface_datatype_allocate(&mpi_datatype);
 		MPI_Recv(&my0, 1, mpi_datatype, 0, 42, MPI_COMM_WORLD, &status);
-		FPRINTF(stderr, "Received value: %d - '%c'\n", my0.d, my0.c);
+		FPRINTF(stderr, "Received value: '%c' %d\n", my0.c, my0.d);
 	}
 
 	if (rank == 0)
@@ -84,6 +85,7 @@ int main(int argc, char **argv)
 	}
 	else if (rank == 1)
 	{
+		starpu_task_insert(&starpu_my_interface_display_codelet, STARPU_VALUE, "node1 initial value", strlen("node1 initial value")+1, STARPU_R, handle0, 0);
 		starpu_mpi_irecv_detached(handle0, 0, 10, MPI_COMM_WORLD, NULL, NULL);
 		starpu_task_insert(&starpu_my_interface_display_codelet, STARPU_VALUE, "node1 received value", strlen("node1 received value")+1, STARPU_R, handle0, 0);
 		starpu_mpi_isend_detached(handle0, 0, 20, MPI_COMM_WORLD, NULL, NULL);
