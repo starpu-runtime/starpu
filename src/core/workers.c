@@ -49,6 +49,7 @@ static starpu_pthread_cond_t init_cond = STARPU_PTHREAD_COND_INITIALIZER;
 static int init_count = 0;
 static enum { UNINITIALIZED, CHANGING, INITIALIZED } initialized = UNINITIALIZED;
 
+static int keys_initialized;
 static starpu_pthread_key_t worker_key;
 
 static struct _starpu_machine_config config;
@@ -582,11 +583,14 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 
 void _starpu_set_local_worker_key(struct _starpu_worker *worker)
 {
+	STARPU_ASSERT(keys_initialized);
 	STARPU_PTHREAD_SETSPECIFIC(worker_key, worker);
 }
 
 struct _starpu_worker *_starpu_get_local_worker_key(void)
 {
+	if (!keys_initialized)
+		return NULL;
 	return (struct _starpu_worker *) STARPU_PTHREAD_GETSPECIFIC(worker_key);
 }
 
@@ -855,6 +859,7 @@ int starpu_init(struct starpu_conf *user_conf)
 
 	disable_kernels = starpu_get_env_number("STARPU_DISABLE_KERNELS");
 	STARPU_PTHREAD_KEY_CREATE(&worker_key, NULL);
+	keys_initialized = 1;
 
 	struct starpu_sched_policy *selected_policy = _starpu_select_sched_policy(&config, config.conf.sched_policy_name);
 	_starpu_create_sched_ctx(selected_policy, NULL, -1, 1, "init", 0, 0, 0, 0);
@@ -1116,6 +1121,7 @@ void starpu_shutdown(void)
 
 	_starpu_close_debug_logfile();
 
+	keys_initialized = 0;
 	STARPU_PTHREAD_KEY_DELETE(worker_key);
 
 	_starpu_task_deinit();
