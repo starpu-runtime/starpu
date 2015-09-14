@@ -145,7 +145,7 @@ static int data_pack_data(starpu_data_handle_t handle, unsigned node, void **ptr
 	(node);
 	(ptr);
 	(count);
-	STARPU_ASSERT_MSG(0, "This function should not be called\n");
+	STARPU_ASSERT_MSG(0, "The data interface has been registered with starpu_mpi_datatype_register(). Calling the pack_data function should not happen\n");
 }
 
 static int data_unpack_data(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
@@ -154,7 +154,7 @@ static int data_unpack_data(starpu_data_handle_t handle, unsigned node, void *pt
 	(node);
 	(ptr);
 	(count);
-	STARPU_ASSERT_MSG(0, "This function should not be called\n");
+	STARPU_ASSERT_MSG(0, "The data interface has been registered with starpu_mpi_datatype_register(). Calling the unpack_data function should not happen\n");
 }
 
 static starpu_ssize_t data_describe(void *data_interface, char *buf, size_t size)
