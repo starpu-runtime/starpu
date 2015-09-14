@@ -994,9 +994,8 @@ void starpu_memchunk_tidy(unsigned node)
 				mc->clean = 1;
 				mc_clean_nb[node]++;
 			}
-			else
-			{
-				/* MC is dirty, submit writeback */
+			else if (handle->per_node[node].refcnt == 0) {
+				/* MC is dirty and nobody working on it, submit writeback */
 
 				/* MC will be clean, consider it as such */
 				mc->clean = 1;
