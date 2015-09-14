@@ -140,13 +140,15 @@ struct starpu_perfmodel
 	starpu_perfmodel_state_t state;
 };
 
-void starpu_perfmodel_init(FILE *f, struct starpu_perfmodel *model);
+void starpu_perfmodel_init(struct starpu_perfmodel *model);
+int starpu_perfmodel_load_file(const char *filename, struct starpu_perfmodel *model);
+int starpu_perfmodel_load_symbol(const char *symbol, struct starpu_perfmodel *model);
+int starpu_perfmodel_unload_model(struct starpu_perfmodel *model);
+void starpu_perfmodel_get_model_path(const char *symbol, char *path, size_t maxlen);
+
 void starpu_perfmodel_free_sampling_directories(void);
 
 struct starpu_perfmodel_arch *starpu_worker_get_perf_archtype(int workerid, unsigned sched_ctx_id);
-
-int starpu_perfmodel_load_symbol(const char *symbol, struct starpu_perfmodel *model);
-int starpu_perfmodel_unload_model(struct starpu_perfmodel *model);
 int starpu_perfmodel_get_narch_combs();
 int starpu_perfmodel_arch_comb_add(int ndevices, struct starpu_perfmodel_device* devices);
 int starpu_perfmodel_arch_comb_get(int ndevices, struct starpu_perfmodel_device *devices);
