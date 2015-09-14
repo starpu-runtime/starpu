@@ -121,8 +121,8 @@ init_perfmodels(void)
 {
 	unsigned devid, ncore;
 
-	starpu_perfmodel_init(NULL, &model_cpu_task);
-	starpu_perfmodel_init(NULL, &model_gpu_task);
+	starpu_perfmodel_init(&model_cpu_task);
+	starpu_perfmodel_init(&model_gpu_task);
 
 	starpu_perfmodel_set_per_devices_cost_function(&model_cpu_task, 0, cpu_task_cpu, STARPU_CPU_WORKER, 0, 1, -1);
 	starpu_perfmodel_set_per_devices_cost_function(&model_gpu_task, 0, gpu_task_cpu, STARPU_CPU_WORKER, 0, 1, -1);

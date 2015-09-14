@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
  * Copyright (C) 2011, 2012 INRIA
  * See the file version.doxy for copying conditions.
  */
@@ -202,7 +202,7 @@ in bytes
 \var double starpu_perfmodel_history_entry::flops
 Provided by the application
 
-\fn void starpu_perfmodel_init(FILE *f, struct starpu_perfmodel *model)
+\fn void starpu_perfmodel_init(struct starpu_perfmodel *model)
 \ingroup API_Performance_Model
 todo
 

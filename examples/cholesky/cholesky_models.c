@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010-2011, 2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -141,7 +141,7 @@ void initialize_chol_model(struct starpu_perfmodel* model, char * symbol,
 	model->symbol = symbol;
 	model->type = STARPU_HISTORY_BASED;
 
-	starpu_perfmodel_init(NULL, model);
+	starpu_perfmodel_init(model);
 
 	per_arch = starpu_perfmodel_get_model_per_devices(model, 0, STARPU_CPU_WORKER, 0, 1, -1);
         per_arch->cost_function = cpu_cost_function;
