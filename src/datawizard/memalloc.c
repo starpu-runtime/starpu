@@ -129,8 +129,8 @@ void _starpu_init_mem_chunk_lists(void)
 	}
 	minimum_p = starpu_get_env_number_default("STARPU_MINIMUM_AVAILABLE_MEM", 5);
 	target_p = starpu_get_env_number_default("STARPU_TARGET_AVAILABLE_MEM", 10);
-	minimum_clean_p = starpu_get_env_number_default("STARPU_MINIMUM_CLEAN_BUFFERS", 10);
-	target_clean_p = starpu_get_env_number_default("STARPU_TARGET_CLEAN_BUFFERS", 25);
+	minimum_clean_p = starpu_get_env_number_default("STARPU_MINIMUM_CLEAN_BUFFERS", 5);
+	target_clean_p = starpu_get_env_number_default("STARPU_TARGET_CLEAN_BUFFERS", 10);
 	limit_cpu_mem = starpu_get_env_number("STARPU_LIMIT_CPU_MEM");
 }
 
