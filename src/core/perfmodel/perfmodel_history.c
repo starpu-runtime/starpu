@@ -1071,7 +1071,11 @@ int starpu_perfmodel_load_file(const char *filename, struct starpu_perfmodel *mo
 
 int starpu_perfmodel_unload_model(struct starpu_perfmodel *model)
 {
-	free((char *)model->symbol);
+	if (model->symbol)
+	{
+		free((char *)model->symbol);
+		model->symbol = NULL;
+	}
 	_starpu_deinitialize_performance_model(model);
 	return 0;
 }
