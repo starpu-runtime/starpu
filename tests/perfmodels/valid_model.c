@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012, 2013, 2014  CNRS
+ * Copyright (C) 2012, 2013, 2014, 2015  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -102,7 +102,12 @@ static int submit(struct starpu_codelet *codelet, struct starpu_perfmodel *model
 	// We need to call starpu_init again to initialise values used by perfmodels
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-	ret = starpu_perfmodel_load_symbol(codelet->model->symbol, &lmodel);
+
+	char path[256];
+	starpu_perfmodel_get_model_path(codelet->model->symbol, path, 256);
+	FPRINTF(stderr, "Perfmodel File <%s>\n", path);
+	ret = starpu_perfmodel_load_file(path, &lmodel);
+
 	if (ret == 1)
 	{
 		FPRINTF(stderr, "The performance model for the symbol <%s> could not be loaded\n", codelet->model->symbol);
