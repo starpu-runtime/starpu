@@ -704,6 +704,7 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 			_STARPU_TRACE_START_EXECUTING();
 			/* Not ready yet, no better thing to do than waiting */
 			__starpu_datawizard_progress(memnode, 1, 0);
+			__starpu_datawizard_progress(STARPU_MAIN_RAM, 1, 0);
 			return 0;
 		}
 		else
@@ -741,6 +742,7 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 	}
 
 	__starpu_datawizard_progress(memnode, 1, 1);
+	__starpu_datawizard_progress(STARPU_MAIN_RAM, 1, 1);
 
 	task = _starpu_get_worker_task(worker, workerid, memnode);
 
