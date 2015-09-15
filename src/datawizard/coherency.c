@@ -1132,8 +1132,8 @@ static void _starpu_fetch_nowhere_task_input_cb(void *arg)
 	/* One more transfer finished */
 	struct fetch_nowhere_wrapper *wrapper = arg;
 
-	ANNOTATE_HAPPENS_BEFORE(&wrapper->pending);
 	unsigned pending = STARPU_ATOMIC_ADD(&wrapper->pending, -1);
+	ANNOTATE_HAPPENS_BEFORE(&wrapper->pending);
 	if (pending == 0)
 	{
 		ANNOTATE_HAPPENS_AFTER(&wrapper->pending);

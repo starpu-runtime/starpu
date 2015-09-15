@@ -345,8 +345,8 @@ static void compute_block_spmd(void *descr[], void *cl_arg)
 
 	while (1)
 	{
-		ANNOTATE_HAPPENS_BEFORE(pcnt);
 		local_iy = STARPU_ATOMIC_ADD((unsigned int *)pcnt, 1) - 1;
+		ANNOTATE_HAPPENS_BEFORE(pcnt);
 		if (local_iy >= block_size)
 		{
 			ANNOTATE_HAPPENS_AFTER(pcnt);
