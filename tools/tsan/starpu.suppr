@@ -19,6 +19,7 @@ race:^alloc_cnt$
 race:^comm_amount$
 race:^_starpu_valgrind_print_once$
 race:^_starpu_silent$
+race:^keys_initialized$
 
 # don't care about cache hit stats
 race:^_starpu_msi_cache_hit$
