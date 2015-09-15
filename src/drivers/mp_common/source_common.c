@@ -689,6 +689,7 @@ void _starpu_src_common_worker(struct _starpu_worker_set * worker_set,
 
 		_STARPU_TRACE_START_PROGRESS(memnode);
 		_starpu_datawizard_progress(memnode, 1);
+		_starpu_datawizard_progress(STARPU_MAIN_RAM, 1);
 		_STARPU_TRACE_END_PROGRESS(memnode);
 
 		/* Handle message which have been store */
