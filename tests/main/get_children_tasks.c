@@ -70,6 +70,8 @@ int main(int argc, char **argv)
 
 	starpu_tag_notify_from_apps(0);
 
+	starpu_data_unregister(h);
+
 	starpu_shutdown();
 
 	STARPU_RETURN(ret?0:1);
