@@ -44,8 +44,8 @@ static unsigned *v2;
 
 static void callback(void *arg)
 {
-	ANNOTATE_HAPPENS_BEFORE(&cnt);
 	unsigned res = STARPU_ATOMIC_ADD(&cnt, -1);
+	ANNOTATE_HAPPENS_BEFORE(&cnt);
 
 	if (res == 0)
 	{

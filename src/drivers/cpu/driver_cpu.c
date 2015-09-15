@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2014  Université de Bordeaux
+ * Copyright (C) 2010-2015  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010-2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
@@ -174,8 +174,8 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 	if (is_parallel_task)
 	{
 		STARPU_PTHREAD_BARRIER_WAIT(&j->after_work_barrier);
-		ANNOTATE_HAPPENS_BEFORE(&j->after_work_busy_barrier);
 		(void) STARPU_ATOMIC_ADD(&j->after_work_busy_barrier, -1);
+		ANNOTATE_HAPPENS_BEFORE(&j->after_work_busy_barrier);
 		if (rank == 0)
 		{
 			/* Wait with a busy barrier for other workers to have

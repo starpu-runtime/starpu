@@ -104,8 +104,8 @@ void init_problem_callback(void *arg)
 {
 	unsigned *remaining = arg;
 
-	ANNOTATE_HAPPENS_BEFORE(&remaining);
 	unsigned val = STARPU_ATOMIC_ADD(remaining, -1);
+	ANNOTATE_HAPPENS_BEFORE(&remaining);
 
 /*	if (val < 10)
 		printf("callback %d remaining \n", val); */
