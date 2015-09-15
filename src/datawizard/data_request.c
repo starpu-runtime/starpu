@@ -144,6 +144,7 @@ struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t ha
 	r->mode = mode;
 	r->async_channel.type = STARPU_UNUSED;
 	r->handling_node = handling_node;
+	STARPU_ASSERT(_starpu_memory_node_get_nworkers(handling_node));
 	r->completed = 0;
 	r->prefetch = is_prefetch;
 	r->retval = -1;
