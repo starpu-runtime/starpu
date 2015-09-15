@@ -582,7 +582,7 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 	struct _starpu_data_request *requests[nhops + write_invalidation];
 
 	/* Did we reuse a request for that hop ? */
-	int reused_requests[nhops];
+	int reused_requests[nhops + write_invalidation];
 
 	/* Construct an array with a list of requests, possibly reusing existing requests */
 	int hop;
