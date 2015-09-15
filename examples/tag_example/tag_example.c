@@ -161,8 +161,8 @@ static int create_task_grid(unsigned piter)
 
 void callback_cpu(void *argcb STARPU_ATTRIBUTE_UNUSED)
 {
-	ANNOTATE_HAPPENS_BEFORE(&callback_cnt);
 	unsigned newcnt = STARPU_ATOMIC_ADD(&callback_cnt, -1);	
+	ANNOTATE_HAPPENS_BEFORE(&callback_cnt);
 
 	if (newcnt == 0)
 	{

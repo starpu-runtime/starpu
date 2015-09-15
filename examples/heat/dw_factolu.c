@@ -541,8 +541,8 @@ void dw_callback_codelet_update_u22(void *argcb)
 {
 	int ret;
 	cl_args *args = argcb;	
-	ANNOTATE_HAPPENS_BEFORE(args->remaining);
 	unsigned remaining = STARPU_ATOMIC_ADD(args->remaining, (-1));
+	ANNOTATE_HAPPENS_BEFORE(args->remaining);
 
 	if (remaining == 0)
 	{
