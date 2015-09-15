@@ -49,7 +49,11 @@ int main(int argc, char **argv)
 
 	starpu_void_data_register(&h);
 
-	struct starpu_task *task1 = starpu_task_build(&codelet_w, STARPU_W, h, STARPU_TAG, (starpu_tag_t) 0, 0);
+	starpu_tag_t tag_init = 0;
+
+	starpu_tag_declare_deps_array((starpu_tag_t) 1, 1, &tag_init);
+
+	struct starpu_task *task1 = starpu_task_build(&codelet_w, STARPU_W, h, STARPU_TAG, (starpu_tag_t) 1, 0);
 	struct starpu_task *task2 = starpu_task_build(&codelet_r, STARPU_R, h, 0);
 	struct starpu_task *task3 = starpu_task_build(&codelet_r, STARPU_R, h, 0);
 	ret = starpu_task_submit(task1);
@@ -65,6 +69,8 @@ int main(int argc, char **argv)
 	STARPU_ASSERT(ret == 2);
 	STARPU_ASSERT(tasks[0] == task2 || tasks[1] == task2);
 	STARPU_ASSERT(tasks[0] == task3 || tasks[1] == task3);
+
+	starpu_tag_notify_from_apps(0);
 
 	starpu_shutdown();
 
