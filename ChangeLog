@@ -173,6 +173,8 @@ Changes:
 Small changes:
   * Rename function starpu_trace_user_event() as
     starpu_fxt_trace_user_event()
+  * Update starpu_task_build() to set starpu_task::cl_arg_free to 1 if
+    some arguments of type ::STARPU_VALUE are given.
 
 StarPU 1.1.5 (svn revision xxx)
 ==============================================

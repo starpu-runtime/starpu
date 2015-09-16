@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
  * Copyright (C) 2011, 2012 INRIA
  * See the file version.doxy for copying conditions.
  */
@@ -139,5 +139,7 @@ Create a task corresponding to \p cl with the following arguments.
 The argument list must be zero-terminated. The arguments
 following the codelet are the same as the ones for the function
 starpu_task_insert().
+If some arguments of type ::STARPU_VALUE are given, the parameter
+starpu_task::cl_arg_free will be set to 1.
 
 */
