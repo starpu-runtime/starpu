@@ -272,7 +272,7 @@ void starpu_mpi_cache_flush(MPI_Comm comm, starpu_data_handle_t data_handle)
 
 	_starpu_mpi_cache_flush(comm, data_handle);
 
-	MPI_Comm_rank(comm, &my_rank);
+	starpu_mpi_comm_rank(comm, &my_rank);
 	mpi_rank = starpu_mpi_data_get_rank(data_handle);
 	if (mpi_rank != my_rank && mpi_rank != -1)
 		starpu_data_invalidate_submit(data_handle);
