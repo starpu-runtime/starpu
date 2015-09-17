@@ -2551,15 +2551,23 @@ AM_CONDITIONAL(BUILD_DOC, [test x$enable_build_doc != xno])
 #                                                                             #
 ###############################################################################
 
-# these are the flags needed for static linking
-LIBSTARPU_LDFLAGS="$STARPU_GLPK_LDFLAGS"
+# these are the flags needed for linking libstarpu (and thus also for static linking)
+LIBSTARPU_LDFLAGS="$HWLOC_LIBS $FXT_LIBS $STARPU_COI_LDFLAGS $STARPU_SCIF_LDFLAGS $STARPU_RCCE_LDFLAGS $STARPU_LEVELDB_LDFLAGS $STARPU_GLPK_LDFLAGS $STARPU_LEVELDB_LDFLAGS $SIMGRID_LIBS"
 AC_SUBST([LIBSTARPU_LDFLAGS])
 
 LIBSTARPU_LINK=libstarpu-$STARPU_EFFECTIVE_VERSION.la
 if test x$enable_perf_debug = xyes; then
-	LIBSTARPU_LINK=".libs/libstarpu-$STARPU_EFFECTIVE_VERSION.a $LIBSTARPU_LDFLAGS $HWLOC_LIBS $SIMGRID_LIBS $STARPU_CUDA_LDFLAGS $STARPU_OPENCL_LDFLAGS"
+	# For gperf to work, we need to link statically our tests
+	LIBSTARPU_LINK=".libs/libstarpu-$STARPU_EFFECTIVE_VERSION.a $LIBSTARPU_LDFLAGS $STARPU_CUDA_LDFLAGS $STARPU_OPENCL_LDFLAGS"
 fi
 AC_SUBST([LIBSTARPU_LINK])
+
+if test "x$enable_shared" = xno; then
+        # No .so, so application will unexpected have to know which -l to
+        # use. Give them in .pc file.
+	STARPU_EXPORTED_LIBS="$LDFLAGS $LIBS $LIBSTARPU_LDFLAGS"
+fi
+AC_SUBST(STARPU_EXPORTED_LIBS)
 
 # File configuration
 AC_CONFIG_COMMANDS([executable-scripts], [
