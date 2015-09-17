@@ -223,6 +223,59 @@ static struct starpu_data_interface_ops interface_complex_ops =
 };
 \endcode
 
+Instead of defining pack and unpack operations, users may want to attach a MPI type to their user defined data interface. The function starpu_mpi_datatype_register() allows to do so. This function takes 3 parameters: the data handle for which the MPI datatype is going to be defined, a function's pointer that will create the MPI datatype, and a function's pointer that will free the MPI datatype.
+
+\code{.c}
+starpu_data_interface handle;
+starpu_complex_data_register(&handle, STARPU_MAIN_RAM, real, imaginary, 2);
+starpu_mpi_datatype_register(handle, starpu_complex_interface_datatype_allocate, starpu_complex_interface_datatype_free);
+\endcode
+
+The functions to create and free the MPI datatype are defined as follows.
+
+\code{.c}
+void starpu_complex_interface_datatype_allocate(starpu_data_handle_t handle, MPI_Datatype *mpi_datatype)
+{
+	int ret;
+
+	int blocklengths[2];
+	MPI_Aint displacements[2];
+	MPI_Datatype types[2] = {MPI_DOUBLE, MPI_DOUBLE};
+
+	struct starpu_complex_interface *complex_interface =
+          (struct starpu_complex_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
+
+	MPI_Address(complex_interface, displacements);
+	MPI_Address(&complex_interface->imaginary, displacements+1);
+	displacements[1] -= displacements[0];
+	displacements[0] = 0;
+
+	blocklengths[0] = complex_interface->nx;
+	blocklengths[1] = complex_interface->nx;
+
+	ret = MPI_Type_create_struct(2, blocklengths, displacements, types, mpi_datatype);
+	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_contiguous failed");
+
+	ret = MPI_Type_commit(mpi_datatype);
+	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_commit failed");
+}
+
+void starpu_complex_interface_datatype_free(MPI_Datatype *mpi_datatype)
+{
+	MPI_Type_free(mpi_datatype);
+}
+\endcode
+
+Note that it is important to make sure no communication is going to occur before the function starpu_mpi_datatype_register() is called. That would produce an undefined result as the data may be received before the function is called, and so the MPI datatype would not be known by the StarPU-MPI communication engine, and the data would be processed with the pack and unpack operations.
+
+\code{.c}
+starpu_data_interface handle;
+starpu_complex_data_register(&handle, STARPU_MAIN_RAM, real, imaginary, 2);
+starpu_mpi_datatype_register(handle, starpu_complex_interface_datatype_allocate, starpu_complex_interface_datatype_free);
+
+starpu_mpi_barrier(MPI_COMM_WORLD);
+\endcode
+
 \section MPIInsertTaskUtility MPI Insert Task Utility
 
 To save the programmer from having to explicit all communications, StarPU

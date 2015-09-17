@@ -33,10 +33,6 @@ int main(int argc, char **argv)
 
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-
-	starpu_my_interface_data_register(&handle1, -1, &my1);
-	starpu_mpi_datatype_register(handle1, starpu_my_interface_datatype_allocate, starpu_my_interface_datatype_free);
-
 	ret = starpu_mpi_init(&argc, &argv, 1);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
@@ -56,6 +52,10 @@ int main(int argc, char **argv)
 		my0.c = 'z';
 	}
 	starpu_my_interface_data_register(&handle0, STARPU_MAIN_RAM, &my0);
+	starpu_my_interface_data_register(&handle1, -1, &my1);
+	starpu_mpi_datatype_register(handle1, starpu_my_interface_datatype_allocate, starpu_my_interface_datatype_free);
+
+	starpu_mpi_barrier(MPI_COMM_WORLD);
 
 	if (rank == 0)
 	{
