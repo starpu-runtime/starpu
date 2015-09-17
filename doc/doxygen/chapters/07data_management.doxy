@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
  * Copyright (C) 2011, 2012 INRIA
  * See the file version.doxy for copying conditions.
  */
@@ -668,7 +668,8 @@ Complex data interfaces can then be registered to StarPU.
 
 \code{.c}
 double real = 45.0;
-double imaginary = 12.0;starpu_complex_data_register(&handle1, STARPU_MAIN_RAM, &real, &imaginary, 1);
+double imaginary = 12.0;
+starpu_complex_data_register(&handle1, STARPU_MAIN_RAM, &real, &imaginary, 1);
 starpu_task_insert(&cl_display, STARPU_R, handle1, 0);
 \endcode
 
