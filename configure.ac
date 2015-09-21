@@ -1814,7 +1814,20 @@ if test ! -x $mpicc_path; then
 else
 	use_mpi=yes
 	if test x$enable_simgrid = xyes ; then
-		AC_PATH_PROG(smpirun_path, smpirun, [no], [])
+		AC_ARG_WITH(smpirun, [AS_HELP_STRING([--with-smpirun[=<path to smpirun>]],
+					[Path of the smpirun helper])],
+			[
+				if test x$withval = xyes; then
+					AC_MSG_ERROR(--with-smpirun must be given a pathname)
+				else
+					smpirun_path=$withval
+				fi
+			],
+			[
+				# nothing was specified: default value is used
+				AC_PATH_PROG(smpirun_path, smpirun, [no], [])
+			])
+
 	fi
 fi
 
