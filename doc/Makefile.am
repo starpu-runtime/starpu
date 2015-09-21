@@ -11,6 +11,8 @@
 
 if BUILD_DOC
 SUBDIRS = doxygen
+else
+DIST_SUBDIRS =
 endif
 
 EXTRA_DIST =    tutorial/hello_world.c \
