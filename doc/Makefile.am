@@ -11,6 +11,7 @@
 
 if BUILD_DOC
 SUBDIRS = doxygen
+DIST_SUBDIRS = doxygen
 else
 DIST_SUBDIRS =
 endif
