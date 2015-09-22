@@ -400,37 +400,39 @@ void starpu_unistd_global_wait_request(void *async_channel)
 {
         const struct aiocb *aiocb = async_channel;
         int values = -1;
-        int error_disk = EAGAIN;
-        while(values < 0 || error_disk == EAGAIN)
+        int ret, myerrno = EAGAIN;
+        while(values < 0 && (myerrno == EAGAIN || myerrno == EINTR))
         {
                 /* Wait the answer of the request TIMESTAMP IS NULL */
                 values = aio_suspend(&aiocb, 1, NULL);
-                error_disk = errno;
+                myerrno = errno;
         }
+        ret = aio_error(&aiocb);
+        STARPU_ASSERT_MSG(!ret, "aio_error returned %d", ret);
 }
 
 int starpu_unistd_global_test_request(void *async_channel)
 {
         const struct aiocb *aiocb = async_channel;
-        int ret, error;
+        int ret;
 
 #if defined(__GLIBC__) && (__GLIBC__ < 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ < 22))
         /* glibc's aio_error was not threadsafe before glibc 2.22 */
         struct timespec ts = { .tv_sec = 0, .tv_nsec = 0 };
         ret = aio_suspend(&aiocb, 1, &ts);
-        error = errno;
-#else
+        if (ret < 0 && (errno == EAGAIN || errno == EINTR))
+                return 0;
+        STARPU_ASSERT_MSG(!ret, "aio_suspend returned %d %d\n", ret, errno);
+#endif
         /* Test the answer of the request */
         ret = aio_error(aiocb);
-        error = ret;
-#endif
         if (ret == 0)
                 /* request is finished */
                 return 1;
-        if (error == EINPROGRESS || error == EAGAIN)
+        if (ret == EINPROGRESS || ret == EAGAIN)
                 return 0;
         /* an error occured */
-        STARPU_ABORT_MSG("aio_error returned %d", errno);
+        STARPU_ABORT_MSG("aio_error returned %d", ret);
 }
 
 void starpu_unistd_global_free_request(void *async_channel)
