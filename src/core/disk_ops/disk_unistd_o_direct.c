@@ -51,7 +51,7 @@ static void *starpu_unistd_o_direct_open(void *base, void *pos, size_t size)
 }
 
 /* read the memory disk */
-static int starpu_unistd_o_direct_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size)
+static int starpu_unistd_o_direct_read(void *base, void *obj, void *buf, off_t offset, size_t size)
 {
 	STARPU_ASSERT_MSG((size % getpagesize()) == 0, "You can only read a multiple of page size %u Bytes (Here %u)", getpagesize(), (int) size);
 
@@ -61,7 +61,7 @@ static int starpu_unistd_o_direct_read(void *base STARPU_ATTRIBUTE_UNUSED, void 
 }
 
 /* write on the memory disk */
-static int starpu_unistd_o_direct_write(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, const void *buf, off_t offset, size_t size)
+static int starpu_unistd_o_direct_write(void *base, void *obj, const void *buf, off_t offset, size_t size)
 {
 	STARPU_ASSERT_MSG((size % getpagesize()) == 0, "You can only write a multiple of page size %u Bytes (Here %u)", getpagesize(), (int) size);
 
@@ -78,6 +78,26 @@ static void *starpu_unistd_o_direct_plug(void *parameter, starpu_ssize_t size)
 	return starpu_unistd_global_plug (parameter, size);
 }
 
+#ifdef HAVE_AIO_H
+void *starpu_unistd_o_direct_global_async_read(void *base, void *obj, void *buf, off_t offset, size_t size)
+{
+	STARPU_ASSERT_MSG((size % getpagesize()) == 0, "You can only read a multiple of page size %u Bytes (Here %u)", getpagesize(), (int) size);
+
+	STARPU_ASSERT_MSG((((uintptr_t) buf) % getpagesize()) == 0, "You have to use starpu_malloc function");
+
+	return starpu_unistd_global_async_read (base, obj, buf, offset, size);
+}
+
+void *starpu_unistd_o_direct_global_async_write(void *base, void *obj, void *buf, off_t offset, size_t size)
+{
+	STARPU_ASSERT_MSG((size % getpagesize()) == 0, "You can only write a multiple of page size %u Bytes (Here %u)", getpagesize(), (int) size);
+
+	STARPU_ASSERT_MSG((((uintptr_t)buf) % getpagesize()) == 0, "You have to use starpu_malloc function");
+
+	return starpu_unistd_global_async_write (base, obj, buf, offset, size);
+}
+#endif
+
 struct starpu_disk_ops starpu_disk_unistd_o_direct_ops =
 {
 	.alloc = starpu_unistd_o_direct_alloc,
@@ -91,8 +111,8 @@ struct starpu_disk_ops starpu_disk_unistd_o_direct_ops =
 	.copy = NULL,
 	.bandwidth = get_unistd_global_bandwidth_between_disk_and_main_ram,
 #ifdef HAVE_AIO_H
-        .async_read = starpu_unistd_global_async_read,
-        .async_write = starpu_unistd_global_async_write,
+        .async_read = starpu_unistd_o_direct_global_async_read,
+        .async_write = starpu_unistd_o_direct_global_async_write,
         .wait_request = starpu_unistd_global_wait_request,
         .test_request = starpu_unistd_global_test_request,
 	.free_request = starpu_unistd_global_free_request,
