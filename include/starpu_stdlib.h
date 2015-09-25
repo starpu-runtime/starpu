@@ -26,8 +26,11 @@ extern "C"
 #endif
 
 #define STARPU_MALLOC_PINNED	((1ULL)<<1)
-#define STARPU_MALLOC_COUNT	((1ULL)<<3)
-#define STARPU_MALLOC_NORECLAIM	((1ULL)<<4)
+#define STARPU_MALLOC_COUNT	((1ULL)<<2)
+#define STARPU_MALLOC_NORECLAIM	((1ULL)<<3)
+
+#define STARPU_MEMORY_WAIT	((1ULL)<<4)
+#define STARPU_MEMORY_OVERFLOW	((1ULL)<<5)
 
 void starpu_malloc_set_align(size_t align);
 
@@ -43,9 +46,6 @@ int starpu_memory_unpin(void *addr, size_t size);
 starpu_ssize_t starpu_memory_get_total(unsigned node);
 starpu_ssize_t starpu_memory_get_available(unsigned node);
 void starpu_memory_wait_available(unsigned node, size_t size);
-
-#define STARPU_MEMORY_WAIT (1)
-#define STARPU_MEMORY_OVERFLOW (2)
 
 /**
  * Try to allocate memory on the given node

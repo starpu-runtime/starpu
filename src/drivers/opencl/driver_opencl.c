@@ -617,8 +617,6 @@ int _starpu_opencl_driver_init(struct _starpu_worker *worker)
 	_starpu_opencl_limit_gpu_mem_if_needed(devid);
 	_starpu_memory_manager_set_global_memory_size(worker->memory_node, _starpu_opencl_get_global_mem_size(devid));
 
-	_starpu_malloc_init(worker->memory_node);
-
 	float size = (float) global_mem[devid] / (1<<30);
 
 #ifdef STARPU_SIMGRID

@@ -158,6 +158,9 @@ Small features:
   * Add STARPU_NAME to specify a task name from a starpu_task_insert call.
   * Add starpu_task_get_task_succs to get the list of children of a given
     task.
+  * Add starpu_malloc_on_node_flags, starpu_free_on_node_flags, and
+    starpu_malloc_on_node_set_default_flags to control the allocation flags
+    used for allocations done by starpu.
 
 Changes:
   * Data interfaces (variable, vector, matrix and block) now define

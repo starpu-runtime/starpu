@@ -39,10 +39,11 @@ starpu_free_flags() with the same flag.
 Value passed to the function starpu_malloc_flags() along STARPU_MALLOC_COUNT
 to indicate that while the memory allocation should be kept in the limits
 defined for STARPU_MALLOC_COUNT, no reclaiming should be performed by
-starpu_malloc_flags itself, thus potentially overflowing the memory node a
-bit. StarPU will reclaim memory after next task termination, according to
-the STARPU_MINIMUM_AVAILABLE_MEM and STARPU_TARGET_AVAILABLE_MEM environment
-variables.
+starpu_malloc_flags itself, thus potentially overflowing the
+memory node a bit. StarPU will reclaim memory after next task termination,
+according to the STARPU_MINIMUM_AVAILABLE_MEM and STARPU_TARGET_AVAILABLE_MEM
+environment variables. If STARPU_MEMORY_WAIT is set, no overflowing will happen,
+starpu_malloc_flags() will wait for other eviction mechanisms to release enough memory.
 
 \fn int starpu_malloc_flags(void **A, size_t dim, int flags)
 \ingroup API_Standard_Memory_Library

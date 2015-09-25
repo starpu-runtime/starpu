@@ -30,6 +30,7 @@
 
 static size_t _malloc_align = sizeof(void*);
 static int disable_pinning;
+static int malloc_on_node_default_flags[STARPU_MAXNODES];
 
 void starpu_malloc_set_align(size_t align)
 {
@@ -96,7 +97,7 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 	if (flags & STARPU_MALLOC_COUNT)
 	{
 		if (!(flags & STARPU_MALLOC_NORECLAIM))
-			while (starpu_memory_allocate(STARPU_MAIN_RAM, dim, 0) != 0)
+			while (starpu_memory_allocate(STARPU_MAIN_RAM, dim, flags) != 0)
 			{
 				size_t freed;
 				size_t reclaim = 2 * dim;
@@ -104,15 +105,17 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 				_STARPU_TRACE_START_MEMRECLAIM(STARPU_MAIN_RAM,0);
 				freed = _starpu_memory_reclaim_generic(STARPU_MAIN_RAM, 0, reclaim);
 				_STARPU_TRACE_END_MEMRECLAIM(STARPU_MAIN_RAM,0);
-				if (freed < dim)
+				if (freed < dim && !(flags & STARPU_MEMORY_WAIT))
 				{
 					// We could not reclaim enough memory
 					*A = NULL;
 					return -ENOMEM;
 				}
 			}
+		else if (flags & STARPU_MEMORY_WAIT)
+			starpu_memory_allocate(STARPU_MAIN_RAM, dim, flags);
 		else
-			starpu_memory_allocate(STARPU_MAIN_RAM, dim, STARPU_MEMORY_OVERFLOW);
+			starpu_memory_allocate(STARPU_MAIN_RAM, dim, flags | STARPU_MEMORY_OVERFLOW);
 	}
 
 	if (flags & STARPU_MALLOC_PINNED && disable_pinning <= 0 && STARPU_RUNNING_ON_VALGRIND == 0)
@@ -387,7 +390,7 @@ static starpu_pthread_mutex_t opencl_alloc_mutex = STARPU_PTHREAD_MUTEX_INITIALI
 #endif
 
 static uintptr_t
-_starpu_malloc_on_node(unsigned dst_node, size_t size)
+_starpu_malloc_on_node(unsigned dst_node, size_t size, int flags)
 {
 	uintptr_t addr = 0;
 
@@ -395,8 +398,14 @@ _starpu_malloc_on_node(unsigned dst_node, size_t size)
 	cudaError_t status;
 #endif
 
-	if (starpu_memory_allocate(dst_node, size, 0) != 0)
-		return 0;
+	/* Handle count first */
+	if (flags & STARPU_MALLOC_COUNT)
+	{
+		if (starpu_memory_allocate(dst_node, size, flags) != 0)
+			return 0;
+		/* And prevent double-count in starpu_malloc_flags */
+		flags &= ~STARPU_MALLOC_COUNT;
+	}
 
 	switch(starpu_node_get_kind(dst_node))
 	{
@@ -409,9 +418,9 @@ _starpu_malloc_on_node(unsigned dst_node, size_t size)
 					 * requires waiting for a task, and we
 					 * may be called with a spinlock held
 					 */
-					0
+					flags & ~STARPU_MALLOC_PINNED
 #else
-					STARPU_MALLOC_PINNED
+					flags
 #endif
 					);
 			break;
@@ -518,17 +527,19 @@ _starpu_malloc_on_node(unsigned dst_node, size_t size)
 }
 
 void
-_starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size)
+_starpu_free_on_node_flags(unsigned dst_node, uintptr_t addr, size_t size, int flags)
 {
+	int count = flags & STARPU_MALLOC_COUNT;
+	flags &= ~STARPU_MALLOC_COUNT;
 	enum starpu_node_kind kind = starpu_node_get_kind(dst_node);
 	switch(kind)
 	{
 		case STARPU_CPU_RAM:
 			starpu_free_flags((void*)addr, size,
 #if defined(STARPU_USE_CUDA) && !defined(HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
-					0
+					flags & ~STARPU_MALLOC_PINNED
 #else
-					STARPU_MALLOC_PINNED
+					flags
 #endif
 					);
 			break;
@@ -605,7 +616,8 @@ _starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size)
 		default:
 			STARPU_ABORT();
 	}
-	starpu_memory_deallocate(dst_node, size);
+	if (count)
+		starpu_memory_deallocate(dst_node, size);
 
 }
 
@@ -696,6 +708,7 @@ _starpu_malloc_init(unsigned dst_node)
 	nfreechunks[dst_node] = 0;
 	STARPU_PTHREAD_MUTEX_INIT(&chunk_mutex[dst_node], NULL);
 	disable_pinning = starpu_get_env_number("STARPU_DISABLE_PINNING");
+	malloc_on_node_default_flags[dst_node] = STARPU_MALLOC_PINNED | STARPU_MALLOC_COUNT;
 }
 
 void
@@ -709,7 +722,7 @@ _starpu_malloc_shutdown(unsigned dst_node)
 	     chunk = next_chunk)
 	{
 		next_chunk = _starpu_chunk_list_next(chunk);
-		_starpu_free_on_node(dst_node, chunk->base, CHUNK_SIZE);
+		_starpu_free_on_node_flags(dst_node, chunk->base, CHUNK_SIZE, malloc_on_node_default_flags[dst_node]);
 		_starpu_chunk_list_erase(&chunks[dst_node], chunk);
 		free(chunk);
 	}
@@ -718,10 +731,10 @@ _starpu_malloc_shutdown(unsigned dst_node)
 }
 
 /* Create a new chunk */
-static struct _starpu_chunk *_starpu_new_chunk(unsigned dst_node)
+static struct _starpu_chunk *_starpu_new_chunk(unsigned dst_node, int flags)
 {
 	struct _starpu_chunk *chunk;
-	uintptr_t base = _starpu_malloc_on_node(dst_node, CHUNK_SIZE);
+	uintptr_t base = _starpu_malloc_on_node(dst_node, CHUNK_SIZE, flags);
 
 	if (!base)
 		return NULL;
@@ -744,11 +757,11 @@ static struct _starpu_chunk *_starpu_new_chunk(unsigned dst_node)
 }
 
 uintptr_t
-starpu_malloc_on_node(unsigned dst_node, size_t size)
+starpu_malloc_on_node_flags(unsigned dst_node, size_t size, int flags)
 {
 	/* Big allocation, allocate normally */
 	if (size > CHUNK_ALLOC_MAX || starpu_node_get_kind(dst_node) != STARPU_CUDA_RAM)
-		return _starpu_malloc_on_node(dst_node, size);
+		return _starpu_malloc_on_node(dst_node, size, flags);
 
 	/* Round up allocation to block size */
 	int nblocks = (size + CHUNK_ALLOC_MIN - 1) / CHUNK_ALLOC_MIN;
@@ -802,7 +815,7 @@ starpu_malloc_on_node(unsigned dst_node, size_t size)
 	}
 
 	/* Didn't find a big enough segment, create another chunk.  */
-	chunk = _starpu_new_chunk(dst_node);
+	chunk = _starpu_new_chunk(dst_node, flags);
 	if (!chunk)
 	{
 		/* Really no memory any more, fail */
@@ -842,12 +855,12 @@ found:
 }
 
 void
-starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size)
+starpu_free_on_node_flags(unsigned dst_node, uintptr_t addr, size_t size, int flags)
 {
 	/* Big allocation, deallocate normally */
 	if (size > CHUNK_ALLOC_MAX || starpu_node_get_kind(dst_node) != STARPU_CUDA_RAM)
 	{
-		_starpu_free_on_node(dst_node, addr, size);
+		_starpu_free_on_node_flags(dst_node, addr, size, flags);
 		return;
 	}
 
@@ -917,7 +930,7 @@ starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size)
 		if (nfreechunks[dst_node] >= 1)
 		{
 			/* We already have free chunks, release this one */
-			_starpu_free_on_node(dst_node, chunk->base, CHUNK_SIZE);
+			_starpu_free_on_node_flags(dst_node, chunk->base, CHUNK_SIZE, flags);
 			_starpu_chunk_list_erase(&chunks[dst_node], chunk);
 			free(chunk);
 		}
@@ -932,4 +945,21 @@ starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size)
 	}
 
 	STARPU_PTHREAD_MUTEX_UNLOCK(&chunk_mutex[dst_node]);
+}
+
+void starpu_malloc_on_node_set_default_flags(unsigned node, int flags)
+{
+	malloc_on_node_default_flags[node] = flags;
+}
+
+uintptr_t
+starpu_malloc_on_node(unsigned dst_node, size_t size)
+{
+	return starpu_malloc_on_node_flags(dst_node, size, malloc_on_node_default_flags[dst_node]);
+}
+
+void
+starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size)
+{
+	starpu_free_on_node_flags(dst_node, addr, size, malloc_on_node_default_flags[dst_node]);
 }
