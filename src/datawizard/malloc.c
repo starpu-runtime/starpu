@@ -404,6 +404,11 @@ _starpu_malloc_on_node(unsigned dst_node, size_t size)
 		{
 			starpu_malloc_flags((void**) &addr, size,
 #if defined(STARPU_USE_CUDA) && !defined(HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
+					/* without memcpy_peer, we can not
+					 * allocated pinned memory, since it
+					 * requires waiting for a task, and we
+					 * may be called with a spinlock held
+					 */
 					0
 #else
 					STARPU_MALLOC_PINNED
