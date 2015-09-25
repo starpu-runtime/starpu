@@ -20,6 +20,7 @@
 #include <datawizard/datastats.h>
 #include <datawizard/memory_manager.h>
 #include <datawizard/memory_nodes.h>
+#include <datawizard/malloc.h>
 #include <common/fxt.h>
 #include "copy_driver.h"
 #include "memalloc.h"
@@ -155,6 +156,8 @@ unsigned _starpu_memory_node_register(enum starpu_node_kind kind, int devid)
 
 	/* for now, there is no condition associated to that newly created node */
 	descr.condition_count[node] = 0;
+
+	_starpu_malloc_init(node);
 
 	return node;
 }

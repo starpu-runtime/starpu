@@ -602,8 +602,6 @@ int _starpu_cuda_driver_init(struct _starpu_worker_set *worker_set)
 
 		_starpu_cuda_limit_gpu_mem_if_needed(devid);
 		_starpu_memory_manager_set_global_memory_size(memnode, _starpu_cuda_get_global_mem_size(devid));
-
-		_starpu_malloc_init(memnode);
 	}
 
 	/* one more time to avoid hacks from third party lib :) */
