@@ -149,7 +149,7 @@ task->worker = starpu_worker_get_by_type(STARPU_CUDA_WORKER, 0);
 \endcode
 
 One can also specify the order in which tasks must be executed by setting the
-starpu_task::workerder field. If this field is set to a non-zero value, it
+starpu_task::workerorder field. If this field is set to a non-zero value, it
 provides the per-worker consecutive order in which tasks will be executed,
 starting from 1. For a given of such task, the worker will thus not execute
 it before all the tasks with smaller order value have been executed, notably
