@@ -949,6 +949,7 @@ starpu_free_on_node_flags(unsigned dst_node, uintptr_t addr, size_t size, int fl
 
 void starpu_malloc_on_node_set_default_flags(unsigned node, int flags)
 {
+	STARPU_ASSERT_MSG(node < STARPU_MAXNODES, "bogus node value %d given to starpu_malloc_on_node_set_default_flags\n", node);
 	malloc_on_node_default_flags[node] = flags;
 }
 
