@@ -1507,13 +1507,12 @@ AC_DEFUN([IS_SUPPORTED_CFLAG],
 		),
 		[
 			GLOBAL_AM_CFLAGS="$GLOBAL_AM_CFLAGS $1"
-			if test "$2" != ""; then
-			    AC_DEFINE("$2", [], Define this when option $1 available.)
-			fi
 			AC_MSG_RESULT(yes)
+			option_available=1
 		],
 		[
 			AC_MSG_RESULT(no)
+			option_available=0
 		]
 	)
 	CFLAGS="$SAVED_CFLAGS"
@@ -1617,7 +1616,8 @@ AM_CONDITIONAL([RUN_GCC_PLUGIN_TESTS],
 #                                                                             #
 ###############################################################################
 
-IS_SUPPORTED_CFLAG(-fopenmp, STARPU_HAVE_OPENMP)
+IS_SUPPORTED_CFLAG(-fopenmp)
+AM_CONDITIONAL([STARPU_HAVE_OPENMP],[test "$option_available" = "1"])
 
 ###############################################################################
 #                                                                             #
