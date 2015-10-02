@@ -911,7 +911,7 @@ endif
 # openmp example #
 ##################
 
-if !STARPU_HAVE_WINDOWS
+if STARPU_HAVE_OPENMP
 examplebin_PROGRAMS +=		\
 	openmp/vector_scal_omp
 

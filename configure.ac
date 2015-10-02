@@ -1507,9 +1507,14 @@ AC_DEFUN([IS_SUPPORTED_CFLAG],
 		),
 		[
 			GLOBAL_AM_CFLAGS="$GLOBAL_AM_CFLAGS $1"
+			if test "$2" != ""; then
+			    AC_DEFINE("$2", [], Define this when option $1 available.)
+			fi
 			AC_MSG_RESULT(yes)
 		],
+		[
 			AC_MSG_RESULT(no)
+		]
 	)
 	CFLAGS="$SAVED_CFLAGS"
 ])
@@ -1605,6 +1610,14 @@ AM_MISSING_PROG([YACC], [bison])
 AM_CONDITIONAL([BUILD_GCC_PLUGIN], [test "x$build_gcc_plugin" = "xyes"])
 AM_CONDITIONAL([RUN_GCC_PLUGIN_TESTS],
   [test "x$run_gcc_plugin_test_suite" = "xyes"])
+
+###############################################################################
+#                                                                             #
+#                            OpenMP runtime support                           #
+#                                                                             #
+###############################################################################
+
+IS_SUPPORTED_CFLAG(-fopenmp, STARPU_HAVE_OPENMP)
 
 ###############################################################################
 #                                                                             #
