@@ -2008,9 +2008,14 @@ AC_DEFUN([IS_SUPPORTED_CFLAG],
 		),
 		[
 			GLOBAL_AM_CFLAGS="$GLOBAL_AM_CFLAGS $1"
+			if test "$2" != ""; then
+			    AC_DEFINE("$2", [], Define this when option $1 available.)
+			fi
 			AC_MSG_RESULT(yes)
 		],
+		[
 			AC_MSG_RESULT(no)
+		]
 	)
 	CFLAGS="$SAVED_CFLAGS"
 ])
@@ -2138,6 +2143,8 @@ fi
 
 AM_CONDITIONAL([STARPU_OPENMP], [test "x$enable_openmp" = "xyes"])
 AC_MSG_RESULT($enable_openmp)
+
+IS_SUPPORTED_CFLAG(-fopenmp, STARPU_HAVE_OPENMP)
 
 ###############################################################################
 #                                                                             #

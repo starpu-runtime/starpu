@@ -928,7 +928,7 @@ endif
 # openmp example #
 ##################
 
-if !STARPU_HAVE_WINDOWS
+if STARPU_HAVE_OPENMP
 openmp_vector_scal_omp_CFLAGS = \
 	$(AM_CFLAGS) -fopenmp
 
