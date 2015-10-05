@@ -15,6 +15,8 @@
  */
 
 #include "socl.h"
+#include "common/timing.h"
+
 
 int starpu_worker_get_range_by_id(int id) {
    int i, oid = 0;
@@ -55,7 +57,6 @@ void ** memdup_deep_varsize_safea(const void **p, unsigned n, size_t * size) {
 
 cl_ulong _socl_nanotime() {
    struct timespec ts;
-   clock_gettime(CLOCK_MONOTONIC, &ts);
-
+   _starpu_clock_gettime(&ts);
    return (ts.tv_sec * 1e9 + ts.tv_nsec);
 }
