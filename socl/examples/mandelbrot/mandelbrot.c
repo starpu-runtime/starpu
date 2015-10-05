@@ -42,7 +42,11 @@ int frames = -1;
 #include <assert.h>
 #include <sys/time.h>
 
+#ifdef __APPLE_CC__
+#include <OpenCL/opencl.h>
+#else
 #include <CL/cl.h>
+#endif
 
 #define error(...) do { fprintf(stderr, "Error: " __VA_ARGS__); exit(EXIT_FAILURE); } while(0)
 #define check(err, str) do { if(err != CL_SUCCESS) { fprintf(stderr, "OpenCL Error (%d): %s\n",err, str); exit(EXIT_FAILURE); }} while(0)

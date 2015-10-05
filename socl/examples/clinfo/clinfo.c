@@ -18,7 +18,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#ifdef __APPLE_CC__
+#include <OpenCL/opencl.h>
+#else
 #include <CL/cl.h>
+#endif
 
 static inline void
 checkErr(cl_int err, const char * name) {
