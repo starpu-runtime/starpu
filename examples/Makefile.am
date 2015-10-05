@@ -271,7 +271,7 @@ STARPU_EXAMPLES +=				\
 endif
 endif
 
-if !STARPU_HAVE_WINDOWS
+if STARPU_HAVE_OPENMP
 STARPU_EXAMPLES +=				\
 	openmp/vector_scal_omp			\
 	sched_ctx/sched_ctx_without_sched_policy\
