@@ -14,7 +14,12 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#ifdef __APPLE_CC__
+#include <OpenCL/opencl.h>
+#else
 #include <CL/cl.h>
+#endif
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
