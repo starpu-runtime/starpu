@@ -249,6 +249,36 @@ define starpu-print-data
   set language c
   set $data = (starpu_data_handle_t) $arg0
   printf "Data handle %p\n", $data
+  if $data->ops->interfaceid == 0
+    printf "Matrix\n"
+  end
+  if $data->ops->interfaceid == 1
+    printf "Block\n"
+  end
+  if $data->ops->interfaceid == 2
+    printf "Vector\n"
+  end
+  if $data->ops->interfaceid == 3
+    printf "CSR\n"
+  end
+  if $data->ops->interfaceid == 4
+    printf "BCSR\n"
+  end
+  if $data->ops->interfaceid == 5
+    printf "Variable\n"
+  end
+  if $data->ops->interfaceid == 6
+    printf "Void\n"
+  end
+  if $data->ops->interfaceid == 7
+    printf "Multiformat\n"
+  end
+  if $data->ops->interfaceid == 8
+    printf "COO\n"
+  end
+  if $data->ops->interfaceid > 8
+    printf "Interface id %d\n", $data->ops->interfaceid
+  end
   printf "Home node %d\n", $data->home_node
   printf "RWlock refs %d\n", $data->refcnt
   printf "Busy count %d\n", $data->busy_count
