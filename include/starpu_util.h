@@ -115,14 +115,22 @@ extern "C"
 #  endif
 #endif
 
+#ifdef __APPLE_CC__
+#  define _starpu_abort() *(int*)NULL = 0
+#else
+#  define _starpu_abort() abort()
+#endif
+
 #define STARPU_ABORT() do {                                          \
-	fprintf(stderr, "[starpu][abort][%s()@%s:%d]\n", __starpu_func__, __FILE__, __LINE__); \
-	abort();                                                     \
+	STARPU_DUMP_BACKTRACE();                                     \
+        fprintf(stderr, "[starpu][abort][%s()@%s:%d]\n", __starpu_func__, __FILE__, __LINE__); \
+	_starpu_abort();				\
 } while(0)
 
 #define STARPU_ABORT_MSG(msg, ...) do {					\
+	STARPU_DUMP_BACKTRACE();                                        \
 	fprintf(stderr, "[starpu][abort][%s()@%s:%d] " msg "\n", __starpu_func__, __FILE__, __LINE__, ## __VA_ARGS__); \
-	abort();                                                     \
+	_starpu_abort();				\
 } while(0)
 
 #if defined(STARPU_HAVE_STRERROR_R)
