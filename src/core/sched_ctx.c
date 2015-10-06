@@ -534,6 +534,16 @@ struct _starpu_sched_ctx* _starpu_create_sched_ctx(struct starpu_sched_policy *p
 		starpu_sched_ctx_create_worker_collection(sched_ctx->id, STARPU_WORKER_LIST);
 	}
 
+	if(is_initial_sched)
+	{
+		int i;
+		/*initialize the mutexes for all contexts */
+		for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
+		  {
+			STARPU_PTHREAD_RWLOCK_INIT(&changing_ctx_mutex[i], NULL);
+		  }
+	}
+
 	/* after having an worker_collection on the ressources add them */
 	_starpu_add_workers_to_sched_ctx(sched_ctx, workerids, nworkers_ctx, NULL, NULL);
 
@@ -547,9 +557,6 @@ struct _starpu_sched_ctx* _starpu_create_sched_ctx(struct starpu_sched_policy *p
 	if(is_initial_sched)
 	{
 		int i;
-		/*initialize the mutexes for all contexts */
-		for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
-			STARPU_PTHREAD_RWLOCK_INIT(&changing_ctx_mutex[i], NULL);
 		for(i = 0; i < nworkers; i++)
 		{
 			struct _starpu_worker *worker = _starpu_get_worker_struct(i);
