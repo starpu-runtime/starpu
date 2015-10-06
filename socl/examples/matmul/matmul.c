@@ -32,6 +32,7 @@
 #define error(...) do { fprintf(stderr, "Error: " __VA_ARGS__); exit(EXIT_FAILURE); } while(0)
 #define check(exp) do { err = exp; if(err != CL_SUCCESS) { fprintf(stderr, "OpenCL Error (%d): " #exp "\n", err); exit(EXIT_FAILURE); }} while(0)
 #define check2(exp) exp; if(err != CL_SUCCESS) { fprintf(stderr, "OpenCL Error (%d): " #exp "\n", err); exit(EXIT_FAILURE); }
+#define check3(exp, err) do { if(err != CL_SUCCESS) { fprintf(stderr, "OpenCL Error (%d): " #exp "\n", err); exit(EXIT_FAILURE); } } while(0)
 
 // Thread block size
 #define BLOCK_SIZE 16  // Kernel thread-block size
@@ -277,7 +278,12 @@ int main(int argc, const char** argv) {
 			clGetDeviceInfo(device, CL_DEVICE_NAME, 2048, name, NULL);
 			printf("Device %d: %s\n", i, name);
 
-			check2(commandQueue[p][i] = clCreateCommandQueue(ctx[p], device, CL_QUEUE_PROFILING_ENABLE | CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE, &err));
+			commandQueue[p][i] = clCreateCommandQueue(ctx[p], device, CL_QUEUE_PROFILING_ENABLE | CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE, &err);
+			if (err == CL_INVALID_VALUE) {
+			  fprintf(stderr, "Invalid property for clCreateCommandQueue\n");
+			  exit(77);
+			}
+			check3("clCreateCommandQueue", err);
 		}
 
 		device_count += devs[p];
