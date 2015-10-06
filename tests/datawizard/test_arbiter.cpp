@@ -26,6 +26,12 @@
 // @FUSE_STARPU
 
 
+#include <starpu.h>
+#include "../helper.h"
+
+#include <vector>
+#include <unistd.h>
+
 #ifdef STARPU_QUICK_CHECK
 #define SLEEP_SLOW 6000
 #define SLEEP_FAST 1000
@@ -33,12 +39,6 @@
 #define SLEEP_SLOW 600000
 #define SLEEP_FAST 100000
 #endif
-
-#include <starpu.h>
-#include "../helper.h"
-
-#include <vector>
-#include <unistd.h>
 
 static unsigned nb, nb_slow;
 
