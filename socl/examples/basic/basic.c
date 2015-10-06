@@ -91,7 +91,7 @@ int main(int UNUSED(argc), char** UNUSED(argv)) {
       exit(77);
    }
 
-   err = clGetPlatformIDs(sizeof(platforms)/sizeof(cl_platform_id), platforms, NULL);
+   err = clGetPlatformIDs(sizeof(platforms)/sizeof(cl_platform_id), platforms, &num_platforms);
    check(err, "clGetPlatformIDs");
 
    int platform_idx = -1;
