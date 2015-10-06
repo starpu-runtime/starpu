@@ -78,7 +78,7 @@ int starpu_memory_allocate(unsigned node, size_t size, int flags)
 	int ret;
 
 	STARPU_PTHREAD_MUTEX_LOCK(&lock_nodes[node]);
-	if (flags == STARPU_MEMORY_WAIT)
+	if (flags & STARPU_MEMORY_WAIT)
 	{
 		waiters[node]++;
 
@@ -99,7 +99,7 @@ int starpu_memory_allocate(unsigned node, size_t size, int flags)
 			 */
 			min_waiting_size[node] = 0;
 	}
-	else if (flags == STARPU_MEMORY_OVERFLOW
+	else if (flags & STARPU_MEMORY_OVERFLOW
 			|| global_size[node] == 0
 			|| used_size[node] + size <= global_size[node])
 	{
