@@ -80,7 +80,7 @@ int main(int UNUSED(argc), char** UNUSED(argv)) {
       printf("No OpenCL platform found.\n");
       exit(77);
    }
-   err = clGetPlatformIDs(sizeof(platforms)/sizeof(cl_platform_id), platforms, NULL);
+   err = clGetPlatformIDs(sizeof(platforms)/sizeof(cl_platform_id), platforms, &num_platforms);
    check(err, "clGetPlatformIDs");
 
    printf("Querying devices...\n");
