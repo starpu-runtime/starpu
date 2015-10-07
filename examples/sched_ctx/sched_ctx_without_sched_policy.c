@@ -42,6 +42,7 @@ int parallel_code(int sched_ctx)
 // 			printf("cpu = %d ctx%d nth = %d\n", sched_getcpu(), sched_ctx, omp_get_num_threads());
 #pragma omp for
 		for(i = 0; i < NTASKS; i++)
+#pragma omp critical
 			t++;
 	}
 
@@ -59,10 +60,6 @@ static void sched_ctx_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
 static struct starpu_codelet sched_ctx_codelet =
 {
 	.cpu_funcs = {sched_ctx_func},
-#ifdef STARPU_DEVEL
-#warning FIXME: cuda_funcs should not need to be defined
-#endif
-	.cuda_funcs = {sched_ctx_func},
 	.model = NULL,
 	.nbuffers = 0,
 	.name = "sched_ctx"

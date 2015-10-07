@@ -922,7 +922,10 @@ profiling:
 		}
 	}
 
-	if(task->prologue_callback_pop_func)
+	/* This function is useful only for CPUs as its unique purpose is to initialize
+	 * another runtime (e.g. OpenMP) when using parallel tasks (sched contexts without
+	 * policy). We therefore ensure GPUs don't try to execute it. */
+	if(task->prologue_callback_pop_func && worker->arch == STARPU_CPU_WORKER)
 		task->prologue_callback_pop_func(task->prologue_callback_pop_arg);
 
 	return task;
