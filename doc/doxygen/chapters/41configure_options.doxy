@@ -517,6 +517,13 @@ that the MKL website
 provides a script to determine the linking flags.
 </dd>
 
+<dt>--disable-build-tests</dt>
+<dd>
+\anchor disable-build-tests
+\addindex __configure__--disable-build-tests
+Disable the build of tests.
+</dd>
+
 <dt>--disable-build-examples</dt>
 <dd>
 \anchor disable-build-examples
