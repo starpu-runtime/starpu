@@ -222,10 +222,14 @@ static void display_perf_model(FILE *gnuplot_file, struct starpu_perfmodel_arch*
 	starpu_perfmodel_get_arch_name(arch, arch_name, 256, impl);
 
 #ifdef STARPU_USE_FXT
-	if (!options->gflops && options->with_fxt_file && impl == 0)
+	if (options->with_fxt_file && impl == 0)
 	{
-		print_comma(gnuplot_file, first);
-		fprintf(gnuplot_file, "\"< grep -w \\^%s %s\" using 2:3 title \"Profiling %s\"", arch_name, options->data_file_name, replace_char(arch_name, '_', '-'));
+		if (options->gflops) {
+                        _STARPU_DISP("gflops unit selected, ignoring fxt trace\n");
+		} else {
+			print_comma(gnuplot_file, first);
+			fprintf(gnuplot_file, "\"< grep '^%s' %s\" using 3:4 title \"Profiling %s\"", arch_name, options->data_file_name, replace_char(arch_name, '_', '-'));
+		}
 	}
 #endif
 
@@ -425,7 +429,7 @@ static void display_selected_models(FILE *gnuplot_file, struct starpu_perfmodel 
 
 	/* If no input data is given to gnuplot, we at least need to specify an
 	 * arbitrary range. */
-	if (options->with_fxt_file == 0)
+	if (options->with_fxt_file == 0 || options->gflops)
 		fprintf(gnuplot_file, "set xrange [1:10**9]\n\n");
 
 	int first = 1;
