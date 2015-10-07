@@ -304,8 +304,6 @@ int _starpu_sched_ctx_list_exists(struct _starpu_sched_ctx_list *list,
 
 void _starpu_sched_ctx_list_remove_all(struct _starpu_sched_ctx_list *list)
 {
-	struct _starpu_sched_ctx_elt *next = NULL;
-
 	while (list->head != NULL)
 		_starpu_sched_ctx_elt_remove(list, list->head);
 
