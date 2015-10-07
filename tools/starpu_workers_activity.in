@@ -137,7 +137,7 @@ EOF
 cnt=0
 for worker in $workers
 do
-	grep "^$worker" $inputfile > .tmp.$worker
+	grep "^$worker\s" $inputfile > .tmp.$worker
 
 	starty=$(echo "$heigth + ($heigth * $cnt)"|bc -l)
 
@@ -150,7 +150,7 @@ set key off
 
 set yrange [0:100]
 
-set ylabel "$(cut -f2- $names |grep "^$worker" | cut -f2)"
+set ylabel "$(cut -f2- $names |grep "^$worker$" | cut -f2)"
 
 plot ".tmp.$worker" using (\$2/1000):(100) with filledcurves y1=0.0 lt rgb "#000000" notitle,\
 	 ".tmp.$worker" using (\$2/1000):((100*(\$4+\$5))/\$3) with filledcurves y1=0.0 lt rgb "#ff0000" notitle,\
