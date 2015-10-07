@@ -115,6 +115,7 @@ noinst_PROGRAMS =				\
 	main/execute_on_a_specific_worker	\
 	main/execute_schedule			\
 	main/insert_task			\
+	main/insert_task_value			\
 	main/insert_task_dyn_handles		\
 	main/insert_task_nullcodelet		\
 	main/insert_task_array			\
