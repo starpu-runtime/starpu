@@ -13,7 +13,10 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
-SUBDIRS = src tests
+SUBDIRS = src
+if BUILD_TESTS
+SUBDIRS += tests
+endif
 if BUILD_EXAMPLES
 SUBDIRS += examples
 endif

@@ -2206,6 +2206,11 @@ fi
 #                                                                             #
 ###############################################################################
 
+AC_ARG_ENABLE(build-tests, [AS_HELP_STRING([--disable-build-tests],
+			[disable building of tests])],
+			enable_build_tests=$enableval, enable_build_tests=yes)
+# check stuff for tests (todo)
+AM_CONDITIONAL(BUILD_TESTS, [test x$enable_build_tests != xno])
 AC_ARG_ENABLE(build-examples, [AS_HELP_STRING([--disable-build-examples],
 			[disable building of examples])],
 			enable_build_examples=$enableval, enable_build_examples=yes)
