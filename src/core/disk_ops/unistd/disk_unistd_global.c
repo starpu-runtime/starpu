@@ -407,7 +407,7 @@ void starpu_unistd_global_wait_request(void *async_channel)
                 values = aio_suspend(&aiocb, 1, NULL);
                 myerrno = errno;
         }
-        ret = aio_error(&aiocb);
+        ret = aio_error(aiocb);
         STARPU_ASSERT_MSG(!ret, "aio_error returned %d", ret);
 }
 
