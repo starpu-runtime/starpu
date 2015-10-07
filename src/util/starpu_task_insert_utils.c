@@ -40,6 +40,25 @@ void _starpu_task_insert_callback_wrapper(void *_cl_arg_wrapper)
 		cl_arg_wrapper->callback_func(cl_arg_wrapper->callback_arg);
 }
 
+static
+void _starpu_pack_arguments(size_t *current_offset, size_t *arg_buffer_size_, char **arg_buffer_, void *ptr, size_t ptr_size)
+{
+	if (*current_offset + sizeof(ptr_size) + ptr_size > *arg_buffer_size_)
+	{
+		if (*arg_buffer_size_ == 0)
+			*arg_buffer_size_ = 128 + sizeof(ptr_size) + ptr_size;
+		else
+			*arg_buffer_size_ = 2 * *arg_buffer_size_ + sizeof(ptr_size) + ptr_size;
+		*arg_buffer_ = realloc(*arg_buffer_, *arg_buffer_size_);
+	}
+	memcpy(*arg_buffer_+*current_offset, (void *)&ptr_size, sizeof(ptr_size));
+	*current_offset += sizeof(ptr_size);
+
+	memcpy(*arg_buffer_+*current_offset, ptr, ptr_size);
+	*current_offset += ptr_size;
+	STARPU_ASSERT(*current_offset <= *arg_buffer_size_);
+}
+
 int _starpu_codelet_pack_args(void **arg_buffer, size_t *arg_buffer_size, va_list varg_list)
 {
 	int arg_type;
@@ -71,17 +90,7 @@ int _starpu_codelet_pack_args(void **arg_buffer, size_t *arg_buffer_size, va_lis
 			size_t ptr_size = va_arg(varg_list, size_t);
 
 			nargs++;
-			if (current_offset > _arg_buffer_size)
-			{
-				if (_arg_buffer_size == 0) _arg_buffer_size = 1024; else _arg_buffer_size *= 2;
-				_arg_buffer = realloc(_arg_buffer, _arg_buffer_size);
-			}
-			memcpy(_arg_buffer+current_offset, (void *)&ptr_size, sizeof(ptr_size));
-			current_offset += sizeof(ptr_size);
-
-			memcpy(_arg_buffer+current_offset, ptr, ptr_size);
-			current_offset += ptr_size;
-			STARPU_ASSERT(current_offset <= _arg_buffer_size);
+			_starpu_pack_arguments(&current_offset, &_arg_buffer_size, &_arg_buffer, ptr, ptr_size);
 		}
 		else if (arg_type==STARPU_CALLBACK)
 		{
@@ -334,17 +343,7 @@ void _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task **
 			size_t ptr_size = va_arg(varg_list, size_t);
 
 			nargs++;
-			if (current_offset > arg_buffer_size_)
-			{
-				if (arg_buffer_size_ == 0) arg_buffer_size_ = 1024; else arg_buffer_size_ *= 2;
-				arg_buffer_ = realloc(arg_buffer_, arg_buffer_size_);
-			}
-			memcpy(arg_buffer_+current_offset, (void *)&ptr_size, sizeof(ptr_size));
-			current_offset += sizeof(ptr_size);
-
-			memcpy(arg_buffer_+current_offset, ptr, ptr_size);
-			current_offset += ptr_size;
-			STARPU_ASSERT(current_offset <= arg_buffer_size_);
+			_starpu_pack_arguments(&current_offset, &arg_buffer_size_, &arg_buffer_, ptr, ptr_size);
 		}
 		else if (arg_type==STARPU_CALLBACK)
 		{
