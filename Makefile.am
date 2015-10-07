@@ -21,7 +21,7 @@ CLEANFILES = *.gcno *.gcda *.linkinfo
 SUBDIRS = src
 SUBDIRS += tools
 
-if BUILD_EXAMPLES
+if BUILD_TESTS
 SUBDIRS += tests
 endif
 
