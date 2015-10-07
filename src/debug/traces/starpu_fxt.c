@@ -2844,7 +2844,7 @@ void starpu_fxt_write_data_trace(char *filename_in)
 			break;
 
 		case _STARPU_FUT_END_CODELET_BODY:
-			workerid = ev.param[6];
+			workerid = ev.param[3];
 			assert(workerid != -1);
 			tasks[workerid].exec_time = ev.time - tasks[workerid].exec_time;
 			write_task(tasks[workerid]);
