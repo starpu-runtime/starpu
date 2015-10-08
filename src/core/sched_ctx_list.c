@@ -233,7 +233,7 @@ struct _starpu_sched_ctx_elt* _starpu_sched_ctx_list_add_prio(struct _starpu_sch
 int _starpu_sched_ctx_list_add(struct _starpu_sched_ctx_list **list,
 			       unsigned sched_ctx)
 {
-	return _starpu_sched_ctx_list_add_prio(list, 0, sched_ctx) != NULL ? 0 : 1;
+	return _starpu_sched_ctx_list_add_prio(list, 0, sched_ctx) != NULL ? 0 : -1;
 }
 
 void _starpu_sched_ctx_list_remove_elt(struct _starpu_sched_ctx_list **list,
@@ -365,8 +365,12 @@ struct _starpu_sched_ctx_elt* _starpu_sched_ctx_list_iterator_get_next(struct _s
 			if (parent->next != NULL)
 			{
 				it->cursor = parent->next->head;
-				ret = parent->next->head;
-			} //else ret = NULL (end)
+				ret = it->cursor;
+			}
+			else
+			{
+				it->cursor = NULL;
+			}
 		}
 		else
 		{

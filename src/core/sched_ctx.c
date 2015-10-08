@@ -73,8 +73,8 @@ void _starpu_worker_gets_out_of_ctx(unsigned sched_ctx_id, struct _starpu_worker
 		/* 	sched_ctx->sched_policy->remove_workers(sched_ctx_id, &worker->workerid, 1); */
 		/* 	_STARPU_TRACE_WORKER_SCHEDULING_POP; */
 		/* } */
-		_starpu_sched_ctx_list_remove(&worker->sched_ctx_list, sched_ctx_id);
-		worker->nsched_ctxs--;
+		if (!_starpu_sched_ctx_list_remove(&worker->sched_ctx_list, sched_ctx_id))
+			worker->nsched_ctxs--;
 	}
 	return;
 }
@@ -143,7 +143,7 @@ void starpu_sched_ctx_worker_shares_tasks_lists(int workerid, int sched_ctx_id)
 }
 
 static void _starpu_add_workers_to_sched_ctx(struct _starpu_sched_ctx *sched_ctx, int *workerids, int nworkers,
-				       int *added_workers, int *n_added_workers)
+					     int *added_workers, int *n_added_workers)
 {
 	struct starpu_worker_collection *workers = sched_ctx->workers;
 	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
@@ -569,8 +569,8 @@ struct _starpu_sched_ctx* _starpu_create_sched_ctx(struct starpu_sched_policy *p
 		for(i = 0; i < nworkers; i++)
 		{
 			struct _starpu_worker *worker = _starpu_get_worker_struct(i);
-			_starpu_sched_ctx_list_add(&worker->sched_ctx_list, sched_ctx->id);
-			worker->nsched_ctxs++;
+			if(!_starpu_sched_ctx_list_add(&worker->sched_ctx_list, sched_ctx->id))
+				worker->nsched_ctxs++;
 		}
 	}
 
@@ -1994,12 +1994,13 @@ struct _starpu_sched_ctx *_starpu_sched_ctx_get_sched_ctx_for_worker_and_job(str
 {
 	struct _starpu_sched_ctx_elt *e = NULL;
 	struct _starpu_sched_ctx_list_iterator list_it;
+	struct _starpu_sched_ctx *sched_ctx = NULL;
 
 	_starpu_sched_ctx_list_iterator_init(worker->sched_ctx_list, &list_it);
 	while (_starpu_sched_ctx_list_iterator_has_next(&list_it))
 	{
 		e = _starpu_sched_ctx_list_iterator_get_next(&list_it);
-		struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(e->sched_ctx);
+		sched_ctx = _starpu_get_sched_ctx_struct(e->sched_ctx);
 		if (j->task->sched_ctx == sched_ctx->id)
 			return sched_ctx;
 	}

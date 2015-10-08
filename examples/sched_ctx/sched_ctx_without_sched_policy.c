@@ -122,7 +122,8 @@ int main(int argc, char **argv)
 	/*create contexts however you want*/
 	unsigned sched_ctx1 = starpu_sched_ctx_create(procs1, nprocs1, "ctx1", 0);
 	unsigned sched_ctx2 = starpu_sched_ctx_create(procs2, nprocs2, "ctx2", 0);
-
+	starpu_sched_ctx_display_workers(sched_ctx1, stderr);
+	starpu_sched_ctx_display_workers(sched_ctx2, stderr);
 	int i;
 	for (i = 0; i < ntasks; i++)
 	{
