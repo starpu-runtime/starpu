@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2014  Université de Bordeaux
- * Copyright (C) 2011, 2012, 2013, 2014  CNRS
+ * Copyright (C) 2011, 2012, 2013, 2014, 2015  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -224,9 +224,12 @@ static void display_perf_model(FILE *gnuplot_file, struct starpu_perfmodel_arch*
 #ifdef STARPU_USE_FXT
 	if (options->with_fxt_file && impl == 0)
 	{
-		if (options->gflops) {
+		if (options->gflops)
+		{
                         _STARPU_DISP("gflops unit selected, ignoring fxt trace\n");
-		} else {
+		}
+		else
+		{
 			print_comma(gnuplot_file, first);
 			fprintf(gnuplot_file, "\"< grep '^%s' %s\" using 3:4 title \"Profiling %s\"", arch_name, options->data_file_name, replace_char(arch_name, '_', '-'));
 		}
