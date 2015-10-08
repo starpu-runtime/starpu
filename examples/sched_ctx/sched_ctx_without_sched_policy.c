@@ -36,13 +36,12 @@ int parallel_code(int sched_ctx)
 	starpu_sched_ctx_get_available_cpuids(sched_ctx, &cpuids, &ncpuids);
 
 //	printf("execute task of %d threads \n", ncpuids);
-#pragma omp parallel num_threads(ncpuids)
+#pragma omp parallel num_threads(ncpuids) reduction(+:t)
 	{
 		starpu_sched_ctx_bind_current_thread_to_cpuid(cpuids[omp_get_thread_num()]);
 // 			printf("cpu = %d ctx%d nth = %d\n", sched_getcpu(), sched_ctx, omp_get_num_threads());
 #pragma omp for
 		for(i = 0; i < NTASKS; i++)
-#pragma omp critical
 			t++;
 	}
 
