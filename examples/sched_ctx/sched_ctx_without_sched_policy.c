@@ -112,10 +112,12 @@ int main(int argc, char **argv)
 #endif
 
 	if (ncpus == 0) goto enodev;
+#ifdef STARPU_USE_CUDA
 	if (ncuda > 0 && nprocs1 > 1)
 	{
 		procs1[nprocs1-1] = procscuda[0];
 	}
+#endif
 
 	/*create contexts however you want*/
 	unsigned sched_ctx1 = starpu_sched_ctx_create(procs1, nprocs1, "ctx1", 0);

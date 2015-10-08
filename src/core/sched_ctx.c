@@ -152,6 +152,8 @@ static void _starpu_add_workers_to_sched_ctx(struct _starpu_sched_ctx *sched_ctx
 	if (!nworkers_to_add)
 		return;
 	int workers_to_add[nworkers_to_add];
+	int cpu_workers[nworkers_to_add];
+	int ncpu_workers = 0;
 
 	struct starpu_perfmodel_device devices[nworkers_to_add];
 	int ndevices = 0;
@@ -231,6 +233,13 @@ static void _starpu_add_workers_to_sched_ctx(struct _starpu_sched_ctx *sched_ctx
 			else
 				found = 0;
 		}
+
+		if (!sched_ctx->sched_policy)
+		{
+			struct _starpu_worker *worker_str = _starpu_get_worker_struct(wa[i]);
+			if (worker_str->arch == STARPU_CPU_WORKER)
+				cpu_workers[ncpu_workers++] = wa[i];
+		}
 	}
 
 	if(ndevices > 0)
@@ -299,16 +308,16 @@ static void _starpu_add_workers_to_sched_ctx(struct _starpu_sched_ctx *sched_ctx
 		if(!sched_ctx->awake_workers)
 		{
 			if(sched_ctx->main_master == -1)
-				sched_ctx->main_master = starpu_sched_ctx_book_workers_for_task(sched_ctx->id, wa, na);
+				sched_ctx->main_master = starpu_sched_ctx_book_workers_for_task(sched_ctx->id, cpu_workers, ncpu_workers);
 			else
 			{
-				_starpu_sched_ctx_add_workers_to_master(sched_ctx->id, wa, na, sched_ctx->main_master);
+				_starpu_sched_ctx_add_workers_to_master(sched_ctx->id, cpu_workers, ncpu_workers, sched_ctx->main_master);
 			}
 		}
 		else
 		{
-			sched_ctx->main_master = _starpu_sched_ctx_find_master(sched_ctx->id, wa, na);
-			_starpu_sched_ctx_set_master(sched_ctx, wa, na, sched_ctx->main_master);
+			sched_ctx->main_master = _starpu_sched_ctx_find_master(sched_ctx->id, cpu_workers, ncpu_workers);
+			_starpu_sched_ctx_set_master(sched_ctx, cpu_workers, ncpu_workers, sched_ctx->main_master);
 		}
 	}
 	else if(sched_ctx->sched_policy->add_workers)
