@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2015  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010-2014  CNRS
+ * Copyright (C) 2010-2015  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2014  INRIA
  *
@@ -283,7 +283,7 @@ int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
 		cpu_worker->current_rank = 0;
 
 		struct _starpu_sched_ctx *sched_ctx = _starpu_sched_ctx_get_sched_ctx_for_worker_and_job(cpu_worker, j);
-		if (!sched_ctx->sched_policy && !sched_ctx->awake_workers && sched_ctx->main_master == cpu_worker->workerid)
+		if (sched_ctx && !sched_ctx->sched_policy && !sched_ctx->awake_workers && sched_ctx->main_master == cpu_worker->workerid)
 			perf_arch = &sched_ctx->perf_arch;
 		else
 			perf_arch = &cpu_worker->perf_arch;
