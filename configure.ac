@@ -1454,6 +1454,7 @@ else
 fi
 CFLAGS+=" -gdwarf-2 -g3 "
 CXXFLAGS+=" -gdwarf-2 -g3 "
+LDFLAGS+=" -gdwarf-2 -g3 "
 
 if test x$enable_spinlock_check = xyes; then
 	AC_DEFINE(STARPU_SPINLOCK_CHECK, [1], [check spinlock use])
