@@ -165,7 +165,7 @@ static int _decode(char **src, char *motif, const char *value)
 	found = strstr(*src, motif);
 	if (found == NULL) return 0;
 
-	char *new_src = malloc(strlen(*src)-strlen(motif)+strlen(value)+1);
+	char *new_src = calloc(1, strlen(*src)-strlen(motif)+strlen(value)+1);
 
 	strncpy(new_src, *src, found - *src);
 	strcat(new_src, value);
@@ -215,18 +215,18 @@ int main(int argc, char *argv[])
 
 	if (strstr(test_name, "spmv/dw_block_spmv"))
 	{
-		test_args = (char *) malloc(150*sizeof(char));
+		test_args = (char *) calloc(150, sizeof(char));
 		sprintf(test_args, "%s/examples/spmv/matrix_market/examples/fidapm05.mtx", STARPU_SRC_DIR);
 	}
 
 	if (strstr(test_name, "starpu_perfmodel_display"))
 	{
-		test_args = (char *) malloc(5*sizeof(char));
+		test_args = (char *) calloc(5, sizeof(char));
 		sprintf(test_args, "-l");
 	}
 	if (strstr(test_name, "starpu_perfmodel_plot"))
 	{
-		test_args = (char *) malloc(5*sizeof(char));
+		test_args = (char *) calloc(5, sizeof(char));
 		sprintf(test_args, "-l");
 	}
 
