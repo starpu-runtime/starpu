@@ -677,6 +677,10 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 	struct _starpu_job *j;
 	struct starpu_task *task;
 
+	int idle;
+
+	/* First poll for completed jobs */
+	idle = 0;
 	if (worker->ntasks)
 	{
 #ifndef STARPU_SIMGRID
@@ -700,10 +704,6 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 #endif /* !STARPU_SIMGRID */
 		{
 			_STARPU_TRACE_START_EXECUTING();
-			/* Not ready yet, no better thing to do than waiting */
-			__starpu_datawizard_progress(memnode, 1, 0);
-			__starpu_datawizard_progress(STARPU_MAIN_RAM, 1, 0);
-			return 0;
 		}
 		else
 		{
@@ -738,6 +738,18 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 			_STARPU_TRACE_END_EXECUTING();
 		}
 	}
+	if (worker->ntasks < worker->pipeline_length)
+		idle++;
+
+#ifdef STARPU_NON_BLOCKING_DRIVERS
+	if (!idle)
+	{
+		/* Not ready yet, no better thing to do than waiting */
+		__starpu_datawizard_progress(memnode, 1, 0);
+		__starpu_datawizard_progress(STARPU_MAIN_RAM, 1, 0);
+		return 0;
+	}
+#endif
 
 	__starpu_datawizard_progress(memnode, 1, 1);
 	__starpu_datawizard_progress(STARPU_MAIN_RAM, 1, 1);
