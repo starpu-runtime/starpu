@@ -82,6 +82,12 @@ void axpy_gpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *arg)
 extern void axpy_opencl(void *buffers[], void *args);
 #endif
 
+static struct starpu_perfmodel axpy_model =
+{
+	.type = STARPU_HISTORY_BASED,
+	.symbol = "axpy"
+};
+
 static struct starpu_codelet axpy_cl =
 {
 	.cpu_funcs = {axpy_cpu},
@@ -95,7 +101,8 @@ static struct starpu_codelet axpy_cl =
 #endif
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_RW},
-	.name = "axpy"
+	.name = "axpy",
+	.model = &axpy_model
 };
 
 static int
