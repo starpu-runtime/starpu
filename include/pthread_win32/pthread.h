@@ -176,6 +176,11 @@ static __inline int pthread_mutexattr_init(pthread_mutexattr_t *attr) {
   return 0;
 }
 
+static __inline int pthread_mutexattr_destroy(pthread_mutexattr_t *attr) {
+  *attr = -1;
+  return 0;
+}
+
 static __inline int pthread_mutexattr_settype(pthread_mutexattr_t *attr, int type) {
   if (type != PTHREAD_MUTEX_RECURSIVE && type != PTHREAD_MUTEX_ERRORCHECK)
     return EINVAL;
