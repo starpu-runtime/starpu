@@ -66,7 +66,9 @@ static starpu_pthread_cond_t cond_progression;
 /* Condition to wake up waiting for all current MPI requests to finish */
 static starpu_pthread_cond_t cond_finished;
 static starpu_pthread_mutex_t mutex;
+#ifndef STARPU_SIMGRID
 static starpu_pthread_t progress_thread;
+#endif
 static int running = 0;
 
 #ifdef STARPU_SIMGRID
@@ -1308,6 +1310,9 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 		STARPU_PTHREAD_MUTEX_UNLOCK(&detached_requests_mutex);
 #endif /* STARPU_MPI_ACTIVITY */
 
+#ifdef STARPU_SIMGRID
+		MSG_process_sleep(0.000010);
+#endif
 		if (block)
 		{
 			_STARPU_MPI_DEBUG(3, "NO MORE REQUESTS TO HANDLE\n");
@@ -1645,7 +1650,12 @@ int starpu_mpi_shutdown(void)
 	STARPU_PTHREAD_COND_BROADCAST(&cond_progression);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 
+#ifndef STARPU_SIMGRID
 	starpu_pthread_join(progress_thread, &value);
+#else
+	/* FIXME: should rather properly wait for _starpu_mpi_progress_thread_func to finish */
+	MSG_process_sleep(1);
+#endif
 
 #ifdef STARPU_MPI_ACTIVITY
 	starpu_progression_hook_deregister(hookid);

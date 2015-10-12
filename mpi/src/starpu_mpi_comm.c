@@ -129,6 +129,9 @@ int _starpu_mpi_comm_test_recv(MPI_Status *status, struct _starpu_mpi_envelope *
 		if (_comm->posted)
 		{
 			/* test whether an envelope has arrived. */
+#ifdef STARPU_SIMGRID
+			MSG_process_sleep(0.000010);
+#endif
 			res = MPI_Test(&_comm->request, &flag, status);
 			STARPU_ASSERT(res == MPI_SUCCESS);
 			if (flag)
