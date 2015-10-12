@@ -77,7 +77,9 @@ void matrix_init(float ****bmat, int rank, int nodes, int alloc_everywhere)
 				{
 					for (j = 0; j < BLOCKSIZE; j++)
 					{
+#ifndef STARPU_SIMGRID
 						(*bmat)[x][y][j +i*BLOCKSIZE] = (1.0f/(1.0f+(i+(x*BLOCKSIZE)+j+(y*BLOCKSIZE)))) + ((i+(x*BLOCKSIZE) == j+(y*BLOCKSIZE))?1.0f*size:0.0f);
+#endif
 						//mat[j +i*size] = ((i == j)?1.0f*size:0.0f);
 					}
 				}
