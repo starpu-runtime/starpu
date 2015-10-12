@@ -170,7 +170,7 @@ static void decode(char **src, char *motif, const char *value)
 		}
 		while (y)
 		{
-			char *neo = calloc(strlen(*src)-strlen(motif)+strlen(value)+1);
+			char *neo = calloc(1strlen(*src)-strlen(motif)+strlen(value)+1, sizeof(char));
 			char *to = neo;
 
 			to = strncpy(to, *src, y - *src); to += y - *src;
