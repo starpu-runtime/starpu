@@ -94,9 +94,13 @@ static struct starpu_codelet axpy_cl =
 	.cpu_funcs = {axpy_cpu},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {axpy_gpu},
+#elif defined(STARPU_SIMGRID)
+	.cuda_funcs = {(void*)1},
 #endif
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = {axpy_opencl},
+#elif defined(STARPU_SIMGRID)
+	.opencl_funcs = {(void*)1},
 #endif
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_RW},
