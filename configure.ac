@@ -189,6 +189,18 @@ case "${srcdir}" in
      AC_SUBST(STARPU_SRC_DIR, "$(eval echo $PWD/${srcdir})") ;;
 esac
 
+AC_CHECK_TYPE([struct timespec], 
+	       AC_DEFINE(STARPU_HAVE_STRUCT_TIMESPEC,[],[struct timespec is defined]),
+	       [], [
+#include <sys/types.h>
+#include <sys/stat.h>
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+#include <time.h>
+])
+
+AC_CHECK_HEADERS([unistd.h], [AC_DEFINE([STARPU_HAVE_UNISTD_H], [1], [Define to 1 if you have the <unistd.h> header file.])])
 
 case "$target" in
 *-*-mingw*|*-*-cygwin*)
@@ -202,6 +214,7 @@ then
     CPPFLAGS+=" -I$STARPU_SRC_DIR/include/pthread_win32 "
     AC_COMPILE_IFELSE(
           [AC_LANG_PROGRAM([[
+	        #define STARPU_CONFIGURE
 		#include <pthread.h>
 		]],
 		[[ pthread_t t; pthread_create(&t, NULL, NULL, NULL); ]])],
@@ -210,19 +223,6 @@ then
 else
     AC_CHECK_LIB([pthread], [pthread_create])
 fi
-AC_CHECK_TYPE([struct timespec], 
-	       AC_DEFINE(STARPU_HAVE_STRUCT_TIMESPEC,[],[struct timespec is defined]),
-	       [], [
-#include <sys/types.h>
-#include <sys/stat.h>
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
-#include <time.h>
-#ifndef STARPU_NATIVE_WINTHREADS
-#include <pthread.h>
-#endif
-])
 
 AC_SEARCH_LIBS([sqrt],[m],,AC_MSG_ERROR([math library unavailable]))
 AC_HAVE_LIBRARY([ws2_32])
