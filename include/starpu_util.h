@@ -342,7 +342,7 @@ double starpu_timing_now(void);
 #if !defined(_MSC_VER) || defined(BUILDING_STARPU)
 #include <pthread.h>
 #endif
-#if !defined(STARPU_HAVE_STRUCT_TIMESPEC) || (defined(_MSC_VER) && _MSC_VER <= 1600)
+#if !defined(STARPU_HAVE_STRUCT_TIMESPEC) || (defined(_MSC_VER) && _MSC_VER < 1900)
 /* If it didn't get defined in the standard places, then define it ourself */
 #ifndef STARPU_TIMESPEC_DEFINED
 #define STARPU_TIMESPEC_DEFINED 1
