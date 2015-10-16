@@ -106,13 +106,8 @@ extern "C"
 #define STARPU_ASSERT_MSG(x, msg, ...)	do { } while(0)
 #else
 #  if defined(__CUDACC__) && defined(STARPU_HAVE_WINDOWS)
-<<<<<<< .working
-#    define STARPU_ASSERT(x)		do { if (STARPU_UNLIKELY(!(x))) *(int*)NULL = 0; } while(0)
-#    define STARPU_ASSERT_MSG(x, msg, ...)	do { if (STARPU_UNLIKELY(!(x))) { fprintf(stderr, "[starpu][%s][assert failure] " msg "\n", __starpu_func__, ## __VA_ARGS__); *(int*)NULL = 0; }} while(0)
-=======
-#    define STARPU_ASSERT(x)		do { if (STARPU_UNLIKELY(!(x))) { STARPU_DUMP_BACKTRACE(); *(int*)NULL = 0; } } while(0)
-#    define STARPU_ASSERT_MSG(x, msg, ...)	do { if (STARPU_UNLIKELY(!(x))) { STARPU_DUMP_BACKTRACE(); fprintf(stderr, "\n[starpu][%s][assert failure] " msg "\n\n", __starpu_func__, ## __VA_ARGS__); *(int*)NULL = 0; }} while(0)
->>>>>>> .merge-right.r16272
+#    define STARPU_ASSERT(x)		do { if (STARPU_UNLIKELY(!(x))) STARPU_DUMP_BACKTRACE(); *(int*)NULL = 0; } while(0)
+#    define STARPU_ASSERT_MSG(x, msg, ...)	do { if (STARPU_UNLIKELY(!(x))) { STARPU_DUMP_BACKTRACE(); fprintf(stderr, "[starpu][%s][assert failure] " msg "\n", __starpu_func__, ## __VA_ARGS__); *(int*)NULL = 0; }} while(0)
 #  else
 #    define STARPU_ASSERT(x)		do { if (STARPU_UNLIKELY(!(x))) { STARPU_DUMP_BACKTRACE(); assert(x); } } while (0)
 #    define STARPU_ASSERT_MSG(x, msg, ...)	do { if (STARPU_UNLIKELY(!(x))) { STARPU_DUMP_BACKTRACE(); fprintf(stderr, "[starpu][%s][assert failure] " msg "\n", __starpu_func__, ## __VA_ARGS__); assert(x); } } while(0)
