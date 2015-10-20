@@ -526,7 +526,6 @@ static void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu
 	workerarg->ntasks = 0;
 	workerarg->pipeline_length = 0;
 	workerarg->pipeline_stuck = 0;
-	workerarg->set = NULL;
 	workerarg->worker_is_running = 0;
 	workerarg->worker_is_initialized = 0;
 	workerarg->status = STATUS_INITIALIZING;
@@ -615,9 +614,6 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 
 	/* Launch workers asynchronously */
 	unsigned worker;
-#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID) || defined(STARPU_USE_MIC)
-	unsigned i;
-#endif
 
 #if defined(STARPU_PERF_DEBUG) && !defined(STARPU_SIMGRID)
 	/* Get itimer of the main thread, to set it for the worker threads */
@@ -681,7 +677,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				/* We spawn only one thread per CUDA driver,
 				 * which will control all CUDA workers of this
 				 * driver. (by using a worker set). */
-				if (worker_set->workers)
+				if (worker_set->workers != workerarg)
 					break;
 
 				worker_set->nworkers = starpu_get_env_number_default("STARPU_NWORKER_PER_CUDA", 1);
@@ -754,7 +750,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				/* We spawn only one thread
 				 * per MIC device, which will control all MIC
 				 * workers of this device. (by using a worker set). */
-				if (worker_set->workers)
+				if (worker_set->workers != workerarg)
 					break;
 
 				worker_set->nworkers = pconfig->topology.nmiccores[devid];

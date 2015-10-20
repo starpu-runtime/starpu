@@ -868,7 +868,10 @@ _starpu_init_machine_config(struct _starpu_machine_config *config, int no_mp_con
 {
 	int i;
 	for (i = 0; i < STARPU_NMAXWORKERS; i++)
+	{
 		config->workers[i].workerid = i;
+		config->workers[i].set = NULL;
+	}
 
 	struct _starpu_machine_topology *topology = &config->topology;
 
