@@ -66,6 +66,58 @@ static unsigned may_bind_automatically[STARPU_NARCH] = { 0 };
 
 #endif // defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 
+#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
+static struct _starpu_worker_set cuda_worker_set[STARPU_MAXCUDADEVS];
+#endif
+#ifdef STARPU_USE_MIC
+static struct _starpu_worker_set mic_worker_set[STARPU_MAXMICDEVS];
+#endif
+
+void *
+_starpu_get_worker_from_driver(struct starpu_driver *d)
+{
+	unsigned nworkers = starpu_worker_get_count();
+	unsigned workerid;
+
+#ifdef STARPU_USE_CUDA
+	if (d->type == STARPU_CUDA_WORKER)
+		return &cuda_worker_set[d->id.cuda_id];
+#endif
+
+	for (workerid = 0; workerid < nworkers; workerid++)
+	{
+		if (starpu_worker_get_type(workerid) == d->type)
+		{
+			struct _starpu_worker *worker;
+			worker = _starpu_get_worker_struct(workerid);
+			switch (d->type)
+			{
+#ifdef STARPU_USE_CPU
+			case STARPU_CPU_WORKER:
+				if (worker->devid == d->id.cpu_id)
+					return worker;
+				break;
+#endif
+#ifdef STARPU_USE_OPENCL
+			case STARPU_OPENCL_WORKER:
+			{
+				cl_device_id device;
+				starpu_opencl_get_device(worker->devid, &device);
+				if (device == d->id.opencl_id)
+					return worker;
+				break;
+			}
+#endif
+			default:
+				_STARPU_DEBUG("Invalid device type\n");
+				return NULL;
+			}
+		}
+	}
+
+	return NULL;
+}
+
 
 /*
  * Discover the topology of the machine
@@ -727,10 +779,12 @@ _starpu_init_mic_config (struct _starpu_machine_config *config,
 
 	/* _starpu_initialize_workers_mic_deviceid (config); */
 
+	mic_worker_set[mic_idx].workers = &config->workers[topology->nworkers];
 	unsigned miccore_id;
 	for (miccore_id = 0; miccore_id < topology->nmiccores[mic_idx]; miccore_id++)
 	{
 		int worker_idx = topology->nworkers + miccore_id;
+		config->workers[worker_idx].set = &mic_worker_set[mic_idx];
 		config->workers[worker_idx].arch = STARPU_MIC_WORKER;
 		config->workers[worker_idx].perf_arch.devices = (struct starpu_perfmodel_device *) malloc(sizeof(struct starpu_perfmodel_device));
 		config->workers[worker_idx].perf_arch.ndevices = 1;
@@ -833,6 +887,15 @@ _starpu_init_machine_config(struct _starpu_machine_config *config, int no_mp_con
 	_starpu_initialize_workers_bindid(config);
 
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
+	for (i = 0; i < (int) (sizeof(cuda_worker_set)/sizeof(cuda_worker_set[0])); i++)
+		cuda_worker_set[i].workers = NULL;
+#endif
+#ifdef STARPU_USE_MIC
+	for (i = 0; i < (int) (sizeof(mic_worker_set)/sizeof(mic_worker_set[0])); i++)
+		mic_worker_set[i].workers = NULL;
+#endif
+
+#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 	int ncuda = config->conf.ncuda;
 	int nworker_per_cuda = starpu_get_env_number_default("STARPU_NWORKER_PER_CUDA", 1);
 
@@ -880,10 +943,13 @@ _starpu_init_machine_config(struct _starpu_machine_config *config, int no_mp_con
 	for (cudagpu = 0; cudagpu < topology->ncudagpus; cudagpu++)
 	{
 		int devid = _starpu_get_next_cuda_gpuid(config);
+		int worker_idx0 = topology->nworkers + cudagpu * nworker_per_cuda;
+		cuda_worker_set[devid].workers = &config->workers[worker_idx0];
 		for (i = 0; i < nworker_per_cuda; i++)
 		{
-			int worker_idx = topology->nworkers + cudagpu * nworker_per_cuda + i;
+			int worker_idx = worker_idx0 + i;
 
+			config->workers[worker_idx].set = &cuda_worker_set[devid];
 			config->workers[worker_idx].arch = STARPU_CUDA_WORKER;
 			config->workers[worker_idx].perf_arch.devices = (struct starpu_perfmodel_device*)malloc(sizeof(struct starpu_perfmodel_device));
 			config->workers[worker_idx].perf_arch.ndevices = 1;
