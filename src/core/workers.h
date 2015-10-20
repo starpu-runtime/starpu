@@ -23,6 +23,7 @@
 #include <common/config.h>
 #include <common/timing.h>
 #include <common/fxt.h>
+#include <common/thread.h>
 #include <core/jobs.h>
 #include <core/perfmodel/perfmodel.h>
 #include <core/sched_policy.h>
@@ -81,6 +82,10 @@ LIST_TYPE(_starpu_worker,
 	unsigned current_ordered_task_order; /* this records the order of the next ordered task to be executed */
 	struct starpu_task *current_task; /* task currently executed by this worker (non-pipelined version) */
 	struct starpu_task *current_tasks[STARPU_MAX_PIPELINE]; /* tasks currently executed by this worker (pipelined version) */
+#ifdef STARPU_SIMGRID
+	starpu_pthread_wait_t wait;
+#endif
+
 	unsigned char first_task; /* Index of first task in the pipeline */
 	unsigned char ntasks; /* number of tasks in the pipeline */
 	unsigned char pipeline_length; /* number of tasks to be put in the pipeline */

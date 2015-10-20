@@ -1441,6 +1441,11 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 				}
 				workerarg->bindid = _starpu_get_next_bindid(config, NULL, 0);
 				_starpu_memory_node_add_nworkers(memory_node);
+#ifdef STARPU_SIMGRID
+				starpu_pthread_queue_register(&workerarg->wait, &_starpu_simgrid_transfer_queue[memory_node]);
+				if (memory_node != STARPU_MAIN_RAM)
+					starpu_pthread_queue_register(&workerarg->wait, &_starpu_simgrid_transfer_queue[STARPU_MAIN_RAM]);
+#endif
 				break;
 			}
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
@@ -1502,6 +1507,10 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 					}
 				}
 				_starpu_memory_node_add_nworkers(memory_node);
+#ifdef STARPU_SIMGRID
+				starpu_pthread_queue_register(&workerarg->set->workers[0].wait, &_starpu_simgrid_transfer_queue[memory_node]);
+				starpu_pthread_queue_register(&workerarg->set->workers[0].wait, &_starpu_simgrid_transfer_queue[STARPU_MAIN_RAM]);
+#endif
 				break;
 #endif
 
@@ -1539,6 +1548,10 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 #endif /* SIMGRID */
 				}
 				_starpu_memory_node_add_nworkers(memory_node);
+#ifdef STARPU_SIMGRID
+				starpu_pthread_queue_register(&workerarg->wait, &_starpu_simgrid_transfer_queue[memory_node]);
+				starpu_pthread_queue_register(&workerarg->wait, &_starpu_simgrid_transfer_queue[STARPU_MAIN_RAM]);
+#endif
 				break;
 #endif
 
@@ -1568,6 +1581,10 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 				}
 				workerarg->bindid = mic_bindid[devid];
 				_starpu_memory_node_add_nworkers(memory_node);
+#ifdef STARPU_SIMGRID
+				starpu_pthread_queue_register(&workerarg->set->workers[0].wait, &_starpu_simgrid_transfer_queue[memory_node]);
+				starpu_pthread_queue_register(&workerarg->set->workers[0].wait, &_starpu_simgrid_transfer_queue[STARPU_MAIN_RAM]);
+#endif
 				break;
 #endif /* STARPU_USE_MIC */
 
@@ -1580,6 +1597,10 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 
 				memory_node = ram_memory_node;
 				_starpu_memory_node_add_nworkers(memory_node);
+#ifdef STARPU_SIMGRID
+				starpu_pthread_queue_register(&workerarg->wait, &_starpu_simgrid_transfer_queue[memory_node]);
+				starpu_pthread_queue_register(&workerarg->wait, &_starpu_simgrid_transfer_queue[STARPU_MAIN_RAM]);
+#endif
 			}
 				break;
 #endif

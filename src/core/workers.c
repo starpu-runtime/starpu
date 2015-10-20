@@ -522,8 +522,13 @@ static void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu
 	workerarg->current_ordered_task = 0;
 	workerarg->current_ordered_task_order = 1;
 	workerarg->current_task = NULL;
+#ifdef STARPU_SIMGRID
+	starpu_pthread_wait_init(&workerarg->wait);
+	starpu_pthread_queue_register(&workerarg->wait, &_starpu_simgrid_task_queue[workerarg->workerid]);
+#endif
 	workerarg->first_task = 0;
 	workerarg->ntasks = 0;
+	/* set initialized by topology.c */
 	workerarg->pipeline_length = 0;
 	workerarg->pipeline_stuck = 0;
 	workerarg->worker_is_running = 0;
@@ -560,6 +565,14 @@ static void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu
 	workerarg->is_slave_somewhere = 0;
 
 	/* cpu_set/hwloc_cpu_set initialized in topology.c */
+}
+
+static void _starpu_worker_deinit(struct _starpu_worker *workerarg, struct _starpu_machine_config *pconfig)
+{
+#ifdef STARPU_SIMGRID
+	starpu_pthread_queue_unregister(&workerarg->wait, &_starpu_simgrid_task_queue[workerarg->workerid]);
+	starpu_pthread_wait_destroy(&workerarg->wait);
+#endif
 }
 
 #ifdef STARPU_USE_FXT
@@ -1475,6 +1488,7 @@ void starpu_display_stats()
 
 void starpu_shutdown(void)
 {
+	unsigned worker;
 	STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
 	init_count--;
 	STARPU_ASSERT_MSG(init_count >= 0, "Number of calls to starpu_shutdown() can not be higher than the number of calls to starpu_init()\n");
@@ -1528,6 +1542,9 @@ void starpu_shutdown(void)
 
 	_starpu_delete_all_sched_ctxs();
 	_starpu_sched_component_workers_destroy();
+
+	for (worker = 0; worker < config.topology.nworkers; worker++)
+		_starpu_worker_deinit(&config.workers[worker], &config);
 
 	_starpu_disk_unregister();
 #ifdef STARPU_HAVE_HWLOC
@@ -1907,6 +1924,10 @@ int starpu_wake_worker(int workerid)
 	starpu_pthread_mutex_t *sched_mutex;
 	starpu_pthread_cond_t *sched_cond;
 	starpu_worker_get_sched_condition(workerid, &sched_mutex, &sched_cond);
+
+#ifdef STARPU_SIMGRID
+	starpu_pthread_queue_broadcast(&_starpu_simgrid_task_queue[workerid]);
+#endif
 	return starpu_wakeup_worker(workerid, sched_cond, sched_mutex);
 }
 

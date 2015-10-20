@@ -635,16 +635,6 @@ int _starpu_opencl_driver_init(struct _starpu_worker *worker)
 		_STARPU_DISP("Warning: STARPU_OPENCL_PIPELINE is %u, but STARPU_MAX_PIPELINE is only %u", worker->pipeline_length, STARPU_MAX_PIPELINE);
 		worker->pipeline_length = STARPU_MAX_PIPELINE;
 	}
-#if defined(STARPU_SIMGRID) && defined(STARPU_NON_BLOCKING_DRIVERS)
-	if (worker->pipeline_length >= 1)
-	{
-		/* We need blocking drivers, otherwise idle drivers
-		 * would keep consuming real CPU time while just
-		 * polling for task termination */
-		_STARPU_DISP("Warning: reducing STARPU_OPENCL_PIPELINE to 0 because simgrid is enabled and blocking drivers are not enabled\n");
-		worker->pipeline_length = 0;
-	}
-#endif
 #if !defined(STARPU_SIMGRID) && !defined(STARPU_NON_BLOCKING_DRIVERS)
 	if (worker->pipeline_length >= 1)
 	{
@@ -676,8 +666,13 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 
 	struct _starpu_job *j;
 	struct starpu_task *task;
+	int res;
 
 	int idle;
+
+#ifdef STARPU_SIMGRID
+	starpu_pthread_wait_reset(&worker->wait);
+#endif
 
 	/* First poll for completed jobs */
 	idle = 0;
@@ -741,7 +736,7 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 	if (worker->ntasks < worker->pipeline_length)
 		idle++;
 
-#ifdef STARPU_NON_BLOCKING_DRIVERS
+#if defined(STARPU_NON_BLOCKING_DRIVERS) && !defined(STARPU_SIMGRID)
 	if (!idle)
 	{
 		/* Not ready yet, no better thing to do than waiting */
@@ -751,10 +746,16 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 	}
 #endif
 
-	__starpu_datawizard_progress(memnode, 1, 1);
-	__starpu_datawizard_progress(STARPU_MAIN_RAM, 1, 1);
+	res = !idle;
+	res |= __starpu_datawizard_progress(memnode, 1, 1);
+	res |= __starpu_datawizard_progress(STARPU_MAIN_RAM, 1, 1);
 
 	task = _starpu_get_worker_task(worker, workerid, memnode);
+
+#ifdef STARPU_SIMGRID
+	if (!res && !task)
+		starpu_pthread_wait_wait(&worker->wait);
+#endif
 
 	if (task == NULL)
 		return 0;

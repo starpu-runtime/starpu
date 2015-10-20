@@ -283,6 +283,83 @@ typedef void* starpu_pthread_cond_t;
 typedef void* starpu_pthread_barrier_t;
 #endif /* _MSC_VER */
 
+/*
+ * Simgrid-specific register/wait synchronization
+ *
+ * Producers create a "queue" object, and when they have produced something,
+ * they call either queue_signal or queue_broadcast in order to wake either one
+ * or all consumers waiting on the queue.
+ *
+ * starpu_pthread_queue_init(&global_queue1->queue);
+ * while (1) {
+ * 	element = compute();
+ * 	push(element, global_queue1);
+ * 	starpu_pthread_queue_signal(global_queue1);
+ * }
+ * starpu_pthread_queue_destroy(&global_queue1->queue);
+ *
+ * Consumers create a "wait" object, then queue_register on as many queues they
+ * want. In their consumption loop, they wait_reset, then test for availibility
+ * on all producers, and if none was available, call wait_wait to actually wait
+ * for producers. On termination, consumers have to queue_unregister before
+ * destroying the "wait" object:
+ *
+ * starpu_pthread_wait_t wait;
+ *
+ * starpu_pthread_wait_init(&wait);
+ * starpu_pthread_queue_register(&wait, &global_queue1->queue);
+ * starpu_pthread_queue_register(&wait, &global_queue2->queue);
+ *
+ * while (1) {
+ * 	int sleep = 1;
+ * 	starpu_pthread_wait_reset(&wait);
+ * 	if (global_queue1->navailable)
+ * 	{
+ * 		work(global_queue1);
+ * 		sleep = 0;
+ * 	}
+ * 	if (global_queue2->navailable)
+ * 	{
+ * 		work(global_queue2);
+ * 		sleep = 0;
+ * 	}
+ * 	if (sleep)
+ * 		starpu_pthread_wait_wait(&wait);
+ * }
+ * starpu_pthread_queue_unregister(&wait, &global_queue1->queue);
+ * starpu_pthread_queue_unregister(&wait, &global_queue2->queue);
+ * starpu_pthread_wait_destroy(&wait);
+ */
+
+#ifdef STARPU_SIMGRID
+typedef struct
+{
+	starpu_pthread_mutex_t mutex;
+	starpu_pthread_cond_t cond;
+	unsigned block;
+} starpu_pthread_wait_t;
+
+typedef struct
+{
+	starpu_pthread_mutex_t mutex;
+	starpu_pthread_wait_t **queue;
+	unsigned allocqueue;
+	unsigned nqueue;
+} starpu_pthread_queue_t;
+
+int starpu_pthread_queue_init(starpu_pthread_queue_t *q);
+int starpu_pthread_queue_signal(starpu_pthread_queue_t *q);
+int starpu_pthread_queue_broadcast(starpu_pthread_queue_t *q);
+int starpu_pthread_queue_destroy(starpu_pthread_queue_t *q);
+
+int starpu_pthread_wait_init(starpu_pthread_wait_t *w);
+int starpu_pthread_queue_register(starpu_pthread_wait_t *w, starpu_pthread_queue_t *q);
+int starpu_pthread_queue_unregister(starpu_pthread_wait_t *w, starpu_pthread_queue_t *q);
+int starpu_pthread_wait_reset(starpu_pthread_wait_t *w);
+int starpu_pthread_wait_wait(starpu_pthread_wait_t *w);
+int starpu_pthread_wait_destroy(starpu_pthread_wait_t *w);
+#endif
+
 #ifdef __cplusplus
 }
 #endif

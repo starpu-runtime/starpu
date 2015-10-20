@@ -121,7 +121,7 @@ static int push_task_eager_policy(struct starpu_task *task)
 	/* Let the task free */
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 
-#ifndef STARPU_NON_BLOCKING_DRIVERS
+#if !defined(STARPU_NON_BLOCKING_DRIVERS) || defined(STARPU_SIMGRID)
 	/* Now that we have a list of potential workers, try to wake one */
 
 	workers->init_iterator_for_parallel_tasks(workers, &it, task);

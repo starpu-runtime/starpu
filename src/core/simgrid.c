@@ -34,6 +34,9 @@ extern int smpi_main(int (*realmain) (int argc, char *argv[]), int argc, char *a
 #pragma weak _starpu_mpi_simgrid_init
 extern int _starpu_mpi_simgrid_init(int argc, char *argv[]);
 
+starpu_pthread_queue_t _starpu_simgrid_transfer_queue[STARPU_MAXNODES];
+starpu_pthread_queue_t _starpu_simgrid_task_queue[STARPU_NMAXWORKERS];
+
 struct main_args
 {
 	int argc;
@@ -238,6 +241,7 @@ int main(int argc, char **argv)
 
 void _starpu_simgrid_init()
 {
+	unsigned i;
 	if (!starpu_main && !(smpi_main && smpi_simulated_main_))
 	{
 		_STARPU_ERROR("In simgrid mode, the file containing the main() function of this application needs to be compiled with starpu.h included, to properly rename it into starpu_main\n");
@@ -247,6 +251,10 @@ void _starpu_simgrid_init()
 	{
 		MSG_process_set_data(MSG_process_self(), calloc(MAX_TSD, sizeof(void*)));
 	}
+	for (i = 0; i < STARPU_MAXNODES; i++)
+		starpu_pthread_queue_init(&_starpu_simgrid_transfer_queue[i]);
+	for (i = 0; i < STARPU_NMAXWORKERS; i++)
+		starpu_pthread_queue_init(&_starpu_simgrid_task_queue[i]);
 }
 
 /*

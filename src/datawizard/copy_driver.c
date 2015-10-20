@@ -56,6 +56,10 @@ void _starpu_wake_all_blocked_workers_on_node(unsigned nodeid)
 	}
 
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&descr->conditions_rwlock);
+
+#ifdef STARPU_SIMGRID
+	starpu_pthread_queue_broadcast(&_starpu_simgrid_transfer_queue[nodeid]);
+#endif
 }
 
 void starpu_wake_all_blocked_workers(void)
@@ -80,6 +84,14 @@ void starpu_wake_all_blocked_workers(void)
 	}
 
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&descr->conditions_rwlock);
+
+#ifdef STARPU_SIMGRID
+	unsigned workerid, nodeid;
+	for (workerid = 0; workerid < starpu_worker_get_count(); workerid++)
+		starpu_pthread_queue_broadcast(&_starpu_simgrid_task_queue[workerid]);
+	for (nodeid = 0; nodeid < starpu_memory_nodes_get_count(); nodeid++)
+		starpu_pthread_queue_broadcast(&_starpu_simgrid_transfer_queue[nodeid]);
+#endif
 }
 
 #ifdef STARPU_USE_FXT

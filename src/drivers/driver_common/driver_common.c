@@ -415,6 +415,7 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 	else
 		task = _starpu_pop_task(worker);
 
+#if !defined(STARPU_SIMGRID)
 	if (task == NULL && !executing)
 	{
 		/* Didn't get a task to run and none are running, go to sleep */
@@ -455,6 +456,7 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 
 		return NULL;
 	}
+#endif
 
 	_starpu_worker_set_status_scheduling_done(workerid);
 
@@ -571,7 +573,8 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 		}
 	}
 
-#ifndef STARPU_NON_BLOCKING_DRIVERS
+#if !defined(STARPU_NON_BLOCKING_DRIVERS)
+#if !defined(STARPU_SIMGRID)
 	/* Block the assumed-to-be-only worker */
 	struct _starpu_worker *worker = &workers[0];
 	unsigned workerid = workers[0].workerid;
@@ -617,8 +620,9 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 
 	_starpu_worker_set_status_wakeup(workerid);
 	worker->spinning_backoff = BACKOFF_MIN;
+#endif /* STARPU_SIMGRID */
 
-	STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&workers[0].sched_mutex);
 #endif /* !STARPU_NON_BLOCKING_DRIVERS */
 
 	return count;

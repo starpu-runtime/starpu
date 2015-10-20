@@ -349,7 +349,135 @@ int starpu_pthread_barrier_wait(starpu_pthread_barrier_t *barrier)
 	_STARPU_TRACE_BARRIER_WAIT_END();
 	return 0;
 }
-#endif /* defined(STARPU_SIMGRID) */
+#endif /* defined(STARPU_SIMGRID_HAVE_XBT_BARRIER_INIT) */
+
+int starpu_pthread_queue_init(starpu_pthread_queue_t *q)
+{
+	STARPU_PTHREAD_MUTEX_INIT(&q->mutex, NULL);
+	q->queue = NULL;
+	q->allocqueue = 0;
+	q->nqueue = 0;
+	return 0;
+}
+
+int starpu_pthread_wait_init(starpu_pthread_wait_t *w)
+{
+	STARPU_PTHREAD_MUTEX_INIT(&w->mutex, NULL);
+	STARPU_PTHREAD_COND_INIT(&w->cond, NULL);
+	w->block = 1;
+	return 0;
+}
+
+int starpu_pthread_queue_register(starpu_pthread_wait_t *w, starpu_pthread_queue_t *q)
+{
+	STARPU_PTHREAD_MUTEX_LOCK(&q->mutex);
+
+	if (q->nqueue == q->allocqueue)
+	{
+		/* Make room for the new waiter */
+		unsigned newalloc;
+		starpu_pthread_wait_t **newqueue;
+		newalloc = q->allocqueue * 2;
+		if (!newalloc)
+			newalloc = 1;
+		newqueue = realloc(q->queue, newalloc * sizeof(*(q->queue)));
+		STARPU_ASSERT(newqueue);
+		q->queue = newqueue;
+		q->allocqueue = newalloc;
+	}
+	q->queue[q->nqueue++] = w;
+
+	STARPU_PTHREAD_MUTEX_UNLOCK(&q->mutex);
+	return 0;
+}
+
+int starpu_pthread_queue_unregister(starpu_pthread_wait_t *w, starpu_pthread_queue_t *q)
+{
+	unsigned i;
+	STARPU_PTHREAD_MUTEX_LOCK(&q->mutex);
+	for (i = 0; i < q->nqueue; i++)
+	{
+		if (q->queue[i] == w)
+		{
+			memmove(&q->queue[i], &q->queue[i+1], (q->nqueue - i - 1) * sizeof(*(q->queue)));
+			break;
+		}
+	}
+	STARPU_ASSERT(i < q->nqueue);
+	q->nqueue--;
+	STARPU_PTHREAD_MUTEX_UNLOCK(&q->mutex);
+	return 0;
+}
+
+int starpu_pthread_wait_reset(starpu_pthread_wait_t *w)
+{
+	STARPU_PTHREAD_MUTEX_LOCK(&w->mutex);
+	w->block = 1;
+	STARPU_PTHREAD_MUTEX_UNLOCK(&w->mutex);
+	return 0;
+}
+
+int starpu_pthread_wait_wait(starpu_pthread_wait_t *w)
+{
+	STARPU_PTHREAD_MUTEX_LOCK(&w->mutex);
+	while (w->block == 1)
+		STARPU_PTHREAD_COND_WAIT(&w->cond, &w->mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&w->mutex);
+	return 0;
+}
+
+int starpu_pthread_queue_signal(starpu_pthread_queue_t *q)
+{
+	starpu_pthread_wait_t *w;
+	STARPU_PTHREAD_MUTEX_LOCK(&q->mutex);
+	if (q->nqueue)
+	{
+		/* TODO: better try to wake a sleeping one if possible */
+		w = q->queue[0];
+		STARPU_PTHREAD_MUTEX_LOCK(&w->mutex);
+		w->block = 0;
+		STARPU_PTHREAD_COND_SIGNAL(&w->cond);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&w->mutex);
+	}
+	STARPU_PTHREAD_MUTEX_UNLOCK(&q->mutex);
+	return 0;
+}
+
+int starpu_pthread_queue_broadcast(starpu_pthread_queue_t *q)
+{
+	unsigned i;
+	starpu_pthread_wait_t *w;
+	STARPU_PTHREAD_MUTEX_LOCK(&q->mutex);
+	for (i = 0; i < q->nqueue; i++)
+	{
+		w = q->queue[i];
+		STARPU_PTHREAD_MUTEX_LOCK(&w->mutex);
+		w->block = 0;
+		STARPU_PTHREAD_COND_SIGNAL(&w->cond);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&w->mutex);
+	}
+	STARPU_PTHREAD_MUTEX_UNLOCK(&q->mutex);
+	return 0;
+}
+
+int starpu_pthread_wait_destroy(starpu_pthread_wait_t *w)
+{
+	STARPU_PTHREAD_MUTEX_LOCK(&w->mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&w->mutex);
+	STARPU_PTHREAD_MUTEX_DESTROY(&w->mutex);
+	STARPU_PTHREAD_COND_DESTROY(&w->cond);
+	return 0;
+}
+
+int starpu_pthread_queue_destroy(starpu_pthread_queue_t *q)
+{
+	STARPU_ASSERT(!q->nqueue);
+	STARPU_PTHREAD_MUTEX_LOCK(&q->mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&q->mutex);
+	STARPU_PTHREAD_MUTEX_DESTROY(&q->mutex);
+	free(q->queue);
+	return 0;
+}
 
 #endif /* STARPU_SIMGRID */
 

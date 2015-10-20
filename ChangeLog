@@ -22,6 +22,9 @@ New features:
   * Enable anticipative writeback by default.
   * New scheduler with heterogeneous priorities
 
+Changes:
+  * Vastly improve simgrid simulation time.
+
 StarPU 1.2.0 (svn revision xxxx)
 ==============================================
 

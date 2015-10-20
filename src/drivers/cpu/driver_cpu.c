@@ -221,17 +221,27 @@ int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
 	unsigned memnode = cpu_worker->memory_node;
 	int workerid = cpu_worker->workerid;
 
+	int res;
+
+#ifdef STARPU_SIMGRID
+	starpu_pthread_wait_reset(&cpu_worker->wait);
+#endif
+
 	_STARPU_TRACE_START_PROGRESS(memnode);
-	_starpu_datawizard_progress(memnode, 1);
+	res = __starpu_datawizard_progress(memnode, 1, 1);
 	if (memnode != STARPU_MAIN_RAM)
-		_starpu_datawizard_progress(STARPU_MAIN_RAM, 1);
+		res |= __starpu_datawizard_progress(STARPU_MAIN_RAM, 1, 1);
 	_STARPU_TRACE_END_PROGRESS(memnode);
 
 	struct _starpu_job *j;
 	struct starpu_task *task;
-	int res;
 
 	task = _starpu_get_worker_task(cpu_worker, workerid, memnode);
+
+#ifdef STARPU_SIMGRID
+	if (!res && !task)
+		starpu_pthread_wait_wait(&cpu_worker->wait);
+#endif
 
 	if (!task)
 		return 0;

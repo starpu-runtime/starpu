@@ -682,14 +682,18 @@ void _starpu_src_common_worker(struct _starpu_worker_set * worker_set,
 	/*main loop*/
 	while (_starpu_machine_is_running())
 	{
-		int res;
+		int res = 0;
 		struct _starpu_job * j;
 
 		_starpu_may_pause();
 
+#ifdef STARPU_SIMGRID
+		starpu_pthread_wait_reset(&worker_set->workers[0].wait);
+#endif
+
 		_STARPU_TRACE_START_PROGRESS(memnode);
-		_starpu_datawizard_progress(memnode, 1);
-		_starpu_datawizard_progress(STARPU_MAIN_RAM, 1);
+		res |= __starpu_datawizard_progress(memnode, 1, 1);
+		res |= __starpu_datawizard_progress(STARPU_MAIN_RAM, 1, 1);
 		_STARPU_TRACE_END_PROGRESS(memnode);
 
 		/* Handle message which have been store */
@@ -700,7 +704,12 @@ void _starpu_src_common_worker(struct _starpu_worker_set * worker_set,
 			_starpu_src_common_recv_async(mp_node);
 
 		/* get task for each worker*/
-		res = _starpu_get_multi_worker_task(worker_set->workers, tasks, worker_set->nworkers, memnode);
+		res |= _starpu_get_multi_worker_task(worker_set->workers, tasks, worker_set->nworkers, memnode);
+
+#ifdef STARPU_SIMGRID
+		if (!res)
+			starpu_pthread_wait_wait(&worker_set->workers[0].wait);
+#endif
 
 		/*if at least one worker have pop a task*/
 		if(res != 0)

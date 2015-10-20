@@ -641,16 +641,6 @@ int _starpu_cuda_driver_init(struct _starpu_worker_set *worker_set)
 			_STARPU_DISP("Warning: STARPU_CUDA_PIPELINE is %u, but STARPU_MAX_PIPELINE is only %u", worker->pipeline_length, STARPU_MAX_PIPELINE);
 			worker->pipeline_length = STARPU_MAX_PIPELINE;
 		}
-#if defined(STARPU_SIMGRID) && defined(STARPU_NON_BLOCKING_DRIVERS)
-		if (worker->pipeline_length >= 1)
-		{
-			/* We need blocking drivers, otherwise idle drivers
-			 * would keep consuming real CPU time while just
-			 * polling for task termination */
-			_STARPU_DISP("Warning: reducing STARPU_CUDA_PIPELINE to 0 because simgrid is enabled and blocking drivers are not enabled\n");
-			worker->pipeline_length = 0;
-		}
-#endif
 #if !defined(STARPU_SIMGRID) && !defined(STARPU_NON_BLOCKING_DRIVERS)
 		if (worker->pipeline_length >= 1)
 		{
@@ -690,6 +680,10 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 	int i, res;
 
 	int idle;
+
+#ifdef STARPU_SIMGRID
+	starpu_pthread_wait_reset(&worker0->wait);
+#endif
 
 	/* First poll for completed jobs */
 	idle = 0;
@@ -763,7 +757,7 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 			idle++;
 	}
 
-#ifdef STARPU_NON_BLOCKING_DRIVERS
+#if defined(STARPU_NON_BLOCKING_DRIVERS) && !defined(STARPU_SIMGRID)
 	if (!idle)
 	{
 		/* Nothing ready yet, no better thing to do than waiting */
@@ -774,14 +768,20 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 #endif
 
 	/* Something done, make some progress */
-	__starpu_datawizard_progress(memnode, 1, 1);
-	__starpu_datawizard_progress(STARPU_MAIN_RAM, 1, 1);
+	res = !idle;
+	res |= __starpu_datawizard_progress(memnode, 1, 1);
+	res |= __starpu_datawizard_progress(STARPU_MAIN_RAM, 1, 1);
 
 	/* And pull tasks */
-	res = _starpu_get_multi_worker_task(worker_set->workers, tasks, worker_set->nworkers, memnode);
+	res |= _starpu_get_multi_worker_task(worker_set->workers, tasks, worker_set->nworkers, memnode);
 
+#ifdef STARPU_SIMGRID
+	if (!res)
+		starpu_pthread_wait_wait(&worker0->wait);
+#else
 	if (!res)
 		return 0;
+#endif
 
 	for (i = 0; i < (int) worker_set->nworkers; i++)
 	{

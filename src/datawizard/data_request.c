@@ -21,6 +21,7 @@
 #include <datawizard/datawizard.h>
 #include <datawizard/memory_nodes.h>
 #include <core/disk.h>
+#include <core/simgrid.h>
 
 /* TODO: This should be tuned according to driver capabilities
  * Data interfaces should also have to declare how many asynchronous requests
@@ -194,8 +195,22 @@ int _starpu_wait_data_request_completion(struct _starpu_data_request *r, unsigne
 
 	unsigned local_node = _starpu_memory_node_get_local_key();
 
+#ifdef STARPU_SIMGRID
+	starpu_pthread_wait_t wait;
+
+	starpu_pthread_wait_init(&wait);
+	/* We need to get woken both when requests finish on our node, and on
+	 * the target node of the request we are waiting for */
+	starpu_pthread_queue_register(&wait, &_starpu_simgrid_transfer_queue[local_node]);
+	starpu_pthread_queue_register(&wait, &_starpu_simgrid_transfer_queue[r->dst_replicate->memory_node]);
+#endif
+
 	do
 	{
+#ifdef STARPU_SIMGRID
+		starpu_pthread_wait_reset(&wait);
+#endif
+
 		STARPU_SYNCHRONIZE();
 		if (STARPU_RUNNING_ON_VALGRIND)
 			completed = 1;
@@ -209,15 +224,26 @@ int _starpu_wait_data_request_completion(struct _starpu_data_request *r, unsigne
 			_starpu_spin_unlock(&r->lock);
 		}
 
+#ifndef STARPU_SIMGRID
 #ifndef STARPU_NON_BLOCKING_DRIVERS
 		/* XXX: shouldn't be needed, and doesn't work with chained requests anyway */
 		_starpu_wake_all_blocked_workers_on_node(r->handling_node);
 #endif
+#endif
 
 		_starpu_datawizard_progress(local_node, may_alloc);
 
+#ifdef STARPU_SIMGRID
+		starpu_pthread_wait_wait(&wait);
+#endif
 	}
 	while (1);
+
+#ifdef STARPU_SIMGRID
+	starpu_pthread_queue_unregister(&wait, &_starpu_simgrid_transfer_queue[local_node]);
+	starpu_pthread_queue_unregister(&wait, &_starpu_simgrid_transfer_queue[r->dst_replicate->memory_node]);
+	starpu_pthread_wait_destroy(&wait);
+#endif
 
 
 	retval = r->retval;
@@ -347,6 +373,11 @@ static void starpu_handle_data_request_completion(struct _starpu_data_request *r
 	}
 
 	r->completed = 1;
+
+#ifdef STARPU_SIMGRID
+	/* Wake potential worker which was waiting for it */
+	_starpu_wake_all_blocked_workers_on_node(dst_replicate->memory_node);
+#endif
 
 	/* Remove a reference on the destination replicate for the request */
 	STARPU_ASSERT(dst_replicate->refcnt > 0);
@@ -574,7 +605,19 @@ static int __starpu_handle_node_data_requests(struct _starpu_data_request_list *
 			_starpu_data_request_list_push_list_front(&new_data_requests[2], &idle_requests[src_node]);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data_requests_list_mutex[src_node]);
 
-#ifndef STARPU_NON_BLOCKING_DRIVERS
+#ifdef STARPU_SIMGRID
+		if (*pushed)
+		{
+			/* We couldn't process the request due to missing
+			 * space. Advance the clock a bit to let eviction have
+			 * the time to make some room for us. Ideally we should
+			 * rather have the caller block, and explicitly wait
+			 * for eviction to happen.
+			 */
+			MSG_process_sleep(0.000010);
+			_starpu_wake_all_blocked_workers_on_node(src_node);
+		}
+#elif !defined(STARPU_NON_BLOCKING_DRIVERS)
 		_starpu_wake_all_blocked_workers_on_node(src_node);
 #endif
 	}
