@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2014  Université de Bordeaux
+# Copyright (C) 2009-2015  Université de Bordeaux
 # Copyright (C) 2010, 2011, 2012, 2013, 2015  Centre National de la Recherche Scientifique
 # Copyright (C) 2011  INRIA
 #
@@ -54,6 +54,10 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_CPPFLAGS = -I$(top_srcdir)/include/ -DBU
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_LIBADD = -lm $(HWLOC_LIBS) $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(FXT_LIBS) $(STARPU_GLPK_LDFLAGS)
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_LDFLAGS = $(ldflags) $(FXT_LDFLAGS) -no-undefined									\
   -version-info $(libstarpu_so_version)
+
+if STARPU_HAVE_DARWIN
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_LDFLAGS += -Wl,-U,_starpu_main
+endif
 
 noinst_HEADERS = 						\
 	core/dependencies/data_concurrency.h			\

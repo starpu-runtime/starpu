@@ -127,8 +127,13 @@ case "$target" in
   libext=a
   AC_DEFINE(STARPU_HAVE_WINDOWS, [], [Define this on windows.])
   ;;
+*-*darwin*)
+  starpu_darwin=yes
+  AC_DEFINE(STARPU_HAVE_DARWIN, [], [Define this on darwin.])
+  ;;
 esac
 AM_CONDITIONAL([STARPU_HAVE_WINDOWS], [test "x$starpu_windows" = "xyes"])
+AM_CONDITIONAL([STARPU_HAVE_DARWIN], [test "x$starpu_darwin" = "xyes"])
 
 # on Darwin, GCC targets i386 by default, so we don't have atomic ops
 AC_CHECK_SIZEOF([void *])
