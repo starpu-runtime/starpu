@@ -189,6 +189,18 @@ case "${srcdir}" in
      AC_SUBST(STARPU_SRC_DIR, "$(eval echo $PWD/${srcdir})") ;;
 esac
 
+case "$target" in
+*-*-mingw*|*-*-cygwin*)
+    AC_ARG_ENABLE(native-winthreads, [AS_HELP_STRING([--enable-native-winthreads],
+    				   [Use native windows threads instead of pthread])],
+    				   enable_native_winthreads=$enableval, enable_native_winthreads=no)
+    ;;
+esac
+if test x"$enable_native_winthreads" != xyes
+then
+    INCLUDE_PTHREAD_H='#include <pthread.h>'
+fi
+
 AC_CHECK_TYPE([struct timespec], 
 	       AC_DEFINE(STARPU_HAVE_STRUCT_TIMESPEC,[],[struct timespec is defined]),
 	       [], [
@@ -198,17 +210,11 @@ AC_CHECK_TYPE([struct timespec],
 #include <unistd.h>
 #endif
 #include <time.h>
+$INCLUDE_PTHREAD_H
 ])
 
 AC_CHECK_HEADERS([unistd.h], [AC_DEFINE([STARPU_HAVE_UNISTD_H], [1], [Define to 1 if you have the <unistd.h> header file.])])
 
-case "$target" in
-*-*-mingw*|*-*-cygwin*)
-    AC_ARG_ENABLE(native-winthreads, [AS_HELP_STRING([--enable-native-winthreads],
-    				   [Use native windows threads instead of pthread])],
-    				   enable_native_winthreads=$enableval, enable_native_winthreads=no)
-    ;;
-esac
 if test x"$enable_native_winthreads" = xyes
 then
     CPPFLAGS+=" -I$STARPU_SRC_DIR/include/pthread_win32 "
