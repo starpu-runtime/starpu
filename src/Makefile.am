@@ -55,6 +55,15 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_LIBADD = -lm $(STARPU_OPENCL_LDFLAGS) $(
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_LDFLAGS = $(ldflags) $(FXT_LDFLAGS) -no-undefined									\
   -version-info $(libstarpu_so_version)
 
+if STARPU_HAVE_DARWIN
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_LDFLAGS += \
+							-Wl,-U,_starpu_main \
+							-Wl,-U,_smpi_main \
+							-Wl,-U,__starpu_mpi_simgrid_init \
+							-Wl,-U,_smpi_simulated_main_ \
+							-Wl,-U,_starpu_mpi_world_rank
+endif
+
 noinst_HEADERS = 						\
 	core/dependencies/data_concurrency.h			\
 	core/dependencies/cg.h					\
