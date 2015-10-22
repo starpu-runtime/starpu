@@ -347,9 +347,9 @@ Create a task corresponding to codelet with the following arguments.
 The argument list must be zero-terminated. The function performs the
 first two steps of the function starpu_mpi_task_insert(). Only the MPI
 node selected in the first step of the algorithm will return a valid
-task structure which can then be submitted. The function
-starpu_mpi_task_post_build() MUST be called after the submission of
-the task, with the SAME list of arguments.
+task structure which can then be submitted, others will return NULL. The function
+starpu_mpi_task_post_build() MUST be called after that on all nodes, and after the submission of
+the task on the node which creates it, with the SAME list of arguments.
 
 \fn int starpu_mpi_task_post_build(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 \ingroup API_MPI_Support
