@@ -158,9 +158,14 @@ case "$target" in
   starpu_linux=yes
   AC_DEFINE(STARPU_LINUX_SYS, 1, [Define to 1 on Linux])
   ;;
+*-*darwin*)
+  starpu_darwin=yes
+  AC_DEFINE(STARPU_HAVE_DARWIN, [], [Define this on darwin.])
+  ;;
 esac
 AM_CONDITIONAL([STARPU_HAVE_WINDOWS], [test "x$starpu_windows" = "xyes"])
 AM_CONDITIONAL([STARPU_LINUX_SYS], [test "x$starpu_linux" = "xyes"])
+AM_CONDITIONAL([STARPU_HAVE_DARWIN], [test "x$starpu_darwin" = "xyes"])
 
 # on Darwin, GCC targets i386 by default, so we don't have atomic ops
 AC_CHECK_SIZEOF([void *])
