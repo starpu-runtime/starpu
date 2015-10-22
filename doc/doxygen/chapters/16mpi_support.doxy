@@ -411,8 +411,8 @@ the cost of task submission.
 A function starpu_mpi_task_build() is also provided with the aim to
 only construct the task structure. All MPI nodes need to call the
 function, only the node which is to execute the task will return a
-valid task structure. Following the execution of the task, all nodes
-need to call the function starpu_mpi_task_post_build() -- with the same
+valid task structure, others will return NULL. That node must submit that task.
+All nodes then need to call the function starpu_mpi_task_post_build() -- with the same
 list of arguments as starpu_mpi_task_build() -- to post all the
 necessary data communications.
 
