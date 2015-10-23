@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011, 2013  Université de Bordeaux
+ * Copyright (C) 2010, 2011, 2013, 2015  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -60,6 +60,7 @@ int main(int argc, char **argv)
 
 	starpu_codelet_init(&cl);
         cl.cpu_funcs[0] = cpu_codelet;
+        cl.cpu_funcs_name[0] = "cpu_codelet";
 #ifdef STARPU_USE_CUDA
         cl.cuda_funcs[0] = cuda_codelet;
 #endif

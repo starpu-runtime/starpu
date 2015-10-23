@@ -150,6 +150,7 @@ int main(int argc STARPU_ATTRIBUTE_UNUSED , char **argv STARPU_ATTRIBUTE_UNUSED)
 
 	starpu_codelet_init(&cl);
 	cl.cpu_funcs[0] = cpu_codelet;
+	cl.cpu_funcs_name[0] = "cpu_codelet";
 	cl.cuda_funcs[0] = cpu_codelet;
 	cl.opencl_funcs[0] = cpu_codelet;
 	cl.nbuffers = 0;
