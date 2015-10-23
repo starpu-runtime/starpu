@@ -38,6 +38,7 @@ struct starpu_codelet cl_cpu_funcs =
 {
 	.where = STARPU_CPU,
 	.cpu_funcs = {cpu_codelet},
+	.cpu_funcs_name = {"cpu_codelet"},
 	.nbuffers = 2,
 	.name = "cpu_funcs",
 };
@@ -46,6 +47,7 @@ struct starpu_codelet cl_cpu_func =
 {
 	.where = STARPU_CPU,
 	.cpu_func = cpu_codelet,
+	.cpu_funcs_name = {"cpu_codelet"},
 	.nbuffers = 2,
 	.name = "cpu_func",
 };
@@ -55,6 +57,7 @@ struct starpu_codelet cl_cpu_multiple =
 	.where = STARPU_CPU,
 	.cpu_func = STARPU_MULTIPLE_CPU_IMPLEMENTATIONS,
 	.cpu_funcs = {cpu_codelet},
+	.cpu_funcs_name = {"cpu_codelet"},
 	.nbuffers = 2,
 	.name = "cpu_multiple",
 };
@@ -64,6 +67,7 @@ struct starpu_codelet cl_cpu_func_funcs =
 	.where = STARPU_CPU,
 	.cpu_func = cpu2_codelet,
 	.cpu_funcs = {cpu_codelet},
+	.cpu_funcs_name = {"cpu_codelet"},
 	.nbuffers = 2,
 	.name = "cpu_func_funcs",
 };
