@@ -420,6 +420,7 @@ static int _starpu_sink_common_get_current_rank(int workerid, struct _starpu_com
 			return i;
 
 	STARPU_ASSERT(0);
+	return -1;
 }
 
 /* Execute the task
