@@ -753,7 +753,7 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 #endif
 		}
 
-		if (worker->ntasks < worker->pipeline_length)
+		if (!worker->pipeline_length || worker->ntasks < worker->pipeline_length)
 			idle++;
 	}
 

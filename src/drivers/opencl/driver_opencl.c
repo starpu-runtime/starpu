@@ -733,7 +733,7 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 			_STARPU_TRACE_END_EXECUTING();
 		}
 	}
-	if (worker->ntasks < worker->pipeline_length)
+	if (!worker->pipeline_length || worker->ntasks < worker->pipeline_length)
 		idle++;
 
 #if defined(STARPU_NON_BLOCKING_DRIVERS) && !defined(STARPU_SIMGRID)
