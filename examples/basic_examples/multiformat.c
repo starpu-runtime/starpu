@@ -82,6 +82,7 @@ extern void multiformat_scal_opencl_func(void *buffers[], void *arg);
 static struct starpu_codelet cpu_cl =
 {
 	.cpu_funcs = {multiformat_scal_cpu_func},
+	.cpu_funcs_name = {"multiformat_scal_cpu_func"},
 	.nbuffers = 1,
 	.modes = { STARPU_RW },
 	.name = "codelet_real"

@@ -53,6 +53,7 @@ static void dummy_big_kernel(void *descr[], void *cl_arg)
 static struct starpu_codelet dummy_small_cl =
 {
 	.cpu_funcs = {dummy_small_kernel},
+	.cpu_funcs_name = {"dummy_small_kernel"},
 	.modes = {STARPU_RW},
 	.nbuffers = 1
 };
@@ -60,6 +61,7 @@ static struct starpu_codelet dummy_small_cl =
 struct starpu_codelet dummy_big_cl =
 {
 	.cpu_funcs = {dummy_big_kernel},
+	.cpu_funcs_name = {"dummy_big_kernel"},
 	.nbuffers = STARPU_NMAXBUFS+1
 };
 

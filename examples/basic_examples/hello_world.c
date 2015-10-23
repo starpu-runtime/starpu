@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux
+ * Copyright (C) 2010, 2015  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -83,6 +83,7 @@ int main(int argc, char **argv)
 	/* this codelet may only be executed on a CPU, and its cpu
  	 * implementation is function "cpu_func" */
 	cl.cpu_funcs[0] = cpu_func;
+	cl.cpu_funcs_name[0] = "cpu_func";
 	/* the codelet does not manipulate any data that is managed
 	 * by our DSM */
 	cl.nbuffers = 0;

@@ -64,6 +64,7 @@ int main(int argc, char **argv)
 
         starpu_codelet_init(&cl);
         cl.cpu_funcs[0] = cpu_codelet;
+        cl.cpu_funcs_name[0] = "cpu_codelet";
 #ifdef STARPU_USE_CUDA
         cl.cuda_funcs[0] = cuda_codelet;
 	cl.cuda_flags[0] = STARPU_CUDA_ASYNC;

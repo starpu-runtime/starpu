@@ -37,6 +37,7 @@ struct starpu_codelet cl =
 {
 	.modes = { STARPU_RW },
 	.cpu_funcs = {cpu_codelet},
+	.cpu_funcs_name = {"cpu_codelet"},
 	.nbuffers = 1,
 	.name = "callback"
 };
