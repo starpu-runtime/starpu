@@ -32,6 +32,7 @@ static struct starpu_perfmodel my_model =
 static struct starpu_codelet my_codelet =
 {
 	.cpu_funcs = {func},
+	.cpu_funcs_name = {"func"},
 	.model = &my_model
 };
 
