@@ -146,6 +146,7 @@ distclean: clean
 check:
 	\$(MAKE) -C build_host check
 	\$(MAKE) -C build_mic check
+	STARPU_NCPUS=0 \$(MAKE) -C build_mic check
 
 showcheck:
 	\$(MAKE) -C build_host showcheck
