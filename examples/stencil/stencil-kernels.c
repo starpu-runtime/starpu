@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2014  Université de Bordeaux
+ * Copyright (C) 2010-2015  Université de Bordeaux
  * Copyright (C) 2012, 2013  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -419,7 +419,6 @@ static struct starpu_perfmodel cl_update_model =
 struct starpu_codelet cl_update =
 {
 	.cpu_funcs = {update_func_cpu},
-	.cpu_funcs_name = {"update_func_cpu"},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {update_func_cuda},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
@@ -610,7 +609,6 @@ static struct starpu_perfmodel save_cl_top_model =
 struct starpu_codelet save_cl_bottom =
 {
 	.cpu_funcs = {dummy_func_bottom_cpu},
-	.cpu_funcs_name = {"dummy_func_bottom_cpu"},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {dummy_func_bottom_cuda},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
@@ -627,7 +625,6 @@ struct starpu_codelet save_cl_bottom =
 struct starpu_codelet save_cl_top =
 {
 	.cpu_funcs = {dummy_func_top_cpu},
-	.cpu_funcs_name = {"dummy_func_top_cpu"},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {dummy_func_top_cuda},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
