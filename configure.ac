@@ -2019,7 +2019,7 @@ AC_DEFUN([IS_SUPPORTED_CFLAG],
 			]]
 		),
 		[
-			GLOBAL_AM_CFLAGS="$GLOBAL_AM_CFLAGS $1"
+			m4_default_nblank([$2], [GLOBAL_AM_CFLAGS="$GLOBAL_AM_CFLAGS $1"])
 			AC_MSG_RESULT(yes)
 			option_available=1
 		],
@@ -2155,7 +2155,7 @@ fi
 AM_CONDITIONAL([STARPU_OPENMP], [test "x$enable_openmp" = "xyes"])
 AC_MSG_RESULT($enable_openmp)
 
-IS_SUPPORTED_CFLAG(-fopenmp)
+IS_SUPPORTED_CFLAG(-fopenmp, :)
 AM_CONDITIONAL([STARPU_HAVE_OPENMP],[test "$option_available" = "1"])
 
 ###############################################################################
