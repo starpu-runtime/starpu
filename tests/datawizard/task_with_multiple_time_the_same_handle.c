@@ -34,14 +34,16 @@ static void sum3_cpu(void * descr[], void *cl_arg)
 
 static struct starpu_codelet sum_cl =
 {
-	.cpu_funcs = {sum_cpu, NULL},
+	.cpu_funcs = {sum_cpu},
+	.cpu_funcs_name = {"sum_cpu"},
 	.nbuffers = 2,
 	.modes={STARPU_RW,STARPU_R}
 };
 
 static struct starpu_codelet sum3_cl =
 {
-	.cpu_funcs = {sum3_cpu, NULL},
+	.cpu_funcs = {sum3_cpu},
+	.cpu_funcs_name = {"sum3_cpu"},
 	.nbuffers = 3,
 	.modes={STARPU_R,STARPU_R,STARPU_RW}
 };

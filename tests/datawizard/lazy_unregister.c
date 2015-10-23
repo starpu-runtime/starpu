@@ -31,6 +31,7 @@ static struct starpu_codelet dummy_cl =
 {
 	.modes = { STARPU_RW },
 	.cpu_funcs = { dummy_func },
+	.cpu_funcs_name = { "dummy_func" },
 	.nbuffers = 1
 };
 
