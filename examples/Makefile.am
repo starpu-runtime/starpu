@@ -258,11 +258,6 @@ STARPU_EXAMPLES +=				\
 	spmv/dw_block_spmv
 endif
 
-if STARPU_LONG_CHECK
-STARPU_EXAMPLES +=				\
-	sched_ctx/parallel_code
-endif
-
 if !STARPU_SIMGRID
 if STARPU_HAVE_F77_H
 STARPU_EXAMPLES +=				\
