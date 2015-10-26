@@ -80,13 +80,6 @@ otherwise bring spurious synchronizations. The default is 2. Setting the value t
 execution of all tasks.
 </dd>
 
-<dt>STARPU_NMICDEVS</dt>
-<dd>
-\anchor STARPU_NMICDEVS
-\addindex __env__STARPU_NMICDEVS
-MIC equivalent of the environment variable \ref STARPU_NCUDA.
-</dd>
-
 <dt>STARPU_OPENCL_ON_CPUS</dt>
 <dd>
 \anchor STARPU_OPENCL_ON_CPUS
@@ -111,7 +104,15 @@ CPU devices.
 <dd>
 \anchor STARPU_NMIC
 \addindex __env__STARPU_NMIC
-MIC equivalent of the environment variable \ref STARPU_NCUDA.
+MIC equivalent of the environment variable \ref STARPU_NCUDA, i.e. the number of
+MIC devices to use.
+</dd>
+
+<dt>STARPU_NMICCORES</dt>
+<dd>
+\anchor STARPU_NMICCORES
+\addindex __env__STARPU_NMICCORES
+Number of cores to use on the MIC devices.
 </dd>
 
 <dt>STARPU_NSCC</dt>

@@ -745,30 +745,23 @@ _starpu_init_mic_config (struct _starpu_machine_config *config,
 	_starpu_init_mic_topology (config, mic_idx);
 
 	int nmiccores;
-	nmiccores = starpu_get_env_number("STARPU_NMIC");
+	nmiccores = starpu_get_env_number("STARPU_NMICCORES");
 
-	/* STARPU_NMIC is not set. Did the user specify anything ? */
-	if (nmiccores == -1 && user_conf)
-		nmiccores = user_conf->nmic;
-
-	if (nmiccores != 0)
+	if (nmiccores == -1)
 	{
-		if (nmiccores == -1)
+		/* Nothing was specified, so let's use the number of
+		 * detected mic cores. ! */
+		nmiccores = topology->nhwmiccores[mic_idx];
+	}
+	else
+	{
+		if ((unsigned) nmiccores > topology->nhwmiccores[mic_idx])
 		{
-			/* Nothing was specified, so let's use the number of
-			 * detected mic cores. ! */
+			/* The user requires more MIC devices than there is available */
+			fprintf(stderr,
+				"# Warning: %d MIC cores requested. Only %d available.\n",
+				nmiccores, topology->nhwmiccores[mic_idx]);
 			nmiccores = topology->nhwmiccores[mic_idx];
-		    }
-		else
-		{
-			if ((unsigned) nmiccores > topology->nhwmiccores[mic_idx])
-			{
-				/* The user requires more MIC devices than there is available */
-				fprintf(stderr,
-					"# Warning: %d MIC devices requested. Only %d available.\n",
-					nmiccores, topology->nhwmiccores[mic_idx]);
-				nmiccores = topology->nhwmiccores[mic_idx];
-			}
 		}
 	}
 
@@ -825,8 +818,10 @@ _starpu_init_mp_config (struct _starpu_machine_config *config,
 	 * infrastructure. */
 	unsigned nhwmicdevices = _starpu_mic_src_get_device_count();
 
-	int reqmicdevices = starpu_get_env_number("STARPU_NMICDEVS");
-	if (-1 == reqmicdevices)
+	int reqmicdevices = starpu_get_env_number("STARPU_NMIC");
+	if (reqmicdevices == -1 && user_conf)
+		reqmicdevices = user_conf->nmic;
+	if (reqmicdevices == -1)
 		reqmicdevices = nhwmicdevices;
 
 	topology->nmicdevices = 0;
