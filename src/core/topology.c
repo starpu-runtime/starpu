@@ -757,7 +757,7 @@ _starpu_init_mic_config (struct _starpu_machine_config *config,
 	{
 		if ((unsigned) nmiccores > topology->nhwmiccores[mic_idx])
 		{
-			/* The user requires more MIC devices than there is available */
+			/* The user requires more MIC cores than there is available */
 			fprintf(stderr,
 				"# Warning: %d MIC cores requested. Only %d available.\n",
 				nmiccores, topology->nhwmiccores[mic_idx]);
@@ -824,9 +824,27 @@ _starpu_init_mp_config (struct _starpu_machine_config *config,
 	if (reqmicdevices == -1)
 		reqmicdevices = nhwmicdevices;
 
+	if (reqmicdevices == -1)
+	{
+		/* Nothing was specified, so let's use the number of
+		 * detected mic devices. ! */
+		reqmicdevices = nhwmicdevices;
+	}
+	else
+	{
+		if ((unsigned) reqmicdevices > nhwmicdevices)
+		{
+			/* The user requires more MIC devices than there is available */
+			fprintf(stderr,
+				"# Warning: %d MIC devices requested. Only %d available.\n",
+				reqmicdevices, nhwmicdevices);
+			reqmicdevices = nhwmicdevices;
+		}
+	}
+
 	topology->nmicdevices = 0;
 	unsigned i;
-	for (i = 0; i < STARPU_MIN (nhwmicdevices, (unsigned) reqmicdevices); i++)
+	for (i = 0; i < (unsigned) reqmicdevices; i++)
 		if (0 == _starpu_init_mic_node (config, i, &handles[i], &process[i]))
 			topology->nmicdevices++;
 
