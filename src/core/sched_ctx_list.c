@@ -369,7 +369,10 @@ struct _starpu_sched_ctx_elt* _starpu_sched_ctx_list_iterator_get_next(struct _s
 			}
 			else
 			{
+				/* if everything fails (e.g. worker removed from ctx since related has_next call)
+				   just return head, it'll save us a synchro */
 				it->cursor = NULL;
+				ret = it->list_head->head;
 			}
 		}
 		else
