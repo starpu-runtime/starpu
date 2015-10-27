@@ -83,8 +83,7 @@ do
 	    then
 		params="$params --disable-build-doc --with-coi-lib-dir=$coi_dir/device-linux-release/lib --with-scif-lib-dir=$scif_dir/device-linux-release/lib --host=$mic_host --enable-maxcpus=250"
 	    else
-		# TODO: fix hwloc detection to look for another pkg-config place, and not just believe in the host version of hwloc.pc...
-		params="$params --disable-build-doc -without-hwloc --with-coi-lib-dir=$coi_dir/device-linux-release/lib --with-scif-lib-dir=$scif_dir/device-linux-release/lib --host=$mic_host"
+		params="$params --disable-build-doc --with-coi-lib-dir=$coi_dir/device-linux-release/lib --with-scif-lib-dir=$scif_dir/device-linux-release/lib --host=$mic_host"
 	    fi
 	else
 		params="$params --with-coi-lib-dir=$coi_dir/host-linux-release/lib --with-scif-lib-dir=$scif_dir/host-linux-release/lib"
@@ -98,7 +97,7 @@ do
 	cd "build_${arch}"
 
 	if test x$arch = xmic ; then
-		LDFLAGS=-export-dynamic $command $* $params
+		PKG_CONFIG_PATH=$SINK_PKG_CONFIG_PATH LDFLAGS=-export-dynamic $command $* $params
 	else
 		$command $* $params
 	fi
