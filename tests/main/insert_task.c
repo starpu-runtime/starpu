@@ -55,7 +55,6 @@ struct starpu_codelet mycodelet_noargs =
 {
 	.modes = { STARPU_RW, STARPU_RW },
 	.cpu_funcs = {func_cpu_noargs},
-	.cpu_funcs_name = {"func_cpu_noargs"},
         .nbuffers = 2
 };
 

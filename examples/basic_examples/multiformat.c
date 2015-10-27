@@ -30,7 +30,7 @@ static int nopencl = 0;
 static struct point array_of_structs[N_ELEMENTS];
 static starpu_data_handle_t array_of_structs_handle;
 
-static void
+void
 multiformat_scal_cpu_func(void *buffers[], void *args)
 {
 	struct point *aos;
