@@ -27,13 +27,14 @@ static unsigned ntasks = 64;
 static unsigned ntasks = 200000;
 #endif
 
-static void dummy_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE_UNUSED)
+void dummy_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE_UNUSED)
 {
 }
 
 static struct starpu_codelet dummy_codelet =
 {
 	.cpu_funcs = {dummy_func},
+	.cpu_funcs_name = {"dummy_func"},
 	.cuda_funcs = {dummy_func},
 	.opencl_funcs = {dummy_func},
 	.model = NULL,

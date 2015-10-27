@@ -72,7 +72,7 @@ static void increment_cuda_kernel(void *descr[], void *arg)
 }
 #endif
 
-static void increment_cpu_kernel(void *descr[], void *cl_arg)
+void increment_cpu_kernel(void *descr[], void *cl_arg)
 {
 	int num = starpu_task_get_current()->nbuffers;
 	int i;

@@ -18,7 +18,7 @@
 
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 
-static void dummy_small_kernel(void *descr[], void *cl_arg)
+void dummy_small_kernel(void *descr[], void *cl_arg)
 {
 	int nb_data;
 	int i;
@@ -34,7 +34,7 @@ static void dummy_small_kernel(void *descr[], void *cl_arg)
 	}
 }
 
-static void dummy_big_kernel(void *descr[], void *cl_arg)
+void dummy_big_kernel(void *descr[], void *cl_arg)
 {
 	int nb_data;
 	int i;
