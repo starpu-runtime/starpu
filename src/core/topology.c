@@ -794,7 +794,7 @@ _starpu_init_mic_config (struct _starpu_machine_config *config,
     }
 
 #ifdef STARPU_USE_MIC
-static COIENGINE handles[STARPU_MAXMICDEVS];
+static COIENGINE mic_handles[STARPU_MAXMICDEVS];
 static COIPROCESS mic_process[STARPU_MAXMICDEVS];
 #endif
 
@@ -845,7 +845,7 @@ _starpu_init_mp_config (struct _starpu_machine_config *config,
 	topology->nmicdevices = 0;
 	unsigned i;
 	for (i = 0; i < (unsigned) reqmicdevices; i++)
-		if (0 == _starpu_init_mic_node (config, i, &handles[i], &process[i]))
+		if (0 == _starpu_init_mic_node (config, i, &mic_handles[i], &mic_process[i]))
 			topology->nmicdevices++;
 
 
@@ -859,7 +859,7 @@ _starpu_deinit_mic_node (unsigned mic_idx)
 {
 	_starpu_mp_common_send_command(mic_nodes[mic_idx], STARPU_EXIT, NULL, 0);
 
-	COIProcessDestroy(process[mic_idx], -1, 0, NULL, NULL);
+	COIProcessDestroy(mic_process[mic_idx], -1, 0, NULL, NULL);
 
 	_starpu_mp_common_node_destroy(mic_nodes[mic_idx]);
 }
