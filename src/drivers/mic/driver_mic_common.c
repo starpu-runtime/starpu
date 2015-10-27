@@ -18,6 +18,7 @@
 #include <starpu.h>
 #include <drivers/mp_common/mp_common.h>
 #include <drivers/mic/driver_mic_common.h>
+#include <drivers/mic/driver_mic_source.h>
 
 void _starpu_mic_common_report_scif_error(const char *func, const char *file, const int line, const int status)
 {
@@ -105,7 +106,8 @@ void _starpu_mic_common_connect(scif_epd_t *endpoint, uint16_t remote_node, COIP
 			/* Check whether it's still alive */
 			res = COIProcessGetFunctionHandles(process, 1, &main_name, &func);
 			STARPU_ASSERT_MSG(res != COI_PROCESS_DIED, "process died on MIC %d", remote_node-1);
-			STARPU_ASSERT_MSG(res == COI_SUCCESS, "MIC process died? (error %d)", res);
+			if (res != COI_SUCCESS)
+				STARPU_MIC_SRC_REPORT_COI_ERROR(res);
 		}
 		if (errno != ECONNREFUSED)
 			STARPU_MIC_COMMON_REPORT_SCIF_ERROR(errno);
