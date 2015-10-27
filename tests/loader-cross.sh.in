@@ -5,7 +5,7 @@ top_builddir="@top_builddir@"
 
 if test -z "$1"
 then
-    echo "[Error] Syntax: $0 <executable>"
+    echo "[Error] Syntax: $0 <mic_executable>"
     exit 1
 fi
 
