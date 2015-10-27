@@ -47,6 +47,12 @@ enum starpu_heteroprio_types
 #ifdef STARPU_USE_OPENCL
 	STARPU_OPENCL_IDX,
 #endif
+#ifdef STARPU_USE_MIC
+	STARPU_MIC_IDX,
+#endif
+#ifdef STARPU_USE_SCC
+	STARPU_SCC_IDX,
+#endif
 // This will be the number of archs
 	STARPU_NB_TYPES
 };
@@ -61,6 +67,12 @@ static const unsigned starpu_heteroprio_types_to_arch[STARPU_NB_TYPES+1] =
 #endif
 #ifdef STARPU_USE_OPENCL
 	STARPU_OPENCL,
+#endif
+#ifdef STARPU_USE_MIC
+	STARPU_MIC,
+#endif
+#ifdef STARPU_USE_SCC
+	STARPU_SCC,
 #endif
 	0
 };
