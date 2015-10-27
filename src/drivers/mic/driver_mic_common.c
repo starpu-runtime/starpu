@@ -79,7 +79,7 @@ void _starpu_mic_common_dt_recv(const struct _starpu_mp_node *mp_node, void *msg
 		STARPU_MP_COMMON_REPORT_ERROR(mp_node, errno);
 }
 
-void _starpu_mic_common_connect(scif_epd_t *endpoint, uint16_t remote_node,
+void _starpu_mic_common_connect(scif_epd_t *endpoint, uint16_t remote_node, COIPROCESS process,
 				uint16_t local_port_number, uint16_t remote_port_number)
 {
 	/* Endpoint only useful for the initialization of the connection */
@@ -97,6 +97,16 @@ void _starpu_mic_common_connect(scif_epd_t *endpoint, uint16_t remote_node,
 	_STARPU_DEBUG("Connecting to MIC %d on %d:%d...\n", remote_node, local_port_number, remote_port_number);
 	while (scif_connect(*endpoint, &portID) == -1)
 	{
+		if (process)
+		{
+			const char *main_name = "main";
+			COIFUNCTION func;
+			COIRESULT res;
+			/* Check whether it's still alive */
+			res = COIProcessGetFunctionHandles(process, 1, &main_name, &func);
+			STARPU_ASSERT_MSG(res != COI_PROCESS_DIED, "process died on MIC %d", remote_node-1);
+			STARPU_ASSERT_MSG(res == COI_SUCCESS, "MIC process died? (error %d)", res);
+		}
 		if (errno != ECONNREFUSED)
 			STARPU_MIC_COMMON_REPORT_SCIF_ERROR(errno);
 	}

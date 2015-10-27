@@ -58,6 +58,7 @@ void _starpu_mic_sink_init(struct _starpu_mp_node *node)
 	//for (i = 0; i < (unsigned int)node->devid; ++i)
 	//	_starpu_mic_common_connect(&node->sink_sink_dt_connections[i].mic_endpoint,
 	//								STARPU_TO_MIC_ID(i),
+	//								NULL,
 	//								STARPU_MIC_SINK_SINK_DT_PORT_NUMBER(node->devid, i),	
 	//								STARPU_MIC_SINK_SINK_DT_PORT_NUMBER(i, node->devid));
 
