@@ -794,8 +794,8 @@ _starpu_init_mic_config (struct _starpu_machine_config *config,
     }
 
 #ifdef STARPU_USE_MIC
-static COIENGINE handles[2];
-static COIPROCESS process[2];
+static COIENGINE handles[STARPU_MAXMICDEVS];
+static COIPROCESS mic_process[STARPU_MAXMICDEVS];
 #endif
 
 static void
