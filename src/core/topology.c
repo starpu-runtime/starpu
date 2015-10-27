@@ -783,7 +783,7 @@ _starpu_init_mic_config (struct _starpu_machine_config *config,
 		config->workers[worker_idx].perf_arch.ndevices = 1;
 		config->workers[worker_idx].perf_arch.devices[0].type = STARPU_MIC_WORKER;
 		config->workers[worker_idx].perf_arch.devices[0].devid = mic_idx;
-		config->workers[worker_idx].perf_arch.devices[0].ncores = 0;
+		config->workers[worker_idx].perf_arch.devices[0].ncores = 1;
 		config->workers[worker_idx].devid = mic_idx;
 		config->workers[worker_idx].subworkerid = miccore_id;
 		config->workers[worker_idx].worker_mask = STARPU_MIC;
