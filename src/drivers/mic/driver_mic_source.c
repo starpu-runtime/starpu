@@ -318,14 +318,18 @@ void(* _starpu_mic_src_get_kernel_from_job(const struct _starpu_mp_node *node ST
  */
 void _starpu_mic_src_init(struct _starpu_mp_node *node)
 {
+	extern COIPROCESS _starpu_mic_process[STARPU_MAXMICDEVS];
+
 	/* Let's initialize the connection with the peered sink device */
 	_starpu_mic_common_connect(&node->mp_connection.mic_endpoint,
 					    STARPU_TO_MIC_ID(node->peer_id),
+					    _starpu_mic_process[node->peer_id],
 					    STARPU_MIC_SINK_PORT_NUMBER(node->peer_id),
 					    STARPU_MIC_SOURCE_PORT_NUMBER);
 
 	_starpu_mic_common_connect(&node->host_sink_dt_connection.mic_endpoint,
 				   STARPU_TO_MIC_ID(node->peer_id),
+				   _starpu_mic_process[node->peer_id],
 				   STARPU_MIC_SINK_DT_PORT_NUMBER(node->peer_id),
 				   STARPU_MIC_SOURCE_DT_PORT_NUMBER);
 }

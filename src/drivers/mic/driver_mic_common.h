@@ -19,6 +19,7 @@
 #define __DRIVER_MIC_COMMON_H__
 
 
+#include <source/COIProcess_source.h>
 #include <common/config.h>
 
 
@@ -64,7 +65,7 @@ void _starpu_mic_common_dt_send(const struct _starpu_mp_node *node, void *msg, i
 
 void _starpu_mic_common_dt_recv(const struct _starpu_mp_node *node, void *msg, int len);
 
-void _starpu_mic_common_connect(scif_epd_t *endpoint, uint16_t remote_node, 
+void _starpu_mic_common_connect(scif_epd_t *endpoint, uint16_t remote_node, COIPROCESS process,
 				uint16_t local_port_number, uint16_t remote_port_number);
 void _starpu_mic_common_accept(scif_epd_t *endpoint, uint16_t port_number);
 
