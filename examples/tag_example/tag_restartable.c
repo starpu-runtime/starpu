@@ -92,7 +92,7 @@ static void create_task_grid(unsigned iter)
 		struct starpu_task *task = tasks[iter][i] = starpu_task_create();
 
 		task->cl = &cl;
-		task->cl_arg = (void*)(uintptr_t) (i | (iter << 16));
+		/* task->cl_arg = (void*)(uintptr_t) (i | (iter << 16)); */
 
 		task->use_tag = 1;
 		task->tag_id = TAG(i, iter);
