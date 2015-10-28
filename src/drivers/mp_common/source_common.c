@@ -139,6 +139,7 @@ static void _starpu_src_common_handle_stored_async(struct _starpu_mp_node *node)
 		struct mp_message * message = mp_message_list_pop_back(&node->message_queue);
 		_starpu_src_common_handle_async(node, message->buffer,
 				message->size, message->type);
+		free(message->buffer);
 		mp_message_delete(message);
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&node->message_queue_mutex);
@@ -157,6 +158,7 @@ int _starpu_src_common_store_message(struct _starpu_mp_node *node,
 		case STARPU_PRE_EXECUTION:
 			message = mp_message_new();
 			message->type = answer;
+			message->buffer = malloc(arg_size);
 			memcpy(message->buffer, arg, arg_size);
 			message->size = arg_size;
 
