@@ -134,13 +134,14 @@ static struct starpu_sched_policy dummy_sched_policy =
 	.policy_description = "dummy scheduling strategy"
 };
 
-static void dummy_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE_UNUSED)
+void dummy_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE_UNUSED)
 {
 }
 
 static struct starpu_codelet dummy_codelet =
 {
 	.cpu_funcs = {dummy_func},
+	.cpu_funcs_name = {"dummy_func"},
 	.cuda_funcs = {dummy_func},
         .opencl_funcs = {dummy_func},
 	.model = NULL,

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2014  Université de Bordeaux
+ * Copyright (C) 2010-2015  Université de Bordeaux
  * Copyright (C) 2010-2013  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -128,13 +128,14 @@ static struct starpu_sched_policy dummy_sched_policy =
 	.policy_description = "dummy scheduling strategy"
 };
 
-static void dummy_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE_UNUSED)
+void dummy_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE_UNUSED)
 {
 }
 
 static struct starpu_codelet dummy_codelet =
 {
 	.cpu_funcs = {dummy_func},
+	.cpu_funcs_name = {"dummy_func"},
 	.cuda_funcs = {dummy_func},
         .opencl_funcs = {dummy_func},
 	.model = NULL,

@@ -93,7 +93,9 @@ static struct starpu_codelet increment_cl =
 	.opencl_funcs = {increment_opencl_kernel},
 #endif
 	.cpu_funcs = {increment_cpu_kernel},
-	.cpu_funcs_name = {"increment_cpu_kernel"},
+
+	/* starpu_task_get_current() doesn't work on MIC */
+	/*.cpu_funcs_name = {"increment_cpu_kernel"},*/
 	.nbuffers = STARPU_VARIABLE_NBUFFERS,
 };
 
