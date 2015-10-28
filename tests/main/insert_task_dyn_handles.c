@@ -35,7 +35,8 @@ void func_cpu(void *descr[], void *_args)
 struct starpu_codelet codelet =
 {
 	.cpu_funcs = {func_cpu},
-	.cpu_funcs_name = {"func_cpu"},
+	/* starpu_task_get_current() doesn't work on MIC */
+	/* .cpu_funcs_name = {"func_cpu"}, */
 	.nbuffers = STARPU_VARIABLE_NBUFFERS,
 };
 

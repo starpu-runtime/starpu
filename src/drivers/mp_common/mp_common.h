@@ -33,7 +33,7 @@
 #include <scif.h>
 #endif /* STARPU_USE_MIC */
 
-#define BUFFER_SIZE 256
+#define BUFFER_SIZE 65536
 
 #define STARPU_MP_SRC_NODE 0
 #define STARPU_MP_SINK_NODE(a) ((a) + 1)
@@ -108,7 +108,7 @@ LIST_TYPE(mp_barrier,
 
 LIST_TYPE(mp_message,
 		enum _starpu_mp_command type;
-		char buffer[BUFFER_SIZE];
+		char *buffer;
 		int size;
 	 );
 

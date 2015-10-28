@@ -298,7 +298,8 @@ void _starpu_sink_common_worker(void)
 			STARPU_PTHREAD_MUTEX_UNLOCK(&node->message_queue_mutex);
 			//_STARPU_DEBUG("telling host that we have finished the task %p sur %d.\n", task->kernel, task->coreid);
 			_starpu_mp_common_send_command(node, message->type,
-					&message->buffer, message->size);
+					message->buffer, message->size);
+			free(message->buffer);
 			mp_message_delete(message);
 		}
 		else
@@ -374,8 +375,9 @@ static void _starpu_sink_common_pre_execution_message(struct _starpu_mp_node *no
 	/* Init message to tell the sink that the execution has begun */
 	struct mp_message * message = mp_message_new();
 	message->type = STARPU_PRE_EXECUTION;
+	message->buffer = malloc(sizeof(int));
 	*(int *) message->buffer = task->combined_workerid;
-	message->size = sizeof(task->combined_workerid);
+	message->size = sizeof(int);
 
 
 	/* Append the message to the queue */
@@ -390,8 +392,9 @@ static void _starpu_sink_common_execution_completed_message(struct _starpu_mp_no
 	/* Init message to tell the sink that the execution is completed */
 	struct mp_message * message = mp_message_new();
 	message->type = STARPU_EXECUTION_COMPLETED;
-	message->size = sizeof(task->coreid);
+	message->buffer = malloc(sizeof(int));
 	*(int*) message->buffer = task->coreid;
+	message->size = sizeof(int);
 
 	/* Append the message to the queue */
 	_starpu_sink_common_append_message(node, message);
