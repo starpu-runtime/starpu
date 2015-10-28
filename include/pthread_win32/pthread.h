@@ -175,7 +175,7 @@ typedef HANDLE pthread_mutex_t;
 typedef int pthread_mutexattr_t;
 
 static __inline int pthread_mutexattr_init(pthread_mutexattr_t *attr) {
-  *attr = PTHREAD_MUTEX_RECURSIVE;
+  *attr = PTHREAD_MUTEX_ERRORCHECK;
   return 0;
 }
 
@@ -192,14 +192,14 @@ static __inline int pthread_mutexattr_settype(pthread_mutexattr_t *attr, int typ
 }
 
 static __inline int pthread_mutex_init (pthread_mutex_t *mutex, pthread_mutexattr_t *attr) {
-  if (attr && *attr!=PTHREAD_MUTEX_RECURSIVE)
+  if (attr && *attr!=PTHREAD_MUTEX_ERRORCHECK)
     return EINVAL;
-  winPthreadAssertWindows(*mutex = CreateMutex(NULL, FALSE, NULL));
+  winPthreadAssertWindows(*mutex = CreateSemaphore(NULL, 1, 1, NULL));
   return 0;
 }
 
 static __inline int pthread_mutex_unlock (pthread_mutex_t *mutex) {
-  winPthreadAssertWindows(ReleaseMutex(*mutex));
+  winPthreadAssertWindows(ReleaseSemaphore(*mutex, 1, NULL));
   return 0;
 }
 
@@ -207,7 +207,7 @@ static __inline int pthread_mutex_lock (pthread_mutex_t *mutex);
 static __inline int __pthread_mutex_alloc_concurrently (pthread_mutex_t *mutex) {
   HANDLE mutex_init_mutex;
   /* Get access to one global named mutex to serialize mutex initialization */
-  winPthreadAssertWindows((mutex_init_mutex = CreateMutex(NULL, FALSE, "StarPU mutex init")));
+  winPthreadAssertWindows((mutex_init_mutex = CreateSemaphore(NULL, 1, 1, "StarPU mutex init")));
   winPthreadAssertPthread(pthread_mutex_lock(&mutex_init_mutex));
   /* Now we are the one that can initialize it */
   if (!*mutex)
