@@ -97,7 +97,12 @@ do
 	cd "build_${arch}"
 
 	if test x$arch = xmic ; then
-		PKG_CONFIG_PATH=$SINK_PKG_CONFIG_PATH LDFLAGS=-export-dynamic $command $* $params
+		LIBRARY_PATH=$SINK_LIBRARY_PATH \
+		INCLUDE=$SINK_INCLUDE \
+		C_INCLUDE_PATH=$SINK_C_INCLUDE_PATH \
+		CPLUS_INCLUDE_PATH=$SINK_CPLUS_INCLUDE_PATH \
+		PKG_CONFIG_PATH=$SINK_PKG_CONFIG_PATH \
+		$command $* $params
 	else
 		$command $* $params
 	fi
