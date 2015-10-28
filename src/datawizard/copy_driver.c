@@ -396,6 +396,7 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 			_starpu_mic_init_event(&(req->async_channel.event.mic_event), src_node);
 		}
 		break;
+	/* TODO: MIC -> MIC */
 #endif
 #ifdef STARPU_USE_SCC
 		/* SCC RAM associated to the master process is considered as
@@ -619,6 +620,7 @@ int starpu_interface_copy(uintptr_t src, size_t src_offset, unsigned src_node, u
 					(void*) (src + src_offset), src_node,
 					(void*) (dst + dst_offset), dst_node,
 					size);
+	/* TODO: MIC->MIC */
 #endif
 #ifdef STARPU_USE_SCC
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_SCC_RAM,STARPU_CPU_RAM):
