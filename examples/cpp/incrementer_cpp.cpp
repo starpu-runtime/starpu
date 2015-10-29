@@ -34,7 +34,7 @@ extern "C" void opencl_codelet(void *descr[], __attribute__ ((unused)) void *_ar
 struct starpu_opencl_program opencl_program;
 #endif
 
-void cpu_codelet(void *descr[], __attribute__ ((unused)) void *_args)
+extern "C" void cpu_codelet(void *descr[], __attribute__ ((unused)) void *_args)
 {
 	float *val = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
 
