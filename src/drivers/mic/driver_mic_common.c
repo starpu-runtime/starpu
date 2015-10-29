@@ -100,13 +100,13 @@ void _starpu_mic_common_connect(scif_epd_t *endpoint, uint16_t remote_node, COIP
 	{
 		if (process)
 		{
-			const char *main_name = "main";
+			const char *main_name = "starpu_init";
 			COIFUNCTION func;
 			COIRESULT res;
 			/* Check whether it's still alive */
 			res = COIProcessGetFunctionHandles(process, 1, &main_name, &func);
 			STARPU_ASSERT_MSG(res != COI_PROCESS_DIED, "process died on MIC %d", remote_node-1);
-			STARPU_ASSERT_MSG(res != COI_DOES_NOT_EXIST, "MIC program does not expose the 'main' function, please link it with -rdynamic or -export-dynamic");
+			STARPU_ASSERT_MSG(res != COI_DOES_NOT_EXIST, "MIC program does not expose the 'starpu_init' function, please link it with -rdynamic or -export-dynamic");
 			if (res != COI_SUCCESS)
 				STARPU_MIC_SRC_REPORT_COI_ERROR(res);
 		}
