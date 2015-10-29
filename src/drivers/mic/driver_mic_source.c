@@ -524,10 +524,7 @@ void *_starpu_mic_src_worker(void *arg)
 
 	_starpu_driver_start(baseworker, _STARPU_FUT_MIC_KEY, 0);
 	for (i = 1; i < worker_set->nworkers; i++)
-	{
-		struct _starpu_worker *worker = &worker_set->workers[i];
-		_STARPU_TRACE_WORKER_INIT_END(worker->workerid);
-	}
+		_starpu_worker_start(&worker_set->workers[i], _STARPU_FUT_MIC_KEY, 0);
 
 	// Current task for a thread managing a worker set has no sense.
 	_starpu_set_current_task(NULL);
