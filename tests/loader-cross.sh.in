@@ -1,7 +1,7 @@
 #!/bin/bash
 
 top_srcdir="@top_srcdir@"
-top_builddir="@top_builddir@"
+export top_builddir="@top_builddir@"
 
 if test -z "$1"
 then
