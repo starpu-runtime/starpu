@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012-2013  Université de Bordeaux
+ * Copyright (C) 2010, 2012-2013, 2015  Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -90,9 +90,8 @@ void mp_cpy_kernel(void *descr[], void *cl_arg)
 static starpu_mic_kernel_t mic_cpy_func()
 {
 #ifdef STARPU_USE_MIC
-	static starpu_mic_func_symbol_t mic_symbol = NULL;
-	if (mic_symbol == NULL)
-		starpu_mic_register_kernel(&mic_symbol, "mp_cpy_kernel");
+	starpu_mic_func_symbol_t mic_symbol = NULL;
+	starpu_mic_register_kernel(&mic_symbol, "mp_cpy_kernel");
 
 	return starpu_mic_get_kernel(mic_symbol);
 #else
