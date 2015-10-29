@@ -136,7 +136,6 @@ static int can_execute(unsigned workerid, struct starpu_task *task, unsigned nim
 #define STRINGIFY(x) STRINGIFY_(x)
 struct starpu_codelet cl22 =
 {
-	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {STARPU_LU(cpu_u22)},
 	.cpu_funcs_name = {STRINGIFY(STARPU_LU(cpu_u22))},
 #ifdef STARPU_USE_CUDA
@@ -225,7 +224,6 @@ static struct starpu_perfmodel STARPU_LU(model_12) =
 
 struct starpu_codelet cl12 =
 {
-	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {STARPU_LU(cpu_u12)},
 	.cpu_funcs_name = {STRINGIFY(STARPU_LU(cpu_u12))},
 #ifdef STARPU_USE_CUDA
@@ -312,7 +310,6 @@ static struct starpu_perfmodel STARPU_LU(model_21) =
 
 struct starpu_codelet cl21 =
 {
-	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {STARPU_LU(cpu_u21)},
 	.cpu_funcs_name = {STRINGIFY(STARPU_LU(cpu_u21))},
 #ifdef STARPU_USE_CUDA
@@ -416,7 +413,6 @@ static struct starpu_perfmodel STARPU_LU(model_11) =
 
 struct starpu_codelet cl11 =
 {
-	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {STARPU_LU(cpu_u11)},
 	.cpu_funcs_name = {STRINGIFY(STARPU_LU(cpu_u11))},
 #ifdef STARPU_USE_CUDA
@@ -560,7 +556,6 @@ static struct starpu_perfmodel STARPU_LU(model_11_pivot) =
 
 struct starpu_codelet cl11_pivot =
 {
-	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {STARPU_LU(cpu_u11_pivot)},
 	.cpu_funcs_name = {STRINGIFY(STARPU_LU(cpu_u11_pivot))},
 #ifdef STARPU_USE_CUDA
@@ -651,7 +646,6 @@ static struct starpu_perfmodel STARPU_LU(model_pivot) =
 
 struct starpu_codelet cl_pivot =
 {
-	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {STARPU_LU(cpu_pivot)},
 	.cpu_funcs_name = {STRINGIFY(STARPU_LU(cpu_pivot))},
 #ifdef STARPU_USE_CUDA

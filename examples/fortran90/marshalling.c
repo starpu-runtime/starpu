@@ -58,8 +58,7 @@ void loop_element_cpu_func(void *buffers[], void *cl_arg);
 
 struct starpu_codelet cl_loop_element =
 {
-	.where = STARPU_CPU,
-	.cpu_funcs = {loop_element_cpu_func, NULL},
+	.cpu_funcs = {loop_element_cpu_func},
 	.nbuffers = 3,
 	.modes = {STARPU_R,STARPU_RW,STARPU_R},
 	.name = "LOOP_ELEMENT"
@@ -115,8 +114,7 @@ void copy_element_cpu_func(void *buffers[], void *cl_arg);
 
 struct starpu_codelet cl_copy_element =
 {
-	.where = STARPU_CPU,
-	.cpu_funcs = {copy_element_cpu_func, NULL},
+	.cpu_funcs = {copy_element_cpu_func},
 	.nbuffers = 2,
 	.modes = {STARPU_RW,STARPU_R},
 	.name = "COPY_ELEMENT"

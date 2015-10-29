@@ -134,11 +134,9 @@ int main(int argc, char** argv)
 		codeleteA.modes[1] = STARPU_RW;
 		codeleteA.name = "codeleteA";
 #ifdef STARPU_USE_CPU
-		codeleteA.where = STARPU_CPU;
 		codeleteA.cpu_funcs[0] = callback_a_cpu;
 #endif
 #ifdef STARPU_USE_OPENCL
-		codeleteA.where |= STARPU_OPENCL;
 		codeleteA.opencl_funcs[0] = callback_a_opencl;
 #endif
 	}
@@ -149,10 +147,8 @@ int main(int argc, char** argv)
 		codeleteB.modes[0] = STARPU_RW;
 		codeleteB.modes[1] = STARPU_RW;
 		codeleteB.name = "codeleteB";
-		codeleteB.where = STARPU_CPU;
 		codeleteB.cpu_funcs[0] = callback_b_cpu;
 #ifdef STARPU_USE_OPENCL
-		codeleteB.where |= STARPU_OPENCL;
 		codeleteB.opencl_funcs[0] = callback_b_opencl;
 #endif
 	}
@@ -163,10 +159,8 @@ int main(int argc, char** argv)
 		codeleteC.modes[0] = STARPU_RW;
 		codeleteC.modes[1] = STARPU_RW;
 		codeleteC.name = "codeleteC";
-		codeleteC.where = STARPU_CPU;
 		codeleteC.cpu_funcs[0] = callback_c_cpu;
 #ifdef STARPU_USE_OPENCL
-		codeleteC.where |= STARPU_OPENCL;
 		codeleteC.opencl_funcs[0] = callback_c_opencl;
 #endif
 	}
