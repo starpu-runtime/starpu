@@ -1511,6 +1511,8 @@ void starpu_shutdown(void)
 	/* tell all workers to shutdown */
 	_starpu_kill_all_workers(&config);
 
+	_starpu_free_all_automatically_allocated_buffers(STARPU_MAIN_RAM);
+
 	{
 	     int stats = starpu_get_env_number("STARPU_STATS");
 	     if (stats != 0)
