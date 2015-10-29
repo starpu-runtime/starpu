@@ -139,7 +139,6 @@ void init_cg(struct cg_problem *problem)
 
 	/* r = b  - A x */
 	struct starpu_task *task1 = create_task(1UL);
-	task1->cl->where = STARPU_CPU;
 	task1->cl->cpu_funcs[0] = cpu_codelet_func_1;
 	task1->cl->cpu_funcs_name[0] = "cpu_codelet_func_1";
 	task1->cl->nbuffers = 4;
@@ -155,7 +154,6 @@ void init_cg(struct cg_problem *problem)
 
 	/* d = r */
 	struct starpu_task *task2 = create_task(2UL);
-	task2->cl->where = STARPU_CPU;
 	task2->cl->cpu_funcs[0] = cpu_codelet_func_2;
 	task2->cl->cpu_funcs_name[0] = "cpu_codelet_func_2";
 	task2->cl->nbuffers = 2;
@@ -169,7 +167,6 @@ void init_cg(struct cg_problem *problem)
 
 	/* delta_new = trans(r) r */
 	struct starpu_task *task3 = create_task(3UL);
-	task3->cl->where = STARPU_CUDA|STARPU_CPU;
 #ifdef STARPU_USE_CUDA
 	task3->cl->cuda_funcs[0] = cublas_codelet_func_3;
 #endif
@@ -211,7 +208,6 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 
 	/* q = A d */
 	struct starpu_task *task4 = create_task(maskiter | 4UL);
-	task4->cl->where = STARPU_CPU;
 	task4->cl->cpu_funcs[0] = cpu_codelet_func_4;
 	task4->cl->cpu_funcs_name[0] = "cpu_codelet_func_4";
 	task4->cl->nbuffers = 3;
@@ -225,7 +221,6 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 
 	/* alpha = delta_new / ( trans(d) q )*/
 	struct starpu_task *task5 = create_task(maskiter | 5UL);
-	task5->cl->where = STARPU_CUDA|STARPU_CPU;
 #ifdef STARPU_USE_CUDA
 	task5->cl->cuda_funcs[0] = cublas_codelet_func_5;
 #endif
@@ -244,7 +239,6 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 
 	/* x = x + alpha d */
 	struct starpu_task *task6 = create_task(maskiter | 6UL);
-	task6->cl->where = STARPU_CUDA|STARPU_CPU;
 #ifdef STARPU_USE_CUDA
 	task6->cl->cuda_funcs[0] = cublas_codelet_func_6;
 #endif
@@ -263,7 +257,6 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 
 	/* r = r - alpha q */
 	struct starpu_task *task7 = create_task(maskiter | 7UL);
-	task7->cl->where = STARPU_CUDA|STARPU_CPU;
 #ifdef STARPU_USE_CUDA
 	task7->cl->cuda_funcs[0] = cublas_codelet_func_7;
 #endif
@@ -282,7 +275,6 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 
 	/* update delta_* and compute beta */
 	struct starpu_task *task8 = create_task(maskiter | 8UL);
-	task8->cl->where = STARPU_CUDA|STARPU_CPU;
 #ifdef STARPU_USE_CUDA
 	task8->cl->cuda_funcs[0] = cublas_codelet_func_8;
 #endif
@@ -298,7 +290,6 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 
 	/* d = r + beta d */
 	struct starpu_task *task9 = create_task(maskiter | 9UL);
-	task9->cl->where = STARPU_CUDA|STARPU_CPU;
 #ifdef STARPU_USE_CUDA
 	task9->cl->cuda_funcs[0] = cublas_codelet_func_9;
 #endif

@@ -60,8 +60,7 @@ void noop(void * buffers[], void * cl_arg)
 
 static struct starpu_codelet init_parallel_worker_cl=
 {
-	.where = STARPU_CPU,
-	.cpu_funcs = {noop, NULL},
+	.cpu_funcs = {noop},
 	.nbuffers = 0,
 	.name = "init_parallel_worker"
 };
