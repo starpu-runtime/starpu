@@ -62,10 +62,9 @@ static int mygettimeofday(struct timeval *tv, void *tz)
 #define mygettimeofday(tv,tz) gettimeofday(tv,tz)
 #endif
 
-static void launch_gdb(const char *exe)
-{
 #ifdef STARPU_GDB_PATH
-# define CORE_FILE "core"
+static int try_launch_gdb(const char *exe, const char *core)
+{
 # define GDB_ALL_COMMAND "thread apply all bt full"
 # define GDB_COMMAND "bt full"
 	int err;
@@ -74,18 +73,18 @@ static void launch_gdb(const char *exe)
 	const char *top_builddir;
 	char *gdb;
 
-	err = stat(CORE_FILE, &st);
+	err = stat(core, &st);
 	if (err != 0)
 	{
 		fprintf(stderr, "while looking for core file of %s: %s: %m\n",
-			exe, CORE_FILE);
-		return;
+			exe, core);
+		return -1;
 	}
 
 	if (!(st.st_mode & S_IFREG))
 	{
-		fprintf(stderr, CORE_FILE ": not a regular file\n");
-		return;
+		fprintf(stderr, "%s: not a regular file\n", core);
+		return -1;
 	}
 
 	top_builddir = getenv("top_builddir");
@@ -105,7 +104,7 @@ static void launch_gdb(const char *exe)
 				    STARPU_GDB_PATH, "--batch",
 				    "-ex", GDB_COMMAND,
 				    "-ex", GDB_ALL_COMMAND,
-				    exe, CORE_FILE, NULL);
+				    exe, core, NULL);
 		}
 		else
 		{
@@ -114,7 +113,7 @@ static void launch_gdb(const char *exe)
 			err = execl(gdb, "gdb", "--batch",
 				    "-ex", GDB_COMMAND,
 				    "-ex", GDB_ALL_COMMAND,
-				    exe, CORE_FILE, NULL);
+				    exe, core, NULL);
 		}
 		if (err != 0)
 		{
@@ -126,7 +125,7 @@ static void launch_gdb(const char *exe)
 
 	case -1:
 		fprintf(stderr, "fork: %m\n");
-		return;
+		return -1;
 
 	default:				  /* parent */
 		{
@@ -138,9 +137,19 @@ static void launch_gdb(const char *exe)
 					"process %d: %m\n", pid);
 		}
 	}
+	return 0;
 # undef GDB_COMMAND
 # undef GDB_ALL_COMMAND
-# undef CORE_FILE
+}
+#endif	/* STARPU_GDB_PATH */
+
+static void launch_gdb(const char *exe)
+{
+#ifdef STARPU_GDB_PATH
+	char s[32];
+	snprintf(s, sizeof(s), "core.%d", child_pid);
+	if (try_launch_gdb(exe, s) < 0)
+		try_launch_gdb(exe, "core");
 #endif	/* STARPU_GDB_PATH */
 }
 
