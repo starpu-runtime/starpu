@@ -246,8 +246,15 @@ int main(void)
 {
 	int ret = 0;
 	char s[128];
+
 	snprintf(s, sizeof(s), "/tmp/%s-disk-%d", getenv("USER"), getpid());
-	mkdir(s, 0777);
+	ret = mkdir(s, 0777);
+	if (ret)
+	{
+		FPRINTF(stderr, "Cannot make directory <%s>\n", s);
+		return STARPU_TEST_SKIPPED;
+	}
+
 	ret = merge_result(ret, dotest(&starpu_disk_stdio_ops, s));
 	ret = merge_result(ret, dotest(&starpu_disk_unistd_ops, s));
 #ifdef STARPU_LINUX_SYS
