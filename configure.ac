@@ -2610,6 +2610,8 @@ AC_SUBST(STARPU_EXPORTED_LIBS)
 AC_CONFIG_COMMANDS([executable-scripts], [
   chmod +x tests/regression/regression.sh
   chmod +x tests/loader-cross.sh
+  chmod +x examples/loader-cross.sh
+  chmod +x examples/stencil/loader-cross.sh
   chmod +x gcc-plugin/tests/run-test
   chmod +x tools/starpu_codelet_profile
   chmod +x tools/starpu_codelet_histo_profile
@@ -2693,6 +2695,8 @@ AC_OUTPUT([
 	examples/stencil/Makefile
 	tests/Makefile
 	tests/loader-cross.sh
+	examples/loader-cross.sh
+	examples/stencil/loader-cross.sh
 	mpi/Makefile
 	mpi/src/Makefile
 	mpi/tests/Makefile
