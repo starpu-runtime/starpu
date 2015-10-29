@@ -3,20 +3,23 @@
 top_srcdir="@top_srcdir@"
 export top_builddir="@top_builddir@"
 
-if test -z "$1"
+exec="$1"
+shift
+
+if test -z "$exec"
 then
-    echo "[Error] Syntax: $0 <mic_executable>"
+    echo "[Error] Syntax: $0 <mic_executable> <args>"
     exit 1
 fi
 
 NATIVE=${PWD/\/build_mic\//\/build_host\/}
-DIR="$(dirname "$1")"
-FILE="$(basename "$1")"
+DIR="$(dirname "$exec")"
+FILE="$(basename "$exec")"
 
 export SINK_LD_LIBRARY_PATH="$top_builddir/src/.libs:$SINK_LD_LIBRARY_PATH"
-export STARPU_MIC_SINK_PROGRAM_NAME="$1" 
+export STARPU_MIC_SINK_PROGRAM_NAME="$exec" 
 
 # in case libtool got into play
 [ -x "$DIR/.libs/$FILE" ] && STARPU_MIC_SINK_PROGRAM_NAME="$DIR/.libs/$FILE" 
 
-$top_builddir/../build_host/tests/loader "$NATIVE/$1"
+$top_builddir/../build_host/tests/loader "$NATIVE/$exec" "$@"
