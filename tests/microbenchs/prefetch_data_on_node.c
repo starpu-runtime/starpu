@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012  Université de Bordeaux
+ * Copyright (C) 2009-2012, 2015  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -122,6 +122,8 @@ int main(int argc, char **argv)
 			task->handles[0] = v_handle;
 			task->cl = select_codelet_with_random_mode();
 			task->synchronous = 1;
+			task->execute_on_a_specific_worker = 1;
+			task->workerid = worker;
 
 			ret = starpu_task_submit(task);
 			if (ret == -ENODEV) goto enodev;
@@ -145,6 +147,8 @@ int main(int argc, char **argv)
 			task->cl = select_codelet_with_random_mode();
 			task->callback_func = callback;
 			task->callback_arg = (void*)(uintptr_t) starpu_worker_get_memory_node((worker+1)%nworker);
+			task->execute_on_a_specific_worker = 1;
+			task->workerid = worker;
 
 			task->synchronous = 0;
 
