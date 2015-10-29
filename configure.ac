@@ -2330,21 +2330,41 @@ fi
 
 if test x$blas_lib = xmaybe -o x$blas_lib = xmkl; then
     # Should we use MKL ?
+    if test -n "$MKLROOT"
+    then
+        CPPFLAGS="${CPPFLAGS} -I$MKLROOT/include"
+	case $host_vendor in
+	    *1om) mkl_plat=mic ;;
+	    *)    mkl_plat=intel64 ;;
+	esac
+	SAVED_LIBS=$LIBS
+	MKL_LIBS="-L$MKLROOT/lib/$mkl_plat -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lm -lpthread -ldl"
+	LIBS="$LIBS $MKL_LIBS"
+	AC_LINK_IFELSE(
+		[AC_LANG_PROGRAM([[
+			#include <mkl.h>
+		]], [[ ]])],
+		[ blas_lib=mkl ],
+		[ MKL_LIBS="" ],
+	)
+	LIBS=$SAVED_LIBS
+    fi
     AC_ARG_WITH(mkl-cflags, [AS_HELP_STRING([--with-mkl-cflags], [specify MKL compilation flags])],
 	[
-	    CPPFLAGS="${CPPFLAGS} $withval"
-	    blas_lib=mkl
-	    ])
+        CPPFLAGS="${CPPFLAGS} $withval"
+	blas_lib=mkl
+	])
 
     AC_ARG_WITH(mkl-ldflags, [AS_HELP_STRING([--with-mkl-ldflags], [specify MKL linking flags])],
 	[
-	    LDFLAGS="${LDFLAGS} $withval"
-	    blas_lib=mkl
-	    ])
+	MKL_LIBS="$withval"
+	blas_lib=mkl
+	])
     if test x$blas_lib = xmkl; then
 	AC_DEFINE(STARPU_MKL, [1], [use MKL library])
     fi
 fi
+AC_SUBST(MKL_LIBS)
 
 if test x$blas_lib = xmaybe; then
     #perhaps it is possible to use some BLAS lib from the system
