@@ -71,6 +71,8 @@ int dotest(struct starpu_disk_ops *ops, void *param)
 		return EXIT_FAILURE;
 	conf.ncuda = 0;
 	conf.nopencl = 0;
+	conf.nmic = 0;
+	conf.nscc = 0;
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV) goto enodev;
 
