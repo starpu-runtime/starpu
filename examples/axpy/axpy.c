@@ -196,6 +196,7 @@ int main(int argc, char **argv)
 		task->cl = &axpy_cl;
 
 		task->cl_arg = &_alpha;
+		task->cl_arg_size = sizeof(_alpha);
 
 		task->handles[0] = starpu_data_get_sub_data(_handle_x, 1, b);
 		task->handles[1] = starpu_data_get_sub_data(_handle_y, 1, b);

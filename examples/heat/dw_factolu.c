@@ -139,6 +139,7 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 		task->callback_arg = u11arg;
 		task->cl = &cl11;
 		task->cl_arg = u11arg;
+		task->cl_arg_size = sizeof(*u11arg);
 
 		task->handles[0] = starpu_data_get_sub_data(args->dataA, 2, k+1, k+1);
 	
@@ -175,6 +176,7 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 					task21->callback_arg = u21a;
 					task21->cl = &cl21;
 					task21->cl_arg = u21a;
+					task21->cl_arg_size = sizeof(*u21a);
 
 					u21a->i = k+1;
 					u21a->k = j;
@@ -211,6 +213,7 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 						task12->callback_arg = u12a;
 						task12->cl = &cl12;
 						task12->cl_arg = u12a;
+						task12->cl_arg_size = sizeof(*u12a);
 
 					u12a->i = k+1;
 					u12a->k = i;
@@ -266,6 +269,7 @@ void dw_callback_v2_codelet_update_u12(void *argcb)
 				task22->callback_arg = u22a;
 				task22->cl = &cl22;
 				task22->cl_arg = u22a;
+				task22->cl_arg_size = sizeof(*u22a);
 
 				u22a->k = i;
 				u22a->i = k;
@@ -326,6 +330,7 @@ void dw_callback_v2_codelet_update_u21(void *argcb)
 				task22->callback_arg = u22a;
 				task22->cl = &cl22;
 				task22->cl_arg = u22a;
+				task22->cl_arg_size = sizeof(*u22a);
 
 				u22a->k = i;
 				u22a->i = slicex;
@@ -401,6 +406,7 @@ void dw_callback_v2_codelet_update_u11(void *argcb)
 						task12->callback_arg = u12a;
 						task12->cl = &cl12;
 						task12->cl_arg = u12a;
+						task12->cl_arg_size = sizeof(*u12a);
 
 					u12a->i = i;
 					u12a->k = slice;
@@ -442,6 +448,7 @@ void dw_callback_v2_codelet_update_u11(void *argcb)
 					task21->callback_arg = u21a;
 					task21->cl = &cl21;
 					task21->cl_arg = u21a;
+					task21->cl_arg_size = sizeof(*u21a);
 
 					u21a->i = i;
 					u21a->k = slice;
@@ -507,12 +514,14 @@ void dw_callback_codelet_update_u11(void *argcb)
 			task12->callback_arg = u12a;
 			task12->cl = &cl12;
 			task12->cl_arg = u12a;
+			task12->cl_arg_size = sizeof(*u12a);
 
 			struct starpu_task *task21 = starpu_task_create();
 			task21->callback_func = dw_callback_codelet_update_u12_21;
 			task21->callback_arg = u21a;
 			task21->cl = &cl21;
 			task21->cl_arg = u21a;
+			task21->cl_arg_size = sizeof(*u21a);
 
 			u12a->i = args->i;
 			u12a->k = slice;
@@ -562,6 +571,7 @@ void dw_callback_codelet_update_u22(void *argcb)
 			task->callback_arg = u11arg;
 			task->cl = &cl11;
 			task->cl_arg = u11arg;
+			task->cl_arg_size = sizeof(*u11arg);
 
 			task->handles[0] = starpu_data_get_sub_data(args->dataA, 2, args->k + 1, args->k + 1);
 	
@@ -608,6 +618,7 @@ void dw_callback_codelet_update_u12_21(void *argcb)
 				task22->callback_arg = u22a;
 				task22->cl = &cl22;
 				task22->cl_arg = u22a;
+				task22->cl_arg_size = sizeof(*u22a);
 
 				u22a->k = i;
 				u22a->i = slicex;
@@ -697,6 +708,7 @@ void dw_codelet_facto_v2(starpu_data_handle_t dataA, unsigned nblocks)
 	task->callback_arg = args;
 	task->cl = &cl11;
 	task->cl_arg = args;
+	task->cl_arg_size = sizeof(*args);
 
 	task->handles[0] = starpu_data_get_sub_data(dataA, 2, 0, 0); 
 

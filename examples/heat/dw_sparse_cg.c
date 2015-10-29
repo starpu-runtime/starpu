@@ -176,6 +176,7 @@ void init_cg(struct cg_problem *problem)
 	task3->cl->cpu_funcs[0] = cpu_codelet_func_3;
 	task3->cl->cpu_funcs_name[0] = "cpu_codelet_func_3";
 	task3->cl_arg = problem;
+	task3->cl_arg_size = sizeof(*problem);
 	task3->cl->nbuffers = 1;
 	task3->cl->modes[0] = STARPU_R;
 	task3->handles[0] = problem->ds_vecr;
@@ -231,6 +232,7 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 	task5->cl->cpu_funcs[0] = cpu_codelet_func_5;
 	task5->cl->cpu_funcs_name[0] = "cpu_codelet_func_5";
 	task5->cl_arg = problem;
+	task5->cl_arg_size = sizeof(*problem);
 	task5->cl->nbuffers = 2;
 	task5->cl->modes[0] = STARPU_R;
 	task5->cl->modes[1] = STARPU_R;
@@ -249,6 +251,7 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 	task6->cl->cpu_funcs[0] = cpu_codelet_func_6;
 	task6->cl->cpu_funcs_name[0] = "cpu_codelet_func_6";
 	task6->cl_arg = problem;
+	task6->cl_arg_size = sizeof(*problem);
 	task6->cl->nbuffers = 2;
 	task6->cl->modes[0] = STARPU_RW;
 	task6->cl->modes[1] = STARPU_R;
@@ -267,6 +270,7 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 	task7->cl->cpu_funcs[0] = cpu_codelet_func_7;
 	task7->cl->cpu_funcs_name[0] = "cpu_codelet_func_7";
 	task7->cl_arg = problem;
+	task7->cl_arg_size = sizeof(*problem);
 	task7->cl->nbuffers = 2;
 	task7->cl->modes[0] = STARPU_RW;
 	task7->cl->modes[1] = STARPU_R;
@@ -285,6 +289,7 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 	task8->cl->cpu_funcs[0] = cpu_codelet_func_8;
 	task8->cl->cpu_funcs_name[0] = "cpu_codelet_func_8";
 	task8->cl_arg = problem;
+	task8->cl_arg_size = sizeof(*problem);
 	task8->cl->nbuffers = 1;
 	task8->cl->modes[0] = STARPU_R;
 	task8->handles[0] = problem->ds_vecr;
@@ -300,6 +305,7 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 	task9->cl->cpu_funcs[0] = cpu_codelet_func_9;
 	task9->cl->cpu_funcs_name[0] = "cpu_codelet_func_9";
 	task9->cl_arg = problem;
+	task9->cl_arg_size = sizeof(*problem);
 	task9->cl->nbuffers = 2;
 	task9->cl->modes[0] = STARPU_RW;
 	task9->cl->modes[1] = STARPU_R;
