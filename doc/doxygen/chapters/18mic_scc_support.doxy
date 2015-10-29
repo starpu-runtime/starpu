@@ -18,7 +18,10 @@ cross-compilation toolchain, for instance <c>/usr/linux-k1om-4.7/bin</c>
 The script <c>mic-configure</c> can then be used to achieve the two compilations: it basically
 calls <c>configure</c> as appropriate from two new directories: <c>build_mic</c> and
 <c>build_host</c>. <c>make</c> and <c>make install</c> can then be used as usual and will
-recurse into both directories.
+recurse into both directories. If different configuration options are needed
+for the host and for the mic, one can use <c>--with-host-param=--with-fxt</b>
+for instance to specify the <c>--with-fxt</c> option for the host only, or
+<c>--with-mic-param=--with-fxt</b> for the mic only.
 
 \section PortingApplicationsToMICSCC Porting Applications To MIC Xeon Phi / SCC
 
