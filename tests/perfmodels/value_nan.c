@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013  CNRS
+ * Copyright (C) 2013, 2015  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -55,7 +55,9 @@ int _check_number(double val, int checknan)
 		FPRINTF(stderr, "Error when opening file %s\n", filename);
 		return 1;
 	}
-	fprintf(f, "%lf %s\n", val, STRING);
+	// A double is written with the format %e ...
+	_starpu_write_double(f, "%e", val);
+	fprintf(f, " %s\n", STRING);
 	fclose(f);
 
 	/* read the double value and the string back from the file */
@@ -67,8 +69,9 @@ int _check_number(double val, int checknan)
 	}
 	double lat;
 	char str[10];
-	int x = _starpu_read_double(f, "%lf", &lat);
-	int y = fscanf(f, "%s", str);
+	// ... but is read with the format %le
+	int x = _starpu_read_double(f, "%le", &lat);
+	int y = fscanf(f, " %s", str);
 	fclose(f);
 	unlink(filename);
 
@@ -79,22 +82,20 @@ int _check_number(double val, int checknan)
 	if (checknan)
 		pass = pass && isnan(val) && isnan(lat);
 	else
-		pass = pass && lat == val;
+		pass = pass && (int)lat == (int)val;
 	return pass?0:1;
 }
 
 int main(int argc, char **argv)
 {
-	int ret;
+	int ret1, ret2;
+	double nanvalue = nan("");
 
-	ret = _check_number(42.0, 0);
-	FPRINTF(stderr, "%s when reading %lf\n", ret==0?"Success":"Error", 42.0);
+	ret1 = _check_number(42.0, 0);
+	FPRINTF(stderr, "%s when reading %e\n", ret1==0?"Success":"Error", 42.0);
 
-	if (ret==0)
-	{
-	     ret = _check_number(NAN, 1);
-	     FPRINTF(stderr, "%s when reading %lf\n", ret==0?"Success":"Error", NAN);
-	}
+	ret2 = _check_number(nanvalue, 1);
+	FPRINTF(stderr, "%s when reading %e\n", ret2==0?"Success":"Error", nanvalue);
 
-	return ret;
+	return ret1+ret2;
 }
