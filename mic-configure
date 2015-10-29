@@ -12,6 +12,8 @@ prefix="/usr/local"
 coi_dir="/opt/intel/mic/coi"
 scif_dir="/opt/intel/mic/scif"
 mic_host="x86_64-k1om-linux"
+host_params=""
+mic_params=""
 native_mic=0
 for arg in $*
 do
@@ -31,6 +33,12 @@ do
 	        --enable-native-mic)
 		        native_mic=1
 		        ;;
+		--with-mic-param=*)
+			mic_params="$mic_params ${arg#--with-mic-param=}"
+			;;
+		--with-host-param=*)
+			host_params="$host_params ${arg#--with-host-param=}"
+			;;
 	esac
 done
 
@@ -102,9 +110,9 @@ do
 		C_INCLUDE_PATH=$SINK_C_INCLUDE_PATH \
 		CPLUS_INCLUDE_PATH=$SINK_CPLUS_INCLUDE_PATH \
 		PKG_CONFIG_PATH=$SINK_PKG_CONFIG_PATH \
-		$command $* $params
+		$command $* $params $mic_params
 	else
-		$command $* $params
+		$command $* $params $host_params
 	fi
 	if [ "$?" != 0 ]
 	then
