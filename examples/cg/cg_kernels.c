@@ -85,7 +85,7 @@ static void accumulate_variable_cuda(void *descr[], void *cl_arg)
 }
 #endif
 
-static void accumulate_variable_cpu(void *descr[], void *cl_arg)
+void accumulate_variable_cpu(void *descr[], void *cl_arg)
 {
 	TYPE *v_dst = (TYPE *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	TYPE *v_src = (TYPE *)STARPU_VARIABLE_GET_PTR(descr[1]);
@@ -103,6 +103,7 @@ struct starpu_codelet accumulate_variable_cl =
 {
 	.can_execute = can_execute,
 	.cpu_funcs = {accumulate_variable_cpu},
+	.cpu_funcs_name = {"accumulate_variable_cpu"},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {accumulate_variable_cuda},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
@@ -123,7 +124,7 @@ static void accumulate_vector_cuda(void *descr[], void *cl_arg)
 }
 #endif
 
-static void accumulate_vector_cpu(void *descr[], void *cl_arg)
+void accumulate_vector_cpu(void *descr[], void *cl_arg)
 {
 	TYPE *v_dst = (TYPE *)STARPU_VECTOR_GET_PTR(descr[0]);
 	TYPE *v_src = (TYPE *)STARPU_VECTOR_GET_PTR(descr[1]);
@@ -142,6 +143,7 @@ struct starpu_codelet accumulate_vector_cl =
 {
 	.can_execute = can_execute,
 	.cpu_funcs = {accumulate_vector_cpu},
+	.cpu_funcs_name = {"accumulate_vector_cpu"},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {accumulate_vector_cuda},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
@@ -166,7 +168,7 @@ static void bzero_variable_cuda(void *descr[], void *cl_arg)
 }
 #endif
 
-static void bzero_variable_cpu(void *descr[], void *cl_arg)
+void bzero_variable_cpu(void *descr[], void *cl_arg)
 {
 	TYPE *v = (TYPE *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	*v = (TYPE)0.0;
@@ -182,6 +184,7 @@ struct starpu_codelet bzero_variable_cl =
 {
 	.can_execute = can_execute,
 	.cpu_funcs = {bzero_variable_cpu},
+	.cpu_funcs_name = {"bzero_variable_cpu"},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {bzero_variable_cuda},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
@@ -201,7 +204,7 @@ static void bzero_vector_cuda(void *descr[], void *cl_arg)
 }
 #endif
 
-static void bzero_vector_cpu(void *descr[], void *cl_arg)
+void bzero_vector_cpu(void *descr[], void *cl_arg)
 {
 	TYPE *v = (TYPE *)STARPU_VECTOR_GET_PTR(descr[0]);
 	unsigned n = STARPU_VECTOR_GET_NX(descr[0]);
@@ -219,6 +222,7 @@ struct starpu_codelet bzero_vector_cl =
 {
 	.can_execute = can_execute,
 	.cpu_funcs = {bzero_vector_cpu},
+	.cpu_funcs_name = {"bzero_vector_cpu"},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {bzero_vector_cuda},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
@@ -250,7 +254,7 @@ static void dot_kernel_cuda(void *descr[], void *cl_arg)
 }
 #endif
 
-static void dot_kernel_cpu(void *descr[], void *cl_arg)
+void dot_kernel_cpu(void *descr[], void *cl_arg)
 {
 	TYPE *dot = (TYPE *)STARPU_VARIABLE_GET_PTR(descr[0]); 
 	TYPE *v1 = (TYPE *)STARPU_VECTOR_GET_PTR(descr[1]);
@@ -276,6 +280,7 @@ static struct starpu_codelet dot_kernel_cl =
 {
 	.can_execute = can_execute,
 	.cpu_funcs = {dot_kernel_cpu},
+	.cpu_funcs_name = {"dot_kernel_cpu"},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {dot_kernel_cuda},
 #endif
@@ -334,7 +339,7 @@ static void scal_kernel_cuda(void *descr[], void *cl_arg)
 }
 #endif
 
-static void scal_kernel_cpu(void *descr[], void *cl_arg)
+void scal_kernel_cpu(void *descr[], void *cl_arg)
 {
 	TYPE alpha;
 	starpu_codelet_unpack_args(cl_arg, &alpha);
@@ -356,6 +361,7 @@ static struct starpu_codelet scal_kernel_cl =
 {
 	.can_execute = can_execute,
 	.cpu_funcs = {scal_kernel_cpu},
+	.cpu_funcs_name = {"scal_kernel_cpu"},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {scal_kernel_cuda},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
@@ -387,7 +393,7 @@ static void gemv_kernel_cuda(void *descr[], void *cl_arg)
 }
 #endif
 
-static void gemv_kernel_cpu(void *descr[], void *cl_arg)
+void gemv_kernel_cpu(void *descr[], void *cl_arg)
 {
 	TYPE *v1 = (TYPE *)STARPU_VECTOR_GET_PTR(descr[0]);
 	TYPE *v2 = (TYPE *)STARPU_VECTOR_GET_PTR(descr[2]);
@@ -431,6 +437,7 @@ static struct starpu_codelet gemv_kernel_cl =
 	.type = STARPU_SPMD,
 	.max_parallelism = INT_MAX,
 	.cpu_funcs = {gemv_kernel_cpu},
+	.cpu_funcs_name = {"gemv_kernel_cpu"},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {gemv_kernel_cuda},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
@@ -502,7 +509,7 @@ static void scal_axpy_kernel_cuda(void *descr[], void *cl_arg)
 }
 #endif
 
-static void scal_axpy_kernel_cpu(void *descr[], void *cl_arg)
+void scal_axpy_kernel_cpu(void *descr[], void *cl_arg)
 {
 	TYPE p1, p2;
 	starpu_codelet_unpack_args(cl_arg, &p1, &p2);
@@ -530,6 +537,7 @@ static struct starpu_codelet scal_axpy_kernel_cl =
 {
 	.can_execute = can_execute,
 	.cpu_funcs = {scal_axpy_kernel_cpu},
+	.cpu_funcs_name = {"scal_axpy_kernel_cpu"},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {scal_axpy_kernel_cuda},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
@@ -580,7 +588,7 @@ static void axpy_kernel_cuda(void *descr[], void *cl_arg)
 }
 #endif
 
-static void axpy_kernel_cpu(void *descr[], void *cl_arg)
+void axpy_kernel_cpu(void *descr[], void *cl_arg)
 {
 	TYPE p1;
 	starpu_codelet_unpack_args(cl_arg, &p1);
@@ -605,6 +613,7 @@ static struct starpu_codelet axpy_kernel_cl =
 {
 	.can_execute = can_execute,
 	.cpu_funcs = {axpy_kernel_cpu},
+	.cpu_funcs_name = {"axpy_kernel_cpu"},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {axpy_kernel_cuda},
 	.cuda_flags = {STARPU_CUDA_ASYNC},

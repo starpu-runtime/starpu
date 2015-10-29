@@ -132,10 +132,13 @@ static int can_execute(unsigned workerid, struct starpu_task *task, unsigned nim
 }
 #endif
 
+#define STRINGIFY_(x) #x
+#define STRINGIFY(x) STRINGIFY_(x)
 struct starpu_codelet cl22 =
 {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {STARPU_LU(cpu_u22)},
+	.cpu_funcs_name = {STRINGIFY(STARPU_LU(cpu_u22))},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {STARPU_LU(cublas_u22)},
 	CAN_EXECUTE
@@ -224,6 +227,7 @@ struct starpu_codelet cl12 =
 {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {STARPU_LU(cpu_u12)},
+	.cpu_funcs_name = {STRINGIFY(STARPU_LU(cpu_u12))},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {STARPU_LU(cublas_u12)},
 	CAN_EXECUTE
@@ -310,6 +314,7 @@ struct starpu_codelet cl21 =
 {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {STARPU_LU(cpu_u21)},
+	.cpu_funcs_name = {STRINGIFY(STARPU_LU(cpu_u21))},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {STARPU_LU(cublas_u21)},
 	CAN_EXECUTE
@@ -413,6 +418,7 @@ struct starpu_codelet cl11 =
 {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {STARPU_LU(cpu_u11)},
+	.cpu_funcs_name = {STRINGIFY(STARPU_LU(cpu_u11))},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {STARPU_LU(cublas_u11)},
 	CAN_EXECUTE
@@ -556,6 +562,7 @@ struct starpu_codelet cl11_pivot =
 {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {STARPU_LU(cpu_u11_pivot)},
+	.cpu_funcs_name = {STRINGIFY(STARPU_LU(cpu_u11_pivot))},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {STARPU_LU(cublas_u11_pivot)},
 	CAN_EXECUTE
@@ -646,6 +653,7 @@ struct starpu_codelet cl_pivot =
 {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {STARPU_LU(cpu_pivot)},
+	.cpu_funcs_name = {STRINGIFY(STARPU_LU(cpu_pivot))},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {STARPU_LU(cublas_pivot)},
 	CAN_EXECUTE

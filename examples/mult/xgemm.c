@@ -163,7 +163,7 @@ static void cublas_mult(void *descr[], STARPU_ATTRIBUTE_UNUSED void *arg)
 }
 #endif
 
-static void cpu_mult(void *descr[], STARPU_ATTRIBUTE_UNUSED  void *arg)
+void cpu_mult(void *descr[], STARPU_ATTRIBUTE_UNUSED  void *arg)
 {
 	TYPE *subA = (TYPE *)STARPU_MATRIX_GET_PTR(descr[0]);
 	TYPE *subB = (TYPE *)STARPU_MATRIX_GET_PTR(descr[1]);
@@ -212,6 +212,7 @@ static struct starpu_codelet cl =
 	.type = STARPU_SEQ, /* changed to STARPU_SPMD if -spmd is passed */
 	.max_parallelism = INT_MAX,
 	.cpu_funcs = {cpu_mult},
+	.cpu_funcs_name = {"cpu_mult"},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {cublas_mult},
 #elif defined(STARPU_SIMGRID)

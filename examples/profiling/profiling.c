@@ -65,6 +65,7 @@ int main(int argc, char **argv)
 	struct starpu_codelet cl =
 	{
 		.cpu_funcs = {sleep_codelet},
+		.cpu_funcs_name = {"sleep_codelet"},
 		.cuda_funcs = {sleep_codelet},
 		.opencl_funcs = {sleep_codelet},
 		.nbuffers = 0,
