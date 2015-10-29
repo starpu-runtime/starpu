@@ -274,6 +274,7 @@ struct starpu_codelet cl11 =
 {
 	.type = STARPU_SEQ,
 	.cpu_funcs = {chol_cpu_codelet_update_u11},
+	.cpu_funcs_name = {"chol_cpu_codelet_update_u11"},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {chol_cublas_codelet_update_u11},
 #elif defined(STARPU_SIMGRID)
@@ -288,6 +289,7 @@ struct starpu_codelet cl21 =
 {
 	.type = STARPU_SEQ,
 	.cpu_funcs = {chol_cpu_codelet_update_u21},
+	.cpu_funcs_name = {"chol_cpu_codelet_update_u21"},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {chol_cublas_codelet_update_u21},
 #elif defined(STARPU_SIMGRID)
@@ -304,6 +306,7 @@ struct starpu_codelet cl22 =
 	.type = STARPU_SEQ,
 	.max_parallelism = INT_MAX,
 	.cpu_funcs = {chol_cpu_codelet_update_u22},
+	.cpu_funcs_name = {"chol_cpu_codelet_update_u22"},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {chol_cublas_codelet_update_u22},
 #elif defined(STARPU_SIMGRID)

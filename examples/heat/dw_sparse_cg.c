@@ -141,6 +141,7 @@ void init_cg(struct cg_problem *problem)
 	struct starpu_task *task1 = create_task(1UL);
 	task1->cl->where = STARPU_CPU;
 	task1->cl->cpu_funcs[0] = cpu_codelet_func_1;
+	task1->cl->cpu_funcs_name[0] = "cpu_codelet_func_1";
 	task1->cl->nbuffers = 4;
 	task1->cl->modes[0] = STARPU_R;
 	task1->cl->modes[1] = STARPU_R;
@@ -156,6 +157,7 @@ void init_cg(struct cg_problem *problem)
 	struct starpu_task *task2 = create_task(2UL);
 	task2->cl->where = STARPU_CPU;
 	task2->cl->cpu_funcs[0] = cpu_codelet_func_2;
+	task2->cl->cpu_funcs_name[0] = "cpu_codelet_func_2";
 	task2->cl->nbuffers = 2;
 	task2->cl->modes[0] = STARPU_W;
 	task2->cl->modes[1] = STARPU_R;
@@ -172,6 +174,7 @@ void init_cg(struct cg_problem *problem)
 	task3->cl->cuda_funcs[0] = cublas_codelet_func_3;
 #endif
 	task3->cl->cpu_funcs[0] = cpu_codelet_func_3;
+	task3->cl->cpu_funcs_name[0] = "cpu_codelet_func_3";
 	task3->cl_arg = problem;
 	task3->cl->nbuffers = 1;
 	task3->cl->modes[0] = STARPU_R;
@@ -209,6 +212,7 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 	struct starpu_task *task4 = create_task(maskiter | 4UL);
 	task4->cl->where = STARPU_CPU;
 	task4->cl->cpu_funcs[0] = cpu_codelet_func_4;
+	task4->cl->cpu_funcs_name[0] = "cpu_codelet_func_4";
 	task4->cl->nbuffers = 3;
 	task4->cl->modes[0] = STARPU_R;
 	task4->cl->modes[1] = STARPU_R;
@@ -225,6 +229,7 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 	task5->cl->cuda_funcs[0] = cublas_codelet_func_5;
 #endif
 	task5->cl->cpu_funcs[0] = cpu_codelet_func_5;
+	task5->cl->cpu_funcs_name[0] = "cpu_codelet_func_5";
 	task5->cl_arg = problem;
 	task5->cl->nbuffers = 2;
 	task5->cl->modes[0] = STARPU_R;
@@ -242,6 +247,7 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 	task6->cl->cuda_funcs[0] = cublas_codelet_func_6;
 #endif
 	task6->cl->cpu_funcs[0] = cpu_codelet_func_6;
+	task6->cl->cpu_funcs_name[0] = "cpu_codelet_func_6";
 	task6->cl_arg = problem;
 	task6->cl->nbuffers = 2;
 	task6->cl->modes[0] = STARPU_RW;
@@ -259,6 +265,7 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 	task7->cl->cuda_funcs[0] = cublas_codelet_func_7;
 #endif
 	task7->cl->cpu_funcs[0] = cpu_codelet_func_7;
+	task7->cl->cpu_funcs_name[0] = "cpu_codelet_func_7";
 	task7->cl_arg = problem;
 	task7->cl->nbuffers = 2;
 	task7->cl->modes[0] = STARPU_RW;
@@ -276,6 +283,7 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 	task8->cl->cuda_funcs[0] = cublas_codelet_func_8;
 #endif
 	task8->cl->cpu_funcs[0] = cpu_codelet_func_8;
+	task8->cl->cpu_funcs_name[0] = "cpu_codelet_func_8";
 	task8->cl_arg = problem;
 	task8->cl->nbuffers = 1;
 	task8->cl->modes[0] = STARPU_R;
@@ -290,6 +298,7 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 	task9->cl->cuda_funcs[0] = cublas_codelet_func_9;
 #endif
 	task9->cl->cpu_funcs[0] = cpu_codelet_func_9;
+	task9->cl->cpu_funcs_name[0] = "cpu_codelet_func_9";
 	task9->cl_arg = problem;
 	task9->cl->nbuffers = 2;
 	task9->cl->modes[0] = STARPU_RW;

@@ -100,6 +100,7 @@ static struct starpu_data_filter vector_f =
 static struct starpu_codelet spmv_cl =
 {
 	.cpu_funcs = {spmv_kernel_cpu},
+	.cpu_funcs_name = {"spmv_kernel_cpu"},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {spmv_kernel_cuda},
 	.cuda_flags = {STARPU_CUDA_ASYNC},

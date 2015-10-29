@@ -163,6 +163,7 @@ unsigned totaltasks;
 struct starpu_codelet cl =
 {
 	.cpu_funcs = { cpu_block_spmv},
+	.cpu_funcs_name = { "cpu_block_spmv" },
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {cublas_block_spmv},
 #endif
