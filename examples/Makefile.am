@@ -154,7 +154,7 @@ LOADER_BIN		=	$(abs_top_builddir)/examples/$(LOADER)
 loader_SOURCES		=	../tests/loader.c
 else
 LOADER			=
-LOADER_BIN		=	$(top_builddir)/tests/loader-cross.sh
+LOADER_BIN		=	$(top_builddir)/examples/loader-cross.sh
 endif
 
 if STARPU_HAVE_AM111
