@@ -135,7 +135,11 @@ static void dump_reg_model(FILE *f, struct starpu_perfmodel *model, unsigned arc
 	}
 
 	fprintf(f, "# sumlnx\tsumlnx2\t\tsumlny\t\tsumlnxlny\talpha\t\tbeta\t\tn\tminx\t\tmaxx\n");
-	fprintf(f, "%-15le\t%-15le\t%-15le\t%-15le\t%-15le\t%-15le\t%u\t%-15lu\t%-15lu\n", reg_model->sumlnx, reg_model->sumlnx2, reg_model->sumlny, reg_model->sumlnxlny, alpha, beta, reg_model->nsample, reg_model->minx, reg_model->maxx);
+	fprintf(f, "%-15le\t%-15le\t%-15le\t%-15le\t", reg_model->sumlnx, reg_model->sumlnx2, reg_model->sumlny, reg_model->sumlnxlny);
+	_starpu_write_double(f, "%-15e", alpha);
+	fprintf(f, "\t");
+	_starpu_write_double(f, "%-15e", beta);
+	fprintf(f, "\t%u\t%-15lu\t%-15lu\n", reg_model->nsample, reg_model->minx, reg_model->maxx);
 
 	/*
 	 * Non-Linear Regression model
@@ -147,7 +151,12 @@ static void dump_reg_model(FILE *f, struct starpu_perfmodel *model, unsigned arc
 		_starpu_regression_non_linear_power(per_arch_model->list, &a, &b, &c);
 
 	fprintf(f, "# a\t\tb\t\tc\n");
-	fprintf(f, "%-15le\t%-15le\t%-15le\n", a, b, c);
+	_starpu_write_double(f, "%-15e", a);
+	fprintf(f, "\t");
+	_starpu_write_double(f, "%-15e", b);
+	fprintf(f, "\t");
+	_starpu_write_double(f, "%-15e", c);
+	fprintf(f, "\n");
 }
 
 static void scan_reg_model(FILE *f, struct starpu_perfmodel_regression_model *reg_model)

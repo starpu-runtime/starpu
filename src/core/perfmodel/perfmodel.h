@@ -82,6 +82,7 @@ int *_starpu_get_cuda_affinity_vector(unsigned gpuid);
 int *_starpu_get_opencl_affinity_vector(unsigned gpuid);
 #endif
 
+void _starpu_write_double(FILE *f, char *format, double val);
 int _starpu_read_double(FILE *f, char *format, double *val);
 void _starpu_simgrid_get_platform_path(char *path, size_t maxlen);
 

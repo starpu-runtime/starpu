@@ -14,9 +14,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#ifndef _GNU_SOURCE
-#define _GNU_SOURCE
-#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -41,6 +38,22 @@ void _starpu_read_spaces(FILE *f)
 	}
 }
 #endif /* STARPU_HAVE_WINDOWS */
+
+void _starpu_write_double(FILE *f, char *format, double val)
+{
+#ifdef STARPU_HAVE_WINDOWS
+        if (isnan(val))
+        {
+                fprintf(f, "nan ");
+        }
+        else
+        {
+                fprintf(f, format, val);
+        }
+#else
+	fprintf(f, format, val);
+#endif
+}
 
 int _starpu_read_double(FILE *f, char *format, double *val)
 {

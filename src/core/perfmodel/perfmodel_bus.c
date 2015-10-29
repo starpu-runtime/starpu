@@ -992,7 +992,7 @@ static int load_bus_latency_file_content(void)
 		_starpu_drop_comments(f);
 		for (dst = 0; dst < STARPU_MAXNODES; dst++)
 		{
-			n = _starpu_read_double(f, "%lf", &latency);
+			n = _starpu_read_double(f, "%le", &latency);
 			if (n != 1)
 			{
 				_STARPU_DISP("Error while reading latency file <%s>. Expected a number\n", path);
@@ -1031,7 +1031,7 @@ static int load_bus_latency_file_content(void)
 				break;
 			ungetc(n, f);
 
-			n = _starpu_read_double(f, "%lf", &latency);
+			n = _starpu_read_double(f, "%le", &latency);
 			if (n && !isnan(latency))
 			{
 				_STARPU_DISP("Too many nodes in latency file %s for this configuration (%d), use --enable-maxnodes to increase it\n", path, STARPU_MAXNODES);
@@ -1138,7 +1138,7 @@ static void write_bus_latency_file_content(void)
 
 			if (dst)
 				fputc('\t', f);
-			fprintf(f, "%lf", latency);
+			_starpu_write_double(f, "%e", latency);
 		}
 
 		fprintf(f, "\n");
@@ -1211,7 +1211,7 @@ static int load_bus_bandwidth_file_content(void)
 		_starpu_drop_comments(f);
 		for (dst = 0; dst < STARPU_MAXNODES; dst++)
 		{
-			n = _starpu_read_double(f, "%lf", &bandwidth);
+			n = _starpu_read_double(f, "%le", &bandwidth);
 			if (n != 1)
 			{
 				_STARPU_DISP("Error while reading bandwidth file <%s>. Expected a number\n", path);
@@ -1250,7 +1250,7 @@ static int load_bus_bandwidth_file_content(void)
 				break;
 			ungetc(n, f);
 
-			n = _starpu_read_double(f, "%lf", &bandwidth);
+			n = _starpu_read_double(f, "%le", &bandwidth);
 			if (n && !isnan(bandwidth))
 			{
 				_STARPU_DISP("Too many nodes in bandwidth file %s for this configuration (%d), use --enable-maxnodes to increase it\n", path, STARPU_MAXNODES);
@@ -1357,7 +1357,7 @@ static void write_bus_bandwidth_file_content(void)
 
 			if (dst)
 				fputc('\t', f);
-			fprintf(f, "%f", bandwidth);
+			_starpu_write_double(f, "%e", bandwidth);
 		}
 
 		fprintf(f, "\n");
