@@ -24,6 +24,7 @@
 #include <core/workers.h>
 #include <common/uthash.h>
 
+#include <datawizard/memory_nodes.h>
 #include <drivers/driver_common/driver_common.h>
 #include <drivers/mp_common/source_common.h>
 
@@ -106,7 +107,7 @@ void _starpu_mic_clear_kernels(void)
 	HASH_ITER(hh, kernels, kernel, tmp)
 	{
 		HASH_DEL(kernels, kernel);
-		free(kernel);
+		_starpu_mic_src_free_kernel(kernel);
 	}
 }
 
@@ -525,7 +526,7 @@ void *_starpu_mic_src_worker(void *arg)
 	for (i = 1; i < worker_set->nworkers; i++)
 	{
 		struct _starpu_worker *worker = &worker_set->workers[i];
-		_STARPU_TRACE_WORKER_INIT_END(workerid);
+		_STARPU_TRACE_WORKER_INIT_END(worker->workerid);
 	}
 
 	// Current task for a thread managing a worker set has no sense.
@@ -540,7 +541,7 @@ void *_starpu_mic_src_worker(void *arg)
 	for (i = 0; i < worker_set->nworkers; i++)
 	{
 		struct _starpu_worker *worker = &worker_set->workers[i];
-		_STARPU_TRACE_WORKER_INIT_END(workerid);
+		_STARPU_TRACE_WORKER_INIT_END(worker->workerid);
 	}
 
 	/* tell the main thread that this one is ready */
