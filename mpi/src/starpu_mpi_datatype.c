@@ -308,6 +308,9 @@ int starpu_mpi_datatype_unregister(starpu_data_handle_t handle)
 
 	STARPU_ASSERT_MSG(id >= STARPU_MAX_INTERFACE_ID, "Cannot redefine the MPI datatype for a predefined StarPU datatype");
 
+#ifdef STARPU_DEVEL
+#warning FIXME: concurrency on the _starpu_mpi_datatype_funcs_table hash table with the MPI thread
+#endif
 	HASH_FIND_INT(_starpu_mpi_datatype_funcs_table, &id, table);
 	if (table)
 	{
