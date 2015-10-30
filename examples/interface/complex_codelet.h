@@ -53,7 +53,8 @@ void compare_complex_codelet(void *descr[], void *_args)
 struct starpu_codelet cl_compare =
 {
 	.cpu_funcs = {compare_complex_codelet},
-	.cpu_funcs_name = {"compare_complex_codelet"},
+	/* dereferencing compare won't work on MIC/SCC */
+	/* .cpu_funcs_name = {"compare_complex_codelet"}, */
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_R},
 	.name = "cl_compare"
