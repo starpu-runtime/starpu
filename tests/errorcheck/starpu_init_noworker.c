@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2012-2014  Université de Bordeaux
+ * Copyright (C) 2009, 2010, 2012-2015  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -44,13 +44,6 @@ int main(int argc, char **argv)
 	int ret;
 
 	unset_env_variables();
-
-#ifdef STARPU_USE_MIC
-#ifdef STARPU_DEVEL
-#warning nmic = 0 make initialization hang and leaves a process behind...
-#endif
-	return STARPU_TEST_SKIPPED;
-#endif
 
 	/* We try to initialize StarPU without any worker */
 	struct starpu_conf conf;
