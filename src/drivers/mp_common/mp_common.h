@@ -115,7 +115,7 @@ LIST_TYPE(mp_message,
 struct mp_task 
 {
 	void (*kernel)(void **, void *);
-	void * interfaces[STARPU_NMAXBUFS]; 
+	void **interfaces;
 	unsigned nb_interfaces;
 	void *cl_arg;
 	unsigned coreid;

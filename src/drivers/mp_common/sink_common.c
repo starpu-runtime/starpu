@@ -506,6 +506,7 @@ static void _starpu_sink_common_execute_kernel(struct _starpu_mp_node *node, int
 	unsigned i;
 	for (i = 0; i < task->nb_interfaces; i++)
 		free(task->interfaces[i]);
+	free(task->interfaces);
 	free(task);
 
 }
@@ -588,6 +589,8 @@ void _starpu_sink_common_execute(struct _starpu_mp_node *node,
 
 	task->nb_interfaces = *(unsigned *) arg_ptr;
 	arg_ptr += sizeof(task->nb_interfaces);
+
+	task->interfaces = malloc(task->nb_interfaces * sizeof(*task->interfaces));
 
 	/* The function needs an array pointing to each interface it needs
 	 * during execution. As in sink-side there is no mean to know which
