@@ -1229,6 +1229,9 @@ void _starpu_destroy_machine_config(struct _starpu_machine_config *config)
 	for(combined_worker_id=0 ; combined_worker_id < config->topology.ncombinedworkers ; combined_worker_id++)
 	{
 		struct _starpu_combined_worker *combined_worker = &config->combined_workers[combined_worker_id];
+#ifdef STARPU_HAVE_HWLOC
+		hwloc_bitmap_free(combined_worker->hwloc_cpu_set);
+#endif
 		free(combined_worker->perf_arch.devices);
 	}
 
