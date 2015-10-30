@@ -74,6 +74,8 @@ static void init_rng(void *arg STARPU_ATTRIBUTE_UNUSED)
 	switch (starpu_worker_get_type(workerid))
 	{
 		case STARPU_CPU_WORKER:
+		case STARPU_MIC_WORKER:
+		case STARPU_SCC_WORKER:
 			/* create a seed */
 			starpu_srand48_r((long int)workerid, &randbuffer[PADDING*workerid]);
 
