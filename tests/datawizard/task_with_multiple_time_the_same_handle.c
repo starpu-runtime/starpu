@@ -57,21 +57,22 @@ int main(int argc, char * argv[])
 
 	ret=starpu_init(NULL);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
-	if (starpu_worker_get_count_by_type(STARPU_CPU_WORKER) == 0) return STARPU_TEST_SKIPPED;
 
 	starpu_variable_data_register(&handle,0,(uintptr_t)&value,sizeof(double));
 
 	for (i=0; i<2; i++)
 	{
-		starpu_task_insert(&sum_cl,
+		ret = starpu_task_insert(&sum_cl,
 		                   STARPU_RW, handle,
 		                   STARPU_R, handle,
 		                   0);
-		starpu_task_insert(&sum3_cl,
+		if (ret == -ENODEV) goto enodev;
+		ret = starpu_task_insert(&sum3_cl,
 		                   STARPU_R, handle,
 		                   STARPU_R, handle,
 		                   STARPU_RW, handle,
 		                   0);
+		if (ret == -ENODEV) goto enodev;
 	}
 
 	starpu_task_wait_for_all();
@@ -84,4 +85,9 @@ int main(int argc, char * argv[])
 
 	starpu_shutdown();
 	return ret;
+
+enodev:
+	starpu_data_unregister(handle);
+	starpu_shutdown();
+	return STARPU_TEST_SKIPPED;
 }
