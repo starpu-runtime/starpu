@@ -241,6 +241,7 @@ struct starpu_task
 #define STARPU_TASK_GET_NBUFFERS(task) ((unsigned)((task)->cl->nbuffers == STARPU_VARIABLE_NBUFFERS ? ((task)->nbuffers) : ((task)->cl->nbuffers)))
 
 #define STARPU_TASK_GET_HANDLE(task, i) (((task)->dyn_handles) ? (task)->dyn_handles[i] : (task)->handles[i])
+#define STARPU_TASK_GET_HANDLES(task) (((task)->dyn_handles) ? (task)->dyn_handles : (task)->handles)
 #define STARPU_TASK_SET_HANDLE(task, handle, i) do { if ((task)->dyn_handles) (task)->dyn_handles[i] = handle; else (task)->handles[i] = handle; } while(0)
 
 #define STARPU_CODELET_GET_MODE(codelet, i) (((codelet)->dyn_modes) ? (codelet)->dyn_modes[i] : (codelet)->modes[i])
