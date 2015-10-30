@@ -44,7 +44,7 @@ void _starpu_write_double(FILE *f, char *format, double val)
 #ifdef STARPU_HAVE_WINDOWS
         if (isnan(val))
         {
-                fprintf(f, "nan ");
+                fprintf(f, "NaN ");
         }
         else
         {
@@ -63,11 +63,11 @@ int _starpu_read_double(FILE *f, char *format, double *val)
 
 	int x1 = getc(f);
 
-	if (x1 == 'n')
+	if (x1 == 'N')
 	{
 	     int x2 = getc(f);
 	     int x3 = getc(f);
-	     if (x2 == 'a' && x3 == 'n')
+	     if (x2 == 'a' && x3 == 'N')
 	     {
 #ifdef _MSC_VER
 		     unsigned long long _mynan = 0x7fffffffffffffffull;
