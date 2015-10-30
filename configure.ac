@@ -2338,14 +2338,14 @@ if test x$blas_lib = xmaybe -o x$blas_lib = xmkl; then
 	    *)    mkl_plat=intel64 ;;
 	esac
 	SAVED_LIBS=$LIBS
-	MKL_LIBS="-L$MKLROOT/lib/$mkl_plat -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lm -lpthread -ldl"
-	LIBS="$LIBS $MKL_LIBS"
+	STARPU_BLAS_LDFLAGS="-L$MKLROOT/lib/$mkl_plat -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lm -lpthread -ldl"
+	LIBS="$LIBS $STARPU_BLAS_LDFLAGS"
 	AC_LINK_IFELSE(
 		[AC_LANG_PROGRAM([[
 			#include <mkl.h>
 		]], [[ ]])],
 		[ blas_lib=mkl ],
-		[ MKL_LIBS="" ],
+		[ STARPU_BLAS_LDFLAGS="" ],
 	)
 	LIBS=$SAVED_LIBS
     fi
@@ -2357,14 +2357,13 @@ if test x$blas_lib = xmaybe -o x$blas_lib = xmkl; then
 
     AC_ARG_WITH(mkl-ldflags, [AS_HELP_STRING([--with-mkl-ldflags], [specify MKL linking flags])],
 	[
-	MKL_LIBS="$withval"
+	STARPU_BLAS_LDFLAGS="$withval"
 	blas_lib=mkl
 	])
     if test x$blas_lib = xmkl; then
 	AC_DEFINE(STARPU_MKL, [1], [use MKL library])
     fi
 fi
-AC_SUBST(MKL_LIBS)
 
 if test x$blas_lib = xmaybe; then
     #perhaps it is possible to use some BLAS lib from the system
@@ -2376,7 +2375,6 @@ if test x$blas_lib = xmaybe; then
     elif test x"$BLAS_LIBS" != x; then
         AC_DEFINE(STARPU_SYSTEM_BLAS, [1], [use user defined library])
         STARPU_BLAS_LDFLAGS="$BLAS_LIBS"
-        AC_SUBST(STARPU_BLAS_LDFLAGS)
         blas_lib=system
         AC_ARG_VAR([BLAS_LIBS], [linker flags for blas])
     else
@@ -2389,6 +2387,7 @@ AM_CONDITIONAL(GOTO_BLAS_LIB, test x$blas_lib = xgoto)
 AM_CONDITIONAL(MKL_BLAS_LIB, test x$blas_lib = xmkl)
 AM_CONDITIONAL(SYSTEM_BLAS_LIB, test x$blas_lib = xsystem)
 AM_CONDITIONAL(NO_BLAS_LIB, test x$blas_lib = xnone -a x$enable_simgrid = xno)
+AC_SUBST(STARPU_BLAS_LDFLAGS)
 
 AC_MSG_CHECKING(which BLAS lib should be used)
 AC_MSG_RESULT($blas_lib)
