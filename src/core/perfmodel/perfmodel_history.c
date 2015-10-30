@@ -261,7 +261,7 @@ static void dump_reg_model(FILE *f, struct starpu_perfmodel *model, int comb, in
 	}
 
 	fprintf(f, "# sumlnx\tsumlnx2\t\tsumlny\t\tsumlnxlny\talpha\t\tbeta\t\tn\tminx\t\tmaxx\n");
-	fprintf(f, "%-15le\t%-15le\t%-15le\t%-15le\t", reg_model->sumlnx, reg_model->sumlnx2, reg_model->sumlny, reg_model->sumlnxlny);
+	fprintf(f, "%-15e\t%-15e\t%-15e\t%-15e\t", reg_model->sumlnx, reg_model->sumlnx2, reg_model->sumlny, reg_model->sumlnxlny);
 	_starpu_write_double(f, "%-15e", alpha);
 	fprintf(f, "\t");
 	_starpu_write_double(f, "%-15e", beta);
@@ -296,9 +296,9 @@ static void scan_reg_model(FILE *f, struct starpu_perfmodel_regression_model *re
 
 	_starpu_drop_comments(f);
 
-	res = fscanf(f, "%le\t%le\t%le\t%le", &reg_model->sumlnx, &reg_model->sumlnx2, &reg_model->sumlny, &reg_model->sumlnxlny);
+	res = fscanf(f, "%le\t%le\t%le\t%le\t", &reg_model->sumlnx, &reg_model->sumlnx2, &reg_model->sumlny, &reg_model->sumlnxlny);
 	STARPU_ASSERT_MSG(res == 4, "Incorrect performance model file");
-	res = _starpu_read_double(f, "\t%le", &reg_model->alpha);
+	res = _starpu_read_double(f, "%le", &reg_model->alpha);
 	STARPU_ASSERT_MSG(res == 1, "Incorrect performance model file");
 	res = _starpu_read_double(f, "\t%le", &reg_model->beta);
 	STARPU_ASSERT_MSG(res == 1, "Incorrect performance model file");
@@ -315,12 +315,14 @@ static void scan_reg_model(FILE *f, struct starpu_perfmodel_regression_model *re
 
 	_starpu_drop_comments(f);
 
-	res = _starpu_read_double(f, "%le\t", &reg_model->a);
+	res = _starpu_read_double(f, "%le", &reg_model->a);
 	STARPU_ASSERT_MSG(res == 1, "Incorrect performance model file");
-	res = _starpu_read_double(f, "%le\t", &reg_model->b);
+	res = _starpu_read_double(f, "\t%le", &reg_model->b);
 	STARPU_ASSERT_MSG(res == 1, "Incorrect performance model file");
-	res = _starpu_read_double(f, "%le\n", &reg_model->c);
+	res = _starpu_read_double(f, "%le", &reg_model->c);
 	STARPU_ASSERT_MSG(res == 1, "Incorrect performance model file");
+	res = fscanf(f, "\n");
+	STARPU_ASSERT_MSG(res == 0, "Incorrect performance model file");
 
 	/* If any of the parameters describing the non-linear regression model is NaN, the model is invalid */
 	unsigned nl_invalid = (isnan(reg_model->a)||isnan(reg_model->b)||isnan(reg_model->c));
@@ -330,7 +332,7 @@ static void scan_reg_model(FILE *f, struct starpu_perfmodel_regression_model *re
 #ifndef STARPU_SIMGRID
 static void dump_history_entry(FILE *f, struct starpu_perfmodel_history_entry *entry)
 {
-	fprintf(f, "%08x\t%-15lu\t%-15le\t%-15le\t%-15le\t%-15le\t%-15le\t%u\n", entry->footprint, (unsigned long) entry->size, entry->flops, entry->mean, entry->deviation, entry->sum, entry->sum2, entry->nsample);
+	fprintf(f, "%08x\t%-15lu\t%-15e\t%-15e\t%-15e\t%-15e\t%-15e\t%u\n", entry->footprint, (unsigned long) entry->size, entry->flops, entry->mean, entry->deviation, entry->sum, entry->sum2, entry->nsample);
 }
 #endif
 
