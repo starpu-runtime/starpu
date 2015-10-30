@@ -39,7 +39,7 @@ void _starpu_perfmodel_print_history_based(struct starpu_perfmodel_per_arch *per
 			if (!parameter)
 			{
 				/* There isn't a parameter that is explicitely requested, so we display all parameters */
-				printf("%08x\t%-15lu\t%-15le\t%-15le\t%-15le\t%u\n", entry->footprint,
+				printf("%08x\t%-15lu\t%-15e\t%-15e\t%-15e\t%u\n", entry->footprint,
 					(unsigned long) entry->size, entry->flops, entry->mean, entry->deviation, entry->nsample);
 			}
 			else
@@ -47,12 +47,12 @@ void _starpu_perfmodel_print_history_based(struct starpu_perfmodel_per_arch *per
 				/* only display the parameter that was specifically requested */
 				if (strcmp(parameter, "mean") == 0)
 				{
-					printf("%-15le\n", entry->mean);
+					printf("%-15e\n", entry->mean);
 				}
 
 				if (strcmp(parameter, "stddev") == 0)
 				{
-					printf("%-15le\n", entry->deviation);
+					printf("%-15e\n", entry->deviation);
 					return;
 				}
 			}
