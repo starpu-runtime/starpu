@@ -116,6 +116,8 @@ void* start_bench(void *val)
 	sc_hypervisor_stop_resize(p->the_other_ctx);
 	rv[p->id].flops /= NSAMPLES;
 	rv[p->id].avg_timing /= NSAMPLES;
+
+	return NULL;
 }
 
 float* construct_matrix(unsigned size)
