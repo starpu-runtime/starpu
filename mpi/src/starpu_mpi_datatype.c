@@ -27,7 +27,18 @@ struct _starpu_mpi_datatype_funcs
 	UT_hash_handle hh;
 };
 
+static starpu_pthread_mutex_t _starpu_mpi_datatype_funcs_table_mutex;
 static struct _starpu_mpi_datatype_funcs *_starpu_mpi_datatype_funcs_table = NULL;
+
+void _starpu_mpi_datatype_init(void)
+{
+	STARPU_PTHREAD_MUTEX_INIT(&_starpu_mpi_datatype_funcs_table_mutex, NULL);
+}
+
+void _starpu_mpi_datatype_free(void)
+{
+	STARPU_PTHREAD_MUTEX_DESTROY(&_starpu_mpi_datatype_funcs_table_mutex);
+}
 
 /*
  * 	Matrix
@@ -283,6 +294,7 @@ int starpu_mpi_datatype_register(starpu_data_handle_t handle, starpu_mpi_datatyp
 
 	STARPU_ASSERT_MSG(id >= STARPU_MAX_INTERFACE_ID, "Cannot redefine the MPI datatype for a predefined StarPU datatype");
 
+	STARPU_PTHREAD_MUTEX_LOCK(&_starpu_mpi_datatype_funcs_table_mutex);
 	HASH_FIND_INT(_starpu_mpi_datatype_funcs_table, &id, table);
 	if (table)
 	{
@@ -298,6 +310,7 @@ int starpu_mpi_datatype_register(starpu_data_handle_t handle, starpu_mpi_datatyp
 		HASH_ADD_INT(_starpu_mpi_datatype_funcs_table, id, table);
 	}
 	STARPU_ASSERT_MSG(handle->ops->handle_to_pointer, "The data interface must define the operation 'handle_to_pointer'\n");
+	STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_mpi_datatype_funcs_table_mutex);
 	return 0;
 }
 
@@ -308,13 +321,12 @@ int starpu_mpi_datatype_unregister(starpu_data_handle_t handle)
 
 	STARPU_ASSERT_MSG(id >= STARPU_MAX_INTERFACE_ID, "Cannot redefine the MPI datatype for a predefined StarPU datatype");
 
-#ifdef STARPU_DEVEL
-#warning FIXME: concurrency on the _starpu_mpi_datatype_funcs_table hash table with the MPI thread
-#endif
+	STARPU_PTHREAD_MUTEX_LOCK(&_starpu_mpi_datatype_funcs_table_mutex);
 	HASH_FIND_INT(_starpu_mpi_datatype_funcs_table, &id, table);
 	if (table)
 	{
 		HASH_DEL(_starpu_mpi_datatype_funcs_table, table);
 		free(table);
 	}
+	STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_mpi_datatype_funcs_table_mutex);
 }

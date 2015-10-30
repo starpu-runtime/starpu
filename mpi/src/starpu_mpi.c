@@ -1275,6 +1275,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	_starpu_mpi_early_request_init();
 	_starpu_mpi_early_data_init();
 	_starpu_mpi_sync_data_init();
+	_starpu_mpi_datatype_init();
 
 	/* notify the main thread that the progression thread is ready */
 	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
@@ -1488,6 +1489,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	_starpu_mpi_sync_data_free();
 	_starpu_mpi_early_data_free();
 	_starpu_mpi_early_request_free();
+	_starpu_mpi_datatype_free();
 	free(argc_argv);
 
 	return NULL;
