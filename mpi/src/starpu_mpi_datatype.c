@@ -169,7 +169,9 @@ void _starpu_mpi_handle_allocate_datatype(starpu_data_handle_t data_handle, MPI_
 	else
 	{
 		struct _starpu_mpi_datatype_funcs *table;
+		STARPU_PTHREAD_MUTEX_LOCK(&_starpu_mpi_datatype_funcs_table_mutex);
 		HASH_FIND_INT(_starpu_mpi_datatype_funcs_table, &id, table);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_mpi_datatype_funcs_table_mutex);
 		if (table)
 		{
 			STARPU_ASSERT_MSG(table->allocate_datatype_func, "Handle To Datatype Function not defined for StarPU data interface %d", id);
@@ -240,7 +242,9 @@ void _starpu_mpi_handle_free_datatype(starpu_data_handle_t data_handle, MPI_Data
 	else
 	{
 		struct _starpu_mpi_datatype_funcs *table;
+		STARPU_PTHREAD_MUTEX_LOCK(&_starpu_mpi_datatype_funcs_table_mutex);
 		HASH_FIND_INT(_starpu_mpi_datatype_funcs_table, &id, table);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_mpi_datatype_funcs_table_mutex);
 		if (table)
 		{
 			STARPU_ASSERT_MSG(table->free_datatype_func, "Free Datatype Function not defined for StarPU data interface %d", id);
