@@ -206,6 +206,7 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 		child->reduction_tmp_handles = NULL;
 		child->write_invalidation_req = NULL;
 		child->refcnt = 0;
+		child->unlocking_reqs = 0;
 		child->busy_count = 0;
 		child->busy_waiting = 0;
 		STARPU_PTHREAD_MUTEX_INIT(&child->busy_mutex, NULL);

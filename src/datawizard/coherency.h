@@ -120,6 +120,8 @@ struct _starpu_data_state
 	 * the req_list anymore), i.e. the number of holders of the
 	 * current_mode rwlock */
 	unsigned refcnt;
+	/* whether we are already unlocking data requests */
+	unsigned unlocking_reqs;
 	/* Current access mode. Is always either STARPU_R, STARPU_W,
 	 * STARPU_SCRATCH or STARPU_REDUX, but never a combination such as
 	 * STARPU_RW. */

@@ -241,6 +241,7 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 	/* initialize the new lock */
 	_starpu_data_requester_list_init(&handle->req_list);
 	handle->refcnt = 0;
+	handle->unlocking_reqs = 0;
 	handle->busy_count = 0;
 	handle->busy_waiting = 0;
 	STARPU_PTHREAD_MUTEX_INIT(&handle->busy_mutex, NULL);

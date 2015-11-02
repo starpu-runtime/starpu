@@ -391,6 +391,17 @@ int _starpu_notify_data_dependencies(starpu_data_handle_t handle)
 			_starpu_data_end_reduction_mode_terminate(handle);
 	}
 
+	if (handle->unlocking_reqs)
+		/*
+		 * Our caller is already running the unlock loop below (we were
+		 * most probably called from the ready_data_callback call
+		 * below). Avoid looping again (which would potentially mean
+		 * unbounded recursion), our caller will continue doing the
+		 * unlock work for us.
+		 */
+		return 0;
+
+	handle->unlocking_reqs = 1;
 	struct _starpu_data_requester *r;
 	while ((r = may_unlock_data_req_list_head(handle)))
 	{
@@ -460,6 +471,7 @@ int _starpu_notify_data_dependencies(starpu_data_handle_t handle)
 				return 1;
 		}
 	}
+	handle->unlocking_reqs = 0;
 
 	return 0;
 }
