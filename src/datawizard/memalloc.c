@@ -932,7 +932,7 @@ void starpu_memchunk_tidy(unsigned node)
 		struct _starpu_mem_chunk *mc, *orig_next_mc, *next_mc;
 		int skipped = 0;	/* Whether we skipped a dirty MC, and we should thus stop updating mc_dirty_head. */
 
-		_STARPU_DEBUG("%d not clean: %d %d\n", node, mc_clean_nb[node], mc_nb[node]);
+		/* _STARPU_DEBUG("%d not clean: %d %d\n", node, mc_clean_nb[node], mc_nb[node]); */
 
 		_STARPU_TRACE_START_WRITEBACK_ASYNC(node);
 		_starpu_spin_lock(&mc_lock[node]);
