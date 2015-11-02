@@ -175,6 +175,7 @@ void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_da
 		_starpu_data_requester_list_init(&child->reduction_req_list);
 		child->reduction_tmp_handles = NULL;
 		child->refcnt = 0;
+		child->unlocking_reqs = 0;
 		child->busy_count = 0;
 		child->busy_waiting = 0;
 		STARPU_PTHREAD_MUTEX_INIT(&child->busy_mutex, NULL);

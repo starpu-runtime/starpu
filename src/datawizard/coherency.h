@@ -117,6 +117,8 @@ struct _starpu_data_state
 	 * the req_list anymore), i.e. the number of holders of the
 	 * current_mode rwlock */
 	unsigned refcnt;
+	/* whether we are already unlocking data requests */
+	unsigned unlocking_reqs;
 	enum starpu_data_access_mode current_mode;
 	/* protect meta data */
 	struct _starpu_spinlock header_lock;
