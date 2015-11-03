@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2013-2014  Université de Bordeaux
+ * Copyright (C) 2010, 2013-2015  Université de Bordeaux
  * Copyright (C) 2012, 2013, 2015  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -66,6 +66,8 @@ static void create_task_save_local(unsigned iter, unsigned z, int dir, int local
 	if (ret)
 	{
 		FPRINTF(stderr, "Could not submit task save: %d\n", ret);
+		if (ret == -ENODEV)
+			exit(77);
 		STARPU_ABORT();
 	}
 }
@@ -209,6 +211,8 @@ void create_task_update(unsigned iter, unsigned z, int local_rank)
 	if (ret)
 	{
 		FPRINTF(stderr, "Could not submit task update block: %d\n", ret);
+		if (ret == -ENODEV)
+			exit(77);
 		STARPU_ABORT();
 	}
 }
@@ -263,6 +267,8 @@ void create_start_task(int z, int dir)
 	if (ret)
 	{
 		FPRINTF(stderr, "Could not submit task initial wait: %d\n", ret);
+		if (ret == -ENODEV)
+			exit(77);
 		STARPU_ABORT();
 	}
 }
