@@ -99,7 +99,7 @@ int main(int argc, char **argv)
 			task->execute_on_a_specific_worker = 1;
 			task->workerid = 0;
 			task->workerorder = k*N + (N-n);
-			task->cl_arg = (void*) (uintptr_t) (k*N + n+1);
+			task->cl_arg = (void*) (uintptr_t) (k*N + (N-n));
 			task->handles[0] = h[n];
 
 			starpu_task_declare_deps_array(task, 1, &dep_task[n]);
