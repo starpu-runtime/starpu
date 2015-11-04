@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2014  Université de Bordeaux
+ * Copyright (C) 2014-2015  Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -39,24 +39,48 @@ void codelet(STARPU_ATTRIBUTE_UNUSED void *descr[], void *_args)
 	current++;
 }
 
+static double cost_function(struct starpu_task *task, unsigned nimpl)
+{
+	(void) task;
+	(void) nimpl;
+	return 1000;
+}
+
+static struct starpu_perfmodel model =
+{
+	.type = STARPU_COMMON,
+	.cost_function = cost_function,
+	.symbol = "cost"
+};
+
 static struct starpu_codelet cl =
 {
 	.cpu_funcs = {codelet},
 	.cuda_funcs = {codelet},
 	.opencl_funcs = {codelet},
-	.nbuffers = 0,
+	.nbuffers = 1,
+	.modes = {STARPU_R},
+	.model = &model,
 };
 
 int main(int argc, char **argv)
 {
 	int ret;
 	struct starpu_task *dep_task[N];
+	int *t[N];
+	starpu_data_handle_t h[N];
+
+	unsigned n, i, k;
 
 	ret = starpu_initialize(NULL, &argc, &argv);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	unsigned n, i, k;
+	for (n = 0; n < N; n++)
+	{
+		t[n] = malloc(1<<20);
+		starpu_variable_data_register(&h[n], STARPU_MAIN_RAM, (uintptr_t) &t[n], (1<<20) * sizeof(*(t[n])));
+	}
 
 	for (k = 0; k < K; k++)
 	{
@@ -74,8 +98,9 @@ int main(int argc, char **argv)
 
 			task->execute_on_a_specific_worker = 1;
 			task->workerid = 0;
-			task->workerorder = k*N + n+1;
+			task->workerorder = k*N + (N-n);
 			task->cl_arg = (void*) (uintptr_t) (k*N + n+1);
+			task->handles[0] = h[n];
 
 			starpu_task_declare_deps_array(task, 1, &dep_task[n]);
 
