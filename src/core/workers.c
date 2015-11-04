@@ -567,7 +567,7 @@ static void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu
 	/* cpu_set/hwloc_cpu_set initialized in topology.c */
 }
 
-static void _starpu_worker_deinit(struct _starpu_worker *workerarg, struct _starpu_machine_config *pconfig)
+static void _starpu_worker_deinit(struct _starpu_worker *workerarg)
 {
 #ifdef STARPU_SIMGRID
 	starpu_pthread_queue_unregister(&workerarg->wait, &_starpu_simgrid_task_queue[workerarg->workerid]);
@@ -1546,7 +1546,7 @@ void starpu_shutdown(void)
 	_starpu_sched_component_workers_destroy();
 
 	for (worker = 0; worker < config.topology.nworkers; worker++)
-		_starpu_worker_deinit(&config.workers[worker], &config);
+		_starpu_worker_deinit(&config.workers[worker]);
 
 	_starpu_disk_unregister();
 #ifdef STARPU_HAVE_HWLOC
