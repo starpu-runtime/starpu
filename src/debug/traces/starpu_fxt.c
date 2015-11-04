@@ -1232,12 +1232,24 @@ static void handle_data_copy(void)
 {
 }
 
+static const char *copy_link_type(unsigned prefetch)
+{
+	switch (prefetch)
+	{
+		case 0: return "F";
+		case 1: return "PF";
+		case 2: return "IF";
+	}
+}
+
 static void handle_start_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	unsigned src = ev->param[0];
 	unsigned dst = ev->param[1];
 	unsigned size = ev->param[2];
 	unsigned comid = ev->param[3];
+	unsigned prefetch = ev->param[4];
+	const char *link_type = copy_link_type(prefetch);
 
 	char *prefix = options->file_prefix;
 
@@ -1254,9 +1266,9 @@ static void handle_start_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 			snprintf(paje_key, STARPU_POTI_STR_LEN, "com_%u", comid);
 			program_container_alias(program_container, STARPU_POTI_STR_LEN, prefix);
 			memmanager_container_alias(src_memnode_container, STARPU_POTI_STR_LEN, prefix, src);
-			poti_StartLink(time, program_container, "L", src_memnode_container, paje_value, paje_key);
+			poti_StartLink(time, program_container, link_type, src_memnode_container, paje_value, paje_key);
 #else
-			fprintf(out_paje_file, "18	%.9f	L	%sp	%u	%smm%u	com_%u\n", time, prefix, size, prefix, src, comid);
+			fprintf(out_paje_file, "18	%.9f	%s	%sp	%u	%smm%u	com_%u\n", time, link_type, prefix, size, prefix, src, comid);
 #endif
 		}
 
@@ -1312,6 +1324,8 @@ static void handle_end_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 	unsigned dst = ev->param[1];
 	unsigned size = ev->param[2];
 	unsigned comid = ev->param[3];
+	unsigned prefetch = ev->param[4];
+	const char *link_type = copy_link_type(prefetch);
 
 	char *prefix = options->file_prefix;
 
@@ -1328,9 +1342,9 @@ static void handle_end_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 			snprintf(paje_key, STARPU_POTI_STR_LEN, "com_%u", comid);
 			program_container_alias(program_container, STARPU_POTI_STR_LEN, prefix);
 			memmanager_container_alias(dst_memnode_container, STARPU_POTI_STR_LEN, prefix, dst);
-			poti_EndLink(time, program_container, "L", dst_memnode_container, paje_value, paje_key);
+			poti_EndLink(time, program_container, link_type, dst_memnode_container, paje_value, paje_key);
 #else
-			fprintf(out_paje_file, "19	%.9f	L	%sp	%u	%smm%u	com_%u\n", time, prefix, size, prefix, dst, comid);
+			fprintf(out_paje_file, "19	%.9f	%s	%sp	%u	%smm%u	com_%u\n", time, link_type, prefix, size, prefix, dst, comid);
 #endif
 		}
 

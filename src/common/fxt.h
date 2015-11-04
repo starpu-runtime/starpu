@@ -547,11 +547,11 @@ do {										\
 #define _STARPU_TRACE_DATA_COPY(src_node, dst_node, size)	\
 	FUT_DO_PROBE3(_STARPU_FUT_DATA_COPY, src_node, dst_node, size)
 
-#define _STARPU_TRACE_START_DRIVER_COPY(src_node, dst_node, size, com_id)	\
-	FUT_DO_PROBE4(_STARPU_FUT_START_DRIVER_COPY, src_node, dst_node, size, com_id)
+#define _STARPU_TRACE_START_DRIVER_COPY(src_node, dst_node, size, com_id, prefetch)	\
+	FUT_DO_PROBE5(_STARPU_FUT_START_DRIVER_COPY, src_node, dst_node, size, com_id, prefetch)
 
-#define _STARPU_TRACE_END_DRIVER_COPY(src_node, dst_node, size, com_id)	\
-	FUT_DO_PROBE4(_STARPU_FUT_END_DRIVER_COPY, src_node, dst_node, size, com_id)
+#define _STARPU_TRACE_END_DRIVER_COPY(src_node, dst_node, size, com_id, prefetch)	\
+	FUT_DO_PROBE5(_STARPU_FUT_END_DRIVER_COPY, src_node, dst_node, size, com_id, prefetch)
 
 #define _STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node)	\
 	FUT_DO_PROBE2(_STARPU_FUT_START_DRIVER_COPY_ASYNC, src_node, dst_node)
@@ -877,8 +877,8 @@ do {										\
 #define _STARPU_TRACE_TASK_DONE(a)		do {} while(0)
 #define _STARPU_TRACE_TAG_DONE(a)		do {} while(0)
 #define _STARPU_TRACE_DATA_COPY(a, b, c)		do {} while(0)
-#define _STARPU_TRACE_START_DRIVER_COPY(a,b,c,d)	do {} while(0)
-#define _STARPU_TRACE_END_DRIVER_COPY(a,b,c,d)	do {} while(0)
+#define _STARPU_TRACE_START_DRIVER_COPY(a,b,c,d,e)	do {} while(0)
+#define _STARPU_TRACE_END_DRIVER_COPY(a,b,c,d,e)	do {} while(0)
 #define _STARPU_TRACE_START_DRIVER_COPY_ASYNC(a,b)	do {} while(0)
 #define _STARPU_TRACE_END_DRIVER_COPY_ASYNC(a,b)	do {} while(0)
 #define _STARPU_TRACE_WORK_STEALING(a, b)	do {} while(0)
