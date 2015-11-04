@@ -358,7 +358,7 @@ static void starpu_handle_data_request_completion(struct _starpu_data_request *r
 	unsigned src_node = src_replicate->memory_node;
 	unsigned dst_node = dst_replicate->memory_node;
 	size_t size = _starpu_data_get_size(handle);
-	_STARPU_TRACE_END_DRIVER_COPY(src_node, dst_node, size, r->com_id);
+	_STARPU_TRACE_END_DRIVER_COPY(src_node, dst_node, size, r->com_id, r->prefetch);
 #endif
 
 	/* Once the request has been fulfilled, we may submit the requests that
@@ -429,7 +429,7 @@ static void starpu_handle_data_request_completion(struct _starpu_data_request *r
 }
 
 /* TODO : accounting to see how much time was spent working for other people ... */
-static int starpu_handle_data_request(struct _starpu_data_request *r, unsigned may_alloc, int prefetch STARPU_ATTRIBUTE_UNUSED)
+static int starpu_handle_data_request(struct _starpu_data_request *r, unsigned may_alloc, int prefetch)
 {
 	starpu_data_handle_t handle = r->handle;
 
@@ -468,7 +468,7 @@ static int starpu_handle_data_request(struct _starpu_data_request *r, unsigned m
 
 	if (dst_replicate->state == STARPU_INVALID)
 		r->retval = _starpu_driver_copy_data_1_to_1(handle, src_replicate,
-						    dst_replicate, !(r_mode & STARPU_R), r, may_alloc);
+						    dst_replicate, !(r_mode & STARPU_R), r, may_alloc, prefetch);
 	else
 		/* Already valid actually, no need to transfer anything */
 		r->retval = 0;
