@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2013-2014  Université de Bordeaux
+ * Copyright (C) 2011, 2013-2015  Université de Bordeaux
  * Copyright (C) 2011, 2012, 2013, 2014, 2015  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  *
@@ -256,10 +256,12 @@ int starpu_perfmodel_print_all(struct starpu_perfmodel *model, char *arch, char 
 			return 0;
 		}
 
-		/* There must be a cleaner way ! */
+		/* TODO: There must be a cleaner way ! */
 		int gpuid;
 		int nmatched;
 		nmatched = sscanf(arch, "cuda_%d", &gpuid);
+		if (nmatched == 0)
+			nmatched = sscanf(arch, "cuda%d", &gpuid);
 		if (nmatched == 1)
 		{
 			struct starpu_perfmodel_arch perf_arch;
