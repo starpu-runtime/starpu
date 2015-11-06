@@ -299,7 +299,7 @@ Again, we prefer to make sure that we don't accidentally access the matrix throu
 
 \code{.c}
 starpu_data_invalidate_submit(handle);
-\end
+\endcode
 
 And now we can start using vertical slices, etc.
 
