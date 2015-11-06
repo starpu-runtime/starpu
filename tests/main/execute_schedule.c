@@ -79,7 +79,7 @@ int main(int argc, char **argv)
 	for (n = 0; n < N; n++)
 	{
 		t[n] = malloc((1<<20) * sizeof(*(t[n])));
-		starpu_variable_data_register(&h[n], STARPU_MAIN_RAM, (uintptr_t) &t[n], (1<<20) * sizeof(*(t[n])));
+		starpu_variable_data_register(&h[n], STARPU_MAIN_RAM, (uintptr_t) t[n], (1<<20) * sizeof(*(t[n])));
 	}
 
 	for (k = 0; k < K; k++)
@@ -120,6 +120,11 @@ int main(int argc, char **argv)
 	}
 
 	starpu_task_wait_for_all();
+	for (n = 0; n < N; n++)
+	{
+		starpu_data_unregister(h[n]);
+		free(t[n]);
+	}
 
 	starpu_shutdown();
 
