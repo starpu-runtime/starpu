@@ -292,7 +292,7 @@ static void execute_cholesky(unsigned size, unsigned nblocks)
 				if (i <= j)
 				{
 	                                float orig = (1.0f/(1.0f+i+j)) + ((i == j)?1.0f*size:0.0f);
-	                                float err = abs(test_mat[j +i*size] - orig);
+	                                float err = fabsf(test_mat[j +i*size] - orig);
 	                                if (err > 0.00001)
 					{
 	                                        FPRINTF(stderr, "Error[%u, %u] --> %2.2f != %2.2f (err %2.2f)\n", i, j, test_mat[j +i*size], orig, err);
