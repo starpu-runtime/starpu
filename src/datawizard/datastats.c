@@ -20,31 +20,38 @@
 #include <datawizard/coherency.h>
 #include <common/config.h>
 
-#ifdef STARPU_ENABLE_STATS
+static inline int starpu_enable_stats(void)
+{
+	return !!starpu_getenv("STARPU_ENABLE_STATS");
+}
+
 /* measure the cache hit ratio for each node */
 static unsigned hit_cnt[STARPU_MAXNODES];
 static unsigned miss_cnt[STARPU_MAXNODES];
-#endif
 
 void _starpu_msi_cache_hit(unsigned node STARPU_ATTRIBUTE_UNUSED)
 {
-#ifdef STARPU_ENABLE_STATS
+	if (!starpu_enable_stats())
+		return;
+
 	STARPU_HG_DISABLE_CHECKING(hit_cnt[node]);
 	hit_cnt[node]++;
-#endif
 }
 
 void _starpu_msi_cache_miss(unsigned node STARPU_ATTRIBUTE_UNUSED)
 {
-#ifdef STARPU_ENABLE_STATS
+	if (!starpu_enable_stats())
+		return;
+
 	STARPU_HG_DISABLE_CHECKING(miss_cnt[node]);
 	miss_cnt[node]++;
-#endif
 }
 
 void _starpu_display_msi_stats(void)
 {
-#ifdef STARPU_ENABLE_STATS
+	if (!starpu_enable_stats())
+		return;
+
 	unsigned node;
 	unsigned total_hit_cnt = 0;
 	unsigned total_miss_cnt = 0;
@@ -70,35 +77,35 @@ void _starpu_display_msi_stats(void)
 		}
 	}
 	fprintf(stderr, "#---------------------\n");
-#endif
 }
 
 /* measure the efficiency of our allocation cache */
-
-#ifdef STARPU_ENABLE_STATS
 static unsigned alloc_cnt[STARPU_MAXNODES];
 static unsigned alloc_cache_hit_cnt[STARPU_MAXNODES];
-#endif
 
 void _starpu_allocation_cache_hit(unsigned node STARPU_ATTRIBUTE_UNUSED)
 {
-#ifdef STARPU_ENABLE_STATS
+	if (!starpu_enable_stats())
+		return;
+
 	STARPU_HG_DISABLE_CHECKING(alloc_cache_hit_cnt[node]);
 	alloc_cache_hit_cnt[node]++;
-#endif
 }
 
 void _starpu_data_allocation_inc_stats(unsigned node STARPU_ATTRIBUTE_UNUSED)
 {
-#ifdef STARPU_ENABLE_STATS
+	if (!starpu_enable_stats())
+		return;
+
 	STARPU_HG_DISABLE_CHECKING(alloc_cnt[node]);
 	alloc_cnt[node]++;
-#endif
 }
 
 void _starpu_display_alloc_cache_stats(void)
 {
-#ifdef STARPU_ENABLE_STATS
+	if (!starpu_enable_stats())
+		return;
+
 	fprintf(stderr, "\n#---------------------\n");
 	fprintf(stderr, "Allocation cache stats:\n");
 	unsigned node;
@@ -115,20 +122,18 @@ void _starpu_display_alloc_cache_stats(void)
 			fprintf(stderr, "No allocation on node %d\n", node);
 	}
 	fprintf(stderr, "#---------------------\n");
-#endif
 }
 
 /* measure the amount of data transfers between each pair of nodes */
-#ifdef STARPU_ENABLE_STATS
 static size_t comm_amount[STARPU_MAXNODES][STARPU_MAXNODES];
-#endif /* STARPU_ENABLE_STATS */
 
 void _starpu_comm_amounts_inc(unsigned src  STARPU_ATTRIBUTE_UNUSED, unsigned dst  STARPU_ATTRIBUTE_UNUSED, size_t size  STARPU_ATTRIBUTE_UNUSED)
 {
-#ifdef STARPU_ENABLE_STATS
+	if (!starpu_enable_stats())
+		return;
+
 	STARPU_HG_DISABLE_CHECKING(comm_amount[src][dst]);
 	comm_amount[src][dst] += size;
-#endif /* STARPU_ENABLE_STATS */
 }
 
 void _starpu_display_comm_amounts(void)
@@ -137,7 +142,9 @@ void _starpu_display_comm_amounts(void)
 #  warning TODO. The information displayed here seems to be similar to the one displayed by starpu_profiling_bus_helper_display_summary()
 #endif
 
-#ifdef STARPU_ENABLE_STATS
+	if (!starpu_enable_stats())
+		return;
+
 	unsigned src, dst;
 	size_t sum = 0;
 
@@ -163,6 +170,5 @@ void _starpu_display_comm_amounts(void)
 					dst, src, ((float)comm_amount[dst][src])/(1024*1024));
 		}
 	fprintf(stderr, "#---------------------\n");
-#endif
 }
 

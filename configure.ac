@@ -1613,17 +1613,6 @@ if  test x$enable_model_debug = xyes; then
 	AC_DEFINE(STARPU_MODEL_DEBUG, [1], [enable performance model debug])
 fi
 
-AC_MSG_CHECKING(whether statistics should be generated)
-AC_ARG_ENABLE(stats, [AS_HELP_STRING([--enable-stats],
-			[enable statistics])],
-			enable_stats=$enableval, enable_stats=no)
-AC_MSG_RESULT($enable_stats)
-AC_SUBST(STATS, $enable_stats)
-AC_SUBST(STARPU_ENABLE_STATS, $enable_stats)
-if test x$enable_stats = xyes; then
-        AC_DEFINE(STARPU_ENABLE_STATS, [1], [enable statistics])
-fi
-
 AC_MSG_CHECKING(whether memory stats should be displayed)
 AC_ARG_ENABLE(memory-stats, [AS_HELP_STRING([--enable-memory-stats],
 			     [enable memory stats])],

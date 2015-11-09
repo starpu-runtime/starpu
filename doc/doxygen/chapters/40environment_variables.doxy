@@ -705,6 +705,13 @@ When set to <c>1</c>, this variable indicates that StarPU should automatically
 generate a Paje trace when starpu_shutdown() is called.
 </dd>
 
+<dt>STARPU_ENABLE_STATS</dt>
+<dd>
+\anchor STARPU_ENABLE_STATS
+\addindex __env__STARPU_ENABLE_STATS
+When defined, enable gathering various data statistics (\ref DataStatistics).
+</dd>
+
 <dt>STARPU_MEMORY_STATS</dt>
 <dd>
 \anchor STARPU_MEMORY_STATS

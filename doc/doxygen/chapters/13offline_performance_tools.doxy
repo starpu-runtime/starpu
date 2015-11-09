@@ -556,8 +556,8 @@ Node #3
 \section DataStatistics Data Statistics
 
 Different data statistics can be displayed at the end of the execution
-of the application. To enable them, you need to pass the option
-\ref enable-stats "--enable-stats" when calling <c>configure</c>. When calling
+of the application. To enable them, you need to define the environment
+variable \ref STARPU_ENABLE_STATS. When calling
 starpu_shutdown() various statistics will be displayed,
 execution, MSI cache statistics, allocation cache statistics, and data
 transfer statistics. The display can be disabled by setting the

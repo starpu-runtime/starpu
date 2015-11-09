@@ -410,14 +410,6 @@ version of ViTE (at least r1430).
 Enable additional trace events which describes locks behaviour.
 </dd>
 
-<dt>--enable-stats</dt>
-<dd>
-\anchor enable-stats
-\addindex __configure__--enable-stats
-(see ../../src/datawizard/datastats.c)
-Enable gathering of various data statistics (\ref DataStatistics).
-</dd>
-
 <dt>--enable-maxbuffers</dt>
 <dd>
 \anchor enable-maxbuffers

@@ -1154,10 +1154,12 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 #ifdef STARPU_MODEL_DEBUG
 	_STARPU_DISP("Warning: StarPU was configured with --enable-model-debug, which slows down a bit\n");
 #endif
-#ifdef STARPU_ENABLE_STATS
-	_STARPU_DISP("Warning: StarPU was configured with --enable-stats, which slows down a bit\n");
 #endif
-#endif
+
+	if (starpu_getenv("STARPU_ENABLE_STATS")) {
+		_STARPU_DISP("Warning: STARPU_ENABLE_STATS is enabled, "
+			     "which slows down a bit\n");
+	}
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
 	WSADATA wsadata;
