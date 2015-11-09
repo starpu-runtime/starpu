@@ -34,7 +34,7 @@ int starpu_data_request_allocation(starpu_data_handle_t handle, unsigned node)
 
 	_starpu_spin_lock(&handle->header_lock);
 
-	r = _starpu_create_data_request(handle, NULL, &handle->per_node[node], node, STARPU_NONE, 0, 1, 0);
+	r = _starpu_create_data_request(handle, NULL, &handle->per_node[node], node, STARPU_NONE, 0, 1, 0, 0);
 
 	/* we do not increase the refcnt associated to the request since we are
 	 * not waiting for its termination */
@@ -56,6 +56,7 @@ struct user_interaction_wrapper
 	unsigned finished;
 	unsigned async;
 	unsigned prefetch;
+	int prio;
 	void (*callback)(void *);
 	void (*callback_fetch_data)(void *); // called after fetch_data
 	void *callback_arg;
@@ -98,7 +99,7 @@ static void _starpu_data_acquire_continuation_non_blocking(void *arg)
 		struct _starpu_data_replicate *replicate = &handle->per_node[wrapper->node];
 
 		ret = _starpu_fetch_data_on_node(handle, replicate, wrapper->mode, 0, 0, 1,
-						 _starpu_data_acquire_fetch_data_callback, wrapper);
+						 _starpu_data_acquire_fetch_data_callback, wrapper, 0);
 		STARPU_ASSERT(!ret);
 	}
 	else
@@ -217,7 +218,7 @@ static inline void _starpu_data_acquire_continuation(void *arg)
 		int ret;
 		struct _starpu_data_replicate *replicate = &handle->per_node[wrapper->node];
 
-		ret = _starpu_fetch_data_on_node(handle, replicate, wrapper->mode, 0, 0, 0, NULL, NULL);
+		ret = _starpu_fetch_data_on_node(handle, replicate, wrapper->mode, 0, 0, 0, NULL, NULL, 0);
 		STARPU_ASSERT(!ret);
 	}
 
@@ -305,7 +306,7 @@ int starpu_data_acquire_on_node(starpu_data_handle_t handle, int node, enum star
 		{
 			/* no one has locked this data yet, so we proceed immediately */
 			struct _starpu_data_replicate *replicate = &handle->per_node[node];
-			int ret = _starpu_fetch_data_on_node(handle, replicate, mode, 0, 0, 0, NULL, NULL);
+			int ret = _starpu_fetch_data_on_node(handle, replicate, mode, 0, 0, 0, NULL, NULL, 0);
 			STARPU_ASSERT(!ret);
 		}
 	}
@@ -367,7 +368,7 @@ static void _prefetch_data_on_node(void *arg)
         int ret;
 
 	struct _starpu_data_replicate *replicate = &handle->per_node[wrapper->node];
-	ret = _starpu_fetch_data_on_node(handle, replicate, STARPU_R, wrapper->async, wrapper->prefetch, wrapper->async, NULL, NULL);
+	ret = _starpu_fetch_data_on_node(handle, replicate, STARPU_R, wrapper->async, wrapper->prefetch, wrapper->async, NULL, NULL, wrapper->prio);
         STARPU_ASSERT(!ret);
 
 	if (wrapper->async)
@@ -386,7 +387,7 @@ static void _prefetch_data_on_node(void *arg)
 }
 
 static
-int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle_t handle, unsigned node, unsigned async, enum starpu_data_access_mode mode, unsigned prefetch)
+int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle_t handle, unsigned node, unsigned async, enum starpu_data_access_mode mode, unsigned prefetch, int prio)
 {
 	STARPU_ASSERT(handle);
 
@@ -399,6 +400,7 @@ int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle_t handle, unsigne
 	wrapper->node = node;
 	wrapper->async = async;
 	wrapper->prefetch = prefetch;
+	wrapper->prio = prio;
 	STARPU_PTHREAD_COND_INIT(&wrapper->cond, NULL);
 	STARPU_PTHREAD_MUTEX_INIT(&wrapper->lock, NULL);
 	wrapper->finished = 0;
@@ -412,7 +414,7 @@ int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle_t handle, unsigne
 		STARPU_PTHREAD_MUTEX_DESTROY(&wrapper->lock);
 		free(wrapper);
 
-		_starpu_fetch_data_on_node(handle, replicate, mode, async, prefetch, async, NULL, NULL);
+		_starpu_fetch_data_on_node(handle, replicate, mode, async, prefetch, async, NULL, NULL, prio);
 
 		/* remove the "lock"/reference */
 
@@ -449,17 +451,27 @@ int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle_t handle, unsigne
 
 int starpu_data_fetch_on_node(starpu_data_handle_t handle, unsigned node, unsigned async)
 {
-	return _starpu_prefetch_data_on_node_with_mode(handle, node, async, STARPU_R, 0);
+	return _starpu_prefetch_data_on_node_with_mode(handle, node, async, STARPU_R, 0, 0);
+}
+
+int starpu_data_prefetch_on_node_prio(starpu_data_handle_t handle, unsigned node, unsigned async, int prio)
+{
+	return _starpu_prefetch_data_on_node_with_mode(handle, node, async, STARPU_R, 1, prio);
 }
 
 int starpu_data_prefetch_on_node(starpu_data_handle_t handle, unsigned node, unsigned async)
 {
-	return _starpu_prefetch_data_on_node_with_mode(handle, node, async, STARPU_R, 1);
+	return starpu_data_prefetch_on_node_prio(handle, node, async, 0);
+}
+
+int starpu_data_idle_prefetch_on_node_prio(starpu_data_handle_t handle, unsigned node, unsigned async, int prio)
+{
+	return _starpu_prefetch_data_on_node_with_mode(handle, node, async, STARPU_R, 2, prio);
 }
 
 int starpu_data_idle_prefetch_on_node(starpu_data_handle_t handle, unsigned node, unsigned async)
 {
-	return _starpu_prefetch_data_on_node_with_mode(handle, node, async, STARPU_R, 2);
+	return starpu_data_idle_prefetch_on_node_prio(handle, node, async, 0);
 }
 
 static void _starpu_data_wont_use(void *data)

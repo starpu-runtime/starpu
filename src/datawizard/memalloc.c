@@ -244,7 +244,7 @@ static int transfer_subtree_to_node(starpu_data_handle_t handle, unsigned src_no
 		{
 			/* This is the only copy, push it to destination */
 			struct _starpu_data_request *r;
-			r = _starpu_create_request_to_fetch_data(handle, dst_replicate, STARPU_R, 0, 0, NULL, NULL);
+			r = _starpu_create_request_to_fetch_data(handle, dst_replicate, STARPU_R, 0, 0, NULL, NULL, 0);
 			/* There is no way we don't need a request, since
 			 * source is OWNER, destination can't be having it */
 			STARPU_ASSERT(r);
@@ -1011,7 +1011,7 @@ void starpu_memchunk_tidy(unsigned node)
 				}
 
 				_starpu_spin_unlock(&mc_lock[node]);
-				if (!_starpu_create_request_to_fetch_data(handle, &handle->per_node[handle->home_node], STARPU_R, 2, 1, NULL, NULL))
+				if (!_starpu_create_request_to_fetch_data(handle, &handle->per_node[handle->home_node], STARPU_R, 2, 1, NULL, NULL, 0))
 				{
 					/* No request was actually needed??
 					 * Odd, but cope with it.  */

@@ -24,6 +24,7 @@
 #include <semaphore.h>
 #include <datawizard/copy_driver.h>
 #include <common/list.h>
+#include <common/prio_list.h>
 #include <common/starpu_spinlock.h>
 
 struct _starpu_data_replicate;
@@ -74,6 +75,9 @@ LIST_TYPE(_starpu_data_request,
 	 */
 	unsigned prefetch;
 
+	/* Priority of the request. Default is 0 */
+	int prio;
+
 	/* The value returned by the transfer function */
 	int retval;
 
@@ -91,6 +95,7 @@ LIST_TYPE(_starpu_data_request,
 
 	unsigned com_id;
 )
+PRIO_LIST_TYPE(_starpu_data_request, prio)
 
 /* Everyone that wants to access some piece of data will post a request.
  * Not only StarPU internals, but also the application may put such requests */
@@ -133,6 +138,7 @@ struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t ha
 							 enum starpu_data_access_mode mode,
 							 unsigned ndeps,
 							 unsigned is_prefetch,
+							 int prio,
 							 unsigned is_write_invalidation);
 
 int _starpu_wait_data_request_completion(struct _starpu_data_request *r, unsigned may_alloc);

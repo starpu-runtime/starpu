@@ -117,6 +117,9 @@ noinst_HEADERS = 						\
 	common/barrier.h					\
 	common/uthash.h						\
 	common/barrier_counter.h				\
+	common/rbtree.h						\
+	common/rbtree_i.h					\
+	common/prio_list.h					\
 	drivers/driver_common/driver_common.h			\
 	drivers/mp_common/mp_common.h				\
 	drivers/mp_common/source_common.h			\
@@ -157,6 +160,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	common/fxt.c						\
 	common/utils.c						\
 	common/thread.c						\
+	common/rbtree.c						\
 	core/jobs.c						\
 	core/task.c						\
 	core/task_bundle.c					\

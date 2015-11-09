@@ -27,6 +27,7 @@
 #include <core/task.h>
 #include <starpu_scheduler.h>
 #include <core/workers.h>
+#include <limits.h>
 
 #ifdef STARPU_SIMGRID
 #include <core/simgrid.h>
@@ -465,7 +466,7 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 								  struct _starpu_data_replicate *dst_replicate,
 								  enum starpu_data_access_mode mode, unsigned is_prefetch,
 								  unsigned async,
-								  void (*callback_func)(void *), void *callback_arg)
+								  void (*callback_func)(void *), void *callback_arg, int prio)
 {
 	/* We don't care about commuting for data requests, that was handled before. */
 	mode &= ~STARPU_COMMUTE;
@@ -615,7 +616,7 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 			/* Create a new request if there was no request to reuse */
 			r = _starpu_create_data_request(handle, hop_src_replicate,
 							hop_dst_replicate, hop_handling_node,
-							mode, ndeps, is_prefetch, 0);
+							mode, ndeps, is_prefetch, prio, 0);
 			nwait++;
 		}
 
@@ -653,7 +654,7 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 		 */
 		struct _starpu_data_request *r = _starpu_create_data_request(handle, dst_replicate,
 							dst_replicate, requesting_node,
-							STARPU_W, nwait, is_prefetch, 1);
+							STARPU_W, nwait, is_prefetch, prio, 1);
 
 		/* and perform the callback after termination */
 		_starpu_data_request_append_callback(r, callback_func, callback_arg);
@@ -701,7 +702,7 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 
 int _starpu_fetch_data_on_node(starpu_data_handle_t handle, struct _starpu_data_replicate *dst_replicate,
 			       enum starpu_data_access_mode mode, unsigned detached, unsigned is_prefetch, unsigned async,
-			       void (*callback_func)(void *), void *callback_arg)
+			       void (*callback_func)(void *), void *callback_arg, int prio)
 {
 	unsigned local_node = _starpu_memory_node_get_local_key();
         _STARPU_LOG_IN();
@@ -724,7 +725,7 @@ int _starpu_fetch_data_on_node(starpu_data_handle_t handle, struct _starpu_data_
 
 	struct _starpu_data_request *r;
 	r = _starpu_create_request_to_fetch_data(handle, dst_replicate, mode,
-						 is_prefetch, async, callback_func, callback_arg);
+						 is_prefetch, async, callback_func, callback_arg, prio);
 
 	/* If no request was created, the handle was already up-to-date on the
 	 * node. In this case, _starpu_create_request_to_fetch_data has already
@@ -739,19 +740,19 @@ int _starpu_fetch_data_on_node(starpu_data_handle_t handle, struct _starpu_data_
         return ret;
 }
 
-static int idle_prefetch_data_on_node(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, enum starpu_data_access_mode mode)
+static int idle_prefetch_data_on_node(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, enum starpu_data_access_mode mode, int prio)
 {
-	return _starpu_fetch_data_on_node(handle, replicate, mode, 1, 2, 1, NULL, NULL);
+	return _starpu_fetch_data_on_node(handle, replicate, mode, 1, 2, 1, NULL, NULL, prio);
 }
 
-static int prefetch_data_on_node(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, enum starpu_data_access_mode mode)
+static int prefetch_data_on_node(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, enum starpu_data_access_mode mode, int prio)
 {
-	return _starpu_fetch_data_on_node(handle, replicate, mode, 1, 1, 1, NULL, NULL);
+	return _starpu_fetch_data_on_node(handle, replicate, mode, 1, 1, 1, NULL, NULL, prio);
 }
 
-static int fetch_data(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, enum starpu_data_access_mode mode)
+static int fetch_data(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, enum starpu_data_access_mode mode, int prio)
 {
-	return _starpu_fetch_data_on_node(handle, replicate, mode, 0, 0, 0, NULL, NULL);
+	return _starpu_fetch_data_on_node(handle, replicate, mode, 0, 0, 0, NULL, NULL, prio);
 }
 
 uint32_t _starpu_get_data_refcnt(starpu_data_handle_t handle, unsigned node)
@@ -829,7 +830,7 @@ static void _starpu_set_data_requested_flag_if_needed(starpu_data_handle_t handl
 	_starpu_spin_unlock(&handle->header_lock);
 }
 
-int starpu_prefetch_task_input_on_node(struct starpu_task *task, unsigned node)
+int starpu_prefetch_task_input_on_node_prio(struct starpu_task *task, unsigned node, int prio)
 {
 	STARPU_ASSERT(!task->prefetched);
 	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
@@ -844,7 +845,7 @@ int starpu_prefetch_task_input_on_node(struct starpu_task *task, unsigned node)
 			continue;
 
 		struct _starpu_data_replicate *replicate = &handle->per_node[node];
-		prefetch_data_on_node(handle, replicate, mode);
+		prefetch_data_on_node(handle, replicate, mode, prio);
 
 		_starpu_set_data_requested_flag_if_needed(handle, replicate);
 	}
@@ -852,7 +853,15 @@ int starpu_prefetch_task_input_on_node(struct starpu_task *task, unsigned node)
 	return 0;
 }
 
-int starpu_idle_prefetch_task_input_on_node(struct starpu_task *task, unsigned node)
+int starpu_prefetch_task_input_on_node(struct starpu_task *task, unsigned node)
+{
+	int prio = task->priority;
+	if (task->workerorder)
+		prio = INT_MAX - task->workerorder;
+	return starpu_prefetch_task_input_on_node_prio(task, node, prio);
+}
+
+int starpu_idle_prefetch_task_input_on_node_prio(struct starpu_task *task, unsigned node, int prio)
 {
 	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
 	unsigned index;
@@ -866,12 +875,19 @@ int starpu_idle_prefetch_task_input_on_node(struct starpu_task *task, unsigned n
 			continue;
 
 		struct _starpu_data_replicate *replicate = &handle->per_node[node];
-		idle_prefetch_data_on_node(handle, replicate, mode);
+		idle_prefetch_data_on_node(handle, replicate, mode, prio);
 	}
 
 	return 0;
 }
 
+int starpu_idle_prefetch_task_input_on_node(struct starpu_task *task, unsigned node)
+{
+	int prio = task->priority;
+	if (task->workerorder)
+		prio = INT_MAX - task->workerorder;
+	return starpu_idle_prefetch_task_input_on_node_prio(task, node, prio);
+}
 
 static struct _starpu_data_replicate *get_replicate(starpu_data_handle_t handle, enum starpu_data_access_mode mode, int workerid, unsigned node)
 {
@@ -927,7 +943,7 @@ int _starpu_fetch_task_input(struct _starpu_job *j)
 
 		local_replicate = get_replicate(handle, mode, workerid, node);
 
-		ret = fetch_data(handle, local_replicate, mode);
+		ret = fetch_data(handle, local_replicate, mode, 0);
 		if (STARPU_UNLIKELY(ret))
 			goto enomem;
 
@@ -1120,7 +1136,7 @@ void _starpu_fetch_nowhere_task_input(struct _starpu_job *j)
 
 		local_replicate = get_replicate(handle, mode, -1, node);
 
-		_starpu_fetch_data_on_node(handle, local_replicate, mode, 0, 0, 1, _starpu_fetch_nowhere_task_input_cb, wrapper);
+		_starpu_fetch_data_on_node(handle, local_replicate, mode, 0, 0, 1, _starpu_fetch_nowhere_task_input_cb, wrapper, 0);
 	}
 
 	if (profiling && task->profiling_info)

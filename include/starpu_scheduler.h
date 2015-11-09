@@ -70,7 +70,9 @@ int starpu_combined_worker_get_description(int workerid, int *worker_size, int *
 int starpu_combined_worker_can_execute_task(unsigned workerid, struct starpu_task *task, unsigned nimpl);
 
 int starpu_get_prefetch_flag(void);
+int starpu_prefetch_task_input_on_node_prio(struct starpu_task *task, unsigned node, int prio);
 int starpu_prefetch_task_input_on_node(struct starpu_task *task, unsigned node);
+int starpu_idle_prefetch_task_input_on_node_prio(struct starpu_task *task, unsigned node, int prio);
 int starpu_idle_prefetch_task_input_on_node(struct starpu_task *task, unsigned node);
 
 uint32_t starpu_task_footprint(struct starpu_perfmodel *model, struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl);
