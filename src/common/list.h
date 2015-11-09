@@ -64,19 +64,18 @@
  *   struct FOO*	FOO_list_front(struct FOO_list*);
  *     * vérifie si la liste chainée est cohérente
  *   int		FOO_list_check(struct FOO_list*);
- *     * teste si la list est correctement chaînée
- *   struct FOO*	FOO_list_begin(struct FOO_list*);
  *     * retourne le premier élément de la liste
- *   struct FOO*	FOO_list_end(struct FOO_list*);
+ *   struct FOO*	FOO_list_begin(struct FOO_list*);
  *     * retourne la valeur à tester en fin de liste
- *   struct FOO*	FOO_list_next(struct FOO*)
+ *   struct FOO*	FOO_list_end(struct FOO_list*);
  *     * retourne l'élément suivant de la liste
- *   int		FOO_list_size(struct FOO_list*)
+ *   struct FOO*	FOO_list_next(struct FOO*)
  *     * retourne la taille de la liste
- *   int		FOO_list_member(struct FOO_list*, struct FOO*)
+ *   int		FOO_list_size(struct FOO_list*)
  *     * retourne la position de l'élément dans la liste (indexé à partir de 0)
- *   int		FOO_list_ismember(struct FOO_list*, struct FOO*)
+ *   int		FOO_list_member(struct FOO_list*, struct FOO*)
  *     * teste si l'élément est dans la liste
+ *   int		FOO_list_ismember(struct FOO_list*, struct FOO*)
  * *********************************************************
  * Exemples d'utilisation :
  *  - au départ, on a :
