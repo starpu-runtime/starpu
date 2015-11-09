@@ -71,9 +71,13 @@ int test(int rank, int node, int *before, int *after, int task_insert, int data_
 
 	for(i=0 ; i<2 ; i++)
 	{
-		x[i] = before[rank*2+i];
 		if (rank <= 1)
+		{
+			x[i] = before[rank*2+i];
 			FPRINTF_MPI(stderr, "before computation x[%d] = %d\n", i, x[i]);
+		}
+		else
+			x[i] = rank*2+i;
 		if (rank == i)
 			starpu_variable_data_register(&data_handles[i], 0, (uintptr_t)&x[i], sizeof(int));
 		else
