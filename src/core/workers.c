@@ -1156,9 +1156,9 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 #endif
 #endif
 
-	if (starpu_getenv("STARPU_ENABLE_STATS")) {
-		_STARPU_DISP("Warning: STARPU_ENABLE_STATS is enabled, "
-			     "which slows down a bit\n");
+	if (starpu_getenv("STARPU_ENABLE_STATS"))
+	{
+		_STARPU_DISP("Warning: STARPU_ENABLE_STATS is enabled, which slows down a bit\n");
 	}
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
