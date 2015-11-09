@@ -810,7 +810,7 @@ void _starpu_update_prefetch_status(struct _starpu_data_request *r, unsigned pre
 	if (_starpu_data_request_list_ismember(&prefetch_requests[r->handling_node], r))
 	{
 		_starpu_data_request_list_erase(&prefetch_requests[r->handling_node],r);
-		_starpu_data_request_list_push_front(&data_requests[r->handling_node],r);
+		_starpu_data_request_list_push_back(&data_requests[r->handling_node],r);
 	}
 	/* The request can be in a different list (handling request or the temp list)
 	 * we have to check that it is really in the idle list. */
@@ -818,9 +818,9 @@ void _starpu_update_prefetch_status(struct _starpu_data_request *r, unsigned pre
 	{
 		_starpu_data_request_list_erase(&idle_requests[r->handling_node],r);
 		if (prefetch == 1)
-			_starpu_data_request_list_push_front(&prefetch_requests[r->handling_node],r);
+			_starpu_data_request_list_push_back(&prefetch_requests[r->handling_node],r);
 		else
-			_starpu_data_request_list_push_front(&data_requests[r->handling_node],r);
+			_starpu_data_request_list_push_back(&data_requests[r->handling_node],r);
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data_requests_list_mutex[r->handling_node]);
 
