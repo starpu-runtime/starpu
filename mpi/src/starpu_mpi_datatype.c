@@ -333,4 +333,5 @@ int starpu_mpi_datatype_unregister(starpu_data_handle_t handle)
 		free(table);
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_mpi_datatype_funcs_table_mutex);
+	return 0;
 }
