@@ -272,11 +272,15 @@ void starpu_rbtree_remove(struct starpu_rbtree *tree, struct starpu_rbtree_node 
 /*
  * Return the first node of a tree.
  */
+/* TODO: optimize by maintaining the first node of the tree */
 #define starpu_rbtree_first(tree) starpu_rbtree_firstlast(tree, STARPU_RBTREE_LEFT)
 
 /*
  * Return the last node of a tree.
  */
+/* TODO: optimize by maintaining the first node of the tree */
+/* TODO: could be useful to optimize the case when the key being inserted is
+ * bigger that the biggest node */
 #define starpu_rbtree_last(tree) starpu_rbtree_firstlast(tree, STARPU_RBTREE_RIGHT)
 
 /*
