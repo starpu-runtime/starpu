@@ -807,38 +807,21 @@ void _starpu_update_prefetch_status(struct _starpu_data_request *r, unsigned pre
 
 	/* The request can be in a different list (handling request or the temp list)
 	 * we have to check that it is really in the prefetch list. */
-	struct _starpu_data_request *r_iter;
-	for (r_iter = _starpu_data_request_list_begin(&prefetch_requests[r->handling_node]);
-	     r_iter != _starpu_data_request_list_end(&prefetch_requests[r->handling_node]);
-	     r_iter = _starpu_data_request_list_next(r_iter))
+	if (_starpu_data_request_list_ismember(&prefetch_requests[r->handling_node], r))
 	{
-
-		if (r==r_iter)
-		{
-			_starpu_data_request_list_erase(&prefetch_requests[r->handling_node],r);
-			_starpu_data_request_list_push_front(&data_requests[r->handling_node],r);
-			goto found;
-		}
+		_starpu_data_request_list_erase(&prefetch_requests[r->handling_node],r);
+		_starpu_data_request_list_push_front(&data_requests[r->handling_node],r);
 	}
-
 	/* The request can be in a different list (handling request or the temp list)
 	 * we have to check that it is really in the idle list. */
-	for (r_iter = _starpu_data_request_list_begin(&idle_requests[r->handling_node]);
-	     r_iter != _starpu_data_request_list_end(&idle_requests[r->handling_node]);
-	     r_iter = _starpu_data_request_list_next(r_iter))
+	else if (_starpu_data_request_list_ismember(&idle_requests[r->handling_node], r))
 	{
-
-		if (r==r_iter)
-		{
-			_starpu_data_request_list_erase(&idle_requests[r->handling_node],r);
-			if (prefetch == 1)
-				_starpu_data_request_list_push_front(&prefetch_requests[r->handling_node],r);
-			else
-				_starpu_data_request_list_push_front(&data_requests[r->handling_node],r);
-			goto found;
-		}
+		_starpu_data_request_list_erase(&idle_requests[r->handling_node],r);
+		if (prefetch == 1)
+			_starpu_data_request_list_push_front(&prefetch_requests[r->handling_node],r);
+		else
+			_starpu_data_request_list_push_front(&data_requests[r->handling_node],r);
 	}
-found:
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data_requests_list_mutex[r->handling_node]);
 
 #ifndef STARPU_NON_BLOCKING_DRIVERS

@@ -64,14 +64,19 @@
  *   struct FOO*	FOO_list_front(struct FOO_list*);
  *     * vérifie si la liste chainée est cohérente
  *   int		FOO_list_check(struct FOO_list*);
- *     *
+ *     * teste si la list est correctement chaînée
  *   struct FOO*	FOO_list_begin(struct FOO_list*);
- *     *
+ *     * retourne le premier élément de la liste
  *   struct FOO*	FOO_list_end(struct FOO_list*);
- *     *
+ *     * retourne la valeur à tester en fin de liste
  *   struct FOO*	FOO_list_next(struct FOO*)
- *     *
+ *     * retourne l'élément suivant de la liste
  *   int		FOO_list_size(struct FOO_list*)
+ *     * retourne la taille de la liste
+ *   int		FOO_list_member(struct FOO_list*, struct FOO*)
+ *     * retourne la position de l'élément dans la liste (indexé à partir de 0)
+ *   int		FOO_list_ismember(struct FOO_list*, struct FOO*)
+ *     * teste si l'élément est dans la liste
  * *********************************************************
  * Exemples d'utilisation :
  *  - au départ, on a :
@@ -178,6 +183,10 @@
     { return NULL; } \
   /** @internal */static inline struct ENAME *ENAME##_list_next(struct ENAME *i) \
     { return i->_next; } \
+  /** @internal */static inline int ENAME##_list_ismember(struct ENAME##_list *l, struct ENAME *e) \
+    { struct ENAME *i=l->_head; while(i!=NULL){ if (i == e) return 1; i=i->_next; } return 0; } \
+  /** @internal */static inline int ENAME##_list_member(struct ENAME##_list *l, struct ENAME *e) \
+    { struct ENAME *i=l->_head; int k=0; while(i!=NULL){if (i == e) return k; k++; i=i->_next; } return -1; } \
   /** @internal */static inline int ENAME##_list_size(struct ENAME##_list *l) \
     { struct ENAME *i=l->_head; int k=0; while(i!=NULL){k++;i=i->_next;} return k; } \
   /** @internal */static inline int ENAME##_list_check(struct ENAME##_list *l) \
