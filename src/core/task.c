@@ -248,6 +248,20 @@ int starpu_task_wait(struct starpu_task *task)
 	return 0;
 }
 
+int starpu_task_wait_array(struct starpu_task **tasks, unsigned nb_tasks)
+{
+	unsigned i;
+	int ret;
+
+	for (i = 0; i < nb_tasks; i++)
+	{
+		ret = starpu_task_wait(tasks[i]);
+		if (ret)
+			return ret;
+	}
+	return 0;
+}
+
 #ifdef STARPU_OPENMP
 int _starpu_task_test_termination(struct starpu_task *task)
 {

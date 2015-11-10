@@ -115,9 +115,9 @@ int main(int argc, char **argv)
 	ret = starpu_task_submit(taskK); STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	ret = starpu_task_submit(taskL); STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
-	ret = starpu_task_wait(taskJ); STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait");
-	ret = starpu_task_wait(taskK); STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait");
-	ret = starpu_task_wait(taskL); STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait");
+	struct starpu_task *tasksJKL[3] = {taskJ, taskK, taskL};
+
+	ret = starpu_task_wait_array(tasksJKL, 3); STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_array");
 
 	starpu_task_wait_for_all();
 
