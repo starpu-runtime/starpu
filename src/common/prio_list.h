@@ -22,6 +22,8 @@
  * We always keep the 0-priority list allocated, to avoid keeping
  * allocating/deallocating it when all priorities are 0.
  *
+ * We maintain an "empty" flag, to allow lockless FOO_prio_list_empty call.
+ *
  * PRIO_LIST_TYPE(FOO, priority field)
  * - Declares the following type:
  *   + priority list: struct FOO_prio_list
@@ -56,6 +58,7 @@
 	/* The main type: an RB binary tree */ \
 	struct ENAME##_prio_list { \
 		struct starpu_rbtree tree; \
+		int empty; \
 	}; \
 	/* The second stage: a list */ \
 	struct ENAME##_prio_list_stage { \
@@ -71,6 +74,7 @@
 	static inline void ENAME##_prio_list_init(struct ENAME##_prio_list *priolist) \
 	{ \
 		starpu_rbtree_init(&priolist->tree); \
+		priolist->empty = 1; \
 	} \
 	static inline void ENAME##_prio_list_deinit(struct ENAME##_prio_list *priolist) \
 	{ \
@@ -110,13 +114,21 @@
 	{ \
 		struct ENAME##_prio_list_stage *stage = ENAME##_prio_list_add(priolist, e->PRIOFIELD); \
 		ENAME##_list_push_back(&stage->list, e); \
+		priolist->empty = 0; \
 	} \
 	static inline void ENAME##_prio_list_push_front(struct ENAME##_prio_list *priolist, struct ENAME *e) \
 	{ \
 		struct ENAME##_prio_list_stage *stage = ENAME##_prio_list_add(priolist, e->PRIOFIELD); \
 		ENAME##_list_push_front(&stage->list, e); \
+		priolist->empty = 0; \
 	} \
 	static inline int ENAME##_prio_list_empty(struct ENAME##_prio_list *priolist) \
+	{ \
+		return priolist->empty; \
+	} \
+	/* Version of list_empty which does not use the cached empty flag,
+	 * typically used to compute the value of the flag */ \
+	static inline int ENAME##_prio_list_empty_slow(struct ENAME##_prio_list *priolist) \
 	{ \
 		if (starpu_rbtree_empty(&priolist->tree)) \
 			return 1; \
@@ -132,11 +144,14 @@
 		struct starpu_rbtree_node *node = starpu_rbtree_lookup(&priolist->tree, e->PRIOFIELD, ENAME##_prio_list_cmp_fn); \
 		struct ENAME##_prio_list_stage *stage = ENAME##_node_to_list_stage(node); \
 		ENAME##_list_erase(&stage->list, e); \
-		if (ENAME##_list_empty(&stage->list) && stage->prio != 0) \
-		{ \
-			/* stage got empty, remove it */ \
-			starpu_rbtree_remove(&priolist->tree, node); \
-			free(stage); \
+		if (ENAME##_list_empty(&stage->list)) { \
+			if (stage->prio != 0) \
+			{ \
+				/* stage got empty, remove it */ \
+				starpu_rbtree_remove(&priolist->tree, node); \
+				free(stage); \
+			} \
+			priolist->empty = ENAME##_prio_list_empty_slow(priolist); \
 		} \
 	} \
 	static inline struct ENAME *ENAME##_prio_list_pop_front(struct ENAME##_prio_list *priolist) \
@@ -164,11 +179,14 @@
 			node = next; \
 		} \
 		ret = ENAME##_list_pop_front(&stage->list); \
-		if (ENAME##_list_empty(&stage->list) && stage->prio != 0) \
-		{ \
-			/* stage got empty, remove it */ \
-			starpu_rbtree_remove(&priolist->tree, node); \
-			free(stage); \
+		if (ENAME##_list_empty(&stage->list)) { \
+			if (stage->prio != 0) \
+			{ \
+				/* stage got empty, remove it */ \
+				starpu_rbtree_remove(&priolist->tree, node); \
+				free(stage); \
+			} \
+			priolist->empty = ENAME##_prio_list_empty_slow(priolist); \
 		} \
 		return ret; \
 	} \
@@ -182,14 +200,25 @@
 			if (node) \
 			{ \
 				/* Catenate the lists */ \
-				struct ENAME##_prio_list_stage *stage = ENAME##_node_to_list_stage(node); \
-				ENAME##_list_push_list_back(&stage->list, &stage_toadd->list); \
-				free(node_toadd); \
+				if (!ENAME##_list_empty(&stage_toadd->list)) { \
+					struct ENAME##_prio_list_stage *stage = ENAME##_node_to_list_stage(node); \
+					ENAME##_list_push_list_back(&stage->list, &stage_toadd->list); \
+					free(node_toadd); \
+					priolist->empty = 0; \
+				} \
 			} \
 			else \
 			{ \
-				/* Just move the node between the trees */ \
-				starpu_rbtree_insert_slot(&priolist->tree, slot, node_toadd); \
+				if (!ENAME##_list_empty(&stage_toadd->list)) { \
+					/* Just move the node between the trees */ \
+					starpu_rbtree_insert_slot(&priolist->tree, slot, node_toadd); \
+					priolist->empty = 0; \
+				} \
+				else \
+				{ \
+					/* Actually empty, don't bother moving the list */ \
+					free(node_toadd); \
+				} \
 			} \
 		} \
 	} \
