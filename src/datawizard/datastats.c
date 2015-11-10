@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010, 2013  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2015  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -22,7 +22,8 @@
 
 static inline int starpu_enable_stats(void)
 {
-	return !!starpu_getenv("STARPU_ENABLE_STATS");
+	static int _enable_stats = !!starpu_getenv("STARPU_ENABLE_STATS");
+	return _enable_stats;
 }
 
 /* measure the cache hit ratio for each node */
