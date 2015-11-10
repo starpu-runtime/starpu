@@ -28,6 +28,7 @@
 #include <drivers/mp_common/source_common.h>
 #include <drivers/opencl/driver_opencl.h>
 #include <profiling/profiling.h>
+#include <datawizard/datastats.h>
 #include <datawizard/memory_nodes.h>
 #include <common/uthash.h>
 
@@ -1675,6 +1676,7 @@ _starpu_build_topology (struct _starpu_machine_config *config, int no_mp_config)
 
 	/* for the data management library */
 	_starpu_memory_nodes_init();
+	_starpu_datastats_init();
 
 	_starpu_init_workers_binding(config, no_mp_config);
 

@@ -20,9 +20,15 @@
 #include <datawizard/coherency.h>
 #include <common/config.h>
 
+static int _enable_stats = 0;
+
+void _starpu_datastats_init()
+{
+	_enable_stats = !!starpu_getenv("STARPU_ENABLE_STATS");
+}
+
 static inline int starpu_enable_stats(void)
 {
-	static int _enable_stats = !!starpu_getenv("STARPU_ENABLE_STATS");
 	return _enable_stats;
 }
 
