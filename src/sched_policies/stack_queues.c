@@ -58,9 +58,8 @@ unsigned _starpu_get_stack_nprocessed(struct _starpu_stack_jobq *stack_queue)
 	return stack_queue->nprocessed;
 }
 
-void _starpu_stack_push_task(struct _starpu_stack_jobq *stack_queue, starpu_pthread_mutex_t *sched_mutex, starpu_pthread_cond_t *sched_cond STARPU_ATTRIBUTE_UNUSED, struct _starpu_job *task)
+void _starpu_stack_push_task(struct _starpu_stack_jobq *stack_queue, struct _starpu_job *task)
 {
-	STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 	total_number_of_jobs++;
 
 	if (task->task->priority)
@@ -69,11 +68,6 @@ void _starpu_stack_push_task(struct _starpu_stack_jobq *stack_queue, starpu_pthr
 		_starpu_job_list_push_front(&stack_queue->jobq, task);
 	stack_queue->njobs++;
 	stack_queue->nprocessed++;
-
-#ifndef STARPU_NON_BLOCKING_DRIVERS
-	STARPU_PTHREAD_COND_SIGNAL(sched_cond);
-#endif
-	STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 }
 
 struct _starpu_job *_starpu_stack_pop_task(struct _starpu_stack_jobq *stack_queue, starpu_pthread_mutex_t *sched_mutex, int workerid STARPU_ATTRIBUTE_UNUSED)
