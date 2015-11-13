@@ -1913,6 +1913,9 @@ int starpu_wakeup_worker(int workerid, starpu_pthread_cond_t *cond, starpu_pthre
 {
 	int success = 0;
 	STARPU_PTHREAD_MUTEX_LOCK(mutex);
+#ifdef STARPU_SIMGRID
+	starpu_pthread_queue_broadcast(&_starpu_simgrid_task_queue[workerid]);
+#endif
 	if (config.workers[workerid].status == STATUS_SLEEPING)
 	{
 		config.workers[workerid].status = STATUS_WAKING_UP;
@@ -1929,9 +1932,6 @@ int starpu_wake_worker(int workerid)
 	starpu_pthread_cond_t *sched_cond;
 	starpu_worker_get_sched_condition(workerid, &sched_mutex, &sched_cond);
 
-#ifdef STARPU_SIMGRID
-	starpu_pthread_queue_broadcast(&_starpu_simgrid_task_queue[workerid]);
-#endif
 	return starpu_wakeup_worker(workerid, sched_cond, sched_mutex);
 }
 
