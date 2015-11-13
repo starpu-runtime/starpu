@@ -1239,6 +1239,7 @@ static const char *copy_link_type(unsigned prefetch)
 		case 0: return "F";
 		case 1: return "PF";
 		case 2: return "IF";
+		default: STARPU_ASSERT(0);
 	}
 }
 
