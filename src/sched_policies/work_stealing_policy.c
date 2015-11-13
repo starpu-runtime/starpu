@@ -23,6 +23,7 @@
 #include <core/workers.h>
 #include <sched_policies/deque_queues.h>
 #include <core/debug.h>
+#include <starpu_scheduler.h>
 
 #ifdef HAVE_AYUDAME_H
 #include <Ayudame.h>
@@ -380,8 +381,8 @@ int ws_push_task(struct starpu_task *task)
 		starpu_pthread_mutex_t *sched_mutex;
 		starpu_pthread_cond_t *sched_cond;
 		starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
-#ifndef STARPU_NON_BLOCKING_DRIVERS
-		STARPU_PTHREAD_COND_SIGNAL(sched_cond);
+#if !defined(STARPU_NON_BLOCKING_DRIVERS) || defined(STARPU_SIMGRID)
+		starpu_wakeup_worker_locked(worker, sched_cond, sched_mutex);
 #endif
 		STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 	}

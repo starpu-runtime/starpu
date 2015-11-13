@@ -265,10 +265,7 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 #ifdef STARPU_NON_BLOCKING_DRIVERS
 				starpu_bitmap_unset(data->waiters, worker);
 #else
-				starpu_pthread_mutex_t *sched_mutex;
-				starpu_pthread_cond_t *sched_cond;
-				starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
-				STARPU_PTHREAD_COND_SIGNAL(sched_cond);
+				starpu_wake_worker_locked(worker);
 #endif
 			}
 		}

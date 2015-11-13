@@ -173,14 +173,7 @@ static int push_task_peager_policy(struct starpu_task *task)
 		    starpu_worker_get_type(worker) != STARPU_MIC_WORKER &&
 		    starpu_worker_get_type(worker) != STARPU_CPU_WORKER)  
 			|| (master == worker))
-		{
-			starpu_pthread_mutex_t *sched_mutex;
-			starpu_pthread_cond_t *sched_cond;
-			starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
-			STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
-			STARPU_PTHREAD_COND_SIGNAL(sched_cond);
-			STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
-		}
+			starpu_wake_worker(worker);
 	}
 #endif
 
@@ -274,8 +267,8 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 
 				_starpu_fifo_push_task(data->local_fifo[local_worker], alias);
 
-#ifndef STARPU_NON_BLOCKING_DRIVERS
-				STARPU_PTHREAD_COND_SIGNAL(sched_cond);
+#if !defined(STARPU_NON_BLOCKING_DRIVERS) || defined(STARPU_SIMGRID)
+				starpu_wakeup_worker_locked(local_worker, sched_cond, sched_mutex);
 #endif
 				STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 

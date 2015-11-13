@@ -698,7 +698,7 @@ int _starpu_push_local_task(struct _starpu_worker *worker, struct starpu_task *t
 			starpu_task_list_push_back(&worker->local_tasks, task);
 	}
 
-	STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
+	starpu_wake_worker_locked(worker->workerid);
 	starpu_push_task_end(task);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
 
