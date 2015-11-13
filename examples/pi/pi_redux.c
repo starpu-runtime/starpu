@@ -26,6 +26,7 @@
 
 #include <starpu.h>
 #include <stdlib.h>
+#include <math.h>
 
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 #define PI	3.14159265358979323846
@@ -405,7 +406,7 @@ int main(int argc, char **argv)
 
 	starpu_shutdown();
 
-	if (abs(pi_approx - PI) > 1.0)
+	if (fabs(pi_approx - PI) > 1.0)
 		return 1;
 
 	return 0;
