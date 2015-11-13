@@ -1916,18 +1916,32 @@ void starpu_worker_get_sched_condition(int workerid, starpu_pthread_mutex_t **sc
 	*sched_mutex = &config.workers[workerid].sched_mutex;
 }
 
-int starpu_wakeup_worker(int workerid, starpu_pthread_cond_t *cond, starpu_pthread_mutex_t *mutex)
+int starpu_wakeup_worker_locked(int workerid, starpu_pthread_cond_t *cond, starpu_pthread_mutex_t *mutex)
 {
-	int success = 0;
-	STARPU_PTHREAD_MUTEX_LOCK(mutex);
 	if (config.workers[workerid].status == STATUS_SLEEPING)
 	{
 		config.workers[workerid].status = STATUS_WAKING_UP;
 		STARPU_PTHREAD_COND_SIGNAL(cond);
-		success = 1;
+		return 1;
 	}
+	return 0;
+}
+
+int starpu_wakeup_worker(int workerid, starpu_pthread_cond_t *cond, starpu_pthread_mutex_t *mutex)
+{
+	int success;
+	STARPU_PTHREAD_MUTEX_LOCK(mutex);
+	success = starpu_wakeup_worker_locked(workerid, cond, mutex);
 	STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
 	return success;
+}
+
+int starpu_wake_worker_locked(int workerid)
+{
+	starpu_pthread_mutex_t *sched_mutex;
+	starpu_pthread_cond_t *sched_cond;
+	starpu_worker_get_sched_condition(workerid, &sched_mutex, &sched_cond);
+	return starpu_wakeup_worker_locked(workerid, sched_cond, sched_mutex);
 }
 
 int starpu_wake_worker(int workerid)
@@ -1937,7 +1951,6 @@ int starpu_wake_worker(int workerid)
 	starpu_worker_get_sched_condition(workerid, &sched_mutex, &sched_cond);
 	return starpu_wakeup_worker(workerid, sched_cond, sched_mutex);
 }
-
 
 int starpu_worker_get_nids_by_type(enum starpu_worker_archtype type, int *workerids, int maxsize)
 {

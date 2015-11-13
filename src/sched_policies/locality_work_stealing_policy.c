@@ -221,19 +221,14 @@ static int lws_push_task(struct starpu_task *task)
 
 	STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 
-#ifndef STARPU_NON_BLOCKING_DRIVERS
+#if !defined(STARPU_NON_BLOCKING_DRIVERS) || defined(STARPU_SIMGRID)
 	/* TODO: implement fine-grain signaling, similar to what eager does */
 	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 	struct starpu_sched_ctx_iterator it;
-	unsigned worker;
 
 	workers->init_iterator(workers, &it);
 	while(workers->has_next(workers, &it))
-	{
-		worker = workers->get_next(workers, &it);
-		starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
-		STARPU_PTHREAD_COND_SIGNAL(sched_cond);
-	}
+		starpu_wake_worker(workers->get_next(workers, &it));
 #endif
 
 
