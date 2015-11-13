@@ -120,6 +120,15 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 	if (is_parallel_task)
 	{
 		STARPU_PTHREAD_BARRIER_WAIT(&j->after_work_barrier);
+#ifdef STARPU_SIMGRID
+		if (rank == 0)
+		{
+			/* Wait for other threads to exit barrier_wait so we
+			 * can safely drop the job structure */
+			MSG_process_sleep(0.0000001);
+			j->after_work_busy_barrier = 0;
+		}
+#else
 		ANNOTATE_HAPPENS_BEFORE(&j->after_work_busy_barrier);
 		(void) STARPU_ATOMIC_ADD(&j->after_work_busy_barrier, -1);
 		if (rank == 0)
@@ -134,6 +143,7 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 			}
 			ANNOTATE_HAPPENS_AFTER(&j->after_work_busy_barrier);
 		}
+#endif
 	}
 
 	if (rank == 0)
