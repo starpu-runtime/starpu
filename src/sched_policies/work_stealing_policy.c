@@ -373,6 +373,7 @@ int ws_push_task(struct starpu_task *task)
 	deque_queue->njobs++;
 	starpu_push_task_end(task);
 
+	workers->init_iterator(workers, &it);
 	while(workers->has_next(workers, &it))
 	{
 		worker = workers->get_next(workers, &it);
