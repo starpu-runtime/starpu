@@ -186,6 +186,12 @@ LIST_TYPE(_starpu_job,
 	starpu_pthread_barrier_t before_work_barrier;
 	starpu_pthread_barrier_t after_work_barrier;
 	unsigned after_work_busy_barrier;
+
+#ifdef STARPU_DEBUG
+	/* Linked-list of all jobs, for debugging */
+	struct _starpu_job *prev_all;
+	struct _starpu_job *next_all;
+#endif
 )
 
 /* Create an internal struct _starpu_job *structure to encapsulate the task. */
@@ -224,6 +230,8 @@ unsigned _starpu_enforce_deps_starting_from_task(struct _starpu_job *j);
 unsigned _starpu_reenforce_task_deps_and_schedule(struct _starpu_job *j);
 #endif
 
+/* Called at the submission of the job */
+void _starpu_handle_job_submission(struct _starpu_job *j);
 /* This function must be called after the execution of a job, this triggers all
  * job's dependencies and perform the callback function if any. */
 void _starpu_handle_job_termination(struct _starpu_job *j);
