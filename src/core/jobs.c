@@ -33,6 +33,12 @@
 /* we need to identify each task to generate the DAG. */
 static unsigned job_cnt = 0;
 
+#ifdef STARPU_DEBUG
+/* List of all jobs, for debugging */
+static struct _starpu_job *all_jobs_list;
+static starpu_pthread_mutex_t all_jobs_list_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
+#endif
+
 void _starpu_exclude_task_from_dag(struct starpu_task *task)
 {
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
@@ -210,6 +216,30 @@ void _starpu_job_set_omp_cleanup_callback(struct _starpu_job *j,
 }
 #endif
 
+void _starpu_handle_job_submission(struct _starpu_job *j)
+{
+	/* Need to atomically set submitted to 1 and check dependencies, since
+	 * this is concucrent with _starpu_notify_cg */
+	j->terminated = 0;
+
+	if (!j->submitted)
+		j->submitted = 1;
+	else
+		j->submitted = 2;
+
+#ifdef STARPU_DEBUG
+	STARPU_PTHREAD_MUTEX_LOCK(&all_jobs_list_mutex);
+	STARPU_ASSERT(!j->next_all);
+	STARPU_ASSERT(!j->prev_all && all_jobs_list != j);
+	if (all_jobs_list)
+		all_jobs_list->prev_all = j;
+	j->next_all = all_jobs_list;
+	j->prev_all = NULL;
+	all_jobs_list = j;
+	STARPU_PTHREAD_MUTEX_UNLOCK(&all_jobs_list_mutex);
+#endif
+}
+
 void _starpu_handle_job_termination(struct _starpu_job *j)
 {
 	struct starpu_task *task = j->task;
@@ -222,6 +252,28 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 		0
 #endif
 		;
+
+#ifdef STARPU_DEBUG
+	STARPU_PTHREAD_MUTEX_LOCK(&all_jobs_list_mutex);
+	if (j->next_all)
+	{
+		STARPU_ASSERT(j->next_all->prev_all == j);
+		j->next_all->prev_all = j->prev_all;
+	}
+	if (j->prev_all)
+	{
+		STARPU_ASSERT(j->prev_all->next_all == j);
+		j->prev_all->next_all = j->next_all;
+	}
+	else
+	{
+		STARPU_ASSERT(all_jobs_list == j);
+		all_jobs_list = j->next_all;
+	}
+	j->next_all = NULL;
+	j->prev_all = NULL;
+	STARPU_PTHREAD_MUTEX_UNLOCK(&all_jobs_list_mutex);
+#endif
 
 	STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 #ifdef STARPU_OPENMP
