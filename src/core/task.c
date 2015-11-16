@@ -291,13 +291,7 @@ int _starpu_submit_job(struct _starpu_job *j)
 
 	STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 
-	/* Need to atomically set submitted to 1 and check dependencies, since
-	 * this is concucrent with _starpu_notify_cg */
-	j->terminated = 0;
-	if (!j->submitted)
-		j->submitted = 1;
-	else
-		j->submitted = 2;
+	_starpu_handle_job_submission(j);
 
 	int ret = _starpu_enforce_deps_and_schedule(j);
 
@@ -616,7 +610,7 @@ int _starpu_task_submit_nodeps(struct starpu_task *task)
 	_starpu_increment_nsubmitted_tasks_of_sched_ctx(j->task->sched_ctx);
 	STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 
-	j->submitted = 1;
+	_starpu_handle_job_submission(j);
 
 	if (task->cl)
 	{
@@ -684,7 +678,7 @@ int _starpu_task_submit_conversion_task(struct starpu_task *task,
 
 	_starpu_increment_nsubmitted_tasks_of_sched_ctx(j->task->sched_ctx);
 	STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
-	j->submitted = 1;
+	_starpu_handle_job_submission(j);
 	_starpu_increment_nready_tasks_of_sched_ctx(j->task->sched_ctx, j->task->flops);
 	for (i=0 ; i<task->cl->nbuffers ; i++)
 	{
