@@ -25,8 +25,6 @@ static void initialize_eager_center_policy(unsigned sched_ctx_id)
 	struct starpu_sched_tree *t;
 	struct starpu_sched_component * eager_component;
 
-	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
-
 	t = starpu_sched_tree_create(sched_ctx_id);
  	t->root = starpu_sched_component_fifo_create(t, NULL);
 	eager_component = starpu_sched_component_eager_create(t, NULL);
@@ -45,7 +43,6 @@ static void deinitialize_eager_center_policy(unsigned sched_ctx_id)
 {
 	struct starpu_sched_tree *tree = (struct starpu_sched_tree*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	starpu_sched_tree_destroy(tree);
-	starpu_sched_ctx_delete_worker_collection(sched_ctx_id);
 }
 
 struct starpu_sched_policy _starpu_sched_modular_eager_policy =
@@ -60,5 +57,6 @@ struct starpu_sched_policy _starpu_sched_modular_eager_policy =
 	.post_exec_hook = starpu_sched_component_worker_post_exec_hook,
 	.pop_every_task = NULL,
 	.policy_name = "modular-eager",
-	.policy_description = "eager modular policy"
+	.policy_description = "eager modular policy",
+	.worker_type = STARPU_WORKER_LIST,
 };

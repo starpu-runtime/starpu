@@ -83,7 +83,6 @@ static void _starpu_destroy_priority_taskq(struct _starpu_priority_taskq *priori
 
 static void initialize_eager_center_priority_policy(unsigned sched_ctx_id)
 {
-	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
 	struct _starpu_eager_central_prio_data *data = (struct _starpu_eager_central_prio_data*)malloc(sizeof(struct _starpu_eager_central_prio_data));
 
 	/* In this policy, we support more than two levels of priority. */
@@ -114,7 +113,6 @@ static void deinitialize_eager_center_priority_policy(unsigned sched_ctx_id)
 	_starpu_destroy_priority_taskq(data->taskq);
 	starpu_bitmap_destroy(data->waiters);
 
-	starpu_sched_ctx_delete_worker_collection(sched_ctx_id);
 	STARPU_PTHREAD_MUTEX_DESTROY(&data->policy_mutex);
 	free(data);
 }
@@ -322,5 +320,6 @@ struct starpu_sched_policy _starpu_sched_prio_policy =
 	.post_exec_hook = NULL,
 	.pop_every_task = NULL,
 	.policy_name = "prio",
-	.policy_description = "eager (with priorities)"
+	.policy_description = "eager (with priorities)",
+	.worker_type = STARPU_WORKER_LIST,
 };

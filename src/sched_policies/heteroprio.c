@@ -198,11 +198,6 @@ static inline void default_init_sched(unsigned sched_ctx_id)
 
 static void initialize_heteroprio_policy(unsigned sched_ctx_id)
 {
-#ifdef STARPU_HAVE_HWLOC
-	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_TREE);
-#else
-	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
-#endif
 	/* Alloc the scheduler data  */
 	struct _starpu_heteroprio_data *hp = (struct _starpu_heteroprio_data*)malloc(sizeof(struct _starpu_heteroprio_data));
 	memset(hp, 0, sizeof(*hp));
@@ -288,7 +283,6 @@ static void deinitialize_heteroprio_policy(unsigned sched_ctx_id)
 
 	starpu_bitmap_destroy(hp->waiters);
 
-	starpu_sched_ctx_delete_worker_collection(sched_ctx_id);
 	STARPU_PTHREAD_MUTEX_DESTROY(&hp->policy_mutex);
 	free(hp);
 }
@@ -666,5 +660,10 @@ struct starpu_sched_policy _starpu_sched_heteroprio_policy =
         .post_exec_hook = NULL,
 	.pop_every_task = NULL,
         .policy_name = "heteroprio",
-        .policy_description = "heteroprio"
+        .policy_description = "heteroprio",
+#ifdef STARPU_HAVE_HWLOC
+	.worker_type = STARPU_WORKER_TREE,
+#else
+	.worker_type = STARPU_WORKER_LIST,
+#endif
 };

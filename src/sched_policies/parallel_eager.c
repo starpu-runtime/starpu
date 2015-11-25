@@ -119,8 +119,6 @@ static void peager_remove_workers(unsigned sched_ctx_id, int *workerids, unsigne
 
 static void initialize_peager_policy(unsigned sched_ctx_id)
 {
-	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
-
 	struct _starpu_peager_data *data = (struct _starpu_peager_data*)malloc(sizeof(struct _starpu_peager_data));
 	/* masters pick tasks from that queue */
 	data->fifo = _starpu_create_fifo();
@@ -137,7 +135,6 @@ static void deinitialize_peager_policy(unsigned sched_ctx_id)
 	/* deallocate the job queue */
 	_starpu_destroy_fifo(data->fifo);
 
-	starpu_sched_ctx_delete_worker_collection(sched_ctx_id);
         STARPU_PTHREAD_MUTEX_DESTROY(&data->policy_mutex);
 
 	free(data);
@@ -299,5 +296,6 @@ struct starpu_sched_policy _starpu_sched_peager_policy =
 	.post_exec_hook = NULL,
 	.pop_every_task = NULL,
 	.policy_name = "peager",
-	.policy_description = "parallel eager policy"
+	.policy_description = "parallel eager policy",
+	.worker_type = STARPU_WORKER_LIST,
 };

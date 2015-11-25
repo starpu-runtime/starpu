@@ -188,6 +188,9 @@ void _starpu_init_sched_policy(struct _starpu_machine_config *config, struct _st
 
 	load_sched_policy(selected_policy, sched_ctx);
 
+	starpu_sched_ctx_create_worker_collection(sched_ctx->id,
+						  sched_ctx->sched_policy->worker_type);
+
 	_STARPU_TRACE_WORKER_SCHEDULING_PUSH;
 	sched_ctx->sched_policy->init_sched(sched_ctx->id);
 	_STARPU_TRACE_WORKER_SCHEDULING_POP;
@@ -202,6 +205,7 @@ void _starpu_deinit_sched_policy(struct _starpu_sched_ctx *sched_ctx)
 		policy->deinit_sched(sched_ctx->id);
 		_STARPU_TRACE_WORKER_SCHEDULING_POP;
 	}
+	starpu_sched_ctx_delete_worker_collection(sched_ctx->id);
 }
 
 static void _starpu_push_task_on_specific_worker_notify_sched(struct starpu_task *task, struct _starpu_worker *worker, int workerid, int perf_workerid)

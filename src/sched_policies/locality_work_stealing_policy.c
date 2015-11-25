@@ -322,12 +322,6 @@ static void lws_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned n
 
 static void lws_initialize_policy(unsigned sched_ctx_id)
 {
-#ifdef STARPU_HAVE_HWLOC
-	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_TREE);
-#else
-	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
-#endif
-
 	struct _starpu_lws_data *ws = (struct _starpu_lws_data*)malloc(sizeof(struct _starpu_lws_data));
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)ws);
 
@@ -349,7 +343,6 @@ static void lws_deinit_policy(unsigned sched_ctx_id)
 	free(ws->proxlist);
 #endif
 	free(ws);
-	starpu_sched_ctx_delete_worker_collection(sched_ctx_id);
 }
 
 struct starpu_sched_policy _starpu_sched_lws_policy =
@@ -364,5 +357,10 @@ struct starpu_sched_policy _starpu_sched_lws_policy =
 	.post_exec_hook = NULL,
 	.pop_every_task = NULL,
 	.policy_name = "lws",
-	.policy_description = "locality work stealing"
+	.policy_description = "locality work stealing",
+#ifdef STARPU_HAVE_HWLOC
+	.worker_type = STARPU_WORKER_TREE,
+#else
+	.worker_type = STARPU_WORKER_LIST,
+#endif
 };

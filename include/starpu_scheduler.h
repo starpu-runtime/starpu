@@ -46,6 +46,8 @@ struct starpu_sched_policy
 
 	const char *policy_name;
 	const char *policy_description;
+
+	enum starpu_worker_collection_type worker_type;
 };
 
 struct starpu_sched_policy **starpu_sched_get_predefined_policies();

@@ -35,12 +35,6 @@ struct _starpu_eager_center_policy_data
 
 static void initialize_eager_center_policy(unsigned sched_ctx_id)
 {
-#ifdef STARPU_HAVE_HWLOC
-	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_TREE);
-#else
-	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
-#endif
-
 	struct _starpu_eager_center_policy_data *data = (struct _starpu_eager_center_policy_data*)malloc(sizeof(struct _starpu_eager_center_policy_data));
 
 	_STARPU_DISP("Warning: you are running the default eager scheduler, which is not very smart. Make sure to read the StarPU documentation about adding performance models in order to be able to use the dmda or dmdas scheduler instead.\n");
@@ -68,7 +62,6 @@ static void deinitialize_eager_center_policy(unsigned sched_ctx_id)
 	_starpu_destroy_fifo(data->fifo);
 	starpu_bitmap_destroy(data->waiters);
 
-	starpu_sched_ctx_delete_worker_collection(sched_ctx_id);
 	STARPU_PTHREAD_MUTEX_DESTROY(&data->policy_mutex);
 	free(data);
 }
@@ -225,5 +218,10 @@ struct starpu_sched_policy _starpu_sched_eager_policy =
 	.post_exec_hook = NULL,
 	.pop_every_task = pop_every_task_eager_policy,
 	.policy_name = "eager",
-	.policy_description = "eager policy with a central queue"
+	.policy_description = "eager policy with a central queue",
+#ifdef STARPU_HAVE_HWLOC
+	.worker_type = STARPU_WORKER_TREE,
+#else
+	.worker_type = STARPU_WORKER_LIST,
+#endif
 };

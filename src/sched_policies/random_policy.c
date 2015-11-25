@@ -99,13 +99,11 @@ static int random_push_task(struct starpu_task *task)
 
 static void initialize_random_policy(unsigned sched_ctx_id)
 {
-	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
 	starpu_srand48(time(NULL));
 }
 
 static void deinitialize_random_policy(unsigned sched_ctx_id)
 {
-	starpu_sched_ctx_delete_worker_collection(sched_ctx_id);
 }
 
 struct starpu_sched_policy _starpu_sched_random_policy =
@@ -120,5 +118,6 @@ struct starpu_sched_policy _starpu_sched_random_policy =
 	.post_exec_hook = NULL,
 	.pop_every_task = NULL,
 	.policy_name = "random",
-	.policy_description = "weighted random based on worker overall performance"
+	.policy_description = "weighted random based on worker overall performance",
+	.worker_type = STARPU_WORKER_LIST,
 };

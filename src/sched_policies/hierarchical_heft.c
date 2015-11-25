@@ -14,8 +14,6 @@ static struct  starpu_sched_component_composed_recipe *  recipe_for_worker(enum 
 
 static void initialize_heft_center_policy(unsigned sched_ctx_id)
 {
-	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
-
 	struct starpu_sched_component_specs specs;
 	memset(&specs,0,sizeof(specs));
 
@@ -55,7 +53,6 @@ static void deinitialize_heft_center_policy(unsigned sched_ctx_id)
 	struct starpu_sched_tree *t = (struct starpu_sched_tree*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
 	starpu_sched_tree_destroy(t);
-	starpu_sched_ctx_delete_worker_collection(sched_ctx_id);
 }
 
 
@@ -74,5 +71,6 @@ struct starpu_sched_policy _starpu_sched_tree_heft_hierarchical_policy =
 	.post_exec_hook = NULL,
 	.pop_every_task = NULL,
 	.policy_name = "tree-heft-hierarchical",
-	.policy_description = "hierarchical heft tree policy"
+	.policy_description = "hierarchical heft tree policy",
+	.worker_type = STARPU_WORKER_LIST,
 };

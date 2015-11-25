@@ -35,8 +35,6 @@ struct dummy_sched_data
 
 static void init_dummy_sched(unsigned sched_ctx_id)
 {
-	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
-
 	struct dummy_sched_data *data = (struct dummy_sched_data*)malloc(sizeof(struct dummy_sched_data));
 
 
@@ -54,8 +52,6 @@ static void deinit_dummy_sched(unsigned sched_ctx_id)
 	struct dummy_sched_data *data = (struct dummy_sched_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
 	STARPU_ASSERT(starpu_task_list_empty(&data->sched_list));
-
-	starpu_sched_ctx_delete_worker_collection(sched_ctx_id);
 
 	starpu_pthread_mutex_destroy(&data->policy_mutex);
 
@@ -131,7 +127,8 @@ static struct starpu_sched_policy dummy_sched_policy =
 	.post_exec_hook = NULL,
 	.pop_every_task = NULL,
 	.policy_name = "dummy",
-	.policy_description = "dummy scheduling strategy"
+	.policy_description = "dummy scheduling strategy",
+	.worker_type = STARPU_WORKER_LIST,
 };
 
 void dummy_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE_UNUSED)

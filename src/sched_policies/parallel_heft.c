@@ -547,7 +547,6 @@ static void parallel_heft_add_workers(__attribute__((unused)) unsigned sched_ctx
 
 static void initialize_parallel_heft_policy(unsigned sched_ctx_id)
 {
-	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
 	struct _starpu_pheft_data *hd = (struct _starpu_pheft_data*)malloc(sizeof(struct _starpu_pheft_data));
 
 	if (starpu_sched_ctx_min_priority_is_set(sched_ctx_id) == 0)
@@ -578,7 +577,6 @@ static void initialize_parallel_heft_policy(unsigned sched_ctx_id)
 static void parallel_heft_deinit(unsigned sched_ctx_id)
 {
 	struct _starpu_pheft_data *hd = (struct _starpu_pheft_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-	starpu_sched_ctx_delete_worker_collection(sched_ctx_id);
 	STARPU_PTHREAD_MUTEX_DESTROY(&hd->global_push_mutex);
 	free(hd);
 }
@@ -596,5 +594,6 @@ struct starpu_sched_policy _starpu_sched_parallel_heft_policy =
 	.post_exec_hook = NULL,
 	.pop_every_task = NULL,
 	.policy_name = "pheft",
-	.policy_description = "parallel HEFT"
+	.policy_description = "parallel HEFT",
+	.worker_type = STARPU_WORKER_LIST,
 };

@@ -33,8 +33,6 @@
 
 static void initialize_heft_center_policy(unsigned sched_ctx_id)
 {
-	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
-
 	/* The application may use any integer */
 	if (starpu_sched_ctx_min_priority_is_set(sched_ctx_id) == 0)
 		starpu_sched_ctx_set_min_priority(sched_ctx_id, INT_MIN);
@@ -120,7 +118,6 @@ static void deinitialize_heft_center_policy(unsigned sched_ctx_id)
 {
 	struct starpu_sched_tree *t = (struct starpu_sched_tree*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	starpu_sched_tree_destroy(t);
-	starpu_sched_ctx_delete_worker_collection(sched_ctx_id);
 }
 
 struct starpu_sched_policy _starpu_sched_modular_heft_policy =
@@ -135,5 +132,6 @@ struct starpu_sched_policy _starpu_sched_modular_heft_policy =
 	.post_exec_hook = starpu_sched_component_worker_post_exec_hook,
 	.pop_every_task = NULL,
 	.policy_name = "modular-heft",
-	.policy_description = "heft modular policy"
+	.policy_description = "heft modular policy",
+	.worker_type = STARPU_WORKER_LIST,
 };

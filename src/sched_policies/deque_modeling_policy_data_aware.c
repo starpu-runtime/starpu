@@ -997,8 +997,6 @@ static void dmda_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned 
 
 static void initialize_dmda_policy(unsigned sched_ctx_id)
 {
-	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
-
 	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)malloc(sizeof(struct _starpu_dmda_data));
 
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)dt);
@@ -1052,7 +1050,6 @@ static void deinitialize_dmda_policy(unsigned sched_ctx_id)
 
 	free(dt->queue_array);
 	free(dt);
-	starpu_sched_ctx_delete_worker_collection(sched_ctx_id);
 }
 
 /* dmda_pre_exec_hook is called right after the data transfer is done and right
@@ -1198,7 +1195,8 @@ struct starpu_sched_policy _starpu_sched_dm_policy =
 	.post_exec_hook = dmda_post_exec_hook,
 	.pop_every_task = dmda_pop_every_task,
 	.policy_name = "dm",
-	.policy_description = "performance model"
+	.policy_description = "performance model",
+	.worker_type = STARPU_WORKER_LIST,
 };
 
 struct starpu_sched_policy _starpu_sched_dmda_policy =
@@ -1215,7 +1213,8 @@ struct starpu_sched_policy _starpu_sched_dmda_policy =
 	.post_exec_hook = dmda_post_exec_hook,
 	.pop_every_task = dmda_pop_every_task,
 	.policy_name = "dmda",
-	.policy_description = "data-aware performance model"
+	.policy_description = "data-aware performance model",
+	.worker_type = STARPU_WORKER_LIST,
 };
 
 struct starpu_sched_policy _starpu_sched_dmda_sorted_policy =
@@ -1232,7 +1231,8 @@ struct starpu_sched_policy _starpu_sched_dmda_sorted_policy =
 	.post_exec_hook = dmda_post_exec_hook,
 	.pop_every_task = dmda_pop_every_task,
 	.policy_name = "dmdas",
-	.policy_description = "data-aware performance model (sorted)"
+	.policy_description = "data-aware performance model (sorted)",
+	.worker_type = STARPU_WORKER_LIST,
 };
 
 struct starpu_sched_policy _starpu_sched_dmda_sorted_decision_policy =
@@ -1249,7 +1249,8 @@ struct starpu_sched_policy _starpu_sched_dmda_sorted_decision_policy =
 	.post_exec_hook = dmda_post_exec_hook,
 	.pop_every_task = dmda_pop_every_task,
 	.policy_name = "dmdasd",
-	.policy_description = "data-aware performance model (sorted decision)"
+	.policy_description = "data-aware performance model (sorted decision)",
+	.worker_type = STARPU_WORKER_LIST,
 };
 
 struct starpu_sched_policy _starpu_sched_dmda_ready_policy =
@@ -1266,5 +1267,6 @@ struct starpu_sched_policy _starpu_sched_dmda_ready_policy =
 	.post_exec_hook = dmda_post_exec_hook,
 	.pop_every_task = dmda_pop_every_task,
 	.policy_name = "dmdar",
-	.policy_description = "data-aware performance model (ready)"
+	.policy_description = "data-aware performance model (ready)",
+	.worker_type = STARPU_WORKER_LIST,
 };
