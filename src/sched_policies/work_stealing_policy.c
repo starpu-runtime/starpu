@@ -32,11 +32,9 @@
 struct _starpu_work_stealing_data
 {
 	struct _starpu_deque_jobq **queue_array;
-	unsigned rr_worker;
 	/* keep track of the work performed from the beginning of the algorithm to make
 	 * better decisions about which queue to select when stealing or deferring work
 	 */
-	unsigned performed_total;
 	unsigned last_pop_worker;
 	unsigned last_push_worker;
 };
@@ -275,7 +273,6 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 	if (task)
 	{
 		/* there was a local task */
-		ws->performed_total++;
 		q->nprocessed++;
 		q->njobs--;
 		return task;
@@ -302,7 +299,6 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 	if (task)
 	{
 		_STARPU_TRACE_WORK_STEALING(q, workerid);
-		ws->performed_total++;
 
 		/* Beware : we have to increase the number of processed tasks of
 		 * the stealer, not the victim ! */
@@ -319,7 +315,6 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 		if (task)
 		{
 			/* there was a local task */
-			ws->performed_total++;
 			q->nprocessed++;
 			q->njobs--;
 			return task;
@@ -437,12 +432,6 @@ static void initialize_ws_policy(unsigned sched_ctx_id)
 
 	ws->last_pop_worker = 0;
 	ws->last_push_worker = 0;
-
-	/**
-	 * The first WS_POP_TASK will increase PERFORMED_TOTAL though no task was actually performed yet,
-	 * we need to initialize it at -1.
-	 */
-	ws->performed_total = -1;
 
 	ws->queue_array = (struct _starpu_deque_jobq**)malloc(STARPU_NMAXWORKERS*sizeof(struct _starpu_deque_jobq*));
 }
