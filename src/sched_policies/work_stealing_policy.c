@@ -433,7 +433,8 @@ static void initialize_ws_policy(unsigned sched_ctx_id)
 	ws->last_pop_worker = 0;
 	ws->last_push_worker = 0;
 
-	ws->queue_array = (struct _starpu_deque_jobq**)malloc(STARPU_NMAXWORKERS*sizeof(struct _starpu_deque_jobq*));
+	unsigned nw = starpu_worker_get_count();
+	ws->queue_array = (struct _starpu_deque_jobq**)malloc(nw*sizeof(struct _starpu_deque_jobq*));
 }
 
 static void deinit_ws_policy(unsigned sched_ctx_id)
