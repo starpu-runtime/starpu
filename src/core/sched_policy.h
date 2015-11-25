@@ -80,7 +80,7 @@ extern struct starpu_sched_policy _starpu_sched_modular_random_policy;
 extern struct starpu_sched_policy _starpu_sched_modular_random_prio_policy;
 extern struct starpu_sched_policy _starpu_sched_modular_random_prefetching_policy;
 extern struct starpu_sched_policy _starpu_sched_modular_random_prio_prefetching_policy;
-//extern struct starpu_sched_policy _starpu_sched_modular_ws_policy;
+extern struct starpu_sched_policy _starpu_sched_modular_ws_policy;
 extern struct starpu_sched_policy _starpu_sched_modular_heft_policy;
 extern struct starpu_sched_policy _starpu_sched_modular_heft2_policy;
 #endif // __SCHED_POLICY_H__
