@@ -89,7 +89,6 @@ noinst_HEADERS = 						\
 	core/detect_combined_workers.h				\
 	sched_policies/helper_mct.h				\
 	sched_policies/fifo_queues.h				\
-	sched_policies/deque_queues.h				\
 	sched_policies/stack_queues.h				\
 	datawizard/footprint.h					\
 	datawizard/datawizard.h					\
@@ -201,7 +200,6 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	sched_policies/deque_modeling_policy_data_aware.c	\
 	sched_policies/random_policy.c				\
 	sched_policies/stack_queues.c				\
-	sched_policies/deque_queues.c				\
 	sched_policies/fifo_queues.c				\
 	sched_policies/parallel_heft.c				\
 	sched_policies/parallel_eager.c				\
