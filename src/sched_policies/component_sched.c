@@ -443,7 +443,7 @@ struct starpu_sched_tree * starpu_sched_tree_get(unsigned sched_ctx_id)
 
 
 
-static void starpu_sched_component_add_child(struct starpu_sched_component* component, struct starpu_sched_component * child)
+void starpu_sched_component_add_child(struct starpu_sched_component* component, struct starpu_sched_component * child)
 {
 	STARPU_ASSERT(component && child);
 	STARPU_ASSERT(!starpu_sched_component_is_worker(component));

@@ -97,6 +97,7 @@ void starpu_sched_tree_add_workers(unsigned sched_ctx_id, int *workerids, unsign
 void starpu_sched_tree_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers);
 
 struct starpu_sched_component *starpu_sched_component_create(struct starpu_sched_tree *tree, const char *name);
+void starpu_sched_component_add_child(struct starpu_sched_component* component, struct starpu_sched_component * child);
 void starpu_sched_component_destroy(struct starpu_sched_component *component);
 void starpu_sched_component_destroy_rec(struct starpu_sched_component *component);
 int starpu_sched_component_can_execute_task(struct starpu_sched_component *component, struct starpu_task *task);
