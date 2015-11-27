@@ -278,7 +278,7 @@ int starpu_sched_tree_work_stealing_push_task(struct starpu_task *task)
 void _ws_add_child(struct starpu_sched_component * component, struct starpu_sched_component * child)
 {
 	struct _starpu_work_stealing_data * wsd = component->data;
-	component->add_child(component, child);
+	starpu_sched_component_add_child(component, child);
 	if(wsd->size < component->nchildren)
 	{
 		STARPU_ASSERT(wsd->size == component->nchildren - 1);
