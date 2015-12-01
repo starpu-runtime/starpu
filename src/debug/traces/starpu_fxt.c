@@ -149,7 +149,7 @@ static void task_dump(unsigned long job_id)
 	fprintf(tasks_file, "Tag: %"PRIx64"\n", task->tag);
 	if (task->workerid >= 0)
 		fprintf(tasks_file, "WorkerId: %d\n", task->workerid);
-	if (task->start_time != 0.)
+	if (task->submit_time != 0.)
 		fprintf(tasks_file, "SubmitTime: %f\n", task->submit_time);
 	if (task->start_time != 0.)
 		fprintf(tasks_file, "StartTime: %f\n", task->start_time);
