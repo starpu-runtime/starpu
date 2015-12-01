@@ -219,9 +219,9 @@ int starpu_bitmap_first(struct starpu_bitmap * b)
 
 int starpu_bitmap_has_next(struct starpu_bitmap * b, int e)
 {
-	int nb_long = e / LONG_BIT;
-	int nb_bit = e % LONG_BIT;
-	unsigned long mask = (~0ul) << (nb_bit + 1);
+	int nb_long = (e+1) / LONG_BIT;
+	int nb_bit = (e+1) % LONG_BIT;
+	unsigned long mask = (~0ul) << nb_bit;
 	if(b->bits[nb_long] & mask)
 		return 1;
 	for(nb_long++; nb_long < b->size; nb_long++)
