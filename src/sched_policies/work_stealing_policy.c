@@ -314,27 +314,16 @@ int ws_push_task(struct starpu_task *task)
 
 	int workerid = starpu_worker_get_id();
 
-	unsigned worker = 0;
-	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
-	struct starpu_sched_ctx_iterator it;
-	
-	workers->init_iterator(workers, &it);
-	/* !! C'est ballot de tout locker! */
-	while(workers->has_next(workers, &it))
-	{
-		worker = workers->get_next(workers, &it);
-		starpu_pthread_mutex_t *sched_mutex;
-		starpu_pthread_cond_t *sched_cond;
-		starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
-		STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
-	}
-	
-	
 	/* If the current thread is not a worker but
 	 * the main thread (-1), we find the better one to
 	 * put task on its queue */
 	if (workerid == -1)
 		workerid = select_worker(sched_ctx_id);
+
+	starpu_pthread_mutex_t *sched_mutex;
+	starpu_pthread_cond_t *sched_cond;
+	starpu_worker_get_sched_condition(workerid, &sched_mutex, &sched_cond);
+	STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 
 #ifdef HAVE_AYUDAME_H
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
@@ -349,19 +338,17 @@ int ws_push_task(struct starpu_task *task)
 
 	starpu_push_task_end(task);
 
+	STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
+
+#if !defined(STARPU_NON_BLOCKING_DRIVERS) || defined(STARPU_SIMGRID)
+	/* TODO: implement fine-grain signaling, similar to what eager does */
+	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
+	struct starpu_sched_ctx_iterator it;
+
 	workers->init_iterator(workers, &it);
 	while(workers->has_next(workers, &it))
-	{
-		worker = workers->get_next(workers, &it);
-		starpu_pthread_mutex_t *sched_mutex;
-		starpu_pthread_cond_t *sched_cond;
-		starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
-#if !defined(STARPU_NON_BLOCKING_DRIVERS) || defined(STARPU_SIMGRID)
-		starpu_wakeup_worker_locked(worker, sched_cond, sched_mutex);
+		starpu_wake_worker(workers->get_next(workers, &it));
 #endif
-		STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
-	}
-		
 	return 0;
 }
 
