@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2014  Université Bordeaux
+ * Copyright (C) 2013-2015  Université Bordeaux
  * Copyright (C) 2012 INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -184,7 +184,7 @@ coo_compare(void *a, void *b)
 static void
 display_coo_interface(starpu_data_handle_t handle, FILE *f)
 {
-	struct starpu_coo_interface *coo_interface =
+	struct starpu_coo_interface *coo_interface;
 	coo_interface = (struct starpu_coo_interface *)
 		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
