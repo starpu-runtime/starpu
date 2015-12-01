@@ -183,9 +183,13 @@ char *_starpu_opencl_load_program_binary(const char *filename, size_t *len)
 
 	binary = (char *) malloc(statbuf.st_size);
 	if (!binary)
+	{
+		fclose(fh);
 		return binary;
+	}
 
 	fread(binary, statbuf.st_size, 1, fh);
+	fclose(fh);
 
 	*len = statbuf.st_size;
 	return binary;
