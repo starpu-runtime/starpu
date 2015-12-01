@@ -440,7 +440,8 @@ int _starpu_cuda_driver_init(struct _starpu_worker *args)
 #else
 	/* get the device's name */
 	char devname[128];
-	strncpy(devname, props[devid].name, 128);
+	strncpy(devname, props[devid].name, 127);
+	devname[127] = 0;
 #endif
 
 #if defined(STARPU_HAVE_BUSID) && !defined(STARPU_SIMGRID)
