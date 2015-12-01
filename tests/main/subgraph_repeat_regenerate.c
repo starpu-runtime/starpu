@@ -130,31 +130,23 @@ int main(int argc, char **argv)
 
 	starpu_task_init(&taskA);
 	taskA.cl = &dummy_codelet;
-	taskA.cl_arg = &taskA;
-	taskA.cl_arg_size = sizeof(&taskA);
 	taskA.regenerate = 0; /* this task will be explicitely resubmitted if needed */
 	taskA.handles[0] = check_data;
 
 	starpu_task_init(&taskB);
 	taskB.cl = &dummy_codelet;
-	taskB.cl_arg = &taskB;
-	taskB.cl_arg_size = sizeof(&taskB);
 	taskB.callback_func = callback_task_B;
 	taskB.regenerate = 1;
 	taskB.handles[0] = check_data;
 
 	starpu_task_init(&taskC);
 	taskC.cl = &dummy_codelet;
-	taskC.cl_arg = &taskC;
-	taskC.cl_arg_size = sizeof(&taskC);
 	taskC.callback_func = callback_task_C;
 	taskC.regenerate = 1;
 	taskC.handles[0] = check_data;
 
 	starpu_task_init(&taskD);
 	taskD.cl = &dummy_codelet;
-	taskD.cl_arg = &taskD;
-	taskD.cl_arg_size = sizeof(&taskD);
 	taskD.callback_func = callback_task_D;
 	taskD.regenerate = 1;
 	taskD.handles[0] = check_data;
