@@ -248,9 +248,6 @@ static void lws_add_workers(unsigned sched_ctx_id, int *workerids,unsigned nwork
 		/* Tell helgrid that we are fine with getting outdated values,
 		 * this is just an estimation */
 		STARPU_HG_DISABLE_CHECKING(ws->queue_array[workerid]->ntasks);
-
-		ws->queue_array[workerid]->nprocessed = 0;
-		ws->queue_array[workerid]->ntasks = 0;
 	}
 
 

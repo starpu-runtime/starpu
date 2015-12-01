@@ -381,13 +381,6 @@ static void ws_add_workers(unsigned sched_ctx_id, int *workerids,unsigned nworke
 		/* Tell helgrid that we are fine with getting outdated values,
 		 * this is just an estimation */
 		STARPU_HG_DISABLE_CHECKING(ws->queue_array[workerid]->ntasks);
-
-		/**
-		 * The first WS_POP_TASK will increase NPROCESSED though no task was actually performed yet,
-		 * we need to initialize it at -1.
-		 */
-		ws->queue_array[workerid]->nprocessed = -1;
-		ws->queue_array[workerid]->ntasks = 0;
 	}
 }
 
