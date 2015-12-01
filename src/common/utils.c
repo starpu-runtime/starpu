@@ -144,12 +144,11 @@ int _starpu_ftruncate(FILE *file)
 
 int _starpu_frdlock(FILE *file)
 {
-#if defined(_WIN32) && !defined(__CYGWIN__)
 	int ret;
+#if defined(_WIN32) && !defined(__CYGWIN__)
 	do {
 		ret = _locking(fileno(file), _LK_RLCK, 10);
 	} while (ret == EDEADLOCK);
-	return ret;
 #else
 	struct flock lock = {
 		.l_type = F_RDLCK,
@@ -157,17 +156,20 @@ int _starpu_frdlock(FILE *file)
 		.l_start = 0,
 		.l_len = 0
 	};
-	return fcntl(fileno(file), F_SETLKW, &lock);
+	ret = fcntl(fileno(file), F_SETLKW, &lock);
 #endif
+	STARPU_ASSERT(ret == 0);
+	return ret;
 }
 
 int _starpu_frdunlock(FILE *file)
 {
+	int ret;
 #if defined(_WIN32) && !defined(__CYGWIN__)
 #  ifndef _LK_UNLCK
 #    define _LK_UNLCK _LK_UNLOCK
 #  endif
-	return _locking(fileno(file), _LK_UNLCK, 10);
+	ret = _locking(fileno(file), _LK_UNLCK, 10);
 #else
 	struct flock lock = {
 		.l_type = F_UNLCK,
@@ -175,18 +177,19 @@ int _starpu_frdunlock(FILE *file)
 		.l_start = 0,
 		.l_len = 0
 	};
-	return fcntl(fileno(file), F_SETLKW, &lock);
+	ret = fcntl(fileno(file), F_SETLKW, &lock);
 #endif
+	STARPU_ASSERT(ret == 0);
+	return ret;
 }
 
 int _starpu_fwrlock(FILE *file)
 {
-#if defined(_WIN32) && !defined(__CYGWIN__)
 	int ret;
+#if defined(_WIN32) && !defined(__CYGWIN__)
 	do {
 		ret = _locking(fileno(file), _LK_LOCK, 10);
 	} while (ret == EDEADLOCK);
-	return ret;
 #else
 	struct flock lock = {
 		.l_type = F_WRLCK,
@@ -194,8 +197,10 @@ int _starpu_fwrlock(FILE *file)
 		.l_start = 0,
 		.l_len = 0
 	};
-	return fcntl(fileno(file), F_SETLKW, &lock);
+	ret = fcntl(fileno(file), F_SETLKW, &lock);
 #endif
+	STARPU_ASSERT(ret == 0);
+	return ret;
 }
 
 int _starpu_fwrunlock(FILE *file)
