@@ -34,6 +34,8 @@
 
 struct _starpu_work_stealing_data
 {
+	unsigned (*select_victim)(unsigned, int);
+
 	struct _starpu_fifo_taskq **queue_array;
 	/* keep track of the work performed from the beginning of the algorithm to make
 	 * better decisions about which queue to select when stealing or deferring work
@@ -230,7 +232,8 @@ static unsigned select_worker_overload(unsigned sched_ctx_id)
  * This is a phony function used to call the right
  * function depending on the value of USE_OVERLOAD.
  */
-static inline unsigned select_victim(unsigned sched_ctx_id)
+static inline unsigned select_victim(unsigned sched_ctx_id,
+				     int workerid STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef USE_OVERLOAD
 	return select_victim_overload(sched_ctx_id);
@@ -279,7 +282,7 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
        
 
 	/* we need to steal someone's job */
-	unsigned victim = select_victim(sched_ctx_id);
+	unsigned victim = ws->select_victim(sched_ctx_id, workerid);
 
 	starpu_pthread_mutex_t *victim_sched_mutex;
 	starpu_pthread_cond_t *victim_sched_cond;
@@ -395,6 +398,7 @@ static void initialize_ws_policy(unsigned sched_ctx_id)
 
 	ws->last_pop_worker = 0;
 	ws->last_push_worker = 0;
+	ws->select_victim = select_victim;
 
 	unsigned nw = starpu_worker_get_count();
 	ws->queue_array = (struct _starpu_fifo_taskq**)malloc(nw*sizeof(struct _starpu_fifo_taskq*));
