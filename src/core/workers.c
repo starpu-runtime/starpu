@@ -474,6 +474,7 @@ static unsigned _starpu_may_launch_driver(struct starpu_conf *conf,
 		case STARPU_CPU_WORKER:
 			if (d->id.cpu_id == conf->not_launched_drivers[i].id.cpu_id)
 				return 0;
+			break;
 		case STARPU_CUDA_WORKER:
 			if (d->id.cuda_id == conf->not_launched_drivers[i].id.cuda_id)
 				return 0;
