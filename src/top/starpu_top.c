@@ -112,6 +112,7 @@ static void starpu_top_get_device_type(int id, char* type)
 		strncpy(type, "SCC", 9);
 		break;
 	}
+	type[9] = 0;
 }
 
 static void starpu_top_send_devices_info(void)
