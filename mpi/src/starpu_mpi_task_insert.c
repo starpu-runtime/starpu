@@ -236,6 +236,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 				if (ret == -EINVAL)
 				{
 					free(descrs);
+					va_end(varg_list_copy);
 					return ret;
 				}
 			}
@@ -263,6 +264,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 					if (ret == -EINVAL)
 					{
 						free(descrs);
+						va_end(varg_list_copy);
 						return ret;
 					}
 				}
@@ -291,6 +293,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 					if (ret == -EINVAL)
 					{
 						free(descrs);
+						va_end(varg_list_copy);
 						return ret;
 					}
 				}
