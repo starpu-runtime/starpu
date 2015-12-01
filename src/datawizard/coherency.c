@@ -930,7 +930,7 @@ int _starpu_fetch_task_input(struct _starpu_job *j)
 			node = local_memory_node;
 		if (mode == STARPU_NONE ||
 			(mode & ((1<<STARPU_MODE_SHIFT) - 1)) >= STARPU_ACCESS_MODE_MAX ||
-			(mode >> STARPU_MODE_SHIFT) >= STARPU_SHIFTED_MODE_MAX)
+			(mode >> STARPU_MODE_SHIFT) >= (STARPU_SHIFTED_MODE_MAX >> STARPU_MODE_SHIFT))
 			STARPU_ASSERT_MSG(0, "mode %d (0x%x) is bogus\n", mode, mode);
 
 		struct _starpu_data_replicate *local_replicate;
@@ -1128,7 +1128,7 @@ void _starpu_fetch_nowhere_task_input(struct _starpu_job *j)
 
 		if (mode == STARPU_NONE ||
 			(mode & ((1<<STARPU_MODE_SHIFT) - 1)) >= STARPU_ACCESS_MODE_MAX ||
-			(mode >> STARPU_MODE_SHIFT) >= STARPU_SHIFTED_MODE_MAX)
+			(mode >> STARPU_MODE_SHIFT) >= (STARPU_SHIFTED_MODE_MAX >> STARPU_MODE_SHIFT))
 			STARPU_ASSERT_MSG(0, "mode %d (0x%x) is bogus\n", mode, mode);
 		STARPU_ASSERT(mode != STARPU_SCRATCH && mode != STARPU_REDUX);
 
