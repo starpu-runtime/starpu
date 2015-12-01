@@ -864,17 +864,20 @@ void starpu_bound_print_mps(FILE *output)
 		return;
 	}
 
-	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
-
 	nw = starpu_worker_get_count();
 	if (!nw)
 		/* Make llvm happy about the VLA below */
 		return;
+
+	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	nt = 0;
 	for (tp = task_pools; tp; tp = tp->next)
 		nt++;
 	if (!nt)
+	{
+		STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 		return;
+	}
 
 	{
 		double times[nw*nt];
