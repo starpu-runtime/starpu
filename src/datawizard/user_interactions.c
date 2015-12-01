@@ -488,9 +488,9 @@ static void _starpu_data_wont_use(void *data)
 	}
 	for (worker = 0; worker < nworkers; worker++)
 	{
-		struct _starpu_data_replicate *local = &handle->per_worker[node];
+		struct _starpu_data_replicate *local = &handle->per_worker[worker];
 		if (local->allocated && local->automatically_allocated)
-			_starpu_memchunk_wont_use(local->mc, node);
+			_starpu_memchunk_wont_use(local->mc, starpu_worker_get_memory_node(worker));
 	}
 	_starpu_spin_unlock(&handle->header_lock);
 	starpu_data_release_on_node(handle, -1);
