@@ -148,7 +148,7 @@ void starpu_perfmodel_print(struct starpu_perfmodel *model, enum starpu_perfmode
 		if (strcmp(parameter, "path-file-debug") == 0)
 		{
 			char debugname[256];
-			starpu_perfmodel_debugfilepath(model, arch, debugname, 1024, nimpl);
+			starpu_perfmodel_debugfilepath(model, arch, debugname, 256, nimpl);
 			printf("%s\n", debugname);
 			return;
 		}
