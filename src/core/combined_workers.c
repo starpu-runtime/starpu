@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2014  Université de Bordeaux
+ * Copyright (C) 2010-2015  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2014  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -67,6 +67,10 @@ int starpu_combined_worker_assign_workerid(int nworkers, int workerid_array[])
 	{
 		int id = workerid_array[i];
 
+		/* We only combine valid "basic" workers */
+		if ((id < 0) || (id >= basic_worker_count))
+			return -EINVAL;
+
 #ifdef STARPU_USE_MIC
 		STARPU_ASSERT(config->workers[id].arch == STARPU_CPU_WORKER || config->workers[id].arch == STARPU_MIC_WORKER);
 		STARPU_ASSERT(config->workers[id].worker_mask == STARPU_CPU || config->workers[id].worker_mask == STARPU_MIC);
@@ -75,10 +79,6 @@ int starpu_combined_worker_assign_workerid(int nworkers, int workerid_array[])
 		STARPU_ASSERT(config->workers[id].arch == STARPU_CPU_WORKER);
 		STARPU_ASSERT(config->workers[id].worker_mask == STARPU_CPU);
 #endif /* STARPU_USE_MIC */
-
-		/* We only combine valid "basic" workers */
-		if ((id < 0) || (id >= basic_worker_count))
-			return -EINVAL;
 	}
 
 	/* Get an id for that combined worker. Note that this is not thread
