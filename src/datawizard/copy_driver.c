@@ -718,6 +718,7 @@ void _starpu_driver_wait_request_completion(struct _starpu_async_channel *async_
 #endif
 	case STARPU_MAIN_RAM:
 		starpu_disk_wait_request(async_channel);
+		break;
 	case STARPU_CPU_RAM:
 	default:
 		STARPU_ABORT();
