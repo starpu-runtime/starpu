@@ -62,16 +62,12 @@ static unsigned select_victim_round_robin(unsigned sched_ctx_id)
 	unsigned worker = ws->last_pop_worker;
 	unsigned nworkers = starpu_sched_ctx_get_nworkers(sched_ctx_id);
 
-	starpu_pthread_mutex_t *victim_sched_mutex;
-	starpu_pthread_cond_t *victim_sched_cond;
-
 	/* If the worker's queue is empty, let's try
 	 * the next ones */
 	while (1)
 	{
 		unsigned ntasks;
 
-		starpu_worker_get_sched_condition(worker, &victim_sched_mutex, &victim_sched_cond);
 		/* Here helgrind would shout that this is unprotected, but we
 		 * are fine with getting outdated values, this is just an
 		 * estimation */
