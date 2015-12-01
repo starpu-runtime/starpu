@@ -140,6 +140,12 @@ int starpu_mpi_gather_detached(starpu_data_handle_t *data_handles, int count, in
 		}
 	}
 
+	if (!callback_arg->count)
+	{
+		free(callback_arg);
+		return 0;
+	}
+
 	for(x = 0; x < count ; x++)
 	{
 		if (data_handles[x])
