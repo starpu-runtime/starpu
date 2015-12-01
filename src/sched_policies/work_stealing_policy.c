@@ -37,6 +37,7 @@ struct _starpu_work_stealing_data
 	unsigned (*select_victim)(unsigned, int);
 
 	struct _starpu_fifo_taskq **queue_array;
+	int **proxlist;
 	/* keep track of the work performed from the beginning of the algorithm to make
 	 * better decisions about which queue to select when stealing or deferring work
 	 */
@@ -388,6 +389,8 @@ static void ws_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned nw
 	{
 		workerid = workerids[i];
 		_starpu_destroy_fifo(ws->queue_array[workerid]);
+		if (ws->proxlist)
+			free(ws->proxlist[workerid]);
 	}
 }
 
@@ -398,6 +401,7 @@ static void initialize_ws_policy(unsigned sched_ctx_id)
 
 	ws->last_pop_worker = 0;
 	ws->last_push_worker = 0;
+	ws->proxlist = NULL;
 	ws->select_victim = select_victim;
 
 	unsigned nw = starpu_worker_get_count();
@@ -409,6 +413,7 @@ static void deinit_ws_policy(unsigned sched_ctx_id)
 	struct _starpu_work_stealing_data *ws = (struct _starpu_work_stealing_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
 	free(ws->queue_array);
+	free(ws->proxlist);
         free(ws);
 }
 
@@ -426,4 +431,111 @@ struct starpu_sched_policy _starpu_sched_ws_policy =
 	.policy_name = "ws",
 	.policy_description = "work stealing",
 	.worker_type = STARPU_WORKER_LIST,
+};
+
+/* local work stealing policy */
+/* Return a worker to steal a task from. The worker is selected according to
+ * the proximity list built using the info on te architecture provided by hwloc
+ */
+static unsigned lws_select_victim(unsigned sched_ctx_id, int workerid)
+{
+	struct _starpu_work_stealing_data *ws = (struct _starpu_work_stealing_data *)starpu_sched_ctx_get_policy_data(sched_ctx_id);
+	int nworkers = starpu_sched_ctx_get_nworkers(sched_ctx_id);
+	int neighbor;
+	int i;
+
+	for (i = 0; i < nworkers; i++)
+	{
+		neighbor = ws->proxlist[workerid][i];
+		int ntasks = ws->queue_array[neighbor]->ntasks;
+		if (ntasks)
+			return neighbor;
+	}
+	return workerid;
+}
+
+static void lws_add_workers(unsigned sched_ctx_id, int *workerids,
+			    unsigned nworkers)
+{
+	struct _starpu_work_stealing_data *ws = (struct _starpu_work_stealing_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
+
+	unsigned i;
+	int workerid;
+
+	ws_add_workers(sched_ctx_id, workerids, nworkers);
+
+#ifdef STARPU_HAVE_HWLOC
+	/* Build a proximity list for every worker. It is cheaper to
+	 * build this once and then use it for popping tasks rather
+	 * than traversing the hwloc tree every time a task must be
+	 * stolen */
+	ws->proxlist = (int**)malloc(nworkers*sizeof(int*));
+	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
+	struct starpu_tree *tree = (struct starpu_tree*)workers->workerids;
+	for (i = 0; i < nworkers; i++)
+	{
+		workerid = workerids[i];
+		ws->proxlist[workerid] = (int*)malloc(nworkers*sizeof(int));
+		int bindid;
+
+		struct starpu_tree *neighbour = NULL;
+		struct starpu_sched_ctx_iterator it;
+
+		workers->init_iterator(workers, &it);
+
+		bindid   = starpu_worker_get_bindid(workerid);
+		it.value = starpu_tree_get(tree, bindid);
+		int cnt = 0;
+		for(;;)
+		{
+			neighbour = (struct starpu_tree*)it.value;
+			int neigh_workerids[STARPU_NMAXWORKERS];
+			int neigh_nworkers = starpu_worker_get_workerids(neighbour->id, neigh_workerids);
+			int w;
+			for(w = 0; w < neigh_nworkers; w++)
+			{
+				if(!it.visited[neigh_workerids[w]] && workers->present[neigh_workerids[w]])
+				{
+					ws->proxlist[workerid][cnt++] = neigh_workerids[w];
+					it.visited[neigh_workerids[w]] = 1;
+				}
+			}
+			if(!workers->has_next(workers, &it))
+				break;
+			it.value = it.possible_value;
+			it.possible_value = NULL;
+		}
+	}
+#endif
+}
+
+static void initialize_lws_policy(unsigned sched_ctx_id)
+{
+	/* lws is loosely based on ws, except that it might use hwloc. */
+	initialize_ws_policy(sched_ctx_id);
+
+#ifdef STARPU_HAVE_HWLOC
+	struct _starpu_work_stealing_data *ws = (struct _starpu_work_stealing_data *)starpu_sched_ctx_get_policy_data(sched_ctx_id);
+	ws->select_victim = lws_select_victim;
+#endif
+}
+
+struct starpu_sched_policy _starpu_sched_lws_policy =
+{
+	.init_sched = initialize_lws_policy,
+	.deinit_sched = deinit_ws_policy,
+	.add_workers = lws_add_workers,
+	.remove_workers = ws_remove_workers,
+	.push_task = ws_push_task,
+	.pop_task = ws_pop_task,
+	.pre_exec_hook = NULL,
+	.post_exec_hook = NULL,
+	.pop_every_task = NULL,
+	.policy_name = "lws",
+	.policy_description = "locality work stealing",
+#ifdef STARPU_HAVE_HWLOC
+	.worker_type = STARPU_WORKER_TREE,
+#else
+	.worker_type = STARPU_WORKER_LIST,
+#endif
 };
