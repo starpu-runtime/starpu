@@ -22,6 +22,9 @@ New features:
   * Add asynchronous partition planning. It only supports coherency through
     the home node of data for now.
 
+Small features:
+  * Add configure option to disable fortran --disable-fortran
+
 Small changes:
   * Update starpu_task_build() to set starpu_task::cl_arg_free to 1 if
     some arguments of type ::STARPU_VALUE are given.
