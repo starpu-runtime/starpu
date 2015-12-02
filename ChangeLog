@@ -186,6 +186,10 @@ Small changes:
   * Update starpu_task_build() to set starpu_task::cl_arg_free to 1 if
     some arguments of type ::STARPU_VALUE are given.
   * Simplify performance model loading API
+  * Better semantic for environment variables STARPU_NMIC and
+    STARPU_NMICDEVS, the number of devices and the number of cores.
+    STARPU_NMIC will be the number of devices, and STARPU_NMICCORES
+    will be the number of cores per device.
 
 StarPU 1.1.5 (svn revision xxx)
 ==============================================
