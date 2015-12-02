@@ -1629,7 +1629,7 @@ static void handle_tag_done(struct fxt_ev_64 *ev, struct starpu_fxt_options *opt
 	}
 	else
 	{
-		colour= (worker < 0)?"0.0,0.0,0.0":get_worker_color(worker);
+		colour= (worker < 0)?"white":get_worker_color(worker);
 	}
 
 	_starpu_fxt_dag_set_tag_done(tag_id, colour);
