@@ -183,6 +183,7 @@ Small changes:
     starpu_fxt_trace_user_event()
   * Update starpu_task_build() to set starpu_task::cl_arg_free to 1 if
     some arguments of type ::STARPU_VALUE are given.
+  * Simplify performance model loading API
 
 StarPU 1.1.5 (svn revision xxx)
 ==============================================

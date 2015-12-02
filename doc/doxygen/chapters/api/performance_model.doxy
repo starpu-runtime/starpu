@@ -213,6 +213,11 @@ management. It should only be called by an application which is not
 calling starpu_shutdown as this function already calls it. See for
 example <c>tools/starpu_perfmodel_display.c</c>.
 
+\fn int starpu_perfmodel_load_file(const char *filename, struct starpu_perfmodel *model)
+\ingroup API_Performance_Model
+loads the performance model found in the given file. The model structure has to be
+completely zero, and will be filled with the information stored in the given file.
+
 \fn int starpu_perfmodel_load_symbol(const char *symbol, struct starpu_perfmodel *model)
 \ingroup API_Performance_Model
 loads a given performance model. The model structure has to be
