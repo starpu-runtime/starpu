@@ -1894,64 +1894,9 @@ unsigned _starpu_sched_ctx_last_worker_awake(struct _starpu_worker *worker)
 	return 0;
 }
 
-void starpu_sched_ctx_bind_current_thread_to_cpuid(unsigned cpuid STARPU_ATTRIBUTE_UNUSED)
+void starpu_sched_ctx_bind_current_thread_to_cpuid(unsigned cpuid)
 {
-#ifdef STARPU_SIMGRID
-	return;
-#else
-	struct _starpu_machine_config *config = _starpu_get_machine_config();
-
-	/* FIXME: why not factorize with _starpu_bind_thread_on_cpu? */
-
-	if (nobind > 0)
-		return;
-
-#ifdef STARPU_HAVE_HWLOC
-	const struct hwloc_topology_support *support = hwloc_topology_get_support (config->topology.hwtopology);
-	if (support->cpubind->set_thisthread_cpubind)
-	{
-		hwloc_obj_t obj = hwloc_get_obj_by_depth (config->topology.hwtopology,
-							  config->pu_depth, cpuid);
-		hwloc_bitmap_t set = obj->cpuset;
-		int ret;
-
-		hwloc_bitmap_singlify(set);
-		ret = hwloc_set_cpubind (config->topology.hwtopology, set,
-					 HWLOC_CPUBIND_THREAD);
-		if (ret)
-		{
-			perror("hwloc_set_cpubind");
-			STARPU_ABORT();
-		}
-	}
-
-#elif defined(HAVE_PTHREAD_SETAFFINITY_NP) && defined(__linux__)
-	int ret;
-	/* fix the thread on the correct cpu */
-	cpu_set_t aff_mask;
-	CPU_ZERO(&aff_mask);
-	CPU_SET(cpuid, &aff_mask);
-
-	starpu_pthread_t self = pthread_self();
-
-	ret = pthread_setaffinity_np(self, sizeof(aff_mask), &aff_mask);
-	if (ret)
-	{
-		perror("binding thread");
-		STARPU_ABORT();
-	}
-
-#elif defined(_WIN32)
-	DWORD mask = 1 << cpuid;
-	if (!SetThreadAffinityMask(GetCurrentThread(), mask))
-	{
-		_STARPU_ERROR("SetThreadMaskAffinity(%lx) failed\n", mask);
-	}
-#else
-#warning no CPU binding support
-#endif
-#endif
-
+	_starpu_bind_thread_on_cpu(_starpu_get_machine_config(), cpuid);
 }
 
 unsigned starpu_sched_ctx_worker_is_master_for_child_ctx(int workerid, unsigned sched_ctx_id)
