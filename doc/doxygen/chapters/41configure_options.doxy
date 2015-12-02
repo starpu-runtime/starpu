@@ -531,6 +531,13 @@ Disable the build of tests.
 Disable the build of examples.
 </dd>
 
+<dt>--disable-build-tests</dt>
+<dd>
+\anchor disable-build-tests
+\addindex __configure__--disable-build-tests
+Disable the build of tests.
+</dd>
+
 
 <dt>--enable-sc-hypervisor</dt>
 <dd>

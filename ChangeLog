@@ -167,6 +167,7 @@ Small features:
     used for allocations done by starpu.
   * Add configure option to disable fortran --disable-fortran
   * Add configure option to give path for smpirun executable --with-smpirun
+  * Add configure option to disable the build of tests --disable-build-tests
 
 Changes:
   * Data interfaces (variable, vector, matrix and block) now define
