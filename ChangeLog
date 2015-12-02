@@ -165,6 +165,7 @@ Small features:
   * Add starpu_malloc_on_node_flags, starpu_free_on_node_flags, and
     starpu_malloc_on_node_set_default_flags to control the allocation flags
     used for allocations done by starpu.
+  * Add configure option to disable fortran --disable-fortran
 
 Changes:
   * Data interfaces (variable, vector, matrix and block) now define
