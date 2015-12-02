@@ -87,14 +87,14 @@ void _starpu_fxt_dag_add_task_deps(unsigned long dep_prev, unsigned long dep_suc
 void _starpu_fxt_dag_set_tag_done(uint64_t tag, const char *color)
 {
 	if (out_file)
-		fprintf(out_file, "\t \"tag_%llx\" [ style=filled, color=\"%s\"]\n",
+		fprintf(out_file, "\t \"tag_%llx\" [ style=filled, fillcolor=\"%s\"]\n",
 			(unsigned long long)tag, color);
 }
 
 void _starpu_fxt_dag_set_task_done(unsigned long job_id, const char *label, const char *color)
 {
 	if (out_file)
-		fprintf(out_file, "\t \"task_%lu\" [ style=filled, label=\"%s\", color=\"%s\"]\n", job_id, label, color);
+		fprintf(out_file, "\t \"task_%lu\" [ style=filled, label=\"%s\", fillcolor=\"%s\"]\n", job_id, label, color);
 }
 
 void _starpu_fxt_dag_add_sync_point(void)
