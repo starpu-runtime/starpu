@@ -28,6 +28,7 @@ Small features:
 Small changes:
   * Update starpu_task_build() to set starpu_task::cl_arg_free to 1 if
     some arguments of type ::STARPU_VALUE are given.
+  * Simplify performance model loading API
 
 StarPU 1.2.0rc4 (svn revision 15946)
 ==============================================
