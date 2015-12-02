@@ -166,6 +166,7 @@ Small features:
     starpu_malloc_on_node_set_default_flags to control the allocation flags
     used for allocations done by starpu.
   * Add configure option to disable fortran --disable-fortran
+  * Add configure option to give path for smpirun executable --with-smpirun
 
 Changes:
   * Data interfaces (variable, vector, matrix and block) now define

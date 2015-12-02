@@ -588,6 +588,13 @@ Similar to the option \ref enable-simgrid "--enable-simgrid" but also
 allows to specify the location to the SimGrid lib directory.
 </dd>
 
+<dt>--with-smpirun=<c>path</c></dt>
+<dd>
+\anchor with-smpirun
+\addindex __configure__--with-smpirun
+Use the smpirun at <c>path</c>
+</dd>
+
 <dt>--enable-calibration-heuristic</dt>
 <dd>
 \anchor enable-calibration-heuristic
