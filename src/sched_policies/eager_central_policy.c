@@ -54,12 +54,13 @@ static void initialize_eager_center_policy(unsigned sched_ctx_id)
 
 static void deinitialize_eager_center_policy(unsigned sched_ctx_id)
 {
-	/* TODO check that there is no task left in the queue */
-
 	struct _starpu_eager_center_policy_data *data = (struct _starpu_eager_center_policy_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
+	struct _starpu_fifo_taskq *fifo = data->fifo;
+
+	STARPU_ASSERT(starpu_task_list_empty(&fifo->taskq));
 
 	/* deallocate the job queue */
-	_starpu_destroy_fifo(data->fifo);
+	_starpu_destroy_fifo(fifo);
 	starpu_bitmap_destroy(data->waiters);
 
 	STARPU_PTHREAD_MUTEX_DESTROY(&data->policy_mutex);
