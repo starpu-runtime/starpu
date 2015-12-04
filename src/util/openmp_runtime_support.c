@@ -1302,22 +1302,10 @@ int starpu_omp_master_inline(void)
 
 void starpu_omp_single(void (*f)(void *arg), void *arg, int nowait)
 {
-	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
-	/* Assume singles are performed in by the implicit tasks of a region */
-	STARPU_ASSERT(task->is_implicit);
-	struct starpu_omp_region *region = task->owner_region;
-	int first = STARPU_BOOL_COMPARE_AND_SWAP(&region->single_id, task->single_id, task->single_id+1);
-	task->single_id++;
-
-	if (first)
-	{
+	if (starpu_omp_single_inline())
 		f(arg);
-	}
-
 	if (!nowait)
-	{
 		starpu_omp_barrier();
-	}
 }
 
 /* variant of omp_single for inlined code
@@ -1339,11 +1327,9 @@ int starpu_omp_single_inline(void)
 void starpu_omp_single_copyprivate(void (*f)(void *arg, void *data, unsigned long long data_size), void *arg, void *data, unsigned long long data_size)
 {
 	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
-	/* Assume singles are performed in by the implicit tasks of a region */
-	STARPU_ASSERT(task->is_implicit);
 	struct starpu_omp_region *region = task->owner_region;
-	int first = STARPU_BOOL_COMPARE_AND_SWAP(&region->single_id, task->single_id, task->single_id+1);
-	task->single_id++;
+	int first = starpu_omp_single_inline();
+
 	if (first)
 	{
 		region->copy_private_data = data;
@@ -1351,30 +1337,25 @@ void starpu_omp_single_copyprivate(void (*f)(void *arg, void *data, unsigned lon
 	}
 	starpu_omp_barrier();
 	if (!first)
-	{
 		memcpy(data, region->copy_private_data, data_size);
-	}
 	starpu_omp_barrier();
 }
 
 void *starpu_omp_single_copyprivate_inline_begin(void *data)
 {
 	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
-	/* Assume singles are performed in by the implicit tasks of a region */
-	STARPU_ASSERT(task->is_implicit);
 	struct starpu_omp_region *region = task->owner_region;
-	int first = STARPU_BOOL_COMPARE_AND_SWAP(&region->single_id, task->single_id, task->single_id+1);
-	task->single_id++;
+	int first = starpu_omp_single_inline();
+
 	if (first)
 	{
 		task->single_first = 1;
 		region->copy_private_data = data;
+		return NULL;
 	}
-	else
-	{
-		starpu_omp_barrier();
-	}
-	return first?NULL:region->copy_private_data;
+
+	starpu_omp_barrier();
+	return region->copy_private_data;
 }
 
 void starpu_omp_single_copyprivate_inline_end(void)
