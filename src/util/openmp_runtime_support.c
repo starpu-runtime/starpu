@@ -121,7 +121,7 @@ static void condition_exit(struct starpu_omp_condition *condition)
 
 static void condition_wait(struct starpu_omp_condition *condition, struct _starpu_spinlock *lock)
 {
-	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
+	struct starpu_omp_task *task = _starpu_omp_get_task();
 	struct starpu_omp_task_link link;
 	_starpu_spin_lock(&task->lock);
 	task->wait_on |= starpu_omp_task_wait_on_condition;
@@ -403,7 +403,7 @@ static void starpu_omp_implicit_task_entry(struct starpu_omp_task *task)
  */
 static void starpu_omp_task_preempt(void)
 {
-	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
+	struct starpu_omp_task *task = _starpu_omp_get_task();
 	struct starpu_omp_thread *thread = _starpu_omp_get_thread();
 	task->state = starpu_omp_task_state_preempted;
 
@@ -957,7 +957,7 @@ void starpu_omp_shutdown(void)
 void starpu_omp_parallel_region(const struct starpu_omp_parallel_region_attr *attr)
 {
 	struct starpu_omp_thread *master_thread = _starpu_omp_get_thread();
-	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
+	struct starpu_omp_task *task = _starpu_omp_get_task();
 	struct starpu_omp_region *generating_region = task->owner_region;
 	const int max_active_levels = generating_region->owner_device->icvs.max_active_levels_var;
 	struct starpu_omp_region *new_region = 
@@ -1213,7 +1213,7 @@ void starpu_omp_parallel_region(const struct starpu_omp_parallel_region_attr *at
 
 static void wake_up_barrier(struct starpu_omp_region *parallel_region)
 {
-	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
+	struct starpu_omp_task *task = _starpu_omp_get_task();
 	struct starpu_omp_task *implicit_task;
 	for (implicit_task  = starpu_omp_task_list_begin(&parallel_region->implicit_task_list);
 			implicit_task != starpu_omp_task_list_end(&parallel_region->implicit_task_list);
@@ -1230,7 +1230,7 @@ static void wake_up_barrier(struct starpu_omp_region *parallel_region)
 
 void starpu_omp_barrier(void)
 {
-	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
+	struct starpu_omp_task *task = _starpu_omp_get_task();
 	/* Assume barriers are performed in by the implicit tasks of a parallel_region */
 	STARPU_ASSERT(task->is_implicit);
 	struct starpu_omp_region *parallel_region = task->owner_region;
@@ -1291,7 +1291,7 @@ void starpu_omp_master(void (*f)(void *arg), void *arg)
  * return  0 for the tasks that should not perform the master section */
 int starpu_omp_master_inline(void)
 {
-	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
+	struct starpu_omp_task *task = _starpu_omp_get_task();
 	struct starpu_omp_thread *thread = _starpu_omp_get_thread();
 	/* Assume master is performed in by the implicit tasks of a region */
 	STARPU_ASSERT(task->is_implicit);
@@ -1314,7 +1314,7 @@ void starpu_omp_single(void (*f)(void *arg), void *arg, int nowait)
  * wait/nowait should be handled directly by the calling code using starpu_omp_barrier */
 int starpu_omp_single_inline(void)
 {
-	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
+	struct starpu_omp_task *task = _starpu_omp_get_task();
 	/* Assume singles are performed in by the implicit tasks of a region */
 	STARPU_ASSERT(task->is_implicit);
 	struct starpu_omp_region *region = task->owner_region;
@@ -1326,7 +1326,7 @@ int starpu_omp_single_inline(void)
 
 void starpu_omp_single_copyprivate(void (*f)(void *arg, void *data, unsigned long long data_size), void *arg, void *data, unsigned long long data_size)
 {
-	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
+	struct starpu_omp_task *task = _starpu_omp_get_task();
 	struct starpu_omp_region *region = task->owner_region;
 	int first = starpu_omp_single_inline();
 
@@ -1343,7 +1343,7 @@ void starpu_omp_single_copyprivate(void (*f)(void *arg, void *data, unsigned lon
 
 void *starpu_omp_single_copyprivate_inline_begin(void *data)
 {
-	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
+	struct starpu_omp_task *task = _starpu_omp_get_task();
 	struct starpu_omp_region *region = task->owner_region;
 	int first = starpu_omp_single_inline();
 
@@ -1360,7 +1360,7 @@ void *starpu_omp_single_copyprivate_inline_begin(void *data)
 
 void starpu_omp_single_copyprivate_inline_end(void)
 {
-	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
+	struct starpu_omp_task *task = _starpu_omp_get_task();
 	/* Assume singles are performed in by the implicit tasks of a region */
 	STARPU_ASSERT(task->is_implicit);
 	if (task->single_first)
@@ -1380,7 +1380,7 @@ void starpu_omp_critical(void (*f)(void *arg), void *arg, const char *name)
 
 void starpu_omp_critical_inline_begin(const char *name)
 {
-	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
+	struct starpu_omp_task *task = _starpu_omp_get_task();
 	struct starpu_omp_critical *critical = NULL;
 	struct starpu_omp_task_link link;
 
@@ -1477,7 +1477,7 @@ static void explicit_task__destroy_callback(void *_task)
 
 void starpu_omp_task_region(const struct starpu_omp_task_region_attr *attr)
 {
-	struct starpu_omp_task *generating_task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
+	struct starpu_omp_task *generating_task = _starpu_omp_get_task();
 	struct starpu_omp_region *parallel_region = generating_task->owner_region;
 	int is_undeferred = 0;
 	int is_final = 0;
@@ -1654,7 +1654,7 @@ void starpu_omp_task_region(const struct starpu_omp_task_region_attr *attr)
 
 void starpu_omp_taskwait(void)
 {
-	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
+	struct starpu_omp_task *task = _starpu_omp_get_task();
 	_starpu_spin_lock(&task->lock);
 	if (task->child_task_count > 0)
 	{
@@ -1673,7 +1673,7 @@ void starpu_omp_taskwait(void)
 
 void starpu_omp_taskgroup(void (*f)(void *arg), void *arg)
 {
-	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
+	struct starpu_omp_task *task = _starpu_omp_get_task();
 	struct starpu_omp_task_group task_group;
 	task_group.p_previous_task_group = task->task_group;
 	task_group.descendent_task_count = 0;
@@ -1699,7 +1699,7 @@ void starpu_omp_taskgroup(void (*f)(void *arg), void *arg)
 
 void starpu_omp_taskgroup_inline_begin(void)
 {
-	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
+	struct starpu_omp_task *task = _starpu_omp_get_task();
 	struct starpu_omp_task_group *p_task_group = malloc(sizeof(*p_task_group));
 	if (p_task_group == NULL)
 		_STARPU_ERROR("memory allocation failed\n");
@@ -1711,7 +1711,7 @@ void starpu_omp_taskgroup_inline_begin(void)
 
 void starpu_omp_taskgroup_inline_end(void)
 {
-	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
+	struct starpu_omp_task *task = _starpu_omp_get_task();
 	_starpu_spin_lock(&task->lock);
 	struct starpu_omp_task_group *p_task_group = task->task_group;
 	if (p_task_group->descendent_task_count > 0)
@@ -1932,7 +1932,7 @@ static inline void _starpu_omp_for_loop_end(struct starpu_omp_region *parallel_r
 
 int starpu_omp_for_inline_first(unsigned long long nb_iterations, unsigned long long chunk, int schedule, int ordered, unsigned long long *_first_i, unsigned long long *_nb_i)
 {
-	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
+	struct starpu_omp_task *task = _starpu_omp_get_task();
 	struct starpu_omp_region *parallel_region = task->owner_region;
 	struct starpu_omp_loop *loop = _starpu_omp_for_loop_begin(parallel_region, task, ordered);
 
@@ -1946,7 +1946,7 @@ int starpu_omp_for_inline_first(unsigned long long nb_iterations, unsigned long 
 
 int starpu_omp_for_inline_next(unsigned long long nb_iterations, unsigned long long chunk, int schedule, int ordered, unsigned long long *_first_i, unsigned long long *_nb_i)
 {
-	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
+	struct starpu_omp_task *task = _starpu_omp_get_task();
 	struct starpu_omp_region *parallel_region = task->owner_region;
 	struct starpu_omp_loop *loop = _starpu_omp_for_loop_begin(parallel_region, task, ordered);
 
@@ -2019,7 +2019,7 @@ void starpu_omp_ordered(void (*f)(void *arg), void *arg)
 
 void starpu_omp_ordered_inline_begin(void)
 {
-	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
+	struct starpu_omp_task *task = _starpu_omp_get_task();
 	struct starpu_omp_region *parallel_region = task->owner_region;
 	struct starpu_omp_loop *loop = _starpu_omp_for_get_loop(parallel_region, task);
 	unsigned long long i;
@@ -2037,7 +2037,7 @@ void starpu_omp_ordered_inline_begin(void)
 
 void starpu_omp_ordered_inline_end(void)
 {
-	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
+	struct starpu_omp_task *task = _starpu_omp_get_task();
 	struct starpu_omp_region *parallel_region = task->owner_region;
 	struct starpu_omp_loop *loop = _starpu_omp_for_get_loop(parallel_region, task);
 
@@ -2099,7 +2099,7 @@ static inline void _starpu_omp_sections_end(struct starpu_omp_region *parallel_r
 
 void starpu_omp_sections(unsigned long long nb_sections, void (**section_f)(void *arg), void **section_arg, int nowait)
 {
-	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
+	struct starpu_omp_task *task = _starpu_omp_get_task();
 	struct starpu_omp_region *parallel_region = task->owner_region;
 	struct starpu_omp_sections *sections = _starpu_omp_sections_begin(parallel_region, task);
 	for (;;)
@@ -2127,7 +2127,7 @@ void starpu_omp_sections(unsigned long long nb_sections, void (**section_f)(void
 
 void starpu_omp_sections_combined(unsigned long long nb_sections, void (*section_f)(unsigned long long section_num, void *arg), void *section_arg, int nowait)
 {
-	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
+	struct starpu_omp_task *task = _starpu_omp_get_task();
 	struct starpu_omp_region *parallel_region = task->owner_region;
 	struct starpu_omp_sections *sections = _starpu_omp_sections_begin(parallel_region, task);
 	for (;;)
