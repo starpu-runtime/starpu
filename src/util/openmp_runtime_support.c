@@ -1373,62 +1373,9 @@ void starpu_omp_single_copyprivate_inline_end(void)
 
 void starpu_omp_critical(void (*f)(void *arg), void *arg, const char *name)
 {
-	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
-	struct starpu_omp_critical *critical = NULL;
-	struct starpu_omp_task_link link;
-
-	if (name)
-	{
-		_starpu_spin_lock(&_global_state.named_criticals_lock);
-		HASH_FIND_STR(_global_state.named_criticals, name, critical);
-		if (critical == NULL)
-		{
-			critical = create_omp_critical_struct();
-			critical->name = name;
-			HASH_ADD_STR(_global_state.named_criticals, name, critical);
-		}
-		_starpu_spin_unlock(&_global_state.named_criticals_lock);
-	}
-	else
-	{
-		critical = _global_state.default_critical;
-	}
-
-	_starpu_spin_lock(&critical->lock);
-	while (critical->state != 0)
-	{
-		_starpu_spin_lock(&task->lock);
-		task->wait_on |= starpu_omp_task_wait_on_critical;
-		task->transaction_pending = 1;
-		link.task = task;
-		link.next = critical->contention_list_head;
-		critical->contention_list_head = &link;
-		_starpu_spin_unlock(&task->lock);
-		_starpu_spin_unlock(&critical->lock);
-		_starpu_task_prepare_for_continuation_ext(0, transaction_callback, task);
-		starpu_omp_task_preempt();
-
-		/* re-acquire the spin lock */
-		_starpu_spin_lock(&critical->lock);
-	}
-	critical->state = 1;
-	_starpu_spin_unlock(&critical->lock);
-
+	starpu_omp_critical_inline_begin(name);
 	f(arg);
-
-	_starpu_spin_lock(&critical->lock);
-	STARPU_ASSERT(critical->state == 1);
-	critical->state = 0;
-	if (critical->contention_list_head != NULL)
-	{
-		struct starpu_omp_task *next_task = critical->contention_list_head->task;
-		weak_task_lock(next_task);
-		critical->contention_list_head = critical->contention_list_head->next;
-		STARPU_ASSERT(next_task->wait_on & starpu_omp_task_wait_on_critical);
-		next_task->wait_on &= ~starpu_omp_task_wait_on_critical;
-		wake_up_and_unlock_task(next_task);
-	}
-	_starpu_spin_unlock(&critical->lock);
+	starpu_omp_critical_inline_end(name);
 }
 
 void starpu_omp_critical_inline_begin(const char *name)
