@@ -198,11 +198,11 @@ static struct starpu_omp_thread *get_local_thread(void)
 		_starpu_spin_unlock(&_global_state.hash_workers_lock);
 
 		if (
-#if STARPU_USE_CUDA
+#ifdef STARPU_USE_CUDA
 				(starpu_worker->arch != STARPU_CUDA_WORKER)
 				&&
 #endif
-#if STARPU_USE_OPENCL
+#ifdef STARPU_USE_OPENCL
 				(starpu_worker->arch != STARPU_OPENCL_WORKER)
 				&&
 #endif
@@ -348,13 +348,13 @@ static void starpu_omp_explicit_task_entry(struct starpu_omp_task *task)
 	{
 		task->cpu_f(task->starpu_buffers, task->starpu_cl_arg);
 	}
-#if STARPU_USE_CUDA
+#ifdef STARPU_USE_CUDA
 	else if (starpu_worker->arch == STARPU_CUDA_WORKER)
 	{
 		task->cuda_f(task->starpu_buffers, task->starpu_cl_arg);
 	}
 #endif
-#if STARPU_USE_OPENCL
+#ifdef STARPU_USE_OPENCL
 	else if (starpu_worker->arch == STARPU_OPENCL_WORKER)
 	{
 		task->opencl_f(task->starpu_buffers, task->starpu_cl_arg);
@@ -562,11 +562,11 @@ static void starpu_omp_explicit_task_exec(void *buffers[], void *cl_arg)
 			if (starpu_worker->arch != STARPU_CPU_WORKER)
 			{
 				if (
-#if STARPU_USE_CUDA
+#ifdef STARPU_USE_CUDA
 						(starpu_worker->arch != STARPU_CUDA_WORKER)
 						&&
 #endif
-#if STARPU_USE_OPENCL
+#ifdef STARPU_USE_OPENCL
 						(starpu_worker->arch != STARPU_OPENCL_WORKER)
 						&&
 #endif
@@ -1577,7 +1577,7 @@ void starpu_omp_task_region(const struct starpu_omp_task_region_attr *attr)
 			 */
 			generated_task->cl.cpu_funcs[0] = starpu_omp_explicit_task_exec;
 		}
-#if STARPU_USE_CUDA
+#ifdef STARPU_USE_CUDA
 		if (generated_task->cl.cuda_funcs[0])
 		{
 			generated_task->cuda_f = generated_task->cl.cuda_funcs[0];
@@ -1591,7 +1591,7 @@ void starpu_omp_task_region(const struct starpu_omp_task_region_attr *attr)
 #endif
 		}
 #endif
-#if STARPU_USE_OPENCL
+#ifdef STARPU_USE_OPENCL
 		if (generated_task->cl.opencl_funcs[0])
 		{
 			generated_task->opencl_f = generated_task->cl.opencl_funcs[0];
