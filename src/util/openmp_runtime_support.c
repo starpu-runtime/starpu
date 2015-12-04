@@ -2012,25 +2012,9 @@ void starpu_omp_for_alt(void (*f)(unsigned long long _begin_i, unsigned long lon
 
 void starpu_omp_ordered(void (*f)(void *arg), void *arg)
 {
-	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
-	struct starpu_omp_region *parallel_region = task->owner_region;
-	struct starpu_omp_loop *loop = _starpu_omp_for_get_loop(parallel_region, task);
-	unsigned long long i;
-
-	STARPU_ASSERT(task->ordered_nb_i > 0);
-	i = task->ordered_first_i;
-	task->ordered_first_i++;
-	task->ordered_nb_i--;
-	_starpu_spin_lock(&loop->ordered_lock);
-	while (i != loop->ordered_iteration)
-	{
-		STARPU_ASSERT(i > loop->ordered_iteration);
-		condition_wait(&loop->ordered_cond, &loop->ordered_lock);
-	}
+	starpu_omp_ordered_inline_begin();
 	f(arg);
-	loop->ordered_iteration++;	
-	condition_broadcast(&loop->ordered_cond);
-	_starpu_spin_unlock(&loop->ordered_lock);
+	starpu_omp_ordered_inline_end();
 }
 
 void starpu_omp_ordered_inline_begin(void)
