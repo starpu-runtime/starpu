@@ -193,9 +193,7 @@ static struct starpu_omp_thread *get_local_thread(void)
 	{
 		struct _starpu_worker *starpu_worker = _starpu_get_local_worker_key();
 		STARPU_ASSERT(starpu_worker != NULL);
-		_starpu_spin_lock(&_global_state.hash_workers_lock);
-		HASH_FIND_PTR(_global_state.hash_workers, &starpu_worker, thread);
-		_starpu_spin_unlock(&_global_state.hash_workers_lock);
+		thread = get_worker_thread(starpu_worker);
 
 		if (
 #ifdef STARPU_USE_CUDA
