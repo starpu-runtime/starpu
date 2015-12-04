@@ -188,7 +188,7 @@ static struct starpu_omp_thread *get_worker_thread(struct _starpu_worker *starpu
 }
 static struct starpu_omp_thread *get_local_thread(void)
 {
-	struct starpu_omp_thread *thread = STARPU_PTHREAD_GETSPECIFIC(omp_thread_key);
+	struct starpu_omp_thread *thread = _starpu_omp_get_thread();
 	if (thread == NULL)
 	{
 		struct _starpu_worker *starpu_worker = _starpu_get_local_worker_key();
@@ -367,7 +367,7 @@ static void starpu_omp_explicit_task_entry(struct starpu_omp_task *task)
 	task->state = starpu_omp_task_state_terminated;
 	task->transaction_pending=1;
 	_starpu_spin_unlock(&task->lock);
-	struct starpu_omp_thread *thread = STARPU_PTHREAD_GETSPECIFIC(omp_thread_key);
+	struct starpu_omp_thread *thread = _starpu_omp_get_thread();
 	/* 
 	 * the task reached the terminated state, definitively give hand back to the worker code.
 	 *
@@ -379,7 +379,7 @@ static void starpu_omp_explicit_task_entry(struct starpu_omp_task *task)
 
 static void starpu_omp_implicit_task_entry(struct starpu_omp_task *task)
 {
-	struct starpu_omp_thread *thread = STARPU_PTHREAD_GETSPECIFIC(omp_thread_key);
+	struct starpu_omp_thread *thread = _starpu_omp_get_thread();
 	STARPU_ASSERT(task->is_implicit);
 	task->cpu_f(task->starpu_buffers, task->starpu_cl_arg);
 	starpu_omp_barrier();
@@ -404,7 +404,7 @@ static void starpu_omp_implicit_task_entry(struct starpu_omp_task *task)
 static void starpu_omp_task_preempt(void)
 {
 	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
-	struct starpu_omp_thread *thread = STARPU_PTHREAD_GETSPECIFIC(omp_thread_key);
+	struct starpu_omp_thread *thread = _starpu_omp_get_thread();
 	task->state = starpu_omp_task_state_preempted;
 
 	/* 
@@ -956,7 +956,7 @@ void starpu_omp_shutdown(void)
 
 void starpu_omp_parallel_region(const struct starpu_omp_parallel_region_attr *attr)
 {
-	struct starpu_omp_thread *master_thread = STARPU_PTHREAD_GETSPECIFIC(omp_thread_key);
+	struct starpu_omp_thread *master_thread = _starpu_omp_get_thread();
 	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
 	struct starpu_omp_region *generating_region = task->owner_region;
 	const int max_active_levels = generating_region->owner_device->icvs.max_active_levels_var;
@@ -1292,7 +1292,7 @@ void starpu_omp_master(void (*f)(void *arg), void *arg)
 int starpu_omp_master_inline(void)
 {
 	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
-	struct starpu_omp_thread *thread = STARPU_PTHREAD_GETSPECIFIC(omp_thread_key);
+	struct starpu_omp_thread *thread = _starpu_omp_get_thread();
 	/* Assume master is performed in by the implicit tasks of a region */
 	STARPU_ASSERT(task->is_implicit);
 	struct starpu_omp_region *region = task->owner_region;
