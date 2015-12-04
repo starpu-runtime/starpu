@@ -1282,16 +1282,8 @@ void starpu_omp_barrier(void)
 
 void starpu_omp_master(void (*f)(void *arg), void *arg)
 {
-	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
-	struct starpu_omp_thread *thread = STARPU_PTHREAD_GETSPECIFIC(omp_thread_key);
-	/* Assume master is performed in by the implicit tasks of a region */
-	STARPU_ASSERT(task->is_implicit);
-	struct starpu_omp_region *region = task->owner_region;
-
-	if (thread == region->master_thread)
-	{
+	if (starpu_omp_master_inline())
 		f(arg);
-	}
 }
 
 /* variant of omp_master for inlined code
