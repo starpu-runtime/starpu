@@ -38,7 +38,6 @@
 static struct starpu_omp_global _global_state;
 static starpu_pthread_key_t omp_thread_key;
 static starpu_pthread_key_t omp_task_key;
-static struct starpu_conf omp_starpu_conf;
 
 struct starpu_omp_global *_starpu_omp_global_state = NULL;
 double _starpu_omp_clock_ref = 0.0; /* clock reference for starpu_omp_get_wtick */
@@ -723,6 +722,7 @@ static void omp_initial_thread_setup(void)
 	 * we configure starpu to not launch CPU worker 0
 	 * because we will use the main thread to play the role of worker 0
 	 */
+	struct starpu_conf omp_starpu_conf;
 	int ret = starpu_conf_init(&omp_starpu_conf);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_conf_init");
 	initial_thread->starpu_driver.type = STARPU_CPU_WORKER;
