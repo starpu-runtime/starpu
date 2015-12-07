@@ -64,10 +64,20 @@ struct starpu_omp_thread *_starpu_omp_get_thread(void)
 	return thread;
 }
 
+static inline void _starpu_omp_set_thread(struct starpu_omp_thread *thread)
+{
+	STARPU_PTHREAD_SETSPECIFIC(omp_thread_key, thread);
+}
+
 struct starpu_omp_task *_starpu_omp_get_task(void)
 {
 	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
 	return task;
+}
+
+static inline void _starpu_omp_set_task(struct starpu_omp_task *task)
+{
+	STARPU_PTHREAD_SETSPECIFIC(omp_task_key, task);
 }
 
 static void weak_task_lock(struct starpu_omp_task *task)
@@ -212,7 +222,7 @@ static struct starpu_omp_thread *get_local_thread(void)
 
 		if (thread != NULL)
 		{
-			STARPU_PTHREAD_SETSPECIFIC(omp_thread_key, thread);
+			_starpu_omp_set_thread(thread);
 		}
 	}
 	return thread;
@@ -317,7 +327,7 @@ static void omp_initial_thread_func(void)
 		if (_starpu_task_test_termination(continuation_starpu_task))
 		{
 			initial_task->nested_region->continuation_starpu_task = NULL;
-			STARPU_PTHREAD_SETSPECIFIC(omp_task_key, initial_task);
+			_starpu_omp_set_task(initial_task);
 			swapcontext(&initial_thread->ctx, &initial_task->ctx);
 		}
 	}
@@ -423,7 +433,7 @@ static void starpu_omp_implicit_task_exec(void *buffers[], void *cl_arg)
 {
 	struct starpu_omp_task *task = starpu_task_get_current()->omp_task;
 	STARPU_ASSERT(task->is_implicit);
-	STARPU_PTHREAD_SETSPECIFIC(omp_task_key, task);
+	_starpu_omp_set_task(task);
 	struct starpu_omp_thread *thread = get_local_thread();
 	if (task->state != starpu_omp_task_state_preempted)
 	{
@@ -457,7 +467,7 @@ static void starpu_omp_implicit_task_exec(void *buffers[], void *cl_arg)
 
 	STARPU_ASSERT(task->state == starpu_omp_task_state_preempted
 			|| task->state == starpu_omp_task_state_terminated);
-	STARPU_PTHREAD_SETSPECIFIC(omp_task_key, NULL);
+	_starpu_omp_set_task(NULL);
 
 	/* TODO: analyse the cause of the return and take appropriate steps */
 	if (task->state == starpu_omp_task_state_terminated)
@@ -552,7 +562,8 @@ static void starpu_omp_explicit_task_exec(void *buffers[], void *cl_arg)
 {
 	struct starpu_omp_task *task = starpu_task_get_current()->omp_task;
 	STARPU_ASSERT(!task->is_implicit);
-	STARPU_PTHREAD_SETSPECIFIC(omp_task_key, task);
+	_starpu_omp_set_task(task);
+
 	struct starpu_omp_thread *thread = get_local_thread();
 	if (task->state != starpu_omp_task_state_preempted)
 	{
@@ -624,7 +635,7 @@ static void starpu_omp_explicit_task_exec(void *buffers[], void *cl_arg)
 
 	STARPU_ASSERT(task->state == starpu_omp_task_state_preempted
 			|| task->state == starpu_omp_task_state_terminated);
-	STARPU_PTHREAD_SETSPECIFIC(omp_task_key, NULL);
+	_starpu_omp_set_task(NULL);
 	/* TODO: analyse the cause of the return and take appropriate steps */
 	if (task->state == starpu_omp_task_state_terminated)
 	{
@@ -723,7 +734,7 @@ static void omp_initial_thread_setup(void)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 	ret = starpu_driver_init(&initial_thread->starpu_driver);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_driver_init");
-	STARPU_PTHREAD_SETSPECIFIC(omp_task_key, initial_task);
+	_starpu_omp_set_task(initial_task);
 
 	_global_state.nb_starpu_cpu_workers = starpu_worker_get_count_by_type(STARPU_CPU_WORKER);
 	_global_state.starpu_cpu_worker_ids = malloc(_global_state.nb_starpu_cpu_workers * sizeof(int));
@@ -734,7 +745,7 @@ static void omp_initial_thread_setup(void)
 	initial_thread->worker = _starpu_get_worker_struct(_global_state.starpu_cpu_worker_ids[0]);
 	STARPU_ASSERT(initial_thread->worker);
 	STARPU_ASSERT(initial_thread->worker->arch == STARPU_CPU_WORKER);
-	STARPU_PTHREAD_SETSPECIFIC(omp_thread_key, initial_thread);
+	_starpu_omp_set_thread(initial_thread);
 	register_thread_worker(initial_thread);
 }
 
