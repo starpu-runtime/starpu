@@ -208,7 +208,7 @@ int starpu_omp_get_active_level (void)
 int starpu_omp_in_final(void)
 {
 	const struct starpu_omp_task *task = _starpu_omp_get_task();
-	return task->is_final;
+	return task->flags & STARPU_OMP_TASK_FLAGS_FINAL;
 }
 
 enum starpu_omp_proc_bind_value starpu_omp_get_proc_bind(void)

@@ -153,7 +153,7 @@ void _starpu_data_register_ram_pointer(starpu_data_handle_t handle, void *ptr)
 	struct starpu_omp_task *task = _starpu_omp_get_task();
 	if (task)
 	{
-		if (task->is_implicit)
+		if (task->flags & STARPU_OMP_TASK_FLAGS_IMPLICIT)
 		{
 			struct starpu_omp_region *parallel_region = task->owner_region;
 			_starpu_spin_lock(&parallel_region->registered_handles_lock);
@@ -182,7 +182,7 @@ starpu_data_handle_t starpu_data_lookup(const void *ptr)
 	struct starpu_omp_task *task = _starpu_omp_get_task();
 	if (task)
 	{
-		if (task->is_implicit)
+		if (task->flags & STARPU_OMP_TASK_FLAGS_IMPLICIT)
 		{
 			struct starpu_omp_region *parallel_region = task->owner_region;
 			_starpu_spin_lock(&parallel_region->registered_handles_lock);
@@ -509,7 +509,7 @@ void _starpu_data_unregister_ram_pointer(starpu_data_handle_t handle)
 		struct starpu_omp_task *task = _starpu_omp_get_task();
 		if (task)
 		{
-			if (task->is_implicit)
+			if (task->flags & STARPU_OMP_TASK_FLAGS_IMPLICIT)
 			{
 				struct starpu_omp_region *parallel_region = task->owner_region;
 				_starpu_spin_lock(&parallel_region->registered_handles_lock);

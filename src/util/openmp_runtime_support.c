@@ -351,7 +351,7 @@ static void destroy_omp_thread_struct(struct starpu_omp_thread *thread)
 
 static void starpu_omp_explicit_task_entry(struct starpu_omp_task *task)
 {
-	STARPU_ASSERT(!task->is_implicit);
+	STARPU_ASSERT(!(task->flags & STARPU_OMP_TASK_FLAGS_IMPLICIT));
 	struct _starpu_worker *starpu_worker = _starpu_get_local_worker_key();
 	if (starpu_worker->arch == STARPU_CPU_WORKER)
 	{
@@ -389,7 +389,7 @@ static void starpu_omp_explicit_task_entry(struct starpu_omp_task *task)
 static void starpu_omp_implicit_task_entry(struct starpu_omp_task *task)
 {
 	struct starpu_omp_thread *thread = _starpu_omp_get_thread();
-	STARPU_ASSERT(task->is_implicit);
+	STARPU_ASSERT(task->flags & STARPU_OMP_TASK_FLAGS_IMPLICIT);
 	task->cpu_f(task->starpu_buffers, task->starpu_cl_arg);
 	starpu_omp_barrier();
 	if (thread == task->owner_region->master_thread)
@@ -431,7 +431,7 @@ static void starpu_omp_task_preempt(void)
 static void starpu_omp_implicit_task_exec(void *buffers[], void *cl_arg)
 {
 	struct starpu_omp_task *task = starpu_task_get_current()->omp_task;
-	STARPU_ASSERT(task->is_implicit);
+	STARPU_ASSERT(task->flags & STARPU_OMP_TASK_FLAGS_IMPLICIT);
 	_starpu_omp_set_task(task);
 	struct starpu_omp_thread *thread = get_local_thread();
 	if (task->state != starpu_omp_task_state_preempted)
@@ -492,7 +492,7 @@ static void starpu_omp_task_completion_accounting(struct starpu_omp_task *task)
 	{
 		if (parent_task->state == starpu_omp_task_state_zombie)
 		{
-			STARPU_ASSERT(!parent_task->is_implicit);
+			STARPU_ASSERT(!(parent_task->flags & STARPU_OMP_TASK_FLAGS_IMPLICIT));
 			weak_task_unlock(parent_task);
 			destroy_omp_task_struct(parent_task);
 		}
@@ -560,7 +560,7 @@ static void starpu_omp_task_completion_accounting(struct starpu_omp_task *task)
 static void starpu_omp_explicit_task_exec(void *buffers[], void *cl_arg)
 {
 	struct starpu_omp_task *task = starpu_task_get_current()->omp_task;
-	STARPU_ASSERT(!task->is_implicit);
+	STARPU_ASSERT(!(task->flags & STARPU_OMP_TASK_FLAGS_IMPLICIT));
 	_starpu_omp_set_task(task);
 
 	struct starpu_omp_thread *thread = get_local_thread();
@@ -600,7 +600,7 @@ static void starpu_omp_explicit_task_exec(void *buffers[], void *cl_arg)
 			}
 		}
 		STARPU_ASSERT(thread != NULL);
-		if (!task->is_untied)
+		if (!(task->flags & STARPU_OMP_TASK_FLAGS_UNTIED))
 		{
 			struct _starpu_worker *starpu_worker = _starpu_get_local_worker_key();
 			task->starpu_task->workerid = starpu_worker->workerid;
@@ -659,7 +659,10 @@ static struct starpu_omp_task *create_omp_task_struct(struct starpu_omp_task *pa
 	task->parent_task = parent_task;
 	task->owner_thread = owner_thread;
 	task->owner_region = owner_region;
-	task->is_implicit = is_implicit;
+	if (is_implicit)
+	{
+		task->flags |= STARPU_OMP_TASK_FLAGS_IMPLICIT;
+	}
 	_starpu_spin_init(&task->lock);
 	/* TODO: initialize task->data_env_icvs with proper values */ 
 	memset(&task->data_env_icvs, 0, sizeof(task->data_env_icvs));
@@ -1243,7 +1246,7 @@ void starpu_omp_barrier(void)
 {
 	struct starpu_omp_task *task = _starpu_omp_get_task();
 	/* Assume barriers are performed in by the implicit tasks of a parallel_region */
-	STARPU_ASSERT(task->is_implicit);
+	STARPU_ASSERT(task->flags & STARPU_OMP_TASK_FLAGS_IMPLICIT);
 	struct starpu_omp_region *parallel_region = task->owner_region;
 	_starpu_spin_lock(&task->lock);
 	int inc_barrier_count = STARPU_ATOMIC_ADD(&parallel_region->barrier_count, 1);
@@ -1305,7 +1308,7 @@ int starpu_omp_master_inline(void)
 	struct starpu_omp_task *task = _starpu_omp_get_task();
 	struct starpu_omp_thread *thread = _starpu_omp_get_thread();
 	/* Assume master is performed in by the implicit tasks of a region */
-	STARPU_ASSERT(task->is_implicit);
+	STARPU_ASSERT(task->flags & STARPU_OMP_TASK_FLAGS_IMPLICIT);
 	struct starpu_omp_region *region = task->owner_region;
 
 	return thread == region->master_thread;
@@ -1327,7 +1330,7 @@ int starpu_omp_single_inline(void)
 {
 	struct starpu_omp_task *task = _starpu_omp_get_task();
 	/* Assume singles are performed in by the implicit tasks of a region */
-	STARPU_ASSERT(task->is_implicit);
+	STARPU_ASSERT(task->flags & STARPU_OMP_TASK_FLAGS_IMPLICIT);
 	struct starpu_omp_region *region = task->owner_region;
 	int first = STARPU_BOOL_COMPARE_AND_SWAP(&region->single_id, task->single_id, task->single_id+1);
 	task->single_id++;
@@ -1373,7 +1376,7 @@ void starpu_omp_single_copyprivate_inline_end(void)
 {
 	struct starpu_omp_task *task = _starpu_omp_get_task();
 	/* Assume singles are performed in by the implicit tasks of a region */
-	STARPU_ASSERT(task->is_implicit);
+	STARPU_ASSERT(task->flags & STARPU_OMP_TASK_FLAGS_IMPLICIT);
 	if (task->single_first)
 	{
 		task->single_first = 0;
@@ -1467,7 +1470,7 @@ void starpu_omp_critical_inline_end(const char *name)
 static void explicit_task__destroy_callback(void *_task)
 {
 	struct starpu_omp_task *task = _task;
-	STARPU_ASSERT(!task->is_implicit);
+	STARPU_ASSERT(!(task->flags & STARPU_OMP_TASK_FLAGS_IMPLICIT));
 	task->starpu_task->omp_task = NULL;
 	task->starpu_task = NULL;
 	_starpu_spin_lock(&task->lock);
@@ -1494,14 +1497,13 @@ void starpu_omp_task_region(const struct starpu_omp_task_region_attr *attr)
 	int is_final = 0;
 	int is_included = 0;
 	int is_merged = 0;
-	int is_untied = 0;
 	int ret;
 
 	if (!attr->if_clause)
 	{
 		is_undeferred = 1;
 	}
-	if (generating_task->is_final)
+	if (generating_task->flags & STARPU_OMP_TASK_FLAGS_FINAL)
 	{
 		is_final = 1;
 		is_included = 1;
@@ -1566,11 +1568,16 @@ void starpu_omp_task_region(const struct starpu_omp_task_region_attr *attr)
 		generated_task->cl = attr->cl;
 		if (attr->untied_clause)
 		{
-			is_untied = 1;
+			generated_task->flags |= STARPU_OMP_TASK_FLAGS_UNTIED;
 		}
-		generated_task->is_undeferred = is_undeferred;
-		generated_task->is_final = is_final;
-		generated_task->is_untied = is_untied;
+		if (is_final)
+		{
+			generated_task->flags |= STARPU_OMP_TASK_FLAGS_FINAL;
+		}
+		if (is_undeferred)
+		{
+			generated_task->flags |= STARPU_OMP_TASK_FLAGS_UNDEFERRED;
+		}
 		generated_task->task_group = generating_task->task_group;
 		generated_task->rank = -1;
 

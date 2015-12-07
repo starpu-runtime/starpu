@@ -194,16 +194,20 @@ enum starpu_omp_task_wait_on
 	starpu_omp_task_wait_on_condition    = 1 << 5
 };
 
+enum starpu_omp_task_flags
+{
+	STARPU_OMP_TASK_FLAGS_IMPLICIT	     = 1 << 0,
+	STARPU_OMP_TASK_FLAGS_UNDEFERRED     = 1 << 1,
+	STARPU_OMP_TASK_FLAGS_FINAL	     = 1 << 2,
+	STARPU_OMP_TASK_FLAGS_UNTIED	     = 1 << 3,
+};
+
 LIST_TYPE(starpu_omp_task,
 	struct starpu_omp_implicit_task_icvs icvs;
 	struct starpu_omp_task *parent_task;
 	struct starpu_omp_thread *owner_thread;
 	struct starpu_omp_region *owner_region;
 	struct starpu_omp_region *nested_region;
-	int is_implicit;
-	int is_undeferred;
-	int is_final;
-	int is_untied;
 	int rank;
 	int child_task_count;
 	struct starpu_omp_task_group *task_group;
@@ -236,6 +240,7 @@ LIST_TYPE(starpu_omp_task,
 #endif
 
 	enum starpu_omp_task_state state;
+	enum starpu_omp_task_flags flags;
 
 	/* 
 	 * context to store the processing state of the task
