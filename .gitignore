@@ -293,3 +293,4 @@ starpu.log
 /cyclomatic-complexity.html
 ./Makefile
 Makefile.in
+/src/Makefile
