@@ -572,9 +572,19 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
  */
 int starpu_push_task_end(struct starpu_task *task)
 {
-	_STARPU_TRACE_JOB_POP(task, task->priority > 0);
 	_starpu_profiling_set_task_push_end_time(task);
 	task->scheduled = 1;
+	return 0;
+}
+
+/* This is called right after the scheduler has pushed a task to a queue
+ * but just before releasing mutexes: we need the task to still be alive!
+ */
+int _starpu_pop_task_end(struct starpu_task *task)
+{
+	if (!task)
+		return 0;
+	_STARPU_TRACE_JOB_POP(task, task->priority > 0);
 	return 0;
 }
 
@@ -789,6 +799,7 @@ pick:
 				if (sched_ctx->sched_policy && sched_ctx->sched_policy->pop_task)
 				{
 					task = sched_ctx->sched_policy->pop_task(sched_ctx->id);
+					_starpu_pop_task_end(task);
 				}
 			}
 			
