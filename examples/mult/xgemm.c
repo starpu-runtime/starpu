@@ -266,6 +266,12 @@ static void parse_args(int argc, char **argv)
 			zdim = strtol(argv[++i], &argptr, 10);
 		}
 
+		else if (strcmp(argv[i], "-size") == 0)
+		{
+			char *argptr;
+			xdim = ydim = zdim = strtol(argv[++i], &argptr, 10);
+		}
+
 		else if (strcmp(argv[i], "-iter") == 0)
 		{
 			char *argptr;
@@ -289,7 +295,7 @@ static void parse_args(int argc, char **argv)
 
 		else if (strcmp(argv[i], "-help") == 0 || strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0)
 		{
-			fprintf(stderr,"Usage: %s [-nblocks n] [-nblocksx x] [-nblocksy y] [-x x] [-y y] [-z z] [-iter iter] [-bound] [-check] [-spmd]\n", argv[0]);
+			fprintf(stderr,"Usage: %s [-nblocks n] [-nblocksx x] [-nblocksy y] [-x x] [-y y] [-z z] [-size size] [-iter iter] [-bound] [-check] [-spmd]\n", argv[0]);
 			fprintf(stderr,"Currently selected: %ux%u * %ux%u and %ux%u blocks, %u iterations\n", zdim, ydim, xdim, zdim, nslicesx, nslicesy, niter);
 			exit(EXIT_SUCCESS);
 		}
