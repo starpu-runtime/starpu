@@ -168,6 +168,7 @@ Small features:
   * Add configure option to disable fortran --disable-fortran
   * Add configure option to give path for smpirun executable --with-smpirun
   * Add configure option to disable the build of tests --disable-build-tests
+  * Add starpu-all-tasks debugging support
 
 Changes:
   * Data interfaces (variable, vector, matrix and block) now define
