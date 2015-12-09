@@ -503,6 +503,9 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 
 		if(!sched_ctx->sched_policy)
 		{
+			/* Note: we have to call that early, or else the task may have
+			 * disappeared already */
+			starpu_push_task_end(task);
 			if(!sched_ctx->awake_workers)
 				ret = _starpu_push_task_on_specific_worker(task, sched_ctx->main_master);
 			else
@@ -517,10 +520,6 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 				STARPU_PTHREAD_BARRIER_INIT(&job->before_work_barrier, NULL, workers->nworkers);
 				STARPU_PTHREAD_BARRIER_INIT(&job->after_work_barrier, NULL, workers->nworkers);
 				job->after_work_busy_barrier = workers->nworkers;
-				
-				/* Note: we have to call that early, or else the task may have
-				 * disappeared already */
-				starpu_push_task_end(task);
 
 				unsigned workerid;
 				struct starpu_sched_ctx_iterator it;
