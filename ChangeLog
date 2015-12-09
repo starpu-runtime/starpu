@@ -26,6 +26,7 @@ Small features:
   * Add configure option to disable fortran --disable-fortran
   * Add configure option to give path for smpirun executable --with-smpirun
   * Add configure option to disable the build of tests --disable-build-tests
+  * Add starpu-all-tasks debugging support
 
 Small changes:
   * Update starpu_task_build() to set starpu_task::cl_arg_free to 1 if
