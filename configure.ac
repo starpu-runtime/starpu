@@ -1804,7 +1804,7 @@ AC_ARG_WITH(mpicc, [AS_HELP_STRING([--with-mpicc[=<path to mpicc>]],
 			DEFAULT_MPICC=mpicc
 		fi
 		# nothing was specified: default value is used
-		AC_PATH_PROG(mpicc_path, $DEFAULT_MPICC, [no], [])
+		AC_PATH_PROG(mpicc_path, $DEFAULT_MPICC, [no], [$simgrid_dir/bin:$PATH])
 	])
 
 # We test if the MPICC compiler exists
@@ -1826,7 +1826,7 @@ else
 			],
 			[
 				# nothing was specified: default value is used
-				AC_PATH_PROG(smpirun_path, smpirun, [no], [])
+				AC_PATH_PROG(smpirun_path, smpirun, [no], [$simgrid_dir/bin:$PATH])
 			])
 
 	fi
