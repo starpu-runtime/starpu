@@ -25,7 +25,7 @@ SOURCE_DATADIR=@abs_srcdir@
 BUILDDIR=@abs_builddir@
 
 # When executed from source, take xslt from source
-[ "$(realpath $0)" = $BUILDDIR/starpu_smpirun ] && STARPU_XSLTDIR=$SOURCE_DATADIR
+[ "$0" -ef $BUILDDIR/starpu_smpirun ] && STARPU_XSLTDIR=$SOURCE_DATADIR
 
 MPI_PLATFORM=""
 MPI_HOSTFILE=""
