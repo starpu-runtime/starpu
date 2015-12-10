@@ -232,8 +232,9 @@ static struct starpu_omp_critical *create_omp_critical_struct(void)
 	struct starpu_omp_critical *critical;
 
 	critical = calloc(1, sizeof(*critical));
-	if (critical)
-		_starpu_spin_init(&critical->lock);
+	if (!critical)
+		_STARPU_ERROR("memory allocation failed");
+	_starpu_spin_init(&critical->lock);
 	return critical;
 }
 
@@ -251,8 +252,9 @@ static struct starpu_omp_device *create_omp_device_struct(void)
 	struct starpu_omp_device *device;
 
 	device = calloc(1, sizeof(*device));
-	if (device)
-		_starpu_spin_init(&device->atomic_lock);
+	if (!device)
+		_STARPU_ERROR("memory allocation failed");
+	_starpu_spin_init(&device->atomic_lock);
 	return device;
 }
 
@@ -286,7 +288,7 @@ static struct starpu_omp_region *create_omp_region_struct(struct starpu_omp_regi
 
 	region = calloc(1, sizeof(*region));
 	if (!region)
-		return NULL;
+		_STARPU_ERROR("memory allocation failed");
 	region->parent_region = parent_region;
 	region->owner_device = owner_device;
 	starpu_omp_thread_list_init(&region->thread_list);
@@ -2180,7 +2182,7 @@ static void _starpu_omp_lock_init(void **_internal)
 
 	_lock = calloc(1, sizeof(*_lock));
 	if (!_lock)
-		return;
+		_STARPU_ERROR("memory allocation failed");
 	_starpu_spin_init(&_lock->lock);
 	condition_init(&_lock->cond);
 	*_internal = _lock;
@@ -2239,7 +2241,7 @@ static void _starpu_omp_nest_lock_init(void **_internal)
 
 	_nest_lock = calloc(1, sizeof(*_nest_lock));
 	if (!_nest_lock)
-		return;
+		_STARPU_ERROR("memory allocation failed");
 	_starpu_spin_init(&_nest_lock->lock);
 	condition_init(&_nest_lock->cond);
 	*_internal = _nest_lock;
