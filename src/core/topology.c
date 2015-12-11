@@ -359,7 +359,7 @@ _starpu_initialize_workers_bindid (struct _starpu_machine_config *config)
 						}
 						else
 						{
-							endval = topology->nhwpus-1;
+							endval = topology->nhwcpus-1;
 							if (*strval)
 								strval++;
 						}
