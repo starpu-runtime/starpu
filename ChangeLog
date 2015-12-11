@@ -19,6 +19,7 @@ StarPU 1.1.6 (svn revision xxx)
 The scheduling context release
   * Add starpu_task_get_task_succs to get the list of children of a given
     task.
+  * Ranges can be provided in STARPU_WORKERS_CPUID
 
 StarPU 1.1.5 (svn revision 16011)
 ==============================================

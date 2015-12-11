@@ -388,7 +388,7 @@ void _starpu_worker_start(struct _starpu_worker *worker, unsigned fut_key)
 	_STARPU_TRACE_WORKER_INIT_START(fut_key, worker->workerid, devid, memnode);
 #endif
 
-	_starpu_bind_thread_on_cpu(worker->config, worker->bindid);
+	_starpu_bind_thread_on_cpu(worker->config, worker->bindid, worker->workerid);
 
         _STARPU_DEBUG("worker %d is ready on logical cpu %d\n", devid, worker->bindid);
 #ifdef STARPU_HAVE_HWLOC

@@ -430,7 +430,7 @@ int _starpu_cuda_driver_init(struct _starpu_worker *args)
 	_starpu_malloc_init(args->memory_node);
 
 	/* one more time to avoid hacks from third party lib :) */
-	_starpu_bind_thread_on_cpu(args->config, args->bindid);
+	_starpu_bind_thread_on_cpu(args->config, args->bindid, args->workerid);
 
 	args->status = STATUS_UNKNOWN;
 

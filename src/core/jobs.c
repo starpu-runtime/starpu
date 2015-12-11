@@ -513,6 +513,7 @@ struct starpu_task *_starpu_pop_local_task(struct _starpu_worker *worker)
 	if (!starpu_task_list_empty(&worker->local_tasks))
 		task = starpu_task_list_pop_front(&worker->local_tasks);
 
+	_starpu_pop_task_end(task);
 	return task;
 }
 
