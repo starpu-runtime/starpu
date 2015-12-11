@@ -598,8 +598,17 @@ _starpu_initialize_workers_bindid (struct _starpu_machine_config *config)
 						/* range of values */
 						long int endval;
 						strval++;
-						endval = strtol(strval, &endptr, 10);
-						strval = endptr;
+						if (*strval && *strval != ' ' && *strval != ',')
+						{
+							endval = strtol(strval, &endptr, 10);
+							strval = endptr;
+						}
+						else
+						{
+							endval = topology->nhwpus-1;
+							if (*strval)
+								strval++;
+						}
 						for (val++; val <= endval && i < STARPU_NMAXWORKERS-1; val++)
 						{
 							i++;
