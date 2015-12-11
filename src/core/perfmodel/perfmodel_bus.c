@@ -130,7 +130,7 @@ static hwloc_topology_t hwtopology;
 static void measure_bandwidth_between_host_and_dev_on_cpu_with_cuda(int dev, int cpu, struct dev_timing *dev_timing_per_cpu)
 {
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
-	_starpu_bind_thread_on_cpu(config, cpu);
+	_starpu_bind_thread_on_cpu(config, cpu, STARPU_NOWORKERID);
 	size_t size = SIZE;
 
 	/* Initialize CUDA context on the device */
@@ -139,13 +139,13 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_cuda(int dev, int
 	cudaSetDevice(dev);
 
 	/* hack to avoid third party libs to rebind threads */
-	_starpu_bind_thread_on_cpu(config, cpu);
+	_starpu_bind_thread_on_cpu(config, cpu, STARPU_NOWORKERID);
 
 	/* hack to force the initialization */
 	cudaFree(0);
 
 	/* hack to avoid third party libs to rebind threads */
-	_starpu_bind_thread_on_cpu(config, cpu);
+	_starpu_bind_thread_on_cpu(config, cpu, STARPU_NOWORKERID);
 
         /* Get the maximum size which can be allocated on the device */
 	struct cudaDeviceProp prop;
@@ -161,7 +161,7 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_cuda(int dev, int
 	STARPU_ASSERT(cures == cudaSuccess);
 
 	/* hack to avoid third party libs to rebind threads */
-	_starpu_bind_thread_on_cpu(config, cpu);
+	_starpu_bind_thread_on_cpu(config, cpu, STARPU_NOWORKERID);
 
 	/* Allocate a buffer on the host */
 	unsigned char *h_buffer;
@@ -169,14 +169,14 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_cuda(int dev, int
 	STARPU_ASSERT(cures == cudaSuccess);
 
 	/* hack to avoid third party libs to rebind threads */
-	_starpu_bind_thread_on_cpu(config, cpu);
+	_starpu_bind_thread_on_cpu(config, cpu, STARPU_NOWORKERID);
 
 	/* Fill them */
 	memset(h_buffer, 0, size);
 	cudaMemset(d_buffer, 0, size);
 
 	/* hack to avoid third party libs to rebind threads */
-	_starpu_bind_thread_on_cpu(config, cpu);
+	_starpu_bind_thread_on_cpu(config, cpu, STARPU_NOWORKERID);
 
 	unsigned iter;
 	double timing;
@@ -348,7 +348,7 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_opencl(int dev, i
 	int not_initialized;
 
         struct _starpu_machine_config *config = _starpu_get_machine_config();
-	_starpu_bind_thread_on_cpu(config, cpu);
+	_starpu_bind_thread_on_cpu(config, cpu, STARPU_NOWORKERID);
 
 	/* Is the context already initialised ? */
         starpu_opencl_get_context(dev, &context);
@@ -380,7 +380,7 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_opencl(int dev, i
 	}
 
 	/* hack to avoid third party libs to rebind threads */
-	_starpu_bind_thread_on_cpu(config, cpu);
+	_starpu_bind_thread_on_cpu(config, cpu, STARPU_NOWORKERID);
 
 	/* Allocate a buffer on the device */
 	cl_mem d_buffer;
@@ -388,21 +388,21 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_opencl(int dev, i
 	if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 
 	/* hack to avoid third party libs to rebind threads */
-	_starpu_bind_thread_on_cpu(config, cpu);
+	_starpu_bind_thread_on_cpu(config, cpu, STARPU_NOWORKERID);
         /* Allocate a buffer on the host */
 	unsigned char *h_buffer;
         h_buffer = (unsigned char *)malloc(size);
 	STARPU_ASSERT(h_buffer);
 
 	/* hack to avoid third party libs to rebind threads */
-	_starpu_bind_thread_on_cpu(config, cpu);
+	_starpu_bind_thread_on_cpu(config, cpu, STARPU_NOWORKERID);
         /* Fill them */
 	memset(h_buffer, 0, size);
         err = clEnqueueWriteBuffer(queue, d_buffer, CL_TRUE, 0, size, h_buffer, 0, NULL, NULL);
         if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
         clFinish(queue);
 	/* hack to avoid third party libs to rebind threads */
-	_starpu_bind_thread_on_cpu(config, cpu);
+	_starpu_bind_thread_on_cpu(config, cpu, STARPU_NOWORKERID);
 
         unsigned iter;
 	double timing;

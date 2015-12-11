@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2014  Université de Bordeaux
+ * Copyright (C) 2009-2015  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2013  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  *
@@ -55,7 +55,7 @@ void *gordon_worker_progress(void *arg)
 	struct _starpu_worker_set *gordon_set_arg = arg;
 	unsigned prog_thread_bind_id =
 		(gordon_set_arg->workers[0].bindid + 1)%(gordon_set_arg->config->nhwcores);
-	_starpu_bind_thread_on_cpu(gordon_set_arg->config, prog_thread_bind_id);
+	_starpu_bind_thread_on_cpu(gordon_set_arg->config, prog_thread_bind_id, gordon_set_arg->workers[0].workerid);
 
 	STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 	progress_thread_is_inited = 1;
@@ -438,7 +438,7 @@ void *_starpu_gordon_worker(void *arg)
 {
 	struct _starpu_worker_set *gordon_set_arg = arg;
 
-	_starpu_bind_thread_on_cpu(gordon_set_arg->config, gordon_set_arg->workers[0].bindid);
+	_starpu_bind_thread_on_cpu(gordon_set_arg->config, gordon_set_arg->workers[0].bindid, gordon_set_arg->workers[0].workerid);
 
 	/* TODO set_local_memory_node per SPU */
 	gordon_init(gordon_set_arg->nworkers);
