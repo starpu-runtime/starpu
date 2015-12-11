@@ -593,7 +593,7 @@ _starpu_initialize_workers_bindid (struct _starpu_machine_config *config)
 					topology->workers_bindid[i] =
 						(unsigned)(val % topology->nhwpus);
 					strval = endptr;
-					if (*strval == ':')
+					if (*strval == '-')
 					{
 						/* range of values */
 						long int endval;
