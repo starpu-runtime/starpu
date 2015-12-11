@@ -41,10 +41,11 @@ unsigned _starpu_topology_get_nhwcpu(struct _starpu_machine_config *config);
 /* returns the number of logical cpus */
 unsigned _starpu_topology_get_nhwpu(struct _starpu_machine_config *config);
 
+#define STARPU_NOWORKERID -1
 /* Bind the current thread on the CPU logically identified by "cpuid". The
  * logical ordering of the processors is either that of hwloc (if available),
  * or the ordering exposed by the OS. */
-void _starpu_bind_thread_on_cpu(struct _starpu_machine_config *config, int cpuid);
+void _starpu_bind_thread_on_cpu(struct _starpu_machine_config *config, int cpuid, int workerid);
 
 struct _starpu_combined_worker;
 /* Bind the current thread on the set of CPUs for the given combined worker. */

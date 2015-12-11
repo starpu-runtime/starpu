@@ -50,6 +50,9 @@
 static unsigned topology_is_initialized = 0;
 static int nobind;
 
+/* For checking whether two workers share the same PU, indexed by PU number */
+static int cpu_worker[STARPU_MAXCPUS];
+
 #if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) || defined(STARPU_USE_SCC) || defined(STARPU_SIMGRID)
 
 struct handle_entry
@@ -590,6 +593,22 @@ _starpu_initialize_workers_bindid (struct _starpu_machine_config *config)
 					topology->workers_bindid[i] =
 						(unsigned)(val % topology->nhwpus);
 					strval = endptr;
+					if (*strval == ':')
+					{
+						/* range of values */
+						long int endval;
+						strval++;
+						endval = strtol(strval, &endptr, 10);
+						strval = endptr;
+						for (val++; val <= endval && i < STARPU_NMAXWORKERS-1; val++)
+						{
+							i++;
+							topology->workers_bindid[i] =
+								(unsigned)(val % topology->nhwpus);
+						}
+					}
+					if (*strval == ',')
+						strval++;
 				}
 				else
 				{
@@ -648,6 +667,9 @@ _starpu_initialize_workers_bindid (struct _starpu_machine_config *config)
 			i++;
 		}
 	}
+
+	for (i = 0; i < STARPU_MAXCPUS;i++)
+		cpu_worker[i] = STARPU_NOWORKERID;
 }
 
 /* This function gets the identifier of the next core on which to bind a
@@ -1260,7 +1282,7 @@ void _starpu_destroy_machine_config(struct _starpu_machine_config *config)
 void
 _starpu_bind_thread_on_cpu (
 	struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED,
-	int cpuid STARPU_ATTRIBUTE_UNUSED)
+	int cpuid STARPU_ATTRIBUTE_UNUSED, int workerid STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_SIMGRID
 	return;
@@ -1269,6 +1291,16 @@ _starpu_bind_thread_on_cpu (
 		return;
 	if (cpuid < 0)
 		return;
+
+	if (workerid != STARPU_NOWORKERID && cpuid < STARPU_MAXCPUS)
+	{
+		int previous = cpu_worker[cpuid];
+		if (previous != STARPU_NOWORKERID && previous != workerid)
+			_STARPU_DISP("Warning: both workers %d and %d are bound to the same PU %d, this will strongly degrade performance\n", previous, workerid, cpuid);
+		else
+			cpu_worker[cpuid] = workerid;
+	}
+
 #ifdef STARPU_HAVE_HWLOC
 	const struct hwloc_topology_support *support;
 
