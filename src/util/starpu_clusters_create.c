@@ -544,11 +544,10 @@ void _starpu_cluster_topology(hwloc_obj_type_t cluster_level,
 		free(workers);
 
 		/* Use new topology to fill in the cluster list */
-		hwloc_topology_dup(&machine->topology, topology);
+		machine->topology = topology;
 		_starpu_cluster_group(cluster_level, machine);
 
 		hwloc_bitmap_free(avail_cpus);
-		hwloc_topology_destroy(topology);
 
 		return;
 }

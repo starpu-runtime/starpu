@@ -329,8 +329,10 @@ endif
 
 
 if STARPU_HAVE_HWLOC
+if STARPU_HWLOC_HAVE_TOPOLOGY_DUP
 if STARPU_HAVE_OPENMP
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += util/starpu_clusters_create.c
+endif
 endif
 endif
 

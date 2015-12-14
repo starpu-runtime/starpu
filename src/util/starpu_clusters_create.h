@@ -23,9 +23,7 @@
 #include <core/workers.h>
 #include <common/list.h>
 #include <string.h>
-#ifdef STARPU_OPENMP
 #include <omp.h>
-#endif
 #ifdef STARPU_MKL
 #include <mkl_service.h>
 #endif

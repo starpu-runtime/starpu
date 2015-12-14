@@ -21,9 +21,7 @@
 
 #include <stdarg.h>
 #include <starpu.h>
-#ifdef STARPU_HAVE_HWLOC
 #include <hwloc.h>
-#endif
 
 #ifdef __cplusplus
 extern "C"

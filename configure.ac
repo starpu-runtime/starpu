@@ -2465,16 +2465,18 @@ AS_IF([test "$use_hwloc" = "no"],
   [AS_IF([test "$use_hwloc_from_system" = "yes"],
   	  [PKG_CHECK_MODULES([HWLOC],[hwloc], [
 	      	have_valid_hwloc=yes
-		have_pkgconfig_hwloc=yes], [
-		have_valid_hwloc=no
-		have_pkgconfig_hwloc=no])
+            have_pkgconfig_hwloc=yes
+            HWLOC_MAJVERSION=`$PKG_CONFIG --modversion hwloc | cut -d'.' -f1`
+            HWLOC_MINVERSION=`$PKG_CONFIG --modversion hwloc | cut -d'.' -f2`], [
+            have_valid_hwloc=no
+            have_pkgconfig_hwloc=no])
 	  ],
 	  #else
 	  [have_pkgconfig_hwloc=no
 	   CPPFLAGS="${SAVED_CPPFLAGS} -I$hwloc_dir/include"
 	   AC_CHECK_HEADER([hwloc.h],[have_valid_hwloc=yes],[have_valid_hwloc=no])
 	   LDFLAGS="${SAVED_LDFLAGS} -L$hwloc_dir/lib"
-	   AC_HAVE_LIBRARY([hwloc],[have_valid_hwloc=yes],[have_valid_hwloc=no])
+       AC_HAVE_LIBRARY([hwloc],[have_valid_hwloc=yes],[have_valid_hwloc=no])
 	  ])
   ])
 AM_CONDITIONAL(STARPU_HAVE_HWLOC, test "x$have_valid_hwloc" = "xyes")
@@ -2494,8 +2496,9 @@ AS_IF([test "$have_valid_hwloc" = "yes"],
        AC_CHECK_DECLS([hwloc_cuda_get_device_osdev_by_index], [], [], [[#include <hwloc/cuda.h>]])
        AS_IF([test "$have_pkgconfig_hwloc" = "no"],
              [HWLOC_CFLAGS="-I$hwloc_dir/include"
-	      HWLOC_LIBS="-L$hwloc_dir/lib -lhwloc"]
+          HWLOC_LIBS="-L$hwloc_dir/lib -lhwloc"],
        )
+       AM_CONDITIONAL(STARPU_HWLOC_HAVE_TOPOLOGY_DUP, test $HWLOC_MAJVERSION -gt 1 -o \( $HWLOC_MAJVERSION -eq 1 -a $HWLOC_MINVERSION -ge 11 \))
       ])
 LDFLAGS="${SAVED_LDFLAGS}"
 CPPFLAGS="${SAVED_CPPFLAGS}"
