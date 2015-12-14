@@ -390,7 +390,7 @@ int _starpu_repush_task(struct _starpu_job *j)
 			starpu_task_list_push_front(&sched_ctx->empty_ctx_tasks, task);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->empty_ctx_mutex);
 #ifdef STARPU_USE_SC_HYPERVISOR
-			if(sched_ctx != NULL && sched_ctx->id != 0 && sched_ctx->perf_counters != NULL 
+			if(sched_ctx->id != 0 && sched_ctx->perf_counters != NULL
 			   && sched_ctx->perf_counters->notify_empty_ctx)
 			{
 				_STARPU_TRACE_HYPERVISOR_BEGIN();
@@ -456,7 +456,7 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 			starpu_task_list_push_back(&sched_ctx->empty_ctx_tasks, task);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->empty_ctx_mutex);
 #ifdef STARPU_USE_SC_HYPERVISOR
-			if(sched_ctx != NULL && sched_ctx->id != 0 && sched_ctx->perf_counters != NULL 
+			if(sched_ctx->id != 0 && sched_ctx->perf_counters != NULL
 			   && sched_ctx->perf_counters->notify_empty_ctx)
 			{
 				_STARPU_TRACE_HYPERVISOR_BEGIN();
