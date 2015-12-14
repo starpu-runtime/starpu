@@ -250,6 +250,8 @@ double sc_hypervisor_get_avg_speed(enum starpu_worker_archtype arch)
 		if(max_real_start_time < sc_w->real_start_time)
 			max_real_start_time = sc_w->real_start_time;
 	}
+	free(sched_ctxs);
+
 	double speed = -1.0;
 #ifdef STARPU_SC_HYPERVISOR_DEBUG
 	printf("total_exec_flops %lf total_estimated_flops %lf max_real_start_time %lf nworkers %d \n", total_executed_flops, total_estimated_flops, max_real_start_time, nworkers);
@@ -319,4 +321,5 @@ void sc_hypervisor_check_if_consider_max(struct types_of_workers *tw)
 				_consider_max_for_children(sched_ctxs[s], 0);
 		}
 	}
+	free(sched_ctxs);
 }
