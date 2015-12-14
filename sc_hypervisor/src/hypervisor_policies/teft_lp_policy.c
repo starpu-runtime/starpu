@@ -120,6 +120,7 @@ static void _size_ctxs(unsigned *sched_ctxs, int nsched_ctxs , int *workers, int
 	{
 		struct types_of_workers *tw = sc_hypervisor_get_types_of_workers(workers, nw);
 		sc_hypervisor_lp_place_resources_in_ctx(ns, nw, w_in_s, sched_ctxs, workers, 1, tw);
+		free(tw);
 	}
 	
 	for(i = 0; i < nw; i++)
@@ -237,6 +238,7 @@ static void _try_resizing(unsigned *sched_ctxs, int nsched_ctxs , int *workers, 
 	{
 		struct types_of_workers *tw = sc_hypervisor_get_types_of_workers(workers, nw);
 		sc_hypervisor_lp_place_resources_in_ctx(ns, nw, w_in_s, sched_ctxs, workers, 0, tw);
+		free(tw);
 	}
 	
 	struct sc_hypervisor_policy_task_pool *next = NULL;

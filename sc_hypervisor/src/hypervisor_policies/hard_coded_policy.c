@@ -64,6 +64,7 @@ void hard_coded_handle_idle_cycle(unsigned sched_ctx, int worker)
 
 //				sc_hypervisor_lp_place_resources_in_ctx(ns, nw, w_in_s, sched_ctxs, NULL, 1, tw);
 					sc_hypervisor_lp_distribute_floating_no_resources_in_ctxs(sc_hypervisor_get_sched_ctxs(), ns, tw->nw, w_in_s, NULL, nworkers, tw);
+					free(tw);
 				}
 			}	
 			starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
@@ -97,6 +98,7 @@ static void hard_coded_handle_poped_task(unsigned sched_ctx, __attribute__((unus
 				w_in_s[1][1] = 0;
 //				sc_hypervisor_lp_place_resources_in_ctx(ns, nw, w_in_s, sched_ctxs, NULL, 1, tw);
 				sc_hypervisor_lp_distribute_floating_no_resources_in_ctxs(sc_hypervisor_get_sched_ctxs(), ns, tw->nw, w_in_s, NULL, nworkers, tw);
+				free(tw);
 			}
 			starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
 		}
