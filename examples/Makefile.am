@@ -271,10 +271,8 @@ STARPU_EXAMPLES +=				\
 	openmp/vector_scal_omp			\
 	sched_ctx/sched_ctx_without_sched_policy\
 	sched_ctx/nested_sched_ctxs		\
-	sched_ctx/sched_ctx_without_sched_policy\
 	sched_ctx/sched_ctx_without_sched_policy_awake\
 	sched_ctx/parallel_tasks_reuse_handle
-
 if STARPU_LONG_CHECK
 STARPU_EXAMPLES +=				\
 	sched_ctx/parallel_code
