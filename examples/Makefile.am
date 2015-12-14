@@ -277,6 +277,11 @@ if STARPU_LONG_CHECK
 STARPU_EXAMPLES +=				\
 	sched_ctx/parallel_code
 endif
+
+if STARPU_HAVE_HWLOC
+STARPU_EXAMPLES +=				\
+	sched_ctx/parallel_tasks_with_cluster_api
+endif
 endif
 
 ##################

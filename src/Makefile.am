@@ -139,6 +139,7 @@ noinst_HEADERS = 						\
 	profiling/bound.h					\
 	profiling/profiling.h					\
 	util/openmp_runtime_support.h				\
+	util/starpu_clusters_create.h				\
 	util/starpu_task_insert_utils.h				\
 	util/starpu_data_cpy.h					\
 	starpu_parameters.h					\
@@ -324,6 +325,13 @@ endif
 
 if STARPU_LINUX_SYS
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += core/disk_ops/disk_unistd_o_direct.c
+endif
+
+
+if STARPU_HAVE_HWLOC
+if STARPU_HAVE_OPENMP
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += util/starpu_clusters_create.c
+endif
 endif
 
 

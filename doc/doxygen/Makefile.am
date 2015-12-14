@@ -47,6 +47,7 @@ chapters =	\
 	chapters/20socl_opencl_extensions.doxy \
 	chapters/21simgrid.doxy \
 	chapters/22openmp_runtime_support.doxy \
+	chapters/23clustering_a_machine.doxy \
 	chapters/40environment_variables.doxy \
 	chapters/41configure_options.doxy \
 	chapters/45files.doxy \
@@ -167,6 +168,18 @@ EXTRA_DIST	= 					\
 	chapters/paje_draw_histogram.eps	\
 	chapters/paje_draw_histogram.png	\
 	chapters/paje_draw_histogram.pdf	\
+	chapters/parallel_worker1.eps		\
+	chapters/parallel_worker1.pdf		\
+	chapters/parallel_worker1.png		\
+	chapters/parallel_worker2.eps		\
+	chapters/parallel_worker2.pdf		\
+	chapters/parallel_worker2.png		\
+	chapters/runtime-par.eps			\
+	chapters/runtime-par.pdf			\
+	chapters/runtime-par.png			\
+	chapters/runtime-seq.eps			\
+	chapters/runtime-seq.pdf			\
+	chapters/runtime-seq.png			\
 	chapters/starpu_chol_model_11_type.png	\
 	chapters/starpu_chol_model_11_type.eps	\
 	chapters/starpu_chol_model_11_type.pdf	\
@@ -216,6 +229,7 @@ dox_inputs = $(DOX_CONFIG) 				\
 	$(top_srcdir)/include/starpu_bound.h		\
 	$(top_srcdir)/include/starpu_scheduler.h	\
 	$(top_srcdir)/include/starpu_sched_ctx.h	\
+	$(top_srcdir)/include/starpu_clusters_util.h			\
 	$(top_srcdir)/include/starpu_sched_ctx_hypervisor.h		\
 	$(top_srcdir)/include/starpu_top.h		\
 	$(top_srcdir)/include/starpu_hash.h		\

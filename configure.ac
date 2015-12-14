@@ -2146,6 +2146,10 @@ AC_MSG_RESULT($enable_openmp)
 
 IS_SUPPORTED_CFLAG(-fopenmp, :)
 AM_CONDITIONAL([STARPU_HAVE_OPENMP],[test "$option_available" = "1"])
+if test $option_available = 1; then
+   CFLAGS="${CFLAGS} -fopenmp"
+   STARPU_OMP_LDFLAGS="-fopenmp"
+fi
 
 ###############################################################################
 #                                                                             #
@@ -2473,6 +2477,7 @@ AS_IF([test "$use_hwloc" = "no"],
 	   AC_HAVE_LIBRARY([hwloc],[have_valid_hwloc=yes],[have_valid_hwloc=no])
 	  ])
   ])
+AM_CONDITIONAL(STARPU_HAVE_HWLOC, test "x$have_valid_hwloc" = "xyes")
 # in case hwloc was explicitely required, but is not available, this is an error
 AS_IF([test "$use_hwloc" = "yes" -a "$have_valid_hwloc" = "no"],
       [AC_MSG_ERROR([cannot find hwloc])]
@@ -2597,7 +2602,7 @@ AM_CONDITIONAL(BUILD_DOC, [test x$enable_build_doc != xno])
 ###############################################################################
 
 # these are the flags needed for linking libstarpu (and thus also for static linking)
-LIBSTARPU_LDFLAGS="$HWLOC_LIBS $FXT_LIBS $STARPU_COI_LDFLAGS $STARPU_SCIF_LDFLAGS $STARPU_RCCE_LDFLAGS $STARPU_LEVELDB_LDFLAGS $STARPU_GLPK_LDFLAGS $STARPU_LEVELDB_LDFLAGS $SIMGRID_LIBS"
+LIBSTARPU_LDFLAGS="$HWLOC_LIBS $FXT_LIBS $STARPU_COI_LDFLAGS $STARPU_SCIF_LDFLAGS $STARPU_RCCE_LDFLAGS $STARPU_LEVELDB_LDFLAGS $STARPU_GLPK_LDFLAGS $STARPU_LEVELDB_LDFLAGS $SIMGRID_LIBS $STARPU_BLAS_LDFLAGS $STARPU_OMP_LDFLAGS"
 AC_SUBST([LIBSTARPU_LDFLAGS])
 
 LIBSTARPU_LINK=libstarpu-$STARPU_EFFECTIVE_VERSION.la
