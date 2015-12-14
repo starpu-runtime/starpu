@@ -20,6 +20,7 @@
 *.la
 *.swp
 .dirstamp
+*.pc
 stamp-h[0-9]*
 starpu.log
 /gcc-plugin/include/starpu-gcc/config.h
@@ -110,7 +111,7 @@ starpu.log
 /tests/datawizard/dsm_stress
 /tests/datawizard/increment_redux
 /tests/datawizard/increment_redux_v2
-/tests/datawizard/lazy_allocation.c
+/tests/datawizard/lazy_allocation
 /tests/datawizard/manual_reduction
 /tests/datawizard/mpi_like
 /tests/datawizard/mpi_like_async
@@ -209,9 +210,6 @@ starpu.log
 /examples/lu/lu_implicit_example_float
 /examples/mult/dgemm
 /examples/mult/sgemm
-/mpi/starpumpi-1.0.pc
-/socl/socl-1.0.pc
-/starpufft/starpufft-1.0.pc
 /tests/core/deprecated
 /tests/core/deprecated_buffer
 /tests/core/deprecated_func
@@ -247,7 +245,6 @@ starpu.log
 /tools/starpu_machine_display.1
 /tools/starpu_perfmodel_display.1
 /tools/starpu_perfmodel_plot.1
-/starpu-1.0.pc
 /gcc-plugin/examples/cholesky/cholesky
 /gcc-plugin/tests/*.log
 /test/*.log
@@ -291,6 +288,5 @@ starpu.log
 /gcc-plugin/tests/registered
 /gcc-plugin/tests/warn-unregistered
 /cyclomatic-complexity.html
-./Makefile
 Makefile.in
-/src/Makefile
+Makefile
