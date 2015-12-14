@@ -284,9 +284,7 @@ void _consider_max_for_children(unsigned sched_ctx, unsigned consider_max)
 	int s;
 	for(s = 0; s < nsched_ctxs_child; s++)
 		_consider_max_for_children(sched_ctxs_child[s], consider_max);
-	if(nsched_ctxs_child > 0)
-		free(sched_ctxs_child);
-	return;
+	free(sched_ctxs_child);
 }
 
 void sc_hypervisor_check_if_consider_max(struct types_of_workers *tw)
