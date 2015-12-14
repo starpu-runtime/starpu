@@ -2496,12 +2496,14 @@ AS_IF([test "$have_valid_hwloc" = "yes"],
        AC_CHECK_DECLS([hwloc_cuda_get_device_osdev_by_index], [], [], [[#include <hwloc/cuda.h>]])
        AS_IF([test "$have_pkgconfig_hwloc" = "no"],
              [HWLOC_CFLAGS="-I$hwloc_dir/include"
-          HWLOC_LIBS="-L$hwloc_dir/lib -lhwloc"],
-       )
-       AM_CONDITIONAL(STARPU_HWLOC_HAVE_TOPOLOGY_DUP, test $HWLOC_MAJVERSION -gt 1 -o \( $HWLOC_MAJVERSION -eq 1 -a $HWLOC_MINVERSION -ge 11 \))
+          HWLOC_LIBS="-L$hwloc_dir/lib -lhwloc"
+          # TODO: either detect this or make the API compatible with older hwloc versions
+          HWLOC_MAJVERSION=0],)
       ])
 LDFLAGS="${SAVED_LDFLAGS}"
 CPPFLAGS="${SAVED_CPPFLAGS}"
+
+AM_CONDITIONAL(STARPU_HWLOC_HAVE_TOPOLOGY_DUP, test $HWLOC_MAJVERSION -gt 1 -o \( $HWLOC_MAJVERSION -eq 1 -a $HWLOC_MINVERSION -ge 11 \))
 
 AC_MSG_CHECKING(whether hwloc should be used)
 AC_MSG_RESULT($have_valid_hwloc)
