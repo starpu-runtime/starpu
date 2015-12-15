@@ -19,7 +19,7 @@
 #ifndef __STARPU_CLUSTERS_CREATE_H__
 #define __STARPU_CLUSTERS_CREATE_H__
 
-#include "starpu_clusters_util.h"
+#include <starpu.h>
 #include <core/workers.h>
 #include <common/list.h>
 #include <string.h>
@@ -48,13 +48,13 @@ struct _starpu_cluster_parameters
 };
 
 LIST_TYPE(_starpu_cluster_group,
-		  unsigned id;
-		  hwloc_obj_t group_obj;
-		  int nclusters;
-		  struct _starpu_cluster_list* clusters;
-		  struct starpu_cluster_machine* father;
-		  struct _starpu_cluster_parameters* params;
-		);
+	  unsigned id;
+	  hwloc_obj_t group_obj;
+	  int nclusters;
+	  struct _starpu_cluster_list* clusters;
+	  struct starpu_cluster_machine* father;
+	  struct _starpu_cluster_parameters* params;
+)
 
 LIST_TYPE(_starpu_cluster,
 		  unsigned id;

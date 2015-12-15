@@ -19,7 +19,7 @@
 /* This file creates an interface to manage clustering resources and make use
  * of parallel tasks. It entirely depends on the hwloc software. */
 
-#include "starpu_clusters_create.h"
+#include <util/starpu_clusters_create.h>
 
 starpu_binding_function _starpu_cluster_type_get_func(starpu_cluster_types type)
 {
