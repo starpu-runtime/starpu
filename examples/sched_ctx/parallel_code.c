@@ -27,13 +27,13 @@
 int tasks_executed[2];
 starpu_pthread_mutex_t mut;
 
-int parallel_code(int sched_ctx)
+int parallel_code(unsigned *sched_ctx)
 {
 	int i;
 	int t = 0;
 	int *cpuids = NULL;
 	int ncpuids = 0;
-	starpu_sched_ctx_get_available_cpuids(sched_ctx, &cpuids, &ncpuids);
+	starpu_sched_ctx_get_available_cpuids(*sched_ctx, &cpuids, &ncpuids);
 
 //	printf("execute task of %d threads \n", ncpuids);
 #pragma omp parallel num_threads(ncpuids)
@@ -46,13 +46,14 @@ int parallel_code(int sched_ctx)
 	}
 
 	free(cpuids);
+	tasks_executed[*sched_ctx-1] = t;
 	return t;
 }
 
 static void sched_ctx_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
 {
 	int w = starpu_worker_get_id();
-	unsigned sched_ctx = (unsigned)arg;
+	unsigned *sched_ctx = (unsigned*)arg;
 	int n = parallel_code(sched_ctx);
 	printf("w %d executed %d it \n", w, n);
 }
@@ -68,8 +69,11 @@ static struct starpu_codelet sched_ctx_codelet =
 
 void *th(void* p)
 {
-	unsigned sched_ctx = (unsigned)p;
-	tasks_executed[sched_ctx-1] += (int)starpu_sched_ctx_exec_parallel_code((void*)parallel_code, (void*)sched_ctx, sched_ctx);
+	unsigned* sched_ctx = (unsigned*)p;
+	tasks_executed[*sched_ctx-1] = 0;
+	//here the return of parallel code could be used (as a void*)
+	starpu_sched_ctx_exec_parallel_code((void*)parallel_code, p, *sched_ctx);
+	return &tasks_executed[*sched_ctx-1];
 }
 
 int main(int argc, char **argv)
@@ -153,7 +157,7 @@ int main(int argc, char **argv)
 		struct starpu_task *task = starpu_task_create();
 
 		task->cl = &sched_ctx_codelet;
-		task->cl_arg = sched_ctx1;
+		task->cl_arg = &sched_ctx1;
 
 		/*submit tasks to context*/
 		ret = starpu_task_submit_to_ctx(task,sched_ctx1);
@@ -167,7 +171,7 @@ int main(int argc, char **argv)
 		struct starpu_task *task = starpu_task_create();
 
 		task->cl = &sched_ctx_codelet;
-		task->cl_arg = sched_ctx2;
+		task->cl_arg = &sched_ctx2;
 
 		/*submit tasks to context*/
 		ret = starpu_task_submit_to_ctx(task,sched_ctx2);
@@ -197,8 +201,8 @@ enodev:
 	starpu_sched_ctx_unbook_workers_for_task(sched_ctx2, master6);
 
 	pthread_t mp[2];
-	pthread_create(&mp[0], NULL, th, sched_ctx1);
-	pthread_create(&mp[1], NULL, th, sched_ctx2);
+	pthread_create(&mp[0], NULL, th, &sched_ctx1);
+	pthread_create(&mp[1], NULL, th, &sched_ctx2);
 
 	pthread_join(mp[0], NULL);
 	pthread_join(mp[1], NULL);
