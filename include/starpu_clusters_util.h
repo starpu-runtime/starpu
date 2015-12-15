@@ -19,8 +19,8 @@
 #ifndef __STARPU_CLUSTERS_UTIL_H__
 #define __STARPU_CLUSTERS_UTIL_H__
 
-#include <stdarg.h>
-#include <starpu.h>
+#ifdef STARPU_HAVE_HWLOC
+
 #include <hwloc.h>
 
 #ifdef __cplusplus
@@ -82,4 +82,5 @@ void starpu_gnu_openmp_mkl_prologue(void * sched_ctx_id);
 }
 #endif
 
+#endif
 #endif /* __STARPU_CLUSTERS_UTIL_H__ */

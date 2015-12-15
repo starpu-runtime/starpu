@@ -70,10 +70,7 @@ typedef UINT_PTR uintptr_t;
 #include <starpu_openmp.h>
 #include <starpu_simgrid_wrap.h>
 #include <starpu_bitmap.h>
-
-#if defined(STARPU_HAVE_HWLOC) && defined(STARPU_OPENMP)
 #include <starpu_clusters_util.h>
-#endif
 
 #ifdef __cplusplus
 extern "C"
