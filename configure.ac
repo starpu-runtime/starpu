@@ -2465,9 +2465,8 @@ AS_IF([test "$use_hwloc" = "no"],
   [AS_IF([test "$use_hwloc_from_system" = "yes"],
   	  [PKG_CHECK_MODULES([HWLOC],[hwloc], [
 	      	have_valid_hwloc=yes
-            have_pkgconfig_hwloc=yes
-            HWLOC_MAJVERSION=`$PKG_CONFIG --modversion hwloc | cut -d'.' -f1`
-            HWLOC_MINVERSION=`$PKG_CONFIG --modversion hwloc | cut -d'.' -f2`], [
+            have_pkgconfig_hwloc=yes],
+		[
             have_valid_hwloc=no
             have_pkgconfig_hwloc=no])
 	  ],
@@ -2498,12 +2497,16 @@ AS_IF([test "$have_valid_hwloc" = "yes"],
              [HWLOC_CFLAGS="-I$hwloc_dir/include"
           HWLOC_LIBS="-L$hwloc_dir/lib -lhwloc"
           # TODO: either detect this or make the API compatible with older hwloc versions
-          HWLOC_MAJVERSION=0],)
+          ],)
       ])
+
+LDFLAGS="${HWLOC_LIBS} ${SAVED_LDFLAGS}"
+CPPFLAGS="${HWLOC_CFLAGS} ${SAVED_CPPFLAGS}"
+AC_CHECK_FUNCS([hwloc_topology_dup])
+AM_CONDITIONAL(STARPU_HWLOC_HAVE_TOPOLOGY_DUP, test $ac_cv_func_hwloc_topology_dup = yes)
+
 LDFLAGS="${SAVED_LDFLAGS}"
 CPPFLAGS="${SAVED_CPPFLAGS}"
-
-AM_CONDITIONAL(STARPU_HWLOC_HAVE_TOPOLOGY_DUP, test $HWLOC_MAJVERSION -gt 1 -o \( $HWLOC_MAJVERSION -eq 1 -a $HWLOC_MINVERSION -ge 11 \))
 
 AC_MSG_CHECKING(whether hwloc should be used)
 AC_MSG_RESULT($have_valid_hwloc)
