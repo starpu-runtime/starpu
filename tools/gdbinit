@@ -87,6 +87,7 @@ define starpu-print-task
   printf "\tregenerate:\t\t\t<%d>\n", $task->regenerate
   printf "\tstatus:\t\t\t\t<%s>\n", $status
   printf "\tjob:\t\t\t\t<%p>\n", $job
+  printf "\ttag_id:\t\t\t\t<%d>\n", $task->tag_id
   printf "\tndeps:\t\t\t\t<%u>\n", $job->job_successors->ndeps
   printf "\tndeps_completed:\t\t<%u>\n", $job->job_successors->ndeps_completed
   printf "\tnsuccs:\t\t\t\t<%u>\n", $job->job_successors->nsuccs
