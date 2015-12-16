@@ -181,7 +181,7 @@ struct starpu_cluster_machine *starpu_cluster_machine(hwloc_obj_type_t cluster_l
 		}
 		else if (arg_type == STARPU_CLUSTER_NCORES)
 		{
-			struct _starpu_cluster_group *group = starpu_cluster_group_list_back(machine->groups);
+			struct _starpu_cluster_group *group = _starpu_cluster_group_list_back(machine->groups);
 			struct _starpu_cluster *cluster =_starpu_cluster_list_back(group->clusters);
 			cluster->ncores = va_arg(varg_list, unsigned);
 		}
