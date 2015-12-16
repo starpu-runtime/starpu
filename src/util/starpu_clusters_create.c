@@ -111,22 +111,19 @@ struct starpu_cluster_machine *starpu_cluster_machine(hwloc_obj_type_t cluster_l
 		{
 			params->min_nb = va_arg(varg_list, int);
 			if (params->min_nb <= 0)
-				fprintf(stderr, "Caution min number of contexts shouldn't "
-					"be negative or null\n");
+				_STARPU_DISP("Caution min number of contexts shouldn't be negative or null\n");
 		}
 		else if (arg_type == STARPU_CLUSTER_MAX_NB)
 		{
 			params->max_nb = va_arg(varg_list, int);
 			if (params->max_nb <= 0)
-				fprintf(stderr, "Caution max number of contexts shouldn't "
-					"be negative or null\n");
+				_STARPU_DISP("Caution max number of contexts shouldn't be negative or null\n");
 		}
 		else if (arg_type == STARPU_CLUSTER_NB)
 		{
 			params->nb = va_arg(varg_list, int);
 			if (params->nb <= 0)
-				fprintf(stderr, "Caution number of contexts shouldn't "
-					"be negative or null\n");
+				_STARPU_DISP("Caution number of contexts shouldn't be negative or null\n");
 		}
 		else if (arg_type == STARPU_CLUSTER_POLICY_NAME)
 		{
@@ -673,10 +670,10 @@ void _starpu_cluster(struct _starpu_cluster_group *group)
 		{
 			if (!starpu_cluster_warned)
 			{
-				fprintf(stderr, "STARPU CLUSTERS: Caution! It seems that you have"
-					" multiple workers bound to the same PU. If you have"
-					" multithreading on your cores it is greatly adviced"
-					" to export STARPU_NTHREADS_PER_CORE=nb.");
+				_STARPU_DISP("STARPU CLUSTERS: Caution! It seems that you have"
+					     " multiple workers bound to the same PU. If you have"
+					     " multithreading on your cores it is greatly adviced"
+					     " to export STARPU_NTHREADS_PER_CORE=nb.");
 				starpu_cluster_warned = 1;
 			}
 			cluster->ncores += size-1;
