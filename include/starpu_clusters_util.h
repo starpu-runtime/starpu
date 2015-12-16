@@ -69,7 +69,7 @@ typedef struct starpu_cluster_machine
 
 struct starpu_cluster_machine* starpu_cluster_machine(hwloc_obj_type_t cluster_level, ...);
 int starpu_uncluster_machine(struct starpu_cluster_machine* clusters);
-void starpu_cluster_print(struct starpu_cluster_machine* clusters);
+int starpu_cluster_print(struct starpu_cluster_machine* clusters);
 
 /* Prologue functions */
 void starpu_openmp_prologue(void * sched_ctx_id);

@@ -68,9 +68,9 @@ LIST_TYPE(_starpu_cluster,
 
 
 /* Machine discovery and cluster creation main funcitons */
-void _starpu_cluster_machine(hwloc_obj_type_t cluster_level,
+int _starpu_cluster_machine(hwloc_obj_type_t cluster_level,
 			     struct starpu_cluster_machine* machine);
-void _starpu_cluster_topology(hwloc_obj_type_t cluster_level,
+int _starpu_cluster_topology(hwloc_obj_type_t cluster_level,
 			      struct starpu_cluster_machine* machine);
 void _starpu_cluster_group(hwloc_obj_type_t cluster_level,
 			   struct starpu_cluster_machine* machine);

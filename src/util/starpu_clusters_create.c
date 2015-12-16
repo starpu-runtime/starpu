@@ -99,7 +99,11 @@ struct starpu_cluster_machine *starpu_cluster_machine(hwloc_obj_type_t cluster_l
 	struct starpu_cluster_machine *machine = malloc(sizeof(struct starpu_cluster_machine));
 
 	machine->params = malloc(sizeof(struct _starpu_cluster_parameters));
+	machine->id = STARPU_NMAX_SCHED_CTXS;
 	machine->groups = _starpu_cluster_group_list_new();
+	machine->nclusters = 0;
+	machine->ngroups = 0;
+	machine->topology = NULL;
 
 	_starpu_cluster_init_parameters(machine->params);
 	params = machine->params;
@@ -205,15 +209,24 @@ struct starpu_cluster_machine *starpu_cluster_machine(hwloc_obj_type_t cluster_l
 			break;
 	}
 
-	_starpu_cluster_machine(cluster_level, machine);
+	if (_starpu_cluster_machine(cluster_level, machine) == -ENODEV)
+	{
+		starpu_uncluster_machine(machine);
+		machine = NULL;
+	}
+
 	return machine;
 }
 
 int starpu_uncluster_machine(struct starpu_cluster_machine *machine)
 {
+	if (machine == NULL)
+		return -1;
 	struct _starpu_cluster_group *g, *tmp;
 	struct _starpu_cluster_group_list *group_list = machine->groups;
-	starpu_sched_ctx_delete(machine->id);
+
+	if (machine->id != STARPU_NMAX_SCHED_CTXS)
+		starpu_sched_ctx_delete(machine->id);
 	g = _starpu_cluster_group_list_begin(group_list);
 	while (g != _starpu_cluster_group_list_end(group_list))
 	{
@@ -221,7 +234,8 @@ int starpu_uncluster_machine(struct starpu_cluster_machine *machine)
 		g = _starpu_cluster_group_list_next(g);
 		_starpu_cluster_group_remove(group_list, tmp);
 	}
-	hwloc_topology_destroy(machine->topology);
+	if (machine->topology != NULL)
+		hwloc_topology_destroy(machine->topology);
 	free(machine->params);
 	free(machine);
 	starpu_sched_ctx_set_context(0);
@@ -229,8 +243,11 @@ int starpu_uncluster_machine(struct starpu_cluster_machine *machine)
 	return 0;
 }
 
-void starpu_cluster_print(struct starpu_cluster_machine *clusters)
+int starpu_cluster_print(struct starpu_cluster_machine *clusters)
 {
+	if (clusters == NULL)
+		return -1;
+
 	int cnt, w;
 	struct _starpu_cluster_group *group;
 	struct _starpu_cluster *cluster;
@@ -253,7 +270,7 @@ void starpu_cluster_print(struct starpu_cluster_machine *clusters)
 		}
 	}
 
-	return;
+	return 0;
 }
 
 void _starpu_cluster_create(struct _starpu_cluster *cluster)
@@ -283,6 +300,8 @@ void _starpu_cluster_group_create(struct _starpu_cluster_group *group)
 	     c != _starpu_cluster_list_end(group->clusters) ;
 	     c = _starpu_cluster_list_next(c))
 	{
+		if (c->ncores == 0)
+			continue;
 		_starpu_cluster_create(c);
 		if (!c->params->awake_workers)
 			_starpu_cluster_bind(c);
@@ -330,7 +349,7 @@ void _starpu_cluster_group_init(struct _starpu_cluster_group *group,
 void _starpu_cluster_init(struct _starpu_cluster *cluster,
 			  struct _starpu_cluster_group *father)
 {
-	cluster->id = 0;
+	cluster->id = STARPU_NMAX_SCHED_CTXS;
 	cluster->cpuset = hwloc_bitmap_alloc();
 	cluster->ncores = 0;
 	cluster->cores = NULL;
@@ -373,9 +392,12 @@ int _starpu_cluster_group_remove(struct _starpu_cluster_group_list *group_list,
 		c = _starpu_cluster_list_next(c);
 		_starpu_cluster_remove(cluster_list, tmp);
 	}
+	_starpu_cluster_list_delete(cluster_list);
+
 	free(group->params);
 	_starpu_cluster_group_list_erase(group_list, group);
 	_starpu_cluster_group_delete(group);
+	_starpu_cluster_group_list_delete(group_list);
 
 	return 0;
 }
@@ -421,16 +443,16 @@ int _starpu_cluster_analyze_parameters(struct _starpu_cluster_parameters *params
 	int nb_clusters = 1, j;
 	if (params->nb)
 	{
-		nb_clusters = params->nb;
+		nb_clusters = params->nb <= npus?params->nb : npus;
 	}
 	else if (params->min_nb && params->max_nb)
 	{
 		if (!params->keep_homogeneous)
 		{
 			if (params->prefere_min)
-				nb_clusters = params->min_nb;
+				nb_clusters = params->min_nb <= npus? params->min_nb : npus;
 			else
-				nb_clusters = params->max_nb;
+				nb_clusters = params->max_nb <= npus? params->max_nb : npus;
 		}
 		else
 		{
@@ -463,12 +485,14 @@ int _starpu_cluster_analyze_parameters(struct _starpu_cluster_parameters *params
 	return nb_clusters;
 }
 
-void _starpu_cluster_machine(hwloc_obj_type_t cluster_level,
+int _starpu_cluster_machine(hwloc_obj_type_t cluster_level,
 			     struct starpu_cluster_machine *machine)
 {
 	struct _starpu_cluster_group *g;
+	int ret = 0;
 
-	_starpu_cluster_topology(cluster_level, machine);
+	if ((ret = _starpu_cluster_topology(cluster_level, machine)))
+		return ret;
 
 	if (machine->params->sched_policy_struct != NULL)
 	{
@@ -503,16 +527,21 @@ void _starpu_cluster_machine(hwloc_obj_type_t cluster_level,
 	starpu_task_wait_for_all();
 	starpu_sched_ctx_set_context(&machine->id);
 
-	return;
+	return ret;
 }
 
-void _starpu_cluster_topology(hwloc_obj_type_t cluster_level,
+int _starpu_cluster_topology(hwloc_obj_type_t cluster_level,
 			      struct starpu_cluster_machine *machine)
 {
 	int w;
 	hwloc_topology_t topology;
 	hwloc_cpuset_t avail_cpus;
-	char *buf;
+
+	int nworkers = starpu_worker_get_count_by_type(STARPU_CPU_WORKER);
+	if (nworkers == 0)
+		return -ENODEV;
+	int *workers = (int*) malloc(sizeof(int) * nworkers);
+	starpu_worker_get_ids_by_type(STARPU_CPU_WORKER, workers, nworkers);
 
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	STARPU_ASSERT_MSG(config->topology.hwtopology != NULL, "STARPU_CLUSTER: You "
@@ -522,16 +551,11 @@ void _starpu_cluster_topology(hwloc_obj_type_t cluster_level,
 	avail_cpus = hwloc_bitmap_alloc();
 	hwloc_bitmap_zero(avail_cpus);
 
-	int nworkers = starpu_worker_get_count_by_type(STARPU_CPU_WORKER);
-	int *workers = (int*) malloc(sizeof(int) * nworkers);
-	starpu_worker_get_ids_by_type(STARPU_CPU_WORKER, workers, nworkers);
-
 	for (w = 0; w < nworkers ; w++)
 	{
 		struct _starpu_worker *worker_str = _starpu_get_worker_struct(workers[w]);
 		hwloc_bitmap_or(avail_cpus, avail_cpus, worker_str->hwloc_cpu_set);
 	}
-	hwloc_bitmap_list_asprintf(&buf, avail_cpus);
 
 	hwloc_topology_restrict(topology, avail_cpus, 0);
 	free(workers);
@@ -542,7 +566,7 @@ void _starpu_cluster_topology(hwloc_obj_type_t cluster_level,
 
 	hwloc_bitmap_free(avail_cpus);
 
-	return;
+	return 0;
 }
 
 void _starpu_cluster_group(hwloc_obj_type_t cluster_level,
@@ -587,7 +611,6 @@ void _starpu_cluster(struct _starpu_cluster_group *group)
 {
 	int i, avail_pus, npus, npreset=0;
 	struct _starpu_cluster *cluster;
-	char *buf;
 	npus = hwloc_get_nbobjs_inside_cpuset_by_type(group->father->topology,
 						      group->group_obj->cpuset,
 						      HWLOC_OBJ_PU);
@@ -647,7 +670,6 @@ void _starpu_cluster(struct _starpu_cluster_group *group)
 	cluster = _starpu_cluster_list_begin(group->clusters);
 	int count = 0;
 	static int starpu_cluster_warned = 0;
-	hwloc_bitmap_list_asprintf(&buf, group->group_obj->cpuset);
 
 	for (i=0 ; i<npus ; i++)
 	{
