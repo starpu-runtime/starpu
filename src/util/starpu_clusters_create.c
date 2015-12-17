@@ -234,6 +234,7 @@ int starpu_uncluster_machine(struct starpu_cluster_machine *machine)
 		g = _starpu_cluster_group_list_next(g);
 		_starpu_cluster_group_remove(group_list, tmp);
 	}
+	_starpu_cluster_group_list_delete(group_list);
 	if (machine->topology != NULL)
 		hwloc_topology_destroy(machine->topology);
 	free(machine->params);
@@ -397,7 +398,6 @@ int _starpu_cluster_group_remove(struct _starpu_cluster_group_list *group_list,
 	free(group->params);
 	_starpu_cluster_group_list_erase(group_list, group);
 	_starpu_cluster_group_delete(group);
-	_starpu_cluster_group_list_delete(group_list);
 
 	return 0;
 }
