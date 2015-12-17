@@ -95,15 +95,8 @@ versinclude_HEADERS = 				\
 	include/starpu_thread_util.h		\
 	include/starpu_tree.h			\
 	include/starpu_simgrid_wrap.h		\
-	include/starpu_mod.f90
-
-if STARPU_HAVE_HWLOC
-if STARPU_HWLOC_HAVE_TOPOLOGY_DUP
-if STARPU_HAVE_OPENMP
-versinclude_HEADERS += include/starpu_clusters_util.h
-endif
-endif
-endif
+	include/starpu_mod.f90			\
+	include/starpu_clusters_util.h
 
 nodist_versinclude_HEADERS = 			\
 	include/starpu_config.h
