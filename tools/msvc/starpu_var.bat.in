@@ -2,7 +2,7 @@
 
 REM StarPU --- Runtime system for heterogeneous multicore architectures.
 REM
-REM Copyright (C) 2013, 2014  CNRS
+REM Copyright (C) 2013, 2014, 2016  CNRS
 REM
 REM StarPU is free software; you can redistribute it and/or modify
 REM it under the terms of the GNU Lesser General Public License as published by
@@ -26,7 +26,7 @@ ECHO Setting environment from %STARPU_PATH%
 
 set STARPU_LIBDIR=%STARPU_PATH%/lib
 set STARPU_INCLUDEDIR=%STARPU_PATH%/include
-set STARPU_CFLAGS=/I%STARPU_INCLUDEDIR%\starpu\@STARPU_EFFECTIVE_VERSION@ @STARPU_CUDA_CPPFLAGS@
+set STARPU_CFLAGS=/I%STARPU_INCLUDEDIR%\starpu\@STARPU_EFFECTIVE_VERSION@ @STARPU_CUDA_CPPFLAGS@ @HWLOC_CFLAGS@
 set STARPU_LDFLAGS=/link %STARPU_PATH%\lib\libstarpu-@STARPU_EFFECTIVE_VERSION@.lib
 
 GOTO end
