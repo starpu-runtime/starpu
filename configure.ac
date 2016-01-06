@@ -80,6 +80,7 @@ AC_PROG_F77
 AC_PROG_FC
 AC_CHECK_PROGS(PROG_STAT,gstat stat)
 AC_CHECK_PROGS(PROG_DATE,gdate date)
+AC_OPENMP
 
 LT_PREREQ([2.2])
 LT_INIT([win32-dll])
@@ -2155,8 +2156,7 @@ fi
 AM_CONDITIONAL([STARPU_OPENMP], [test "x$enable_openmp" = "xyes"])
 AC_MSG_RESULT($enable_openmp)
 
-IS_SUPPORTED_CFLAG(-fopenmp, :)
-AM_CONDITIONAL([STARPU_HAVE_OPENMP],[test "$option_available" = "1"])
+AM_CONDITIONAL([STARPU_HAVE_OPENMP],[test -n "$OPENMP_CFLAGS"])
 
 ###############################################################################
 #                                                                             #
