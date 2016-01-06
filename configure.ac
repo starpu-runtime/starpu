@@ -78,6 +78,7 @@ AC_PROG_SED
 AC_PROG_LN_S
 AC_PROG_F77
 AC_PROG_FC
+AC_OPENMP
 
 LT_PREREQ([2.2])
 LT_INIT([win32-dll])
@@ -1628,8 +1629,7 @@ AM_CONDITIONAL([RUN_GCC_PLUGIN_TESTS],
 #                                                                             #
 ###############################################################################
 
-IS_SUPPORTED_CFLAG(-fopenmp)
-AM_CONDITIONAL([STARPU_HAVE_OPENMP],[test "$option_available" = "1"])
+AM_CONDITIONAL([STARPU_HAVE_OPENMP],[test -n "$OPENMP_CFLAGS"])
 
 ###############################################################################
 #                                                                             #
