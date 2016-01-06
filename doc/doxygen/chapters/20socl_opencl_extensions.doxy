@@ -16,6 +16,11 @@ In addition, command queues that are created without specifying a device provide
 automatic scheduling of the submitted commands on OpenCL devices contained in
 the context to which the command queue is attached.
 
+Setting the <c>CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE</c> flag on a command
+queue also allows StarPU to reorder kernels queued on the queue, otherwise they
+would be serialized and several command queues would be necessary to see kernels
+dispatched on the various OpenCL devices.
+
 Note: this is still an area under development and subject to change.
 
 When compiling StarPU, SOCL will be enabled if a valid OpenCL
