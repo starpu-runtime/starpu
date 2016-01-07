@@ -117,13 +117,9 @@ void _starpu_profiling_init(void)
 		STARPU_PTHREAD_MUTEX_INIT(&worker_info_mutex[worker], NULL);
 	}
 
-	_starpu_profiling_reset_counters();
-
 	if ((env = starpu_getenv("STARPU_PROFILING")) && atoi(env))
 	{
-		ANNOTATE_HAPPENS_AFTER(&_starpu_profiling);
-		_starpu_profiling = STARPU_PROFILING_ENABLE;
-		ANNOTATE_HAPPENS_BEFORE(&_starpu_profiling);
+		starpu_profiling_status_set(STARPU_PROFILING_ENABLE);
 	}
 }
 
