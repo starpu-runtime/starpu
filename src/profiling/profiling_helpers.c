@@ -105,9 +105,8 @@ void starpu_profiling_worker_helper_display_summary(void)
 			double idle_consumption = idle_power * overall_time / 1000.; /* J */
 
 			fprintf(stderr, "Idle consumption: %.2lf J\n", idle_consumption);
-			sum_consumed += idle_consumption;
+			fprintf(stderr, "Total consumption: %.2lf J\n",
+				sum_consumed + idle_consumption);
 		}
 	}
-	if (profiling && sum_consumed)
-		fprintf(stderr, "Total consumption: %.2lf J\n", sum_consumed);
 }
