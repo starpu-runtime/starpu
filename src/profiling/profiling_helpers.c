@@ -74,6 +74,9 @@ void starpu_profiling_worker_helper_display_summary(void)
 
 		starpu_worker_get_name(workerid, name, sizeof(name));
 
+		fprintf(stderr, "%-32s\n", name);
+		fprintf(stderr, "\t%d task(s)\n", info.executed_tasks);
+
 		if (profiling)
 		{
 			double total_time = starpu_timing_timespec_to_us(&info.total_time) / 1000.;
@@ -82,16 +85,12 @@ void starpu_profiling_worker_helper_display_summary(void)
 			if (total_time > overall_time)
 				overall_time = total_time;
 
-			fprintf(stderr, "%-32s\n", name);
-			fprintf(stderr, "\t%d task(s)\n\ttotal: %.2lf ms executing: %.2lf ms sleeping: %.2lf ms overhead %.2lf ms\n", info.executed_tasks, total_time, executing_time, sleeping_time, total_time - executing_time - sleeping_time);
+			fprintf(stderr, "\ttotal: %.2lf ms executing: %.2lf ms sleeping: %.2lf ms overhead %.2lf ms\n",
+				total_time, executing_time, sleeping_time, total_time - executing_time - sleeping_time);
 			if (info.used_cycles || info.stall_cycles)
 				fprintf(stderr, "\t%lu Mcy %lu Mcy stall\n", info.used_cycles/1000000, info.stall_cycles/1000000);
 			if (info.power_consumed)
 				fprintf(stderr, "\t%f J consumed\n", info.power_consumed);
-		}
-		else
-		{
-			fprintf(stderr, "\t%-32s\t%d task(s)\n", name, info.executed_tasks);
 		}
 
 		sum_consumed += info.power_consumed;
