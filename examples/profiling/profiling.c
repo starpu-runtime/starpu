@@ -141,6 +141,7 @@ int main(int argc, char **argv)
 		char workername[128];
 		starpu_worker_get_name(worker, workername, 128);
 		FPRINTF(stderr, "Worker %s:\n", workername);
+		FPRINTF(stderr, "\t%d task(s)\n", worker_info.executed_tasks);
 		FPRINTF(stderr, "\ttotal time : %.2lf ms\n", total_time*1e-3);
 		FPRINTF(stderr, "\texec time  : %.2lf ms (%.2f %%)\n", executing_time*1e-3, executing_ratio);
 		FPRINTF(stderr, "\tblocked time  : %.2lf ms (%.2f %%)\n", sleeping_time*1e-3, sleeping_ratio);
