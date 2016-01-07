@@ -71,6 +71,8 @@ struct starpu_profiling_worker_info
 	uint64_t used_cycles;
 	uint64_t stall_cycles;
 	double power_consumed;
+
+	double flops;
 };
 
 struct starpu_profiling_bus_info

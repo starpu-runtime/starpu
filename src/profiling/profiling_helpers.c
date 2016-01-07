@@ -91,6 +91,8 @@ void starpu_profiling_worker_helper_display_summary(void)
 				fprintf(stderr, "\t%lu Mcy %lu Mcy stall\n", info.used_cycles/1000000, info.stall_cycles/1000000);
 			if (info.power_consumed)
 				fprintf(stderr, "\t%f J consumed\n", info.power_consumed);
+			if (info.flops)
+				fprintf(stderr, "\t%f GFlop/s\n\n", info.flops / total_time / 1000000);
 		}
 
 		sum_consumed += info.power_consumed;

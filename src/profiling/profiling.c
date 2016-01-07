@@ -171,6 +171,7 @@ static void _starpu_worker_reset_profiling_info_with_lock(int workerid)
 	worker_info[workerid].used_cycles = 0;
 	worker_info[workerid].stall_cycles = 0;
 	worker_info[workerid].power_consumed = 0;
+	worker_info[workerid].flops = 0;
 
 	/* We detect if the worker is already sleeping or doing some
 	 * computation */
@@ -265,7 +266,7 @@ void _starpu_worker_register_executing_start_date(int workerid, struct timespec 
 }
 
 
-void _starpu_worker_update_profiling_info_executing(int workerid, struct timespec *executing_time, int executed_tasks, uint64_t used_cycles, uint64_t stall_cycles, double power_consumed)
+void _starpu_worker_update_profiling_info_executing(int workerid, struct timespec *executing_time, int executed_tasks, uint64_t used_cycles, uint64_t stall_cycles, double power_consumed, double flops)
 {
 	if (starpu_profiling_status_get())
 	{
@@ -278,6 +279,7 @@ void _starpu_worker_update_profiling_info_executing(int workerid, struct timespe
 		worker_info[workerid].stall_cycles += stall_cycles;
 		worker_info[workerid].power_consumed += power_consumed;
 		worker_info[workerid].executed_tasks += executed_tasks;
+		worker_info[workerid].flops += flops;
 
 		STARPU_PTHREAD_MUTEX_UNLOCK(&worker_info_mutex[workerid]);
 	}
