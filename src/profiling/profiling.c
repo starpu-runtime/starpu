@@ -129,7 +129,12 @@ void _starpu_profiling_init(void)
 
 void _starpu_profiling_terminate(void)
 {
+	int worker;
 
+	for (worker = 0; worker < STARPU_NMAXWORKERS; worker++)
+	{
+		STARPU_PTHREAD_MUTEX_DESTROY(&worker_info_mutex[worker]);
+	}
 }
 
 /*

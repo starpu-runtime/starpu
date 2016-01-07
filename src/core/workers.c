@@ -1529,6 +1529,8 @@ void starpu_shutdown(void)
 	starpu_profiling_bus_helper_display_summary();
 	starpu_profiling_worker_helper_display_summary();
 
+	_starpu_profiling_terminate();
+
 	_starpu_deinitialize_registered_performance_models();
 
 	_starpu_watchdog_shutdown();
