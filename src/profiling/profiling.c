@@ -379,7 +379,7 @@ static void _starpu_bus_reset_profiling_info(struct starpu_profiling_bus_info *b
 
 int _starpu_register_bus(int src_node, int dst_node)
 {
-	if (busid_matrix[src_node][dst_node] != -1)
+	if (starpu_bus_get_id(src_node, dst_node) != -1)
 		return -EBUSY;
 
 	int busid = STARPU_ATOMIC_ADD(&busid_cnt, 1) - 1;
@@ -417,8 +417,8 @@ int starpu_bus_get_dst(int busid)
 
 int starpu_bus_get_profiling_info(int busid, struct starpu_profiling_bus_info *bus_info)
 {
-	int src_node = busid_to_node_pair[busid].src;
-	int dst_node = busid_to_node_pair[busid].dst;
+	int src_node = starpu_bus_get_src(busid);
+	int dst_node = starpu_bus_get_dst(busid);
 
 	/* XXX protect all this  method with a mutex */
 	if (bus_info)
