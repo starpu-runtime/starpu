@@ -276,6 +276,8 @@ void starpu_tag_restart(starpu_tag_t id);
 
 void starpu_tag_remove(starpu_tag_t id);
 
+struct starpu_task *starpu_tag_get_task(starpu_tag_t id);
+
 void starpu_task_init(struct starpu_task *task);
 void starpu_task_clean(struct starpu_task *task);
 

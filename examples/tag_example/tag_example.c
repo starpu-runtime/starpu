@@ -154,6 +154,8 @@ static int create_task_grid(unsigned piter)
 		ret = starpu_task_submit(task);
 		if (ret == -ENODEV) return 77;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+
+		assert(starpu_tag_get_task(task->tag_id) == task);
 	}
 	return 0;
 }

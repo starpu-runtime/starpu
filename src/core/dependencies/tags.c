@@ -491,3 +491,23 @@ int starpu_tag_wait(starpu_tag_t id)
 {
 	return starpu_tag_wait_array(1, &id);
 }
+
+struct starpu_task *starpu_tag_get_task(starpu_tag_t id)
+{
+	struct _starpu_tag_table *entry;
+	struct _starpu_tag *tag;
+
+	STARPU_PTHREAD_RWLOCK_WRLOCK(&tag_global_rwlock);
+	HASH_FIND_UINT64_T(tag_htbl, &id, entry);
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&tag_global_rwlock);
+
+	if (!entry)
+		return NULL;
+	tag = entry->tag;
+
+	if (!tag->job)
+		return NULL;
+
+	return tag->job->task;
+}
+
