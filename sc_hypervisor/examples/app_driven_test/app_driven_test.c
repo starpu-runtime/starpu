@@ -129,7 +129,8 @@ int main()
 	unsigned sched_ctx2 = starpu_sched_ctx_create(ressources2, nres2, "sched_ctx2", STARPU_SCHED_CTX_POLICY_NAME, "dmda", 0);
 
 	/* initialize the hypervisor */
-	struct sc_hypervisor_policy policy;
+	struct sc_hypervisor_policy policy = {};
+
 	policy.custom = 0;
 	/* indicate which strategy to use
 	   in this particular case we use app_driven which allows the user to resize 
