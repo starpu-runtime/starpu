@@ -1648,7 +1648,10 @@ void sc_hypervisor_get_ctxs_on_level(unsigned **sched_ctxs, int *nsched_ctxs, un
 		        (*sched_ctxs)[(*nsched_ctxs)++] = hypervisor.sched_ctxs[s];
 	}
 	if(*nsched_ctxs == 0)
+	{
 		free(*sched_ctxs);
+		*sched_ctxs = NULL;
+	}
 	return;
 }
 
