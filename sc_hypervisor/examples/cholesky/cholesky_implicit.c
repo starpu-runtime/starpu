@@ -335,6 +335,8 @@ static void execute_cholesky(unsigned size, unsigned nblocks)
 
 int main(int argc, char **argv)
 {
+	int ret;
+
 	/* create a simple definite positive symetric matrix example
 	 *
 	 *	Hilbert matrix : h(i,j) = 1/(i+j+1)
@@ -345,7 +347,10 @@ int main(int argc, char **argv)
 	if(with_ctxs || with_noctxs || chole1 || chole2)
 		parse_args_ctx(argc, argv);
 
-	starpu_init(NULL);
+	ret = starpu_init(NULL);
+	if (ret == -ENODEV)
+		return 77;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 #ifdef STARPU_USE_CUDA
 	initialize_chol_model(&chol_model_11,"chol_model_11",cpu_chol_task_11_cost,cuda_chol_task_11_cost);
