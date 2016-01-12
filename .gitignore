@@ -31,6 +31,8 @@ starpu.log
 /doc/chapters/version.texi
 /doc/doxygen/chapters/version.sty
 /doc/doxygen/chapters/version.html
+/doc/doxygen/doxygen-config.cfg
+/doc/doxygen/doxygen_filter.sh
 /examples/basic_examples/block
 /examples/basic_examples/hello_world
 /examples/basic_examples/mult
