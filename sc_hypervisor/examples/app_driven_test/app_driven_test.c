@@ -112,8 +112,9 @@ int main()
 	if (ret == -ENODEV)
         return 77;
 
-	int nres1 = 6;
-	int nres2 = 6;
+	int num_workers = starpu_worker_get_count();
+	int nres1 = num_workers;
+	int nres2 = num_workers;
 	int ressources1[nres1];
 	int ressources2[nres2];
 	int i;
