@@ -795,12 +795,12 @@ unsigned starpu_sched_ctx_create(int *workerids, int nworkers, const char *sched
 	{
 		/* Make sure the user doesn't use invalid worker IDs. */
 		unsigned num_workers = starpu_worker_get_count();
-		for (int i = 0; i < nworkers; i++)
+		int i;
+		for (i = 0; i < nworkers; i++)
 		{
 			if (workerids[i] < 0 || workerids[i] >= num_workers)
 			{
-				_STARPU_ERROR("Invalid worker ID (%d) specified!\n",
-					      workerids[i]);
+				_STARPU_ERROR("Invalid worker ID (%d) specified!\n", workerids[i]);
 				return STARPU_NMAX_SCHED_CTXS;
 			}
 		}
