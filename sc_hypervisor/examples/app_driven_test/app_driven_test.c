@@ -122,7 +122,7 @@ int main()
 		ressources1[i] = i;
 
 	for(i = 0; i < nres2; i++)
-		ressources2[i] = nres1+i;
+		ressources2[i] = i;
 
 	/* create contexts */
 	unsigned sched_ctx1 = starpu_sched_ctx_create(ressources1, nres1, "sched_ctx1", STARPU_SCHED_CTX_POLICY_NAME, "dmda", 0);
