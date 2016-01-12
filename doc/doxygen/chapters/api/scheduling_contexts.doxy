@@ -63,6 +63,9 @@ scheduling policy.
 representing the maximum priority value to be defined for the
 scheduling policy.
 </li>
+<li> ::STARPU_SCHED_CTX_POLICY_INIT, followed by a function pointer
+(ie. void init_sched(void)) allowing to initialize the scheduling policy.
+</li>
 </ul>
 
 \def STARPU_SCHED_CTX_POLICY_NAME
