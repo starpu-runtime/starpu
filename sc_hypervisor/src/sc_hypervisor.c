@@ -1376,9 +1376,10 @@ static void notify_post_exec_task(struct starpu_task *task, size_t data_size, ui
 
 	starpu_pthread_mutex_lock(&hypervisor.sched_ctx_w[sched_ctx].mutex);
 	hypervisor.sched_ctx_w[sched_ctx].remaining_flops -= flops;
+	starpu_pthread_mutex_unlock(&hypervisor.sched_ctx_w[sched_ctx].mutex);
+
 	if(_sc_hypervisor_use_lazy_resize())
 		_ack_resize_completed(sched_ctx, worker);
-	starpu_pthread_mutex_unlock(&hypervisor.sched_ctx_w[sched_ctx].mutex);
 
 	if(starpu_sched_ctx_get_hierarchy_level(sched_ctx) > 0)
 	{
