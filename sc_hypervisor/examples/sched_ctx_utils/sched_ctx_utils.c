@@ -246,11 +246,11 @@ void construct_contexts(void (*bench)(float*, unsigned, unsigned))
 	void *perf_counters = sc_hypervisor_init(&policy);
 	int nworkers1 = cpu1 + gpu + gpu1;
 	int nworkers2 = cpu2 + gpu + gpu2;
-	unsigned n_all_gpus = gpu + gpu1 + gpu2;
+	/* unsigned n_all_gpus = gpu + gpu1 + gpu2; */
 
 
 	int i;
-	int k = 0;
+	/* int k = 0; */
 	nworkers1 = 12;
 	p1.workers = (int*)malloc(nworkers1*sizeof(int));
 
@@ -292,7 +292,7 @@ void construct_contexts(void (*bench)(float*, unsigned, unsigned))
 				   SC_HYPERVISOR_MAX_WORKERS, 12,
 				   NULL);
 
-	k = 0;
+	/* k = 0; */
 	p2.workers = (int*)malloc(nworkers2*sizeof(int));
 
 	/* for(i = 0; i < gpu; i++) */

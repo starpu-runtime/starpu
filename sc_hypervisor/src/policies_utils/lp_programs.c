@@ -285,10 +285,10 @@ double sc_hypervisor_lp_simulate_distrib_flops(int ns, int nw, double v[ns][nw],
 	   and another column corresponding to the 1/tmax bound (bc 1/tmax is a variable too)*/
 	glp_add_cols(lp, nw*ns+1);
 
-	struct sc_hypervisor_wrapper *sc_w = NULL;
+	/* struct sc_hypervisor_wrapper *sc_w = NULL; */
 	for(s = 0; s < ns; s++)
 	{
-		sc_w = sc_hypervisor_get_wrapper(sched_ctxs[s]);
+		/* sc_w = sc_hypervisor_get_wrapper(sched_ctxs[s]); */
 		struct sc_hypervisor_policy_config *config = sc_hypervisor_get_config(sched_ctxs[s]);
 		for(w = 0; w < nw; w++)
 		{

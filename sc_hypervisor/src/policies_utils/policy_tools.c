@@ -510,7 +510,7 @@ unsigned sc_hypervisor_check_speed_gap_btw_ctxs(unsigned *sched_ctxs_in, int ns_
 		int total_nw[nw];
 		sc_hypervisor_group_workers_by_type(tw, total_nw);
 
-		double vmax = sc_hypervisor_lp_get_nworkers_per_ctx(ns, nw, nworkers_per_ctx, total_nw, tw, sched_ctxs);
+//		double vmax = sc_hypervisor_lp_get_nworkers_per_ctx(ns, nw, nworkers_per_ctx, total_nw, tw, sched_ctxs);
 
 		
 //		if(vmax != 0.0)

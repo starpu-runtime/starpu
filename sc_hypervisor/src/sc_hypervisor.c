@@ -891,7 +891,7 @@ void _sc_hypervisor_allow_compute_idle(unsigned sched_ctx, int worker, unsigned 
 
 int _update_max_hierarchically(unsigned *sched_ctxs, int nsched_ctxs)
 {
-	int s, i;
+	int s;
 	unsigned leaves[hypervisor.nsched_ctxs];
 	int nleaves = 0;
 	sc_hypervisor_get_leaves(hypervisor.sched_ctxs, hypervisor.nsched_ctxs, leaves, &nleaves);

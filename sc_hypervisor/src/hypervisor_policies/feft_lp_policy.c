@@ -40,7 +40,6 @@ static void _try_resizing(unsigned *sched_ctxs, int nsched_ctxs, int *workers, i
 
 	int total_nw[nw];
 	sc_hypervisor_group_workers_by_type(tw, total_nw);
-	unsigned can_redistrib = 0;
 
 	
 	struct timeval start_time;
@@ -175,7 +174,6 @@ static void _resize_if_speed_diff(unsigned sched_ctx, int worker)
 		unsigned *sched_ctxs_old = NULL;
 		int nsched_ctxs_old = 0;
 		unsigned is_speed_diff = 0;
-		unsigned last_level_diff = 0;
 
 		for(level = current_level ; level >= 0; level--)
 		{
@@ -297,7 +295,7 @@ static void feft_lp_size_ctxs(unsigned *sched_ctxs, int nsched_ctxs, int *worker
 
 static void _resize_leaves(int worker)
 {
-	unsigned s, s2;
+	unsigned s;
 	unsigned *sched_ctxs = NULL;
 	unsigned nsched_ctxs = starpu_worker_get_sched_ctx_list(worker, &sched_ctxs);
        	unsigned workers_sched_ctxs[nsched_ctxs];
