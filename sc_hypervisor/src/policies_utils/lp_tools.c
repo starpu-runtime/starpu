@@ -96,7 +96,7 @@ double sc_hypervisor_lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_work
 				if(!sc_w->consider_max)
 				{
 #ifdef STARPU_SC_HYPERVISOR_DEBUG
-					printf("ctx%: current speed is %lf and compare speed is min %lf max %lf\n", sched_ctxs[i], v[i][w], (0.1*avg_speed), (2*avg_speed));
+					printf("ctx %d: current speed is %lf and compare speed is min %lf max %lf\n", sched_ctxs[i], v[i][w], (0.1*avg_speed), (2*avg_speed));
 #endif
 					if(v[i][w] < 0.1*avg_speed || v[i][w] > 2*avg_speed)
 					{
