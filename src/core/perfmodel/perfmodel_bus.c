@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
  * Copyright (C) 2013 Corentin Salingue
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -1042,7 +1042,7 @@ static int load_bus_latency_file_content(void)
 				break;
 			if (n != '\t')
 			{
-				_STARPU_DISP("bogus character %c in latency file %s\n", n, path);
+				_STARPU_DISP("bogus character '%c' (%d) in latency file %s\n", n, n, path);
 				fclose(f);
 				return 0;
 			}
@@ -1080,7 +1080,7 @@ static int load_bus_latency_file_content(void)
 		}
 		if (n != '\n')
 		{
-			_STARPU_DISP("Bogus character %c in latency file %s\n", n, path);
+			_STARPU_DISP("Bogus character '%c' (%d) in latency file %s\n", n, n, path);
 			fclose(f);
 			return 0;
 		}
@@ -1264,7 +1264,7 @@ static int load_bus_bandwidth_file_content(void)
 				break;
 			if (n != '\t')
 			{
-				_STARPU_DISP("bogus character %c in bandwidth file %s\n", n, path);
+				_STARPU_DISP("bogus character '%c' (%d) in bandwidth file %s\n", n, n, path);
 				fclose(f);
 				return 0;
 			}
@@ -1302,7 +1302,7 @@ static int load_bus_bandwidth_file_content(void)
 		}
 		if (n != '\n')
 		{
-			_STARPU_DISP("Bogus character %c in bandwidth file %s\n", n, path);
+			_STARPU_DISP("Bogus character '%c' (%d) in bandwidth file %s\n", n, n, path);
 			fclose(f);
 			return 0;
 		}
