@@ -40,7 +40,7 @@ void dummy_big_kernel(void *descr[], void *cl_arg)
 	int i;
 
 	starpu_codelet_unpack_args(cl_arg, &nb_data);
-	assert(nb_data == 9);
+	assert(nb_data == STARPU_NMAXBUFS + 1);
 	FPRINTF(stderr, "Number of data: %d\n", nb_data);
 
 	for(i=0 ; i<nb_data; i++)
