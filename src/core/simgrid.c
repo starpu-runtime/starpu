@@ -57,7 +57,6 @@ int smpi_simulated_main_(int argc, char *argv[])
 	if (!starpu_main)
 	{
 		_STARPU_ERROR("In simgrid mode, the file containing the main() function of this application needs to be compiled with starpu.h or starpu_simgrid_wrap.h included, to properly rename it into starpu_main\n");
-		exit(EXIT_FAILURE);
 	}
 
 	return starpu_main(argc, argv);
@@ -202,7 +201,6 @@ int main(int argc, char **argv)
 	if (!starpu_main && !(smpi_main && smpi_simulated_main_))
 	{
 		_STARPU_ERROR("In simgrid mode, the file containing the main() function of this application needs to be compiled with starpu.h included, to properly rename it into starpu_main\n");
-		exit(EXIT_FAILURE);
 	}
 
 	if (_starpu_simgrid_running_smpi())
@@ -245,7 +243,6 @@ void _starpu_simgrid_init()
 	if (!starpu_main && !(smpi_main && smpi_simulated_main_))
 	{
 		_STARPU_ERROR("In simgrid mode, the file containing the main() function of this application needs to be compiled with starpu.h included, to properly rename it into starpu_main\n");
-		exit(EXIT_FAILURE);
 	}
 	if (_starpu_simgrid_running_smpi())
 	{
