@@ -147,10 +147,7 @@ test_cuda(void)
 
 	ret = starpu_pthread_create(&driver_thread, NULL, run_driver, &d);
 	if (ret == -1)
-	{
-		ret = 1;
 		goto out;
-	}
 
 	struct starpu_task *task;
 	task = starpu_task_create();
@@ -163,7 +160,6 @@ test_cuda(void)
 	if (ret == -ENODEV)
 	{
 		FPRINTF(stderr, "WARNING: No worker can execute this task\n");
-		ret = STARPU_TEST_SKIPPED;
 		goto out;
 	}
 
@@ -233,10 +229,7 @@ test_opencl(void)
 
 	ret = starpu_pthread_create(&driver_thread, NULL, run_driver, &d);
 	if (ret == -1)
-	{
-		ret = 1;
 		goto out;
-	}
 
 	struct starpu_task *task;
 	task = starpu_task_create();
@@ -249,7 +242,6 @@ test_opencl(void)
 	if (ret == -ENODEV)
 	{
 		FPRINTF(stderr, "WARNING: No worker can execute the task\n");
-		ret = STARPU_TEST_SKIPPED;
 		goto out;
 	}
 
