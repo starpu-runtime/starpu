@@ -110,9 +110,6 @@ struct starpu_conf
 
 int starpu_conf_init(struct starpu_conf *conf);
 
-/* Defined in simgrid applications, here just making sure it will use C symbol naming convention */
-int starpu_main();
-
 int starpu_init(struct starpu_conf *conf) STARPU_WARN_UNUSED_RESULT;
 
 void starpu_pause();
