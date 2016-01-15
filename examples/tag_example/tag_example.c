@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2010, 2012-2013, 2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -106,7 +106,7 @@ static void tag_cleanup_grid(unsigned piter)
 	}
 
 
-} 
+}
 
 static int create_task_grid(unsigned piter)
 {
@@ -154,8 +154,6 @@ static int create_task_grid(unsigned piter)
 		ret = starpu_task_submit(task);
 		if (ret == -ENODEV) return 77;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
-
-		assert(starpu_tag_get_task(task->tag_id) == task);
 	}
 	return 0;
 }
@@ -163,7 +161,7 @@ static int create_task_grid(unsigned piter)
 
 void callback_cpu(void *argcb STARPU_ATTRIBUTE_UNUSED)
 {
-	unsigned newcnt = STARPU_ATOMIC_ADD(&callback_cnt, -1);	
+	unsigned newcnt = STARPU_ATOMIC_ADD(&callback_cnt, -1);
 	ANNOTATE_HAPPENS_BEFORE(&callback_cnt);
 
 	if (newcnt == 0)
