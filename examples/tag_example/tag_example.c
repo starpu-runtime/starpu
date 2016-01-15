@@ -217,34 +217,6 @@ static void express_deps(unsigned i, unsigned j, unsigned piter)
 	}
 }
 
-static int test_starpu_tag_get_task()
-{
-	struct starpu_task *task;
-	int ret;
-
-	/* create a new task with a tag */
-	task = starpu_task_create();
-	task->callback_func = callback_cpu;
-	task->cl = &cl;
-	task->cl_arg = NULL;
-	task->destroy = 0; /* tell StarPU to not destroy the task */
-	task->use_tag = 1;
-	task->tag_id = TAG(99, 99, 99); /* arbitrary numbers */
-
-	/* execute the task */
-	ret = starpu_task_submit(task);
-	if (ret == -ENODEV) return 77;
-		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
-	starpu_task_wait_for_all();
-
-	/* check that starpu_tag_get_task() returns the correct task */
-	assert(starpu_tag_get_task(task->tag_id) == task);
-
-	starpu_task_destroy(task);
-
-	return 0;
-}
-
 int main(int argc STARPU_ATTRIBUTE_UNUSED , char **argv STARPU_ATTRIBUTE_UNUSED)
 {
 	int ret;
@@ -269,10 +241,6 @@ int main(int argc STARPU_ATTRIBUTE_UNUSED , char **argv STARPU_ATTRIBUTE_UNUSED)
 	ret = create_task_grid(0);
 	if (ret == 0)
 	     starpu_task_wait_for_all();
-
-	ret = test_starpu_tag_get_task();
-	if (ret)
-		return ret;
 
 	tag_cleanup_grid(nk-2);
 	tag_cleanup_grid(nk-1);

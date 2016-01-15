@@ -140,6 +140,7 @@ noinst_PROGRAMS =				\
 	main/empty_task_sync_point_tasks	\
 	main/empty_task_chain			\
 	main/tag_wait_api			\
+	main/tag_get_task			\
 	main/task_wait_api			\
 	main/declare_deps_in_callback		\
 	main/declare_deps_after_submission	\
