@@ -202,8 +202,6 @@ static struct sc_hypervisor_policy_config* _ctl(unsigned sched_ctx, va_list varg
 		}
 	}
 
-	va_end(varg_list);
-
 	return later ? config : NULL;
 }
 
@@ -255,5 +253,5 @@ void sc_hypervisor_ctl(unsigned sched_ctx, ...)
 		starpu_pthread_mutex_unlock(&hypervisor.conf_mut[sched_ctx]);
 	}
 
-	return;
+	va_end(varg_list);
 }
