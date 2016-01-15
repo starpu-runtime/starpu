@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2014  Université de Bordeaux
+ * Copyright (C) 2009-2014, 2016  Université de Bordeaux
  * Copyright (C) 2010-2014  CNRS
  * Copyright (C) 2014  INRIA
  *
@@ -129,6 +129,9 @@ struct starpu_conf
 };
 
 int starpu_conf_init(struct starpu_conf *conf);
+
+/* Defined in simgrid applications, here just making sure it will use C symbol naming convention */
+int starpu_main();
 
 int starpu_init(struct starpu_conf *conf) STARPU_WARN_UNUSED_RESULT;
 
