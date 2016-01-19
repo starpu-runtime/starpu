@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2015  Université de Bordeaux
+ * Copyright (C) 2009-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2011, 2014  INRIA
@@ -98,13 +98,6 @@ void starpu_task_init(struct starpu_task *task)
 	task->sched_ctx = STARPU_NMAX_SCHED_CTXS;
 
 	task->flops = 0.0;
-
-	task->scheduled = 0;
-	task->prefetched = 0;
-
-	task->dyn_handles = NULL;
-	task->dyn_interfaces = NULL;
-	task->name = NULL;
 }
 
 /* Free all the ressources allocated for a task, without deallocating the task
