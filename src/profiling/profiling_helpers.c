@@ -17,6 +17,7 @@
 #include <starpu.h>
 #include <starpu_profiling.h>
 #include <profiling/profiling.h>
+#include <datawizard/memory_nodes.h>
 
 static double convert_to_byte_units(float d, unsigned max_unit, unsigned *unit)
 {
@@ -46,6 +47,7 @@ void starpu_profiling_bus_helper_display_summary(void)
 	int bus_cnt = starpu_bus_get_count();
 	for (busid = 0; busid < bus_cnt; busid++)
 	{
+		char src_name[128], dst_name[128];
 		int src, dst;
 
 		src = starpu_bus_get_src(busid);
@@ -61,7 +63,10 @@ void starpu_profiling_bus_helper_display_summary(void)
 		unsigned unit = 0;
 		double d = convert_to_byte_units(transferred, max_unit, &unit);
 
-		fprintf(stderr, "\t%d -> %d", src, dst);
+		_starpu_memory_node_get_name(src, src_name, sizeof(src_name));
+		_starpu_memory_node_get_name(dst, dst_name, sizeof(dst_name));
+
+		fprintf(stderr, "\t%s -> %s", src_name, dst_name);
 		fprintf(stderr, "\t%.2lf %s", d, byte_units[unit]);
 		fprintf(stderr, "\t%.2lf %s/s", d / elapsed_time, byte_units[unit]);
 		fprintf(stderr, "\t(transfers : %lld - avg %.2lf %s)\n", transfer_cnt, d / transfer_cnt, byte_units[unit]);
