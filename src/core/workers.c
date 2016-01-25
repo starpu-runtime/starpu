@@ -1522,7 +1522,6 @@ void starpu_shutdown(void)
 	     {
 		  _starpu_display_msi_stats();
 		  _starpu_display_alloc_cache_stats();
-		  _starpu_display_comm_amounts();
 	     }
 	}
 

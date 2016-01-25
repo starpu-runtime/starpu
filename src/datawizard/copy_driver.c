@@ -115,8 +115,6 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 	STARPU_ASSERT(src_replicate->allocated);
 	STARPU_ASSERT(dst_replicate->allocated);
 
-	_starpu_comm_amounts_inc(src_node, dst_node, handle->ops->get_size(handle));
-
 #ifdef STARPU_SIMGRID
 	return _starpu_simgrid_transfer(handle->ops->get_size(handle), src_node, dst_node, req);
 #else /* !SIMGRID */

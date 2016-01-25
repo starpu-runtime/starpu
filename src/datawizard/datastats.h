@@ -33,8 +33,6 @@ void _starpu_display_msi_stats(void);
 void _starpu_allocation_cache_hit(unsigned node STARPU_ATTRIBUTE_UNUSED);
 void _starpu_data_allocation_inc_stats(unsigned node STARPU_ATTRIBUTE_UNUSED);
 
-void _starpu_comm_amounts_inc(unsigned src, unsigned dst, size_t size);
-void _starpu_display_comm_amounts(void);
 void _starpu_display_alloc_cache_stats(void);
 
 #endif // __DATASTATS_H__
