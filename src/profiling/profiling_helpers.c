@@ -18,10 +18,24 @@
 #include <starpu_profiling.h>
 #include <profiling/profiling.h>
 
+static double convert_to_byte_units(float d, unsigned max_unit, unsigned *unit)
+{
+	const double divisor = 1024;
+
+	*unit = 0;
+	while (d > divisor && *unit < max_unit) {
+		d /= divisor;
+		(*unit)++;
+	}
+	return d;
+}
+
 void starpu_profiling_bus_helper_display_summary(void)
 {
 	const char *stats;
 	int long long sum_transferred = 0;
+	const char *byte_units[] = { "B", "KB", "MB", "GB", "TB" };
+	unsigned max_unit = sizeof(byte_units) / sizeof(byte_units[0]);
 
 	if (!((stats = starpu_getenv("STARPU_BUS_STATS")) && atoi(stats))) return;
 
@@ -42,14 +56,23 @@ void starpu_profiling_bus_helper_display_summary(void)
 
 		int long long transferred = bus_info.transferred_bytes;
 		int long long transfer_cnt =  bus_info.transfer_count;
-		double elapsed_time = starpu_timing_timespec_to_us(&bus_info.total_time);
+		double elapsed_time = starpu_timing_timespec_to_us(&bus_info.total_time) / 1e6;
 
-		fprintf(stderr, "\t%d -> %d\t%.2lf MB\t%.2lfMB/s\t(transfers : %lld - avg %.2lf MB)\n", src, dst, (1.0*transferred)/(1024*1024), transferred/elapsed_time, transfer_cnt, (1.0*transferred)/(transfer_cnt*1024*1024));
+		unsigned unit = 0;
+		double d = convert_to_byte_units(transferred, max_unit, &unit);
+
+		fprintf(stderr, "\t%d -> %d", src, dst);
+		fprintf(stderr, "\t%.2lf %s", d, byte_units[unit]);
+		fprintf(stderr, "\t%.2lf %s/s", d / elapsed_time, byte_units[unit]);
+		fprintf(stderr, "\t(transfers : %lld - avg %.2lf %s)\n", transfer_cnt, d / transfer_cnt, byte_units[unit]);
 
 		sum_transferred += transferred;
 	}
 
-	fprintf(stderr, "Total transfers: %.2lf MB\n", (1.0*sum_transferred)/(1024*1024));
+	unsigned unit = 0;
+	double d = convert_to_byte_units(sum_transferred, max_unit, &unit);
+
+	fprintf(stderr, "Total transfers: %.2lf %s\n", d, byte_units[unit]);
 }
 
 void starpu_profiling_worker_helper_display_summary(void)
