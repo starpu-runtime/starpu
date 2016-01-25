@@ -364,10 +364,12 @@ void _starpu_profiling_set_task_push_end_time(struct starpu_task *task)
 
 void _starpu_initialize_busid_matrix(void)
 {
+	int num_nodes = starpu_memory_nodes_get_count();
 	int i, j;
-	for (j = 0; j < STARPU_MAXNODES; j++)
-	for (i = 0; i < STARPU_MAXNODES; i++)
-		busid_matrix[i][j] = -1;
+
+	for (j = 0; j <= num_nodes; j++)
+		for (i = 0; i <= num_nodes; i++)
+			busid_matrix[i][j] = -1;
 
 	busid_cnt = 0;
 }
