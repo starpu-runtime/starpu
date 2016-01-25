@@ -40,8 +40,8 @@ void starpu_profiling_bus_helper_display_summary(void)
 
 	if (!((stats = starpu_getenv("STARPU_BUS_STATS")) && atoi(stats))) return;
 
-	fprintf(stderr, "\nData transfer statistics:\n");
-	fprintf(stderr,   "*************************\n");
+	fprintf(stderr, "\n#---------------------\n");
+	fprintf(stderr, "Data transfer stats:\n");
 
 	int busid;
 	int bus_cnt = starpu_bus_get_count();
@@ -78,6 +78,7 @@ void starpu_profiling_bus_helper_display_summary(void)
 	double d = convert_to_byte_units(sum_transferred, max_unit, &unit);
 
 	fprintf(stderr, "Total transfers: %.2lf %s\n", d, byte_units[unit]);
+	fprintf(stderr, "#---------------------\n");
 }
 
 void starpu_profiling_worker_helper_display_summary(void)
@@ -91,8 +92,8 @@ void starpu_profiling_worker_helper_display_summary(void)
 
 	if (!((stats = starpu_getenv("STARPU_WORKER_STATS")) && atoi(stats))) return;
 
-	fprintf(stderr, "\nWorker statistics:\n");
-	fprintf(stderr,   "******************\n");
+	fprintf(stderr, "\n#---------------------\n");
+	fprintf(stderr, "Worker stats:\n");
 
 	for (workerid = 0; workerid < worker_cnt; workerid++)
 	{
@@ -139,4 +140,5 @@ void starpu_profiling_worker_helper_display_summary(void)
 				sum_consumed + idle_consumption);
 		}
 	}
+	fprintf(stderr, "#---------------------\n");
 }
