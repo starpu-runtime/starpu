@@ -50,6 +50,7 @@ struct starpu_fxt_options
 	char *dag_path;
 	char *tasks_path;
 	char *anim_path;
+	char *states_path;
 
 	char *file_prefix;
 	uint64_t file_offset;
