@@ -711,6 +711,8 @@ static void handle_worker_init_end(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 
 	if (out_paje_file)
 		worker_set_state(get_event_time_stamp(ev, options), prefix, worker, "I");
+	if (tasks_file)
+		recfmt_set_state(get_event_time_stamp(ev, options), worker, "Idle");
 
 	/* Initilize the accumulated time counters */
 	last_activity_flush_timestamp[worker] = get_event_time_stamp(ev, options);
@@ -1036,6 +1038,8 @@ static void handle_end_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 
 	if (out_paje_file)
 		worker_set_state(end_codelet_time, prefix, worker, "I");
+	if (tasks_file)
+		recfmt_set_state(end_codelet_time, worker, "Idle");
 
 	double codelet_length = (end_codelet_time - last_codelet_start[worker]);
 
