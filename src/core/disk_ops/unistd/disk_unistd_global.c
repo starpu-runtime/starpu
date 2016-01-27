@@ -48,14 +48,34 @@
 #  define MEM_SIZE 1
 #endif
 
+#define MAX_OPEN_FILES 64
 #define TEMP_HIERARCHY_DEPTH 2
 
 /* TODO: on Linux, use io_submit */
+
+static int starpu_unistd_opened_files;
+
+#ifdef HAVE_AIO_H
+struct starpu_unistd_aiocb {
+	struct aiocb aiocb;
+	struct starpu_unistd_global_obj *obj;
+};
+#endif
 
 /* ------------------- use UNISTD to write on disk -------------------  */
 
 static void _starpu_unistd_init(struct starpu_unistd_global_obj *obj, int descriptor, char *path, size_t size)
 {
+	STARPU_HG_DISABLE_CHECKING(starpu_unistd_opened_files);
+	if (starpu_unistd_opened_files >= MAX_OPEN_FILES)
+	{
+		/* Too many opened files, avoid keeping this one opened */
+		close(descriptor);
+		descriptor = -1;
+	}
+	else
+		(void) STARPU_ATOMIC_ADD(&starpu_unistd_opened_files, 1);
+
 	STARPU_PTHREAD_MUTEX_INIT(&obj->mutex, NULL);
 
 	obj->descriptor = descriptor;
@@ -63,8 +83,26 @@ static void _starpu_unistd_init(struct starpu_unistd_global_obj *obj, int descri
 	obj->size = size;
 }
 
+static int _starpu_unistd_reopen(struct starpu_unistd_global_obj *obj)
+{
+	int id = open(obj->path, obj->flags);
+	STARPU_ASSERT(id >= 0);
+	return id;
+}
+
+static void _starpu_unistd_reclose(int id)
+{
+	close(id);
+}
+
 static void _starpu_unistd_close(struct starpu_unistd_global_obj *obj)
 {
+	if (obj->descriptor < 0)
+		return;
+
+	if (starpu_unistd_opened_files < MAX_OPEN_FILES)
+		(void) STARPU_ATOMIC_ADD(&starpu_unistd_opened_files, -1);
+
 	close(obj->descriptor);
 }
 
@@ -162,21 +200,33 @@ int starpu_unistd_global_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, voi
 {
 	struct starpu_unistd_global_obj *tmp = (struct starpu_unistd_global_obj *) obj;
 	starpu_ssize_t nb;
+	int fd = tmp->descriptor;
 
 #ifdef HAVE_PREAD
-	nb = pread(tmp->descriptor, buf, size, offset);
-#else
-	STARPU_PTHREAD_MUTEX_LOCK(&tmp->mutex);
-
-	int res = lseek(tmp->descriptor, offset, SEEK_SET);
-	STARPU_ASSERT_MSG(res >= 0, "Starpu Disk unistd lseek for read failed: offset %lu got errno %d", (unsigned long) offset, errno);
-
-	nb = read(tmp->descriptor, buf, size);
-
-	STARPU_PTHREAD_MUTEX_UNLOCK(&tmp->mutex);
+	if (fd >= 0)
+		nb = pread(fd, buf, size, offset);
+	else
 #endif
+	{
+		if (fd >= 0)
+			STARPU_PTHREAD_MUTEX_LOCK(&tmp->mutex);
+		else
+			fd = _starpu_unistd_reopen(obj);
+
+		int res = lseek(fd, offset, SEEK_SET);
+		STARPU_ASSERT_MSG(res >= 0, "Starpu Disk unistd lseek for read failed: offset %lu got errno %d", (unsigned long) offset, errno);
+
+		nb = read(fd, buf, size);
+
+		if (tmp->descriptor >= 0)
+			STARPU_PTHREAD_MUTEX_UNLOCK(&tmp->mutex);
+		else
+			_starpu_unistd_reclose(fd);
+
+	}
 
 	STARPU_ASSERT_MSG(nb >= 0, "Starpu Disk unistd read failed: size %lu got errno %d", (unsigned long) size, errno);
+
 	return nb;
 }
 
@@ -184,10 +234,15 @@ int starpu_unistd_global_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, voi
 void *starpu_unistd_global_async_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size)
 {
         struct starpu_unistd_global_obj *tmp = obj;
+        struct starpu_unistd_aiocb *starpu_aiocb = calloc(1,sizeof(*starpu_aiocb));
+        struct aiocb *aiocb = &starpu_aiocb->aiocb;
+        starpu_aiocb->obj = obj;
+        int fd = tmp->descriptor;
 
-        struct aiocb *aiocb = calloc(1,sizeof(*aiocb));
+        if (fd < 0)
+                fd = _starpu_unistd_reopen(obj);
 
-        aiocb->aio_fildes = tmp->descriptor;
+        aiocb->aio_fildes = fd;
         aiocb->aio_offset = offset;
         aiocb->aio_nbytes = size;
         aiocb->aio_buf = buf;
@@ -197,6 +252,8 @@ void *starpu_unistd_global_async_read(void *base STARPU_ATTRIBUTE_UNUSED, void *
         if (aio_read(aiocb) < 0)
         {
                 free(aiocb);
+                if (tmp->descriptor < 0)
+                        _starpu_unistd_reclose(fd);
                 aiocb = NULL;
         }
 
@@ -207,15 +264,20 @@ void *starpu_unistd_global_async_read(void *base STARPU_ATTRIBUTE_UNUSED, void *
 int starpu_unistd_global_full_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void **ptr, size_t *size)
 {
         struct starpu_unistd_global_obj *tmp = (struct starpu_unistd_global_obj *) obj;
+	int fd = tmp->descriptor;
 
+	if (fd < 0)
+		fd = _starpu_unistd_reopen(obj);
 #ifdef STARPU_HAVE_WINDOWS
-	*size = _filelength(tmp->descriptor);
+	*size = _filelength(fd);
 #else
 	struct stat st;
-	fstat(tmp->descriptor, &st);
+	fstat(fd, &st);
 
 	*size = st.st_size;
 #endif
+	if (tmp->descriptor < 0)
+		_starpu_unistd_reclose(fd);
 
 	/* Allocated aligned buffer */
 	starpu_malloc_flags(ptr, *size, 0);
@@ -227,19 +289,29 @@ int starpu_unistd_global_write(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, co
 {
 	struct starpu_unistd_global_obj *tmp = (struct starpu_unistd_global_obj *) obj;
 	int res;
+	int fd = tmp->descriptor;
 
 #ifdef HAVE_PWRITE
-	res = pwrite(tmp->descriptor, buf, size, offset);
-#else
-	STARPU_PTHREAD_MUTEX_LOCK(&tmp->mutex);
-
-	res = lseek(tmp->descriptor, offset, SEEK_SET);
-	STARPU_ASSERT_MSG(res >= 0, "Starpu Disk unistd lseek for write failed: offset %lu got errno %d", (unsigned long) offset, errno);
-
-	res = write(tmp->descriptor, buf, size);
-
-	STARPU_PTHREAD_MUTEX_UNLOCK(&tmp->mutex);
+	if (fd >= 0)
+		res = pwrite(fd, buf, size, offset);
+	else
 #endif
+	{
+		if (fd >= 0)
+			STARPU_PTHREAD_MUTEX_LOCK(&tmp->mutex);
+		else
+			fd = _starpu_unistd_reopen(obj);
+
+		res = lseek(fd, offset, SEEK_SET);
+		STARPU_ASSERT_MSG(res >= 0, "Starpu Disk unistd lseek for write failed: offset %lu got errno %d", (unsigned long) offset, errno);
+
+		res = write(fd, buf, size);
+
+		if (tmp->descriptor >= 0)
+			STARPU_PTHREAD_MUTEX_UNLOCK(&tmp->mutex);
+		else
+			_starpu_unistd_reclose(fd);
+	}
 
 	STARPU_ASSERT_MSG(res >= 0, "Starpu Disk unistd write failed: size %lu got errno %d", (unsigned long) size, errno);
 	return 0;
@@ -249,9 +321,15 @@ int starpu_unistd_global_write(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, co
 void *starpu_unistd_global_async_write(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size)
 {
         struct starpu_unistd_global_obj *tmp = obj;
-        struct aiocb *aiocb = calloc(1,sizeof(*aiocb));
+        struct starpu_unistd_aiocb *starpu_aiocb = calloc(1,sizeof(*starpu_aiocb));
+        struct aiocb *aiocb = &starpu_aiocb->aiocb;
+        starpu_aiocb->obj = obj;
+        int fd = tmp->descriptor;
 
-        aiocb->aio_fildes = tmp->descriptor;
+        if (fd < 0)
+                fd = _starpu_unistd_reopen(obj);
+
+        aiocb->aio_fildes = fd;
         aiocb->aio_offset = offset;
         aiocb->aio_nbytes = size;
         aiocb->aio_buf = buf;
@@ -261,6 +339,8 @@ void *starpu_unistd_global_async_write(void *base STARPU_ATTRIBUTE_UNUSED, void 
         if (aio_write(aiocb) < 0)
         {
                 free(aiocb);
+                if (tmp->descriptor < 0)
+                        _starpu_unistd_reclose(fd);
                 aiocb = NULL;
         }
 
@@ -275,11 +355,17 @@ int starpu_unistd_global_full_write(void *base STARPU_ATTRIBUTE_UNUSED, void *ob
         /* update file size to realise the next good full_read */
         if(size != tmp->size)
         {
+		int fd = tmp->descriptor;
+
+		if (fd < 0)
+			fd = _starpu_unistd_reopen(obj);
 #ifdef STARPU_HAVE_WINDOWS
-		int val = _chsize(tmp->descriptor, size);
+		int val = _chsize(fd, size);
 #else
-		int val = ftruncate(tmp->descriptor,size);
+		int val = ftruncate(fd,size);
 #endif
+		if (tmp->descriptor < 0)
+			_starpu_unistd_reclose(fd);
 		STARPU_ASSERT(val == 0);
 		tmp->size = size;
         }
@@ -425,8 +511,11 @@ int starpu_unistd_global_test_request(void *async_channel)
 
 void starpu_unistd_global_free_request(void *async_channel)
 {
-        struct aiocb *aiocb = async_channel;
+        struct starpu_unistd_aiocb *starpu_aiocb = async_channel;
+        struct aiocb *aiocb = &starpu_aiocb->aiocb;
+        if (starpu_aiocb->obj->descriptor < 0)
+                _starpu_unistd_reclose(aiocb->aio_fildes);
         aio_return(aiocb);
-        free(aiocb);
+        free(starpu_aiocb);
 }
 #endif
