@@ -48,6 +48,8 @@
 #  define MEM_SIZE 1
 #endif
 
+#define TEMP_HIERARCHY_DEPTH 2
+
 /* TODO: on Linux, use io_submit */
 
 /* ------------------- use UNISTD to write on disk -------------------  */
@@ -56,7 +58,7 @@
 void *starpu_unistd_global_alloc(struct starpu_unistd_global_obj *obj, void *base, size_t size)
 {
 	int id;
-	char *baseCpy = _starpu_mktemp(base, obj->flags, &id);
+	char *baseCpy = _starpu_mktemp_many(base, TEMP_HIERARCHY_DEPTH, obj->flags, &id);
 
 	/* fail */
 	if (!baseCpy)
@@ -103,6 +105,7 @@ void starpu_unistd_global_free(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, si
 
 	close(tmp->descriptor);
 	unlink(tmp->path);
+	_starpu_rmtemp_many(tmp->path, TEMP_HIERARCHY_DEPTH);
 
 	free(tmp->path);
 	free(tmp);

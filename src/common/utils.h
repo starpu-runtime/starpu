@@ -125,6 +125,10 @@
 int _starpu_mkpath(const char *s, mode_t mode);
 void _starpu_mkpath_and_check(const char *s, mode_t mode);
 char *_starpu_mktemp(const char *directory, int flags, int *fd);
+/* This version creates a hierarchy of n temporary directories, useful when
+ * creating a lot of temporary files to be stored in the same place */
+char *_starpu_mktemp_many(const char *directory, int depth, int flags, int *fd);
+void _starpu_rmtemp_many(char *path, int depth);
 int _starpu_ftruncate(FILE *file);
 int _starpu_frdlock(FILE *file);
 int _starpu_frdunlock(FILE *file);

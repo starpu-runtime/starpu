@@ -172,6 +172,41 @@ char *_starpu_mktemp(const char *directory, int flags, int *fd)
 	return baseCpy;
 }
 
+char *_starpu_mktemp_many(const char *directory, int depth, int flags, int *fd)
+{
+	size_t len = strlen(directory);
+	char path[len + depth*4 + 1];
+	int i;
+
+	memcpy(path, directory, len);
+	for (i = 0; i < depth; i++)
+	{
+		int r = starpu_lrand48();
+		path[len + i*4 + 0] = '/';
+		path[len + i*4 + 1] = '0' + (r/1)%10;
+		path[len + i*4 + 2] = '0' + (r/10)%10;
+		path[len + i*4 + 3] = '0' + (r/100)%10;
+		path[len + i*4 + 4] = 0;
+		if (mkdir(path, 0777) < 0 && errno != EEXIST)
+		{
+			_STARPU_DISP("Could not create temporary directory '%s', mkdir failed with error '%s'\n", path, strerror(errno));
+			return NULL;
+		}
+	}
+	return _starpu_mktemp(path, flags, fd);
+}
+
+void _starpu_rmtemp_many(char *path, int depth)
+{
+	int i;
+	for (i = 0; i < depth; i++)
+	{
+		path = dirname(path);
+		if (rmdir(path) < 0 && errno != ENOTEMPTY && errno != EBUSY)
+			_STARPU_DISP("Could not remove temporary directory '%s', rmdir failed with error '%s'\n", path, strerror(errno));
+	}
+}
+
 int _starpu_ftruncate(FILE *file)
 {
 	return ftruncate(fileno(file), 0);

@@ -40,6 +40,8 @@
 #define O_BINARY 0
 #endif
 
+#define TEMP_HIERARCHY_DEPTH 2
+
 /* ------------------- use STDIO to write on disk -------------------  */
 
 struct starpu_stdio_obj
@@ -58,7 +60,7 @@ static void *starpu_stdio_alloc(void *base, size_t size)
 	STARPU_ASSERT(obj != NULL);
 
 	int id;
-	char *baseCpy = _starpu_mktemp(base, O_RDWR | O_BINARY, &id);
+	char *baseCpy = _starpu_mktemp_many(base, TEMP_HIERARCHY_DEPTH, O_RDWR | O_BINARY, &id);
 
 	/* fail */
 	if (!baseCpy)
@@ -120,6 +122,7 @@ static void starpu_stdio_free(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, siz
 	fclose(tmp->file);
 	close(tmp->descriptor);
 	unlink(tmp->path);
+	_starpu_rmtemp_many(tmp->path, TEMP_HIERARCHY_DEPTH);
 
 	free(tmp->path);
 	free(tmp);
