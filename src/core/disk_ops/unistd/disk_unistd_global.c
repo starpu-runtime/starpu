@@ -56,19 +56,17 @@
 void *starpu_unistd_global_alloc(struct starpu_unistd_global_obj *obj, void *base, size_t size)
 {
 	int id = -1;
-	const char *template = "STARPU_XXXXXX";
 
 	/* create template for mkstemp */
-	unsigned int sizeBase = strlen(base) + 1 + strlen(template)+1;
-
-	char *baseCpy = malloc(sizeBase*sizeof(char));
+	const char *tmp = "STARPU_XXXXXX";
+	char *baseCpy = malloc(strlen(base)+1+strlen(tmp)+1);
 	STARPU_ASSERT(baseCpy != NULL);
 
 	strcpy(baseCpy, (char *) base);
 	strcat(baseCpy,"/");
-	strcat(baseCpy,template);
+	strcat(baseCpy,tmp);
+
 #if defined(STARPU_HAVE_WINDOWS)
-	/* size in windows is a multiple of char */
 	_mktemp(baseCpy);
 	id = open(baseCpy, obj->flags);
 #elif defined (HAVE_MKOSTEMP)
@@ -82,8 +80,8 @@ void *starpu_unistd_global_alloc(struct starpu_unistd_global_obj *obj, void *bas
 	if (id < 0)
 	{
 		_STARPU_DISP("Could not create temporary file in directory '%s', mskostemp failed with error '%s'\n", (char*)base, strerror(errno));
-		free(baseCpy);
 		free(obj);
+		free(baseCpy);
 		return NULL;
 	}
 

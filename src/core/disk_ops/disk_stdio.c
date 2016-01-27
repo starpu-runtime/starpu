@@ -55,7 +55,7 @@ static void *starpu_stdio_alloc(void *base, size_t size)
 	int id = -1;
 
 	/* create template for mkstemp */
-	char *tmp = "STARPU_XXXXXX";
+	const char *tmp = "STARPU_XXXXXX";
 	char *baseCpy = malloc(strlen(base)+1+strlen(tmp)+1);
 	STARPU_ASSERT(baseCpy != NULL);
 
@@ -68,8 +68,8 @@ static void *starpu_stdio_alloc(void *base, size_t size)
         id = open(baseCpy, O_RDWR | O_BINARY);
 #else
 	id = mkstemp(baseCpy);
-
 #endif
+
 	/* fail */
 	if (id < 0)
 	{
