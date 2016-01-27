@@ -40,9 +40,11 @@
 #define O_BINARY 0
 #endif
 
+#define MAX_OPEN_FILES 64
 #define TEMP_HIERARCHY_DEPTH 2
 
 /* ------------------- use STDIO to write on disk -------------------  */
+static int starpu_stdio_opened_files;
 
 struct starpu_stdio_obj
 {
@@ -65,6 +67,18 @@ static struct starpu_stdio_obj *_starpu_stdio_init(int descriptor, char *path, s
 		return NULL;
 	}
 
+	STARPU_HG_DISABLE_CHECKING(starpu_stdio_opened_files);
+	if (starpu_stdio_opened_files >= MAX_OPEN_FILES)
+	{
+		/* Too many opened files, avoid keeping this one opened */
+		fclose(f);
+		f = NULL;
+		close(descriptor);
+		descriptor = -1;
+	}
+	else
+		(void) STARPU_ATOMIC_ADD(&starpu_stdio_opened_files, 1);
+
 	STARPU_PTHREAD_MUTEX_INIT(&obj->mutex, NULL);
 
 	obj->descriptor = descriptor;
@@ -75,8 +89,32 @@ static struct starpu_stdio_obj *_starpu_stdio_init(int descriptor, char *path, s
 	return (void *) obj;
 }
 
+static FILE *_starpu_stdio_reopen(struct starpu_stdio_obj *obj)
+{
+	int id = open(obj->path, O_RDWR);
+	STARPU_ASSERT(id >= 0);
+
+	FILE *f = fdopen(id,"rb+");
+	STARPU_ASSERT(f);
+
+	return f;
+}
+
+static void _starpu_stdio_reclose(FILE *f)
+{
+	int id = fileno(f);
+	fclose(f);
+	close(id);
+}
+
 static void _starpu_stdio_close(struct starpu_stdio_obj *obj)
 {
+	if (obj->descriptor < 0)
+		return;
+
+	if (starpu_stdio_opened_files < MAX_OPEN_FILES)
+		(void) STARPU_ATOMIC_ADD(&starpu_stdio_opened_files, -1);
+
 	fclose(obj->file);
 	close(obj->descriptor);
 }
@@ -179,16 +217,23 @@ static void starpu_stdio_close(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, si
 static int starpu_stdio_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size)
 {
 	struct starpu_stdio_obj *tmp = (struct starpu_stdio_obj *) obj;
+	FILE *f = tmp->file;
 
-	STARPU_PTHREAD_MUTEX_LOCK(&tmp->mutex);
+	if (f)
+		STARPU_PTHREAD_MUTEX_LOCK(&tmp->mutex);
+	else
+		f = _starpu_stdio_reopen(obj);
 
-	int res = fseek(tmp->file, offset, SEEK_SET);
+	int res = fseek(f, offset, SEEK_SET);
 	STARPU_ASSERT_MSG(res == 0, "Stdio read failed");
 
-	starpu_ssize_t nb = fread(buf, 1, size, tmp->file);
+	starpu_ssize_t nb = fread(buf, 1, size, f);
 	STARPU_ASSERT_MSG(nb >= 0, "Stdio read failed");
 
-	STARPU_PTHREAD_MUTEX_UNLOCK(&tmp->mutex);
+	if (tmp->file)
+		STARPU_PTHREAD_MUTEX_UNLOCK(&tmp->mutex);
+	else
+		_starpu_stdio_reclose(f);
 
 	return 0;
 }
@@ -196,33 +241,58 @@ static int starpu_stdio_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void
 static int starpu_stdio_full_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void **ptr, size_t *size)
 {
 	struct starpu_stdio_obj *tmp = (struct starpu_stdio_obj *) obj;
+	FILE *f = tmp->file;
 
-	STARPU_PTHREAD_MUTEX_LOCK(&tmp->mutex);
+	if (f)
+		STARPU_PTHREAD_MUTEX_LOCK(&tmp->mutex);
+	else
+		f = _starpu_stdio_reopen(obj);
 
-	int res = fseek(tmp->file, 0, SEEK_END);
+	int res = fseek(f, 0, SEEK_END);
 	STARPU_ASSERT_MSG(res == 0, "Stdio write failed");
-	*size = ftell(tmp->file);
+	*size = ftell(f);
 
-	STARPU_PTHREAD_MUTEX_UNLOCK(&tmp->mutex);
-
+	if (tmp->file)
+		STARPU_PTHREAD_MUTEX_UNLOCK(&tmp->mutex);
 	/* Alloc aligned buffer */
 	starpu_malloc_flags(ptr, *size, 0);
-	return starpu_stdio_read(base, obj, *ptr, 0, *size);
+	if (tmp->file)
+		STARPU_PTHREAD_MUTEX_LOCK(&tmp->mutex);
+
+	res = fseek(f, 0, SEEK_SET);
+	STARPU_ASSERT_MSG(res == 0, "Stdio read failed");
+
+	starpu_ssize_t nb = fread(*ptr, 1, *size, f);
+	STARPU_ASSERT_MSG(nb >= 0, "Stdio read failed");
+
+	if (tmp->file)
+		STARPU_PTHREAD_MUTEX_UNLOCK(&tmp->mutex);
+	else
+		_starpu_stdio_reclose(f);
+
+	return 0;
 }
 
 /* write on the memory disk */
 static int starpu_stdio_write(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, const void *buf, off_t offset, size_t size)
 {
 	struct starpu_stdio_obj *tmp = (struct starpu_stdio_obj *) obj;
+	FILE *f = tmp->file;
 
-	STARPU_PTHREAD_MUTEX_LOCK(&tmp->mutex);
+	if (f)
+		STARPU_PTHREAD_MUTEX_LOCK(&tmp->mutex);
+	else
+		f = _starpu_stdio_reopen(obj);
 
-	int res = fseek(tmp->file, offset, SEEK_SET);
+	int res = fseek(f, offset, SEEK_SET);
 	STARPU_ASSERT_MSG(res == 0, "Stdio write failed");
 
-	fwrite(buf, 1, size, tmp->file);
+	fwrite(buf, 1, size, f);
 
-	STARPU_PTHREAD_MUTEX_UNLOCK(&tmp->mutex);
+	if (tmp->file)
+		STARPU_PTHREAD_MUTEX_UNLOCK(&tmp->mutex);
+	else
+		_starpu_stdio_reclose(f);
 
 	return 0;
 }
@@ -230,21 +300,33 @@ static int starpu_stdio_write(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, con
 static int starpu_stdio_full_write(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *ptr, size_t size)
 {
 	struct starpu_stdio_obj *tmp = (struct starpu_stdio_obj *) obj;
+	FILE *f = tmp->file;
+	int fd;
+
+	if (!f)
+		f = _starpu_stdio_reopen(obj);
+	fd = fileno(f);
 
 	/* update file size to realise the next good full_read */
 	if(size != tmp->size)
 	{
 #ifdef STARPU_HAVE_WINDOWS
-		int val = _chsize(tmp->descriptor, size);
+		int val = _chsize(fd, size);
 #else
-		int val = ftruncate(tmp->descriptor,size);
+		int val = ftruncate(fd,size);
 #endif
 		STARPU_ASSERT(val == 0);
 
 		tmp->size = size;
 	}
 
-	starpu_stdio_write(base, obj, ptr, 0, size);
+	int res = fseek(f, 0, SEEK_SET);
+	STARPU_ASSERT_MSG(res == 0, "Stdio write failed");
+
+	fwrite(ptr, 1, size, f);
+
+	if (!tmp->file)
+		_starpu_stdio_reclose(f);
 
 	return 0;
 }
