@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012-2015  Université de Bordeaux
+ * Copyright (C) 2010, 2012-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -124,6 +124,7 @@
 
 int _starpu_mkpath(const char *s, mode_t mode);
 void _starpu_mkpath_and_check(const char *s, mode_t mode);
+char *_starpu_mktemp(const char *directory, int flags, int *fd);
 int _starpu_ftruncate(FILE *file);
 int _starpu_frdlock(FILE *file);
 int _starpu_frdunlock(FILE *file);

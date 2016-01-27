@@ -36,6 +36,10 @@
 
 #define NITER	_starpu_calibration_minimum
 
+#ifndef O_BINARY
+#define O_BINARY 0
+#endif
+
 /* ------------------- use STDIO to write on disk -------------------  */
 
 struct starpu_stdio_obj
@@ -52,30 +56,14 @@ static void *starpu_stdio_alloc(void *base, size_t size)
 {
 	struct starpu_stdio_obj *obj = malloc(sizeof(struct starpu_stdio_obj));
 	STARPU_ASSERT(obj != NULL);
-	int id = -1;
 
-	/* create template for mkstemp */
-	const char *tmp = "STARPU_XXXXXX";
-	char *baseCpy = malloc(strlen(base)+1+strlen(tmp)+1);
-	STARPU_ASSERT(baseCpy != NULL);
-
-	strcpy(baseCpy, (char *) base);
-	strcat(baseCpy,"/");
-	strcat(baseCpy,tmp);
-
-#ifdef STARPU_HAVE_WINDOWS
-        _mktemp(baseCpy);
-        id = open(baseCpy, O_RDWR | O_BINARY);
-#else
-	id = mkstemp(baseCpy);
-#endif
+	int id;
+	char *baseCpy = _starpu_mktemp(base, O_RDWR | O_BINARY, &id);
 
 	/* fail */
-	if (id < 0)
+	if (!baseCpy)
 	{
-		_STARPU_DISP("Could not create temporary file in directory '%s', mskostemp failed with error '%s'\n", (char*)base, strerror(errno));
 		free(obj);
-		free(baseCpy);
 		return NULL;
 	}
 
