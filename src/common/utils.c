@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012-2015  Université de Bordeaux
+ * Copyright (C) 2010, 2012-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -32,6 +32,10 @@
 #if !defined(__MINGW32__)
 #define ftruncate(fd, length) _chsize(fd, length)
 #endif
+#endif
+
+#ifndef O_BINARY
+#define O_BINARY 0
 #endif
 
 int _starpu_silent;
@@ -134,6 +138,38 @@ void _starpu_mkpath_and_check(const char *path, mode_t mode)
 		perror("mkdir");
 		STARPU_ABORT();
 	}
+}
+
+char *_starpu_mktemp(const char *directory, int flags, int *fd)
+{
+	/* create template for mkstemp */
+	const char *tmp = "STARPU_XXXXXX";
+	char *baseCpy = malloc(strlen(directory)+1+strlen(tmp)+1);
+	STARPU_ASSERT(baseCpy != NULL);
+
+	strcpy(baseCpy, directory);
+	strcat(baseCpy,"/");
+	strcat(baseCpy,tmp);
+
+#if defined(STARPU_HAVE_WINDOWS)
+	_mktemp(baseCpy);
+	*fd = open(baseCpy, flags);
+#elif defined (HAVE_MKOSTEMP)
+	*fd = mkostemp(baseCpy, flags);
+#else
+	STARPU_ASSERT(flags == (O_RDWR | O_BINARY));
+	*fd = mkstemp(baseCpy);
+#endif
+
+	/* fail */
+	if (*fd < 0)
+	{
+		_STARPU_DISP("Could not create temporary file in directory '%s', mskostemp failed with error '%s'\n", directory, strerror(errno));
+		free(baseCpy);
+		return NULL;
+	}
+
+	return baseCpy;
 }
 
 int _starpu_ftruncate(FILE *file)
