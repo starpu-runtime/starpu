@@ -54,6 +54,28 @@
 
 /* ------------------- use UNISTD to write on disk -------------------  */
 
+static void _starpu_unistd_init(struct starpu_unistd_global_obj *obj, int descriptor, char *path, size_t size)
+{
+	STARPU_PTHREAD_MUTEX_INIT(&obj->mutex, NULL);
+
+	obj->descriptor = descriptor;
+	obj->path = path;
+	obj->size = size;
+}
+
+static void _starpu_unistd_close(struct starpu_unistd_global_obj *obj)
+{
+	close(obj->descriptor);
+}
+
+static void _starpu_unistd_fini(struct starpu_unistd_global_obj *obj)
+{
+	STARPU_PTHREAD_MUTEX_DESTROY(&obj->mutex);
+
+	free(obj->path);
+	free(obj);
+}
+
 /* allocation memory on disk */
 void *starpu_unistd_global_alloc(struct starpu_unistd_global_obj *obj, void *base, size_t size)
 {
@@ -87,13 +109,9 @@ void *starpu_unistd_global_alloc(struct starpu_unistd_global_obj *obj, void *bas
 		return NULL;
 	}
 
-	STARPU_PTHREAD_MUTEX_INIT(&obj->mutex, NULL);
+	_starpu_unistd_init(obj, id, baseCpy, size);
 
-	obj->descriptor = id;
-	obj->path = baseCpy;
-	obj->size = size;
-
-	return (void *) obj;
+	return obj;
 }
 
 /* free memory on disk */
@@ -101,14 +119,10 @@ void starpu_unistd_global_free(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, si
 {
 	struct starpu_unistd_global_obj *tmp = (struct starpu_unistd_global_obj *) obj;
 
-	STARPU_PTHREAD_MUTEX_DESTROY(&tmp->mutex);
-
-	close(tmp->descriptor);
+	_starpu_unistd_close(tmp);
 	unlink(tmp->path);
 	_starpu_rmtemp_many(tmp->path, TEMP_HIERARCHY_DEPTH);
-
-	free(tmp->path);
-	free(tmp);
+	_starpu_unistd_fini(tmp);
 }
 
 /* open an existing memory on disk */
@@ -129,13 +143,9 @@ void *starpu_unistd_global_open(struct starpu_unistd_global_obj *obj, void *base
 		return NULL;
 	}
 
-	STARPU_PTHREAD_MUTEX_INIT(&obj->mutex, NULL);
+	_starpu_unistd_init(obj, id, baseCpy, size);
 
-	obj->descriptor = id;
-	obj->path = baseCpy;
-	obj->size = size;
-
-	return (void *) obj;
+	return obj;
 }
 
 /* free memory without delete it */
@@ -143,11 +153,8 @@ void starpu_unistd_global_close(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, s
 {
 	struct starpu_unistd_global_obj *tmp = (struct starpu_unistd_global_obj *) obj;
 
-	STARPU_PTHREAD_MUTEX_DESTROY(&tmp->mutex);
-
-	close(tmp->descriptor);
-	free(tmp->path);
-	free(tmp);
+	_starpu_unistd_close(tmp);
+	_starpu_unistd_fini(tmp);
 }
 
 /* read the memory disk */

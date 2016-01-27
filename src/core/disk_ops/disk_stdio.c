@@ -53,33 +53,53 @@ struct starpu_stdio_obj
 	starpu_pthread_mutex_t mutex;
 };
 
-/* allocation memory on disk */
-static void *starpu_stdio_alloc(void *base, size_t size)
+static struct starpu_stdio_obj *_starpu_stdio_init(int descriptor, char *path, size_t size)
 {
 	struct starpu_stdio_obj *obj = malloc(sizeof(struct starpu_stdio_obj));
 	STARPU_ASSERT(obj != NULL);
+
+	FILE *f = fdopen(descriptor,"rb+");
+	if (f == NULL)
+	{
+		free(obj);
+		return NULL;
+	}
+
+	STARPU_PTHREAD_MUTEX_INIT(&obj->mutex, NULL);
+
+	obj->descriptor = descriptor;
+	obj->file = f;
+	obj->path = path;
+	obj->size = size;
+
+	return (void *) obj;
+}
+
+static void _starpu_stdio_close(struct starpu_stdio_obj *obj)
+{
+	fclose(obj->file);
+	close(obj->descriptor);
+}
+
+static void _starpu_stdio_fini(struct starpu_stdio_obj *obj)
+{
+	STARPU_PTHREAD_MUTEX_DESTROY(&obj->mutex);
+
+	free(obj->path);
+	free(obj);
+}
+
+/* allocation memory on disk */
+static void *starpu_stdio_alloc(void *base, size_t size)
+{
+	struct starpu_stdio_obj *obj;
 
 	int id;
 	char *baseCpy = _starpu_mktemp_many(base, TEMP_HIERARCHY_DEPTH, O_RDWR | O_BINARY, &id);
 
 	/* fail */
 	if (!baseCpy)
-	{
-		free(obj);
 		return NULL;
-	}
-
-	FILE *f = fdopen(id, "rb+");
-	/* fail */
-	if (f == NULL)
-	{
-		/* delete fic */
-		close(id);
-		unlink(baseCpy);
-		free(baseCpy);
-		free(obj);
-		return NULL;
-	}
 
 #ifdef STARPU_HAVE_WINDOWS
 	int val = _chsize(id, size);
@@ -94,22 +114,21 @@ static void *starpu_stdio_alloc(void *base, size_t size)
 #else
 		_STARPU_DISP("Could not truncate file, ftruncate failed with error '%s'\n", strerror(errno));
 #endif
-		fclose(f);
 		close(id);
 		unlink(baseCpy);
 		free(baseCpy);
-		free(obj);
 		return NULL;
 	}
 
-	STARPU_PTHREAD_MUTEX_INIT(&obj->mutex, NULL);
+	obj = _starpu_stdio_init(id, baseCpy, size);
+	if (!obj)
+	{
+		close(id);
+		unlink(baseCpy);
+		free(baseCpy);
+	}
 
-	obj->descriptor = id;
-	obj->file = f;
-	obj->path = baseCpy;
-	obj->size = size;
-
-	return (void *) obj;
+	return obj;
 }
 
 /* free memory on disk */
@@ -117,23 +136,16 @@ static void starpu_stdio_free(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, siz
 {
 	struct starpu_stdio_obj *tmp = (struct starpu_stdio_obj *) obj;
 
-	STARPU_PTHREAD_MUTEX_DESTROY(&tmp->mutex);
-
-	fclose(tmp->file);
-	close(tmp->descriptor);
+	_starpu_stdio_close(tmp);
 	unlink(tmp->path);
 	_starpu_rmtemp_many(tmp->path, TEMP_HIERARCHY_DEPTH);
-
-	free(tmp->path);
-	free(tmp);
+	_starpu_stdio_fini(tmp);
 }
 
 /* open an existing memory on disk */
 static void *starpu_stdio_open(void *base, void *pos, size_t size)
 {
-	struct starpu_stdio_obj *obj = malloc(sizeof(struct starpu_stdio_obj));
-	STARPU_ASSERT(obj != NULL);
-
+	struct starpu_stdio_obj *obj;
 	/* create template */
 	char *baseCpy = malloc(strlen(base)+1+strlen(pos)+1);
 	STARPU_ASSERT(baseCpy != NULL);
@@ -144,27 +156,14 @@ static void *starpu_stdio_open(void *base, void *pos, size_t size)
 	int id = open(baseCpy, O_RDWR);
 	if (id < 0)
 	{
-		free(obj);
 		free(baseCpy);
 		return NULL;
 	}
 
-	FILE *f = fdopen(id,"rb+");
-	if (f == NULL)
-	{
-		free(obj);
+	obj = _starpu_stdio_init(id, baseCpy, size);
+	if (!obj)
 		free(baseCpy);
-		return NULL;
-	}
-
-	STARPU_PTHREAD_MUTEX_INIT(&obj->mutex, NULL);
-
-	obj->descriptor = id;
-	obj->file = f;
-	obj->path = baseCpy;
-	obj->size = size;
-
-	return (void *) obj;
+	return obj;
 }
 
 /* free memory without delete it */
@@ -172,12 +171,8 @@ static void starpu_stdio_close(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, si
 {
 	struct starpu_stdio_obj *tmp = (struct starpu_stdio_obj *) obj;
 
-	STARPU_PTHREAD_MUTEX_DESTROY(&tmp->mutex);
-
-	fclose(tmp->file);
-	close(tmp->descriptor);
-	free(tmp->path);
-	free(tmp);
+	_starpu_stdio_close(tmp);
+	_starpu_stdio_fini(tmp);
 }
 
 /* read the memory disk */
