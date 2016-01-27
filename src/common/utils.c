@@ -177,21 +177,47 @@ char *_starpu_mktemp_many(const char *directory, int depth, int flags, int *fd)
 	size_t len = strlen(directory);
 	char path[len + depth*4 + 1];
 	int i;
+	struct stat sb;
+
+	if (stat(directory, &sb) != 0)
+	{
+		_STARPU_DISP("Directory '%s' does not exist\n", directory);
+		return NULL;
+	}
+	if (!S_ISDIR(sb.st_mode))
+	{
+		_STARPU_DISP("'%s' is not a directory\n", directory);
+		return NULL;
+	}
 
 	memcpy(path, directory, len);
 	for (i = 0; i < depth; i++)
 	{
 		int r = starpu_lrand48();
+		int ret;
+
 		path[len + i*4 + 0] = '/';
 		path[len + i*4 + 1] = '0' + (r/1)%10;
 		path[len + i*4 + 2] = '0' + (r/10)%10;
 		path[len + i*4 + 3] = '0' + (r/100)%10;
 		path[len + i*4 + 4] = 0;
-		if (mkdir(path, 0777) < 0 && errno != EEXIST)
+
+		ret = mkdir(path, 0777);
+		if (ret == 0)
+			continue;
+		if (errno == EEXIST)
+			continue;
+
+		if (errno == ENOENT)
 		{
-			_STARPU_DISP("Could not create temporary directory '%s', mkdir failed with error '%s'\n", path, strerror(errno));
-			return NULL;
+			/* D'oh, somebody removed our directories in between,
+			 * restart from scratch */
+			i = -1;
+			continue;
 		}
+
+		_STARPU_DISP("Could not create temporary directory '%s', mkdir failed with error '%s'\n", path, strerror(errno));
+		return NULL;
 	}
 	return _starpu_mktemp(path, flags, fd);
 }
