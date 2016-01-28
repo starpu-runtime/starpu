@@ -68,6 +68,7 @@ EXTRA_DIST = 				\
 	matrix_decomposition/mpi_cholesky_models.h 	\
 	matrix_decomposition/mpi_decomposition_params.h	\
 	matrix_decomposition/mpi_decomposition_matrix.h	\
+	matrix_mult/mm_starpu.c		\
 	user_datatype/my_interface.h			\
 	helper.h
 
@@ -234,6 +235,25 @@ starpu_mpi_EXAMPLES +=				\
 	matrix_decomposition/mpi_cholesky			\
 	matrix_decomposition/mpi_cholesky_distributed
 endif
+endif
+
+########################
+# MPI Matrix mult example #
+########################
+
+if BUILD_EXAMPLES
+examplebin_PROGRAMS +=		\
+	matrix_mult/mm
+
+matrix_mult_mm_SOURCES	=		\
+	matrix_mult/mm.c
+
+matrix_mult_mm_LDADD =			\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la	\
+	-lm
+
+starpu_mpi_EXAMPLES +=				\
+	matrix_mult/mm
 endif
 
 ###################
