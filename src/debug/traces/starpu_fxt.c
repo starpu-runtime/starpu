@@ -128,9 +128,6 @@ static void task_dump(unsigned long job_id)
 	if (task->exclude_from_dag)
 		goto out;
 
-	if (states_file && task->name)
-		recfmt_set_state(task->start_time, task->workerid, task->name);
-
 	if (task->name)
 	{
 		fprintf(tasks_file, "Name: %s\n", task->name);
@@ -921,6 +918,7 @@ static void handle_start_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_op
 		unsigned sched_ctx = ev->param[1];
 
 		worker_set_state(start_codelet_time, prefix, ev->param[2], name);
+		recfmt_set_state(start_codelet_time, worker, name);
 		if (sched_ctx != 0)
 		{
 #ifdef STARPU_HAVE_POTI
@@ -1079,7 +1077,7 @@ static void handle_start_executing(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 
 	if (out_paje_file && !find_sync(threadid))
 		thread_set_state(get_event_time_stamp(ev, options), prefix, threadid, "E");
-	if (states_file)
+	if (states_file && !find_sync(threadid))
 		recfmt_set_state(get_event_time_stamp(ev, options), find_worker_id(threadid), "Executing");
 }
 
@@ -1090,7 +1088,7 @@ static void handle_end_executing(struct fxt_ev_64 *ev, struct starpu_fxt_options
 
 	if (out_paje_file && !find_sync(threadid))
 		thread_set_state(get_event_time_stamp(ev, options), prefix, threadid, "B");
-	if (states_file)
+	if (states_file && !find_sync(threadid))
 		recfmt_set_state(get_event_time_stamp(ev, options), find_worker_id(threadid), "Overhead");
 }
 
