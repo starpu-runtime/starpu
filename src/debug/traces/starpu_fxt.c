@@ -2516,7 +2516,7 @@ void starpu_fxt_options_init(struct starpu_fxt_options *options)
 	options->dag_path = "dag.dot";
 	options->tasks_path = "tasks.rec";
 	options->anim_path = "trace.html";
-	options->states_path = "states.rec";
+	options->states_path = "trace.rec";
 	options->distrib_time_path = "distrib.data";
 	options->dumped_codelets = NULL;
 	options->activity_path = "activity.data";
