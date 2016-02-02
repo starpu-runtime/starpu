@@ -1278,7 +1278,7 @@ static void handle_worker_sleep_end(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 	if (out_paje_file)
 		thread_set_state(end_sleep_timestamp, options->file_prefix, ev->param[0], "B");
 	if (states_file)
-		recfmt_set_state(get_event_time_stamp(ev, options), worker, "Overhead");
+		recfmt_set_state(end_sleep_timestamp, worker, "Overhead");
 
 	double sleep_length = end_sleep_timestamp - last_sleep_start[worker];
 
