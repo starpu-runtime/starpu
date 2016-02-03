@@ -758,6 +758,8 @@ static void handle_worker_deinit_end(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 			get_event_time_stamp(ev, options), prefix, ev->param[1]);
 #endif
 	}
+	if (states_file)
+		recfmt_thread_set_state(get_event_time_stamp(ev, options), ev->param[1], "End");
 }
 
 #ifdef STARPU_HAVE_POTI
