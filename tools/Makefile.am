@@ -182,7 +182,8 @@ dist_bin_SCRIPTS +=			\
 	starpu_codelet_histo_profile	\
 	starpu_codelet_profile		\
 	starpu_paje_draw_histogram	\
-	starpu_paje_state_stats
+	starpu_paje_state_stats		\
+	starpu_trace_state_stats.py
 
 if STARPU_HAVE_WINDOWS
 STARPU_MSVC_dir		 =	$(bindir)
