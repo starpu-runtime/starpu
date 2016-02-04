@@ -390,6 +390,21 @@ $ starpu_paje_state_stats -v native.trace simgrid.trace
 $ starpu_paje_state_stats native.trace simgrid.trace
 \endverbatim
 
+An other way to get statistics of StarPU states (without installing R and
+pj_dump) is to use the starpu_trace_state_stats.py script which parses the
+generated trace.rec file instead of the paje.trace file. The output is similar
+to the previous script but it doesn't need any dependencies.
+
+Here's an example how to use it:
+
+\verbatim
+$ python starpu_trace_state_stats.py trace.rec | column -t -s ","
+"Callback"       220  0.075978
+"chol_model_11"  10   565.176
+"chol_model_21"  45   9184.828
+"chol_model_22"  165  64712.07
+\endverbatim
+
 And one can plot histograms of execution times, of several states for instance:
 \verbatim
 $ starpu_paje_draw_histogram -n chol_model_11,chol_model_21,chol_model_22 native.trace simgrid.trace
