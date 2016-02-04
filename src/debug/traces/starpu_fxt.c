@@ -542,9 +542,11 @@ static void mpicommthread_set_state(double time, const char *prefix, const char 
 #endif
 }
 
-static void recfmt_set_state(double time, int workerid, int threadid, const char *name)
+static void recfmt_set_state(double time, const char *event, int workerid, int threadid, const char *name)
 {
-	fprintf(states_file, "Name: %s\n", name);
+	fprintf(states_file, "EventType: %s\n", event);
+	if (name)
+		fprintf(states_file, "Name: %s\n", name);
 	fprintf(states_file, "WorkerId: %d\n", workerid);
 	fprintf(states_file, "ThreadId: %d\n", threadid);
 	fprintf(states_file, "StartTime: %f\n", time);
@@ -553,12 +555,22 @@ static void recfmt_set_state(double time, int workerid, int threadid, const char
 
 static void recfmt_worker_set_state(double time, int workerid, const char *name)
 {
-	recfmt_set_state(time, workerid, -1, name);
+	recfmt_set_state(time, "SetState", workerid, -1, name);
 }
 
 static void recfmt_thread_set_state(double time, int threadid, const char *name)
 {
-	recfmt_set_state(time, find_worker_id(threadid), threadid, name);
+	recfmt_set_state(time, "SetState", find_worker_id(threadid), threadid, name);
+}
+
+static void recfmt_thread_push_state(double time, int threadid, const char *name)
+{
+	recfmt_set_state(time, "PushState", find_worker_id(threadid), threadid, name);
+}
+
+static void recfmt_thread_pop_state(double time, int threadid)
+{
+	recfmt_set_state(time, "PopState", find_worker_id(threadid), threadid, NULL);
 }
 
 /*
@@ -1251,6 +1263,8 @@ static void handle_worker_scheduling_push(struct fxt_ev_64 *ev, struct starpu_fx
 
 	if (out_paje_file)
 		thread_push_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "Sc");
+	if (states_file)
+		recfmt_thread_push_state(get_event_time_stamp(ev, options), ev->param[0], "Scheduling");
 }
 
 static void handle_worker_scheduling_pop(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -1261,6 +1275,8 @@ static void handle_worker_scheduling_pop(struct fxt_ev_64 *ev, struct starpu_fxt
 
 	if (out_paje_file)
 		thread_pop_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0]);
+	if (states_file)
+		recfmt_thread_pop_state(get_event_time_stamp(ev, options), ev->param[0]);
 }
 
 static void handle_worker_sleep_start(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
