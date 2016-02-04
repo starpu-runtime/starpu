@@ -544,12 +544,12 @@ static void mpicommthread_set_state(double time, const char *prefix, const char 
 
 static void recfmt_set_state(double time, const char *event, int workerid, int threadid, const char *name)
 {
-	fprintf(states_file, "EventType: %s\n", event);
+	fprintf(states_file, "E: %s\n", event);
 	if (name)
-		fprintf(states_file, "Name: %s\n", name);
-	fprintf(states_file, "WorkerId: %d\n", workerid);
-	fprintf(states_file, "ThreadId: %d\n", threadid);
-	fprintf(states_file, "StartTime: %f\n", time);
+		fprintf(states_file, "N: %s\n", name);
+	fprintf(states_file, "W: %d\n", workerid);
+	fprintf(states_file, "T: %d\n", threadid);
+	fprintf(states_file, "S: %f\n", time);
 	fprintf(states_file, "\n");
 }
 
