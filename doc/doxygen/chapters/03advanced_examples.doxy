@@ -1258,9 +1258,9 @@ void display_complex_codelet(void *descr[], __attribute__ ((unused)) void *_args
 The whole code for this complex data interface is available in the
 directory <c>examples/interface/</c>.
 
-\section SettingTheDataHandlesForATask Setting The Data Handles For A Task
+\section SettingManyDataHandlesForATask Setting The Data Handles For A Task
 
-The number of data a task can manage is fixed by the environment variable
+The maximum number of data a task can manage is fixed by the environment variable
 \ref STARPU_NMAXBUFS which has a default value which can be changed
 through the configure option \ref enable-maxbuffers "--enable-maxbuffers".
 
@@ -1306,6 +1306,15 @@ starpu_insert_task(&dummy_big_cl,
 
 The whole code for this complex data interface is available in the
 directory <c>examples/basic_examples/dynamic_handles.c</c>.
+
+\section SettingVariableDataHandlesForATask Setting a Variable number Data Handles For a Task
+
+Normally, the number of data handles given to a task is fixed in the
+starpu_codelet::nbuffers codelet field. This field can however be set to
+STARPU_VARIABLE_NBUFFERS, in which case the starpu_task::nbuffers task field
+must be set, and the starpu_task::modes field (or starpu_task_dyn_modes field,
+see \ref SettingManyDataHandlesForATask) should be used to specify the modes for
+the handles.
 
 \section SpecifyingATargetNode Specifying a target node for task data
 
