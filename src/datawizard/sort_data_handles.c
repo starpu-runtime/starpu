@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011, 2014  Université de Bordeaux
+ * Copyright (C) 2010-2011, 2014, 2016  Université de Bordeaux
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -35,9 +35,8 @@ static void find_data_path(struct _starpu_data_state *data, unsigned path[])
 	unsigned level; /* level is the distance between the node and the current node */
 	for (level = 0; level < depth; level++)
 	{
-		STARPU_ASSERT(data);
 		path[depth - level - 1] = current->sibling_index;
-		current = data->father_handle;
+		current = current->father_handle;
 	}
 }
 
@@ -98,8 +97,8 @@ static int _starpu_compar_handles(const struct _starpu_data_descr *descrA,
 
 	/* Things get more complicated: we need to find the location of dataA
 	 * and dataB within the tree. */
-	unsigned dataA_path[dataA->depth - 1];
-	unsigned dataB_path[dataB->depth - 1];
+	unsigned dataA_path[dataA->depth];
+	unsigned dataB_path[dataB->depth];
 
 	find_data_path(dataA, dataA_path);
 	find_data_path(dataB, dataB_path);
