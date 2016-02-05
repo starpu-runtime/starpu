@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2013  Université de Bordeaux
+ * Copyright (C) 2009, 2010, 2013, 2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2015  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -72,15 +72,15 @@ void _starpu_display_msi_stats(void)
 		total_miss_cnt += miss_cnt[node];
 	}
 
-	fprintf(stderr, "TOTAL MSI stats\thit %u (%2.2f \%%)\tmiss %u (%2.2f \%%)\n", total_hit_cnt, (100.0f*total_hit_cnt)/(total_hit_cnt+total_miss_cnt), total_miss_cnt, (100.0f*total_miss_cnt)/(total_hit_cnt+total_miss_cnt));
+	fprintf(stderr, "TOTAL MSI stats\thit %u (%2.2f %%)\tmiss %u (%2.2f %%)\n", total_hit_cnt, (100.0f*total_hit_cnt)/(total_hit_cnt+total_miss_cnt), total_miss_cnt, (100.0f*total_miss_cnt)/(total_hit_cnt+total_miss_cnt));
 
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
 		if (hit_cnt[node]+miss_cnt[node])
 		{
 			fprintf(stderr, "memory node %d\n", node);
-			fprintf(stderr, "\thit : %u (%2.2f \%%)\n", hit_cnt[node], (100.0f*hit_cnt[node])/(hit_cnt[node]+miss_cnt[node]));
-			fprintf(stderr, "\tmiss : %u (%2.2f \%%)\n", miss_cnt[node], (100.0f*miss_cnt[node])/(hit_cnt[node]+miss_cnt[node]));
+			fprintf(stderr, "\thit : %u (%2.2f %%)\n", hit_cnt[node], (100.0f*hit_cnt[node])/(hit_cnt[node]+miss_cnt[node]));
+			fprintf(stderr, "\tmiss : %u (%2.2f %%)\n", miss_cnt[node], (100.0f*miss_cnt[node])/(hit_cnt[node]+miss_cnt[node]));
 		}
 	}
 	fprintf(stderr, "#---------------------\n");
@@ -122,7 +122,7 @@ void _starpu_display_alloc_cache_stats(void)
 		{
 			fprintf(stderr, "memory node %d\n", node);
 			fprintf(stderr, "\ttotal alloc : %u\n", alloc_cnt[node]);
-			fprintf(stderr, "\tcached alloc: %u (%2.2f \%%)\n",
+			fprintf(stderr, "\tcached alloc: %u (%2.2f %%)\n",
 				alloc_cache_hit_cnt[node], (100.0f*alloc_cache_hit_cnt[node])/(alloc_cnt[node]));
 		}
 		else
