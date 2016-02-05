@@ -47,7 +47,7 @@ int main(int argc, char **argv)
 	for (i = 0; i < size; i++)
 		foo[i] = i;
 
-	starpu_vector_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)foo, size, sizeof(*foo));
+	starpu_vector_data_register(&handle, 0, (uintptr_t)foo, size, sizeof(*foo));
 
 	starpu_task_insert(&scal_codelet, STARPU_RW, handle, 0);
 
@@ -76,7 +76,7 @@ int main(int argc, char **argv)
 	ret = starpu_task_wait_for_all();
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 
-	starpu_data_unpartition(handle, STARPU_MAIN_RAM);
+	starpu_data_unpartition(handle, 0);
 	starpu_data_unregister(handle);
 	starpu_shutdown();
 
