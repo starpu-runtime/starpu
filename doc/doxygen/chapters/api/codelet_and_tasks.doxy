@@ -310,7 +310,7 @@ access modes to the data needed by the codelet (e.g. ::STARPU_RW).
 The number of entries in this array must be specified in the field
 starpu_codelet::nbuffers. This field should be used for codelets having a
 number of datas greater than \ref STARPU_NMAXBUFS (see \ref
-SettingTheDataHandlesForATask). When defining a codelet, one
+SettingManyDataHandlesForATask). When defining a codelet, one
 should either define this field or the field starpu_codelet::modes defined above.
 
 \var unsigned starpu_codelet::specific_nodes
@@ -332,7 +332,7 @@ the memory nodes where each data should be sent to for task execution.
 The number of entries in this array is starpu_codelet::nbuffers.
 This field should be used for codelets having a
 number of datas greater than \ref STARPU_NMAXBUFS (see \ref
-SettingTheDataHandlesForATask). When defining a codelet, one
+SettingManyDataHandlesForATask). When defining a codelet, one
 should either define this field or the field starpu_codelet::nodes defined
 above.
 
@@ -414,7 +414,7 @@ Is an array of ::starpu_data_handle_t. It specifies the handles to the
 different pieces of data accessed by the task. The number of entries
 in this array must be specified in the field starpu_codelet::nbuffers.
 This field should be used for tasks having a number of datas greater
-than \ref STARPU_NMAXBUFS (see \ref SettingTheDataHandlesForATask).
+than \ref STARPU_NMAXBUFS (see \ref SettingManyDataHandlesForATask).
 When defining a task, one should either define this field or the field
 starpu_task::handles defined above.
 
@@ -443,7 +443,7 @@ access modes to the data needed by the codelet (e.g. ::STARPU_RW).
 The number of entries in this array must be specified in the field
 starpu_codelet::nbuffers. This field should be used for codelets having a
 number of datas greater than \ref STARPU_NMAXBUFS (see \ref
-SettingTheDataHandlesForATask). When defining a codelet, one
+SettingManyDataHandlesForATask). When defining a codelet, one
 should either define this field or the field starpu_task::modes defined above.
 
 \var void *starpu_task::cl_arg
@@ -677,7 +677,7 @@ Return the \p i th data handle of the given task. If the task
 is defined with a static or dynamic number of handles, will either
 return the \p i th element of the field starpu_task::handles or the \p
 i th element of the field starpu_task::dyn_handles (see \ref
-SettingTheDataHandlesForATask)
+SettingManyDataHandlesForATask)
 
 \def STARPU_TASK_SET_HANDLE(task, handle, i)
 \ingroup API_Codelet_And_Tasks
@@ -686,7 +686,7 @@ dat handle. If the task is defined with a static or dynamic number of
 handles, will either set the \p i th element of the field
 starpu_task::handles or the \p i th element of the field
 starpu_task::dyn_handles (see \ref
-SettingTheDataHandlesForATask)
+SettingManyDataHandlesForATask)
 
 \def STARPU_CODELET_GET_MODE(codelet, i)
 \ingroup API_Codelet_And_Tasks
@@ -695,7 +695,7 @@ codelet. If the codelet is defined with a static or dynamic number of
 handles, will either return the \p i th element of the field
 starpu_codelet::modes or the \p i th element of the field
 starpu_codelet::dyn_modes (see \ref
-SettingTheDataHandlesForATask)
+SettingManyDataHandlesForATask)
 
 \def STARPU_CODELET_SET_MODE(codelet, mode, i)
 \ingroup API_Codelet_And_Tasks
@@ -704,7 +704,7 @@ codelet. If the codelet is defined with a static or dynamic number of
 handles, will either set the \p i th element of the field
 starpu_codelet::modes or the \p i th element of the field
 starpu_codelet::dyn_modes (see \ref
-SettingTheDataHandlesForATask)
+SettingManyDataHandlesForATask)
 
 \def STARPU_TASK_GET_MODE(task, i)
 \ingroup API_Codelet_And_Tasks
@@ -713,7 +713,7 @@ task. If the task is defined with a static or dynamic number of
 handles, will either return the \p i th element of the field
 starpu_task::modes or the \p i th element of the field
 starpu_task::dyn_modes (see \ref
-SettingTheDataHandlesForATask)
+SettingManyDataHandlesForATask)
 
 \def STARPU_TASK_SET_MODE(task, mode, i)
 \ingroup API_Codelet_And_Tasks
@@ -722,7 +722,7 @@ task. If the task is defined with a static or dynamic number of
 handles, will either set the \p i th element of the field
 starpu_task::modes or the \p i th element of the field
 starpu_task::dyn_modes (see \ref
-SettingTheDataHandlesForATask)
+SettingManyDataHandlesForATask)
 
 \fn struct starpu_task *starpu_task_create(void)
 \ingroup API_Codelet_And_Tasks
