@@ -25,7 +25,7 @@ int main(int argc, char **argv)
 	int ret;
 	unsigned n, i, size;
 
-	ret = starpu_initialize(NULL, &argc, &argv);
+	ret = starpu_init(NULL);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
@@ -49,7 +49,7 @@ int main(int argc, char **argv)
 
 	starpu_vector_data_register(&handle, 0, (uintptr_t)foo, size, sizeof(*foo));
 
-	starpu_task_insert(&scal_codelet, STARPU_RW, handle, 0);
+	starpu_insert_task(&scal_codelet, STARPU_RW, handle, 0);
 
 	struct starpu_data_filter f =
 	{
