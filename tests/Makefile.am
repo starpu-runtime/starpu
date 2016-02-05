@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2015  Université de Bordeaux
+# Copyright (C) 2009-2016  Université de Bordeaux
 # Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
 # Copyright (C) 2010, 2011, 2012  INRIA
 #
@@ -208,6 +208,7 @@ noinst_PROGRAMS =				\
 	datawizard/interfaces/vector/test_vector_interface   \
 	datawizard/interfaces/void/void_interface \
 	datawizard/in_place_partition   	\
+	datawizard/partition_dep   		\
 	datawizard/partition_lazy		\
 	datawizard/gpu_register   		\
 	datawizard/gpu_ptr_register   		\
@@ -419,6 +420,18 @@ datawizard_in_place_partition_SOURCES +=	\
 endif
 if STARPU_USE_OPENCL
 datawizard_in_place_partition_SOURCES +=	\
+	datawizard/scal_opencl.cl
+endif
+
+datawizard_partition_dep_SOURCES =	\
+	datawizard/partition_dep.c	\
+	datawizard/scal.c
+if STARPU_USE_CUDA
+datawizard_partition_dep_SOURCES +=	\
+	datawizard/scal_cuda.cu
+endif
+if STARPU_USE_OPENCL
+datawizard_partition_dep_SOURCES +=	\
 	datawizard/scal_opencl.cl
 endif
 
