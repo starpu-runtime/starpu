@@ -399,11 +399,15 @@ Here's an example how to use it:
 
 \verbatim
 $ python starpu_trace_state_stats.py trace.rec | column -t -s ","
-"Callback"       220  0.075978
-"chol_model_11"  10   565.176
-"chol_model_21"  45   9184.828
-"chol_model_22"  165  64712.07
+"Name"		"Count" "Type"	"Duration"
+"Callback"       220	Runtime	0.075978
+"chol_model_11"  10	Task	565.176
+"chol_model_21"  45	Task	9184.828
+"chol_model_22"  165	Task	64712.07
 \endverbatim
+
+starpu_trace_state_stats.py can also be used to compute the different
+efficiencies. Refer to the usage description to show some examples.
 
 And one can plot histograms of execution times, of several states for instance:
 \verbatim
