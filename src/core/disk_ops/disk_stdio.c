@@ -73,7 +73,6 @@ static struct starpu_stdio_obj *_starpu_stdio_init(int descriptor, char *path, s
 		/* Too many opened files, avoid keeping this one opened */
 		fclose(f);
 		f = NULL;
-		close(descriptor);
 		descriptor = -1;
 	}
 	else
@@ -102,9 +101,7 @@ static FILE *_starpu_stdio_reopen(struct starpu_stdio_obj *obj)
 
 static void _starpu_stdio_reclose(FILE *f)
 {
-	int id = fileno(f);
 	fclose(f);
-	close(id);
 }
 
 static void _starpu_stdio_close(struct starpu_stdio_obj *obj)
@@ -116,7 +113,6 @@ static void _starpu_stdio_close(struct starpu_stdio_obj *obj)
 		(void) STARPU_ATOMIC_ADD(&starpu_stdio_opened_files, -1);
 
 	fclose(obj->file);
-	close(obj->descriptor);
 }
 
 static void _starpu_stdio_fini(struct starpu_stdio_obj *obj)
@@ -380,15 +376,20 @@ static int get_stdio_bandwidth_between_disk_and_main_ram(unsigned node)
 	start = starpu_timing_now();
 	for (iter = 0; iter < NITER; ++iter)
 	{
+		FILE *f = tmp->file;
+
 		_starpu_disk_write(STARPU_MAIN_RAM, node, mem, buf, 0, SIZE_DISK_MIN, NULL);
+
+		if (!f)
+			f = _starpu_stdio_reopen(tmp);
 		/* clean cache memory */
-		int res = fflush(tmp->file);
+		int res = fflush(f);
 		STARPU_ASSERT_MSG(res == 0, "Slowness computation failed \n");
 
 #ifdef STARPU_HAVE_WINDOWS
-		res = _commit(tmp->descriptor);
+		res = _commit(fileno(f));
 #else
-		res = fsync(tmp->descriptor);
+		res = fsync(fileno(f));
 #endif
 		STARPU_ASSERT_MSG(res == 0, "Slowness computation failed \n");
 	}
@@ -407,15 +408,20 @@ static int get_stdio_bandwidth_between_disk_and_main_ram(unsigned node)
 	start = starpu_timing_now();
 	for (iter = 0; iter < NITER; ++iter)
 	{
+		FILE *f = tmp->file;
+
 		_starpu_disk_write(STARPU_MAIN_RAM, node, mem, buf, rand() % (SIZE_DISK_MIN -1) , 1, NULL);
 
-		int res = fflush(tmp->file);
+		if (!f)
+			f = _starpu_stdio_reopen(tmp);
+
+		int res = fflush(f);
 		STARPU_ASSERT_MSG(res == 0, "Latency computation failed");
 
 #ifdef STARPU_HAVE_WINDOWS
-		res = _commit(tmp->descriptor);
+		res = _commit(fileno(f));
 #else
-		res = fsync(tmp->descriptor);
+		res = fsync(fileno(f));
 #endif
 		STARPU_ASSERT_MSG(res == 0, "Latency computation failed");
 	}
