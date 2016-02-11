@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2013 Corentin Salingue
- * Copyright (C) 2015 CNRS
+ * Copyright (C) 2015, 2016 CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -423,12 +423,17 @@ int get_unistd_global_bandwidth_between_disk_and_main_ram(unsigned node)
 	start = starpu_timing_now();
 	for (iter = 0; iter < NITER; ++iter)
 	{
+		int fd = tmp->descriptor;
+
 		_starpu_disk_write(STARPU_MAIN_RAM, node, mem, buf, 0, SIZE_DISK_MIN, NULL);
 
+		if (fd < 0)
+			fd = _starpu_unistd_reopen(tmp);
+
 #ifdef STARPU_HAVE_WINDOWS
-		res = _commit(tmp->descriptor);
+		res = _commit(fd);
 #else
-		res = fsync(tmp->descriptor);
+		res = fsync(fd);
 #endif
 
 		STARPU_ASSERT_MSG(res == 0, "bandwidth computation failed");
@@ -448,12 +453,17 @@ int get_unistd_global_bandwidth_between_disk_and_main_ram(unsigned node)
 	start = starpu_timing_now();
 	for (iter = 0; iter < NITER; ++iter)
 	{
+		int fd = tmp->descriptor;
+
 		_starpu_disk_write(STARPU_MAIN_RAM, node, mem, buf, (rand() % (SIZE_DISK_MIN/MEM_SIZE)) * MEM_SIZE, MEM_SIZE, NULL);
 
+		if (fd < 0)
+			fd = _starpu_unistd_reopen(tmp);
+
 #ifdef STARPU_HAVE_WINDOWS
-		res = _commit(tmp->descriptor);
+		res = _commit(fd);
 #else
-		res = fsync(tmp->descriptor);
+		res = fsync(fd);
 #endif
 
 		STARPU_ASSERT_MSG(res == 0, "Latency computation failed");
