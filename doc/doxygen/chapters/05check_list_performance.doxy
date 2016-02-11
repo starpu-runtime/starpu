@@ -90,7 +90,7 @@ only at each kernel submission. The kernel just has to make sure
 that StarPU can use the command queue it has provided to synchronize with the
 kernel startup and completion.
 
-\section DetectionStuckConditions Detection Stuck Conditions
+\section DetectionStuckConditions Detecting Stuck Conditions
 
 It may happen that for some reason, StarPU does not make progress for a long
 period of time.  Reason are sometimes due to contention inside StarPU, but
