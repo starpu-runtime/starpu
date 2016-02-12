@@ -382,6 +382,7 @@ static int get_stdio_bandwidth_between_disk_and_main_ram(unsigned node)
 
 		if (!f)
 			f = _starpu_stdio_reopen(tmp);
+
 		/* clean cache memory */
 		int res = fflush(f);
 		STARPU_ASSERT_MSG(res == 0, "Slowness computation failed \n");
@@ -392,6 +393,9 @@ static int get_stdio_bandwidth_between_disk_and_main_ram(unsigned node)
 		res = fsync(fileno(f));
 #endif
 		STARPU_ASSERT_MSG(res == 0, "Slowness computation failed \n");
+
+		if (!tmp->file)
+			_starpu_stdio_reclose(f);
 	}
 	end = starpu_timing_now();
 	timing_slowness = end - start;
@@ -424,6 +428,9 @@ static int get_stdio_bandwidth_between_disk_and_main_ram(unsigned node)
 		res = fsync(fileno(f));
 #endif
 		STARPU_ASSERT_MSG(res == 0, "Latency computation failed");
+
+		if (!tmp->file)
+			_starpu_stdio_reclose(f);
 	}
 	end = starpu_timing_now();
 	timing_latency = end - start;

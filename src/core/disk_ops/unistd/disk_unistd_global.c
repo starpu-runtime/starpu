@@ -429,12 +429,13 @@ int get_unistd_global_bandwidth_between_disk_and_main_ram(unsigned node)
 
 		if (fd < 0)
 			fd = _starpu_unistd_reopen(tmp);
-
 #ifdef STARPU_HAVE_WINDOWS
 		res = _commit(fd);
 #else
 		res = fsync(fd);
 #endif
+		if (tmp->descriptor < 0)
+			_starpu_unistd_reclose(fd);
 
 		STARPU_ASSERT_MSG(res == 0, "bandwidth computation failed");
 	}
@@ -459,12 +460,13 @@ int get_unistd_global_bandwidth_between_disk_and_main_ram(unsigned node)
 
 		if (fd < 0)
 			fd = _starpu_unistd_reopen(tmp);
-
 #ifdef STARPU_HAVE_WINDOWS
 		res = _commit(fd);
 #else
 		res = fsync(fd);
 #endif
+		if (tmp->descriptor < 0)
+			_starpu_unistd_reclose(fd);
 
 		STARPU_ASSERT_MSG(res == 0, "Latency computation failed");
 	}
