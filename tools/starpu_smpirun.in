@@ -2,7 +2,7 @@
 
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 # 
-# Copyright (C) 2014-2015  Université Bordeaux
+# Copyright (C) 2014-2016  Université Bordeaux
 # 
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -70,6 +70,12 @@ PLATFORM=$(mktemp /tmp/StarPU-MPI-platform-XXXXXXXX.xml)
 NODE_PLATFORM=$STARPU_PERF_MODEL_DIR/bus/${STARPU_HOSTNAME}.platform.xml
 
 [ -n "$NP" ] || NP=$(grep -v "^$" $MPI_HOSTFILE | wc -l)
+
+if ! type xsltproc
+then
+	echo xsltproc is needed for starpu simgrid mpi.
+	exit 1
+fi
 
 (
 	cat << \EOF
