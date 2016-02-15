@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2015  Université de Bordeaux
+# Copyright (C) 2009-2016  Université de Bordeaux
 # Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -182,6 +182,7 @@ dist_bin_SCRIPTS +=			\
 	starpu_codelet_histo_profile	\
 	starpu_codelet_profile		\
 	starpu_paje_draw_histogram	\
+	starpu_paje_draw_histogram.R	\
 	starpu_paje_state_stats		\
 	starpu_trace_state_stats.py
 
