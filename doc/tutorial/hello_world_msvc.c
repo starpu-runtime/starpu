@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011, 2014  Université de Bordeaux
+ * Copyright (C) 2010-2011, 2014, 2016  Université de Bordeaux
  * Copyright (C) 2010-2011, 2013  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -32,7 +32,7 @@ void cpu_func(void *buffers[], void *cl_arg)
 
 void callback_func(void *callback_arg)
 {
-	printf("Callback function (arg %x)\n", callback_arg);
+	printf("Callback function (arg %p)\n", callback_arg);
 }
 
 int main(int argc, char **argv)
