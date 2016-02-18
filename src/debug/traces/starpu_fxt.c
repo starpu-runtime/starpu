@@ -542,7 +542,7 @@ static void mpicommthread_set_state(double time, const char *prefix, const char 
 #endif
 }
 
-static void recfmt_set_state(double time, const char *event, int workerid, int threadid, const char *name, const char *type)
+static void recfmt_set_state(double time, const char *event, int workerid, long unsigned int threadid, const char *name, const char *type)
 {
 	fprintf(trace_file, "E: %s\n", event);
 	if (name)
@@ -550,7 +550,7 @@ static void recfmt_set_state(double time, const char *event, int workerid, int t
 	if (type)
 		fprintf(trace_file, "C: %s\n", type);
 	fprintf(trace_file, "W: %d\n", workerid);
-	fprintf(trace_file, "T: %d\n", threadid);
+	fprintf(trace_file, "T: %lu\n", threadid);
 	fprintf(trace_file, "S: %f\n", time);
 	fprintf(trace_file, "\n");
 }
@@ -560,17 +560,17 @@ static void recfmt_worker_set_state(double time, int workerid, const char *name,
 	recfmt_set_state(time, "SetState", workerid, -1, name, type);
 }
 
-static void recfmt_thread_set_state(double time, int threadid, const char *name, const char *type)
+static void recfmt_thread_set_state(double time, long unsigned int threadid, const char *name, const char *type)
 {
 	recfmt_set_state(time, "SetState", find_worker_id(threadid), threadid, name, type);
 }
 
-static void recfmt_thread_push_state(double time, int threadid, const char *name, const char *type)
+static void recfmt_thread_push_state(double time, long unsigned int threadid, const char *name, const char *type)
 {
 	recfmt_set_state(time, "PushState", find_worker_id(threadid), threadid, name, type);
 }
 
-static void recfmt_thread_pop_state(double time, int threadid)
+static void recfmt_thread_pop_state(double time, long unsigned int threadid)
 {
 	recfmt_set_state(time, "PopState", find_worker_id(threadid), threadid, NULL, NULL);
 }
@@ -627,7 +627,7 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 	int nodeid = ev->param[3];
 	int bindid = ev->param[4];
 	int set = ev->param[5];
-	int threadid = ev->param[6];
+	long unsigned int threadid = ev->param[6];
 	int new_thread;
 
 	new_thread = register_worker_id(threadid, workerid, set);
@@ -700,9 +700,9 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 		poti_CreateContainer(get_event_time_stamp(ev, options), new_worker_container_alias, "W", new_thread_container_alias, new_worker_container_name);
 #else
 		if (new_thread)
-			fprintf(out_paje_file, "7	%.9f	%st%d	T	%smn%d	%s%d\n",
+			fprintf(out_paje_file, "7	%.9f	%st%lu	T	%smn%d	%s%d\n",
 				get_event_time_stamp(ev, options), prefix, threadid, prefix, nodeid, prefix, bindid);
-		fprintf(out_paje_file, "7	%.9f	%sw%d	W	%st%d	%s%s%d\n",
+		fprintf(out_paje_file, "7	%.9f	%sw%d	W	%st%lu	%s%s%d\n",
 			get_event_time_stamp(ev, options), prefix, workerid, prefix, threadid, prefix, kindstr, devid);
 #endif
 	}
@@ -749,7 +749,7 @@ static void handle_worker_init_end(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 static void handle_worker_deinit_start(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	char *prefix = options->file_prefix;
-	int threadid = ev->param[0];
+	long unsigned int threadid = ev->param[0];
 
 	if (out_paje_file)
 		thread_set_state(get_event_time_stamp(ev, options), prefix, threadid, "D");
@@ -1098,7 +1098,7 @@ static void handle_end_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 static void handle_start_executing(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	char *prefix = options->file_prefix;
-	int threadid = ev->param[0];
+	long unsigned int threadid = ev->param[0];
 
 	if (out_paje_file && !find_sync(threadid))
 		thread_set_state(get_event_time_stamp(ev, options), prefix, threadid, "E");
@@ -1109,7 +1109,7 @@ static void handle_start_executing(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 static void handle_end_executing(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	char *prefix = options->file_prefix;
-	int threadid = ev->param[0];
+	long unsigned int threadid = ev->param[0];
 
 	if (out_paje_file && !find_sync(threadid))
 		thread_set_state(get_event_time_stamp(ev, options), prefix, threadid, "B");
