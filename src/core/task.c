@@ -682,7 +682,7 @@ int starpu_task_submit(struct starpu_task *task)
 
 	ret = _starpu_submit_job(j);
 #ifdef STARPU_SIMGRID
-    MSG_process_sleep(0.0000001);
+	MSG_process_sleep(0.0000001);
 #endif
 
 	if (is_sync)
