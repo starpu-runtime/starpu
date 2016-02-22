@@ -1,0 +1,128 @@
+<?xml version='1.0'?>
+ <!DOCTYPE platform SYSTEM 'http://simgrid.gforge.inria.fr/simgrid.dtd'>
+ <platform version='3'>
+ <config id='General'>
+   <prop id='network/TCP_gamma' value='-1'></prop>
+   <prop id='network/latency_factor' value='1'></prop>
+   <prop id='network/bandwidth_factor' value='1'></prop>
+ </config>
+ <AS  id='AS0'  routing='Full'>
+   <host id='MAIN' power='1'/>
+   <host id='CPU0' power='2000000000'/>
+   <host id='CPU1' power='2000000000'/>
+   <host id='CPU2' power='2000000000'/>
+   <host id='CPU3' power='2000000000'/>
+   <host id='CPU4' power='2000000000'/>
+   <host id='CPU5' power='2000000000'/>
+   <host id='CPU6' power='2000000000'/>
+   <host id='CPU7' power='2000000000'/>
+   <host id='CPU8' power='2000000000'/>
+   <host id='CPU9' power='2000000000'/>
+   <host id='CPU10' power='2000000000'/>
+   <host id='CPU11' power='2000000000'/>
+   <host id='CPU12' power='2000000000'/>
+   <host id='CPU13' power='2000000000'/>
+   <host id='CPU14' power='2000000000'/>
+   <host id='CPU15' power='2000000000'/>
+   <host id='CPU16' power='2000000000'/>
+   <host id='CPU17' power='2000000000'/>
+   <host id='CPU18' power='2000000000'/>
+   <host id='CPU19' power='2000000000'/>
+   <host id='CPU20' power='2000000000'/>
+   <host id='CPU21' power='2000000000'/>
+   <host id='CPU22' power='2000000000'/>
+   <host id='CPU23' power='2000000000'/>
+   <host id='CUDA0' power='2000000000'>
+     <prop id='memsize' value='12079136768'/>
+     <prop id='memcpy_peer' value='1'/>
+   </host>
+   <host id='CUDA1' power='2000000000'>
+     <prop id='memsize' value='12079136768'/>
+     <prop id='memcpy_peer' value='1'/>
+   </host>
+   <host id='CUDA2' power='2000000000'>
+     <prop id='memsize' value='12079136768'/>
+     <prop id='memcpy_peer' value='1'/>
+   </host>
+   <host id='CUDA3' power='2000000000'>
+     <prop id='memsize' value='12079136768'/>
+     <prop id='memcpy_peer' value='1'/>
+   </host>
+   <host id='OpenCL0' power='2000000000'>
+     <prop id='memsize' value='12079136768'/>
+   </host>
+   <host id='OpenCL1' power='2000000000'>
+     <prop id='memsize' value='12079136768'/>
+   </host>
+   <host id='OpenCL2' power='2000000000'>
+     <prop id='memsize' value='12079136768'/>
+   </host>
+   <host id='OpenCL3' power='2000000000'>
+     <prop id='memsize' value='12079136768'/>
+   </host>
+
+   <host id='RAM' power='1'/>
+
+   <link id='Host' bandwidth='10521832623.517040' latency='0.000000'/>
+
+   <link id='RAM-OpenCL0' bandwidth='7997534022.141151' latency='0.000010'/>
+   <link id='OpenCL0-RAM' bandwidth='7434276438.572320' latency='0.000012'/>
+   <link id='RAM-OpenCL1' bandwidth='7978223026.445667' latency='0.000011'/>
+   <link id='OpenCL1-RAM' bandwidth='7232140009.638909' latency='0.000014'/>
+   <link id='RAM-OpenCL2' bandwidth='8025122400.678086' latency='0.000011'/>
+   <link id='OpenCL2-RAM' bandwidth='7300126055.185305' latency='0.000012'/>
+   <link id='RAM-OpenCL3' bandwidth='8002101228.048121' latency='0.000010'/>
+   <link id='OpenCL3-RAM' bandwidth='7333165510.983491' latency='0.000012'/>
+
+   <link id='RAM-CUDA0' bandwidth='10517678844.278971' latency='0.000010'/>
+   <link id='CUDA0-RAM' bandwidth='10521701010.666672' latency='0.000011'/>
+   <link id='RAM-CUDA1' bandwidth='10517427805.652538' latency='0.000010'/>
+   <link id='CUDA1-RAM' bandwidth='10521233123.485935' latency='0.000010'/>
+   <link id='RAM-CUDA2' bandwidth='10517320202.942270' latency='0.000010'/>
+   <link id='CUDA2-RAM' bandwidth='10521832623.517040' latency='0.000011'/>
+   <link id='RAM-CUDA3' bandwidth='10517178916.561483' latency='0.000010'/>
+   <link id='CUDA3-RAM' bandwidth='10521716373.062309' latency='0.000011'/>
+
+   <link id='CUDA0-CUDA1' bandwidth='10244090134.034805' latency='0.000012'/>
+   <link id='CUDA0-CUDA2' bandwidth='7662719221.740685' latency='0.000024'/>
+   <link id='CUDA0-CUDA3' bandwidth='8527735591.087247' latency='0.000023'/>
+   <link id='CUDA1-CUDA0' bandwidth='10240684078.899693' latency='0.000012'/>
+   <link id='CUDA1-CUDA2' bandwidth='7630369996.384952' latency='0.000023'/>
+   <link id='CUDA1-CUDA3' bandwidth='8542253951.429195' latency='0.000023'/>
+   <link id='CUDA2-CUDA0' bandwidth='8504224628.018895' latency='0.000024'/>
+   <link id='CUDA2-CUDA1' bandwidth='8517475744.443908' latency='0.000024'/>
+   <link id='CUDA2-CUDA3' bandwidth='10232000931.164429' latency='0.000011'/>
+   <link id='CUDA3-CUDA0' bandwidth='8496220968.849647' latency='0.000023'/>
+   <link id='CUDA3-CUDA1' bandwidth='8514239613.171523' latency='0.000023'/>
+   <link id='CUDA3-CUDA2' bandwidth='10242870726.441437' latency='0.000011'/>
+   <route src='RAM' dst='CUDA0' symmetrical='NO'><link_ctn id='RAM-CUDA0'/><link_ctn id='Host'/></route>
+   <route src='CUDA0' dst='RAM' symmetrical='NO'><link_ctn id='CUDA0-RAM'/><link_ctn id='Host'/></route>
+   <route src='RAM' dst='CUDA1' symmetrical='NO'><link_ctn id='RAM-CUDA1'/><link_ctn id='Host'/></route>
+   <route src='CUDA1' dst='RAM' symmetrical='NO'><link_ctn id='CUDA1-RAM'/><link_ctn id='Host'/></route>
+   <route src='RAM' dst='CUDA2' symmetrical='NO'><link_ctn id='RAM-CUDA2'/><link_ctn id='Host'/></route>
+   <route src='CUDA2' dst='RAM' symmetrical='NO'><link_ctn id='CUDA2-RAM'/><link_ctn id='Host'/></route>
+   <route src='RAM' dst='CUDA3' symmetrical='NO'><link_ctn id='RAM-CUDA3'/><link_ctn id='Host'/></route>
+   <route src='CUDA3' dst='RAM' symmetrical='NO'><link_ctn id='CUDA3-RAM'/><link_ctn id='Host'/></route>
+   <route src='CUDA0' dst='CUDA1' symmetrical='NO'><link_ctn id='CUDA0-CUDA1'/><link_ctn id='Host'/></route>
+   <route src='CUDA0' dst='CUDA2' symmetrical='NO'><link_ctn id='CUDA0-CUDA2'/><link_ctn id='Host'/></route>
+   <route src='CUDA0' dst='CUDA3' symmetrical='NO'><link_ctn id='CUDA0-CUDA3'/><link_ctn id='Host'/></route>
+   <route src='CUDA1' dst='CUDA0' symmetrical='NO'><link_ctn id='CUDA1-CUDA0'/><link_ctn id='Host'/></route>
+   <route src='CUDA1' dst='CUDA2' symmetrical='NO'><link_ctn id='CUDA1-CUDA2'/><link_ctn id='Host'/></route>
+   <route src='CUDA1' dst='CUDA3' symmetrical='NO'><link_ctn id='CUDA1-CUDA3'/><link_ctn id='Host'/></route>
+   <route src='CUDA2' dst='CUDA0' symmetrical='NO'><link_ctn id='CUDA2-CUDA0'/><link_ctn id='Host'/></route>
+   <route src='CUDA2' dst='CUDA1' symmetrical='NO'><link_ctn id='CUDA2-CUDA1'/><link_ctn id='Host'/></route>
+   <route src='CUDA2' dst='CUDA3' symmetrical='NO'><link_ctn id='CUDA2-CUDA3'/><link_ctn id='Host'/></route>
+   <route src='CUDA3' dst='CUDA0' symmetrical='NO'><link_ctn id='CUDA3-CUDA0'/><link_ctn id='Host'/></route>
+   <route src='CUDA3' dst='CUDA1' symmetrical='NO'><link_ctn id='CUDA3-CUDA1'/><link_ctn id='Host'/></route>
+   <route src='CUDA3' dst='CUDA2' symmetrical='NO'><link_ctn id='CUDA3-CUDA2'/><link_ctn id='Host'/></route>
+
+   <route src='RAM' dst='OpenCL0' symmetrical='NO'><link_ctn id='RAM-OpenCL0'/><link_ctn id='Host'/></route>
+   <route src='OpenCL0' dst='RAM' symmetrical='NO'><link_ctn id='OpenCL0-RAM'/><link_ctn id='Host'/></route>
+   <route src='RAM' dst='OpenCL1' symmetrical='NO'><link_ctn id='RAM-OpenCL1'/><link_ctn id='Host'/></route>
+   <route src='OpenCL1' dst='RAM' symmetrical='NO'><link_ctn id='OpenCL1-RAM'/><link_ctn id='Host'/></route>
+   <route src='RAM' dst='OpenCL2' symmetrical='NO'><link_ctn id='RAM-OpenCL2'/><link_ctn id='Host'/></route>
+   <route src='OpenCL2' dst='RAM' symmetrical='NO'><link_ctn id='OpenCL2-RAM'/><link_ctn id='Host'/></route>
+   <route src='RAM' dst='OpenCL3' symmetrical='NO'><link_ctn id='RAM-OpenCL3'/><link_ctn id='Host'/></route>
+   <route src='OpenCL3' dst='RAM' symmetrical='NO'><link_ctn id='OpenCL3-RAM'/><link_ctn id='Host'/></route>
+ </AS>
+ </platform>
