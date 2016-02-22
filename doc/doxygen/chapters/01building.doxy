@@ -348,7 +348,7 @@ at CPU-GPU scheduling without actually having a GPU at hand. This can be done by
 using the simgrid version of StarPU: first install the simgrid simulator from
 http://simgrid.gforge.inria.fr/ , then configure StarPU with \ref enable-simgrid "--enable-simgrid"
 and rebuild and install it, and then you can simulate the performance for a
-few virtualized systems shipped along StarPU: attila, mirage and idgraf.
+few virtualized systems shipped along StarPU: attila, mirage, idgraf, and sirocco.
 
 For instance:
 
