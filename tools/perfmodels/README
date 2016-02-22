@@ -20,6 +20,12 @@ The architecture 'idgraf' is composed of:
 - 8 NVIDIA GF100 Tesla C2050, thus 8 GPUs
   - CUDA 6.0
 
+The architecture 'sirocco' is composed of:
+- 2 Intel Xeon E5-2680 @2.50GHz, thus 24 CPU cores
+  - MKL 11.2
+- 4 NVIDIA GK110BGL Tesla K40m, thus 4 GPUs
+  - CUDA 6.5
+
 To use performance models stored in this directory, one needs to set
 the environment variable 'STARPU_PERF_MODEL_DIR' to the location of
 the directory, e.g.:
