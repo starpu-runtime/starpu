@@ -363,7 +363,7 @@ system. It will be interesting to try with different matrix sizes and
 schedulers.
 
 Performance models are available for cholesky_*, lu_*, *gemm, with block sizes
-320, 640, or 960, and for stencil with block size 128x128x128, 192x192x192, and
+320, 640, or 960 (plus 1440 for sirocco), and for stencil with block size 128x128x128, 192x192x192, and
 256x256x256.
 
 */
