@@ -123,8 +123,8 @@ CUDA or OpenCL execution:
 
 \section SimulationExamples Simulation examples
 
-StarPU ships a few performance models for a couple of systems: attila and
-mirage. See section \ref SimulatedBenchmarks for the details.
+StarPU ships a few performance models for a couple of systems: attila,
+mirage, idgraf, and sirocco. See section \ref SimulatedBenchmarks for the details.
 
 \section Tweaking simulation
 
