@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2015  Université de Bordeaux
+ * Copyright (C) 2009-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
  * Copyright (C) 2014  INRIA
  *
@@ -580,6 +580,7 @@ int _starpu_data_check_not_busy(starpu_data_handle_t handle)
 	 * handle created for a reduction.) */
 	if (handle->lazy_unregister && handle->busy_count == 0)
 	{
+		handle->lazy_unregister = 0;
 		_starpu_spin_unlock(&handle->header_lock);
 		_starpu_data_unregister(handle, 0, 1);
 		/* Warning: in case we unregister the handle, we must be sure
@@ -770,6 +771,7 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 	handle->busy_waiting = 1;
 	_starpu_spin_unlock(&handle->header_lock);
 
+retry_busy:
 	/* Wait for all requests to finish (notably WT requests) */
 	STARPU_PTHREAD_MUTEX_LOCK(&handle->busy_mutex);
 	while (1)
@@ -788,6 +790,12 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 
 	/* Wait for finished requests to release the handle */
 	_starpu_spin_lock(&handle->header_lock);
+	if (handle->busy_count)
+	{
+		/* Bad luck: some request went in in between, wait again... */
+		_starpu_spin_unlock(&handle->header_lock);
+		goto retry_busy;
+	}
 
 	size_t size = _starpu_data_get_size(handle);
 
