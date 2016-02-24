@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2015  Université de Bordeaux
+ * Copyright (C) 2009-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -224,7 +224,7 @@ static unsigned may_free_subtree(starpu_data_handle_t handle, unsigned node)
 /* Warn: this releases the header lock of the handle during the transfer
  * The handle may thus unexpectedly disappear. This returns 1 in that case.
  */
-static int transfer_subtree_to_node(starpu_data_handle_t handle, unsigned src_node,
+static int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT transfer_subtree_to_node(starpu_data_handle_t handle, unsigned src_node,
 				     unsigned dst_node)
 {
 	unsigned i;
@@ -291,7 +291,7 @@ static int transfer_subtree_to_node(starpu_data_handle_t handle, unsigned src_no
 	}
 	else
 	{
-		/* lock all sub-subtrees children */
+		/* transfer all sub-subtrees children */
 		unsigned child;
 		int res;
 		for (child = 0; child < handle->nchildren; child++)
@@ -498,7 +498,15 @@ static size_t try_to_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 #endif
 				_starpu_spin_lock(&mc_lock[node]);
 
-				if (mc)
+				if (!mc)
+				{
+					if (res == -1)
+					{
+						/* handle disappeared, abort without unlocking it */
+						return 0;
+					}
+				}
+				else
 				{
 					STARPU_ASSERT(mc->remove_notify == &mc);
 					mc->remove_notify = NULL;
@@ -605,7 +613,15 @@ static unsigned try_to_reuse_mem_chunk(struct _starpu_mem_chunk *mc, unsigned no
 			_STARPU_TRACE_END_WRITEBACK(node);
 			_starpu_spin_lock(&mc_lock[node]);
 
-			if (mc)
+			if (!mc)
+			{
+				if (res == -1)
+				{
+					/* handle disappeared, abort without unlocking it */
+					return 0;
+				}
+			}
+			else
 			{
 				STARPU_ASSERT(mc->remove_notify == &mc);
 				mc->remove_notify = NULL;
