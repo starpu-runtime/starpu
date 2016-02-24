@@ -71,7 +71,7 @@ NODE_PLATFORM=$STARPU_PERF_MODEL_DIR/bus/${STARPU_HOSTNAME}.platform.xml
 
 [ -n "$NP" ] || NP=$(grep -v "^$" $MPI_HOSTFILE | wc -l)
 
-if ! type xsltproc
+if ! type xsltproc > /dev/null 2> /dev/null
 then
 	echo xsltproc is needed for starpu simgrid mpi.
 	exit 1
