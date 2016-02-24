@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2015  Université de Bordeaux
+ * Copyright (C) 2012-2016  Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -246,6 +246,9 @@ void _starpu_simgrid_init()
 	}
 	if (_starpu_simgrid_running_smpi())
 	{
+#ifdef __PIC__
+		_STARPU_ERROR("Simgrid currently does not support privatization for dynamically-linked libraries in SMPI. Please reconfigure and build StarPU with --disable-shared");
+#endif
 		MSG_process_set_data(MSG_process_self(), calloc(MAX_TSD, sizeof(void*)));
 	}
 	for (i = 0; i < STARPU_MAXNODES; i++)
