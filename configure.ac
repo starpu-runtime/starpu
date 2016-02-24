@@ -1568,6 +1568,12 @@ if test x$use_fxt = xyes; then
 	AC_CHECK_DECLS([fut_set_filename])
 	CFLAGS="$save_CFLAGS"
 
+	if test x$enable_simgrid = xyes; then
+                # simgrid's SMPI needs fxt to be linked in statically for
+                # variable privatization to work
+		FXT_LIBS="$(pkg-config --variable=libdir fxt)/libfxt.a -lrt"
+	fi
+
         AC_ARG_ENABLE(paje-codelet-details, [AS_HELP_STRING([--enable-paje-codelet-details],
 			[enable details about codelets in the paje trace])],
 			enable_paje_codelet_details=$enableval, enable_paje_codelet_details=no)
