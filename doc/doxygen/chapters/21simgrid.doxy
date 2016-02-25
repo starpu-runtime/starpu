@@ -133,7 +133,7 @@ simulation and a very simple simulation (which is thus close to scheduling
 theory results), see the \ref STARPU_SIMGRID_CUDA_MALLOC_COST and \ref
 STARPU_SIMGRID_CUDA_QUEUE_COST environment variables.
 
-\section MPI applications
+\section SimulationMPIApplications MPI applications
 
 StarPU-MPI applications can also be run in simgrid mode. It needs to be compiled
 with smpicc, and run using the starpu_smpirun script, for instance:
@@ -147,7 +147,7 @@ list of MPI nodes to be used. StarPU currently only supports homogeneous MPI
 clusters: for each MPI node it will just replicate the architecture referred by
 \ref STARPU_HOSTNAME.
 
-\section Debugging applications
+\section SimulationDebuggingApplications Debugging applications
 
 By default, simgrid uses its own implementation of threads, which prevents gdb
 from being able to inspect stacks of all threads.  To be able to fully debug an
@@ -157,5 +157,30 @@ able to manipulate as usual.
 
 \snippet simgrid.c To be included. You should update doxygen if you see this text.
 
+\section SimulationMemoryUsage Memory usage
+
+Since kernels are not actually run and data transfers are not actually
+performed, the data memory does not actually need to be allocated.  This allows
+for instance to simulate the execution of applications processing very big data
+on a small laptop.
+
+The application can for instance pass <c>1</c> (or whatever bogus pointer)
+to starpu data registration functions, instead of allocating data. This will
+however require the application to take care of not trying to access the data,
+and will not work in MPI mode, which performs transfers.
+
+Another way is to pass the STARPU_MALLOC_SIMULATION_FOLDED flag to the
+starpu_malloc_flags() function. This will make it allocate a memory area which
+one can read/write, but optimized so that this does not actually consume
+memory. Of course, the values read from such area will be bogus, but this allows
+the application to keep e.g. data load, store, initialization as it is, and also
+work in MPI mode.
+
+Note however that notably Linux kernels refuse obvious memory overcommitting by
+default, so a single allocation can typically not be bigger than the amount of
+physical memory, see https://www.kernel.org/doc/Documentation/vm/overcommit-accounting
+This prevents for instance from allocating a single huge matrix. Allocating a
+huge matrix in several tiles is not a problem, however. <c>sysctl
+vm.overcommit_memory=1</c> can also be used to allow such overcommit.
 
 */

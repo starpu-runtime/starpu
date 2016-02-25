@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2010, 2012-2015  Université de Bordeaux
+ * Copyright (C) 2009-2010, 2012-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -28,9 +28,25 @@
 #include <datawizard/malloc.h>
 #include <core/simgrid.h>
 
+#ifdef STARPU_SIMGRID
+#include <sys/mman.h>
+#include <fcntl.h>
+#endif
+
+#ifndef O_BINARY
+#define O_BINARY 0
+#endif
+
 static size_t _malloc_align = sizeof(void*);
 static int disable_pinning;
 static int malloc_on_node_default_flags[STARPU_MAXNODES];
+
+/* This file is used for implementing "folded" allocation */
+#ifdef STARPU_SIMGRID
+static int bogusfile = -1;
+/* Reasonably "costless" */
+#define BOGUSFILE_SIZE (16UL<<20)
+#endif
 
 void starpu_malloc_set_align(size_t align)
 {
@@ -201,6 +217,60 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 #endif /* STARPU_SIMGRID */
 	}
 
+#ifdef STARPU_SIMGRID
+	if (flags & STARPU_MALLOC_SIMULATION_FOLDED)
+	{
+		/* Use "folded" allocation: the same file is mapped several
+		 * times contiguously, to get a memory area one can read/write,
+		 * without consuming memory */
+
+		/* First reserve memory area */
+		void *buf = mmap (NULL, dim, PROT_READ|PROT_WRITE, MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
+		unsigned i;
+		if (buf == MAP_FAILED)
+		{
+			_STARPU_DISP("Warning: could not allocate %luMiB of memory, you need to run \"sysctl vm.overcommit_memory=1\" as root to allow so big allocations\n", (unsigned long) (dim >> 20));
+			ret = -ENOMEM;
+			*A = NULL;
+		}
+		else
+		{
+			if (bogusfile == -1)
+			{
+				char *path = starpu_getenv("TMPDIR");
+				if (!path)
+					path = "/tmp";
+				/* Create bogus file if not done already */
+				char *name = _starpu_mktemp(path, O_RDWR | O_BINARY, &bogusfile);
+				if (!name)
+				{
+					ret = errno;
+					munmap(buf, dim);
+					*A = NULL;
+				}
+				unlink(name);
+				free(name);
+				_starpu_ftruncate(bogusfile, BOGUSFILE_SIZE);
+			}
+			/* Map the bogus file in place of the anonymous memory */
+			for (i = 0; i < dim / BOGUSFILE_SIZE; i++)
+			{
+				void *pos = (void*) ((unsigned long) buf + i * BOGUSFILE_SIZE);
+				void *res = mmap(pos, BOGUSFILE_SIZE, PROT_READ|PROT_WRITE, MAP_FIXED|MAP_SHARED, bogusfile, 0);
+				STARPU_ASSERT(res == pos);
+			}
+
+			if (dim % BOGUSFILE_SIZE)
+			{
+				void *pos = (void*) ((unsigned long) buf + i * BOGUSFILE_SIZE);
+				void *res = mmap(pos, dim % BOGUSFILE_SIZE, PROT_READ|PROT_WRITE, MAP_FIXED|MAP_SHARED, bogusfile, 0);
+				STARPU_ASSERT(res == pos);
+			}
+			*A = buf;
+		}
+	}
+	else
+#endif
 	if (_starpu_can_submit_scc_task())
 	{
 #ifdef STARPU_USE_SCC
@@ -359,6 +429,13 @@ int starpu_free_flags(void *A, size_t dim, int flags)
 	}
 #endif /* STARPU_SIMGRID */
 
+#ifdef STARPU_SIMGRID
+	if (flags & STARPU_MALLOC_SIMULATION_FOLDED)
+	{
+		munmap(A, dim);
+	}
+	else
+#endif
 	if (_starpu_can_submit_scc_task())
 	{
 #ifdef STARPU_USE_SCC

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2015  Université de Bordeaux
+ * Copyright (C) 2009-2016  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012, 2013  CNRS
  *
@@ -192,8 +192,8 @@ static void execute_cholesky(unsigned size, unsigned nblocks)
 	float *mat = NULL;
 	unsigned i,j;
 
+	starpu_malloc_flags((void **)&mat, (size_t)size*size*sizeof(float), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
 #ifndef STARPU_SIMGRID
-	starpu_malloc((void **)&mat, (size_t)size*size*sizeof(float));
 	for (i = 0; i < size; i++)
 	{
 		for (j = 0; j < size; j++)
@@ -303,7 +303,7 @@ static void execute_cholesky(unsigned size, unsigned nblocks)
 	        }
 		free(test_mat);
 	}
-	starpu_free(mat);
+	starpu_free_flags(mat, (size_t)size*size*sizeof(float), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
 }
 
 int main(int argc, char **argv)

@@ -45,6 +45,15 @@ according to the STARPU_MINIMUM_AVAILABLE_MEM and STARPU_TARGET_AVAILABLE_MEM
 environment variables. If STARPU_MEMORY_WAIT is set, no overflowing will happen,
 starpu_malloc_flags() will wait for other eviction mechanisms to release enough memory.
 
+\def STARPU_MALLOC_SIMULATION_FOLDED
+\ingroup API_Standard_Memory_Library
+Value passed to the function starpu_malloc_flags() to indicate that when
+StarPU is using simgrid, the allocation can be "folded", i.e. a memory area is
+allocated, but its content is actually a replicate of the same memory area, to
+avoid having to actually allocate that much memory . This thus allows to have a
+memory area that does not actually consumes memory, to which one can read from
+and write to normally, but get bogus values.
+
 \fn int starpu_malloc_flags(void **A, size_t dim, int flags)
 \ingroup API_Standard_Memory_Library
 Performs a memory allocation based on the constraints defined

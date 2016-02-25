@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2015  Université de Bordeaux
+ * Copyright (C) 2010-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -31,6 +31,8 @@ extern "C"
 
 #define STARPU_MEMORY_WAIT	((1ULL)<<4)
 #define STARPU_MEMORY_OVERFLOW	((1ULL)<<5)
+
+#define STARPU_MALLOC_SIMULATION_FOLDED	((1ULL)<<6)
 
 void starpu_malloc_set_align(size_t align);
 
