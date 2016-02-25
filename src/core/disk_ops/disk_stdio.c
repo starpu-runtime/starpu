@@ -135,7 +135,7 @@ static void *starpu_stdio_alloc(void *base, size_t size)
 	if (!baseCpy)
 		return NULL;
 
-	int val = ftruncate(id,size);
+	int val = _starpu_ftruncate(id,size);
 	/* fail */
 	if (val < 0)
 	{
@@ -289,16 +289,14 @@ static int starpu_stdio_full_write(void *base STARPU_ATTRIBUTE_UNUSED, void *obj
 {
 	struct starpu_stdio_obj *tmp = (struct starpu_stdio_obj *) obj;
 	FILE *f = tmp->file;
-	int fd;
 
 	if (!f)
 		f = _starpu_stdio_reopen(obj);
-	fd = fileno(f);
 
 	/* update file size to realise the next good full_read */
 	if(size != tmp->size)
 	{
-		int val = ftruncate(fd,size);
+		int val = _starpu_fftruncate(f,size);
 		STARPU_ASSERT(val == 0);
 
 		tmp->size = size;

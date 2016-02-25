@@ -164,8 +164,10 @@ char *_starpu_mktemp(const char *directory, int flags, int *fd)
 	/* fail */
 	if (*fd < 0)
 	{
+		int err = errno;
 		_STARPU_DISP("Could not create temporary file in directory '%s', mskostemp failed with error '%s'\n", directory, strerror(errno));
 		free(baseCpy);
+		errno = err;
 		return NULL;
 	}
 
@@ -233,7 +235,12 @@ void _starpu_rmtemp_many(char *path, int depth)
 	}
 }
 
-int _starpu_ftruncate(FILE *file, size_t length)
+int _starpu_ftruncate(int fd, size_t length)
+{
+	return ftruncate(fd, length);
+}
+
+int _starpu_fftruncate(FILE *file, size_t length)
 {
 	return ftruncate(fileno(file), length);
 }

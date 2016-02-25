@@ -127,7 +127,7 @@ void *starpu_unistd_global_alloc(struct starpu_unistd_global_obj *obj, void *bas
 		return NULL;
 	}
 
-	int val = ftruncate(id,size);
+	int val = _starpu_ftruncate(id,size);
 	/* fail */
 	if (val < 0)
 	{
@@ -351,7 +351,7 @@ int starpu_unistd_global_full_write(void *base STARPU_ATTRIBUTE_UNUSED, void *ob
 
 		if (fd < 0)
 			fd = _starpu_unistd_reopen(obj);
-		int val = ftruncate(fd,size);
+		int val = _starpu_ftruncate(fd,size);
 		if (tmp->descriptor < 0)
 			_starpu_unistd_reclose(fd);
 		STARPU_ASSERT(val == 0);

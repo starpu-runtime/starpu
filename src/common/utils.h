@@ -129,7 +129,8 @@ char *_starpu_mktemp(const char *directory, int flags, int *fd);
  * creating a lot of temporary files to be stored in the same place */
 char *_starpu_mktemp_many(const char *directory, int depth, int flags, int *fd);
 void _starpu_rmtemp_many(char *path, int depth);
-int _starpu_ftruncate(FILE *file, size_t length);
+int _starpu_fftruncate(FILE *file, size_t length);
+int _starpu_ftruncate(int fd, size_t length);
 int _starpu_frdlock(FILE *file);
 int _starpu_frdunlock(FILE *file);
 int _starpu_fwrlock(FILE *file);

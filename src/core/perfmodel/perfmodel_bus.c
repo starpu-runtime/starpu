@@ -1124,7 +1124,7 @@ static void write_bus_latency_file_content(void)
 		STARPU_ABORT();
 	}
 	_starpu_fwrlock(f);
-	_starpu_ftruncate(f, 0);
+	_starpu_fftruncate(f, 0);
 
 	fprintf(f, "# ");
 	for (dst = 0; dst < STARPU_MAXNODES; dst++)
@@ -1341,7 +1341,7 @@ static void write_bus_bandwidth_file_content(void)
 	STARPU_ASSERT(f);
 
 	_starpu_fwrlock(f);
-	_starpu_ftruncate(f, 0);
+	_starpu_fftruncate(f, 0);
 
 	fprintf(f, "# ");
 	for (dst = 0; dst < STARPU_MAXNODES; dst++)
@@ -1650,7 +1650,7 @@ static void write_bus_config_file_content(void)
         f = fopen(path, "w+");
 	STARPU_ASSERT(f);
 	_starpu_fwrlock(f);
-	_starpu_ftruncate(f, 0);
+	_starpu_fftruncate(f, 0);
 
         fprintf(f, "# Current configuration\n");
         fprintf(f, "%u # Number of CPUs\n", ncpus);
@@ -2119,7 +2119,7 @@ static void write_bus_platform_file_content(void)
 		STARPU_ABORT();
 	}
 	_starpu_fwrlock(f);
-	_starpu_ftruncate(f, 0);
+	_starpu_fftruncate(f, 0);
 
 	fprintf(f,
 "<?xml version='1.0'?>\n"
