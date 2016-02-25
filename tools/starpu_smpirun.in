@@ -65,7 +65,8 @@ fi
 
 PLATFORM=$(mktemp /tmp/StarPU-MPI-platform-XXXXXXXX.xml)
 
-[ -n "$STARPU_PERF_MODEL_DIR" ] || STARPU_PERF_MODEL_DIR=$HOME/.starpu/sampling
+[ -n "$STARPU_HOME" ] || STARPU_HOME=$HOME
+[ -n "$STARPU_PERF_MODEL_DIR" ] || STARPU_PERF_MODEL_DIR=$STARPU_HOME/.starpu/sampling
 [ -n "$STARPU_HOSTNAME" ] || STARPU_HOSTNAME=$(hostname)
 NODE_PLATFORM=$STARPU_PERF_MODEL_DIR/bus/${STARPU_HOSTNAME}.platform.xml
 
