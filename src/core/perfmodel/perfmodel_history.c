@@ -772,7 +772,7 @@ static void save_history_based_model(struct starpu_perfmodel *model)
 	STARPU_ASSERT_MSG(f, "Could not save performance model %s\n", path);
 
 	_starpu_fwrlock(f);
-	_starpu_ftruncate(f, 0);
+	_starpu_fftruncate(f, 0);
 	dump_model_file(f, model);
 	_starpu_fwrunlock(f);
 
