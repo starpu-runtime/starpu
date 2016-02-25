@@ -233,9 +233,9 @@ void _starpu_rmtemp_many(char *path, int depth)
 	}
 }
 
-int _starpu_ftruncate(FILE *file)
+int _starpu_ftruncate(FILE *file, size_t length)
 {
-	return ftruncate(fileno(file), 0);
+	return ftruncate(fileno(file), length);
 }
 
 int _starpu_frdlock(FILE *file)
