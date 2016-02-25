@@ -241,7 +241,17 @@ char *_starpu_get_home_path(void)
 	if (!path)
 		path = starpu_getenv("USERPROFILE");
 	if (!path)
-		_STARPU_ERROR("couldn't find a home place to put starpu data\n");
+	{
+		static int warn;
+		path = starpu_getenv("TMPDIR");
+		if (!path)
+			path = "/tmp";
+		if (!warn)
+		{
+			warn = 1;
+			_STARPU_DISP("couldn't find a $STARPU_HOME place to put .starpu data, using %s\n", path);
+		}
+	}
 	return path;
 }
 
