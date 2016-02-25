@@ -86,11 +86,11 @@ static void init_problem_data(void)
 {
 	unsigned i,j;
 
-#ifndef STARPU_SIMGRID
-	starpu_malloc((void **)&A, zdim*ydim*sizeof(TYPE));
-	starpu_malloc((void **)&B, xdim*zdim*sizeof(TYPE));
-	starpu_malloc((void **)&C, xdim*ydim*sizeof(TYPE));
+	starpu_malloc_flags((void **)&A, zdim*ydim*sizeof(TYPE), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
+	starpu_malloc_flags((void **)&B, xdim*zdim*sizeof(TYPE), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
+	starpu_malloc_flags((void **)&C, xdim*ydim*sizeof(TYPE), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
 
+#ifndef STARPU_SIMGRID
 	/* fill the A and B matrices */
 	for (j=0; j < ydim; j++)
 	{
@@ -397,9 +397,9 @@ enodev:
 	if (check)
 		check_output();
 
-	starpu_free(A);
-	starpu_free(B);
-	starpu_free(C);
+	starpu_free_flags(A, zdim*ydim*sizeof(TYPE), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
+	starpu_free_flags(B, xdim*zdim*sizeof(TYPE), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
+	starpu_free_flags(C, xdim*ydim*sizeof(TYPE), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
 
 	starpu_cublas_shutdown();
 	starpu_shutdown();
