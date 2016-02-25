@@ -108,7 +108,7 @@
 
 int _starpu_mkpath(const char *s, mode_t mode);
 void _starpu_mkpath_and_check(const char *s, mode_t mode);
-int _starpu_ftruncate(FILE *file);
+int _starpu_ftruncate(FILE *file, size_t length);
 int _starpu_frdlock(FILE *file);
 int _starpu_frdunlock(FILE *file);
 int _starpu_fwrlock(FILE *file);

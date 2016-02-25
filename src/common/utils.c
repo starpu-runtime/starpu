@@ -137,9 +137,9 @@ void _starpu_mkpath_and_check(const char *path, mode_t mode)
 	}
 }
 
-int _starpu_ftruncate(FILE *file)
+int _starpu_ftruncate(FILE *file, size_t length)
 {
-	return ftruncate(fileno(file), 0);
+	return ftruncate(fileno(file), length);
 }
 
 int _starpu_frdlock(FILE *file)
