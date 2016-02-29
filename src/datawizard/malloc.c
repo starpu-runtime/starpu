@@ -37,6 +37,10 @@
 #define O_BINARY 0
 #endif
 
+#ifndef MAP_POPULATE
+#define MAP_POPULATE 0
+#endif
+
 static size_t _malloc_align = sizeof(void*);
 static int disable_pinning;
 static int malloc_on_node_default_flags[STARPU_MAXNODES];
@@ -44,8 +48,7 @@ static int malloc_on_node_default_flags[STARPU_MAXNODES];
 /* This file is used for implementing "folded" allocation */
 #ifdef STARPU_SIMGRID
 static int bogusfile = -1;
-/* Reasonably "costless" */
-#define BOGUSFILE_SIZE (16UL<<20)
+static unsigned long _starpu_malloc_simulation_fold;
 #endif
 
 void starpu_malloc_set_align(size_t align)
@@ -242,29 +245,33 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 					path = "/tmp";
 				/* Create bogus file if not done already */
 				char *name = _starpu_mktemp(path, O_RDWR | O_BINARY, &bogusfile);
+				char *dumb;
 				if (!name)
 				{
 					ret = errno;
 					munmap(buf, dim);
 					*A = NULL;
+					goto end;
 				}
 				unlink(name);
 				free(name);
-				_starpu_ftruncate(bogusfile, BOGUSFILE_SIZE);
+				dumb = malloc(_starpu_malloc_simulation_fold);
+				write(bogusfile, dumb, _starpu_malloc_simulation_fold);
+				free(dumb);
 			}
 			/* Map the bogus file in place of the anonymous memory */
-			for (i = 0; i < dim / BOGUSFILE_SIZE; i++)
+			for (i = 0; i < dim / _starpu_malloc_simulation_fold; i++)
 			{
-				void *pos = (void*) ((unsigned long) buf + i * BOGUSFILE_SIZE);
-				void *res = mmap(pos, BOGUSFILE_SIZE, PROT_READ|PROT_WRITE, MAP_FIXED|MAP_SHARED, bogusfile, 0);
-				STARPU_ASSERT(res == pos);
+				void *pos = (void*) ((unsigned long) buf + i * _starpu_malloc_simulation_fold);
+				void *res = mmap(pos, _starpu_malloc_simulation_fold, PROT_READ|PROT_WRITE, MAP_FIXED|MAP_SHARED|MAP_POPULATE, bogusfile, 0);
+				STARPU_ASSERT_MSG(res == pos, "Could not map folded virtual memory (%s). Do you perhaps need to increase the STARPU_MALLOC_SIMULATION_FOLD environment variable or the sysctl vm.max_map_count?", strerror(errno));
 			}
 
-			if (dim % BOGUSFILE_SIZE)
+			if (dim % _starpu_malloc_simulation_fold)
 			{
-				void *pos = (void*) ((unsigned long) buf + i * BOGUSFILE_SIZE);
-				void *res = mmap(pos, dim % BOGUSFILE_SIZE, PROT_READ|PROT_WRITE, MAP_FIXED|MAP_SHARED, bogusfile, 0);
-				STARPU_ASSERT(res == pos);
+				void *pos = (void*) ((unsigned long) buf + i * _starpu_malloc_simulation_fold);
+				void *res = mmap(pos, dim % _starpu_malloc_simulation_fold, PROT_READ|PROT_WRITE, MAP_FIXED|MAP_SHARED|MAP_POPULATE, bogusfile, 0);
+				STARPU_ASSERT_MSG(res == pos, "Could not map folded virtual memory (%s). Do you perhaps need to increase the STARPU_MALLOC_SIMULATION_FOLD environment variable or the sysctl vm.max_map_count?", strerror(errno));
 			}
 			*A = buf;
 		}
@@ -303,7 +310,7 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 				ret = -ENOMEM;
 		}
 
-#if !defined(STARPU_SIMGRID) && defined(STARPU_USE_CUDA)
+#if defined(STARPU_SIMGRID) || defined(STARPU_USE_CUDA)
 end:
 #endif
 	if (ret == 0)
@@ -786,6 +793,8 @@ _starpu_malloc_init(unsigned dst_node)
 	STARPU_PTHREAD_MUTEX_INIT(&chunk_mutex[dst_node], NULL);
 	disable_pinning = starpu_get_env_number("STARPU_DISABLE_PINNING");
 	malloc_on_node_default_flags[dst_node] = STARPU_MALLOC_PINNED | STARPU_MALLOC_COUNT;
+	/* Reasonably "costless" */
+	_starpu_malloc_simulation_fold = starpu_get_env_number_default("STARPU_MALLOC_SIMULATION_FOLD", 1) << 20;
 }
 
 void
