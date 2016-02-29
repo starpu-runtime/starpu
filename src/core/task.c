@@ -859,6 +859,7 @@ int starpu_task_wait_for_all(void)
 
 int starpu_task_wait_for_all_in_ctx(unsigned sched_ctx)
 {
+	_STARPU_TRACE_EVENT("starpu_task_wait_for_all");
 	_starpu_wait_for_all_tasks_of_sched_ctx(sched_ctx);
 #ifdef HAVE_AYUDAME_H
 	/* TODO: improve Temanejo into knowing about contexts ... */
