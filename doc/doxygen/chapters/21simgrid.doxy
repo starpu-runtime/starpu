@@ -183,4 +183,12 @@ This prevents for instance from allocating a single huge matrix. Allocating a
 huge matrix in several tiles is not a problem, however. <c>sysctl
 vm.overcommit_memory=1</c> can also be used to allow such overcommit.
 
+Note however that this folding is done by remapping the same file several times,
+and Linux kernels will also refuse to create too many memory areas. <c>sysctl
+vm.max_map_count</c> can be used to check and change the default (65535). By
+default, StarPU uses a 1MiB file, so it hopefully fits in the CPU cache. This
+however limits the amount of such folded memory to a bit below 64GiB. The \ref
+STARPU_MALLOC_SIMULATION_FOLD environment variable can be used to increase the
+size of the file.
+
 */

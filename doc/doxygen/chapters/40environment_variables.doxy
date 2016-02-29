@@ -487,6 +487,15 @@ When set to 1 (which is the default), CUDA task and transfer queueing costs are
 taken into account in simgrid mode.
 </dd>
 
+<dt>STARPU_MALLOC_SIMULATION_FOLD</dt>
+<dd>
+\anchor STARPU_MALLOC_SIMULATION_FOLD
+\addindex __env__STARPU_MALLOC_SIMULATION_FOLD
+This defines the size of the file used for folding virtual allocation, in
+MiB. The default is 1, thus allowing 64GiB virtual memory when Linux's
+<c>sysctl vm.max_map_count</c> value is the default 65535.
+</dd>
+
 </dl>
 
 \section MiscellaneousAndDebug Miscellaneous And Debug
