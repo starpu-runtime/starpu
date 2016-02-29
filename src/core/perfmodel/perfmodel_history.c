@@ -940,10 +940,10 @@ void _starpu_load_history_based_model(struct starpu_perfmodel *model, unsigned s
 	if(!model->is_loaded)
 	{
 		char path[256];
-		starpu_perfmodel_get_model_path(model->symbol, path, 256);
-
 		// Check if a symbol is defined before trying to load the model from a file
 		STARPU_ASSERT_MSG(model->symbol, "history-based performance models must have a symbol");
+
+		starpu_perfmodel_get_model_path(model->symbol, path, 256);
 
 		_STARPU_DEBUG("Opening performance model file %s for model %s ...\n", path, model->symbol);
 
