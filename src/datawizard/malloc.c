@@ -793,8 +793,10 @@ _starpu_malloc_init(unsigned dst_node)
 	STARPU_PTHREAD_MUTEX_INIT(&chunk_mutex[dst_node], NULL);
 	disable_pinning = starpu_get_env_number("STARPU_DISABLE_PINNING");
 	malloc_on_node_default_flags[dst_node] = STARPU_MALLOC_PINNED | STARPU_MALLOC_COUNT;
+#ifdef STARPU_SIMGRID
 	/* Reasonably "costless" */
 	_starpu_malloc_simulation_fold = starpu_get_env_number_default("STARPU_MALLOC_SIMULATION_FOLD", 1) << 20;
+#endif
 }
 
 void
