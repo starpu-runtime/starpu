@@ -96,31 +96,31 @@ threads (in pink).
 \image latex parallel_worker2.eps "StarPU with an OpenMP cluster" width=0.3\textwidth
 \image html parallel_worker2.png "StarPU with an OpenMP cluster"
 
-Finally, the following code shows how to create OpenMP cooperate with StarPU
+Finally, the following code shows how to force OpenMP to cooperate with StarPU
 and create the aforementioned OpenMP threads constrained in the cluster's
 resources set:
 \code{.c}
 void starpu_openmp_prologue(void * sched_ctx_id)
-        int sched_ctx = *(int*)sched_ctx_id;
-		int *cpuids = NULL;
-		int ncpuids = 0;
-		int workerid = starpu_worker_get_id();
+  int sched_ctx = *(int*)sched_ctx_id;
+  int *cpuids = NULL;
+  int ncpuids = 0;
+  int workerid = starpu_worker_get_id();
 
-        //we can target only CPU workers
-		if (starpu_worker_get_type(workerid) == STARPU_CPU_WORKER)
-		{
-                //grab all the ids inside the cluster
-				starpu_sched_ctx_get_available_cpuids(sched_ctx, &cpuids, &ncpuids);
-                //set the number of threads
-				omp_set_num_threads(ncpuids);
+  //we can target only CPU workers
+  if (starpu_worker_get_type(workerid) == STARPU_CPU_WORKER)
+  {
+    //grab all the ids inside the cluster
+    starpu_sched_ctx_get_available_cpuids(sched_ctx, &cpuids, &ncpuids);
+    //set the number of threads
+    omp_set_num_threads(ncpuids);
 #pragma omp parallel
-                {
-                        //bind each threads to its respective resource
-						starpu_sched_ctx_bind_current_thread_to_cpuid(cpuids[omp_get_thread_num()]);
-                }
-                free(cpuids);
-		}
-		return;
+    {
+      //bind each threads to its respective resource
+      starpu_sched_ctx_bind_current_thread_to_cpuid(cpuids[omp_get_thread_num()]);
+    }
+    free(cpuids);
+  }
+  return;
 }
 \endcode
 
@@ -162,4 +162,48 @@ clusters = starpu_cluster_machine(HWLOC_OBJ_SOCKET,
                                   0);
 \endcode
 
+\section ClustersWithSchedulingContextsAPI Clusters With Scheduling
+Contexts API As previously mentioned, the cluster API is implemented
+on top of \ref SchedulingContexts. Its main addition is to ease the
+creation of a machine CPU partition with no overlapping by using
+HwLoc, whereas scheduling contexts can use any number of any
+resources.
+
+It is therefore possible, but not recommended, to create clusters
+using the scheduling contexts API. This can be useful mostly in the
+most complex machine configurations where the user has to dimension
+precisely clusters by hand using his own algorithm.
+
+\code{.c}
+/* the list of resources the context will manage */
+int workerids[3] = {1, 3, 10};
+
+/* indicate the list of workers assigned to it, the number of workers,
+the name of the context and the scheduling policy to be used within
+the context */
+int id_ctx = starpu_sched_ctx_create(workerids, 3, "my_ctx", 0);
+
+/* let StarPU know that the following tasks will be submitted to this context */
+starpu_sched_ctx_set_task_context(id);
+
+task->prologue_callback_pop_func=runtime_interface_function_here;
+
+/* submit the task to StarPU */
+starpu_task_submit(task);
+\endcode
+
+As this example illustrates, creating a context without scheduling
+policy will create a cluster. The important change is that the user
+will have to specify an interface function between the two runtimes he
+plans to use. This can be done in the
+<c>prologue_callback_pop_func</c> field of the task. Such a function
+can be similar to the OpenMP thread team creation one.
+
+Note that the OpenMP mode is the default one both for clusters and
+contexts. The result of a cluster creation is a woken up master worker
+and sleeping "slaves" which allow the master to run tasks on their
+resources. To create a cluster with woken up workers one can use the
+flag <c>STARPU_SCHED_CTX_AWAKE_WORKERS</c> with the scheduling context
+API and <c>STARPU_CLUSTER_AWAKE_WORKERS</c> with the cluster API as
+parameter to the creation function.
 */

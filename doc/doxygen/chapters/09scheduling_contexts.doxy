@@ -40,21 +40,30 @@ identifiers of the workers running within StarPU), or the programmer
 does not provide any worker list and leaves the Hypervisor assign
 workers to each context according to their needs (\ref SchedulingContextHypervisor)
 
-Both cases require a call to the function <c>starpu_sched_ctx_create</c>, which 
-requires as input the worker list (the exact list or a NULL pointer) and the scheduling
-policy. The latter one can be a character list corresponding to the name of a StarPU
-predefined policy or the pointer to a custom policy. The function returns 
-an identifier of the context created which you will use to
-indicate the context you want to submit the tasks to.
+Both cases require a call to the function
+<c>starpu_sched_ctx_create</c>, which requires as input the worker
+list (the exact list or a NULL pointer) and a list of optional
+parameters such as the scheduling policy, terminated by a 0. The
+scheduling policy can be a character list corresponding to the name of
+a StarPU predefined policy or the pointer to a custom policy. The
+function returns an identifier of the context created which you will
+use to indicate the context you want to submit the tasks to.
 
+Please note that if no scheduling policy is specified, the context
+will be used as another type of resource: a cluster, which we consider
+contexts without scheduler (eventually delegated to another
+runtime). For more information see \ref ClusteringAMachine. It is
+therefore <b>mandatory</b> to stipulate the context's scheduler to use
+it in this traditional way.
 
 \code{.c}
 /* the list of resources the context will manage */
 int workerids[3] = {1, 3, 10};
 
-/* indicate the scheduling policy to be used within the context, the list of
-   workers assigned to it, the number of workers, the name of the context */
-int id_ctx = starpu_sched_ctx_create("dmda", workerids, 3, "my_ctx");
+/* indicate the list of workers assigned to it, the number of workers,
+the name of the context and the scheduling policy to be used within
+the context */
+int id_ctx = starpu_sched_ctx_create(workerids, 3, "my_ctx", STARPU_SCHED_CTX_POLICY_NAME, "dmda", 0);
 
 /* let StarPU know that the following tasks will be submitted to this context */
 starpu_sched_ctx_set_task_context(id);
