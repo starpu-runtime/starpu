@@ -472,7 +472,7 @@ int _starpu_cluster_analyze_parameters(struct _starpu_cluster_parameters *params
 					cpu_loss = npus%j;
 					second_best = j;
 				}
-				j = params->prefere_min? j++:j--;
+				j = params->prefere_min? j+1:j-1;
 			}
 
 			if (best)
