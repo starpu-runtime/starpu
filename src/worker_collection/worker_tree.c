@@ -49,6 +49,7 @@ static unsigned tree_has_next_unblocked_worker(struct starpu_worker_collection *
 			{	
 				id = workerids[w];
 				it->possible_value = neighbour;
+				break;
 			}
 			else
 			{
@@ -92,6 +93,7 @@ static int tree_get_next_unblocked_worker(struct starpu_worker_collection *worke
 			ret = workerids[w];
 			it->visited[workerids[w]] = 1;
 			it->value = neighbour;
+			break;
 		}
 	}
 	STARPU_ASSERT_MSG(ret != -1, "bind id not correct");
@@ -124,6 +126,7 @@ static unsigned tree_has_next_master(struct starpu_worker_collection *workers, s
 		{
 			id = workerids[w];
 			it->possible_value = neighbour;
+			break;
 		}
 	}
 
@@ -159,6 +162,7 @@ static int tree_get_next_master(struct starpu_worker_collection *workers, struct
 			ret = workerids[w];
 			it->visited[workerids[w]] = 1;
 			it->value = neighbour;
+			break;
 		}
 	}
 	STARPU_ASSERT_MSG(ret != -1, "bind id not correct");
@@ -197,6 +201,7 @@ static unsigned tree_has_next(struct starpu_worker_collection *workers, struct s
 		{
 			id = workerids[w];
 			it->possible_value = neighbour;
+			break;
 		}
 	}
 
@@ -237,6 +242,7 @@ static int tree_get_next(struct starpu_worker_collection *workers, struct starpu
 			ret = workerids[w];
 			it->visited[workerids[w]] = 1;
 			it->value = neighbour;
+			break;
 		}
 	}
 	STARPU_ASSERT_MSG(ret != -1, "bind id not correct");
