@@ -147,6 +147,7 @@ extern int starpu_omp_get_num_devices(void) __STARPU_OMP_NOTHROW;
 extern int starpu_omp_get_num_teams(void) __STARPU_OMP_NOTHROW;
 extern int starpu_omp_get_team_num(void) __STARPU_OMP_NOTHROW;
 extern int starpu_omp_is_initial_device(void) __STARPU_OMP_NOTHROW;
+extern int starpu_omp_get_max_task_priority(void) __STARPU_OMP_NOTHROW;
 extern void starpu_omp_init_lock(starpu_omp_lock_t *lock) __STARPU_OMP_NOTHROW;
 extern void starpu_omp_destroy_lock(starpu_omp_lock_t *lock) __STARPU_OMP_NOTHROW;
 extern void starpu_omp_set_lock(starpu_omp_lock_t *lock) __STARPU_OMP_NOTHROW;

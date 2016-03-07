@@ -257,6 +257,12 @@ int starpu_omp_is_initial_device(void)
 	return device == _starpu_omp_global_state->initial_device;
 }
 
+int starpu_omp_get_max_task_priority(void)
+{
+	const struct starpu_omp_region * const parallel_region = _starpu_omp_get_task()->owner_region;
+	return parallel_region->icvs.max_task_priority_var;
+}
+
 double starpu_omp_get_wtime (void)
 {
 	return 1e-6 * (starpu_timing_now() - _starpu_omp_clock_ref);

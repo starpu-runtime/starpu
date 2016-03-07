@@ -40,6 +40,7 @@ static void omp_constructor(void)
 	unsetenv("OMP_MAX_ACTIVE_LEVELS");
 	unsetenv("OMP_CANCELLATION");
 	unsetenv("OMP_DEFAULT_DEVICE");
+	unsetenv("OMP_MAX_TASK_PRIORITY");
 	unsetenv("OMP_PROC_BIND");
 	unsetenv("OMP_NUM_THREADS");
 	unsetenv("OMP_PLACES");
@@ -130,6 +131,7 @@ main (int argc, char *argv[])
 	check_omp_func(starpu_omp_get_num_teams, 1);
 	check_omp_func(starpu_omp_get_team_num, 0);
 	check_omp_func(starpu_omp_is_initial_device, 1);
+	check_omp_func(starpu_omp_get_max_task_priority, 0);
 	return 0;
 }
 #endif

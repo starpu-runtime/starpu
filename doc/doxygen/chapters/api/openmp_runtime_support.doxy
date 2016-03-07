@@ -802,6 +802,11 @@ This function returns the team number of the calling thread.
 \ingroup API_OpenMP_Runtime_Support
 This function checks whether the current device is the initial device or not.
 
+\fn int starpu_omp_get_max_task_priority
+\ingroup API_OpenMP_Runtime_Support
+The omp_get_max_task_priority routine returns the maximum value that can be
+specified in the priority clause.
+
 \return <c>!0</c> if called from the host device.
 \return <c>0</c> otherwise.
 
