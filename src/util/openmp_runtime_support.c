@@ -849,6 +849,7 @@ static void omp_initial_region_setup(void)
 	_global_state.initial_region->icvs.run_sched_var = _starpu_omp_initial_icv_values->run_sched_var;
 	_global_state.initial_region->icvs.run_sched_chunk_var = _starpu_omp_initial_icv_values->run_sched_chunk_var;
 	_global_state.initial_region->icvs.default_device_var = _starpu_omp_initial_icv_values->default_device_var;
+	_global_state.initial_region->icvs.max_task_priority_var = _starpu_omp_initial_icv_values->max_task_priority_var;
 	starpu_omp_task_list_push_back(&_global_state.initial_region->implicit_task_list,
 			_global_state.initial_task);
 }
@@ -1061,6 +1062,7 @@ void starpu_omp_parallel_region(const struct starpu_omp_parallel_region_attr *at
 	new_region->icvs.run_sched_var = generating_region->icvs.run_sched_var;
 	new_region->icvs.run_sched_chunk_var = generating_region->icvs.run_sched_chunk_var;
 	new_region->icvs.default_device_var = generating_region->icvs.default_device_var;
+	new_region->icvs.max_task_priority_var = generating_region->icvs.max_task_priority_var;
 
 	int i;
 	for (i = 0; i < nb_threads; i++)

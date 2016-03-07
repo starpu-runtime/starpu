@@ -42,7 +42,8 @@ static struct starpu_omp_initial_icv_values _initial_icv_values =
 	.levels_var = 0,
 	.place_partition_var = 0,
 	.cancel_var = 0,
-	.default_device_var = 0
+	.default_device_var = 0,
+	.max_task_priority_var = 0
 };
 
 struct starpu_omp_initial_icv_values *_starpu_omp_initial_icv_values = NULL;
@@ -679,6 +680,7 @@ static void read_omp_environment(void)
 	read_int_var("OMP_MAX_ACTIVE_LEVELS", &_initial_icv_values.max_active_levels_var);
 	read_boolean_var("OMP_CANCELLATION", &_initial_icv_values.cancel_var);
 	read_int_var("OMP_DEFAULT_DEVICE", &_initial_icv_values.default_device_var);
+	read_int_var("OMP_MAX_TASK_PRIORITY", &_initial_icv_values.max_task_priority_var);
 
 	const int max_levels = _initial_icv_values.max_active_levels_var;
 
@@ -748,6 +750,7 @@ static void free_omp_environment(void)
 	/* OMP_MAX_ACTIVE_LEVELS */
 	/* OMP_CANCELLATION */
 	/* OMP_DEFAULT_DEVICE */
+	/* OMP_MAX_TASK_PRIORITY */
 
 	/* OMP_PROC_BIND */
 	free(_initial_icv_values.bind_var);
@@ -795,6 +798,7 @@ static void display_omp_environment(int verbosity_level)
 		printf("  [host] OMP_MAX_ACTIVE_LEVELS='%d'\n", _starpu_omp_initial_icv_values->max_active_levels_var);
 		printf("  [host] OMP_CANCELLATION='%s'\n", _starpu_omp_initial_icv_values->cancel_var?"true":"false");
 		printf("  [host] OMP_DEFAULT_DEVICE='%d'\n", _starpu_omp_initial_icv_values->default_device_var);
+		printf("  [host] OMP_MAX_TASK_PRIORITY='%d'\n", _starpu_omp_initial_icv_values->max_task_priority_var);
 		printf("  [host] OMP_PROC_BIND='");
 		{
 			int level;

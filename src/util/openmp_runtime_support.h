@@ -94,6 +94,7 @@ struct starpu_omp_data_environment_icvs
 
 	/* program execution icvs */
 	int default_device_var;
+	int max_task_priority_var;
 };
 
 struct starpu_omp_device_icvs
@@ -141,6 +142,7 @@ struct starpu_omp_initial_icv_values
 	int place_partition_var;
 	int cancel_var;
 	int default_device_var;
+	int max_task_priority_var;
 
 	/* not a real ICV, but needed to store the contents of OMP_PLACES */
 	struct starpu_omp_place places;
