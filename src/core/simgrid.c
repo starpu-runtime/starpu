@@ -338,10 +338,10 @@ void _starpu_simgrid_submit_job(int workerid, struct _starpu_job *j, struct star
 	{
 	   length = 1.474784*1000; //Time is in milliseconds
 	}
-	if (strcmp(_starpu_job_get_model_name(j),"m2m_cl") == 0)
+	/*if (strcmp(_starpu_job_get_model_name(j),"m2m_cl") == 0)
 	{
 	   length = 0.664437*1000; //Time is in milliseconds
-	}
+	}*/
 	if (strcmp(_starpu_job_get_model_name(j),"m2l_cl_in") == 0)
 	{
 	   length = 5.006487*1000; //Time is in milliseconds

@@ -134,6 +134,13 @@ static double common_task_expected_perf(struct starpu_perfmodel *model, struct s
 	return (exp/alpha);
 }
 
+static double starpu_mymodel_expected_perf(struct starpu_perfmodel *model, struct starpu_perfmodel_arch* arch, struct starpu_task *task, unsigned nimpl)
+{
+	printf("\nInside mymodel_expected_perf, before the ASSERT");
+	//STARPU_ASSERT_MSG(model->cost_function, "STARPU_MYMODEL requires mymodel cost_function to be defined");
+	return model->cost_function(task, nimpl);
+}
+
 void _starpu_init_and_load_perfmodel(struct starpu_perfmodel *model)
 {
 	if (!model || model->is_loaded)
@@ -148,6 +155,7 @@ void _starpu_init_and_load_perfmodel(struct starpu_perfmodel *model)
 	{
 		case STARPU_PER_ARCH:
 		case STARPU_COMMON:
+		case STARPU_MYMODEL:
 			/* Nothing more to do than init */
 			break;
 		case STARPU_HISTORY_BASED:
@@ -185,6 +193,9 @@ static double starpu_model_expected_perf(struct starpu_task *task, struct starpu
 				return _starpu_regression_based_job_expected_perf(model, arch, j, nimpl);
 			case STARPU_NL_REGRESSION_BASED:
 				return _starpu_non_linear_regression_based_job_expected_perf(model, arch, j,nimpl);
+			case STARPU_MYMODEL:
+				printf("\nCall mymodel_expected function!");
+				return starpu_mymodel_expected_perf(model, arch, task, nimpl);
 			default:
 				STARPU_ABORT();
 		}
