@@ -293,7 +293,7 @@ static void dump_reg_model(FILE *f, struct starpu_perfmodel *model, int comb, in
 
 	reg_model->coeff = (double *) malloc(reg_model->ncoeff*sizeof(double));
 	if (model->type == STARPU_MULTIPLE_REGRESSION_BASED)
-		_starpu_multiple_regression(per_arch_model->list, reg_model->coeff);
+		_starpu_multiple_regression(per_arch_model->list, reg_model->coeff, reg_model->ncoeff);
 
 	fprintf(f, "# n\tintercept");
 	for (int i=1; i < reg_model->ncoeff; i++){
@@ -354,7 +354,7 @@ static void scan_reg_model(FILE *f, struct starpu_perfmodel_regression_model *re
 	_starpu_drop_comments(f);
 
 	// Read how many coefficients is there
-	res = _starpu_read_double(f, "%u", &reg_model->ncoeff);
+	res = fscanf(f, "%u", &reg_model->ncoeff);
 	STARPU_ASSERT_MSG(res == 1, "Incorrect performance model file");
 
 	reg_model->coeff = malloc(reg_model->ncoeff*sizeof(double));
