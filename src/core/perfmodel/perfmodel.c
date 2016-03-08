@@ -134,30 +134,6 @@ static double common_task_expected_perf(struct starpu_perfmodel *model, struct s
 	return (exp/alpha);
 }
 
-static double starpu_mymodel_expected_perf(struct starpu_perfmodel *model, struct starpu_perfmodel_arch* arch, struct starpu_task *task, unsigned nimpl)
-{
-    //double coefficients[model->ncombinations+1]
-	double coefficients[4] ={
-           0.664437*1000, //intercept
-		   3.2, //M
-		   4.1, //N
-           4.4 //MN^2
-       };
-	double expected_duration=coefficients[0];
-	double parameter_value;
-
-	//duration= a+b*M^1*N^0+c*M^0*N^1+d*M^1*N^2
-	for (int i=0; i < model->ncombinations; i++){
-		parameter_value=1.;
-		for (int j=0; j < model->nparameters; j++)
-			parameter_value *= model->parameters[j]*model->combinations[i][j];
-
-		expected_duration += coefficients[i+1]*parameter_value;
-	}
-
-	return expected_duration;
-}
-
 void _starpu_init_and_load_perfmodel(struct starpu_perfmodel *model)
 {
 	if (!model || model->is_loaded)
@@ -172,7 +148,6 @@ void _starpu_init_and_load_perfmodel(struct starpu_perfmodel *model)
 	{
 		case STARPU_PER_ARCH:
 		case STARPU_COMMON:
-		case STARPU_MYMODEL:
 			/* Nothing more to do than init */
 			break;
 		case STARPU_HISTORY_BASED:
@@ -180,6 +155,7 @@ void _starpu_init_and_load_perfmodel(struct starpu_perfmodel *model)
 			_starpu_load_history_based_model(model, 1);
 			break;
 		case STARPU_REGRESSION_BASED:
+		case STARPU_MYMODEL:
 			_starpu_load_history_based_model(model, 0);
 			break;
 

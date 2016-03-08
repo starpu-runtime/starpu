@@ -88,6 +88,10 @@ struct starpu_perfmodel_regression_model
 	unsigned nl_valid;
 
 	unsigned nsample;
+
+	double *coeff;
+	unsigned ncoeff;
+	unsigned my_valid;
 };
 
 struct starpu_perfmodel_history_table;

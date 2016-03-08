@@ -76,6 +76,8 @@ void _starpu_initialize_registered_performance_models(void);
 void _starpu_deinitialize_registered_performance_models(void);
 void _starpu_deinitialize_performance_model(struct starpu_perfmodel *model);
 
+double starpu_mymodel_expected_perf(struct starpu_perfmodel *model, struct starpu_perfmodel_arch* arch,
+					struct starpu_task *task, unsigned nimpl);
 double _starpu_regression_based_job_expected_perf(struct starpu_perfmodel *model,
 					struct starpu_perfmodel_arch* arch, struct _starpu_job *j, unsigned nimpl);
 double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfmodel *model,
