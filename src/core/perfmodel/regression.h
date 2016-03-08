@@ -25,6 +25,6 @@
 #include <starpu.h>
 
 int _starpu_regression_non_linear_power(struct starpu_perfmodel_history_list *ptr, double *a, double *b, double *c);
-int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, double *coefficients, unsigned ncoeff);
+int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, double *coeff, unsigned ncoeff, unsigned nparameters, unsigned **combinations);
 
 #endif // __REGRESSION_H__ 

@@ -225,6 +225,27 @@ int _starpu_regression_non_linear_power(struct starpu_perfmodel_history_list *pt
 
 /* Code for computing multiple linear regression */
 
+static void dump_multiple_regression_list(double *mx, double *my, unsigned ncoeff, unsigned nparameters, unsigned **combinations, struct starpu_perfmodel_history_list *list_history)
+{
+	struct starpu_perfmodel_history_list *ptr = list_history;
+	unsigned i = 0;
+
+	while (ptr)
+	{
+		mx[i*ncoeff] = 1.;
+		for(int j=0; j<ncoeff-1; j++)
+		{
+			mx[i*ncoeff+j+1] = 1.;
+			for(int k=0; k < nparameters; k++)
+				mx[i*ncoeff+j+1] *= pow(ptr->entry->parameters[k],combinations[j][k]);
+		}
+		my[i] = ptr->entry->duration;
+
+		ptr = ptr->next;
+		i++;
+	}
+}
+
 typedef struct { int h, w; double *x;} matrix_t, *matrix;
 
 double dot(double *a, double *b, int len, int step)
@@ -291,10 +312,11 @@ matrix transpose(matrix src)
 }
 
 // Inspired from: http://www.programming-techniques.com/2011/09/numerical-methods-inverse-of-nxn-matrix.html
-matrix mat_inv(matrix src, int n)
+matrix mat_inv(matrix src)
 {
+	int n = src->h;
 	int n2=2*n;
-        int i,j, k;
+    int i,j, k;
 	double ratio, a;
 	matrix r, dst;
 	r = mat_new(n, n2);
@@ -316,12 +338,10 @@ matrix mat_inv(matrix src, int n)
 	for(i = 0; i < n; i++){
 	  for(j = 0; j < n; j++){
 	    if(i!=j){
-               ratio = r->x[j*n2+i] / r->x[i*n2+i];
                for(k = 0; k < 2*n; k++){
-                   r->x[j*n2+k] -= ratio * r->x[i*n2+k];
-
-	       }
-            }
+                   r->x[j*n2+k] -= (r->x[j*n2+i] / r->x[i*n2+i]) * r->x[i*n2+k];
+               }
+        }
 	  }
 	}
 
@@ -352,11 +372,9 @@ void multiple_reg_coeff(double *mx, double *my, int n, int k, double *coeff)
 	mcoeff = mat_mul(
 			mat_mul(
 				mat_inv(
-					mat_mul(transpose(X), X),
-				        k),
+					mat_mul(transpose(X), X)),
 				transpose(X)),
 			Y);
-
 
 	for(int i=0; i<k; i++)
 		coeff[i] = mcoeff->x[i];
@@ -394,7 +412,7 @@ int test_multiple_regression()
 	matrix_t A = { 3, 3, dA };
 	mat_show(&A);
 	matrix Ainv;
-	Ainv = mat_inv(&A, 3);
+	Ainv = mat_inv(&A);
 	mat_show(Ainv);
 
 	// Multiple regression test: http://www.biddle.com/documents/bcg_comp_chapter4.pdf
@@ -418,13 +436,13 @@ int test_multiple_regression()
 	coeff = mat_mul(
 			mat_mul(
 				mat_inv(
-					mat_mul(transpose(&X), &X),
-				        k),
+					mat_mul(transpose(&X), &X)
+				        ),
 				transpose(&X)),
 			&Y);
 	mat_show(coeff);
 
-	double *results;
+	double *results=NULL;
 	multiple_reg_coeff(dX, dY, n, k, results);
 	printf("\nFinal coefficients:\n");
 	for(int i=0; i<k; i++)
@@ -433,25 +451,20 @@ int test_multiple_regression()
 
 }
 
-int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, double *coeff, unsigned ncoeff)
+int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, double *coeff, unsigned ncoeff, unsigned nparameters, unsigned **combinations)
 {
+	unsigned n = find_list_size(ptr);
+	STARPU_ASSERT(n);
 
-	double dX[] = {	1, 12, 32,
-			1, 14, 35,
-			1, 15, 45,
-			1, 16, 45,
-			1, 18, 50 };
+	double *mx = (double *) malloc(ncoeff*n*sizeof(double));
+	STARPU_ASSERT(mx);
 
-	double dY[] = {	350000, 399765, 429000, 435000, 433000};
-	int n = 5;
-	int k = 3;
-	multiple_reg_coeff(dX, dY, n, k, coeff);
-	//coeff[3] = 0.99;
-/*
-	coefficients[0]=0.664437;
-	coefficients[1]=0.0032;
-	coefficients[2]=0.0041;
-	coefficients[3]=0.0044;
-*/
+	double *my = (double *) malloc(n*sizeof(double));
+	STARPU_ASSERT(my);
+
+	dump_multiple_regression_list(mx, my, ncoeff, nparameters, combinations, ptr);
+
+	multiple_reg_coeff(mx, my, n, ncoeff, coeff);
+
 	return 0;
 }

@@ -60,6 +60,9 @@ struct starpu_perfmodel_history_entry
 	uint32_t footprint;
 	size_t size;
 	double flops;
+
+	double duration;
+	double *parameters;
 };
 
 struct starpu_perfmodel_history_list

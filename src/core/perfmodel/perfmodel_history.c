@@ -293,7 +293,7 @@ static void dump_reg_model(FILE *f, struct starpu_perfmodel *model, int comb, in
 
 	reg_model->coeff = (double *) malloc(reg_model->ncoeff*sizeof(double));
 	if (model->type == STARPU_MULTIPLE_REGRESSION_BASED)
-		_starpu_multiple_regression(per_arch_model->list, reg_model->coeff, reg_model->ncoeff);
+		_starpu_multiple_regression(per_arch_model->list, reg_model->coeff, reg_model->ncoeff, model->nparameters, model->combinations);
 
 	fprintf(f, "# n\tintercept");
 	for (int i=1; i < reg_model->ncoeff; i++){
@@ -1295,7 +1295,7 @@ double _starpu_multiple_regression_based_job_expected_perf(struct starpu_perfmod
 	for (int i=0; i < model->ncombinations; i++){
 		parameter_value=1.;
 		for (int j=0; j < model->nparameters; j++)
-			parameter_value *= model->parameters[j]*model->combinations[i][j];
+			parameter_value *= pow(model->parameters[j],model->combinations[i][j]);
 
 		expected_duration += reg_model->coeff[i+1]*parameter_value;
 	}
@@ -1549,6 +1549,27 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 				reg_model->alpha = exp((reg_model->sumlny - reg_model->beta*reg_model->sumlnx)/n);
 				reg_model->valid = 1;
 			}
+		}
+
+		if (model->type == STARPU_MULTIPLE_REGRESSION_BASED)
+		{
+			struct starpu_perfmodel_history_entry *entry;
+			struct starpu_perfmodel_history_list **list;
+			list = &per_arch_model->list;
+
+			entry = (struct starpu_perfmodel_history_entry *) calloc(1, sizeof(struct starpu_perfmodel_history_entry));
+			STARPU_ASSERT(entry);
+
+			entry->parameters = (double *) malloc(model->nparameters*sizeof(double));
+			for(int i=0; i < model->nparameters; i++)
+				entry->parameters[i] = model->parameters[i];
+			entry->duration = measured;
+
+			struct starpu_perfmodel_history_list *link;
+			link = (struct starpu_perfmodel_history_list *) malloc(sizeof(struct starpu_perfmodel_history_list));
+			link->next = *list;
+			link->entry = entry;
+			*list = link;
 		}
 
 #ifdef STARPU_MODEL_DEBUG
