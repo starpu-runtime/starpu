@@ -91,7 +91,7 @@ struct starpu_perfmodel_regression_model
 
 	double *coeff;
 	unsigned ncoeff;
-	unsigned my_valid;
+	unsigned multi_valid;
 };
 
 struct starpu_perfmodel_history_table;
@@ -121,7 +121,7 @@ enum starpu_perfmodel_type
 	STARPU_HISTORY_BASED,
 	STARPU_REGRESSION_BASED,
 	STARPU_NL_REGRESSION_BASED,
-	STARPU_MYMODEL
+	STARPU_MULITPLE_REGRESSION_BASED
 };
 
 struct _starpu_perfmodel_state;

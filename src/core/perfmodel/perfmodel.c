@@ -155,7 +155,7 @@ void _starpu_init_and_load_perfmodel(struct starpu_perfmodel *model)
 			_starpu_load_history_based_model(model, 1);
 			break;
 		case STARPU_REGRESSION_BASED:
-		case STARPU_MYMODEL:
+		case STARPU_MULITPLE_REGRESSION_BASED:
 			_starpu_load_history_based_model(model, 0);
 			break;
 
@@ -186,8 +186,8 @@ static double starpu_model_expected_perf(struct starpu_task *task, struct starpu
 				return _starpu_regression_based_job_expected_perf(model, arch, j, nimpl);
 			case STARPU_NL_REGRESSION_BASED:
 				return _starpu_non_linear_regression_based_job_expected_perf(model, arch, j,nimpl);
-			case STARPU_MYMODEL:
-				return starpu_mymodel_expected_perf(model, arch, task, nimpl);
+			case STARPU_MULITPLE_REGRESSION_BASED:
+				return _starpu_multiple_regression_based_job_expected_perf(model, arch, j, nimpl);
 			default:
 				STARPU_ABORT();
 		}
