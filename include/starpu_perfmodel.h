@@ -138,6 +138,11 @@ struct starpu_perfmodel
 	unsigned benchmarking;
 	unsigned is_init;
 
+	double *parameters;
+	unsigned nparameters;
+	unsigned **combinations;
+	unsigned ncombinations;
+
 	starpu_perfmodel_state_t state;
 };
 

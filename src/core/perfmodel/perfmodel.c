@@ -136,8 +136,26 @@ static double common_task_expected_perf(struct starpu_perfmodel *model, struct s
 
 static double starpu_mymodel_expected_perf(struct starpu_perfmodel *model, struct starpu_perfmodel_arch* arch, struct starpu_task *task, unsigned nimpl)
 {
-	STARPU_ASSERT_MSG(model->cost_function, "STARPU_MYMODEL requires mymodel cost_function to be defined");
-	return model->cost_function(task, nimpl);
+    //double coefficients[model->ncombinations+1]
+	double coefficients[4] ={
+           0.664437*1000, //intercept
+		   3.2, //M
+		   4.1, //N
+           4.4 //MN^2
+       };
+	double expected_duration=coefficients[0];
+	double parameter_value;
+
+	//duration= a+b*M^1*N^0+c*M^0*N^1+d*M^1*N^2
+	for (int i=0; i < model->ncombinations; i++){
+		parameter_value=1.;
+		for (int j=0; j < model->nparameters; j++)
+			parameter_value *= model->parameters[j]*model->combinations[i][j];
+
+		expected_duration += coefficients[i+1]*parameter_value;
+	}
+
+	return expected_duration;
 }
 
 void _starpu_init_and_load_perfmodel(struct starpu_perfmodel *model)
