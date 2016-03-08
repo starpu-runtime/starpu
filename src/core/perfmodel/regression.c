@@ -222,3 +222,15 @@ int _starpu_regression_non_linear_power(struct starpu_perfmodel_history_list *pt
 
 	return 0;
 }
+
+// TODO
+int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, double *coefficients)
+{
+
+	coefficients[0]=0.664437;
+	coefficients[1]=0.0032;
+	coefficients[2]=0.0041;
+	coefficients[3]=0.0044;
+
+	return 0;
+}

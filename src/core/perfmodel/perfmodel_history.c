@@ -288,13 +288,20 @@ static void dump_reg_model(FILE *f, struct starpu_perfmodel *model, int comb, in
 	 * Multiple Regression Model
 	 */
 
-	fprintf(f, "# n \t\tintercept");
-	for (int i=0; i < reg_model->ncoeff; i++){
-		fprintf(f, " \t\tc%d", i);
+	if (reg_model->ncoeff==0)
+		reg_model->ncoeff = model->ncombinations + 1;
+
+	reg_model->coeff = (double *) malloc(reg_model->ncoeff*sizeof(double));
+	if (model->type == STARPU_MULTIPLE_REGRESSION_BASED)
+		_starpu_multiple_regression(per_arch_model->list, reg_model->coeff);
+
+	fprintf(f, "# n\tintercept");
+	for (int i=1; i < reg_model->ncoeff; i++){
+		fprintf(f, "\tc%d", i);
 	}
 	fprintf(f, "\n%u", reg_model->ncoeff);
 	for (int i=0; i < reg_model->ncoeff; i++){
-		fprintf(f, "%-15e\t\t", reg_model->coeff[i]);
+		fprintf(f, "\t%-15e", reg_model->coeff[i]);
 	}
 }
 #endif
