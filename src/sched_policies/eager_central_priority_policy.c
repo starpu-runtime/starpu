@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2015  Université de Bordeaux
+ * Copyright (C) 2010-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
  * Copyright (C) 2011  INRIA
  *
@@ -110,7 +110,7 @@ static void deinitialize_eager_center_priority_policy(unsigned sched_ctx_id)
 	/* TODO check that there is no task left in the queue */
 	struct _starpu_eager_central_prio_data *data = (struct _starpu_eager_central_prio_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
-	/* deallocate the task queue */
+	/* deallocate the job queue */
 	_starpu_destroy_priority_taskq(data->taskq);
 	starpu_bitmap_destroy(data->waiters);
 
@@ -291,6 +291,10 @@ static void eager_center_priority_add_workers(unsigned sched_ctx_id, int *worker
         for (i = 0; i < nworkers; i++)
         {
 		workerid = workerids[i];
+		int curr_workerid = starpu_worker_get_id();
+		if(workerid != curr_workerid)
+			starpu_wake_worker(workerid);
+
                 starpu_sched_ctx_worker_shares_tasks_lists(workerid, sched_ctx_id);
         }
 }

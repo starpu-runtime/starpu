@@ -150,10 +150,9 @@ static struct starpu_task *pop_every_task_eager_policy(unsigned sched_ctx_id)
 
 static struct starpu_task *pop_task_eager_policy(unsigned sched_ctx_id)
 {
+	struct starpu_task *chosen_task = NULL;
 	unsigned workerid = starpu_worker_get_id();
 	struct _starpu_eager_center_policy_data *data = (struct _starpu_eager_center_policy_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-
-	struct starpu_task *task = NULL;
 
 	/* block until some event happens */
 	/* Here helgrind would shout that this is unprotected, this is just an
@@ -170,25 +169,26 @@ static struct starpu_task *pop_task_eager_policy(unsigned sched_ctx_id)
 
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 
-	task = _starpu_fifo_pop_task(data->fifo, workerid);
-	if (!task)
+	chosen_task = _starpu_fifo_pop_task(data->fifo, workerid);
+	if (!chosen_task)
 		/* Tell pushers that we are waiting for tasks for us */
 		starpu_bitmap_set(data->waiters, workerid);
 
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 
-	if(task)
+	if(chosen_task)
 	{
 		unsigned child_sched_ctx = starpu_sched_ctx_worker_is_master_for_child_ctx(workerid, sched_ctx_id);
 		if(child_sched_ctx != STARPU_NMAX_SCHED_CTXS)
 		{
-			starpu_sched_ctx_move_task_to_ctx(task, child_sched_ctx);
+			starpu_sched_ctx_move_task_to_ctx(chosen_task, child_sched_ctx);
 			starpu_sched_ctx_revert_task_counters(sched_ctx_id, task->flops);
 			return NULL;
 		}
 	}
 
-	return task;
+
+	return chosen_task;
 }
 
 static void eager_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
