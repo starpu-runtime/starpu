@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2015  Université de Bordeaux
+ * Copyright (C) 2010-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
  * Copyright (C) 2011  INRIA
  *
@@ -109,7 +109,7 @@ static void deinitialize_eager_center_priority_policy(unsigned sched_ctx_id)
 	/* TODO check that there is no task left in the queue */
 	struct _starpu_eager_central_prio_data *data = (struct _starpu_eager_central_prio_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
-	/* deallocate the task queue */
+	/* deallocate the job queue */
 	_starpu_destroy_priority_taskq(data->taskq);
 	starpu_bitmap_destroy(data->waiters);
 
@@ -140,6 +140,7 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 #ifndef STARPU_NON_BLOCKING_DRIVERS
 	char dowake[STARPU_NMAXWORKERS] = { 0 };
 #endif
+
 	workers->init_iterator_for_parallel_tasks(workers, &it, task);
 	while(workers->has_next(workers, &it))
 	{
@@ -166,7 +167,7 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 	/* Let the task free */
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 
-#ifndef STARPU_NON_BLOCKING_DRIVERS
+#if !defined(STARPU_NON_BLOCKING_DRIVERS) || defined(STARPU_SIMGRID)
 	/* Now that we have a list of potential workers, try to wake one */
 
 	workers->init_iterator(workers, &it);
@@ -304,6 +305,10 @@ static void eager_center_priority_add_workers(unsigned sched_ctx_id, int *worker
         for (i = 0; i < nworkers; i++)
         {
 		workerid = workerids[i];
+		int curr_workerid = starpu_worker_get_id();
+		if(workerid != curr_workerid)
+			starpu_wake_worker(workerid);
+
                 starpu_sched_ctx_worker_shares_tasks_lists(workerid, sched_ctx_id);
         }
 }
@@ -321,5 +326,9 @@ struct starpu_sched_policy _starpu_sched_prio_policy =
 	.pop_every_task = NULL,
 	.policy_name = "prio",
 	.policy_description = "eager (with priorities)",
+#ifdef STARPU_HAVE_HWLOC
+	.worker_type = STARPU_WORKER_TREE,
+#else
 	.worker_type = STARPU_WORKER_LIST,
+#endif
 };
