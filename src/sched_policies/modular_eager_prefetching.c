@@ -23,7 +23,7 @@
 
 static void initialize_eager_prefetching_center_policy(unsigned sched_ctx_id)
 {
-	_STARPU_DISP("Warning: you are running the default modular-eager-prefetching scheduler, which is not very smart. Make sure to read the StarPU documentation about adding performance models in order to be able to use the modular-heft scheduler instead.\n");
+	_STARPU_DISP("Warning: you are running the default modular-eager-prefetching scheduler, which is not a very smart scheduler. Make sure to read the StarPU documentation about adding performance models in order to be able to use the modular-heft scheduler instead.\n");
 
 	struct starpu_sched_tree *t;
 	struct starpu_sched_component * eager_component;
