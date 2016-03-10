@@ -23,6 +23,7 @@ New features:
   * New scheduler with heterogeneous priorities
   * Support priorities for data transfers.
   * Add STARPU_MALLOC_SIMULATION_FOLDED flag to save memory when simulating.
+  * Include application threads in the trace.
 
 Changes:
   * Vastly improve simgrid simulation time.

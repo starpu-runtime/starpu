@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2015  Université de Bordeaux
+ * Copyright (C) 2009-2016  Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -317,14 +317,11 @@ struct worker_entry
 	int sync;
 } *worker_ids;
 
-static int register_worker_id(unsigned long tid, int workerid, int sync)
+static int register_thread(unsigned long tid, int workerid, int sync)
 {
-	nworkers++;
 	struct worker_entry *entry;
 
 	HASH_FIND(hh, worker_ids, &tid, sizeof(tid), entry);
-
-	STARPU_ASSERT_MSG(workerid < STARPU_NMAXWORKERS, "Too many workers in this trace, please increase in ./configure invocation the maximum number of CPUs and GPUs to the same value as was used for execution");
 
 	/* only register a thread once */
 	if (entry)
@@ -337,6 +334,40 @@ static int register_worker_id(unsigned long tid, int workerid, int sync)
 
 	HASH_ADD(hh, worker_ids, tid, sizeof(tid), entry);
 	return 1;
+}
+
+static int register_worker_id(unsigned long tid, int workerid, int sync)
+{
+	nworkers++;
+	STARPU_ASSERT_MSG(workerid < STARPU_NMAXWORKERS, "Too many workers in this trace, please increase in ./configure invocation the maximum number of CPUs and GPUs to the same value as was used for execution");
+
+	return register_thread(tid, workerid, sync);
+}
+
+/* Register user threads if not done already */
+static void register_user_thread(double timestamp, unsigned long tid, const char *prefix)
+{
+	if (register_thread(tid, -1, 0) && out_paje_file)
+	{
+#ifdef STARPU_HAVE_POTI
+		char program_container[STARPU_POTI_STR_LEN];
+		program_container_alias(program_container, STARPU_POTI_STR_LEN, prefix);
+		char new_thread_container_alias[STARPU_POTI_STR_LEN];
+		thread_container_alias (new_thread_container_alias, STARPU_POTI_STR_LEN, prefix, tid);
+		char new_thread_container_name[STARPU_POTI_STR_LEN];
+		snprintf(new_thread_container_name, STARPU_POTI_STR_LEN, "%sUserThread%lu", prefix, tid);
+		poti_CreateContainer(timestamp, new_thread_container_alias, "UT", program_container, new_thread_container_alias);
+#else
+		fprintf(out_paje_file, "7	%.9f	%st%lu	UT	%sp	%sUserThread%lu\n",
+			timestamp, prefix, tid, prefix, prefix, tid);
+#endif
+	}
+}
+
+static void register_mpi_thread(unsigned long tid)
+{
+	int ret = register_thread(tid, -2, 0);
+	STARPU_ASSERT(ret == 1);
 }
 
 static int find_worker_id(unsigned long tid)
@@ -487,6 +518,45 @@ static void thread_set_state(double time, const char *prefix, long unsigned int 
 #endif
 }
 
+#if 0
+/* currently unused */
+static void user_thread_set_state(double time, const char *prefix, long unsigned int threadid, const char *name)
+{
+	register_user_thread(time, threadid, prefix);
+#ifdef STARPU_HAVE_POTI
+	char container[STARPU_POTI_STR_LEN];
+	thread_container_alias(container, STARPU_POTI_STR_LEN, prefix, threadid);
+	poti_SetState(time, container, "US", name);
+#else
+	fprintf(out_paje_file, "10	%.9f	%st%lu	US	%s\n", time, prefix, threadid, name);
+#endif
+}
+#endif
+
+static void user_thread_push_state(double time, const char *prefix, long unsigned int threadid, const char *name)
+{
+	register_user_thread(time, threadid, prefix);
+#ifdef STARPU_HAVE_POTI
+	char container[STARPU_POTI_STR_LEN];
+	thread_container_alias(container, STARPU_POTI_STR_LEN, prefix, threadid);
+	poti_SetState(time, container, "US", name);
+#else
+	fprintf(out_paje_file, "11	%.9f	%st%lu	US	%s\n", time, prefix, threadid, name);
+#endif
+}
+
+static void user_thread_pop_state(double time, const char *prefix, long unsigned int threadid)
+{
+	register_user_thread(time, threadid, prefix);
+#ifdef STARPU_HAVE_POTI
+	char container[STARPU_POTI_STR_LEN];
+	thread_container_alias(container, STARPU_POTI_STR_LEN, prefix, threadid);
+	poti_SetState(time, container, "US", name);
+#else
+	fprintf(out_paje_file, "12	%.9f	%st%lu	US\n", time, prefix, threadid);
+#endif
+}
+
 static void thread_push_state(double time, const char *prefix, long unsigned int threadid, const char *name)
 {
 	if (find_sync(threadid))
@@ -539,6 +609,28 @@ static void mpicommthread_set_state(double time, const char *prefix, const char 
 	poti_SetState(time, container, "CtS", name);
 #else
 	fprintf(out_paje_file, "10	%.9f	%smpict	CtS 	%s\n", time, prefix, name);
+#endif
+}
+
+static void mpicommthread_push_state(double time, const char *prefix, const char *name)
+{
+#ifdef STARPU_HAVE_POTI
+	char container[STARPU_POTI_STR_LEN];
+	mpicommthread_container_alias(container, STARPU_POTI_STR_LEN, prefix);
+	poti_SetState(time, container, "CtS", name);
+#else
+	fprintf(out_paje_file, "11	%.9f	%smpict	CtS 	%s\n", time, prefix, name);
+#endif
+}
+
+static void mpicommthread_pop_state(double time, const char *prefix)
+{
+#ifdef STARPU_HAVE_POTI
+	char container[STARPU_POTI_STR_LEN];
+	mpicommthread_container_alias(container, STARPU_POTI_STR_LEN, prefix);
+	poti_SetState(time, container, "CtS", name);
+#else
+	fprintf(out_paje_file, "12	%.9f	%smpict	CtS\n", time, prefix);
 #endif
 }
 
@@ -1157,52 +1249,81 @@ static void handle_start_callback(struct fxt_ev_64 *ev, struct starpu_fxt_option
 {
 	int worker;
 	worker = find_worker_id(ev->param[1]);
-	if (worker < 0)
-		return;
-
-	if (out_paje_file)
-		thread_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[1], "C");
-	if (trace_file)
-		recfmt_thread_set_state(get_event_time_stamp(ev, options), ev->param[1], "Callback", "Runtime");
+	if (worker >= 0)
+	{
+		if (out_paje_file)
+			thread_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[1], "C");
+		if (trace_file)
+			recfmt_thread_set_state(get_event_time_stamp(ev, options), ev->param[1], "Callback", "Runtime");
+	}
+	else if (worker == -2)
+	{
+		/* MPI thread */
+		mpicommthread_push_state(get_event_time_stamp(ev, options), options->file_prefix, "C");
+	}
+	else
+		user_thread_push_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[1], "C");
 }
 
 static void handle_end_callback(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	int worker;
 	worker = find_worker_id(ev->param[1]);
-	if (worker < 0)
-		return;
 
-	if (out_paje_file)
-		thread_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[1], "B");
-	if (trace_file)
-		recfmt_thread_set_state(get_event_time_stamp(ev, options), ev->param[1], "Blocked", "Runtime");
+	if (worker >= 0)
+	{
+		if (out_paje_file)
+			thread_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[1], "B");
+		if (trace_file)
+			recfmt_thread_set_state(get_event_time_stamp(ev, options), ev->param[1], "Blocked", "Runtime");
+	}
+	else if (worker == -2)
+	{
+		/* MPI thread */
+		mpicommthread_pop_state(get_event_time_stamp(ev, options), options->file_prefix);
+	}
+	else
+		user_thread_pop_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[1]);
 }
 
 static void handle_hypervisor_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	int worker;
 	worker = find_worker_id(ev->param[0]);
-	if (worker < 0)
-		return;
-
-	if (out_paje_file)
-		thread_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "H");
-	if (trace_file)
-		recfmt_thread_set_state(get_event_time_stamp(ev, options), ev->param[0], "Hypervisor", "Runtime");
+	if (worker >= 0)
+	{
+		if (out_paje_file)
+			thread_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "H");
+		if (trace_file)
+			recfmt_thread_set_state(get_event_time_stamp(ev, options), ev->param[0], "Hypervisor", "Runtime");
+	}
+	else if (worker == -2)
+	{
+		/* MPI thread */
+		mpicommthread_push_state(get_event_time_stamp(ev, options), options->file_prefix, "H");
+	}
+	else
+		user_thread_push_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[1], "H");
 }
 
 static void handle_hypervisor_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	int worker;
 	worker = find_worker_id(ev->param[0]);
-	if (worker < 0)
-		return;
-
-	if (out_paje_file)
-		thread_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "B");
-	if (trace_file)
-		recfmt_thread_set_state(get_event_time_stamp(ev, options), ev->param[0], "Blocked", "Runtime");
+	if (worker >= 0)
+	{
+		if (out_paje_file)
+			thread_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "B");
+		if (trace_file)
+			recfmt_thread_set_state(get_event_time_stamp(ev, options), ev->param[0], "Blocked", "Runtime");
+	}
+	else if (worker == -2)
+	{
+		/* MPI thread */
+		mpicommthread_pop_state(get_event_time_stamp(ev, options), options->file_prefix);
+	}
+	else
+		user_thread_pop_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[1]);
 }
 
 static void handle_worker_status(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *newstatus)
@@ -1495,6 +1616,37 @@ static void handle_memnode_event(struct fxt_ev_64 *ev, struct starpu_fxt_options
 		memnode_set_state(get_event_time_stamp(ev, options), options->file_prefix, memnode, eventstr);
 }
 
+static void handle_task_submit_event(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, unsigned long tid, const char *eventstr)
+{
+	int workerid = find_worker_id(tid);
+	double timestamp = get_event_time_stamp(ev, options);
+	char *prefix = options->file_prefix;
+
+	if (workerid >= 0)
+	{
+		/* Normal worker */
+		if (eventstr)
+			thread_push_state(timestamp, prefix, tid, eventstr);
+		else
+			thread_pop_state(timestamp, prefix, tid);
+	}
+	else if (workerid == -2)
+	{
+		/* MPI thread */
+		if (eventstr)
+			mpicommthread_push_state(timestamp, prefix, eventstr);
+		else
+			mpicommthread_pop_state(timestamp, prefix);
+	}
+	else
+	{
+		if (eventstr)
+			user_thread_push_state(timestamp, prefix, tid, eventstr);
+		else
+			user_thread_pop_state(timestamp, prefix, tid);
+	}
+}
+
 /*
  *	Number of task submitted to the scheduler
  */
@@ -1746,6 +1898,8 @@ static void handle_mpi_start(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 	double date = get_event_time_stamp(ev, options);
 
 	char *prefix = options->file_prefix;
+
+	register_mpi_thread(ev->param[2]);
 
 	if (out_paje_file)
 	{
@@ -2206,6 +2360,47 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 
 			case _STARPU_FUT_TASK_SUBMIT:
 				handle_task_submit(&ev, options);
+				break;
+
+			case _STARPU_FUT_TASK_BUILD_START:
+				handle_task_submit_event(&ev, options, ev.param[0], "Bu");
+				break;
+
+			case _STARPU_FUT_TASK_SUBMIT_START:
+				handle_task_submit_event(&ev, options, ev.param[0], "Su");
+				break;
+
+			case _STARPU_FUT_TASK_MPI_DECODE_START:
+				handle_task_submit_event(&ev, options, ev.param[0], "MD");
+				break;
+
+			case _STARPU_FUT_TASK_MPI_PRE_START:
+				handle_task_submit_event(&ev, options, ev.param[0], "MPr");
+				break;
+
+			case _STARPU_FUT_TASK_MPI_POST_START:
+				handle_task_submit_event(&ev, options, ev.param[0], "MPo");
+				break;
+
+			case _STARPU_FUT_TASK_WAIT_START:
+				handle_task_submit_event(&ev, options, ev.param[1], "W");
+				break;
+
+			case _STARPU_FUT_TASK_WAIT_FOR_ALL_START:
+				handle_task_submit_event(&ev, options, ev.param[0], "WA");
+				break;
+
+			case _STARPU_FUT_TASK_BUILD_END:
+			case _STARPU_FUT_TASK_SUBMIT_END:
+			case _STARPU_FUT_TASK_MPI_DECODE_END:
+			case _STARPU_FUT_TASK_MPI_PRE_END:
+			case _STARPU_FUT_TASK_MPI_POST_END:
+			case _STARPU_FUT_TASK_WAIT_FOR_ALL_END:
+				handle_task_submit_event(&ev, options, ev.param[0], NULL);
+				break;
+
+			case _STARPU_FUT_TASK_WAIT_END:
+				handle_task_submit_event(&ev, options, ev.param[1], NULL);
 				break;
 
 			case _STARPU_FUT_TASK_DONE:

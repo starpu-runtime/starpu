@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011, 2012, 2013, 2014, 2015  CNRS
- * Copyright (C) 2011-2015  Université de Bordeaux
+ * Copyright (C) 2011-2016  Université de Bordeaux
  * Copyright (C) 2014 INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -192,6 +192,8 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 	int nb_data;
 	int select_node_policy = STARPU_MPI_NODE_SELECTION_CURRENT_POLICY;
 
+	_STARPU_TRACE_TASK_MPI_DECODE_START();
+
 	descrs = (struct starpu_data_descr *)malloc(nb_allocated_data * sizeof(struct starpu_data_descr));
 	nb_data = 0;
 	*do_execute = -1;
@@ -237,6 +239,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 				{
 					free(descrs);
 					va_end(varg_list_copy);
+					_STARPU_TRACE_TASK_MPI_DECODE_END();
 					return ret;
 				}
 			}
@@ -265,6 +268,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 					{
 						free(descrs);
 						va_end(varg_list_copy);
+						_STARPU_TRACE_TASK_MPI_DECODE_END();
 						return ret;
 					}
 				}
@@ -294,6 +298,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 					{
 						free(descrs);
 						va_end(varg_list_copy);
+						_STARPU_TRACE_TASK_MPI_DECODE_END();
 						return ret;
 					}
 				}
@@ -418,6 +423,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 	*descrs_p = descrs;
 	*nb_data_p = nb_data;
 
+	_STARPU_TRACE_TASK_MPI_DECODE_END();
 	return 0;
 }
 
@@ -440,6 +446,7 @@ int _starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, stru
 	ret = _starpu_mpi_task_decode_v(codelet, me, nb_nodes, &xrank, &do_execute, &descrs, &nb_data, varg_list);
 	if (ret < 0) return ret;
 
+	_STARPU_TRACE_TASK_MPI_PRE_START();
 	/* Send and receive data as requested */
 	for(i=0 ; i<nb_data ; i++)
 	{
@@ -452,6 +459,7 @@ int _starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, stru
 		*descrs_p = descrs;
 	else
 		free(descrs);
+	_STARPU_TRACE_TASK_MPI_PRE_END();
 
 	if (do_execute == 0) return 1;
 	else
@@ -473,6 +481,7 @@ int _starpu_mpi_task_postbuild_v(MPI_Comm comm, int xrank, int do_execute, struc
 {
 	int me, i;
 
+	_STARPU_TRACE_TASK_MPI_POST_START();
 	starpu_mpi_comm_rank(comm, &me);
 
 	for(i=0 ; i<nb_data ; i++)
@@ -483,6 +492,7 @@ int _starpu_mpi_task_postbuild_v(MPI_Comm comm, int xrank, int do_execute, struc
 
 	free(descrs);
 
+	_STARPU_TRACE_TASK_MPI_POST_END();
 	_STARPU_MPI_LOG_OUT();
 	return 0;
 }
