@@ -32,6 +32,12 @@ This function can only be called if \p task has not completed yet, otherwise
 the results are undefined. The result may also be outdated if some additional
 dependency has been added in the meanwhile.
 
+\fn int starpu_task_get_task_scheduled_succs(struct starpu_task *task, unsigned ndeps, struct starpu_task *task_array[])
+\ingroup API_Explicit_Dependencies
+This behaves like starpu_task_get_task_succs(), except that it only reports
+tasks which will go through the scheduler, thus avoiding tasks with not codelet,
+or with explicit placement.
+
 \typedef starpu_tag_t
 \ingroup API_Explicit_Dependencies
 This type defines a task logical identifer. It is possible to
