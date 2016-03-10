@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2015  Université de Bordeaux
+ * Copyright (C) 2009-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -182,6 +182,27 @@
 #define _STARPU_FUT_SCHED_COMPONENT_CONNECT	0x516b
 #define _STARPU_FUT_SCHED_COMPONENT_PUSH	0x516c
 #define _STARPU_FUT_SCHED_COMPONENT_PULL	0x516d
+
+#define _STARPU_FUT_TASK_SUBMIT_START	0x516e
+#define _STARPU_FUT_TASK_SUBMIT_END	0x516f
+
+#define _STARPU_FUT_TASK_BUILD_START	0x5170
+#define _STARPU_FUT_TASK_BUILD_END	0x5171
+
+#define _STARPU_FUT_TASK_MPI_DECODE_START	0x5172
+#define _STARPU_FUT_TASK_MPI_DECODE_END	0x5173
+
+#define _STARPU_FUT_TASK_MPI_PRE_START	0x5174
+#define _STARPU_FUT_TASK_MPI_PRE_END	0x5175
+
+#define _STARPU_FUT_TASK_MPI_POST_START	0x5176
+#define _STARPU_FUT_TASK_MPI_POST_END	0x5177
+
+#define _STARPU_FUT_TASK_WAIT_START	0x5178
+#define _STARPU_FUT_TASK_WAIT_END	0x5179
+
+#define _STARPU_FUT_TASK_WAIT_FOR_ALL_START	0x517a
+#define _STARPU_FUT_TASK_WAIT_FOR_ALL_END	0x517b
 
 #ifdef STARPU_USE_FXT
 #include <fxt/fxt.h>
@@ -589,6 +610,48 @@ do {										\
 #define _STARPU_TRACE_TASK_SUBMIT(job)	\
 	FUT_DO_PROBE2(_STARPU_FUT_TASK_SUBMIT, (job)->job_id, _starpu_gettid());
 
+#define _STARPU_TRACE_TASK_SUBMIT_START()	\
+	FUT_DO_PROBE1(_STARPU_FUT_TASK_SUBMIT_START, _starpu_gettid());
+
+#define _STARPU_TRACE_TASK_SUBMIT_END()	\
+	FUT_DO_PROBE1(_STARPU_FUT_TASK_SUBMIT_END, _starpu_gettid());
+
+#define _STARPU_TRACE_TASK_BUILD_START()	\
+	FUT_DO_PROBE1(_STARPU_FUT_TASK_BUILD_START, _starpu_gettid());
+
+#define _STARPU_TRACE_TASK_BUILD_END()	\
+	FUT_DO_PROBE1(_STARPU_FUT_TASK_BUILD_END, _starpu_gettid());
+
+#define _STARPU_TRACE_TASK_MPI_DECODE_START()	\
+	FUT_DO_PROBE1(_STARPU_FUT_TASK_MPI_DECODE_START, _starpu_gettid());
+
+#define _STARPU_TRACE_TASK_MPI_DECODE_END()	\
+	FUT_DO_PROBE1(_STARPU_FUT_TASK_MPI_DECODE_END, _starpu_gettid());
+
+#define _STARPU_TRACE_TASK_MPI_PRE_START()	\
+	FUT_DO_PROBE1(_STARPU_FUT_TASK_MPI_PRE_START, _starpu_gettid());
+
+#define _STARPU_TRACE_TASK_MPI_PRE_END()	\
+	FUT_DO_PROBE1(_STARPU_FUT_TASK_MPI_PRE_END, _starpu_gettid());
+
+#define _STARPU_TRACE_TASK_MPI_POST_START()	\
+	FUT_DO_PROBE1(_STARPU_FUT_TASK_MPI_POST_START, _starpu_gettid());
+
+#define _STARPU_TRACE_TASK_MPI_POST_END()	\
+	FUT_DO_PROBE1(_STARPU_FUT_TASK_MPI_POST_END, _starpu_gettid());
+
+#define _STARPU_TRACE_TASK_WAIT_START(job)	\
+	FUT_DO_PROBE2(_STARPU_FUT_TASK_WAIT_START, (job)->job_id, _starpu_gettid());
+
+#define _STARPU_TRACE_TASK_WAIT_END(job)	\
+	FUT_DO_PROBE2(_STARPU_FUT_TASK_WAIT_END, (job)->job_id, _starpu_gettid());
+
+#define _STARPU_TRACE_TASK_WAIT_FOR_ALL_START()	\
+	FUT_DO_PROBE1(_STARPU_FUT_TASK_WAIT_FOR_ALL_START, _starpu_gettid());
+
+#define _STARPU_TRACE_TASK_WAIT_FOR_ALL_END()	\
+	FUT_DO_PROBE1(_STARPU_FUT_TASK_WAIT_FOR_ALL_END, _starpu_gettid());
+
 #define _STARPU_TRACE_USER_DEFINED_START	\
 	FUT_DO_PROBE1(_STARPU_FUT_USER_DEFINED_START, _starpu_gettid());
 
@@ -891,6 +954,20 @@ do {										\
 #define _STARPU_TRACE_WORKER_SLEEP_START		do {} while(0)
 #define _STARPU_TRACE_WORKER_SLEEP_END		do {} while(0)
 #define _STARPU_TRACE_TASK_SUBMIT(job)		do {} while(0)
+#define _STARPU_TRACE_TASK_SUBMIT_START()		do {} while(0)
+#define _STARPU_TRACE_TASK_SUBMIT_END()			do {} while(0)
+#define _STARPU_TRACE_TASK_BUILD_START()		do {} while(0)
+#define _STARPU_TRACE_TASK_BUILD_END()			do {} while(0)
+#define _STARPU_TRACE_TASK_MPI_DECODE_START()		do {} while(0)
+#define _STARPU_TRACE_TASK_MPI_DECODE_END()		do {} while(0)
+#define _STARPU_TRACE_TASK_MPI_PRE_START()		do {} while(0)
+#define _STARPU_TRACE_TASK_MPI_PRE_END()		do {} while(0)
+#define _STARPU_TRACE_TASK_MPI_POST_START()		do {} while(0)
+#define _STARPU_TRACE_TASK_MPI_POST_END()		do {} while(0)
+#define _STARPU_TRACE_TASK_WAIT_START(job)		do {} while(0)
+#define _STARPU_TRACE_TASK_WAIT_END(job)		do {} while(0)
+#define _STARPU_TRACE_TASK_WAIT_FOR_ALL_START()		do {} while(0)
+#define _STARPU_TRACE_TASK_WAIT_FOR_ALL_END()		do {} while(0)
 #define _STARPU_TRACE_USER_DEFINED_START		do {} while(0)
 #define _STARPU_TRACE_USER_DEFINED_END		do {} while(0)
 #define _STARPU_TRACE_START_ALLOC(memnode, size)	do {} while(0)

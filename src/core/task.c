@@ -237,6 +237,8 @@ int starpu_task_wait(struct starpu_task *task)
 
 	struct _starpu_job *j = (struct _starpu_job *)task->starpu_private;
 
+	_STARPU_TRACE_TASK_WAIT_START(j);
+
 	_starpu_wait_job(j);
 
 	/* as this is a synchronous task, the liberation of the job
@@ -244,6 +246,7 @@ int starpu_task_wait(struct starpu_task *task)
 	if (task->destroy)
 		_starpu_task_destroy(task);
 
+	_STARPU_TRACE_TASK_WAIT_END(j);
         _STARPU_LOG_OUT();
 	return 0;
 }
@@ -615,6 +618,8 @@ int starpu_task_submit(struct starpu_task *task)
 #endif
 		;
 
+	_STARPU_TRACE_TASK_SUBMIT_START();
+
 	if (!j->internal)
 	{
 		int nsubmitted_tasks = starpu_task_nsubmitted();
@@ -626,7 +631,10 @@ int starpu_task_submit(struct starpu_task *task)
 
 	ret = _starpu_task_submit_head(task);
 	if (ret)
+	{
+		_STARPU_TRACE_TASK_SUBMIT_END();
 		return ret;
+	}
 
 	if (!j->internal && !continuation)
 		_STARPU_TRACE_TASK_SUBMIT(j);
@@ -685,6 +693,7 @@ int starpu_task_submit(struct starpu_task *task)
 		     _starpu_task_destroy(task);
 	}
 
+	_STARPU_TRACE_TASK_SUBMIT_END();
         _STARPU_LOG_OUT();
 	return ret;
 }
@@ -852,8 +861,9 @@ int starpu_task_wait_for_all(void)
 
 int starpu_task_wait_for_all_in_ctx(unsigned sched_ctx)
 {
-	_STARPU_TRACE_EVENT("starpu_task_wait_for_all");
+	_STARPU_TRACE_TASK_WAIT_FOR_ALL_START();
 	_starpu_wait_for_all_tasks_of_sched_ctx(sched_ctx);
+	_STARPU_TRACE_TASK_WAIT_FOR_ALL_END();
 #ifdef HAVE_AYUDAME_H
 	/* TODO: improve Temanejo into knowing about contexts ... */
 	if (AYU_event) AYU_event(AYU_BARRIER, 0, NULL);

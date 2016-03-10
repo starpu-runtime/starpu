@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2013-2015   Université Bordeaux
+ * Copyright (C) 2011, 2013-2016   Université Bordeaux
  * Copyright (C) 2011-2015         CNRS
  * Copyright (C) 2011, 2014        INRIA
  *
@@ -233,6 +233,8 @@ void _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task **
 	int current_buffer;
 	int nargs = 0;
 	int allocated_buffers = 0;
+
+	_STARPU_TRACE_TASK_BUILD_START();
 
 	struct _starpu_task_insert_cb_wrapper *cl_arg_wrapper = (struct _starpu_task_insert_cb_wrapper *) malloc(sizeof(struct _starpu_task_insert_cb_wrapper));
 	STARPU_ASSERT(cl_arg_wrapper);
@@ -502,4 +504,5 @@ void _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task **
 	(*task)->prologue_callback_pop_func = _starpu_task_insert_callback_wrapper;
 	(*task)->prologue_callback_pop_arg = prologue_pop_cl_arg_wrapper;
 	(*task)->prologue_callback_pop_arg_free = 1;
+	_STARPU_TRACE_TASK_BUILD_END();
 }
