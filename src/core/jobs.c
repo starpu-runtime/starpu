@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2015  Université de Bordeaux
+ * Copyright (C) 2009-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2011, 2014  INRIA
@@ -31,7 +31,7 @@
 #include <core/debug.h>
 
 /* we need to identify each task to generate the DAG. */
-static unsigned job_cnt = 0;
+static unsigned long job_cnt = 0;
 
 #ifdef STARPU_DEBUG
 /* List of all jobs, for debugging */
@@ -74,7 +74,7 @@ struct _starpu_job* STARPU_ATTRIBUTE_MALLOC _starpu_job_create(struct starpu_tas
 			)
 #endif
 	{
-		job->job_id = STARPU_ATOMIC_ADD(&job_cnt, 1);
+		job->job_id = STARPU_ATOMIC_ADDL(&job_cnt, 1);
 #ifdef HAVE_AYUDAME_H
 		if (AYU_event)
 		{
