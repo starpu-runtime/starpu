@@ -24,6 +24,7 @@ New features:
   * Support priorities for data transfers.
   * Add STARPU_MALLOC_SIMULATION_FOLDED flag to save memory when simulating.
   * Include application threads in the trace.
+  * Add starpu_task_get_task_scheduled_succs to get successors of a task.
 
 Changes:
   * Vastly improve simgrid simulation time.
