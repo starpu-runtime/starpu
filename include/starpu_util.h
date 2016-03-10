@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2015  Université de Bordeaux
+ * Copyright (C) 2010-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -165,6 +165,26 @@ static __starpu_inline unsigned starpu_xchg(unsigned *ptr, unsigned next)
 	return next;
 }
 #define STARPU_HAVE_XCHG
+
+#if defined(__i386__)
+#define starpu_cmpxchgl starpu_cmpxchg
+#define starpu_xchgl starpu_xchg
+#define STARPU_HAVE_XCHGL
+#endif
+#if defined(__x86_64__)
+static __starpu_inline unsigned long starpu_cmpxchgl(unsigned long *ptr, unsigned long old, unsigned long next)
+{
+	__asm__ __volatile__("lock cmpxchgq %2,%1": "+a" (old), "+m" (*ptr) : "q" (next) : "memory");
+	return old;
+}
+static __starpu_inline unsigned long starpu_xchgl(unsigned long *ptr, unsigned long next)
+{
+	/* Note: xchg is always locked already */
+	__asm__ __volatile__("xchgq %1,%0": "+m" (*ptr), "+q" (next) : : "memory");
+	return next;
+}
+#define STARPU_HAVE_XCHGL
+#endif
 #endif
 
 #define STARPU_ATOMIC_SOMETHING(name,expr) \
@@ -180,19 +200,46 @@ static __starpu_inline unsigned starpu_atomic_##name(unsigned *ptr, unsigned val
 	}; \
 	return expr; \
 }
+#define STARPU_ATOMIC_SOMETHINGL(name,expr) \
+static __starpu_inline unsigned long starpu_atomic_##name##l(unsigned long *ptr, unsigned long value) \
+{ \
+	unsigned long old, next; \
+	while (1) \
+	{ \
+		old = *ptr; \
+		next = expr; \
+		if (starpu_cmpxchg(ptr, old, next) == old) \
+			break; \
+	}; \
+	return expr; \
+}
 
 #ifdef STARPU_HAVE_SYNC_FETCH_AND_ADD
 #define STARPU_ATOMIC_ADD(ptr, value)  (__sync_fetch_and_add ((ptr), (value)) + (value))
-#elif defined(STARPU_HAVE_XCHG)
+#define STARPU_ATOMIC_ADDL(ptr, value)  (__sync_fetch_and_add ((ptr), (value)) + (value))
+#else
+#if defined(STARPU_HAVE_XCHG)
 STARPU_ATOMIC_SOMETHING(add, old + value)
 #define STARPU_ATOMIC_ADD(ptr, value) starpu_atomic_add(ptr, value)
+#endif
+#if defined(STARPU_HAVE_XCHGL)
+STARPU_ATOMIC_SOMETHINGL(add, old + value)
+#define STARPU_ATOMIC_ADDL(ptr, value) starpu_atomic_addl(ptr, value)
+#endif
 #endif
 
 #ifdef STARPU_HAVE_SYNC_FETCH_AND_OR
 #define STARPU_ATOMIC_OR(ptr, value)  (__sync_fetch_and_or ((ptr), (value)))
-#elif defined(STARPU_HAVE_XCHG)
+#define STARPU_ATOMIC_ORL(ptr, value)  (__sync_fetch_and_or ((ptr), (value)))
+#else
+#if defined(STARPU_HAVE_XCHG)
 STARPU_ATOMIC_SOMETHING(or, old | value)
 #define STARPU_ATOMIC_OR(ptr, value) starpu_atomic_or(ptr, value)
+#endif
+#if defined(STARPU_HAVE_XCHGL)
+STARPU_ATOMIC_SOMETHINGL(or, old | value)
+#define STARPU_ATOMIC_ORL(ptr, value) starpu_atomic_orl(ptr, value)
+#endif
 #endif
 
 #ifdef STARPU_HAVE_SYNC_BOOL_COMPARE_AND_SWAP

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2015  Université de Bordeaux
+ * Copyright (C) 2010-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2013  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -98,7 +98,7 @@ void starpu_wake_all_blocked_workers(void)
 /* we need to identify each communication so that we can match the beginning
  * and the end of a communication in the trace, so we use a unique identifier
  * per communication */
-static unsigned communication_cnt = 0;
+static unsigned long communication_cnt = 0;
 #endif
 
 static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
@@ -492,7 +492,7 @@ int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT _starpu_driver_copy_data_1_to_1(starpu_d
 	}
 
 	int ret_alloc, ret_copy;
-	unsigned STARPU_ATTRIBUTE_UNUSED com_id = 0;
+	unsigned long STARPU_ATTRIBUTE_UNUSED com_id = 0;
 
 	unsigned src_node = src_replicate->memory_node;
 	unsigned dst_node = dst_replicate->memory_node;
@@ -520,7 +520,7 @@ int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT _starpu_driver_copy_data_1_to_1(starpu_d
 		_starpu_bus_update_profiling_info((int)src_node, (int)dst_node, size);
 
 #ifdef STARPU_USE_FXT
-		com_id = STARPU_ATOMIC_ADD(&communication_cnt, 1);
+		com_id = STARPU_ATOMIC_ADDL(&communication_cnt, 1);
 
 		if (req)
 			req->com_id = com_id;
