@@ -85,11 +85,12 @@ struct task_info {
 	unsigned long *dependencies;
 	unsigned long ndata;
 	struct data_info *data;
+	int mpi_rank;
 };
 
 struct task_info *tasks_info;
 
-static struct task_info *get_task(unsigned long job_id)
+static struct task_info *get_task(unsigned long job_id, int mpi_rank)
 {
 	struct task_info *task;
 
@@ -112,15 +113,17 @@ static struct task_info *get_task(unsigned long job_id)
 		task->dependencies = NULL;
 		task->ndata = 0;
 		task->data = NULL;
+		task->mpi_rank = mpi_rank;
 		HASH_ADD(hh, tasks_info, job_id, sizeof(task->job_id), task);
-	}
+	} else
+		STARPU_ASSERT(task->mpi_rank == mpi_rank);
 
 	return task;
 }
 
-static void task_dump(unsigned long job_id)
+static void task_dump(unsigned long job_id, int mpi_rank)
 {
-	struct task_info *task = get_task(job_id);
+	struct task_info *task = get_task(job_id, mpi_rank);
 	unsigned i;
 
 	if (task->exclude_from_dag)
@@ -182,6 +185,7 @@ static void task_dump(unsigned long job_id)
 			fprintf(tasks_file, " %lu", task->data[i].size);
 		fprintf(tasks_file, "\n");
 	}
+	fprintf(tasks_file, "MPIRank: %d\n", task->mpi_rank);
 	fprintf(tasks_file, "\n");
 
 out:
@@ -1023,7 +1027,7 @@ static void handle_start_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_op
 
 	create_paje_state_if_not_found(name, options);
 
-	struct task_info *task = get_task(ev->param[0]);
+	struct task_info *task = get_task(ev->param[0], options->file_rank);
 	task->start_time = start_codelet_time;
 	task->workerid = worker;
 	task->name = strdup(name);
@@ -1053,9 +1057,9 @@ static void handle_start_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_op
 
 }
 
-static void handle_model_name(struct fxt_ev_64 *ev, struct starpu_fxt_options *options STARPU_ATTRIBUTE_UNUSED)
+static void handle_model_name(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
-	struct task_info *task = get_task(ev->param[0]);
+	struct task_info *task = get_task(ev->param[0], options->file_rank);
 	char *name = (char *)&ev->param[1];
 	task->model_name = strdup(name);
 }
@@ -1070,9 +1074,9 @@ static void handle_codelet_data(struct fxt_ev_64 *ev STARPU_ATTRIBUTE_UNUSED, st
 	snprintf(last_codelet_parameter_description[worker][num], sizeof(last_codelet_parameter_description[worker][num]), "%s", (char*) &ev->param[1]);
 }
 
-static void handle_codelet_data_handle(struct fxt_ev_64 *ev STARPU_ATTRIBUTE_UNUSED, struct starpu_fxt_options *options STARPU_ATTRIBUTE_UNUSED)
+static void handle_codelet_data_handle(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
-	struct task_info *task = get_task(ev->param[0]);
+	struct task_info *task = get_task(ev->param[0], options->file_rank);
 	unsigned alloc = 0;
 
 	if (task->ndata == 0)
@@ -1095,7 +1099,7 @@ static void handle_codelet_data_handle(struct fxt_ev_64 *ev STARPU_ATTRIBUTE_UNU
 	task->ndata++;
 }
 
-static void handle_codelet_details(struct fxt_ev_64 *ev STARPU_ATTRIBUTE_UNUSED, struct starpu_fxt_options *options STARPU_ATTRIBUTE_UNUSED)
+static void handle_codelet_details(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	int worker = ev->param[5];
 	unsigned long job_id = ev->param[6];
@@ -1113,7 +1117,7 @@ static void handle_codelet_details(struct fxt_ev_64 *ev STARPU_ATTRIBUTE_UNUSED,
 		eaten += snprintf(parameters + eaten, sizeof(parameters) - eaten, "%s%s", i?"_":"", last_codelet_parameter_description[worker][i]);
 	}
 
-	struct task_info *task = get_task(job_id);
+	struct task_info *task = get_task(job_id, options->file_rank);
 	task->parameters = strdup(parameters);
 	task->footprint = ev->param[3];
 	task->tag = ev->param[4];
@@ -1164,7 +1168,7 @@ static void handle_end_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 
 	double codelet_length = (end_codelet_time - last_codelet_start[worker]);
 
-	get_task(ev->param[0])->end_time = end_codelet_time;
+	get_task(ev->param[0], options->file_rank)->end_time = end_codelet_time;
 
 	update_accumulated_time(worker, 0.0, codelet_length, end_codelet_time, 0);
 
@@ -1774,12 +1778,12 @@ static void handle_tag_deps(struct fxt_ev_64 *ev)
 	_starpu_fxt_dag_add_tag_deps(child, father);
 }
 
-static void handle_task_deps(struct fxt_ev_64 *ev)
+static void handle_task_deps(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	unsigned long dep_prev = ev->param[0];
 	unsigned long dep_succ = ev->param[1];
 
-	struct task_info *task = get_task(dep_succ);
+	struct task_info *task = get_task(dep_succ, options->file_rank);
 	unsigned alloc = 0;
 
 	if (task->ndeps == 0)
@@ -1807,7 +1811,7 @@ static void handle_task_submit(struct fxt_ev_64 *ev, struct starpu_fxt_options *
 	unsigned long job_id;
 	job_id = ev->param[0];
 
-	get_task(job_id)->submit_time = get_event_time_stamp(ev, options);
+	get_task(job_id, options->file_rank)->submit_time = get_event_time_stamp(ev, options);
 }
 
 static void handle_task_done(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -1837,8 +1841,8 @@ static void handle_task_done(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 	}
 
 	unsigned exclude_from_dag = ev->param[2];
-	get_task(job_id)->exclude_from_dag = exclude_from_dag;
-	task_dump(job_id);
+	get_task(job_id, options->file_rank)->exclude_from_dag = exclude_from_dag;
+	task_dump(job_id, options->file_rank);
 
 	if (!exclude_from_dag)
 		_starpu_fxt_dag_set_task_done(job_id, name, colour);
@@ -2355,7 +2359,7 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 				break;
 
 			case _STARPU_FUT_TASK_DEPS:
-				handle_task_deps(&ev);
+				handle_task_deps(&ev, options);
 				break;
 
 			case _STARPU_FUT_TASK_SUBMIT:
