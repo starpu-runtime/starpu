@@ -324,40 +324,6 @@ void _starpu_simgrid_submit_job(int workerid, struct _starpu_job *j, struct star
 		/* This is not useful to include in simulation (and probably
 		 * doesn't have a perfmodel anyway) */
 		return;
-
-	//LUKA ScalFMM injection
-	/*if (strcmp(_starpu_job_get_model_name(j),"p2p_cl_inout") == 0)
-	{
-	   length = 0.01582714*1000; //Time is in milliseconds
-	}*/
-	/*if (strcmp(_starpu_job_get_model_name(j),"p2p_cl_in") == 0)
-	{
-	   length = 0.2636544*1000; //Time is in milliseconds
-	}*/
-	if (strcmp(_starpu_job_get_model_name(j),"p2m_cl") == 0)
-	{
-	   length = 1.474784*1000; //Time is in milliseconds
-	}
-	/*if (strcmp(_starpu_job_get_model_name(j),"m2m_cl") == 0)
-	{
-	   length = 0.664437*1000; //Time is in milliseconds
-	}*/
-	if (strcmp(_starpu_job_get_model_name(j),"m2l_cl_in") == 0)
-	{
-	   length = 5.006487*1000; //Time is in milliseconds
-	}
-	if (strcmp(_starpu_job_get_model_name(j),"m2l_cl_inout") == 0)
-	{
-	   length = 0.3098441*1000; //Time is in milliseconds
-	}
-	if (strcmp(_starpu_job_get_model_name(j),"l2l_cl") == 0)
-	{
-	   length = 0.7373358*1000; //Time is in milliseconds
-	}
-	if (strcmp(_starpu_job_get_model_name(j),"l2p_cl") == 0)
-	{
-	   length = 1.480659*1000; //Time is in milliseconds
-	}
 	
 	if (isnan(length))
 	{
