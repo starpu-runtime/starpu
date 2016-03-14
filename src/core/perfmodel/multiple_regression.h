@@ -15,8 +15,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#ifndef __REGRESSION_H__
-#define __REGRESSION_H__
+#ifndef __MULTIPLE_REGRESSION_H__
+#define __MULTIPLE_REGRESSION_H__
 
 #include <math.h>
 #include <stdio.h>
@@ -24,6 +24,6 @@
 #include <core/perfmodel/perfmodel.h>
 #include <starpu.h>
 
-int _starpu_regression_non_linear_power(struct starpu_perfmodel_history_list *ptr, double *a, double *b, double *c);
+int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, double *coeff, unsigned ncoeff, unsigned nparameters, unsigned **combinations);
 
-#endif // __REGRESSION_H__ 
+#endif // __MULTIPLE_REGRESSION_H__

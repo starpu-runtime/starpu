@@ -326,14 +326,14 @@ void _starpu_simgrid_submit_job(int workerid, struct _starpu_job *j, struct star
 		return;
 
 	//LUKA ScalFMM injection
-	if (strcmp(_starpu_job_get_model_name(j),"p2p_cl_inout") == 0)
+	/*if (strcmp(_starpu_job_get_model_name(j),"p2p_cl_inout") == 0)
 	{
 	   length = 0.01582714*1000; //Time is in milliseconds
-	}
-	if (strcmp(_starpu_job_get_model_name(j),"p2p_cl_in") == 0)
+	}*/
+	/*if (strcmp(_starpu_job_get_model_name(j),"p2p_cl_in") == 0)
 	{
 	   length = 0.2636544*1000; //Time is in milliseconds
-	}
+	}*/
 	if (strcmp(_starpu_job_get_model_name(j),"p2m_cl") == 0)
 	{
 	   length = 1.474784*1000; //Time is in milliseconds

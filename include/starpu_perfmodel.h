@@ -145,7 +145,8 @@ struct starpu_perfmodel
 	unsigned benchmarking;
 	unsigned is_init;
 
-	double *parameters;
+	void (*parameters)(struct starpu_task * task, double *parameters);
+	const char **parameters_names;
 	unsigned nparameters;
 	unsigned **combinations;
 	unsigned ncombinations;

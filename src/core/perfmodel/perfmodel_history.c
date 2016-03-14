@@ -31,6 +31,7 @@
 #include <core/workers.h>
 #include <datawizard/datawizard.h>
 #include <core/perfmodel/regression.h>
+#include <core/perfmodel/multiple_regression.h>
 #include <common/config.h>
 #include <starpu_parameters.h>
 #include <common/uthash.h>
@@ -288,25 +289,32 @@ static void dump_reg_model(FILE *f, struct starpu_perfmodel *model, int comb, in
 	 * Multiple Regression Model
 	 */
 
-	if (reg_model->ncoeff==0)
-		reg_model->ncoeff = model->ncombinations + 1;
-
-	reg_model->coeff = (double *) malloc(reg_model->ncoeff*sizeof(double));
 	if (model->type == STARPU_MULTIPLE_REGRESSION_BASED)
+	{
+		if (reg_model->ncoeff==0)
+			reg_model->ncoeff = model->ncombinations + 1;
+
+		reg_model->coeff = (double *) malloc(reg_model->ncoeff*sizeof(double));
 		_starpu_multiple_regression(per_arch_model->list, reg_model->coeff, reg_model->ncoeff, model->nparameters, model->combinations);
 
-	fprintf(f, "# n\tintercept");
-	for (int i=1; i < reg_model->ncoeff; i++){
-		fprintf(f, "\tc%d", i);
-	}
-	fprintf(f, "\n%u", reg_model->ncoeff);
-	for (int i=0; i < reg_model->ncoeff; i++){
-		fprintf(f, "\t%-15e", reg_model->coeff[i]);
+		fprintf(f, "# n\tintercept\t");
+		for (int i=0; i < model->ncombinations; i++)
+		{
+			if (model->parameters_names != NULL)
+				fprintf(f, "%s\t\t", model->parameters_names[i]);
+			else
+				fprintf(f, "c%d\t\t", i+1);
+		}
+
+		fprintf(f, "\n%u", reg_model->ncoeff);
+		for (int i=0; i < reg_model->ncoeff; i++)
+			fprintf(f, "\t%-15e", reg_model->coeff[i]);
+
 	}
 }
 #endif
 
-static void scan_reg_model(FILE *f, struct starpu_perfmodel_regression_model *reg_model)
+static void scan_reg_model(FILE *f, struct starpu_perfmodel_regression_model *reg_model, enum starpu_perfmodel_type model_type)
 {
 	int res;
 
@@ -351,22 +359,25 @@ static void scan_reg_model(FILE *f, struct starpu_perfmodel_regression_model *re
 	/*
 	 * Multiple Regression Model
 	 */
-	_starpu_drop_comments(f);
+	if (model_type == STARPU_MULTIPLE_REGRESSION_BASED)
+	{
+		_starpu_drop_comments(f);
 
-	// Read how many coefficients is there
-	res = fscanf(f, "%u", &reg_model->ncoeff);
-	STARPU_ASSERT_MSG(res == 1, "Incorrect performance model file");
-
-	reg_model->coeff = malloc(reg_model->ncoeff*sizeof(double));
-
-	unsigned multi_invalid = 0;
-
-	for (int i=0; i < reg_model->ncoeff; i++){
-		res = _starpu_read_double(f, "%le", &reg_model->coeff[i]);
+		// Read how many coefficients is there
+		res = fscanf(f, "%u", &reg_model->ncoeff);
 		STARPU_ASSERT_MSG(res == 1, "Incorrect performance model file");
-		multi_invalid = (multi_invalid||isnan(reg_model->coeff[i]));
+
+		reg_model->coeff = malloc(reg_model->ncoeff*sizeof(double));
+
+		unsigned multi_invalid = 0;
+
+		for (int i=0; i < reg_model->ncoeff; i++){
+			res = _starpu_read_double(f, "%le", &reg_model->coeff[i]);
+			STARPU_ASSERT_MSG(res == 1, "Incorrect performance model file");
+			multi_invalid = (multi_invalid||isnan(reg_model->coeff[i]));
+		}
+		reg_model->multi_valid = !multi_invalid;
 	}
-	reg_model->multi_valid = !multi_invalid;
 }
 
 
@@ -424,7 +435,7 @@ static void scan_history_entry(FILE *f, struct starpu_perfmodel_history_entry *e
 	}
 }
 
-static void parse_per_arch_model_file(FILE *f, struct starpu_perfmodel_per_arch *per_arch_model, unsigned scan_history)
+static void parse_per_arch_model_file(FILE *f, struct starpu_perfmodel_per_arch *per_arch_model, unsigned scan_history, enum starpu_perfmodel_type model_type)
 {
 	unsigned nentries;
 
@@ -433,7 +444,7 @@ static void parse_per_arch_model_file(FILE *f, struct starpu_perfmodel_per_arch 
 	int res = fscanf(f, "%u\n", &nentries);
 	STARPU_ASSERT_MSG(res == 1, "Incorrect performance model file");
 
-	scan_reg_model(f, &per_arch_model->regression);
+	scan_reg_model(f, &per_arch_model->regression, model_type);
 
 	/* parse entries */
 	unsigned i;
@@ -492,7 +503,7 @@ static void parse_arch(FILE *f, struct starpu_perfmodel *model, unsigned scan_hi
 		{
 			struct starpu_perfmodel_per_arch *per_arch_model = &model->state->per_arch[comb][impl];
 			model->state->per_arch_is_set[comb][impl] = 1;
-			parse_per_arch_model_file(f, per_arch_model, scan_history);
+			parse_per_arch_model_file(f, per_arch_model, scan_history, model->type);
 		}
 	}
 	else
@@ -503,7 +514,7 @@ static void parse_arch(FILE *f, struct starpu_perfmodel *model, unsigned scan_hi
 	/* if the number of implementation is greater than STARPU_MAXIMPLEMENTATIONS
 	 * we skip the last implementation */
 	for (i = impl; i < nimpls; i++)
-		parse_per_arch_model_file(f, &dummy, 0);
+		parse_per_arch_model_file(f, &dummy, 0, model->type);
 
 }
 
@@ -1291,11 +1302,14 @@ double _starpu_multiple_regression_based_job_expected_perf(struct starpu_perfmod
 	reg_model = &model->state->per_arch[comb][nimpl].regression;
 
 	double parameter_value;
+	double *parameters;
+	parameters = (double *) malloc(model->nparameters*sizeof(double));
+	model->parameters(j->task, parameters);
 	expected_duration=reg_model->coeff[0];
 	for (int i=0; i < model->ncombinations; i++){
 		parameter_value=1.;
 		for (int j=0; j < model->nparameters; j++)
-			parameter_value *= pow(model->parameters[j],model->combinations[i][j]);
+			parameter_value *= pow(parameters[j],model->combinations[i][j]);
 
 		expected_duration += reg_model->coeff[i+1]*parameter_value;
 	}
@@ -1312,7 +1326,13 @@ docal:
 		model->benchmarking = 1;
 	}
 
-	return expected_duration*1000;//Time in milliseconds
+	// In the unlikely event that predicted duration is negative
+	// in case multiple linear regression is not so accurate
+	if (expected_duration < 0 )
+		expected_duration = 0.00001;
+
+	//Make sure that the injected time is in milliseconds
+	return expected_duration;
 }
 
 double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, struct starpu_perfmodel_arch* arch, struct _starpu_job *j,unsigned nimpl)
@@ -1561,8 +1581,7 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 			STARPU_ASSERT(entry);
 
 			entry->parameters = (double *) malloc(model->nparameters*sizeof(double));
-			for(int i=0; i < model->nparameters; i++)
-				entry->parameters[i] = model->parameters[i];
+			model->parameters(j->task, entry->parameters);
 			entry->duration = measured;
 
 			struct starpu_perfmodel_history_list *link;
