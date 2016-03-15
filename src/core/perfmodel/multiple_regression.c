@@ -125,7 +125,7 @@ matrix mat_inv(matrix src)
 	int n = src->h;
 	int n2=2*n;
     int i,j, k;
-	double ratio, a;
+	double a;
 	matrix r, dst;
 	r = mat_new(n, n2);
 	dst = mat_new(n, n);
@@ -146,7 +146,6 @@ matrix mat_inv(matrix src)
 	for(i = 0; i < n; i++){
 	  for(j = 0; j < n; j++){
 	    if(i!=j){
-	        ratio = r->x[j*n2+i] / r->x[i*n2+i];
             for(k = 0; k < 2*n; k++){
                 r->x[j*n2+k] -= (r->x[j*n2+i] / r->x[i*n2+i]) * r->x[i*n2+k];
 
@@ -169,6 +168,103 @@ matrix mat_inv(matrix src)
 	return dst;
 }
 
+/******************FUNCTION TO FIND THE DETERMINANT OF THE MATRIX************************/
+double detrm(matrix a, int k )
+{
+    double s = 1.;
+    double det = 0.;
+    matrix b;
+    b = mat_new(k, k);
+    int i, j, m, n, c;
+
+    if(k==1)
+       return a->x[0];
+
+    for(c=0;c < k;c++)
+    {
+	m = 0;
+	n = 0;
+	for(i=0;i < k;i++)
+	  {
+	    for(j=0;j < k;j++)
+	      {
+		b->x[i*k+j] = 0;
+		if(i!=0 && j!=c)
+		  {
+		    b->x[m*k+n] = a->x[i*k+j];
+                    if(n < (k-2))
+		      n++;
+		    else
+		    {
+		      n = 0;
+		      m++;
+		    }
+		  }
+	      }
+	  }
+	det = det + s*(a->x[c]*detrm(b,k-1));
+	s = -1 * s;
+    }
+
+    return det;
+}
+
+// Inspired from:
+// http://thecodecracker.com/c-programming/inverse-of-a-matrix-in-c/comment-page-1/
+matrix mat_inv2(matrix num)
+{
+    int p, q, m, n, i, j;
+    int r = num->h;
+    matrix b, fac, inv;
+    b = mat_new(r, r);
+    fac = mat_new(r, r);
+    inv = mat_new(r, r);
+
+    for(q=0;q < r;q++)
+    {
+       for(p=0;p < r;p++)
+       {
+          m = 0;
+          n = 0;
+          for(i=0;i < r;i++)
+          {
+             for(j=0;j < r;j++)
+             {
+                b->x[i*r+j] = 0;
+                if(i!=q && j!=p)
+                {
+                   b->x[m*r+n] = num->x[i*r+j];
+                   if (n < (r-2))
+                      n++;
+                   else
+                   {
+                      n = 0;
+                      m++;
+                   }
+                }
+             }
+          }
+          fac->x[q*r+p] = pow(-1.,q+p)*detrm(b, r-1);
+      }
+    }
+
+    for(i= 0;i < r;i++)
+       for(j=0;j < r;j++)
+          b->x[i*r+j] = fac->x[j*r+i];
+
+    double d;
+    d = detrm(num, r);
+    inv->x[i*r+j] = 0;
+
+    for(i=0;i < r;i++)
+       for(j=0;j < r;j++)
+          inv->x[i*r+j] = b->x[i*r+j] / d;
+
+    free(b);
+    free(fac);
+    return inv;
+}
+
 // Inspired from: http://reliawiki.org/index.php/Multiple_Linear_Regression_Analysis#Estimating_Regression_Models_Using_Least_Squares
 void multiple_reg_coeff(double *mx, double *my, int n, int k, double *coeff)
 {
@@ -181,7 +277,7 @@ void multiple_reg_coeff(double *mx, double *my, int n, int k, double *coeff)
 	matrix mcoeff;
 	mcoeff = mat_mul(
 			mat_mul(
-				mat_inv(
+				mat_inv2(
 					mat_mul(transpose(X), X)),
 				transpose(X)),
 			Y);
