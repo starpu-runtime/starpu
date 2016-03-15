@@ -76,8 +76,12 @@ matrix mat_new(int h, int w)
 
 void mat_free(matrix a)
 {
+	/* Freeing needs to be fixed
 	free(a->x);
+	a->x=NULL;
 	free(a);
+	a=NULL;
+	*/
 }
 
 matrix mat_mul(matrix a, matrix b)
@@ -174,39 +178,78 @@ double detrm(matrix a, int k )
     double s = 1.;
     double det = 0.;
     matrix b;
-    b = mat_new(k, k);
     int i, j, m, n, c;
 
     if(k==1)
-       return a->x[0];
-
-    for(c=0;c < k;c++)
     {
-	m = 0;
-	n = 0;
-	for(i=0;i < k;i++)
-	  {
-	    for(j=0;j < k;j++)
-	      {
-		b->x[i*k+j] = 0;
-		if(i!=0 && j!=c)
-		  {
-		    b->x[m*k+n] = a->x[i*k+j];
-                    if(n < (k-2))
-		      n++;
-		    else
-		    {
-		      n = 0;
-		      m++;
-		    }
-		  }
-	      }
-	  }
-	det = det + s*(a->x[c]*detrm(b,k-1));
-	s = -1 * s;
+       return a->x[0];
+    }
+    else
+    {
+    	b = mat_new(k-1, k-1);
+    	det = 0.;
+		for(c=0;c < k;c++)
+		{
+			m = 0;
+			n = 0;
+			for(i=0;i < k;i++)
+			  {
+				for(j=0;j < k;j++)
+				  {
+				b->x[i*k+j] = 0;
+				if(i!=0 && j!=c)
+				  {
+					b->x[m*k+n] = a->x[i*k+j];
+					if(n < (k-2))
+					  n++;
+					else
+					{
+					  n = 0;
+					  m++;
+					}
+				  }
+				  }
+			  }
+			det = det + s*(a->x[c]*detrm(b,k-1));
+			s = -1 * s;
+		}
+		mat_free(b);
     }
 
     return det;
+}
+double detrm2(matrix a, int m)
+{
+     if(m==1){
+        return a->x[0];
+     }
+     else if(m==2){
+             return a->x[0]*a->x[3]-a->x[1]*a->x[2];
+     }
+     else{
+             double det = 0;
+             int s=0,t=0,i,j,k;
+             for (i=0;i<m;i++){
+            	 matrix b;
+            	 b = mat_new(m-1, m-1);
+                 for(j=0;j<m;j++){
+                     if(j!=0){
+                         for(k=0;k<m;k++){
+                             if(k!=i){
+                                 b->x[s*(m-1)+t] = a->x[j*m+k];
+                                 t++;
+                             }
+                         }
+                     s++;
+                     }
+                    t = 0;
+                }
+                s = 0;
+                det = det+(int)pow(-1,i)*a->x[i]*detrm2(b, m-1);
+                mat_free(b);
+            }
+            return det;
+     }
 }
 
 // Inspired from:
@@ -215,6 +258,7 @@ matrix mat_inv2(matrix num)
 {
     int p, q, m, n, i, j;
     int r = num->h;
+    double d;
     matrix b, fac, inv;
     b = mat_new(r, r);
     fac = mat_new(r, r);
@@ -244,7 +288,8 @@ matrix mat_inv2(matrix num)
                 }
              }
           }
-          fac->x[q*r+p] = pow(-1.,q+p)*detrm(b, r-1);
+          d = detrm2(b, r-1);
+          fac->x[q*r+p] = (double) pow((-1),q+p) * d;
       }
     }
 
@@ -252,16 +297,16 @@ matrix mat_inv2(matrix num)
        for(j=0;j < r;j++)
           b->x[i*r+j] = fac->x[j*r+i];
 
-    double d;
-    d = detrm(num, r);
+
     inv->x[i*r+j] = 0;
+    d = detrm2(num, r);
 
     for(i=0;i < r;i++)
        for(j=0;j < r;j++)
           inv->x[i*r+j] = b->x[i*r+j] / d;
 
-    free(b);
-    free(fac);
+    mat_free(b);
+    mat_free(fac);
     return inv;
 }
 
@@ -275,19 +320,25 @@ void multiple_reg_coeff(double *mx, double *my, int n, int k, double *coeff)
 	Y->x = my;
 
 	matrix mcoeff;
-	mcoeff = mat_mul(
+	matrix Xt, mul1, mul2, inv;
+	Xt = transpose(X);
+	mul1 = mat_mul(Xt, X);
+	inv = mat_inv2(mul1);
+	mul2 = mat_mul(inv, Xt);
+	mcoeff = mat_mul(mul2, Y);
+	/*mcoeff = mat_mul(
 			mat_mul(
 				mat_inv2(
 					mat_mul(transpose(X), X)),
 				transpose(X)),
 			Y);
-
+*/
 	for(int i=0; i<k; i++)
 		coeff[i] = mcoeff->x[i];
 
-	//mat_free(X);
-	//mat_free(Y);
-	//mat_free(mcoeff);
+	mat_free(X);
+	mat_free(Y);
+	mat_free(mcoeff);
 }
 
 int test_multiple_regression()
