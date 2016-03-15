@@ -42,6 +42,20 @@ static void dump_multiple_regression_list(double *mx, double *my, unsigned ncoef
 	}
 }
 
+static long find_long_list_size(struct starpu_perfmodel_history_list *list_history)
+{
+	long cnt = 0;
+
+	struct starpu_perfmodel_history_list *ptr = list_history;
+	while (ptr)
+	{
+		cnt++;
+		ptr = ptr->next;
+	}
+
+	return cnt;
+}
+
 double dot(double *a, double *b, int len, int step)
 {
 	double r = 0;
@@ -132,9 +146,11 @@ matrix mat_inv(matrix src)
 	for(i = 0; i < n; i++){
 	  for(j = 0; j < n; j++){
 	    if(i!=j){
-               for(k = 0; k < 2*n; k++){
-                   r->x[j*n2+k] -= (r->x[j*n2+i] / r->x[i*n2+i]) * r->x[i*n2+k];
-               }
+	        ratio = r->x[j*n2+i] / r->x[i*n2+i];
+            for(k = 0; k < 2*n; k++){
+                r->x[j*n2+k] -= (r->x[j*n2+i] / r->x[i*n2+i]) * r->x[i*n2+k];
+
+            }
         }
 	  }
 	}
@@ -162,7 +178,7 @@ void multiple_reg_coeff(double *mx, double *my, int n, int k, double *coeff)
 	Y = mat_new(n,1);
 	Y->x = my;
 
-    matrix mcoeff;
+	matrix mcoeff;
 	mcoeff = mat_mul(
 			mat_mul(
 				mat_inv(
@@ -211,17 +227,17 @@ int test_multiple_regression()
 
 	// Multiple regression test: http://www.biddle.com/documents/bcg_comp_chapter4.pdf
 
-	double dX[] = {	1, 12, 32,
-			1, 14, 35,
-			1, 15, 45,
-			1, 16, 45,
-			1, 18, 50 };
+	double dX[] = {
+		  1, 153, 1, 153, 1, 151, 1, 151, 1, 151, 1, 152, 1, 155, 1, 152, 1, 152, 1, 151, 1, 154, 1, 53, 1, 154, 1, 156, 1, 154, 1, 153, 1, 153, 1, 153, 1, 156, 1, 156, 1, 153, 1, 153, 1, 154, 1, 151, 1, 154, 1, 153, 1, 151, 1, 153, 1, 155, 1, 151, 1, 152, 1, 158, 1, 156, 1, 154, 1, 151, 1, 158, 1, 152, 1, 154, 1, 150, 1, 153, 1, 151, 1, 153, 1, 152, 1, 153, 1, 156, 1, 152, 1, 154, 1, 153, 1, 152, 1, 154, 1, 152, 1, 152, 1, 150, 1, 152, 1, 154, 1, 151, 1, 151, 1, 150, 1, 155, 1, 157, 1, 154, 1, 153, 1, 152, 1, 151, 1, 151, 1, 156
+		};
+		 double dY[] = {
+		   669.803, 632.467, 633.580, 630.002, 611.578, 628.309, 612.352, 623.060, 621.759, 625.681, 642.941, 196.285, 636.249, 631.336, 648.567, 660.894, 679.917, 647.772, 636.877, 616.426, 632.436, 627.805, 623.983, 631.287, 631.871, 637.453, 652.078, 625.629, 635.099, 613.864, 632.843, 628.665, 630.218, 601.095, 602.018, 615.841, 633.704, 644.564, 630.676, 589.948, 606.154, 610.350, 597.742, 610.014, 614.922, 622.316, 601.779, 602.964, 614.403, 602.782, 608.804, 626.593, 625.762, 602.601, 606.464, 622.250, 592.306, 617.564, 633.847, 610.234, 614.683, 608.472, 615.067, 631.995, 854.267, 638.217
+		 };
 
-	double dY[] = {	350000, 399765, 429000, 435000, 433000};
-	int n = 5;
-	int k = 3;
-	matrix_t X= {5,k, dX};
-	matrix_t Y= {5,1, dY};
+	int n = 66;
+	int k = 2;
+	matrix_t X= {n,k, dX};
+	matrix_t Y= {n,1, dY};
 	printf("\nMultiple regression:\n");
 	mat_show(&X);
 	mat_show(&Y);
@@ -247,7 +263,7 @@ int test_multiple_regression()
 
 int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, double *coeff, unsigned ncoeff, unsigned nparameters, unsigned **combinations)
 {
-	unsigned n = find_list_size(ptr);
+	long n = find_long_list_size(ptr);
 	STARPU_ASSERT(n);
 
 	double *mx = (double *) malloc(ncoeff*n*sizeof(double));
