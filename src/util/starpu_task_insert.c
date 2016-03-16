@@ -50,6 +50,10 @@ void starpu_codelet_unpack_args(void *_cl_arg, ...)
 	{
 		void *argptr = va_arg(varg_list, void *);
 
+		// If not reading all cl_args
+		if(argptr == NULL)
+			break;
+
 		size_t arg_size;
 		memcpy(&arg_size, cl_arg+current_arg_offset, sizeof(arg_size));
 		current_arg_offset += sizeof(arg_size);
