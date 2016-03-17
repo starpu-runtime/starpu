@@ -1231,7 +1231,7 @@ static void handle_user_event(struct fxt_ev_64 *ev, struct starpu_fxt_options *o
 #ifdef STARPU_HAVE_POTI
 			program_container_alias (container, STARPU_POTI_STR_LEN, prefix);
 #else
-			fprintf(out_paje_file, "9	%.9f	user_event	%sp	%lu\n", get_event_time_stamp(ev, options), prefix, code);
+			fprintf(out_paje_file, "9	%.9f	user_user_event	%sp	%lu\n", get_event_time_stamp(ev, options), prefix, code);
 #endif
 	}
 	else
