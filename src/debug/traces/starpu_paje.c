@@ -222,8 +222,8 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 	poti_DefineEntityValue("Su", "CtS", "Submiting task", ".3 .09 .0");
 
 	/* Type for other threads */
-	poti_DefineEventType("user_event", "UT", "user event type");
-	poti_DefineEventType("thread_event", "UT", "thread event type");
+	poti_DefineEventType("user_user_event", "UT", "user event type");
+	poti_DefineEventType("user_thread_event", "UT", "thread event type");
 	poti_DefineStateType("US", "UT", "User Thread State");
 	poti_DefineEntityValue("Bu", "US", "Building task", ".5 .18 .0");
 	poti_DefineEntityValue("Su", "US", "Submiting task", ".3 .09 .0");
@@ -282,8 +282,8 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 2       prog_event   P       \"program event type\"				\n\
 2       user_event   T       \"user event type\"				\n\
 2       thread_event   T       \"thread event type\"				\n\
-2       user_event   UT       \"user event type\"				\n\
-2       thread_event   UT       \"thread event type\"				\n\
+2       user_user_event   UT       \"user event type\"				\n\
+2       user_thread_event   UT       \"thread event type\"				\n\
 2       MPIev   MPICt    \"MPI event type\"			\n\
 3       S       T       \"Thread State\"                        \n\
 3       CtS     MPICt    \"Communication Thread State\"          \n");
