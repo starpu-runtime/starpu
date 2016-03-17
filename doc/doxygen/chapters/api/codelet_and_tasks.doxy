@@ -450,6 +450,10 @@ should either define this field or the field starpu_task::modes defined above.
 Optional pointer which is passed to the codelet through the second
 argument of the codelet implementation (e.g. starpu_codelet::cpu_func
 or starpu_codelet::cuda_func). The default value is <c>NULL</c>.
+starpu_codelet_pack_args() and starpu_codelet_unpack_args() are helpers that can
+can be used to respectively pack and unpack data into and from it, but the
+application can manage it any way, the only requirement is that the size of the
+data must be set in starpu_task:cl_arg_size .
 
 \var size_t starpu_task::cl_arg_size
 Optional field. For some specific drivers, the pointer
