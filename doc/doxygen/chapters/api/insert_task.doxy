@@ -131,7 +131,9 @@ starpu_codelet_unpack_args().
 \fn void starpu_codelet_unpack_args(void *cl_arg, ...)
 \ingroup API_Insert_Task
 Retrieve the arguments of type ::STARPU_VALUE associated to a
-task automatically created using the function starpu_task_insert().
+task automatically created using the function starpu_task_insert(). If
+some parameter is NULL, unpacking will stop there and ignore the remaining
+parameters.
 
 \fn struct starpu_task *starpu_task_build(struct starpu_codelet *cl, ...)
 \ingroup API_Insert_Task
