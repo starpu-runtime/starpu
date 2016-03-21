@@ -62,6 +62,7 @@ struct starpu_perfmodel_history_entry
 	double flops;
 
 	double duration;
+	starpu_tag_t tag;
 	double *parameters;
 };
 

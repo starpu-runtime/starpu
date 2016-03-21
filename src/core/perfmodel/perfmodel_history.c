@@ -295,7 +295,7 @@ static void dump_reg_model(FILE *f, struct starpu_perfmodel *model, int comb, in
 			reg_model->ncoeff = model->ncombinations + 1;
 
 		reg_model->coeff = (double *) malloc(reg_model->ncoeff*sizeof(double));
-		_starpu_multiple_regression(per_arch_model->list, reg_model->coeff, reg_model->ncoeff, model->nparameters, model->combinations);
+		_starpu_multiple_regression(per_arch_model->list, reg_model->coeff, reg_model->ncoeff, model->nparameters, model->combinations, model->symbol);
 
 		fprintf(f, "# n\tintercept\t");
 		for (int i=0; i < model->ncombinations; i++)
@@ -1582,6 +1582,7 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 
 			entry->parameters = (double *) malloc(model->nparameters*sizeof(double));
 			model->parameters(j->task, entry->parameters);
+			entry->tag = j->task->tag_id;
 			entry->duration = measured;
 
 			struct starpu_perfmodel_history_list *link;

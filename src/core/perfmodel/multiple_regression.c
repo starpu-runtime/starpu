@@ -19,23 +19,53 @@
 
 #include <core/perfmodel/multiple_regression.h>
 
+#define PRINT 1
+
 typedef struct { int h, w; double *x;} matrix_t, *matrix;
 
-static void dump_multiple_regression_list(double *mx, double *my, unsigned ncoeff, unsigned nparameters, unsigned **combinations, struct starpu_perfmodel_history_list *list_history)
+static void dump_multiple_regression_list(double *mx, double *my, unsigned ncoeff, unsigned nparameters, unsigned **combinations, char *codelet_name, struct starpu_perfmodel_history_list *list_history)
 {
 	struct starpu_perfmodel_history_list *ptr = list_history;
 	unsigned i = 0;
 
+	FILE *f;
+	if (PRINT)
+	{
+		char filepath[50];
+		snprintf(filepath, 50, "/tmp/%s.out", codelet_name);
+
+		f = fopen(filepath, "w+");
+		STARPU_ASSERT_MSG(f, "Could not save performance model %s\n", filepath);
+		fprintf(f, "Duration, TAG");
+		for(int k=0; k < nparameters; k++)
+		{
+			fprintf(f, ", P%d", k);
+		}
+	}
+
 	while (ptr)
 	{
+		my[i] = ptr->entry->duration;
+
+		if (PRINT)
+			fprintf(f, "\n%f, %llu", my[i], ptr->entry->tag);
+
 		mx[i*ncoeff] = 1.;
 		for(int j=0; j<ncoeff-1; j++)
 		{
 			mx[i*ncoeff+j+1] = 1.;
 			for(int k=0; k < nparameters; k++)
+			{
 				mx[i*ncoeff+j+1] *= pow(ptr->entry->parameters[k],combinations[j][k]);
+			}
 		}
-		my[i] = ptr->entry->duration;
+		if (PRINT)
+		{
+			for(int k=0; k < nparameters; k++)
+			{
+				fprintf(f, ", %f", ptr->entry->parameters[k]);
+			}
+		}
 
 		ptr = ptr->next;
 		i++;
@@ -408,7 +438,7 @@ int test_multiple_regression()
 
 }
 
-int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, double *coeff, unsigned ncoeff, unsigned nparameters, unsigned **combinations)
+int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, double *coeff, unsigned ncoeff, unsigned nparameters, unsigned **combinations, char *codelet_name)
 {
 	long n = find_long_list_size(ptr);
 	STARPU_ASSERT(n);
@@ -419,7 +449,7 @@ int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, doubl
 	double *my = (double *) malloc(n*sizeof(double));
 	STARPU_ASSERT(my);
 
-	dump_multiple_regression_list(mx, my, ncoeff, nparameters, combinations, ptr);
+	dump_multiple_regression_list(mx, my, ncoeff, nparameters, combinations, codelet_name, ptr);
 
 	multiple_reg_coeff(mx, my, n, ncoeff, coeff);
 
