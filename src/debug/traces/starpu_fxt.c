@@ -2810,12 +2810,29 @@ void _starpu_fxt_tasks_file_init(struct starpu_fxt_options *options)
 }
 
 static
+void _starpu_fxt_write_trace_header(FILE *f)
+{
+	fprintf(f, "#\n");
+	fprintf(f, "# E: Event type\n");
+	fprintf(f, "# N: Event name\n");
+	fprintf(f, "# C: Event category\n");
+	fprintf(f, "# W: Worker ID\n");
+	fprintf(f, "# T: Thread ID\n");
+	fprintf(f, "# S: Start time\n");
+	fprintf(f, "#\n");
+	fprintf(f, "\n");
+}
+
+static
 void _starpu_fxt_trace_file_init(struct starpu_fxt_options *options)
 {
 	if (options->states_path)
 		trace_file = fopen(options->states_path, "w+");
 	else
 		trace_file = NULL;
+
+	if (trace_file)
+		_starpu_fxt_write_trace_header(trace_file);
 }
 
 static
