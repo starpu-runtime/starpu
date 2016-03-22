@@ -395,6 +395,17 @@ pj_dump) is to use the starpu_trace_state_stats.py script which parses the
 generated trace.rec file instead of the paje.trace file. The output is similar
 to the previous script but it doesn't need any dependencies.
 
+The different prefixes used in trace.rec are:
+
+\verbatim
+E: Event type
+N: Event name
+C: Event category
+W: Worker ID
+T: Thread ID
+S: Start time
+\endverbatim
+
 Here's an example how to use it:
 
 \verbatim
