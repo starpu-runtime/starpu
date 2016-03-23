@@ -167,10 +167,20 @@ static __starpu_inline unsigned starpu_xchg(unsigned *ptr, unsigned next)
 #define STARPU_HAVE_XCHG
 
 #if defined(__i386__)
-#define starpu_cmpxchgl starpu_cmpxchg
-#define starpu_xchgl starpu_xchg
+static __starpu_inline unsigned long starpu_cmpxchgl(unsigned long *ptr, unsigned long old, unsigned long next)
+{
+	__asm__ __volatile__("lock cmpxchgl %2,%1": "+a" (old), "+m" (*ptr) : "q" (next) : "memory");
+	return old;
+}
+static __starpu_inline unsigned long starpu_xchgl(unsigned long *ptr, unsigned long next)
+{
+	/* Note: xchg is always locked already */
+	__asm__ __volatile__("xchgl %1,%0": "+m" (*ptr), "+q" (next) : : "memory");
+	return next;
+}
 #define STARPU_HAVE_XCHGL
 #endif
+
 #if defined(__x86_64__)
 static __starpu_inline unsigned long starpu_cmpxchgl(unsigned long *ptr, unsigned long old, unsigned long next)
 {
@@ -185,6 +195,7 @@ static __starpu_inline unsigned long starpu_xchgl(unsigned long *ptr, unsigned l
 }
 #define STARPU_HAVE_XCHGL
 #endif
+
 #endif
 
 #define STARPU_ATOMIC_SOMETHING(name,expr) \
