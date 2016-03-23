@@ -219,7 +219,7 @@ static __starpu_inline unsigned long starpu_atomic_##name##l(unsigned long *ptr,
 	{ \
 		old = *ptr; \
 		next = expr; \
-		if (starpu_cmpxchg(ptr, old, next) == old) \
+		if (starpu_cmpxchgl(ptr, old, next) == old) \
 			break; \
 	}; \
 	return expr; \
