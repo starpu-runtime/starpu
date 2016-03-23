@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2011, 2012, 2014, 2015  CNRS
- * Copyright (C) 2010-2015  Université de Bordeaux
+ * Copyright (C) 2010-2016  Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -290,11 +290,17 @@ int _starpu_opencl_compile_or_load_opencl_from_string(const char *opencl_program
 		{
 			cl_build_status status;
 			size_t len;
-			static char buffer[4096] = "";
 
-			clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, sizeof(buffer), buffer, &len);
+			clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, 0, NULL, &len);
 			if (len > 2)
+			{
+				char *buffer = malloc(len);
+
+				clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, len, buffer, &len);
 				_STARPU_DISP("Compilation output\n%s\n", buffer);
+
+				free(buffer);
+			}
 
 			clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_STATUS, sizeof(status), &status, NULL);
 			if (err != CL_SUCCESS || status != CL_BUILD_SUCCESS)
@@ -364,7 +370,10 @@ int _starpu_opencl_compile_or_load_opencl_from_file(const char *source_file_name
 	char located_file_name[1024];
 	char located_dir_name[1024];
 	char new_build_options[1024];
-	char opencl_program_source[16384];
+#ifdef STARPU_DEVEL
+#warning Use dynamic allocation
+#endif
+	char opencl_program_source[256*1024];
 
 	// Do not try to load and compile the file if there is no devices
 	nb_devices = starpu_opencl_worker_get_count();
