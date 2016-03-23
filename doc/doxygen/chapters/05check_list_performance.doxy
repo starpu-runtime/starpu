@@ -312,4 +312,35 @@ Statistics on the execution can then be obtained by using <c>export
 STARPU_BUS_STATS=1</c> and <c>export STARPU_WORKER_STATS=1</c> .
  More details on performance feedback are provided in the next chapter.
 
+\section OverheadProfiling Overhead Profiling
+
+\ref OfflinePerformanceTools can already provide an idea of to what extent and
+which part of StarPU bring overhead on the execution time. To get a more precise
+analysis of the parts of StarPU which bring most overhead, gprof can be used.
+
+First, recompile and reinstall StarPU with gprof support:
+
+\code
+./configure --enable-perf-debug --disable-shared --disable-build-tests --disable-build-examples
+\endcode
+
+Make sure not to leave a dynamic version of StarPU in the target path: remove
+any remaining libstarpu-*.so
+
+Then relink your application with the static StarPU library, make sure that
+running ldd on your application does not mention libstarpu (i.e. it's really statically-linked).
+
+\code
+gcc test.c -o test $(pkg-config --cflags starpu-1.3) $(pkg-config --libs starpu-1.3)
+\endcode
+
+Now you can run your application, and a gmon.out file should appear in the
+current directory, you can process by running gprof on your application:
+
+\code
+gprof ./test
+\endcode
+
+That will dump an analysis of the time spent in StarPU functions.
+
 */
