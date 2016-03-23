@@ -82,6 +82,10 @@ AC_CHECK_PROGS(PROG_STAT,gstat stat)
 AC_CHECK_PROGS(PROG_DATE,gdate date)
 AC_OPENMP
 
+if test x$enable_perf_debug = xyes; then
+    enable_shared=no
+fi
+
 LT_PREREQ([2.2])
 LT_INIT([win32-dll])
 
