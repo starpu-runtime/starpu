@@ -1469,12 +1469,6 @@ unsigned _starpu_sched_ctx_allow_hypervisor(unsigned sched_ctx_id)
 	return 0;
 }
 
-unsigned _starpu_get_nsched_ctxs()
-{
-	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
-	return config->topology.nsched_ctxs;
-}
-
 void starpu_sched_ctx_set_policy_data(unsigned sched_ctx_id, void* policy_data)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);

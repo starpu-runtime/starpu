@@ -1792,6 +1792,11 @@ unsigned starpu_worker_is_combined_worker(int id)
 	return id >= (int)config.topology.nworkers;
 }
 
+unsigned _starpu_get_nsched_ctxs()
+{
+	return config.topology.nsched_ctxs;
+}
+
 struct _starpu_sched_ctx *_starpu_get_sched_ctx_struct(unsigned id)
 {
 	if(id == STARPU_NMAX_SCHED_CTXS) return NULL;
