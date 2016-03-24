@@ -50,9 +50,9 @@ void _starpu_wake_all_blocked_workers_on_node(unsigned nodeid)
 		condition  = &descr->conditions_attached_to_node[nodeid][cond_id];
 
 		/* wake anybody waiting on that condition */
-		STARPU_PTHREAD_MUTEX_LOCK(condition->mutex);
+		STARPU_PTHREAD_MUTEX_LOCK_SCHED(condition->mutex);
 		STARPU_PTHREAD_COND_BROADCAST(condition->cond);
-		STARPU_PTHREAD_MUTEX_UNLOCK(condition->mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(condition->mutex);
 	}
 
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&descr->conditions_rwlock);
@@ -78,9 +78,9 @@ void starpu_wake_all_blocked_workers(void)
 		condition  = &descr->conditions_all[cond_id];
 
 		/* wake anybody waiting on that condition */
-		STARPU_PTHREAD_MUTEX_LOCK(condition->mutex);
+		STARPU_PTHREAD_MUTEX_LOCK_SCHED(condition->mutex);
 		STARPU_PTHREAD_COND_BROADCAST(condition->cond);
-		STARPU_PTHREAD_MUTEX_UNLOCK(condition->mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(condition->mutex);
 	}
 
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&descr->conditions_rwlock);

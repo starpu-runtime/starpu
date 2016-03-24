@@ -512,14 +512,14 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	worker = _starpu_get_local_worker_key();
 	if (worker)
 	{
-		STARPU_PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
+		STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
 
 		if(worker->removed_from_ctx[sched_ctx] == 1 && worker->shares_tasks_lists[sched_ctx] == 1)
 		{
 			_starpu_worker_gets_out_of_ctx(sched_ctx, worker);
 			worker->removed_from_ctx[sched_ctx] = 0;
 		}
-		STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 	}
 }
 
@@ -712,7 +712,7 @@ int _starpu_push_local_task(struct _starpu_worker *worker, struct starpu_task *t
 	if (STARPU_UNLIKELY(!(worker->worker_mask & task->cl->where)))
 		return -ENODEV;
 
-	STARPU_PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
 
 	if (task->execute_on_a_specific_worker && task->workerorder)
 	{
@@ -754,7 +754,7 @@ int _starpu_push_local_task(struct _starpu_worker *worker, struct starpu_task *t
 
 	starpu_wake_worker_locked(worker->workerid);
 	starpu_push_task_end(task);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 
 	return 0;
 }

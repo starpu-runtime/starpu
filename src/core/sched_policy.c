@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2015  Université de Bordeaux
+ * Copyright (C) 2010-2016  Université de Bordeaux
  * Copyright (C) 2010-2015  CNRS
  * Copyright (C) 2011  INRIA
  *
@@ -892,7 +892,7 @@ pick:
 	 * We do have a task that uses multiformat handles. Let's create the
 	 * required conversion tasks.
 	 */
-	STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 	unsigned i;
 	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
 	for (i = 0; i < nbuffers; i++)
@@ -916,7 +916,7 @@ pick:
 
 	task->mf_skip = 1;
 	starpu_task_list_push_back(&worker->local_tasks, task);
-	STARPU_PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
 	goto pick;
 
 profiling:
@@ -988,7 +988,7 @@ void _starpu_wait_on_sched_event(void)
 {
 	struct _starpu_worker *worker = _starpu_get_local_worker_key();
 
-	STARPU_PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
 
 	_starpu_handle_all_pending_node_data_requests(worker->memory_node);
 
@@ -1000,7 +1000,7 @@ void _starpu_wait_on_sched_event(void)
 #endif
 	}
 
-	STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 }
 
 /* The scheduling policy may put tasks directly into a worker's local queue so

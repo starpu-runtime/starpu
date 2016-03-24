@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012-2015  Université de Bordeaux
+ * Copyright (C) 2010, 2012-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -545,9 +545,6 @@ int starpu_pthread_mutex_lock(starpu_pthread_mutex_t *mutex)
 	_STARPU_TRACE_LOCKING_MUTEX();
 
 	int p_ret = pthread_mutex_lock(mutex);
-	int workerid = starpu_worker_get_id();
-	if(workerid != -1 && _starpu_worker_mutex_is_sched_mutex(workerid, mutex))
-		_starpu_worker_set_flag_sched_mutex_locked(workerid, 1);
 
 	_STARPU_TRACE_MUTEX_LOCKED();
 
@@ -559,9 +556,6 @@ int starpu_pthread_mutex_unlock(starpu_pthread_mutex_t *mutex)
 	_STARPU_TRACE_UNLOCKING_MUTEX();
 
 	int p_ret = pthread_mutex_unlock(mutex);
-	int workerid = starpu_worker_get_id();
-	if(workerid != -1 && _starpu_worker_mutex_is_sched_mutex(workerid, mutex))
-		_starpu_worker_set_flag_sched_mutex_locked(workerid, 0);
 
 	_STARPU_TRACE_MUTEX_UNLOCKED();
 
@@ -653,6 +647,48 @@ int starpu_pthread_rwlock_unlock(starpu_pthread_rwlock_t *rwlock)
 	_STARPU_TRACE_RWLOCK_UNLOCKED();
 
 	return p_ret;
+}
+#endif
+
+/* "sched" variants, to be used (through the STARPU_PTHREAD_MUTEX_*LOCK_SCHED
+ * macros of course) which record when the mutex is held or not */
+int starpu_pthread_mutex_lock_sched(starpu_pthread_mutex_t *mutex)
+{
+	int p_ret = starpu_pthread_mutex_lock(mutex);
+	int workerid = starpu_worker_get_id();
+	if(workerid != -1 && _starpu_worker_mutex_is_sched_mutex(workerid, mutex))
+		_starpu_worker_set_flag_sched_mutex_locked(workerid, 1);
+	return p_ret;
+}
+
+int starpu_pthread_mutex_unlock_sched(starpu_pthread_mutex_t *mutex)
+{
+	int workerid = starpu_worker_get_id();
+	if(workerid != -1 && _starpu_worker_mutex_is_sched_mutex(workerid, mutex))
+		_starpu_worker_set_flag_sched_mutex_locked(workerid, 0);
+
+	return starpu_pthread_mutex_unlock(mutex);
+}
+
+int starpu_pthread_mutex_trylock_sched(starpu_pthread_mutex_t *mutex)
+{
+	int ret = starpu_pthread_mutex_trylock(mutex);
+
+	if (!ret)
+	{
+		int workerid = starpu_worker_get_id();
+		if(workerid != -1 && _starpu_worker_mutex_is_sched_mutex(workerid, mutex))
+			_starpu_worker_set_flag_sched_mutex_locked(workerid, 1);
+	}
+
+	return ret;
+}
+
+#ifdef STARPU_DEBUG
+void starpu_pthread_mutex_check_sched(starpu_pthread_mutex_t *mutex, char *file, int line)
+{
+	int workerid = starpu_worker_get_id();
+	STARPU_ASSERT_MSG(workerid == -1 || !_starpu_worker_mutex_is_sched_mutex(workerid, mutex), "%s:%d is locking/unlocking a sched mutex but not using STARPU_PTHREAD_MUTEX_LOCK_SCHED", file, line);
 }
 #endif
 

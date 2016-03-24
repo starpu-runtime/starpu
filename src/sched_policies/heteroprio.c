@@ -469,7 +469,7 @@ static struct starpu_task *pop_task_heteroprio_policy(unsigned sched_ctx_id)
 	starpu_worker_get_sched_condition(workerid, &worker_sched_mutex, &worker_sched_cond);
 
 	/* Note: Releasing this mutex before taking the victim mutex, to avoid interlock*/
-	STARPU_PTHREAD_MUTEX_UNLOCK(worker_sched_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(worker_sched_mutex);
 
 	STARPU_PTHREAD_MUTEX_LOCK(&hp->policy_mutex);
 
@@ -586,7 +586,7 @@ static struct starpu_task *pop_task_heteroprio_policy(unsigned sched_ctx_id)
 					starpu_worker_get_sched_condition(victim, &victim_sched_mutex, &victim_sched_cond);
 
 					/* ensure the worker is not currently prefetching its data */
-					STARPU_PTHREAD_MUTEX_LOCK(victim_sched_mutex);
+					STARPU_PTHREAD_MUTEX_LOCK_SCHED(victim_sched_mutex);
 
 					if(hp->workers_heteroprio[victim].arch_index == worker->arch_index
 					   && hp->workers_heteroprio[victim].tasks_queue->ntasks)
@@ -596,10 +596,10 @@ static struct starpu_task *pop_task_heteroprio_policy(unsigned sched_ctx_id)
 						/* we steal a task update global counter */
 						hp->nb_prefetched_tasks_per_arch_index[hp->workers_heteroprio[victim].arch_index] -= 1;
 
-						STARPU_PTHREAD_MUTEX_UNLOCK(victim_sched_mutex);
+						STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(victim_sched_mutex);
 						goto done;
 					}
-					STARPU_PTHREAD_MUTEX_UNLOCK(victim_sched_mutex);
+					STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(victim_sched_mutex);
 				}
 			}
 		}
@@ -613,7 +613,7 @@ done:		;
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&hp->policy_mutex);
 
-	STARPU_PTHREAD_MUTEX_LOCK(worker_sched_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK_SCHED(worker_sched_mutex);
 	if(task)
 	{
 		unsigned child_sched_ctx = starpu_sched_ctx_worker_is_master_for_child_ctx(workerid, sched_ctx_id);

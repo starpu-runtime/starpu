@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2015  Université de Bordeaux
+ * Copyright (C) 2010-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2014  INRIA
@@ -338,7 +338,7 @@ static void _starpu_exponential_backoff(struct _starpu_worker *worker)
 /* Workers may block when there is no work to do at all. */
 struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int workerid, unsigned memnode)
 {
-	STARPU_PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
 	struct starpu_task *task;
 	unsigned needed = 1;
 	unsigned executing = 0;
@@ -366,7 +366,7 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 					/* don't let the worker sleep with the sched_mutex taken */
 					/* we need it until here bc of the list of ctxs of the workers
 					   that can change in another thread */
-					STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
+					STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 					needed = 0;
 					_starpu_sched_ctx_signal_worker_blocked(sched_ctx->id, workerid);
 					sched_ctx->busy[workerid] = 1;
@@ -375,7 +375,7 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 					STARPU_PTHREAD_COND_SIGNAL(&sched_ctx->parallel_sect_cond_busy[workerid]);
 					_starpu_sched_ctx_signal_worker_woke_up(sched_ctx->id, workerid);
 					sched_ctx->parallel_sect[workerid] = 0;
-					STARPU_PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
+					STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
 				}
 				STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->parallel_sect_mutex[workerid]);
 			}
@@ -390,7 +390,7 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 			if(sched_ctx->parallel_sect[workerid])
 			{
 //				needed = 0;
-				STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
+				STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 				_starpu_sched_ctx_signal_worker_blocked(sched_ctx->id, workerid);
 				sched_ctx->busy[workerid] = 1;
 				STARPU_PTHREAD_COND_WAIT(&sched_ctx->parallel_sect_cond[workerid], &sched_ctx->parallel_sect_mutex[workerid]);
@@ -398,7 +398,7 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 				STARPU_PTHREAD_COND_SIGNAL(&sched_ctx->parallel_sect_cond_busy[workerid]);
 				_starpu_sched_ctx_signal_worker_woke_up(sched_ctx->id, workerid);
 				sched_ctx->parallel_sect[workerid] = 0;
-				STARPU_PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
+				STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
 			}
 			STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->parallel_sect_mutex[workerid]);
 		}
@@ -435,11 +435,11 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 				)
 		{
 			STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
-			STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
+			STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 		}
 		else
 		{
-			STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
+			STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 			if (_starpu_machine_is_running())
 			{
 				_starpu_exponential_backoff(worker);
@@ -464,7 +464,7 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 	_starpu_worker_set_status_wakeup(workerid);
 	worker->spinning_backoff = BACKOFF_MIN;
 
-	STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 
 
 #ifdef HAVE_AYUDAME_H
@@ -492,7 +492,7 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 #ifndef STARPU_NON_BLOCKING_DRIVERS
 	/* This assumes only 1 worker */
 	STARPU_ASSERT_MSG(nworkers == 1, "Multiple workers is not yet possible in blocking drivers mode\n");
-	STARPU_PTHREAD_MUTEX_LOCK(&workers[0].sched_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK_SCHED(&workers[0].sched_mutex);
 #endif
 	for (i = 0; i < nworkers; i++)
 	{
@@ -514,7 +514,7 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 		else
 		{
 #ifdef STARPU_NON_BLOCKING_DRIVERS
-			STARPU_PTHREAD_MUTEX_LOCK(&workers[i].sched_mutex);
+			STARPU_PTHREAD_MUTEX_LOCK_SCHED(&workers[i].sched_mutex);
 #endif
 			_starpu_worker_set_status_scheduling(workers[i].workerid);
 			_starpu_set_local_worker_key(&workers[i]);
@@ -524,7 +524,7 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 				_starpu_worker_set_status_scheduling_done(workers[i].workerid);
 				_starpu_worker_set_status_wakeup(workers[i].workerid);
 #ifdef STARPU_NON_BLOCKING_DRIVERS
-				STARPU_PTHREAD_MUTEX_UNLOCK(&workers[i].sched_mutex);
+				STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&workers[i].sched_mutex);
 #endif
 
 				count ++;
@@ -568,7 +568,7 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 			{
 				_starpu_worker_set_status_sleeping(workers[i].workerid);
 #ifdef STARPU_NON_BLOCKING_DRIVERS
-				STARPU_PTHREAD_MUTEX_UNLOCK(&workers[i].sched_mutex);
+				STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&workers[i].sched_mutex);
 #endif
 			}
 		}
@@ -597,11 +597,11 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 				)
 		{
 			STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
-			STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
+			STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 		}
 		else
 		{
-			STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
+			STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 			if (_starpu_machine_is_running())
 			{
 				_starpu_exponential_backoff(worker);
@@ -623,7 +623,7 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 	worker->spinning_backoff = BACKOFF_MIN;
 #endif /* STARPU_SIMGRID */
 
-	STARPU_PTHREAD_MUTEX_UNLOCK(&workers[0].sched_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&workers[0].sched_mutex);
 #endif /* !STARPU_NON_BLOCKING_DRIVERS */
 
 	return count;

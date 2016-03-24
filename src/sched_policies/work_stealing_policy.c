@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2015  Université de Bordeaux
+ * Copyright (C) 2010-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  CNRS
  * Copyright (C) 2011, 2012  INRIA
  *
@@ -279,7 +279,7 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 	starpu_worker_get_sched_condition(workerid, &worker_sched_mutex, &worker_sched_cond);
 
 	/* Note: Releasing this mutex before taking the victim mutex, to avoid interlock*/
-	STARPU_PTHREAD_MUTEX_UNLOCK(worker_sched_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(worker_sched_mutex);
        
 
 	/* we need to steal someone's job */
@@ -289,7 +289,7 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 	starpu_pthread_cond_t *victim_sched_cond;
 
 	starpu_worker_get_sched_condition(victim, &victim_sched_mutex, &victim_sched_cond);
-	STARPU_PTHREAD_MUTEX_LOCK(victim_sched_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK_SCHED(victim_sched_mutex);
 
 	task = _starpu_fifo_pop_task(ws->queue_array[victim], workerid);
 	if (task)
@@ -297,9 +297,9 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 		_STARPU_TRACE_WORK_STEALING(workerid, victim);
 	}
 
-	STARPU_PTHREAD_MUTEX_UNLOCK(victim_sched_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(victim_sched_mutex);
 
-	STARPU_PTHREAD_MUTEX_LOCK(worker_sched_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK_SCHED(worker_sched_mutex);
 	if(!task)
 	{
 		task = _starpu_fifo_pop_task(ws->queue_array[workerid], workerid);
@@ -330,7 +330,7 @@ int ws_push_task(struct starpu_task *task)
 	starpu_pthread_mutex_t *sched_mutex;
 	starpu_pthread_cond_t *sched_cond;
 	starpu_worker_get_sched_condition(workerid, &sched_mutex, &sched_cond);
-	STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK_SCHED(sched_mutex);
 
 #ifdef HAVE_AYUDAME_H
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
@@ -345,7 +345,7 @@ int ws_push_task(struct starpu_task *task)
 
 	starpu_push_task_end(task);
 
-	STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(sched_mutex);
 
 #if !defined(STARPU_NON_BLOCKING_DRIVERS) || defined(STARPU_SIMGRID)
 	/* TODO: implement fine-grain signaling, similar to what eager does */

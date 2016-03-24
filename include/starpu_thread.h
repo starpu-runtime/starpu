@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012-2015  Université de Bordeaux
+ * Copyright (C) 2010, 2012-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -108,6 +108,11 @@ int starpu_pthread_mutex_trylock(starpu_pthread_mutex_t *mutex);
 #define STARPU_PTHREAD_MUTEX_INITIALIZER PTHREAD_MUTEX_INITIALIZER
 
 #endif /* STARPU_SIMGRID, _MSC_VER */
+
+int starpu_pthread_mutex_lock_sched(starpu_pthread_mutex_t *mutex);
+int starpu_pthread_mutex_unlock_sched(starpu_pthread_mutex_t *mutex);
+int starpu_pthread_mutex_trylock_sched(starpu_pthread_mutex_t *mutex);
+void starpu_pthread_mutex_check_sched(starpu_pthread_mutex_t *mutex, char *file, int line);
 
 /*
  * Encapsulation of the pthread_key_* functions.

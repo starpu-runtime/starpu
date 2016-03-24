@@ -212,7 +212,7 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 	starpu_pthread_mutex_t *curr_sched_mutex;
 	starpu_pthread_cond_t *curr_sched_cond;
 	starpu_worker_get_sched_condition(workerid, &curr_sched_mutex, &curr_sched_cond);
-	STARPU_PTHREAD_MUTEX_UNLOCK(curr_sched_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(curr_sched_mutex);
 	
 	/* all workers will block on this mutex anyway so 
 	   there's no need for their own mutex to be locked */
@@ -278,7 +278,7 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 
 	/* leave the mutex how it was found before this */
-	STARPU_PTHREAD_MUTEX_LOCK(curr_sched_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK_SCHED(curr_sched_mutex);
 
 	if(chosen_task)
 	{
