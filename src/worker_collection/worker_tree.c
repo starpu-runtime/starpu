@@ -312,7 +312,7 @@ static void tree_init_iterator(struct starpu_worker_collection *workers, struct 
 
 static void tree_init_iterator_for_parallel_tasks(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it, struct starpu_task *task)
 {
-	if (_starpu_get_nsched_ctxs() == 1)
+	if (_starpu_get_nsched_ctxs() <= 1)
 	{
 		tree_init_iterator(workers, it);
 		return;

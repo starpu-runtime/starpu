@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012, 2014-2015  Université de Bordeaux
+ * Copyright (C) 2009-2012, 2014-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2013  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -69,8 +69,25 @@ struct _starpu_memory_node_descr
 
 void _starpu_memory_nodes_init(void);
 void _starpu_memory_nodes_deinit(void);
-void _starpu_memory_node_set_local_key(unsigned *node);
-unsigned _starpu_memory_node_get_local_key(void);
+extern starpu_pthread_key_t _starpu_memory_node_key STARPU_ATTRIBUTE_INTERNAL;
+static inline void _starpu_memory_node_set_local_key(unsigned *node)
+{
+	STARPU_PTHREAD_SETSPECIFIC(_starpu_memory_node_key, node);
+}
+
+static inline unsigned _starpu_memory_node_get_local_key(void)
+{
+	unsigned *memory_node;
+	memory_node = (unsigned *) STARPU_PTHREAD_GETSPECIFIC(_starpu_memory_node_key);
+
+	/* in case this is called by the programmer, we assume the RAM node
+	   is the appropriate memory node ... XXX */
+	if (STARPU_UNLIKELY(!memory_node))
+		return STARPU_MAIN_RAM;
+
+	return *memory_node;
+}
+
 void _starpu_memory_node_add_nworkers(unsigned node);
 unsigned _starpu_memory_node_get_nworkers(unsigned node);
 #ifdef STARPU_SIMGRID

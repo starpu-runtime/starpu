@@ -285,19 +285,6 @@ int _starpu_task_test_termination(struct starpu_task *task)
 }
 #endif
 
-struct _starpu_job *_starpu_get_job_associated_to_task(struct starpu_task *task)
-{
-	STARPU_ASSERT(task);
-
-	if (!task->starpu_private)
-	{
-		struct _starpu_job *j = _starpu_job_create(task);
-		task->starpu_private = j;
-	}
-
-	return (struct _starpu_job *)task->starpu_private;
-}
-
 /* NB in case we have a regenerable task, it is possible that the job was
  * already counted. */
 int _starpu_submit_job(struct _starpu_job *j)
