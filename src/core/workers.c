@@ -381,7 +381,7 @@ int starpu_worker_can_execute_task_first_impl(unsigned workerid, struct starpu_t
 	{
 		for (i = 0; i < STARPU_MAXIMPLEMENTATIONS; i++)
 			if (_starpu_can_use_nth_implementation(arch, cl, i)
-			 && (!task->cl->can_execute || task->cl->can_execute(workerid, task, i)))
+			 && task->cl->can_execute(workerid, task, i))
 			{
 				if (nimpl)
 					*nimpl = i;
