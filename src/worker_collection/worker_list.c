@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2014  Université de Bordeaux
+ * Copyright (C) 2013-2014, 2016  Université de Bordeaux
  * Copyright (C) 2012-2013  CNRS
  * Copyright (C) 2011-2013  INRIA
  *
@@ -17,6 +17,7 @@
  */
 
 #include <starpu.h>
+#include "core/workers.h"
 
 static unsigned list_has_next_unblocked_worker(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it)
 {
@@ -267,6 +268,9 @@ static void list_init_iterator(struct starpu_worker_collection *workers, struct 
 static void list_init_iterator_for_parallel_tasks(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it, struct starpu_task *task)
 {
 	list_init_iterator(workers, it);
+	if (_starpu_get_nsched_ctxs() == 1)
+		return;
+
 	it->possibly_parallel = task->possibly_parallel; /* 0/1 => this field indicates if we consider masters only or slaves not blocked too */
 
 	int *workerids = (int *)workers->workerids;

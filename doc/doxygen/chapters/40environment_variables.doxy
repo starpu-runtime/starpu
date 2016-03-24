@@ -214,6 +214,13 @@ starpu_conf::use_explicit_workers_scc_deviceid passed to starpu_init()
 is set.
 </dd>
 
+<dt>STARPU_WORKER_TREE</dt>
+<dd>
+\anchor STARPU_WORKER_TREE
+\addindex __env__STARPU_WORKER_TREE
+Define to 1 to enable the tree iterator in schedulers.
+</dd>
+
 <dt>STARPU_SINGLE_COMBINED_WORKER</dt>
 <dd>
 \anchor STARPU_SINGLE_COMBINED_WORKER

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013  Université de Bordeaux
+ * Copyright (C) 2013, 2016  Université de Bordeaux
  * Copyright (C) 2012-2014  CNRS
  * Copyright (C) 2011-2013  INRIA
  *
@@ -312,6 +312,11 @@ static void tree_init_iterator(struct starpu_worker_collection *workers, struct 
 
 static void tree_init_iterator_for_parallel_tasks(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it, struct starpu_task *task)
 {
+	if (_starpu_get_nsched_ctxs() == 1)
+	{
+		tree_init_iterator(workers, it);
+		return;
+	}
 	tree_init_iterator(workers, it);
 	it->possibly_parallel = task->possibly_parallel;
 	int i;

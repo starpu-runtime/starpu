@@ -533,9 +533,5 @@ struct starpu_sched_policy _starpu_sched_lws_policy =
 	.pop_every_task = NULL,
 	.policy_name = "lws",
 	.policy_description = "locality work stealing",
-#ifdef STARPU_HAVE_HWLOC
-	.worker_type = STARPU_WORKER_TREE,
-#else
 	.worker_type = STARPU_WORKER_LIST,
-#endif
 };

@@ -220,9 +220,5 @@ struct starpu_sched_policy _starpu_sched_eager_policy =
 	.pop_every_task = pop_every_task_eager_policy,
 	.policy_name = "eager",
 	.policy_description = "eager policy with a central queue",
-#ifdef STARPU_HAVE_HWLOC
-	.worker_type = STARPU_WORKER_TREE,
-#else
 	.worker_type = STARPU_WORKER_LIST,
-#endif
 };

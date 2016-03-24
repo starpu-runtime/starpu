@@ -661,9 +661,5 @@ struct starpu_sched_policy _starpu_sched_heteroprio_policy =
 	.pop_every_task = NULL,
         .policy_name = "heteroprio",
         .policy_description = "heteroprio",
-#ifdef STARPU_HAVE_HWLOC
-	.worker_type = STARPU_WORKER_TREE,
-#else
 	.worker_type = STARPU_WORKER_LIST,
-#endif
 };

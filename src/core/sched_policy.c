@@ -188,6 +188,14 @@ void _starpu_init_sched_policy(struct _starpu_machine_config *config, struct _st
 
 	load_sched_policy(selected_policy, sched_ctx);
 
+	if (starpu_get_env_number_default("STARPU_WORKER_TREE", 0))
+	{
+#ifdef STARPU_HAVE_HWLOC
+		sched_ctx->sched_policy->worker_type = STARPU_WORKER_TREE;
+#else
+		_STARPU_DISP("STARPU_WORKER_TREE ignored, please rebuild StarPU with hwloc support to enable it.");
+#endif
+	}
 	starpu_sched_ctx_create_worker_collection(sched_ctx->id,
 						  sched_ctx->sched_policy->worker_type);
 
