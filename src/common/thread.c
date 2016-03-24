@@ -570,13 +570,7 @@ int starpu_pthread_mutex_trylock(starpu_pthread_mutex_t *mutex)
 	ret = pthread_mutex_trylock(mutex);
 
 	if (!ret)
-	{
-		int workerid = starpu_worker_get_id();
-		if(workerid != -1 && _starpu_worker_mutex_is_sched_mutex(workerid, mutex))
-			_starpu_worker_set_flag_sched_mutex_locked(workerid, 1);
-
 		_STARPU_TRACE_MUTEX_LOCKED();
-	}
 
 	return ret;
 }
