@@ -539,6 +539,7 @@ int starpu_pthread_barrier_wait(starpu_pthread_barrier_t *barrier)
 }
 #endif /* defined(STARPU_SIMGRID) || !defined(STARPU_HAVE_PTHREAD_BARRIER) */
 
+#ifdef STARPU_FXT_LOCK_TRACES
 #if !defined(STARPU_SIMGRID) && !defined(_MSC_VER) /* !STARPU_SIMGRID */
 int starpu_pthread_mutex_lock(starpu_pthread_mutex_t *mutex)
 {
@@ -642,7 +643,23 @@ int starpu_pthread_rwlock_unlock(starpu_pthread_rwlock_t *rwlock)
 
 	return p_ret;
 }
-#endif
+#endif /* !defined(STARPU_SIMGRID) && !defined(_MSC_VER) */
+
+#if !defined(STARPU_SIMGRID) && !defined(_MSC_VER) && defined(STARPU_HAVE_PTHREAD_BARRIER)
+int starpu_pthread_barrier_wait(starpu_pthread_barrier_t *barrier)
+{
+	int ret;
+	_STARPU_TRACE_BARRIER_WAIT_BEGIN();
+
+	ret = pthread_barrier_wait(barrier);
+
+	_STARPU_TRACE_BARRIER_WAIT_END();
+
+	return ret;
+}
+#endif /* STARPU_SIMGRID, _MSC_VER, STARPU_HAVE_PTHREAD_BARRIER */
+
+#endif /* STARPU_FXT_LOCK_TRACES */
 
 /* "sched" variants, to be used (through the STARPU_PTHREAD_MUTEX_*LOCK_SCHED
  * macros of course) which record when the mutex is held or not */
@@ -685,20 +702,6 @@ void starpu_pthread_mutex_check_sched(starpu_pthread_mutex_t *mutex, char *file,
 	STARPU_ASSERT_MSG(workerid == -1 || !_starpu_worker_mutex_is_sched_mutex(workerid, mutex), "%s:%d is locking/unlocking a sched mutex but not using STARPU_PTHREAD_MUTEX_LOCK_SCHED", file, line);
 }
 #endif
-
-#if !defined(STARPU_SIMGRID) && !defined(_MSC_VER) && defined(STARPU_HAVE_PTHREAD_BARRIER)
-int starpu_pthread_barrier_wait(starpu_pthread_barrier_t *barrier)
-{
-	int ret;
-	_STARPU_TRACE_BARRIER_WAIT_BEGIN();
-
-	ret = pthread_barrier_wait(barrier);
-
-	_STARPU_TRACE_BARRIER_WAIT_END();
-
-	return ret;
-}
-#endif /* STARPU_SIMGRID, _MSC_VER, STARPU_HAVE_PTHREAD_BARRIER */
 
 #if defined(STARPU_SIMGRID) || (defined(STARPU_LINUX_SYS) && defined(STARPU_HAVE_XCHG)) || !defined(HAVE_PTHREAD_SPIN_LOCK)
 
