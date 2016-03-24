@@ -322,11 +322,17 @@ static void lws_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned n
 
 static void lws_initialize_policy(unsigned sched_ctx_id)
 {
+	if (starpu_get_env_number_default("STARPU_WORKER_TREE", 0))
+	{
 #ifdef STARPU_HAVE_HWLOC
-	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_TREE);
+		starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_TREE);
 #else
-	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
+		_STARPU_DISP("STARPU_WORKER_TREE ignored, please rebuild StarPU with hwloc support to enable it.");
+		starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
 #endif
+	}
+	else
+		starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
 
 	struct _starpu_lws_data *ws = (struct _starpu_lws_data*)malloc(sizeof(struct _starpu_lws_data));
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)ws);

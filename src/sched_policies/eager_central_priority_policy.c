@@ -83,7 +83,18 @@ static void _starpu_destroy_priority_taskq(struct _starpu_priority_taskq *priori
 
 static void initialize_eager_center_priority_policy(unsigned sched_ctx_id)
 {
-	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
+	if (starpu_get_env_number_default("STARPU_WORKER_TREE", 0))
+	{
+#ifdef STARPU_HAVE_HWLOC
+		starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_TREE);
+#else
+		_STARPU_DISP("STARPU_WORKER_TREE ignored, please rebuild StarPU with hwloc support to enable it.");
+		starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
+#endif
+	}
+	else
+		starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
+
 	struct _starpu_eager_central_prio_data *data = (struct _starpu_eager_central_prio_data*)malloc(sizeof(struct _starpu_eager_central_prio_data));
 
 	/* In this policy, we support more than two levels of priority. */

@@ -35,11 +35,17 @@ struct _starpu_eager_center_policy_data
 
 static void initialize_eager_center_policy(unsigned sched_ctx_id)
 {
+	if (starpu_get_env_number_default("STARPU_WORKER_TREE", 0))
+	{
 #ifdef STARPU_HAVE_HWLOC
-	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_TREE);
+		starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_TREE);
 #else
-	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
+		_STARPU_DISP("STARPU_WORKER_TREE ignored, please rebuild StarPU with hwloc support to enable it.");
+		starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
 #endif
+	}
+	else
+		starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
 
 	struct _starpu_eager_center_policy_data *data = (struct _starpu_eager_center_policy_data*)malloc(sizeof(struct _starpu_eager_center_policy_data));
 
