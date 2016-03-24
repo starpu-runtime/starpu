@@ -646,7 +646,10 @@ static void recfmt_set_state(double time, const char *event, int workerid, long 
 	if (type)
 		fprintf(trace_file, "C: %s\n", type);
 	fprintf(trace_file, "W: %d\n", workerid);
-	fprintf(trace_file, "T: %lu\n", threadid);
+	if (threadid == -1)
+		fprintf(trace_file, "T: -1\n");
+	else
+		fprintf(trace_file, "T: %lu\n", threadid);
 	fprintf(trace_file, "S: %f\n", time);
 	fprintf(trace_file, "\n");
 }
