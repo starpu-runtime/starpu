@@ -318,7 +318,7 @@ struct worker_entry
 	UT_hash_handle hh;
 	unsigned long tid;
 	int workerid;
-	int sync;
+	int sync; /* Set only for workers which are part of the same set, i.e. on thread drivers several workers */
 } *worker_ids;
 
 static int register_thread(unsigned long tid, int workerid, int sync)
