@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2015  Université de Bordeaux
+ * Copyright (C) 2009-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -26,7 +26,7 @@
 #include "memalloc.h"
 
 static struct _starpu_memory_node_descr descr;
-static starpu_pthread_key_t memory_node_key;
+starpu_pthread_key_t _starpu_memory_node_key STARPU_ATTRIBUTE_INTERNAL;
 
 void _starpu_memory_nodes_init(void)
 {
@@ -34,7 +34,7 @@ void _starpu_memory_nodes_init(void)
 	 * added using _starpu_memory_node_register */
 	descr.nnodes = 0;
 
-	STARPU_PTHREAD_KEY_CREATE(&memory_node_key, NULL);
+	STARPU_PTHREAD_KEY_CREATE(&_starpu_memory_node_key, NULL);
 
 	unsigned i;
 	for (i = 0; i < STARPU_MAXNODES; i++)
@@ -57,25 +57,7 @@ void _starpu_memory_nodes_deinit(void)
 	_starpu_deinit_mem_chunk_lists();
 
 	STARPU_PTHREAD_RWLOCK_DESTROY(&descr.conditions_rwlock);
-	STARPU_PTHREAD_KEY_DELETE(memory_node_key);
-}
-
-void _starpu_memory_node_set_local_key(unsigned *node)
-{
-	STARPU_PTHREAD_SETSPECIFIC(memory_node_key, node);
-}
-
-unsigned _starpu_memory_node_get_local_key(void)
-{
-	unsigned *memory_node;
-	memory_node = (unsigned *) STARPU_PTHREAD_GETSPECIFIC(memory_node_key);
-
-	/* in case this is called by the programmer, we assume the RAM node
-	   is the appropriate memory node ... XXX */
-	if (STARPU_UNLIKELY(!memory_node))
-		return STARPU_MAIN_RAM;
-
-	return *memory_node;
+	STARPU_PTHREAD_KEY_DELETE(_starpu_memory_node_key);
 }
 
 void _starpu_memory_node_add_nworkers(unsigned node)

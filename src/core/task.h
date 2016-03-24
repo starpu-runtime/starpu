@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2015  Université de Bordeaux
+ * Copyright (C) 2009-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2013, 2015  CNRS
  * Copyright (C) 2011, 2014 INRIA
  *
@@ -49,7 +49,19 @@ void _starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, s
 
 /* Returns the job structure (which is the internal data structure associated
  * to a task). */
-struct _starpu_job *_starpu_get_job_associated_to_task(struct starpu_task *task);
+static inline struct _starpu_job *_starpu_get_job_associated_to_task(struct starpu_task *task)
+{
+	STARPU_ASSERT(task);
+	struct _starpu_job *job = task->starpu_private;
+
+	if (STARPU_UNLIKELY(!job))
+	{
+		job = _starpu_job_create(task);
+		task->starpu_private = job;
+	}
+
+	return job;
+}
 
 /* Submits starpu internal tasks to the initial context */
 int _starpu_task_submit_internally(struct starpu_task *task);
