@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011, 2014-2015  Université de Bordeaux
+ * Copyright (C) 2010-2011, 2014-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2013  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  *
@@ -89,7 +89,7 @@ struct _starpu_job_list *_starpu_deque_pop_every_task(struct _starpu_deque_jobq 
 	struct _starpu_job_list *new_list, *old_list;
 
 	/* block until some task is available in that queue */
-	STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK_SCHED(sched_mutex);
 
 	if (deque_queue->njobs == 0)
 	{
@@ -137,7 +137,7 @@ struct _starpu_job_list *_starpu_deque_pop_every_task(struct _starpu_deque_jobq 
 		}
 	}
 
-	STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(sched_mutex);
 
 	return new_list;
 }

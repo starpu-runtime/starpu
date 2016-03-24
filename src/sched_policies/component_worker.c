@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2015  Université de Bordeaux
+ * Copyright (C) 2010-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2014, 2015  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2011-2013  INRIA
@@ -347,7 +347,7 @@ static void _starpu_sched_component_worker_lock_scheduling(unsigned sched_ctx_id
 	starpu_pthread_cond_t *sched_cond;
 	starpu_worker_get_sched_condition(workerid, &sched_mutex, &sched_cond);
 	_starpu_sched_component_lock_worker(sched_ctx_id, workerid);	
-	STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK_SCHED(sched_mutex);
 }
 
 static void _starpu_sched_component_worker_unlock_scheduling(unsigned sched_ctx_id)
@@ -356,7 +356,7 @@ static void _starpu_sched_component_worker_unlock_scheduling(unsigned sched_ctx_
 	starpu_pthread_mutex_t *sched_mutex;
 	starpu_pthread_cond_t *sched_cond;
 	starpu_worker_get_sched_condition(workerid, &sched_mutex, &sched_cond);
-	STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(sched_mutex);
 	_starpu_sched_component_unlock_worker(sched_ctx_id, workerid);	
 }
 
@@ -714,7 +714,7 @@ static int combined_worker_push_task(struct starpu_sched_component * component, 
 		starpu_pthread_mutex_t *worker_sched_mutex;
 		starpu_pthread_cond_t *worker_sched_cond;
 		starpu_worker_get_sched_condition(workerid, &worker_sched_mutex, &worker_sched_cond);
-		STARPU_PTHREAD_MUTEX_UNLOCK(worker_sched_mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(worker_sched_mutex);
 
 		/* wake up all other workers of combined worker */
 		for(i = 0; i < combined_worker->worker_size; i++)
@@ -725,7 +725,7 @@ static int combined_worker_push_task(struct starpu_sched_component * component, 
 
 		combined_worker_can_pull(component);
 
-		STARPU_PTHREAD_MUTEX_LOCK(worker_sched_mutex);
+		STARPU_PTHREAD_MUTEX_LOCK_SCHED(worker_sched_mutex);
 	}
 
 	return 0;

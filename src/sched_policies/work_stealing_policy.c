@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2015  Université de Bordeaux
+ * Copyright (C) 2010-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  CNRS
  * Copyright (C) 2011, 2012  INRIA
  *
@@ -285,7 +285,7 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 	starpu_worker_get_sched_condition(workerid, &worker_sched_mutex, &worker_sched_cond);
 
 	/* Note: Releasing this mutex before taking the victim mutex, to avoid interlock*/
-	STARPU_PTHREAD_MUTEX_UNLOCK(worker_sched_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(worker_sched_mutex);
        
 
 	/* we need to steal someone's job */
@@ -295,7 +295,7 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 	starpu_pthread_cond_t *victim_sched_cond;
 
 	starpu_worker_get_sched_condition(victim, &victim_sched_mutex, &victim_sched_cond);
-	STARPU_PTHREAD_MUTEX_LOCK(victim_sched_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK_SCHED(victim_sched_mutex);
 	struct _starpu_deque_jobq *victimq = ws->queue_array[victim];
 
 	task = _starpu_deque_pop_task(victimq, workerid);
@@ -310,9 +310,9 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 		victimq->njobs--;
 	}
 
-	STARPU_PTHREAD_MUTEX_UNLOCK(victim_sched_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(victim_sched_mutex);
 
-	STARPU_PTHREAD_MUTEX_LOCK(worker_sched_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK_SCHED(worker_sched_mutex);
 	if(!task)
 	{
 		task = _starpu_deque_pop_task(q, workerid);
@@ -351,7 +351,7 @@ int ws_push_task(struct starpu_task *task)
 		starpu_pthread_mutex_t *sched_mutex;
 		starpu_pthread_cond_t *sched_cond;
 		starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
-		STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
+		STARPU_PTHREAD_MUTEX_LOCK_SCHED(sched_mutex);
 	}
 	
 	
@@ -384,7 +384,7 @@ int ws_push_task(struct starpu_task *task)
 #if !defined(STARPU_NON_BLOCKING_DRIVERS) || defined(STARPU_SIMGRID)
 		starpu_wakeup_worker_locked(worker, sched_cond, sched_mutex);
 #endif
-		STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(sched_mutex);
 	}
 		
 	return 0;

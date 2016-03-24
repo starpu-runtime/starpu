@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012 INRIA
- * Copyright (C) 2010-2015  Université de Bordeaux
+ * Copyright (C) 2010-2016  Université de Bordeaux
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -90,12 +90,12 @@ static void parallel_heft_pre_exec_hook(struct starpu_task *task)
 	starpu_worker_get_sched_condition(workerid, &sched_mutex, &sched_cond);
 	/* Once we have executed the task, we can update the predicted amount
 	 * of work. */
-	STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK_SCHED(sched_mutex);
 	worker_exp_len[workerid] -= model + transfer_model;
 	worker_exp_start[workerid] = starpu_timing_now() + model;
 	worker_exp_end[workerid] = worker_exp_start[workerid] + worker_exp_len[workerid];
 	ntasks[workerid]--;
-	STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(sched_mutex);
 }
 
 static int push_task_on_best_worker(struct starpu_task *task, int best_workerid, double exp_end_predicted, int prio, unsigned sched_ctx_id)
@@ -120,7 +120,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 		starpu_pthread_cond_t *sched_cond;
 		starpu_worker_get_sched_condition(best_workerid, &sched_mutex, &sched_cond);
 
-		STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
+		STARPU_PTHREAD_MUTEX_LOCK_SCHED(sched_mutex);
 		task->predicted = exp_end_predicted - worker_exp_end[best_workerid];
 		/* TODO */
 		task->predicted_transfer = 0;
@@ -129,7 +129,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 		worker_exp_start[best_workerid] = exp_end_predicted - worker_exp_len[best_workerid];
 
 		ntasks[best_workerid]++;
-		STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(sched_mutex);
 
 		/* We don't want it to interlace its task with a combined
 		 * worker's one */
@@ -169,13 +169,13 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 			starpu_pthread_mutex_t *sched_mutex;
 			starpu_pthread_cond_t *sched_cond;
 			starpu_worker_get_sched_condition(local_worker, &sched_mutex, &sched_cond);
-			STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
+			STARPU_PTHREAD_MUTEX_LOCK_SCHED(sched_mutex);
 			worker_exp_len[local_worker] += alias->predicted;
 			worker_exp_end[local_worker] = exp_end_predicted;
 			worker_exp_start[local_worker] = exp_end_predicted - worker_exp_len[local_worker];
 
 			ntasks[local_worker]++;
-			STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
+			STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(sched_mutex);
 
 			ret |= starpu_push_local_task(local_worker, alias, prio);
 		}
@@ -320,12 +320,12 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 			starpu_pthread_cond_t *sched_cond;
 			starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
 			/* Sometimes workers didn't take the tasks as early as we expected */
-			STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
+			STARPU_PTHREAD_MUTEX_LOCK_SCHED(sched_mutex);
 			worker_exp_start[worker] = STARPU_MAX(worker_exp_start[worker], starpu_timing_now());
 			worker_exp_end[worker] = worker_exp_start[worker] + worker_exp_len[worker];
 			if (worker_exp_end[worker] > max_exp_end)
 				max_exp_end = worker_exp_end[worker];
-			STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
+			STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(sched_mutex);
 		}
 	}
 
