@@ -832,7 +832,7 @@ static void handle_worker_init_end(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 	if (out_paje_file)
 		thread_set_state(get_event_time_stamp(ev, options), prefix, ev->param[0], "B");
 	if (trace_file)
-		recfmt_thread_set_state(get_event_time_stamp(ev, options), ev->param[0], "Blocked", "Runtime");
+		recfmt_thread_set_state(get_event_time_stamp(ev, options), ev->param[0], "Overhead", "Runtime");
 
 	if (out_paje_file)
 		worker_set_state(get_event_time_stamp(ev, options), prefix, worker, "I");
@@ -1213,7 +1213,7 @@ static void handle_end_executing(struct fxt_ev_64 *ev, struct starpu_fxt_options
 	if (out_paje_file && !find_sync(threadid))
 		thread_set_state(get_event_time_stamp(ev, options), prefix, threadid, "B");
 	if (trace_file && !find_sync(threadid))
-		recfmt_thread_set_state(get_event_time_stamp(ev, options), threadid, "Blocked", "Runtime");
+		recfmt_thread_set_state(get_event_time_stamp(ev, options), threadid, "Overhead", "Runtime");
 }
 
 static void handle_user_event(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -1282,7 +1282,7 @@ static void handle_end_callback(struct fxt_ev_64 *ev, struct starpu_fxt_options 
 		if (out_paje_file)
 			thread_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[1], "B");
 		if (trace_file)
-			recfmt_thread_set_state(get_event_time_stamp(ev, options), ev->param[1], "Blocked", "Runtime");
+			recfmt_thread_set_state(get_event_time_stamp(ev, options), ev->param[1], "Overhead", "Runtime");
 	}
 	else if (worker == -2)
 	{
@@ -1322,7 +1322,7 @@ static void handle_hypervisor_end(struct fxt_ev_64 *ev, struct starpu_fxt_option
 		if (out_paje_file)
 			thread_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "B");
 		if (trace_file)
-			recfmt_thread_set_state(get_event_time_stamp(ev, options), ev->param[0], "Blocked", "Runtime");
+			recfmt_thread_set_state(get_event_time_stamp(ev, options), ev->param[0], "Overhead", "Runtime");
 	}
 	else if (worker == -2)
 	{
@@ -1353,7 +1353,7 @@ static void handle_worker_status(struct fxt_ev_64 *ev, struct starpu_fxt_options
 		else if (!strcmp(newstatus, "U"))
 			recfmt_thread_set_state(get_event_time_stamp(ev, options), ev->param[1], "Unpartitioning", "Runtime");
 		else if (!strcmp(newstatus, "B"))
-			recfmt_thread_set_state(get_event_time_stamp(ev, options), ev->param[1], "Blocked", "Runtime");
+			recfmt_thread_set_state(get_event_time_stamp(ev, options), ev->param[1], "Overhead", "Runtime");
 		else
 			fprintf(stderr, "WARNING: Unhandled worker status '%s'", newstatus);
 	}
@@ -1382,7 +1382,7 @@ static void handle_worker_scheduling_end(struct fxt_ev_64 *ev, struct starpu_fxt
 	if (out_paje_file)
 		thread_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "B");
 	if (trace_file)
-		recfmt_thread_set_state(get_event_time_stamp(ev, options), ev->param[0], "Blocked", "Runtime");
+		recfmt_thread_set_state(get_event_time_stamp(ev, options), ev->param[0], "Overhead", "Runtime");
 }
 
 static void handle_worker_scheduling_push(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -1435,7 +1435,7 @@ static void handle_worker_sleep_end(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 	if (out_paje_file)
 		thread_set_state(end_sleep_timestamp, options->file_prefix, ev->param[0], "B");
 	if (trace_file)
-		recfmt_thread_set_state(end_sleep_timestamp, ev->param[0], "Blocked", "Runtime");
+		recfmt_thread_set_state(end_sleep_timestamp, ev->param[0], "Overhead", "Runtime");
 
 	double sleep_length = end_sleep_timestamp - last_sleep_start[worker];
 
