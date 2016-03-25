@@ -830,7 +830,10 @@ int starpu_pthread_spin_unlock(starpu_pthread_spinlock_t *lock)
 	STARPU_SYNCHRONIZE();
 	if (syscall(SYS_futex, &lock->taken, _starpu_futex_wake, 1, NULL, NULL, 0))
 		if (errno == ENOSYS)
+		{
 			_starpu_futex_wake = FUTEX_WAKE;
+			syscall(SYS_futex, &lock->taken, _starpu_futex_wake, 1, NULL, NULL, 0);
+		}
 #else /* !SIMGRID && !LINUX */
 	STARPU_RELEASE(&lock->taken);
 #endif
