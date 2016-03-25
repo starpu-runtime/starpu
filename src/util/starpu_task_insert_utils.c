@@ -319,7 +319,7 @@ void _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task **
 				STARPU_TASK_SET_HANDLE((*task), descrs[i].handle, current_buffer);
 				if ((*task)->dyn_modes)
 				{
-					(*task)->dyn_modes[i] = descrs[i].mode;
+					(*task)->dyn_modes[current_buffer] = descrs[i].mode;
 				}
 				else if (cl->nbuffers == STARPU_VARIABLE_NBUFFERS || (cl->nbuffers > STARPU_NMAXBUFS && !cl->dyn_modes))
 					STARPU_TASK_SET_MODE(*task, descrs[i].mode, current_buffer);
