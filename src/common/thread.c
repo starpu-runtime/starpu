@@ -753,6 +753,7 @@ int starpu_pthread_spin_lock(starpu_pthread_spinlock_t *lock)
 	}
 
 	/* We have spent enough time with spinning, let's block */
+	/* This avoids typical 10ms pauses when the application thread tries to submit tasks. */
 	while (1)
 	{
 		/* Tell releaser to wake us */
