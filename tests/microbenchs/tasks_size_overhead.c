@@ -37,9 +37,6 @@
 #define FACTOR 2
 #endif
 
-starpu_data_handle_t data_handles[8];
-float *buffers[8];
-
 #ifdef STARPU_QUICK_CHECK
 static unsigned ntasks = 10;
 #else
@@ -81,14 +78,6 @@ static void parse_args(int argc, char **argv)
 			break;
 		case 'b':
 			nbuffers = atoi(optarg);
-			if (nbuffers > STARPU_NMAXBUFS)
-			{
-#ifdef STARPU_DEVEL
-#warning FIXME: use dyn_handles
-#endif
-				fprintf(stderr,"%u buffers is not supported, please raise the maximum value (%u) with --enable-maxbuffers\n", nbuffers, STARPU_NMAXBUFS);
-				exit(EXIT_FAILURE);
-			}
 			codelet.nbuffers = nbuffers;
 			break;
 		case 'h':
@@ -127,6 +116,8 @@ int main(int argc, char **argv)
 
 	starpu_shutdown();
 
+	float *buffers[nbuffers];
+
 	/* Allocate data */
 	for (buffer = 0; buffer < nbuffers; buffer++)
 		buffers[buffer] = (float *) malloc(16*sizeof(float));
@@ -151,6 +142,8 @@ int main(int argc, char **argv)
 	}
 	FPRINTF(stdout, "\n");
 	fflush(stdout);
+
+	starpu_data_handle_t data_handles[nbuffers];
 
 	/* For each number of cpus, benchmark */
 	for (ncpus= 1; ncpus <= totcpus; ncpus++)
@@ -178,11 +171,19 @@ int main(int argc, char **argv)
 				tasks[i].cl_arg = (void*) (uintptr_t) size;
 				tasks[i].synchronous = 0;
 
-				/* we have 8 buffers at most */
-				for (buffer = 0; buffer < nbuffers; buffer++)
+				if (nbuffers > STARPU_NMAXBUFS)
 				{
-					tasks[i].handles[buffer] = data_handles[buffer];
+					tasks[i].dyn_handles = malloc(nbuffers * sizeof(*data_handles));
+					memcpy(tasks[i].dyn_handles, data_handles, nbuffers * sizeof(*data_handles));
+					tasks[i].dyn_modes = malloc(nbuffers * sizeof(tasks[i].dyn_modes));
+					for (buffer = 0; buffer < nbuffers; buffer++)
+						tasks[i].dyn_modes[buffer] = STARPU_R;
 				}
+				else
+					for (buffer = 0; buffer < nbuffers; buffer++)
+					{
+						tasks[i].handles[buffer] = data_handles[buffer];
+					}
 
 				ret = starpu_task_submit(&tasks[i]);
 				if (ret == -ENODEV) goto enodev;
