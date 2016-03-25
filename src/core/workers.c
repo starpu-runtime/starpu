@@ -1857,9 +1857,9 @@ int starpu_wakeup_worker_locked(int workerid, starpu_pthread_cond_t *cond, starp
 int starpu_wakeup_worker(int workerid, starpu_pthread_cond_t *cond, starpu_pthread_mutex_t *mutex)
 {
 	int success;
-	STARPU_PTHREAD_MUTEX_LOCK(mutex);
+	STARPU_PTHREAD_MUTEX_LOCK_SCHED(mutex);
 	success = starpu_wakeup_worker_locked(workerid, cond, mutex);
-	STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(mutex);
 	return success;
 }
 
