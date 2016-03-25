@@ -43,6 +43,7 @@ static unsigned ntasks = 10;
 static unsigned ntasks = 1000;
 #endif
 static unsigned nbuffers = 0;
+static unsigned total_nbuffers = 0;
 
 struct starpu_task *tasks;
 
@@ -70,7 +71,7 @@ static struct starpu_codelet codelet =
 static void parse_args(int argc, char **argv)
 {
 	int c;
-	while ((c = getopt(argc, argv, "i:b:h")) != -1)
+	while ((c = getopt(argc, argv, "i:b:B:h")) != -1)
 	switch(c)
 	{
 		case 'i':
@@ -80,8 +81,11 @@ static void parse_args(int argc, char **argv)
 			nbuffers = atoi(optarg);
 			codelet.nbuffers = nbuffers;
 			break;
+		case 'B':
+			total_nbuffers = atoi(optarg);
+			break;
 		case 'h':
-			fprintf(stderr, "Usage: %s [-i ntasks] [-b nbuffers] [-h]\n", argv[0]);
+			fprintf(stderr, "Usage: %s [-i ntasks] [-b nbuffers] [-B total_nbuffers] [-h]\n", argv[0]);
 			exit(EXIT_SUCCESS);
 			break;
 	}
@@ -116,16 +120,16 @@ int main(int argc, char **argv)
 
 	starpu_shutdown();
 
-	float *buffers[nbuffers];
+	float *buffers[total_nbuffers];
 
 	/* Allocate data */
-	for (buffer = 0; buffer < nbuffers; buffer++)
+	for (buffer = 0; buffer < total_nbuffers; buffer++)
 		buffers[buffer] = (float *) malloc(16*sizeof(float));
 
 	tasks = (struct starpu_task *) calloc(1, ntasks*sizeof(struct starpu_task));
 
 	/* Emit headers and compute raw tasks speed */
-	FPRINTF(stdout, "# tasks : %u buffers : %u\n", ntasks, nbuffers);
+	FPRINTF(stdout, "# tasks : %u buffers : %u total_nbuffers : %u\n", ntasks, nbuffers, total_nbuffers);
 	FPRINTF(stdout, "# ncpus\t");
 	for (size = START; size <= STOP; size *= FACTOR)
 		FPRINTF(stdout, "%u iters(us)\ttotal(s)\t", size);
@@ -143,7 +147,7 @@ int main(int argc, char **argv)
 	FPRINTF(stdout, "\n");
 	fflush(stdout);
 
-	starpu_data_handle_t data_handles[nbuffers];
+	starpu_data_handle_t data_handles[total_nbuffers];
 
 	/* For each number of cpus, benchmark */
 	for (ncpus= 1; ncpus <= totcpus; ncpus++)
@@ -156,7 +160,7 @@ int main(int argc, char **argv)
 		if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-		for (buffer = 0; buffer < nbuffers; buffer++)
+		for (buffer = 0; buffer < total_nbuffers; buffer++)
 			starpu_vector_data_register(&data_handles[buffer], STARPU_MAIN_RAM, (uintptr_t)buffers[buffer], 16, sizeof(float));
 
 		for (size = START; size <= STOP; size *= FACTOR)
@@ -165,6 +169,7 @@ int main(int argc, char **argv)
 			start = starpu_timing_now();
 			for (i = 0; i < ntasks; i++)
 			{
+				starpu_data_handle_t *handles;
 				starpu_task_init(&tasks[i]);
 				tasks[i].callback_func = NULL;
 				tasks[i].cl = &codelet;
@@ -174,16 +179,20 @@ int main(int argc, char **argv)
 				if (nbuffers > STARPU_NMAXBUFS)
 				{
 					tasks[i].dyn_handles = malloc(nbuffers * sizeof(*data_handles));
-					memcpy(tasks[i].dyn_handles, data_handles, nbuffers * sizeof(*data_handles));
+					handles = tasks[i].dyn_handles;
 					tasks[i].dyn_modes = malloc(nbuffers * sizeof(tasks[i].dyn_modes));
 					for (buffer = 0; buffer < nbuffers; buffer++)
 						tasks[i].dyn_modes[buffer] = STARPU_R;
 				}
 				else
+					handles = tasks[i].handles;
+
+				if (nbuffers >= total_nbuffers)
 					for (buffer = 0; buffer < nbuffers; buffer++)
-					{
-						tasks[i].handles[buffer] = data_handles[buffer];
-					}
+						handles[buffer] = data_handles[buffer%total_nbuffers];
+				else
+					for (buffer = 0; buffer < nbuffers; buffer++)
+						handles[buffer] = data_handles[starpu_lrand48()%total_nbuffers];
 
 				ret = starpu_task_submit(&tasks[i]);
 				if (ret == -ENODEV) goto enodev;
@@ -218,7 +227,7 @@ int main(int argc, char **argv)
 			}
 		}
 
-		for (buffer = 0; buffer < nbuffers; buffer++)
+		for (buffer = 0; buffer < total_nbuffers; buffer++)
 		{
 			starpu_data_unregister(data_handles[buffer]);
 		}
