@@ -10,9 +10,15 @@
 
 TODO: improve!
 
-Simply encapsulating application kernels into tasks already permits to
-seamlessly support CPU and GPUs at the same time. To achieve good
+To achieve good
 performance, we give below a list of features which should be checked.
+
+\section ConfigurationImprovePerformance Configuration That May Improve Performance
+
+The \ref enable-fast "--enable-fast" configuration option disables all
+assertions. This makes starpu more performant for really small tasks by
+disabling all sanity checks. Only use this for measurements and production, not for development, since this will drop all basic checks.
+
 
 \section DataRelatedFeaturesToImprovePerformance Data Related Features That May Improve Performance
 
