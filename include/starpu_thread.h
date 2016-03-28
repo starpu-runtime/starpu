@@ -115,10 +115,12 @@ int starpu_pthread_mutex_trylock(starpu_pthread_mutex_t *mutex);
 
 #endif /* STARPU_SIMGRID, _MSC_VER */
 
+#if !defined(_MSC_VER) || defined(BUILDING_STARPU)
 int starpu_pthread_mutex_lock_sched(starpu_pthread_mutex_t *mutex);
 int starpu_pthread_mutex_unlock_sched(starpu_pthread_mutex_t *mutex);
 int starpu_pthread_mutex_trylock_sched(starpu_pthread_mutex_t *mutex);
 void starpu_pthread_mutex_check_sched(starpu_pthread_mutex_t *mutex, char *file, int line);
+#endif
 
 /*
  * Encapsulation of the pthread_key_* functions.
