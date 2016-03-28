@@ -566,10 +566,16 @@ struct _starpu_unregister_callback_arg
  * The header is supposed to be locked.
  * This may free the handle, if it was lazily unregistered (1 is returned in
  * that case).  The handle pointer thus becomes invalid for the caller.
+ *
+ * Note: we inline some of the tests in the _starpu_data_check_not_busy macro.
  */
-int _starpu_data_check_not_busy(starpu_data_handle_t handle)
+int __starpu_data_check_not_busy(starpu_data_handle_t handle)
 {
-	if (!handle->busy_count && handle->busy_waiting)
+	if (STARPU_LIKELY(handle->busy_count))
+		return 0;
+
+	/* Not busy any more, perhaps have to unregister etc.  */
+	if (STARPU_UNLIKELY(handle->busy_waiting))
 	{
 		STARPU_PTHREAD_MUTEX_LOCK(&handle->busy_mutex);
 		STARPU_PTHREAD_COND_BROADCAST(&handle->busy_cond);
@@ -578,7 +584,7 @@ int _starpu_data_check_not_busy(starpu_data_handle_t handle)
 
 	/* The handle has been destroyed in between (eg. this was a temporary
 	 * handle created for a reduction.) */
-	if (handle->lazy_unregister && handle->busy_count == 0)
+	if (STARPU_UNLIKELY(handle->lazy_unregister))
 	{
 		handle->lazy_unregister = 0;
 		_starpu_spin_unlock(&handle->header_lock);
