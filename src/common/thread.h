@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012-2014  Université de Bordeaux
+ * Copyright (C) 2010, 2012-2014, 2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -20,7 +20,97 @@
 
 #include <starpu.h>
 
-int _starpu_pthread_spin_checklocked(starpu_pthread_spinlock_t *lock);
+#if defined(STARPU_LINUX_SYS) && defined(STARPU_HAVE_XCHG)
+int _starpu_pthread_spin_do_lock(starpu_pthread_spinlock_t *lock);
+#endif
+static inline int _starpu_pthread_spin_lock(starpu_pthread_spinlock_t *lock)
+{
+#ifdef STARPU_SIMGRID
+	while (1)
+	{
+		if (STARPU_LIKELY(!lock->taken))
+		{
+			lock->taken = 1;
+			return 0;
+		}
+		/* Give hand to another thread, hopefully the one which has the
+		 * spinlock and probably just has also a short-lived mutex. */
+		MSG_process_sleep(0.000001);
+		STARPU_UYIELD();
+	}
+#elif defined(STARPU_LINUX_SYS) && defined(STARPU_HAVE_XCHG)
+	if (STARPU_LIKELY(STARPU_VAL_COMPARE_AND_SWAP(&lock->taken, 0, 1) == 0))
+		/* Got it on first try! */
+		return 0;
+
+	return _starpu_pthread_spin_do_lock(lock);
+#else /* !SIMGRID && !LINUX */
+	uint32_t prev;
+	do
+	{
+		prev = STARPU_TEST_AND_SET(&lock->taken, 1);
+		if (STARPU_UNLIKELY(prev))
+			STARPU_UYIELD();
+	}
+	while (STARPU_UNLIKELY(prev));
+	return 0;
+#endif
+}
+#define starpu_pthread_spin_lock _starpu_pthread_spin_lock
+
+static inline void _starpu_pthread_spin_checklocked(starpu_pthread_spinlock_t *lock STARPU_ATTRIBUTE_UNUSED)
+{
+#ifdef STARPU_SIMGRID
+	STARPU_ASSERT(lock->taken);
+#elif defined(STARPU_LINUX_SYS) && defined(STARPU_HAVE_XCHG)
+	STARPU_ASSERT(lock->taken == 1 || lock->taken == 2);
+#elif defined(HAVE_PTHREAD_SPIN_LOCK)
+	STARPU_ASSERT(pthread_spin_trylock((pthread_spinlock_t *)lock) != 0);
+#else
+	STARPU_ASSERT(lock->taken);
+#endif
+}
+
+static inline int _starpu_pthread_spin_trylock(starpu_pthread_spinlock_t *lock)
+{
+#ifdef STARPU_SIMGRID
+	if (STARPU_UNLIKELY(lock->taken))
+		return EBUSY;
+	lock->taken = 1;
+	return 0;
+#elif defined(STARPU_LINUX_SYS) && defined(STARPU_HAVE_XCHG)
+	unsigned prev;
+	prev = STARPU_VAL_COMPARE_AND_SWAP(&lock->taken, 0, 1);
+	return (prev == 0)?0:EBUSY;
+#else /* !SIMGRID && !LINUX */
+	uint32_t prev;
+	prev = STARPU_TEST_AND_SET(&lock->taken, 1);
+	return (prev == 0)?0:EBUSY;
+#endif
+}
+#define starpu_pthread_spin_trylock _starpu_pthread_spin_trylock
+
+#if defined(STARPU_LINUX_SYS) && defined(STARPU_HAVE_XCHG)
+void _starpu_pthread_spin_do_unlock(starpu_pthread_spinlock_t *lock);
+#endif
+
+static inline int _starpu_pthread_spin_unlock(starpu_pthread_spinlock_t *lock)
+{
+#ifdef STARPU_SIMGRID
+	lock->taken = 0;
+#elif defined(STARPU_LINUX_SYS) && defined(STARPU_HAVE_XCHG)
+	STARPU_ASSERT(lock->taken != 0);
+	unsigned next = STARPU_ATOMIC_ADD(&lock->taken, -1);
+	if (STARPU_LIKELY(next == 0))
+		/* Nobody to wake, we are done */
+		return 0;
+	_starpu_pthread_spin_do_unlock(lock);
+#else /* !SIMGRID && !LINUX */
+	STARPU_RELEASE(&lock->taken);
+#endif
+	return 0;
+}
+#define starpu_pthread_spin_unlock _starpu_pthread_spin_unlock
 
 #endif /* __COMMON_THREAD_H__ */
 

@@ -717,22 +717,16 @@ int starpu_pthread_spin_destroy(starpu_pthread_spinlock_t *lock STARPU_ATTRIBUTE
 	return 0;
 }
 
+#undef starpu_pthread_spin_lock
 int starpu_pthread_spin_lock(starpu_pthread_spinlock_t *lock)
 {
-#ifdef STARPU_SIMGRID
-	while (1)
-	{
-		if (!lock->taken)
-		{
-			lock->taken = 1;
-			return 0;
-		}
-		/* Give hand to another thread, hopefully the one which has the
-		 * spinlock and probably just has also a short-lived mutex. */
-		MSG_process_sleep(0.000001);
-		STARPU_UYIELD();
-	}
-#elif defined(STARPU_LINUX_SYS) && defined(STARPU_HAVE_XCHG)
+	return _starpu_pthread_spin_lock(lock);
+}
+#endif
+
+#if !defined(STARPU_SIMGRID) && defined(STARPU_LINUX_SYS) && defined(STARPU_HAVE_XCHG)
+int _starpu_pthread_spin_do_lock(starpu_pthread_spinlock_t *lock)
+{
 	if (STARPU_VAL_COMPARE_AND_SWAP(&lock->taken, 0, 1) == 0)
 		/* Got it on first try! */
 		return 0;
@@ -779,48 +773,24 @@ int starpu_pthread_spin_lock(starpu_pthread_spinlock_t *lock)
 			if (errno == ENOSYS)
 				_starpu_futex_wait = FUTEX_WAIT;
 	}
-#else /* !SIMGRID && !LINUX */
-	uint32_t prev;
-	do
-	{
-		prev = STARPU_TEST_AND_SET(&lock->taken, 1);
-		if (prev)
-			STARPU_UYIELD();
-	}
-	while (prev);
-	return 0;
-#endif
 }
+#endif
 
+#undef starpu_pthread_spin_trylock
 int starpu_pthread_spin_trylock(starpu_pthread_spinlock_t *lock)
 {
-#ifdef STARPU_SIMGRID
-	if (lock->taken)
-		return EBUSY;
-	lock->taken = 1;
-	return 0;
-#elif defined(STARPU_LINUX_SYS) && defined(STARPU_HAVE_XCHG)
-	unsigned prev;
-	prev = STARPU_VAL_COMPARE_AND_SWAP(&lock->taken, 0, 1);
-	return (prev == 0)?0:EBUSY;
-#else /* !SIMGRID && !LINUX */
-	uint32_t prev;
-	prev = STARPU_TEST_AND_SET(&lock->taken, 1);
-	return (prev == 0)?0:EBUSY;
-#endif
+	return _starpu_pthread_spin_trylock(lock);
 }
 
+#undef starpu_pthread_spin_unlock
 int starpu_pthread_spin_unlock(starpu_pthread_spinlock_t *lock)
 {
-#ifdef STARPU_SIMGRID
-	lock->taken = 0;
-#elif defined(STARPU_LINUX_SYS) && defined(STARPU_HAVE_XCHG)
-	STARPU_ASSERT(lock->taken != 0);
-	unsigned next = STARPU_ATOMIC_ADD(&lock->taken, -1);
-	if (next == 0)
-		/* Nobody to wake, we are done */
-		return 0;
+	return _starpu_pthread_spin_unlock(lock);
+}
 
+#if !defined(STARPU_SIMGRID) && defined(STARPU_LINUX_SYS) && defined(STARPU_HAVE_XCHG)
+void _starpu_pthread_spin_do_unlock(starpu_pthread_spinlock_t *lock)
+{
 	/*
 	 * Somebody to wake. Clear 'taken' and wake him.
 	 * Note that he may not be sleeping yet, but if he is not, we won't
@@ -834,29 +804,7 @@ int starpu_pthread_spin_unlock(starpu_pthread_spinlock_t *lock)
 			_starpu_futex_wake = FUTEX_WAKE;
 			syscall(SYS_futex, &lock->taken, _starpu_futex_wake, 1, NULL, NULL, 0);
 		}
-#else /* !SIMGRID && !LINUX */
-	STARPU_RELEASE(&lock->taken);
-#endif
-	return 0;
 }
 
-#endif /* defined(STARPU_SIMGRID) || !defined(HAVE_PTHREAD_SPIN_LOCK) */
-
-int _starpu_pthread_spin_checklocked(starpu_pthread_spinlock_t *lock)
-{
-#ifdef STARPU_SIMGRID
-	STARPU_ASSERT(lock->taken);
-	return !lock->taken;
-#elif defined(STARPU_LINUX_SYS) && defined(STARPU_HAVE_XCHG)
-	STARPU_ASSERT(lock->taken == 1 || lock->taken == 2);
-	return lock->taken == 0;
-#elif defined(HAVE_PTHREAD_SPIN_LOCK)
-	int ret = pthread_spin_trylock((pthread_spinlock_t *)lock);
-	STARPU_ASSERT(ret != 0);
-	return ret == 0;
-#else
-	STARPU_ASSERT(lock->taken);
-	return !lock->taken;
 #endif
-}
 
