@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012, 2014-2015  Université de Bordeaux
+ * Copyright (C) 2009-2012, 2014-2016  Université de Bordeaux
  * Copyright (C) 2010, 2012, 2013, 2014, 2015  CNRS
  * Copyright (C) 2014  INRIA
  *
@@ -59,7 +59,11 @@ int _starpu_data_handle_init(starpu_data_handle_t handle, struct starpu_data_int
 
 extern struct starpu_arbiter *_starpu_global_arbiter;
 extern void _starpu_data_interface_init(void) STARPU_ATTRIBUTE_INTERNAL;
-extern int _starpu_data_check_not_busy(starpu_data_handle_t handle) STARPU_ATTRIBUTE_INTERNAL;
+extern int __starpu_data_check_not_busy(starpu_data_handle_t handle) STARPU_ATTRIBUTE_INTERNAL STARPU_ATTRIBUTE_WARN_UNUSED_RESULT;
+#define _starpu_data_check_not_busy(handle) \
+	(STARPU_UNLIKELY(!handle->busy_count && \
+			 (handle->busy_waiting || handle->lazy_unregister)) ? \
+		__starpu_data_check_not_busy(handle) : 0)
 extern void _starpu_data_interface_shutdown(void) STARPU_ATTRIBUTE_INTERNAL;
 
 #ifdef STARPU_OPENMP
