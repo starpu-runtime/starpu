@@ -119,7 +119,7 @@ int main(int argc, char **argv)
                 for(i=0 ; i<NX ; i++)
 		{
                         FPRINTF(stderr, "%4d ", matrix[(j*NX)+i]);
-			if (matrix[(j*NX)+i] != n*12)
+			if (matrix[(j*NX)+i] != (int) n*12)
 			{
 				FPRINTF(stderr, "Incorrect result %4d != %4d", matrix[(j*NX)+i], n*12);
 				ret=1;
