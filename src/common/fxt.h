@@ -795,43 +795,43 @@ do {										\
 
 #define STARPU_TRACE_SPINLOCK_CONDITITION (starpu_worker_get_type(starpu_worker_get_id()) == STARPU_CUDA_WORKER)
 
-#define _STARPU_TRACE_LOCKING_SPINLOCK()	do {\
+#define _STARPU_TRACE_LOCKING_SPINLOCK(file, line)	do {\
 	if (STARPU_TRACE_SPINLOCK_CONDITITION) { \
 		const char *file; \
-		file = strrchr(__FILE__,'/') + 1; \
-		_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_LOCKING_SPINLOCK,__LINE__,_starpu_gettid(),file); \
+		file = strrchr(file,'/') + 1; \
+		_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_LOCKING_SPINLOCK,line,_starpu_gettid(file, line),file); \
 	} \
 } while(0)
 
-#define _STARPU_TRACE_SPINLOCK_LOCKED()		do { \
+#define _STARPU_TRACE_SPINLOCK_LOCKED(file, line)		do { \
 	if (STARPU_TRACE_SPINLOCK_CONDITITION) { \
 		const char *file; \
-		file = strrchr(__FILE__,'/') + 1; \
-		_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_SPINLOCK_LOCKED,__LINE__,_starpu_gettid(),file); \
+		file = strrchr(file,'/') + 1; \
+		_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_SPINLOCK_LOCKED,line,_starpu_gettid(file, line),file); \
 	} \
 } while(0)
 
-#define _STARPU_TRACE_UNLOCKING_SPINLOCK()	do { \
+#define _STARPU_TRACE_UNLOCKING_SPINLOCK(file, line)	do { \
 	if (STARPU_TRACE_SPINLOCK_CONDITITION) { \
 		const char *file; \
-		file = strrchr(__FILE__,'/') + 1; \
-		_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_UNLOCKING_SPINLOCK,__LINE__,_starpu_gettid(),file); \
+		file = strrchr(file,'/') + 1; \
+		_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_UNLOCKING_SPINLOCK,line,_starpu_gettid(file, line),file); \
 	} \
 } while(0)
 
-#define _STARPU_TRACE_SPINLOCK_UNLOCKED()	do { \
+#define _STARPU_TRACE_SPINLOCK_UNLOCKED(file, line)	do { \
 	if (STARPU_TRACE_SPINLOCK_CONDITITION) { \
 		const char *file; \
-		file = strrchr(__FILE__,'/') + 1; \
-		_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_SPINLOCK_UNLOCKED,__LINE__,_starpu_gettid(),file); \
+		file = strrchr(file,'/') + 1; \
+		_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_SPINLOCK_UNLOCKED,line,_starpu_gettid(file, line),file); \
 	} \
 } while(0)
 
-#define _STARPU_TRACE_TRYLOCK_SPINLOCK()	do { \
+#define _STARPU_TRACE_TRYLOCK_SPINLOCK(file, line)	do { \
 	if (STARPU_TRACE_SPINLOCK_CONDITITION) { \
 		const char *file; \
-		file = strrchr(__FILE__,'/') + 1; \
-		_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_TRYLOCK_SPINLOCK,__LINE__,_starpu_gettid(),file); \
+		file = strrchr(file,'/') + 1; \
+		_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_TRYLOCK_SPINLOCK,line,_starpu_gettid(file, line),file); \
 	} \
 } while(0)
 
@@ -872,11 +872,11 @@ do {										\
 #define _STARPU_TRACE_RWLOCK_WRLOCKED()		do {} while(0)
 #define _STARPU_TRACE_UNLOCKING_RWLOCK()		do {} while(0)
 #define _STARPU_TRACE_RWLOCK_UNLOCKED()		do {} while(0)
-#define _STARPU_TRACE_LOCKING_SPINLOCK()		do {} while(0)
-#define _STARPU_TRACE_SPINLOCK_LOCKED()		do {} while(0)
-#define _STARPU_TRACE_UNLOCKING_SPINLOCK()	do {} while(0)
-#define _STARPU_TRACE_SPINLOCK_UNLOCKED()		do {} while(0)
-#define _STARPU_TRACE_TRYLOCK_SPINLOCK()		do {} while(0)
+#define _STARPU_TRACE_LOCKING_SPINLOCK(file, line)		do {} while(0)
+#define _STARPU_TRACE_SPINLOCK_LOCKED(file, line)		do {} while(0)
+#define _STARPU_TRACE_UNLOCKING_SPINLOCK(file, line)	do {} while(0)
+#define _STARPU_TRACE_SPINLOCK_UNLOCKED(file, line)		do {} while(0)
+#define _STARPU_TRACE_TRYLOCK_SPINLOCK(file, line)		do {} while(0)
 #define _STARPU_TRACE_COND_WAIT_BEGIN()		do {} while(0)
 #define _STARPU_TRACE_COND_WAIT_END()			do {} while(0)
 #define _STARPU_TRACE_BARRIER_WAIT_BEGIN()		do {} while(0)
@@ -1000,11 +1000,11 @@ do {										\
 #define _STARPU_TRACE_RWLOCK_WRLOCKED()		do {} while(0)
 #define _STARPU_TRACE_UNLOCKING_RWLOCK()		do {} while(0)
 #define _STARPU_TRACE_RWLOCK_UNLOCKED()		do {} while(0)
-#define _STARPU_TRACE_LOCKING_SPINLOCK()		do {} while(0)
-#define _STARPU_TRACE_SPINLOCK_LOCKED()		do {} while(0)
-#define _STARPU_TRACE_UNLOCKING_SPINLOCK()	do {} while(0)
-#define _STARPU_TRACE_SPINLOCK_UNLOCKED()		do {} while(0)
-#define _STARPU_TRACE_TRYLOCK_SPINLOCK()		do {} while(0)
+#define _STARPU_TRACE_LOCKING_SPINLOCK(file, line)		do {} while(0)
+#define _STARPU_TRACE_SPINLOCK_LOCKED(file, line)		do {} while(0)
+#define _STARPU_TRACE_UNLOCKING_SPINLOCK(file, line)	do {} while(0)
+#define _STARPU_TRACE_SPINLOCK_UNLOCKED(file, line)		do {} while(0)
+#define _STARPU_TRACE_TRYLOCK_SPINLOCK(file, line)		do {} while(0)
 #define _STARPU_TRACE_COND_WAIT_BEGIN()		do {} while(0)
 #define _STARPU_TRACE_COND_WAIT_END()			do {} while(0)
 #define _STARPU_TRACE_BARRIER_WAIT_BEGIN()		do {} while(0)
