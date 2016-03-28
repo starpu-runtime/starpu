@@ -1,5 +1,5 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures. *
- * Copyright (C) 2009-2015  Université de Bordeaux
+ * Copyright (C) 2009-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
  * Copyright (C) 2014  INRIA
  *
@@ -516,7 +516,8 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 			_starpu_memory_handle_stats_shared_to_owner(handle, requesting_node);
 #endif
 
-		_starpu_memchunk_recently_used(dst_replicate->mc, requesting_node);
+		if (dst_replicate->mc)
+			_starpu_memchunk_recently_used(dst_replicate->mc, requesting_node);
 
 		_starpu_spin_unlock(&handle->header_lock);
 
