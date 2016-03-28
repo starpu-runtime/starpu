@@ -25,30 +25,30 @@
 #include "copy_driver.h"
 #include "memalloc.h"
 
-static struct _starpu_memory_node_descr descr;
+struct _starpu_memory_node_descr _starpu_descr;
 starpu_pthread_key_t _starpu_memory_node_key STARPU_ATTRIBUTE_INTERNAL;
 
 void _starpu_memory_nodes_init(void)
 {
 	/* there is no node yet, subsequent nodes will be
 	 * added using _starpu_memory_node_register */
-	descr.nnodes = 0;
+	_starpu_descr.nnodes = 0;
 
 	STARPU_PTHREAD_KEY_CREATE(&_starpu_memory_node_key, NULL);
 
 	unsigned i;
 	for (i = 0; i < STARPU_MAXNODES; i++)
 	{
-		descr.nodes[i] = STARPU_UNUSED;
-		descr.nworkers[i] = 0;
+		_starpu_descr.nodes[i] = STARPU_UNUSED;
+		_starpu_descr.nworkers[i] = 0;
 	}
 
 	_starpu_init_mem_chunk_lists();
 	_starpu_init_data_request_lists();
 	_starpu_memory_manager_init();
 
-	STARPU_PTHREAD_RWLOCK_INIT(&descr.conditions_rwlock, NULL);
-	descr.total_condition_count = 0;
+	STARPU_PTHREAD_RWLOCK_INIT(&_starpu_descr.conditions_rwlock, NULL);
+	_starpu_descr.total_condition_count = 0;
 }
 
 void _starpu_memory_nodes_deinit(void)
@@ -56,44 +56,26 @@ void _starpu_memory_nodes_deinit(void)
 	_starpu_deinit_data_request_lists();
 	_starpu_deinit_mem_chunk_lists();
 
-	STARPU_PTHREAD_RWLOCK_DESTROY(&descr.conditions_rwlock);
+	STARPU_PTHREAD_RWLOCK_DESTROY(&_starpu_descr.conditions_rwlock);
 	STARPU_PTHREAD_KEY_DELETE(_starpu_memory_node_key);
 }
 
-void _starpu_memory_node_add_nworkers(unsigned node)
-{
-	descr.nworkers[node]++;
-}
-
-unsigned _starpu_memory_node_get_nworkers(unsigned node)
-{
-	return descr.nworkers[node];
-}
-
-struct _starpu_memory_node_descr *_starpu_memory_node_get_description(void)
-{
-	return &descr;
-}
-
+#undef starpu_node_get_kind
 enum starpu_node_kind starpu_node_get_kind(unsigned node)
 {
-	return descr.nodes[node];
+	return _starpu_node_get_kind(node);
 }
 
-int _starpu_memory_node_get_devid(unsigned node)
-{
-	return descr.devid[node];
-}
-
+#undef starpu_memory_nodes_get_count
 unsigned starpu_memory_nodes_get_count(void)
 {
-	return descr.nnodes;
+	return _starpu_memory_nodes_get_count();
 }
 
 void _starpu_memory_node_get_name(unsigned node, char *name, int size)
 {
 	const char *prefix;
-	switch (descr.nodes[node])
+	switch (_starpu_descr.nodes[node])
 	{
 	case STARPU_CPU_RAM:
 		prefix = "RAM";
@@ -121,40 +103,28 @@ void _starpu_memory_node_get_name(unsigned node, char *name, int size)
 		prefix = "unknown";
 		STARPU_ASSERT(0);
 	}
-	snprintf(name, size, "%s %u", prefix, descr.devid[node]);
+	snprintf(name, size, "%s %u", prefix, _starpu_descr.devid[node]);
 }
 
 unsigned _starpu_memory_node_register(enum starpu_node_kind kind, int devid)
 {
 	unsigned node;
 	/* ATOMIC_ADD returns the new value ... */
-	node = STARPU_ATOMIC_ADD(&descr.nnodes, 1) - 1;
+	node = STARPU_ATOMIC_ADD(&_starpu_descr.nnodes, 1) - 1;
 	STARPU_ASSERT_MSG(node < STARPU_MAXNODES,"Too many nodes (%u) for maximum %u. Use configure option --enable-maxnodes=xxx to update the maximum number of nodes.", node, STARPU_MAXNODES);
 
-	descr.nodes[node] = kind;
+	_starpu_descr.nodes[node] = kind;
 	_STARPU_TRACE_NEW_MEM_NODE(node);
 
-	descr.devid[node] = devid;
+	_starpu_descr.devid[node] = devid;
 
 	/* for now, there is no condition associated to that newly created node */
-	descr.condition_count[node] = 0;
+	_starpu_descr.condition_count[node] = 0;
 
 	_starpu_malloc_init(node);
 
 	return node;
 }
-
-#ifdef STARPU_SIMGRID
-void _starpu_simgrid_memory_node_set_host(unsigned node, msg_host_t host)
-{
-	descr.host[node] = host;
-}
-
-msg_host_t _starpu_simgrid_memory_node_get_host(unsigned node)
-{
-	return descr.host[node];
-}
-#endif
 
 /* TODO move in a more appropriate file  !! */
 /* Register a condition variable associated to worker which is associated to a
@@ -164,60 +134,50 @@ void _starpu_memory_node_register_condition(starpu_pthread_cond_t *cond, starpu_
 	unsigned cond_id;
 	unsigned nconds_total, nconds;
 
-	STARPU_PTHREAD_RWLOCK_WRLOCK(&descr.conditions_rwlock);
+	STARPU_PTHREAD_RWLOCK_WRLOCK(&_starpu_descr.conditions_rwlock);
 
 	/* we only insert the queue if it's not already in the list */
-	nconds = descr.condition_count[nodeid];
+	nconds = _starpu_descr.condition_count[nodeid];
 	for (cond_id = 0; cond_id < nconds; cond_id++)
 	{
-		if (descr.conditions_attached_to_node[nodeid][cond_id].cond == cond)
+		if (_starpu_descr.conditions_attached_to_node[nodeid][cond_id].cond == cond)
 		{
-			STARPU_ASSERT(descr.conditions_attached_to_node[nodeid][cond_id].mutex == mutex);
+			STARPU_ASSERT(_starpu_descr.conditions_attached_to_node[nodeid][cond_id].mutex == mutex);
 
 			/* the condition is already in the list */
-			STARPU_PTHREAD_RWLOCK_UNLOCK(&descr.conditions_rwlock);
+			STARPU_PTHREAD_RWLOCK_UNLOCK(&_starpu_descr.conditions_rwlock);
 			return;
 		}
 	}
 
 	/* it was not found locally */
-	descr.conditions_attached_to_node[nodeid][cond_id].cond = cond;
-	descr.conditions_attached_to_node[nodeid][cond_id].mutex = mutex;
-	descr.condition_count[nodeid]++;
+	_starpu_descr.conditions_attached_to_node[nodeid][cond_id].cond = cond;
+	_starpu_descr.conditions_attached_to_node[nodeid][cond_id].mutex = mutex;
+	_starpu_descr.condition_count[nodeid]++;
 
 	/* do we have to add it in the global list as well ? */
-	nconds_total = descr.total_condition_count;
+	nconds_total = _starpu_descr.total_condition_count;
 	for (cond_id = 0; cond_id < nconds_total; cond_id++)
 	{
-		if (descr.conditions_all[cond_id].cond == cond)
+		if (_starpu_descr.conditions_all[cond_id].cond == cond)
 		{
 			/* the queue is already in the global list */
-			STARPU_PTHREAD_RWLOCK_UNLOCK(&descr.conditions_rwlock);
+			STARPU_PTHREAD_RWLOCK_UNLOCK(&_starpu_descr.conditions_rwlock);
 			return;
 		}
 	}
 
 	/* it was not in the global list either */
-	descr.conditions_all[nconds_total].cond = cond;
-	descr.conditions_all[nconds_total].mutex = mutex;
-	descr.total_condition_count++;
+	_starpu_descr.conditions_all[nconds_total].cond = cond;
+	_starpu_descr.conditions_all[nconds_total].mutex = mutex;
+	_starpu_descr.total_condition_count++;
 
-	STARPU_PTHREAD_RWLOCK_UNLOCK(&descr.conditions_rwlock);
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&_starpu_descr.conditions_rwlock);
 }
 
+#undef starpu_worker_get_memory_node
 unsigned starpu_worker_get_memory_node(unsigned workerid)
 {
-	struct _starpu_machine_config *config = _starpu_get_machine_config();
-
-	/* This workerid may either be a basic worker or a combined worker */
-	unsigned nworkers = config->topology.nworkers;
-
-	if (workerid < config->topology.nworkers)
-		return config->workers[workerid].memory_node;
-
-	/* We have a combined worker */
-	unsigned ncombinedworkers = config->topology.ncombinedworkers;
-	STARPU_ASSERT_MSG(workerid < ncombinedworkers + nworkers, "Bad workerid %u, maximum %u", workerid, ncombinedworkers + nworkers);
-	return config->combined_workers[workerid - nworkers].memory_node;
-
+	return _starpu_worker_get_memory_node(workerid);
 }
+
