@@ -24,6 +24,8 @@
 #if defined(STARPU_LINUX_SYS) && defined(STARPU_HAVE_XCHG)
 int _starpu_pthread_spin_do_lock(starpu_pthread_spinlock_t *lock);
 #endif
+
+#if defined(STARPU_SIMGRID) || (defined(STARPU_LINUX_SYS) && defined(STARPU_HAVE_XCHG)) || !defined(STARPU_HAVE_PTHREAD_SPIN_LOCK)
 static inline int _starpu_pthread_spin_lock(starpu_pthread_spinlock_t *lock)
 {
 #ifdef STARPU_SIMGRID
@@ -58,6 +60,7 @@ static inline int _starpu_pthread_spin_lock(starpu_pthread_spinlock_t *lock)
 #endif
 }
 #define starpu_pthread_spin_lock _starpu_pthread_spin_lock
+#endif
 
 static inline void _starpu_pthread_spin_checklocked(starpu_pthread_spinlock_t *lock STARPU_ATTRIBUTE_UNUSED)
 {
