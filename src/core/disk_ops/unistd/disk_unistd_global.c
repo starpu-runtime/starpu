@@ -53,7 +53,7 @@
 
 /* TODO: on Linux, use io_submit */
 
-static int starpu_unistd_opened_files;
+static unsigned starpu_unistd_opened_files;
 
 #ifdef HAVE_AIO_H
 struct starpu_unistd_aiocb {
