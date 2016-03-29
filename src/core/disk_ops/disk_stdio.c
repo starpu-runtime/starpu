@@ -44,7 +44,7 @@
 #define TEMP_HIERARCHY_DEPTH 2
 
 /* ------------------- use STDIO to write on disk -------------------  */
-static int starpu_stdio_opened_files;
+static unsigned starpu_stdio_opened_files;
 
 struct starpu_stdio_obj
 {
