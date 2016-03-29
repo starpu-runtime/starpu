@@ -57,7 +57,6 @@ static inline int _starpu_pthread_spin_lock(starpu_pthread_spinlock_t *lock)
 	}
 	while (STARPU_UNLIKELY(prev));
 	return 0;
-#endif
 }
 #define starpu_pthread_spin_lock _starpu_pthread_spin_lock
 #endif
@@ -115,6 +114,8 @@ static inline int _starpu_pthread_spin_unlock(starpu_pthread_spinlock_t *lock)
 	return 0;
 }
 #define starpu_pthread_spin_unlock _starpu_pthread_spin_unlock
+
+#endif /* defined(STARPU_SIMGRID) || (defined(STARPU_LINUX_SYS) && defined(STARPU_HAVE_XCHG)) || !defined(STARPU_HAVE_PTHREAD_SPIN_LOCK) */
 
 #endif /* __COMMON_THREAD_H__ */
 
