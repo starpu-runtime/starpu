@@ -724,6 +724,8 @@ int starpu_pthread_spin_lock(starpu_pthread_spinlock_t *lock)
 }
 #endif
 
+#if defined(STARPU_SIMGRID) || (defined(STARPU_LINUX_SYS) && defined(STARPU_HAVE_XCHG)) || !defined(STARPU_HAVE_PTHREAD_SPIN_LOCK)
+
 #if !defined(STARPU_SIMGRID) && defined(STARPU_LINUX_SYS) && defined(STARPU_HAVE_XCHG)
 int _starpu_pthread_spin_do_lock(starpu_pthread_spinlock_t *lock)
 {
@@ -808,3 +810,4 @@ void _starpu_pthread_spin_do_unlock(starpu_pthread_spinlock_t *lock)
 
 #endif
 
+#endif /* defined(STARPU_SIMGRID) || (defined(STARPU_LINUX_SYS) && defined(STARPU_HAVE_XCHG)) || !defined(STARPU_HAVE_PTHREAD_SPIN_LOCK) */
