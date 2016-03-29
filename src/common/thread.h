@@ -57,9 +57,9 @@ static inline int _starpu_pthread_spin_lock(starpu_pthread_spinlock_t *lock)
 	}
 	while (STARPU_UNLIKELY(prev));
 	return 0;
+#endif
 }
 #define starpu_pthread_spin_lock _starpu_pthread_spin_lock
-#endif
 
 static inline void _starpu_pthread_spin_checklocked(starpu_pthread_spinlock_t *lock STARPU_ATTRIBUTE_UNUSED)
 {
