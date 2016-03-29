@@ -116,7 +116,7 @@ extern "C"
 #endif
 
 #ifdef __APPLE_CC__
-#  define _starpu_abort() *(int*)NULL = 0
+#  define _starpu_abort() *(volatile int*)NULL = 0
 #else
 #  define _starpu_abort() abort()
 #endif
