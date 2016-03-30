@@ -2850,9 +2850,11 @@ static
 void _starpu_fxt_anim_file_close(void)
 {
 	//_starpu_fxt_component_dump(stderr);
-	_starpu_fxt_component_finish(anim_file);
 	if (anim_file)
+	{
+		_starpu_fxt_component_finish(anim_file);
 		fclose(anim_file);
+	}
 }
 
 static
