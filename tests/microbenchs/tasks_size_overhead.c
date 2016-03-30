@@ -221,7 +221,7 @@ int main(int argc, char **argv)
 
 					sprintf(file, "%s/tasks_size_overhead_total.dat", output_dir);
 					f = fopen(file, "a");
-					fprintf(f, "%s\t%f\n", bench_id, timing/1000000);
+					fprintf(f, "%s\t%u\t%u\t%f\n", bench_id, ncpus, size, timing/1000000);
 					fclose(f);
 				}
 			}
