@@ -805,9 +805,7 @@ pick:
 			{
 				if (sched_ctx->sched_policy && sched_ctx->sched_policy->pop_task)
 				{
-					_STARPU_TRACE_WORKER_SCHEDULING_PUSH;
 					task = sched_ctx->sched_policy->pop_task(sched_ctx->id);
-					_STARPU_TRACE_WORKER_SCHEDULING_POP;
 					_starpu_pop_task_end(task);
 				}
 			}
