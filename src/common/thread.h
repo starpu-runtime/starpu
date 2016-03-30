@@ -26,6 +26,21 @@ int _starpu_pthread_spin_do_lock(starpu_pthread_spinlock_t *lock);
 #endif
 
 #if defined(STARPU_SIMGRID) || (defined(STARPU_LINUX_SYS) && defined(STARPU_HAVE_XCHG)) || !defined(STARPU_HAVE_PTHREAD_SPIN_LOCK)
+
+static inline int _starpu_pthread_spin_init(starpu_pthread_spinlock_t *lock, int pshared STARPU_ATTRIBUTE_UNUSED)
+{
+	lock->taken = 0;
+	return 0;
+}
+#define starpu_pthread_spin_init _starpu_pthread_spin_init
+
+static inline int _starpu_pthread_spin_destroy(starpu_pthread_spinlock_t *lock STARPU_ATTRIBUTE_UNUSED)
+{
+	/* we don't do anything */
+	return 0;
+}
+#define starpu_pthread_spin_destroy _starpu_pthread_spin_destroy
+
 static inline int _starpu_pthread_spin_lock(starpu_pthread_spinlock_t *lock)
 {
 #ifdef STARPU_SIMGRID

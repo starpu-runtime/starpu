@@ -705,16 +705,16 @@ void starpu_pthread_mutex_check_sched(starpu_pthread_mutex_t *mutex, char *file,
 
 #if defined(STARPU_SIMGRID) || (defined(STARPU_LINUX_SYS) && defined(STARPU_HAVE_XCHG)) || !defined(HAVE_PTHREAD_SPIN_LOCK)
 
-int starpu_pthread_spin_init(starpu_pthread_spinlock_t *lock, int pshared STARPU_ATTRIBUTE_UNUSED)
+#undef starpu_pthread_spin_init
+int starpu_pthread_spin_init(starpu_pthread_spinlock_t *lock, int pshared)
 {
-	lock->taken = 0;
-	return 0;
+	return _starpu_pthread_spin_init(lock, pshared);
 }
 
+#undef starpu_pthread_spin_destroy
 int starpu_pthread_spin_destroy(starpu_pthread_spinlock_t *lock STARPU_ATTRIBUTE_UNUSED)
 {
-	/* we don't do anything */
-	return 0;
+	return _starpu_pthread_spin_destroy(lock);
 }
 
 #undef starpu_pthread_spin_lock
