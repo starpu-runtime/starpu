@@ -805,6 +805,10 @@ pick:
 			{
 				if (sched_ctx->sched_policy && sched_ctx->sched_policy->pop_task)
 				{
+					/* Note: we do not push the scheduling state here, because
+					 * otherwise when a worker is idle, we'd keep
+					 * pushing/popping a scheduling state here, while what we
+					 * want to see in the trace is a permanent idle state. */
 					task = sched_ctx->sched_policy->pop_task(sched_ctx->id);
 					_starpu_pop_task_end(task);
 				}
