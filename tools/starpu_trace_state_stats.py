@@ -67,11 +67,15 @@ class Worker():
     def add_event(self, type, name, category, start_time):
         self._events.append(Event(type, name, category, start_time))
 
-    def calc_stats(self):
+    def calc_stats(self, start_profiling_time):
         num_events = len(self._events) - 1
         for i in xrange(0, num_events):
             curr_event = self._events[i]
             next_event = self._events[i+1]
+
+	    if curr_event._start_time <= start_profiling_time:
+		# Ignore events before the start_profiling program event.
+		continue
 
             if next_event._type == "PushState":
                 self._stack.append(next_event)
@@ -120,7 +124,7 @@ def read_blocks(input_file):
 def read_field(field, index):
     return field[index+1:-1]
 
-def insert_worker_event(workers, block):
+def insert_worker_event(workers, prog_events, block):
     worker_id = -1
     name = None
     start_time = 0.0
@@ -137,6 +141,11 @@ def insert_worker_event(workers, block):
             name = read_field(line, 2)
         elif line[:2] == "S:": # StartTime
             start_time = float(read_field(line, 2))
+
+    # Program events don't belong to workers, they are globals.
+    if category == "Program":
+	prog_events.append(Event(event_type, name, category, start_time))
+	return
 
     for worker in workers:
         if worker._id == worker_id:
@@ -255,18 +264,28 @@ def main():
     # Declare a list for all workers.
     workers = []
 
+    # Declare a list for program events
+    prog_events = []
+
     # Read the recutils file format per blocks.
     blocks = read_blocks(recfile)
     for block in blocks:
         if not len(block) == 0:
             first_line = block[0]
             if first_line[:2] == "E:":
-                insert_worker_event(workers, block)
+                insert_worker_event(workers, prog_events, block)
+
+    # Find the start_profiling time event.
+    start_profiling_time = 0.0
+    for prog_event in prog_events:
+	if prog_event._name == "start_profiling":
+		start_profiling_time = prog_event._start_time
+		break
 
     # Compute worker statistics.
     stats = []
     for worker in workers:
-        worker.calc_stats()
+        worker.calc_stats(start_profiling_time)
         for stat in worker._stats:
             found = False
             for s in stats:
