@@ -2110,6 +2110,9 @@ static void handle_event(struct fxt_ev_64 *ev, struct starpu_fxt_options *option
 		fprintf(out_paje_file, "9	%.9f	prog_event	%sp	%s\n", get_event_time_stamp(ev, options), options->file_prefix, event);
 #endif
 	}
+
+	if (trace_file)
+		recfmt_set_state(get_event_time_stamp(ev, options), "ProgEvent", -1, 0, event, "Program");
 }
 
 static void handle_thread_event(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
