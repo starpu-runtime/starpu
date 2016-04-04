@@ -149,7 +149,7 @@ def insert_worker_event(workers, block):
 def calc_times(stats):
     tr = 0.0 # Runtime
     tt = 0.0 # Task
-    ti = 0.0 # Idle (likely Other)
+    ti = 0.0 # Idle
     for stat in stats:
         if stat._category == None:
             continue
@@ -168,7 +168,7 @@ def save_times(ti, tr, tt):
     f.write("\"Time\",\"Duration\"\n")
     f.write("\"Runtime\"," + str(tr) + "\n")
     f.write("\"Task\"," + str(tt) + "\n")
-    f.write("\"Other\"," + str(ti) + "\n")
+    f.write("\"Idle\"," + str(ti) + "\n")
     f.close()
 
 def calc_et(tt_1, tt_p):
