@@ -2495,7 +2495,7 @@ AS_IF([test "$use_hwloc" = "yes" -a "$have_valid_hwloc" = "no"],
      )
 # in case hwloc is not available but was not explicitely disabled, this is an error
 AS_IF([test "$have_valid_hwloc" = "no" -a "$use_hwloc" != "no"],
-      [AC_MSG_ERROR([hwloc was not found on your system. If the target machine is hyperthreaded the performance may be impacted a lot.  It is strongly recommended to install hwloc. However, if you really want to use StarPU without enabling hwloc, please restart configure by specifying the option '--without-hwloc'.])]
+      [AC_MSG_ERROR([libhwloc was not found on your system. If the target machine is hyperthreaded the performance may be impacted a lot.  It is strongly recommended to install libhwloc. However, if you really want to use StarPU without enabling libhwloc, please restart configure by specifying the option '--without-hwloc'.])]
      )
 
 AS_IF([test "$have_valid_hwloc" = "yes"],
