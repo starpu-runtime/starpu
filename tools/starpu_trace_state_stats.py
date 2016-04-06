@@ -159,25 +159,32 @@ def calc_times(stats):
     tr = 0.0 # Runtime
     tt = 0.0 # Task
     ti = 0.0 # Idle
+    ts = 0.0 # Scheduling
     for stat in stats:
         if stat._category == None:
             continue
         if stat._category == "Runtime":
-            tr += stat._duration_time
+            if stat._name == "Scheduling":
+                # Scheduling time is part of runtime but we want to have
+                # it separately.
+                ts += stat._duration_time
+            else:
+                tr += stat._duration_time
         elif stat._category == "Task":
             tt += stat._duration_time
         elif stat._category == "Other":
             ti += stat._duration_time
         else:
             sys.exit("Unknown category '" + stat._category + "'!")
-    return (ti, tr, tt)
+    return (ti, tr, tt, ts)
 
-def save_times(ti, tr, tt):
+def save_times(ti, tr, tt, ts):
     f = open("times.csv", "w+")
     f.write("\"Time\",\"Duration\"\n")
     f.write("\"Runtime\"," + str(tr) + "\n")
     f.write("\"Task\"," + str(tt) + "\n")
     f.write("\"Idle\"," + str(ti) + "\n")
+    f.write("\"Scheduling\"," + str(ts) + "\n")
     f.close()
 
 def calc_et(tt_1, tt_p):
@@ -309,20 +316,24 @@ def main():
     for stat in stats:
         stat.show()
 
-    # Compute runtime, task, idle times and dump them to times.csv
-    ti_p = tr_p = tt_p = 0.0
+    # Compute runtime, task, idle, scheduling times and dump them to times.csv
+    ti_p = tr_p = tt_p = ts_p = 0.0
     if dump_time == True:
-        ti_p, tr_p, tt_p = calc_times(stats)
-        save_times(ti_p, tr_p, tt_p)
+        ti_p, tr_p, tt_p, ts_p = calc_times(stats)
+        save_times(ti_p, tr_p, tt_p, ts_p)
 
     # Compute runtime, task, idle efficiencies and dump them to
     # efficiencies.csv.
     if dump_efficiency == True or not tt_1 == 0.0:
         if dump_time == False:
-            ti_p, tr_p, tt_p = calc_times(stats)
+            ti_p, tr_p, tt_p = ts_p = calc_times(stats)
         if tt_1 == 0.0:
             sys.stderr.write("WARNING: Task efficiency will be 1.0 because -s is not set!\n")
             tt_1 = tt_p
+
+        # TODO: The formula for computing efficiencies must be updated with
+        # the scheduling time. For now, just keep it as is.
+        tr += ts
 
         # Compute efficiencies.
         ep = round(calc_ep(tt_p, tr_p, ti_p), 6)
