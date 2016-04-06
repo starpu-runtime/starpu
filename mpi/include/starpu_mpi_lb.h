@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015  CNRS
+ * Copyright (C) 2016  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,25 +14,28 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#ifndef __STARPU_MPI_TAG_H__
-#define __STARPU_MPI_TAG_H__
-
-#include <starpu.h>
-#include <stdlib.h>
-#include <mpi.h>
+#ifndef __LOAD_BALANCER_H__
+#define __LOAD_BALANCER_H__
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void _starpu_mpi_tag_init(void);
-void _starpu_mpi_tag_free(void);
-void _starpu_mpi_data_register_tag(starpu_data_handle_t handle, int tag);
-int _starpu_mpi_data_release_tag(starpu_data_handle_t handle);
-starpu_data_handle_t starpu_mpi_data_get_data_handle_from_tag(int tag);
+struct starpu_mpi_lb_conf
+{
+    void (*get_neighbors)(int **neighbor_ids, int *nneighbors);
+    void (*get_data_unit_to_migrate)(starpu_data_handle_t **handle_unit, int *nhandles, int dst_node);
+    const char *name;
+};
+
+/* Inits the load balancer's environment with the load policy provided by the
+ * user 
+ */
+void starpu_mpi_lb_init(struct starpu_mpi_lb_conf *);
+void starpu_mpi_lb_shutdown();
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif // __STARPU_MPI_TAG_H__
+#endif // __LOAD_BALANCER_H__

@@ -74,6 +74,8 @@ void starpu_mpi_comm_amounts_retrieve(size_t *comm_amounts);
 void starpu_mpi_cache_flush(MPI_Comm comm, starpu_data_handle_t data_handle);
 void starpu_mpi_cache_flush_all_data(MPI_Comm comm);
 
+starpu_data_handle_t starpu_mpi_get_data_from_sent_cache(int dst_node);
+
 int starpu_mpi_comm_size(MPI_Comm comm, int *size);
 int starpu_mpi_comm_rank(MPI_Comm comm, int *rank);
 int starpu_mpi_world_rank(void);
@@ -95,6 +97,8 @@ int starpu_mpi_data_get_tag(starpu_data_handle_t handle);
 #define starpu_data_get_rank starpu_mpi_data_get_rank
 #define starpu_data_get_tag starpu_mpi_data_get_tag
 
+starpu_data_handle_t starpu_mpi_data_get_data_handle_from_tag(int tag);
+
 #define STARPU_MPI_NODE_SELECTION_CURRENT_POLICY -1
 #define STARPU_MPI_NODE_SELECTION_MOST_R_DATA    0
 
@@ -112,6 +116,9 @@ typedef void (*starpu_mpi_datatype_allocate_func_t)(starpu_data_handle_t, MPI_Da
 typedef void (*starpu_mpi_datatype_free_func_t)(MPI_Datatype *);
 int starpu_mpi_datatype_register(starpu_data_handle_t handle, starpu_mpi_datatype_allocate_func_t allocate_datatype_func, starpu_mpi_datatype_free_func_t free_datatype_func);
 int starpu_mpi_datatype_unregister(starpu_data_handle_t handle);
+
+int starpu_mpi_pre_submit_hook_register(void (*f)(struct starpu_task *));
+int starpu_mpi_pre_submit_hook_unregister();
 
 #ifdef __cplusplus
 }

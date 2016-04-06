@@ -38,6 +38,23 @@ int _starpu_cache_enabled=1;
 MPI_Comm _starpu_cache_comm;
 int _starpu_cache_comm_size;
 
+starpu_data_handle_t starpu_mpi_get_data_from_sent_cache(int dst_node)
+{
+    starpu_data_handle_t data = NULL;
+
+    STARPU_PTHREAD_MUTEX_LOCK(&_cache_received_mutex[dst_node]);
+    struct _starpu_data_entry *entry = _cache_received_data[dst_node];
+    while (entry && entry->hh.next)
+    {
+        entry = entry->hh.next;
+    }
+    if (entry)
+        data = entry->data;
+    STARPU_PTHREAD_MUTEX_UNLOCK(&_cache_received_mutex[dst_node]);
+
+    return data;
+}
+
 int starpu_mpi_cache_is_enabled()
 {
 	return _starpu_cache_enabled==1;

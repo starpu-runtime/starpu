@@ -44,7 +44,10 @@ noinst_HEADERS =					\
 	starpu_mpi_early_request.h			\
 	starpu_mpi_sync_data.h				\
 	starpu_mpi_comm.h				\
-	starpu_mpi_tag.h
+	starpu_mpi_tag.h				\
+	load_balancer/policy/data_movements_interface.h	\
+	load_balancer/policy/load_data_interface.h		\
+	load_balancer/policy/load_balancer_policy.h
 
 libstarpumpi_@STARPU_EFFECTIVE_VERSION@_la_SOURCES =	\
 	starpu_mpi.c					\
@@ -61,7 +64,11 @@ libstarpumpi_@STARPU_EFFECTIVE_VERSION@_la_SOURCES =	\
 	starpu_mpi_early_request.c			\
 	starpu_mpi_sync_data.c				\
 	starpu_mpi_comm.c				\
-	starpu_mpi_tag.c
+	starpu_mpi_tag.c				\
+	load_balancer/policy/data_movements_interface.c	\
+	load_balancer/policy/load_data_interface.c	\
+	load_balancer/policy/load_heat_propagation.c	\
+	load_balancer/load_balancer.c
 
 showcheck:
 	-cat /dev/null

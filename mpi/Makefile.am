@@ -21,7 +21,8 @@ pkgconfig_DATA = libstarpumpi.pc starpumpi-1.0.pc starpumpi-1.1.pc starpumpi-1.2
 
 versincludedir = $(includedir)/starpu/$(STARPU_EFFECTIVE_VERSION)
 versinclude_HEADERS = 					\
-	include/starpu_mpi.h
+	include/starpu_mpi.h				\
+	include/starpu_mpi_lb.h
 
 showcheck:
 	RET=0 ; \
