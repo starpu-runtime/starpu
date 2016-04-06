@@ -48,7 +48,7 @@ class EventStats():
         self._count += 1
 
     def show(self):
-        if not self._name == None:
+        if not self._name == None and not self._category == None:
             print "\"" + self._name + "\"," + str(self._count) + ",\"" + self._category + "\"," + str(round(self._duration_time, 6))
 
 class Worker():
