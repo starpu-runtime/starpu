@@ -137,7 +137,10 @@ void _starpu_driver_end_job(struct _starpu_worker *worker, struct _starpu_job *j
 	if (rank == 0)
 	{
 		if ((profiling && profiling_info) || calibrate_model || starpu_top)
+		{
 			_starpu_clock_gettime(codelet_end);
+			_starpu_worker_register_executing_end(workerid);
+		}
 #ifdef HAVE_AYUDAME_H
 		if (AYU_event) AYU_event(AYU_POSTRUNTASK, j->job_id, NULL);
 #endif

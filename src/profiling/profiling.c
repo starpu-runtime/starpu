@@ -268,6 +268,16 @@ void _starpu_worker_register_executing_start_date(int workerid, struct timespec 
 	}
 }
 
+void _starpu_worker_register_executing_end(int workerid)
+{
+	if (starpu_profiling_status_get())
+	{
+		STARPU_PTHREAD_MUTEX_LOCK(&worker_info_mutex[workerid]);
+		worker_registered_executing_start[workerid] = 0;
+		STARPU_PTHREAD_MUTEX_UNLOCK(&worker_info_mutex[workerid]);
+	}
+}
+
 
 void _starpu_worker_update_profiling_info_executing(int workerid, struct timespec *executing_time, int executed_tasks, uint64_t used_cycles, uint64_t stall_cycles, double power_consumed, double flops)
 {
