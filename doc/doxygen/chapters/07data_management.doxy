@@ -516,6 +516,8 @@ codelet is needed).
 
 \subsection ScratchData Scratch Data
 
+TOOD: dire qu'on enregistre une seule fois, et comme ça alloué une fois par worker seulement
+
 Some kernels sometimes need temporary data to achieve the computations, i.e. a
 workspace. The application could allocate it at the start of the codelet
 function, and free it at the end, but that would be costly. It could also
