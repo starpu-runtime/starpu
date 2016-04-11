@@ -873,6 +873,8 @@ int starpu_init(struct starpu_conf *user_conf)
 
 	_starpu_watchdog_init();
 
+	_starpu_profiling_start();
+
 	STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
 	initialized = INITIALIZED;
 	/* Tell everybody that we initialized */
