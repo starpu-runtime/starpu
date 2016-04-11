@@ -516,8 +516,6 @@ codelet is needed).
 
 \subsection ScratchData Scratch Data
 
-TOOD: dire qu'on enregistre une seule fois, et comme ça alloué une fois par worker seulement
-
 Some kernels sometimes need temporary data to achieve the computations, i.e. a
 workspace. The application could allocate it at the start of the codelet
 function, and free it at the end, but that would be costly. It could also
@@ -525,7 +523,9 @@ allocate one buffer per worker (similarly to \ref
 HowToInitializeAComputationLibraryOnceForEachWorker), but that would
 make them systematic and permanent. A more  optimized way is to use
 the data access mode ::STARPU_SCRATCH, as examplified below, which
-provides per-worker buffers without content consistency.
+provides per-worker buffers without content consistency. The buffer is
+registered only once, using memory node -1, i.e. the application didn't allocate
+memory for it, and StarPU will allocate it on demand at task execution.
 
 \code{.c}
 starpu_vector_data_register(&workspace, -1, 0, sizeof(float));
@@ -538,7 +538,7 @@ StarPU will make sure that the buffer is allocated before executing the task,
 and make this allocation per-worker: for CPU workers, notably, each worker has
 its own buffer. This means that each task submitted above will actually have its
 own workspace, which will actually be the same for all tasks running one after
-the other on the same worker. Also, if for instance GPU memory becomes scarce,
+the other on the same worker. Also, if for instance memory becomes scarce,
 StarPU will notice that it can free such buffers easily, since the content does
 not matter.
 
