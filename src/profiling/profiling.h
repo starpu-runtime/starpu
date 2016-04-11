@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012, 2014  Université de Bordeaux
+ * Copyright (C) 2010-2012, 2014, 2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2013  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -67,6 +67,9 @@ void _starpu_profiling_set_task_push_end_time(struct starpu_task *task);
 
 /* This function needs to be called before other starpu_profile_* functions */
 void _starpu_profiling_init(void);
+
+/* This function starts profiling if the STARPU_PROFILING environment variable was set */
+void _starpu_profiling_start(void);
 
 void _starpu_profiling_terminate(void);
 void _starpu_profiling_reset_counters();
