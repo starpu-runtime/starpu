@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013  Université de Bordeaux
+ * Copyright (C) 2010-2013, 2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -109,14 +109,17 @@ int starpu_profiling_status_set(int status)
 
 void _starpu_profiling_init(void)
 {
-	const char *env;
 	int worker;
 
 	for (worker = 0; worker < STARPU_NMAXWORKERS; worker++)
 	{
 		STARPU_PTHREAD_MUTEX_INIT(&worker_info_mutex[worker], NULL);
 	}
+}
 
+void _starpu_profiling_start(void)
+{
+	const char *env;
 	if ((env = starpu_getenv("STARPU_PROFILING")) && atoi(env))
 	{
 		starpu_profiling_status_set(STARPU_PROFILING_ENABLE);
