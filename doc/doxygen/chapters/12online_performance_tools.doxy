@@ -82,14 +82,42 @@ wasted in pure StarPU overhead.
 Calling starpu_profiling_worker_get_info() resets the profiling
 information associated to a worker.
 
+To easily display all this information, the environment variable \ref
+STARPU_WORKER_STATS can be set to 1 (in addition to setting \ref
+STARPU_PROFILING to 1). A summary will then be displayed at program termination:
+
+\verbatim
+Worker stats:
+CUDA 0.0 (4.7 GiB)      
+	480 task(s)
+	total: 1574.82 ms executing: 1510.72 ms sleeping: 0.00 ms overhead 64.10 ms
+	325.217970 GFlop/s
+
+CPU 0                           
+	22 task(s)
+	total: 1574.82 ms executing: 1364.81 ms sleeping: 0.00 ms overhead 210.01 ms
+	7.512057 GFlop/s
+
+CPU 1                           
+	14 task(s)
+	total: 1574.82 ms executing: 1500.13 ms sleeping: 0.00 ms overhead 74.69 ms
+	6.675853 GFlop/s
+
+CPU 2                           
+	14 task(s)
+	total: 1574.82 ms executing: 1553.12 ms sleeping: 0.00 ms overhead 21.70 ms
+	7.152886 GFlop/s
+\endverbatim
+
+The number of GFlops is available because the starpu_task::flops field of the
+tasks were filled.
+
 When an FxT trace is generated (see \ref GeneratingTracesWithFxT), it is also
 possible to use the tool <c>starpu_workers_activity</c> (see \ref
 MonitoringActivity) to generate a graphic showing the evolution of
 these values during the time, for the different workers.
 
 \subsection Bus-relatedFeedback Bus-related Feedback
-
-TODO: ajouter \ref STARPU_BUS_STATS
 
 // how to enable/disable performance monitoring
 // what kind of information do we get ?
@@ -108,6 +136,27 @@ RAM     0.000000        5176.530428     5176.492994     5191.710722
 CUDA 0  4523.732446     0.000000        2414.074751     2417.379201
 CUDA 1  4523.718152     2414.078822     0.000000        2417.375119
 CUDA 2  4534.229519     2417.069025     2417.060863     0.000000
+\endverbatim
+
+Statistics about the data transfers which were performed and temporal average
+of bandwidth usage can be obtained by setting the environment variable \ref
+STARPU_BUS_STATS to 1; a summary will then be displayed at program termination:
+
+\verbatim
+Data transfer stats:
+	RAM 0 -> CUDA 0	319.92 MB	213.10 MB/s	(transfers : 91 - avg 3.52 MB)
+	CUDA 0 -> RAM 0	214.45 MB	142.85 MB/s	(transfers : 61 - avg 3.52 MB)
+	RAM 0 -> CUDA 1	302.34 MB	201.39 MB/s	(transfers : 86 - avg 3.52 MB)
+	CUDA 1 -> RAM 0	133.59 MB	88.99 MB/s	(transfers : 38 - avg 3.52 MB)
+	CUDA 0 -> CUDA 1	144.14 MB	96.01 MB/s	(transfers : 41 - avg 3.52 MB)
+	CUDA 1 -> CUDA 0	130.08 MB	86.64 MB/s	(transfers : 37 - avg 3.52 MB)
+	RAM 0 -> CUDA 2	312.89 MB	208.42 MB/s	(transfers : 89 - avg 3.52 MB)
+	CUDA 2 -> RAM 0	133.59 MB	88.99 MB/s	(transfers : 38 - avg 3.52 MB)
+	CUDA 0 -> CUDA 2	151.17 MB	100.69 MB/s	(transfers : 43 - avg 3.52 MB)
+	CUDA 2 -> CUDA 0	105.47 MB	70.25 MB/s	(transfers : 30 - avg 3.52 MB)
+	CUDA 1 -> CUDA 2	175.78 MB	117.09 MB/s	(transfers : 50 - avg 3.52 MB)
+	CUDA 2 -> CUDA 1	203.91 MB	135.82 MB/s	(transfers : 58 - avg 3.52 MB)
+Total transfers: 2.27 GB
 \endverbatim
 
 \subsection StarPU-TopInterface StarPU-Top Interface
