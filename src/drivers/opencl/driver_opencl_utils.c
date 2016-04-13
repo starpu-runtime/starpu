@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011, 2012, 2014, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2014, 2015, 2016  CNRS
  * Copyright (C) 2010-2016  Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -146,12 +146,14 @@ char *_starpu_opencl_load_program_source(const char *filename)
 	char        *source;
 	int         x;
 	char        c;
+	int         err;
 
 	fh = fopen(filename, "r");
 	if (!fh)
 		return NULL;
 
-	stat(filename, &statbuf);
+	err = stat(filename, &statbuf);
+	STARPU_ASSERT_MSG(err == 0, "could not open file %s\n", filename);
 	source = (char *) malloc(statbuf.st_size + 1);
 
 	for(c=(char)fgetc(fh), x=0 ; c != EOF ; c =(char)fgetc(fh), x++)
@@ -174,12 +176,14 @@ char *_starpu_opencl_load_program_binary(const char *filename, size_t *len)
 	struct stat statbuf;
 	FILE        *fh;
 	char        *binary;
+        int         err;
 
 	fh = fopen(filename, "r");
 	if (fh == 0)
 		return NULL;
 
-	stat(filename, &statbuf);
+	err = stat(filename, &statbuf);
+	STARPU_ASSERT_MSG(err == 0, "could not open file %s\n", filename);
 
 	binary = (char *) malloc(statbuf.st_size);
 	if (!binary)
@@ -188,7 +192,8 @@ char *_starpu_opencl_load_program_binary(const char *filename, size_t *len)
 		return binary;
 	}
 
-	fread(binary, statbuf.st_size, 1, fh);
+	err = fread(binary, statbuf.st_size, 1, fh);
+	STARPU_ASSERT_MSG(err == statbuf.st_size, "could not read from file %s\n", filename);
 	fclose(fh);
 
 	*len = statbuf.st_size;
