@@ -193,7 +193,7 @@ char *_starpu_opencl_load_program_binary(const char *filename, size_t *len)
 	}
 
 	err = fread(binary, statbuf.st_size, 1, fh);
-	STARPU_ASSERT_MSG(err == statbuf.st_size, "could not read from file %s\n", filename);
+	STARPU_ASSERT_MSG(err == 1, "could not read from file %s\n", filename);
 	fclose(fh);
 
 	*len = statbuf.st_size;
