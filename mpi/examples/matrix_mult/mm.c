@@ -25,6 +25,7 @@
 #include <math.h>
 #include <starpu.h>
 #include <starpu_mpi.h>
+#include "helper.h"
 
 #define VERBOSE 0
 
@@ -249,7 +250,7 @@ static void cpu_mult(void *handles[], STARPU_ATTRIBUTE_UNUSED void *arg)
 	assert(n_row_C == n_row_A);
 	assert(n_col_A == n_row_B);
 
-	int i,j,k;
+	unsigned i,j,k;
 	for (k = 0; k < n_row_C; k++) {
 		for (j = 0; j < n_col_C; j++) {
 			for (i = 0; i < n_col_A; i++) {
@@ -284,6 +285,14 @@ int main(int argc, char *argv[])
 	/* Initializes the StarPU-MPI layer */
 	ret = starpu_mpi_init(&argc, &argv, 1);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
+
+	if (starpu_cpu_worker_get_count() == 0)
+	{
+		FPRINTF(stderr, "We need at least 1 CPU worker.\n");
+		starpu_mpi_shutdown();
+		starpu_shutdown();
+		return STARPU_TEST_SKIPPED;
+	}
 
 	/* Parse the matrix size and block size optional args */
 	if (argc > 1) {
