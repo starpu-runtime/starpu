@@ -516,11 +516,17 @@ int starpu_opencl_load_binary_opencl(const char *kernel_id, struct starpu_opencl
 		{
 			cl_build_status status;
 			size_t len;
-			static char buffer[4096] = "";
 
-			clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, sizeof(buffer), buffer, &len);
+			clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, 0, NULL, &len);
 			if (len > 2)
+			{
+				char *buffer = malloc(len);
+
+				clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, len, buffer, &len);
 				_STARPU_DISP("Compilation output\n%s\n", buffer);
+
+				free(buffer);
+			}
 
 			clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_STATUS, sizeof(status), &status, NULL);
 			if (err != CL_SUCCESS || status != CL_BUILD_SUCCESS)
