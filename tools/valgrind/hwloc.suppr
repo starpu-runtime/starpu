@@ -25,3 +25,17 @@
    ...
    fun:hwloc_components_init
 }
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:lt__malloc
+   fun:lt__zalloc
+   obj:/usr/lib/x86_64-linux-gnu/libltdl.so.7.3.0
+   fun:lt_dlopenadvise
+   obj:*
+   obj:*
+   obj:/usr/lib/x86_64-linux-gnu/libhwloc.so.5.6.8
+   fun:hwloc_topology_init
+}
