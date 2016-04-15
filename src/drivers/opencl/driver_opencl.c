@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2015  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -218,20 +218,32 @@ int _starpu_opencl_deinit_context(int devid)
 
         _STARPU_DEBUG("De-initialising context for dev %d\n", devid);
 
-        err = clReleaseContext(contexts[devid]);
+        err = clFinish(queues[devid]);
         if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
-
         err = clReleaseCommandQueue(queues[devid]);
         if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 
+        err = clFinish(in_transfer_queues[devid]);
+        if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
         err = clReleaseCommandQueue(in_transfer_queues[devid]);
         if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+
+        err = clFinish(out_transfer_queues[devid]);
+        if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
         err = clReleaseCommandQueue(out_transfer_queues[devid]);
+        if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+
+        err = clFinish(peer_transfer_queues[devid]);
         if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
         err = clReleaseCommandQueue(peer_transfer_queues[devid]);
         if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 
+        err = clFinish(alloc_queues[devid]);
+        if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
         err = clReleaseCommandQueue(alloc_queues[devid]);
+        if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+
+        err = clReleaseContext(contexts[devid]);
         if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 
         contexts[devid] = NULL;
@@ -703,6 +715,8 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 		else
 		{
 #ifndef STARPU_SIMGRID
+			err = clReleaseEvent(task_events[worker->devid][worker->first_task]);
+			if (STARPU_UNLIKELY(err)) STARPU_OPENCL_REPORT_ERROR(err);
 			task_events[worker->devid][worker->first_task] = 0;
 #endif
 

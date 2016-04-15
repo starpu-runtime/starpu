@@ -318,7 +318,9 @@ int _starpu_opencl_compile_or_load_opencl_from_string(const char *opencl_program
 
 		// Store program
 		if (opencl_programs)
+		{
 			opencl_programs->programs[dev] = program;
+		}
 		else
 		{
 			char binary_file_name[1024];
@@ -347,6 +349,9 @@ int _starpu_opencl_compile_or_load_opencl_from_string(const char *opencl_program
 			fclose(fh);
 			free(binary);
 			_STARPU_DEBUG("File <%s> created\n", binary_file_name);
+
+			err = clReleaseProgram(program);
+			if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 		}
 	}
 	return EXIT_SUCCESS;
@@ -485,6 +490,7 @@ int starpu_opencl_load_binary_opencl(const char *kernel_id, struct starpu_opencl
 
 		// Store program
 		opencl_programs->programs[dev] = program;
+		free(binary);
 	}
 	return 0;
 }
