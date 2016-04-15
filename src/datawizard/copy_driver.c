@@ -764,6 +764,11 @@ unsigned _starpu_driver_test_request_completion(struct _starpu_async_channel *as
 			STARPU_OPENCL_REPORT_ERROR(err);
 		if (event_status < 0)
 			STARPU_OPENCL_REPORT_ERROR(event_status);
+		if (event_status == CL_COMPLETE)
+		{
+			err = clReleaseEvent(opencl_event);
+			if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+		}
 		success = (event_status == CL_COMPLETE);
 		break;
 	}
