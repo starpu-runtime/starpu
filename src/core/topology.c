@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2015  Université de Bordeaux
+ * Copyright (C) 2009-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015 CNRS
  * Copyright (C) 2011  INRIA
  *
@@ -1442,23 +1442,17 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 	unsigned cuda_init[STARPU_MAXCUDADEVS] = { };
 	unsigned cuda_memory_nodes[STARPU_MAXCUDADEVS];
-#ifndef STARPU_SIMGRID
 	unsigned cuda_bindid[STARPU_MAXCUDADEVS];
-#endif
 #endif
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 	unsigned opencl_init[STARPU_MAXOPENCLDEVS] = { };
 	unsigned opencl_memory_nodes[STARPU_MAXOPENCLDEVS];
-#ifndef STARPU_SIMGRID
 	unsigned opencl_bindid[STARPU_MAXOPENCLDEVS];
-#endif
 #endif
 #ifdef STARPU_USE_MIC
 	unsigned mic_init[STARPU_MAXMICDEVS] = { };
 	unsigned mic_memory_nodes[STARPU_MAXMICDEVS];
-#ifndef STARPU_SIGMRID
 	unsigned mic_bindid[STARPU_MAXMICDEVS];
-#endif
 #endif
 
 	unsigned worker;
@@ -1468,7 +1462,7 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 		struct _starpu_worker *workerarg = &config->workers[worker];
 		unsigned devid = workerarg->devid;
 
-#if (defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) || defined(STARPU_USE_MIC)) && !defined(STARPU_SIMGRID)
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) || defined(STARPU_USE_MIC)
 		/* Perhaps the worker has some "favourite" bindings  */
 		int *preferred_binding = NULL;
 		int npreferred = 0;
@@ -1526,9 +1520,7 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 				else
 				{
 					cuda_init[devid] = 1;
-#ifndef STARPU_SIMGRID
 					workerarg->bindid = cuda_bindid[devid] = _starpu_get_next_bindid(config, preferred_binding, npreferred);
-#endif /* SIMGRID */
 					memory_node = cuda_memory_nodes[devid] = _starpu_memory_node_register(STARPU_CUDA_RAM, devid);
 
 					_starpu_register_bus(STARPU_MAIN_RAM, memory_node);
@@ -1592,9 +1584,7 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 				else
 				{
 					opencl_init[devid] = 1;
-#ifndef STARPU_SIMGRID
 					workerarg->bindid = opencl_bindid[devid] = _starpu_get_next_bindid(config, preferred_binding, npreferred);
-#endif /* SIMGRID */
 					memory_node = opencl_memory_nodes[devid] = _starpu_memory_node_register(STARPU_OPENCL_RAM, devid);
 					_starpu_register_bus(STARPU_MAIN_RAM, memory_node);
 					_starpu_register_bus(memory_node, STARPU_MAIN_RAM);
@@ -1622,7 +1612,6 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 				else
 				{
 					mic_init[devid] = 1;
-#ifndef STARPU_SIMGRID
 					/* TODO */
 					//if (may_bind_automatically)
 					//{
@@ -1631,7 +1620,6 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 					//	npreferred = config->topology.nhwpus;
 					//}
 					mic_bindid[devid] = _starpu_get_next_bindid(config, preferred_binding, npreferred);
-#endif /* SIMGRID */
 					memory_node = mic_memory_nodes[devid] = _starpu_memory_node_register(STARPU_MIC_RAM, devid);
 					_starpu_register_bus(STARPU_MAIN_RAM, memory_node);
 					_starpu_register_bus(memory_node, STARPU_MAIN_RAM);
