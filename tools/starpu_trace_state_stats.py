@@ -192,26 +192,32 @@ def calc_et(tt_1, tt_p):
     data locality. """
     return tt_1 / tt_p
 
-def calc_er(tt_p, tr_p):
+def calc_es(tt_p, ts_p):
+    """ Compute the scheduling efficiency (es). This measures time spent in
+    the runtime scheduler. """
+    return tt_p / (tt_p + ts_p)
+
+def calc_er(tt_p, tr_p, ts_p):
     """ Compute the runtime efficiency (er). This measures how the runtime
     overhead affects performance."""
-    return tt_p / (tt_p + tr_p)
+    return (tt_p + ts_p) / (tt_p + tr_p + ts_p)
 
-def calc_ep(tt_p, tr_p, ti_p):
+def calc_ep(tt_p, tr_p, ti_p, ts_p):
     """ Compute the pipeline efficiency (et). This measures how much
     concurrency is available and how well it's exploited. """
-    return (tt_p + tr_p) / (tt_p + tr_p + ti_p)
+    return (tt_p + tr_p + ts_p) / (tt_p + tr_p + ti_p + ts_p)
 
-def calc_e(et, er, ep):
+def calc_e(et, er, ep, es):
     """ Compute the parallel efficiency. """
-    return et * er * ep
+    return et * er * ep * es
 
-def save_efficiencies(e, ep, er, et):
+def save_efficiencies(e, ep, er, et, es):
     f = open("efficiencies.csv", "w+")
     f.write("\"Efficiency\",\"Value\"\n")
     f.write("\"Parallel\"," + str(e) + "\n")
     f.write("\"Task\"," + str(et) + "\n")
     f.write("\"Runtime\"," + str(er) + "\n")
+    f.write("\"Scheduling\"," + str(es) + "\n")
     f.write("\"Pipeline\"," + str(ep) + "\n")
     f.close()
 
@@ -331,15 +337,12 @@ def main():
             sys.stderr.write("WARNING: Task efficiency will be 1.0 because -s is not set!\n")
             tt_1 = tt_p
 
-        # TODO: The formula for computing efficiencies must be updated with
-        # the scheduling time. For now, just keep it as is.
-        tr += ts
-
         # Compute efficiencies.
-        ep = round(calc_ep(tt_p, tr_p, ti_p), 6)
-        er = round(calc_er(tt_p, tr_p), 6)
         et = round(calc_et(tt_1, tt_p), 6)
-        e  = round(calc_e(et, er, ep), 6)
-        save_efficiencies(e, ep, er, et)
+        es = round(calc_es(tt_p, ts_p), 6)
+        er = round(calc_er(tt_p, tr_p, ts_p), 6)
+        ep = round(calc_ep(tt_p, tr_p, ti_p, ts_p), 6)
+        e  = round(calc_e(et, er, ep, es), 6)
+        save_efficiencies(e, ep, er, et, es)
 if __name__ == "__main__":
     main()
