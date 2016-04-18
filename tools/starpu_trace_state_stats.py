@@ -67,14 +67,21 @@ class Worker():
     def add_event(self, type, name, category, start_time):
         self._events.append(Event(type, name, category, start_time))
 
-    def calc_stats(self, start_profiling_time):
+    def calc_stats(self, start_profiling_times, stop_profiling_times):
         num_events = len(self._events) - 1
         for i in xrange(0, num_events):
             curr_event = self._events[i]
             next_event = self._events[i+1]
+	    is_allowed = not len(start_profiling_times)
 
-	    if curr_event._start_time <= start_profiling_time:
-		# Ignore events before the start_profiling program event.
+            # Check if the event is inbetween start/stop profiling events
+            for t in range(len(start_profiling_times)):
+		if (curr_event._start_time > start_profiling_times[t] and
+		    curr_event._start_time < stop_profiling_times[t]):
+		    is_allowed = True
+		    break
+
+	    if not is_allowed:
 		continue
 
             if next_event._type == "PushState":
@@ -288,17 +295,22 @@ def main():
             if first_line[:2] == "E:":
                 insert_worker_event(workers, prog_events, block)
 
-    # Find the start_profiling time event.
-    start_profiling_time = 0.0
+    # Find allowed range times between start/stop profiling events.
+    start_profiling_times = []
+    stop_profiling_times = []
     for prog_event in prog_events:
 	if prog_event._name == "start_profiling":
-		start_profiling_time = prog_event._start_time
-		break
+	    start_profiling_times.append(prog_event._start_time)
+	if prog_event._name == "stop_profiling":
+	    stop_profiling_times.append(prog_event._start_time)
+
+    if len(start_profiling_times) != len(stop_profiling_times):
+	sys.exit("Mismatch number of start/stop profiling events!")
 
     # Compute worker statistics.
     stats = []
     for worker in workers:
-        worker.calc_stats(start_profiling_time)
+        worker.calc_stats(start_profiling_times, stop_profiling_times)
         for stat in worker._stats:
             found = False
             for s in stats:
