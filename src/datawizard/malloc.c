@@ -255,7 +255,7 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 				}
 				unlink(name);
 				free(name);
-				dumb = malloc(_starpu_malloc_simulation_fold);
+				dumb = calloc(1,_starpu_malloc_simulation_fold);
 				write(bogusfile, dumb, _starpu_malloc_simulation_fold);
 				free(dumb);
 			}
