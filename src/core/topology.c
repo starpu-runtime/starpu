@@ -1462,7 +1462,7 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 		struct _starpu_worker *workerarg = &config->workers[worker];
 		unsigned devid = workerarg->devid;
 
-#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) || defined(STARPU_USE_MIC)
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) || defined(STARPU_USE_MIC) || defined(STARPU_SIMGRID)
 		/* Perhaps the worker has some "favourite" bindings  */
 		int *preferred_binding = NULL;
 		int npreferred = 0;
