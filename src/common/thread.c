@@ -82,7 +82,18 @@ int starpu_pthread_mutex_destroy(starpu_pthread_mutex_t *mutex)
 
 int starpu_pthread_mutex_lock(starpu_pthread_mutex_t *mutex)
 {
-	if (!*mutex) STARPU_PTHREAD_MUTEX_INIT(mutex, NULL);
+	/* Note: this is actually safe, because simgrid only preempts within
+	 * simgrid functions */
+	if (!*mutex) {
+		/* Here we may get preempted */
+		xbt_mutex_t new_mutex = xbt_mutex_init();
+		if (!*mutex)
+			*mutex = new_mutex;
+		else
+			/* Somebody already initialized it while we were
+			 * calling xbt_mutex_init, this one is now useless */
+			xbt_mutex_destroy(new_mutex);
+	}
 	xbt_mutex_acquire(*mutex);
 	return 0;
 }
@@ -148,26 +159,39 @@ int starpu_pthread_cond_init(starpu_pthread_cond_t *cond, starpu_pthread_condatt
 	return 0;
 }
 
+static void _starpu_pthread_cond_auto_init(starpu_pthread_cond_t *cond)
+{
+	/* Note: this is actually safe, because simgrid only preempts within
+	 * simgrid functions */
+	if (!*cond) {
+		/* Here we may get preempted */
+		xbt_cond_t new_cond = xbt_cond_init();
+		if (!*cond)
+			*cond = new_cond;
+		else
+			/* Somebody already initialized it while we were
+			 * calling xbt_cond_init, this one is now useless */
+			xbt_cond_destroy(new_cond);
+	}
+}
+
 int starpu_pthread_cond_signal(starpu_pthread_cond_t *cond)
 {
-	if (!*cond)
-		STARPU_PTHREAD_COND_INIT(cond, NULL);
+	_starpu_pthread_cond_auto_init(cond);
 	xbt_cond_signal(*cond);
 	return 0;
 }
 
 int starpu_pthread_cond_broadcast(starpu_pthread_cond_t *cond)
 {
-	if (!*cond)
-		STARPU_PTHREAD_COND_INIT(cond, NULL);
+	_starpu_pthread_cond_auto_init(cond);
 	xbt_cond_broadcast(*cond);
 	return 0;
 }
 
 int starpu_pthread_cond_wait(starpu_pthread_cond_t *cond, starpu_pthread_mutex_t *mutex)
 {
-	if (!*cond)
-		STARPU_PTHREAD_COND_INIT(cond, NULL);
+	_starpu_pthread_cond_auto_init(cond);
 	xbt_cond_wait(*cond, *mutex);
 	return 0;
 }
