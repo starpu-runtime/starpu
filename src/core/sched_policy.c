@@ -216,6 +216,30 @@ void _starpu_deinit_sched_policy(struct _starpu_sched_ctx *sched_ctx)
 	starpu_sched_ctx_delete_worker_collection(sched_ctx->id);
 }
 
+void _starpu_sched_task_submit(struct starpu_task *task)
+{
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
+	if (!sched_ctx->sched_policy)
+		return;
+	if (!sched_ctx->sched_policy->submit_hook)
+		return;
+	_STARPU_TRACE_WORKER_SCHEDULING_PUSH;
+	sched_ctx->sched_policy->submit_hook(task);
+	_STARPU_TRACE_WORKER_SCHEDULING_POP;
+}
+
+void _starpu_sched_do_schedule(unsigned sched_ctx_id)
+{
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+	if (!sched_ctx->sched_policy)
+		return;
+	if (!sched_ctx->sched_policy->do_schedule)
+		return;
+	_STARPU_TRACE_WORKER_SCHEDULING_PUSH;
+	sched_ctx->sched_policy->do_schedule(sched_ctx_id);
+	_STARPU_TRACE_WORKER_SCHEDULING_POP;
+}
+
 static void _starpu_push_task_on_specific_worker_notify_sched(struct starpu_task *task, struct _starpu_worker *worker, int workerid, int perf_workerid)
 {
 	/* if we push a task on a specific worker, notify all the sched_ctxs the worker belongs to */

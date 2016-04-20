@@ -302,6 +302,7 @@ int _starpu_submit_job(struct _starpu_job *j)
 	_starpu_bound_record(j);
 
 	_starpu_increment_nsubmitted_tasks_of_sched_ctx(j->task->sched_ctx);
+	_starpu_sched_task_submit(task);
 
 #ifdef STARPU_USE_SC_HYPERVISOR
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(j->task->sched_ctx);
@@ -717,6 +718,7 @@ int _starpu_task_submit_nodeps(struct starpu_task *task)
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 
 	_starpu_increment_nsubmitted_tasks_of_sched_ctx(j->task->sched_ctx);
+	_starpu_sched_task_submit(task);
 
 	STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 	_starpu_handle_job_submission(j);
@@ -757,6 +759,7 @@ int _starpu_task_submit_conversion_task(struct starpu_task *task,
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 
 	_starpu_increment_nsubmitted_tasks_of_sched_ctx(j->task->sched_ctx);
+	_starpu_sched_task_submit(task);
 
 	STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 	_starpu_handle_job_submission(j);
@@ -831,10 +834,20 @@ int starpu_task_wait_for_all(void)
 #endif
 		struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
 		if(config->topology.nsched_ctxs == 1)
+		{
+			_starpu_sched_do_schedule(0);
 			starpu_task_wait_for_all_in_ctx(0);
+		}
 		else
 		{
 			int s;
+			for(s = 0; s < STARPU_NMAX_SCHED_CTXS; s++)
+			{
+				if(config->sched_ctxs[s].id != STARPU_NMAX_SCHED_CTXS)
+				{
+					_starpu_sched_do_schedule(config->sched_ctxs[s].id);
+				}
+			}
 			for(s = 0; s < STARPU_NMAX_SCHED_CTXS; s++)
 			{
 				if(config->sched_ctxs[s].id != STARPU_NMAX_SCHED_CTXS)
@@ -848,6 +861,7 @@ int starpu_task_wait_for_all(void)
 	}
 	else
 	{
+		_starpu_sched_do_schedule(sched_ctx_id);
 		_STARPU_DEBUG("Waiting for tasks submitted to context %u\n", sched_ctx_id);
 		return starpu_task_wait_for_all_in_ctx(sched_ctx_id);
 	}

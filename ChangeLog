@@ -177,6 +177,7 @@ Small features:
     void starpu_opencl_load_program_source_malloc(const char *source_file_name, char **located_file_name, char **located_dir_name, char **opencl_program_source)
     which allocates the pointers located_file_name, located_dir_name
     and opencl_program_source.
+  * Add submit_hook and do_schedule scheduler methods.
 
 
 Changes:
