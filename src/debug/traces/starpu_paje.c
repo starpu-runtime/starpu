@@ -153,7 +153,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 	poti_DefineContainerType("UT", "P", "User Thread");
 	poti_DefineContainerType("Mm", "Mn", "Memory Manager");
 	poti_DefineContainerType("W", "T", "Worker");
-	poti_DefineContainerType("MPICt", "T", "MPI Communication Thread");
+	poti_DefineContainerType("MPICt", "P", "MPI Communication Thread");
 	poti_DefineContainerType("Sc", "P", "Scheduler");
 	poti_DefineEventType("prog_event", "P", "program event type");
 
@@ -277,7 +277,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 1       UT      P       \"User Thread\"                               \n\
 1       Mm      Mn       \"Memory Manager\"                         \n\
 1       W      T       \"Worker\"                               \n\
-1       MPICt   T       \"MPI Communication Thread\"              \n\
+1       MPICt   P       \"MPI Communication Thread\"              \n\
 1       Sc       P       \"Scheduler State\"                        \n\
 2       prog_event   P       \"program event type\"				\n\
 2       user_event   T       \"user event type\"				\n\
