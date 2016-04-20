@@ -70,6 +70,9 @@ static void dump_multiple_regression_list(double *mx, double *my, unsigned ncoef
 		ptr = ptr->next;
 		i++;
 	}
+
+	if (PRINT)
+		fclose(f);
 }
 
 static long find_long_list_size(struct starpu_perfmodel_history_list *list_history)
