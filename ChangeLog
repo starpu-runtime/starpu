@@ -205,6 +205,7 @@ Small features:
     starpu_malloc_on_node_set_default_flags to control the allocation flags
     used for allocations done by starpu.
   * Ranges can be provided in STARPU_WORKERS_CPUID
+  * Add submit_hook and do_schedule scheduler methods.
 
 Changes:
   * Data interfaces (variable, vector, matrix and block) now define
