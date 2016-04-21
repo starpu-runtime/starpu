@@ -64,8 +64,8 @@ struct _starpu_data_descr
 };
 
 struct _starpu_job_list {
-	struct _starpu_job *next;
-	struct _starpu_job *prev;
+	struct _starpu_job_list *next;
+	struct _starpu_job_list *prev;
 };
 
 #ifdef STARPU_DEBUG
@@ -74,18 +74,24 @@ struct _starpu_job_list {
 #define STARPU_ASSERT_JOB_LIST(expr) ((void) 0)
 #endif
 
+#define _starpu_job_of(elt, member) \
+	((struct _starpu_job *) ((uintptr_t) (elt) - ((uintptr_t) (&((struct _starpu_job *) 0)->member))))
+
+#define _starpu_job_list_init(head) do { \
+	struct _starpu_job_list *_head = (head); \
+	_head->next = _head; \
+	_head->prev = _head; \
+} while (0)
+
 #define _starpu_job_list_push_front(head, j, member) do { \
 	struct _starpu_job *_j = (j); \
 	struct _starpu_job_list *_head = (head); \
 	STARPU_ASSERT_JOB_LIST(_j->member.prev == NULL); \
 	STARPU_ASSERT_JOB_LIST(_j->member.next == NULL); \
-	if (_head->next) { \
-		_j->member.next = _head->next; \
-		_head->next->member.prev = _j; \
-	} else { \
-		_head->prev = _j; \
-	} \
-	_head->next = _j; \
+	_j->member.next = _head->next; \
+	_j->member.prev = _head; \
+	_head->next->prev = &_j->member; \
+	_head->next = &_j->member; \
 } while (0)
 
 #define _starpu_job_list_push_back(head, j, member) do { \
@@ -93,44 +99,34 @@ struct _starpu_job_list {
 	struct _starpu_job_list *_head = (head); \
 	STARPU_ASSERT_JOB_LIST(_j->member.prev == NULL); \
 	STARPU_ASSERT_JOB_LIST(_j->member.next == NULL); \
-	if (_head->prev) { \
-		_j->member.prev = _head->prev; \
-		_head->prev->member.next = _j; \
-	} else { \
-		_head->next = _j; \
-	} \
-	_head->prev = _j; \
+	_j->member.prev = _head->prev; \
+	_j->member.next = _head; \
+	_head->prev->next = &_j->member; \
+	_head->prev = &_j->member; \
 } while (0)
 
 #define _starpu_job_list_erase(head, j, member) do { \
 	struct _starpu_job *_j = (j); \
-	struct _starpu_job_list *_head = (head); \
-	if (_j->member.next) { \
-		STARPU_ASSERT_JOB_LIST(_j->member.next->member.prev == _j); \
-		_j->member.next->member.prev = _j->member.prev; \
-	} else { \
-		STARPU_ASSERT_JOB_LIST(_head->prev == _j); \
-		_head->prev = _j->member.prev; \
-	} \
-	if (_j->member.prev) { \
-		STARPU_ASSERT_JOB_LIST(_j->member.prev->member.next == _j); \
-		_j->member.prev->member.next = _j->member.next; \
-	} else { \
-		STARPU_ASSERT_JOB_LIST(_head->next == _j); \
-		_head->next = _j->member.next; \
-	} \
+	STARPU_ASSERT_JOB_LIST(_j->member.next->prev == &_j->member); \
+	_j->member.next->prev = _j->member.prev; \
+	STARPU_ASSERT_JOB_LIST(_j->member.prev->next == &_j->member); \
+	_j->member.prev->next = _j->member.next; \
 	_j->member.next = NULL; \
 	_j->member.prev = NULL; \
 } while (0)
 
+#define _starpu_job_list_queued(j, member) \
+	((j)->member.next != NULL)
+
 #define _starpu_job_list_empty(head) \
-	((head)->next != NULL)
+	((head)->next != head)
+
 #define _starpu_job_list_begin(head, member) \
-	((head)->next)
+	_starpu_job_of((head)->next, member)
 #define _starpu_job_list_next(head, j, member) \
-	((j)->next)
-#define _starpu_job_list_end(head, j, member) \
-	(NULL)
+	_starpu_job_of((j)->member.next, member)
+#define _starpu_job_list_end(head, member) \
+	_starpu_job_of(head, member)
 
 /* A job is the internal representation of a task. */
 struct _starpu_job {
@@ -261,6 +257,8 @@ struct _starpu_job {
 	struct _starpu_job_list all_submitted;
 #endif
 };
+
+void _starpu_job_init(void);
 
 /* Create an internal struct _starpu_job *structure to encapsulate the task. */
 struct _starpu_job* STARPU_ATTRIBUTE_MALLOC _starpu_job_create(struct starpu_task *task);

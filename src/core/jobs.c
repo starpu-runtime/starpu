@@ -39,6 +39,13 @@ static struct _starpu_job_list all_jobs_list;
 static starpu_pthread_mutex_t all_jobs_list_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 #endif
 
+void _starpu_job_init(void)
+{
+#ifdef STARPU_DEBUG
+	_starpu_job_list_init(&all_jobs_list);
+#endif
+}
+
 void _starpu_exclude_task_from_dag(struct starpu_task *task)
 {
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
