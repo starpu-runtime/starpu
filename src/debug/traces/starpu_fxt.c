@@ -773,6 +773,17 @@ static void recfmt_mpicommthread_pop_state(double time)
 	recfmt_pop_state(time, -1, 0);
 }
 
+static void recfmt_user_thread_push_state(double time, long unsigned threadid, const char *name)
+{
+	const char *state_name = get_state_name(name, USER_THREAD_STATE);
+	recfmt_push_state(time, -1, threadid, state_name, "User"); /* XXX */
+}
+
+static void recfmt_user_thread_pop_state(double time, long unsigned threadid)
+{
+	recfmt_pop_state(time, -1, threadid);
+}
+
 /*
  *	Initialization
  */
@@ -1370,7 +1381,10 @@ static void handle_start_callback(struct fxt_ev_64 *ev, struct starpu_fxt_option
 		recfmt_mpicommthread_push_state(get_event_time_stamp(ev, options), "C");
 	}
 	else
+	{
 		user_thread_push_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[1], "C");
+		recfmt_user_thread_push_state(get_event_time_stamp(ev, options), ev->param[1], "C");
+	}
 }
 
 static void handle_end_callback(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -1392,7 +1406,10 @@ static void handle_end_callback(struct fxt_ev_64 *ev, struct starpu_fxt_options 
 		recfmt_mpicommthread_pop_state(get_event_time_stamp(ev, options));
 	}
 	else
+	{
 		user_thread_pop_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[1]);
+		recfmt_user_thread_pop_state(get_event_time_stamp(ev, options), ev->param[1]);
+	}
 }
 
 static void handle_hypervisor_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -1413,7 +1430,10 @@ static void handle_hypervisor_begin(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 		recfmt_mpicommthread_push_state(get_event_time_stamp(ev, options), "H");
 	}
 	else
+	{
 		user_thread_push_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[1], "H");
+		recfmt_user_thread_push_state(get_event_time_stamp(ev, options), ev->param[1], "H");
+	}
 }
 
 static void handle_hypervisor_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -1434,7 +1454,10 @@ static void handle_hypervisor_end(struct fxt_ev_64 *ev, struct starpu_fxt_option
 		recfmt_mpicommthread_pop_state(get_event_time_stamp(ev, options));
 	}
 	else
+	{
 		user_thread_pop_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[1]);
+		recfmt_user_thread_pop_state(get_event_time_stamp(ev, options), ev->param[1]);
+	}
 }
 
 static void handle_worker_status(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *newstatus)
@@ -1745,9 +1768,15 @@ static void handle_task_submit_event(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 	else
 	{
 		if (eventstr)
+		{
 			user_thread_push_state(timestamp, prefix, tid, eventstr);
+			recfmt_user_thread_push_state(timestamp, tid, eventstr);
+		}
 		else
+		{
 			user_thread_pop_state(timestamp, prefix, tid);
+			recfmt_user_thread_pop_state(timestamp, tid);
+		}
 	}
 }
 
