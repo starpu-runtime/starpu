@@ -953,7 +953,7 @@ int starpu_task_wait_for_no_ready(void)
 	return 0;
 }
 
-void starpu_task_do_schedule(void)
+void starpu_do_schedule(void)
 {
 	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
 	if(config->topology.nsched_ctxs == 1)
