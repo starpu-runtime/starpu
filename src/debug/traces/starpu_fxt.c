@@ -689,7 +689,7 @@ static void mpicommthread_pop_state(double time, const char *prefix)
 #endif
 }
 
-static void recfmt_set_state(double time, const char *event, int workerid, long unsigned int threadid, const char *name, const char *type)
+static void recfmt_dump_state(double time, const char *event, int workerid, long unsigned int threadid, const char *name, const char *type)
 {
 	fprintf(trace_file, "E: %s\n", event);
 	if (name)
@@ -705,6 +705,21 @@ static void recfmt_set_state(double time, const char *event, int workerid, long 
 	fprintf(trace_file, "\n");
 }
 
+static void recfmt_set_state(double time, int workerid, long unsigned int threadid, const char *name, const char *type)
+{
+	recfmt_dump_state(time, "SetState", workerid, threadid, name, type);
+}
+
+static void recfmt_push_state(double time, int workerid, long unsigned int threadid, const char *name, const char *type)
+{
+	recfmt_dump_state(time, "PushState", workerid, threadid, name, type);
+}
+
+static void recfmt_pop_state(double time, int workerid, long unsigned int threadid)
+{
+	recfmt_dump_state(time, "PopState", workerid, threadid, NULL, NULL);
+}
+
 static void recfmt_worker_set_state(double time, int workerid, const char *name, const char *type)
 {
 	const char *state_name;
@@ -714,7 +729,7 @@ static void recfmt_worker_set_state(double time, int workerid, const char *name,
 		state_name = name;
 	else
 		state_name = get_state_name(name, WORKER_STATE);
-	recfmt_set_state(time, "SetState", workerid, -1, state_name, type);
+	recfmt_set_state(time, workerid, -1, state_name, type);
 }
 
 static void recfmt_thread_set_state(double time, long unsigned int threadid, const char *name, const char *type)
@@ -727,35 +742,35 @@ static void recfmt_thread_set_state(double time, long unsigned int threadid, con
 	else
 		state_name = get_state_name(name, THREAD_STATE);
 
-	recfmt_set_state(time, "SetState", find_worker_id(threadid), threadid, state_name, type);
+	recfmt_set_state(time, find_worker_id(threadid), threadid, state_name, type);
 }
 
 static void recfmt_thread_push_state(double time, long unsigned int threadid, const char *name, const char *type)
 {
 	const char *state_name = get_state_name(name, THREAD_STATE);
-	recfmt_set_state(time, "PushState", find_worker_id(threadid), threadid, state_name, type);
+	recfmt_push_state(time, find_worker_id(threadid), threadid, state_name, type);
 }
 
 static void recfmt_thread_pop_state(double time, long unsigned int threadid)
 {
-	recfmt_set_state(time, "PopState", find_worker_id(threadid), threadid, NULL, NULL);
+	recfmt_pop_state(time, find_worker_id(threadid), threadid);
 }
 
 static void recfmt_mpicommthread_set_state(double time, const char *name)
 {
 	const char *state_name = get_state_name(name, COMM_THREAD_STATE);
-	recfmt_set_state(time, "SetState", -1, 0, state_name, "MPI"); /* XXX */
+	recfmt_set_state(time, -1, 0, state_name, "MPI"); /* XXX */
 }
 
 static void recfmt_mpicommthread_push_state(double time, const char *name)
 {
 	const char *state_name = get_state_name(name, COMM_THREAD_STATE);
-	recfmt_set_state(time, "PushState", -1, 0, state_name, "MPI"); /* XXX */
+	recfmt_push_state(time, -1, 0, state_name, "MPI"); /* XXX */
 }
 
 static void recfmt_mpicommthread_pop_state(double time)
 {
-	recfmt_set_state(time, "PopState", -1, 0, NULL, "MPI"); /* XXX */
+	recfmt_pop_state(time, -1, 0);
 }
 
 /*
@@ -2227,7 +2242,7 @@ static void handle_event(struct fxt_ev_64 *ev, struct starpu_fxt_options *option
 	}
 
 	if (trace_file)
-		recfmt_set_state(get_event_time_stamp(ev, options), "ProgEvent", -1, 0, event, "Program");
+		recfmt_dump_state(get_event_time_stamp(ev, options), "ProgEvent", -1, 0, event, "Program");
 }
 
 static void handle_thread_event(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
