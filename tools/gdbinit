@@ -1,7 +1,7 @@
 
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2010-2015  Université de Bordeaux
+# Copyright (C) 2010-2016  Université de Bordeaux
 # Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -229,10 +229,10 @@ end
 
 define starpu-all-tasks
   set language c
-  set $j = all_jobs_list
+  set $j = all_jobs_list->next
   while $j != 0
     printf "task %p\n", $j->task
-    set $j = $j->next_all
+    set $j = $j->all_submitted->next
   end
 end
 
