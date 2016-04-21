@@ -306,6 +306,57 @@ static struct _starpu_communication_list communication_list;
  * Generic tools
  */
 
+#define WORKER_STATE      (1 << 0)
+#define THREAD_STATE      (1 << 1)
+#define COMM_THREAD_STATE (1 << 2)
+#define USER_THREAD_STATE (1 << 3)
+
+static struct {
+	const char *short_name;
+	const char *long_name;
+	uint8_t flags;
+} states_list[] = {
+	{ "Fi",  "FetchingInput",		 WORKER_STATE | THREAD_STATE },
+	{ "Po",	 "PushingOutput",		 WORKER_STATE | THREAD_STATE },
+	{ "P",	 "Progressing",			 WORKER_STATE | THREAD_STATE },
+	{ "U",	 "Unpartitioning",		 WORKER_STATE | THREAD_STATE },
+	{ "B",	 "Overhead",			 WORKER_STATE | THREAD_STATE },
+	{ "In",	 "Initializing",		 WORKER_STATE | THREAD_STATE },
+	{ "D",	 "Deinitializing",		 WORKER_STATE | THREAD_STATE },
+	{ "E",	 "Executing",			 WORKER_STATE | THREAD_STATE },
+	{ "C",	 "Callback",			 WORKER_STATE | THREAD_STATE },
+	{ "H",	 "Hypervisor",			 WORKER_STATE | THREAD_STATE },
+	{ "Sc",	 "Scheduling",			 WORKER_STATE | THREAD_STATE },
+	{ "I",	 "Idle",			 WORKER_STATE | THREAD_STATE },
+	{ "Sl",	 "Sleeping",			 WORKER_STATE | THREAD_STATE | COMM_THREAD_STATE },
+	{ "Bu",	 "Building task",		 THREAD_STATE | COMM_THREAD_STATE | USER_THREAD_STATE },
+	{ "Su",  "Submitting task",		 THREAD_STATE | COMM_THREAD_STATE | USER_THREAD_STATE },
+	{ "MD",  "Decoding task for MPI",	 THREAD_STATE | USER_THREAD_STATE },
+	{ "MPr", "Preparing task for MPI",	 THREAD_STATE | USER_THREAD_STATE },
+	{ "MPo", "Post-processing task for MPI", THREAD_STATE | USER_THREAD_STATE },
+	{ "P",	 "Processing",			 COMM_THREAD_STATE },
+	{ "UT",	 "UserTesting",			 COMM_THREAD_STATE },
+	{ "UW",	 "UserWaiting",			 COMM_THREAD_STATE },
+	{ "Sds", "SendSubmitted",		 COMM_THREAD_STATE },
+	{ "RvS", "ReceiveSubmitted",		 COMM_THREAD_STATE },
+	{ "SdC", "SendCompleted",		 COMM_THREAD_STATE },
+	{ "RvC", "ReceiveCompleted",		 COMM_THREAD_STATE },
+	{ "W",   "Waiting task",		 USER_THREAD_STATE },
+	{ "WA",  "Waiting all tasks",		 USER_THREAD_STATE },
+	{ "No",  "Nothing",			 USER_THREAD_STATE },
+};
+
+static const char *get_state_name(const char *short_name, uint32_t states)
+{
+	int i;
+
+	for (i = 0; i < sizeof(states_list) / sizeof(states_list[0]); i++)
+		if ((states_list[i].flags & states) &&
+		    !strcmp(states_list[i].short_name, short_name))
+			return states_list[i].long_name;
+	return short_name;
+}
+
 static double get_event_time_stamp(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	return (((double)(ev->time-options->file_offset))/1000000.0);
@@ -656,17 +707,33 @@ static void recfmt_set_state(double time, const char *event, int workerid, long 
 
 static void recfmt_worker_set_state(double time, int workerid, const char *name, const char *type)
 {
-	recfmt_set_state(time, "SetState", workerid, -1, name, type);
+	const char *state_name;
+
+	/* Special case for task events. */
+	if (!strcmp(type, "Task"))
+		state_name = name;
+	else
+		state_name = get_state_name(name, WORKER_STATE);
+	recfmt_set_state(time, "SetState", workerid, -1, state_name, type);
 }
 
 static void recfmt_thread_set_state(double time, long unsigned int threadid, const char *name, const char *type)
 {
-	recfmt_set_state(time, "SetState", find_worker_id(threadid), threadid, name, type);
+	const char *state_name;
+
+	/* Special case for the end event which is somehow a fake. */
+	if (!strcmp(name, "End") && !type)
+		state_name = name;
+	else
+		state_name = get_state_name(name, THREAD_STATE);
+
+	recfmt_set_state(time, "SetState", find_worker_id(threadid), threadid, state_name, type);
 }
 
 static void recfmt_thread_push_state(double time, long unsigned int threadid, const char *name, const char *type)
 {
-	recfmt_set_state(time, "PushState", find_worker_id(threadid), threadid, name, type);
+	const char *state_name = get_state_name(name, THREAD_STATE);
+	recfmt_set_state(time, "PushState", find_worker_id(threadid), threadid, state_name, type);
 }
 
 static void recfmt_thread_pop_state(double time, long unsigned int threadid)
@@ -810,7 +877,7 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 	if (out_paje_file)
 		thread_set_state(get_event_time_stamp(ev, options), prefix, threadid, "In");
 	if (trace_file)
-		recfmt_thread_set_state(get_event_time_stamp(ev, options), threadid, "Initializing", "Runtime");
+		recfmt_thread_set_state(get_event_time_stamp(ev, options), threadid, "In", "Runtime");
 
 	if (activity_file)
 		fprintf(activity_file, "name\t%d\t%s %d\n", workerid, kindstr, devid);
@@ -832,12 +899,12 @@ static void handle_worker_init_end(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 	if (out_paje_file)
 		thread_set_state(get_event_time_stamp(ev, options), prefix, ev->param[0], "B");
 	if (trace_file)
-		recfmt_thread_set_state(get_event_time_stamp(ev, options), ev->param[0], "Overhead", "Runtime");
+		recfmt_thread_set_state(get_event_time_stamp(ev, options), ev->param[0], "B", "Runtime");
 
 	if (out_paje_file)
 		worker_set_state(get_event_time_stamp(ev, options), prefix, worker, "I");
 	if (trace_file)
-		recfmt_worker_set_state(get_event_time_stamp(ev, options), worker, "Idle", "Other");
+		recfmt_worker_set_state(get_event_time_stamp(ev, options), worker, "I", "Other");
 
 	/* Initilize the accumulated time counters */
 	last_activity_flush_timestamp[worker] = get_event_time_stamp(ev, options);
@@ -853,7 +920,7 @@ static void handle_worker_deinit_start(struct fxt_ev_64 *ev, struct starpu_fxt_o
 	if (out_paje_file)
 		thread_set_state(get_event_time_stamp(ev, options), prefix, threadid, "D");
 	if (trace_file)
-		recfmt_thread_set_state(get_event_time_stamp(ev, options), threadid, "Deinitializing", "Runtime");
+		recfmt_thread_set_state(get_event_time_stamp(ev, options), threadid, "D", "Runtime");
 }
 
 static void handle_worker_deinit_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -1168,7 +1235,7 @@ static void handle_end_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 	if (out_paje_file)
 		worker_set_state(end_codelet_time, prefix, worker, "I");
 	if (trace_file)
-		recfmt_worker_set_state(end_codelet_time, worker, "Idle", "Other");
+		recfmt_worker_set_state(end_codelet_time, worker, "I", "Other");
 
 	double codelet_length = (end_codelet_time - last_codelet_start[worker]);
 
@@ -1203,7 +1270,7 @@ static void handle_start_executing(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 	if (out_paje_file && !find_sync(threadid))
 		thread_set_state(get_event_time_stamp(ev, options), prefix, threadid, "E");
 	if (trace_file && !find_sync(threadid))
-		recfmt_thread_set_state(get_event_time_stamp(ev, options), threadid, "Executing", "Runtime");
+		recfmt_thread_set_state(get_event_time_stamp(ev, options), threadid, "E", "Runtime");
 }
 
 static void handle_end_executing(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -1214,7 +1281,7 @@ static void handle_end_executing(struct fxt_ev_64 *ev, struct starpu_fxt_options
 	if (out_paje_file && !find_sync(threadid))
 		thread_set_state(get_event_time_stamp(ev, options), prefix, threadid, "B");
 	if (trace_file && !find_sync(threadid))
-		recfmt_thread_set_state(get_event_time_stamp(ev, options), threadid, "Overhead", "Runtime");
+		recfmt_thread_set_state(get_event_time_stamp(ev, options), threadid, "B", "Runtime");
 }
 
 static void handle_user_event(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -1262,7 +1329,7 @@ static void handle_start_callback(struct fxt_ev_64 *ev, struct starpu_fxt_option
 		if (out_paje_file)
 			thread_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[1], "C");
 		if (trace_file)
-			recfmt_thread_set_state(get_event_time_stamp(ev, options), ev->param[1], "Callback", "Runtime");
+			recfmt_thread_set_state(get_event_time_stamp(ev, options), ev->param[1], "C", "Runtime");
 	}
 	else if (worker == -2)
 	{
@@ -1283,7 +1350,7 @@ static void handle_end_callback(struct fxt_ev_64 *ev, struct starpu_fxt_options 
 		if (out_paje_file)
 			thread_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[1], "B");
 		if (trace_file)
-			recfmt_thread_set_state(get_event_time_stamp(ev, options), ev->param[1], "Overhead", "Runtime");
+			recfmt_thread_set_state(get_event_time_stamp(ev, options), ev->param[1], "B", "Runtime");
 	}
 	else if (worker == -2)
 	{
@@ -1303,7 +1370,7 @@ static void handle_hypervisor_begin(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 		if (out_paje_file)
 			thread_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "H");
 		if (trace_file)
-			recfmt_thread_set_state(get_event_time_stamp(ev, options), ev->param[0], "Hypervisor", "Runtime");
+			recfmt_thread_set_state(get_event_time_stamp(ev, options), ev->param[0], "H", "Runtime");
 	}
 	else if (worker == -2)
 	{
@@ -1323,7 +1390,7 @@ static void handle_hypervisor_end(struct fxt_ev_64 *ev, struct starpu_fxt_option
 		if (out_paje_file)
 			thread_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "B");
 		if (trace_file)
-			recfmt_thread_set_state(get_event_time_stamp(ev, options), ev->param[0], "Overhead", "Runtime");
+			recfmt_thread_set_state(get_event_time_stamp(ev, options), ev->param[0], "B", "Runtime");
 	}
 	else if (worker == -2)
 	{
@@ -1344,20 +1411,7 @@ static void handle_worker_status(struct fxt_ev_64 *ev, struct starpu_fxt_options
 	if (out_paje_file)
 		thread_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[1], newstatus);
 	if (trace_file)
-	{
-		if (!strcmp(newstatus, "Fi"))
-			recfmt_thread_set_state(get_event_time_stamp(ev, options), ev->param[1], "FetchingInput", "Runtime");
-		else if (!strcmp(newstatus, "Po"))
-			recfmt_thread_set_state(get_event_time_stamp(ev, options), ev->param[1], "PushingOutput", "Runtime");
-		else if (!strcmp(newstatus, "P"))
-			recfmt_thread_set_state(get_event_time_stamp(ev, options), ev->param[1], "Progressing", "Runtime");
-		else if (!strcmp(newstatus, "U"))
-			recfmt_thread_set_state(get_event_time_stamp(ev, options), ev->param[1], "Unpartitioning", "Runtime");
-		else if (!strcmp(newstatus, "B"))
-			recfmt_thread_set_state(get_event_time_stamp(ev, options), ev->param[1], "Overhead", "Runtime");
-		else
-			fprintf(stderr, "WARNING: Unhandled worker status '%s'", newstatus);
-	}
+		recfmt_thread_set_state(get_event_time_stamp(ev, options), ev->param[1], newstatus, "Runtime");
 }
 
 static double last_sleep_start[STARPU_NMAXWORKERS];
@@ -1371,7 +1425,7 @@ static void handle_worker_scheduling_start(struct fxt_ev_64 *ev, struct starpu_f
 	if (out_paje_file)
 		thread_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "Sc");
 	if (trace_file)
-		recfmt_thread_set_state(get_event_time_stamp(ev, options), ev->param[0], "Scheduling", "Runtime");
+		recfmt_thread_set_state(get_event_time_stamp(ev, options), ev->param[0], "Sc", "Runtime");
 }
 
 static void handle_worker_scheduling_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -1383,7 +1437,7 @@ static void handle_worker_scheduling_end(struct fxt_ev_64 *ev, struct starpu_fxt
 	if (out_paje_file)
 		thread_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "B");
 	if (trace_file)
-		recfmt_thread_set_state(get_event_time_stamp(ev, options), ev->param[0], "Overhead", "Runtime");
+		recfmt_thread_set_state(get_event_time_stamp(ev, options), ev->param[0], "B", "Runtime");
 }
 
 static void handle_worker_scheduling_push(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -1395,7 +1449,7 @@ static void handle_worker_scheduling_push(struct fxt_ev_64 *ev, struct starpu_fx
 	if (out_paje_file)
 		thread_push_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "Sc");
 	if (trace_file)
-		recfmt_thread_push_state(get_event_time_stamp(ev, options), ev->param[0], "Scheduling", "Runtime");
+		recfmt_thread_push_state(get_event_time_stamp(ev, options), ev->param[0], "Sc", "Runtime");
 }
 
 static void handle_worker_scheduling_pop(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -1422,7 +1476,7 @@ static void handle_worker_sleep_start(struct fxt_ev_64 *ev, struct starpu_fxt_op
 	if (out_paje_file)
 		thread_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "Sl");
 	if (trace_file)
-		recfmt_thread_set_state(get_event_time_stamp(ev, options), ev->param[0], "Sleeping", "Other");
+		recfmt_thread_set_state(get_event_time_stamp(ev, options), ev->param[0], "Sl", "Other");
 }
 
 static void handle_worker_sleep_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -1436,7 +1490,7 @@ static void handle_worker_sleep_end(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 	if (out_paje_file)
 		thread_set_state(end_sleep_timestamp, options->file_prefix, ev->param[0], "B");
 	if (trace_file)
-		recfmt_thread_set_state(end_sleep_timestamp, ev->param[0], "Overhead", "Runtime");
+		recfmt_thread_set_state(end_sleep_timestamp, ev->param[0], "B", "Runtime");
 
 	double sleep_length = end_sleep_timestamp - last_sleep_start[worker];
 
