@@ -741,6 +741,23 @@ static void recfmt_thread_pop_state(double time, long unsigned int threadid)
 	recfmt_set_state(time, "PopState", find_worker_id(threadid), threadid, NULL, NULL);
 }
 
+static void recfmt_mpicommthread_set_state(double time, const char *name)
+{
+	const char *state_name = get_state_name(name, COMM_THREAD_STATE);
+	recfmt_set_state(time, "SetState", -1, 0, state_name, "MPI"); /* XXX */
+}
+
+static void recfmt_mpicommthread_push_state(double time, const char *name)
+{
+	const char *state_name = get_state_name(name, COMM_THREAD_STATE);
+	recfmt_set_state(time, "PushState", -1, 0, state_name, "MPI"); /* XXX */
+}
+
+static void recfmt_mpicommthread_pop_state(double time)
+{
+	recfmt_set_state(time, "PopState", -1, 0, NULL, "MPI"); /* XXX */
+}
+
 /*
  *	Initialization
  */
@@ -1335,6 +1352,7 @@ static void handle_start_callback(struct fxt_ev_64 *ev, struct starpu_fxt_option
 	{
 		/* MPI thread */
 		mpicommthread_push_state(get_event_time_stamp(ev, options), options->file_prefix, "C");
+		recfmt_mpicommthread_push_state(get_event_time_stamp(ev, options), "C");
 	}
 	else
 		user_thread_push_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[1], "C");
@@ -1356,6 +1374,7 @@ static void handle_end_callback(struct fxt_ev_64 *ev, struct starpu_fxt_options 
 	{
 		/* MPI thread */
 		mpicommthread_pop_state(get_event_time_stamp(ev, options), options->file_prefix);
+		recfmt_mpicommthread_pop_state(get_event_time_stamp(ev, options));
 	}
 	else
 		user_thread_pop_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[1]);
@@ -1376,6 +1395,7 @@ static void handle_hypervisor_begin(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 	{
 		/* MPI thread */
 		mpicommthread_push_state(get_event_time_stamp(ev, options), options->file_prefix, "H");
+		recfmt_mpicommthread_push_state(get_event_time_stamp(ev, options), "H");
 	}
 	else
 		user_thread_push_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[1], "H");
@@ -1396,6 +1416,7 @@ static void handle_hypervisor_end(struct fxt_ev_64 *ev, struct starpu_fxt_option
 	{
 		/* MPI thread */
 		mpicommthread_pop_state(get_event_time_stamp(ev, options), options->file_prefix);
+		recfmt_mpicommthread_pop_state(get_event_time_stamp(ev, options));
 	}
 	else
 		user_thread_pop_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[1]);
@@ -1696,9 +1717,15 @@ static void handle_task_submit_event(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 	{
 		/* MPI thread */
 		if (eventstr)
+		{
 			mpicommthread_push_state(timestamp, prefix, eventstr);
+			recfmt_mpicommthread_push_state(get_event_time_stamp(ev, options), eventstr);
+		}
 		else
+		{
 			mpicommthread_pop_state(timestamp, prefix);
+			recfmt_mpicommthread_pop_state(get_event_time_stamp(ev, options));
+		}
 	}
 	else
 	{
@@ -1979,6 +2006,9 @@ static void handle_mpi_start(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 #endif
 		mpicommthread_set_state(date, prefix, "Sl");
 	}
+	if (trace_file)
+		recfmt_mpicommthread_set_state(date, "Sl");
+
 }
 
 static void handle_mpi_stop(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -2006,6 +2036,8 @@ static void handle_mpi_isend_submit_begin(struct fxt_ev_64 *ev, struct starpu_fx
 
 	if (out_paje_file)
 		mpicommthread_set_state(date, options->file_prefix, "SdS");
+	if (trace_file)
+		recfmt_mpicommthread_set_state(date, "SdS");
 }
 
 static void handle_mpi_isend_submit_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -2017,6 +2049,8 @@ static void handle_mpi_isend_submit_end(struct fxt_ev_64 *ev, struct starpu_fxt_
 
 	if (out_paje_file)
 		mpicommthread_set_state(date, options->file_prefix, "P");
+	if (trace_file)
+		recfmt_mpicommthread_set_state(date, "P");
 
 	_starpu_fxt_mpi_add_send_transfer(options->file_rank, dest, mpi_tag, size, date);
 }
@@ -2027,6 +2061,8 @@ static void handle_mpi_irecv_submit_begin(struct fxt_ev_64 *ev, struct starpu_fx
 
 	if (out_paje_file)
 		mpicommthread_set_state(date, options->file_prefix, "RvS");
+	if (trace_file)
+		recfmt_mpicommthread_set_state(date, "RvS");
 }
 
 static void handle_mpi_irecv_submit_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -2035,6 +2071,8 @@ static void handle_mpi_irecv_submit_end(struct fxt_ev_64 *ev, struct starpu_fxt_
 
 	if (out_paje_file)
 		mpicommthread_set_state(date, options->file_prefix, "P");
+	if (trace_file)
+		recfmt_mpicommthread_set_state(date, "P");
 }
 
 static void handle_mpi_isend_complete_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -2043,6 +2081,8 @@ static void handle_mpi_isend_complete_begin(struct fxt_ev_64 *ev, struct starpu_
 
 	if (out_paje_file)
 		mpicommthread_set_state(date, options->file_prefix, "SdC");
+	if (trace_file)
+		recfmt_mpicommthread_set_state(date, "SdC");
 }
 
 static void handle_mpi_isend_complete_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -2051,6 +2091,8 @@ static void handle_mpi_isend_complete_end(struct fxt_ev_64 *ev, struct starpu_fx
 
 	if (out_paje_file)
 		mpicommthread_set_state(date, options->file_prefix, "P");
+	if (trace_file)
+		recfmt_mpicommthread_set_state(date, "P");
 }
 
 static void handle_mpi_irecv_complete_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -2061,7 +2103,8 @@ static void handle_mpi_irecv_complete_begin(struct fxt_ev_64 *ev, struct starpu_
 
 	if (out_paje_file)
 		mpicommthread_set_state(date, options->file_prefix, "RvC");
-
+	if (trace_file)
+		recfmt_mpicommthread_set_state(date, "RvC");
 	_starpu_fxt_mpi_add_recv_transfer(src, options->file_rank, mpi_tag, date);
 }
 
@@ -2071,6 +2114,8 @@ static void handle_mpi_irecv_complete_end(struct fxt_ev_64 *ev, struct starpu_fx
 
 	if (out_paje_file)
 		mpicommthread_set_state(date, options->file_prefix, "P");
+	if (trace_file)
+		recfmt_mpicommthread_set_state(date, "P");
 }
 
 static void handle_mpi_sleep_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -2079,6 +2124,8 @@ static void handle_mpi_sleep_begin(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 
 	if (out_paje_file)
 		mpicommthread_set_state(date, options->file_prefix, "Sl");
+	if (trace_file)
+		recfmt_mpicommthread_set_state(date, "Sl");
 }
 
 static void handle_mpi_sleep_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -2087,6 +2134,8 @@ static void handle_mpi_sleep_end(struct fxt_ev_64 *ev, struct starpu_fxt_options
 
 	if (out_paje_file)
 		mpicommthread_set_state(date, options->file_prefix, "P");
+	if (trace_file)
+		recfmt_mpicommthread_set_state(date, "P");
 }
 
 static void handle_mpi_dtesting_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -2095,6 +2144,8 @@ static void handle_mpi_dtesting_begin(struct fxt_ev_64 *ev, struct starpu_fxt_op
 
 	if (out_paje_file)
 		mpicommthread_set_state(date, options->file_prefix, "DT");
+	if (trace_file)
+		recfmt_mpicommthread_set_state(date, "DT");
 }
 
 static void handle_mpi_dtesting_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -2103,6 +2154,8 @@ static void handle_mpi_dtesting_end(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 
 	if (out_paje_file)
 		mpicommthread_set_state(date, options->file_prefix, "P");
+	if (trace_file)
+		recfmt_mpicommthread_set_state(date, "P");
 }
 
 static void handle_mpi_utesting_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -2111,6 +2164,8 @@ static void handle_mpi_utesting_begin(struct fxt_ev_64 *ev, struct starpu_fxt_op
 
 	if (out_paje_file)
 		mpicommthread_set_state(date, options->file_prefix, "UT");
+	if (trace_file)
+		recfmt_mpicommthread_set_state(date, "UT");
 }
 
 static void handle_mpi_utesting_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -2119,6 +2174,8 @@ static void handle_mpi_utesting_end(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 
 	if (out_paje_file)
 		mpicommthread_set_state(date, options->file_prefix, "P");
+	if (trace_file)
+		recfmt_mpicommthread_set_state(date, "P");
 }
 
 static void handle_mpi_uwait_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -2127,6 +2184,8 @@ static void handle_mpi_uwait_begin(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 
 	if (out_paje_file)
 		mpicommthread_set_state(date, options->file_prefix, "UW");
+	if (trace_file)
+		recfmt_mpicommthread_set_state(date, "UW");
 }
 
 static void handle_mpi_uwait_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -2135,6 +2194,8 @@ static void handle_mpi_uwait_end(struct fxt_ev_64 *ev, struct starpu_fxt_options
 
 	if (out_paje_file)
 		mpicommthread_set_state(date, options->file_prefix, "P");
+	if (trace_file)
+		recfmt_mpicommthread_set_state(date, "P");
 }
 
 static void handle_set_profiling(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
