@@ -237,13 +237,6 @@ void _starpu_handle_job_submission(struct _starpu_job *j)
 #ifdef STARPU_DEBUG
 	STARPU_PTHREAD_MUTEX_LOCK(&all_jobs_list_mutex);
 	_starpu_job_list_push_back(&all_jobs_list, j, all_submitted);
-
-	for (j = _starpu_job_list_begin(&all_jobs_list, all_submitted);
-	     j != _starpu_job_list_end(&all_jobs_list, all_submitted);
-	     j = _starpu_job_list_next(&all_jobs_list, j, all_submitted))
-	{
-		STARPU_ASSERT(_starpu_job_of(j->all_submitted.prev->next, all_submitted) == j);
-	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&all_jobs_list_mutex);
 #endif
 }
