@@ -300,7 +300,26 @@ static void dump_reg_model(FILE *f, struct starpu_perfmodel *model, int comb, in
 		fprintf(f, "# n\tintercept\t");
 		for (int i=0; i < model->ncombinations; i++)
 		{
-			fprintf(f, "c%d\t\t", i+1);
+			if (model->parameters_names == NULL)
+				fprintf(f, "c%d", i+1);
+			else
+			{
+				int first=1;
+				for(int j=0; j < model->nparameters; j++)
+				{
+					if (model->combinations[i][j] > 0)
+					{
+						if (first)
+							first=0;
+						else
+							fprintf(f, "*");
+						fprintf(f, "%s", model->parameters_names[j]);
+						if (model->combinations[i][j] > 1)
+							fprintf(f, "^%d", model->combinations[i][j]);
+					}
+				}
+			}
+			fprintf(f, "\t\t");
 		}
 
 		fprintf(f, "\n%u", reg_model->ncoeff);
