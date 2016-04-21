@@ -953,6 +953,24 @@ int starpu_task_wait_for_no_ready(void)
 	return 0;
 }
 
+void starpu_task_do_schedule(void)
+{
+	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
+	if(config->topology.nsched_ctxs == 1)
+		_starpu_sched_do_schedule(0);
+	else
+	{
+		int s;
+		for(s = 0; s < STARPU_NMAX_SCHED_CTXS; s++)
+		{
+			if(config->sched_ctxs[s].id != STARPU_NMAX_SCHED_CTXS)
+			{
+				_starpu_sched_do_schedule(config->sched_ctxs[s].id);
+			}
+		}
+	}
+}
+
 void
 starpu_drivers_request_termination(void)
 {

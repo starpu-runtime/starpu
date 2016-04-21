@@ -304,6 +304,8 @@ int starpu_task_wait_for_no_ready(void);
 int starpu_task_nready(void);
 int starpu_task_nsubmitted(void);
 
+void starpu_task_do_schedule(void);
+
 void starpu_codelet_init(struct starpu_codelet *cl);
 
 void starpu_codelet_display_stats(struct starpu_codelet *cl);
