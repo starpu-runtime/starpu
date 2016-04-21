@@ -215,7 +215,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 	poti_DefineEntityValue("UT", "CtS", "UserTesting", ".2 .1 .6");
 	poti_DefineEntityValue("UW", "CtS", "UserWaiting", ".4 .1 .3");
 	poti_DefineEntityValue("SdS", "CtS", "SendSubmitted", "1.0 .1 1.0");
-	poti_DefineEntityValue("RvS", "CtS", "RecieveSubmitted", "0.1 1.0 1.0");
+	poti_DefineEntityValue("RvS", "CtS", "ReceiveSubmitted", "0.1 1.0 1.0");
 	poti_DefineEntityValue("SdC", "CtS", "SendCompleted", "1.0 .5 1.0");
 	poti_DefineEntityValue("RvC", "CtS", "ReceiveCompleted", "0.5 1.0 1.0");
 	poti_DefineEntityValue("Bu", "CtS", "Building task", ".5 .18 .0");
@@ -342,7 +342,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 6       UT       CtS      UserTesting        \".2 .1 .6\"	\n\
 6       UW       CtS      UserWaiting        \".4 .1 .3\"	\n\
 6       SdS       CtS      SendSubmitted     \"1.0 .1 1.0\"	\n\
-6       RvS       CtS      RecieveSubmitted  \"0.1 1.0 1.0\"	\n\
+6       RvS       CtS      ReceiveSubmitted  \"0.1 1.0 1.0\"	\n\
 6       SdC       CtS      SendCompleted     \"1.0 .5 1.0\"	\n\
 6       RvC       CtS      ReceiveCompleted  \"0.5 1.0 1.0\"	\n\
 6       Bu      CtS      \"Building task\"   \".5 .18 .0\"		\n\
