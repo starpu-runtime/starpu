@@ -91,7 +91,8 @@ class Worker():
                     if next_event._type == "SetState":
                         break
             elif next_event._type == "PopState":
-                curr_event = self._stack.pop()
+		if not len(self._stack) == 0:
+                    curr_event = self._stack.pop()
 
             # Compute duration with the next event.
             a = curr_event._start_time
