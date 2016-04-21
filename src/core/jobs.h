@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2015  Université de Bordeaux
+ * Copyright (C) 2009-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2013, 2014, 2015  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2014  INRIA
@@ -64,7 +64,7 @@ struct _starpu_data_descr
 };
 
 /* A job is the internal representation of a task. */
-LIST_TYPE(_starpu_job,
+struct _starpu_job {
 
 	/* Each job is attributed a unique id. */
 	unsigned long job_id;
@@ -192,7 +192,7 @@ LIST_TYPE(_starpu_job,
 	struct _starpu_job *prev_all;
 	struct _starpu_job *next_all;
 #endif
-)
+};
 
 /* Create an internal struct _starpu_job *structure to encapsulate the task. */
 struct _starpu_job* STARPU_ATTRIBUTE_MALLOC _starpu_job_create(struct starpu_task *task);

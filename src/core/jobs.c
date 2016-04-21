@@ -52,7 +52,7 @@ struct _starpu_job* STARPU_ATTRIBUTE_MALLOC _starpu_job_create(struct starpu_tas
 	struct _starpu_job *job;
         _STARPU_LOG_IN();
 
-	job = _starpu_job_new();
+	job = malloc(sizeof(*job));
 
 	/* As most of the fields must be initialized at NULL, let's put 0
 	 * everywhere */
@@ -128,7 +128,7 @@ void _starpu_job_destroy(struct _starpu_job *j)
 		j->dyn_dep_slots = NULL;
 	}
 
-	_starpu_job_delete(j);
+	free(j);
 }
 
 int _starpu_job_finished(struct _starpu_job *j)
