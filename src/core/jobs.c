@@ -35,7 +35,7 @@ static unsigned long job_cnt = 0;
 
 #ifdef STARPU_DEBUG
 /* List of all jobs, for debugging */
-static struct _starpu_job *all_jobs_list;
+static struct _starpu_job_list all_jobs_list;
 static starpu_pthread_mutex_t all_jobs_list_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 #endif
 
@@ -229,13 +229,7 @@ void _starpu_handle_job_submission(struct _starpu_job *j)
 
 #ifdef STARPU_DEBUG
 	STARPU_PTHREAD_MUTEX_LOCK(&all_jobs_list_mutex);
-	STARPU_ASSERT(!j->next_all);
-	STARPU_ASSERT(!j->prev_all && all_jobs_list != j);
-	if (all_jobs_list)
-		all_jobs_list->prev_all = j;
-	j->next_all = all_jobs_list;
-	j->prev_all = NULL;
-	all_jobs_list = j;
+	_starpu_job_list_push_back(&all_jobs_list, j, all_submitted);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&all_jobs_list_mutex);
 #endif
 }
@@ -255,23 +249,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 
 #ifdef STARPU_DEBUG
 	STARPU_PTHREAD_MUTEX_LOCK(&all_jobs_list_mutex);
-	if (j->next_all)
-	{
-		STARPU_ASSERT(j->next_all->prev_all == j);
-		j->next_all->prev_all = j->prev_all;
-	}
-	if (j->prev_all)
-	{
-		STARPU_ASSERT(j->prev_all->next_all == j);
-		j->prev_all->next_all = j->next_all;
-	}
-	else
-	{
-		STARPU_ASSERT(all_jobs_list == j);
-		all_jobs_list = j->next_all;
-	}
-	j->next_all = NULL;
-	j->prev_all = NULL;
+	_starpu_job_list_erase(&all_jobs_list, j, all_submitted);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&all_jobs_list_mutex);
 #endif
 

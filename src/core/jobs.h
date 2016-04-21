@@ -63,6 +63,75 @@ struct _starpu_data_descr
 	int node;
 };
 
+struct _starpu_job_list {
+	struct _starpu_job *next;
+	struct _starpu_job *prev;
+};
+
+#ifdef STARPU_DEBUG
+#define STARPU_ASSERT_JOB_LIST(expr) STARPU_ASSERT(expr)
+#else
+#define STARPU_ASSERT_JOB_LIST(expr) ((void) 0)
+#endif
+
+#define _starpu_job_list_push_front(head, j, member) do { \
+	struct _starpu_job *_j = (j); \
+	struct _starpu_job_list *_head = (head); \
+	STARPU_ASSERT_JOB_LIST(_j->member.prev == NULL); \
+	STARPU_ASSERT_JOB_LIST(_j->member.next == NULL); \
+	if (_head->next) { \
+		_j->member.next = _head->next; \
+		_head->next->member.prev = _j; \
+	} else { \
+		_head->prev = _j; \
+	} \
+	_head->next = _j; \
+} while (0)
+
+#define _starpu_job_list_push_back(head, j, member) do { \
+	struct _starpu_job *_j = (j); \
+	struct _starpu_job_list *_head = (head); \
+	STARPU_ASSERT_JOB_LIST(_j->member.prev == NULL); \
+	STARPU_ASSERT_JOB_LIST(_j->member.next == NULL); \
+	if (_head->prev) { \
+		_j->member.prev = _head->prev; \
+		_head->prev->member.next = _j; \
+	} else { \
+		_head->next = _j; \
+	} \
+	_head->prev = _j; \
+} while (0)
+
+#define _starpu_job_list_erase(head, j, member) do { \
+	struct _starpu_job *_j = (j); \
+	struct _starpu_job_list *_head = (head); \
+	if (_j->member.next) { \
+		STARPU_ASSERT_JOB_LIST(_j->member.next->member.prev == _j); \
+		_j->member.next->member.prev = _j->member.prev; \
+	} else { \
+		STARPU_ASSERT_JOB_LIST(_head->prev == _j); \
+		_head->prev = _j->member.prev; \
+	} \
+	if (_j->member.prev) { \
+		STARPU_ASSERT_JOB_LIST(_j->member.prev->member.next == _j); \
+		_j->member.prev->member.next = _j->member.next; \
+	} else { \
+		STARPU_ASSERT_JOB_LIST(_head->next == _j); \
+		_head->next = _j->member.next; \
+	} \
+	_j->member.next = NULL; \
+	_j->member.prev = NULL; \
+} while (0)
+
+#define _starpu_job_list_empty(head) \
+	((head)->next != NULL)
+#define _starpu_job_list_begin(head, member) \
+	((head)->next)
+#define _starpu_job_list_next(head, j, member) \
+	((j)->next)
+#define _starpu_job_list_end(head, j, member) \
+	(NULL)
+
 /* A job is the internal representation of a task. */
 struct _starpu_job {
 
@@ -189,8 +258,7 @@ struct _starpu_job {
 
 #ifdef STARPU_DEBUG
 	/* Linked-list of all jobs, for debugging */
-	struct _starpu_job *prev_all;
-	struct _starpu_job *next_all;
+	struct _starpu_job_list all_submitted;
 #endif
 };
 
