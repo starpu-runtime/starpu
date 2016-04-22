@@ -126,6 +126,13 @@ CUDA or OpenCL execution:
 StarPU ships a few performance models for a couple of systems: attila,
 mirage, idgraf, and sirocco. See section \ref SimulatedBenchmarks for the details.
 
+\section FakeSimulations Simulations on fake machines
+
+It is possible to build fake machines which do not exist, by modifying the
+platform file in <c>$STARPU_HOME/.starpu/sampling/bus/machine.platform.xml</c>
+by hand: one can add more CPUs, add GPUs (but the performance model file has to
+be extended as well), change the available GPU memory size, PCI memory bandwidth, etc.
+
 \section Tweaking simulation
 
 The simulation can be tweaked, to be able to tune it between a very accurate
