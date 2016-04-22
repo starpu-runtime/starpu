@@ -2569,7 +2569,7 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 				break;
 
 			case _STARPU_FUT_TASK_WAIT_END:
-				handle_task_submit_event(&ev, options, ev.param[1], NULL);
+				handle_task_submit_event(&ev, options, ev.param[0], NULL);
 				break;
 
 			case _STARPU_FUT_TASK_DONE:

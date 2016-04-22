@@ -239,7 +239,7 @@ int starpu_task_wait(struct starpu_task *task)
 	if (task->destroy)
 		_starpu_task_destroy(task);
 
-	_STARPU_TRACE_TASK_WAIT_END(j);
+	_STARPU_TRACE_TASK_WAIT_END();
         _STARPU_LOG_OUT();
 	return 0;
 }
