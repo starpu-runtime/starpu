@@ -273,6 +273,9 @@ struct _starpu_job {
 	unsigned alloc_outgoing;	/* Size of outgoing */
 
 	unsigned depth;			/* Rank from bottom, in number of jobs */
+					/* Only available if _starpu_graph_compute_depths was called */
+	unsigned descendants;		/* Number of children, grand-children, etc. */
+					/* Only available if _starpu_graph_compute_descendants was called */
 
 	int graph_n;			/* Variable available for graph flow */
 

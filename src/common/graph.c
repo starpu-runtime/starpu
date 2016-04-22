@@ -224,6 +224,78 @@ void _starpu_graph_compute_depths(void)
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&graph_lock);
 }
 
+void _starpu_graph_compute_descendants(void)
+{
+	struct _starpu_job *job, *job2, *job3;
+	struct _starpu_job **current_set = NULL, **next_set = NULL, **swap_set;
+	unsigned current_n, next_n, i, j;
+	unsigned current_alloc = 0, next_alloc = 0, swap_alloc;
+	unsigned descendants;
+
+	STARPU_PTHREAD_RWLOCK_WRLOCK(&graph_lock);
+
+	/* Yes, this is O(|V|.(|V|+|E|)) :( */
+
+	/* We could get O(|V|.|E|) by doing a topological sort first.
+	 *
+	 * |E| is usually O(|V|), though (bounded number of data dependencies,
+	 * and we use synchronization tasks) */
+
+	for (job = _starpu_job_list_begin(&all, all);
+	     job != _starpu_job_list_end(&all, all);
+	     job = _starpu_job_list_next(&all, job, all))
+	{
+		/* Mark all nodes as unseen */
+		for (job2 = _starpu_job_list_begin(&all, all);
+		     job2 != _starpu_job_list_end(&all, all);
+		     job2 = _starpu_job_list_next(&all, job2, all))
+			job2->graph_n = 0;
+
+		/* Start with the node we want to compute the number of descendants of */
+		current_n = 0;
+		add_job(job, &current_set, &current_n, &current_alloc, NULL);
+		job->graph_n = 1;
+
+		descendants = 0;
+		/* While we have descendants, count their descendants */
+		while (current_n) {
+			/* Next set is initially empty */
+			next_n = 0;
+
+			/* For each node in the current set */
+			for (i = 0; i < current_n; i++)
+			{
+				job2 = current_set[i];
+				/* For each child of this job2 */
+				for (j = 0; j < job2->n_outgoing; j++)
+				{
+					job3 = job2->outgoing[j];
+					if (!job3)
+						continue;
+					if (job3->graph_n)
+						/* Already seen */
+						continue;
+					/* Add this node */
+					job3->graph_n = 1;
+					descendants++;
+					add_job(job3, &next_set, &next_n, &next_alloc, NULL);
+				}
+			}
+			/* Swap next set with current set */
+			swap_set = next_set;
+			swap_alloc = next_alloc;
+			next_set = current_set;
+			next_alloc = current_alloc;
+			current_set = swap_set;
+			current_alloc = swap_alloc;
+			current_n = next_n;
+		}
+		job->descendants = descendants;
+	}
+
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&graph_lock);
+}
+
 void _starpu_graph_foreach(void (*func)(void *data, struct _starpu_job *job), void *data)
 {
 	STARPU_PTHREAD_RWLOCK_WRLOCK(&graph_lock);
