@@ -24,6 +24,7 @@
 #include <core/dependencies/data_concurrency.h>
 #include <common/config.h>
 #include <common/utils.h>
+#include <common/graph.h>
 #include <profiling/profiling.h>
 #include <profiling/bound.h>
 #include <starpu_top.h>
@@ -103,6 +104,9 @@ struct _starpu_job* STARPU_ATTRIBUTE_MALLOC _starpu_job_create(struct starpu_tas
 	if (task->use_tag)
 		_starpu_tag_declare(task->tag_id, job);
 
+	if (_starpu_graph_record)
+		_starpu_graph_add_job(job);
+
         _STARPU_LOG_OUT();
 	return job;
 }
@@ -134,6 +138,9 @@ void _starpu_job_destroy(struct _starpu_job *j)
 		free(j->dyn_dep_slots);
 		j->dyn_dep_slots = NULL;
 	}
+
+	if (_starpu_graph_record)
+		_starpu_graph_drop_job(j);
 
 	free(j);
 }
@@ -316,6 +323,10 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 		 * implicit dependencies any more.  */
 		_starpu_release_task_enforce_sequential_consistency(j);
 	}
+
+	/* Remove ourself from the graph before notifying dependencies */
+	if (_starpu_graph_record)
+		_starpu_graph_drop_job(j);
 
 	/* Task does not have a cl, but has explicit data dependencies, we need
 	 * to tell them that we will not exist any more before notifying the

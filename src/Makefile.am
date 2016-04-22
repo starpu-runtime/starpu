@@ -115,6 +115,7 @@ noinst_HEADERS = 						\
 	common/barrier.h					\
 	common/uthash.h						\
 	common/barrier_counter.h				\
+	common/graph.h						\
 	drivers/driver_common/driver_common.h			\
 	drivers/mp_common/mp_common.h				\
 	drivers/mp_common/source_common.h			\
@@ -155,6 +156,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	common/fxt.c						\
 	common/utils.c						\
 	common/thread.c						\
+	common/graph.c						\
 	core/jobs.c						\
 	core/task.c						\
 	core/task_bundle.c					\
@@ -197,6 +199,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	sched_policies/fifo_queues.c				\
 	sched_policies/parallel_heft.c				\
 	sched_policies/parallel_eager.c				\
+	sched_policies/graph_test_policy.c			\
 	drivers/driver_common/driver_common.c			\
 	drivers/disk/driver_disk.c				\
 	datawizard/memory_nodes.c				\

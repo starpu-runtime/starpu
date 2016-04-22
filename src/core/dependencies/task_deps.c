@@ -19,6 +19,7 @@
 #include <starpu.h>
 #include <common/config.h>
 #include <common/utils.h>
+#include <common/graph.h>
 #include <core/dependencies/tags.h>
 #include <core/jobs.h>
 #include <core/task.h>
@@ -118,6 +119,8 @@ void _starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, s
 			AYU_event(AYU_ADDDEPENDENCY, job->job_id, AYU_data);
 		}
 #endif
+		if (_starpu_graph_record)
+			_starpu_graph_add_job_dep(job, dep_job);
 
 		_starpu_task_add_succ(dep_job, cg);
 		if (dep_job->task->regenerate)
