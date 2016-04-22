@@ -644,7 +644,7 @@ do {										\
 	FUT_DO_PROBE2(_STARPU_FUT_TASK_WAIT_START, (job)->job_id, _starpu_gettid());
 
 #define _STARPU_TRACE_TASK_WAIT_END()	\
-	FUT_DO_PROBE2(_STARPU_FUT_TASK_WAIT_END, _starpu_gettid());
+	FUT_DO_PROBE1(_STARPU_FUT_TASK_WAIT_END, _starpu_gettid());
 
 #define _STARPU_TRACE_TASK_WAIT_FOR_ALL_START()	\
 	FUT_DO_PROBE1(_STARPU_FUT_TASK_WAIT_FOR_ALL_START, _starpu_gettid());
