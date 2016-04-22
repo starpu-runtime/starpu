@@ -183,8 +183,6 @@ static void _starpu_graph_compute_bottom_up(void (*func)(struct _starpu_job *nex
 					continue;
 				job2->graph_n++;
 				func(job, job2, data);
-				if (job2->depth < job->depth + 1)
-					job2->depth = job->depth + 1;
 
 				if ((unsigned) job2->graph_n == job2->n_outgoing)
 					/* All outgoing edges were processed, can now add to next set */
