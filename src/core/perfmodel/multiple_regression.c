@@ -24,37 +24,31 @@
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_multifit.h>
 
-#define PRINT 1
-
 typedef struct { int h, w; double *x;} matrix_t, *matrix;
 
-static void dump_multiple_regression_list(double *mx, double *my, unsigned ncoeff, unsigned nparameters, unsigned **combinations, char *codelet_name, struct starpu_perfmodel_history_list *list_history)
+static long count_file_lines(FILE *f)
+{
+	int ch, lines=0;
+	while(!feof(f))
+	{
+		ch = fgetc(f);
+	    if(ch == '\n')
+	    {
+		  lines++;
+		}
+    }
+	rewind(f);
+
+	return lines;
+}
+
+static void dump_multiple_regression_list(double *mx, double *my, int start, unsigned ncoeff, unsigned nparameters, unsigned **combinations, struct starpu_perfmodel_history_list *list_history, FILE *f)
 {
 	struct starpu_perfmodel_history_list *ptr = list_history;
-	unsigned i = 0;
-
-	FILE *f;
-	if (PRINT)
-	{
-		char filepath[50];
-		snprintf(filepath, 50, "/tmp/%s.out", codelet_name);
-
-		f = fopen(filepath, "w+");
-		STARPU_ASSERT_MSG(f, "Could not save performance model %s\n", filepath);
-		fprintf(f, "Duration, TAG");
-		for(int k=0; k < nparameters; k++)
-		{
-			fprintf(f, ", P%d", k);
-		}
-	}
-
+	int i = start;
 	while (ptr)
 	{
 		my[i] = ptr->entry->duration;
-
-		if (PRINT)
-			fprintf(f, "\n%f, %llu", my[i], ptr->entry->tag);
-
 		mx[i*ncoeff] = 1.;
 		for(int j=0; j<ncoeff-1; j++)
 		{
@@ -64,20 +58,33 @@ static void dump_multiple_regression_list(double *mx, double *my, unsigned ncoef
 				mx[i*ncoeff+j+1] *= pow(ptr->entry->parameters[k],combinations[j][k]);
 			}
 		}
-		if (PRINT)
-		{
-			for(int k=0; k < nparameters; k++)
-			{
-				fprintf(f, ", %f", ptr->entry->parameters[k]);
-			}
-		}
-
 		ptr = ptr->next;
 		i++;
 	}
 
-	if (PRINT)
-		fclose(f);
+}
+
+static void load_old_calibration(double *mx, double *my, unsigned ncoeff, FILE *f)
+{
+	char buffer[1024];
+	char *record,*line;
+	int i=0,j=0;
+
+	line=fgets(buffer,sizeof(buffer),f);//skipping first line
+	while((line=fgets(buffer,sizeof(buffer),f))!=NULL)
+	{
+		record = strtok(line,",");
+		my[i] = atoi(record);
+		record = strtok(NULL,",");
+		j=0;
+		while(record != NULL)
+		{
+			mx[i*ncoeff+j] = atoi(record) ;
+			++j;
+			record = strtok(NULL,",");
+		}
+		++i ;
+	}
 }
 
 static long find_long_list_size(struct starpu_perfmodel_history_list *list_history)
@@ -447,7 +454,7 @@ static long find_long_list_size(struct starpu_perfmodel_history_list *list_histo
 //}
 
 // Inspired from: https://rosettacode.org/wiki/Multiple_regression#C
-void gsl_multiple_reg_coeff(double *mx, double *my, int n, int k, double *coeff)
+void gsl_multiple_reg_coeff(double *mx, double *my, long n, int k, double *coeff)
 {
 	gsl_matrix *X = gsl_matrix_calloc(n, k);
 	gsl_vector *Y = gsl_vector_alloc(n);
@@ -476,19 +483,71 @@ void gsl_multiple_reg_coeff(double *mx, double *my, int n, int k, double *coeff)
 
 int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, double *coeff, unsigned ncoeff, unsigned nparameters, unsigned **combinations, char *codelet_name)
 {
-	long n = find_long_list_size(ptr);
+	// Computing number of rows
+	long n=find_long_list_size(ptr);
 	STARPU_ASSERT(n);
+	
+        // Reading old calibrations if necessary
+	FILE *f;
+	char filepath[50];
+	snprintf(filepath, 50, "/tmp/%s.out", codelet_name);
+	long old_lines=0;
+	int calibrate = starpu_get_env_number("STARPU_CALIBRATE");	
+	if (calibrate==1)
+	{
+		f = fopen(filepath, "a+");
+		STARPU_ASSERT_MSG(f, "Could not save performance model %s\n", filepath);
+		
+		old_lines=count_file_lines(f);
+		STARPU_ASSERT(old_lines);
 
+		n+=old_lines;
+	}
+
+	// Allocating X and Y matrices
 	double *mx = (double *) malloc(ncoeff*n*sizeof(double));
 	STARPU_ASSERT(mx);
-
 	double *my = (double *) malloc(n*sizeof(double));
 	STARPU_ASSERT(my);
 
-	dump_multiple_regression_list(mx, my, ncoeff, nparameters, combinations, codelet_name, ptr);
+	// Loading old calibration
+	if (calibrate==1)
+		load_old_calibration(mx, my, ncoeff, f);
 
+	// Filling X and Y matrices with measured values
+	dump_multiple_regression_list(mx, my, old_lines, ncoeff, nparameters, combinations, ptr, f);
+	
+	// Computing coefficients using multiple linear regression
 	//multiple_reg_coeff(mx, my, n, ncoeff, coeff);
 	gsl_multiple_reg_coeff(mx, my, n, ncoeff, coeff);
+
+	// Preparing new output calibration file
+	if (calibrate==2)
+	{
+		f = fopen(filepath, "w+");
+		STARPU_ASSERT_MSG(f, "Could not save performance model %s\n", filepath);
+		fprintf(f, "Duration");
+		for(int k=0; k < nparameters; k++)
+		{
+			fprintf(f, ", P%d", k);
+		}
+	}
+	
+	// Writing parameters to calibration file
+	if (calibrate>0)
+	{
+		for(int i=old_lines; i<n; i++)
+		{
+			fprintf(f, "\n%f", my[i]);
+			for(int j=1; j<nparameters;j++)
+				fprintf(f, ", %f", mx[i*nparameters+j]);			
+		}
+		fclose(f);
+	}
+
+	// Cleanup
+	free(mx);
+	free(my);
 
 	return 0;
 }
