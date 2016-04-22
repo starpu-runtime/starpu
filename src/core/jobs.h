@@ -252,6 +252,30 @@ struct _starpu_job {
 	starpu_pthread_barrier_t after_work_barrier;
 	unsigned after_work_busy_barrier;
 
+	/*
+	 * Fields for graph analysis for scheduling heuristics
+	 */
+	/* Member of list of all jobs without incoming dependency */
+	struct _starpu_job_list top;
+	/* Member of list of all jobs without outgoing dependency */
+	struct _starpu_job_list bottom;
+	/* Member of list of all jobs */
+	struct _starpu_job_list all;
+
+	/* set of incoming dependencies */
+	struct _starpu_job **incoming;	/* May contain NULLs for terminated jobs */
+	unsigned n_incoming;		/* Number of slots used */
+	unsigned alloc_incoming;	/* Size of incoming */
+	/* set of outgoing dependencies */
+	struct _starpu_job **outgoing;
+	unsigned *outgoing_slot;	/* Index within corresponding incoming array */
+	unsigned n_outgoing;		/* Number of slots used */
+	unsigned alloc_outgoing;	/* Size of outgoing */
+
+	unsigned depth;			/* Rank from bottom, in number of jobs */
+
+	int graph_n;			/* Variable available for graph flow */
+
 #ifdef STARPU_DEBUG
 	/* Linked-list of all jobs, for debugging */
 	struct _starpu_job_list all_submitted;

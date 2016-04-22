@@ -116,6 +116,7 @@ New features:
   * Generate animated html trace of modular schedulers.
   * Add asynchronous partition planning. It only supports coherency through
     the home node of data for now.
+  * Add graph inspection facility for schedulers.
 
 Small features:
   * Tasks can now have a name (via the field const char *name of

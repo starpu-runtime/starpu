@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <common/config.h>
 #include <common/utils.h>
+#include <common/graph.h>
 #include <core/progress_hook.h>
 #include <core/workers.h>
 #include <core/debug.h>
@@ -1178,6 +1179,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	}
 
 	_starpu_job_init();
+	_starpu_graph_init();
 
 	_starpu_init_all_sched_ctxs(&_starpu_config);
 	_starpu_init_progression_hooks();

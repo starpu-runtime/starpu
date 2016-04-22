@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2015  Université de Bordeaux
+ * Copyright (C) 2010-2016  Université de Bordeaux
  * Copyright (C) 2010-2013  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -119,13 +119,9 @@ static struct starpu_task *pop_task_dummy(unsigned sched_ctx_id)
 static struct starpu_sched_policy dummy_sched_policy =
 {
 	.init_sched = init_dummy_sched,
-	.add_workers = NULL,
-	.remove_workers = NULL,
 	.deinit_sched = deinit_dummy_sched,
 	.push_task = push_task_dummy,
 	.pop_task = pop_task_dummy,
-	.post_exec_hook = NULL,
-	.pop_every_task = NULL,
 	.policy_name = "dummy",
 	.policy_description = "dummy scheduling strategy",
 	.worker_type = STARPU_WORKER_LIST,

@@ -59,6 +59,7 @@ static struct starpu_sched_policy *predefined_policies[] =
 	&_starpu_sched_parallel_heft_policy,
 	&_starpu_sched_peager_policy,
 	&_starpu_sched_heteroprio_policy,
+	&_starpu_sched_graph_test_policy,
 	NULL
 };
 

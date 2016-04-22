@@ -76,7 +76,7 @@ For each task not going through the scheduler (because starpu_task::execute_on_a
 \var void (*starpu_sched_policy::do_schedule)(unsigned sched_ctx_id)
         Optional field. This method is called when it is a good time to start
         scheduling tasks. This is notably called when the application calls
-        starpu_task_wait_for_all.
+        starpu_task_wait_for_all or starpu_do_schedule explicitly.
 \var void (*starpu_sched_policy::add_workers)(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
         Initialize scheduling structures corresponding to each worker used by the policy.
 \var void (*starpu_sched_policy::remove_workers)(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
@@ -223,5 +223,15 @@ Prefetch data for a given task on a given node when the bus is idle
 \ingroup API_Scheduling_Policy
 The scheduling policies indicates if the worker may pop tasks from the list of other workers
 or if there is a central list with task for all the workers
+
+\fn void _starpu_graph_compute_depths(void)
+\ingroup API_Scheduling_policy
+This make StarPU compute for each task the depth, i.e. the length of the
+longest path to a task without outgoing dependencies.
+
+\fn void _starpu_graph_foreach(void (*func)(void *data, struct _starpu_job *job), void *data)
+\ingroup API_Scheduling_policy
+This calls \e func for each node of the task graph, passing also \e data as it
+is.
 
 */
