@@ -197,8 +197,6 @@ static int push_task_graph_test_policy(struct starpu_task *task)
 	}
 #endif
 
-	starpu_sched_ctx_list_task_counters_increment_all(task, sched_ctx_id);
-
 	return 0;
 }
 
