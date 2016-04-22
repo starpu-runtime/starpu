@@ -686,6 +686,7 @@ int starpu_task_submit(struct starpu_task *task)
 
 	if (is_sync)
 	{
+		_starpu_sched_do_schedule(task->sched_ctx);
 		_starpu_wait_job(j);
 		if (task->destroy)
 		     _starpu_task_destroy(task);
