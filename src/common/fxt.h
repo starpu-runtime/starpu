@@ -643,8 +643,8 @@ do {										\
 #define _STARPU_TRACE_TASK_WAIT_START(job)	\
 	FUT_DO_PROBE2(_STARPU_FUT_TASK_WAIT_START, (job)->job_id, _starpu_gettid());
 
-#define _STARPU_TRACE_TASK_WAIT_END(job)	\
-	FUT_DO_PROBE2(_STARPU_FUT_TASK_WAIT_END, (job)->job_id, _starpu_gettid());
+#define _STARPU_TRACE_TASK_WAIT_END()	\
+	FUT_DO_PROBE2(_STARPU_FUT_TASK_WAIT_END, _starpu_gettid());
 
 #define _STARPU_TRACE_TASK_WAIT_FOR_ALL_START()	\
 	FUT_DO_PROBE1(_STARPU_FUT_TASK_WAIT_FOR_ALL_START, _starpu_gettid());
@@ -965,7 +965,7 @@ do {										\
 #define _STARPU_TRACE_TASK_MPI_POST_START()		do {} while(0)
 #define _STARPU_TRACE_TASK_MPI_POST_END()		do {} while(0)
 #define _STARPU_TRACE_TASK_WAIT_START(job)		do {} while(0)
-#define _STARPU_TRACE_TASK_WAIT_END(job)		do {} while(0)
+#define _STARPU_TRACE_TASK_WAIT_END()			do {} while(0)
 #define _STARPU_TRACE_TASK_WAIT_FOR_ALL_START()		do {} while(0)
 #define _STARPU_TRACE_TASK_WAIT_FOR_ALL_END()		do {} while(0)
 #define _STARPU_TRACE_USER_DEFINED_START		do {} while(0)
