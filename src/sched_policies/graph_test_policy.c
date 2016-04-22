@@ -21,7 +21,7 @@
  *
  *	We keep tasks in the fifo queue, and store the graph of tasks, until we
  *	get the do_schedule call from the application, which tells us all tasks
- *	were queued, and we can now compute task depths and let a simple
+ *	were queued, and we can now compute task depths or descendants and let a simple
  *	central-queue greedy algorithm proceed.
  *
  *	TODO: let workers starting running tasks before the whole graph is submitted?
@@ -43,6 +43,7 @@ struct _starpu_graph_test_policy_data
 	starpu_pthread_mutex_t policy_mutex;
 	struct starpu_bitmap *waiters;
 	unsigned computed;
+	unsigned descendants;			/* Whether we use descendants, or depths, for priorities */
 };
 
 static void initialize_graph_test_policy(unsigned sched_ctx_id)
@@ -55,6 +56,7 @@ static void initialize_graph_test_policy(unsigned sched_ctx_id)
 	 _starpu_prio_deque_init(&data->prio_gpu);
 	data->waiters = starpu_bitmap_create();
 	data->computed = 0;
+	data->descendants = starpu_get_env_number_default("STARPU_SCHED_GRAPH_TEST_DESCENDANTS", 0);
 
 	_starpu_graph_record = 1;
 
@@ -140,9 +142,13 @@ static struct _starpu_prio_deque *select_prio(unsigned sched_ctx_id, struct _sta
 
 }
 
-static void set_priority(void *_data STARPU_ATTRIBUTE_UNUSED, struct _starpu_job *job)
+static void set_priority(void *_data, struct _starpu_job *job)
 {
-	job->task->priority = job->depth;
+	struct _starpu_graph_test_policy_data *data = _data;
+	if (data->descendants)
+		job->task->priority = job->descendants;
+	else
+		job->task->priority = job->depth;
 }
 
 static void do_schedule_graph_test_policy(unsigned sched_ctx_id)
@@ -150,9 +156,12 @@ static void do_schedule_graph_test_policy(unsigned sched_ctx_id)
 	struct _starpu_graph_test_policy_data *data = (struct _starpu_graph_test_policy_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
-	_starpu_graph_compute_depths();
+	if (data->descendants)
+		_starpu_graph_compute_descendants();
+	else
+		_starpu_graph_compute_depths();
 	data->computed = 1;
-	_starpu_graph_foreach(set_priority, NULL);
+	_starpu_graph_foreach(set_priority, data);
 
 	/* Now that we have priorities, move tasks from bag to priority queue */
 	while(!_starpu_fifo_empty(data->fifo)) {

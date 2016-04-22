@@ -30,5 +30,8 @@ void _starpu_graph_drop_job(struct _starpu_job *job);
 /* This does not take job duration into account, just the number */
 void _starpu_graph_compute_depths(void);
 
+/* Compute the descendants of jobs in the graph */
+void _starpu_graph_compute_descendants(void);
+
 /* Apply func on each job of the graph */
 void _starpu_graph_foreach(void (*func)(void *data, struct _starpu_job *job), void *data);
