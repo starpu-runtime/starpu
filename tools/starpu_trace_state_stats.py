@@ -67,6 +67,13 @@ class Worker():
     def add_event(self, type, name, category, start_time):
         self._events.append(Event(type, name, category, start_time))
 
+    def add_event_to_stats(self, event, duration):
+	for i in xrange(len(self._stats)):
+	    if self._stats[i]._name == event._name:
+		self._stats[i].aggregate(duration)
+		return
+        self._stats.append(EventStats(event._name, duration, event._category))
+
     def calc_stats(self, start_profiling_times, stop_profiling_times):
         num_events = len(self._events) - 1
         for i in xrange(0, num_events):
@@ -98,14 +105,8 @@ class Worker():
             a = curr_event._start_time
             b = next_event._start_time
 
-            found = False
-            for j in xrange(len(self._stats)):
-                if self._stats[j]._name == curr_event._name:
-                    self._stats[j].aggregate(b - a)
-                    found = True
-                    break
-            if not found == True:
-                self._stats.append(EventStats(curr_event._name, b - a, curr_event._category))
+	    # Add the event to the list of stats.
+	    self.add_event_to_stats(curr_event, b - a)
 
 def read_blocks(input_file):
     empty_lines = 0
