@@ -337,7 +337,7 @@ static struct {
 	{ "P",	 "Processing",			 COMM_THREAD_STATE },
 	{ "UT",	 "UserTesting",			 COMM_THREAD_STATE },
 	{ "UW",	 "UserWaiting",			 COMM_THREAD_STATE },
-	{ "Sds", "SendSubmitted",		 COMM_THREAD_STATE },
+	{ "SdS", "SendSubmitted",		 COMM_THREAD_STATE },
 	{ "RvS", "ReceiveSubmitted",		 COMM_THREAD_STATE },
 	{ "SdC", "SendCompleted",		 COMM_THREAD_STATE },
 	{ "RvC", "ReceiveCompleted",		 COMM_THREAD_STATE },
