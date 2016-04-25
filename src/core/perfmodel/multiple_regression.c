@@ -67,12 +67,12 @@ static void load_old_calibration(double *mx, double *my, unsigned nparameters, F
 	while((line=fgets(buffer,sizeof(buffer),f))!=NULL)
 	{
 		record = strtok(line,",");
-		my[i] = atoi(record);
+		my[i] = atof(record);
 		record = strtok(NULL,",");
 		j=0;
 		while(record != NULL)
 		{
-			mx[i*nparameters+j] = atoi(record) ;
+			mx[i*nparameters+j] = atof(record) ;
 			++j;
 			record = strtok(NULL,",");
 		}
@@ -447,33 +447,33 @@ static long find_long_list_size(struct starpu_perfmodel_history_list *list_histo
 //}
 
 // Inspired from: https://rosettacode.org/wiki/Multiple_regression#C
-void gsl_multiple_reg_coeff(double *mpar, double *my, long n, int k, double *coeff, unsigned **combinations)
+void gsl_multiple_reg_coeff(double *mpar, double *my, long n, unsigned ncoeff, unsigned nparameters, double *coeff, unsigned **combinations)
 {
 	double coefficient;
-	gsl_matrix *X = gsl_matrix_calloc(n, k);
+	gsl_matrix *X = gsl_matrix_calloc(n, ncoeff);
 	gsl_vector *Y = gsl_vector_alloc(n);
-	gsl_vector *beta = gsl_vector_alloc(k);
+	gsl_vector *beta = gsl_vector_alloc(ncoeff);
 
 	for (int i = 0; i < n; i++) {
 		gsl_vector_set(Y, i, my[i]);
 		gsl_matrix_set(X, i, 0, 1.);
-		for (int j = 1; j < k; j++)
+		for (int j = 1; j < ncoeff; j++)
 		{
 			coefficient = 1.;
-			for(int z=0; z < k-1; z++)
+			for(int k=0; k < nparameters; k++)
 			{
-				coefficient *= pow(mpar[i*k+z],combinations[j-1][z]);
+				coefficient *= pow(mpar[i*nparameters+k],combinations[j-1][k]);
 			}
 			gsl_matrix_set(X, i, j, coefficient);
 		}
 	}
 
 	double chisq;
-	gsl_matrix *cov = gsl_matrix_alloc(k, k);
-	gsl_multifit_linear_workspace * wspc = gsl_multifit_linear_alloc(n, k);
+	gsl_matrix *cov = gsl_matrix_alloc(ncoeff, ncoeff);
+	gsl_multifit_linear_workspace * wspc = gsl_multifit_linear_alloc(n, ncoeff);
 	gsl_multifit_linear(X, Y, beta, cov, &chisq, wspc);
 
-	for(int i=0; i<k; i++)
+	for(int i=0; i<ncoeff; i++)
 		coeff[i] = gsl_vector_get(beta, i);
 
 	gsl_matrix_free(X);
@@ -521,7 +521,7 @@ int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, doubl
 	
 	// Computing coefficients using multiple linear regression
 	//multiple_reg_coeff(mx, my, n, ncoeff, coeff);
-	gsl_multiple_reg_coeff(mpar, my, n, ncoeff, coeff, combinations);
+	gsl_multiple_reg_coeff(mpar, my, n, ncoeff, nparameters, coeff, combinations);
 
 	// Preparing new output calibration file
 	if (calibrate==2)
