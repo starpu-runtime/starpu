@@ -324,7 +324,7 @@ static struct {
 	{ "In",	 "Initializing",		 WORKER_STATE | THREAD_STATE },
 	{ "D",	 "Deinitializing",		 WORKER_STATE | THREAD_STATE },
 	{ "E",	 "Executing",			 WORKER_STATE | THREAD_STATE },
-	{ "C",	 "Callback",			 WORKER_STATE | THREAD_STATE },
+	{ "C",	 "Callback",			 WORKER_STATE | THREAD_STATE | USER_THREAD_STATE },
 	{ "H",	 "Hypervisor",			 WORKER_STATE | THREAD_STATE },
 	{ "Sc",	 "Scheduling",			 WORKER_STATE | THREAD_STATE },
 	{ "I",	 "Idle",			 WORKER_STATE | THREAD_STATE },
