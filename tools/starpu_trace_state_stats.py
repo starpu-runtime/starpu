@@ -144,16 +144,18 @@ def insert_worker_event(workers, prog_events, block):
     category = None
 
     for line in block:
-        if line[:2] == "E:": # EventType
-            event_type = read_field(line, 2)
-        elif line[:2] == "C:": # Category
-            category = read_field(line, 2)
-        elif line[:2] == "W:": # WorkerId
-            worker_id = int(read_field(line, 2))
-        elif line[:2] == "N:": # Name
-            name = read_field(line, 2)
-        elif line[:2] == "S:": # StartTime
-            start_time = float(read_field(line, 2))
+	key   = line[:2]
+	value = read_field(line, 2)
+        if key == "E:": # EventType
+            event_type = value
+        elif key == "C:": # Category
+            category = value
+        elif key == "W:": # WorkerId
+            worker_id = int(value)
+        elif key == "N:": # Name
+            name = value
+        elif key == "S:": # StartTime
+            start_time = float(value)
 
     # Program events don't belong to workers, they are globals.
     if category == "Program":
