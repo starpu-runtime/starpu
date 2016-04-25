@@ -82,7 +82,7 @@ class Worker():
 	    is_allowed = not len(start_profiling_times)
 
             # Check if the event is inbetween start/stop profiling events
-            for t in range(len(start_profiling_times)):
+            for t in xrange(len(start_profiling_times)):
 		if (curr_event._start_time > start_profiling_times[t] and
 		    curr_event._start_time < stop_profiling_times[t]):
 		    is_allowed = True
