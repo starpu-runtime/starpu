@@ -91,12 +91,7 @@ class Worker():
 	    if not is_allowed:
 		continue
 
-	    if curr_event._type == "SetState":
-		if next_event._type == "PopState":
-		    sys.exit("ERROR: The trace is most likely corrupted "
-			     "because a PopState event has been found just "
-			     "after a SetState!")
-	    elif curr_event._type == "PushState":
+	    if curr_event._type == "PushState":
 		self._stack.append(curr_event)
 		continue # Will look later to find a PopState event.
 	    elif curr_event._type == "PopState":
@@ -107,7 +102,8 @@ class Worker():
 		next_event = curr_event
 		curr_event = self._stack.pop()
 	    else:
-		sys.exit("ERROR: Invalid event type!")
+		if curr_event._type != "SetState":
+		    sys.exit("ERROR: Invalid event type!")
 
             # Compute duration with the next event.
             a = curr_event._start_time
