@@ -303,8 +303,9 @@ run with the tool <c>gnuplot</c>, which shows the corresponding curve.
 \image html starpu_non_linear_memset_regression_based.png
 \image latex starpu_non_linear_memset_regression_based.eps "" width=\textwidth
 
-When the field starpu_task::flops is set, <c>starpu_perfmodel_plot</c> can
-directly draw a GFlops curve, by simply adding the <c>-f</c> option:
+When the field starpu_task::flops is set (or STARPU_FLOPS is passed to
+starpu_task_insert), <c>starpu_perfmodel_plot</c> can directly draw a GFlops
+curve, by simply adding the <c>-f</c> option:
 
 \verbatim
 $ starpu_perfmodel_plot -f -s chol_model_11
