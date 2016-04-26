@@ -110,7 +110,7 @@ CPU 2
 \endverbatim
 
 The number of GFlops is available because the starpu_task::flops field of the
-tasks were filled.
+tasks were filled (or STARPU_FLOPS used in starpu_task_insert).
 
 When an FxT trace is generated (see \ref GeneratingTracesWithFxT), it is also
 possible to use the tool <c>starpu_workers_activity</c> (see \ref
