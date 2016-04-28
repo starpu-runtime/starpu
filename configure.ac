@@ -2653,6 +2653,9 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   chmod +x tools/starpu_paje_sort
   chmod +x tools/starpu_smpirun
   chmod +x doc/doxygen/doxygen_filter.sh
+  mkdir -p tests/microbenchs
+  ln -s $srcdir/tests/microbenchs/tasks_size_overhead.sh tests/microbenchs/
+  ln -s $srcdir/tests/microbenchs/tasks_size_overhead.gp tests/microbenchs/
 ])
 
 # Create links to ICD files in build/socl/vendors directory. SOCL will use this
