@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015  Université de Bordeaux
+ * Copyright (C) 2015-2016  Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -44,6 +44,9 @@
  * void FOO_prio_list_push_prio_list_back(struct FOO_prio_list*, struct FOO_prio_list*)
  *   * Test whether element is part of the list
  * void FOO_prio_list_ismember(struct FOO_prio_list*, struct FOO*)
+ *
+ * PRIO_LIST_TYPE assumes that LIST_TYPE has already been called to create the
+ * final structure.
  */
 
 #ifndef __PRIO_LIST_H__
