@@ -504,8 +504,8 @@ static void lws_add_workers(unsigned sched_ctx_id, int *workerids,
 		for(;;)
 		{
 			neighbour = (struct starpu_tree*)it.value;
-			int neigh_workerids[STARPU_NMAXWORKERS];
-			int neigh_nworkers = starpu_worker_get_workerids(neighbour->id, neigh_workerids);
+			int *neigh_workerids;
+			int neigh_nworkers = starpu_bindid_get_workerids(neighbour->id, &neigh_workerids);
 			int w;
 			for(w = 0; w < neigh_nworkers; w++)
 			{

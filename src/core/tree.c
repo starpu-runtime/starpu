@@ -22,8 +22,8 @@ void starpu_tree_reset_visited(struct starpu_tree *tree, char *visited)
 {
 	if(tree->arity == 0)
 	{
-		int workerids[STARPU_NMAXWORKERS];
-		int nworkers = starpu_worker_get_workerids(tree->id, workerids);
+		int *workerids;
+		int nworkers = starpu_bindid_get_workerids(tree->id, &workerids);
 		int w;
 		for(w = 0; w < nworkers; w++)
 		{
@@ -81,8 +81,8 @@ static struct starpu_tree* _get_down_to_leaves(struct starpu_tree *node, char *v
 		{
 			if(node->nodes[i]->is_pu)
 			{
-				int workerids[STARPU_NMAXWORKERS];
-				int nworkers = starpu_worker_get_workerids(node->nodes[i]->id, workerids);
+				int *workerids;
+				int nworkers = starpu_bindid_get_workerids(node->nodes[i]->id, &workerids);
 				int w;
 				for(w = 0; w < nworkers; w++)
 				{
@@ -122,8 +122,8 @@ struct starpu_tree* starpu_tree_get_neighbour(struct starpu_tree *tree, struct s
 			{
 				if(father->nodes[i]->is_pu)
 				{
-					int workerids[STARPU_NMAXWORKERS];
-					int nworkers = starpu_worker_get_workerids(father->nodes[i]->id, workerids);
+					int *workerids;
+					int nworkers = starpu_bindid_get_workerids(father->nodes[i]->id, &workerids);
 					int w;
 					for(w = 0; w < nworkers; w++)
 					{

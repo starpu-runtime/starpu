@@ -1829,15 +1829,11 @@ int starpu_worker_get_bindid(int workerid)
 	return _starpu_config.workers[workerid].bindid;
 }
 
-int starpu_worker_get_workerids(int bindid, int *workerids)
+int starpu_bindid_get_workerids(int bindid, int **workerids)
 {
-	unsigned nworkers = starpu_worker_get_count();
-	int nw = 0;
-	unsigned id;
-	for (id = 0; id < nworkers; id++)
-		if (_starpu_config.workers[id].bindid == bindid)
-			workerids[nw++] = id;
-	return nw;
+	STARPU_ASSERT(bindid < _starpu_config.nbindid);
+	*workerids = _starpu_config.bindid_workers[bindid].workerids;
+	return _starpu_config.bindid_workers[bindid].nworkers;
 }
 
 void starpu_worker_get_sched_condition(int workerid, starpu_pthread_mutex_t **sched_mutex, starpu_pthread_cond_t **sched_cond)

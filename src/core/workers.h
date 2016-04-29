@@ -323,6 +323,13 @@ struct _starpu_machine_config
 	 * that can run parallel tasks together. */
 	struct _starpu_combined_worker combined_workers[STARPU_NMAX_COMBINEDWORKERS];
 
+	/* Translation table from bindid to worker IDs */
+	struct {
+		int *workerids;
+		unsigned nworkers; /* size of workerids */
+	} *bindid_workers;
+	unsigned nbindid; /* size of bindid_workers */
+
 	/* This bitmask indicates which kinds of worker are available. For
 	 * instance it is possible to test if there is a CUDA worker with
 	 * the result of (worker_mask & STARPU_CUDA). */

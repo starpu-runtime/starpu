@@ -38,8 +38,8 @@ static unsigned tree_has_next_unblocked_worker(struct starpu_worker_collection *
 		return 0;
 	}
 	int id = -1;
-	int workerids[STARPU_NMAXWORKERS];
-	int nworkers = starpu_worker_get_workerids(neighbour->id, workerids);
+	int *workerids;
+	int nworkers = starpu_bindid_get_workerids(neighbour->id, &workerids);
 	int w;
 	for(w = 0; w < nworkers; w++)
 	{
@@ -83,8 +83,8 @@ static int tree_get_next_unblocked_worker(struct starpu_worker_collection *worke
 	STARPU_ASSERT_MSG(neighbour, "no element anymore");
 
 
-	int workerids[STARPU_NMAXWORKERS];
-	int nworkers = starpu_worker_get_workerids(neighbour->id, workerids);
+	int *workerids;
+	int nworkers = starpu_bindid_get_workerids(neighbour->id, &workerids);
 	int w;
 	for(w = 0; w < nworkers; w++)
 	{
@@ -117,8 +117,8 @@ static unsigned tree_has_next_master(struct starpu_worker_collection *workers, s
 		return 0;
 	}
 	int id = -1;
-	int workerids[STARPU_NMAXWORKERS];
-	int nworkers = starpu_worker_get_workerids(neighbour->id, workerids);
+	int *workerids;
+	int nworkers = starpu_bindid_get_workerids(neighbour->id, &workerids);
 	int w;
 	for(w = 0; w < nworkers; w++)
 	{
@@ -152,8 +152,8 @@ static int tree_get_next_master(struct starpu_worker_collection *workers, struct
 	STARPU_ASSERT_MSG(neighbour, "no element anymore");
 
 
-	int workerids[STARPU_NMAXWORKERS];
-	int nworkers = starpu_worker_get_workerids(neighbour->id, workerids);
+	int *workerids;
+	int nworkers = starpu_bindid_get_workerids(neighbour->id, &workerids);
 	int w;
 	for(w = 0; w < nworkers; w++)
 	{
@@ -192,8 +192,8 @@ static unsigned tree_has_next(struct starpu_worker_collection *workers, struct s
 		return 0;
 	}
 	int id = -1;
-	int workerids[STARPU_NMAXWORKERS];
-	int nworkers = starpu_worker_get_workerids(neighbour->id, workerids);
+	int *workerids;
+	int nworkers = starpu_bindid_get_workerids(neighbour->id, &workerids);
 	int w;
 	for(w = 0; w < nworkers; w++)
 	{
@@ -232,8 +232,8 @@ static int tree_get_next(struct starpu_worker_collection *workers, struct starpu
 	STARPU_ASSERT_MSG(neighbour, "no element anymore");
 
 
-	int workerids[STARPU_NMAXWORKERS];
-	int nworkers = starpu_worker_get_workerids(neighbour->id, workerids);
+	int *workerids;
+	int nworkers = starpu_bindid_get_workerids(neighbour->id, &workerids);
 	int w;
 	for(w = 0; w < nworkers; w++)
 	{

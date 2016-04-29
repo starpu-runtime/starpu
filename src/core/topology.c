@@ -1454,6 +1454,14 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 	unsigned mic_memory_nodes[STARPU_MAXMICDEVS];
 	unsigned mic_bindid[STARPU_MAXMICDEVS];
 #endif
+	unsigned bindid;
+
+	for (bindid = 0; bindid < config->nbindid; bindid++)
+	{
+		free(config->bindid_workers[bindid].workerids);
+		config->bindid_workers[bindid].workerids = NULL;
+		config->bindid_workers[bindid].nworkers = 0;
+	}
 
 	unsigned worker;
 	for (worker = 0; worker < config->topology.nworkers; worker++)
@@ -1690,6 +1698,26 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 			workerarg->hwloc_cpu_set = hwloc_bitmap_dup (worker_obj->cpuset);
 		}
 #endif
+		if (workerarg->bindid != -1)
+		{
+			bindid = workerarg->bindid;
+			unsigned old_nbindid = config->nbindid;
+			if (bindid >= old_nbindid)
+			{
+				/* More room needed */
+				if (!old_nbindid)
+					config->nbindid = STARPU_NMAXWORKERS;
+				else
+					config->nbindid = 2 * old_nbindid;
+				config->bindid_workers = realloc(config->bindid_workers, config->nbindid * sizeof(config->bindid_workers[0]));
+				memset(&config->bindid_workers[old_nbindid], 0, (config->nbindid - old_nbindid) * sizeof(config->bindid_workers[0]));
+			}
+			/* Add slot for this worker */
+			/* Don't care about amortizing the cost, there are usually very few workers sharing the same bindid */
+			config->bindid_workers[bindid].nworkers++;
+			config->bindid_workers[bindid].workerids = realloc(config->bindid_workers[bindid].workerids, config->bindid_workers[bindid].nworkers * sizeof(config->bindid_workers[bindid].workerids[0]));
+			config->bindid_workers[bindid].workerids[config->bindid_workers[bindid].nworkers-1] = worker;
+		}
 	}
 }
 
