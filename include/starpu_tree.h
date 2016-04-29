@@ -33,13 +33,13 @@ struct starpu_tree
 	int is_pu;
 };
 
-void starpu_tree_reset_visited(struct starpu_tree *tree, int *visited);
+void starpu_tree_reset_visited(struct starpu_tree *tree, char *visited);
 
 void starpu_tree_insert(struct starpu_tree *tree, int id, int level, int is_pu, int arity, struct starpu_tree *father);
 
 struct starpu_tree *starpu_tree_get(struct starpu_tree *tree, int id);
 
-struct starpu_tree *starpu_tree_get_neighbour(struct starpu_tree *tree, struct starpu_tree *node, int *visited, int *present);
+struct starpu_tree *starpu_tree_get_neighbour(struct starpu_tree *tree, struct starpu_tree *node, char *visited, char *present);
 
 void starpu_tree_free(struct starpu_tree *tree);
 

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2013  Université de Bordeaux
+ * Copyright (C) 2009-2013, 2016  Université de Bordeaux
  * Copyright (C) 2010-2014  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -42,7 +42,7 @@ struct starpu_sched_ctx_iterator
 	int cursor;
 	void *value;
 	void *possible_value;
-	int visited[STARPU_NMAXWORKERS];
+	char visited[STARPU_NMAXWORKERS];
 };
 
 enum starpu_worker_collection_type
@@ -57,8 +57,8 @@ struct starpu_worker_collection
 	unsigned nworkers;
 	void *masters;
 	unsigned nmasters;
-	int present[STARPU_NMAXWORKERS];
-	int is_master[STARPU_NMAXWORKERS];
+	char present[STARPU_NMAXWORKERS];
+	char is_master[STARPU_NMAXWORKERS];
 	enum starpu_worker_collection_type type;
 	unsigned (*has_next)(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it);
 	int (*get_next)(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it);
