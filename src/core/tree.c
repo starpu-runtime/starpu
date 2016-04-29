@@ -18,7 +18,7 @@
 #include "starpu_tree.h"
 #include "workers.h"
 
-void starpu_tree_reset_visited(struct starpu_tree *tree, int *visited)
+void starpu_tree_reset_visited(struct starpu_tree *tree, char *visited)
 {
 	if(tree->arity == 0)
 	{
@@ -71,7 +71,7 @@ struct starpu_tree* starpu_tree_get(struct starpu_tree *tree, int id)
 	return NULL;
 }
 
-struct starpu_tree* _get_down_to_leaves(struct starpu_tree *node, int *visited, int *present)
+static struct starpu_tree* _get_down_to_leaves(struct starpu_tree *node, char *visited, char *present)
 {
 	struct starpu_tree *found_tree = NULL;
 	int i;
@@ -101,7 +101,7 @@ struct starpu_tree* _get_down_to_leaves(struct starpu_tree *node, int *visited, 
 	return NULL;
 }
 
-struct starpu_tree* starpu_tree_get_neighbour(struct starpu_tree *tree, struct starpu_tree *node, int *visited, int *present)
+struct starpu_tree* starpu_tree_get_neighbour(struct starpu_tree *tree, struct starpu_tree *node, char *visited, char *present)
 {
 	struct starpu_tree *father = node == NULL ? tree : node->father;
 
