@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013  Université de Bordeaux
+ * Copyright (C) 2013, 2016  Université de Bordeaux
  * Copyright (C) 2012-2014  CNRS
  * Copyright (C) 2011-2013  INRIA
  *
@@ -38,8 +38,8 @@ static unsigned tree_has_next(struct starpu_worker_collection *workers, struct s
 		return 0;
 	}
 	int id = -1;
-	int workerids[STARPU_NMAXWORKERS];
-	int nworkers = _starpu_worker_get_workerids(neighbour->id, workerids);
+	int *workerids;
+	int nworkers = _starpu_bindid_get_workerids(neighbour->id, &workerids);
 	int w;
 	for(w = 0; w < nworkers; w++)
 	{
@@ -73,8 +73,8 @@ static int tree_get_next(struct starpu_worker_collection *workers, struct starpu
 	STARPU_ASSERT_MSG(neighbour, "no element anymore");
 
 
-	int workerids[STARPU_NMAXWORKERS];
-	int nworkers = _starpu_worker_get_workerids(neighbour->id, workerids);
+	int *workerids;
+	int nworkers = _starpu_bindid_get_workerids(neighbour->id, &workerids);
 	int w;
 	for(w = 0; w < nworkers; w++)
 	{
@@ -108,8 +108,8 @@ static unsigned tree_has_next_master(struct starpu_worker_collection *workers, s
 		return 0;
 	}
 	int id = -1;
-	int workerids[STARPU_NMAXWORKERS];
-	int nworkers = _starpu_worker_get_workerids(neighbour->id, workerids);
+	int *workerids;
+	int nworkers = _starpu_bindid_get_workerids(neighbour->id, &workerids);
 	int w;
 	for(w = 0; w < nworkers; w++)
 	{
@@ -143,8 +143,8 @@ static int tree_get_next_master(struct starpu_worker_collection *workers, struct
 	STARPU_ASSERT_MSG(neighbour, "no element anymore");
 
 
-	int workerids[STARPU_NMAXWORKERS];
-	int nworkers = _starpu_worker_get_workerids(neighbour->id, workerids);
+	int *workerids;
+	int nworkers = _starpu_bindid_get_workerids(neighbour->id, &workerids);
 	int w;
 	for(w = 0; w < nworkers; w++)
 	{
