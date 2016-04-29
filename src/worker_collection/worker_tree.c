@@ -304,10 +304,8 @@ static void tree_init_iterator(struct starpu_worker_collection *workers, struct 
 	it->value = NULL;
 	it->possible_value = NULL;
 	it->possibly_parallel = -1;
-	int i;
 	int nworkers = starpu_worker_get_count();
-	for(i = 0; i < nworkers; i++)
-		it->visited[i] = 0;
+	memset(&it->visited, 0, nworkers * sizeof(it->visited[0]));
 }
 
 static void tree_init_iterator_for_parallel_tasks(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it, struct starpu_task *task)
