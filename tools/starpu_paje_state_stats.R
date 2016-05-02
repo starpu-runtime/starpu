@@ -47,6 +47,7 @@ read_df <- function(file,range1,range2) {
   df$Value <- ifelse(df$Value == "R", "Reclaiming", as.character(df$Value))
   df$Value <- ifelse(df$Value == "Co", "DriverCopy", as.character(df$Value))
   df$Value <- ifelse(df$Value == "CoA", "DriverCopyAsync", as.character(df$Value))
+  df$Value <- ifelse(df$Value == "Su", "SubmittingTask", as.character(df$Value))
 
 # Considering only the states with a given name
   if (name != "All")
