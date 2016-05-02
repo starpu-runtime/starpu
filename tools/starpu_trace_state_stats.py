@@ -67,50 +67,67 @@ class Worker():
     def add_event(self, type, name, category, start_time):
         self._events.append(Event(type, name, category, start_time))
 
-    def add_event_to_stats(self, event, duration):
+    def add_event_to_stats(self, curr_event, next_event):
+	if curr_event._type == "PushState":
+	    self._stack.append(curr_event)
+	    return # Will look later to find a PopState event.
+	elif curr_event._type == "PopState":
+	    if len(self._stack) == 0:
+		sys.exit("ERROR: The trace is most likely corrupted "
+			 "because a PopState event has been found without "
+			 "a PushState!")
+	    next_event = curr_event
+	    curr_event = self._stack.pop()
+	else:
+	    if curr_event._type != "SetState":
+	        sys.exit("ERROR: Invalid event type!")
+
+        # Compute duration with the next event.
+        a = curr_event._start_time
+        b = next_event._start_time
+
+	# Add the event to the list of stats.
 	for i in xrange(len(self._stats)):
-	    if self._stats[i]._name == event._name:
-		self._stats[i].aggregate(duration)
+	    if self._stats[i]._name == curr_event._name:
+		self._stats[i].aggregate(b - a)
 		return
-        self._stats.append(EventStats(event._name, duration, event._category))
+        self._stats.append(EventStats(curr_event._name, b - a,
+				      curr_event._category))
 
     def calc_stats(self, start_profiling_times, stop_profiling_times):
+	# For all events except the last one.
         num_events = len(self._events) - 1
+	use_start_stop = len(start_profiling_times) != 0
         for i in xrange(0, num_events):
             curr_event = self._events[i]
             next_event = self._events[i+1]
-	    is_allowed = not len(start_profiling_times)
+
+            if not use_start_stop:
+                self.add_event_to_stats(curr_event, next_event)
+		continue
 
             # Check if the event is inbetween start/stop profiling events
             for t in xrange(len(start_profiling_times)):
 		if (curr_event._start_time > start_profiling_times[t] and
 		    curr_event._start_time < stop_profiling_times[t]):
-		    is_allowed = True
+		    self.add_event_to_stats(curr_event, next_event)
 		    break
 
-	    if not is_allowed:
-		continue
+        if not use_start_stop:
+	    return
 
-	    if curr_event._type == "PushState":
-		self._stack.append(curr_event)
-		continue # Will look later to find a PopState event.
-	    elif curr_event._type == "PopState":
-		if len(self._stack) == 0:
-		    sys.exit("ERROR: The trace is most likely corrupted "
-			     "because a PopState event has been found without "
-			     "a PushState!")
-		next_event = curr_event
-		curr_event = self._stack.pop()
-	    else:
-		if curr_event._type != "SetState":
-		    sys.exit("ERROR: Invalid event type!")
-
-            # Compute duration with the next event.
-            a = curr_event._start_time
-            b = next_event._start_time
-
-	    # Add the event to the list of stats.
-	    self.add_event_to_stats(curr_event, b - a)
+	# Get the last event
+	curr_event = self._events[num_events]
+	next_event = None
+	if curr_event._type == "SetState":
+            for i in xrange(len(start_profiling_times)):
+		if (curr_event._start_time > start_profiling_times[i] and
+		    curr_event._start_time < stop_profiling_times[i]):
+		    next_event = Event("SetState", "StopProfiling", "Program",
+				       stop_profiling_times[i])
+	    self.add_event_to_stats(curr_event, next_event)
+	elif curr_event._type == "PopState":
+	    self.add_event_to_stats(curr_event, next_event)
 
 def read_blocks(input_file):
     empty_lines = 0
