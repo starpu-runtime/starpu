@@ -190,7 +190,7 @@ def calc_times(stats):
         elif stat._category == "Other":
             ti += stat._duration_time
         else:
-            sys.exit("Unknown category '" + stat._category + "'!")
+	    print "WARNING: Unknown category '" + stat._category + "'!"
     return (ti, tr, tt, ts)
 
 def save_times(ti, tr, tt, ts):
