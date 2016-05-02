@@ -308,7 +308,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 6       U       S       Unpartitioning      \".0 .0 1.0\"		\n\
 6       H       S       Hypervisor      \".5 .18 .0\"		\n\
 6       Bu      S       \"Building task\"   \".5 .18 .0\"		\n\
-6       Su      S       \"Submittings task\" \".3 .09 .0\"		\n\
+6       Su      S       \"Submitting task\" \".3 .09 .0\"		\n\
 6       MD      S       \"Decoding task for MPI\" \".5 .18 .2\"		\n\
 6       MPr     S       \"Preparing task for MPI\" \".4 .14 .2\"		\n\
 6       MPo     S       \"Post-processing task for MPI\" \".3 .09 .2\"		\n\
@@ -328,7 +328,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 6       H       WS       Hypervisor      \".5 .18 .0\"		\n\
 3       US       UT       \"User Thread State\"                        \n\
 6       Bu      US      \"Building task\"   \".5 .18 .0\"		\n\
-6       Su      US      \"Submittings task\" \".3 .09 .0\"		\n\
+6       Su      US      \"Submitting task\" \".3 .09 .0\"		\n\
 6       MD      US      \"Decoding task for MPI\" \".5 .18 .2\"		\n\
 6       MPr     US      \"Preparing task for MPI\" \".4 .14 .2\"		\n\
 6       MPo     US      \"Post-processing task for MPI\" \".3 .09 .2\"		\n\
@@ -346,7 +346,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 6       SdC       CtS      SendCompleted     \"1.0 .5 1.0\"	\n\
 6       RvC       CtS      ReceiveCompleted  \"0.5 1.0 1.0\"	\n\
 6       Bu      CtS      \"Building task\"   \".5 .18 .0\"		\n\
-6       Su      CtS      \"Submittings task\" \".3 .09 .0\"		\n\
+6       Su      CtS      \"Submitting task\" \".3 .09 .0\"		\n\
 ");
 	for (i=1; i<STARPU_NMAX_SCHED_CTXS; i++)
 		fprintf(file, "\
