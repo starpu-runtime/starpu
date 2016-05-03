@@ -1837,7 +1837,8 @@ int starpu_worker_get_bindid(int workerid)
 
 int _starpu_bindid_get_workerids(int bindid, int **workerids)
 {
-	STARPU_ASSERT(bindid < _starpu_config.nbindid);
+	if (bindid >= _starpu_config.nbindid)
+		return 0;
 	*workerids = _starpu_config.bindid_workers[bindid].workerids;
 	return _starpu_config.bindid_workers[bindid].nworkers;
 }
