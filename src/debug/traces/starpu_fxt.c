@@ -341,9 +341,9 @@ static struct {
 	{ "RvS", "ReceiveSubmitted",		 COMM_THREAD_STATE },
 	{ "SdC", "SendCompleted",		 COMM_THREAD_STATE },
 	{ "RvC", "ReceiveCompleted",		 COMM_THREAD_STATE },
-	{ "W",   "Waiting task",		 USER_THREAD_STATE },
-	{ "WA",  "Waiting all tasks",		 USER_THREAD_STATE },
-	{ "No",  "Nothing",			 USER_THREAD_STATE },
+	{ "W",   "Waiting task",		 THREAD_STATE | USER_THREAD_STATE },
+	{ "WA",  "Waiting all tasks",		 THREAD_STATE | USER_THREAD_STATE },
+	{ "No",  "Nothing",			 THREAD_STATE | USER_THREAD_STATE },
 };
 
 static const char *get_state_name(const char *short_name, uint32_t states)
