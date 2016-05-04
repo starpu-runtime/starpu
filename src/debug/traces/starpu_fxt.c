@@ -773,10 +773,10 @@ static void recfmt_mpicommthread_pop_state(double time)
 	recfmt_pop_state(time, -1, 0);
 }
 
-static void recfmt_user_thread_push_state(double time, long unsigned threadid, const char *name)
+static void recfmt_user_thread_push_state(double time, long unsigned threadid, const char *name, const char *type)
 {
 	const char *state_name = get_state_name(name, USER_THREAD_STATE);
-	recfmt_push_state(time, -1, threadid, state_name, "User"); /* XXX */
+	recfmt_push_state(time, -1, threadid, state_name, type);
 }
 
 static void recfmt_user_thread_pop_state(double time, long unsigned threadid)
@@ -1383,7 +1383,7 @@ static void handle_start_callback(struct fxt_ev_64 *ev, struct starpu_fxt_option
 	else
 	{
 		user_thread_push_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[1], "C");
-		recfmt_user_thread_push_state(get_event_time_stamp(ev, options), ev->param[1], "C");
+		recfmt_user_thread_push_state(get_event_time_stamp(ev, options), ev->param[1], "C", "UNK"); /* XXX */
 	}
 }
 
@@ -1432,7 +1432,7 @@ static void handle_hypervisor_begin(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 	else
 	{
 		user_thread_push_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[1], "H");
-		recfmt_user_thread_push_state(get_event_time_stamp(ev, options), ev->param[1], "H");
+		recfmt_user_thread_push_state(get_event_time_stamp(ev, options), ev->param[1], "H", "UNK"); /* XXX */
 	}
 }
 
@@ -1776,7 +1776,7 @@ static void handle_task_submit_event(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 		if (eventstr)
 		{
 			user_thread_push_state(timestamp, prefix, tid, eventstr);
-			recfmt_user_thread_push_state(timestamp, tid, eventstr);
+			recfmt_user_thread_push_state(timestamp, tid, eventstr, "Runtime");
 		}
 		else
 		{
