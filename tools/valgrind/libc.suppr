@@ -23,6 +23,14 @@
 }
 
 {
+   Ignore libc aio-internal races
+   Helgrind:Race
+   ...
+   fun:aio_suspend
+   ...
+}
+
+{
    Ignore libc aio errors
    Memcheck:Leak
    match-leak-kinds: reachable
