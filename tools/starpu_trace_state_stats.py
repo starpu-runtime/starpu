@@ -106,7 +106,13 @@ class Worker():
     def calc_stats(self, start_profiling_times, stop_profiling_times):
         num_events = len(self._events)
 	use_start_stop = len(start_profiling_times) != 0
-	for event in self._events:
+	for i in xrange(0, num_events):
+	    event = self._events[i]
+	    if i > 0 and self._events[i-1]._name == "Deinitializing":
+		# Drop all events after the Deinitializing event is found
+		# because they do not make sense.
+		break
+
             if not use_start_stop:
                 self.add_event_to_stats(event)
 		continue
