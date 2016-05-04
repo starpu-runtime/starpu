@@ -57,6 +57,7 @@ class Worker():
         self._events    = []
         self._stats     = []
         self._stack     = []
+	self._current_state = None
 
     def get_event_stats(self, name):
         for stat in self._stats:
@@ -67,7 +68,7 @@ class Worker():
     def add_event(self, type, name, category, start_time):
         self._events.append(Event(type, name, category, start_time))
 
-    def add_event_to_stats(self, curr_event, next_event):
+    def add_event_to_stats(self, curr_event):
 	if curr_event._type == "PushState":
 	    self._stack.append(curr_event)
 	    return # Will look later to find a PopState event.
@@ -78,9 +79,17 @@ class Worker():
 			 "a PushState!")
 	    next_event = curr_event
 	    curr_event = self._stack.pop()
+	elif curr_event._type == "SetState":
+	    if self._current_state == None:
+		# First SetState event found
+		self._current_state = curr_event
+		return
+	    saved_state = curr_event
+	    next_event = curr_event
+	    curr_event = self._current_state
+	    self._current_state = saved_state
 	else:
-	    if curr_event._type != "SetState":
-	        sys.exit("ERROR: Invalid event type!")
+	    sys.exit("ERROR: Invalid event type!")
 
         # Compute duration with the next event.
         a = curr_event._start_time
@@ -95,39 +104,34 @@ class Worker():
 				      curr_event._category))
 
     def calc_stats(self, start_profiling_times, stop_profiling_times):
-	# For all events except the last one.
-        num_events = len(self._events) - 1
+        num_events = len(self._events)
 	use_start_stop = len(start_profiling_times) != 0
-        for i in xrange(0, num_events):
-            curr_event = self._events[i]
-            next_event = self._events[i+1]
-
+	for event in self._events:
             if not use_start_stop:
-                self.add_event_to_stats(curr_event, next_event)
+                self.add_event_to_stats(event)
 		continue
 
             # Check if the event is inbetween start/stop profiling events
             for t in xrange(len(start_profiling_times)):
-		if (curr_event._start_time > start_profiling_times[t] and
-		    curr_event._start_time < stop_profiling_times[t]):
-		    self.add_event_to_stats(curr_event, next_event)
+		if (event._start_time > start_profiling_times[t] and
+		    event._start_time < stop_profiling_times[t]):
+		    self.add_event_to_stats(event)
 		    break
 
         if not use_start_stop:
 	    return
 
-	# Get the last event
-	curr_event = self._events[num_events]
-	next_event = None
+	# Special case for SetState events which need a next one for computing
+	# the duration.
+	curr_event = self._events[-1]
 	if curr_event._type == "SetState":
             for i in xrange(len(start_profiling_times)):
 		if (curr_event._start_time > start_profiling_times[i] and
 		    curr_event._start_time < stop_profiling_times[i]):
-		    next_event = Event("SetState", "StopProfiling", "Program",
+		    curr_event = Event(curr_event._type, curr_event._name,
+				       curr_event._category,
 				       stop_profiling_times[i])
-	    self.add_event_to_stats(curr_event, next_event)
-	elif curr_event._type == "PopState":
-	    self.add_event_to_stats(curr_event, next_event)
+	    self.add_event_to_stats(curr_event)
 
 def read_blocks(input_file):
     empty_lines = 0
