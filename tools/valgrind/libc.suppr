@@ -10,6 +10,14 @@
    Ignore libc aio-internal races
    Helgrind:Race
    ...
+   fun:aio_write
+   ...
+}
+
+{
+   Ignore libc aio-internal races
+   Helgrind:Race
+   ...
    fun:__aio_notify
    ...
 }
