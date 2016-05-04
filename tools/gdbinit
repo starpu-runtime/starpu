@@ -715,7 +715,7 @@ define starpu-mpi-print-request
     if $request->request_type == UNKNOWN_REQ
        set $request_type = "UNKNOWN_REQ"
     end
-    printf "Request (struct _starpu_mpi_req *) %p data %p tag %d type %s submitted %d completed %d posted %d detached %d is_internal_req %d\n", $request, $request->data_handle, ((struct _starpu_mpi_node_tag *) ($request->data_handle->mpi_data))->data_tag,  $request_type, $request->submitted, $request->completed, $request->posted, $request->detached, $request->is_internal_req
+    printf "Request (struct _starpu_mpi_req *) %p data %p tag %d type %s submitted %d completed %d posted %d detached %d is_internal_req %d\n", $request, $request->data_handle, $request->data_handle ? ((struct _starpu_mpi_node_tag *) ($request->data_handle->mpi_data))->data_tag : -1,  $request_type, $request->submitted, $request->completed, $request->posted, $request->detached, $request->is_internal_req
 end
 
 define starpu-mpi-print-ready-requests
