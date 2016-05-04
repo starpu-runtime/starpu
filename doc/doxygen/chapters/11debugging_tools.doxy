@@ -19,6 +19,15 @@ Some gdb helpers are also provided to show the whole StarPU state:
 (gdb) help starpu
 \endverbatim
 
+For instance, one can print all tasks with <c>starpu-print-all-tasks</c>,
+print all datas with <c>starpu-print-datas</c>, print all pending data
+transfers with <c>starpu-print-prequests</c>, <c>starpu-print-requests</c>, <c>starpu-print-frequests</c>, <c>starpu-print-irequests</c>,
+print pending MPI requests with
+<c>starpu-mpi-print-detached-requests</c>
+
+Some functions can only work if --enable-debug was passed to ./configure
+(because they impact performance)
+
 Valgrind can be used on StarPU: valgrind.h just needs to be found at ./configure
 time, to tell valgrind about some known false positives and disable host memory
 pinning. Other known false positives can be suppressed by giving the suppression
