@@ -229,20 +229,22 @@ end
 
 define starpu-print-all-tasks
   set language c
-  set $j = all_jobs_list->next
-  while $j != 0
+  set $l = all_jobs_list->next
+  while $l != &all_jobs_list
+    set $j = (struct _starpu_job*) (((unsigned long) $l) - ((unsigned long) &((struct _starpu_job *)0)->all_submitted))
     printf "task %p\n", $j->task
     starpu-print-task $j->task
-    set $j = $j->all_submitted->next
+    set $l = $l->next
   end
 end
 
 define starpu-all-tasks
   set language c
-  set $j = all_jobs_list->next
-  while $j != 0
+  set $l = all_jobs_list->next
+  while $l != &all_jobs_list
+    set $j = (struct _starpu_job*) (((unsigned long) $l) - ((unsigned long) &((struct _starpu_job *)0)->all_submitted))
     printf "task %p\n", $j->task
-    set $j = $j->all_submitted->next
+    set $l = $l->next
   end
 end
 
@@ -725,7 +727,7 @@ define starpu-mpi-print-ready-requests
 	    set $request = $request->_next
 	end
     else
-	printf "No ready requests"
+	printf "No ready requests\n"
     end
 end
 
@@ -738,7 +740,7 @@ define starpu-mpi-print-detached-requests
 	    set $request = $request->_next
 	end
     else
-	printf "No detached requests"
+	printf "No detached requests\n"
     end
 end
 
@@ -805,8 +807,8 @@ end
 document starpu
 List of StarPU-specific gdb functions:
 starpu-workers                     prints a list of the StarPU workers
-starpu-tasks-on-workers            prints a list of the tasks currently running on workers
-starpu-tasks-on-worker             prints a list of the tasks running on the given worker
+starpu-tasks-on-workers            prints a list of the tasks queued on workers
+starpu-tasks-on-worker             prints a list of the tasks queued on the given worker
 starpu-print-job                   prints a StarPU job
 starpu-print-task                  prints a StarPU task
 starpu-print-all-tasks             prints all StarPU tasks
