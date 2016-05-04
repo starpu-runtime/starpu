@@ -326,7 +326,7 @@ define starpu-print-data
     end
   else
     set $n = 0
-    while $n < descr.nnodes
+    while $n < _starpu_descr.nnodes
       set $replicate = &$data->per_node[$n]
       printf "Node %2d (%2d):", $n, $replicate->refcnt
       if $replicate.state == 0
@@ -343,7 +343,7 @@ define starpu-print-data
       end
       printf "\n"
       set $m = 0
-      while $m < descr.nnodes
+      while $m < _starpu_descr.nnodes
         if $replicate->request[$m]
 	  printf " request %p from %d\n", $replicate->request[$m], $m
 	end
@@ -440,7 +440,7 @@ define starpu-print-datas-summary
     else
       set $data_n = $data_n + 1
       set $n = 0
-      while $n < descr.nnodes
+      while $n < _starpu_descr.nnodes
         set $replicate = &$data->per_node[$n]
         if $replicate.state == 0
           set $replicate_n_owners = $replicate_n_owners + 1
@@ -518,7 +518,7 @@ end
 
 define starpu-print-requests
   set $node = 0
-  while $node < descr.nnodes
+  while $node < _starpu_descr.nnodes
     printf "Node %u:\n", $node
     set $request = data_requests[$node]._head
     while $request != 0
@@ -533,7 +533,7 @@ end
 
 define starpu-print-prequests
   set $node = 0
-  while $node < descr.nnodes
+  while $node < _starpu_descr.nnodes
     printf "Node %u:\n", $node
     printf "%u pending requests\n", data_requests_npending[$node]
     set $request = data_requests_pending[$node]._head
@@ -567,7 +567,7 @@ end
 
 define starpu-print-frequests
   set $node = 0
-  while $node < descr.nnodes
+  while $node < _starpu_descr.nnodes
     printf "Node %u:\n", $node
     set $request = prefetch_requests[$node]._head
     while $request != 0
@@ -582,7 +582,7 @@ end
 
 define starpu-print-irequests
   set $node = 0
-  while $node < descr.nnodes
+  while $node < _starpu_descr.nnodes
     printf "Node %u:\n", $node
     set $request = idle_requests[$node]._head
     while $request != 0
@@ -598,7 +598,7 @@ end
 define starpu-memusage
   set scheduler-locking on
   set $node = 0
-  while $node < descr.nnodes
+  while $node < _starpu_descr.nnodes
     printf "\n\nNode %u:\n", $node
     set $total = 0
     set $total_b = 0
