@@ -1747,9 +1747,15 @@ static void handle_task_submit_event(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 	{
 		/* Normal worker */
 		if (eventstr)
+		{
 			thread_push_state(timestamp, prefix, tid, eventstr);
+			recfmt_thread_push_state(timestamp, tid, eventstr, "Runtime");
+		}
 		else
+		{
 			thread_pop_state(timestamp, prefix, tid);
+			recfmt_thread_pop_state(timestamp, tid);
+		}
 	}
 	else if (workerid == -2)
 	{
