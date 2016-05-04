@@ -57,6 +57,8 @@
 #define PRIO_LIST_TYPE(ENAME, PRIOFIELD) \
 	PRIO_LIST_CREATE_TYPE(ENAME, PRIOFIELD)
 
+#ifndef STARPU_DEBUG
+
 #define PRIO_LIST_CREATE_TYPE(ENAME, PRIOFIELD) \
 	/* The main type: an RB binary tree */ \
 	struct ENAME##_prio_list { \
@@ -234,5 +236,31 @@
 		} \
 		return 0; \
 	}
+
+#else
+
+/* gdbinit can't recurse in a tree. Use a mere list in debugging mode.  */
+#define PRIO_LIST_CREATE_TYPE(ENAME, PRIOFIELD) \
+	struct ENAME##_prio_list { struct ENAME##_list list; }; \
+	static inline void ENAME##_prio_list_init(struct ENAME##_prio_list *priolist) \
+	{ ENAME##_list_init(&(priolist)->list); } \
+	static inline void ENAME##_prio_list_deinit(struct ENAME##_prio_list *priolist) \
+	{ (void) (priolist); /* ENAME##_list_deinit(&(priolist)->list); */ } \
+	static inline void ENAME##_prio_list_push_back(struct ENAME##_prio_list *priolist, struct ENAME *e) \
+	{ ENAME##_list_push_back(&(priolist)->list, (e)); } \
+	static inline void ENAME##_prio_list_push_front(struct ENAME##_prio_list *priolist, struct ENAME *e) \
+	{ ENAME##_list_push_front(&(priolist)->list, (e)); } \
+	static inline int ENAME##_prio_list_empty(struct ENAME##_prio_list *priolist) \
+	{ return ENAME##_list_empty(&(priolist)->list); } \
+	static inline void ENAME##_prio_list_erase(struct ENAME##_prio_list *priolist, struct ENAME *e) \
+	{ ENAME##_list_erase(&(priolist)->list, (e)); } \
+	static inline struct ENAME *ENAME##_prio_list_pop_front(struct ENAME##_prio_list *priolist) \
+	{ return ENAME##_list_pop_front(&(priolist)->list); } \
+	static inline void ENAME##_prio_list_push_prio_list_back(struct ENAME##_prio_list *priolist, struct ENAME##_prio_list *priolist_toadd) \
+	{ ENAME##_list_push_list_back(&(priolist)->list, &(priolist_toadd)->list); } \
+	static inline int ENAME##_prio_list_ismember(struct ENAME##_prio_list *priolist, struct ENAME *e) \
+	{ return ENAME##_list_ismember(&(priolist)->list, (e)); } \
+
+#endif
 
 #endif // __PRIO_LIST_H__

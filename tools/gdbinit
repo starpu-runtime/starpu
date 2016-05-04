@@ -523,7 +523,7 @@ define starpu-print-requests
   set $node = 0
   while $node < _starpu_descr.nnodes
     printf "Node %u:\n", $node
-    set $request = data_requests[$node]._head
+    set $request = data_requests[$node].list._head
     while $request != 0
       printf " Request %p: handle %p ", $request, $request->handle
       starpu-print-mode $request->mode
@@ -539,7 +539,7 @@ define starpu-print-prequests
   while $node < _starpu_descr.nnodes
     printf "Node %u:\n", $node
     printf "%u pending requests\n", data_requests_npending[$node]
-    set $request = data_requests_pending[$node]._head
+    set $request = data_requests_pending[$node].list._head
     while $request != 0
       printf " Request %p: handle %p ", $request, $request->handle
       starpu-print-mode $request->mode
@@ -572,7 +572,7 @@ define starpu-print-frequests
   set $node = 0
   while $node < _starpu_descr.nnodes
     printf "Node %u:\n", $node
-    set $request = prefetch_requests[$node]._head
+    set $request = prefetch_requests[$node].list._head
     while $request != 0
       printf " Request %p: handle %p ", $request, $request->handle
       starpu-print-mode $request->mode
@@ -587,7 +587,7 @@ define starpu-print-irequests
   set $node = 0
   while $node < _starpu_descr.nnodes
     printf "Node %u:\n", $node
-    set $request = idle_requests[$node]._head
+    set $request = idle_requests[$node].list._head
     while $request != 0
       printf " Request %p: handle %p ", $request, $request->handle
       starpu-print-mode $request->mode

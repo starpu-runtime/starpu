@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2015  Université de Bordeaux
+ * Copyright (C) 2009-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -51,12 +51,14 @@ void _starpu_init_data_request_lists(void)
 		_starpu_data_request_prio_list_init(&prefetch_requests[i]);
 		_starpu_data_request_prio_list_init(&idle_requests[i]);
 
+#ifndef STARPU_DEBUG
 		/* Tell helgrind that we are fine with checking for list_empty
 		 * in _starpu_handle_node_data_requests, we will call it
 		 * periodically anyway */
 		STARPU_HG_DISABLE_CHECKING(data_requests[i].tree.root);
 		STARPU_HG_DISABLE_CHECKING(prefetch_requests[i].tree.root);
 		STARPU_HG_DISABLE_CHECKING(idle_requests[i].tree.root);
+#endif
 
 		STARPU_PTHREAD_MUTEX_INIT(&data_requests_list_mutex[i], NULL);
 
