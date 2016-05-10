@@ -95,6 +95,13 @@
 }
 
 {
+   suppr10
+   Helgrind:Race
+   ...
+   fun:ompi_mpi_finalize
+}
+
+{
    suppr11
    Memcheck:Leak
    ...
