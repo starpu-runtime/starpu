@@ -680,4 +680,50 @@
    fun:dlopen@@GLIBC_2.2.5
    ...
 }
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   ...
+   obj:/usr/lib/x86_64-linux-gnu/libamdocl64.so
+   ...
+   fun:call_init.part.0
+   fun:_dl_init
+   fun:dl_open_worker
+   fun:_dl_catch_error
+   fun:_dl_open
+   fun:dlopen_doit
+   fun:_dl_catch_error
+   fun:_dlerror_run
+   fun:dlopen@@GLIBC_2.2.5
+   obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
+   fun:call_init.part.0
+   fun:_dl_init
+   fun:dl_open_worker
+   fun:_dl_catch_error
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value8
+   ...
+   obj:/usr/lib/x86_64-linux-gnu/libamdocl64.so
+   ...
+   fun:call_init.part.0
+   fun:_dl_init
+   fun:dl_open_worker
+   fun:_dl_catch_error
+   fun:_dl_open
+   fun:dlopen_doit
+   fun:_dl_catch_error
+   fun:_dlerror_run
+   fun:dlopen@@GLIBC_2.2.5
+   obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
+   fun:call_init.part.0
+   fun:_dl_init
+   fun:dl_open_worker
+   fun:_dl_catch_error
+}
 
