@@ -83,6 +83,7 @@ EXTRA_DIST =				\
 	valgrind/hwloc.suppr		\
 	valgrind/libnuma.suppr		\
 	valgrind/openmpi.suppr		\
+	valgrind/opencl.suppr		\
 	valgrind/pthread.suppr		\
 	valgrind/starpu.suppr		\
 	valgrind/libgomp.suppr		\
