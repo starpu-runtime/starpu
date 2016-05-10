@@ -721,3 +721,15 @@
    fun:dlopen@@GLIBC_2.2.5
    ...
 }
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:_dlerror_run
+   fun:dlclose
+   obj:/usr/lib/x86_64-linux-gnu/libamdocl64.so
+   fun:__run_exit_handlers
+   fun:exit
+   ...
+}

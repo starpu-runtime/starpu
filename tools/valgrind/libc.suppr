@@ -35,9 +35,8 @@
    Memcheck:Leak
    match-leak-kinds: reachable
    ...
-   fun:get_elem
    fun:__aio_enqueue_request
-   fun:aio_read
+   ...
 }
 {
    <insert_a_suppression_name_here>
