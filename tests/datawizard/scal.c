@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2014  Université de Bordeaux
+ * Copyright (C) 2011, 2014, 2016  Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -21,13 +21,14 @@
 
 void scal_func_cpu(void *buffers[], void *cl_arg)
 {
-	STARPU_SKIP_IF_VALGRIND;
-
 	unsigned i;
 
 	struct starpu_vector_interface *vector = (struct starpu_vector_interface *) buffers[0];
 	unsigned *val = (unsigned *) STARPU_VECTOR_GET_PTR(vector);
 	unsigned n = STARPU_VECTOR_GET_NX(vector);
+
+	if (n > 16)
+		STARPU_SKIP_IF_VALGRIND;
 
 	/* scale the vector */
 	for (i = 0; i < n; i++)
@@ -39,8 +40,6 @@ struct starpu_opencl_program opencl_program;
 
 void scal_func_opencl(void *buffers[], void *_args)
 {
-	STARPU_SKIP_IF_VALGRIND;
-
 	int id, devid;
         cl_int err;
 	cl_kernel kernel;
@@ -50,6 +49,9 @@ void scal_func_opencl(void *buffers[], void *_args)
 	unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
 	cl_mem val = (cl_mem)STARPU_VECTOR_GET_DEV_HANDLE(buffers[0]);
 	unsigned offset = STARPU_VECTOR_GET_OFFSET(buffers[0]);
+
+	if (n > 16)
+		STARPU_SKIP_IF_VALGRIND;
 
 	id = starpu_worker_get_id();
 	devid = starpu_worker_get_devid(id);
