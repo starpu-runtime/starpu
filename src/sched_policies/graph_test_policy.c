@@ -94,6 +94,7 @@ static void deinitialize_graph_test_policy(unsigned sched_ctx_id)
 	 _starpu_prio_deque_destroy(&data->prio_gpu);
 	starpu_bitmap_destroy(data->waiters);
 
+	starpu_sched_ctx_delete_worker_collection(sched_ctx_id);
 	STARPU_PTHREAD_MUTEX_DESTROY(&data->policy_mutex);
 	free(data);
 }
