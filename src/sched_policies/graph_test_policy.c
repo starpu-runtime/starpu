@@ -78,6 +78,8 @@ static void deinitialize_graph_test_policy(unsigned sched_ctx_id)
 
 	/* deallocate the job queue */
 	_starpu_destroy_fifo(fifo);
+	 _starpu_prio_deque_destroy(&data->prio_cpu);
+	 _starpu_prio_deque_destroy(&data->prio_gpu);
 	starpu_bitmap_destroy(data->waiters);
 
 	STARPU_PTHREAD_MUTEX_DESTROY(&data->policy_mutex);
