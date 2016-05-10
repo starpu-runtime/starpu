@@ -1241,6 +1241,7 @@ void _starpu_destroy_machine_config(struct _starpu_machine_config *config)
 	for (worker = 0; worker < config->topology.nworkers; worker++)
 	{
 		struct _starpu_worker *workerarg = &config->workers[worker];
+		unsigned bindid = workerarg->bindid;
 		free(workerarg->perf_arch.devices);
 #ifdef STARPU_HAVE_HWLOC
 		hwloc_bitmap_free(workerarg->hwloc_cpu_set);
@@ -1256,7 +1257,14 @@ void _starpu_destroy_machine_config(struct _starpu_machine_config *config)
 			}
 		}
 #endif
+		if (bindid != -1)
+		{
+			free(config->bindid_workers[bindid].workerids);
+			config->bindid_workers[bindid].workerids = NULL;
+		}
 	}
+	free(config->bindid_workers);
+	config->bindid_workers = NULL;
 	unsigned combined_worker_id;
 	for(combined_worker_id=0 ; combined_worker_id < config->topology.ncombinedworkers ; combined_worker_id++)
 	{
