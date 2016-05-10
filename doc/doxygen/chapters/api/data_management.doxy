@@ -69,6 +69,10 @@ reads or non-commutative writes).
 \ingroup API_Data_Management
 used in starpu_mpi_insert_task() to specify the data has to be sent
 using a synchronous and non-blocking mode (see starpu_mpi_issend())
+\var starpu_data_access_mode::STARPU_LOCALITY
+\ingroup API_Data_Management
+used to tell the scheduler which data is the most important for the task, and
+should thus be used to try to group tasks on the same core or cache, etc.
 
 @name Basic Data Management API
 \ingroup API_Data_Management

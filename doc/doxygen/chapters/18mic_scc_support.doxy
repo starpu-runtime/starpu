@@ -19,9 +19,9 @@ The script <c>mic-configure</c> can then be used to achieve the two compilations
 calls <c>configure</c> as appropriate from two new directories: <c>build_mic</c> and
 <c>build_host</c>. <c>make</c> and <c>make install</c> can then be used as usual and will
 recurse into both directories. If different configuration options are needed
-for the host and for the mic, one can use <c>--with-host-param=--with-fxt</b>
+for the host and for the mic, one can use <c>--with-host-param=--with-fxt</c>
 for instance to specify the <c>--with-fxt</c> option for the host only, or
-<c>--with-mic-param=--with-fxt</b> for the mic only.
+<c>--with-mic-param=--with-fxt</c> for the mic only.
 
 \section PortingApplicationsToMICSCC Porting Applications To MIC Xeon Phi / SCC
 
