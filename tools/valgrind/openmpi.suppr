@@ -39,6 +39,13 @@
 }
 
 {
+   suppr5
+   Helgrind:Race
+   ...
+   fun:ompi_mpi_init
+}
+
+{
    suppr6
    Memcheck:Leak
    ...
@@ -50,6 +57,20 @@
    Memcheck:Leak
    ...
    fun:orte_init
+}
+
+{
+   suppr7
+   Memcheck:Leak
+   ...
+   fun:orte_progress_thread_engine
+}
+
+{
+   suppr7
+   Helgrind:Race
+   ...
+   fun:orte_progress_thread_engine
 }
 
 {
