@@ -106,7 +106,7 @@ driver, etc.
 <c>export STARPU_WATCHDOG_TIMEOUT=10000</c> (\ref STARPU_WATCHDOG_TIMEOUT)
 
 allows to make StarPU print an error message whenever StarPU does not terminate
-any task for 10ms. In addition to that,
+any task for 10ms, but lets the application continue normally. In addition to that,
 
 <c>export STARPU_WATCHDOG_CRASH=1</c> (\ref STARPU_WATCHDOG_CRASH)
 
