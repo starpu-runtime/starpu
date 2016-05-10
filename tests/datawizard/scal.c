@@ -27,9 +27,6 @@ void scal_func_cpu(void *buffers[], void *cl_arg)
 	unsigned *val = (unsigned *) STARPU_VECTOR_GET_PTR(vector);
 	unsigned n = STARPU_VECTOR_GET_NX(vector);
 
-	if (n > 16)
-		STARPU_SKIP_IF_VALGRIND;
-
 	/* scale the vector */
 	for (i = 0; i < n; i++)
 		val[i] *= 2;
@@ -49,9 +46,6 @@ void scal_func_opencl(void *buffers[], void *_args)
 	unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
 	cl_mem val = (cl_mem)STARPU_VECTOR_GET_DEV_HANDLE(buffers[0]);
 	unsigned offset = STARPU_VECTOR_GET_OFFSET(buffers[0]);
-
-	if (n > 16)
-		STARPU_SKIP_IF_VALGRIND;
 
 	id = starpu_worker_get_id();
 	devid = starpu_worker_get_devid(id);
