@@ -1265,6 +1265,7 @@ void _starpu_destroy_machine_config(struct _starpu_machine_config *config)
 	}
 	free(config->bindid_workers);
 	config->bindid_workers = NULL;
+	config->nbindid = 0;
 	unsigned combined_worker_id;
 	for(combined_worker_id=0 ; combined_worker_id < config->topology.ncombinedworkers ; combined_worker_id++)
 	{
