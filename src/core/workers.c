@@ -33,6 +33,7 @@
 #include <starpu_task_list.h>
 #include <sched_policies/sched_component.h>
 #include <datawizard/memory_nodes.h>
+#include <top/starpu_top_core.h>
 #include <drivers/mp_common/sink_common.h>
 #include <drivers/scc/driver_scc_common.h>
 
@@ -1503,6 +1504,7 @@ void starpu_shutdown(void)
 
 	_starpu_delete_all_sched_ctxs();
 	_starpu_sched_component_workers_destroy();
+	_starpu_top_shutdown();
 
 	for (worker = 0; worker < _starpu_config.topology.nworkers; worker++)
 		_starpu_worker_deinit(&_starpu_config.workers[worker]);
@@ -1831,7 +1833,7 @@ int starpu_worker_get_bindid(int workerid)
 
 int starpu_bindid_get_workerids(int bindid, int **workerids)
 {
-	if (bindid >= _starpu_config.nbindid)
+	if (bindid >= (int) _starpu_config.nbindid)
 		return 0;
 	*workerids = _starpu_config.bindid_workers[bindid].workerids;
 	return _starpu_config.bindid_workers[bindid].nworkers;
