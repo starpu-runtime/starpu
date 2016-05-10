@@ -102,6 +102,20 @@
 }
 
 {
+   suppr10
+   Helgrind:Misc
+   ...
+   fun:ompi_mpi_finalize
+}
+
+{
+   suppr10
+   Helgrind:PthAPIerror
+   ...
+   fun:ompi_mpi_finalize
+}
+
+{
    suppr11
    Memcheck:Leak
    ...
