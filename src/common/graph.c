@@ -199,6 +199,8 @@ static void _starpu_graph_compute_bottom_up(void (*func)(struct _starpu_job *nex
 		current_alloc = swap_alloc;
 		current_n = next_n;
 	}
+	free(current_set);
+	free(next_set);
 }
 
 static void compute_depth(struct _starpu_job *next_job, struct _starpu_job *prev_job, void *data STARPU_ATTRIBUTE_UNUSED)
@@ -294,6 +296,9 @@ void _starpu_graph_compute_descendants(void)
 	}
 
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&graph_lock);
+
+	free(current_set);
+	free(next_set);
 }
 
 void _starpu_graph_foreach(void (*func)(void *data, struct _starpu_job *job), void *data)
