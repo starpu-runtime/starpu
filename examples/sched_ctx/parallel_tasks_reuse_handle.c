@@ -131,6 +131,7 @@ void parallel_task_deinit()
 	int i;
 	for (i=0; i<2;i++)
 		starpu_sched_ctx_delete(contexts[i].id);
+	free(contexts);
 }
 
 /* Codelet SUM */
