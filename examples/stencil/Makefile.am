@@ -13,6 +13,8 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
+include $(top_srcdir)/starpu.mk
+
 AM_CFLAGS = $(HWLOC_CFLAGS) $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(GLOBAL_AM_CFLAGS) -Wno-unused
 LIBS = $(top_builddir)/src/@LIBSTARPU_LINK@ $(HWLOC_LIBS) @LIBS@ $(FXT_LIBS)
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/examples/ -I$(top_builddir)/include
@@ -147,10 +149,3 @@ CLEANFILES = *.xpm starpu_idle_microsec.log
 
 view:
 	feh --zoom 800 -F 0.xpm 0.5.xpm 1.xpm 2.xpm 3.xpm 4.xpm 6.xpm mpi.xpm
-
-showcheck:
-	-cat $(TEST_LOGS) /dev/null
-	! grep -q "ERROR: AddressSanitizer: " $(TEST_LOGS) /dev/null
-	! grep -q "WARNING: AddressSanitizer: " $(TEST_LOGS) /dev/null
-	! grep -q "ERROR: ThreadSanitizer: " $(TEST_LOGS) /dev/null
-	! grep -q "WARNING: ThreadSanitizer: " $(TEST_LOGS) /dev/null

@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009, 2010-2012, 2015  Université de Bordeaux
+# Copyright (C) 2009, 2010-2012, 2015-2016  Université de Bordeaux
 # Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -13,6 +13,8 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
+
+include $(top_srcdir)/starpu.mk
 
 AM_CFLAGS = $(MAGMA_CFLAGS) $(HWLOC_CFLAGS) -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(GLOBAL_AM_CFLAGS)
 LIBS = $(top_builddir)/socl/src/libsocl-@STARPU_EFFECTIVE_VERSION@.la $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la
@@ -76,10 +78,3 @@ mansched_mansched_SOURCES = mansched/mansched.c
 #mandelbrot_mandelbrot_CPPFLAGS += $(X_CFLAGS)
 #mandelbrot_mandelbrot_LDADD = $(X_PRE_LIBS) $(X_LIBS) -lX11 $(X_EXTRA_LIBS)
 #endif
-
-showcheck:
-	-cat $(TEST_LOGS) /dev/null
-	! grep -q "ERROR: AddressSanitizer: " $(TEST_LOGS) /dev/null
-	! grep -q "WARNING: AddressSanitizer: " $(TEST_LOGS) /dev/null
-	! grep -q "ERROR: ThreadSanitizer: " $(TEST_LOGS) /dev/null
-	! grep -q "WARNING: ThreadSanitizer: " $(TEST_LOGS) /dev/null
