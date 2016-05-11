@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2014-2015  Université de Bordeaux
+ * Copyright (C) 2010, 2014-2016  Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -319,6 +319,7 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "[error] fork. test marked as failed\n");
 		exit(EXIT_FAILURE);
 	}
+	free(test_args);
 
 	ret = EXIT_SUCCESS;
 	gettimeofday(&start, NULL);
