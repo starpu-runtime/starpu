@@ -170,11 +170,6 @@ statically scheduling tasks.
 A full example showing how to define a new scheduling policy is available in
 the StarPU sources in the directory <c>examples/scheduler/</c>.
 
-Make sure to have a look at the \ref API_Scheduling_Policy section, which
-provides a list of the available functions for writing advanced schedulers, such
-as starpu_task_expected_length, starpu_task_expected_data_transfer_time,
-starpu_task_expected_power, starpu_prefetch_task_input_node, etc.
-
 The scheduler has to provide methods:
 
 \code{.c}
@@ -199,6 +194,23 @@ starpu_sched_policy::pop_task pop from that list.
 
 The \ref starpu_sched_policy section provides the exact rules that govern the
 methods of the policy.
+
+Make sure to have a look at the \ref API_Scheduling_Policy section, which
+provides a list of the available functions for writing advanced schedulers, such
+as starpu_task_expected_length, starpu_task_expected_data_transfer_time,
+starpu_task_expected_power, starpu_prefetch_task_input_node, etc.
+
+Usual functions can also be used on tasks, for instance one can do
+
+\code{.c}
+size = 0;
+if (task->cl)
+    for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
+    {
+        starpu_data_handle_t data = STARPU_TASK_GET_HANDLE(task, i)
+        size += starpu_data_get_size(data);
+    }
+\endcode
 
 \section GraphScheduling Graph-based scheduling
 
