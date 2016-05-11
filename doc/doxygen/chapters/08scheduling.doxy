@@ -212,6 +212,11 @@ if (task->cl)
     }
 \endcode
 
+And various queues can be used in schedulers. A variety of examples of
+schedulers can be read in <c>src/sched_policies</c>, for
+instance <c>random_policy.c</c>, <c>eager_central_policy.c</c>,
+<c>work_stealing_policy.c</c>
+
 \section GraphScheduling Graph-based scheduling
 
 For performance reasons, most of the schedulers shipped with StarPU use simple
