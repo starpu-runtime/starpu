@@ -175,6 +175,8 @@ provides a list of the available functions for writing advanced schedulers, such
 as starpu_task_expected_length, starpu_task_expected_data_transfer_time,
 starpu_task_expected_power, starpu_prefetch_task_input_node, etc.
 
+The scheduler has to provide methods:
+
 \code{.c}
 static struct starpu_sched_policy dummy_sched_policy = {
     .init_sched = init_dummy_sched,
@@ -187,6 +189,16 @@ static struct starpu_sched_policy dummy_sched_policy = {
     .policy_description = "dummy scheduling strategy"
 };
 \endcode
+
+The idea is that when a task becomes ready for execution, the
+starpu_sched_policy::push_task method is called. When a worker is idle, the
+starpu_sched_policy::pop_task method is called to get a task. It is up to the
+scheduler to implement what is between. A simple eager scheduler is for instance
+to make starpu_sched_policy::push_task push the task to a global list, and make
+starpu_sched_policy::pop_task pop from that list.
+
+The \ref starpu_sched_policy section provides the exact rules that govern the
+methods of the policy.
 
 \section GraphScheduling Graph-based scheduling
 
