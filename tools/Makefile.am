@@ -90,6 +90,7 @@ EXTRA_DIST =				\
 	valgrind/libgomp.suppr		\
 	tsan/starpu.suppr		\
 	lsan/libc.suppr			\
+	lsan/openmpi.suppr		\
 	mvsc/starpu_clean.bat		\
 	mvsc/starpu_open.bat		\
 	mvsc/starpu_exec.bat		\
