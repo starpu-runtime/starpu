@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2011, 2013  Université de Bordeaux
+ * Copyright (C) 2009-2011, 2013, 2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2013  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -27,7 +27,7 @@ static inline uint32_t STARPU_ATTRIBUTE_PURE starpu_crc32c_be_8(uint8_t inputbyt
 	unsigned i;
 	uint32_t crc;
 
-	crc = inputcrc ^ (inputbyte << 24);
+	crc = inputcrc ^ (((uint32_t) inputbyte) << 24);
 	for (i = 0; i < 8; i++)
 		crc = (crc << 1) ^ ((crc & 0x80000000) ? _STARPU_CRC32C_POLY_BE : 0);
 
