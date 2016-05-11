@@ -120,7 +120,7 @@ int main(int argc, char **argv)
 
 	starpu_shutdown();
 
-	float *buffers[total_nbuffers];
+	float *buffers[total_nbuffers?total_nbuffers:1];
 
 	/* Allocate data */
 	for (buffer = 0; buffer < total_nbuffers; buffer++)
@@ -147,7 +147,7 @@ int main(int argc, char **argv)
 	FPRINTF(stdout, "\n");
 	fflush(stdout);
 
-	starpu_data_handle_t data_handles[total_nbuffers];
+	starpu_data_handle_t data_handles[total_nbuffers?total_nbuffers:1];
 
 	/* For each number of cpus, benchmark */
 	for (ncpus= 1; ncpus <= totcpus; ncpus++)
