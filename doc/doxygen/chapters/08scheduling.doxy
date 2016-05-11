@@ -204,11 +204,15 @@ Usual functions can also be used on tasks, for instance one can do
 
 \code{.c}
 size = 0;
+write = 0;
 if (task->cl)
     for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
     {
         starpu_data_handle_t data = STARPU_TASK_GET_HANDLE(task, i)
-        size += starpu_data_get_size(data);
+	size_t datasize = starpu_data_get_size(data);
+        size += datasize;
+	if (STARPU_TASK_GET_MODE(task, i) & STARPU_W)
+	    write += datasize;
     }
 \endcode
 
