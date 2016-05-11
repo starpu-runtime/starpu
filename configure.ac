@@ -1778,11 +1778,17 @@ AC_MSG_RESULT($maximplementations)
 AC_DEFINE_UNQUOTED(STARPU_MAXIMPLEMENTATIONS, [$maximplementations],
 		[maximum number of implementations])
 
+# Enable LevelDB support if requested and the lib is found
+AC_ARG_ENABLE(leveldb, [AS_HELP_STRING([--enable-leveldb],
+				   [Enable linking with LevelDB if available])],
+				   enable_leveldb=$enableval, enable_leveldb=no)
+if  test x$enable_leveldb = xyes; then
 AC_LANG_PUSH([C++])
 AC_CHECK_HEADERS([leveldb/db.h], [AC_DEFINE([STARPU_HAVE_LEVELDB], [1], [Define to 1 if you have the <leveldb/db.h> header file.])])
 STARPU_HAVE_LIBRARY(LEVELDB, [leveldb])
-AM_CONDITIONAL(STARPU_HAVE_LEVELDB, test "x$ac_cv_lib_leveldb_main" = "xyes")
 AC_LANG_POP([C++])
+fi
+AM_CONDITIONAL(STARPU_HAVE_LEVELDB, test  "x$enable_leveldb" = "xyes" -a "x$ac_cv_lib_leveldb_main" = "xyes")
 
 # Defines the calibration heuristic for the history-based calibration of StarPU
 AC_MSG_CHECKING(calibration heuristic of history-based StarPU calibrator)
