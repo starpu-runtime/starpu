@@ -728,10 +728,13 @@ int _starpu_push_local_task(struct _starpu_worker *worker, struct starpu_task *t
 				alloc *= 2;
 			new = malloc(alloc * sizeof(*new));
 
-			/* Put existing tasks at the beginning of the new ring */
-			copied = worker->local_ordered_tasks_size - worker->current_ordered_task;
-			memcpy(new, &worker->local_ordered_tasks[worker->current_ordered_task], copied * sizeof(*new));
-			memcpy(new + copied, worker->local_ordered_tasks, (worker->local_ordered_tasks_size - copied) * sizeof(*new));
+			if (worker->local_ordered_tasks_size)
+			{
+				/* Put existing tasks at the beginning of the new ring */
+				copied = worker->local_ordered_tasks_size - worker->current_ordered_task;
+				memcpy(new, &worker->local_ordered_tasks[worker->current_ordered_task], copied * sizeof(*new));
+				memcpy(new + copied, worker->local_ordered_tasks, (worker->local_ordered_tasks_size - copied) * sizeof(*new));
+			}
 			memset(new + worker->local_ordered_tasks_size, 0, (alloc - worker->local_ordered_tasks_size) * sizeof(*new));
 			free(worker->local_ordered_tasks);
 			worker->local_ordered_tasks = new;
