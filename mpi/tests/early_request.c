@@ -239,6 +239,8 @@ int main(int argc, char * argv[])
 		free_element(el_left+i);
 		free_element(el_right+i);
 	}
+	free(el_left);
+	free(el_right);
 
 	starpu_mpi_shutdown();
 	starpu_shutdown();
