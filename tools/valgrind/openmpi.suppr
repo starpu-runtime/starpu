@@ -39,6 +39,13 @@
 }
 
 {
+   suppr5
+   Helgrind:Race
+   ...
+   fun:ompi_mpi_init
+}
+
+{
    suppr6
    Memcheck:Leak
    ...
@@ -50,6 +57,20 @@
    Memcheck:Leak
    ...
    fun:orte_init
+}
+
+{
+   suppr7
+   Memcheck:Leak
+   ...
+   fun:orte_progress_thread_engine
+}
+
+{
+   suppr7
+   Helgrind:Race
+   ...
+   fun:orte_progress_thread_engine
 }
 
 {
@@ -69,6 +90,27 @@
 {
    suppr10
    Memcheck:Leak
+   ...
+   fun:ompi_mpi_finalize
+}
+
+{
+   suppr10
+   Helgrind:Race
+   ...
+   fun:ompi_mpi_finalize
+}
+
+{
+   suppr10
+   Helgrind:Misc
+   ...
+   fun:ompi_mpi_finalize
+}
+
+{
+   suppr10
+   Helgrind:PthAPIerror
    ...
    fun:ompi_mpi_finalize
 }
@@ -227,4 +269,12 @@
    fun:malloc
    fun:ompi_datatype_set_args
    fun:PMPI_Type_vector
+}
+
+{
+   suppr29
+   Memcheck:Leak
+   ...
+   fun:PMPI_Comm_split
+   fun:main
 }

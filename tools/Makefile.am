@@ -79,20 +79,23 @@ dist_pkgdata_perfmodels_sampling_codelets_DATA = \
 EXTRA_DIST =				\
 	dev/rename.sed			\
 	dev/rename.sh			\
-	mvsc/starpu_clean.bat		\
-	mvsc/starpu_open.bat		\
-	mvsc/starpu_exec.bat		\
-	mvsc/starpu_var.bat		\
-	mvsc/starpu.sln			\
-	mvsc/starpu/starpu.vcxproj	\
 	perfmodels/README		\
 	valgrind/libc.suppr		\
 	valgrind/hwloc.suppr		\
 	valgrind/libnuma.suppr		\
 	valgrind/openmpi.suppr		\
+	valgrind/opencl.suppr		\
 	valgrind/pthread.suppr		\
 	valgrind/starpu.suppr		\
-	tsan/starpu.suppr
+	valgrind/libgomp.suppr		\
+	tsan/starpu.suppr		\
+	lsan/libc.suppr			\
+	mvsc/starpu_clean.bat		\
+	mvsc/starpu_open.bat		\
+	mvsc/starpu_exec.bat		\
+	mvsc/starpu_var.bat		\
+	mvsc/starpu.sln			\
+	mvsc/starpu/starpu.vcxproj
 
 CLEANFILES = *.gcno *.gcda *.linkinfo
 
