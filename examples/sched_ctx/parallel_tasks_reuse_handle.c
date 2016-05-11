@@ -74,6 +74,8 @@ void parallel_task_init_one_context(unsigned * context_id)
 			      0);
 	t->destroy = 1;
 	t->prologue_callback_pop_func=parallel_task_prologue_init_once_and_for_all;
+	if (t->prologue_callback_pop_arg_free)
+		free(t->prologue_callback_pop_arg);
 	t->prologue_callback_pop_arg=context_id;
 	t->prologue_callback_pop_arg_free=0;
 
