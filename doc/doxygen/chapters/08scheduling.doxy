@@ -170,7 +170,10 @@ statically scheduling tasks.
 A full example showing how to define a new scheduling policy is available in
 the StarPU sources in the directory <c>examples/scheduler/</c>.
 
-See \ref API_Scheduling_Policy
+Make sure to have a look at the \ref API_Scheduling_Policy section, which
+provides a list of the available functions for writing advanced schedulers, such
+as starpu_task_expected_length, starpu_task_expected_data_transfer_time,
+starpu_task_expected_power, starpu_prefetch_task_input_node, etc.
 
 \code{.c}
 static struct starpu_sched_policy dummy_sched_policy = {
