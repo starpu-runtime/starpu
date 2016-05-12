@@ -1391,9 +1391,6 @@ void starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *opt
 	fxt_blockev_t block;
 	block = fxt_blockev_enter(fut);
 
-	_starpu_symbol_name_list_init(&symbol_list);
-	_starpu_communication_list_init(&communication_list);
-
 	char *prefix = options->file_prefix;
 
 	/* TODO starttime ...*/
@@ -1853,6 +1850,10 @@ void starpu_fxt_paje_file_init(struct starpu_fxt_options *options)
 	{
 		out_paje_file = NULL;
 	}
+
+	/* create lists for symbols (kernel states) and communications */
+	_starpu_symbol_name_list_init(&symbol_list);
+	_starpu_communication_list_init(&communication_list);
 }
 
 static
