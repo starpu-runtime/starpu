@@ -198,7 +198,9 @@ methods of the policy.
 Make sure to have a look at the \ref API_Scheduling_Policy section, which
 provides a list of the available functions for writing advanced schedulers, such
 as starpu_task_expected_length, starpu_task_expected_data_transfer_time,
-starpu_task_expected_power, starpu_prefetch_task_input_node, etc.
+starpu_task_expected_power, starpu_prefetch_task_input_node, etc. Other
+useful functions include starpu_transfer_bandwidth, starpu_transfer_latency,
+starpu_transfer_predict, ...
 
 Usual functions can also be used on tasks, for instance one can do
 
