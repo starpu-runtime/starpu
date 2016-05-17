@@ -1241,15 +1241,15 @@ void _starpu_destroy_machine_config(struct _starpu_machine_config *config)
 	for (worker = 0; worker < config->topology.nworkers; worker++)
 	{
 		struct _starpu_worker *workerarg = &config->workers[worker];
-		unsigned bindid = workerarg->bindid;
+		int bindid = workerarg->bindid;
 		free(workerarg->perf_arch.devices);
 #ifdef STARPU_HAVE_HWLOC
 		hwloc_bitmap_free(workerarg->hwloc_cpu_set);
-		if (workerarg->bindid != -1)
+		if (bindid != -1)
 		{
 			hwloc_obj_t worker_obj = hwloc_get_obj_by_depth(config->topology.hwtopology,
 									config->pu_depth,
-									workerarg->bindid);
+									bindid);
 			if (worker_obj->userdata)
 			{
 				_starpu_worker_list_delete(worker_obj->userdata);
