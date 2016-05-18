@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -381,7 +381,7 @@ static void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req)
 		req->envelope->size = (starpu_ssize_t)req->count * size;
 		_STARPU_MPI_DEBUG(20, "Post MPI isend count (%ld) datatype_size %ld request to %d\n",req->count,starpu_data_get_size(req->data_handle), req->node_tag.rank);
 		_STARPU_MPI_COMM_TO_DEBUG(sizeof(struct _starpu_mpi_envelope), MPI_BYTE, req->node_tag.rank, _STARPU_MPI_TAG_ENVELOPE, _STARPU_MPI_TAG_ENVELOPE, req->node_tag.comm);
-		MPI_Isend(req->envelope, sizeof(struct _starpu_mpi_envelope), MPI_BYTE, req->node_tag.rank, _STARPU_MPI_TAG_ENVELOPE, req->node_tag.comm, &req->size_req);
+		MPI_Isend(req->envelope, 24, MPI_BYTE, req->node_tag.rank, _STARPU_MPI_TAG_ENVELOPE, req->node_tag.comm, &req->size_req);
 	}
 	else
 	{
@@ -1446,6 +1446,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 							STARPU_MPI_ASSERT_MSG(early_request->ptr, "cannot allocate message of size %ld\n", early_request->count);
 						}
 
+						STARPU_ASSERT_MSG(early_request->ptr != NULL, "Posting a MPI reception on a NULL pointer is not allowed");
 						_STARPU_MPI_DEBUG(3, "Handling new request... \n");
 						/* handling a request is likely to block for a while
 						 * (on a sync_data_with_mem call), we want to let the
