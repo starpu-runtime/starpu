@@ -1176,15 +1176,13 @@ static void *watchdog_func(void *arg)
 {
 	struct timespec ts;
 	char *timeout_env = arg;
-	unsigned long long timeout;
+	float timeout;
 
 #ifdef _MSC_VER
-	timeout = (unsigned long long) _atoi64(timeout_env);
+	timeout = ((float) _atoi64(timeout_env)) / 1000000;
 #else
-	timeout = atoll(timeout_env);
+	timeout = ((float) atoll(timeout_env)) / 1000000;
 #endif
-	ts.tv_sec = timeout / 1000000;
-	ts.tv_nsec = (timeout % 1000000) * 1000;
 	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
 	
 	STARPU_PTHREAD_MUTEX_LOCK(&config->submitted_mutex);
@@ -1194,7 +1192,7 @@ static void *watchdog_func(void *arg)
 		config->watchdog_ok = 0;
 		STARPU_PTHREAD_MUTEX_UNLOCK(&config->submitted_mutex);
 
-		_starpu_sleep(ts);
+		starpu_sleep(timeout);
 
 		STARPU_PTHREAD_MUTEX_LOCK(&config->submitted_mutex);
 		if (!config->watchdog_ok && last_nsubmitted

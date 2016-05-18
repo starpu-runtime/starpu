@@ -179,7 +179,7 @@ Small features:
     which allocates the pointers located_file_name, located_dir_name
     and opencl_program_source.
   * Add submit_hook and do_schedule scheduler methods.
-
+  * Add starpu_sleep.
 
 Changes:
   * Data interfaces (variable, vector, matrix and block) now define

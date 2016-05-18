@@ -379,16 +379,17 @@ void _starpu_gethostname(char *hostname, size_t size)
 	}
 }
 
-void _starpu_sleep(struct timespec ts)
+void starpu_sleep(float nb_sec)
 {
 #ifdef STARPU_SIMGRID
-	MSG_process_sleep(ts.tv_sec + ts.tv_nsec / 1000000000.);
+	MSG_process_sleep(nb_sec);
 #elif defined(STARPU_HAVE_WINDOWS)
-	Sleep((ts.tv_sec * 1000) + (ts.tv_nsec / 1000000));
+	Sleep(nb_sec * 1000);
 #else
 	struct timespec req, rem;
 
-	req = ts;
+	req.tv_sec = nb_sec;
+	req.tv_nsec = (nb_sec - (float) req.tv_sec) * 1000000000;
 	while (nanosleep(&req, &rem))
 		req = rem;
 #endif
