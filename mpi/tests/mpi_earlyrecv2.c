@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010, 2014-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -140,29 +140,6 @@ int exchange_variable(int rank, int detached)
 	return ret;
 }
 
-void check_void(starpu_data_handle_t handle, int i, int rank, int *error)
-{
-}
-
-int exchange_void(int rank, int detached)
-{
-	int ret, i;
-	starpu_data_handle_t tab_handle[NB];
-
-	FPRINTF_MPI(stderr, "Exchanging void data with detached=%d\n", detached);
-
-	for(i=0 ; i<NB ; i++)
-	{
-		starpu_void_data_register(&tab_handle[i]);
-		starpu_mpi_data_register(tab_handle[i], i, rank);
-	}
-	ret = exchange(rank, tab_handle, check_void, detached);
-	for(i=0 ; i<NB ; i++)
-		starpu_data_unregister(tab_handle[i]);
-
-	return ret;
-}
-
 void check_complex(starpu_data_handle_t handle, int i, int rank, int *error)
 {
 	double *real = starpu_complex_get_real(handle);
@@ -227,12 +204,6 @@ int main(int argc, char **argv)
 	if (ret != 0) global_ret = ret;
 
 	ret = exchange_variable(rank, 1);
-	if (ret != 0) global_ret = ret;
-
-	ret = exchange_void(rank, 0);
-	if (ret != 0) global_ret = ret;
-
-	ret = exchange_void(rank, 1);
 	if (ret != 0) global_ret = ret;
 
 	ret = exchange_complex(rank, 0);
