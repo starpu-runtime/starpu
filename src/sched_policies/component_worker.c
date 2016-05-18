@@ -347,6 +347,10 @@ static void _starpu_sched_component_worker_lock_scheduling(unsigned sched_ctx_id
 	starpu_pthread_cond_t *sched_cond;
 	starpu_worker_get_sched_condition(workerid, &sched_mutex, &sched_cond);
 	_starpu_sched_component_lock_worker(sched_ctx_id, workerid);	
+#ifdef STARPU_DEVEL
+#warning Reverses locking order between worker lock and worker component lock!
+#warning See helgrind suppression file for the details
+#endif
 	STARPU_PTHREAD_MUTEX_LOCK_SCHED(sched_mutex);
 }
 
