@@ -1174,7 +1174,6 @@ static starpu_pthread_t watchdog_thread;
 /* Check from times to times that StarPU does finish some tasks */
 static void *watchdog_func(void *arg)
 {
-	struct timespec ts;
 	char *timeout_env = arg;
 	float timeout;
 
@@ -1198,7 +1197,7 @@ static void *watchdog_func(void *arg)
 		if (!config->watchdog_ok && last_nsubmitted
 				&& last_nsubmitted == starpu_task_nsubmitted())
 		{
-			fprintf(stderr,"The StarPU watchdog detected that no task finished for %u.%06us (can be configure through STARPU_WATCHDOG_TIMEOUT)\n", (unsigned)ts.tv_sec, (unsigned)ts.tv_nsec/1000);
+			fprintf(stderr,"The StarPU watchdog detected that no task finished for %fs (can be configure through STARPU_WATCHDOG_TIMEOUT)\n", timeout);
 			if (watchdog_crash)
 			{
 				fprintf(stderr,"Crashing the process\n");

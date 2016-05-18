@@ -181,7 +181,7 @@ static void record_worker_locality(struct starpu_task *task, int workerid)
 }
 
 #else
-static void record_worker_locality(struct starpu_task *task STARPU_ATTRIBUTE_UNUSED, int workerid)
+static void record_worker_locality(struct starpu_task *task STARPU_ATTRIBUTE_UNUSED, int workerid STARPU_ATTRIBUTE_UNUSED)
 {
 }
 #endif
