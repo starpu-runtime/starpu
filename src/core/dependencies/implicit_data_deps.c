@@ -208,6 +208,7 @@ struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_
 
 	/* Do not care about some flags */
 	mode &= ~ STARPU_SSEND;
+	mode &= ~ STARPU_LOCALITY;
 
 	STARPU_ASSERT(!(mode & STARPU_SCRATCH));
         _STARPU_LOG_IN();

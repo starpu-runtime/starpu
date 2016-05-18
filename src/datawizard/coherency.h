@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2015  Université de Bordeaux
+ * Copyright (C) 2009-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
  * Copyright (C) 2014-2015  Inria
  *
@@ -257,6 +257,11 @@ struct _starpu_data_state
 	struct starpu_arbiter *arbiter;
 	/* This is protected by the arbiter mutex */
 	struct _starpu_data_requester_list arbitered_req_list;
+
+	/* Data maintained by schedulers themselves */
+	/* Last worker that took this data in locality mode, or -1 if nobody
+	 * took it yet */
+	int last_locality;
 };
 
 void _starpu_display_msi_stats(void);
