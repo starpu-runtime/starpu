@@ -365,5 +365,11 @@ todo
 \ingroup API_Threads
 todo
 
+\fn void starpu_sleep(float nb_sec)
+\ingroup API_Threads
+This is the same as calling Unix' sleep function, except that it takes a float
+to allow sub-second sleeping, and when StarPU is compiled in simgrid mode it
+does not really sleep but just makes simgrid record that the thread has taken
+some time to sleep.
 
 */
