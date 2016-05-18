@@ -72,7 +72,10 @@ using a synchronous and non-blocking mode (see starpu_mpi_issend())
 \var starpu_data_access_mode::STARPU_LOCALITY
 \ingroup API_Data_Management
 used to tell the scheduler which data is the most important for the task, and
-should thus be used to try to group tasks on the same core or cache, etc.
+should thus be used to try to group tasks on the same core or cache, etc. For
+now only the ws and lws schedulers take this flag into account, and only when
+rebuild with USE_LOCALITY flag defined in the
+src/sched_policies/work_stealing_policy.c source code.
 
 @name Basic Data Management API
 \ingroup API_Data_Management

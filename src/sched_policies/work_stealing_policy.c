@@ -32,6 +32,9 @@
 /* Experimental (dead) code which needs to be tested, fixed... */
 /* #define USE_OVERLOAD */
 
+/* Experimental code for improving data cache locality */
+//#define USE_LOCALITY
+
 struct _starpu_work_stealing_data
 {
 	unsigned (*select_victim)(unsigned, int);
@@ -120,6 +123,68 @@ static unsigned select_worker_round_robin(unsigned sched_ctx_id)
 
 	return worker;
 }
+
+#ifdef USE_LOCALITY
+/* Select a worker according to the locality of the data of the task to be scheduled */
+static unsigned select_worker_locality(struct starpu_task *task, unsigned sched_ctx_id)
+{
+	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
+	if (nbuffers == 0)
+		return -1;
+
+	unsigned i, n;
+	starpu_data_handle_t locality[nbuffers];
+	unsigned ndata[STARPU_NMAXWORKERS] = { 0 };
+	int best_worker = -1;
+	unsigned best_ndata = 0;
+
+	n = 0;
+	for (i = 0; i < nbuffers; i++)
+		if (STARPU_TASK_GET_MODE(task, i) & STARPU_LOCALITY)
+		{
+			locality[n] = STARPU_TASK_GET_HANDLE(task, i);
+			if (locality[n]->last_locality >= 0)
+				ndata[locality[n]->last_locality]++;
+			n++;
+		}
+
+	if (n)
+	{
+		/* Some locality buffers, choose worker which has most of them */
+
+		struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
+		struct starpu_sched_ctx_iterator it;
+		workers->init_iterator(workers, &it);
+
+		while(workers->has_next(workers, &it))
+		{
+			int workerid = workers->get_next(workers, &it);
+			if (ndata[workerid] > best_ndata)
+			{
+				best_worker = workerid;
+				best_ndata = ndata[workerid];
+			}
+		}
+	}
+	return best_worker;
+}
+
+static void record_worker_locality(struct starpu_task *task, int workerid)
+{
+	/* Record where in locality data where the task went */
+	unsigned i;
+	for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
+		if (STARPU_TASK_GET_MODE(task, i) & STARPU_LOCALITY)
+		{
+			STARPU_TASK_GET_HANDLE(task, i)->last_locality = workerid;
+		}
+}
+
+#else
+static void record_worker_locality(struct starpu_task *task STARPU_ATTRIBUTE_UNUSED, int workerid)
+{
+}
+#endif
 
 #ifdef USE_OVERLOAD
 
@@ -305,6 +370,7 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 	if (task)
 	{
 		_STARPU_TRACE_WORK_STEALING(workerid, victim);
+		record_worker_locality(task, workerid);
 	}
 
 	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(victim_sched_mutex);
@@ -329,10 +395,14 @@ int ws_push_task(struct starpu_task *task)
 {
 	unsigned sched_ctx_id = task->sched_ctx;
 	struct _starpu_work_stealing_data *ws = (struct _starpu_work_stealing_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-	int workerid;
+	int workerid = -1;
 
 pick_worker:
-	workerid = starpu_worker_get_id();
+#ifdef USE_LOCALITY
+	workerid = select_worker_locality(task, sched_ctx_id);
+#endif
+	if (workerid == -1)
+		workerid = starpu_worker_get_id();
 
 	/* If the current thread is not a worker but
 	 * the main thread (-1), we find the better one to
@@ -348,6 +418,8 @@ pick_worker:
 	/* Maybe the worker we selected was removed before we picked the mutex */
 	if (ws->queue_array[workerid] == NULL)
 		goto pick_worker;
+
+	record_worker_locality(task, workerid);
 
 #ifdef HAVE_AYUDAME_H
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);

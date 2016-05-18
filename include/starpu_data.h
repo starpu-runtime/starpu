@@ -39,7 +39,8 @@ enum starpu_data_access_mode
 	STARPU_REDUX=(1<<3),
 	STARPU_COMMUTE=(1<<4),
 	STARPU_SSEND=(1<<5),
-	STARPU_ACCESS_MODE_MAX=(1<<6)
+	STARPU_LOCALITY=(1<<6),
+	STARPU_ACCESS_MODE_MAX=(1<<7)
 	/* Note: other STARPU_* values in include/starpu_task_util.h */
 };
 

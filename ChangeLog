@@ -117,6 +117,8 @@ New features:
   * Add asynchronous partition planning. It only supports coherency through
     the home node of data for now.
   * Add graph inspection facility for schedulers.
+  * New STARPU_LOCALITY flag to mark data which should be taken into account
+    by schedulers for improving locality.
 
 Small features:
   * Tasks can now have a name (via the field const char *name of

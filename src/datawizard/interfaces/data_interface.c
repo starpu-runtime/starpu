@@ -309,6 +309,7 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 	else
 		handle->arbiter = NULL;
 	_starpu_data_requester_list_init(&handle->arbitered_req_list);
+	handle->last_locality = -1;
 
 	/* that new data is invalid from all nodes perpective except for the
 	 * home node */
