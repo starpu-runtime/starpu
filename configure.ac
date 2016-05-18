@@ -1468,9 +1468,14 @@ else
 	CFLAGS="-O3 $CFLAGS"
 	CXXFLAGS="-O3 $CXXFLAGS"
 fi
-CFLAGS+=" -gdwarf-2 -g3 "
-CXXFLAGS+=" -gdwarf-2 -g3 "
-LDFLAGS+=" -gdwarf-2 -g3 "
+if test x$GCC = xyes; then
+	CFLAGS+=" -gdwarf-2"
+	CXXFLAGS+=" -gdwarf-2"
+	LDFLAGS+=" -gdwarf-2"
+fi
+CFLAGS+=" -g3 "
+CXXFLAGS+=" -g3 "
+LDFLAGS+=" -g3 "
 
 if test x$enable_spinlock_check = xyes; then
 	AC_DEFINE(STARPU_SPINLOCK_CHECK, [1], [check spinlock use])
