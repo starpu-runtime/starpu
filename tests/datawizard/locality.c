@@ -34,12 +34,15 @@
 #define ITER 50
 
 int task_worker[N][ITER];
+int worker_task[STARPU_NMAXWORKERS][N*ITER];
+unsigned worker_ntask[STARPU_NMAXWORKERS];
 
 void cpu_f(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *_args)
 {
-	unsigned i, loop;
+	unsigned i, loop, worker = starpu_worker_get_id();
 	starpu_codelet_unpack_args(_args, &loop, &i);
-	task_worker[i][loop] = starpu_worker_get_id();
+	task_worker[i][loop] = worker;
+	worker_task[worker][worker_ntask[worker]++] = i;
 	starpu_sleep(0.001);
 }
 
@@ -47,9 +50,10 @@ static struct starpu_codelet cl =
 {
 	.cpu_funcs = { cpu_f },
 	.cpu_funcs_name = { "cpu_f" },
-	.nbuffers = 3,
+	.nbuffers = 4,
 	.modes =
 	{
+		STARPU_RW,
 		STARPU_RW | STARPU_COMMUTE | STARPU_LOCALITY,
 		STARPU_RW | STARPU_COMMUTE | STARPU_LOCALITY,
 		STARPU_RW | STARPU_COMMUTE | STARPU_LOCALITY,
@@ -60,7 +64,8 @@ int main(int argc, char *argv[])
 {
 	int ret;
 	starpu_data_handle_t A[N];
-	unsigned i, loop;
+	starpu_data_handle_t B[N];
+	unsigned i, loop, finished;
 
 	ret = starpu_initialize(NULL, &argc, &argv);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
@@ -71,6 +76,7 @@ int main(int argc, char *argv[])
 	for (i = 0; i < N; i++)
 	{
 		starpu_void_data_register(&A[i]);
+		starpu_void_data_register(&B[i]);
 		starpu_data_assign_arbiter(A[i], arbiter);
 	}
 
@@ -79,6 +85,7 @@ int main(int argc, char *argv[])
 		for (i = 1; i < N-1; i++)
 		{
 			starpu_task_insert(&cl,
+					STARPU_RW, B[i],
 					STARPU_RW | STARPU_COMMUTE | STARPU_LOCALITY, A[i-1],
 					STARPU_RW | STARPU_COMMUTE | STARPU_LOCALITY, A[i],
 					STARPU_RW | STARPU_COMMUTE | STARPU_LOCALITY, A[i+1],
@@ -98,6 +105,23 @@ int main(int argc, char *argv[])
 		}
 		printf("\n");
 	}
+
+	loop = 0;
+	do {
+		finished = 1;
+		for (i = 0; i < starpu_worker_get_count(); i++)
+		{
+			if (loop < worker_ntask[i])
+			{
+				printf("%02d ", worker_task[i][loop]);
+				finished = 0;
+			}
+			else
+				printf("   ");
+		}
+		loop++;
+		printf("\n");
+	} while (!finished && loop < 100);
 
 	starpu_shutdown();
 	return EXIT_SUCCESS;
