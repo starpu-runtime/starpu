@@ -1446,7 +1446,6 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 							STARPU_MPI_ASSERT_MSG(early_request->ptr, "cannot allocate message of size %ld\n", early_request->count);
 						}
 
-						STARPU_ASSERT_MSG(early_request->ptr != NULL, "Posting a MPI reception on a NULL pointer is not allowed");
 						_STARPU_MPI_DEBUG(3, "Handling new request... \n");
 						/* handling a request is likely to block for a while
 						 * (on a sync_data_with_mem call), we want to let the
