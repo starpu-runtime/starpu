@@ -20,6 +20,11 @@
 
 typedef void (*check_func)(starpu_data_handle_t handle_s, starpu_data_handle_t handle_r, int *error);
 
+void check_void(starpu_data_handle_t handle_s, starpu_data_handle_t handle_r, int *error)
+{
+	FPRINTF_MPI(stderr, "Success with void value\n");
+}
+
 void check_variable(starpu_data_handle_t handle_s, starpu_data_handle_t handle_r, int *error)
 {
 	int ret;
@@ -188,6 +193,25 @@ int main(int argc, char **argv)
 		starpu_shutdown();
 		MPI_Finalize();
 		return STARPU_TEST_SKIPPED;
+	}
+
+	if (rank == 0)
+	{
+		starpu_data_handle_t void_handle[2];
+		starpu_void_data_register(&void_handle[0]);
+		starpu_void_data_register(&void_handle[1]);
+
+		send_recv_and_check(rank, 1, void_handle[0], 0x42, void_handle[1], 0x1337, &error, check_void);
+
+		starpu_data_unregister(void_handle[0]);
+		starpu_data_unregister(void_handle[1]);
+	}
+	else if (rank == 1)
+	{
+		starpu_data_handle_t void_handle;
+		starpu_void_data_register(&void_handle);
+		send_recv_and_check(rank, 0, void_handle, 0x42, NULL, 0x1337, NULL, NULL);
+		starpu_data_unregister(void_handle);
 	}
 
 	if (rank == 0)

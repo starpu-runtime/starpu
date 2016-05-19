@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -129,6 +129,33 @@ int exchange_variable(int rank)
 	return ret;
 }
 
+int exchange_void(int rank)
+{
+	int ret, i;
+	starpu_data_handle_t tab_handle[NB];
+
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+	ret = starpu_mpi_init(NULL, NULL, 0);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
+
+	FPRINTF_MPI(stderr, "Exchanging void data\n");
+
+	for(i=0 ; i<NB ; i++)
+	{
+		starpu_void_data_register(&tab_handle[i]);
+		starpu_mpi_data_register(tab_handle[i], i, rank);
+	}
+	ret = exchange(rank, tab_handle, NULL);
+	for(i=0 ; i<NB ; i++)
+		starpu_data_unregister(tab_handle[i]);
+
+	starpu_mpi_shutdown();
+	starpu_shutdown();
+
+	return ret;
+}
+
 void check_complex(starpu_data_handle_t handle, int i, int rank, int *error)
 {
 	double *real = starpu_complex_get_real(handle);
@@ -195,6 +222,9 @@ int main(int argc, char **argv)
 	}
 
 	ret = exchange_variable(rank);
+	if (ret != 0) global_ret = ret;
+
+	ret = exchange_void(rank);
 	if (ret != 0) global_ret = ret;
 
 	ret = exchange_complex(rank);
