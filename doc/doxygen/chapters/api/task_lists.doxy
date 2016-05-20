@@ -64,5 +64,9 @@ Get the end of \p list.
 \ingroup API_Task_Lists
 Get the next task of \p list. This is not erase-safe.
 
+\fn int starpu_task_list_ismember(struct starpu_task_list *list, struct starpu_task *task)
+\ingroup API_Task_Lists
+Test whether the given \p task is contained in the \p list.
+
 */
 
