@@ -97,6 +97,13 @@ int main(int argc, char *argv[])
 
 	starpu_task_wait_for_all();
 
+	for (i = 0; i < N; i++)
+	{
+		starpu_data_unregister(A[i]);
+		starpu_data_unregister(B[i]);
+	}
+	starpu_arbiter_destroy(arbiter);
+
 	for (loop = 0; loop < ITER; loop++)
 	{
 		for (i = 1; i < N-1; i++)
