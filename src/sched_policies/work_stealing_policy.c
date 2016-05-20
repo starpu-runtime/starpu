@@ -32,14 +32,58 @@
 /* Experimental (dead) code which needs to be tested, fixed... */
 /* #define USE_OVERLOAD */
 
+/*
+ * Experimental code for improving data cache locality:
+ *
+ * USE_LOCALITY:
+ * - for each data, we record on which worker it was last accessed with the
+ *   locality flag.
+ *
+ * - when pushing a ready task, we choose the worker which has last accessed the
+ *   most data of the task with the locality flag.
+ *
+ * USE_LOCALITY_TASKS:
+ * - for each worker, we record the locality data that the task used last (i.e. a rough
+ *   estimation of what is contained in the innermost caches).
+ *
+ * - for each worker, we have a hash table associating from a data handle to
+ *   all the ready tasks pushed to it that will use it with the locality flag.
+ *
+ * - When fetching a task from a queue, pick a task which has the biggest number
+ *   of data estimated to be contained in the cache.
+ */
+
+//#define USE_LOCALITY
+
+
+//#define USE_LOCALITY_TASKS
+
+/* Maximum number of recorded locality data per task */
+#define MAX_LOCALITY 8
+
+/* Entry for queued_tasks_per_data: records that a queued task is accessing the data with locality flag */
+struct locality_entry {
+	UT_hash_handle hh;
+	starpu_data_handle_t data;
+	struct starpu_task *task;
+};
+
 struct _starpu_work_stealing_data_per_worker
 {
 	struct _starpu_fifo_taskq *queue_array;
 	int *proxlist;
-};
 
-/* Experimental code for improving data cache locality */
-//#define USE_LOCALITY
+#ifdef USE_LOCALITY_TASKS
+	/* This records the same as queue_array, but hashed by data accessed with locality flag.  */
+	/* FIXME: we record only one task per data, assuming that the access is
+	 * RW, and thus only one task is ready to write to it. Do we really need to handle the R case too? */
+	struct locality_entry *queued_tasks_per_data;
+
+	/* This records the last data accessed by the worker */
+	starpu_data_handle_t last_locality[MAX_LOCALITY];
+	int nlast_locality;
+#endif
+};
 
 struct _starpu_work_stealing_data
 {
@@ -137,7 +181,6 @@ static unsigned select_worker_locality(struct starpu_task *task, unsigned sched_
 		return -1;
 
 	unsigned i, n;
-	starpu_data_handle_t locality[nbuffers];
 	unsigned ndata[STARPU_NMAXWORKERS] = { 0 };
 	int best_worker = -1;
 	unsigned best_ndata = 0;
@@ -146,9 +189,10 @@ static unsigned select_worker_locality(struct starpu_task *task, unsigned sched_
 	for (i = 0; i < nbuffers; i++)
 		if (STARPU_TASK_GET_MODE(task, i) & STARPU_LOCALITY)
 		{
-			locality[n] = STARPU_TASK_GET_HANDLE(task, i);
-			if (locality[n]->last_locality >= 0)
-				ndata[locality[n]->last_locality]++;
+			starpu_data_handle_t data = STARPU_TASK_GET_HANDLE(task, i);
+			int locality = data->last_locality;
+			if (locality >= 0)
+				ndata[locality]++;
 			n++;
 		}
 
@@ -173,7 +217,8 @@ static unsigned select_worker_locality(struct starpu_task *task, unsigned sched_
 	return best_worker;
 }
 
-static void record_worker_locality(struct starpu_task *task, int workerid)
+/* Record in the data which worker will handle the task with the locality flag */
+static void record_data_locality(struct starpu_task *task, int workerid)
 {
 	/* Record where in locality data where the task went */
 	unsigned i;
@@ -183,9 +228,146 @@ static void record_worker_locality(struct starpu_task *task, int workerid)
 			STARPU_TASK_GET_HANDLE(task, i)->last_locality = workerid;
 		}
 }
-
 #else
-static void record_worker_locality(struct starpu_task *task STARPU_ATTRIBUTE_UNUSED, int workerid STARPU_ATTRIBUTE_UNUSED)
+static void record_data_locality(struct starpu_task *task STARPU_ATTRIBUTE_UNUSED, int workerid STARPU_ATTRIBUTE_UNUSED)
+{
+}
+#endif
+
+#ifdef USE_LOCALITY_TASKS
+/* Record in the worker which data it used last with the locality flag */
+static void record_worker_locality(struct starpu_task *task, int workerid, unsigned sched_ctx_id)
+{
+	/* Record where in locality data where the task went */
+	unsigned i;
+	struct _starpu_work_stealing_data *ws = (struct _starpu_work_stealing_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
+	struct _starpu_work_stealing_data_per_worker *data = &ws->per_worker[workerid];
+
+	data->nlast_locality = 0;
+	for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
+		if (STARPU_TASK_GET_MODE(task, i) & STARPU_LOCALITY)
+		{
+			data->last_locality[data->nlast_locality] = STARPU_TASK_GET_HANDLE(task, i);
+			data->nlast_locality++;
+			if (data->nlast_locality == MAX_LOCALITY)
+				break;
+		}
+}
+/* Called when pushing a task to a queue */
+static void locality_pushed_task(struct starpu_task *task, int workerid, unsigned sched_ctx_id)
+{
+	struct _starpu_work_stealing_data *ws = (struct _starpu_work_stealing_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
+	struct _starpu_work_stealing_data_per_worker *data = &ws->per_worker[workerid];
+	unsigned i;
+	for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
+		if (STARPU_TASK_GET_MODE(task, i) & STARPU_LOCALITY)
+		{
+			starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, i);
+			struct locality_entry *entry;
+			HASH_FIND_PTR(data->queued_tasks_per_data, &handle, entry);
+			if (STARPU_LIKELY(!entry))
+			{
+				entry = malloc(sizeof(*entry));
+				entry->data = handle;
+				entry->task = task;
+				HASH_ADD_PTR(data->queued_tasks_per_data, data, entry);
+			}
+		}
+}
+
+/* Pick a task from workerid's queue, for execution on target */
+static struct starpu_task *ws_pick_task(int source, int target, unsigned sched_ctx_id)
+{
+	struct _starpu_work_stealing_data *ws = (struct _starpu_work_stealing_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
+	struct _starpu_work_stealing_data_per_worker *data_source = &ws->per_worker[source];
+	struct _starpu_work_stealing_data_per_worker *data_target = &ws->per_worker[target];
+	unsigned i, j, n = data_target->nlast_locality;
+	struct starpu_task *(tasks[MAX_LOCALITY]) = { NULL }, *best_task;
+	int ntasks[MAX_LOCALITY] = { 0 }, best_n; /* Number of locality data for this worker used by this task */
+	/* Look at the last data accessed by this worker */
+	STARPU_ASSERT(n < MAX_LOCALITY);
+	for (i = 0; i < n; i++)
+	{
+		starpu_data_handle_t handle = data_target->last_locality[i];
+		struct locality_entry *entry;
+		HASH_FIND_PTR(data_source->queued_tasks_per_data, &handle, entry);
+		if (entry)
+		{
+			/* Record task */
+			tasks[i] = entry->task;
+			ntasks[i] = 1;
+
+			/* And increment counter of the same task */
+			for (j = 0; j < i; j++)
+			{
+				if (tasks[j] == tasks[i])
+				{
+					ntasks[j]++;
+					break;
+				}
+			}
+		}
+	}
+	/* Now find the task with most locality data for this worker */
+	best_n = 0;
+	for (i = 0; i < n; i++)
+	{
+		if (ntasks[i] > best_n)
+		{
+			best_task = tasks[i];
+			best_n = ntasks[i];
+		}
+	}
+
+	if (best_n > 0)
+	{
+		/* found an interesting task, try to pick it! */
+		if (_starpu_fifo_pop_this_task(data_source->queue_array, target, best_task))
+			return best_task;
+	}
+
+	/* Didn't find an interesting task, or couldn't run it :( */
+	return _starpu_fifo_pop_task(data_source->queue_array, target);
+}
+
+/* Called when popping a task from a queue */
+static void locality_popped_task(struct starpu_task *task, int workerid, unsigned sched_ctx_id)
+{
+	struct _starpu_work_stealing_data *ws = (struct _starpu_work_stealing_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
+	struct _starpu_work_stealing_data_per_worker *data = &ws->per_worker[workerid];
+	unsigned i;
+	for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
+		if (STARPU_TASK_GET_MODE(task, i) & STARPU_LOCALITY)
+		{
+			starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, i);
+			struct locality_entry *entry;
+			HASH_FIND_PTR(data->queued_tasks_per_data, &handle, entry);
+			if (STARPU_LIKELY(entry))
+			{
+				if (entry->task == task)
+				{
+					HASH_DEL(data->queued_tasks_per_data, entry);
+					free(entry);
+				}
+			}
+		}
+}
+#else
+static void record_worker_locality(struct starpu_task *task STARPU_ATTRIBUTE_UNUSED, int workerid STARPU_ATTRIBUTE_UNUSED, unsigned sched_ctx_id STARPU_ATTRIBUTE_UNUSED)
+{
+}
+/* Called when pushing a task to a queue */
+static void locality_pushed_task(struct starpu_task *task STARPU_ATTRIBUTE_UNUSED, int workerid STARPU_ATTRIBUTE_UNUSED, unsigned sched_ctx_id STARPU_ATTRIBUTE_UNUSED)
+{
+}
+/* Pick a task from workerid's queue, for execution on target */
+static struct starpu_task *ws_pick_task(int source, int target, unsigned sched_ctx_id)
+{
+	struct _starpu_work_stealing_data *ws = (struct _starpu_work_stealing_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
+	return _starpu_fifo_pop_task(ws->per_worker[source].queue_array, target);
+}
+/* Called when popping a task from a queue */
+static void locality_popped_task(struct starpu_task *task STARPU_ATTRIBUTE_UNUSED, int workerid STARPU_ATTRIBUTE_UNUSED, unsigned sched_ctx_id STARPU_ATTRIBUTE_UNUSED)
 {
 }
 #endif
@@ -347,9 +529,10 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 
 	STARPU_ASSERT(workerid != -1);
 
-	task = _starpu_fifo_pop_task(ws->per_worker[workerid].queue_array, workerid);
+	task = ws_pick_task(workerid, workerid, sched_ctx_id);
 	if (task)
 	{
+		locality_popped_task(task, workerid, sched_ctx_id);
 		/* there was a local task */
 		return task;
 	}
@@ -370,11 +553,13 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 	STARPU_PTHREAD_MUTEX_LOCK_SCHED(victim_sched_mutex);
 
 	if (ws->per_worker[victim].queue_array != NULL && ws->per_worker[victim].queue_array->ntasks > 0)
-		task = _starpu_fifo_pop_task(ws->per_worker[victim].queue_array, workerid);
+		task = ws_pick_task(victim, workerid, sched_ctx_id);
 	if (task)
 	{
 		_STARPU_TRACE_WORK_STEALING(workerid, victim);
-		record_worker_locality(task, workerid);
+		record_data_locality(task, workerid);
+		record_worker_locality(task, workerid, sched_ctx_id);
+		locality_popped_task(task, victim, sched_ctx_id);
 	}
 
 	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(victim_sched_mutex);
@@ -383,9 +568,10 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 	if(!task)
 	{
 		if (ws->per_worker[workerid].queue_array != NULL && ws->per_worker[workerid].queue_array->ntasks > 0)
-			task = _starpu_fifo_pop_task(ws->per_worker[workerid].queue_array, workerid);
+			task = ws_pick_task(workerid, workerid, sched_ctx_id);
 		if (task)
 		{
+			locality_popped_task(task, workerid, sched_ctx_id);
 			/* there was a local task */
 			return task;
 		}
@@ -423,7 +609,7 @@ pick_worker:
 	if (ws->per_worker[workerid].queue_array == NULL)
 		goto pick_worker;
 
-	record_worker_locality(task, workerid);
+	record_data_locality(task, workerid);
 
 #ifdef HAVE_AYUDAME_H
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
@@ -435,6 +621,7 @@ pick_worker:
 #endif
 
 	_starpu_fifo_push_task(ws->per_worker[workerid].queue_array, task);
+	locality_pushed_task(task, workerid, sched_ctx_id);
 
 	starpu_push_task_end(task);
 

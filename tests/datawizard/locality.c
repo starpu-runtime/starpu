@@ -108,7 +108,7 @@ int main(int argc, char *argv[])
 	{
 		for (i = 1; i < N-1; i++)
 		{
-			printf("%d ", task_worker[i][loop]);
+			printf("%02d ", task_worker[i][loop]);
 		}
 		printf("\n");
 	}

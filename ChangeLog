@@ -119,6 +119,7 @@ New features:
   * Add graph inspection facility for schedulers.
   * New STARPU_LOCALITY flag to mark data which should be taken into account
     by schedulers for improving locality.
+  * Experimental support for data locality in ws and lws.
 
 Small features:
   * Tasks can now have a name (via the field const char *name of
