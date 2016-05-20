@@ -29,12 +29,18 @@
 #include <Ayudame.h>
 #endif
 
+struct _starpu_work_stealing_data_per_worker
+{
+	struct _starpu_fifo_taskq *queue_array;
+	int *proxlist;
+};
+
 /* Experimental code for improving data cache locality */
 //#define USE_LOCALITY
 
 struct _starpu_work_stealing_data
 {
-	struct _starpu_fifo_taskq **queue_array;
+	struct _starpu_work_stealing_data_per_worker *per_worker;
 	unsigned rr_worker;
 	/* keep track of the work performed from the beginning of the algorithm to make
 	 * better decisions about which queue to select when stealing or deferring work
@@ -80,7 +86,7 @@ static unsigned select_victim_round_robin(unsigned sched_ctx_id)
 		/* Here helgrind would shout that this is unprotected, but we
 		 * are fine with getting outdated values, this is just an
 		 * estimation */
-		ntasks = ws->queue_array[worker]->ntasks;
+		ntasks = ws->per_worker[worker].queue_array->ntasks;
 
 		if (ntasks)
 			break;
@@ -192,8 +198,8 @@ static float overload_metric(unsigned sched_ctx_id, unsigned id)
 	float execution_ratio = 0.0f;
 	float current_ratio = 0.0f;
 
-	int nprocessed = _starpu_get_deque_nprocessed(ws->queue_array[id]);
-	unsigned njobs = _starpu_get_deque_njobs(ws->queue_array[id]);
+	int nprocessed = _starpu_get_deque_nprocessed(ws->per_worker[id].queue_array);
+	unsigned njobs = _starpu_get_deque_njobs(ws->per_worker[id].queue_array);
 
 	/* Did we get enough information ? */
 	if (performed_total > 0 && nprocessed > 0)
@@ -332,7 +338,7 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 
 	STARPU_ASSERT(workerid != -1);
 
-	task = _starpu_fifo_pop_task(ws->queue_array[workerid], workerid);
+	task = _starpu_fifo_pop_task(ws->per_worker[workerid].queue_array, workerid);
 	if (task)
 	{
 		/* there was a local task */
@@ -356,7 +362,7 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 	starpu_worker_get_sched_condition(victim, &victim_sched_mutex, &victim_sched_cond);
 	STARPU_PTHREAD_MUTEX_LOCK_SCHED(victim_sched_mutex);
 
-	task = _starpu_fifo_pop_task(ws->queue_array[victim], workerid);
+	task = _starpu_fifo_pop_task(ws->per_worker[victim].queue_array, workerid);
 	if (task)
 	{
 		ws->performed_total++;
@@ -370,7 +376,7 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 	STARPU_PTHREAD_MUTEX_LOCK_SCHED(worker_sched_mutex);
 	if(!task)
 	{
-		task = _starpu_fifo_pop_task(ws->queue_array[workerid], workerid);
+		task = _starpu_fifo_pop_task(ws->per_worker[workerid].queue_array, workerid);
 		if (task)
 		{
 			/* there was a local task */
@@ -428,7 +434,7 @@ int ws_push_task(struct starpu_task *task)
 	}
 #endif
 
-	_starpu_fifo_push_task(ws->queue_array[workerid], task);
+	_starpu_fifo_push_task(ws->per_worker[workerid].queue_array, task);
 
 	starpu_push_task_end(task);
 
@@ -459,18 +465,18 @@ static void ws_add_workers(unsigned sched_ctx_id, int *workerids,unsigned nworke
 	{
 		workerid = workerids[i];
 		starpu_sched_ctx_worker_shares_tasks_lists(workerid, sched_ctx_id);
-		ws->queue_array[workerid] = _starpu_create_fifo();
+		ws->per_worker[workerid].queue_array = _starpu_create_fifo();
 
 		/* Tell helgrid that we are fine with getting outdated values,
 		 * this is just an estimation */
-		STARPU_HG_DISABLE_CHECKING(ws->queue_array[workerid]->ntasks);
+		STARPU_HG_DISABLE_CHECKING(ws->per_worker[workerid].queue_array->ntasks);
 
 		/**
 		 * The first WS_POP_TASK will increase NPROCESSED though no task was actually performed yet,
 		 * we need to initialize it at -1.
 		 */
-		ws->queue_array[workerid]->nprocessed = -1;
-		ws->queue_array[workerid]->ntasks = 0;
+		ws->per_worker[workerid].queue_array->nprocessed = -1;
+		ws->per_worker[workerid].queue_array->ntasks = 0;
 	}
 }
 
@@ -484,7 +490,7 @@ static void ws_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned nw
 	for (i = 0; i < nworkers; i++)
 	{
 		workerid = workerids[i];
-		_starpu_destroy_fifo(ws->queue_array[workerid]);
+		_starpu_destroy_fifo(ws->per_worker[workerid].queue_array);
 	}
 }
 
@@ -504,14 +510,14 @@ static void initialize_ws_policy(unsigned sched_ctx_id)
 	 */
 	ws->performed_total = -1;
 
-	ws->queue_array = (struct _starpu_fifo_taskq**)malloc(STARPU_NMAXWORKERS*sizeof(struct _starpu_fifo_taskq*));
+	ws->per_worker = calloc(STARPU_NMAXWORKERS, sizeof(struct _starpu_work_stealing_data_per_worker));
 }
 
 static void deinit_ws_policy(unsigned sched_ctx_id)
 {
 	struct _starpu_work_stealing_data *ws = (struct _starpu_work_stealing_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
-	free(ws->queue_array);
+	free(ws->per_worker);
         free(ws);
         starpu_sched_ctx_delete_worker_collection(sched_ctx_id);
 }

@@ -25,13 +25,18 @@
 #include <core/debug.h>
 #include <starpu_bitmap.h>
 
+struct _starpu_work_stealing_data_per_worker
+{
+	struct _starpu_fifo_taskq *queue_array;
+	int *proxlist;
+};
+
 /* Experimental code for improving data cache locality */
 //#define USE_LOCALITY
 
 struct _starpu_lws_data
 {
-	struct _starpu_fifo_taskq **queue_array;
-	int **proxlist;
+	struct _starpu_work_stealing_data_per_worker *per_worker;
 	unsigned last_pop_worker;
 	unsigned last_push_worker;
 };
@@ -53,8 +58,8 @@ static unsigned select_victim_neighborhood(unsigned sched_ctx_id, int workerid)
 	int neighbor;
 	for(i=0; i<nworkers; i++)
 	{
-		neighbor = ws->proxlist[workerid][i];
-		int ntasks = ws->queue_array[neighbor]->ntasks;
+		neighbor = ws->per_worker[workerid].proxlist[i];
+		int ntasks = ws->per_worker[neighbor].queue_array->ntasks;
 
 		if (ntasks)
 			return neighbor;
@@ -81,7 +86,7 @@ static unsigned select_victim_round_robin(unsigned sched_ctx_id)
 		unsigned ntasks;
 
 		starpu_worker_get_sched_condition(worker, &victim_sched_mutex, &victim_sched_cond);
-		ntasks = ws->queue_array[worker]->ntasks;
+		ntasks = ws->per_worker[worker].queue_array->ntasks;
 		if (ntasks)
 			break;
 
@@ -213,7 +218,7 @@ static struct starpu_task *lws_pop_task(unsigned sched_ctx_id)
 
 	STARPU_ASSERT(workerid != -1);
 
-	task = _starpu_fifo_pop_task(ws->queue_array[workerid], workerid);
+	task = _starpu_fifo_pop_task(ws->per_worker[workerid].queue_array, workerid);
 	if (task)
 	{
 		/* there was a local task */
@@ -237,7 +242,7 @@ static struct starpu_task *lws_pop_task(unsigned sched_ctx_id)
 	starpu_worker_get_sched_condition(victim, &victim_sched_mutex, &victim_sched_cond);
 	STARPU_PTHREAD_MUTEX_LOCK_SCHED(victim_sched_mutex);
 
-	task = _starpu_fifo_pop_task(ws->queue_array[victim], workerid);
+	task = _starpu_fifo_pop_task(ws->per_worker[victim].queue_array, workerid);
 	if (task)
 	{
 		_STARPU_TRACE_WORK_STEALING(workerid, victim);
@@ -249,7 +254,7 @@ static struct starpu_task *lws_pop_task(unsigned sched_ctx_id)
 	STARPU_PTHREAD_MUTEX_LOCK_SCHED(worker_sched_mutex);
 	if(!task)
 	{
-		task = _starpu_fifo_pop_task(ws->queue_array[workerid], workerid);
+		task = _starpu_fifo_pop_task(ws->per_worker[workerid].queue_array, workerid);
 		if (task)
 		{
 			/* there was a local task */
@@ -288,7 +293,7 @@ static int lws_push_task(struct starpu_task *task)
 	starpu_worker_get_sched_condition(workerid, &sched_mutex, &sched_cond);
 	STARPU_PTHREAD_MUTEX_LOCK_SCHED(sched_mutex);
 
-	_starpu_fifo_push_task(ws->queue_array[workerid], task);
+	_starpu_fifo_push_task(ws->per_worker[workerid].queue_array, task);
 
 	starpu_push_task_end(task);
 
@@ -320,14 +325,14 @@ static void lws_add_workers(unsigned sched_ctx_id, int *workerids,unsigned nwork
 	{
 		workerid = workerids[i];
 		starpu_sched_ctx_worker_shares_tasks_lists(workerid, sched_ctx_id);
-		ws->queue_array[workerid] = _starpu_create_fifo();
+		ws->per_worker[workerid].queue_array = _starpu_create_fifo();
 
 		/* Tell helgrid that we are fine with getting outdated values,
 		 * this is just an estimation */
-		STARPU_HG_DISABLE_CHECKING(ws->queue_array[workerid]->ntasks);
+		STARPU_HG_DISABLE_CHECKING(ws->per_worker[workerid].queue_array->ntasks);
 
-		ws->queue_array[workerid]->nprocessed = 0;
-		ws->queue_array[workerid]->ntasks = 0;
+		ws->per_worker[workerid].queue_array->nprocessed = 0;
+		ws->per_worker[workerid].queue_array->ntasks = 0;
 	}
 
 
@@ -336,13 +341,12 @@ static void lws_add_workers(unsigned sched_ctx_id, int *workerids,unsigned nwork
 	 * build this once and then use it for popping tasks rather
 	 * than traversing the hwloc tree every time a task must be
 	 * stolen */
-	ws->proxlist = (int**)malloc(nworkers*sizeof(int*));
 	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 	struct starpu_tree *tree = (struct starpu_tree*)workers->workerids;
 	for (i = 0; i < nworkers; i++)
 	{
 		workerid = workerids[i];
-		ws->proxlist[workerid] = (int*)malloc(nworkers*sizeof(int));
+		ws->per_worker[workerid].proxlist = (int*)malloc(nworkers*sizeof(int));
 		int bindid;
 
 		struct starpu_tree *neighbour = NULL;
@@ -363,7 +367,7 @@ static void lws_add_workers(unsigned sched_ctx_id, int *workerids,unsigned nwork
 			{
 				if(!it.visited[neigh_workerids[w]] && workers->present[neigh_workerids[w]])
 				{
-					ws->proxlist[workerid][cnt++] = neigh_workerids[w];
+					ws->per_worker[workerid].proxlist[cnt++] = neigh_workerids[w];
 					it.visited[neigh_workerids[w]] = 1;
 				}
 			}
@@ -386,9 +390,10 @@ static void lws_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned n
 	for (i = 0; i < nworkers; i++)
 	{
 		workerid = workerids[i];
-		_starpu_destroy_fifo(ws->queue_array[workerid]);
+		_starpu_destroy_fifo(ws->per_worker[workerid].queue_array);
 #ifdef STARPU_HAVE_HWLOC
-		free(ws->proxlist[workerid]);
+		free(ws->per_worker[workerid].proxlist);
+		ws->per_worker[workerid].proxlist = NULL;
 #endif
 	}
 }
@@ -409,7 +414,7 @@ static void lws_initialize_policy(unsigned sched_ctx_id)
 
 	/* unsigned nw = starpu_sched_ctx_get_nworkers(sched_ctx_id); */
 	unsigned nw = starpu_worker_get_count();
-	ws->queue_array = (struct _starpu_fifo_taskq**)malloc(nw*sizeof(struct _starpu_fifo_taskq*));
+	ws->per_worker = calloc(nw, sizeof(struct _starpu_work_stealing_data_per_worker));
 
 }
 
@@ -417,10 +422,7 @@ static void lws_deinit_policy(unsigned sched_ctx_id)
 {
 	struct _starpu_lws_data *ws = (struct _starpu_lws_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
-	free(ws->queue_array);
-#ifdef STARPU_HAVE_HWLOC
-	free(ws->proxlist);
-#endif
+	free(ws->per_worker);
 	free(ws);
 	starpu_sched_ctx_delete_worker_collection(sched_ctx_id);
 }
