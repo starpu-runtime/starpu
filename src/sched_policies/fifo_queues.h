@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013  Université de Bordeaux
+ * Copyright (C) 2010-2013, 2016  Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -57,6 +57,7 @@ int _starpu_fifo_push_sorted_task(struct _starpu_fifo_taskq *fifo_queue, struct 
 int _starpu_fifo_push_task(struct _starpu_fifo_taskq *fifo, struct starpu_task *task);
 int _starpu_fifo_push_back_task(struct _starpu_fifo_taskq *fifo_queue, struct starpu_task *task);
 
+int _starpu_fifo_pop_this_task(struct _starpu_fifo_taskq *fifo_queue, int workerid, struct starpu_task *task);
 struct starpu_task *_starpu_fifo_pop_task(struct _starpu_fifo_taskq *fifo, int workerid);
 struct starpu_task *_starpu_fifo_pop_local_task(struct _starpu_fifo_taskq *fifo);
 struct starpu_task *_starpu_fifo_pop_every_task(struct _starpu_fifo_taskq *fifo, int workerid);

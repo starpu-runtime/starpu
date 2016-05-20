@@ -212,6 +212,25 @@ int _starpu_fifo_push_back_task(struct _starpu_fifo_taskq *fifo_queue, struct st
 	return 0;
 }
 
+int _starpu_fifo_pop_this_task(struct _starpu_fifo_taskq *fifo_queue, int workerid, struct starpu_task *task)
+{
+	unsigned nimpl = 0;
+	STARPU_ASSERT(task);
+#ifdef STARPU_DEBUG
+	STARPU_ASSERT(starpu_task_list_ismember(&fifo_queue->taskq, task));
+#endif
+
+	if (workerid < 0 || starpu_worker_can_execute_task_first_impl(workerid, task, &nimpl))
+	{
+		starpu_task_set_implementation(task, nimpl);
+		starpu_task_list_erase(&fifo_queue->taskq, task);
+		fifo_queue->ntasks--;
+		return 1;
+	}
+
+	return 0;
+}
+
 struct starpu_task *_starpu_fifo_pop_task(struct _starpu_fifo_taskq *fifo_queue, int workerid)
 {
 	struct starpu_task *task;
@@ -220,16 +239,8 @@ struct starpu_task *_starpu_fifo_pop_task(struct _starpu_fifo_taskq *fifo_queue,
 	     task != starpu_task_list_end(&fifo_queue->taskq);
 	     task  = starpu_task_list_next(task))
 	{
-		unsigned nimpl = 0;
-		STARPU_ASSERT(task);
-
-		if (workerid < 0 || starpu_worker_can_execute_task_first_impl(workerid, task, &nimpl))
-		{
-			starpu_task_set_implementation(task, nimpl);
-			starpu_task_list_erase(&fifo_queue->taskq, task);
-			fifo_queue->ntasks--;
+		if (_starpu_fifo_pop_this_task(fifo_queue, workerid, task))
 			return task;
-		}
 	}
 
 	return NULL;
