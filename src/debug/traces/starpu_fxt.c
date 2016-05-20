@@ -1152,7 +1152,6 @@ static void handle_start_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_op
 		unsigned sched_ctx = ev->param[1];
 
 		worker_set_state(start_codelet_time, prefix, ev->param[2], name);
-		printf("ev->param[2]: %ld\n", ev->param[2]);
 		if (trace_file)
 			recfmt_worker_set_state(start_codelet_time, ev->param[2], name, "Task");
 		if (sched_ctx != 0)
