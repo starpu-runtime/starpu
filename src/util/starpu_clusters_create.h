@@ -106,7 +106,7 @@ static struct starpu_codelet _starpu_cluster_bind_cl=
 {
 		.cpu_funcs = {_starpu_cluster_noop},
 		.nbuffers = 0,
-		.name = "cluster internal runtime init"
+		.name = "cluster_internal_runtime_init"
 };
 
 
