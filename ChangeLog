@@ -183,6 +183,7 @@ Small features:
   * Add submit_hook and do_schedule scheduler methods.
   * Add starpu_sleep.
   * Add starpu_task_list_ismember.
+  * Add _starpu_fifo_pop_this_task.
 
 Changes:
   * Data interfaces (variable, vector, matrix and block) now define
