@@ -90,6 +90,7 @@ void check_matrix(starpu_data_handle_t handle_s, starpu_data_handle_t handle_r, 
 	int x, y;
 
 	for(y=0 ; y<ny ; y++)
+	{
 		for(x=0 ; x<nx ; x++)
 		{
 			int index=(y*ldy)+x;
@@ -103,6 +104,7 @@ void check_matrix(starpu_data_handle_t handle_s, starpu_data_handle_t handle_r, 
 				FPRINTF_MPI(stderr, "Error with matrix[%d,%d --> %d] value: %c != %c\n", x, y, index, matrix_s[index], matrix_r[index]);
 			}
 		}
+	}
 }
 
 void check_block(starpu_data_handle_t handle_s, starpu_data_handle_t handle_r, int *error)
@@ -113,6 +115,9 @@ void check_block(starpu_data_handle_t handle_s, starpu_data_handle_t handle_r, i
 	STARPU_ASSERT(starpu_block_get_nz(handle_s) == starpu_block_get_nz(handle_r));
 	STARPU_ASSERT(starpu_block_get_local_ldy(handle_s) == starpu_block_get_local_ldy(handle_r));
 	STARPU_ASSERT(starpu_block_get_local_ldz(handle_s) == starpu_block_get_local_ldz(handle_r));
+
+	starpu_data_acquire(handle_s, STARPU_R);
+	starpu_data_acquire(handle_r, STARPU_R);
 
 	float *block_s = (float *)starpu_block_get_local_ptr(handle_s);
 	float *block_r = (float *)starpu_block_get_local_ptr(handle_r);
@@ -127,6 +132,7 @@ void check_block(starpu_data_handle_t handle_s, starpu_data_handle_t handle_r, i
 	int x, y, z;
 
 	for(z=0 ; z<nz ; z++)
+	{
 		for(y=0 ; y<ny ; y++)
 			for(x=0 ; x<nx ; x++)
 			{
@@ -141,6 +147,10 @@ void check_block(starpu_data_handle_t handle_s, starpu_data_handle_t handle_r, i
 					FPRINTF_MPI(stderr, "Error with block[%d,%d,%d --> %d] value: %f != %f\n", x, y, z, index, block_s[index], block_r[index]);
 				}
 			}
+	}
+
+	starpu_data_release(handle_s);
+	starpu_data_release(handle_r);
 }
 
 void send_recv_and_check(int rank, int node, starpu_data_handle_t handle_s, int tag_s, starpu_data_handle_t handle_r, int tag_r, int *error, check_func func)
@@ -157,7 +167,7 @@ void send_recv_and_check(int rank, int node, starpu_data_handle_t handle_s, int 
 
 		func(handle_s, handle_r, error);
 	}
-	else
+	else if (rank == 1)
 	{
 		ret = starpu_mpi_recv(handle_s, node, tag_s, MPI_COMM_WORLD, &status);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_recv");
@@ -234,7 +244,6 @@ int main(int argc, char **argv)
 		starpu_data_unregister(variable_handle);
 	}
 
-
 	if (rank == 0)
 	{
 		int vector[4] = {1, 2, 3, 4};
@@ -288,7 +297,6 @@ int main(int argc, char **argv)
 		send_recv_and_check(rank, 0, matrix_handle, 0x75, NULL, 0x8555, NULL, NULL);
 		starpu_data_unregister(matrix_handle);
 	}
-
 
 	if (rank == 0)
 	{
