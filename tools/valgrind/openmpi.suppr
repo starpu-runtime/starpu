@@ -432,3 +432,85 @@
    fun:opal_progress
    obj:*
 }
+
+# the following suppression occurs on bertha with openmpi 1.10.2
+# no idea why it is failing
+# Invalid read of size 8
+#    at 0x4C2E726: memcpy@@GLIBC_2.14 (vg_replace_strmem.c:1018)
+#    by 0x77F31C0: opal_convertor_pack (in /usr/lib/openmpi/lib/libopen-pal.so.13.0.2)
+#    by 0x105D8C41: mca_btl_vader_sendi (in /usr/lib/openmpi/lib/openmpi/mca_btl_vader.so)
+#    by 0x10C16F05: mca_pml_ob1_send_inline (in /usr/lib/openmpi/lib/openmpi/mca_pml_ob1.so)
+#    by 0x10C17662: mca_pml_ob1_isend (in /usr/lib/openmpi/lib/openmpi/mca_pml_ob1.so)
+#    by 0x5B6471D: PMPI_Isend (in /usr/lib/openmpi/lib/libmpi.so.12.0.2)
+#    by 0x4E3F08E: _starpu_mpi_isend_size_func (starpu_mpi.c:384)
+#    by 0x4E4602D: _starpu_mpi_handle_ready_request (starpu_mpi.c:1132)
+#    by 0x4E47C3C: _starpu_mpi_progress_thread_func (starpu_mpi.c:1342)
+#    by 0x58E6283: start_thread (pthread_create.c:333)
+#    by 0x60F5A4C: clone (in /lib/x86_64-linux-gnu/libc-2.21.so)
+#  Address 0x1ab67c40 is 16 bytes inside a block of size 24 alloc'd
+#    at 0x4C2BBD5: calloc (vg_replace_malloc.c:711)
+#    by 0x4E3EDBA: _starpu_mpi_isend_size_func (starpu_mpi.c:369)
+#    by 0x4E4602D: _starpu_mpi_handle_ready_request (starpu_mpi.c:1132)
+#    by 0x4E47C3C: _starpu_mpi_progress_thread_func (starpu_mpi.c:1342)
+#    by 0x58E6283: start_thread (pthread_create.c:333)
+#    by 0x60F5A4C: clone (in /lib/x86_64-linux-gnu/libc-2.21.so)
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr8
+   fun:memcpy@@GLIBC_2.14
+   fun:opal_convertor_pack
+   fun:mca_btl_vader_sendi
+   fun:mca_pml_ob1_send_inline
+   fun:mca_pml_ob1_isend
+   fun:PMPI_Isend
+   fun:_starpu_mpi_isend_size_func
+   fun:_starpu_mpi_handle_ready_request
+   fun:_starpu_mpi_progress_thread_func
+   fun:start_thread
+   fun:clone
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr2
+   fun:memcpy@@GLIBC_2.14
+   fun:opal_convertor_pack
+   fun:mca_btl_vader_sendi
+   fun:mca_pml_ob1_send_inline
+   fun:mca_pml_ob1_isend
+   fun:PMPI_Isend
+   fun:_starpu_mpi_isend_data_func
+   fun:_starpu_mpi_isend_size_func
+   fun:_starpu_mpi_handle_ready_request
+   fun:_starpu_mpi_progress_thread_func
+   fun:start_thread
+   fun:clone
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr8
+   fun:memcpy@@GLIBC_2.14
+   fun:vader_prepare_src
+   fun:mca_pml_ob1_send_request_start_prepare
+   fun:mca_pml_ob1_isend
+   fun:PMPI_Isend
+   fun:_starpu_mpi_isend_data_func
+   fun:_starpu_mpi_isend_size_func
+   fun:_starpu_mpi_handle_ready_request
+   fun:_starpu_mpi_progress_thread_func
+   fun:start_thread
+   fun:clone
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr8
+   fun:memcpy@@GLIBC_2.14
+   fun:mca_btl_vader_sendi
+   fun:mca_pml_ob1_send_inline
+   fun:mca_pml_ob1_isend
+   fun:PMPI_Isend
+   fun:_starpu_mpi_isend_size_func
+   fun:_starpu_mpi_handle_ready_request
+   fun:_starpu_mpi_progress_thread_func
+   fun:start_thread
+   fun:clone
+}
