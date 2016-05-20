@@ -182,6 +182,7 @@ Small features:
     and opencl_program_source.
   * Add submit_hook and do_schedule scheduler methods.
   * Add starpu_sleep.
+  * Add starpu_task_list_ismember.
 
 Changes:
   * Data interfaces (variable, vector, matrix and block) now define
