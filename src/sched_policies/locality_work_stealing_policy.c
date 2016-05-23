@@ -598,6 +598,8 @@ static void lws_initialize_policy(unsigned sched_ctx_id)
 
 	ws->last_pop_worker = 0;
 	ws->last_push_worker = 0;
+	STARPU_HG_DISABLE_CHECKING(ws->last_pop_worker);
+	STARPU_HG_DISABLE_CHECKING(ws->last_push_worker);
 
 	/* unsigned nw = starpu_sched_ctx_get_nworkers(sched_ctx_id); */
 	unsigned nw = starpu_worker_get_count();

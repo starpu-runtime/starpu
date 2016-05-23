@@ -690,6 +690,8 @@ static void initialize_ws_policy(unsigned sched_ctx_id)
 
 	ws->last_pop_worker = 0;
 	ws->last_push_worker = 0;
+	STARPU_HG_DISABLE_CHECKING(ws->last_pop_worker);
+	STARPU_HG_DISABLE_CHECKING(ws->last_push_worker);
 
 	/**
 	 * The first WS_POP_TASK will increase PERFORMED_TOTAL though no task was actually performed yet,
