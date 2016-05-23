@@ -90,6 +90,7 @@ static int _starpu_valgrind_print_once STARPU_ATTRIBUTE_UNUSED = 0;
 #else /* defined(STARPU_HAVE_VALGRIND_H) && !defined(STARPU_VALGRIND_FULL) */
 #  define STARPU_RETURN(ret) return ret
 #  define STARPU_SKIP_IF_VALGRIND
+#  define STARPU_SKIP_IF_VALGRIND_RETURN_ZERO
 #endif  /* defined(STARPU_HAVE_VALGRIND_H) && !defined(STARPU_VALGRIND_FULL) */
 
 #ifndef ANNOTATE_HAPPENS_BEFORE
