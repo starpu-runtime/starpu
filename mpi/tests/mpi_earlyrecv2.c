@@ -150,7 +150,7 @@ int exchange_void(int rank, int detached)
 	starpu_data_handle_t tab_handle[NB];
 
 	// This test is not run with valgrind as valgrind falsely detects error when exchanging NULL pointers
-	STARPU_SKIP_IF_VALGRIND_RETURN_0;
+	STARPU_SKIP_IF_VALGRIND_RETURN_ZERO;
 
 	FPRINTF_MPI(stderr, "Exchanging void data with detached=%d\n", detached);
 

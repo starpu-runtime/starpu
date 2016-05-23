@@ -61,7 +61,7 @@ static int _starpu_valgrind_print_once STARPU_ATTRIBUTE_UNUSED = 0;
 		}							\
 	} while(0)
 
-#  define STARPU_SKIP_IF_VALGRIND_RETURN_0 \
+#  define STARPU_SKIP_IF_VALGRIND_RETURN_ZERO \
 	do \
 	{								\
 		if(STARPU_RUNNING_ON_VALGRIND)					\
