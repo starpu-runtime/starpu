@@ -176,34 +176,9 @@ void send_recv_and_check(int rank, int node, starpu_data_handle_t handle_s, int 
 	}
 }
 
-int main(int argc, char **argv)
+void exchange_void(int rank, int *error)
 {
-	int ret, rank, size;
-	int error=0;
-
-	int nx=3;
-	int ny=2;
-	int nz=4;
-
-	MPI_Init(&argc, &argv);
-	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
-	starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
-
-	ret = starpu_init(NULL);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-	ret = starpu_mpi_init(NULL, NULL, 0);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
-
-	if (size < 2)
-	{
-		if (rank == 0)
-			FPRINTF(stderr, "We need at least 2 processes.\n");
-
-		starpu_mpi_shutdown();
-		starpu_shutdown();
-		MPI_Finalize();
-		return STARPU_TEST_SKIPPED;
-	}
+	STARPU_SKIP_IF_VALGRIND;
 
 	if (rank == 0)
 	{
@@ -211,7 +186,7 @@ int main(int argc, char **argv)
 		starpu_void_data_register(&void_handle[0]);
 		starpu_void_data_register(&void_handle[1]);
 
-		send_recv_and_check(rank, 1, void_handle[0], 0x42, void_handle[1], 0x1337, &error, check_void);
+		send_recv_and_check(rank, 1, void_handle[0], 0x42, void_handle[1], 0x1337, error, check_void);
 
 		starpu_data_unregister(void_handle[0]);
 		starpu_data_unregister(void_handle[1]);
@@ -223,7 +198,10 @@ int main(int argc, char **argv)
 		send_recv_and_check(rank, 0, void_handle, 0x42, NULL, 0x1337, NULL, NULL);
 		starpu_data_unregister(void_handle);
 	}
+}
 
+void exchange_variable(int rank, int *error)
+{
 	if (rank == 0)
 	{
 		float v = 42.12;
@@ -231,7 +209,7 @@ int main(int argc, char **argv)
 		starpu_variable_data_register(&variable_handle[0], STARPU_MAIN_RAM, (uintptr_t)&v, sizeof(v));
 		starpu_variable_data_register(&variable_handle[1], -1, (uintptr_t)NULL, sizeof(v));
 
-		send_recv_and_check(rank, 1, variable_handle[0], 0x42, variable_handle[1], 0x1337, &error, check_variable);
+		send_recv_and_check(rank, 1, variable_handle[0], 0x42, variable_handle[1], 0x1337, error, check_variable);
 
 		starpu_data_unregister(variable_handle[0]);
 		starpu_data_unregister(variable_handle[1]);
@@ -243,7 +221,10 @@ int main(int argc, char **argv)
 		send_recv_and_check(rank, 0, variable_handle, 0x42, NULL, 0x1337, NULL, NULL);
 		starpu_data_unregister(variable_handle);
 	}
+}
 
+void exchange_vector(int rank, int *error)
+{
 	if (rank == 0)
 	{
 		int vector[4] = {1, 2, 3, 4};
@@ -252,7 +233,7 @@ int main(int argc, char **argv)
 		starpu_vector_data_register(&vector_handle[0], STARPU_MAIN_RAM, (uintptr_t)vector, 4, sizeof(vector[0]));
 		starpu_vector_data_register(&vector_handle[1], -1, (uintptr_t)NULL, 4, sizeof(vector[0]));
 
-		send_recv_and_check(rank, 1, vector_handle[0], 0x43, vector_handle[1], 0x2337, &error, check_vector);
+		send_recv_and_check(rank, 1, vector_handle[0], 0x43, vector_handle[1], 0x2337, error, check_vector);
 
 		starpu_data_unregister(vector_handle[0]);
 		starpu_data_unregister(vector_handle[1]);
@@ -264,6 +245,12 @@ int main(int argc, char **argv)
 		send_recv_and_check(rank, 0, vector_handle, 0x43, NULL, 0x2337, NULL, NULL);
 		starpu_data_unregister(vector_handle);
 	}
+}
+
+void exchange_matrix(int rank, int *error)
+{
+	int nx=3;
+	int ny=2;
 
 	if (rank == 0)
 	{
@@ -271,7 +258,7 @@ int main(int argc, char **argv)
 		int x, y;
 		starpu_data_handle_t matrix_handle[2];
 
-		matrix = (char*)malloc(nx*ny*nz*sizeof(char));
+		matrix = (char*)malloc(nx*ny*sizeof(char));
 		assert(matrix);
 		for(y=0 ; y<ny ; y++)
 		{
@@ -284,7 +271,7 @@ int main(int argc, char **argv)
 		starpu_matrix_data_register(&matrix_handle[0], STARPU_MAIN_RAM, (uintptr_t)matrix, nx, nx, ny, sizeof(char));
 		starpu_matrix_data_register(&matrix_handle[1], -1, (uintptr_t)NULL, nx, nx, ny, sizeof(char));
 
-		send_recv_and_check(rank, 1, matrix_handle[0], 0x75, matrix_handle[1], 0x8555, &error, check_matrix);
+		send_recv_and_check(rank, 1, matrix_handle[0], 0x75, matrix_handle[1], 0x8555, error, check_matrix);
 
 		starpu_data_unregister(matrix_handle[0]);
 		starpu_data_unregister(matrix_handle[1]);
@@ -297,6 +284,13 @@ int main(int argc, char **argv)
 		send_recv_and_check(rank, 0, matrix_handle, 0x75, NULL, 0x8555, NULL, NULL);
 		starpu_data_unregister(matrix_handle);
 	}
+}
+
+void exchange_block(int rank, int *error)
+{
+	int nx=3;
+	int ny=2;
+	int nz=4;
 
 	if (rank == 0)
 	{
@@ -320,7 +314,7 @@ int main(int argc, char **argv)
 		starpu_block_data_register(&block_handle[0], STARPU_MAIN_RAM, (uintptr_t)block, nx, nx*ny, nx, ny, nz, sizeof(float));
 		starpu_block_data_register(&block_handle[1], -1, (uintptr_t)NULL, nx, nx*ny, nx, ny, nz, sizeof(float));
 
-		send_recv_and_check(rank, 1, block_handle[0], 0x73, block_handle[1], 0x8337, &error, check_block);
+		send_recv_and_check(rank, 1, block_handle[0], 0x73, block_handle[1], 0x8337, error, check_block);
 
 		starpu_data_unregister(block_handle[0]);
 		starpu_data_unregister(block_handle[1]);
@@ -333,6 +327,38 @@ int main(int argc, char **argv)
 		send_recv_and_check(rank, 0, block_handle, 0x73, NULL, 0x8337, NULL, NULL);
 		starpu_data_unregister(block_handle);
 	}
+}
+
+int main(int argc, char **argv)
+{
+	int ret, rank, size;
+	int error=0;
+
+	MPI_Init(&argc, &argv);
+	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
+	starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
+
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+	ret = starpu_mpi_init(NULL, NULL, 0);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
+
+	if (size < 2)
+	{
+		if (rank == 0)
+			FPRINTF(stderr, "We need at least 2 processes.\n");
+
+		starpu_mpi_shutdown();
+		starpu_shutdown();
+		MPI_Finalize();
+		return STARPU_TEST_SKIPPED;
+	}
+
+	exchange_void(rank, &error);
+	exchange_variable(rank, &error);
+	exchange_vector(rank, &error);
+	exchange_matrix(rank, &error);
+	exchange_block(rank, &error);
 
 	starpu_mpi_shutdown();
 	starpu_shutdown();
