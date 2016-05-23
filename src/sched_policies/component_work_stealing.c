@@ -327,7 +327,10 @@ void _ws_remove_child(struct starpu_sched_component * component, struct starpu_s
 
 void _work_stealing_component_deinit_data(struct starpu_sched_component * component)
 {
-	free(component->data);
+	struct _starpu_work_stealing_data * wsd = component->data;
+	free(wsd->fifos);
+	free(wsd->mutexes);
+	free(wsd);
 }
 
 int starpu_sched_component_is_work_stealing(struct starpu_sched_component * component)

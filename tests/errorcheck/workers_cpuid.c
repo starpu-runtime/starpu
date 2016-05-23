@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012, 2015  Université de Bordeaux
+ * Copyright (C) 2010-2012, 2015-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -85,10 +85,13 @@ static char *array_to_str(long *array, int n)
 static int test_combination(long *combination, unsigned n)
 {
 	int type, ret, device_workers;
+	char *str;
 
 	copy_cpuid_array(workers_cpuid, combination, n);
 
-	setenv("STARPU_WORKERS_CPUID", array_to_str(workers_cpuid, n), 1);
+	str = array_to_str(workers_cpuid, n);
+	setenv("STARPU_WORKERS_CPUID", str, 1);
+	free(str);
 
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
