@@ -691,6 +691,8 @@ static void initialize_ws_policy(unsigned sched_ctx_id)
 
 	ws->last_pop_worker = 0;
 	ws->last_push_worker = 0;
+	STARPU_HG_DISABLE_CHECKING(ws->last_pop_worker);
+	STARPU_HG_DISABLE_CHECKING(ws->last_push_worker);
 	ws->select_victim = select_victim;
 
 	unsigned nw = starpu_worker_get_count();
