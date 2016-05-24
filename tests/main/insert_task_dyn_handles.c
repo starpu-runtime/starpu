@@ -204,10 +204,10 @@ int main(int argc, char **argv)
 		if (ret == -ENODEV) goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
-#if STARPU_NMAXBUFS > 1
+#if STARPU_NMAXBUFS > 1 && STARPU_NMAXBUFS <= 8
 		/* Same with static number of buffers in codelet */
 		expected[0]++;
-		for (i = 1; i < STARPU_NMAXBUFS-1 && i < 10; i++)
+		for (i = 1; i < STARPU_NMAXBUFS-1 && i < 7; i++)
 			expected[i]++;
 		ret = starpu_task_insert(&codelet_minus1,
 					 STARPU_RW, data_handles[0],
@@ -228,15 +228,6 @@ int main(int argc, char **argv)
 #endif
 #if STARPU_NMAXBUFS > 7
 					 STARPU_RW, data_handles[6],
-#endif
-#if STARPU_NMAXBUFS > 8
-					 STARPU_RW, data_handles[7],
-#endif
-#if STARPU_NMAXBUFS > 9
-					 STARPU_RW, data_handles[8],
-#endif
-#if STARPU_NMAXBUFS > 10
-					 STARPU_RW, data_handles[9],
 #endif
 					 0);
 		if (ret == -ENODEV) goto enodev;
@@ -269,8 +260,9 @@ int main(int argc, char **argv)
 		if (ret == -ENODEV) goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
+#if STARPU_NMAXBUFS > 1 && STARPU_NMAXBUFS <= 8
 		/* Same with static number of buffers in codelet*/
-		for (i = 0; i < STARPU_NMAXBUFS+5 && i < 10; i++)
+		for (i = 0; i < STARPU_NMAXBUFS+5 && i < 13; i++)
 			expected[i]++;
 		ret = starpu_task_insert(&codelet_plus5,
 					 STARPU_RW, data_handles[0],
@@ -291,9 +283,19 @@ int main(int argc, char **argv)
 #if STARPU_NMAXBUFS > 4
 					 STARPU_RW, data_handles[9],
 #endif
+#if STARPU_NMAXBUFS > 5
+					 STARPU_RW, data_handles[10],
+#endif
+#if STARPU_NMAXBUFS > 6
+					 STARPU_RW, data_handles[11],
+#endif
+#if STARPU_NMAXBUFS > 7
+					 STARPU_RW, data_handles[12],
+#endif
 					 0);
 		if (ret == -ENODEV) goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
+#endif
 
 	}
 
