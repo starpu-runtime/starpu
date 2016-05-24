@@ -122,6 +122,7 @@ noinst_PROGRAMS =				\
 	main/insert_task_dyn_handles		\
 	main/insert_task_nullcodelet		\
 	main/insert_task_array			\
+	main/insert_task_many			\
 	main/multithreaded			\
 	main/multithreaded_init			\
 	main/starpu_task_bundle			\

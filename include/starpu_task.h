@@ -25,6 +25,7 @@
 #include <starpu_util.h>
 #include <starpu_task_bundle.h>
 #include <errno.h>
+#include <assert.h>
 
 #if defined STARPU_USE_CUDA && !defined STARPU_DONT_INCLUDE_CUDA_HEADERS
 # include <cuda.h>
@@ -244,7 +245,7 @@ struct starpu_task
 #define STARPU_TASK_GET_HANDLES(task) (((task)->dyn_handles) ? (task)->dyn_handles : (task)->handles)
 #define STARPU_TASK_SET_HANDLE(task, handle, i) do { if ((task)->dyn_handles) (task)->dyn_handles[i] = handle; else (task)->handles[i] = handle; } while(0)
 
-#define STARPU_CODELET_GET_MODE(codelet, i) (((codelet)->dyn_modes) ? (codelet)->dyn_modes[i] : (codelet)->modes[i])
+#define STARPU_CODELET_GET_MODE(codelet, i) (((codelet)->dyn_modes) ? (codelet)->dyn_modes[i] : (assert(i < STARPU_NMAXBUFS), (codelet)->modes[i]))
 #define STARPU_CODELET_SET_MODE(codelet, mode, i) do { if ((codelet)->dyn_modes) (codelet)->dyn_modes[i] = mode; else (codelet)->modes[i] = mode; } while(0)
 
 #define STARPU_TASK_GET_MODE(task, i) ((task)->cl->nbuffers == STARPU_VARIABLE_NBUFFERS || (task)->dyn_modes ? \

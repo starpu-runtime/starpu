@@ -261,6 +261,7 @@ void _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task **
 			/* We have an access mode : we expect to find a handle */
 			starpu_data_handle_t handle = va_arg(varg_list, starpu_data_handle_t);
 			enum starpu_data_access_mode mode = (enum starpu_data_access_mode) arg_type & ~STARPU_SSEND;
+			STARPU_ASSERT_MSG(cl->nbuffers == STARPU_VARIABLE_NBUFFERS || current_buffer < cl->nbuffers, "Too many data passed to starpu_task_insert");
 
 			STARPU_ASSERT(cl != NULL);
 
@@ -315,6 +316,7 @@ void _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task **
 			int i;
 			for(i=0 ; i<nb_descrs ; i++)
 			{
+				STARPU_ASSERT_MSG(cl->nbuffers == STARPU_VARIABLE_NBUFFERS || current_buffer < cl->nbuffers, "Too many data passed to starpu_task_insert");
 				_starpu_task_insert_check_nb_buffers(cl, task, &allocated_buffers, current_buffer);
 				STARPU_TASK_SET_HANDLE((*task), descrs[i].handle, current_buffer);
 				if ((*task)->dyn_modes)
