@@ -47,6 +47,9 @@ int main(void)
 #ifdef STARPU_HAVE_VALGRIND_H
 	if(RUNNING_ON_VALGRIND) return STARPU_TEST_SKIPPED;
 #endif
+#ifdef STARPU_SANITIZE_LEAK
+	return STARPU_TEST_SKIPPED;
+#endif
 
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV)
