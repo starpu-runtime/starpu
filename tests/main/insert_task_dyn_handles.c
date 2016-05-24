@@ -306,6 +306,7 @@ enodev:
         }
 
 	starpu_shutdown();
+	free(expected);
 	free(data_handles);
 	free(descrs);
 
