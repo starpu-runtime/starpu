@@ -116,7 +116,7 @@ int main(int argc, char **argv)
 	int *values = malloc(4 * sizeof(int));
 	for(i=0 ; i<4 ; i++)
 	{
-		starpu_mpi_get_data_on_node_detached(MPI_COMM_WORLD, data_handles[i], STARPU_MAIN_RAM, NULL, NULL);
+		starpu_mpi_get_data_on_node_detached(MPI_COMM_WORLD, data_handles[i], 0, NULL, NULL);
 		if (rank == 0)
 		{
 			starpu_data_acquire(data_handles[i], STARPU_R);
