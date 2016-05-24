@@ -48,6 +48,22 @@ struct starpu_codelet codelet_minus1 =
 	.nbuffers = STARPU_NMAXBUFS-1,
 };
 
+struct starpu_codelet codelet_exactly =
+{
+	.cpu_funcs = {func_cpu},
+	/* starpu_task_get_current() doesn't work on MIC */
+	/* .cpu_funcs_name = {"func_cpu"}, */
+	.nbuffers = STARPU_NMAXBUFS,
+};
+
+struct starpu_codelet codelet_plus1 =
+{
+	.cpu_funcs = {func_cpu},
+	/* starpu_task_get_current() doesn't work on MIC */
+	/* .cpu_funcs_name = {"func_cpu"}, */
+	.nbuffers = STARPU_NMAXBUFS+1,
+};
+
 struct starpu_codelet codelet_plus5 =
 {
 	.cpu_funcs = {func_cpu},
@@ -55,6 +71,59 @@ struct starpu_codelet codelet_plus5 =
 	/* .cpu_funcs_name = {"func_cpu"}, */
 	.nbuffers = STARPU_NMAXBUFS+5,
 };
+
+starpu_data_handle_t *data_handles;
+struct starpu_data_descr *descrs;
+int *expected;
+
+int test(int n, struct starpu_codelet *static_codelet)
+{
+	int i, ret;
+
+	for (i = 0; i < n; i++)
+		expected[i]++;
+	ret = starpu_task_insert(&codelet,
+				 STARPU_DATA_MODE_ARRAY, descrs, n,
+				 0);
+	if (ret == -ENODEV) return ret;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
+
+	/* Same with static number of buffers in codelet */
+	for (i = 0; i < n; i++)
+		expected[i]++;
+	ret = starpu_task_insert(static_codelet,
+				 STARPU_DATA_MODE_ARRAY, descrs, n,
+				 0);
+	if (ret == -ENODEV) return ret;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
+
+	/* Test a whole array after one data */
+	expected[0]++;
+	for (i = 1; i < n; i++)
+		expected[i]++;
+	ret = starpu_task_insert(&codelet,
+				 STARPU_RW, data_handles[0],
+				 STARPU_DATA_MODE_ARRAY, &descrs[1], n-1,
+				 0);
+	if (ret == -ENODEV) return ret;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
+
+	if (n > 1)
+	{
+		/* Same with static number of buffers in codelet */
+		expected[0]++;
+		for (i = 1; i < n; i++)
+			expected[i]++;
+		ret = starpu_task_insert(static_codelet,
+					 STARPU_RW, data_handles[0],
+					 STARPU_DATA_MODE_ARRAY, &descrs[1], n-1,
+					 0);
+		if (ret == -ENODEV) return ret;
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
+	}
+
+	return 0;
+}
 
 int main(int argc, char **argv)
 {
@@ -66,9 +135,6 @@ int main(int argc, char **argv)
 #else
 	int nloops = 16;
 #endif
-        starpu_data_handle_t *data_handles;
-	struct starpu_data_descr *descrs;
-	int *expected;
 
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
@@ -87,84 +153,17 @@ int main(int argc, char **argv)
 
 	for (loop = 0; loop < nloops; loop++)
 	{
-		/* Test a whole array but smaller than NMAXBUFS */
-		for (i = 0; i < STARPU_NMAXBUFS-1; i++)
-			expected[i]++;
-		ret = starpu_task_insert(&codelet,
-					 STARPU_DATA_MODE_ARRAY, descrs, STARPU_NMAXBUFS-1,
-					 0);
-		if (ret == -ENODEV) goto enodev;
+		/* Test smaller than NMAXBUFS */
+		ret = test(STARPU_NMAXBUFS-1, &codelet_minus1);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
-
-		/* Same with static number of buffers in codelet */
-		for (i = 0; i < STARPU_NMAXBUFS-1; i++)
-			expected[i]++;
-		ret = starpu_task_insert(&codelet_minus1,
-					 STARPU_DATA_MODE_ARRAY, descrs, STARPU_NMAXBUFS-1,
-					 0);
-		if (ret == -ENODEV) goto enodev;
+		/* Test exactly NMAXBUFS */
+		ret = test(STARPU_NMAXBUFS, &codelet_exactly);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
-
-		/* Test a whole array after one data, but smaller than NMAXBUFS */
-		expected[0]++;
-		for (i = 1; i < STARPU_NMAXBUFS-1; i++)
-			expected[i]++;
-		ret = starpu_task_insert(&codelet,
-					 STARPU_RW, data_handles[0],
-					 STARPU_DATA_MODE_ARRAY, &descrs[1], STARPU_NMAXBUFS-2,
-					 0);
-		if (ret == -ENODEV) goto enodev;
+		/* Test more than NMAXBUFS */
+		ret = test(STARPU_NMAXBUFS+1, &codelet_plus1);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
-
-#if STARPU_NMAXBUFS > 1
-		/* Same with static number of buffers in codelet */
-		expected[0]++;
-		for (i = 1; i < STARPU_NMAXBUFS-1; i++)
-			expected[i]++;
-		ret = starpu_task_insert(&codelet_minus1,
-					 STARPU_RW, data_handles[0],
-					 STARPU_DATA_MODE_ARRAY, &descrs[1], STARPU_NMAXBUFS-2,
-					 0);
-		if (ret == -ENODEV) goto enodev;
-		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
-#endif
-
-		/* Test a whole array bigger than NMAXBUFS */
-		for (i = 0; i < STARPU_NMAXBUFS+5; i++)
-			expected[i]++;
-		ret = starpu_task_insert(&codelet,
-					 STARPU_DATA_MODE_ARRAY, descrs, STARPU_NMAXBUFS+5,
-					 0);
-		if (ret == -ENODEV) goto enodev;
-		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
-
-		/* Same with static number of buffers in codelet */
-		for (i = 0; i < STARPU_NMAXBUFS+5; i++)
-			expected[i]++;
-		ret = starpu_task_insert(&codelet_plus5,
-					 STARPU_DATA_MODE_ARRAY, descrs, STARPU_NMAXBUFS+5,
-					 0);
-		if (ret == -ENODEV) goto enodev;
-		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
-
-		/* Test a whole array after one data, and bigger than NMAXBUFS */
-		for (i = 0; i < STARPU_NMAXBUFS+5; i++)
-			expected[i]++;
-		ret = starpu_task_insert(&codelet,
-					 STARPU_RW, data_handles[0],
-					 STARPU_DATA_MODE_ARRAY, &descrs[1], STARPU_NMAXBUFS+4,
-					 0);
-		if (ret == -ENODEV) goto enodev;
-		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
-
-		/* Same with static number of buffers in codelet */
-		for (i = 0; i < STARPU_NMAXBUFS+5; i++)
-			expected[i]++;
-		ret = starpu_task_insert(&codelet_plus5,
-					 STARPU_RW, data_handles[0],
-					 STARPU_DATA_MODE_ARRAY, &descrs[1], STARPU_NMAXBUFS+4,
-					 0);
-		if (ret == -ENODEV) goto enodev;
+		/* Test yet more than NMAXBUFS */
+		ret = test(STARPU_NMAXBUFS+5, &codelet_plus5);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
 		/* Test datas one after the other, but less than NMAXBUFS */
@@ -234,7 +233,10 @@ int main(int argc, char **argv)
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 #endif
 
-		/* Test datas one after the other, but less than NMAXBUFS */
+
+
+
+		/* Test datas one after the other, but more than NMAXBUFS */
 		for (i = 0; i < STARPU_NMAXBUFS+5 && i < 10; i++)
 			expected[i]++;
 		ret = starpu_task_insert(&codelet,
