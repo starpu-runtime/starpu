@@ -89,6 +89,7 @@ EXTRA_DIST =				\
 	valgrind/openmpi.suppr		\
 	valgrind/pthread.suppr		\
 	valgrind/starpu.suppr		\
+	valgrind/valgrind.suppr		\
 	valgrind/valgrind.sh		\
 	tsan/starpu.suppr		\
 	lsan/libc.suppr			\
