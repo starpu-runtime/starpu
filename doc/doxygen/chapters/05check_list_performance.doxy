@@ -192,9 +192,10 @@ export STARPU_LIMIT_MIN_SUBMITTED_TASKS=9000
 </c>
 
 To make StarPU block submission when 10000 tasks are submitted, and unblock
-submission when only 9000 tasks are submitted. Of course this may reduce
-parallelism if the threshold is set too low. The precise balance depends on the
-application task graph.
+submission when only 9000 tasks are still submitted, i.e. 1000 tasks have
+completed among the 10000 that were submitted when submission was blocked. Of
+course this may reduce parallelism if the threshold is set too low. The precise
+balance depends on the application task graph.
 
 \section HowtoReuseMemory How to reuse memory
 
