@@ -68,7 +68,7 @@ int main(int argc, char **argv)
 #endif
         starpu_data_handle_t *data_handles;
 	struct starpu_data_descr *descrs;
-	unsigned *expected;
+	int *expected;
 
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
