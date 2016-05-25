@@ -1464,6 +1464,10 @@ if test x$enable_debug = xyes; then
 	CFLAGS="$CFLAGS -O0"
 	CXXFLAGS="$CXXFLAGS -O0"
 	enable_spinlock_check=yes
+	if test x$GCC = xyes; then
+		CFLAGS="$CFLAGS -fstack-protector-all"
+		CXXFLAGS="$CXXFLAGS -fstack-protector-all"
+	fi
 else
 	CFLAGS="-O3 $CFLAGS"
 	CXXFLAGS="-O3 $CXXFLAGS"
