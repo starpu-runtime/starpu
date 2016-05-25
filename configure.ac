@@ -1467,6 +1467,7 @@ if test x$enable_debug = xyes; then
 	if test x$GCC = xyes; then
 		CFLAGS="$CFLAGS -fstack-protector-all"
 		CXXFLAGS="$CXXFLAGS -fstack-protector-all"
+		CPPFLAGS="$CPPFLAGS -D_FORTIFY_SOURCE=2"
 	fi
 else
 	CFLAGS="-O3 $CFLAGS"
