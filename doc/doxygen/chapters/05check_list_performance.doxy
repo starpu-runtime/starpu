@@ -212,7 +212,7 @@ buffers will be done at submission time, not at execution time.
 You have two options to control the task submission flow. The first one is by
 controlling the number of submitted tasks during the whole execution. This can
 be done whether by setting the environment variables \ref
-STARPU_LIMIT_MAX_NSUBMITTED_TASKS and \ref STARPU_LIMIT_MIN_NSUBMITTED_TASKS to
+STARPU_LIMIT_MAX_SUBMITTED_TASKS and \ref STARPU_LIMIT_MIN_SUBMITTED_TASKS to
 tell StarPU when to stop submitting tasks and when to wake up and submit tasks
 again, or by explicitely calling \ref starpu_task_wait_for_n_submitted() in
 your application code for finest grain control (for example, between two
