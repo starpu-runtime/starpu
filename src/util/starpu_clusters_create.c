@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015  Université de Bordeaux
+ * Copyright (C) 2015-2016  Université de Bordeaux
  * Copyright (C) 2015  INRIA
  * Copyright (C) 2015  CNRS
  *
@@ -582,6 +582,7 @@ void _starpu_cluster_group(hwloc_obj_type_t cluster_level,
 	nb_objects = hwloc_get_nbobjs_by_type(machine->topology, cluster_level);
 	if (nb_objects == 0)
 		return;
+	/* XXX: handle nb_objects == -1 */
 
 	group = _starpu_cluster_group_list_begin(machine->groups);
 	for (i = 0 ; i < nb_objects ; i++)
