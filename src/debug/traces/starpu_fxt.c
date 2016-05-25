@@ -348,7 +348,7 @@ static struct {
 
 static const char *get_state_name(const char *short_name, uint32_t states)
 {
-	int i;
+	unsigned i;
 
 	for (i = 0; i < sizeof(states_list) / sizeof(states_list[0]); i++)
 		if ((states_list[i].flags & states) &&
@@ -689,7 +689,7 @@ static void mpicommthread_pop_state(double time, const char *prefix)
 #endif
 }
 
-static void recfmt_dump_state(double time, const char *event, int workerid, long unsigned int threadid, const char *name, const char *type)
+static void recfmt_dump_state(double time, const char *event, int workerid, long int threadid, const char *name, const char *type)
 {
 	fprintf(trace_file, "E: %s\n", event);
 	if (name)
@@ -705,7 +705,7 @@ static void recfmt_dump_state(double time, const char *event, int workerid, long
 	fprintf(trace_file, "\n");
 }
 
-static void recfmt_set_state(double time, int workerid, long unsigned int threadid, const char *name, const char *type)
+static void recfmt_set_state(double time, int workerid, long int threadid, const char *name, const char *type)
 {
 	recfmt_dump_state(time, "SetState", workerid, threadid, name, type);
 }
