@@ -197,6 +197,9 @@ completed among the 10000 that were submitted when submission was blocked. Of
 course this may reduce parallelism if the threshold is set too low. The precise
 balance depends on the application task graph.
 
+An idea of how much memory is used for tasks and data handles can be obtained by
+setting the STARPU_MAX_MEMORY_USE environment variable to 1.
+
 \section HowtoReuseMemory How to reuse memory
 
 When your application needs to allocate more data than the available amount of
