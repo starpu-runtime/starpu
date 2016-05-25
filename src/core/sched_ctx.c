@@ -2224,7 +2224,7 @@ static void _starpu_sched_ctx_wake_up_workers(unsigned sched_ctx_id, int master)
 
 void* starpu_sched_ctx_exec_parallel_code(void* (*func)(void*), void* param, unsigned sched_ctx_id)
 {
-	int *workerids;
+	int *workerids = NULL;
 	int nworkers = starpu_sched_ctx_get_workers_list(sched_ctx_id, &workerids);
 	_starpu_sched_ctx_get_workers_to_sleep(sched_ctx_id, workerids, nworkers, workerids[nworkers-1]);
 
@@ -2234,6 +2234,7 @@ void* starpu_sched_ctx_exec_parallel_code(void* (*func)(void*), void* param, uns
 	/* wake up starpu workers */
 	_starpu_sched_ctx_wake_up_workers(sched_ctx_id, workerids[nworkers-1]);
 
+	free(workerids);
 	return ret;
 }
 
