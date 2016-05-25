@@ -33,6 +33,8 @@
 
 /* we need to identify each task to generate the DAG. */
 static unsigned long job_cnt = 0;
+static int max_memory_use;
+static int njobs, maxnjobs;
 
 #ifdef STARPU_DEBUG
 /* List of all jobs, for debugging */
@@ -42,9 +44,19 @@ static starpu_pthread_mutex_t all_jobs_list_mutex = STARPU_PTHREAD_MUTEX_INITIAL
 
 void _starpu_job_init(void)
 {
+	max_memory_use = starpu_get_env_number_default("STARPU_MAX_MEMORY_USE", 0);
 #ifdef STARPU_DEBUG
 	_starpu_job_list_init(&all_jobs_list);
 #endif
+}
+
+void _starpu_job_fini(void)
+{
+	if (max_memory_use)
+	{
+		_STARPU_DISP("Memory used for tasks: %lu MiB\n", (unsigned long) (maxnjobs * (sizeof(struct starpu_task) + sizeof(struct _starpu_job))) >> 20);
+		STARPU_ASSERT(njobs == 0);
+	}
 }
 
 void _starpu_exclude_task_from_dag(struct starpu_task *task)
@@ -91,6 +103,12 @@ struct _starpu_job* STARPU_ATTRIBUTE_MALLOC _starpu_job_create(struct starpu_tas
 			AYU_event(AYU_ADDTASK, job->job_id, AYU_data);
 		}
 #endif
+	}
+	if (max_memory_use)
+	{
+		int jobs = STARPU_ATOMIC_ADDL(&njobs, 1);
+		if (jobs > maxnjobs)
+			maxnjobs = jobs;
 	}
 
 	_starpu_cg_list_init(&job->job_successors);
@@ -141,6 +159,9 @@ void _starpu_job_destroy(struct _starpu_job *j)
 
 	if (_starpu_graph_record)
 		_starpu_graph_drop_job(j);
+
+	if (max_memory_use)
+		(void) STARPU_ATOMIC_ADDL(&njobs, -1);
 
 	free(j);
 }

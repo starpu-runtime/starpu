@@ -1523,6 +1523,8 @@ void starpu_shutdown(void)
 
 	_starpu_data_interface_shutdown();
 
+	_starpu_job_fini();
+
 	/* Drop all remaining tags */
 	_starpu_tag_clear();
 

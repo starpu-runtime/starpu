@@ -286,6 +286,7 @@ struct _starpu_job {
 };
 
 void _starpu_job_init(void);
+void _starpu_job_fini(void);
 
 /* Create an internal struct _starpu_job *structure to encapsulate the task. */
 struct _starpu_job* STARPU_ATTRIBUTE_MALLOC _starpu_job_create(struct starpu_task *task);

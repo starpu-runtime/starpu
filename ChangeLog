@@ -185,6 +185,7 @@ Small features:
   * Add starpu_sleep.
   * Add starpu_task_list_ismember.
   * Add _starpu_fifo_pop_this_task.
+  * Add STARPU_MAX_MEMORY_USE environment variable.
 
 Changes:
   * Data interfaces (variable, vector, matrix and block) now define

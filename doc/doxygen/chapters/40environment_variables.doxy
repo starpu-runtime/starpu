@@ -740,6 +740,14 @@ When set to 0, disable the display of memory statistics on data which
 have not been unregistered at the end of the execution (\ref MemoryFeedback).
 </dd>
 
+<dt>STARPU_MAX_MEMORY_USE</dt>
+<dd>
+\anchor STARPU_MAX_MEMORY_USE
+\addindex __env__STARPU_MAX_MEMORY_USE
+When set to 1, display at the end of the execution the maximum memory used by
+StarPU for internal data structures during execution.
+</dd>
+
 <dt>STARPU_BUS_STATS</dt>
 <dd>
 \anchor STARPU_BUS_STATS

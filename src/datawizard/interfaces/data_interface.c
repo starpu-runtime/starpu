@@ -39,6 +39,7 @@ struct handle_entry
 };
 
 /* Hash table mapping host pointers to data handles.  */
+static int nregistered, maxnregistered;
 static struct handle_entry *registered_handles;
 static struct _starpu_spinlock    registered_handles_lock;
 static int _data_interface_number = STARPU_MAX_INTERFACE_ID;
@@ -69,9 +70,14 @@ void _starpu_data_interface_shutdown()
 	HASH_ITER(hh, registered_handles, entry, tmp)
 	{
 		HASH_DEL(registered_handles, entry);
+		nregistered--;
 		free(entry);
 	}
 
+	if (starpu_get_env_number_default("STARPU_MAX_MEMORY_USE", 0))
+		_STARPU_DISP("Memory used for data handles: %lu MiB\n", (unsigned long) (maxnregistered * sizeof(struct _starpu_data_state)) >> 20);
+
+	STARPU_ASSERT(nregistered == 0);
 	registered_handles = NULL;
 }
 
@@ -169,6 +175,9 @@ void _starpu_data_register_ram_pointer(starpu_data_handle_t handle, void *ptr)
 #endif
 	{
 		_starpu_spin_lock(&registered_handles_lock);
+		nregistered++;
+		if (nregistered > maxnregistered)
+			maxnregistered = nregistered;
 		HASH_ADD_PTR(registered_handles, pointer, entry);
 		_starpu_spin_unlock(&registered_handles_lock);
 	}
@@ -533,6 +542,7 @@ void _starpu_data_unregister_ram_pointer(starpu_data_handle_t handle)
 			_starpu_spin_lock(&registered_handles_lock);
 			HASH_FIND_PTR(registered_handles, &ram_ptr, entry);
 			STARPU_ASSERT(entry != NULL);
+			nregistered--;
 			HASH_DEL(registered_handles, entry);
 			_starpu_spin_unlock(&registered_handles_lock);
 		}
