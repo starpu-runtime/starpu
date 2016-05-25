@@ -75,7 +75,7 @@ void _starpu_data_interface_shutdown()
 	}
 
 	if (starpu_get_env_number_default("STARPU_MAX_MEMORY_USE", 0))
-		_STARPU_DISP("Memory used for data handles: %lu MiB\n", (unsigned long) (maxnregistered * sizeof(struct _starpu_data_state)) >> 20);
+		_STARPU_DISP("Memory used for %d data handles: %lu MiB\n", maxnregistered, (unsigned long) (maxnregistered * sizeof(struct _starpu_data_state)) >> 20);
 
 	STARPU_ASSERT(nregistered == 0);
 	registered_handles = NULL;
