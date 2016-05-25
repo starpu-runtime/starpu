@@ -192,7 +192,7 @@ void cpu_mult(void *descr[], STARPU_ATTRIBUTE_UNUSED  void *arg)
 		unsigned block_size = (nyC + worker_size - 1)/worker_size;
 		unsigned new_nyC = STARPU_MIN(nyC, block_size*(rank+1)) - block_size*rank;
 
-		STARPU_ASSERT(nyC = STARPU_MATRIX_GET_NY(descr[1]));
+		STARPU_ASSERT(nyC == STARPU_MATRIX_GET_NY(descr[1]));
 
 		TYPE *new_subB = &subB[block_size*rank];
 		TYPE *new_subC = &subC[block_size*rank];
