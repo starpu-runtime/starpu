@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010-2014  Université de Bordeaux
+ * Copyright (C) 2009, 2010-2014, 2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012  CNRS
  * Copyright (C) 2012 INRIA
  *
@@ -103,6 +103,9 @@ int main(int argc, char **argv)
 
 	FPRINTF(stderr, "Total: %f secs\n", timing/1000000);
 	FPRINTF(stderr, "Per task: %f usecs\n", timing/ntasks);
+
+	starpu_task_wait_for_all();
+	starpu_task_clean(&task);
 
 	starpu_shutdown();
 
