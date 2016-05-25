@@ -503,7 +503,7 @@ that have a limited amount of memory. Setting it enables allocation
 cache in main memory
 </dd>
 
-<dt>STARPU_LIMIT_MAX_NSUBMITTED_TASKS</dt>
+<dt>STARPU_LIMIT_MAX_SUBMITTED_TASKS</dt>
 <dd>
 \anchor STARPU_LIMIT_MAX_SUBMITTED_TASKS
 \addindex __env__STARPU_LIMIT_MAX_SUBMITTED_TASKS    
