@@ -260,7 +260,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 
 			for(i=0 ; i<nb_handles ; i++)
 			{
-				STARPU_ASSERT_MSG(codelet->nbuffers == STARPU_VARIABLE_NBUFFERS || nb_data < cl->nbuffers, "Too many data passed to starpu_mpi_task_insert");
+				STARPU_ASSERT_MSG(codelet->nbuffers == STARPU_VARIABLE_NBUFFERS || nb_data < codelet->nbuffers, "Too many data passed to starpu_mpi_task_insert");
 				enum starpu_data_access_mode mode = STARPU_CODELET_GET_MODE(codelet, nb_data);
 				if (node_selected == 0)
 				{
