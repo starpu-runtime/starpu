@@ -180,7 +180,7 @@ int main(int argc, char **argv)
 				{
 					tasks[i].dyn_handles = malloc(nbuffers * sizeof(*data_handles));
 					handles = tasks[i].dyn_handles;
-					tasks[i].dyn_modes = malloc(nbuffers * sizeof(tasks[i].dyn_modes));
+					tasks[i].dyn_modes = malloc(nbuffers * sizeof(*(tasks[i].dyn_modes)));
 					for (buffer = 0; buffer < nbuffers; buffer++)
 						tasks[i].dyn_modes[buffer] = STARPU_R;
 				}
