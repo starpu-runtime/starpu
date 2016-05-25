@@ -55,7 +55,7 @@ void _starpu_job_fini(void)
 	if (max_memory_use)
 	{
 		_STARPU_DISP("Memory used for tasks: %lu MiB\n", (unsigned long) (maxnjobs * (sizeof(struct starpu_task) + sizeof(struct _starpu_job))) >> 20);
-		STARPU_ASSERT(njobs == 0);
+		STARPU_ASSERT_MSG(njobs == 0, "Some tasks have not been cleaned, did you forget to call starpu_task_destroy or starpu_task_clean?");
 	}
 }
 
