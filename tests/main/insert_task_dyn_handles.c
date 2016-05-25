@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2012, 2013, 2014  CNRS
+ * Copyright (C) 2011, 2012, 2013, 2014, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -155,15 +155,22 @@ int main(int argc, char **argv)
 	{
 		/* Test smaller than NMAXBUFS */
 		ret = test(STARPU_NMAXBUFS-1, &codelet_minus1);
+		if (ret == -ENODEV) goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
+
 		/* Test exactly NMAXBUFS */
 		ret = test(STARPU_NMAXBUFS, &codelet_exactly);
+		if (ret == -ENODEV) goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
+
 		/* Test more than NMAXBUFS */
 		ret = test(STARPU_NMAXBUFS+1, &codelet_plus1);
+		if (ret == -ENODEV) goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
+
 		/* Test yet more than NMAXBUFS */
 		ret = test(STARPU_NMAXBUFS+5, &codelet_plus5);
+		if (ret == -ENODEV) goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
 		/* Test datas one after the other, but less than NMAXBUFS */
