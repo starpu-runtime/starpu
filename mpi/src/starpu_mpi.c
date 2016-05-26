@@ -256,6 +256,7 @@ static void _starpu_mpi_submit_ready_request(void *arg)
 					}
 					_starpu_mpi_req_list_push_front(ready_requests, req);
 					free(sync_req);
+					sync_req = NULL;
 				}
 				else
 				{
@@ -528,6 +529,7 @@ static void _starpu_mpi_irecv_data_func(struct _starpu_mpi_req *req)
 		req->ret = MPI_Send(_envelope, sizeof(struct _starpu_mpi_envelope), MPI_BYTE, req->node_tag.rank, _STARPU_MPI_TAG_ENVELOPE, req->node_tag.comm);
 		STARPU_MPI_ASSERT_MSG(req->ret == MPI_SUCCESS, "MPI_Send returning %s", _starpu_mpi_get_mpi_code(req->ret));
 		free(_envelope);
+		_envelope = NULL;
 	}
 
 	if (req->sync)
@@ -702,6 +704,7 @@ int starpu_mpi_wait(starpu_mpi_req *public_req, MPI_Status *status)
 	req=NULL;
 
 	free(waiting_req);
+	waiting_req = NULL;
 	_STARPU_MPI_LOG_OUT();
 	return ret;
 }
@@ -877,6 +880,7 @@ int starpu_mpi_barrier(MPI_Comm comm)
 	ret = barrier_req->ret;
 
 	free(barrier_req);
+	barrier_req = NULL;
 	_STARPU_MPI_LOG_OUT();
 	return ret;
 }
@@ -918,6 +922,7 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
 		_STARPU_MPI_DEBUG(3, "Handling deleting of early_data structure from the hashmap..\n");
 		_starpu_mpi_early_data_delete(early_data_handle);
 		free(early_data_handle);
+		early_data_handle = NULL;
 	}
 	else
 	{
@@ -934,6 +939,7 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
 					ret = MPI_Wait(&req->size_req, MPI_STATUS_IGNORE);
 					STARPU_MPI_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Wait returning %s", _starpu_mpi_get_mpi_code(ret));
 					free(req->ptr);
+					req->ptr = NULL;
 				}
 				else if (req->request_type == RECV_REQ)
 				{
@@ -990,6 +996,7 @@ static void _starpu_mpi_early_data_cb(void* arg)
 		STARPU_MPI_ASSERT_MSG(itf_dst->unpack_data, "The data interface does not define an unpack function\n");
 		itf_dst->unpack_data(args->data_handle, STARPU_MAIN_RAM, args->buffer, itf_src->get_size(args->early_handle));
 		free(args->buffer);
+		args->buffer = NULL;
 	}
 	else
 	{
