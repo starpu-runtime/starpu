@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013  Université de Bordeaux
+ * Copyright (C) 2010-2013, 2016  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011  CNRS
  *
@@ -39,6 +39,8 @@ void starpu_matrix_filter_block(void *father_interface, void *child_interface, S
 
 	_starpu_filter_nparts_compute_chunk_size_and_offset(nx, nchunks, elemsize, id, 1,
 						     &child_nx, &offset);
+
+	STARPU_ASSERT_MSG(matrix_father->id == STARPU_MATRIX_INTERFACE_ID, "%s can only be applied on a matrix data", __func__);
 
 	/* update the child's interface */
 	matrix_child->id = matrix_father->id;
@@ -82,7 +84,10 @@ void starpu_matrix_filter_block_shadow(void *father_interface, void *child_inter
 
 	child_nx += 2 * shadow_size;
 
+	STARPU_ASSERT_MSG(matrix_father->id == STARPU_MATRIX_INTERFACE_ID, "%s can only be applied on a matrix data", __func__);
+
 	/* update the child's interface */
+	matrix_child->id = matrix_father->id;
 	matrix_child->nx = child_nx;
 	matrix_child->ny = ny;
 	matrix_child->elemsize = elemsize;
@@ -116,6 +121,7 @@ void starpu_matrix_filter_vertical_block(void *father_interface, void *child_int
 						     matrix_father->ld,
 						     &child_ny, &offset);
 
+	STARPU_ASSERT_MSG(matrix_father->id == STARPU_MATRIX_INTERFACE_ID, "%s can only be applied on a matrix data", __func__);
 	matrix_child->id = matrix_father->id;
 	matrix_child->nx = nx;
 	matrix_child->ny = child_ny;
@@ -154,6 +160,8 @@ void starpu_matrix_filter_vertical_block_shadow(void *father_interface, void *ch
 						     &child_ny, &offset);
 	child_ny += 2 * shadow_size;
 
+	STARPU_ASSERT_MSG(matrix_father->id == STARPU_MATRIX_INTERFACE_ID, "%s can only be applied on a matrix data", __func__);
+	matrix_child->id = matrix_father->id;
 	matrix_child->nx = nx;
 	matrix_child->ny = child_ny;
 	matrix_child->elemsize = elemsize;

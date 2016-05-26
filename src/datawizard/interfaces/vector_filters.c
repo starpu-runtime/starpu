@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2013  Université de Bordeaux
+ * Copyright (C) 2009-2013, 2016  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011  CNRS
  *
@@ -35,6 +35,7 @@ void starpu_vector_filter_block(void *father_interface, void *child_interface, S
 	_starpu_filter_nparts_compute_chunk_size_and_offset(nx, nchunks, elemsize, id, 1,
 						     &child_nx, &offset);
 
+	STARPU_ASSERT_MSG(vector_father->id == STARPU_VECTOR_INTERFACE_ID, "%s can only be applied on a vector data", __func__);
 	vector_child->id = vector_father->id;
 	vector_child->nx = child_nx;
 	vector_child->elemsize = elemsize;
@@ -68,6 +69,8 @@ void starpu_vector_filter_block_shadow(void *father_interface, void *child_inter
 						     &child_nx, &offset);
 	child_nx += 2*shadow_size;
 
+	STARPU_ASSERT_MSG(vector_father->id == STARPU_VECTOR_INTERFACE_ID, "%s can only be applied on a vector data", __func__);
+	vector_child->id = vector_father->id;
 	vector_child->nx = child_nx;
 	vector_child->elemsize = elemsize;
 
@@ -96,6 +99,7 @@ void starpu_vector_filter_divide_in_2(void *father_interface, void *child_interf
 
 	STARPU_ASSERT_MSG(length_first < nx, "First part is too long: %u vs %u", length_first, nx);
 
+	STARPU_ASSERT_MSG(vector_father->id == STARPU_VECTOR_INTERFACE_ID, "%s can only be applied on a vector data", __func__);
 	vector_child->id = vector_father->id;
 
 	/* this is the first child */
@@ -141,6 +145,7 @@ void starpu_vector_filter_list(void *father_interface, void *child_interface, st
 
 	uint32_t chunk_size = length_tab[id];
 
+	STARPU_ASSERT_MSG(vector_father->id == STARPU_VECTOR_INTERFACE_ID, "%s can only be applied on a vector data", __func__);
 	vector_child->id = vector_father->id;
 	vector_child->nx = chunk_size;
 	vector_child->elemsize = elemsize;
