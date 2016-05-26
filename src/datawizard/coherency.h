@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2015  Université de Bordeaux
+ * Copyright (C) 2009-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -47,12 +47,13 @@ struct _starpu_data_replicate {
 	/* describe the actual data layout, as manipulated by data interfaces in *_interface.c */
 	void *data_interface;
 
-	unsigned memory_node;
+	/* How many requests or tasks are currently working with this replicate */
+	int refcnt;
+
+	char memory_node;
 
 	/* describes the state of the local data in term of coherency */
-	enum _starpu_cache_state	state;
-
-	int refcnt;
+	enum _starpu_cache_state	state: 2;
 
 	/* A buffer that is used for SCRATCH or reduction cannnot be used with
 	 * filters. */
@@ -70,9 +71,6 @@ struct _starpu_data_replicate {
 	 * */
 	unsigned automatically_allocated:1;
 
-        /* Pointer to memchunk for LRU strategy */
-	struct _starpu_mem_chunk * mc;
-
 	/* To help the scheduling policies to make some decision, we
 	   may keep a track of the tasks that are likely to request
 	   this data on the current node.
@@ -82,6 +80,9 @@ struct _starpu_data_replicate {
 	 */
 	uint32_t requested;
 	struct _starpu_data_request *request[STARPU_MAXNODES];
+
+        /* Pointer to memchunk for LRU strategy */
+	struct _starpu_mem_chunk * mc;
 };
 
 struct _starpu_data_requester_list;
