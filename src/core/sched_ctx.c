@@ -1064,6 +1064,10 @@ void _starpu_push_task_to_waiting_list(struct _starpu_sched_ctx *sched_ctx, stru
 
 void starpu_sched_ctx_set_priority_on_level(int* workers_to_add, unsigned nworkers_to_add, unsigned sched_ctx, unsigned priority)
 {
+	(void) workers_to_add;
+	(void) nworkers_to_add;
+	(void) sched_ctx;
+	(void) priority;
 /* 	int w; */
 /* 	struct _starpu_worker *worker = NULL; */
 /* 	for(w = 0; w < nworkers_to_add; w++) */

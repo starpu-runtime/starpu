@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2014, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2014, 2015, 2016  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2011-2013  INRIA
  * Copyright (C) 2013  Simon Archipoff
@@ -108,13 +108,13 @@ enum _starpu_worker_component_status
 
 struct _starpu_worker_component_data
 {
-	union 
+	union
 	{
 		struct
 		{
 			struct _starpu_worker * worker;
 			starpu_pthread_mutex_t lock;
-		};	
+		};
 		struct _starpu_combined_worker * combined_worker;
 	};
 	struct _starpu_worker_task_list * list;
@@ -273,9 +273,9 @@ static inline struct starpu_task * _starpu_worker_task_list_pop(struct _starpu_w
 			t->task = NULL;
 			/* the leftist thing hold the number of tasks, other have a pointer to it */
 			int * p = t->left ? t->pntasks : &t->ntasks;
-			
+
 			/* the worker who pop the last task allow the rope to be freed */
-			if(STARPU_ATOMIC_ADD(p, -1) == 0) 
+			if(STARPU_ATOMIC_ADD(p, -1) == 0)
 				_starpu_task_grid_unset_left_right_member(t);
 
 			l->ntasks--;
@@ -336,9 +336,9 @@ void _starpu_sched_component_unlock_worker(unsigned sched_ctx_id, int workerid)
 
 
 
-/* Allows a worker to lock/unlock scheduling mutexes. Currently used in 
- * self-defined can_push calls to allow can_pull calls to take those mutexes while the 
- * current worker is pushing tasks on other workers (or itself). 
+/* Allows a worker to lock/unlock scheduling mutexes. Currently used in
+ * self-defined can_push calls to allow can_pull calls to take those mutexes while the
+ * current worker is pushing tasks on other workers (or itself).
  */
 static void _starpu_sched_component_worker_lock_scheduling(unsigned sched_ctx_id)
 {
@@ -346,7 +346,7 @@ static void _starpu_sched_component_worker_lock_scheduling(unsigned sched_ctx_id
 	starpu_pthread_mutex_t *sched_mutex;
 	starpu_pthread_cond_t *sched_cond;
 	starpu_worker_get_sched_condition(workerid, &sched_mutex, &sched_cond);
-	_starpu_sched_component_lock_worker(sched_ctx_id, workerid);	
+	_starpu_sched_component_lock_worker(sched_ctx_id, workerid);
 #ifdef STARPU_DEVEL
 #warning Reverses locking order between worker lock and worker component lock!
 #warning See helgrind suppression file for the details
@@ -361,7 +361,7 @@ static void _starpu_sched_component_worker_unlock_scheduling(unsigned sched_ctx_
 	starpu_pthread_cond_t *sched_cond;
 	starpu_worker_get_sched_condition(workerid, &sched_mutex, &sched_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(sched_mutex);
-	_starpu_sched_component_unlock_worker(sched_ctx_id, workerid);	
+	_starpu_sched_component_unlock_worker(sched_ctx_id, workerid);
 }
 
 static void _starpu_sched_component_worker_set_sleep_status(struct starpu_sched_component * worker_component)
@@ -476,7 +476,7 @@ static int simple_worker_push_task(struct starpu_sched_component * component, st
 	STARPU_PTHREAD_MUTEX_LOCK(&data->list->mutex);
 	_starpu_worker_task_list_push(data->list, t);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data->list->mutex);
-	simple_worker_can_pull(component);	
+	simple_worker_can_pull(component);
 	return 0;
 }
 
@@ -493,7 +493,7 @@ static struct starpu_task * simple_worker_pull_task(struct starpu_sched_componen
 		starpu_push_task_end(task);
 		return task;
 	}
-	_starpu_sched_component_lock_worker(component->tree->sched_ctx_id, workerid);	
+	_starpu_sched_component_lock_worker(component->tree->sched_ctx_id, workerid);
 	int i;
 	do
 	{
@@ -514,7 +514,7 @@ static struct starpu_task * simple_worker_pull_task(struct starpu_sched_componen
 	}
 	while((!task) && _starpu_sched_component_worker_is_changed_status(component));
 	_starpu_sched_component_worker_set_sleep_status(component);
-	_starpu_sched_component_unlock_worker(component->tree->sched_ctx_id, workerid);	
+	_starpu_sched_component_unlock_worker(component->tree->sched_ctx_id, workerid);
 	if(!task)
 		return NULL;
 	if(task->cl->type == STARPU_SPMD)
@@ -705,7 +705,7 @@ static int combined_worker_push_task(struct starpu_sched_component * component, 
 		i++;
 	}
 	while(i < combined_worker->worker_size);
-	
+
 	STARPU_PTHREAD_MUTEX_UNLOCK(mutex_to_unlock);
 
 	int workerid = starpu_worker_get_id();

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
  * Copyright (C) 2010, 2011  INRIA
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2011-2012  INRIA
@@ -561,6 +561,8 @@ static void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu
 
 static void _starpu_worker_deinit(struct _starpu_worker *workerarg)
 {
+	(void) workerarg;
+
 #ifdef STARPU_SIMGRID
 	starpu_pthread_queue_unregister(&workerarg->wait, &_starpu_simgrid_task_queue[workerarg->workerid]);
 	starpu_pthread_wait_destroy(&workerarg->wait);

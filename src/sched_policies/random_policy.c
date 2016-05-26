@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2014  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -99,11 +99,13 @@ static int random_push_task(struct starpu_task *task)
 
 static void initialize_random_policy(unsigned sched_ctx_id)
 {
+	(void) sched_ctx_id;
 	starpu_srand48(time(NULL));
 }
 
 static void deinitialize_random_policy(unsigned sched_ctx_id)
 {
+	(void) sched_ctx_id;
 }
 
 struct starpu_sched_policy _starpu_sched_random_policy =

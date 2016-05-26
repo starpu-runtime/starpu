@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2013-2014, 2016  Université de Bordeaux
- * Copyright (C) 2012-2013  CNRS
+ * Copyright (C) 2012-2013, 2016  CNRS
  * Copyright (C) 2011-2013  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -260,6 +260,7 @@ static void list_deinit(struct starpu_worker_collection *workers)
 
 static void list_init_iterator(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it)
 {
+	(void) workers;
 	it->cursor = 0;
 	it->possibly_parallel = -1; /* -1 => we don't care about this field */
 

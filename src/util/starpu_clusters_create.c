@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2015-2016  Université de Bordeaux
  * Copyright (C) 2015  INRIA
- * Copyright (C) 2015  CNRS
+ * Copyright (C) 2015, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -573,7 +573,7 @@ void _starpu_cluster_group(hwloc_obj_type_t cluster_level,
 			   struct starpu_cluster_machine *machine)
 {
 	unsigned nb_objects;
-	int i;
+	unsigned i;
 	struct _starpu_cluster_group *group = NULL;
 
 	if (machine->groups == NULL)

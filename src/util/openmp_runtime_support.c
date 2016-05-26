@@ -1154,7 +1154,6 @@ void starpu_omp_parallel_region(const struct starpu_omp_parallel_region_attr *at
 		implicit_task->starpu_task = starpu_task_create();
 		implicit_task->starpu_task->cl = &implicit_task->cl;
 		{
-			int i;
 			for (i = 0; i < implicit_task->cl.nbuffers; i++)
 			{
 				implicit_task->starpu_task->handles[i] = attr->handles[i];
@@ -1219,8 +1218,8 @@ void starpu_omp_parallel_region(const struct starpu_omp_parallel_region_attr *at
 			/* TODO: cleanup unused threads */
 		}
 		new_region->nb_threads--;
-		struct starpu_omp_task *implicit_task = starpu_omp_task_list_pop_front(&new_region->implicit_task_list);
-		destroy_omp_task_struct(implicit_task);
+		struct starpu_omp_task *implicit_task_p = starpu_omp_task_list_pop_front(&new_region->implicit_task_list);
+		destroy_omp_task_struct(implicit_task_p);
 	}
 	STARPU_ASSERT(new_region->nb_threads == 0);
 	task->nested_region = NULL;
