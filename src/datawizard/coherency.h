@@ -163,7 +163,7 @@ struct _starpu_data_state
 
 	/* describe the state of the data in term of coherency */
 	struct _starpu_data_replicate per_node[STARPU_MAXNODES];
-	struct _starpu_data_replicate per_worker[STARPU_NMAXWORKERS];
+	struct _starpu_data_replicate *per_worker;
 
 	struct starpu_data_interface_ops *ops;
 

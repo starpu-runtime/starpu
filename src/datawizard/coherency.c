@@ -893,7 +893,16 @@ int starpu_idle_prefetch_task_input_on_node(struct starpu_task *task, unsigned n
 static struct _starpu_data_replicate *get_replicate(starpu_data_handle_t handle, enum starpu_data_access_mode mode, int workerid, unsigned node)
 {
 	if (mode & (STARPU_SCRATCH|STARPU_REDUX))
+	{
+		if (!handle->per_worker)
+		{
+			_starpu_spin_lock(&handle->header_lock);
+			if (!handle->per_worker)
+				_starpu_data_initialize_per_worker(handle);
+			_starpu_spin_unlock(&handle->header_lock);
+		}
 		return &handle->per_worker[workerid];
+	}
 	else
 		/* That's a "normal" buffer (R/W) */
 		return &handle->per_node[node];

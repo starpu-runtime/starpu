@@ -349,11 +349,34 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 		}
 	}
 
+	handle->per_worker = NULL;
+
+	/* now the data is available ! */
+	_starpu_spin_unlock(&handle->header_lock);
+
+	ptr = starpu_data_handle_to_pointer(handle, STARPU_MAIN_RAM);
+	if (ptr != NULL)
+	{
+		_starpu_data_register_ram_pointer(handle, ptr);
+	}
+}
+
+void
+_starpu_data_initialize_per_worker(starpu_data_handle_t handle)
+{
 	unsigned worker;
 	unsigned nworkers = starpu_worker_get_count();
+
+	_starpu_spin_checklocked(&handle->header_lock);
+
+	handle->per_worker = calloc(nworkers, sizeof(*handle->per_worker));
+
+	size_t interfacesize = handle->ops->interface_size;
+
 	for (worker = 0; worker < nworkers; worker++)
 	{
 		struct _starpu_data_replicate *replicate;
+		unsigned node;
 		replicate = &handle->per_worker[worker];
 		replicate->allocated = 0;
 		replicate->automatically_allocated = 0;
@@ -372,17 +395,10 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 		replicate->initialized = 0;
 		replicate->memory_node = starpu_worker_get_memory_node(worker);
 
+		replicate->data_interface = calloc(1, interfacesize);
+		STARPU_ASSERT(replicate->data_interface);
 		/* duplicate  the content of the interface on node 0 */
-		memcpy(replicate->data_interface, handle->per_node[0].data_interface, handle->ops->interface_size);
-	}
-
-	/* now the data is available ! */
-	_starpu_spin_unlock(&handle->header_lock);
-
-	ptr = starpu_data_handle_to_pointer(handle, STARPU_MAIN_RAM);
-	if (ptr != NULL)
-	{
-		_starpu_data_register_ram_pointer(handle, ptr);
+		memcpy(replicate->data_interface, handle->per_node[STARPU_MAIN_RAM].data_interface, interfacesize);
 	}
 }
 
@@ -400,7 +416,6 @@ void starpu_data_ptr_register(starpu_data_handle_t handle, unsigned node)
 int _starpu_data_handle_init(starpu_data_handle_t handle, struct starpu_data_interface_ops *interface_ops, unsigned int mf_node)
 {
 	unsigned node;
-	unsigned worker;
 
 	/* Tell helgrind that our access to busy_count in
 	 * starpu_data_unregister is actually safe */
@@ -425,19 +440,6 @@ int _starpu_data_handle_init(starpu_data_handle_t handle, struct starpu_data_int
 
 		replicate->data_interface = calloc(1, interfacesize);
 		STARPU_ASSERT(replicate->data_interface);
-	}
-
-	unsigned nworkers = starpu_worker_get_count();
-	for (worker = 0; worker < nworkers; worker++)
-	{
-		struct _starpu_data_replicate *replicate;
-		replicate = &handle->per_worker[worker];
-
-		replicate->handle = handle;
-
-		replicate->data_interface = calloc(1, interfacesize);
-		STARPU_ASSERT(replicate->data_interface);
-
 	}
 
 	return 0;
@@ -559,8 +561,12 @@ void _starpu_data_free_interfaces(starpu_data_handle_t handle)
 	for (node = 0; node < STARPU_MAXNODES; node++)
 		free(handle->per_node[node].data_interface);
 
-	for (worker = 0; worker < nworkers; worker++)
-		free(handle->per_worker[worker].data_interface);
+	if (handle->per_worker)
+	{
+		for (worker = 0; worker < nworkers; worker++)
+			free(handle->per_worker[worker].data_interface);
+		free(handle->per_worker);
+	}
 }
 
 struct _starpu_unregister_callback_arg
@@ -829,6 +835,7 @@ retry_busy:
 	}
 	unsigned worker;
 	unsigned nworkers = starpu_worker_get_count();
+	if (handle->per_worker)
 	for (worker = 0; worker < nworkers; worker++)
 	{
 		struct _starpu_data_replicate *local = &handle->per_worker[worker];
@@ -935,6 +942,7 @@ static void _starpu_data_invalidate(void *data)
 
 	unsigned worker;
 	unsigned nworkers = starpu_worker_get_count();
+	if (handle->per_worker)
 	for (worker = 0; worker < nworkers; worker++)
 	{
 		struct _starpu_data_replicate *local = &handle->per_worker[worker];
