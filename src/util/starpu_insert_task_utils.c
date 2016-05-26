@@ -22,25 +22,6 @@
 
 typedef void (*_starpu_callback_func_t)(void *);
 
-/* Deal with callbacks. The unpack function may be called multiple times when
- * we have a parallel task, and we should not free the cl_arg parameter from
- * the callback function. */
-struct insert_task_cb_wrapper
-{
-	_starpu_callback_func_t callback_func;
-	void *callback_arg;
-};
-
-static
-void starpu_task_insert_callback_wrapper(void *_cl_arg_wrapper)
-{
-	struct insert_task_cb_wrapper *cl_arg_wrapper = (struct insert_task_cb_wrapper *) _cl_arg_wrapper;
-
-	/* Execute the callback specified by the application */
-	if (cl_arg_wrapper->callback_func)
-		cl_arg_wrapper->callback_func(cl_arg_wrapper->callback_arg);
-}
-
 size_t _starpu_insert_task_get_arg_size(va_list varg_list)
 {
 	int arg_type;
@@ -253,16 +234,6 @@ void _starpu_insert_task_create(void *arg_buffer, size_t arg_buffer_size, struct
 	int arg_type;
 	unsigned current_buffer = 0;
 
-	struct insert_task_cb_wrapper *cl_arg_wrapper = (struct insert_task_cb_wrapper *) malloc(sizeof(struct insert_task_cb_wrapper));
-	STARPU_ASSERT(cl_arg_wrapper);
-
-	cl_arg_wrapper->callback_func = NULL;
-
-	struct insert_task_cb_wrapper *prologue_cl_arg_wrapper = (struct insert_task_cb_wrapper *) malloc(sizeof(struct insert_task_cb_wrapper));
-	STARPU_ASSERT(prologue_cl_arg_wrapper);
-
-	prologue_cl_arg_wrapper->callback_func = NULL;
-
 	while((arg_type = va_arg(varg_list, int)) != 0)
 	{
 		if (arg_type & STARPU_R || arg_type & STARPU_W || arg_type & STARPU_RW || arg_type & STARPU_SCRATCH || arg_type & STARPU_REDUX)
@@ -312,34 +283,24 @@ void _starpu_insert_task_create(void *arg_buffer, size_t arg_buffer_size, struct
 		}
 		else if (arg_type==STARPU_CALLBACK)
 		{
-			void (*callback_func)(void *);
-			callback_func = va_arg(varg_list, _starpu_callback_func_t);
-			cl_arg_wrapper->callback_func = callback_func;
+			(*task)->callback_func = va_arg(varg_list, _starpu_callback_func_t);
 		}
 		else if (arg_type==STARPU_CALLBACK_WITH_ARG)
 		{
-			void (*callback_func)(void *);
-			void *callback_arg;
-			callback_func = va_arg(varg_list, _starpu_callback_func_t);
-			callback_arg = va_arg(varg_list, void *);
-			cl_arg_wrapper->callback_func = callback_func;
-			cl_arg_wrapper->callback_arg = callback_arg;
+			(*task)->callback_func = va_arg(varg_list, _starpu_callback_func_t);
+			(*task)->callback_arg = va_arg(varg_list, void *);
 		}
 		else if (arg_type==STARPU_CALLBACK_ARG)
 		{
-			void *callback_arg = va_arg(varg_list, void *);
-			cl_arg_wrapper->callback_arg = callback_arg;
+			(*task)->callback_arg = va_arg(varg_list, void *);
 		}
 		else if (arg_type==STARPU_PROLOGUE_CALLBACK)
 		{
-			void (*callback_func)(void *);
-			callback_func = va_arg(varg_list, _starpu_callback_func_t);
-			prologue_cl_arg_wrapper->callback_func = callback_func;
+			(*task)->prologue_callback_func = va_arg(varg_list, _starpu_callback_func_t);
 		}
 		else if (arg_type==STARPU_PROLOGUE_CALLBACK_ARG)
 		{
-			void *callback_arg = va_arg(varg_list, void *);
-			prologue_cl_arg_wrapper->callback_arg = callback_arg;
+			(*task)->prologue_callback_arg = va_arg(varg_list, void *);
 		}
 		else if (arg_type==STARPU_PRIORITY)
 		{
@@ -399,15 +360,6 @@ void _starpu_insert_task_create(void *arg_buffer, size_t arg_buffer_size, struct
 	(*task)->cl_arg = arg_buffer;
 	(*task)->cl_arg_size = arg_buffer_size;
 
-	/* The callback will free the argument stack and execute the
-	 * application's callback, if any. */
-	(*task)->callback_func = starpu_task_insert_callback_wrapper;
-	(*task)->callback_arg = cl_arg_wrapper;
-	(*task)->callback_arg_free = 1;
-
-	(*task)->prologue_callback_func = starpu_task_insert_callback_wrapper;
-	(*task)->prologue_callback_arg = prologue_cl_arg_wrapper;
-	(*task)->prologue_callback_arg_free = 1;
 }
 
 int _starpu_insert_task_create_and_submit(void *arg_buffer, size_t arg_buffer_size, struct starpu_codelet *cl, struct starpu_task **task, va_list varg_list)
