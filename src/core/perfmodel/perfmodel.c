@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2015  Université de Bordeaux
+ * Copyright (C) 2009-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  *
@@ -196,11 +196,17 @@ static double starpu_model_expected_perf(struct starpu_task *task, struct starpu
 
 double starpu_task_expected_length(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
+	if (!task->cl)
+		/* Tasks without codelet don't actually take time */
+		return 0.0;
 	return starpu_model_expected_perf(task, task->cl->model, arch, nimpl);
 }
 
 double starpu_task_expected_power(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
+	if (!task->cl)
+		/* Tasks without codelet don't actually take time */
+		return 0.0;
 	return starpu_model_expected_perf(task, task->cl->power_model, arch, nimpl);
 }
 
