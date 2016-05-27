@@ -36,10 +36,10 @@ extern "C"
 
 void starpu_malloc_set_align(size_t align);
 
-int starpu_malloc(void **A, size_t dim);
+int starpu_malloc(void **A, size_t dim) STARPU_ATTRIBUTE_ALLOC_SIZE(2);
 int starpu_free(void *A);
 
-int starpu_malloc_flags(void **A, size_t dim, int flags);
+int starpu_malloc_flags(void **A, size_t dim, int flags) STARPU_ATTRIBUTE_ALLOC_SIZE(2);
 int starpu_free_flags(void *A, size_t dim, int flags);
 
 int starpu_memory_pin(void *addr, size_t size);

@@ -289,7 +289,7 @@ void _starpu_job_init(void);
 void _starpu_job_fini(void);
 
 /* Create an internal struct _starpu_job *structure to encapsulate the task. */
-struct _starpu_job* STARPU_ATTRIBUTE_MALLOC _starpu_job_create(struct starpu_task *task);
+struct _starpu_job* _starpu_job_create(struct starpu_task *task) STARPU_ATTRIBUTE_MALLOC;
 
 /* Destroy the data structure associated to the job structure */
 void _starpu_job_destroy(struct _starpu_job *j);
