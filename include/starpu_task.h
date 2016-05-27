@@ -283,7 +283,7 @@ struct starpu_task *starpu_tag_get_task(starpu_tag_t id);
 void starpu_task_init(struct starpu_task *task);
 void starpu_task_clean(struct starpu_task *task);
 
-struct starpu_task *starpu_task_create(void);
+struct starpu_task *starpu_task_create(void) STARPU_ATTRIBUTE_MALLOC;
 
 void starpu_task_destroy(struct starpu_task *task);
 int starpu_task_submit(struct starpu_task *task) STARPU_WARN_UNUSED_RESULT;

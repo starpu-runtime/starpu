@@ -102,7 +102,7 @@ int starpu_sched_ctx_max_priority_is_set(unsigned sched_ctx_id);
 
 #define STARPU_DEFAULT_PRIO	0
 
-struct starpu_worker_collection *starpu_sched_ctx_create_worker_collection(unsigned sched_ctx_id, enum starpu_worker_collection_type type);
+struct starpu_worker_collection *starpu_sched_ctx_create_worker_collection(unsigned sched_ctx_id, enum starpu_worker_collection_type type) STARPU_ATTRIBUTE_MALLOC;
 
 void starpu_sched_ctx_delete_worker_collection(unsigned sched_ctx_id);
 

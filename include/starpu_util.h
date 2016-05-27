@@ -51,6 +51,7 @@ extern "C"
 #  define STARPU_ATTRIBUTE_WARN_UNUSED_RESULT      __attribute__((warn_unused_result))
 #  define STARPU_ATTRIBUTE_PURE                    __attribute__((pure))
 #  define STARPU_ATTRIBUTE_ALIGNED(size)           __attribute__((aligned(size)))
+#  define STARPU_ATTRIBUTE_FORMAT(type, string, first)                  __attribute__((format(type, string, first)))
 #else
 #  define STARPU_UNLIKELY(expr)          (expr)
 #  define STARPU_LIKELY(expr)            (expr)
@@ -61,6 +62,7 @@ extern "C"
 #  define STARPU_ATTRIBUTE_WARN_UNUSED_RESULT
 #  define STARPU_ATTRIBUTE_PURE
 #  define STARPU_ATTRIBUTE_ALIGNED(size)
+#  define STARPU_ATTRIBUTE_FORMAT(type, string, first)
 #endif
 
 /* Note that if we're compiling C++, then just use the "inline"
@@ -71,6 +73,14 @@ extern "C"
 #  define STARPU_INLINE __inline
 #else
 #  define STARPU_INLINE __inline__
+#endif
+
+#if STARPU_GNUC_PREREQ(4, 3)
+#  define STARPU_ATTRIBUTE_CALLOC_SIZE(num,size)   __attribute__((alloc_size(num,size)))
+#  define STARPU_ATTRIBUTE_ALLOC_SIZE(size)        __attribute__((alloc_size(size)))
+#else
+#  define STARPU_ATTRIBUTE_CALLOC_SIZE(num,size)
+#  define STARPU_ATTRIBUTE_ALLOC_SIZE(size)
 #endif
 
 #if STARPU_GNUC_PREREQ(3, 1) && !defined(BUILDING_STARPU) && !defined(STARPU_USE_DEPRECATED_API) && !defined(STARPU_USE_DEPRECATED_ONE_ZERO_API)

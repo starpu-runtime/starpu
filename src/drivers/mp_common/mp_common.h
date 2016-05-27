@@ -220,7 +220,7 @@ struct _starpu_mp_node
 	void (*free)(const struct _starpu_mp_node *, void *, int);
 };
 
-struct _starpu_mp_node * _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind, int peer_devid);
+struct _starpu_mp_node * _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind, int peer_devid) STARPU_ATTRIBUTE_MALLOC;
 
 void _starpu_mp_common_node_destroy(struct _starpu_mp_node *node);
 

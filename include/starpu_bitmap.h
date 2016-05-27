@@ -23,7 +23,7 @@ extern "C"
 {
 #endif
 
-struct starpu_bitmap *starpu_bitmap_create(void);
+struct starpu_bitmap *starpu_bitmap_create(void) STARPU_ATTRIBUTE_MALLOC;
 void starpu_bitmap_destroy(struct starpu_bitmap *b);
 
 void starpu_bitmap_set(struct starpu_bitmap *b, int e);

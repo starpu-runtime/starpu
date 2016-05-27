@@ -31,7 +31,7 @@ extern "C"
 #include <datawizard/copy_driver.h>
 
 /* interface to manipulate memory disk */
-void * _starpu_disk_alloc (unsigned node, size_t size);
+void * _starpu_disk_alloc (unsigned node, size_t size) STARPU_ATTRIBUTE_MALLOC;
 
 void _starpu_disk_free (unsigned node, void *obj, size_t size);
 /* src_node is a disk node, dst_node is for the moment the STARPU_MAIN_RAM */
