@@ -148,8 +148,6 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 		initial_handle->nchildren = nparts;
 	}
 
-	unsigned nworkers = starpu_worker_get_count();
-
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
 		if (initial_handle->per_node[node].state != STARPU_INVALID)
@@ -283,30 +281,7 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 			f->filter_func(initial_interface, child_interface, f, i, nparts);
 		}
 
-		unsigned worker;
-		for (worker = 0; worker < nworkers; worker++)
-		{
-			struct _starpu_data_replicate *child_replicate;
-			child_replicate = &child->per_worker[worker];
-
-			child_replicate->state = STARPU_INVALID;
-			child_replicate->allocated = 0;
-			child_replicate->automatically_allocated = 0;
-			child_replicate->refcnt = 0;
-			child_replicate->memory_node = starpu_worker_get_memory_node(worker);
-			child_replicate->requested = 0;
-
-			for (node = 0; node < STARPU_MAXNODES; node++)
-			{
-				child_replicate->request[node] = NULL;
-			}
-
-			child_replicate->relaxed_coherency = 1;
-			child_replicate->initialized = 0;
-
-			/* duplicate  the content of the interface on node 0 */
-			memcpy(child_replicate->data_interface, child->per_node[0].data_interface, child->ops->interface_size);
-		}
+		child->per_worker = NULL;
 
 		/* We compute the size and the footprint of the child once and
 		 * store it in the handle */
@@ -410,6 +385,7 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 
 		_starpu_data_unregister_ram_pointer(child_handle);
 
+		if (child_handle->per_worker)
 		for (worker = 0; worker < nworkers; worker++)
 		{
 			struct _starpu_data_replicate *local = &child_handle->per_worker[worker];
