@@ -123,7 +123,7 @@ struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t ha
 							 unsigned handling_node,
 							 enum starpu_data_access_mode mode,
 							 unsigned ndeps,
-							 unsigned is_prefetch);
+							 unsigned is_prefetch) STARPU_ATTRIBUTE_MALLOC;
 
 int _starpu_wait_data_request_completion(struct _starpu_data_request *r, unsigned may_alloc);
 

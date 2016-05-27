@@ -16,7 +16,7 @@
 
 #ifndef __STARPU_BITMAP_H__
 #define __STARPU_BITMAP_H__
-struct starpu_bitmap * starpu_bitmap_create(void);
+struct starpu_bitmap * starpu_bitmap_create(void) STARPU_ATTRIBUTE_MALLOC;
 void starpu_bitmap_destroy(struct starpu_bitmap *);
 
 void starpu_bitmap_set(struct starpu_bitmap *, int);

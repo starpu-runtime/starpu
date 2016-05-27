@@ -38,7 +38,7 @@ struct _starpu_fifo_taskq
 	double exp_len; /* Expected duration of the set of tasks in the queue */
 };
 
-struct _starpu_fifo_taskq*_starpu_create_fifo(void);
+struct _starpu_fifo_taskq*_starpu_create_fifo(void) STARPU_ATTRIBUTE_MALLOC;
 void _starpu_destroy_fifo(struct _starpu_fifo_taskq *fifo);
 
 int _starpu_fifo_empty(struct _starpu_fifo_taskq *fifo);
