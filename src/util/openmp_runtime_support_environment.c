@@ -682,6 +682,10 @@ static void read_omp_environment(void)
 	read_int_var("OMP_DEFAULT_DEVICE", &_initial_icv_values.default_device_var);
 	read_int_var("OMP_MAX_TASK_PRIORITY", &_initial_icv_values.max_task_priority_var);
 
+	/* Avoid overflow e.g. in num_threads_list allocation */
+	STARPU_ASSERT_MSG(_initial_icv_values.max_active_levels_var > 0 && _initial_icv_values.max_active_levels_var < 1000000, "OMP_MAX_ACTIVE_LEVELS should have a reasonable value");
+	/* TODO: check others */
+
 	const int max_levels = _initial_icv_values.max_active_levels_var;
 
 	/* read OMP_PROC_BIND */
