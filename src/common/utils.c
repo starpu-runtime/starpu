@@ -341,10 +341,14 @@ char *_starpu_get_home_path(void)
 	char *path = starpu_getenv("XDG_CACHE_HOME");
 	if (!path)
 		path = starpu_getenv("STARPU_HOME");
+#ifdef _WIN32
 	if (!path)
-		path = starpu_getenv("HOME");
+		path = starpu_getenv("LOCALAPPDATA");
 	if (!path)
 		path = starpu_getenv("USERPROFILE");
+#endif
+	if (!path)
+		path = starpu_getenv("HOME");
 	if (!path)
 	{
 		static int warn;
