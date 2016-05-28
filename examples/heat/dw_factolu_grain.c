@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010-2011, 2014-2015  Université de Bordeaux
+ * Copyright (C) 2009, 2010-2011, 2014-2016  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012  CNRS
  *
@@ -326,7 +326,7 @@ static void dw_factoLU_grain_inner(float *matA, unsigned size, unsigned inner_si
 			tag_array[ind++] = TAG22(maxk-1, i, j, tag_prefix);
 		}
 
-		starpu_tag_wait_array(ndeps_tags, tag_array);
+		starpu_tag_wait_array(ind, tag_array);
 
 		free(tag_array);
 
