@@ -1054,15 +1054,15 @@ int starpu_push_local_task(int workerid, struct starpu_task *task, int prio)
 
 void _starpu_print_idle_time()
 {
+	const char *sched_env = starpu_getenv("STARPU_IDLE_FILE");
+	if(!sched_env)
+		return;
 	double all_idle = 0.0;
 	int i = 0;
 	for(i = 0; i < STARPU_NMAXWORKERS; i++)
 		all_idle += idle[i];
 
 	FILE *f;
-	const char *sched_env = starpu_getenv("STARPU_IDLE_FILE");
-	if(!sched_env)
-		sched_env = "starpu_idle_microsec.log";
 	f = fopen(sched_env, "a");
 	if (!f)
 	{
