@@ -185,7 +185,7 @@ static struct starpu_task *dmda_pop_ready_task(unsigned sched_ctx_id)
 
 	struct starpu_task *task;
 
-	unsigned workerid = _starpu_worker_get_id_check();
+	unsigned workerid = starpu_worker_get_id_check();
 	struct _starpu_fifo_taskq *fifo = dt->queue_array[workerid];
 
 	unsigned node = starpu_worker_get_memory_node(workerid);
@@ -234,7 +234,7 @@ static struct starpu_task *dmda_pop_task(unsigned sched_ctx_id)
 
 	struct starpu_task *task;
 
-	unsigned workerid = _starpu_worker_get_id_check();
+	unsigned workerid = starpu_worker_get_id_check();
 	struct _starpu_fifo_taskq *fifo = dt->queue_array[workerid];
 
 	STARPU_ASSERT_MSG(fifo, "worker %d does not belong to ctx %d anymore.\n", workerid, sched_ctx_id);
@@ -285,7 +285,7 @@ static struct starpu_task *dmda_pop_every_task(unsigned sched_ctx_id)
 
 	struct starpu_task *new_list;
 
-	unsigned workerid = _starpu_worker_get_id_check();
+	unsigned workerid = starpu_worker_get_id_check();
 	struct _starpu_fifo_taskq *fifo = dt->queue_array[workerid];
 
 	starpu_pthread_mutex_t *sched_mutex;
@@ -1059,7 +1059,7 @@ static void deinitialize_dmda_policy(unsigned sched_ctx_id)
 static void dmda_pre_exec_hook(struct starpu_task *task)
 {
 	unsigned sched_ctx_id = starpu_sched_ctx_get_ctx_for_task(task);
-	unsigned workerid = _starpu_worker_get_id_check();
+	unsigned workerid = starpu_worker_get_id_check();
 	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	struct _starpu_fifo_taskq *fifo = dt->queue_array[workerid];
 	double model = task->predicted;
@@ -1172,7 +1172,7 @@ static void dmda_post_exec_hook(struct starpu_task * task)
 {
 	unsigned sched_ctx_id = starpu_sched_ctx_get_ctx_for_task(task);
 	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-	unsigned workerid = _starpu_worker_get_id_check();
+	unsigned workerid = starpu_worker_get_id_check();
 	struct _starpu_fifo_taskq *fifo = dt->queue_array[workerid];
 	starpu_pthread_mutex_t *sched_mutex;
 	starpu_pthread_cond_t *sched_cond;

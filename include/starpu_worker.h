@@ -91,6 +91,9 @@ unsigned starpu_scc_worker_get_count(void);
 unsigned starpu_mic_device_get_count(void);
 
 int starpu_worker_get_id(void);
+unsigned _starpu_worker_get_id_check(const char *f, int l);
+unsigned starpu_worker_get_id_check(void);
+#define starpu_worker_get_id_check() _starpu_worker_get_id_check(__FILE__, __LINE__)
 int starpu_worker_get_bindid(int workerid);
 
 int starpu_combined_worker_get_id(void);

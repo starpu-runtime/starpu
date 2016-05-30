@@ -102,7 +102,7 @@ static struct starpu_task * best_implementation_pull_task(struct starpu_sched_co
 	}
 	if(task)
 		/* this worker can execute this task as it was returned by a pop*/
-		(void)find_best_impl(component->tree->sched_ctx_id, task, _starpu_worker_get_id_check());
+		(void)find_best_impl(component->tree->sched_ctx_id, task, starpu_worker_get_id_check());
 	return task;
 }
 

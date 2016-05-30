@@ -120,7 +120,7 @@ static int is_worker_of_component(struct starpu_sched_component * component, int
 
 static struct starpu_task * pull_task(struct starpu_sched_component * component)
 {
-	unsigned workerid = _starpu_worker_get_id_check();
+	unsigned workerid = starpu_worker_get_id_check();
 	int i;
 	for(i = 0; i < component->nchildren; i++)
 	{

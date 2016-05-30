@@ -525,7 +525,7 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 	struct _starpu_work_stealing_data *ws = (struct _starpu_work_stealing_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
 	struct starpu_task *task;
-	int workerid = _starpu_worker_get_id_check();
+	int workerid = starpu_worker_get_id_check();
 
 	task = ws_pick_task(workerid, workerid, sched_ctx_id);
 	if (task)

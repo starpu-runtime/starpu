@@ -76,7 +76,7 @@ static void parallel_heft_pre_exec_hook(struct starpu_task *task)
 	if (!task->cl || task->execute_on_a_specific_worker)
 		return;
 
-	unsigned workerid = _starpu_worker_get_id_check();
+	unsigned workerid = starpu_worker_get_id_check();
 	double model = task->predicted;
 	double transfer_model = task->predicted_transfer;
 

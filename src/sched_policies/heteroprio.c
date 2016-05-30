@@ -448,7 +448,7 @@ static int push_task_heteroprio_policy(struct starpu_task *task)
 
 static struct starpu_task *pop_task_heteroprio_policy(unsigned sched_ctx_id)
 {
-	const unsigned workerid = _starpu_worker_get_id_check();
+	const unsigned workerid = starpu_worker_get_id_check();
 	struct _starpu_heteroprio_data *hp = (struct _starpu_heteroprio_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	struct _heteroprio_worker_wrapper* worker = &hp->workers_heteroprio[workerid];
 

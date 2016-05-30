@@ -350,7 +350,7 @@ int starpu_sched_component_push_task(struct starpu_sched_component *from STARPU_
 
 struct starpu_task * starpu_sched_tree_pop_task(unsigned sched_ctx)
 {
-	unsigned workerid = _starpu_worker_get_id_check();
+	unsigned workerid = starpu_worker_get_id_check();
 	struct starpu_sched_component * component = starpu_sched_component_worker_get(sched_ctx, workerid);
 
 	/* _starpu_sched_component_lock_worker(workerid) is called by component->pull_task()

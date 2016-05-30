@@ -150,8 +150,8 @@ static struct _starpu_task_grid * _starpu_task_grid_create(void)
 
 static struct _starpu_worker_task_list * _worker_get_list(unsigned sched_ctx_id)
 {
-	unsigned workerid = _starpu_worker_get_id_check();
-	STARPU_ASSERT(workerid < (int) starpu_worker_get_count());
+	unsigned workerid = starpu_worker_get_id_check();
+	STARPU_ASSERT(workerid < starpu_worker_get_count());
 	struct _starpu_worker_component_data * d = starpu_sched_component_worker_get(sched_ctx_id, workerid)->data;
 	return d->list;
 }
@@ -342,7 +342,7 @@ void _starpu_sched_component_unlock_worker(unsigned sched_ctx_id, int workerid)
  */
 static void _starpu_sched_component_worker_lock_scheduling(unsigned sched_ctx_id)
 {
-	unsigned workerid = _starpu_worker_get_id_check();
+	unsigned workerid = starpu_worker_get_id_check();
 	starpu_pthread_mutex_t *sched_mutex;
 	starpu_pthread_cond_t *sched_cond;
 	starpu_worker_get_sched_condition(workerid, &sched_mutex, &sched_cond);
@@ -356,7 +356,7 @@ static void _starpu_sched_component_worker_lock_scheduling(unsigned sched_ctx_id
 
 static void _starpu_sched_component_worker_unlock_scheduling(unsigned sched_ctx_id)
 {
-	unsigned workerid = _starpu_worker_get_id_check();
+	unsigned workerid = starpu_worker_get_id_check();
 	starpu_pthread_mutex_t *sched_mutex;
 	starpu_pthread_cond_t *sched_cond;
 	starpu_worker_get_sched_condition(workerid, &sched_mutex, &sched_cond);
@@ -482,7 +482,7 @@ static int simple_worker_push_task(struct starpu_sched_component * component, st
 
 static struct starpu_task * simple_worker_pull_task(struct starpu_sched_component *component)
 {
-	unsigned workerid = _starpu_worker_get_id_check();
+	unsigned workerid = starpu_worker_get_id_check();
 	struct _starpu_worker_component_data * data = component->data;
 	struct _starpu_worker_task_list * list = data->list;
 	STARPU_PTHREAD_MUTEX_LOCK(&list->mutex);
@@ -640,7 +640,7 @@ static void combined_worker_can_pull(struct starpu_sched_component * component)
 	(void) component;
 	STARPU_ASSERT(starpu_sched_component_is_combined_worker(component));
 	struct _starpu_worker_component_data * data = component->data;
-	unsigned workerid = _starpu_worker_get_id_check();
+	unsigned workerid = starpu_worker_get_id_check();
 	int i;
 	for(i = 0; i < data->combined_worker->worker_size; i++)
 	{

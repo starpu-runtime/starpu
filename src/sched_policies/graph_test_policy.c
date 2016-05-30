@@ -283,7 +283,7 @@ static int push_task_graph_test_policy(struct starpu_task *task)
 static struct starpu_task *pop_task_graph_test_policy(unsigned sched_ctx_id)
 {
 	struct starpu_task *chosen_task = NULL;
-	unsigned workerid = _starpu_worker_get_id_check();
+	unsigned workerid = starpu_worker_get_id_check();
 	struct _starpu_graph_test_policy_data *data = (struct _starpu_graph_test_policy_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	struct _starpu_prio_deque *prio;
 
