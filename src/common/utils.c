@@ -275,6 +275,7 @@ int _starpu_frdunlock(FILE *file)
 #  ifndef _LK_UNLCK
 #    define _LK_UNLCK _LK_UNLOCK
 #  endif
+	ret = _lseek(fileno(file), 0, SEEK_SET);
 	ret = _locking(fileno(file), _LK_UNLCK, 10);
 #else
 	struct flock lock =
@@ -294,6 +295,7 @@ int _starpu_fwrlock(FILE *file)
 {
 	int ret;
 #if defined(_WIN32) && !defined(__CYGWIN__)
+	ret = _lseek(fileno(file), 0, SEEK_SET);
 	do
 	{
 		ret = _locking(fileno(file), _LK_LOCK, 10);
