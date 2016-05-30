@@ -439,7 +439,7 @@ static void simple_worker_can_pull(struct starpu_sched_component * worker_compon
 	if(_starpu_sched_component_worker_is_reset_status(worker_component))
 		_starpu_sched_component_worker_set_changed_status(worker_component);
 
-	if(w->workerid == _starpu_worker_get_id_check())
+	if(w->workerid == _starpu_worker_get_id())
 	{
 		_starpu_sched_component_unlock_worker(worker_component->tree->sched_ctx_id, w->workerid);
 		return;
