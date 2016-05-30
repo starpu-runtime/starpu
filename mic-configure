@@ -84,12 +84,17 @@ do
 	    export CXXLD="icc -mmic"
 	fi
 
-	params="--enable-mic --with-coi-dir=$coi_dir --with-scif-dir=$scif_dir --prefix=$prefix/$arch"
+	params="--prefix=$prefix/$arch"
+
+	if [ "$native_mic" -eq "0" ]
+	then
+	    params="$params --enable-mic --with-coi-dir=$coi_dir --with-scif-dir=$scif_dir"
+	fi
 
 	if test x$arch = xmic ; then
 	    if [ "$native_mic" -eq "1" ]
 	    then
-		params="$params --disable-build-doc --with-coi-lib-dir=$coi_dir/device-linux-release/lib --with-scif-lib-dir=$scif_dir/device-linux-release/lib --host=$mic_host --enable-maxcpus=250"
+		params="$params --disable-build-doc --host=$mic_host --enable-maxcpus=250"
 	    else
 		params="$params --disable-build-doc --with-coi-lib-dir=$coi_dir/device-linux-release/lib --with-scif-lib-dir=$scif_dir/device-linux-release/lib --host=$mic_host"
 	    fi
