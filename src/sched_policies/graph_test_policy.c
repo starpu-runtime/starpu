@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2016  Université de Bordeaux
- * Copyright (C) 2010-2013  CNRS
+ * Copyright (C) 2010-2013, 2016  CNRS
  * Copyright (C) 2011  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -34,6 +34,7 @@
 #include <common/thread.h>
 #include <starpu_bitmap.h>
 #include <core/task.h>
+#include <core/workers.h>
 
 struct _starpu_graph_test_policy_data
 {
@@ -282,7 +283,7 @@ static int push_task_graph_test_policy(struct starpu_task *task)
 static struct starpu_task *pop_task_graph_test_policy(unsigned sched_ctx_id)
 {
 	struct starpu_task *chosen_task = NULL;
-	unsigned workerid = starpu_worker_get_id();
+	unsigned workerid = _starpu_worker_get_id_check();
 	struct _starpu_graph_test_policy_data *data = (struct _starpu_graph_test_policy_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	struct _starpu_prio_deque *prio;
 

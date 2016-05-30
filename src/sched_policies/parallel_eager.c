@@ -3,6 +3,7 @@
  * Copyright (C) 2011-2016  Université de Bordeaux
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2011-2013  INRIA
+ * Copyright (C) 2016       CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -181,7 +182,7 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 {
 	struct _starpu_peager_data *data = (struct _starpu_peager_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
-	int workerid = starpu_worker_get_id();
+	unsigned workerid = _starpu_worker_get_id_check();
 
 	/* If this is not a CPU or a MIC, then the worker simply grabs tasks from the fifo */
 	if (starpu_worker_get_type(workerid) != STARPU_CPU_WORKER && starpu_worker_get_type(workerid) != STARPU_MIC_WORKER)

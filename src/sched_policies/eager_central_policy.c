@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2016  Université de Bordeaux
- * Copyright (C) 2010-2013  CNRS
+ * Copyright (C) 2010-2013, 2016  CNRS
  * Copyright (C) 2011  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -25,6 +25,7 @@
 #include <sched_policies/fifo_queues.h>
 #include <common/thread.h>
 #include <starpu_bitmap.h>
+#include <core/workers.h>
 
 struct _starpu_eager_center_policy_data
 {
@@ -136,7 +137,7 @@ static int push_task_eager_policy(struct starpu_task *task)
 static struct starpu_task *pop_every_task_eager_policy(unsigned sched_ctx_id)
 {
 	struct _starpu_eager_center_policy_data *data = (struct _starpu_eager_center_policy_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-	int workerid = starpu_worker_get_id();;
+	unsigned workerid = _starpu_worker_get_id_check();
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 	struct starpu_task* task = _starpu_fifo_pop_every_task(data->fifo, workerid);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
@@ -149,7 +150,7 @@ static struct starpu_task *pop_every_task_eager_policy(unsigned sched_ctx_id)
 static struct starpu_task *pop_task_eager_policy(unsigned sched_ctx_id)
 {
 	struct starpu_task *chosen_task = NULL;
-	unsigned workerid = starpu_worker_get_id();
+	unsigned workerid = _starpu_worker_get_id_check();
 	struct _starpu_eager_center_policy_data *data = (struct _starpu_eager_center_policy_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
 	/* block until some event happens */
@@ -199,7 +200,7 @@ static void eager_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nw
 	for (i = 0; i < nworkers; i++)
 	{
 		workerid = workerids[i];
-		int curr_workerid = starpu_worker_get_id();
+		unsigned curr_workerid = _starpu_worker_get_id_check();
 		if(workerid != curr_workerid)
 			starpu_wake_worker(workerid);
 

@@ -3,6 +3,7 @@
  * Copyright (C) 2012 INRIA
  * Copyright (C) 2010-2016  Université de Bordeaux
  * Copyright (C) 2011  Télécom-SudParis
+ * Copyright (C) 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -75,7 +76,7 @@ static void parallel_heft_pre_exec_hook(struct starpu_task *task)
 	if (!task->cl || task->execute_on_a_specific_worker)
 		return;
 
-	int workerid = starpu_worker_get_id();
+	unsigned workerid = _starpu_worker_get_id_check();
 	double model = task->predicted;
 	double transfer_model = task->predicted_transfer;
 

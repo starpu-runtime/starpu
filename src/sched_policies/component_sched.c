@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2013  INRIA
  * Copyright (C) 2013  Simon Archipoff
+ * Copyright (C) 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -349,7 +350,7 @@ int starpu_sched_component_push_task(struct starpu_sched_component *from STARPU_
 
 struct starpu_task * starpu_sched_tree_pop_task(unsigned sched_ctx)
 {
-	int workerid = starpu_worker_get_id();
+	unsigned workerid = _starpu_worker_get_id_check();
 	struct starpu_sched_component * component = starpu_sched_component_worker_get(sched_ctx, workerid);
 
 	/* _starpu_sched_component_lock_worker(workerid) is called by component->pull_task()

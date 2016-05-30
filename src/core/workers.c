@@ -1686,6 +1686,13 @@ int starpu_worker_get_id(void)
 }
 #define starpu_worker_get_id _starpu_worker_get_id
 
+unsigned _starpu_worker_get_id_check(void)
+{
+	int id = starpu_worker_get_id();
+	STARPU_ASSERT_MSG(id>=0, "Cannot be called from outside a worker\n");
+	return id;
+}
+
 int starpu_combined_worker_get_id(void)
 {
 	struct _starpu_worker *worker;

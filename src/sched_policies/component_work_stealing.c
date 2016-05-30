@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2013  INRIA
+ * Copyright (C) 2013  CNRS
  * Copyright (C) 2013  Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -15,11 +16,12 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <float.h>
+
 #include <starpu_sched_component.h>
 #include <starpu_scheduler.h>
 #include <starpu.h>
-
-#include <float.h>
+#include <core/workers.h>
 
 #include "prio_deque.h"
 
@@ -30,7 +32,7 @@ struct _starpu_work_stealing_data
  */
 	unsigned performed_total, last_pop_child, last_push_child;
 
-	struct _starpu_prio_deque ** fifos;	
+	struct _starpu_prio_deque ** fifos;
 	starpu_pthread_mutex_t ** mutexes;
 	int size;
 };
@@ -70,7 +72,7 @@ static struct starpu_task *  steal_task_round_robin(struct starpu_sched_componen
 			return NULL;
 		}
 		i = (i + 1) % component->nchildren;
-	
+
 	}
 	return task;
 }
@@ -118,7 +120,7 @@ static int is_worker_of_component(struct starpu_sched_component * component, int
 
 static struct starpu_task * pull_task(struct starpu_sched_component * component)
 {
-	int workerid = starpu_worker_get_id();
+	unsigned workerid = _starpu_worker_get_id_check();
 	int i;
 	for(i = 0; i < component->nchildren; i++)
 	{
@@ -145,7 +147,7 @@ static struct starpu_task * pull_task(struct starpu_sched_component * component)
 	{
 		return task;
 	}
-	
+
 	task  = steal_task(component, workerid);
 	if(task)
 	{
@@ -213,7 +215,7 @@ double _ws_estimated_load(struct starpu_sched_component * component)
 	{
 		speedup += starpu_worker_get_relative_speedup(starpu_worker_get_perf_archtype(workerid, component->tree->sched_ctx_id));
 	}
-	
+
 	return ntasks / speedup;
 }
 
@@ -256,14 +258,14 @@ int starpu_sched_tree_work_stealing_push_task(struct starpu_task *task)
 				if(is_worker_of_component(component->children[i], workerid))
 					break;
 			STARPU_ASSERT(i < component->nchildren);
-			
+
 			struct _starpu_work_stealing_data * wsd = component->data;
 			STARPU_PTHREAD_MUTEX_LOCK(wsd->mutexes[i]);
 			int ret = _starpu_prio_deque_push_task(wsd->fifos[i] , task);
 			if(ret == 0 && !isnan(task->predicted))
 				wsd->fifos[i]->exp_len += task->predicted;
 			STARPU_PTHREAD_MUTEX_UNLOCK(wsd->mutexes[i]);
-			
+
 			//we need to wake all workers
 			component->can_pull(component);
 			return ret;
@@ -313,7 +315,7 @@ void _ws_remove_child(struct starpu_sched_component * component, struct starpu_s
 	struct _starpu_prio_deque * tmp_fifo = wsd->fifos[i_component];
 	wsd->fifos[i_component] = wsd->fifos[component->nchildren - 1];
 
-	
+
 	component->children[i_component] = component->children[component->nchildren - 1];
 	component->nchildren--;
 	struct starpu_task * task;

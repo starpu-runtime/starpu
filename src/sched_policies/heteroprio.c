@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2015  INRIA
+ * Copyright (C) 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -22,6 +23,7 @@
 
 #include <common/fxt.h>
 #include <core/task.h>
+#include <core/workers.h>
 
 #include <sched_policies/fifo_queues.h>
 #include <limits.h>
@@ -446,7 +448,7 @@ static int push_task_heteroprio_policy(struct starpu_task *task)
 
 static struct starpu_task *pop_task_heteroprio_policy(unsigned sched_ctx_id)
 {
-	const unsigned workerid = starpu_worker_get_id();
+	const unsigned workerid = _starpu_worker_get_id_check();
 	struct _starpu_heteroprio_data *hp = (struct _starpu_heteroprio_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	struct _heteroprio_worker_wrapper* worker = &hp->workers_heteroprio[workerid];
 
