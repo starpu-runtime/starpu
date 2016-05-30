@@ -200,7 +200,7 @@ static void eager_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nw
 	for (i = 0; i < nworkers; i++)
 	{
 		workerid = workerids[i];
-		unsigned curr_workerid = _starpu_worker_get_id_check();
+		int curr_workerid = _starpu_worker_get_id();
 		if(workerid != curr_workerid)
 			starpu_wake_worker(workerid);
 
