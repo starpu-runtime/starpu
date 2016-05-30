@@ -23,6 +23,14 @@ for the host and for the mic, one can use <c>--with-host-param=--with-fxt</c>
 for instance to specify the <c>--with-fxt</c> option for the host only, or
 <c>--with-mic-param=--with-fxt</c> for the mic only.
 
+One can also run StarPU just natively on the Xeon Phi, i.e. it will only run
+directly on the Phi without any exchange with the host CPU. The binaries in
+<c>build_mic</c> can be run that way.
+
+In case you have troubles with the coi or scif libraries (the Intel paths are
+really not standard, it seems...), you can still make a build in native mode
+only, by using <c>mic-configure --enable-native-mic</c>
+
 \section PortingApplicationsToMICSCC Porting Applications To MIC Xeon Phi / SCC
 
 The simplest way to port an application to MIC Xeon Phi or SCC is to set the field
