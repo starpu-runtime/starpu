@@ -48,7 +48,7 @@ void opencl_codelet(void *descr[], void *_args)
 
 		err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, &local, 0, NULL, NULL);
 		if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
-
-		starpu_opencl_release_kernel(kernel);
 	}
+
+	starpu_opencl_release_kernel(kernel);
 }
