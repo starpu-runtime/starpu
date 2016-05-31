@@ -233,9 +233,6 @@ Changes:
 Small changes:
   * Rename function starpu_trace_user_event() as
     starpu_fxt_trace_user_event()
-  * Functions starpu_task_wait_for_all_in_ctx() and
-    starpu_task_wait_for_all() return the number of tasks that have
-    been waited for.
 
 StarPU 1.1.5 (svn revision xxx)
 ==============================================
