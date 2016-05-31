@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010, 2014-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -148,6 +148,9 @@ int exchange_void(int rank, int detached)
 {
 	int ret, i;
 	starpu_data_handle_t tab_handle[NB];
+
+	// This test is not run with valgrind as valgrind falsely detects error when exchanging NULL pointers
+	STARPU_SKIP_IF_VALGRIND_RETURN_0;
 
 	FPRINTF_MPI(stderr, "Exchanging void data with detached=%d\n", detached);
 
