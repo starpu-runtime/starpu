@@ -1299,13 +1299,16 @@ if test x$enable_mic = xyes ; then
 	AC_MSG_ERROR([cannot find MIC's SCIF runtime])
     fi
 
-    STARPU_CHECK_COI_RUNTIME($coi_dir, $coi_include_dir, $coi_lib_dir, coi_host)
-
-    # Host runtime is not compatible, we are probably cross-compiling
-    # Let's have a look for the device runtime which lib has a different name
-    if test "$have_valid_coi" = "no" ; then
+    case $host_vendor in
+	*1om)
+	    # We are cross-compiling.
+	    # Let's have a look for the device runtime which lib has a different name
 	    STARPU_CHECK_COI_RUNTIME($coi_dir, $coi_include_dir, $coi_lib_dir, coi_device)
-    fi
+	    ;;
+	*)
+	    STARPU_CHECK_COI_RUNTIME($coi_dir, $coi_include_dir, $coi_lib_dir, coi_host)
+	    ;;
+    esac
 
     if test "$have_valid_coi" = "no" ; then
 	AC_MSG_ERROR([cannot find MIC's COI runtime])
