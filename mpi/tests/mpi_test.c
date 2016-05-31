@@ -26,12 +26,11 @@
 
 #define SIZE	16
 
-float *tab;
-starpu_data_handle_t tab_handle;
-
 int main(int argc, char **argv)
 {
 	int ret, rank, size;
+	float *tab;
+	starpu_data_handle_t tab_handle;
 
 	MPI_Init(&argc, &argv);
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
