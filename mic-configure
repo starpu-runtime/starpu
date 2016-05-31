@@ -82,6 +82,8 @@ do
 	    export CXX="icc -mmic"
 	    export LD="icc -mmic"
 	    export CXXLD="icc -mmic"
+	    export F77="ifort -mmic"
+	    export FC="ifort -mmic"
 	fi
 
 	params="--prefix=$prefix/$arch"
