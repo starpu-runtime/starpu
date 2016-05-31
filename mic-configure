@@ -77,13 +77,23 @@ do
 		*) command="../${ROOT_DIR}/configure";;
 	esac
 
-	if [ $compiler = "icc" -a "$arch" = "mic" ] ; then
-	    export CC="icc -mmic"
-	    export CXX="icc -mmic"
-	    export LD="icc -mmic"
-	    export CXXLD="icc -mmic"
-	    export F77="ifort -mmic"
-	    export FC="ifort -mmic"
+	if [ "$arch" = mic ] ; then
+		if [ $compiler = "icc" ] ; then
+		    export CC="icc -mmic"
+		    export CXX="icc -mmic"
+		    export LD="icc -mmic"
+		    export CXXLD="icc -mmic"
+		    export F77="ifort -mmic"
+		    export FC="ifort -mmic"
+		else
+		    # let configure auto-detect GNU cross-building tools
+		    unset CC
+		    unset CXX
+		    unset LD
+		    unset CXXLD
+		    unset F77
+		    unset FC
+		fi
 	fi
 
 	params="--prefix=$prefix/$arch"
