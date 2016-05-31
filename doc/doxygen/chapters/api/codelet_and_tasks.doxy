@@ -808,14 +808,13 @@ created automatically by StarPU.
 \ingroup API_Codelet_And_Tasks
 This function blocks until all the tasks that were submitted (to the
 current context or the global one if there aren't any) are terminated.
-It does not destroy these tasks. It returns the number of tasks that
-have been waited for.
+It does not destroy these tasks.
 
 \fn int starpu_task_wait_for_all_in_ctx(unsigned sched_ctx_id)
 \ingroup API_Codelet_And_Tasks
 This function waits until all the tasks
 that were already submitted to the context \p sched_ctx_id have been
-executed. It returns the number of tasks that have been waited for.
+executed.
 
 \fn int starpu_task_wait_for_n_submitted(unsigned n)
 \ingroup API_Codelet_And_Tasks
