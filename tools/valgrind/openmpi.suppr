@@ -278,3 +278,157 @@
    fun:PMPI_Comm_split
    fun:main
 }
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:orte_grpcomm_base_update_modex_entries
+   fun:orte_grpcomm_base_modex_unpack
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   fun:opal_event_base_loop
+   fun:opal_progress
+   obj:*
+   fun:ompi_modex_recv_key_value
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   obj:/usr/lib/openmpi/lib/libmpi.so.1.0.8
+   fun:orte_grpcomm_base_update_modex_entries
+   fun:orte_grpcomm_base_modex_unpack
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   fun:opal_event_base_loop
+   fun:opal_progress
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: indirect
+   fun:malloc
+   fun:orte_grpcomm_base_update_modex_entries
+   fun:orte_grpcomm_base_modex_unpack
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   fun:opal_event_base_loop
+   fun:opal_progress
+   obj:*
+   fun:ompi_modex_recv_key_value
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: indirect
+   fun:malloc
+   obj:/usr/lib/openmpi/lib/libmpi.so.1.0.8
+   fun:orte_grpcomm_base_update_modex_entries
+   fun:orte_grpcomm_base_modex_unpack
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   fun:opal_event_base_loop
+   fun:opal_progress
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:lt__malloc
+   fun:lt__zalloc
+   obj:/usr/lib/x86_64-linux-gnu/libltdl.so.7.3.0
+   fun:lt_dlopenadvise
+   obj:/usr/lib/x86_64-linux-gnu/hwloc/hwloc_cuda.so
+   obj:/usr/lib/x86_64-linux-gnu/hwloc/hwloc_cuda.so
+   obj:/usr/lib/x86_64-linux-gnu/libhwloc.so.5.6.8
+   fun:hwloc_topology_init
+   fun:opal_hwloc_unpack
+   fun:opal_dss_unpack_buffer
+   fun:opal_dss_unpack
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:strdup
+   obj:/usr/lib/x86_64-linux-gnu/libhwloc.so.5.6.8
+   obj:/usr/lib/x86_64-linux-gnu/libltdl.so.7.3.0
+   obj:/usr/lib/x86_64-linux-gnu/libltdl.so.7.3.0
+   fun:lt_dlforeachfile
+   obj:/usr/lib/x86_64-linux-gnu/libhwloc.so.5.6.8
+   obj:/usr/lib/x86_64-linux-gnu/libhwloc.so.5.6.8
+   fun:hwloc_topology_init
+   fun:opal_hwloc_unpack
+   fun:opal_dss_unpack_buffer
+   fun:opal_dss_unpack
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libhwloc.so.5.6.8
+   obj:/usr/lib/x86_64-linux-gnu/libltdl.so.7.3.0
+   obj:/usr/lib/x86_64-linux-gnu/libltdl.so.7.3.0
+   fun:lt_dlforeachfile
+   obj:/usr/lib/x86_64-linux-gnu/libhwloc.so.5.6.8
+   obj:/usr/lib/x86_64-linux-gnu/libhwloc.so.5.6.8
+   fun:hwloc_topology_init
+   fun:opal_hwloc_unpack
+   fun:opal_dss_unpack_buffer
+   fun:opal_dss_unpack
+   fun:orte_util_nidmap_init
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:opal_dss_unpack_string
+   fun:opal_dss_unpack_buffer
+   fun:opal_dss_unpack
+   fun:orte_grpcomm_base_update_modex_entries
+   fun:orte_grpcomm_base_modex_unpack
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   fun:opal_event_base_loop
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: indirect
+   fun:malloc
+   fun:strdup
+   fun:orte_grpcomm_base_update_modex_entries
+   fun:orte_grpcomm_base_modex_unpack
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   fun:opal_event_base_loop
+   fun:opal_progress
+   obj:*
+}
