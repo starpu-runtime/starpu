@@ -209,6 +209,9 @@ Small changes:
     STARPU_NMICDEVS, the number of devices and the number of cores.
     STARPU_NMIC will be the number of devices, and STARPU_NMICCORES
     will be the number of cores per device.
+  * Functions starpu_task_wait_for_all_in_ctx() and
+    starpu_task_wait_for_all() return the number of tasks that have
+    been waited for.
 
 StarPU 1.1.5 (svn revision xxx)
 ==============================================

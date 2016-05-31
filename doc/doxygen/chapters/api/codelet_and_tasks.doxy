@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
  * Copyright (C) 2011, 2012 INRIA
  * See the file version.doxy for copying conditions.
  */
@@ -806,14 +806,16 @@ created automatically by StarPU.
 
 \fn int starpu_task_wait_for_all(void)
 \ingroup API_Codelet_And_Tasks
-This function blocks until all the tasks that were submitted
-(to the current context or the global one if there aren't any) are
-terminated. It does not destroy these tasks.
+This function blocks until all the tasks that were submitted (to the
+current context or the global one if there aren't any) are terminated.
+It does not destroy these tasks. It returns the number of tasks that
+have been waited for.
 
 \fn int starpu_task_wait_for_all_in_ctx(unsigned sched_ctx_id)
 \ingroup API_Codelet_And_Tasks
-This function waits until all the tasks that were already
-submitted to the context \p sched_ctx_id have been executed
+This function waits until all the tasks
+that were already submitted to the context \p sched_ctx_id have been
+executed. It returns the number of tasks that have been waited for.
 
 \fn int starpu_task_wait_for_n_submitted(unsigned n)
 \ingroup API_Codelet_And_Tasks

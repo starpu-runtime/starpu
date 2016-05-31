@@ -36,13 +36,15 @@ int _starpu_barrier_counter_destroy(struct _starpu_barrier_counter *barrier_c)
 int _starpu_barrier_counter_wait_for_empty_counter(struct _starpu_barrier_counter *barrier_c)
 {
 	struct _starpu_barrier *barrier = &barrier_c->barrier;
+	int ret;
 	STARPU_PTHREAD_MUTEX_LOCK(&barrier->mutex);
 
+	ret = barrier->reached_start;
 	while (barrier->reached_start > 0)
 		STARPU_PTHREAD_COND_WAIT(&barrier->cond, &barrier->mutex);
 
 	STARPU_PTHREAD_MUTEX_UNLOCK(&barrier->mutex);
-	return 0;
+	return ret;
 }
 
 int _starpu_barrier_counter_wait_until_counter_reaches_down_to_n(struct _starpu_barrier_counter *barrier_c, unsigned n)

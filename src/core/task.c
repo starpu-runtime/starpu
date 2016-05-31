@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2011, 2014  INRIA
  *
@@ -840,11 +840,12 @@ int starpu_task_wait_for_all(void)
 		if(config->topology.nsched_ctxs == 1)
 		{
 			_starpu_sched_do_schedule(0);
-			starpu_task_wait_for_all_in_ctx(0);
+			return starpu_task_wait_for_all_in_ctx(0);
 		}
 		else
 		{
 			int s;
+			int ret = 0;
 			for(s = 0; s < STARPU_NMAX_SCHED_CTXS; s++)
 			{
 				if(config->sched_ctxs[s].id != STARPU_NMAX_SCHED_CTXS)
@@ -856,12 +857,11 @@ int starpu_task_wait_for_all(void)
 			{
 				if(config->sched_ctxs[s].id != STARPU_NMAX_SCHED_CTXS)
 				{
-					starpu_task_wait_for_all_in_ctx(config->sched_ctxs[s].id);
+					ret += starpu_task_wait_for_all_in_ctx(config->sched_ctxs[s].id);
 				}
 			}
+			return ret;
 		}
-
-		return 0;
 	}
 	else
 	{
@@ -873,14 +873,16 @@ int starpu_task_wait_for_all(void)
 
 int starpu_task_wait_for_all_in_ctx(unsigned sched_ctx)
 {
+	int ret;
+
 	_STARPU_TRACE_TASK_WAIT_FOR_ALL_START();
-	_starpu_wait_for_all_tasks_of_sched_ctx(sched_ctx);
+	ret = _starpu_wait_for_all_tasks_of_sched_ctx(sched_ctx);
 	_STARPU_TRACE_TASK_WAIT_FOR_ALL_END();
 #ifdef HAVE_AYUDAME_H
 	/* TODO: improve Temanejo into knowing about contexts ... */
 	if (AYU_event) AYU_event(AYU_BARRIER, 0, NULL);
 #endif
-	return 0;
+	return ret;
 }
 
 /*
@@ -1183,7 +1185,7 @@ static void *watchdog_func(void *arg)
 	timeout = ((float) atoll(timeout_env)) / 1000000;
 #endif
 	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
-	
+
 	STARPU_PTHREAD_MUTEX_LOCK(&config->submitted_mutex);
 	while (_starpu_machine_is_running())
 	{
