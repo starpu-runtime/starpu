@@ -695,9 +695,11 @@ int starpu_mpi_wait(starpu_mpi_req *public_req, MPI_Status *status)
 	*public_req = NULL;
 	if (req->internal_req)
 	{
-		free(req->internal_req); req->internal_req = NULL;
+		free(req->internal_req);
+		req->internal_req = NULL;
 	}
 	free(req);
+	req=NULL;
 
 	free(waiting_req);
 	_STARPU_MPI_LOG_OUT();
@@ -788,12 +790,15 @@ int starpu_mpi_test(starpu_mpi_req *public_req, int *flag, MPI_Status *status)
 			*public_req = NULL;
 			if (req->internal_req)
 			{
-				free(req->internal_req); req->internal_req = NULL;
+				free(req->internal_req);
+				req->internal_req = NULL;
 			}
 			free(req);
+			req = NULL;
 		}
 
 		free(testing_req);
+		testing_req=NULL;
 	}
 	else
 	{
@@ -971,8 +976,11 @@ static void _starpu_mpi_early_data_cb(void* arg)
 
 	// We store in the application request the internal MPI
 	// request so that it can be used by starpu_mpi_wait
-	args->req->data_request = args->req->internal_req->data_request;
-	args->req->submitted = 1;
+	if (args->req)
+	{
+		args->req->data_request = args->req->internal_req->data_request;
+		args->req->submitted = 1;
+	}
 
 	if (args->buffer)
 	{
@@ -1010,12 +1018,17 @@ static void _starpu_mpi_early_data_cb(void* arg)
 	_STARPU_MPI_DEBUG(3, "Done, handling request %p termination of the already received request\n",args->req);
 	// If the request is detached, we need to call _starpu_mpi_handle_request_termination
 	// as it will not be called automatically as the request is not in the list detached_requests
-	if (args->req->detached)
+	if (args->req && args->req->detached)
+	{
 		_starpu_mpi_handle_request_termination(args->req);
+		free(args->req);
+		args->req = NULL;
+	}
 	// else: If the request is not detached its termination will
 	// be handled when calling starpu_mpi_wait
 
 	free(args);
+	args = NULL;
 }
 
 #ifdef STARPU_MPI_ACTIVITY
@@ -1073,6 +1086,7 @@ static void _starpu_mpi_test_detached_requests(void)
 				_STARPU_MPI_TRACE_ISEND_COMPLETE_BEGIN(req->node_tag.rank, req->node_tag.data_tag, 0);
 			}
 
+			_starpu_mpi_req_list_erase(detached_requests, req);
 			_starpu_mpi_handle_request_termination(req);
 
 			if (req->request_type == RECV_REQ)
@@ -1083,20 +1097,15 @@ static void _starpu_mpi_test_detached_requests(void)
 			{
 				_STARPU_MPI_TRACE_ISEND_COMPLETE_END(req->node_tag.rank, req->node_tag.data_tag, 0);
 			}
+
+			if (req->is_internal_req == 0)
+			{
+				free(req);
+				req = NULL;
+			}
 		}
 
 		STARPU_PTHREAD_MUTEX_LOCK(&detached_requests_mutex);
-
-		if (flag)
-		{
-			_starpu_mpi_req_list_erase(detached_requests, req);
-#ifdef STARPU_DEVEL
-#warning FIXME: when do we free internal requests
-#endif
-			if (!req->is_internal_req)
-				free(req);
-		}
-
 	}
 
 	STARPU_PTHREAD_MUTEX_UNLOCK(&detached_requests_mutex);
