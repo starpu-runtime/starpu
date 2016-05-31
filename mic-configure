@@ -92,11 +92,12 @@ do
 	fi
 
 	if test x$arch = xmic ; then
+	    params="$params --disable-build-doc --host=$mic_host"
 	    if [ "$native_mic" -eq "1" ]
 	    then
-		params="$params --disable-build-doc --host=$mic_host --enable-maxcpus=250"
+		params="$params --enable-maxcpus=250"
 	    else
-		params="$params --disable-build-doc --with-coi-lib-dir=$coi_dir/device-linux-release/lib --with-scif-lib-dir=$scif_dir/device-linux-release/lib --host=$mic_host"
+		params="$params --with-coi-lib-dir=$coi_dir/device-linux-release/lib --with-scif-lib-dir=$scif_dir/device-linux-release/lib"
 	    fi
 	else
 		params="$params --with-coi-lib-dir=$coi_dir/host-linux-release/lib --with-scif-lib-dir=$scif_dir/host-linux-release/lib"
