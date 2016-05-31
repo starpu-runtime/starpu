@@ -29,6 +29,11 @@ One can also run StarPU just natively on the Xeon Phi, i.e. it will only run
 directly on the Phi without any exchange with the host CPU. The binaries in
 <c>build_mic</c> can be run that way.
 
+For MPI support, you will probably have to specify different MPI compiler path
+or option for the host and the device builds, for instance:
+
+<c>./mic-configure --with-mic-param=--with-mpicc="/.../mpiicc -mmic" --with-mic-param=--with-mpicc=/.../mpiicc</c>
+
 In case you have troubles with the coi or scif libraries (the Intel paths are
 really not standard, it seems...), you can still make a build in native mode
 only, by using <c>mic-configure --enable-native-mic</c> (and notably without

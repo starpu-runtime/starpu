@@ -1118,9 +1118,11 @@ fi
 #                                                                             #
 ###############################################################################
 
-# ignore --enable-native-mic, only meant for mic-configure, but also passed
-# here.
-AC_ARG_ENABLE(native-mic, , , )
+# ignore these otions, only meant for mic-configure, but also passed here.
+AC_ARG_ENABLE(native-mic)
+AC_ARG_WITH(compiler)
+AC_ARG_WITH(mic-param)
+AC_ARG_WITH(host-param)
 
 AC_MSG_CHECKING(maximum number of MIC devices)
 AC_ARG_ENABLE(maxmicdev, [AS_HELP_STRING([--enable-maxmicdev=<number>],
