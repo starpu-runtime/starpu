@@ -191,10 +191,7 @@ int main(int argc, char **argv)
 	{
 		if (handles[x]) starpu_data_unregister(handles[x]);
 	}
-	if (dot_handle)
-	{
-		starpu_data_unregister(dot_handle);
-	}
+	starpu_data_unregister(dot_handle);
 	free(vector);
 	free(handles);
 
