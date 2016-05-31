@@ -31,7 +31,8 @@ directly on the Phi without any exchange with the host CPU. The binaries in
 
 In case you have troubles with the coi or scif libraries (the Intel paths are
 really not standard, it seems...), you can still make a build in native mode
-only, by using <c>mic-configure --enable-native-mic</c>
+only, by using <c>mic-configure --enable-native-mic</c> (and notably without
+<c>--enable-mic</c> since in that case we don't need mic offloading support).
 
 \section PortingApplicationsToMICSCC Porting Applications To MIC Xeon Phi / SCC
 
