@@ -467,7 +467,6 @@
    fun:_starpu_mpi_handle_ready_request
    fun:_starpu_mpi_progress_thread_func
    fun:start_thread
-   fun:clone
 }
 {
    <insert_a_suppression_name_here>
@@ -483,7 +482,6 @@
    fun:_starpu_mpi_handle_ready_request
    fun:_starpu_mpi_progress_thread_func
    fun:start_thread
-   fun:clone
 }
 {
    <insert_a_suppression_name_here>
@@ -498,7 +496,6 @@
    fun:_starpu_mpi_handle_ready_request
    fun:_starpu_mpi_progress_thread_func
    fun:start_thread
-   fun:clone
 }
 {
    <insert_a_suppression_name_here>
@@ -512,5 +509,37 @@
    fun:_starpu_mpi_handle_ready_request
    fun:_starpu_mpi_progress_thread_func
    fun:start_thread
-   fun:clone
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr8
+   fun:memcpy@@GLIBC_2.14
+   fun:opal_convertor_pack
+   ...
+   fun:PMPI_Isend
+   fun:_starpu_mpi_isend_size_func
+   fun:_starpu_mpi_handle_ready_request
+   fun:_starpu_mpi_progress_thread_func
+   fun:start_thread
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr2
+   fun:memcpy@@GLIBC_2.14
+   fun:opal_convertor_pack
+   ...
+   fun:PMPI_Isend
+   fun:_starpu_mpi_isend_data_func
+   fun:_starpu_mpi_isend_size_func
+   fun:_starpu_mpi_handle_ready_request
+   fun:_starpu_mpi_progress_thread_func
+   fun:start_thread
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr8
+   fun:_starpu_mpi_isend_size_func
+   fun:_starpu_mpi_handle_ready_request
+   fun:_starpu_mpi_progress_thread_func
+   fun:start_thread
 }
