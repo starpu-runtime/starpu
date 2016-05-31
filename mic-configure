@@ -15,7 +15,7 @@ mic_host="x86_64-k1om-linux"
 host_params=""
 mic_params=""
 native_mic=0
-for arg in $*
+for arg in "$@"
 do
 	case $arg in
 		--prefix=*)
@@ -116,9 +116,9 @@ do
 		C_INCLUDE_PATH=$SINK_C_INCLUDE_PATH \
 		CPLUS_INCLUDE_PATH=$SINK_CPLUS_INCLUDE_PATH \
 		PKG_CONFIG_PATH=$SINK_PKG_CONFIG_PATH \
-		$command $* $params $mic_params
+		$command "$@" $params $mic_params
 	else
-		$command $* $params $host_params
+		$command "$@" $params $host_params
 	fi
 	if [ "$?" != 0 ]
 	then
