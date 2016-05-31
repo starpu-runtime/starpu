@@ -39,7 +39,7 @@ struct starpu_codelet cl =
 	.modes = {STARPU_RW}
 };
 
-int compute(char *file_name, int load_as_file)
+int compute(char *file_name, int load_as_file, int with_malloc)
 {
 	float float_array[4] STARPU_ATTRIBUTE_ALIGNED(16) = { 0.0f, 0.0f, 0.0f, 0.0f};
 	starpu_data_handle_t float_array_handle;
@@ -60,6 +60,20 @@ int compute(char *file_name, int load_as_file)
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_compile_opencl_from_file");
 		ret = starpu_opencl_load_binary_opencl(file_name, &opencl_program);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_load_binary_opencl");
+	}
+	else if (with_malloc)
+	{
+		char *located_file_name;
+		char *located_dir_name;
+		char *opencl_program_source;
+		starpu_opencl_load_program_source_malloc(file_name, &located_file_name, &located_dir_name, &opencl_program_source);
+		ret = starpu_opencl_compile_opencl_from_string(opencl_program_source, "incrementer", NULL);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_compile_opencl_from_file");
+		ret = starpu_opencl_load_binary_opencl("incrementer", &opencl_program);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_load_binary_opencl");
+		free(located_file_name);
+		free(located_dir_name);
+		free(opencl_program_source);
 	}
 	else
 	{
@@ -122,9 +136,15 @@ int main(int argc, char **argv)
 	}
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	ret = compute("examples/incrementer/incrementer_kernels_opencl_kernel.cl", 1);
+	ret = compute("examples/incrementer/incrementer_kernels_opencl_kernel.cl", 1, -1);
 	if (ret == 0)
-		ret = compute("examples/incrementer/incrementer_kernels_opencl_kernel.cl", 0);
+		ret = compute("examples/incrementer/incrementer_kernels_opencl_kernel.cl", 0, 0);
+	else
+		FPRINTF(stderr, "Error when calling compute %d\n", ret);
+	if (ret == 0)
+	     ret = compute("examples/incrementer/incrementer_kernels_opencl_kernel.cl", 0, 1);
+	else
+		FPRINTF(stderr, "Error when calling compute %d\n", ret);
 
 	starpu_shutdown();
 	return ret;
