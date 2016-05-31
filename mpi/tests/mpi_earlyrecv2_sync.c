@@ -135,7 +135,7 @@ int exchange_void(int rank)
 	starpu_data_handle_t tab_handle[NB];
 
 	// This test is not run with valgrind as valgrind falsely detects error when exchanging NULL pointers
-	STARPU_SKIP_IF_VALGRIND_RETURN_0;
+	STARPU_SKIP_IF_VALGRIND_RETURN_ZERO;
 
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
