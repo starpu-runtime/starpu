@@ -840,12 +840,12 @@ int starpu_task_wait_for_all(void)
 		if(config->topology.nsched_ctxs == 1)
 		{
 			_starpu_sched_do_schedule(0);
-			return starpu_task_wait_for_all_in_ctx(0);
+			starpu_task_wait_for_all_in_ctx(0);
+			return 0;
 		}
 		else
 		{
 			int s;
-			int ret = 0;
 			for(s = 0; s < STARPU_NMAX_SCHED_CTXS; s++)
 			{
 				if(config->sched_ctxs[s].id != STARPU_NMAX_SCHED_CTXS)
@@ -857,10 +857,10 @@ int starpu_task_wait_for_all(void)
 			{
 				if(config->sched_ctxs[s].id != STARPU_NMAX_SCHED_CTXS)
 				{
-					ret += starpu_task_wait_for_all_in_ctx(config->sched_ctxs[s].id);
+					starpu_task_wait_for_all_in_ctx(config->sched_ctxs[s].id);
 				}
 			}
-			return ret;
+			return 0;
 		}
 	}
 	else
@@ -873,16 +873,14 @@ int starpu_task_wait_for_all(void)
 
 int starpu_task_wait_for_all_in_ctx(unsigned sched_ctx)
 {
-	int ret;
-
 	_STARPU_TRACE_TASK_WAIT_FOR_ALL_START();
-	ret = _starpu_wait_for_all_tasks_of_sched_ctx(sched_ctx);
+	_starpu_wait_for_all_tasks_of_sched_ctx(sched_ctx);
 	_STARPU_TRACE_TASK_WAIT_FOR_ALL_END();
 #ifdef HAVE_AYUDAME_H
 	/* TODO: improve Temanejo into knowing about contexts ... */
 	if (AYU_event) AYU_event(AYU_BARRIER, 0, NULL);
 #endif
-	return ret;
+	return 0;
 }
 
 /*
