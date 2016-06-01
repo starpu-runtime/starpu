@@ -97,7 +97,7 @@ int main(int argc, char **argv)
 		starpu_mpi_isend_detached(handle0, 0, 20, MPI_COMM_WORLD, NULL, NULL);
 	}
 
-	starpu_task_wait_for_all();
+	starpu_mpi_wait_for_all(MPI_COMM_WORLD);
 
 	starpu_mpi_datatype_unregister(handle0);
 	starpu_data_unregister(handle0);
