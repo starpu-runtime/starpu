@@ -22,9 +22,7 @@ New features:
   * Enable anticipative writeback by default.
   * New scheduler with heterogeneous priorities
   * Support priorities for data transfers.
-  * Add STARPU_MALLOC_SIMULATION_FOLDED flag to save memory when simulating.
   * Include application threads in the trace.
-  * Add starpu_task_get_task_scheduled_succs to get successors of a task.
 
 Changes:
   * Vastly improve simgrid simulation time.
@@ -116,6 +114,8 @@ New features:
   * Generate animated html trace of modular schedulers.
   * Add asynchronous partition planning. It only supports coherency through
     the home node of data for now.
+  * Add STARPU_MALLOC_SIMULATION_FOLDED flag to save memory when simulating.
+  * Add starpu_task_get_task_scheduled_succs to get successors of a task.
   * Add graph inspection facility for schedulers.
   * New STARPU_LOCALITY flag to mark data which should be taken into account
     by schedulers for improving locality.
