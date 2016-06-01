@@ -234,6 +234,7 @@ noinst_PROGRAMS =				\
 	helper/execute_on_all			\
 	helper/starpu_create_sync_task		\
 	microbenchs/async_tasks_overhead	\
+	microbenchs/display_structures_size	\
 	microbenchs/sync_tasks_overhead		\
 	microbenchs/tasks_overhead		\
 	microbenchs/tasks_size_overhead		\
