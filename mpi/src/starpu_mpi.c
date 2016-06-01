@@ -34,6 +34,7 @@
 #include <datawizard/interfaces/data_interface.h>
 #include <datawizard/coherency.h>
 #include <core/simgrid.h>
+#include <core/task.h>
 
 static void _starpu_mpi_add_sync_point_in_fxt(void);
 static void _starpu_mpi_submit_ready_request(void *arg);
@@ -829,12 +830,12 @@ static void _starpu_mpi_barrier_func(struct _starpu_mpi_req *barrier_req)
 	_STARPU_MPI_LOG_OUT();
 }
 
-int starpu_mpi_barrier(MPI_Comm comm)
+int _starpu_mpi_barrier(MPI_Comm comm)
 {
-	int ret;
-	struct _starpu_mpi_req *barrier_req;
-
 	_STARPU_MPI_LOG_IN();
+
+	int ret = posted_requests;
+	struct _starpu_mpi_req *barrier_req;
 	_starpu_mpi_request_init(&barrier_req);
 
 	/* First wait for *both* all tasks and MPI requests to finish, in case
@@ -877,12 +878,17 @@ int starpu_mpi_barrier(MPI_Comm comm)
 		STARPU_PTHREAD_COND_WAIT(&barrier_req->req_cond, &barrier_req->req_mutex);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&barrier_req->req_mutex);
 
-	ret = barrier_req->ret;
-
 	free(barrier_req);
 	barrier_req = NULL;
 	_STARPU_MPI_LOG_OUT();
+
 	return ret;
+}
+
+int starpu_mpi_barrier(MPI_Comm comm)
+{
+	_starpu_mpi_barrier(comm);
+	return 0;
 }
 
 /********************************************************/
@@ -1784,4 +1790,16 @@ int starpu_mpi_world_rank(void)
 	int rank;
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 	return rank;
+}
+
+int starpu_mpi_wait_for_all(MPI_Comm comm)
+{
+	int mpi = 1;
+	int task = 1;
+	while (task || mpi)
+	{
+		task = _starpu_task_wait_for_all_and_return_nb_waited_tasks();
+		mpi = _starpu_mpi_barrier(comm);
+	}
+	return 0;
 }
