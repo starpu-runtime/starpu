@@ -1062,19 +1062,16 @@ static unsigned _starpu_mpi_progression_hook_func(void *arg STARPU_ATTRIBUTE_UNU
 
 static void _starpu_mpi_test_detached_requests(void)
 {
-	_STARPU_MPI_LOG_IN();
+	//_STARPU_MPI_LOG_IN();
 	int flag;
 	MPI_Status status;
-	struct _starpu_mpi_req *req, *next_req;
+	struct _starpu_mpi_req *req;
 
 	STARPU_PTHREAD_MUTEX_LOCK(&detached_requests_mutex);
 
-	for (req = _starpu_mpi_req_list_begin(detached_requests);
-		req != _starpu_mpi_req_list_end(detached_requests);
-		req = next_req)
+	req = _starpu_mpi_req_list_begin(detached_requests);
+	while (req != _starpu_mpi_req_list_end(detached_requests))
 	{
-		next_req = _starpu_mpi_req_list_next(req);
-
 		STARPU_PTHREAD_MUTEX_UNLOCK(&detached_requests_mutex);
 
 		//_STARPU_MPI_DEBUG(3, "Test detached request %p - mpitag %d - TYPE %s %d\n", &req->data_request, req->node_tag.data_tag, _starpu_mpi_request_type(req->request_type), req->node_tag.rank);
@@ -1082,8 +1079,15 @@ static void _starpu_mpi_test_detached_requests(void)
 
 		STARPU_MPI_ASSERT_MSG(req->ret == MPI_SUCCESS, "MPI_Test returning %s", _starpu_mpi_get_mpi_code(req->ret));
 
-		if (flag)
+		if (!flag)
 		{
+			req = _starpu_mpi_req_list_next(req);
+		}
+		else
+		{
+		     	struct _starpu_mpi_req *next_req;
+			next_req = _starpu_mpi_req_list_next(req);
+
 			if (req->request_type == RECV_REQ)
 			{
 				_STARPU_MPI_TRACE_IRECV_COMPLETE_BEGIN(req->node_tag.rank, req->node_tag.data_tag);
@@ -1110,13 +1114,15 @@ static void _starpu_mpi_test_detached_requests(void)
 				free(req);
 				req = NULL;
 			}
+
+			req = next_req;
 		}
 
 		STARPU_PTHREAD_MUTEX_LOCK(&detached_requests_mutex);
 	}
 
 	STARPU_PTHREAD_MUTEX_UNLOCK(&detached_requests_mutex);
-	_STARPU_MPI_LOG_OUT();
+	//_STARPU_MPI_LOG_OUT();
 }
 
 static void _starpu_mpi_handle_detached_request(struct _starpu_mpi_req *req)
