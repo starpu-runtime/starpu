@@ -821,7 +821,7 @@ void starpu_codelet_display_stats(struct starpu_codelet *cl)
  * regenerable is not considered finished until it was explicitely set as
  * non-regenerale anymore (eg. from a callback).
  */
-int starpu_task_wait_for_all(void)
+int _starpu_task_wait_for_all_and_return_nb_waited_tasks(void)
 {
 	unsigned nsched_ctxs = _starpu_get_nsched_ctxs();
 	unsigned sched_ctx_id = nsched_ctxs == 1 ? 0 : starpu_sched_ctx_get_context();
@@ -840,8 +840,7 @@ int starpu_task_wait_for_all(void)
 		if(config->topology.nsched_ctxs == 1)
 		{
 			_starpu_sched_do_schedule(0);
-			starpu_task_wait_for_all_in_ctx(0);
-			return 0;
+			return _starpu_task_wait_for_all_in_ctx_and_return_nb_waited_tasks(0);
 		}
 		else
 		{
@@ -867,19 +866,31 @@ int starpu_task_wait_for_all(void)
 	{
 		_starpu_sched_do_schedule(sched_ctx_id);
 		_STARPU_DEBUG("Waiting for tasks submitted to context %u\n", sched_ctx_id);
-		return starpu_task_wait_for_all_in_ctx(sched_ctx_id);
+		return _starpu_task_wait_for_all_in_ctx_and_return_nb_waited_tasks(sched_ctx_id);
 	}
 }
 
-int starpu_task_wait_for_all_in_ctx(unsigned sched_ctx)
+int starpu_task_wait_for_all(void)
+{
+	_starpu_task_wait_for_all_and_return_nb_waited_tasks();
+	return 0;
+}
+
+int _starpu_task_wait_for_all_in_ctx_and_return_nb_waited_tasks(unsigned sched_ctx)
 {
 	_STARPU_TRACE_TASK_WAIT_FOR_ALL_START();
-	_starpu_wait_for_all_tasks_of_sched_ctx(sched_ctx);
+	int ret = _starpu_wait_for_all_tasks_of_sched_ctx(sched_ctx);
 	_STARPU_TRACE_TASK_WAIT_FOR_ALL_END();
 #ifdef HAVE_AYUDAME_H
 	/* TODO: improve Temanejo into knowing about contexts ... */
 	if (AYU_event) AYU_event(AYU_BARRIER, 0, NULL);
 #endif
+	return ret;
+}
+
+int starpu_task_wait_for_all_in_ctx(unsigned sched_ctx)
+{
+	_starpu_task_wait_for_all_in_ctx_and_return_nb_waited_tasks(sched_ctx);
 	return 0;
 }
 
