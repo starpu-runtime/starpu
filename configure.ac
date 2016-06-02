@@ -1593,7 +1593,7 @@ if test x$use_fxt = xyes; then
 	AC_CHECK_DECLS([fut_set_filename])
 	CFLAGS="$save_CFLAGS"
 
-	if test x$enable_simgrid = xyes; then
+	if test x$enable_simgrid = xyes -a x$enable_shared = xno ; then
                 # simgrid's SMPI needs fxt to be linked in statically for
                 # variable privatization to work
 		FXT_LIBS="$(pkg-config --variable=libdir fxt)/libfxt.a -lrt"
