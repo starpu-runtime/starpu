@@ -216,13 +216,17 @@ int main(int argc, char **argv)
 	MSG_config("workstation/model", "ptask_L07");
 #endif
 	/* Simgrid uses tiny stacks by default.  This comes unexpected to our users.  */
-	extern xbt_cfg_t _sg_cfg_set;
 	unsigned stack_size = 8192;
 	struct rlimit rlim;
 	if (getrlimit(RLIMIT_STACK, &rlim) == 0 && rlim.rlim_cur != 0 && rlim.rlim_cur != RLIM_INFINITY)
 		stack_size = rlim.rlim_cur / 1024;
 
+#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 13)
+	extern xbt_cfg_t _sg_cfg_set;
 	xbt_cfg_set_int(_sg_cfg_set, "contexts/stack_size", stack_size);
+#else
+	xbt_cfg_set_int("contexts/stack_size", stack_size);
+#endif
 
 	/* Load XML platform */
 	_starpu_simgrid_get_platform_path(path, sizeof(path));
