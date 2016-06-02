@@ -50,7 +50,7 @@ void starpu_openmp_prologue(void *sched_ctx_id)
 	int sched_ctx = *(int*)sched_ctx_id;
 	int *cpuids = NULL;
 	int ncpuids = 0;
-	int workerid = starpu_worker_get_id();
+	int workerid = starpu_worker_get_id_check();
 
 	if (starpu_worker_get_type(workerid) == STARPU_CPU_WORKER)
 	{

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2015  Université de Bordeaux
+ * Copyright (C) 2009-2016  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
  * Copyright (C) 2011  Télécom-SudParis
@@ -138,7 +138,7 @@ static void _starpu_cuda_limit_gpu_mem_if_needed(unsigned devid)
 #ifdef STARPU_USE_CUDA
 cudaStream_t starpu_cuda_get_local_in_transfer_stream()
 {
-	int worker = starpu_worker_get_id();
+	int worker = starpu_worker_get_id_check();
 	int devid = starpu_worker_get_devid(worker);
 	cudaStream_t stream;
 
@@ -149,7 +149,7 @@ cudaStream_t starpu_cuda_get_local_in_transfer_stream()
 
 cudaStream_t starpu_cuda_get_local_out_transfer_stream()
 {
-	int worker = starpu_worker_get_id();
+	int worker = starpu_worker_get_id_check();
 	int devid = starpu_worker_get_devid(worker);
 	cudaStream_t stream;
 
@@ -160,7 +160,7 @@ cudaStream_t starpu_cuda_get_local_out_transfer_stream()
 
 cudaStream_t starpu_cuda_get_peer_transfer_stream(unsigned src_node, unsigned dst_node)
 {
-	int worker = starpu_worker_get_id();
+	int worker = starpu_worker_get_id_check();
 	int devid = starpu_worker_get_devid(worker);
 	int src_devid = _starpu_memory_node_get_devid(src_node);
 	int dst_devid = _starpu_memory_node_get_devid(dst_node);
@@ -178,7 +178,7 @@ cudaStream_t starpu_cuda_get_peer_transfer_stream(unsigned src_node, unsigned ds
 
 cudaStream_t starpu_cuda_get_local_stream(void)
 {
-	int worker = starpu_worker_get_id();
+	int worker = starpu_worker_get_id_check();
 
 	return streams[worker];
 }

@@ -314,7 +314,7 @@ static int link_supports_direct_transfers(starpu_data_handle_t handle, unsigned 
  * and the max_len is the maximum number of hops (ie. the size of the
  * src_nodes, dst_nodes and handling_nodes arrays. */
 static int determine_request_path(starpu_data_handle_t handle,
-				  unsigned src_node, unsigned dst_node,
+				  int src_node, int dst_node,
 				  enum starpu_data_access_mode mode, int max_len,
 				  unsigned *src_nodes, unsigned *dst_nodes,
 				  unsigned *handling_nodes, unsigned write_invalidation)
@@ -923,7 +923,7 @@ int _starpu_fetch_task_input(struct _starpu_job *j)
 
 	unsigned local_memory_node = _starpu_memory_node_get_local_key();
 
-	int workerid = starpu_worker_get_id();
+	int workerid = starpu_worker_get_id_check();
 
 #ifdef STARPU_USE_FXT
 	unsigned long total_size = 0;
@@ -1034,7 +1034,7 @@ void __starpu_push_task_output(struct _starpu_job *j)
         struct _starpu_data_descr *descrs = _STARPU_JOB_GET_ORDERED_BUFFERS(j);
         unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
 
-	int workerid = starpu_worker_get_id();
+	int workerid = starpu_worker_get_id_check();
 	unsigned local_memory_node = _starpu_memory_node_get_local_key();
 
 	unsigned index;

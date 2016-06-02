@@ -431,7 +431,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	{
 		_starpu_sched_post_exec_hook(task);
 #ifdef STARPU_USE_SC_HYPERVISOR
-		int workerid = starpu_worker_get_id();
+		int workerid = starpu_worker_get_id_check();
 		_starpu_sched_ctx_post_exec_task_cb(workerid, task, data_size, j->footprint);
 #endif //STARPU_USE_SC_HYPERVISOR
 

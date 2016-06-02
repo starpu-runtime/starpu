@@ -919,7 +919,7 @@ pick:
 	 * This way, we avoid computing and executing the conversions tasks.
 	 * Here, we do not care about what implementation is used.
 	 */
-	worker_id = starpu_worker_get_id();
+	worker_id = starpu_worker_get_id_check();
 	if (!starpu_worker_can_execute_task_first_impl(worker_id, task, NULL))
 		return task;
 

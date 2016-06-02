@@ -141,7 +141,7 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 		if ((src_kind == STARPU_CUDA_RAM) && (dst_kind == STARPU_CUDA_RAM))
 		{
 			/* GPU-GPU transfer, issue it from the device we are supposed to drive */
-			int worker = starpu_worker_get_id();
+			int worker = starpu_worker_get_id_check();
 			devid = starpu_worker_get_devid(worker);
 		}
 		else

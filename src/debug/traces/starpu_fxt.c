@@ -935,7 +935,10 @@ static void handle_worker_init_end(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 	int worker;
 
 	if (ev->nb_params < 2)
+	{
 		worker = find_worker_id(ev->param[0]);
+		STARPU_ASSERT(worker >= 0);
+	}
 	else
 		worker = ev->param[1];
 
