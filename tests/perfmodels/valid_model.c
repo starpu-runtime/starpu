@@ -19,6 +19,10 @@
 #include <core/perfmodel/perfmodel.h>
 #include "../helper.h"
 
+/*
+ * Check that measurements get recorded in the performance model
+ */
+
 void func(void *descr[], void *arg)
 {
 }

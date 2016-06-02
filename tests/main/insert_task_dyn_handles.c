@@ -19,6 +19,11 @@
 #include <starpu_config.h>
 #include "../helper.h"
 
+/*
+ * Try the starpu_task_insert interface in various ways, and notably
+ * triggering the use of dyn_handles
+ */
+
 void func_cpu(void *descr[], void *_args)
 {
 	int num = STARPU_TASK_GET_NBUFFERS(starpu_task_get_current());

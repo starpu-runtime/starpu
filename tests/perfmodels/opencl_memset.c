@@ -16,6 +16,10 @@
 
 #include <starpu.h>
 
+/*
+ * Enqueue an OpenCL kernel which just does a memset
+ */
+
 extern struct starpu_opencl_program opencl_program;
 
 void memset_opencl(void *buffers[], void *args)

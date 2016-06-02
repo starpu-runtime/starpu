@@ -18,6 +18,10 @@
 #include <starpu.h>
 #include "../helper.h"
 
+/*
+ * Try starpu_task_insert with a NULL codelet
+ */
+
 int main(int argc, char **argv)
 {
         int  ret;

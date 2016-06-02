@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010-2011, 2013-2014  Université de Bordeaux
+ * Copyright (C) 2009, 2010-2011, 2013-2014, 2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -20,6 +20,11 @@
 
 #include <starpu.h>
 #include "../helper.h"
+
+/*
+ * Test that one can submit+wait the same task several times, using a static
+ * initialization
+ */
 
 /* This is equivalent to calling starpu_task_init later on */
 struct starpu_task task = STARPU_TASK_INITIALIZER;
@@ -92,7 +97,6 @@ int main(int argc, char **argv)
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait");
 	}
 
-	starpu_task_clean(&task);
 	end = starpu_timing_now();
 
 	timing = end - start;
@@ -100,6 +104,7 @@ int main(int argc, char **argv)
 	FPRINTF(stderr, "Total: %f secs\n", timing/1000000);
 	FPRINTF(stderr, "Per task: %f usecs\n", timing/ntasks);
 
+	starpu_task_clean(&task);
 	starpu_shutdown();
 
 	return EXIT_SUCCESS;

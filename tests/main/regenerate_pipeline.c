@@ -21,6 +21,10 @@
 #include "../helper.h"
 #include <common/thread.h>
 
+/*
+ * Create a pipeline of regenerated tasks, i.e. a sort of data flow graph
+ */
+
 #ifdef STARPU_QUICK_CHECK
 static unsigned ntasks = 64;
 #else

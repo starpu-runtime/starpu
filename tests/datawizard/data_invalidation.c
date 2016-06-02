@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012, 2014  Université de Bordeaux
+ * Copyright (C) 2010, 2012, 2014, 2016  Université de Bordeaux
  * Copyright (C) 2012, 2013, 2015  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -22,6 +22,11 @@
 #include <starpu.h>
 #include <stdlib.h>
 #include "../helper.h"
+
+/*
+ * Try to mix starpu_data_invalidate and starpu_data_invalidate_submit
+ * calls with task insertions
+ */
 
 #ifdef STARPU_QUICK_CHECK
 #  define NLOOPS		100

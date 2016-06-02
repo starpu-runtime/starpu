@@ -181,6 +181,9 @@ execution. For example, in the Cholesky factorization (dense linear algebra
 application), the GEMM task uses up to 3 buffers, so it is possible to set the
 maximum number of task buffers to 3 to run a Cholesky factorization on StarPU.
 
+The size of the various structures of StarPU can be printed by the
+tests/microbenchs/display_structures_size.
+
 It is also often useless to submit *all* the tasks at the same time. One can
 make the starpu_task_submit function block when a reasonable given number of
 tasks have been submitted, by setting the STARPU_LIMIT_MIN_SUBMITTED_TASKS and

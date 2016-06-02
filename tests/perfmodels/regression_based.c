@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2015  Université de Bordeaux
+ * Copyright (C) 2011-2016  Université de Bordeaux
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2012 INRIA
  *
@@ -20,6 +20,10 @@
 #include <starpu.h>
 #include <starpu_scheduler.h>
 #include "../helper.h"
+
+/*
+ * Benchmark memset with a linear regression
+ */
 
 #define START 1024
 #ifdef STARPU_QUICK_CHECK

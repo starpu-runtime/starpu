@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux
+ * Copyright (C) 2009, 2010, 2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -17,6 +17,12 @@
 
 #include <starpu.h>
 #include "../helper.h"
+
+/*
+ * Test Dijkstra's Dining Philosophers problem
+ */
+
+/* TODO: try to use an arbiter and check improved concurrency */
 
 /* number of philosophers */
 #define N	16
@@ -70,6 +76,7 @@ int main(int argc, char **argv)
 		forks[f] = 0;
 
 		starpu_vector_data_register(&fork_handles[f], STARPU_MAIN_RAM, (uintptr_t)&forks[f], 1, sizeof(unsigned));
+		starpu_data_set_sequential_consistency_flag(fork_handles[f], 0);
 	}
 
 	unsigned ntasks = 1024;

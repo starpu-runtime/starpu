@@ -16,6 +16,10 @@
 
 #include <starpu.h>
 
+/*
+ * Queue an OpenCL kernel that just increments a variable
+ */
+
 extern struct starpu_opencl_program opencl_program;
 void increment_opencl(void *buffers[], void *args)
 {

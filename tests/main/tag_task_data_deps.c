@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013  Université de Bordeaux
+ * Copyright (C) 2010-2013, 2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -15,15 +15,15 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-/*
- * This tests combinations of various tag/task/data dependencies
- */
-
 #include <stdio.h>
 #include <unistd.h>
 
 #include <starpu.h>
 #include "../helper.h"
+
+/*
+ * Test combinations of various tag/task/data dependencies
+ */
 
 void dummy_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
 {

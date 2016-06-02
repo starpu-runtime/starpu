@@ -18,6 +18,10 @@
 #include <starpu.h>
 #include "../helper.h"
 
+/*
+ * Test passing values to tasks in different ways
+ */
+
 #define IFACTOR 42
 #define FFACTOR 12.0
 

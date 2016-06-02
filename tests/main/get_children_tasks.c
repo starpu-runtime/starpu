@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015  Université Bordeaux
+ * Copyright (C) 2015-2016  Université Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,6 +17,10 @@
 #include <config.h>
 #include <starpu.h>
 #include "../helper.h"
+
+/*
+ * Check that starpu_task_get_task_succs returns the set of children tasks
+ */
 
 void func_cpu(void *descr[], void *_args)
 {

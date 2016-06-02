@@ -21,6 +21,10 @@
 #include <stdlib.h>
 #include "../helper.h"
 
+/*
+ * Test the value returned by starpu_handle_to_pointer
+ */
+
 void cpu_task(void **buffers, void *args)
 {
 	int *numbers;

@@ -22,6 +22,10 @@
 #include <starpu.h>
 #include "../helper.h"
 
+/*
+ * Test that one can submit+wait_tag the same task several times
+ */
+
 #ifdef STARPU_QUICK_CHECK
 static unsigned ntasks = 64;
 #else

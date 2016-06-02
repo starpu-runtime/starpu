@@ -18,6 +18,11 @@
 #include <starpu.h>
 #include "../helper.h"
 
+/*
+ * Test the bundle interface, putting tasks working on the same data in
+ * the same bundle
+ */
+
 #define NB_BUNDLE 10
 #define NB_ITERATION 5
 
@@ -88,8 +93,9 @@ int main(int argc, char **argv)
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 		}
 
+		/* Put one aside, just for fun */
 		ret = starpu_task_bundle_remove(bundles[i], task[NB_ITERATION / 2]);
-		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_remove");
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_bundle_remove");
 
 		for (j = 0; j < NB_ITERATION; j++)
 		{

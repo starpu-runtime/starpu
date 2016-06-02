@@ -19,6 +19,11 @@
 
 #include "../helper.h"
 
+/*
+ * Check that scheduling policies tend to put tasks on the worker which has a
+ * copy of the data
+ */
+
 #define NTASKS 8
 
 /*

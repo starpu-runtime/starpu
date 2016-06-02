@@ -18,6 +18,10 @@
 #include <starpu.h>
 #include "../helper.h"
 
+/*
+ * Try the starpu_task_insert interface in various ways
+ */
+
 static int _ifactor = 12;
 static float _ffactor = 10.0;
 

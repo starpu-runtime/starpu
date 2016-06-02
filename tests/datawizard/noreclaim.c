@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2014-2015  Université de Bordeaux
+ * Copyright (C) 2014-2016  Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,14 +14,14 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-/*
- * This test stress the memory allocation system and should force StarPU to
- * reclaim memory from time to time.
- */
-
 #include <assert.h>
 #include <starpu.h>
 #include "../helper.h"
+
+/*
+ * Stress the memory allocation system and force StarPU to reclaim memory from
+ * time to time.
+ */
 
 #if !defined(STARPU_HAVE_SETENV)
 #warning setenv is not defined. Skipping test
