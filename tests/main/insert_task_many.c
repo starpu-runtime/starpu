@@ -19,6 +19,11 @@
 #include <starpu_config.h>
 #include "../helper.h"
 
+/*
+ * Try to pass many parameters to a task, testing the various codelet
+ * declarations
+ */
+
 #define NPARAMS 15
 
 void func_cpu(void *descr[], void *_args STARPU_ATTRIBUTE_UNUSED)

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2014  Université de Bordeaux
+ * Copyright (C) 2010, 2014, 2016  Université de Bordeaux
  * Copyright (C) 2012, 2013, 2015  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -22,6 +22,13 @@
 #include <starpu.h>
 #include <stdlib.h>
 #include "../helper.h"
+
+/*
+ * Test using the specific_nodes field by forcing the data to main memory
+ * even if the task is run on a GPU (and actually doing the computation from
+ * the CPU driving the GPU). It mixes such accesses and normal accesses from
+ * the GPU
+ */
 
 starpu_data_handle_t data_handle;
 

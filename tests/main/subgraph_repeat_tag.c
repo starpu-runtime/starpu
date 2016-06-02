@@ -19,6 +19,10 @@
 
 #include "../helper.h"
 
+/*
+ * Test that one can resubmit a whole task graph repeatedly, using tag dependencies
+ */
+
 #ifdef STARPU_QUICK_CHECK
 static unsigned niter = 64;
 #else

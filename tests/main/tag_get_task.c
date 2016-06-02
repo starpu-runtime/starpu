@@ -20,6 +20,10 @@
 #include <starpu.h>
 #include "../helper.h"
 
+/*
+ * Test that starpu_tag_get_task returns the proper task
+ */
+
 void dummy_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE_UNUSED)
 {
 }

@@ -18,6 +18,10 @@
 #include "../helper.h"
 #include <stdlib.h>
 
+/*
+ * Try initializing starpu with various CPU parameters
+ */
+
 #if !defined(STARPU_HAVE_UNSETENV) || !defined(STARPU_HAVE_SETENV) || !defined(STARPU_USE_CPU)
 #warning unsetenv or setenv are not defined. Or CPU are not enabled. Skipping test
 int main(int argc, char **argv)

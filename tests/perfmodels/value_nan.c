@@ -24,6 +24,11 @@
 #include <fcntl.h>
 #endif
 
+/*
+ * Test that _starpu_write_double and _starpu_read_double properly manipulate
+ * NaN values
+ */
+
 #define STRING "booh"
 
 static

@@ -21,6 +21,11 @@
 #include "../helper.h"
 #include <common/thread.h>
 
+/*
+ * Run one task with regenerate=1, and thus completes several times
+ * before we reset regenerate to 0 in the callback
+ */
+
 #ifdef STARPU_QUICK_CHECK
 static unsigned ntasks = 64;
 #else

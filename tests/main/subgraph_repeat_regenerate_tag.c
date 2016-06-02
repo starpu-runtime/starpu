@@ -20,6 +20,11 @@
 
 #include "../helper.h"
 
+/*
+ * Test that one can let a whole task graph repeatedly regenerate itself, using
+ * tag dependencies
+ */
+
 #ifdef STARPU_QUICK_CHECK
 static unsigned niter = 64;
 #else

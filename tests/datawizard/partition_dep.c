@@ -18,6 +18,10 @@
 #include "../helper.h"
 #include "scal.h"
 
+/*
+ * Test scaling a partitioned vector
+ */
+
 int main(int argc, char **argv)
 {
 	unsigned *foo;

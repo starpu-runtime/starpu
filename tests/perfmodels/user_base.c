@@ -20,6 +20,10 @@
 #include <starpu_scheduler.h>
 #include "../helper.h"
 
+/*
+ * Test using a user-provided base for the perfmodel
+ */
+
 void func(void *descr[], void *arg)
 {
 }

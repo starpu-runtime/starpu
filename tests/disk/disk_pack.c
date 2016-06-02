@@ -15,10 +15,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-/* Try to write into disk memory
- * Use mechanism to push datas from main ram to disk ram
- */
-
 #include <fcntl.h>
 #include <starpu.h>
 #include <stdlib.h>
@@ -30,6 +26,12 @@
 #include <math.h>
 #include <common/config.h>
 #include "../helper.h"
+
+/*
+ * Try to write into disk memory
+ * Use mechanism to push datas from main ram to disk ram
+ * Here we force using the pack/unpack mechanism
+ */
 
 #ifdef STARPU_HAVE_WINDOWS
 #  include <io.h>

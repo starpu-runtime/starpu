@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012  Université de Bordeaux
+ * Copyright (C) 2010-2012, 2016  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012, 2013  CNRS
  *
@@ -22,6 +22,11 @@
 #include <starpu.h>
 #include <stdlib.h>
 #include "../helper.h"
+
+/*
+ * Test running a task on a partitioned data, then on the unpartitioned
+ * data, etc. in a loop
+ */
 
 #ifdef STARPU_QUICK_CHECK
 #define NITER		100

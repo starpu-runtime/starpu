@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011  Université de Bordeaux
+ * Copyright (C) 2011, 2016  Université de Bordeaux
  * Copyright (C) 2012, 2013, 2015  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -17,6 +17,10 @@
 
 #include <starpu.h>
 #include "../helper.h"
+
+/*
+ * Try passing the same parameter twice, with various access modes
+ */
 
 void dummy_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE_UNUSED)
 {

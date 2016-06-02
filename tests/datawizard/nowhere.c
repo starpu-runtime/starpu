@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015  Université de Bordeaux
+ * Copyright (C) 2015-2016  Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -20,6 +20,10 @@
 #include <starpu.h>
 #include <stdlib.h>
 #include "../helper.h"
+
+/*
+ * Try the NOWHERE flag
+ */
 
 static int x, y;
 

@@ -21,6 +21,10 @@
 
 #include "../helper.h"
 
+/*
+ * Test that starpu_data_unregister_submit waits for both tasks to finish
+ */
+
 void dummy_func(void ** buffers, void * args)
 {
 	(void) buffers;

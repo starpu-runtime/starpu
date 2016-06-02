@@ -16,6 +16,10 @@
 
 #include <starpu.h>
 
+/*
+ * Queue an OpenCL kernel for the scratch test.
+ */
+
 extern struct starpu_opencl_program opencl_program;
 
 void opencl_f(void *buffers[], void *args)

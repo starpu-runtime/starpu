@@ -15,19 +15,20 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-/* This benchmark creates a thousand tasks of the same (small) duration, with
+#include <stdio.h>
+#include <unistd.h>
+
+#include <starpu.h>
+#include "../helper.h"
+
+/*
+ * This benchmark creates a thousand tasks of the same (small) duration, with
  * various number of cpus and various durations.
  *
  * Use ./tasks_size_overhead.sh to generate a plot of the result.
  *
  * Thanks Martin Tillenius for the idea.
  */
-
-#include <stdio.h>
-#include <unistd.h>
-
-#include <starpu.h>
-#include "../helper.h"
 
 #define START 4
 #define STOP 4096

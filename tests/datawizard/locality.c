@@ -104,6 +104,7 @@ int main(int argc, char *argv[])
 	}
 	starpu_arbiter_destroy(arbiter);
 
+	printf("worker where each domain piece was computed, over time\n");
 	for (loop = 0; loop < ITER; loop++)
 	{
 		for (i = 1; i < N-1; i++)
@@ -112,7 +113,9 @@ int main(int argc, char *argv[])
 		}
 		printf("\n");
 	}
+	printf("\n");
 
+	printf("domain piece that each worker has computed, over time\n");
 	loop = 0;
 	do {
 		finished = 1;

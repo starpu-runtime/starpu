@@ -19,6 +19,10 @@
 #include "scal.h"
 #include "helper.h"
 
+/*
+ * Implement a kernel that just multiplies a vector by 2
+ */
+
 void scal_func_cpu(void *buffers[], void *cl_arg)
 {
 	unsigned i;

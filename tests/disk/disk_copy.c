@@ -15,10 +15,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-/* Try to write into disk memory
- * Use mechanism to push datas from main ram to disk ram
- */
-
 #include <starpu.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -26,6 +22,13 @@
 #include <math.h>
 #include <common/config.h>
 #include "../helper.h"
+
+/*
+ * Try to write into disk memory
+ * Use mechanism to push datas from main ram to disk ram
+ * Here we make copies between buffers, that StarPU has to evict while
+ * progressing because there is not enough room for all of them.
+ */
 
 #ifdef STARPU_HAVE_WINDOWS
 #  include <io.h>
@@ -165,8 +168,15 @@ int main(void)
 {
 	int ret = 0;
 	char s[128];
+
 	snprintf(s, sizeof(s), "/tmp/%s-disk-%d", getenv("USER"), getpid());
-	mkdir(s, 0777);
+	ret = mkdir(s, 0777);
+	if (ret)
+	{
+		FPRINTF(stderr, "Cannot make directory <%s>\n", s);
+		return STARPU_TEST_SKIPPED;
+	}
+
 	ret = merge_result(ret, dotest(&starpu_disk_stdio_ops, s));
 	ret = merge_result(ret, dotest(&starpu_disk_unistd_ops, s));
 #ifdef STARPU_LINUX_SYS

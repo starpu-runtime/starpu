@@ -14,14 +14,16 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-/* Check that not unregistering a data is not too crashy */
-
 #include <config.h>
 #include <starpu.h>
 #include <stdlib.h>
 #include <unistd.h>
 
 #include "../helper.h"
+
+/*
+ * Check that not unregistering a data is not too crashy
+ */
 
 void dummy_func(void ** buffers, void * args)
 {

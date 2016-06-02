@@ -18,6 +18,10 @@
 #include <starpu.h>
 #include "../helper.h"
 
+/*
+ * Test starpu_codelet_pack_args and starpu_codelet_unpack_args
+ */
+
 void func_cpu(void *descr[], void *_args)
 {
 	int factor;

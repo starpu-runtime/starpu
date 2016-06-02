@@ -19,6 +19,10 @@
 #include "../helper.h"
 #include <common/config.h>
 
+/*
+ * Try various values for STARPU_WORKERS_CPUID, checking that the
+ * expected binding does happen
+ */
 
 #if !defined(STARPU_HAVE_UNSETENV) || !defined(STARPU_USE_CPU) || !defined(STARPU_HAVE_HWLOC)
 #warning unsetenv is not defined or no cpu are available. Skipping test

@@ -19,6 +19,8 @@
 #include <stdlib.h>
 #include <datawizard/memory_manager.h>
 
+/* Stress data allocation on a GPU, triggering eviction */
+
 #define SIZE_LIMIT 128
 #define STR_LIMIT "128"
 #define SIZE_ALLOC 128

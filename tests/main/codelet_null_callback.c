@@ -17,6 +17,10 @@
 #include <starpu.h>
 #include "../helper.h"
 
+/*
+ * Test passing a NULL codelet, but callbacks
+ */
+
 static
 void callback(void *ptr)
 {
