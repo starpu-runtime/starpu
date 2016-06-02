@@ -18,11 +18,6 @@
 #ifndef __STARPU_THREAD_H__
 #define __STARPU_THREAD_H__
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
 #include <starpu_config.h>
 #include <starpu_util.h>
 #ifdef STARPU_SIMGRID
@@ -36,6 +31,11 @@ extern "C"
 #include <pthread.h>
 #endif
 #include <stdint.h>
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 /*
  * Encapsulation of the pthread_create function.

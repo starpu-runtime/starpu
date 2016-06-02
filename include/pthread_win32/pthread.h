@@ -27,10 +27,6 @@
  * pthread_spinlock_*
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif /* __cplusplus */
-
 #include <windows.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -61,6 +57,10 @@ extern "C" {
 #define winPthreadAssertPthread(expr) do { int ret = (expr); if (ret) return ret; } while (0)
 #define winPthreadAssert(expr) do { if (!(expr)) return EIO; } while (0)
 #endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
 
 /***********
  * threads *
