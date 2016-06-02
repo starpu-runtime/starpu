@@ -20,13 +20,13 @@
 
 #include <starpu.h>
 
+#ifdef STARPU_HAVE_HWLOC
+#include <hwloc.h>
+#endif
+
 #ifdef __cplusplus
 extern "C"
 {
-#endif
-
-#ifdef STARPU_HAVE_HWLOC
-#include <hwloc.h>
 #endif
 
 enum starpu_sched_component_properties
