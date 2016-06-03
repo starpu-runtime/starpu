@@ -1034,7 +1034,7 @@ void __starpu_push_task_output(struct _starpu_job *j)
         struct _starpu_data_descr *descrs = _STARPU_JOB_GET_ORDERED_BUFFERS(j);
         unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
 
-	int workerid = starpu_worker_get_id_check();
+	int workerid = starpu_worker_get_id();
 	unsigned local_memory_node = _starpu_memory_node_get_local_key();
 
 	unsigned index;
@@ -1055,7 +1055,10 @@ void __starpu_push_task_output(struct _starpu_job *j)
 			continue;
 
 		if (node != -1)
+		{
+			STARPU_ASSERT(workerid >= 0);
 			local_replicate = get_replicate(handle, mode, workerid, node);
+		}
 
 		/* Keep a reference for future
 		 * _starpu_release_task_enforce_sequential_consistency call */
