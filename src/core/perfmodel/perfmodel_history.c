@@ -1478,6 +1478,7 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 		if (f == NULL)
 		{
 			_STARPU_DISP("Error <%s> when opening file <%s>\n", strerror(errno), per_arch_model->debug_path);
+			STARPU_PTHREAD_RWLOCK_UNLOCK(&model->state->model_rwlock);
 			return;
 		}
 		_starpu_fwrlock(f);
