@@ -190,6 +190,9 @@ Small features:
   * New function starpu_mpi_wait_for_all(MPI_Comm comm) that allows to
     wait until all StarPU tasks and communications for the given
     communicator are completed.
+  * New function starpu_codelet_unpack_args_and_copyleft() which
+    allows to copy in a new buffer values which have not been unpacked by
+    the current call
 
 Changes:
   * Data interfaces (variable, vector, matrix and block) now define

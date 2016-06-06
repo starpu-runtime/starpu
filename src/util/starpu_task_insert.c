@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2012, 2014-2016  Université de Bordeaux
- * Copyright (C) 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2011, 2012, 2013, 2014, 2015, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -32,17 +32,12 @@ void starpu_codelet_pack_args(void **arg_buffer, size_t *arg_buffer_size, ...)
 	va_end(varg_list);
 }
 
-void starpu_codelet_unpack_args(void *_cl_arg, ...)
+void _starpu_codelet_unpack_args_and_copyleft(char *cl_arg, void *_buffer, size_t buffer_size, va_list varg_list)
 {
-	char *cl_arg = (char *) _cl_arg;
 	int current_arg_offset = 0;
 	int nargs, arg;
-	va_list varg_list;
 
-	STARPU_ASSERT(cl_arg);
-	va_start(varg_list, _cl_arg);
-
-	/* We fill the different pointers with the appropriate arguments */
+     	/* We fill the different pointers with the appropriate arguments */
 	memcpy(&nargs, cl_arg, sizeof(nargs));
 	current_arg_offset += sizeof(nargs);
 
@@ -61,6 +56,37 @@ void starpu_codelet_unpack_args(void *_cl_arg, ...)
 		memcpy(argptr, cl_arg+current_arg_offset, arg_size);
 		current_arg_offset += arg_size;
 	}
+	if (buffer_size && arg < nargs)
+	{
+		int left = nargs-arg;
+		char *buffer = (char *) _buffer;
+		memcpy(buffer, (int *)&left, sizeof(left));
+		memcpy(buffer+sizeof(int), cl_arg+current_arg_offset, buffer_size-sizeof(int));
+	}
+}
+
+void starpu_codelet_unpack_args_and_copyleft(void *_cl_arg, void *buffer, size_t buffer_size, ...)
+{
+	char *cl_arg = (char *) _cl_arg;
+	va_list varg_list;
+
+	STARPU_ASSERT(cl_arg);
+	va_start(varg_list, buffer_size);
+
+	_starpu_codelet_unpack_args_and_copyleft(cl_arg, buffer, buffer_size, varg_list);
+
+	va_end(varg_list);
+}
+
+void starpu_codelet_unpack_args(void *_cl_arg, ...)
+{
+	char *cl_arg = (char *) _cl_arg;
+	va_list varg_list;
+
+	STARPU_ASSERT(cl_arg);
+	va_start(varg_list, _cl_arg);
+
+	_starpu_codelet_unpack_args_and_copyleft(cl_arg, NULL, 0, varg_list);
 
 	va_end(varg_list);
 }
