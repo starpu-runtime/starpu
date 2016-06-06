@@ -1530,6 +1530,7 @@ if test x$enable_coverage = xyes; then
 	CFLAGS="${CFLAGS} --coverage"
 	CXXFLAGS="${CXXFLAGS} --coverage"
 	LDFLAGS="${LDFLAGS} --coverage"
+	LIBS="${LIBS} -lgcov"
 fi
 
 # shall we use FxT to generate trace of the execution ?
