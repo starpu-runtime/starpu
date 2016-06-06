@@ -1105,6 +1105,7 @@ AM_CONDITIONAL(STARPU_COVERAGE_ENABLED, [test "x$enable_coverage" = "xyes"])
 if test x$enable_coverage = xyes; then
 	CFLAGS="${CFLAGS} --coverage"
 	LDFLAGS="${LDFLAGS} --coverage"
+	LIBS="${LIBS} -lgcov"
 fi
 
 # shall we use FxT to generate trace of the execution ?
