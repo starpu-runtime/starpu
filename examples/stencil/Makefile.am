@@ -124,7 +124,7 @@ EXTRA_DIST = $(outs) results run README
 
 pics: $(outs:.out=.xpm)
 
-CLEANFILES = *.xpm starpu_idle_microsec.log
+CLEANFILES = *.gcno *.gcda *.xpm starpu_idle_microsec.log
 
 
 .out.out2:

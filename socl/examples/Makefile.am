@@ -46,7 +46,7 @@ endif
 
 endif
 
-CLEANFILES = starpu_idle_microsec.log
+CLEANFILES = *.gcno *.gcda starpu_idle_microsec.log
 
 examplebindir = $(libdir)/starpu/examples/socl/
 examplebin_PROGRAMS =
