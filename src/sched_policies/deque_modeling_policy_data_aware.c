@@ -998,7 +998,7 @@ static void dmda_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned 
 
 static void initialize_dmda_policy(unsigned sched_ctx_id)
 {
-	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)malloc(sizeof(struct _starpu_dmda_data));
+	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)calloc(1, sizeof(struct _starpu_dmda_data));
 
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)dt);
 
