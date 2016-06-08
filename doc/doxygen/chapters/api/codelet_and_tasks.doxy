@@ -133,6 +133,9 @@ Value to be set in starpu_codelet::cuda_flags to allow asynchronous CUDA kernel 
 \def STARPU_OPENCL_ASYNC
 Value to be set in starpu_codelet::opencl_flags to allow asynchronous OpenCL kernel execution.
 
+\def STARPU_CODELET_SIMGRID_EXECUTE
+Value to be set in starpu_codelet::flags to execute the codelet functions even in simgrid mode.
+
 \typedef starpu_cpu_func_t
 \ingroup API_Codelet_And_Tasks
 CPU implementation of a codelet.
@@ -357,6 +360,9 @@ starpu_codelet_display_stats() for details).
 \var const char *starpu_codelet::name
 Optional name of the codelet. This can be useful for debugging
 purposes.
+
+\var const char *starpu_codelet::flags
+Various flags for the codelet.
 
 \fn void starpu_codelet_init(struct starpu_codelet *cl)
 \ingroup API_Codelet_And_Tasks

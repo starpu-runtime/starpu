@@ -193,6 +193,7 @@ Small features:
   * New function starpu_codelet_unpack_args_and_copyleft() which
     allows to copy in a new buffer values which have not been unpacked by
     the current call
+  * Add STARPU_CODELET_SIMGRID_EXECUTE flag.
 
 Changes:
   * Data interfaces (variable, vector, matrix and block) now define
