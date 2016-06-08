@@ -1533,6 +1533,12 @@ if test x$enable_coverage = xyes; then
 	LIBS="${LIBS} -lgcov"
 fi
 
+AC_MSG_CHECKING(whether coverity mode should be enabled)
+AC_ARG_ENABLE(coverity, [AS_HELP_STRING([--enable-coverity], [enable coverity mode])],
+			enable_coverity=$enableval, enable_coverity=no)
+AC_MSG_RESULT($enable_coverity)
+AM_CONDITIONAL(STARPU_COVERITY, test x$enable_coverity = xyes)
+
 # shall we use FxT to generate trace of the execution ?
 AC_MSG_CHECKING(whether FxT traces should be generated)
 AC_ARG_WITH(fxt, [AS_HELP_STRING([--with-fxt[=<dir>]], [generate fxt traces])],

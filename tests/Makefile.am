@@ -62,6 +62,9 @@ endif
 
 if STARPU_USE_CUDA
 
+if STARPU_COVERITY
+include $(top_srcdir)/starpu-mynvcc.mk
+else
 # TODO define NVCCFLAGS
 NVCC ?= nvcc
 
@@ -74,6 +77,7 @@ NVCCFLAGS += -I$(top_srcdir)/include/ -I$(top_srcdir)/src -I$(top_builddir)/src 
 .cu.o:
 	$(MKDIR_P) `dirname $@`
 	$(NVCC) $< -c -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS) -I${includedir}
+endif
 
 endif
 

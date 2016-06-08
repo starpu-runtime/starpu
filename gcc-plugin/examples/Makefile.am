@@ -91,9 +91,13 @@ if STARPU_USE_CUDA
 
 vector_scal_vector_scal_SOURCES += vector_scal/vector_scal_cuda.cu
 
+if STARPU_COVERITY
+include $(top_srcdir)/starpu-mynvcc.mk
+else
 .cu.o:
 	$(NVCC) $< -c -o $@ $(NVCCFLAGS)			\
 	  -I$(top_builddir)/include -I$(top_srcdir)/include
+endif
 
 else !STARPU_USE_CUDA
 

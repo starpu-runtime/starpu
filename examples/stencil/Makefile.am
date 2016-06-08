@@ -29,6 +29,9 @@ CC = $(CC_OR_MPICC)
 
 if STARPU_USE_CUDA
 
+if STARPU_COVERITY
+include $(top_srcdir)/starpu-mynvcc.mk
+else
 NVCCFLAGS += $(HWLOC_CFLAGS)
 
 .cu.cubin:
@@ -38,6 +41,7 @@ NVCCFLAGS += $(HWLOC_CFLAGS)
 .cu.o:
 	$(MKDIR_P) `dirname $@`
 	$(NVCC) $< -c -o $@ --compiler-options -fno-strict-aliasing -I$(top_srcdir)/include/ -I$(top_builddir)/include/ $(NVCCFLAGS)
+endif
 
 
 endif

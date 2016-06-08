@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux
+ * Copyright (C) 2010, 2016  Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,8 +19,7 @@
 
 /* Heart of the stencil computation: compute a new state from an old one. */
 
-extern "C" __global__ void
-cuda_life_update(int bz, const TYPE *old, TYPE *newp, int nx, int ny, int nz, int ldy, int ldz, int iter)
+extern "C" __global__ void cuda_life_update(int bz, const TYPE *old, TYPE *newp, int nx, int ny, int nz, int ldy, int ldz, int iter)
 {
 	unsigned idx = threadIdx.x + blockIdx.x * blockDim.x;
 	unsigned idy = threadIdx.y + blockIdx.y * blockDim.y;
@@ -56,8 +55,7 @@ cuda_life_update(int bz, const TYPE *old, TYPE *newp, int nx, int ny, int nz, in
 		}
 }
 
-extern "C" void
-cuda_life_update_host(int bz, const TYPE *old, TYPE *newp, int nx, int ny, int nz, int ldy, int ldz, int iter)
+extern "C" void cuda_life_update_host(int bz, const TYPE *old, TYPE *newp, int nx, int ny, int nz, int ldy, int ldz, int iter)
 {
 	unsigned max_parallelism = 512;
 	unsigned threads_per_dim_x = max_parallelism;
