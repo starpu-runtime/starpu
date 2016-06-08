@@ -257,14 +257,16 @@ int starpu_unistd_global_full_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj
 {
         struct starpu_unistd_global_obj *tmp = (struct starpu_unistd_global_obj *) obj;
 	int fd = tmp->descriptor;
+	int ret;
+	struct stat st;
 
 	if (fd < 0)
 		fd = _starpu_unistd_reopen(obj);
 #ifdef STARPU_HAVE_WINDOWS
 	*size = _filelength(fd);
 #else
-	struct stat st;
-	fstat(fd, &st);
+	ret = fstat(fd, &st);
+	STARPU_ASSERT(ret==0);
 
 	*size = st.st_size;
 #endif
