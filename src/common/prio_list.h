@@ -76,6 +76,11 @@
 		/* This assumes node is first member of stage */ \
 		return (struct ENAME##_prio_list_stage *) node; \
 	} \
+	static inline const struct ENAME##_prio_list_stage *ENAME##_node_to_list_stage_const(const struct starpu_rbtree_node *node) \
+	{ \
+		/* This assumes node is first member of stage */ \
+		return (struct ENAME##_prio_list_stage *) node; \
+	} \
 	static inline void ENAME##_prio_list_init(struct ENAME##_prio_list *priolist) \
 	{ \
 		starpu_rbtree_init(&priolist->tree); \
@@ -92,10 +97,10 @@
 		starpu_rbtree_remove(&priolist->tree, root); \
 		free(stage); \
 	} \
-	static inline int ENAME##_prio_list_cmp_fn(int prio, struct starpu_rbtree_node *node) \
+	static inline int ENAME##_prio_list_cmp_fn(int prio, const struct starpu_rbtree_node *node) \
 	{ \
 		/* Sort by decreasing order */ \
-		struct ENAME##_prio_list_stage *e2 = ENAME##_node_to_list_stage(node); \
+		const struct ENAME##_prio_list_stage *e2 = ENAME##_node_to_list_stage_const(node); \
 		return (e2->PRIOFIELD - prio); \
 	} \
 	static inline struct ENAME##_prio_list_stage *ENAME##_prio_list_add(struct ENAME##_prio_list *priolist, int prio) \
@@ -127,18 +132,18 @@
 		ENAME##_list_push_front(&stage->list, e); \
 		priolist->empty = 0; \
 	} \
-	static inline int ENAME##_prio_list_empty(struct ENAME##_prio_list *priolist) \
+	static inline int ENAME##_prio_list_empty(const struct ENAME##_prio_list *priolist) \
 	{ \
 		return priolist->empty; \
 	} \
 	/* Version of list_empty which does not use the cached empty flag,
 	 * typically used to compute the value of the flag */ \
-	static inline int ENAME##_prio_list_empty_slow(struct ENAME##_prio_list *priolist) \
+	static inline int ENAME##_prio_list_empty_slow(const struct ENAME##_prio_list *priolist) \
 	{ \
 		if (starpu_rbtree_empty(&priolist->tree)) \
 			return 1; \
 		struct starpu_rbtree_node *root = priolist->tree.root; \
-		struct ENAME##_prio_list_stage *stage = ENAME##_node_to_list_stage(root); \
+		const struct ENAME##_prio_list_stage *stage = ENAME##_node_to_list_stage_const(root); \
 		if (ENAME##_list_empty(&stage->list) && !root->children[0] && !root->children[1]) \
 			/* Just one empty list */ \
 			return 1; \
@@ -227,11 +232,11 @@
 			} \
 		} \
 	} \
-	static inline int ENAME##_prio_list_ismember(struct ENAME##_prio_list *priolist, struct ENAME *e) \
+	static inline int ENAME##_prio_list_ismember(const struct ENAME##_prio_list *priolist, const struct ENAME *e) \
 	{ \
 		struct starpu_rbtree_node *node = starpu_rbtree_lookup(&priolist->tree, e->PRIOFIELD, ENAME##_prio_list_cmp_fn); \
 		if (node) { \
-			struct ENAME##_prio_list_stage *stage = ENAME##_node_to_list_stage(node); \
+			const struct ENAME##_prio_list_stage *stage = ENAME##_node_to_list_stage_const(node); \
 			return ENAME##_list_ismember(&stage->list, e); \
 		} \
 		return 0; \
@@ -250,7 +255,7 @@
 	{ ENAME##_list_push_back(&(priolist)->list, (e)); } \
 	static inline void ENAME##_prio_list_push_front(struct ENAME##_prio_list *priolist, struct ENAME *e) \
 	{ ENAME##_list_push_front(&(priolist)->list, (e)); } \
-	static inline int ENAME##_prio_list_empty(struct ENAME##_prio_list *priolist) \
+	static inline int ENAME##_prio_list_empty(const struct ENAME##_prio_list *priolist) \
 	{ return ENAME##_list_empty(&(priolist)->list); } \
 	static inline void ENAME##_prio_list_erase(struct ENAME##_prio_list *priolist, struct ENAME *e) \
 	{ ENAME##_list_erase(&(priolist)->list, (e)); } \
@@ -258,7 +263,7 @@
 	{ return ENAME##_list_pop_front(&(priolist)->list); } \
 	static inline void ENAME##_prio_list_push_prio_list_back(struct ENAME##_prio_list *priolist, struct ENAME##_prio_list *priolist_toadd) \
 	{ ENAME##_list_push_list_back(&(priolist)->list, &(priolist_toadd)->list); } \
-	static inline int ENAME##_prio_list_ismember(struct ENAME##_prio_list *priolist, struct ENAME *e) \
+	static inline int ENAME##_prio_list_ismember(const struct ENAME##_prio_list *priolist, const struct ENAME *e) \
 	{ return ENAME##_list_ismember(&(priolist)->list, (e)); } \
 
 #endif
