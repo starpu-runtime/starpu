@@ -138,7 +138,7 @@ static int* _get_slowest_workers(unsigned sched_ctx, int *nworkers, enum starpu_
 		}
 	}
 	return curr_workers;
-}			
+}
 
 static void ispeed_handle_poped_task(unsigned sched_ctx, int worker, __attribute__((unused))struct starpu_task *task, __attribute__((unused))uint32_t footprint)
 {
@@ -163,20 +163,20 @@ static void ispeed_handle_poped_task(unsigned sched_ctx, int worker, __attribute
 							new_speed += sc_hypervisor_get_speed_per_worker(sc_hypervisor_get_wrapper(fastest_sched_ctx), workers_to_move[i]);
 						double fastest_speed = sc_hypervisor_get_ctx_speed(sc_hypervisor_get_wrapper(fastest_sched_ctx));
 						double slowest_speed = sc_hypervisor_get_ctx_speed(sc_hypervisor_get_wrapper(slowest_sched_ctx));
-//						printf("fast_speed(%d) %lf slow_speed(%d) %lf new speed(%d) %lf \n", fastest_sched_ctx, fastest_speed, slowest_sched_ctx, 
+//						printf("fast_speed(%d) %lf slow_speed(%d) %lf new speed(%d) %lf \n", fastest_sched_ctx, fastest_speed, slowest_sched_ctx,
 //						       slowest_speed, workers_to_move[0], new_speed);
 						if(fastest_speed != -1.0 && slowest_speed != -1.0 && (slowest_speed + new_speed) <= (fastest_speed - new_speed))
 						{
 							sc_hypervisor_move_workers(fastest_sched_ctx, slowest_sched_ctx, workers_to_move, nworkers_to_move, 0);
 						}
 					}
-					
+
 					free(workers_to_move);
 				}
 
 			}
 		}
-		starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&act_hypervisor_mutex);
 	}
 }
 

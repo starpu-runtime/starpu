@@ -45,7 +45,7 @@ struct resize_request_entry
 	UT_hash_handle hh;
 };
 
-/* structure to indicate when the moving of workers was actually done 
+/* structure to indicate when the moving of workers was actually done
    (moved workers can be seen in the new ctx ) */
 struct resize_ack
 {
@@ -96,7 +96,7 @@ struct sc_hypervisor
 
 	/* max speed diff btw ctx before triggering resizing */
 	double max_speed_gap;
-	
+
 	/* criteria to trigger resizing */
 	unsigned resize_criteria;
 

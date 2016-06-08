@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2014  Université de Bordeaux
- * Copyright (C) 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2011, 2012, 2013, 2014, 2015, 2016  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -230,8 +230,10 @@ static void display_perf_model(FILE *gnuplot_file, struct starpu_perfmodel_arch*
 		}
 		else
 		{
+			char *arch_name2 = replace_char(arch_name, '_', '-');
 			print_comma(gnuplot_file, first);
-			fprintf(gnuplot_file, "\"< grep '^%s' %s\" using 3:4 title \"Profiling %s\"", arch_name, options->data_file_name, replace_char(arch_name, '_', '-'));
+			fprintf(gnuplot_file, "\"< grep '^%s' %s\" using 3:4 title \"Profiling %s\"", arch_name, options->data_file_name, arch_name2);
+			free(arch_name2);
 		}
 	}
 #endif
@@ -291,9 +293,11 @@ static void display_history_based_perf_models(FILE *gnuplot_file, struct starpu_
 
 				if (arch_model->list)
 				{
+					char *arch_name2 = replace_char(arch_name, '_', '-');
 					print_comma(gnuplot_file, first);
-					fprintf(gnuplot_file, "\"%s\" using 1:%d:%d with errorlines title \"Average %s\"", options->avg_file_name, col, col+1, replace_char(arch_name, '_', '-'));
+					fprintf(gnuplot_file, "\"%s\" using 1:%d:%d with errorlines title \"Average %s\"", options->avg_file_name, col, col+1, arch_name2);
 					col += 2;
+					free(arch_name2);
 				}
 			}
 		}
@@ -414,11 +418,13 @@ static void dump_data_file(FILE *data_file, struct _perfmodel_plot_options *opti
 
 static void display_selected_models(FILE *gnuplot_file, struct starpu_perfmodel *model, struct _perfmodel_plot_options *options)
 {
+	char *symbol = replace_char(options->symbol, '_', '-');
+
 	fprintf(gnuplot_file, "#!/usr/bin/gnuplot -persist\n");
 	fprintf(gnuplot_file, "\n");
 	fprintf(gnuplot_file, "set term postscript eps enhanced color\n");
 	fprintf(gnuplot_file, "set output \"starpu_%s.eps\"\n", options->symbol);
-	fprintf(gnuplot_file, "set title \"Model for codelet %s\"\n", replace_char(options->symbol, '_', '-'));
+	fprintf(gnuplot_file, "set title \"Model for codelet %s\"\n", symbol);
 	fprintf(gnuplot_file, "set xlabel \"Total data size\"\n");
 	if (options->gflops)
 		fprintf(gnuplot_file, "set ylabel \"GFlops\"\n");
@@ -441,6 +447,8 @@ static void display_selected_models(FILE *gnuplot_file, struct starpu_perfmodel 
 	/* display all or selected combinations */
 	display_all_perf_models(gnuplot_file, model, &first, options);
 	display_history_based_perf_models(gnuplot_file, model, &first, options);
+
+	free(symbol);
 }
 
 int main(int argc, char **argv)

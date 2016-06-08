@@ -56,7 +56,7 @@ void _starpu_sched_ctx_elt_ensure_consistency(struct _starpu_sched_ctx_list *lis
 					      unsigned sched_ctx)
 {
 	struct _starpu_sched_ctx_elt *elt = _starpu_sched_ctx_elt_find(list, sched_ctx);
-	if (elt->task_number>0)
+	if (elt && elt->task_number>0)
 		elt->task_number = 0;
 }
 

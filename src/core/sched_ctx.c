@@ -123,7 +123,8 @@ static void _starpu_update_workers_without_ctx(int *workerids, int nworkers, int
 void starpu_sched_ctx_stop_task_submission()
 {
 	_starpu_exclude_task_from_dag(&stop_submission_task);
-	_starpu_task_submit_internally(&stop_submission_task);
+	int ret = _starpu_task_submit_internally(&stop_submission_task);
+	STARPU_ASSERT(!ret);
 }
 
 void starpu_sched_ctx_worker_shares_tasks_lists(int workerid, int sched_ctx_id)
@@ -259,20 +260,20 @@ static void _starpu_add_workers_to_sched_ctx(struct _starpu_sched_ctx *sched_ctx
 					if(sched_ctx->perf_arch.devices[dev2].type == devices[dev1].type && sched_ctx->perf_arch.devices[dev2].devid == devices[dev1].devid)
 						found = 1;
 				}
-				
+
 				if(!found)
 				{
 					nfinal_devices++;
 				}
 				else
 					found = 0;
-				
+
 			}
 
 
 			int nsize =  (sched_ctx->perf_arch.ndevices+nfinal_devices);
 			sched_ctx->perf_arch.devices  = (struct starpu_perfmodel_device*)realloc(sched_ctx->perf_arch.devices, nsize*sizeof(struct starpu_perfmodel_device));
-			
+
 		}
 
 		int dev1, dev2;
@@ -285,7 +286,7 @@ static void _starpu_add_workers_to_sched_ctx(struct _starpu_sched_ctx *sched_ctx
 				{
 					if(sched_ctx->perf_arch.devices[dev2].type == STARPU_CPU_WORKER)
 						sched_ctx->perf_arch.devices[dev2].ncores += devices[dev1].ncores;
-				     
+
 					found = 1;
 				}
 			}
@@ -391,11 +392,11 @@ static void _starpu_remove_workers_from_sched_ctx(struct _starpu_sched_ctx *sche
 				devices[ndevices].ncores = str_worker->perf_arch.devices[dev].ncores;
 				ndevices++;
 			}
-			else 
+			else
 				found = 0;
 		}
 		found = 0;
-		
+
 	}
 	sched_ctx->perf_arch.ndevices = ndevices;
 	for(dev = 0; dev < ndevices; dev++)
@@ -421,16 +422,16 @@ static void _starpu_sched_ctx_free_scheduling_data(struct _starpu_sched_ctx *sch
 	if(sched_ctx->sched_policy && sched_ctx->sched_policy->remove_workers)
 	{
 		int *workerids = NULL;
-		
+
 		unsigned nworkers_ctx = starpu_sched_ctx_get_workers_list(sched_ctx->id, &workerids);
-		
+
 		if(nworkers_ctx > 0)
 		{
 			_STARPU_TRACE_WORKER_SCHEDULING_PUSH;
 			sched_ctx->sched_policy->remove_workers(sched_ctx->id, workerids, nworkers_ctx);
 			_STARPU_TRACE_WORKER_SCHEDULING_POP;
 		}
-		
+
 		free(workerids);
 	}
 	return;
@@ -466,8 +467,8 @@ struct _starpu_sched_ctx* _starpu_create_sched_ctx(struct starpu_sched_policy *p
 						   int nworkers_ctx, unsigned is_initial_sched,
 						   const char *sched_ctx_name,
 						   int min_prio_set, int min_prio,
-						   int max_prio_set, int max_prio, 
-						   unsigned awake_workers,  
+						   int max_prio_set, int max_prio,
+						   unsigned awake_workers,
 						   void (*sched_policy_init)(void))
 {
 	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
@@ -889,8 +890,7 @@ void starpu_sched_ctx_delete(unsigned sched_ctx_id)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 #ifdef STARPU_USE_SC_HYPERVISOR
-	if(sched_ctx != NULL && sched_ctx_id != 0 && sched_ctx_id != STARPU_NMAX_SCHED_CTXS
-	   && sched_ctx->perf_counters != NULL)
+	if (sched_ctx_id != 0 && sched_ctx_id != STARPU_NMAX_SCHED_CTXS && sched_ctx->perf_counters != NULL)
 	{
 		_STARPU_TRACE_HYPERVISOR_BEGIN();
 		sched_ctx->perf_counters->notify_delete_context(sched_ctx_id);
@@ -1020,15 +1020,15 @@ unsigned _starpu_can_push_task(struct _starpu_sched_ctx *sched_ctx, struct starp
 	if(sched_ctx->sched_policy && sched_ctx->sched_policy->simulate_push_task)
 	{
 		if (window_size == 0.0) return 1;
-		
+
 		STARPU_PTHREAD_RWLOCK_RDLOCK(&changing_ctx_mutex[sched_ctx->id]);
 		double expected_end = sched_ctx->sched_policy->simulate_push_task(task);
 		STARPU_PTHREAD_RWLOCK_UNLOCK(&changing_ctx_mutex[sched_ctx->id]);
-		
-		double expected_len = 0.0; 
+
+		double expected_len = 0.0;
 		if(hyp_actual_start_sample[sched_ctx->id] != 0.0)
 			expected_len = expected_end - hyp_actual_start_sample[sched_ctx->id] ;
-		else 
+		else
 		{
 			printf("%d: sc start is 0.0\n", sched_ctx->id);
 			expected_len = expected_end - starpu_timing_now();
@@ -1449,7 +1449,9 @@ void starpu_sched_ctx_update_start_resizing_sample(unsigned sched_ctx_id, double
 
 unsigned _starpu_sched_ctx_allow_hypervisor(unsigned sched_ctx_id)
 {
+	(void) sched_ctx_id;
 	return 1;
+#if 0
 	double now = starpu_timing_now();
 	if(hyp_start_allow_sample[sched_ctx_id] > 0.0)
 	{
@@ -1471,6 +1473,7 @@ unsigned _starpu_sched_ctx_allow_hypervisor(unsigned sched_ctx_id)
 		return 1;
 	}
 	return 0;
+#endif
 }
 
 void starpu_sched_ctx_set_policy_data(unsigned sched_ctx_id, void* policy_data)
@@ -1652,7 +1655,7 @@ unsigned starpu_sched_ctx_contains_worker(int workerid, unsigned sched_ctx_id)
 		int worker;
 
 		struct starpu_sched_ctx_iterator it;
-		
+
 		workers->init_iterator(workers, &it);
 		while(workers->has_next(workers, &it))
 		{
