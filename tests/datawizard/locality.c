@@ -58,6 +58,7 @@ static struct starpu_codelet cl =
 		STARPU_RW | STARPU_COMMUTE | STARPU_LOCALITY,
 		STARPU_RW | STARPU_COMMUTE | STARPU_LOCALITY,
 	},
+	.flags = STARPU_CODELET_SIMGRID_EXECUTE,
 };
 
 int main(int argc, char *argv[])
