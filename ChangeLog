@@ -228,6 +228,7 @@ Small features:
     used for allocations done by starpu.
   * Ranges can be provided in STARPU_WORKERS_CPUID
   * Add STARPU_CODELET_SIMGRID_EXECUTE flag.
+  * Add starpu_worker_get_id_check().
 
 Changes:
   * Data interfaces (variable, vector, matrix and block) now define

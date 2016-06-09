@@ -154,6 +154,11 @@ the one associated to the calling thread. The returned value is either
 from the application outside a task or a callback), or an integer
 between 0 and starpu_worker_get_count() - 1.
 
+\fn unsigned starpu_worker_get_id_check(void)
+\ingroup API_Workers_Properties
+This is the same as starpu_worker_get_id, but aborts when called from outside a
+worker (i.e. when starpu_worker_get_id() would return -1).
+
 \fn int starpu_worker_get_ids_by_type(enum starpu_worker_archtype type, int *workerids, int maxsize)
 \ingroup API_Workers_Properties
 This function gets the list of identifiers of workers with the
