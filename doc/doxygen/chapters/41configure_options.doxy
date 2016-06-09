@@ -442,12 +442,22 @@ Enable the use of OpenGL for the rendering of some examples.
 // TODO: rather default to enabled when detected
 </dd>
 
-<dt>--enable-blas-lib</dt>
+<dt>--enable-blas-lib=<c>prefix</c></dt>
 <dd>
 \anchor enable-blas-lib
 \addindex __configure__--enable-blas-lib
-Specify the blas library to be used by some of the examples. The
-library has to be 'atlas' or 'goto'.
+Specify the blas library to be used by some of the examples. Librairies available :
+- none [default] : no BLAS library is used
+- atlas: use ATLAS library
+- goto: use GotoBLAS library
+- mkl: use MKL library (you may need to set specific CFLAGS and LDFLAGS with --with-mkl-cflags and --with-mkl-ldflags)
+</dd>
+
+<dt>--enable-leveldb</dt>
+<dd>
+\anchor enable-leveldb
+\addindex __configure__--enable-leveldb
+Enable linking with LevelDB if available
 </dd>
 
 <dt>--disable-starpufft</dt>
