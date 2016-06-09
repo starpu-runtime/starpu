@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012, 2013  CNRS
+ * Copyright (C) 2010, 2012, 2013, 2016  CNRS
  * Copyright (C) 2010  INRIA
  * Copyright (C) 2011, 2014  Université de Bordeaux
  *
@@ -38,7 +38,7 @@ void scal_opencl_func(void *buffers[], void *_args)
 	/* OpenCL copy of the vector pointer */
 	cl_mem val = (cl_mem)STARPU_VECTOR_GET_DEV_HANDLE(buffers[0]);
 
-	id = starpu_worker_get_id();
+	id = starpu_worker_get_id_check();
 	devid = starpu_worker_get_devid(id);
 
 	err = starpu_opencl_load_kernel(&kernel, &queue, &opencl_program, "vector_mult_opencl", devid);

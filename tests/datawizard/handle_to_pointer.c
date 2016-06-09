@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011  INRIA
+ * Copyright (C) 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -61,7 +62,7 @@ static void cuda_task(void **buffers, void *args)
 static void opencl_task(void *buffers[], void *args)
 {
 	cl_command_queue queue;
-	int id = starpu_worker_get_id();
+	int id = starpu_worker_get_id_check();
 	int devid = starpu_worker_get_devid(id);
 	starpu_opencl_get_queue(devid, &queue);
 

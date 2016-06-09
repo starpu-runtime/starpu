@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010-2012, 2014-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011  CNRS
+ * Copyright (C) 2010, 2011, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -41,7 +41,7 @@ void display_stat_heat(void)
 	unsigned worker;
 	for (worker = 0; worker < nworkers; worker++)
 	{
-		count_total_per_worker[worker] = count_11_per_worker[worker] 
+		count_total_per_worker[worker] = count_11_per_worker[worker]
 					+ count_12_per_worker[worker]
 					+ count_21_per_worker[worker]
 					+ count_22_per_worker[worker];
@@ -59,7 +59,7 @@ void display_stat_heat(void)
 		{
 			char name[32];
 			starpu_worker_get_name(worker, name, 32);
-			
+
 			FPRINTF(stderr, "\t\t%s -> %u / %u (%2.2f %%)\n", name, count_11_per_worker[worker], count_11_total, (100.0*count_11_per_worker[worker])/count_11_total);
 		}
 	}
@@ -71,12 +71,12 @@ void display_stat_heat(void)
 		{
 			char name[32];
 			starpu_worker_get_name(worker, name, 32);
-			
+
 			FPRINTF(stderr, "\t\t%s -> %u / %u (%2.2f %%)\n", name, count_12_per_worker[worker], count_12_total, (100.0*count_12_per_worker[worker])/count_12_total);
 		}
 	}
-	
-	
+
+
 	FPRINTF(stderr, "\t21 (TRSM)\n");
 	for (worker = 0; worker < nworkers; worker++)
 	{
@@ -84,11 +84,11 @@ void display_stat_heat(void)
 		{
 			char name[32];
 			starpu_worker_get_name(worker, name, 32);
-			
+
 			FPRINTF(stderr, "\t\t%s -> %u / %u (%2.2f %%)\n", name, count_21_per_worker[worker], count_21_total, (100.0*count_21_per_worker[worker])/count_21_total);
 		}
 	}
-	
+
 	FPRINTF(stderr, "\t22 (SGEMM)\n");
 	for (worker = 0; worker < nworkers; worker++)
 	{
@@ -96,14 +96,14 @@ void display_stat_heat(void)
 		{
 			char name[32];
 			starpu_worker_get_name(worker, name, 32);
-			
+
 			FPRINTF(stderr, "\t\t%s -> %u / %u (%2.2f %%)\n", name, count_22_per_worker[worker], count_22_total, (100.0*count_22_per_worker[worker])/count_22_total);
 		}
 	}
 }
 
 /*
- *   U22 
+ *   U22
  */
 
 static inline void dw_common_cpu_codelet_update_u22(void *descr[], int s, STARPU_ATTRIBUTE_UNUSED void *_args)
@@ -127,7 +127,7 @@ static inline void dw_common_cpu_codelet_update_u22(void *descr[], int s, STARPU
 	switch (s)
 	{
 		case 0:
-			STARPU_SGEMM("N", "N",	dy, dx, dz, 
+			STARPU_SGEMM("N", "N",	dy, dx, dz,
 				-1.0f, left, ld21, right, ld12,
 					     1.0f, center, ld22);
 			break;
@@ -152,7 +152,7 @@ void dw_cpu_codelet_update_u22(void *descr[], void *_args)
 {
 	dw_common_cpu_codelet_update_u22(descr, 0, _args);
 
-	int id = starpu_worker_get_id();
+	int id = starpu_worker_get_id_check();
 	count_22_per_worker[id]++;
 }
 
@@ -161,7 +161,7 @@ void dw_cublas_codelet_update_u22(void *descr[], void *_args)
 {
 	dw_common_cpu_codelet_update_u22(descr, 1, _args);
 
-	int id = starpu_worker_get_id();
+	int id = starpu_worker_get_id_check();
 	count_22_per_worker[id]++;
 }
 #endif /* STARPU_USE_CUDA */
@@ -175,7 +175,7 @@ static inline void dw_common_codelet_update_u12(void *descr[], int s, STARPU_ATT
 	float *sub11;
 	float *sub12;
 
-	sub11 = (float *)STARPU_MATRIX_GET_PTR(descr[0]);	
+	sub11 = (float *)STARPU_MATRIX_GET_PTR(descr[0]);
 	sub12 = (float *)STARPU_MATRIX_GET_PTR(descr[1]);
 
 	unsigned ld11 = STARPU_MATRIX_GET_LD(descr[0]);
@@ -183,7 +183,7 @@ static inline void dw_common_codelet_update_u12(void *descr[], int s, STARPU_ATT
 
 	unsigned nx12 = STARPU_MATRIX_GET_NX(descr[1]);
 	unsigned ny12 = STARPU_MATRIX_GET_NY(descr[1]);
-	
+
 #ifdef STARPU_USE_CUDA
 	cublasStatus status;
 #endif
@@ -215,7 +215,7 @@ void dw_cpu_codelet_update_u12(void *descr[], void *_args)
 {
 	dw_common_codelet_update_u12(descr, 0, _args);
 
-	int id = starpu_worker_get_id();
+	int id = starpu_worker_get_id_check();
 	count_12_per_worker[id]++;
 }
 
@@ -224,12 +224,12 @@ void dw_cublas_codelet_update_u12(void *descr[], void *_args)
 {
 	 dw_common_codelet_update_u12(descr, 1, _args);
 
-	int id = starpu_worker_get_id();
+	int id = starpu_worker_get_id_check();
 	count_12_per_worker[id]++;
 }
 #endif /* STARPU_USE_CUDA */
 
-/* 
+/*
  * U21
  */
 
@@ -246,7 +246,7 @@ static inline void dw_common_codelet_update_u21(void *descr[], int s, STARPU_ATT
 
 	unsigned nx21 = STARPU_MATRIX_GET_NX(descr[1]);
 	unsigned ny21 = STARPU_MATRIX_GET_NY(descr[1]);
-	
+
 #ifdef STARPU_USE_CUDA
 	cublasStatus status;
 #endif
@@ -275,7 +275,7 @@ void dw_cpu_codelet_update_u21(void *descr[], void *_args)
 {
 	dw_common_codelet_update_u21(descr, 0, _args);
 
-	int id = starpu_worker_get_id();
+	int id = starpu_worker_get_id_check();
 	count_21_per_worker[id]++;
 }
 
@@ -284,10 +284,10 @@ void dw_cublas_codelet_update_u21(void *descr[], void *_args)
 {
 	dw_common_codelet_update_u21(descr, 1, _args);
 
-	int id = starpu_worker_get_id();
+	int id = starpu_worker_get_id_check();
 	count_21_per_worker[id]++;
 }
-#endif 
+#endif
 
 /*
  *	U11
@@ -304,15 +304,15 @@ static inline void debug_print(float *tab, unsigned ld, unsigned n)
 		}
 		FPRINTF(stderr, "\n");
 	}
-	
+
 	FPRINTF(stderr, "\n");
 }
 
-static inline void dw_common_codelet_update_u11(void *descr[], int s, STARPU_ATTRIBUTE_UNUSED void *_args) 
+static inline void dw_common_codelet_update_u11(void *descr[], int s, STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	float *sub11;
 
-	sub11 = (float *)STARPU_MATRIX_GET_PTR(descr[0]); 
+	sub11 = (float *)STARPU_MATRIX_GET_PTR(descr[0]);
 
 	unsigned long nx = STARPU_MATRIX_GET_NX(descr[0]);
 	unsigned long ld = STARPU_MATRIX_GET_LD(descr[0]);
@@ -327,9 +327,9 @@ static inline void dw_common_codelet_update_u11(void *descr[], int s, STARPU_ATT
 				float pivot;
 				pivot = sub11[z+z*ld];
 				STARPU_ASSERT(pivot != 0.0f);
-		
+
 				STARPU_SSCAL(nx - z - 1, (1.0f/pivot), &sub11[z+(z+1)*ld], ld);
-		
+
 				STARPU_SGER(nx - z - 1, nx - z - 1, -1.0f,
 						&sub11[z+(z+1)*ld], ld,
 						&sub11[(z+1)+z*ld], 1,
@@ -345,9 +345,9 @@ static inline void dw_common_codelet_update_u11(void *descr[], int s, STARPU_ATT
 				cudaStreamSynchronize(starpu_cuda_get_local_stream());
 
 				STARPU_ASSERT(pivot != 0.0f);
-				
+
 				cublasSscal(nx - z - 1, 1.0f/pivot, &sub11[z+(z+1)*ld], ld);
-				
+
 				cublasSger(nx - z - 1, nx - z - 1, -1.0f,
 								&sub11[z+(z+1)*ld], ld,
 								&sub11[(z+1)+z*ld], 1,
@@ -369,7 +369,7 @@ void dw_cpu_codelet_update_u11(void *descr[], void *_args)
 {
 	dw_common_codelet_update_u11(descr, 0, _args);
 
-	int id = starpu_worker_get_id();
+	int id = starpu_worker_get_id_check();
 	count_11_per_worker[id]++;
 }
 
@@ -378,7 +378,7 @@ void dw_cublas_codelet_update_u11(void *descr[], void *_args)
 {
 	dw_common_codelet_update_u11(descr, 1, _args);
 
-	int id = starpu_worker_get_id();
+	int id = starpu_worker_get_id_check();
 	count_11_per_worker[id]++;
 }
 #endif /* STARPU_USE_CUDA */

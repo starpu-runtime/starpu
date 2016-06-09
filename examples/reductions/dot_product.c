@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2010-2015  Université de Bordeaux
  * Copyright (C) 2012 INRIA
+ * Copyright (C) 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -166,7 +167,7 @@ void redux_opencl_func(void *buffers[], void *args)
 	cl_mem dota = (cl_mem) STARPU_VARIABLE_GET_PTR(buffers[0]);
 	cl_mem dotb = (cl_mem) STARPU_VARIABLE_GET_PTR(buffers[1]);
 
-	id = starpu_worker_get_id();
+	id = starpu_worker_get_id_check();
 	devid = starpu_worker_get_devid(id);
 
 	err = starpu_opencl_load_kernel(&kernel, &queue, &_opencl_program, "_redux_opencl", devid);
@@ -280,7 +281,7 @@ void dot_opencl_func(void *buffers[], void *args)
 	cl_mem dot = (cl_mem) STARPU_VARIABLE_GET_PTR(buffers[2]);
 	unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
 
-	id = starpu_worker_get_id();
+	id = starpu_worker_get_id_check();
 	devid = starpu_worker_get_devid(id);
 
 	err = starpu_opencl_load_kernel(&kernel, &queue, &_opencl_program, "_dot_opencl", devid);
