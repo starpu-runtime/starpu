@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2015  Université de Bordeaux
+ * Copyright (C) 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -70,7 +71,7 @@ static void init_rng(void *arg STARPU_ATTRIBUTE_UNUSED)
 	curandStatus_t res;
 #endif
 
-	int workerid = starpu_worker_get_id();
+	int workerid = starpu_worker_get_id_check();
 
 	switch (starpu_worker_get_type(workerid))
 	{
@@ -152,7 +153,7 @@ static void parse_args(int argc, char **argv)
 
 void pi_func_cpu(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
 {
-	int workerid = starpu_worker_get_id();
+	int workerid = starpu_worker_get_id_check();
 
 	unsigned short *worker_xsub;
 	worker_xsub = &xsubi[PADDING*workerid];
@@ -191,7 +192,7 @@ static void pi_func_cuda(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
 {
 	curandStatus_t res;
 
-	int workerid = starpu_worker_get_id();
+	int workerid = starpu_worker_get_id_check();
 
 	/* CURAND is a bit silly: it assumes that any error is fatal. Calling
 	 * cudaGetLastError resets the last error value. */

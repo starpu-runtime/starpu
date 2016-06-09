@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010,2011, 2014 University of Bordeaux
+ * Copyright (C) 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -45,7 +46,7 @@ static void soclEnqueueReadBuffer_opencl_task(void *descr[], void *args) {
 
    DEBUG_MSG("[Buffer %d] Reading %ld bytes from offset %ld into %p\n", cmd->buffer->id, cmd->cb, cmd->offset, cmd->ptr);
 
-   int wid = starpu_worker_get_id();
+   int wid = starpu_worker_get_id_check();
    cl_command_queue cq;
    starpu_opencl_get_queue(wid, &cq);
 

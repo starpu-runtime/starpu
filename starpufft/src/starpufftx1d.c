@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2014  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -89,7 +89,7 @@ STARPUFFT(fft1_1d_plan_gpu)(void *args)
 {
 	STARPUFFT(plan) plan = args;
 	int n2 = plan->n2[0];
-	int workerid = starpu_worker_get_id();
+	int workerid = starpu_worker_get_id_check();
 	cufftResult cures;
 
 	cures = cufftPlan1d(&plan->plans[workerid].plan1_cuda, n2, _CUFFT_C2C, 1);
@@ -113,7 +113,7 @@ STARPUFFT(fft1_1d_kernel_gpu)(void *descr[], void *_args)
 	_cufftComplex * restrict out = (_cufftComplex *)STARPU_VECTOR_GET_PTR(descr[1]);
 	const _cufftComplex * restrict roots = (_cufftComplex *)STARPU_VECTOR_GET_PTR(descr[2]);
 
-	int workerid = starpu_worker_get_id();
+	int workerid = starpu_worker_get_id_check();
 
 	task_per_worker[workerid]++;
 
@@ -137,7 +137,7 @@ STARPUFFT(fft2_1d_plan_gpu)(void *args)
 	int n2 = plan->n2[0];
 	int n3 = n2/DIV_1D;
 	cufftResult cures;
-	int workerid = starpu_worker_get_id();
+	int workerid = starpu_worker_get_id_check();
 
 	cures = cufftPlan1d(&plan->plans[workerid].plan2_cuda, n1, _CUFFT_C2C, n3);
 	if (cures != CUFFT_SUCCESS)
@@ -157,7 +157,7 @@ STARPUFFT(fft2_1d_kernel_gpu)(void *descr[], void *_args)
 	_cufftComplex * restrict in = (_cufftComplex *)STARPU_VECTOR_GET_PTR(descr[0]);
 	_cufftComplex * restrict out = (_cufftComplex *)STARPU_VECTOR_GET_PTR(descr[1]);
 
-	int workerid = starpu_worker_get_id();
+	int workerid = starpu_worker_get_id_check();
 
 	task_per_worker[workerid]++;
 
@@ -205,7 +205,7 @@ STARPUFFT(fft1_1d_kernel_cpu)(void *descr[], void *_args)
 	int i = args->i;
 	int j;
 	int n2 = plan->n2[0];
-	int workerid = starpu_worker_get_id();
+	int workerid = starpu_worker_get_id_check();
 
 	task_per_worker[workerid]++;
 
@@ -259,7 +259,7 @@ STARPUFFT(fft2_1d_kernel_cpu)(void *descr[], void *_args)
 	struct STARPUFFT(args) *args = _args;
 	STARPUFFT(plan) plan = args->plan;
 	/* int jj = args->jj; */
-	int workerid = starpu_worker_get_id();
+	int workerid = starpu_worker_get_id_check();
 
 	task_per_worker[workerid]++;
 
@@ -420,7 +420,7 @@ STARPUFFT(fft_1d_plan_gpu)(void *args)
 	STARPUFFT(plan) plan = args;
 	cufftResult cures;
 	int n = plan->n[0];
-	int workerid = starpu_worker_get_id();
+	int workerid = starpu_worker_get_id_check();
 
 	cures = cufftPlan1d(&plan->plans[workerid].plan_cuda, n, _CUFFT_C2C, 1);
 	if (cures != CUFFT_SUCCESS)
@@ -439,7 +439,7 @@ STARPUFFT(fft_1d_kernel_gpu)(void *descr[], void *args)
 	_cufftComplex * restrict in = (_cufftComplex *)STARPU_VECTOR_GET_PTR(descr[0]);
 	_cufftComplex * restrict out = (_cufftComplex *)STARPU_VECTOR_GET_PTR(descr[1]);
 
-	int workerid = starpu_worker_get_id();
+	int workerid = starpu_worker_get_id_check();
 
 	task_per_worker[workerid]++;
 
@@ -457,7 +457,7 @@ static void
 STARPUFFT(fft_1d_kernel_cpu)(void *descr[], void *_args)
 {
 	STARPUFFT(plan) plan = _args;
-	int workerid = starpu_worker_get_id();
+	int workerid = starpu_worker_get_id_check();
 
 	task_per_worker[workerid]++;
 
