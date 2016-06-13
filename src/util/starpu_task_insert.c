@@ -95,16 +95,17 @@ static
 struct starpu_task *_starpu_task_build_v(struct starpu_codelet *cl, const char* task_name, int cl_arg_free, va_list varg_list)
 {
 	va_list varg_list_copy;
+	int ret;
 
 	struct starpu_task *task = starpu_task_create();
 	task->name = task_name;
 	task->cl_arg_free = cl_arg_free;
 
 	va_copy(varg_list_copy, varg_list);
-	_starpu_task_insert_create(cl, &task, varg_list_copy);
+	ret = _starpu_task_insert_create(cl, &task, varg_list_copy);
 	va_end(varg_list_copy);
 
-	return task;
+	return (ret == 0) ? task : NULL;
 }
 
 static
@@ -159,7 +160,7 @@ struct starpu_task *starpu_task_build(struct starpu_codelet *cl, ...)
 
 	va_start(varg_list, cl);
 	task = _starpu_task_build_v(cl, "task_build", 0, varg_list);
-	if (task->cl_arg)
+	if (task && task->cl_arg)
 	{
 		task->cl_arg_free = 1;
 }

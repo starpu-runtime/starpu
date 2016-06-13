@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011, 2013-2016   Université Bordeaux
- * Copyright (C) 2011-2015         CNRS
+ * Copyright (C) 2011-2016         CNRS
  * Copyright (C) 2011, 2014        INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -72,6 +72,11 @@ int _starpu_codelet_pack_args(void **arg_buffer, size_t *arg_buffer_size, va_lis
 
 			nargs++;
 			_starpu_pack_arguments(&current_offset, &_arg_buffer_size, &_arg_buffer, ptr, ptr_size);
+		}
+		else if (arg_type==STARPU_CL_ARGS)
+		{
+			(void)va_arg(varg_list, void *);
+			(void)va_arg(varg_list, size_t);
 		}
 		else if (arg_type==STARPU_CALLBACK)
 		{
@@ -205,7 +210,7 @@ void _starpu_task_insert_check_nb_buffers(struct starpu_codelet *cl, struct star
 	}
 }
 
-void _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task **task, va_list varg_list)
+int _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task **task, va_list varg_list)
 {
 	int arg_type;
 	char *arg_buffer_ = NULL;
@@ -314,6 +319,11 @@ void _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task **
 
 			nargs++;
 			_starpu_pack_arguments(&current_offset, &arg_buffer_size_, &arg_buffer_, ptr, ptr_size);
+		}
+		else if (arg_type==STARPU_CL_ARGS)
+		{
+			(*task)->cl_arg = va_arg(varg_list, void *);
+			(*task)->cl_arg_size = va_arg(varg_list, size_t);
 		}
 		else if (arg_type==STARPU_CALLBACK)
 		{
@@ -436,6 +446,11 @@ void _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task **
 
 	if (nargs)
 	{
+		if ((*task)->cl_arg != NULL)
+		{
+			_STARPU_DISP("Parameters STARPU_CL_ARGS and STARPU_VALUE cannot be used in the same call\n");
+			return -EINVAL;
+		}
 		memcpy(arg_buffer_, (int *)&nargs, sizeof(nargs));
 		(*task)->cl_arg = arg_buffer_;
 		(*task)->cl_arg_size = arg_buffer_size_;
@@ -447,4 +462,5 @@ void _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task **
 	}
 
 	_STARPU_TRACE_TASK_BUILD_END();
+	return 0;
 }
