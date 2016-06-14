@@ -54,14 +54,18 @@ void func_cpu_int_float_unpack_copyleft(void *descr[], void *_args)
 {
 	int ifactor[2048];
 	float ffactor;
-	char buffer[1024];
+	void *buffer;
+	size_t buffer_size;
 	(void) descr;
 
-	starpu_codelet_unpack_args_and_copyleft(_args, buffer, 1024, ifactor, NULL);
+	buffer_size = sizeof(int)+sizeof(float)+sizeof(size_t);
+	buffer = calloc(buffer_size, 1);
+	starpu_codelet_unpack_args_and_copyleft(_args, buffer, buffer_size, ifactor, NULL);
 	starpu_codelet_unpack_args(buffer, &ffactor);
 
 	FPRINTF(stderr, "[func_cpu_int_float_unpack_copyleft] Values %d - %3.2f\n", ifactor[0], ffactor);
 	assert(ifactor[0] == IFACTOR && ffactor == FFACTOR);
+	free(buffer);
 }
 
 void func_cpu_float_int(void *descr[], void *_args)
@@ -93,48 +97,57 @@ void func_cpu_float_int_unpack_copyleft(void *descr[], void *_args)
 {
 	int ifactor[2048];
 	float ffactor;
-	char buffer[10240];
+	void *buffer;
+	size_t buffer_size;
 	(void) descr;
 
-	starpu_codelet_unpack_args_and_copyleft(_args, buffer, 1024, &ffactor, NULL);
+	buffer_size = sizeof(int)+2048*sizeof(int)+sizeof(size_t);
+	buffer = calloc(buffer_size, 1);
+	starpu_codelet_unpack_args_and_copyleft(_args, buffer, buffer_size, &ffactor, NULL);
 	starpu_codelet_unpack_args(buffer, ifactor);
 
 	FPRINTF(stderr, "[func_cpu_float_int_multiple_unpack] Values %d - %3.2f\n", ifactor[0], ffactor);
 	assert(ifactor[0] == IFACTOR && ffactor == FFACTOR);
+	free(buffer);
 }
 
-int do_test_int_float_task_insert(starpu_cpu_func_t func, char* func_name)
+void do_test_int_float_task_insert(starpu_cpu_func_t func, char* func_name)
 {
-	int ifactor[2048];
+	int *ifactor;
 	float ffactor=FFACTOR;
 	int ret;
 	struct starpu_codelet codelet;
+
+	FPRINTF(stderr, "\nTesting %s\n", __func__);
 
 	starpu_codelet_init(&codelet);
 	codelet.cpu_funcs[0] = func;
 	codelet.cpu_funcs_name[0] = func_name;
 
+	ifactor = calloc(2048, sizeof(int));
 	ifactor[0] = IFACTOR;
 
 	ret = starpu_task_insert(&codelet,
 				 STARPU_VALUE, ifactor, 2048*sizeof(ifactor[0]),
 				 STARPU_VALUE, &ffactor, sizeof(ffactor),
 				 0);
-	if (ret == -ENODEV) return ret;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 	starpu_task_wait_for_all();
-	return 0;
+	free(ifactor);
 }
 
-int do_test_int_float_task_insert_pack(starpu_cpu_func_t func, char* func_name)
+void do_test_int_float_task_insert_pack(starpu_cpu_func_t func, char* func_name)
 {
-	int ifactor[2048];
+	int *ifactor;
 	float ffactor=FFACTOR;
 	int ret;
 	struct starpu_codelet codelet;
 	void *cl_arg = NULL;
 	size_t cl_arg_size = 0;
 
+	FPRINTF(stderr, "\nTesting %s\n", __func__);
+
+	ifactor = calloc(2048, sizeof(int));
 	ifactor[0] = IFACTOR;
 
 	starpu_codelet_pack_args(&cl_arg, &cl_arg_size,
@@ -149,44 +162,48 @@ int do_test_int_float_task_insert_pack(starpu_cpu_func_t func, char* func_name)
 	ret = starpu_task_insert(&codelet,
 				 STARPU_CL_ARGS, cl_arg, cl_arg_size,
 				 0);
-	if (ret == -ENODEV) return ret;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 	starpu_task_wait_for_all();
-	return 0;
+	free(ifactor);
 }
 
-int do_test_float_int_task_insert(starpu_cpu_func_t func, char* func_name)
+void do_test_float_int_task_insert(starpu_cpu_func_t func, char* func_name)
 {
-	int ifactor[2048];
+	int *ifactor;
 	float ffactor=FFACTOR;
 	int ret;
 	struct starpu_codelet codelet;
+
+	FPRINTF(stderr, "\nTesting %s\n", __func__);
 
 	starpu_codelet_init(&codelet);
 	codelet.cpu_funcs[0] = func;
 	codelet.cpu_funcs_name[0] = func_name;
 
+	ifactor = calloc(2048, sizeof(int));
 	ifactor[0] = IFACTOR;
 
 	ret = starpu_task_insert(&codelet,
 				 STARPU_VALUE, &ffactor, sizeof(ffactor),
 				 STARPU_VALUE, ifactor, 2048*sizeof(ifactor[0]),
 				 0);
-	if (ret == -ENODEV) return ret;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 	starpu_task_wait_for_all();
-	return 0;
+	free(ifactor);
 }
 
-int do_test_float_int_task_insert_pack(starpu_cpu_func_t func, char* func_name)
+void do_test_float_int_task_insert_pack(starpu_cpu_func_t func, char* func_name)
 {
-	int ifactor[2048];
+	int *ifactor;
 	float ffactor=FFACTOR;
 	int ret;
 	struct starpu_codelet codelet;
 	void *cl_arg = NULL;
 	size_t cl_arg_size = 0;
 
+	FPRINTF(stderr, "\nTesting %s\n", __func__);
+
+	ifactor = calloc(2048, sizeof(int));
 	ifactor[0] = IFACTOR;
 
 	starpu_codelet_pack_args(&cl_arg, &cl_arg_size,
@@ -201,19 +218,23 @@ int do_test_float_int_task_insert_pack(starpu_cpu_func_t func, char* func_name)
 	ret = starpu_task_insert(&codelet,
 				 STARPU_CL_ARGS, cl_arg, cl_arg_size,
 				 0);
-	if (ret == -ENODEV) return ret;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 	starpu_task_wait_for_all();
-	return 0;
+	free(ifactor);
 }
 
-int do_test_int_float_pack(starpu_cpu_func_t func, char* func_name)
+void do_test_int_float_pack(starpu_cpu_func_t func, char* func_name)
 {
 	struct starpu_task *task;
 	struct starpu_codelet codelet;
 	int ret;
-	int ifactor[2048];
+	int *ifactor;
 	float ffactor=FFACTOR;
+
+	FPRINTF(stderr, "\nTesting %s\n", __func__);
+
+	ifactor = calloc(2048, sizeof(int));
+	ifactor[0] = IFACTOR;
 
 	starpu_codelet_init(&codelet);
 	codelet.cpu_funcs[0] = func;
@@ -228,19 +249,23 @@ int do_test_int_float_pack(starpu_cpu_func_t func, char* func_name)
 				 STARPU_VALUE, &ffactor, sizeof(ffactor),
 				 0);
 	ret = starpu_task_submit(task);
-	if (ret == -ENODEV) return ret;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	starpu_task_wait_for_all();
-	return 0;
+	free(ifactor);
 }
 
-int do_test_float_int_pack(starpu_cpu_func_t func, char* func_name)
+void do_test_float_int_pack(starpu_cpu_func_t func, char* func_name)
 {
 	struct starpu_task *task;
 	struct starpu_codelet codelet;
 	int ret;
-	int ifactor[2048];
+	int *ifactor;
 	float ffactor=FFACTOR;
+
+	FPRINTF(stderr, "\nTesting %s\n", __func__);
+
+	ifactor = calloc(2048, sizeof(int));
+	ifactor[0] = IFACTOR;
 
 	starpu_codelet_init(&codelet);
 	codelet.cpu_funcs[0] = func;
@@ -255,10 +280,10 @@ int do_test_float_int_pack(starpu_cpu_func_t func, char* func_name)
 				 STARPU_VALUE, ifactor, 2048*sizeof(ifactor[0]),
 				 0);
 	ret = starpu_task_submit(task);
-	if (ret == -ENODEV) return ret;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	starpu_task_wait_for_all();
-	return 0;
+
+	free(ifactor);
 }
 
 int main(int argc, char **argv)
@@ -270,48 +295,32 @@ int main(int argc, char **argv)
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+	if (starpu_worker_get_count_by_type(STARPU_CPU_WORKER) == 0)
+		goto enodev;
 
-	ret = do_test_int_float_task_insert(func_cpu_int_float, "func_cpu_int_float_name");
-	if (ret == -ENODEV) goto enodev;
-	ret = do_test_int_float_task_insert(func_cpu_int_float_multiple_unpack, "func_cpu_int_float_multiple_unpack");
-	if (ret == -ENODEV) goto enodev;
-	ret = do_test_int_float_task_insert(func_cpu_int_float_unpack_copyleft, "func_cpu_int_float_unpack_copyleft");
-	if (ret == -ENODEV) goto enodev;
+	do_test_int_float_task_insert(func_cpu_int_float, "func_cpu_int_float");
+	do_test_int_float_task_insert(func_cpu_int_float_multiple_unpack, "func_cpu_int_float_multiple_unpack");
+	do_test_int_float_task_insert(func_cpu_int_float_unpack_copyleft, "func_cpu_int_float_unpack_copyleft");
 
-	ret = do_test_int_float_task_insert_pack(func_cpu_int_float, "func_cpu_int_float_name");
-	if (ret == -ENODEV) goto enodev;
-	ret = do_test_int_float_task_insert_pack(func_cpu_int_float_multiple_unpack, "func_cpu_int_float_multiple_unpack");
-	if (ret == -ENODEV) goto enodev;
-	ret = do_test_int_float_task_insert_pack(func_cpu_int_float_unpack_copyleft, "func_cpu_int_float_unpack_copyleft");
-	if (ret == -ENODEV) goto enodev;
+	do_test_int_float_task_insert_pack(func_cpu_int_float, "func_cpu_int_float");
+	do_test_int_float_task_insert_pack(func_cpu_int_float_multiple_unpack, "func_cpu_int_float_multiple_unpack");
+	do_test_int_float_task_insert_pack(func_cpu_int_float_unpack_copyleft, "func_cpu_int_float_unpack_copyleft");
 
-	ret = do_test_float_int_task_insert(func_cpu_float_int, "func_cpu_float_int");
-	if (ret == -ENODEV) goto enodev;
-	ret = do_test_float_int_task_insert(func_cpu_float_int_multiple_unpack, "func_cpu_float_int_multiple_unpack");
-	if (ret == -ENODEV) goto enodev;
-	ret = do_test_float_int_task_insert(func_cpu_float_int_unpack_copyleft, "func_cpu_float_int_unpack_copyleft");
-	if (ret == -ENODEV) goto enodev;
+	do_test_float_int_task_insert(func_cpu_float_int, "func_cpu_float_int");
+	do_test_float_int_task_insert(func_cpu_float_int_multiple_unpack, "func_cpu_float_int_multiple_unpack");
+	do_test_float_int_task_insert(func_cpu_float_int_unpack_copyleft, "func_cpu_float_int_unpack_copyleft");
 
-	ret = do_test_float_int_task_insert_pack(func_cpu_float_int, "func_cpu_float_int");
-	if (ret == -ENODEV) goto enodev;
-	ret = do_test_float_int_task_insert_pack(func_cpu_float_int_multiple_unpack, "func_cpu_float_int_multiple_unpack");
-	if (ret == -ENODEV) goto enodev;
-	ret = do_test_float_int_task_insert_pack(func_cpu_float_int_unpack_copyleft, "func_cpu_float_int_unpack_copyleft");
-	if (ret == -ENODEV) goto enodev;
+	do_test_float_int_task_insert_pack(func_cpu_float_int, "func_cpu_float_int");
+	do_test_float_int_task_insert_pack(func_cpu_float_int_multiple_unpack, "func_cpu_float_int_multiple_unpack");
+	do_test_float_int_task_insert_pack(func_cpu_float_int_unpack_copyleft, "func_cpu_float_int_unpack_copyleft");
 
-	ret = do_test_int_float_pack(func_cpu_int_float, "func_cpu_int_float_name");
-	if (ret == -ENODEV) goto enodev;
-	ret = do_test_int_float_pack(func_cpu_int_float_multiple_unpack, "func_cpu_int_float_multiple_unpack");
-	if (ret == -ENODEV) goto enodev;
-	ret = do_test_int_float_pack(func_cpu_int_float_unpack_copyleft, "func_cpu_int_float_unpack_copyleft");
-	if (ret == -ENODEV) goto enodev;
+	do_test_int_float_pack(func_cpu_int_float, "func_cpu_int_float");
+	do_test_int_float_pack(func_cpu_int_float_multiple_unpack, "func_cpu_int_float_multiple_unpack");
+	do_test_int_float_pack(func_cpu_int_float_unpack_copyleft, "func_cpu_int_float_unpack_copyleft");
 
-	ret = do_test_float_int_pack(func_cpu_float_int, "func_cpu_float_int");
-	if (ret == -ENODEV) goto enodev;
-	ret = do_test_float_int_pack(func_cpu_float_int_multiple_unpack, "func_cpu_float_int_multiple_unpack");
-	if (ret == -ENODEV) goto enodev;
-	ret = do_test_float_int_pack(func_cpu_float_int_unpack_copyleft, "func_cpu_float_int_unpack_copyleft");
-	if (ret == -ENODEV) goto enodev;
+	do_test_float_int_pack(func_cpu_float_int, "func_cpu_float_int");
+	do_test_float_int_pack(func_cpu_float_int_multiple_unpack, "func_cpu_float_int_multiple_unpack");
+	do_test_float_int_pack(func_cpu_float_int_unpack_copyleft, "func_cpu_float_int_unpack_copyleft");
 
 	starpu_shutdown();
 
