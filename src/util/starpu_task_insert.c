@@ -105,6 +105,11 @@ struct starpu_task *_starpu_task_build_v(struct starpu_codelet *cl, const char* 
 	ret = _starpu_task_insert_create(cl, &task, varg_list_copy);
 	va_end(varg_list_copy);
 
+	if (ret != 0)
+	{
+		task->destroy = 0;
+		starpu_task_destroy(task);
+	}
 	return (ret == 0) ? task : NULL;
 }
 
