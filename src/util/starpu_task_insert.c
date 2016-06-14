@@ -34,7 +34,7 @@ void starpu_codelet_pack_args(void **arg_buffer, size_t *arg_buffer_size, ...)
 
 void _starpu_codelet_unpack_args_and_copyleft(char *cl_arg, void *_buffer, size_t buffer_size, va_list varg_list)
 {
-	int current_arg_offset = 0;
+	size_t current_arg_offset = 0;
 	int nargs, arg;
 
      	/* We fill the different pointers with the appropriate arguments */
