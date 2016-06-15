@@ -56,7 +56,8 @@ constant
 this macro is used when calling starpu_task_insert(), and must
 be followed by a memory buffer containing the arguments to be given to
 the task, and by the size of the arguments. The memory buffer should
-be the result of a previous call to starpu_codelet_pack_args()
+be the result of a previous call to starpu_codelet_pack_args(), and will be
+freed (i.e. starpu_task::cl_arg_free will be set to 1)
 
 \def STARPU_CALLBACK
 \ingroup API_Insert_Task
