@@ -56,12 +56,26 @@ void _starpu_codelet_unpack_args_and_copyleft(char *cl_arg, void *_buffer, size_
 		memcpy(argptr, cl_arg+current_arg_offset, arg_size);
 		current_arg_offset += arg_size;
 	}
-	if (buffer_size && arg < nargs)
+
+	if (buffer_size)
 	{
 		int left = nargs-arg;
 		char *buffer = (char *) _buffer;
+		int current_buffer_offset = 0;
 		memcpy(buffer, (int *)&left, sizeof(left));
-		memcpy(buffer+sizeof(int), cl_arg+current_arg_offset, buffer_size-sizeof(int));
+		current_buffer_offset += sizeof(left);
+		for ( ; arg < nargs; arg++)
+		{
+			size_t arg_size;
+			memcpy(&arg_size, cl_arg+current_arg_offset, sizeof(arg_size));
+			current_arg_offset += sizeof(arg_size);
+			memcpy(buffer+current_buffer_offset, &arg_size, sizeof(arg_size));
+			current_buffer_offset += sizeof(arg_size);
+
+			memcpy(buffer+current_buffer_offset, cl_arg+current_arg_offset, arg_size);
+			current_arg_offset += arg_size;
+			current_buffer_offset += arg_size;
+		}
 	}
 }
 
