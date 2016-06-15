@@ -324,6 +324,7 @@ int _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task **t
 		{
 			(*task)->cl_arg = va_arg(varg_list, void *);
 			(*task)->cl_arg_size = va_arg(varg_list, size_t);
+			(*task)->cl_arg_free = 1;
 		}
 		else if (arg_type==STARPU_CALLBACK)
 		{
