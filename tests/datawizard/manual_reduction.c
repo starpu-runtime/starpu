@@ -64,9 +64,16 @@ static void initialize_per_worker_handle(void *arg STARPU_ATTRIBUTE_UNUSED)
 #endif
 #ifdef STARPU_USE_CUDA
 		case STARPU_CUDA_WORKER:
-			cudaMalloc((void **)&per_worker[workerid], sizeof(variable));
+		{
+		     	cudaError_t status;
+			status = cudaMalloc((void **)&per_worker[workerid], sizeof(variable));
+			if (!per_worker[workerid] || (status != cudaSuccess))
+			{
+				STARPU_CUDA_REPORT_ERROR(status);
+			}
 			cudaMemset((void *)per_worker[workerid], 0, sizeof(variable));
 			break;
+		}
 #endif
 		default:
 			STARPU_ABORT();

@@ -117,7 +117,7 @@ int main(int argc, char **argv)
                         fprintf(f, "%s\t%f\n", bench_id, timing/1000000);
                         fclose(f);
 
-                        sprintf(file, "%s/sync_tasks_overhead_per_task.dat", output_dir);
+                        snprintf(file, 1024, "%s/sync_tasks_overhead_per_task.dat", output_dir);
                         f = fopen(file, "a");
                         fprintf(f, "%s\t%f\n", bench_id, timing/ntasks);
                         fclose(f);
