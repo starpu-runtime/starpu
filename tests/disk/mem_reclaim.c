@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2013 Corentin Salingue
- * Copyright (C) 2015 CNRS
+ * Copyright (C) 2015, 2016 CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -204,8 +204,10 @@ int main(void)
 {
 	int ret = 0;
 	char s[128];
+
 	snprintf(s, sizeof(s), "/tmp/%s-disk-%d", getenv("USER"), getpid());
-	mkdir(s, 0777);
+	ret = mkdir(s, 0777);
+	STARPU_CHECK_RETURN_VALUE(ret, "mkdir '%s'\n", s);
 
 	setenv("STARPU_LIMIT_CPU_MEM", MEMSIZE_STR, 1);
 

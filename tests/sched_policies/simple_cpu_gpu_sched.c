@@ -114,6 +114,7 @@ init_perfmodels_gpu(int gpu_type)
 							       gpu_type, starpu_worker_get_devid(worker_gpu_ids[worker_gpu]), 1,
 							       -1);
 	}
+	free(worker_gpu_ids);
 }
 
 static void
