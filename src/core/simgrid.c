@@ -34,6 +34,8 @@ extern int smpi_main(int (*realmain) (int argc, char *argv[]), int argc, char *a
 #pragma weak _starpu_mpi_simgrid_init
 extern int _starpu_mpi_simgrid_init(int argc, char *argv[]);
 
+static int main_ret;
+
 starpu_pthread_queue_t _starpu_simgrid_transfer_queue[STARPU_MAXNODES];
 starpu_pthread_queue_t _starpu_simgrid_task_queue[STARPU_NMAXWORKERS];
 
@@ -46,7 +48,8 @@ struct main_args
 int do_starpu_main(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[])
 {
 	struct main_args *args = (void*) argv;
-	return starpu_main(args->argc, args->argv);
+	main_ret = starpu_main(args->argc, args->argv);
+	return main_ret;
 }
 
 /* In case the MPI application didn't use smpicc to build the file containing
@@ -238,7 +241,7 @@ int main(int argc, char **argv)
 	MSG_process_create_with_arguments("main", &do_starpu_main, calloc(MAX_TSD, sizeof(void*)), MSG_get_host_by_name("MAIN"), 0, (char**) args);
 
 	MSG_main();
-	return 0;
+	return main_ret;
 }
 
 void _starpu_simgrid_init()
