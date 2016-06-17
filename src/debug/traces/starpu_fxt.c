@@ -51,6 +51,8 @@ static unsigned mic_index = 0;
 static unsigned scc_index = 0;
 static unsigned other_index = 0;
 
+static unsigned long fut_keymask;
+
 /*
  * Paje trace file tools
  */
@@ -527,6 +529,8 @@ static void memnode_set_state(double time, const char *prefix, unsigned int memn
 
 static void worker_set_state(double time, const char *prefix, long unsigned int workerid, const char *name)
 {
+	if (fut_keymask == FUT_KEYMASK0)
+		return;
 #ifdef STARPU_HAVE_POTI
 	char container[STARPU_POTI_STR_LEN];
 	worker_container_alias(container, STARPU_POTI_STR_LEN, prefix, workerid);
@@ -538,6 +542,8 @@ static void worker_set_state(double time, const char *prefix, long unsigned int 
 
 static void worker_push_state(double time, const char *prefix, long unsigned int workerid, const char *name)
 {
+	if (fut_keymask == FUT_KEYMASK0)
+		return;
 #ifdef STARPU_HAVE_POTI
 	char container[STARPU_POTI_STR_LEN];
 	worker_container_alias(container, STARPU_POTI_STR_LEN, prefix, workerid);
@@ -549,6 +555,8 @@ static void worker_push_state(double time, const char *prefix, long unsigned int
 
 static void worker_pop_state(double time, const char *prefix, long unsigned int workerid)
 {
+	if (fut_keymask == FUT_KEYMASK0)
+		return;
 #ifdef STARPU_HAVE_POTI
 	char container[STARPU_POTI_STR_LEN];
 	worker_container_alias(container, STARPU_POTI_STR_LEN, prefix, workerid);
@@ -2900,12 +2908,18 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 				handle_hypervisor_end(&ev, options);
 				break;
 
-			/* We can safely ignore FUT internal events */
 			case FUT_SETUP_CODE:
+				fut_keymask = ev.param[0];
+				break;
+
+			case FUT_KEYCHANGE_CODE:
+				fut_keymask = ev.param[0];
+				break;
+
+			/* We can safely ignore FUT internal events */
 			case FUT_CALIBRATE0_CODE:
 			case FUT_CALIBRATE1_CODE:
 			case FUT_CALIBRATE2_CODE:
-			case FUT_KEYCHANGE_CODE:
 			case FUT_NEW_LWP_CODE:
 			case FUT_GCC_INSTRUMENT_ENTRY_CODE:
 				break;

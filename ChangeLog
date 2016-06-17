@@ -196,6 +196,7 @@ Small features:
   * Add STARPU_CODELET_SIMGRID_EXECUTE flag.
   * Add STARPU_CL_ARGS flag to starpu_task_insert() and
     starpu_mpi_task_insert() functions call
+  * Add starpu_fxt_autostart_profiling to be able to avoid autostart.
 
 Changes:
   * Data interfaces (variable, vector, matrix and block) now define
