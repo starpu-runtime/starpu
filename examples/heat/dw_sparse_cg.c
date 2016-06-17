@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010, 2011, 2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -204,7 +204,7 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 
 	unsigned iter = problem->i;
 
-	unsigned long long maskiter = (iter*1024);
+	unsigned long long maskiter = ((unsigned long long)iter*1024);
 
 	/* q = A d */
 	struct starpu_task *task4 = create_task(maskiter | 4UL);

@@ -555,7 +555,7 @@ int main(int argc, char **argv)
 						 STARPU_VALUE, &stepY, sizeof(stepY),
 						 STARPU_W, block_handles[iby],
 						 STARPU_VALUE, &pcnt, sizeof(int *),
-						 STARPU_TAG_ONLY, (starpu_tag_t) (niter*nblocks + iby),
+						 STARPU_TAG_ONLY, ((starpu_tag_t)niter)*nblocks + iby,
 						 0);
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 		}

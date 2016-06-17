@@ -1357,7 +1357,7 @@ static void _update_counters_hierarchically(int worker, unsigned sched_ctx, doub
 static void notify_post_exec_task(struct starpu_task *task, size_t data_size, uint32_t footprint, int task_tag, double flops)
 {
 	unsigned sched_ctx = task->sched_ctx;
-	int worker = starpu_worker_get_id();
+	int worker = starpu_worker_get_id_check();
 
 	if(hypervisor.sched_ctx_w[sched_ctx].exec_start_time[worker] != 0.0)
 	{
