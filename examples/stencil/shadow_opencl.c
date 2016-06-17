@@ -17,7 +17,7 @@
 
 #include "stencil.h"
 
-/* Perform replication of data on X and Y edges, to fold the domain on 
+/* Perform replication of data on X and Y edges, to fold the domain on
    itself through mere replication of the source state. */
 
 #define str(x) #x
@@ -76,7 +76,8 @@ opencl_shadow_init(void)
 
 void opencl_shadow_free(void)
 {
-  starpu_opencl_unload_opencl(&program);
+  int ret = starpu_opencl_unload_opencl(&program);
+  STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
 }
 
 void
@@ -94,7 +95,10 @@ opencl_shadow_host(int bz, TYPE *ptr, int nx, int ny, int nz, int ldy, int ldz, 
 
         cl_kernel kernel;
         cl_command_queue cq;
-        starpu_opencl_load_kernel(&kernel, &cq, &program, "shadow", devid);
+	cl_int err;
+
+        err = starpu_opencl_load_kernel(&kernel, &cq, &program, "shadow", devid);
+	if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
         clSetKernelArg(kernel, 0, sizeof(bz), &bz);
         clSetKernelArg(kernel, 1, sizeof(ptr), &ptr);
@@ -106,8 +110,6 @@ opencl_shadow_host(int bz, TYPE *ptr, int nx, int ny, int nz, int ldy, int ldz, 
         clSetKernelArg(kernel, 7, sizeof(i), &i);
 
         cl_event ev;
-        cl_int err = clEnqueueNDRangeKernel(cq, kernel, 3, NULL, dim, NULL, 0, NULL, NULL);
-        if (err != CL_SUCCESS)
-                STARPU_OPENCL_REPORT_ERROR(err);
+        err = clEnqueueNDRangeKernel(cq, kernel, 3, NULL, dim, NULL, 0, NULL, NULL);
+        if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 }
-

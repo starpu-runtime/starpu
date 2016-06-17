@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2015  Université de Bordeaux
- * Copyright (C) 2010-2013  CNRS
+ * Copyright (C) 2010-2013, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -37,7 +37,7 @@ static void init_dummy_sched(unsigned sched_ctx_id)
 
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)data);
 
-	starpu_pthread_mutex_init(&data->policy_mutex, NULL);
+	STARPU_PTHREAD_MUTEX_INIT(&data->policy_mutex, NULL);
 	FPRINTF(stderr, "Initialising Dummy scheduler\n");
 }
 
@@ -47,7 +47,7 @@ static void deinit_dummy_sched(unsigned sched_ctx_id)
 
 	STARPU_ASSERT(starpu_task_list_empty(&data->sched_list));
 
-	starpu_pthread_mutex_destroy(&data->policy_mutex);
+	STARPU_PTHREAD_MUTEX_DESTROY(&data->policy_mutex);
 
 	free(data);
 
@@ -65,12 +65,12 @@ static int push_task_dummy(struct starpu_task *task)
 
 	/* lock all workers when pushing tasks on a list where all
 	   of them would pop for tasks */
-        starpu_pthread_mutex_lock(&data->policy_mutex);
+        STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 
 	starpu_task_list_push_front(&data->sched_list, task);
 
 	starpu_push_task_end(task);
-	starpu_pthread_mutex_unlock(&data->policy_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 
 
         /*if there are no tasks block */
@@ -87,9 +87,9 @@ static int push_task_dummy(struct starpu_task *task)
 		starpu_pthread_mutex_t *sched_mutex;
                 starpu_pthread_cond_t *sched_cond;
                 starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
-		starpu_pthread_mutex_lock(sched_mutex);
-                starpu_pthread_cond_signal(sched_cond);
-                starpu_pthread_mutex_unlock(sched_mutex);
+		STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
+                STARPU_PTHREAD_COND_SIGNAL(sched_cond);
+                STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
         }
 
 	return 0;
@@ -104,9 +104,9 @@ static struct starpu_task *pop_task_dummy(unsigned sched_ctx_id)
 	 * the calling worker. So we just take the head of the list and give it
 	 * to the worker. */
 	struct dummy_sched_data *data = (struct dummy_sched_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-	starpu_pthread_mutex_lock(&data->policy_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 	struct starpu_task *task = starpu_task_list_pop_back(&data->sched_list);
-	starpu_pthread_mutex_unlock(&data->policy_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 	return task;
 }
 

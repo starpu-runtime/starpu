@@ -71,7 +71,7 @@ int main(int argc, char **argv)
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	starpu_pthread_mutex_init(&mut, NULL);
+	STARPU_PTHREAD_MUTEX_INIT(&mut, NULL);
 
 #ifdef STARPU_USE_CPU
 	nprocs1 = starpu_cpu_worker_get_count();

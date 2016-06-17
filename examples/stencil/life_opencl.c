@@ -79,7 +79,8 @@ opencl_life_init(void)
 
 void opencl_life_free(void)
 {
-  starpu_opencl_unload_opencl(&program);
+  int ret = starpu_opencl_unload_opencl(&program);
+  STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
 }
 
 void
@@ -92,12 +93,15 @@ opencl_life_update_host(int bz, const TYPE *old, TYPE *newp, int nx, int ny, int
 #endif
 
   int devid,id;
+  cl_int err;
+
   id = starpu_worker_get_id_check();
   devid = starpu_worker_get_devid(id);
 
   cl_kernel kernel;
   cl_command_queue cq;
-  starpu_opencl_load_kernel(&kernel, &cq, &program, "life_update", devid);
+  err = starpu_opencl_load_kernel(&kernel, &cq, &program, "life_update", devid);
+  if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
   clSetKernelArg(kernel, 0, sizeof(bz), &bz);
   clSetKernelArg(kernel, 1, sizeof(old), &old);
@@ -110,5 +114,6 @@ opencl_life_update_host(int bz, const TYPE *old, TYPE *newp, int nx, int ny, int
   clSetKernelArg(kernel, 8, sizeof(iter), &iter);
 
   cl_event ev;
-  clEnqueueNDRangeKernel(cq, kernel, 3, NULL, dim, NULL, 0, NULL, NULL);
+  err = clEnqueueNDRangeKernel(cq, kernel, 3, NULL, dim, NULL, 0, NULL, NULL);
+  if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 }

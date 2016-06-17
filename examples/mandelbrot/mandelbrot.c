@@ -257,11 +257,13 @@ static void compute_block_opencl(void *descr[], void *cl_arg)
 	cl_kernel kernel;
 	cl_command_queue queue;
 	cl_event event;
+	cl_int err;
 
 	int id = starpu_worker_get_id_check();
 	int devid = starpu_worker_get_devid(id);
 
-	starpu_opencl_load_kernel(&kernel, &queue, &opencl_programs, "mandelbrot_kernel", devid);
+	err = starpu_opencl_load_kernel(&kernel, &queue, &opencl_programs, "mandelbrot_kernel", devid);
+	if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
 	clSetKernelArg(kernel, 0, sizeof(data), &data);
 	clSetKernelArg(kernel, 1, sizeof(leftX), &leftX);
@@ -276,7 +278,8 @@ static void compute_block_opencl(void *descr[], void *cl_arg)
 	unsigned dim = 16;
 	size_t local[2] = {dim, 1};
 	size_t global[2] = {width, block_size};
-	clEnqueueNDRangeKernel(queue, kernel, 2, NULL, global, local, 0, NULL, NULL);
+	err = clEnqueueNDRangeKernel(queue, kernel, 2, NULL, global, local, 0, NULL, NULL);
+	if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 	starpu_opencl_release_kernel(kernel);
 }
 #endif
