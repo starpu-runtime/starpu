@@ -644,7 +644,7 @@ static void combined_worker_can_pull(struct starpu_sched_component * component)
 	int i;
 	for(i = 0; i < data->combined_worker->worker_size; i++)
 	{
-		if(i == workerid)
+		if((unsigned) i == workerid)
 			continue;
 		int worker = data->combined_worker->combined_workerid[i];
 		_starpu_sched_component_lock_worker(component->tree->sched_ctx_id, worker);
