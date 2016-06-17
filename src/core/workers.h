@@ -105,17 +105,17 @@ LIST_TYPE(_starpu_worker,
 
 	unsigned has_prev_init; /* had already been inited in another ctx */
 
-	unsigned removed_from_ctx[STARPU_NMAX_SCHED_CTXS];
+	unsigned removed_from_ctx[STARPU_NMAX_SCHED_CTXS+1];
 
 	unsigned spinning_backoff ; /* number of cycles to pause when spinning  */
 
 
 	/* indicate whether the workers shares tasks lists with other workers*/
 	/* in this case when removing him from a context it disapears instantly */
-	unsigned shares_tasks_lists[STARPU_NMAX_SCHED_CTXS];
+	unsigned shares_tasks_lists[STARPU_NMAX_SCHED_CTXS+1];
 
         /* boolean to chose the next ctx a worker will pop into */
-	unsigned poped_in_ctx[STARPU_NMAX_SCHED_CTXS];	  
+	unsigned poped_in_ctx[STARPU_NMAX_SCHED_CTXS+1];
 
        /* boolean indicating at which moment we checked all ctxs and change phase for the booleab poped_in_ctx*/
        /* one for each of the 2 priorities*/
@@ -348,7 +348,7 @@ struct _starpu_machine_config
 	int pause_depth;
 
 	/* all the sched ctx of the current instance of starpu */
-	struct _starpu_sched_ctx sched_ctxs[STARPU_NMAX_SCHED_CTXS];
+	struct _starpu_sched_ctx sched_ctxs[STARPU_NMAX_SCHED_CTXS+1];
 
 	/* this flag is set until the application is finished submitting tasks */
 	unsigned submitting;

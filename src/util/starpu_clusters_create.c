@@ -572,23 +572,22 @@ int _starpu_cluster_topology(hwloc_obj_type_t cluster_level,
 void _starpu_cluster_group(hwloc_obj_type_t cluster_level,
 			   struct starpu_cluster_machine *machine)
 {
-	unsigned nb_objects;
-	unsigned i;
+	int nb_objects;
+	int i;
 	struct _starpu_cluster_group *group = NULL;
 
 	if (machine->groups == NULL)
 		machine->groups = _starpu_cluster_group_list_new();
 
 	nb_objects = hwloc_get_nbobjs_by_type(machine->topology, cluster_level);
-	if (nb_objects == 0)
+	if (nb_objects <= 0)
 		return;
 	/* XXX: handle nb_objects == -1 */
 
 	group = _starpu_cluster_group_list_begin(machine->groups);
 	for (i = 0 ; i < nb_objects ; i++)
 	{
-		hwloc_obj_t cluster_obj = hwloc_get_obj_by_type(machine->topology,
-								cluster_level, i);
+		hwloc_obj_t cluster_obj = hwloc_get_obj_by_type(machine->topology, cluster_level, i);
 
 		if (group == NULL)
 		{
