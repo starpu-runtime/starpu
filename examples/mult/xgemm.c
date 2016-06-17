@@ -333,7 +333,6 @@ int main(int argc, char **argv)
 	if (bound)
 		starpu_bound_start(0, 0);
 
-	sleep(1);
 	starpu_fxt_start_profiling();
 	start = starpu_timing_now();
 
