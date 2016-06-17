@@ -30,6 +30,8 @@
 #pragma weak starpu_main
 extern int starpu_main(int argc, char *argv[]);
 
+static int main_ret;
+
 struct main_args
 {
 	int argc;
@@ -39,7 +41,8 @@ struct main_args
 int do_starpu_main(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED)
 {
 	struct main_args *args = MSG_process_get_data(MSG_process_self());
-	return starpu_main(args->argc, args->argv);
+	main_ret = starpu_main(args->argc, args->argv);
+	return main_ret;
 }
 
 int _starpu_simgrid_get_nbhosts(const char *prefix)
@@ -154,7 +157,7 @@ int main(int argc, char **argv)
 	xbt_dynar_free(&hosts);
 
 	MSG_main();
-	return 0;
+	return main_ret;
 }
 
 void _starpu_simgrid_init()
