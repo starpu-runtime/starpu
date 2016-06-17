@@ -1096,6 +1096,16 @@ if test x$enable_simgrid = xyes ; then
 	AC_DEFINE(STARPU_SIMGRID, 1, [Define this to enable simgrid execution])
 	# We won't bind or detect anything
 	with_hwloc=no
+
+	# Simgrid 3.12 & 3.13 need -std=c++11 to be able to build anything in C++...
+	AC_LANG_PUSH([C++])
+	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+			  #include <simgrid/msg.h>
+			  #include <simgrid/host.h>
+			  ]]),],,
+			  CXXFLAGS="-std=c++11 $CXXFLAGS"
+			  NVCCFLAGS="-std=c++11 $NVCCFLAGS")
+	AC_LANG_POP([C++])
 fi
 AM_CONDITIONAL(STARPU_SIMGRID, test x$enable_simgrid = xyes)
 AC_SUBST(SIMGRID_CFLAGS)
