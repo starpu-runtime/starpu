@@ -1861,6 +1861,7 @@ static void handle_mpi_isend_submit_begin(struct fxt_ev_64 *ev, struct starpu_fx
 		mpicommthread_set_state(date, options->file_prefix, "SdS");
 }
 
+static int mpi_warned;
 static void handle_mpi_isend_submit_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	int dest = ev->param[0];
@@ -1871,7 +1872,16 @@ static void handle_mpi_isend_submit_end(struct fxt_ev_64 *ev, struct starpu_fxt_
 	if (out_paje_file)
 		mpicommthread_set_state(date, options->file_prefix, "P");
 
-	_starpu_fxt_mpi_add_send_transfer(options->file_rank, dest, mpi_tag, size, date);
+	if (options->file_rank < 0)
+	{
+		if (!mpi_warned)
+		{
+			fprintf(stderr,"error while opening %s\n", options->out_paje_path);
+			mpi_warned = 1;
+		}
+	}
+	else
+		_starpu_fxt_mpi_add_send_transfer(options->file_rank, dest, mpi_tag, size, date);
 }
 
 static void handle_mpi_irecv_submit_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -1915,7 +1925,17 @@ static void handle_mpi_irecv_complete_begin(struct fxt_ev_64 *ev, struct starpu_
 	if (out_paje_file)
 		mpicommthread_set_state(date, options->file_prefix, "RvC");
 
-	_starpu_fxt_mpi_add_recv_transfer(src, options->file_rank, mpi_tag, date);
+
+	if (options->file_rank < 0)
+	{
+		if (!mpi_warned)
+		{
+			fprintf(stderr,"error while opening %s\n", options->out_paje_path);
+			mpi_warned = 1;
+		}
+	}
+	else
+		_starpu_fxt_mpi_add_recv_transfer(src, options->file_rank, mpi_tag, date);
 }
 
 static void handle_mpi_irecv_complete_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
