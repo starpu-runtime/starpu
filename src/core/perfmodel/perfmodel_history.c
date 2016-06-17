@@ -658,7 +658,9 @@ void _starpu_perfmodel_realloc(struct starpu_perfmodel *model, int nb)
 	int i;
 
 	STARPU_ASSERT(nb > model->state->ncombs_set);
+#ifdef SSIZE_MAX
 	STARPU_ASSERT((size_t) nb < SSIZE_MAX / sizeof(struct starpu_perfmodel_per_arch*));
+#endif
 	model->state->per_arch = (struct starpu_perfmodel_per_arch**) realloc(model->state->per_arch, nb*sizeof(struct starpu_perfmodel_per_arch*));
 	model->state->per_arch_is_set = (int**) realloc(model->state->per_arch_is_set, nb*sizeof(int*));
 	model->state->nimpls = (int *)realloc(model->state->nimpls, nb*sizeof(int));
