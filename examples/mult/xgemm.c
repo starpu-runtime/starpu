@@ -30,6 +30,7 @@
 #include <math.h>
 #include <sys/types.h>
 #include <starpu.h>
+#include <starpu_fxt.h>
 
 #include <common/blas.h>
 
@@ -318,6 +319,7 @@ int main(int argc, char **argv)
 	niter /= 10;
 #endif
 
+	starpu_fxt_autostart_profiling(0);
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV)
 		return 77;
@@ -331,6 +333,8 @@ int main(int argc, char **argv)
 	if (bound)
 		starpu_bound_start(0, 0);
 
+	sleep(1);
+	starpu_fxt_start_profiling();
 	start = starpu_timing_now();
 
 	unsigned x, y, iter;
@@ -364,6 +368,7 @@ int main(int argc, char **argv)
 
 
 	end = starpu_timing_now();
+	starpu_fxt_stop_profiling();
 
 	if (bound)
 		starpu_bound_stop();

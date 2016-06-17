@@ -230,6 +230,30 @@ will also produce a <c>trace.html</c> file which can be viewed in a
 javascript-enabled web browser. It shows the flow of tasks between the
 components of the modular scheduler.
 
+\subsection Limiting the scope of the trace
+
+For computing statistics, it is useful to limit the trace to a given portion of
+the time of the whole execution. This can be achieved by calling
+
+\verbatim
+starpu_fxt_autostart_profiling(0);
+\endverbatim
+
+before calling starpu_init, to prevent tracing from starting immediately. Then
+
+\verbatim
+starpu_fxt_start_profiling();
+\endverbatim
+
+and 
+
+\verbatim
+starpu_fxt_stop_profiling();
+\endverbatim
+
+can be used around the portion of code to be traced. This will show up as marks
+in the trace, and states of workers will only show up for that portion.
+
 \section PerformanceOfCodelets Performance Of Codelets
 
 The performance model of codelets (see \ref PerformanceModelExample)

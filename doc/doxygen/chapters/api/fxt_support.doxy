@@ -77,6 +77,12 @@ starpu_shutdown(). starpu_fxt_stop_profiling() can however be used to
 stop it earlier. starpu_fxt_start_profiling() can then be called to
 start recording it again, etc.
 
+\fn void starpu_fxt_autostart_profiling(int autostart)
+\ingroup API_FxT_Support
+Determines whether profiling should be started by starpu_init, or only when
+starpu_fxt_start_profiling is called. \e autostart should be 1 to do so, or 0 to
+prevent it.
+
 \fn void starpu_fxt_write_data_trace(char *filename_in)
 \ingroup API_FxT_Support
 todo

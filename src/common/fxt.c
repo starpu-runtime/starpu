@@ -42,6 +42,8 @@ static int _starpu_written = 0;
 
 static int _starpu_id;
 
+static unsigned int initial_key_mask = FUT_KEYMASKALL;
+
 #ifdef STARPU_SIMGRID
 /* Give virtual time to FxT */
 uint64_t fut_getstamp(void)
@@ -107,6 +109,14 @@ void starpu_profiling_set_id(int new_id)
 #endif
 }
 
+void starpu_fxt_autostart_profiling(int autostart)
+{
+	if (autostart)
+		initial_key_mask = FUT_KEYMASKALL;
+	else
+		initial_key_mask = FUT_KEYMASK0;
+}
+
 void starpu_fxt_start_profiling()
 {
 	unsigned threadid = _starpu_gettid();
@@ -148,15 +158,11 @@ void _starpu_fxt_init_profiling(unsigned trace_buffer_size)
 
 	atexit(_starpu_stop_fxt_profiling);
 
-	unsigned int key_mask = FUT_KEYMASKALL;
-
-	if (fut_setup(trace_buffer_size / sizeof(unsigned long), key_mask, threadid) < 0)
+	if (fut_setup(trace_buffer_size / sizeof(unsigned long), initial_key_mask, threadid) < 0)
 	{
 		perror("fut_setup");
 		STARPU_ABORT();
 	}
-
-	fut_keychange(FUT_ENABLE, key_mask, threadid);
 
 	return;
 }
