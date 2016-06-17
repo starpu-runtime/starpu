@@ -2097,7 +2097,6 @@ static void clean_topology(hwloc_obj_t obj)
 		clean_topology(obj->children[i]);
 }
 #endif
-#endif
 
 static void write_bus_platform_file_content(void)
 {
