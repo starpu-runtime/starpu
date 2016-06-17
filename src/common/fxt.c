@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2015  Université de Bordeaux
+ * Copyright (C) 2009-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -83,7 +83,7 @@ static void _starpu_profile_set_tracefile(void *last, ...)
 	     fxt_prefix = "/tmp/";
 
 	va_start(vl, last);
-	vnsprintf(_STARPU_PROF_FILE_USER, 128, fxt_prefix, vl);
+	vsnprintf(_STARPU_PROF_FILE_USER, 128, fxt_prefix, vl);
 	va_end(vl);
 
 	user = starpu_getenv("USER");
