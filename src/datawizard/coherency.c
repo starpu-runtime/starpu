@@ -344,7 +344,6 @@ static int determine_request_path(starpu_data_handle_t handle,
 		/* We need an intermediate hop to implement data staging
 		 * through main memory. */
 		STARPU_ASSERT(max_len >= 2);
-		STARPU_ASSERT(src_node >= 0);
 
 		/* GPU -> RAM */
 		src_nodes[0] = src_node;
