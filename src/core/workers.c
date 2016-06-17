@@ -400,12 +400,12 @@ int starpu_combined_worker_can_execute_task(unsigned workerid, struct starpu_tas
 	}
 	else
 	{
-		if ((cl->type == STARPU_SPMD)
+		if (cl->type == STARPU_SPMD
 #ifdef STARPU_HAVE_HWLOC
-				|| (cl->type == STARPU_FORKJOIN)
+				|| cl->type == STARPU_FORKJOIN
 #else
 #ifdef __GLIBC__
-				|| (cl->type == STARPU_FORKJOIN)
+				|| cl->type == STARPU_FORKJOIN
 #endif
 #endif
 
