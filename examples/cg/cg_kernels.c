@@ -478,7 +478,7 @@ int gemv_kernel(starpu_data_handle_t v1,
 						 STARPU_R,	starpu_data_get_sub_data(v2, 1, b1),
 						 STARPU_VALUE,	&one,	sizeof(one),
 						 STARPU_VALUE,	&p2,	sizeof(p2),
-						 STARPU_TAG_ONLY, (starpu_tag_t) (b2 * nblocks + b1),
+						 STARPU_TAG_ONLY, ((starpu_tag_t)b2) * nblocks + b1,
 						 0);
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 		}

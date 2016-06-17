@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012-2014  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -121,6 +121,8 @@ void cpu_func(void *buffers[], void *cl_arg)
 #ifdef STARPU_USE_CUDA
 void cuda_func(void *buffers[], void *cl_arg)
 {
+	cudaError_t cures;
+
         /* length of the shadowed source matrix */
         unsigned ld = STARPU_MATRIX_GET_LD(buffers[0]);
         unsigned n = STARPU_MATRIX_GET_NX(buffers[0]);
@@ -138,7 +140,8 @@ void cuda_func(void *buffers[], void *cl_arg)
 	/* If things go right, sizes should match */
 	STARPU_ASSERT(n == n2);
 	STARPU_ASSERT(m == m2);
-	cudaMemcpy2DAsync(val2, ld2*sizeof(*val2), val, ld*sizeof(*val), n*sizeof(*val), m, cudaMemcpyDeviceToDevice, starpu_cuda_get_local_stream());
+	cures = cudaMemcpy2DAsync(val2, ld2*sizeof(*val2), val, ld*sizeof(*val), n*sizeof(*val), m, cudaMemcpyDeviceToDevice, starpu_cuda_get_local_stream());
+        if (STARPU_UNLIKELY(cures)) STARPU_CUDA_REPORT_ERROR(cures);
 }
 #endif
 

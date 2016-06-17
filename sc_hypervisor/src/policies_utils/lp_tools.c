@@ -335,7 +335,7 @@ void sc_hypervisor_lp_round_double_to_int(int ns, int nw, double res[ns][nw], in
 	int s, w;
 	double left_res[nw];
 	for(w = 0; w < nw; w++)
-		left_res[nw] = 0.0;
+		left_res[w] = 0.0;
 	for(s = 0; s < ns; s++)
 	{
 		for(w = 0; w < nw; w++)
