@@ -303,16 +303,19 @@ int main(int argc, const char** argv) {
 	A_data = (TYPE*)malloc(A_mem_size);
 	if (A_data == NULL) {
 		perror("malloc");
+		exit(-1);
 	}
 
 	B_data = (TYPE*)malloc(B_mem_size);
 	if (B_data == NULL) {
 		perror("malloc");
+		exit(-1);
 	}
 
 	C_data = (TYPE*) malloc(C_mem_size);
 	if (C_data == NULL) {
 		perror("malloc");
+		exit(-1);
 	}
 
 	cl_program program[platform_count];

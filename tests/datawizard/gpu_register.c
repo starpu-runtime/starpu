@@ -138,7 +138,11 @@ test_cuda(void)
 
 	ret = submit_tasks(handle, pieces, n);
 	if (ret == -ENODEV)
+	{
+		starpu_free_on_node(starpu_worker_get_memory_node(chosen), (uintptr_t) foo_gpu, size * sizeof(*foo_gpu));
+		free(foo);
 		return -ENODEV;
+	}
 
 	starpu_data_unpartition(handle, starpu_worker_get_memory_node(chosen));
 	starpu_data_unregister(handle);
@@ -146,7 +150,11 @@ test_cuda(void)
 	starpu_cuda_set_device(devid);
 	cures = cudaMemcpy(foo, foo_gpu, size * sizeof(*foo_gpu), cudaMemcpyDeviceToHost);
 	if (STARPU_UNLIKELY(cures))
+	{
+		starpu_free_on_node(starpu_worker_get_memory_node(chosen), (uintptr_t) foo_gpu, size * sizeof(*foo_gpu));
+		free(foo);
 		STARPU_CUDA_REPORT_ERROR(cures);
+	}
 
 	ret = check_result(foo, size);
 	starpu_free_on_node(starpu_worker_get_memory_node(chosen), (uintptr_t) foo_gpu, size * sizeof(*foo_gpu));
