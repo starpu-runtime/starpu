@@ -1629,50 +1629,38 @@ static void write_bus_platform_file_content(void)
 	fprintf(f,
 "<?xml version='1.0'?>\n"
 " <!DOCTYPE platform SYSTEM 'http://simgrid.gforge.inria.fr/simgrid.dtd'>\n"
-" <platform version='3'>\n"
-" <config id='General'>\n"
-"   <prop id='network/TCP_gamma' value='-1'></prop>\n"
-"   <prop id='network/latency_factor' value='1'></prop>\n"
-"   <prop id='network/bandwidth_factor' value='1'></prop>\n"
+" <platform version=\"3\">\n"
+" <config id=\"General\">\n"
+"   <prop id=\"network/TCP_gamma\" value=\"-1\"></prop>\n"
+"   <prop id=\"network/latency_factor\" value=\"1\"></prop>\n"
+"   <prop id=\"network/bandwidth_factor\" value=\"1\"></prop>\n"
 " </config>\n"
-" <AS  id='AS0'  routing='Full'>\n"
-"   <host id='MAIN' power='1'/>\n"
+" <AS  id=\"AS0\"  routing=\"Full\">\n"
+"   <host id=\"MAIN\" power=\"1\"/>\n"
 		);
 
 	for (i = 0; i < ncpus; i++)
 		/* TODO: host memory for out-of-core simulation */
-		fprintf(f, "   <host id='CPU%d' power='2000000000'/>\n", i);
+		fprintf(f, "   <host id=\"CPU%d\" power=\"2000000000\"/>\n", i);
 
 	for (i = 0; i < ncuda; i++)
 	{
-		fprintf(f, "   <host id='CUDA%d' power='2000000000'>\n", i);
-		fprintf(f, "     <prop id='memsize' value='%llu'/>\n",
-#ifdef STARPU_USE_CUDA
-				(unsigned long long) cuda_size[i]
-#else
-				0ULL
-#endif
-				);
+		fprintf(f, "   <host id=\"CUDA%d\" power=\"2000000000\">\n", i);
+		fprintf(f, "     <prop id=\"memsize\" value=\"%llu\"/>\n",
 #ifdef HAVE_CUDA_MEMCPY_PEER
-		fprintf(f, "     <prop id='memcpy_peer' value='1'/>\n");
+		fprintf(f, "     <prop id=\"memcpy_peer\" value=\"1\"/>\n");
 #endif
 		fprintf(f, "   </host>\n");
 	}
 
 	for (i = 0; i < nopencl; i++)
 	{
-		fprintf(f, "   <host id='OpenCL%d' power='2000000000'>\n", i);
-		fprintf(f, "     <prop id='memsize' value='%llu'/>\n",
-#ifdef STARPU_USE_OPENCL
-				(unsigned long long) opencl_size[i]
-#else
-				0ULL
-#endif
-				);
+		fprintf(f, "   <host id=\"OpenCL%d\" power=\"2000000000\">\n", i);
+		fprintf(f, "     <prop id=\"memsize\" value=\"%llu\"/>\n",
 		fprintf(f, "   </host>\n");
 	}
 
-	fprintf(f, "\n   <host id='RAM' power='1'/>\n");
+	fprintf(f, "\n   <host id=\"RAM\" power=\"1\"/>\n");
 
 	/* Compute maximum bandwidth, taken as machine bandwidth */
 	double max_bandwidth = 0;
@@ -1698,7 +1686,7 @@ static void write_bus_platform_file_content(void)
 			max_bandwidth = up_bw;
 	}
 #endif
-	fprintf(f, "\n   <link id='Share' bandwidth='%f' latency='0.000000'/>\n\n", max_bandwidth*1000000);
+	fprintf(f, "\n   <link id=\"Share\" bandwidth=\"%f\" latency=\"0.000000\"/>\n\n", max_bandwidth*1000000);
 
 	/* Write bandwidths & latencies */
 #ifdef STARPU_USE_CUDA
@@ -1706,11 +1694,11 @@ static void write_bus_platform_file_content(void)
 	{
 		char i_name[16];
 		snprintf(i_name, sizeof(i_name), "CUDA%d", i);
-		fprintf(f, "   <link id='RAM-%s' bandwidth='%f' latency='%f'/>\n",
+		fprintf(f, "   <link id=\"RAM-%s\" bandwidth=\"%f\" latency=\"%f\"/>\n",
 			i_name,
 			1000000. / cudadev_timing_htod[1+i],
 			cudadev_latency_htod[1+i]/1000000.);
-		fprintf(f, "   <link id='%s-RAM' bandwidth='%f' latency='%f'/>\n",
+		fprintf(f, "   <link id=\"%s-RAM\" bandwidth=\"%f\" latency=\"%f\"/>\n",
 			i_name,
 			1000000. / cudadev_timing_dtoh[1+i],
 			cudadev_latency_dtoh[1+i]/1000000.);
@@ -1727,7 +1715,7 @@ static void write_bus_platform_file_content(void)
 			if (j == i)
 				continue;
 			snprintf(j_name, sizeof(j_name), "CUDA%d", j);
-			fprintf(f, "   <link id='%s-%s' bandwidth='%f' latency='%f'/>\n",
+			fprintf(f, "   <link id=\"%s-%s\" bandwidth=\"%f\" latency=\"%f\"/>\n",
 				i_name, j_name,
 				1000000. / cudadev_timing_dtod[1+i][1+j],
 				cudadev_latency_dtod[1+i][1+j]/1000000.);
@@ -1741,11 +1729,11 @@ static void write_bus_platform_file_content(void)
 	{
 		char i_name[16];
 		snprintf(i_name, sizeof(i_name), "OpenCL%d", i);
-		fprintf(f, "   <link id='RAM-%s' bandwidth='%f' latency='%f'/>\n",
+		fprintf(f, "   <link id=\"RAM-%s\" bandwidth=\"%f\" latency=\"%f\"/>\n",
 			i_name,
 			1000000 / opencldev_timing_htod[1+i],
 			opencldev_latency_htod[1+i]/1000000.);
-		fprintf(f, "   <link id='%s-RAM' bandwidth='%f' latency='%f'/>\n",
+		fprintf(f, "   <link id=\"%s-RAM\" bandwidth=\"%f\" latency=\"%f\"/>\n",
 			i_name,
 			1000000 / opencldev_timing_dtoh[1+i],
 			opencldev_latency_dtoh[1+i]/1000000.);
@@ -1758,8 +1746,8 @@ static void write_bus_platform_file_content(void)
 	{
 		char i_name[16];
 		snprintf(i_name, sizeof(i_name), "CUDA%d", i);
-		fprintf(f, "   <route src='RAM' dst='%s' symmetrical='NO'><link_ctn id='RAM-%s'/><link_ctn id='Share'/></route>\n", i_name, i_name);
-		fprintf(f, "   <route src='%s' dst='RAM' symmetrical='NO'><link_ctn id='%s-RAM'/><link_ctn id='Share'/></route>\n", i_name, i_name);
+		fprintf(f, "   <route src=\"RAM\" dst=\"%s\" symmetrical=\"NO\"><link_ctn id=\"RAM-%s\"/><link_ctn id=\"Share\"/></route>\n", i_name, i_name);
+		fprintf(f, "   <route src=\"%s\" dst=\"RAM\" symmetrical=\"NO\"><link_ctn id=\"%s-RAM\"/><link_ctn id=\"Share\"/></route>\n", i_name, i_name);
 	}
 #ifdef HAVE_CUDA_MEMCPY_PEER
 	for (i = 0; i < ncuda; i++)
@@ -1773,7 +1761,7 @@ static void write_bus_platform_file_content(void)
 			if (j == i)
 				continue;
 			snprintf(j_name, sizeof(j_name), "CUDA%d", j);
-			fprintf(f, "   <route src='%s' dst='%s' symmetrical='NO'><link_ctn id='%s-%s'/><link_ctn id='Share'/></route>\n", i_name, j_name, i_name, j_name);
+			fprintf(f, "   <route src=\"%s\" dst=\"%s\" symmetrical=\"NO\"><link_ctn id=\"%s-%s\"/><link_ctn id=\"Share\"/></route>\n", i_name, j_name, i_name, j_name);
 		}
 	}
 #endif
@@ -1784,8 +1772,8 @@ static void write_bus_platform_file_content(void)
 	{
 		char i_name[16];
 		snprintf(i_name, sizeof(i_name), "OpenCL%d", i);
-		fprintf(f, "   <route src='RAM' dst='%s' symmetrical='NO'><link_ctn id='RAM-%s'/><link_ctn id='Share'/></route>\n", i_name, i_name);
-		fprintf(f, "   <route src='%s' dst='RAM' symmetrical='NO'><link_ctn id='%s-RAM'/><link_ctn id='Share'/></route>\n", i_name, i_name);
+		fprintf(f, "   <route src=\"RAM\" dst=\"%s\" symmetrical=\"NO\"><link_ctn id=\"RAM-%s\"/><link_ctn id=\"Share\"/></route>\n", i_name, i_name);
+		fprintf(f, "   <route src=\"%s\" dst=\"RAM\" symmetrical=\"NO\"><link_ctn id=\"%s-RAM\"/><link_ctn id=\"Share\"/></route>\n", i_name, i_name);
 	}
 #endif
 

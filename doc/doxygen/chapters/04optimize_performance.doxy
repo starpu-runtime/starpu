@@ -612,7 +612,8 @@ visualize the task graph more easily.
 \section SimulatedPerformance Simulated Performance
 
 StarPU can use Simgrid in order to simulate execution on an arbitrary
-platform.
+platform. This was tested with simgrid 3.11 and 3.12, other versions may have
+compatibility issues.
 
 \subsection Preparing your application for simulation.
 
