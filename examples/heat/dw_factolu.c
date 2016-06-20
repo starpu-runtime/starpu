@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009-2015  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -546,6 +546,8 @@ void dw_callback_codelet_update_u11(void *argcb)
 			ret = starpu_task_submit(task21);
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		}
+
+		free(remaining);
 	}
 }
 
@@ -636,6 +638,8 @@ void dw_callback_codelet_update_u12_21(void *argcb)
 				STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 			}
 		}
+
+		free(remaining);
 	}
 }
 

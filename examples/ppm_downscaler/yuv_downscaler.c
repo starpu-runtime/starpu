@@ -43,13 +43,13 @@ void parse_args(int argc, char **argv)
 {
 	if (argc == 3)
 	{
-		strcpy(filename_in, argv[1]);
-		strcpy(filename_out, argv[2]);
+		strncpy(filename_in, argv[1], 1024);
+		strncpy(filename_out, argv[2], 1024);
 	}
 	else
 	{
-		sprintf(filename_in, "%s/examples/ppm_downscaler/%s", STARPU_BUILD_DIR, filename_in_default);
-		sprintf(filename_out, "%s/examples/ppm_downscaler/%s", STARPU_BUILD_DIR, filename_out_default);
+		snprintf(filename_in, 1024, "%s/examples/ppm_downscaler/%s", STARPU_BUILD_DIR, filename_in_default);
+		snprintf(filename_out, 1024, "%s/examples/ppm_downscaler/%s", STARPU_BUILD_DIR, filename_out_default);
 	}
 }
 

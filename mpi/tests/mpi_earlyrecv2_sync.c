@@ -20,7 +20,7 @@
 #include <unistd.h>
 #include <interface/complex_interface.h>
 
-#define NB 4
+#define NB 6
 
 typedef void (*check_func)(starpu_data_handle_t handle, int i, int rank, int *error);
 
@@ -35,20 +35,22 @@ int exchange(int rank, starpu_data_handle_t *handles, check_func func)
 
 	if (rank%2)
 	{
-#if 1
 		starpu_mpi_issend(handles[0], &req[0], other_rank, 0, MPI_COMM_WORLD);
 		starpu_mpi_isend(handles[NB-1], &req[NB-1], other_rank, NB-1, MPI_COMM_WORLD);
 		starpu_mpi_issend(handles[NB-2], &req[NB-2], other_rank, NB-2, MPI_COMM_WORLD);
 
 		for(i=1 ; i<NB-2 ; i++)
-#else
-		for(i=0 ; i<NB ; i++)
-#endif
 		{
 			if (i%2)
+			{
+				FPRINTF_MPI(stderr, "iSsending value %d\n", i);
 				starpu_mpi_issend(handles[i], &req[i], other_rank, i, MPI_COMM_WORLD);
+			}
 			else
+			{
+				FPRINTF_MPI(stderr, "isending value %d\n", i);
 				starpu_mpi_isend(handles[i], &req[i], other_rank, i, MPI_COMM_WORLD);
+			}
 		}
 		for(i=0 ; i<NB ; i++)
 		{
@@ -57,7 +59,6 @@ int exchange(int rank, starpu_data_handle_t *handles, check_func func)
 	}
 	else
 	{
-#if 1
 		starpu_mpi_irecv(handles[0], &req[0], other_rank, 0, MPI_COMM_WORLD);
 		STARPU_ASSERT(req[0] != NULL);
 		starpu_mpi_irecv(handles[1], &req[1], other_rank, 1, MPI_COMM_WORLD);
@@ -66,9 +67,6 @@ int exchange(int rank, starpu_data_handle_t *handles, check_func func)
 		// We sleep to make sure that the data for the tag 8 and the tag 9 will be received before the recv are posted
 		usleep(2000000);
 		for(i=2 ; i<NB ; i++)
-#else
-		for(i=0 ; i<NB ; i++)
-#endif
 		{
 			starpu_mpi_irecv(handles[i], &req[i], other_rank, i, MPI_COMM_WORLD);
 			STARPU_ASSERT(req[i] != NULL);
