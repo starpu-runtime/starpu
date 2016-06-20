@@ -179,7 +179,7 @@ struct _starpu_sched_ctx_elt* _starpu_sched_ctx_list_add_prio(struct _starpu_sch
 							      unsigned prio, unsigned sched_ctx)
 {
 	struct _starpu_sched_ctx_list *parent_list = NULL, *prev = NULL, *last = NULL;
-	struct _starpu_sched_ctx_list *l = *list;
+	struct _starpu_sched_ctx_list *l;
 
 	for (l = *list; l != NULL; l=l->next)
 	{
