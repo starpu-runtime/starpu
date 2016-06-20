@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009-2016  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012, 2013  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -188,7 +188,6 @@ static int cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 
 static void execute_cholesky(unsigned size, unsigned nblocks)
 {
-	int ret;
 	float *mat = NULL;
 	unsigned i,j;
 
@@ -225,7 +224,7 @@ static void execute_cholesky(unsigned size, unsigned nblocks)
 	}
 #endif
 
-	ret = cholesky(mat, size, size, nblocks);
+	cholesky(mat, size, size, nblocks);
 
 #ifdef PRINT_OUTPUT
 	FPRINTF(stdout, "Results :\n");
@@ -326,8 +325,7 @@ int main(int argc, char **argv)
 	ret = starpu_init(NULL);
 	starpu_fxt_stop_profiling();
 
-	if (ret == -ENODEV)
-                return 77;
+	if (ret == -ENODEV) return 77;
         STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 #ifdef STARPU_USE_CUDA
@@ -359,5 +357,5 @@ int main(int argc, char **argv)
 	starpu_cublas_shutdown();
 	starpu_shutdown();
 
-	return ret;
+	return 0;
 }

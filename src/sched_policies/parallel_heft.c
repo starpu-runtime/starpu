@@ -310,6 +310,8 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 	int unknown = 0;
 	struct starpu_sched_ctx_iterator it;
 
+	memset(skip_worker, 0, nworkers_ctx*STARPU_MAXIMPLEMENTATIONS*sizeof(int));
+
 	workers->init_iterator(workers, &it);
 	while(workers->has_next(workers, &it))
 	{

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2012, 2015-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -82,7 +82,7 @@ static char *array_to_str(long *array, int n)
 		nchar = sprintf(ptr, "%ld ", array[i]);
 		ptr += nchar;
 	}
-		
+
 	return str;
 }
 
@@ -102,7 +102,7 @@ static int test_combination(long *combination, unsigned n)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	device_workers = 0;
-	
+
 	/* Check for all devices */
 	for (type=STARPU_CUDA_WORKER; type<STARPU_NARCH; type++)
 	{
@@ -120,7 +120,7 @@ static int test_combination(long *combination, unsigned n)
 		if (!check_workers_mapping(workers_cpuid + device_workers, workers_id, nb_workers))
 			return -1;
 	}
-	
+
 	starpu_shutdown();
 	return 1;
 }
@@ -132,7 +132,7 @@ static long * generate_arrangement(int arr_size, long *set, int set_size)
 	long tmp;
 
 	STARPU_ASSERT(arr_size <= set_size);
-	
+
 	srandom(time(0));
 
 	for (i=0; i<arr_size; i++)
@@ -145,7 +145,7 @@ static long * generate_arrangement(int arr_size, long *set, int set_size)
 		set[i] = set[i+j];
 		set[i+j] = tmp;
 	}
-	
+
 	return set;
 }
 
@@ -177,10 +177,10 @@ int main(int argc, char **argv)
 
 	for (i=0; i<STARPU_NMAXWORKERS; i++)
 		workers_id[i] = -1;
-		
+
 	cpuids = malloc(nhwpus * sizeof(long));
 
-	/* Evaluate several random values of STARPU_WORKERS_CPUID 
+	/* Evaluate several random values of STARPU_WORKERS_CPUID
 	 * and check mapping for each one
 	 */
 	for (i=1; i<=nhwpus; i++)
@@ -198,7 +198,7 @@ int main(int argc, char **argv)
 			}
 		}
 	}
-			
+
 	free(cpuids);
 
 	hwloc_topology_destroy(topology);
@@ -206,6 +206,3 @@ int main(int argc, char **argv)
 	return EXIT_SUCCESS;
 }
 #endif
-
-
-
