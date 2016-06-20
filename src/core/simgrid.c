@@ -228,7 +228,7 @@ int main(int argc, char **argv)
 	extern xbt_cfg_t _sg_cfg_set;
 	xbt_cfg_set_int(_sg_cfg_set, "contexts/stack_size", stack_size);
 #else
-	xbt_cfg_set_int("contexts/stack_size", stack_size);
+	xbt_cfg_set_int("contexts/stack-size", stack_size);
 #endif
 
 	/* Load XML platform */

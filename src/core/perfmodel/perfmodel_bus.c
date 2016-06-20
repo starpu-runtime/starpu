@@ -1900,31 +1900,31 @@ static void emit_topology_bandwidths(FILE *f, hwloc_obj_t obj)
 		if (obj->type == HWLOC_OBJ_BRIDGE)
 		{
 			/* Uplink */
-			fprintf(f, "   <link id='");
+			fprintf(f, "   <link id=\"");
 			emit_pci_hub(f, obj);
-			fprintf(f, " up' bandwidth='%f' latency='0.000000'/>\n", data->bw_up);
-			fprintf(f, "   <link id='");
+			fprintf(f, " up\" bandwidth=\"%f\" latency=\"0.000000\"/>\n", data->bw_up);
+			fprintf(f, "   <link id=\"");
 			emit_pci_hub(f, obj);
-			fprintf(f, " down' bandwidth='%f' latency='0.000000'/>\n", data->bw_down);
+			fprintf(f, " down\" bandwidth=\"%f\" latency=\"0.000000\"/>\n", data->bw_down);
 
 			/* PCI Switches are assumed to have infinite internal bandwidth */
 			if (!obj->name || !strstr(obj->name, "Switch"))
 			{
 				/* We assume that PCI Hubs have double bandwidth in
 				 * order to support full duplex but not more */
-				fprintf(f, "   <link id='");
+				fprintf(f, "   <link id=\"");
 				emit_pci_hub(f, obj);
-				fprintf(f, " through' bandwidth='%f' latency='0.000000'/>\n", data->bw * 2);
+				fprintf(f, " through\" bandwidth=\"%f\" latency=\"0.000000\"/>\n", data->bw * 2);
 			}
 		}
 		else if (obj->type == HWLOC_OBJ_PCI_DEVICE)
 		{
-			fprintf(f, "   <link id='");
+			fprintf(f, "   <link id=\"");
 			emit_pci_dev(f, &obj->attr->pcidev);
-			fprintf(f, " up' bandwidth='%f' latency='0.000000'/>\n", data->bw_up);
-			fprintf(f, "   <link id='");
+			fprintf(f, " up\" bandwidth=\"%f\" latency=\"0.000000\"/>\n", data->bw_up);
+			fprintf(f, "   <link id=\"");
 			emit_pci_dev(f, &obj->attr->pcidev);
-			fprintf(f, " down' bandwidth='%f' latency='0.000000'/>\n", data->bw_down);
+			fprintf(f, " down\" bandwidth=\"%f\" latency=\"0.000000\"/>\n", data->bw_down);
 		}
 	}
 
@@ -1938,15 +1938,15 @@ static void emit_pci_link(FILE *f, hwloc_obj_t obj, const char *suffix)
 {
 	if (obj->type == HWLOC_OBJ_BRIDGE)
 	{
-		fprintf(f, "    <link_ctn id='");
+		fprintf(f, "    <link_ctn id=\"");
 		emit_pci_hub(f, obj);
-		fprintf(f, " %s'/>\n", suffix);
+		fprintf(f, " %s\"/>\n", suffix);
 	}
 	else if (obj->type == HWLOC_OBJ_PCI_DEVICE)
 	{
-		fprintf(f, "    <link_ctn id='");
+		fprintf(f, "    <link_ctn id=\"");
 		emit_pci_dev(f, &obj->attr->pcidev);
-		fprintf(f, " %s'/>\n", suffix);
+		fprintf(f, " %s\"/>\n", suffix);
 	}
 }
 
@@ -1995,7 +1995,7 @@ static void emit_platform_backward_path(FILE *f, hwloc_obj_t obj)
 	if (obj->type == HWLOC_OBJ_BRIDGE && obj->attr->bridge.upstream_type == HWLOC_OBJ_BRIDGE_HOST)
 	{
 		/* Finished, go through host */
-		fprintf(f, "    <link_ctn id='Host'/>\n");
+		fprintf(f, "    <link_ctn id=\"Host\"/>\n");
 		return;
 	}
 
@@ -2017,7 +2017,7 @@ static void emit_platform_forward_path(FILE *f, hwloc_obj_t obj)
 	if (obj->type == HWLOC_OBJ_BRIDGE && obj->attr->bridge.upstream_type == HWLOC_OBJ_BRIDGE_HOST)
 	{
 		/* Finished, go through host */
-		fprintf(f, "    <link_ctn id='Host'/>\n");
+		fprintf(f, "    <link_ctn id=\"Host\"/>\n");
 		return;
 	}
 
@@ -2072,7 +2072,7 @@ static int emit_platform_path_up(FILE *f, hwloc_obj_t obj1, hwloc_obj_t obj2)
 		 * from obj2 to Host too.
 		 */
 		emit_platform_backward_path(f, obj2);
-		fprintf(f, "    <link_ctn id='Host'/>\n");
+		fprintf(f, "    <link_ctn id=\"Host\"/>\n");
 
 		emit_pci_link_up(f, parent);
 		emit_pci_link_through(f, parent);
@@ -2124,38 +2124,38 @@ static void write_bus_platform_file_content(void)
 	fprintf(f,
 "<?xml version='1.0'?>\n"
 " <!DOCTYPE platform SYSTEM 'http://simgrid.gforge.inria.fr/simgrid.dtd'>\n"
-" <platform version='3'>\n"
-" <config id='General'>\n"
-"   <prop id='network/TCP_gamma' value='-1'></prop>\n"
-"   <prop id='network/latency_factor' value='1'></prop>\n"
-"   <prop id='network/bandwidth_factor' value='1'></prop>\n"
+" <platform version=\"3\">\n"
+" <config id=\"General\">\n"
+"   <prop id=\"network/TCP_gamma\" value=\"-1\"></prop>\n"
+"   <prop id=\"network/latency_factor\" value=\"1\"></prop>\n"
+"   <prop id=\"network/bandwidth_factor\" value=\"1\"></prop>\n"
 " </config>\n"
-" <AS  id='AS0'  routing='Full'>\n"
-"   <host id='MAIN' power='1'/>\n"
+" <AS  id=\"AS0\"  routing=\"Full\">\n"
+"   <host id=\"MAIN\" power=\"1\"/>\n"
 		);
 
 	for (i = 0; i < ncpus; i++)
 		/* TODO: host memory for out-of-core simulation */
-		fprintf(f, "   <host id='CPU%d' power='2000000000'/>\n", i);
+		fprintf(f, "   <host id=\"CPU%d\" power=\"2000000000\"/>\n", i);
 
 	for (i = 0; i < ncuda; i++)
 	{
-		fprintf(f, "   <host id='CUDA%d' power='2000000000'>\n", i);
-		fprintf(f, "     <prop id='memsize' value='%llu'/>\n", (unsigned long long) cuda_size[i]);
+		fprintf(f, "   <host id=\"CUDA%d\" power=\"2000000000\">\n", i);
+		fprintf(f, "     <prop id=\"memsize\" value=\"%llu\"/>\n", (unsigned long long) cuda_size[i]);
 #ifdef HAVE_CUDA_MEMCPY_PEER
-		fprintf(f, "     <prop id='memcpy_peer' value='1'/>\n");
+		fprintf(f, "     <prop id=\"memcpy_peer\" value=\"1\"/>\n");
 #endif
 		fprintf(f, "   </host>\n");
 	}
 
 	for (i = 0; i < nopencl; i++)
 	{
-		fprintf(f, "   <host id='OpenCL%d' power='2000000000'>\n", i);
-		fprintf(f, "     <prop id='memsize' value='%llu'/>\n", (unsigned long long) opencl_size[i]);
+		fprintf(f, "   <host id=\"OpenCL%d\" power=\"2000000000\">\n", i);
+		fprintf(f, "     <prop id=\"memsize\" value=\"%llu\"/>\n", (unsigned long long) opencl_size[i]);
 		fprintf(f, "   </host>\n");
 	}
 
-	fprintf(f, "\n   <host id='RAM' power='1'/>\n");
+	fprintf(f, "\n   <host id=\"RAM\" power=\"1\"/>\n");
 
 	/*
 	 * Compute maximum bandwidth, taken as host bandwidth
@@ -2183,7 +2183,7 @@ static void write_bus_platform_file_content(void)
 			max_bandwidth = up_bw;
 	}
 #endif
-	fprintf(f, "\n   <link id='Host' bandwidth='%f' latency='0.000000'/>\n\n", max_bandwidth*1000000);
+	fprintf(f, "\n   <link id=\"Host\" bandwidth=\"%f\" latency=\"0.000000\"/>\n\n", max_bandwidth*1000000);
 
 	/*
 	 * OpenCL links
@@ -2194,11 +2194,11 @@ static void write_bus_platform_file_content(void)
 	{
 		char i_name[16];
 		snprintf(i_name, sizeof(i_name), "OpenCL%d", i);
-		fprintf(f, "   <link id='RAM-%s' bandwidth='%f' latency='%f'/>\n",
+		fprintf(f, "   <link id=\"RAM-%s\" bandwidth=\"%f\" latency=\"%f\"/>\n",
 			i_name,
 			1000000 / opencldev_timing_htod[1+i],
 			opencldev_latency_htod[1+i]/1000000.);
-		fprintf(f, "   <link id='%s-RAM' bandwidth='%f' latency='%f'/>\n",
+		fprintf(f, "   <link id=\"%s-RAM\" bandwidth=\"%f\" latency=\"%f\"/>\n",
 			i_name,
 			1000000 / opencldev_timing_dtoh[1+i],
 			opencldev_latency_dtoh[1+i]/1000000.);
@@ -2216,11 +2216,11 @@ static void write_bus_platform_file_content(void)
 	{
 		char i_name[16];
 		snprintf(i_name, sizeof(i_name), "CUDA%d", i);
-		fprintf(f, "   <link id='RAM-%s' bandwidth='%f' latency='%f'/>\n",
+		fprintf(f, "   <link id=\"RAM-%s\" bandwidth=\"%f\" latency=\"%f\"/>\n",
 			i_name,
 			1000000. / cudadev_timing_htod[1+i],
 			cudadev_latency_htod[1+i]/1000000.);
-		fprintf(f, "   <link id='%s-RAM' bandwidth='%f' latency='%f'/>\n",
+		fprintf(f, "   <link id=\"%s-RAM\" bandwidth=\"%f\" latency=\"%f\"/>\n",
 			i_name,
 			1000000. / cudadev_timing_dtoh[1+i],
 			cudadev_latency_dtoh[1+i]/1000000.);
@@ -2239,7 +2239,7 @@ static void write_bus_platform_file_content(void)
 			if (j == i)
 				continue;
 			snprintf(j_name, sizeof(j_name), "CUDA%d", j);
-			fprintf(f, "   <link id='%s-%s' bandwidth='%f' latency='%f'/>\n",
+			fprintf(f, "   <link id=\"%s-%s\" bandwidth=\"%f\" latency=\"%f\"/>\n",
 				i_name, j_name,
 				1000000. / cudadev_timing_dtod[1+i][1+j],
 				cudadev_latency_dtod[1+i][1+j]/1000000.);
@@ -2283,21 +2283,21 @@ static void write_bus_platform_file_content(void)
 			for (j = 0; j < ncuda; j++)
 				if (i != j)
 				{
-					fprintf(f, "   <route src='CUDA%u' dst='CUDA%u' symmetrical='NO'>\n", i, j);
-					fprintf(f, "    <link_ctn id='CUDA%d-CUDA%d'/>\n", i, j);
+					fprintf(f, "   <route src=\"CUDA%u\" dst=\"CUDA%u\" symmetrical=\"NO\">\n", i, j);
+					fprintf(f, "    <link_ctn id=\"CUDA%d-CUDA%d\"/>\n", i, j);
 					emit_platform_path_up(f,
 						hwloc_cuda_get_device_osdev_by_index(topology, i),
 						hwloc_cuda_get_device_osdev_by_index(topology, j));
 					fprintf(f, "   </route>\n");
 				}
 
-			fprintf(f, "   <route src='CUDA%d' dst='RAM' symmetrical='NO'>\n", i);
-			fprintf(f, "    <link_ctn id='CUDA%d-RAM'/>\n", i);
+			fprintf(f, "   <route src=\"CUDA%d\" dst=\"RAM\" symmetrical=\"NO\">\n", i);
+			fprintf(f, "    <link_ctn id=\"CUDA%d-RAM\"/>\n", i);
 			emit_platform_forward_path(f, hwloc_cuda_get_device_osdev_by_index(topology, i));
 			fprintf(f, "   </route>\n");
 
-			fprintf(f, "   <route src='RAM' dst='CUDA%d' symmetrical='NO'>\n", i);
-			fprintf(f, "    <link_ctn id='RAM-CUDA%d'/>\n", i);
+			fprintf(f, "   <route src=\"RAM\" dst=\"CUDA%d\" symmetrical=\"NO\">\n", i);
+			fprintf(f, "    <link_ctn id=\"RAM-CUDA%d\"/>\n", i);
 			emit_platform_backward_path(f, hwloc_cuda_get_device_osdev_by_index(topology, i));
 			fprintf(f, "   </route>\n");
 		}
@@ -2316,8 +2316,8 @@ flat_cuda:
 	{
 		char i_name[16];
 		snprintf(i_name, sizeof(i_name), "CUDA%d", i);
-		fprintf(f, "   <route src='RAM' dst='%s' symmetrical='NO'><link_ctn id='RAM-%s'/><link_ctn id='Host'/></route>\n", i_name, i_name);
-		fprintf(f, "   <route src='%s' dst='RAM' symmetrical='NO'><link_ctn id='%s-RAM'/><link_ctn id='Host'/></route>\n", i_name, i_name);
+		fprintf(f, "   <route src=\"RAM\" dst=\"%s\" symmetrical=\"NO\"><link_ctn id=\"RAM-%s\"/><link_ctn id=\"Host\"/></route>\n", i_name, i_name);
+		fprintf(f, "   <route src=\"%s\" dst=\"RAM\" symmetrical=\"NO\"><link_ctn id=\"%s-RAM\"/><link_ctn id=\"Host\"/></route>\n", i_name, i_name);
 	}
 #ifdef HAVE_CUDA_MEMCPY_PEER
 	for (i = 0; i < ncuda; i++)
@@ -2331,7 +2331,7 @@ flat_cuda:
 			if (j == i)
 				continue;
 			snprintf(j_name, sizeof(j_name), "CUDA%d", j);
-			fprintf(f, "   <route src='%s' dst='%s' symmetrical='NO'><link_ctn id='%s-%s'/><link_ctn id='Host'/></route>\n", i_name, j_name, i_name, j_name);
+			fprintf(f, "   <route src=\"%s\" dst=\"%s\" symmetrical=\"NO\"><link_ctn id=\"%s-%s\"/><link_ctn id=\"Host\"/></route>\n", i_name, j_name, i_name, j_name);
 		}
 	}
 #endif
@@ -2348,8 +2348,8 @@ flat_cuda:
 	{
 		char i_name[16];
 		snprintf(i_name, sizeof(i_name), "OpenCL%d", i);
-		fprintf(f, "   <route src='RAM' dst='%s' symmetrical='NO'><link_ctn id='RAM-%s'/><link_ctn id='Host'/></route>\n", i_name, i_name);
-		fprintf(f, "   <route src='%s' dst='RAM' symmetrical='NO'><link_ctn id='%s-RAM'/><link_ctn id='Host'/></route>\n", i_name, i_name);
+		fprintf(f, "   <route src=\"RAM\" dst=\"%s\" symmetrical=\"NO\"><link_ctn id=\"RAM-%s\"/><link_ctn id=\"Host\"/></route>\n", i_name, i_name);
+		fprintf(f, "   <route src=\"%s\" dst=\"RAM\" symmetrical=\"NO\"><link_ctn id=\"%s-RAM\"/><link_ctn id=\"Host\"/></route>\n", i_name, i_name);
 	}
 #endif
 
