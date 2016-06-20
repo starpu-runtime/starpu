@@ -405,9 +405,11 @@ see for instance
 
 <li>
 Provided explicitly by the application (model type ::STARPU_PER_ARCH):
+either field starpu_perfmodel::arch_cost_function, or
 the fields <c>.per_arch[arch][nimpl].cost_function</c> have to be
 filled with pointers to functions which return the expected duration
-of the task in micro-seconds, one per architecture.
+of the task in micro-seconds, one per architecture, see for instance
+<c>tests/datawizard/locality.c</c>
 </li>
 </ul>
 

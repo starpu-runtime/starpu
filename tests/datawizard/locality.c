@@ -40,16 +40,42 @@ unsigned worker_ntask[STARPU_NMAXWORKERS];
 void cpu_f(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *_args)
 {
 	unsigned i, loop, worker = starpu_worker_get_id();
+	enum starpu_worker_archtype worker_type = starpu_worker_get_type(worker);
+
 	starpu_codelet_unpack_args(_args, &loop, &i);
 	task_worker[i][loop] = worker;
 	worker_task[worker][worker_ntask[worker]++] = i;
-	starpu_sleep(0.001);
+	if (worker_type == STARPU_CPU_WORKER)
+		starpu_sleep(0.001);
+	else
+		starpu_sleep(0.0001);
 }
+
+double cost_function(struct starpu_task *t, struct starpu_perfmodel_arch *a, unsigned i)
+{
+	(void) t; (void) i;
+	STARPU_ASSERT(a->ndevices == 1);
+	if (a->devices[0].type == STARPU_CPU_WORKER)
+	{
+		STARPU_ASSERT(a->devices[0].ncores == 1);
+		return 0.001;
+	}
+	else
+		return 0.0001;
+}
+
+static struct starpu_perfmodel perf_model =
+{
+	.type = STARPU_PER_ARCH,
+	.arch_cost_function = cost_function,
+};
 
 static struct starpu_codelet cl =
 {
 	.cpu_funcs = { cpu_f },
 	.cpu_funcs_name = { "cpu_f" },
+	.cuda_funcs = { cpu_f },
+	.opencl_funcs = { cpu_f },
 	.nbuffers = 4,
 	.modes =
 	{
@@ -59,6 +85,7 @@ static struct starpu_codelet cl =
 		STARPU_RW | STARPU_COMMUTE | STARPU_LOCALITY,
 	},
 	.flags = STARPU_CODELET_SIMGRID_EXECUTE,
+	.model = &perf_model,
 };
 
 int main(int argc, char *argv[])

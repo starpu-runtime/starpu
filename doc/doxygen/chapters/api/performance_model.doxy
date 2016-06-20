@@ -81,7 +81,9 @@ is the type of performance model
 ::STARPU_NL_REGRESSION_BASED: No other fields needs to be provided,
 this is purely history-based.
 </li>
-<li> ::STARPU_PER_ARCH: field starpu_perfmodel::per_arch has to be
+<li> ::STARPU_PER_ARCH: either field starpu_perfmodel::arch_cost_function has to be
+filled with a function that returns the cost in micro-seconds on the arch given
+as parameter, or field starpu_perfmodel::per_arch has to be
 filled with functions which return the cost in micro-seconds.
 </li>
 <li> ::STARPU_COMMON: field starpu_perfmodel::cost_function has to be
@@ -97,6 +99,9 @@ be ignored.
 \var double (*starpu_perfmodel::cost_function)(struct starpu_task *, unsigned nimpl)
 Used by ::STARPU_COMMON: takes a task and implementation number, and
 must return a task duration estimation in micro-seconds.
+\var double (*starpu_perfmodel::arch_cost_function)(struct starpu_task *, struct starpu_perfmodel_arch* arch, unsigned nimpl)
+Used by ::STARPU_COMMON: takes a task, an arch and implementation number, and
+must return a task duration estimation in micro-seconds on that arch.
 \var size_t (*starpu_perfmodel::size_base)(struct starpu_task *, unsigned nimpl)
 Used by ::STARPU_HISTORY_BASED, ::STARPU_REGRESSION_BASED and
 ::STARPU_NL_REGRESSION_BASED. If not NULL, takes a task and

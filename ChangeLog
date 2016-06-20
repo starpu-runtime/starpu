@@ -231,6 +231,7 @@ Small features:
     used for allocations done by starpu.
   * Ranges can be provided in STARPU_WORKERS_CPUID
   * Add starpu_fxt_autostart_profiling to be able to avoid autostart.
+  * Add arch_cost_function perfmodel function field.
 
 Changes:
   * Data interfaces (variable, vector, matrix and block) now define
