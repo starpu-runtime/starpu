@@ -220,6 +220,10 @@ void _starpu_fxt_register_thread(unsigned cpuid)
 
 #else // STARPU_USE_FXT
 
+void starpu_fxt_autostart_profiling(int autostart)
+{
+}
+
 void starpu_fxt_start_profiling()
 {
 }
