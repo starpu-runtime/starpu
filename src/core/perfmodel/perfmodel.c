@@ -84,6 +84,9 @@ static double per_arch_task_expected_perf(struct starpu_perfmodel *model, struct
 	int comb;
 	double (*per_arch_cost_function)(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
 
+	if (model->arch_cost_function)
+		return model->arch_cost_function(task, arch, nimpl);
+
 	comb = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
 	STARPU_ASSERT_MSG(comb != -1, "Didn't find the proper arch combination\n");
 	STARPU_ASSERT_MSG(model->state->per_arch[comb] != NULL, "STARPU_PER_ARCH needs per-arch cost_function to be defined");
