@@ -113,6 +113,7 @@ extern "C"
 
 #ifdef STARPU_NO_ASSERT
 #define STARPU_ASSERT(x)		do { } while(0)
+#define STARPU_ASSERT_ACCESSIBLE(x)	do { } while(0)
 #define STARPU_ASSERT_MSG(x, msg, ...)	do { } while(0)
 #else
 #  if defined(__CUDACC__) || defined(STARPU_HAVE_WINDOWS)
@@ -123,6 +124,9 @@ extern "C"
 #    define STARPU_ASSERT_MSG(x, msg, ...)	do { if (STARPU_UNLIKELY(!(x))) { STARPU_DUMP_BACKTRACE(); fprintf(stderr, "\n[starpu][%s][assert failure] " msg "\n\n", __starpu_func__, ## __VA_ARGS__); assert(x); } } while(0)
 
 #  endif
+#  define STARPU_ASSERT_ACCESSIBLE(ptr)	do { \
+	volatile char c = *(char*) (ptr); \
+} while(0)
 #endif
 
 #ifdef __APPLE_CC__
