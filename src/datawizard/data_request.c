@@ -159,6 +159,7 @@ struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t ha
 	r->ndeps = ndeps;
 	r->next_req_count = 0;
 	r->callbacks = NULL;
+	r->com_id = 0;
 
 	_starpu_spin_lock(&r->lock);
 
@@ -361,12 +362,15 @@ static void starpu_handle_data_request_completion(struct _starpu_data_request *r
 	}
 #endif
 
+	if (r->com_id > 0)
+	{
 #ifdef STARPU_USE_FXT
-	unsigned src_node = src_replicate->memory_node;
-	unsigned dst_node = dst_replicate->memory_node;
-	size_t size = _starpu_data_get_size(handle);
-	_STARPU_TRACE_END_DRIVER_COPY(src_node, dst_node, size, r->com_id, r->prefetch);
+		unsigned src_node = src_replicate->memory_node;
+		unsigned dst_node = dst_replicate->memory_node;
+		size_t size = _starpu_data_get_size(handle);
+		_STARPU_TRACE_END_DRIVER_COPY(src_node, dst_node, size, r->com_id, r->prefetch);
 #endif
+	}
 
 	/* Once the request has been fulfilled, we may submit the requests that
 	 * were chained to that request. */
