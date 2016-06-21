@@ -112,9 +112,9 @@ void starpu_csr_data_register(starpu_data_handle_t *handleptr, unsigned home_nod
 		STARPU_ASSERT_ACCESSIBLE(nzval);
 		STARPU_ASSERT_ACCESSIBLE(nzval + nnz*elemsize - 1);
 		STARPU_ASSERT_ACCESSIBLE(colind);
-		STARPU_ASSERT_ACCESSIBLE(colind + nnz*sizeof(uint32_t) - 1);
+		STARPU_ASSERT_ACCESSIBLE((uintptr_t) colind + nnz*sizeof(uint32_t) - 1);
 		STARPU_ASSERT_ACCESSIBLE(rowptr);
-		STARPU_ASSERT_ACCESSIBLE(rowptr + (nrow+1)*sizeof(uint32_t) - 1);
+		STARPU_ASSERT_ACCESSIBLE((uintptr_t) rowptr + (nrow+1)*sizeof(uint32_t) - 1);
 	}
 #endif
 
