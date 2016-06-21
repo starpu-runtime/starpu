@@ -238,9 +238,9 @@ starpu_coo_data_register(starpu_data_handle_t *handleptr, unsigned home_node,
 	if (home_node == STARPU_MAIN_RAM)
 	{
 		STARPU_ASSERT_ACCESSIBLE(columns);
-		STARPU_ASSERT_ACCESSIBLE(columns + n_values*sizeof(uint32_t) - 1);
+		STARPU_ASSERT_ACCESSIBLE((uintptr_t) columns + n_values*sizeof(uint32_t) - 1);
 		STARPU_ASSERT_ACCESSIBLE(rows);
-		STARPU_ASSERT_ACCESSIBLE(rows + n_values*sizeof(uint32_t) - 1);
+		STARPU_ASSERT_ACCESSIBLE((uintptr_t) rows + n_values*sizeof(uint32_t) - 1);
 		STARPU_ASSERT_ACCESSIBLE(values);
 		STARPU_ASSERT_ACCESSIBLE(values + n_values*elemsize - 1);
 	}
