@@ -220,6 +220,17 @@ starpu_coo_data_register(starpu_data_handle_t *handleptr, unsigned home_node,
 		.n_values = n_values,
 		.elemsize = elemsize,
 	};
+#ifndef STARPU_SIMGRID
+	if (home_node == 0)
+	{
+		STARPU_ASSERT_ACCESSIBLE(columns);
+		STARPU_ASSERT_ACCESSIBLE(columns + n_values*sizeof(uint32_t) - 1);
+		STARPU_ASSERT_ACCESSIBLE(rows);
+		STARPU_ASSERT_ACCESSIBLE(rows + n_values*sizeof(uint32_t) - 1);
+		STARPU_ASSERT_ACCESSIBLE(values);
+		STARPU_ASSERT_ACCESSIBLE(values + n_values*elemsize - 1);
+	}
+#endif
 
 	starpu_data_register(handleptr, home_node, &coo_interface,
 			     &_starpu_interface_coo_ops);
