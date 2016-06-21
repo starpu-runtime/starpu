@@ -1643,6 +1643,7 @@ static void write_bus_platform_file_content(void)
 		/* TODO: host memory for out-of-core simulation */
 		fprintf(f, "   <host id=\"CPU%d\" power=\"2000000000\"/>\n", i);
 
+#ifdef STARPU_USE_CUDA
 	for (i = 0; i < ncuda; i++)
 	{
 		fprintf(f, "   <host id=\"CUDA%d\" power=\"2000000000\">\n", i);
@@ -1652,13 +1653,16 @@ static void write_bus_platform_file_content(void)
 #endif
 		fprintf(f, "   </host>\n");
 	}
+#endif
 
+#ifdef STARPU_USE_OPENCL
 	for (i = 0; i < nopencl; i++)
 	{
 		fprintf(f, "   <host id=\"OpenCL%d\" power=\"2000000000\">\n", i);
-		fprintf(f, "     <prop id=\"memsize\" value=\"%llu\"/>\n",
+		fprintf(f, "     <prop id=\"memsize\" value=\"%llu\"/>\n", (unsigned long long) opencl_size[i]);;
 		fprintf(f, "   </host>\n");
 	}
+#endif
 
 	fprintf(f, "\n   <host id=\"RAM\" power=\"1\"/>\n");
 
