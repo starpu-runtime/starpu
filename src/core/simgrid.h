@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2015  Université de Bordeaux
+ * Copyright (C) 2012-2016  Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -47,7 +47,7 @@ unsigned long long _starpu_simgrid_get_memsize(const char *prefix, unsigned devi
 msg_host_t _starpu_simgrid_get_host_by_name(const char *name);
 struct _starpu_worker;
 msg_host_t _starpu_simgrid_get_host_by_worker(struct _starpu_worker *worker);
-void _starpu_simgrid_get_platform_path(char *path, size_t maxlen);
+void _starpu_simgrid_get_platform_path(int version, char *path, size_t maxlen);
 msg_as_t _starpu_simgrid_get_as_by_name(const char *name);
 #pragma weak starpu_mpi_world_rank
 extern int starpu_mpi_world_rank(void);

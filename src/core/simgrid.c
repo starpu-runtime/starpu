@@ -232,7 +232,11 @@ int main(int argc, char **argv)
 #endif
 
 	/* Load XML platform */
-	_starpu_simgrid_get_platform_path(path, sizeof(path));
+#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 13)
+	_starpu_simgrid_get_platform_path(3, path, sizeof(path));
+#else
+	_starpu_simgrid_get_platform_path(4, path, sizeof(path));
+#endif
 	MSG_create_environment(path);
 
 	struct main_args *args = malloc(sizeof(*args));
