@@ -63,6 +63,7 @@ int starpu_pthread_create(starpu_pthread_t *thread, const starpu_pthread_attr_t 
 int starpu_pthread_join(starpu_pthread_t thread STARPU_ATTRIBUTE_UNUSED, void **retval STARPU_ATTRIBUTE_UNUSED)
 {
 #if 0 //def HAVE_MSG_PROCESS_JOIN
+	/* https://gforge.inria.fr/tracker/index.php?func=detail&aid=13601&group_id=12&atid=165 */
 	MSG_process_join(thread, 100);
 #else
 	MSG_process_sleep(1);
