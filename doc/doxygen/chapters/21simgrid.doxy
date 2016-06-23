@@ -9,7 +9,7 @@
 /*! \page SimGridSupport SimGrid Support
 
 StarPU can use Simgrid in order to simulate execution on an arbitrary
-platform. This was tested with simgrid 3.11 and 3.12, other versions may have
+platform. This was tested with simgrid 3.11, 3.12 and 3.13, other versions may have
 compatibility issues.
 
 \section Preparing Preparing your application for simulation.
