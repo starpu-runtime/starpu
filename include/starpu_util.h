@@ -125,7 +125,7 @@ extern "C"
 
 #  endif
 #  define STARPU_ASSERT_ACCESSIBLE(ptr)	do { \
-	volatile char c STARPU_ATTRIBUTE_UNUSED = *(char*) (ptr); \
+	volatile char __c STARPU_ATTRIBUTE_UNUSED = *(char*) (ptr); \
 } while(0)
 #endif
 
