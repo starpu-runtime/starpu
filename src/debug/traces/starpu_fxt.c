@@ -2118,7 +2118,7 @@ static void handle_mpi_isend_submit_end(struct fxt_ev_64 *ev, struct starpu_fxt_
 	{
 		if (!mpi_warned)
 		{
-			fprintf(stderr,"error while opening %s\n", options->out_paje_path);
+			fprintf(stderr,"Warning : Only one trace file is given. MPI transfers will not be displayed. Add all trace files to show them ! \n");
 			mpi_warned = 1;
 		}
 	}
@@ -2181,7 +2181,7 @@ static void handle_mpi_irecv_complete_begin(struct fxt_ev_64 *ev, struct starpu_
 	{
 		if (!mpi_warned)
 		{
-			fprintf(stderr,"error while opening %s\n", options->out_paje_path);
+			fprintf(stderr,"Warning : Only one trace file is given. MPI transfers will not be displayed. Add all trace files to show them ! \n");
 			mpi_warned = 1;
 		}
 	}
