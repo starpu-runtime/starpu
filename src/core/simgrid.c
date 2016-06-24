@@ -267,9 +267,8 @@ void _starpu_simgrid_init(int *argc, char ***argv)
 #ifdef HAVE_MSG_PROCESS_ATTACH
 	if (!simgrid_started)
 	{
-#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 14)
-		_STARPU_DISP("In simgrid mode, the file containing the main() function of this application should to be compiled with starpu.h or starpu_simgrid_wrap.h included, to properly rename it into starpu_main to avoid having to use --cfg=contexts/factory:thread which reduces performance\n");
-#endif
+		_STARPU_DISP("Warning: In simgrid mode, the file containing the main() function of this application should to be compiled with starpu.h or starpu_simgrid_wrap.h included, to properly rename it into starpu_main to avoid having to use contexts/factory:thread which reduces performance\n");
+		xbt_cfg_set_string("contexts/factory", "thread");
 		/* We didn't catch application's main. */
 		/* Start maestro as a separate thread */
 		SIMIX_set_maestro(maestro, NULL);

@@ -305,6 +305,11 @@ noinst_PROGRAMS =				\
 	sched_policies/simple_deps              \
 	sched_policies/simple_cpu_gpu_sched
 
+if STARPU_SIMGRID
+noinst_PROGRAMS +=				\
+	datawizard/simgrid-locality
+endif
+
 if STARPU_HAVE_FC
 if !STARPU_SANITIZE
 if !STARPU_SIMGRID
