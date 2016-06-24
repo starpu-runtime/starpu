@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012-2015  Université de Bordeaux
+ * Copyright (C) 2010, 2012-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -29,12 +29,13 @@ extern int _starpu_simgrid_thread_start(int argc, char *argv[]);
 
 int starpu_pthread_create_on(char *name, starpu_pthread_t *thread, const starpu_pthread_attr_t *attr, void *(*start_routine) (void *), void *arg, msg_host_t host)
 {
-	struct _starpu_pthread_args *_args = malloc(sizeof(*_args));
-	_args->f = start_routine;
-	_args->arg = arg;
+	char **_args = malloc(3*sizeof(char*));
+	asprintf(&_args[0], "%p", start_routine);
+	asprintf(&_args[1], "%p", arg);
+	_args[2] = NULL;
 	if (!host)
 		host = MSG_get_host_by_name("MAIN");
-	*thread = MSG_process_create(name, _starpu_simgrid_thread_start, _args, host);
+	*thread = MSG_process_create_with_arguments(name, _starpu_simgrid_thread_start, calloc(MAX_TSD, sizeof(void*)), host, 2, _args);
 	return 0;
 }
 
