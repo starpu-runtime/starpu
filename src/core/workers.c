@@ -1048,7 +1048,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 
 #ifdef STARPU_SIMGRID
 	/* This initializes the simgrid thread library, thus needs to be early */
-	_starpu_simgrid_init();
+	_starpu_simgrid_init(argc, argv);
 #endif
 
 	STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
@@ -1565,6 +1565,11 @@ void starpu_shutdown(void)
 #endif
 	_starpu_print_idle_time();
 	_STARPU_DEBUG("Shutdown finished\n");
+
+#ifdef STARPU_SIMGRID
+	/* This finalizes the simgrid thread library, thus needs to be late */
+	_starpu_simgrid_deinit();
+#endif
 }
 
 
