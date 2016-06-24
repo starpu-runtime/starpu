@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2015  Université de Bordeaux
+ * Copyright (C) 2010-2016  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
@@ -794,7 +794,11 @@ static int _starpu_opencl_execute_job(struct _starpu_job *j, struct _starpu_work
 	    #endif
 		struct starpu_profiling_task_info *profiling_info = task->profiling_info;
 		STARPU_ASSERT_MSG(profiling_info->used_cycles, "Application kernel must call starpu_opencl_collect_stats to collect simulated time");
+#ifdef HAVE_MSG_HOST_GET_SPEED
+		length = ((double) profiling_info->used_cycles)/MSG_host_get_speed(MSG_host_self());
+#else
 		length = ((double) profiling_info->used_cycles)/MSG_get_host_speed(MSG_host_self());
+#endif
 	  #endif
 		_starpu_simgrid_execute_job(j, args->perf_arch, length);
 #else
