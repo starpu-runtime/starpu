@@ -617,10 +617,11 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 int
 _starpu_simgrid_thread_start(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[])
 {
-	struct _starpu_pthread_args *_args = (void*) argv;
-	struct _starpu_pthread_args args = *_args;
+	void *(*f)(void*) = (void*) (uintptr_t) strtol(argv[0], NULL, 16);
+	void *arg = (void*) (uintptr_t) strtol(argv[1], NULL, 16);
+
 	/* _args is freed with process context */
-	args.f(args.arg);
+	f(arg);
 	return 0;
 }
 #endif
