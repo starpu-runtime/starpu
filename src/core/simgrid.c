@@ -349,9 +349,9 @@ void _starpu_simgrid_submit_job(int workerid, struct _starpu_job *j, struct star
 
 	simgrid_task = MSG_task_create(_starpu_job_get_task_name(j),
 #ifdef HAVE_MSG_HOST_GET_SPEED
-			length/1000000.0*MSG_get_host_speed(MSG_host_self()),
-#else
 			length/1000000.0*MSG_host_get_speed(MSG_host_self()),
+#else
+			length/1000000.0*MSG_get_host_speed(MSG_host_self()),
 #endif
 			0, NULL);
 
