@@ -2405,7 +2405,7 @@ static void check_bus_platform_file(void)
 
 	res = access(path, F_OK);
 
-	if (res)
+	if (!res)
 	{
 		_starpu_simgrid_get_platform_path(3, path, sizeof(path));
 		res = access(path, F_OK);
