@@ -46,12 +46,13 @@ extern int _starpu_simgrid_thread_start(int argc, char *argv[]);
 
 int starpu_pthread_create_on(char *name, starpu_pthread_t *thread, const starpu_pthread_attr_t *attr STARPU_ATTRIBUTE_UNUSED, void *(*start_routine) (void *), void *arg, msg_host_t host)
 {
-	struct _starpu_pthread_args *_args = malloc(sizeof(*_args));
-	_args->f = start_routine;
-	_args->arg = arg;
+	char **_args = malloc(3*sizeof(char*));
+	asprintf(&_args[0], "%p", start_routine);
+	asprintf(&_args[1], "%p", arg);
+	_args[2] = NULL;
 	if (!host)
 		host = MSG_get_host_by_name("MAIN");
-	*thread = MSG_process_create_with_arguments(name, _starpu_simgrid_thread_start, calloc(MAX_TSD, sizeof(void*)), host, 0, (char **) _args);
+	*thread = MSG_process_create_with_arguments(name, _starpu_simgrid_thread_start, calloc(MAX_TSD, sizeof(void*)), host, 2, _args);
 	return 0;
 }
 
