@@ -1000,7 +1000,7 @@ if test x$enable_simgrid = xyes ; then
 		]
 	)
 	AC_CHECK_HEADERS([simgrid/msg.h], [AC_DEFINE([STARPU_HAVE_SIMGRID_MSG_H], [1], [Define to 1 if you have msg.h in simgrid/.])])
-   	AC_CHECK_FUNCS([xbt_mutex_try_acquire])
+   	AC_CHECK_FUNCS([MSG_host_get_speed xbt_mutex_try_acquire])
 	AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
 		    		[[
 #ifdef STARPU_HAVE_SIMGRID_MSG_H
