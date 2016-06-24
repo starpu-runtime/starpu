@@ -62,6 +62,7 @@ static starpu_data_handle_t A_handle, B_handle, C_handle;
 
 static void check_output(void)
 {
+#ifndef STARPU_SIMGRID
 	/* compute C = C - AB */
 	CPU_GEMM("N", "N", ydim, xdim, zdim, (TYPE)-1.0f, A, ydim, B, zdim, (TYPE)1.0f, C, ydim);
 
@@ -81,6 +82,7 @@ static void check_output(void)
 		FPRINTF(stderr, "There were errors ... err = %f\n", err);
 		FPRINTF(stderr, "Max error : %e\n", C[max]);
 	}
+#endif
 }
 
 static void init_problem_data(void)
