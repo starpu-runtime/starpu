@@ -233,20 +233,11 @@ endif
 endif
 endif
 
-GEMMs = \
-	mult/sgemm 				\
-	mult/dgemm
-
-if STARPU_SIMGRID
-STARPU_EXAMPLES += $(GEMMs)
-endif
-if !NO_BLAS_LIB
-STARPU_EXAMPLES += $(GEMMs)
-endif
-
 if !NO_BLAS_LIB
 STARPU_EXAMPLES +=				\
 	axpy/axpy				\
+	mult/sgemm 				\
+	mult/dgemm				\
 	cholesky/cholesky_tag			\
 	cholesky/cholesky_tile_tag		\
 	cholesky/cholesky_grain_tag		\
