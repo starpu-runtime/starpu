@@ -543,11 +543,7 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 	hosts[0] = _starpu_simgrid_memory_node_get_host(src_node);
 	hosts[1] = _starpu_simgrid_memory_node_get_host(dst_node);
 	STARPU_ASSERT(hosts[0] != hosts[1]);
-	if (size)
-		communication[1] = size;
-	else
-		/* Simgrid does not like 0-bytes transfers, fake one byte */
-		communication[1] = 1;
+	communication[1] = size;
 
 	task = MSG_parallel_task_create("copy", 2, hosts, computation, communication, NULL);
 

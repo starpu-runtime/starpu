@@ -81,7 +81,7 @@ static void *starpu_unistd_o_direct_plug(void *parameter, starpu_ssize_t size)
 #ifdef HAVE_AIO_H
 void *starpu_unistd_o_direct_global_async_read(void *base, void *obj, void *buf, off_t offset, size_t size)
 {
-	STARPU_ASSERT_MSG((size % getpagesize()) == 0, "You can only read a multiple of page size %u Bytes (Here %u)", getpagesize(), (int) size);
+	STARPU_ASSERT_MSG((size % getpagesize()) == 0, "The unistd_o_direct variant can only read a multiple of page size %u Bytes (Here %u). Use the non-o_direct unistd variant if your data is not a multiple of %u", getpagesize(), (int) size, getpagesize());
 
 	STARPU_ASSERT_MSG((((uintptr_t) buf) % getpagesize()) == 0, "You have to use starpu_malloc function");
 
@@ -90,7 +90,7 @@ void *starpu_unistd_o_direct_global_async_read(void *base, void *obj, void *buf,
 
 void *starpu_unistd_o_direct_global_async_write(void *base, void *obj, void *buf, off_t offset, size_t size)
 {
-	STARPU_ASSERT_MSG((size % getpagesize()) == 0, "You can only write a multiple of page size %u Bytes (Here %u)", getpagesize(), (int) size);
+	STARPU_ASSERT_MSG((size % getpagesize()) == 0, "The unistd_o_direct variant can only write a multiple of page size %u Bytes (Here %u). Use the non-o_direct unistd variant if your data is not a multiple of %u", getpagesize(), (int) size, getpagesize());
 
 	STARPU_ASSERT_MSG((((uintptr_t)buf) % getpagesize()) == 0, "You have to use starpu_malloc function");
 
