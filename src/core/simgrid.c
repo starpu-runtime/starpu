@@ -194,9 +194,9 @@ void _starpu_simgrid_execute_job(struct _starpu_job *j, enum starpu_perfmodel_ar
 
 	simgrid_task = MSG_task_create(_starpu_job_get_model_name(j),
 #ifdef HAVE_MSG_HOST_GET_SPEED
-			length/1000000.0*MSG_get_host_speed(MSG_host_self()),
-#else
 			length/1000000.0*MSG_host_get_speed(MSG_host_self()),
+#else
+			length/1000000.0*MSG_get_host_speed(MSG_host_self()),
 #endif
 			0, NULL);
 	MSG_task_execute(simgrid_task);
