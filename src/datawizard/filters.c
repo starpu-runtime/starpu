@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2016  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016  CNRS
  * Copyright (C) 2012 INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -126,10 +126,6 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 {
 	unsigned i;
 	unsigned node;
-
-	/* Make sure to wait for previous tasks working on the whole data */
-	starpu_data_acquire_on_node(initial_handle, -1, STARPU_RW);
-	starpu_data_release_on_node(initial_handle, -1);
 
 	/* first take care to properly lock the data header */
 	_starpu_spin_lock(&initial_handle->header_lock);
@@ -500,6 +496,11 @@ void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_da
 	STARPU_ASSERT_MSG(initial_handle->nplans == 0, "partition planning and synchronous partitioning is not supported");
 
 	initial_handle->children = NULL;
+
+	/* Make sure to wait for previous tasks working on the whole data */
+	starpu_data_acquire_on_node(initial_handle, -1, STARPU_RW);
+	starpu_data_release_on_node(initial_handle, -1);
+
 	_starpu_data_partition(initial_handle, NULL, nparts, f, 1);
 }
 
