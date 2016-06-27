@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2013 Corentin Salingue
- * Copyright (C) 2015 CNRS
+ * Copyright (C) 2015, 2016 CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -99,6 +99,8 @@ int dotest(struct starpu_disk_ops *ops, char *base)
 	fclose(f);
 
 	int descriptor = open(path_file_start, O_RDWR);
+	if (descriptor < 0)
+		goto enoent2;
 #ifdef STARPU_HAVE_WINDOWS
 	_commit(descriptor);
 #else
