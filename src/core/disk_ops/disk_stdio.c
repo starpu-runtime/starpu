@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2013 Corentin Salingue
- * Copyright (C) 2015 CNRS
+ * Copyright (C) 2015, 2016 CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -239,6 +239,7 @@ static int starpu_stdio_full_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj,
 	int res = fseek(f, 0, SEEK_END);
 	STARPU_ASSERT_MSG(res == 0, "Stdio write failed");
 	*size = ftell(f);
+	STARPU_ASSERT_MSG(*size >= 0, "Stdio write failed");
 
 	if (tmp->file)
 		STARPU_PTHREAD_MUTEX_UNLOCK(&tmp->mutex);
