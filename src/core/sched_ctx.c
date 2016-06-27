@@ -1231,7 +1231,8 @@ int _starpu_wait_for_all_tasks_of_sched_ctx(unsigned sched_ctx_id)
 
 	STARPU_ASSERT_MSG(_starpu_worker_may_perform_blocking_calls(), "starpu_task_wait_for_all must not be called from a task or callback");
 
-	return _starpu_barrier_counter_wait_for_empty_counter(&sched_ctx->tasks_barrier);
+	_starpu_barrier_counter_wait_for_empty_counter(&sched_ctx->tasks_barrier);
+	return 0;
 }
 
 int _starpu_wait_for_n_submitted_tasks_of_sched_ctx(unsigned sched_ctx_id, unsigned n)
@@ -1394,7 +1395,8 @@ double starpu_sched_ctx_get_nready_flops(unsigned sched_ctx_id)
 int _starpu_wait_for_no_ready_of_sched_ctx(unsigned sched_ctx_id)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
-	return _starpu_barrier_counter_wait_for_empty_counter(&sched_ctx->ready_tasks_barrier);
+	_starpu_barrier_counter_wait_for_empty_counter(&sched_ctx->ready_tasks_barrier);
+	return 0;
 }
 
 void starpu_sched_ctx_set_context(unsigned *sched_ctx)
