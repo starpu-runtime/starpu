@@ -2104,8 +2104,20 @@ AC_SUBST([pkglibdir])
 AC_ARG_ENABLE(fortran, [AS_HELP_STRING([--disable-fortran],
 			[disable build of fortran examples])],
 			enable_build_fortran=$enableval, enable_build_fortran=yes)
-if test "x$FC" != "x" -a "x$enable_build_fortran" = "xyes" ; then
-  AC_DEFINE(STARPU_HAVE_FC, [], [Define this if a Fortran compiler is available])
+if test "x$FC" != "x"; then
+	if $FC --version|grep -q 'GNU Fortran'; then
+		gfortran_fc_version=`$FC --version|head -1|sed 's/.*)//;s/^.*\([[0-9]][[0-9]]*\)\.\([[0-9]][[0-9]]*\)\.\([[0-9]][[0-9]]*\).*/\1.\2.\3/'`
+		gfortran_maj_version=`echo $gfortran_fc_version|cut -d. -f1`
+		gfortran_min_version=`echo $gfortran_fc_version|cut -d. -f2`
+
+		if test $gfortran_maj_version -lt 4 -o \( $gfortran_maj_version -eq 4 -a $gfortran_min_version -lt 9 \) ; then
+			AC_MSG_WARN([GFortran $gfortran_fc_version too old, version >= 4.9.x needed, Fortran examples will not be built])
+			enable_build_fortran="no"
+		fi
+	fi
+	if test "x$enable_build_fortran" = "xyes" ; then
+		AC_DEFINE(STARPU_HAVE_FC, [], [Define this if a Fortran compiler is available])
+	fi
 fi
 AM_CONDITIONAL([STARPU_HAVE_FC], [test "x$FC" != "x" -a "x$enable_build_fortran" = "xyes"])
 
