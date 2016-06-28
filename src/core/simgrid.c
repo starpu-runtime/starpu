@@ -302,12 +302,14 @@ void _starpu_simgrid_init(int *argc, char ***argv)
 
 void _starpu_simgrid_deinit(void)
 {
+#ifdef HAVE_MSG_PROCESS_ATTACH
 	if (simgrid_started == 2)
 	{
 		/* Started with MSG_process_attach, now detach */
 		MSG_process_detach();
 		simgrid_started = 0;
 	}
+#endif
 }
 
 /*
