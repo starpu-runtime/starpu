@@ -50,7 +50,7 @@
  *   of data estimated to be contained in the cache.
  */
 
-#define USE_LOCALITY
+//#define USE_LOCALITY
 
 
 //#define USE_LOCALITY_TASKS

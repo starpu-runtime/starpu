@@ -49,7 +49,7 @@
 //#define USE_LOCALITY
 
 
-#define USE_LOCALITY_TASKS
+//#define USE_LOCALITY_TASKS
 
 /* Maximum number of recorded locality data per task */
 #define MAX_LOCALITY 8
