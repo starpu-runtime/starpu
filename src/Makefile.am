@@ -3,6 +3,7 @@
 # Copyright (C) 2009-2016  Université de Bordeaux
 # Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
 # Copyright (C) 2011, 2014  INRIA
+# Copyright (C) 2016  Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -241,6 +242,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	util/execute_on_all.c					\
 	util/starpu_create_sync_task.c				\
 	util/file.c						\
+	util/fstarpu.c						\
 	util/misc.c						\
 	util/openmp_runtime_support.c				\
 	util/openmp_runtime_support_environment.c		\

@@ -4,7 +4,7 @@
 # Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
 # Copyright (C) 2011  Télécom-SudParis
 # Copyright (C) 2011-2012  INRIA
-# Copyright (C) 2015  Inria
+# Copyright (C) 2015-2016  Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -228,7 +228,8 @@ endif
 if STARPU_HAVE_FC
 if !STARPU_SANITIZE
 STARPU_EXAMPLES +=				\
-	fortran90/f90_example
+	fortran90/f90_example			\
+	native_fortran/native_fortran_example
 endif
 endif
 endif
@@ -347,6 +348,11 @@ fortran90_f90_example_SOURCES =	\
 	fortran90/mod_compute.f90	\
 	fortran90/marshalling.c		\
 	fortran90/f90_example.f90
+
+native_fortran_native_fortran_example_SOURCES =	\
+	native_fortran/codelets.f90		\
+	$(top_srcdir)/include/fstarpu_mod.f90	\
+	native_fortran/native_fortran_example.f90
 endif
 
 #######################
@@ -971,4 +977,20 @@ mod_compute.o: $(top_srcdir)/examples/fortran90/mod_compute.f90 mod_types.mod mo
 
 f90_example.o: $(top_srcdir)/examples/fortran90/f90_example.f90 $(top_srcdir)/examples/fortran90/marshalling.c mod_types.mod mod_interface.mod mod_compute.mod starpu_mod.mod
 	$(AM_V_FC)$(FC) $(fortran90_f90_example_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'fortran90/f90_example.f90' || echo '$(srcdir)/'`fortran90/f90_example.f90
+
+# Native Fortran example
+# - list explicit dependences to control proper module files generation
+# - the overriding rule fully disables the corresponing default rule, thus
+#   the default rule body must be copied entirely
+fstarpu_mod.mod: fstarpu_mod.o
+codelets.mod: codelets.o
+
+fstarpu_mod.o: $(top_srcdir)/include/fstarpu_mod.f90
+	$(AM_V_FC)$(FC) $(native_fortran_native_fortran_example_FCFLAGS) $(FCFLAGS) -c -o $@ '$(top_srcdir)/'include/fstarpu_mod.f90
+
+codelets.o: $(top_srcdir)/examples/native_fortran/codelets.f90 fstarpu_mod.mod
+	$(AM_V_FC)$(FC) $(native_fortran_native_fortran_example_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'native_fortran/codelets.f90' || echo '$(srcdir)/'`native_fortran/codelets.f90
+
+native_fortran_example.o: $(top_srcdir)/examples/native_fortran/native_fortran_example.f90 codelets.mod fstarpu_mod.mod
+	$(AM_V_FC)$(FC) $(native_fortran_native_fortran_example_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'native_fortran/native_fortran_example.f90' || echo '$(srcdir)/'`native_fortran/native_fortran_example.f90
 endif
