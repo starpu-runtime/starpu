@@ -15,7 +15,7 @@
 
 PROG = native_fortran_example
 
-FSTARPU_MOD = $(shell pkg-config --cflags-only-I starpu-1.3|sed -e 's/ *$$//;s/^.* //;s/^-I//')/fstarpu_mod.f90
+FSTARPU_MOD = $(shell pkg-config --cflags-only-I starpu-1.3|sed -e 's/^\([^ ]*starpu\/1.3\).*$$/\1/;s/^.* //;s/^-I//')/fstarpu_mod.f90
 
 SRCSF = native_fortran_example.f90		\
 	codelets.f90
@@ -47,4 +47,5 @@ fstarpu_mod.o: $(FSTARPU_MOD)
 clean:
 	rm -fv *.o *.mod $(PROG)
 
-native_fortran_example.o: native_fortran_example.f90 codelets.o
+native_fortran_example.o: native_fortran_example.f90 codelets.o fstarpu_mod.o
+codelets.o: fstarpu_mod.o
