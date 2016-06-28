@@ -50,7 +50,7 @@
  *   of data estimated to be contained in the cache.
  */
 
-//#define USE_LOCALITY
+#define USE_LOCALITY
 
 
 //#define USE_LOCALITY_TASKS
@@ -69,6 +69,7 @@ struct _starpu_work_stealing_data_per_worker
 {
 	struct _starpu_fifo_taskq *queue_array;
 	int *proxlist;
+	pthread_mutex_t worker_mutex;
 
 #ifdef USE_LOCALITY_TASKS
 	/* This records the same as queue_array, but hashed by data accessed with locality flag.  */
@@ -116,9 +117,8 @@ static unsigned select_victim_round_robin(unsigned sched_ctx_id)
 	struct _starpu_work_stealing_data *ws = (struct _starpu_work_stealing_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	unsigned worker = ws->last_pop_worker;
 	unsigned nworkers = starpu_sched_ctx_get_nworkers(sched_ctx_id);
-
-	starpu_pthread_mutex_t *victim_sched_mutex;
-	starpu_pthread_cond_t *victim_sched_cond;
+	int *workerids = NULL;
+	starpu_sched_ctx_get_workers_list(sched_ctx_id, &workerids);
 
 	/* If the worker's queue is empty, let's try
 	 * the next ones */
@@ -126,11 +126,10 @@ static unsigned select_victim_round_robin(unsigned sched_ctx_id)
 	{
 		unsigned ntasks;
 
-		starpu_worker_get_sched_condition(worker, &victim_sched_mutex, &victim_sched_cond);
 		/* Here helgrind would shout that this is unprotected, but we
 		 * are fine with getting outdated values, this is just an
 		 * estimation */
-		ntasks = ws->per_worker[worker].queue_array->ntasks;
+		ntasks = ws->per_worker[workerids[worker]].queue_array->ntasks;
 
 		if (ntasks)
 			break;
@@ -146,6 +145,9 @@ static unsigned select_victim_round_robin(unsigned sched_ctx_id)
 
 	ws->last_pop_worker = (worker + 1) % nworkers;
 
+	worker = workerids[worker];
+	free(workerids);
+
 	return worker;
 }
 
@@ -158,8 +160,13 @@ static unsigned select_worker_round_robin(unsigned sched_ctx_id)
 	struct _starpu_work_stealing_data *ws = (struct _starpu_work_stealing_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	unsigned worker = ws->last_push_worker;
 	unsigned nworkers = starpu_sched_ctx_get_nworkers(sched_ctx_id);
+	int *workerids = NULL;
+	starpu_sched_ctx_get_workers_list(sched_ctx_id, &workerids);
 
 	ws->last_push_worker = (ws->last_push_worker + 1) % nworkers;
+
+	worker = workerids[worker];
+	free(workerids);
 
 	return worker;
 }
@@ -520,32 +527,28 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 
 	STARPU_ASSERT(workerid != -1);
 
+	STARPU_PTHREAD_MUTEX_LOCK(&ws->per_worker[workerid].worker_mutex);
 	task = ws_pick_task(workerid, workerid, sched_ctx_id);
 	if (task)
-	{
 		locality_popped_task(task, workerid, sched_ctx_id);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&ws->per_worker[workerid].worker_mutex);
+	if (task)
+	{
 		/* there was a local task */
 		ws->performed_total++;
 		return task;
 	}
-	starpu_pthread_mutex_t *worker_sched_mutex;
-	starpu_pthread_cond_t *worker_sched_cond;
-	starpu_worker_get_sched_condition(workerid, &worker_sched_mutex, &worker_sched_cond);
 
-	/* Note: Releasing this mutex before taking the victim mutex, to avoid interlock*/
-	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(worker_sched_mutex);
-       
 
 	/* we need to steal someone's job */
 	unsigned victim = select_victim(sched_ctx_id);
 
-	starpu_pthread_mutex_t *victim_sched_mutex;
-	starpu_pthread_cond_t *victim_sched_cond;
+	STARPU_PTHREAD_MUTEX_LOCK(&ws->per_worker[victim].worker_mutex);
+	if (ws->per_worker[victim].queue_array != NULL && ws->per_worker[victim].queue_array->ntasks > 0)
+	{
+		task = ws_pick_task(victim, workerid, sched_ctx_id);
+	}
 
-	starpu_worker_get_sched_condition(victim, &victim_sched_mutex, &victim_sched_cond);
-	STARPU_PTHREAD_MUTEX_LOCK_SCHED(victim_sched_mutex);
-
-	task = ws_pick_task(victim, workerid, sched_ctx_id);
 	if (task)
 	{
 		ws->performed_total++;
@@ -555,16 +558,21 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 		record_worker_locality(task, workerid, sched_ctx_id);
 		locality_popped_task(task, victim, sched_ctx_id);
 	}
+	STARPU_PTHREAD_MUTEX_UNLOCK(&ws->per_worker[victim].worker_mutex);
 
-	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(victim_sched_mutex);
-
-	STARPU_PTHREAD_MUTEX_LOCK_SCHED(worker_sched_mutex);
 	if(!task)
 	{
 		task = ws_pick_task(workerid, workerid, sched_ctx_id);
+		STARPU_PTHREAD_MUTEX_LOCK(&ws->per_worker[workerid].worker_mutex);
+		if (ws->per_worker[workerid].queue_array != NULL && ws->per_worker[workerid].queue_array->ntasks > 0)
+			task = ws_pick_task(workerid, workerid, sched_ctx_id);
+
+		if (task)
+			locality_popped_task(task, workerid, sched_ctx_id);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&ws->per_worker[workerid].worker_mutex);
+
 		if (task)
 		{
-			locality_popped_task(task, workerid, sched_ctx_id);
 			/* there was a local task */
 			ws->performed_total++;
 			return task;
@@ -602,11 +610,11 @@ int ws_push_task(struct starpu_task *task)
 #endif
 	if (workerid == -1)
 		workerid = starpu_worker_get_id();
-	
+
 	/* If the current thread is not a worker but
-	 * the main thread (-1), we find the better one to
-	 * put task on its queue */
-	if (workerid == -1)
+	 * the main thread (-1) or the current worker is not in the target
+	 * context, we find the better one to put task on its queue */
+	if (workerid == -1 || !starpu_sched_ctx_contains_worker(workerid, sched_ctx_id))
 		workerid = select_worker(sched_ctx_id);
 
 	record_data_locality(task, workerid);
@@ -620,8 +628,10 @@ int ws_push_task(struct starpu_task *task)
 	}
 #endif
 
+	STARPU_PTHREAD_MUTEX_LOCK(&ws->per_worker[workerid].worker_mutex);
 	_starpu_fifo_push_task(ws->per_worker[workerid].queue_array, task);
 	locality_pushed_task(task, workerid, sched_ctx_id);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&ws->per_worker[workerid].worker_mutex);
 
 	starpu_push_task_end(task);
 
@@ -664,6 +674,7 @@ static void ws_add_workers(unsigned sched_ctx_id, int *workerids,unsigned nworke
 		 */
 		ws->per_worker[workerid].queue_array->nprocessed = -1;
 		ws->per_worker[workerid].queue_array->ntasks = 0;
+		pthread_mutex_init(&ws->per_worker[workerid].worker_mutex, NULL);
 	}
 }
 
@@ -677,7 +688,12 @@ static void ws_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned nw
 	for (i = 0; i < nworkers; i++)
 	{
 		workerid = workerids[i];
-		_starpu_destroy_fifo(ws->per_worker[workerid].queue_array);
+		if (ws->per_worker[workerid].queue_array != NULL)
+		{
+			_starpu_destroy_fifo(ws->per_worker[workerid].queue_array);
+			ws->per_worker[workerid].queue_array = NULL;
+		}
+		pthread_mutex_destroy(&ws->per_worker[workerid].worker_mutex);
 	}
 }
 
