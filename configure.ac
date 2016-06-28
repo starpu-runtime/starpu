@@ -2115,6 +2115,12 @@ if test "x$FC" != "x"; then
 			enable_build_fortran="no"
 		fi
 	fi
+	if test "x$starpu_darwin" = "xyes" ; then
+		# global constants defined in src/utils/fstarpu.c are not exported
+		# properly on Darwin, causing native Fortran examples to fail
+		AC_MSG_WARN([Fortran examples will not be built on Darwin])
+		enable_build_fortran="no"
+	fi
 	if test "x$enable_build_fortran" = "xyes" ; then
 		AC_DEFINE(STARPU_HAVE_FC, [], [Define this if a Fortran compiler is available])
 	fi
