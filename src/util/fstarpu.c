@@ -140,11 +140,6 @@ int fstarpu_vector_get_nx(void *buffers[], int i)
 	return STARPU_VECTOR_GET_NX(buffers[i]);
 }
 
-void fstarpu_data_unregister(starpu_data_handle_t handle)
-{
-	starpu_data_unregister(handle);
-}
-
 void fstarpu_insert_task(void ***_arglist)
 {
 	void **arglist = *_arglist;
