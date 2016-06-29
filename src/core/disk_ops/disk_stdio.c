@@ -230,6 +230,7 @@ static int starpu_stdio_full_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj,
 {
 	struct starpu_stdio_obj *tmp = (struct starpu_stdio_obj *) obj;
 	FILE *f = tmp->file;
+	starpu_ssize_t ssize;
 
 	if (f)
 		STARPU_PTHREAD_MUTEX_LOCK(&tmp->mutex);
@@ -238,8 +239,9 @@ static int starpu_stdio_full_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj,
 
 	int res = fseek(f, 0, SEEK_END);
 	STARPU_ASSERT_MSG(res == 0, "Stdio write failed");
-	*size = ftell(f);
-	STARPU_ASSERT_MSG(*size >= 0, "Stdio write failed");
+	ssize = = ftell(f);
+	STARPU_ASSERT_MSG(ssize >= 0, "Stdio write failed");
+	*size = ssize;
 
 	if (tmp->file)
 		STARPU_PTHREAD_MUTEX_UNLOCK(&tmp->mutex);
