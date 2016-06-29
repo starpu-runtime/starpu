@@ -46,15 +46,6 @@ const void *fstarpu_get_pointer_constant(char *s)
 	else { _FSTARPU_ERROR("unknown pointer constant"); }
 }
 
-void fstarpu_init_internal(void)
-{
-	int ret = starpu_init(NULL);
-	if (ret != 0)
-	{
-		_FSTARPU_ERROR("starpu_init failed");
-	}
-}
-
 struct starpu_codelet *fstarpu_codelet_allocate(void)
 {
 	struct starpu_codelet *cl = malloc(sizeof(*cl));
