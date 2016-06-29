@@ -120,6 +120,7 @@ New features:
   * New STARPU_LOCALITY flag to mark data which should be taken into account
     by schedulers for improving locality.
   * Experimental support for data locality in ws and lws.
+  * Add a preliminary framework for native Fortran support for StarPU
 
 Small features:
   * Tasks can now have a name (via the field const char *name of
