@@ -16,20 +16,37 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <starpu.h>
 
 #define _FSTARPU_ERROR(msg) do {fprintf(stderr, "fstarpu error: %s\n", (msg));abort();} while(0)
 
-const int fstarpu_r = STARPU_R;
-const int fstarpu_w = STARPU_W;
-const int fstarpu_rw = STARPU_RW;
-const int fstarpu_scratch = STARPU_SCRATCH;
-const int fstarpu_redux = STARPU_REDUX;
+static const int fstarpu_r	= STARPU_R;
+static const int fstarpu_w	= STARPU_W;
+static const int fstarpu_rw	= STARPU_RW;
+static const int fstarpu_scratch	= STARPU_SCRATCH;
+static const int fstarpu_redux	= STARPU_REDUX;
 
 static const int _fstarpu_data = STARPU_R | STARPU_W | STARPU_SCRATCH | STARPU_REDUX;
-const void * const fstarpu_data = &_fstarpu_data;
+static const void * const fstarpu_data = &_fstarpu_data;
 
-void fstarpu_init(void)
+int fstarpu_get_integer_constant(char *s)
+{
+	if	(!strcmp(s, "FSTARPU_R"))	{ return fstarpu_r; }
+	else if	(!strcmp(s, "FSTARPU_W"))	{ return fstarpu_w; }
+	else if	(!strcmp(s, "FSTARPU_RW"))	{ return fstarpu_rw; }
+	else if	(!strcmp(s, "FSTARPU_SCRATCH"))	{ return fstarpu_scratch; }
+	else if	(!strcmp(s, "FSTARPU_REDUX"))	{ return fstarpu_redux; }
+	else { _FSTARPU_ERROR("unknown integer constant"); }
+}
+
+const void *fstarpu_get_pointer_constant(char *s)
+{
+	if (!strcmp(s, "FSTARPU_DATA")) { return fstarpu_data; }
+	else { _FSTARPU_ERROR("unknown pointer constant"); }
+}
+
+void fstarpu_init_internal(void)
 {
 	int ret = starpu_init(NULL);
 	if (ret != 0)
