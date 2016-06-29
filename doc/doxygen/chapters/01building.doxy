@@ -126,7 +126,7 @@ $ make
 Once everything is built, you may want to test the result. An
 extensive set of regression tests is provided with StarPU. Running the
 tests is done by calling <c>make check</c>. These tests are run every night
-and the result from the main profile is publicly available (http://starpu.gforge.inria.fr/testing/). Note: for the simgrid version, <c>STARPU_HOSTNAME=mirage make check</c> should be used instead.
+and the result from the main profile is publicly available (http://starpu.gforge.inria.fr/testing/).
 
 \verbatim
 $ make check
