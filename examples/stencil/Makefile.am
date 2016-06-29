@@ -52,7 +52,9 @@ else
 check_PROGRAMS	=	$(LOADER) $(STARPU_EXAMPLES)
 endif
 
+if !STARPU_SIMGRID
 TESTS		=	$(STARPU_EXAMPLES)
+endif
 
 if !STARPU_HAVE_WINDOWS
 ## test loader program
