@@ -196,6 +196,7 @@ void fstarpu_unpack_arg(char *cl_arg, void ***_buffer_list)
 		memcpy(argptr, cl_arg+current_arg_offset, arg_size);
 		current_arg_offset += arg_size;
 	}
+	free(cl_arg);
 }
 
 void fstarpu_insert_task(void ***_arglist)
