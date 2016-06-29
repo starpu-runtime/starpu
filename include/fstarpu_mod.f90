@@ -141,7 +141,10 @@ module fstarpu_mod
 
         contains
 
-                subroutine fstarpu_init ()
+                function fstarpu_init (conf) bind(C)
+                        use iso_c_binding
+                        integer(c_int) :: fstarpu_init
+                        type(c_ptr), value, intent(in) :: conf
 
                         ! Note: Referencing global C constants from Fortran has
                         ! been found unreliable on some architectures, notably
@@ -162,8 +165,11 @@ module fstarpu_mod
                                         character(kind=c_char) :: s
                                 end function fstarpu_get_pointer_constant
 
-                                subroutine fstarpu_init_internal () bind(C)
-                                end subroutine fstarpu_init_internal
+                                function fstarpu_init_internal (conf) bind(C,name="starpu_init")
+                                        use iso_c_binding
+                                        integer(c_int) :: fstarpu_init_internal
+                                        type(c_ptr), value :: conf
+                                end function fstarpu_init_internal
                         end interface
 
                         ! Initialize Fortran integer constants from C peers
@@ -175,6 +181,10 @@ module fstarpu_mod
                         ! Initialize Fortran 'pointer' constants from C peers
                         FSTARPU_DATA = fstarpu_get_pointer_constant(C_CHAR_"FSTARPU_DATA"//C_NULL_CHAR)
                         ! Initialize StarPU
-                        call fstarpu_init_internal()
-                end subroutine fstarpu_init
+                        if (c_associated(conf)) then 
+                                fstarpu_init = fstarpu_init_internal(conf)
+                        else
+                                fstarpu_init = fstarpu_init_internal(C_NULL_PTR)
+                        end if
+                end function fstarpu_init
 end module fstarpu_mod

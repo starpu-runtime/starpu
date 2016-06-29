@@ -23,9 +23,10 @@ program nf_vector
         integer, dimension(:), allocatable, target :: vb
         integer :: i
 
-        type(c_ptr) :: cl_vec      ! a pointer for the codelet structure
+        type(c_ptr) :: cl_vec   ! a pointer for the codelet structure
         type(c_ptr) :: dh_va    ! a pointer for the 'va' vector data handle
         type(c_ptr) :: dh_vb    ! a pointer for the 'vb' vector data handle
+        integer(c_int) :: err   ! return status for fstarpu_init
 
         allocate(va(5))
         va = (/ (i,i=1,5) /)
@@ -34,7 +35,10 @@ program nf_vector
         vb = (/ (i,i=1,7) /)
 
         ! initialize StarPU with default settings
-        call fstarpu_init()
+        err = fstarpu_init(C_NULL_PTR)
+        if (err == -19) then
+                stop 77
+        end if
 
         ! allocate an empty codelet structure
         cl_vec = fstarpu_codelet_allocate()

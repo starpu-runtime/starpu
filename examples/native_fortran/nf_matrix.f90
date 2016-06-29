@@ -8,9 +8,10 @@ program nf_matrix
         integer, dimension(:,:), allocatable, target :: mb
         integer :: i,j
 
-        type(c_ptr) :: cl_mat      ! a pointer for the codelet structure
-        type(c_ptr) :: dh_va    ! a pointer for the 'ma' vector data handle
-        type(c_ptr) :: dh_vb    ! a pointer for the 'mb' vector data handle
+        type(c_ptr) :: cl_mat   ! a pointer for the codelet structure
+        type(c_ptr) :: dh_ma    ! a pointer for the 'ma' vector data handle
+        type(c_ptr) :: dh_mb    ! a pointer for the 'mb' vector data handle
+        integer(c_int) :: err   ! return status for fstarpu_init
 
         allocate(ma(5,6))
         do i=1,5
@@ -27,7 +28,10 @@ program nf_matrix
         end do
 
         ! initialize StarPU with default settings
-        call fstarpu_init()
+        err = fstarpu_init(C_NULL_PTR)
+        if (err == -19) then
+                stop 77
+        end if
 
         ! allocate an empty codelet structure
         cl_mat = fstarpu_codelet_allocate()
@@ -42,10 +46,10 @@ program nf_matrix
         call fstarpu_codelet_add_buffer(cl_mat, FSTARPU_RW)
 
         ! register 'ma', a vector of real(8) elements
-        dh_va = fstarpu_matrix_data_register(c_loc(ma), 5, 5, 6, c_sizeof(ma(1,1)), 0)
+        dh_ma = fstarpu_matrix_data_register(c_loc(ma), 5, 5, 6, c_sizeof(ma(1,1)), 0)
 
         ! register 'mb', a vector of integer elements
-        dh_vb = fstarpu_matrix_data_register(c_loc(mb), 7, 7, 8, c_sizeof(mb(1,1)), 0)
+        dh_mb = fstarpu_matrix_data_register(c_loc(mb), 7, 7, 8, c_sizeof(mb(1,1)), 0)
 
         ! insert a task with codelet cl_mat, and vectors 'ma' and 'mb'
         !
@@ -59,16 +63,16 @@ program nf_matrix
         !
         ! Note: The argument type for data handles is FSTARPU_DATA, regardless
         ! of the buffer access mode (specified in the codelet)
-        call fstarpu_insert_task((/ cl_mat, FSTARPU_DATA, dh_va, FSTARPU_DATA, dh_vb, C_NULL_PTR /))
+        call fstarpu_insert_task((/ cl_mat, FSTARPU_DATA, dh_ma, FSTARPU_DATA, dh_mb, C_NULL_PTR /))
 
         ! wait for task completion
         call fstarpu_task_wait_for_all()
 
         ! unregister 'ma'
-        call fstarpu_data_unregister(dh_va)
+        call fstarpu_data_unregister(dh_ma)
 
         ! unregister 'mb'
-        call fstarpu_data_unregister(dh_vb)
+        call fstarpu_data_unregister(dh_mb)
 
         ! free codelet structure
         call fstarpu_codelet_free(cl_mat)
