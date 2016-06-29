@@ -43,7 +43,7 @@ dist_pkgdata_perfmodels_sampling_bus_DATA = \
 	perfmodels/sampling/bus/idgraf.config	\
 	perfmodels/sampling/bus/idgraf.latency	\
 	perfmodels/sampling/bus/idgraf.platform.xml	\
-	perfmodels/sampling/bus/idgraf.platform.v4.xml
+	perfmodels/sampling/bus/idgraf.platform.v4.xml	\
 	perfmodels/sampling/bus/mirage.affinity	\
 	perfmodels/sampling/bus/mirage.bandwidth	\
 	perfmodels/sampling/bus/mirage.config	\
