@@ -85,7 +85,7 @@ module fstarpu_mod
                         integer(c_int), value, intent(in) :: i
                 end function fstarpu_vector_get_nx
 
-                subroutine fstarpu_data_unregister (dh) bind(C)
+                subroutine fstarpu_data_unregister (dh) bind(C,name="starpu_data_unregister")
                         use iso_c_binding, only: c_ptr
                         type(c_ptr), value, intent(in) :: dh
                 end subroutine fstarpu_data_unregister
