@@ -36,11 +36,13 @@ dist_pkgdata_perfmodels_sampling_bus_DATA = \
 	perfmodels/sampling/bus/attila.config	\
 	perfmodels/sampling/bus/attila.latency	\
 	perfmodels/sampling/bus/attila.platform.xml	\
+	perfmodels/sampling/bus/attila.platform.v4.xml	\
 	perfmodels/sampling/bus/mirage.affinity	\
 	perfmodels/sampling/bus/mirage.bandwidth	\
 	perfmodels/sampling/bus/mirage.config	\
 	perfmodels/sampling/bus/mirage.latency	\
-	perfmodels/sampling/bus/mirage.platform.xml
+	perfmodels/sampling/bus/mirage.platform.xml	\
+	perfmodels/sampling/bus/mirage.platform.v4.xml
 
 dist_pkgdata_perfmodels_sampling_codelets_DATA = \
 	perfmodels/sampling/codelets/42/chol_model_11.attila	\
