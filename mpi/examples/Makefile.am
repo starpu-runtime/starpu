@@ -41,8 +41,10 @@ else
 TESTS_ENVIRONMENT 	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(MPI) $(LOADER_BIN)
 endif
 
+if !STARPU_SIMGRID
 if STARPU_MPI_CHECK
 TESTS			=	$(starpu_mpi_EXAMPLES)
+endif
 endif
 
 check_PROGRAMS = $(LOADER) $(starpu_mpi_EXAMPLES)

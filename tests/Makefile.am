@@ -114,23 +114,47 @@ endif
 XFAIL_TESTS	=				\
 	errorcheck/invalid_blocking_calls
 
-noinst_PROGRAMS =				\
+noinst_PROGRAMS =
+
+if STARPU_SIMGRID
+noinst_PROGRAMS +=				\
+	main/restart				\
+	main/execute_schedule			\
+	main/insert_task_pack			\
+	main/insert_task_nullcodelet		\
+	main/multithreaded_init			\
+	main/empty_task				\
+	main/empty_task_chain			\
+	main/starpu_worker_exists		\
+	main/codelet_null_callback		\
+	datawizard/allocate			\
+	datawizard/acquire_cb			\
+	datawizard/user_interaction_implicit	\
+	datawizard/interfaces/copy_interfaces	\
+	datawizard/locality			\
+	datawizard/simgrid-locality		\
+	errorcheck/starpu_init_noworker		\
+	errorcheck/invalid_tasks		\
+	helper/cublas_init			\
+	helper/pinned_memory			\
+	helper/execute_on_all			\
+	microbenchs/display_structures_size	\
+	microbenchs/local_pingpong		\
+	sched_ctx/sched_ctx_list		\
+	perfmodels/value_nan
+else
+noinst_PROGRAMS +=				\
 	main/deprecated_func			\
 	main/driver_api/init_run_deinit         \
 	main/driver_api/run_driver              \
 	main/deploop                            \
-	main/restart				\
 	main/execute_on_a_specific_worker	\
-	main/execute_schedule			\
 	main/insert_task			\
-	main/insert_task_pack			\
 	main/insert_task_value			\
 	main/insert_task_dyn_handles		\
-	main/insert_task_nullcodelet		\
 	main/insert_task_array			\
 	main/insert_task_many			\
 	main/multithreaded			\
-	main/multithreaded_init			\
 	main/starpu_task_bundle			\
 	main/starpu_task_wait_for_all		\
 	main/starpu_task_wait			\
@@ -144,10 +168,8 @@ noinst_PROGRAMS =				\
 	main/subgraph_repeat_tag		\
 	main/subgraph_repeat_regenerate		\
 	main/subgraph_repeat_regenerate_tag	\
-	main/empty_task				\
 	main/empty_task_sync_point		\
 	main/empty_task_sync_point_tasks	\
-	main/empty_task_chain			\
 	main/tag_wait_api			\
 	main/tag_get_task			\
 	main/task_wait_api			\
@@ -156,14 +178,10 @@ noinst_PROGRAMS =				\
 	main/declare_deps_after_submission_synchronous	\
 	main/get_current_task			\
 	main/starpu_init			\
-	main/starpu_worker_exists		\
 	main/submit				\
 	main/pause_resume			\
-	main/codelet_null_callback		\
 	main/pack				\
 	main/get_children_tasks			\
-	datawizard/allocate			\
-	datawizard/acquire_cb			\
 	datawizard/acquire_cb_insert		\
 	datawizard/acquire_release		\
 	datawizard/acquire_release2		\
@@ -184,7 +202,6 @@ noinst_PROGRAMS =				\
 	datawizard/manual_reduction		\
 	datawizard/readers_and_writers		\
 	datawizard/unpartition			\
-	datawizard/user_interaction_implicit	\
 	datawizard/sync_with_data_with_mem	\
 	datawizard/sync_with_data_with_mem_non_blocking\
 	datawizard/sync_with_data_with_mem_non_blocking_implicit\
@@ -201,7 +218,6 @@ noinst_PROGRAMS =				\
 	datawizard/no_unregister		\
 	datawizard/noreclaim			\
 	datawizard/nowhere			\
-	datawizard/interfaces/copy_interfaces	\
 	datawizard/interfaces/block/block_interface \
 	datawizard/interfaces/bcsr/bcsr_interface \
 	datawizard/interfaces/coo/coo_interface \
@@ -228,30 +244,21 @@ noinst_PROGRAMS =				\
 	datawizard/specific_node		\
 	datawizard/task_with_multiple_time_the_same_handle	\
 	datawizard/test_arbiter			\
-	datawizard/locality			\
 	disk/disk_copy				\
 	disk/disk_compute			\
 	disk/disk_pack				\
 	disk/mem_reclaim			\
-	errorcheck/starpu_init_noworker		\
 	errorcheck/invalid_blocking_calls	\
-	errorcheck/invalid_tasks		\
 	errorcheck/workers_cpuid		\
-	helper/cublas_init			\
 	helper/starpu_data_cpy			\
-	helper/pinned_memory			\
-	helper/execute_on_all			\
 	helper/starpu_create_sync_task		\
 	microbenchs/async_tasks_overhead	\
-	microbenchs/display_structures_size	\
 	microbenchs/sync_tasks_overhead		\
 	microbenchs/tasks_overhead		\
 	microbenchs/tasks_size_overhead		\
 	microbenchs/prefetch_data_on_node 	\
 	microbenchs/redundant_buffer		\
-	microbenchs/local_pingpong		\
 	microbenchs/matrix_as_vector		\
-	sched_ctx/sched_ctx_list		\
 	openmp/init_exit_01			\
 	openmp/init_exit_02			\
 	openmp/environment			\
@@ -297,17 +304,12 @@ noinst_PROGRAMS =				\
 	perfmodels/feed				\
 	perfmodels/user_base			\
 	perfmodels/valid_model			\
-	perfmodels/value_nan			\
 	perfmodels/memory			\
 	sched_policies/data_locality            \
 	sched_policies/execute_all_tasks        \
 	sched_policies/prio        		\
 	sched_policies/simple_deps              \
 	sched_policies/simple_cpu_gpu_sched
-
-if STARPU_SIMGRID
-noinst_PROGRAMS +=				\
-	datawizard/simgrid-locality
 endif
 
 if STARPU_HAVE_FC

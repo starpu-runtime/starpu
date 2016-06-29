@@ -176,7 +176,13 @@ endif
 # Applications which should only be compiled are added directly in examplebin_PROGRAMS
 # see for instance mandelbrot/mandelbrot
 
-STARPU_EXAMPLES =				\
+STARPU_EXAMPLES =
+if STARPU_SIMGRID
+STARPU_EXAMPLES +=				\
+	sched_ctx/prio				\
+	worker_collections/worker_list_example
+else
+STARPU_EXAMPLES +=				\
 	basic_examples/hello_world		\
 	basic_examples/vector_scal		\
 	basic_examples/mult			\
@@ -208,12 +214,11 @@ STARPU_EXAMPLES =				\
 	scheduler/dummy_sched			\
 	scheduler/heteroprio_test		\
 	sched_ctx/sched_ctx			\
-	sched_ctx/prio				\
 	sched_ctx/dummy_sched_with_ctx		\
 	worker_collections/worker_tree_example  \
-	worker_collections/worker_list_example  \
 	reductions/dot_product			\
 	reductions/minmax_reduction
+endif
 
 if !STARPU_SIMGRID
 STARPU_EXAMPLES +=				\
@@ -237,14 +242,17 @@ endif
 endif
 
 if !NO_BLAS_LIB
+if STARPU_SIMGRID
 STARPU_EXAMPLES +=				\
-	axpy/axpy				\
 	mult/sgemm 				\
 	mult/dgemm				\
 	cholesky/cholesky_tag			\
 	cholesky/cholesky_tile_tag		\
+	cholesky/cholesky_implicit
+else
+STARPU_EXAMPLES +=				\
+	axpy/axpy				\
 	cholesky/cholesky_grain_tag		\
-	cholesky/cholesky_implicit		\
 	lu/lu_example_float			\
 	lu/lu_example_double			\
 	lu/lu_implicit_example_float		\
@@ -253,6 +261,9 @@ STARPU_EXAMPLES +=				\
 	cg/cg					\
 	pipeline/pipeline
 endif
+endif
+
+if !STARPU_SIMGRID
 
 if MKL_BLAS_LIB
 STARPU_EXAMPLES +=				\
@@ -294,6 +305,8 @@ STARPU_EXAMPLES +=				\
 endif
 endif
 endif
+
+endif !STARPU_SIMGRID
 
 ##################
 # Basic examples #
