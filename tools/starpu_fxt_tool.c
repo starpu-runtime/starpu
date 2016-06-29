@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2014  Universite de Bordeaux
+ * Copyright (C) 2011-2014, 2016  Universite de Bordeaux
  * Copyright (C) 2012-2015  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -44,7 +44,7 @@ static void usage()
 
 static struct starpu_fxt_options options;
 
-static void parse_args(int argc, char **argv)
+static int parse_args(int argc, char **argv)
 {
 	/* Default options */
 	starpu_fxt_options_init(&options);
@@ -93,14 +93,14 @@ static void parse_args(int argc, char **argv)
 		if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0)
 		{
 			usage();
-			exit(EXIT_SUCCESS);
+			return EXIT_SUCCESS;
 		}
 
 		if (strcmp(argv[i], "-v") == 0
 		 || strcmp(argv[i], "--version") == 0)
 		{
 		        fputs(PROGNAME " (" PACKAGE_NAME ") " PACKAGE_VERSION "\n", stderr);
-			exit(EXIT_SUCCESS);
+			return EXIT_SUCCESS;
 		}
 
 		/* That's pretty dirty: if the reading_input_filenames flag is
@@ -117,13 +117,15 @@ static void parse_args(int argc, char **argv)
 	{
 		fprintf(stderr, "Incorrect usage, aborting\n");
                 usage();
-		exit(77);
+		return 77;
 	}
+	return 0;
 }
 
 int main(int argc, char **argv)
 {
-	parse_args(argc, argv);
+	int ret = parse_args(argc, argv);
+	if (ret) return ret;
 
 	starpu_fxt_generate_trace(&options);
 
