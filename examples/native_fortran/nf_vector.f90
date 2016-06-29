@@ -13,17 +13,17 @@
 !
 ! See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
-program native_fortran_example
+program nf_vector
         use iso_c_binding       ! C interfacing module
         use fstarpu_mod         ! StarPU interfacing module
-        use codelets
+        use nf_codelets
         implicit none
 
         real(8), dimension(:), allocatable, target :: va
         integer, dimension(:), allocatable, target :: vb
         integer :: i
 
-        type(c_ptr) :: cl1      ! a pointer for the codelet structure
+        type(c_ptr) :: cl_vec      ! a pointer for the codelet structure
         type(c_ptr) :: dh_va    ! a pointer for the 'va' vector data handle
         type(c_ptr) :: dh_vb    ! a pointer for the 'vb' vector data handle
 
@@ -37,16 +37,16 @@ program native_fortran_example
         call fstarpu_init()
 
         ! allocate an empty codelet structure
-        cl1 = fstarpu_codelet_allocate()
+        cl_vec = fstarpu_codelet_allocate()
 
         ! add a CPU implementation function to the codelet
-        call fstarpu_codelet_add_cpu_func(cl1, C_FUNLOC(cl_cpu_func1))
+        call fstarpu_codelet_add_cpu_func(cl_vec, C_FUNLOC(cl_cpu_func_vec))
 
         ! add a Read-only mode data buffer to the codelet
-        call fstarpu_codelet_add_buffer(cl1, FSTARPU_R)
+        call fstarpu_codelet_add_buffer(cl_vec, FSTARPU_R)
 
         ! add a Read-Write mode data buffer to the codelet
-        call fstarpu_codelet_add_buffer(cl1, FSTARPU_RW)
+        call fstarpu_codelet_add_buffer(cl_vec, FSTARPU_RW)
 
         ! register 'va', a vector of real(8) elements
         dh_va = fstarpu_vector_data_register(c_loc(va), 1+ubound(va,1)-lbound(va,1), c_sizeof(va(lbound(va,1))), 0)
@@ -54,7 +54,7 @@ program native_fortran_example
         ! register 'vb', a vector of integer elements
         dh_vb = fstarpu_vector_data_register(c_loc(vb), 1+ubound(vb,1)-lbound(vb,1), c_sizeof(vb(lbound(vb,1))), 0)
 
-        ! insert a task with codelet cl1, and vectors 'va' and 'vb'
+        ! insert a task with codelet cl_vec, and vectors 'va' and 'vb'
         !
         ! Note: The array argument must follow the layout:
         !   (/
@@ -66,7 +66,7 @@ program native_fortran_example
         !
         ! Note: The argument type for data handles is FSTARPU_DATA, regardless
         ! of the buffer access mode (specified in the codelet)
-        call fstarpu_insert_task((/ cl1, FSTARPU_DATA, dh_va, FSTARPU_DATA, dh_vb, C_NULL_PTR /))
+        call fstarpu_insert_task((/ cl_vec, FSTARPU_DATA, dh_va, FSTARPU_DATA, dh_vb, C_NULL_PTR /))
 
         ! wait for task completion
         call fstarpu_task_wait_for_all()
@@ -78,7 +78,7 @@ program native_fortran_example
         call fstarpu_data_unregister(dh_vb)
 
         ! free codelet structure
-        call fstarpu_codelet_free(cl1)
+        call fstarpu_codelet_free(cl_vec)
 
         ! shut StarPU down
         call fstarpu_shutdown()
@@ -86,5 +86,5 @@ program native_fortran_example
         deallocate(vb)
         deallocate(va)
 
-end program native_fortran_example
+end program nf_vector
 

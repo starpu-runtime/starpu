@@ -85,6 +85,45 @@ module fstarpu_mod
                         integer(c_int), value, intent(in) :: i
                 end function fstarpu_vector_get_nx
 
+                function fstarpu_matrix_data_register(matrix, ldy, ny, nx, elt_size, ram) bind(C)
+                        use iso_c_binding
+                        type(c_ptr) :: fstarpu_matrix_data_register
+                        type(c_ptr), value, intent(in) :: matrix
+                        integer(c_int), value, intent(in) :: ldy
+                        integer(c_int), value, intent(in) :: ny
+                        integer(c_int), value, intent(in) :: nx
+                        integer(c_size_t), value, intent(in) :: elt_size
+                        integer(c_int), value, intent(in) :: ram
+                end function fstarpu_matrix_data_register
+
+                function fstarpu_matrix_get_ptr(buffers, i) bind(C)
+                        use iso_c_binding
+                        type(c_ptr) :: fstarpu_matrix_get_ptr
+                        type(c_ptr), value, intent(in) :: buffers
+                        integer(c_int), value, intent(in) :: i
+                end function fstarpu_matrix_get_ptr
+
+                function fstarpu_matrix_get_ld(buffers, i) bind(C)
+                        use iso_c_binding
+                        integer(c_int) :: fstarpu_matrix_get_ld
+                        type(c_ptr), value, intent(in) :: buffers
+                        integer(c_int), value, intent(in) :: i
+                end function fstarpu_matrix_get_ld
+
+                function fstarpu_matrix_get_ny(buffers, i) bind(C)
+                        use iso_c_binding
+                        integer(c_int) :: fstarpu_matrix_get_ny
+                        type(c_ptr), value, intent(in) :: buffers
+                        integer(c_int), value, intent(in) :: i
+                end function fstarpu_matrix_get_ny
+
+                function fstarpu_matrix_get_nx(buffers, i) bind(C)
+                        use iso_c_binding
+                        integer(c_int) :: fstarpu_matrix_get_nx
+                        type(c_ptr), value, intent(in) :: buffers
+                        integer(c_int), value, intent(in) :: i
+                end function fstarpu_matrix_get_nx
+
                 subroutine fstarpu_data_unregister (dh) bind(C,name="starpu_data_unregister")
                         use iso_c_binding, only: c_ptr
                         type(c_ptr), value, intent(in) :: dh
