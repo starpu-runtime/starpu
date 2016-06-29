@@ -30,6 +30,11 @@ static const int fstarpu_redux	= STARPU_REDUX;
 static const int _fstarpu_data = STARPU_R | STARPU_W | STARPU_SCRATCH | STARPU_REDUX;
 static const void * const fstarpu_data = &_fstarpu_data;
 
+static const int _fstarpu_value = STARPU_VALUE;
+static const void * const fstarpu_value = &_fstarpu_value;
+
+extern void _starpu_pack_arguments(size_t *current_offset, size_t *arg_buffer_size_, char **arg_buffer_, void *ptr, size_t ptr_size);
+
 int fstarpu_get_integer_constant(char *s)
 {
 	if	(!strcmp(s, "FSTARPU_R"))	{ return fstarpu_r; }
@@ -43,6 +48,7 @@ int fstarpu_get_integer_constant(char *s)
 const void *fstarpu_get_pointer_constant(char *s)
 {
 	if (!strcmp(s, "FSTARPU_DATA")) { return fstarpu_data; }
+	if (!strcmp(s, "FSTARPU_VALUE")) { return fstarpu_value; }
 	else { _FSTARPU_ERROR("unknown pointer constant"); }
 }
 
@@ -168,11 +174,42 @@ int fstarpu_matrix_get_nx(void *buffers[], int i)
 	return STARPU_MATRIX_GET_NY(buffers[i]);
 }
 
+void fstarpu_unpack_arg(char *cl_arg, void ***_buffer_list)
+{
+	void **buffer_list = *_buffer_list;
+	size_t current_arg_offset = 0;
+	int nargs, arg;
+
+	/* We fill the different pointers with the appropriate arguments */
+	memcpy(&nargs, cl_arg, sizeof(nargs));
+	current_arg_offset += sizeof(nargs);
+
+	for (arg = 0; arg < nargs; arg++)
+	{
+		void *argptr = buffer_list[arg];
+
+		/* If not reading all cl_args */
+		if(argptr == NULL)
+			break;
+
+		size_t arg_size;
+		memcpy(&arg_size, cl_arg+current_arg_offset, sizeof(arg_size));
+		current_arg_offset += sizeof(arg_size);
+
+		memcpy(argptr, cl_arg+current_arg_offset, arg_size);
+		current_arg_offset += arg_size;
+	}
+}
+
 void fstarpu_insert_task(void ***_arglist)
 {
 	void **arglist = *_arglist;
 	int i = 0;
+	char *arg_buffer_ = NULL;
+	size_t arg_buffer_size_ = 0;
+	size_t current_offset = sizeof(int);
 	int current_buffer = 0;
+	int nargs = 0;
 	struct starpu_task *task = NULL;
 	struct starpu_codelet *cl = arglist[i++];
 	if (cl == NULL)
@@ -182,7 +219,6 @@ void fstarpu_insert_task(void ***_arglist)
 	task = starpu_task_create();
 	task->cl = cl;
 	task->name = NULL;
-	task->cl_arg_free = 0;
 	while (arglist[i] != NULL)
 	{
 		if (arglist[i] == fstarpu_data)
@@ -200,12 +236,34 @@ void fstarpu_insert_task(void ***_arglist)
 			}
 			current_buffer++;
 		}
+		else if (arglist[i] == fstarpu_value)
+		{
+			i++;
+			void *ptr = arglist[i];
+			i++;
+			size_t ptr_size = (size_t)(intptr_t)arglist[i];
+			nargs++;
+			_starpu_pack_arguments(&current_offset, &arg_buffer_size_, &arg_buffer_, ptr, ptr_size);
+		}
 		else
 		{
 			_FSTARPU_ERROR("unknown/unsupported argument type");
 		}
 		i++;
 	}
+
+	if (nargs)
+	{
+		memcpy(arg_buffer_, (int *)&nargs, sizeof(nargs));
+		task->cl_arg = arg_buffer_;
+		task->cl_arg_size = arg_buffer_size_;
+	}
+	else
+	{
+		free(arg_buffer_);
+		arg_buffer_ = NULL;
+	}
+
 	int ret = starpu_task_submit(task);
 	if (ret != 0)
 	{

@@ -1,0 +1,49 @@
+# StarPU --- Runtime system for heterogeneous multicore architectures.
+#
+# Copyright (C) 2015  ONERA
+# Copyright (C) 2015-2016  Inria
+#
+# StarPU is free software; you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation; either version 2.1 of the License, or (at
+# your option) any later version.
+#
+# StarPU is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
+# See the GNU Lesser General Public License in COPYING.LGPL for more details.
+
+PROG = nf_example
+
+FSTARPU_MOD = $(shell pkg-config --cflags-only-I starpu-1.3|sed -e 's/^\([^ ]*starpu\/1.3\).*$$/\1/;s/^.* //;s/^-I//')/fstarpu_mod.f90
+
+SRCSF = mod_types.f90		\
+	mod_compute.f90		\
+	nf_example.f90
+
+FC = gfortran
+
+FCFLAGS = -fdefault-real-8 -J. -g
+LDLIBS =  $(shell pkg-config --libs starpu-1.3)
+
+OBJS = fstarpu_mod.o $(SRCSF:%.f90=%.o)
+
+.phony: all clean
+all: $(PROG)
+
+$(PROG): $(OBJS)
+	$(FC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
+
+fstarpu_mod.o: $(FSTARPU_MOD)
+	$(FC) $(FCFLAGS) -c -o $@ $<
+
+%.o: %.f90
+	$(FC) $(FCFLAGS) -c -o $@ $<
+
+clean:
+	rm -fv *.o *.mod $(PROG)
+
+# modfiles generation dependences
+mod_compute.o: mod_compute.f90 mod_types.o fstarpu_mod.o
+nf_example.o: nf_example.f90 mod_types.o mod_compute.o fstarpu_mod.o

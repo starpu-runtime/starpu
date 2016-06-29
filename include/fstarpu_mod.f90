@@ -23,7 +23,13 @@ module fstarpu_mod
         integer(c_int), bind(C) :: FSTARPU_REDUX
 
         type(c_ptr), bind(C) :: FSTARPU_DATA
+        type(c_ptr), bind(C) :: FSTARPU_VALUE
 
+        type(c_ptr), bind(C) :: FSTARPU_SZ_INT4
+        type(c_ptr), bind(C) :: FSTARPU_SZ_INT8
+
+        type(c_ptr), bind(C) :: FSTARPU_SZ_REAL4
+        type(c_ptr), bind(C) :: FSTARPU_SZ_REAL8
         interface
                 ! == starpu.h ==
 
@@ -215,6 +221,12 @@ module fstarpu_mod
                         type(c_ptr), dimension(:), intent(in) :: arglist
                 end subroutine fstarpu_insert_task
 
+                subroutine fstarpu_unpack_arg(cl_arg,bufferlist) bind(C)
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), value, intent(in) :: cl_arg
+                        type(c_ptr), dimension(:), intent(in) :: bufferlist
+                end subroutine fstarpu_unpack_arg
+
         end interface
 
         contains
@@ -223,6 +235,11 @@ module fstarpu_mod
                         use iso_c_binding
                         integer(c_int) :: fstarpu_init
                         type(c_ptr), value, intent(in) :: conf
+
+                        integer(4) :: FSTARPU_SZ_INT4_dummy
+                        integer(8) :: FSTARPU_SZ_INT8_dummy
+                        real(4) :: FSTARPU_SZ_REAL4_dummy
+                        real(8) :: FSTARPU_SZ_REAL8_dummy
 
                         ! Note: Referencing global C constants from Fortran has
                         ! been found unreliable on some architectures, notably
@@ -258,6 +275,12 @@ module fstarpu_mod
                         FSTARPU_REDUX = fstarpu_get_integer_constant(C_CHAR_"FSTARPU_REDUX"//C_NULL_CHAR)
                         ! Initialize Fortran 'pointer' constants from C peers
                         FSTARPU_DATA = fstarpu_get_pointer_constant(C_CHAR_"FSTARPU_DATA"//C_NULL_CHAR)
+                        FSTARPU_VALUE = fstarpu_get_pointer_constant(C_CHAR_"FSTARPU_VALUE"//C_NULL_CHAR)
+                        ! Initialize size constants as 'c_ptr'
+                        FSTARPU_SZ_INT4 = transfer(int(c_sizeof(FSTARPU_SZ_INT4_dummy),kind=c_intptr_t),C_NULL_PTR)
+                        FSTARPU_SZ_INT8 = transfer(int(c_sizeof(FSTARPU_SZ_INT8_dummy),kind=c_intptr_t),C_NULL_PTR)
+                        FSTARPU_SZ_REAL4 = transfer(int(c_sizeof(FSTARPU_SZ_REAL4_dummy),kind=c_intptr_t),C_NULL_PTR)
+                        FSTARPU_SZ_REAL8 = transfer(int(c_sizeof(FSTARPU_SZ_REAL8_dummy),kind=c_intptr_t),C_NULL_PTR)
                         ! Initialize StarPU
                         if (c_associated(conf)) then 
                                 fstarpu_init = fstarpu_init_internal(conf)
@@ -265,4 +288,18 @@ module fstarpu_mod
                                 fstarpu_init = fstarpu_init_internal(C_NULL_PTR)
                         end if
                 end function fstarpu_init
+
+                function fstarpu_csizet_to_cptr(i) bind(C)
+                        use iso_c_binding
+                        type(c_ptr) :: fstarpu_csizet_to_cptr
+                        integer(c_size_t) :: i
+                        fstarpu_csizet_to_cptr = transfer(int(i,kind=c_intptr_t),C_NULL_PTR)
+                end function fstarpu_csizet_to_cptr
+
+                function fstarpu_int_to_cptr(i) bind(C)
+                        use iso_c_binding
+                        type(c_ptr) :: fstarpu_int_to_cptr
+                        integer :: i
+                        fstarpu_int_to_cptr = transfer(int(i,kind=c_intptr_t),C_NULL_PTR)
+                end function fstarpu_int_to_cptr
 end module fstarpu_mod

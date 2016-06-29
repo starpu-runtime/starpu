@@ -21,7 +21,6 @@
 #include <common/utils.h>
 #include <core/task.h>
 
-static
 void _starpu_pack_arguments(size_t *current_offset, size_t *arg_buffer_size_, char **arg_buffer_, void *ptr, size_t ptr_size)
 {
 	if (*current_offset + sizeof(ptr_size) + ptr_size > *arg_buffer_size_)
