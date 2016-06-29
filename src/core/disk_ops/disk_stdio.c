@@ -239,7 +239,7 @@ static int starpu_stdio_full_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj,
 
 	int res = fseek(f, 0, SEEK_END);
 	STARPU_ASSERT_MSG(res == 0, "Stdio write failed");
-	ssize = = ftell(f);
+	ssize = ftell(f);
 	STARPU_ASSERT_MSG(ssize >= 0, "Stdio write failed");
 	*size = ssize;
 
