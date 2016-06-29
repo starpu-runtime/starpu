@@ -140,6 +140,43 @@ int fstarpu_vector_get_nx(void *buffers[], int i)
 	return STARPU_VECTOR_GET_NX(buffers[i]);
 }
 
+starpu_data_handle_t fstarpu_matrix_data_register(void *matrix, int ldy, int ny, int nx, size_t elt_size, int ram)
+{
+	starpu_data_handle_t handle;
+	/*
+	 * Fortran arrays are transposed with respect to C arrays. For convenience, we exchange
+	 * the parameters as follows:
+	 * C ldx = Fortran ldy
+	 * C nx  = Fortran ny
+	 * C ny  = Fortran nx
+	 */
+	starpu_matrix_data_register(&handle, ram, (uintptr_t)matrix, ldy, ny, nx, elt_size);
+	return handle;
+}
+
+void * fstarpu_matrix_get_ptr(void *buffers[], int i)
+{
+	return (void *)STARPU_MATRIX_GET_PTR(buffers[i]);
+}
+
+int fstarpu_matrix_get_ld(void *buffers[], int i)
+{
+	/* Fortran ldy is C ldx */
+	return STARPU_MATRIX_GET_LD(buffers[i]);
+}
+
+int fstarpu_matrix_get_ny(void *buffers[], int i)
+{
+	/* Fortran ny is C nx */
+	return STARPU_MATRIX_GET_NX(buffers[i]);
+}
+
+int fstarpu_matrix_get_nx(void *buffers[], int i)
+{
+	/* Fortran nx is C ny */
+	return STARPU_MATRIX_GET_NY(buffers[i]);
+}
+
 void fstarpu_insert_task(void ***_arglist)
 {
 	void **arglist = *_arglist;
