@@ -37,11 +37,25 @@ dist_pkgdata_perfmodels_sampling_bus_DATA = \
 	perfmodels/sampling/bus/attila.config	\
 	perfmodels/sampling/bus/attila.latency	\
 	perfmodels/sampling/bus/attila.platform.xml	\
+	perfmodels/sampling/bus/attila.platform.v4.xml	\
+	perfmodels/sampling/bus/idgraf.affinity	\
+	perfmodels/sampling/bus/idgraf.bandwidth	\
+	perfmodels/sampling/bus/idgraf.config	\
+	perfmodels/sampling/bus/idgraf.latency	\
+	perfmodels/sampling/bus/idgraf.platform.xml	\
+	perfmodels/sampling/bus/idgraf.platform.v4.xml
 	perfmodels/sampling/bus/mirage.affinity	\
 	perfmodels/sampling/bus/mirage.bandwidth	\
 	perfmodels/sampling/bus/mirage.config	\
 	perfmodels/sampling/bus/mirage.latency	\
-	perfmodels/sampling/bus/mirage.platform.xml
+	perfmodels/sampling/bus/mirage.platform.xml	\
+	perfmodels/sampling/bus/mirage.platform.v4.xml	\
+	perfmodels/sampling/bus/sirocco.affinity	\
+	perfmodels/sampling/bus/sirocco.bandwidth	\
+	perfmodels/sampling/bus/sirocco.config	\
+	perfmodels/sampling/bus/sirocco.latency	\
+	perfmodels/sampling/bus/sirocco.platform.xml	\
+	perfmodels/sampling/bus/sirocco.platform.v4.xml
 
 dist_pkgdata_perfmodels_sampling_codelets_DATA = \
 	perfmodels/sampling/codelets/44/chol_model_11.attila	\
@@ -60,6 +74,22 @@ dist_pkgdata_perfmodels_sampling_codelets_DATA = \
 	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_12.attila	\
 	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_21.attila	\
 	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_22.attila	\
+	perfmodels/sampling/codelets/44/chol_model_11.idgraf	\
+	perfmodels/sampling/codelets/44/chol_model_21.idgraf	\
+	perfmodels/sampling/codelets/44/chol_model_22.idgraf	\
+	perfmodels/sampling/codelets/44/cl_update.idgraf	\
+	perfmodels/sampling/codelets/44/save_cl_bottom.idgraf	\
+	perfmodels/sampling/codelets/44/save_cl_top.idgraf	\
+	perfmodels/sampling/codelets/44/starpu_sgemm_gemm.idgraf	\
+	perfmodels/sampling/codelets/44/starpu_dgemm_gemm.idgraf	\
+	perfmodels/sampling/codelets/44/starpu_slu_lu_model_11.idgraf	\
+	perfmodels/sampling/codelets/44/starpu_slu_lu_model_12.idgraf	\
+	perfmodels/sampling/codelets/44/starpu_slu_lu_model_21.idgraf	\
+	perfmodels/sampling/codelets/44/starpu_slu_lu_model_22.idgraf	\
+	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_11.idgraf	\
+	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_12.idgraf	\
+	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_21.idgraf	\
+	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_22.idgraf	\
 	perfmodels/sampling/codelets/44/chol_model_11.mirage	\
 	perfmodels/sampling/codelets/44/chol_model_21.mirage	\
 	perfmodels/sampling/codelets/44/chol_model_22.mirage	\
@@ -75,7 +105,23 @@ dist_pkgdata_perfmodels_sampling_codelets_DATA = \
 	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_11.mirage	\
 	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_12.mirage	\
 	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_21.mirage	\
-	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_22.mirage
+	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_22.mirage	\
+	perfmodels/sampling/codelets/44/chol_model_11.sirocco	\
+	perfmodels/sampling/codelets/44/chol_model_21.sirocco	\
+	perfmodels/sampling/codelets/44/chol_model_22.sirocco	\
+	perfmodels/sampling/codelets/44/cl_update.sirocco	\
+	perfmodels/sampling/codelets/44/save_cl_bottom.sirocco	\
+	perfmodels/sampling/codelets/44/save_cl_top.sirocco	\
+	perfmodels/sampling/codelets/44/starpu_sgemm_gemm.sirocco	\
+	perfmodels/sampling/codelets/44/starpu_dgemm_gemm.sirocco	\
+	perfmodels/sampling/codelets/44/starpu_slu_lu_model_11.sirocco	\
+	perfmodels/sampling/codelets/44/starpu_slu_lu_model_12.sirocco	\
+	perfmodels/sampling/codelets/44/starpu_slu_lu_model_21.sirocco	\
+	perfmodels/sampling/codelets/44/starpu_slu_lu_model_22.sirocco	\
+	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_11.sirocco	\
+	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_12.sirocco	\
+	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_21.sirocco	\
+	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_22.sirocco
 
 EXTRA_DIST =				\
 	dev/rename.sed			\
