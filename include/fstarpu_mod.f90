@@ -16,18 +16,15 @@
 module fstarpu_mod
         use iso_c_binding
 
-        integer(c_int), bind(C, name="fstarpu_r") :: FSTARPU_R
-        integer(c_int), bind(C, name="fstarpu_w") :: FSTARPU_W
-        integer(c_int), bind(C, name="fstarpu_rw") :: FSTARPU_RW
-        integer(c_int), bind(C, name="fstarpu_scratch") :: FSTARPU_SCRATCH
-        integer(c_int), bind(C, name="fstarpu_redux") :: FSTARPU_REDUX
+        integer(c_int), bind(C) :: FSTARPU_R
+        integer(c_int), bind(C) :: FSTARPU_W
+        integer(c_int), bind(C) :: FSTARPU_RW
+        integer(c_int), bind(C) :: FSTARPU_SCRATCH
+        integer(c_int), bind(C) :: FSTARPU_REDUX
 
-        type(c_ptr), bind(C, name="fstarpu_data") :: FSTARPU_DATA
+        type(c_ptr), bind(C) :: FSTARPU_DATA
 
         interface
-                subroutine fstarpu_init () bind(C)
-                end subroutine fstarpu_init
-
                 subroutine fstarpu_shutdown () bind(C,name="starpu_shutdown")
                 end subroutine fstarpu_shutdown
 
@@ -103,6 +100,42 @@ module fstarpu_mod
 
         end interface
 
-        ! contains
+        contains
 
+                subroutine fstarpu_init ()
+
+                        ! Note: Referencing global C constants from Fortran has
+                        ! been found unreliable on some architectures, notably
+                        ! on Darwin. The get_integer/get_pointer_constant
+                        ! scheme is a workaround to that issue.
+
+                        interface
+                                ! These functions are not exported to the end user
+                                function fstarpu_get_integer_constant(s) bind(C)
+                                        use iso_c_binding, only: c_int,c_char
+                                        integer(c_int) :: fstarpu_get_integer_constant
+                                        character(kind=c_char) :: s
+                                end function fstarpu_get_integer_constant
+
+                                function fstarpu_get_pointer_constant(s) bind(C)
+                                        use iso_c_binding, only: c_ptr,c_char
+                                        type(c_ptr) :: fstarpu_get_pointer_constant
+                                        character(kind=c_char) :: s
+                                end function fstarpu_get_pointer_constant
+
+                                subroutine fstarpu_init_internal () bind(C)
+                                end subroutine fstarpu_init_internal
+                        end interface
+
+                        ! Initialize Fortran integer constants from C peers
+                        FSTARPU_R = fstarpu_get_integer_constant(C_CHAR_"FSTARPU_R"//C_NULL_CHAR)
+                        FSTARPU_W = fstarpu_get_integer_constant(C_CHAR_"FSTARPU_W"//C_NULL_CHAR)
+                        FSTARPU_RW = fstarpu_get_integer_constant(C_CHAR_"FSTARPU_RW"//C_NULL_CHAR)
+                        FSTARPU_SCRATCH = fstarpu_get_integer_constant(C_CHAR_"FSTARPU_SCRATCH"//C_NULL_CHAR)
+                        FSTARPU_REDUX = fstarpu_get_integer_constant(C_CHAR_"FSTARPU_REDUX"//C_NULL_CHAR)
+                        ! Initialize Fortran 'pointer' constants from C peers
+                        FSTARPU_DATA = fstarpu_get_pointer_constant(C_CHAR_"FSTARPU_DATA"//C_NULL_CHAR)
+                        ! Initialize StarPU
+                        call fstarpu_init_internal()
+                end subroutine fstarpu_init
 end module fstarpu_mod
