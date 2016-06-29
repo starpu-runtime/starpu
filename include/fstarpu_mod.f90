@@ -25,8 +25,89 @@ module fstarpu_mod
         type(c_ptr), bind(C) :: FSTARPU_DATA
 
         interface
+                ! == starpu.h ==
+
+                subroutine fstarpu_conf_init(conf) bind(C,name="starpu_conf_init")
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), value, intent(in) :: conf
+                end subroutine fstarpu_conf_init
+
+                ! starpu_init: see fstarpu_init
+                ! starpu_initialize: see fstarpu_init
+
+                subroutine fstarpu_pause() bind(C,name="starpu_pause")
+                end subroutine fstarpu_pause
+
+                subroutine fstarpu_resume() bind(C,name="starpu_resume")
+                end subroutine fstarpu_resume
+
                 subroutine fstarpu_shutdown () bind(C,name="starpu_shutdown")
                 end subroutine fstarpu_shutdown
+
+                ! starpu_topology_print
+
+                subroutine fstarpu_asynchronous_copy_disabled() bind(C,name="starpu_asynchronous_copy_disabled")
+                end subroutine fstarpu_asynchronous_copy_disabled
+
+                subroutine fstarpu_asynchronous_cuda_copy_disabled() bind(C,name="starpu_asynchronous_cuda_copy_disabled")
+                end subroutine fstarpu_asynchronous_cuda_copy_disabled
+
+                subroutine fstarpu_asynchronous_opencl_copy_disabled() bind(C,name="starpu_asynchronous_opencl_copy_disabled")
+                end subroutine fstarpu_asynchronous_opencl_copy_disabled
+
+                subroutine fstarpu_asynchronous_mic_copy_disabled() bind(C,name="starpu_asynchronous_mic_copy_disabled")
+                end subroutine fstarpu_asynchronous_mic_copy_disabled
+
+                subroutine fstarpu_display_stats() bind(C,name="starpu_display_stats")
+                end subroutine fstarpu_display_stats
+
+                subroutine fstarpu_get_version(major,minor,release) bind(C,name="starpu_get_version")
+                        use iso_c_binding, only: c_int
+                        integer(c_int), intent(out) :: major,minor,release
+                end subroutine fstarpu_get_version
+
+                function fstarpu_cpu_worker_get_count() bind(C,name="starpu_cpu_worker_get_count")
+                        use iso_c_binding, only: c_int
+                        integer(c_int)              :: fstarpu_cpu_worker_get_count
+                end function fstarpu_cpu_worker_get_count
+
+                ! == starpu_task.h ==
+
+                ! starpu_tag_declare_deps
+                ! starpu_tag_declare_deps_array
+                ! starpu_task_declare_deps_array
+                ! starpu_tag_wait
+                ! starpu_tag_wait_array
+                ! starpu_tag_notify_from_apps
+                ! starpu_tag_restart
+                ! starpu_tag_remove
+                ! starpu_task_init
+                ! starpu_task_clean
+                ! starpu_task_create
+                ! starpu_task_destroy
+                ! starpu_task_submit
+                ! starpu_task_submit_to_ctx
+                ! starpu_task_finished
+                ! starpu_task_wait
+
+                subroutine fstarpu_task_wait_for_all () bind(C,name="starpu_task_wait_for_all")
+                end subroutine fstarpu_task_wait_for_all
+
+                ! starpu_task_wait_for_n_submitted
+                ! starpu_task_wait_for_all_in_ctx
+                ! starpu_task_wait_for_n_submitted_in_ctx
+                ! starpu_task_wait_for_no_ready
+                ! starpu_task_nready
+                ! starpu_task_nsubmitted
+                ! starpu_codelet_init
+                ! starpu_codelet_display_stats
+                ! starpu_task_get_current
+                ! starpu_parallel_task_barrier_init
+                ! starpu_parallel_task_barrier_init_n
+                ! starpu_task_dup
+                ! starpu_task_set_implementation
+                ! starpu_task_get_implementation
+                ! --
 
                 function fstarpu_codelet_allocate () bind(C)
                         use iso_c_binding, only: c_ptr
@@ -63,7 +144,7 @@ module fstarpu_mod
                 end subroutine fstarpu_codelet_add_buffer
 
                 function fstarpu_vector_data_register(vector, nx, elt_size, ram) bind(C)
-                        use iso_c_binding
+                        use iso_c_binding, only: c_ptr, c_int, c_size_t
                         type(c_ptr) :: fstarpu_vector_data_register
                         type(c_ptr), value, intent(in) :: vector
                         integer(c_int), value, intent(in) :: nx
@@ -72,21 +153,21 @@ module fstarpu_mod
                 end function fstarpu_vector_data_register
 
                 function fstarpu_vector_get_ptr(buffers, i) bind(C)
-                        use iso_c_binding
+                        use iso_c_binding, only: c_ptr, c_int
                         type(c_ptr) :: fstarpu_vector_get_ptr
                         type(c_ptr), value, intent(in) :: buffers
                         integer(c_int), value, intent(in) :: i
                 end function fstarpu_vector_get_ptr
 
                 function fstarpu_vector_get_nx(buffers, i) bind(C)
-                        use iso_c_binding
+                        use iso_c_binding, only: c_ptr, c_int
                         integer(c_int) :: fstarpu_vector_get_nx
                         type(c_ptr), value, intent(in) :: buffers
                         integer(c_int), value, intent(in) :: i
                 end function fstarpu_vector_get_nx
 
                 function fstarpu_matrix_data_register(matrix, ldy, ny, nx, elt_size, ram) bind(C)
-                        use iso_c_binding
+                        use iso_c_binding, only: c_ptr, c_int, c_size_t
                         type(c_ptr) :: fstarpu_matrix_data_register
                         type(c_ptr), value, intent(in) :: matrix
                         integer(c_int), value, intent(in) :: ldy
@@ -97,28 +178,28 @@ module fstarpu_mod
                 end function fstarpu_matrix_data_register
 
                 function fstarpu_matrix_get_ptr(buffers, i) bind(C)
-                        use iso_c_binding
+                        use iso_c_binding, only: c_ptr, c_int
                         type(c_ptr) :: fstarpu_matrix_get_ptr
                         type(c_ptr), value, intent(in) :: buffers
                         integer(c_int), value, intent(in) :: i
                 end function fstarpu_matrix_get_ptr
 
                 function fstarpu_matrix_get_ld(buffers, i) bind(C)
-                        use iso_c_binding
+                        use iso_c_binding, only: c_ptr, c_int
                         integer(c_int) :: fstarpu_matrix_get_ld
                         type(c_ptr), value, intent(in) :: buffers
                         integer(c_int), value, intent(in) :: i
                 end function fstarpu_matrix_get_ld
 
                 function fstarpu_matrix_get_ny(buffers, i) bind(C)
-                        use iso_c_binding
+                        use iso_c_binding, only: c_ptr, c_int
                         integer(c_int) :: fstarpu_matrix_get_ny
                         type(c_ptr), value, intent(in) :: buffers
                         integer(c_int), value, intent(in) :: i
                 end function fstarpu_matrix_get_ny
 
                 function fstarpu_matrix_get_nx(buffers, i) bind(C)
-                        use iso_c_binding
+                        use iso_c_binding, only: c_ptr, c_int
                         integer(c_int) :: fstarpu_matrix_get_nx
                         type(c_ptr), value, intent(in) :: buffers
                         integer(c_int), value, intent(in) :: i
@@ -133,9 +214,6 @@ module fstarpu_mod
                         use iso_c_binding, only: c_ptr
                         type(c_ptr), dimension(:), intent(in) :: arglist
                 end subroutine fstarpu_insert_task
-
-                subroutine fstarpu_task_wait_for_all () bind(C,name="starpu_task_wait_for_all")
-                end subroutine fstarpu_task_wait_for_all
 
         end interface
 
@@ -166,7 +244,7 @@ module fstarpu_mod
                                 end function fstarpu_get_pointer_constant
 
                                 function fstarpu_init_internal (conf) bind(C,name="starpu_init")
-                                        use iso_c_binding
+                                        use iso_c_binding, only: c_ptr,c_int
                                         integer(c_int) :: fstarpu_init_internal
                                         type(c_ptr), value :: conf
                                 end function fstarpu_init_internal
