@@ -1,7 +1,7 @@
 program nf_matrix
         use iso_c_binding       ! C interfacing module
         use fstarpu_mod         ! StarPU interfacing module
-        use codelets
+        use nf_codelets
         implicit none
 
         real(8), dimension(:,:), allocatable, target :: ma
