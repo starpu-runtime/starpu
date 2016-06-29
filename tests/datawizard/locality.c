@@ -58,10 +58,10 @@ double cost_function(struct starpu_task *t, struct starpu_perfmodel_arch *a, uns
 	if (a->devices[0].type == STARPU_CPU_WORKER)
 	{
 		STARPU_ASSERT(a->devices[0].ncores == 1);
-		return 0.001;
+		return 1000;
 	}
 	else
-		return 0.0001;
+		return 100;
 }
 
 static struct starpu_perfmodel perf_model =
