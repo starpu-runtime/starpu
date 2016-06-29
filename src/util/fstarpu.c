@@ -27,11 +27,8 @@ static const int fstarpu_rw	= STARPU_RW;
 static const int fstarpu_scratch	= STARPU_SCRATCH;
 static const int fstarpu_redux	= STARPU_REDUX;
 
-static const int _fstarpu_data = STARPU_R | STARPU_W | STARPU_SCRATCH | STARPU_REDUX;
-static const void * const fstarpu_data = &_fstarpu_data;
-
-static const int _fstarpu_value = STARPU_VALUE;
-static const void * const fstarpu_value = &_fstarpu_value;
+static const intptr_t fstarpu_data = STARPU_R | STARPU_W | STARPU_SCRATCH | STARPU_REDUX;
+static const intptr_t fstarpu_value = STARPU_VALUE;
 
 extern void _starpu_pack_arguments(size_t *current_offset, size_t *arg_buffer_size_, char **arg_buffer_, void *ptr, size_t ptr_size);
 
@@ -45,7 +42,7 @@ int fstarpu_get_integer_constant(char *s)
 	else { _FSTARPU_ERROR("unknown integer constant"); }
 }
 
-const void *fstarpu_get_pointer_constant(char *s)
+intptr_t fstarpu_get_pointer_constant(char *s)
 {
 	if (!strcmp(s, "FSTARPU_DATA")) { return fstarpu_data; }
 	if (!strcmp(s, "FSTARPU_VALUE")) { return fstarpu_value; }
@@ -221,7 +218,7 @@ void fstarpu_insert_task(void ***_arglist)
 	task->name = NULL;
 	while (arglist[i] != NULL)
 	{
-		if (arglist[i] == fstarpu_data)
+		if ((intptr_t)arglist[i] == fstarpu_data)
 		{
 			i++;
 			starpu_data_handle_t handle = arglist[i];
@@ -236,7 +233,7 @@ void fstarpu_insert_task(void ***_arglist)
 			}
 			current_buffer++;
 		}
-		else if (arglist[i] == fstarpu_value)
+		else if ((intptr_t)arglist[i] == fstarpu_value)
 		{
 			i++;
 			void *ptr = arglist[i];
