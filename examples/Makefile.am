@@ -230,7 +230,8 @@ if !STARPU_SANITIZE
 STARPU_EXAMPLES +=				\
 	fortran90/f90_example			\
 	native_fortran/nf_vector	\
-	native_fortran/nf_matrix
+	native_fortran/nf_matrix	\
+	native_fortran/nf_example
 endif
 endif
 endif
@@ -359,6 +360,12 @@ native_fortran_nf_matrix_SOURCES =	\
 	native_fortran/nf_codelets.f90		\
 	$(top_srcdir)/include/fstarpu_mod.f90	\
 	native_fortran/nf_matrix.f90
+
+native_fortran_nf_example_SOURCES =	\
+	native_fortran/nf_types.f90		\
+	native_fortran/nf_compute.f90		\
+	$(top_srcdir)/include/fstarpu_mod.f90	\
+	native_fortran/nf_example.f90
 endif
 
 #######################
@@ -988,6 +995,8 @@ f90_example.o: $(top_srcdir)/examples/fortran90/f90_example.f90 $(top_srcdir)/ex
 # - list explicit dependences to control proper module files generation
 # - the overriding rule fully disables the corresponing default rule, thus
 #   the default rule body must be copied entirely
+nf_types.mod: nf_types.o
+nf_compute.mod: nf_compute.o
 fstarpu_mod.mod: fstarpu_mod.o
 nf_codelets.mod: nf_codelets.o
 
@@ -1000,6 +1009,13 @@ nf_codelets.o: $(top_srcdir)/examples/native_fortran/nf_codelets.f90 fstarpu_mod
 nf_vector.o: $(top_srcdir)/examples/native_fortran/nf_vector.f90 nf_codelets.mod fstarpu_mod.mod
 	$(AM_V_FC)$(FC) $(native_fortran_nf_vector_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'native_fortran/nf_vector.f90' || echo '$(srcdir)/'`native_fortran/nf_vector.f90
 
-matrix.o: $(top_srcdir)/examples/native_fortran/nf_matrix.f90 nf_codelets.mod fstarpu_mod.mod
-	$(AM_V_FC)$(FC) $(native_fortran_matrix_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'native_fortran/nf_matrix.f90' || echo '$(srcdir)/'`native_fortran/nf_matrix.f90
+nf_matrix.o: $(top_srcdir)/examples/native_fortran/nf_matrix.f90 nf_codelets.mod fstarpu_mod.mod
+	$(AM_V_FC)$(FC) $(native_fortran_nf_matrix_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'native_fortran/nf_matrix.f90' || echo '$(srcdir)/'`native_fortran/nf_matrix.f90
+
+nf_compute.o: $(top_srcdir)/examples/native_fortran/nf_compute.f90 nf_types.mod fstarpu_mod.mod
+	$(AM_V_FC)$(FC) $(native_fortran_nf_example_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'native_fortran/nf_compute.f90' || echo '$(srcdir)/'`native_fortran/nf_compute.f90
+
+nf_example.o: $(top_srcdir)/examples/native_fortran/nf_example.f90 nf_types.mod nf_compute.mod fstarpu_mod.mod
+	$(AM_V_FC)$(FC) $(native_fortran_nf_example_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'native_fortran/nf_example.f90' || echo '$(srcdir)/'`native_fortran/nf_example.f90
+
 endif

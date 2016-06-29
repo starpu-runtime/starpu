@@ -14,7 +14,7 @@
 !
 ! See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
-MODULE mod_types
+MODULE nf_types
 
   USE iso_c_binding
 
@@ -34,4 +34,4 @@ MODULE mod_types
      TYPE(type_mesh_elt), POINTER, DIMENSION(:) :: elt
   END TYPE type_mesh
 
-END MODULE mod_types
+END MODULE nf_types

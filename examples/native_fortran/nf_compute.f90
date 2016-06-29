@@ -16,9 +16,9 @@
 
 ! Computation kernels for the simulation
 
-MODULE mod_compute
+MODULE nf_compute
 
-  USE mod_types
+  USE nf_types
   USE fstarpu_mod
   USE iso_c_binding
 
@@ -129,4 +129,4 @@ CONTAINS
 
   END SUBROUTINE copy_element_cpu
 
-END MODULE mod_compute
+END MODULE nf_compute

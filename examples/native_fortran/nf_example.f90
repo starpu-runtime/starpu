@@ -20,9 +20,9 @@
 
 PROGRAM f90_example
 
-  USE mod_types
+  USE nf_types
   USE fstarpu_mod
-  USE mod_compute
+  USE nf_compute
   USE iso_c_binding
 
   IMPLICIT NONE
