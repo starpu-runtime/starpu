@@ -255,8 +255,8 @@ module fstarpu_mod
                                 end function fstarpu_get_integer_constant
 
                                 function fstarpu_get_pointer_constant(s) bind(C)
-                                        use iso_c_binding, only: c_ptr,c_char
-                                        type(c_ptr) :: fstarpu_get_pointer_constant
+                                        use iso_c_binding, only: c_intptr_t,c_char
+                                        integer(c_intptr_t) :: fstarpu_get_pointer_constant
                                         character(kind=c_char) :: s
                                 end function fstarpu_get_pointer_constant
 
@@ -274,8 +274,8 @@ module fstarpu_mod
                         FSTARPU_SCRATCH = fstarpu_get_integer_constant(C_CHAR_"FSTARPU_SCRATCH"//C_NULL_CHAR)
                         FSTARPU_REDUX = fstarpu_get_integer_constant(C_CHAR_"FSTARPU_REDUX"//C_NULL_CHAR)
                         ! Initialize Fortran 'pointer' constants from C peers
-                        FSTARPU_DATA = fstarpu_get_pointer_constant(C_CHAR_"FSTARPU_DATA"//C_NULL_CHAR)
-                        FSTARPU_VALUE = fstarpu_get_pointer_constant(C_CHAR_"FSTARPU_VALUE"//C_NULL_CHAR)
+                        FSTARPU_DATA = transfer(fstarpu_get_pointer_constant(C_CHAR_"FSTARPU_DATA"//C_NULL_CHAR),C_NULL_PTR)
+                        FSTARPU_VALUE = transfer(fstarpu_get_pointer_constant(C_CHAR_"FSTARPU_VALUE"//C_NULL_CHAR),C_NULL_PTR)
                         ! Initialize size constants as 'c_ptr'
                         FSTARPU_SZ_INT4 = transfer(int(c_sizeof(FSTARPU_SZ_INT4_dummy),kind=c_intptr_t),C_NULL_PTR)
                         FSTARPU_SZ_INT8 = transfer(int(c_sizeof(FSTARPU_SZ_INT8_dummy),kind=c_intptr_t),C_NULL_PTR)
