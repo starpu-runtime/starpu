@@ -21,31 +21,28 @@
 
 #define _FSTARPU_ERROR(msg) do {fprintf(stderr, "fstarpu error: %s\n", (msg));abort();} while(0)
 
-static const int fstarpu_r	= STARPU_R;
-static const int fstarpu_w	= STARPU_W;
-static const int fstarpu_rw	= STARPU_RW;
-static const int fstarpu_scratch	= STARPU_SCRATCH;
-static const int fstarpu_redux	= STARPU_REDUX;
+static const intptr_t fstarpu_r	= STARPU_R;
+static const intptr_t fstarpu_w	= STARPU_W;
+static const intptr_t fstarpu_rw	= STARPU_RW;
+static const intptr_t fstarpu_scratch	= STARPU_SCRATCH;
+static const intptr_t fstarpu_redux	= STARPU_REDUX;
 
 static const intptr_t fstarpu_data = STARPU_R | STARPU_W | STARPU_SCRATCH | STARPU_REDUX;
 static const intptr_t fstarpu_value = STARPU_VALUE;
 
 extern void _starpu_pack_arguments(size_t *current_offset, size_t *arg_buffer_size_, char **arg_buffer_, void *ptr, size_t ptr_size);
 
-int fstarpu_get_integer_constant(char *s)
+intptr_t fstarpu_get_constant(char *s)
 {
 	if	(!strcmp(s, "FSTARPU_R"))	{ return fstarpu_r; }
 	else if	(!strcmp(s, "FSTARPU_W"))	{ return fstarpu_w; }
 	else if	(!strcmp(s, "FSTARPU_RW"))	{ return fstarpu_rw; }
 	else if	(!strcmp(s, "FSTARPU_SCRATCH"))	{ return fstarpu_scratch; }
 	else if	(!strcmp(s, "FSTARPU_REDUX"))	{ return fstarpu_redux; }
-	else { _FSTARPU_ERROR("unknown integer constant"); }
-}
 
-intptr_t fstarpu_get_pointer_constant(char *s)
-{
-	if (!strcmp(s, "FSTARPU_DATA")) { return fstarpu_data; }
-	if (!strcmp(s, "FSTARPU_VALUE")) { return fstarpu_value; }
+	else if (!strcmp(s, "FSTARPU_DATA"))	{ return fstarpu_data; }
+	else if (!strcmp(s, "FSTARPU_VALUE"))	{ return fstarpu_value; }
+
 	else { _FSTARPU_ERROR("unknown pointer constant"); }
 }
 
@@ -107,9 +104,17 @@ void fstarpu_codelet_add_opencl_func(struct starpu_codelet *cl, void *f_ptr)
 	_FSTARPU_ERROR("fstarpu: too many opencl functions in Fortran codelet");
 }
 
-void fstarpu_codelet_add_buffer(struct starpu_codelet *cl, int mode)
+void fstarpu_codelet_add_buffer(struct starpu_codelet *cl, intptr_t mode)
 {
 	const size_t max_modes = sizeof(cl->modes)/sizeof(cl->modes[0])-1;
+	if (mode !=  fstarpu_r
+		&& mode != fstarpu_rw
+		&& mode != fstarpu_w
+		&& mode != fstarpu_scratch
+		&& mode != fstarpu_redux)
+	{
+		_FSTARPU_ERROR("fstarpu: invalid data mode");
+	}
 	if  (cl->nbuffers < max_modes)
 	{
 		cl->modes[cl->nbuffers] = (unsigned int)mode;
@@ -223,7 +228,13 @@ void fstarpu_insert_task(void ***_arglist)
 	task->name = NULL;
 	while (arglist[i] != NULL)
 	{
-		if ((intptr_t)arglist[i] == fstarpu_data)
+		const intptr_t arg_type = (intptr_t)arglist[i];
+		if (arg_type == fstarpu_data
+			|| arg_type == fstarpu_r
+			|| arg_type == fstarpu_rw
+			|| arg_type == fstarpu_w
+			|| arg_type == fstarpu_scratch
+			|| arg_type == fstarpu_redux)
 		{
 			i++;
 			starpu_data_handle_t handle = arglist[i];
@@ -238,7 +249,7 @@ void fstarpu_insert_task(void ***_arglist)
 			}
 			current_buffer++;
 		}
-		else if ((intptr_t)arglist[i] == fstarpu_value)
+		else if (arg_type == fstarpu_value)
 		{
 			i++;
 			void *ptr = arglist[i];
