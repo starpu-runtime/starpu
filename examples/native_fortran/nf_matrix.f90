@@ -12,6 +12,7 @@ program nf_matrix
         type(c_ptr) :: dh_ma    ! a pointer for the 'ma' vector data handle
         type(c_ptr) :: dh_mb    ! a pointer for the 'mb' vector data handle
         integer(c_int) :: err   ! return status for fstarpu_init
+        integer(c_int) :: ncpu  ! number of cpus workers
 
         allocate(ma(5,6))
         do i=1,5
@@ -30,6 +31,13 @@ program nf_matrix
         ! initialize StarPU with default settings
         err = fstarpu_init(C_NULL_PTR)
         if (err == -19) then
+                stop 77
+        end if
+
+        ! stop there if no CPU worker available
+        ncpu = fstarpu_cpu_worker_get_count()
+        if (ncpu == 0) then
+                call fstarpu_shutdown()
                 stop 77
         end if
 
