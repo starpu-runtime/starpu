@@ -44,6 +44,9 @@ program nf_matrix
         ! allocate an empty codelet structure
         cl_mat = fstarpu_codelet_allocate()
 
+        ! set the codelet name
+        call fstarpu_codelet_set_name(cl_mat, C_CHAR_"my_mat_codelet"//C_NULL_CHAR)
+
         ! add a CPU implementation function to the codelet
         call fstarpu_codelet_add_cpu_func(cl_mat, C_FUNLOC(cl_cpu_func_mat))
 

@@ -38,10 +38,65 @@ module fstarpu_mod
         interface
                 ! == starpu.h ==
 
-                subroutine fstarpu_conf_init(conf) bind(C,name="starpu_conf_init")
+                ! starpu_conf_init: see fstarpu_conf_allocate
+
+                function fstarpu_conf_allocate () bind(C)
                         use iso_c_binding, only: c_ptr
+                        type(c_ptr) :: fstarpu_conf_allocate
+                end function fstarpu_conf_allocate
+
+                subroutine fstarpu_conf_free (cl) bind(C)
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), value, intent(in) :: cl
+                end subroutine fstarpu_conf_free
+
+                subroutine fstarpu_conf_set_sched_policy_name (conf, policy_name) bind(C)
+                        use iso_c_binding, only: c_ptr, c_char
                         type(c_ptr), value, intent(in) :: conf
-                end subroutine fstarpu_conf_init
+                        character(c_char), intent(in) :: policy_name
+                end subroutine fstarpu_conf_set_sched_policy_name
+
+                subroutine fstarpu_conf_set_min_prio (conf, min_prio) bind(C)
+                        use iso_c_binding, only: c_ptr, c_int
+                        type(c_ptr), value, intent(in) :: conf
+                        integer(c_int), value, intent(in) :: min_prio
+                end subroutine fstarpu_conf_set_min_prio
+
+                subroutine fstarpu_conf_set_max_prio (conf, max_prio) bind(C)
+                        use iso_c_binding, only: c_ptr, c_int
+                        type(c_ptr), value, intent(in) :: conf
+                        integer(c_int), value, intent(in) :: max_prio
+                end subroutine fstarpu_conf_set_max_prio
+
+                subroutine fstarpu_conf_set_ncpu (conf, ncpu) bind(C)
+                        use iso_c_binding, only: c_ptr, c_int
+                        type(c_ptr), value, intent(in) :: conf
+                        integer(c_int), value, intent(in) :: ncpu
+                end subroutine fstarpu_conf_set_ncpu
+
+                subroutine fstarpu_conf_set_ncuda (conf, ncuda) bind(C)
+                        use iso_c_binding, only: c_ptr, c_int
+                        type(c_ptr), value, intent(in) :: conf
+                        integer(c_int), value, intent(in) :: ncuda
+                end subroutine fstarpu_conf_set_ncuda
+
+                subroutine fstarpu_conf_set_nopencl (conf, nopencl) bind(C)
+                        use iso_c_binding, only: c_ptr, c_int
+                        type(c_ptr), value, intent(in) :: conf
+                        integer(c_int), value, intent(in) :: nopencl
+                end subroutine fstarpu_conf_set_nopencl
+
+                subroutine fstarpu_conf_set_nmic (conf, nmic) bind(C)
+                        use iso_c_binding, only: c_ptr, c_int
+                        type(c_ptr), value, intent(in) :: conf
+                        integer(c_int), value, intent(in) :: nmic
+                end subroutine fstarpu_conf_set_nmic
+
+                subroutine fstarpu_conf_set_nscc (conf, nscc) bind(C)
+                        use iso_c_binding, only: c_ptr, c_int
+                        type(c_ptr), value, intent(in) :: conf
+                        integer(c_int), value, intent(in) :: nscc
+                end subroutine fstarpu_conf_set_nscc
 
                 ! starpu_init: see fstarpu_init
                 ! starpu_initialize: see fstarpu_init
@@ -130,6 +185,12 @@ module fstarpu_mod
                         type(c_ptr), value, intent(in) :: cl
                 end subroutine fstarpu_codelet_free
 
+                subroutine fstarpu_codelet_set_name (cl, cl_name) bind(C)
+                        use iso_c_binding, only: c_ptr, c_char
+                        type(c_ptr), value, intent(in) :: cl
+                        character(c_char), intent(in) :: cl_name
+                end subroutine fstarpu_codelet_set_name
+
                 subroutine fstarpu_codelet_add_cpu_func (cl, f_ptr) bind(C)
                         use iso_c_binding, only: c_ptr, c_funptr
                         type(c_ptr), value, intent(in) :: cl
@@ -148,8 +209,20 @@ module fstarpu_mod
                         type(c_funptr), value, intent(in) :: f_ptr
                 end subroutine fstarpu_codelet_add_opencl_func
 
+                subroutine fstarpu_codelet_add_mic_func (cl, f_ptr) bind(C)
+                        use iso_c_binding, only: c_ptr, c_funptr
+                        type(c_ptr), value, intent(in) :: cl
+                        type(c_funptr), value, intent(in) :: f_ptr
+                end subroutine fstarpu_codelet_add_mic_func
+
+                subroutine fstarpu_codelet_add_scc_func (cl, f_ptr) bind(C)
+                        use iso_c_binding, only: c_ptr, c_funptr
+                        type(c_ptr), value, intent(in) :: cl
+                        type(c_funptr), value, intent(in) :: f_ptr
+                end subroutine fstarpu_codelet_add_scc_func
+
                 subroutine fstarpu_codelet_add_buffer (cl, mode) bind(C)
-                        use iso_c_binding, only: c_ptr, c_ptr
+                        use iso_c_binding, only: c_ptr
                         type(c_ptr), value, intent(in) :: cl
                         type(c_ptr), value, intent(in) :: mode ! C function expects an intptr_t
                 end subroutine fstarpu_codelet_add_buffer

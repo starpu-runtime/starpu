@@ -72,13 +72,13 @@ PROGRAM f90_example
   CALL fstarpu_codelet_add_buffer(cl_loop_element, FSTARPU_R)
   CALL fstarpu_codelet_add_buffer(cl_loop_element, FSTARPU_RW)
   CALL fstarpu_codelet_add_buffer(cl_loop_element, FSTARPU_R)
-  ! TODO: add name "LOOP_ELEMENT"
+  CALL fstarpu_codelet_set_name(cl_loop_element, C_CHAR_"LOOP_ELEMENT"//C_NULL_CHAR)
 
   cl_copy_element = fstarpu_codelet_allocate()
   CALL fstarpu_codelet_add_cpu_func(cl_copy_element, C_FUNLOC(copy_element_cpu_fortran))
   CALL fstarpu_codelet_add_buffer(cl_copy_element, FSTARPU_RW)
   CALL fstarpu_codelet_add_buffer(cl_copy_element, FSTARPU_R)
-  ! TODO: add name "COPY_ELEMENT"
+  CALL fstarpu_codelet_set_name(cl_copy_element, C_CHAR_"COPY_ELEMENT"//C_NULL_CHAR)
 
   !Registration of elements
   DO i = 1,Nelt
