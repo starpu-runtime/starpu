@@ -15,6 +15,13 @@
 
 include $(top_srcdir)/starpu.mk
 
+if STARPU_SIMGRID
+STARPU_PERF_MODEL_DIR=$(abs_top_srcdir)/tools/perfmodels/sampling
+STARPU_HOSTNAME=mirage
+export STARPU_PERF_MODEL_DIR
+export STARPU_HOSTNAME
+endif
+
 AM_CFLAGS = $(HWLOC_CFLAGS) $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(GLOBAL_AM_CFLAGS) -Wno-unused
 LIBS = $(top_builddir)/src/@LIBSTARPU_LINK@ $(HWLOC_LIBS) @LIBS@ $(FXT_LIBS)
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/examples/ -I$(top_builddir)/include
