@@ -16,13 +16,6 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
-if STARPU_SIMGRID
-STARPU_PERF_MODEL_DIR=$(abs_top_srcdir)/tools/perfmodels/sampling
-STARPU_HOSTNAME=mirage
-export STARPU_HOSTNAME
-export STARPU_PERF_MODEL_DIR
-endif
-
 ACLOCAL_AMFLAGS=-I m4
 CLEANFILES = *.gcno *.gcda *.linkinfo
 
