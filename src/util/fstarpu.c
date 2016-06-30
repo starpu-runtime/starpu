@@ -64,8 +64,9 @@ void fstarpu_codelet_free(struct starpu_codelet *cl)
 
 void fstarpu_codelet_add_cpu_func(struct starpu_codelet *cl, void *f_ptr)
 {
-	int i;
-	for (i = 0; i < sizeof(cl->cpu_funcs)-1; i++)
+	const size_t max_cpu_funcs = sizeof(cl->cpu_funcs)/sizeof(cl->cpu_funcs[0])-1;
+	size_t i;
+	for (i = 0; i < max_cpu_funcs; i++)
 	{
 		if (cl->cpu_funcs[i] == NULL)
 		{
@@ -78,8 +79,9 @@ void fstarpu_codelet_add_cpu_func(struct starpu_codelet *cl, void *f_ptr)
 
 void fstarpu_codelet_add_cuda_func(struct starpu_codelet *cl, void *f_ptr)
 {
+	const size_t max_cuda_funcs = sizeof(cl->cuda_funcs)/sizeof(cl->cuda_funcs[0])-1;
 	int i;
-	for (i = 0; i < sizeof(cl->cuda_funcs)-1; i++)
+	for (i = 0; i < max_cuda_funcs; i++)
 	{
 		if (cl->cuda_funcs[i] == NULL)
 		{
@@ -92,8 +94,9 @@ void fstarpu_codelet_add_cuda_func(struct starpu_codelet *cl, void *f_ptr)
 
 void fstarpu_codelet_add_opencl_func(struct starpu_codelet *cl, void *f_ptr)
 {
+	const size_t max_opencl_funcs = sizeof(cl->opencl_funcs)/sizeof(cl->opencl_funcs[0])-1;
 	int i;
-	for (i = 0; i < sizeof(cl->opencl_funcs)-1; i++)
+	for (i = 0; i < max_opencl_funcs; i++)
 	{
 		if (cl->opencl_funcs[i] == NULL)
 		{
@@ -106,7 +109,8 @@ void fstarpu_codelet_add_opencl_func(struct starpu_codelet *cl, void *f_ptr)
 
 void fstarpu_codelet_add_buffer(struct starpu_codelet *cl, int mode)
 {
-	if  (cl->nbuffers < sizeof(cl->modes)-1)
+	const size_t max_modes = sizeof(cl->modes)/sizeof(cl->modes[0])-1;
+	if  (cl->nbuffers < max_modes)
 	{
 		cl->modes[cl->nbuffers] = (unsigned int)mode;
 		cl->nbuffers++;
