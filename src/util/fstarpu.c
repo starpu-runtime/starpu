@@ -46,10 +46,80 @@ intptr_t fstarpu_get_constant(char *s)
 	else { _FSTARPU_ERROR("unknown pointer constant"); }
 }
 
+struct starpu_conf *fstarpu_conf_allocate(void)
+{
+	struct starpu_conf *conf = malloc(sizeof(*conf));
+	starpu_conf_init(conf);
+	return conf;
+}
+
+void fstarpu_conf_free(struct starpu_conf *conf)
+{
+	memset(conf, 0, sizeof(*conf));
+	free(conf);
+}
+
+void fstarpu_conf_set_sched_policy_name(struct starpu_conf *conf, const char *sched_policy_name)
+{
+	conf->sched_policy_name = sched_policy_name;
+}
+
+void fstarpu_conf_set_min_prio(struct starpu_conf *conf, int min_prio)
+{
+	conf->global_sched_ctx_min_priority = min_prio;
+}
+
+void fstarpu_conf_set_max_prio(struct starpu_conf *conf, int max_prio)
+{
+	conf->global_sched_ctx_max_priority = max_prio;
+}
+
+void fstarpu_conf_set_ncpu(struct starpu_conf *conf, int ncpu)
+{
+	STARPU_ASSERT(ncpu >= 0 && ncpu <= STARPU_NMAXWORKERS);
+	conf->ncpus = ncpu;
+}
+
+void fstarpu_conf_set_ncuda(struct starpu_conf *conf, int ncuda)
+{
+	STARPU_ASSERT(ncuda >= 0 && ncuda <= STARPU_NMAXWORKERS);
+	conf->ncuda = ncuda;
+}
+
+void fstarpu_conf_set_nopencl(struct starpu_conf *conf, int nopencl)
+{
+	STARPU_ASSERT(nopencl >= 0 && nopencl <= STARPU_NMAXWORKERS);
+	conf->nopencl = nopencl;
+}
+
+void fstarpu_conf_set_nmic(struct starpu_conf *conf, int nmic)
+{
+	STARPU_ASSERT(nmic >= 0 && nmic <= STARPU_NMAXWORKERS);
+	conf->nmic = nmic;
+}
+
+void fstarpu_conf_set_nscc(struct starpu_conf *conf, int nscc)
+{
+	STARPU_ASSERT(nscc >= 0 && nscc <= STARPU_NMAXWORKERS);
+	conf->nscc = nscc;
+}
+
+void fstarpu_conf_set_calibrate(struct starpu_conf *conf, int calibrate)
+{
+	STARPU_ASSERT(calibrate == 0 || calibrate == 1);
+	conf->calibrate = calibrate;
+}
+
+void fstarpu_conf_set_bus_calibrate(struct starpu_conf *conf, int bus_calibrate)
+{
+	STARPU_ASSERT(bus_calibrate == 0 || bus_calibrate == 1);
+	conf->bus_calibrate = bus_calibrate;
+}
+
 struct starpu_codelet *fstarpu_codelet_allocate(void)
 {
 	struct starpu_codelet *cl = malloc(sizeof(*cl));
-	memset(cl, 0, sizeof(*cl));
+	starpu_codelet_init(cl);
 	return cl;
 }
 
@@ -57,6 +127,11 @@ void fstarpu_codelet_free(struct starpu_codelet *cl)
 {
 	memset(cl, 0, sizeof(*cl));
 	free(cl);
+}
+
+void fstarpu_codelet_set_name(struct starpu_codelet *cl, const char *cl_name)
+{
+	cl->name = cl_name;
 }
 
 void fstarpu_codelet_add_cpu_func(struct starpu_codelet *cl, void *f_ptr)
@@ -102,6 +177,36 @@ void fstarpu_codelet_add_opencl_func(struct starpu_codelet *cl, void *f_ptr)
 		}
 	}
 	_FSTARPU_ERROR("fstarpu: too many opencl functions in Fortran codelet");
+}
+
+void fstarpu_codelet_add_mic_func(struct starpu_codelet *cl, void *f_ptr)
+{
+	const size_t max_mic_funcs = sizeof(cl->mic_funcs)/sizeof(cl->mic_funcs[0])-1;
+	int i;
+	for (i = 0; i < max_mic_funcs; i++)
+	{
+		if (cl->mic_funcs[i] == NULL)
+		{
+			cl->mic_funcs[i] = f_ptr;
+			return;
+		}
+	}
+	_FSTARPU_ERROR("fstarpu: too many mic functions in Fortran codelet");
+}
+
+void fstarpu_codelet_add_scc_func(struct starpu_codelet *cl, void *f_ptr)
+{
+	const size_t max_scc_funcs = sizeof(cl->scc_funcs)/sizeof(cl->scc_funcs[0])-1;
+	int i;
+	for (i = 0; i < max_scc_funcs; i++)
+	{
+		if (cl->scc_funcs[i] == NULL)
+		{
+			cl->scc_funcs[i] = f_ptr;
+			return;
+		}
+	}
+	_FSTARPU_ERROR("fstarpu: too many scc functions in Fortran codelet");
 }
 
 void fstarpu_codelet_add_buffer(struct starpu_codelet *cl, intptr_t mode)

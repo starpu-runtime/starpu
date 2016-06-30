@@ -51,6 +51,9 @@ program nf_vector
         ! allocate an empty codelet structure
         cl_vec = fstarpu_codelet_allocate()
 
+        ! set the codelet name
+        call fstarpu_codelet_set_name(cl_vec, C_CHAR_"my_vec_codelet"//C_NULL_CHAR)
+
         ! add a CPU implementation function to the codelet
         call fstarpu_codelet_add_cpu_func(cl_vec, C_FUNLOC(cl_cpu_func_vec))
 
