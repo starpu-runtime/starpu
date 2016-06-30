@@ -1106,7 +1106,7 @@ if test x$enable_simgrid = xyes ; then
 			  #else
 			  #include <msg/msg.h>
 			  #endif
-			  ]]),],,
+			  ]])],,
 			  CXXFLAGS="-std=c++11 $CXXFLAGS"
 			  NVCCFLAGS="-std=c++11 $NVCCFLAGS")
 	AC_LANG_POP([C++])
