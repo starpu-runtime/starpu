@@ -285,6 +285,12 @@ int fstarpu_matrix_get_nx(void *buffers[], int i)
 	return STARPU_MATRIX_GET_NY(buffers[i]);
 }
 
+void fstarpu_data_acquire(starpu_data_handle_t handle, intptr_t mode)
+{
+	STARPU_ASSERT(mode == fstarpu_r || mode == fstarpu_w || mode == fstarpu_rw);
+	starpu_data_acquire(handle, (int)mode);
+}
+
 void fstarpu_unpack_arg(char *cl_arg, void ***_buffer_list)
 {
 	void **buffer_list = *_buffer_list;
