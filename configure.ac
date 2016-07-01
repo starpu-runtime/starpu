@@ -2118,6 +2118,18 @@ if test "x$FC" != "x"; then
 			AC_MSG_WARN([GFortran $gfortran_fc_version too old, version >= 4.9.x needed, Fortran examples will not be built])
 			enable_build_fortran="no"
 		fi
+	else
+		if $FC -V 2>&1|grep -q 'Intel(R) Fortran'; then
+			ifort_fc_version=`$FC -V 2>&1 |head -1|sed 's/.*Version //;s/ Build.*//'`
+			ifort_maj_version=`echo $ifort_fc_version|cut -d. -f1`
+
+			if test $ifort_maj_version -lt 16; then
+				AC_MSG_WARN([Intel Fortran compiler $ifort_fc_version too old, version >= 2016.x needed, Fortran examples will not be built])
+				enable_build_fortran="no"
+			fi
+		else
+			AC_MSG_WARN(Fortran compiler has not been tested for StarPU native Fortran support)
+		fi
 	fi
 	if test "x$enable_build_fortran" = "xyes" ; then
 		AC_DEFINE(STARPU_HAVE_FC, [], [Define this if a Fortran compiler is available])
