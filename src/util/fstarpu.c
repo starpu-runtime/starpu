@@ -29,6 +29,7 @@ static const intptr_t fstarpu_redux	= STARPU_REDUX;
 
 static const intptr_t fstarpu_data = STARPU_R | STARPU_W | STARPU_SCRATCH | STARPU_REDUX;
 static const intptr_t fstarpu_value = STARPU_VALUE;
+static const intptr_t fstarpu_sched_ctx = STARPU_SCHED_CTX;
 
 extern void _starpu_pack_arguments(size_t *current_offset, size_t *arg_buffer_size_, char **arg_buffer_, void *ptr, size_t ptr_size);
 
@@ -42,6 +43,7 @@ intptr_t fstarpu_get_constant(char *s)
 
 	else if (!strcmp(s, "FSTARPU_DATA"))	{ return fstarpu_data; }
 	else if (!strcmp(s, "FSTARPU_VALUE"))	{ return fstarpu_value; }
+	else if (!strcmp(s, "FSTARPU_SCHED_CTX"))	{ return fstarpu_sched_ctx; }
 
 	else { _FSTARPU_ERROR("unknown pointer constant"); }
 }
@@ -231,6 +233,25 @@ void fstarpu_codelet_add_buffer(struct starpu_codelet *cl, intptr_t mode)
 	}
 }
 
+starpu_data_handle_t fstarpu_void_data_register(void)
+{
+	starpu_data_handle_t handle;
+	starpu_void_data_register(&handle);
+	return handle;
+}
+
+starpu_data_handle_t fstarpu_variable_data_register(void *ptr, size_t size, int ram)
+{
+	starpu_data_handle_t handle;
+	starpu_variable_data_register(&handle, ram, (uintptr_t)ptr, size);
+	return handle;
+}
+
+void * fstarpu_variable_get_ptr(void *buffers[], int i)
+{
+	return (void *)STARPU_VECTOR_GET_PTR(buffers[i]);
+}
+
 starpu_data_handle_t fstarpu_vector_data_register(void *vector, int nx, size_t elt_size, int ram)
 {
 	starpu_data_handle_t handle;
@@ -319,6 +340,16 @@ void fstarpu_unpack_arg(char *cl_arg, void ***_buffer_list)
 	free(cl_arg);
 }
 
+int fstarpu_sched_ctx_create(int *workers_array, int nworkers, const char *name)
+{
+	return (int)starpu_sched_ctx_create(workers_array, nworkers, name, STARPU_SCHED_CTX_POLICY_NAME, "eager", 0);
+}
+
+void fstarpu_sched_ctx_display_workers(int ctx)
+{
+	starpu_sched_ctx_display_workers((unsigned)ctx, stderr);
+}
+
 void fstarpu_insert_task(void ***_arglist)
 {
 	void **arglist = *_arglist;
@@ -368,6 +399,11 @@ void fstarpu_insert_task(void ***_arglist)
 			size_t ptr_size = (size_t)(intptr_t)arglist[i];
 			nargs++;
 			_starpu_pack_arguments(&current_offset, &arg_buffer_size_, &arg_buffer_, ptr, ptr_size);
+		}
+		else if (arg_type == fstarpu_sched_ctx)
+		{
+			i++;
+			task->sched_ctx = *(unsigned *)arglist[i];
 		}
 		else
 		{

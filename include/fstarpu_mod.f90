@@ -29,6 +29,7 @@ module fstarpu_mod
 
         type(c_ptr), bind(C) :: FSTARPU_DATA
         type(c_ptr), bind(C) :: FSTARPU_VALUE
+        type(c_ptr), bind(C) :: FSTARPU_SCHED_CTX
 
         type(c_ptr), bind(C) :: FSTARPU_SZ_INT4
         type(c_ptr), bind(C) :: FSTARPU_SZ_INT8
@@ -301,6 +302,11 @@ module fstarpu_mod
 
                 ! starpu_task_wait_for_n_submitted
                 ! starpu_task_wait_for_all_in_ctx
+                subroutine fstarpu_task_wait_for_all_in_ctx (ctx) bind(C,name="starpu_task_wait_for_all_in_ctx")
+                        use iso_c_binding, only: c_int
+                        integer(c_int), value, intent(in) :: ctx
+                end subroutine fstarpu_task_wait_for_all_in_ctx
+
                 ! starpu_task_wait_for_n_submitted_in_ctx
                 ! starpu_task_wait_for_no_ready
                 ! starpu_task_nready
@@ -367,29 +373,68 @@ module fstarpu_mod
                         type(c_ptr), value, intent(in) :: mode ! C function expects an intptr_t
                 end subroutine fstarpu_codelet_add_buffer
 
-                function fstarpu_vector_data_register(vector, nx, elt_size, ram) bind(C)
-                        use iso_c_binding, only: c_ptr, c_int, c_size_t
-                        type(c_ptr) :: fstarpu_vector_data_register
-                        type(c_ptr), value, intent(in) :: vector
-                        integer(c_int), value, intent(in) :: nx
-                        integer(c_size_t), value, intent(in) :: elt_size
-                        integer(c_int), value, intent(in) :: ram
-                end function fstarpu_vector_data_register
+                ! == starpu_data_interface.h ==
 
-                function fstarpu_vector_get_ptr(buffers, i) bind(C)
+                ! uintptr_t starpu_malloc_on_node_flags(unsigned dst_node, size_t size, int flags);
+
+                ! uintptr_t starpu_malloc_on_node(unsigned dst_node, size_t size);
+                function fstarpu_malloc_on_node(node,sz) bind(C,name="starpu_malloc_on_node")
+                        use iso_c_binding, only: c_int,c_intptr_t,c_size_t
+                        integer(c_intptr_t) :: fstarpu_malloc_on_node
+                        integer(c_int), value, intent(in) :: node
+                        integer(c_size_t), value, intent(in) :: sz
+                end function fstarpu_malloc_on_node
+
+                ! void starpu_free_on_node_flags(unsigned dst_node, uintptr_t addr, size_t size, int flags);
+
+                ! void starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size);
+                subroutine fstarpu_free_on_node(node,addr,sz) bind(C,name="starpu_free_on_node")
+                        use iso_c_binding, only: c_int,c_intptr_t,c_size_t
+                        integer(c_int), value, intent(in) :: node
+                        integer(c_intptr_t), value, intent(in) :: addr
+                        integer(c_size_t), value, intent(in) :: sz
+                end subroutine fstarpu_free_on_node
+
+                ! void starpu_malloc_on_node_set_default_flags(unsigned node, int flags);
+
+                ! int starpu_data_interface_get_next_id(void);
+                ! void starpu_data_register(starpu_data_handle_t *handleptr, unsigned home_node, void *data_interface, struct starpu_data_interface_ops *ops);
+
+
+                ! void starpu_data_ptr_register(starpu_data_handle_t handle, unsigned node);
+                subroutine fstarpug_data_ptr_register (dh,node) bind(C,name="starpu_data_ptr_register")
                         use iso_c_binding, only: c_ptr, c_int
-                        type(c_ptr) :: fstarpu_vector_get_ptr
-                        type(c_ptr), value, intent(in) :: buffers
-                        integer(c_int), value, intent(in) :: i
-                end function fstarpu_vector_get_ptr
+                        type(c_ptr), value, intent(in) :: dh
+                        integer(c_int), value, intent(in) :: node
+                end subroutine fstarpug_data_ptr_register
 
-                function fstarpu_vector_get_nx(buffers, i) bind(C)
+                ! void starpu_data_register_same(starpu_data_handle_t *handledst, starpu_data_handle_t handlesrc);
+                subroutine fstarpu_data_register_same (dh_dst,dh_src) bind(C,name="starpu_data_register_same")
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), intent(out) :: dh_dst
+                        type(c_ptr), value, intent(in) :: dh_src
+                end subroutine fstarpu_data_register_same
+
+                ! void *starpu_data_handle_to_pointer(starpu_data_handle_t handle, unsigned node);
+                function fstarpu_data_handle_to_pointer (dh,node) bind(C,name="starpu_data_handle_to_pointer")
                         use iso_c_binding, only: c_ptr, c_int
-                        integer(c_int) :: fstarpu_vector_get_nx
-                        type(c_ptr), value, intent(in) :: buffers
-                        integer(c_int), value, intent(in) :: i
-                end function fstarpu_vector_get_nx
+                        type(c_ptr) :: fstarpu_data_handle_to_pointer
+                        type(c_ptr), value, intent(in) :: dh
+                        integer(c_int), value, intent(in) :: node
+                end function fstarpu_data_handle_to_pointer
 
+                ! void *starpu_data_get_local_ptr(starpu_data_handle_t handle);
+                function fstarpu_data_get_local_ptr (dh) bind(C,name="starpu_data_get_local_ptr")
+                        use iso_c_binding, only: c_ptr, c_int
+                        type(c_ptr) :: fstarpu_data_get_local_ptr
+                        type(c_ptr), value, intent(in) :: dh
+                end function fstarpu_data_get_local_ptr
+
+                ! void *starpu_data_get_interface_on_node(starpu_data_handle_t handle, unsigned memory_node);
+
+                ! == starpu_data_interface.h: matrix ==
+
+                ! starpu_matrix_data_register: see fstarpu_matrix_data_register
                 function fstarpu_matrix_data_register(matrix, ldy, ny, nx, elt_size, ram) bind(C)
                         use iso_c_binding, only: c_ptr, c_int, c_size_t
                         type(c_ptr) :: fstarpu_matrix_data_register
@@ -400,6 +445,8 @@ module fstarpu_mod
                         integer(c_size_t), value, intent(in) :: elt_size
                         integer(c_int), value, intent(in) :: ram
                 end function fstarpu_matrix_data_register
+
+                ! starpu_matrix_ptr_register
 
                 function fstarpu_matrix_get_ptr(buffers, i) bind(C)
                         use iso_c_binding, only: c_ptr, c_int
@@ -428,6 +475,62 @@ module fstarpu_mod
                         type(c_ptr), value, intent(in) :: buffers
                         integer(c_int), value, intent(in) :: i
                 end function fstarpu_matrix_get_nx
+
+                ! == starpu_data_interface.h: vector ==
+
+                ! starpu_vector_data_register: see fstarpu_vector_data_register
+                function fstarpu_vector_data_register(vector, nx, elt_size, ram) bind(C)
+                        use iso_c_binding, only: c_ptr, c_int, c_size_t
+                        type(c_ptr) :: fstarpu_vector_data_register
+                        type(c_ptr), value, intent(in) :: vector
+                        integer(c_int), value, intent(in) :: nx
+                        integer(c_size_t), value, intent(in) :: elt_size
+                        integer(c_int), value, intent(in) :: ram
+                end function fstarpu_vector_data_register
+
+                ! starpu_vector_ptr_register
+
+                function fstarpu_vector_get_ptr(buffers, i) bind(C)
+                        use iso_c_binding, only: c_ptr, c_int
+                        type(c_ptr) :: fstarpu_vector_get_ptr
+                        type(c_ptr), value, intent(in) :: buffers
+                        integer(c_int), value, intent(in) :: i
+                end function fstarpu_vector_get_ptr
+
+                function fstarpu_vector_get_nx(buffers, i) bind(C)
+                        use iso_c_binding, only: c_ptr, c_int
+                        integer(c_int) :: fstarpu_vector_get_nx
+                        type(c_ptr), value, intent(in) :: buffers
+                        integer(c_int), value, intent(in) :: i
+                end function fstarpu_vector_get_nx
+
+                ! == starpu_data_interface.h: variable ==
+
+                ! starpu_variable_data_register: see fstarpu_variable_data_register
+                function fstarpu_variable_data_register(ptr, sz, ram) bind(C)
+                        use iso_c_binding, only: c_ptr, c_int, c_size_t
+                        type(c_ptr) :: fstarpu_variable_data_register
+                        type(c_ptr), value, intent(in) :: ptr
+                        integer(c_size_t), value, intent(in) :: sz
+                        integer(c_int), value, intent(in) :: ram
+                end function fstarpu_variable_data_register
+
+                ! starpu_variable_ptr_register
+
+                function fstarpu_variable_get_ptr(buffers, i) bind(C)
+                        use iso_c_binding, only: c_ptr, c_int
+                        type(c_ptr) :: fstarpu_variable_get_ptr
+                        type(c_ptr), value, intent(in) :: buffers
+                        integer(c_int), value, intent(in) :: i
+                end function fstarpu_variable_get_ptr
+
+                ! == starpu_data_interface.h: void ==
+
+                ! starpu_void_data_register: see fstarpu_void_data_register
+                function fstarpu_void_data_register() bind(C)
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr) :: fstarpu_void_data_register
+                end function fstarpu_void_data_register
 
                 ! == starpu_data.h ==
 
@@ -562,6 +665,51 @@ module fstarpu_mod
                         type(c_ptr), value, intent(in) :: dh
                 end subroutine fstarpu_data_wont_use
 
+                ! unsigned starpu_worker_get_memory_node(unsigned workerid);
+                function fstarpu_worker_get_memory_node(id) bind(C,name="starpu_worker_get_memory_node")
+                        use iso_c_binding, only: c_int
+                        integer(c_int)              :: fstarpu_worker_get_memory_node
+                        integer(c_int), value, intent(in) :: id
+                end function fstarpu_worker_get_memory_node
+
+                ! unsigned starpu_memory_nodes_get_count(void);
+                function fstarpu_memory_nodes_get_count() bind(C,name="starpu_memory_nodes_get_count")
+                        use iso_c_binding, only: c_int
+                        integer(c_int)              :: fstarpu_memory_nodes_get_count
+                end function fstarpu_memory_nodes_get_count
+
+                ! enum starpu_node_kind starpu_node_get_kind(unsigned node);
+                ! void starpu_data_set_wt_mask(starpu_data_handle_t handle, uint32_t wt_mask);
+                ! void starpu_data_set_sequential_consistency_flag(starpu_data_handle_t handle, unsigned flag);
+                ! unsigned starpu_data_get_sequential_consistency_flag(starpu_data_handle_t handle);
+                ! unsigned starpu_data_get_default_sequential_consistency_flag(void);
+                ! void starpu_data_set_default_sequential_consistency_flag(unsigned flag);
+                ! void starpu_data_query_status(starpu_data_handle_t handle, int memory_node, int *is_allocated, int *is_valid, int *is_requested);
+
+                ! void starpu_data_set_reduction_methods(starpu_data_handle_t handle, struct starpu_codelet *redux_cl, struct starpu_codelet *init_cl);
+                subroutine fstarpu_data_set_reduction_methods (dh,redux_cl,init_cl) bind(C,name="starpu_data_set_reduction_methods")
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), value, intent(in) :: dh
+                        type(c_ptr), value, intent(in) :: redux_cl
+                        type(c_ptr), value, intent(in) :: init_cl
+                end subroutine fstarpu_data_set_reduction_methods
+
+                ! struct starpu_data_interface_ops* starpu_data_get_interface_ops(starpu_data_handle_t handle);
+
+                ! unsigned starpu_data_test_if_allocated_on_node(starpu_data_handle_t handle, unsigned memory_node);
+                function fstarpu_data_test_if_allocated_on_node(dh,mem_node) bind(C,name="starpu_data_test_if_allocated_on_node")
+                        use iso_c_binding, only: c_ptr, c_int
+                        integer(c_int)              :: fstarpu_data_test_if_allocated_on_node
+                        type(c_ptr), value, intent(in) :: dh
+                        integer(c_int), value, intent(in) :: mem_node
+                end function fstarpu_data_test_if_allocated_on_node
+
+                ! void starpu_memchunk_tidy(unsigned memory_node);
+                subroutine fstarpu_memchunk_tidy (mem_node) bind(c,name="starpu_memchunk_tidy")
+                        use iso_c_binding, only: c_int
+                        integer(c_int), value, intent(in) :: mem_node
+                end subroutine fstarpu_memchunk_tidy
+
                 ! == starpu_task_util.h ==
                 subroutine fstarpu_insert_task(arglist) bind(C)
                         use iso_c_binding, only: c_ptr
@@ -573,6 +721,83 @@ module fstarpu_mod
                         type(c_ptr), value, intent(in) :: cl_arg
                         type(c_ptr), dimension(:), intent(in) :: bufferlist
                 end subroutine fstarpu_unpack_arg
+
+                ! == starpu_sched_ctx.h ==
+
+                ! starpu_sched_ctx_create: see fstarpu_sched_ctx_create
+                function fstarpu_sched_ctx_create(workers_array,nworkers,ctx_name) bind(C)
+                        use iso_c_binding, only: c_int, c_char
+                        integer(c_int) :: fstarpu_sched_ctx_create
+                        integer(c_int), intent(in) :: workers_array(*)
+                        integer(c_int), value, intent(in) :: nworkers
+                        character(c_char), intent(in) :: ctx_name
+                end function fstarpu_sched_ctx_create
+
+                ! unsigned starpu_sched_ctx_create_inside_interval(const char *policy_name, const char *sched_ctx_name, int min_ncpus, int max_ncpus, int min_ngpus, int max_ngpus, unsigned allow_overlap);
+                ! void starpu_sched_ctx_register_close_callback(unsigned sched_ctx_id, void (*close_callback)(unsigned sched_ctx_id, void* args), void *args);
+                ! void starpu_sched_ctx_add_workers(int *workerids_ctx, int nworkers_ctx, unsigned sched_ctx_id);
+                ! void starpu_sched_ctx_remove_workers(int *workerids_ctx, int nworkers_ctx, unsigned sched_ctx_id);
+                ! starpu_sched_ctx_display_workers: see fstarpu_sched_ctx_display_workers
+                subroutine fstarpu_sched_ctx_display_workers (ctx) bind(C)
+                        use iso_c_binding, only: c_int
+                        integer(c_int), value, intent(in) :: ctx
+                end subroutine fstarpu_sched_ctx_display_workers
+
+                ! void starpu_sched_ctx_delete(unsigned sched_ctx_id);
+                subroutine fstarpu_sched_ctx_delete (ctx) bind(C,name="starpu_sched_ctx_delete")
+                        use iso_c_binding, only: c_int
+                        integer(c_int), value, intent(in) :: ctx
+                end subroutine fstarpu_sched_ctx_delete
+
+                ! void starpu_sched_ctx_set_inheritor(unsigned sched_ctx_id, unsigned inheritor);
+                ! unsigned starpu_sched_ctx_get_inheritor(unsigned sched_ctx_id);
+                ! unsigned starpu_sched_ctx_get_hierarchy_level(unsigned sched_ctx_id);
+
+                ! void starpu_sched_ctx_set_context(unsigned *sched_ctx_id);
+                subroutine fstarpu_sched_ctx_set_context (ctx_ptr) bind(C,name="starpu_sched_ctx_set_context")
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), value, intent(in) :: ctx_ptr
+                end subroutine fstarpu_sched_ctx_set_context
+
+                ! unsigned starpu_sched_ctx_get_context(void);
+                function fstarpu_sched_ctx_get_context () bind(C,name="starpu_sched_ctx_get_context")
+                        use iso_c_binding, only: c_int
+                        integer(c_int) :: fstarpu_sched_ctx_get_context
+                end function fstarpu_sched_ctx_get_context
+
+
+                ! == starpu_fxt.h ==
+
+                ! void starpu_fxt_options_init(struct starpu_fxt_options *options);
+                ! void starpu_fxt_generate_trace(struct starpu_fxt_options *options);
+
+                ! void starpu_fxt_autostart_profiling(int autostart);
+                subroutine fstarpu_fxt_autostart_profiling (autostart) bind(c,name="starpu_fxt_autostart_profiling")
+                        use iso_c_binding, only: c_int
+                        integer(c_int), value, intent(in) :: autostart
+                end subroutine fstarpu_fxt_autostart_profiling
+
+                ! void starpu_fxt_start_profiling(void);
+                subroutine fstarpu_fxt_start_profiling () bind(c,name="starpu_fxt_start_profiling")
+                        use iso_c_binding
+                end subroutine fstarpu_fxt_start_profiling
+
+                ! void starpu_fxt_stop_profiling(void);
+                subroutine fstarpu_fxt_stop_profiling () bind(c,name="starpu_fxt_stop_profiling")
+                        use iso_c_binding
+                end subroutine fstarpu_fxt_stop_profiling
+
+                ! void starpu_fxt_write_data_trace(char *filename_in);
+                subroutine fstarpu_fxt_write_data_trace (filename) bind(c,name="starpu_fxt_write_data_trace")
+                        use iso_c_binding, only: c_char
+                        character(c_char), intent(in) :: filename
+                end subroutine fstarpu_fxt_write_data_trace
+
+                ! void starpu_fxt_trace_user_event(unsigned long code);
+                subroutine fstarpu_trace_user_event (code) bind(c,name="starpu_trace_user_event")
+                        use iso_c_binding, only: c_long
+                        integer(c_long), value, intent(in) :: code
+                end subroutine fstarpu_trace_user_event
 
         end interface
 
@@ -630,6 +855,7 @@ module fstarpu_mod
                         FSTARPU_REDUX   = fstarpu_get_constant(C_CHAR_"FSTARPU_REDUX"//C_NULL_CHAR)
                         FSTARPU_DATA    = fstarpu_get_constant(C_CHAR_"FSTARPU_DATA"//C_NULL_CHAR)
                         FSTARPU_VALUE   = fstarpu_get_constant(C_CHAR_"FSTARPU_VALUE"//C_NULL_CHAR)
+                        FSTARPU_SCHED_CTX   = fstarpu_get_constant(C_CHAR_"FSTARPU_SCHED_CTX"//C_NULL_CHAR)
                         ! Initialize size constants as 'c_ptr'
                         FSTARPU_SZ_INT4         = sz_to_p(c_sizeof(FSTARPU_SZ_INT4_dummy))
                         FSTARPU_SZ_INT8         = sz_to_p(c_sizeof(FSTARPU_SZ_INT8_dummy))
