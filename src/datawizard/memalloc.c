@@ -267,6 +267,7 @@ static int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT transfer_subtree_to_node(starpu_d
 		if (src_replicate->state == STARPU_SHARED)
 		{
 			/* some other node may have the copy */
+			_STARPU_TRACE_DATA_INVALIDATE(handle, src_node);
 			src_replicate->state = STARPU_INVALID;
 
 			/* count the number of copies */

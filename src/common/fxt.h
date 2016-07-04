@@ -205,6 +205,7 @@
 #define _STARPU_FUT_TASK_WAIT_FOR_ALL_END	0x517b
 
 #define _STARPU_FUT_HANDLE_DATA_REGISTER 0x517c
+#define _STARPU_FUT_DATA_INVALIDATE 0x517d
 
 #ifdef STARPU_USE_FXT
 #include <fxt/fxt.h>
@@ -919,6 +920,9 @@ do {										\
 #define _STARPU_TRACE_HANDLE_DATA_REGISTER(handle)		\
 	FUT_DO_PROBE1(_STARPU_FUT_HANDLE_DATA_REGISTER, handle)
 
+#define _STARPU_TRACE_DATA_INVALIDATE(handle, node)		\
+	FUT_DO_PROBE2(_STARPU_FUT_DATA_INVALIDATE, handle, node)
+
 #else // !STARPU_USE_FXT
 
 /* Dummy macros in case FxT is disabled */
@@ -1027,6 +1031,7 @@ do {										\
 #define _STARPU_TRACE_SCHED_COMPONENT_PUSH(from, to, task)	do {} while (0)
 #define _STARPU_TRACE_SCHED_COMPONENT_PULL(from, to, task)	do {} while (0)
 #define _STARPU_TRACE_HANDLE_DATA_REGISTER(handle)	do {} while (0)
+#define _STARPU_TRACE_DATA_INVALIDATE(handle, node)	do {} while (0)
 
 #endif // STARPU_USE_FXT
 
