@@ -773,37 +773,36 @@ static void display_omp_environment(int verbosity_level)
 	if (verbosity_level > 0)
 	{
 		printf("OPENMP DISPLAY ENVIRONMENT BEGIN\n");
-		printf("  _OPENMP='xxxxxx'\n");
-		printf("  [host] OMP_DYNAMIC='%s'\n", _starpu_omp_initial_icv_values->dyn_var?"true":"false");
-		printf("  [host] OMP_NESTED='%s'\n", _starpu_omp_initial_icv_values->nest_var?"true":"false");
-		printf("  [host] OMP_SCHEDULE='");
+		printf("  _OPENMP = 'xxxxxx'\n");
+		printf("  [host] OMP_DYNAMIC = '%s'\n", _starpu_omp_initial_icv_values->dyn_var?"TRUE":"FALSE");
+		printf("  [host] OMP_NESTED = '%s'\n", _starpu_omp_initial_icv_values->nest_var?"TRUE":"FALSE");
+		printf("  [host] OMP_SCHEDULE = '");
 		switch (_starpu_omp_initial_icv_values->run_sched_var)
 		{
 			case starpu_omp_sched_static:
-				printf("static, %llu", _starpu_omp_initial_icv_values->run_sched_chunk_var);
+				printf("STATIC, %llu", _starpu_omp_initial_icv_values->run_sched_chunk_var);
 				break;
 			case starpu_omp_sched_dynamic:
-				printf("dynamic, %llu", _starpu_omp_initial_icv_values->run_sched_chunk_var);
+				printf("DYNAMIC, %llu", _starpu_omp_initial_icv_values->run_sched_chunk_var);
 				break;
 			case starpu_omp_sched_guided:
-				printf("guided, %llu", _starpu_omp_initial_icv_values->run_sched_chunk_var);
+				printf("GUIDED, %llu", _starpu_omp_initial_icv_values->run_sched_chunk_var);
 				break;
 			case starpu_omp_sched_auto:
-				printf("auto, %llu", _starpu_omp_initial_icv_values->run_sched_chunk_var);
+				printf("AUTO, %llu", _starpu_omp_initial_icv_values->run_sched_chunk_var);
 				break;
 			default:
-				printf("<unknown>");
 				break;
 		}
 		printf("'\n");
 				
-		printf("  [host] OMP_STACKSIZE='%d'\n", _starpu_omp_initial_icv_values->stacksize_var);
-		printf("  [host] OMP_WAIT_POLICY='%s'\n", _starpu_omp_initial_icv_values->wait_policy_var?"active":"passive");
-		printf("  [host] OMP_MAX_ACTIVE_LEVELS='%d'\n", _starpu_omp_initial_icv_values->max_active_levels_var);
-		printf("  [host] OMP_CANCELLATION='%s'\n", _starpu_omp_initial_icv_values->cancel_var?"true":"false");
-		printf("  [host] OMP_DEFAULT_DEVICE='%d'\n", _starpu_omp_initial_icv_values->default_device_var);
-		printf("  [host] OMP_MAX_TASK_PRIORITY='%d'\n", _starpu_omp_initial_icv_values->max_task_priority_var);
-		printf("  [host] OMP_PROC_BIND='");
+		printf("  [host] OMP_STACKSIZE = '%d'\n", _starpu_omp_initial_icv_values->stacksize_var);
+		printf("  [host] OMP_WAIT_POLICY = '%s'\n", _starpu_omp_initial_icv_values->wait_policy_var?"ACTIVE":"PASSIVE");
+		printf("  [host] OMP_MAX_ACTIVE_LEVELS = '%d'\n", _starpu_omp_initial_icv_values->max_active_levels_var);
+		printf("  [host] OMP_CANCELLATION = '%s'\n", _starpu_omp_initial_icv_values->cancel_var?"TRUE":"FALSE");
+		printf("  [host] OMP_DEFAULT_DEVICE = '%d'\n", _starpu_omp_initial_icv_values->default_device_var);
+		printf("  [host] OMP_MAX_TASK_PRIORITY = '%d'\n", _starpu_omp_initial_icv_values->max_task_priority_var);
+		printf("  [host] OMP_PROC_BIND = '");
 		{
 			int level;
 			for (level = 0; level < _starpu_omp_initial_icv_values->max_active_levels_var; level++)
@@ -815,28 +814,27 @@ static void display_omp_environment(int verbosity_level)
 				switch (_starpu_omp_initial_icv_values->bind_var[level])
 				{
 					case starpu_omp_proc_bind_false:
-						printf("false");
+						printf("FALSE");
 						break;
 					case starpu_omp_proc_bind_true:
-						printf("true");
+						printf("TRUE");
 						break;
 					case starpu_omp_proc_bind_master:
-						printf("master");
+						printf("MASTER");
 						break;
 					case starpu_omp_proc_bind_close:
-						printf("close");
+						printf("CLOSE");
 						break;
 					case starpu_omp_proc_bind_spread:
-						printf("spread");
+						printf("SPREAD");
 						break;
 					default:
-						printf("<unknown>");
 						break;
 				}
 			}
 		}
 		printf("'\n");
-		printf("  [host] OMP_NUM_THREADS='");
+		printf("  [host] OMP_NUM_THREADS = '");
 		{
 			int level;
 			for (level = 0; level < _starpu_omp_initial_icv_values->max_active_levels_var; level++)
@@ -849,7 +847,7 @@ static void display_omp_environment(int verbosity_level)
 			}
 		}
 		printf("'\n");
-		printf("  [host] OMP_PLACES='");
+		printf("  [host] OMP_PLACES = '");
 		{
 			struct starpu_omp_place *places = &_starpu_omp_initial_icv_values->places;
 			if (places->nb_numeric_places > 0)
@@ -896,23 +894,20 @@ static void display_omp_environment(int verbosity_level)
 				}
 				switch (places->abstract_name)
 				{
-					case starpu_omp_place_undefined:
-						printf("undefined");
-						break;
 					case starpu_omp_place_threads:
-						printf("threads");
+						printf("THREADS");
 						break;
 					case starpu_omp_place_cores:
-						printf("cores");
+						printf("CORES");
 						break;
 					case starpu_omp_place_sockets:
-						printf("sockets");
+						printf("SOCKETS");
 						break;
 					case starpu_omp_place_numerical:
-						printf("<numerical>");
+						printf("<NUMERICAL>");
 						break;
+					case starpu_omp_place_undefined:
 					default:
-						printf("<unknown>");
 						break;
 				}
 				if (places->abstract_length)
