@@ -17,6 +17,7 @@
 
 #include <starpu_sched_component.h>
 #include <core/workers.h>
+#include <core/sched_policy.h>
 
 static double compute_relative_speedup(struct starpu_sched_component * component)
 {
@@ -90,6 +91,7 @@ static int random_push_task(struct starpu_sched_component * component, struct st
 		return 1;
 	}
 
+	_STARPU_TASK_BREAK_ON(task, sched);
 	int ret_val = starpu_sched_component_push_task(component,select,task);
 	return ret_val;
 }

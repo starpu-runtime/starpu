@@ -251,4 +251,20 @@ heuristic based on the duration of the task over CPUs and GPUs to decide between
 the two queues. CPU workers can then pop from the CPU priority queue, and GPU
 workers from the GPU priority queue.
 
+\section DebuggingScheduling Debugging scheduling
+
+All the \ref OnlinePerformanceTools and \ref OfflinePerformanceTools can
+be used to get information about how well the execution proceeded, and thus the
+overall quality of the execution.
+
+Precise debugging can also be performed by using the \ref
+STARPU_TASK_BREAK_ON_SCHED, \ref STARPU_TASK_BREAK_ON_PUSH, and \ref
+STARPU_TASK_BREAK_ON_POP environment variables. By setting the job_id of a task
+in these environment variables, StarPU will raise SIGTRAP when the task is being
+scheduled, pushed, or popped by the scheduler. That means that when one notices
+that a task is being scheduled in a seemingly odd way, one can just reexecute
+the application in a debugger, with some of those variables set, and the
+execution will stop exactly at the scheduling points of that task, thus allowing
+to inspect the scheduler state etc.
+
 */

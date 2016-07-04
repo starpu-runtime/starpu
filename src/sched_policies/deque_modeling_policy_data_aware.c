@@ -25,6 +25,7 @@
 #include <common/fxt.h>
 #include <core/task.h>
 #include <core/workers.h>
+#include <core/sched_policy.h>
 
 #include <sched_policies/fifo_queues.h>
 #include <limits.h>
@@ -587,6 +588,7 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio, unsigned sched
 
 	starpu_task_set_implementation(task, best_impl);
 
+	_STARPU_TASK_BREAK_ON(task, sched);
 	/* we should now have the best worker in variable "best" */
 	return push_task_on_best_worker(task, best,
 					model_best, transfer_model_best, prio, sched_ctx_id);
@@ -891,6 +893,7 @@ static double _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned 
 	//_STARPU_DEBUG("Scheduler dmda: kernel (%u)\n", best_impl);
 	starpu_task_set_implementation(task, selected_impl);
 
+	_STARPU_TASK_BREAK_ON(task, sched);
 	if(!simulate)
 	{
 		/* we should now have the best worker in variable "best" */

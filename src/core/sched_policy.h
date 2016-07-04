@@ -19,9 +19,12 @@
 #define __SCHED_POLICY_H__
 
 #include <starpu.h>
+#include <signal.h>
 #include <core/workers.h>
 #include <core/sched_ctx.h>
 #include <starpu_scheduler.h>
+
+void _starpu_sched_init(void);
 
 struct starpu_machine_config;
 struct starpu_sched_policy *_starpu_get_sched_policy( struct _starpu_sched_ctx *sched_ctx);
@@ -88,4 +91,18 @@ extern struct starpu_sched_policy _starpu_sched_modular_ws_policy;
 extern struct starpu_sched_policy _starpu_sched_modular_heft_policy;
 extern struct starpu_sched_policy _starpu_sched_modular_heft2_policy;
 extern struct starpu_sched_policy _starpu_sched_graph_test_policy;
+
+extern long _starpu_task_break_on_push;
+extern long _starpu_task_break_on_pop;
+extern long _starpu_task_break_on_sched;
+
+#ifdef SIGTRAP
+#define _STARPU_TASK_BREAK_ON(task, what) do { \
+	if (_starpu_get_job_associated_to_task(task)->job_id == (unsigned long) _starpu_task_break_on_##what) \
+		raise(SIGTRAP); \
+} while(0)
+#else
+#define _STARPU_TASK_BREAK_ON(task, what) ((void) 0)
+#endif
+
 #endif // __SCHED_POLICY_H__

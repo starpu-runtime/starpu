@@ -28,6 +28,17 @@ static int use_prefetch = 0;
 static double idle[STARPU_NMAXWORKERS];
 static double idle_start[STARPU_NMAXWORKERS];
 
+long _starpu_task_break_on_push = -1;
+long _starpu_task_break_on_pop = -1;
+long _starpu_task_break_on_sched = -1;
+
+void _starpu_sched_init(void)
+{
+	_starpu_task_break_on_push = starpu_get_env_number_default("STARPU_TASK_BREAK_ON_PUSH", 0);
+	_starpu_task_break_on_pop = starpu_get_env_number_default("STARPU_TASK_BREAK_ON_POP", 0);
+	_starpu_task_break_on_sched = starpu_get_env_number_default("STARPU_TASK_BREAK_ON_SCHED", 0);
+}
+
 int starpu_get_prefetch_flag(void)
 {
 	return use_prefetch;
@@ -579,6 +590,7 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 				ret = -1;
 			else
 			{
+				_STARPU_TASK_BREAK_ON(task, push);
 				_STARPU_TRACE_WORKER_SCHEDULING_PUSH;
 				ret = sched_ctx->sched_policy->push_task(task);
 				_STARPU_TRACE_WORKER_SCHEDULING_POP;
@@ -785,6 +797,8 @@ pick:
 	/* perhaps there is some local task to be executed first */
 	task = _starpu_pop_local_task(worker);
 
+	if (task)
+		_STARPU_TASK_BREAK_ON(task, pop);
 
 	/* get tasks from the stacks of the strategy */
 	if(!task)
@@ -835,6 +849,8 @@ pick:
 					 * pushing/popping a scheduling state here, while what we
 					 * want to see in the trace is a permanent idle state. */
 					task = sched_ctx->sched_policy->pop_task(sched_ctx->id);
+					if (task)
+						_STARPU_TASK_BREAK_ON(task, pop);
 					_starpu_pop_task_end(task);
 				}
 			}

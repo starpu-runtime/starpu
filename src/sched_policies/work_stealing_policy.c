@@ -24,6 +24,7 @@
 #include <sched_policies/fifo_queues.h>
 #include <core/debug.h>
 #include <starpu_scheduler.h>
+#include <core/sched_policy.h>
 
 #ifdef HAVE_AYUDAME_H
 #include <Ayudame.h>
@@ -552,6 +553,7 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 	if (task)
 	{
 		_STARPU_TRACE_WORK_STEALING(workerid, victim);
+		_STARPU_TASK_BREAK_ON(task, sched);
 		record_data_locality(task, workerid);
 		record_worker_locality(task, workerid, sched_ctx_id);
 		locality_popped_task(task, victim, sched_ctx_id);
@@ -611,6 +613,7 @@ int ws_push_task(struct starpu_task *task)
 #endif
 
 	STARPU_PTHREAD_MUTEX_LOCK(&ws->per_worker[workerid].worker_mutex);
+	_STARPU_TASK_BREAK_ON(task, sched);
 	record_data_locality(task, workerid);
 	_starpu_fifo_push_task(ws->per_worker[workerid].queue_array, task);
 	locality_pushed_task(task, workerid, sched_ctx_id);
