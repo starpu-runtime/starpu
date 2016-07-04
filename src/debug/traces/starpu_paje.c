@@ -156,8 +156,10 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 	poti_DefineContainerType("MPICt", "P", "MPI Communication Thread");
 	poti_DefineContainerType("Sc", "P", "Scheduler");
 	poti_DefineEventType("prog_event", "P", "program event type");
+	poti_DefineEventType("register", "P", "data registration");
 
 	/* Types for the memory node */
+	poti_DefineEventType("invalidate", "Mm", "data invalidation");
 	poti_DefineVariableType("bw", "Mm", "Bandwidth", "0 0 0");
 	poti_DefineStateType("MS", "Mm", "Memory Node State");
 	poti_DefineEntityValue("A", "MS", "Allocating", ".4 .1 .0");
@@ -280,6 +282,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 1       MPICt   P       \"MPI Communication Thread\"              \n\
 1       Sc       P       \"Scheduler State\"                        \n\
 2       prog_event   P       \"program event type\"				\n\
+2       register     P       \"data registration\"				\n\
 2       user_event   T       \"user event type\"				\n\
 2       thread_event   T       \"thread event type\"				\n\
 2       user_user_event   UT       \"user event type\"				\n\
@@ -290,6 +293,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 	for (i=1; i<STARPU_NMAX_SCHED_CTXS; i++)
 		fprintf(file, "3       Ctx%u      T     \"InCtx%u\"         		\n", i, i);
 	fprintf(file, "\
+2       invalidate Mm \"data invalidation\"                            \n\
 3       MS       Mm       \"Memory Node State\"                        \n\
 4       nsubmitted    Sc       \"Number of Submitted Uncompleted Tasks\"                        \n\
 4       nready    Sc       \"Number of Ready Tasks\"                        \n\

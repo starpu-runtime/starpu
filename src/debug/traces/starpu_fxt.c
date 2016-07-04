@@ -1567,6 +1567,43 @@ static void handle_worker_sleep_end(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 	update_accumulated_time(worker, sleep_length, 0.0, end_sleep_timestamp, 0);
 }
 
+static void handle_data_register(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	unsigned long handle = ev->param[0];
+	char *prefix = options->file_prefix;
+
+	if (out_paje_file)
+	{
+#ifdef STARPU_HAVE_POTI
+		char paje_value[STARPU_POTI_STR_LEN], container[STARPU_POTI_STR_LEN];
+		snprintf(paje_value, STARPU_POTI_STR_LEN, "%lx", handle);
+		program_container_alias (container, STARPU_POTI_STR_LEN, prefix);
+		poti_NewEvent(get_event_time_stamp(ev, options), container, "user_event", paje_value);
+#else
+		fprintf(out_paje_file, "9	%.9f	register	%sp	%lx\n", get_event_time_stamp(ev, options), prefix, handle);
+#endif
+	}
+}
+
+static void handle_data_invalidate(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	unsigned long handle = ev->param[0];
+	unsigned node = ev->param[1];
+	char *prefix = options->file_prefix;
+
+	if (out_paje_file)
+	{
+#ifdef STARPU_HAVE_POTI
+		char paje_value[STARPU_POTI_STR_LEN], memnode_container[STARPU_POTI_STR_LEN];
+		memmanager_container_alias(memnode_container, STARPU_POTI_STR_LEN, prefix, node);
+		snprintf(paje_value, STARPU_POTI_STR_LEN, "%lx", handle);
+		poti_NewEvent(get_event_time_stamp(ev, options), container, "user_event", paje_value);
+#else
+		fprintf(out_paje_file, "9	%.9f	invalidate	%smm%u	%lx\n", get_event_time_stamp(ev, options), prefix, node, handle);
+#endif
+	}
+}
+
 static void handle_data_copy(void)
 {
 }
@@ -2615,6 +2652,14 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 
 			case _STARPU_FUT_TAG_DONE:
 				handle_tag_done(&ev, options);
+				break;
+
+			case _STARPU_FUT_HANDLE_DATA_REGISTER:
+				handle_data_register(&ev, options);
+				break;
+
+			case _STARPU_FUT_DATA_INVALIDATE:
+				handle_data_invalidate(&ev, options);
 				break;
 
 			case _STARPU_FUT_DATA_COPY:
