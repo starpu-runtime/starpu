@@ -917,6 +917,7 @@ static void display_omp_environment(int verbosity_level)
 			}
 		}
 		printf("'\n");
+		printf("  [host] OMP_THREAD_LIMIT = '%d'\n", _initial_icv_values.thread_limit_var);
 
 		if (verbosity_level > 1)
 		{
