@@ -79,7 +79,7 @@ static int strings_cmp(const char *strings[], const char *str)
 	int mode = 0;
 	while (strings[mode])
 	{
-		if (strcasecmp(str, strings[mode]) == 0)
+		if (strncasecmp(str, strings[mode], strlen(strings[mode])) == 0)
 			break;
 		mode++;
 	}
