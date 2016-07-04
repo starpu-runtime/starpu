@@ -1140,8 +1140,8 @@ static void handle_start_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_op
 
 	if (worker < 0) return;
 
-	unsigned long has_name = ev->param[3];
-	char *name = has_name?(char *)&ev->param[4]:"unknown";
+	unsigned long has_name = ev->param[4];
+	char *name = has_name?(char *)&ev->param[5]:"unknown";
 
 	snprintf(_starpu_last_codelet_symbol[worker], sizeof(_starpu_last_codelet_symbol[worker]), "%s", name);
 	last_codelet_parameter[worker] = 0;
@@ -3389,7 +3389,7 @@ void starpu_fxt_write_data_trace(char *filename_in)
 			workerid = ev.param[2];
 			tasks[workerid].exec_time = ev.time;
 			has_name = ev.param[3];
-			tasks[workerid].codelet_name = strdup(has_name ? (char *) &ev.param[4] : "unknown");
+			tasks[workerid].codelet_name = strdup(has_name ? (char *) &ev.param[5] : "unknown");
 			//fprintf(stderr, "start codelet :[%d][%s]\n", workerid, tasks[workerid].codelet_name);
 			break;
 

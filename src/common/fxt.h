@@ -204,6 +204,8 @@
 #define _STARPU_FUT_TASK_WAIT_FOR_ALL_START	0x517a
 #define _STARPU_FUT_TASK_WAIT_FOR_ALL_END	0x517b
 
+#define _STARPU_FUT_HANDLE_DATA_REGISTER 0x517c
+
 #ifdef STARPU_USE_FXT
 #include <fxt/fxt.h>
 #include <fxt/fut.h>
@@ -454,12 +456,12 @@ do {									\
 	if (name)                                                 \
 	{								\
 		/* we include the task name */			\
-		_STARPU_FUT_DO_PROBE4STR(_STARPU_FUT_START_CODELET_BODY, (job)->job_id, ((job)->task)->sched_ctx, workerid, 1, name); \
+		_STARPU_FUT_DO_PROBE5STR(_STARPU_FUT_START_CODELET_BODY, (job)->job_id, ((job)->task)->sched_ctx, workerid, starpu_worker_get_memory_node(workerid), 1, name); \
 		if (model_name && strcmp(model_name, name))				\
 			_STARPU_FUT_DO_PROBE1STR(_STARPU_FUT_MODEL_NAME, (job)->job_id, model_name); \
 	}								\
 	else {                                                          \
-		FUT_DO_PROBE4(_STARPU_FUT_START_CODELET_BODY, (job)->job_id, ((job)->task)->sched_ctx, workerid, 0); \
+		FUT_DO_PROBE5(_STARPU_FUT_START_CODELET_BODY, (job)->job_id, ((job)->task)->sched_ctx, workerid, starpu_worker_get_memory_node(workerid), 0); \
 	}								\
 	{								\
 		if ((job)->task->cl)					\
@@ -914,6 +916,9 @@ do {										\
 #define _STARPU_TRACE_SCHED_COMPONENT_PULL(from, to, task)		\
 	FUT_DO_PROBE5(_STARPU_FUT_SCHED_COMPONENT_PULL, _starpu_gettid(), from, to, task, (task)->priority);
 
+#define _STARPU_TRACE_HANDLE_DATA_REGISTER(handle)		\
+	FUT_DO_PROBE1(_STARPU_FUT_HANDLE_DATA_REGISTER, handle)
+
 #else // !STARPU_USE_FXT
 
 /* Dummy macros in case FxT is disabled */
@@ -1021,6 +1026,7 @@ do {										\
 #define _STARPU_TRACE_SCHED_COMPONENT_CONNECT(parent, child)	do {} while (0)
 #define _STARPU_TRACE_SCHED_COMPONENT_PUSH(from, to, task)	do {} while (0)
 #define _STARPU_TRACE_SCHED_COMPONENT_PULL(from, to, task)	do {} while (0)
+#define _STARPU_TRACE_HANDLE_DATA_REGISTER(handle)	do {} while (0)
 
 #endif // STARPU_USE_FXT
 
