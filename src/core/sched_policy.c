@@ -25,8 +25,8 @@
 #include <core/debug.h>
 
 static int use_prefetch = 0;
-double idle[STARPU_NMAXWORKERS];
-double idle_start[STARPU_NMAXWORKERS];
+static double idle[STARPU_NMAXWORKERS];
+static double idle_start[STARPU_NMAXWORKERS];
 
 int starpu_get_prefetch_flag(void)
 {
