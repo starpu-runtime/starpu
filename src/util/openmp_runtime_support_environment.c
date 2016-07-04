@@ -205,7 +205,7 @@ static void read_sched_var(const char *var, int *dest, unsigned long long *dest_
 			free(str);
 			return;
 		}
-		static const char *strings[] = { "static", "dynamic", "guided", "auto", NULL };
+		static const char *strings[] = { "undefined", "static", "dynamic", "guided", "auto", NULL };
 		int mode = strings_cmp(strings, str);
 		if (mode < 0)
 			_STARPU_ERROR("parse error in variable %s\n", var);
