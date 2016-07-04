@@ -26,10 +26,19 @@ static const intptr_t fstarpu_w	= STARPU_W;
 static const intptr_t fstarpu_rw	= STARPU_RW;
 static const intptr_t fstarpu_scratch	= STARPU_SCRATCH;
 static const intptr_t fstarpu_redux	= STARPU_REDUX;
+static const intptr_t fstarpu_commute	= STARPU_COMMUTE;
+static const intptr_t fstarpu_ssend	= STARPU_SSEND;
+static const intptr_t fstarpu_locality	= STARPU_LOCALITY;
 
-static const intptr_t fstarpu_data = STARPU_R | STARPU_W | STARPU_SCRATCH | STARPU_REDUX;
 static const intptr_t fstarpu_value = STARPU_VALUE;
 static const intptr_t fstarpu_sched_ctx = STARPU_SCHED_CTX;
+
+static const intptr_t fstarpu_cpu_worker = STARPU_CPU_WORKER;
+static const intptr_t fstarpu_cuda_worker = STARPU_CUDA_WORKER;
+static const intptr_t fstarpu_opencl_worker = STARPU_OPENCL_WORKER;
+static const intptr_t fstarpu_mic_worker = STARPU_MIC_WORKER;
+static const intptr_t fstarpu_scc_worker = STARPU_SCC_WORKER;
+static const intptr_t fstarpu_any_worker = STARPU_ANY_WORKER;
 
 extern void _starpu_pack_arguments(size_t *current_offset, size_t *arg_buffer_size_, char **arg_buffer_, void *ptr, size_t ptr_size);
 
@@ -40,10 +49,19 @@ intptr_t fstarpu_get_constant(char *s)
 	else if	(!strcmp(s, "FSTARPU_RW"))	{ return fstarpu_rw; }
 	else if	(!strcmp(s, "FSTARPU_SCRATCH"))	{ return fstarpu_scratch; }
 	else if	(!strcmp(s, "FSTARPU_REDUX"))	{ return fstarpu_redux; }
+	else if	(!strcmp(s, "FSTARPU_COMMUTE"))	{ return fstarpu_commute; }
+	else if	(!strcmp(s, "FSTARPU_SSEND"))	{ return fstarpu_ssend; }
+	else if	(!strcmp(s, "FSTARPU_LOCALITY"))	{ return fstarpu_locality; }
 
-	else if (!strcmp(s, "FSTARPU_DATA"))	{ return fstarpu_data; }
 	else if (!strcmp(s, "FSTARPU_VALUE"))	{ return fstarpu_value; }
 	else if (!strcmp(s, "FSTARPU_SCHED_CTX"))	{ return fstarpu_sched_ctx; }
+
+	else if (!strcmp(s, "FSTARPU_CPU_WORKER"))	{ return fstarpu_cpu_worker; }
+	else if (!strcmp(s, "FSTARPU_CUDA_WORKER"))	{ return fstarpu_cuda_worker; }
+	else if (!strcmp(s, "FSTARPU_OPENCL_WORKER"))	{ return fstarpu_opencl_worker; }
+	else if (!strcmp(s, "FSTARPU_MIC_WORKER"))	{ return fstarpu_mic_worker; }
+	else if (!strcmp(s, "FSTARPU_SCC_WORKER"))	{ return fstarpu_scc_worker; }
+	else if (!strcmp(s, "FSTARPU_ANY_WORKER"))	{ return fstarpu_any_worker; }
 
 	else { _FSTARPU_ERROR("unknown pointer constant"); }
 }
@@ -116,6 +134,11 @@ void fstarpu_conf_set_bus_calibrate(struct starpu_conf *conf, int bus_calibrate)
 {
 	STARPU_ASSERT(bus_calibrate == 0 || bus_calibrate == 1);
 	conf->bus_calibrate = bus_calibrate;
+}
+
+void fstarpu_topology_print(void)
+{
+	starpu_topology_print(stderr);
 }
 
 struct starpu_codelet *fstarpu_codelet_allocate(void)
@@ -350,6 +373,37 @@ void fstarpu_sched_ctx_display_workers(int ctx)
 	starpu_sched_ctx_display_workers((unsigned)ctx, stderr);
 }
 
+intptr_t fstarpu_worker_get_type(int workerid)
+{
+	return (intptr_t)starpu_worker_get_type(workerid);
+}
+
+int fstarpu_worker_get_count_by_type(intptr_t type)
+{
+	return starpu_worker_get_count_by_type((enum starpu_worker_archtype)type);
+}
+
+int fstarpu_worker_get_ids_by_type(intptr_t type, int *workerids, int maxsize)
+{
+	return starpu_worker_get_ids_by_type((enum starpu_worker_archtype)type, workerids, maxsize);
+}
+
+int fstarpu_worker_get_by_type(intptr_t type, int num)
+{
+	return starpu_worker_get_by_type((enum starpu_worker_archtype)type, num);
+}
+
+int fstarpu_worker_get_by_devid(intptr_t type, int devid)
+{
+	return starpu_worker_get_by_type((enum starpu_worker_archtype)type, devid);
+}
+
+void fstarpu_worker_get_type_as_string(intptr_t type, char *dst, size_t maxlen)
+{
+	const char *str = starpu_worker_get_type_as_string((enum starpu_worker_archtype)type);
+	snprintf(dst, maxlen, "%s", str);
+}
+
 void fstarpu_insert_task(void ***_arglist)
 {
 	void **arglist = *_arglist;
@@ -371,12 +425,10 @@ void fstarpu_insert_task(void ***_arglist)
 	while (arglist[i] != NULL)
 	{
 		const intptr_t arg_type = (intptr_t)arglist[i];
-		if (arg_type == fstarpu_data
-			|| arg_type == fstarpu_r
-			|| arg_type == fstarpu_rw
-			|| arg_type == fstarpu_w
-			|| arg_type == fstarpu_scratch
-			|| arg_type == fstarpu_redux)
+		if (arg_type & fstarpu_r
+			|| arg_type & fstarpu_w
+			|| arg_type & fstarpu_scratch
+			|| arg_type & fstarpu_redux)
 		{
 			i++;
 			starpu_data_handle_t handle = arglist[i];

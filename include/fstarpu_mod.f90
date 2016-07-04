@@ -19,36 +19,53 @@ module fstarpu_mod
 
         ! Note: Constants truly are intptr_t, but are declared as c_ptr to be
         ! readily usable in c_ptr arrays to mimic variadic functions.
-        ! A side effect, though, is that such constants cannot be logically
-        ! 'or'-ed.
+        ! Note: Bitwise or operator is provided by the .ior. overloaded operator
         type(c_ptr), bind(C) :: FSTARPU_R
         type(c_ptr), bind(C) :: FSTARPU_W
         type(c_ptr), bind(C) :: FSTARPU_RW
         type(c_ptr), bind(C) :: FSTARPU_SCRATCH
         type(c_ptr), bind(C) :: FSTARPU_REDUX
+        type(c_ptr), bind(C) :: FSTARPU_COMMUTE
+        type(c_ptr), bind(C) :: FSTARPU_SSEND
+        type(c_ptr), bind(C) :: FSTARPU_LOCALITY
 
-        type(c_ptr), bind(C) :: FSTARPU_DATA
         type(c_ptr), bind(C) :: FSTARPU_VALUE
         type(c_ptr), bind(C) :: FSTARPU_SCHED_CTX
+
+        type(c_ptr), bind(C) :: FSTARPU_CPU_WORKER
+        type(c_ptr), bind(C) :: FSTARPU_CUDA_WORKER
+        type(c_ptr), bind(C) :: FSTARPU_OPENCL_WORKER
+        type(c_ptr), bind(C) :: FSTARPU_MIC_WORKER
+        type(c_ptr), bind(C) :: FSTARPU_SCC_WORKER
+        type(c_ptr), bind(C) :: FSTARPU_ANY_WORKER
 
         type(c_ptr), bind(C) :: FSTARPU_SZ_INT4
         type(c_ptr), bind(C) :: FSTARPU_SZ_INT8
 
         type(c_ptr), bind(C) :: FSTARPU_SZ_REAL4
         type(c_ptr), bind(C) :: FSTARPU_SZ_REAL8
+
+        interface operator (.ior.)
+                procedure or_cptrs
+        end interface operator (.ior.)
+
         interface
                 ! == starpu.h ==
 
-                ! starpu_conf_init: see fstarpu_conf_allocate
+                ! void starpu_conf_init(struct starpu_conf *conf);
+                subroutine fstarpu_conf_init (conf) bind(C,name="starpu_conf_init")
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), value, intent(in) :: conf
+                end subroutine fstarpu_conf_init
 
                 function fstarpu_conf_allocate () bind(C)
                         use iso_c_binding, only: c_ptr
                         type(c_ptr) :: fstarpu_conf_allocate
                 end function fstarpu_conf_allocate
 
-                subroutine fstarpu_conf_free (cl) bind(C)
+                subroutine fstarpu_conf_free (conf) bind(C)
                         use iso_c_binding, only: c_ptr
-                        type(c_ptr), value, intent(in) :: cl
+                        type(c_ptr), value, intent(in) :: conf
                 end subroutine fstarpu_conf_free
 
                 subroutine fstarpu_conf_set_sched_policy_name (conf, policy_name) bind(C)
@@ -115,6 +132,8 @@ module fstarpu_mod
                 end subroutine fstarpu_shutdown
 
                 ! starpu_topology_print
+                subroutine fstarpu_topology_print () bind(C)
+                end subroutine fstarpu_topology_print
 
                 ! int starpu_asynchronous_copy_disabled(void);
                 function fstarpu_asynchronous_copy_disabled() bind(C,name="starpu_asynchronous_copy_disabled")
@@ -237,11 +256,52 @@ module fstarpu_mod
                 end function fstarpu_combined_worker_get_rank
 
                 ! enum starpu_worker_archtype starpu_worker_get_type(int id);
+                function fstarpu_worker_get_type(id) bind(C)
+                        use iso_c_binding, only: c_int, c_ptr
+                        type(c_ptr)              :: fstarpu_worker_get_type ! C function returns c_intptr_t
+                        integer(c_int),value,intent(in) :: id
+                        end function fstarpu_worker_get_type
+
                 ! int starpu_worker_get_count_by_type(enum starpu_worker_archtype type);
+                function fstarpu_worker_get_count_by_type(typeid) bind(C)
+                        use iso_c_binding, only: c_int, c_ptr
+                        integer(c_int)              :: fstarpu_worker_get_count_by_type
+                        type(c_ptr),value,intent(in) :: typeid ! c_intptr_t expected by C func
+                end function fstarpu_worker_get_count_by_type
+
                 ! int starpu_worker_get_ids_by_type(enum starpu_worker_archtype type, int *workerids, int maxsize);
+                function fstarpu_worker_get_ids_by_type(typeid, workerids, maxsize) bind(C)
+                        use iso_c_binding, only: c_int, c_ptr
+                        integer(c_int)              :: fstarpu_worker_get_ids_by_type
+                        type(c_ptr),value,intent(in) :: typeid ! c_intptr_t expected by C func
+                        integer(c_int),intent(out) :: workerids(*)
+                        integer(c_int),value,intent(in) :: maxsize
+                end function fstarpu_worker_get_ids_by_type
+
                 ! int starpu_worker_get_by_type(enum starpu_worker_archtype type, int num);
+                function fstarpu_worker_get_by_type(typeid, num) bind(C)
+                        use iso_c_binding, only: c_int, c_ptr
+                        integer(c_int)              :: fstarpu_worker_get_by_type
+                        type(c_ptr),value,intent(in) :: typeid ! c_intptr_t expected by C func
+                        integer(c_int),value,intent(in) :: num
+                end function fstarpu_worker_get_by_type
+
                 ! int starpu_worker_get_by_devid(enum starpu_worker_archtype type, int devid);
+                function fstarpu_worker_get_by_devid(typeid, devid) bind(C)
+                        use iso_c_binding, only: c_int, c_ptr
+                        integer(c_int)              :: fstarpu_worker_get_by_type
+                        type(c_ptr),value,intent(in) :: typeid ! c_intptr_t expected by C func
+                        integer(c_int),value,intent(in) :: devid
+                end function fstarpu_worker_get_by_devid
+
                 ! void starpu_worker_get_name(int id, char *dst, size_t maxlen);
+                subroutine fstarpu_worker_get_name(id, dst, maxlen) bind(C,name="starpu_worker_get_name")
+                        use iso_c_binding, only: c_int, c_char, c_size_t
+                        integer(c_int),value,intent(in) :: id
+                        character(c_char),intent(out) :: dst(*)
+                        integer(c_size_t),value,intent(in) :: maxlen
+                end subroutine fstarpu_worker_get_name
+
 
                 ! int starpu_worker_get_devid(int id);
                 function fstarpu_worker_get_devid(id) bind(C,name="starpu_worker_get_devid")
@@ -275,6 +335,13 @@ module fstarpu_mod
                 end function fstarpu_worker_is_slave_somewhere
 
                 ! char *starpu_worker_get_type_as_string(enum starpu_worker_archtype type);
+                subroutine fstarpu_worker_get_type_as_string(typeid,dst,maxlen) bind(C)
+                        use iso_c_binding, only: c_ptr, c_char, c_size_t
+                        type(c_ptr),value,intent(in) :: typeid ! c_intptr_t expected by C func
+                        character(c_char),intent(out) :: dst(*)
+                        integer(c_size_t),value,intent(in) :: maxlen
+                end subroutine fstarpu_worker_get_type_as_string
+
                 ! int starpu_bindid_get_workerids(int bindid, int **workerids);
 
                 ! == starpu_task.h ==
@@ -287,36 +354,138 @@ module fstarpu_mod
                 ! starpu_tag_notify_from_apps
                 ! starpu_tag_restart
                 ! starpu_tag_remove
-                ! starpu_task_init
-                ! starpu_task_clean
-                ! starpu_task_create
-                ! starpu_task_destroy
-                ! starpu_task_submit
-                ! starpu_task_submit_to_ctx
-                ! starpu_task_finished
-                ! starpu_task_wait
+                ! struct starpu_task *starpu_tag_get_task(starpu_tag_t id);
+
+                ! void starpu_task_init(struct starpu_task *task);
+                subroutine fstarpu_task_init (task) bind(C,name="starpu_task_init")
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), value, intent(in) :: task
+                end subroutine fstarpu_task_init
+
+                ! void starpu_task_clean(struct starpu_task *task);
+                subroutine fstarpu_task_clean (task) bind(C,name="starpu_task_clean")
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), value, intent(in) :: task
+                end subroutine fstarpu_task_clean
+
+                ! struct starpu_task *starpu_task_create(void) STARPU_ATTRIBUTE_MALLOC;
+                function fstarpu_task_create () bind(C,name="starpu_task_create")
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr) :: fstarpu_task_create
+                end function fstarpu_task_create
+
+                ! void starpu_task_destroy(struct starpu_task *task);
+                subroutine fstarpu_task_destroy (task) bind(C,name="starpu_task_destroy")
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), value, intent(in) :: task
+                end subroutine fstarpu_task_destroy
+
+                ! int starpu_task_submit(struct starpu_task *task) STARPU_WARN_UNUSED_RESULT;
+                function fstarpu_task_submit (task) bind(C,name="starpu_task_submit")
+                        use iso_c_binding, only: c_int,c_ptr
+                        integer(c_int) :: fstarpu_task_submit
+                        type(c_ptr), value, intent(in) :: task
+                end function fstarpu_task_submit
+
+                ! int starpu_task_submit_to_ctx(struct starpu_task *task, unsigned sched_ctx_id);
+                function fstarpu_task_submit_to_ctx (task,sched_ctx_id) bind(C,name="starpu_task_submit_to_ctx")
+                        use iso_c_binding, only: c_int,c_ptr
+                        integer(c_int) :: fstarpu_task_submit_to_ctx
+                        type(c_ptr), value, intent(in) :: task
+                        integer(c_int), value, intent(in) :: sched_ctx_id
+                end function fstarpu_task_submit_to_ctx
+
+                ! int starpu_task_finished(struct starpu_task *task) STARPU_WARN_UNUSED_RESULT;
+                function fstarpu_task_finished (task) bind(C,name="starpu_task_finished")
+                        use iso_c_binding, only: c_int,c_ptr
+                        integer(c_int) :: fstarpu_task_finished
+                        type(c_ptr), value, intent(in) :: task
+                end function fstarpu_task_finished
+
+                ! int starpu_task_wait(struct starpu_task *task) STARPU_WARN_UNUSED_RESULT;
+                function fstarpu_task_wait (task) bind(C,name="starpu_task_wait")
+                        use iso_c_binding, only: c_int,c_ptr
+                        integer(c_int) :: fstarpu_task_wait
+                        type(c_ptr), value, intent(in) :: task
+                end function fstarpu_task_wait
+
+                ! int starpu_task_wait_array(struct starpu_task **tasks, unsigned nb_tasks) STARPU_WARN_UNUSED_RESULT;
 
                 ! int starpu_task_wait_for_all(void);
                 subroutine fstarpu_task_wait_for_all () bind(C,name="starpu_task_wait_for_all")
                 end subroutine fstarpu_task_wait_for_all
 
-                ! starpu_task_wait_for_n_submitted
-                ! starpu_task_wait_for_all_in_ctx
+                ! int starpu_task_wait_for_n_submitted(unsigned n);
+                subroutine fstarpu_task_wait_for_n_submitted (n) bind(C,name="starpu_task_wait_for_n_submitted")
+                        use iso_c_binding, only: c_int
+                        integer(c_int), value, intent(in) :: n
+                end subroutine fstarpu_task_wait_for_n_submitted
+
+                ! int starpu_task_wait_for_all_in_ctx(unsigned sched_ctx_id);
+
                 subroutine fstarpu_task_wait_for_all_in_ctx (ctx) bind(C,name="starpu_task_wait_for_all_in_ctx")
                         use iso_c_binding, only: c_int
                         integer(c_int), value, intent(in) :: ctx
                 end subroutine fstarpu_task_wait_for_all_in_ctx
 
-                ! starpu_task_wait_for_n_submitted_in_ctx
-                ! starpu_task_wait_for_no_ready
-                ! starpu_task_nready
-                ! starpu_task_nsubmitted
+                ! int starpu_task_wait_for_n_submitted_in_ctx(unsigned sched_ctx_id, unsigned n);
+                subroutine fstarpu_task_wait_for_n_submitted_in_ctx (ctx,n) bind(C,name="starpu_task_wait_for_n_submitted_in_ctx")
+                        use iso_c_binding, only: c_int
+                        integer(c_int), value, intent(in) :: ctx
+                        integer(c_int), value, intent(in) :: n
+                end subroutine fstarpu_task_wait_for_n_submitted_in_ctx
+
+                ! int starpu_task_wait_for_no_ready(void);
+                function fstarpu_task_wait_for_no_ready () bind(C,name="starpu_task_wait_for_no_ready")
+                        use iso_c_binding, only: c_int
+                        integer(c_int) :: fstarpu_task_wait_for_no_ready
+                end function fstarpu_task_wait_for_no_ready
+
+                ! int starpu_task_nready(void);
+                function fstarpu_task_nready () bind(C,name="starpu_task_nready")
+                        use iso_c_binding, only: c_int
+                        integer(c_int) :: fstarpu_task_nready
+                end function fstarpu_task_nready
+
+                ! int starpu_task_nsubmitted(void);
+                function fstarpu_task_nsubmitted () bind(C,name="starpu_task_nsubmitted")
+                        use iso_c_binding, only: c_int
+                        integer(c_int) :: fstarpu_task_nsubmitted
+                end function fstarpu_task_nsubmitted
+
+                ! void starpu_do_schedule(void);
+                subroutine fstarpu_do_schedule () bind(C,name="starpu_do_schedule")
+                end subroutine fstarpu_do_schedule
+
                 ! starpu_codelet_init
+                subroutine fstarpu_codelet_init (codelet) bind(C,name="starpu_codelet_init")
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), value, intent(in) :: codelet
+                end subroutine fstarpu_codelet_init
+
                 ! starpu_codelet_display_stats
-                ! starpu_task_get_current
+                subroutine fstarpu_codelet_display_stats (codelet) bind(C,name="starpu_codelet_display_stats")
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), value, intent(in) :: codelet
+                end subroutine fstarpu_codelet_display_stats
+
+
+                ! struct starpu_task *starpu_task_get_current(void);
+                function fstarpu_task_get_current () bind(C,name="starpu_task_get_current")
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr) :: fstarpu_task_get_current
+                end function fstarpu_task_get_current
+
                 ! starpu_parallel_task_barrier_init
                 ! starpu_parallel_task_barrier_init_n
-                ! starpu_task_dup
+
+                ! struct starpu_task *starpu_task_dup(struct starpu_task *task);
+                function fstarpu_task_dup (task) bind(C,name="starpu_task_dup")
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr) :: fstarpu_task_dup
+                        type(c_ptr), value, intent(in) :: task
+                end function fstarpu_task_dup
+
                 ! starpu_task_set_implementation
                 ! starpu_task_get_implementation
                 ! --
@@ -802,6 +971,15 @@ module fstarpu_mod
         end interface
 
         contains
+                function or_cptrs(op1,op2)
+                        type(c_ptr) :: or_cptrs
+                        type(c_ptr),intent(in) :: op1,op2
+                        integer(c_intptr_t) :: i_op1,i_op2
+                        i_op1 = transfer(op1,0_c_intptr_t)
+                        i_op2 = transfer(op2,0_c_intptr_t)
+                        or_cptrs = transfer(ior(i_op1,i_op2), C_NULL_PTR)
+                end function
+
                 function ip_to_p(i) bind(C)
                         use iso_c_binding, only: c_ptr,c_intptr_t,C_NULL_PTR
                         type(c_ptr) :: ip_to_p
@@ -853,9 +1031,19 @@ module fstarpu_mod
                         FSTARPU_RW      = fstarpu_get_constant(C_CHAR_"FSTARPU_RW"//C_NULL_CHAR)
                         FSTARPU_SCRATCH = fstarpu_get_constant(C_CHAR_"FSTARPU_SCRATCH"//C_NULL_CHAR)
                         FSTARPU_REDUX   = fstarpu_get_constant(C_CHAR_"FSTARPU_REDUX"//C_NULL_CHAR)
-                        FSTARPU_DATA    = fstarpu_get_constant(C_CHAR_"FSTARPU_DATA"//C_NULL_CHAR)
+                        FSTARPU_COMMUTE   = fstarpu_get_constant(C_CHAR_"FSTARPU_COMMUTE"//C_NULL_CHAR)
+                        FSTARPU_SSEND   = fstarpu_get_constant(C_CHAR_"FSTARPU_SSEND"//C_NULL_CHAR)
+                        FSTARPU_LOCALITY   = fstarpu_get_constant(C_CHAR_"FSTARPU_LOCALITY"//C_NULL_CHAR)
+
                         FSTARPU_VALUE   = fstarpu_get_constant(C_CHAR_"FSTARPU_VALUE"//C_NULL_CHAR)
                         FSTARPU_SCHED_CTX   = fstarpu_get_constant(C_CHAR_"FSTARPU_SCHED_CTX"//C_NULL_CHAR)
+                        FSTARPU_CPU_WORKER   = fstarpu_get_constant(C_CHAR_"FSTARPU_CPU_WORKER"//C_NULL_CHAR)
+                        FSTARPU_CUDA_WORKER   = fstarpu_get_constant(C_CHAR_"FSTARPU_CUDA_WORKER"//C_NULL_CHAR)
+                        FSTARPU_OPENCL_WORKER   = fstarpu_get_constant(C_CHAR_"FSTARPU_OPENCL_WORKER"//C_NULL_CHAR)
+                        FSTARPU_MIC_WORKER   = fstarpu_get_constant(C_CHAR_"FSTARPU_MIC_WORKER"//C_NULL_CHAR)
+                        FSTARPU_SCC_WORKER   = fstarpu_get_constant(C_CHAR_"FSTARPU_SCC_WORKER"//C_NULL_CHAR)
+                        FSTARPU_ANY_WORKER   = fstarpu_get_constant(C_CHAR_"FSTARPU_ANY_WORKER"//C_NULL_CHAR)
+
                         ! Initialize size constants as 'c_ptr'
                         FSTARPU_SZ_INT4         = sz_to_p(c_sizeof(FSTARPU_SZ_INT4_dummy))
                         FSTARPU_SZ_INT8         = sz_to_p(c_sizeof(FSTARPU_SZ_INT8_dummy))
