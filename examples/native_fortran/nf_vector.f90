@@ -78,10 +78,7 @@ program nf_vector
         !     . . .
         !     C_NULL_PTR
         !   )/
-        !
-        ! Note: The argument type for data handles is FSTARPU_DATA, regardless
-        ! of the buffer access mode (specified in the codelet)
-        call fstarpu_insert_task((/ cl_vec, FSTARPU_DATA, dh_va, FSTARPU_DATA, dh_vb, C_NULL_PTR /))
+        call fstarpu_insert_task((/ cl_vec, FSTARPU_R, dh_va, FSTARPU_RW.ior.FSTARPU_LOCALITY, dh_vb, C_NULL_PTR /))
 
         ! wait for task completion
         call fstarpu_task_wait_for_all()

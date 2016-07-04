@@ -71,10 +71,7 @@ program nf_matrix
         !     . . .
         !     C_NULL_PTR
         !   )/
-        !
-        ! Note: The argument type for data handles is FSTARPU_DATA, regardless
-        ! of the buffer access mode (specified in the codelet)
-        call fstarpu_insert_task((/ cl_mat, FSTARPU_DATA, dh_ma, FSTARPU_DATA, dh_mb, C_NULL_PTR /))
+        call fstarpu_insert_task((/ cl_mat, FSTARPU_R, dh_ma, FSTARPU_RW, dh_mb, C_NULL_PTR /))
 
         ! wait for task completion
         call fstarpu_task_wait_for_all()
