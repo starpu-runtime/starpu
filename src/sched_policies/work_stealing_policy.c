@@ -73,7 +73,7 @@ struct _starpu_work_stealing_data_per_worker
 {
 	struct _starpu_fifo_taskq *queue_array;
 	int *proxlist;
-	pthread_mutex_t worker_mutex;
+	starpu_pthread_mutex_t worker_mutex;
 
 #ifdef USE_LOCALITY_TASKS
 	/* This records the same as queue_array, but hashed by data accessed with locality flag.  */
@@ -650,7 +650,7 @@ static void ws_add_workers(unsigned sched_ctx_id, int *workerids,unsigned nworke
 		/* Tell helgrid that we are fine with getting outdated values,
 		 * this is just an estimation */
 		STARPU_HG_DISABLE_CHECKING(ws->per_worker[workerid].queue_array->ntasks);
-		pthread_mutex_init(&ws->per_worker[workerid].worker_mutex, NULL);
+		STARPU_PTHREAD_MUTEX_INIT(&ws->per_worker[workerid].worker_mutex, NULL);
 	}
 }
 
@@ -672,7 +672,7 @@ static void ws_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned nw
 		}
 		free(ws->per_worker[workerid].proxlist);
 		ws->per_worker[workerid].proxlist = NULL;
-		pthread_mutex_destroy(&ws->per_worker[workerid].worker_mutex);
+		STARPU_PTHREAD_MUTEX_DESTROY(&ws->per_worker[workerid].worker_mutex);
 	}
 }
 
@@ -719,6 +719,7 @@ struct starpu_sched_policy _starpu_sched_ws_policy =
 /* Return a worker to steal a task from. The worker is selected according to
  * the proximity list built using the info on te architecture provided by hwloc
  */
+#ifdef STARPU_HAVE_HWLOC
 static unsigned lws_select_victim(unsigned sched_ctx_id, int workerid)
 {
 	struct _starpu_work_stealing_data *ws = (struct _starpu_work_stealing_data *)starpu_sched_ctx_get_policy_data(sched_ctx_id);
@@ -735,24 +736,23 @@ static unsigned lws_select_victim(unsigned sched_ctx_id, int workerid)
 	}
 	return workerid;
 }
+#endif
 
 static void lws_add_workers(unsigned sched_ctx_id, int *workerids,
 			    unsigned nworkers)
 {
-	struct _starpu_work_stealing_data *ws = (struct _starpu_work_stealing_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-
-	unsigned i;
-	int workerid;
-
 	ws_add_workers(sched_ctx_id, workerids, nworkers);
 
 #ifdef STARPU_HAVE_HWLOC
+	struct _starpu_work_stealing_data *ws = (struct _starpu_work_stealing_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	/* Build a proximity list for every worker. It is cheaper to
 	 * build this once and then use it for popping tasks rather
 	 * than traversing the hwloc tree every time a task must be
 	 * stolen */
 	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 	struct starpu_tree *tree = (struct starpu_tree*)workers->workerids;
+	int workerid;
+	unsigned i;
 	for (i = 0; i < nworkers; i++)
 	{
 		workerid = workerids[i];
