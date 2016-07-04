@@ -791,6 +791,7 @@ static void display_omp_environment(int verbosity_level)
 			case starpu_omp_sched_auto:
 				printf("AUTO, %llu", _starpu_omp_initial_icv_values->run_sched_chunk_var);
 				break;
+			case starpu_omp_sched_undefined:
 			default:
 				break;
 		}
