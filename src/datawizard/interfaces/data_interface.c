@@ -459,6 +459,9 @@ void starpu_data_register(starpu_data_handle_t *handleptr, unsigned home_node,
 			  struct starpu_data_interface_ops *ops)
 {
 	starpu_data_handle_t handle = _starpu_data_handle_allocate(ops, home_node);
+#ifdef STARPU_USE_FXT
+	_STARPU_TRACE_HANDLE_DATA_REGISTER(handle);
+#endif
 
 	STARPU_ASSERT(handleptr);
 	*handleptr = handle;
