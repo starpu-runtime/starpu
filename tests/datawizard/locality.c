@@ -21,7 +21,7 @@
  *
  * 0 | 1 | ... | N-1
  *
- * for each simulation iteration, a task works on some adjactent pieces
+ * for each simulation iteration, a task works on some adjacent pieces
  *
  * Locality is thus set on the central piece.
  */
