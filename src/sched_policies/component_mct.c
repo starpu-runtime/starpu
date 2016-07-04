@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2015  Université de Bordeaux
+ * Copyright (C) 2013-2016  Université de Bordeaux
  * Copyright (C) 2013  INRIA
  * Copyright (C) 2013  Simon Archipoff
  *
@@ -21,6 +21,7 @@
 #include <starpu_perfmodel.h>
 #include "helper_mct.h"
 #include <float.h>
+#include <core/sched_policy.h>
 
 static int mct_push_task(struct starpu_sched_component * component, struct starpu_task * task)
 {
@@ -99,6 +100,7 @@ static int mct_push_task(struct starpu_sched_component * component, struct starp
 		return 1;
 	}
 
+	_STARPU_TASK_BREAK_ON(task, sched);
 	int ret = starpu_sched_component_push_task(component, best_component, task);
 	return ret;
 }

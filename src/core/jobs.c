@@ -87,7 +87,8 @@ struct _starpu_job* STARPU_ATTRIBUTE_MALLOC _starpu_job_create(struct starpu_tas
 	job->task = task;
 
 #ifndef STARPU_USE_FXT
-	if (_starpu_bound_recording || _starpu_top_status_get()
+	if (_starpu_bound_recording || _starpu_top_status_get() ||
+		_starpu_task_break_on_push != -1 || _starpu_task_break_on_pop != -1 || _starpu_task_break_on_sched != -1
 #ifdef HAVE_AYUDAME_H
 		|| AYU_event
 #endif

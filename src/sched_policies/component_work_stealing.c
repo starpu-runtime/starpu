@@ -18,6 +18,7 @@
 #include <starpu_sched_component.h>
 #include <starpu_scheduler.h>
 #include <starpu.h>
+#include <core/sched_policy.h>
 
 #include <float.h>
 
@@ -61,7 +62,10 @@ static struct starpu_task *  steal_task_round_robin(struct starpu_sched_componen
 		}
 		STARPU_PTHREAD_MUTEX_UNLOCK(wsd->mutexes[i]);
 		if(task)
+		{
+			_STARPU_TASK_BREAK_ON(task, sched);
 			break;
+		}
 
 		if (i == wsd->last_pop_child)
 		{
@@ -225,6 +229,7 @@ static int push_task(struct starpu_sched_component * component, struct starpu_ta
 	i = (i+1)%component->nchildren;
 
 	STARPU_PTHREAD_MUTEX_LOCK(wsd->mutexes[i]);
+	_STARPU_TASK_BREAK_ON(task, sched);
 	ret = _starpu_prio_deque_push_task(wsd->fifos[i], task);
 	STARPU_PTHREAD_MUTEX_UNLOCK(wsd->mutexes[i]);
 
