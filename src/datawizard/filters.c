@@ -170,6 +170,7 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 		else
 			child = childrenp[i];
 		STARPU_ASSERT(child);
+		_STARPU_TRACE_HANDLE_DATA_REGISTER(child);
 
 		struct starpu_data_interface_ops *ops;
 
