@@ -70,7 +70,7 @@ struct _starpu_work_stealing_data_per_worker
 {
 	struct _starpu_fifo_taskq *queue_array;
 	int *proxlist;
-	pthread_mutex_t worker_mutex;
+	starpu_pthread_mutex_t worker_mutex;
 
 #ifdef USE_LOCALITY_TASKS
 	/* This records the same as queue_array, but hashed by data accessed with locality flag.  */
@@ -677,7 +677,7 @@ static void ws_add_workers(unsigned sched_ctx_id, int *workerids,unsigned nworke
 		 */
 		ws->per_worker[workerid].queue_array->nprocessed = -1;
 		ws->per_worker[workerid].queue_array->ntasks = 0;
-		pthread_mutex_init(&ws->per_worker[workerid].worker_mutex, NULL);
+		STARPU_PTHREAD_MUTEX_INIT(&ws->per_worker[workerid].worker_mutex, NULL);
 	}
 }
 
@@ -696,7 +696,7 @@ static void ws_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned nw
 			_starpu_destroy_fifo(ws->per_worker[workerid].queue_array);
 			ws->per_worker[workerid].queue_array = NULL;
 		}
-		pthread_mutex_destroy(&ws->per_worker[workerid].worker_mutex);
+		STARPU_PTHREAD_MUTEX_DESTROY(&ws->per_worker[workerid].worker_mutex);
 	}
 }
 
