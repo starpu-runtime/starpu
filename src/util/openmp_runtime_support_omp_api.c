@@ -18,8 +18,6 @@
 #ifdef STARPU_OPENMP
 #include <util/openmp_runtime_support.h>
 
-#define __not_implemented__ do { fprintf (stderr, "omp lib function %s not implemented\n", __func__); abort(); } while (0)
-
 void starpu_omp_set_num_threads(int threads)
 {
 	STARPU_ASSERT(threads > 0);
