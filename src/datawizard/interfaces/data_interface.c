@@ -938,7 +938,8 @@ static void _starpu_data_invalidate(void *data)
 			_starpu_request_mem_chunk_removal(handle, local, node, size);
 		}
 
-		_STARPU_TRACE_DATA_INVALIDATE(handle, node);
+		if (local->state != STARPU_INVALID)
+			_STARPU_TRACE_DATA_INVALIDATE(handle, node);
 		local->state = STARPU_INVALID;
 	}
 
