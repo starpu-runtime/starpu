@@ -61,9 +61,9 @@ CONTAINS
     REAL(KIND=C_DOUBLE),DIMENSION(:,:),POINTER  :: ro,dro,basis
     REAL(KIND=C_DOUBLE),TARGET                  :: coeff
 
-    Neq_max = fstarpu_matrix_get_ny(buffers, 0)
-    Np = fstarpu_matrix_get_ny(buffers, 2)
-    Ng = fstarpu_matrix_get_nx(buffers, 2)
+    Neq_max = fstarpu_matrix_get_nx(buffers, 0)
+    Np = fstarpu_matrix_get_nx(buffers, 2)
+    Ng = fstarpu_matrix_get_ny(buffers, 2)
 
     CALL fstarpu_unpack_arg(cl_args,(/ c_loc(coeff) /))
 
@@ -110,8 +110,8 @@ CONTAINS
     INTEGER(KIND=C_INT)                         :: Neq_max,Np
     REAL(KIND=C_DOUBLE),DIMENSION(:,:),POINTER  :: ro,dro
 
-    Neq_max = fstarpu_matrix_get_ny(buffers, 0)
-    Np = fstarpu_matrix_get_nx(buffers, 0)
+    Neq_max = fstarpu_matrix_get_nx(buffers, 0)
+    Np = fstarpu_matrix_get_ny(buffers, 0)
 
     CALL c_f_pointer(fstarpu_matrix_get_ptr(buffers, 0), ro, shape=[Neq_max,Np])
     CALL c_f_pointer(fstarpu_matrix_get_ptr(buffers, 1), dro, shape=[Neq_max,Np])

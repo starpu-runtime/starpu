@@ -83,9 +83,9 @@ PROGRAM f90_example
   !Registration of elements
   DO i = 1,Nelt
      elt => mesh%elt(i)
-     elt%ro_h = fstarpu_matrix_data_register(c_loc(elt%ro), numpar%Neq_max, numpar%Neq_max, elt%Np, c_sizeof(elt%ro(1,1)), 0)
-     elt%dro_h = fstarpu_matrix_data_register(c_loc(elt%dro), numpar%Neq_max, numpar%Neq_max, elt%Np, c_sizeof(elt%dro(1,1)), 0)
-     elt%basis_h = fstarpu_matrix_data_register(c_loc(elt%basis), elt%Np, elt%Np, elt%Ng, c_sizeof(elt%basis(1,1)), 0)
+     call fstarpu_matrix_data_register(elt%ro_h, 0, c_loc(elt%ro), numpar%Neq_max, numpar%Neq_max, elt%Np, c_sizeof(elt%ro(1,1)))
+     call fstarpu_matrix_data_register(elt%dro_h, 0, c_loc(elt%dro), numpar%Neq_max, numpar%Neq_max, elt%Np, c_sizeof(elt%dro(1,1)))
+     call fstarpu_matrix_data_register(elt%basis_h, 0, c_loc(elt%basis), elt%Np, elt%Np, elt%Ng, c_sizeof(elt%basis(1,1)))
   ENDDO
   !Compute
   DO it = 1,it_tot

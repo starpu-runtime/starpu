@@ -67,44 +67,44 @@ recursive subroutine cl_cpu_func_mat (buffers, cl_args) bind(C)
         type(c_ptr), value, intent(in) :: buffers, cl_args ! cl_args is unused
         real(8), dimension(:,:), pointer :: ma
         integer, dimension(:,:), pointer :: mb
-        integer :: ldy_ma,ny_ma,nx_ma
-        integer :: ldy_mb,ny_mb,nx_mb
+        integer :: ld_ma,nx_ma,ny_ma
+        integer :: ld_mb,nx_mb,ny_mb
         integer :: i,j
 
         write(*,*) "task -->"
-        ldy_ma = fstarpu_matrix_get_ld(buffers, 0)
-        ny_ma = fstarpu_matrix_get_ny(buffers, 0)
+        ld_ma = fstarpu_matrix_get_ld(buffers, 0)
         nx_ma = fstarpu_matrix_get_nx(buffers, 0)
-        write(*,*) "ldy_ma"
-        write(*,*) ldy_ma
-        write(*,*) "ny_ma"
-        write(*,*) ny_ma
+        ny_ma = fstarpu_matrix_get_ny(buffers, 0)
+        write(*,*) "ld_ma"
+        write(*,*) ld_ma
         write(*,*) "nx_ma"
         write(*,*) nx_ma
+        write(*,*) "ny_ma"
+        write(*,*) ny_ma
 
-        ldy_mb = fstarpu_matrix_get_ld(buffers, 1)
-        ny_mb = fstarpu_matrix_get_ny(buffers, 1)
+        ld_mb = fstarpu_matrix_get_ld(buffers, 1)
         nx_mb = fstarpu_matrix_get_nx(buffers, 1)
-        write(*,*) "ldy_mb"
-        write(*,*) ldy_mb
-        write(*,*) "ny_mb"
-        write(*,*) ny_mb
+        ny_mb = fstarpu_matrix_get_ny(buffers, 1)
+        write(*,*) "ld_mb"
+        write(*,*) ld_mb
         write(*,*) "nx_mb"
         write(*,*) nx_mb
+        write(*,*) "ny_mb"
+        write(*,*) ny_mb
 
-        call c_f_pointer(fstarpu_matrix_get_ptr(buffers, 0), ma, shape=[ny_ma,nx_ma])
+        call c_f_pointer(fstarpu_matrix_get_ptr(buffers, 0), ma, shape=[nx_ma,ny_ma])
         write(*,*) "ma"
-        do i=1,ny_ma
-        do j=1,nx_ma
+        do i=1,nx_ma
+        do j=1,ny_ma
                 write(*,*) i,j,ma(i,j)
         end do
         write(*,*) '-'
         end do
 
-        call c_f_pointer(fstarpu_matrix_get_ptr(buffers, 1), mb, shape=[ny_mb,nx_mb])
+        call c_f_pointer(fstarpu_matrix_get_ptr(buffers, 1), mb, shape=[nx_mb,ny_mb])
         write(*,*) "mb"
-        do i=1,ny_mb
-        do j=1,nx_mb
+        do i=1,nx_mb
+        do j=1,ny_mb
                 write(*,*) i,j,mb(i,j)
         end do
         write(*,*) '-'

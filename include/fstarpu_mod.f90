@@ -346,15 +346,64 @@ module fstarpu_mod
 
                 ! == starpu_task.h ==
 
-                ! starpu_tag_declare_deps
-                ! starpu_tag_declare_deps_array
-                ! starpu_task_declare_deps_array
-                ! starpu_tag_wait
-                ! starpu_tag_wait_array
-                ! starpu_tag_notify_from_apps
-                ! starpu_tag_restart
-                ! starpu_tag_remove
+                ! void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...);
+
+                ! void starpu_tag_declare_deps_array(starpu_tag_t id, unsigned ndeps, starpu_tag_t *array);
+                subroutine fstarpu_tag_declare_deps_array(id,ndeps,tag_array) bind(C,name="starpu_tag_declare_deps_array")
+                        use iso_c_binding, only: c_int, c_long_long
+                        integer(c_int), value, intent(in) :: id
+                        integer(c_int), value, intent(in) :: ndeps
+                        integer(c_long_long), intent(in) :: tag_array(*)
+                end subroutine fstarpu_tag_declare_deps_array
+
+                ! void starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, struct starpu_task *task_array[]);
+                subroutine fstarpu_task_declare_deps_array(task,ndeps,task_array) bind(C,name="starpu_task_declare_deps_array")
+                        use iso_c_binding, only: c_int, c_ptr
+                        type(c_ptr), value, intent(in) :: task
+                        integer(c_int), value, intent(in) :: ndeps
+                        type(c_ptr), intent(in) :: task_array(*)
+                end subroutine fstarpu_task_declare_deps_array
+
+                ! int starpu_tag_wait(starpu_tag_t id);
+                function fstarpu_tag_wait(id) bind(C,name="starpu_tag_wait")
+                        use iso_c_binding, only: c_int, c_long_long
+                        integer(c_int) :: fstarpu_tag_wait
+                        integer(c_long_long), value, intent(in) :: id
+                end function fstarpu_tag_wait
+
+                ! int starpu_tag_wait_array(unsigned ntags, starpu_tag_t *id);
+                function fstarpu_tag_wait_array(ntags,tag_array) bind(C,name="starpu_tag_wait_array")
+                        use iso_c_binding, only: c_int, c_long_long
+                        integer(c_int) :: fstarpu_tag_wait_array
+                        integer(c_int), value, intent(in) :: ntags
+                        integer(c_long_long), intent(in) :: tag_array(*)
+                end function fstarpu_tag_wait_array
+
+                ! void starpu_tag_notify_from_apps(starpu_tag_t id);
+                subroutine fstarpu_tag_notify_from_apps(id) bind(C,name="starpu_tag_notify_from_apps")
+                        use iso_c_binding, only: c_long_long
+                        integer(c_long_long), value, intent(in) :: id
+                end subroutine fstarpu_tag_notify_from_apps
+
+                ! void starpu_tag_restart(starpu_tag_t id);
+                subroutine fstarpu_tag_restart(id) bind(C,name="starpu_tag_restart")
+                        use iso_c_binding, only: c_long_long
+                        integer(c_long_long), value, intent(in) :: id
+                end subroutine fstarpu_tag_restart
+
+                ! void starpu_tag_remove(starpu_tag_t id);
+                subroutine fstarpu_tag_remove(id) bind(C,name="starpu_tag_remove")
+                        use iso_c_binding, only: c_long_long
+                        integer(c_long_long), value, intent(in) :: id
+                end subroutine fstarpu_tag_remove
+
                 ! struct starpu_task *starpu_tag_get_task(starpu_tag_t id);
+                function fstarpu_tag_get_task(id) bind(C,name="starpu_tag_get_task")
+                        use iso_c_binding, only: c_ptr, c_long_long
+                        type(c_ptr) :: fstarpu_tag_get_task
+                        integer(c_long_long), value, intent(in) :: id
+                end function fstarpu_tag_get_task
+
 
                 ! void starpu_task_init(struct starpu_task *task);
                 subroutine fstarpu_task_init (task) bind(C,name="starpu_task_init")
@@ -410,6 +459,13 @@ module fstarpu_mod
                 end function fstarpu_task_wait
 
                 ! int starpu_task_wait_array(struct starpu_task **tasks, unsigned nb_tasks) STARPU_WARN_UNUSED_RESULT;
+                function fstarpu_task_wait_array(task_array,ntasks) bind(C,name="starpu_task_wait_array")
+                        use iso_c_binding, only: c_int, c_ptr
+                        integer(c_int) :: fstarpu_task_wait_array
+                        integer(c_int), value, intent(in) :: ntasks
+                        type(c_ptr), intent(in) :: task_array
+                end function fstarpu_task_wait_array
+
 
                 ! int starpu_task_wait_for_all(void);
                 subroutine fstarpu_task_wait_for_all () bind(C,name="starpu_task_wait_for_all")
@@ -422,7 +478,6 @@ module fstarpu_mod
                 end subroutine fstarpu_task_wait_for_n_submitted
 
                 ! int starpu_task_wait_for_all_in_ctx(unsigned sched_ctx_id);
-
                 subroutine fstarpu_task_wait_for_all_in_ctx (ctx) bind(C,name="starpu_task_wait_for_all_in_ctx")
                         use iso_c_binding, only: c_int
                         integer(c_int), value, intent(in) :: ctx
@@ -476,8 +531,21 @@ module fstarpu_mod
                         type(c_ptr) :: fstarpu_task_get_current
                 end function fstarpu_task_get_current
 
-                ! starpu_parallel_task_barrier_init
-                ! starpu_parallel_task_barrier_init_n
+                ! void starpu_parallel_task_barrier_init(struct starpu_task *task, int workerid);
+                subroutine fstarpu_parallel_task_barrier_init_init (task,id) &
+                                bind(C,name="starpu_parallel_task_barrier_init_init")
+                        use iso_c_binding, only: c_ptr, c_int
+                        type(c_ptr), value, intent(in) :: task
+                        integer(c_int), value, intent(in) :: id
+                end subroutine fstarpu_parallel_task_barrier_init_init
+
+                ! void starpu_parallel_task_barrier_init_n(struct starpu_task *task, int worker_size);
+                subroutine fstarpu_parallel_task_barrier_init_n_init_n (task,sz) &
+                                bind(C,name="starpu_parallel_task_barrier_init_n_init_n")
+                        use iso_c_binding, only: c_ptr, c_int
+                        type(c_ptr), value, intent(in) :: task
+                        integer(c_int), value, intent(in) :: sz
+                end subroutine fstarpu_parallel_task_barrier_init_n_init_n
 
                 ! struct starpu_task *starpu_task_dup(struct starpu_task *task);
                 function fstarpu_task_dup (task) bind(C,name="starpu_task_dup")
@@ -486,8 +554,22 @@ module fstarpu_mod
                         type(c_ptr), value, intent(in) :: task
                 end function fstarpu_task_dup
 
-                ! starpu_task_set_implementation
-                ! starpu_task_get_implementation
+                ! void starpu_task_set_implementation(struct starpu_task *task, unsigned impl);
+                subroutine fstarpu_task_set_implementation (task,impl) &
+                                bind(C,name="starpu_task_set_implementation")
+                        use iso_c_binding, only: c_ptr,c_int
+                        type(c_ptr), value, intent(in) :: task
+                        integer(c_int), value, intent(in) :: impl
+                end subroutine fstarpu_task_set_implementation
+
+                ! unsigned starpu_task_get_implementation(struct starpu_task *task);
+                function fstarpu_task_get_implementation (task) &
+                                bind(C,name="starpu_task_get_implementation")
+                        use iso_c_binding, only: c_ptr,c_int
+                        type(c_ptr), value, intent(in) :: task
+                        integer(c_int) :: fstarpu_task_get_implementation
+                end function fstarpu_task_get_implementation
+
                 ! --
 
                 function fstarpu_codelet_allocate () bind(C)
@@ -601,21 +683,104 @@ module fstarpu_mod
 
                 ! void *starpu_data_get_interface_on_node(starpu_data_handle_t handle, unsigned memory_node);
 
+                ! == starpu_data_interface.h: block ==
+
+                ! void starpu_block_data_register(starpu_data_handle_t *handle, unsigned home_node, uintptr_t ptr, uint32_t ldy, uint32_t ldz, uint32_t nx, uint32_t ny, uint32_t nz, size_t elemsize);
+                subroutine fstarpu_block_data_register(dh, home_node, ptr, ldy, ldz, nx, ny, nz, elt_size) &
+                                bind(C,name="starpu_block_data_register")
+                        use iso_c_binding, only: c_ptr, c_int, c_size_t
+                        type(c_ptr), intent(out) :: dh
+                        integer(c_int), value, intent(in) :: home_node
+                        type(c_ptr), value, intent(in) :: ptr
+                        integer(c_int), value, intent(in) :: ldy
+                        integer(c_int), value, intent(in) :: ldz
+                        integer(c_int), value, intent(in) :: nx
+                        integer(c_int), value, intent(in) :: ny
+                        integer(c_int), value, intent(in) :: nz
+                        integer(c_size_t), value, intent(in) :: elt_size
+                end subroutine fstarpu_block_data_register
+
+                ! void starpu_block_ptr_register(starpu_data_handle_t handle, unsigned node, uintptr_t ptr, uintptr_t dev_handle, size_t offset, uint32_t ldy, uint32_t ldz);
+                subroutine fstarpu_block_ptr_register(dh, node, ptr, dev_handle, offset, ldy, ldz) &
+                                bind(C,name="starpu_block_ptr_register")
+                        use iso_c_binding, only: c_ptr, c_int, c_size_t
+                        type(c_ptr), intent(out) :: dh
+                        integer(c_int), value, intent(in) :: node
+                        type(c_ptr), value, intent(in) :: ptr
+                        type(c_ptr), value, intent(in) :: dev_handle
+                        integer(c_size_t), value, intent(in) :: offset
+                        integer(c_int), value, intent(in) :: ldy
+                        integer(c_int), value, intent(in) :: ldz
+                end subroutine fstarpu_block_ptr_register
+
+                function fstarpu_block_get_ptr(buffers, i) bind(C)
+                        use iso_c_binding, only: c_ptr, c_int
+                        type(c_ptr) :: fstarpu_block_get_ptr
+                        type(c_ptr), value, intent(in) :: buffers
+                        integer(c_int), value, intent(in) :: i
+                end function fstarpu_block_get_ptr
+
+                function fstarpu_block_get_ldy(buffers, i) bind(C)
+                        use iso_c_binding, only: c_ptr, c_int
+                        integer(c_int) :: fstarpu_block_get_ldy
+                        type(c_ptr), value, intent(in) :: buffers
+                        integer(c_int), value, intent(in) :: i
+                end function fstarpu_block_get_ldy
+
+                function fstarpu_block_get_ldz(buffers, i) bind(C)
+                        use iso_c_binding, only: c_ptr, c_int
+                        integer(c_int) :: fstarpu_block_get_ldz
+                        type(c_ptr), value, intent(in) :: buffers
+                        integer(c_int), value, intent(in) :: i
+                end function fstarpu_block_get_ldz
+
+                function fstarpu_block_get_nx(buffers, i) bind(C)
+                        use iso_c_binding, only: c_ptr, c_int
+                        integer(c_int) :: fstarpu_block_get_nx
+                        type(c_ptr), value, intent(in) :: buffers
+                        integer(c_int), value, intent(in) :: i
+                end function fstarpu_block_get_nx
+
+                function fstarpu_block_get_ny(buffers, i) bind(C)
+                        use iso_c_binding, only: c_ptr, c_int
+                        integer(c_int) :: fstarpu_block_get_ny
+                        type(c_ptr), value, intent(in) :: buffers
+                        integer(c_int), value, intent(in) :: i
+                end function fstarpu_block_get_ny
+
+                function fstarpu_block_get_nz(buffers, i) bind(C)
+                        use iso_c_binding, only: c_ptr, c_int
+                        integer(c_int) :: fstarpu_block_get_nz
+                        type(c_ptr), value, intent(in) :: buffers
+                        integer(c_int), value, intent(in) :: i
+                end function fstarpu_block_get_nz
+
                 ! == starpu_data_interface.h: matrix ==
 
-                ! starpu_matrix_data_register: see fstarpu_matrix_data_register
-                function fstarpu_matrix_data_register(matrix, ldy, ny, nx, elt_size, ram) bind(C)
+                ! void starpu_matrix_data_register(starpu_data_handle_t *handle, unsigned home_node, uintptr_t ptr, uint32_t ld, uint32_t nx, uint32_t ny, size_t elemsize);
+                subroutine fstarpu_matrix_data_register(dh, home_node, ptr, ld, nx, ny, elt_size) &
+                                bind(C,name="starpu_matrix_data_register")
                         use iso_c_binding, only: c_ptr, c_int, c_size_t
-                        type(c_ptr) :: fstarpu_matrix_data_register
-                        type(c_ptr), value, intent(in) :: matrix
-                        integer(c_int), value, intent(in) :: ldy
-                        integer(c_int), value, intent(in) :: ny
+                        type(c_ptr), intent(out) :: dh
+                        integer(c_int), value, intent(in) :: home_node
+                        type(c_ptr), value, intent(in) :: ptr
+                        integer(c_int), value, intent(in) :: ld
                         integer(c_int), value, intent(in) :: nx
+                        integer(c_int), value, intent(in) :: ny
                         integer(c_size_t), value, intent(in) :: elt_size
-                        integer(c_int), value, intent(in) :: ram
-                end function fstarpu_matrix_data_register
+                end subroutine fstarpu_matrix_data_register
 
-                ! starpu_matrix_ptr_register
+                ! void starpu_matrix_ptr_register(starpu_data_handle_t handle, unsigned node, uintptr_t ptr, uintptr_t dev_handle, size_t offset, uint32_t ld);
+                subroutine fstarpu_matrix_ptr_register(dh, node, ptr, dev_handle, offset, ld) &
+                                bind(C,name="starpu_matrix_ptr_register")
+                        use iso_c_binding, only: c_ptr, c_int, c_size_t
+                        type(c_ptr), intent(out) :: dh
+                        integer(c_int), value, intent(in) :: node
+                        type(c_ptr), value, intent(in) :: ptr
+                        type(c_ptr), value, intent(in) :: dev_handle
+                        integer(c_size_t), value, intent(in) :: offset
+                        integer(c_int), value, intent(in) :: ld
+                end subroutine fstarpu_matrix_ptr_register
 
                 function fstarpu_matrix_get_ptr(buffers, i) bind(C)
                         use iso_c_binding, only: c_ptr, c_int
@@ -631,13 +796,6 @@ module fstarpu_mod
                         integer(c_int), value, intent(in) :: i
                 end function fstarpu_matrix_get_ld
 
-                function fstarpu_matrix_get_ny(buffers, i) bind(C)
-                        use iso_c_binding, only: c_ptr, c_int
-                        integer(c_int) :: fstarpu_matrix_get_ny
-                        type(c_ptr), value, intent(in) :: buffers
-                        integer(c_int), value, intent(in) :: i
-                end function fstarpu_matrix_get_ny
-
                 function fstarpu_matrix_get_nx(buffers, i) bind(C)
                         use iso_c_binding, only: c_ptr, c_int
                         integer(c_int) :: fstarpu_matrix_get_nx
@@ -645,19 +803,37 @@ module fstarpu_mod
                         integer(c_int), value, intent(in) :: i
                 end function fstarpu_matrix_get_nx
 
+                function fstarpu_matrix_get_ny(buffers, i) bind(C)
+                        use iso_c_binding, only: c_ptr, c_int
+                        integer(c_int) :: fstarpu_matrix_get_ny
+                        type(c_ptr), value, intent(in) :: buffers
+                        integer(c_int), value, intent(in) :: i
+                end function fstarpu_matrix_get_ny
+
                 ! == starpu_data_interface.h: vector ==
 
-                ! starpu_vector_data_register: see fstarpu_vector_data_register
-                function fstarpu_vector_data_register(vector, nx, elt_size, ram) bind(C)
+                ! void starpu_vector_data_register(starpu_data_handle_t *handle, unsigned home_node, uintptr_t ptr, uint32_t nx, size_t elemsize);
+                subroutine fstarpu_vector_data_register(dh, home_node, ptr,nx, elt_size) &
+                                bind(C,name="starpu_vector_data_register")
                         use iso_c_binding, only: c_ptr, c_int, c_size_t
-                        type(c_ptr) :: fstarpu_vector_data_register
-                        type(c_ptr), value, intent(in) :: vector
+                        type(c_ptr), intent(out) :: dh
+                        integer(c_int), value, intent(in) :: home_node
+                        type(c_ptr), value, intent(in) :: ptr
                         integer(c_int), value, intent(in) :: nx
                         integer(c_size_t), value, intent(in) :: elt_size
-                        integer(c_int), value, intent(in) :: ram
-                end function fstarpu_vector_data_register
+                end subroutine fstarpu_vector_data_register
 
-                ! starpu_vector_ptr_register
+                ! void starpu_vector_ptr_register(starpu_data_handle_t handle, unsigned node, uintptr_t ptr, uintptr_t dev_handle, size_t offset);
+                subroutine fstarpu_vector_ptr_register(dh, node, ptr, dev_handle, offset, ld) &
+                                bind(C,name="starpu_vector_ptr_register")
+                        use iso_c_binding, only: c_ptr, c_int, c_size_t
+                        type(c_ptr), intent(out) :: dh
+                        integer(c_int), value, intent(in) :: node
+                        type(c_ptr), value, intent(in) :: ptr
+                        type(c_ptr), value, intent(in) :: dev_handle
+                        integer(c_size_t), value, intent(in) :: offset
+                end subroutine fstarpu_vector_ptr_register
+
 
                 function fstarpu_vector_get_ptr(buffers, i) bind(C)
                         use iso_c_binding, only: c_ptr, c_int
@@ -675,16 +851,26 @@ module fstarpu_mod
 
                 ! == starpu_data_interface.h: variable ==
 
-                ! starpu_variable_data_register: see fstarpu_variable_data_register
-                function fstarpu_variable_data_register(ptr, sz, ram) bind(C)
+                ! void starpu_variable_data_register(starpu_data_handle_t *handle, unsigned home_node, uintptr_t ptr, size_t size);
+                subroutine fstarpu_variable_data_register(dh, home_node, ptr, elt_size) &
+                                bind(C,name="starpu_variable_data_register")
                         use iso_c_binding, only: c_ptr, c_int, c_size_t
-                        type(c_ptr) :: fstarpu_variable_data_register
+                        type(c_ptr), intent(out) :: dh
+                        integer(c_int), value, intent(in) :: home_node
                         type(c_ptr), value, intent(in) :: ptr
-                        integer(c_size_t), value, intent(in) :: sz
-                        integer(c_int), value, intent(in) :: ram
-                end function fstarpu_variable_data_register
+                        integer(c_size_t), value, intent(in) :: elt_size
+                end subroutine fstarpu_variable_data_register
 
-                ! starpu_variable_ptr_register
+                ! void starpu_variable_ptr_register(starpu_data_handle_t handle, unsigned node, uintptr_t ptr, uintptr_t dev_handle, size_t offset);
+                subroutine fstarpu_variable_ptr_register(dh, node, ptr, dev_handle, offset, ld) &
+                                bind(C,name="starpu_variable_ptr_register")
+                        use iso_c_binding, only: c_ptr, c_int, c_size_t
+                        type(c_ptr), intent(out) :: dh
+                        integer(c_int), value, intent(in) :: node
+                        type(c_ptr), value, intent(in) :: ptr
+                        type(c_ptr), value, intent(in) :: dev_handle
+                        integer(c_size_t), value, intent(in) :: offset
+                end subroutine fstarpu_variable_ptr_register
 
                 function fstarpu_variable_get_ptr(buffers, i) bind(C)
                         use iso_c_binding, only: c_ptr, c_int
@@ -695,11 +881,267 @@ module fstarpu_mod
 
                 ! == starpu_data_interface.h: void ==
 
-                ! starpu_void_data_register: see fstarpu_void_data_register
-                function fstarpu_void_data_register() bind(C)
+                ! void starpu_void_data_register(starpu_data_handle_t *handle);
+                subroutine fstarpu_void_data_register(dh) &
+                                bind(C,name="starpu_void_data_register")
+                        use iso_c_binding, only: c_ptr, c_int, c_size_t
+                        type(c_ptr), intent(out) :: dh
+                end subroutine fstarpu_void_data_register
+
+                ! == starpu_data_filter.h ==
+
+                ! void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_data_filter *f);
+                subroutine fstarpu_data_partition (dh,filter) bind(C,name="starpu_data_partition")
                         use iso_c_binding, only: c_ptr
-                        type(c_ptr) :: fstarpu_void_data_register
-                end function fstarpu_void_data_register
+                        type(c_ptr), value, intent(in) :: dh
+                        type(c_ptr), value, intent(in) :: filter
+                end subroutine fstarpu_data_partition
+
+                ! void starpu_data_unpartition(starpu_data_handle_t root_data, unsigned gathering_node);
+                subroutine fstarpug_data_data_unpartition (root_dh,gathering_node) bind(C,name="starpu_data_data_unpartition")
+                        use iso_c_binding, only: c_ptr, c_int
+                        type(c_ptr), value, intent(in) :: root_dh
+                        integer(c_int), value, intent(in) :: gathering_node
+                end subroutine fstarpug_data_data_unpartition
+
+                ! void starpu_data_partition_plan(starpu_data_handle_t initial_handle, struct starpu_data_filter *f, starpu_data_handle_t *children);
+                subroutine fstarpu_data_partition_plan (dh,filter,children) & 
+                                bind(C,name="starpu_data_partition_plan")
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), value, intent(in) :: dh
+                        type(c_ptr), value, intent(in) :: filter
+                        type(c_ptr), intent(in) :: children(*)
+                end subroutine fstarpu_data_partition_plan
+
+                ! void starpu_data_partition_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children);
+                subroutine fstarpu_data_partition_submit (dh,nparts,children) &
+                                bind(C,name="starpu_data_partition_submit")
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), value, intent(in) :: dh
+                        type(c_ptr), value, intent(in) :: nparts
+                        type(c_ptr), intent(in) :: children(*)
+                end subroutine fstarpu_data_partition_submit
+
+                ! void starpu_data_partition_readonly_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children);
+                subroutine fstarpu_data_partition_readonly_submit (dh,nparts,children) &
+                                bind(C,name="starpu_data_partition_readonly_submit")
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), value, intent(in) :: dh
+                        type(c_ptr), value, intent(in) :: nparts
+                        type(c_ptr), intent(in) :: children(*)
+                end subroutine fstarpu_data_partition_readonly_submit
+
+                ! void starpu_data_partition_readwrite_upgrade_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children);
+                subroutine fstarpu_data_partition_readwrite_upgrade_submit (dh,nparts,children) &
+                                bind(C,name="starpu_data_partition_readwrite_upgrade_submit")
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), value, intent(in) :: dh
+                        type(c_ptr), value, intent(in) :: nparts
+                        type(c_ptr), intent(in) :: children(*)
+                end subroutine fstarpu_data_partition_readwrite_upgrade_submit
+
+                ! void starpu_data_unpartition_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int gathering_node);
+                subroutine fstarpu_data_unpartition_submit (dh,nparts,children,gathering_node) &
+                                bind(C,name="starpu_data_unpartition_submit")
+                        use iso_c_binding, only: c_ptr, c_int
+                        type(c_ptr), value, intent(in) :: dh
+                        type(c_ptr), value, intent(in) :: nparts
+                        type(c_ptr), intent(in) :: children(*)
+                        integer(c_int), value, intent(in) :: gathering_node
+                end subroutine fstarpu_data_unpartition_submit
+
+                ! void starpu_data_unpartition_readonly_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int gathering_node);
+                subroutine fstarpu_data_unpartition_readonly_submit (dh,nparts,children,gathering_node) &
+                                bind(C,name="starpu_data_unpartition_readonly_submit")
+                        use iso_c_binding, only: c_ptr, c_int
+                        type(c_ptr), value, intent(in) :: dh
+                        type(c_ptr), value, intent(in) :: nparts
+                        type(c_ptr), intent(in) :: children(*)
+                        integer(c_int), value, intent(in) :: gathering_node
+                end subroutine fstarpu_data_unpartition_readonly_submit
+
+                ! void starpu_data_partition_clean(starpu_data_handle_t root_data, unsigned nparts, starpu_data_handle_t *children);
+                subroutine fstarpu_data_partition_clean (dh,nparts,children) &
+                                bind(C,name="starpu_data_partition_clean")
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), value, intent(in) :: dh
+                        type(c_ptr), value, intent(in) :: nparts
+                        type(c_ptr), intent(in) :: children(*)
+                end subroutine fstarpu_data_partition_clean
+
+                ! int starpu_data_get_nb_children(starpu_data_handle_t handle);
+                function fstarpu_data_get_nb_children(dh) bind(C,name="starpu_data_get_nb_children")
+                        use iso_c_binding, only: c_ptr, c_int
+                        integer(c_int)              :: fstarpu_data_get_nb_children
+                        type(c_ptr), value, intent(in) :: dh
+                end function fstarpu_data_get_nb_children
+
+                ! starpu_data_handle_t starpu_data_get_child(starpu_data_handle_t handle, unsigned i);
+                function fstarpu_data_get_child(dh,i) bind(C,name="starpu_data_get_child")
+                        use iso_c_binding, only: c_ptr, c_int
+                        type(c_ptr)              :: fstarpu_data_get_child
+                        type(c_ptr), value, intent(in) :: dh
+                        integer(c_int), value, intent(in) :: i
+                end function fstarpu_data_get_child
+
+                ! starpu_data_handle_t starpu_data_get_sub_data(starpu_data_handle_t root_data, unsigned depth, ... );
+                ! starpu_data_handle_t starpu_data_vget_sub_data(starpu_data_handle_t root_data, unsigned depth, va_list pa);
+
+                ! void starpu_matrix_filter_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+                subroutine fstarpu_matrix_filter_block (father_interface,child_interface,filter,id,nparts) &
+                                bind(C,name="starpu_matrix_filter_block")
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), value, intent(in) :: father_interface
+                        type(c_ptr), value, intent(in) :: child_interface
+                        type(c_ptr), value, intent(in) :: filter
+                        type(c_ptr), value, intent(in) :: id
+                        type(c_ptr), value, intent(in) :: nparts
+                end subroutine fstarpu_matrix_filter_block
+
+                ! void starpu_matrix_filter_block_shadow(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+                subroutine fstarpu_matrix_filter_block_shadow (father_interface,child_interface,filter,id,nparts) &
+                                bind(C,name="starpu_matrix_filter_block_shadow")
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), value, intent(in) :: father_interface
+                        type(c_ptr), value, intent(in) :: child_interface
+                        type(c_ptr), value, intent(in) :: filter
+                        type(c_ptr), value, intent(in) :: id
+                        type(c_ptr), value, intent(in) :: nparts
+                end subroutine fstarpu_matrix_filter_block_shadow
+
+                ! void starpu_matrix_filter_vertical_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+                subroutine fstarpu_matrix_filter_vertical_block (father_interface,child_interface,filter,id,nparts) &
+                                bind(C,name="starpu_matrix_filter_vertical_block")
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), value, intent(in) :: father_interface
+                        type(c_ptr), value, intent(in) :: child_interface
+                        type(c_ptr), value, intent(in) :: filter
+                        type(c_ptr), value, intent(in) :: id
+                        type(c_ptr), value, intent(in) :: nparts
+                end subroutine fstarpu_matrix_filter_vertical_block
+
+                ! void starpu_matrix_filter_vertical_block_shadow(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+                subroutine fstarpu_matrix_filter_vertical_block_shadow (father_interface,child_interface,filter,id,nparts) &
+                                bind(C,name="starpu_matrix_filter_vertical_block_shadow")
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), value, intent(in) :: father_interface
+                        type(c_ptr), value, intent(in) :: child_interface
+                        type(c_ptr), value, intent(in) :: filter
+                        type(c_ptr), value, intent(in) :: id
+                        type(c_ptr), value, intent(in) :: nparts
+                end subroutine fstarpu_matrix_filter_vertical_block_shadow
+
+                ! void starpu_vector_filter_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+                subroutine fstarpu_vector_filter_block (father_interface,child_interface,filter,id,nparts) &
+                                bind(C,name="starpu_vector_filter_block")
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), value, intent(in) :: father_interface
+                        type(c_ptr), value, intent(in) :: child_interface
+                        type(c_ptr), value, intent(in) :: filter
+                        type(c_ptr), value, intent(in) :: id
+                        type(c_ptr), value, intent(in) :: nparts
+                end subroutine fstarpu_vector_filter_block
+
+                ! void starpu_vector_filter_block_shadow(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+                subroutine fstarpu_vector_filter_block_shadow (father_interface,child_interface,filter,id,nparts) &
+                                bind(C,name="starpu_vector_filter_block_shadow")
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), value, intent(in) :: father_interface
+                        type(c_ptr), value, intent(in) :: child_interface
+                        type(c_ptr), value, intent(in) :: filter
+                        type(c_ptr), value, intent(in) :: id
+                        type(c_ptr), value, intent(in) :: nparts
+                end subroutine fstarpu_vector_filter_block_shadow
+
+                ! void starpu_vector_filter_list(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+                subroutine fstarpu_vector_filter_list (father_interface,child_interface,filter,id,nparts) &
+                                bind(C,name="starpu_vector_filter_list")
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), value, intent(in) :: father_interface
+                        type(c_ptr), value, intent(in) :: child_interface
+                        type(c_ptr), value, intent(in) :: filter
+                        type(c_ptr), value, intent(in) :: id
+                        type(c_ptr), value, intent(in) :: nparts
+                end subroutine fstarpu_vector_filter_list
+
+                ! void starpu_vector_filter_divide_in_2(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+                ! void starpu_vector_filter_list(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+                subroutine fstarpu_vector_divide_in_2 (father_interface,child_interface,filter,id,nparts) &
+                                bind(C,name="starpu_vector_divide_in_2")
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), value, intent(in) :: father_interface
+                        type(c_ptr), value, intent(in) :: child_interface
+                        type(c_ptr), value, intent(in) :: filter
+                        type(c_ptr), value, intent(in) :: id
+                        type(c_ptr), value, intent(in) :: nparts
+                end subroutine fstarpu_vector_divide_in_2
+
+                ! void starpu_block_filter_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+                subroutine fstarpu_block_filter_block (father_interface,child_interface,filter,id,nparts) &
+                                bind(C,name="starpu_block_filter_block")
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), value, intent(in) :: father_interface
+                        type(c_ptr), value, intent(in) :: child_interface
+                        type(c_ptr), value, intent(in) :: filter
+                        type(c_ptr), value, intent(in) :: id
+                        type(c_ptr), value, intent(in) :: nparts
+                end subroutine fstarpu_block_filter_block
+
+                ! void starpu_block_filter_block_shadow(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+                subroutine fstarpu_block_filter_block_shadow (father_interface,child_interface,filter,id,nparts) &
+                                bind(C,name="starpu_block_filter_block_shadow")
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), value, intent(in) :: father_interface
+                        type(c_ptr), value, intent(in) :: child_interface
+                        type(c_ptr), value, intent(in) :: filter
+                        type(c_ptr), value, intent(in) :: id
+                        type(c_ptr), value, intent(in) :: nparts
+                end subroutine fstarpu_block_filter_block_shadow
+
+                ! void starpu_block_filter_vertical_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+                subroutine fstarpu_block_filter_vertical_block (father_interface,child_interface,filter,id,nparts) &
+                                bind(C,name="starpu_block_filter_vertical_block")
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), value, intent(in) :: father_interface
+                        type(c_ptr), value, intent(in) :: child_interface
+                        type(c_ptr), value, intent(in) :: filter
+                        type(c_ptr), value, intent(in) :: id
+                        type(c_ptr), value, intent(in) :: nparts
+                end subroutine fstarpu_block_filter_vertical_block
+
+                ! void starpu_block_filter_vertical_block_shadow(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+                subroutine fstarpu_block_filter_vertical_block_shadow (father_interface,child_interface,filter,id,nparts) &
+                                bind(C,name="starpu_block_filter_vertical_block_shadow")
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), value, intent(in) :: father_interface
+                        type(c_ptr), value, intent(in) :: child_interface
+                        type(c_ptr), value, intent(in) :: filter
+                        type(c_ptr), value, intent(in) :: id
+                        type(c_ptr), value, intent(in) :: nparts
+                end subroutine fstarpu_block_filter_vertical_block_shadow
+
+                ! void starpu_block_filter_depth_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+                subroutine fstarpu_block_filter_depth_block (father_interface,child_interface,filter,id,nparts) &
+                                bind(C,name="starpu_block_filter_depth_block")
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), value, intent(in) :: father_interface
+                        type(c_ptr), value, intent(in) :: child_interface
+                        type(c_ptr), value, intent(in) :: filter
+                        type(c_ptr), value, intent(in) :: id
+                        type(c_ptr), value, intent(in) :: nparts
+                end subroutine fstarpu_block_filter_depth_block
+
+                ! void starpu_block_filter_depth_block_shadow(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+                subroutine fstarpu_block_filter_depth_block_shadow (father_interface,child_interface,filter,id,nparts) &
+                                bind(C,name="starpu_block_filter_depth_block_shadow")
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), value, intent(in) :: father_interface
+                        type(c_ptr), value, intent(in) :: child_interface
+                        type(c_ptr), value, intent(in) :: filter
+                        type(c_ptr), value, intent(in) :: id
+                        type(c_ptr), value, intent(in) :: nparts
+                end subroutine fstarpu_block_filter_depth_block_shadow
+
 
                 ! == starpu_data.h ==
 
@@ -904,8 +1346,23 @@ module fstarpu_mod
 
                 ! unsigned starpu_sched_ctx_create_inside_interval(const char *policy_name, const char *sched_ctx_name, int min_ncpus, int max_ncpus, int min_ngpus, int max_ngpus, unsigned allow_overlap);
                 ! void starpu_sched_ctx_register_close_callback(unsigned sched_ctx_id, void (*close_callback)(unsigned sched_ctx_id, void* args), void *args);
+
                 ! void starpu_sched_ctx_add_workers(int *workerids_ctx, int nworkers_ctx, unsigned sched_ctx_id);
+                subroutine fstarpu_sched_ctx_add_workers(workerids,nworkers,ctx) bind(C,name="starpu_sched_ctx_add_workers")
+                        use iso_c_binding, only: c_int
+                        integer(c_int), intent(in) :: workerids (*)
+                        integer(c_int), value, intent(in) :: nworkers
+                        integer(c_int), value, intent(in) :: ctx
+                end subroutine fstarpu_sched_ctx_add_workers
+
                 ! void starpu_sched_ctx_remove_workers(int *workerids_ctx, int nworkers_ctx, unsigned sched_ctx_id);
+                subroutine fstarpu_sched_ctx_remove_workers(workerids,nworkers,ctx) bind(C,name="starpu_sched_ctx_remove_workers")
+                        use iso_c_binding, only: c_int
+                        integer(c_int), intent(in) :: workerids (*)
+                        integer(c_int), value, intent(in) :: nworkers
+                        integer(c_int), value, intent(in) :: ctx
+                end subroutine fstarpu_sched_ctx_remove_workers
+
                 ! starpu_sched_ctx_display_workers: see fstarpu_sched_ctx_display_workers
                 subroutine fstarpu_sched_ctx_display_workers (ctx) bind(C)
                         use iso_c_binding, only: c_int
@@ -919,8 +1376,25 @@ module fstarpu_mod
                 end subroutine fstarpu_sched_ctx_delete
 
                 ! void starpu_sched_ctx_set_inheritor(unsigned sched_ctx_id, unsigned inheritor);
+                subroutine fstarpu_sched_ctx_set_inheritor (ctx,inheritor) bind(C,name="starpu_sched_ctx_set_inheritor")
+                        use iso_c_binding, only: c_int
+                        integer(c_int), value, intent(in) :: ctx
+                        integer(c_int), value, intent(in) :: inheritor
+                end subroutine fstarpu_sched_ctx_set_inheritor
+
                 ! unsigned starpu_sched_ctx_get_inheritor(unsigned sched_ctx_id);
+                function fstarpu_sched_ctx_get_inheritor (ctx) bind(C,name="starpu_sched_ctx_get_inheritor")
+                        use iso_c_binding, only: c_int
+                        integer(c_int) :: fstarpu_sched_ctx_get_inheritor
+                        integer(c_int), value, intent(in) :: ctx
+                end function fstarpu_sched_ctx_get_inheritor
+
                 ! unsigned starpu_sched_ctx_get_hierarchy_level(unsigned sched_ctx_id);
+                function fstarpu_sched_ctx_get_hierarchy_level (ctx) bind(C,name="starpu_sched_ctx_get_hierarchy_level")
+                        use iso_c_binding, only: c_int
+                        integer(c_int) :: fstarpu_sched_ctx_get_hierarchy_level
+                        integer(c_int), value, intent(in) :: ctx
+                end function fstarpu_sched_ctx_get_hierarchy_level
 
                 ! void starpu_sched_ctx_set_context(unsigned *sched_ctx_id);
                 subroutine fstarpu_sched_ctx_set_context (ctx_ptr) bind(C,name="starpu_sched_ctx_set_context")
@@ -938,7 +1412,16 @@ module fstarpu_mod
                 ! == starpu_fxt.h ==
 
                 ! void starpu_fxt_options_init(struct starpu_fxt_options *options);
+                subroutine fstarpu_fxt_options_init (fxt_options) bind(C,name="starpu_fxt_options_init")
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), value, intent(in) :: fxt_options
+                end subroutine fstarpu_fxt_options_init
+
                 ! void starpu_fxt_generate_trace(struct starpu_fxt_options *options);
+                subroutine fstarpu_fxt_generate_trace (fxt_options) bind(C,name="starpu_fxt_generate_trace")
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), value, intent(in) :: fxt_options
+                end subroutine fstarpu_fxt_generate_trace
 
                 ! void starpu_fxt_autostart_profiling(int autostart);
                 subroutine fstarpu_fxt_autostart_profiling (autostart) bind(c,name="starpu_fxt_autostart_profiling")
