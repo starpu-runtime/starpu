@@ -33,10 +33,12 @@ then
 	DTD=http://simgrid.gforge.inria.fr/simgrid/simgrid.dtd
 	V=4
 	VF=.v4
+	DASH=-
 else
 	DTD=http://simgrid.gforge.inria.fr/simgrid.dtd
 	V=3
 	VF=""
+	DASH=_
 fi
 
 # When executed from source, take xslt from source
@@ -112,7 +114,7 @@ EOF
 
 STACKSIZE=$(ulimit -s)
 [ "$STACKSIZE" != unlimited ] || STACKSIZE=8192
-$SMPIRUN -platform $PLATFORM -hostfile $MPI_HOSTFILE "$@" --cfg=smpi/privatize_global_variables:yes --cfg=smpi/simulate_computation:no --cfg=contexts/stack_size:$STACKSIZE
+$SMPIRUN -platform $PLATFORM -hostfile $MPI_HOSTFILE "$@" --cfg=smpi/privatize${DASH}global${DASH}variables:yes --cfg=smpi/simulate${DASH}computation:no --cfg=contexts/stack${DASH}size:$STACKSIZE
 RET=$?
 
 rm -f $PLATFORM
