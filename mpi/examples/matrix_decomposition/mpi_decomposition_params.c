@@ -26,7 +26,7 @@ unsigned size = 4*64;
 unsigned nblocks = 2;
 unsigned nbigblocks = 2;
 #else
-unsigned size = 4*960;
+unsigned size = 16*320;
 unsigned nblocks = 16;
 unsigned nbigblocks = 2;
 #endif
