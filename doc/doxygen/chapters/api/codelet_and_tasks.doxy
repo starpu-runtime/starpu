@@ -679,7 +679,7 @@ with the function starpu_task_init() function.
 \def STARPU_TASK_GET_NBUFFERS(task)
 \ingroup API_Codelet_And_Tasks
 Return the number of buffers for this task, i.e. starpu_codelet::nbuffers, or
-starpu_task::nbuffers if the former is STARPU_VARIABLE_BUFFERS.
+starpu_task::nbuffers if the former is STARPU_VARIABLE_NBUFFERS.
 
 \def STARPU_TASK_GET_HANDLE(task, i)
 \ingroup API_Codelet_And_Tasks
