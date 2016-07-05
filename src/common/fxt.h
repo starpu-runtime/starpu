@@ -223,6 +223,10 @@ void fut_set_filename(char *filename);
 #endif
 #endif
 
+extern int _starpu_fxt_started;
+extern starpu_pthread_mutex_t _starpu_fxt_started_mutex;
+extern starpu_pthread_cond_t _starpu_fxt_started_cond;
+
 long _starpu_gettid(void);
 
 /* Initialize the FxT library. */

@@ -36,7 +36,9 @@
 #endif
 
 static char _STARPU_PROF_FILE_USER[128];
-static int _starpu_fxt_started = 0;
+int _starpu_fxt_started = 0;
+starpu_pthread_mutex_t _starpu_fxt_started_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
+starpu_pthread_cond_t _starpu_fxt_started_cond = STARPU_PTHREAD_COND_INITIALIZER;
 
 static int _starpu_written = 0;
 
@@ -135,6 +137,7 @@ void _starpu_fxt_init_profiling(unsigned trace_buffer_size)
 {
 	unsigned threadid;
 
+	STARPU_PTHREAD_MUTEX_LOCK(&_starpu_fxt_started_mutex);
 	if (!_starpu_fxt_started)
 	{
 		_starpu_fxt_started = 1;
@@ -163,6 +166,9 @@ void _starpu_fxt_init_profiling(unsigned trace_buffer_size)
 		perror("fut_setup");
 		STARPU_ABORT();
 	}
+
+	STARPU_PTHREAD_COND_BROADCAST(&_starpu_fxt_started_cond);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_fxt_started_mutex);
 
 	return;
 }
