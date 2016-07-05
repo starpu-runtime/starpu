@@ -3218,7 +3218,7 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 	{
 		/* we usually only have a single trace */
 		uint64_t file_start_time = _starpu_fxt_find_start_time(options->filenames[0]);
-		options->file_prefix = "";
+		options->file_prefix = strdup("");
 		options->file_offset = file_start_time;
 		options->file_rank = -1;
 
@@ -3316,7 +3316,8 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 			char file_prefix[32];
 			snprintf(file_prefix, sizeof(file_prefix), "%d_", filerank);
 
-			options->file_prefix = file_prefix;
+			free(options->file_prefix);
+			options->file_prefix = strdup(file_prefix);
 			options->file_offset = offsets[inputfile];
 			options->file_rank = filerank;
 
@@ -3341,6 +3342,7 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 	_starpu_fxt_dag_terminate();
 
 	options->nworkers = nworkers;
+	free(options->file_prefix);
 }
 
 #define DATA_STR_MAX_SIZE 15
