@@ -24,7 +24,7 @@ STARPU_XSLTDIR=$STARPU_DATADIR/starpu
 SOURCE_DATADIR=@abs_srcdir@
 BUILDDIR=@abs_builddir@
 
-SMPI_VERSION=$($SMPIRUN -version | sed -e 's/.* \([0-9]*\.[0-9]*\).*/\1/')
+SMPI_VERSION=$($SMPIRUN -version | grep " version " | sed -e 's/.* \([0-9]*\.[0-9]*\).*/\1/')
 SMPI_MAJOR=${SMPI_VERSION%.*}
 SMPI_MINOR=${SMPI_VERSION#*.}
 
