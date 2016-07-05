@@ -1298,10 +1298,12 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	smpi_process_set_user_data(calloc(MAX_TSD, sizeof(void*)));
 #endif
 #endif
+#ifdef STARPU_USE_FXT
 	STARPU_PTHREAD_MUTEX_LOCK(&_starpu_fxt_started_mutex);
 	while (!_starpu_fxt_started)
 		STARPU_PTHREAD_COND_WAIT(&_starpu_fxt_started_cond, &_starpu_fxt_started_mutex);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_fxt_started_mutex);
+#endif //STARPU_USE_FXT
 
 	{
 		_STARPU_MPI_TRACE_START(rank, worldsize);
