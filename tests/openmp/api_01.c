@@ -135,6 +135,7 @@ main (int argc, char *argv[])
 	check_omp_func(starpu_omp_get_num_teams, 1);
 	check_omp_func(starpu_omp_get_team_num, 0);
 	check_omp_func(starpu_omp_is_initial_device, 1);
+	check_omp_func(starpu_omp_get_initial_device, 0);
 	check_omp_func(starpu_omp_get_max_task_priority, 0);
 	return 0;
 }

@@ -257,6 +257,12 @@ int starpu_omp_is_initial_device(void)
 	return device == _starpu_omp_global_state->initial_device;
 }
 
+int starpu_omp_get_initial_device(void)
+{
+	/* Assume only one device for now. */
+	return 0;
+}
+
 int starpu_omp_get_max_task_priority(void)
 {
 	const struct starpu_omp_region * const parallel_region = _starpu_omp_get_task()->owner_region;
