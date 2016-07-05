@@ -64,10 +64,10 @@ program nf_vector
         call fstarpu_codelet_add_buffer(cl_vec, FSTARPU_RW)
 
         ! register 'va', a vector of real(8) elements
-        dh_va = fstarpu_vector_data_register(c_loc(va), 1+ubound(va,1)-lbound(va,1), c_sizeof(va(lbound(va,1))), 0)
+        call fstarpu_vector_data_register(dh_va, 0, c_loc(va), 1+ubound(va,1)-lbound(va,1), c_sizeof(va(lbound(va,1))))
 
         ! register 'vb', a vector of integer elements
-        dh_vb = fstarpu_vector_data_register(c_loc(vb), 1+ubound(vb,1)-lbound(vb,1), c_sizeof(vb(lbound(vb,1))), 0)
+        call fstarpu_vector_data_register(dh_vb, 0, c_loc(vb), 1+ubound(vb,1)-lbound(vb,1), c_sizeof(vb(lbound(vb,1))))
 
         ! insert a task with codelet cl_vec, and vectors 'va' and 'vb'
         !

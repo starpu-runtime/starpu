@@ -256,30 +256,9 @@ void fstarpu_codelet_add_buffer(struct starpu_codelet *cl, intptr_t mode)
 	}
 }
 
-starpu_data_handle_t fstarpu_void_data_register(void)
-{
-	starpu_data_handle_t handle;
-	starpu_void_data_register(&handle);
-	return handle;
-}
-
-starpu_data_handle_t fstarpu_variable_data_register(void *ptr, size_t size, int ram)
-{
-	starpu_data_handle_t handle;
-	starpu_variable_data_register(&handle, ram, (uintptr_t)ptr, size);
-	return handle;
-}
-
 void * fstarpu_variable_get_ptr(void *buffers[], int i)
 {
 	return (void *)STARPU_VECTOR_GET_PTR(buffers[i]);
-}
-
-starpu_data_handle_t fstarpu_vector_data_register(void *vector, int nx, size_t elt_size, int ram)
-{
-	starpu_data_handle_t handle;
-	starpu_vector_data_register(&handle, ram, (uintptr_t)vector, nx, elt_size);
-	return handle;
 }
 
 void * fstarpu_vector_get_ptr(void *buffers[], int i)
@@ -292,20 +271,6 @@ int fstarpu_vector_get_nx(void *buffers[], int i)
 	return STARPU_VECTOR_GET_NX(buffers[i]);
 }
 
-starpu_data_handle_t fstarpu_matrix_data_register(void *matrix, int ldy, int ny, int nx, size_t elt_size, int ram)
-{
-	starpu_data_handle_t handle;
-	/*
-	 * Fortran arrays are transposed with respect to C arrays. For convenience, we exchange
-	 * the parameters as follows:
-	 * C ldx = Fortran ldy
-	 * C nx  = Fortran ny
-	 * C ny  = Fortran nx
-	 */
-	starpu_matrix_data_register(&handle, ram, (uintptr_t)matrix, ldy, ny, nx, elt_size);
-	return handle;
-}
-
 void * fstarpu_matrix_get_ptr(void *buffers[], int i)
 {
 	return (void *)STARPU_MATRIX_GET_PTR(buffers[i]);
@@ -313,20 +278,47 @@ void * fstarpu_matrix_get_ptr(void *buffers[], int i)
 
 int fstarpu_matrix_get_ld(void *buffers[], int i)
 {
-	/* Fortran ldy is C ldx */
 	return STARPU_MATRIX_GET_LD(buffers[i]);
-}
-
-int fstarpu_matrix_get_ny(void *buffers[], int i)
-{
-	/* Fortran ny is C nx */
-	return STARPU_MATRIX_GET_NX(buffers[i]);
 }
 
 int fstarpu_matrix_get_nx(void *buffers[], int i)
 {
-	/* Fortran nx is C ny */
+	return STARPU_MATRIX_GET_NX(buffers[i]);
+}
+
+int fstarpu_matrix_get_ny(void *buffers[], int i)
+{
 	return STARPU_MATRIX_GET_NY(buffers[i]);
+}
+
+void * fstarpu_block_get_ptr(void *buffers[], int i)
+{
+	return (void *)STARPU_BLOCK_GET_PTR(buffers[i]);
+}
+
+int fstarpu_block_get_ldy(void *buffers[], int i)
+{
+	return STARPU_BLOCK_GET_LDY(buffers[i]);
+}
+
+int fstarpu_block_get_ldz(void *buffers[], int i)
+{
+	return STARPU_BLOCK_GET_LDZ(buffers[i]);
+}
+
+int fstarpu_block_get_nx(void *buffers[], int i)
+{
+	return STARPU_BLOCK_GET_NX(buffers[i]);
+}
+
+int fstarpu_block_get_ny(void *buffers[], int i)
+{
+	return STARPU_BLOCK_GET_NY(buffers[i]);
+}
+
+int fstarpu_block_get_nz(void *buffers[], int i)
+{
+	return STARPU_BLOCK_GET_NZ(buffers[i]);
 }
 
 void fstarpu_data_acquire(starpu_data_handle_t handle, intptr_t mode)

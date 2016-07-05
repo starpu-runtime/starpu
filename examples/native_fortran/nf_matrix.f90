@@ -57,10 +57,11 @@ program nf_matrix
         call fstarpu_codelet_add_buffer(cl_mat, FSTARPU_RW)
 
         ! register 'ma', a vector of real(8) elements
-        dh_ma = fstarpu_matrix_data_register(c_loc(ma), 5, 5, 6, c_sizeof(ma(1,1)), 0)
+        !dh_ma = fstarpu_matrix_data_register(c_loc(ma), 5, 5, 6, c_sizeof(ma(1,1)), 0)
+        call fstarpu_matrix_data_register(dh_ma, 0, c_loc(ma), 5, 5, 6, c_sizeof(ma(1,1)))
 
         ! register 'mb', a vector of integer elements
-        dh_mb = fstarpu_matrix_data_register(c_loc(mb), 7, 7, 8, c_sizeof(mb(1,1)), 0)
+        call fstarpu_matrix_data_register(dh_mb, 0, c_loc(mb), 7, 7, 8, c_sizeof(mb(1,1)))
 
         ! insert a task with codelet cl_mat, and vectors 'ma' and 'mb'
         !
