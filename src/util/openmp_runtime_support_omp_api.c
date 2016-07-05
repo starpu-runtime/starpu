@@ -216,6 +216,40 @@ enum starpu_omp_proc_bind_value starpu_omp_get_proc_bind(void)
 	return proc_bind;
 }
 
+int starpu_omp_get_num_places(void)
+{
+  /* TODO */
+  return 0;
+}
+
+int starpu_omp_get_place_num_procs(int place_num)
+{
+  /* TODO */
+  return 0;
+}
+
+void starpu_omp_get_place_proc_ids(int place_num, int *ids)
+{
+  /* TODO */
+}
+
+int starpu_omp_get_place_num(void)
+{
+  /* TODO */
+  return -1;
+}
+
+int starpu_omp_get_partition_num_places(void)
+{
+  /* TODO */
+  return 0;
+}
+
+void starpu_omp_get_partition_place_nums(int *place_nums)
+{
+  /* TODO */
+}
+
 void starpu_omp_set_default_device(int device_num)
 {
 	(void) device_num;
