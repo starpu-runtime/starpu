@@ -21,6 +21,8 @@
 
 #define _FSTARPU_ERROR(msg) do {fprintf(stderr, "fstarpu error: %s\n", (msg));abort();} while(0)
 
+typedef void (*_starpu_callback_func_t)(void *);
+
 static const intptr_t fstarpu_r	= STARPU_R;
 static const intptr_t fstarpu_w	= STARPU_W;
 static const intptr_t fstarpu_rw	= STARPU_RW;
@@ -29,6 +31,29 @@ static const intptr_t fstarpu_redux	= STARPU_REDUX;
 static const intptr_t fstarpu_commute	= STARPU_COMMUTE;
 static const intptr_t fstarpu_ssend	= STARPU_SSEND;
 static const intptr_t fstarpu_locality	= STARPU_LOCALITY;
+
+static const intptr_t fstarpu_data_array	= STARPU_DATA_ARRAY;
+static const intptr_t fstarpu_data_mode_array	= STARPU_DATA_MODE_ARRAY;
+static const intptr_t fstarpu_cl_args	= STARPU_CL_ARGS;
+static const intptr_t fstarpu_callback	= STARPU_CALLBACK;
+static const intptr_t fstarpu_callback_with_arg	= STARPU_CALLBACK_WITH_ARG;
+static const intptr_t fstarpu_callback_arg	= STARPU_CALLBACK_ARG;
+static const intptr_t fstarpu_prologue_callback	= STARPU_PROLOGUE_CALLBACK;
+static const intptr_t fstarpu_prologue_callback_arg	= STARPU_PROLOGUE_CALLBACK_ARG;
+static const intptr_t fstarpu_prologue_callback_pop	= STARPU_PROLOGUE_CALLBACK_POP;
+static const intptr_t fstarpu_prologue_callback_pop_arg	= STARPU_PROLOGUE_CALLBACK_POP_ARG;
+static const intptr_t fstarpu_priority	= STARPU_PRIORITY;
+static const intptr_t fstarpu_execute_on_node	= STARPU_EXECUTE_ON_NODE;
+static const intptr_t fstarpu_execute_on_data	= STARPU_EXECUTE_ON_DATA;
+static const intptr_t fstarpu_execute_on_worker	= STARPU_EXECUTE_ON_WORKER;
+static const intptr_t fstarpu_worker_order	= STARPU_WORKER_ORDER;
+static const intptr_t fstarpu_hypervisor_tag	= STARPU_HYPERVISOR_TAG;
+static const intptr_t fstarpu_possibly_parallel	= STARPU_POSSIBLY_PARALLEL;
+static const intptr_t fstarpu_flops	= STARPU_FLOPS;
+static const intptr_t fstarpu_tag	= STARPU_TAG;
+static const intptr_t fstarpu_tag_only	= STARPU_TAG_ONLY;
+static const intptr_t fstarpu_name	= STARPU_NAME;
+static const intptr_t fstarpu_node_selection_policy	= STARPU_NODE_SELECTION_POLICY;
 
 static const intptr_t fstarpu_value = STARPU_VALUE;
 static const intptr_t fstarpu_sched_ctx = STARPU_SCHED_CTX;
@@ -53,6 +78,29 @@ intptr_t fstarpu_get_constant(char *s)
 	else if	(!strcmp(s, "FSTARPU_SSEND"))	{ return fstarpu_ssend; }
 	else if	(!strcmp(s, "FSTARPU_LOCALITY"))	{ return fstarpu_locality; }
 
+
+	else if	(!strcmp(s, "FSTARPU_DATA_ARRAY"))	{ return fstarpu_data_array; }
+	else if	(!strcmp(s, "FSTARPU_DATA_MODE_ARRAY"))	{ return fstarpu_data_mode_array; }
+	else if	(!strcmp(s, "FSTARPU_CL_ARGS"))	{ return fstarpu_cl_args; }
+	else if	(!strcmp(s, "FSTARPU_CALLBACK"))	{ return fstarpu_callback; }
+	else if	(!strcmp(s, "FSTARPU_CALLBACK_WITH_ARG"))	{ return fstarpu_callback_with_arg; }
+	else if	(!strcmp(s, "FSTARPU_CALLBACK_ARG"))	{ return fstarpu_callback_arg; }
+	else if	(!strcmp(s, "FSTARPU_PROLOGUE_CALLBACK"))	{ return fstarpu_prologue_callback; }
+	else if	(!strcmp(s, "FSTARPU_PROLOGUE_CALLBACK_ARG"))	{ return fstarpu_prologue_callback_arg; }
+	else if	(!strcmp(s, "FSTARPU_PROLOGUE_CALLBACK_POP"))	{ return fstarpu_prologue_callback_pop; }
+	else if	(!strcmp(s, "FSTARPU_PROLOGUE_CALLBACK_POP_ARG"))	{ return fstarpu_prologue_callback_pop_arg; }
+	else if	(!strcmp(s, "FSTARPU_PRIORITY"))	{ return fstarpu_priority; }
+	else if	(!strcmp(s, "FSTARPU_EXECUTE_ON_NODE"))	{ return fstarpu_execute_on_node; }
+	else if	(!strcmp(s, "FSTARPU_EXECUTE_ON_DATA"))	{ return fstarpu_execute_on_data; }
+	else if	(!strcmp(s, "FSTARPU_EXECUTE_ON_WORKER"))	{ return fstarpu_execute_on_worker; }
+	else if	(!strcmp(s, "FSTARPU_WORKER_ORDER"))	{ return fstarpu_worker_order; }
+	else if	(!strcmp(s, "FSTARPU_HYPERVISOR_TAG"))	{ return fstarpu_hypervisor_tag; }
+	else if	(!strcmp(s, "FSTARPU_POSSIBLY_PARALLEL"))	{ return fstarpu_possibly_parallel; }
+	else if	(!strcmp(s, "FSTARPU_FLOPS"))	{ return fstarpu_flops; }
+	else if	(!strcmp(s, "FSTARPU_TAG"))	{ return fstarpu_tag; }
+	else if	(!strcmp(s, "FSTARPU_TAG_ONLY"))	{ return fstarpu_tag_only; }
+	else if	(!strcmp(s, "FSTARPU_NAME"))	{ return fstarpu_name; }
+	else if	(!strcmp(s, "FSTARPU_NODE_SELECTION_POLICY"))	{ return fstarpu_node_selection_policy; }
 	else if (!strcmp(s, "FSTARPU_VALUE"))	{ return fstarpu_value; }
 	else if (!strcmp(s, "FSTARPU_SCHED_CTX"))	{ return fstarpu_sched_ctx; }
 
@@ -435,6 +483,12 @@ void fstarpu_insert_task(void ***_arglist)
 			}
 			current_buffer++;
 		}
+		//else if (arg_type == fstarpu_data_array)
+		//{
+		//}
+		//else if (arg_type == fstarpu_data_mode_array)
+		//{
+		//}
 		else if (arg_type == fstarpu_value)
 		{
 			i++;
@@ -444,10 +498,126 @@ void fstarpu_insert_task(void ***_arglist)
 			nargs++;
 			_starpu_pack_arguments(&current_offset, &arg_buffer_size_, &arg_buffer_, ptr, ptr_size);
 		}
+		else if (arg_type == fstarpu_cl_args)
+		{
+			i++;
+			task->cl_arg = arglist[i];
+			i++;
+			task->cl_arg_size = (size_t)(intptr_t)arglist[i];
+			task->cl_arg_free = 1;
+		}
+		else if (arg_type == fstarpu_callback)
+		{
+			i++;
+			task->callback_func = (_starpu_callback_func_t)arglist[i];
+		}
+		else if (arg_type == fstarpu_callback_with_arg)
+		{
+			i++;
+			task->callback_func = (_starpu_callback_func_t)arglist[i];
+			i++;
+			task->callback_arg = arglist[i];
+		}
+		else if (arg_type == fstarpu_callback_arg)
+		{
+			i++;
+			task->callback_arg = arglist[i];
+		}
+		else if (arg_type == fstarpu_prologue_callback)
+		{
+			i++;
+			task->prologue_callback_func = (_starpu_callback_func_t)arglist[i];
+		}
+		else if (arg_type == fstarpu_prologue_callback_arg)
+		{
+			i++;
+			task->prologue_callback_arg = arglist[i];
+		}
+		else if (arg_type == fstarpu_prologue_callback_pop)
+		{
+			i++;
+			task->prologue_callback_pop_func = (_starpu_callback_func_t)arglist[i];
+		}
+		else if (arg_type == fstarpu_prologue_callback_pop_arg)
+		{
+			i++;
+			task->prologue_callback_pop_arg = arglist[i];
+		}
+		else if (arg_type == fstarpu_priority)
+		{
+			i++;
+			task->priority = *(int *)arglist[i];
+		}
+		else if (arg_type == fstarpu_execute_on_node)
+		{
+			i++;
+			(void)arglist[i];
+		}
+		else if (arg_type == fstarpu_execute_on_data)
+		{
+			i++;
+			(void)arglist[i];
+		}
+		else if (arg_type == fstarpu_execute_on_worker)
+		{
+			i++;
+			int worker = *(int *)arglist[i];
+			if (worker != -1)
+			{
+				task->workerid = worker;
+				task->execute_on_a_specific_worker = 1;
+			}
+		}
+		else if (arg_type == fstarpu_worker_order)
+		{
+			i++;
+			unsigned order = *(unsigned *)arglist[i];
+			if (order != 0)
+			{
+				STARPU_ASSERT_MSG(task->execute_on_a_specific_worker, "worker order only makes sense if a workerid is provided");
+				task->workerorder = order;
+			}
+		}
 		else if (arg_type == fstarpu_sched_ctx)
 		{
 			i++;
 			task->sched_ctx = *(unsigned *)arglist[i];
+		}
+		else if (arg_type == fstarpu_hypervisor_tag)
+		{
+			i++;
+			task->hypervisor_tag = *(int *)arglist[i];
+		}
+		else if (arg_type == fstarpu_possibly_parallel)
+		{
+			i++;
+			task->possibly_parallel = *(unsigned *)arglist[i];
+		}
+		else if (arg_type == fstarpu_flops)
+		{
+			i++;
+			task->flops = *(double *)arglist[i];
+		}
+		else if (arg_type == fstarpu_tag)
+		{
+			i++;
+			task->tag_id = *(starpu_tag_t *)arglist[i];
+			task->use_tag = 1;
+		}
+		else if (arg_type == fstarpu_tag_only)
+		{
+			i++;
+			task->tag_id = *(starpu_tag_t *)arglist[i];
+		}
+		else if (arg_type == fstarpu_name)
+		{
+			i++;
+			task->name = arglist[i];
+		}
+		else if (arg_type == fstarpu_node_selection_policy)
+		{
+			i++;
+			(void)arglist[i];
 		}
 		else
 		{

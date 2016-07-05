@@ -29,6 +29,29 @@ module fstarpu_mod
         type(c_ptr), bind(C) :: FSTARPU_SSEND
         type(c_ptr), bind(C) :: FSTARPU_LOCALITY
 
+        type(c_ptr), bind(C) :: FSTARPU_DATA_ARRAY
+        type(c_ptr), bind(C) :: FSTARPU_DATA_MODE_ARRAY
+        type(c_ptr), bind(C) :: FSTARPU_CL_ARGS
+        type(c_ptr), bind(C) :: FSTARPU_CALLBACK
+        type(c_ptr), bind(C) :: FSTARPU_CALLBACK_WITH_ARG
+        type(c_ptr), bind(C) :: FSTARPU_CALLBACK_ARG
+        type(c_ptr), bind(C) :: FSTARPU_PROLOGUE_CALLBACK
+        type(c_ptr), bind(C) :: FSTARPU_PROLOGUE_CALLBACK_ARG
+        type(c_ptr), bind(C) :: FSTARPU_PROLOGUE_CALLBACK_POP
+        type(c_ptr), bind(C) :: FSTARPU_PROLOGUE_CALLBACK_POP_ARG
+        type(c_ptr), bind(C) :: FSTARPU_PRIORITY
+        type(c_ptr), bind(C) :: FSTARPU_EXECUTE_ON_NODE
+        type(c_ptr), bind(C) :: FSTARPU_EXECUTE_ON_DATA
+        type(c_ptr), bind(C) :: FSTARPU_EXECUTE_ON_WORKER
+        type(c_ptr), bind(C) :: FSTARPU_WORKER_ORDER
+        type(c_ptr), bind(C) :: FSTARPU_HYPERVISOR_TAG
+        type(c_ptr), bind(C) :: FSTARPU_POSSIBLY_PARALLEL
+        type(c_ptr), bind(C) :: FSTARPU_FLOPS
+        type(c_ptr), bind(C) :: FSTARPU_TAG
+        type(c_ptr), bind(C) :: FSTARPU_TAG_ONLY
+        type(c_ptr), bind(C) :: FSTARPU_NAME
+        type(c_ptr), bind(C) :: FSTARPU_NODE_SELECTION_POLICY
+
         type(c_ptr), bind(C) :: FSTARPU_VALUE
         type(c_ptr), bind(C) :: FSTARPU_SCHED_CTX
 
@@ -1517,6 +1540,30 @@ module fstarpu_mod
                         FSTARPU_COMMUTE   = fstarpu_get_constant(C_CHAR_"FSTARPU_COMMUTE"//C_NULL_CHAR)
                         FSTARPU_SSEND   = fstarpu_get_constant(C_CHAR_"FSTARPU_SSEND"//C_NULL_CHAR)
                         FSTARPU_LOCALITY   = fstarpu_get_constant(C_CHAR_"FSTARPU_LOCALITY"//C_NULL_CHAR)
+
+                        FSTARPU_DATA_ARRAY      = fstarpu_get_constant(C_CHAR_"FSTARPU_DATA_ARRAY"//C_NULL_CHAR)
+                        FSTARPU_DATA_MODE_ARRAY = fstarpu_get_constant(C_CHAR_"FSTARPU_DATA_MODE_ARRAY"//C_NULL_CHAR)
+                        FSTARPU_CL_ARGS = fstarpu_get_constant(C_CHAR_"FSTARPU_CL_ARGS"//C_NULL_CHAR)
+                        FSTARPU_CALLBACK        = fstarpu_get_constant(C_CHAR_"FSTARPU_CALLBACK"//C_NULL_CHAR)
+                        FSTARPU_CALLBACK_WITH_ARG       = fstarpu_get_constant(C_CHAR_"FSTARPU_CALLBACK_WITH_ARG"//C_NULL_CHAR)
+                        FSTARPU_CALLBACK_ARG    = fstarpu_get_constant(C_CHAR_"FSTARPU_CALLBACK_ARG"//C_NULL_CHAR)
+                        FSTARPU_PROLOGUE_CALLBACK       = fstarpu_get_constant(C_CHAR_"FSTARPU_PROLOGUE_CALLBACK"//C_NULL_CHAR)
+                        FSTARPU_PROLOGUE_CALLBACK_ARG   = fstarpu_get_constant(C_CHAR_"FSTARPU_PROLOGUE_CALLBACK_ARG"//C_NULL_CHAR)
+                        FSTARPU_PROLOGUE_CALLBACK_POP   = fstarpu_get_constant(C_CHAR_"FSTARPU_PROLOGUE_CALLBACK_POP"//C_NULL_CHAR)
+                        FSTARPU_PROLOGUE_CALLBACK_POP_ARG       = &
+                                fstarpu_get_constant(C_CHAR_"FSTARPU_PROLOGUE_CALLBACK_POP_ARG"//C_NULL_CHAR)
+                        FSTARPU_PRIORITY        = fstarpu_get_constant(C_CHAR_"FSTARPU_PRIORITY"//C_NULL_CHAR)
+                        FSTARPU_EXECUTE_ON_NODE = fstarpu_get_constant(C_CHAR_"FSTARPU_EXECUTE_ON_NODE"//C_NULL_CHAR)
+                        FSTARPU_EXECUTE_ON_DATA = fstarpu_get_constant(C_CHAR_"FSTARPU_EXECUTE_ON_DATA"//C_NULL_CHAR)
+                        FSTARPU_EXECUTE_ON_WORKER       = fstarpu_get_constant(C_CHAR_"FSTARPU_EXECUTE_ON_WORKER"//C_NULL_CHAR)
+                        FSTARPU_WORKER_ORDER    = fstarpu_get_constant(C_CHAR_"FSTARPU_WORKER_ORDER"//C_NULL_CHAR)
+                        FSTARPU_HYPERVISOR_TAG  = fstarpu_get_constant(C_CHAR_"FSTARPU_HYPERVISOR_TAG"//C_NULL_CHAR)
+                        FSTARPU_POSSIBLY_PARALLEL       = fstarpu_get_constant(C_CHAR_"FSTARPU_POSSIBLY_PARALLEL"//C_NULL_CHAR)
+                        FSTARPU_FLOPS   = fstarpu_get_constant(C_CHAR_"FSTARPU_FLOPS"//C_NULL_CHAR)
+                        FSTARPU_TAG     = fstarpu_get_constant(C_CHAR_"FSTARPU_TAG"//C_NULL_CHAR)
+                        FSTARPU_TAG_ONLY        = fstarpu_get_constant(C_CHAR_"FSTARPU_TAG_ONLY"//C_NULL_CHAR)
+                        FSTARPU_NAME    = fstarpu_get_constant(C_CHAR_"FSTARPU_NAME"//C_NULL_CHAR)
+                        FSTARPU_NODE_SELECTION_POLICY   = fstarpu_get_constant(C_CHAR_"FSTARPU_NODE_SELECTION_POLICY"//C_NULL_CHAR)
 
                         FSTARPU_VALUE   = fstarpu_get_constant(C_CHAR_"FSTARPU_VALUE"//C_NULL_CHAR)
                         FSTARPU_SCHED_CTX   = fstarpu_get_constant(C_CHAR_"FSTARPU_SCHED_CTX"//C_NULL_CHAR)
