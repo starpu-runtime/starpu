@@ -1286,6 +1286,23 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	_mpi_world_rank = rank;
 #endif
 
+#ifdef STARPU_SIMGRID
+	/* Now that MPI is set up, let the rest of simgrid get initialized */
+	char ** argv_cpy = malloc(*(argc_argv->argc) * sizeof(char*));
+	int i;
+	for (i = 0; i < *(argc_argv->argc); i++)
+		argv_cpy[i] = strdup((*(argc_argv->argv))[i]);
+	MSG_process_create_with_arguments("main", smpi_simulated_main_, NULL, _starpu_simgrid_get_host_by_name("MAIN"), *(argc_argv->argc), argv_cpy);
+	/* And set TSD for us */
+#ifdef HAVE_SMPI_PROCESS_SET_USER_DATA
+	smpi_process_set_user_data(calloc(MAX_TSD, sizeof(void*)));
+#endif
+#endif
+	STARPU_PTHREAD_MUTEX_LOCK(&_starpu_fxt_started_mutex);
+	while (!_starpu_fxt_started)
+		STARPU_PTHREAD_COND_WAIT(&_starpu_fxt_started_cond, &_starpu_fxt_started_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_fxt_started_mutex);
+
 	{
 		_STARPU_MPI_TRACE_START(rank, worldsize);
 #ifdef STARPU_USE_FXT
@@ -1293,6 +1310,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 #endif //STARPU_USE_FXT
 	}
 
+	_starpu_mpi_add_sync_point_in_fxt();
 	_starpu_mpi_comm_amounts_init(argc_argv->comm);
 	_starpu_mpi_cache_init(argc_argv->comm);
 	_starpu_mpi_select_node_init();
@@ -1310,19 +1328,6 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	STARPU_PTHREAD_COND_SIGNAL(&cond_progression);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 
-#ifdef STARPU_SIMGRID
-	/* Now that MPI is set up, let the rest of simgrid get initialized */
-	char ** argv_cpy = malloc(*(argc_argv->argc) * sizeof(char*));
-	int i;
-	for (i = 0; i < *(argc_argv->argc); i++)
-		argv_cpy[i] = strdup((*(argc_argv->argv))[i]);
-	MSG_process_create_with_arguments("main", smpi_simulated_main_, NULL, _starpu_simgrid_get_host_by_name("MAIN"), *(argc_argv->argc), argv_cpy);
-	/* And set TSD for us */
-#ifdef HAVE_SMPI_PROCESS_SET_USER_DATA
-	smpi_process_set_user_data(calloc(MAX_TSD, sizeof(void*)));
-#endif
-#endif
-	_starpu_mpi_add_sync_point_in_fxt();
 
 	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 
@@ -1536,10 +1541,6 @@ static int hookid = - 1;
 static void _starpu_mpi_add_sync_point_in_fxt(void)
 {
 #ifdef STARPU_USE_FXT
-	STARPU_PTHREAD_MUTEX_LOCK(&_starpu_fxt_started_mutex);
-	while (!_starpu_fxt_started)
-		STARPU_PTHREAD_COND_WAIT(&_starpu_fxt_started_cond, &_starpu_fxt_started_mutex);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_fxt_started_mutex);
 	int rank;
 	int worldsize;
 	int ret;
