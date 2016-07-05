@@ -78,6 +78,7 @@ struct task_info {
 	unsigned long job_id;
 	uint64_t tag;
 	int workerid;
+	int node;
 	double submit_time;
 	double start_time;
 	double end_time;
@@ -106,6 +107,7 @@ static struct task_info *get_task(unsigned long job_id, int mpi_rank)
 		task->job_id = job_id;
 		task->tag = 0;
 		task->workerid = -1;
+		task->node = -1;
 		task->submit_time = 0.;
 		task->start_time = 0.;
 		task->end_time = 0.;
@@ -155,6 +157,8 @@ static void task_dump(unsigned long job_id, int mpi_rank)
 	fprintf(tasks_file, "Tag: %"PRIx64"\n", task->tag);
 	if (task->workerid >= 0)
 		fprintf(tasks_file, "WorkerId: %d\n", task->workerid);
+	if (task->node >= 0)
+		fprintf(tasks_file, "MemoryNode: %d\n", task->node);
 	if (task->submit_time != 0.)
 		fprintf(tasks_file, "SubmitTime: %f\n", task->submit_time);
 	if (task->start_time != 0.)
@@ -1137,6 +1141,7 @@ static void create_paje_state_if_not_found(char *name, struct starpu_fxt_options
 static void handle_start_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	int worker = ev->param[2];
+	int node = ev->param[3];
 
 	if (worker < 0) return;
 
@@ -1155,6 +1160,7 @@ static void handle_start_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_op
 	task->start_time = start_codelet_time;
 	task->workerid = worker;
 	task->name = strdup(name);
+	task->node = node;
 
 #ifndef STARPU_ENABLE_PAJE_CODELET_DETAILS
 	if (out_paje_file)
