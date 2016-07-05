@@ -38,8 +38,7 @@ static int simgrid_started;
 
 /* In case the MPI application didn't use smpicc to build the file containing
  * main(), try to cope by calling starpu_main */
-#pragma weak smpi_simulated_main_
-int smpi_simulated_main_(int argc, char *argv[])
+int _starpu_smpi_simulated_main_(int argc, char *argv[])
 {
 	if (!starpu_main)
 	{
@@ -49,6 +48,7 @@ int smpi_simulated_main_(int argc, char *argv[])
 
 	return starpu_main(argc, argv);
 }
+int smpi_simulated_main_(int argc, char *argv[]) __attribute__((weak, alias("_starpu_smpi_simulated_main_")));
 
 #ifdef HAVE_MSG_ENVIRONMENT_GET_ROUTING_ROOT
 #ifdef HAVE_MSG_GET_AS_BY_NAME
@@ -184,7 +184,7 @@ static void start_simgrid(int *argc, char **argv)
 
 	simgrid_started = 1;
 
-	if (!starpu_main && !(smpi_main && smpi_simulated_main_))
+	if (!starpu_main && !(smpi_main && smpi_simulated_main_ != _starpu_smpi_simulated_main_))
 	{
 		_STARPU_ERROR("In simgrid mode, the file containing the main() function of this application needs to be compiled with starpu.h or starpu_simgrid_wrap.h included, to properly rename it into starpu_main\n");
 		exit(EXIT_FAILURE);
@@ -264,7 +264,7 @@ static void maestro(void *data STARPU_ATTRIBUTE_UNUSED)
 void _starpu_simgrid_init(int *argc, char ***argv)
 {
 #ifdef HAVE_MSG_PROCESS_ATTACH
-	if (!simgrid_started)
+	if (!simgrid_started && !(smpi_main && smpi_simulated_main_ != _starpu_smpi_simulated_main_))
 	{
 		_STARPU_DISP("Warning: In simgrid mode, the file containing the main() function of this application should to be compiled with starpu.h or starpu_simgrid_wrap.h included, to properly rename it into starpu_main to avoid having to use --cfg=contexts/factory:thread which reduces performance\n");
 #if SIMGRID_VERSION_MAJOR > 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR >= 14)
@@ -281,7 +281,7 @@ void _starpu_simgrid_init(int *argc, char ***argv)
 	}
 #endif
 
-	if (!simgrid_started && !starpu_main && !(smpi_main && smpi_simulated_main_))
+	if (!simgrid_started && !starpu_main && !(smpi_main && smpi_simulated_main_ != _starpu_smpi_simulated_main_))
 	{
 		_STARPU_ERROR("In simgrid mode, the file containing the main() function of this application needs to be compiled with starpu.h or starpu_simgrid_wrap.h included, to properly rename it into starpu_main\n");
 		exit(EXIT_FAILURE);
