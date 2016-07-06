@@ -127,27 +127,27 @@ static void read_boolean_var(const char *var, int *dest)
 }
 
 /* TODO: move to utils */
-static void read_int_var(const char *var, int *dest)
+static int read_int_var(const char *str, int *dst)
 {
-	const char *env = starpu_getenv(var);
-	if (env)
-	{
-		char *str = strdup(env);
-		if (str == NULL)
-			_STARPU_ERROR("memory allocation failed\n");
-		remove_spaces(str);
-		if (str[0] == '\0')
-		{
-			free(str);
-			return;
-		}
-		errno = 0;
-		int v = (int)strtol(str, NULL, 10);
-		if (errno != 0)
-			_STARPU_ERROR("could not parse environment variable %s, strtol failed with error %s\n", var, strerror(errno));
-		*dest = v;
-		free(str);
-	}
+	char *endptr;
+	int val;
+
+	if (!str)
+		return 0;
+
+	errno = 0; /* To distinguish success/failure after call */
+	val = (int)strtol(str, &endptr, 10);
+
+	/* Check for various possible errors */
+	if ((errno == ERANGE && (val == LONG_MAX || val == LONG_MIN)) || (errno != 0 && val == 0))
+		return 0;
+
+	/* No digits were found. */
+	if (str == endptr)
+		return 0;
+
+	*dst = val;
+	return 1;
 }
 
 static void read_size_var(const char *var, int *dest)
@@ -669,6 +669,24 @@ static void free_places(struct starpu_omp_place *places)
 	}
 }
 
+static void read_omp_int_var(const char *name, int *icv)
+{
+	int ret, value;
+	char *env;
+
+	env = starpu_getenv(name);
+	if (!env)
+		return;
+
+	ret = read_int_var(env, &value);
+	if (!ret || value < 0)
+	{
+		fprintf(stderr, "StarPU: Invalid value for environment variable %s\n", name);
+		return;
+	}
+	*icv = value;
+}
+
 static void read_omp_environment(void)
 {
 	read_boolean_var("OMP_DYNAMIC", &_initial_icv_values.dyn_var);
@@ -676,11 +694,11 @@ static void read_omp_environment(void)
 	read_sched_var("OMP_SCHEDULE", &_initial_icv_values.run_sched_var, &_initial_icv_values.run_sched_chunk_var);
 	read_size_var("OMP_STACKSIZE", &_initial_icv_values.stacksize_var);
 	read_wait_policy_var("OMP_WAIT_POLICY", &_initial_icv_values.wait_policy_var);
-	read_int_var("OMP_THREAD_LIMIT", &_initial_icv_values.thread_limit_var);
-	read_int_var("OMP_MAX_ACTIVE_LEVELS", &_initial_icv_values.max_active_levels_var);
+	read_omp_int_var("OMP_THREAD_LIMIT", &_initial_icv_values.thread_limit_var);
+	read_omp_int_var("OMP_MAX_ACTIVE_LEVELS", &_initial_icv_values.max_active_levels_var);
 	read_boolean_var("OMP_CANCELLATION", &_initial_icv_values.cancel_var);
-	read_int_var("OMP_DEFAULT_DEVICE", &_initial_icv_values.default_device_var);
-	read_int_var("OMP_MAX_TASK_PRIORITY", &_initial_icv_values.max_task_priority_var);
+	read_omp_int_var("OMP_DEFAULT_DEVICE", &_initial_icv_values.default_device_var);
+	read_omp_int_var("OMP_MAX_TASK_PRIORITY", &_initial_icv_values.max_task_priority_var);
 
 	/* Avoid overflow e.g. in num_threads_list allocation */
 	STARPU_ASSERT_MSG(_initial_icv_values.max_active_levels_var > 0 && _initial_icv_values.max_active_levels_var < 1000000, "OMP_MAX_ACTIVE_LEVELS should have a reasonable value");
