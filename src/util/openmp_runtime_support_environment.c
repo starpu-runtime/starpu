@@ -230,27 +230,24 @@ static void read_sched_var(const char *var, int *dest, unsigned long long *dest_
 	}
 }
 
-static void read_wait_policy_var(const char *var, int *dest)
+static void read_wait_policy_var()
 {
-	const char *env = starpu_getenv(var);
-	if (env)
+	const char *strings[] = { "passive", "active", NULL };
+	int ret, value;
+	char *env;
+
+	env = starpu_getenv("OMP_WAIT_POLICY");
+	if (!env)
+		return;
+
+	ret = read_string_var(env, strings, &value);
+	if (!ret)
 	{
-		char *str = strdup(env);
-		if (str == NULL)
-			_STARPU_ERROR("memory allocation failed\n");
-		remove_spaces(str);
-		if (str[0] == '\0')
-		{
-			free(str);
-			return;
-		}
-		static const char *strings[] = { "passive", "active", NULL };
-		int mode = strings_cmp(strings, str);
-		if (mode < 0)
-			_STARPU_ERROR("parse error in variable %s\n", var);
-		*dest = mode;
-		free(str);
+		fprintf(stderr, "StarPU: Invalid value for environment variable OMP_WAIT_POLICY\n");
+		return;
 	}
+	_initial_icv_values.wait_policy_var = value;
+
 }
 
 static void read_display_env_var(const char *var, int *dest)
@@ -710,7 +707,7 @@ static void read_omp_environment(void)
 	read_omp_boolean_var("OMP_NESTED", &_initial_icv_values.nest_var);
 	read_sched_var("OMP_SCHEDULE", &_initial_icv_values.run_sched_var, &_initial_icv_values.run_sched_chunk_var);
 	read_size_var("OMP_STACKSIZE", &_initial_icv_values.stacksize_var);
-	read_wait_policy_var("OMP_WAIT_POLICY", &_initial_icv_values.wait_policy_var);
+	read_wait_policy_var();
 	read_omp_int_var("OMP_THREAD_LIMIT", &_initial_icv_values.thread_limit_var);
 	read_omp_int_var("OMP_MAX_ACTIVE_LEVELS", &_initial_icv_values.max_active_levels_var);
 	read_omp_boolean_var("OMP_CANCELLATION", &_initial_icv_values.cancel_var);
