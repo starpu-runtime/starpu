@@ -241,9 +241,10 @@ if STARPU_HAVE_FC
 if !STARPU_SANITIZE
 STARPU_EXAMPLES +=				\
 	fortran90/f90_example			\
-	native_fortran/nf_vector	\
-	native_fortran/nf_matrix	\
-	native_fortran/nf_example
+	native_fortran/nf_vector		\
+	native_fortran/nf_matrix		\
+	native_fortran/nf_example		\
+	native_fortran/nf_dynbuf
 endif
 endif
 endif
@@ -386,6 +387,11 @@ native_fortran_nf_example_SOURCES =	\
 	native_fortran/nf_compute.f90		\
 	$(top_srcdir)/include/fstarpu_mod.f90	\
 	native_fortran/nf_example.f90
+
+native_fortran_nf_dynbuf_SOURCES =	\
+	native_fortran/nf_dynbuf_cl.f90		\
+	$(top_srcdir)/include/fstarpu_mod.f90	\
+	native_fortran/nf_dynbuf.f90
 endif
 
 #######################
@@ -1019,6 +1025,7 @@ nf_types.mod: nf_types.o
 nf_compute.mod: nf_compute.o
 fstarpu_mod.mod: fstarpu_mod.o
 nf_codelets.mod: nf_codelets.o
+nf_dynbuf_cl.mod: nf_dynbuf_cl.o
 
 fstarpu_mod.o: $(top_srcdir)/include/fstarpu_mod.f90
 	$(AM_V_FC)$(FC) $(native_fortran_nf_vector_FCFLAGS) $(FCFLAGS) -c -o $@ '$(top_srcdir)/'include/fstarpu_mod.f90
@@ -1037,5 +1044,11 @@ nf_compute.o: $(top_srcdir)/examples/native_fortran/nf_compute.f90 nf_types.mod 
 
 nf_example.o: $(top_srcdir)/examples/native_fortran/nf_example.f90 nf_types.mod nf_compute.mod fstarpu_mod.mod
 	$(AM_V_FC)$(FC) $(native_fortran_nf_example_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'native_fortran/nf_example.f90' || echo '$(srcdir)/'`native_fortran/nf_example.f90
+
+nf_dynbuf_cl.o: $(top_srcdir)/examples/native_fortran/nf_dynbuf_cl.f90 nf_types.mod fstarpu_mod.mod
+	$(AM_V_FC)$(FC) $(native_fortran_nf_dynbuf_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'native_fortran/nf_dynbuf_cl.f90' || echo '$(srcdir)/'`native_fortran/nf_dynbuf_cl.f90
+
+nf_dynbuf.o: $(top_srcdir)/examples/native_fortran/nf_dynbuf.f90 nf_types.mod nf_dynbuf_cl.mod fstarpu_mod.mod
+	$(AM_V_FC)$(FC) $(native_fortran_nf_dynbuf_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'native_fortran/nf_dynbuf.f90' || echo '$(srcdir)/'`native_fortran/nf_dynbuf.f90
 
 endif
