@@ -103,9 +103,8 @@ static int stringsn_cmp(const char *strings[], const char *str, size_t n)
 }
 
 /* TODO: move to utils */
-static int read_boolean_var(const char *str, int *dst)
+static int read_string_var(const char *str, const char *strings[], int *dst)
 {
-	const char *strings[] = { "false", "true", NULL };
 	int val;
 
 	if (!str)
@@ -117,6 +116,13 @@ static int read_boolean_var(const char *str, int *dst)
 
 	*dst = val;
 	return 1;
+}
+
+/* TODO: move to utils */
+static int read_boolean_var(const char *str, int *dst)
+{
+	const char *strings[] = { "false", "true", NULL };
+	return read_string_var(str, strings, dst);
 }
 
 /* TODO: move to utils */
