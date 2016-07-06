@@ -1765,6 +1765,8 @@ void starpu_sched_ctx_finished_submit(unsigned sched_ctx_id)
 
 void _starpu_sched_ctx_post_exec_task_cb(int workerid, struct starpu_task *task, size_t data_size2, uint32_t footprint)
 {
+	if (workerid < 0)
+		return;
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
 	if(sched_ctx != NULL && task->sched_ctx != _starpu_get_initial_sched_ctx()->id &&
 	   task->sched_ctx != STARPU_NMAX_SCHED_CTXS  && sched_ctx->perf_counters != NULL)
