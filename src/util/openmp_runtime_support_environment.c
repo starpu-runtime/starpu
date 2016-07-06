@@ -106,7 +106,6 @@ static int stringsn_cmp(const char *strings[], const char *str, size_t n)
 static int read_boolean_var(const char *str, int *dst)
 {
 	const char *strings[] = { "false", "true", NULL };
-	char *endptr;
 	int val;
 
 	if (!str)
