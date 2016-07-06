@@ -103,27 +103,21 @@ static int stringsn_cmp(const char *strings[], const char *str, size_t n)
 }
 
 /* TODO: move to utils */
-static void read_boolean_var(const char *var, int *dest)
+static int read_boolean_var(const char *str, int *dst)
 {
-	const char *env = starpu_getenv(var);
-	if (env)
-	{
-		char *str = strdup(env);
-		if (str == NULL)
-			_STARPU_ERROR("memory allocation failed\n");
-		remove_spaces(str);
-		if (str[0] == '\0')
-		{
-			free(str);
-			return;
-		}
-		static const char *strings[] = { "false", "true", NULL };
-		int mode = strings_cmp(strings, str);
-		if (mode < 0)
-			_STARPU_ERROR("parse error in variable %s\n", var);
-		*dest = mode;
-		free(str);
-	}
+	const char *strings[] = { "false", "true", NULL };
+	char *endptr;
+	int val;
+
+	if (!str)
+		return 0;
+
+	val = strings_cmp(strings, str);
+	if (val < 0)
+		return 0;
+
+	*dst = val;
+	return 1;
 }
 
 /* TODO: move to utils */
@@ -687,16 +681,34 @@ static void read_omp_int_var(const char *name, int *icv)
 	*icv = value;
 }
 
+static void read_omp_boolean_var(const char *name, int *icv)
+{
+	int ret, value;
+	char *env;
+
+	env = starpu_getenv(name);
+	if (!env)
+		return;
+
+	ret = read_boolean_var(env, &value);
+	if (!ret)
+	{
+		fprintf(stderr, "StarPU: Invalid value for environment variable %s\n", name);
+		return;
+	}
+	*icv = value;
+}
+
 static void read_omp_environment(void)
 {
-	read_boolean_var("OMP_DYNAMIC", &_initial_icv_values.dyn_var);
-	read_boolean_var("OMP_NESTED", &_initial_icv_values.nest_var);
+	read_omp_boolean_var("OMP_DYNAMIC", &_initial_icv_values.dyn_var);
+	read_omp_boolean_var("OMP_NESTED", &_initial_icv_values.nest_var);
 	read_sched_var("OMP_SCHEDULE", &_initial_icv_values.run_sched_var, &_initial_icv_values.run_sched_chunk_var);
 	read_size_var("OMP_STACKSIZE", &_initial_icv_values.stacksize_var);
 	read_wait_policy_var("OMP_WAIT_POLICY", &_initial_icv_values.wait_policy_var);
 	read_omp_int_var("OMP_THREAD_LIMIT", &_initial_icv_values.thread_limit_var);
 	read_omp_int_var("OMP_MAX_ACTIVE_LEVELS", &_initial_icv_values.max_active_levels_var);
-	read_boolean_var("OMP_CANCELLATION", &_initial_icv_values.cancel_var);
+	read_omp_boolean_var("OMP_CANCELLATION", &_initial_icv_values.cancel_var);
 	read_omp_int_var("OMP_DEFAULT_DEVICE", &_initial_icv_values.default_device_var);
 	read_omp_int_var("OMP_MAX_TASK_PRIORITY", &_initial_icv_values.max_task_priority_var);
 
