@@ -62,6 +62,10 @@ module fstarpu_mod
         type(c_ptr), bind(C) :: FSTARPU_SCC_WORKER
         type(c_ptr), bind(C) :: FSTARPU_ANY_WORKER
 
+        integer(c_int), bind(C) :: FSTARPU_NMAXBUFS
+
+        type(c_ptr), bind(C) :: FSTARPU_SZ_C_INT
+        type(c_ptr), bind(C) :: FSTARPU_SZ_C_INTPTR_T
         type(c_ptr), bind(C) :: FSTARPU_SZ_INT4
         type(c_ptr), bind(C) :: FSTARPU_SZ_INT8
 
@@ -1403,7 +1407,7 @@ module fstarpu_mod
                         type(c_ptr), value, intent(in) :: descrs
                         integer(c_int), value, intent(in) :: i
                         type(c_ptr), value, intent(in) :: handle
-                        integer(c_intptr_t), value, intent(in) :: mode
+                        type(c_ptr), value, intent(in) :: mode ! C func expects c_intptr_t
                 end subroutine fstarpu_data_descr_array_set
 
                 ! void fstarpu_data_descr_set(struct starpu_data_descr *descr, starpu_data_handle_t handle, intptr_t mode);
@@ -1411,7 +1415,7 @@ module fstarpu_mod
                         use iso_c_binding, only: c_ptr, c_intptr_t
                         type(c_ptr), value, intent(in) :: descr
                         type(c_ptr), value, intent(in) :: handle
-                        integer(c_intptr_t), value, intent(in) :: mode
+                        type(c_ptr), value, intent(in) :: mode ! C func expects c_intptr_t
                 end subroutine fstarpu_data_descr_set
 
 
@@ -1563,6 +1567,13 @@ module fstarpu_mod
                         ip_to_p = transfer(i,C_NULL_PTR)
                 end function ip_to_p
 
+                function p_to_ip(p) bind(C)
+                        use iso_c_binding, only: c_ptr,c_intptr_t
+                        integer(c_intptr_t) :: p_to_ip
+                        type(c_ptr), value, intent(in) :: p
+                        p_to_ip = transfer(p,0_c_intptr_t)
+                end function p_to_ip
+
                 function sz_to_p(sz) bind(C)
                         use iso_c_binding, only: c_ptr,c_size_t,c_intptr_t
                         type(c_ptr) :: sz_to_p
@@ -1575,6 +1586,8 @@ module fstarpu_mod
                         integer(c_int) :: fstarpu_init
                         type(c_ptr), value, intent(in) :: conf
 
+                        integer(c_int) :: FSTARPU_SZ_C_INT_dummy
+                        integer(c_intptr_t) :: FSTARPU_SZ_C_INTPTR_T_dummy
                         integer(4) :: FSTARPU_SZ_INT4_dummy
                         integer(8) :: FSTARPU_SZ_INT8_dummy
                         real(4) :: FSTARPU_SZ_REAL4_dummy
@@ -1644,7 +1657,11 @@ module fstarpu_mod
                         FSTARPU_SCC_WORKER   = fstarpu_get_constant(C_CHAR_"FSTARPU_SCC_WORKER"//C_NULL_CHAR)
                         FSTARPU_ANY_WORKER   = fstarpu_get_constant(C_CHAR_"FSTARPU_ANY_WORKER"//C_NULL_CHAR)
 
+                        FSTARPU_NMAXBUFS   = int(p_to_ip(fstarpu_get_constant(C_CHAR_"FSTARPU_NMAXBUFS"//C_NULL_CHAR)),c_int)
+
                         ! Initialize size constants as 'c_ptr'
+                        FSTARPU_SZ_C_INT        = sz_to_p(c_sizeof(FSTARPU_SZ_C_INT_dummy))
+                        FSTARPU_SZ_C_INTPTR_T   = sz_to_p(c_sizeof(FSTARPU_SZ_C_INTPTR_T_dummy))
                         FSTARPU_SZ_INT4         = sz_to_p(c_sizeof(FSTARPU_SZ_INT4_dummy))
                         FSTARPU_SZ_INT8         = sz_to_p(c_sizeof(FSTARPU_SZ_INT8_dummy))
                         FSTARPU_SZ_REAL4        = sz_to_p(c_sizeof(FSTARPU_SZ_REAL4_dummy))

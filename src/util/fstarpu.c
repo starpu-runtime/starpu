@@ -65,6 +65,8 @@ static const intptr_t fstarpu_mic_worker = STARPU_MIC_WORKER;
 static const intptr_t fstarpu_scc_worker = STARPU_SCC_WORKER;
 static const intptr_t fstarpu_any_worker = STARPU_ANY_WORKER;
 
+static const intptr_t fstarpu_nmaxbufs = STARPU_NMAXBUFS;
+
 intptr_t fstarpu_get_constant(char *s)
 {
 	if	(!strcmp(s, "FSTARPU_R"))	{ return fstarpu_r; }
@@ -109,7 +111,9 @@ intptr_t fstarpu_get_constant(char *s)
 	else if (!strcmp(s, "FSTARPU_SCC_WORKER"))	{ return fstarpu_scc_worker; }
 	else if (!strcmp(s, "FSTARPU_ANY_WORKER"))	{ return fstarpu_any_worker; }
 
-	else { _FSTARPU_ERROR("unknown pointer constant"); }
+	else if (!strcmp(s, "FSTARPU_NMAXBUFS"))	{ return fstarpu_nmaxbufs; }
+
+	else { _FSTARPU_ERROR("unknown constant"); }
 }
 
 struct starpu_conf *fstarpu_conf_allocate(void)
