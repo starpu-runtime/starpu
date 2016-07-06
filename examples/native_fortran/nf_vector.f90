@@ -61,7 +61,7 @@ program nf_vector
         call fstarpu_codelet_add_buffer(cl_vec, FSTARPU_R)
 
         ! add a Read-Write mode data buffer to the codelet
-        call fstarpu_codelet_add_buffer(cl_vec, FSTARPU_RW)
+        call fstarpu_codelet_add_buffer(cl_vec, FSTARPU_RW.ior.FSTARPU_LOCALITY)
 
         ! register 'va', a vector of real(8) elements
         call fstarpu_vector_data_register(dh_va, 0, c_loc(va), 1+ubound(va,1)-lbound(va,1), c_sizeof(va(lbound(va,1))))

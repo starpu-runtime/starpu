@@ -65,8 +65,6 @@ static const intptr_t fstarpu_mic_worker = STARPU_MIC_WORKER;
 static const intptr_t fstarpu_scc_worker = STARPU_SCC_WORKER;
 static const intptr_t fstarpu_any_worker = STARPU_ANY_WORKER;
 
-extern void _starpu_pack_arguments(size_t *current_offset, size_t *arg_buffer_size_, char **arg_buffer_, void *ptr, size_t ptr_size);
-
 intptr_t fstarpu_get_constant(char *s)
 {
 	if	(!strcmp(s, "FSTARPU_R"))	{ return fstarpu_r; }
@@ -282,14 +280,12 @@ void fstarpu_codelet_add_scc_func(struct starpu_codelet *cl, void *f_ptr)
 	_FSTARPU_ERROR("fstarpu: too many scc functions in Fortran codelet");
 }
 
-void fstarpu_codelet_add_buffer(struct starpu_codelet *cl, intptr_t mode)
+void fstarpu_codelet_add_buffer(struct starpu_codelet *cl, intptr_t _mode)
 {
+
+	enum starpu_data_access_mode mode = (enum starpu_data_access_mode) _mode;
 	const size_t max_modes = sizeof(cl->modes)/sizeof(cl->modes[0])-1;
-	if (mode !=  fstarpu_r
-		&& mode != fstarpu_rw
-		&& mode != fstarpu_w
-		&& mode != fstarpu_scratch
-		&& mode != fstarpu_redux)
+	if ((mode & (STARPU_ACCESS_MODE_MAX-1)) != mode)
 	{
 		_FSTARPU_ERROR("fstarpu: invalid data mode");
 	}
@@ -301,6 +297,18 @@ void fstarpu_codelet_add_buffer(struct starpu_codelet *cl, intptr_t mode)
 	else
 	{
 		_FSTARPU_ERROR("fstarpu: too many buffers in Fortran codelet");
+	}
+}
+
+void fstarpu_codelet_set_nbuffers(struct starpu_codelet *cl, int nbuffers)
+{
+	if (nbuffers >= 0)
+	{
+		cl->nbuffers = nbuffers;
+	}
+	else
+	{
+		_FSTARPU_ERROR("fstarpu: invalid nbuffers parameter");
 	}
 }
 
@@ -444,203 +452,48 @@ void fstarpu_worker_get_type_as_string(intptr_t type, char *dst, size_t maxlen)
 	snprintf(dst, maxlen, "%s", str);
 }
 
-void fstarpu_insert_task(void ***_arglist)
+struct starpu_data_handle *fstarpu_data_handle_array_alloc(int nb)
 {
-	void **arglist = *_arglist;
-	int i = 0;
-	char *arg_buffer_ = NULL;
-	size_t arg_buffer_size_ = 0;
-	size_t current_offset = sizeof(int);
-	int current_buffer = 0;
-	int nargs = 0;
-	struct starpu_task *task = NULL;
-	struct starpu_codelet *cl = arglist[i++];
-	if (cl == NULL)
-	{
-		_FSTARPU_ERROR("task without codelet");
-	}
-	task = starpu_task_create();
-	task->cl = cl;
-	task->name = NULL;
-	while (arglist[i] != NULL)
-	{
-		const intptr_t arg_type = (intptr_t)arglist[i];
-		if (arg_type & fstarpu_r
-			|| arg_type & fstarpu_w
-			|| arg_type & fstarpu_scratch
-			|| arg_type & fstarpu_redux)
-		{
-			i++;
-			starpu_data_handle_t handle = arglist[i];
-			if (current_buffer >= cl->nbuffers)
-			{
-				_FSTARPU_ERROR("too many buffers");
-			}
-			STARPU_TASK_SET_HANDLE(task, handle, current_buffer);
-			if (!STARPU_CODELET_GET_MODE(cl, current_buffer))
-			{
-				_FSTARPU_ERROR("unsupported late access mode definition");
-			}
-			current_buffer++;
-		}
-		//else if (arg_type == fstarpu_data_array)
-		//{
-		//}
-		//else if (arg_type == fstarpu_data_mode_array)
-		//{
-		//}
-		else if (arg_type == fstarpu_value)
-		{
-			i++;
-			void *ptr = arglist[i];
-			i++;
-			size_t ptr_size = (size_t)(intptr_t)arglist[i];
-			nargs++;
-			_starpu_pack_arguments(&current_offset, &arg_buffer_size_, &arg_buffer_, ptr, ptr_size);
-		}
-		else if (arg_type == fstarpu_cl_args)
-		{
-			i++;
-			task->cl_arg = arglist[i];
-			i++;
-			task->cl_arg_size = (size_t)(intptr_t)arglist[i];
-			task->cl_arg_free = 1;
-		}
-		else if (arg_type == fstarpu_callback)
-		{
-			i++;
-			task->callback_func = (_starpu_callback_func_t)arglist[i];
-		}
-		else if (arg_type == fstarpu_callback_with_arg)
-		{
-			i++;
-			task->callback_func = (_starpu_callback_func_t)arglist[i];
-			i++;
-			task->callback_arg = arglist[i];
-		}
-		else if (arg_type == fstarpu_callback_arg)
-		{
-			i++;
-			task->callback_arg = arglist[i];
-		}
-		else if (arg_type == fstarpu_prologue_callback)
-		{
-			i++;
-			task->prologue_callback_func = (_starpu_callback_func_t)arglist[i];
-		}
-		else if (arg_type == fstarpu_prologue_callback_arg)
-		{
-			i++;
-			task->prologue_callback_arg = arglist[i];
-		}
-		else if (arg_type == fstarpu_prologue_callback_pop)
-		{
-			i++;
-			task->prologue_callback_pop_func = (_starpu_callback_func_t)arglist[i];
-		}
-		else if (arg_type == fstarpu_prologue_callback_pop_arg)
-		{
-			i++;
-			task->prologue_callback_pop_arg = arglist[i];
-		}
-		else if (arg_type == fstarpu_priority)
-		{
-			i++;
-			task->priority = *(int *)arglist[i];
-		}
-		else if (arg_type == fstarpu_execute_on_node)
-		{
-			i++;
-			(void)arglist[i];
-		}
-		else if (arg_type == fstarpu_execute_on_data)
-		{
-			i++;
-			(void)arglist[i];
-		}
-		else if (arg_type == fstarpu_execute_on_worker)
-		{
-			i++;
-			int worker = *(int *)arglist[i];
-			if (worker != -1)
-			{
-				task->workerid = worker;
-				task->execute_on_a_specific_worker = 1;
-			}
-		}
-		else if (arg_type == fstarpu_worker_order)
-		{
-			i++;
-			unsigned order = *(unsigned *)arglist[i];
-			if (order != 0)
-			{
-				STARPU_ASSERT_MSG(task->execute_on_a_specific_worker, "worker order only makes sense if a workerid is provided");
-				task->workerorder = order;
-			}
-		}
-		else if (arg_type == fstarpu_sched_ctx)
-		{
-			i++;
-			task->sched_ctx = *(unsigned *)arglist[i];
-		}
-		else if (arg_type == fstarpu_hypervisor_tag)
-		{
-			i++;
-			task->hypervisor_tag = *(int *)arglist[i];
-		}
-		else if (arg_type == fstarpu_possibly_parallel)
-		{
-			i++;
-			task->possibly_parallel = *(unsigned *)arglist[i];
-		}
-		else if (arg_type == fstarpu_flops)
-		{
-			i++;
-			task->flops = *(double *)arglist[i];
-		}
-		else if (arg_type == fstarpu_tag)
-		{
-			i++;
-			task->tag_id = *(starpu_tag_t *)arglist[i];
-			task->use_tag = 1;
-		}
-		else if (arg_type == fstarpu_tag_only)
-		{
-			i++;
-			task->tag_id = *(starpu_tag_t *)arglist[i];
-		}
-		else if (arg_type == fstarpu_name)
-		{
-			i++;
-			task->name = arglist[i];
-		}
-		else if (arg_type == fstarpu_node_selection_policy)
-		{
-			i++;
-			(void)arglist[i];
-		}
-		else
-		{
-			_FSTARPU_ERROR("unknown/unsupported argument type");
-		}
-		i++;
-	}
+	return calloc((size_t)nb, sizeof(starpu_data_handle_t));
+}
 
-	if (nargs)
-	{
-		memcpy(arg_buffer_, (int *)&nargs, sizeof(nargs));
-		task->cl_arg = arg_buffer_;
-		task->cl_arg_size = arg_buffer_size_;
-	}
-	else
-	{
-		free(arg_buffer_);
-		arg_buffer_ = NULL;
-	}
+void fstarpu_data_handle_array_free(starpu_data_handle_t *handles)
+{
+	free(handles);
+}
 
-	int ret = starpu_task_submit(task);
-	if (ret != 0)
-	{
-		_FSTARPU_ERROR("starpu_task_submit failed");
-	}
+void fstarpu_data_handle_array_set(starpu_data_handle_t *handles, int i, starpu_data_handle_t handle)
+{
+	handles[i] = handle;
+}
+
+struct starpu_data_descr *fstarpu_data_descr_array_alloc(int nb)
+{
+	return calloc((size_t)nb, sizeof(struct starpu_data_descr));
+}
+
+struct starpu_data_descr *fstarpu_data_descr_alloc(void)
+{
+	return fstarpu_data_descr_array_alloc(1);
+}
+
+void fstarpu_data_descr_array_free(struct starpu_data_descr *descrs)
+{
+	free(descrs);
+}
+
+void fstarpu_data_descr_free(struct starpu_data_descr *descr)
+{
+	fstarpu_data_descr_array_free(descr);
+}
+
+void fstarpu_data_descr_array_set(struct starpu_data_descr *descrs, int i, starpu_data_handle_t handle, intptr_t mode)
+{
+	descrs[i].handle = handle;
+	descrs[i].mode = (enum starpu_data_access_mode)mode;
+}
+
+void fstarpu_data_descr_set(struct starpu_data_descr *descr, starpu_data_handle_t handle, intptr_t mode)
+{
+	fstarpu_data_descr_array_set(descr, 1, handle, mode);
 }

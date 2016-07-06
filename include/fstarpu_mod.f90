@@ -647,6 +647,12 @@ module fstarpu_mod
                         type(c_ptr), value, intent(in) :: mode ! C function expects an intptr_t
                 end subroutine fstarpu_codelet_add_buffer
 
+                subroutine fstarpu_codelet_set_nbuffers (cl, nbuffers) bind(C)
+                        use iso_c_binding, only: c_ptr,c_int
+                        type(c_ptr), value, intent(in) :: cl
+                        integer(c_int), value, intent(in) :: nbuffers
+                end subroutine fstarpu_codelet_set_nbuffers
+
                 ! == starpu_data_interface.h ==
 
                 ! uintptr_t starpu_malloc_on_node_flags(unsigned dst_node, size_t size, int flags);
@@ -1345,6 +1351,70 @@ module fstarpu_mod
                 end subroutine fstarpu_memchunk_tidy
 
                 ! == starpu_task_util.h ==
+                ! struct starpu_data_handle *fstarpu_data_handle_array_alloc(int nb);
+                function fstarpu_data_handle_array_alloc (nb) bind(C)
+                        use iso_c_binding, only: c_ptr, c_int
+                        type(c_ptr) :: fstarpu_data_handle_array_alloc
+                        integer(c_int), value, intent(in) :: nb
+                end function fstarpu_data_handle_array_alloc
+
+                ! void fstarpu_data_handle_array_free(starpu_data_handle_t *handles);
+                subroutine fstarpu_data_handle_array_free (handles) bind(C)
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), value, intent(in) :: handles
+                end subroutine fstarpu_data_handle_array_free
+
+                ! void fstarpu_data_handle_array_set(starpu_data_handle_t *handles, int i, starpu_data_handle_t handle);
+                subroutine fstarpu_data_handle_array_set (handles, i, handle) bind(C)
+                        use iso_c_binding, only: c_ptr, c_int
+                        type(c_ptr), value, intent(in) :: handles
+                        integer(c_int), value, intent(in) :: i
+                        type(c_ptr), value, intent(in) :: handle
+                end subroutine fstarpu_data_handle_array_set
+
+                ! struct starpu_data_descr *fstarpu_data_descr_array_alloc(int nb);
+                function fstarpu_data_descr_array_alloc (nb) bind(C)
+                        use iso_c_binding, only: c_ptr, c_int
+                        type(c_ptr) :: fstarpu_data_descr_array_alloc
+                        integer(c_int), value, intent(in) :: nb
+                end function fstarpu_data_descr_array_alloc
+
+                ! struct starpu_data_descr *fstarpu_data_descr_alloc(void);
+                function fstarpu_data_descr_alloc (nb) bind(C)
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr) :: fstarpu_data_descr_alloc
+                end function fstarpu_data_descr_alloc
+
+                ! void fstarpu_data_descr_array_free(struct starpu_data_descr *descrs);
+                subroutine fstarpu_data_descr_array_free (descrs) bind(C)
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), value, intent(in) :: descrs
+                end subroutine fstarpu_data_descr_array_free
+
+                ! void fstarpu_data_descr_free(struct starpu_data_descr *descr);
+                subroutine fstarpu_data_descrg_free (descr) bind(C)
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), value, intent(in) :: descr
+                end subroutine fstarpu_data_descrg_free
+
+                ! void fstarpu_data_descr_array_set(struct starpu_data_descr *descrs, int i, starpu_data_handle_t handle, intptr_t mode);
+                subroutine fstarpu_data_descr_array_set (descrs, i, handle, mode) bind(C)
+                        use iso_c_binding, only: c_ptr, c_int, c_intptr_t
+                        type(c_ptr), value, intent(in) :: descrs
+                        integer(c_int), value, intent(in) :: i
+                        type(c_ptr), value, intent(in) :: handle
+                        integer(c_intptr_t), value, intent(in) :: mode
+                end subroutine fstarpu_data_descr_array_set
+
+                ! void fstarpu_data_descr_set(struct starpu_data_descr *descr, starpu_data_handle_t handle, intptr_t mode);
+                subroutine fstarpu_data_descr_set (descr, handle, mode) bind(C)
+                        use iso_c_binding, only: c_ptr, c_intptr_t
+                        type(c_ptr), value, intent(in) :: descr
+                        type(c_ptr), value, intent(in) :: handle
+                        integer(c_intptr_t), value, intent(in) :: mode
+                end subroutine fstarpu_data_descr_set
+
+
                 subroutine fstarpu_insert_task(arglist) bind(C)
                         use iso_c_binding, only: c_ptr
                         type(c_ptr), dimension(:), intent(in) :: arglist
