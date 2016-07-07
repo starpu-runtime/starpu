@@ -142,6 +142,18 @@ static void _starpu_mpi_request_init(struct _starpu_mpi_req **req)
 	(*req)->sequential_consistency = 1;
 }
 
+static void _starpu_mpi_request_destroy(struct _starpu_mpi_req *req)
+{
+	STARPU_PTHREAD_MUTEX_DESTROY(&req->req_mutex);
+	STARPU_PTHREAD_COND_DESTROY(&req->req_cond);
+	STARPU_PTHREAD_MUTEX_DESTROY(&req->posted_mutex);
+	STARPU_PTHREAD_COND_DESTROY(&req->posted_cond);
+	free(req->datatype_name);
+	req->datatype_name = NULL;
+	free(req);
+	req = NULL;
+}
+
  /********************************************************/
  /*                                                      */
  /*  Send/Receive functionalities                        */
@@ -257,8 +269,7 @@ static void _starpu_mpi_submit_ready_request(void *arg)
 						STARPU_MPI_ASSERT_MSG(req->ptr, "cannot allocate message of size %ld\n", req->count);
 					}
 					_starpu_mpi_req_list_push_front(ready_requests, req);
-					free(sync_req);
-					sync_req = NULL;
+					_starpu_mpi_request_destroy(sync_req);
 				}
 				else
 				{
@@ -699,14 +710,11 @@ int starpu_mpi_wait(starpu_mpi_req *public_req, MPI_Status *status)
 	*public_req = NULL;
 	if (req->internal_req)
 	{
-		free(req->internal_req);
-		req->internal_req = NULL;
+		_starpu_mpi_request_destroy(req->internal_req);
 	}
-	free(req);
-	req=NULL;
+	_starpu_mpi_request_destroy(req);
+	_starpu_mpi_request_destroy(waiting_req);
 
-	free(waiting_req);
-	waiting_req = NULL;
 	_STARPU_MPI_LOG_OUT();
 	return ret;
 }
@@ -795,15 +803,12 @@ int starpu_mpi_test(starpu_mpi_req *public_req, int *flag, MPI_Status *status)
 			*public_req = NULL;
 			if (req->internal_req)
 			{
-				free(req->internal_req);
-				req->internal_req = NULL;
+				_starpu_mpi_request_destroy(req->internal_req);
 			}
-			free(req);
-			req = NULL;
+			_starpu_mpi_request_destroy(req);
 		}
 
-		free(testing_req);
-		testing_req=NULL;
+		_starpu_mpi_request_destroy(testing_req);
 	}
 	else
 	{
@@ -879,8 +884,7 @@ int _starpu_mpi_barrier(MPI_Comm comm)
 		STARPU_PTHREAD_COND_WAIT(&barrier_req->req_cond, &barrier_req->req_mutex);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&barrier_req->req_mutex);
 
-	free(barrier_req);
-	barrier_req = NULL;
+	_starpu_mpi_request_destroy(barrier_req);
 	_STARPU_MPI_LOG_OUT();
 
 	return ret;
@@ -1118,8 +1122,7 @@ static void _starpu_mpi_test_detached_requests(void)
 
 			if (req->is_internal_req == 0)
 			{
-				free(req);
-				req = NULL;
+				_starpu_mpi_request_destroy(req);
 			}
 
 			req = next_req;
