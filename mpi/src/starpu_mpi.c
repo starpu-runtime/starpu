@@ -101,6 +101,7 @@ static void _starpu_mpi_request_init(struct _starpu_mpi_req **req)
 	(*req)->data_handle = NULL;
 
 	(*req)->datatype = 0;
+	(*req)->datatype_name = NULL;
 	(*req)->ptr = NULL;
 	(*req)->count = -1;
 	(*req)->registered_datatype = -1;
@@ -176,7 +177,7 @@ static void _starpu_mpi_submit_ready_request(void *arg)
 		 * before the next submission of the envelope-catching request. */
 		if (req->is_internal_req)
 		{
-			_starpu_mpi_handle_allocate_datatype(req->data_handle, &req->datatype, &req->registered_datatype);
+			_starpu_mpi_handle_allocate_datatype(req->data_handle, req);
 			if (req->registered_datatype == 1)
 			{
 				req->count = 1;
@@ -191,7 +192,7 @@ static void _starpu_mpi_submit_ready_request(void *arg)
 
 			_STARPU_MPI_DEBUG(3, "Pushing internal starpu_mpi_irecv request %p type %s tag %d src %d data %p ptr %p datatype '%s' count %d registered_datatype %d \n",
 					  req, _starpu_mpi_request_type(req->request_type), req->node_tag.data_tag, req->node_tag.rank, req->data_handle, req->ptr,
-					  _starpu_mpi_datatype(req->datatype), (int)req->count, req->registered_datatype);
+					  req->datatype_name, (int)req->count, req->registered_datatype);
 			_starpu_mpi_req_list_push_front(ready_requests, req);
 
 			/* inform the starpu mpi thread that the request has been pushed in the ready_requests list */
@@ -242,7 +243,7 @@ static void _starpu_mpi_submit_ready_request(void *arg)
 				if (sync_req)
 				{
 					req->sync = 1;
-					_starpu_mpi_handle_allocate_datatype(req->data_handle, &req->datatype, &req->registered_datatype);
+					_starpu_mpi_handle_allocate_datatype(req->data_handle, req);
 					if (req->registered_datatype == 1)
 					{
 						req->count = 1;
@@ -272,7 +273,7 @@ static void _starpu_mpi_submit_ready_request(void *arg)
 		_starpu_mpi_req_list_push_front(ready_requests, req);
 		_STARPU_MPI_DEBUG(3, "Pushing new request %p type %s tag %d src %d data %p ptr %p datatype '%s' count %d registered_datatype %d \n",
 				  req, _starpu_mpi_request_type(req->request_type), req->node_tag.data_tag, req->node_tag.rank, req->data_handle, req->ptr,
-				  _starpu_mpi_datatype(req->datatype), (int)req->count, req->registered_datatype);
+				  req->datatype_name, (int)req->count, req->registered_datatype);
 	}
 
 	newer_requests = 1;
@@ -332,7 +333,7 @@ static void _starpu_mpi_isend_data_func(struct _starpu_mpi_req *req)
 {
 	_STARPU_MPI_LOG_IN();
 
-	_STARPU_MPI_DEBUG(20, "post MPI isend request %p type %s tag %d src %d data %p datasize %ld ptr %p datatype '%s' count %d registered_datatype %d sync %d\n", req, _starpu_mpi_request_type(req->request_type), req->node_tag.data_tag, req->node_tag.rank, req->data_handle, starpu_data_get_size(req->data_handle), req->ptr, _starpu_mpi_datatype(req->datatype), (int)req->count, req->registered_datatype, req->sync);
+	_STARPU_MPI_DEBUG(30, "post MPI isend request %p type %s tag %d src %d data %p datasize %ld ptr %p datatype '%s' count %d registered_datatype %d sync %d\n", req, _starpu_mpi_request_type(req->request_type), req->node_tag.data_tag, req->node_tag.rank, req->data_handle, starpu_data_get_size(req->data_handle), req->ptr, req->datatype_name, (int)req->count, req->registered_datatype, req->sync);
 
 	_starpu_mpi_comm_amounts_inc(req->node_tag.comm, req->node_tag.rank, req->datatype, req->count);
 
@@ -366,7 +367,7 @@ static void _starpu_mpi_isend_data_func(struct _starpu_mpi_req *req)
 
 static void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req)
 {
-	_starpu_mpi_handle_allocate_datatype(req->data_handle, &req->datatype, &req->registered_datatype);
+	_starpu_mpi_handle_allocate_datatype(req->data_handle, req);
 
 	req->envelope = calloc(1,sizeof(struct _starpu_mpi_envelope));
 	req->envelope->mode = _STARPU_MPI_ENVELOPE_DATA;
@@ -395,7 +396,7 @@ static void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req)
 		if (req->envelope->size != -1)
  		{
  			// We already know the size of the data, let's send it to overlap with the packing of the data
-			_STARPU_MPI_DEBUG(20, "Sending size %ld (%ld %s) to node %d (first call to pack)\n", req->envelope->size, sizeof(req->count), _starpu_mpi_datatype(MPI_BYTE), req->node_tag.rank);
+			_STARPU_MPI_DEBUG(20, "Sending size %ld (%ld %s) to node %d (first call to pack)\n", req->envelope->size, sizeof(req->count), "MPI_BYTE", req->node_tag.rank);
 			req->count = req->envelope->size;
 			_STARPU_MPI_COMM_TO_DEBUG(sizeof(struct _starpu_mpi_envelope), MPI_BYTE, req->node_tag.rank, _STARPU_MPI_TAG_ENVELOPE, _STARPU_MPI_TAG_ENVELOPE, req->node_tag.comm);
 			ret = MPI_Isend(req->envelope, sizeof(struct _starpu_mpi_envelope), MPI_BYTE, req->node_tag.rank, _STARPU_MPI_TAG_ENVELOPE, req->node_tag.comm, &req->size_req);
@@ -407,7 +408,7 @@ static void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req)
 		if (req->envelope->size == -1)
  		{
  			// We know the size now, let's send it
-			_STARPU_MPI_DEBUG(20, "Sending size %ld (%ld %s) to node %d (second call to pack)\n", req->envelope->size, sizeof(req->count), _starpu_mpi_datatype(MPI_BYTE), req->node_tag.rank);
+			_STARPU_MPI_DEBUG(20, "Sending size %ld (%ld %s) to node %d (second call to pack)\n", req->envelope->size, sizeof(req->count), "MPI_BYTE", req->node_tag.rank);
 			_STARPU_MPI_COMM_TO_DEBUG(sizeof(struct _starpu_mpi_envelope), MPI_BYTE, req->node_tag.rank, _STARPU_MPI_TAG_ENVELOPE, _STARPU_MPI_TAG_ENVELOPE, req->node_tag.comm);
 			ret = MPI_Isend(req->envelope, sizeof(struct _starpu_mpi_envelope), MPI_BYTE, req->node_tag.rank, _STARPU_MPI_TAG_ENVELOPE, req->node_tag.comm, &req->size_req);
 			STARPU_MPI_ASSERT_MSG(ret == MPI_SUCCESS, "when sending size, MPI_Isend returning %s", _starpu_mpi_get_mpi_code(ret));
@@ -516,7 +517,7 @@ static void _starpu_mpi_irecv_data_func(struct _starpu_mpi_req *req)
 {
 	_STARPU_MPI_LOG_IN();
 
-	_STARPU_MPI_DEBUG(20, "post MPI irecv request %p type %s tag %d src %d data %p ptr %p datatype '%s' count %d registered_datatype %d \n", req, _starpu_mpi_request_type(req->request_type), req->node_tag.data_tag, req->node_tag.rank, req->data_handle, req->ptr, _starpu_mpi_datatype(req->datatype), (int)req->count, req->registered_datatype);
+	_STARPU_MPI_DEBUG(20, "post MPI irecv request %p type %s tag %d src %d data %p ptr %p datatype '%s' count %d registered_datatype %d \n", req, _starpu_mpi_request_type(req->request_type), req->node_tag.data_tag, req->node_tag.rank, req->data_handle, req->ptr, req->datatype_name, (int)req->count, req->registered_datatype);
 
 	_STARPU_MPI_TRACE_IRECV_SUBMIT_BEGIN(req->node_tag.rank, req->node_tag.data_tag);
 
@@ -723,7 +724,7 @@ static void _starpu_mpi_test_func(struct _starpu_mpi_req *testing_req)
 	struct _starpu_mpi_req *req = testing_req->other_request;
 
 	_STARPU_MPI_DEBUG(2, "Test request %p type %s tag %d src %d data %p ptr %p datatype '%s' count %d registered_datatype %d \n",
-			  req, _starpu_mpi_request_type(req->request_type), req->node_tag.data_tag, req->node_tag.rank, req->data_handle, req->ptr, _starpu_mpi_datatype(req->datatype), (int)req->count, req->registered_datatype);
+			  req, _starpu_mpi_request_type(req->request_type), req->node_tag.data_tag, req->node_tag.rank, req->data_handle, req->ptr, req->datatype_name, (int)req->count, req->registered_datatype);
 
 	_STARPU_MPI_TRACE_UTESTING_BEGIN(req->node_tag.rank, req->node_tag.data_tag);
 
@@ -919,7 +920,7 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
 
 	_STARPU_MPI_DEBUG(2, "complete MPI request %p type %s tag %d src %d data %p ptr %p datatype '%s' count %d registered_datatype %d internal_req %p\n",
 			  req, _starpu_mpi_request_type(req->request_type), req->node_tag.data_tag, req->node_tag.rank, req->data_handle, req->ptr,
-			  _starpu_mpi_datatype(req->datatype), (int)req->count, req->registered_datatype, req->internal_req);
+			  req->datatype_name, (int)req->count, req->registered_datatype, req->internal_req);
 
 	if (req->internal_req)
 	{
@@ -1156,7 +1157,7 @@ static void _starpu_mpi_handle_ready_request(struct _starpu_mpi_req *req)
 
 	/* submit the request to MPI */
 	_STARPU_MPI_DEBUG(2, "Handling new request %p type %s tag %d src %d data %p ptr %p datatype '%s' count %d registered_datatype %d \n",
-			  req, _starpu_mpi_request_type(req->request_type), req->node_tag.data_tag, req->node_tag.rank, req->data_handle, req->ptr, _starpu_mpi_datatype(req->datatype), (int)req->count, req->registered_datatype);
+			  req, _starpu_mpi_request_type(req->request_type), req->node_tag.data_tag, req->node_tag.rank, req->data_handle, req->ptr, req->datatype_name, (int)req->count, req->registered_datatype);
 	req->func(req);
 
 	_STARPU_MPI_LOG_OUT();
@@ -1467,7 +1468,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 						_STARPU_MPI_DEBUG(2000, "Request sync %d\n", envelope->sync);
 
 						early_request->sync = envelope->sync;
-						_starpu_mpi_handle_allocate_datatype(early_request->data_handle, &early_request->datatype, &early_request->registered_datatype);
+						_starpu_mpi_handle_allocate_datatype(early_request->data_handle, early_request);
 						if (early_request->registered_datatype == 1)
 						{
 							early_request->count = 1;

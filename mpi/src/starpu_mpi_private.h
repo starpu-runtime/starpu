@@ -165,6 +165,7 @@ LIST_TYPE(_starpu_mpi_req,
 
 	/* description of the data to be sent/received */
 	MPI_Datatype datatype;
+	char *datatype_name;
 	void *ptr;
 	starpu_ssize_t count;
 	int registered_datatype;
