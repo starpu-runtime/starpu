@@ -68,6 +68,7 @@ int main(int argc, char **argv)
 		MPI_Datatype mpi_datatype;
 		_starpu_my_interface_datatype_allocate(&mpi_datatype);
 		MPI_Send(&my0, 1, mpi_datatype, 1, 42, MPI_COMM_WORLD);
+		starpu_my_interface_datatype_free(&mpi_datatype);
 	}
 	else if (rank == 1)
 	{
@@ -76,6 +77,7 @@ int main(int argc, char **argv)
 		_starpu_my_interface_datatype_allocate(&mpi_datatype);
 		MPI_Recv(&my0, 1, mpi_datatype, 0, 42, MPI_COMM_WORLD, &status);
 		FPRINTF(stderr, "Received value: '%c' %d\n", my0.c, my0.d);
+		starpu_my_interface_datatype_free(&mpi_datatype);
 	}
 
 	if (rank == 0)

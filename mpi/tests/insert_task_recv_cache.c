@@ -74,11 +74,11 @@ void test_cache(int rank, char *enabled, size_t *comm_amount)
 	ret = starpu_mpi_init(NULL, NULL, 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
 
-	v = malloc(2 * sizeof(unsigned *));
+	v = calloc(2, sizeof(unsigned *));
 	for(i = 0; i < 2; i++)
 	{
 		int j;
-		v[i] = malloc(N * sizeof(unsigned));
+		v[i] = calloc(N, sizeof(unsigned));
 		for(j=0 ; j<N ; j++)
 		{
 			v[i][j] = 12;
@@ -90,7 +90,7 @@ void test_cache(int rank, char *enabled, size_t *comm_amount)
 		int mpi_rank = my_distrib(i);
 		if (mpi_rank == rank)
 		{
-			starpu_vector_data_register(&data_handles[i], STARPU_MAIN_RAM, (uintptr_t)&(v[i]), N, sizeof(unsigned));
+			starpu_vector_data_register(&data_handles[i], STARPU_MAIN_RAM, (uintptr_t)v[i], N, sizeof(unsigned));
 		}
 		else
 		{
