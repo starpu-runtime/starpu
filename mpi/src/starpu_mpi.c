@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2009, 2010-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+ * Copyright (C) 2016  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -1172,6 +1173,8 @@ struct _starpu_mpi_argc_argv
 	int *argc;
 	char ***argv;
 	MPI_Comm comm;
+	int fargc;	// Fortran argc
+	char **fargv;	// Fortran argv
 };
 
 static void _starpu_mpi_print_thread_level_support(int thread_level, char *msg)
@@ -1796,6 +1799,13 @@ int starpu_mpi_comm_rank(MPI_Comm comm, int *rank)
 #endif
 }
 
+int starpu_mpi_world_size(void)
+{
+	int size;
+	starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
+	return size;
+}
+
 int starpu_mpi_world_rank(void)
 {
 	int rank;
@@ -1813,4 +1823,50 @@ int starpu_mpi_wait_for_all(MPI_Comm comm)
 		mpi = _starpu_mpi_barrier(comm);
 	}
 	return 0;
+}
+
+/* Fortran related functions */
+struct _starpu_mpi_argc_argv *fstarpu_mpi_argcv_alloc(int argc, int initialize_mpi, int comm_present, MPI_Fint comm)
+{
+	struct _starpu_mpi_argc_argv *argcv = calloc(1,sizeof(*argcv));
+	argcv->initialize_mpi = initialize_mpi;
+	if (comm_present) {
+		argcv->comm = MPI_Comm_f2c(comm);
+	} else {
+		argcv->comm = MPI_COMM_WORLD;
+	}
+	argcv->fargc = argc;
+	argcv->argc = &argcv->fargc;
+	argcv->fargv = calloc(argc, sizeof(char *));
+	argcv->argv = &argcv->fargv;
+	return argcv;
+}
+
+void fstarpu_mpi_argcv_set_arg(struct _starpu_mpi_argc_argv *argcv, int i, int len, char *_s)
+{
+	STARPU_ASSERT(len >= 0);
+	STARPU_ASSERT(i >= 0 && i < argcv->fargc);
+	char *s = malloc(len+1);
+	memcpy(s, _s, len);
+	s[len] = '\0';
+	argcv->fargv[i] = s;
+}
+
+void fstarpu_mpi_argcv_free(struct _starpu_mpi_argc_argv *argcv)
+{
+	if (argcv->fargv != NULL)
+	{
+		int i;
+		for (i=0; i<argcv->fargc; i++)
+		{
+			free(argcv->fargv[i]);
+		}
+		free(argcv->fargv);
+	}
+	free(argcv);
+}
+
+int fstarpu_mpi_init_c(struct _starpu_mpi_argc_argv *argcv)
+{
+	return starpu_mpi_init_comm(argcv->argc, argcv->argv, argcv->initialize_mpi, argcv->comm);
 }

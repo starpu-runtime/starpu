@@ -2,6 +2,7 @@
 #
 # Copyright (C) 2009-2013, 2015-2016  Université de Bordeaux
 # Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+# Copyright (C) 2016  Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -18,6 +19,8 @@ include $(top_srcdir)/starpu.mk
 
 CC=$(MPICC)
 CCLD=$(MPICC)
+FC=$(MPIFORT)
+FCLD=$(MPIFORT)
 
 if STARPU_HAVE_WINDOWS
 LOADER_BIN		=
@@ -263,6 +266,32 @@ starpu_mpi_EXAMPLES +=				\
 	matrix_mult/mm
 endif
 
+##########################################
+# Native Fortran MPI Matrix mult example #
+##########################################
+
+if STARPU_HAVE_MPIFORT
+if BUILD_EXAMPLES
+if !STARPU_SANITIZE
+examplebin_PROGRAMS +=		\
+	native_fortran/nf_mm
+
+native_fortran_nf_mm_SOURCES	=			\
+	native_fortran/nf_mm_cl.f90			\
+	$(top_srcdir)/mpi/include/fstarpu_mpi_mod.f90	\
+	$(top_srcdir)/include/fstarpu_mod.f90		\
+	native_fortran/nf_mm.f90
+
+native_fortran_nf_mm_LDADD =					\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la	\
+	-lm
+
+starpu_mpi_EXAMPLES +=				\
+	native_fortran/nf_mm
+endif
+endif
+endif
+
 ###################
 # complex example #
 ###################
@@ -320,3 +349,29 @@ starpu_mpi_EXAMPLES	+=			\
 	comm/mix_comm
 endif
 
+if STARPU_HAVE_MPIFORT
+if BUILD_EXAMPLES
+if !STARPU_SANITIZE
+# Native Fortran example
+# - list explicit dependences to control proper module files generation
+# - the overriding rule fully disables the corresponing default rule, thus
+#   the default rule body must be copied entirely
+fstarpu_mod.mod: fstarpu_mod.o
+fstarpu_mpi_mod.mod: fstarpu_mpi_mod.o
+nf_mm_cl.mod: nf_mm_cl.o
+
+fstarpu_mod.o: $(top_srcdir)/include/fstarpu_mod.f90
+	$(AM_V_FC)$(FC) $(native_fortran_nf_mm_FCFLAGS) $(FCFLAGS) -c -o $@ '$(top_srcdir)/'include/fstarpu_mod.f90
+
+fstarpu_mpi_mod.o: $(top_srcdir)/mpi/include/fstarpu_mpi_mod.f90 fstarpu_mod.mod
+	$(AM_V_FC)$(FC) $(native_fortran_nf_mm_FCFLAGS) $(FCFLAGS) -c -o $@ '$(top_srcdir)/'mpi/include/fstarpu_mpi_mod.f90
+
+nf_mm_cl.o: $(top_srcdir)/mpi/examples/native_fortran/nf_mm_cl.f90 fstarpu_mpi_mod.mod fstarpu_mod.mod
+	$(AM_V_FC)$(FC) $(native_fortran_nf_mm_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'native_fortran/nf_mm_cl.f90' || echo '$(srcdir)/'`native_fortran/nf_mm_cl.f90
+
+nf_mm.o: $(top_srcdir)/mpi/examples/native_fortran/nf_mm.f90 nf_mm_cl.mod fstarpu_mpi_mod.mod fstarpu_mod.mod
+	$(AM_V_FC)$(FC) $(native_fortran_nf_mm_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'native_fortran/nf_mm.f90' || echo '$(srcdir)/'`native_fortran/nf_mm.f90
+
+endif
+endif
+endif

@@ -4,7 +4,7 @@
 # Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
 # Copyright (C) 2011  Télécom-SudParis
 # Copyright (C) 2011, 2012, 2014  INRIA
-# Copyright (C) 2015  Inria
+# Copyright (C) 2015, 2016  Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -2133,9 +2133,43 @@ if test "x$FC" != "x"; then
 	fi
 	if test "x$enable_build_fortran" = "xyes" ; then
 		AC_DEFINE(STARPU_HAVE_FC, [], [Define this if a Fortran compiler is available])
+		if test x$use_mpi = xyes; then
+			AC_ARG_WITH(mpifort, [AS_HELP_STRING([--with-mpifort[=<path to mpifort>]],
+				    [Path of the mpifort compiler])],
+				    [
+				     if test x$withval = xyes; then
+					     AC_MSG_ERROR(--with-mpifort must be given a pathname)
+					     else
+						     mpifort_path=$withval
+					     fi
+					     ],
+					     [
+					      if test x$enable_simgrid = xyes ; then
+						      DEFAULT_MPIFORT=smpifort
+					      else
+						      DEFAULT_MPIFORT=mpifort
+					      fi
+					      # nothing was specified: default value is used
+					      AC_PATH_PROG(mpifort_path, $DEFAULT_MPIFORT, [no], [$simgrid_dir/bin:$PATH])
+					      ])
+
+			# We test if the MPIFORT compiler exists
+			if test ! -x $mpifort_path; then
+				#MPIFORT does not exists or is not executable
+				AC_MSG_RESULT(The mpifort compiler '$mpifort_path' does not have the execute permission)
+				use_mpi_fort=no
+			else
+				use_mpi_fort=yes
+
+				AC_MSG_CHECKING(mpifort path)
+				AC_MSG_RESULT($mpifort_path)
+				AC_SUBST(MPIFORT, $mpifort_path)
+			fi
+		fi
 	fi
 fi
 AM_CONDITIONAL([STARPU_HAVE_FC], [test "x$FC" != "x" -a "x$enable_build_fortran" = "xyes"])
+AM_CONDITIONAL([STARPU_HAVE_MPIFORT], [test "x$FC" != "x" -a "x$enable_build_fortran" = "xyes" -a "x$MPIFORT" != "x"])
 
 ###############################################################################
 #                                                                             #
