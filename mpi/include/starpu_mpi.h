@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2009-2012, 2014-2015  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+ * Copyright (C) 2016  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -77,6 +78,7 @@ void starpu_mpi_cache_flush_all_data(MPI_Comm comm);
 int starpu_mpi_comm_size(MPI_Comm comm, int *size);
 int starpu_mpi_comm_rank(MPI_Comm comm, int *rank);
 int starpu_mpi_world_rank(void);
+int starpu_mpi_world_size(void);
 
 int starpu_mpi_get_communication_tag(void);
 void starpu_mpi_set_communication_tag(int tag);
