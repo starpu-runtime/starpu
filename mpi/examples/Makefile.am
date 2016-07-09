@@ -274,7 +274,8 @@ if STARPU_HAVE_MPIFORT
 if BUILD_EXAMPLES
 if !STARPU_SANITIZE
 examplebin_PROGRAMS +=		\
-	native_fortran/nf_mm
+	native_fortran/nf_mm	\
+	native_fortran/nf_basic_ring
 
 native_fortran_nf_mm_SOURCES	=			\
 	native_fortran/nf_mm_cl.f90			\
@@ -286,8 +287,18 @@ native_fortran_nf_mm_LDADD =					\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la	\
 	-lm
 
+native_fortran_nf_basic_ring_SOURCES	=			\
+	$(top_srcdir)/mpi/include/fstarpu_mpi_mod.f90	\
+	$(top_srcdir)/include/fstarpu_mod.f90		\
+	native_fortran/nf_basic_ring.f90
+
+native_fortran_nf_basic_ring_LDADD =					\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la	\
+	-lm
+
 starpu_mpi_EXAMPLES +=				\
-	native_fortran/nf_mm
+	native_fortran/nf_mm			\
+	native_fortran/nf_basic_ring
 endif
 endif
 endif
@@ -372,6 +383,8 @@ nf_mm_cl.o: $(top_srcdir)/mpi/examples/native_fortran/nf_mm_cl.f90 fstarpu_mpi_m
 nf_mm.o: $(top_srcdir)/mpi/examples/native_fortran/nf_mm.f90 nf_mm_cl.mod fstarpu_mpi_mod.mod fstarpu_mod.mod
 	$(AM_V_FC)$(FC) $(native_fortran_nf_mm_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'native_fortran/nf_mm.f90' || echo '$(srcdir)/'`native_fortran/nf_mm.f90
 
+nf_basic_ring.o: $(top_srcdir)/mpi/examples/native_fortran/nf_basic_ring.f90 fstarpu_mpi_mod.mod fstarpu_mod.mod
+	$(AM_V_FC)$(FC) $(native_fortran_nf_basic_ring_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'native_fortran/nf_basic_ring.f90' || echo '$(srcdir)/'`native_fortran/nf_basic_ring.f90
 endif
 endif
 endif
