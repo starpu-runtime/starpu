@@ -1419,7 +1419,11 @@ module fstarpu_mod
                 end subroutine fstarpu_data_descr_set
 
 
-                subroutine fstarpu_insert_task(arglist) bind(C)
+                subroutine fstarpu_task_insert(arglist) bind(C)
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), dimension(:), intent(in) :: arglist
+                end subroutine fstarpu_task_insert
+                subroutine fstarpu_insert_task(arglist) bind(C,name="fstarpu_task_insert")
                         use iso_c_binding, only: c_ptr
                         type(c_ptr), dimension(:), intent(in) :: arglist
                 end subroutine fstarpu_insert_task
