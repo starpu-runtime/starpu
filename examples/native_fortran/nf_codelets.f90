@@ -92,7 +92,7 @@ recursive subroutine cl_cpu_func_mat (buffers, cl_args) bind(C)
         write(*,*) "ny_mb"
         write(*,*) ny_mb
 
-        call c_f_pointer(fstarpu_matrix_get_ptr(buffers, 0), ma, shape=[nx_ma,ny_ma])
+        call c_f_pointer(fstarpu_matrix_get_ptr(buffers, 0), ma, shape=[ld_ma,ny_ma])
         write(*,*) "ma"
         do i=1,nx_ma
         do j=1,ny_ma
@@ -101,7 +101,7 @@ recursive subroutine cl_cpu_func_mat (buffers, cl_args) bind(C)
         write(*,*) '-'
         end do
 
-        call c_f_pointer(fstarpu_matrix_get_ptr(buffers, 1), mb, shape=[nx_mb,ny_mb])
+        call c_f_pointer(fstarpu_matrix_get_ptr(buffers, 1), mb, shape=[ld_mb,ny_mb])
         write(*,*) "mb"
         do i=1,nx_mb
         do j=1,ny_mb
