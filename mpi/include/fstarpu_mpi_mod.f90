@@ -178,8 +178,34 @@ module fstarpu_mpi_mod
                 end function fstarpu_mpi_shutdown
 
                 ! struct starpu_task *starpu_mpi_task_build(MPI_Comm comm, struct starpu_codelet *codelet, ...);
+                function fstarpu_mpi_task_build(mpi_comm,arglist) bind(C)
+                        use iso_c_binding, only: c_ptr,c_int
+                        type(c_ptr) :: fstarpu_mpi_task_build
+                        integer(c_int), value, intent(in) :: mpi_comm
+                        type(c_ptr), dimension(:), intent(in) :: arglist
+                end function fstarpu_mpi_task_build
+
                 ! int starpu_mpi_task_post_build(MPI_Comm comm, struct starpu_codelet *codelet, ...);
+                function fstarpu_mpi_task_post_build(mpi_comm,arglist) bind(C)
+                        use iso_c_binding, only: c_ptr,c_int
+                        integer(c_int) :: fstarpu_mpi_task_post_build
+                        integer(c_int), value, intent(in) :: mpi_comm
+                        type(c_ptr), dimension(:), intent(in) :: arglist
+                end function fstarpu_mpi_task_post_build
+
                 ! int starpu_mpi_task_insert(MPI_Comm comm, struct starpu_codelet *codelet, ...);
+                function fstarpu_mpi_task_insert(mpi_comm,arglist) bind(C)
+                        use iso_c_binding, only: c_ptr,c_int
+                        integer(c_int) :: fstarpu_mpi_task_insert
+                        integer(c_int), value, intent(in) :: mpi_comm
+                        type(c_ptr), dimension(:), intent(in) :: arglist
+                end function fstarpu_mpi_task_insert
+                function fstarpu_mpi_insert_task(mpi_comm,arglist) bind(C,name="fstarpu_mpi_task_insert")
+                        use iso_c_binding, only: c_ptr,c_int
+                        integer(c_int) :: fstarpu_mpi_insert_task
+                        integer(c_int), value, intent(in) :: mpi_comm
+                        type(c_ptr), dimension(:), intent(in) :: arglist
+                end function fstarpu_mpi_insert_task
 
                 ! void starpu_mpi_get_data_on_node(MPI_Comm comm, starpu_data_handle_t data_handle, int node);
                 subroutine fstarpu_mpi_get_data_on_node(mpi_comm,dh,node) bind(C)
