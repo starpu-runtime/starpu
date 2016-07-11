@@ -119,13 +119,6 @@ static int read_string_var(const char *str, const char *strings[], int *dst)
 }
 
 /* TODO: move to utils */
-static int read_boolean_var(const char *str, int *dst)
-{
-	const char *strings[] = { "false", "true", NULL };
-	return read_string_var(str, strings, dst);
-}
-
-/* TODO: move to utils */
 static int read_int_var(const char *str, int *dst)
 {
 	char *endptr;
@@ -642,6 +635,7 @@ static void read_omp_int_var(const char *name, int *icv)
 
 static void read_omp_boolean_var(const char *name, int *icv)
 {
+	const char *strings[] = { "false", "true", NULL };
 	int ret, value;
 	char *env;
 
@@ -649,7 +643,7 @@ static void read_omp_boolean_var(const char *name, int *icv)
 	if (!env)
 		return;
 
-	ret = read_boolean_var(env, &value);
+	ret = read_string_var(env, strings, &value);
 	if (!ret)
 	{
 		fprintf(stderr, "StarPU: Invalid value for environment variable %s\n", name);
