@@ -187,10 +187,10 @@ void _starpu_mpi_handle_allocate_datatype(starpu_data_handle_t data_handle, stru
 	}
 #ifdef STARPU_VERBOSE
 	{
-		char datatype_name[128];
+		char datatype_name[MPI_MAX_OBJECT_NAME];
 		int datatype_name_len;
 		MPI_Type_get_name(req->datatype, datatype_name, &datatype_name_len);
-		if (strcmp(datatype_name, "") == 0)
+		if (datatype_name_len == 0)
 			req->datatype_name = strdup("User defined datatype");
 		else
 			req->datatype_name = strdup(datatype_name);
