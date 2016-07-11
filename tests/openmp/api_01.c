@@ -128,7 +128,7 @@ main (int argc, char *argv[])
 	}
 	check_omp_func(starpu_omp_get_active_level, 0);
 	check_omp_func(starpu_omp_in_final, 0);
-	check_omp_func(starpu_omp_get_proc_bind, starpu_omp_proc_bind_undefined);
+	check_omp_func(starpu_omp_get_proc_bind, starpu_omp_proc_bind_false);
 	check_omp_func(starpu_omp_get_default_device, 0);
 	/* TODO: support more than one device */
 	check_omp_func(starpu_omp_get_num_devices, 1);
