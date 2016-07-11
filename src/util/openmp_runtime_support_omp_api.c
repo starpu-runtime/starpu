@@ -218,8 +218,8 @@ enum starpu_omp_proc_bind_value starpu_omp_get_proc_bind(void)
 
 int starpu_omp_get_num_places(void)
 {
-  /* TODO */
-  return 0;
+	struct starpu_omp_place *places = &_starpu_omp_initial_icv_values->places;
+	return places->nb_numeric_places;
 }
 
 int starpu_omp_get_place_num_procs(int place_num)
