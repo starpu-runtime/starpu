@@ -250,27 +250,25 @@ static void read_wait_policy_var()
 
 }
 
-static void read_display_env_var(const char *var, int *dest)
+static void read_display_env_var(int *dest)
 {
-	const char *env = starpu_getenv(var);
-	if (env)
+	const char *strings[] = { "false", "true", "verbose", NULL };
+	int ret, value;
+	char *env;
+
+	env = starpu_getenv("OMP_DISPLAY_ENV");
+	if (!env)
+		return;
+
+	ret = read_string_var(env, strings, &value);
+	if (!ret)
 	{
-		char *str = strdup(env);
-		if (str == NULL)
-			_STARPU_ERROR("memory allocation failed\n");
-		remove_spaces(str);
-		if (str[0] == '\0')
-		{
-			free(str);
-			return;
-		}
-		static const char *strings[] = { "false", "true", "verbose", NULL };
-		int mode = strings_cmp(strings, str);
-		if (mode < 0)
-			_STARPU_ERROR("parse error in variable %s\n", var);
-		*dest = mode;
-		free(str);
+		fprintf(stderr, "StarPU: Invalid value for environment variable OMP_DISPLAY_ENV\n");
+		return;
 	}
+
+	*dest = value;
+
 }
 
 static int convert_place_name(const char *str, size_t n)
@@ -886,7 +884,7 @@ void _starpu_omp_environment_init(void)
 {
 	read_omp_environment();
 	int display_env = 0;
-	read_display_env_var("OMP_DISPLAY_ENV", &display_env);
+	read_display_env_var(&display_env);
 	if (display_env > 0)
 	{
 		display_omp_environment(display_env);
