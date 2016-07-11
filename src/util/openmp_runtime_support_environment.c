@@ -273,63 +273,6 @@ static void read_display_env_var(const char *var, int *dest)
 	}
 }
 
-static int convert_bind_mode(const char *str, size_t n)
-{
-	static const char *strings[] = { "false", "true", "master", "close", "spread", NULL };
-	int mode = stringsn_cmp(strings, str, n);
-	if (mode < 0)
-		_STARPU_ERROR("proc_bind list parse error\n");
-	return mode;
-}
-
-static void convert_bind_string(const char *_str, int *bind_list, const int max_levels)
-{
-	char *str = strdup(_str);
-	if (str == NULL)
-		_STARPU_ERROR("memory allocation failed\n");
-	remove_spaces(str);
-	if (str[0] == '\0')
-	{
-		free(str);
-		return;
-	}
-	enum { state_split, state_read };
-	int level = 0;
-	int i = 0;
-	int state = state_read;
-	while (1)
-	{
-		if (state == state_split)
-		{
-			if (str[i] == '\0')
-				break;
-			if (str[i] != ',')
-				_STARPU_ERROR("proc_bind list parse error\n");
-			i++;
-			state = state_read;
-		}
-		else if (state == state_read)
-		{
-			int n = 0;
-			while (isalpha(str[i+n]))
-				n++;
-			if (n == 0)
-				_STARPU_ERROR("proc_bind list parse error\n");
-			int mode = convert_bind_mode(str+i,n);
-			STARPU_ASSERT(mode >= starpu_omp_proc_bind_false && mode <= starpu_omp_proc_bind_spread);
-			bind_list[level] = mode;
-			level++;
-			if (level == max_levels)
-				break;
-			i += n;
-			state = state_split;
-		}
-		else
-			_STARPU_ERROR("invalid state in parsing proc_bind list\n");
-	}
-	free(str);
-}
-
 static int convert_place_name(const char *str, size_t n)
 {
 	static const char *strings[] = { "threads", "cores", "sockets", NULL };
@@ -615,6 +558,39 @@ static void free_places(struct starpu_omp_place *places)
 	}
 }
 
+static void read_proc_bind_var()
+{
+	static const char *strings[] = { "false", "true", "master", "close", "spread", NULL };
+	const int max_levels = _initial_icv_values.max_active_levels_var + 1;
+	int *bind_list = NULL;
+	int level = 0;
+	char *env;
+
+	bind_list = calloc(max_levels, sizeof(*bind_list));
+	if (!bind_list)
+		_STARPU_ERROR("memory allocation failed\n");
+
+	env = starpu_getenv("OMP_PROC_BIND");
+	if (env)
+	{
+		char *saveptr, *token;
+
+		token = strtok_r(env, ",", &saveptr);
+		for (; token != NULL; token = strtok_r(NULL, ",", &saveptr)) {
+			int value;
+
+			if (!read_string_var(token, strings, &value))
+			{
+				fprintf(stderr, "StarPU: Invalid value for environment variable OMP_PROC_BIND\n");
+				break;
+			}
+
+			bind_list[level++] = value;
+		}
+	}
+	_initial_icv_values.bind_var = bind_list;
+}
+
 static void read_num_threads_var()
 {
 	const int max_levels = _initial_icv_values.max_active_levels_var + 1;
@@ -701,27 +677,7 @@ static void read_omp_environment(void)
 	STARPU_ASSERT_MSG(_initial_icv_values.max_active_levels_var > 0 && _initial_icv_values.max_active_levels_var < 1000000, "OMP_MAX_ACTIVE_LEVELS should have a reasonable value");
 	/* TODO: check others */
 
-	const int max_levels = _initial_icv_values.max_active_levels_var;
-
-	/* read OMP_PROC_BIND */
-	{
-		int *bind_list = malloc((1+max_levels) * sizeof(*bind_list));
-		if (bind_list == NULL)
-			_STARPU_ERROR("memory allocation failed\n");
-		int level;
-		for (level = 0;level < max_levels+1;level++)
-		{
-			/* TODO: check what should be used as default value */
-			bind_list[level] = starpu_omp_proc_bind_undefined;
-		}
-		const char *env = starpu_getenv("OMP_PROC_BIND");
-		if (env)
-		{
-			convert_bind_string(env, bind_list, max_levels);
-		}
-		_initial_icv_values.bind_var = bind_list;
-	}
-
+	read_proc_bind_var();
 	read_num_threads_var();
 
 	/* read OMP_PLACES */
