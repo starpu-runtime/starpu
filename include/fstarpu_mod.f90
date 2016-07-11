@@ -64,13 +64,26 @@ module fstarpu_mod
 
         integer(c_int), bind(C) :: FSTARPU_NMAXBUFS
 
+        ! (some) portable iso_c_binding types
+        type(c_ptr), bind(C) :: FSTARPU_SZ_C_DOUBLE
+        type(c_ptr), bind(C) :: FSTARPU_SZ_C_FLOAT
         type(c_ptr), bind(C) :: FSTARPU_SZ_C_INT
         type(c_ptr), bind(C) :: FSTARPU_SZ_C_INTPTR_T
+        type(c_ptr), bind(C) :: FSTARPU_SZ_C_PTR
+        type(c_ptr), bind(C) :: FSTARPU_SZ_C_SIZE_T
+
+        ! (some) native Fortran types
+        type(c_ptr), bind(C) :: FSTARPU_SZ_INTEGER
         type(c_ptr), bind(C) :: FSTARPU_SZ_INT4
         type(c_ptr), bind(C) :: FSTARPU_SZ_INT8
 
+        type(c_ptr), bind(C) :: FSTARPU_SZ_REAL
         type(c_ptr), bind(C) :: FSTARPU_SZ_REAL4
         type(c_ptr), bind(C) :: FSTARPU_SZ_REAL8
+
+        type(c_ptr), bind(C) :: FSTARPU_SZ_DOUBLE_PRECISION
+
+        type(c_ptr), bind(C) :: FSTARPU_SZ_COMPLEX
 
         interface operator (.ior.)
                 procedure or_cptrs
@@ -1590,12 +1603,24 @@ module fstarpu_mod
                         integer(c_int) :: fstarpu_init
                         type(c_ptr), value, intent(in) :: conf
 
+                        real(c_double) :: FSTARPU_SZ_C_DOUBLE_dummy
+                        real(c_float) :: FSTARPU_SZ_C_FLOAT_dummy
                         integer(c_int) :: FSTARPU_SZ_C_INT_dummy
                         integer(c_intptr_t) :: FSTARPU_SZ_C_INTPTR_T_dummy
+                        type(c_ptr) :: FSTARPU_SZ_C_PTR_dummy
+                        integer(c_size_t) :: FSTARPU_SZ_C_SIZE_T_dummy
+
+                        integer :: FSTARPU_SZ_INTEGER_dummy
                         integer(4) :: FSTARPU_SZ_INT4_dummy
                         integer(8) :: FSTARPU_SZ_INT8_dummy
+
+                        real :: FSTARPU_SZ_REAL_dummy
                         real(4) :: FSTARPU_SZ_REAL4_dummy
                         real(8) :: FSTARPU_SZ_REAL8_dummy
+
+                        double precision :: FSTARPU_SZ_DOUBLE_PRECISION_dummy
+
+                        complex :: FSTARPU_SZ_COMPLEX_dummy
 
                         ! Note: Referencing global C constants from Fortran has
                         ! been found unreliable on some architectures, notably
@@ -1664,12 +1689,25 @@ module fstarpu_mod
                         FSTARPU_NMAXBUFS   = int(p_to_ip(fstarpu_get_constant(C_CHAR_"FSTARPU_NMAXBUFS"//C_NULL_CHAR)),c_int)
 
                         ! Initialize size constants as 'c_ptr'
+                        FSTARPU_SZ_C_DOUBLE        = sz_to_p(c_sizeof(FSTARPU_SZ_C_DOUBLE_dummy))
+                        FSTARPU_SZ_C_FLOAT        = sz_to_p(c_sizeof(FSTARPU_SZ_C_FLOAT_dummy))
                         FSTARPU_SZ_C_INT        = sz_to_p(c_sizeof(FSTARPU_SZ_C_INT_dummy))
                         FSTARPU_SZ_C_INTPTR_T   = sz_to_p(c_sizeof(FSTARPU_SZ_C_INTPTR_T_dummy))
+                        FSTARPU_SZ_C_PTR        = sz_to_p(c_sizeof(FSTARPU_SZ_C_PTR_dummy))
+                        FSTARPU_SZ_C_SIZE_T        = sz_to_p(c_sizeof(FSTARPU_SZ_C_SIZE_T_dummy))
+
+                        FSTARPU_SZ_INTEGER         = sz_to_p(c_sizeof(FSTARPU_SZ_INTEGER_dummy))
                         FSTARPU_SZ_INT4         = sz_to_p(c_sizeof(FSTARPU_SZ_INT4_dummy))
                         FSTARPU_SZ_INT8         = sz_to_p(c_sizeof(FSTARPU_SZ_INT8_dummy))
+
+                        FSTARPU_SZ_REAL        = sz_to_p(c_sizeof(FSTARPU_SZ_REAL_dummy))
                         FSTARPU_SZ_REAL4        = sz_to_p(c_sizeof(FSTARPU_SZ_REAL4_dummy))
                         FSTARPU_SZ_REAL8        = sz_to_p(c_sizeof(FSTARPU_SZ_REAL8_dummy))
+
+                        FSTARPU_SZ_DOUBLE_PRECISION        = sz_to_p(c_sizeof(FSTARPU_SZ_DOUBLE_PRECISION_dummy))
+
+                        FSTARPU_SZ_COMPLEX        = sz_to_p(c_sizeof(FSTARPU_SZ_COMPLEX_dummy))
+
                         ! Initialize StarPU
                         if (c_associated(conf)) then 
                                 fstarpu_init = fstarpu_init_internal(conf)

@@ -94,7 +94,7 @@ PROGRAM f90_example
      DO i = 1,Nelt
         elt => mesh%elt(i)
         CALL fstarpu_insert_task((/ cl_loop_element,    &
-                FSTARPU_VALUE, c_loc(numpar%coeff), FSTARPU_SZ_REAL8, &
+                FSTARPU_VALUE, c_loc(numpar%coeff), FSTARPU_SZ_C_DOUBLE, &
                 FSTARPU_R, elt%ro_h,                 &
                 FSTARPU_RW, elt%dro_h,                &
                 FSTARPU_R, elt%basis_h,              &
