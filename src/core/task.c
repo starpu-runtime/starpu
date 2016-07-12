@@ -1202,7 +1202,22 @@ static void *watchdog_func(void *arg)
 		config->watchdog_ok = 0;
 		STARPU_PTHREAD_MUTEX_UNLOCK(&config->submitted_mutex);
 
-		starpu_sleep(timeout);
+		/* If we do a sleep(timeout), we might have to wait too long at the end of the computation. */
+		/* To avoid that, we do several sleep() of 1s (and check after each if starpu is still running) */
+		float t;
+		for (t = timeout ; t > 1.; t--)
+		{
+			starpu_sleep(1.);
+			if (!_starpu_machine_is_running())
+			{
+				/* Application finished, don't bother finishing the sleep */
+				STARPU_PTHREAD_MUTEX_UNLOCK(&config->submitted_mutex);
+				return NULL;
+			}
+		}
+		/* and one final sleep (of less than 1 s) with the rest (if needed) */
+		if (t > 0.)
+			starpu_sleep(t);
 
 		STARPU_PTHREAD_MUTEX_LOCK(&config->submitted_mutex);
 		if (!config->watchdog_ok && last_nsubmitted
