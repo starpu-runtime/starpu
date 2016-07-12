@@ -207,6 +207,18 @@ char *_starpu_mpi_get_mpi_code(int code)
 #ifdef MPI_ERR_WIN
 	case MPI_ERR_WIN: return "MPI_ERR_WIN";
 #endif
+#ifdef MPI_ERR_EXITED
+        case MPI_ERR_EXITED: return "MPI_ERR_EXITED";
+#endif
+#ifdef MPI_ERR_CONNECT
+        case MPI_ERR_CONNECT: return "MPI_ERR_CONNECT";
+#endif
+#ifdef MPI_ERR_PROC_FAILED
+        case MPI_ERR_PROC_FAILED: return "MPI_ERR_PROC_FAILED";
+#endif
+#ifdef MPI_ERR_REVOKED
+        case MPI_ERR_REVOKED: return "MPI_ERR_REVOKED";
+#endif
 #if defined(MPI_ERR_LASTCODE) && MPI_ERR_LASTCODE != MPI_SUCCESS
 	case MPI_ERR_LASTCODE: return "MPI_ERR_LASTCODE";
 #endif
