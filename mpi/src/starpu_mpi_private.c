@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012, 2014-2015  Université de Bordeaux
+ * Copyright (C) 2010, 2012, 2014-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -222,6 +222,11 @@ char *_starpu_mpi_get_mpi_code(int code)
 #if defined(MPI_ERR_LASTCODE) && MPI_ERR_LASTCODE != MPI_SUCCESS
 	case MPI_ERR_LASTCODE: return "MPI_ERR_LASTCODE";
 #endif
-	default: return "UNKNOWN_MPI_CODE";
+	default:
+		{
+			static char str[22];
+			snprintf(str, sizeof(str), "MPI error %d\n", code);
+			return str;
+		}
 	}
 }
