@@ -133,7 +133,8 @@ starpu_mpi_TESTS =				\
 	policy_selection			\
 	policy_selection2			\
 	early_request				\
-	starpu_redefine
+	starpu_redefine				\
+	mpi_error
 
 noinst_PROGRAMS =				\
 	datatypes				\
@@ -192,7 +193,8 @@ noinst_PROGRAMS =				\
 XFAIL_TESTS=					\
 	policy_register_toomany			\
 	policy_unregister			\
-	starpu_redefine
+	starpu_redefine				\
+	mpi_error
 
 mpi_isend_LDADD =					\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
@@ -295,6 +297,8 @@ policy_selection2_LDADD =			\
 early_request_LDADD =					\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 starpu_redefine_LDADD =					\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
+mpi_error_LDADD =					\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 
 ring_SOURCES = ring.c
