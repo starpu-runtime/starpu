@@ -30,7 +30,7 @@ extern "C" {
 #endif
 
 extern int _starpu_debug_rank;
-char *_starpu_mpi_get_mpi_code(int code);
+char *_starpu_mpi_get_mpi_error_code(int code);
 extern int _starpu_mpi_comm;
 
 #ifdef STARPU_VERBOSE
