@@ -115,6 +115,7 @@ typedef void (*_starpu_data_handle_unregister_hook)(starpu_data_handle_t);
 
 struct _starpu_data_state
 {
+	int magic;
 	struct _starpu_data_requester_list req_list;
 	/* the number of requests currently in the scheduling engine (not in
 	 * the req_list anymore), i.e. the number of holders of the
