@@ -618,7 +618,7 @@ int __starpu_data_check_not_busy(starpu_data_handle_t handle)
 }
 
 static
-void _starpu_check_if_valid_and_fetch_data_on_node(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate)
+void _starpu_check_if_valid_and_fetch_data_on_node(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, const char *origin)
 {
 	unsigned node;
 	unsigned nnodes = starpu_memory_nodes_get_count();
@@ -634,7 +634,7 @@ void _starpu_check_if_valid_and_fetch_data_on_node(starpu_data_handle_t handle, 
 	}
 	if (valid)
 	{
-		int ret = _starpu_fetch_data_on_node(handle, replicate, STARPU_R, 0, 0, 0, NULL, NULL, 0);
+		int ret = _starpu_fetch_data_on_node(handle, replicate, STARPU_R, 0, 0, 0, NULL, NULL, 0, origin);
 		STARPU_ASSERT(!ret);
 		_starpu_release_data_on_node(handle, 0, &handle->per_node[handle->home_node]);
 	}
@@ -656,7 +656,7 @@ static void _starpu_data_unregister_fetch_data_callback(void *_arg)
 
 	struct _starpu_data_replicate *replicate = &handle->per_node[arg->memory_node];
 
-	_starpu_check_if_valid_and_fetch_data_on_node(handle, replicate);
+	_starpu_check_if_valid_and_fetch_data_on_node(handle, replicate, "_starpu_data_unregister_fetch_data_callback");
 
 	/* unlock the caller */
 	STARPU_PTHREAD_MUTEX_LOCK(&arg->mutex);
@@ -710,7 +710,7 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 			{
 				/* no one has locked this data yet, so we proceed immediately */
 				struct _starpu_data_replicate *home_replicate = &handle->per_node[home_node];
-				_starpu_check_if_valid_and_fetch_data_on_node(handle, home_replicate);
+				_starpu_check_if_valid_and_fetch_data_on_node(handle, home_replicate, "_starpu_data_unregister");
 			}
 			else
 			{

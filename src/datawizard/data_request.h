@@ -41,6 +41,7 @@ struct _starpu_callback_list
 LIST_TYPE(_starpu_data_request,
 	struct _starpu_spinlock lock;
 	unsigned refcnt;
+	const char *origin; /* Name of the function that triggered the request */
 
 	starpu_data_handle_t handle;
 	struct _starpu_data_replicate *src_replicate;
@@ -139,7 +140,8 @@ struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t ha
 							 unsigned ndeps,
 							 unsigned is_prefetch,
 							 int prio,
-							 unsigned is_write_invalidation) STARPU_ATTRIBUTE_MALLOC;
+							 unsigned is_write_invalidation,
+							 const char *origin) STARPU_ATTRIBUTE_MALLOC;
 
 int _starpu_wait_data_request_completion(struct _starpu_data_request *r, unsigned may_alloc);
 

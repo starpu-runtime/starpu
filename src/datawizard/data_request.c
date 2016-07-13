@@ -137,7 +137,8 @@ struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t ha
 							 unsigned ndeps,
 							 unsigned is_prefetch,
 							 int prio,
-							 unsigned is_write_invalidation)
+							 unsigned is_write_invalidation,
+							 const char *origin)
 {
 	struct _starpu_data_request *r = _starpu_data_request_new();
 
@@ -145,6 +146,7 @@ struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t ha
 
 	_starpu_spin_init(&r->lock);
 
+	r->origin = origin;
 	r->handle = handle;
 	r->src_replicate = src_replicate;
 	r->dst_replicate = dst_replicate;

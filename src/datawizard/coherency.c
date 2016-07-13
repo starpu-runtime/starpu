@@ -470,7 +470,7 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 								  struct _starpu_data_replicate *dst_replicate,
 								  enum starpu_data_access_mode mode, unsigned is_prefetch,
 								  unsigned async,
-								  void (*callback_func)(void *), void *callback_arg, int prio)
+								  void (*callback_func)(void *), void *callback_arg, int prio, const char *origin)
 {
 	/* We don't care about commuting for data requests, that was handled before. */
 	mode &= ~STARPU_COMMUTE;
@@ -621,7 +621,7 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 			/* Create a new request if there was no request to reuse */
 			r = _starpu_create_data_request(handle, hop_src_replicate,
 							hop_dst_replicate, hop_handling_node,
-							mode, ndeps, is_prefetch, prio, 0);
+							mode, ndeps, is_prefetch, prio, 0, origin);
 			nwait++;
 		}
 
@@ -659,7 +659,7 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 		 */
 		struct _starpu_data_request *r = _starpu_create_data_request(handle, dst_replicate,
 							dst_replicate, requesting_node,
-							STARPU_W, nwait, is_prefetch, prio, 1);
+							STARPU_W, nwait, is_prefetch, prio, 1, origin);
 
 		/* and perform the callback after termination */
 		_starpu_data_request_append_callback(r, callback_func, callback_arg);
@@ -707,7 +707,7 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 
 int _starpu_fetch_data_on_node(starpu_data_handle_t handle, struct _starpu_data_replicate *dst_replicate,
 			       enum starpu_data_access_mode mode, unsigned detached, unsigned is_prefetch, unsigned async,
-			       void (*callback_func)(void *), void *callback_arg, int prio)
+			       void (*callback_func)(void *), void *callback_arg, int prio, const char *origin)
 {
 	unsigned local_node = _starpu_memory_node_get_local_key();
         _STARPU_LOG_IN();
@@ -730,7 +730,7 @@ int _starpu_fetch_data_on_node(starpu_data_handle_t handle, struct _starpu_data_
 
 	struct _starpu_data_request *r;
 	r = _starpu_create_request_to_fetch_data(handle, dst_replicate, mode,
-						 is_prefetch, async, callback_func, callback_arg, prio);
+						 is_prefetch, async, callback_func, callback_arg, prio, origin);
 
 	/* If no request was created, the handle was already up-to-date on the
 	 * node. In this case, _starpu_create_request_to_fetch_data has already
@@ -747,17 +747,17 @@ int _starpu_fetch_data_on_node(starpu_data_handle_t handle, struct _starpu_data_
 
 static int idle_prefetch_data_on_node(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, enum starpu_data_access_mode mode, int prio)
 {
-	return _starpu_fetch_data_on_node(handle, replicate, mode, 1, 2, 1, NULL, NULL, prio);
+	return _starpu_fetch_data_on_node(handle, replicate, mode, 1, 2, 1, NULL, NULL, prio, "idle_prefetch_data_on_node");
 }
 
 static int prefetch_data_on_node(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, enum starpu_data_access_mode mode, int prio)
 {
-	return _starpu_fetch_data_on_node(handle, replicate, mode, 1, 1, 1, NULL, NULL, prio);
+	return _starpu_fetch_data_on_node(handle, replicate, mode, 1, 1, 1, NULL, NULL, prio, "prefetch_data_on_node");
 }
 
 static int fetch_data(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, enum starpu_data_access_mode mode, int prio)
 {
-	return _starpu_fetch_data_on_node(handle, replicate, mode, 0, 0, 0, NULL, NULL, prio);
+	return _starpu_fetch_data_on_node(handle, replicate, mode, 0, 0, 0, NULL, NULL, prio, "fetch_data");
 }
 
 uint32_t _starpu_get_data_refcnt(starpu_data_handle_t handle, unsigned node)
@@ -1153,7 +1153,7 @@ void _starpu_fetch_nowhere_task_input(struct _starpu_job *j)
 
 		local_replicate = get_replicate(handle, mode, -1, node);
 
-		_starpu_fetch_data_on_node(handle, local_replicate, mode, 0, 0, 1, _starpu_fetch_nowhere_task_input_cb, wrapper, 0);
+		_starpu_fetch_data_on_node(handle, local_replicate, mode, 0, 0, 1, _starpu_fetch_nowhere_task_input_cb, wrapper, 0, "_starpu_fetch_nowhere_task_input");
 	}
 
 	if (profiling && task->profiling_info)
