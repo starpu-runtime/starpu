@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2009-2016  Université de Bordeaux
-# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
 # Copyright (C) 2011  Télécom-SudParis
 # Copyright (C) 2011, 2012, 2014  INRIA
 # Copyright (C) 2015, 2016  Inria
@@ -1962,6 +1962,13 @@ if test x$use_mpi = xyes; then
 else
 	running_mpi_check=no
 fi
+
+AC_ARG_WITH(mpiexec-args, [AS_HELP_STRING([--with-mpiexec-args[=<arguments to give when running mpiexec>]],
+			[Arguments for mpiexec])],
+	[
+		mpiexec_args=$withval
+	])
+AC_SUBST(MPIEXEC_ARGS,$mpiexec_args)
 
 AC_ARG_ENABLE(mpi-progression-hook, [AS_HELP_STRING([--enable-mpi-progression-hook],
 				   [Enable StarPU MPI activity polling method])],
