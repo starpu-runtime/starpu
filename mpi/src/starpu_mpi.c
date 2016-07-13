@@ -109,7 +109,7 @@ static void _starpu_mpi_request_init(struct _starpu_mpi_req **req)
 
 	(*req)->node_tag.rank = -1;
 	(*req)->node_tag.data_tag = -1;
-	(*req)->node_tag.comm = NULL;
+	(*req)->node_tag.comm = 0;
 
 	(*req)->func = NULL;
 
