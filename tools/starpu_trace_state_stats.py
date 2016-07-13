@@ -379,7 +379,7 @@ def main():
     # efficiencies.csv.
     if dump_efficiency == True or not tt_1 == 0.0:
         if dump_time == False:
-            ti_p, tr_p, tt_p = ts_p = calc_times(stats)
+            ti_p, tr_p, tt_p, ts_p = calc_times(stats)
         if tt_1 == 0.0:
             sys.stderr.write("WARNING: Task efficiency will be 1.0 because -s is not set!\n")
             tt_1 = tt_p
