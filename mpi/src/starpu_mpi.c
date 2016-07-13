@@ -994,14 +994,6 @@ static void _starpu_mpi_early_data_cb(void* arg)
 {
 	struct _starpu_mpi_early_data_cb_args *args = arg;
 
-	// We store in the application request the internal MPI
-	// request so that it can be used by starpu_mpi_wait
-	if (args->req)
-	{
-		args->req->data_request = args->req->internal_req->data_request;
-		args->req->submitted = 1;
-	}
-
 	if (args->buffer)
 	{
 		/* Data has been received as a raw memory, it has to be unpacked */
@@ -1039,14 +1031,27 @@ static void _starpu_mpi_early_data_cb(void* arg)
 	_STARPU_MPI_DEBUG(3, "Done, handling request %p termination of the already received request\n",args->req);
 	// If the request is detached, we need to call _starpu_mpi_handle_request_termination
 	// as it will not be called automatically as the request is not in the list detached_requests
-	if (args->req && args->req->detached)
+	if (args->req)
 	{
-		_starpu_mpi_handle_request_termination(args->req);
-		free(args->req);
-		args->req = NULL;
+		if (args->req->detached)
+		{
+			_starpu_mpi_handle_request_termination(args->req);
+			free(args->req);
+			args->req = NULL;
+		}
+		else
+		{
+			// else: If the request is not detached its termination will
+			// be handled when calling starpu_mpi_wait
+			// We store in the application request the internal MPI
+			// request so that it can be used by starpu_mpi_wait
+			args->req->data_request = args->req->internal_req->data_request;
+			STARPU_PTHREAD_MUTEX_LOCK(&args->req->req_mutex);
+			args->req->submitted = 1;
+			STARPU_PTHREAD_COND_BROADCAST(&args->req->req_cond);
+			STARPU_PTHREAD_MUTEX_UNLOCK(&args->req->req_mutex);
+		}
 	}
-	// else: If the request is not detached its termination will
-	// be handled when calling starpu_mpi_wait
 
 	free(args);
 	args = NULL;
@@ -1233,7 +1238,7 @@ static void _starpu_mpi_receive_early_data(struct _starpu_mpi_envelope *envelope
 		//_starpu_mpi_early_data_add(early_data_handle);
 	}
 
-	_STARPU_MPI_DEBUG(20, "Posting internal detached irecv on early_data_handle with tag %d from comm %p src %d ..\n", early_data_handle->node_tag.data_tag, comm, status.MPI_SOURCE);
+	_STARPU_MPI_DEBUG(20, "Posting internal detached irecv on early_data_handle with tag %d from comm %d src %d ..\n", early_data_handle->node_tag.data_tag, comm, status.MPI_SOURCE);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 	early_data_handle->req = _starpu_mpi_irecv_common(early_data_handle->handle, status.MPI_SOURCE,
 							  early_data_handle->node_tag.data_tag, comm, 1, 0,
