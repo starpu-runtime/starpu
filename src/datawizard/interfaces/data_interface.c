@@ -259,6 +259,7 @@ int _starpu_data_handle_init(starpu_data_handle_t handle, struct starpu_data_int
 	 * starpu_data_unregister is actually safe */
 	STARPU_HG_DISABLE_CHECKING(handle->busy_count);
 
+	handle->magic = 42;
 	handle->ops = interface_ops;
 	handle->mf_node = mf_node;
 	handle->mpi_data = NULL;
@@ -453,6 +454,8 @@ static void _starpu_data_unregister_fetch_data_callback(void *_arg)
 static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned coherent, unsigned nowait)
 {
 	STARPU_ASSERT(handle);
+	/* Prevent any further unregistration */
+	handle->magic = 0;
 	STARPU_ASSERT_MSG(handle->nchildren == 0, "data %p needs to be unpartitioned before unregistration", handle);
 	STARPU_ASSERT(!(nowait && handle->busy_count != 0));
 
@@ -630,6 +633,7 @@ retry_busy:
 
 void starpu_data_unregister(starpu_data_handle_t handle)
 {
+	STARPU_ASSERT_MSG(handle->magic == 42, "data %p is invalid (was it already registered?)", handle);
 	STARPU_ASSERT_MSG(!handle->lazy_unregister, "data %p can not be unregistered twice", handle);
 
 	if (handle->unregister_hook)
@@ -642,6 +646,7 @@ void starpu_data_unregister(starpu_data_handle_t handle)
 
 void starpu_data_unregister_no_coherency(starpu_data_handle_t handle)
 {
+	STARPU_ASSERT_MSG(handle->magic == 42, "data %p is invalid (was it already registered?)", handle);
 	if (handle->unregister_hook)
 	{
 		handle->unregister_hook(handle);
@@ -666,6 +671,7 @@ static void _starpu_data_unregister_submit_cb(void *arg)
 
 void starpu_data_unregister_submit(starpu_data_handle_t handle)
 {
+	STARPU_ASSERT_MSG(handle->magic == 42, "data %p is invalid (was it already registered?)", handle);
 	STARPU_ASSERT_MSG(!handle->lazy_unregister, "data %p can not be unregistered twice", handle);
 
 	if (handle->unregister_hook)
