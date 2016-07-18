@@ -434,6 +434,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 	return 0;
 }
 
+#ifdef HAVE_MPI_COMM_F2C
 static
 int _fstarpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nodes, int *xrank, int *do_execute, struct starpu_data_descr **descrs_p, int *nb_data_p, void **arglist)
 {
@@ -710,6 +711,7 @@ int _fstarpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_no
 	_STARPU_TRACE_TASK_MPI_DECODE_END();
 	return 0;
 }
+#endif
 
 static
 int _starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, struct starpu_task **task, int *xrank_p, struct starpu_data_descr **descrs_p, int *nb_data_p, va_list varg_list)
@@ -760,6 +762,7 @@ int _starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, stru
 	}
 }
 
+#ifdef HAVE_MPI_COMM_F2C
 static
 int _fstarpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, struct starpu_task **task, int *xrank_p, struct starpu_data_descr **descrs_p, int *nb_data_p, void **arglist)
 {
@@ -805,6 +808,7 @@ int _fstarpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, str
 		return 0;
 	}
 }
+#endif
 
 static
 int _starpu_mpi_task_postbuild_v(MPI_Comm comm, int xrank, int do_execute, struct starpu_data_descr *descrs, int nb_data)
@@ -860,6 +864,7 @@ int _starpu_mpi_task_insert_v(MPI_Comm comm, struct starpu_codelet *codelet, va_
 	return _starpu_mpi_task_postbuild_v(comm, xrank, do_execute, descrs, nb_data);
 }
 
+#ifdef HAVE_MPI_COMM_F2C
 static
 int _fstarpu_mpi_task_insert_v(MPI_Comm comm, struct starpu_codelet *codelet, void **arglist)
 {
@@ -892,6 +897,7 @@ int _fstarpu_mpi_task_insert_v(MPI_Comm comm, struct starpu_codelet *codelet, vo
 	}
 	return _starpu_mpi_task_postbuild_v(comm, xrank, do_execute, descrs, nb_data);
 }
+#endif
 
 int starpu_mpi_task_insert(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 {
@@ -904,6 +910,7 @@ int starpu_mpi_task_insert(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 	return ret;
 }
 
+#ifdef HAVE_MPI_COMM_F2C
 int fstarpu_mpi_task_insert(MPI_Fint comm, void ***_arglist)
 {
 	void **arglist = *_arglist;
@@ -917,6 +924,7 @@ int fstarpu_mpi_task_insert(MPI_Fint comm, void ***_arglist)
 	ret = _fstarpu_mpi_task_insert_v(MPI_Comm_f2c(comm), codelet, arglist+1);
 	return ret;
 }
+#endif
 
 int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 {
@@ -944,6 +952,7 @@ struct starpu_task *starpu_mpi_task_build(MPI_Comm comm, struct starpu_codelet *
 	if (ret > 0) return NULL; else return task;
 }
 
+#ifdef HAVE_MPI_COMM_F2C
 struct starpu_task *fstarpu_mpi_task_build(MPI_Fint comm, void ***_arglist)
 {
 	void **arglist = *_arglist;
@@ -959,6 +968,7 @@ struct starpu_task *fstarpu_mpi_task_build(MPI_Fint comm, void ***_arglist)
 	STARPU_ASSERT(ret >= 0);
 	if (ret > 0) return NULL; else return task;
 }
+#endif
 
 int starpu_mpi_task_post_build(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 {
@@ -980,6 +990,7 @@ int starpu_mpi_task_post_build(MPI_Comm comm, struct starpu_codelet *codelet, ..
 	return _starpu_mpi_task_postbuild_v(comm, xrank, do_execute, descrs, nb_data);
 }
 
+#ifdef HAVE_MPI_COMM_F2C
 int fstarpu_mpi_task_post_build(MPI_Fint _comm, void ***_arglist)
 {
 	void **arglist = *_arglist;
@@ -1003,6 +1014,7 @@ int fstarpu_mpi_task_post_build(MPI_Fint _comm, void ***_arglist)
 
 	return _starpu_mpi_task_postbuild_v(comm, xrank, do_execute, descrs, nb_data);
 }
+#endif
 
 void starpu_mpi_get_data_on_node_detached(MPI_Comm comm, starpu_data_handle_t data_handle, int node, void (*callback)(void*), void *arg)
 {
