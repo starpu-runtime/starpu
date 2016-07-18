@@ -407,7 +407,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 		}
 		else
 		{
-			STARPU_ABORT_MSG("Unrecognized argument %d\n", arg_type);
+			STARPU_ABORT_MSG("Unrecognized argument %d, did you perhaps forget to end arguments with 0?\n", arg_type);
 		}
 
 	}
@@ -684,7 +684,7 @@ int _fstarpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_no
 		}
 		else
 		{
-			STARPU_ABORT_MSG("Unrecognized argument %d\n", arg_type);
+			STARPU_ABORT_MSG("Unrecognized argument %d, did you perhaps forget to end arguments with 0?\n", arg_type);
 		}
 
 		arg_i++;
