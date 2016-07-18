@@ -83,6 +83,8 @@ int main(int argc, char **argv)
 
 #ifdef STARPU_QUICK_CHECK
 	n /= 10;
+#endif
+#ifndef STARPU_LONG_CHECK
 	k /= 16;
 #endif
 

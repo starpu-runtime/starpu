@@ -26,6 +26,8 @@
 
 #ifdef STARPU_QUICK_CHECK
 #define NTASKS 10
+#elif !defined(STARPU_LONG_CHECK)
+#define NTASKS 100
 #else
 #define NTASKS 1000
 #endif

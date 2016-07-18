@@ -23,8 +23,15 @@
  */
 #include <starpu.h>
 #include <starpu_scheduler.h>
+#include <config.h>
 
+#ifdef STARPU_QUICK_CHECK
+#define NTASKS	320
+#elif !defined(STARPU_LONG_CHECK)
+#define NTASKS	3200
+#else
 #define NTASKS	32000
+#endif
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 
 struct dummy_sched_data

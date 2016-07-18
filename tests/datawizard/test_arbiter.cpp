@@ -35,6 +35,9 @@
 #ifdef STARPU_QUICK_CHECK
 #define SLEEP_SLOW 6000
 #define SLEEP_FAST 1000
+#elif !defined(STARPU_LONG_CHECK)
+#define SLEEP_SLOW 60000
+#define SLEEP_FAST 10000
 #else
 #define SLEEP_SLOW 600000
 #define SLEEP_FAST 100000
