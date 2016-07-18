@@ -23,7 +23,7 @@
 
 #ifdef STARPU_QUICK_CHECK
 static unsigned niter = 500;
-#elif !(defined(STARPU_LONG_CHECK)
+#elif !defined(STARPU_LONG_CHECK)
 static unsigned niter = 5000;
 #else
 static unsigned niter = 50000;
