@@ -1959,6 +1959,10 @@ AC_SUBST(USE_MPI, $use_mpi)
 AM_CONDITIONAL(USE_MPI, test x$use_mpi = xyes)
 if test x$use_mpi = xyes; then
 	AC_DEFINE(STARPU_USE_MPI,[],[whether the StarPU MPI library is available])
+	OLD_CC=$CC
+	CC=$mpicc_path
+	AC_CHECK_FUNCS([MPI_Comm_f2c])
+	CC=$OLD_CC
 else
 	running_mpi_check=no
 fi

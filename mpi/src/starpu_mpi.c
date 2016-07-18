@@ -1832,6 +1832,7 @@ int starpu_mpi_wait_for_all(MPI_Comm comm)
 	return 0;
 }
 
+#ifdef HAVE_MPI_COMM_F2C
 /* Fortran related functions */
 struct _starpu_mpi_argc_argv *fstarpu_mpi_argcv_alloc(int argc, int initialize_mpi, int comm_present, MPI_Fint comm)
 {
@@ -2064,3 +2065,4 @@ int fstarpu_mpi_wait_for_all(MPI_Fint comm)
 {
 	return starpu_mpi_wait_for_all(MPI_Comm_f2c(comm));
 }
+#endif
