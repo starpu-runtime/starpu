@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2014-2015  Université de Bordeaux
+ * Copyright (C) 2010, 2014-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -20,6 +20,8 @@
 
 #ifdef STARPU_QUICK_CHECK
 #  define NITER	16
+#elif !defined(STARPU_LONG_CHECK)
+#  define NITER	256
 #else
 #  define NITER	2048
 #endif
