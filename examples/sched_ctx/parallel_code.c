@@ -25,7 +25,6 @@
 #endif
 
 int tasks_executed[2];
-starpu_pthread_mutex_t mut;
 
 int parallel_code(unsigned *sched_ctx)
 {
@@ -88,7 +87,6 @@ int main(int argc, char **argv)
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	starpu_pthread_mutex_init(&mut, NULL);
 	int nprocs1 = 1;
 	int nprocs2 = 1;
 	int *procs1, *procs2;
