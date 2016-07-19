@@ -28,6 +28,8 @@
  */
 
 #ifdef STARPU_QUICK_CHECK
+  #define N 10
+#elif !defined(STARPU_LONG_CHECK)
   #define N 100
 #else
   #define N 1000
