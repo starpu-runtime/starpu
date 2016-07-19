@@ -23,9 +23,11 @@
 #include "../helper.h"
 
 #ifdef STARPU_QUICK_CHECK
-#define N		100
+  #define N 10
+#elif !defined(STARPU_LONG_CHECK)
+  #define N 100
 #else
-#define N		1000
+  #define N 1000
 #endif
 
 #define VECTORSIZE	1024
