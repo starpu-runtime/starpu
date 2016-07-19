@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2013, 2015  Université de Bordeaux
+# Copyright (C) 2009-2013, 2015-2016  Université de Bordeaux
 # Copyright (C) 2010, 2011, 2012, 2013, 2015  Centre National de la Recherche Scientifique
 # Copyright (C) 2011  Télécom-SudParis
 # Copyright (C) 2011-2012  INRIA
@@ -138,8 +138,10 @@ noinst_HEADERS = 				\
 #####################################
 
 STARPU_EXAMPLES	=
+if !STARPU_SIMGRID
 TESTS		=	$(STARPU_EXAMPLES)
 TESTS		+=	scheduler/schedulers.sh
+endif
 
 
 if STARPU_HAVE_WINDOWS
