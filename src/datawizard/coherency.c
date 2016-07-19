@@ -898,6 +898,7 @@ static struct _starpu_data_replicate *get_replicate(starpu_data_handle_t handle,
 {
 	if (mode & (STARPU_SCRATCH|STARPU_REDUX))
 	{
+		STARPU_ASSERT(workerid >= 0);
 		if (!handle->per_worker)
 		{
 			_starpu_spin_lock(&handle->header_lock);
@@ -1059,10 +1060,7 @@ void __starpu_push_task_output(struct _starpu_job *j)
 			continue;
 
 		if (node != -1)
-		{
-			STARPU_ASSERT(workerid >= 0);
 			local_replicate = get_replicate(handle, mode, workerid, node);
-		}
 
 		/* Keep a reference for future
 		 * _starpu_release_task_enforce_sequential_consistency call */
