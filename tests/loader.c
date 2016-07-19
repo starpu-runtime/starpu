@@ -32,7 +32,16 @@
 #include <sys/time.h>
 #endif
 
+#ifdef STARPU_QUICK_CHECK
+/* Quick checks are supposed to be real quick, typically less than 1s each, sometimes 10s */
+#define  DEFAULT_TIMEOUT       30
+#elif !defined(STARPU_LONG_CHECK
+/* Normal checks are supposed to be short enough, typically less than 10s each, sometimes 1-2m */
+#define  DEFAULT_TIMEOUT       300
+#else
+/* Long checks can be very long */
 #define  DEFAULT_TIMEOUT       1800
+#endif
 #define  AUTOTEST_SKIPPED_TEST 77
 
 static pid_t child_pid = 0;
