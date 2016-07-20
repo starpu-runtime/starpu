@@ -220,6 +220,17 @@ LIST_TYPE(_starpu_mpi_req,
      	UT_hash_handle hh;
 );
 
+struct _starpu_mpi_argc_argv
+{
+	int initialize_mpi;
+	int *argc;
+	char ***argv;
+	MPI_Comm comm;
+	int fargc;	// Fortran argc
+	char **fargv;	// Fortran argv
+};
+
+
 #ifdef __cplusplus
 }
 #endif
