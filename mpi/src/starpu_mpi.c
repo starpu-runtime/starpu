@@ -139,6 +139,7 @@ static void _starpu_mpi_request_init(struct _starpu_mpi_req **req)
 	(*req)->size_req = 0;
 	(*req)->internal_req = NULL;
 	(*req)->is_internal_req = 0;
+	(*req)->early_data_handle = NULL;
 	(*req)->envelope = NULL;
 	(*req)->sequential_consistency = 1;
 }
@@ -238,6 +239,7 @@ static void _starpu_mpi_submit_ready_request(void *arg)
 				STARPU_ASSERT(req->data_handle != early_data_handle->handle);
 
 				req->internal_req = early_data_handle->req;
+				req->early_data_handle = early_data_handle;
 
 				struct _starpu_mpi_early_data_cb_args *cb_args = malloc(sizeof(struct _starpu_mpi_early_data_cb_args));
 				cb_args->data_handle = req->data_handle;
@@ -931,12 +933,8 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
 
 	if (req->internal_req)
 	{
-		struct _starpu_mpi_early_data_handle *early_data_handle = _starpu_mpi_early_data_find(&req->node_tag);
-		STARPU_MPI_ASSERT_MSG(early_data_handle, "Could not find a copy data handle with the tag %d and the node %d\n", req->node_tag.data_tag, req->node_tag.rank);
-		_STARPU_MPI_DEBUG(3, "Handling deleting of early_data structure from the hashmap..\n");
-		_starpu_mpi_early_data_delete(early_data_handle);
-		free(early_data_handle);
-		early_data_handle = NULL;
+		free(req->early_data_handle);
+		req->early_data_handle = NULL;
 	}
 	else
 	{
@@ -1036,8 +1034,7 @@ static void _starpu_mpi_early_data_cb(void* arg)
 		if (args->req->detached)
 		{
 			_starpu_mpi_handle_request_termination(args->req);
-			free(args->req);
-			args->req = NULL;
+			_starpu_mpi_request_destroy(args->req);
 		}
 		else
 		{
