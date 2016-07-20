@@ -213,6 +213,7 @@ LIST_TYPE(_starpu_mpi_req,
 
 	int is_internal_req;
 	struct _starpu_mpi_req *internal_req;
+	struct _starpu_mpi_early_data_handle *early_data_handle;
 
 	int sequential_consistency;
 
