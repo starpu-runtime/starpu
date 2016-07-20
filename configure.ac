@@ -1959,10 +1959,6 @@ AC_SUBST(USE_MPI, $use_mpi)
 AM_CONDITIONAL(USE_MPI, test x$use_mpi = xyes)
 if test x$use_mpi = xyes; then
 	AC_DEFINE(STARPU_USE_MPI,[],[whether the StarPU MPI library is available])
-	OLD_CC=$CC
-	CC=$mpicc_path
-	AC_CHECK_FUNCS([MPI_Comm_f2c])
-	CC=$OLD_CC
 else
 	running_mpi_check=no
 fi
@@ -2161,7 +2157,7 @@ if test "x$FC" != "x"; then
 						      DEFAULT_MPIFORT=mpif90
 					      fi
 					      # nothing was specified: default value is used
-					      AC_PATH_PROG(mpifort_path, $DEFAULT_MPIFORT, [no], [$simgrid_dir/bin:$PATH])
+					      AC_PATH_PROG(mpifort_path, $DEFAULT_MPIFORT, [no], [$(dirname $mpicc_path):$simgrid_dir/bin:$PATH])
 					      ])
 
 			# We test if the MPIFORT compiler exists
@@ -2170,11 +2166,23 @@ if test "x$FC" != "x"; then
 				AC_MSG_RESULT(The mpifort compiler '$mpifort_path' does not have the execute permission)
 				use_mpi_fort=no
 			else
-				use_mpi_fort=yes
-
-				AC_MSG_CHECKING(mpifort path)
-				AC_MSG_RESULT($mpifort_path)
-				AC_SUBST(MPIFORT, $mpifort_path)
+				OLD_CC=$CC
+				CC=$mpicc_path
+				AC_LINK_IFELSE(
+						AC_LANG_PROGRAM(
+							[[#include <mpi.h>]],
+							[[AC_LANG_SOURCE([return MPI_Comm_f2c(0);])]]
+							),
+						[use_mpi_fort=yes],
+						[use_mpi_fort=no]
+						)
+				CC=$OLD_CC
+				if test "x$use_mpi_fort" = xyes; then
+					AC_DEFINE([HAVE_MPI_COMM_F2C], 1, [Function MPI_Comm_f2c is available])
+					AC_MSG_CHECKING(mpifort path)
+					AC_MSG_RESULT($mpifort_path)
+					AC_SUBST(MPIFORT, $mpifort_path)
+				fi
 			fi
 		fi
 	fi
@@ -2184,8 +2192,9 @@ if test "x$enable_build_fortran" = "xyes" ; then
       enable_build_fortran="no"
    fi
 fi
+
 AM_CONDITIONAL([STARPU_HAVE_FC], [test "x$FC" != "x" -a "x$enable_build_fortran" = "xyes"])
-AM_CONDITIONAL([STARPU_HAVE_MPIFORT], [test "x$FC" != "x" -a "x$enable_build_fortran" = "xyes" -a "x$MPIFORT" != "x"])
+AM_CONDITIONAL([STARPU_HAVE_MPIFORT], [test "x$use_mpi_fort" = "xyes"])
 
 ###############################################################################
 #                                                                             #
