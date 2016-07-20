@@ -27,12 +27,13 @@ LOADER_BIN		=
 else
 loader_CPPFLAGS 	= 	$(AM_CFLAGS) $(AM_CPPFLAGS) -I$(top_builddir)/src/
 LOADER			=	loader
-LOADER_BIN		=	$(abs_top_builddir)/mpi/tests/$(LOADER)
+LOADER_BIN		=	$(abs_top_builddir)/mpi/examples/$(LOADER)
 loader_SOURCES		=	../../tests/loader.c
 endif
 
+# we always test on 4 processes, the execution time is not that bigger
 if STARPU_QUICK_CHECK
-MPI			=	$(MPIEXEC) $(MPIEXEC_ARGS) -np 2
+MPI			=	$(MPIEXEC) $(MPIEXEC_ARGS) -np 4
 else
 MPI			=	$(MPIEXEC) $(MPIEXEC_ARGS) -np 4
 endif
