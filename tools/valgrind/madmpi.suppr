@@ -1,0 +1,48 @@
+
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: indirect
+   fun:malloc
+   fun:hwloc_bitmap_alloc
+   fun:piom_topo_current_obj
+   fun:piom_ltask_schedule
+   fun:nm_schedule
+   fun:nm_sr_progress
+   fun:nm_sr_stest
+   fun:MPI_Test
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   ...
+   fun:nm_schedule
+   fun:nm_sr_progress
+   fun:nm_sr_stest
+   fun:MPI_Test
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: indirect
+   fun:malloc
+   fun:hwloc_bitmap_alloc
+   fun:piom_topo_current_obj
+   fun:piom_ltask_schedule
+   fun:nm_schedule
+   fun:nm_sr_progress
+   fun:nm_sr_rtest
+   fun:MPI_Test
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   ...
+   fun:nm_schedule
+   fun:nm_sr_progress
+   fun:nm_sr_rtest
+   fun:MPI_Test
+}
