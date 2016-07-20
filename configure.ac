@@ -2158,7 +2158,7 @@ if test "x$FC" != "x"; then
 					      if test x$enable_simgrid = xyes ; then
 						      DEFAULT_MPIFORT=smpifort
 					      else
-						      DEFAULT_MPIFORT=mpifort
+						      DEFAULT_MPIFORT=mpif90
 					      fi
 					      # nothing was specified: default value is used
 					      AC_PATH_PROG(mpifort_path, $DEFAULT_MPIFORT, [no], [$simgrid_dir/bin:$PATH])
@@ -2178,6 +2178,11 @@ if test "x$FC" != "x"; then
 			fi
 		fi
 	fi
+fi
+if test "x$enable_build_fortran" = "xyes" ; then
+   if test "x$FC" = "x" ; then
+      enable_build_fortran="no"
+   fi
 fi
 AM_CONDITIONAL([STARPU_HAVE_FC], [test "x$FC" != "x" -a "x$enable_build_fortran" = "xyes"])
 AM_CONDITIONAL([STARPU_HAVE_MPIFORT], [test "x$FC" != "x" -a "x$enable_build_fortran" = "xyes" -a "x$MPIFORT" != "x"])
@@ -2917,6 +2922,8 @@ AC_MSG_NOTICE([
                Scheduler Hypervisor:                        $build_sc_hypervisor
                simgrid enabled:                             $enable_simgrid
                ayudame enabled:                             $ac_cv_header_Ayudame_h
+	       Native fortran support:                      $enable_build_fortran
+	       Native MPI fortran support:                  $use_mpi_fort
 ])
 
 if test "$build_socl" = "yes" -a "$run_socl_check" = "no" ; then
