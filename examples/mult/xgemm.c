@@ -42,7 +42,7 @@
 static unsigned niter = 10;
 static unsigned nslicesx = 4;
 static unsigned nslicesy = 4;
-#ifdef STARPU_QUICK_CHECK
+#if defined(STARPU_QUICK_CHECK) && !defined(STARPU_SIMGRID)
 static unsigned xdim = 256;
 static unsigned ydim = 256;
 static unsigned zdim = 64;
