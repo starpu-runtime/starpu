@@ -274,7 +274,7 @@ Symbol kept for backward compatibility. Calling function starpu_mpi_data_set_ran
 \ingroup API_MPI_Support
 Return the rank of the given data.
 
-\def starpu_data_get_rank(handle)
+\def starpu_data_get_rank(starpu_data_handle_t handle)
 \ingroup API_MPI_Support
 Return the rank of the given data.
 Symbol kept for backward compatibility. Calling function starpu_mpi_data_get_rank
@@ -283,10 +283,19 @@ Symbol kept for backward compatibility. Calling function starpu_mpi_data_get_ran
 \ingroup API_MPI_Support
 Return the tag of the given data.
 
-\def starpu_data_get_tag(handle)
+\def starpu_data_get_tag(starpu_data_handle_t handle)
 \ingroup API_MPI_Support
 Return the tag of the given data.
 Symbol kept for backward compatibility. Calling function starpu_mpi_data_get_tag
+
+\def starpu_data_migrate(MPI_Comm comm, starpu_data_handle_t data, int new_rank)
+\ingroup API_MPI_Support
+Migration the data onto the \p new_rank MPI node. This means both transferring
+the data to node \p new_rank if it hasn't been transferred already, and setting
+the home node of the data to the new node. Further data transfers triggered by
+starpu_mpi_task_insert() will be done from that new node. This function thus
+needs to be called on all nodes which have registered the data. This also
+flushes the cache for this data to avoid incoherencies.
 
 \def STARPU_EXECUTE_ON_NODE
 \ingroup API_MPI_Support

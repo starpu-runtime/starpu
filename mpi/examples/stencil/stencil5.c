@@ -205,12 +205,8 @@ int main(int argc, char **argv)
 				starpu_mpi_data_register(data_handles[x][y], (y*X)+x, mpi_rank);
 			}
 			if (data_handles[x][y] && mpi_rank != starpu_mpi_data_get_rank(data_handles[x][y]))
-			{
 				/* Migrate the data */
-				starpu_mpi_get_data_on_node_detached(MPI_COMM_WORLD, data_handles[x][y], mpi_rank, NULL, NULL);
-				/* And register new rank of the matrix */
-				starpu_mpi_data_set_rank(data_handles[x][y], mpi_rank);
-			}
+				starpu_mpi_data_migrate(MPI_COMM_WORLD, data_handles[x][y], mpi_rank);
 		}
 	}
 
@@ -240,9 +236,7 @@ int main(int argc, char **argv)
 			{
 				int mpi_rank = my_distrib(x, y, size);
 				/* Get back data to original place where the user-provided buffer is. */
-				starpu_mpi_get_data_on_node_detached(MPI_COMM_WORLD, data_handles[x][y], mpi_rank, NULL, NULL);
-				/* Register original rank of the matrix (although useless) */
-				starpu_mpi_data_set_rank(data_handles[x][y], mpi_rank);
+				starpu_mpi_data_migrate(MPI_COMM_WORLD, data_handles[x][y], mpi_rank);
 				/* And unregister it */
 				starpu_data_unregister(data_handles[x][y]);
 			}

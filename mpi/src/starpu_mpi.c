@@ -1732,6 +1732,9 @@ void starpu_mpi_data_register_comm(starpu_data_handle_t data_handle, int tag, in
 	else
 	{
 		mpi_data = calloc(1, sizeof(struct _starpu_mpi_node_tag));
+		mpi_data->data_tag = -1;
+		mpi_data->rank = -1;
+		mpi_data->comm = MPI_COMM_WORLD;
 		data_handle->mpi_data = mpi_data;
 		_starpu_mpi_data_register_tag(data_handle, tag);
 		_starpu_data_set_unregister_hook(data_handle, _starpu_mpi_clear_cache);
@@ -1769,6 +1772,47 @@ int starpu_mpi_data_get_tag(starpu_data_handle_t data)
 {
 	STARPU_ASSERT_MSG(data->mpi_data, "starpu_mpi_data_register MUST be called for data %p\n", data);
 	return ((struct _starpu_mpi_node_tag *)(data->mpi_data))->data_tag;
+}
+
+void starpu_mpi_data_migrate(MPI_Comm comm, starpu_data_handle_t data, int new_rank)
+{
+	int me;
+	int old_rank = starpu_mpi_data_get_rank(data);
+	int data_tag = starpu_mpi_data_get_tag(data);
+	if (new_rank == old_rank)
+		/* Already there */
+		return;
+	starpu_mpi_comm_rank(comm, &me);
+
+	/* First submit data migration if it's not already on destination */
+	if (new_rank == me)
+	{
+		_STARPU_MPI_DEBUG(1, "Migrating data %p from %d to %d\n", data, old_rank, new_rank);
+		void *already_received = _starpu_mpi_cache_received_data_set(data, old_rank);
+		if (already_received == NULL)
+		{
+			_STARPU_MPI_DEBUG(1, "Receiving data %p from %d\n", data, old_rank);
+			starpu_mpi_irecv_detached(data, old_rank, data_tag, comm, NULL, NULL);
+		}
+	}
+	if (old_rank == me)
+	{
+		_STARPU_MPI_DEBUG(1, "Migrating data %p from %d to %d\n", data, old_rank, new_rank);
+		void *already_sent = _starpu_mpi_cache_sent_data_set(data, new_rank);
+		if (already_sent == NULL)
+		{
+			_STARPU_MPI_DEBUG(1, "Sending data %p to %d\n", data, new_rank);
+			starpu_mpi_isend_detached(data, new_rank, data_tag, comm, NULL, NULL);
+		}
+	}
+
+	/* And note new owner */
+	starpu_mpi_data_set_rank_comm(data, new_rank, comm);
+
+	/* Flush cache in all other nodes */
+	/* TODO: Ideally we'd transmit the knowledge of who owns it */
+	starpu_mpi_cache_flush(comm, data);
+	return;
 }
 
 int starpu_mpi_comm_size(MPI_Comm comm, int *size)
