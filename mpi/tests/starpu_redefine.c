@@ -27,7 +27,7 @@ int main(int argc, char **argv)
 	ret = starpu_mpi_init(NULL, NULL, 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
 
-	starpu_vector_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)ret, 1, sizeof(int));
+	starpu_vector_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)&ret, 1, sizeof(int));
 	starpu_mpi_datatype_register(handle, NULL, NULL);
 	starpu_data_unregister(handle);
 
