@@ -1794,11 +1794,23 @@ void starpu_mpi_get_data_on_node_detached(MPI_Comm comm, starpu_data_handle_t da
 
 	if (me == node)
 	{
-		starpu_mpi_irecv_detached(data_handle, rank, tag, comm, callback, arg);
+		_STARPU_MPI_DEBUG(1, "Migrating data %p from %d to %d\n", data_handle, rank, node);
+		void *already_received = _starpu_mpi_cache_received_data_set(data_handle, rank);
+		if (already_received == NULL)
+		{
+			_STARPU_MPI_DEBUG(1, "Receiving data %p from %d\n", data_handle, rank);
+			starpu_mpi_irecv_detached(data_handle, rank, tag, comm, callback, arg);
+		}
 	}
 	else if (me == rank)
 	{
-		starpu_mpi_isend_detached(data_handle, node, tag, comm, NULL, NULL);
+		_STARPU_MPI_DEBUG(1, "Migrating data %p from %d to %d\n", data_handle, rank, node);
+		void *already_sent = _starpu_mpi_cache_sent_data_set(data_handle, node);
+		if (already_sent == NULL)
+		{
+			_STARPU_MPI_DEBUG(1, "Sending data %p to %d\n", data_handle, node);
+			starpu_mpi_isend_detached(data_handle, node, tag, comm, NULL, NULL);
+		}
 	}
 }
 
@@ -1825,45 +1837,35 @@ void starpu_mpi_get_data_on_node(MPI_Comm comm, starpu_data_handle_t data_handle
 	if (me == node)
 	{
 		MPI_Status status;
-		starpu_mpi_recv(data_handle, rank, tag, comm, &status);
+		_STARPU_MPI_DEBUG(1, "Migrating data %p from %d to %d\n", data_handle, rank, node);
+		void *already_received = _starpu_mpi_cache_received_data_set(data_handle, rank);
+		if (already_received == NULL)
+		{
+			_STARPU_MPI_DEBUG(1, "Receiving data %p from %d\n", data_handle, rank);
+			starpu_mpi_recv(data_handle, rank, tag, comm, &status);
+		}
 	}
 	else if (me == rank)
 	{
-		starpu_mpi_send(data_handle, node, tag, comm);
+		_STARPU_MPI_DEBUG(1, "Migrating data %p from %d to %d\n", data_handle, rank, node);
+		void *already_sent = _starpu_mpi_cache_sent_data_set(data_handle, node);
+		if (already_sent == NULL)
+		{
+			_STARPU_MPI_DEBUG(1, "Sending data %p to %d\n", data_handle, node);
+			starpu_mpi_send(data_handle, node, tag, comm);
+		}
 	}
 }
 
 void starpu_mpi_data_migrate(MPI_Comm comm, starpu_data_handle_t data, int new_rank)
 {
-	int me;
 	int old_rank = starpu_mpi_data_get_rank(data);
-	int data_tag = starpu_mpi_data_get_tag(data);
 	if (new_rank == old_rank)
 		/* Already there */
 		return;
-	starpu_mpi_comm_rank(comm, &me);
 
 	/* First submit data migration if it's not already on destination */
-	if (new_rank == me)
-	{
-		_STARPU_MPI_DEBUG(1, "Migrating data %p from %d to %d\n", data, old_rank, new_rank);
-		void *already_received = _starpu_mpi_cache_received_data_set(data, old_rank);
-		if (already_received == NULL)
-		{
-			_STARPU_MPI_DEBUG(1, "Receiving data %p from %d\n", data, old_rank);
-			starpu_mpi_irecv_detached(data, old_rank, data_tag, comm, NULL, NULL);
-		}
-	}
-	if (old_rank == me)
-	{
-		_STARPU_MPI_DEBUG(1, "Migrating data %p from %d to %d\n", data, old_rank, new_rank);
-		void *already_sent = _starpu_mpi_cache_sent_data_set(data, new_rank);
-		if (already_sent == NULL)
-		{
-			_STARPU_MPI_DEBUG(1, "Sending data %p to %d\n", data, new_rank);
-			starpu_mpi_isend_detached(data, new_rank, data_tag, comm, NULL, NULL);
-		}
-	}
+	starpu_mpi_get_data_on_node_detached(comm, data, new_rank, NULL, NULL);
 
 	/* And note new owner */
 	starpu_mpi_data_set_rank_comm(data, new_rank, comm);
