@@ -207,7 +207,7 @@ void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_wo
 			_starpu_worker_update_profiling_info_executing(workerid, &measured_ts, 1,
 								       profiling_info->used_cycles,
 								       profiling_info->stall_cycles,
-								       profiling_info->power_consumed,
+								       profiling_info->energy_consumed,
 								       j->task->flops);
 			updated =  1;
 		}
@@ -252,32 +252,32 @@ void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_wo
 	if (!updated)
 		_starpu_worker_update_profiling_info_executing(workerid, NULL, 1, 0, 0, 0, 0);
 
-	if (profiling_info && profiling_info->power_consumed && cl->power_model && cl->power_model->benchmarking)
+	if (profiling_info && profiling_info->energy_consumed && cl->energy_model && cl->energy_model->benchmarking)
 	{
 #ifdef STARPU_OPENMP
-		double power_consumed = profiling_info->power_consumed;
-		unsigned do_update_power_model;
+		double energy_consumed = profiling_info->energy_consumed;
+		unsigned do_update_energy_model;
 		if (j->continuation)
 		{
-			j->cumulated_power_consumed += power_consumed;
-			do_update_power_model = 0;
+			j->cumulated_energy_consumed += energy_consumed;
+			do_update_energy_model = 0;
 		}
 		else 
 		{
 			if (j->discontinuous)
 			{
-				power_consumed += j->cumulated_power_consumed;
+				energy_consumed += j->cumulated_energy_consumed;
 			}
-			do_update_power_model = 1;
+			do_update_energy_model = 1;
 		}
 #else
-		const double power_consumed = profiling_info->power_consumed;
-		const unsigned do_update_power_model = 1;
+		const double energy_consumed = profiling_info->energy_consumed;
+		const unsigned do_update_energy_model = 1;
 #endif
 
-		if (do_update_power_model)
+		if (do_update_energy_model)
 		{
-			_starpu_update_perfmodel_history(j, j->task->cl->power_model, perf_arch, worker->devid, power_consumed, j->nimpl);
+			_starpu_update_perfmodel_history(j, j->task->cl->energy_model, perf_arch, worker->devid, energy_consumed, j->nimpl);
 		}
 	}
 }

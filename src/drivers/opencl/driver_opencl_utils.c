@@ -600,16 +600,16 @@ int starpu_opencl_collect_stats(cl_event event STARPU_ATTRIBUTE_UNUSED)
 	}
 #endif
 #ifdef CL_PROFILING_POWER_CONSUMED
-	if (info && (starpu_profiling_status_get() || (task->cl && task->cl->power_model && task->cl->power_model->benchmarking)))
+	if (info && (starpu_profiling_status_get() || (task->cl && task->cl->energy_model && task->cl->energy_model->benchmarking)))
 	{
 		cl_int err;
-		double power_consumed;
+		double energy_consumed;
 		size_t size;
-		err = clGetEventProfilingInfo(event, CL_PROFILING_POWER_CONSUMED, sizeof(power_consumed), &power_consumed, &size);
+		err = clGetEventProfilingInfo(event, CL_PROFILING_POWER_CONSUMED, sizeof(energy_consumed), &energy_consumed, &size);
 		if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
-		STARPU_ASSERT(size == sizeof(power_consumed));
+		STARPU_ASSERT(size == sizeof(energy_consumed));
 
-		info->power_consumed += power_consumed;
+		info->energy_consumed += energy_consumed;
 	}
 #endif
 

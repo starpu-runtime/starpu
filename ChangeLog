@@ -223,6 +223,8 @@ Small changes:
     STARPU_NMICDEVS, the number of devices and the number of cores.
     STARPU_NMIC will be the number of devices, and STARPU_NMICCORES
     will be the number of cores per device.
+  * "power" is renamed into "energy" wherever it applies, notably energy
+    consumption performance models
 
 StarPU 1.1.5 (svn revision xxx)
 ==============================================

@@ -144,8 +144,8 @@ struct starpu_profiling_task_info *_starpu_allocate_profiling_info_if_needed(str
 {
 	struct starpu_profiling_task_info *info = NULL;
 
-	/* If we are benchmarking, we need room for the power consumption */
-	if (starpu_profiling_status_get() || (task->cl && task->cl->power_model && (task->cl->power_model->benchmarking || _starpu_get_calibrate_flag())))
+	/* If we are benchmarking, we need room for the energy */
+	if (starpu_profiling_status_get() || (task->cl && task->cl->energy_model && (task->cl->energy_model->benchmarking || _starpu_get_calibrate_flag())))
 	{
 		info = (struct starpu_profiling_task_info *) calloc(1, sizeof(struct starpu_profiling_task_info));
 		STARPU_ASSERT(info);
@@ -173,7 +173,7 @@ static void _starpu_worker_reset_profiling_info_with_lock(int workerid)
 
 	worker_info[workerid].used_cycles = 0;
 	worker_info[workerid].stall_cycles = 0;
-	worker_info[workerid].power_consumed = 0;
+	worker_info[workerid].energy_consumed = 0;
 	worker_info[workerid].flops = 0;
 
 	/* We detect if the worker is already sleeping or doing some
@@ -279,7 +279,7 @@ void _starpu_worker_register_executing_end(int workerid)
 }
 
 
-void _starpu_worker_update_profiling_info_executing(int workerid, struct timespec *executing_time, int executed_tasks, uint64_t used_cycles, uint64_t stall_cycles, double power_consumed, double flops)
+void _starpu_worker_update_profiling_info_executing(int workerid, struct timespec *executing_time, int executed_tasks, uint64_t used_cycles, uint64_t stall_cycles, double energy_consumed, double flops)
 {
 	if (starpu_profiling_status_get())
 	{
@@ -290,7 +290,7 @@ void _starpu_worker_update_profiling_info_executing(int workerid, struct timespe
 
 		worker_info[workerid].used_cycles += used_cycles;
 		worker_info[workerid].stall_cycles += stall_cycles;
-		worker_info[workerid].power_consumed += power_consumed;
+		worker_info[workerid].energy_consumed += energy_consumed;
 		worker_info[workerid].executed_tasks += executed_tasks;
 		worker_info[workerid].flops += flops;
 

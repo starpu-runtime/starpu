@@ -167,12 +167,14 @@ static char *test_name;
 static void test_cleaner(int sig)
 {
 	pid_t child_gid;
+	int status;
 
 	// send signal to all loader family members
 	fprintf(stderr, "[error] test %s has been blocked for %d seconds. Mark it as failed\n", test_name, timeout);
 	child_gid = getpgid(child_pid);
-	launch_gdb(test_name);
 	kill(-child_gid, SIGQUIT);
+	waitpid(child_pid, &status, 0);
+	launch_gdb(test_name);
 	exit(EXIT_FAILURE);
 }
 

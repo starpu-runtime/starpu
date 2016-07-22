@@ -98,33 +98,33 @@ real application execution, contention makes transfer times bigger.
 This is of course imprecise, but in practice, a rough estimation
 already gives the good results that a precise estimation would give.
 
-\section Power-basedScheduling Power-based Scheduling
+\section Energy-basedScheduling Energy-based Scheduling
 
-If the application can provide some power performance model (through
-the field starpu_codelet::power_model), StarPU will
+If the application can provide some energy consumption performance model (through
+the field starpu_codelet::energy_model), StarPU will
 take it into account when distributing tasks. The target function that
 the scheduler <c>dmda</c> minimizes becomes <c>alpha * T_execution +
 beta * T_data_transfer + gamma * Consumption</c> , where <c>Consumption</c>
 is the estimated task consumption in Joules. To tune this parameter, use
 <c>export STARPU_SCHED_GAMMA=3000</c> for instance, to express that each Joule
 (i.e kW during 1000us) is worth 3000us execution time penalty. Setting
-<c>alpha</c> and <c>beta</c> to zero permits to only take into account power consumption.
+<c>alpha</c> and <c>beta</c> to zero permits to only take into account energy consumption.
 
-This is however not sufficient to correctly optimize power: the scheduler would
+This is however not sufficient to correctly optimize energy: the scheduler would
 simply tend to run all computations on the most energy-conservative processing
 unit. To account for the consumption of the whole machine (including idle
 processing units), the idle power of the machine should be given by setting
 <c>export STARPU_IDLE_POWER=200</c> for 200W, for instance. This value can often
 be obtained from the machine power supplier.
 
-The power actually consumed by the total execution can be displayed by setting
+The energy actually consumed by the total execution can be displayed by setting
 <c>export STARPU_PROFILING=1 STARPU_WORKER_STATS=1</c> .
 
 On-line task consumption measurement is currently only supported through the
 <c>CL_PROFILING_POWER_CONSUMED</c> OpenCL extension, implemented in the MoviSim
 simulator. Applications can however provide explicit measurements by
 using the function starpu_perfmodel_update_history() (examplified in \ref PerformanceModelExample
-with the <c>power_model</c> performance model). Fine-grain
+with the <c>energy_model</c> performance model). Fine-grain
 measurement is often not feasible with the feedback provided by the hardware, so
 the user can for instance run a given task a thousand times, measure the global
 consumption for that series of tasks, divide it by a thousand, repeat for
@@ -198,7 +198,7 @@ methods of the policy.
 Make sure to have a look at the \ref API_Scheduling_Policy section, which
 provides a list of the available functions for writing advanced schedulers, such
 as starpu_task_expected_length, starpu_task_expected_data_transfer_time,
-starpu_task_expected_power, starpu_prefetch_task_input_node, etc. Other
+starpu_task_expected_energy, starpu_prefetch_task_input_node, etc. Other
 useful functions include starpu_transfer_bandwidth, starpu_transfer_latency,
 starpu_transfer_predict, ...
 

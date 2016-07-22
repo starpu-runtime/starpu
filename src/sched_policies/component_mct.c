@@ -69,7 +69,7 @@ static int mct_push_task(struct starpu_sched_component * component, struct starp
 	{
 		int icomponent = suitable_components[i];
 #ifdef STARPU_DEVEL
-#warning FIXME: take power consumption into account
+#warning FIXME: take energy consumption into account
 #endif
 		double tmp = starpu_mct_compute_fitness(d,
 					     estimated_ends_with_task[icomponent],

@@ -153,7 +153,7 @@ them.
 
 A <b>performance model</b> is a (dynamic or static) model of the performance of a
 given codelet. Codelets can have execution time performance model as well as
-power consumption performance models.
+energy consumption performance models.
 
 A data \b interface describes the layout of the data: for a vector, a pointer
 for the start, the number of elements and the size of elements ; for a matrix, a

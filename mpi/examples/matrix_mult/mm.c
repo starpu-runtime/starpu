@@ -182,8 +182,7 @@ static void distribute_matrix_C(void)
 			int target_rank = (b_row+b_col)%comm_size;
 
 			/* Move the block on to its new owner. */
-			starpu_mpi_get_data_on_node(MPI_COMM_WORLD, h, target_rank);
-			starpu_mpi_data_set_rank(h, target_rank);
+			starpu_mpi_data_migrate(MPI_COMM_WORLD, h, target_rank);
 		}
 	}
 }
@@ -195,8 +194,7 @@ static void undistribute_matrix_C(void)
 	for (b_row = 0; b_row < NB; b_row++) {
 		for (b_col = 0; b_col < NB; b_col++) {
 			starpu_data_handle_t h = C_h[b_row*NB+b_col]; 
-			starpu_mpi_get_data_on_node(MPI_COMM_WORLD, h, 0);
-			starpu_mpi_data_set_rank(h, 0);
+			starpu_mpi_data_migrate(MPI_COMM_WORLD, h, 0);
 		}
 	}
 }

@@ -602,7 +602,7 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 						double *max_exp_endp,
 						double *best_exp_endp,
 						double local_data_penalty[nworkers][STARPU_MAXIMPLEMENTATIONS],
-						double local_power[nworkers][STARPU_MAXIMPLEMENTATIONS],
+						double local_energy[nworkers][STARPU_MAXIMPLEMENTATIONS],
 						int *forced_worker, int *forced_impl, unsigned sched_ctx_id, unsigned sorted_decision)
 {
 	int calibrating = 0;
@@ -684,14 +684,14 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 				/* TODO : conversion time */
 				local_task_length[worker_ctx][nimpl] = starpu_task_bundle_expected_length(bundle, perf_arch, nimpl);
 				local_data_penalty[worker_ctx][nimpl] = starpu_task_bundle_expected_data_transfer_time(bundle, memory_node);
-				local_power[worker_ctx][nimpl] = starpu_task_bundle_expected_power(bundle, perf_arch,nimpl);
+				local_energy[worker_ctx][nimpl] = starpu_task_bundle_expected_energy(bundle, perf_arch,nimpl);
 
 			}
 			else
 			{
 				local_task_length[worker_ctx][nimpl] = starpu_task_expected_length(task, perf_arch, nimpl);
 				local_data_penalty[worker_ctx][nimpl] = starpu_task_expected_data_transfer_time(memory_node, task);
-				local_power[worker_ctx][nimpl] = starpu_task_expected_power(task, perf_arch,nimpl);
+				local_energy[worker_ctx][nimpl] = starpu_task_expected_energy(task, perf_arch,nimpl);
 				double conversion_time = starpu_task_expected_conversion_time(task, perf_arch, nimpl);
 				if (conversion_time > 0.0)
 					local_task_length[worker_ctx][nimpl] += conversion_time;
@@ -757,8 +757,8 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 				nimpl_best = nimpl;
 			}
 
-			if (isnan(local_power[worker_ctx][nimpl]))
-				local_power[worker_ctx][nimpl] = 0.;
+			if (isnan(local_energy[worker_ctx][nimpl]))
+				local_energy[worker_ctx][nimpl] = 0.;
 
 		}
 		worker_ctx++;
@@ -790,7 +790,7 @@ static double _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned 
 	unsigned nworkers_ctx = workers->nworkers;
 	double local_task_length[nworkers_ctx][STARPU_MAXIMPLEMENTATIONS];
 	double local_data_penalty[nworkers_ctx][STARPU_MAXIMPLEMENTATIONS];
-	double local_power[nworkers_ctx][STARPU_MAXIMPLEMENTATIONS];
+	double local_energy[nworkers_ctx][STARPU_MAXIMPLEMENTATIONS];
 
 	/* Expected end of this task on the workers */
 	double exp_end[nworkers_ctx][STARPU_MAXIMPLEMENTATIONS];
@@ -811,7 +811,7 @@ static double _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned 
 					    &max_exp_end,
 					    &best_exp_end,
 					    local_data_penalty,
-					    local_power,
+					    local_energy,
 					    &forced_best,
 					    &forced_impl, sched_ctx_id, sorted_decision);
 
@@ -840,7 +840,7 @@ static double _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned 
 				}
 				fitness[worker_ctx][nimpl] = dt->alpha*(exp_end[worker_ctx][nimpl] - best_exp_end)
 					+ dt->beta*(local_data_penalty[worker_ctx][nimpl])
-					+ dt->_gamma*(local_power[worker_ctx][nimpl]);
+					+ dt->_gamma*(local_energy[worker_ctx][nimpl]);
 
 				if (exp_end[worker_ctx][nimpl] > max_exp_end)
 				{
@@ -858,7 +858,7 @@ static double _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned 
 					best_in_ctx = worker_ctx;
 					selected_impl = nimpl;
 
-					//_STARPU_DEBUG("best fitness (worker %d) %e = alpha*(%e) + beta(%e) +gamma(%e)\n", worker, best_fitness, exp_end[worker][nimpl] - best_exp_end, local_data_penalty[worker][nimpl], local_power[worker][nimpl]);
+					//_STARPU_DEBUG("best fitness (worker %d) %e = alpha*(%e) + beta(%e) +gamma(%e)\n", worker, best_fitness, exp_end[worker][nimpl] - best_exp_end, local_data_penalty[worker][nimpl], local_energy[worker][nimpl]);
 
 				}
 			}

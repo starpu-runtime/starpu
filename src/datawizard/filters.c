@@ -511,22 +511,28 @@ void starpu_data_partition_plan(starpu_data_handle_t initial_handle, struct star
 	unsigned nparts = _starpu_data_partition_nparts(initial_handle, f);
 	STARPU_ASSERT_MSG(initial_handle->nchildren == 0, "partition planning and synchronous partitioning is not supported");
 	STARPU_ASSERT_MSG(initial_handle->sequential_consistency, "partition planning is currently only supported for data with sequential consistency");
+	struct starpu_codelet *cl = initial_handle->switch_cl;
 
 	for (i = 0; i < nparts; i++)
 		childrenp[i] = calloc(1, sizeof(struct _starpu_data_state));
 	_starpu_data_partition(initial_handle, childrenp, nparts, f, 0);
 
-	if (!initial_handle->switch_cl)
+	if (!cl)
 	{
 		/* Create a codelet that will make the coherency on the home node */
-		struct starpu_codelet *cl = initial_handle->switch_cl = calloc(1, sizeof(*initial_handle->switch_cl));
+		cl = initial_handle->switch_cl = calloc(1, sizeof(*initial_handle->switch_cl));
 		cl->where = STARPU_NOWHERE;
 		cl->nbuffers = STARPU_VARIABLE_NBUFFERS;
 		cl->name = "data_partition_switch";
 		cl->specific_nodes = 1;
-		cl->dyn_nodes = malloc((nparts+1) * sizeof(*cl->dyn_nodes));
-		for (i = 0; i < nparts+1; i++)
+	}
+	if (initial_handle->switch_cl_nparts < nparts)
+	{
+		/* First initialization, or previous initialization was with fewer parts, enlarge it */
+		cl->dyn_nodes = realloc(cl->dyn_nodes, (nparts+1) * sizeof(*cl->dyn_nodes));
+		for (i = initial_handle->switch_cl_nparts; i < nparts+1; i++)
 			cl->dyn_nodes[i] = initial_handle->home_node;
+		initial_handle->switch_cl_nparts = nparts;
 	}
 }
 

@@ -207,12 +207,12 @@ double starpu_task_expected_length(struct starpu_task *task, struct starpu_perfm
 	return starpu_model_expected_perf(task, task->cl->model, arch, nimpl);
 }
 
-double starpu_task_expected_power(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
+double starpu_task_expected_energy(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
 	if (!task->cl)
 		/* Tasks without codelet don't actually take time */
 		return 0.0;
-	return starpu_model_expected_perf(task, task->cl->power_model, arch, nimpl);
+	return starpu_model_expected_perf(task, task->cl->energy_model, arch, nimpl);
 }
 
 double starpu_task_expected_conversion_time(struct starpu_task *task,
@@ -353,10 +353,10 @@ double starpu_task_bundle_expected_length(starpu_task_bundle_t bundle, struct st
 	return expected_length;
 }
 
-/* Return the expected power consumption of the entire task bundle in J */
-double starpu_task_bundle_expected_power(starpu_task_bundle_t bundle, struct starpu_perfmodel_arch* arch, unsigned nimpl)
+/* Return the expected energy consumption of the entire task bundle in J */
+double starpu_task_bundle_expected_energy(starpu_task_bundle_t bundle, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
-	double expected_power = 0.0;
+	double expected_energy = 0.0;
 
 	/* We expect total consumption of the bundle the be the sum of the different tasks consumption. */
 	STARPU_PTHREAD_MUTEX_LOCK(&bundle->mutex);
@@ -366,19 +366,19 @@ double starpu_task_bundle_expected_power(starpu_task_bundle_t bundle, struct sta
 
 	while (entry)
 	{
-		double task_power = starpu_task_expected_power(entry->task, arch, nimpl);
+		double task_energy = starpu_task_expected_energy(entry->task, arch, nimpl);
 
 		/* In case the task is not calibrated, we consider the task
 		 * ends immediately. */
-		if (task_power > 0.0)
-			expected_power += task_power;
+		if (task_energy > 0.0)
+			expected_energy += task_energy;
 
 		entry = entry->next;
 	}
 
 	STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
 
-	return expected_power;
+	return expected_energy;
 }
 
 /* Return the time (in µs) expected to transfer all data used within the bundle */
