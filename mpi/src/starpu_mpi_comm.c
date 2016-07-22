@@ -78,7 +78,7 @@ void _starpu_mpi_comm_register(MPI_Comm comm)
 	HASH_FIND(hh, _starpu_mpi_comms_cache, &comm, sizeof(MPI_Comm), found);
 	if (found)
 	{
-		_STARPU_MPI_DEBUG(10, "comm %d (%d) already registered\n", comm, MPI_COMM_WORLD);
+		_STARPU_MPI_DEBUG(10, "comm %ld (%ld) already registered\n", (long int)comm, (long int)MPI_COMM_WORLD);
 	}
 	else
 	{
@@ -88,7 +88,7 @@ void _starpu_mpi_comm_register(MPI_Comm comm)
 			_STARPU_MPI_DEBUG(10, "reallocating for %d communicators\n", _starpu_mpi_comm_allocated);
 			_starpu_mpi_comms = realloc(_starpu_mpi_comms, _starpu_mpi_comm_allocated * sizeof(struct _starpu_mpi_comm *));
 		}
-		_STARPU_MPI_DEBUG(10, "registering comm %d (%d) number %d\n", comm, MPI_COMM_WORLD, _starpu_mpi_comm_nb);
+		_STARPU_MPI_DEBUG(10, "registering comm %ld (%ld) number %d\n", (long int)comm, (long int)MPI_COMM_WORLD, _starpu_mpi_comm_nb);
 		struct _starpu_mpi_comm *_comm = calloc(1, sizeof(struct _starpu_mpi_comm));
 		_comm->comm = comm;
 		_comm->envelope = calloc(1,sizeof(struct _starpu_mpi_envelope));
@@ -109,7 +109,7 @@ void _starpu_mpi_comm_post_recv()
 		struct _starpu_mpi_comm *_comm = _starpu_mpi_comms[i]; // get the ith _comm;
 		if (_comm->posted == 0)
 		{
-			_STARPU_MPI_DEBUG(3, "Posting a receive to get a data envelop on comm %d %d\n", i, _comm->comm);
+			_STARPU_MPI_DEBUG(3, "Posting a receive to get a data envelop on comm %d %ld\n", i, (long int)_comm->comm);
 			_STARPU_MPI_COMM_FROM_DEBUG(sizeof(struct _starpu_mpi_envelope), MPI_BYTE, MPI_ANY_SOURCE, _STARPU_MPI_TAG_ENVELOPE, _STARPU_MPI_TAG_ENVELOPE, _comm->comm);
 			MPI_Irecv(_comm->envelope, sizeof(struct _starpu_mpi_envelope), MPI_BYTE, MPI_ANY_SOURCE, _STARPU_MPI_TAG_ENVELOPE, _comm->comm, &_comm->request);
 			_comm->posted = 1;
