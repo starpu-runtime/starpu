@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2015  Université de Bordeaux
+ * Copyright (C) 2009-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -128,9 +128,6 @@ static unsigned may_free_subtree(starpu_data_handle_t handle, unsigned node)
 	uint32_t refcnt = _starpu_get_data_refcnt(handle, node);
 	if (refcnt)
 		return 0;
-
-	if (!handle->nchildren)
-		return 1;
 
 	/* look into all sub-subtrees children */
 	unsigned child;
