@@ -74,11 +74,6 @@ static starpu_pthread_t progress_thread;
 #endif
 static int running = 0;
 
-#ifdef STARPU_SIMGRID
-static int _mpi_world_size;
-static int _mpi_world_rank;
-#endif
-
 /* Count requests posted by the application and not yet submitted to MPI */
 static starpu_pthread_mutex_t mutex_posted_requests;
 static int posted_requests = 0, newer_requests, barrier_running = 0;
@@ -1225,18 +1220,9 @@ static void _starpu_mpi_add_sync_point_in_fxt(void)
 static void *_starpu_mpi_progress_thread_func(void *arg)
 {
 	struct _starpu_mpi_argc_argv *argc_argv = (struct _starpu_mpi_argc_argv *) arg;
-	int rank, worldsize;
 
 #ifndef STARPU_SIMGRID
 	_starpu_mpi_do_initialize(argc_argv);
-#endif
-
-	MPI_Comm_rank(argc_argv->comm, &rank);
-	MPI_Comm_size(argc_argv->comm, &worldsize);
-	MPI_Comm_set_errhandler(argc_argv->comm, MPI_ERRORS_RETURN);
-#ifdef STARPU_SIMGRID
-	_mpi_world_size = worldsize;
-	_mpi_world_rank = rank;
 #endif
 
 #ifdef STARPU_SIMGRID
@@ -1251,17 +1237,15 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	smpi_process_set_user_data(calloc(MAX_TSD, sizeof(void*)));
 #endif
 #endif
+
 #ifdef STARPU_USE_FXT
-	STARPU_PTHREAD_MUTEX_LOCK(&_starpu_fxt_started_mutex);
-	while (!_starpu_fxt_started)
-		STARPU_PTHREAD_COND_WAIT(&_starpu_fxt_started_cond, &_starpu_fxt_started_mutex);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_fxt_started_mutex);
+	_starpu_fxt_wait_initialisation();
 #endif //STARPU_USE_FXT
 
 	{
-		_STARPU_MPI_TRACE_START(rank, worldsize);
+		_STARPU_MPI_TRACE_START(argc_argv->rank, argc_argv->world_size);
 #ifdef STARPU_USE_FXT
-		starpu_profiling_set_id(rank);
+		starpu_profiling_set_id(argc_argv->rank);
 #endif //STARPU_USE_FXT
 	}
 
@@ -1512,12 +1496,15 @@ void _starpu_mpi_progress_shutdown(int *value)
 	running = 0;
 	STARPU_PTHREAD_COND_BROADCAST(&progress_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
+
 #ifdef STARPU_SIMGRID
 	/* FIXME: should rather properly wait for _starpu_mpi_progress_thread_func to finish */
+	(void) value;
 	MSG_process_sleep(1);
 #else
 	starpu_pthread_join(progress_thread, (void *)value);
 #endif
+
 	/* free the request queues */
 	_starpu_mpi_req_list_delete(detached_requests);
 	_starpu_mpi_req_list_delete(ready_requests);
@@ -1700,4 +1687,3 @@ int starpu_mpi_wait_for_all(MPI_Comm comm)
 	}
 	return 0;
 }
-

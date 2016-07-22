@@ -37,6 +37,11 @@
 #include <core/simgrid.h>
 #include <core/task.h>
 
+#ifdef STARPU_SIMGRID
+static int _mpi_world_size;
+static int _mpi_world_rank;
+#endif
+
 static void _starpu_mpi_print_thread_level_support(int thread_level, char *msg)
 {
 	switch (thread_level)
@@ -77,6 +82,15 @@ void _starpu_mpi_do_initialize(struct _starpu_mpi_argc_argv *argc_argv)
 		MPI_Query_thread(&provided);
 		_starpu_mpi_print_thread_level_support(provided, " has been initialized with");
 	}
+
+	MPI_Comm_rank(argc_argv->comm, &argc_argv->rank);
+	MPI_Comm_size(argc_argv->comm, &argc_argv->world_size);
+	MPI_Comm_set_errhandler(argc_argv->comm, MPI_ERRORS_RETURN);
+
+#ifdef STARPU_SIMGRID
+	_mpi_world_size = argc_argv->world_size;
+	_mpi_world_rank = argc_argv->rank;
+#endif
 }
 
 static

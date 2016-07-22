@@ -228,6 +228,8 @@ struct _starpu_mpi_argc_argv
 	MPI_Comm comm;
 	int fargc;	// Fortran argc
 	char **fargv;	// Fortran argv
+	int rank;
+	int world_size;
 };
 
 void _starpu_mpi_progress_shutdown(int *value);
