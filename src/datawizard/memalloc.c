@@ -1008,14 +1008,14 @@ void starpu_memchunk_tidy(unsigned node)
 			{
 				unsigned n;
 				for (n = 0; n < STARPU_MAXNODES; n++)
-				{
 					if (_starpu_get_data_refcnt(handle, n))
-					{
-						/* Some task is writing to the handle somewhere */
-						_starpu_spin_unlock(&handle->header_lock);
-						skipped = 1;
-						continue;
-					}
+						break;
+				if (n < STARPU_MAXNODES)
+				{
+					/* Some task is writing to the handle somewhere */
+					_starpu_spin_unlock(&handle->header_lock);
+					skipped = 1;
+					continue;
 				}
 			}
 

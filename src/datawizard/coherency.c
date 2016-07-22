@@ -678,6 +678,9 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 				if (r2)
 				{
 					_starpu_spin_lock(&r2->lock);
+					if (is_prefetch < r2->prefetch)
+						/* Hasten the request we will have to wait for */
+						_starpu_update_prefetch_status(r2, is_prefetch);
 					r2->next_req[r2->next_req_count++] = r;
 					STARPU_ASSERT(r2->next_req_count <= STARPU_MAXNODES + 1);
 					_starpu_spin_unlock(&r2->lock);
