@@ -930,6 +930,8 @@ static void _starpu_data_invalidate(void *data)
 	size_t size = _starpu_data_get_size(handle);
 	_starpu_spin_lock(&handle->header_lock);
 
+	_STARPU_DEBUG("Really invalidating data %p\n", data);
+
 	unsigned node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{

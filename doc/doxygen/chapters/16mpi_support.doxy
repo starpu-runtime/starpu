@@ -484,9 +484,7 @@ migrate the data, and register the new location.
                                               (uintptr_t)NULL, sizeof(unsigned));
             if (data_handles[x][y]) {
                 /* Migrate the data */
-                starpu_mpi_get_data_on_node_detached(MPI_COMM_WORLD, data_handles[x][y], mpi_rank, NULL, NULL);
-                /* And register the new rank of the matrix */
-                starpu_mpi_data_set_rank(data_handles[x][y], mpi_rank);
+                starpu_mpi_data_migrate(MPI_COMM_WORLD, data_handles[x][y], mpi_rank);
             }
         }
     }

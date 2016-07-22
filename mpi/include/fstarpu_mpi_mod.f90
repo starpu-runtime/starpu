@@ -455,6 +455,15 @@ module fstarpu_mpi_mod
                         type(c_ptr), value, intent(in) :: dh
                 end function fstarpu_mpi_data_get_tag
 
+                ! void starpu_mpi_data_migrate(MPI_Comm comm, starpu_data_handle_t handle, int rank);
+                subroutine fstarpu_mpi_data_migrate(mpi_comm,dh,rank) bind(C)
+                        use iso_c_binding
+                        implicit none
+                        integer(c_int), value, intent(in) :: mpi_comm
+                        type(c_ptr), value, intent(in) :: dh
+                        integer(c_int), value, intent(in) :: rank
+                end subroutine fstarpu_mpi_data_migrate
+
                 ! #define STARPU_MPI_NODE_SELECTION_CURRENT_POLICY -1
                 ! #define STARPU_MPI_NODE_SELECTION_MOST_R_DATA    0
 

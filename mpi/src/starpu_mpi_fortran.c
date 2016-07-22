@@ -249,6 +249,11 @@ void fstarpu_mpi_data_set_rank(starpu_data_handle_t handle, int rank)
 	return starpu_mpi_data_set_rank_comm(handle, rank, MPI_COMM_WORLD);
 }
 
+void fstarpu_mpi_data_migrate(MPI_Fint comm, starpu_data_handle_t handle, int rank)
+{
+	return starpu_mpi_data_migrate(MPI_Comm_f2c(comm), handle, rank);
+}
+
 int fstarpu_mpi_wait_for_all(MPI_Fint comm)
 {
 	return starpu_mpi_wait_for_all(MPI_Comm_f2c(comm));

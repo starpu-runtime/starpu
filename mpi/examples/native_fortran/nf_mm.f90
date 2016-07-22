@@ -159,8 +159,7 @@ program nf_mm
         do b_col=1,NB
         do b_row=1,NB
         rank = modulo(b_row+b_col, comm_size)
-        call fstarpu_mpi_get_data_on_node(comm_world, dh_c(b_row,b_col), rank)
-        call fstarpu_mpi_data_set_rank(dh_c(b_row,b_col), rank)
+        call fstarpu_mpi_data_migrate(comm_world, dh_c(b_row,b_col), rank)
         end do
         end do
 
@@ -179,8 +178,7 @@ program nf_mm
         ! undistribute matrix C
         do b_col=1,NB
         do b_row=1,NB
-        call fstarpu_mpi_get_data_on_node(comm_world, dh_c(b_row,b_col), 0)
-        call fstarpu_mpi_data_set_rank(dh_c(b_row,b_col), 0)
+        call fstarpu_mpi_data_migrate(comm_world, dh_c(b_row,b_col), 0)
         end do
         end do
 
