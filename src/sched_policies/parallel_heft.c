@@ -292,7 +292,7 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 
 	double local_task_length[nworkers_ctx][STARPU_MAXIMPLEMENTATIONS];
 	double local_data_penalty[nworkers_ctx][STARPU_MAXIMPLEMENTATIONS];
-	double local_power[nworkers_ctx][STARPU_MAXIMPLEMENTATIONS];
+	double local_energy[nworkers_ctx][STARPU_MAXIMPLEMENTATIONS];
 	double local_exp_end[nworkers_ctx][STARPU_MAXIMPLEMENTATIONS];
 	double fitness[nworkers_ctx][STARPU_MAXIMPLEMENTATIONS];
 
@@ -401,11 +401,11 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 			}
 
 
-			local_power[worker_ctx][nimpl] = starpu_task_expected_power(task, perf_arch,nimpl);
-			//_STARPU_DEBUG("Scheduler parallel heft: task length (%lf) local power (%lf) worker (%u) kernel (%u) \n", local_task_length[worker],local_power[worker],worker,nimpl);
+			local_energy[worker_ctx][nimpl] = starpu_task_expected_energy(task, perf_arch,nimpl);
+			//_STARPU_DEBUG("Scheduler parallel heft: task length (%lf) local energy (%lf) worker (%u) kernel (%u) \n", local_task_length[worker],local_energy[worker],worker,nimpl);
 
-			if (isnan(local_power[worker_ctx][nimpl]))
-				local_power[worker_ctx][nimpl] = 0.;
+			if (isnan(local_energy[worker_ctx][nimpl]))
+				local_energy[worker_ctx][nimpl] = 0.;
 
 		}
 		worker_ctx++;
@@ -437,7 +437,7 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 
 				fitness[worker_ctx][nimpl] = hd->alpha*(local_exp_end[worker_ctx][nimpl] - best_exp_end)
 						+ hd->beta*(local_data_penalty[worker_ctx][nimpl])
-						+ hd->_gamma*(local_power[worker_ctx][nimpl]);
+						+ hd->_gamma*(local_energy[worker_ctx][nimpl]);
 
 				if (local_exp_end[worker_ctx][nimpl] > max_exp_end)
 					/* This placement will make the computation

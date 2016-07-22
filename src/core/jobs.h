@@ -205,8 +205,8 @@ struct _starpu_job {
 	/* Cumulated execution time for discontinuous jobs */
 	struct timespec cumulated_ts;
 
-	/* Cumulated power consumption for discontinuous jobs */
-	double cumulated_power_consumed;
+	/* Cumulated energy consumption for discontinuous jobs */
+	double cumulated_energy_consumed;
 #endif
 
 	/* The value of the footprint that identifies the job may be stored in

@@ -344,8 +344,8 @@ Optional pointer to the task duration performance model associated to
 this codelet. This optional field is ignored when set to <c>NULL</c> or when
 its field starpu_perfmodel::symbol is not set.
 
-\var struct starpu_perfmodel *starpu_codelet::power_model
-Optional pointer to the task power consumption performance model
+\var struct starpu_perfmodel *starpu_codelet::energy_model
+Optional pointer to the task energy consumption performance model
 associated to this codelet. This optional field is ignored when set to
 <c>NULL</c> or when its field starpu_perfmodel::field is not set. In
 the case of parallel codelets, this has to account for all processing

@@ -397,14 +397,14 @@ the coefficient to be applied to it before adding it to the computation part.
 <dd>
 \anchor STARPU_SCHED_GAMMA
 \addindex __env__STARPU_SCHED_GAMMA
-Define the execution time penalty of a joule (\ref Power-basedScheduling).
+Define the execution time penalty of a joule (\ref Energy-basedScheduling).
 </dd>
 
 <dt>STARPU_IDLE_POWER</dt>
 <dd>
 \anchor STARPU_IDLE_POWER
 \addindex __env__STARPU_IDLE_POWER
-Define the idle power of the machine (\ref Power-basedScheduling).
+Define the idle power of the machine (\ref Energy-basedScheduling).
 </dd>
 
 <dt>STARPU_PROFILING</dt>
@@ -762,8 +762,8 @@ starpu_shutdown() (\ref Profiling).
 \addindex __env__STARPU_WORKER_STATS
 When defined, statistics about the workers will be displayed when calling
 starpu_shutdown() (\ref Profiling). When combined with the
-environment variable \ref STARPU_PROFILING, it displays the power
-consumption (\ref Power-basedScheduling).
+environment variable \ref STARPU_PROFILING, it displays the energy
+consumption (\ref Energy-basedScheduling).
 </dd>
 
 <dt>STARPU_STATS</dt>

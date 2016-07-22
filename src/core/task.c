@@ -584,8 +584,8 @@ static int _starpu_task_submit_head(struct starpu_task *task)
 		if (task->cl->model)
 			_starpu_init_and_load_perfmodel(task->cl->model);
 
-		if (task->cl->power_model)
-			_starpu_init_and_load_perfmodel(task->cl->power_model);
+		if (task->cl->energy_model)
+			_starpu_init_and_load_perfmodel(task->cl->energy_model);
 	}
 
 	return 0;
@@ -656,8 +656,8 @@ int starpu_task_submit(struct starpu_task *task)
 			if (entry->task->cl->model)
 				_starpu_init_and_load_perfmodel(entry->task->cl->model);
 
-			if (entry->task->cl->power_model)
-				_starpu_init_and_load_perfmodel(entry->task->cl->power_model);
+			if (entry->task->cl->energy_model)
+				_starpu_init_and_load_perfmodel(entry->task->cl->energy_model);
 
 			entry = entry->next;
 		}
