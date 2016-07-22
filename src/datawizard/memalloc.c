@@ -947,10 +947,6 @@ void starpu_memchunk_tidy(unsigned node)
 	/* Count cached allocation as being available */
 	available += mc_cache_size[node];
 
-	if (total > 0 && available >= (total * minimum_p) / 100)
-		/* Enough available space, do not trigger reclaiming */
-		return;
-
 	if (mc_clean_nb[node] < (mc_nb[node] * minimum_clean_p) / 100)
 	{
 		struct _starpu_mem_chunk *mc, *orig_next_mc, *next_mc;
@@ -1066,6 +1062,10 @@ void starpu_memchunk_tidy(unsigned node)
 	}
 
 	if (total <= 0)
+		return;
+
+	if (total > 0 && available >= (total * minimum_p) / 100)
+		/* Enough available space, do not trigger reclaiming */
 		return;
 
 	/* Not enough available space, reclaim until we reach the target.  */
