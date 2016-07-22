@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010,2011, 2014 University of Bordeaux
+ * Copyright (C) 2010,2011, 2014, 2016 University of Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -188,7 +188,7 @@ command_ndrange_kernel command_ndrange_kernel_create (
 
 	starpu_codelet_init(&cmd->codelet);
 	cmd->codelet.where = STARPU_OPENCL;
-	cmd->codelet.power_model = NULL;
+	cmd->codelet.energy_model = NULL;
 	cmd->codelet.opencl_funcs[0] = &soclEnqueueNDRangeKernel_task;
 
 	/* Kernel is mutable, so we duplicate its parameters... */

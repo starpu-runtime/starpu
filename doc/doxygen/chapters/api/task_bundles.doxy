@@ -48,9 +48,9 @@ it when possible.
 \ingroup API_Task_Bundles
 Return the expected duration of \p bundle in micro-seconds.
 
-\fn double starpu_task_bundle_expected_power(starpu_task_bundle_t bundle, struct starpu_perfmodel_arch *arch, unsigned nimpl)
+\fn double starpu_task_bundle_expected_energy(starpu_task_bundle_t bundle, struct starpu_perfmodel_arch *arch, unsigned nimpl)
 \ingroup API_Task_Bundles
-Return the expected power consumption of \p bundle in J.
+Return the expected energy consumption of \p bundle in J.
 
 \fn double starpu_task_bundle_expected_data_transfer_time(starpu_task_bundle_t bundle, unsigned memory_node)
 \ingroup API_Task_Bundles

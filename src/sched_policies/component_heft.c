@@ -128,7 +128,7 @@ static int heft_progress_one(struct starpu_sched_component *component)
 			int offset = component->nchildren * best_task;
 			int icomponent = suitable_components[offset + i];
 #ifdef STARPU_DEVEL
-#warning FIXME: take power consumption into account
+#warning FIXME: take energy consumption into account
 #endif
 			double tmp = starpu_mct_compute_fitness(d,
 						     estimated_ends_with_task[offset + icomponent],

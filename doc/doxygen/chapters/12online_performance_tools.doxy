@@ -453,10 +453,10 @@ variable to <c>1</c>, or even reset by setting it to <c>2</c>.
 How to use schedulers which can benefit from such performance model is explained
 in \ref TaskSchedulingPolicy.
 
-The same can be done for task power consumption estimation, by setting
-the field starpu_codelet::power_model the same way as the field
+The same can be done for task energy consumption estimation, by setting
+the field starpu_codelet::energy_model the same way as the field
 starpu_codelet::model. Note: for now, the application has to give to
-the power consumption performance model a name which is different from
+the energy consumption performance model a name which is different from
 the execution time performance model.
 
 The application can request time estimations from the StarPU performance
@@ -465,7 +465,7 @@ it. The data handles can be created by calling any of the functions
 <c>starpu_*_data_register</c> with a <c>NULL</c> pointer and <c>-1</c>
 node and the desired data sizes, and need to be unregistered as usual.
 The functions starpu_task_expected_length() and
-starpu_task_expected_power() can then be called to get an estimation
+starpu_task_expected_energy() can then be called to get an estimation
 of the task cost on a given arch. starpu_task_footprint() can also be
 used to get the footprint used for indexing history-based performance
 models. starpu_task_destroy() needs to be called to destroy the dummy

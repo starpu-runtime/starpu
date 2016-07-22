@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2013  Université de Bordeaux
+ * Copyright (C) 2011, 2013, 2016  Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -86,15 +86,15 @@ void starpu_profiling_worker_helper_display_summary(void)
 			fprintf(stderr, "\t%d task(s)\n\ttotal: %.2lf ms executing: %.2lf ms sleeping: %.2lf ms overhead %.2lf ms\n", info.executed_tasks, total_time, executing_time, sleeping_time, total_time - executing_time - sleeping_time);
 			if (info.used_cycles || info.stall_cycles)
 				fprintf(stderr, "\t%lu Mcy %lu Mcy stall\n", info.used_cycles/1000000, info.stall_cycles/1000000);
-			if (info.power_consumed)
-				fprintf(stderr, "\t%f J consumed\n", info.power_consumed);
+			if (info.energy_consumed)
+				fprintf(stderr, "\t%f J consumed\n", info.energy_consumed);
 		}
 		else
 		{
 			fprintf(stderr, "\t%-32s\t%d task(s)\n", name, info.executed_tasks);
 		}
 
-		sum_consumed += info.power_consumed;
+		sum_consumed += info.energy_consumed;
 	}
 
 	if (profiling)
@@ -103,10 +103,10 @@ void starpu_profiling_worker_helper_display_summary(void)
 		if (strval_idle_power)
 		{
 			double idle_power = atof(strval_idle_power); /* Watt */
-			double idle_consumption = idle_power * overall_time / 1000.; /* J */
+			double idle_energy = idle_power * overall_time / 1000.; /* J */
 
-			fprintf(stderr, "Idle consumption: %.2lf J\n", idle_consumption);
-			sum_consumed += idle_consumption;
+			fprintf(stderr, "Idle energy: %.2lf J\n", idle_energy);
+			sum_consumed += idle_energy;
 		}
 	}
 	if (profiling && sum_consumed)

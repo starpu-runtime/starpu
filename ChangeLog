@@ -250,6 +250,8 @@ Changes:
 Small changes:
   * Rename function starpu_trace_user_event() as
     starpu_fxt_trace_user_event()
+  * "power" is renamed into "energy" wherever it applies, notably energy
+    consumption performance models
 
 StarPU 1.1.5 (svn revision xxx)
 ==============================================

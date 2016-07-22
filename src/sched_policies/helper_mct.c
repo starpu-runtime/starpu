@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2014  Université de Bordeaux
+ * Copyright (C) 2013-2014, 2016  Université de Bordeaux
  * Copyright (C) 2013  INRIA
  * Copyright (C) 2013  Simon Archipoff
  *
@@ -107,13 +107,13 @@ static double compute_expected_time(double now, double predicted_end, double pre
 	return predicted_end;
 }
 
-double starpu_mct_compute_fitness(struct _starpu_mct_data * d, double exp_end, double min_exp_end, double max_exp_end, double transfer_len, double local_power)
+double starpu_mct_compute_fitness(struct _starpu_mct_data * d, double exp_end, double min_exp_end, double max_exp_end, double transfer_len, double local_energy)
 {
 	/* Note: the expected end includes the data transfer duration, which we want to be able to tune separately */
 
 	return d->alpha * (exp_end - min_exp_end)
 		+ d->beta * transfer_len
-		+ d->_gamma * local_power
+		+ d->_gamma * local_energy
 		+ d->_gamma * d->idle_power * (exp_end - max_exp_end);
 }
 

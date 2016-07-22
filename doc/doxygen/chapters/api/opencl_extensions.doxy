@@ -167,7 +167,7 @@ This function allows to collect statistics on a kernel execution.
 After termination of the kernels, the OpenCL codelet should call this
 function to pass it the even returned by clEnqueueNDRangeKernel, to
 let StarPU collect statistics about the kernel execution (used cycles,
-consumed power).
+consumed energy).
 
 @name OpenCL utilities
 \ingroup API_OpenCL_Extensions

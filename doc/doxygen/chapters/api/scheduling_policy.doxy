@@ -199,9 +199,9 @@ Returns expected data transfer time in micro-seconds.
 \ingroup API_Scheduling_Policy
 Predict the transfer time (in micro-seconds) to move \p handle to a memory node
 
-\fn double starpu_task_expected_power(struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl)
+\fn double starpu_task_expected_energy(struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl)
 \ingroup API_Scheduling_Policy
-Returns expected power consumption in J
+Returns expected energy consumption in J
 
 \fn double starpu_task_expected_conversion_time(struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl)
 \ingroup API_Scheduling_Policy

@@ -116,7 +116,7 @@ struct starpu_codelet
 	int *dyn_nodes;
 
 	struct starpu_perfmodel *model;
-	struct starpu_perfmodel *power_model;
+	struct starpu_perfmodel *energy_model;
 
 	unsigned long per_worker_stats[STARPU_NMAXWORKERS];
 
