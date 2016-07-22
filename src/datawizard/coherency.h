@@ -152,6 +152,8 @@ struct _starpu_data_state
 	unsigned nplans;
 	/* Switch codelet for asynchronous partitioning */
 	struct starpu_codelet *switch_cl;
+	/* size of dyn_nodes recorded in switch_cl */
+	int switch_cl_nparts;
 	/* Whether a partition plan is currently submitted and the
 	 * corresponding unpartition has not been yet
 	 *
