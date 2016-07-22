@@ -129,6 +129,15 @@ static unsigned may_free_subtree(starpu_data_handle_t handle, unsigned node)
 	if (refcnt)
 		return 0;
 
+	if (handle->current_mode == STARPU_W)
+	{
+		unsigned n;
+		for (n = 0; n < STARPU_MAXNODES; n++)
+			if (_starpu_get_data_refcnt(handle, n))
+				/* Some task is writing to the handle somewhere */
+				return 0;
+	}
+
 	/* look into all sub-subtrees children */
 	unsigned child;
 	for (child = 0; child < handle->nchildren; child++)
