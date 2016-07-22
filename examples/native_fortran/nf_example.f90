@@ -165,8 +165,8 @@ PROGRAM f90_example
   WRITE(6,'(a)') " "
 
   !Deallocation
-  fstarpu_codelet_free(cl_loop_element)
-  fstarpu_codelet_free(cl_copy_element)
+  CALL fstarpu_codelet_free(cl_loop_element)
+  CALL fstarpu_codelet_free(cl_copy_element)
   DO i = 1,Nelt
      elt => mesh%elt(i)
      DEALLOCATE(elt%ro)
