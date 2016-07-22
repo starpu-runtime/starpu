@@ -21,8 +21,8 @@
 #include <starpu.h>
 #include <common/config.h>
 #include <common/uthash.h>
-#include "starpu_mpi.h"
-#include "starpu_mpi_fxt.h"
+#include <starpu_mpi.h>
+#include <starpu_mpi_fxt.h>
 #include <common/list.h>
 
 #ifdef __cplusplus
@@ -230,6 +230,8 @@ struct _starpu_mpi_argc_argv
 	char **fargv;	// Fortran argv
 };
 
+void _starpu_mpi_progress_shutdown(int *value);
+int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv);
 
 #ifdef __cplusplus
 }

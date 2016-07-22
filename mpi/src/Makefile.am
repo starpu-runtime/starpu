@@ -69,7 +69,8 @@ noinst_HEADERS =					\
 	starpu_mpi_sync_data.h				\
 	starpu_mpi_comm.h				\
 	starpu_mpi_tag.h				\
-	starpu_mpi_task_insert.h
+	starpu_mpi_task_insert.h			\
+	starpu_mpi_init.h
 
 libstarpumpi_@STARPU_EFFECTIVE_VERSION@_la_SOURCES =	\
 	starpu_mpi.c					\
@@ -88,7 +89,8 @@ libstarpumpi_@STARPU_EFFECTIVE_VERSION@_la_SOURCES =	\
 	starpu_mpi_comm.c				\
 	starpu_mpi_tag.c				\
 	starpu_mpi_fortran.c				\
-	starpu_mpi_task_insert_fortran.c
+	starpu_mpi_task_insert_fortran.c		\
+	starpu_mpi_init.c
 
 showcheck:
 	-cat /dev/null
