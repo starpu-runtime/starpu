@@ -164,6 +164,7 @@ enodev:
 		/* yes, we do not perform the computation but we did detect that no one
 		 * could perform the kernel, so this is not an error from StarPU */
 		free(x);
+		free(expected);
 		return STARPU_TEST_SKIPPED;
 	}
 	else
@@ -181,6 +182,7 @@ enodev:
 			FPRINTF(stderr, "[end of loop] all values are correct\n");
 		}
 		free(x);
+		free(expected);
 		return ret;
 	}
 }
