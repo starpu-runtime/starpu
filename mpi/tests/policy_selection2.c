@@ -122,7 +122,7 @@ int main(int argc, char **argv)
 				  0, data[0], 2, data[2], 1, data[1], 2, data[2]);
 	}
 
-	for(i=0 ; i<2 ; i++) starpu_data_unregister(handles[i]);
+	for(i=0 ; i<3 ; i++) starpu_data_unregister(handles[i]);
 
 	starpu_mpi_shutdown();
 	starpu_shutdown();
