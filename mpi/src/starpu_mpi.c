@@ -1774,6 +1774,65 @@ int starpu_mpi_data_get_tag(starpu_data_handle_t data)
 	return ((struct _starpu_mpi_node_tag *)(data->mpi_data))->data_tag;
 }
 
+void starpu_mpi_get_data_on_node_detached(MPI_Comm comm, starpu_data_handle_t data_handle, int node, void (*callback)(void*), void *arg)
+{
+	int me, rank, tag;
+
+	rank = starpu_mpi_data_get_rank(data_handle);
+	tag = starpu_mpi_data_get_tag(data_handle);
+	if (rank == -1)
+	{
+		_STARPU_ERROR("StarPU needs to be told the MPI rank of this data, using starpu_mpi_data_register() or starpu_mpi_data_register()\n");
+	}
+	if (tag == -1)
+	{
+		_STARPU_ERROR("StarPU needs to be told the MPI tag of this data, using starpu_mpi_data_register() or starpu_mpi_data_register()\n");
+	}
+	starpu_mpi_comm_rank(comm, &me);
+
+	if (node == rank) return;
+
+	if (me == node)
+	{
+		starpu_mpi_irecv_detached(data_handle, rank, tag, comm, callback, arg);
+	}
+	else if (me == rank)
+	{
+		starpu_mpi_isend_detached(data_handle, node, tag, comm, NULL, NULL);
+	}
+}
+
+void starpu_mpi_get_data_on_node(MPI_Comm comm, starpu_data_handle_t data_handle, int node)
+{
+	int me, rank, tag;
+
+	rank = starpu_mpi_data_get_rank(data_handle);
+	tag = starpu_mpi_data_get_tag(data_handle);
+	if (rank == -1)
+	{
+		fprintf(stderr,"StarPU needs to be told the MPI rank of this data, using starpu_mpi_data_register\n");
+		STARPU_ABORT();
+	}
+	if (tag == -1)
+	{
+		fprintf(stderr,"StarPU needs to be told the MPI tag of this data, using starpu_mpi_data_register\n");
+		STARPU_ABORT();
+	}
+	starpu_mpi_comm_rank(comm, &me);
+
+	if (node == rank) return;
+
+	if (me == node)
+	{
+		MPI_Status status;
+		starpu_mpi_recv(data_handle, rank, tag, comm, &status);
+	}
+	else if (me == rank)
+	{
+		starpu_mpi_send(data_handle, node, tag, comm);
+	}
+}
+
 void starpu_mpi_data_migrate(MPI_Comm comm, starpu_data_handle_t data, int new_rank)
 {
 	int me;
