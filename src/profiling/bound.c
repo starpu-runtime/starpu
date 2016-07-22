@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2011, 2012, 2013  CNRS
- * Copyright (C) 2010-2015  Université de Bordeaux
+ * Copyright (C) 2010-2016  Université de Bordeaux
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -214,6 +214,17 @@ static void initialize_duration(struct bound_task *task)
 	task->duration[STARPU_MIC_WORKER] = initialize_arch_duration(conf->topology.nmicdevices,conf->topology.nmiccores); 
 	task->duration[STARPU_SCC_WORKER] = initialize_arch_duration(conf->topology.nsccdevices,NULL); 
 }
+
+static struct starpu_perfmodel_device device = {
+	.type = STARPU_CPU_WORKER,
+	.devid = 0,
+	.ncores = 1,
+};
+static struct starpu_perfmodel_arch dumb_arch = {
+	.ndevices = 1,
+	.devices = &device,
+};
+
 /* Create a new task (either because it has just been submitted, or a
  * dependency was added before submission) */
 static void new_task(struct _starpu_job *j)
@@ -229,7 +240,7 @@ static void new_task(struct _starpu_job *j)
 	t->tag_id = j->task->tag_id;
 	t->use_tag = j->task->use_tag;
 	t->cl = j->task->cl;
-	t->footprint = _starpu_compute_buffers_footprint(j->task->cl?j->task->cl->model:NULL, STARPU_CPU_WORKER, 0, j);
+	t->footprint = _starpu_compute_buffers_footprint(j->task->cl?j->task->cl->model:NULL, &dumb_arch, 0, j);
 	t->priority = j->task->priority;
 	t->deps = NULL;
 	t->depsn = 0;
