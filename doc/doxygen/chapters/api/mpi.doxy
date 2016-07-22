@@ -23,6 +23,7 @@ Initializes the starpumpi library with the given communicator.
 \p initialize_mpi indicates if MPI should be initialized or not by StarPU.
 If the value is not 0, MPI will be initialized by calling
 <c>MPI_Init_Thread(argc, argv, MPI_THREAD_SERIALIZED, ...)</c>.
+starpu_init() must be called before starpu_mpi_init_comm().
 
 \fn int starpu_mpi_init(int *argc, char ***argv, int initialize_mpi)
 \ingroup API_MPI_Support

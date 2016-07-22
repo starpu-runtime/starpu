@@ -32,16 +32,16 @@ program nf_mm
         integer(c_int) :: b_row, b_col
         integer(c_int) :: mr, tag, rank
 
-        ret = fstarpu_mpi_init(1)
-        print *,"fstarpu_mpi_init status:", ret
-        if (ret /= 0) then
-                stop 1
-        end if
-
         ret = fstarpu_init(C_NULL_PTR)
         if (ret == -19) then
                 stop 77
         else if (ret /= 0) then
+                stop 1
+        end if
+
+        ret = fstarpu_mpi_init(1)
+        print *,"fstarpu_mpi_init status:", ret
+        if (ret /= 0) then
                 stop 1
         end if
 
