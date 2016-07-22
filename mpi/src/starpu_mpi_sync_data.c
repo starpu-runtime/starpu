@@ -39,7 +39,7 @@ void _starpu_mpi_sync_data_init(void)
 	_starpu_mpi_sync_data_handle_hashmap_count = 0;
 }
 
-void _starpu_mpi_sync_data_free(void)
+void _starpu_mpi_sync_data_shutdown(void)
 {
 	struct _starpu_mpi_sync_data_handle_hashlist *current, *tmp;
 	HASH_ITER(hh, _starpu_mpi_sync_data_handle_hashmap, current, tmp)

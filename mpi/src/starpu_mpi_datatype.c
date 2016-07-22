@@ -35,7 +35,7 @@ void _starpu_mpi_datatype_init(void)
 	STARPU_PTHREAD_MUTEX_INIT(&_starpu_mpi_datatype_funcs_table_mutex, NULL);
 }
 
-void _starpu_mpi_datatype_free(void)
+void _starpu_mpi_datatype_shutdown(void)
 {
 	STARPU_PTHREAD_MUTEX_DESTROY(&_starpu_mpi_datatype_funcs_table_mutex);
 }
@@ -155,7 +155,7 @@ static starpu_mpi_datatype_allocate_func_t handle_to_datatype_funcs[STARPU_MAX_I
 	[STARPU_MULTIFORMAT_INTERFACE_ID] = NULL,
 };
 
-void _starpu_mpi_handle_allocate_datatype(starpu_data_handle_t data_handle, struct _starpu_mpi_req *req)
+void _starpu_mpi_datatype_allocate(starpu_data_handle_t data_handle, struct _starpu_mpi_req *req)
 {
 	enum starpu_data_interface_id id = starpu_data_get_interface_id(data_handle);
 
@@ -240,7 +240,7 @@ static starpu_mpi_datatype_free_func_t handle_free_datatype_funcs[STARPU_MAX_INT
 	[STARPU_MULTIFORMAT_INTERFACE_ID] = NULL,
 };
 
-void _starpu_mpi_handle_free_datatype(starpu_data_handle_t data_handle, MPI_Datatype *datatype)
+void _starpu_mpi_datatype_free(starpu_data_handle_t data_handle, MPI_Datatype *datatype)
 {
 	enum starpu_data_interface_id id = starpu_data_get_interface_id(data_handle);
 

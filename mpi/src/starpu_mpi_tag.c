@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2011, 2012, 2013, 2014, 2015, 2016  CNRS
  * Copyright (C) 2011-2015  Université de Bordeaux
  * Copyright (C) 2014 INRIA
  *
@@ -40,7 +40,7 @@ void _starpu_mpi_tag_init(void)
 	_starpu_spin_init(&registered_tag_handles_lock);
 }
 
-void _starpu_mpi_tag_free(void)
+void _starpu_mpi_tag_shutdown(void)
 {
      	struct handle_tag_entry *tag_entry, *tag_tmp;
 
@@ -55,7 +55,7 @@ void _starpu_mpi_tag_free(void)
 	registered_tag_handles = NULL;
 }
 
-starpu_data_handle_t _starpu_mpi_data_get_data_handle_from_tag(int tag)
+starpu_data_handle_t _starpu_mpi_tag_get_data_handle_from_tag(int tag)
 {
 	struct handle_tag_entry *ret;
 
@@ -73,14 +73,14 @@ starpu_data_handle_t _starpu_mpi_data_get_data_handle_from_tag(int tag)
 	}
 }
 
-void _starpu_mpi_data_register_tag(starpu_data_handle_t handle, int tag)
+void _starpu_mpi_tag_data_register(starpu_data_handle_t handle, int tag)
 {
 	struct handle_tag_entry *entry;
 	entry = (struct handle_tag_entry *) malloc(sizeof(*entry));
 	STARPU_ASSERT(entry != NULL);
 
-	STARPU_ASSERT_MSG(!(_starpu_mpi_data_get_data_handle_from_tag(tag)),
-			  "There is already a data handle %p registered with the tag %d\n", _starpu_mpi_data_get_data_handle_from_tag(tag), tag);
+	STARPU_ASSERT_MSG(!(_starpu_mpi_tag_get_data_handle_from_tag(tag)),
+			  "There is already a data handle %p registered with the tag %d\n", _starpu_mpi_tag_get_data_handle_from_tag(tag), tag);
 
 	_STARPU_MPI_DEBUG(42, "Adding handle %p with tag %d in hashtable\n", handle, tag);
 
@@ -92,7 +92,7 @@ void _starpu_mpi_data_register_tag(starpu_data_handle_t handle, int tag)
 	_starpu_spin_unlock(&registered_tag_handles_lock);
 }
 
-int _starpu_mpi_data_release_tag(starpu_data_handle_t handle)
+int _starpu_mpi_tag_data_release(starpu_data_handle_t handle)
 {
 	struct handle_tag_entry *tag_entry;
 	int tag = starpu_mpi_data_get_tag(handle);

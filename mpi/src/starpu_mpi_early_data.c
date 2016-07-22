@@ -45,7 +45,7 @@ void _starpu_mpi_early_data_check_termination(void)
 	STARPU_ASSERT_MSG(_starpu_mpi_early_data_handle_hashmap_count == 0, "Number of unexpected received messages left is not zero (but %d), did you forget to post a receive corresponding to a send?", _starpu_mpi_early_data_handle_hashmap_count);
 }
 
-void _starpu_mpi_early_data_free(void)
+void _starpu_mpi_early_data_shutdown(void)
 {
 	struct _starpu_mpi_early_data_handle_hashlist *current, *tmp;
 	HASH_ITER(hh, _starpu_mpi_early_data_handle_hashmap, current, tmp)

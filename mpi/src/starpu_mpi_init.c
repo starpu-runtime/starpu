@@ -164,13 +164,14 @@ int starpu_mpi_shutdown(void)
 	_STARPU_MPI_TRACE_STOP(rank, world_size);
 
 	_starpu_mpi_comm_amounts_display(rank);
-	_starpu_mpi_comm_amounts_free();
-	_starpu_mpi_cache_free(world_size);
-	_starpu_mpi_tag_free();
-	_starpu_mpi_comm_free();
+	_starpu_mpi_comm_amounts_shutdown();
+	_starpu_mpi_cache_shutdown(world_size);
+	_starpu_mpi_tag_shutdown();
+	_starpu_mpi_comm_shutdown();
 
 	return 0;
 }
+
 int starpu_mpi_comm_size(MPI_Comm comm, int *size)
 {
 #ifdef STARPU_SIMGRID

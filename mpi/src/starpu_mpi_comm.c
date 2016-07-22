@@ -52,7 +52,7 @@ void _starpu_mpi_comm_init(MPI_Comm comm)
 	_starpu_mpi_comm_register(comm);
 }
 
-void _starpu_mpi_comm_free()
+void _starpu_mpi_comm_shutdown()
 {
 	int i;
 	for(i=0 ; i<_starpu_mpi_comm_nb ; i++)
