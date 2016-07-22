@@ -107,7 +107,9 @@ CLEANFILES = *.gcno *.gcda *.linkinfo
 #####################################
 
 STARPU_TOOLS	=
+if !STARPU_SIMGRID
 TESTS		= $(STARPU_TOOLS)
+endif
 
 if STARPU_HAVE_WINDOWS
 check_PROGRAMS	=	$(STARPU_TOOLS)

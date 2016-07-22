@@ -35,8 +35,10 @@ else
 TESTS_ENVIRONMENT 	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(MPIEXEC) -np 4
 endif
 
+if !STARPU_SIMGRID
 if STARPU_MPI_CHECK
 TESTS			=	$(starpu_mpi_EXAMPLES)
+endif
 endif
 
 check_PROGRAMS = $(LOADER) $(starpu_mpi_EXAMPLES)

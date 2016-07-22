@@ -94,10 +94,12 @@ TESTS_ENVIRONMENT	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_src
 endif
 endif
 
+if !STARPU_SIMGRID
 TESTS = $(noinst_PROGRAMS)
 
 if STARPU_COVERAGE_ENABLED
 TESTS	+=	coverage/coverage.sh
+endif
 endif
 
 XFAIL_TESTS=	errorcheck/invalid_blocking_calls
