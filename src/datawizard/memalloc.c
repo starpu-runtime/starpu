@@ -207,6 +207,15 @@ static unsigned may_free_subtree(starpu_data_handle_t handle, unsigned node)
 	if (refcnt)
 		return 0;
 
+	if (handle->current_mode == STARPU_W)
+	{
+		unsigned n;
+		for (n = 0; n < STARPU_MAXNODES; n++)
+			if (_starpu_get_data_refcnt(handle, n))
+				/* Some task is writing to the handle somewhere */
+				return 0;
+	}
+
 	/* look into all sub-subtrees children */
 	unsigned child;
 	for (child = 0; child < handle->nchildren; child++)
@@ -995,6 +1004,21 @@ void starpu_memchunk_tidy(unsigned node)
 				continue;
 			}
 
+			if (handle->current_mode == STARPU_W)
+			{
+				unsigned n;
+				for (n = 0; n < STARPU_MAXNODES; n++)
+				{
+					if (_starpu_get_data_refcnt(handle, n))
+					{
+						/* Some task is writing to the handle somewhere */
+						_starpu_spin_unlock(&handle->header_lock);
+						skipped = 1;
+						continue;
+					}
+				}
+			}
+
 			if (
 				/* This data should be written through to this node, avoid
 				 * dropping it! */
@@ -1002,8 +1026,6 @@ void starpu_memchunk_tidy(unsigned node)
 				/* This is partitioned, don't care about the
 				 * whole data, we'll work on the subdatas.  */
 			     || handle->nchildren
-			        /* Somebody is still writing to it */
-			     || (_starpu_get_data_refcnt(handle, node) && handle->current_mode == STARPU_W)
 				/* REDUX, can't do anything with it, skip it */
 			     || mc->relaxed_coherency == 2
 			)
