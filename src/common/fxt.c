@@ -77,7 +77,7 @@ long _starpu_gettid(void)
 #endif
 }
 
-static void _starpu_profile_set_tracefile(void *last, ...)
+static void _starpu_profile_set_tracefile(void)
 {
 	va_list vl;
 	char *user;
@@ -87,7 +87,7 @@ static void _starpu_profile_set_tracefile(void *last, ...)
 	     fxt_prefix = "/tmp/";
 
 	va_start(vl, last);
-	vsnprintf(_STARPU_PROF_FILE_USER, 128, fxt_prefix, vl);
+	vsnprintf(_STARPU_PROF_FILE_USER, 128, "%s", fxt_prefix);
 	va_end(vl);
 
 	user = starpu_getenv("USER");
@@ -104,7 +104,7 @@ void starpu_profiling_set_id(int new_id)
 {
 	_STARPU_DEBUG("Set id to <%d>\n", new_id);
 	_starpu_id = new_id;
-	_starpu_profile_set_tracefile(NULL);
+	_starpu_profile_set_tracefile();
 
 #ifdef HAVE_FUT_SET_FILENAME
 	fut_set_filename(_STARPU_PROF_FILE_USER);
@@ -142,7 +142,7 @@ void _starpu_fxt_init_profiling(unsigned trace_buffer_size)
 	{
 		_starpu_fxt_started = 1;
 		_starpu_written = 0;
-		_starpu_profile_set_tracefile(NULL);
+		_starpu_profile_set_tracefile();
 	}
 
 #ifdef HAVE_FUT_SET_FILENAME
