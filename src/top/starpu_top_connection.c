@@ -146,6 +146,8 @@ void _starpu_top_communications_threads_launcher(void)
 		exit(EXIT_FAILURE);
 	}
 
+	freeaddrinfo(ans);
+
 	listen(sock, 2);
 
 	socklen_t len = sizeof(from);
