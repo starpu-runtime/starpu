@@ -31,7 +31,7 @@ int __starpu_datawizard_progress(unsigned memory_node, unsigned may_alloc, unsig
 
 #ifdef STARPU_SIMGRID
 	/* XXX */
-	MSG_process_sleep(0.000001);
+	MSG_process_sleep(0.000010);
 #endif
 	STARPU_UYIELD();
 

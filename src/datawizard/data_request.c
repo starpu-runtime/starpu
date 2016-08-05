@@ -636,7 +636,7 @@ static int __starpu_handle_node_data_requests(struct _starpu_data_request_prio_l
 			 * rather have the caller block, and explicitly wait
 			 * for eviction to happen.
 			 */
-			MSG_process_sleep(0.000001);
+			MSG_process_sleep(0.000010);
 			_starpu_wake_all_blocked_workers_on_node(src_node);
 		}
 #elif !defined(STARPU_NON_BLOCKING_DRIVERS)
