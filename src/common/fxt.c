@@ -79,16 +79,13 @@ long _starpu_gettid(void)
 
 static void _starpu_profile_set_tracefile(void)
 {
-	va_list vl;
 	char *user;
 
 	char *fxt_prefix = starpu_getenv("STARPU_FXT_PREFIX");
 	if (!fxt_prefix)
 	     fxt_prefix = "/tmp/";
 
-	va_start(vl, last);
-	vsnprintf(_STARPU_PROF_FILE_USER, 128, "%s", fxt_prefix);
-	va_end(vl);
+	snprintf(_STARPU_PROF_FILE_USER, 128, "%s", fxt_prefix);
 
 	user = starpu_getenv("USER");
 	if (!user)
