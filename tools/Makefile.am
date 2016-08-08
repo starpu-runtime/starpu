@@ -219,6 +219,7 @@ bin_PROGRAMS += 			\
 	starpu_perfmodel_plot 		\
 	starpu_calibrate_bus		\
 	starpu_machine_display		\
+	starpu_sched_display		\
 	starpu_lp2paje
 
 starpu_perfmodel_plot_CPPFLAGS = $(AM_CFLAGS) $(AM_CPPFLAGS) $(FXT_CFLAGS)

@@ -201,6 +201,7 @@ Small features:
   * Add arch_cost_function perfmodel function field.
   * Add STARPU_TASK_BREAK_ON_SCHED, STARPU_TASK_BREAK_ON_PUSH, and
   STARPU_TASK_BREAK_ON_POP environment variables to debug schedulers.
+  * Add starpu_sched_display tool.
 
 Changes:
   * Data interfaces (variable, vector, matrix and block) now define
