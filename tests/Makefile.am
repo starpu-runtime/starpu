@@ -120,7 +120,6 @@ XFAIL_TESTS	=				\
 
 noinst_PROGRAMS =
 
-if STARPU_SIMGRID
 noinst_PROGRAMS +=				\
 	main/restart				\
 	main/execute_schedule			\
@@ -145,7 +144,8 @@ noinst_PROGRAMS +=				\
 	microbenchs/display_structures_size	\
 	microbenchs/local_pingpong		\
 	perfmodels/value_nan
-else
+
+if !STARPU_SIMGRID
 noinst_PROGRAMS +=				\
 	main/deprecated_func			\
 	main/driver_api/init_run_deinit         \
