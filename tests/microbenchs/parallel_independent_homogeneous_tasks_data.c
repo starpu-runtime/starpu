@@ -22,7 +22,7 @@
 #define TASK_COEFFICIENT 20
 #define MARGIN 0.10
 #define SECONDS_SCALE_COEFFICIENT_TIMING_NOW 1000000
-#define NB_FLOAT 2000000
+#define NB_FLOAT 4000000
 
 void wait(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *_args){
 	starpu_sleep(TIME);
