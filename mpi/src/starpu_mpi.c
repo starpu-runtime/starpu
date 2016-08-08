@@ -248,7 +248,9 @@ static void _starpu_mpi_submit_ready_request(void *arg)
 				cb_args->req = req;
 
 				_STARPU_MPI_DEBUG(3, "Calling data_acquire_cb on starpu_mpi_copy_cb..\n");
+				STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 				starpu_data_acquire_cb(early_data_handle->handle,STARPU_R,_starpu_mpi_early_data_cb,(void*) cb_args);
+				STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 			}
 			/* Case: no matching data has been received. Store the receive request as an early_request. */
 			else
