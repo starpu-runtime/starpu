@@ -114,7 +114,7 @@ TESTS_ENVIRONMENT	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_src
 endif
 endif
 
-TESTS = $(noinst_PROGRAMS)
+TESTS = $(myPROGRAMS)
 
 if STARPU_COVERAGE_ENABLED
 TESTS	+=	coverage/coverage.sh
@@ -123,9 +123,9 @@ endif
 XFAIL_TESTS	=				\
 	errorcheck/invalid_blocking_calls
 
-noinst_PROGRAMS =
+myPROGRAMS =
 
-noinst_PROGRAMS +=				\
+myPROGRAMS +=				\
 	main/restart				\
 	main/execute_schedule			\
 	main/insert_task_pack			\
@@ -152,7 +152,7 @@ noinst_PROGRAMS +=				\
 	perfmodels/value_nan
 
 if !STARPU_SIMGRID
-noinst_PROGRAMS +=				\
+myPROGRAMS +=				\
 	main/deprecated_func			\
 	main/driver_api/init_run_deinit         \
 	main/driver_api/run_driver              \
@@ -321,23 +321,22 @@ noinst_PROGRAMS +=				\
 	sched_policies/simple_cpu_gpu_sched
 endif
 
-MICROBENCHS = 
-if STARPU_SIMGRID
-noinst_PROGRAMS += $(MICROBENCHS)
-TESTS += $(MICROBENCHS:=.sh)
-endif
+MICROBENCHS = \
+	microbenchs/parallel_independent_homogeneous_tasks      \
+	microbenchs/parallel_independent_heterogeneous_tasks    \
+	microbenchs/parallel_independent_homogeneous_tasks_data
 
 if STARPU_HAVE_FC
 if !STARPU_SANITIZE
 if !STARPU_SIMGRID
-noinst_PROGRAMS +=				\
+myPROGRAMS +=				\
 	fortran90/init_01
 endif
 endif
 endif
 
 if STARPU_LONG_CHECK
-noinst_PROGRAMS +=				\
+myPROGRAMS +=				\
 	main/tag_task_data_deps			\
 	datawizard/reclaim
 endif
@@ -350,9 +349,15 @@ examplebin_SCRIPTS = \
 	microbenchs/tasks_size_overhead.sh
 
 if STARPU_HAVE_WINDOWS
-check_PROGRAMS	=	$(noinst_PROGRAMS)
+check_PROGRAMS	=	$(myPROGRAMS)
 else
-check_PROGRAMS	=	$(LOADER) $(noinst_PROGRAMS)
+check_PROGRAMS	=	$(LOADER) $(myPROGRAMS)
+endif
+noinst_PROGRAMS = $(myPROGRAMS)
+noinst_PROGRAMS += $(MICROBENCHS)
+
+if STARPU_SIMGRID
+TESTS += $(MICROBENCHS:=.sh)
 endif
 
 #######################
