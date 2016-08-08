@@ -16,6 +16,6 @@
 
 source $srcdir/microbenchs/microbench.sh
 
-XFAIL="modular-eager modular-eager-prefetching modular-prio modular-prio-prefetching modular-random modular-random-prio modular-random-prefetching modular-random-prio-prefetching modular-ws modular-heft modular-heft2 eager prio random lws ws dm dmda dmdar dmdas dmdasd pheft peager heteroprio graph_test"
+XFAIL="modular-eager modular-eager-prefetching modular-prio modular-prio-prefetching modular-random modular-random-prio modular-random-prefetching modular-random-prio-prefetching modular-ws eager prio random lws ws peager heteroprio graph_test"
 
 test_scheds parallel_independent_homogeneous_tasks_data
