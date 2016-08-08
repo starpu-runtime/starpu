@@ -18,6 +18,8 @@
 #include <starpu.h>
 #include "../helper.h"
 
+/* Run a series of tasks with homogeneous execution time and share data to some extent */
+
 #define TIME 0.010
 #define TASK_COEFFICIENT 10
 #define DATA_COEFFICIENT 10.5

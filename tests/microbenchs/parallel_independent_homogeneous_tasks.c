@@ -18,6 +18,8 @@
 #include <starpu.h>
 #include "../helper.h"
 
+/* Run a series of independent tasks with homogeneous execution time */
+
 #define TIME 0.010
 #define TASK_COEFFICIENT 100
 #define MARGIN 0.05
