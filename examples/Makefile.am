@@ -184,11 +184,12 @@ endif
 # see for instance mandelbrot/mandelbrot
 
 STARPU_EXAMPLES =
-if STARPU_SIMGRID
+
 STARPU_EXAMPLES +=				\
 	sched_ctx/prio				\
 	worker_collections/worker_list_example
-else
+
+if !STARPU_SIMGRID
 STARPU_EXAMPLES +=				\
 	basic_examples/hello_world		\
 	basic_examples/vector_scal		\
