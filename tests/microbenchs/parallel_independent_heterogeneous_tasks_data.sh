@@ -18,4 +18,4 @@ source $srcdir/microbenchs/microbench.sh
 
 XSUCCESS="modular-heft modular-heft2 dmda dmdar dmdas dmdasd pheft"
 
-test_scheds parallel_independent_homogeneous_tasks_data
+test_scheds parallel_independent_heterogeneous_tasks_data

@@ -27,14 +27,18 @@ SCHEDS=`$top_builddir/tools/starpu_sched_display`
 test_scheds()
 {
 	TEST=$1
+	failed=""
+	pass=""
 
 	RESULT=0
 	for sched in $SCHEDS;
 	do
 		if STARPU_SCHED=$sched $top_builddir/tests/microbenchs/$TEST ; then
 			echo " SUCCESS: STARPU_SCHED=$sched ./microbenchs/$TEST"
+			pass="$pass $sched"
 			continue
 		fi
+		failed="$failed $sched"
 
 		if [ -n "$XSUCCESS" ]
 		then
@@ -64,5 +68,7 @@ test_scheds()
 		fi
 
 	done
+	echo "passed schedulers:$pass" | tee /dev/tty
+	echo "failed schedulers:$failed" | tee /dev/tty
 	return $RESULT
 }
