@@ -53,7 +53,9 @@ EXTRA_DIST =					\
 	datawizard/interfaces/multiformat/advanced/generic.h \
 	datawizard/interfaces/csr/csr_opencl_kernel.cl \
 	datawizard/interfaces/block/block_opencl_kernel.cl \
-	perfmodels/opencl_memset_kernel.cl
+	perfmodels/opencl_memset_kernel.cl \
+	$(MICROBENCHS:=.sh) \
+	microbenchs/microbench.sh
 
 CLEANFILES = 					\
 	*.gcno *.gcda *.linkinfo core starpu_idle_microsec.log *.mod
@@ -317,6 +319,12 @@ noinst_PROGRAMS +=				\
 	sched_policies/prio        		\
 	sched_policies/simple_deps              \
 	sched_policies/simple_cpu_gpu_sched
+endif
+
+MICROBENCHS = 
+if STARPU_SIMGRID
+noinst_PROGRAMS += $(MICROBENCHS)
+TESTS += $(MICROBENCHS:=.sh)
 endif
 
 if STARPU_HAVE_FC
