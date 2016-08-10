@@ -68,7 +68,8 @@ constraints.
 
 \fn int starpu_malloc(void **A, size_t dim)
 \ingroup API_Standard_Memory_Library
-This function allocates data of the given size in main memory.
+This function allocates data of the given size \p dim in main memory, and
+returns the pointer to the allocated data through \p A.
 It will also try to pin it in CUDA or OpenCL, so that data transfers
 from this buffer can be asynchronous, and thus permit data transfer
 and computation overlapping. The allocated buffer must be freed thanks
