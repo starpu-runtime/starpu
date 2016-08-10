@@ -208,6 +208,8 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 	poti_DefineEntityValue("P", "WS", "Progressing", ".4 .1 .6");
 	poti_DefineEntityValue("U", "WS", "Unpartitioning", ".0 .0 1.0");
 	poti_DefineEntityValue("H", "WS", "Hypervisor", ".5 .18 .0");
+	poti_DefineEntityValue("Bu", "WS", "Building task", ".5 .18 .0");
+	poti_DefineEntityValue("Su", "WS", "Submiting task", ".3 .09 .0");
 
 	/* Types for the MPI Communication Thread of the Memory Node */
 	poti_DefineEventType("MPIev", "MPICt", "MPI event type");
@@ -330,6 +332,8 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 6       P       WS       Progressing         \".4 .1 .6\"		\n\
 6       U       WS       Unpartitioning      \".0 .0 1.0\"		\n\
 6       H       WS       Hypervisor      \".5 .18 .0\"		\n\
+6       Bu      WS       \"Building task\"   \".5 .18 .0\"		\n\
+6       Su      WS       \"Submitting task\" \".3 .09 .0\"		\n\
 3       US       UT       \"User Thread State\"                        \n\
 6       Bu      US      \"Building task\"   \".5 .18 .0\"		\n\
 6       Su      US      \"Submitting task\" \".3 .09 .0\"		\n\
