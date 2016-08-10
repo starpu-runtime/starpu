@@ -21,6 +21,89 @@ An MPI Insert Task function provides an even more seamless transition to a
 distributed application, by automatically issuing all required data transfers
 according to the task graph and an application-provided distribution.
 
+\section Example used in this documentation
+
+The example below will be used as the base for this documentation. It
+initializes a token on node 0, and the token is passed from node to node,
+incremented by one on each step. The code is not using StarPU yet.
+
+\code{.c}
+    for (loop = 0; loop < nloops; loop++) {
+        int tag = loop*size + rank;
+
+        if (loop == 0 && rank == 0)
+        {
+            token = 0;
+            fprintf(stdout, "Start with token value %d\n", token);
+        }
+        else
+        {
+            MPI_Recv(&token, 1, MPI_INT, (rank+size-1)%size, tag, MPI_COMM_WORLD);
+        }
+
+        token++;
+
+        if (loop == last_loop && rank == last_rank)
+        {
+            fprintf(stdout, "Finished: token value %d\n", token);
+        }
+        else
+        {
+            MPI_Send(&token, 1, MPI_INT, (rank+1)%size, tag+1, MPI_COMM_WORLD);
+        }
+    }
+\endcode
+
+\section NotUsingMPISupport About not using the MPI support
+
+Although StarPU provides MPI support, the application programmer may want to
+keep his MPI communications as they are for a start, and only delegate task
+execution to StarPU.  This is possible by just using starpu_data_acquire(), for
+instance:
+
+\code{.c}
+    for (loop = 0; loop < nloops; loop++) {
+        int tag = loop*size + rank;
+
+	/* Acquire the data to be able to write to it */
+	starpu_data_acquire(token_handle, STARPU_W);
+        if (loop == 0 && rank == 0)
+        {
+            token = 0;
+            fprintf(stdout, "Start with token value %d\n", token);
+        }
+        else
+        {
+            MPI_Recv(&token, 1, MPI_INT, (rank+size-1)%size, tag, MPI_COMM_WORLD);
+        }
+	starpu_data_release(token_handle);
+
+        /* Task delegation to StarPU to increment the token. The execution might
+         * be performed on a CPU, a GPU, etc. */
+        increment_token();
+
+	/* Acquire the update data to be able to read from it */
+	starpu_data_acquire(token_handle, STARPU_R);
+        if (loop == last_loop && rank == last_rank)
+        {
+            fprintf(stdout, "Finished: token value %d\n", token);
+        }
+        else
+        {
+            MPI_Send(&token, 1, MPI_INT, (rank+1)%size, tag+1, MPI_COMM_WORLD);
+        }
+	starpu_data_release(token_handle);
+    }
+\endcode
+
+In that case, libstarpumpi is not needed. One can also use MPI_Isend() and
+MPI_Irecv(), by calling starpu_data_release() after MPI_Wait() or MPI_Test()
+have notified completion.
+
+It is however better to use libstarpumpi, to save the application from having to
+synchronize with starpu_data_acquire(), and instead just submit all tasks and
+communications asynchronously, and wait for the overall completion.
+
 \section SimpleExample Simple Example
 
 The flags required to compile or link against the MPI layer are
@@ -30,9 +113,6 @@ accessible with the following commands:
 $ pkg-config --cflags starpumpi-1.3  # options for the compiler
 $ pkg-config --libs starpumpi-1.3    # options for the linker
 \endverbatim
-
-You also need pass the option <c>--static</c> if the application is to
-be linked statically.
 
 \code{.c}
 void increment_token(void)
@@ -65,8 +145,10 @@ int main(int argc, char **argv)
 
         if (loop == 0 && rank == 0)
         {
+            starpu_data_acquire(token_handle, STARPU_W);
             token = 0;
             fprintf(stdout, "Start with token value %d\n", token);
+            starpu_data_release(token_handle);
         }
         else
         {
@@ -101,6 +183,11 @@ int main(int argc, char **argv)
     }
 \endcode
 
+We have here replaced MPI_Recv() and MPI_Send() with starpu_mpi_irecv_detached()
+and starpu_mpi_isend_detached(), which just submit the communication to be
+performed. The only remaining synchronization with starpu_data_acquire() is at
+the beginning and the end.
+
 \section PointToPointCommunication Point To Point Communication
 
 The standard point to point communications of MPI have been
@@ -109,7 +196,7 @@ the DSM provided by StarPU. A MPI request will only be submitted when
 the data is available in the main memory of the node submitting the
 request.
 
-There is two types of asynchronous communications: the classic
+There are two types of asynchronous communications: the classic
 asynchronous communications and the detached communications. The
 classic asynchronous communications (starpu_mpi_isend() and
 starpu_mpi_irecv()) need to be followed by a call to
@@ -574,6 +661,9 @@ starpu_mpi_gather_detached(data_handles, nblocks, 0, MPI_COMM_WORLD);
 \endcode
 
 */
+
+Other collective operations would be easy to define, just ask starpu-devel for
+them!
 
 \section MPIDebug Debugging MPI
 
