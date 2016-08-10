@@ -27,7 +27,7 @@
 #define SECONDS_SCALE_COEFFICIENT_TIMING_NOW 1000000
 #define NB_FLOAT 4000000
 
-void wait(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *_args){
+void wait_homogeneous(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *_args){
 	starpu_sleep(TIME);
 }
 
@@ -45,10 +45,10 @@ static struct starpu_perfmodel perf_model =
 
 static struct starpu_codelet cl =
 {
-	.cpu_funcs = { wait },
-	.cuda_funcs = { wait }, 
-	.opencl_funcs = { wait },
-	.cpu_funcs_name = { "wait" },
+	.cpu_funcs = { wait_homogeneous },
+	.cuda_funcs = { wait_homogeneous }, 
+	.opencl_funcs = { wait_homogeneous },
+	.cpu_funcs_name = { "wait_homogeneous" },
 	.nbuffers = 1,
 	.modes = {STARPU_RW},
 	.flags = STARPU_CODELET_SIMGRID_EXECUTE,
