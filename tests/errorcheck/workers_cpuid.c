@@ -34,7 +34,11 @@ int main(int argc, char **argv)
 
 #include <hwloc.h>
 
+#ifdef STARPU_QUICK_CHECK
+#define NB_TESTS 1
+#else
 #define NB_TESTS 5
+#endif
 
 int nhwpus;
 long workers_cpuid[STARPU_NMAXWORKERS];
