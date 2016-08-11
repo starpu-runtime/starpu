@@ -21,8 +21,13 @@
 /* Run a series of tasks with homogeneous execution time and share data to some extent */
 
 #define TIME 0.010
+#ifdef STARPU_QUICK_CHECK
+#define TASK_COEFFICIENT 5
+#define DATA_COEFFICIENT 5.5
+#else
 #define TASK_COEFFICIENT 10
 #define DATA_COEFFICIENT 10.5
+#endif
 #define MARGIN 0.05
 #define SECONDS_SCALE_COEFFICIENT_TIMING_NOW 1000000
 #define NB_FLOAT 4000000

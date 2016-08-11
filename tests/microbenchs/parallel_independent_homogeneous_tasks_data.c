@@ -21,7 +21,11 @@
 /* Run a series of independent tasks with homogeneous execution time and independent data */
 
 #define TIME 0.010
+#ifdef STARPU_QUICK_CHECK
 #define TASK_COEFFICIENT 20
+#else
+#define TASK_COEFFICIENT 100
+#endif
 #define MARGIN 0.10
 #define SECONDS_SCALE_COEFFICIENT_TIMING_NOW 1000000
 #define NB_FLOAT 4000000

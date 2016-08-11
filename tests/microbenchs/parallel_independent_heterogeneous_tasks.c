@@ -21,7 +21,11 @@
 /* Run a series of independent tasks with heterogeneous execution time */
 
 #define TIME 0.010
+#ifdef STARPU_QUICK_CHECK
+#define TASK_COEFFICIENT 20
+#else
 #define TASK_COEFFICIENT 100
+#endif
 #define MARGIN 0.10
 #define TIME_CUDA_COEFFICIENT 10
 #define TIME_OPENCL_COEFFICIENT 5
