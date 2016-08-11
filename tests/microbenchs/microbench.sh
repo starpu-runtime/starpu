@@ -46,7 +46,7 @@ test_scheds()
                         # succeed, others are allowed to fail
 			case " $XSUCCESS " in 
 				*\ $sched\ *)
-					echo " FAIL: STARPU_SCHED=$sched ./microbenchs/$TEST" | tee /dev/tty
+					echo " FAIL: STARPU_SCHED=$sched ./microbenchs/$TEST" | ( tee /dev/tty || true )
 					RESULT=1
 					;;
 				*)
@@ -61,14 +61,14 @@ test_scheds()
 					echo " XFAIL: STARPU_SCHED=$sched ./microbenchs/$TEST"
 					;;
 				*)
-					echo " FAIL: STARPU_SCHED=$sched ./microbenchs/$TEST" | tee /dev/tty
+					echo " FAIL: STARPU_SCHED=$sched ./microbenchs/$TEST" | ( tee /dev/tty || true )
 					RESULT=1
 					;;
 			esac
 		fi
 
 	done
-	echo "passed schedulers:$pass" | tee /dev/tty
-	echo "failed schedulers:$failed" | tee /dev/tty
+	echo "passed schedulers:$pass" | ( tee /dev/tty || true )
+	echo "failed schedulers:$failed" | ( tee /dev/tty || true )
 	return $RESULT
 }
