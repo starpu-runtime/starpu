@@ -41,6 +41,12 @@ void _starpu_wake_all_blocked_workers_on_node(unsigned nodeid)
 
 	struct _starpu_memory_node_descr * const descr = _starpu_memory_node_get_description();
 
+	starpu_pthread_mutex_t *mymutex = NULL;
+	starpu_pthread_cond_t *mycond = NULL;
+	const int myworkerid = starpu_worker_get_id();
+	if (myworkerid >= 0)
+		starpu_worker_get_sched_condition(myworkerid, &mymutex, &mycond);
+
 	STARPU_PTHREAD_RWLOCK_RDLOCK(&descr->conditions_rwlock);
 
 	unsigned nconds = descr->condition_count[nodeid];
@@ -48,6 +54,12 @@ void _starpu_wake_all_blocked_workers_on_node(unsigned nodeid)
 	{
 		struct _starpu_cond_and_mutex *condition;
 		condition  = &descr->conditions_attached_to_node[nodeid][cond_id];
+
+		if (condition->mutex == mymutex)
+			/* No need to wake myself, and I might be called from
+			 * the scheduler with mutex locked, through
+			 * starpu_prefetch_task_input_on_node */
+			continue;
 
 		/* wake anybody waiting on that condition */
 		STARPU_PTHREAD_MUTEX_LOCK_SCHED(condition->mutex);
@@ -69,6 +81,12 @@ void starpu_wake_all_blocked_workers(void)
 
 	struct _starpu_memory_node_descr * const descr = _starpu_memory_node_get_description();
 
+	starpu_pthread_mutex_t *mymutex = NULL;
+	starpu_pthread_cond_t *mycond = NULL;
+	const int myworkerid = starpu_worker_get_id();
+	if (myworkerid >= 0)
+		starpu_worker_get_sched_condition(myworkerid, &mymutex, &mycond);
+
 	STARPU_PTHREAD_RWLOCK_RDLOCK(&descr->conditions_rwlock);
 
 	unsigned nconds = descr->total_condition_count;
@@ -76,6 +94,12 @@ void starpu_wake_all_blocked_workers(void)
 	{
 		struct _starpu_cond_and_mutex *condition;
 		condition  = &descr->conditions_all[cond_id];
+
+		if (condition->mutex == mymutex)
+			/* No need to wake myself, and I might be called from
+			 * the scheduler with mutex locked, through
+			 * starpu_prefetch_task_input_on_node */
+			continue;
 
 		/* wake anybody waiting on that condition */
 		STARPU_PTHREAD_MUTEX_LOCK_SCHED(condition->mutex);
