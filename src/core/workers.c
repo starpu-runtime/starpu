@@ -1092,7 +1092,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	 * processes will take a long time to get initialized */
 	char *perturb = starpu_getenv("MALLOC_PERTURB_");
 	if (perturb && perturb[0] && atoi(perturb) != 0)
-		_STARPU_DISP("Warning: MALLOC_PERTURB_ is set to non-zero, this makes simgrid runs very slow\n");
+		_STARPU_DISP("Warning: MALLOC_PERTURB_ is set to non-zero, this makes simgrid run very slow\n");
 #else
 #ifdef __GNUC__
 #ifndef __OPTIMIZE__
