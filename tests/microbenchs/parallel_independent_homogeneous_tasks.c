@@ -23,10 +23,11 @@
 #define TIME 0.010
 #ifdef STARPU_QUICK_CHECK
 #define TASK_COEFFICIENT 20
+#define MARGIN 0.15
 #else
 #define TASK_COEFFICIENT 100
-#endif
 #define MARGIN 0.05
+#endif
 #define SECONDS_SCALE_COEFFICIENT_TIMING_NOW 1000000
 
 void wait_homogeneous(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *_args){
