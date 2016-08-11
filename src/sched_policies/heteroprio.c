@@ -160,41 +160,21 @@ inline void starpu_heteroprio_set_arch_slow_factor(unsigned sched_ctx_id, enum s
 static inline void default_init_sched(unsigned sched_ctx_id)
 {
 	// By default each type of devices uses 1 bucket and no slow factor
-#ifdef STARPU_USE_CPU
 	starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_CPU_IDX, STARPU_MAX_PRIO-STARPU_MIN_PRIO+1);
-#endif
-#ifdef STARPU_USE_CUDA
 	starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_CUDA_IDX, STARPU_MAX_PRIO-STARPU_MIN_PRIO+1);
-#endif
-#ifdef STARPU_USE_OPENCL
 	starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_OPENCL_IDX, STARPU_MAX_PRIO-STARPU_MIN_PRIO+1);
-#endif
-#ifdef STARPU_USE_MIC
 	starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_MIC_IDX, STARPU_MAX_PRIO-STARPU_MIN_PRIO+1);
-#endif
-#ifdef STARPU_USE_SCC
 	starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_SCC_IDX, STARPU_MAX_PRIO-STARPU_MIN_PRIO+1);
-#endif
 
 	// Direct mapping
 	int prio;
 	for(prio=STARPU_MIN_PRIO ; prio<=STARPU_MAX_PRIO ; prio++)
 	{
-#ifdef STARPU_USE_CPU
 		starpu_heteroprio_set_mapping(sched_ctx_id, STARPU_CPU_IDX, prio, prio);
-#endif
-#ifdef STARPU_USE_CUDA
 		starpu_heteroprio_set_mapping(sched_ctx_id, STARPU_CUDA_IDX, prio, prio);
-#endif
-#ifdef STARPU_USE_OPENCL
 		starpu_heteroprio_set_mapping(sched_ctx_id, STARPU_OPENCL_IDX, prio, prio);
-#endif
-#ifdef STARPU_USE_MIC
 		starpu_heteroprio_set_mapping(sched_ctx_id, STARPU_MIC_IDX, prio, prio);
-#endif
-#ifdef STARPU_USE_SCC
 		starpu_heteroprio_set_mapping(sched_ctx_id, STARPU_SCC_IDX, prio, prio);
-#endif
 	}
 }
 
@@ -306,36 +286,26 @@ static void add_workers_heteroprio_policy(unsigned sched_ctx_id, int *workerids,
 			hp->workers_heteroprio[workerid].tasks_queue = _starpu_create_fifo();
 			switch(starpu_worker_get_type(workerid))
 			{
-#ifdef STARPU_USE_CPU
 			case STARPU_CPU_WORKER:
 				hp->workers_heteroprio[workerid].arch_type = STARPU_CPU;
 				hp->workers_heteroprio[workerid].arch_index = STARPU_CPU_IDX;
 				break;
-#endif
-#ifdef STARPU_USE_CUDA
 			case STARPU_CUDA_WORKER:
 				hp->workers_heteroprio[workerid].arch_type = STARPU_CUDA;
 				hp->workers_heteroprio[workerid].arch_index = STARPU_CUDA_IDX;
 				break;
-#endif
-#ifdef STARPU_USE_OPENCL
 			case STARPU_OPENCL_WORKER:
 				hp->workers_heteroprio[workerid].arch_type = STARPU_OPENCL;
 				hp->workers_heteroprio[workerid].arch_index = STARPU_OPENCL_IDX;
 				break;
-#endif
-#ifdef STARPU_USE_MIC
 			case STARPU_MIC_WORKER:
 				hp->workers_heteroprio[workerid].arch_type = STARPU_MIC;
 				hp->workers_heteroprio[workerid].arch_index = STARPU_MIC_IDX;
 				break;
-#endif
-#ifdef STARPU_USE_SCC
 			case STARPU_SCC_WORKER:
 				hp->workers_heteroprio[workerid].arch_type = STARPU_SCC;
 				hp->workers_heteroprio[workerid].arch_index = STARPU_SCC_IDX;
 				break;
-#endif
 			default:
 				STARPU_ASSERT(0);
 			}
