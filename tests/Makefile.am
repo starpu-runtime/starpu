@@ -328,10 +328,12 @@ endif
 endif
 endif
 
+if !STARPU_SIMGRID
 if STARPU_LONG_CHECK
 noinst_PROGRAMS +=				\
 	main/tag_task_data_deps			\
 	datawizard/reclaim
+endif
 endif
 
 examplebin_PROGRAMS = \
