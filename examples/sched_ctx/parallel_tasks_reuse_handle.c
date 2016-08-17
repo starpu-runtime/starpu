@@ -20,18 +20,19 @@
 
 #ifdef STARPU_QUICK_CHECK
 #define NTASKS 64
+#define SIZE   40
+#define LOOPS  4
 #else
 #define NTASKS 100
+#define SIZE   400
+#define LOOPS  10
 #endif
-
-
-#define SIZE 400
 
 struct context
 {
-  int ncpus;
-  int *cpus;
-  unsigned id;
+	int ncpus;
+	int *cpus;
+	unsigned id;
 };
 
 /* Helper for the task that will initiate everything */
@@ -42,7 +43,6 @@ void parallel_task_prologue_init_once_and_for_all(void * sched_ctx_)
 	int *cpuids = NULL;
 	int ncpuids = 0;
 	starpu_sched_ctx_get_available_cpuids(sched_ctx, &cpuids, &ncpuids);
-	printf("Context %d with %d threads \n", sched_ctx, ncpuids);
 
 #pragma omp parallel num_threads(ncpuids)
 	{
@@ -89,7 +89,7 @@ void parallel_task_init()
 	/* Context creation */
 	main_context.ncpus = starpu_cpu_worker_get_count();
 	main_context.cpus = (int *) malloc(main_context.ncpus*sizeof(int));
-	printf("ncpus : %d \n",main_context.ncpus);
+	fprintf(stderr, "ncpus : %d \n",main_context.ncpus);
 
 	starpu_worker_get_ids_by_type(STARPU_CPU_WORKER, main_context.cpus, main_context.ncpus);
 
@@ -97,7 +97,6 @@ void parallel_task_init()
 						  main_context.ncpus,"main_ctx",
 						  STARPU_SCHED_CTX_POLICY_NAME,"prio",
 						  0);
-
 
 	/* Initialize nested contexts */
 	/* WARNING : the number of contexts must be a divisor of the number of available cpus*/
@@ -107,6 +106,7 @@ void parallel_task_init()
 	int i;
 	for(i = 0; i < 2; i++)
 	{
+		fprintf(stderr, "ncpus %d for context %d \n",cpus_per_context, i);
 		contexts[i].ncpus = cpus_per_context;
 		contexts[i].cpus = main_context.cpus+i*cpus_per_context;
 	}
@@ -138,14 +138,13 @@ void parallel_task_deinit()
 /* Codelet SUM */
 static void sum_cpu(void * descr[], void *cl_arg)
 {
-	double * v_dst = (double *) STARPU_VECTOR_GET_PTR(descr[0]);
-	double * v_src0 = (double *) STARPU_VECTOR_GET_PTR(descr[1]);
-	double * v_src1 = (double *) STARPU_VECTOR_GET_PTR(descr[1]);
+	double *v_dst = (double *) STARPU_VECTOR_GET_PTR(descr[0]);
+	double *v_src0 = (double *) STARPU_VECTOR_GET_PTR(descr[1]);
+	double *v_src1 = (double *) STARPU_VECTOR_GET_PTR(descr[2]);
+	int size = STARPU_VECTOR_GET_NX(descr[0]);
 
-	int size;
-	starpu_codelet_unpack_args(cl_arg, &size);
 	int i, k;
-	for (k=0;k<10;k++)
+	for (k=0;k<LOOPS;k++)
 	{
 #pragma omp parallel for
 		for (i=0; i<size; i++)
@@ -173,6 +172,12 @@ int main(int argc, char **argv)
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
+	if (starpu_cpu_worker_get_count() < 2)
+	{
+		starpu_shutdown();
+		return 77;
+	}
+
 	parallel_task_init();
 
 	/* Data preparation */
@@ -192,9 +197,6 @@ int main(int argc, char **argv)
 	starpu_vector_data_register(&handle1, 0, (uintptr_t)array1, SIZE, sizeof(double));
 	starpu_vector_data_register(&handle2, 0, (uintptr_t)array2, SIZE, sizeof(double));
 
-	int size;
-	size=SIZE;
-
 	for (i = 0; i < ntasks; i++)
 	{
 		struct starpu_task * t;
@@ -202,7 +204,6 @@ int main(int argc, char **argv)
 				    STARPU_RW,handle1,
 				    STARPU_R,handle2,
 				    STARPU_R,handle1,
-				    STARPU_VALUE,&size,sizeof(int),
 				    STARPU_SCHED_CTX, main_context.id,
 				    0);
 		t->destroy = 1;
