@@ -74,8 +74,8 @@ test_scheds()
 		fi
 
 	done
-	echo "passed schedulers:$pass"
-	echo "failed schedulers:$failed"
-	echo "xfailed schedulers:$xfailed"
+	echo "passed schedulers:$pass"| ( tee /dev/tty || true )
+	echo "failed schedulers:$failed"| ( tee /dev/tty || true )
+	echo "xfailed schedulers:$xfailed"| ( tee /dev/tty || true )
 	return $RESULT
 }
