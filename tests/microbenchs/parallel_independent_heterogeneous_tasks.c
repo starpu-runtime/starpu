@@ -32,15 +32,18 @@
 #define TIME_OPENCL_COEFFICIENT 5
 #define SECONDS_SCALE_COEFFICIENT_TIMING_NOW 1000000
 
-void wait_CPU(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *_args){
+void wait_CPU(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *_args)
+{
 	starpu_sleep(TIME);
 }
 
-void wait_CUDA(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *_args){
+void wait_CUDA(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *_args)
+{
 	starpu_sleep(TIME/TIME_CUDA_COEFFICIENT);
 }
 
-void wait_OPENCL(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *_args){
+void wait_OPENCL(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *_args)
+{
 	starpu_sleep(TIME/TIME_OPENCL_COEFFICIENT);
 }
 
@@ -81,33 +84,34 @@ static struct starpu_codelet cl =
 	.model = &perf_model,
 };
 
-int main(int argc, char *argv[]){
-	
+int main(int argc, char *argv[])
+{
 	int ret;
-	
-	ret = starpu_initialize(NULL, &argc, &argv); 
+
+	ret = starpu_initialize(NULL, &argc, &argv);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	unsigned nb_tasks, nb_workers_CPU, nb_workers_CUDA, nb_workers_OPENCL, i;
 	double begin_time, end_time, time_m, time_s, speed_up, expected_speed_up, percentage_expected_speed_up;
 	bool check, check_sup;
-	
+
 	nb_workers_CPU = starpu_worker_get_count_by_type(STARPU_CPU_WORKER);
 	nb_workers_CUDA = starpu_worker_get_count_by_type(STARPU_CUDA_WORKER);
 	nb_workers_OPENCL = starpu_worker_get_count_by_type(STARPU_OPENCL_WORKER);
 	nb_tasks = (nb_workers_CPU + nb_workers_CUDA + nb_workers_OPENCL)*TASK_COEFFICIENT;
-	
+
 	begin_time = starpu_timing_now();
 
 	/*execution des tasks*/
-	
-	for (i=0; i<nb_tasks; i++){
+
+	for (i=0; i<nb_tasks; i++)
+	{
 		starpu_task_insert(&cl,0);
 	}
 
-	starpu_task_wait_for_all();	
-	
+	starpu_task_wait_for_all();
+
 	end_time = starpu_timing_now();
 
 	/*on determine si le temps mesure est satisfaisant ou pas*/
@@ -123,12 +127,13 @@ int main(int argc, char *argv[]){
 	printf("measured time = %f seconds\nsequential time = %f seconds\nspeed up = %f\nnumber of workers CPU = %d\nnumber of workers CUDA = %d\nnumber of workers OPENCL = %d\nnumber of tasks = %d\nexpected speed up = %f\npercentage of expected speed up = %.2f%%\n", time_m, time_s, speed_up, nb_workers_CPU, nb_workers_CUDA, nb_workers_OPENCL, nb_tasks, expected_speed_up, percentage_expected_speed_up);
 
 	starpu_shutdown();
-	
-	if (check && check_sup){ //test reussi ou test echoue
+
+	if (check && check_sup)
+	{ //test reussi ou test echoue
 		return EXIT_SUCCESS;
 	}
-	else{
+	else
+	{
 		return EXIT_FAILURE;
 	}
 }
-

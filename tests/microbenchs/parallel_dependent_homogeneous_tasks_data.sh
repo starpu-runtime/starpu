@@ -1,7 +1,9 @@
 #!/bin/bash
+#
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2016  Université de Bordeaux
+# Copyright (C) 2016  CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -14,7 +16,7 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
-source $srcdir/microbenchs/microbench.sh
+source $(dirname $0)/microbench.sh
 
 XSUCCESS="modular-heft modular-heft2 lws dmda dmdar dmdas dmdasd pheft"
 

@@ -31,7 +31,8 @@
 #define SECONDS_SCALE_COEFFICIENT_TIMING_NOW 1000000
 #define NB_FLOAT 4000000
 
-void wait_homogeneous(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *_args){
+void wait_homogeneous(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *_args)
+{
 	starpu_sleep(TIME);
 }
 
@@ -46,11 +47,10 @@ static struct starpu_perfmodel perf_model =
 	.arch_cost_function = cost_function,
 };
 
-
 static struct starpu_codelet cl =
 {
 	.cpu_funcs = { wait_homogeneous },
-	.cuda_funcs = { wait_homogeneous }, 
+	.cuda_funcs = { wait_homogeneous },
 	.opencl_funcs = { wait_homogeneous },
 	.cpu_funcs_name = { "wait_homogeneous" },
 	.nbuffers = 1,
@@ -59,18 +59,18 @@ static struct starpu_codelet cl =
 	.model = &perf_model,
 };
 
-int main(int argc, char *argv[]){
-	
+int main(int argc, char *argv[])
+{
 	int ret;
-	
-	ret = starpu_initialize(NULL, &argc, &argv); 
+
+	ret = starpu_initialize(NULL, &argc, &argv);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	unsigned nb_tasks, nb_workers;
 	double begin_time, end_time, time_m, time_s, speed_up, expected_speed_up, percentage_expected_speed_up;
 	bool check, check_sup;
-	
+
 	nb_workers = starpu_worker_get_count_by_type(STARPU_CPU_WORKER) + starpu_worker_get_count_by_type(STARPU_CUDA_WORKER) + starpu_worker_get_count_by_type(STARPU_OPENCL_WORKER);
 	nb_tasks = nb_workers*TASK_COEFFICIENT;
 
@@ -103,19 +103,20 @@ int main(int argc, char *argv[]){
 		starpu_vector_data_register(&vector_handle[j], STARPU_MAIN_RAM, (uintptr_t)vector[j], NB_FLOAT, sizeof(vector[0][0]));
 	}
 
-	
+
 
 	begin_time = starpu_timing_now();
 
 	/*execution des tasks*/
-	
-	for (i=0; i<nb_tasks; i++){
+
+	for (i=0; i<nb_tasks; i++)
+	{
 		starpu_task_insert(&cl, STARPU_RW, vector_handle[i], 0);
 		starpu_data_wont_use(vector_handle[i]);
 	}
 
-	starpu_task_wait_for_all();	
-	
+	starpu_task_wait_for_all();
+
 	end_time = starpu_timing_now();
 
 	for (j = 0; j < nb_tasks; j++)
@@ -136,12 +137,13 @@ int main(int argc, char *argv[]){
 	starpu_shutdown();
 	for (j = 0; j < nb_tasks; j++)
 		free(vector[j]);
-	
-	if (check && check_sup){ //test reussi ou test echoue
+
+	if (check && check_sup)
+	{ //test reussi ou test echoue
 		return EXIT_SUCCESS;
 	}
-	else{
+	else
+	{
 		return EXIT_FAILURE;
 	}
 }
-

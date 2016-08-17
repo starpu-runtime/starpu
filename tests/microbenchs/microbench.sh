@@ -1,6 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2016  Université de Bordeaux
+# Copyright (C) 2016  CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -22,53 +23,59 @@
 
 set -e
 
-SCHEDS=`$top_builddir/tools/starpu_sched_display`
+SCHEDS=`$(dirname $0)/../../tools/starpu_sched_display`
 
 test_scheds()
 {
 	TEST=$1
+	xfailed=""
 	failed=""
 	pass=""
 
 	RESULT=0
 	for sched in $SCHEDS;
 	do
-		if STARPU_SCHED=$sched $top_builddir/tests/microbenchs/$TEST ; then
-			echo " SUCCESS: STARPU_SCHED=$sched ./microbenchs/$TEST"
+		if STARPU_SCHED=$sched $(dirname $0)/$TEST
+		then
+		    	echo "SUCCESS: STARPU_SCHED=$sched ./microbenchs/$TEST"
 			pass="$pass $sched"
 			continue
 		fi
-		failed="$failed $sched"
 
 		if [ -n "$XSUCCESS" ]
 		then
                         # We have a list of schedulers that are expected to
                         # succeed, others are allowed to fail
-			case " $XSUCCESS " in 
+			case " $XSUCCESS " in
 				*\ $sched\ *)
-					echo " FAIL: STARPU_SCHED=$sched ./microbenchs/$TEST" | ( tee /dev/tty || true )
+					echo "FAIL: STARPU_SCHED=$sched ./microbenchs/$TEST" | ( tee /dev/tty || true )
+					failed="$failed $sched"
 					RESULT=1
 					;;
 				*)
-					echo " XFAIL: STARPU_SCHED=$sched ./microbenchs/$TEST"
+					echo "XFAIL: STARPU_SCHED=$sched ./microbenchs/$TEST"
+					xfailed="$xfailed $sched"
 					;;
 			esac
 		else
                         # We have a list of schedulers that are expected to
                         # fail, others are expected to succeed
-			case " $XFAIL " in 
+			case " $XFAIL " in
 				*\ $sched\ *)
-					echo " XFAIL: STARPU_SCHED=$sched ./microbenchs/$TEST"
+					echo "XFAIL: STARPU_SCHED=$sched ./microbenchs/$TEST"
+					xfailed="$xfailed $sched"
 					;;
 				*)
-					echo " FAIL: STARPU_SCHED=$sched ./microbenchs/$TEST" | ( tee /dev/tty || true )
+					echo "FAIL: STARPU_SCHED=$sched ./microbenchs/$TEST" | ( tee /dev/tty || true )
+					failed="$failed $sched"
 					RESULT=1
 					;;
 			esac
 		fi
 
 	done
-	echo "passed schedulers:$pass" | ( tee /dev/tty || true )
-	echo "failed schedulers:$failed" | ( tee /dev/tty || true )
+	echo "passed schedulers:$pass"
+	echo "failed schedulers:$failed"
+	echo "xfailed schedulers:$xfailed"
 	return $RESULT
 }

@@ -33,7 +33,8 @@
 #define SECONDS_SCALE_COEFFICIENT_TIMING_NOW 1000000
 #define NB_FLOAT 4000000
 
-void wait_homogeneous(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *_args){
+void wait_homogeneous(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *_args)
+{
 	starpu_sleep(TIME);
 }
 
@@ -48,11 +49,10 @@ static struct starpu_perfmodel perf_model =
 	.arch_cost_function = cost_function,
 };
 
-
 static struct starpu_codelet cl =
 {
 	.cpu_funcs = { wait_homogeneous },
-	.cuda_funcs = { wait_homogeneous }, 
+	.cuda_funcs = { wait_homogeneous },
 	.opencl_funcs = { wait_homogeneous },
 	.cpu_funcs_name = { "wait_homogeneous" },
 	.nbuffers = 1,
@@ -61,18 +61,18 @@ static struct starpu_codelet cl =
 	.model = &perf_model,
 };
 
-int main(int argc, char *argv[]){
-	
+int main(int argc, char *argv[])
+{
 	int ret;
-	
-	ret = starpu_initialize(NULL, &argc, &argv); 
+
+	ret = starpu_initialize(NULL, &argc, &argv);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	unsigned nb_tasks, nb_data, nb_workers;
 	double begin_time, end_time, time_m, time_s, speed_up, expected_speed_up, percentage_expected_speed_up;
 	bool check, check_sup;
-	
+
 	nb_workers = starpu_worker_get_count_by_type(STARPU_CPU_WORKER) + starpu_worker_get_count_by_type(STARPU_CUDA_WORKER) + starpu_worker_get_count_by_type(STARPU_OPENCL_WORKER);
 	nb_tasks = nb_workers*TASK_COEFFICIENT*DATA_COEFFICIENT;
 	nb_data = nb_workers*DATA_COEFFICIENT;
@@ -106,19 +106,17 @@ int main(int argc, char *argv[]){
 		starpu_vector_data_register(&vector_handle[j], STARPU_MAIN_RAM, (uintptr_t)vector[j], NB_FLOAT, sizeof(vector[0][0]));
 	}
 
-	
-
 	begin_time = starpu_timing_now();
 
 	/*execution des tasks*/
-	
+
 	for (i=0; i<nb_tasks; i++)
 		starpu_task_insert(&cl, STARPU_RW, vector_handle[i%nb_data], 0);
 	for (i=0; i<nb_data; i++)
 		starpu_data_wont_use(vector_handle[i]);
 
-	starpu_task_wait_for_all();	
-	
+	starpu_task_wait_for_all();
+
 	end_time = starpu_timing_now();
 
 	for (j = 0; j < nb_data; j++)
@@ -134,17 +132,24 @@ int main(int argc, char *argv[]){
 	check = speed_up >= ((1 - MARGIN) * expected_speed_up);
 	check_sup = speed_up <= ((1 + MARGIN) * expected_speed_up);
 
-	printf("measured time = %f seconds\nsequential time = %f seconds\nspeed up = %f\nnumber of workers = %d\nnumber of tasks = %d\nexpected speed up = %f\npercentage of expected speed up %.2f%%\n", time_m, time_s, speed_up, nb_workers, nb_tasks, expected_speed_up, percentage_expected_speed_up);
+	FPRINTF(stderr, "measured time = %f seconds\n", time_m);
+	FPRINTF(stderr, "sequential time = %f seconds\n", time_s);
+	FPRINTF(stderr, "speed up = %f\n", speed_up);
+	FPRINTF(stderr, "number of workers = %d\n", nb_workers);
+	FPRINTF(stderr, "number of tasks = %d\n", nb_tasks);
+	FPRINTF(stderr, "expected speed up = %f\n", expected_speed_up);
+	FPRINTF(stderr, "percentage of expected speed up %.2f%%\n", percentage_expected_speed_up);
 
 	starpu_shutdown();
 	for (j = 0; j < nb_data; j++)
 		free(vector[j]);
-	
-	if (check && check_sup){ //test reussi ou test echoue
+
+	if (check && check_sup)
+	{ //test reussi ou test echoue
 		return EXIT_SUCCESS;
 	}
-	else{
+	else
+	{
 		return EXIT_FAILURE;
 	}
 }
-
