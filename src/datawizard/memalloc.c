@@ -647,8 +647,12 @@ static unsigned try_to_reuse_mem_chunk(struct _starpu_mem_chunk *mc, unsigned no
 					/* mc is still associated with the old
 					 * handle, now replace the previous data
 					 */
-					reuse_mem_chunk(node, replicate, mc, is_already_in_mc_list);
-					success = 1;
+					if (old_data->per_node[node].refcnt == 0)
+					{
+						/* And still nobody on it, now the actual buffer may be reused */
+						reuse_mem_chunk(node, replicate, mc, is_already_in_mc_list);
+						success = 1;
+					}
 				}
 			}
 		}
