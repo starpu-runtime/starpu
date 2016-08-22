@@ -341,6 +341,7 @@ static __starpu_inline int starpu_get_env_number(const char *str)
 		}
 
 		/* fprintf(stderr, "ENV %s WAS %d\n", str, val); */
+		STARPU_ASSERT_MSG(val >= 0, "The value for the environment variable '%s' cannot be negative", str);
 		return (int)val;
 	}
 	else
