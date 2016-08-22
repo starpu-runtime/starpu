@@ -709,7 +709,7 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 	int nodeid = ev->param[3];
 	int bindid = ev->param[4];
 	int set = ev->param[5];
-	int threadid = ev->param[6];
+	long unsigned int threadid = ev->param[6];
 	int new_thread;
 
 	new_thread = register_worker_id(threadid, workerid, set);
@@ -782,9 +782,9 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 		poti_CreateContainer(get_event_time_stamp(ev, options), new_worker_container_alias, "W", new_thread_container_alias, new_worker_container_name);
 #else
 		if (new_thread)
-			fprintf(out_paje_file, "7	%.9f	%st%d	T	%smn%d	%s%d\n",
+			fprintf(out_paje_file, "7	%.9f	%st%lu	T	%smn%d	%s%d\n",
 				get_event_time_stamp(ev, options), prefix, threadid, prefix, nodeid, prefix, bindid);
-		fprintf(out_paje_file, "7	%.9f	%sw%d	W	%st%d	%s%s%d\n",
+		fprintf(out_paje_file, "7	%.9f	%sw%d	W	%st%lu	%s%s%d\n",
 			get_event_time_stamp(ev, options), prefix, workerid, prefix, threadid, prefix, kindstr, devid);
 #endif
 	}
@@ -1176,7 +1176,7 @@ static void handle_end_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 static void handle_start_executing(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	char *prefix = options->file_prefix;
-	int threadid = ev->param[0];
+	long unsigned int threadid = ev->param[0];
 
 	if (out_paje_file && !find_sync(threadid))
 		thread_set_state(get_event_time_stamp(ev, options), prefix, threadid, "E");
@@ -1185,7 +1185,7 @@ static void handle_start_executing(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 static void handle_end_executing(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	char *prefix = options->file_prefix;
-	int threadid = ev->param[0];
+	long unsigned int threadid = ev->param[0];
 
 	if (out_paje_file && !find_sync(threadid))
 		thread_set_state(get_event_time_stamp(ev, options), prefix, threadid, "B");
