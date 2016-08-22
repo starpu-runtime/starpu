@@ -123,7 +123,9 @@ Details of the codelet execution can be obtained by passing
 configuring StarPU and using a recent enough version of ViTE (at least
 r1430).
 
-In the MPI execution case, collect the trace files from the MPI nodes, and
+In the MPI execution case, \ref STARPU_GENERATE_TRACE will not work as expected
+(each node will try to generate paje.trace, thus mixing outputs...), you have to
+collect the trace files from the MPI nodes, and
 specify them all on the command <c>starpu_fxt_tool</c>, for instance:
 
 \verbatim
