@@ -277,7 +277,7 @@ static unsigned get_colour_symbol_blue(char *name)
 
 static double last_codelet_start[STARPU_NMAXWORKERS];
 /* _STARPU_FUT_DO_PROBE4STR records only 4 longs */
-char _starpu_last_codelet_symbol[STARPU_NMAXWORKERS][4*sizeof(unsigned long)];
+char _starpu_last_codelet_symbol[STARPU_NMAXWORKERS][(FXT_MAX_PARAMS-4)*sizeof(unsigned long)];
 static int last_codelet_parameter[STARPU_NMAXWORKERS];
 #define MAX_PARAMETERS 8
 static char last_codelet_parameter_description[STARPU_NMAXWORKERS][MAX_PARAMETERS][FXT_MAX_PARAMS*sizeof(unsigned long)];
