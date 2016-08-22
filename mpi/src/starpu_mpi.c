@@ -1302,6 +1302,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 #endif
 #endif
 #ifdef STARPU_USE_FXT
+	/* Wait for FxT initialization before emitting FxT probes */
 	STARPU_PTHREAD_MUTEX_LOCK(&_starpu_fxt_started_mutex);
 	while (!_starpu_fxt_started)
 		STARPU_PTHREAD_COND_WAIT(&_starpu_fxt_started_cond, &_starpu_fxt_started_mutex);
@@ -1635,6 +1636,12 @@ int _starpu_mpi_simgrid_init(int argc, char *argv[])
 int starpu_mpi_init_comm(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv STARPU_ATTRIBUTE_UNUSED, int initialize_mpi STARPU_ATTRIBUTE_UNUSED, MPI_Comm comm STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_SIMGRID
+	/* Wait for MPI initialization to finish */
+	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
+	while (!running)
+		STARPU_PTHREAD_COND_WAIT(&cond_progression, &mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+
 	return 0;
 #else
 	return _starpu_mpi_initialize(argc, argv, initialize_mpi, comm);
