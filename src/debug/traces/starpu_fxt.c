@@ -53,6 +53,14 @@ static unsigned other_index = 0;
 
 static unsigned long fut_keymask;
 
+/* Get pointer to string starting at nth parameter */
+static char *get_fxt_string(struct fxt_ev_64 *ev, int n)
+{
+	char *s = (char *)&ev->param[n];
+	s[(FXT_MAX_PARAMS-n)*sizeof(unsigned long) - 1] = 0;
+	return s;
+}
+
 /*
  * Paje trace file tools
  */
@@ -276,8 +284,8 @@ static unsigned get_colour_symbol_blue(char *name)
 }
 
 static double last_codelet_start[STARPU_NMAXWORKERS];
-/* _STARPU_FUT_DO_PROBE4STR records only 4 longs */
-char _starpu_last_codelet_symbol[STARPU_NMAXWORKERS][(FXT_MAX_PARAMS-4)*sizeof(unsigned long)];
+/* _STARPU_FUT_DO_PROBE5STR records only 3 longs */
+char _starpu_last_codelet_symbol[STARPU_NMAXWORKERS][(FXT_MAX_PARAMS-5)*sizeof(unsigned long)];
 static int last_codelet_parameter[STARPU_NMAXWORKERS];
 #define MAX_PARAMETERS 8
 static char last_codelet_parameter_description[STARPU_NMAXWORKERS][MAX_PARAMETERS][FXT_MAX_PARAMS*sizeof(unsigned long)];
@@ -937,7 +945,8 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 	if (activity_file)
 		fprintf(activity_file, "name\t%d\t%s %d\n", workerid, kindstr, devid);
 
-	snprintf(options->worker_names[workerid], 256, "%s %d", kindstr, devid);
+	snprintf(options->worker_names[workerid], sizeof(options->worker_names[workerid])-1, "%s %d", kindstr, devid);
+	options->worker_names[workerid][sizeof(options->worker_names[workerid])-1] = 0;
 	options->worker_archtypes[workerid] = arch;
 }
 
@@ -1146,9 +1155,10 @@ static void handle_start_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_op
 	if (worker < 0) return;
 
 	unsigned long has_name = ev->param[4];
-	char *name = has_name?(char *)&ev->param[5]:"unknown";
+	char *name = has_name?get_fxt_string(ev, 5):"unknown";
 
-	snprintf(_starpu_last_codelet_symbol[worker], sizeof(_starpu_last_codelet_symbol[worker]), "%s", name);
+	snprintf(_starpu_last_codelet_symbol[worker], sizeof(_starpu_last_codelet_symbol[worker])-1, "%s", name);
+	_starpu_last_codelet_symbol[worker][sizeof(_starpu_last_codelet_symbol[worker])-1] = 0;
 	last_codelet_parameter[worker] = 0;
 
 	double start_codelet_time = get_event_time_stamp(ev, options);
@@ -1191,7 +1201,7 @@ static void handle_start_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_op
 static void handle_model_name(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	struct task_info *task = get_task(ev->param[0], options->file_rank);
-	char *name = (char *)&ev->param[1];
+	char *name = get_fxt_string(ev, 1);
 	task->model_name = strdup(name);
 }
 
@@ -1202,7 +1212,9 @@ static void handle_codelet_data(struct fxt_ev_64 *ev STARPU_ATTRIBUTE_UNUSED, st
 	int num = last_codelet_parameter[worker]++;
 	if (num >= MAX_PARAMETERS)
 		return;
-	snprintf(last_codelet_parameter_description[worker][num], sizeof(last_codelet_parameter_description[worker][num]), "%s", (char*) &ev->param[1]);
+	char *name = get_fxt_string(ev, 1);
+	snprintf(last_codelet_parameter_description[worker][num], sizeof(last_codelet_parameter_description[worker][num])-1, "%s", name);
+	last_codelet_parameter_description[worker][num][sizeof(last_codelet_parameter_description[worker][num])-1] = 0;
 }
 
 static void handle_codelet_data_handle(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -1241,12 +1253,13 @@ static void handle_codelet_details(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 	char parameters[256];
 	size_t eaten = 0;
 	if (!last_codelet_parameter[worker])
-		eaten += snprintf(parameters + eaten, sizeof(parameters) - eaten, "nodata");
+		eaten += snprintf(parameters + eaten, sizeof(parameters) - eaten - 1, "nodata");
 	else
 	for (i = 0; i < last_codelet_parameter[worker] && i < MAX_PARAMETERS; i++)
 	{
-		eaten += snprintf(parameters + eaten, sizeof(parameters) - eaten, "%s%s", i?"_":"", last_codelet_parameter_description[worker][i]);
+		eaten += snprintf(parameters + eaten, sizeof(parameters) - eaten - 1, "%s%s", i?"_":"", last_codelet_parameter_description[worker][i]);
 	}
+	parameters[sizeof(parameters)-1] = 0;
 
 	struct task_info *task = get_task(job_id, options->file_rank);
 	task->parameters = strdup(parameters);
@@ -1291,6 +1304,7 @@ static void handle_end_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 
 	size_t codelet_size = ev->param[1];
 	uint32_t codelet_hash = ev->param[2];
+	char *name = get_fxt_string(ev, 4);
 
 	if (out_paje_file)
 		worker_set_state(end_codelet_time, prefix, worker, "I");
@@ -1312,9 +1326,11 @@ static void handle_end_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 		dumped_codelets_count++;
 		dumped_codelets = realloc(dumped_codelets, dumped_codelets_count*sizeof(struct starpu_fxt_codelet_event));
 
-		snprintf(dumped_codelets[dumped_codelets_count - 1].symbol, 256, "%s", _starpu_last_codelet_symbol[worker]);
+		snprintf(dumped_codelets[dumped_codelets_count - 1].symbol, sizeof(dumped_codelets[dumped_codelets_count - 1].symbol)-1, "%s", _starpu_last_codelet_symbol[worker]);
+		dumped_codelets[dumped_codelets_count - 1].symbol[sizeof(dumped_codelets[dumped_codelets_count - 1].symbol)-1] = 0;
 		dumped_codelets[dumped_codelets_count - 1].workerid = worker;
-		snprintf(dumped_codelets[dumped_codelets_count - 1].perfmodel_archname, 256, "%s", (char *)&ev->param[4]);
+		snprintf(dumped_codelets[dumped_codelets_count - 1].perfmodel_archname, sizeof(dumped_codelets[dumped_codelets_count - 1].perfmodel_archname)-1, "%s", name);
+		dumped_codelets[dumped_codelets_count - 1].perfmodel_archname[sizeof(dumped_codelets[dumped_codelets_count - 1].perfmodel_archname)-1] = 0;
 		dumped_codelets[dumped_codelets_count - 1].size = codelet_size;
 		dumped_codelets[dumped_codelets_count - 1].hash = codelet_hash;
 		dumped_codelets[dumped_codelets_count - 1].time = codelet_length;
@@ -1900,7 +1916,7 @@ static void handle_job_pop(struct fxt_ev_64 *ev, struct starpu_fxt_options *opti
 
 static void handle_component_new(struct fxt_ev_64 *ev, struct starpu_fxt_options *options STARPU_ATTRIBUTE_UNUSED)
 {
-	_starpu_fxt_component_new(ev->param[0], (char *)&ev->param[1]);
+	_starpu_fxt_component_new(ev->param[0], get_fxt_string(ev, 1));
 }
 
 static void handle_component_connect(struct fxt_ev_64 *ev, struct starpu_fxt_options *options STARPU_ATTRIBUTE_UNUSED)
@@ -2009,7 +2025,7 @@ static void handle_task_done(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 	job_id = ev->param[0];
 
 	unsigned long has_name = ev->param[3];
-	char *name = has_name?(char *)&ev->param[4]:"unknown";
+	char *name = has_name?get_fxt_string(ev,4):"unknown";
 
         int worker;
         worker = find_worker_id(ev->param[1]);
@@ -2045,7 +2061,7 @@ static void handle_tag_done(struct fxt_ev_64 *ev, struct starpu_fxt_options *opt
 	tag_id = ev->param[0];
 
 	unsigned long has_name = ev->param[2];
-	char *name = has_name?(char *)&ev->param[3]:"unknown";
+	char *name = has_name?get_fxt_string(ev,3):"unknown";
 
         int worker;
         worker = find_worker_id(ev->param[1]);
@@ -2337,7 +2353,7 @@ static void handle_task_wait_for_all(void)
 
 static void handle_event(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
-	char *event = (char*)&ev->param[0];
+	char *event = get_fxt_string(ev, 0);
 	/* Add an event in the trace */
 	if (out_paje_file)
 	{
@@ -2359,7 +2375,7 @@ static void handle_thread_event(struct fxt_ev_64 *ev, struct starpu_fxt_options 
 	/* Add an event in the trace */
 	if (out_paje_file)
 	{
-		char *event = (char*)&ev->param[1];
+		char *event = get_fxt_string(ev, 1);
 
 #ifdef STARPU_HAVE_POTI
 		char container[STARPU_POTI_STR_LEN];
@@ -3442,7 +3458,7 @@ void starpu_fxt_write_data_trace(char *filename_in)
 			workerid = ev.param[2];
 			tasks[workerid].exec_time = ev.time;
 			has_name = ev.param[3];
-			tasks[workerid].codelet_name = strdup(has_name ? (char *) &ev.param[5] : "unknown");
+			tasks[workerid].codelet_name = strdup(has_name ? get_fxt_string(&ev, 5): "unknown");
 			//fprintf(stderr, "start codelet :[%d][%s]\n", workerid, tasks[workerid].codelet_name);
 			break;
 
