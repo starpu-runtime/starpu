@@ -114,7 +114,7 @@ EOF
 
 STACKSIZE=$(ulimit -s)
 [ "$STACKSIZE" != unlimited ] || STACKSIZE=8192
-$SMPIRUN -platform $PLATFORM -hostfile $MPI_HOSTFILE "$@" --cfg=smpi/privatize${DASH}global${DASH}variables:yes --cfg=smpi/simulate${DASH}computation:no --cfg=contexts/stack${DASH}size:$STACKSIZE
+$SMPIRUN -platform $PLATFORM -hostfile $MPI_HOSTFILE -np $NP "$@" --cfg=smpi/privatize${DASH}global${DASH}variables:yes --cfg=smpi/simulate${DASH}computation:no --cfg=contexts/stack${DASH}size:$STACKSIZE
 RET=$?
 
 rm -f $PLATFORM
