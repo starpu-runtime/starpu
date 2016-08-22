@@ -98,8 +98,12 @@ int _starpu_select_src_node(starpu_data_handle_t handle, unsigned destination)
 		}
 
 	if (cost && src_node != -1)
+	{
 		/* Could estimate through cost, return that */
+		STARPU_ASSERT(handle->per_node[src_node].allocated);
+		STARPU_ASSERT(handle->per_node[src_node].initialized);
 		return src_node;
+	}
 	
 	int i_ram = -1;
 	int i_gpu = -1;
@@ -159,7 +163,8 @@ int _starpu_select_src_node(starpu_data_handle_t handle, unsigned destination)
 		src_node = i_disk;
 
 	STARPU_ASSERT(src_node != -1);
-
+	STARPU_ASSERT(handle->per_node[src_node].allocated);
+	STARPU_ASSERT(handle->per_node[src_node].initialized);
 	return src_node;
 }
 
