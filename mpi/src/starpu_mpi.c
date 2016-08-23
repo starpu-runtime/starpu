@@ -1115,7 +1115,9 @@ static void _starpu_mpi_test_detached_requests(void)
 				_STARPU_MPI_TRACE_ISEND_COMPLETE_BEGIN(req->node_tag.rank, req->node_tag.data_tag, 0);
 			}
 
+			STARPU_PTHREAD_MUTEX_LOCK(&detached_requests_mutex);
 			_starpu_mpi_req_list_erase(detached_requests, req);
+			STARPU_PTHREAD_MUTEX_UNLOCK(&detached_requests_mutex);
 			_starpu_mpi_handle_request_termination(req);
 
 			if (req->request_type == RECV_REQ)
