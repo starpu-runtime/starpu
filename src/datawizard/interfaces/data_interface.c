@@ -932,6 +932,16 @@ static void _starpu_data_invalidate(void *data)
 
 	_STARPU_DEBUG("Really invalidating data %p\n", data);
 
+#ifdef STARPU_DEBUG
+	{
+		/* There shouldn't be any pending request since we acquired the data in W mode */
+		unsigned i, j, nnodes = starpu_memory_nodes_get_count();
+		for (i = 0; i < nnodes; i++)
+			for (j = 0; j < nnodes; j++)
+				STARPU_ASSERT_MSG(!handle->per_node[i].request[j], "request for handle %p pending from %d to %d while invalidating data!", handle, j, i);
+	}
+#endif
+
 	unsigned node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
