@@ -72,7 +72,8 @@ EXTRA_DIST = 					\
 	reductions/dot_product.h	\
 	reductions/dot_product_opencl_kernels.cl	\
 	scheduler/schedulers.sh				\
-	scheduler/schedulers_context.sh
+	scheduler/schedulers_context.sh			\
+	fortran/Makefile
 
 CLEANFILES = *.gcno *.gcda *.linkinfo *.mod starpu_idle_microsec.log
 
