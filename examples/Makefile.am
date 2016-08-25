@@ -359,6 +359,7 @@ basic_examples_vector_scal_fortran_LDADD =	\
 endif
 
 fortran_hello_SOURCES	=		\
+	fortran/Makefile		\
 	fortran/hello_c.c		\
 	fortran/hello.F			\
 	fortran/StarPU_fortran.h
