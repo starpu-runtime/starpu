@@ -235,9 +235,11 @@ STARPU_EXAMPLES +=				\
 
 if STARPU_HAVE_F77_H
 STARPU_EXAMPLES +=				\
-	basic_examples/vector_scal_fortran	\
 	fortran/hello
 endif
+
+STARPU_EXAMPLES +=				\
+	basic_examples/vector_scal_fortran
 
 if STARPU_HAVE_FC
 if !STARPU_SANITIZE
@@ -291,9 +293,10 @@ endif
 if !STARPU_SIMGRID
 if STARPU_HAVE_F77_H
 STARPU_EXAMPLES +=				\
-	basic_examples/vector_scal_fortran	\
 	fortran/hello
 endif
+STARPU_EXAMPLES +=				\
+	basic_examples/vector_scal_fortran
 endif
 
 if STARPU_HAVE_OPENMP
@@ -346,7 +349,6 @@ nobase_STARPU_OPENCL_DATA_DATA += \
 	basic_examples/vector_scal_opencl_kernel.cl
 endif
 
-if STARPU_HAVE_F77_H
 basic_examples_vector_scal_fortran_SOURCES =	\
 	basic_examples/vector_scal_fortran.F	\
 	basic_examples/vector_scal_c.c		\
@@ -359,6 +361,7 @@ basic_examples_vector_scal_fortran_LDADD =	\
 	$(STARPU_CUDA_FORTRAN_LDFLAGS)
 endif
 
+if STARPU_HAVE_F77_H
 fortran_hello_SOURCES	=		\
 	fortran/hello_c.c		\
 	fortran/hello.F			\
