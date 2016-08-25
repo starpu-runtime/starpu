@@ -2194,6 +2194,7 @@ if test "x$enable_build_fortran" = "xyes" ; then
 fi
 
 AM_CONDITIONAL([STARPU_HAVE_FC], [test "x$FC" != "x" -a "x$enable_build_fortran" = "xyes"])
+AM_CONDITIONAL([STARPU_HAVE_F77], [test "x$F77" != "x" -a "x$enable_build_fortran" = "xyes"])
 AM_CONDITIONAL([STARPU_HAVE_MPIFORT], [test "x$use_mpi_fort" = "xyes"])
 
 ###############################################################################
