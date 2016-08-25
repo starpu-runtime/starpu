@@ -256,14 +256,14 @@ endif
 endif
 
 if !NO_BLAS_LIB
-if STARPU_SIMGRID
 STARPU_EXAMPLES +=				\
 	mult/sgemm 				\
 	mult/dgemm				\
 	cholesky/cholesky_tag			\
 	cholesky/cholesky_tile_tag		\
 	cholesky/cholesky_implicit
-else
+
+if !STARPU_SIMGRID
 STARPU_EXAMPLES +=				\
 	axpy/axpy				\
 	cholesky/cholesky_grain_tag		\
