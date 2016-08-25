@@ -23,7 +23,7 @@ STARPU_EFFECTIVE_VERSION=1.1
 # Note for StarPU 1.1: we have changed ABI
 
 # Libtool interface versioning (info "(libtool) Versioning").
-LIBSTARPU_INTERFACE_CURRENT=9	# increment upon ABI change
+LIBSTARPU_INTERFACE_CURRENT=10	# increment upon ABI change
 LIBSTARPU_INTERFACE_REVISION=0	# increment upon implementation change
 LIBSTARPU_INTERFACE_AGE=1	# set to CURRENT - PREVIOUS interface
 
@@ -36,5 +36,5 @@ LIBSTARPUMPI_INTERFACE_REVISION=4	# increment upon implementation change
 LIBSTARPUMPI_INTERFACE_AGE=0		# set to CURRENT - PREVIOUS interface
 
 LIBSOCL_INTERFACE_CURRENT=1	# increment upon ABI change
-LIBSOCL_INTERFACE_REVISION=2	# increment upon implementation change
+LIBSOCL_INTERFACE_REVISION=3	# increment upon implementation change
 LIBSOCL_INTERFACE_AGE=0		# set to CURRENT - PREVIOUS interface

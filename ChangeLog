@@ -14,12 +14,17 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
-StarPU 1.1.6 (svn revision xxx)
+StarPU 1.1.6 (svn revision 18542)
 ==============================================
 The scheduling context release
+
+Small features:
   * Add starpu_task_get_task_succs to get the list of children of a given
     task.
   * Ranges can be provided in STARPU_WORKERS_CPUID
+
+Small changes:
+  * Various fixes for MacOS and windows systems
 
 StarPU 1.1.5 (svn revision 16011)
 ==============================================
