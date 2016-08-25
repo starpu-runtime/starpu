@@ -72,7 +72,8 @@ EXTRA_DIST = 					\
 	reductions/dot_product.h	\
 	reductions/dot_product_opencl_kernels.cl	\
 	scheduler/schedulers.sh				\
-	scheduler/schedulers_context.sh
+	scheduler/schedulers_context.sh			\
+	fortran/Makefile
 
 CLEANFILES = *.gcno *.gcda *.linkinfo *.mod starpu_idle_microsec.log
 
@@ -359,7 +360,6 @@ basic_examples_vector_scal_fortran_LDADD =	\
 endif
 
 fortran_hello_SOURCES	=		\
-	fortran/Makefile		\
 	fortran/hello_c.c		\
 	fortran/hello.F			\
 	fortran/StarPU_fortran.h
