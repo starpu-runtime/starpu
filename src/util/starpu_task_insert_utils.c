@@ -489,6 +489,9 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task **
 	int current_buffer = 0;
 	int nargs = 0;
 	int allocated_buffers = 0;
+
+	_STARPU_TRACE_TASK_BUILD_START();
+
 	(*task)->cl = cl;
 	(*task)->name = NULL;
 	while (arglist[arg_i] != NULL)
@@ -656,8 +659,27 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task **
 		arg_i++;
 	}
 
+	if (cl)
+	{
+		if (cl->nbuffers == STARPU_VARIABLE_NBUFFERS)
+		{
+			(*task)->nbuffers = current_buffer;
+		}
+		else
+		{
+			STARPU_ASSERT_MSG(current_buffer == cl->nbuffers, "Incoherent number of buffers between cl (%d) and number of parameters (%d)", cl->nbuffers, current_buffer);
+		}
+	}
+
 	if (nargs)
 	{
+		if ((*task)->cl_arg != NULL)
+		{
+			_STARPU_DISP("Parameters STARPU_CL_ARGS and STARPU_VALUE cannot be used in the same call\n");
+			free(arg_buffer_);
+			arg_buffer_ = NULL;
+			return -EINVAL;
+		}
 		memcpy(arg_buffer_, (int *)&nargs, sizeof(nargs));
 		(*task)->cl_arg = arg_buffer_;
 		(*task)->cl_arg_size = arg_buffer_size_;
@@ -667,6 +689,9 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task **
 		free(arg_buffer_);
 		arg_buffer_ = NULL;
 	}
+
+	_STARPU_TRACE_TASK_BUILD_END();
+
 	return 0;
 }
 
