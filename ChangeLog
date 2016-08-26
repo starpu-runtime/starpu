@@ -27,6 +27,7 @@ Changes:
 
 StarPU 1.2.1 (svn revision xxx)
 ==============================================
+  * Add starpu_fxt_trace_user_event_string.
 
 StarPU 1.2.0 (svn revision 18521)
 ==============================================
