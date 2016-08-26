@@ -664,6 +664,11 @@ module fstarpu_mod
                         type(c_ptr), value, intent(in) :: mode ! C function expects an intptr_t
                 end subroutine fstarpu_codelet_add_buffer
 
+                subroutine fstarpu_codelet_set_variable_nbuffers (cl) bind(C)
+                        use iso_c_binding, only: c_ptr,c_int
+                        type(c_ptr), value, intent(in) :: cl
+                end subroutine fstarpu_codelet_set_variable_nbuffers
+
                 subroutine fstarpu_codelet_set_nbuffers (cl, nbuffers) bind(C)
                         use iso_c_binding, only: c_ptr,c_int
                         type(c_ptr), value, intent(in) :: cl

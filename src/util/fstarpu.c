@@ -304,6 +304,11 @@ void fstarpu_codelet_add_buffer(struct starpu_codelet *cl, intptr_t _mode)
 	}
 }
 
+void fstarpu_codelet_set_variable_nbuffers(struct starpu_codelet *cl)
+{
+	cl->nbuffers = STARPU_VARIABLE_NBUFFERS;
+}
+
 void fstarpu_codelet_set_nbuffers(struct starpu_codelet *cl, int nbuffers)
 {
 	if (nbuffers >= 0)
