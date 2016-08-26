@@ -12,7 +12,47 @@ StarPU provides several tools to help debugging applications. Execution traces
 can be generated and displayed graphically, see \ref
 GeneratingTracesWithFxT.
 
-Some gdb helpers are also provided to show the whole StarPU state:
+\section DebuggingInGeneral TroubleShooting In General
+
+Generally-speaking, if you have troubles, pass <c>--enable-debug</c> to
+<c>./configure</c> to enable some checks which impact performance, but will
+catch common issues, possibly earlier than the actual problem you are observing,
+which may just be a consequence of a bug that happened earlier. If your program
+is valgrind-safe, you can use it, see \ref UsingOtherDebugger.
+
+Then, if your program crashes with an assertion error, a segfault, etc. you can send us the result of
+
+\verbatim
+thread apply all bt
+\endverbatim
+
+run in gdb at the point of the crash.
+
+In case your program just hangs, but it may also be useful in case of a crash
+too, it helps to source <c>gdbinit</c> as described in the next section to be
+able to run and send us the output of:
+
+\verbatim
+starpu-workers
+starpu-tasks
+starpu-print-requests
+starpu-print-prequests
+starpu-print-frrequests
+starpu-print-irrequests
+\endverbatim
+
+To give us an idea of what is happening within StarPU. If the outputs are not too long, you can even run
+
+\verbatim
+starpu-all-tasks
+starpu-print-all-tasks
+starpu-print-datas-summary
+starpu-print-datas
+\endverbatim
+
+\section UsingGdb Using The Gdb Debugger
+
+Some gdb helpers are provided to show the whole StarPU state:
 
 \verbatim
 (gdb) source tools/gdbinit
@@ -25,8 +65,10 @@ transfers with <c>starpu-print-prequests</c>, <c>starpu-print-requests</c>, <c>s
 print pending MPI requests with
 <c>starpu-mpi-print-detached-requests</c>
 
-Some functions can only work if --enable-debug was passed to ./configure
+Some functions can only work if <c>--enable-debug</c> was passed to <c>./configure</c>
 (because they impact performance)
+
+\section UsingOtherDebugger Using other debugging tools
 
 Valgrind can be used on StarPU: valgrind.h just needs to be found at ./configure
 time, to tell valgrind about some known false positives and disable host memory
@@ -37,8 +79,6 @@ The environment variable \ref STARPU_DISABLE_KERNELS can also be set to 1 to mak
 StarPU do everything (schedule tasks, transfer memory, etc.) except actually
 calling the application-provided kernel functions, i.e. the computation will not
 happen. This permits to quickly check that the task scheme is working properly.
-
-The Temanejo task debugger can also be used, see \ref UsingTheTemanejoTaskDebugger.
 
 \section UsingTheTemanejoTaskDebugger Using The Temanejo Task Debugger
 
