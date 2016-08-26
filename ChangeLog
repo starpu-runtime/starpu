@@ -19,10 +19,8 @@ StarPU 1.3.0 (svn revision xxxx)
 ==============================================
 
 New features:
-  * Enable anticipative writeback by default.
   * New scheduler with heterogeneous priorities
   * Support priorities for data transfers.
-  * Include application threads in the trace.
 
 Changes:
   * Vastly improve simgrid simulation time.
@@ -62,7 +60,6 @@ New features:
 	  basic tracing of communications.
 	- New function starpu_mpi_init_comm() which allows to specify
 	  a MPI communicator.
-
   * New STARPU_COMMUTE flag which can be passed along STARPU_W or STARPU_RW to
     let starpu commute write accesses.
   * Out-of-core support, through registration of disk areas as additional memory
@@ -97,15 +94,16 @@ New features:
     only when the bus is idle.
   * Make starpu_data_prefetch_on_node not forcibly flush data out, introduce
     starpu_data_fetch_on_node for that.
+  * Add data access arbiters, to improve parallelism of concurrent data
+    accesses, notably with STARPU_COMMUTE.
   * Anticipative writeback, to flush dirty data asynchronously before the
     GPU device is full. Disabled by default. Use STARPU_MINIMUM_CLEAN_BUFFERS
     and STARPU_TARGET_CLEAN_BUFFERS to enable it.
   * Add starpu_data_wont_use to advise that a piece of data will not be used
     in the close future.
+  * Enable anticipative writeback by default.
   * New scheduler 'dmdasd' that considers priority when deciding on
     which worker to schedule
-  * Add data access arbiters, to improve parallelism of concurrent data
-    accesses, notably with STARPU_COMMUTE.
   * Add the capability to define specific MPI datatypes for
     StarPU user-defined interfaces.
   * Add tasks.rec trace output to make scheduling analysis easier.
@@ -115,6 +113,7 @@ New features:
   * Add asynchronous partition planning. It only supports coherency through
     the home node of data for now.
   * Add STARPU_MALLOC_SIMULATION_FOLDED flag to save memory when simulating.
+  * Include application threads in the trace.
   * Add starpu_task_get_task_scheduled_succs to get successors of a task.
   * Add graph inspection facility for schedulers.
   * New STARPU_LOCALITY flag to mark data which should be taken into account
@@ -163,21 +162,26 @@ Small features:
     its own allocation to the reclaiming engine.
   * Add STARPU_SIMGRID_CUDA_MALLOC_COST and STARPU_SIMGRID_CUDA_QUEUE_COST to
     disable CUDA costs simulation in simgrid mode.
-  * Add starpu_memory_pin and starpu_memory_unpin to pin memory allocated
-    another way than starpu_malloc.
-  * Add STARPU_NOWHERE to create synchronization tasks with data.
-  * Document how to switch between differents views of the same data.
-  * Add STARPU_NAME to specify a task name from a starpu_task_insert call.
   * Add starpu_task_get_task_succs to get the list of children of a given
     task.
   * Add starpu_malloc_on_node_flags, starpu_free_on_node_flags, and
     starpu_malloc_on_node_set_default_flags to control the allocation flags
     used for allocations done by starpu.
+  * Ranges can be provided in STARPU_WORKERS_CPUID
+  * Add starpu_fxt_autostart_profiling to be able to avoid autostart.
+  * Add arch_cost_function perfmodel function field.
+  * Add STARPU_TASK_BREAK_ON_SCHED, STARPU_TASK_BREAK_ON_PUSH, and
+  STARPU_TASK_BREAK_ON_POP environment variables to debug schedulers.
+  * Add starpu_sched_display tool.
+  * Add starpu_memory_pin and starpu_memory_unpin to pin memory allocated
+    another way than starpu_malloc.
+  * Add STARPU_NOWHERE to create synchronization tasks with data.
+  * Document how to switch between differents views of the same data.
+  * Add STARPU_NAME to specify a task name from a starpu_task_insert call.
   * Add configure option to disable fortran --disable-fortran
   * Add configure option to give path for smpirun executable --with-smpirun
   * Add configure option to disable the build of tests --disable-build-tests
   * Add starpu-all-tasks debugging support
-  * Ranges can be provided in STARPU_WORKERS_CPUID
   * New function
     void starpu_opencl_load_program_source_malloc(const char *source_file_name, char **located_file_name, char **located_dir_name, char **opencl_program_source)
     which allocates the pointers located_file_name, located_dir_name
@@ -197,11 +201,6 @@ Small features:
   * Add STARPU_CODELET_SIMGRID_EXECUTE flag.
   * Add STARPU_CL_ARGS flag to starpu_task_insert() and
     starpu_mpi_task_insert() functions call
-  * Add starpu_fxt_autostart_profiling to be able to avoid autostart.
-  * Add arch_cost_function perfmodel function field.
-  * Add STARPU_TASK_BREAK_ON_SCHED, STARPU_TASK_BREAK_ON_PUSH, and
-  STARPU_TASK_BREAK_ON_POP environment variables to debug schedulers.
-  * Add starpu_sched_display tool.
 
 Changes:
   * Data interfaces (variable, vector, matrix and block) now define
@@ -217,6 +216,8 @@ Changes:
 Small changes:
   * Rename function starpu_trace_user_event() as
     starpu_fxt_trace_user_event()
+  * "power" is renamed into "energy" wherever it applies, notably energy
+    consumption performance models
   * Update starpu_task_build() to set starpu_task::cl_arg_free to 1 if
     some arguments of type ::STARPU_VALUE are given.
   * Simplify performance model loading API
@@ -224,8 +225,6 @@ Small changes:
     STARPU_NMICDEVS, the number of devices and the number of cores.
     STARPU_NMIC will be the number of devices, and STARPU_NMICCORES
     will be the number of cores per device.
-  * "power" is renamed into "energy" wherever it applies, notably energy
-    consumption performance models
 
 StarPU 1.1.5 (svn revision xxx)
 ==============================================
