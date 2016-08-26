@@ -25,7 +25,10 @@ New features:
 Changes:
   * Vastly improve simgrid simulation time.
 
-StarPU 1.2.0 (svn revision xxxx)
+StarPU 1.2.1 (svn revision xxx)
+==============================================
+
+StarPU 1.2.0 (svn revision 18521)
 ==============================================
 
 New features:
