@@ -962,27 +962,27 @@ module fstarpu_mod
                 ! void starpu_data_partition_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children);
                 subroutine fstarpu_data_partition_submit (dh,nparts,children) &
                                 bind(C,name="starpu_data_partition_submit")
-                        use iso_c_binding, only: c_ptr
+                        use iso_c_binding, only: c_ptr, c_int
                         type(c_ptr), value, intent(in) :: dh
-                        type(c_ptr), value, intent(in) :: nparts
+                        integer(c_int), value, intent(in) :: nparts
                         type(c_ptr), intent(in) :: children(*)
                 end subroutine fstarpu_data_partition_submit
 
                 ! void starpu_data_partition_readonly_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children);
                 subroutine fstarpu_data_partition_readonly_submit (dh,nparts,children) &
                                 bind(C,name="starpu_data_partition_readonly_submit")
-                        use iso_c_binding, only: c_ptr
+                        use iso_c_binding, only: c_ptr, c_int
                         type(c_ptr), value, intent(in) :: dh
-                        type(c_ptr), value, intent(in) :: nparts
+                        integer(c_int), value, intent(in) :: nparts
                         type(c_ptr), intent(in) :: children(*)
                 end subroutine fstarpu_data_partition_readonly_submit
 
                 ! void starpu_data_partition_readwrite_upgrade_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children);
                 subroutine fstarpu_data_partition_readwrite_upgrade_submit (dh,nparts,children) &
                                 bind(C,name="starpu_data_partition_readwrite_upgrade_submit")
-                        use iso_c_binding, only: c_ptr
+                        use iso_c_binding, only: c_ptr, c_int
                         type(c_ptr), value, intent(in) :: dh
-                        type(c_ptr), value, intent(in) :: nparts
+                        integer(c_int), value, intent(in) :: nparts
                         type(c_ptr), intent(in) :: children(*)
                 end subroutine fstarpu_data_partition_readwrite_upgrade_submit
 
@@ -991,7 +991,7 @@ module fstarpu_mod
                                 bind(C,name="starpu_data_unpartition_submit")
                         use iso_c_binding, only: c_ptr, c_int
                         type(c_ptr), value, intent(in) :: dh
-                        type(c_ptr), value, intent(in) :: nparts
+                        integer(c_int), value, intent(in) :: nparts
                         type(c_ptr), intent(in) :: children(*)
                         integer(c_int), value, intent(in) :: gathering_node
                 end subroutine fstarpu_data_unpartition_submit
@@ -1001,7 +1001,7 @@ module fstarpu_mod
                                 bind(C,name="starpu_data_unpartition_readonly_submit")
                         use iso_c_binding, only: c_ptr, c_int
                         type(c_ptr), value, intent(in) :: dh
-                        type(c_ptr), value, intent(in) :: nparts
+                        integer(c_int), value, intent(in) :: nparts
                         type(c_ptr), intent(in) :: children(*)
                         integer(c_int), value, intent(in) :: gathering_node
                 end subroutine fstarpu_data_unpartition_readonly_submit
@@ -1009,9 +1009,9 @@ module fstarpu_mod
                 ! void starpu_data_partition_clean(starpu_data_handle_t root_data, unsigned nparts, starpu_data_handle_t *children);
                 subroutine fstarpu_data_partition_clean (dh,nparts,children) &
                                 bind(C,name="starpu_data_partition_clean")
-                        use iso_c_binding, only: c_ptr
+                        use iso_c_binding, only: c_ptr, c_int
                         type(c_ptr), value, intent(in) :: dh
-                        type(c_ptr), value, intent(in) :: nparts
+                        integer(c_int), value, intent(in) :: nparts
                         type(c_ptr), intent(in) :: children(*)
                 end subroutine fstarpu_data_partition_clean
 
