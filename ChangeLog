@@ -105,8 +105,6 @@ New features:
   * New StarPU-MPI gdb debug functions
   * Generate animated html trace of modular schedulers.
   * Add asynchronous partition planning. It only supports coherency through
-    the main RAM for now.
-  * Add asynchronous partition planning. It only supports coherency through
     the home node of data for now.
   * Add STARPU_MALLOC_SIMULATION_FOLDED flag to save memory when simulating.
   * Include application threads in the trace.
