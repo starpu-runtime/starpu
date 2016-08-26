@@ -137,4 +137,7 @@ typedef ssize_t starpu_ssize_t;
 /* This is only for building examples */
 #undef STARPU_HAVE_HELGRIND_H
 
+/* Enable Fortran to C MPI interface */
+#undef  HAVE_MPI_COMM_F2C
+
 #endif
