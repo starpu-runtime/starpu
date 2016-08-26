@@ -483,7 +483,7 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 	/* This function is called with handle's header lock taken */
 	_starpu_spin_checklocked(&handle->header_lock);
 
-	unsigned requesting_node = dst_replicate->memory_node;
+	unsigned requesting_node = dst_replicate ? dst_replicate->memory_node : -1;
 	unsigned nwait = 0;
 
 	if (mode & STARPU_W)
@@ -506,27 +506,30 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 		 */
 	}
 
-	if (dst_replicate->state != STARPU_INVALID && (!nwait || is_prefetch))
+	if ((!dst_replicate || dst_replicate->state != STARPU_INVALID) && (!nwait || is_prefetch))
 	{
+		if (dst_replicate)
+		{
 #ifdef STARPU_MEMORY_STATS
-		enum _starpu_cache_state old_state = dst_replicate->state;
+			enum _starpu_cache_state old_state = dst_replicate->state;
 #endif
-		/* the data is already available and we don't have to wait for
-		 * any request, so we can stop */
-		_starpu_update_data_state(handle, dst_replicate, mode);
-		_starpu_msi_cache_hit(requesting_node);
+			/* the data is already available and we don't have to wait for
+			 * any request, so we can stop */
+			_starpu_update_data_state(handle, dst_replicate, mode);
+			_starpu_msi_cache_hit(requesting_node);
 
 #ifdef STARPU_MEMORY_STATS
-		_starpu_memory_handle_stats_cache_hit(handle, requesting_node);
+			_starpu_memory_handle_stats_cache_hit(handle, requesting_node);
 
-		/* XXX Broken ? */
-		if (old_state == STARPU_SHARED
-		    && dst_replicate->state == STARPU_OWNER)
-			_starpu_memory_handle_stats_shared_to_owner(handle, requesting_node);
+			/* XXX Broken ? */
+			if (old_state == STARPU_SHARED
+			    && dst_replicate->state == STARPU_OWNER)
+				_starpu_memory_handle_stats_shared_to_owner(handle, requesting_node);
 #endif
 
 		if (dst_replicate->mc)
 			_starpu_memchunk_recently_used(dst_replicate->mc, requesting_node);
+		}
 
 		_starpu_spin_unlock(&handle->header_lock);
 
@@ -540,12 +543,12 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 	_starpu_msi_cache_miss(requesting_node);
 
 	/* the only remaining situation is that the local copy was invalid */
-	STARPU_ASSERT(dst_replicate->state == STARPU_INVALID || nwait);
+	STARPU_ASSERT((dst_replicate && dst_replicate->state == STARPU_INVALID) || nwait);
 
 	/* find someone who already has the data */
 	int src_node = -1;
 
-	if (mode & STARPU_R)
+	if (dst_replicate && mode & STARPU_R)
 	{
 		if (dst_replicate->state == STARPU_INVALID)
 			src_node = _starpu_select_src_node(handle, requesting_node);
@@ -557,7 +560,7 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 			mode &= ~STARPU_R;
 		}
 	}
-	else
+	else if (dst_replicate)
 	{
 		/* if the data is in write only mode (and not SCRATCH or REDUX), there is no need for a source, data will be initialized by the task itself */
 		if (mode & STARPU_W)
@@ -731,9 +734,10 @@ int _starpu_fetch_data_on_node(starpu_data_handle_t handle, struct _starpu_data_
 
 	if (!detached)
 	{
-		/* Take a reference which will be released by _starpu_release_data_on_node */
-		dst_replicate->refcnt++;
-		dst_replicate->handle->busy_count++;
+		/* Take references which will be released by _starpu_release_data_on_node */
+		if (dst_replicate)
+			dst_replicate->refcnt++;
+		handle->busy_count++;
 	}
 
 	struct _starpu_data_request *r;

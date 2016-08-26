@@ -253,6 +253,7 @@ myPROGRAMS +=				\
 	datawizard/specific_node		\
 	datawizard/task_with_multiple_time_the_same_handle	\
 	datawizard/test_arbiter			\
+	datawizard/invalidate_pending_requests	\
 	disk/disk_copy				\
 	disk/disk_compute			\
 	disk/disk_pack				\

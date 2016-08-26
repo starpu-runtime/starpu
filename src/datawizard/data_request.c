@@ -152,6 +152,8 @@ struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t ha
 	r->dst_replicate = dst_replicate;
 	r->mode = mode;
 	r->async_channel.type = STARPU_UNUSED;
+	if (handling_node == -1)
+		handling_node = STARPU_MAIN_RAM;
 	r->handling_node = handling_node;
 	STARPU_ASSERT(handling_node == STARPU_MAIN_RAM || _starpu_memory_node_get_nworkers(handling_node));
 	r->completed = 0;
@@ -166,7 +168,8 @@ struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t ha
 	_starpu_spin_lock(&r->lock);
 
 	/* Take a reference on the target for the request to be able to write it */
-	dst_replicate->refcnt++;
+	if (dst_replicate)
+		dst_replicate->refcnt++;
 	handle->busy_count++;
 
 	if (is_write_invalidation)
@@ -337,32 +340,35 @@ static void starpu_handle_data_request_completion(struct _starpu_data_request *r
 	struct _starpu_data_replicate *dst_replicate = r->dst_replicate;
 
 
+	if (dst_replicate)
+	{
 #ifdef STARPU_MEMORY_STATS
-	enum _starpu_cache_state old_src_replicate_state = src_replicate->state;
+		enum _starpu_cache_state old_src_replicate_state = src_replicate->state;
 #endif
 
-	_starpu_spin_checklocked(&handle->header_lock);
-	_starpu_update_data_state(handle, r->dst_replicate, mode);
+		_starpu_spin_checklocked(&handle->header_lock);
+		_starpu_update_data_state(handle, r->dst_replicate, mode);
 
 #ifdef STARPU_MEMORY_STATS
-	if (src_replicate->state == STARPU_INVALID)
-	{
-		if (old_src_replicate_state == STARPU_OWNER)
-			_starpu_memory_handle_stats_invalidated(handle, src_replicate->memory_node);
-		else
+		if (src_replicate->state == STARPU_INVALID)
 		{
-			/* XXX Currently only ex-OWNER are tagged as invalidated */
-			/* XXX Have to check all old state of every node in case a SHARED data become OWNED by the dst_replicate */
-		}
+			if (old_src_replicate_state == STARPU_OWNER)
+				_starpu_memory_handle_stats_invalidated(handle, src_replicate->memory_node);
+			else
+			{
+				/* XXX Currently only ex-OWNER are tagged as invalidated */
+				/* XXX Have to check all old state of every node in case a SHARED data become OWNED by the dst_replicate */
+			}
 
-	}
-	if (dst_replicate->state == STARPU_SHARED)
-		_starpu_memory_handle_stats_loaded_shared(handle, dst_replicate->memory_node);
-	else if (dst_replicate->state == STARPU_OWNER)
-	{
-		_starpu_memory_handle_stats_loaded_owner(handle, dst_replicate->memory_node);
-	}
+		}
+		if (dst_replicate->state == STARPU_SHARED)
+			_starpu_memory_handle_stats_loaded_shared(handle, dst_replicate->memory_node);
+		else if (dst_replicate->state == STARPU_OWNER)
+		{
+			_starpu_memory_handle_stats_loaded_owner(handle, dst_replicate->memory_node);
+		}
 #endif
+	}
 
 	if (r->com_id > 0)
 	{
@@ -389,12 +395,16 @@ static void starpu_handle_data_request_completion(struct _starpu_data_request *r
 
 #ifdef STARPU_SIMGRID
 	/* Wake potential worker which was waiting for it */
-	_starpu_wake_all_blocked_workers_on_node(dst_replicate->memory_node);
+	if (dst_replicate)
+		_starpu_wake_all_blocked_workers_on_node(dst_replicate->memory_node);
 #endif
 
 	/* Remove a reference on the destination replicate for the request */
-	STARPU_ASSERT(dst_replicate->refcnt > 0);
-	dst_replicate->refcnt--;
+	if (dst_replicate)
+	{
+		STARPU_ASSERT(dst_replicate->refcnt > 0);
+		dst_replicate->refcnt--;
+	}
 	STARPU_ASSERT(handle->busy_count > 0);
 	handle->busy_count--;
 
@@ -479,7 +489,7 @@ static int starpu_handle_data_request(struct _starpu_data_request *r, unsigned m
 	/* the header of the data must be locked by the worker that submitted the request */
 
 
-	if (dst_replicate->state == STARPU_INVALID)
+	if (dst_replicate && dst_replicate->state == STARPU_INVALID)
 		r->retval = _starpu_driver_copy_data_1_to_1(handle, src_replicate,
 						    dst_replicate, !(r_mode & STARPU_R), r, may_alloc, prefetch);
 	else
