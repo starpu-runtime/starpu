@@ -91,5 +91,9 @@ todo
 \ingroup API_FxT_Support
 Add an event in the execution trace if FxT is enabled.
 
+\fn void starpu_fxt_trace_user_event_string(const char *s)
+\ingroup API_FxT_Support
+Add a string event in the execution trace if FxT is enabled.
+
 */
 
