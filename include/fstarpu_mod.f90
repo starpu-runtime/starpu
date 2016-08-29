@@ -941,6 +941,124 @@ module fstarpu_mod
 
                 ! == starpu_data_filter.h ==
 
+                function fstarpu_data_filter_allocate () bind(C)
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr) :: fstarpu_data_filter_allocate
+                end function fstarpu_data_filter_allocate
+
+                subroutine fstarpu_data_filter_free (filter) bind(C)
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), value, intent(in) :: filter
+                end subroutine fstarpu_data_filter_free
+
+                ! Note: use fstarpu_df_alloc_ prefix instead of fstarpu_data_filter_allocate_
+                ! to fit within the Fortran id length limit */
+                function fstarpu_df_alloc_bcsr_filter_canonical_block () bind(C)
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr) :: fstarpu_df_alloc_bcsr_filter_canonical_block
+                end function fstarpu_df_alloc_bcsr_filter_canonical_block
+
+                function fstarpu_df_alloc_csr_filter_vertical_block () bind(C)
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr) :: fstarpu_df_alloc_csr_filter_vertical_block
+                end function fstarpu_df_alloc_csr_filter_vertical_block
+
+                function fstarpu_df_alloc_matrix_filter_block () bind(C)
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr) :: fstarpu_df_alloc_matrix_filter_block
+                end function fstarpu_df_alloc_matrix_filter_block
+
+                function fstarpu_df_alloc_matrix_filter_block_shadow () bind(C)
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr) :: fstarpu_df_alloc_matrix_filter_block_shadow
+                end function fstarpu_df_alloc_matrix_filter_block_shadow
+
+                function fstarpu_df_alloc_matrix_filter_vertical_block () bind(C)
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr) :: fstarpu_df_alloc_matrix_filter_vertical_block
+                end function fstarpu_df_alloc_matrix_filter_vertical_block
+
+                function fstarpu_df_alloc_matrix_filter_vertical_block_shadow () bind(C)
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr) :: fstarpu_df_alloc_matrix_filter_vertical_block_shadow
+                end function fstarpu_df_alloc_matrix_filter_vertical_block_shadow
+
+                function fstarpu_df_alloc_vector_filter_block () bind(C)
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr) :: fstarpu_df_alloc_vector_filter_block
+                end function fstarpu_df_alloc_vector_filter_block
+
+                function fstarpu_df_alloc_vector_filter_block_shadow () bind(C)
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr) :: fstarpu_df_alloc_vector_filter_block_shadow
+                end function fstarpu_df_alloc_vector_filter_block_shadow
+
+                function fstarpu_df_alloc_vector_filter_list () bind(C)
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr) :: fstarpu_df_alloc_vector_filter_list
+                end function fstarpu_df_alloc_vector_filter_list
+
+                function fstarpu_df_alloc_vector_filter_divide_in_2 () bind(C)
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr) :: fstarpu_df_alloc_vector_filter_divide_in_2
+                end function fstarpu_df_alloc_vector_filter_divide_in_2
+
+                function fstarpu_df_alloc_block_filter_block () bind(C)
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr) :: fstarpu_df_alloc_block_filter_block
+                end function fstarpu_df_alloc_block_filter_block
+
+                function fstarpu_df_alloc_block_filter_block_shadow () bind(C)
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr) :: fstarpu_df_alloc_block_filter_block_shadow
+                end function fstarpu_df_alloc_block_filter_block_shadow
+
+                function fstarpu_df_alloc_block_filter_vertical_block () bind(C)
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr) :: fstarpu_df_alloc_block_filter_vertical_block
+                end function fstarpu_df_alloc_block_filter_vertical_block
+
+                function fstarpu_df_alloc_block_filter_vertical_block_shadow () bind(C)
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr) :: fstarpu_df_alloc_block_filter_vertical_block_shadow
+                end function fstarpu_df_alloc_block_filter_vertical_block_shadow
+
+                subroutine fstarpu_data_filter_set_filter_func (filter, f_ptr) bind(C)
+                        use iso_c_binding, only: c_ptr, c_funptr
+                        type(c_ptr), value, intent(in) :: filter
+                        type(c_funptr), value, intent(in) :: f_ptr
+                end subroutine fstarpu_data_filter_set_filter_func
+
+                subroutine fstarpu_data_filter_set_nchildren (filter, nchildren) bind(C)
+                        use iso_c_binding, only: c_ptr, c_int
+                        type(c_ptr), value, intent(in) :: filter
+                        integer(c_int), value, intent(in) :: nchildren
+                end subroutine fstarpu_data_filter_set_nchildren
+
+                subroutine fstarpu_data_filter_set_get_nchildren_func (filter, f_ptr) bind(C)
+                        use iso_c_binding, only: c_ptr, c_funptr
+                        type(c_ptr), value, intent(in) :: filter
+                        type(c_funptr), value, intent(in) :: f_ptr
+                end subroutine fstarpu_data_filter_set_get_nchildren_func
+
+                subroutine fstarpu_data_filter_set_get_child_ops_func (filter, f_ptr) bind(C)
+                        use iso_c_binding, only: c_ptr, c_funptr
+                        type(c_ptr), value, intent(in) :: filter
+                        type(c_funptr), value, intent(in) :: f_ptr
+                end subroutine fstarpu_data_filter_set_get_child_ops_func
+
+                subroutine fstarpu_data_filter_set_filter_arg (filter, filter_arg) bind(C)
+                        use iso_c_binding, only: c_ptr, c_int
+                        type(c_ptr), value, intent(in) :: filter
+                        integer(c_int), value, intent(in) :: filter_arg
+                end subroutine fstarpu_data_filter_set_filter_arg
+
+                subroutine fstarpu_data_filter_set_filter_arg_ptr (filter, filter_arg_ptr) bind(C)
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), value, intent(in) :: filter
+                        type(c_ptr), value, intent(in) :: filter_arg_ptr
+                end subroutine fstarpu_data_filter_set_filter_arg_ptr
+
                 ! void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_data_filter *f);
                 subroutine fstarpu_data_partition (dh,filter) bind(C,name="starpu_data_partition")
                         use iso_c_binding, only: c_ptr
@@ -949,11 +1067,11 @@ module fstarpu_mod
                 end subroutine fstarpu_data_partition
 
                 ! void starpu_data_unpartition(starpu_data_handle_t root_data, unsigned gathering_node);
-                subroutine fstarpug_data_data_unpartition (root_dh,gathering_node) bind(C,name="starpu_data_data_unpartition")
+                subroutine fstarpu_data_unpartition (root_dh,gathering_node) bind(C,name="starpu_data_unpartition")
                         use iso_c_binding, only: c_ptr, c_int
                         type(c_ptr), value, intent(in) :: root_dh
                         integer(c_int), value, intent(in) :: gathering_node
-                end subroutine fstarpug_data_data_unpartition
+                end subroutine fstarpu_data_unpartition
 
                 ! void starpu_data_partition_plan(starpu_data_handle_t initial_handle, struct starpu_data_filter *f, starpu_data_handle_t *children);
                 subroutine fstarpu_data_partition_plan (dh,filter,children) & 
@@ -1036,7 +1154,31 @@ module fstarpu_mod
                 end function fstarpu_data_get_child
 
                 ! starpu_data_handle_t starpu_data_get_sub_data(starpu_data_handle_t root_data, unsigned depth, ... );
+                ! . see: fstarpu_data_get_sub_data
                 ! starpu_data_handle_t starpu_data_vget_sub_data(starpu_data_handle_t root_data, unsigned depth, va_list pa);
+                ! . see: fstarpu_data_get_sub_data
+
+                ! note: defined in filters.c
+                function fstarpu_data_get_sub_data (root_dh,depth,indices) bind(C)
+                        use iso_c_binding, only: c_ptr, c_int
+                        type(c_ptr)              :: fstarpu_data_get_sub_data
+                        type(c_ptr), value, intent(in) :: root_dh
+                        integer(c_int), value, intent(in) :: depth
+                        integer(c_int), intent(in) :: indices(*)
+                end function fstarpu_data_get_sub_data
+
+                ! void starpu_data_map_filters(starpu_data_handle_t root_data, unsigned nfilters, ...);
+                ! . see fstarpu_data_map_filters
+                ! void starpu_data_vmap_filters(starpu_data_handle_t root_data, unsigned nfilters, va_list pa);
+                ! . see fstarpu_data_map_filters
+
+                ! note: defined in filters.c
+                subroutine fstarpu_data_map_filters (root_dh,nfilters,filters) bind(C)
+                        use iso_c_binding, only: c_ptr, c_int
+                        type(c_ptr), value, intent(in) :: root_dh
+                        integer(c_int), value, intent(in) :: nfilters
+                        type(c_ptr), intent(in) :: filters(*)
+                end subroutine fstarpu_data_map_filters
 
                 ! void starpu_matrix_filter_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
                 subroutine fstarpu_matrix_filter_block (father_interface,child_interface,filter,id,nparts) &
@@ -1116,7 +1258,6 @@ module fstarpu_mod
                 end subroutine fstarpu_vector_filter_list
 
                 ! void starpu_vector_filter_divide_in_2(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
-                ! void starpu_vector_filter_list(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
                 subroutine fstarpu_vector_divide_in_2 (father_interface,child_interface,filter,id,nparts) &
                                 bind(C,name="starpu_vector_divide_in_2")
                         use iso_c_binding, only: c_ptr

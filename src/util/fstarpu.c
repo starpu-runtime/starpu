@@ -506,3 +506,75 @@ void fstarpu_data_descr_set(struct starpu_data_descr *descr, starpu_data_handle_
 {
 	fstarpu_data_descr_array_set(descr, 1, handle, mode);
 }
+
+struct starpu_data_filter *fstarpu_data_filter_allocate(void)
+{
+	struct starpu_data_filter *filter = calloc(1, sizeof(*filter));
+	return filter;
+}
+
+/* Note: use fstarpu_df_alloc_ prefix instead of fstarpu_data_filter_allocate_ to fit within the
+ * Fortran id length limit */
+#define _FSTARPU_DATA_FILTER_ALLOCATOR(name) \
+struct starpu_data_filter *fstarpu_df_alloc_##name(void) \
+{ \
+	struct starpu_data_filter *filter = fstarpu_data_filter_allocate(); \
+	filter->filter_func = starpu_##name; \
+	return filter; \
+}
+
+_FSTARPU_DATA_FILTER_ALLOCATOR(bcsr_filter_canonical_block);
+_FSTARPU_DATA_FILTER_ALLOCATOR(csr_filter_vertical_block);
+_FSTARPU_DATA_FILTER_ALLOCATOR(matrix_filter_block);
+_FSTARPU_DATA_FILTER_ALLOCATOR(matrix_filter_block_shadow);
+_FSTARPU_DATA_FILTER_ALLOCATOR(matrix_filter_vertical_block);
+_FSTARPU_DATA_FILTER_ALLOCATOR(matrix_filter_vertical_block_shadow);
+_FSTARPU_DATA_FILTER_ALLOCATOR(vector_filter_block);
+_FSTARPU_DATA_FILTER_ALLOCATOR(vector_filter_block_shadow);
+_FSTARPU_DATA_FILTER_ALLOCATOR(vector_filter_list);
+_FSTARPU_DATA_FILTER_ALLOCATOR(vector_filter_divide_in_2);
+_FSTARPU_DATA_FILTER_ALLOCATOR(block_filter_block);
+_FSTARPU_DATA_FILTER_ALLOCATOR(block_filter_block_shadow);
+_FSTARPU_DATA_FILTER_ALLOCATOR(block_filter_vertical_block);
+_FSTARPU_DATA_FILTER_ALLOCATOR(block_filter_vertical_block_shadow);
+
+#undef _FSTARPU_DATA_FILTER_ALLOCATOR
+
+void fstarpu_data_filter_free(struct starpu_data_filter *filter) {
+	memset(filter, 0, sizeof(*filter));
+	free(filter);
+}
+
+void fstarpu_data_filter_set_filter_func(struct starpu_data_filter *filter, void *f_ptr)
+{
+	STARPU_ASSERT(f_ptr != NULL);
+	filter->filter_func = f_ptr;
+}
+
+void fstarpu_data_filter_set_nchildren(struct starpu_data_filter *filter, int nchildren)
+{
+	STARPU_ASSERT(nchildren >= 0);
+	filter->nchildren = nchildren;
+}
+
+void fstarpu_data_filter_set_get_nchildren_func(struct starpu_data_filter *filter, void *f_ptr)
+{
+	filter->get_nchildren = f_ptr;
+}
+
+void fstarpu_data_filter_set_get_child_ops_func(struct starpu_data_filter *filter, void *f_ptr)
+{
+	filter->get_child_ops = f_ptr;
+}
+
+void fstarpu_data_filter_set_filter_arg(struct starpu_data_filter *filter, int filter_arg)
+{
+	STARPU_ASSERT(filter_arg >= 0); /* starpu_data_filter.filter_arg is unsigned, but
+					 * Fortran does not support unsigned types */
+	filter->filter_arg = (unsigned)filter_arg;
+}
+
+void fstarpu_data_filter_set_filter_arg_ptr(struct starpu_data_filter *filter, void *filter_arg_ptr)
+{
+	filter->filter_arg_ptr = filter_arg_ptr;
+}
