@@ -2275,7 +2275,7 @@ AM_CONDITIONAL([RUN_GCC_PLUGIN_TESTS],
 ###############################################################################
 
 AC_ARG_ENABLE(openmp, [AS_HELP_STRING([--enable-openmp],
-			[build the OpenMP runtime support (experimental)])],
+			[build the OpenMP runtime support)])],
 			enable_openmp=$enableval, enable_openmp=no)
 
 AC_MSG_CHECKING(for OpenMP runtime support)
