@@ -1400,8 +1400,24 @@ module fstarpu_mod
                         integer(c_int), value, intent(in) :: node
                 end subroutine fstarpu_data_release_on_node
 
+                ! starpu_arbiter_t starpu_arbiter_create(void) STARPU_ATTRIBUTE_MALLOC;
+                function fstarpu_arbiter_create () bind(C,name="starpu_arbiter_create")
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr) :: fstarpu_arbiter_create
+                end function fstarpu_arbiter_create
+
                 ! void starpu_data_assign_arbiter(starpu_data_handle_t handle, starpu_arbiter_t arbiter);
+                subroutine fstarpu_data_assign_arbiter (dh,arbiter) bind(C,name="starpu_data_assign_arbiter")
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), intent(out) :: dh
+                        type(c_ptr), value, intent(in) :: arbiter
+                end subroutine fstarpu_data_assign_arbiter
+
                 ! void starpu_arbiter_destroy(starpu_arbiter_t arbiter);
+                subroutine fstarpu_data_arbiter_destroy (arbiter) bind(C,name="starpu_data_arbiter_destroy")
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), value, intent(in) :: arbiter
+                end subroutine fstarpu_data_arbiter_destroy
 
                 ! void starpu_data_display_memory_stats();
                 subroutine fstarpu_display_memory_stats() bind(C,name="starpu_display_memory_stats")
