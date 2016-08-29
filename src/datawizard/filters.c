@@ -66,6 +66,18 @@ void starpu_data_map_filters(starpu_data_handle_t root_handle, unsigned nfilters
 	va_end(pa);
 }
 
+void fstarpu_data_map_filters(starpu_data_handle_t root_handle, int nfilters, struct starpu_data_filter **filters)
+{
+	int i;
+	assert(nfilters >= 0);
+	for (i = 0; i < nfilters; i++)
+	{
+		struct starpu_data_filter *next_filter = filters[i];
+		STARPU_ASSERT(next_filter);
+		map_filter(root_handle, next_filter);
+	}
+}
+
 int starpu_data_get_nb_children(starpu_data_handle_t handle)
 {
         return handle->nchildren;
@@ -102,6 +114,29 @@ starpu_data_handle_t starpu_data_vget_sub_data(starpu_data_handle_t root_handle,
 	{
 		unsigned next_child;
 		next_child = va_arg(pa, unsigned);
+
+		STARPU_ASSERT_MSG(current_handle->nchildren != 0, "Data %p has to be partitioned before accessing children", current_handle);
+		STARPU_ASSERT_MSG(next_child < current_handle->nchildren, "Bogus child number %u, data %p only has %u children", next_child, current_handle, current_handle->nchildren);
+
+		current_handle = &current_handle->children[next_child];
+	}
+
+	return current_handle;
+}
+
+starpu_data_handle_t fstarpu_data_get_sub_data(starpu_data_handle_t root_handle, int depth, int *indices)
+{
+	STARPU_ASSERT(root_handle);
+	starpu_data_handle_t current_handle = root_handle;
+
+	STARPU_ASSERT(depth >= 0);
+	/* the variable number of argument must correlate the depth in the tree */
+	int i;
+	for (i = 0; i < depth; i++)
+	{
+		int next_child;
+		next_child = indices[i];
+		STARPU_ASSERT(next_child >= 0);
 
 		STARPU_ASSERT_MSG(current_handle->nchildren != 0, "Data %p has to be partitioned before accessing children", current_handle);
 		STARPU_ASSERT_MSG(next_child < current_handle->nchildren, "Bogus child number %u, data %p only has %u children", next_child, current_handle, current_handle->nchildren);
