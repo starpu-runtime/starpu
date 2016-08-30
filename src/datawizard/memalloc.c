@@ -209,6 +209,9 @@ static unsigned may_free_subtree(starpu_data_handle_t handle, unsigned node)
 
 	if (handle->current_mode == STARPU_W)
 	{
+		if (handle->write_invalidation_req)
+			/* Some request is invalidating it anyway */
+			return 0;
 		unsigned n;
 		for (n = 0; n < STARPU_MAXNODES; n++)
 			if (_starpu_get_data_refcnt(handle, n))
@@ -1010,6 +1013,10 @@ void starpu_memchunk_tidy(unsigned node)
 
 			if (handle->current_mode == STARPU_W)
 			{
+				if (handle->write_invalidation_req)
+					/* Some request is invalidating it anyway */
+					continue;
+
 				unsigned n;
 				for (n = 0; n < STARPU_MAXNODES; n++)
 					if (_starpu_get_data_refcnt(handle, n))
