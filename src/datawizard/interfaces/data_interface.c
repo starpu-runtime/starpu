@@ -241,7 +241,7 @@ starpu_data_handle_t starpu_data_lookup(const void *ptr)
  */
 
 static void _starpu_register_new_data(starpu_data_handle_t handle,
-					unsigned home_node, uint32_t wt_mask)
+					int home_node, uint32_t wt_mask)
 {
 	void *ptr;
 
@@ -455,7 +455,7 @@ starpu_data_handle_t _starpu_data_handle_allocate(struct starpu_data_interface_o
 	return handle;
 }
 
-void starpu_data_register(starpu_data_handle_t *handleptr, unsigned home_node,
+void starpu_data_register(starpu_data_handle_t *handleptr, int home_node,
 			  void *data_interface,
 			  struct starpu_data_interface_ops *ops)
 {

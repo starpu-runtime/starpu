@@ -95,7 +95,7 @@ static void register_bcsr_handle(starpu_data_handle_t handle, unsigned home_node
 	}
 }
 
-void starpu_bcsr_data_register(starpu_data_handle_t *handleptr, unsigned home_node,
+void starpu_bcsr_data_register(starpu_data_handle_t *handleptr, int home_node,
 		uint32_t nnz, uint32_t nrow, uintptr_t nzval, uint32_t *colind,
 		uint32_t *rowptr, uint32_t firstentry,
 		uint32_t r, uint32_t c, size_t elemsize)

@@ -189,7 +189,7 @@ static void register_multiformat_handle(starpu_data_handle_t handle, unsigned ho
 }
 
 void starpu_multiformat_data_register(starpu_data_handle_t *handleptr,
-				      unsigned home_node,
+				      int home_node,
 				      void *ptr,
 				      uint32_t nobjects,
 				      struct starpu_multiformat_data_interface_ops *format_ops)

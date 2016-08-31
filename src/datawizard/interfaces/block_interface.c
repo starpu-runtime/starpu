@@ -144,7 +144,7 @@ static void register_block_handle(starpu_data_handle_t handle, unsigned home_nod
 }
 
 /* declare a new data with the BLAS interface */
-void starpu_block_data_register(starpu_data_handle_t *handleptr, unsigned home_node,
+void starpu_block_data_register(starpu_data_handle_t *handleptr, int home_node,
 			uintptr_t ptr, uint32_t ldy, uint32_t ldz, uint32_t nx,
 			uint32_t ny, uint32_t nz, size_t elemsize)
 {

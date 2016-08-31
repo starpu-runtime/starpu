@@ -92,7 +92,7 @@ static void register_csr_handle(starpu_data_handle_t handle, unsigned home_node,
 }
 
 /* declare a new data with the BLAS interface */
-void starpu_csr_data_register(starpu_data_handle_t *handleptr, unsigned home_node,
+void starpu_csr_data_register(starpu_data_handle_t *handleptr, int home_node,
 		uint32_t nnz, uint32_t nrow, uintptr_t nzval, uint32_t *colind, uint32_t *rowptr, uint32_t firstentry, size_t elemsize)
 {
 	struct starpu_csr_interface csr_interface =

@@ -108,7 +108,7 @@ data to StarPU, the specified memory node indicates where the piece of
 data initially resides (we also call this memory node the home node of
 a piece of data).
 
-\fn void starpu_data_register(starpu_data_handle_t *handleptr, unsigned home_node, void *data_interface, struct starpu_data_interface_ops *ops)
+\fn void starpu_data_register(starpu_data_handle_t *handleptr, int home_node, void *data_interface, struct starpu_data_interface_ops *ops)
 \ingroup API_Data_Management
 Register a piece of data into the handle located at the
 \p handleptr address. The \p data_interface buffer contains the initial
