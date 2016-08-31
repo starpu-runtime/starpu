@@ -179,9 +179,6 @@ struct _starpu_data_state
 	/* what is the default write-through mask for that data ? */
 	uint32_t wt_mask;
 
-	/* allows special optimization */
-	uint8_t is_readonly;
-
 	/* in some case, the application may explicitly tell StarPU that a
  	 * piece of data is not likely to be used soon again */
 	unsigned is_not_important;
