@@ -547,6 +547,14 @@ void starpu_data_partition_plan(starpu_data_handle_t initial_handle, struct star
 	STARPU_ASSERT_MSG(initial_handle->nchildren == 0, "partition planning and synchronous partitioning is not supported");
 	STARPU_ASSERT_MSG(initial_handle->sequential_consistency, "partition planning is currently only supported for data with sequential consistency");
 	struct starpu_codelet *cl = initial_handle->switch_cl;
+	int home_node = initial_handle->home_node;
+	if (home_node == -1)
+		/* Nothing better for now */
+		/* TODO: pass -1, and make _starpu_fetch_nowhere_task_input
+		 * really call _starpu_fetch_data_on_node, and make that update
+		 * the coherency.
+		 */
+		home_node = STARPU_MAIN_RAM;
 
 	for (i = 0; i < nparts; i++)
 		childrenp[i] = calloc(1, sizeof(struct _starpu_data_state));
@@ -566,7 +574,7 @@ void starpu_data_partition_plan(starpu_data_handle_t initial_handle, struct star
 		/* First initialization, or previous initialization was with fewer parts, enlarge it */
 		cl->dyn_nodes = realloc(cl->dyn_nodes, (nparts+1) * sizeof(*cl->dyn_nodes));
 		for (i = initial_handle->switch_cl_nparts; i < nparts+1; i++)
-			cl->dyn_nodes[i] = initial_handle->home_node;
+			cl->dyn_nodes[i] = home_node;
 		initial_handle->switch_cl_nparts = nparts;
 	}
 }
