@@ -232,7 +232,6 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 		child->is_not_important = initial_handle->is_not_important;
 		child->wt_mask = initial_handle->wt_mask;
 		child->home_node = initial_handle->home_node;
-		child->is_readonly = initial_handle->is_readonly;
 
 		/* initialize the chunk lock */
 		_starpu_data_requester_list_init(&child->req_list);
