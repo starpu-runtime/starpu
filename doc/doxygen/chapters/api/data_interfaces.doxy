@@ -245,7 +245,7 @@ by the application internally: this makes it possible to forbid the
 concurrent execution of different tasks accessing the same <c>void</c> data
 in read-write concurrently. 
 
-\fn void starpu_variable_data_register(starpu_data_handle_t *handle, unsigned home_node, uintptr_t ptr, size_t size)
+\fn void starpu_variable_data_register(starpu_data_handle_t *handle, int home_node, uintptr_t ptr, size_t size)
 \ingroup API_Data_Interfaces
 Register the \p size byte element pointed to by \p ptr, which is
 typically a scalar, and initialize \p handle to represent this data item.
@@ -263,7 +263,7 @@ Register into the \p handle that to store data on node \p node it should use the
 buffer located at \p ptr, or device handle \p dev_handle and offset \p offset
 (for OpenCL, notably)
 
-\fn void starpu_vector_data_register(starpu_data_handle_t *handle, unsigned home_node, uintptr_t ptr, uint32_t nx, size_t elemsize)
+\fn void starpu_vector_data_register(starpu_data_handle_t *handle, int home_node, uintptr_t ptr, uint32_t nx, size_t elemsize)
 \ingroup API_Data_Interfaces
 Register the \p nx elemsize-byte elements pointed to by \p ptr and initialize \p handle to represent it.
 
@@ -280,7 +280,7 @@ Register into the \p handle that to store data on node \p node it should use the
 buffer located at \p ptr, or device handle \p dev_handle and offset \p offset
 (for OpenCL, notably)
 
-\fn void starpu_matrix_data_register(starpu_data_handle_t *handle, unsigned home_node, uintptr_t ptr, uint32_t ld, uint32_t nx, uint32_t ny, size_t elemsize)
+\fn void starpu_matrix_data_register(starpu_data_handle_t *handle, int home_node, uintptr_t ptr, uint32_t ld, uint32_t nx, uint32_t ny, size_t elemsize)
 \ingroup API_Data_Interfaces
 Register the \p nx x \p  ny 2D matrix of \p elemsize-byte elements pointed
 by \p ptr and initialize \p handle to represent it. \p ld specifies the number
@@ -301,7 +301,7 @@ Register into the \p handle that to store data on node \p node it should use the
 buffer located at \p ptr, or device handle \p dev_handle and offset \p offset
 (for OpenCL, notably), with \p ld elements between rows.
 
-\fn void starpu_block_data_register(starpu_data_handle_t *handle, unsigned home_node, uintptr_t ptr, uint32_t ldy, uint32_t ldz, uint32_t nx, uint32_t ny, uint32_t nz, size_t elemsize)
+\fn void starpu_block_data_register(starpu_data_handle_t *handle, int home_node, uintptr_t ptr, uint32_t ldy, uint32_t ldz, uint32_t nx, uint32_t ny, uint32_t nz, size_t elemsize)
 \ingroup API_Data_Interfaces
 Register the \p nx x \p ny x \p nz 3D matrix of \p elemsize byte elements
 pointed by \p ptr and initialize \p handle to represent it. Again, \p ldy and
@@ -321,7 +321,7 @@ Register into the \p handle that to store data on node \p node it should use the
 buffer located at \p ptr, or device handle \p dev_handle and offset \p offset
 (for OpenCL, notably), with \p ldy elements between rows and \p ldz elements between z planes.
 
-\fn void starpu_bcsr_data_register(starpu_data_handle_t *handle, unsigned home_node, uint32_t nnz, uint32_t nrow, uintptr_t nzval, uint32_t *colind, uint32_t *rowptr, uint32_t firstentry, uint32_t r, uint32_t c, size_t elemsize)
+\fn void starpu_bcsr_data_register(starpu_data_handle_t *handle, int home_node, uint32_t nnz, uint32_t nrow, uintptr_t nzval, uint32_t *colind, uint32_t *rowptr, uint32_t firstentry, uint32_t r, uint32_t c, size_t elemsize)
 \ingroup API_Data_Interfaces
 This variant of starpu_data_register() uses the BCSR (Blocked
 Compressed Sparse Row Representation) sparse matrix interface.
@@ -333,12 +333,12 @@ blocks), \p colind[i] is the block-column index for block i in \p nzval,
 \p firstentry is the index of the first entry of the given arrays
 (usually 0 or 1). 
 
-\fn void starpu_csr_data_register(starpu_data_handle_t *handle, unsigned home_node, uint32_t nnz, uint32_t nrow, uintptr_t nzval, uint32_t *colind, uint32_t *rowptr, uint32_t firstentry, size_t elemsize)
+\fn void starpu_csr_data_register(starpu_data_handle_t *handle, int home_node, uint32_t nnz, uint32_t nrow, uintptr_t nzval, uint32_t *colind, uint32_t *rowptr, uint32_t firstentry, size_t elemsize)
 \ingroup API_Data_Interfaces
 This variant of starpu_data_register() uses the CSR (Compressed
 Sparse Row Representation) sparse matrix interface. TODO
 
-\fn void starpu_coo_data_register(starpu_data_handle_t *handleptr, unsigned home_node, uint32_t nx, uint32_t ny, uint32_t n_values, uint32_t *columns, uint32_t *rows, uintptr_t values, size_t elemsize);
+\fn void starpu_coo_data_register(starpu_data_handle_t *handleptr, int home_node, uint32_t nx, uint32_t ny, uint32_t n_values, uint32_t *columns, uint32_t *rows, uintptr_t values, size_t elemsize);
 \ingroup API_Data_Interfaces
 Register the \p nx x \p ny 2D matrix given in the COO format, using the
 \p columns, \p rows, \p values arrays, which must have \p n_values elements of

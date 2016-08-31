@@ -100,7 +100,7 @@ static void register_variable_handle(starpu_data_handle_t handle, unsigned home_
 }
 
 /* declare a new data with the variable interface */
-void starpu_variable_data_register(starpu_data_handle_t *handleptr, unsigned home_node,
+void starpu_variable_data_register(starpu_data_handle_t *handleptr, int home_node,
                         uintptr_t ptr, size_t elemsize)
 {
 	struct starpu_variable_interface variable =

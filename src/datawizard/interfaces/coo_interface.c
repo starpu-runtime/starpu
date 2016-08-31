@@ -218,7 +218,7 @@ struct starpu_data_interface_ops starpu_interface_coo_ops =
 };
 
 void
-starpu_coo_data_register(starpu_data_handle_t *handleptr, unsigned home_node,
+starpu_coo_data_register(starpu_data_handle_t *handleptr, int home_node,
 			 uint32_t nx, uint32_t ny, uint32_t n_values,
 			 uint32_t *columns, uint32_t *rows,
 			 uintptr_t values, size_t elemsize)

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2015  Université de Bordeaux
+ * Copyright (C) 2010-2016  Université de Bordeaux
  * Copyright (C) 2010-2014  CNRS
  * Copyright (C) 2011-2012  INRIA
  *
@@ -133,7 +133,7 @@ struct starpu_data_interface_ops
 
 int starpu_data_interface_get_next_id(void);
 
-void starpu_data_register(starpu_data_handle_t *handleptr, unsigned home_node, void *data_interface, struct starpu_data_interface_ops *ops);
+void starpu_data_register(starpu_data_handle_t *handleptr, int home_node, void *data_interface, struct starpu_data_interface_ops *ops);
 void starpu_data_ptr_register(starpu_data_handle_t handle, unsigned node);
 void starpu_data_register_same(starpu_data_handle_t *handledst, starpu_data_handle_t handlesrc);
 
@@ -157,7 +157,7 @@ struct starpu_matrix_interface
 	size_t elemsize;
 };
 
-void starpu_matrix_data_register(starpu_data_handle_t *handle, unsigned home_node, uintptr_t ptr, uint32_t ld, uint32_t nx, uint32_t ny, size_t elemsize);
+void starpu_matrix_data_register(starpu_data_handle_t *handle, int home_node, uintptr_t ptr, uint32_t ld, uint32_t nx, uint32_t ny, size_t elemsize);
 void starpu_matrix_ptr_register(starpu_data_handle_t handle, unsigned node, uintptr_t ptr, uintptr_t dev_handle, size_t offset, uint32_t ld);
 uint32_t starpu_matrix_get_nx(starpu_data_handle_t handle);
 uint32_t starpu_matrix_get_ny(starpu_data_handle_t handle);
@@ -188,7 +188,7 @@ struct starpu_coo_interface
 	size_t    elemsize;
 };
 
-void starpu_coo_data_register(starpu_data_handle_t *handleptr, unsigned home_node, uint32_t nx, uint32_t ny, uint32_t n_values, uint32_t *columns, uint32_t *rows, uintptr_t values, size_t elemsize);
+void starpu_coo_data_register(starpu_data_handle_t *handleptr, int home_node, uint32_t nx, uint32_t ny, uint32_t n_values, uint32_t *columns, uint32_t *rows, uintptr_t values, size_t elemsize);
 
 #define STARPU_COO_GET_COLUMNS(interface) \
 	(((struct starpu_coo_interface *)(interface))->columns)
@@ -230,7 +230,7 @@ struct starpu_block_interface
 	size_t elemsize;
 };
 
-void starpu_block_data_register(starpu_data_handle_t *handle, unsigned home_node, uintptr_t ptr, uint32_t ldy, uint32_t ldz, uint32_t nx, uint32_t ny, uint32_t nz, size_t elemsize);
+void starpu_block_data_register(starpu_data_handle_t *handle, int home_node, uintptr_t ptr, uint32_t ldy, uint32_t ldz, uint32_t nx, uint32_t ny, uint32_t nz, size_t elemsize);
 void starpu_block_ptr_register(starpu_data_handle_t handle, unsigned node, uintptr_t ptr, uintptr_t dev_handle, size_t offset, uint32_t ldy, uint32_t ldz);
 uint32_t starpu_block_get_nx(starpu_data_handle_t handle);
 uint32_t starpu_block_get_ny(starpu_data_handle_t handle);
@@ -265,7 +265,7 @@ struct starpu_vector_interface
 	uint32_t slice_base;
 };
 
-void starpu_vector_data_register(starpu_data_handle_t *handle, unsigned home_node, uintptr_t ptr, uint32_t nx, size_t elemsize);
+void starpu_vector_data_register(starpu_data_handle_t *handle, int home_node, uintptr_t ptr, uint32_t nx, size_t elemsize);
 void starpu_vector_ptr_register(starpu_data_handle_t handle, unsigned node, uintptr_t ptr, uintptr_t dev_handle, size_t offset);
 uint32_t starpu_vector_get_nx(starpu_data_handle_t handle);
 size_t starpu_vector_get_elemsize(starpu_data_handle_t handle);
@@ -290,7 +290,7 @@ struct starpu_variable_interface
 	size_t elemsize;
 };
 
-void starpu_variable_data_register(starpu_data_handle_t *handle, unsigned home_node, uintptr_t ptr, size_t size);
+void starpu_variable_data_register(starpu_data_handle_t *handle, int home_node, uintptr_t ptr, size_t size);
 void starpu_variable_ptr_register(starpu_data_handle_t handle, unsigned node, uintptr_t ptr, uintptr_t dev_handle, size_t offset);
 size_t starpu_variable_get_elemsize(starpu_data_handle_t handle);
 uintptr_t starpu_variable_get_local_ptr(starpu_data_handle_t handle);
@@ -322,7 +322,7 @@ struct starpu_csr_interface
 	size_t elemsize;
 };
 
-void starpu_csr_data_register(starpu_data_handle_t *handle, unsigned home_node, uint32_t nnz, uint32_t nrow, uintptr_t nzval, uint32_t *colind, uint32_t *rowptr, uint32_t firstentry, size_t elemsize);
+void starpu_csr_data_register(starpu_data_handle_t *handle, int home_node, uint32_t nnz, uint32_t nrow, uintptr_t nzval, uint32_t *colind, uint32_t *rowptr, uint32_t firstentry, size_t elemsize);
 uint32_t starpu_csr_get_nnz(starpu_data_handle_t handle);
 uint32_t starpu_csr_get_nrow(starpu_data_handle_t handle);
 uint32_t starpu_csr_get_firstentry(starpu_data_handle_t handle);
@@ -367,7 +367,7 @@ struct starpu_bcsr_interface
 	size_t elemsize;
 };
 
-void starpu_bcsr_data_register(starpu_data_handle_t *handle, unsigned home_node, uint32_t nnz, uint32_t nrow, uintptr_t nzval, uint32_t *colind, uint32_t *rowptr, uint32_t firstentry, uint32_t r, uint32_t c, size_t elemsize);
+void starpu_bcsr_data_register(starpu_data_handle_t *handle, int home_node, uint32_t nnz, uint32_t nrow, uintptr_t nzval, uint32_t *colind, uint32_t *rowptr, uint32_t firstentry, uint32_t r, uint32_t c, size_t elemsize);
 
 #define STARPU_BCSR_GET_NNZ(interface)        (((struct starpu_bcsr_interface *)(interface))->nnz)
 #define STARPU_BCSR_GET_NZVAL(interface)      (((struct starpu_bcsr_interface *)(interface))->nzval)
@@ -416,7 +416,7 @@ struct starpu_multiformat_interface
 	struct starpu_multiformat_data_interface_ops *ops;
 };
 
-void starpu_multiformat_data_register(starpu_data_handle_t *handle, unsigned home_node, void *ptr, uint32_t nobjects, struct starpu_multiformat_data_interface_ops *format_ops);
+void starpu_multiformat_data_register(starpu_data_handle_t *handle, int home_node, void *ptr, uint32_t nobjects, struct starpu_multiformat_data_interface_ops *format_ops);
 
 #define STARPU_MULTIFORMAT_GET_CPU_PTR(interface)  (((struct starpu_multiformat_interface *)(interface))->cpu_ptr)
 #define STARPU_MULTIFORMAT_GET_CUDA_PTR(interface) (((struct starpu_multiformat_interface *)(interface))->cuda_ptr)

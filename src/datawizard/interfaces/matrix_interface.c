@@ -157,7 +157,7 @@ static void *matrix_handle_to_pointer(starpu_data_handle_t handle, unsigned node
 
 
 /* declare a new data with the matrix interface */
-void starpu_matrix_data_register(starpu_data_handle_t *handleptr, unsigned home_node,
+void starpu_matrix_data_register(starpu_data_handle_t *handleptr, int home_node,
 			uintptr_t ptr, uint32_t ld, uint32_t nx,
 			uint32_t ny, size_t elemsize)
 {
