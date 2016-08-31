@@ -599,6 +599,9 @@ void starpu_data_partition_submit(starpu_data_handle_t initial_handle, unsigned 
 	initial_handle->partitioned++;
 	_starpu_spin_unlock(&initial_handle->header_lock);
 
+	if (!initial_handle->initialized)
+		/* No need for coherency, it is not initialized */
+		return;
 	unsigned i;
 	struct starpu_data_descr descr[nparts];
 	for (i = 0; i < nparts; i++)
@@ -621,6 +624,7 @@ void starpu_data_partition_readonly_submit(starpu_data_handle_t initial_handle, 
 	initial_handle->readonly = 1;
 	_starpu_spin_unlock(&initial_handle->header_lock);
 
+	STARPU_ASSERT_MSG(initial_handle->initialized, "It is odd to read-only-partition a data which does not have a value yet");
 	unsigned i;
 	struct starpu_data_descr descr[nparts];
 	for (i = 0; i < nparts; i++)
@@ -666,16 +670,20 @@ void starpu_data_unpartition_submit(starpu_data_handle_t initial_handle, unsigne
 		initial_handle->readonly = 0;
 	_starpu_spin_unlock(&initial_handle->header_lock);
 
-	unsigned i;
+	unsigned i, n;
 	struct starpu_data_descr descr[nparts];
-	for (i = 0; i < nparts; i++)
+	for (i = 0, n = 0; i < nparts; i++)
 	{
 		STARPU_ASSERT_MSG(children[i]->father_handle == initial_handle, "children parameter of starpu_data_partition_submit must be the children of the parent parameter");
-		descr[i].handle = children[i];
-		descr[i].mode = STARPU_RW;
+		if (!children[i]->initialized)
+			/* Dropped value, do not care about coherency for this one */
+			continue;
+		descr[n].handle = children[i];
+		descr[n].mode = STARPU_RW;
+		n++;
 	}
 	/* TODO: assert nparts too */
-	starpu_task_insert(initial_handle->switch_cl, STARPU_W, initial_handle, STARPU_DATA_MODE_ARRAY, descr, nparts, 0);
+	starpu_task_insert(initial_handle->switch_cl, STARPU_W, initial_handle, STARPU_DATA_MODE_ARRAY, descr, n, 0);
 	for (i = 0; i < nparts; i++)
 		starpu_data_invalidate_submit(children[i]);
 }
@@ -689,16 +697,20 @@ void starpu_data_unpartition_readonly_submit(starpu_data_handle_t initial_handle
 	initial_handle->readonly = 1;
 	_starpu_spin_unlock(&initial_handle->header_lock);
 
-	unsigned i;
+	unsigned i, n;
 	struct starpu_data_descr descr[nparts];
-	for (i = 0; i < nparts; i++)
+	for (i = 0, n = 0; i < nparts; i++)
 	{
 		STARPU_ASSERT_MSG(children[i]->father_handle == initial_handle, "children parameter of starpu_data_partition_submit must be the children of the parent parameter");
-		descr[i].handle = children[i];
-		descr[i].mode = STARPU_R;
+		if (!children[i]->initialized)
+			/* Dropped value, do not care about coherency for this one */
+			continue;
+		descr[n].handle = children[i];
+		descr[n].mode = STARPU_R;
+		n++;
 	}
 	/* TODO: assert nparts too */
-	starpu_task_insert(initial_handle->switch_cl, STARPU_W, initial_handle, STARPU_DATA_MODE_ARRAY, descr, nparts, 0);
+	starpu_task_insert(initial_handle->switch_cl, STARPU_W, initial_handle, STARPU_DATA_MODE_ARRAY, descr, n, 0);
 }
 
 /*
