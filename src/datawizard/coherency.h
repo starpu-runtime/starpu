@@ -185,6 +185,8 @@ struct _starpu_data_state
 
 	/* Does StarPU have to enforce some implicit data-dependencies ? */
 	unsigned sequential_consistency;
+	/* Is the data initialized, or a task is already submitted to initialize it */
+	unsigned initialized;
 
 	/* This lock should protect any operation to enforce
 	 * sequential_consistency */

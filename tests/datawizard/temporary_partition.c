@@ -29,14 +29,6 @@ static void codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 }
 
-static struct starpu_codelet clrw =
-{
-	.where = STARPU_CPU,
-	.cpu_funcs = {codelet},
-	.nbuffers = 1,
-	.modes = {STARPU_RW}
-};
-
 static struct starpu_codelet clw =
 {
 	.where = STARPU_CPU,
@@ -65,9 +57,6 @@ int main(int argc, char **argv)
 
 	starpu_vector_data_register(&handle, -1, 0, SIZE, sizeof(char));
 
-	/* Fill temporary */
-	starpu_task_insert(&clw, STARPU_W, handle, 0);
-
 	/* Fork */
 	struct starpu_data_filter f =
 	{
@@ -80,12 +69,15 @@ int main(int argc, char **argv)
 	/* Process in parallel */
 	for (i = 0; i < NPARTS; i++)
 	{
-		ret = starpu_task_insert(&clrw,
-					 STARPU_RW, handles[i],
+		ret = starpu_task_insert(&clw,
+					 STARPU_W, handles[i],
 					 0);
 		if (ret == -ENODEV) goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 	}
+
+	/* Invalidate one random piece we don't care coherency about */
+	starpu_data_invalidate_submit(handles[NPARTS/2]);
 
 	/* Join */
 	starpu_data_unpartition_submit(handle, NPARTS, handles, -1);
