@@ -1143,7 +1143,8 @@ void _starpu_fetch_nowhere_task_input(struct _starpu_job *j)
 
 	wrapper = malloc(sizeof(*wrapper));
 	wrapper->j = j;
-	wrapper->pending = nfetchbuffers;
+	/* +1 for the call below */
+	wrapper->pending = nfetchbuffers + 1;
 
 	for (index = 0; index < nbuffers; index++)
 	{
@@ -1168,6 +1169,9 @@ void _starpu_fetch_nowhere_task_input(struct _starpu_job *j)
 
 	if (profiling && task->profiling_info)
 		_starpu_clock_gettime(&task->profiling_info->acquire_data_end_time);
+
+	/* Finished working with the task, release our reference */
+	_starpu_fetch_nowhere_task_input_cb(wrapper);
 }
 
 static void _starpu_fetch_nowhere_task_input_cb(void *arg)
