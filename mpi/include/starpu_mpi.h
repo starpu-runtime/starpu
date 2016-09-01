@@ -97,7 +97,7 @@ int starpu_mpi_data_get_tag(starpu_data_handle_t handle);
 #define starpu_data_get_rank starpu_mpi_data_get_rank
 #define starpu_data_get_tag starpu_mpi_data_get_tag
 
-void starpu_mpi_data_migrate(MPI_Comm comm, starpu_data_handle_t handle, int rank);
+void starpu_mpi_data_migrate(MPI_Comm comm, starpu_data_handle_t handle, int new_rank);
 
 #define STARPU_MPI_NODE_SELECTION_CURRENT_POLICY -1
 #define STARPU_MPI_NODE_SELECTION_MOST_R_DATA    0
