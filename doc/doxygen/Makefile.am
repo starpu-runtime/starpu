@@ -48,6 +48,7 @@ chapters =	\
 	chapters/21simgrid.doxy \
 	chapters/22openmp_runtime_support.doxy \
 	chapters/23clustering_a_machine.doxy \
+	chapters/24native_fortran_support.doxy \
 	chapters/40environment_variables.doxy \
 	chapters/41configure_options.doxy \
 	chapters/45files.doxy \
@@ -71,6 +72,7 @@ chapters =	\
 	chapters/code/vector_scal_opencl_codelet.cl \
 	chapters/code/disk_copy.c \
 	chapters/code/disk_compute.c \
+	chapters/code/nf_initexit.f90 \
 	chapters/api/codelet_and_tasks.doxy \
 	chapters/api/cuda_extensions.doxy \
 	chapters/api/data_interfaces.doxy \
@@ -239,7 +241,9 @@ dox_inputs = $(DOX_CONFIG) 				\
 	$(top_srcdir)/include/starpu_stdlib.h		\
 	$(top_srcdir)/include/starpu_thread.h		\
 	$(top_srcdir)/include/starpu_thread_util.h	\
+	$(top_srcdir)/include/fstarpu_mod.f90		\
 	$(top_srcdir)/mpi/include/starpu_mpi.h 		\
+	$(top_srcdir)/mpi/include/fstarpu_mpi_mod.f90		\
 	$(top_srcdir)/sc_hypervisor/include/sc_hypervisor.h 		\
 	$(top_srcdir)/sc_hypervisor/include/sc_hypervisor_config.h 	\
 	$(top_srcdir)/sc_hypervisor/include/sc_hypervisor_lp.h		\
