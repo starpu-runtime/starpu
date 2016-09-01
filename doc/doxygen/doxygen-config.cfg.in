@@ -57,7 +57,9 @@ INPUT                  = @top_srcdir@/doc/doxygen/chapters \
 			 @top_srcdir@/include/starpu_util.h \
 			 @top_srcdir@/include/starpu_worker.h \
 			 @top_srcdir@/include/starpu_sched_component.h \
+			 @top_srcdir@/include/fstarpu_mod.f90 \
 			 @top_srcdir@/mpi/include/ \
+			 @top_srcdir@/mpi/include/fstarpu_mpi_mod.f90 \
 			 @top_srcdir@/starpufft/include/starpufft.h \
 			 @top_srcdir@/sc_hypervisor/include
 

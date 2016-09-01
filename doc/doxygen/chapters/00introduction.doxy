@@ -2,7 +2,7 @@
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
- * Copyright (C) 2011, 2012 INRIA
+ * Copyright (C) 2011, 2012, 2016 INRIA
  * See the file version.doxy for copying conditions.
 */
 
@@ -210,9 +210,19 @@ Many examples are also available in the StarPU sources in the directory
 <dd>
     AXPY CUBLAS operation adapted to StarPU.
 </dd>
+<dt> <c>native_fortran/</c> </dt>
+<dd>
+    Example of using StarPU's native Fortran support.
+</dd>
+</dl>
+<dt> <c>fortran90/</c> </dt>
+<dd>
+    Example of Fortran 90 bindings, using C marshalling wrappers.
+</dd>
+</dl>
 <dt> <c>fortran/</c> </dt>
 <dd>
-    Example of Fortran bindings.
+    Example of Fortran 77 bindings, using C marshalling wrappers.
 </dd>
 </dl>
 
