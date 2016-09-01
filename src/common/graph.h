@@ -26,12 +26,13 @@ void _starpu_graph_add_job_dep(struct _starpu_job *job, struct _starpu_job *prev
 /* Remove a job from the graph */
 void _starpu_graph_drop_job(struct _starpu_job *job);
 
-/* Compute the depth of jobs in the graph */
+/* This make StarPU compute for each task the depth, i.e. the length of the longest path to a task without outgoing dependencies. */
 /* This does not take job duration into account, just the number */
 void _starpu_graph_compute_depths(void);
 
 /* Compute the descendants of jobs in the graph */
 void _starpu_graph_compute_descendants(void);
 
+/* This calls \e func for each node of the task graph, passing also \e data as it */
 /* Apply func on each job of the graph */
 void _starpu_graph_foreach(void (*func)(void *data, struct _starpu_job *job), void *data);
