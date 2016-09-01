@@ -1,6 +1,6 @@
 /*
  * This file is part of the StarPU Handbook.
- * Copyright (C) 2014  CNRS
+ * Copyright (C) 2014, 2016  CNRS
  * See the file version.doxy for copying conditions.
  */
 
@@ -23,7 +23,7 @@ todo
 \var int starpu_tree::is_pu
 todo
 
-\fn void starpu_tree_reset_visited(struct starpu_tree *tree, int *visited)
+\fn void starpu_tree_reset_visited(struct starpu_tree *tree, char *visited)
 \ingroup API_Tree
 todo
 
@@ -35,7 +35,7 @@ todo
 \ingroup API_Tree
 todo
 
-\fn struct starpu_tree *starpu_tree_get_neighbour(struct starpu_tree *tree, struct starpu_tree *node, int *visited, int *present)
+\fn struct starpu_tree *starpu_tree_get_neighbour(struct starpu_tree *tree, struct starpu_tree *node, char *visited, char *present)
 \ingroup API_Tree
 todo
 
