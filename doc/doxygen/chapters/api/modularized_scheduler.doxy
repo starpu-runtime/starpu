@@ -2,7 +2,7 @@
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2013        Simon Archipoff
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2014, 2015        CNRS
+ * Copyright (C) 2014, 2015, 2016        CNRS
  * Copyright (C) 2013, 2014  INRIA
  * See the file version.doxy for copying conditions.
  */
@@ -150,7 +150,7 @@ The actual scheduler
 \ingroup API_Modularized_Scheduler
 	 compatibility with starpu_sched_policy interface
 
-\fn struct starpu_task *starpu_sched_tree_pop_task()
+\fn struct starpu_task *starpu_sched_tree_pop_task(unsigned sched_ctx)
 \ingroup API_Modularized_Scheduler
 	 compatibility with starpu_sched_policy interface
 
@@ -169,7 +169,7 @@ The actual scheduler
 @name Generic Scheduling Component API
 \ingroup API_Modularized_Scheduler
 
-\fn struct starpu_sched_component *starpu_sched_component_create(struct starpu_sched_tree *tree)
+\fn struct starpu_sched_component *starpu_sched_component_create(struct starpu_sched_tree *tree, const char *name)
 \ingroup API_Modularized_Scheduler
 	 allocate and initialize component field with defaults values :
 	.pop_task make recursive call on father
@@ -441,10 +441,12 @@ todo
 \ingroup API_Modularized_Scheduler
 	 this function build a scheduler for \p sched_ctx_id according to \p s and the hwloc topology of the machine.
 
-\fn int starpu_sched_component_push_task(struct starpu_sched_component *component, struct starpu_task *task);
-	Push a task to a component. This is a helper for <c>component->push_task(component, task)</c> plus tracing.
+\fn int starpu_sched_component_push_task(struct starpu_sched_component *from, struct starpu_sched_component *to, struct starpu_task *task)
+\ingroup API_Modularized_Scheduler
+Push a task to a component. This is a helper for <c>component->push_task(component, task)</c> plus tracing.
 
-\fn struct starpu_task *starpu_sched_component_pull_task(struct starpu_sched_component *component);
-	Pull a task from a component. This is a helper for <c>component->pull_task(component)</c> plus tracing.
+\fn struct starpu_task *starpu_sched_component_pull_task(struct starpu_sched_component *from, struct starpu_sched_component *to)
+\ingroup API_Modularized_Scheduler
+Pull a task from a component. This is a helper for <c>component->pull_task(component)</c> plus tracing.
 
 */

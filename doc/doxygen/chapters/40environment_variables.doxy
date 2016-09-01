@@ -320,6 +320,20 @@ and friends.  The default is Enabled.
 This permits to test the performance effect of memory pinning.
 </dd>
 
+<dt>STARPU_MIC_SINK_PROGRAM_NAME</dt>
+<dd>
+\anchor STARPU_MIC_SINK_PROGRAM_NAME
+\addindex __env__STARPU_MIC_SINK_PROGRAM_NAME
+todo
+</dd>
+
+<dt>STARPU_MIC_SINK_PROGRAM_PATH</dt>
+<dd>
+\anchor STARPU_MIC_SINK_PROGRAM_PATH
+\addindex __env__STARPU_MIC_SINK_PROGRAM_PATH
+todo
+</dd>
+
 </dl>
 
 \section ConfiguringTheSchedulingEngine Configuring The Scheduling Engine

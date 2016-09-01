@@ -289,9 +289,9 @@ Return the tag of the given data.
 Return the tag of the given data.
 Symbol kept for backward compatibility. Calling function starpu_mpi_data_get_tag
 
-\def starpu_data_migrate(MPI_Comm comm, starpu_data_handle_t data, int new_rank)
+\def starpu_mpi_data_migrate(MPI_Comm comm, starpu_data_handle_t handle, int new_rank)
 \ingroup API_MPI_Support
-Migration the data onto the \p new_rank MPI node. This means both transferring
+Migrate the data onto the \p new_rank MPI node. This means both transferring
 the data to node \p new_rank if it hasn't been transferred already, and setting
 the home node of the data to the new node. Further data transfers triggered by
 starpu_mpi_task_insert() will be done from that new node. This function thus
@@ -309,6 +309,12 @@ execute the codelet.
 this macro is used when calling starpu_mpi_task_insert(), and must be
 followed by a data handle to specify that the node owning the given
 data will execute the codelet.
+
+\def STARPU_NODE_SELECTION_POLICY
+\ingroup API_MPI_Support
+this macro is used when calling starpu_mpi_task_insert(), and must be
+followed by a identifier to a node selection policy. This is needed when several
+nodes own data in ::STARPU_W mode.
 
 \fn int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 \ingroup API_MPI_Support
@@ -335,7 +341,7 @@ The internal algorithm is as follows:
         Find out which MPI node is going to execute the codelet.
         <ul>
             <li>If there is only one node owning data in ::STARPU_W mode, it will be selected;
-            <li>If there is several nodes owning data in ::STARPU_W node, a node will be selected according to a given node selection policy (see ::STARPU_NODE_SELECTION_POLICY or starpu_mpi_node_selection_set_current_policy())
+            <li>If there is several nodes owning data in ::STARPU_W mode, a node will be selected according to a given node selection policy (see ::STARPU_NODE_SELECTION_POLICY or starpu_mpi_node_selection_set_current_policy())
             <li>The argument ::STARPU_EXECUTE_ON_NODE followed by an integer can be used to specify the node;
             <li>The argument ::STARPU_EXECUTE_ON_DATA followed by a data handle can be used to specify that the node owing the given data will execute the codelet.
         </ul>

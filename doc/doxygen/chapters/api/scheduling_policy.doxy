@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016  CNRS
  * Copyright (C) 2011, 2012 INRIA
  * See the file version.doxy for copying conditions.
  */
@@ -12,6 +12,11 @@
 (see \ref TaskSchedulingPolicy), it may sometimes be desirable to
 implement custom policies to address specific problems. The API
 described below allows users to write their own scheduling policy.
+
+\def STARPU_MAXIMPLEMENTATIONS
+\ingroup API_Scheduling_Policy
+Define the maximum number of implementations per architecture. The default value can be modified at
+configure by using the option \ref enable-maximplementations "--enable-maximplementations".
 
 \struct starpu_sched_policy
 \ingroup API_Scheduling_Policy
@@ -223,15 +228,5 @@ Prefetch data for a given task on a given node when the bus is idle
 \ingroup API_Scheduling_Policy
 The scheduling policies indicates if the worker may pop tasks from the list of other workers
 or if there is a central list with task for all the workers
-
-\fn void _starpu_graph_compute_depths(void)
-\ingroup API_Scheduling_policy
-This make StarPU compute for each task the depth, i.e. the length of the
-longest path to a task without outgoing dependencies.
-
-\fn void _starpu_graph_foreach(void (*func)(void *data, struct _starpu_job *job), void *data)
-\ingroup API_Scheduling_policy
-This calls \e func for each node of the task graph, passing also \e data as it
-is.
 
 */

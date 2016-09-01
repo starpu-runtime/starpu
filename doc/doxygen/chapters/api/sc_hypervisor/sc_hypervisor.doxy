@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2016  CNRS
  * Copyright (C) 2011, 2012, 2013 INRIA
  * See the file version.doxy for copying conditions.
  */
@@ -148,6 +148,10 @@ Number of tasks of this kind
 The quantity of data(in bytes) needed by the task to execute
 \var sc_hypervisor_policy_task_pool::next
 Other task kinds
+
+\def STARPU_HYPERVISOR_TAG
+\ingroup API_SC_Hypervisor
+todo
 
 \fn void sc_hypervisor_post_resize_request(unsigned sched_ctx, int task_tag)
 \ingroup API_SC_Hypervisor
