@@ -135,7 +135,7 @@ platform file in <c>$STARPU_HOME/.starpu/sampling/bus/machine.platform.xml</c>
 by hand: one can add more CPUs, add GPUs (but the performance model file has to
 be extended as well), change the available GPU memory size, PCI memory bandwidth, etc.
 
-\section Tweaking simulation
+\section TweakingSimulation Tweaking simulation
 
 The simulation can be tweaked, to be able to tune it between a very accurate
 simulation and a very simple simulation (which is thus close to scheduling

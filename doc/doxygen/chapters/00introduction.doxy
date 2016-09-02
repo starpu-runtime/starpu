@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016  CNRS
  * Copyright (C) 2011, 2012, 2016 INRIA
  * See the file version.doxy for copying conditions.
 */
@@ -178,7 +178,7 @@ unregister it.
 \section ResearchPapers Research Papers
 
 Research papers about StarPU can be found at
-http://runtime.bordeaux.inria.fr/Publis/Keyword/STARPU.html.
+http://starpu.gforge.inria.fr/publications/.
 
 A good overview is available in the research report at
 http://hal.archives-ouvertes.fr/inria-00467677.
@@ -194,6 +194,7 @@ Many examples are also available in the StarPU sources in the directory
 <dl>
 <dt> <c>incrementer/</c> </dt>
 <dd> Trivial incrementation test. </dd>
+
 <dt> <c>basic_examples/</c> </dt>
 <dd>
         Simple documented Hello world and vector/scalar product (as
@@ -202,24 +203,27 @@ Many examples are also available in the StarPU sources in the directory
         interface, an example using the variable data interface, and an example
         using different formats on CPUs and GPUs.
 </dd>
+
 <dt> <c>matvecmult/</c></dt>
 <dd>
     OpenCL example from NVidia, adapted to StarPU.
 </dd>
+
 <dt> <c>axpy/</c></dt>
 <dd>
     AXPY CUBLAS operation adapted to StarPU.
 </dd>
+
 <dt> <c>native_fortran/</c> </dt>
 <dd>
     Example of using StarPU's native Fortran support.
 </dd>
-</dl>
+
 <dt> <c>fortran90/</c> </dt>
 <dd>
     Example of Fortran 90 bindings, using C marshalling wrappers.
 </dd>
-</dl>
+
 <dt> <c>fortran/</c> </dt>
 <dd>
     Example of Fortran 77 bindings, using C marshalling wrappers.
@@ -233,10 +237,12 @@ More advanced examples include:
 <dd>
     Examples using filters, as shown in \ref PartitioningData.
 </dd>
+
 <dt><c>lu/</c></dt>
 <dd>
     LU matrix factorization, see for instance <c>xlu_implicit.c</c>
 </dd>
+
 <dt><c>cholesky/</c></dt>
 <dd>
     Cholesky matrix factorization, see for instance <c>cholesky_implicit.c</c>.
@@ -265,6 +271,7 @@ The documentation chapters include
 <li> \ref Scheduling
 <li> \ref SchedulingContexts
 <li> \ref SchedulingContextHypervisor
+<li> \ref ModularizedScheduler
 <li> \ref DebuggingTools
 <li> \ref OnlinePerformanceTools
 <li> \ref OfflinePerformanceTools
@@ -277,8 +284,11 @@ The documentation chapters include
 <li> \ref FFTSupport
 <li> \ref MICSCCSupport
 <li> \ref cExtensions
+<li> \ref NativeFortranSupport
 <li> \ref SOCLOpenclExtensions
 <li> \ref SimGridSupport
+<li> \ref OpenMPRuntimeSupport
+<li> \ref ClusteringAMachine
 </ul>
 <li> Part 5: StarPU Reference API
 <ul>

@@ -21,7 +21,7 @@ An MPI Insert Task function provides an even more seamless transition to a
 distributed application, by automatically issuing all required data transfers
 according to the task graph and an application-provided distribution.
 
-\section Example used in this documentation
+\section ExampleDocumentation Example used in this documentation
 
 The example below will be used as the base for this documentation. It
 initializes a token on node 0, and the token is passed from node to node,
