@@ -110,7 +110,7 @@ CPU 2
 \endverbatim
 
 The number of GFlops is available because the starpu_task::flops field of the
-tasks were filled (or STARPU_FLOPS used in starpu_task_insert).
+tasks were filled (or \ref STARPU_FLOPS used in starpu_task_insert()).
 
 When an FxT trace is generated (see \ref GeneratingTracesWithFxT), it is also
 possible to use the tool <c>starpu_workers_activity</c> (see
@@ -435,7 +435,7 @@ time), and thus particularly useful for ::STARPU_REGRESSION_BASED or
 variance of the actual performance is unknown (irregular performance behavior,
 etc.), and thus only useful for ::STARPU_HISTORY_BASED.
 starpu_task_data_footprint() can be used as a base and combined with other
-parameters through starpu_hash_crc32c_be for instance.
+parameters through starpu_hash_crc32c_be() for instance.
 
 StarPU will automatically determine when the performance model is calibrated,
 or rather, it will assume the performance model is calibrated until the
