@@ -1621,7 +1621,28 @@ module fstarpu_mod
                 end function fstarpu_sched_ctx_create
 
                 ! unsigned starpu_sched_ctx_create_inside_interval(const char *policy_name, const char *sched_ctx_name, int min_ncpus, int max_ncpus, int min_ngpus, int max_ngpus, unsigned allow_overlap);
+                function fstarpu_sched_ctx_create_inside_interval(policy_name, sched_ctx_name, &
+                                min_ncpus, max_ncpus, min_ngpus, max_ngpus, allow_overlap)     &
+                                bind(C,name="starpu_sched_ctx_create_inside_interval")
+                        use iso_c_binding, only: c_int, c_char
+                        integer(c_int) :: fstarpu_sched_ctx_create_inside_interval
+                        character(c_char), intent(in) :: policy_name
+                        character(c_char), intent(in) :: sched_ctx_name
+                        integer(c_int), value, intent(in) :: min_ncpus
+                        integer(c_int), value, intent(in) :: max_ncpus
+                        integer(c_int), value, intent(in) :: min_ngpus
+                        integer(c_int), value, intent(in) :: max_ngpus
+                        integer(c_int), value, intent(in) :: allow_overlap
+                end function fstarpu_sched_ctx_create_inside_interval
+
                 ! void starpu_sched_ctx_register_close_callback(unsigned sched_ctx_id, void (*close_callback)(unsigned sched_ctx_id, void* args), void *args);
+                subroutine fstarpu_sched_ctx_register_close_callback (sched_ctx_id, close_callback, args) &
+                                bind(c,name="starpu_sched_ctx_register_close_callback")
+                        use iso_c_binding, only: c_ptr, c_funptr, c_int
+                        integer(c_int), value, intent(in) :: sched_ctx_id
+                        type(c_funptr), value, intent(in) :: close_callback
+                        type(c_ptr), value, intent(in) :: args
+                end subroutine fstarpu_sched_ctx_register_close_callback
 
                 ! void starpu_sched_ctx_add_workers(int *workerids_ctx, int nworkers_ctx, unsigned sched_ctx_id);
                 subroutine fstarpu_sched_ctx_add_workers(workerids,nworkers,ctx) bind(C,name="starpu_sched_ctx_add_workers")
@@ -1684,6 +1705,369 @@ module fstarpu_mod
                         integer(c_int) :: fstarpu_sched_ctx_get_context
                 end function fstarpu_sched_ctx_get_context
 
+                ! void starpu_sched_ctx_stop_task_submission(void);
+                subroutine fstarpu_sched_ctx_stop_task_submission () bind(c,name="starpu_sched_ctx_stop_task_submission")
+                        use iso_c_binding
+                end subroutine fstarpu_sched_ctx_stop_task_submission
+
+                ! void starpu_sched_ctx_finished_submit(unsigned sched_ctx_id);
+                subroutine fstarpu_sched_ctx_finished_submit (sched_ctx_id) bind(c,name="starpu_sched_ctx_finished_submit")
+                        use iso_c_binding, only: c_int
+                        integer(c_int), value, intent(in) :: sched_ctx_id
+                end subroutine fstarpu_sched_ctx_finished_submit
+
+                ! unsigned starpu_sched_ctx_get_workers_list(unsigned sched_ctx_id, int **workerids);
+
+                ! unsigned starpu_sched_ctx_get_nworkers(unsigned sched_ctx_id);
+                function fstarpu_sched_ctx_get_nworkers (sched_ctx_id) &
+                                bind(c,name="starpu_sched_ctx_get_nworkers")
+                        use iso_c_binding, only: c_int
+                        integer(c_int) :: fstarpu_sched_ctx_get_nworkers
+                        integer(c_int), value, intent(in) :: sched_ctx_id
+                end function fstarpu_sched_ctx_get_nworkers
+
+                ! unsigned starpu_sched_ctx_get_nshared_workers(unsigned sched_ctx_id, unsigned sched_ctx_id2);
+                function fstarpu_sched_ctx_get_nshared_workers (sched_ctx_id, sched_ctx_id2) &
+                                bind(c,name="starpu_sched_ctx_get_nshared_workers")
+                        use iso_c_binding, only: c_int
+                        integer(c_int) :: fstarpu_sched_ctx_get_nshared_workers
+                        integer(c_int), value, intent(in) :: sched_ctx_id
+                        integer(c_int), value, intent(in) :: sched_ctx_id2
+                end function fstarpu_sched_ctx_get_nshared_workers
+
+                ! unsigned starpu_sched_ctx_contains_worker(int workerid, unsigned sched_ctx_id);
+                function fstarpu_sched_ctx_contains_worker (workerid, sched_ctx_id) &
+                                bind(c,name="starpu_sched_ctx_contains_worker")
+                        use iso_c_binding, only: c_int
+                        integer(c_int) :: fstarpu_sched_ctx_contains_worker
+                        integer(c_int), value, intent(in) :: workerid
+                        integer(c_int), value, intent(in) :: sched_ctx_id
+                end function fstarpu_sched_ctx_contains_worker
+
+                ! unsigned starpu_sched_ctx_contains_type_of_worker(enum starpu_worker_archtype arch, unsigned sched_ctx_id);
+                function fstarpu_sched_ctx_contains_type_of_worker (arch, sched_ctx_id) &
+                                bind(c,name="starpu_sched_ctx_contains_type_of_worker")
+                        use iso_c_binding, only: c_int
+                        integer(c_int) :: fstarpu_sched_ctx_contains_type_of_worker
+                        integer(c_int), value, intent(in) :: arch
+                        integer(c_int), value, intent(in) :: sched_ctx_id
+                end function fstarpu_sched_ctx_contains_type_of_worker
+
+                ! unsigned starpu_sched_ctx_worker_get_id(unsigned sched_ctx_id);
+                function fstarpu_sched_ctx_worker_get_id (sched_ctx_id) &
+                                bind(c,name="starpu_sched_ctx_worker_get_id")
+                        use iso_c_binding, only: c_int
+                        integer(c_int) :: fstarpu_sched_ctx_worker_get_id
+                        integer(c_int), value, intent(in) :: sched_ctx_id
+                end function fstarpu_sched_ctx_worker_get_id
+
+                ! unsigned starpu_sched_ctx_get_ctx_for_task(struct starpu_task *task);
+                function fstarpu_sched_ctx_get_ctx_for_task (task) &
+                                bind(c,name="starpu_sched_ctx_get_ctx_for_task")
+                        use iso_c_binding, only: c_int, c_ptr
+                        integer(c_int) :: fstarpu_sched_ctx_get_ctx_for_task
+                        type(c_ptr), value, intent(in) :: task
+                end function fstarpu_sched_ctx_get_ctx_for_task
+
+                ! unsigned starpu_sched_ctx_overlapping_ctxs_on_worker(int workerid);
+                function fstarpu_sched_ctx_overlapping_ctxs_on_worker (workerid) &
+                                bind(c,name="starpu_sched_ctx_overlapping_ctxs_on_worker")
+                        use iso_c_binding, only: c_int
+                        integer(c_int) :: fstarpu_sched_ctx_overlapping_ctxs_on_worker
+                        integer(c_int), value, intent(in) :: workerid
+                end function fstarpu_sched_ctx_overlapping_ctxs_on_worker
+
+                ! int starpu_sched_get_min_priority(void);
+                function fstarpu_sched_get_min_priority () &
+                                bind(c,name="starpu_sched_get_min_priority")
+                        use iso_c_binding, only: c_int
+                        integer(c_int) :: fstarpu_sched_get_min_priority
+                end function fstarpu_sched_get_min_priority
+
+                ! int starpu_sched_get_max_priority(void);
+                function fstarpu_sched_get_max_priority () &
+                                bind(c,name="starpu_sched_get_max_priority")
+                        use iso_c_binding, only: c_int
+                        integer(c_int) :: fstarpu_sched_get_max_priority
+                end function fstarpu_sched_get_max_priority
+
+                ! int starpu_sched_set_min_priority(int min_prio);
+                function fstarpu_sched_set_min_priority (min_prio) &
+                                bind(c,name="starpu_sched_set_min_priority")
+                        use iso_c_binding, only: c_int
+                        integer(c_int) :: fstarpu_sched_set_min_priority
+                        integer(c_int), value, intent(in) :: min_prio
+                end function fstarpu_sched_set_min_priority
+
+                ! int starpu_sched_set_max_priority(int max_prio);
+                function fstarpu_sched_set_max_priority (max_prio) &
+                                bind(c,name="starpu_sched_set_max_priority")
+                        use iso_c_binding, only: c_int
+                        integer(c_int) :: fstarpu_sched_set_max_priority
+                        integer(c_int), value, intent(in) :: max_prio
+                end function fstarpu_sched_set_max_priority
+
+                ! int starpu_sched_ctx_get_min_priority(unsigned sched_ctx_id);
+                function fstarpu_sched_ctx_get_min_priority (sched_ctx_id) &
+                                bind(c,name="starpu_sched_ctx_get_min_priority")
+                        use iso_c_binding, only: c_int
+                        integer(c_int) :: fstarpu_sched_ctx_get_min_priority
+                        integer(c_int), value, intent(in) :: sched_ctx_id
+                end function fstarpu_sched_ctx_get_min_priority
+
+                ! int starpu_sched_ctx_get_max_priority(unsigned sched_ctx_id);
+                function fstarpu_sched_ctx_get_max_priority (sched_ctx_id) &
+                                bind(c,name="starpu_sched_ctx_get_max_priority")
+                        use iso_c_binding, only: c_int
+                        integer(c_int) :: fstarpu_sched_ctx_get_max_priority
+                        integer(c_int), value, intent(in) :: sched_ctx_id
+                end function fstarpu_sched_ctx_get_max_priority
+
+                ! int starpu_sched_ctx_set_min_priority(unsigned sched_ctx_id, int min_prio);
+                function fstarpu_sched_ctx_set_min_priority (sched_ctx_id, min_prio) &
+                                bind(c,name="starpu_sched_ctx_set_min_priority")
+                        use iso_c_binding, only: c_int
+                        integer(c_int) :: fstarpu_sched_ctx_set_min_priority
+                        integer(c_int), value, intent(in) :: sched_ctx_id
+                        integer(c_int), value, intent(in) :: min_prio
+                end function fstarpu_sched_ctx_set_min_priority
+
+                ! int starpu_sched_ctx_set_max_priority(unsigned sched_ctx_id, int max_prio);
+                function fstarpu_sched_ctx_set_max_priority (sched_ctx_id, max_prio) &
+                                bind(c,name="starpu_sched_ctx_set_max_priority")
+                        use iso_c_binding, only: c_int
+                        integer(c_int) :: fstarpu_sched_ctx_set_max_priority
+                        integer(c_int), value, intent(in) :: sched_ctx_id
+                        integer(c_int), value, intent(in) :: max_prio
+                end function fstarpu_sched_ctx_set_max_priority
+
+                ! int starpu_sched_ctx_min_priority_is_set(unsigned sched_ctx_id);
+                function fstarpu_sched_ctx_min_priority_is_set (sched_ctx_id) &
+                                bind(c,name="starpu_sched_ctx_min_priority_is_set")
+                        use iso_c_binding, only: c_int
+                        integer(c_int) :: fstarpu_sched_ctx_min_priority_is_set
+                        integer(c_int), value, intent(in) :: sched_ctx_id
+                end function fstarpu_sched_ctx_min_priority_is_set
+
+                ! int starpu_sched_ctx_max_priority_is_set(unsigned sched_ctx_id);
+                function fstarpu_sched_ctx_max_priority_is_set (sched_ctx_id) &
+                                bind(c,name="starpu_sched_ctx_max_priority_is_set")
+                        use iso_c_binding, only: c_int
+                        integer(c_int) :: fstarpu_sched_ctx_max_priority_is_set
+                        integer(c_int), value, intent(in) :: sched_ctx_id
+                end function fstarpu_sched_ctx_max_priority_is_set
+
+                ! struct starpu_worker_collection *starpu_sched_ctx_create_worker_collection(unsigned sched_ctx_id, enum starpu_worker_collection_type type) STARPU_ATTRIBUTE_MALLOC;
+
+                ! void starpu_sched_ctx_delete_worker_collection(unsigned sched_ctx_id);
+                subroutine fstarpu_sched_ctx_delete_worker_collection (sched_ctx_id) &
+                                bind(c,name="starpu_sched_ctx_delete_worker_collection")
+                        use iso_c_binding, only: c_int
+                        integer(c_int), value, intent(in) :: sched_ctx_id
+                end subroutine fstarpu_sched_ctx_delete_worker_collection
+
+                ! struct starpu_worker_collection *starpu_sched_ctx_get_worker_collection(unsigned sched_ctx_id);
+
+                ! void starpu_sched_ctx_set_policy_data(unsigned sched_ctx_id, void *policy_data);
+                subroutine fstarpu_sched_ctx_set_policy_data (sched_ctx_id, policy_data) &
+                                bind(c,name="starpu_sched_ctx_set_policy_data")
+                        use iso_c_binding, only: c_int, c_ptr
+                        integer(c_int), value, intent(in) :: sched_ctx_id
+                        type(c_ptr), value, intent(in) :: policy_data
+                end subroutine fstarpu_sched_ctx_set_policy_data
+
+                ! void *starpu_sched_ctx_get_policy_data(unsigned sched_ctx_id);
+                function fstarpu_sched_ctx_get_policy_data (sched_ctx_id) &
+                                bind(c,name="starpu_sched_ctx_get_policy_data")
+                        use iso_c_binding, only: c_int, c_ptr
+                        type(c_ptr) :: fstarpu_sched_ctx_get_policy_data
+                        integer(c_int), value, intent(in) :: sched_ctx_id
+                end function fstarpu_sched_ctx_get_policy_data
+
+                ! void *starpu_sched_ctx_exec_parallel_code(void* (*func)(void*), void *param, unsigned sched_ctx_id);
+                function fstarpu_sched_ctx_exec_parallel_code (func, param, sched_ctx_id) &
+                                bind(c,name="starpu_sched_ctx_exec_parallel_code")
+                        use iso_c_binding, only: c_int, c_funptr, c_ptr
+                        type(c_ptr) :: fstarpu_sched_ctx_exec_parallel_code
+                        type(c_funptr), value, intent(in) :: func
+                        type(c_ptr), value, intent(in) :: param
+                        integer(c_int), value, intent(in) :: sched_ctx_id
+                end function fstarpu_sched_ctx_exec_parallel_code
+
+
+                ! int starpu_sched_ctx_get_nready_tasks(unsigned sched_ctx_id);
+                function fstarpu_sched_ctx_get_nready_tasks (sched_ctx_id) &
+                                bind(c,name="starpu_sched_ctx_get_nready_tasks")
+                        use iso_c_binding, only: c_int
+                        integer(c_int) :: fstarpu_sched_ctx_get_nready_tasks
+                        integer(c_int), value, intent(in) :: sched_ctx_id
+                end function fstarpu_sched_ctx_get_nready_tasks
+
+                ! double starpu_sched_ctx_get_nready_flops(unsigned sched_ctx_id);
+                function fstarpu_sched_ctx_get_nready_flops (sched_ctx_id) &
+                                bind(c,name="starpu_sched_ctx_get_nready_flops")
+                        use iso_c_binding, only: c_int, c_double
+                        real(c_double) :: fstarpu_sched_ctx_get_nready_flops
+                        integer(c_int), value, intent(in) :: sched_ctx_id
+                end function fstarpu_sched_ctx_get_nready_flops
+
+                ! void starpu_sched_ctx_list_task_counters_increment(unsigned sched_ctx_id, int workerid);
+                subroutine fstarpu_sched_ctx_list_task_counters_increment (sched_ctx_id, workerid) &
+                        bind(c,name="starpu_sched_ctx_list_task_counters_increment")
+                        use iso_c_binding, only: c_int
+                        integer(c_int), value, intent(in) :: sched_ctx_id
+                        integer(c_int), value, intent(in) :: workerid
+                end subroutine fstarpu_sched_ctx_list_task_counters_increment
+
+                ! void starpu_sched_ctx_list_task_counters_decrement(unsigned sched_ctx_id, int workerid);
+                subroutine fstarpu_sched_ctx_list_task_counters_decrement (sched_ctx_id, workerid) &
+                        bind(c,name="starpu_sched_ctx_list_task_counters_decrement")
+                        use iso_c_binding, only: c_int
+                        integer(c_int), value, intent(in) :: sched_ctx_id
+                        integer(c_int), value, intent(in) :: workerid
+ 
+                end subroutine fstarpu_sched_ctx_list_task_counters_decrement
+
+                ! void starpu_sched_ctx_list_task_counters_reset(unsigned sched_ctx_id, int workerid);
+                subroutine fstarpu_sched_ctx_list_task_counters_reset (sched_ctx_id, workerid) &
+                                bind(c,name="starpu_sched_ctx_list_task_counters_reset")
+                        use iso_c_binding, only: c_int
+                        integer(c_int), value, intent(in) :: sched_ctx_id
+                        integer(c_int), value, intent(in) :: workerid
+ 
+                end subroutine fstarpu_sched_ctx_list_task_counters_reset
+
+                ! void starpu_sched_ctx_list_task_counters_increment_all(struct starpu_task *task, unsigned sched_ctx_id);
+                subroutine fstarpu_sched_ctx_list_task_counters_increment_all (task, sched_ctx_id) &
+                        bind(c,name="starpu_sched_ctx_list_task_counters_increment_all")
+                        use iso_c_binding, only: c_ptr, c_int
+                        type(c_ptr), value, intent(in) :: task
+                        integer(c_int), value, intent(in) :: sched_ctx_id
+                end subroutine fstarpu_sched_ctx_list_task_counters_increment_all
+
+                ! void starpu_sched_ctx_list_task_counters_decrement_all(struct starpu_task *task, unsigned sched_ctx_id);
+                subroutine fstarpu_sched_ctx_list_task_counters_decrement_all (task, sched_ctx_id) &
+                        bind(c,name="starpu_sched_ctx_list_task_counters_decrement_all")
+                        use iso_c_binding, only: c_ptr, c_int
+                        type(c_ptr), value, intent(in) :: task
+                        integer(c_int), value, intent(in) :: sched_ctx_id
+                end subroutine fstarpu_sched_ctx_list_task_counters_decrement_all
+
+                ! void starpu_sched_ctx_list_task_counters_reset_all(struct starpu_task *task, unsigned sched_ctx_id);
+                subroutine fstarpu_sched_ctx_list_task_counters_reset_all (task, sched_ctx_id) &
+                        bind(c,name="starpu_sched_ctx_list_task_counters_reset_all")
+                        use iso_c_binding, only: c_ptr, c_int
+                        type(c_ptr), value, intent(in) :: task
+                        integer(c_int), value, intent(in) :: sched_ctx_id
+                end subroutine fstarpu_sched_ctx_list_task_counters_reset_all
+
+                ! void starpu_sched_ctx_set_priority(int *workers, int nworkers, unsigned sched_ctx_id, unsigned priority);
+                subroutine fstarpu_sched_ctx_set_priority (workers, nworkers,  sched_ctx_id, priority) &
+                                bind(c,name="starpu_sched_ctx_set_priority")
+                        use iso_c_binding, only: c_int
+                        integer(c_int), intent(in) :: workers(*)
+                        integer(c_int), value, intent(in) :: nworkers
+                        integer(c_int), value, intent(in) :: sched_ctx_id
+                        integer(c_int), value, intent(in) :: priority
+                end subroutine fstarpu_sched_ctx_set_priority
+
+                ! void starpu_sched_ctx_set_priority_on_level(int* workers_to_add, unsigned nworkers_to_add, unsigned sched_ctx, unsigned priority);
+                subroutine fstarpu_sched_ctx_set_priority_on_level ( workers_to_add, nworkers_to_add, sched_ctx, priority) &
+                                bind(c,name="starpu_sched_ctx_set_priority_on_level")
+                        use iso_c_binding, only: c_int
+                        integer(c_int), intent(in) :: workers_to_add(*)
+                        integer(c_int), value, intent(in) :: nworkers_to_add
+                        integer(c_int), value, intent(in) :: sched_ctx
+                        integer(c_int), value, intent(in) :: priority
+                end subroutine fstarpu_sched_ctx_set_priority_on_level
+
+                ! unsigned starpu_sched_ctx_get_priority(int worker, unsigned sched_ctx_id);
+                function fstarpu_sched_ctx_get_priority (worker, sched_ctx_id) &
+                                bind(c,name="starpu_sched_ctx_get_priority")
+                        use iso_c_binding, only: c_int
+                        integer(c_int) :: fstarpu_sched_ctx_get_priority
+                        integer(c_int), value, intent(in) :: worker
+                        integer(c_int), value, intent(in) :: sched_ctx_id
+                end function fstarpu_sched_ctx_get_priority
+
+                ! void starpu_sched_ctx_get_available_cpuids(unsigned sched_ctx_id, int **cpuids, int *ncpuids);
+
+                ! void starpu_sched_ctx_bind_current_thread_to_cpuid(unsigned cpuid);
+                subroutine fstarpu_sched_ctx_bind_current_thread_to_cpuid (cpuid) &
+                        bind(c,name="starpu_sched_ctx_bind_current_thread_to_cpuid")
+                        use iso_c_binding, only: c_int
+                        integer(c_int), value, intent(in) :: cpuid
+                end subroutine fstarpu_sched_ctx_bind_current_thread_to_cpuid
+
+                ! int starpu_sched_ctx_book_workers_for_task(unsigned sched_ctx_id, int *workerids, int nworkers);
+                function fstarpu_sched_ctx_book_workers_for_task (sched_ctx_id, workerids, nworkers) &
+                                bind(c,name="starpu_sched_ctx_book_workers_for_task")
+                        use iso_c_binding, only: c_int
+                        integer(c_int) :: fstarpu_sched_ctx_book_workers_for_task
+                        integer(c_int), value, intent(in) :: sched_ctx_id
+                        integer(c_int), intent(in) :: workerids(*)
+                        integer(c_int), value, intent(in) :: nworkers
+                end function fstarpu_sched_ctx_book_workers_for_task
+
+                ! void starpu_sched_ctx_unbook_workers_for_task(unsigned sched_ctx_id, int master);
+                subroutine fstarpu_sched_ctx_unbook_workers_for_task (sched_ctx_id, master) &
+                                bind(c,name="starpu_sched_ctx_unbook_workers_for_task")
+                        use iso_c_binding, only: c_int
+                        integer(c_int), value, intent(in) :: sched_ctx_id
+                        integer(c_int), value, intent(in) :: master
+                end subroutine fstarpu_sched_ctx_unbook_workers_for_task
+
+                ! unsigned starpu_sched_ctx_worker_is_master_for_child_ctx(int workerid, unsigned sched_ctx_id);
+                function fstarpu_sched_ctx_worker_is_master_for_child_ctx (workerid, sched_ctx_id) &
+                                bind(c,name="starpu_sched_ctx_worker_is_master_for_child_ctx")
+                        use iso_c_binding, only: c_int
+                        integer(c_int) :: fstarpu_sched_ctx_worker_is_master_for_child_ctx
+                        integer(c_int), value, intent(in) :: workerid
+                        integer(c_int), value, intent(in) :: sched_ctx_id
+                end function fstarpu_sched_ctx_worker_is_master_for_child_ctx
+
+                ! unsigned starpu_sched_ctx_master_get_context(int masterid);
+                function fstarpu_sched_ctx_master_get_context (masterid) &
+                                bind(c,name="starpu_sched_ctx_master_get_context")
+                        use iso_c_binding, only: c_int
+                        integer(c_int) :: fstarpu_sched_ctx_master_get_context
+                        integer(c_int), value, intent(in) :: masterid
+                end function fstarpu_sched_ctx_master_get_context
+
+                ! void starpu_sched_ctx_revert_task_counters(unsigned sched_ctx_id, double flops);
+                subroutine fstarpu_sched_ctx_revert_task_counters (sched_ctx_id, flops) &
+                                bind(c,name="starpu_sched_ctx_revert_task_counters")
+                        use iso_c_binding, only: c_int, c_double
+                        integer(c_int), value, intent(in) :: sched_ctx_id
+                        real(c_double), value, intent(in) :: flops
+                end subroutine fstarpu_sched_ctx_revert_task_counters
+
+                ! void starpu_sched_ctx_move_task_to_ctx(struct starpu_task *task, unsigned sched_ctx, unsigned manage_mutex);
+                subroutine fstarpu_sched_ctx_move_task_to_ctx (task, sched_ctx, manage_mutex) &
+                                bind(c,name="starpu_sched_ctx_move_task_to_ctx")
+                        use iso_c_binding, only: c_ptr, c_int
+                        type(c_ptr), value, intent(in) :: task
+                        integer(c_int), value, intent(in) :: sched_ctx
+                        integer(c_int), value, intent(in) :: manage_mutex
+                end subroutine fstarpu_sched_ctx_move_task_to_ctx
+
+                ! int starpu_sched_ctx_get_worker_rank(unsigned sched_ctx_id);
+                function fstarpu_sched_ctx_get_worker_rank (sched_ctx_id) &
+                                bind(c,name="starpu_sched_ctx_get_worker_rank")
+                        use iso_c_binding, only: c_int
+                        integer(c_int) :: fstarpu_sched_ctx_get_worker_rank
+                        integer(c_int), value, intent(in) :: sched_ctx_id
+                end function fstarpu_sched_ctx_get_worker_rank
+
+                ! unsigned starpu_sched_ctx_has_starpu_scheduler(unsigned sched_ctx_id, unsigned *awake_workers);
+
+                ! void starpu_sched_ctx_call_pushed_task_cb(int workerid, unsigned sched_ctx_id);
+                subroutine fstarpu_sched_ctx_call_pushed_task_cb (workerid, sched_ctx_id) &
+                                bind(c,name="starpu_sched_ctx_call_pushed_task_cb")
+                        use iso_c_binding, only: c_int
+                        integer(c_int), value, intent(in) :: workerid
+                        integer(c_int), value, intent(in) :: sched_ctx_id
+                end subroutine fstarpu_sched_ctx_call_pushed_task_cb
 
                 ! == starpu_fxt.h ==
 
@@ -1726,7 +2110,6 @@ module fstarpu_mod
                         use iso_c_binding, only: c_long
                         integer(c_long), value, intent(in) :: code
                 end subroutine fstarpu_trace_user_event
-
         end interface
 
         contains
