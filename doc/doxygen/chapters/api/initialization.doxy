@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016  CNRS
  * Copyright (C) 2011, 2012 INRIA
  * See the file version.doxy for copying conditions.
  */
@@ -69,8 +69,8 @@ provided by the hwloc library in case it is available.
 If this flag is set, the CUDA workers will be attached to the CUDA
 devices specified in the starpu_conf::workers_cuda_gpuid array.
 Otherwise, StarPU affects the CUDA devices in a round-robin fashion.
-This can also be specified with the environment variable \ref
-STARPU_WORKERS_CUDAID. (default = 0)
+This can also be specified with the environment variable
+\ref STARPU_WORKERS_CUDAID. (default = 0)
 \var unsigned starpu_conf::workers_cuda_gpuid[STARPU_NMAXWORKERS]
 If the starpu_conf::use_explicit_workers_cuda_gpuid flag is set, this
 array contains the logical identifiers of the CUDA devices (as used by
@@ -79,8 +79,8 @@ cudaGetDevice()).
 If this flag is set, the OpenCL workers will be attached to the OpenCL
 devices specified in the starpu_conf::workers_opencl_gpuid array.
 Otherwise, StarPU affects the OpenCL devices in a round-robin fashion.
-This can also be specified with the environment variable \ref
-STARPU_WORKERS_OPENCLID. (default = 0)
+This can also be specified with the environment variable
+\ref STARPU_WORKERS_OPENCLID. (default = 0)
 \var unsigned starpu_conf::workers_opencl_gpuid[STARPU_NMAXWORKERS]
 If the starpu_conf::use_explicit_workers_opencl_gpuid flag is set,
 this array contains the logical identifiers of the OpenCL devices to
@@ -89,8 +89,8 @@ be used.
 If this flag is set, the MIC workers will be attached to the MIC
 devices specified in the array starpu_conf::workers_mic_deviceid.
 Otherwise, StarPU affects the MIC devices in a round-robin fashion.
-This can also be specified with the environment variable \ref
-STARPU_WORKERS_MICID.
+This can also be specified with the environment variable
+\ref STARPU_WORKERS_MICID.
 (default = 0)
 \var unsigned starpu_conf::workers_mic_deviceid[STARPU_NMAXWORKERS]
 If the flag starpu_conf::use_explicit_workers_mic_deviceid is set, the
@@ -103,8 +103,8 @@ devices specified in the array starpu_conf::workers_scc_deviceid.
 If the flag starpu_conf::use_explicit_workers_scc_deviceid is set, the
 array contains the logical identifiers of the SCC devices to be used.
 Otherwise, StarPU affects the SCC devices in a round-robin fashion.
-This can also be specified with the environment variable \ref
-STARPU_WORKERS_SCCID.
+This can also be specified with the environment variable
+\ref STARPU_WORKERS_SCCID.
 
 \var int starpu_conf::bus_calibrate
 If this flag is set, StarPU will recalibrate the bus.  If this value
@@ -141,8 +141,8 @@ host program location.
 \var int starpu_conf::disable_asynchronous_copy
 This flag should be set to 1 to disable
 asynchronous copies between CPUs and all accelerators. This
-can also be specified with the environment variable \ref
-STARPU_DISABLE_ASYNCHRONOUS_COPY. The
+can also be specified with the environment variable
+\ref STARPU_DISABLE_ASYNCHRONOUS_COPY. The
 AMD implementation of OpenCL is known to fail when copying
 data asynchronously. When using this implementation, it is
 therefore necessary to disable asynchronous data transfers.

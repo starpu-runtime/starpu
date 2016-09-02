@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016  CNRS
  * Copyright (C) 2011, 2012 INRIA
  * See the file version.doxy for copying conditions.
  */
@@ -82,28 +82,28 @@ wasted in pure StarPU overhead.
 Calling starpu_profiling_worker_get_info() resets the profiling
 information associated to a worker.
 
-To easily display all this information, the environment variable \ref
-STARPU_WORKER_STATS can be set to 1 (in addition to setting \ref
-STARPU_PROFILING to 1). A summary will then be displayed at program termination:
+To easily display all this information, the environment variable
+\ref STARPU_WORKER_STATS can be set to 1 (in addition to setting
+\ref STARPU_PROFILING to 1). A summary will then be displayed at program termination:
 
 \verbatim
 Worker stats:
-CUDA 0.0 (4.7 GiB)      
+CUDA 0.0 (4.7 GiB)
 	480 task(s)
 	total: 1574.82 ms executing: 1510.72 ms sleeping: 0.00 ms overhead 64.10 ms
 	325.217970 GFlop/s
 
-CPU 0                           
+CPU 0
 	22 task(s)
 	total: 1574.82 ms executing: 1364.81 ms sleeping: 0.00 ms overhead 210.01 ms
 	7.512057 GFlop/s
 
-CPU 1                           
+CPU 1
 	14 task(s)
 	total: 1574.82 ms executing: 1500.13 ms sleeping: 0.00 ms overhead 74.69 ms
 	6.675853 GFlop/s
 
-CPU 2                           
+CPU 2
 	14 task(s)
 	total: 1574.82 ms executing: 1553.12 ms sleeping: 0.00 ms overhead 21.70 ms
 	7.152886 GFlop/s
@@ -113,8 +113,8 @@ The number of GFlops is available because the starpu_task::flops field of the
 tasks were filled (or STARPU_FLOPS used in starpu_task_insert).
 
 When an FxT trace is generated (see \ref GeneratingTracesWithFxT), it is also
-possible to use the tool <c>starpu_workers_activity</c> (see \ref
-MonitoringActivity) to generate a graphic showing the evolution of
+possible to use the tool <c>starpu_workers_activity</c> (see
+\ref MonitoringActivity) to generate a graphic showing the evolution of
 these values during the time, for the different workers.
 
 \subsection Bus-relatedFeedback Bus-related Feedback
@@ -139,8 +139,8 @@ CUDA 2  4534.229519     2417.069025     2417.060863     0.000000
 \endverbatim
 
 Statistics about the data transfers which were performed and temporal average
-of bandwidth usage can be obtained by setting the environment variable \ref
-STARPU_BUS_STATS to 1; a summary will then be displayed at program termination:
+of bandwidth usage can be obtained by setting the environment variable
+\ref STARPU_BUS_STATS to 1; a summary will then be displayed at program termination:
 
 \verbatim
 Data transfer stats:
@@ -360,7 +360,7 @@ struct starpu_codelet cl = {
 <li>
 Measured at runtime and refined by regression (model types
 ::STARPU_REGRESSION_BASED and ::STARPU_NL_REGRESSION_BASED). This
-still assumes performance regularity, but works 
+still assumes performance regularity, but works
 with various data input sizes, by applying regression over observed
 execution times. ::STARPU_REGRESSION_BASED uses an a*n^b regression
 form, ::STARPU_NL_REGRESSION_BASED uses an a*n^b+c (more precise than
@@ -380,8 +380,8 @@ so as to feed the performance model for a variety of
 inputs. The application can also provide the measurements explictly by
 using the function starpu_perfmodel_update_history(). The tools
 <c>starpu_perfmodel_display</c> and <c>starpu_perfmodel_plot</c> can
-be used to observe how much the performance model is calibrated (\ref
-PerformanceModelCalibration); when their output look good,
+be used to observe how much the performance model is calibrated
+(\ref PerformanceModelCalibration); when their output look good,
 \ref STARPU_CALIBRATE can be reset to <c>0</c> to let
 StarPU use the resulting performance model without recording new measures, and
 \ref STARPU_SCHED can be set to <c>dmda</c> to benefit from the performance models. If

@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016  CNRS
  * Copyright (C) 2011, 2012 INRIA
  * See the file version.doxy for copying conditions.
  */
@@ -193,8 +193,8 @@ function returns immediately. If the mutex is already locked by
 another thread, the function suspends the calling thread until the
 mutex is unlocked.
 
-This function also produces trace when the configure option \ref
-enable-fxt-lock "--enable-fxt-lock" is enabled.
+This function also produces trace when the configure option
+\ref enable-fxt-lock "--enable-fxt-lock" is enabled.
 
 \fn int starpu_pthread_mutex_unlock(starpu_pthread_mutex_t *mutex)
 \ingroup API_Threads
@@ -202,8 +202,8 @@ This function unlocks the given mutex. The mutex is assumed to be
 locked and owned by the calling thread on entrance to
 starpu_pthread_mutex_unlock().
 
-This function also produces trace when the configure option \ref
-enable-fxt-lock "--enable-fxt-lock" is enabled.
+This function also produces trace when the configure option
+\ref enable-fxt-lock "--enable-fxt-lock" is enabled.
 
 \fn int starpu_pthread_mutex_trylock(starpu_pthread_mutex_t *mutex)
 \ingroup API_Threads
@@ -213,8 +213,8 @@ already locked by another thread (or by the calling thread in the case
 of a ``fast''  mutex). Instead, the function returns immediately with
 the error code EBUSY.
 
-This function also produces trace when the configure option \ref
-enable-fxt-lock "--enable-fxt-lock" is enabled.
+This function also produces trace when the configure option
+\ref enable-fxt-lock "--enable-fxt-lock" is enabled.
 
 \typedef STARPU_PTHREAD_MUTEX_INITIALIZER
 \ingroup API_Threads
@@ -290,8 +290,8 @@ be locked by the calling thread on entrance to
 starpu_pthread_cond_wait(). Before returning to the calling thread, the
 function re-acquires mutex (as per starpu_pthread_mutex_lock()).
 
-This function also produces trace when the configure option \ref
-enable-fxt-lock "--enable-fxt-lock" is enabled.
+This function also produces trace when the configure option
+\ref enable-fxt-lock "--enable-fxt-lock" is enabled.
 
 \fn starpu_pthread_cond_timedwait(starpu_pthread_cond_t *cond, starpu_pthread_mutex_t *mutex, const struct timespec *abstime)
 \ingroup API_Threads

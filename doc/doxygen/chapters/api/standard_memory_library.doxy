@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016  CNRS
  * Copyright (C) 2011, 2012 INRIA
  * See the file version.doxy for copying conditions.
  */
@@ -99,20 +99,20 @@ starpu_memory_pin(). Returns 0 on success, -1 on error.
 
 \fn ssize_t starpu_memory_get_total(unsigned node)
 \ingroup API_Standard_Memory_Library
-If a memory limit is defined on the given node (see Section \ref
-HowToLimitMemoryPerNode), return the amount of total memory
+If a memory limit is defined on the given node (see Section
+\ref HowToLimitMemoryPerNode), return the amount of total memory
 on the node. Otherwise return -1.
 
 \fn ssize_t starpu_memory_get_available(unsigned node)
 \ingroup API_Standard_Memory_Library
-If a memory limit is defined on the given node (see Section \ref
-HowToLimitMemoryPerNode), return the amount of available memory
+If a memory limit is defined on the given node (see Section
+\ref HowToLimitMemoryPerNode), return the amount of available memory
 on the node. Otherwise return -1.
 
 \fn int starpu_memory_allocate(unsigned node, size_t size, int flags)
 \ingroup API_Standard_Memory_Library
-If a memory limit is defined on the given node (see Section \ref
-HowToLimitMemoryPerNode), try to allocate some of it. This does not actually
+If a memory limit is defined on the given node (see Section
+\ref HowToLimitMemoryPerNode), try to allocate some of it. This does not actually
 allocate memory, but only accounts for it. This can be useful when the
 application allocates data another way, but want StarPU to be aware of the
 allocation size e.g. for memory reclaiming.
@@ -122,8 +122,8 @@ STARPU_MEMORY_OVERFLOW to change this.
 
 \fn void starpu_memory_deallocate(unsigned node, size_t size)
 \ingroup API_Standard_Memory_Library
-If a memory limit is defined on the given node (see Section \ref
-HowToLimitMemoryPerNode), free some of it. This does not actually free memory,
+If a memory limit is defined on the given node (see Section
+\ref HowToLimitMemoryPerNode), free some of it. This does not actually free memory,
 but only accounts for it, like starpu_memory_allocate(). The amount does not
 have to be exactly the same as what was passed to starpu_memory_allocate(),
 only the eventual amount needs to be the same, i.e. one call to

@@ -111,7 +111,7 @@ starpu_data_idle_prefetch_on_node() variant can be used to issue the transfer
 only when the bus is idle.
 
 Conversely, one can advise StarPU that some data will not be useful in the
-close future by calling starpu_data_wont_use. StarPU will then write its value
+close future by calling starpu_data_wont_use(). StarPU will then write its value
 back to its home node, and evict it from GPUs when room is needed.
 
 \section PartitioningData Partitioning Data
@@ -194,7 +194,7 @@ but applications can also write their own data interfaces and filters, see
 \section AsynchronousPartitioning Asynchronous Partitioning
 
 The partitioning functions described in the previous section are synchronous:
-starpu_data_partition and starpu_data_unpartition both wait for all the tasks
+starpu_data_partition() and starpu_data_unpartition() both wait for all the tasks
 currently working on the data.  This can be a bottleneck for the application.
 
 An asynchronous API also exists, it works only on handles with sequential
@@ -217,7 +217,7 @@ struct starpu_data_filter f_vert =
 starpu_data_partition_plan(handle, &f_vert, vert_handle);
 \endcode
 
-starpu_data_partition_plan returns the handles for the partition in vert_handle.
+starpu_data_partition_plan() returns the handles for the partition in vert_handle.
 
 One can submit tasks working on the main handle, but not yet on the vert_handle
 handles. Now we submit the partitioning:
@@ -244,7 +244,7 @@ to submit unpartitioning (to get back to the initial handle) before submitting
 another partitioning.
 
 It is also possible to activate several partitioning at the same time, in
-read-only mode, by using starpu_data_partition_readonly_submit.  A complete
+read-only mode, by using starpu_data_partition_readonly_submit(). A complete
 example is available in <c>examples/filters/fmultiple_submit_readonly.c</c>.
 
 \section ManualPartitioning Manual Partitioning
@@ -450,9 +450,9 @@ before them, and the task running cl3 will always be run after them.
 
 If a lot of tasks use the commute access on the same set of data and a lot of
 them are ready at the same time, it may become interesting to use an arbiter,
-see \ref ConcurrentDataAccess .
+see \ref ConcurrentDataAccess.
 
-\section ConcurrentDataAccess Concurrent Data accesses
+\section ConcurrentDataAccess Concurrent Data Accesses
 
 When several tasks are ready and will work on several data, StarPU is faced with
 the classical Dining Philosophers problem, and has to determine the order in
@@ -476,7 +476,7 @@ will acquire them arbiter by arbiter, in arbiter pointer value order.
 
 See the tests/datawizard/test_arbiter.cpp example.
 
-Arbiters however do not support the STARPU_REDUX flag yet.
+Arbiters however do not support the ::STARPU_REDUX flag yet.
 
 \section TemporaryBuffers Temporary Buffers
 
@@ -521,8 +521,8 @@ codelet is needed).
 Some kernels sometimes need temporary data to achieve the computations, i.e. a
 workspace. The application could allocate it at the start of the codelet
 function, and free it at the end, but that would be costly. It could also
-allocate one buffer per worker (similarly to \ref
-HowToInitializeAComputationLibraryOnceForEachWorker), but that would
+allocate one buffer per worker (similarly to \ref HowToInitializeAComputationLibraryOnceForEachWorker),
+but that would
 make them systematic and permanent. A more  optimized way is to use
 the data access mode ::STARPU_SCRATCH, as examplified below, which
 provides per-worker buffers without content consistency. The buffer is
@@ -706,7 +706,7 @@ happen that the task kernel would rather have some of the datas kept in the
 main memory instead of copied in the GPU, a pivoting vector for instance.
 This can be achieved by setting the starpu_codelet::specific_nodes flag to
 1, and then fill the starpu_codelet::nodes array (or starpu_codelet::dyn_nodes when
-starpu_codelet::nbuffers is greater than STARPU_NMAXBUFS) with the node numbers
+starpu_codelet::nbuffers is greater than \ref STARPU_NMAXBUFS) with the node numbers
 where data should be copied to, or -1 to let StarPU copy it to the memory node
 where the task will be executed. For instance, with the following codelet:
 

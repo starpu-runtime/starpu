@@ -99,8 +99,8 @@ directory <c>examples/basic_examples/dynamic_handles.c</c>.
 
 Normally, the number of data handles given to a task is fixed in the
 starpu_codelet::nbuffers codelet field. This field can however be set to
-STARPU_VARIABLE_NBUFFERS, in which case the starpu_task::nbuffers task field
-must be set, and the starpu_task::modes field (or starpu_task_dyn_modes field,
+\ref STARPU_VARIABLE_NBUFFERS, in which case the starpu_task::nbuffers task field
+must be set, and the starpu_task::modes field (or starpu_task::dyn_modes field,
 see \ref SettingManyDataHandlesForATask) should be used to specify the modes for
 the handles.
 
@@ -493,13 +493,12 @@ structure as detected by <c>hwloc</c>. It means that for each object of the <c>h
 topology (NUMA node, socket, cache, ...) a combined worker will be created. If
 some nodes of the hierarchy have a big arity (e.g. many cores in a socket
 without a hierarchy of shared caches), StarPU will create combined workers of
-intermediate sizes. The variable \ref
-STARPU_SYNTHESIZE_ARITY_COMBINED_WORKER permits to tune the maximum
-arity between levels of combined workers.
+intermediate sizes. The variable \ref STARPU_SYNTHESIZE_ARITY_COMBINED_WORKER
+permits to tune the maximum arity between levels of combined workers.
 
 The combined workers actually produced can be seen in the output of the
-tool <c>starpu_machine_display</c> (the environment variable \ref
-STARPU_SCHED has to be set to a combined worker-aware scheduler such
+tool <c>starpu_machine_display</c> (the environment variable
+\ref STARPU_SCHED has to be set to a combined worker-aware scheduler such
 as <c>pheft</c> or <c>peager</c>).
 
 \subsection ConcurrentParallelTasks Concurrent Parallel Tasks
@@ -539,7 +538,7 @@ without any data access or execution content: as soon as its dependencies become
 available, it will terminate, call the callbacks, and release dependencies.
 
 An intermediate solution is to define a codelet with its <c>where</c> field set
-to STARPU_NOWHERE, for instance this:
+to \ref STARPU_NOWHERE, for instance this:
 
 \code{.c}
 struct starpu_codelet {

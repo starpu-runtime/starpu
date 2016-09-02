@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016  CNRS
  * Copyright (C) 2011, 2012 INRIA
  * See the file version.doxy for copying conditions.
  */
@@ -9,8 +9,7 @@
 /*! \page DebuggingTools Debugging Tools
 
 StarPU provides several tools to help debugging applications. Execution traces
-can be generated and displayed graphically, see \ref
-GeneratingTracesWithFxT.
+can be generated and displayed graphically, see \ref GeneratingTracesWithFxT.
 
 \section DebuggingInGeneral TroubleShooting In General
 
