@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2016  CNRS
  * Copyright (C) 2011, 2012 INRIA
  * See the file version.doxy for copying conditions.
  */
@@ -323,8 +323,7 @@ additional examples, is available in the directory <c>gcc-plugin/examples</c>
 of the StarPU distribution. These extensions map directly
 to StarPU's main concepts: tasks, task implementations for CPU,
 OpenCL, or CUDA, and registered data buffers. The standard C version
-that uses StarPU's standard C programming interface is given in \ref
-VectorScalingUsingStarPUAPI.
+that uses StarPU's standard C programming interface is given in \ref VectorScalingUsingStarPUAPI.
 
 First of all, the vector-scaling task and its simple CPU implementation
 has to be defined:
@@ -532,7 +531,7 @@ starpu_vector_data_register(&vector_handle, STARPU_MAIN_RAM, (uintptr_t)vector, 
 The first argument, called the <b>data handle</b>, is an opaque pointer which
 designates the array in StarPU. This is also the structure which is used to
 describe which data is used by a task. The second argument is the node number
-where the data originally resides. Here it is STARPU_MAIN_RAM since the array <c>vector</c> is in
+where the data originally resides. Here it is ::STARPU_MAIN_RAM since the array <c>vector</c> is in
 the main memory. Then comes the pointer <c>vector</c> where the data can be found in main memory,
 the number of elements in the vector and the size of each element.
 The following shows how to construct a StarPU task that will manipulate the

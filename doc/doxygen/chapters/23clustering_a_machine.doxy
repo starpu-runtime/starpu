@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2015 Universit@'e de Bordeaux
- * Copyright (C) 2015 CNRS
+ * Copyright (C) 2015, 2016 CNRS
  * Copyright (C) 2015 INRIA
  * See the file version.doxy for copying conditions.
  */
@@ -46,7 +46,7 @@ object, of the type <c>hwloc_obj_type_t</c>. More can be found in the
 documentation</a>.
 
 Once a cluster is created, the full machine is represented with an opaque
-structure named <c>starpu_cluster_machine</c>. This can be printed to show the
+structure starpu_cluster_machine. This can be printed to show the
 current machine state.
 
 \code{.c}
@@ -203,7 +203,8 @@ Note that the OpenMP mode is the default one both for clusters and
 contexts. The result of a cluster creation is a woken up master worker
 and sleeping "slaves" which allow the master to run tasks on their
 resources. To create a cluster with woken up workers one can use the
-flag <c>STARPU_SCHED_CTX_AWAKE_WORKERS</c> with the scheduling context
-API and <c>STARPU_CLUSTER_AWAKE_WORKERS</c> with the cluster API as
+flag \ref STARPU_SCHED_CTX_AWAKE_WORKERS with the scheduling context
+API and \ref STARPU_CLUSTER_AWAKE_WORKERS with the cluster API as
 parameter to the creation function.
+
 */

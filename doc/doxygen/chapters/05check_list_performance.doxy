@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016  CNRS
  * Copyright (C) 2011, 2012 INRIA
  * See the file version.doxy for copying conditions.
  */
@@ -124,9 +124,9 @@ memory gets tight. This also means that by default StarPU will not cache buffer
 allocations in main memory, since it does not know how much of the system memory
 it can afford.
 
-In the case of GPUs, the \ref STARPU_LIMIT_CUDA_MEM, \ref
-STARPU_LIMIT_CUDA_devid_MEM, \ref STARPU_LIMIT_OPENCL_MEM, and \ref
-STARPU_LIMIT_OPENCL_devid_MEM environment variables can be used to control how
+In the case of GPUs, the \ref STARPU_LIMIT_CUDA_MEM, \ref STARPU_LIMIT_CUDA_devid_MEM,
+\ref STARPU_LIMIT_OPENCL_MEM, and \ref STARPU_LIMIT_OPENCL_devid_MEM environment variables
+can be used to control how
 much (in MiB) of the GPU device memory should be used at most by StarPU (their
 default values are 90% of the available memory).
 
@@ -139,27 +139,28 @@ involved, or if allocation fragmentation can become a problem), and when using
 
 It should be noted that by default only buffer allocations automatically
 done by StarPU are accounted here, i.e. allocations performed through
-<c>starpu_malloc_on_node()</c> which are used by the data interfaces
+starpu_malloc_on_node() which are used by the data interfaces
 (matrix, vector, etc.).  This does not include allocations performed by
 the application through e.g. malloc(). It does not include allocations
-performed through <c>starpu_malloc()</c> either, only allocations
-performed explicitly with the \ref STARPU_MALLOC_COUNT flag (i.e. through
-<c>starpu_malloc_flags(STARPU_MALLOC_COUNT)</c>) are taken into account.  If the
+performed through starpu_malloc() either, only allocations
+performed explicitly with the \ref STARPU_MALLOC_COUNT flag (i.e. by passing
+the parameter \ref STARPU_MALLOC_COUNT when calling starpu_malloc_flags())
+are taken into account.  If the
 application wants to make StarPU aware of its own allocations, so that StarPU
 knows precisely how much data is allocated, and thus when to evict allocation
-caches or data out to the disk, \ref starpu_memory_allocate can be used to
-specify an amount of memory to be accounted for. \ref starpu_memory_deallocate
+caches or data out to the disk, starpu_memory_allocate() can be used to
+specify an amount of memory to be accounted for. starpu_memory_deallocate()
 can be used to account freed memory back. Those can for instance be used by data
-interfaces with dynamic data buffers: instead of using starpu_malloc_on_node,
+interfaces with dynamic data buffers: instead of using starpu_malloc_on_node(),
 they would dynamically allocate data with malloc/realloc, and notify starpu of
-the delta thanks to starpu_memory_allocate and starpu_memory_deallocate calls.
+the delta thanks to starpu_memory_allocate() and starpu_memory_deallocate() calls.
 
-\ref starpu_memory_get_total and \ref starpu_memory_get_available
+starpu_memory_get_total() and starpu_memory_get_available()
 can be used to get an estimation of how much memory is available.
-\ref starpu_memory_wait_available can also be used to block until an
-amount of memory becomes available (but it may be preferrable to use
-<c>starpu_memory_allocate(STARPU_MEMORY_WAIT)</c> to reserve that amount
-immediately).
+starpu_memory_wait_available() can also be used to block until an
+amount of memory becomes available (but it may be preferrable to call
+starpu_memory_allocate() with the parameter \ref STARPU_MEMORY_WAIT)
+to reserve that amount immediately).
 
 \section HowToReduceTheMemoryFootprintOfInternalDataStructures How To Reduce The Memory Footprint Of Internal Data Structures
 
@@ -185,12 +186,13 @@ The size of the various structures of StarPU can be printed by the
 tests/microbenchs/display_structures_size.
 
 It is also often useless to submit *all* the tasks at the same time. One can
-make the starpu_task_submit function block when a reasonable given number of
-tasks have been submitted, by setting the STARPU_LIMIT_MIN_SUBMITTED_TASKS and
-STARPU_LIMIT_MAX_SUBMITTED_TASKS environment variables, for instance:
+make the starpu_task_submit() function block when a reasonable given number of
+tasks have been submitted, by setting the \ref STARPU_LIMIT_MIN_SUBMITTED_TASKS and
+\ref STARPU_LIMIT_MAX_SUBMITTED_TASKS environment variables, for instance:
 
 <c>
 export STARPU_LIMIT_MAX_SUBMITTED_TASKS=10000
+
 export STARPU_LIMIT_MIN_SUBMITTED_TASKS=9000
 </c>
 
@@ -201,12 +203,12 @@ course this may reduce parallelism if the threshold is set too low. The precise
 balance depends on the application task graph.
 
 An idea of how much memory is used for tasks and data handles can be obtained by
-setting the STARPU_MAX_MEMORY_USE environment variable to 1.
+setting the \ref STARPU_MAX_MEMORY_USE environment variable to 1.
 
 \section HowtoReuseMemory How to reuse memory
 
 When your application needs to allocate more data than the available amount of
-memory usable by StarPU (given by \ref starpu_memory_get_available() ), the
+memory usable by StarPU (given by starpu_memory_get_available()), the
 allocation cache system can reuse data buffers used by previously executed
 tasks. For that system to work with MPI tasks, you need to submit tasks progressively instead
 of as soon as possible, because in the case of MPI receives, the allocation cache check for reusing data
@@ -214,16 +216,16 @@ buffers will be done at submission time, not at execution time.
 
 You have two options to control the task submission flow. The first one is by
 controlling the number of submitted tasks during the whole execution. This can
-be done whether by setting the environment variables \ref
-STARPU_LIMIT_MAX_SUBMITTED_TASKS and \ref STARPU_LIMIT_MIN_SUBMITTED_TASKS to
+be done whether by setting the environment variables
+\ref STARPU_LIMIT_MAX_SUBMITTED_TASKS and \ref STARPU_LIMIT_MIN_SUBMITTED_TASKS to
 tell StarPU when to stop submitting tasks and when to wake up and submit tasks
-again, or by explicitely calling \ref starpu_task_wait_for_n_submitted() in
+again, or by explicitely calling starpu_task_wait_for_n_submitted() in
 your application code for finest grain control (for example, between two
 iterations of a submission loop).
 
 The second option is to control the memory size of the allocation cache. This
-can be done in the application by using jointly \ref
-starpu_memory_get_available() and \ref starpu_memory_wait_available() to submit
+can be done in the application by using jointly
+starpu_memory_get_available() and starpu_memory_wait_available() to submit
 tasks only when there is enough memory space to allocate the data needed by the
 task, i.e when enough data are available for reuse in the allocation cache.
 

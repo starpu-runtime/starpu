@@ -21,9 +21,9 @@ If the disk backend provides an alloc method, StarPU can then start using it
 to allocate room and store data there with the write method, without user
 intervention.
 
-The user can also use starpu_disk_open to explicitly open an object within the
+The user can also use starpu_disk_open() to explicitly open an object within the
 disk, e.g. a file name in the stdio or unistd cases, or a database key in the
-leveldb case, and then use starpu_*_register functions to turn it into a StarPU
+leveldb case, and then use <c>starpu_*_register</c> functions to turn it into a StarPU
 data handle. StarPU will then automatically read and write data as appropriate.
 
 \section UseANewDiskMemory Use a new disk memory
@@ -65,7 +65,7 @@ There are various ways to operate a disk memory node, described by the structure
 starpu_disk_ops. For instance, the variable #starpu_disk_unistd_ops
 uses read/write functions.
 
-All structures are in \ref API_Out_Of_Core .
+All structures are in \ref API_Out_Of_Core.
 
 \section ExampleDiskCopy Examples: disk_copy
 

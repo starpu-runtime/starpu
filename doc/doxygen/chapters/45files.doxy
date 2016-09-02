@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016  CNRS
  * Copyright (C) 2011, 2012 INRIA
  * See the file version.doxy for copying conditions.
 */
@@ -13,6 +13,7 @@
 \file starpu.h
 \file starpu_bitmap.h
 \file starpu_bound.h
+\file starpu_clusters_util.h
 \file starpu_cublas.h
 \file starpu_cuda.h
 \file starpu_data_filters.h
@@ -25,15 +26,18 @@
 \file starpu_fxt.h
 \file starpu_hash.h
 \file starpu_mic.h
+\file starpu_mod.f90
 \file starpu_opencl.h
 \file starpu_openmp.h
 \file starpu_perfmodel.h
 \file starpu_profiling.h
 \file starpu_rand.h
 \file starpu_scc.h
+\file starpu_sched_component.h
 \file starpu_sched_ctx.h
 \file starpu_sched_ctx_hypervisor.h
 \file starpu_scheduler.h
+\file starpu_simgrid_wrap.h
 \file starpu_sink.h
 \file starpu_stdlib.h
 \file starpu_task_bundle.h

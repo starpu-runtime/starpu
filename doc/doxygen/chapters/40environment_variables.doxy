@@ -85,9 +85,8 @@ execution of all tasks.
 \anchor STARPU_OPENCL_ON_CPUS
 \addindex __env__STARPU_OPENCL_ON_CPUS
 By default, the OpenCL driver only enables GPU and accelerator
-devices. By setting the environment variable \ref
-STARPU_OPENCL_ON_CPUS to 1, the OpenCL driver will also enable CPU
-devices.
+devices. By setting the environment variable \ref STARPU_OPENCL_ON_CPUS
+to 1, the OpenCL driver will also enable CPU devices.
 </dd>
 
 <dt>STARPU_OPENCL_ONLY_ON_CPUS</dt>
@@ -95,9 +94,8 @@ devices.
 \anchor STARPU_OPENCL_ONLY_ON_CPUS
 \addindex __env__STARPU_OPENCL_ONLY_ON_CPUS
 By default, the OpenCL driver enables GPU and accelerator
-devices. By setting the environment variable \ref
-STARPU_OPENCL_ONLY_ON_CPUS to 1, the OpenCL driver will ONLY enable
-CPU devices.
+devices. By setting the environment variable \ref STARPU_OPENCL_ONLY_ON_CPUS
+to 1, the OpenCL driver will ONLY enable CPU devices.
 </dd>
 
 <dt>STARPU_NMIC</dt>
@@ -153,8 +151,8 @@ and <c>STARPU_WORKERS_CPUID = "0 2 1 3"</c>, the CUDA device will be controlled
 by logical CPU #0, the OpenCL device will be controlled by logical CPU #2, and
 the logical CPUs #1 and #3 will be used by the CPU workers.
 
-If the number of workers is larger than the array given in \ref
-STARPU_WORKERS_CPUID, the workers are bound to the logical CPUs in a
+If the number of workers is larger than the array given in
+\ref STARPU_WORKERS_CPUID, the workers are bound to the logical CPUs in a
 round-robin fashion: if <c>STARPU_WORKERS_CPUID = "0 1"</c>, the first
 and the third (resp. second and fourth) workers will be put on CPU #0
 (resp. CPU #1).
@@ -334,6 +332,13 @@ todo
 todo
 </dd>
 
+<dt>STARPU_MIC_PROGRAM_PATH</dt>
+<dd>
+\anchor STARPU_MIC_PROGRAM_PATH
+\addindex __env__STARPU_MIC_PROGRAM_PATH
+todo
+</dd>
+
 </dl>
 
 \section ConfiguringTheSchedulingEngine Configuring The Scheduling Engine
@@ -452,8 +457,8 @@ Enable on-line performance monitoring (\ref EnablingOn-linePerformanceMonitoring
 <dd>
 \anchor SOCL_OCL_LIB_OPENCL
 \addindex __env__SOCL_OCL_LIB_OPENCL
-THE SOCL test suite is only run when the environment variable \ref
-SOCL_OCL_LIB_OPENCL is defined. It should contain the location
+THE SOCL test suite is only run when the environment variable
+\ref SOCL_OCL_LIB_OPENCL is defined. It should contain the location
 of the file <c>libOpenCL.so</c> of the OCL ICD implementation.
 </dd>
 
@@ -522,6 +527,21 @@ When set to 1 (which is the default), CUDA task and transfer queueing costs are
 taken into account in simgrid mode.
 </dd>
 
+<dt>STARPU_PCI_FLAT</dt>
+<dd>
+\anchor STARPU_PCI_FLAT
+\addindex __env__STARPU_PCI_FLAT
+When unset or set to to 0, the platform file created for simgrid will
+contain PCI bandwidths and routes.
+</dd>
+
+<dt>STARPU_SIMGRID_QUEUE_MALLOC_COST</dt>
+<dd>
+\anchor STARPU_SIMGRID_QUEUE_MALLOC_COST
+\addindex __env__STARPU_SIMGRID_QUEUE_MALLOC_COST
+When unset or set to 1, simulate within simgrid the GPU transfer queueing.
+</dd>
+
 <dt>STARPU_MALLOC_SIMULATION_FOLD</dt>
 <dd>
 \anchor STARPU_MALLOC_SIMULATION_FOLD
@@ -544,6 +564,15 @@ MiB. The default is 1, thus allowing 64GiB virtual memory when Linux's
 This specifies the main directory in which StarPU stores its
 configuration files. The default is <c>$HOME</c> on Unix environments,
 and <c>$USERPROFILE</c> on Windows environments.
+</dd>
+
+<dt>STARPU_PATH</dt>
+<dd>
+\anchor STARPU_PATH
+\addindex __env__STARPU_PATH
+Only used on  Windows environments.
+This specifies the main directory in which StarPU is installed
+(\ref RunningABasicStarPUApplicationOnMicrosoft)
 </dd>
 
 <dt>STARPU_PERF_MODEL_DIR</dt>
@@ -731,8 +760,8 @@ Setting it enables allocation cache buffer reuse in main memory.
 \addindex __env__STARPU_LIMIT_MIN_SUBMITTED_TASKS    
 This variable allows the user to control the task submission flow by specifying
 to StarPU a submitted task threshold to wait before unblocking task submission. This
-variable has to be used in conjunction with \ref
-STARPU_LIMIT_MAX_SUBMITTED_TASKS which puts the task submission thread to
+variable has to be used in conjunction with \ref STARPU_LIMIT_MAX_SUBMITTED_TASKS
+which puts the task submission thread to
 sleep.  Setting it enables allocation cache buffer reuse in main memory.
 </dd>
 
@@ -809,8 +838,8 @@ end of the execution of an application (\ref DataStatistics).
 When set to a value other than 0, allows to make StarPU print an error
 message whenever StarPU does not terminate any task for the given time (in µs),
 but lets the application continue normally. Should
-be used in combination with \ref STARPU_WATCHDOG_CRASH (see \ref
-DetectionStuckConditions).
+be used in combination with \ref STARPU_WATCHDOG_CRASH
+(see \ref DetectionStuckConditions).
 </dd>
 
 <dt>STARPU_WATCHDOG_CRASH</dt>
@@ -878,6 +907,24 @@ The random scheduler and some examples use random numbers for their own
 working. Depending on the examples, the seed is by default juste always 0 or
 the current time() (unless simgrid mode is enabled, in which case it is always
 0). STARPU_RAND_SEED allows to set the seed to a specific value.
+</dd>
+
+<dt>STARPU_IDLE_TIME</dt>
+<dd>
+\anchor STARPU_IDLE_TIME
+\addindex __env__STARPU_IDLE_TIME
+When set to a value being a valid filename, a corresponding file
+will be created when shutting down StarPU. The file will contain the
+sum of all the workers' idle time.
+</dd>
+
+<dt>STARPU_GLOBAL_ARBITER</dt>
+<dd>
+\anchor STARPU_GLOBAL_ARBITER
+\addindex __env__STARPU_GLOBAL_ARBITER
+When set to a positive value, StarPU will create a arbiter, which
+implements an advanced but centralized management of concurrent data
+accesses, see \ref ConcurrentDataAccess for the details.
 </dd>
 
 </dl>

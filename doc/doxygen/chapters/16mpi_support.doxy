@@ -256,13 +256,13 @@ processed in the first step of the next loop.
 </li>
 </ol>
 
-\ref MPIPtpCommunication "Communication" gives the list of all the
+\ref MPIPtpCommunication gives the list of all the
 point to point communications defined in StarPU-MPI.
 
 \section ExchangingUserDefinedDataInterface Exchanging User Defined Data Interface
 
-New data interfaces defined as explained in \ref
-DefiningANewDataInterface can also be used within StarPU-MPI and
+New data interfaces defined as explained in \ref DefiningANewDataInterface
+can also be used within StarPU-MPI and
 exchanged between nodes. Two functions needs to be defined through the
 type starpu_data_interface_ops. The function
 starpu_data_interface_ops::pack_data takes a handle and returns a
@@ -374,7 +374,7 @@ exchange the content of the handle. All MPI nodes then process the whole task
 graph, and StarPU automatically determines which node actually execute which
 task, and trigger the required MPI transfers.
 
-The list of functions is described in \ref MPIInsertTask "MPI Insert Task".
+The list of functions is described in \ref MPIInsertTask.
 
 Here an stencil example showing how to use starpu_mpi_task_insert(). One
 first needs to define a distribution function which specifies the
@@ -607,7 +607,7 @@ latest value on the original home node.
 
 \section MPICollective MPI Collective Operations
 
-The functions are described in \ref MPICollectiveOperations "MPI Collective Operations".
+The functions are described in \ref MPICollectiveOperations.
 
 \code{.c}
 if (rank == root)
@@ -667,8 +667,8 @@ them!
 
 \section MPIDebug Debugging MPI
 
-Communication trace will be enabled when the environment variable \ref
-STARPU_MPI_COMM is set to 1, and StarPU has been configured with the
+Communication trace will be enabled when the environment variable
+\ref STARPU_MPI_COMM is set to 1, and StarPU has been configured with the
 option \ref enable-verbose "--enable-verbose".
 
 Statistics will be enabled for the communication cache when the

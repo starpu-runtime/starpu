@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2016  CNRS
  * Copyright (C) 2011, 2012 INRIA
  * See the file version.doxy for copying conditions.
  */
@@ -75,8 +75,8 @@ Number of platforms:	2
 $
 \endverbatim
 
-To enable the use of CPU cores via OpenCL, one can set the STARPU_OPENCL_ON_CPUS
-environment variable to 1 and STARPU_NCPUS to 0 (to avoid using CPUs both via
+To enable the use of CPU cores via OpenCL, one can set the \ref STARPU_OPENCL_ON_CPUS
+environment variable to 1 and \ref STARPU_NCPUS to 0 (to avoid using CPUs both via
 the OpenCL driver and the normal CPU driver).
 
 */

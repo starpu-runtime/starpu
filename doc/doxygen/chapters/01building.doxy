@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016  CNRS
  * Copyright (C) 2011, 2012 INRIA
  * See the file version.doxy for copying conditions.
  */
@@ -47,14 +47,14 @@ no option is required, it will be detected automatically, otherwise
 \subsection GettingSources Getting Sources
 
 StarPU's sources can be obtained from the download page of
-the StarPU website (http://runtime.bordeaux.inria.fr/StarPU/files/).
+the StarPU website (http://starpu.gforge.inria.fr/files/).
 
 All releases and the development tree of StarPU are freely available
 on INRIA's gforge under the LGPL license. Some releases are available
 under the BSD license.
 
 The latest release can be downloaded from the INRIA's gforge (http://gforge.inria.fr/frs/?group_id=1570) or
-directly from the StarPU download page (http://runtime.bordeaux.inria.fr/StarPU/files/).
+directly from the StarPU download page (http://starpu.gforge.inria.fr/files/).
 
 The latest nightly snapshot can be downloaded from the StarPU gforge website (http://starpu.gforge.inria.fr/testing/).
 
@@ -227,7 +227,7 @@ Batch files are provided to run StarPU applications under Microsoft
 Visual C. They are installed in <c>$STARPU_PATH/bin/msvc</c>.
 
 To execute a StarPU application, you first need to set the environment
-variable <c>STARPU_PATH</c>.
+variable \ref STARPU_PATH.
 
 \verbatim
 c:\....> cd c:\cygwin\home\ci\starpu\
