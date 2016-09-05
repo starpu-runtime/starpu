@@ -1,51 +1,12 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
  * Copyright (C) 2011, 2012 INRIA
  * See the file version.doxy for copying conditions.
  */
 
 /*! \defgroup API_Performance_Model Performance Model
-
-\enum starpu_perfmodel_archtype
-\ingroup API_Performance_Model
-Enumerates the various types of architectures.
-
-it is possible that we have multiple versions of the same kind of
-workers, for instance multiple GPUs or even different CPUs within
-the same machine so we do not use the archtype enum type directly
-for performance models.
-
-<ul>
-<li> CPU types range within ::STARPU_CPU_DEFAULT (1 CPU),
-::STARPU_CPU_DEFAULT+1 (2 CPUs), ... ::STARPU_CPU_DEFAULT +
-STARPU_MAXCPUS - 1 (STARPU_MAXCPUS CPUs).
-</li>
-<li> CUDA types range within ::STARPU_CUDA_DEFAULT (GPU number 0),
-::STARPU_CUDA_DEFAULT + 1 (GPU number 1), ..., ::STARPU_CUDA_DEFAULT +
-STARPU_MAXCUDADEVS - 1 (GPU number STARPU_MAXCUDADEVS - 1).
-</li>
-<li> OpenCL types range within ::STARPU_OPENCL_DEFAULT (GPU number
-0), ::STARPU_OPENCL_DEFAULT + 1 (GPU number 1), ...,
-::STARPU_OPENCL_DEFAULT + STARPU_MAXOPENCLDEVS - 1 (GPU number
-STARPU_MAXOPENCLDEVS - 1).
-</ul>
-\var starpu_perfmodel_archtype::STARPU_CPU_DEFAULT
-\ingroup API_Performance_Model
-CPU combined workers between 0 and STARPU_MAXCPUS-1
-\var starpu_perfmodel_archtype::STARPU_CUDA_DEFAULT
-\ingroup API_Performance_Model
-CUDA workers
-\var starpu_perfmodel_archtype::STARPU_OPENCL_DEFAULT
-\ingroup API_Performance_Model
-OpenCL workers
-\var starpu_perfmodel_archtype::STARPU_MIC_DEFAULT
-\ingroup API_Performance_Model
-MIC workers
-\var starpu_perfmodel_archtype::STARPU_SCC_DEFAULT
-\ingroup API_Performance_Model
-SCC workers
 
 \enum starpu_perfmodel_type
 \ingroup API_Performance_Model
@@ -65,6 +26,24 @@ Automatic linear regression-based cost model  (alpha * size ^ beta)
 \var starpu_perfmodel_type::STARPU_NL_REGRESSION_BASED
 \ingroup API_Performance_Model
 Automatic non-linear regression-based cost model (a * size ^ b + c)
+
+\struct starpu_perfmodel_device
+todo
+\ingroup API_Performance_Model
+\var enum starpu_worker_archtype starpu_perfmodel_device::type
+is the type of the device
+\var int starpu_perfmodel_device::devid
+is the identifier of the precise device
+\var int starpu_perfmodel_device::ncore
+is the number of execution in parallel, minus 1
+
+\struct starpu_perfmodel_arch
+todo
+\ingroup API_Performance_Model
+\var int starpu_perfmodel_arch::ndevices
+is the number of the devices for the given arch
+\var struct starpu_perfmodel_device *starpu_perfmodel_arch::devices
+is the list of the devices for the given arch
 
 \struct starpu_perfmodel
 Contains all information about a performance model. At least the
