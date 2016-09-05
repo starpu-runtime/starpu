@@ -305,7 +305,7 @@ Return the tag of the given data.
 Return the tag of the given data.
 Symbol kept for backward compatibility. Calling function starpu_mpi_data_get_tag
 
-\fn starpu_mpi_data_migrate(MPI_Comm comm, starpu_data_handle_t handle, int new_rank)
+\fn void starpu_mpi_data_migrate(MPI_Comm comm, starpu_data_handle_t handle, int new_rank)
 \ingroup API_MPI_Support
 Migrate the data onto the \p new_rank MPI node. This means both transferring
 the data to node \p new_rank if it hasn't been transferred already, and setting

@@ -160,7 +160,7 @@ SCC implementation of a codelet.
 \ingroup API_Codelet_And_Tasks
 MIC kernel for a codelet
 
-\typedef *starpu_scc_kernel_t
+\typedef starpu_scc_kernel_t
 \ingroup API_Codelet_And_Tasks
 SCC kernel for a codelet
 
