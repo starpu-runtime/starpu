@@ -57,6 +57,22 @@ the array \p comm_amounts which must have a size greater or equal to
 the world size. Communications statistics must be enabled (see
 \ref STARPU_COMM_STATS).
 
+\fn int starpu_mpi_comm_size(MPI_Comm comm, int *size)
+\ingroup API_MPI_Support
+Return in \p size the size of the communicator \p comm
+
+\fn int starpu_mpi_comm_rank(MPI_Comm comm, int *rank)
+\ingroup API_MPI_Support
+Return in \p rank the rank of the calling process in the communicator \p comm
+
+\fn int starpu_mpi_world_rank(void)
+\ingroup API_MPI_Support
+Return the rank of the calling process in the communicator MPI_COMM_WORLD
+
+\fn int starpu_mpi_world_size(void)
+\ingroup API_MPI_Support
+Return the size of the communicator MPI_COMM_WORLD
+
 @name Communication
 \anchor MPIPtpCommunication
 \ingroup API_MPI_Support
@@ -289,7 +305,7 @@ Return the tag of the given data.
 Return the tag of the given data.
 Symbol kept for backward compatibility. Calling function starpu_mpi_data_get_tag
 
-\def starpu_mpi_data_migrate(MPI_Comm comm, starpu_data_handle_t handle, int new_rank)
+\fn starpu_mpi_data_migrate(MPI_Comm comm, starpu_data_handle_t handle, int new_rank)
 \ingroup API_MPI_Support
 Migrate the data onto the \p new_rank MPI node. This means both transferring
 the data to node \p new_rank if it hasn't been transferred already, and setting
