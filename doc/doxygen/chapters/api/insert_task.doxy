@@ -8,7 +8,7 @@
 
 /*! \defgroup API_Insert_Task Insert_Task
 
-\fn starpu_insert_task(struct starpu_codelet *cl, ...)
+\fn int starpu_insert_task(struct starpu_codelet *cl, ...)
 \ingroup API_Insert_Task
 This function does the same as the function starpu_task_insert(). It has been kept to avoid breaking old codes.
 
