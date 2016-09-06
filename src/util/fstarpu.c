@@ -67,6 +67,15 @@ static const intptr_t fstarpu_any_worker = STARPU_ANY_WORKER;
 
 static const intptr_t fstarpu_nmaxbufs = STARPU_NMAXBUFS;
 
+static const intptr_t fstarpu_sched_ctx_policy_name	= STARPU_SCHED_CTX_POLICY_NAME;
+static const intptr_t fstarpu_sched_ctx_policy_struct	= STARPU_SCHED_CTX_POLICY_STRUCT;
+static const intptr_t fstarpu_sched_ctx_policy_min_prio	= STARPU_SCHED_CTX_POLICY_MIN_PRIO;
+static const intptr_t fstarpu_sched_ctx_policy_max_prio	= STARPU_SCHED_CTX_POLICY_MAX_PRIO;
+static const intptr_t fstarpu_sched_ctx_hierarchy_level	= STARPU_SCHED_CTX_HIERARCHY_LEVEL;
+static const intptr_t fstarpu_sched_ctx_nested	= STARPU_SCHED_CTX_NESTED;
+static const intptr_t fstarpu_sched_ctx_awake_workers	= STARPU_SCHED_CTX_AWAKE_WORKERS;
+static const intptr_t fstarpu_sched_ctx_policy_init	= STARPU_SCHED_CTX_POLICY_INIT;
+
 intptr_t fstarpu_get_constant(char *s)
 {
 	if	(!strcmp(s, "FSTARPU_R"))	{ return fstarpu_r; }
@@ -112,6 +121,15 @@ intptr_t fstarpu_get_constant(char *s)
 	else if (!strcmp(s, "FSTARPU_ANY_WORKER"))	{ return fstarpu_any_worker; }
 
 	else if (!strcmp(s, "FSTARPU_NMAXBUFS"))	{ return fstarpu_nmaxbufs; }
+
+	else if (!strcmp(s, "FSTARPU_SCHED_CTX_POLICY_NAME"))	{ return fstarpu_sched_ctx_policy_name; }
+	else if (!strcmp(s, "FSTARPU_SCHED_CTX_POLICY_STRUCT"))	{ return fstarpu_sched_ctx_policy_struct; }
+	else if (!strcmp(s, "FSTARPU_SCHED_CTX_POLICY_MIN_PRIO"))	{ return fstarpu_sched_ctx_policy_min_prio; }
+	else if (!strcmp(s, "FSTARPU_SCHED_CTX_POLICY_MAX_PRIO"))	{ return fstarpu_sched_ctx_policy_max_prio; }
+	else if (!strcmp(s, "FSTARPU_SCHED_CTX_HIERARCHY_LEVEL"))	{ return fstarpu_sched_ctx_hierarchy_level; }
+	else if (!strcmp(s, "FSTARPU_SCHED_CTX_NESTED"))	{ return fstarpu_sched_ctx_nested; }
+	else if (!strcmp(s, "FSTARPU_SCHED_CTX_AWAKE_WORKERS"))	{ return fstarpu_sched_ctx_awake_workers; }
+	else if (!strcmp(s, "FSTARPU_SCHED_CTX_POLICY_INIT"))	{ return fstarpu_sched_ctx_policy_init; }
 
 	else { _FSTARPU_ERROR("unknown constant"); }
 }
@@ -418,11 +436,6 @@ void fstarpu_unpack_arg(char *cl_arg, void ***_buffer_list)
 		current_arg_offset += arg_size;
 	}
 	free(cl_arg);
-}
-
-int fstarpu_sched_ctx_create(int *workers_array, int nworkers, const char *name)
-{
-	return (int)starpu_sched_ctx_create(workers_array, nworkers, name, STARPU_SCHED_CTX_POLICY_NAME, "eager", 0);
 }
 
 void fstarpu_sched_ctx_display_workers(int ctx)

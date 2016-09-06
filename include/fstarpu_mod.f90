@@ -64,6 +64,15 @@ module fstarpu_mod
 
         integer(c_int), bind(C) :: FSTARPU_NMAXBUFS
 
+        type(c_ptr), bind(C) :: FSTARPU_SCHED_CTX_POLICY_NAME
+        type(c_ptr), bind(C) :: FSTARPU_SCHED_CTX_POLICY_STRUCT
+        type(c_ptr), bind(C) :: FSTARPU_SCHED_CTX_POLICY_MIN_PRIO
+        type(c_ptr), bind(C) :: FSTARPU_SCHED_CTX_POLICY_MAX_PRIO
+        type(c_ptr), bind(C) :: FSTARPU_SCHED_CTX_HIERARCHY_LEVEL
+        type(c_ptr), bind(C) :: FSTARPU_SCHED_CTX_NESTED
+        type(c_ptr), bind(C) :: FSTARPU_SCHED_CTX_AWAKE_WORKERS
+        type(c_ptr), bind(C) :: FSTARPU_SCHED_CTX_POLICY_INIT
+
         ! (some) portable iso_c_binding types
         type(c_ptr), bind(C) :: FSTARPU_SZ_C_DOUBLE
         type(c_ptr), bind(C) :: FSTARPU_SZ_C_FLOAT
@@ -1612,12 +1621,13 @@ module fstarpu_mod
                 ! == starpu_sched_ctx.h ==
 
                 ! starpu_sched_ctx_create: see fstarpu_sched_ctx_create
-                function fstarpu_sched_ctx_create(workers_array,nworkers,ctx_name) bind(C)
-                        use iso_c_binding, only: c_int, c_char
+                function fstarpu_sched_ctx_create(workers_array,nworkers,ctx_name, arglist) bind(C)
+                        use iso_c_binding, only: c_int, c_char, c_ptr
                         integer(c_int) :: fstarpu_sched_ctx_create
                         integer(c_int), intent(in) :: workers_array(*)
                         integer(c_int), value, intent(in) :: nworkers
                         character(c_char), intent(in) :: ctx_name
+                        type(c_ptr), dimension(:), intent(in) :: arglist
                 end function fstarpu_sched_ctx_create
 
                 ! unsigned starpu_sched_ctx_create_inside_interval(const char *policy_name, const char *sched_ctx_name, int min_ncpus, int max_ncpus, int min_ngpus, int max_ngpus, unsigned allow_overlap);
@@ -2232,6 +2242,23 @@ module fstarpu_mod
                         FSTARPU_ANY_WORKER   = fstarpu_get_constant(C_CHAR_"FSTARPU_ANY_WORKER"//C_NULL_CHAR)
 
                         FSTARPU_NMAXBUFS   = int(p_to_ip(fstarpu_get_constant(C_CHAR_"FSTARPU_NMAXBUFS"//C_NULL_CHAR)),c_int)
+
+                        FSTARPU_SCHED_CTX_POLICY_NAME    = &
+                            fstarpu_get_constant(C_CHAR_"FSTARPU_SCHED_CTX_POLICY_NAME"//C_NULL_CHAR)
+                        FSTARPU_SCHED_CTX_POLICY_STRUCT    = &
+                            fstarpu_get_constant(C_CHAR_"FSTARPU_SCHED_CTX_POLICY_STRUCT"//C_NULL_CHAR)
+                        FSTARPU_SCHED_CTX_POLICY_MIN_PRIO    = &
+                            fstarpu_get_constant(C_CHAR_"FSTARPU_SCHED_CTX_POLICY_MIN_PRIO"//C_NULL_CHAR)
+                        FSTARPU_SCHED_CTX_POLICY_MAX_PRIO    = &
+                            fstarpu_get_constant(C_CHAR_"FSTARPU_SCHED_CTX_POLICY_MAX_PRIO"//C_NULL_CHAR)
+                        FSTARPU_SCHED_CTX_HIERARCHY_LEVEL    = &
+                            fstarpu_get_constant(C_CHAR_"FSTARPU_SCHED_CTX_HIERARCHY_LEVEL"//C_NULL_CHAR)
+                        FSTARPU_SCHED_CTX_NESTED    = &
+                            fstarpu_get_constant(C_CHAR_"FSTARPU_SCHED_CTX_NESTED"//C_NULL_CHAR)
+                        FSTARPU_SCHED_CTX_AWAKE_WORKERS    = &
+                            fstarpu_get_constant(C_CHAR_"FSTARPU_SCHED_CTX_AWAKE_WORKERS"//C_NULL_CHAR)
+                        FSTARPU_SCHED_CTX_POLICY_INIT    = &
+                            fstarpu_get_constant(C_CHAR_"FSTARPU_SCHED_CTX_POLICY_INIT"//C_NULL_CHAR)
 
                         ! Initialize size constants as 'c_ptr'
                         FSTARPU_SZ_C_DOUBLE        = sz_to_p(c_sizeof(FSTARPU_SZ_C_DOUBLE_dummy))
