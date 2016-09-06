@@ -128,12 +128,12 @@ static void condition_exit(struct starpu_omp_condition *condition)
 	condition->contention_list_head = NULL;
 }
 
-static void condition_wait(struct starpu_omp_condition *condition, struct _starpu_spinlock *lock)
+static void condition_wait(struct starpu_omp_condition *condition, struct _starpu_spinlock *lock, enum starpu_omp_task_wait_on flag)
 {
 	struct starpu_omp_task *task = _starpu_omp_get_task();
 	struct starpu_omp_task_link link;
 	_starpu_spin_lock(&task->lock);
-	task->wait_on |= starpu_omp_task_wait_on_condition;
+	task->wait_on |= flag;
 	link.task = task;
 	link.next = condition->contention_list_head;
 	condition->contention_list_head = &link;
@@ -163,15 +163,15 @@ static void condition_signal(struct starpu_omp_condition *condition)
 }
 #endif
 
-static void condition_broadcast(struct starpu_omp_condition *condition)
+static void condition_broadcast(struct starpu_omp_condition *condition, enum starpu_omp_task_wait_on flag)
 {
 	while (condition->contention_list_head != NULL)
 	{
 		struct starpu_omp_task *next_task = condition->contention_list_head->task;
 		weak_task_lock(next_task);
 		condition->contention_list_head = condition->contention_list_head->next;
-		STARPU_ASSERT(next_task->wait_on & starpu_omp_task_wait_on_condition);
-		next_task->wait_on &= ~starpu_omp_task_wait_on_condition;
+		STARPU_ASSERT(next_task->wait_on & flag);
+		next_task->wait_on &= ~flag;
 		wake_up_and_unlock_task(next_task);
 	}
 }
@@ -2052,7 +2052,7 @@ void starpu_omp_ordered_inline_begin(void)
 	while (i != loop->ordered_iteration)
 	{
 		STARPU_ASSERT(i > loop->ordered_iteration);
-		condition_wait(&loop->ordered_cond, &loop->ordered_lock);
+		condition_wait(&loop->ordered_cond, &loop->ordered_lock, starpu_omp_task_wait_on_ordered);
 	}
 }
 
@@ -2063,7 +2063,7 @@ void starpu_omp_ordered_inline_end(void)
 	struct starpu_omp_loop *loop = _starpu_omp_for_get_loop(parallel_region, task);
 
 	loop->ordered_iteration++;	
-	condition_broadcast(&loop->ordered_cond);
+	condition_broadcast(&loop->ordered_cond, starpu_omp_task_wait_on_ordered);
 	_starpu_spin_unlock(&loop->ordered_lock);
 }
 
@@ -2206,7 +2206,7 @@ static void _starpu_omp_lock_set(void **_internal)
 	_starpu_spin_lock(&_lock->lock);
 	while (_lock->state != 0)
 	{
-		condition_wait(&_lock->cond, &_lock->lock);
+		condition_wait(&_lock->cond, &_lock->lock, starpu_omp_task_wait_on_lock);
 	}
 	_lock->state = 1;
 	_starpu_spin_unlock(&_lock->lock);
@@ -2218,7 +2218,7 @@ static void _starpu_omp_lock_unset(void **_internal)
 	_starpu_spin_lock(&_lock->lock);
 	STARPU_ASSERT(_lock->state == 1);
 	_lock->state = 0;
-	condition_broadcast(&_lock->cond);
+	condition_broadcast(&_lock->cond, starpu_omp_task_wait_on_lock);
 	_starpu_spin_unlock(&_lock->lock);
 }
 
@@ -2276,7 +2276,7 @@ static void _starpu_omp_nest_lock_set(void **_internal)
 	{
 		while (_nest_lock->state != 0)
 		{
-			condition_wait(&_nest_lock->cond, &_nest_lock->lock);
+			condition_wait(&_nest_lock->cond, &_nest_lock->lock, starpu_omp_task_wait_on_nest_lock);
 		}
 		STARPU_ASSERT(_nest_lock->nesting == 0);
 		STARPU_ASSERT(_nest_lock->owner_task == NULL);
@@ -2300,7 +2300,7 @@ static void _starpu_omp_nest_lock_unset(void **_internal)
 	{
 		_nest_lock->state = 0;
 		_nest_lock->owner_task = NULL;
-		condition_broadcast(&_nest_lock->cond);
+		condition_broadcast(&_nest_lock->cond, starpu_omp_task_wait_on_nest_lock);
 	}
 	_starpu_spin_unlock(&_nest_lock->lock);
 }
