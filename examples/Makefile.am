@@ -252,6 +252,7 @@ STARPU_EXAMPLES +=				\
 	native_fortran/nf_example		\
 	native_fortran/nf_dynbuf		\
 	native_fortran/nf_varbuf		\
+	native_fortran/nf_sched_ctx		\
 	native_fortran/nf_partition
 endif
 endif
@@ -410,6 +411,11 @@ native_fortran_nf_varbuf_SOURCES =	\
 	native_fortran/nf_varbuf_cl.f90		\
 	$(top_srcdir)/include/fstarpu_mod.f90	\
 	native_fortran/nf_varbuf.f90
+
+native_fortran_nf_sched_ctx_SOURCES =	\
+	native_fortran/nf_sched_ctx_cl.f90		\
+	$(top_srcdir)/include/fstarpu_mod.f90	\
+	native_fortran/nf_sched_ctx.f90
 
 native_fortran_nf_partition_SOURCES =	\
 	native_fortran/nf_partition_cl.f90		\
@@ -1050,6 +1056,7 @@ fstarpu_mod.mod: fstarpu_mod.o
 nf_codelets.mod: nf_codelets.o
 nf_dynbuf_cl.mod: nf_dynbuf_cl.o
 nf_varbuf_cl.mod: nf_varbuf_cl.o
+nf_sched_ctx_cl.mod: nf_sched_ctx_cl.o
 nf_partition_cl.mod: nf_partition_cl.o
 
 fstarpu_mod.o: $(top_srcdir)/include/fstarpu_mod.f90
@@ -1081,6 +1088,12 @@ nf_varbuf_cl.o: $(top_srcdir)/examples/native_fortran/nf_varbuf_cl.f90 nf_types.
 
 nf_varbuf.o: $(top_srcdir)/examples/native_fortran/nf_varbuf.f90 nf_types.mod nf_varbuf_cl.mod fstarpu_mod.mod
 	$(AM_V_FC)$(FC) $(native_fortran_nf_varbuf_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'native_fortran/nf_varbuf.f90' || echo '$(srcdir)/'`native_fortran/nf_varbuf.f90
+
+nf_sched_ctx_cl.o: $(top_srcdir)/examples/native_fortran/nf_sched_ctx_cl.f90 nf_types.mod fstarpu_mod.mod
+	$(AM_V_FC)$(FC) $(native_fortran_nf_sched_ctx_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'native_fortran/nf_sched_ctx_cl.f90' || echo '$(srcdir)/'`native_fortran/nf_sched_ctx_cl.f90
+
+nf_sched_ctx.o: $(top_srcdir)/examples/native_fortran/nf_sched_ctx.f90 nf_types.mod nf_sched_ctx_cl.mod fstarpu_mod.mod
+	$(AM_V_FC)$(FC) $(native_fortran_nf_sched_ctx_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'native_fortran/nf_sched_ctx.f90' || echo '$(srcdir)/'`native_fortran/nf_sched_ctx.f90
 
 nf_partition_cl.o: $(top_srcdir)/examples/native_fortran/nf_partition_cl.f90 nf_types.mod fstarpu_mod.mod
 	$(AM_V_FC)$(FC) $(native_fortran_nf_partition_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'native_fortran/nf_partition_cl.f90' || echo '$(srcdir)/'`native_fortran/nf_partition_cl.f90

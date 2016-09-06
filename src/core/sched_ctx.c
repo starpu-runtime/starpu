@@ -824,8 +824,9 @@ unsigned starpu_sched_ctx_create(int *workerids, int nworkers, const char *sched
 	return sched_ctx->id;
 }
 
-int fstarpu_sched_ctx_create(int *workerids, int nworkers, const char *sched_ctx_name, void **arglist)
+int fstarpu_sched_ctx_create(int *workerids, int nworkers, const char *sched_ctx_name, void ***_arglist)
 {
+	void **arglist = *_arglist;
 	int arg_i = 0;
 	int min_prio_set = 0;
 	int max_prio_set = 0;
@@ -891,7 +892,7 @@ int fstarpu_sched_ctx_create(int *workerids, int nworkers, const char *sched_ctx
 		{
 			STARPU_ABORT_MSG("Unrecognized argument %d\n", arg_type);
 		}
-
+		arg_i++;
 	}
 
 	if (workerids && nworkers != -1)
