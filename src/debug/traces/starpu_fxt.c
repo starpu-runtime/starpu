@@ -1031,6 +1031,8 @@ static void handle_start_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_op
 #endif
 		}
 	}
+	if (trace_file)
+		recfmt_worker_set_state(start_codelet_time, ev->param[2], name, "Task");
 #endif /* STARPU_ENABLE_PAJE_CODELET_DETAILS */
 
 }
