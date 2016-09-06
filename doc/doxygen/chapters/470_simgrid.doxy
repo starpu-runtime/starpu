@@ -12,7 +12,7 @@ StarPU can use Simgrid in order to simulate execution on an arbitrary
 platform. This was tested with simgrid 3.11, 3.12 and 3.13, other versions may have
 compatibility issues.
 
-\section Preparing Preparing your application for simulation.
+\section Preparing Preparing Your Application For Simulation
 
 There are a few technical details which need to be handled for an application to
 be simulated through Simgrid.
@@ -28,7 +28,7 @@ into starpu_main(), and it is libstarpu which will provide the real main() and
 will call the application's main().
 
 To be able to test with crazy data sizes, one may want to only allocate
-application data if STARPU_SIMGRID is not defined.  Passing a NULL pointer to
+application data if STARPU_SIMGRID is not defined.  Passing a <c>NULL</c> pointer to
 starpu_data_register functions is fine, data will never be read/written to by
 StarPU in Simgrid mode anyway.
 
@@ -123,26 +123,26 @@ case. Since during simgrid execution, the functions of the codelet are actually
 not called by default, one can use dummy functions such as the following to
 still permit CUDA or OpenCL execution.
 
-\section SimulationExamples Simulation examples
+\section SimulationExamples Simulation Examples
 
 StarPU ships a few performance models for a couple of systems: attila,
 mirage, idgraf, and sirocco. See section \ref SimulatedBenchmarks for the details.
 
-\section FakeSimulations Simulations on fake machines
+\section FakeSimulations Simulations On Fake Machines
 
 It is possible to build fake machines which do not exist, by modifying the
 platform file in <c>$STARPU_HOME/.starpu/sampling/bus/machine.platform.xml</c>
 by hand: one can add more CPUs, add GPUs (but the performance model file has to
 be extended as well), change the available GPU memory size, PCI memory bandwidth, etc.
 
-\section TweakingSimulation Tweaking simulation
+\section TweakingSimulation Tweaking Simulation
 
 The simulation can be tweaked, to be able to tune it between a very accurate
 simulation and a very simple simulation (which is thus close to scheduling
 theory results), see the \ref STARPU_SIMGRID_CUDA_MALLOC_COST and
 \ref STARPU_SIMGRID_CUDA_QUEUE_COST environment variables.
 
-\section SimulationMPIApplications MPI applications
+\section SimulationMPIApplications MPI Applications
 
 StarPU-MPI applications can also be run in simgrid mode. It needs to be compiled
 with smpicc, and run using the <c>starpu_smpirun</c> script, for instance:
@@ -156,7 +156,7 @@ list of MPI nodes to be used. StarPU currently only supports homogeneous MPI
 clusters: for each MPI node it will just replicate the architecture referred by
 \ref STARPU_HOSTNAME.
 
-\section SimulationDebuggingApplications Debugging applications
+\section SimulationDebuggingApplications Debugging Applications
 
 By default, simgrid uses its own implementation of threads, which prevents gdb
 from being able to inspect stacks of all threads.  To be able to fully debug an
@@ -166,7 +166,7 @@ able to manipulate as usual.
 
 \snippet simgrid.c To be included. You should update doxygen if you see this text.
 
-\section SimulationMemoryUsage Memory usage
+\section SimulationMemoryUsage Memory Usage
 
 Since kernels are not actually run and data transfers are not actually
 performed, the data memory does not actually need to be allocated.  This allows

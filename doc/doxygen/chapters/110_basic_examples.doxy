@@ -65,13 +65,13 @@ may contain an implementation of the same kernel on different architectures
 (e.g. CUDA, x86, ...). For compatibility, make sure that the whole
 structure is properly initialized to zero, either by using the
 function starpu_codelet_init(), or by letting the
-compiler implicitly do it as examplified above.
+compiler implicitly do it as examplified below.
 
 The field starpu_codelet::nbuffers specifies the number of data buffers that are
 manipulated by the codelet: here the codelet does not access or modify any data
 that is controlled by our data management library.
 
-We create a codelet which may only be executed on the CPUs. When a CPU
+We create a codelet which may only be executed on CPUs. When a CPU
 core will execute a codelet, it will call the function
 <c>cpu_func</c>, which \em must have the following prototype:
 
@@ -100,16 +100,14 @@ struct starpu_codelet cl =
 \subsection SubmittingATask Submitting A Task
 
 Before submitting any tasks to StarPU, starpu_init() must be called. The
-<c>NULL</c> argument specifies that we use the default configuration. Tasks cannot
-be submitted after the termination of StarPU by a call to
-starpu_shutdown().
+<c>NULL</c> argument specifies that we use the default configuration.
+Tasks can then be submitted until the termination of StarPU -- done by a
+call to starpu_shutdown().
 
-In the example above, a task structure is allocated by a call to
-starpu_task_create(). This function only allocates and fills the
-corresponding structure with the default settings, but it does not
+In the example below, a task structure is allocated by a call to
+starpu_task_create(). This function allocates and fills the
+task structure with its default settings, it does not
 submit the task to StarPU.
-
-// not really clear ;)
 
 The field starpu_task::cl is a pointer to the codelet which the task will
 execute: in other words, the codelet structure describes which computational
@@ -529,7 +527,7 @@ starpu_vector_data_register(&vector_handle, STARPU_MAIN_RAM, (uintptr_t)vector, 
 \endcode
 
 The first argument, called the <b>data handle</b>, is an opaque pointer which
-designates the array in StarPU. This is also the structure which is used to
+designates the array within StarPU. This is also the structure which is used to
 describe which data is used by a task. The second argument is the node number
 where the data originally resides. Here it is ::STARPU_MAIN_RAM since the array <c>vector</c> is in
 the main memory. Then comes the pointer <c>vector</c> where the data can be found in main memory,

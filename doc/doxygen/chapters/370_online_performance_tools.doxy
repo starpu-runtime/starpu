@@ -57,8 +57,8 @@ the function starpu_task_get_current().
 \subsection Per-codeletFeedback Per-codelet Feedback
 
 The field starpu_codelet::per_worker_stats is
-an array of counters. The i-th entry of the array is incremented every time a
-task implementing the codelet is executed on the i-th worker.
+an array of counters. The <c>i</c>-th entry of the array is incremented every time a
+task implementing the codelet is executed on the <c>i</c>-th worker.
 This array is not reinitialized when profiling is enabled or disabled.
 
 \subsection Per-workerFeedback Per-worker Feedback
@@ -83,7 +83,7 @@ Calling starpu_profiling_worker_get_info() resets the profiling
 information associated to a worker.
 
 To easily display all this information, the environment variable
-\ref STARPU_WORKER_STATS can be set to 1 (in addition to setting
+\ref STARPU_WORKER_STATS can be set to <c>1</c> (in addition to setting
 \ref STARPU_PROFILING to 1). A summary will then be displayed at program termination:
 
 \verbatim
@@ -140,7 +140,7 @@ CUDA 2  4534.229519     2417.069025     2417.060863     0.000000
 
 Statistics about the data transfers which were performed and temporal average
 of bandwidth usage can be obtained by setting the environment variable
-\ref STARPU_BUS_STATS to 1; a summary will then be displayed at program termination:
+\ref STARPU_BUS_STATS to <c>1</c>; a summary will then be displayed at program termination:
 
 \verbatim
 Data transfer stats:
@@ -211,7 +211,7 @@ starpu_top_task_prevision(task, workerid, begin, end);
 \endcode
 
 Starting StarPU-Top (StarPU-Top is started via the binary
-<c>starpu_top</c>.) and the application can be done two ways:
+<c>starpu_top</c>) and the application can be done in two ways:
 
 <ul>
 <li> The application is started by hand on some machine (and thus already
@@ -335,8 +335,8 @@ using the function starpu_perfmodel_update_history().
 The following is a small code example.
 
 If e.g. the code is recompiled with other compilation options, or several
-variants of the code are used, the symbol string should be changed to reflect
-that, in order to recalibrate a new model from zero. The symbol string can even
+variants of the code are used, the <c>symbol</c> string should be changed to reflect
+that, in order to recalibrate a new model from zero. The <c>symbol</c> string can even
 be constructed dynamically at execution time, as long as this is done before
 submitting any task using it.
 
@@ -362,8 +362,8 @@ Measured at runtime and refined by regression (model types
 ::STARPU_REGRESSION_BASED and ::STARPU_NL_REGRESSION_BASED). This
 still assumes performance regularity, but works
 with various data input sizes, by applying regression over observed
-execution times. ::STARPU_REGRESSION_BASED uses an a*n^b regression
-form, ::STARPU_NL_REGRESSION_BASED uses an a*n^b+c (more precise than
+execution times. ::STARPU_REGRESSION_BASED uses an <c>a*n^b</c> regression
+form, ::STARPU_NL_REGRESSION_BASED uses an <c>a*n^b+c</c> (more precise than
 ::STARPU_REGRESSION_BASED, but costs a lot more to compute).
 
 For instance,

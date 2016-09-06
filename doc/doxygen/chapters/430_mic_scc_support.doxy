@@ -13,10 +13,10 @@
 SCC support just needs the presence of the RCCE library.
 
 MIC Xeon Phi support actually needs two compilations of StarPU, one for the host and one for
-the device. The PATH environment variable has to include the path to the
+the device. The <c>PATH</c> environment variable has to include the path to the
 cross-compilation toolchain, for instance <c>/usr/linux-k1om-4.7/bin</c> .
-The SINK_PKG_CONFIG_PATH environment variable should include the path to the
-cross-compiled hwloc.pc.
+The <c>SINK_PKG_CONFIG_PATH</c> environment variable should include the path to the
+cross-compiled <c>hwloc.pc</c>.
 The script <c>mic-configure</c> can then be used to achieve the two compilations: it basically
 calls <c>configure</c> as appropriate from two new directories: <c>build_mic</c> and
 <c>build_host</c>. <c>make</c> and <c>make install</c> can then be used as usual and will

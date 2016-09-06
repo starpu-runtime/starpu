@@ -93,7 +93,7 @@ latter is estimated based on bus calibration before execution start,
 i.e. with an idle machine, thus without contention. You can force bus
 re-calibration by running the tool <c>starpu_calibrate_bus</c>. The
 beta parameter defaults to <c>1</c>, but it can be worth trying to tweak it
-by using <c>export STARPU_SCHED_BETA=2</c> for instance, since during
+by using <c>export STARPU_SCHED_BETA=2</c> (\ref STARPU_SCHED_BETA) for instance, since during
 real application execution, contention makes transfer times bigger.
 This is of course imprecise, but in practice, a rough estimation
 already gives the good results that a precise estimation would give.
@@ -106,7 +106,7 @@ take it into account when distributing tasks. The target function that
 the scheduler <c>dmda</c> minimizes becomes <c>alpha * T_execution +
 beta * T_data_transfer + gamma * Consumption</c> , where <c>Consumption</c>
 is the estimated task consumption in Joules. To tune this parameter, use
-<c>export STARPU_SCHED_GAMMA=3000</c> for instance, to express that each Joule
+<c>export STARPU_SCHED_GAMMA=3000</c> (\ref STARPU_SCHED_GAMMA) for instance, to express that each Joule
 (i.e kW during 1000us) is worth 3000us execution time penalty. Setting
 <c>alpha</c> and <c>beta</c> to zero permits to only take into account energy consumption.
 
@@ -114,7 +114,7 @@ This is however not sufficient to correctly optimize energy: the scheduler would
 simply tend to run all computations on the most energy-conservative processing
 unit. To account for the consumption of the whole machine (including idle
 processing units), the idle power of the machine should be given by setting
-<c>export STARPU_IDLE_POWER=200</c> for 200W, for instance. This value can often
+<c>export STARPU_IDLE_POWER=200</c> (\ref STARPU_IDLE_POWER) for 200W, for instance. This value can often
 be obtained from the machine power supplier.
 
 The energy actually consumed by the total execution can be displayed by setting
@@ -198,7 +198,7 @@ methods of the policy.
 Make sure to have a look at the \ref API_Scheduling_Policy section, which
 provides a list of the available functions for writing advanced schedulers, such
 as starpu_task_expected_length(), starpu_task_expected_data_transfer_time(),
-starpu_task_expected_energy(), starpu_prefetch_task_input_node(), etc. Other
+starpu_task_expected_energy(), etc. Other
 useful functions include starpu_transfer_bandwidth(), starpu_transfer_latency(),
 starpu_transfer_predict(), ...
 
@@ -223,7 +223,7 @@ schedulers can be read in <c>src/sched_policies</c>, for
 instance <c>random_policy.c</c>, <c>eager_central_policy.c</c>,
 <c>work_stealing_policy.c</c>
 
-\section GraphScheduling Graph-based scheduling
+\section GraphScheduling Graph-based Scheduling
 
 For performance reasons, most of the schedulers shipped with StarPU use simple
 list-scheduling heuristics, assuming that the application has already set
@@ -251,7 +251,7 @@ heuristic based on the duration of the task over CPUs and GPUs to decide between
 the two queues. CPU workers can then pop from the CPU priority queue, and GPU
 workers from the GPU priority queue.
 
-\section DebuggingScheduling Debugging scheduling
+\section DebuggingScheduling Debugging Scheduling
 
 All the \ref OnlinePerformanceTools and \ref OfflinePerformanceTools can
 be used to get information about how well the execution proceeded, and thus the
@@ -260,11 +260,11 @@ overall quality of the execution.
 Precise debugging can also be performed by using the
 \ref STARPU_TASK_BREAK_ON_SCHED, \ref STARPU_TASK_BREAK_ON_PUSH, and
 \ref STARPU_TASK_BREAK_ON_POP environment variables. By setting the job_id of a task
-in these environment variables, StarPU will raise SIGTRAP when the task is being
+in these environment variables, StarPU will raise <c>SIGTRAP</c> when the task is being
 scheduled, pushed, or popped by the scheduler. That means that when one notices
 that a task is being scheduled in a seemingly odd way, one can just reexecute
 the application in a debugger, with some of those variables set, and the
 execution will stop exactly at the scheduling points of that task, thus allowing
-to inspect the scheduler state etc.
+to inspect the scheduler state, etc.
 
 */
