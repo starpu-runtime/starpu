@@ -824,6 +824,108 @@ unsigned starpu_sched_ctx_create(int *workerids, int nworkers, const char *sched
 	return sched_ctx->id;
 }
 
+int fstarpu_sched_ctx_create(int *workerids, int nworkers, const char *sched_ctx_name, void **arglist)
+{
+	int arg_i = 0;
+	int min_prio_set = 0;
+	int max_prio_set = 0;
+	int min_prio = 0;
+	int max_prio = 0;
+	struct starpu_sched_policy *sched_policy = NULL;
+	unsigned hierarchy_level = 0;
+	unsigned nesting_sched_ctx = STARPU_NMAX_SCHED_CTXS;
+	unsigned awake_workers = 0;
+	void (*init_sched)(void) = NULL;
+
+	while (arglist[arg_i] != NULL)
+	{
+		const int arg_type = (int)(intptr_t)arglist[arg_i];
+		if (arg_type == STARPU_SCHED_CTX_POLICY_NAME)
+		{
+			arg_i++;
+			char *policy_name = arglist[arg_i];
+			struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
+			sched_policy = _starpu_select_sched_policy(config, policy_name);
+		}
+		else if (arg_type == STARPU_SCHED_CTX_POLICY_STRUCT)
+		{
+			arg_i++;
+			sched_policy = arglist[arg_i];
+		}
+		else if (arg_type == STARPU_SCHED_CTX_POLICY_MIN_PRIO)
+		{
+			arg_i++;
+			min_prio = *(int *)arglist[arg_i];
+			min_prio_set = 1;
+		}
+		else if (arg_type == STARPU_SCHED_CTX_POLICY_MAX_PRIO)
+		{
+			arg_i++;
+			max_prio = *(int *)arglist[arg_i];
+			max_prio_set = 1;
+		}
+		else if (arg_type == STARPU_SCHED_CTX_HIERARCHY_LEVEL)
+		{
+			arg_i++;
+			int val = *(int *)arglist[arg_i];
+			STARPU_ASSERT(val >= 0);
+			hierarchy_level = (unsigned)val;
+		}
+		else if (arg_type == STARPU_SCHED_CTX_NESTED)
+		{
+			arg_i++;
+			int val = *(int *)arglist[arg_i];
+			STARPU_ASSERT(val >= 0);
+			nesting_sched_ctx = (unsigned)val;
+		}
+		else if (arg_type == STARPU_SCHED_CTX_AWAKE_WORKERS)
+		{
+			awake_workers = 1;
+		}
+		else if (arg_type == STARPU_SCHED_CTX_POLICY_INIT)
+		{
+			arg_i++;
+			init_sched = arglist[arg_i];
+		}
+		else
+		{
+			STARPU_ABORT_MSG("Unrecognized argument %d\n", arg_type);
+		}
+
+	}
+
+	if (workerids && nworkers != -1)
+	{
+		/* Make sure the user doesn't use invalid worker IDs. */
+		unsigned num_workers = starpu_worker_get_count();
+		int i;
+		for (i = 0; i < nworkers; i++)
+		{
+			if (workerids[i] < 0 || workerids[i] >= num_workers)
+			{
+				_STARPU_ERROR("Invalid worker ID (%d) specified!\n", workerids[i]);
+				return STARPU_NMAX_SCHED_CTXS;
+			}
+		}
+	}
+
+	struct _starpu_sched_ctx *sched_ctx = NULL;
+	sched_ctx = _starpu_create_sched_ctx(sched_policy, workerids, nworkers, 0, sched_ctx_name, min_prio_set, min_prio, max_prio_set, max_prio, awake_workers, init_sched);
+	sched_ctx->hierarchy_level = hierarchy_level;
+	sched_ctx->nesting_sched_ctx = nesting_sched_ctx;
+
+	_starpu_unlock_mutex_if_prev_locked();
+	int *added_workerids;
+	unsigned nw_ctx = starpu_sched_ctx_get_workers_list(sched_ctx->id, &added_workerids);
+	_starpu_update_workers_with_ctx(added_workerids, nw_ctx, sched_ctx->id);
+	free(added_workerids);
+	_starpu_relock_mutex_if_prev_locked();
+#ifdef STARPU_USE_SC_HYPERVISOR
+	sched_ctx->perf_counters = NULL;
+#endif
+	return (int)sched_ctx->id;
+}
+
 void starpu_sched_ctx_register_close_callback(unsigned sched_ctx_id, void (*close_callback)(unsigned sched_ctx_id, void* args), void *args)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
