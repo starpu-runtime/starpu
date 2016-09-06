@@ -71,7 +71,6 @@ module fstarpu_mod
         type(c_ptr), bind(C) :: FSTARPU_SCHED_CTX_HIERARCHY_LEVEL
         type(c_ptr), bind(C) :: FSTARPU_SCHED_CTX_NESTED
         type(c_ptr), bind(C) :: FSTARPU_SCHED_CTX_AWAKE_WORKERS
-        type(c_ptr), bind(C) :: FSTARPU_SCHED_CTX_POLICY_INIT
 
         ! (some) portable iso_c_binding types
         type(c_ptr), bind(C) :: FSTARPU_SZ_C_DOUBLE
@@ -2257,8 +2256,6 @@ module fstarpu_mod
                             fstarpu_get_constant(C_CHAR_"FSTARPU_SCHED_CTX_NESTED"//C_NULL_CHAR)
                         FSTARPU_SCHED_CTX_AWAKE_WORKERS    = &
                             fstarpu_get_constant(C_CHAR_"FSTARPU_SCHED_CTX_AWAKE_WORKERS"//C_NULL_CHAR)
-                        FSTARPU_SCHED_CTX_POLICY_INIT    = &
-                            fstarpu_get_constant(C_CHAR_"FSTARPU_SCHED_CTX_POLICY_INIT"//C_NULL_CHAR)
 
                         ! Initialize size constants as 'c_ptr'
                         FSTARPU_SZ_C_DOUBLE        = sz_to_p(c_sizeof(FSTARPU_SZ_C_DOUBLE_dummy))
