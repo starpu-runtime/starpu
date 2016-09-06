@@ -62,7 +62,7 @@ building application codes with StarPU.
 All these examples assume that the standard Fortran module <c>iso_c_binding</c>
 is in use.
 
-- Specifying a NULL pointer
+- Specifying a <c>NULL</c> pointer
 \code{.f90}
         type(c_ptr) :: my_ptr  ! variable to store the pointer
         ! [...]
@@ -198,8 +198,8 @@ structure:
         call fstarpu_codelet_free(cl_vec)
 \endcode
 
-\section Notes Additional notes about the Native Fortran support
-\subsection OldFortran Using StarPU with older Fortran compilers
+\section Notes Additional Notes about the Native Fortran Support
+\subsection OldFortran Using StarPU with Older Fortran Compilers
 
 When using older compilers, Fortran applications may still interoperate
 with StarPU using C marshalling functions as exemplified in StarPU's

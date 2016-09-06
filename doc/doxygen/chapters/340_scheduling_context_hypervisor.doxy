@@ -46,23 +46,23 @@ The hypervisor resizes only the registered contexts.
 
 The runtime provides the hypervisor with information concerning the
 behavior of the resources and the application. This is done by using
-the <c>performance_counters</c> which represent callbacks indicating 
-when the resources are idle or not efficient, when the application 
+the <c>performance_counters</c> which represent callbacks indicating
+when the resources are idle or not efficient, when the application
 submits tasks or when it becomes to slow.
 
 \section TriggerTheHypervisor Trigger the Hypervisor
 
-The resizing is triggered either when the application requires it 
-(<c> sc_hypervisor_resize_ctxs </c>) or
+The resizing is triggered either when the application requires it
+(sc_hypervisor_resize_ctxs()) or
 when the initials distribution of resources alters the performance of
 the application (the application is to slow or the resource are idle
-for too long time). If the environment 
-variable <c>SC_HYPERVISOR_TRIGGER_RESIZE</c> is set to <c>speed</c> 
+for too long time). If the environment
+variable \ref SC_HYPERVISOR_TRIGGER_RESIZE is set to <c>speed</c>
 the monitored speed of the contexts is compared to a theoretical value
 computed with a linear program, and the resizing is triggered
-whenever the two values do not correspond. Otherwise, if the environment 
+whenever the two values do not correspond. Otherwise, if the environment
 variable is set to <c>idle</c> the hypervisor triggers the resizing algorithm
-whenever the workers are idle for a period longer than the threshold 
+whenever the workers are idle for a period longer than the threshold
 indicated by the programmer. When this
 happens different resizing strategy are applied that target minimizing
 the total execution of the application, the instant speed or the idle
@@ -128,7 +128,11 @@ task.
 
 The number of flops to be executed by a context are passed as
  parameter when they are registered to the hypervisor,
- (<c>sc_hypervisor_register_ctx(sched_ctx_id, flops)</c>) and the one
+\code{.c}
+sc_hypervisor_register_ctx(sched_ctx_id, flops)
+\endcode
+
+and the one
  to be executed by each task are passed when the task is submitted.
  The corresponding field is starpu_task::flops and the corresponding
  macro in the function starpu_task_insert() is ::STARPU_FLOPS
@@ -154,12 +158,12 @@ such that the application finishes in a minimum amount of time. As for the <b>Gf
 strategy the programmers has to indicate the total number of flops to be executed
 when registering the context. This number of flops may be updated dynamically during the execution
 of the application whenever this information is not very accurate from the beginning.
-The function <c>sc_hypervisor_update_diff_total_flop </c> is called in order add or remove
+The function sc_hypervisor_update_diff_total_flops() is called in order to add or to remove
 a difference to the flops left to be executed.
-Tasks are provided also the number of flops corresponding to each one of them. During the 
+Tasks are provided also the number of flops corresponding to each one of them. During the
 execution of the application the hypervisor monitors the consumed flops and recomputes
 the time left and the number of resources to use. The speed of each type of resource
-is (re)evaluated and inserter in the linear program in order to better adapt to the 
+is (re)evaluated and inserter in the linear program in order to better adapt to the
 needs of the application.
 
 The <b>Teft</b> strategy uses a linear program too, that considers all the types of tasks
@@ -170,7 +174,7 @@ in order to have good predictions of the execution time of each type of task.
 The types of tasks may be determines directly by the hypervisor when they are submitted.
 However there are applications that do not expose all the graph of tasks from the beginning.
 In this case in order to let the hypervisor know about all the tasks the function
-<c> sc_hypervisor_set_type_of_task </c> will just inform the hypervisor about future tasks
+sc_hypervisor_set_type_of_task() will just inform the hypervisor about future tasks
 without submitting them right away.
 
 The <b>Ispeed </b> strategy divides the execution of the application in several frames.

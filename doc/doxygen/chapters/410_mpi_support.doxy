@@ -10,7 +10,7 @@
 
 The integration of MPI transfers within task parallelism is done in a
 very natural way by the means of asynchronous interactions between the
-application and StarPU.  This is implemented in a separate libstarpumpi library
+application and StarPU.  This is implemented in a separate <c>libstarpumpi</c> library
 which basically provides "StarPU" equivalents of <c>MPI_*</c> functions, where
 <c>void *</c> buffers are replaced with ::starpu_data_handle_t, and all
 GPU-RAM-NIC transfers are handled efficiently by StarPU-MPI.  The user has to
@@ -96,11 +96,11 @@ instance:
     }
 \endcode
 
-In that case, libstarpumpi is not needed. One can also use MPI_Isend() and
-MPI_Irecv(), by calling starpu_data_release() after MPI_Wait() or MPI_Test()
+In that case, <c>libstarpumpi</c> is not needed. One can also use <c>MPI_Isend()</c> and
+<c>MPI_Irecv()</c>, by calling starpu_data_release() after <c>MPI_Wait()</c> or <c>MPI_Test()</c>
 have notified completion.
 
-It is however better to use libstarpumpi, to save the application from having to
+It is however better to use <c>libstarpumpi</c>, to save the application from having to
 synchronize with starpu_data_acquire(), and instead just submit all tasks and
 communications asynchronously, and wait for the overall completion.
 
@@ -183,7 +183,7 @@ int main(int argc, char **argv)
     }
 \endcode
 
-We have here replaced MPI_Recv() and MPI_Send() with starpu_mpi_irecv_detached()
+We have here replaced <c>MPI_Recv()</c> and <c>MPI_Send()</c> with starpu_mpi_irecv_detached()
 and starpu_mpi_isend_detached(), which just submit the communication to be
 performed. The only remaining synchronization with starpu_data_acquire() is at
 the beginning and the end.
@@ -233,7 +233,7 @@ does the following:
 <li> it polls the <em>ready requests list</em>. For all the ready
 requests, the appropriate function is called to post the corresponding
 MPI call. For example, an initial call to starpu_mpi_isend() will
-result in a call to <c>MPI_Isend</c>. If the request is marked as
+result in a call to <c>MPI_Isend()</c>. If the request is marked as
 detached, the request will then be added in the <em>detached requests
 list</em>.
 </li>
@@ -241,7 +241,7 @@ list</em>.
 </li>
 <li> it polls the <em>detached requests list</em>. For all the detached
 requests, it tests its completion of the MPI request by calling
-<c>MPI_Test</c>. On completion, the data handle is released, and if a
+<c>MPI_Test()</c>. On completion, the data handle is released, and if a
 callback was defined, it is called.
 </li>
 <li> finally, it checks if a data envelope has been received. If so,
@@ -266,7 +266,13 @@ can also be used within StarPU-MPI and
 exchanged between nodes. Two functions needs to be defined through the
 type starpu_data_interface_ops. The function
 starpu_data_interface_ops::pack_data takes a handle and returns a
-contiguous memory buffer allocated with starpu_malloc_flags(ptr, size, 0) along with its size where data to be conveyed
+contiguous memory buffer allocated with
+
+\code{.c}
+starpu_malloc_flags(ptr, size, 0)
+\endcode
+
+along with its size where data to be conveyed
 to another node should be copied. The reversed operation is
 implemented in the function starpu_data_interface_ops::unpack_data which
 takes a contiguous memory buffer and recreates the data handle.
@@ -498,7 +504,7 @@ the cost of task submission.
 A function starpu_mpi_task_build() is also provided with the aim to
 only construct the task structure. All MPI nodes need to call the
 function, only the node which is to execute the task will return a
-valid task structure, others will return NULL. That node must submit that task.
+valid task structure, others will return <c>NULL</c>. That node must submit that task.
 All nodes then need to call the function starpu_mpi_task_post_build() -- with the same
 list of arguments as starpu_mpi_task_build() -- to post all the
 necessary data communications.
@@ -535,7 +541,7 @@ modify the current value, it can not decide by itself whether to flush the cache
 or not.  The application can however explicitly tell StarPU-MPI to flush the
 cache by calling starpu_mpi_cache_flush() or starpu_mpi_cache_flush_all_data(),
 for instance in case the data will not be used at all any more (see for instance
-the cholesky example in mpi/examples/matrix_decomposition), or at least not in
+the cholesky example in <c>mpi/examples/matrix_decomposition</c>), or at least not in
 the close future. If a newly-submitted task actually needs the value again,
 another transmission of D will be initiated from A to B.  A mere
 starpu_mpi_cache_flush_all_data() can for instance be added at the end of the whole
@@ -546,7 +552,7 @@ for the data deallocation will be the same, but it will additionally release som
 pressure from the StarPU-MPI cache hash table during task submission.
 
 The whole caching behavior can be disabled thanks to the \ref STARPU_MPI_CACHE
-environment variable. The variable \ref STARPU_MPI_CACHE_STATS can be set to 1
+environment variable. The variable \ref STARPU_MPI_CACHE_STATS can be set to <c>1</c>
 to enable the runtime to display messages when data are added or removed
 from the cache holding the received data.
 

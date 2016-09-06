@@ -90,8 +90,8 @@ starpu_shutdown(). The trace is a binary file whose name has the form
 <c>/tmp/</c> directory by default, or by the directory specified by
 the environment variable \ref STARPU_FXT_PREFIX.
 
-The additional configure option \ref enable-fxt-lock "--enable-fxt-lock" can 
-be used to generate trace events which describes the locks behaviour during 
+The additional configure option \ref enable-fxt-lock "--enable-fxt-lock" can
+be used to generate trace events which describes the locks behaviour during
 the execution.
 
 \subsection CreatingAGanttDiagram Creating a Gantt Diagram
@@ -137,7 +137,7 @@ varying colors, pass option <c>-c</c> to <c>starpu_fxt_tool</c>.
 
 To identify tasks precisely, the application can set the starpu_task::tag_id field of the
 task (or use \ref STARPU_TAG_ONLY when using starpu_task_insert()), and with a recent
-enough version of vite (>= r1430) and the
+enough version of ViTE (>= r1430) and the
 \ref enable-paje-codelet-details "--enable-paje-codelet-details"
 StarPU configure option, the value of the tag will show up in the trace.
 
@@ -151,7 +151,7 @@ Traces can also be inspected by hand by using the tool <c>fxt_print</c>, for ins
 $ fxt_print -o -f /tmp/prof_file_something
 \endverbatim
 
-Timings are in nanoseconds (while timings as seen in <c>vite</c> are in milliseconds).
+Timings are in nanoseconds (while timings as seen in ViTE are in milliseconds).
 
 \subsection CreatingADAGWithGraphviz Creating a DAG With Graphviz
 
@@ -170,7 +170,7 @@ graphical output of the graph by using the graphviz library:
 $ dot -Tpdf dag.dot -o output.pdf
 \endverbatim
 
-\subsection TraceTaskDetails Getting task details
+\subsection TraceTaskDetails Getting Task Details
 
 When the FxT trace file <c>prof_file_something</c> has been generated, details on the
 executed tasks can be retrieved by calling:
@@ -219,7 +219,7 @@ evolution of the number of tasks available in the system during the execution.
 Ready tasks are shown in black, and tasks that are submitted but not
 schedulable yet are shown in grey.
 
-\subsection Animation Getting modular schedular animation
+\subsection Animation Getting Modular Schedular Animation
 
 When using modular schedulers (i.e. schedulers which use a modular architecture,
 and whose name start with "modular-"), the command
@@ -232,26 +232,27 @@ will also produce a <c>trace.html</c> file which can be viewed in a
 javascript-enabled web browser. It shows the flow of tasks between the
 components of the modular scheduler.
 
-\subsection Limiting the scope of the trace
+\subsection LimitingScopeTrace Limiting The Scope Of The Trace
 
 For computing statistics, it is useful to limit the trace to a given portion of
 the time of the whole execution. This can be achieved by calling
 
-\verbatim
-starpu_fxt_autostart_profiling(0);
-\endverbatim
+\code{.c}
+starpu_fxt_autostart_profiling(0)
+\endcode
 
-before calling starpu_init(), to prevent tracing from starting immediately. Then
+before calling starpu_init(), to
+prevent tracing from starting immediately. Then
 
-\verbatim
+\code{.c}
 starpu_fxt_start_profiling();
-\endverbatim
+\endcode
 
-and 
+and
 
-\verbatim
+\code{.c}
 starpu_fxt_stop_profiling();
-\endverbatim
+\endcode
 
 can be used around the portion of code to be traced. This will show up as marks
 in the trace, and states of workers will only show up for that portion.
@@ -383,16 +384,17 @@ histogram of the codelet execution time distribution.
 \image html distrib_data_histo.png
 \image latex distrib_data_histo.eps "" width=\textwidth
 
-\section TraceStatistics Trace statistics
+\section TraceStatistics Trace Statistics
 
 More than just codelet performance, it is interesting to get statistics over all
 kinds of StarPU states (allocations, data transfers, etc.). This is particularly
 useful to check what may have gone wrong in the accurracy of the simgrid
 simulation.
 
-This requires the <c>R</c> statistical tool, with the plyr, ggplot2 and
-data.table packages. If your system distribution does not have packages for
-these, one can fetch them from CRAN:
+This requires the <c>R</c> statistical tool, with the <c>plyr</c>,
+<c>ggplot2</c> and <c>data.table</c> packages. If your system
+distribution does not have packages for these, one can fetch them from
+<c>CRAN</c>:
 
 \verbatim
 $ R
@@ -402,10 +404,10 @@ $ R
 > install.packages("knitr")
 \endverbatim
 
-The pj_dump tool from pajeng is also needed (see
+The <c>pj_dump</c> tool from <c>pajeng</c> is also needed (see
 https://github.com/schnorr/pajeng)
 
-One can then get textual or .csv statistics over the trace states:
+One can then get textual or <c>.csv</c> statistics over the trace states:
 
 \verbatim
 $ starpu_paje_state_stats -v native.trace simgrid.trace
@@ -417,12 +419,12 @@ $ starpu_paje_state_stats -v native.trace simgrid.trace
 $ starpu_paje_state_stats native.trace simgrid.trace
 \endverbatim
 
-An other way to get statistics of StarPU states (without installing R and
-pj_dump) is to use the <c>starpu_trace_state_stats.py</c> script which parses the
-generated trace.rec file instead of the paje.trace file. The output is similar
+An other way to get statistics of StarPU states (without installing <c>R</c> and
+<c>pj_dump</c>) is to use the <c>starpu_trace_state_stats.py</c> script which parses the
+generated <c>trace.rec</c> file instead of the <c>paje.trace</c> file. The output is similar
 to the previous script but it doesn't need any dependencies.
 
-The different prefixes used in trace.rec are:
+The different prefixes used in <c>trace.rec</c> are:
 
 \verbatim
 E: Event type
@@ -433,7 +435,7 @@ T: Thread ID
 S: Start time
 \endverbatim
 
-Here's an example how to use it:
+Here's an example on how to use it:
 
 \verbatim
 $ python starpu_trace_state_stats.py trace.rec | column -t -s ","
@@ -466,7 +468,7 @@ $ starpu_paje_summary native.trace simgrid.trace
 it includes gantt charts, execution summaries, as well as state duration charts
 and time distribution histograms.
 
-Other external Pajé analysis tools can be used on these traces, one just needs
+Other external Paje analysis tools can be used on these traces, one just needs
 to sort the traces by timestamp order (which not guaranteed to make recording
 more efficient):
 
@@ -505,7 +507,7 @@ execution time of your tasks. If StarPU was compiled with the library
 <c>glpk</c> installed, starpu_bound_compute() can be used to solve it
 immediately and get the optimized minimum, in ms. Its parameter
 <c>integer</c> allows to decide whether integer resolution should be
-computed and returned 
+computed and returned
 
 The <c>deps</c> parameter tells StarPU whether to take tasks, implicit
 data, and tag dependencies into account. Tags released in a callback

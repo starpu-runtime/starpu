@@ -8,7 +8,7 @@
 
 /*! \page DataManagement Data Management
 
-intro qui parle de coherency entre autres
+TODO: intro qui parle de coherency entre autres
 
 \section DataManagement Data Management
 
@@ -217,16 +217,16 @@ struct starpu_data_filter f_vert =
 starpu_data_partition_plan(handle, &f_vert, vert_handle);
 \endcode
 
-starpu_data_partition_plan() returns the handles for the partition in vert_handle.
+starpu_data_partition_plan() returns the handles for the partition in <c>vert_handle</c>.
 
-One can submit tasks working on the main handle, but not yet on the vert_handle
+One can submit tasks working on the main handle, but not yet on the <c>vert_handle</c>
 handles. Now we submit the partitioning:
 
 \code{.c}
 starpu_data_partition_submit(handle, PARTS, vert_handle);
 \endcode
 
-And now we can submit tasks working on vert_handle handles (and not on the main
+And now we can submit tasks working on <c>vert_handle</c> handles (and not on the main
 handle any more). Eventually we want to work on the main handle again, so we
 submit the unpartitioning:
 
@@ -443,10 +443,10 @@ properly be serialized against accesses with this flag. For instance:
         0);
 \endcode
 
-The two tasks running cl2 will be able to commute: depending on whether the
-value of handle1 or handle2 becomes available first, the corresponding task
-running cl2 will start first. The task running cl1 will however always be run
-before them, and the task running cl3 will always be run after them.
+The two tasks running <c>cl2</c> will be able to commute: depending on whether the
+value of <c>handle1</c> or <c>handle2</c> becomes available first, the corresponding task
+running <c>cl2</c> will start first. The task running <c>cl1</c> will however always be run
+before them, and the task running <c>cl3</c> will always be run after them.
 
 If a lot of tasks use the commute access on the same set of data and a lot of
 them are ready at the same time, it may become interesting to use an arbiter,
@@ -474,7 +474,7 @@ be avoided by using several arbiters, thus separating sets of data for which
 arbitration will be done.  If a task accesses data from different arbiters, it
 will acquire them arbiter by arbiter, in arbiter pointer value order.
 
-See the tests/datawizard/test_arbiter.cpp example.
+See the <c>tests/datawizard/test_arbiter.cpp</c> example.
 
 Arbiters however do not support the ::STARPU_REDUX flag yet.
 
@@ -526,7 +526,7 @@ but that would
 make them systematic and permanent. A more  optimized way is to use
 the data access mode ::STARPU_SCRATCH, as examplified below, which
 provides per-worker buffers without content consistency. The buffer is
-registered only once, using memory node -1, i.e. the application didn't allocate
+registered only once, using memory node <c>-1</c>, i.e. the application didn't allocate
 memory for it, and StarPU will allocate it on demand at task execution.
 
 \code{.c}
@@ -698,16 +698,16 @@ The whole code for this complex data interface is available in the
 directory <c>examples/interface/</c>.
 
 
-\section SpecifyingATargetNode Specifying a target node for task data
+\section SpecifyingATargetNode Specifying A Target Node For Task Data
 
 When executing a task on a GPU for instance, StarPU would normally copy all the
 needed data for the tasks on the embedded memory of the GPU.  It may however
 happen that the task kernel would rather have some of the datas kept in the
 main memory instead of copied in the GPU, a pivoting vector for instance.
 This can be achieved by setting the starpu_codelet::specific_nodes flag to
-1, and then fill the starpu_codelet::nodes array (or starpu_codelet::dyn_nodes when
+<c>1</c>, and then fill the starpu_codelet::nodes array (or starpu_codelet::dyn_nodes when
 starpu_codelet::nbuffers is greater than \ref STARPU_NMAXBUFS) with the node numbers
-where data should be copied to, or -1 to let StarPU copy it to the memory node
+where data should be copied to, or <c>-1</c> to let StarPU copy it to the memory node
 where the task will be executed. For instance, with the following codelet:
 
 \code{.c}

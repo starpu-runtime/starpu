@@ -95,7 +95,7 @@ starpu_task_insert(&dummy_big_cl,
 The whole code for this complex data interface is available in the
 directory <c>examples/basic_examples/dynamic_handles.c</c>.
 
-\section SettingVariableDataHandlesForATask Setting a Variable number Data Handles For a Task
+\section SettingVariableDataHandlesForATask Setting a Variable Number Of Data Handles For a Task
 
 Normally, the number of data handles given to a task is fixed in the
 starpu_codelet::nbuffers codelet field. This field can however be set to
@@ -294,7 +294,8 @@ And the call to the function starpu_task_insert():
 starpu_task_insert(&mycodelet,
                    STARPU_VALUE, &ifactor, sizeof(ifactor),
                    STARPU_VALUE, &ffactor, sizeof(ffactor),
-                   STARPU_RW, data_handles[0], STARPU_RW, data_handles[1],
+                   STARPU_RW, data_handles[0],
+		   STARPU_RW, data_handles[1],
                    0);
 \endcode
 
@@ -338,7 +339,9 @@ starpu_task_insert(&which_index, STARPU_W, i_handle, 0);
 
 /* And submit the corresponding task */
 STARPU_DATA_ACQUIRE_CB(i_handle, STARPU_R,
-                       starpu_task_insert(&work, STARPU_RW, A_handle[i], 0));
+                       starpu_task_insert(&work,
+		                          STARPU_RW, A_handle[i],
+					  0));
 \endcode
 
 The macro ::STARPU_DATA_ACQUIRE_CB submits an asynchronous request for
@@ -420,7 +423,7 @@ allowed to start to achieve the computation. The CPU binding mask for the whole
 set of CPUs is already enforced, so that threads created by the function will
 inherit the mask, and thus execute where StarPU expected, the OS being in charge
 of choosing how to schedule threads on the corresponding CPUs. The application
-can also choose to bind threads by hand, using e.g. sched_getaffinity to know
+can also choose to bind threads by hand, using e.g. <c>sched_getaffinity</c> to know
 the CPU binding mask that StarPU chose.
 
 For instance, using OpenMP (full source is available in
@@ -523,7 +526,7 @@ CPU and GPU tasks are not affected and can be run concurrently). The parallel
 task scheduler will however still however still try varying combined worker
 sizes to look for the most efficient ones.
 
-\subsection SynchronizationTasks Synchronization tasks
+\subsection SynchronizationTasks Synchronization Tasks
 
 For the application conveniency, it may be useful to define tasks which do not
 actually make any computation, but wear for instance dependencies between other
@@ -532,13 +535,13 @@ tasks or tags, or to be submitted in callbacks, etc.
 The obvious way is of course to make kernel functions empty, but such task will
 thus have to wait for a worker to become ready, transfer data, etc.
 
-A much lighter way to define a synchronization task is to set its <c>cl</c>
+A much lighter way to define a synchronization task is to set its starpu_task::cl
 field to <c>NULL</c>. The task will thus be a mere synchronization point,
 without any data access or execution content: as soon as its dependencies become
 available, it will terminate, call the callbacks, and release dependencies.
 
-An intermediate solution is to define a codelet with its <c>where</c> field set
-to \ref STARPU_NOWHERE, for instance this:
+An intermediate solution is to define a codelet with its
+starpu_codelet::where field set to \ref STARPU_NOWHERE, for instance:
 
 \code{.c}
 struct starpu_codelet {

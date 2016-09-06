@@ -16,7 +16,7 @@ performance, we give below a list of features which should be checked.
 \section ConfigurationImprovePerformance Configuration That May Improve Performance
 
 The \ref enable-fast "--enable-fast" configuration option disables all
-assertions. This makes starpu more performant for really small tasks by
+assertions. This makes StarPU more performant for really small tasks by
 disabling all sanity checks. Only use this for measurements and production, not for development, since this will drop all basic checks.
 
 
@@ -63,7 +63,7 @@ kernels. That will lower the potential for overlapping.
 
 Calling starpu_cublas_init() makes StarPU already do appropriate calls for the
 CUBLAS library. Some libraries like Magma may however change the current stream,
-one then has to call cublasSetKernelStream(starpu_cuda_get_local_stream()); at
+one then has to call <c>cublasSetKernelStream(starpu_cuda_get_local_stream())</c> at
 the beginning of the codelet to make sure that CUBLAS is really using the proper
 stream.
 
@@ -71,7 +71,7 @@ If the kernel can be made to only use this local stream or other self-allocated
 streams, i.e. the whole kernel submission can be made asynchronous, then
 one should enable asynchronous execution of the kernel.  That means setting
 the flag ::STARPU_CUDA_ASYNC in the corresponding field starpu_codelet::cuda_flags, and dropping the
-cudaStreamSynchronize() call at the end of the cuda_func function, so that it
+<c>cudaStreamSynchronize()</c> call at the end of the <c>cuda_func</c> function, so that it
 returns immediately after having queued the kernel to the local stream. That way, StarPU will be
 able to submit and complete data transfers while kernels are executing, instead of only at each
 kernel submission. The kernel just has to make sure that StarPU can use the
@@ -89,7 +89,7 @@ If the kernel can be made to only use the StarPU-provided command queue or other
 queues, i.e. the whole kernel submission can be made asynchronous, then
 one should enable asynchronous execution of the kernel. This means setting
 the flag ::STARPU_OPENCL_ASYNC in the corresponding field starpu_codelet::opencl_flags and dropping the
-clFinish() and starpu_opencl_collect_stats() calls at the end of the kernel, so
+<c>clFinish()</c> and starpu_opencl_collect_stats() calls at the end of the kernel, so
 that it returns immediately after having queued the kernel to the provided queue.
 That way, StarPU will be able to submit and complete data transfers while kernels are executing, instead of
 only at each kernel submission. The kernel just has to make sure
@@ -110,11 +110,11 @@ any task for 10ms, but lets the application continue normally. In addition to th
 
 <c>export STARPU_WATCHDOG_CRASH=1</c> (\ref STARPU_WATCHDOG_CRASH)
 
-raises SIGABRT in that condition, thus allowing to catch the situation in gdb.
-It can also be useful to type "handle SIGABRT nopass" in gdb to be able to let
+raises <c>SIGABRT</c> in that condition, thus allowing to catch the situation in gdb.
+It can also be useful to type <c>handle SIGABRT nopass</c> in <c>gdb</c> to be able to let
 the process continue, after inspecting the state of the process.
 
-\section HowToLimitMemoryPerNode How to limit memory used by StarPU and cache buffer allocations
+\section HowToLimitMemoryPerNode How to Limit Memory Used By StarPU And Cache Buffer Allocations
 
 By default, StarPU makes sure to use at most 90% of the memory of GPU devices,
 moving data in and out of the device as appropriate and with prefetch and
@@ -143,8 +143,12 @@ starpu_malloc_on_node() which are used by the data interfaces
 (matrix, vector, etc.).  This does not include allocations performed by
 the application through e.g. malloc(). It does not include allocations
 performed through starpu_malloc() either, only allocations
-performed explicitly with the \ref STARPU_MALLOC_COUNT flag (i.e. by passing
-the parameter \ref STARPU_MALLOC_COUNT when calling starpu_malloc_flags())
+performed explicitly with the \ref STARPU_MALLOC_COUNT flag, i.e. by calling
+
+\code{.c}
+starpu_malloc_flags(STARPU_MALLOC_COUNT)
+\endcode
+
 are taken into account.  If the
 application wants to make StarPU aware of its own allocations, so that StarPU
 knows precisely how much data is allocated, and thus when to evict allocation
@@ -158,9 +162,13 @@ the delta thanks to starpu_memory_allocate() and starpu_memory_deallocate() call
 starpu_memory_get_total() and starpu_memory_get_available()
 can be used to get an estimation of how much memory is available.
 starpu_memory_wait_available() can also be used to block until an
-amount of memory becomes available (but it may be preferrable to call
-starpu_memory_allocate() with the parameter \ref STARPU_MEMORY_WAIT)
-to reserve that amount immediately).
+amount of memory becomes available, but it may be preferrable to call
+
+\code{.c}
+starpu_memory_allocate(STARPU_MEMORY_WAIT)
+\endcode
+
+to reserve that amount immediately.
 
 \section HowToReduceTheMemoryFootprintOfInternalDataStructures How To Reduce The Memory Footprint Of Internal Data Structures
 
@@ -182,8 +190,8 @@ execution. For example, in the Cholesky factorization (dense linear algebra
 application), the GEMM task uses up to 3 buffers, so it is possible to set the
 maximum number of task buffers to 3 to run a Cholesky factorization on StarPU.
 
-The size of the various structures of StarPU can be printed by the
-tests/microbenchs/display_structures_size.
+The size of the various structures of StarPU can be printed by 
+<c>tests/microbenchs/display_structures_size</c>.
 
 It is also often useless to submit *all* the tasks at the same time. One can
 make the starpu_task_submit() function block when a reasonable given number of
@@ -203,9 +211,9 @@ course this may reduce parallelism if the threshold is set too low. The precise
 balance depends on the application task graph.
 
 An idea of how much memory is used for tasks and data handles can be obtained by
-setting the \ref STARPU_MAX_MEMORY_USE environment variable to 1.
+setting the \ref STARPU_MAX_MEMORY_USE environment variable to <c>1</c>.
 
-\section HowtoReuseMemory How to reuse memory
+\section HowtoReuseMemory How To Reuse Memory
 
 When your application needs to allocate more data than the available amount of
 memory usable by StarPU (given by starpu_memory_get_available()), the
@@ -246,7 +254,7 @@ has not-so-stable performance. StarPU will force calibration (and thus ignore
 the current result) until 10 (<c>_STARPU_CALIBRATION_MINIMUM</c>) measurements have been
 made on each architecture, to avoid badly scheduling tasks just because the
 first measurements were not so good. Details on the current performance model status
-can be obtained from the command <c>starpu_perfmodel_display</c>: the <c>-l</c>
+can be obtained from the tool <c>starpu_perfmodel_display</c>: the <c>-l</c>
 option lists the available performance models, and the <c>-s</c> option permits
 to choose the performance model to be displayed. The result looks like:
 
@@ -346,26 +354,27 @@ STARPU_BUS_STATS=1</c> and <c>export STARPU_WORKER_STATS=1</c> .
 
 \ref OfflinePerformanceTools can already provide an idea of to what extent and
 which part of StarPU bring overhead on the execution time. To get a more precise
-analysis of the parts of StarPU which bring most overhead, gprof can be used.
+analysis of the parts of StarPU which bring most overhead, <c>gprof</c> can be used.
 
-First, recompile and reinstall StarPU with gprof support:
+First, recompile and reinstall StarPU with <c>gprof</c> support:
 
 \code
 ./configure --enable-perf-debug --disable-shared --disable-build-tests --disable-build-examples
 \endcode
 
 Make sure not to leave a dynamic version of StarPU in the target path: remove
-any remaining libstarpu-*.so
+any remaining <c>libstarpu-*.so</c>
 
 Then relink your application with the static StarPU library, make sure that
-running ldd on your application does not mention libstarpu (i.e. it's really statically-linked).
+running <c>ldd</c> on your application does not mention any libstarpu
+(i.e. it's really statically-linked).
 
 \code
 gcc test.c -o test $(pkg-config --cflags starpu-1.3) $(pkg-config --libs starpu-1.3)
 \endcode
 
-Now you can run your application, and a gmon.out file should appear in the
-current directory, you can process by running gprof on your application:
+Now you can run your application, and a <c>gmon.out</c> file should appear in the
+current directory, you can process it by running <c>gprof</c> on your application:
 
 \code
 gprof ./test
