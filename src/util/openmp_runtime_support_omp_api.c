@@ -47,9 +47,11 @@ static int _starpu_omp_get_region_thread_num(const struct starpu_omp_region * co
 	if (thread == region->master_thread)
 		return 0;
 	int tid = starpu_omp_thread_list_member(&region->thread_list, thread);
-	if (tid >= 0)
-		return tid+1;
-	_STARPU_ERROR("unrecognized omp thread\n");
+	if (tid < 0)
+	{
+		_STARPU_ERROR("unrecognized omp thread\n");
+	}
+	return tid+1;
 }
 
 int starpu_omp_get_thread_num()
