@@ -20,10 +20,22 @@ recursive subroutine cl_cpu_func_sched_ctx (buffers, cl_args) bind(C)
         use fstarpu_mod         ! StarPU interfacing module
         implicit none
 
+        interface
+                function sleep(s) bind(C)
+                        use iso_c_binding
+                        integer(c_int) :: sleep
+                        integer(c_int), value, intent(in) :: s
+                end function
+        end interface
+
         type(c_ptr), value, intent(in) :: buffers, cl_args ! cl_args is unused
         integer(c_int),target :: id
+        integer(c_int) :: worker_id
+        integer(c_int) :: ret
 
         call fstarpu_unpack_arg(cl_args,(/ c_loc(id) /))
-        write(*,*) "task:", id
+        ! ret = sleep(1)
+        worker_id = fstarpu_worker_get_id()
+        write(*,*) "task:", id, ", worker_id:", worker_id
 end subroutine cl_cpu_func_sched_ctx
 end module nf_sched_ctx_cl
