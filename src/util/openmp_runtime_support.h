@@ -395,6 +395,7 @@ void _starpu_omp_environment_exit(void);
 struct starpu_omp_thread *_starpu_omp_get_thread(void);
 struct starpu_omp_region *_starpu_omp_get_region_at_level(int level);
 struct starpu_omp_task *_starpu_omp_get_task(void);
+int _starpu_omp_get_region_thread_num(const struct starpu_omp_region *const region);
 void _starpu_omp_dummy_init(void);
 void _starpu_omp_dummy_shutdown(void);
 #endif // STARPU_OPENMP

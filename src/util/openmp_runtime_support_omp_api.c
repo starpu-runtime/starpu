@@ -40,20 +40,6 @@ int starpu_omp_get_num_threads()
 	return region->nb_threads;
 }
 
-static int _starpu_omp_get_region_thread_num(const struct starpu_omp_region * const region)
-{
-	struct starpu_omp_thread *thread = _starpu_omp_get_thread();
-	STARPU_ASSERT(thread != NULL);
-	if (thread == region->master_thread)
-		return 0;
-	int tid = starpu_omp_thread_list_member(&region->thread_list, thread);
-	if (tid < 0)
-	{
-		_STARPU_ERROR("unrecognized omp thread\n");
-	}
-	return tid+1;
-}
-
 int starpu_omp_get_thread_num()
 {
 	struct starpu_omp_task *task = _starpu_omp_get_task();
