@@ -223,6 +223,7 @@ STARPU_EXAMPLES +=				\
 	scheduler/dummy_sched			\
 	scheduler/heteroprio_test		\
 	sched_ctx/sched_ctx			\
+	sched_ctx/two_cpu_contexts		\
 	sched_ctx/dummy_sched_with_ctx		\
 	worker_collections/worker_tree_example  \
 	reductions/dot_product			\
