@@ -152,7 +152,7 @@ int main(int argc, char **argv)
 
 	if (info)
 	{
-		starpu_busçtopology_directory(stdout);
+		starpu_bus_topology_directory(stdout);
 		starpu_shutdown();
 		return 0;
 	}
