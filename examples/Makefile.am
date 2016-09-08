@@ -218,6 +218,7 @@ STARPU_EXAMPLES +=				\
 	profiling/profiling			\
 	scheduler/dummy_sched			\
 	sched_ctx/sched_ctx			\
+	sched_ctx/two_cpu_contexts		\
 	sched_ctx/dummy_sched_with_ctx		\
 	worker_collections/worker_tree_example  \
 	reductions/dot_product			\
