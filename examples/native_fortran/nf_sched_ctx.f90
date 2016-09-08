@@ -97,13 +97,13 @@ program nf_sched_ctx
                 write(*,*) i, procs2(i)
         end do
 
-        ! create sched context 1 with default policy
+        ! create sched context 1 with default policy, by giving a NULL policy name
         ctx1 = fstarpu_sched_ctx_create(procs1, nprocs1,  &
             C_CHAR_"ctx1"//C_NULL_CHAR, &
-            (/ FSTARPU_SCHED_CTX_POLICY_STRUCT, c_null_ptr, c_null_ptr /) &
+            (/ FSTARPU_SCHED_CTX_POLICY_NAME, c_null_ptr, c_null_ptr /) &
             )
 
-        ! create sched context 2 with policy name
+        ! create sched context 2 with a user selected policy name
         ctx2 = fstarpu_sched_ctx_create(procs2, nprocs2,  &
             C_CHAR_"ctx2"//C_NULL_CHAR, &
             (/ FSTARPU_SCHED_CTX_POLICY_NAME, c_loc(ctx2_policy), c_null_ptr /))
