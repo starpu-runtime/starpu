@@ -776,11 +776,12 @@ static void get_bus_path(const char *type, char *path, size_t maxlen)
  *	Affinity
  */
 
-#ifndef STARPU_SIMGRID
 static void get_affinity_path(char *path, size_t maxlen)
 {
 	get_bus_path("affinity", path, maxlen);
 }
+
+#ifndef STARPU_SIMGRID
 
 static void load_bus_affinity_file_content(void)
 {
@@ -1418,6 +1419,21 @@ static void write_bus_bandwidth_file_content(void)
 	fclose(f);
 }
 #endif /* STARPU_SIMGRID */
+
+void starpu_bus_print_filenames(FILE *output)
+{
+	char bandwidth_path[256];
+	char affinity_path[256];
+	char latency_path[256];
+
+	get_bandwidth_path(bandwidth_path, sizeof(bandwidth_path));
+	get_affinity_path(affinity_path, sizeof(affinity_path));
+	get_latency_path(latency_path, sizeof(latency_path));
+
+	fprintf(output, "bandwidth: <%s>\n", bandwidth_path);
+	fprintf(output, " affinity: <%s>\n", affinity_path);
+	fprintf(output, "  latency: <%s>\n", latency_path);
+}
 
 void starpu_bus_print_bandwidth(FILE *f)
 {

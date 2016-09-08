@@ -254,6 +254,10 @@ prints a matrix of bus bandwidths on \p f.
 \ingroup API_Performance_Model
 prints the affinity devices on \p f.
 
+\fn void starpu_bus_print_filenames(FILE *f)
+\ingroup API_Performance_Model
+prints on \p f the name of the files containing the matrix of bus bandwidths, the affinity devices and the latency.
+
 \fn void starpu_perfmodel_update_history(struct starpu_perfmodel *model, struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned cpuid, unsigned nimpl, double measured);
 \ingroup API_Performance_Model
 This feeds the performance model model with an explicit

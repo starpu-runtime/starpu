@@ -176,6 +176,7 @@ void starpu_perfmodel_directory(FILE *output);
 
 void starpu_bus_print_bandwidth(FILE *f);
 void starpu_bus_print_affinity(FILE *f);
+void starpu_bus_print_filenames(FILE *f);
 
 double starpu_transfer_bandwidth(unsigned src_node, unsigned dst_node);
 double starpu_transfer_latency(unsigned src_node, unsigned dst_node);
