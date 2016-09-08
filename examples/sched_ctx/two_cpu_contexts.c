@@ -48,11 +48,10 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV)
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-#ifdef STARPU_USE_CPU
 	ncpu = starpu_cpu_worker_get_count();
-#else 
-	ncpu = 0;
-#endif
+
+	/* actually we really need at least 2 CPU workers such to allocate 2
+	 * non overlapping contexts */
 	if (ncpu < 2)
 		return 77;
 	procs = calloc(ncpu, sizeof(int));
