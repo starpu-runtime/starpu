@@ -39,8 +39,9 @@ program nf_sched_ctx
         integer(c_int) :: ctx2
 
         ! needed to be able to call c_loc on it, to get a ptr to the string
-        character(kind=c_char,len=6), target :: ctx2_policy = C_CHAR_"prio"//C_NULL_CHAR
+        character(kind=c_char,len=6), target :: ctx2_policy = C_CHAR_"eager"//C_NULL_CHAR
 
+        integer(c_int),parameter :: n = 20
         integer(c_int) :: i
         integer(c_int), target :: arg_id
         integer(c_int), target :: arg_ctx
@@ -99,42 +100,53 @@ program nf_sched_ctx
         ! create sched context 1 with default policy
         ctx1 = fstarpu_sched_ctx_create(procs1, nprocs1,  &
             C_CHAR_"ctx1"//C_NULL_CHAR, &
-            (/ c_null_ptr, FSTARPU_SCHED_CTX_POLICY_STRUCT, c_null_ptr, c_null_ptr /) &
+            (/ FSTARPU_SCHED_CTX_POLICY_STRUCT, c_null_ptr, c_null_ptr /) &
             )
 
         ! create sched context 2 with policy name
         ctx2 = fstarpu_sched_ctx_create(procs2, nprocs2,  &
             C_CHAR_"ctx2"//C_NULL_CHAR, &
-            (/ c_null_ptr, FSTARPU_SCHED_CTX_POLICY_NAME, c_loc(ctx2_policy), c_null_ptr /))
+            (/ FSTARPU_SCHED_CTX_POLICY_NAME, c_loc(ctx2_policy), c_null_ptr /))
 
         ! set inheritor context 
         call fstarpu_sched_ctx_set_inheritor(ctx2, ctx1);
 
-        ! submit a task on context 1
-        arg_id = 1
-        arg_ctx = ctx1
-        call fstarpu_insert_task((/ cl1, &
-                FSTARPU_VALUE, c_loc(arg_id), FSTARPU_SZ_C_INT, &
-                FSTARPU_SCHED_CTX, c_loc(arg_ctx), &
-            C_NULL_PTR /))
+        call fstarpu_sched_ctx_display_workers(ctx1)
+        call fstarpu_sched_ctx_display_workers(ctx2)
 
-        ! now submit a task on context 2
-        arg_id = 2
-        arg_ctx = ctx2
-        call fstarpu_insert_task((/ cl2, &
-                FSTARPU_VALUE, c_loc(arg_id), FSTARPU_SZ_C_INT, &
-                FSTARPU_SCHED_CTX, c_loc(arg_ctx), &
-            C_NULL_PTR /))
+        do i = 1, n
+                ! submit a task on context 1
+                arg_id = 1*1000 + i
+                arg_ctx = ctx1
+                call fstarpu_insert_task((/ cl1, &
+                        FSTARPU_VALUE, c_loc(arg_id), FSTARPU_SZ_C_INT, &
+                        FSTARPU_SCHED_CTX, c_loc(arg_ctx), &
+                    C_NULL_PTR /))
+        end do
+
+        do i = 1, n
+                ! now submit a task on context 2
+                arg_id = 2*1000 + i
+                arg_ctx = ctx2
+                call fstarpu_insert_task((/ cl2, &
+                        FSTARPU_VALUE, c_loc(arg_id), FSTARPU_SZ_C_INT, &
+                        FSTARPU_SCHED_CTX, c_loc(arg_ctx), &
+                    C_NULL_PTR /))
+        end do
+
         ! mark submission process as completed on context 2
         call fstarpu_sched_ctx_finished_submit(ctx2)
 
-        ! now submit a task on context 1 again
-        arg_id = 1
-        arg_ctx = ctx1
-        call fstarpu_insert_task((/ cl1, &
-                FSTARPU_VALUE, c_loc(arg_id), FSTARPU_SZ_C_INT, &
-                FSTARPU_SCHED_CTX, c_loc(arg_ctx), &
-            C_NULL_PTR /))
+        do i = 1, n
+                ! now submit a task on context 1 again
+                arg_id = 1*10000 + i
+                arg_ctx = ctx1
+                call fstarpu_insert_task((/ cl1, &
+                        FSTARPU_VALUE, c_loc(arg_id), FSTARPU_SZ_C_INT, &
+                        FSTARPU_SCHED_CTX, c_loc(arg_ctx), &
+                    C_NULL_PTR /))
+        end do
+
         ! mark submission process as completed on context 1
         call fstarpu_sched_ctx_finished_submit(ctx1)
 
