@@ -393,6 +393,7 @@ extern double _starpu_omp_clock_ref;
 void _starpu_omp_environment_init(void);
 void _starpu_omp_environment_exit(void);
 struct starpu_omp_thread *_starpu_omp_get_thread(void);
+struct starpu_omp_region *_starpu_omp_get_region_at_level(int level);
 struct starpu_omp_task *_starpu_omp_get_task(void);
 void _starpu_omp_dummy_init(void);
 void _starpu_omp_dummy_shutdown(void);

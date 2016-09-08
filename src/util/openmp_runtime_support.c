@@ -79,6 +79,26 @@ static inline void _starpu_omp_set_task(struct starpu_omp_task *task)
 	STARPU_PTHREAD_SETSPECIFIC(omp_task_key, task);
 }
 
+struct starpu_omp_region *_starpu_omp_get_region_at_level(int level)
+{
+	const struct starpu_omp_task *task = _starpu_omp_get_task();
+	struct starpu_omp_region *parallel_region;
+
+	if (!task)
+		return NULL;
+
+	parallel_region = task->owner_region;
+	if (level < 0 || level > parallel_region->icvs.levels_var)
+		return NULL;
+
+	while (level < parallel_region->icvs.levels_var)
+	{
+		parallel_region = parallel_region->parent_region;
+	}
+
+	return parallel_region;
+}
+
 static void weak_task_lock(struct starpu_omp_task *task)
 {
 	_starpu_spin_lock(&task->lock);

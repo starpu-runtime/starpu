@@ -167,35 +167,29 @@ int starpu_omp_get_level (void)
 
 int starpu_omp_get_ancestor_thread_num (int level)
 {
+	struct starpu_omp_region *parallel_region;
+
 	if (level == 0)
 		return 0;
-	const struct starpu_omp_task *task = _starpu_omp_get_task();
-	if (task == NULL)
+
+	parallel_region = _starpu_omp_get_region_at_level(level);
+	if (!parallel_region)
 		return -1;
-	const struct starpu_omp_region *parallel_region = task->owner_region;
-	if (level < 0 || level > parallel_region->icvs.levels_var)
-		return -1;
-	while (level < parallel_region->icvs.levels_var)
-	{
-		parallel_region = parallel_region->parent_region;
-	}
+
 	return _starpu_omp_get_region_thread_num(parallel_region);
 }
 
 int starpu_omp_get_team_size (int level)
 {
+	struct starpu_omp_region *parallel_region;
+
 	if (level == 0)
 		return 1;
-	const struct starpu_omp_task *task = _starpu_omp_get_task();
-	if (task == NULL)
+
+	parallel_region = _starpu_omp_get_region_at_level(level);
+	if (!parallel_region)
 		return -1;
-	const struct starpu_omp_region *parallel_region = task->owner_region;
-	if (level < 0 || level > parallel_region->icvs.levels_var)
-		return -1;
-	while (level < parallel_region->icvs.levels_var)
-	{
-		parallel_region = parallel_region->parent_region;
-	}
+
 	return parallel_region->nb_threads;
 }
 
