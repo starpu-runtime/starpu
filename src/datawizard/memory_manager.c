@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2013, 2015  CNRS
+ * Copyright (C) 2012-2013, 2015, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -133,6 +133,20 @@ starpu_ssize_t starpu_memory_get_total(unsigned node)
 		return global_size[node];
 }
 
+starpu_ssize_t starpu_memory_get_total_all_nodes()
+{
+	unsigned memnodes, i;
+	memnodes = starpu_memory_nodes_get_count();
+	starpu_ssize_t total = 0;
+	for(i=0 ; i<memnodes ; i++)
+	{
+		starpu_ssize_t node = starpu_memory_get_total(i);
+		if (node != -1)
+			total += node;
+	}
+	return total;
+}
+
 starpu_ssize_t starpu_memory_get_available(unsigned node)
 {
 	starpu_ssize_t ret;
@@ -141,6 +155,20 @@ starpu_ssize_t starpu_memory_get_available(unsigned node)
 
 	ret = global_size[node] - used_size[node];
 	return ret;
+}
+
+starpu_ssize_t starpu_memory_get_available_all_nodes()
+{
+	unsigned memnodes, i;
+	memnodes = starpu_memory_nodes_get_count();
+	starpu_ssize_t avail = 0;
+	for(i=0 ; i<memnodes ; i++)
+	{
+		starpu_ssize_t node = starpu_memory_get_available(i);
+		if (node != -1)
+			avail += node;
+	}
+	return avail;
 }
 
 void starpu_memory_wait_available(unsigned node, size_t size)
