@@ -192,8 +192,8 @@ int main(int argc, char **argv)
 		fprintf(stdout, "\nbandwidth and latency ...\n");
 		starpu_bus_print_bandwidth(stdout);
 
+		starpu_shutdown();
 	}
 
-	starpu_shutdown();
 	return 0;
 }
