@@ -22,10 +22,13 @@ combinations.
 
 \subsection Prerequisites Prerequisites
 
-The Native Fortran support relies on Fortran 2008 specific constructs
+The Native Fortran support relies on Fortran 2008 specific constructs,
+as well as on the support of interoperability of assumed-shape arrays
+introduced as part of Fortran's Technical Specification ISO/IEC TS 29113:2012,
 for which no equivalent are available in previous versions of the
-standard. It has currently been tested successfully with GNU GFortran >=
-4.9 and the Intel Fortran Compiler >= 2016.
+standard. It has currently been tested successfully with GNU GFortran 4.9,
+GFortran 5.x, GFortran 6.x and the Intel Fortran Compiler >= 2016. It is known
+not to work with GNU GFortran < 4.9, Intel Fortran Compiler < 2016.
 
 \subsection Configuration Configuration
 
