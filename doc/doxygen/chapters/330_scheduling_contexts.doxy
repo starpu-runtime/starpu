@@ -14,10 +14,11 @@ TODO: improve!
 
 Scheduling contexts represent abstracts sets of workers that allow the
 programmers to control the distribution of computational resources
-(i.e. CPUs and GPUs) to concurrent parallel kernels. The main goal is
+(i.e. CPUs and GPUs) to concurrent kernels. The main goal is
 to minimize interferences between the execution of multiple parallel
 kernels, by partitioning the underlying pool of workers using
-contexts.
+contexts. Scheduling contexts additionally allow a user to make use of
+a different scheduling policy depending on the target resource set.
 
 
 \section CreatingAContext Creating A Context
@@ -25,36 +26,32 @@ contexts.
 By default, the application submits tasks to an initial context, which
 disposes of all the computation resources available to StarPU (all
 the workers). If the application programmer plans to launch several
-parallel kernels simultaneously, by default these kernels will be
+kernels simultaneously, by default these kernels will be
 executed within this initial context, using a single scheduler
 policy(see \ref TaskSchedulingPolicy). Meanwhile, if the application
 programmer is aware of the demands of these kernels and of the
 specificity of the machine used to execute them, the workers can be
 divided between several contexts. These scheduling contexts will
 isolate the execution of each kernel and they will permit the use of a
-scheduling policy proper to each one of them. 
+scheduling policy proper to each one of them.
 
-Scheduling Contexts may be created in two ways: either the programmers indicates
-the set of workers corresponding to each context (providing he knows the 
-identifiers of the workers running within StarPU), or the programmer
-does not provide any worker list and leaves the Hypervisor assign
-workers to each context according to their needs (\ref SchedulingContextHypervisor)
+Scheduling Contexts may be created in two ways: either the programmers
+indicates the set of workers corresponding to each context (providing
+he knows the identifiers of the workers running within StarPU), or the
+programmer does not provide any worker list and leaves the Hypervisor
+assign workers to each context according to their needs (\ref
+SchedulingContextHypervisor).
 
 Both cases require a call to the function
 starpu_sched_ctx_create(), which requires as input the worker
-list (the exact list or a <c>NULL</c> pointer) and a list of optional
-parameters such as the scheduling policy, terminated by a <c>0</c>. The
-scheduling policy can be a character list corresponding to the name of
-a StarPU predefined policy or the pointer to a custom policy. The
-function returns an identifier of the context created which you will
-use to indicate the context you want to submit the tasks to.
-
-Please note that if no scheduling policy is specified, the context
-will be used as another type of resource: a cluster, which we consider
-contexts without scheduler (eventually delegated to another
-runtime). For more information see \ref ClusteringAMachine. It is
-therefore <b>mandatory</b> to stipulate the context's scheduler to use
-it in this traditional way.
+list (the exact list or a <c>NULL</c> pointer), the amount of workers
+(or <c>-1</c> to designate all workers on the platform) and a list of
+optional parameters such as the scheduling policy, terminated by a
+<c>0</c>. The scheduling policy can be a character list corresponding
+to the name of a StarPU predefined policy or the pointer to a custom
+policy. The function returns an identifier of the context created
+which you will use to indicate the context you want to submit the
+tasks to.
 
 \code{.c}
 /* the list of resources the context will manage */
@@ -75,11 +72,36 @@ starpu_task_submit(task);
 Note: Parallel greedy and parallel heft scheduling policies do not support the existence of several disjoint contexts on the machine.
 Combined workers are constructed depending on the entire topology of the machine, not only the one belonging to a context.
 
+\subsection CreatingAContextWithTheDefaultBehavior Creating A Context With The Default Behavior
+
+If <b>no scheduling policy</b> is specified when creating the context,
+it will be used as <b>another type of resource</b>: a cluster. A
+cluster is a context without scheduler (eventually delegated to
+another runtime). For more information see \ref ClusteringAMachine. It
+is therefore <b>mandatory</b> to stipulate a scheduler to use the
+contexts in this traditional way.
+
+To create a <b>context</b> with the default scheduler, that is either
+controlled through the environment variable <c>STARPU_SCHED</c> or the
+StarPU default scheduler, one can explicitly use the option <c>STARPU_SCHED_CTX_POLICY_NAME, NULL</c> as in the following example:
+
+\code{.c}
+/* the list of resources the context will manage */
+int workerids[3] = {1, 3, 10};
+
+/* indicate the list of workers assigned to it, the number of workers,
+and use the default scheduling policy. */
+int id_ctx = starpu_sched_ctx_create(workerids, 3, "my_ctx", STARPU_SCHED_CTX_POLICY_NAME, NULL, 0);
+
+/* .... */
+\endcode
+
+
 \section ModifyingAContext Modifying A Context
 
 A scheduling context can be modified dynamically. The application may
 change its requirements during the execution and the programmer can
-add additional workers to a context or remove if no longer needed. In
+add additional workers to a context or remove those no longer needed. In
 the following example we have two scheduling contexts
 <c>sched_ctx1</c> and <c>sched_ctx2</c>. After executing a part of the
 tasks some of the workers of <c>sched_ctx1</c> will be moved to
