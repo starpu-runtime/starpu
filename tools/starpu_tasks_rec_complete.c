@@ -42,6 +42,7 @@ int main(int argc, char *argv[]) {
 	FILE *output;
 	char s[1024], *c;
 	uint32_t footprint = 0;
+	int already_there = 0;
 	char *model_name = NULL;
 	struct model *model, *tmp;
 	int ret;
@@ -105,29 +106,37 @@ int main(int argc, char *argv[]) {
 			/* empty line, end of task */
 			if (model_name)
 			{
-				/* Try to get already-loaded model */
-				HASH_FIND_STR(models, model_name, model);
-				if (model == NULL)
+				if (already_there)
 				{
-					model = malloc(sizeof(*model));
-					model->name = model_name;
-					memset(&model->model, 0, sizeof(model->model));
-					model->model.type = STARPU_PERFMODEL_INVALID;
-					ret = starpu_perfmodel_load_symbol(model_name, &model->model);
-					if (ret == 1)
-					{
-						fprintf(stderr, "The performance model for the symbol <%s> could not be loaded\n", model_name);
-						exit(EXIT_FAILURE);
-					}
-					HASH_ADD_STR(models, name, model);
+					free(model_name);
 				}
 				else
-					free(model_name);
-				fprintf(output, "EstimatedTime: ");
-				starpu_perfmodel_print_estimations(&model->model, footprint, output);
-				fprintf(output, "\n");
+				{
+					/* Try to get already-loaded model */
+					HASH_FIND_STR(models, model_name, model);
+					if (model == NULL)
+					{
+						model = malloc(sizeof(*model));
+						model->name = model_name;
+						memset(&model->model, 0, sizeof(model->model));
+						model->model.type = STARPU_PERFMODEL_INVALID;
+						ret = starpu_perfmodel_load_symbol(model_name, &model->model);
+						if (ret == 1)
+						{
+							fprintf(stderr, "The performance model for the symbol <%s> could not be loaded\n", model_name);
+							exit(EXIT_FAILURE);
+						}
+						HASH_ADD_STR(models, name, model);
+					}
+					else
+						free(model_name);
+					fprintf(output, "EstimatedTime: ");
+					starpu_perfmodel_print_estimations(&model->model, footprint, output);
+					fprintf(output, "\n");
+				}
 				model_name = NULL;
 			}
+			already_there = 0;
 			fprintf(output, "\n");
 			continue;
 		}
@@ -150,6 +159,10 @@ int main(int argc, char *argv[]) {
 		{
 			model_name = strdup(s + strlen("Model: "));
 			model_name[strlen(model_name) - 1] = '\0'; /* Drop '\n' */
+		}
+		else if (!STRHEADCMP(s, "EstimatedTime: "))
+		{
+			already_there = 1;
 		}
 		fprintf(output, s);
 	}
