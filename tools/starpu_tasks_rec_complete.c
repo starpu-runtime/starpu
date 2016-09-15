@@ -54,7 +54,7 @@ int main(int argc, char *argv[]) {
 			fprintf(stderr, "\n");
 			fprintf(stderr, "Usage: %s [input-file [output-file]]\n", PROGNAME);
 			fprintf(stderr, "\n");
-			fprintf(stderr, "If input or output file names are not given, stdin and stdout are used.", PROGNAME);
+			fprintf(stderr, "If input or output file names are not given, stdin and stdout are used.");
 			fprintf(stderr, "\n");
 			fprintf(stderr, "Report bugs to <" PACKAGE_BUGREPORT ">.\n");
 			exit(EXIT_SUCCESS);

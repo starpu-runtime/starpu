@@ -191,7 +191,10 @@ $ starpu_tasks_rec_complete tasks.rec tasks2.rec
 \endverbatim
 
 which will add <c>EstimatedTime</c> lines which contain the performance
-model-estimated time (in µs) for each worker starting from 0.
+model-estimated time (in µs) for each worker starting from 0. Since it needs
+the performance models, it needs to be run the same way as the application
+execution, or at least with <c>STARPU_HOSTNAME</c> set to the hostname of the
+machine used for execution, to get the performance models of that machine.
 
 \subsection MonitoringActivity Monitoring Activity
 
