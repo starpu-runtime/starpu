@@ -182,9 +182,16 @@ $ starpu_fxt_tool -i /tmp/prof_file_something
 This will create a <c>tasks.rec</c> file in the current directory.  This file
 is in the recutils format, i.e. <c>Field: value</c> lines, and empty lines to
 separate each task.  This can be used as a convenient input for various ad-hoc
-analysis tools.  The performance models can be opened for instance by using
-starpu_perfmodel_load_symbol() and then using
-starpu_perfmodel_history_based_expected_perf().
+analysis tools. By default it only contains information about the actual
+execution. Performance models can be obtained by running
+<c>starpu_tasks_rec_complete</c> on it:
+
+\verbatim
+$ starpu_tasks_rec_complete tasks.rec tasks2.rec
+\endverbatim
+
+which will add <c>EstimatedTime</c> lines which contain the performance
+model-estimated time (in µs) for each worker starting from 0.
 
 \subsection MonitoringActivity Monitoring Activity
 

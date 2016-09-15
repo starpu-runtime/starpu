@@ -246,6 +246,10 @@ todo
 \ingroup API_Performance_Model
 todo
 
+\fn int starpu_perfmodel_print_estimations(struct starpu_perfmodel *model, uint32_t footprint, FILE *output)
+\ingroup API_Performance_Model
+todo
+
 \fn void starpu_bus_print_bandwidth(FILE *f)
 \ingroup API_Performance_Model
 prints a matrix of bus bandwidths on \p f.

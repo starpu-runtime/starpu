@@ -220,6 +220,7 @@ bin_PROGRAMS += 			\
 	starpu_calibrate_bus		\
 	starpu_machine_display		\
 	starpu_sched_display		\
+	starpu_tasks_rec_complete	\
 	starpu_lp2paje
 
 starpu_perfmodel_plot_CPPFLAGS = $(AM_CFLAGS) $(AM_CPPFLAGS) $(FXT_CFLAGS)
@@ -267,6 +268,8 @@ starpu_perfmodel_display.1: starpu_perfmodel_display$(EXEEXT)
 	help2man --no-discard-stderr -N --output=$@ ./$<
 starpu_perfmodel_plot.1: starpu_perfmodel_plot$(EXEEXT)
 	help2man --no-discard-stderr -N --output=$@ ./$<
+starpu_tasks_rec_complete.1: starpu_tasks_rec_complete$(EXEEXT)
+	help2man --no-discard-stderr -N --output=$@ ./$<
 starpu_lp2paje.1: starpu_lp2paje$(EXEEXT)
 	help2man --no-discard-stderr -N --output=$@ ./$<
 starpu_workers_activity.1: starpu_workers_activity
@@ -299,6 +302,7 @@ dist_man1_MANS =\
 	starpu_machine_display.1 \
 	starpu_perfmodel_display.1 \
 	starpu_perfmodel_plot.1	\
+	starpu_tasks_rec_complete.1 \
 	starpu_lp2paje.1	\
 	starpu_workers_activity.1 \
 	starpu_codelet_profile.1 \

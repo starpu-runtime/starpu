@@ -27,7 +27,10 @@ Changes:
 
 StarPU 1.2.1 (svn revision xxx)
 ==============================================
+New features:
   * Add starpu_fxt_trace_user_event_string.
+  * Add starpu_tasks_rec_complete tool to add estimation times in tasks.rec
+    files.
 
 StarPU 1.2.0 (svn revision 18521)
 ==============================================

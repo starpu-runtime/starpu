@@ -168,6 +168,7 @@ double starpu_perfmodel_history_based_expected_perf(struct starpu_perfmodel *mod
 int starpu_perfmodel_list(FILE *output);
 void starpu_perfmodel_print(struct starpu_perfmodel *model, struct starpu_perfmodel_arch *arch, unsigned nimpl, char *parameter, uint32_t *footprint, FILE *output);
 int starpu_perfmodel_print_all(struct starpu_perfmodel *model, char *arch, char *parameter, uint32_t *footprint, FILE *output);
+int starpu_perfmodel_print_estimations(struct starpu_perfmodel *model, uint32_t footprint, FILE *output);
 
 int starpu_perfmodel_list_combs(FILE *output, struct starpu_perfmodel *model);
 
