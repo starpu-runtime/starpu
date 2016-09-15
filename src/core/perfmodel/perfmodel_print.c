@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2013-2015  Université de Bordeaux
+ * Copyright (C) 2011, 2013-2016  Université de Bordeaux
  * Copyright (C) 2011, 2012, 2013, 2014, 2015  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  *
@@ -288,3 +288,30 @@ int starpu_perfmodel_print_all(struct starpu_perfmodel *model, char *arch, char 
 	return 0;
 }
 
+int starpu_perfmodel_print_estimations(struct starpu_perfmodel *model, uint32_t footprint, FILE *output)
+{
+	unsigned workerid;
+	for (workerid = 0; workerid < starpu_worker_get_count(); workerid++)
+	{
+		struct starpu_perfmodel_arch* arch = starpu_worker_get_perf_archtype(workerid, STARPU_NMAX_SCHED_CTXS);
+		int comb = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
+		struct starpu_perfmodel_per_arch *arch_model = &model->state->per_arch[comb][0];
+		struct starpu_perfmodel_history_list *ptr;
+
+		for (ptr = arch_model->list; ptr; ptr = ptr->next)
+		{
+			struct starpu_perfmodel_history_entry *entry = ptr->entry;
+			if (entry->footprint == footprint)
+			{
+				fprintf(output, "%s%e", workerid?" ":"", entry->mean);
+				break;
+			}
+		}
+		if (!ptr)
+		{
+			/* Didn't find any entry :/ */
+			fprintf(output, "%sNaN", workerid?" ":"");
+		}
+	}
+	return 0;
+}
