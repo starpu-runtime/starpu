@@ -164,7 +164,7 @@ int main(int argc, char *argv[]) {
 		{
 			already_there = 1;
 		}
-		fprintf(output, s);
+		fprintf(output, "%s", s);
 	}
 
 	if (fclose(output))
