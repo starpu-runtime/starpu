@@ -122,6 +122,7 @@ do
 		    unset CXXLD
 		    unset F77
 		    unset FC
+		    params+=(--disable-fortran)
 		fi
 	fi
 
@@ -134,7 +135,7 @@ do
 	fi
 
 	if test x$arch = xmic ; then
-	    params+=(--host=$mic_host --disable-build-doc --disable-fortran)
+	    params+=(--host=$mic_host --disable-build-doc)
 	    if [ "$native_mic" -eq "1" ]
 	    then
 		params+=(--enable-maxcpus=250)
