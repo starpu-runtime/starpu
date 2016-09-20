@@ -49,6 +49,10 @@ functions have to be globally-visible (i.e. not <c>static</c>) for
 StarPU to be able to look them up, and -rdynamic must be passed to gcc (or
 -export-dynamic to ld) so that symbols of the main program are visible.
 
+For non-native MIC Xeon Phi execution, the 'main' function of the application, on the sink, should call starpu_init() immediately upon start-up; the starpu_init() function never returns. On the host, the 'main' function may freely perform application related initialization calls as usual, before calling starpu_init().
+
+For MIC Xeon Phi, the application may programmatically detect whether executing on the sink or on the host, by checking whether the STARPU_SINK environment variable is defined (on the sink) or not (on the host).
+
 For SCC execution, the function starpu_initialize() also has to be
 used instead of starpu_init(), so as to pass <c>argc</c> and
 <c>argv</c>.
