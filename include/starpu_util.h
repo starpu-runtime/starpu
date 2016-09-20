@@ -291,7 +291,7 @@ STARPU_ATOMIC_SOMETHINGL(or, old | value)
 #define STARPU_SYNCHRONIZE() __asm__ __volatile__("sync" ::: "memory")
 #endif
 
-#if defined(__i386__) || defined(__KNC__) || defined(__KNF__)
+#if defined(__i386__) || defined(__KNC__) || defined(__KNF__) || defined(__KNL__) || defined(__knl__)
 #define STARPU_RMB() __asm__ __volatile__("lock; addl $0,0(%%esp)" ::: "memory")
 #define STARPU_WMB() __asm__ __volatile__("lock; addl $0,0(%%esp)" ::: "memory")
 #elif defined(__x86_64__)
