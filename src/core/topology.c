@@ -777,7 +777,7 @@ _starpu_init_mic_config (struct _starpu_machine_config *config,
 	_starpu_init_mic_topology (config, mic_idx);
 
 	int nmiccores;
-	nmiccores = starpu_get_env_number("STARPU_NMICCORES");
+	nmiccores = starpu_get_env_number("STARPU_NMICTHREADS");
 
 	if (nmiccores == -1)
 	{

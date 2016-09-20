@@ -106,11 +106,11 @@ MIC equivalent of the environment variable \ref STARPU_NCUDA, i.e. the number of
 MIC devices to use.
 </dd>
 
-<dt>STARPU_NMICCORES</dt>
+<dt>STARPU_NMICTHREADS</dt>
 <dd>
-\anchor STARPU_NMICCORES
-\addindex __env__STARPU_NMICCORES
-Number of cores to use on the MIC devices.
+\anchor STARPU_NMICTHREADS
+\addindex __env__STARPU_NMICTHREADS
+Number of threads to use on the MIC devices.
 </dd>
 
 <dt>STARPU_NSCC</dt>

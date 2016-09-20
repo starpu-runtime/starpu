@@ -28,19 +28,22 @@
 #include "driver_mic_common.h"
 #include "driver_mic_sink.h"
 
+static int mic_core_to_thread[240];
 /* Initialize the MIC sink, initializing connection to the source
  * and to the other devices (not implemented yet).
  */
 void _starpu_mic_sink_init(struct _starpu_mp_node *node)
 {
+#ifdef __KNC__
 	starpu_pthread_t self;
 	cpu_set_t cpuset;
-
+	/* We reserve one core for the communications */
 	/*Bind on the first core*/
 	self = pthread_self();
 	CPU_ZERO(&cpuset);
-	CPU_SET(241,&cpuset);
+	CPU_SET(0,&cpuset);
 	pthread_setaffinity_np(self,sizeof(cpu_set_t),&cpuset);
+#endif
 
 
 	/* Initialize connection with the source */
@@ -52,6 +55,19 @@ void _starpu_mic_sink_init(struct _starpu_mp_node *node)
 	
 	node->nb_cores = COISysGetHardwareThreadCount() - COISysGetHardwareThreadCount() / COISysGetCoreCount();
 	node->thread_table = malloc(sizeof(starpu_pthread_t)*node->nb_cores);
+
+#ifdef STARPU_DEVEL
+#warning rather use hwloc
+#endif
+#ifdef __KNC__
+	unsigned core,thread;
+	/* Round-robin between cores. Take care of the odd numbering of threads on the KNC */
+	for (core = 0; core < 60; core++)
+		for (thread = 0; thread < 4; thread++)
+			mic_core_to_thread[core + thread * 60] = core * 4 + thread + 1;
+#elif defined(__KNF__)
+#error need to check the numbering
+#endif
 
 	//node->sink_sink_dt_connections = malloc(node->nb_mp_sinks * sizeof(union _starpu_mp_connection));
 
@@ -187,6 +203,9 @@ void _starpu_mic_sink_free(const struct _starpu_mp_node *mp_node STARPU_ATTRIBUT
 
 /* bind the thread to a core
  */
+#ifdef STARPU_DEVEL
+#warning Use hwloc, the numbering is *really* odd on the MIC
+#endif
 void _starpu_mic_sink_bind_thread(const struct _starpu_mp_node *mp_node STARPU_ATTRIBUTE_UNUSED, int coreid, int * core_table, int nb_core)
 {
 	cpu_set_t cpuset;
@@ -197,7 +216,7 @@ void _starpu_mic_sink_bind_thread(const struct _starpu_mp_node *mp_node STARPU_A
 
 	//adding the core to the set
 	for(i=0;i<nb_core;i++)
-		CPU_SET(core_table[i],&cpuset);
+		CPU_SET(mic_core_to_thread[core_table[i]],&cpuset);
 
 	pthread_setaffinity_np(((starpu_pthread_t*)mp_node->thread_table)[coreid],sizeof(cpu_set_t),&cpuset);
 }
