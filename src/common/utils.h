@@ -71,7 +71,7 @@
 #define STARPU_HG_DISABLE_CHECKING(variable) VALGRIND_HG_DISABLE_CHECKING(&(variable), sizeof(variable))
 #define STARPU_HG_ENABLE_CHECKING(variable)  VALGRIND_HG_ENABLE_CHECKING(&(variable), sizeof(variable))
 
-#if defined(__KNC__) || defined(__KNF__)
+#if defined(__KNF__) || defined(__KNC__) || defined(__KNL__) || defined(__knl__)
 #define STARPU_DEBUG_PREFIX "[starpu-mic]"
 #else
 #define STARPU_DEBUG_PREFIX "[starpu]"
