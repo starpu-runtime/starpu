@@ -134,7 +134,7 @@ do
 	fi
 
 	if test x$arch = xmic ; then
-	    params+=(--disable-build-doc --host=$mic_host)
+	    params+=(--host=$mic_host --disable-build-doc --disable-fortran)
 	    if [ "$native_mic" -eq "1" ]
 	    then
 		params+=(--enable-maxcpus=250)
