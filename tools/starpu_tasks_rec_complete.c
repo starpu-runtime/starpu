@@ -142,7 +142,7 @@ int main(int argc, char *argv[]) {
 		}
 
 		/* Get rec field name */
-		c = index(s, ':');
+		c = strchr(s, ':');
 		if (!c)
 		{
 			fprintf(stderr, "odd line '%s'\n", s);
