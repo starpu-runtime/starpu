@@ -41,6 +41,12 @@ static struct starpu_codelet cl_prod =
 	.modes = { STARPU_W },
 };
 
+static void callback0(void *callback_arg)
+{
+	STARPU_ASSERT(x==0);
+	STARPU_ASSERT(y==0);
+}
+
 static void callback(void *callback_arg)
 {
 	STARPU_ASSERT(x>=1);
@@ -80,6 +86,10 @@ int main(int argc, char **argv)
 
 	starpu_variable_data_register(&handle_x, STARPU_MAIN_RAM, (uintptr_t)&x, sizeof(x));
 	starpu_variable_data_register(&handle_y, STARPU_MAIN_RAM, (uintptr_t)&y, sizeof(y));
+
+	ret = starpu_task_insert(&cl_nowhere, STARPU_R, handle_x, STARPU_R, handle_y, STARPU_CALLBACK, callback0, 0);
+	if (ret == -ENODEV) goto enodev;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 	ret = starpu_task_insert(&cl_prod, STARPU_W, handle_x, 0);
 	if (ret == -ENODEV) goto enodev;

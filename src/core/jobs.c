@@ -418,7 +418,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	 * scheduler to process it : the task structure doesn't contain any valuable
 	 * data as it's not linked to an actual worker */
 	/* control task should not execute post_exec_hook */
-	if(j->task_size == 1 && task->cl != NULL && !j->internal
+	if(j->task_size == 1 && task->cl != NULL && task->cl->where != STARPU_NOWHERE && !j->internal
 #ifdef STARPU_OPENMP
 	/* If this is a continuation, we do not execute the post_exec_hook. The
 	 * post_exec_hook will be run only when the continued task fully
