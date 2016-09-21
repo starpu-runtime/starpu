@@ -26,9 +26,9 @@
 #endif //TESTGSL
 
 // From additional-lapack-func
-#ifdef MLR_MODEL
+#ifdef MIN_DGELS
 #include "mindgels.h"
-#endif //MLR_MODEL
+#endif //MIN_DGELS
 
 typedef struct { int h, w; double *x;} matrix_t, *matrix;
 
@@ -138,7 +138,7 @@ void gsl_multiple_reg_coeff(double *mpar, double *my, long n, unsigned ncoeff, u
 }
 #endif //TESTGSL
 
-#ifdef MLR_MODEL
+#ifdef DGELS
 void dgels_multiple_reg_coeff(double *mpar, double *my, long nn, unsigned ncoeff, unsigned nparameters, double *coeff, unsigned **combinations)
 {	
  /*  Arguments */
@@ -269,9 +269,9 @@ void dgels_multiple_reg_coeff(double *mpar, double *my, long nn, unsigned ncoeff
 	free(Y);
 	free(work);
 }
-#endif //MLR_MODEL
+#endif //DGELS
 
-int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, double *coeff, unsigned ncoeff, unsigned nparameters, unsigned **combinations, char *codelet_name)
+int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, double *coeff, unsigned ncoeff, unsigned nparameters, unsigned **combinations, const char *codelet_name)
 {
 	// Computing number of rows
 	long n=find_long_list_size(ptr);
@@ -311,9 +311,9 @@ int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, doubl
 #ifdef TESTGSL
 	gsl_multiple_reg_coeff(mpar, my, n, ncoeff, nparameters, coeff, combinations);
 #endif
-#ifdef MLR_MODEL
+#ifdef DGELS
 	dgels_multiple_reg_coeff(mpar, my, n, ncoeff, nparameters, coeff, combinations);
-#endif //MLR_MODEL
+#endif //DGELS
 	
 	// Preparing new output calibration file
 	if (calibrate==2)
@@ -328,7 +328,7 @@ int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, doubl
 	}
 	
 	// Writing parameters to calibration file
-	if (calibrate>0)
+	if (calibrate==1 || calibrate==2)
 	{
 		for(int i=old_lines; i<n; i++)
 		{

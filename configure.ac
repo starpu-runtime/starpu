@@ -1131,19 +1131,25 @@ fi
 #			 Multiple linear regression			      #
 #                                                                             #
 ###############################################################################
-AC_ARG_ENABLE(mlr_model, [AS_HELP_STRING([--enable-mlr-model],
-			[Enable multiple linear regression models])],
-			enable_mlr_model=$enableval, enable_mlr_model=no)
-if test x$enable_mlr_model = xyes ; then
-        MLR_MODEL_CFLAGS="-I/home/stanisic/Work/min-dgels/src/additional"			
-   	if test -n "$MLR_MODEL_CFLAGS" ; then
-	   	CFLAGS="$MLR_MODEL_CFLAGS $CFLAGS"
-	   	CXXFLAGS="$MLR_MODEL_CFLAGS $CXXFLAGS"
-	   	NVCCFLAGS="$MLR_MODEL_CFLAGS $NVCCFLAGS"
+STARPU_SEARCH_LIBS(LAPACK,[dgels_],[lapack],use_system_lapack=yes,,)
+if test x$use_system_lapack = xyes; then
+        AC_DEFINE(STARPU_SYSTEM_LAPACK, [1], [use reflapack library])
+	LDFLAGS="-llapack $LDFLAGS"
+	enable_dgels=yes
+elif test x"$DGELS_LIBS" != x; then
+        AC_DEFINE(MIN_DGELS, [1], [use user defined library])
+	LDFLAGS="$DGELS_LIBS $LDFLAGS"
+        AC_ARG_VAR([DGELS_LIBS], [linker flags for lapack dgels])
+	if test -n "$DGELS_CFLAGS" ; then
+	   	CFLAGS="$DGELS_CFLAGS $CFLAGS"
+	   	CXXFLAGS="$DGELS_CFLAGS $CXXFLAGS"
+	   	NVCCFLAGS="$DGELS_CFLAGS $NVCCFLAGS"
 	fi
-	LDFLAGS="-Wl,--start-group /home/stanisic/Work/min-dgels/src/build/*.a -Wl,--end-group $LDFLAGS"	
+        enable_dgels=yes
+else
+	enable_dgels=no
 fi
-AM_CONDITIONAL(MLR_MODEL, test x$enable_mlr_model = xyes)
+AM_CONDITIONAL(DGELS, test x$enable_dgels = xyes)
 
 ###############################################################################
 #                                                                             #
