@@ -65,3 +65,9 @@ race:_starpu_data_unregister
 # ignore other libraries' races
 called_from_lib:^libmpi.so$
 called_from_lib:^libhwloc*.so$
+
+# see valgrind/starpu.suppr
+deadlock:starpu_pthread_mutex_lock_sched
+deadlock:_starpu_sched_component_lock_worker
+deadlock:_starpu_sched_component_worker_lock_scheduling
+deadlock:simple_worker_pull_task

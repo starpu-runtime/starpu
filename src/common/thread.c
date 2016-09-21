@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012-2015  Université de Bordeaux
+ * Copyright (C) 2010, 2012-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -46,12 +46,13 @@ extern int _starpu_simgrid_thread_start(int argc, char *argv[]);
 
 int starpu_pthread_create_on(char *name, starpu_pthread_t *thread, const starpu_pthread_attr_t *attr STARPU_ATTRIBUTE_UNUSED, void *(*start_routine) (void *), void *arg, msg_host_t host)
 {
-	struct _starpu_pthread_args *_args = malloc(sizeof(*_args));
-	_args->f = start_routine;
-	_args->arg = arg;
+	char **_args = malloc(3*sizeof(char*));
+	asprintf(&_args[0], "%p", start_routine);
+	asprintf(&_args[1], "%p", arg);
+	_args[2] = NULL;
 	if (!host)
 		host = MSG_get_host_by_name("MAIN");
-	*thread = MSG_process_create_with_arguments(name, _starpu_simgrid_thread_start, calloc(MAX_TSD, sizeof(void*)), host, 0, (char **) _args);
+	*thread = MSG_process_create_with_arguments(name, _starpu_simgrid_thread_start, calloc(MAX_TSD, sizeof(void*)), host, 2, _args);
 	return 0;
 }
 
@@ -63,6 +64,7 @@ int starpu_pthread_create(starpu_pthread_t *thread, const starpu_pthread_attr_t 
 int starpu_pthread_join(starpu_pthread_t thread STARPU_ATTRIBUTE_UNUSED, void **retval STARPU_ATTRIBUTE_UNUSED)
 {
 #if 0 //def HAVE_MSG_PROCESS_JOIN
+	/* https://gforge.inria.fr/tracker/index.php?func=detail&aid=13601&group_id=12&atid=165 */
 	MSG_process_join(thread, 100);
 #else
 	MSG_process_sleep(1);
@@ -109,7 +111,18 @@ int starpu_pthread_mutex_lock(starpu_pthread_mutex_t *mutex)
 {
 	_STARPU_TRACE_LOCKING_MUTEX();
 
-	if (!*mutex) STARPU_PTHREAD_MUTEX_INIT(mutex, NULL);
+	/* Note: this is actually safe, because simgrid only preempts within
+	 * simgrid functions */
+	if (!*mutex) {
+		/* Here we may get preempted */
+		xbt_mutex_t new_mutex = xbt_mutex_init();
+		if (!*mutex)
+			*mutex = new_mutex;
+		else
+			/* Somebody already initialized it while we were
+			 * calling xbt_mutex_init, this one is now useless */
+			xbt_mutex_destroy(new_mutex);
+	}
 
 	xbt_mutex_acquire(*mutex);
 
@@ -226,18 +239,32 @@ int starpu_pthread_cond_init(starpu_pthread_cond_t *cond, starpu_pthread_condatt
 	return 0;
 }
 
+static void _starpu_pthread_cond_auto_init(starpu_pthread_cond_t *cond)
+{
+	/* Note: this is actually safe, because simgrid only preempts within
+	 * simgrid functions */
+	if (!*cond) {
+		/* Here we may get preempted */
+		xbt_cond_t new_cond = xbt_cond_init();
+		if (!*cond)
+			*cond = new_cond;
+		else
+			/* Somebody already initialized it while we were
+			 * calling xbt_cond_init, this one is now useless */
+			xbt_cond_destroy(new_cond);
+	}
+}
+
 int starpu_pthread_cond_signal(starpu_pthread_cond_t *cond)
 {
-	if (!*cond)
-		STARPU_PTHREAD_COND_INIT(cond, NULL);
+	_starpu_pthread_cond_auto_init(cond);
 	xbt_cond_signal(*cond);
 	return 0;
 }
 
 int starpu_pthread_cond_broadcast(starpu_pthread_cond_t *cond)
 {
-	if (!*cond)
-		STARPU_PTHREAD_COND_INIT(cond, NULL);
+	_starpu_pthread_cond_auto_init(cond);
 	xbt_cond_broadcast(*cond);
 	return 0;
 }
@@ -246,8 +273,7 @@ int starpu_pthread_cond_wait(starpu_pthread_cond_t *cond, starpu_pthread_mutex_t
 {
 	_STARPU_TRACE_COND_WAIT_BEGIN();
 
-	if (!*cond)
-		STARPU_PTHREAD_COND_INIT(cond, NULL);
+	_starpu_pthread_cond_auto_init(cond);
 	xbt_cond_wait(*cond, *mutex);
 
 	_STARPU_TRACE_COND_WAIT_END();
@@ -539,15 +565,13 @@ int starpu_pthread_barrier_wait(starpu_pthread_barrier_t *barrier)
 }
 #endif /* defined(STARPU_SIMGRID) || !defined(STARPU_HAVE_PTHREAD_BARRIER) */
 
+#ifdef STARPU_FXT_LOCK_TRACES
 #if !defined(STARPU_SIMGRID) && !defined(_MSC_VER) /* !STARPU_SIMGRID */
 int starpu_pthread_mutex_lock(starpu_pthread_mutex_t *mutex)
 {
 	_STARPU_TRACE_LOCKING_MUTEX();
 
 	int p_ret = pthread_mutex_lock(mutex);
-	int workerid = starpu_worker_get_id();
-	if(workerid != -1 && _starpu_worker_mutex_is_sched_mutex(workerid, mutex))
-		_starpu_worker_set_flag_sched_mutex_locked(workerid, 1);
 
 	_STARPU_TRACE_MUTEX_LOCKED();
 
@@ -559,9 +583,6 @@ int starpu_pthread_mutex_unlock(starpu_pthread_mutex_t *mutex)
 	_STARPU_TRACE_UNLOCKING_MUTEX();
 
 	int p_ret = pthread_mutex_unlock(mutex);
-	int workerid = starpu_worker_get_id();
-	if(workerid != -1 && _starpu_worker_mutex_is_sched_mutex(workerid, mutex))
-		_starpu_worker_set_flag_sched_mutex_locked(workerid, 0);
 
 	_STARPU_TRACE_MUTEX_UNLOCKED();
 
@@ -576,13 +597,7 @@ int starpu_pthread_mutex_trylock(starpu_pthread_mutex_t *mutex)
 	ret = pthread_mutex_trylock(mutex);
 
 	if (!ret)
-	{
-		int workerid = starpu_worker_get_id();
-		if(workerid != -1 && _starpu_worker_mutex_is_sched_mutex(workerid, mutex))
-			_starpu_worker_set_flag_sched_mutex_locked(workerid, 1);
-
 		_STARPU_TRACE_MUTEX_LOCKED();
-	}
 
 	return ret;
 }
@@ -654,7 +669,7 @@ int starpu_pthread_rwlock_unlock(starpu_pthread_rwlock_t *rwlock)
 
 	return p_ret;
 }
-#endif
+#endif /* !defined(STARPU_SIMGRID) && !defined(_MSC_VER) */
 
 #if !defined(STARPU_SIMGRID) && !defined(_MSC_VER) && defined(STARPU_HAVE_PTHREAD_BARRIER)
 int starpu_pthread_barrier_wait(starpu_pthread_barrier_t *barrier)
@@ -670,36 +685,76 @@ int starpu_pthread_barrier_wait(starpu_pthread_barrier_t *barrier)
 }
 #endif /* STARPU_SIMGRID, _MSC_VER, STARPU_HAVE_PTHREAD_BARRIER */
 
+#endif /* STARPU_FXT_LOCK_TRACES */
+
+/* "sched" variants, to be used (through the STARPU_PTHREAD_MUTEX_*LOCK_SCHED
+ * macros of course) which record when the mutex is held or not */
+int starpu_pthread_mutex_lock_sched(starpu_pthread_mutex_t *mutex)
+{
+	int p_ret = starpu_pthread_mutex_lock(mutex);
+	int workerid = starpu_worker_get_id();
+	if(workerid != -1 && _starpu_worker_mutex_is_sched_mutex(workerid, mutex))
+		_starpu_worker_set_flag_sched_mutex_locked(workerid, 1);
+	return p_ret;
+}
+
+int starpu_pthread_mutex_unlock_sched(starpu_pthread_mutex_t *mutex)
+{
+	int workerid = starpu_worker_get_id();
+	if(workerid != -1 && _starpu_worker_mutex_is_sched_mutex(workerid, mutex))
+		_starpu_worker_set_flag_sched_mutex_locked(workerid, 0);
+
+	return starpu_pthread_mutex_unlock(mutex);
+}
+
+int starpu_pthread_mutex_trylock_sched(starpu_pthread_mutex_t *mutex)
+{
+	int ret = starpu_pthread_mutex_trylock(mutex);
+
+	if (!ret)
+	{
+		int workerid = starpu_worker_get_id();
+		if(workerid != -1 && _starpu_worker_mutex_is_sched_mutex(workerid, mutex))
+			_starpu_worker_set_flag_sched_mutex_locked(workerid, 1);
+	}
+
+	return ret;
+}
+
+#ifdef STARPU_DEBUG
+void starpu_pthread_mutex_check_sched(starpu_pthread_mutex_t *mutex, char *file, int line)
+{
+	int workerid = starpu_worker_get_id();
+	STARPU_ASSERT_MSG(workerid == -1 || !_starpu_worker_mutex_is_sched_mutex(workerid, mutex), "%s:%d is locking/unlocking a sched mutex but not using STARPU_PTHREAD_MUTEX_LOCK_SCHED", file, line);
+}
+#endif
+
 #if defined(STARPU_SIMGRID) || (defined(STARPU_LINUX_SYS) && defined(STARPU_HAVE_XCHG)) || !defined(HAVE_PTHREAD_SPIN_LOCK)
 
-int starpu_pthread_spin_init(starpu_pthread_spinlock_t *lock, int pshared STARPU_ATTRIBUTE_UNUSED)
+#undef starpu_pthread_spin_init
+int starpu_pthread_spin_init(starpu_pthread_spinlock_t *lock, int pshared)
 {
-	lock->taken = 0;
-	return 0;
+	return _starpu_pthread_spin_init(lock, pshared);
 }
 
+#undef starpu_pthread_spin_destroy
 int starpu_pthread_spin_destroy(starpu_pthread_spinlock_t *lock STARPU_ATTRIBUTE_UNUSED)
 {
-	/* we don't do anything */
-	return 0;
+	return _starpu_pthread_spin_destroy(lock);
 }
 
+#undef starpu_pthread_spin_lock
 int starpu_pthread_spin_lock(starpu_pthread_spinlock_t *lock)
 {
-#ifdef STARPU_SIMGRID
-	while (1)
-	{
-		if (!lock->taken)
-		{
-			lock->taken = 1;
-			return 0;
-		}
-		/* Give hand to another thread, hopefully the one which has the
-		 * spinlock and probably just has also a short-lived mutex. */
-		MSG_process_sleep(0.000001);
-		STARPU_UYIELD();
-	}
-#elif defined(STARPU_LINUX_SYS) && defined(STARPU_HAVE_XCHG)
+	return _starpu_pthread_spin_lock(lock);
+}
+#endif
+
+#if defined(STARPU_SIMGRID) || (defined(STARPU_LINUX_SYS) && defined(STARPU_HAVE_XCHG)) || !defined(STARPU_HAVE_PTHREAD_SPIN_LOCK)
+
+#if !defined(STARPU_SIMGRID) && defined(STARPU_LINUX_SYS) && defined(STARPU_HAVE_XCHG)
+int _starpu_pthread_spin_do_lock(starpu_pthread_spinlock_t *lock)
+{
 	if (STARPU_VAL_COMPARE_AND_SWAP(&lock->taken, 0, 1) == 0)
 		/* Got it on first try! */
 		return 0;
@@ -720,6 +775,7 @@ int starpu_pthread_spin_lock(starpu_pthread_spinlock_t *lock)
 	}
 
 	/* We have spent enough time with spinning, let's block */
+	/* This avoids typical 10ms pauses when the application thread tries to submit tasks. */
 	while (1)
 	{
 		/* Tell releaser to wake us */
@@ -745,48 +801,24 @@ int starpu_pthread_spin_lock(starpu_pthread_spinlock_t *lock)
 			if (errno == ENOSYS)
 				_starpu_futex_wait = FUTEX_WAIT;
 	}
-#else /* !SIMGRID && !LINUX */
-	uint32_t prev;
-	do
-	{
-		prev = STARPU_TEST_AND_SET(&lock->taken, 1);
-		if (prev)
-			STARPU_UYIELD();
-	}
-	while (prev);
-	return 0;
-#endif
 }
+#endif
 
+#undef starpu_pthread_spin_trylock
 int starpu_pthread_spin_trylock(starpu_pthread_spinlock_t *lock)
 {
-#ifdef STARPU_SIMGRID
-	if (lock->taken)
-		return EBUSY;
-	lock->taken = 1;
-	return 0;
-#elif defined(STARPU_LINUX_SYS) && defined(STARPU_HAVE_XCHG)
-	unsigned prev;
-	prev = STARPU_VAL_COMPARE_AND_SWAP(&lock->taken, 0, 1);
-	return (prev == 0)?0:EBUSY;
-#else /* !SIMGRID && !LINUX */
-	uint32_t prev;
-	prev = STARPU_TEST_AND_SET(&lock->taken, 1);
-	return (prev == 0)?0:EBUSY;
-#endif
+	return _starpu_pthread_spin_trylock(lock);
 }
 
+#undef starpu_pthread_spin_unlock
 int starpu_pthread_spin_unlock(starpu_pthread_spinlock_t *lock)
 {
-#ifdef STARPU_SIMGRID
-	lock->taken = 0;
-#elif defined(STARPU_LINUX_SYS) && defined(STARPU_HAVE_XCHG)
-	STARPU_ASSERT(lock->taken != 0);
-	unsigned next = STARPU_ATOMIC_ADD(&lock->taken, -1);
-	if (next == 0)
-		/* Nobody to wake, we are done */
-		return 0;
+	return _starpu_pthread_spin_unlock(lock);
+}
 
+#if !defined(STARPU_SIMGRID) && defined(STARPU_LINUX_SYS) && defined(STARPU_HAVE_XCHG)
+void _starpu_pthread_spin_do_unlock(starpu_pthread_spinlock_t *lock)
+{
 	/*
 	 * Somebody to wake. Clear 'taken' and wake him.
 	 * Note that he may not be sleeping yet, but if he is not, we won't
@@ -796,30 +828,12 @@ int starpu_pthread_spin_unlock(starpu_pthread_spinlock_t *lock)
 	STARPU_SYNCHRONIZE();
 	if (syscall(SYS_futex, &lock->taken, _starpu_futex_wake, 1, NULL, NULL, 0))
 		if (errno == ENOSYS)
+		{
 			_starpu_futex_wake = FUTEX_WAKE;
-#else /* !SIMGRID && !LINUX */
-	STARPU_RELEASE(&lock->taken);
-#endif
-	return 0;
+			syscall(SYS_futex, &lock->taken, _starpu_futex_wake, 1, NULL, NULL, 0);
+		}
 }
 
-#endif /* defined(STARPU_SIMGRID) || !defined(HAVE_PTHREAD_SPIN_LOCK) */
-
-int _starpu_pthread_spin_checklocked(starpu_pthread_spinlock_t *lock)
-{
-#ifdef STARPU_SIMGRID
-	STARPU_ASSERT(lock->taken);
-	return !lock->taken;
-#elif defined(STARPU_LINUX_SYS) && defined(STARPU_HAVE_XCHG)
-	STARPU_ASSERT(lock->taken == 1 || lock->taken == 2);
-	return lock->taken == 0;
-#elif defined(HAVE_PTHREAD_SPIN_LOCK)
-	int ret = pthread_spin_trylock((pthread_spinlock_t *)lock);
-	STARPU_ASSERT(ret != 0);
-	return ret == 0;
-#else
-	STARPU_ASSERT(lock->taken);
-	return !lock->taken;
 #endif
-}
 
+#endif /* defined(STARPU_SIMGRID) || (defined(STARPU_LINUX_SYS) && defined(STARPU_HAVE_XCHG)) || !defined(STARPU_HAVE_PTHREAD_SPIN_LOCK) */

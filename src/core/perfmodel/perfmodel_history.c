@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2009-2016  Université de Bordeaux
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -35,6 +35,7 @@
 #include <common/config.h>
 #include <starpu_parameters.h>
 #include <common/uthash.h>
+#include <limits.h>
 
 #ifdef STARPU_HAVE_WINDOWS
 #include <windows.h>
@@ -726,6 +727,9 @@ void _starpu_perfmodel_realloc(struct starpu_perfmodel *model, int nb)
 	int i;
 
 	STARPU_ASSERT(nb > model->state->ncombs_set);
+#ifdef SSIZE_MAX
+	STARPU_ASSERT((size_t) nb < SSIZE_MAX / sizeof(struct starpu_perfmodel_per_arch*));
+#endif
 	model->state->per_arch = (struct starpu_perfmodel_per_arch**) realloc(model->state->per_arch, nb*sizeof(struct starpu_perfmodel_per_arch*));
 	model->state->per_arch_is_set = (int**) realloc(model->state->per_arch_is_set, nb*sizeof(int*));
 	model->state->nimpls = (int *)realloc(model->state->nimpls, nb*sizeof(int));
@@ -840,7 +844,7 @@ static void save_history_based_model(struct starpu_perfmodel *model)
 	STARPU_ASSERT_MSG(f, "Could not save performance model %s\n", path);
 
 	_starpu_fwrlock(f);
-	_starpu_ftruncate(f);
+	_starpu_fftruncate(f, 0);
 	dump_model_file(f, model);
 	_starpu_fwrunlock(f);
 
@@ -1008,50 +1012,43 @@ void _starpu_load_history_based_model(struct starpu_perfmodel *model, unsigned s
 	if(!model->is_loaded)
 	{
 		char path[256];
-		starpu_perfmodel_get_model_path(model->symbol, path, 256);
-
 		// Check if a symbol is defined before trying to load the model from a file
 		STARPU_ASSERT_MSG(model->symbol, "history-based performance models must have a symbol");
+
+		starpu_perfmodel_get_model_path(model->symbol, path, 256);
 
 		_STARPU_DEBUG("Opening performance model file %s for model %s ...\n", path, model->symbol);
 
 		unsigned calibrate_flag = _starpu_get_calibrate_flag();
 		model->benchmarking = calibrate_flag;
+		model->is_loaded = 1;
 
-		/* try to open an existing file and load it */
-		int res;
-		res = access(path, F_OK);
-		if (res == 0)
+		if (calibrate_flag == 2)
 		{
-			if (calibrate_flag == 2)
-			{
-				/* The user specified that the performance model should
-				 * be overwritten, so we don't load the existing file !
-				 * */
-				_STARPU_DEBUG("Overwrite existing file\n");
-			}
-			else
-			{
-				/* We load the available file */
-				_STARPU_DEBUG("File exists\n");
-				FILE *f;
-				f = fopen(path, "r");
-				STARPU_ASSERT(f);
-
-				_starpu_frdlock(f);
-				parse_model_file(f, model, scan_history);
-				_starpu_frdunlock(f);
-
-				fclose(f);
-			}
-			_STARPU_DEBUG("Performance model file %s for model %s is loaded\n", path, model->symbol);
+			/* The user specified that the performance model should
+			 * be overwritten, so we don't load the existing file !
+			 * */
+			_STARPU_DEBUG("Overwrite existing file\n");
 		}
 		else
 		{
-			_STARPU_DEBUG("Performance model file %s does not exist\n", path);
+			/* We try to load the file */
+			FILE *f;
+			f = fopen(path, "r");
+			if (f)
+			{
+				_starpu_frdlock(f);
+				parse_model_file(f, model, scan_history);
+				_starpu_frdunlock(f);
+				fclose(f);
+				_STARPU_DEBUG("Performance model file %s for model %s is loaded\n", path, model->symbol);
+			}
+			else
+			{
+				_STARPU_DEBUG("Performance model file %s does not exist or is not readable\n", path);
+			}
 		}
 
-		model->is_loaded = 1;
 	}
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&model->state->model_rwlock);
 
@@ -1615,6 +1612,7 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 		if (f == NULL)
 		{
 			_STARPU_DISP("Error <%s> when opening file <%s>\n", strerror(errno), per_arch_model->debug_path);
+			STARPU_PTHREAD_RWLOCK_UNLOCK(&model->state->model_rwlock);
 			return;
 		}
 		_starpu_fwrlock(f);

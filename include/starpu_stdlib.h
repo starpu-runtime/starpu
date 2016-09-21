@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  CNRS
+ * Copyright (C) 2010-2016  Université de Bordeaux
+ * Copyright (C) 2010, 2011, 2012, 2013, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -32,12 +32,14 @@ extern "C"
 #define STARPU_MEMORY_WAIT	((1ULL)<<4)
 #define STARPU_MEMORY_OVERFLOW	((1ULL)<<5)
 
+#define STARPU_MALLOC_SIMULATION_FOLDED	((1ULL)<<6)
+
 void starpu_malloc_set_align(size_t align);
 
-int starpu_malloc(void **A, size_t dim);
+int starpu_malloc(void **A, size_t dim) STARPU_ATTRIBUTE_ALLOC_SIZE(2);
 int starpu_free(void *A);
 
-int starpu_malloc_flags(void **A, size_t dim, int flags);
+int starpu_malloc_flags(void **A, size_t dim, int flags) STARPU_ATTRIBUTE_ALLOC_SIZE(2);
 int starpu_free_flags(void *A, size_t dim, int flags);
 
 int starpu_memory_pin(void *addr, size_t size);
@@ -45,6 +47,9 @@ int starpu_memory_unpin(void *addr, size_t size);
 
 starpu_ssize_t starpu_memory_get_total(unsigned node);
 starpu_ssize_t starpu_memory_get_available(unsigned node);
+starpu_ssize_t starpu_memory_get_total_all_nodes();
+starpu_ssize_t starpu_memory_get_available_all_nodes();
+
 void starpu_memory_wait_available(unsigned node, size_t size);
 
 /**
@@ -64,6 +69,7 @@ int starpu_memory_allocate(unsigned node, size_t size, int flags);
  */
 void starpu_memory_deallocate(unsigned node, size_t size);
 
+void starpu_sleep(float nb_sec);
 
 #ifdef __cplusplus
 }

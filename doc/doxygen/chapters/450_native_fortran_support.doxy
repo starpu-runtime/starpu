@@ -1,0 +1,226 @@
+/*
+ * This file is part of the StarPU Handbook.
+ * Copyright (C) 2014, 2016 INRIA
+ * See the file version.doxy for copying conditions.
+ */
+
+/*! \page NativeFortranSupport The StarPU Native Fortran Support
+
+StarPU provides the necessary routines and support to natively access
+most of its functionalities from Fortran 2008+ codes.
+
+All symbols (functions, constants) are defined in <c>fstarpu_mod.f90</c>.
+Every symbol of the Native Fortran support API is prefixed by
+<c>fstarpu_</c>. 
+
+Note: Mixing uses of <c>fstarpu_</c> and <c>starpu_</c>
+symbols in the same Fortran code has unspecified behaviour.
+See \ref APIMIX for a discussion about valid and unspecified
+combinations.
+
+\section Implementation Implementation Details and Specificities
+
+\subsection Prerequisites Prerequisites
+
+The Native Fortran support relies on Fortran 2008 specific constructs,
+as well as on the support of interoperability of assumed-shape arrays
+introduced as part of Fortran's Technical Specification ISO/IEC TS 29113:2012,
+for which no equivalent are available in previous versions of the
+standard. It has currently been tested successfully with GNU GFortran 4.9,
+GFortran 5.x, GFortran 6.x and the Intel Fortran Compiler >= 2016. It is known
+not to work with GNU GFortran < 4.9, Intel Fortran Compiler < 2016.
+
+\subsection Configuration Configuration
+
+The Native Fortran API is enabled and its companion
+<c>fstarpu_mod.f90</c> Fortran module source file is installed
+by default when a Fortran compiler is found, unless the detected Fortran
+compiler is known not to support the requirements for the Native Fortran
+API. The support can be disabled through the configure option \ref
+disable-fortran "--disable-fortran". Conditional compiled source codes
+may check for the availability of the Native Fortran Support by testing
+whether the preprocessor macro <c>STARPU_HAVE_FC</c> is defined or not.
+
+\subsection Examples Examples
+
+Several examples using the Native Fortran API are provided in
+StarPU's <c>examples/native_fortran/</c> examples directory, to showcase
+the Fortran flavor of various basic and more advanced StarPU features.
+
+\subsection AppCompile Compiling a Native Fortran Application
+
+The Fortran module <c>fstarpu_mod.f90</c> installed in StarPU's
+<c>include/</c> directory provides all the necessary API definitions. It
+must be compiled with the same compiler (same vendor, same version) as
+the application itself, and the resulting <c>fstarpu_mod.o</c> object
+file must linked with the application executable.
+
+Each example provided in StarPU's <c>examples/native_fortran/</c>
+examples directory comes with its own dedicated Makefile for out-of-tree
+build. Such example Makefiles may be used as starting points for
+building application codes with StarPU.
+
+\section Idioms Fortran Translation for Common StarPU API Idioms
+
+All these examples assume that the standard Fortran module <c>iso_c_binding</c>
+is in use.
+
+- Specifying a <c>NULL</c> pointer
+\code{.f90}
+        type(c_ptr) :: my_ptr  ! variable to store the pointer
+        ! [...]
+        my_ptr = C_NULL_PTR    ! assign standard constant for NULL ptr
+\endcode
+- Obtaining a pointer to some object:
+\code{.f90}
+        real(8), dimension(:), allocatable, target :: va
+        type(c_ptr) :: p_va  ! variable to store a pointer to array va
+        ! [...]
+        p_va = c_loc(va)
+\endcode
+- Obtaining a pointer to some subroutine:
+\code{.f90}
+        ! pointed routine definition
+        recursive subroutine myfunc () bind(C)
+        ! [...]
+        type(c_funptr) :: p_fun  ! variable to store the routine pointer
+        ! [...]
+        p_fun = c_funloc(my_func)
+\endcode
+- Obtaining the size of some object:
+\code{.f90}
+        real(8) :: a
+        integer(c_size_t) :: sz_a  ! variable to store the size of a
+        ! [...]
+        sz_a = c_sizeof(a)
+\endcode
+- Obtaining the length of an array dimension:
+\code{.f90}
+        real(8), dimension(:,:), allocatable, target :: vb
+        intger(c_int) :: ln_vb_1  ! variable to store the length of vb's dimension 1
+        intger(c_int) :: ln_vb_2  ! variable to store the length of vb's dimension 2
+        ! [...]
+        ln_vb_1 = 1+ubound(vb,1)-lbound(vb,1)  ! get length of dimension 1 of vb
+        ln_vb_2 = 1+ubound(vb,2)-lbound(vb,2)  ! get length of dimension 2 of vb
+\endcode
+- Specifying a string constant:
+\code{.f90}
+        type(c_ptr) :: my_cl  ! a StarPU codelet
+        ! [...]
+
+        ! set the name of a codelet to string 'my_codele't:
+        call fstarpu_codelet_set_name(my_cl, C_CHAR_"my_codelet"//C_NULL_CHAR)
+
+        ! note: using the C_CHAR_ prefix and the //C_NULL_CHAR concatenation at the end ensures
+        ! that the string constant is properly '\0' terminated, and compatible with StarPU's
+        ! internal C routines
+        !
+        ! note: plain Fortran string constants are not '\0' terminated, and as such, must not be
+        ! passed to StarPU routines.
+\endcode
+
+- Combining multiple flag constants with a bitwise 'or':
+\code{.f90}
+        type(c_ptr) :: my_cl  ! a pointer for the codelet structure
+        ! [...]
+
+        ! add a managed buffer to a codelet, specifying both the Read/Write access mode and the Locality hint
+        call fstarpu_codelet_add_buffer(my_cl, FSTARPU_RW.ior.FSTARPU_LOCALITY)
+\endcode
+
+\section InitExit Uses, Initialization and Shutdown
+
+The snippet below show an example of minimal StarPU code using the
+Native Fortran support. The program should <c>use</c> the standard
+module <c>iso_c_binding</c> as well as StarPU's <c>fstarpu_mod</c>. The
+StarPU runtime engine is initialized with a call to function
+<c>fstarpu_init</c>, which returns an integer status of 0 if successful
+or non-0 otherwise. Eventually, a call to <c>fstarpu_shutdown</c> ends
+the runtime engine and frees all internal StarPU data structures.
+
+\snippet nf_initexit.f90 To be included. You should update doxygen if you see this text.
+
+\section InsertTask Fortran Flavor of StarPU's Variadic Insert_task
+
+Fortran does not have a construction similar to C variadic functions on which
+<c>starpu_insert_task</c> relies at the time of this writing. However, Fortran's variable
+length arrays of <c>c_ptr</c> elements enable to emulate much of the
+convenience of C's variadic functions. This is the approach retained for
+implementing <c>fstarpu_insert_task</c>.
+
+The general syntax for using <c>fstarpu_insert_task</c> is as follows:
+\code{.f90}
+        call fstarpu_insert_task((/ <codelet ptr>       &
+            [, <access mode flags>, <data handle>]*     &
+            [, <argument type constant>, <argument>]*   &
+            , C_NULL_PTR /))
+\endcode
+
+There is thus a unique array argument <c>(/ ... /)</c> passed to
+<c>fstarpu_insert_task</c> which itself contains the task settings.
+Each element of the array must be of type <c>type(c_ptr)</c>.
+The last element of the array must be <c>C_NULL_PTR</c>.
+
+Example extracted from nf_vector.f90:
+\code{.f90}
+        call fstarpu_insert_task((/ cl_vec,          &    ! codelet
+            FSTARPU_R, dh_va,                        &    ! a first data handle
+            FSTARPU_RW.ior.FSTARPU_LOCALITY, dh_vb,  &    ! a second data handle
+            C_NULL_PTR /))                                ! no more args
+\endcode
+
+\section Structs Functions and Subroutines Expecting Data Structures Arguments
+
+Several StarPU structures that are expected to be passed to the C API,
+are replaced by function/subroutine wrapper sets to allocate, set fields
+and free such structure. This strategy has been prefered over defining
+native Fortran equivalent of such structures using Fortran's derived
+types, to avoid potential layout mismatch between C and Fortran StarPU
+data structures. Examples of such data structures wrappers include
+<c>fstarpu_conf_allocate</c> and alike, <c>fstarpu_codelet_allocate</c>
+and alike, <c>fstarpu_data_filter_allocate</c> and alike.
+
+Here is an example of allocating, filling and deallocating a codelet
+structure:
+\code{.f90}
+        ! a pointer for the codelet structure
+        type(c_ptr) :: cl_vec
+        ! [...]
+        ! allocate an empty codelet structure
+        cl_vec = fstarpu_codelet_allocate()
+        ! add a CPU implementation function to the codelet
+        call fstarpu_codelet_add_cpu_func(cl_vec, C_FUNLOC(cl_cpu_func_vec))
+        ! set the codelet name
+        call fstarpu_codelet_set_name(cl_vec, C_CHAR_"my_vec_codelet"//C_NULL_CHAR)
+        ! add a Read-only mode data buffer to the codelet
+        call fstarpu_codelet_add_buffer(cl_vec, FSTARPU_R)
+        ! add a Read-Write mode data buffer to the codelet
+        call fstarpu_codelet_add_buffer(cl_vec, FSTARPU_RW.ior.FSTARPU_LOCALITY)
+        ! [...]
+        ! free codelet structure
+        call fstarpu_codelet_free(cl_vec)
+\endcode
+
+\section Notes Additional Notes about the Native Fortran Support
+\subsection OldFortran Using StarPU with Older Fortran Compilers
+
+When using older compilers, Fortran applications may still interoperate
+with StarPU using C marshalling functions as exemplified in StarPU's
+<c>examples/fortran/</c> and <c>examples/fortran90/</c> example
+directories, though the process will be less convenient.
+
+\subsection APIMIX Valid API Mixes and Language Mixes
+
+Mixing uses of
+<c>fstarpu_</c> and <c>starpu_</c> symbols in the same
+Fortran code has unspecified behaviour. Using <c>fstarpu_</c>
+symbols in C code has unspecified behaviour.
+
+For multi-language applications using both C and Fortran source files:
+
+- C source files must use <c>starpu_</c> symbols exclusively
+- Fortran sources must uniformly use either <c>fstarpu_</c> symbols
+exclusively, or <c>starpu_</c> symbols exclusively. Every other
+combination has unspecified behaviour.
+
+*/

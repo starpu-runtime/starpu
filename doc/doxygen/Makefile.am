@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2009, 2011, 2013-2014  Université de Bordeaux
-# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
 # Copyright (C) 2014  INRIA
 #
 # Permission is granted to copy, distribute and/or modify this document
@@ -25,35 +25,36 @@ DOX_PDF = starpu.pdf
 DOX_TAG = starpu.tag
 
 chapters =	\
-	chapters/00introduction.doxy \
-	chapters/01building.doxy \
-	chapters/02basic_examples.doxy \
-	chapters/03advanced_examples.doxy \
-	chapters/05check_list_performance.doxy \
-	chapters/06tasks.doxy \
-	chapters/07data_management.doxy \
-	chapters/08scheduling.doxy \
-	chapters/09scheduling_contexts.doxy \
-	chapters/10scheduling_context_hypervisor.doxy \
-	chapters/11debugging_tools.doxy \
-	chapters/12online_performance_tools.doxy \
-	chapters/13offline_performance_tools.doxy \
-	chapters/14faq.doxy \
-	chapters/15out_of_core.doxy \
-	chapters/16mpi_support.doxy \
-	chapters/17fft_support.doxy \
-	chapters/18mic_scc_support.doxy \
-	chapters/19c_extensions.doxy \
-	chapters/20socl_opencl_extensions.doxy \
-	chapters/21simgrid.doxy \
-	chapters/22openmp_runtime_support.doxy \
-	chapters/23clustering_a_machine.doxy \
-	chapters/40environment_variables.doxy \
-	chapters/41configure_options.doxy \
-	chapters/45files.doxy \
-	chapters/50scaling-vector-example.doxy \
-	chapters/51fdl-1.3.doxy \
-	chapters/modularized_scheduler.doxy \
+	chapters/000_introduction.doxy		\
+	chapters/101_building.doxy		\
+	chapters/110_basic_examples.doxy		\
+	chapters/201_advanced_examples.doxy		\
+	chapters/210_check_list_performance.doxy		\
+	chapters/301_tasks.doxy		\
+	chapters/310_data_management.doxy		\
+	chapters/320_scheduling.doxy		\
+	chapters/330_scheduling_contexts.doxy		\
+	chapters/340_scheduling_context_hypervisor.doxy		\
+	chapters/350_modularized_scheduler.doxy		\
+	chapters/360_debugging_tools.doxy		\
+	chapters/370_online_performance_tools.doxy		\
+	chapters/380_offline_performance_tools.doxy		\
+	chapters/390_faq.doxy		\
+	chapters/401_out_of_core.doxy		\
+	chapters/410_mpi_support.doxy		\
+	chapters/420_fft_support.doxy		\
+	chapters/430_mic_scc_support.doxy		\
+	chapters/440_c_extensions.doxy		\
+	chapters/450_native_fortran_support.doxy		\
+	chapters/460_socl_opencl_extensions.doxy		\
+	chapters/470_simgrid.doxy		\
+	chapters/480_openmp_runtime_support.doxy		\
+	chapters/490_clustering_a_machine.doxy		\
+	chapters/501_environment_variables.doxy		\
+	chapters/510_configure_options.doxy		\
+	chapters/520_files.doxy		\
+	chapters/601_scaling_vector_example.doxy		\
+	chapters/610_fdl_1_3.doxy		\
 	chapters/code/hello_pragma2.c \
 	chapters/code/hello_pragma.c \
 	chapters/code/scal_pragma.cu \
@@ -71,6 +72,7 @@ chapters =	\
 	chapters/code/vector_scal_opencl_codelet.cl \
 	chapters/code/disk_copy.c \
 	chapters/code/disk_compute.c \
+	chapters/code/nf_initexit.f90 \
 	chapters/api/codelet_and_tasks.doxy \
 	chapters/api/cuda_extensions.doxy \
 	chapters/api/data_interfaces.doxy \
@@ -206,40 +208,48 @@ dox_inputs = $(DOX_CONFIG) 				\
 	chapters/version.sty				\
 	chapters/version.html				\
 	$(top_srcdir)/include/starpu.h			\
-	$(top_srcdir)/include/starpu_data_filters.h	\
-	$(top_srcdir)/include/starpu_data_interfaces.h	\
-	$(top_srcdir)/include/starpu_disk.h		\
-	$(top_srcdir)/include/starpu_worker.h		\
-	$(top_srcdir)/include/starpu_task.h		\
-	$(top_srcdir)/include/starpu_task_bundle.h	\
-	$(top_srcdir)/include/starpu_task_list.h	\
-	$(top_srcdir)/include/starpu_task_util.h	\
-	$(top_srcdir)/include/starpu_data.h		\
-	$(top_srcdir)/include/starpu_perfmodel.h	\
-	$(top_srcdir)/include/starpu_util.h		\
-	$(top_srcdir)/include/starpu_fxt.h		\
+	$(top_srcdir)/include/starpu_bitmap.h		\
+	$(top_srcdir)/include/starpu_bound.h		\
+	$(top_srcdir)/include/starpu_clusters_util.h	\
+	$(top_srcdir)/include/starpu_cublas.h		\
 	$(top_srcdir)/include/starpu_cuda.h		\
+	$(top_srcdir)/include/starpu_data_filters.h	\
+	$(top_srcdir)/include/starpu_data.h		\
+	$(top_srcdir)/include/starpu_data_interfaces.h	\
+	$(top_srcdir)/include/starpu_deprecated_api.h	\
+	$(top_srcdir)/include/starpu_disk.h		\
+	$(top_srcdir)/include/starpu_driver.h		\
+	$(top_srcdir)/include/starpu_expert.h		\
+	$(top_srcdir)/include/starpu_fxt.h		\
+	$(top_srcdir)/include/starpu_hash.h		\
+	$(top_srcdir)/include/starpu_mic.h		\
+	$(top_srcdir)/include/starpu_mod.f90		\
 	$(top_srcdir)/include/starpu_opencl.h		\
 	$(top_srcdir)/include/starpu_openmp.h		\
-	$(top_srcdir)/include/starpu_sink.h		\
-	$(top_srcdir)/include/starpu_mic.h		\
-	$(top_srcdir)/include/starpu_scc.h		\
-	$(top_srcdir)/include/starpu_expert.h		\
+	$(top_srcdir)/include/starpu_perfmodel.h	\
 	$(top_srcdir)/include/starpu_profiling.h	\
-	$(top_srcdir)/include/starpu_bound.h		\
-	$(top_srcdir)/include/starpu_scheduler.h	\
-	$(top_srcdir)/include/starpu_sched_ctx.h	\
-	$(top_srcdir)/include/starpu_clusters_util.h			\
-	$(top_srcdir)/include/starpu_sched_ctx_hypervisor.h		\
-	$(top_srcdir)/include/starpu_top.h		\
-	$(top_srcdir)/include/starpu_hash.h		\
 	$(top_srcdir)/include/starpu_rand.h		\
-	$(top_srcdir)/include/starpu_cublas.h		\
-	$(top_srcdir)/include/starpu_driver.h		\
+	$(top_srcdir)/include/starpu_scc.h		\
+	$(top_srcdir)/include/starpu_sched_component.h	\
+	$(top_srcdir)/include/starpu_sched_ctx.h	\
+	$(top_srcdir)/include/starpu_sched_ctx_hypervisor.h	\
+	$(top_srcdir)/include/starpu_scheduler.h	\
+	$(top_srcdir)/include/starpu_simgrid_wrap.h	\
+	$(top_srcdir)/include/starpu_sink.h		\
 	$(top_srcdir)/include/starpu_stdlib.h		\
+	$(top_srcdir)/include/starpu_task_bundle.h	\
+	$(top_srcdir)/include/starpu_task.h		\
+	$(top_srcdir)/include/starpu_task_list.h	\
+	$(top_srcdir)/include/starpu_task_util.h	\
 	$(top_srcdir)/include/starpu_thread.h		\
 	$(top_srcdir)/include/starpu_thread_util.h	\
+	$(top_srcdir)/include/starpu_top.h		\
+	$(top_srcdir)/include/starpu_tree.h		\
+	$(top_srcdir)/include/starpu_util.h		\
+	$(top_srcdir)/include/starpu_worker.h		\
+	$(top_srcdir)/include/fstarpu_mod.f90		\
 	$(top_srcdir)/mpi/include/starpu_mpi.h 		\
+	$(top_srcdir)/mpi/include/fstarpu_mpi_mod.f90		\
 	$(top_srcdir)/sc_hypervisor/include/sc_hypervisor.h 		\
 	$(top_srcdir)/sc_hypervisor/include/sc_hypervisor_config.h 	\
 	$(top_srcdir)/sc_hypervisor/include/sc_hypervisor_lp.h		\

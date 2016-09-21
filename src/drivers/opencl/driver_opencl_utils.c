@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011, 2012, 2014, 2015  CNRS
- * Copyright (C) 2010-2015  Université de Bordeaux
+ * Copyright (C) 2010, 2011, 2012, 2014, 2015, 2016  CNRS
+ * Copyright (C) 2010-2016  Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -43,59 +43,66 @@ char *_starpu_opencl_program_dir;
 #define _STARPU_STRINGIFY(x) _STARPU_STRINGIFY_(x)
 
 static
-int _starpu_opencl_locate_file(const char *source_file_name, char *located_file_name, char *located_dir_name)
+int _starpu_opencl_locate_file(const char *source_file_name, char **located_file_name, char **located_dir_name)
 {
 	int ret = EXIT_FAILURE;
+
+	*located_file_name = NULL;
+	*located_dir_name = NULL;
 
 	_STARPU_DEBUG("Trying to locate <%s>\n", source_file_name);
 	if (access(source_file_name, R_OK) == 0)
 	{
-		strcpy(located_file_name, source_file_name);
+		*located_file_name = calloc(1, strlen(source_file_name)+1);
+		sprintf(*located_file_name, "%s", source_file_name);
 		ret = EXIT_SUCCESS;
 	}
 
 	if (ret == EXIT_FAILURE && _starpu_opencl_program_dir)
 	{
-		sprintf(located_file_name, "%s/%s", _starpu_opencl_program_dir, source_file_name);
-		_STARPU_DEBUG("Trying to locate <%s>\n", located_file_name);
-		if (access(located_file_name, R_OK) == 0)
+		*located_file_name = calloc(1, strlen(_starpu_opencl_program_dir)+1+strlen(source_file_name)+1);
+		sprintf(*located_file_name, "%s/%s", _starpu_opencl_program_dir, source_file_name);
+		_STARPU_DEBUG("Trying to locate <%s>\n", *located_file_name);
+		if (access(*located_file_name, R_OK) == 0)
 			ret = EXIT_SUCCESS;
 	}
 
 	if (ret == EXIT_FAILURE)
 	{
-		sprintf(located_file_name, "%s/%s", STARPU_SRC_DIR, source_file_name);
-		_STARPU_DEBUG("Trying to locate <%s>\n", located_file_name);
-		if (access(located_file_name, R_OK) == 0)
+		*located_file_name = calloc(1, strlen(STARPU_SRC_DIR)+1+strlen(source_file_name)+1);
+		sprintf(*located_file_name, "%s/%s", STARPU_SRC_DIR, source_file_name);
+		_STARPU_DEBUG("Trying to locate <%s>\n", *located_file_name);
+		if (access(*located_file_name, R_OK) == 0)
 			ret = EXIT_SUCCESS;
 	}
 
 	if (ret == EXIT_FAILURE)
 	{
-		sprintf(located_file_name, "%s/%s", _STARPU_STRINGIFY(STARPU_OPENCL_DATADIR), source_file_name);
-		_STARPU_DEBUG("Trying to locate <%s>\n", located_file_name);
-		if (access(located_file_name, R_OK) == 0)
+		*located_file_name = calloc(1, strlen(_STARPU_STRINGIFY(STARPU_OPENCL_DATADIR))+1+strlen(source_file_name)+1);
+		sprintf(*located_file_name, "%s/%s", _STARPU_STRINGIFY(STARPU_OPENCL_DATADIR), source_file_name);
+		_STARPU_DEBUG("Trying to locate <%s>\n", *located_file_name);
+		if (access(*located_file_name, R_OK) == 0)
 			ret = EXIT_SUCCESS;
 	}
 
 	if (ret == EXIT_FAILURE)
 	{
-		strcpy(located_file_name, "");
-		strcpy(located_dir_name, "");
 		_STARPU_ERROR("Cannot locate file <%s>\n", source_file_name);
 	}
 	else
 	{
-		char *last = strrchr(located_file_name, '/');
+		char *last = strrchr(*located_file_name, '/');
 
 		if (!last)
 		{
-			strcpy(located_dir_name, "");
+			*located_dir_name = calloc(2, sizeof(char));
+			sprintf(*located_dir_name, "%s", "");
 		}
 		else
 		{
-			sprintf(located_dir_name, "%s", located_file_name);
-			located_dir_name[strlen(located_file_name)-strlen(last)+1] = '\0';
+			*located_dir_name=calloc(1, 1+strlen(*located_file_name));
+			sprintf(*located_dir_name, "%s", *located_file_name);
+			(*located_dir_name)[strlen(*located_file_name)-strlen(last)+1] = '\0';
 		}
 	}
 
@@ -146,12 +153,14 @@ char *_starpu_opencl_load_program_source(const char *filename)
 	char        *source;
 	int         x;
 	char        c;
+	int         err;
 
 	fh = fopen(filename, "r");
 	if (!fh)
 		return NULL;
 
-	stat(filename, &statbuf);
+	err = stat(filename, &statbuf);
+	STARPU_ASSERT_MSG(err == 0, "could not open file %s\n", filename);
 	source = (char *) malloc(statbuf.st_size + 1);
 
 	for(c=(char)fgetc(fh), x=0 ; c != EOF ; c =(char)fgetc(fh), x++)
@@ -174,12 +183,14 @@ char *_starpu_opencl_load_program_binary(const char *filename, size_t *len)
 	struct stat statbuf;
 	FILE        *fh;
 	char        *binary;
+        int         err;
 
 	fh = fopen(filename, "r");
 	if (fh == 0)
 		return NULL;
 
-	stat(filename, &statbuf);
+	err = stat(filename, &statbuf);
+	STARPU_ASSERT_MSG(err == 0, "could not open file %s\n", filename);
 
 	binary = (char *) malloc(statbuf.st_size);
 	if (!binary)
@@ -188,7 +199,8 @@ char *_starpu_opencl_load_program_binary(const char *filename, size_t *len)
 		return binary;
 	}
 
-	fread(binary, statbuf.st_size, 1, fh);
+	err = fread(binary, statbuf.st_size, 1, fh);
+	STARPU_ASSERT_MSG(err == 1, "could not read from file %s\n", filename);
 	fclose(fh);
 
 	*len = statbuf.st_size;
@@ -265,7 +277,9 @@ int _starpu_opencl_compile_or_load_opencl_from_string(const char *opencl_program
 		cl_int       err;
 
 		if (opencl_programs)
+		{
 			opencl_programs->programs[dev] = NULL;
+		}
 
 		starpu_opencl_get_device(dev, &device);
 		starpu_opencl_get_context(dev, &context);
@@ -290,11 +304,17 @@ int _starpu_opencl_compile_or_load_opencl_from_string(const char *opencl_program
 		{
 			cl_build_status status;
 			size_t len;
-			static char buffer[4096] = "";
 
-			clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, sizeof(buffer), buffer, &len);
+			clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, 0, NULL, &len);
 			if (len > 2)
+			{
+				char *buffer = malloc(len);
+
+				clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, len, buffer, &len);
 				_STARPU_DISP("Compilation output\n%s\n", buffer);
+
+				free(buffer);
+			}
 
 			clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_STATUS, sizeof(status), &status, NULL);
 			if (err != CL_SUCCESS || status != CL_BUILD_SUCCESS)
@@ -307,7 +327,9 @@ int _starpu_opencl_compile_or_load_opencl_from_string(const char *opencl_program
 
 		// Store program
 		if (opencl_programs)
+		{
 			opencl_programs->programs[dev] = program;
+		}
 		else
 		{
 			char binary_file_name[1024];
@@ -336,23 +358,50 @@ int _starpu_opencl_compile_or_load_opencl_from_string(const char *opencl_program
 			fclose(fh);
 			free(binary);
 			_STARPU_DEBUG("File <%s> created\n", binary_file_name);
+
+			err = clReleaseProgram(program);
+			if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 		}
 	}
 	return EXIT_SUCCESS;
 }
 
-void starpu_opencl_load_program_source(const char *source_file_name, char *located_file_name, char *located_dir_name, char *opencl_program_source)
+void starpu_opencl_load_program_source_malloc(const char *source_file_name, char **located_file_name, char **located_dir_name, char **opencl_program_source)
 {
 	// Locate source file
 	_starpu_opencl_locate_file(source_file_name, located_file_name, located_dir_name);
-	_STARPU_DEBUG("Source file name : <%s>\n", located_file_name);
-	_STARPU_DEBUG("Source directory name : <%s>\n", located_dir_name);
+	_STARPU_DEBUG("Source file name : <%s>\n", *located_file_name);
+	_STARPU_DEBUG("Source directory name : <%s>\n", *located_dir_name);
 
 	// Load the compute program from disk into a char *
-	char *source = _starpu_opencl_load_program_source(located_file_name);
+	char *source = _starpu_opencl_load_program_source(*located_file_name);
 	if(!source)
-		_STARPU_ERROR("Failed to load compute program from file <%s>!\n", located_file_name);
+		_STARPU_ERROR("Failed to load compute program from file <%s>!\n", *located_file_name);
 
+	*opencl_program_source = malloc(strlen(source)+1);
+	sprintf(*opencl_program_source, "%s", source);
+	free(source);
+}
+
+void starpu_opencl_load_program_source(const char *source_file_name, char *located_file_name, char *located_dir_name, char *opencl_program_source)
+{
+	char *_located_file_name;
+	char *_located_dir_name;
+
+	// Locate source file
+	_starpu_opencl_locate_file(source_file_name, &_located_file_name, &_located_dir_name);
+	_STARPU_DEBUG("Source file name : <%s>\n", _located_file_name);
+	_STARPU_DEBUG("Source directory name : <%s>\n", _located_dir_name);
+
+	// Load the compute program from disk into a char *
+	char *source = _starpu_opencl_load_program_source(_located_file_name);
+	if(!source)
+		_STARPU_ERROR("Failed to load compute program from file <%s>!\n", _located_file_name);
+
+	sprintf(located_file_name, "%s", _located_file_name);
+	free(_located_file_name);
+	sprintf(located_dir_name, "%s", _located_dir_name);
+	free(_located_dir_name);
 	sprintf(opencl_program_source, "%s", source);
 	free(source);
 }
@@ -361,27 +410,40 @@ static
 int _starpu_opencl_compile_or_load_opencl_from_file(const char *source_file_name, struct starpu_opencl_program *opencl_programs, const char* build_options)
 {
 	int nb_devices;
-	char located_file_name[1024];
-	char located_dir_name[1024];
+	int ret;
+	char *located_file_name;
+	char *located_dir_name;
 	char new_build_options[1024];
-	char opencl_program_source[16384];
+	char *opencl_program_source;
 
 	// Do not try to load and compile the file if there is no devices
 	nb_devices = starpu_opencl_worker_get_count();
 	if (nb_devices == 0) return EXIT_SUCCESS;
 
-	starpu_opencl_load_program_source(source_file_name, located_file_name, located_dir_name, opencl_program_source);
+	starpu_opencl_load_program_source_malloc(source_file_name, &located_file_name, &located_dir_name, &opencl_program_source);
 
 	if (!build_options)
 		build_options = "";
 
 	if (!strcmp(located_dir_name, ""))
-		strcpy(new_build_options, build_options);
+	{
+		sprintf(new_build_options, "%s", build_options);
+	}
 	else
+	{
 		sprintf(new_build_options, "-I %s %s", located_dir_name, build_options);
+	}
 	_STARPU_DEBUG("Build options: <%s>\n", new_build_options);
 
-	return _starpu_opencl_compile_or_load_opencl_from_string(opencl_program_source, new_build_options, opencl_programs, source_file_name);
+	ret = _starpu_opencl_compile_or_load_opencl_from_string(opencl_program_source, new_build_options, opencl_programs, source_file_name);
+
+	_STARPU_DEBUG("located_file_name : <%s>\n", located_file_name);
+	_STARPU_DEBUG("located_dir_name : <%s>\n", located_dir_name);
+	free(located_file_name);
+	free(located_dir_name);
+	free(opencl_program_source);
+
+	return ret;
 }
 
 int starpu_opencl_compile_opencl_from_file(const char *source_file_name, const char* build_options)
@@ -454,11 +516,17 @@ int starpu_opencl_load_binary_opencl(const char *kernel_id, struct starpu_opencl
 		{
 			cl_build_status status;
 			size_t len;
-			static char buffer[4096] = "";
 
-			clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, sizeof(buffer), buffer, &len);
+			clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, 0, NULL, &len);
 			if (len > 2)
+			{
+				char *buffer = malloc(len);
+
+				clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, len, buffer, &len);
 				_STARPU_DISP("Compilation output\n%s\n", buffer);
+
+				free(buffer);
+			}
 
 			clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_STATUS, sizeof(status), &status, NULL);
 			if (err != CL_SUCCESS || status != CL_BUILD_SUCCESS)
@@ -471,6 +539,7 @@ int starpu_opencl_load_binary_opencl(const char *kernel_id, struct starpu_opencl
 
 		// Store program
 		opencl_programs->programs[dev] = program;
+		free(binary);
 	}
 	return 0;
 }
@@ -531,16 +600,16 @@ int starpu_opencl_collect_stats(cl_event event STARPU_ATTRIBUTE_UNUSED)
 	}
 #endif
 #ifdef CL_PROFILING_POWER_CONSUMED
-	if (info && (starpu_profiling_status_get() || (task->cl && task->cl->power_model && task->cl->power_model->benchmarking)))
+	if (info && (starpu_profiling_status_get() || (task->cl && task->cl->energy_model && task->cl->energy_model->benchmarking)))
 	{
 		cl_int err;
-		double power_consumed;
+		double energy_consumed;
 		size_t size;
-		err = clGetEventProfilingInfo(event, CL_PROFILING_POWER_CONSUMED, sizeof(power_consumed), &power_consumed, &size);
+		err = clGetEventProfilingInfo(event, CL_PROFILING_POWER_CONSUMED, sizeof(energy_consumed), &energy_consumed, &size);
 		if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
-		STARPU_ASSERT(size == sizeof(power_consumed));
+		STARPU_ASSERT(size == sizeof(energy_consumed));
 
-		info->power_consumed += power_consumed;
+		info->energy_consumed += energy_consumed;
 	}
 #endif
 

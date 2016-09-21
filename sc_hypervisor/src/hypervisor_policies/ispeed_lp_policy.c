@@ -196,7 +196,7 @@ static void ispeed_lp_handle_poped_task(__attribute__((unused))unsigned sched_ct
                                 _try_resizing(NULL, -1, NULL, -1);
                         }
                 }
-                starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
+                STARPU_PTHREAD_MUTEX_UNLOCK(&act_hypervisor_mutex);
         }
 }
 
@@ -214,7 +214,7 @@ static void ispeed_lp_handle_idle_cycle(unsigned sched_ctx, int worker)
                                 _try_resizing(NULL, -1, NULL, -1);
                         }
                 }
-                starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
+                STARPU_PTHREAD_MUTEX_UNLOCK(&act_hypervisor_mutex);
         }
 }
 
@@ -224,7 +224,7 @@ static void ispeed_lp_resize_ctxs(unsigned *sched_ctxs, int nsched_ctxs , int *w
 	if(ret != EBUSY)
 	{
 		_try_resizing(sched_ctxs, nsched_ctxs, workers, nworkers);
-		starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&act_hypervisor_mutex);
 	}
 }
 

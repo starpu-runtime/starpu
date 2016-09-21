@@ -56,7 +56,11 @@ test(void)
 	task_cuda->handles[0] = handle;
 	ret = starpu_task_submit(task_cuda);
 	if (ret != 0)
+	{
+		task_cuda->destroy = 0;
+		starpu_task_destroy(task_cuda);
 		return 1;
+	}
 
 	static struct starpu_codelet cl_opencl =
 	{
@@ -70,14 +74,22 @@ test(void)
 	task_opencl->handles[0] = handle;
 	ret = starpu_task_submit(task_opencl);
 	if (ret != 0)
+	{
+		task_opencl->destroy = 0;
+		starpu_task_destroy(task_opencl);
 		return 1;
+	}
 
 	task_cuda2 = starpu_task_create();
 	task_cuda2->cl = &cl_cuda;
 	task_cuda2->handles[0] = handle;
 	ret = starpu_task_submit(task_cuda2);
 	if (ret != 0)
+	{
+		task_cuda2->destroy = 0;
+		starpu_task_destroy(task_cuda2);
 		return 1;
+	}
 
 	return 0;
 }

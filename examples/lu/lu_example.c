@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2015  Université de Bordeaux
+ * Copyright (C) 2009-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -175,12 +175,13 @@ void copy_matrix_into_blocks(void)
 static void init_matrix(void)
 {
 	/* allocate matrix */
-	starpu_malloc((void **)&A, (size_t)size*size*sizeof(TYPE));
+	starpu_malloc_flags((void **)&A, (size_t)size*size*sizeof(TYPE), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
 	STARPU_ASSERT(A);
 
 	starpu_srand48((long int)time(NULL));
 	/* starpu_srand48(0); */
 
+#ifndef STARPU_SIMGRID
 	/* initialize matrix content */
 	unsigned long i,j;
 	for (j = 0; j < size; j++)
@@ -196,6 +197,7 @@ static void init_matrix(void)
 				A[i + j*size] *= 100;
 		}
 	}
+#endif
 
 }
 
@@ -325,9 +327,9 @@ int main(int argc, char **argv)
 
 	starpu_cublas_init();
 
-#ifndef STARPU_SIMGRID
 	init_matrix();
 
+#ifndef STARPU_SIMGRID
 	unsigned *ipiv = NULL;
 	if (check)
 		save_matrix();
@@ -418,7 +420,7 @@ int main(int argc, char **argv)
 	}
 #endif
 
-	starpu_free(A);
+	starpu_free_flags(A, (size_t)size*size*sizeof(TYPE), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
 
 	starpu_cublas_shutdown();
 

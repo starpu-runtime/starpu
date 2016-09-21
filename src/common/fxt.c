@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2009-2016  Université de Bordeaux
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -36,11 +36,15 @@
 #endif
 
 static char _STARPU_PROF_FILE_USER[128];
-static int _starpu_fxt_started = 0;
+int _starpu_fxt_started = 0;
+starpu_pthread_mutex_t _starpu_fxt_started_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
+starpu_pthread_cond_t _starpu_fxt_started_cond = STARPU_PTHREAD_COND_INITIALIZER;
 
 static int _starpu_written = 0;
 
 static int _starpu_id;
+
+static unsigned int initial_key_mask = FUT_KEYMASKALL;
 
 #ifdef STARPU_SIMGRID
 /* Give virtual time to FxT */
@@ -73,18 +77,15 @@ long _starpu_gettid(void)
 #endif
 }
 
-static void _starpu_profile_set_tracefile(void *last, ...)
+static void _starpu_profile_set_tracefile(void)
 {
-	va_list vl;
 	char *user;
 
 	char *fxt_prefix = starpu_getenv("STARPU_FXT_PREFIX");
 	if (!fxt_prefix)
 	     fxt_prefix = "/tmp/";
 
-	va_start(vl, last);
-	vsprintf(_STARPU_PROF_FILE_USER, fxt_prefix, vl);
-	va_end(vl);
+	snprintf(_STARPU_PROF_FILE_USER, 128, "%s", fxt_prefix);
 
 	user = starpu_getenv("USER");
 	if (!user)
@@ -100,11 +101,19 @@ void starpu_profiling_set_id(int new_id)
 {
 	_STARPU_DEBUG("Set id to <%d>\n", new_id);
 	_starpu_id = new_id;
-	_starpu_profile_set_tracefile(NULL);
+	_starpu_profile_set_tracefile();
 
 #ifdef HAVE_FUT_SET_FILENAME
 	fut_set_filename(_STARPU_PROF_FILE_USER);
 #endif
+}
+
+void starpu_fxt_autostart_profiling(int autostart)
+{
+	if (autostart)
+		initial_key_mask = FUT_KEYMASKALL;
+	else
+		initial_key_mask = FUT_KEYMASK0;
 }
 
 void starpu_fxt_start_profiling()
@@ -125,11 +134,12 @@ void _starpu_fxt_init_profiling(unsigned trace_buffer_size)
 {
 	unsigned threadid;
 
+	STARPU_PTHREAD_MUTEX_LOCK(&_starpu_fxt_started_mutex);
 	if (!_starpu_fxt_started)
 	{
 		_starpu_fxt_started = 1;
 		_starpu_written = 0;
-		_starpu_profile_set_tracefile(NULL);
+		_starpu_profile_set_tracefile();
 	}
 
 #ifdef HAVE_FUT_SET_FILENAME
@@ -148,15 +158,14 @@ void _starpu_fxt_init_profiling(unsigned trace_buffer_size)
 
 	atexit(_starpu_stop_fxt_profiling);
 
-	unsigned int key_mask = FUT_KEYMASKALL;
-
-	if (fut_setup(trace_buffer_size / sizeof(unsigned long), key_mask, threadid) < 0)
+	if (fut_setup(trace_buffer_size / sizeof(unsigned long), initial_key_mask, threadid) < 0)
 	{
 		perror("fut_setup");
 		STARPU_ABORT();
 	}
 
-	fut_keychange(FUT_ENABLE, key_mask, threadid);
+	STARPU_PTHREAD_COND_BROADCAST(&_starpu_fxt_started_cond);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_fxt_started_mutex);
 
 	return;
 }
@@ -214,6 +223,10 @@ void _starpu_fxt_register_thread(unsigned cpuid)
 
 #else // STARPU_USE_FXT
 
+void starpu_fxt_autostart_profiling(int autostart STARPU_ATTRIBUTE_UNUSED)
+{
+}
+
 void starpu_fxt_start_profiling()
 {
 }
@@ -228,5 +241,12 @@ void starpu_fxt_trace_user_event(unsigned long code STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_FXT
 	_STARPU_TRACE_USER_EVENT(code);
+#endif
+}
+
+void starpu_fxt_trace_user_event_string(const char *s)
+{
+#ifdef STARPU_USE_FXT
+	_STARPU_TRACE_EVENT(s);
 #endif
 }

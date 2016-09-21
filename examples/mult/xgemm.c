@@ -30,6 +30,7 @@
 #include <math.h>
 #include <sys/types.h>
 #include <starpu.h>
+#include <starpu_fxt.h>
 
 #include <common/blas.h>
 
@@ -41,7 +42,7 @@
 static unsigned niter = 10;
 static unsigned nslicesx = 4;
 static unsigned nslicesy = 4;
-#ifdef STARPU_QUICK_CHECK
+#if defined(STARPU_QUICK_CHECK) && !defined(STARPU_SIMGRID)
 static unsigned xdim = 256;
 static unsigned ydim = 256;
 static unsigned zdim = 64;
@@ -86,11 +87,11 @@ static void init_problem_data(void)
 {
 	unsigned i,j;
 
-#ifndef STARPU_SIMGRID
-	starpu_malloc((void **)&A, zdim*ydim*sizeof(TYPE));
-	starpu_malloc((void **)&B, xdim*zdim*sizeof(TYPE));
-	starpu_malloc((void **)&C, xdim*ydim*sizeof(TYPE));
+	starpu_malloc_flags((void **)&A, zdim*ydim*sizeof(TYPE), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
+	starpu_malloc_flags((void **)&B, xdim*zdim*sizeof(TYPE), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
+	starpu_malloc_flags((void **)&C, xdim*ydim*sizeof(TYPE), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
 
+#ifndef STARPU_SIMGRID
 	/* fill the A and B matrices */
 	for (j=0; j < ydim; j++)
 	{
@@ -192,7 +193,7 @@ void cpu_mult(void *descr[], STARPU_ATTRIBUTE_UNUSED  void *arg)
 		unsigned block_size = (nyC + worker_size - 1)/worker_size;
 		unsigned new_nyC = STARPU_MIN(nyC, block_size*(rank+1)) - block_size*rank;
 
-		STARPU_ASSERT(nyC = STARPU_MATRIX_GET_NY(descr[1]));
+		STARPU_ASSERT(nyC == STARPU_MATRIX_GET_NY(descr[1]));
 
 		TYPE *new_subB = &subB[block_size*rank];
 		TYPE *new_subC = &subC[block_size*rank];
@@ -318,6 +319,7 @@ int main(int argc, char **argv)
 	niter /= 10;
 #endif
 
+	starpu_fxt_autostart_profiling(0);
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV)
 		return 77;
@@ -331,6 +333,7 @@ int main(int argc, char **argv)
 	if (bound)
 		starpu_bound_start(0, 0);
 
+	starpu_fxt_start_profiling();
 	start = starpu_timing_now();
 
 	unsigned x, y, iter;
@@ -364,6 +367,7 @@ int main(int argc, char **argv)
 
 
 	end = starpu_timing_now();
+	starpu_fxt_stop_profiling();
 
 	if (bound)
 		starpu_bound_stop();
@@ -397,9 +401,9 @@ enodev:
 	if (check)
 		check_output();
 
-	starpu_free(A);
-	starpu_free(B);
-	starpu_free(C);
+	starpu_free_flags(A, zdim*ydim*sizeof(TYPE), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
+	starpu_free_flags(B, xdim*zdim*sizeof(TYPE), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
+	starpu_free_flags(C, xdim*ydim*sizeof(TYPE), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
 
 	starpu_cublas_shutdown();
 	starpu_shutdown();

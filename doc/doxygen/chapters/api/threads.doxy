@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016  CNRS
  * Copyright (C) 2011, 2012 INRIA
  * See the file version.doxy for copying conditions.
  */
@@ -193,8 +193,8 @@ function returns immediately. If the mutex is already locked by
 another thread, the function suspends the calling thread until the
 mutex is unlocked.
 
-This function also produces trace when the configure option \ref
-enable-fxt-lock "--enable-fxt-lock" is enabled.
+This function also produces trace when the configure option
+\ref enable-fxt-lock "--enable-fxt-lock" is enabled.
 
 \fn int starpu_pthread_mutex_unlock(starpu_pthread_mutex_t *mutex)
 \ingroup API_Threads
@@ -202,8 +202,8 @@ This function unlocks the given mutex. The mutex is assumed to be
 locked and owned by the calling thread on entrance to
 starpu_pthread_mutex_unlock().
 
-This function also produces trace when the configure option \ref
-enable-fxt-lock "--enable-fxt-lock" is enabled.
+This function also produces trace when the configure option
+\ref enable-fxt-lock "--enable-fxt-lock" is enabled.
 
 \fn int starpu_pthread_mutex_trylock(starpu_pthread_mutex_t *mutex)
 \ingroup API_Threads
@@ -213,8 +213,8 @@ already locked by another thread (or by the calling thread in the case
 of a ``fast''  mutex). Instead, the function returns immediately with
 the error code EBUSY.
 
-This function also produces trace when the configure option \ref
-enable-fxt-lock "--enable-fxt-lock" is enabled.
+This function also produces trace when the configure option
+\ref enable-fxt-lock "--enable-fxt-lock" is enabled.
 
 \typedef STARPU_PTHREAD_MUTEX_INITIALIZER
 \ingroup API_Threads
@@ -253,7 +253,7 @@ the key.
 This function changes the value associated with \p key in the calling
 thread, storing the given \p pointer instead.
 
-\fn  *starpu_pthread_getspecific(starpu_pthread_key_t key)
+\fn void *starpu_pthread_getspecific(starpu_pthread_key_t key)
 \ingroup API_Threads
 This function returns the value associated with \p key on success, and
 NULL on error.
@@ -262,25 +262,25 @@ NULL on error.
 \ingroup API_Threads
 This macro initializes the condition variable given in parameter.
 
-\fn starpu_pthread_cond_init(starpu_pthread_cond_t *cond, starpu_pthread_condattr_t *cond_attr)
+\fn int starpu_pthread_cond_init(starpu_pthread_cond_t *cond, starpu_pthread_condattr_t *cond_attr)
 \ingroup API_Threads
 This function initializes the condition variable \p cond, using the
 condition attributes specified in \p cond_attr, or default attributes
 if \p cond_attr is NULL.
 
-\fn starpu_pthread_cond_signal(starpu_pthread_cond_t *cond)
+\fn int starpu_pthread_cond_signal(starpu_pthread_cond_t *cond)
 \ingroup API_Threads
 This function restarts one of the threads that are waiting on the
 condition variable \p cond. If no threads are waiting on \p cond,
 nothing happens. If several threads are waiting on \p cond, exactly
 one is restarted, but it not specified which.
 
-\fn starpu_pthread_cond_broadcast(starpu_pthread_cond_t *cond)
+\fn int starpu_pthread_cond_broadcast(starpu_pthread_cond_t *cond)
 \ingroup API_Threads
 This function restarts all the threads that are waiting on the
 condition variable \p cond. Nothing happens if no threads are waiting on cond.
 
-\fn starpu_pthread_cond_wait(starpu_pthread_cond_t *cond, starpu_pthread_mutex_t *mutex)
+\fn int starpu_pthread_cond_wait(starpu_pthread_cond_t *cond, starpu_pthread_mutex_t *mutex)
 \ingroup API_Threads
 This function atomically unlocks the mutex (as per
 starpu_pthread_mutex_unlock()) and waits for the condition variable \p cond
@@ -290,30 +290,30 @@ be locked by the calling thread on entrance to
 starpu_pthread_cond_wait(). Before returning to the calling thread, the
 function re-acquires mutex (as per starpu_pthread_mutex_lock()).
 
-This function also produces trace when the configure option \ref
-enable-fxt-lock "--enable-fxt-lock" is enabled.
+This function also produces trace when the configure option
+\ref enable-fxt-lock "--enable-fxt-lock" is enabled.
 
-\fn starpu_pthread_cond_timedwait(starpu_pthread_cond_t *cond, starpu_pthread_mutex_t *mutex, const struct timespec *abstime)
+\fn int starpu_pthread_cond_timedwait(starpu_pthread_cond_t *cond, starpu_pthread_mutex_t *mutex, const struct timespec *abstime)
 \ingroup API_Threads
 This function atomically unlocks \p mutex and waits on \p cond, as
 starpu_pthread_cond_wait() does, but it also bounds the duration of
 the wait.
 
-\fn starpu_pthread_cond_destroy(starpu_pthread_cond_t *cond)
+\fn int starpu_pthread_cond_destroy(starpu_pthread_cond_t *cond)
 \ingroup API_Threads
 This function destroys a condition variable, freeing the resources it
 might hold. No threads must be waiting on the condition variable on
 entrance to the function.
 
-\fn starpu_pthread_rwlock_init(starpu_pthread_rwlock_t *rwlock, const starpu_pthread_rwlockattr_t *attr)
+\fn int starpu_pthread_rwlock_init(starpu_pthread_rwlock_t *rwlock, const starpu_pthread_rwlockattr_t *attr)
 \ingroup API_Threads
 This function is the same as starpu_pthread_mutex_init().
 
-\fn starpu_pthread_rwlock_destroy(starpu_pthread_rwlock_t *rwlock)
+\fn int starpu_pthread_rwlock_destroy(starpu_pthread_rwlock_t *rwlock)
 \ingroup API_Threads
 This function is the same as starpu_pthread_mutex_destroy().
 
-\fn starpu_pthread_rwlock_rdlock(starpu_pthread_rwlock_t *rwlock)
+\fn int starpu_pthread_rwlock_rdlock(starpu_pthread_rwlock_t *rwlock)
 \ingroup API_Threads
 This function is the same as starpu_pthread_mutex_lock().
 
@@ -321,7 +321,7 @@ This function is the same as starpu_pthread_mutex_lock().
 \ingroup API_Threads
 todo
 
-\fn starpu_pthread_rwlock_wrlock(starpu_pthread_rwlock_t *rwlock)
+\fn int starpu_pthread_rwlock_wrlock(starpu_pthread_rwlock_t *rwlock)
 \ingroup API_Threads
 This function is the same as starpu_pthread_mutex_lock().
 
@@ -329,7 +329,7 @@ This function is the same as starpu_pthread_mutex_lock().
 \ingroup API_Threads
 todo
 
-\fn starpu_pthread_rwlock_unlock(starpu_pthread_rwlock_t *rwlock)
+\fn int starpu_pthread_rwlock_unlock(starpu_pthread_rwlock_t *rwlock)
 \ingroup API_Threads
 This function is the same as starpu_pthread_mutex_unlock().
 
@@ -365,5 +365,11 @@ todo
 \ingroup API_Threads
 todo
 
+\fn void starpu_sleep(float nb_sec)
+\ingroup API_Threads
+This is the same as calling Unix' sleep function, except that it takes a float
+to allow sub-second sleeping, and when StarPU is compiled in simgrid mode it
+does not really sleep but just makes simgrid record that the thread has taken
+some time to sleep.
 
 */

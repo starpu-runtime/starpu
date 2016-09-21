@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012, 2015  Université de Bordeaux
+ * Copyright (C) 2009-2012, 2015-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -64,7 +64,7 @@ void _starpu_write_through_data(starpu_data_handle_t handle, unsigned requesting
 
 				struct _starpu_data_request *r;
 				r = _starpu_create_request_to_fetch_data(handle, &handle->per_node[node],
-									 STARPU_R, 1, 1, wt_callback, handle, 0);
+									 STARPU_R, 1, 1, wt_callback, handle, 0, "_starpu_write_through_data");
 
 			        /* If no request was created, the handle was already up-to-date on the
 			         * node */

@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012, 2014-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2009-2012, 2014-2016  Université de Bordeaux
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+ * Copyright (C) 2016  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -77,6 +78,7 @@ void starpu_mpi_cache_flush_all_data(MPI_Comm comm);
 int starpu_mpi_comm_size(MPI_Comm comm, int *size);
 int starpu_mpi_comm_rank(MPI_Comm comm, int *rank);
 int starpu_mpi_world_rank(void);
+int starpu_mpi_world_size(void);
 
 int starpu_mpi_get_communication_tag(void);
 void starpu_mpi_set_communication_tag(int tag);
@@ -95,6 +97,8 @@ int starpu_mpi_data_get_tag(starpu_data_handle_t handle);
 #define starpu_data_get_rank starpu_mpi_data_get_rank
 #define starpu_data_get_tag starpu_mpi_data_get_tag
 
+void starpu_mpi_data_migrate(MPI_Comm comm, starpu_data_handle_t handle, int new_rank);
+
 #define STARPU_MPI_NODE_SELECTION_CURRENT_POLICY -1
 #define STARPU_MPI_NODE_SELECTION_MOST_R_DATA    0
 
@@ -107,6 +111,8 @@ int starpu_mpi_node_selection_set_current_policy(int policy);
 
 int starpu_mpi_cache_is_enabled();
 int starpu_mpi_cache_set(int enabled);
+
+int starpu_mpi_wait_for_all(MPI_Comm comm);
 
 typedef void (*starpu_mpi_datatype_allocate_func_t)(starpu_data_handle_t, MPI_Datatype *);
 typedef void (*starpu_mpi_datatype_free_func_t)(MPI_Datatype *);

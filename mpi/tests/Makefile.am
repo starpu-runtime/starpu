@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2012, 2015  Université de Bordeaux
-# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+# Copyright (C) 2009-2012, 2015-2016  Université de Bordeaux
+# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -13,6 +13,8 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
+
+include $(top_srcdir)/starpu.mk
 
 CC=$(MPICC)
 CCLD=$(MPICC)
@@ -26,21 +28,24 @@ LOADER_BIN		=	$(abs_top_builddir)/mpi/tests/$(LOADER)
 loader_SOURCES		=	../../tests/loader.c
 endif
 
+# we always test on 4 processes, the execution time is not that bigger
 if STARPU_QUICK_CHECK
-MPI			=	$(MPIEXEC) -np 2
+MPI			=	$(MPIEXEC) $(MPIEXEC_ARGS) -np 4
 else
-MPI			=	$(MPIEXEC) -np 4
+MPI			=	$(MPIEXEC) $(MPIEXEC_ARGS) -np 4
 endif
 
 if STARPU_HAVE_AM111
-TESTS_ENVIRONMENT	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
+TESTS_ENVIRONMENT	=	STARPU_WORKERS_NOBIND=1 STARPU_NCPU=4 top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
 LOG_COMPILER	 	=	$(MPI) $(LOADER_BIN)
 else
-TESTS_ENVIRONMENT 	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(MPI) $(LOADER_BIN)
+TESTS_ENVIRONMENT 	=	STARPU_WORKERS_NOBIND=1 STARPU_NCPU=4 top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(MPI) $(LOADER_BIN)
 endif
 
+if !STARPU_SIMGRID
 if STARPU_MPI_CHECK
 TESTS			=	$(starpu_mpi_TESTS)
+endif
 endif
 
 check_PROGRAMS = $(LOADER) $(starpu_mpi_TESTS)
@@ -58,6 +63,9 @@ examplebindir = $(libdir)/starpu/examples/mpi
 examplebin_PROGRAMS =
 
 if STARPU_USE_CUDA
+if STARPU_COVERITY
+include $(top_srcdir)/starpu-mynvcc.mk
+else
 NVCCFLAGS += --compiler-options -fno-strict-aliasing  -I$(top_srcdir)/include/ -I$(top_builddir)/include/ $(HWLOC_CFLAGS)
 
 .cu.cubin:
@@ -66,6 +74,7 @@ NVCCFLAGS += --compiler-options -fno-strict-aliasing  -I$(top_srcdir)/include/ -
 
 .cu.o:
 	$(NVCC) $< -c -o $@ $(NVCCFLAGS)
+endif
 endif
 
 AM_CFLAGS = -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(FXT_CFLAGS) $(MAGMA_CFLAGS) $(HWLOC_CFLAGS) $(GLOBAL_AM_CFLAGS) -Wno-unused
@@ -317,10 +326,3 @@ mpi_earlyrecv2_SOURCES += ../../examples/interface/complex_interface.c
 mpi_earlyrecv2_sync_SOURCES = mpi_earlyrecv2_sync.c
 mpi_earlyrecv2_sync_SOURCES += ../../examples/interface/complex_interface.c
 endif
-
-showcheck:
-	-cat $(TEST_LOGS) /dev/null
-	! grep -q "ERROR: AddressSanitizer: " $(TEST_LOGS) /dev/null
-	! grep -q "WARNING: AddressSanitizer: " $(TEST_LOGS) /dev/null
-	! grep -q "ERROR: ThreadSanitizer: " $(TEST_LOGS) /dev/null
-	! grep -q "WARNING: ThreadSanitizer: " $(TEST_LOGS) /dev/null

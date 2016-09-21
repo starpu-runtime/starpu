@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2014-2015  Université Bordeaux
+ * Copyright (C) 2014-2016  Université Bordeaux
  * Copyright (C) 2012, 2013, 2014  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -20,6 +20,10 @@
 #include <starpu_scheduler.h>
 #include "../helper.h"
 
+/*
+ * Test using a user-provided base for the perfmodel
+ */
+
 void func(void *descr[], void *arg)
 {
 }
@@ -38,28 +42,28 @@ uint32_t get_footprint(struct starpu_task *task)
 static struct starpu_perfmodel rb_model =
 {
 	.type = STARPU_REGRESSION_BASED,
-	.symbol = "valid_model_regression_based",
+	.symbol = "user_base_valid_model_regression_based",
 	.size_base = get_size_base,
 };
 
 static struct starpu_perfmodel nlrb_model =
 {
 	.type = STARPU_NL_REGRESSION_BASED,
-	.symbol = "valid_model_non_linear_regression_based",
+	.symbol = "user_base_valid_model_non_linear_regression_based",
 	.size_base = get_size_base,
 };
 
 static struct starpu_perfmodel hb_model =
 {
 	.type = STARPU_HISTORY_BASED,
-	.symbol = "valid_model_history_based",
+	.symbol = "user_base_valid_model_history_based",
 	.size_base = get_size_base,
 };
 
 static struct starpu_perfmodel hb_model_foot =
 {
 	.type = STARPU_HISTORY_BASED,
-	.symbol = "valid_model_history_based_footprint",
+	.symbol = "user_base_valid_model_history_based_footprint",
 	.footprint = get_footprint,
 };
 

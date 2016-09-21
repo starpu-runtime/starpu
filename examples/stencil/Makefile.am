@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2010-2012, 2015  Université de Bordeaux
+# Copyright (C) 2010-2012, 2015-2016  Université de Bordeaux
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -13,8 +13,17 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
+include $(top_srcdir)/starpu.mk
+
+if STARPU_SIMGRID
+STARPU_PERF_MODEL_DIR=$(abs_top_srcdir)/tools/perfmodels/sampling
+STARPU_HOSTNAME=mirage
+export STARPU_PERF_MODEL_DIR
+export STARPU_HOSTNAME
+endif
+
 AM_CFLAGS = $(HWLOC_CFLAGS) $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(GLOBAL_AM_CFLAGS) -Wno-unused
-LIBS = $(top_builddir)/src/@LIBSTARPU_LINK@ $(HWLOC_LIBS) @LIBS@
+LIBS = $(top_builddir)/src/@LIBSTARPU_LINK@ $(HWLOC_LIBS) @LIBS@ $(FXT_LIBS)
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/examples/ -I$(top_builddir)/include
 AM_LDFLAGS = @STARPU_EXPORT_DYNAMIC@ $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(STARPU_COI_LDFLAGS) $(STARPU_SCIF_LDFLAGS)
 
@@ -27,6 +36,9 @@ CC = $(CC_OR_MPICC)
 
 if STARPU_USE_CUDA
 
+if STARPU_COVERITY
+include $(top_srcdir)/starpu-mynvcc.mk
+else
 NVCCFLAGS += $(HWLOC_CFLAGS)
 
 .cu.cubin:
@@ -36,6 +48,7 @@ NVCCFLAGS += $(HWLOC_CFLAGS)
 .cu.o:
 	$(MKDIR_P) `dirname $@`
 	$(NVCC) $< -c -o $@ --compiler-options -fno-strict-aliasing -I$(top_srcdir)/include/ -I$(top_builddir)/include/ $(NVCCFLAGS)
+endif
 
 
 endif
@@ -50,7 +63,9 @@ else
 check_PROGRAMS	=	$(LOADER) $(STARPU_EXAMPLES)
 endif
 
+if !STARPU_SIMGRID
 TESTS		=	$(STARPU_EXAMPLES)
+endif
 
 if !STARPU_HAVE_WINDOWS
 ## test loader program
@@ -122,7 +137,7 @@ EXTRA_DIST = $(outs) results run README
 
 pics: $(outs:.out=.xpm)
 
-CLEANFILES = *.xpm starpu_idle_microsec.log
+CLEANFILES = *.gcno *.gcda *.xpm starpu_idle_microsec.log
 
 
 .out.out2:
@@ -147,10 +162,3 @@ CLEANFILES = *.xpm starpu_idle_microsec.log
 
 view:
 	feh --zoom 800 -F 0.xpm 0.5.xpm 1.xpm 2.xpm 3.xpm 4.xpm 6.xpm mpi.xpm
-
-showcheck:
-	-cat $(TEST_LOGS) /dev/null
-	! grep -q "ERROR: AddressSanitizer: " $(TEST_LOGS) /dev/null
-	! grep -q "WARNING: AddressSanitizer: " $(TEST_LOGS) /dev/null
-	! grep -q "ERROR: ThreadSanitizer: " $(TEST_LOGS) /dev/null
-	! grep -q "WARNING: ThreadSanitizer: " $(TEST_LOGS) /dev/null

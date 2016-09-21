@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2013       Joris Pablo
- * Copyright (C) 2011-2014  Universite de Bordeaux
+ * Copyright (C) 2011-2014, 2016  Universite de Bordeaux
  * Copyright (C) 2014, 2015       CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -38,7 +38,7 @@ static void usage()
         fprintf(stderr, "\n");
 }
 
-static void parse_args(int argc, char **argv)
+static int parse_args(int argc, char **argv)
 {
 	int i;
 
@@ -46,7 +46,7 @@ static void parse_args(int argc, char **argv)
 	{
 		fprintf(stderr, "Incorrect usage, aborting\n");
                 usage();
-		exit(77);
+		return 77;
 	}
 
 	for (i = 1; i < argc; i++)
@@ -54,15 +54,16 @@ static void parse_args(int argc, char **argv)
 		if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0)
 		{
 			usage();
-			exit(EXIT_SUCCESS);
+			return EXIT_SUCCESS;
 		}
 
 		if (strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "--version") == 0)
 		{
 		        fputs(PROGNAME " (" PACKAGE_NAME ") " PACKAGE_VERSION "\n", stderr);
-			exit(EXIT_SUCCESS);
+			return EXIT_SUCCESS;
 		}
 	}
+	return 0;
 }
 
 static void write_gp(int argc, char **argv)
@@ -144,7 +145,8 @@ static void write_gp(int argc, char **argv)
 
 int main(int argc, char **argv)
 {
-	parse_args(argc, argv);
+	int ret = parse_args(argc, argv);
+	if (ret) return ret;
 	starpu_fxt_write_data_trace(argv[1]);
 	write_gp(argc - 2, argv + 2);
 	starpu_perfmodel_free_sampling_directories();

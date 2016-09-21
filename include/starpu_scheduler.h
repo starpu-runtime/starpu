@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2015  Université de Bordeaux
+ * Copyright (C) 2010-2016  Université de Bordeaux
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -38,8 +38,11 @@ struct starpu_sched_policy
 	struct starpu_task *(*pop_task)(unsigned sched_ctx_id);
 	struct starpu_task *(*pop_every_task)(unsigned sched_ctx_id);
 
+	void (*submit_hook)(struct starpu_task *task);
 	void (*pre_exec_hook)(struct starpu_task *);
 	void (*post_exec_hook)(struct starpu_task *);
+
+	void (*do_schedule)(unsigned sched_ctx_id);
 
 	void (*add_workers)(unsigned sched_ctx_id, int *workerids, unsigned nworkers);
 	void (*remove_workers)(unsigned sched_ctx_id, int *workerids, unsigned nworkers);
@@ -87,12 +90,12 @@ double starpu_task_expected_length(struct starpu_task *task, struct starpu_perfm
 double starpu_worker_get_relative_speedup(struct starpu_perfmodel_arch *perf_arch);
 double starpu_task_expected_data_transfer_time(unsigned memory_node, struct starpu_task *task);
 double starpu_data_expected_transfer_time(starpu_data_handle_t handle, unsigned memory_node, enum starpu_data_access_mode mode);
-double starpu_task_expected_power(struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl);
+double starpu_task_expected_energy(struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl);
 double starpu_task_expected_conversion_time(struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl);
 
 double starpu_task_bundle_expected_length(starpu_task_bundle_t bundle, struct starpu_perfmodel_arch *arch, unsigned nimpl);
 double starpu_task_bundle_expected_data_transfer_time(starpu_task_bundle_t bundle, unsigned memory_node);
-double starpu_task_bundle_expected_power(starpu_task_bundle_t bundle, struct starpu_perfmodel_arch *arch, unsigned nimpl);
+double starpu_task_bundle_expected_energy(starpu_task_bundle_t bundle, struct starpu_perfmodel_arch *arch, unsigned nimpl);
 
 void starpu_sched_ctx_worker_shares_tasks_lists(int workerid, int sched_ctx_id);
 

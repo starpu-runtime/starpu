@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011, 2013-2014  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
+ * Copyright (C) 2010-2011, 2013-2014, 2016  Université de Bordeaux
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -20,6 +20,10 @@
 
 #include <starpu.h>
 #include "../helper.h"
+
+/*
+ * Measure the submission time and execution time of asynchronous tasks
+ */
 
 starpu_data_handle_t data_handles[8];
 float *buffers[8];
@@ -183,32 +187,32 @@ int main(int argc, char **argv)
                         char file[1024];
                         FILE *f;
 
-                        sprintf(file, "%s/tasks_overhead_total_submit.dat", output_dir);
+                        snprintf(file, 1024, "%s/tasks_overhead_total_submit.dat", output_dir);
                         f = fopen(file, "a");
                         fprintf(f, "%s\t%f\n", bench_id, timing_submit/1000000);
                         fclose(f);
 
-                        sprintf(file, "%s/tasks_overhead_per_task_submit.dat", output_dir);
+                        snprintf(file, 1024, "%s/tasks_overhead_per_task_submit.dat", output_dir);
                         f = fopen(file, "a");
                         fprintf(f, "%s\t%f\n", bench_id, timing_submit/ntasks);
                         fclose(f);
 
-                        sprintf(file, "%s/tasks_overhead_total_execution.dat", output_dir);
+                        snprintf(file, 1024, "%s/tasks_overhead_total_execution.dat", output_dir);
                         f = fopen(file, "a");
                         fprintf(f, "%s\t%f\n", bench_id, timing_exec/1000000);
                         fclose(f);
 
-                        sprintf(file, "%s/tasks_overhead_per_task_execution.dat", output_dir);
+                        snprintf(file, 1024, "%s/tasks_overhead_per_task_execution.dat", output_dir);
                         f = fopen(file, "a");
                         fprintf(f, "%s\t%f\n", bench_id, timing_exec/ntasks);
                         fclose(f);
 
-                        sprintf(file, "%s/tasks_overhead_total_submit_execution.dat", output_dir);
+                        snprintf(file, 1024, "%s/tasks_overhead_total_submit_execution.dat", output_dir);
                         f = fopen(file, "a");
                         fprintf(f, "%s\t%f\n", bench_id, (timing_submit+timing_exec)/1000000);
                         fclose(f);
 
-                        sprintf(file, "%s/tasks_overhead_per_task_submit_execution.dat", output_dir);
+                        snprintf(file, 1024, "%s/tasks_overhead_per_task_submit_execution.dat", output_dir);
                         f = fopen(file, "a");
                         fprintf(f, "%s\t%f\n", bench_id, (timing_submit+timing_exec)/ntasks);
                         fclose(f);

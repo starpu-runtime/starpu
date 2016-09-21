@@ -164,8 +164,10 @@ char *_starpu_mktemp(const char *directory, int flags, int *fd)
 	/* fail */
 	if (*fd < 0)
 	{
+		int err = errno;
 		_STARPU_DISP("Could not create temporary file in directory '%s', mskostemp failed with error '%s'\n", directory, strerror(errno));
 		free(baseCpy);
+		errno = err;
 		return NULL;
 	}
 
@@ -233,9 +235,14 @@ void _starpu_rmtemp_many(char *path, int depth)
 	}
 }
 
-int _starpu_ftruncate(FILE *file)
+int _starpu_ftruncate(int fd, size_t length)
 {
-	return ftruncate(fileno(file), 0);
+	return ftruncate(fd, length);
+}
+
+int _starpu_fftruncate(FILE *file, size_t length)
+{
+	return ftruncate(fileno(file), length);
 }
 
 int _starpu_frdlock(FILE *file)
@@ -268,6 +275,8 @@ int _starpu_frdunlock(FILE *file)
 #  ifndef _LK_UNLCK
 #    define _LK_UNLCK _LK_UNLOCK
 #  endif
+	ret = _lseek(fileno(file), 0, SEEK_SET);
+	STARPU_ASSERT(ret == 0);
 	ret = _locking(fileno(file), _LK_UNLCK, 10);
 #else
 	struct flock lock =
@@ -287,6 +296,8 @@ int _starpu_fwrlock(FILE *file)
 {
 	int ret;
 #if defined(_WIN32) && !defined(__CYGWIN__)
+	ret = _lseek(fileno(file), 0, SEEK_SET);
+	STARPU_ASSERT(ret == 0);
 	do
 	{
 		ret = _locking(fileno(file), _LK_LOCK, 10);
@@ -334,19 +345,25 @@ char *_starpu_get_home_path(void)
 	char *path = starpu_getenv("XDG_CACHE_HOME");
 	if (!path)
 		path = starpu_getenv("STARPU_HOME");
+#ifdef _WIN32
+	if (!path)
+		path = starpu_getenv("LOCALAPPDATA");
+	if (!path)
+		path = starpu_getenv("USERPROFILE");
+#endif
 	if (!path)
 		path = starpu_getenv("HOME");
 	if (!path)
-		path = starpu_getenv("USERPROFILE");
-	if (!path)
 	{
 		static int warn;
+		path = starpu_getenv("TMPDIR");
+		if (!path)
+			path = "/tmp";
 		if (!warn)
 		{
 			warn = 1;
-			_STARPU_DISP("couldn't find a $STARPU_HOME place to put .starpu data, using /tmp\n");
+			_STARPU_DISP("couldn't find a $STARPU_HOME place to put .starpu data, using %s\n", path);
 		}
-		path = "/tmp";
 	}
 	return path;
 }
@@ -370,16 +387,17 @@ void _starpu_gethostname(char *hostname, size_t size)
 	}
 }
 
-void _starpu_sleep(struct timespec ts)
+void starpu_sleep(float nb_sec)
 {
 #ifdef STARPU_SIMGRID
-	MSG_process_sleep(ts.tv_sec + ts.tv_nsec / 1000000000.);
+	MSG_process_sleep(nb_sec);
 #elif defined(STARPU_HAVE_WINDOWS)
-	Sleep((ts.tv_sec * 1000) + (ts.tv_nsec / 1000000));
+	Sleep(nb_sec * 1000);
 #else
 	struct timespec req, rem;
 
-	req = ts;
+	req.tv_sec = nb_sec;
+	req.tv_nsec = (nb_sec - (float) req.tv_sec) * 1000000000;
 	while (nanosleep(&req, &rem))
 		req = rem;
 #endif

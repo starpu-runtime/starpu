@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010-2012, 2014-2015  Université de Bordeaux
+ * Copyright (C) 2009, 2010-2012, 2014-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2015  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -19,6 +19,7 @@
 
 #include "xlu.h"
 #include <math.h>
+#include <complex.h>
 
 #define str(s) #s
 #define xstr(s)        str(s)
@@ -348,7 +349,12 @@ static inline void STARPU_LU(common_u11)(void *descr[],
 			{
 				TYPE pivot;
 				pivot = sub11[z+z*ld];
+#ifdef COMPLEX_LU
+				STARPU_ASSERT(fpclassify(creal(pivot)) != FP_ZERO);
+				STARPU_ASSERT(fpclassify(cimag(pivot)) != FP_ZERO);
+#else
 				STARPU_ASSERT(fpclassify(pivot) != FP_ZERO);
+#endif
 		
 				CPU_SCAL(nx - z - 1, (1.0/pivot), &sub11[z+(z+1)*ld], ld);
 		
@@ -367,7 +373,12 @@ static inline void STARPU_LU(common_u11)(void *descr[],
 				cudaMemcpyAsync(&pivot, &sub11[z+z*ld], sizeof(TYPE), cudaMemcpyDeviceToHost, starpu_cuda_get_local_stream());
 				cudaStreamSynchronize(starpu_cuda_get_local_stream());
 
+#ifdef COMPLEX_LU
+				STARPU_ASSERT(fpclassify(creal(pivot)) != FP_ZERO);
+				STARPU_ASSERT(fpclassify(cimag(pivot)) != FP_ZERO);
+#else
 				STARPU_ASSERT(fpclassify(pivot) != FP_ZERO);
+#endif
 				
 				inv_pivot = 1.0/pivot;
 				CUBLAS_SCAL(nx - z - 1, *(CUBLAS_TYPE*)&inv_pivot, (CUBLAS_TYPE*)&sub11[z+(z+1)*ld], ld);

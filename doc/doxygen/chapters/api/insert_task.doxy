@@ -1,14 +1,14 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
  * Copyright (C) 2011, 2012 INRIA
  * See the file version.doxy for copying conditions.
  */
 
 /*! \defgroup API_Insert_Task Insert_Task
 
-\fn starpu_insert_task(struct starpu_codelet *cl, ...)
+\fn int starpu_insert_task(struct starpu_codelet *cl, ...)
 \ingroup API_Insert_Task
 This function does the same as the function starpu_task_insert(). It has been kept to avoid breaking old codes.
 
@@ -31,8 +31,8 @@ specifying the worker on which to execute the task (as specified by
 starpu_task::execute_on_a_specific_worker)
 <li> the specific values ::STARPU_VALUE, ::STARPU_CALLBACK,
 ::STARPU_CALLBACK_ARG, ::STARPU_CALLBACK_WITH_ARG, ::STARPU_PRIORITY,
-::STARPU_TAG, ::STARPU_TAG_ONLY, ::STARPU_FLOPS, ::STARPU_SCHED_CTX followed by the
-appropriated objects as defined elsewhere.
+::STARPU_TAG, ::STARPU_TAG_ONLY, ::STARPU_FLOPS, ::STARPU_SCHED_CTX, ::STARPU_CL_ARGS
+followed by the appropriated objects as defined elsewhere.
 </ul>
 
 When using ::STARPU_DATA_ARRAY, the access mode of the data handles is
@@ -50,6 +50,14 @@ implementation to retrieve them.
 this macro is used when calling starpu_task_insert(), and must
 be followed by a pointer to a constant value and the size of the
 constant
+
+\def STARPU_CL_ARGS
+\ingroup API_Insert_Task
+this macro is used when calling starpu_task_insert(), and must
+be followed by a memory buffer containing the arguments to be given to
+the task, and by the size of the arguments. The memory buffer should
+be the result of a previous call to starpu_codelet_pack_args(), and will be
+freed (i.e. starpu_task::cl_arg_free will be set to 1)
 
 \def STARPU_CALLBACK
 \ingroup API_Insert_Task
@@ -131,7 +139,15 @@ starpu_codelet_unpack_args().
 \fn void starpu_codelet_unpack_args(void *cl_arg, ...)
 \ingroup API_Insert_Task
 Retrieve the arguments of type ::STARPU_VALUE associated to a
-task automatically created using the function starpu_task_insert().
+task automatically created using the function starpu_task_insert(). If
+some parameter is NULL, unpacking will stop there and ignore the remaining
+parameters.
+
+\fn void starpu_codelet_unpack_args_and_copyleft(void *cl_arg, void *buffer, size_t buffer_size, ...)
+\ingroup API_Insert_Task
+Similar to starpu_codelet_unpack_args(), but if some parameter is
+NULL, copy the part of cl_arg that has not been read in buffer which
+can then be used in a later call to one of the unpack functions.
 
 \fn struct starpu_task *starpu_task_build(struct starpu_codelet *cl, ...)
 \ingroup API_Insert_Task

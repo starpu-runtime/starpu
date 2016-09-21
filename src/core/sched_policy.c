@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2015  Université de Bordeaux
+ * Copyright (C) 2010-2016  Université de Bordeaux
  * Copyright (C) 2010-2015  CNRS
  * Copyright (C) 2011  INRIA
  *
@@ -25,8 +25,19 @@
 #include <core/debug.h>
 
 static int use_prefetch = 0;
-double idle[STARPU_NMAXWORKERS];
-double idle_start[STARPU_NMAXWORKERS];
+static double idle[STARPU_NMAXWORKERS];
+static double idle_start[STARPU_NMAXWORKERS];
+
+long _starpu_task_break_on_push = -1;
+long _starpu_task_break_on_pop = -1;
+long _starpu_task_break_on_sched = -1;
+
+void _starpu_sched_init(void)
+{
+	_starpu_task_break_on_push = starpu_get_env_number_default("STARPU_TASK_BREAK_ON_PUSH", -1);
+	_starpu_task_break_on_pop = starpu_get_env_number_default("STARPU_TASK_BREAK_ON_POP", -1);
+	_starpu_task_break_on_sched = starpu_get_env_number_default("STARPU_TASK_BREAK_ON_SCHED", -1);
+}
 
 int starpu_get_prefetch_flag(void)
 {
@@ -59,6 +70,7 @@ static struct starpu_sched_policy *predefined_policies[] =
 	&_starpu_sched_parallel_heft_policy,
 	&_starpu_sched_peager_policy,
 	&_starpu_sched_heteroprio_policy,
+	&_starpu_sched_graph_test_policy,
 	NULL
 };
 
@@ -188,6 +200,14 @@ void _starpu_init_sched_policy(struct _starpu_machine_config *config, struct _st
 
 	load_sched_policy(selected_policy, sched_ctx);
 
+	if (starpu_get_env_number_default("STARPU_WORKER_TREE", 0))
+	{
+#ifdef STARPU_HAVE_HWLOC
+		sched_ctx->sched_policy->worker_type = STARPU_WORKER_TREE;
+#else
+		_STARPU_DISP("STARPU_WORKER_TREE ignored, please rebuild StarPU with hwloc support to enable it.");
+#endif
+	}
 	starpu_sched_ctx_create_worker_collection(sched_ctx->id,
 						  sched_ctx->sched_policy->worker_type);
 
@@ -206,6 +226,30 @@ void _starpu_deinit_sched_policy(struct _starpu_sched_ctx *sched_ctx)
 		_STARPU_TRACE_WORKER_SCHEDULING_POP;
 	}
 	starpu_sched_ctx_delete_worker_collection(sched_ctx->id);
+}
+
+void _starpu_sched_task_submit(struct starpu_task *task)
+{
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
+	if (!sched_ctx->sched_policy)
+		return;
+	if (!sched_ctx->sched_policy->submit_hook)
+		return;
+	_STARPU_TRACE_WORKER_SCHEDULING_PUSH;
+	sched_ctx->sched_policy->submit_hook(task);
+	_STARPU_TRACE_WORKER_SCHEDULING_POP;
+}
+
+void _starpu_sched_do_schedule(unsigned sched_ctx_id)
+{
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+	if (!sched_ctx->sched_policy)
+		return;
+	if (!sched_ctx->sched_policy->do_schedule)
+		return;
+	_STARPU_TRACE_WORKER_SCHEDULING_PUSH;
+	sched_ctx->sched_policy->do_schedule(sched_ctx_id);
+	_STARPU_TRACE_WORKER_SCHEDULING_POP;
 }
 
 static void _starpu_push_task_on_specific_worker_notify_sched(struct starpu_task *task, struct _starpu_worker *worker, int workerid, int perf_workerid)
@@ -546,6 +590,7 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 				ret = -1;
 			else
 			{
+				_STARPU_TASK_BREAK_ON(task, push);
 				_STARPU_TRACE_WORKER_SCHEDULING_PUSH;
 				ret = sched_ctx->sched_policy->push_task(task);
 				_STARPU_TRACE_WORKER_SCHEDULING_POP;
@@ -752,6 +797,8 @@ pick:
 	/* perhaps there is some local task to be executed first */
 	task = _starpu_pop_local_task(worker);
 
+	if (task)
+		_STARPU_TASK_BREAK_ON(task, pop);
 
 	/* get tasks from the stacks of the strategy */
 	if(!task)
@@ -797,7 +844,13 @@ pick:
 			{
 				if (sched_ctx->sched_policy && sched_ctx->sched_policy->pop_task)
 				{
+					/* Note: we do not push the scheduling state here, because
+					 * otherwise when a worker is idle, we'd keep
+					 * pushing/popping a scheduling state here, while what we
+					 * want to see in the trace is a permanent idle state. */
 					task = sched_ctx->sched_policy->pop_task(sched_ctx->id);
+					if (task)
+						_STARPU_TASK_BREAK_ON(task, pop);
 					_starpu_pop_task_end(task);
 				}
 			}
@@ -882,7 +935,7 @@ pick:
 	 * This way, we avoid computing and executing the conversions tasks.
 	 * Here, we do not care about what implementation is used.
 	 */
-	worker_id = starpu_worker_get_id();
+	worker_id = starpu_worker_get_id_check();
 	if (!starpu_worker_can_execute_task_first_impl(worker_id, task, NULL))
 		return task;
 
@@ -892,7 +945,7 @@ pick:
 	 * We do have a task that uses multiformat handles. Let's create the
 	 * required conversion tasks.
 	 */
-	STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 	unsigned i;
 	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
 	for (i = 0; i < nbuffers; i++)
@@ -916,7 +969,7 @@ pick:
 
 	task->mf_skip = 1;
 	starpu_task_list_push_back(&worker->local_tasks, task);
-	STARPU_PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
 	goto pick;
 
 profiling:
@@ -988,7 +1041,7 @@ void _starpu_wait_on_sched_event(void)
 {
 	struct _starpu_worker *worker = _starpu_get_local_worker_key();
 
-	STARPU_PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
 
 	_starpu_handle_all_pending_node_data_requests(worker->memory_node);
 
@@ -1000,7 +1053,7 @@ void _starpu_wait_on_sched_event(void)
 #endif
 	}
 
-	STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 }
 
 /* The scheduling policy may put tasks directly into a worker's local queue so
@@ -1017,15 +1070,15 @@ int starpu_push_local_task(int workerid, struct starpu_task *task, int prio)
 
 void _starpu_print_idle_time()
 {
+	const char *sched_env = starpu_getenv("STARPU_IDLE_FILE");
+	if(!sched_env)
+		return;
 	double all_idle = 0.0;
 	int i = 0;
 	for(i = 0; i < STARPU_NMAXWORKERS; i++)
 		all_idle += idle[i];
 
 	FILE *f;
-	const char *sched_env = starpu_getenv("STARPU_IDLE_FILE");
-	if(!sched_env)
-		sched_env = "starpu_idle_microsec.log";
 	f = fopen(sched_env, "a");
 	if (!f)
 	{

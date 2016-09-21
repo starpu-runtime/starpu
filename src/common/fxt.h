@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2015  Université de Bordeaux
+ * Copyright (C) 2009-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -183,6 +183,30 @@
 #define _STARPU_FUT_SCHED_COMPONENT_PUSH	0x516c
 #define _STARPU_FUT_SCHED_COMPONENT_PULL	0x516d
 
+#define _STARPU_FUT_TASK_SUBMIT_START	0x516e
+#define _STARPU_FUT_TASK_SUBMIT_END	0x516f
+
+#define _STARPU_FUT_TASK_BUILD_START	0x5170
+#define _STARPU_FUT_TASK_BUILD_END	0x5171
+
+#define _STARPU_FUT_TASK_MPI_DECODE_START	0x5172
+#define _STARPU_FUT_TASK_MPI_DECODE_END	0x5173
+
+#define _STARPU_FUT_TASK_MPI_PRE_START	0x5174
+#define _STARPU_FUT_TASK_MPI_PRE_END	0x5175
+
+#define _STARPU_FUT_TASK_MPI_POST_START	0x5176
+#define _STARPU_FUT_TASK_MPI_POST_END	0x5177
+
+#define _STARPU_FUT_TASK_WAIT_START	0x5178
+#define _STARPU_FUT_TASK_WAIT_END	0x5179
+
+#define _STARPU_FUT_TASK_WAIT_FOR_ALL_START	0x517a
+#define _STARPU_FUT_TASK_WAIT_FOR_ALL_END	0x517b
+
+#define _STARPU_FUT_HANDLE_DATA_REGISTER 0x517c
+#define _STARPU_FUT_DATA_INVALIDATE 0x517d
+
 #ifdef STARPU_USE_FXT
 #include <fxt/fxt.h>
 #include <fxt/fut.h>
@@ -198,6 +222,10 @@ void enable_fut_flush();
 void fut_set_filename(char *filename);
 #endif
 #endif
+
+extern int _starpu_fxt_started;
+extern starpu_pthread_mutex_t _starpu_fxt_started_mutex;
+extern starpu_pthread_cond_t _starpu_fxt_started_cond;
 
 long _starpu_gettid(void);
 
@@ -433,12 +461,12 @@ do {									\
 	if (name)                                                 \
 	{								\
 		/* we include the task name */			\
-		_STARPU_FUT_DO_PROBE4STR(_STARPU_FUT_START_CODELET_BODY, (job)->job_id, ((job)->task)->sched_ctx, workerid, 1, name); \
+		_STARPU_FUT_DO_PROBE5STR(_STARPU_FUT_START_CODELET_BODY, (job)->job_id, ((job)->task)->sched_ctx, workerid, starpu_worker_get_memory_node(workerid), 1, name); \
 		if (model_name && strcmp(model_name, name))				\
 			_STARPU_FUT_DO_PROBE1STR(_STARPU_FUT_MODEL_NAME, (job)->job_id, model_name); \
 	}								\
 	else {                                                          \
-		FUT_DO_PROBE4(_STARPU_FUT_START_CODELET_BODY, (job)->job_id, ((job)->task)->sched_ctx, workerid, 0); \
+		FUT_DO_PROBE5(_STARPU_FUT_START_CODELET_BODY, (job)->job_id, ((job)->task)->sched_ctx, workerid, starpu_worker_get_memory_node(workerid), 0); \
 	}								\
 	{								\
 		if ((job)->task->cl)					\
@@ -547,8 +575,8 @@ do {										\
 #define _STARPU_TRACE_DATA_COPY(src_node, dst_node, size)	\
 	FUT_DO_PROBE3(_STARPU_FUT_DATA_COPY, src_node, dst_node, size)
 
-#define _STARPU_TRACE_START_DRIVER_COPY(src_node, dst_node, size, com_id, prefetch)	\
-	FUT_DO_PROBE5(_STARPU_FUT_START_DRIVER_COPY, src_node, dst_node, size, com_id, prefetch)
+#define _STARPU_TRACE_START_DRIVER_COPY(src_node, dst_node, size, com_id, prefetch, handle) \
+	FUT_DO_PROBE6(_STARPU_FUT_START_DRIVER_COPY, src_node, dst_node, size, com_id, prefetch, handle)
 
 #define _STARPU_TRACE_END_DRIVER_COPY(src_node, dst_node, size, com_id, prefetch)	\
 	FUT_DO_PROBE5(_STARPU_FUT_END_DRIVER_COPY, src_node, dst_node, size, com_id, prefetch)
@@ -588,6 +616,48 @@ do {										\
 
 #define _STARPU_TRACE_TASK_SUBMIT(job)	\
 	FUT_DO_PROBE2(_STARPU_FUT_TASK_SUBMIT, (job)->job_id, _starpu_gettid());
+
+#define _STARPU_TRACE_TASK_SUBMIT_START()	\
+	FUT_DO_PROBE1(_STARPU_FUT_TASK_SUBMIT_START, _starpu_gettid());
+
+#define _STARPU_TRACE_TASK_SUBMIT_END()	\
+	FUT_DO_PROBE1(_STARPU_FUT_TASK_SUBMIT_END, _starpu_gettid());
+
+#define _STARPU_TRACE_TASK_BUILD_START()	\
+	FUT_DO_PROBE1(_STARPU_FUT_TASK_BUILD_START, _starpu_gettid());
+
+#define _STARPU_TRACE_TASK_BUILD_END()	\
+	FUT_DO_PROBE1(_STARPU_FUT_TASK_BUILD_END, _starpu_gettid());
+
+#define _STARPU_TRACE_TASK_MPI_DECODE_START()	\
+	FUT_DO_PROBE1(_STARPU_FUT_TASK_MPI_DECODE_START, _starpu_gettid());
+
+#define _STARPU_TRACE_TASK_MPI_DECODE_END()	\
+	FUT_DO_PROBE1(_STARPU_FUT_TASK_MPI_DECODE_END, _starpu_gettid());
+
+#define _STARPU_TRACE_TASK_MPI_PRE_START()	\
+	FUT_DO_PROBE1(_STARPU_FUT_TASK_MPI_PRE_START, _starpu_gettid());
+
+#define _STARPU_TRACE_TASK_MPI_PRE_END()	\
+	FUT_DO_PROBE1(_STARPU_FUT_TASK_MPI_PRE_END, _starpu_gettid());
+
+#define _STARPU_TRACE_TASK_MPI_POST_START()	\
+	FUT_DO_PROBE1(_STARPU_FUT_TASK_MPI_POST_START, _starpu_gettid());
+
+#define _STARPU_TRACE_TASK_MPI_POST_END()	\
+	FUT_DO_PROBE1(_STARPU_FUT_TASK_MPI_POST_END, _starpu_gettid());
+
+#define _STARPU_TRACE_TASK_WAIT_START(job)	\
+	FUT_DO_PROBE2(_STARPU_FUT_TASK_WAIT_START, (job)->job_id, _starpu_gettid());
+
+#define _STARPU_TRACE_TASK_WAIT_END()	\
+	FUT_DO_PROBE1(_STARPU_FUT_TASK_WAIT_END, _starpu_gettid());
+
+#define _STARPU_TRACE_TASK_WAIT_FOR_ALL_START()	\
+	FUT_DO_PROBE1(_STARPU_FUT_TASK_WAIT_FOR_ALL_START, _starpu_gettid());
+
+#define _STARPU_TRACE_TASK_WAIT_FOR_ALL_END()	\
+	FUT_DO_PROBE1(_STARPU_FUT_TASK_WAIT_FOR_ALL_END, _starpu_gettid());
 
 #define _STARPU_TRACE_USER_DEFINED_START	\
 	FUT_DO_PROBE1(_STARPU_FUT_USER_DEFINED_START, _starpu_gettid());
@@ -732,43 +802,43 @@ do {										\
 
 #define STARPU_TRACE_SPINLOCK_CONDITITION (starpu_worker_get_type(starpu_worker_get_id()) == STARPU_CUDA_WORKER)
 
-#define _STARPU_TRACE_LOCKING_SPINLOCK()	do {\
+#define _STARPU_TRACE_LOCKING_SPINLOCK(file, line)	do {\
 	if (STARPU_TRACE_SPINLOCK_CONDITITION) { \
 		const char *file; \
-		file = strrchr(__FILE__,'/') + 1; \
-		_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_LOCKING_SPINLOCK,__LINE__,_starpu_gettid(),file); \
+		file = strrchr(file,'/') + 1; \
+		_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_LOCKING_SPINLOCK,line,_starpu_gettid(file, line),file); \
 	} \
 } while(0)
 
-#define _STARPU_TRACE_SPINLOCK_LOCKED()		do { \
+#define _STARPU_TRACE_SPINLOCK_LOCKED(file, line)		do { \
 	if (STARPU_TRACE_SPINLOCK_CONDITITION) { \
 		const char *file; \
-		file = strrchr(__FILE__,'/') + 1; \
-		_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_SPINLOCK_LOCKED,__LINE__,_starpu_gettid(),file); \
+		file = strrchr(file,'/') + 1; \
+		_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_SPINLOCK_LOCKED,line,_starpu_gettid(file, line),file); \
 	} \
 } while(0)
 
-#define _STARPU_TRACE_UNLOCKING_SPINLOCK()	do { \
+#define _STARPU_TRACE_UNLOCKING_SPINLOCK(file, line)	do { \
 	if (STARPU_TRACE_SPINLOCK_CONDITITION) { \
 		const char *file; \
-		file = strrchr(__FILE__,'/') + 1; \
-		_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_UNLOCKING_SPINLOCK,__LINE__,_starpu_gettid(),file); \
+		file = strrchr(file,'/') + 1; \
+		_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_UNLOCKING_SPINLOCK,line,_starpu_gettid(file, line),file); \
 	} \
 } while(0)
 
-#define _STARPU_TRACE_SPINLOCK_UNLOCKED()	do { \
+#define _STARPU_TRACE_SPINLOCK_UNLOCKED(file, line)	do { \
 	if (STARPU_TRACE_SPINLOCK_CONDITITION) { \
 		const char *file; \
-		file = strrchr(__FILE__,'/') + 1; \
-		_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_SPINLOCK_UNLOCKED,__LINE__,_starpu_gettid(),file); \
+		file = strrchr(file,'/') + 1; \
+		_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_SPINLOCK_UNLOCKED,line,_starpu_gettid(file, line),file); \
 	} \
 } while(0)
 
-#define _STARPU_TRACE_TRYLOCK_SPINLOCK()	do { \
+#define _STARPU_TRACE_TRYLOCK_SPINLOCK(file, line)	do { \
 	if (STARPU_TRACE_SPINLOCK_CONDITITION) { \
 		const char *file; \
-		file = strrchr(__FILE__,'/') + 1; \
-		_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_TRYLOCK_SPINLOCK,__LINE__,_starpu_gettid(),file); \
+		file = strrchr(file,'/') + 1; \
+		_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_TRYLOCK_SPINLOCK,line,_starpu_gettid(file, line),file); \
 	} \
 } while(0)
 
@@ -809,11 +879,11 @@ do {										\
 #define _STARPU_TRACE_RWLOCK_WRLOCKED()		do {} while(0)
 #define _STARPU_TRACE_UNLOCKING_RWLOCK()		do {} while(0)
 #define _STARPU_TRACE_RWLOCK_UNLOCKED()		do {} while(0)
-#define _STARPU_TRACE_LOCKING_SPINLOCK()		do {} while(0)
-#define _STARPU_TRACE_SPINLOCK_LOCKED()		do {} while(0)
-#define _STARPU_TRACE_UNLOCKING_SPINLOCK()	do {} while(0)
-#define _STARPU_TRACE_SPINLOCK_UNLOCKED()		do {} while(0)
-#define _STARPU_TRACE_TRYLOCK_SPINLOCK()		do {} while(0)
+#define _STARPU_TRACE_LOCKING_SPINLOCK(file, line)		do {} while(0)
+#define _STARPU_TRACE_SPINLOCK_LOCKED(file, line)		do {} while(0)
+#define _STARPU_TRACE_UNLOCKING_SPINLOCK(file, line)	do {} while(0)
+#define _STARPU_TRACE_SPINLOCK_UNLOCKED(file, line)		do {} while(0)
+#define _STARPU_TRACE_TRYLOCK_SPINLOCK(file, line)		do {} while(0)
 #define _STARPU_TRACE_COND_WAIT_BEGIN()		do {} while(0)
 #define _STARPU_TRACE_COND_WAIT_END()			do {} while(0)
 #define _STARPU_TRACE_BARRIER_WAIT_BEGIN()		do {} while(0)
@@ -851,6 +921,12 @@ do {										\
 #define _STARPU_TRACE_SCHED_COMPONENT_PULL(from, to, task)		\
 	FUT_DO_PROBE5(_STARPU_FUT_SCHED_COMPONENT_PULL, _starpu_gettid(), from, to, task, (task)->priority);
 
+#define _STARPU_TRACE_HANDLE_DATA_REGISTER(handle)		\
+	FUT_DO_PROBE1(_STARPU_FUT_HANDLE_DATA_REGISTER, handle)
+
+#define _STARPU_TRACE_DATA_INVALIDATE(handle, node)		\
+	FUT_DO_PROBE2(_STARPU_FUT_DATA_INVALIDATE, handle, node)
+
 #else // !STARPU_USE_FXT
 
 /* Dummy macros in case FxT is disabled */
@@ -877,7 +953,7 @@ do {										\
 #define _STARPU_TRACE_TASK_DONE(a)		do {} while(0)
 #define _STARPU_TRACE_TAG_DONE(a)		do {} while(0)
 #define _STARPU_TRACE_DATA_COPY(a, b, c)		do {} while(0)
-#define _STARPU_TRACE_START_DRIVER_COPY(a,b,c,d,e)	do {} while(0)
+#define _STARPU_TRACE_START_DRIVER_COPY(a,b,c,d,e,f)	do {} while(0)
 #define _STARPU_TRACE_END_DRIVER_COPY(a,b,c,d,e)	do {} while(0)
 #define _STARPU_TRACE_START_DRIVER_COPY_ASYNC(a,b)	do {} while(0)
 #define _STARPU_TRACE_END_DRIVER_COPY_ASYNC(a,b)	do {} while(0)
@@ -891,6 +967,20 @@ do {										\
 #define _STARPU_TRACE_WORKER_SLEEP_START		do {} while(0)
 #define _STARPU_TRACE_WORKER_SLEEP_END		do {} while(0)
 #define _STARPU_TRACE_TASK_SUBMIT(job)		do {} while(0)
+#define _STARPU_TRACE_TASK_SUBMIT_START()		do {} while(0)
+#define _STARPU_TRACE_TASK_SUBMIT_END()			do {} while(0)
+#define _STARPU_TRACE_TASK_BUILD_START()		do {} while(0)
+#define _STARPU_TRACE_TASK_BUILD_END()			do {} while(0)
+#define _STARPU_TRACE_TASK_MPI_DECODE_START()		do {} while(0)
+#define _STARPU_TRACE_TASK_MPI_DECODE_END()		do {} while(0)
+#define _STARPU_TRACE_TASK_MPI_PRE_START()		do {} while(0)
+#define _STARPU_TRACE_TASK_MPI_PRE_END()		do {} while(0)
+#define _STARPU_TRACE_TASK_MPI_POST_START()		do {} while(0)
+#define _STARPU_TRACE_TASK_MPI_POST_END()		do {} while(0)
+#define _STARPU_TRACE_TASK_WAIT_START(job)		do {} while(0)
+#define _STARPU_TRACE_TASK_WAIT_END()			do {} while(0)
+#define _STARPU_TRACE_TASK_WAIT_FOR_ALL_START()		do {} while(0)
+#define _STARPU_TRACE_TASK_WAIT_FOR_ALL_END()		do {} while(0)
 #define _STARPU_TRACE_USER_DEFINED_START		do {} while(0)
 #define _STARPU_TRACE_USER_DEFINED_END		do {} while(0)
 #define _STARPU_TRACE_START_ALLOC(memnode, size)	do {} while(0)
@@ -923,11 +1013,11 @@ do {										\
 #define _STARPU_TRACE_RWLOCK_WRLOCKED()		do {} while(0)
 #define _STARPU_TRACE_UNLOCKING_RWLOCK()		do {} while(0)
 #define _STARPU_TRACE_RWLOCK_UNLOCKED()		do {} while(0)
-#define _STARPU_TRACE_LOCKING_SPINLOCK()		do {} while(0)
-#define _STARPU_TRACE_SPINLOCK_LOCKED()		do {} while(0)
-#define _STARPU_TRACE_UNLOCKING_SPINLOCK()	do {} while(0)
-#define _STARPU_TRACE_SPINLOCK_UNLOCKED()		do {} while(0)
-#define _STARPU_TRACE_TRYLOCK_SPINLOCK()		do {} while(0)
+#define _STARPU_TRACE_LOCKING_SPINLOCK(file, line)		do {} while(0)
+#define _STARPU_TRACE_SPINLOCK_LOCKED(file, line)		do {} while(0)
+#define _STARPU_TRACE_UNLOCKING_SPINLOCK(file, line)	do {} while(0)
+#define _STARPU_TRACE_SPINLOCK_UNLOCKED(file, line)		do {} while(0)
+#define _STARPU_TRACE_TRYLOCK_SPINLOCK(file, line)		do {} while(0)
 #define _STARPU_TRACE_COND_WAIT_BEGIN()		do {} while(0)
 #define _STARPU_TRACE_COND_WAIT_END()			do {} while(0)
 #define _STARPU_TRACE_BARRIER_WAIT_BEGIN()		do {} while(0)
@@ -944,6 +1034,8 @@ do {										\
 #define _STARPU_TRACE_SCHED_COMPONENT_CONNECT(parent, child)	do {} while (0)
 #define _STARPU_TRACE_SCHED_COMPONENT_PUSH(from, to, task)	do {} while (0)
 #define _STARPU_TRACE_SCHED_COMPONENT_PULL(from, to, task)	do {} while (0)
+#define _STARPU_TRACE_HANDLE_DATA_REGISTER(handle)	do {} while (0)
+#define _STARPU_TRACE_DATA_INVALIDATE(handle, node)	do {} while (0)
 
 #endif // STARPU_USE_FXT
 

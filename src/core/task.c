@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2011, 2014  INRIA
  *
@@ -230,6 +230,8 @@ int starpu_task_wait(struct starpu_task *task)
 
 	struct _starpu_job *j = (struct _starpu_job *)task->starpu_private;
 
+	_STARPU_TRACE_TASK_WAIT_START(j);
+
 	_starpu_wait_job(j);
 
 	/* as this is a synchronous task, the liberation of the job
@@ -237,6 +239,7 @@ int starpu_task_wait(struct starpu_task *task)
 	if (task->destroy)
 		_starpu_task_destroy(task);
 
+	_STARPU_TRACE_TASK_WAIT_END();
         _STARPU_LOG_OUT();
 	return 0;
 }
@@ -282,19 +285,6 @@ int _starpu_task_test_termination(struct starpu_task *task)
 }
 #endif
 
-struct _starpu_job *_starpu_get_job_associated_to_task(struct starpu_task *task)
-{
-	STARPU_ASSERT(task);
-
-	if (!task->starpu_private)
-	{
-		struct _starpu_job *j = _starpu_job_create(task);
-		task->starpu_private = j;
-	}
-
-	return (struct _starpu_job *)task->starpu_private;
-}
-
 /* NB in case we have a regenerable task, it is possible that the job was
  * already counted. */
 int _starpu_submit_job(struct _starpu_job *j)
@@ -312,6 +302,7 @@ int _starpu_submit_job(struct _starpu_job *j)
 	_starpu_bound_record(j);
 
 	_starpu_increment_nsubmitted_tasks_of_sched_ctx(j->task->sched_ctx);
+	_starpu_sched_task_submit(task);
 
 #ifdef STARPU_USE_SC_HYPERVISOR
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(j->task->sched_ctx);
@@ -593,8 +584,8 @@ static int _starpu_task_submit_head(struct starpu_task *task)
 		if (task->cl->model)
 			_starpu_init_and_load_perfmodel(task->cl->model);
 
-		if (task->cl->power_model)
-			_starpu_init_and_load_perfmodel(task->cl->power_model);
+		if (task->cl->energy_model)
+			_starpu_init_and_load_perfmodel(task->cl->energy_model);
 	}
 
 	return 0;
@@ -622,18 +613,26 @@ int starpu_task_submit(struct starpu_task *task)
 #endif
 		;
 
+	_STARPU_TRACE_TASK_SUBMIT_START();
+
 	if (!j->internal)
 	{
 		int nsubmitted_tasks = starpu_task_nsubmitted();
 		if (limit_max_submitted_tasks >= 0 && limit_max_submitted_tasks < nsubmitted_tasks
 			&& limit_min_submitted_tasks >= 0 && limit_min_submitted_tasks < nsubmitted_tasks)
+		{
+			starpu_do_schedule();
 			starpu_task_wait_for_n_submitted(limit_min_submitted_tasks);
+		}
 	}
 
 
 	ret = _starpu_task_submit_head(task);
 	if (ret)
+	{
+		_STARPU_TRACE_TASK_SUBMIT_END();
 		return ret;
+	}
 
 	if (!j->internal && !continuation)
 		_STARPU_TRACE_TASK_SUBMIT(j);
@@ -657,8 +656,8 @@ int starpu_task_submit(struct starpu_task *task)
 			if (entry->task->cl->model)
 				_starpu_init_and_load_perfmodel(entry->task->cl->model);
 
-			if (entry->task->cl->power_model)
-				_starpu_init_and_load_perfmodel(entry->task->cl->power_model);
+			if (entry->task->cl->energy_model)
+				_starpu_init_and_load_perfmodel(entry->task->cl->energy_model);
 
 			entry = entry->next;
 		}
@@ -682,16 +681,18 @@ int starpu_task_submit(struct starpu_task *task)
 
 	ret = _starpu_submit_job(j);
 #ifdef STARPU_SIMGRID
-	MSG_process_sleep(0.0000001);
+	MSG_process_sleep(0.000001);
 #endif
 
 	if (is_sync)
 	{
+		_starpu_sched_do_schedule(task->sched_ctx);
 		_starpu_wait_job(j);
 		if (task->destroy)
 		     _starpu_task_destroy(task);
 	}
 
+	_STARPU_TRACE_TASK_SUBMIT_END();
         _STARPU_LOG_OUT();
 	return ret;
 }
@@ -721,6 +722,7 @@ int _starpu_task_submit_nodeps(struct starpu_task *task)
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 
 	_starpu_increment_nsubmitted_tasks_of_sched_ctx(j->task->sched_ctx);
+	_starpu_sched_task_submit(task);
 
 	STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 	_starpu_handle_job_submission(j);
@@ -761,6 +763,7 @@ int _starpu_task_submit_conversion_task(struct starpu_task *task,
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 
 	_starpu_increment_nsubmitted_tasks_of_sched_ctx(j->task->sched_ctx);
+	_starpu_sched_task_submit(task);
 
 	STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 	_starpu_handle_job_submission(j);
@@ -818,7 +821,7 @@ void starpu_codelet_display_stats(struct starpu_codelet *cl)
  * regenerable is not considered finished until it was explicitely set as
  * non-regenerale anymore (eg. from a callback).
  */
-int starpu_task_wait_for_all(void)
+int _starpu_task_wait_for_all_and_return_nb_waited_tasks(void)
 {
 	unsigned nsched_ctxs = _starpu_get_nsched_ctxs();
 	unsigned sched_ctx_id = nsched_ctxs == 1 ? 0 : starpu_sched_ctx_get_context();
@@ -835,7 +838,10 @@ int starpu_task_wait_for_all(void)
 #endif
 		struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
 		if(config->topology.nsched_ctxs == 1)
-			starpu_task_wait_for_all_in_ctx(0);
+		{
+			_starpu_sched_do_schedule(0);
+			return _starpu_task_wait_for_all_in_ctx_and_return_nb_waited_tasks(0);
+		}
 		else
 		{
 			int s;
@@ -843,27 +849,48 @@ int starpu_task_wait_for_all(void)
 			{
 				if(config->sched_ctxs[s].id != STARPU_NMAX_SCHED_CTXS)
 				{
+					_starpu_sched_do_schedule(config->sched_ctxs[s].id);
+				}
+			}
+			for(s = 0; s < STARPU_NMAX_SCHED_CTXS; s++)
+			{
+				if(config->sched_ctxs[s].id != STARPU_NMAX_SCHED_CTXS)
+				{
 					starpu_task_wait_for_all_in_ctx(config->sched_ctxs[s].id);
 				}
 			}
+			return 0;
 		}
-
-		return 0;
 	}
 	else
 	{
+		_starpu_sched_do_schedule(sched_ctx_id);
 		_STARPU_DEBUG("Waiting for tasks submitted to context %u\n", sched_ctx_id);
-		return starpu_task_wait_for_all_in_ctx(sched_ctx_id);
+		return _starpu_task_wait_for_all_in_ctx_and_return_nb_waited_tasks(sched_ctx_id);
 	}
 }
 
-int starpu_task_wait_for_all_in_ctx(unsigned sched_ctx)
+int starpu_task_wait_for_all(void)
 {
-	_starpu_wait_for_all_tasks_of_sched_ctx(sched_ctx);
+	_starpu_task_wait_for_all_and_return_nb_waited_tasks();
+	return 0;
+}
+
+int _starpu_task_wait_for_all_in_ctx_and_return_nb_waited_tasks(unsigned sched_ctx)
+{
+	_STARPU_TRACE_TASK_WAIT_FOR_ALL_START();
+	int ret = _starpu_wait_for_all_tasks_of_sched_ctx(sched_ctx);
+	_STARPU_TRACE_TASK_WAIT_FOR_ALL_END();
 #ifdef HAVE_AYUDAME_H
 	/* TODO: improve Temanejo into knowing about contexts ... */
 	if (AYU_event) AYU_event(AYU_BARRIER, 0, NULL);
 #endif
+	return ret;
+}
+
+int starpu_task_wait_for_all_in_ctx(unsigned sched_ctx)
+{
+	_starpu_task_wait_for_all_in_ctx_and_return_nb_waited_tasks(sched_ctx);
 	return 0;
 }
 
@@ -939,6 +966,24 @@ int starpu_task_wait_for_no_ready(void)
 	}
 
 	return 0;
+}
+
+void starpu_do_schedule(void)
+{
+	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
+	if(config->topology.nsched_ctxs == 1)
+		_starpu_sched_do_schedule(0);
+	else
+	{
+		int s;
+		for(s = 0; s < STARPU_NMAX_SCHED_CTXS; s++)
+		{
+			if(config->sched_ctxs[s].id != STARPU_NMAX_SCHED_CTXS)
+			{
+				_starpu_sched_do_schedule(config->sched_ctxs[s].id);
+			}
+		}
+	}
 }
 
 void
@@ -1140,19 +1185,16 @@ static starpu_pthread_t watchdog_thread;
 /* Check from times to times that StarPU does finish some tasks */
 static void *watchdog_func(void *arg)
 {
-	struct timespec ts;
 	char *timeout_env = arg;
-	unsigned long long timeout;
+	float timeout;
 
 #ifdef _MSC_VER
-	timeout = (unsigned long long) _atoi64(timeout_env);
+	timeout = ((float) _atoi64(timeout_env)) / 1000000;
 #else
-	timeout = atoll(timeout_env);
+	timeout = ((float) atoll(timeout_env)) / 1000000;
 #endif
-	ts.tv_sec = timeout / 1000000;
-	ts.tv_nsec = (timeout % 1000000) * 1000;
 	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
-	
+
 	STARPU_PTHREAD_MUTEX_LOCK(&config->submitted_mutex);
 	while (_starpu_machine_is_running())
 	{
@@ -1160,13 +1202,28 @@ static void *watchdog_func(void *arg)
 		config->watchdog_ok = 0;
 		STARPU_PTHREAD_MUTEX_UNLOCK(&config->submitted_mutex);
 
-		_starpu_sleep(ts);
+		/* If we do a sleep(timeout), we might have to wait too long at the end of the computation. */
+		/* To avoid that, we do several sleep() of 1s (and check after each if starpu is still running) */
+		float t;
+		for (t = timeout ; t > 1.; t--)
+		{
+			starpu_sleep(1.);
+			if (!_starpu_machine_is_running())
+			{
+				/* Application finished, don't bother finishing the sleep */
+				STARPU_PTHREAD_MUTEX_UNLOCK(&config->submitted_mutex);
+				return NULL;
+			}
+		}
+		/* and one final sleep (of less than 1 s) with the rest (if needed) */
+		if (t > 0.)
+			starpu_sleep(t);
 
 		STARPU_PTHREAD_MUTEX_LOCK(&config->submitted_mutex);
 		if (!config->watchdog_ok && last_nsubmitted
 				&& last_nsubmitted == starpu_task_nsubmitted())
 		{
-			fprintf(stderr,"The StarPU watchdog detected that no task finished for %u.%06us (can be configure through STARPU_WATCHDOG_TIMEOUT)\n", (unsigned)ts.tv_sec, (unsigned)ts.tv_nsec/1000);
+			fprintf(stderr,"The StarPU watchdog detected that no task finished for %fs (can be configure through STARPU_WATCHDOG_TIMEOUT)\n", timeout);
 			if (watchdog_crash)
 			{
 				fprintf(stderr,"Crashing the process\n");

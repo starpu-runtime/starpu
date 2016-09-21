@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009-2012, 2015  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,6 +17,7 @@
  */
 
 #include "mpi_cholesky.h"
+#include "helper.h"
 
 int main(int argc, char **argv)
 {
@@ -38,6 +39,17 @@ int main(int argc, char **argv)
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &nodes);
 	starpu_cublas_init();
+
+	if (starpu_cpu_worker_get_count() + starpu_cuda_worker_get_count() == 0)
+	{
+		if (rank == 0)
+		{
+			FPRINTF(stderr, "We need at least 1 CPU or CUDA worker.\n");
+		}
+		starpu_mpi_shutdown();
+		starpu_shutdown();
+		return STARPU_TEST_SKIPPED;
+	}
 
 	parse_args(argc, argv, nodes);
 

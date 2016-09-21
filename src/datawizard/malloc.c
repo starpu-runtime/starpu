@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2010, 2012-2015  Université de Bordeaux
+ * Copyright (C) 2009-2010, 2012-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -28,9 +28,28 @@
 #include <datawizard/malloc.h>
 #include <core/simgrid.h>
 
+#ifdef STARPU_SIMGRID
+#include <sys/mman.h>
+#include <fcntl.h>
+#endif
+
+#ifndef O_BINARY
+#define O_BINARY 0
+#endif
+
+#ifndef MAP_POPULATE
+#define MAP_POPULATE 0
+#endif
+
 static size_t _malloc_align = sizeof(void*);
 static int disable_pinning;
 static int malloc_on_node_default_flags[STARPU_MAXNODES];
+
+/* This file is used for implementing "folded" allocation */
+#ifdef STARPU_SIMGRID
+static int bogusfile = -1;
+static unsigned long _starpu_malloc_simulation_fold;
+#endif
 
 void starpu_malloc_set_align(size_t align)
 {
@@ -201,6 +220,64 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 #endif /* STARPU_SIMGRID */
 	}
 
+#ifdef STARPU_SIMGRID
+	if (flags & STARPU_MALLOC_SIMULATION_FOLDED)
+	{
+		/* Use "folded" allocation: the same file is mapped several
+		 * times contiguously, to get a memory area one can read/write,
+		 * without consuming memory */
+
+		/* First reserve memory area */
+		void *buf = mmap (NULL, dim, PROT_READ|PROT_WRITE, MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
+		unsigned i;
+		if (buf == MAP_FAILED)
+		{
+			_STARPU_DISP("Warning: could not allocate %luMiB of memory, you need to run \"sysctl vm.overcommit_memory=1\" as root to allow so big allocations\n", (unsigned long) (dim >> 20));
+			ret = -ENOMEM;
+			*A = NULL;
+		}
+		else
+		{
+			if (bogusfile == -1)
+			{
+				char *path = starpu_getenv("TMPDIR");
+				if (!path)
+					path = "/tmp";
+				/* Create bogus file if not done already */
+				char *name = _starpu_mktemp(path, O_RDWR | O_BINARY, &bogusfile);
+				char *dumb;
+				if (!name)
+				{
+					ret = errno;
+					munmap(buf, dim);
+					*A = NULL;
+					goto end;
+				}
+				unlink(name);
+				free(name);
+				dumb = calloc(1,_starpu_malloc_simulation_fold);
+				write(bogusfile, dumb, _starpu_malloc_simulation_fold);
+				free(dumb);
+			}
+			/* Map the bogus file in place of the anonymous memory */
+			for (i = 0; i < dim / _starpu_malloc_simulation_fold; i++)
+			{
+				void *pos = (void*) ((unsigned long) buf + i * _starpu_malloc_simulation_fold);
+				void *res = mmap(pos, _starpu_malloc_simulation_fold, PROT_READ|PROT_WRITE, MAP_FIXED|MAP_SHARED|MAP_POPULATE, bogusfile, 0);
+				STARPU_ASSERT_MSG(res == pos, "Could not map folded virtual memory (%s). Do you perhaps need to increase the STARPU_MALLOC_SIMULATION_FOLD environment variable or the sysctl vm.max_map_count?", strerror(errno));
+			}
+
+			if (dim % _starpu_malloc_simulation_fold)
+			{
+				void *pos = (void*) ((unsigned long) buf + i * _starpu_malloc_simulation_fold);
+				void *res = mmap(pos, dim % _starpu_malloc_simulation_fold, PROT_READ|PROT_WRITE, MAP_FIXED|MAP_SHARED|MAP_POPULATE, bogusfile, 0);
+				STARPU_ASSERT_MSG(res == pos, "Could not map folded virtual memory (%s). Do you perhaps need to increase the STARPU_MALLOC_SIMULATION_FOLD environment variable or the sysctl vm.max_map_count?", strerror(errno));
+			}
+			*A = buf;
+		}
+	}
+	else
+#endif
 	if (_starpu_can_submit_scc_task())
 	{
 #ifdef STARPU_USE_SCC
@@ -233,7 +310,7 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 				ret = -ENOMEM;
 		}
 
-#if !defined(STARPU_SIMGRID) && defined(STARPU_USE_CUDA)
+#if defined(STARPU_SIMGRID) || defined(STARPU_USE_CUDA)
 end:
 #endif
 	if (ret == 0)
@@ -359,6 +436,13 @@ int starpu_free_flags(void *A, size_t dim, int flags)
 	}
 #endif /* STARPU_SIMGRID */
 
+#ifdef STARPU_SIMGRID
+	if (flags & STARPU_MALLOC_SIMULATION_FOLDED)
+	{
+		munmap(A, dim);
+	}
+	else
+#endif
 	if (_starpu_can_submit_scc_task())
 	{
 #ifdef STARPU_USE_SCC
@@ -709,6 +793,10 @@ _starpu_malloc_init(unsigned dst_node)
 	STARPU_PTHREAD_MUTEX_INIT(&chunk_mutex[dst_node], NULL);
 	disable_pinning = starpu_get_env_number("STARPU_DISABLE_PINNING");
 	malloc_on_node_default_flags[dst_node] = STARPU_MALLOC_PINNED | STARPU_MALLOC_COUNT;
+#ifdef STARPU_SIMGRID
+	/* Reasonably "costless" */
+	_starpu_malloc_simulation_fold = starpu_get_env_number_default("STARPU_MALLOC_SIMULATION_FOLD", 1) << 20;
+#endif
 }
 
 void

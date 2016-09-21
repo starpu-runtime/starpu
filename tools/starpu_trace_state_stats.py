@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2.7
 
 ##
 # StarPU --- Runtime system for heterogeneous multicore architectures.
@@ -48,7 +48,7 @@ class EventStats():
         self._count += 1
 
     def show(self):
-        if not self._name == None:
+        if not self._name == None and not self._category == None:
             print "\"" + self._name + "\"," + str(self._count) + ",\"" + self._category + "\"," + str(round(self._duration_time, 6))
 
 class Worker():
@@ -57,6 +57,7 @@ class Worker():
         self._events    = []
         self._stats     = []
         self._stack     = []
+	self._current_state = None
 
     def get_event_stats(self, name):
         for stat in self._stats:
@@ -67,33 +68,76 @@ class Worker():
     def add_event(self, type, name, category, start_time):
         self._events.append(Event(type, name, category, start_time))
 
-    def calc_stats(self):
-        num_events = len(self._events) - 1
-        for i in xrange(0, num_events):
-            curr_event = self._events[i]
-            next_event = self._events[i+1]
+    def add_event_to_stats(self, curr_event):
+	if curr_event._type == "PushState":
+	    self._stack.append(curr_event)
+	    return # Will look later to find a PopState event.
+	elif curr_event._type == "PopState":
+	    if len(self._stack) == 0:
+		sys.exit("ERROR: The trace is most likely corrupted "
+			 "because a PopState event has been found without "
+			 "a PushState!")
+	    next_event = curr_event
+	    curr_event = self._stack.pop()
+	elif curr_event._type == "SetState":
+	    if self._current_state == None:
+		# First SetState event found
+		self._current_state = curr_event
+		return
+	    saved_state = curr_event
+	    next_event = curr_event
+	    curr_event = self._current_state
+	    self._current_state = saved_state
+	else:
+	    sys.exit("ERROR: Invalid event type!")
 
-            if next_event._type == "PushState":
-                self._stack.append(next_event)
-                for j in xrange(i+1, num_events):
-                    next_event = self._events[j]
-                    if next_event._type == "SetState":
-                        break
-            elif next_event._type == "PopState":
-                curr_event = self._stack.pop()
+        # Compute duration with the next event.
+        a = curr_event._start_time
+        b = next_event._start_time
 
-            # Compute duration with the next event.
-            a = curr_event._start_time
-            b = next_event._start_time
+	# Add the event to the list of stats.
+	for i in xrange(len(self._stats)):
+	    if self._stats[i]._name == curr_event._name:
+		self._stats[i].aggregate(b - a)
+		return
+        self._stats.append(EventStats(curr_event._name, b - a,
+				      curr_event._category))
 
-            found = False
-            for j in xrange(len(self._stats)):
-                if self._stats[j]._name == curr_event._name:
-                    self._stats[j].aggregate(b - a)
-                    found = True
-                    break
-            if not found == True:
-                self._stats.append(EventStats(curr_event._name, b - a, curr_event._category))
+    def calc_stats(self, start_profiling_times, stop_profiling_times):
+        num_events = len(self._events)
+	use_start_stop = len(start_profiling_times) != 0
+	for i in xrange(0, num_events):
+	    event = self._events[i]
+	    if i > 0 and self._events[i-1]._name == "Deinitializing":
+		# Drop all events after the Deinitializing event is found
+		# because they do not make sense.
+		break
+
+            if not use_start_stop:
+                self.add_event_to_stats(event)
+		continue
+
+            # Check if the event is inbetween start/stop profiling events
+            for t in xrange(len(start_profiling_times)):
+		if (event._start_time > start_profiling_times[t] and
+		    event._start_time < stop_profiling_times[t]):
+		    self.add_event_to_stats(event)
+		    break
+
+        if not use_start_stop:
+	    return
+
+	# Special case for SetState events which need a next one for computing
+	# the duration.
+	curr_event = self._events[-1]
+	if curr_event._type == "SetState":
+            for i in xrange(len(start_profiling_times)):
+		if (curr_event._start_time > start_profiling_times[i] and
+		    curr_event._start_time < stop_profiling_times[i]):
+		    curr_event = Event(curr_event._type, curr_event._name,
+				       curr_event._category,
+				       stop_profiling_times[i])
+	    self.add_event_to_stats(curr_event)
 
 def read_blocks(input_file):
     empty_lines = 0
@@ -120,23 +164,30 @@ def read_blocks(input_file):
 def read_field(field, index):
     return field[index+1:-1]
 
-def insert_worker_event(workers, block):
+def insert_worker_event(workers, prog_events, block):
     worker_id = -1
     name = None
     start_time = 0.0
     category = None
 
     for line in block:
-        if line[:2] == "E:": # EventType
-            event_type = read_field(line, 2)
-        elif line[:2] == "C:": # Category
-            category = read_field(line, 2)
-        elif line[:2] == "W:": # WorkerId
-            worker_id = int(read_field(line, 2))
-        elif line[:2] == "N:": # Name
-            name = read_field(line, 2)
-        elif line[:2] == "S:": # StartTime
-            start_time = float(read_field(line, 2))
+	key   = line[:2]
+	value = read_field(line, 2)
+        if key == "E:": # EventType
+            event_type = value
+        elif key == "C:": # Category
+            category = value
+        elif key == "W:": # WorkerId
+            worker_id = int(value)
+        elif key == "N:": # Name
+            name = value
+        elif key == "S:": # StartTime
+            start_time = float(value)
+
+    # Program events don't belong to workers, they are globals.
+    if category == "Program":
+	prog_events.append(Event(event_type, name, category, start_time))
+	return
 
     for worker in workers:
         if worker._id == worker_id:
@@ -149,26 +200,33 @@ def insert_worker_event(workers, block):
 def calc_times(stats):
     tr = 0.0 # Runtime
     tt = 0.0 # Task
-    ti = 0.0 # Idle (likely Other)
+    ti = 0.0 # Idle
+    ts = 0.0 # Scheduling
     for stat in stats:
         if stat._category == None:
             continue
         if stat._category == "Runtime":
-            tr += stat._duration_time
+            if stat._name == "Scheduling":
+                # Scheduling time is part of runtime but we want to have
+                # it separately.
+                ts += stat._duration_time
+            else:
+                tr += stat._duration_time
         elif stat._category == "Task":
             tt += stat._duration_time
         elif stat._category == "Other":
             ti += stat._duration_time
         else:
-            sys.exit("Unknown category '" + stat._category + "'!")
-    return (ti, tr, tt)
+	    print "WARNING: Unknown category '" + stat._category + "'!"
+    return (ti, tr, tt, ts)
 
-def save_times(ti, tr, tt):
+def save_times(ti, tr, tt, ts):
     f = open("times.csv", "w+")
     f.write("\"Time\",\"Duration\"\n")
     f.write("\"Runtime\"," + str(tr) + "\n")
     f.write("\"Task\"," + str(tt) + "\n")
-    f.write("\"Other\"," + str(ti) + "\n")
+    f.write("\"Idle\"," + str(ti) + "\n")
+    f.write("\"Scheduling\"," + str(ts) + "\n")
     f.close()
 
 def calc_et(tt_1, tt_p):
@@ -176,26 +234,32 @@ def calc_et(tt_1, tt_p):
     data locality. """
     return tt_1 / tt_p
 
-def calc_er(tt_p, tr_p):
+def calc_es(tt_p, ts_p):
+    """ Compute the scheduling efficiency (es). This measures time spent in
+    the runtime scheduler. """
+    return tt_p / (tt_p + ts_p)
+
+def calc_er(tt_p, tr_p, ts_p):
     """ Compute the runtime efficiency (er). This measures how the runtime
     overhead affects performance."""
-    return tt_p / (tt_p + tr_p)
+    return (tt_p + ts_p) / (tt_p + tr_p + ts_p)
 
-def calc_ep(tt_p, tr_p, ti_p):
+def calc_ep(tt_p, tr_p, ti_p, ts_p):
     """ Compute the pipeline efficiency (et). This measures how much
     concurrency is available and how well it's exploited. """
-    return (tt_p + tr_p) / (tt_p + tr_p + ti_p)
+    return (tt_p + tr_p + ts_p) / (tt_p + tr_p + ti_p + ts_p)
 
-def calc_e(et, er, ep):
+def calc_e(et, er, ep, es):
     """ Compute the parallel efficiency. """
-    return et * er * ep
+    return et * er * ep * es
 
-def save_efficiencies(e, ep, er, et):
+def save_efficiencies(e, ep, er, et, es):
     f = open("efficiencies.csv", "w+")
     f.write("\"Efficiency\",\"Value\"\n")
     f.write("\"Parallel\"," + str(e) + "\n")
     f.write("\"Task\"," + str(et) + "\n")
     f.write("\"Runtime\"," + str(er) + "\n")
+    f.write("\"Scheduling\"," + str(es) + "\n")
     f.write("\"Pipeline\"," + str(ep) + "\n")
     f.close()
 
@@ -255,18 +319,33 @@ def main():
     # Declare a list for all workers.
     workers = []
 
+    # Declare a list for program events
+    prog_events = []
+
     # Read the recutils file format per blocks.
     blocks = read_blocks(recfile)
     for block in blocks:
         if not len(block) == 0:
             first_line = block[0]
             if first_line[:2] == "E:":
-                insert_worker_event(workers, block)
+                insert_worker_event(workers, prog_events, block)
+
+    # Find allowed range times between start/stop profiling events.
+    start_profiling_times = []
+    stop_profiling_times = []
+    for prog_event in prog_events:
+	if prog_event._name == "start_profiling":
+	    start_profiling_times.append(prog_event._start_time)
+	if prog_event._name == "stop_profiling":
+	    stop_profiling_times.append(prog_event._start_time)
+
+    if len(start_profiling_times) != len(stop_profiling_times):
+	sys.exit("Mismatch number of start/stop profiling events!")
 
     # Compute worker statistics.
     stats = []
     for worker in workers:
-        worker.calc_stats()
+        worker.calc_stats(start_profiling_times, stop_profiling_times)
         for stat in worker._stats:
             found = False
             for s in stats:
@@ -290,26 +369,27 @@ def main():
     for stat in stats:
         stat.show()
 
-    # Compute runtime, task, idle times and dump them to times.csv
-    ti_p = tr_p = tt_p = 0.0
+    # Compute runtime, task, idle, scheduling times and dump them to times.csv
+    ti_p = tr_p = tt_p = ts_p = 0.0
     if dump_time == True:
-        ti_p, tr_p, tt_p = calc_times(stats)
-        save_times(ti_p, tr_p, tt_p)
+        ti_p, tr_p, tt_p, ts_p = calc_times(stats)
+        save_times(ti_p, tr_p, tt_p, ts_p)
 
     # Compute runtime, task, idle efficiencies and dump them to
     # efficiencies.csv.
     if dump_efficiency == True or not tt_1 == 0.0:
         if dump_time == False:
-            ti_p, tr_p, tt_p = calc_times(stats)
+            ti_p, tr_p, tt_p, ts_p = calc_times(stats)
         if tt_1 == 0.0:
             sys.stderr.write("WARNING: Task efficiency will be 1.0 because -s is not set!\n")
             tt_1 = tt_p
 
         # Compute efficiencies.
-        ep = round(calc_ep(tt_p, tr_p, ti_p), 6)
-        er = round(calc_er(tt_p, tr_p), 6)
         et = round(calc_et(tt_1, tt_p), 6)
-        e  = round(calc_e(et, er, ep), 6)
-        save_efficiencies(e, ep, er, et)
+        es = round(calc_es(tt_p, ts_p), 6)
+        er = round(calc_er(tt_p, tr_p, ts_p), 6)
+        ep = round(calc_ep(tt_p, tr_p, ti_p, ts_p), 6)
+        e  = round(calc_e(et, er, ep, es), 6)
+        save_efficiencies(e, ep, er, et, es)
 if __name__ == "__main__":
     main()

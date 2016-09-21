@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2015  Université de Bordeaux
+ * Copyright (C) 2009-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2011, 2014  INRIA
@@ -24,6 +24,7 @@
 #include <core/dependencies/data_concurrency.h>
 #include <common/config.h>
 #include <common/utils.h>
+#include <common/graph.h>
 #include <profiling/profiling.h>
 #include <profiling/bound.h>
 #include <starpu_top.h>
@@ -31,13 +32,32 @@
 #include <core/debug.h>
 
 /* we need to identify each task to generate the DAG. */
-static unsigned job_cnt = 0;
+static unsigned long job_cnt = 0;
+static int max_memory_use;
+static int njobs, maxnjobs;
 
 #ifdef STARPU_DEBUG
 /* List of all jobs, for debugging */
-static struct _starpu_job *all_jobs_list;
+static struct _starpu_job_list all_jobs_list;
 static starpu_pthread_mutex_t all_jobs_list_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 #endif
+
+void _starpu_job_init(void)
+{
+	max_memory_use = starpu_get_env_number_default("STARPU_MAX_MEMORY_USE", 0);
+#ifdef STARPU_DEBUG
+	_starpu_job_list_init(&all_jobs_list);
+#endif
+}
+
+void _starpu_job_fini(void)
+{
+	if (max_memory_use)
+	{
+		_STARPU_DISP("Memory used for %d tasks: %lu MiB\n", maxnjobs, (unsigned long) (maxnjobs * (sizeof(struct starpu_task) + sizeof(struct _starpu_job))) >> 20);
+		STARPU_ASSERT_MSG(njobs == 0, "Some tasks have not been cleaned, did you forget to call starpu_task_destroy or starpu_task_clean?");
+	}
+}
 
 void _starpu_exclude_task_from_dag(struct starpu_task *task)
 {
@@ -52,7 +72,7 @@ struct _starpu_job* STARPU_ATTRIBUTE_MALLOC _starpu_job_create(struct starpu_tas
 	struct _starpu_job *job;
         _STARPU_LOG_IN();
 
-	job = _starpu_job_new();
+	job = malloc(sizeof(*job));
 
 	/* As most of the fields must be initialized at NULL, let's put 0
 	 * everywhere */
@@ -67,14 +87,15 @@ struct _starpu_job* STARPU_ATTRIBUTE_MALLOC _starpu_job_create(struct starpu_tas
 	job->task = task;
 
 #ifndef STARPU_USE_FXT
-	if (_starpu_bound_recording || _starpu_top_status_get()
+	if (_starpu_bound_recording || _starpu_top_status_get() ||
+		_starpu_task_break_on_push != -1 || _starpu_task_break_on_pop != -1 || _starpu_task_break_on_sched != -1
 #ifdef HAVE_AYUDAME_H
 		|| AYU_event
 #endif
 			)
 #endif
 	{
-		job->job_id = STARPU_ATOMIC_ADD(&job_cnt, 1);
+		job->job_id = STARPU_ATOMIC_ADDL(&job_cnt, 1);
 #ifdef HAVE_AYUDAME_H
 		if (AYU_event)
 		{
@@ -83,6 +104,12 @@ struct _starpu_job* STARPU_ATTRIBUTE_MALLOC _starpu_job_create(struct starpu_tas
 			AYU_event(AYU_ADDTASK, job->job_id, AYU_data);
 		}
 #endif
+	}
+	if (max_memory_use)
+	{
+		int jobs = STARPU_ATOMIC_ADDL(&njobs, 1);
+		if (jobs > maxnjobs)
+			maxnjobs = jobs;
 	}
 
 	_starpu_cg_list_init(&job->job_successors);
@@ -95,6 +122,9 @@ struct _starpu_job* STARPU_ATTRIBUTE_MALLOC _starpu_job_create(struct starpu_tas
 
 	if (task->use_tag)
 		_starpu_tag_declare(task->tag_id, job);
+
+	if (_starpu_graph_record)
+		_starpu_graph_add_job(job);
 
         _STARPU_LOG_OUT();
 	return job;
@@ -128,7 +158,13 @@ void _starpu_job_destroy(struct _starpu_job *j)
 		j->dyn_dep_slots = NULL;
 	}
 
-	_starpu_job_delete(j);
+	if (_starpu_graph_record)
+		_starpu_graph_drop_job(j);
+
+	if (max_memory_use)
+		(void) STARPU_ATOMIC_ADDL(&njobs, -1);
+
+	free(j);
 }
 
 int _starpu_job_finished(struct _starpu_job *j)
@@ -229,13 +265,7 @@ void _starpu_handle_job_submission(struct _starpu_job *j)
 
 #ifdef STARPU_DEBUG
 	STARPU_PTHREAD_MUTEX_LOCK(&all_jobs_list_mutex);
-	STARPU_ASSERT(!j->next_all);
-	STARPU_ASSERT(!j->prev_all && all_jobs_list != j);
-	if (all_jobs_list)
-		all_jobs_list->prev_all = j;
-	j->next_all = all_jobs_list;
-	j->prev_all = NULL;
-	all_jobs_list = j;
+	_starpu_job_list_push_back(&all_jobs_list, j, all_submitted);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&all_jobs_list_mutex);
 #endif
 }
@@ -255,23 +285,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 
 #ifdef STARPU_DEBUG
 	STARPU_PTHREAD_MUTEX_LOCK(&all_jobs_list_mutex);
-	if (j->next_all)
-	{
-		STARPU_ASSERT(j->next_all->prev_all == j);
-		j->next_all->prev_all = j->prev_all;
-	}
-	if (j->prev_all)
-	{
-		STARPU_ASSERT(j->prev_all->next_all == j);
-		j->prev_all->next_all = j->next_all;
-	}
-	else
-	{
-		STARPU_ASSERT(all_jobs_list == j);
-		all_jobs_list = j->next_all;
-	}
-	j->next_all = NULL;
-	j->prev_all = NULL;
+	_starpu_job_list_erase(&all_jobs_list, j, all_submitted);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&all_jobs_list_mutex);
 #endif
 
@@ -331,6 +345,10 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 		 * implicit dependencies any more.  */
 		_starpu_release_task_enforce_sequential_consistency(j);
 	}
+
+	/* Remove ourself from the graph before notifying dependencies */
+	if (_starpu_graph_record)
+		_starpu_graph_drop_job(j);
 
 	/* Task does not have a cl, but has explicit data dependencies, we need
 	 * to tell them that we will not exist any more before notifying the
@@ -512,14 +530,14 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	worker = _starpu_get_local_worker_key();
 	if (worker)
 	{
-		STARPU_PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
+		STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
 
 		if(worker->removed_from_ctx[sched_ctx] == 1 && worker->shares_tasks_lists[sched_ctx] == 1)
 		{
 			_starpu_worker_gets_out_of_ctx(sched_ctx, worker);
 			worker->removed_from_ctx[sched_ctx] = 0;
 		}
-		STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 	}
 }
 
@@ -712,7 +730,7 @@ int _starpu_push_local_task(struct _starpu_worker *worker, struct starpu_task *t
 	if (STARPU_UNLIKELY(!(worker->worker_mask & task->cl->where)))
 		return -ENODEV;
 
-	STARPU_PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
 
 	if (task->execute_on_a_specific_worker && task->workerorder)
 	{
@@ -732,10 +750,13 @@ int _starpu_push_local_task(struct _starpu_worker *worker, struct starpu_task *t
 				alloc *= 2;
 			new = malloc(alloc * sizeof(*new));
 
-			/* Put existing tasks at the beginning of the new ring */
-			copied = worker->local_ordered_tasks_size - worker->current_ordered_task;
-			memcpy(new, &worker->local_ordered_tasks[worker->current_ordered_task], copied * sizeof(*new));
-			memcpy(new + copied, worker->local_ordered_tasks, (worker->local_ordered_tasks_size - copied) * sizeof(*new));
+			if (worker->local_ordered_tasks_size)
+			{
+				/* Put existing tasks at the beginning of the new ring */
+				copied = worker->local_ordered_tasks_size - worker->current_ordered_task;
+				memcpy(new, &worker->local_ordered_tasks[worker->current_ordered_task], copied * sizeof(*new));
+				memcpy(new + copied, worker->local_ordered_tasks, (worker->local_ordered_tasks_size - copied) * sizeof(*new));
+			}
 			memset(new + worker->local_ordered_tasks_size, 0, (alloc - worker->local_ordered_tasks_size) * sizeof(*new));
 			free(worker->local_ordered_tasks);
 			worker->local_ordered_tasks = new;
@@ -754,7 +775,7 @@ int _starpu_push_local_task(struct _starpu_worker *worker, struct starpu_task *t
 
 	starpu_wake_worker_locked(worker->workerid);
 	starpu_push_task_end(task);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 
 	return 0;
 }

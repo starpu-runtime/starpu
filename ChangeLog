@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2015  Université de Bordeaux
-# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+# Copyright (C) 2009-2016  Université de Bordeaux
+# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
 # Copyright (C) 2014 INRIA
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -19,14 +19,20 @@ StarPU 1.3.0 (svn revision xxxx)
 ==============================================
 
 New features:
-  * Enable anticipative writeback by default.
   * New scheduler with heterogeneous priorities
   * Support priorities for data transfers.
 
 Changes:
   * Vastly improve simgrid simulation time.
 
-StarPU 1.2.0 (svn revision xxxx)
+StarPU 1.2.1 (svn revision xxx)
+==============================================
+New features:
+  * Add starpu_fxt_trace_user_event_string.
+  * Add starpu_tasks_rec_complete tool to add estimation times in tasks.rec
+    files.
+
+StarPU 1.2.0 (svn revision 18521)
 ==============================================
 
 New features:
@@ -61,7 +67,6 @@ New features:
 	  basic tracing of communications.
 	- New function starpu_mpi_init_comm() which allows to specify
 	  a MPI communicator.
-
   * New STARPU_COMMUTE flag which can be passed along STARPU_W or STARPU_RW to
     let starpu commute write accesses.
   * Out-of-core support, through registration of disk areas as additional memory
@@ -96,15 +101,16 @@ New features:
     only when the bus is idle.
   * Make starpu_data_prefetch_on_node not forcibly flush data out, introduce
     starpu_data_fetch_on_node for that.
+  * Add data access arbiters, to improve parallelism of concurrent data
+    accesses, notably with STARPU_COMMUTE.
   * Anticipative writeback, to flush dirty data asynchronously before the
     GPU device is full. Disabled by default. Use STARPU_MINIMUM_CLEAN_BUFFERS
     and STARPU_TARGET_CLEAN_BUFFERS to enable it.
   * Add starpu_data_wont_use to advise that a piece of data will not be used
     in the close future.
+  * Enable anticipative writeback by default.
   * New scheduler 'dmdasd' that considers priority when deciding on
     which worker to schedule
-  * Add data access arbiters, to improve parallelism of concurrent data
-    accesses, notably with STARPU_COMMUTE.
   * Add the capability to define specific MPI datatypes for
     StarPU user-defined interfaces.
   * Add tasks.rec trace output to make scheduling analysis easier.
@@ -113,6 +119,14 @@ New features:
   * Generate animated html trace of modular schedulers.
   * Add asynchronous partition planning. It only supports coherency through
     the home node of data for now.
+  * Add STARPU_MALLOC_SIMULATION_FOLDED flag to save memory when simulating.
+  * Include application threads in the trace.
+  * Add starpu_task_get_task_scheduled_succs to get successors of a task.
+  * Add graph inspection facility for schedulers.
+  * New STARPU_LOCALITY flag to mark data which should be taken into account
+    by schedulers for improving locality.
+  * Experimental support for data locality in ws and lws.
+  * Add a preliminary framework for native Fortran support for StarPU
 
 Small features:
   * Tasks can now have a name (via the field const char *name of
@@ -155,21 +169,45 @@ Small features:
     its own allocation to the reclaiming engine.
   * Add STARPU_SIMGRID_CUDA_MALLOC_COST and STARPU_SIMGRID_CUDA_QUEUE_COST to
     disable CUDA costs simulation in simgrid mode.
-  * Add starpu_memory_pin and starpu_memory_unpin to pin memory allocated
-    another way than starpu_malloc.
-  * Add STARPU_NOWHERE to create synchronization tasks with data.
-  * Document how to switch between differents views of the same data.
-  * Add STARPU_NAME to specify a task name from a starpu_task_insert call.
   * Add starpu_task_get_task_succs to get the list of children of a given
     task.
   * Add starpu_malloc_on_node_flags, starpu_free_on_node_flags, and
     starpu_malloc_on_node_set_default_flags to control the allocation flags
     used for allocations done by starpu.
+  * Ranges can be provided in STARPU_WORKERS_CPUID
+  * Add starpu_fxt_autostart_profiling to be able to avoid autostart.
+  * Add arch_cost_function perfmodel function field.
+  * Add STARPU_TASK_BREAK_ON_SCHED, STARPU_TASK_BREAK_ON_PUSH, and
+  STARPU_TASK_BREAK_ON_POP environment variables to debug schedulers.
+  * Add starpu_sched_display tool.
+  * Add starpu_memory_pin and starpu_memory_unpin to pin memory allocated
+    another way than starpu_malloc.
+  * Add STARPU_NOWHERE to create synchronization tasks with data.
+  * Document how to switch between differents views of the same data.
+  * Add STARPU_NAME to specify a task name from a starpu_task_insert call.
   * Add configure option to disable fortran --disable-fortran
   * Add configure option to give path for smpirun executable --with-smpirun
   * Add configure option to disable the build of tests --disable-build-tests
   * Add starpu-all-tasks debugging support
-  * Ranges can be provided in STARPU_WORKERS_CPUID
+  * New function
+    void starpu_opencl_load_program_source_malloc(const char *source_file_name, char **located_file_name, char **located_dir_name, char **opencl_program_source)
+    which allocates the pointers located_file_name, located_dir_name
+    and opencl_program_source.
+  * Add submit_hook and do_schedule scheduler methods.
+  * Add starpu_sleep.
+  * Add starpu_task_list_ismember.
+  * Add _starpu_fifo_pop_this_task.
+  * Add STARPU_MAX_MEMORY_USE environment variable.
+  * Add starpu_worker_get_id_check().
+  * New function starpu_mpi_wait_for_all(MPI_Comm comm) that allows to
+    wait until all StarPU tasks and communications for the given
+    communicator are completed.
+  * New function starpu_codelet_unpack_args_and_copyleft() which
+    allows to copy in a new buffer values which have not been unpacked by
+    the current call
+  * Add STARPU_CODELET_SIMGRID_EXECUTE flag.
+  * Add STARPU_CL_ARGS flag to starpu_task_insert() and
+    starpu_mpi_task_insert() functions call
 
 Changes:
   * Data interfaces (variable, vector, matrix and block) now define
@@ -185,6 +223,8 @@ Changes:
 Small changes:
   * Rename function starpu_trace_user_event() as
     starpu_fxt_trace_user_event()
+  * "power" is renamed into "energy" wherever it applies, notably energy
+    consumption performance models
   * Update starpu_task_build() to set starpu_task::cl_arg_free to 1 if
     some arguments of type ::STARPU_VALUE are given.
   * Simplify performance model loading API

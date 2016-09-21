@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2014-2015  Université de Bordeaux
+ * Copyright (C) 2009, 2010, 2014-2016  Université de Bordeaux
  * Copyright (C) 2010, 2012  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -21,8 +21,7 @@
 
 #define MIN(a,b)	((a)<(b)?(a):(b))
 
-extern "C" __global__ 
-void spmv_kernel(uint32_t nnz, uint32_t nrow, float *nzval, uint32_t *colind, uint32_t *rowptr, 
+extern "C" __global__ void spmv_kernel(uint32_t nnz, uint32_t nrow, float *nzval, uint32_t *colind, uint32_t *rowptr, 
 			uint32_t firstentry, uint32_t elemsize, 
 			float *vecin, uint32_t nx_in, uint32_t elemsize1, float * vecout, uint32_t nx_out, uint32_t elemsize2)
 {
@@ -51,8 +50,7 @@ void spmv_kernel(uint32_t nnz, uint32_t nrow, float *nzval, uint32_t *colind, ui
 	}
 }
 
-extern "C" __global__ 
-void spmv_kernel_3(uint32_t nnz, uint32_t nrow, float *nzval, uint32_t *colind, uint32_t *rowptr, 
+extern "C" __global__ void spmv_kernel_3(uint32_t nnz, uint32_t nrow, float *nzval, uint32_t *colind, uint32_t *rowptr, 
 			uint32_t firstentry, 
 			float *vecin, uint32_t nx_in, float * vecout, uint32_t nx_out)
 {

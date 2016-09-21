@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2010-2016  Université de Bordeaux
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -51,6 +51,7 @@ extern "C"
 #  define STARPU_ATTRIBUTE_WARN_UNUSED_RESULT      __attribute__((warn_unused_result))
 #  define STARPU_ATTRIBUTE_PURE                    __attribute__((pure))
 #  define STARPU_ATTRIBUTE_ALIGNED(size)           __attribute__((aligned(size)))
+#  define STARPU_ATTRIBUTE_FORMAT(type, string, first)                  __attribute__((format(type, string, first)))
 #else
 #  define STARPU_UNLIKELY(expr)          (expr)
 #  define STARPU_LIKELY(expr)            (expr)
@@ -61,6 +62,7 @@ extern "C"
 #  define STARPU_ATTRIBUTE_WARN_UNUSED_RESULT
 #  define STARPU_ATTRIBUTE_PURE
 #  define STARPU_ATTRIBUTE_ALIGNED(size)
+#  define STARPU_ATTRIBUTE_FORMAT(type, string, first)
 #endif
 
 /* Note that if we're compiling C++, then just use the "inline"
@@ -71,6 +73,14 @@ extern "C"
 #  define STARPU_INLINE __inline
 #else
 #  define STARPU_INLINE __inline__
+#endif
+
+#if STARPU_GNUC_PREREQ(4, 3)
+#  define STARPU_ATTRIBUTE_CALLOC_SIZE(num,size)   __attribute__((alloc_size(num,size)))
+#  define STARPU_ATTRIBUTE_ALLOC_SIZE(size)        __attribute__((alloc_size(size)))
+#else
+#  define STARPU_ATTRIBUTE_CALLOC_SIZE(num,size)
+#  define STARPU_ATTRIBUTE_ALLOC_SIZE(size)
 #endif
 
 #if STARPU_GNUC_PREREQ(3, 1) && !defined(BUILDING_STARPU) && !defined(STARPU_USE_DEPRECATED_API) && !defined(STARPU_USE_DEPRECATED_ONE_ZERO_API)
@@ -103,6 +113,7 @@ extern "C"
 
 #ifdef STARPU_NO_ASSERT
 #define STARPU_ASSERT(x)		do { } while(0)
+#define STARPU_ASSERT_ACCESSIBLE(x)	do { } while(0)
 #define STARPU_ASSERT_MSG(x, msg, ...)	do { } while(0)
 #else
 #  if defined(__CUDACC__) || defined(STARPU_HAVE_WINDOWS)
@@ -113,10 +124,13 @@ extern "C"
 #    define STARPU_ASSERT_MSG(x, msg, ...)	do { if (STARPU_UNLIKELY(!(x))) { STARPU_DUMP_BACKTRACE(); fprintf(stderr, "\n[starpu][%s][assert failure] " msg "\n\n", __starpu_func__, ## __VA_ARGS__); assert(x); } } while(0)
 
 #  endif
+#  define STARPU_ASSERT_ACCESSIBLE(ptr)	do { \
+	volatile char __c STARPU_ATTRIBUTE_UNUSED = *(char*) (ptr); \
+} while(0)
 #endif
 
 #ifdef __APPLE_CC__
-#  define _starpu_abort() *(int*)NULL = 0
+#  define _starpu_abort() *(volatile int*)NULL = 0
 #else
 #  define _starpu_abort() abort()
 #endif
@@ -165,6 +179,37 @@ static __starpu_inline unsigned starpu_xchg(unsigned *ptr, unsigned next)
 	return next;
 }
 #define STARPU_HAVE_XCHG
+
+#if defined(__i386__)
+static __starpu_inline unsigned long starpu_cmpxchgl(unsigned long *ptr, unsigned long old, unsigned long next)
+{
+	__asm__ __volatile__("lock cmpxchgl %2,%1": "+a" (old), "+m" (*ptr) : "q" (next) : "memory");
+	return old;
+}
+static __starpu_inline unsigned long starpu_xchgl(unsigned long *ptr, unsigned long next)
+{
+	/* Note: xchg is always locked already */
+	__asm__ __volatile__("xchgl %1,%0": "+m" (*ptr), "+q" (next) : : "memory");
+	return next;
+}
+#define STARPU_HAVE_XCHGL
+#endif
+
+#if defined(__x86_64__)
+static __starpu_inline unsigned long starpu_cmpxchgl(unsigned long *ptr, unsigned long old, unsigned long next)
+{
+	__asm__ __volatile__("lock cmpxchgq %2,%1": "+a" (old), "+m" (*ptr) : "q" (next) : "memory");
+	return old;
+}
+static __starpu_inline unsigned long starpu_xchgl(unsigned long *ptr, unsigned long next)
+{
+	/* Note: xchg is always locked already */
+	__asm__ __volatile__("xchgq %1,%0": "+m" (*ptr), "+q" (next) : : "memory");
+	return next;
+}
+#define STARPU_HAVE_XCHGL
+#endif
+
 #endif
 
 #define STARPU_ATOMIC_SOMETHING(name,expr) \
@@ -180,19 +225,46 @@ static __starpu_inline unsigned starpu_atomic_##name(unsigned *ptr, unsigned val
 	}; \
 	return expr; \
 }
+#define STARPU_ATOMIC_SOMETHINGL(name,expr) \
+static __starpu_inline unsigned long starpu_atomic_##name##l(unsigned long *ptr, unsigned long value) \
+{ \
+	unsigned long old, next; \
+	while (1) \
+	{ \
+		old = *ptr; \
+		next = expr; \
+		if (starpu_cmpxchgl(ptr, old, next) == old) \
+			break; \
+	}; \
+	return expr; \
+}
 
 #ifdef STARPU_HAVE_SYNC_FETCH_AND_ADD
 #define STARPU_ATOMIC_ADD(ptr, value)  (__sync_fetch_and_add ((ptr), (value)) + (value))
-#elif defined(STARPU_HAVE_XCHG)
+#define STARPU_ATOMIC_ADDL(ptr, value)  (__sync_fetch_and_add ((ptr), (value)) + (value))
+#else
+#if defined(STARPU_HAVE_XCHG)
 STARPU_ATOMIC_SOMETHING(add, old + value)
 #define STARPU_ATOMIC_ADD(ptr, value) starpu_atomic_add(ptr, value)
+#endif
+#if defined(STARPU_HAVE_XCHGL)
+STARPU_ATOMIC_SOMETHINGL(add, old + value)
+#define STARPU_ATOMIC_ADDL(ptr, value) starpu_atomic_addl(ptr, value)
+#endif
 #endif
 
 #ifdef STARPU_HAVE_SYNC_FETCH_AND_OR
 #define STARPU_ATOMIC_OR(ptr, value)  (__sync_fetch_and_or ((ptr), (value)))
-#elif defined(STARPU_HAVE_XCHG)
+#define STARPU_ATOMIC_ORL(ptr, value)  (__sync_fetch_and_or ((ptr), (value)))
+#else
+#if defined(STARPU_HAVE_XCHG)
 STARPU_ATOMIC_SOMETHING(or, old | value)
 #define STARPU_ATOMIC_OR(ptr, value) starpu_atomic_or(ptr, value)
+#endif
+#if defined(STARPU_HAVE_XCHGL)
+STARPU_ATOMIC_SOMETHINGL(or, old | value)
+#define STARPU_ATOMIC_ORL(ptr, value) starpu_atomic_orl(ptr, value)
+#endif
 #endif
 
 #ifdef STARPU_HAVE_SYNC_BOOL_COMPARE_AND_SWAP
@@ -280,6 +352,7 @@ static __starpu_inline int starpu_get_env_number(const char *str)
 		}
 
 		/* fprintf(stderr, "ENV %s WAS %d\n", str, val); */
+		STARPU_ASSERT_MSG(val >= 0, "The value for the environment variable '%s' cannot be negative", str);
 		return (int)val;
 	}
 	else

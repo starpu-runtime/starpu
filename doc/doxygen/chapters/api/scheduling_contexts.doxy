@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016  CNRS
  * Copyright (C) 2011, 2012 INRIA
  * See the file version.doxy for copying conditions.
  */
@@ -36,6 +36,11 @@ hypervisor how the application and the resources are executing.
 
 @name Scheduling Contexts Basic API
 \ingroup API_Scheduling_Contexts
+
+\def STARPU_NMAX_SCHED_CTXS
+\ingroup API_Scheduling_Policy
+Define the maximum number of scheduling contexts managed by StarPU. The default value can be
+modified at configure by using the option \ref enable-max-sched-ctxs "--enable-max-sched-ctxs".
 
 \fn unsigned starpu_sched_ctx_create(int *workerids_ctx, int nworkers_ctx, const char *sched_ctx_name, ...)
 \ingroup API_Scheduling_Contexts
@@ -87,6 +92,11 @@ minimum scheduler priority value.
 \ingroup API_Scheduling_Contexts
 This macro is used when calling starpu_sched_ctx_create() to specify a
 maximum scheduler priority value.
+
+\def STARPU_SCHED_CTX_POLICY_INIT
+\ingroup API_Scheduling_Contexts
+This macro is used when calling starpu_sched_ctx_create() to specify a
+function pointer allowing to initialize the scheduling policy.
 
 \fn unsigned starpu_sched_ctx_create_inside_interval(const char *policy_name, const char *sched_ctx_name, int min_ncpus, int max_ncpus, int min_ngpus, int max_ngpus, unsigned allow_overlap)
 \ingroup API_Scheduling_Contexts
@@ -168,7 +178,7 @@ Return 1 if the worker belongs to the context and 0 otherwise
 \ingroup API_Scheduling_Contexts
 Return the workerid if the worker belongs to the context and -1 otherwise.
 If the thread calling this function is not a worker the function returns -1
-as it calls the function \ref starpu_worker_get_id()
+as it calls the function starpu_worker_get_id().
 
 \fn unsigned starpu_sched_ctx_overlapping_ctxs_on_worker(int workerid)
 \ingroup API_Scheduling_Contexts

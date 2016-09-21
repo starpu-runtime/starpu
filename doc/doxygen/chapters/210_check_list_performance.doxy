@@ -1,0 +1,385 @@
+/*
+ * This file is part of the StarPU Handbook.
+ * Copyright (C) 2009--2011  Universit@'e de Bordeaux
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016  CNRS
+ * Copyright (C) 2011, 2012 INRIA
+ * See the file version.doxy for copying conditions.
+ */
+
+/*! \page CheckListWhenPerformanceAreNotThere Check List When Performance Are Not There
+
+TODO: improve!
+
+To achieve good
+performance, we give below a list of features which should be checked.
+
+\section ConfigurationImprovePerformance Configuration That May Improve Performance
+
+The \ref enable-fast "--enable-fast" configuration option disables all
+assertions. This makes StarPU more performant for really small tasks by
+disabling all sanity checks. Only use this for measurements and production, not for development, since this will drop all basic checks.
+
+
+\section DataRelatedFeaturesToImprovePerformance Data Related Features That May Improve Performance
+
+link to \ref DataManagement
+
+link to \ref DataPrefetch
+
+\section TaskRelatedFeaturesToImprovePerformance Task Related Features That May Improve Performance
+
+link to \ref TaskGranularity
+
+link to \ref TaskSubmission
+
+link to \ref TaskPriorities
+
+\section SchedulingRelatedFeaturesToImprovePerformance Scheduling Related Features That May Improve Performance
+
+link to \ref TaskSchedulingPolicy
+
+link to \ref TaskDistributionVsDataTransfer
+
+link to \ref Energy-basedScheduling
+
+link to \ref StaticScheduling
+
+\section CUDA-specificOptimizations CUDA-specific Optimizations
+
+Due to CUDA limitations, StarPU will have a hard time overlapping its own
+communications and the codelet computations if the application does not use a
+dedicated CUDA stream for its computations instead of the default stream,
+which synchronizes all operations of the GPU. StarPU provides one by the use
+of starpu_cuda_get_local_stream() which can be used by all CUDA codelet
+operations to avoid this issue. For instance:
+
+\code{.c}
+func <<<grid,block,0,starpu_cuda_get_local_stream()>>> (foo, bar);
+cudaStreamSynchronize(starpu_cuda_get_local_stream());
+\endcode
+
+Unfortunately, some CUDA libraries do not have stream variants of
+kernels. That will lower the potential for overlapping.
+
+Calling starpu_cublas_init() makes StarPU already do appropriate calls for the
+CUBLAS library. Some libraries like Magma may however change the current stream,
+one then has to call <c>cublasSetKernelStream(starpu_cuda_get_local_stream())</c> at
+the beginning of the codelet to make sure that CUBLAS is really using the proper
+stream.
+
+If the kernel can be made to only use this local stream or other self-allocated
+streams, i.e. the whole kernel submission can be made asynchronous, then
+one should enable asynchronous execution of the kernel.  That means setting
+the flag ::STARPU_CUDA_ASYNC in the corresponding field starpu_codelet::cuda_flags, and dropping the
+<c>cudaStreamSynchronize()</c> call at the end of the <c>cuda_func</c> function, so that it
+returns immediately after having queued the kernel to the local stream. That way, StarPU will be
+able to submit and complete data transfers while kernels are executing, instead of only at each
+kernel submission. The kernel just has to make sure that StarPU can use the
+local stream to synchronize with the kernel startup and completion.
+
+Using the flag ::STARPU_CUDA_ASYNC also permits to enable concurrent kernel
+execution, on cards which support it (Kepler and later, notably). This is
+enabled by setting the environment variable \ref STARPU_NWORKER_PER_CUDA to the
+number of kernels to execute concurrently.  This is useful when kernels are
+small and do not feed the whole GPU with threads to run.
+
+\section OpenCL-specificOptimizations OpenCL-specific Optimizations
+
+If the kernel can be made to only use the StarPU-provided command queue or other self-allocated
+queues, i.e. the whole kernel submission can be made asynchronous, then
+one should enable asynchronous execution of the kernel. This means setting
+the flag ::STARPU_OPENCL_ASYNC in the corresponding field starpu_codelet::opencl_flags and dropping the
+<c>clFinish()</c> and starpu_opencl_collect_stats() calls at the end of the kernel, so
+that it returns immediately after having queued the kernel to the provided queue.
+That way, StarPU will be able to submit and complete data transfers while kernels are executing, instead of
+only at each kernel submission. The kernel just has to make sure
+that StarPU can use the command queue it has provided to synchronize with the
+kernel startup and completion.
+
+\section DetectionStuckConditions Detecting Stuck Conditions
+
+It may happen that for some reason, StarPU does not make progress for a long
+period of time.  Reason are sometimes due to contention inside StarPU, but
+sometimes this is due to external reasons, such as stuck MPI driver, or CUDA
+driver, etc.
+
+<c>export STARPU_WATCHDOG_TIMEOUT=10000</c> (\ref STARPU_WATCHDOG_TIMEOUT)
+
+allows to make StarPU print an error message whenever StarPU does not terminate
+any task for 10ms, but lets the application continue normally. In addition to that,
+
+<c>export STARPU_WATCHDOG_CRASH=1</c> (\ref STARPU_WATCHDOG_CRASH)
+
+raises <c>SIGABRT</c> in that condition, thus allowing to catch the situation in gdb.
+It can also be useful to type <c>handle SIGABRT nopass</c> in <c>gdb</c> to be able to let
+the process continue, after inspecting the state of the process.
+
+\section HowToLimitMemoryPerNode How to Limit Memory Used By StarPU And Cache Buffer Allocations
+
+By default, StarPU makes sure to use at most 90% of the memory of GPU devices,
+moving data in and out of the device as appropriate and with prefetch and
+writeback optimizations. Concerning the main memory, by default it will not
+limit its consumption, since by default it has nowhere to push the data to when
+memory gets tight. This also means that by default StarPU will not cache buffer
+allocations in main memory, since it does not know how much of the system memory
+it can afford.
+
+In the case of GPUs, the \ref STARPU_LIMIT_CUDA_MEM, \ref STARPU_LIMIT_CUDA_devid_MEM,
+\ref STARPU_LIMIT_OPENCL_MEM, and \ref STARPU_LIMIT_OPENCL_devid_MEM environment variables
+can be used to control how
+much (in MiB) of the GPU device memory should be used at most by StarPU (their
+default values are 90% of the available memory).
+
+In the case of the main memory, the \ref STARPU_LIMIT_CPU_MEM environment
+variable can be used to specify how much (in MiB) of the main memory should be
+used at most by StarPU for buffer allocations. This way, StarPU will be able to
+cache buffer allocations (which can be a real benefit if a lot of bufferes are
+involved, or if allocation fragmentation can become a problem), and when using
+\ref OutOfCore, StarPU will know when it should evict data out to the disk.
+
+It should be noted that by default only buffer allocations automatically
+done by StarPU are accounted here, i.e. allocations performed through
+starpu_malloc_on_node() which are used by the data interfaces
+(matrix, vector, etc.).  This does not include allocations performed by
+the application through e.g. malloc(). It does not include allocations
+performed through starpu_malloc() either, only allocations
+performed explicitly with the \ref STARPU_MALLOC_COUNT flag, i.e. by calling
+
+\code{.c}
+starpu_malloc_flags(STARPU_MALLOC_COUNT)
+\endcode
+
+are taken into account.  If the
+application wants to make StarPU aware of its own allocations, so that StarPU
+knows precisely how much data is allocated, and thus when to evict allocation
+caches or data out to the disk, starpu_memory_allocate() can be used to
+specify an amount of memory to be accounted for. starpu_memory_deallocate()
+can be used to account freed memory back. Those can for instance be used by data
+interfaces with dynamic data buffers: instead of using starpu_malloc_on_node(),
+they would dynamically allocate data with malloc/realloc, and notify starpu of
+the delta thanks to starpu_memory_allocate() and starpu_memory_deallocate() calls.
+
+starpu_memory_get_total() and starpu_memory_get_available()
+can be used to get an estimation of how much memory is available.
+starpu_memory_wait_available() can also be used to block until an
+amount of memory becomes available, but it may be preferrable to call
+
+\code{.c}
+starpu_memory_allocate(STARPU_MEMORY_WAIT)
+\endcode
+
+to reserve that amount immediately.
+
+\section HowToReduceTheMemoryFootprintOfInternalDataStructures How To Reduce The Memory Footprint Of Internal Data Structures
+
+It is possible to reduce the memory footprint of the task and data internal
+structures of StarPU by describing the shape of your machine and/or your
+application at the configure step.
+
+To reduce the memory footprint of the data internal structures of StarPU, one
+can set the \ref enable-maxcpus "--enable-maxcpus", \ref enable-maxcudadev
+"--enable-maxcudadev", \ref enable-maxopencldev "--enable-maxopencldev" and
+\ref enable-maxnodes "--enable-maxnodes" configure parameters to give StarPU
+the architecture of the machine it will run on, thus tuning the size of the
+structures to the machine.
+
+To reduce the memory footprint of the task internal structures of StarPU, one
+can set the \ref enable-maxbuffers "--enable-maxbuffers" configure parameter to
+give StarPU the maximum number of buffers that a task can use during an
+execution. For example, in the Cholesky factorization (dense linear algebra
+application), the GEMM task uses up to 3 buffers, so it is possible to set the
+maximum number of task buffers to 3 to run a Cholesky factorization on StarPU.
+
+The size of the various structures of StarPU can be printed by 
+<c>tests/microbenchs/display_structures_size</c>.
+
+It is also often useless to submit *all* the tasks at the same time. One can
+make the starpu_task_submit() function block when a reasonable given number of
+tasks have been submitted, by setting the \ref STARPU_LIMIT_MIN_SUBMITTED_TASKS and
+\ref STARPU_LIMIT_MAX_SUBMITTED_TASKS environment variables, for instance:
+
+<c>
+export STARPU_LIMIT_MAX_SUBMITTED_TASKS=10000
+
+export STARPU_LIMIT_MIN_SUBMITTED_TASKS=9000
+</c>
+
+To make StarPU block submission when 10000 tasks are submitted, and unblock
+submission when only 9000 tasks are still submitted, i.e. 1000 tasks have
+completed among the 10000 that were submitted when submission was blocked. Of
+course this may reduce parallelism if the threshold is set too low. The precise
+balance depends on the application task graph.
+
+An idea of how much memory is used for tasks and data handles can be obtained by
+setting the \ref STARPU_MAX_MEMORY_USE environment variable to <c>1</c>.
+
+\section HowtoReuseMemory How To Reuse Memory
+
+When your application needs to allocate more data than the available amount of
+memory usable by StarPU (given by starpu_memory_get_available()), the
+allocation cache system can reuse data buffers used by previously executed
+tasks. For that system to work with MPI tasks, you need to submit tasks progressively instead
+of as soon as possible, because in the case of MPI receives, the allocation cache check for reusing data
+buffers will be done at submission time, not at execution time.
+
+You have two options to control the task submission flow. The first one is by
+controlling the number of submitted tasks during the whole execution. This can
+be done whether by setting the environment variables
+\ref STARPU_LIMIT_MAX_SUBMITTED_TASKS and \ref STARPU_LIMIT_MIN_SUBMITTED_TASKS to
+tell StarPU when to stop submitting tasks and when to wake up and submit tasks
+again, or by explicitely calling starpu_task_wait_for_n_submitted() in
+your application code for finest grain control (for example, between two
+iterations of a submission loop).
+
+The second option is to control the memory size of the allocation cache. This
+can be done in the application by using jointly
+starpu_memory_get_available() and starpu_memory_wait_available() to submit
+tasks only when there is enough memory space to allocate the data needed by the
+task, i.e when enough data are available for reuse in the allocation cache.
+
+\section PerformanceModelCalibration Performance Model Calibration
+
+Most schedulers are based on an estimation of codelet duration on each kind
+of processing unit. For this to be possible, the application programmer needs
+to configure a performance model for the codelets of the application (see
+\ref PerformanceModelExample for instance). History-based performance models
+use on-line calibration.  StarPU will automatically calibrate codelets
+which have never been calibrated yet, and save the result in
+<c>$STARPU_HOME/.starpu/sampling/codelets</c>.
+The models are indexed by machine name. To share the models between
+machines (e.g. for a homogeneous cluster), use <c>export
+STARPU_HOSTNAME=some_global_name</c> (\ref STARPU_HOSTNAME). To force continuing calibration,
+use <c>export STARPU_CALIBRATE=1</c> (\ref STARPU_CALIBRATE). This may be necessary if your application
+has not-so-stable performance. StarPU will force calibration (and thus ignore
+the current result) until 10 (<c>_STARPU_CALIBRATION_MINIMUM</c>) measurements have been
+made on each architecture, to avoid badly scheduling tasks just because the
+first measurements were not so good. Details on the current performance model status
+can be obtained from the tool <c>starpu_perfmodel_display</c>: the <c>-l</c>
+option lists the available performance models, and the <c>-s</c> option permits
+to choose the performance model to be displayed. The result looks like:
+
+\verbatim
+$ starpu_perfmodel_display -s starpu_slu_lu_model_11
+performance model for cpu_impl_0
+# hash    size     flops         mean          dev           n
+914f3bef  1048576  0.000000e+00  2.503577e+04  1.982465e+02  8
+3e921964  65536    0.000000e+00  5.527003e+02  1.848114e+01  7
+e5a07e31  4096     0.000000e+00  1.717457e+01  5.190038e+00  14
+...
+\endverbatim
+
+Which shows that for the LU 11 kernel with a 1MiB matrix, the average
+execution time on CPUs was about 25ms, with a 0.2ms standard deviation, over
+8 samples. It is a good idea to check this before doing actual performance
+measurements.
+
+A graph can be drawn by using the tool <c>starpu_perfmodel_plot</c>:
+
+\verbatim
+$ starpu_perfmodel_plot -s starpu_slu_lu_model_11
+4096 16384 65536 262144 1048576 4194304 
+$ gnuplot starpu_starpu_slu_lu_model_11.gp
+$ gv starpu_starpu_slu_lu_model_11.eps
+\endverbatim
+
+\image html starpu_starpu_slu_lu_model_11.png
+\image latex starpu_starpu_slu_lu_model_11.eps "" width=\textwidth
+
+If a kernel source code was modified (e.g. performance improvement), the
+calibration information is stale and should be dropped, to re-calibrate from
+start. This can be done by using <c>export STARPU_CALIBRATE=2</c> (\ref STARPU_CALIBRATE).
+
+Note: history-based performance models get calibrated
+only if a performance-model-based scheduler is chosen.
+
+The history-based performance models can also be explicitly filled by the
+application without execution, if e.g. the application already has a series of
+measurements. This can be done by using starpu_perfmodel_update_history(),
+for instance:
+
+\code{.c}
+static struct starpu_perfmodel perf_model = {
+    .type = STARPU_HISTORY_BASED,
+    .symbol = "my_perfmodel",
+};
+
+struct starpu_codelet cl = {
+    .cuda_funcs = { cuda_func1, cuda_func2 },
+    .nbuffers = 1,
+    .modes = {STARPU_W},
+    .model = &perf_model
+};
+
+void feed(void) {
+    struct my_measure *measure;
+    struct starpu_task task;
+    starpu_task_init(&task);
+
+    task.cl = &cl;
+
+    for (measure = &measures[0]; measure < measures[last]; measure++) {
+        starpu_data_handle_t handle;
+	starpu_vector_data_register(&handle, -1, 0, measure->size, sizeof(float));
+	task.handles[0] = handle;
+	starpu_perfmodel_update_history(&perf_model, &task,
+	                                STARPU_CUDA_DEFAULT + measure->cudadev, 0,
+	                                measure->implementation, measure->time);
+	starpu_task_clean(&task);
+	starpu_data_unregister(handle);
+    }
+}
+\endcode
+
+Measurement has to be provided in milliseconds for the completion time models,
+and in Joules for the energy consumption models.
+
+\section Profiling Profiling
+
+A quick view of how many tasks each worker has executed can be obtained by setting
+<c>export STARPU_WORKER_STATS=1</c> (\ref STARPU_WORKER_STATS). This is a convenient way to check that
+execution did happen on accelerators, without penalizing performance with
+the profiling overhead.
+
+A quick view of how much data transfers have been issued can be obtained by setting
+<c>export STARPU_BUS_STATS=1</c> (\ref STARPU_BUS_STATS).
+
+More detailed profiling information can be enabled by using <c>export STARPU_PROFILING=1</c> (\ref STARPU_PROFILING)
+or by
+calling starpu_profiling_status_set() from the source code.
+Statistics on the execution can then be obtained by using <c>export
+STARPU_BUS_STATS=1</c> and <c>export STARPU_WORKER_STATS=1</c> .
+ More details on performance feedback are provided in the next chapter.
+
+\section OverheadProfiling Overhead Profiling
+
+\ref OfflinePerformanceTools can already provide an idea of to what extent and
+which part of StarPU bring overhead on the execution time. To get a more precise
+analysis of the parts of StarPU which bring most overhead, <c>gprof</c> can be used.
+
+First, recompile and reinstall StarPU with <c>gprof</c> support:
+
+\code
+./configure --enable-perf-debug --disable-shared --disable-build-tests --disable-build-examples
+\endcode
+
+Make sure not to leave a dynamic version of StarPU in the target path: remove
+any remaining <c>libstarpu-*.so</c>
+
+Then relink your application with the static StarPU library, make sure that
+running <c>ldd</c> on your application does not mention any libstarpu
+(i.e. it's really statically-linked).
+
+\code
+gcc test.c -o test $(pkg-config --cflags starpu-1.3) $(pkg-config --libs starpu-1.3)
+\endcode
+
+Now you can run your application, and a <c>gmon.out</c> file should appear in the
+current directory, you can process it by running <c>gprof</c> on your application:
+
+\code
+gprof ./test
+\endcode
+
+That will dump an analysis of the time spent in StarPU functions.
+
+*/

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux
+ * Copyright (C) 2009, 2010, 2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2015  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -23,15 +23,42 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+extern int _starpu_enable_stats;
+
 void _starpu_datastats_init();
 
-void _starpu_msi_cache_hit(unsigned node);
-void _starpu_msi_cache_miss(unsigned node);
+static inline int starpu_enable_stats(void)
+{
+	return _starpu_enable_stats;
+}
+
+void __starpu_msi_cache_hit(unsigned node);
+void __starpu_msi_cache_miss(unsigned node);
+
+#define _starpu_msi_cache_hit(node) do { \
+	if (starpu_enable_stats()) \
+		__starpu_msi_cache_hit(node); \
+} while (0)
+
+#define _starpu_msi_cache_miss(node) do { \
+	if (starpu_enable_stats()) \
+		__starpu_msi_cache_miss(node); \
+} while (0)
 
 void _starpu_display_msi_stats(void);
 
-void _starpu_allocation_cache_hit(unsigned node STARPU_ATTRIBUTE_UNUSED);
-void _starpu_data_allocation_inc_stats(unsigned node STARPU_ATTRIBUTE_UNUSED);
+void __starpu_allocation_cache_hit(unsigned node STARPU_ATTRIBUTE_UNUSED);
+void __starpu_data_allocation_inc_stats(unsigned node STARPU_ATTRIBUTE_UNUSED);
+
+#define _starpu_allocation_cache_hit(node) do { \
+	if (starpu_enable_stats()) \
+		__starpu_allocation_cache_hit(node); \
+} while (0)
+
+#define _starpu_data_allocation_inc_stats(node) do { \
+	if (starpu_enable_stats()) \
+		__starpu_data_allocation_inc_stats(node); \
+} while (0)
 
 void _starpu_display_alloc_cache_stats(void);
 

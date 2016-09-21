@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2015  Université de Bordeaux
+ * Copyright (C) 2010-2016  Université de Bordeaux
  * Copyright (C) 2011, 2012, 2013       CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -173,6 +173,8 @@ static void find_and_assign_combinations_with_hwloc(int *workerids, int nworkers
 
 	if (synthesize_arity == -1)
 		synthesize_arity = 2;
+
+	STARPU_ASSERT_MSG(synthesize_arity > 0, "STARPU_SYNTHESIZE_ARITY_COMBINED_WORKER must be greater than 0");
 
 	/* First, mark nodes which contain CPU workers, simply by setting their userdata field */
 	int i;

@@ -20,36 +20,25 @@
 #include <datawizard/coherency.h>
 #include <common/config.h>
 
-static int _enable_stats = 0;
+int _starpu_enable_stats = 0;
 
 void _starpu_datastats_init()
 {
-	_enable_stats = !!starpu_getenv("STARPU_ENABLE_STATS");
-}
-
-static inline int starpu_enable_stats(void)
-{
-	return _enable_stats;
+	_starpu_enable_stats = !!starpu_getenv("STARPU_ENABLE_STATS");
 }
 
 /* measure the cache hit ratio for each node */
 static unsigned hit_cnt[STARPU_MAXNODES];
 static unsigned miss_cnt[STARPU_MAXNODES];
 
-void _starpu_msi_cache_hit(unsigned node STARPU_ATTRIBUTE_UNUSED)
+void __starpu_msi_cache_hit(unsigned node)
 {
-	if (!starpu_enable_stats())
-		return;
-
 	STARPU_HG_DISABLE_CHECKING(hit_cnt[node]);
 	hit_cnt[node]++;
 }
 
-void _starpu_msi_cache_miss(unsigned node STARPU_ATTRIBUTE_UNUSED)
+void __starpu_msi_cache_miss(unsigned node)
 {
-	if (!starpu_enable_stats())
-		return;
-
 	STARPU_HG_DISABLE_CHECKING(miss_cnt[node]);
 	miss_cnt[node]++;
 }
@@ -90,20 +79,14 @@ void _starpu_display_msi_stats(void)
 static unsigned alloc_cnt[STARPU_MAXNODES];
 static unsigned alloc_cache_hit_cnt[STARPU_MAXNODES];
 
-void _starpu_allocation_cache_hit(unsigned node STARPU_ATTRIBUTE_UNUSED)
+void __starpu_allocation_cache_hit(unsigned node)
 {
-	if (!starpu_enable_stats())
-		return;
-
 	STARPU_HG_DISABLE_CHECKING(alloc_cache_hit_cnt[node]);
 	alloc_cache_hit_cnt[node]++;
 }
 
-void _starpu_data_allocation_inc_stats(unsigned node STARPU_ATTRIBUTE_UNUSED)
+void __starpu_data_allocation_inc_stats(unsigned node)
 {
-	if (!starpu_enable_stats())
-		return;
-
 	STARPU_HG_DISABLE_CHECKING(alloc_cnt[node]);
 	alloc_cnt[node]++;
 }

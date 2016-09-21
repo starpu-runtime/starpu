@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013, 2014, 2015  CNRS
+ * Copyright (C) 2013, 2014, 2015, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -90,6 +90,7 @@ void check_matrix(starpu_data_handle_t handle_s, starpu_data_handle_t handle_r, 
 	int x, y;
 
 	for(y=0 ; y<ny ; y++)
+	{
 		for(x=0 ; x<nx ; x++)
 		{
 			int index=(y*ldy)+x;
@@ -103,6 +104,7 @@ void check_matrix(starpu_data_handle_t handle_s, starpu_data_handle_t handle_r, 
 				FPRINTF_MPI(stderr, "Error with matrix[%d,%d --> %d] value: %c != %c\n", x, y, index, matrix_s[index], matrix_r[index]);
 			}
 		}
+	}
 }
 
 void check_block(starpu_data_handle_t handle_s, starpu_data_handle_t handle_r, int *error)
@@ -113,6 +115,9 @@ void check_block(starpu_data_handle_t handle_s, starpu_data_handle_t handle_r, i
 	STARPU_ASSERT(starpu_block_get_nz(handle_s) == starpu_block_get_nz(handle_r));
 	STARPU_ASSERT(starpu_block_get_local_ldy(handle_s) == starpu_block_get_local_ldy(handle_r));
 	STARPU_ASSERT(starpu_block_get_local_ldz(handle_s) == starpu_block_get_local_ldz(handle_r));
+
+	starpu_data_acquire(handle_s, STARPU_R);
+	starpu_data_acquire(handle_r, STARPU_R);
 
 	float *block_s = (float *)starpu_block_get_local_ptr(handle_s);
 	float *block_r = (float *)starpu_block_get_local_ptr(handle_r);
@@ -127,6 +132,7 @@ void check_block(starpu_data_handle_t handle_s, starpu_data_handle_t handle_r, i
 	int x, y, z;
 
 	for(z=0 ; z<nz ; z++)
+	{
 		for(y=0 ; y<ny ; y++)
 			for(x=0 ; x<nx ; x++)
 			{
@@ -141,6 +147,10 @@ void check_block(starpu_data_handle_t handle_s, starpu_data_handle_t handle_r, i
 					FPRINTF_MPI(stderr, "Error with block[%d,%d,%d --> %d] value: %f != %f\n", x, y, z, index, block_s[index], block_r[index]);
 				}
 			}
+	}
+
+	starpu_data_release(handle_s);
+	starpu_data_release(handle_r);
 }
 
 void send_recv_and_check(int rank, int node, starpu_data_handle_t handle_s, int tag_s, starpu_data_handle_t handle_r, int tag_r, int *error, check_func func)
@@ -157,7 +167,7 @@ void send_recv_and_check(int rank, int node, starpu_data_handle_t handle_s, int 
 
 		func(handle_s, handle_r, error);
 	}
-	else
+	else if (rank == 1)
 	{
 		ret = starpu_mpi_recv(handle_s, node, tag_s, MPI_COMM_WORLD, &status);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_recv");
@@ -166,14 +176,163 @@ void send_recv_and_check(int rank, int node, starpu_data_handle_t handle_s, int 
 	}
 }
 
+void exchange_void(int rank, int *error)
+{
+	STARPU_SKIP_IF_VALGRIND;
+
+	if (rank == 0)
+	{
+		starpu_data_handle_t void_handle[2];
+		starpu_void_data_register(&void_handle[0]);
+		starpu_void_data_register(&void_handle[1]);
+
+		send_recv_and_check(rank, 1, void_handle[0], 0x42, void_handle[1], 0x1337, error, check_void);
+
+		starpu_data_unregister(void_handle[0]);
+		starpu_data_unregister(void_handle[1]);
+	}
+	else if (rank == 1)
+	{
+		starpu_data_handle_t void_handle;
+		starpu_void_data_register(&void_handle);
+		send_recv_and_check(rank, 0, void_handle, 0x42, NULL, 0x1337, NULL, NULL);
+		starpu_data_unregister(void_handle);
+	}
+}
+
+void exchange_variable(int rank, int *error)
+{
+	if (rank == 0)
+	{
+		float v = 42.12;
+		starpu_data_handle_t variable_handle[2];
+		starpu_variable_data_register(&variable_handle[0], STARPU_MAIN_RAM, (uintptr_t)&v, sizeof(v));
+		starpu_variable_data_register(&variable_handle[1], -1, (uintptr_t)NULL, sizeof(v));
+
+		send_recv_and_check(rank, 1, variable_handle[0], 0x42, variable_handle[1], 0x1337, error, check_variable);
+
+		starpu_data_unregister(variable_handle[0]);
+		starpu_data_unregister(variable_handle[1]);
+	}
+	else if (rank == 1)
+	{
+		starpu_data_handle_t variable_handle;
+		starpu_variable_data_register(&variable_handle, -1, (uintptr_t)NULL, sizeof(float));
+		send_recv_and_check(rank, 0, variable_handle, 0x42, NULL, 0x1337, NULL, NULL);
+		starpu_data_unregister(variable_handle);
+	}
+}
+
+void exchange_vector(int rank, int *error)
+{
+	if (rank == 0)
+	{
+		int vector[4] = {1, 2, 3, 4};
+		starpu_data_handle_t vector_handle[2];
+
+		starpu_vector_data_register(&vector_handle[0], STARPU_MAIN_RAM, (uintptr_t)vector, 4, sizeof(vector[0]));
+		starpu_vector_data_register(&vector_handle[1], -1, (uintptr_t)NULL, 4, sizeof(vector[0]));
+
+		send_recv_and_check(rank, 1, vector_handle[0], 0x43, vector_handle[1], 0x2337, error, check_vector);
+
+		starpu_data_unregister(vector_handle[0]);
+		starpu_data_unregister(vector_handle[1]);
+	}
+	else if (rank == 1)
+	{
+		starpu_data_handle_t vector_handle;
+		starpu_vector_data_register(&vector_handle, -1, (uintptr_t)NULL, 4, sizeof(int));
+		send_recv_and_check(rank, 0, vector_handle, 0x43, NULL, 0x2337, NULL, NULL);
+		starpu_data_unregister(vector_handle);
+	}
+}
+
+void exchange_matrix(int rank, int *error)
+{
+	int nx=3;
+	int ny=2;
+
+	if (rank == 0)
+	{
+		char *matrix, n='a';
+		int x, y;
+		starpu_data_handle_t matrix_handle[2];
+
+		matrix = (char*)malloc(nx*ny*sizeof(char));
+		assert(matrix);
+		for(y=0 ; y<ny ; y++)
+		{
+			for(x=0 ; x<nx ; x++)
+			{
+				matrix[(y*nx)+x] = n++;
+			}
+		}
+
+		starpu_matrix_data_register(&matrix_handle[0], STARPU_MAIN_RAM, (uintptr_t)matrix, nx, nx, ny, sizeof(char));
+		starpu_matrix_data_register(&matrix_handle[1], -1, (uintptr_t)NULL, nx, nx, ny, sizeof(char));
+
+		send_recv_and_check(rank, 1, matrix_handle[0], 0x75, matrix_handle[1], 0x8555, error, check_matrix);
+
+		starpu_data_unregister(matrix_handle[0]);
+		starpu_data_unregister(matrix_handle[1]);
+		free(matrix);
+	}
+	else if (rank == 1)
+	{
+		starpu_data_handle_t matrix_handle;
+		starpu_matrix_data_register(&matrix_handle, -1, (uintptr_t)NULL, nx, nx, ny, sizeof(char));
+		send_recv_and_check(rank, 0, matrix_handle, 0x75, NULL, 0x8555, NULL, NULL);
+		starpu_data_unregister(matrix_handle);
+	}
+}
+
+void exchange_block(int rank, int *error)
+{
+	int nx=3;
+	int ny=2;
+	int nz=4;
+
+	if (rank == 0)
+	{
+		float *block, n=1.0;
+		int x, y, z;
+		starpu_data_handle_t block_handle[2];
+
+		block = (float*)malloc(nx*ny*nz*sizeof(float));
+		assert(block);
+		for(z=0 ; z<nz ; z++)
+		{
+			for(y=0 ; y<ny ; y++)
+			{
+				for(x=0 ; x<nx ; x++)
+				{
+					block[(z*nx*ny)+(y*nx)+x] = n++;
+				}
+			}
+		}
+
+		starpu_block_data_register(&block_handle[0], STARPU_MAIN_RAM, (uintptr_t)block, nx, nx*ny, nx, ny, nz, sizeof(float));
+		starpu_block_data_register(&block_handle[1], -1, (uintptr_t)NULL, nx, nx*ny, nx, ny, nz, sizeof(float));
+
+		send_recv_and_check(rank, 1, block_handle[0], 0x73, block_handle[1], 0x8337, error, check_block);
+
+		starpu_data_unregister(block_handle[0]);
+		starpu_data_unregister(block_handle[1]);
+		free(block);
+	}
+	else if (rank == 1)
+	{
+		starpu_data_handle_t block_handle;
+		starpu_block_data_register(&block_handle, -1, (uintptr_t)NULL, nx, nx*ny, nx, ny, nz, sizeof(float));
+		send_recv_and_check(rank, 0, block_handle, 0x73, NULL, 0x8337, NULL, NULL);
+		starpu_data_unregister(block_handle);
+	}
+}
+
 int main(int argc, char **argv)
 {
 	int ret, rank, size;
 	int error=0;
-
-	int nx=3;
-	int ny=2;
-	int nz=4;
 
 	MPI_Init(&argc, &argv);
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
@@ -195,136 +354,11 @@ int main(int argc, char **argv)
 		return STARPU_TEST_SKIPPED;
 	}
 
-	if (rank == 0)
-	{
-		MPI_Status status;
-
-		{
-			starpu_data_handle_t void_handle[2];
-			starpu_void_data_register(&void_handle[0]);
-			starpu_void_data_register(&void_handle[1]);
-
-			send_recv_and_check(rank, 1, void_handle[0], 0x42, void_handle[1], 0x1337, &error, check_void);
-
-			starpu_data_unregister(void_handle[0]);
-			starpu_data_unregister(void_handle[1]);
-		}
-		{
-			float v = 42.12;
-			starpu_data_handle_t variable_handle[2];
-			starpu_variable_data_register(&variable_handle[0], STARPU_MAIN_RAM, (uintptr_t)&v, sizeof(v));
-			starpu_variable_data_register(&variable_handle[1], -1, (uintptr_t)NULL, sizeof(v));
-
-			send_recv_and_check(rank, 1, variable_handle[0], 0x42, variable_handle[1], 0x1337, &error, check_variable);
-
-			starpu_data_unregister(variable_handle[0]);
-			starpu_data_unregister(variable_handle[1]);
-		}
-
-		{
-			int vector[4] = {1, 2, 3, 4};
-			starpu_data_handle_t vector_handle[2];
-
-			starpu_vector_data_register(&vector_handle[0], STARPU_MAIN_RAM, (uintptr_t)vector, 4, sizeof(vector[0]));
-			starpu_vector_data_register(&vector_handle[1], -1, (uintptr_t)NULL, 4, sizeof(vector[0]));
-
-			send_recv_and_check(rank, 1, vector_handle[0], 0x43, vector_handle[1], 0x2337, &error, check_vector);
-
-			starpu_data_unregister(vector_handle[0]);
-			starpu_data_unregister(vector_handle[1]);
-		}
-
-		{
-			char *matrix, n='a';
-			int x, y;
-			starpu_data_handle_t matrix_handle[2];
-
-			matrix = (char*)malloc(nx*ny*nz*sizeof(char));
-			assert(matrix);
-			for(y=0 ; y<ny ; y++)
-			{
-				for(x=0 ; x<nx ; x++)
-				{
-					matrix[(y*nx)+x] = n++;
-				}
-			}
-
-			starpu_matrix_data_register(&matrix_handle[0], STARPU_MAIN_RAM, (uintptr_t)matrix, nx, nx, ny, sizeof(char));
-			starpu_matrix_data_register(&matrix_handle[1], -1, (uintptr_t)NULL, nx, nx, ny, sizeof(char));
-
-			send_recv_and_check(rank, 1, matrix_handle[0], 0x75, matrix_handle[1], 0x8555, &error, check_matrix);
-
-			starpu_data_unregister(matrix_handle[0]);
-			starpu_data_unregister(matrix_handle[1]);
-			free(matrix);
-		}
-
-		{
-			float *block, n=1.0;
-			int x, y, z;
-			starpu_data_handle_t block_handle[2];
-
-			block = (float*)malloc(nx*ny*nz*sizeof(float));
-			assert(block);
-			for(z=0 ; z<nz ; z++)
-			{
-				for(y=0 ; y<ny ; y++)
-				{
-					for(x=0 ; x<nx ; x++)
-					{
-						block[(z*nx*ny)+(y*nx)+x] = n++;
-					}
-				}
-			}
-
-			starpu_block_data_register(&block_handle[0], STARPU_MAIN_RAM, (uintptr_t)block, nx, nx*ny, nx, ny, nz, sizeof(float));
-			starpu_block_data_register(&block_handle[1], -1, (uintptr_t)NULL, nx, nx*ny, nx, ny, nz, sizeof(float));
-
-			send_recv_and_check(rank, 1, block_handle[0], 0x73, block_handle[1], 0x8337, &error, check_block);
-
-			starpu_data_unregister(block_handle[0]);
-			starpu_data_unregister(block_handle[1]);
-			free(block);
-		}
-	}
-	else if (rank == 1)
-	{
-		MPI_Status status;
-
-		{
-			starpu_data_handle_t void_handle;
-			starpu_void_data_register(&void_handle);
-			send_recv_and_check(rank, 0, void_handle, 0x42, NULL, 0x1337, NULL, NULL);
-			starpu_data_unregister(void_handle);
-		}
-		{
-			starpu_data_handle_t variable_handle;
-			starpu_variable_data_register(&variable_handle, -1, (uintptr_t)NULL, sizeof(float));
-			send_recv_and_check(rank, 0, variable_handle, 0x42, NULL, 0x1337, NULL, NULL);
-			starpu_data_unregister(variable_handle);
-		}
-
-		{
-			starpu_data_handle_t vector_handle;
-			starpu_vector_data_register(&vector_handle, -1, (uintptr_t)NULL, 4, sizeof(int));
-			send_recv_and_check(rank, 0, vector_handle, 0x43, NULL, 0x2337, NULL, NULL);
-			starpu_data_unregister(vector_handle);
-		}
-
-		{
-			starpu_data_handle_t matrix_handle;
-			starpu_matrix_data_register(&matrix_handle, -1, (uintptr_t)NULL, nx, nx, ny, sizeof(char));
-			send_recv_and_check(rank, 0, matrix_handle, 0x75, NULL, 0x8555, NULL, NULL);
-			starpu_data_unregister(matrix_handle);
-		}
-
-		{
-			starpu_data_handle_t block_handle;
-			starpu_block_data_register(&block_handle, -1, (uintptr_t)NULL, nx, nx*ny, nx, ny, nz, sizeof(float));
-			send_recv_and_check(rank, 0, block_handle, 0x73, NULL, 0x8337, NULL, NULL);
-			starpu_data_unregister(block_handle);
-		}
-	}
+	exchange_void(rank, &error);
+	exchange_variable(rank, &error);
+	exchange_vector(rank, &error);
+	exchange_matrix(rank, &error);
+	exchange_block(rank, &error);
 
 	starpu_mpi_shutdown();
 	starpu_shutdown();

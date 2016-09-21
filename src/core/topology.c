@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015 CNRS
+ * Copyright (C) 2009-2016  Université de Bordeaux
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016 CNRS
  * Copyright (C) 2011  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -948,6 +948,7 @@ _starpu_init_machine_config(struct _starpu_machine_config *config, int no_mp_con
 	int nworker_per_cuda = starpu_get_env_number_default("STARPU_NWORKER_PER_CUDA", 1);
 
 	STARPU_ASSERT_MSG(nworker_per_cuda > 0, "STARPU_NWORKER_PER_CUDA has to be > 0");
+	STARPU_ASSERT_MSG(nworker_per_cuda < STARPU_NMAXWORKERS, "STARPU_NWORKER_PER_CUDA (%d) cannot be higher than STARPU_NMAXWORKERS (%d)\n", nworker_per_cuda, STARPU_NMAXWORKERS);
 
 #ifndef STARPU_NON_BLOCKING_DRIVERS
 	if (nworker_per_cuda > 1)
@@ -1241,14 +1242,15 @@ void _starpu_destroy_machine_config(struct _starpu_machine_config *config)
 	for (worker = 0; worker < config->topology.nworkers; worker++)
 	{
 		struct _starpu_worker *workerarg = &config->workers[worker];
+		int bindid = workerarg->bindid;
 		free(workerarg->perf_arch.devices);
 #ifdef STARPU_HAVE_HWLOC
 		hwloc_bitmap_free(workerarg->hwloc_cpu_set);
-		if (workerarg->bindid != -1)
+		if (bindid != -1)
 		{
 			hwloc_obj_t worker_obj = hwloc_get_obj_by_depth(config->topology.hwtopology,
 									config->pu_depth,
-									workerarg->bindid);
+									bindid);
 			if (worker_obj->userdata)
 			{
 				_starpu_worker_list_delete(worker_obj->userdata);
@@ -1256,7 +1258,15 @@ void _starpu_destroy_machine_config(struct _starpu_machine_config *config)
 			}
 		}
 #endif
+		if (bindid != -1)
+		{
+			free(config->bindid_workers[bindid].workerids);
+			config->bindid_workers[bindid].workerids = NULL;
+		}
 	}
+	free(config->bindid_workers);
+	config->bindid_workers = NULL;
+	config->nbindid = 0;
 	unsigned combined_worker_id;
 	for(combined_worker_id=0 ; combined_worker_id < config->topology.ncombinedworkers ; combined_worker_id++)
 	{
@@ -1442,24 +1452,26 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 	unsigned cuda_init[STARPU_MAXCUDADEVS] = { };
 	unsigned cuda_memory_nodes[STARPU_MAXCUDADEVS];
-#ifndef STARPU_SIMGRID
 	unsigned cuda_bindid[STARPU_MAXCUDADEVS];
-#endif
 #endif
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 	unsigned opencl_init[STARPU_MAXOPENCLDEVS] = { };
 	unsigned opencl_memory_nodes[STARPU_MAXOPENCLDEVS];
-#ifndef STARPU_SIMGRID
 	unsigned opencl_bindid[STARPU_MAXOPENCLDEVS];
-#endif
 #endif
 #ifdef STARPU_USE_MIC
 	unsigned mic_init[STARPU_MAXMICDEVS] = { };
 	unsigned mic_memory_nodes[STARPU_MAXMICDEVS];
-#ifndef STARPU_SIGMRID
 	unsigned mic_bindid[STARPU_MAXMICDEVS];
 #endif
-#endif
+	unsigned bindid;
+
+	for (bindid = 0; bindid < config->nbindid; bindid++)
+	{
+		free(config->bindid_workers[bindid].workerids);
+		config->bindid_workers[bindid].workerids = NULL;
+		config->bindid_workers[bindid].nworkers = 0;
+	}
 
 	unsigned worker;
 	for (worker = 0; worker < config->topology.nworkers; worker++)
@@ -1468,7 +1480,7 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 		struct _starpu_worker *workerarg = &config->workers[worker];
 		unsigned devid = workerarg->devid;
 
-#if (defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) || defined(STARPU_USE_MIC)) && !defined(STARPU_SIMGRID)
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) || defined(STARPU_USE_MIC) || defined(STARPU_SIMGRID)
 		/* Perhaps the worker has some "favourite" bindings  */
 		int *preferred_binding = NULL;
 		int npreferred = 0;
@@ -1526,9 +1538,7 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 				else
 				{
 					cuda_init[devid] = 1;
-#ifndef STARPU_SIMGRID
 					workerarg->bindid = cuda_bindid[devid] = _starpu_get_next_bindid(config, preferred_binding, npreferred);
-#endif /* SIMGRID */
 					memory_node = cuda_memory_nodes[devid] = _starpu_memory_node_register(STARPU_CUDA_RAM, devid);
 
 					_starpu_register_bus(STARPU_MAIN_RAM, memory_node);
@@ -1592,9 +1602,7 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 				else
 				{
 					opencl_init[devid] = 1;
-#ifndef STARPU_SIMGRID
 					workerarg->bindid = opencl_bindid[devid] = _starpu_get_next_bindid(config, preferred_binding, npreferred);
-#endif /* SIMGRID */
 					memory_node = opencl_memory_nodes[devid] = _starpu_memory_node_register(STARPU_OPENCL_RAM, devid);
 					_starpu_register_bus(STARPU_MAIN_RAM, memory_node);
 					_starpu_register_bus(memory_node, STARPU_MAIN_RAM);
@@ -1622,7 +1630,6 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 				else
 				{
 					mic_init[devid] = 1;
-#ifndef STARPU_SIMGRID
 					/* TODO */
 					//if (may_bind_automatically)
 					//{
@@ -1631,7 +1638,6 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 					//	npreferred = config->topology.nhwpus;
 					//}
 					mic_bindid[devid] = _starpu_get_next_bindid(config, preferred_binding, npreferred);
-#endif /* SIMGRID */
 					memory_node = mic_memory_nodes[devid] = _starpu_memory_node_register(STARPU_MIC_RAM, devid);
 					_starpu_register_bus(STARPU_MAIN_RAM, memory_node);
 					_starpu_register_bus(memory_node, STARPU_MAIN_RAM);
@@ -1702,6 +1708,26 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 			workerarg->hwloc_cpu_set = hwloc_bitmap_dup (worker_obj->cpuset);
 		}
 #endif
+		if (workerarg->bindid != -1)
+		{
+			bindid = workerarg->bindid;
+			unsigned old_nbindid = config->nbindid;
+			if (bindid >= old_nbindid)
+			{
+				/* More room needed */
+				if (!old_nbindid)
+					config->nbindid = STARPU_NMAXWORKERS;
+				else
+					config->nbindid = 2 * old_nbindid;
+				config->bindid_workers = realloc(config->bindid_workers, config->nbindid * sizeof(config->bindid_workers[0]));
+				memset(&config->bindid_workers[old_nbindid], 0, (config->nbindid - old_nbindid) * sizeof(config->bindid_workers[0]));
+			}
+			/* Add slot for this worker */
+			/* Don't care about amortizing the cost, there are usually very few workers sharing the same bindid */
+			config->bindid_workers[bindid].nworkers++;
+			config->bindid_workers[bindid].workerids = realloc(config->bindid_workers[bindid].workerids, config->bindid_workers[bindid].nworkers * sizeof(config->bindid_workers[bindid].workerids[0]));
+			config->bindid_workers[bindid].workerids[config->bindid_workers[bindid].nworkers-1] = worker;
+		}
 	}
 }
 

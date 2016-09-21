@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2015  Université de Bordeaux
+ * Copyright (C) 2009-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
  * Copyright (C) 2014-2015  Inria
  *
@@ -48,13 +48,13 @@ struct _starpu_data_replicate
 	/* describe the actual data layout, as manipulated by data interfaces in *_interface.c */
 	void *data_interface;
 
-	unsigned memory_node;
-
-	/* describes the state of the local data in term of coherency */
-	enum _starpu_cache_state	state;
-
 	/* How many requests or tasks are currently working with this replicate */
 	int refcnt;
+
+	char memory_node;
+
+	/* describes the state of the local data in term of coherency */
+	enum _starpu_cache_state	state: 2;
 
 	/* A buffer that is used for SCRATCH or reduction cannnot be used with
 	 * filters. */
@@ -72,9 +72,6 @@ struct _starpu_data_replicate
 	 * */
 	unsigned automatically_allocated:1;
 
-        /* Pointer to memchunk for LRU strategy */
-	struct _starpu_mem_chunk * mc;
-
 	/* To help the scheduling policies to make some decision, we
 	   may keep a track of the tasks that are likely to request
 	   this data on the current node.
@@ -84,6 +81,9 @@ struct _starpu_data_replicate
 	 */
 	uint32_t requested;
 	struct _starpu_data_request *request[STARPU_MAXNODES];
+
+        /* Pointer to memchunk for LRU strategy */
+	struct _starpu_mem_chunk * mc;
 };
 
 struct _starpu_data_requester_list;
@@ -115,6 +115,7 @@ typedef void (*_starpu_data_handle_unregister_hook)(starpu_data_handle_t);
 
 struct _starpu_data_state
 {
+	int magic;
 	struct _starpu_data_requester_list req_list;
 	/* the number of requests currently in the scheduling engine (not in
 	 * the req_list anymore), i.e. the number of holders of the
@@ -151,6 +152,8 @@ struct _starpu_data_state
 	unsigned nplans;
 	/* Switch codelet for asynchronous partitioning */
 	struct starpu_codelet *switch_cl;
+	/* size of dyn_nodes recorded in switch_cl */
+	int switch_cl_nparts;
 	/* Whether a partition plan is currently submitted and the
 	 * corresponding unpartition has not been yet
 	 *
@@ -163,7 +166,7 @@ struct _starpu_data_state
 
 	/* describe the state of the data in term of coherency */
 	struct _starpu_data_replicate per_node[STARPU_MAXNODES];
-	struct _starpu_data_replicate per_worker[STARPU_NMAXWORKERS];
+	struct _starpu_data_replicate *per_worker;
 
 	struct starpu_data_interface_ops *ops;
 
@@ -176,15 +179,14 @@ struct _starpu_data_state
 	/* what is the default write-through mask for that data ? */
 	uint32_t wt_mask;
 
-	/* allows special optimization */
-	uint8_t is_readonly;
-
 	/* in some case, the application may explicitly tell StarPU that a
  	 * piece of data is not likely to be used soon again */
 	unsigned is_not_important;
 
 	/* Does StarPU have to enforce some implicit data-dependencies ? */
 	unsigned sequential_consistency;
+	/* Is the data initialized, or a task is already submitted to initialize it */
+	unsigned initialized;
 
 	/* This lock should protect any operation to enforce
 	 * sequential_consistency */
@@ -257,6 +259,11 @@ struct _starpu_data_state
 	struct starpu_arbiter *arbiter;
 	/* This is protected by the arbiter mutex */
 	struct _starpu_data_requester_list arbitered_req_list;
+
+	/* Data maintained by schedulers themselves */
+	/* Last worker that took this data in locality mode, or -1 if nobody
+	 * took it yet */
+	int last_locality;
 };
 
 void _starpu_display_msi_stats(void);
@@ -269,7 +276,7 @@ void _starpu_display_msi_stats(void);
  */
 int _starpu_fetch_data_on_node(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate,
 			       enum starpu_data_access_mode mode, unsigned detached, unsigned is_prefetch, unsigned async,
-			       void (*callback_func)(void *), void *callback_arg, int prio);
+			       void (*callback_func)(void *), void *callback_arg, int prio, const char *origin);
 /* This releases a reference on the handle */
 void _starpu_release_data_on_node(struct _starpu_data_state *state, uint32_t default_wt_mask,
 				  struct _starpu_data_replicate *replicate);
@@ -306,7 +313,7 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 								  struct _starpu_data_replicate *dst_replicate,
 								  enum starpu_data_access_mode mode, unsigned is_prefetch,
 								  unsigned async,
-								  void (*callback_func)(void *), void *callback_arg, int prio);
+								  void (*callback_func)(void *), void *callback_arg, int prio, const char *origin);
 
 void _starpu_redux_init_data_replicate(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, int workerid);
 void _starpu_data_start_reduction_mode(starpu_data_handle_t handle);

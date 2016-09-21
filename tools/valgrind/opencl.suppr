@@ -1,0 +1,735 @@
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
+   fun:call_init.part.0
+   fun:_dl_init
+   obj:/lib/x86_64-linux-gnu/ld-2.21.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: indirect
+   fun:malloc
+   fun:strdup
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
+   fun:call_init.part.0
+   fun:_dl_init
+   obj:/lib/x86_64-linux-gnu/ld-2.21.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   ...
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:__alloc_dir
+   obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
+   ...
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
+   fun:call_init.part.0
+   fun:_dl_init
+   obj:/lib/x86_64-linux-gnu/ld-2.21.so
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
+   fun:call_init.part.0
+   fun:_dl_init
+   obj:/lib/x86_64-linux-gnu/ld-2.21.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
+   fun:call_init.part.0
+   fun:_dl_init
+   obj:/lib/x86_64-linux-gnu/ld-2.21.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
+   fun:call_init.part.0
+   fun:_dl_init
+   obj:/lib/x86_64-linux-gnu/ld-2.21.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:_dl_new_object
+   fun:_dl_map_object_from_fd
+   fun:_dl_map_object
+   fun:dl_open_worker
+   fun:_dl_catch_error
+   fun:_dl_open
+   fun:dlopen_doit
+   fun:_dl_catch_error
+   fun:_dlerror_run
+   fun:dlopen@@GLIBC_2.2.5
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:realloc
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
+   fun:call_init.part.0
+   fun:_dl_init
+   obj:/lib/x86_64-linux-gnu/ld-2.21.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
+   fun:call_init.part.0
+   fun:_dl_init
+   obj:/lib/x86_64-linux-gnu/ld-2.21.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
+   fun:call_init.part.0
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
+   fun:call_init.part.0
+   fun:_dl_init
+   obj:/lib/x86_64-linux-gnu/ld-2.21.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
+   fun:call_init.part.0
+   fun:_dl_init
+   obj:/lib/x86_64-linux-gnu/ld-2.21.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
+   fun:call_init.part.0
+   fun:_dl_init
+   obj:/lib/x86_64-linux-gnu/ld-2.21.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
+   fun:call_init.part.0
+   fun:_dl_init
+   obj:/lib/x86_64-linux-gnu/ld-2.21.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
+   fun:call_init.part.0
+   fun:_dl_init
+   obj:/lib/x86_64-linux-gnu/ld-2.21.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
+   fun:call_init.part.0
+   fun:_dl_init
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
+   fun:call_init.part.0
+   fun:_dl_init
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
+   fun:call_init.part.0
+   fun:_dl_init
+   obj:/lib/x86_64-linux-gnu/ld-2.21.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:_dl_check_map_versions
+   fun:dl_open_worker
+   fun:_dl_catch_error
+   fun:_dl_open
+   fun:dlopen_doit
+   fun:_dl_catch_error
+   fun:_dlerror_run
+   fun:dlopen@@GLIBC_2.2.5
+   obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
+   fun:call_init.part.0
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:_dl_new_object
+   fun:_dl_map_object_from_fd
+   fun:_dl_map_object
+   fun:dl_open_worker
+   fun:_dl_catch_error
+   fun:_dl_open
+   fun:dlopen_doit
+   fun:_dl_catch_error
+   fun:_dlerror_run
+   fun:dlopen@@GLIBC_2.2.5
+   obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:_dl_new_object
+   fun:_dl_map_object_from_fd
+   fun:_dl_map_object
+   fun:dl_open_worker
+   fun:_dl_catch_error
+   fun:_dl_open
+   fun:dlopen_doit
+   fun:_dl_catch_error
+   fun:_dlerror_run
+   fun:dlopen@@GLIBC_2.2.5
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
+   fun:call_init.part.0
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
+   fun:call_init.part.0
+   fun:_dl_init
+   obj:/lib/x86_64-linux-gnu/ld-2.21.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
+   fun:call_init.part.0
+   fun:_dl_init
+   obj:/lib/x86_64-linux-gnu/ld-2.21.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
+   fun:call_init.part.0
+   fun:_dl_init
+   obj:/lib/x86_64-linux-gnu/ld-2.21.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
+   fun:call_init.part.0
+   fun:_dl_init
+   obj:/lib/x86_64-linux-gnu/ld-2.21.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   ...
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   ...
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   ...
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
+   fun:call_init.part.0
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:_dl_check_map_versions
+   fun:dl_open_worker
+   fun:_dl_catch_error
+   fun:_dl_open
+   fun:dlopen_doit
+   fun:_dl_catch_error
+   fun:_dlerror_run
+   fun:dlopen@@GLIBC_2.2.5
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   ...
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
+   fun:call_init.part.0
+   fun:_dl_init
+   obj:/lib/x86_64-linux-gnu/ld-2.21.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:_dl_new_object
+   fun:_dl_map_object_from_fd
+   fun:_dl_map_object
+   fun:dl_open_worker
+   fun:_dl_catch_error
+   fun:_dl_open
+   fun:dlopen_doit
+   fun:_dl_catch_error
+   fun:_dlerror_run
+   fun:dlopen@@GLIBC_2.2.5
+   obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:strdup
+   fun:_dl_load_cache_lookup
+   fun:_dl_map_object
+   fun:dl_open_worker
+   fun:_dl_catch_error
+   fun:_dl_open
+   fun:dlopen_doit
+   fun:_dl_catch_error
+   fun:_dlerror_run
+   fun:dlopen@@GLIBC_2.2.5
+   obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: indirect
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   ...
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
+   fun:call_init.part.0
+   fun:_dl_init
+   obj:/lib/x86_64-linux-gnu/ld-2.21.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:strdup
+   fun:_dl_load_cache_lookup
+   fun:_dl_map_object
+   fun:dl_open_worker
+   fun:_dl_catch_error
+   fun:_dl_open
+   fun:dlopen_doit
+   fun:_dl_catch_error
+   fun:_dlerror_run
+   fun:dlopen@@GLIBC_2.2.5
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:strdup
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:_dlerror_run
+   fun:dlopen@@GLIBC_2.2.5
+   obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
+   fun:call_init.part.0
+   fun:_dl_init
+   obj:/lib/x86_64-linux-gnu/ld-2.21.so
+}
+{
+   <insert_a_suppression_name_here>
+   Helgrind:UnlockUnlocked
+   fun:mutex_unlock_WRK
+   obj:/usr/lib/x86_64-linux-gnu/libamdocl64.so
+   fun:aclCompilerInit
+   obj:/usr/lib/x86_64-linux-gnu/libamdocl64.so
+   obj:/usr/lib/x86_64-linux-gnu/libamdocl64.so
+   obj:/usr/lib/x86_64-linux-gnu/libamdocl64.so
+   obj:/usr/lib/x86_64-linux-gnu/libamdocl64.so
+   fun:clIcdGetPlatformIDsKHR
+   obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
+   fun:call_init.part.0
+   fun:_dl_init
+   fun:dl_open_worker
+   fun:_dl_catch_error
+   fun:_dl_open
+   fun:dlopen_doit
+   fun:_dl_catch_error
+   fun:_dlerror_run
+   fun:dlopen@@GLIBC_2.2.5
+   ...
+}
+{
+   <insert_a_suppression_name_here>
+   Helgrind:PthAPIerror
+   fun:mutex_unlock_WRK
+   obj:/usr/lib/x86_64-linux-gnu/libamdocl64.so
+   fun:aclCompilerInit
+   obj:/usr/lib/x86_64-linux-gnu/libamdocl64.so
+   obj:/usr/lib/x86_64-linux-gnu/libamdocl64.so
+   obj:/usr/lib/x86_64-linux-gnu/libamdocl64.so
+   obj:/usr/lib/x86_64-linux-gnu/libamdocl64.so
+   fun:clIcdGetPlatformIDsKHR
+   obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
+   fun:call_init.part.0
+   fun:_dl_init
+   fun:dl_open_worker
+   fun:_dl_catch_error
+   fun:_dl_open
+   fun:dlopen_doit
+   fun:_dl_catch_error
+   fun:_dlerror_run
+   fun:dlopen@@GLIBC_2.2.5
+   ...
+}
+{
+   <insert_a_suppression_name_here>
+   Helgrind:Race
+   ...
+   fun:init_one_static_tls
+   fun:__pthread_init_static_tls
+   fun:dl_open_worker
+   fun:_dl_catch_error
+   fun:_dl_open
+   fun:dlopen_doit
+   fun:_dl_catch_error
+   fun:_dlerror_run
+   fun:dlopen@@GLIBC_2.2.5
+   obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
+   fun:call_init.part.0
+   fun:_dl_init
+   fun:dl_open_worker
+   fun:_dl_catch_error
+   fun:_dl_open
+   fun:dlopen_doit
+   fun:_dl_catch_error
+   fun:_dlerror_run
+   fun:dlopen@@GLIBC_2.2.5
+   ...
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   ...
+   obj:/usr/lib/x86_64-linux-gnu/libamdocl64.so
+   ...
+   fun:call_init.part.0
+   fun:_dl_init
+   fun:dl_open_worker
+   fun:_dl_catch_error
+   fun:_dl_open
+   fun:dlopen_doit
+   fun:_dl_catch_error
+   fun:_dlerror_run
+   fun:dlopen@@GLIBC_2.2.5
+   ...
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value8
+   ...
+   obj:/usr/lib/x86_64-linux-gnu/libamdocl64.so
+   ...
+   fun:call_init.part.0
+   fun:_dl_init
+   fun:dl_open_worker
+   fun:_dl_catch_error
+   fun:_dl_open
+   fun:dlopen_doit
+   fun:_dl_catch_error
+   fun:_dlerror_run
+   fun:dlopen@@GLIBC_2.2.5
+   ...
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   ...
+   obj:/usr/lib/x86_64-linux-gnu/libamdocl64.so
+   ...
+   fun:call_init.part.0
+   fun:_dl_init
+   fun:dl_open_worker
+   fun:_dl_catch_error
+   fun:_dl_open
+   fun:dlopen_doit
+   fun:_dl_catch_error
+   fun:_dlerror_run
+   fun:dlopen@@GLIBC_2.2.5
+   ...
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:_dlerror_run
+   fun:dlclose
+   obj:/usr/lib/x86_64-linux-gnu/libamdocl64.so
+   fun:__run_exit_handlers
+   fun:exit
+   ...
+}

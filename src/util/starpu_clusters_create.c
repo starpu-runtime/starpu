@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015  Université de Bordeaux
+ * Copyright (C) 2015-2016  Université de Bordeaux
  * Copyright (C) 2015  INRIA
- * Copyright (C) 2015  CNRS
+ * Copyright (C) 2015, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -50,7 +50,7 @@ void starpu_openmp_prologue(void *sched_ctx_id)
 	int sched_ctx = *(int*)sched_ctx_id;
 	int *cpuids = NULL;
 	int ncpuids = 0;
-	int workerid = starpu_worker_get_id();
+	int workerid = starpu_worker_get_id_check();
 
 	if (starpu_worker_get_type(workerid) == STARPU_CPU_WORKER)
 	{
@@ -472,7 +472,7 @@ int _starpu_cluster_analyze_parameters(struct _starpu_cluster_parameters *params
 					cpu_loss = npus%j;
 					second_best = j;
 				}
-				j = params->prefere_min? j++:j--;
+				j = params->prefere_min? j+1:j-1;
 			}
 
 			if (best)
@@ -572,7 +572,7 @@ int _starpu_cluster_topology(hwloc_obj_type_t cluster_level,
 void _starpu_cluster_group(hwloc_obj_type_t cluster_level,
 			   struct starpu_cluster_machine *machine)
 {
-	unsigned nb_objects;
+	int nb_objects;
 	int i;
 	struct _starpu_cluster_group *group = NULL;
 
@@ -580,14 +580,14 @@ void _starpu_cluster_group(hwloc_obj_type_t cluster_level,
 		machine->groups = _starpu_cluster_group_list_new();
 
 	nb_objects = hwloc_get_nbobjs_by_type(machine->topology, cluster_level);
-	if (nb_objects == 0)
+	if (nb_objects <= 0)
 		return;
+	/* XXX: handle nb_objects == -1 */
 
 	group = _starpu_cluster_group_list_begin(machine->groups);
 	for (i = 0 ; i < nb_objects ; i++)
 	{
-		hwloc_obj_t cluster_obj = hwloc_get_obj_by_type(machine->topology,
-								cluster_level, i);
+		hwloc_obj_t cluster_obj = hwloc_get_obj_by_type(machine->topology, cluster_level, i);
 
 		if (group == NULL)
 		{

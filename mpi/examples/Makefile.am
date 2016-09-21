@@ -1,7 +1,8 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2013, 2015  Université de Bordeaux
+# Copyright (C) 2009-2013, 2015-2016  Université de Bordeaux
 # Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+# Copyright (C) 2016  Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -14,33 +15,40 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
+include $(top_srcdir)/starpu.mk
+
 CC=$(MPICC)
 CCLD=$(MPICC)
+FC=$(MPIFORT)
+FCLD=$(MPIFORT)
 
 if STARPU_HAVE_WINDOWS
 LOADER_BIN		=
 else
 loader_CPPFLAGS 	= 	$(AM_CFLAGS) $(AM_CPPFLAGS) -I$(top_builddir)/src/
 LOADER			=	loader
-LOADER_BIN		=	$(abs_top_builddir)/mpi/tests/$(LOADER)
+LOADER_BIN		=	$(abs_top_builddir)/mpi/examples/$(LOADER)
 loader_SOURCES		=	../../tests/loader.c
 endif
 
+# we always test on 4 processes, the execution time is not that bigger
 if STARPU_QUICK_CHECK
-MPI			=	$(MPIEXEC) -np 2
+MPI			=	$(MPIEXEC) $(MPIEXEC_ARGS) -np 4
 else
-MPI			=	$(MPIEXEC) -np 4
+MPI			=	$(MPIEXEC) $(MPIEXEC_ARGS) -np 4
 endif
 
 if STARPU_HAVE_AM111
-TESTS_ENVIRONMENT	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
+TESTS_ENVIRONMENT	=	STARPU_WORKERS_NOBIND=1 STARPU_NCPU=4 top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
 LOG_COMPILER	 	=	$(MPI) $(LOADER_BIN)
 else
-TESTS_ENVIRONMENT 	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(MPI) $(LOADER_BIN)
+TESTS_ENVIRONMENT 	=	STARPU_WORKERS_NOBIND=1 STARPU_NCPU=4 top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(MPI) $(LOADER_BIN)
 endif
 
+if !STARPU_SIMGRID
 if STARPU_MPI_CHECK
 TESTS			=	$(starpu_mpi_EXAMPLES)
+endif
 endif
 
 check_PROGRAMS = $(LOADER) $(starpu_mpi_EXAMPLES)
@@ -48,7 +56,7 @@ starpu_mpi_EXAMPLES =
 
 BUILT_SOURCES =
 
-CLEANFILES = *.gcno *.gcda *.linkinfo starpu_idle_microsec.log
+CLEANFILES = *.gcno *.gcda *.linkinfo starpu_idle_microsec.log *.mod
 
 EXTRA_DIST = 				\
 	mpi_lu/mpi_lu-float.h		\
@@ -76,6 +84,9 @@ examplebindir = $(libdir)/starpu/mpi
 examplebin_PROGRAMS =
 
 if STARPU_USE_CUDA
+if STARPU_COVERITY
+include $(top_srcdir)/starpu-mynvcc.mk
+else
 NVCCFLAGS += --compiler-options -fno-strict-aliasing  -I$(top_srcdir)/include/ -I$(top_builddir)/include/ $(HWLOC_CFLAGS)
 
 .cu.cubin:
@@ -84,6 +95,7 @@ NVCCFLAGS += --compiler-options -fno-strict-aliasing  -I$(top_srcdir)/include/ -
 
 .cu.o:
 	$(NVCC) $< -c -o $@ $(NVCCFLAGS)
+endif
 endif
 
 AM_CFLAGS = -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(FXT_CFLAGS) $(MAGMA_CFLAGS) $(HWLOC_CFLAGS) $(GLOBAL_AM_CFLAGS) -Wno-unused
@@ -255,6 +267,43 @@ starpu_mpi_EXAMPLES +=				\
 	matrix_mult/mm
 endif
 
+##########################################
+# Native Fortran MPI Matrix mult example #
+##########################################
+
+if STARPU_HAVE_MPIFORT
+if BUILD_EXAMPLES
+if !STARPU_SANITIZE
+examplebin_PROGRAMS +=		\
+	native_fortran/nf_mm	\
+	native_fortran/nf_basic_ring
+
+native_fortran_nf_mm_SOURCES	=			\
+	native_fortran/nf_mm_cl.f90			\
+	$(top_srcdir)/mpi/include/fstarpu_mpi_mod.f90	\
+	$(top_srcdir)/include/fstarpu_mod.f90		\
+	native_fortran/nf_mm.f90
+
+native_fortran_nf_mm_LDADD =					\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la	\
+	-lm
+
+native_fortran_nf_basic_ring_SOURCES	=			\
+	$(top_srcdir)/mpi/include/fstarpu_mpi_mod.f90	\
+	$(top_srcdir)/include/fstarpu_mod.f90		\
+	native_fortran/nf_basic_ring.f90
+
+native_fortran_nf_basic_ring_LDADD =					\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la	\
+	-lm
+
+starpu_mpi_EXAMPLES +=				\
+	native_fortran/nf_mm			\
+	native_fortran/nf_basic_ring
+endif
+endif
+endif
+
 ###################
 # complex example #
 ###################
@@ -312,10 +361,31 @@ starpu_mpi_EXAMPLES	+=			\
 	comm/mix_comm
 endif
 
+if STARPU_HAVE_MPIFORT
+if BUILD_EXAMPLES
+if !STARPU_SANITIZE
+# Native Fortran example
+# - list explicit dependences to control proper module files generation
+# - the overriding rule fully disables the corresponing default rule, thus
+#   the default rule body must be copied entirely
+fstarpu_mod.mod: fstarpu_mod.o
+fstarpu_mpi_mod.mod: fstarpu_mpi_mod.o
+nf_mm_cl.mod: nf_mm_cl.o
 
-showcheck:
-	-cat $(TEST_LOGS) /dev/null
-	! grep -q "ERROR: AddressSanitizer: " $(TEST_LOGS) /dev/null
-	! grep -q "WARNING: AddressSanitizer: " $(TEST_LOGS) /dev/null
-	! grep -q "ERROR: ThreadSanitizer: " $(TEST_LOGS) /dev/null
-	! grep -q "WARNING: ThreadSanitizer: " $(TEST_LOGS) /dev/null
+fstarpu_mod.o: $(top_srcdir)/include/fstarpu_mod.f90
+	$(AM_V_FC)$(FC) $(native_fortran_nf_mm_FCFLAGS) $(FCFLAGS) -c -o $@ '$(top_srcdir)/'include/fstarpu_mod.f90
+
+fstarpu_mpi_mod.o: $(top_srcdir)/mpi/include/fstarpu_mpi_mod.f90 fstarpu_mod.mod
+	$(AM_V_FC)$(FC) $(native_fortran_nf_mm_FCFLAGS) $(FCFLAGS) -c -o $@ '$(top_srcdir)/'mpi/include/fstarpu_mpi_mod.f90
+
+nf_mm_cl.o: $(top_srcdir)/mpi/examples/native_fortran/nf_mm_cl.f90 fstarpu_mpi_mod.mod fstarpu_mod.mod
+	$(AM_V_FC)$(FC) $(native_fortran_nf_mm_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'native_fortran/nf_mm_cl.f90' || echo '$(srcdir)/'`native_fortran/nf_mm_cl.f90
+
+nf_mm.o: $(top_srcdir)/mpi/examples/native_fortran/nf_mm.f90 nf_mm_cl.mod fstarpu_mpi_mod.mod fstarpu_mod.mod
+	$(AM_V_FC)$(FC) $(native_fortran_nf_mm_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'native_fortran/nf_mm.f90' || echo '$(srcdir)/'`native_fortran/nf_mm.f90
+
+nf_basic_ring.o: $(top_srcdir)/mpi/examples/native_fortran/nf_basic_ring.f90 fstarpu_mpi_mod.mod fstarpu_mod.mod
+	$(AM_V_FC)$(FC) $(native_fortran_nf_basic_ring_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'native_fortran/nf_basic_ring.f90' || echo '$(srcdir)/'`native_fortran/nf_basic_ring.f90
+endif
+endif
+endif

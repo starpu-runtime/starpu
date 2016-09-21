@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2015  Université de Bordeaux
+ * Copyright (C) 2012-2016  Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -34,25 +34,14 @@ extern int smpi_main(int (*realmain) (int argc, char *argv[]), int argc, char *a
 #pragma weak _starpu_mpi_simgrid_init
 extern int _starpu_mpi_simgrid_init(int argc, char *argv[]);
 
+static int simgrid_started;
+
 starpu_pthread_queue_t _starpu_simgrid_transfer_queue[STARPU_MAXNODES];
 starpu_pthread_queue_t _starpu_simgrid_task_queue[STARPU_NMAXWORKERS];
 
-struct main_args
-{
-	int argc;
-	char **argv;
-};
-
-int do_starpu_main(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[])
-{
-	struct main_args *args = (void*) argv;
-	return starpu_main(args->argc, args->argv);
-}
-
 /* In case the MPI application didn't use smpicc to build the file containing
  * main(), try to cope by calling starpu_main */
-#pragma weak smpi_simulated_main_
-int smpi_simulated_main_(int argc, char *argv[])
+int _starpu_smpi_simulated_main_(int argc, char *argv[])
 {
 	if (!starpu_main)
 	{
@@ -61,6 +50,7 @@ int smpi_simulated_main_(int argc, char *argv[])
 
 	return starpu_main(argc, argv);
 }
+int smpi_simulated_main_(int argc, char *argv[]) __attribute__((weak, alias("_starpu_smpi_simulated_main_")));
 
 #ifdef HAVE_MSG_ENVIRONMENT_GET_ROUTING_ROOT
 #ifdef HAVE_MSG_GET_AS_BY_NAME
@@ -190,19 +180,62 @@ msg_host_t _starpu_simgrid_get_host_by_worker(struct _starpu_worker *worker)
 	return host;
 }
 
-#ifdef STARPU_DEVEL
-#warning TODO: use another way to start main, when simgrid provides it, and then include the application-provided configuration for platform numbers
-#endif
-#undef main
-int main(int argc, char **argv)
+static void start_simgrid(int *argc, char **argv)
 {
 	char path[256];
 
-	if (!starpu_main && !(smpi_main && smpi_simulated_main_))
+	simgrid_started = 1;
+
+	if (!starpu_main && !(smpi_main && smpi_simulated_main_ != _starpu_smpi_simulated_main_))
 	{
-		_STARPU_ERROR("In simgrid mode, the file containing the main() function of this application needs to be compiled with starpu.h included, to properly rename it into starpu_main\n");
+		_STARPU_ERROR("In simgrid mode, the file containing the main() function of this application needs to be compiled with starpu.h or starpu_simgrid_wrap.h included, to properly rename it into starpu_main\n");
 	}
 
+	MSG_init(argc, argv);
+#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 9)
+	/* Versions earlier than 3.9 didn't support our communication tasks */
+	MSG_config("workstation/model", "ptask_L07");
+#endif
+	/* Simgrid uses tiny stacks by default.  This comes unexpected to our users.  */
+	unsigned stack_size = 8192;
+	struct rlimit rlim;
+	if (getrlimit(RLIMIT_STACK, &rlim) == 0 && rlim.rlim_cur != 0 && rlim.rlim_cur != RLIM_INFINITY)
+		stack_size = rlim.rlim_cur / 1024;
+
+#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 13)
+	extern xbt_cfg_t _sg_cfg_set;
+	xbt_cfg_set_int(_sg_cfg_set, "contexts/stack_size", stack_size);
+#else
+	xbt_cfg_set_int("contexts/stack-size", stack_size);
+#endif
+
+	/* Load XML platform */
+#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 13)
+	_starpu_simgrid_get_platform_path(3, path, sizeof(path));
+#else
+	_starpu_simgrid_get_platform_path(4, path, sizeof(path));
+#endif
+	MSG_create_environment(path);
+}
+
+struct main_args
+{
+	int argc;
+	char **argv;
+};
+static int main_ret;
+
+int do_starpu_main(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[])
+{
+	struct main_args *args = (void*) argv;
+	main_ret = starpu_main(args->argc, args->argv);
+	return main_ret;
+}
+
+#undef main
+#pragma weak main
+int main(int argc, char **argv)
+{
 	if (_starpu_simgrid_running_smpi())
 	{
 		/* Oops, we are running SMPI, let it start Simgrid, and we'll
@@ -210,48 +243,73 @@ int main(int argc, char **argv)
 		return smpi_main(_starpu_mpi_simgrid_init, argc, argv);
 	}
 
-	MSG_init(&argc, argv);
-#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 9)
-	/* Versions earlier than 3.9 didn't support our communication tasks */
-	MSG_config("workstation/model", "ptask_L07");
-#endif
-	/* Simgrid uses tiny stacks by default.  This comes unexpected to our users.  */
-	extern xbt_cfg_t _sg_cfg_set;
-	unsigned stack_size = 8192;
-	struct rlimit rlim;
-	if (getrlimit(RLIMIT_STACK, &rlim) == 0 && rlim.rlim_cur != 0 && rlim.rlim_cur != RLIM_INFINITY)
-		stack_size = rlim.rlim_cur / 1024;
+	/* Managed to catch application's main, initialize simgrid first */
+	start_simgrid(&argc, argv);
 
-	xbt_cfg_set_int(_sg_cfg_set, "contexts/stack_size", stack_size);
-
-	/* Load XML platform */
-	_starpu_simgrid_get_platform_path(path, sizeof(path));
-	MSG_create_environment(path);
-
+	/* Create a simgrid process for main */
 	struct main_args *args = malloc(sizeof(*args));
 	args->argc = argc;
 	args->argv = argv;
 	MSG_process_create_with_arguments("main", &do_starpu_main, calloc(MAX_TSD, sizeof(void*)), MSG_get_host_by_name("MAIN"), 0, (char**) args);
 
+	/* And run maestro in main thread */
 	MSG_main();
-	return 0;
+	return main_ret;
 }
 
-void _starpu_simgrid_init()
+static void maestro(void *data STARPU_ATTRIBUTE_UNUSED)
 {
-	unsigned i;
-	if (!starpu_main && !(smpi_main && smpi_simulated_main_))
+	MSG_main();
+}
+
+void _starpu_simgrid_init(int *argc, char ***argv)
+{
+#ifdef HAVE_MSG_PROCESS_ATTACH
+	if (!simgrid_started && !(smpi_main && smpi_simulated_main_ != _starpu_smpi_simulated_main_))
 	{
-		_STARPU_ERROR("In simgrid mode, the file containing the main() function of this application needs to be compiled with starpu.h included, to properly rename it into starpu_main\n");
+		_STARPU_DISP("Warning: In simgrid mode, the file containing the main() function of this application should to be compiled with starpu.h or starpu_simgrid_wrap.h included, to properly rename it into starpu_main to avoid having to use --cfg=contexts/factory:thread which reduces performance\n");
+#if SIMGRID_VERSION_MAJOR > 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR >= 14)
+		xbt_cfg_set_string("contexts/factory", "thread");
+#endif
+		/* We didn't catch application's main. */
+		/* Start maestro as a separate thread */
+		SIMIX_set_maestro(maestro, NULL);
+		/* Initialize simgrid */
+		start_simgrid(argc, *argv);
+		/* And attach the main thread to the main simgrid process */
+		MSG_process_attach("main", calloc(MAX_TSD, sizeof(void*)), MSG_get_host_by_name("MAIN"), NULL);
+		simgrid_started = 2;
+	}
+#endif
+
+	unsigned i;
+	if (!simgrid_started && !starpu_main && !(smpi_main && smpi_simulated_main_ != _starpu_smpi_simulated_main_))
+	{
+		_STARPU_ERROR("In simgrid mode, the file containing the main() function of this application needs to be compiled with starpu.h or starpu_simgrid_wrap.h included, to properly rename it into starpu_main\n");
 	}
 	if (_starpu_simgrid_running_smpi())
 	{
+#ifdef __PIC__
+		_STARPU_ERROR("Simgrid currently does not support privatization for dynamically-linked libraries in SMPI. Please reconfigure and build StarPU with --disable-shared");
+#endif
 		MSG_process_set_data(MSG_process_self(), calloc(MAX_TSD, sizeof(void*)));
 	}
 	for (i = 0; i < STARPU_MAXNODES; i++)
 		starpu_pthread_queue_init(&_starpu_simgrid_transfer_queue[i]);
 	for (i = 0; i < STARPU_NMAXWORKERS; i++)
 		starpu_pthread_queue_init(&_starpu_simgrid_task_queue[i]);
+}
+
+void _starpu_simgrid_deinit(void)
+{
+#ifdef HAVE_MSG_PROCESS_ATTACH
+	if (simgrid_started == 2)
+	{
+		/* Started with MSG_process_attach, now detach */
+		MSG_process_detach();
+		simgrid_started = 0;
+	}
+#endif
 }
 
 /*
@@ -334,7 +392,11 @@ void _starpu_simgrid_submit_job(int workerid, struct _starpu_job *j, struct star
 	}
 
 	simgrid_task = MSG_task_create(_starpu_job_get_task_name(j),
+#ifdef HAVE_MSG_HOST_GET_SPEED
+			length/1000000.0*MSG_host_get_speed(MSG_host_self()),
+#else
 			length/1000000.0*MSG_get_host_speed(MSG_host_self()),
+#endif
 			0, NULL);
 
 	if (finished == NULL)
@@ -523,6 +585,9 @@ static void transfer_submit(struct transfer *transfer)
 /* Data transfer issued by StarPU */
 int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, struct _starpu_data_request *req)
 {
+	/* Simgrid does not like 0-bytes transfers */
+	if (!size)
+		return 0;
 	msg_task_t task;
 	msg_host_t *hosts = calloc(2, sizeof(*hosts));
 	double *computation = calloc(2, sizeof(*computation));
@@ -596,10 +661,11 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 int
 _starpu_simgrid_thread_start(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[])
 {
-	struct _starpu_pthread_args *_args = (void*) argv;
-	struct _starpu_pthread_args args = *_args;
+	void *(*f)(void*) = (void*) (uintptr_t) strtol(argv[0], NULL, 16);
+	void *arg = (void*) (uintptr_t) strtol(argv[1], NULL, 16);
+
 	/* _args is freed with process context */
-	args.f(args.arg);
+	f(arg);
 	return 0;
 }
 #endif

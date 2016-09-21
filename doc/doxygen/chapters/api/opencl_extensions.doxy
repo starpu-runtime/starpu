@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016  CNRS
  * Copyright (C) 2011, 2012 INRIA
  * See the file version.doxy for copying conditions.
  */
@@ -117,6 +117,10 @@ has been located on the system, \p located_dir_name the directory
 where it has been located. Otherwise, they are both set to the empty
 string.
 
+\fn void starpu_opencl_load_program_source_malloc(const char *source_file_name, char **located_file_name, char **located_dir_name, char **opencl_program_source)
+\ingroup API_OpenCL_Extensions
+Similar to function starpu_opencl_load_program_source() but it allocates the buffers located_file_name, located_dir_name and opencl_program_source.
+
 \fn int starpu_opencl_compile_opencl_from_file(const char *source_file_name, const char *build_options)
 \ingroup API_OpenCL_Extensions
 Compile the OpenCL kernel stored in the file \p source_file_name
@@ -163,7 +167,7 @@ This function allows to collect statistics on a kernel execution.
 After termination of the kernels, the OpenCL codelet should call this
 function to pass it the even returned by clEnqueueNDRangeKernel, to
 let StarPU collect statistics about the kernel execution (used cycles,
-consumed power).
+consumed energy).
 
 @name OpenCL utilities
 \ingroup API_OpenCL_Extensions

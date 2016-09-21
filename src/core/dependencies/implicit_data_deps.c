@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2015  Université de Bordeaux
+ * Copyright (C) 2010-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2013, 2015  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -206,6 +206,10 @@ struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_
 {
 	struct starpu_task *task = NULL;
 
+	/* Do not care about some flags */
+	mode &= ~ STARPU_SSEND;
+	mode &= ~ STARPU_LOCALITY;
+
 	STARPU_ASSERT(!(mode & STARPU_SCRATCH));
         _STARPU_LOG_IN();
 
@@ -213,6 +217,9 @@ struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_
 	{
 		struct _starpu_job *pre_sync_job = _starpu_get_job_associated_to_task(pre_sync_task);
 		struct _starpu_job *post_sync_job = _starpu_get_job_associated_to_task(post_sync_task);
+
+		if (mode & STARPU_W || mode == STARPU_REDUX)
+			handle->initialized = 1;
 
 		/* Skip tasks that are associated to a reduction phase so that
 		 * they do not interfere with the application. */

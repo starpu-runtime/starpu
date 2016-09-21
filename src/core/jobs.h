@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2015  Université de Bordeaux
+ * Copyright (C) 2009-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2013, 2014, 2015  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2014  INRIA
@@ -63,8 +63,73 @@ struct _starpu_data_descr
 	int node;
 };
 
+struct _starpu_job_list {
+	struct _starpu_job_list *next;
+	struct _starpu_job_list *prev;
+};
+
+#ifdef STARPU_DEBUG
+#define STARPU_ASSERT_JOB_LIST(expr) STARPU_ASSERT(expr)
+#else
+#define STARPU_ASSERT_JOB_LIST(expr) ((void) 0)
+#endif
+
+#define _starpu_job_of(elt, member) \
+	((struct _starpu_job *) ((uintptr_t) (elt) - ((uintptr_t) (&((struct _starpu_job *) 0)->member))))
+
+#define _starpu_job_list_init(head) do { \
+	struct _starpu_job_list *_head = (head); \
+	_head->next = _head; \
+	_head->prev = _head; \
+} while (0)
+
+#define _starpu_job_list_push_front(head, j, member) do { \
+	struct _starpu_job *_j = (j); \
+	struct _starpu_job_list *_head = (head); \
+	STARPU_ASSERT_JOB_LIST(_j->member.prev == NULL); \
+	STARPU_ASSERT_JOB_LIST(_j->member.next == NULL); \
+	_j->member.next = _head->next; \
+	_j->member.prev = _head; \
+	_head->next->prev = &_j->member; \
+	_head->next = &_j->member; \
+} while (0)
+
+#define _starpu_job_list_push_back(head, j, member) do { \
+	struct _starpu_job *_j = (j); \
+	struct _starpu_job_list *_head = (head); \
+	STARPU_ASSERT_JOB_LIST(_j->member.prev == NULL); \
+	STARPU_ASSERT_JOB_LIST(_j->member.next == NULL); \
+	_j->member.prev = _head->prev; \
+	_j->member.next = _head; \
+	_head->prev->next = &_j->member; \
+	_head->prev = &_j->member; \
+} while (0)
+
+#define _starpu_job_list_erase(head, j, member) do { \
+	struct _starpu_job *_j = (j); \
+	STARPU_ASSERT_JOB_LIST(_j->member.next->prev == &_j->member); \
+	_j->member.next->prev = _j->member.prev; \
+	STARPU_ASSERT_JOB_LIST(_j->member.prev->next == &_j->member); \
+	_j->member.prev->next = _j->member.next; \
+	_j->member.next = NULL; \
+	_j->member.prev = NULL; \
+} while (0)
+
+#define _starpu_job_list_queued(j, member) \
+	((j)->member.next != NULL)
+
+#define _starpu_job_list_empty(head) \
+	((head)->next != head)
+
+#define _starpu_job_list_begin(head, member) \
+	_starpu_job_of((head)->next, member)
+#define _starpu_job_list_next(head, j, member) \
+	_starpu_job_of((j)->member.next, member)
+#define _starpu_job_list_end(head, member) \
+	_starpu_job_of(head, member)
+
 /* A job is the internal representation of a task. */
-LIST_TYPE(_starpu_job,
+struct _starpu_job {
 
 	/* Each job is attributed a unique id. */
 	unsigned long job_id;
@@ -140,8 +205,8 @@ LIST_TYPE(_starpu_job,
 	/* Cumulated execution time for discontinuous jobs */
 	struct timespec cumulated_ts;
 
-	/* Cumulated power consumption for discontinuous jobs */
-	double cumulated_power_consumed;
+	/* Cumulated energy consumption for discontinuous jobs */
+	double cumulated_energy_consumed;
 #endif
 
 	/* The value of the footprint that identifies the job may be stored in
@@ -187,15 +252,44 @@ LIST_TYPE(_starpu_job,
 	starpu_pthread_barrier_t after_work_barrier;
 	unsigned after_work_busy_barrier;
 
+	/*
+	 * Fields for graph analysis for scheduling heuristics
+	 */
+	/* Member of list of all jobs without incoming dependency */
+	struct _starpu_job_list top;
+	/* Member of list of all jobs without outgoing dependency */
+	struct _starpu_job_list bottom;
+	/* Member of list of all jobs */
+	struct _starpu_job_list all;
+
+	/* set of incoming dependencies */
+	struct _starpu_job **incoming;	/* May contain NULLs for terminated jobs */
+	unsigned n_incoming;		/* Number of slots used */
+	unsigned alloc_incoming;	/* Size of incoming */
+	/* set of outgoing dependencies */
+	struct _starpu_job **outgoing;
+	unsigned *outgoing_slot;	/* Index within corresponding incoming array */
+	unsigned n_outgoing;		/* Number of slots used */
+	unsigned alloc_outgoing;	/* Size of outgoing */
+
+	unsigned depth;			/* Rank from bottom, in number of jobs */
+					/* Only available if _starpu_graph_compute_depths was called */
+	unsigned descendants;		/* Number of children, grand-children, etc. */
+					/* Only available if _starpu_graph_compute_descendants was called */
+
+	int graph_n;			/* Variable available for graph flow */
+
 #ifdef STARPU_DEBUG
 	/* Linked-list of all jobs, for debugging */
-	struct _starpu_job *prev_all;
-	struct _starpu_job *next_all;
+	struct _starpu_job_list all_submitted;
 #endif
-)
+};
+
+void _starpu_job_init(void);
+void _starpu_job_fini(void);
 
 /* Create an internal struct _starpu_job *structure to encapsulate the task. */
-struct _starpu_job* STARPU_ATTRIBUTE_MALLOC _starpu_job_create(struct starpu_task *task);
+struct _starpu_job* _starpu_job_create(struct starpu_task *task) STARPU_ATTRIBUTE_MALLOC;
 
 /* Destroy the data structure associated to the job structure */
 void _starpu_job_destroy(struct _starpu_job *j);

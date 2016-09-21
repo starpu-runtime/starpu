@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012-2015  Université de Bordeaux
+ * Copyright (C) 2010, 2012-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -18,11 +18,6 @@
 #ifndef __STARPU_THREAD_H__
 #define __STARPU_THREAD_H__
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
 #include <starpu_config.h>
 #include <starpu_util.h>
 #ifdef STARPU_SIMGRID
@@ -36,6 +31,11 @@ extern "C"
 #include <pthread.h>
 #endif
 #include <stdint.h>
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 /*
  * Encapsulation of the pthread_create function.
@@ -101,13 +101,26 @@ typedef pthread_mutexattr_t starpu_pthread_mutexattr_t;
 #define starpu_pthread_mutexattr_destroy pthread_mutexattr_destroy
 #define starpu_pthread_mutexattr_init pthread_mutexattr_init
 
+#ifdef STARPU_FXT_LOCK_TRACES
 int starpu_pthread_mutex_lock(starpu_pthread_mutex_t *mutex);
 int starpu_pthread_mutex_unlock(starpu_pthread_mutex_t *mutex);
 int starpu_pthread_mutex_trylock(starpu_pthread_mutex_t *mutex);
+#else
+#define starpu_pthread_mutex_lock pthread_mutex_lock
+#define starpu_pthread_mutex_unlock pthread_mutex_unlock
+#define starpu_pthread_mutex_trylock pthread_mutex_trylock
+#endif
 
 #define STARPU_PTHREAD_MUTEX_INITIALIZER PTHREAD_MUTEX_INITIALIZER
 
 #endif /* STARPU_SIMGRID, _MSC_VER */
+
+#if !defined(_MSC_VER) || defined(BUILDING_STARPU)
+int starpu_pthread_mutex_lock_sched(starpu_pthread_mutex_t *mutex);
+int starpu_pthread_mutex_unlock_sched(starpu_pthread_mutex_t *mutex);
+int starpu_pthread_mutex_trylock_sched(starpu_pthread_mutex_t *mutex);
+void starpu_pthread_mutex_check_sched(starpu_pthread_mutex_t *mutex, char *file, int line);
+#endif
 
 /*
  * Encapsulation of the pthread_key_* functions.
@@ -158,7 +171,11 @@ typedef pthread_condattr_t starpu_pthread_condattr_t;
 #define starpu_pthread_cond_signal pthread_cond_signal
 #define starpu_pthread_cond_broadcast pthread_cond_broadcast
 
+#ifdef STARPU_FXT_LOCK_TRACES
 int starpu_pthread_cond_wait(starpu_pthread_cond_t *cond, starpu_pthread_mutex_t *mutex);
+#else
+#define starpu_pthread_cond_wait pthread_cond_wait
+#endif
 
 #define starpu_pthread_cond_timedwait pthread_cond_timedwait
 #define starpu_pthread_cond_destroy pthread_cond_destroy
@@ -190,11 +207,19 @@ typedef pthread_rwlockattr_t starpu_pthread_rwlockattr_t;
 #define starpu_pthread_rwlock_init pthread_rwlock_init
 #define starpu_pthread_rwlock_destroy pthread_rwlock_destroy
 
+#ifdef STARPU_FXT_LOCK_TRACES
 int starpu_pthread_rwlock_rdlock(starpu_pthread_rwlock_t *rwlock);
 int starpu_pthread_rwlock_tryrdlock(starpu_pthread_rwlock_t *rwlock);
 int starpu_pthread_rwlock_wrlock(starpu_pthread_rwlock_t *rwlock);
 int starpu_pthread_rwlock_trywrlock(starpu_pthread_rwlock_t *rwlock);
 int starpu_pthread_rwlock_unlock(starpu_pthread_rwlock_t *rwlock);
+#else
+#define starpu_pthread_rwlock_rdlock pthread_rwlock_rdlock
+#define starpu_pthread_rwlock_tryrdlock pthread_rwlock_tryrdlock
+#define starpu_pthread_rwlock_wrlock pthread_rwlock_wrlock
+#define starpu_pthread_rwlock_trywrlock pthread_rwlock_trywrlock
+#define starpu_pthread_rwlock_unlock pthread_rwlock_unlock
+#endif
 
 #endif /* STARPU_SIMGRID, _MSC_VER */
 
@@ -233,7 +258,11 @@ typedef pthread_barrierattr_t starpu_pthread_barrierattr_t;
 #define starpu_pthread_barrier_init pthread_barrier_init
 #define starpu_pthread_barrier_destroy pthread_barrier_destroy
 
+#ifdef STARPU_FXT_LOCK_TRACES
 int starpu_pthread_barrier_wait(starpu_pthread_barrier_t *barrier);
+#else
+#define starpu_pthread_barrier_wait pthread_barrier_wait
+#endif
 #define STARPU_PTHREAD_BARRIER_SERIAL_THREAD PTHREAD_BARRIER_SERIAL_THREAD
 
 #endif /* STARPU_SIMGRID, !STARPU_HAVE_PTHREAD_BARRIER, _MSC_VER */

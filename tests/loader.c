@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2014-2015  Université de Bordeaux
+ * Copyright (C) 2010, 2014-2016  Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -32,7 +32,16 @@
 #include <sys/time.h>
 #endif
 
+#ifdef STARPU_QUICK_CHECK
+/* Quick checks are supposed to be real quick, typically less than 1s each, sometimes 10s */
+#define  DEFAULT_TIMEOUT       60
+#elif !defined(STARPU_LONG_CHECK)
+/* Normal checks are supposed to be short enough, typically less than 10s each, sometimes 1-2m */
+#define  DEFAULT_TIMEOUT       300
+#else
+/* Long checks can be very long */
 #define  DEFAULT_TIMEOUT       1800
+#endif
 #define  AUTOTEST_SKIPPED_TEST 77
 
 static pid_t child_pid = 0;
@@ -158,12 +167,14 @@ static char *test_name;
 static void test_cleaner(int sig)
 {
 	pid_t child_gid;
+	int status;
 
 	// send signal to all loader family members
 	fprintf(stderr, "[error] test %s has been blocked for %d seconds. Mark it as failed\n", test_name, timeout);
 	child_gid = getpgid(child_pid);
-	launch_gdb(test_name);
 	kill(-child_gid, SIGQUIT);
+	waitpid(child_pid, &status, 0);
+	launch_gdb(test_name);
 	exit(EXIT_FAILURE);
 }
 
@@ -319,6 +330,7 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "[error] fork. test marked as failed\n");
 		exit(EXIT_FAILURE);
 	}
+	free(test_args);
 
 	ret = EXIT_SUCCESS;
 	gettimeofday(&start, NULL);

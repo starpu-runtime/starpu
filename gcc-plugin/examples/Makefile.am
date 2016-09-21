@@ -13,6 +13,8 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
+include $(top_srcdir)/starpu.mk
+
 TESTS	=
 
 examplebindir = $(libdir)/starpu/plugin
@@ -89,9 +91,13 @@ if STARPU_USE_CUDA
 
 vector_scal_vector_scal_SOURCES += vector_scal/vector_scal_cuda.cu
 
+if STARPU_COVERITY
+include $(top_srcdir)/starpu-mynvcc.mk
+else
 .cu.o:
 	$(NVCC) $< -c -o $@ $(NVCCFLAGS)			\
 	  -I$(top_builddir)/include -I$(top_srcdir)/include
+endif
 
 else !STARPU_USE_CUDA
 
@@ -100,16 +106,3 @@ EXTRA_DIST = vector_scal/vector_scal_cuda.cu
 endif
 
 TESTS += $(examplebin_PROGRAMS)
-
-
-showcheck:
-	-cat $(TEST_LOGS) /dev/null
-	! grep -q "ERROR: AddressSanitizer: " $(TEST_LOGS) /dev/null
-	! grep -q "WARNING: AddressSanitizer: " $(TEST_LOGS) /dev/null
-	! grep -q "ERROR: ThreadSanitizer: " $(TEST_LOGS) /dev/null
-	! grep -q "WARNING: ThreadSanitizer: " $(TEST_LOGS) /dev/null
-	RET=0 ; \
-	for i in $(SUBDIRS) ; do \
-		make -C $$i showcheck || RET=1 ; \
-	done ; \
-	exit $$RET

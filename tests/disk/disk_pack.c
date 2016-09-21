@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2013 Corentin Salingue
- * Copyright (C) 2015 CNRS
+ * Copyright (C) 2015, 2016 CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,10 +15,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-/* Try to write into disk memory
- * Use mechanism to push datas from main ram to disk ram
- */
-
 #include <fcntl.h>
 #include <starpu.h>
 #include <stdlib.h>
@@ -30,6 +26,12 @@
 #include <math.h>
 #include <common/config.h>
 #include "../helper.h"
+
+/*
+ * Try to write into disk memory
+ * Use mechanism to push datas from main ram to disk ram
+ * Here we force using the pack/unpack mechanism
+ */
 
 #ifdef STARPU_HAVE_WINDOWS
 #  include <io.h>
@@ -80,6 +82,13 @@ int dotest(struct starpu_disk_ops *ops, char *base)
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV) goto enodev;
 
+	if (starpu_cpu_worker_get_count() == 0)
+	{
+		FPRINTF(stderr, "We need at least 1 CPU worker.\n");
+		starpu_shutdown();
+		return STARPU_TEST_SKIPPED;
+	}
+
 	/* Initialize path and name */
 	const char *name_file_start = "STARPU_DISK_COMPUTE_DATA_";
 	const char *name_file_end = "STARPU_DISK_COMPUTE_DATA_RESULT_";
@@ -127,6 +136,9 @@ int dotest(struct starpu_disk_ops *ops, char *base)
 	fclose(f);
 
 	int descriptor = open(path_file_start, O_RDWR);
+	if (descriptor < 0)
+		goto enoent2;
+
 #ifdef STARPU_HAVE_WINDOWS
 	_commit(descriptor);
 #else
@@ -146,6 +158,8 @@ int dotest(struct starpu_disk_ops *ops, char *base)
 	fclose(f);
 
         descriptor = open(path_file_end, O_RDWR);
+	if (descriptor < 0)
+		goto enoent2;
 #ifdef STARPU_HAVE_WINDOWS
         _commit(descriptor);
 #else

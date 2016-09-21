@@ -43,7 +43,7 @@ todo
 \var uint32_t starpu_multiformat_interface::nx
 \var struct starpu_multiformat_data_interface_ops *starpu_multiformat_interface::ops
 
-\fn void starpu_multiformat_data_register(starpu_data_handle_t *handle, unsigned home_node, void *ptr, uint32_t nobjects, struct starpu_multiformat_data_interface_ops *format_ops)
+\fn void starpu_multiformat_data_register(starpu_data_handle_t *handle, int home_node, void *ptr, uint32_t nobjects, struct starpu_multiformat_data_interface_ops *format_ops)
 \ingroup API_Multiformat_Data_Interface
 Register a piece of data that can be represented in different
 ways, depending upon the processing unit that manipulates it. It

@@ -20,13 +20,13 @@
 
 #include <starpu.h>
 
+#ifdef STARPU_HAVE_HWLOC
+#include <hwloc.h>
+#endif
+
 #ifdef __cplusplus
 extern "C"
 {
-#endif
-
-#ifdef STARPU_HAVE_HWLOC
-#include <hwloc.h>
 #endif
 
 enum starpu_sched_component_properties
@@ -84,7 +84,7 @@ struct starpu_sched_tree
 	starpu_pthread_mutex_t lock;
 };
 
-struct starpu_sched_tree *starpu_sched_tree_create(unsigned sched_ctx_id);
+struct starpu_sched_tree *starpu_sched_tree_create(unsigned sched_ctx_id) STARPU_ATTRIBUTE_MALLOC;
 void starpu_sched_tree_destroy(struct starpu_sched_tree *tree);
 struct starpu_sched_tree *starpu_sched_tree_get(unsigned sched_ctx_id);
 void starpu_sched_tree_update_workers(struct starpu_sched_tree *t);
@@ -96,7 +96,7 @@ struct starpu_task *starpu_sched_component_pull_task(struct starpu_sched_compone
 void starpu_sched_tree_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers);
 void starpu_sched_tree_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers);
 
-struct starpu_sched_component *starpu_sched_component_create(struct starpu_sched_tree *tree, const char *name);
+struct starpu_sched_component *starpu_sched_component_create(struct starpu_sched_tree *tree, const char *name) STARPU_ATTRIBUTE_MALLOC;
 void starpu_sched_component_add_child(struct starpu_sched_component* component, struct starpu_sched_component * child);
 void starpu_sched_component_destroy(struct starpu_sched_component *component);
 void starpu_sched_component_destroy_rec(struct starpu_sched_component *component);
@@ -121,7 +121,7 @@ struct starpu_sched_component_fifo_data
 	double exp_len_threshold;
 };
 
-struct starpu_sched_component *starpu_sched_component_fifo_create(struct starpu_sched_tree *tree, struct starpu_sched_component_fifo_data *fifo_data);
+struct starpu_sched_component *starpu_sched_component_fifo_create(struct starpu_sched_tree *tree, struct starpu_sched_component_fifo_data *fifo_data) STARPU_ATTRIBUTE_MALLOC;
 int starpu_sched_component_is_fifo(struct starpu_sched_component *component);
 
 struct starpu_sched_component_prio_data
@@ -129,20 +129,20 @@ struct starpu_sched_component_prio_data
 	unsigned ntasks_threshold;
 	double exp_len_threshold;
 };
-struct starpu_sched_component *starpu_sched_component_prio_create(struct starpu_sched_tree *tree, struct starpu_sched_component_prio_data *prio_data);
+struct starpu_sched_component *starpu_sched_component_prio_create(struct starpu_sched_tree *tree, struct starpu_sched_component_prio_data *prio_data) STARPU_ATTRIBUTE_MALLOC;
 int starpu_sched_component_is_prio(struct starpu_sched_component *component);
 
-struct starpu_sched_component *starpu_sched_component_work_stealing_create(struct starpu_sched_tree *tree, void *arg STARPU_ATTRIBUTE_UNUSED);
+struct starpu_sched_component *starpu_sched_component_work_stealing_create(struct starpu_sched_tree *tree, void *arg STARPU_ATTRIBUTE_UNUSED) STARPU_ATTRIBUTE_MALLOC;
 int starpu_sched_component_is_work_stealing(struct starpu_sched_component *component);
 int starpu_sched_tree_work_stealing_push_task(struct starpu_task *task);
 
-struct starpu_sched_component *starpu_sched_component_random_create(struct starpu_sched_tree *tree, void *arg STARPU_ATTRIBUTE_UNUSED);
+struct starpu_sched_component *starpu_sched_component_random_create(struct starpu_sched_tree *tree, void *arg STARPU_ATTRIBUTE_UNUSED) STARPU_ATTRIBUTE_MALLOC;
 int starpu_sched_component_is_random(struct starpu_sched_component *);
 
-struct starpu_sched_component *starpu_sched_component_eager_create(struct starpu_sched_tree *tree, void *arg STARPU_ATTRIBUTE_UNUSED);
+struct starpu_sched_component *starpu_sched_component_eager_create(struct starpu_sched_tree *tree, void *arg STARPU_ATTRIBUTE_UNUSED) STARPU_ATTRIBUTE_MALLOC;
 int starpu_sched_component_is_eager(struct starpu_sched_component *);
 
-struct starpu_sched_component *starpu_sched_component_eager_calibration_create(struct starpu_sched_tree *tree, void *arg STARPU_ATTRIBUTE_UNUSED);
+struct starpu_sched_component *starpu_sched_component_eager_calibration_create(struct starpu_sched_tree *tree, void *arg STARPU_ATTRIBUTE_UNUSED) STARPU_ATTRIBUTE_MALLOC;
 int starpu_sched_component_is_eager_calibration(struct starpu_sched_component *);
 
 struct starpu_sched_component_mct_data
@@ -152,13 +152,13 @@ struct starpu_sched_component_mct_data
 	double _gamma;
 	double idle_power;
 };
-struct starpu_sched_component *starpu_sched_component_mct_create(struct starpu_sched_tree *tree, struct starpu_sched_component_mct_data *mct_data);
+struct starpu_sched_component *starpu_sched_component_mct_create(struct starpu_sched_tree *tree, struct starpu_sched_component_mct_data *mct_data) STARPU_ATTRIBUTE_MALLOC;
 int starpu_sched_component_is_mct(struct starpu_sched_component *component);
 
-struct starpu_sched_component *starpu_sched_component_heft_create(struct starpu_sched_tree *tree, struct starpu_sched_component_mct_data *mct_data);
+struct starpu_sched_component *starpu_sched_component_heft_create(struct starpu_sched_tree *tree, struct starpu_sched_component_mct_data *mct_data) STARPU_ATTRIBUTE_MALLOC;
 int starpu_sched_component_is_heft(struct starpu_sched_component *component);
 
-struct starpu_sched_component *starpu_sched_component_best_implementation_create(struct starpu_sched_tree *tree, void *arg STARPU_ATTRIBUTE_UNUSED);
+struct starpu_sched_component *starpu_sched_component_best_implementation_create(struct starpu_sched_tree *tree, void *arg STARPU_ATTRIBUTE_UNUSED) STARPU_ATTRIBUTE_MALLOC;
 
 struct starpu_sched_component_perfmodel_select_data
 {
@@ -166,15 +166,15 @@ struct starpu_sched_component_perfmodel_select_data
 	struct starpu_sched_component *no_perfmodel_component;
 	struct starpu_sched_component *perfmodel_component;
 };
-struct starpu_sched_component *starpu_sched_component_perfmodel_select_create(struct starpu_sched_tree *tree, struct starpu_sched_component_perfmodel_select_data *perfmodel_select_data);
+struct starpu_sched_component *starpu_sched_component_perfmodel_select_create(struct starpu_sched_tree *tree, struct starpu_sched_component_perfmodel_select_data *perfmodel_select_data) STARPU_ATTRIBUTE_MALLOC;
 int starpu_sched_component_is_perfmodel_select(struct starpu_sched_component *component);
 
 struct starpu_sched_component_composed_recipe;
-struct starpu_sched_component_composed_recipe *starpu_sched_component_composed_recipe_create(void);
-struct starpu_sched_component_composed_recipe *starpu_sched_component_composed_recipe_create_singleton(struct starpu_sched_component *(*create_component)(struct starpu_sched_tree *tree, void *arg), void *arg);
+struct starpu_sched_component_composed_recipe *starpu_sched_component_composed_recipe_create(void) STARPU_ATTRIBUTE_MALLOC;
+struct starpu_sched_component_composed_recipe *starpu_sched_component_composed_recipe_create_singleton(struct starpu_sched_component *(*create_component)(struct starpu_sched_tree *tree, void *arg), void *arg) STARPU_ATTRIBUTE_MALLOC;
 void starpu_sched_component_composed_recipe_add(struct starpu_sched_component_composed_recipe *recipe, struct starpu_sched_component *(*create_component)(struct starpu_sched_tree *tree, void *arg), void *arg);
 void starpu_sched_component_composed_recipe_destroy(struct starpu_sched_component_composed_recipe *);
-struct starpu_sched_component *starpu_sched_component_composed_component_create(struct starpu_sched_tree *tree, struct starpu_sched_component_composed_recipe *recipe);
+struct starpu_sched_component *starpu_sched_component_composed_component_create(struct starpu_sched_tree *tree, struct starpu_sched_component_composed_recipe *recipe) STARPU_ATTRIBUTE_MALLOC;
 
 #ifdef STARPU_HAVE_HWLOC
 struct starpu_sched_component_specs

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010-2011, 2013-2014  Université de Bordeaux
+ * Copyright (C) 2009, 2010-2011, 2013-2014, 2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  CNRS
  * Copyright (C) 2011  CNRS
  *
@@ -21,6 +21,10 @@
 
 #include <starpu.h>
 #include "../helper.h"
+
+/*
+ * Try submitting tasks from different threads
+ */
 
 starpu_pthread_t threads[16];
 

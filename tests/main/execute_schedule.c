@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2014-2015  Université de Bordeaux
+ * Copyright (C) 2014-2016  Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -21,6 +21,10 @@
 #include <stdlib.h>
 #include "../helper.h"
 #include <common/thread.h>
+
+/*
+ * Test binding tasks on specific workers and in a specific order
+ */
 
 #ifdef STARPU_QUICK_CHECK
   #define K 2
@@ -98,6 +102,7 @@ int main(int argc, char **argv)
 
 			task->execute_on_a_specific_worker = 1;
 			task->workerid = 0;
+			/* We request for running the tasks in the opposite order of the submission order */
 			task->workerorder = k*N + (N-n);
 			task->cl_arg = (void*) (uintptr_t) (k*N + (N-n));
 			task->handles[0] = h[n];

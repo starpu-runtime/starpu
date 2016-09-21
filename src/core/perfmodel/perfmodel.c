@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2009-2016  Université de Bordeaux
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -51,6 +51,8 @@ unsigned _starpu_get_calibrate_flag(void)
 
 struct starpu_perfmodel_arch* starpu_worker_get_perf_archtype(int workerid, unsigned sched_ctx_id)
 {
+	STARPU_ASSERT(workerid>=0);
+
 	if(sched_ctx_id != STARPU_NMAX_SCHED_CTXS)
 	{
 		unsigned child_sched_ctx = starpu_sched_ctx_worker_is_master_for_child_ctx(workerid, sched_ctx_id);
@@ -81,6 +83,9 @@ static double per_arch_task_expected_perf(struct starpu_perfmodel *model, struct
 {
 	int comb;
 	double (*per_arch_cost_function)(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
+
+	if (model->arch_cost_function)
+		return model->arch_cost_function(task, arch, nimpl);
 
 	comb = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
 	STARPU_ASSERT_MSG(comb != -1, "Didn't find the proper arch combination\n");
@@ -199,12 +204,18 @@ static double starpu_model_expected_perf(struct starpu_task *task, struct starpu
 
 double starpu_task_expected_length(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
+	if (!task->cl)
+		/* Tasks without codelet don't actually take time */
+		return 0.0;
 	return starpu_model_expected_perf(task, task->cl->model, arch, nimpl);
 }
 
-double starpu_task_expected_power(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
+double starpu_task_expected_energy(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
-	return starpu_model_expected_perf(task, task->cl->power_model, arch, nimpl);
+	if (!task->cl)
+		/* Tasks without codelet don't actually take time */
+		return 0.0;
+	return starpu_model_expected_perf(task, task->cl->energy_model, arch, nimpl);
 }
 
 double starpu_task_expected_conversion_time(struct starpu_task *task,
@@ -345,10 +356,10 @@ double starpu_task_bundle_expected_length(starpu_task_bundle_t bundle, struct st
 	return expected_length;
 }
 
-/* Return the expected power consumption of the entire task bundle in J */
-double starpu_task_bundle_expected_power(starpu_task_bundle_t bundle, struct starpu_perfmodel_arch* arch, unsigned nimpl)
+/* Return the expected energy consumption of the entire task bundle in J */
+double starpu_task_bundle_expected_energy(starpu_task_bundle_t bundle, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
-	double expected_power = 0.0;
+	double expected_energy = 0.0;
 
 	/* We expect total consumption of the bundle the be the sum of the different tasks consumption. */
 	STARPU_PTHREAD_MUTEX_LOCK(&bundle->mutex);
@@ -358,19 +369,19 @@ double starpu_task_bundle_expected_power(starpu_task_bundle_t bundle, struct sta
 
 	while (entry)
 	{
-		double task_power = starpu_task_expected_power(entry->task, arch, nimpl);
+		double task_energy = starpu_task_expected_energy(entry->task, arch, nimpl);
 
 		/* In case the task is not calibrated, we consider the task
 		 * ends immediately. */
-		if (task_power > 0.0)
-			expected_power += task_power;
+		if (task_energy > 0.0)
+			expected_energy += task_energy;
 
 		entry = entry->next;
 	}
 
 	STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
 
-	return expected_power;
+	return expected_energy;
 }
 
 /* Return the time (in µs) expected to transfer all data used within the bundle */

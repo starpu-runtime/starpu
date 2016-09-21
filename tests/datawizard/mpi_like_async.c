@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2014  Université de Bordeaux
+ * Copyright (C) 2010-2014, 2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -19,6 +19,13 @@
 #include <starpu.h>
 #include "../helper.h"
 #include <common/thread.h>
+
+/*
+ * Mimic the behavior of libstarpumpi, tested by a ring of threads which
+ * increment the same variable one after the other.
+ * This is the asynchronous version: the threads submit the series of
+ * synchronizations and tasks.
+ */
 
 #ifdef STARPU_QUICK_CHECK
 #  define NTHREADS_DEFAULT	4

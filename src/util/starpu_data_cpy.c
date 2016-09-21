@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012-2013, 2015  Université de Bordeaux
+ * Copyright (C) 2010, 2012-2013, 2015-2016  Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -29,7 +29,7 @@ static void common_data_cpy_func(void *descr[], void *cl_arg)
 	const struct starpu_data_interface_ops *interface_ops = _starpu_data_interface_get_ops(interface_id);
 	const struct starpu_data_copy_methods *copy_methods = interface_ops->copy_methods;
 
-	int workerid = starpu_worker_get_id();
+	int workerid = starpu_worker_get_id_check();
 	enum starpu_worker_archtype type = starpu_worker_get_type(workerid);
 	unsigned memory_node = starpu_worker_get_memory_node(workerid);
 

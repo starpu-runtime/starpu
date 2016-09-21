@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015  CNRS
+ * Copyright (C) 2015, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -44,6 +44,8 @@ void starpu_my_interface_compare_codelet_cpu(void *descr[], void *_args)
 	*compare = (d0 == d1 && c0 == c1);
 }
 
+static struct starpu_my_interface *myinterface = NULL;
+
 void _starpu_my_interface_datatype_allocate(MPI_Datatype *mpi_datatype)
 {
 	int ret;
@@ -51,7 +53,7 @@ void _starpu_my_interface_datatype_allocate(MPI_Datatype *mpi_datatype)
 	int blocklengths[2] = {1, 1};
 	MPI_Aint displacements[2];
 	MPI_Datatype types[2] = {MPI_INT, MPI_CHAR};
-	struct starpu_my_interface *myinterface = malloc(sizeof(struct starpu_my_interface));
+	myinterface = malloc(sizeof(struct starpu_my_interface));
 
 	MPI_Address(myinterface, displacements);
 	MPI_Address(&myinterface[0].c, displacements+1);
@@ -74,6 +76,7 @@ void starpu_my_interface_datatype_allocate(starpu_data_handle_t handle, MPI_Data
 void starpu_my_interface_datatype_free(MPI_Datatype *mpi_datatype)
 {
 	MPI_Type_free(mpi_datatype);
+	free(myinterface);
 }
 
 int starpu_my_interface_get_int(starpu_data_handle_t handle)

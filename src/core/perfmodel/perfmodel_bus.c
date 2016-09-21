@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2015  Université de Bordeaux
+ * Copyright (C) 2009-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
  * Copyright (C) 2013 Corentin Salingue
  *
@@ -45,7 +45,7 @@
 #include <windows.h>
 #endif
 
-#if HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX
+#if defined(HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX) && HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX
 #include <hwloc/cuda.h>
 #endif
 
@@ -776,11 +776,12 @@ static void get_bus_path(const char *type, char *path, size_t maxlen)
  *	Affinity
  */
 
-#ifndef STARPU_SIMGRID
 static void get_affinity_path(char *path, size_t maxlen)
 {
 	get_bus_path("affinity", path, maxlen);
 }
+
+#ifndef STARPU_SIMGRID
 
 static void load_bus_affinity_file_content(void)
 {
@@ -1124,7 +1125,7 @@ static void write_bus_latency_file_content(void)
 		STARPU_ABORT();
 	}
 	_starpu_fwrlock(f);
-	_starpu_ftruncate(f);
+	_starpu_fftruncate(f, 0);
 
 	fprintf(f, "# ");
 	for (dst = 0; dst < STARPU_MAXNODES; dst++)
@@ -1341,7 +1342,7 @@ static void write_bus_bandwidth_file_content(void)
 	STARPU_ASSERT(f);
 
 	_starpu_fwrlock(f);
-	_starpu_ftruncate(f);
+	_starpu_fftruncate(f, 0);
 
 	fprintf(f, "# ");
 	for (dst = 0; dst < STARPU_MAXNODES; dst++)
@@ -1418,6 +1419,21 @@ static void write_bus_bandwidth_file_content(void)
 	fclose(f);
 }
 #endif /* STARPU_SIMGRID */
+
+void starpu_bus_print_filenames(FILE *output)
+{
+	char bandwidth_path[256];
+	char affinity_path[256];
+	char latency_path[256];
+
+	get_bandwidth_path(bandwidth_path, sizeof(bandwidth_path));
+	get_affinity_path(affinity_path, sizeof(affinity_path));
+	get_latency_path(latency_path, sizeof(latency_path));
+
+	fprintf(output, "bandwidth: <%s>\n", bandwidth_path);
+	fprintf(output, " affinity: <%s>\n", affinity_path);
+	fprintf(output, "  latency: <%s>\n", latency_path);
+}
 
 void starpu_bus_print_bandwidth(FILE *f)
 {
@@ -1650,7 +1666,7 @@ static void write_bus_config_file_content(void)
         f = fopen(path, "w+");
 	STARPU_ASSERT(f);
 	_starpu_fwrlock(f);
-	_starpu_ftruncate(f);
+	_starpu_fftruncate(f, 0);
 
         fprintf(f, "# Current configuration\n");
         fprintf(f, "%u # Number of CPUs\n", ncpus);
@@ -1671,9 +1687,12 @@ static void generate_bus_config_file(void)
 }
 #endif /* !SIMGRID */
 
-void _starpu_simgrid_get_platform_path(char *path, size_t maxlen)
+void _starpu_simgrid_get_platform_path(int version, char *path, size_t maxlen)
 {
-	get_bus_path("platform.xml", path, maxlen);
+	if (version == 3)
+		get_bus_path("platform.xml", path, maxlen);
+	else
+		get_bus_path("platform.v4.xml", path, maxlen);
 }
 
 #ifndef STARPU_SIMGRID
@@ -1694,7 +1713,7 @@ void _starpu_simgrid_get_platform_path(char *path, size_t maxlen)
  * - then through all CUDA-CUDA possible transfers again to emit routes.
  */
 
-#if defined(STARPU_USE_CUDA) && HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX && defined(HAVE_CUDA_MEMCPY_PEER)
+#if defined(STARPU_USE_CUDA) && defined(HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX) && HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX && defined(HAVE_CUDA_MEMCPY_PEER)
 
 /* Records, for each PCI link and hub, the maximum bandwidth seen through it */
 struct pci_userdata
@@ -1890,7 +1909,7 @@ static void emit_pci_dev(FILE *f, struct hwloc_pcidev_attr_s *pcidev)
 }
 
 /* Emit the links of the object */
-static void emit_topology_bandwidths(FILE *f, hwloc_obj_t obj)
+static void emit_topology_bandwidths(FILE *f, hwloc_obj_t obj, const char *Bps, const char *s)
 {
 	unsigned i;
 	if (obj->userdata)
@@ -1900,36 +1919,36 @@ static void emit_topology_bandwidths(FILE *f, hwloc_obj_t obj)
 		if (obj->type == HWLOC_OBJ_BRIDGE)
 		{
 			/* Uplink */
-			fprintf(f, "   <link id='");
+			fprintf(f, "   <link id=\"");
 			emit_pci_hub(f, obj);
-			fprintf(f, " up' bandwidth='%f' latency='0.000000'/>\n", data->bw_up);
-			fprintf(f, "   <link id='");
+			fprintf(f, " up\" bandwidth=\"%f%s\" latency=\"0.000000%s\"/>\n", data->bw_up, Bps, s);
+			fprintf(f, "   <link id=\"");
 			emit_pci_hub(f, obj);
-			fprintf(f, " down' bandwidth='%f' latency='0.000000'/>\n", data->bw_down);
+			fprintf(f, " down\" bandwidth=\"%f%s\" latency=\"0.000000%s\"/>\n", data->bw_down, Bps, s);
 
 			/* PCI Switches are assumed to have infinite internal bandwidth */
 			if (!obj->name || !strstr(obj->name, "Switch"))
 			{
 				/* We assume that PCI Hubs have double bandwidth in
 				 * order to support full duplex but not more */
-				fprintf(f, "   <link id='");
+				fprintf(f, "   <link id=\"");
 				emit_pci_hub(f, obj);
-				fprintf(f, " through' bandwidth='%f' latency='0.000000'/>\n", data->bw * 2);
+				fprintf(f, " through\" bandwidth=\"%f%s\" latency=\"0.000000%s\"/>\n", data->bw * 2, Bps, s);
 			}
 		}
 		else if (obj->type == HWLOC_OBJ_PCI_DEVICE)
 		{
-			fprintf(f, "   <link id='");
+			fprintf(f, "   <link id=\"");
 			emit_pci_dev(f, &obj->attr->pcidev);
-			fprintf(f, " up' bandwidth='%f' latency='0.000000'/>\n", data->bw_up);
-			fprintf(f, "   <link id='");
+			fprintf(f, " up\" bandwidth=\"%f%s\" latency=\"0.000000%s\"/>\n", data->bw_up, Bps, s);
+			fprintf(f, "   <link id=\"");
 			emit_pci_dev(f, &obj->attr->pcidev);
-			fprintf(f, " down' bandwidth='%f' latency='0.000000'/>\n", data->bw_down);
+			fprintf(f, " down\" bandwidth=\"%f%s\" latency=\"0.000000%s\"/>\n", data->bw_down, Bps, s);
 		}
 	}
 
 	for (i = 0; i < obj->arity; i++)
-		emit_topology_bandwidths(f, obj->children[i]);
+		emit_topology_bandwidths(f, obj->children[i], Bps, s);
 }
 
 /* emit_pci_link_* functions perform the third step: emitting the routes */
@@ -1938,15 +1957,15 @@ static void emit_pci_link(FILE *f, hwloc_obj_t obj, const char *suffix)
 {
 	if (obj->type == HWLOC_OBJ_BRIDGE)
 	{
-		fprintf(f, "    <link_ctn id='");
+		fprintf(f, "    <link_ctn id=\"");
 		emit_pci_hub(f, obj);
-		fprintf(f, " %s'/>\n", suffix);
+		fprintf(f, " %s\"/>\n", suffix);
 	}
 	else if (obj->type == HWLOC_OBJ_PCI_DEVICE)
 	{
-		fprintf(f, "    <link_ctn id='");
+		fprintf(f, "    <link_ctn id=\"");
 		emit_pci_dev(f, &obj->attr->pcidev);
-		fprintf(f, " %s'/>\n", suffix);
+		fprintf(f, " %s\"/>\n", suffix);
 	}
 }
 
@@ -1995,7 +2014,7 @@ static void emit_platform_backward_path(FILE *f, hwloc_obj_t obj)
 	if (obj->type == HWLOC_OBJ_BRIDGE && obj->attr->bridge.upstream_type == HWLOC_OBJ_BRIDGE_HOST)
 	{
 		/* Finished, go through host */
-		fprintf(f, "    <link_ctn id='Host'/>\n");
+		fprintf(f, "    <link_ctn id=\"Host\"/>\n");
 		return;
 	}
 
@@ -2017,7 +2036,7 @@ static void emit_platform_forward_path(FILE *f, hwloc_obj_t obj)
 	if (obj->type == HWLOC_OBJ_BRIDGE && obj->attr->bridge.upstream_type == HWLOC_OBJ_BRIDGE_HOST)
 	{
 		/* Finished, go through host */
-		fprintf(f, "    <link_ctn id='Host'/>\n");
+		fprintf(f, "    <link_ctn id=\"Host\"/>\n");
 		return;
 	}
 
@@ -2072,7 +2091,7 @@ static int emit_platform_path_up(FILE *f, hwloc_obj_t obj1, hwloc_obj_t obj2)
 		 * from obj2 to Host too.
 		 */
 		emit_platform_backward_path(f, obj2);
-		fprintf(f, "    <link_ctn id='Host'/>\n");
+		fprintf(f, "    <link_ctn id=\"Host\"/>\n");
 
 		emit_pci_link_up(f, parent);
 		emit_pci_link_through(f, parent);
@@ -2098,15 +2117,34 @@ static void clean_topology(hwloc_obj_t obj)
 }
 #endif
 
-static void write_bus_platform_file_content(void)
+static void write_bus_platform_file_content(int version)
 {
 	FILE *f;
 	char path[256];
 	unsigned i;
+	const char *speed, *flops, *Bps, *s;
+	char dash;
+
+	if (version == 3)
+	{
+		speed = "power";
+		flops = "";
+		Bps = "";
+		s = "";
+		dash = '_';
+	}
+	else
+	{
+		speed = "speed";
+		flops = "f";
+		Bps = "Bps";
+		s = "s";
+		dash = '-';
+	}
 
 	STARPU_ASSERT(was_benchmarked);
 
-	_starpu_simgrid_get_platform_path(path, sizeof(path));
+	_starpu_simgrid_get_platform_path(version, path, sizeof(path));
 
 	_STARPU_DEBUG("writing platform to %s\n", path);
 
@@ -2119,43 +2157,46 @@ static void write_bus_platform_file_content(void)
 		STARPU_ABORT();
 	}
 	_starpu_fwrlock(f);
-	_starpu_ftruncate(f);
+	_starpu_fftruncate(f, 0);
 
 	fprintf(f,
 "<?xml version='1.0'?>\n"
-" <!DOCTYPE platform SYSTEM 'http://simgrid.gforge.inria.fr/simgrid.dtd'>\n"
-" <platform version='3'>\n"
-" <config id='General'>\n"
-"   <prop id='network/TCP_gamma' value='-1'></prop>\n"
-"   <prop id='network/latency_factor' value='1'></prop>\n"
-"   <prop id='network/bandwidth_factor' value='1'></prop>\n"
+"<!DOCTYPE platform SYSTEM '%s'>\n"
+" <platform version=\"%u\">\n"
+" <config id=\"General\">\n"
+"   <prop id=\"network/TCP%cgamma\" value=\"-1\"></prop>\n"
+"   <prop id=\"network/latency%cfactor\" value=\"1\"></prop>\n"
+"   <prop id=\"network/bandwidth%cfactor\" value=\"1\"></prop>\n"
 " </config>\n"
-" <AS  id='AS0'  routing='Full'>\n"
-"   <host id='MAIN' power='1'/>\n"
-		);
+" <AS  id=\"AS0\"  routing=\"Full\">\n"
+"   <host id=\"MAIN\" %s=\"1%s\"/>\n",
+		version == 3
+			? "http://simgrid.gforge.inria.fr/simgrid.dtd"
+			: "http://simgrid.gforge.inria.fr/simgrid/simgrid.dtd",
+		version, dash, dash, dash, speed, flops);
 
 	for (i = 0; i < ncpus; i++)
 		/* TODO: host memory for out-of-core simulation */
-		fprintf(f, "   <host id='CPU%d' power='2000000000'/>\n", i);
+		fprintf(f, "   <host id=\"CPU%d\" %s=\"2000000000%s\"/>\n", i, speed, flops);
 
 	for (i = 0; i < ncuda; i++)
 	{
-		fprintf(f, "   <host id='CUDA%d' power='2000000000'>\n", i);
-		fprintf(f, "     <prop id='memsize' value='%llu'/>\n", (unsigned long long) cuda_size[i]);
+		fprintf(f, "   <host id=\"CUDA%d\" %s=\"2000000000%s\">\n", i, speed, flops);
+		fprintf(f, "     <prop id=\"memsize\" value=\"%llu\"/>\n", (unsigned long long) cuda_size[i]);
 #ifdef HAVE_CUDA_MEMCPY_PEER
-		fprintf(f, "     <prop id='memcpy_peer' value='1'/>\n");
+		fprintf(f, "     <prop id=\"memcpy_peer\" value=\"1\"/>\n");
 #endif
 		fprintf(f, "   </host>\n");
 	}
 
 	for (i = 0; i < nopencl; i++)
 	{
-		fprintf(f, "   <host id='OpenCL%d' power='2000000000'>\n", i);
-		fprintf(f, "     <prop id='memsize' value='%llu'/>\n", (unsigned long long) opencl_size[i]);
+		fprintf(f, "   <host id=\"OpenCL%d\" %s=\"2000000000%s\">\n", i, speed, flops);
+		fprintf(f, "     <prop id=\"memsize\" value=\"%llu\"/>\n", (unsigned long long) opencl_size[i]);
 		fprintf(f, "   </host>\n");
 	}
 
-	fprintf(f, "\n   <host id='RAM' power='1'/>\n");
+	fprintf(f, "\n   <host id=\"RAM\" %s=\"1%s\"/>\n", speed, flops);
 
 	/*
 	 * Compute maximum bandwidth, taken as host bandwidth
@@ -2183,7 +2224,7 @@ static void write_bus_platform_file_content(void)
 			max_bandwidth = up_bw;
 	}
 #endif
-	fprintf(f, "\n   <link id='Host' bandwidth='%f' latency='0.000000'/>\n\n", max_bandwidth*1000000);
+	fprintf(f, "\n   <link id=\"Host\" bandwidth=\"%f%s\" latency=\"0.000000%s\"/>\n\n", max_bandwidth*1000000, Bps, s);
 
 	/*
 	 * OpenCL links
@@ -2194,14 +2235,14 @@ static void write_bus_platform_file_content(void)
 	{
 		char i_name[16];
 		snprintf(i_name, sizeof(i_name), "OpenCL%d", i);
-		fprintf(f, "   <link id='RAM-%s' bandwidth='%f' latency='%f'/>\n",
+		fprintf(f, "   <link id=\"RAM-%s\" bandwidth=\"%f%s\" latency=\"%f%s\"/>\n",
 			i_name,
-			1000000 / opencldev_timing_htod[1+i],
-			opencldev_latency_htod[1+i]/1000000.);
-		fprintf(f, "   <link id='%s-RAM' bandwidth='%f' latency='%f'/>\n",
+			1000000 / opencldev_timing_htod[1+i], Bps,
+			opencldev_latency_htod[1+i]/1000000., s);
+		fprintf(f, "   <link id=\"%s-RAM\" bandwidth=\"%f%s\" latency=\"%f%s\"/>\n",
 			i_name,
-			1000000 / opencldev_timing_dtoh[1+i],
-			opencldev_latency_dtoh[1+i]/1000000.);
+			1000000 / opencldev_timing_dtoh[1+i], Bps,
+			opencldev_latency_dtoh[1+i]/1000000., s);
 	}
 	fprintf(f, "\n");
 #endif
@@ -2216,14 +2257,14 @@ static void write_bus_platform_file_content(void)
 	{
 		char i_name[16];
 		snprintf(i_name, sizeof(i_name), "CUDA%d", i);
-		fprintf(f, "   <link id='RAM-%s' bandwidth='%f' latency='%f'/>\n",
+		fprintf(f, "   <link id=\"RAM-%s\" bandwidth=\"%f%s\" latency=\"%f%s\"/>\n",
 			i_name,
-			1000000. / cudadev_timing_htod[1+i],
-			cudadev_latency_htod[1+i]/1000000.);
-		fprintf(f, "   <link id='%s-RAM' bandwidth='%f' latency='%f'/>\n",
+			1000000. / cudadev_timing_htod[1+i], Bps,
+			cudadev_latency_htod[1+i]/1000000., s);
+		fprintf(f, "   <link id=\"%s-RAM\" bandwidth=\"%f%s\" latency=\"%f%s\"/>\n",
 			i_name,
-			1000000. / cudadev_timing_dtoh[1+i],
-			cudadev_latency_dtoh[1+i]/1000000.);
+			1000000. / cudadev_timing_dtoh[1+i], Bps,
+			cudadev_latency_dtoh[1+i]/1000000., s);
 	}
 	fprintf(f, "\n");
 #ifdef HAVE_CUDA_MEMCPY_PEER
@@ -2239,15 +2280,15 @@ static void write_bus_platform_file_content(void)
 			if (j == i)
 				continue;
 			snprintf(j_name, sizeof(j_name), "CUDA%d", j);
-			fprintf(f, "   <link id='%s-%s' bandwidth='%f' latency='%f'/>\n",
+			fprintf(f, "   <link id=\"%s-%s\" bandwidth=\"%f%s\" latency=\"%f%s\"/>\n",
 				i_name, j_name,
-				1000000. / cudadev_timing_dtod[1+i][1+j],
-				cudadev_latency_dtod[1+i][1+j]/1000000.);
+				1000000. / cudadev_timing_dtod[1+i][1+j], Bps,
+				cudadev_latency_dtod[1+i][1+j]/1000000., s);
 		}
 	}
 #endif
 
-#if HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX && defined(HAVE_CUDA_MEMCPY_PEER)
+#if defined(HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX) && HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX && defined(HAVE_CUDA_MEMCPY_PEER)
 	/* If we have enough hwloc information, write PCI bandwidths and routes */
 	if (!starpu_get_env_number_default("STARPU_PCI_FLAT", 0))
 	{
@@ -2275,7 +2316,7 @@ static void write_bus_platform_file_content(void)
 
 		/* Ok, found path in all cases, can emit advanced platform routes */
 		fprintf(f, "\n");
-		emit_topology_bandwidths(f, hwloc_get_root_obj(topology));
+		emit_topology_bandwidths(f, hwloc_get_root_obj(topology), Bps, s);
 		fprintf(f, "\n");
 		for (i = 0; i < ncuda; i++)
 		{
@@ -2283,21 +2324,21 @@ static void write_bus_platform_file_content(void)
 			for (j = 0; j < ncuda; j++)
 				if (i != j)
 				{
-					fprintf(f, "   <route src='CUDA%u' dst='CUDA%u' symmetrical='NO'>\n", i, j);
-					fprintf(f, "    <link_ctn id='CUDA%d-CUDA%d'/>\n", i, j);
+					fprintf(f, "   <route src=\"CUDA%u\" dst=\"CUDA%u\" symmetrical=\"NO\">\n", i, j);
+					fprintf(f, "    <link_ctn id=\"CUDA%d-CUDA%d\"/>\n", i, j);
 					emit_platform_path_up(f,
 						hwloc_cuda_get_device_osdev_by_index(topology, i),
 						hwloc_cuda_get_device_osdev_by_index(topology, j));
 					fprintf(f, "   </route>\n");
 				}
 
-			fprintf(f, "   <route src='CUDA%d' dst='RAM' symmetrical='NO'>\n", i);
-			fprintf(f, "    <link_ctn id='CUDA%d-RAM'/>\n", i);
+			fprintf(f, "   <route src=\"CUDA%d\" dst=\"RAM\" symmetrical=\"NO\">\n", i);
+			fprintf(f, "    <link_ctn id=\"CUDA%d-RAM\"/>\n", i);
 			emit_platform_forward_path(f, hwloc_cuda_get_device_osdev_by_index(topology, i));
 			fprintf(f, "   </route>\n");
 
-			fprintf(f, "   <route src='RAM' dst='CUDA%d' symmetrical='NO'>\n", i);
-			fprintf(f, "    <link_ctn id='RAM-CUDA%d'/>\n", i);
+			fprintf(f, "   <route src=\"RAM\" dst=\"CUDA%d\" symmetrical=\"NO\">\n", i);
+			fprintf(f, "    <link_ctn id=\"RAM-CUDA%d\"/>\n", i);
 			emit_platform_backward_path(f, hwloc_cuda_get_device_osdev_by_index(topology, i));
 			fprintf(f, "   </route>\n");
 		}
@@ -2316,8 +2357,8 @@ flat_cuda:
 	{
 		char i_name[16];
 		snprintf(i_name, sizeof(i_name), "CUDA%d", i);
-		fprintf(f, "   <route src='RAM' dst='%s' symmetrical='NO'><link_ctn id='RAM-%s'/><link_ctn id='Host'/></route>\n", i_name, i_name);
-		fprintf(f, "   <route src='%s' dst='RAM' symmetrical='NO'><link_ctn id='%s-RAM'/><link_ctn id='Host'/></route>\n", i_name, i_name);
+		fprintf(f, "   <route src=\"RAM\" dst=\"%s\" symmetrical=\"NO\"><link_ctn id=\"RAM-%s\"/><link_ctn id=\"Host\"/></route>\n", i_name, i_name);
+		fprintf(f, "   <route src=\"%s\" dst=\"RAM\" symmetrical=\"NO\"><link_ctn id=\"%s-RAM\"/><link_ctn id=\"Host\"/></route>\n", i_name, i_name);
 	}
 #ifdef HAVE_CUDA_MEMCPY_PEER
 	for (i = 0; i < ncuda; i++)
@@ -2331,7 +2372,7 @@ flat_cuda:
 			if (j == i)
 				continue;
 			snprintf(j_name, sizeof(j_name), "CUDA%d", j);
-			fprintf(f, "   <route src='%s' dst='%s' symmetrical='NO'><link_ctn id='%s-%s'/><link_ctn id='Host'/></route>\n", i_name, j_name, i_name, j_name);
+			fprintf(f, "   <route src=\"%s\" dst=\"%s\" symmetrical=\"NO\"><link_ctn id=\"%s-%s\"/><link_ctn id=\"Host\"/></route>\n", i_name, j_name, i_name, j_name);
 		}
 	}
 #endif
@@ -2348,8 +2389,8 @@ flat_cuda:
 	{
 		char i_name[16];
 		snprintf(i_name, sizeof(i_name), "OpenCL%d", i);
-		fprintf(f, "   <route src='RAM' dst='%s' symmetrical='NO'><link_ctn id='RAM-%s'/><link_ctn id='Host'/></route>\n", i_name, i_name);
-		fprintf(f, "   <route src='%s' dst='RAM' symmetrical='NO'><link_ctn id='%s-RAM'/><link_ctn id='Host'/></route>\n", i_name, i_name);
+		fprintf(f, "   <route src=\"RAM\" dst=\"%s\" symmetrical=\"NO\"><link_ctn id=\"RAM-%s\"/><link_ctn id=\"Host\"/></route>\n", i_name, i_name);
+		fprintf(f, "   <route src=\"%s\" dst=\"RAM\" symmetrical=\"NO\"><link_ctn id=\"%s-RAM\"/><link_ctn id=\"Host\"/></route>\n", i_name, i_name);
 	}
 #endif
 
@@ -2367,7 +2408,8 @@ static void generate_bus_platform_file(void)
 	if (!was_benchmarked)
 		benchmark_all_gpu_devices();
 
-	write_bus_platform_file_content();
+	write_bus_platform_file_content(3);
+	write_bus_platform_file_content(4);
 }
 
 static void check_bus_platform_file(void)
@@ -2375,9 +2417,16 @@ static void check_bus_platform_file(void)
 	int res;
 
 	char path[256];
-	_starpu_simgrid_get_platform_path(path, sizeof(path));
+	_starpu_simgrid_get_platform_path(4, path, sizeof(path));
 
 	res = access(path, F_OK);
+
+	if (!res)
+	{
+		_starpu_simgrid_get_platform_path(3, path, sizeof(path));
+		res = access(path, F_OK);
+	}
+
 	if (res)
 	{
 		/* File does not exist yet */

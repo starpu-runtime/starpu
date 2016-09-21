@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2012, 2014  Université de Bordeaux
+ * Copyright (C) 2011-2012, 2014, 2016  Université de Bordeaux
  * Copyright (C) 2012 INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -18,6 +18,11 @@
 #include <starpu.h>
 #include "../helper.h"
 #include "scal.h"
+
+/*
+ * Register the GPU buffer to be used for an existing data, and perform
+ * a partitioned operation
+ */
 
 #if ! (defined(STARPU_USE_OPENCL) || defined(STARPU_USE_CUDA))
 int main(int argc, char **argv)

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
- * Copyright (C) 2010-2015  Université de Bordeaux
+ * Copyright (C) 2010-2016  Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -44,10 +44,10 @@ static struct starpu_perfmodel vector_scal_model =
 	.symbol = "vector_scal"
 };
 
-static struct starpu_perfmodel vector_scal_power_model =
+static struct starpu_perfmodel vector_scal_energy_model =
 {
 	.type = STARPU_HISTORY_BASED,
-	.symbol = "vector_scal_power"
+	.symbol = "vector_scal_energy"
 };
 
 static struct starpu_codelet cl =
@@ -93,7 +93,7 @@ static struct starpu_codelet cl =
 	.nbuffers = 1,
 	.modes = {STARPU_RW},
 	.model = &vector_scal_model,
-	.power_model = &vector_scal_power_model
+	.energy_model = &vector_scal_energy_model
 };
 
 #ifdef STARPU_USE_OPENCL

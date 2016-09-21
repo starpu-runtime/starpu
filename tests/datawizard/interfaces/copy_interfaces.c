@@ -91,9 +91,9 @@ int main(int argc, char **argv)
 	{
 		uint32_t nnz = 2;
 		unsigned nrow = 5;
-		float nzvalA[20];
-		uint32_t colind[1];
-		uint32_t rowptr[2];
+		float nzvalA[nnz];
+		uint32_t colind[nnz];
+		uint32_t rowptr[nrow+1];
 		starpu_csr_data_register(&handle, STARPU_MAIN_RAM, nnz, nrow, (uintptr_t)nzvalA, colind, rowptr, 0, sizeof(float));
 		ret = check_copy(handle, "csr");
 	}

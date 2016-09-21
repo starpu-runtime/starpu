@@ -220,6 +220,29 @@ void starpu_top_init_and_wait(const char* server_name)
 	sem_wait(&starpu_top_wait_for_go);
 }
 
+void _starpu_top_shutdown(void)
+{
+	{
+		struct starpu_top_data * cur = starpu_top_first_data, * next;
+		while (cur) {
+			next = cur->next;
+			free(cur);
+			cur = next;
+		}
+		starpu_top_first_data = NULL;
+	}
+
+	{
+		struct starpu_top_param * cur = starpu_top_first_param, *next;
+		while (cur) {
+			next = cur->next;
+			free(cur);
+			cur = next;
+		}
+		starpu_top_first_param = NULL;
+	}
+}
+
 static
 void starpu_top_enqueue_data(struct starpu_top_data * data)
 {

@@ -1,0 +1,270 @@
+/*
+ * This file is part of the StarPU Handbook.
+ * Copyright (C) 2009--2011  Universit@'e de Bordeaux
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016  CNRS
+ * Copyright (C) 2011, 2012 INRIA
+ * See the file version.doxy for copying conditions.
+ */
+
+/*! \page Scheduling Scheduling
+
+\section TaskSchedulingPolicy Task Scheduling Policy
+
+The basics of the scheduling policy are that
+
+<ul>
+<li>The scheduler gets to schedule tasks (<c>push</c> operation) when they become
+ready to be executed, i.e. they are not waiting for some tags, data dependencies
+or task dependencies.</li>
+<li>Workers pull tasks (<c>pop</c> operation) one by one from the scheduler.
+</ul>
+
+This means scheduling policies usually contain at least one queue of tasks to
+store them between the time when they become available, and the time when a
+worker gets to grab them.
+
+By default, StarPU uses the simple greedy scheduler <c>eager</c>. This is
+because it provides correct load balance even if the application codelets do not
+have performance models. If your application codelets have performance models
+(\ref PerformanceModelExample), you should change the scheduler thanks
+to the environment variable \ref STARPU_SCHED. For instance <c>export
+STARPU_SCHED=dmda</c> . Use <c>help</c> to get the list of available schedulers.
+
+The <b>eager</b> scheduler uses a central task queue, from which all workers draw tasks
+to work on concurrently. This however does not permit to prefetch data since the scheduling
+decision is taken late. If a task has a non-0 priority, it is put at the front of the queue.
+
+The <b>prio</b> scheduler also uses a central task queue, but sorts tasks by
+priority (between -5 and 5).
+
+The <b>random</b> scheduler uses a queue per worker, and distributes tasks randomly according to assumed worker
+overall performance.
+
+The <b>ws</b> (work stealing) scheduler uses a queue per worker, and schedules
+a task on the worker which released it by
+default. When a worker becomes idle, it steals a task from the most loaded
+worker.
+
+The <b>lws</b> (locality work stealing) scheduler uses a queue per worker, and schedules
+a task on the worker which released it by
+default. When a worker becomes idle, it steals a task from neighbour workers. It
+also takes into account priorities.
+
+The <b>dm</b> (deque model) scheduler uses task execution performance models into account to
+perform a HEFT-similar scheduling strategy: it schedules tasks where their
+termination time will be minimal. The difference with HEFT is that <b>dm</b>
+schedules tasks as soon as they become available, and thus in the order they
+become available, without taking priorities into account.
+
+The <b>dmda</b> (deque model data aware) scheduler is similar to dm, but it also takes
+into account data transfer time.
+
+The <b>dmdar</b> (deque model data aware ready) scheduler is similar to dmda,
+but it also sorts tasks on per-worker queues by number of already-available data
+buffers on the target device.
+
+The <b>dmdas</b> (deque model data aware sorted) scheduler is similar to dmdar,
+except that it sorts tasks by priority order, which allows to become even closer
+to HEFT by respecting priorities after having made the scheduling decision (but
+it still schedules tasks in the order they become available).
+
+The <b>heft</b> (heterogeneous earliest finish time) scheduler is a deprecated
+alias for <b>dmda</b>.
+
+The <b>pheft</b> (parallel HEFT) scheduler is similar to dmda, it also supports
+parallel tasks (still experimental). Should not be used when several contexts using
+it are being executed simultaneously.
+
+The <b>peager</b> (parallel eager) scheduler is similar to eager, it also
+supports parallel tasks (still experimental). Should not be used when several 
+contexts using it are being executed simultaneously.
+
+TODO: describe modular schedulers
+
+\section TaskDistributionVsDataTransfer Task Distribution Vs Data Transfer
+
+Distributing tasks to balance the load induces data transfer penalty. StarPU
+thus needs to find a balance between both. The target function that the
+scheduler <c>dmda</c> of StarPU
+tries to minimize is <c>alpha * T_execution + beta * T_data_transfer</c>, where
+<c>T_execution</c> is the estimated execution time of the codelet (usually
+accurate), and <c>T_data_transfer</c> is the estimated data transfer time. The
+latter is estimated based on bus calibration before execution start,
+i.e. with an idle machine, thus without contention. You can force bus
+re-calibration by running the tool <c>starpu_calibrate_bus</c>. The
+beta parameter defaults to <c>1</c>, but it can be worth trying to tweak it
+by using <c>export STARPU_SCHED_BETA=2</c> (\ref STARPU_SCHED_BETA) for instance, since during
+real application execution, contention makes transfer times bigger.
+This is of course imprecise, but in practice, a rough estimation
+already gives the good results that a precise estimation would give.
+
+\section Energy-basedScheduling Energy-based Scheduling
+
+If the application can provide some energy consumption performance model (through
+the field starpu_codelet::energy_model), StarPU will
+take it into account when distributing tasks. The target function that
+the scheduler <c>dmda</c> minimizes becomes <c>alpha * T_execution +
+beta * T_data_transfer + gamma * Consumption</c> , where <c>Consumption</c>
+is the estimated task consumption in Joules. To tune this parameter, use
+<c>export STARPU_SCHED_GAMMA=3000</c> (\ref STARPU_SCHED_GAMMA) for instance, to express that each Joule
+(i.e kW during 1000us) is worth 3000us execution time penalty. Setting
+<c>alpha</c> and <c>beta</c> to zero permits to only take into account energy consumption.
+
+This is however not sufficient to correctly optimize energy: the scheduler would
+simply tend to run all computations on the most energy-conservative processing
+unit. To account for the consumption of the whole machine (including idle
+processing units), the idle power of the machine should be given by setting
+<c>export STARPU_IDLE_POWER=200</c> (\ref STARPU_IDLE_POWER) for 200W, for instance. This value can often
+be obtained from the machine power supplier.
+
+The energy actually consumed by the total execution can be displayed by setting
+<c>export STARPU_PROFILING=1 STARPU_WORKER_STATS=1</c> .
+
+On-line task consumption measurement is currently only supported through the
+<c>CL_PROFILING_POWER_CONSUMED</c> OpenCL extension, implemented in the MoviSim
+simulator. Applications can however provide explicit measurements by
+using the function starpu_perfmodel_update_history() (examplified in \ref PerformanceModelExample
+with the <c>energy_model</c> performance model). Fine-grain
+measurement is often not feasible with the feedback provided by the hardware, so
+the user can for instance run a given task a thousand times, measure the global
+consumption for that series of tasks, divide it by a thousand, repeat for
+varying kinds of tasks and task sizes, and eventually feed StarPU
+with these manual measurements through starpu_perfmodel_update_history().
+For instance, for CUDA devices, <c>nvidia-smi -q -d POWER</c> can be used to get
+the current consumption in Watt. Multiplying that value by the average duration
+of a single task gives the consumption of the task in Joules, which can be given
+to starpu_perfmodel_update_history().
+
+\section StaticScheduling Static Scheduling
+
+In some cases, one may want to force some scheduling, for instance force a given
+set of tasks to GPU0, another set to GPU1, etc. while letting some other tasks
+be scheduled on any other device. This can indeed be useful to guide StarPU into
+some work distribution, while still letting some degree of dynamism. For
+instance, to force execution of a task on CUDA0:
+
+\code{.c}
+task->execute_on_a_specific_worker = 1;
+task->worker = starpu_worker_get_by_type(STARPU_CUDA_WORKER, 0);
+\endcode
+
+One can also specify the order in which tasks must be executed by setting the
+starpu_task::workerorder field. If this field is set to a non-zero value, it
+provides the per-worker consecutive order in which tasks will be executed,
+starting from 1. For a given of such task, the worker will thus not execute
+it before all the tasks with smaller order value have been executed, notably
+in case those tasks are not available yet due to some dependencies. This
+eventually gives total control of task scheduling, and StarPU will only serve as
+a "self-timed" task runtime. Of course, the provided order has to be runnable,
+i.e. a task should should not depend on another task bound to the same worker
+with a bigger order.
+
+Note however that using scheduling contexts while statically scheduling tasks on workers
+could be tricky. Be careful to schedule the tasks exactly on the workers of the corresponding
+contexts, otherwise the workers' corresponding scheduling structures may not be allocated or
+the execution of the application may deadlock. Moreover, the hypervisor should not be used when
+statically scheduling tasks.
+
+\section DefiningANewSchedulingPolicy Defining A New Scheduling Policy
+
+A full example showing how to define a new scheduling policy is available in
+the StarPU sources in the directory <c>examples/scheduler/</c>.
+
+The scheduler has to provide methods:
+
+\code{.c}
+static struct starpu_sched_policy dummy_sched_policy = {
+    .init_sched = init_dummy_sched,
+    .deinit_sched = deinit_dummy_sched,
+    .add_workers = dummy_sched_add_workers,
+    .remove_workers = dummy_sched_remove_workers,
+    .push_task = push_task_dummy,
+    .pop_task = pop_task_dummy,
+    .policy_name = "dummy",
+    .policy_description = "dummy scheduling strategy"
+};
+\endcode
+
+The idea is that when a task becomes ready for execution, the
+starpu_sched_policy::push_task method is called. When a worker is idle, the
+starpu_sched_policy::pop_task method is called to get a task. It is up to the
+scheduler to implement what is between. A simple eager scheduler is for instance
+to make starpu_sched_policy::push_task push the task to a global list, and make
+starpu_sched_policy::pop_task pop from that list.
+
+The \ref starpu_sched_policy section provides the exact rules that govern the
+methods of the policy.
+
+Make sure to have a look at the \ref API_Scheduling_Policy section, which
+provides a list of the available functions for writing advanced schedulers, such
+as starpu_task_expected_length(), starpu_task_expected_data_transfer_time(),
+starpu_task_expected_energy(), etc. Other
+useful functions include starpu_transfer_bandwidth(), starpu_transfer_latency(),
+starpu_transfer_predict(), ...
+
+Usual functions can also be used on tasks, for instance one can do
+
+\code{.c}
+size = 0;
+write = 0;
+if (task->cl)
+    for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
+    {
+        starpu_data_handle_t data = STARPU_TASK_GET_HANDLE(task, i)
+	size_t datasize = starpu_data_get_size(data);
+        size += datasize;
+	if (STARPU_TASK_GET_MODE(task, i) & STARPU_W)
+	    write += datasize;
+    }
+\endcode
+
+And various queues can be used in schedulers. A variety of examples of
+schedulers can be read in <c>src/sched_policies</c>, for
+instance <c>random_policy.c</c>, <c>eager_central_policy.c</c>,
+<c>work_stealing_policy.c</c>
+
+\section GraphScheduling Graph-based Scheduling
+
+For performance reasons, most of the schedulers shipped with StarPU use simple
+list-scheduling heuristics, assuming that the application has already set
+priorities.  That is why they do their scheduling between when tasks become
+available for execution and when a worker becomes idle, without looking at the
+task graph.
+
+Other heuristics can however look at the task graph. Recording the task graph
+is expensive, so it is not available by default, the scheduling heuristic has
+to set _starpu_graph_record to 1 from the initialization function, to make it
+available. Then the <c>_starpu_graph*</c> functions can be used.
+
+<c>src/sched_policies/graph_test_policy.c</c> is an example of simple greedy
+policy which automatically computes priorities by bottom-up rank.
+
+The idea is that while the application submits tasks, they are only pushed
+to a bag of tasks. When the application is finished with submitting tasks,
+it calls starpu_do_schedule() (or starpu_task_wait_for_all(), which calls
+starpu_do_schedule()), and the starpu_sched_policy::do_schedule method of the
+scheduler is called. This method calls _starpu_graph_compute_depths to compute
+the bottom-up ranks, and then uses these rank to set priorities over tasks.
+
+It then has two priority queues, one for CPUs, and one for GPUs, and uses a dumb
+heuristic based on the duration of the task over CPUs and GPUs to decide between
+the two queues. CPU workers can then pop from the CPU priority queue, and GPU
+workers from the GPU priority queue.
+
+\section DebuggingScheduling Debugging Scheduling
+
+All the \ref OnlinePerformanceTools and \ref OfflinePerformanceTools can
+be used to get information about how well the execution proceeded, and thus the
+overall quality of the execution.
+
+Precise debugging can also be performed by using the
+\ref STARPU_TASK_BREAK_ON_SCHED, \ref STARPU_TASK_BREAK_ON_PUSH, and
+\ref STARPU_TASK_BREAK_ON_POP environment variables. By setting the job_id of a task
+in these environment variables, StarPU will raise <c>SIGTRAP</c> when the task is being
+scheduled, pushed, or popped by the scheduler. That means that when one notices
+that a task is being scheduled in a seemingly odd way, one can just reexecute
+the application in a debugger, with some of those variables set, and the
+execution will stop exactly at the scheduling points of that task, thus allowing
+to inspect the scheduler state, etc.
+
+*/

@@ -1,8 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2015  Université de Bordeaux
+ * Copyright (C) 2011-2016  Université de Bordeaux
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2011-2013  INRIA
+ * Copyright (C) 2016       CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -181,7 +182,7 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 {
 	struct _starpu_peager_data *data = (struct _starpu_peager_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
-	int workerid = starpu_worker_get_id();
+	unsigned workerid = starpu_worker_get_id_check();
 
 	/* If this is not a CPU or a MIC, then the worker simply grabs tasks from the fifo */
 	if (starpu_worker_get_type(workerid) != STARPU_CPU_WORKER && starpu_worker_get_type(workerid) != STARPU_MIC_WORKER)
@@ -260,14 +261,14 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 				starpu_pthread_cond_t *sched_cond;
 				starpu_worker_get_sched_condition(local_worker, &sched_mutex, &sched_cond);
 
-				STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
+				STARPU_PTHREAD_MUTEX_LOCK_SCHED(sched_mutex);
 
 				_starpu_fifo_push_task(data->local_fifo[local_worker], alias);
 
 #if !defined(STARPU_NON_BLOCKING_DRIVERS) || defined(STARPU_SIMGRID)
 				starpu_wakeup_worker_locked(local_worker, sched_cond, sched_mutex);
 #endif
-				STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
+				STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(sched_mutex);
 
 			}
 

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux
+ * Copyright (C) 2009, 2010, 2016  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011  CNRS
  *
@@ -46,6 +46,7 @@ void starpu_csr_filter_vertical_block(void *father_interface, void *child_interf
 
 	uint32_t local_nnz = rowptr[first_index + child_nrow] - rowptr[first_index];
 
+	STARPU_ASSERT_MSG(csr_father->id == STARPU_CSR_INTERFACE_ID, "%s can only be applied on a csr data", __func__);
 	csr_child->id = csr_father->id;
 	csr_child->nnz = local_nnz;
 	csr_child->nrow = child_nrow;

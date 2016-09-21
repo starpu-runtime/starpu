@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010-2012, 2014  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  CNRS
+ * Copyright (C) 2009, 2010-2012, 2014, 2016  Université de Bordeaux
+ * Copyright (C) 2010, 2011, 2012, 2013, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -23,6 +23,10 @@
 #include <stdlib.h>
 #include "../helper.h"
 
+/*
+ * Test initializing a buffer with a task, then printing it with another task
+ */
+
 #define VECTORSIZE	1024
 
 starpu_data_handle_t v_handle;
@@ -35,7 +39,7 @@ static void opencl_codelet_null(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_ar
 	cl_mem buf = (cl_mem)STARPU_VECTOR_GET_DEV_HANDLE(descr[0]);
         char ptr = 42;
         cl_command_queue queue;
-        int id = starpu_worker_get_id();
+        int id = starpu_worker_get_id_check();
         int devid = starpu_worker_get_devid(id);
 
         starpu_opencl_get_queue(devid, &queue);

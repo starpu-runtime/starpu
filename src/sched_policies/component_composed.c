@@ -190,10 +190,11 @@ void composed_component_deinit_data(struct starpu_sched_component * _component)
 	struct composed_component *c = _component->data;
 	c->bottom->children = NULL;
 	c->bottom->nchildren = 0;
-	struct starpu_sched_component * component = c->top;
-	struct starpu_sched_component * next = NULL;
+	struct starpu_sched_component * component;
+	struct starpu_sched_component * next = c->top;
 	do
 	{
+		component = next;
 		component->workers = NULL;
 		next = component->children ? component->children[0] : NULL;
 		starpu_sched_component_destroy(component);

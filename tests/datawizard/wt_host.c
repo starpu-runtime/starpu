@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2012, 2014-2015  Université de Bordeaux
+ * Copyright (C) 2011-2012, 2014-2016  Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,6 +17,10 @@
 #include <config.h>
 #include <starpu.h>
 #include "../helper.h"
+
+/*
+ * Test writing back the result into main memory as soon as it is available
+ */
 
 static unsigned var = 0;
 static starpu_data_handle_t handle;
@@ -96,7 +100,7 @@ int main(int argc, char **argv)
 	starpu_variable_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)&var, sizeof(unsigned));
 
 	/* Copy the handle in main memory every time it is modified */
-	uint32_t wt_mask = (1<<0);
+	uint32_t wt_mask = (1<<STARPU_MAIN_RAM);
 	starpu_data_set_wt_mask(handle, wt_mask);
 
 #ifdef STARPU_QUICK_CHECK

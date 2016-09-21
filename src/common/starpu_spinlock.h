@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2014  Université de Bordeaux
+ * Copyright (C) 2010-2014, 2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2013, 2014, 2015  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -21,57 +21,113 @@
 #include <stdint.h>
 #include <common/config.h>
 #include <common/fxt.h>
+#include <common/thread.h>
 #include <starpu.h>
+
+#ifdef STARPU_SPINLOCK_CHECK
+
+/* We don't care about performance */
 
 struct _starpu_spinlock
 {
-#if defined(STARPU_SPINLOCK_CHECK)
 	starpu_pthread_mutex_t errcheck_lock;
 	const char *last_taker;
-#else
-	starpu_pthread_spinlock_t lock;
-#endif
 };
-
-#ifdef STARPU_SPINLOCK_CHECK 
-#define STARPU_RECORD_LOCK(lock) do { 	\
-	(lock)->last_taker = __starpu_func__; \
-} while(0) 
-#else // !STARPU_SPINLOCK_CHECK
-#define STARPU_RECORD_LOCK(lock) do {} while(0)
-#endif // STARPU_SPINLOCK_CHECK
 
 int _starpu_spin_init(struct _starpu_spinlock *lock);
 int _starpu_spin_destroy(struct _starpu_spinlock *lock);
 
-int _starpu_spin_lock(struct _starpu_spinlock *lock);
-#define _starpu_spin_lock(lock) ({ \
-	_STARPU_TRACE_LOCKING_SPINLOCK(); \
-	_starpu_spin_lock(lock); \
-	_STARPU_TRACE_SPINLOCK_LOCKED(); \
-	STARPU_RECORD_LOCK(lock); \
-	0; \
-}) 
+static inline int __starpu_spin_lock(struct _starpu_spinlock *lock, const char *file STARPU_ATTRIBUTE_UNUSED, int line STARPU_ATTRIBUTE_UNUSED, const char *func STARPU_ATTRIBUTE_UNUSED)
+{
+	_STARPU_TRACE_LOCKING_SPINLOCK(file, line);
+	int ret = starpu_pthread_mutex_lock(&lock->errcheck_lock);
+	STARPU_ASSERT(!ret);
+	lock->last_taker = func;
+	_STARPU_TRACE_SPINLOCK_LOCKED(file, line);
+	return ret;
+}
 
-int _starpu_spin_trylock(struct _starpu_spinlock *lock);
-#define _starpu_spin_trylock(lock) ({ \
-	_STARPU_TRACE_TRYLOCK_SPINLOCK(); \
-	int err = _starpu_spin_trylock(lock); \
-	if (!err) { \
-		STARPU_RECORD_LOCK(lock); \
-		_STARPU_TRACE_SPINLOCK_LOCKED(); \
-	} \
-	err; \
-})
-int _starpu_spin_checklocked(struct _starpu_spinlock *lock);
-int _starpu_spin_unlock(struct _starpu_spinlock *lock);
-#define _starpu_spin_unlock(lock) ({ \
-	_STARPU_TRACE_UNLOCKING_SPINLOCK(); \
-	_starpu_spin_unlock(lock); \
-	_STARPU_TRACE_SPINLOCK_UNLOCKED(); \
-	0; \
-}) 
+static inline void _starpu_spin_checklocked(struct _starpu_spinlock *lock STARPU_ATTRIBUTE_UNUSED)
+{
+	STARPU_ASSERT(starpu_pthread_mutex_trylock(&lock->errcheck_lock) != 0);
+}
 
+static inline int __starpu_spin_trylock(struct _starpu_spinlock *lock, const char *file STARPU_ATTRIBUTE_UNUSED, int line STARPU_ATTRIBUTE_UNUSED, const char *func STARPU_ATTRIBUTE_UNUSED)
+{
+	_STARPU_TRACE_TRYLOCK_SPINLOCK(file, line);
+	int ret = starpu_pthread_mutex_trylock(&lock->errcheck_lock);
+	STARPU_ASSERT(!ret || (ret == EBUSY));
+	if (STARPU_LIKELY(!ret))
+	{
+		lock->last_taker = func;
+		_STARPU_TRACE_SPINLOCK_LOCKED(file, line);
+	}
+	return ret;
+}
+
+static inline int __starpu_spin_unlock(struct _starpu_spinlock *lock, const char *file STARPU_ATTRIBUTE_UNUSED, int line STARPU_ATTRIBUTE_UNUSED, const char *func STARPU_ATTRIBUTE_UNUSED)
+{
+	_STARPU_TRACE_UNLOCKING_SPINLOCK(file, line);
+	int ret = starpu_pthread_mutex_unlock(&lock->errcheck_lock);
+	STARPU_ASSERT(!ret);
+	_STARPU_TRACE_SPINLOCK_UNLOCKED(file, line);
+	return ret;
+}
+#else
+
+/* We do care about performance, inline as much as possible */
+
+struct _starpu_spinlock
+{
+	starpu_pthread_spinlock_t lock;
+};
+
+static inline int _starpu_spin_init(struct _starpu_spinlock *lock)
+{
+	int ret = starpu_pthread_spin_init(&lock->lock, 0);
+	STARPU_ASSERT(!ret);
+	return ret;
+}
+
+#define _starpu_spin_destroy(_lock) starpu_pthread_spin_destroy(&(_lock)->lock)
+
+static inline int __starpu_spin_lock(struct _starpu_spinlock *lock, const char *file STARPU_ATTRIBUTE_UNUSED, int line STARPU_ATTRIBUTE_UNUSED, const char *func STARPU_ATTRIBUTE_UNUSED)
+{
+	_STARPU_TRACE_LOCKING_SPINLOCK(file, line);
+	int ret = starpu_pthread_spin_lock(&lock->lock);
+	STARPU_ASSERT(!ret);
+	_STARPU_TRACE_SPINLOCK_LOCKED(file, line);
+	return ret;
+}
+
+#define _starpu_spin_checklocked(_lock) _starpu_pthread_spin_checklocked(&(_lock)->lock)
+
+static inline int __starpu_spin_trylock(struct _starpu_spinlock *lock, const char *file STARPU_ATTRIBUTE_UNUSED, int line STARPU_ATTRIBUTE_UNUSED, const char *func STARPU_ATTRIBUTE_UNUSED)
+{
+	_STARPU_TRACE_TRYLOCK_SPINLOCK(file, line);
+	int ret = starpu_pthread_spin_trylock(&lock->lock);
+	STARPU_ASSERT(!ret || (ret == EBUSY));
+	if (STARPU_LIKELY(!ret))
+		_STARPU_TRACE_SPINLOCK_LOCKED(file, line);
+	return ret;
+}
+
+static inline int __starpu_spin_unlock(struct _starpu_spinlock *lock, const char *file STARPU_ATTRIBUTE_UNUSED, int line STARPU_ATTRIBUTE_UNUSED, const char *func STARPU_ATTRIBUTE_UNUSED)
+{
+	_STARPU_TRACE_UNLOCKING_SPINLOCK(file, line);
+	int ret = starpu_pthread_spin_unlock(&lock->lock);
+	STARPU_ASSERT(!ret);
+	_STARPU_TRACE_SPINLOCK_UNLOCKED(file, line);
+	return ret;
+}
+#endif
+
+#define _starpu_spin_lock(lock) \
+	__starpu_spin_lock(lock, __FILE__, __LINE__, __starpu_func__)
+#define _starpu_spin_trylock(lock) \
+	__starpu_spin_trylock(lock, __FILE__, __LINE__, __starpu_func__)
+#define _starpu_spin_unlock(lock) \
+	__starpu_spin_unlock(lock, __FILE__, __LINE__, __starpu_func__)
 
 #define STARPU_SPIN_MAXTRY 10 
 

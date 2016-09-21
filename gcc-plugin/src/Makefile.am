@@ -13,6 +13,8 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
+include $(top_srcdir)/starpu.mk
+
 # `LIBRARIES' would be more appropriate than `LTLIBRARIES' but it
 # requires a name prefixed by `lib'.
 gccplugin_LTLIBRARIES = starpu.la
@@ -48,10 +50,3 @@ AM_LDFLAGS = -module
 # plug-ins for this version of GCC.
 AM_LIBTOOLFLAGS = --tag="$(GCC_FOR_PLUGIN_LIBTOOL_TAG)"
 CC = $(GCC_FOR_PLUGIN)
-
-showcheck:
-	-cat $(TEST_LOGS) /dev/null
-	! grep -q "ERROR: AddressSanitizer: " $(TEST_LOGS) /dev/null
-	! grep -q "WARNING: AddressSanitizer: " $(TEST_LOGS) /dev/null
-	! grep -q "ERROR: ThreadSanitizer: " $(TEST_LOGS) /dev/null
-	! grep -q "WARNING: ThreadSanitizer: " $(TEST_LOGS) /dev/null

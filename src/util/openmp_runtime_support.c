@@ -79,6 +79,38 @@ static inline void _starpu_omp_set_task(struct starpu_omp_task *task)
 	STARPU_PTHREAD_SETSPECIFIC(omp_task_key, task);
 }
 
+struct starpu_omp_region *_starpu_omp_get_region_at_level(int level)
+{
+	const struct starpu_omp_task *task = _starpu_omp_get_task();
+	struct starpu_omp_region *parallel_region;
+
+	if (!task)
+		return NULL;
+
+	parallel_region = task->owner_region;
+	if (level < 0 || level > parallel_region->icvs.levels_var)
+		return NULL;
+
+	while (level < parallel_region->icvs.levels_var)
+	{
+		parallel_region = parallel_region->parent_region;
+	}
+
+	return parallel_region;
+}
+
+int _starpu_omp_get_region_thread_num(const struct starpu_omp_region * const region)
+{
+	struct starpu_omp_thread *thread = _starpu_omp_get_thread();
+	STARPU_ASSERT(thread != NULL);
+	if (thread == region->master_thread)
+		return 0;
+	int tid = starpu_omp_thread_list_member(&region->thread_list, thread);
+	if (tid >= 0)
+		return tid+1;
+	_STARPU_ERROR("unrecognized omp thread\n");
+}
+
 static void weak_task_lock(struct starpu_omp_task *task)
 {
 	_starpu_spin_lock(&task->lock);
@@ -128,12 +160,12 @@ static void condition_exit(struct starpu_omp_condition *condition)
 	condition->contention_list_head = NULL;
 }
 
-static void condition_wait(struct starpu_omp_condition *condition, struct _starpu_spinlock *lock)
+static void condition_wait(struct starpu_omp_condition *condition, struct _starpu_spinlock *lock, enum starpu_omp_task_wait_on flag)
 {
 	struct starpu_omp_task *task = _starpu_omp_get_task();
 	struct starpu_omp_task_link link;
 	_starpu_spin_lock(&task->lock);
-	task->wait_on |= starpu_omp_task_wait_on_condition;
+	task->wait_on |= flag;
 	link.task = task;
 	link.next = condition->contention_list_head;
 	condition->contention_list_head = &link;
@@ -163,15 +195,15 @@ static void condition_signal(struct starpu_omp_condition *condition)
 }
 #endif
 
-static void condition_broadcast(struct starpu_omp_condition *condition)
+static void condition_broadcast(struct starpu_omp_condition *condition, enum starpu_omp_task_wait_on flag)
 {
 	while (condition->contention_list_head != NULL)
 	{
 		struct starpu_omp_task *next_task = condition->contention_list_head->task;
 		weak_task_lock(next_task);
 		condition->contention_list_head = condition->contention_list_head->next;
-		STARPU_ASSERT(next_task->wait_on & starpu_omp_task_wait_on_condition);
-		next_task->wait_on &= ~starpu_omp_task_wait_on_condition;
+		STARPU_ASSERT(next_task->wait_on & flag);
+		next_task->wait_on &= ~flag;
 		wake_up_and_unlock_task(next_task);
 	}
 }
@@ -849,6 +881,7 @@ static void omp_initial_region_setup(void)
 	_global_state.initial_region->icvs.run_sched_var = _starpu_omp_initial_icv_values->run_sched_var;
 	_global_state.initial_region->icvs.run_sched_chunk_var = _starpu_omp_initial_icv_values->run_sched_chunk_var;
 	_global_state.initial_region->icvs.default_device_var = _starpu_omp_initial_icv_values->default_device_var;
+	_global_state.initial_region->icvs.max_task_priority_var = _starpu_omp_initial_icv_values->max_task_priority_var;
 	starpu_omp_task_list_push_back(&_global_state.initial_region->implicit_task_list,
 			_global_state.initial_task);
 }
@@ -1061,6 +1094,7 @@ void starpu_omp_parallel_region(const struct starpu_omp_parallel_region_attr *at
 	new_region->icvs.run_sched_var = generating_region->icvs.run_sched_var;
 	new_region->icvs.run_sched_chunk_var = generating_region->icvs.run_sched_chunk_var;
 	new_region->icvs.default_device_var = generating_region->icvs.default_device_var;
+	new_region->icvs.max_task_priority_var = generating_region->icvs.max_task_priority_var;
 
 	int i;
 	for (i = 0; i < nb_threads; i++)
@@ -1152,7 +1186,6 @@ void starpu_omp_parallel_region(const struct starpu_omp_parallel_region_attr *at
 		implicit_task->starpu_task = starpu_task_create();
 		implicit_task->starpu_task->cl = &implicit_task->cl;
 		{
-			int i;
 			for (i = 0; i < implicit_task->cl.nbuffers; i++)
 			{
 				implicit_task->starpu_task->handles[i] = attr->handles[i];
@@ -1217,8 +1250,8 @@ void starpu_omp_parallel_region(const struct starpu_omp_parallel_region_attr *at
 			/* TODO: cleanup unused threads */
 		}
 		new_region->nb_threads--;
-		struct starpu_omp_task *implicit_task = starpu_omp_task_list_pop_front(&new_region->implicit_task_list);
-		destroy_omp_task_struct(implicit_task);
+		struct starpu_omp_task *implicit_task_p = starpu_omp_task_list_pop_front(&new_region->implicit_task_list);
+		destroy_omp_task_struct(implicit_task_p);
 	}
 	STARPU_ASSERT(new_region->nb_threads == 0);
 	task->nested_region = NULL;
@@ -2051,7 +2084,7 @@ void starpu_omp_ordered_inline_begin(void)
 	while (i != loop->ordered_iteration)
 	{
 		STARPU_ASSERT(i > loop->ordered_iteration);
-		condition_wait(&loop->ordered_cond, &loop->ordered_lock);
+		condition_wait(&loop->ordered_cond, &loop->ordered_lock, starpu_omp_task_wait_on_ordered);
 	}
 }
 
@@ -2062,7 +2095,7 @@ void starpu_omp_ordered_inline_end(void)
 	struct starpu_omp_loop *loop = _starpu_omp_for_get_loop(parallel_region, task);
 
 	loop->ordered_iteration++;	
-	condition_broadcast(&loop->ordered_cond);
+	condition_broadcast(&loop->ordered_cond, starpu_omp_task_wait_on_ordered);
 	_starpu_spin_unlock(&loop->ordered_lock);
 }
 
@@ -2205,7 +2238,7 @@ static void _starpu_omp_lock_set(void **_internal)
 	_starpu_spin_lock(&_lock->lock);
 	while (_lock->state != 0)
 	{
-		condition_wait(&_lock->cond, &_lock->lock);
+		condition_wait(&_lock->cond, &_lock->lock, starpu_omp_task_wait_on_lock);
 	}
 	_lock->state = 1;
 	_starpu_spin_unlock(&_lock->lock);
@@ -2217,7 +2250,7 @@ static void _starpu_omp_lock_unset(void **_internal)
 	_starpu_spin_lock(&_lock->lock);
 	STARPU_ASSERT(_lock->state == 1);
 	_lock->state = 0;
-	condition_broadcast(&_lock->cond);
+	condition_broadcast(&_lock->cond, starpu_omp_task_wait_on_lock);
 	_starpu_spin_unlock(&_lock->lock);
 }
 
@@ -2275,7 +2308,7 @@ static void _starpu_omp_nest_lock_set(void **_internal)
 	{
 		while (_nest_lock->state != 0)
 		{
-			condition_wait(&_nest_lock->cond, &_nest_lock->lock);
+			condition_wait(&_nest_lock->cond, &_nest_lock->lock, starpu_omp_task_wait_on_nest_lock);
 		}
 		STARPU_ASSERT(_nest_lock->nesting == 0);
 		STARPU_ASSERT(_nest_lock->owner_task == NULL);
@@ -2299,7 +2332,7 @@ static void _starpu_omp_nest_lock_unset(void **_internal)
 	{
 		_nest_lock->state = 0;
 		_nest_lock->owner_task = NULL;
-		condition_broadcast(&_nest_lock->cond);
+		condition_broadcast(&_nest_lock->cond, starpu_omp_task_wait_on_nest_lock);
 	}
 	_starpu_spin_unlock(&_nest_lock->lock);
 }

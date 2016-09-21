@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
+ * Copyright (C) 2010-2016  Université de Bordeaux
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016  CNRS
  * Copyright (C) 2011  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -26,6 +26,7 @@
 #include <starpu_bitmap.h>
 
 #include <common/fxt.h>
+#include <core/workers.h>
 
 #define DEFAULT_MIN_LEVEL	(-5)
 #define DEFAULT_MAX_LEVEL	(+5)
@@ -109,7 +110,7 @@ static void deinitialize_eager_center_priority_policy(unsigned sched_ctx_id)
 	/* TODO check that there is no task left in the queue */
 	struct _starpu_eager_central_prio_data *data = (struct _starpu_eager_central_prio_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
-	/* deallocate the task queue */
+	/* deallocate the job queue */
 	_starpu_destroy_priority_taskq(data->taskq);
 	starpu_bitmap_destroy(data->waiters);
 
@@ -125,7 +126,7 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 	unsigned priolevel = task->priority - STARPU_MIN_PRIO;
-	
+
 	starpu_task_list_push_back(&taskq->taskq[priolevel], task);
 	taskq->ntasks[priolevel]++;
 	taskq->total_ntasks++;
@@ -135,11 +136,12 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 	/* wake people waiting for a task */
 	unsigned worker = 0;
 	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
-	
+
 	struct starpu_sched_ctx_iterator it;
 #ifndef STARPU_NON_BLOCKING_DRIVERS
 	char dowake[STARPU_NMAXWORKERS] = { 0 };
 #endif
+
 	workers->init_iterator_for_parallel_tasks(workers, &it, task);
 	while(workers->has_next(workers, &it))
 	{
@@ -166,7 +168,7 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 	/* Let the task free */
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 
-#ifndef STARPU_NON_BLOCKING_DRIVERS
+#if !defined(STARPU_NON_BLOCKING_DRIVERS) || defined(STARPU_SIMGRID)
 	/* Now that we have a list of potential workers, try to wake one */
 
 	workers->init_iterator(workers, &it);
@@ -187,7 +189,7 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 {
 	struct starpu_task *chosen_task = NULL, *task, *nexttask;
-	unsigned workerid = starpu_worker_get_id();
+	unsigned workerid = starpu_worker_get_id_check();
 	int skipped = 0;
 
 	struct _starpu_eager_central_prio_data *data = (struct _starpu_eager_central_prio_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
@@ -211,9 +213,9 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 	starpu_pthread_mutex_t *curr_sched_mutex;
 	starpu_pthread_cond_t *curr_sched_cond;
 	starpu_worker_get_sched_condition(workerid, &curr_sched_mutex, &curr_sched_cond);
-	STARPU_PTHREAD_MUTEX_UNLOCK(curr_sched_mutex);
-	
-	/* all workers will block on this mutex anyway so 
+	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(curr_sched_mutex);
+
+	/* all workers will block on this mutex anyway so
 	   there's no need for their own mutex to be locked */
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 
@@ -224,7 +226,7 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 		{
 			for (task  = starpu_task_list_begin(&taskq->taskq[priolevel]);
 			     task != starpu_task_list_end(&taskq->taskq[priolevel]) && !chosen_task;
-			     task  = nexttask) 
+			     task  = nexttask)
 			{
 				unsigned nimpl;
 				nexttask = starpu_task_list_next(task);
@@ -267,7 +269,7 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 #endif
 			}
 		}
-	
+
 	}
 
 	if (!chosen_task)
@@ -277,7 +279,7 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 
 	/* leave the mutex how it was found before this */
-	STARPU_PTHREAD_MUTEX_LOCK(curr_sched_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK_SCHED(curr_sched_mutex);
 
 	if(chosen_task)
 	{
@@ -304,6 +306,10 @@ static void eager_center_priority_add_workers(unsigned sched_ctx_id, int *worker
         for (i = 0; i < nworkers; i++)
         {
 		workerid = workerids[i];
+		int curr_workerid = _starpu_worker_get_id();
+		if(workerid != curr_workerid)
+			starpu_wake_worker(workerid);
+
                 starpu_sched_ctx_worker_shares_tasks_lists(workerid, sched_ctx_id);
         }
 }

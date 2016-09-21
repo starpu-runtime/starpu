@@ -1,8 +1,9 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2015  Université de Bordeaux
+# Copyright (C) 2009-2016  Université de Bordeaux
 # Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
 # Copyright (C) 2011, 2014  INRIA
+# Copyright (C) 2016  Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -90,7 +91,6 @@ noinst_HEADERS = 						\
 	core/detect_combined_workers.h				\
 	sched_policies/helper_mct.h				\
 	sched_policies/fifo_queues.h				\
-	sched_policies/stack_queues.h				\
 	datawizard/footprint.h					\
 	datawizard/datawizard.h					\
 	datawizard/data_request.h				\
@@ -120,6 +120,7 @@ noinst_HEADERS = 						\
 	common/rbtree.h						\
 	common/rbtree_i.h					\
 	common/prio_list.h					\
+	common/graph.h						\
 	drivers/driver_common/driver_common.h			\
 	drivers/mp_common/mp_common.h				\
 	drivers/mp_common/source_common.h			\
@@ -162,6 +163,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	common/utils.c						\
 	common/thread.c						\
 	common/rbtree.c						\
+	common/graph.c						\
 	core/jobs.c						\
 	core/task.c						\
 	core/task_bundle.c					\
@@ -201,11 +203,11 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	sched_policies/work_stealing_policy.c			\
 	sched_policies/deque_modeling_policy_data_aware.c	\
 	sched_policies/random_policy.c				\
-	sched_policies/stack_queues.c				\
 	sched_policies/fifo_queues.c				\
 	sched_policies/parallel_heft.c				\
 	sched_policies/parallel_eager.c				\
 	sched_policies/heteroprio.c				\
+	sched_policies/graph_test_policy.c			\
 	drivers/driver_common/driver_common.c			\
 	drivers/disk/driver_disk.c				\
 	datawizard/memory_nodes.c				\
@@ -242,6 +244,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	util/execute_on_all.c					\
 	util/starpu_create_sync_task.c				\
 	util/file.c						\
+	util/fstarpu.c						\
 	util/misc.c						\
 	util/openmp_runtime_support.c				\
 	util/openmp_runtime_support_environment.c		\

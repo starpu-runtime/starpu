@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2015  Université de Bordeaux
+ * Copyright (C) 2009-2016  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012, 2013  CNRS
  *
@@ -230,6 +230,7 @@ static void _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 static int initialize_system(float **A, unsigned dim, unsigned pinned)
 {
 	int ret;
+	int flags = STARPU_MALLOC_SIMULATION_FOLDED;
 
 #ifdef STARPU_HAVE_MAGMA
 	magma_init();
@@ -252,16 +253,10 @@ static int initialize_system(float **A, unsigned dim, unsigned pinned)
 
 	starpu_cublas_init();
 
-#ifndef STARPU_SIMGRID
 	if (pinned)
-	{
-		starpu_malloc((void **)A, (size_t)dim*dim*sizeof(float));
-	}
-	else
-	{
-		*A = malloc(dim*dim*sizeof(float));
-	}
-#endif
+		flags |= STARPU_MALLOC_PINNED;
+	starpu_malloc_flags((void **)A, dim*dim*sizeof(float), flags);
+
 	return 0;
 }
 
@@ -294,16 +289,13 @@ static void cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 	starpu_data_unregister(dataA);
 }
 
-static void shutdown_system(float **matA, unsigned pinned)
+static void shutdown_system(float **matA, unsigned dim, unsigned pinned)
 {
+	int flags = STARPU_MALLOC_SIMULATION_FOLDED;
 	if (pinned)
-	{
-		starpu_free(*matA);
-	}
-	else
-	{
-		free(*matA);
-	}
+		flags |= STARPU_MALLOC_PINNED;
+
+	starpu_free_flags(*matA, dim*dim*sizeof(float), flags);
 
 	starpu_cublas_shutdown();
 	starpu_shutdown();
@@ -404,6 +396,6 @@ int main(int argc, char **argv)
 	free(test_mat);
 #endif
 
-	shutdown_system(&mat, pinned);
+	shutdown_system(&mat, size, pinned);
 	return 0;
 }

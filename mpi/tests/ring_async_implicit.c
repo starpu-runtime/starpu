@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  CNRS
+ * Copyright (C) 2010, 2015-2016  Université de Bordeaux
+ * Copyright (C) 2010, 2011, 2012, 2013, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -20,6 +20,8 @@
 
 #ifdef STARPU_QUICK_CHECK
 #  define NITER	32
+#elif !defined(STARPU_LONG_CHECK)
+#  define NITER	256
 #else
 #  define NITER	2048
 #endif
@@ -81,15 +83,19 @@ int main(int argc, char **argv)
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
 
-	if (size < 2)
+	if (size < 2 || (starpu_cpu_worker_get_count() + starpu_cuda_worker_get_count() == 0))
 	{
 		if (rank == 0)
-			FPRINTF(stderr, "We need at least 2 processes.\n");
-
-		MPI_Finalize();
+		{
+			if (size < 2)
+				FPRINTF(stderr, "We need at least 2 processes.\n");
+			else
+				FPRINTF(stderr, "We need at least 1 CPU or CUDA worker.\n");
+		}
+		starpu_mpi_shutdown();
+		starpu_shutdown();
 		return STARPU_TEST_SKIPPED;
 	}
-
 
 	starpu_vector_data_register(&token_handle, STARPU_MAIN_RAM, (uintptr_t)&token, 1, sizeof(token));
 

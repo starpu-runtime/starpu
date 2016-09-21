@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010, 2012, 2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -131,7 +131,7 @@ static void parse_args(int argc, char **argv)
 
 
 /*
- * The Finite element method code 
+ * The Finite element method code
  *
  *   B              C
  *	**********
@@ -365,38 +365,38 @@ static void solve_system(unsigned size, unsigned subsize, float *result, int *Re
 		LUB = malloc(subsize*sizeof(float));
 	}
 
-		/* L */
-		STARPU_STRSV("L", "N", "N", subsize, A, subsize, B, 1);
-	
-		/* U */
-	        STARPU_STRSV("U", "N", "U", subsize, A, subsize, B, 1);
-	
-		STARPU_ASSERT(DIM == size);
-	
+	/* L */
+	STARPU_STRSV("L", "N", "N", subsize, A, subsize, B, 1);
+
+	/* U */
+	STARPU_STRSV("U", "N", "U", subsize, A, subsize, B, 1);
+
+	STARPU_ASSERT(DIM == size);
+
 	if (check)
 	{
 		/* compute the error on (LUB - savedB) which should be 0 */
-	
+
 		/* LUB = B */
 		memcpy(LUB, B, subsize*sizeof(float));
-	
-	
+
+
 		/* LUB = U * LUB */
 		STARPU_STRMV("U", "N", "U", subsize, A, subsize, LUB, 1);
-		
+
 		/* LUB = L * LUB */
 		STARPU_STRMV("L", "N", "N", subsize, A, subsize, LUB, 1);
-	
+
 		/* LUB -= B */
 		STARPU_SAXPY(subsize, -1.0f, savedB, 1, LUB, 1);
-	
+
 		/* check if LUB is close to the 0 vector */
 		int maxind = STARPU_ISAMAX(subsize, LUB, 1);
 		FPRINTF(stderr, "max error (LUX - B) = %e\n",LUB[maxind - 1]);
 
 		float sum = STARPU_SASUM(subsize, LUB, 1);
 		FPRINTF(stderr,"avg. error %e\n", sum/subsize);
-	
+
 		free(LUB);
 		free(savedB);
 	}
@@ -430,7 +430,7 @@ unsigned compute_pivot_array(int *RefArray, int *RefArrayBack, unsigned size)
 	/* first inner nodes */
 	for (theta = 1; theta < ntheta - 1 ; theta++)
 	{
-		for (thick = 1; thick < nthick - 1; thick++) 
+		for (thick = 1; thick < nthick - 1; thick++)
 		{
 			/* inner nodes are unknown */
 			RefArrayBack[NODE_NUMBER(theta, thick)] = index;
@@ -447,7 +447,7 @@ unsigned compute_pivot_array(int *RefArray, int *RefArrayBack, unsigned size)
 		/* Lower boundary "South" */
 		RefArrayBack[NODE_NUMBER(theta, 0)] = index;
 		RefArray[index++] = NODE_NUMBER(theta, 0);
-		
+
 		/* Upper boundary "North" */
 		RefArrayBack[NODE_NUMBER(theta, nthick-1)] = index;
 		RefArray[index++] = NODE_NUMBER(theta, nthick-1);
@@ -494,7 +494,7 @@ void build_mesh(point *mesh)
 				case 1:
 					mesh[NODE_NUMBER(theta,thick)].x =
 							-100 + RMIN+((RMAX-RMIN)*theta)/(ntheta - 1);
-					mesh[NODE_NUMBER(theta,thick)].y = 
+					mesh[NODE_NUMBER(theta,thick)].y =
 							RMIN+((RMAX-RMIN)*thick)/(nthick - 1);
 					break;
 				case 2:
@@ -527,7 +527,7 @@ static unsigned long build_neighbour_vector(unsigned long*neighbours, unsigned n
 				if ((former_theta + dtheta) >= 0 && (former_theta + dtheta) <= (int)ntheta )
 				{
 					/* we got a possible neighbour */
-					unsigned pnode = 
+					unsigned pnode =
 						NODE_NUMBER((former_theta + dtheta), (former_thick + dthick));
 
 					neighbours[nneighbours++] = TRANSLATEBACK(pnode);
@@ -602,7 +602,7 @@ static void build_sparse_stiffness_matrix_B(point *pmesh, float *B, float *Bform
 
 		for (neighbour = 0; neighbour < nneighbours; neighbour++)
 		{
-			unsigned n = neighbours[neighbour]; 
+			unsigned n = neighbours[neighbour];
 			if (n >= newsize)
 			{
 				B[j] -= compute_A_value(TRANSLATE(n), TRANSLATE(j), pmesh)*Bformer[TRANSLATE(n)];
@@ -611,7 +611,7 @@ static void build_sparse_stiffness_matrix_B(point *pmesh, float *B, float *Bform
 	}
 }
 
-static unsigned build_sparse_stiffness_matrix_A(point *pmesh, float **nzval, uint32_t **colind, 
+static unsigned build_sparse_stiffness_matrix_A(point *pmesh, float **nzval, uint32_t **colind,
 						uint32_t *rowptr, unsigned newsize, int *RefArray, int *RefArrayBack)
 {
 	unsigned j;
@@ -641,12 +641,12 @@ static unsigned build_sparse_stiffness_matrix_A(point *pmesh, float **nzval, uin
 			{
 
 				val = compute_A_value(TRANSLATE(j), TRANSLATE(nodeneighbour), pmesh);
-	
+
 				if (val != 0.0f)
 				{
 					*nzval = realloc(*nzval, (pos+1)*sizeof(float));
 					*colind = realloc(*colind, (pos+1)*sizeof(uint32_t));
-	
+
 					(*nzval)[pos] = val;
 					(*colind)[pos] = nodeneighbour;
 
@@ -714,13 +714,13 @@ int main(int argc, char **argv)
 
 	build_mesh(pmesh);
 
-	/* now simplify that problem given the boundary conditions 
+	/* now simplify that problem given the boundary conditions
 	 * to do so, we remove the already known variables from the system
 	 * by pivoting the various know variable, RefArray keep track of that
-	 * pivoting */ 
+	 * pivoting */
 	newsize = compute_pivot_array(RefArray, RefArrayBack, DIM);
 
-	/* we can either use a direct method (LU decomposition here) or an 
+	/* we can either use a direct method (LU decomposition here) or an
 	 * iterative method (conjugate gradient here) */
 	if (use_cg)
 	{
@@ -748,17 +748,17 @@ int main(int argc, char **argv)
 		{
 			result[TRANSLATE(i)] = B[i];
 		}
-	
+
 		for (i = newsize ; i < DIM; i++)
 		{
 			result[TRANSLATE(i)] = Bformer[TRANSLATE(i)];
 		}
-	
+
 	}
 	else
 	{
 
-		/* unfortunately CUDA does not allow late memory registration, 
+		/* unfortunately CUDA does not allow late memory registration,
 		 * we need to do the malloc using CUDA itself ... */
 		initialize_system(&A, &B, newsize, pinned);
 

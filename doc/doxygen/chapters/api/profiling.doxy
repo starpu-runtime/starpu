@@ -61,8 +61,8 @@ Number of cycles used by the task, only available in the MoviSim
 \var uint64_t starpu_profiling_task_info::stall_cycles
 Number of cycles stalled within the task, only available in the MoviSim
 
-\var double starpu_profiling_task_info::power_consumed
-Power consumed by the task, only available in the MoviSim
+\var double starpu_profiling_task_info::energy_consumed
+Energy consumed by the task, only available in the MoviSim
 
 \struct starpu_profiling_worker_info
 This structure contains the profiling information associated to
@@ -83,8 +83,8 @@ starpu_profiling_worker_get_info()
         Number of cycles used by the worker, only available in the MoviSim
 \var uint64_t starpu_profiling_worker_info::stall_cycles
         Number of cycles stalled within the worker, only available in the MoviSim
-\var double starpu_profiling_worker_info::power_consumed
-        Power consumed by the worker, only available in the MoviSim
+\var double starpu_profiling_worker_info::energy_consumed
+        Energy consumed by the worker, only available in the MoviSim
 
 \struct starpu_profiling_bus_info
 todo

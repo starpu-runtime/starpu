@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux
+ * Copyright (C) 2009, 2010, 2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -21,6 +21,10 @@
 #include <starpu.h>
 #include <stdlib.h>
 #include "../helper.h"
+
+/*
+ * Test executing a function on all workers
+ */
 
 void func(void *arg)
 {

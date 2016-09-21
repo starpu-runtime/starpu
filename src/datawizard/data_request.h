@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2010, 2013-2015  Université de Bordeaux
+ * Copyright (C) 2009-2010, 2013-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2013  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -41,6 +41,7 @@ struct _starpu_callback_list
 LIST_TYPE(_starpu_data_request,
 	struct _starpu_spinlock lock;
 	unsigned refcnt;
+	const char *origin; /* Name of the function that triggered the request */
 
 	starpu_data_handle_t handle;
 	struct _starpu_data_replicate *src_replicate;
@@ -93,7 +94,7 @@ LIST_TYPE(_starpu_data_request,
 
 	struct _starpu_callback_list *callbacks;
 
-	unsigned com_id;
+	unsigned long com_id;
 )
 PRIO_LIST_TYPE(_starpu_data_request, prio)
 
@@ -139,7 +140,8 @@ struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t ha
 							 unsigned ndeps,
 							 unsigned is_prefetch,
 							 int prio,
-							 unsigned is_write_invalidation);
+							 unsigned is_write_invalidation,
+							 const char *origin) STARPU_ATTRIBUTE_MALLOC;
 
 int _starpu_wait_data_request_completion(struct _starpu_data_request *r, unsigned may_alloc);
 

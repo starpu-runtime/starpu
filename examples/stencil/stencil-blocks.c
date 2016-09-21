@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2013-2015  Université de Bordeaux
+ * Copyright (C) 2010, 2013-2016  Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -254,9 +254,8 @@ static void allocate_block_on_node(starpu_data_handle_t *handleptr, TYPE **ptr, 
 	size_t block_size = nx*ny*nz*sizeof(TYPE);
 
 	/* Allocate memory */
-#ifndef STARPU_SIMGRID
 #if 1
-	ret = starpu_malloc((void **)ptr, block_size);
+	ret = starpu_malloc_flags((void **)ptr, block_size, STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
 	STARPU_ASSERT(ret == 0);
 #else
 	*ptr = malloc(block_size);
@@ -265,6 +264,7 @@ static void allocate_block_on_node(starpu_data_handle_t *handleptr, TYPE **ptr, 
 
 	allocated += block_size;
 
+#ifndef STARPU_SIMGRID
 	/* Fill the blocks with 0 */
 	memset(*ptr, 0, block_size);
 #endif
@@ -273,11 +273,12 @@ static void allocate_block_on_node(starpu_data_handle_t *handleptr, TYPE **ptr, 
 	starpu_block_data_register(handleptr, STARPU_MAIN_RAM, (uintptr_t)*ptr, nx, nx*ny, nx, ny, nz, sizeof(TYPE));
 }
 
-static void free_block_on_node(starpu_data_handle_t handleptr)
+static void free_block_on_node(starpu_data_handle_t handleptr, unsigned nx, unsigned ny, unsigned nz)
 {
 	void *ptr = (void *) starpu_block_get_local_ptr(handleptr);
+	size_t block_size = nx*ny*nz*sizeof(TYPE);
 	starpu_data_unregister(handleptr);
-	starpu_free(ptr);
+	starpu_free_flags(ptr, block_size, STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
 }
 
 void display_memory_consumption(int rank)
@@ -351,24 +352,24 @@ void free_memory_on_node(int rank)
 		/* Main blocks */
 		if (node == rank)
 		{
-			free_block_on_node(block->layers_handle[0]);
-			free_block_on_node(block->layers_handle[1]);
+			free_block_on_node(block->layers_handle[0], (sizex + 2*K), (sizey + 2*K), K);
+			free_block_on_node(block->layers_handle[1], (sizex + 2*K), (sizey + 2*K), K);
 		}
 
 		/* Boundary blocks : Top */
 		int top_node = block->boundary_blocks[T]->mpi_node;
 		if ((node == rank) || (top_node == rank))
 		{
-			free_block_on_node(block->boundaries_handle[T][0]);
-			free_block_on_node(block->boundaries_handle[T][1]);
+			free_block_on_node(block->boundaries_handle[T][0], (sizex + 2*K), (sizey + 2*K), K);
+			free_block_on_node(block->boundaries_handle[T][1], (sizex + 2*K), (sizey + 2*K), K);
 		}
 
 		/* Boundary blocks : Bottom */
 		int bottom_node = block->boundary_blocks[B]->mpi_node;
 		if ((node == rank) || (bottom_node == rank))
 		{
-			free_block_on_node(block->boundaries_handle[B][0]);
-			free_block_on_node(block->boundaries_handle[B][1]);
+			free_block_on_node(block->boundaries_handle[B][0], (sizex + 2*K), (sizey + 2*K), K);
+			free_block_on_node(block->boundaries_handle[B][1], (sizex + 2*K), (sizey + 2*K), K);
 		}
 	}
 }

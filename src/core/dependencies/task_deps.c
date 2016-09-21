@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2015  Université de Bordeaux
+ * Copyright (C) 2010-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
  * Copyright (C) 2014  INRIA
  *
@@ -19,6 +19,7 @@
 #include <starpu.h>
 #include <common/config.h>
 #include <common/utils.h>
+#include <common/graph.h>
 #include <core/dependencies/tags.h>
 #include <core/jobs.h>
 #include <core/task.h>
@@ -118,6 +119,8 @@ void _starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, s
 			AYU_event(AYU_ADDDEPENDENCY, job->job_id, AYU_data);
 		}
 #endif
+		if (_starpu_graph_record)
+			_starpu_graph_add_job_dep(job, dep_job);
 
 		_starpu_task_add_succ(dep_job, cg);
 		if (dep_job->task->regenerate)
@@ -134,4 +137,10 @@ int starpu_task_get_task_succs(struct starpu_task *task, unsigned ndeps, struct 
 {
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 	return _starpu_list_task_successors_in_cg_list(&j->job_successors, ndeps, task_array);
+}
+
+int starpu_task_get_task_scheduled_succs(struct starpu_task *task, unsigned ndeps, struct starpu_task *task_array[])
+{
+	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
+	return _starpu_list_task_scheduled_successors_in_cg_list(&j->job_successors, ndeps, task_array);
 }

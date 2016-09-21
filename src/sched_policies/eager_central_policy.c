@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2015  Université de Bordeaux
- * Copyright (C) 2010-2013  CNRS
+ * Copyright (C) 2010-2016  Université de Bordeaux
+ * Copyright (C) 2010-2013, 2016  CNRS
  * Copyright (C) 2011  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -25,6 +25,7 @@
 #include <sched_policies/fifo_queues.h>
 #include <common/thread.h>
 #include <starpu_bitmap.h>
+#include <core/workers.h>
 
 struct _starpu_eager_center_policy_data
 {
@@ -37,7 +38,7 @@ static void initialize_eager_center_policy(unsigned sched_ctx_id)
 {
 	struct _starpu_eager_center_policy_data *data = (struct _starpu_eager_center_policy_data*)malloc(sizeof(struct _starpu_eager_center_policy_data));
 
-	_STARPU_DISP("Warning: you are running the default eager scheduler, which is not very smart. Make sure to read the StarPU documentation about adding performance models in order to be able to use the dmda or dmdas scheduler instead.\n");
+	_STARPU_DISP("Warning: you are running the default eager scheduler, which is not a very smart scheduler. Make sure to read the StarPU documentation about adding performance models in order to be able to use the dmda or dmdas scheduler instead.\n");
 
 	/* there is only a single queue in that trivial design */
 	data->fifo =  _starpu_create_fifo();
@@ -136,7 +137,7 @@ static int push_task_eager_policy(struct starpu_task *task)
 static struct starpu_task *pop_every_task_eager_policy(unsigned sched_ctx_id)
 {
 	struct _starpu_eager_center_policy_data *data = (struct _starpu_eager_center_policy_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-	int workerid = starpu_worker_get_id();;
+	unsigned workerid = starpu_worker_get_id_check();
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 	struct starpu_task* task = _starpu_fifo_pop_every_task(data->fifo, workerid);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
@@ -148,10 +149,9 @@ static struct starpu_task *pop_every_task_eager_policy(unsigned sched_ctx_id)
 
 static struct starpu_task *pop_task_eager_policy(unsigned sched_ctx_id)
 {
-	unsigned workerid = starpu_worker_get_id();
+	struct starpu_task *chosen_task = NULL;
+	unsigned workerid = starpu_worker_get_id_check();
 	struct _starpu_eager_center_policy_data *data = (struct _starpu_eager_center_policy_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-
-	struct starpu_task *task = NULL;
 
 	/* block until some event happens */
 	/* Here helgrind would shout that this is unprotected, this is just an
@@ -168,27 +168,28 @@ static struct starpu_task *pop_task_eager_policy(unsigned sched_ctx_id)
 
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 
-	task = _starpu_fifo_pop_task(data->fifo, workerid);
-	if (!task)
+	chosen_task = _starpu_fifo_pop_task(data->fifo, workerid);
+	if (!chosen_task)
 		/* Tell pushers that we are waiting for tasks for us */
 		starpu_bitmap_set(data->waiters, workerid);
 
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 
-	if(task)
+	if(chosen_task)
 	{
-		starpu_sched_ctx_list_task_counters_decrement_all(task, sched_ctx_id);
+		starpu_sched_ctx_list_task_counters_decrement_all(chosen_task, sched_ctx_id);
 
 		unsigned child_sched_ctx = starpu_sched_ctx_worker_is_master_for_child_ctx(workerid, sched_ctx_id);
 		if(child_sched_ctx != STARPU_NMAX_SCHED_CTXS)
 		{
-			starpu_sched_ctx_move_task_to_ctx(task, child_sched_ctx, 1);
-			starpu_sched_ctx_revert_task_counters(sched_ctx_id, task->flops);
+			starpu_sched_ctx_move_task_to_ctx(chosen_task, child_sched_ctx, 1);
+			starpu_sched_ctx_revert_task_counters(sched_ctx_id, chosen_task->flops);
 			return NULL;
 		}
 	}
 
-	return task;
+
+	return chosen_task;
 }
 
 static void eager_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
@@ -199,7 +200,7 @@ static void eager_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nw
 	for (i = 0; i < nworkers; i++)
 	{
 		workerid = workerids[i];
-		int curr_workerid = starpu_worker_get_id();
+		int curr_workerid = _starpu_worker_get_id();
 		if(workerid != curr_workerid)
 			starpu_wake_worker(workerid);
 
@@ -220,9 +221,5 @@ struct starpu_sched_policy _starpu_sched_eager_policy =
 	.pop_every_task = pop_every_task_eager_policy,
 	.policy_name = "eager",
 	.policy_description = "eager policy with a central queue",
-#ifdef STARPU_HAVE_HWLOC
-	.worker_type = STARPU_WORKER_TREE,
-#else
 	.worker_type = STARPU_WORKER_LIST,
-#endif
 };

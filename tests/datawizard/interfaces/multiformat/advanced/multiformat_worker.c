@@ -99,6 +99,8 @@ create_and_submit_tasks(void)
 	else
 #endif
 	{
+		task->destroy = 0;
+		starpu_task_destroy(task);
 		return -ENODEV;
 	}
 

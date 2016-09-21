@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011, 2013-2014  Université de Bordeaux
- * Copyright (C) 2011, 2012, 2013, 2014  CNRS
+ * Copyright (C) 2011, 2012, 2013, 2014, 2016  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -66,6 +66,7 @@ static void usage()
 static void parse_args(int argc, char **argv)
 {
 	int c;
+	int res;
 
 	static struct option long_options[] =
 	{
@@ -109,7 +110,8 @@ static void parse_args(int argc, char **argv)
 		case 'f':
 			/* footprint */
 			pdisplay_specific_footprint = 1;
-			sscanf(optarg, "%08x", &pspecific_footprint);
+			res = sscanf(optarg, "%08x", &pspecific_footprint);
+			STARPU_ASSERT(res==1);
 			break;
 
 		case 'd':

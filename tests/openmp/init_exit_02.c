@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2014  INRIA
+ * Copyright (C) 2014, 2016  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,6 +17,10 @@
 #include <starpu.h>
 #include "../helper.h"
 #include <stdio.h>
+
+/*
+ * Check the starpu_omp_init/shutdown calls when called from constructor/destructor.
+ */
 
 #if !defined(STARPU_OPENMP)
 int main(int argc, char **argv)

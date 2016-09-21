@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2012, 2013, 2014, 2015  CNRS
- * Copyright (C) 2011-2015  Université de Bordeaux
- * Copyright (C) 2014 INRIA
+ * Copyright (C) 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+ * Copyright (C) 2011-2016  Université de Bordeaux
+ * Copyright (C) 2014, 2016 Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -36,7 +36,6 @@
 	else								\
 		starpu_mpi_isend_detached(data, dest, data_tag, comm, callback, arg);
 
-static
 int _starpu_mpi_find_executee_node(starpu_data_handle_t data, enum starpu_data_access_mode mode, int me, int *do_execute, int *inconsistent_execute, int *xrank)
 {
 	if (mode & STARPU_W)
@@ -77,7 +76,6 @@ int _starpu_mpi_find_executee_node(starpu_data_handle_t data, enum starpu_data_a
 	return 0;
 }
 
-static
 void _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum starpu_data_access_mode mode, int me, int xrank, int do_execute, MPI_Comm comm)
 {
 	if (data && mode & STARPU_R)
@@ -192,6 +190,8 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 	int nb_data;
 	int select_node_policy = STARPU_MPI_NODE_SELECTION_CURRENT_POLICY;
 
+	_STARPU_TRACE_TASK_MPI_DECODE_START();
+
 	descrs = (struct starpu_data_descr *)malloc(nb_allocated_data * sizeof(struct starpu_data_descr));
 	nb_data = 0;
 	*do_execute = -1;
@@ -237,6 +237,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 				{
 					free(descrs);
 					va_end(varg_list_copy);
+					_STARPU_TRACE_TASK_MPI_DECODE_END();
 					return ret;
 				}
 			}
@@ -257,6 +258,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 
 			for(i=0 ; i<nb_handles ; i++)
 			{
+				STARPU_ASSERT_MSG(codelet->nbuffers == STARPU_VARIABLE_NBUFFERS || nb_data < codelet->nbuffers, "Too many data passed to starpu_mpi_task_insert");
 				enum starpu_data_access_mode mode = STARPU_CODELET_GET_MODE(codelet, nb_data);
 				if (node_selected == 0)
 				{
@@ -265,6 +267,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 					{
 						free(descrs);
 						va_end(varg_list_copy);
+						_STARPU_TRACE_TASK_MPI_DECODE_END();
 						return ret;
 					}
 				}
@@ -294,6 +297,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 					{
 						free(descrs);
 						va_end(varg_list_copy);
+						_STARPU_TRACE_TASK_MPI_DECODE_END();
 						return ret;
 					}
 				}
@@ -311,6 +315,11 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 		{
 			(void)va_arg(varg_list_copy, void *);
 			(void)va_arg(varg_list_copy, size_t);
+		}
+		else if (arg_type==STARPU_CL_ARGS)
+		{
+			(void)va_arg(varg_list, void *);
+			(void)va_arg(varg_list, size_t);
 		}
 		else if (arg_type==STARPU_CALLBACK)
 		{
@@ -395,7 +404,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 		}
 		else
 		{
-			STARPU_ABORT_MSG("Unrecognized argument %d\n", arg_type);
+			STARPU_ABORT_MSG("Unrecognized argument %d, did you perhaps forget to end arguments with 0?\n", arg_type);
 		}
 
 	}
@@ -418,6 +427,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 	*descrs_p = descrs;
 	*nb_data_p = nb_data;
 
+	_STARPU_TRACE_TASK_MPI_DECODE_END();
 	return 0;
 }
 
@@ -440,6 +450,7 @@ int _starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, stru
 	ret = _starpu_mpi_task_decode_v(codelet, me, nb_nodes, &xrank, &do_execute, &descrs, &nb_data, varg_list);
 	if (ret < 0) return ret;
 
+	_STARPU_TRACE_TASK_MPI_PRE_START();
 	/* Send and receive data as requested */
 	for(i=0 ; i<nb_data ; i++)
 	{
@@ -452,6 +463,7 @@ int _starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, stru
 		*descrs_p = descrs;
 	else
 		free(descrs);
+	_STARPU_TRACE_TASK_MPI_PRE_END();
 
 	if (do_execute == 0) return 1;
 	else
@@ -468,11 +480,11 @@ int _starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, stru
 	}
 }
 
-static
 int _starpu_mpi_task_postbuild_v(MPI_Comm comm, int xrank, int do_execute, struct starpu_data_descr *descrs, int nb_data)
 {
 	int me, i;
 
+	_STARPU_TRACE_TASK_MPI_POST_START();
 	starpu_mpi_comm_rank(comm, &me);
 
 	for(i=0 ; i<nb_data ; i++)
@@ -483,6 +495,7 @@ int _starpu_mpi_task_postbuild_v(MPI_Comm comm, int xrank, int do_execute, struc
 
 	free(descrs);
 
+	_STARPU_TRACE_TASK_MPI_POST_END();
 	_STARPU_MPI_LOG_OUT();
 	return 0;
 }
@@ -573,65 +586,6 @@ int starpu_mpi_task_post_build(MPI_Comm comm, struct starpu_codelet *codelet, ..
 	if (ret < 0) return ret;
 
 	return _starpu_mpi_task_postbuild_v(comm, xrank, do_execute, descrs, nb_data);
-}
-
-void starpu_mpi_get_data_on_node_detached(MPI_Comm comm, starpu_data_handle_t data_handle, int node, void (*callback)(void*), void *arg)
-{
-	int me, rank, tag;
-
-	rank = starpu_mpi_data_get_rank(data_handle);
-	tag = starpu_mpi_data_get_tag(data_handle);
-	if (rank == -1)
-	{
-		_STARPU_ERROR("StarPU needs to be told the MPI rank of this data, using starpu_mpi_data_register() or starpu_mpi_data_register()\n");
-	}
-	if (tag == -1)
-	{
-		_STARPU_ERROR("StarPU needs to be told the MPI tag of this data, using starpu_mpi_data_register() or starpu_mpi_data_register()\n");
-	}
-	starpu_mpi_comm_rank(comm, &me);
-
-	if (node == rank) return;
-
-	if (me == node)
-	{
-		starpu_mpi_irecv_detached(data_handle, rank, tag, comm, callback, arg);
-	}
-	else if (me == rank)
-	{
-		starpu_mpi_isend_detached(data_handle, node, tag, comm, NULL, NULL);
-	}
-}
-
-void starpu_mpi_get_data_on_node(MPI_Comm comm, starpu_data_handle_t data_handle, int node)
-{
-	int me, rank, tag;
-
-	rank = starpu_mpi_data_get_rank(data_handle);
-	tag = starpu_mpi_data_get_tag(data_handle);
-	if (rank == -1)
-	{
-		fprintf(stderr,"StarPU needs to be told the MPI rank of this data, using starpu_mpi_data_register\n");
-		STARPU_ABORT();
-	}
-	if (tag == -1)
-	{
-		fprintf(stderr,"StarPU needs to be told the MPI tag of this data, using starpu_mpi_data_register\n");
-		STARPU_ABORT();
-	}
-	starpu_mpi_comm_rank(comm, &me);
-
-	if (node == rank) return;
-
-	if (me == node)
-	{
-		MPI_Status status;
-		starpu_mpi_recv(data_handle, rank, tag, comm, &status);
-	}
-	else if (me == rank)
-	{
-		starpu_mpi_send(data_handle, node, tag, comm);
-	}
 }
 
 struct _starpu_mpi_redux_data_args

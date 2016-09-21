@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux
+ * Copyright (C) 2009, 2010, 2016  Université de Bordeaux
  * Copyright (C) 2010, 2011  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -40,8 +40,7 @@
 	} \
 	cudaStreamSynchronize(starpu_cuda_get_local_stream()); \
 
-extern "C" __global__ void
-STARPUFFT(cuda_twist1_1d)(const _cuComplex *in, _cuComplex *twisted1, unsigned i, unsigned n1, unsigned n2)
+extern "C" __global__ void STARPUFFT(cuda_twist1_1d)(const _cuComplex *in, _cuComplex *twisted1, unsigned i, unsigned n1, unsigned n2)
 {
 	unsigned j;
 	VARS_1d
@@ -51,14 +50,12 @@ STARPUFFT(cuda_twist1_1d)(const _cuComplex *in, _cuComplex *twisted1, unsigned i
 		twisted1[j] = in[i+j*n1];
 }
 
-extern "C" void
-STARPUFFT(cuda_twist1_1d_host)(const _cuComplex *in, _cuComplex *twisted1, unsigned i, unsigned n1, unsigned n2)
+extern "C" void STARPUFFT(cuda_twist1_1d_host)(const _cuComplex *in, _cuComplex *twisted1, unsigned i, unsigned n1, unsigned n2)
 {
 	DISTRIB_1d(n2, STARPUFFT(cuda_twist1_1d), (in, twisted1, i, n1, n2));
 }
 
-extern "C" __global__ void
-STARPUFFT(cuda_twiddle_1d)(_cuComplex * out, const _cuComplex * roots, unsigned n, unsigned i)
+extern "C" __global__ void STARPUFFT(cuda_twiddle_1d)(_cuComplex * out, const _cuComplex * roots, unsigned n, unsigned i)
 {
 	unsigned j;
 	VARS_1d
@@ -69,8 +66,7 @@ STARPUFFT(cuda_twiddle_1d)(_cuComplex * out, const _cuComplex * roots, unsigned 
 	return;
 }
 
-extern "C" void
-STARPUFFT(cuda_twiddle_1d_host)(_cuComplex *out, const _cuComplex *roots, unsigned n, unsigned i)
+extern "C" void STARPUFFT(cuda_twiddle_1d_host)(_cuComplex *out, const _cuComplex *roots, unsigned n, unsigned i)
 {
 	DISTRIB_1d(n, STARPUFFT(cuda_twiddle_1d), (out, roots, n, i));
 }
@@ -115,8 +111,7 @@ STARPUFFT(cuda_twiddle_1d_host)(_cuComplex *out, const _cuComplex *roots, unsign
 	} \
 	cudaStreamSynchronize(starpu_cuda_get_local_stream()); \
 
-extern "C" __global__ void
-STARPUFFT(cuda_twist1_2d)(const _cuComplex *in, _cuComplex *twisted1, unsigned i, unsigned j, unsigned n1, unsigned n2, unsigned m1, unsigned m2)
+extern "C" __global__ void STARPUFFT(cuda_twist1_2d)(const _cuComplex *in, _cuComplex *twisted1, unsigned i, unsigned j, unsigned n1, unsigned n2, unsigned m1, unsigned m2)
 {
 	unsigned k, l;
 	VARS_2d
@@ -129,14 +124,12 @@ STARPUFFT(cuda_twist1_2d)(const _cuComplex *in, _cuComplex *twisted1, unsigned i
 			twisted1[k*m2+l] = in[i*m+j+k*m*n1+l*m1];
 }
 
-extern "C" void
-STARPUFFT(cuda_twist1_2d_host)(const _cuComplex *in, _cuComplex *twisted1, unsigned i, unsigned j, unsigned n1, unsigned n2, unsigned m1, unsigned m2)
+extern "C" void STARPUFFT(cuda_twist1_2d_host)(const _cuComplex *in, _cuComplex *twisted1, unsigned i, unsigned j, unsigned n1, unsigned n2, unsigned m1, unsigned m2)
 {
 	DISTRIB_2d(n2, m2, STARPUFFT(cuda_twist1_2d), (in, twisted1, i, j, n1, n2, m1, m2));
 }
 
-extern "C" __global__ void
-STARPUFFT(cuda_twiddle_2d)(_cuComplex * out, const _cuComplex * roots0, const _cuComplex * roots1, unsigned n2, unsigned m2, unsigned i, unsigned j)
+extern "C" __global__ void STARPUFFT(cuda_twiddle_2d)(_cuComplex * out, const _cuComplex * roots0, const _cuComplex * roots1, unsigned n2, unsigned m2, unsigned i, unsigned j)
 {
 	unsigned k, l;
 	VARS_2d
@@ -149,8 +142,7 @@ STARPUFFT(cuda_twiddle_2d)(_cuComplex * out, const _cuComplex * roots0, const _c
 	return;
 }
 
-extern "C" void
-STARPUFFT(cuda_twiddle_2d_host)(_cuComplex *out, const _cuComplex *roots0, const _cuComplex *roots1, unsigned n2, unsigned m2, unsigned i, unsigned j)
+extern "C" void STARPUFFT(cuda_twiddle_2d_host)(_cuComplex *out, const _cuComplex *roots0, const _cuComplex *roots1, unsigned n2, unsigned m2, unsigned i, unsigned j)
 {
 	DISTRIB_2d(n2, m2, STARPUFFT(cuda_twiddle_2d), (out, roots0, roots1, n2, m2, i, j));
 }

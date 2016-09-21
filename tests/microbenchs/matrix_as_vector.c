@@ -21,6 +21,10 @@
 #  include <cublas.h>
 #endif
 
+/*
+ * Compare the efficiency of matrix and vector interfaces
+ */
+
 #define LOOPS 100
 
 void vector_cpu_func(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)

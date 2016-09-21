@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2015  Université de Bordeaux
+ * Copyright (C) 2010-2016  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -218,20 +218,32 @@ int _starpu_opencl_deinit_context(int devid)
 
         _STARPU_DEBUG("De-initialising context for dev %d\n", devid);
 
-        err = clReleaseContext(contexts[devid]);
+        err = clFinish(queues[devid]);
         if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
-
         err = clReleaseCommandQueue(queues[devid]);
         if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 
+        err = clFinish(in_transfer_queues[devid]);
+        if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
         err = clReleaseCommandQueue(in_transfer_queues[devid]);
         if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+
+        err = clFinish(out_transfer_queues[devid]);
+        if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
         err = clReleaseCommandQueue(out_transfer_queues[devid]);
+        if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+
+        err = clFinish(peer_transfer_queues[devid]);
         if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
         err = clReleaseCommandQueue(peer_transfer_queues[devid]);
         if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 
+        err = clFinish(alloc_queues[devid]);
+        if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
         err = clReleaseCommandQueue(alloc_queues[devid]);
+        if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+
+        err = clReleaseContext(contexts[devid]);
         if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 
         contexts[devid] = NULL;
@@ -703,6 +715,8 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 		else
 		{
 #ifndef STARPU_SIMGRID
+			err = clReleaseEvent(task_events[worker->devid][worker->first_task]);
+			if (STARPU_UNLIKELY(err)) STARPU_OPENCL_REPORT_ERROR(err);
 			task_events[worker->devid][worker->first_task] = 0;
 #endif
 
@@ -915,21 +929,34 @@ static int _starpu_opencl_start_job(struct _starpu_job *j, struct _starpu_worker
 		_STARPU_TRACE_START_EXECUTING();
 #ifdef STARPU_SIMGRID
 		double length = NAN;
-	  #ifdef STARPU_OPENCL_SIMULATOR
-		func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
-	    #ifndef CL_PROFILING_CLOCK_CYCLE_COUNT
-	      #ifdef CL_PROFILING_COMMAND_SHAVE_CYCLE_COUNT
-		#define CL_PROFILING_CLOCK_CYCLE_COUNT CL_PROFILING_COMMAND_SHAVE_CYCLE_COUNT
-	      #else
-		#error The OpenCL simulator must provide CL_PROFILING_CLOCK_CYCLE_COUNT
-	      #endif
-	    #endif
-		struct starpu_profiling_task_info *profiling_info = task->profiling_info;
-		STARPU_ASSERT_MSG(profiling_info->used_cycles, "Application kernel must call starpu_opencl_collect_stats to collect simulated time");
-		length = ((double) profiling_info->used_cycles)/MSG_get_host_speed(MSG_host_self());
-	  #endif
 		int async = task->cl->opencl_flags[j->nimpl] & STARPU_OPENCL_ASYNC;
-		_starpu_simgrid_submit_job(worker->workerid, j, &worker->perf_arch, length,
+		int simulate = 1;
+		if (cl->flags & STARPU_CODELET_SIMGRID_EXECUTE & !async)
+		{
+			/* Actually execute function */
+			simulate = 0;
+			func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
+		#ifdef STARPU_OPENCL_SIMULATOR
+		    #ifndef CL_PROFILING_CLOCK_CYCLE_COUNT
+		      #ifdef CL_PROFILING_COMMAND_SHAVE_CYCLE_COUNT
+			#define CL_PROFILING_CLOCK_CYCLE_COUNT CL_PROFILING_COMMAND_SHAVE_CYCLE_COUNT
+		      #else
+			#error The OpenCL simulator must provide CL_PROFILING_CLOCK_CYCLE_COUNT
+		      #endif
+		    #endif
+			struct starpu_profiling_task_info *profiling_info = task->profiling_info;
+			STARPU_ASSERT_MSG(profiling_info->used_cycles, "Application kernel must call starpu_opencl_collect_stats to collect simulated time");
+#ifdef HAVE_MSG_HOST_GET_SPEED
+			length = ((double) profiling_info->used_cycles)/MSG_host_get_speed(MSG_host_self());
+#else
+			length = ((double) profiling_info->used_cycles)/MSG_get_host_speed(MSG_host_self());
+#endif
+			/* And give the simulated time to simgrid */
+			simulate = 1;
+		#endif
+		}
+		if (simulate)
+			_starpu_simgrid_submit_job(worker->workerid, j, &worker->perf_arch, length,
 				async ? &task_finished[worker->devid][pipeline_idx] : NULL,
 				async ? &task_mutex[worker->devid][pipeline_idx] : NULL,
 				async ? &task_cond[worker->devid][pipeline_idx] : NULL);

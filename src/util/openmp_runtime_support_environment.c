@@ -42,7 +42,8 @@ static struct starpu_omp_initial_icv_values _initial_icv_values =
 	.levels_var = 0,
 	.place_partition_var = 0,
 	.cancel_var = 0,
-	.default_device_var = 0
+	.default_device_var = 0,
+	.max_task_priority_var = 0
 };
 
 struct starpu_omp_initial_icv_values *_starpu_omp_initial_icv_values = NULL;
@@ -78,7 +79,7 @@ static int strings_cmp(const char *strings[], const char *str)
 	int mode = 0;
 	while (strings[mode])
 	{
-		if (strcasecmp(str, strings[mode]) == 0)
+		if (strncasecmp(str, strings[mode], strlen(strings[mode])) == 0)
 			break;
 		mode++;
 	}
@@ -102,51 +103,43 @@ static int stringsn_cmp(const char *strings[], const char *str, size_t n)
 }
 
 /* TODO: move to utils */
-static void read_boolean_var(const char *var, int *dest)
+static int read_string_var(const char *str, const char *strings[], int *dst)
 {
-	const char *env = starpu_getenv(var);
-	if (env)
-	{
-		char *str = strdup(env);
-		if (str == NULL)
-			_STARPU_ERROR("memory allocation failed\n");
-		remove_spaces(str);
-		if (str[0] == '\0')
-		{
-			free(str);
-			return;
-		}
-		static const char *strings[] = { "false", "true", NULL };
-		int mode = strings_cmp(strings, str);
-		if (mode < 0)
-			_STARPU_ERROR("parse error in variable %s\n", var);
-		*dest = mode;
-		free(str);
-	}
+	int val;
+
+	if (!str)
+		return 0;
+
+	val = strings_cmp(strings, str);
+	if (val < 0)
+		return 0;
+
+	*dst = val;
+	return 1;
 }
 
 /* TODO: move to utils */
-static void read_int_var(const char *var, int *dest)
+static int read_int_var(const char *str, int *dst)
 {
-	const char *env = starpu_getenv(var);
-	if (env)
-	{
-		char *str = strdup(env);
-		if (str == NULL)
-			_STARPU_ERROR("memory allocation failed\n");
-		remove_spaces(str);
-		if (str[0] == '\0')
-		{
-			free(str);
-			return;
-		}
-		errno = 0;
-		int v = (int)strtol(str, NULL, 10);
-		if (errno != 0)
-			_STARPU_ERROR("could not parse environment variable %s, strtol failed with error %s\n", var, strerror(errno));
-		*dest = v;
-		free(str);
-	}
+	char *endptr;
+	int val;
+
+	if (!str)
+		return 0;
+
+	errno = 0; /* To distinguish success/failure after call */
+	val = (int)strtol(str, &endptr, 10);
+
+	/* Check for various possible errors */
+	if ((errno == ERANGE && (val == LONG_MAX || val == LONG_MIN)) || (errno != 0 && val == 0))
+		return 0;
+
+	/* No digits were found. */
+	if (str == endptr)
+		return 0;
+
+	*dst = val;
+	return 1;
 }
 
 static void read_size_var(const char *var, int *dest)
@@ -204,7 +197,7 @@ static void read_sched_var(const char *var, int *dest, unsigned long long *dest_
 			free(str);
 			return;
 		}
-		static const char *strings[] = { "static", "dynamic", "guided", "auto", NULL };
+		static const char *strings[] = { "undefined", "static", "dynamic", "guided", "auto", NULL };
 		int mode = strings_cmp(strings, str);
 		if (mode < 0)
 			_STARPU_ERROR("parse error in variable %s\n", var);
@@ -230,157 +223,45 @@ static void read_sched_var(const char *var, int *dest, unsigned long long *dest_
 	}
 }
 
-static void read_wait_policy_var(const char *var, int *dest)
+static void read_wait_policy_var()
 {
-	const char *env = starpu_getenv(var);
-	if (env)
-	{
-		char *str = strdup(env);
-		if (str == NULL)
-			_STARPU_ERROR("memory allocation failed\n");
-		remove_spaces(str);
-		if (str[0] == '\0')
-		{
-			free(str);
-			return;
-		}
-		static const char *strings[] = { "passive", "active", NULL };
-		int mode = strings_cmp(strings, str);
-		if (mode < 0)
-			_STARPU_ERROR("parse error in variable %s\n", var);
-		*dest = mode;
-		free(str);
-	}
-}
+	const char *strings[] = { "passive", "active", NULL };
+	int ret, value;
+	char *env;
 
-static void read_display_env_var(const char *var, int *dest)
-{
-	const char *env = starpu_getenv(var);
-	if (env)
-	{
-		char *str = strdup(env);
-		if (str == NULL)
-			_STARPU_ERROR("memory allocation failed\n");
-		remove_spaces(str);
-		if (str[0] == '\0')
-		{
-			free(str);
-			return;
-		}
-		static const char *strings[] = { "false", "true", "verbose", NULL };
-		int mode = strings_cmp(strings, str);
-		if (mode < 0)
-			_STARPU_ERROR("parse error in variable %s\n", var);
-		*dest = mode;
-		free(str);
-	}
-}
+	env = starpu_getenv("OMP_WAIT_POLICY");
+	if (!env)
+		return;
 
-static int convert_bind_mode(const char *str, size_t n)
-{
-	static const char *strings[] = { "false", "true", "master", "close", "spread", NULL };
-	int mode = stringsn_cmp(strings, str, n);
-	if (mode < 0)
-		_STARPU_ERROR("proc_bind list parse error\n");
-	return mode;
-}
-
-static void convert_bind_string(const char *_str, int *bind_list, const int max_levels)
-{
-	char *str = strdup(_str);
-	if (str == NULL)
-		_STARPU_ERROR("memory allocation failed\n");
-	remove_spaces(str);
-	if (str[0] == '\0')
+	ret = read_string_var(env, strings, &value);
+	if (!ret)
 	{
-		free(str);
+		fprintf(stderr, "StarPU: Invalid value for environment variable OMP_WAIT_POLICY\n");
 		return;
 	}
-	enum { state_split, state_read };
-	int level = 0;
-	int i = 0;
-	int state = state_read;
-	while (1)
-	{
-		if (state == state_split)
-		{
-			if (str[i] == '\0')
-				break;
-			if (str[i] != ',')
-				_STARPU_ERROR("proc_bind list parse error\n");
-			i++;
-			state = state_read;
-		}
-		else if (state == state_read)
-		{
-			int n = 0;
-			while (isalpha(str[i+n]))
-				n++;
-			if (n == 0)
-				_STARPU_ERROR("proc_bind list parse error\n");
-			int mode = convert_bind_mode(str+i,n);
-			STARPU_ASSERT(mode >= starpu_omp_proc_bind_false && mode <= starpu_omp_proc_bind_spread);
-			bind_list[level] = mode;
-			level++;
-			if (level == max_levels)
-				break;
-			i += n;
-			state = state_split;
-		}
-		else
-			_STARPU_ERROR("invalid state in parsing proc_bind list\n");
-	}
-	free(str);
+	_initial_icv_values.wait_policy_var = value;
+
 }
 
-static void convert_num_threads_string(const char *_str, int *num_threads_list, const int max_levels)
+static void read_display_env_var(int *dest)
 {
-	char *str = strdup(_str);
-	if (str == NULL)
-		_STARPU_ERROR("memory allocation failed\n");
-	remove_spaces(str);
-	if (str[0] == '\0')
+	const char *strings[] = { "false", "true", "verbose", NULL };
+	int ret, value;
+	char *env;
+
+	env = starpu_getenv("OMP_DISPLAY_ENV");
+	if (!env)
+		return;
+
+	ret = read_string_var(env, strings, &value);
+	if (!ret)
 	{
-		free(str);
+		fprintf(stderr, "StarPU: Invalid value for environment variable OMP_DISPLAY_ENV\n");
 		return;
 	}
-	enum { state_split, state_read };
-	int level = 0;
-	int i = 0;
-	int state = state_read;
-	while (1)
-	{
-		/* split a comma separated list of numerical items */
-		if (state == state_split)
-		{
-			if (str[i] == '\0')
-				break;
-			if (str[i] != ',')
-				_STARPU_ERROR("num_threads list parse error\n");
-			i++;
-			state = state_read;
-		}
-		/* read a numerical item */
-		else if (state == state_read)
-		{
-			char *endptr = NULL;
-			errno = 0;
-			int num_threads = (int)strtol(str+i, &endptr, 10);
-			if (errno != 0)
-				_STARPU_ERROR("num_threads list parse error, strtol failed with error %s\n", strerror(errno));
-			if (num_threads < 1)
-				_STARPU_ERROR("num_threads list invalid value\n");
-			num_threads_list[level] = num_threads;
-			level++;
-			if (level == max_levels)
-				break;
-			i = endptr - str;
-			state = state_split;
-		}
-		else
-			_STARPU_ERROR("invalid state in parsing num_threads list\n");
-	}
-	free(str);
+
+	*dest = value;
+
 }
 
 static int convert_place_name(const char *str, size_t n)
@@ -668,57 +549,128 @@ static void free_places(struct starpu_omp_place *places)
 	}
 }
 
+static void read_proc_bind_var()
+{
+	static const char *strings[] = { "false", "true", "master", "close", "spread", NULL };
+	const int max_levels = _initial_icv_values.max_active_levels_var + 1;
+	int *bind_list = NULL;
+	int level = 0;
+	char *env;
+
+	bind_list = calloc(max_levels, sizeof(*bind_list));
+	if (!bind_list)
+		_STARPU_ERROR("memory allocation failed\n");
+
+	env = starpu_getenv("OMP_PROC_BIND");
+	if (env)
+	{
+		char *saveptr, *token;
+
+		token = strtok_r(env, ",", &saveptr);
+		for (; token != NULL; token = strtok_r(NULL, ",", &saveptr)) {
+			int value;
+
+			if (!read_string_var(token, strings, &value))
+			{
+				fprintf(stderr, "StarPU: Invalid value for environment variable OMP_PROC_BIND\n");
+				break;
+			}
+
+			bind_list[level++] = value;
+		}
+	}
+	_initial_icv_values.bind_var = bind_list;
+}
+
+static void read_num_threads_var()
+{
+	const int max_levels = _initial_icv_values.max_active_levels_var + 1;
+	int *num_threads_list = NULL;
+	int level = 0;
+	char *env;
+
+	num_threads_list = calloc(max_levels, sizeof(*num_threads_list));
+	if (!num_threads_list)
+		_STARPU_ERROR("memory allocation failed\n");
+
+	env = starpu_getenv("OMP_NUM_THREADS");
+	if (env)
+	{
+		char *saveptr, *token;
+
+		token = strtok_r(env, ",", &saveptr);
+		for (; token != NULL; token = strtok_r(NULL, ",", &saveptr)) {
+			int value;
+
+			if (!read_int_var(token, &value))
+			{
+				fprintf(stderr, "StarPU: Invalid value for environment variable OMP_NUM_THREADS\n");
+				break;
+			}
+
+			num_threads_list[level++] = value;
+		}
+	}
+
+	_initial_icv_values.nthreads_var = num_threads_list;
+}
+
+static void read_omp_int_var(const char *name, int *icv)
+{
+	int ret, value;
+	char *env;
+
+	env = starpu_getenv(name);
+	if (!env)
+		return;
+
+	ret = read_int_var(env, &value);
+	if (!ret || value < 0)
+	{
+		fprintf(stderr, "StarPU: Invalid value for environment variable %s\n", name);
+		return;
+	}
+	*icv = value;
+}
+
+static void read_omp_boolean_var(const char *name, int *icv)
+{
+	const char *strings[] = { "false", "true", NULL };
+	int ret, value;
+	char *env;
+
+	env = starpu_getenv(name);
+	if (!env)
+		return;
+
+	ret = read_string_var(env, strings, &value);
+	if (!ret)
+	{
+		fprintf(stderr, "StarPU: Invalid value for environment variable %s\n", name);
+		return;
+	}
+	*icv = value;
+}
+
 static void read_omp_environment(void)
 {
-	read_boolean_var("OMP_DYNAMIC", &_initial_icv_values.dyn_var);
-	read_boolean_var("OMP_NESTED", &_initial_icv_values.nest_var);
+	read_omp_boolean_var("OMP_DYNAMIC", &_initial_icv_values.dyn_var);
+	read_omp_boolean_var("OMP_NESTED", &_initial_icv_values.nest_var);
 	read_sched_var("OMP_SCHEDULE", &_initial_icv_values.run_sched_var, &_initial_icv_values.run_sched_chunk_var);
 	read_size_var("OMP_STACKSIZE", &_initial_icv_values.stacksize_var);
-	read_wait_policy_var("OMP_WAIT_POLICY", &_initial_icv_values.wait_policy_var);
-	read_int_var("OMP_THREAD_LIMIT", &_initial_icv_values.thread_limit_var);
-	read_int_var("OMP_MAX_ACTIVE_LEVELS", &_initial_icv_values.max_active_levels_var);
-	read_boolean_var("OMP_CANCELLATION", &_initial_icv_values.cancel_var);
-	read_int_var("OMP_DEFAULT_DEVICE", &_initial_icv_values.default_device_var);
+	read_wait_policy_var();
+	read_omp_int_var("OMP_THREAD_LIMIT", &_initial_icv_values.thread_limit_var);
+	read_omp_int_var("OMP_MAX_ACTIVE_LEVELS", &_initial_icv_values.max_active_levels_var);
+	read_omp_boolean_var("OMP_CANCELLATION", &_initial_icv_values.cancel_var);
+	read_omp_int_var("OMP_DEFAULT_DEVICE", &_initial_icv_values.default_device_var);
+	read_omp_int_var("OMP_MAX_TASK_PRIORITY", &_initial_icv_values.max_task_priority_var);
 
-	const int max_levels = _initial_icv_values.max_active_levels_var;
+	/* Avoid overflow e.g. in num_threads_list allocation */
+	STARPU_ASSERT_MSG(_initial_icv_values.max_active_levels_var > 0 && _initial_icv_values.max_active_levels_var < 1000000, "OMP_MAX_ACTIVE_LEVELS should have a reasonable value");
+	/* TODO: check others */
 
-	/* read OMP_PROC_BIND */
-	{
-		int *bind_list = malloc((1+max_levels) * sizeof(*bind_list));
-		if (bind_list == NULL)
-			_STARPU_ERROR("memory allocation failed\n");
-		int level;
-		for (level = 0;level < max_levels+1;level++)
-		{
-			/* TODO: check what should be used as default value */
-			bind_list[level] = starpu_omp_proc_bind_undefined;
-		}
-		const char *env = starpu_getenv("OMP_PROC_BIND");
-		if (env)
-		{
-			convert_bind_string(env, bind_list, max_levels);
-		}
-		_initial_icv_values.bind_var = bind_list;
-	}
-
-	/* read OMP_NUM_THREADS */
-	{
-		int *num_threads_list = malloc((1+max_levels) * sizeof(*num_threads_list));
-		if (num_threads_list == NULL)
-			_STARPU_ERROR("memory allocation failed\n");
-		int level;
-		for (level = 0;level < max_levels+1;level++)
-		{
-			/* TODO: check what should be used as default value */
-			num_threads_list[level] = 0;
-		}
-		const char *env = starpu_getenv("OMP_NUM_THREADS");
-		if (env)
-		{
-			convert_num_threads_string(env, num_threads_list, max_levels);
-		}
-		_initial_icv_values.nthreads_var = num_threads_list;
-	}
+	read_proc_bind_var();
+	read_num_threads_var();
 
 	/* read OMP_PLACES */
 	{
@@ -748,6 +700,7 @@ static void free_omp_environment(void)
 	/* OMP_MAX_ACTIVE_LEVELS */
 	/* OMP_CANCELLATION */
 	/* OMP_DEFAULT_DEVICE */
+	/* OMP_MAX_TASK_PRIORITY */
 
 	/* OMP_PROC_BIND */
 	free(_initial_icv_values.bind_var);
@@ -766,36 +719,37 @@ static void display_omp_environment(int verbosity_level)
 	if (verbosity_level > 0)
 	{
 		printf("OPENMP DISPLAY ENVIRONMENT BEGIN\n");
-		printf("  _OPENMP='xxxxxx'\n");
-		printf("  [host] OMP_DYNAMIC='%s'\n", _starpu_omp_initial_icv_values->dyn_var?"true":"false");
-		printf("  [host] OMP_NESTED='%s'\n", _starpu_omp_initial_icv_values->nest_var?"true":"false");
-		printf("  [host] OMP_SCHEDULE='");
+		printf("  _OPENMP = 'xxxxxx'\n");
+		printf("  [host] OMP_DYNAMIC = '%s'\n", _starpu_omp_initial_icv_values->dyn_var?"TRUE":"FALSE");
+		printf("  [host] OMP_NESTED = '%s'\n", _starpu_omp_initial_icv_values->nest_var?"TRUE":"FALSE");
+		printf("  [host] OMP_SCHEDULE = '");
 		switch (_starpu_omp_initial_icv_values->run_sched_var)
 		{
 			case starpu_omp_sched_static:
-				printf("static, %llu", _starpu_omp_initial_icv_values->run_sched_chunk_var);
+				printf("STATIC, %llu", _starpu_omp_initial_icv_values->run_sched_chunk_var);
 				break;
 			case starpu_omp_sched_dynamic:
-				printf("dynamic, %llu", _starpu_omp_initial_icv_values->run_sched_chunk_var);
+				printf("DYNAMIC, %llu", _starpu_omp_initial_icv_values->run_sched_chunk_var);
 				break;
 			case starpu_omp_sched_guided:
-				printf("guided, %llu", _starpu_omp_initial_icv_values->run_sched_chunk_var);
+				printf("GUIDED, %llu", _starpu_omp_initial_icv_values->run_sched_chunk_var);
 				break;
 			case starpu_omp_sched_auto:
-				printf("auto, %llu", _starpu_omp_initial_icv_values->run_sched_chunk_var);
+				printf("AUTO, %llu", _starpu_omp_initial_icv_values->run_sched_chunk_var);
 				break;
+			case starpu_omp_sched_undefined:
 			default:
-				printf("<unknown>");
 				break;
 		}
 		printf("'\n");
 				
-		printf("  [host] OMP_STACKSIZE='%d'\n", _starpu_omp_initial_icv_values->stacksize_var);
-		printf("  [host] OMP_WAIT_POLICY='%s'\n", _starpu_omp_initial_icv_values->wait_policy_var?"active":"passive");
-		printf("  [host] OMP_MAX_ACTIVE_LEVELS='%d'\n", _starpu_omp_initial_icv_values->max_active_levels_var);
-		printf("  [host] OMP_CANCELLATION='%s'\n", _starpu_omp_initial_icv_values->cancel_var?"true":"false");
-		printf("  [host] OMP_DEFAULT_DEVICE='%d'\n", _starpu_omp_initial_icv_values->default_device_var);
-		printf("  [host] OMP_PROC_BIND='");
+		printf("  [host] OMP_STACKSIZE = '%d'\n", _starpu_omp_initial_icv_values->stacksize_var);
+		printf("  [host] OMP_WAIT_POLICY = '%s'\n", _starpu_omp_initial_icv_values->wait_policy_var?"ACTIVE":"PASSIVE");
+		printf("  [host] OMP_MAX_ACTIVE_LEVELS = '%d'\n", _starpu_omp_initial_icv_values->max_active_levels_var);
+		printf("  [host] OMP_CANCELLATION = '%s'\n", _starpu_omp_initial_icv_values->cancel_var?"TRUE":"FALSE");
+		printf("  [host] OMP_DEFAULT_DEVICE = '%d'\n", _starpu_omp_initial_icv_values->default_device_var);
+		printf("  [host] OMP_MAX_TASK_PRIORITY = '%d'\n", _starpu_omp_initial_icv_values->max_task_priority_var);
+		printf("  [host] OMP_PROC_BIND = '");
 		{
 			int level;
 			for (level = 0; level < _starpu_omp_initial_icv_values->max_active_levels_var; level++)
@@ -807,28 +761,27 @@ static void display_omp_environment(int verbosity_level)
 				switch (_starpu_omp_initial_icv_values->bind_var[level])
 				{
 					case starpu_omp_proc_bind_false:
-						printf("false");
+						printf("FALSE");
 						break;
 					case starpu_omp_proc_bind_true:
-						printf("true");
+						printf("TRUE");
 						break;
 					case starpu_omp_proc_bind_master:
-						printf("master");
+						printf("MASTER");
 						break;
 					case starpu_omp_proc_bind_close:
-						printf("close");
+						printf("CLOSE");
 						break;
 					case starpu_omp_proc_bind_spread:
-						printf("spread");
+						printf("SPREAD");
 						break;
 					default:
-						printf("<unknown>");
 						break;
 				}
 			}
 		}
 		printf("'\n");
-		printf("  [host] OMP_NUM_THREADS='");
+		printf("  [host] OMP_NUM_THREADS = '");
 		{
 			int level;
 			for (level = 0; level < _starpu_omp_initial_icv_values->max_active_levels_var; level++)
@@ -841,7 +794,7 @@ static void display_omp_environment(int verbosity_level)
 			}
 		}
 		printf("'\n");
-		printf("  [host] OMP_PLACES='");
+		printf("  [host] OMP_PLACES = '");
 		{
 			struct starpu_omp_place *places = &_starpu_omp_initial_icv_values->places;
 			if (places->nb_numeric_places > 0)
@@ -888,23 +841,20 @@ static void display_omp_environment(int verbosity_level)
 				}
 				switch (places->abstract_name)
 				{
-					case starpu_omp_place_undefined:
-						printf("undefined");
-						break;
 					case starpu_omp_place_threads:
-						printf("threads");
+						printf("THREADS");
 						break;
 					case starpu_omp_place_cores:
-						printf("cores");
+						printf("CORES");
 						break;
 					case starpu_omp_place_sockets:
-						printf("sockets");
+						printf("SOCKETS");
 						break;
 					case starpu_omp_place_numerical:
-						printf("<numerical>");
+						printf("<NUMERICAL>");
 						break;
+					case starpu_omp_place_undefined:
 					default:
-						printf("<unknown>");
 						break;
 				}
 				if (places->abstract_length)
@@ -914,6 +864,7 @@ static void display_omp_environment(int verbosity_level)
 			}
 		}
 		printf("'\n");
+		printf("  [host] OMP_THREAD_LIMIT = '%d'\n", _initial_icv_values.thread_limit_var);
 
 		if (verbosity_level > 1)
 		{
@@ -927,7 +878,7 @@ void _starpu_omp_environment_init(void)
 {
 	read_omp_environment();
 	int display_env = 0;
-	read_display_env_var("OMP_DISPLAY_ENV", &display_env);
+	read_display_env_var(&display_env);
 	if (display_env > 0)
 	{
 		display_omp_environment(display_env);

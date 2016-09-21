@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2013  Université de Bordeaux
+ * Copyright (C) 2009-2013, 2016  Université de Bordeaux
  * Copyright (C) 2010-2014  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -42,7 +42,7 @@ struct starpu_sched_ctx_iterator
 	int cursor;
 	void *value;
 	void *possible_value;
-	int visited[STARPU_NMAXWORKERS];
+	char visited[STARPU_NMAXWORKERS];
 	int possibly_parallel; 
 };
 
@@ -61,9 +61,9 @@ struct starpu_worker_collection
 	unsigned nunblocked_workers;
 	void *masters;
 	unsigned nmasters;
-	int present[STARPU_NMAXWORKERS];
-	int is_unblocked[STARPU_NMAXWORKERS];
-	int is_master[STARPU_NMAXWORKERS];
+	char present[STARPU_NMAXWORKERS];
+	char is_unblocked[STARPU_NMAXWORKERS];
+	char is_master[STARPU_NMAXWORKERS];
 	enum starpu_worker_collection_type type;
 	unsigned (*has_next)(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it);
 	int (*get_next)(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it);
@@ -91,6 +91,9 @@ unsigned starpu_scc_worker_get_count(void);
 unsigned starpu_mic_device_get_count(void);
 
 int starpu_worker_get_id(void);
+unsigned _starpu_worker_get_id_check(const char *f, int l);
+unsigned starpu_worker_get_id_check(void);
+#define starpu_worker_get_id_check() _starpu_worker_get_id_check(__FILE__, __LINE__)
 int starpu_worker_get_bindid(int workerid);
 
 int starpu_combined_worker_get_id(void);
@@ -123,7 +126,7 @@ unsigned starpu_worker_is_slave_somewhere(int workerid);
 
 char *starpu_worker_get_type_as_string(enum starpu_worker_archtype type);
 
-int starpu_worker_get_workerids(int bindid, int *workerids);
+int starpu_bindid_get_workerids(int bindid, int **workerids);
 
 #ifdef __cplusplus
 }

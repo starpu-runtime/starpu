@@ -22,6 +22,11 @@
 #include <sys/types.h>
 #include "../helper.h"
 
+/*
+ * Check that starpu_data_lookup returns the proper data handle, given
+ * the registered buffer address
+ */
+
 void task(void **buffers, void *args)
 {
 	float *numbers;

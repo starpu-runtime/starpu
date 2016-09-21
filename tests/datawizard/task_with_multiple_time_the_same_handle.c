@@ -17,6 +17,10 @@
 #include <starpu.h>
 #include "../helper.h"
 
+/*
+ * Test passing the same handle several times to the same task
+ */
+
 void sum_cpu(void * descr[], void *cl_arg)
 {
 	double * v_dst = (double *) STARPU_VARIABLE_GET_PTR(descr[0]);

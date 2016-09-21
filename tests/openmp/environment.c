@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2014  INRIA
+ * Copyright (C) 2014, 2016  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,6 +18,10 @@
 #include "../helper.h"
 #include <stdlib.h>
 #include <stdio.h>
+
+/*
+ * Check OpenMP environment variables are properly parsed.
+ */
 
 #if !defined(STARPU_OPENMP)
 int main(int argc, char **argv)
@@ -37,6 +41,7 @@ main (int argc, char *argv[])
 	setenv("OMP_MAX_ACTIVE_LEVELS","4", 1);
 	setenv("OMP_CANCELLATION","false", 1);
 	setenv("OMP_DEFAULT_DEVICE","0", 1);
+	setenv("OMP_MAX_TASK_PRIORITY", "20", 1);
 	setenv("OMP_PROC_BIND","spread, spread, close", 1);
 	setenv("OMP_NUM_THREADS","4, 16, 2", 1);
 	setenv("OMP_PLACES","{1,2,3,4},{5,6,7,8}", 1);

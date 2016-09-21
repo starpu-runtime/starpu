@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2014  Université de Bordeaux
+ * Copyright (C) 2010-2014, 2016  Université de Bordeaux
  * Copyright (C) 2010-2015  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -25,7 +25,6 @@
 #endif
 
 int tasks_executed[2];
-starpu_pthread_mutex_t mut;
 
 int parallel_code(unsigned *sched_ctx)
 {
@@ -88,7 +87,6 @@ int main(int argc, char **argv)
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	starpu_pthread_mutex_init(&mut, NULL);
 	int nprocs1 = 1;
 	int nprocs2 = 1;
 	int *procs1, *procs2;
@@ -110,6 +108,13 @@ int main(int argc, char **argv)
 	procs1[0] = 0;
 	procs2[0] = 0;
 #endif
+
+	if (nprocs1 < 4)
+	{
+		/* Not enough procs */
+		starpu_shutdown();
+		return 77;
+	}
 
 	/*create contexts however you want*/
 	unsigned sched_ctx1 = starpu_sched_ctx_create(procs1, nprocs1, "ctx1", STARPU_SCHED_CTX_POLICY_NAME, "dmda", 0);

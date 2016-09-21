@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012-2013, 2015  Université de Bordeaux
+ * Copyright (C) 2010, 2012-2013, 2015-2016  Université de Bordeaux
  * Copyright (C) 2011  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -19,9 +19,12 @@
 #define __SCHED_POLICY_H__
 
 #include <starpu.h>
+#include <signal.h>
 #include <core/workers.h>
 #include <core/sched_ctx.h>
 #include <starpu_scheduler.h>
+
+void _starpu_sched_init(void);
 
 struct starpu_machine_config;
 struct starpu_sched_policy *_starpu_get_sched_policy( struct _starpu_sched_ctx *sched_ctx);
@@ -32,6 +35,9 @@ void _starpu_init_sched_policy(struct _starpu_machine_config *config,
 void _starpu_deinit_sched_policy(struct _starpu_sched_ctx *sched_ctx);
 
 struct starpu_sched_policy *_starpu_select_sched_policy(struct _starpu_machine_config *config, const char *required_policy);
+
+void _starpu_sched_task_submit(struct starpu_task *task);
+void _starpu_sched_do_schedule(unsigned sched_ctx_id);
 
 int _starpu_push_task(struct _starpu_job *task);
 int _starpu_repush_task(struct _starpu_job *task);
@@ -49,10 +55,10 @@ int _starpu_pop_task_end(struct starpu_task *task);
 void _starpu_wait_on_sched_event(void);
 
 struct starpu_task *_starpu_create_conversion_task(starpu_data_handle_t handle,
-						   unsigned int node);
+						   unsigned int node) STARPU_ATTRIBUTE_MALLOC;
 
 struct starpu_task *_starpu_create_conversion_task_for_arch(starpu_data_handle_t handle,
-						   enum starpu_node_kind node_kind);
+						   enum starpu_node_kind node_kind) STARPU_ATTRIBUTE_MALLOC;
 
 void _starpu_sched_pre_exec_hook(struct starpu_task *task);
 
@@ -84,4 +90,19 @@ extern struct starpu_sched_policy _starpu_sched_modular_random_prio_prefetching_
 extern struct starpu_sched_policy _starpu_sched_modular_ws_policy;
 extern struct starpu_sched_policy _starpu_sched_modular_heft_policy;
 extern struct starpu_sched_policy _starpu_sched_modular_heft2_policy;
+extern struct starpu_sched_policy _starpu_sched_graph_test_policy;
+
+extern long _starpu_task_break_on_push;
+extern long _starpu_task_break_on_pop;
+extern long _starpu_task_break_on_sched;
+
+#ifdef SIGTRAP
+#define _STARPU_TASK_BREAK_ON(task, what) do { \
+	if (_starpu_get_job_associated_to_task(task)->job_id == (unsigned long) _starpu_task_break_on_##what) \
+		raise(SIGTRAP); \
+} while(0)
+#else
+#define _STARPU_TASK_BREAK_ON(task, what) ((void) 0)
+#endif
+
 #endif // __SCHED_POLICY_H__

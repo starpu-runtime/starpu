@@ -248,9 +248,9 @@ void sc_hypervisor_ctl(unsigned sched_ctx, ...)
 		entry->task_tag = task_tag;
 		entry->configuration = config;
 
-		starpu_pthread_mutex_lock(&hypervisor.conf_mut[sched_ctx]);
+		STARPU_PTHREAD_MUTEX_LOCK(&hypervisor.conf_mut[sched_ctx]);
 		HASH_ADD_INT(hypervisor.configurations[sched_ctx], task_tag, entry);
-		starpu_pthread_mutex_unlock(&hypervisor.conf_mut[sched_ctx]);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&hypervisor.conf_mut[sched_ctx]);
 	}
 
 	va_end(varg_list);

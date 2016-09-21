@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012, 2014-2015  Université de Bordeaux
+ * Copyright (C) 2009-2012, 2014-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2013  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -23,6 +23,7 @@
 #include <datawizard/coherency.h>
 #include <datawizard/memalloc.h>
 #include <common/utils.h>
+#include <core/workers.h>
 
 #ifdef STARPU_SIMGRID
 #include <core/simgrid.h>
@@ -67,23 +68,94 @@ struct _starpu_memory_node_descr
 
 };
 
+extern struct _starpu_memory_node_descr _starpu_descr;
+
 void _starpu_memory_nodes_init(void);
 void _starpu_memory_nodes_deinit(void);
-void _starpu_memory_node_set_local_key(unsigned *node);
-unsigned _starpu_memory_node_get_local_key(void);
-void _starpu_memory_node_add_nworkers(unsigned node);
-unsigned _starpu_memory_node_get_nworkers(unsigned node);
+extern starpu_pthread_key_t _starpu_memory_node_key STARPU_ATTRIBUTE_INTERNAL;
+static inline void _starpu_memory_node_set_local_key(unsigned *node)
+{
+	STARPU_PTHREAD_SETSPECIFIC(_starpu_memory_node_key, node);
+}
+
+static inline unsigned _starpu_memory_node_get_local_key(void)
+{
+	unsigned *memory_node;
+	memory_node = (unsigned *) STARPU_PTHREAD_GETSPECIFIC(_starpu_memory_node_key);
+
+	/* in case this is called by the programmer, we assume the RAM node
+	   is the appropriate memory node ... XXX */
+	if (STARPU_UNLIKELY(!memory_node))
+		return STARPU_MAIN_RAM;
+
+	return *memory_node;
+}
+
+static inline void _starpu_memory_node_add_nworkers(unsigned node)
+{
+	_starpu_descr.nworkers[node]++;
+}
+
+static inline unsigned _starpu_memory_node_get_nworkers(unsigned node)
+{
+	return _starpu_descr.nworkers[node];
+}
+
 #ifdef STARPU_SIMGRID
-void _starpu_simgrid_memory_node_set_host(unsigned node, msg_host_t host);
-msg_host_t _starpu_simgrid_memory_node_get_host(unsigned node);
+static inline void _starpu_simgrid_memory_node_set_host(unsigned node, msg_host_t host)
+{
+	_starpu_descr.host[node] = host;
+}
+
+static inline msg_host_t _starpu_simgrid_memory_node_get_host(unsigned node)
+{
+	return _starpu_descr.host[node];
+}
 #endif
 unsigned _starpu_memory_node_register(enum starpu_node_kind kind, int devid);
 //void _starpu_memory_node_attach_queue(struct starpu_jobq_s *q, unsigned nodeid);
 void _starpu_memory_node_register_condition(starpu_pthread_cond_t *cond, starpu_pthread_mutex_t *mutex, unsigned memory_node);
 
-int _starpu_memory_node_get_devid(unsigned node);
+static inline int _starpu_memory_node_get_devid(unsigned node)
+{
+	return _starpu_descr.devid[node];
+}
+
 void _starpu_memory_node_get_name(unsigned node, char *name, int size);
 
-struct _starpu_memory_node_descr *_starpu_memory_node_get_description(void);
+static inline struct _starpu_memory_node_descr *_starpu_memory_node_get_description(void)
+{
+	return &_starpu_descr;
+}
+
+static inline enum starpu_node_kind _starpu_node_get_kind(unsigned node)
+{
+	return _starpu_descr.nodes[node];
+}
+#define starpu_node_get_kind _starpu_node_get_kind
+
+static inline unsigned _starpu_memory_nodes_get_count(void)
+{
+	return _starpu_descr.nnodes;
+}
+#define starpu_memory_nodes_get_count _starpu_memory_nodes_get_count
+
+static inline unsigned _starpu_worker_get_memory_node(unsigned workerid)
+{
+	struct _starpu_machine_config *config = _starpu_get_machine_config();
+
+	/* This workerid may either be a basic worker or a combined worker */
+	unsigned nworkers = config->topology.nworkers;
+
+	if (workerid < config->topology.nworkers)
+		return config->workers[workerid].memory_node;
+
+	/* We have a combined worker */
+	unsigned ncombinedworkers STARPU_ATTRIBUTE_UNUSED = config->topology.ncombinedworkers;
+	STARPU_ASSERT_MSG(workerid < ncombinedworkers + nworkers, "Bad workerid %u, maximum %u", workerid, ncombinedworkers + nworkers);
+	return config->combined_workers[workerid - nworkers].memory_node;
+
+}
+#define starpu_worker_get_memory_node _starpu_worker_get_memory_node
 
 #endif // __MEMORY_NODES_H__

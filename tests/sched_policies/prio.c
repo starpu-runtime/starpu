@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013, 2015 Université Bordeaux
+ * Copyright (C) 2013, 2015-2016 Université Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,16 +19,18 @@
 #include <starpu_scheduler.h>
 #include "../helper.h"
 
-#ifdef STARPU_QUICK_CHECK
-#define NTASKS 10
-#else
-#define NTASKS 1000
-#endif
-
 /*
  * Task1 must be executed before task0, even if task0 is submitted first.
  * Applies to : all schedulers.
  */
+
+#ifdef STARPU_QUICK_CHECK
+#define NTASKS 10
+#elif !defined(STARPU_LONG_CHECK)
+#define NTASKS 100
+#else
+#define NTASKS 1000
+#endif
 
 void
 A(void *buffers[], void *args)

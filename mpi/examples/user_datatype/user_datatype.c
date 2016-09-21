@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015  CNRS
+ * Copyright (C) 2015, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -38,9 +38,15 @@ int main(int argc, char **argv)
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &nodes);
 
-	if (nodes < 2)
+	if (nodes < 2 || (starpu_cpu_worker_get_count() == 0))
 	{
-		fprintf(stderr, "This program needs at least 2 nodes (%d available)\n", nodes);
+		if (rank == 0)
+		{
+			if (nodes < 2)
+				fprintf(stderr, "We need at least 2 processes.\n");
+			else
+				fprintf(stderr, "We need at least 1 CPU.\n");
+		}
 		starpu_mpi_shutdown();
 		starpu_shutdown();
 		return 77;
@@ -62,6 +68,7 @@ int main(int argc, char **argv)
 		MPI_Datatype mpi_datatype;
 		_starpu_my_interface_datatype_allocate(&mpi_datatype);
 		MPI_Send(&my0, 1, mpi_datatype, 1, 42, MPI_COMM_WORLD);
+		starpu_my_interface_datatype_free(&mpi_datatype);
 	}
 	else if (rank == 1)
 	{
@@ -70,6 +77,7 @@ int main(int argc, char **argv)
 		_starpu_my_interface_datatype_allocate(&mpi_datatype);
 		MPI_Recv(&my0, 1, mpi_datatype, 0, 42, MPI_COMM_WORLD, &status);
 		FPRINTF(stderr, "Received value: '%c' %d\n", my0.c, my0.d);
+		starpu_my_interface_datatype_free(&mpi_datatype);
 	}
 
 	if (rank == 0)
@@ -91,7 +99,8 @@ int main(int argc, char **argv)
 		starpu_mpi_isend_detached(handle0, 0, 20, MPI_COMM_WORLD, NULL, NULL);
 	}
 
-	starpu_task_wait_for_all();
+	starpu_mpi_barrier(MPI_COMM_WORLD);
+	starpu_mpi_wait_for_all(MPI_COMM_WORLD);
 
 	starpu_mpi_datatype_unregister(handle0);
 	starpu_data_unregister(handle0);

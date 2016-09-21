@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2015  Université de Bordeaux
+ * Copyright (C) 2009-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
  * Copyright (C) 2014  INRIA
  *
@@ -74,6 +74,7 @@
 
 #undef STARPU_MODEL_DEBUG
 #undef STARPU_NO_ASSERT
+#undef STARPU_DEBUG
 
 #undef STARPU_HAVE_FFTW
 #undef STARPU_HAVE_FFTWF
@@ -135,5 +136,8 @@ typedef ssize_t starpu_ssize_t;
 
 /* This is only for building examples */
 #undef STARPU_HAVE_HELGRIND_H
+
+/* Enable Fortran to C MPI interface */
+#undef  HAVE_MPI_COMM_F2C
 
 #endif

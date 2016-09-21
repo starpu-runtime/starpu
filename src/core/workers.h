@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
+ * Copyright (C) 2009-2016  Université de Bordeaux
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016  CNRS
  * Copyright (C) 2011  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -105,17 +105,17 @@ LIST_TYPE(_starpu_worker,
 
 	unsigned has_prev_init; /* had already been inited in another ctx */
 
-	unsigned removed_from_ctx[STARPU_NMAX_SCHED_CTXS];
+	unsigned removed_from_ctx[STARPU_NMAX_SCHED_CTXS+1];
 
 	unsigned spinning_backoff ; /* number of cycles to pause when spinning  */
 
 
 	/* indicate whether the workers shares tasks lists with other workers*/
 	/* in this case when removing him from a context it disapears instantly */
-	unsigned shares_tasks_lists[STARPU_NMAX_SCHED_CTXS];
+	unsigned shares_tasks_lists[STARPU_NMAX_SCHED_CTXS+1];
 
         /* boolean to chose the next ctx a worker will pop into */
-	unsigned poped_in_ctx[STARPU_NMAX_SCHED_CTXS];	  
+	unsigned poped_in_ctx[STARPU_NMAX_SCHED_CTXS+1];
 
        /* boolean indicating at which moment we checked all ctxs and change phase for the booleab poped_in_ctx*/
        /* one for each of the 2 priorities*/
@@ -323,6 +323,13 @@ struct _starpu_machine_config
 	 * that can run parallel tasks together. */
 	struct _starpu_combined_worker combined_workers[STARPU_NMAX_COMBINEDWORKERS];
 
+	/* Translation table from bindid to worker IDs */
+	struct {
+		int *workerids;
+		unsigned nworkers; /* size of workerids */
+	} *bindid_workers;
+	unsigned nbindid; /* size of bindid_workers */
+
 	/* This bitmask indicates which kinds of worker are available. For
 	 * instance it is possible to test if there is a CUDA worker with
 	 * the result of (worker_mask & STARPU_CUDA). */
@@ -334,12 +341,14 @@ struct _starpu_machine_config
 	/* this flag is set until the runtime is stopped */
 	unsigned running;
 
+	int disable_kernels;
+
 	/* Number of calls to starpu_pause() - calls to starpu_resume(). When >0,
 	 * StarPU should pause. */
 	int pause_depth;
 
 	/* all the sched ctx of the current instance of starpu */
-	struct _starpu_sched_ctx sched_ctxs[STARPU_NMAX_SCHED_CTXS];
+	struct _starpu_sched_ctx sched_ctxs[STARPU_NMAX_SCHED_CTXS+1];
 
 	/* this flag is set until the application is finished submitting tasks */
 	unsigned submitting;
@@ -348,6 +357,11 @@ struct _starpu_machine_config
 
 	starpu_pthread_mutex_t submitted_mutex;
 };
+
+extern struct _starpu_machine_config _starpu_config STARPU_ATTRIBUTE_INTERNAL;
+extern int _starpu_keys_initialized STARPU_ATTRIBUTE_INTERNAL;
+extern starpu_pthread_key_t _starpu_worker_key STARPU_ATTRIBUTE_INTERNAL;
+extern starpu_pthread_key_t _starpu_worker_set_key STARPU_ATTRIBUTE_INTERNAL;
 
 /* Three functions to manage argv, argc */
 void _starpu_set_argc_argv(int *argc, char ***argv);
@@ -361,7 +375,18 @@ void _starpu_conf_check_environment(struct starpu_conf *conf);
 void _starpu_may_pause(void);
 
 /* Has starpu_shutdown already been called ? */
-unsigned _starpu_machine_is_running(void);
+static inline unsigned _starpu_machine_is_running(void)
+{
+	unsigned ret;
+	/* running is just protected by a memory barrier */
+	STARPU_RMB();
+
+	ANNOTATE_HAPPENS_AFTER(&_starpu_config.running);
+	ret = _starpu_config.running;
+	ANNOTATE_HAPPENS_BEFORE(&_starpu_config.running);
+	return ret;
+}
+
 
 /* Check if there is a worker that may execute the task. */
 uint32_t _starpu_worker_exists(struct starpu_task *);
@@ -395,28 +420,53 @@ void _starpu_worker_start(struct _starpu_worker *worker, unsigned fut_key, unsig
 /* The _starpu_worker structure describes all the state of a StarPU worker.
  * This function sets the pthread key which stores a pointer to this structure.
  * */
-void _starpu_set_local_worker_key(struct _starpu_worker *worker);
+static inline void _starpu_set_local_worker_key(struct _starpu_worker *worker)
+{
+	STARPU_ASSERT(_starpu_keys_initialized);
+	STARPU_PTHREAD_SETSPECIFIC(_starpu_worker_key, worker);
+}
 
 /* Returns the _starpu_worker structure that describes the state of the
  * current worker. */
-struct _starpu_worker *_starpu_get_local_worker_key(void);
+static inline struct _starpu_worker *_starpu_get_local_worker_key(void)
+{
+	if (!_starpu_keys_initialized)
+		return NULL;
+	return (struct _starpu_worker *) STARPU_PTHREAD_GETSPECIFIC(_starpu_worker_key);
+}
 
 /* The _starpu_worker_set structure describes all the state of a StarPU worker_set.
  * This function sets the pthread key which stores a pointer to this structure.
  * */
-void _starpu_set_local_worker_set_key(struct _starpu_worker_set *worker_set);
+static inline void _starpu_set_local_worker_set_key(struct _starpu_worker_set *worker)
+{
+	STARPU_ASSERT(_starpu_keys_initialized);
+	STARPU_PTHREAD_SETSPECIFIC(_starpu_worker_set_key, worker);
+}
 
 /* Returns the _starpu_worker_set structure that describes the state of the
  * current worker_set. */
-struct _starpu_worker_set *_starpu_get_local_worker_set_key(void);
+static inline struct _starpu_worker_set *_starpu_get_local_worker_set_key(void)
+{
+	if (!_starpu_keys_initialized)
+		return NULL;
+	return (struct _starpu_worker_set *) STARPU_PTHREAD_GETSPECIFIC(_starpu_worker_set_key);
+}
 
 /* Returns the _starpu_worker structure that describes the state of the
  * specified worker. */
-struct _starpu_worker *_starpu_get_worker_struct(unsigned id);
+static inline struct _starpu_worker *_starpu_get_worker_struct(unsigned id)
+{
+	return &_starpu_config.workers[id];
+}
 
 /* Returns the starpu_sched_ctx structure that descriebes the state of the 
  * specified ctx */
-struct _starpu_sched_ctx *_starpu_get_sched_ctx_struct(unsigned id);
+static inline struct _starpu_sched_ctx *_starpu_get_sched_ctx_struct(unsigned id)
+{
+	if(id == STARPU_NMAX_SCHED_CTXS) return NULL;
+	return &_starpu_config.sched_ctxs[id];
+}
 
 struct _starpu_combined_worker *_starpu_get_combined_worker_struct(unsigned id);
 
@@ -424,20 +474,35 @@ int _starpu_is_initialized(void);
 
 /* Returns the structure that describes the overall machine configuration (eg.
  * all workers and topology). */
-struct _starpu_machine_config *_starpu_get_machine_config(void);
+static inline struct _starpu_machine_config *_starpu_get_machine_config(void)
+{
+	return &_starpu_config;
+}
 
 /* Return whether kernels should be run (<=0) or not (>0) */
-int _starpu_get_disable_kernels(void);
+static inline int _starpu_get_disable_kernels(void)
+{
+	return _starpu_config.disable_kernels;
+}
 
 /* Retrieve the status which indicates what the worker is currently doing. */
-enum _starpu_worker_status _starpu_worker_get_status(int workerid);
+static inline enum _starpu_worker_status _starpu_worker_get_status(int workerid)
+{
+	return _starpu_config.workers[workerid].status;
+}
 
 /* Change the status of the worker which indicates what the worker is currently
  * doing (eg. executing a callback). */
-void _starpu_worker_set_status(int workerid, enum _starpu_worker_status status);
+static inline void _starpu_worker_set_status(int workerid, enum _starpu_worker_status status)
+{
+	_starpu_config.workers[workerid].status = status;
+}
 
 /* We keep an initial sched ctx which might be used in case no other ctx is available */
-struct _starpu_sched_ctx* _starpu_get_initial_sched_ctx(void);
+static inline struct _starpu_sched_ctx* _starpu_get_initial_sched_ctx(void)
+{
+	return &_starpu_config.sched_ctxs[STARPU_GLOBAL_SCHED_CTX];
+}
 
 int starpu_worker_get_nids_by_type(enum starpu_worker_archtype type, int *workerids, int maxsize);
 
@@ -451,10 +516,55 @@ void _starpu_unlock_mutex_if_prev_locked();
 /* if we prev released the lock relock it */
 void _starpu_relock_mutex_if_prev_locked();
 
-void _starpu_worker_set_flag_sched_mutex_locked(int workerid, unsigned flag);
+static inline void _starpu_worker_set_flag_sched_mutex_locked(int workerid, unsigned flag)
+{
+	struct _starpu_worker *w = _starpu_get_worker_struct(workerid);
+	w->sched_mutex_locked = flag;
+}
 
-unsigned _starpu_worker_mutex_is_sched_mutex(int workerid, starpu_pthread_mutex_t *mutex);
+static inline unsigned _starpu_worker_mutex_is_sched_mutex(int workerid, starpu_pthread_mutex_t *mutex)
+{
+	struct _starpu_worker *w = _starpu_get_worker_struct(workerid);
+	return &w->sched_mutex == mutex;
+}
 
-int _starpu_worker_get_nsched_ctxs(int workerid);
+static inline int _starpu_worker_get_nsched_ctxs(int workerid)
+{
+	return _starpu_config.workers[workerid].nsched_ctxs;
+}
+
+/* Get the total number of sched_ctxs created till now */
+static inline unsigned _starpu_get_nsched_ctxs(void)
+{
+	return _starpu_config.topology.nsched_ctxs;
+}
+
+/* Inlined version when building the core.  */
+static inline int _starpu_worker_get_id(void)
+{
+	struct _starpu_worker * worker;
+
+	worker = _starpu_get_local_worker_key();
+	if (worker)
+	{
+		return worker->workerid;
+	}
+	else
+	{
+		/* there is no worker associated to that thread, perhaps it is
+		 * a thread from the application or this is some SPU worker */
+		return -1;
+	}
+}
+#define starpu_worker_get_id _starpu_worker_get_id
+
+/* Similar behaviour to starpu_worker_get_id() but fails when called from outside a worker */
+static inline unsigned __starpu_worker_get_id_check(const char *f, int l)
+{
+	int id = starpu_worker_get_id();
+	STARPU_ASSERT_MSG(id>=0, "%s:%u Cannot be called from outside a worker\n", f, l);
+	return id;
+}
+#define _starpu_worker_get_id_check(f,l) __starpu_worker_get_id_check(f,l)
 
 #endif // __WORKERS_H__

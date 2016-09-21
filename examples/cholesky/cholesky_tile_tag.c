@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2015  Université de Bordeaux
+ * Copyright (C) 2009-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -249,21 +249,17 @@ int main(int argc, char **argv)
 
 	starpu_cublas_init();
 
-#ifndef STARPU_SIMGRID
 	for (y = 0; y < nblocks; y++)
 	for (x = 0; x < nblocks; x++)
 	{
 		if (x <= y)
 		{
-#ifdef STARPU_HAVE_POSIX_MEMALIGN
-			posix_memalign((void **)&A[y][x], 128, BLOCKSIZE*BLOCKSIZE*sizeof(float));
-#else
-			A[y][x] = malloc(BLOCKSIZE*BLOCKSIZE*sizeof(float));
-#endif
+			starpu_malloc_flags((void **)&A[y][x], BLOCKSIZE*BLOCKSIZE*sizeof(float), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
 			assert(A[y][x]);
 		}
 	}
 
+#ifndef STARPU_SIMGRID
 	/* create a simple definite positive symetric matrix example
 	 *
 	 *	Hilbert matrix : h(i,j) = 1/(i+j+1) ( + n In to make is stable ) 
@@ -304,7 +300,7 @@ int main(int argc, char **argv)
 		if (x <= y)
 		{
 			starpu_data_unregister(A_state[y][x]);
-			free(A[y][x]);
+			starpu_free_flags(A[y][x], BLOCKSIZE*BLOCKSIZE*sizeof(float), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
 		}
 	}
 

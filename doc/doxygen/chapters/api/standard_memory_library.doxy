@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016  CNRS
  * Copyright (C) 2011, 2012 INRIA
  * See the file version.doxy for copying conditions.
  */
@@ -45,6 +45,15 @@ according to the STARPU_MINIMUM_AVAILABLE_MEM and STARPU_TARGET_AVAILABLE_MEM
 environment variables. If STARPU_MEMORY_WAIT is set, no overflowing will happen,
 starpu_malloc_flags() will wait for other eviction mechanisms to release enough memory.
 
+\def STARPU_MALLOC_SIMULATION_FOLDED
+\ingroup API_Standard_Memory_Library
+Value passed to the function starpu_malloc_flags() to indicate that when
+StarPU is using simgrid, the allocation can be "folded", i.e. a memory area is
+allocated, but its content is actually a replicate of the same memory area, to
+avoid having to actually allocate that much memory . This thus allows to have a
+memory area that does not actually consumes memory, to which one can read from
+and write to normally, but get bogus values.
+
 \fn int starpu_malloc_flags(void **A, size_t dim, int flags)
 \ingroup API_Standard_Memory_Library
 Performs a memory allocation based on the constraints defined
@@ -59,7 +68,8 @@ constraints.
 
 \fn int starpu_malloc(void **A, size_t dim)
 \ingroup API_Standard_Memory_Library
-This function allocates data of the given size in main memory.
+This function allocates data of the given size \p dim in main memory, and
+returns the pointer to the allocated data through \p A.
 It will also try to pin it in CUDA or OpenCL, so that data transfers
 from this buffer can be asynchronous, and thus permit data transfer
 and computation overlapping. The allocated buffer must be freed thanks
@@ -89,20 +99,30 @@ starpu_memory_pin(). Returns 0 on success, -1 on error.
 
 \fn ssize_t starpu_memory_get_total(unsigned node)
 \ingroup API_Standard_Memory_Library
-If a memory limit is defined on the given node (see Section \ref
-HowToLimitMemoryPerNode), return the amount of total memory
+If a memory limit is defined on the given node (see Section
+\ref HowToLimitMemoryPerNode), return the amount of total memory
 on the node. Otherwise return -1.
+
+\fn ssize_t starpu_memory_get_total_all_nodes()
+\ingroup API_Standard_Memory_Library
+return the amount of total memory on all memory nodes for whose a memory limit
+is defined (see Section \ref HowToLimitMemoryPerNode).
 
 \fn ssize_t starpu_memory_get_available(unsigned node)
 \ingroup API_Standard_Memory_Library
-If a memory limit is defined on the given node (see Section \ref
-HowToLimitMemoryPerNode), return the amount of available memory
+If a memory limit is defined on the given node (see Section
+\ref HowToLimitMemoryPerNode), return the amount of available memory
 on the node. Otherwise return -1.
+
+\fn ssize_t starpu_memory_get_available_all_nodes()
+\ingroup API_Standard_Memory_Library
+return the amount of available memory on all memory nodes for whose a memory limit
+is defined (see Section \ref HowToLimitMemoryPerNode).
 
 \fn int starpu_memory_allocate(unsigned node, size_t size, int flags)
 \ingroup API_Standard_Memory_Library
-If a memory limit is defined on the given node (see Section \ref
-HowToLimitMemoryPerNode), try to allocate some of it. This does not actually
+If a memory limit is defined on the given node (see Section
+\ref HowToLimitMemoryPerNode), try to allocate some of it. This does not actually
 allocate memory, but only accounts for it. This can be useful when the
 application allocates data another way, but want StarPU to be aware of the
 allocation size e.g. for memory reclaiming.
@@ -112,8 +132,8 @@ STARPU_MEMORY_OVERFLOW to change this.
 
 \fn void starpu_memory_deallocate(unsigned node, size_t size)
 \ingroup API_Standard_Memory_Library
-If a memory limit is defined on the given node (see Section \ref
-HowToLimitMemoryPerNode), free some of it. This does not actually free memory,
+If a memory limit is defined on the given node (see Section
+\ref HowToLimitMemoryPerNode), free some of it. This does not actually free memory,
 but only accounts for it, like starpu_memory_allocate(). The amount does not
 have to be exactly the same as what was passed to starpu_memory_allocate(),
 only the eventual amount needs to be the same, i.e. one call to

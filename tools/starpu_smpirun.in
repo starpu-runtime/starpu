@@ -24,6 +24,23 @@ STARPU_XSLTDIR=$STARPU_DATADIR/starpu
 SOURCE_DATADIR=@abs_srcdir@
 BUILDDIR=@abs_builddir@
 
+SMPI_VERSION=$($SMPIRUN -version | grep " version " | sed -e 's/.* \([0-9]*\.[0-9]*\).*/\1/')
+SMPI_MAJOR=${SMPI_VERSION%.*}
+SMPI_MINOR=${SMPI_VERSION#*.}
+
+if [ "$SMPI_MAJOR" -ge 4 -o \( "$SMPI_MAJOR" = 3 -a "$SMPI_MINOR" -ge 13 \) ]
+then
+	DTD=http://simgrid.gforge.inria.fr/simgrid/simgrid.dtd
+	V=4
+	VF=.v4
+	DASH=-
+else
+	DTD=http://simgrid.gforge.inria.fr/simgrid.dtd
+	V=3
+	VF=""
+	DASH=_
+fi
+
 # When executed from source, take xslt from source
 [ "$0" -ef $BUILDDIR/starpu_smpirun ] && STARPU_XSLTDIR=$SOURCE_DATADIR
 
@@ -65,23 +82,24 @@ fi
 
 PLATFORM=$(mktemp /tmp/StarPU-MPI-platform-XXXXXXXX.xml)
 
-[ -n "$STARPU_PERF_MODEL_DIR" ] || STARPU_PERF_MODEL_DIR=$HOME/.starpu/sampling
+[ -n "$STARPU_HOME" ] || STARPU_HOME=$HOME
+[ -n "$STARPU_PERF_MODEL_DIR" ] || STARPU_PERF_MODEL_DIR=$STARPU_HOME/.starpu/sampling
 [ -n "$STARPU_HOSTNAME" ] || STARPU_HOSTNAME=$(hostname)
-NODE_PLATFORM=$STARPU_PERF_MODEL_DIR/bus/${STARPU_HOSTNAME}.platform.xml
+NODE_PLATFORM=$STARPU_PERF_MODEL_DIR/bus/${STARPU_HOSTNAME}.platform$VF.xml
 
 [ -n "$NP" ] || NP=$(grep -v "^$" $MPI_HOSTFILE | wc -l)
 
-if ! type xsltproc
+if ! type xsltproc > /dev/null 2> /dev/null
 then
 	echo xsltproc is needed for starpu simgrid mpi.
 	exit 1
 fi
 
 (
-	cat << \EOF
+	cat << EOF
 <?xml version='1.0'?>
-<!DOCTYPE platform SYSTEM "http://simgrid.gforge.inria.fr/simgrid.dtd">
-<platform version="3">
+<!DOCTYPE platform SYSTEM "$DTD">
+<platform version="$V">
 <AS id="ASroot" routing="None">
 EOF
 	tail -n +3 $MPI_PLATFORM | grep -v '<platform' | grep -v '</platform'
@@ -96,7 +114,7 @@ EOF
 
 STACKSIZE=$(ulimit -s)
 [ "$STACKSIZE" != unlimited ] || STACKSIZE=8192
-$SMPIRUN -platform $PLATFORM -hostfile $MPI_HOSTFILE "$@" --cfg=smpi/privatize_global_variables:yes --cfg=contexts/stack_size:$STACKSIZE
+$SMPIRUN -platform $PLATFORM -hostfile $MPI_HOSTFILE -np $NP "$@" --cfg=smpi/privatize${DASH}global${DASH}variables:yes --cfg=smpi/simulate${DASH}computation:no --cfg=contexts/stack${DASH}size:$STACKSIZE
 RET=$?
 
 rm -f $PLATFORM

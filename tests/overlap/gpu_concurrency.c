@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2014-2015  Université de Bordeaux
+ * Copyright (C) 2014-2016  Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -22,6 +22,10 @@
 #include <stdlib.h>
 #include "../helper.h"
 #include <common/thread.h>
+
+/*
+ * Check that concurrency does happen when using multi-stream CUDA.
+ */
 
 #ifdef STARPU_QUICK_CHECK
 #define NITERS 100000
@@ -94,6 +98,7 @@ int main(int argc, char **argv)
 		struct starpu_task *task = starpu_task_create();
 
 		if (!(iter % SYNC))
+			/* Insert a synchronous task, just for fun */
 			task->cl = &cl;
 		else
 			task->cl = &cl_async;

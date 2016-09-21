@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012-2014  Université de Bordeaux
+ * Copyright (C) 2010, 2012-2014, 2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -70,8 +70,26 @@
 	}                                                                      \
 } while(0)
 
+#ifdef STARPU_DEBUG
+#define _STARPU_CHECK_NOT_SCHED_MUTEX(mutex, file, line) \
+	starpu_pthread_mutex_check_sched((mutex), file, line)
+#else
+#define _STARPU_CHECK_NOT_SCHED_MUTEX(mutex, file, line)
+#endif
+
 #define STARPU_PTHREAD_MUTEX_LOCK(mutex) do {				      \
 	int p_ret = starpu_pthread_mutex_lock(mutex);			      \
+	if (STARPU_UNLIKELY(p_ret)) {                                          \
+		fprintf(stderr,                                                \
+			"%s:%d starpu_pthread_mutex_lock: %s\n",               \
+			__FILE__, __LINE__, strerror(p_ret));                  \
+		STARPU_ABORT();                                                \
+	}                                                                      \
+	_STARPU_CHECK_NOT_SCHED_MUTEX(mutex, __FILE__, __LINE__);                                  \
+} while (0)
+
+#define STARPU_PTHREAD_MUTEX_LOCK_SCHED(mutex) do {			      \
+	int p_ret = starpu_pthread_mutex_lock_sched(mutex);		      \
 	if (STARPU_UNLIKELY(p_ret)) {                                          \
 		fprintf(stderr,                                                \
 			"%s:%d starpu_pthread_mutex_lock: %s\n",               \
@@ -92,11 +110,38 @@ int _starpu_pthread_mutex_trylock(starpu_pthread_mutex_t *mutex, char *file, int
 			file, line, strerror(p_ret));
 		STARPU_ABORT();
 	}
+	_STARPU_CHECK_NOT_SCHED_MUTEX(mutex, file, line);
+	return p_ret;
+}
+
+#define STARPU_PTHREAD_MUTEX_TRYLOCK_SCHED(mutex) \
+	_starpu_pthread_mutex_trylock_sched(mutex, __FILE__, __LINE__)
+static STARPU_INLINE
+int _starpu_pthread_mutex_trylock_sched(starpu_pthread_mutex_t *mutex, char *file, int line)
+{
+	int p_ret = starpu_pthread_mutex_trylock_sched(mutex);
+	if (STARPU_UNLIKELY(p_ret != 0 && p_ret != EBUSY)) {
+		fprintf(stderr,
+			"%s:%d starpu_pthread_mutex_trylock: %s\n",
+			file, line, strerror(p_ret));
+		STARPU_ABORT();
+	}
 	return p_ret;
 }
 
 #define STARPU_PTHREAD_MUTEX_UNLOCK(mutex) do {                               \
 	int p_ret = starpu_pthread_mutex_unlock(mutex);                        \
+	if (STARPU_UNLIKELY(p_ret)) {                                          \
+		fprintf(stderr,                                                \
+			"%s:%d starpu_pthread_mutex_unlock: %s\n",             \
+			__FILE__, __LINE__, strerror(p_ret));                  \
+		STARPU_ABORT();                                                \
+	}                                                                      \
+	_STARPU_CHECK_NOT_SCHED_MUTEX(mutex, __FILE__, __LINE__);                                  \
+} while (0)
+
+#define STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(mutex) do {                          \
+	int p_ret = starpu_pthread_mutex_unlock_sched(mutex);                  \
 	if (STARPU_UNLIKELY(p_ret)) {                                          \
 		fprintf(stderr,                                                \
 			"%s:%d starpu_pthread_mutex_unlock: %s\n",             \

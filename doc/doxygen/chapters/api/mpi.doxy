@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
  * Copyright (C) 2011, 2012 INRIA
  * See the file version.doxy for copying conditions.
  */
@@ -23,6 +23,7 @@ Initializes the starpumpi library with the given communicator.
 \p initialize_mpi indicates if MPI should be initialized or not by StarPU.
 If the value is not 0, MPI will be initialized by calling
 <c>MPI_Init_Thread(argc, argv, MPI_THREAD_SERIALIZED, ...)</c>.
+starpu_init() must be called before starpu_mpi_init_comm().
 
 \fn int starpu_mpi_init(int *argc, char ***argv, int initialize_mpi)
 \ingroup API_MPI_Support
@@ -55,6 +56,22 @@ Retrieve the current amount of communications from the current node in
 the array \p comm_amounts which must have a size greater or equal to
 the world size. Communications statistics must be enabled (see
 \ref STARPU_COMM_STATS).
+
+\fn int starpu_mpi_comm_size(MPI_Comm comm, int *size)
+\ingroup API_MPI_Support
+Return in \p size the size of the communicator \p comm
+
+\fn int starpu_mpi_comm_rank(MPI_Comm comm, int *rank)
+\ingroup API_MPI_Support
+Return in \p rank the rank of the calling process in the communicator \p comm
+
+\fn int starpu_mpi_world_rank(void)
+\ingroup API_MPI_Support
+Return the rank of the calling process in the communicator MPI_COMM_WORLD
+
+\fn int starpu_mpi_world_size(void)
+\ingroup API_MPI_Support
+Return the size of the communicator MPI_COMM_WORLD
 
 @name Communication
 \anchor MPIPtpCommunication
@@ -155,6 +172,10 @@ operation.
 \ingroup API_MPI_Support
 Blocks the caller until all group members of the communicator \p comm
 have called it.
+
+\fn int starpu_mpi_wait_for_all(MPI_Comm comm)
+\ingroup API_MPI_Support
+Wait until all StarPU tasks and communications for the given communicator are completed.
 
 \fn int starpu_mpi_isend_detached_unlock_tag(starpu_data_handle_t data_handle, int dest, int mpi_tag, MPI_Comm comm, starpu_tag_t tag)
 \ingroup API_MPI_Support
@@ -270,7 +291,7 @@ Symbol kept for backward compatibility. Calling function starpu_mpi_data_set_ran
 \ingroup API_MPI_Support
 Return the rank of the given data.
 
-\def starpu_data_get_rank(handle)
+\def starpu_data_get_rank(starpu_data_handle_t handle)
 \ingroup API_MPI_Support
 Return the rank of the given data.
 Symbol kept for backward compatibility. Calling function starpu_mpi_data_get_rank
@@ -279,10 +300,19 @@ Symbol kept for backward compatibility. Calling function starpu_mpi_data_get_ran
 \ingroup API_MPI_Support
 Return the tag of the given data.
 
-\def starpu_data_get_tag(handle)
+\def starpu_data_get_tag(starpu_data_handle_t handle)
 \ingroup API_MPI_Support
 Return the tag of the given data.
 Symbol kept for backward compatibility. Calling function starpu_mpi_data_get_tag
+
+\fn void starpu_mpi_data_migrate(MPI_Comm comm, starpu_data_handle_t handle, int new_rank)
+\ingroup API_MPI_Support
+Migrate the data onto the \p new_rank MPI node. This means both transferring
+the data to node \p new_rank if it hasn't been transferred already, and setting
+the home node of the data to the new node. Further data transfers triggered by
+starpu_mpi_task_insert() will be done from that new node. This function thus
+needs to be called on all nodes which have registered the data. This also
+flushes the cache for this data to avoid incoherencies.
 
 \def STARPU_EXECUTE_ON_NODE
 \ingroup API_MPI_Support
@@ -295,6 +325,12 @@ execute the codelet.
 this macro is used when calling starpu_mpi_task_insert(), and must be
 followed by a data handle to specify that the node owning the given
 data will execute the codelet.
+
+\def STARPU_NODE_SELECTION_POLICY
+\ingroup API_MPI_Support
+this macro is used when calling starpu_mpi_task_insert(), and must be
+followed by a identifier to a node selection policy. This is needed when several
+nodes own data in ::STARPU_W mode.
 
 \fn int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 \ingroup API_MPI_Support
@@ -321,7 +357,7 @@ The internal algorithm is as follows:
         Find out which MPI node is going to execute the codelet.
         <ul>
             <li>If there is only one node owning data in ::STARPU_W mode, it will be selected;
-            <li>If there is several nodes owning data in ::STARPU_W node, a node will be selected according to a given node selection policy (see ::STARPU_NODE_SELECTION_POLICY or starpu_mpi_node_selection_set_current_policy())
+            <li>If there is several nodes owning data in ::STARPU_W mode, a node will be selected according to a given node selection policy (see ::STARPU_NODE_SELECTION_POLICY or starpu_mpi_node_selection_set_current_policy())
             <li>The argument ::STARPU_EXECUTE_ON_NODE followed by an integer can be used to specify the node;
             <li>The argument ::STARPU_EXECUTE_ON_DATA followed by a data handle can be used to specify that the node owing the given data will execute the codelet.
         </ul>

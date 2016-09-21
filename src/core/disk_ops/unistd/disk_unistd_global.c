@@ -53,7 +53,7 @@
 
 /* TODO: on Linux, use io_submit */
 
-static int starpu_unistd_opened_files;
+static unsigned starpu_unistd_opened_files;
 
 #ifdef HAVE_AIO_H
 struct starpu_unistd_aiocb {
@@ -127,19 +127,11 @@ void *starpu_unistd_global_alloc(struct starpu_unistd_global_obj *obj, void *bas
 		return NULL;
 	}
 
-#ifdef STARPU_HAVE_WINDOWS
-	int val = _chsize(id, size);
-#else
-	int val = ftruncate(id,size);
-#endif
+	int val = _starpu_ftruncate(id,size);
 	/* fail */
 	if (val < 0)
 	{
-#ifdef STARPU_HAVE_WINDOWS
-		_STARPU_DISP("Could not truncate file, _chsize failed with error '%s'\n", strerror(errno));
-#else
 		_STARPU_DISP("Could not truncate file, ftruncate failed with error '%s'\n", strerror(errno));
-#endif
 		close(id);
 		unlink(baseCpy);
 		free(baseCpy);
@@ -265,14 +257,16 @@ int starpu_unistd_global_full_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj
 {
         struct starpu_unistd_global_obj *tmp = (struct starpu_unistd_global_obj *) obj;
 	int fd = tmp->descriptor;
+	int ret;
+	struct stat st;
 
 	if (fd < 0)
 		fd = _starpu_unistd_reopen(obj);
 #ifdef STARPU_HAVE_WINDOWS
 	*size = _filelength(fd);
 #else
-	struct stat st;
-	fstat(fd, &st);
+	ret = fstat(fd, &st);
+	STARPU_ASSERT(ret==0);
 
 	*size = st.st_size;
 #endif
@@ -359,11 +353,7 @@ int starpu_unistd_global_full_write(void *base STARPU_ATTRIBUTE_UNUSED, void *ob
 
 		if (fd < 0)
 			fd = _starpu_unistd_reopen(obj);
-#ifdef STARPU_HAVE_WINDOWS
-		int val = _chsize(fd, size);
-#else
-		int val = ftruncate(fd,size);
-#endif
+		int val = _starpu_ftruncate(fd,size);
 		if (tmp->descriptor < 0)
 			_starpu_unistd_reclose(fd);
 		STARPU_ASSERT(val == 0);

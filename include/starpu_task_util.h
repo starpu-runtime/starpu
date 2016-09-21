@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2015  Université de Bordeaux
- * Copyright (C) 2010-2014  CNRS
+ * Copyright (C) 2010-2014, 2016  CNRS
  * Copyright (C) 2014       INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -35,7 +35,7 @@ void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t
 /* NOTE: when adding a value here, please make sure to update both
  * src/util/starpu_task_insert_utils.c (in two places) and
  * mpi/src/starpu_mpi_task_insert.c */
-#define STARPU_MODE_SHIFT	16
+#define STARPU_MODE_SHIFT	17
 #define STARPU_VALUE		 (1<<STARPU_MODE_SHIFT)
 #define STARPU_CALLBACK		 (2<<STARPU_MODE_SHIFT)
 #define STARPU_CALLBACK_WITH_ARG (3<<STARPU_MODE_SHIFT)
@@ -59,7 +59,8 @@ void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t
 #define STARPU_WORKER_ORDER      (21<<STARPU_MODE_SHIFT)
 #define STARPU_NODE_SELECTION_POLICY (22<<STARPU_MODE_SHIFT)
 #define STARPU_NAME		 (23<<STARPU_MODE_SHIFT)
-#define STARPU_SHIFTED_MODE_MAX (24<<STARPU_MODE_SHIFT)
+#define STARPU_CL_ARGS		(24<<STARPU_MODE_SHIFT)
+#define STARPU_SHIFTED_MODE_MAX (25<<STARPU_MODE_SHIFT)
 
 struct starpu_task *starpu_task_build(struct starpu_codelet *cl, ...);
 int starpu_task_insert(struct starpu_codelet *cl, ...);
@@ -67,7 +68,7 @@ int starpu_task_insert(struct starpu_codelet *cl, ...);
 int starpu_insert_task(struct starpu_codelet *cl, ...);
 
 void starpu_codelet_unpack_args(void *cl_arg, ...);
-
+void starpu_codelet_unpack_args_and_copyleft(void *cl_arg, void *buffer, size_t buffer_size, ...);
 void starpu_codelet_pack_args(void **arg_buffer, size_t *arg_buffer_size, ...);
 
 #ifdef __cplusplus

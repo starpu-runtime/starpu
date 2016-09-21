@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2013 Corentin Salingue
- * Copyright (C) 2015 CNRS
+ * Copyright (C) 2015, 2016 CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -44,7 +44,7 @@
 #define TEMP_HIERARCHY_DEPTH 2
 
 /* ------------------- use STDIO to write on disk -------------------  */
-static int starpu_stdio_opened_files;
+static unsigned starpu_stdio_opened_files;
 
 struct starpu_stdio_obj
 {
@@ -135,19 +135,11 @@ static void *starpu_stdio_alloc(void *base, size_t size)
 	if (!baseCpy)
 		return NULL;
 
-#ifdef STARPU_HAVE_WINDOWS
-	int val = _chsize(id, size);
-#else
-	int val = ftruncate(id,size);
-#endif
+	int val = _starpu_ftruncate(id,size);
 	/* fail */
 	if (val < 0)
 	{
-#ifdef STARPU_HAVE_WINDOWS
-		_STARPU_DISP("Could not truncate file, _chsize failed with error '%s'\n", strerror(errno));
-#else
 		_STARPU_DISP("Could not truncate file, ftruncate failed with error '%s'\n", strerror(errno));
-#endif
 		close(id);
 		unlink(baseCpy);
 		free(baseCpy);
@@ -238,6 +230,7 @@ static int starpu_stdio_full_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj,
 {
 	struct starpu_stdio_obj *tmp = (struct starpu_stdio_obj *) obj;
 	FILE *f = tmp->file;
+	starpu_ssize_t ssize;
 
 	if (f)
 		STARPU_PTHREAD_MUTEX_LOCK(&tmp->mutex);
@@ -246,7 +239,9 @@ static int starpu_stdio_full_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj,
 
 	int res = fseek(f, 0, SEEK_END);
 	STARPU_ASSERT_MSG(res == 0, "Stdio write failed");
-	*size = ftell(f);
+	ssize = ftell(f);
+	STARPU_ASSERT_MSG(ssize >= 0, "Stdio write failed");
+	*size = ssize;
 
 	if (tmp->file)
 		STARPU_PTHREAD_MUTEX_UNLOCK(&tmp->mutex);
@@ -297,20 +292,14 @@ static int starpu_stdio_full_write(void *base STARPU_ATTRIBUTE_UNUSED, void *obj
 {
 	struct starpu_stdio_obj *tmp = (struct starpu_stdio_obj *) obj;
 	FILE *f = tmp->file;
-	int fd;
 
 	if (!f)
 		f = _starpu_stdio_reopen(obj);
-	fd = fileno(f);
 
 	/* update file size to realise the next good full_read */
 	if(size != tmp->size)
 	{
-#ifdef STARPU_HAVE_WINDOWS
-		int val = _chsize(fd, size);
-#else
-		int val = ftruncate(fd,size);
-#endif
+		int val = _starpu_fftruncate(f,size);
 		STARPU_ASSERT(val == 0);
 
 		tmp->size = size;

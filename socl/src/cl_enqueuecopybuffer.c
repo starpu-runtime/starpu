@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010,2011, 2014 University of Bordeaux
+ * Copyright (C) 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -26,7 +27,7 @@ static void soclEnqueueCopyBuffer_opencl_task(void *descr[], void *args) {
   event->prof_start = _socl_nanotime();
   gc_entity_release(event);
 
-   wid = starpu_worker_get_id();
+   wid = starpu_worker_get_id_check();
    starpu_opencl_get_queue(wid, &cq);
 
    cl_mem src = (cl_mem)STARPU_VARIABLE_GET_PTR(descr[0]);

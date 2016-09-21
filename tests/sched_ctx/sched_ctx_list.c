@@ -48,7 +48,7 @@ int main(int argc, char **argv)
 
 	/* Check addition to existing list */
 	ret = 1;
-	elt = _starpu_sched_ctx_elt_add(ctx_list->next, 3);
+	_starpu_sched_ctx_elt_add(ctx_list->next, 3);
 	ret &= (ctx_list->next->head->next->sched_ctx == 3);
 	ret &= (ctx_list->next->head->prev->sched_ctx == 3);
 	global &= ret;
@@ -105,7 +105,7 @@ int main(int argc, char **argv)
 
 	/* Add element before head */
 	ret = 1;
-	elt = _starpu_sched_ctx_elt_add_before(ctx_list->next, 4);
+	_starpu_sched_ctx_elt_add_before(ctx_list->next, 4);
 	ret &= (ctx_list->next->head->prev->sched_ctx == 4);
 	ret &= (ctx_list->next->head->next->next->sched_ctx == 4);
 	global &= ret;

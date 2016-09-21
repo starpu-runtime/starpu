@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2014  Université de Bordeaux
+ * Copyright (C) 2010-2014, 2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -20,6 +20,11 @@
 #include <starpu.h>
 #include "../helper.h"
 #include <common/thread.h>
+
+/*
+ * Run one task with regenerate=1, and thus completes several times
+ * before we reset regenerate to 0 in the callback
+ */
 
 #ifdef STARPU_QUICK_CHECK
 static unsigned ntasks = 64;
@@ -120,6 +125,9 @@ int main(int argc, char **argv)
 
 	FPRINTF(stderr, "Total: %f secs\n", timing/1000000);
 	FPRINTF(stderr, "Per task: %f usecs\n", timing/ntasks);
+
+	starpu_task_wait_for_all();
+	starpu_task_clean(&task);
 
 	starpu_shutdown();
 

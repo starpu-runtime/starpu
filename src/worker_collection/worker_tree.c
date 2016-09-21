@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013  Université de Bordeaux
- * Copyright (C) 2012-2014  CNRS
+ * Copyright (C) 2013, 2016  Université de Bordeaux
+ * Copyright (C) 2012-2014, 2016  CNRS
  * Copyright (C) 2011-2013  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -38,8 +38,8 @@ static unsigned tree_has_next_unblocked_worker(struct starpu_worker_collection *
 		return 0;
 	}
 	int id = -1;
-	int workerids[STARPU_NMAXWORKERS];
-	int nworkers = starpu_worker_get_workerids(neighbour->id, workerids);
+	int *workerids;
+	int nworkers = starpu_bindid_get_workerids(neighbour->id, &workerids);
 	int w;
 	for(w = 0; w < nworkers; w++)
 	{
@@ -49,6 +49,7 @@ static unsigned tree_has_next_unblocked_worker(struct starpu_worker_collection *
 			{	
 				id = workerids[w];
 				it->possible_value = neighbour;
+				break;
 			}
 			else
 			{
@@ -82,8 +83,8 @@ static int tree_get_next_unblocked_worker(struct starpu_worker_collection *worke
 	STARPU_ASSERT_MSG(neighbour, "no element anymore");
 
 
-	int workerids[STARPU_NMAXWORKERS];
-	int nworkers = starpu_worker_get_workerids(neighbour->id, workerids);
+	int *workerids;
+	int nworkers = starpu_bindid_get_workerids(neighbour->id, &workerids);
 	int w;
 	for(w = 0; w < nworkers; w++)
 	{
@@ -92,6 +93,7 @@ static int tree_get_next_unblocked_worker(struct starpu_worker_collection *worke
 			ret = workerids[w];
 			it->visited[workerids[w]] = 1;
 			it->value = neighbour;
+			break;
 		}
 	}
 	STARPU_ASSERT_MSG(ret != -1, "bind id not correct");
@@ -115,8 +117,8 @@ static unsigned tree_has_next_master(struct starpu_worker_collection *workers, s
 		return 0;
 	}
 	int id = -1;
-	int workerids[STARPU_NMAXWORKERS];
-	int nworkers = starpu_worker_get_workerids(neighbour->id, workerids);
+	int *workerids;
+	int nworkers = starpu_bindid_get_workerids(neighbour->id, &workerids);
 	int w;
 	for(w = 0; w < nworkers; w++)
 	{
@@ -124,6 +126,7 @@ static unsigned tree_has_next_master(struct starpu_worker_collection *workers, s
 		{
 			id = workerids[w];
 			it->possible_value = neighbour;
+			break;
 		}
 	}
 
@@ -149,8 +152,8 @@ static int tree_get_next_master(struct starpu_worker_collection *workers, struct
 	STARPU_ASSERT_MSG(neighbour, "no element anymore");
 
 
-	int workerids[STARPU_NMAXWORKERS];
-	int nworkers = starpu_worker_get_workerids(neighbour->id, workerids);
+	int *workerids;
+	int nworkers = starpu_bindid_get_workerids(neighbour->id, &workerids);
 	int w;
 	for(w = 0; w < nworkers; w++)
 	{
@@ -159,6 +162,7 @@ static int tree_get_next_master(struct starpu_worker_collection *workers, struct
 			ret = workerids[w];
 			it->visited[workerids[w]] = 1;
 			it->value = neighbour;
+			break;
 		}
 	}
 	STARPU_ASSERT_MSG(ret != -1, "bind id not correct");
@@ -188,8 +192,8 @@ static unsigned tree_has_next(struct starpu_worker_collection *workers, struct s
 		return 0;
 	}
 	int id = -1;
-	int workerids[STARPU_NMAXWORKERS];
-	int nworkers = starpu_worker_get_workerids(neighbour->id, workerids);
+	int *workerids;
+	int nworkers = starpu_bindid_get_workerids(neighbour->id, &workerids);
 	int w;
 	for(w = 0; w < nworkers; w++)
 	{
@@ -197,6 +201,7 @@ static unsigned tree_has_next(struct starpu_worker_collection *workers, struct s
 		{
 			id = workerids[w];
 			it->possible_value = neighbour;
+			break;
 		}
 	}
 
@@ -227,8 +232,8 @@ static int tree_get_next(struct starpu_worker_collection *workers, struct starpu
 	STARPU_ASSERT_MSG(neighbour, "no element anymore");
 
 
-	int workerids[STARPU_NMAXWORKERS];
-	int nworkers = starpu_worker_get_workerids(neighbour->id, workerids);
+	int *workerids;
+	int nworkers = starpu_bindid_get_workerids(neighbour->id, &workerids);
 	int w;
 	for(w = 0; w < nworkers; w++)
 	{
@@ -237,6 +242,7 @@ static int tree_get_next(struct starpu_worker_collection *workers, struct starpu
 			ret = workerids[w];
 			it->visited[workerids[w]] = 1;
 			it->value = neighbour;
+			break;
 		}
 	}
 	STARPU_ASSERT_MSG(ret != -1, "bind id not correct");
@@ -290,22 +296,27 @@ static void tree_init(struct starpu_worker_collection *workers)
 
 static void tree_deinit(struct starpu_worker_collection *workers)
 {
+	(void) workers;
 //	free(workers->workerids);
 }
 
 static void tree_init_iterator(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it)
 {
+	(void) workers;
 	it->value = NULL;
 	it->possible_value = NULL;
 	it->possibly_parallel = -1;
-	int i;
 	int nworkers = starpu_worker_get_count();
-	for(i = 0; i < nworkers; i++)
-		it->visited[i] = 0;
+	memset(&it->visited, 0, nworkers * sizeof(it->visited[0]));
 }
 
 static void tree_init_iterator_for_parallel_tasks(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it, struct starpu_task *task)
 {
+	if (_starpu_get_nsched_ctxs() <= 1)
+	{
+		tree_init_iterator(workers, it);
+		return;
+	}
 	tree_init_iterator(workers, it);
 	it->possibly_parallel = task->possibly_parallel;
 	int i;

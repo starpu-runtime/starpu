@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013  Université de Bordeaux
+ * Copyright (C) 2013, 2016  Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,6 +19,10 @@
 #include <limits.h>
 #include <unistd.h>
 #include "../helper.h"
+
+/*
+ * Check that pheft works with only GPUs
+ */
 
 void codelet_null(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {

@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
  * Copyright (C) 2011, 2012 INRIA
  * See the file version.doxy for copying conditions.
  */
@@ -9,8 +9,8 @@
 /*! \defgroup API_Data_Management Data Management
 
 \brief This section describes the data management facilities provided
-by StarPU. We show how to use existing data interfaces in \ref
-API_Data_Interfaces, but developers can design their own data interfaces if
+by StarPU. We show how to use existing data interfaces in
+\ref API_Data_Interfaces, but developers can design their own data interfaces if
 required.
 
 \typedef starpu_data_handle_t
@@ -69,6 +69,13 @@ reads or non-commutative writes).
 \ingroup API_Data_Management
 used in starpu_mpi_insert_task() to specify the data has to be sent
 using a synchronous and non-blocking mode (see starpu_mpi_issend())
+\var starpu_data_access_mode::STARPU_LOCALITY
+\ingroup API_Data_Management
+used to tell the scheduler which data is the most important for the task, and
+should thus be used to try to group tasks on the same core or cache, etc. For
+now only the ws and lws schedulers take this flag into account, and only when
+rebuild with USE_LOCALITY flag defined in the
+src/sched_policies/work_stealing_policy.c source code.
 
 @name Basic Data Management API
 \ingroup API_Data_Management
@@ -101,7 +108,7 @@ data to StarPU, the specified memory node indicates where the piece of
 data initially resides (we also call this memory node the home node of
 a piece of data).
 
-\fn void starpu_data_register(starpu_data_handle_t *handleptr, unsigned home_node, void *data_interface, struct starpu_data_interface_ops *ops)
+\fn void starpu_data_register(starpu_data_handle_t *handleptr, int home_node, void *data_interface, struct starpu_data_interface_ops *ops)
 \ingroup API_Data_Management
 Register a piece of data into the handle located at the
 \p handleptr address. The \p data_interface buffer contains the initial

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2015  Université de Bordeaux
+ * Copyright (C) 2013-2016  Université de Bordeaux
  * Copyright (C) 2013  INRIA
  * Copyright (C) 2013  Simon Archipoff
  *
@@ -26,6 +26,7 @@
 #include <starpu_perfmodel.h>
 #include "helper_mct.h"
 #include <float.h>
+#include <core/sched_policy.h>
 
 #define NTASKS 5
 
@@ -127,7 +128,7 @@ static int heft_progress_one(struct starpu_sched_component *component)
 			int offset = component->nchildren * best_task;
 			int icomponent = suitable_components[offset + i];
 #ifdef STARPU_DEVEL
-#warning FIXME: take power consumption into account
+#warning FIXME: take energy consumption into account
 #endif
 			double tmp = starpu_mct_compute_fitness(d,
 						     estimated_ends_with_task[offset + icomponent],
@@ -153,6 +154,7 @@ static int heft_progress_one(struct starpu_sched_component *component)
 			return 1;
 		}
 
+		_STARPU_TASK_BREAK_ON(tasks[best_task], sched);
 		int ret = starpu_sched_component_push_task(component, best_component, tasks[best_task]);
 
 		if (ret)

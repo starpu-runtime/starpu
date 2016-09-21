@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux
+ * Copyright (C) 2010, 2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -21,6 +21,10 @@
 #include <starpu.h>
 #include "../helper.h"
 
+/*
+ * Check that starpu_task_get_current provides the proper task pointer
+ */
+
 #ifdef STARPU_QUICK_CHECK
 static unsigned ntasks = 64;
 #else
@@ -29,6 +33,9 @@ static unsigned ntasks = 65536;
 
 void check_task_func(void *descr[], void *arg)
 {
+	/* We check that the returned task is valid from the callback */
+	struct starpu_task *task = (struct starpu_task *) arg;
+	STARPU_ASSERT(task == starpu_task_get_current());
 }
 
 static void check_task_callback(void *arg)
@@ -43,7 +50,8 @@ static struct starpu_codelet dummy_cl =
 	.cuda_funcs = {check_task_func},
 	.cpu_funcs = {check_task_func},
 	.opencl_funcs = {check_task_func},
-	.cpu_funcs_name = {"check_task_func"},
+	/* starpu_task_get_current()) is not working on MIC */
+	/*.cpu_funcs_name = {"check_task_func"},*/
 	.model = NULL,
 	.nbuffers = 0
 };

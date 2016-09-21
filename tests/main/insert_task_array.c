@@ -18,6 +18,10 @@
 #include <starpu.h>
 #include "../helper.h"
 
+/*
+ * Test STARPU_DATA_ARRAY
+ */
+
 void func_cpu(void *descr[], void *_args)
 {
 	int *x0 = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
