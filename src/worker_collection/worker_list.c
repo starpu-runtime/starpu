@@ -120,7 +120,7 @@ static int list_add(struct starpu_worker_collection *workers, int worker)
 	int *workerids = (int *)workers->workerids;
 	unsigned *nworkers = &workers->nworkers;
 
-	STARPU_ASSERT(*nworkers < STARPU_NMAXWORKERS);
+	STARPU_ASSERT(*nworkers < (STARPU_NMAXWORKERS+STARPU_NMAX_COMBINEDWORKERS));
 
 	if(!_worker_belongs_to_ctx(workers, worker))
 	{
@@ -234,9 +234,9 @@ static void _init_workers(int *workerids)
 
 static void list_init(struct starpu_worker_collection *workers)
 {
-	int *workerids = (int*)malloc(STARPU_NMAXWORKERS * sizeof(int));
-	int *unblocked_workers = (int*)malloc(STARPU_NMAXWORKERS * sizeof(int));
-	int *masters = (int*)malloc(STARPU_NMAXWORKERS * sizeof(int));
+	int *workerids = (int*)malloc((STARPU_NMAXWORKERS+STARPU_NMAX_COMBINEDWORKERS) * sizeof(int));
+	int *unblocked_workers = (int*)malloc((STARPU_NMAXWORKERS+STARPU_NMAX_COMBINEDWORKERS) * sizeof(int));
+	int *masters = (int*)malloc((STARPU_NMAXWORKERS+STARPU_NMAX_COMBINEDWORKERS) * sizeof(int));
 	_init_workers(workerids);
 	_init_workers(unblocked_workers);
 	_init_workers(masters);
