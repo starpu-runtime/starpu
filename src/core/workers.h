@@ -417,6 +417,12 @@ void _starpu_driver_start(struct _starpu_worker *worker, unsigned fut_key, unsig
 /* This function initializes the current thread for the given worker */
 void _starpu_worker_start(struct _starpu_worker *worker, unsigned fut_key, unsigned sync);
 
+static inline unsigned _starpu_worker_get_count(void)
+{
+	return _starpu_config.topology.nworkers;
+}
+#define starpu_worker_get_count _starpu_worker_get_count
+
 /* The _starpu_worker structure describes all the state of a StarPU worker.
  * This function sets the pthread key which stores a pointer to this structure.
  * */
@@ -457,6 +463,7 @@ static inline struct _starpu_worker_set *_starpu_get_local_worker_set_key(void)
  * specified worker. */
 static inline struct _starpu_worker *_starpu_get_worker_struct(unsigned id)
 {
+	STARPU_ASSERT(id < starpu_worker_get_count());
 	return &_starpu_config.workers[id];
 }
 

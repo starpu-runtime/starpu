@@ -1573,7 +1573,7 @@ void starpu_shutdown(void)
 #endif
 }
 
-
+#undef starpu_worker_get_count
 unsigned starpu_worker_get_count(void)
 {
 	return _starpu_config.topology.nworkers;

@@ -450,9 +450,10 @@ static void _starpu_sched_ctx_create_hwloc_tree(struct _starpu_sched_ctx *sched_
 	workers->init_iterator(workers, &it);
 	while(workers->has_next(workers, &it))
 	{
-		worker = _starpu_get_worker_struct(workers->get_next(workers, &it));
-		if(!starpu_worker_is_combined_worker(worker->workerid))
+		unsigned workerid = workers->get_next(workers, &it);
+		if(!starpu_worker_is_combined_worker(workerid))
 		{
+			worker = _starpu_get_worker_struct(workerid);
 			hwloc_bitmap_or(sched_ctx->hwloc_workers_set,
 					sched_ctx->hwloc_workers_set,
 					worker->hwloc_cpu_set);
