@@ -1110,6 +1110,25 @@ fi
 
 ###############################################################################
 #                                                                             #
+#			 Multiple linear regression			      #
+#                                                                             #
+###############################################################################
+AC_ARG_ENABLE(mlr_model, [AS_HELP_STRING([--enable-mlr-model],
+			[Enable multiple linear regression models])],
+			enable_mlr_model=$enableval, enable_mlr_model=no)
+if test x$enable_mlr_model = xyes ; then
+        MLR_MODEL_CFLAGS="-I/home/stanisic/Work/min-dgels/src/additional"			
+   	if test -n "$MLR_MODEL_CFLAGS" ; then
+	   	CFLAGS="$MLR_MODEL_CFLAGS $CFLAGS"
+	   	CXXFLAGS="$MLR_MODEL_CFLAGS $CXXFLAGS"
+	   	NVCCFLAGS="$MLR_MODEL_CFLAGS $NVCCFLAGS"
+	fi
+	LDFLAGS="-Wl,--start-group /home/stanisic/Work/min-dgels/src/build/*.a -Wl,--end-group $LDFLAGS"	
+fi
+AM_CONDITIONAL(MLR_MODEL, test x$enable_mlr_model = xyes)
+
+###############################################################################
+#                                                                             #
 #                                 MIC settings                                #
 #                                                                             #
 ###############################################################################
