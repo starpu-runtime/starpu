@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013  Université de Bordeaux
+ * Copyright (C) 2013, 2016  Université de Bordeaux
  * Copyright (C) 2012-2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011-2013  INRIA
  *
@@ -61,7 +61,7 @@ static int list_add(struct starpu_worker_collection *workers, int worker)
 	int *workerids = (int *)workers->workerids;
 	unsigned *nworkers = &workers->nworkers;
 
-	STARPU_ASSERT(*nworkers < STARPU_NMAXWORKERS - 1);
+	STARPU_ASSERT(*nworkers < (STARPU_NMAXWORKERS+STARPU_NMAX_COMBINEDWORKERS));
 
 	if(!_worker_belongs_to_ctx(workers, worker))
 	{
@@ -131,14 +131,14 @@ static int list_remove(struct starpu_worker_collection *workers, int worker)
 static void _init_workers(int *workerids)
 {
 	unsigned i;
-	for(i = 0; i < STARPU_NMAXWORKERS; i++)
+	for(i = 0; i < STARPU_NMAXWORKERS + STARPU_NMAX_COMBINEDWORKERS; i++)
 		workerids[i] = -1;
 	return;
 }
 
 static void list_init(struct starpu_worker_collection *workers)
 {
-	int *workerids = (int*)malloc(STARPU_NMAXWORKERS * sizeof(int));
+	int *workerids = (int*)malloc((STARPU_NMAXWORKERS+STARPU_NMAX_COMBINEDWORKERS) * sizeof(int));
 	_init_workers(workerids);
 
 	workers->workerids = (void*)workerids;
