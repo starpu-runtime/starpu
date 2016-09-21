@@ -32,7 +32,10 @@ directly on the Phi without any exchange with the host CPU. The binaries in
 For MPI support, you will probably have to specify different MPI compiler path
 or option for the host and the device builds, for instance:
 
-<c>./mic-configure --with-mic-param=--with-mpicc="/.../mpiicc -mmic" --with-mic-param=--with-mpicc=/.../mpiicc</c>
+\verbatim
+./mic-configure --with-mic-param=--with-mpicc="/.../mpiicc -mmic" \
+    --with-host-param=--with-mpicc=/.../mpiicc
+\endverbatim
 
 In case you have troubles with the coi or scif libraries (the Intel paths are
 really not standard, it seems...), you can still make a build in native mode
@@ -43,7 +46,17 @@ only, by using <c>mic-configure --enable-native-mic</c> (and notably without
 
 The simplest way to port an application to MIC Xeon Phi or SCC is to set the field
 starpu_codelet::cpu_funcs_name, to provide StarPU with the function
-name of the CPU implementation. StarPU will thus simply use the
+name of the CPU implementation, so for instance:
+
+\verbatim
+struct starpu_codelet cl = {
+    .cpu_funcs = {myfunc},
+    .cpu_funcs_name = {"myfunc"},
+    .nbuffers = 1,
+}
+\endverbatim
+
+StarPU will thus simply use the
 existing CPU implementation (cross-rebuilt in the MIC Xeon Phi case). The
 functions have to be globally-visible (i.e. not <c>static</c>) for
 StarPU to be able to look them up, and -rdynamic must be passed to gcc (or
