@@ -19,18 +19,11 @@
 
 #include <core/perfmodel/multiple_regression.h>
 
-#ifdef TESTGSL
-#include <gsl/gsl_matrix.h>
-#include <gsl/gsl_math.h>
-#include <gsl/gsl_multifit.h>
-#endif //TESTGSL
-
-#ifdef DGELS
 typedef long int integer;
 typedef double doublereal;
 
 int dgels_(char *trans, integer *m, integer *n, integer *nrhs, doublereal *a, integer *lda, doublereal *b, integer *ldb, doublereal *work, integer *lwork, integer *info);
-#endif //DGELS
+
 
 static long count_file_lines(FILE *f)
 {
@@ -100,45 +93,6 @@ static long find_long_list_size(struct starpu_perfmodel_history_list *list_histo
 	return cnt;
 }
 
-#ifdef TESTGSL
-void gsl_multiple_reg_coeff(double *mpar, double *my, long n, unsigned ncoeff, unsigned nparameters, double *coeff, unsigned **combinations)
-{
-	double coefficient;
-	gsl_matrix *X = gsl_matrix_calloc(n, ncoeff);
-	gsl_vector *Y = gsl_vector_alloc(n);
-	gsl_vector *beta = gsl_vector_alloc(ncoeff);
-
-	for (int i = 0; i < n; i++) {
-		gsl_vector_set(Y, i, my[i]);
-		gsl_matrix_set(X, i, 0, 1.);
-		for (int j = 1; j < ncoeff; j++)
-		{
-			coefficient = 1.;
-			for(int k=0; k < nparameters; k++)
-			{
-				coefficient *= pow(mpar[i*nparameters+k],combinations[j-1][k]);
-			}
-			gsl_matrix_set(X, i, j, coefficient);
-		}
-	}
-
-	double chisq;
-	gsl_matrix *cov = gsl_matrix_alloc(ncoeff, ncoeff);
-	gsl_multifit_linear_workspace * wspc = gsl_multifit_linear_alloc(n, ncoeff);
-	gsl_multifit_linear(X, Y, beta, cov, &chisq, wspc);
-
-	for(int i=0; i<ncoeff; i++)
-		coeff[i] = gsl_vector_get(beta, i);
-
-	gsl_matrix_free(X);
-	gsl_matrix_free(cov);
-	gsl_vector_free(Y);
-	gsl_vector_free(beta);
-	gsl_multifit_linear_free(wspc);
-}
-#endif //TESTGSL
-
-#ifdef DGELS
 int dgels_multiple_reg_coeff(double *mpar, double *my, long nn, unsigned ncoeff, unsigned nparameters, double *coeff, unsigned **combinations)
 {	
  /*  Arguments */
@@ -272,8 +226,6 @@ int dgels_multiple_reg_coeff(double *mpar, double *my, long nn, unsigned ncoeff,
 
 	return 0;
 }
-#endif //DGELS
-
 
 /*
    Validating the accuracy of the coefficients.
@@ -332,14 +284,8 @@ int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, doubl
 	dump_multiple_regression_list(mpar, my, old_lines, nparameters, ptr);
 	
 	/* Computing coefficients using multiple linear regression */
-#ifdef DGELS
 	if(dgels_multiple_reg_coeff(mpar, my, n, ncoeff, nparameters, coeff, combinations))
 		return 1;
-#elif TESTGSL
-	gsl_multiple_reg_coeff(mpar, my, n, ncoeff, nparameters, coeff, combinations);	
-#else
-	return 1;
-#endif
 
 	/* Basic validation of the model accuracy */
 	validate(coeff, ncoeff);
