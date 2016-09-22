@@ -50,7 +50,7 @@
 #endif
 
 #define SIZE	(32*1024*1024*sizeof(char))
-#define NITER	128
+#define NITER	32
 
 #ifndef STARPU_SIMGRID
 static void _starpu_bus_force_sampling(void);
