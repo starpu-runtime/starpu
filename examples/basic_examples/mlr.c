@@ -18,107 +18,102 @@
 /*
  * This examples demonstrates how to construct and submit a task to StarPU and
  * more precisely:
- *  - how to allocate a new task structure (starpu_task_create)
- *  - how to describe a multi-versionned computational kernel (ie. a codelet) 
- *  - how to pass an argument to the codelet (task->cl_arg)
+ *  - how to...
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdint.h>
 #include <starpu.h>
 
-#define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
+int sum;
 
-/* When the task is done, task->callback_func(task->callback_arg) is called. Any
- * callback function must have the prototype void (*)(void *).
- * NB: Callback are NOT allowed to perform potentially blocking operations */
-void callback_func(void *callback_arg)
-{       
-}
-
-/* Every implementation of a codelet must have this prototype, the first
- * argument (buffers) describes the buffers/streams that are managed by the
- * DSM; the second arguments references read-only data that is passed as an
- * argument of the codelet (task->cl_arg). Here, "buffers" is unused as there
- * are no data input/output managed by the DSM (cl.nbuffers = 0) */
-struct params
+void cl_perf_func(struct starpu_task *task, double *parameters)
 {
-	int m;
-	int n;
-	int k;
-};
+	starpu_codelet_unpack_args(task->cl_arg,
+			     	  &parameters[0],
+     			     	  &parameters[1],
+     			     	  &parameters[2]);
+}
 
 void cpu_func(void *buffers[], void *cl_arg)
 {
-	struct params *params = (struct params *) cl_arg;
+	double m,n,k;
+	starpu_codelet_unpack_args(cl_arg,
+			     	  &m,
+     			     	  &n,
+     			     	  &k);
+	
+	for(int i=0; i < (int) (m*m*n); i++)
+		sum+=i;
 
-	for(int i=0; i< params->m * params->m * params->n; i++)
-		printf("**i");
-
-	for(int i=0; i< params->n * params->n * params->k; i++)
-		printf("*i");
+	for(int i=0; i < (int) (n*n*n*k); i++)
+		sum+=i;
 }
 
 int main(int argc, char **argv)
 {
 	struct starpu_codelet cl;
-	struct starpu_task *task;
-	struct params params = {1, 2, 3};
-	int ret;
+	starpu_init(NULL);
 
-	/* initialize StarPU : passing a NULL argument means that we use
- 	* default configuration for the scheduling policies and the number of
-	* processors/accelerators */
-	ret = starpu_init(NULL);
-	if (ret == -ENODEV)
-		return 77;
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-
-	/* create a new task that is non-blocking by default : the task is not
-	 * submitted to the scheduler until the starpu_task_submit function is
-	 * called */
-	task = starpu_task_create();
-
-	starpu_codelet_init(&cl);
-	/* this codelet may only be executed on a CPU, and its cpu
- 	 * implementation is function "cpu_func" */
+	memset(&cl, 0, sizeof(cl));	
 	cl.cpu_funcs[0] = cpu_func;
-	cl.cpu_funcs_name[0] = "test_codelet";
-	/* the codelet does not manipulate any data that is managed
-	 * by our DSM */
+	cl.cpu_funcs_name[0] = "mlr_codelet";
 	cl.nbuffers = 0;
-	cl.name="test";
+	cl.name="test_mlr";
 
-	/* the task uses codelet "cl" */
-	task->cl = &cl;
+	/* ############################################ */
+	/* Defining perfmodel, #parameters and their names  */
+	struct starpu_perfmodel *model = calloc(1,sizeof(struct starpu_perfmodel));
+	cl.model = model;
+	cl.model->type = STARPU_MULTIPLE_REGRESSION_BASED;
+	cl.model->symbol = cl.name;
+	cl.model->parameters = cl_perf_func;
+	cl.model->nparameters = 3;
+	cl.model->parameters_names = (const char **) calloc(1, cl.model->nparameters*sizeof(char *));
+	cl.model->parameters_names[0] = "M";
+	cl.model->parameters_names[1] = "N";
+	cl.model->parameters_names[2] = "K";
+	
+	cl.model->ncombinations = 2;
+	cl.model->combinations = (unsigned **) malloc(cl.model->ncombinations*sizeof(unsigned *));
 
-	/* It is possible to pass buffers that are not managed by the DSM to the
- 	 * kernels: the second argument of the "cpu_func" function is a pointer to a
-	 * buffer that contains information for the codelet (cl_arg stands for
-	 * codelet argument). In the case of accelerators, it is possible that
-	 * the codelet is given a pointer to a copy of that buffer: this buffer
-	 * is read-only so that any modification is not passed to other copies
-	 * of the buffer.  For this reason, a buffer passed as a codelet
-	 * argument (cl_arg) is NOT a valid synchronization medium! */
-	task->cl_arg = &params;
-	task->cl_arg_size = sizeof(params);
+	if (cl.model->combinations)
+	{
+		for (unsigned i = 0; i < cl.model->ncombinations; i++)
+		{
+			cl.model->combinations[i] = (unsigned *) 	malloc(cl.model->nparameters*sizeof(unsigned));
+		}
+	}
 
-	/* submit the task to StarPU */
-	ret = starpu_task_submit(task);
-	if (ret == -ENODEV) goto enodev;
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	cl.model->combinations[0][0] = 2;
+	cl.model->combinations[0][1] = 1;
+	cl.model->combinations[0][2] = 0;
 
-	/* terminate StarPU: statistics and other debug outputs are not
-	 * guaranteed to be generated unless this function is called. Once it
-	 * is called, it is not possible to submit tasks anymore, and the user
-	 * is responsible for making sure all tasks have already been executed:
-	 * calling starpu_shutdown() before the termination of all the tasks
-	 * results in an undefined behaviour */
+	cl.model->combinations[1][0] = 0;
+	cl.model->combinations[1][1] = 3;
+	cl.model->combinations[1][2] = 1;
+	/* ############################################ */
+	
+	sum=0;
+	
+	double *parameters = (double*) calloc(1,cl.model->nparameters*sizeof(double));	
+	
+	for(int i=0; i < 42; i++)
+	{
+		parameters[0] = (double) ((rand() % 10)+1);
+		parameters[1] = (double) ((rand() % 10)+1);
+		parameters[2] = (double) ((rand() % 10)+1);
+
+		for(int j=0; j < 42; j++)
+			starpu_insert_task(&cl,
+				   STARPU_VALUE, &parameters[0], sizeof(double),
+				   STARPU_VALUE, &parameters[1], sizeof(double),
+				   STARPU_VALUE, &parameters[2], sizeof(double),
+				   0);
+	}
+			  
 	starpu_shutdown();
 
 	return 0;
-
-enodev:
-	starpu_shutdown();
-	return 77;
 }
