@@ -16,9 +16,21 @@
  */
 
 /*
- * This examples demonstrates how to construct and submit a task to StarPU and
- * more precisely:
- *  - how to...
+ * This examples demonstrates how to use multiple linear regression models.
+
+   The duration of the task test_mlr will
+   be computed using the following equation:
+
+   T = a + b * (M^2*N) + c * (N^3*K)
+
+   where M, N, K are the parameters of the task,
+   exponents are coming from cl.model->combinations[..][..] 
+   and finally a, b, c are coefficients
+   which mostly depend on the machine speed. 
+   
+   These coefficients are going to be automatically computed	
+   using least square method.
+
  */
 
 #include <stdio.h>
@@ -28,6 +40,7 @@
 
 int sum;
 
+/* Performance function of the task, which is in this case very simple, as the parameter values just need to be written in the array "parameters" */
 void cl_perf_func(struct starpu_task *task, double *parameters)
 {
 	starpu_codelet_unpack_args(task->cl_arg,
@@ -36,6 +49,7 @@ void cl_perf_func(struct starpu_task *task, double *parameters)
      			     	  &parameters[2]);
 }
 
+/* Function of the task that will be executed. In this case running dummy cycles, just to make sure task duration is significant */
 void cpu_func(void *buffers[], void *cl_arg)
 {
 	double m,n,k;
@@ -56,6 +70,7 @@ int main(int argc, char **argv)
 	struct starpu_codelet cl;
 	starpu_init(NULL);
 
+	/* Allocating and naming codelet, similar to any other StarPU program */
 	memset(&cl, 0, sizeof(cl));	
 	cl.cpu_funcs[0] = cpu_func;
 	cl.cpu_funcs_name[0] = "mlr_codelet";
@@ -63,7 +78,9 @@ int main(int argc, char **argv)
 	cl.name="test_mlr";
 
 	/* ############################################ */
-	/* Defining perfmodel, #parameters and their names  */
+	/* Start of the part specific to multiple linear regression perfmodels */
+	
+	/* Defining perfmodel, number of parameters and their names  */
 	struct starpu_perfmodel *model = calloc(1,sizeof(struct starpu_perfmodel));
 	cl.model = model;
 	cl.model->type = STARPU_MULTIPLE_REGRESSION_BASED;
@@ -74,7 +91,10 @@ int main(int argc, char **argv)
 	cl.model->parameters_names[0] = "M";
 	cl.model->parameters_names[1] = "N";
 	cl.model->parameters_names[2] = "K";
-	
+
+	/* Defining the equation for modeling duration of the task */
+	/* Refer to the explanation and equation on the top of this file
+	   to get more detailed explanation */
 	cl.model->ncombinations = 2;
 	cl.model->combinations = (unsigned **) malloc(cl.model->ncombinations*sizeof(unsigned *));
 
@@ -93,23 +113,25 @@ int main(int argc, char **argv)
 	cl.model->combinations[1][0] = 0;
 	cl.model->combinations[1][1] = 3;
 	cl.model->combinations[1][2] = 1;
+
+	/* End of the part specific to multiple linear regression perfmodels */
 	/* ############################################ */
 	
 	sum=0;
-	
-	double *parameters = (double*) calloc(1,cl.model->nparameters*sizeof(double));	
-	
+	double m,n,k;
+
+        /* Giving pseudo-random values to the M,N,K parameters and inserting tasks */
 	for(int i=0; i < 42; i++)
 	{
-		parameters[0] = (double) ((rand() % 10)+1);
-		parameters[1] = (double) ((rand() % 10)+1);
-		parameters[2] = (double) ((rand() % 10)+1);
-
+		m = (double) ((rand() % 10)+1);
+		n = (double) ((rand() % 10)+1);
+		k = (double) ((rand() % 10)+1);
+		
 		for(int j=0; j < 42; j++)
 			starpu_insert_task(&cl,
-				   STARPU_VALUE, &parameters[0], sizeof(double),
-				   STARPU_VALUE, &parameters[1], sizeof(double),
-				   STARPU_VALUE, &parameters[2], sizeof(double),
+				   STARPU_VALUE, &m, sizeof(double),
+				   STARPU_VALUE, &n, sizeof(double),
+				   STARPU_VALUE, &k, sizeof(double),
 				   0);
 	}
 			  
