@@ -584,20 +584,9 @@ void _starpu_driver_start(struct _starpu_worker *worker, unsigned fut_key, unsig
 	int devid = worker->devid;
 	(void) devid;
 
-#if defined(STARPU_PERF_DEBUG) && !defined(STARPU_SIMGRID)
-	setitimer(ITIMER_PROF, &prof_itimer, NULL);
-#endif
-
 #ifdef STARPU_USE_FXT
 	_starpu_fxt_register_thread(worker->bindid);
 	_starpu_worker_start(worker, fut_key, sync);
-#endif
-
-	_starpu_bind_thread_on_cpu(worker->config, worker->bindid, worker->workerid);
-
-        _STARPU_DEBUG("worker %p %d for dev %d is ready on logical cpu %d\n", worker, worker->workerid, devid, worker->bindid);
-#ifdef STARPU_HAVE_HWLOC
-	_STARPU_DEBUG("worker %p %d cpuset start at %d\n", worker, worker->workerid, hwloc_bitmap_first(worker->hwloc_cpu_set));
 #endif
 
 	_starpu_memory_node_set_local_key(&worker->memory_node);
@@ -608,6 +597,17 @@ void _starpu_driver_start(struct _starpu_worker *worker, unsigned fut_key, unsig
 	worker->worker_is_running = 1;
 	STARPU_PTHREAD_COND_SIGNAL(&worker->started_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&worker->mutex);
+
+	_starpu_bind_thread_on_cpu(worker->config, worker->bindid, worker->workerid);
+
+#if defined(STARPU_PERF_DEBUG) && !defined(STARPU_SIMGRID)
+	setitimer(ITIMER_PROF, &prof_itimer, NULL);
+#endif
+
+        _STARPU_DEBUG("worker %p %d for dev %d is ready on logical cpu %d\n", worker, worker->workerid, devid, worker->bindid);
+#ifdef STARPU_HAVE_HWLOC
+	_STARPU_DEBUG("worker %p %d cpuset start at %d\n", worker, worker->workerid, hwloc_bitmap_first(worker->hwloc_cpu_set));
+#endif
 }
 
 static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
