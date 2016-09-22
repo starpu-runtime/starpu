@@ -41,7 +41,11 @@
 #  endif
 #endif
 
-#define NX (1024)
+#ifdef STARPU_QUICK_CHECK
+#  define NX (128)
+#else
+#  define NX (1024)
+#endif
 
 int dotest(struct starpu_disk_ops *ops, char *base)
 {
