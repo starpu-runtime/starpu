@@ -729,13 +729,6 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 					STARPU_PTHREAD_COND_WAIT(&workerarg->started_cond, &workerarg->mutex);
 				STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
 #endif
-				STARPU_PTHREAD_MUTEX_LOCK(&worker_set->mutex);
-				while (!worker_set->set_is_initialized)
-					STARPU_PTHREAD_COND_WAIT(&worker_set->ready_cond,
-								 &worker_set->mutex);
-				STARPU_PTHREAD_MUTEX_UNLOCK(&worker_set->mutex);
-				worker_set->started = 1;
-
 				break;
 #endif
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
@@ -836,6 +829,9 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 		struct _starpu_worker *workerarg = &pconfig->workers[worker];
 		struct starpu_driver driver;
 		driver.type = workerarg->arch;
+#if defined(STARPU_USE_CUDA)
+		struct _starpu_worker_set *worker_set = workerarg->set;
+#endif
 
 		switch (workerarg->arch)
 		{
@@ -850,7 +846,17 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
 				break;
 			case STARPU_CUDA_WORKER:
-				/* Already waited above */
+				driver.id.cuda_id = devid;
+				if (!_starpu_may_launch_driver(&pconfig->conf, &driver))
+					break;
+				_STARPU_DEBUG("waiting for worker %u initialization\n", worker);
+				STARPU_PTHREAD_MUTEX_LOCK(&worker_set->mutex);
+				while (!worker_set->set_is_initialized)
+					STARPU_PTHREAD_COND_WAIT(&worker_set->ready_cond,
+								 &worker_set->mutex);
+				STARPU_PTHREAD_MUTEX_UNLOCK(&worker_set->mutex);
+				worker_set->started = 1;
+
 				break;
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 			case STARPU_OPENCL_WORKER:
