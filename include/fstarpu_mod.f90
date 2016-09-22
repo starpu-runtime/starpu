@@ -76,6 +76,7 @@ module fstarpu_mod
         ! (some) portable iso_c_binding types
         type(c_ptr), bind(C) :: FSTARPU_SZ_C_DOUBLE
         type(c_ptr), bind(C) :: FSTARPU_SZ_C_FLOAT
+        type(c_ptr), bind(C) :: FSTARPU_SZ_C_CHAR
         type(c_ptr), bind(C) :: FSTARPU_SZ_C_INT
         type(c_ptr), bind(C) :: FSTARPU_SZ_C_INTPTR_T
         type(c_ptr), bind(C) :: FSTARPU_SZ_C_PTR
@@ -2160,6 +2161,7 @@ module fstarpu_mod
 
                         real(c_double) :: FSTARPU_SZ_C_DOUBLE_dummy
                         real(c_float) :: FSTARPU_SZ_C_FLOAT_dummy
+                        integer(c_char) :: FSTARPU_SZ_C_CHAR_dummy
                         integer(c_int) :: FSTARPU_SZ_C_INT_dummy
                         integer(c_intptr_t) :: FSTARPU_SZ_C_INTPTR_T_dummy
                         type(c_ptr) :: FSTARPU_SZ_C_PTR_dummy
@@ -2263,6 +2265,7 @@ module fstarpu_mod
                         ! Initialize size constants as 'c_ptr'
                         FSTARPU_SZ_C_DOUBLE        = sz_to_p(c_sizeof(FSTARPU_SZ_C_DOUBLE_dummy))
                         FSTARPU_SZ_C_FLOAT        = sz_to_p(c_sizeof(FSTARPU_SZ_C_FLOAT_dummy))
+                        FSTARPU_SZ_C_CHAR        = sz_to_p(c_sizeof(FSTARPU_SZ_C_CHAR_dummy))
                         FSTARPU_SZ_C_INT        = sz_to_p(c_sizeof(FSTARPU_SZ_C_INT_dummy))
                         FSTARPU_SZ_C_INTPTR_T   = sz_to_p(c_sizeof(FSTARPU_SZ_C_INTPTR_T_dummy))
                         FSTARPU_SZ_C_PTR        = sz_to_p(c_sizeof(FSTARPU_SZ_C_PTR_dummy))
