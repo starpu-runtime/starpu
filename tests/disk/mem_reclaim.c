@@ -49,6 +49,9 @@
 #ifdef STARPU_QUICK_CHECK
 #  define NDATA 4
 #  define NITER 16
+#elif !defined(STARPU_LONG_CHECK)
+#  define NDATA 32
+#  define NITER 256
 #else
 #  define NDATA 128
 #  define NITER 1024
