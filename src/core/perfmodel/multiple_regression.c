@@ -25,12 +25,12 @@
 #include <gsl/gsl_multifit.h>
 #endif //TESTGSL
 
-// From additional-lapack-func
-#ifdef MIN_DGELS
-#include "mindgels.h"
-#endif //MIN_DGELS
+#ifdef DGELS
+typedef long int integer;
+typedef double doublereal;
 
-typedef struct { int h, w; double *x;} matrix_t, *matrix;
+int dgels_(char *trans, integer *m, integer *n, integer *nrhs, doublereal *a, integer *lda, doublereal *b, integer *ldb, doublereal *work, integer *lwork, integer *info);
+#endif //DGELS
 
 static long count_file_lines(FILE *f)
 {
@@ -139,7 +139,7 @@ void gsl_multiple_reg_coeff(double *mpar, double *my, long n, unsigned ncoeff, u
 #endif //TESTGSL
 
 #ifdef DGELS
-void dgels_multiple_reg_coeff(double *mpar, double *my, long nn, unsigned ncoeff, unsigned nparameters, double *coeff, unsigned **combinations)
+int dgels_multiple_reg_coeff(double *mpar, double *my, long nn, unsigned ncoeff, unsigned nparameters, double *coeff, unsigned **combinations)
 {	
  /*  Arguments */
 /*  ========= */
@@ -218,8 +218,8 @@ void dgels_multiple_reg_coeff(double *mpar, double *my, long nn, unsigned ncoeff
 
 	if(nn <= ncoeff)
 	{
-		printf("\nERROR: This function is not intended for the use when number of parameters is larger than the number of observations. Check how your matrices A and B were allocated or simply add more benchmarks.\n");
-		exit(1);
+		_STARPU_DEBUG("ERROR: This function is not intended for the use when number of parameters is larger than the number of observations. Check how your matrices A and B were allocated or simply add more benchmarks.\n");
+		return 1;
 	}
 	
 	char trans = 'N';
@@ -247,30 +247,58 @@ void dgels_multiple_reg_coeff(double *mpar, double *my, long nn, unsigned ncoeff
 
 	integer lda = m; 
 	integer ldb = m; //
-	integer info;
+	integer info = 0;
 
 	integer lwork = n*2;
 	doublereal *work = malloc(sizeof(double)*lwork); // (output)
 
-	/* // Running CLAPACK */
+	/* // Running LAPACK dgels_ */
 	dgels_(&trans, &m, &n, &nrhs, X, &lda, Y, &ldb, work, &lwork, &info);
 
 	/* Check for the full rank */
 	if( info != 0 )
 	{
-		printf( "Problems with DGELS; info=%ld\n", info);
-		exit(1);
+		_STARPU_DEBUG("Problems with DGELS; info=%ld\n", info);
+		return 1;
 	}
-	
+
+	/* Copy computed coefficients */
 	for(int i=0; i<ncoeff; i++)
 		coeff[i] = Y[i];
 
 	free(X);
 	free(Y);
 	free(work);
+	
+	return 0;
 }
 #endif //DGELS
 
+
+/*
+   Validating the accuracy of the coefficients.
+   For the the validation is extremely basic, but it should be improved.
+ */
+int invalidate(double *coeff, unsigned ncoeff)
+{
+	if (coeff[0] < 0)
+	{
+		_STARPU_DEBUG("Constant in computed by least square method is negative (%f)\n", coeff[0]);
+		return 1;
+	}
+		
+	for(int i=1; i<ncoeff; i++)
+	{
+		if(coeff[i] < 1E-10)
+		{
+			_STARPU_DEBUG("Coefficient computed by  least square method is too small (%f)\n", coeff[i]);
+			return 1;
+		}
+	}
+
+	return 0;
+}
+	
 int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, double *coeff, unsigned ncoeff, unsigned nparameters, unsigned **combinations, const char *codelet_name)
 {
 	// Computing number of rows
@@ -308,12 +336,19 @@ int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, doubl
 	dump_multiple_regression_list(mpar, my, old_lines, nparameters, ptr);
 	
 	// Computing coefficients using multiple linear regression
-#ifdef TESTGSL
-	gsl_multiple_reg_coeff(mpar, my, n, ncoeff, nparameters, coeff, combinations);
-#endif
 #ifdef DGELS
-	dgels_multiple_reg_coeff(mpar, my, n, ncoeff, nparameters, coeff, combinations);
-#endif //DGELS
+	if(dgels_multiple_reg_coeff(mpar, my, n, ncoeff, nparameters, coeff, combinations))
+		return 1;
+#elif TESTGSL
+	gsl_multiple_reg_coeff(mpar, my, n, ncoeff, nparameters, coeff, combinations);	
+#else
+	_STARPU_DEBUG("No function to compute coefficients of multiple linear regression");
+	return 1;
+#endif
+
+	// Validate the accuracy of the model
+	if(invalidate(coeff, ncoeff))
+		return 1;
 	
 	// Preparing new output calibration file
 	if (calibrate==2)

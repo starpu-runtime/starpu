@@ -1134,17 +1134,14 @@ fi
 STARPU_SEARCH_LIBS(LAPACK,[dgels_],[lapack],use_system_lapack=yes,,)
 if test x$use_system_lapack = xyes; then
         AC_DEFINE(STARPU_SYSTEM_LAPACK, [1], [use reflapack library])
+        AC_DEFINE(DGELS, [1], [enable DGELS])
 	LDFLAGS="-llapack $LDFLAGS"
 	enable_dgels=yes
 elif test x"$DGELS_LIBS" != x; then
         AC_DEFINE(MIN_DGELS, [1], [use user defined library])
+        AC_DEFINE(DGELS, [1], [enable DGELS])
 	LDFLAGS="$DGELS_LIBS $LDFLAGS"
         AC_ARG_VAR([DGELS_LIBS], [linker flags for lapack dgels])
-	if test -n "$DGELS_CFLAGS" ; then
-	   	CFLAGS="$DGELS_CFLAGS $CFLAGS"
-	   	CXXFLAGS="$DGELS_CFLAGS $CXXFLAGS"
-	   	NVCCFLAGS="$DGELS_CFLAGS $NVCCFLAGS"
-	fi
         enable_dgels=yes
 else
 	enable_dgels=no
