@@ -159,16 +159,18 @@ inline void starpu_heteroprio_set_arch_slow_factor(unsigned sched_ctx_id, enum s
 /** If the user does not provide an init callback we create a single bucket for all architectures */
 static inline void default_init_sched(unsigned sched_ctx_id)
 {
+	int min_prio = starpu_sched_ctx_get_min_priority(sched_ctx_id);
+	int max_prio = starpu_sched_ctx_get_max_priority(sched_ctx_id);
 	// By default each type of devices uses 1 bucket and no slow factor
-	starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_CPU_IDX, STARPU_MAX_PRIO-STARPU_MIN_PRIO+1);
-	starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_CUDA_IDX, STARPU_MAX_PRIO-STARPU_MIN_PRIO+1);
-	starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_OPENCL_IDX, STARPU_MAX_PRIO-STARPU_MIN_PRIO+1);
-	starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_MIC_IDX, STARPU_MAX_PRIO-STARPU_MIN_PRIO+1);
-	starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_SCC_IDX, STARPU_MAX_PRIO-STARPU_MIN_PRIO+1);
+	starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_CPU_IDX, max_prio-min_prio+1);
+	starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_CUDA_IDX, max_prio-min_prio+1);
+	starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_OPENCL_IDX, max_prio-min_prio+1);
+	starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_MIC_IDX, max_prio-min_prio+1);
+	starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_SCC_IDX, max_prio-min_prio+1);
 
 	// Direct mapping
 	int prio;
-	for(prio=STARPU_MIN_PRIO ; prio<=STARPU_MAX_PRIO ; prio++)
+	for(prio=min_prio ; prio<=max_prio ; prio++)
 	{
 		starpu_heteroprio_set_mapping(sched_ctx_id, STARPU_CPU_IDX, prio, prio);
 		starpu_heteroprio_set_mapping(sched_ctx_id, STARPU_CUDA_IDX, prio, prio);

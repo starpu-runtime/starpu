@@ -125,7 +125,7 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 	struct _starpu_priority_taskq *taskq = data->taskq;
 
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
-	unsigned priolevel = task->priority - STARPU_MIN_PRIO;
+	unsigned priolevel = task->priority - starpu_sched_ctx_get_min_priority(sched_ctx_id);
 
 	starpu_task_list_push_back(&taskq->taskq[priolevel], task);
 	taskq->ntasks[priolevel]++;
