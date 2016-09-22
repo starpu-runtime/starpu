@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2015  Université de Bordeaux
+ * Copyright (C) 2009-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2015  Centre National de la Recherche Scientifique
  * Copyright (C) 2010, 2011  Institut National de Recherche en Informatique et Automatique
  * Copyright (C) 2011  Télécom-SudParis
@@ -377,22 +377,11 @@ void _starpu_worker_start(struct _starpu_worker *worker, unsigned fut_key)
 	int devid = worker->devid;
 	(void) devid;
 
-#if defined(STARPU_PERF_DEBUG) && !defined(STARPU_SIMGRID)
-	setitimer(ITIMER_PROF, &prof_itimer, NULL);
-#endif
-
 #ifdef STARPU_USE_FXT
 	_starpu_fxt_register_thread(worker->bindid);
 
 	unsigned memnode = worker->memory_node;
 	_STARPU_TRACE_WORKER_INIT_START(fut_key, worker->workerid, devid, memnode);
-#endif
-
-	_starpu_bind_thread_on_cpu(worker->config, worker->bindid, worker->workerid);
-
-        _STARPU_DEBUG("worker %d is ready on logical cpu %d\n", devid, worker->bindid);
-#ifdef STARPU_HAVE_HWLOC
-	_STARPU_DEBUG("worker %d cpuset start at %d\n", devid, hwloc_bitmap_first(worker->initial_hwloc_cpu_set));
 #endif
 
 	_starpu_memory_node_set_local_key(&worker->memory_node);
@@ -404,6 +393,17 @@ void _starpu_worker_start(struct _starpu_worker *worker, unsigned fut_key)
 	STARPU_PTHREAD_COND_SIGNAL(&worker->started_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&worker->mutex);
 	worker->spinning_backoff = 1;
+
+	_starpu_bind_thread_on_cpu(worker->config, worker->bindid, worker->workerid);
+
+#if defined(STARPU_PERF_DEBUG) && !defined(STARPU_SIMGRID)
+	setitimer(ITIMER_PROF, &prof_itimer, NULL);
+#endif
+
+        _STARPU_DEBUG("worker %d is ready on logical cpu %d\n", devid, worker->bindid);
+#ifdef STARPU_HAVE_HWLOC
+	_STARPU_DEBUG("worker %d cpuset start at %d\n", devid, hwloc_bitmap_first(worker->initial_hwloc_cpu_set));
+#endif
 }
 
 static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
