@@ -218,7 +218,7 @@ int dgels_multiple_reg_coeff(double *mpar, double *my, long nn, unsigned ncoeff,
 
 	if(nn <= ncoeff)
 	{
-		_STARPU_DEBUG("ERROR: This function is not intended for the use when number of parameters is larger than the number of observations. Check how your matrices A and B were allocated or simply add more benchmarks.\n");
+		_STARPU_DISP("Warning: This function is not intended for the use when number of parameters is larger than the number of observations. Check how your matrices A and B were allocated or simply add more benchmarks.\n Multiple linear regression model will not be written into perfmodel file.\n");
 		return 1;
 	}
 	
@@ -258,7 +258,7 @@ int dgels_multiple_reg_coeff(double *mpar, double *my, long nn, unsigned ncoeff,
 	/* Check for the full rank */
 	if( info != 0 )
 	{
-		_STARPU_DEBUG("Problems with DGELS; info=%ld\n", info);
+		_STARPU_DISP("Warning: Problems when executing dgels_ function. It seems like the diagonal element %ld is zero.\n Multiple linear regression model will not be written into perfmodel file.\n", info);
 		return 1;
 	}
 
@@ -269,7 +269,7 @@ int dgels_multiple_reg_coeff(double *mpar, double *my, long nn, unsigned ncoeff,
 	free(X);
 	free(Y);
 	free(work);
-	
+
 	return 0;
 }
 #endif //DGELS
@@ -279,42 +279,38 @@ int dgels_multiple_reg_coeff(double *mpar, double *my, long nn, unsigned ncoeff,
    Validating the accuracy of the coefficients.
    For the the validation is extremely basic, but it should be improved.
  */
-int invalidate(double *coeff, unsigned ncoeff)
+void validate(double *coeff, unsigned ncoeff)
 {
 	if (coeff[0] < 0)
-	{
-		_STARPU_DEBUG("Constant in computed by least square method is negative (%f)\n", coeff[0]);
-		return 1;
-	}
+		_STARPU_DISP("Warning: Constant computed by least square method is negative (%f). The model is likely to be inaccurate.\n", coeff[0]);
 		
 	for(int i=1; i<ncoeff; i++)
-	{
 		if(coeff[i] < 1E-10)
-		{
-			_STARPU_DEBUG("Coefficient computed by  least square method is too small (%f)\n", coeff[i]);
-			return 1;
-		}
-	}
-
-	return 0;
+			_STARPU_DISP("Warning: Coefficient computed by least square method is extremelly small (%f). The model is likely to be inaccurate.\n", coeff[i]);
 }
 	
 int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, double *coeff, unsigned ncoeff, unsigned nparameters, unsigned **combinations, const char *codelet_name)
 {
-	// Computing number of rows
+	/* Computing number of rows */
 	long n=find_long_list_size(ptr);
 	STARPU_ASSERT(n);
 	
-        // Reading old calibrations if necessary
+        /* Reading old calibrations if necessary */
 	FILE *f;
-	char filepath[50];
-	snprintf(filepath, 50, "/tmp/%s.out", codelet_name);
+	
+	char directory[100];
+	snprintf(directory, 100, "%s/.starpu/sampling/codelets/tmp", _starpu_get_home_path());
+	_starpu_mkpath_and_check(directory, S_IRWXU);
+	
+	char filepath[100];
+	snprintf(filepath, 100, "%s/%s.out", directory,codelet_name);
+	
 	long old_lines=0;
 	int calibrate = starpu_get_env_number("STARPU_CALIBRATE");	
 	if (calibrate==1)
 	{
 		f = fopen(filepath, "a+");
-		STARPU_ASSERT_MSG(f, "Could not save performance model %s\n", filepath);
+		STARPU_ASSERT_MSG(f, "Could not save performance model into the file %s\n", filepath);
 		
 		old_lines=count_file_lines(f);
 		STARPU_ASSERT(old_lines);
@@ -322,39 +318,37 @@ int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, doubl
 		n+=old_lines;
 	}
 
-	// Allocating X and Y matrices
+	/* Allocating X and Y matrices */
 	double *mpar = (double *) malloc(nparameters*n*sizeof(double));
 	STARPU_ASSERT(mpar);
 	double *my = (double *) malloc(n*sizeof(double));
 	STARPU_ASSERT(my);
 
-	// Loading old calibration
+	/* Loading old calibration */
 	if (calibrate==1)
 		load_old_calibration(mpar, my, nparameters, f);
 
-	// Filling X and Y matrices with measured values
+	/* Filling X and Y matrices with measured values */
 	dump_multiple_regression_list(mpar, my, old_lines, nparameters, ptr);
 	
-	// Computing coefficients using multiple linear regression
+	/* Computing coefficients using multiple linear regression */
 #ifdef DGELS
 	if(dgels_multiple_reg_coeff(mpar, my, n, ncoeff, nparameters, coeff, combinations))
 		return 1;
 #elif TESTGSL
 	gsl_multiple_reg_coeff(mpar, my, n, ncoeff, nparameters, coeff, combinations);	
 #else
-	_STARPU_DEBUG("No function to compute coefficients of multiple linear regression");
 	return 1;
 #endif
 
-	// Validate the accuracy of the model
-	if(invalidate(coeff, ncoeff))
-		return 1;
+	/* Basic validation of the model accuracy */
+	validate(coeff, ncoeff);
 	
-	// Preparing new output calibration file
+	/* Preparing new output calibration file */
 	if (calibrate==2)
 	{
 		f = fopen(filepath, "w+");
-		STARPU_ASSERT_MSG(f, "Could not save performance model %s\n", filepath);
+		STARPU_ASSERT_MSG(f, "Could not save performance model into the file %s\n", filepath);
 		fprintf(f, "Duration");
 		for(int k=0; k < nparameters; k++)
 		{
@@ -362,7 +356,7 @@ int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, doubl
 		}
 	}
 	
-	// Writing parameters to calibration file
+	/* Writing parameters to calibration file */
 	if (calibrate==1 || calibrate==2)
 	{
 		for(int i=old_lines; i<n; i++)
@@ -374,7 +368,7 @@ int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, doubl
 		fclose(f);
 	}
 
-	// Cleanup
+	/* Cleanup */
 	free(mpar);
 	free(my);
 
