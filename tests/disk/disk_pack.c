@@ -40,11 +40,7 @@
 #  endif
 #endif
 
-#ifdef STARPU_QUICK_CHECK
-#  define NX (128)
-#else
-#  define NX (1024)
-#endif
+#define NX (1024)
 
 const struct starpu_data_copy_methods my_vector_copy_data_methods_s;
 struct starpu_data_interface_ops starpu_interface_my_vector_ops;
