@@ -157,15 +157,15 @@ case "$target" in
 *-*-mingw*|*-*-cygwin*)
   starpu_windows=yes
   libext=a
-  AC_DEFINE(STARPU_HAVE_WINDOWS, [], [Define this on windows.])
+  AC_DEFINE(STARPU_HAVE_WINDOWS, [1], [Define this on windows.])
   ;;
 *-*-linux*)
   starpu_linux=yes
-  AC_DEFINE(STARPU_LINUX_SYS, 1, [Define to 1 on Linux])
+  AC_DEFINE(STARPU_LINUX_SYS, [1], [Define to 1 on Linux])
   ;;
 *-*darwin*)
   starpu_darwin=yes
-  AC_DEFINE(STARPU_HAVE_DARWIN, [], [Define this on darwin.])
+  AC_DEFINE(STARPU_HAVE_DARWIN, [1], [Define this on darwin.])
   ;;
 esac
 AM_CONDITIONAL([STARPU_HAVE_WINDOWS], [test "x$starpu_windows" = "xyes"])
@@ -212,7 +212,7 @@ then
 fi
 
 AC_CHECK_TYPE([struct timespec], 
-	       AC_DEFINE(STARPU_HAVE_STRUCT_TIMESPEC,[],[struct timespec is defined]),
+	       AC_DEFINE(STARPU_HAVE_STRUCT_TIMESPEC,[1],[struct timespec is defined]),
 	       [], [
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -234,7 +234,7 @@ then
 		#include <pthread.h>
 		]],
 		[[ pthread_t t; pthread_create(&t, NULL, NULL, NULL); ]])],
-		AC_DEFINE(STARPU_NATIVE_WINTHREADS,[],[Using native windows threads]),
+		AC_DEFINE(STARPU_NATIVE_WINTHREADS,[1],[Using native windows threads]),
 		AC_MSG_ERROR([pthread_create unavailable]))
 else
     AC_CHECK_LIB([pthread], [pthread_create])
@@ -246,13 +246,13 @@ AC_CHECK_FUNCS([sysconf])
 
 AC_CHECK_FUNC([pthread_spin_lock], have_pthread_spin_lock=yes, have_pthread_spin_lock=no)
 if test x$have_pthread_spin_lock = xyes; then
-	AC_DEFINE(HAVE_PTHREAD_SPIN_LOCK,[],[pthread_spin_lock is available])
-	AC_DEFINE(STARPU_HAVE_PTHREAD_SPIN_LOCK,[],[pthread_spin_lock is available])
+	AC_DEFINE(HAVE_PTHREAD_SPIN_LOCK,[1],[pthread_spin_lock is available])
+	AC_DEFINE(STARPU_HAVE_PTHREAD_SPIN_LOCK,[1],[pthread_spin_lock is available])
 fi
 
 AC_CHECK_FUNC([pthread_barrier_init], have_pthread_barrier=yes, have_pthread_barrier=no)
 if test x$have_pthread_barrier = xyes; then
-	AC_DEFINE(STARPU_HAVE_PTHREAD_BARRIER,[],[pthread_barrier is available])
+	AC_DEFINE(STARPU_HAVE_PTHREAD_BARRIER,[1],[pthread_barrier is available])
 fi
 
 # yes, that's non portable, but it's still better than sched_setaffinity
@@ -364,7 +364,7 @@ STARPU_SEARCH_LIBS([LIBNUMA],[set_mempolicy],[numa],[enable_libnuma=yes],[enable
 AC_MSG_CHECKING(whether libnuma is available)
 AC_MSG_RESULT($enable_libnuma)
 if test x$enable_libnuma = xyes; then
-	AC_DEFINE(STARPU_HAVE_LIBNUMA,[],[libnuma is available])
+	AC_DEFINE(STARPU_HAVE_LIBNUMA,[1],[libnuma is available])
 fi
 
 ###############################################################################
@@ -741,7 +741,7 @@ if test x$enable_cuda_memcpy_peer = xyes -a x$enable_cuda = xyes ; then
     LDFLAGS="${SAVED_LDFLAGS}"
 fi
 if test x$have_cuda_memcpy_peer = xyes; then
-    AC_DEFINE(HAVE_CUDA_MEMCPY_PEER,[],[Peer transfers are supported in CUDA])
+    AC_DEFINE(HAVE_CUDA_MEMCPY_PEER,[1],[Peer transfers are supported in CUDA])
 fi
 
 if test x$enable_cuda = xyes; then
@@ -1013,7 +1013,7 @@ AC_ARG_ENABLE(opencl-simulator, [AS_HELP_STRING([--enable-opencl-simulator],
 				enable_opencl_simulator=$enableval, enable_opencl_simulator=no)
 if test x$enable_opencl_simulator = xyes; then
 	enable_simgrid=yes
-	AC_DEFINE(STARPU_OPENCL_SIMULATOR, 1, [Define this to enable using an OpenCL simulator])
+	AC_DEFINE(STARPU_OPENCL_SIMULATOR, [1], [Define this to enable using an OpenCL simulator])
 fi
 
 AC_ARG_WITH(simgrid-dir,
@@ -1093,7 +1093,7 @@ if test x$enable_simgrid = xyes ; then
 	                 [
 			   AC_MSG_ERROR(StarPU needs a version of Simgrid which defines the type msg_host_t (should be any version >= 3.8.1))
 		         ])
-	AC_DEFINE(STARPU_SIMGRID, 1, [Define this to enable simgrid execution])
+	AC_DEFINE(STARPU_SIMGRID, [1], [Define this to enable simgrid execution])
 	# We won't bind or detect anything
 	with_hwloc=no
 
@@ -1958,7 +1958,7 @@ AC_MSG_RESULT($use_mpi)
 AC_SUBST(USE_MPI, $use_mpi)
 AM_CONDITIONAL(USE_MPI, test x$use_mpi = xyes)
 if test x$use_mpi = xyes; then
-	AC_DEFINE(STARPU_USE_MPI,[],[whether the StarPU MPI library is available])
+	AC_DEFINE(STARPU_USE_MPI,[1],[whether the StarPU MPI library is available])
 else
 	running_mpi_check=no
 fi
@@ -2139,7 +2139,7 @@ if test "x$FC" != "x"; then
 		fi
 	fi
 	if test "x$enable_build_fortran" = "xyes" ; then
-		AC_DEFINE(STARPU_HAVE_FC, [], [Define this if a Fortran compiler is available])
+		AC_DEFINE(STARPU_HAVE_FC, [1], [Define this if a Fortran compiler is available])
 		if test x$use_mpi = xyes; then
 			AC_ARG_WITH(mpifort, [AS_HELP_STRING([--with-mpifort[=<path to mpifort>]],
 				    [Path of the mpifort compiler])],
@@ -2178,7 +2178,7 @@ if test "x$FC" != "x"; then
 						)
 				CC=$OLD_CC
 				if test "x$use_mpi_fort" = xyes; then
-					AC_DEFINE([HAVE_MPI_COMM_F2C], 1, [Function MPI_Comm_f2c is available])
+					AC_DEFINE([HAVE_MPI_COMM_F2C], [1], [Function MPI_Comm_f2c is available])
 					AC_MSG_CHECKING(mpifort path)
 					AC_MSG_RESULT($mpifort_path)
 					AC_SUBST(MPIFORT, $mpifort_path)
@@ -2281,7 +2281,7 @@ AC_ARG_ENABLE(openmp, [AS_HELP_STRING([--enable-openmp],
 AC_MSG_CHECKING(for OpenMP runtime support)
 
 if test x$enable_openmp = xyes; then
-	AC_DEFINE(STARPU_OPENMP, 1, [Define this to enable OpenMP runtime support])
+	AC_DEFINE(STARPU_OPENMP, [1], [Define this to enable OpenMP runtime support])
 fi
 
 AM_CONDITIONAL([STARPU_OPENMP], [test "x$enable_openmp" = "xyes"])
@@ -2675,7 +2675,7 @@ if test "x$ICC" != "x" -a "$starpu_windows" = "yes" ; then
     ICC=""
 fi
 if test "x$ICC" != "x"; then
-  AC_DEFINE(STARPU_HAVE_ICC, [], [Define this if icc is available])
+  AC_DEFINE(STARPU_HAVE_ICC, [1], [Define this if icc is available])
 fi
 AM_CONDITIONAL([STARPU_HAVE_ICC], [test "x$ICC" != "x"])
 
