@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -804,41 +804,41 @@ do {										\
 
 #define _STARPU_TRACE_LOCKING_SPINLOCK(file, line)	do {\
 	if (STARPU_TRACE_SPINLOCK_CONDITITION) { \
-		const char *file; \
-		file = strrchr(file,'/') + 1; \
-		_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_LOCKING_SPINLOCK,line,_starpu_gettid(file, line),file); \
+		const char *xfile; \
+		xfile = strrchr(file,'/') + 1; \
+		_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_LOCKING_SPINLOCK,line,_starpu_gettid(),xfile); \
 	} \
 } while(0)
 
 #define _STARPU_TRACE_SPINLOCK_LOCKED(file, line)		do { \
 	if (STARPU_TRACE_SPINLOCK_CONDITITION) { \
-		const char *file; \
-		file = strrchr(file,'/') + 1; \
-		_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_SPINLOCK_LOCKED,line,_starpu_gettid(file, line),file); \
+		const char *xfile; \
+		xfile = strrchr(file,'/') + 1; \
+		_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_SPINLOCK_LOCKED,line,_starpu_gettid(),xfile); \
 	} \
 } while(0)
 
 #define _STARPU_TRACE_UNLOCKING_SPINLOCK(file, line)	do { \
 	if (STARPU_TRACE_SPINLOCK_CONDITITION) { \
-		const char *file; \
-		file = strrchr(file,'/') + 1; \
-		_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_UNLOCKING_SPINLOCK,line,_starpu_gettid(file, line),file); \
+		const char *xfile; \
+		xfile = strrchr(file,'/') + 1; \
+		_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_UNLOCKING_SPINLOCK,line,_starpu_gettid(),xfile); \
 	} \
 } while(0)
 
 #define _STARPU_TRACE_SPINLOCK_UNLOCKED(file, line)	do { \
 	if (STARPU_TRACE_SPINLOCK_CONDITITION) { \
-		const char *file; \
-		file = strrchr(file,'/') + 1; \
-		_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_SPINLOCK_UNLOCKED,line,_starpu_gettid(file, line),file); \
+		const char *xfile; \
+		xfile = strrchr(file,'/') + 1; \
+		_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_SPINLOCK_UNLOCKED,line,_starpu_gettid(),xfile); \
 	} \
 } while(0)
 
 #define _STARPU_TRACE_TRYLOCK_SPINLOCK(file, line)	do { \
 	if (STARPU_TRACE_SPINLOCK_CONDITITION) { \
-		const char *file; \
-		file = strrchr(file,'/') + 1; \
-		_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_TRYLOCK_SPINLOCK,line,_starpu_gettid(file, line),file); \
+		const char *xfile; \
+		xfile = strrchr(file,'/') + 1; \
+		_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_TRYLOCK_SPINLOCK,line,_starpu_gettid(),xfile); \
 	} \
 } while(0)
 
