@@ -2165,7 +2165,7 @@ module fstarpu_mod
 
                         real(c_double) :: FSTARPU_SZ_C_DOUBLE_dummy
                         real(c_float) :: FSTARPU_SZ_C_FLOAT_dummy
-                        integer(c_char) :: FSTARPU_SZ_C_CHAR_dummy
+                        character(c_char) :: FSTARPU_SZ_C_CHAR_dummy
                         integer(c_int) :: FSTARPU_SZ_C_INT_dummy
                         integer(c_intptr_t) :: FSTARPU_SZ_C_INTPTR_T_dummy
                         type(c_ptr) :: FSTARPU_SZ_C_PTR_dummy
