@@ -22,6 +22,10 @@ New features:
   * New scheduler with heterogeneous priorities
   * Support priorities for data transfers.
 
+Small features:
+  * Scheduling contexts may now be associated a user data pointer at creation
+    time, that can later be recalled through starpu_sched_ctx_get_user_data().
+
 Changes:
   * Vastly improve simgrid simulation time.
 
