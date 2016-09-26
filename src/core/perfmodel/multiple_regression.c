@@ -22,8 +22,9 @@
 typedef long int integer;
 typedef double doublereal;
 
+#ifdef STARPU_MLR_MODEL
 int dgels_(char *trans, integer *m, integer *n, integer *nrhs, doublereal *a, integer *lda, doublereal *b, integer *ldb, doublereal *work, integer *lwork, integer *info);
-
+#endif //STARPU_MLR_MODEL
 
 static long count_file_lines(FILE *f)
 {
@@ -56,11 +57,15 @@ static void dump_multiple_regression_list(double *mpar, double *my, int start, u
 
 }
 
-static void load_old_calibration(double *mx, double *my, unsigned nparameters, FILE *f)
+static void load_old_calibration(double *mx, double *my, unsigned nparameters, char *filepath)
 {
 	char buffer[1024];
 	char *record,*line;
 	int i=0,j=0;
+
+	FILE *f=NULL;
+	f = fopen(filepath, "a+");
+	STARPU_ASSERT_MSG(f, "Could not save performance model into the file %s\n", filepath);
 
 	line=fgets(buffer,sizeof(buffer),f);//skipping first line
 	while((line=fgets(buffer,sizeof(buffer),f))!=NULL)
@@ -77,6 +82,8 @@ static void load_old_calibration(double *mx, double *my, unsigned nparameters, F
 		}
 		++i ;
 	}
+
+	fclose(f);
 }
 
 static long find_long_list_size(struct starpu_perfmodel_history_list *list_history)
@@ -93,6 +100,7 @@ static long find_long_list_size(struct starpu_perfmodel_history_list *list_histo
 	return cnt;
 }
 
+#ifdef STARPU_MLR_MODEL
 int dgels_multiple_reg_coeff(double *mpar, double *my, long nn, unsigned ncoeff, unsigned nparameters, double *coeff, unsigned **combinations)
 {	
  /*  Arguments */
@@ -226,6 +234,7 @@ int dgels_multiple_reg_coeff(double *mpar, double *my, long nn, unsigned ncoeff,
 
 	return 0;
 }
+#endif //STARPU_MLR_MODEL
 
 /*
    Validating the accuracy of the coefficients.
@@ -243,6 +252,13 @@ void validate(double *coeff, unsigned ncoeff)
 	
 int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, double *coeff, unsigned ncoeff, unsigned nparameters, unsigned **combinations, const char *codelet_name)
 {
+#ifndef STARPU_MLR_MODEL
+	_STARPU_DISP("Warning: StarPU was compiled with '--disable-mlr' option, thus multiple linear regression model will not be computed.\n");
+	for(int i=0; i<ncoeff; i++)
+		coeff[i] = 0.;
+	return 1;
+#endif //STARPU_MLR_MODEL
+	
 	/* Computing number of rows */
 	long n=find_long_list_size(ptr);
 	STARPU_ASSERT(n);
@@ -269,6 +285,8 @@ int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, doubl
 		//STARPU_ASSERT(old_lines);
 
 		n+=old_lines;
+
+		fclose(f);
 	}
 
 	/* Allocating X and Y matrices */
@@ -279,27 +297,35 @@ int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, doubl
 
 	/* Loading old calibration */
 	if (calibrate==1)
-		load_old_calibration(mpar, my, nparameters, f);
+		load_old_calibration(mpar, my, nparameters, filepath);
 
 	/* Filling X and Y matrices with measured values */
 	dump_multiple_regression_list(mpar, my, old_lines, nparameters, ptr);
-	
+
+#ifdef STARPU_MLR_MODEL
 	/* Computing coefficients using multiple linear regression */
 	if(dgels_multiple_reg_coeff(mpar, my, n, ncoeff, nparameters, coeff, combinations))
 		return 1;
+#endif //STARPU_MLR_MODEL
 
 	/* Basic validation of the model accuracy */
 	validate(coeff, ncoeff);
 	
 	/* Preparing new output calibration file */
-	if (calibrate==2)
+	if (calibrate==1 || calibrate==2)
 	{
-		f = fopen(filepath, "w+");
-		STARPU_ASSERT_MSG(f, "Could not save performance model into the file %s\n", filepath);
-		fprintf(f, "Duration");
-		for(int k=0; k < nparameters; k++)
+		if (old_lines > 0)
 		{
-			fprintf(f, ", P%d", k);
+			f = fopen(filepath, "a+");
+			STARPU_ASSERT_MSG(f, "Could not save performance model into the file %s\n", filepath);
+		}
+		else
+		{
+			f = fopen(filepath, "w+");
+			STARPU_ASSERT_MSG(f, "Could not save performance model into the file %s\n", filepath);
+			fprintf(f, "Duration");
+			for(int k=0; k < nparameters; k++)
+				fprintf(f, ", P%d", k);
 		}
 	}
 	
