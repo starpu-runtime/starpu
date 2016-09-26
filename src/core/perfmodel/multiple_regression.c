@@ -248,7 +248,7 @@ int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, doubl
 	STARPU_ASSERT(n);
 	
         /* Reading old calibrations if necessary */
-	FILE *f;
+	FILE *f=NULL;
 	
 	char directory[100];
 	snprintf(directory, 100, "%s/.starpu/sampling/codelets/tmp", _starpu_get_home_path());
