@@ -1135,22 +1135,28 @@ STARPU_SEARCH_LIBS(LAPACK,[dgels_],[lapack],use_system_lapack=yes,,)
 if test x$use_system_lapack = xyes; then
         AC_DEFINE(STARPU_SYSTEM_LAPACK, [1], [use reflapack library])
 	LDFLAGS="-llapack $LDFLAGS"
-elif test x"$DGELS_LIBS" != x; then
-        AC_DEFINE(STARPU_MIN_DGELS, [1], [use user defined library])
-	LDFLAGS="$DGELS_LIBS $LDFLAGS"
-        AC_ARG_VAR([DGELS_LIBS], [linker flags for lapack dgels])
 else
-	AC_MSG_ERROR([Need to install LAPACK or min-dgels library])
-	# wget https://github.com/stanisic/min-dgels/raw/master/min-dgels-src.tar.gz
-	# mkdir -p min-dgels
-	# tar xvzf min-dgels-src.tar.gz -C min-dgels
-	# cd min-dgels/src
-	# make
-	# cd ../..
-	# export DGELS_LIBS="-Wl,--start-group $PWD/min-dgels/src/build/*.a -Wl,--end-group"
-	# AC_DEFINE(STARPU_MIN_DGELS, [1], [use user defined library])
-	# LDFLAGS="$DGELS_LIBS $LDFLAGS"
-        # AC_ARG_VAR([DGELS_LIBS], [linker flags for lapack dgels])
+	AC_MSG_CHECKING(whether min-dgels is linked)
+	if test x"$DGELS_LIBS" != x; then
+	   	AC_MSG_RESULT(yes)
+        	AC_DEFINE(STARPU_MIN_DGELS, [1], [use user defined library])
+		LDFLAGS="$DGELS_LIBS $LDFLAGS"
+		AC_ARG_VAR([DGELS_LIBS], [linker flags for lapack dgels])
+	else
+		AC_MSG_RESULT(no-need to install LAPACK or min-dgels library)
+		AC_MSG_CHECKING(installation of min-dgels)
+		wget https://github.com/stanisic/min-dgels/raw/master/min-dgels-src.tar.gz 1> min-dgels.out 2> min-dgels.err
+		mkdir -p min-dgels
+		tar xvzf min-dgels-src.tar.gz --strip-components=1 -C min-dgels 1> min-dgels.out 2> min-dgels.err
+		cd min-dgels
+		make 1> ../min-dgels.out 2> ../min-dgels.err
+		cd ..
+		AC_MSG_RESULT(done)
+		DGELS_LIBS="-Wl,--start-group $PWD/min-dgels/build/*.a -Wl,--end-group"
+		AC_DEFINE(STARPU_MIN_DGELS, [1], [use user defined library])
+		LDFLAGS="$DGELS_LIBS $LDFLAGS"
+		AC_ARG_VAR([DGELS_LIBS], [linker flags for lapack dgels])
+	fi
 fi
 
 
