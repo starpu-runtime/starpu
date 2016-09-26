@@ -265,7 +265,8 @@ int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, doubl
 		STARPU_ASSERT_MSG(f, "Could not save performance model into the file %s\n", filepath);
 		
 		old_lines=count_file_lines(f);
-		STARPU_ASSERT(old_lines);
+		/* If the program is run for the first time the old_lines will be 0 */
+		//STARPU_ASSERT(old_lines);
 
 		n+=old_lines;
 	}
