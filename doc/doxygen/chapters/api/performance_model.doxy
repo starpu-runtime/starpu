@@ -63,7 +63,7 @@ is the type of performance model
 ::STARPU_NL_REGRESSION_BASED: No other fields needs to be provided,
 this is purely history-based.
 </li>
-<li> ::STARPU_MULTIPLE_REGRESSION_BASED: Need to provide fields starpu_perfmodel::nparameters (number of different parameters),  starpu_perfmodel::ncombinations (number of parameters combinations-tuples) and matrix starpu_perfmodel::combinations which defines exponents of the equation. Function cl_perf_func also needs to define how to extract parameters from the task.
+<li> ::STARPU_MULTIPLE_REGRESSION_BASED: Need to provide fields starpu_perfmodel::nparameters (number of different parameters),  starpu_perfmodel::ncombinations (number of parameters combinations-tuples) and table starpu_perfmodel::combinations which defines exponents of the equation. Function cl_perf_func also needs to define how to extract parameters from the task.
 </li>
 <li> ::STARPU_PER_ARCH: either field starpu_perfmodel::arch_cost_function has to be
 filled with a function that returns the cost in micro-seconds on the arch given
@@ -104,6 +104,18 @@ Whether the performance model is already loaded from the disk.
 todo
 \var starpu_perfmodel_state_t starpu_perfmodel::state
 \private
+\var const char ** starpu_perfmodel::parameters_names
+\private
+Names of parameters used for multiple linear regression models (M, N, K)
+\var unsigned starpu_perfmodel::nparameters
+\private
+Number of parameters used for multiple linear regression models
+\var unsigned ** starpu_perfmodel::combinations
+\private
+Table of combinations of parameters (and the exponents) used for multiple linear regression models
+\var unsigned starpu_perfmodel::ncombinations
+\private
+Number of combination of parameters used for multiple linear regression models
 
 
 \struct starpu_perfmodel_regression_model

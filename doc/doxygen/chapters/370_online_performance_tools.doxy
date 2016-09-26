@@ -403,28 +403,30 @@ is based on multiple linear regression. In this model, the user
 defines both the relevant parameters and the equation for computing the
 task duration.
 
+
 \f[
-T_{kernel} = a + b(M^{\alpha_1}\times N^{\beta_1} \times K^{\gamma_1}) + c(M^{\alpha_2}\times N^{\beta_2} \times K^{\gamma_2}) + ...
+T_{kernel} = a + b(M^{\alpha_1} * N^{\beta_1} * K^{\gamma_1}) + c(M^{\alpha_2} * N^{\beta_2} * K^{\gamma_2}) + ...
 \f]
+
 
 \f$M, N, K\f$ are the parameters of the task, added at the task
 creation. These need to be extracted by the <c>cl_perf_func</c>
 function, which should be defined by the user. \f$\alpha, \beta,
-\gamma\f$ are the exponents defined by user in
-<c>model->combinations<\c> matrix. Finally, coefficients $\fa, b, c\f$
+\gamma\f$ are the exponents defined by the user in
+<c>model->combinations</c> table. Finally, coefficients \f$a, b, c\f$
 are computed automatically at the end of the execution, using least
 squares method of the <c>dgels_</c> LAPACK function.
 
 <c>examples/basic_examples/mlr.c</c> example provides more details on
 the usage of ::STARPU_MULTIPLE_REGRESSION_BASED models.
 
-Computing of the coefficient is done at the end of the execution, and
-the results are stored in standard codelet perfmodel files. Additional
-files containing the duration of each task together with the value of
-each parameter is stored in .starpu/sampling/codelets/tmp/
-directory. These files are reused when ::STARPU_CALIBRATE
-environment variable is set to 1, to recompute coefficients based on
-the current, but also on the previous executions.
+Coefficients computation is done at the end of the execution, and the
+results are stored in standard codelet perfmodel files. Additional
+files containing the duration of task together with the value of each
+parameter are stored in <c>.starpu/sampling/codelets/tmp/</c>
+directory. These files are reused when \ref STARPU_CALIBRATE environment
+variable is set to <c>1</c>, to recompute coefficients based on the current,
+but also on the previous executions.
 
 </li>
 
