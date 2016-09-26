@@ -72,6 +72,7 @@ module fstarpu_mod
         type(c_ptr), bind(C) :: FSTARPU_SCHED_CTX_NESTED
         type(c_ptr), bind(C) :: FSTARPU_SCHED_CTX_AWAKE_WORKERS
         type(c_ptr), bind(C) :: FSTARPU_SCHED_CTX_POLICY_INIT
+        type(c_ptr), bind(C) :: FSTARPU_SCHED_CTX_USER_DATA
 
         ! (some) portable iso_c_binding types
         type(c_ptr), bind(C) :: FSTARPU_SZ_C_DOUBLE
@@ -1872,6 +1873,14 @@ module fstarpu_mod
                         integer(c_int), value, intent(in) :: sched_ctx_id
                 end function fstarpu_sched_ctx_max_priority_is_set
 
+                ! void *starpu_sched_ctx_get_user_data(unsigned sched_ctx_id);
+                function fstarpu_sched_ctx_get_user_data(sched_ctx_id) &
+                                bind(c,name="starpu_sched_ctx_get_user_data")
+                        use iso_c_binding, only: c_int, c_ptr
+                        integer(c_int), value, intent(in) :: sched_ctx_id
+                        type(c_ptr) :: fstarpu_sched_ctx_get_user_data
+                end function fstarpu_sched_ctx_get_user_data
+
                 ! struct starpu_worker_collection *starpu_sched_ctx_create_worker_collection(unsigned sched_ctx_id, enum starpu_worker_collection_type type) STARPU_ATTRIBUTE_MALLOC;
 
                 ! void starpu_sched_ctx_delete_worker_collection(unsigned sched_ctx_id);
@@ -2269,6 +2278,8 @@ module fstarpu_mod
                             fstarpu_get_constant(C_CHAR_"FSTARPU_SCHED_CTX_AWAKE_WORKERS"//C_NULL_CHAR)
                         FSTARPU_SCHED_CTX_POLICY_INIT    = &
                             fstarpu_get_constant(C_CHAR_"FSTARPU_SCHED_CTX_POLICY_INIT"//C_NULL_CHAR)
+                        FSTARPU_SCHED_CTX_USER_DATA    = &
+                            fstarpu_get_constant(C_CHAR_"FSTARPU_SCHED_CTX_USER_DATA"//C_NULL_CHAR)
 
                         ! Initialize size constants as 'c_ptr'
                         FSTARPU_SZ_C_DOUBLE        = sz_to_p(c_sizeof(FSTARPU_SZ_C_DOUBLE_dummy))

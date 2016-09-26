@@ -75,6 +75,7 @@ static const intptr_t fstarpu_sched_ctx_hierarchy_level	= STARPU_SCHED_CTX_HIERA
 static const intptr_t fstarpu_sched_ctx_nested	= STARPU_SCHED_CTX_NESTED;
 static const intptr_t fstarpu_sched_ctx_awake_workers	= STARPU_SCHED_CTX_AWAKE_WORKERS;
 static const intptr_t fstarpu_sched_ctx_policy_init	= STARPU_SCHED_CTX_POLICY_INIT;
+static const intptr_t fstarpu_sched_ctx_user_data	= STARPU_SCHED_CTX_USER_DATA;
 
 intptr_t fstarpu_get_constant(char *s)
 {
@@ -130,6 +131,7 @@ intptr_t fstarpu_get_constant(char *s)
 	else if (!strcmp(s, "FSTARPU_SCHED_CTX_NESTED"))	{ return fstarpu_sched_ctx_nested; }
 	else if (!strcmp(s, "FSTARPU_SCHED_CTX_AWAKE_WORKERS"))	{ return fstarpu_sched_ctx_awake_workers; }
 	else if (!strcmp(s, "FSTARPU_SCHED_CTX_POLICY_INIT"))	{ return fstarpu_sched_ctx_policy_init; }
+	else if (!strcmp(s, "FSTARPU_SCHED_CTX_USER_DATA"))	{ return fstarpu_sched_ctx_user_data; }
 
 	else { _FSTARPU_ERROR("unknown constant"); }
 }

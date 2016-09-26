@@ -470,7 +470,8 @@ struct _starpu_sched_ctx* _starpu_create_sched_ctx(struct starpu_sched_policy *p
 						   int min_prio_set, int min_prio,
 						   int max_prio_set, int max_prio,
 						   unsigned awake_workers,
-						   void (*sched_policy_init)(void))
+						   void (*sched_policy_init)(void),
+						   void * user_data)
 {
 	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
 
@@ -516,6 +517,7 @@ struct _starpu_sched_ctx* _starpu_create_sched_ctx(struct starpu_sched_policy *p
 	sched_ctx->perf_arch.devices = NULL;
 	sched_ctx->perf_arch.ndevices = 0;
 	sched_ctx->init_sched = sched_policy_init;
+	sched_ctx->user_data = user_data;
 	int w;
 	for(w = 0; w < nworkers; w++)
 	{
@@ -714,7 +716,7 @@ unsigned starpu_sched_ctx_create_inside_interval(const char *policy_name, const 
 	for(i = 0; i < nw; i++)
 		printf("%d ", workers[i]);
 	printf("\n");
-	sched_ctx = _starpu_create_sched_ctx(selected_policy, workers, nw, 0, sched_ctx_name, 0, 0, 0, 0, 1, NULL);
+	sched_ctx = _starpu_create_sched_ctx(selected_policy, workers, nw, 0, sched_ctx_name, 0, 0, 0, 0, 1, NULL, NULL);
 	sched_ctx->min_ncpus = min_ncpus;
 	sched_ctx->max_ncpus = max_ncpus;
 	sched_ctx->min_ngpus = min_ngpus;
@@ -740,6 +742,7 @@ unsigned starpu_sched_ctx_create(int *workerids, int nworkers, const char *sched
 	int max_prio_set = 0;
 	int min_prio = 0;
 	int max_prio = 0;
+	void *user_data = NULL;
 	struct starpu_sched_policy *sched_policy = NULL;
 	unsigned hierarchy_level = 0;
 	unsigned nesting_sched_ctx = STARPU_NMAX_SCHED_CTXS;
@@ -785,6 +788,10 @@ unsigned starpu_sched_ctx_create(int *workerids, int nworkers, const char *sched
 		{
 			init_sched = va_arg(varg_list, void(*)(void));
 		}
+		else if (arg_type == STARPU_SCHED_CTX_USER_DATA)
+		{
+			user_data = va_arg(varg_list, void *);
+		}
 		else
 		{
 			STARPU_ABORT_MSG("Unrecognized argument %d\n", arg_type);
@@ -809,7 +816,7 @@ unsigned starpu_sched_ctx_create(int *workerids, int nworkers, const char *sched
 	}
 
 	struct _starpu_sched_ctx *sched_ctx = NULL;
-	sched_ctx = _starpu_create_sched_ctx(sched_policy, workerids, nworkers, 0, sched_ctx_name, min_prio_set, min_prio, max_prio_set, max_prio, awake_workers, init_sched);
+	sched_ctx = _starpu_create_sched_ctx(sched_policy, workerids, nworkers, 0, sched_ctx_name, min_prio_set, min_prio, max_prio_set, max_prio, awake_workers, init_sched, user_data);
 	sched_ctx->hierarchy_level = hierarchy_level;
 	sched_ctx->nesting_sched_ctx = nesting_sched_ctx;
 
@@ -833,6 +840,7 @@ int fstarpu_sched_ctx_create(int *workerids, int nworkers, const char *sched_ctx
 	int max_prio_set = 0;
 	int min_prio = 0;
 	int max_prio = 0;
+	void *user_data = NULL;
 	struct starpu_sched_policy *sched_policy = NULL;
 	unsigned hierarchy_level = 0;
 	unsigned nesting_sched_ctx = STARPU_NMAX_SCHED_CTXS;
@@ -889,6 +897,11 @@ int fstarpu_sched_ctx_create(int *workerids, int nworkers, const char *sched_ctx
 			arg_i++;
 			init_sched = arglist[arg_i];
 		}
+		else if (arg_type == STARPU_SCHED_CTX_USER_DATA)
+		{
+			arg_i++;
+			user_data = arglist[arg_i];
+		}
 		else
 		{
 			STARPU_ABORT_MSG("Unrecognized argument %d\n", arg_type);
@@ -912,7 +925,7 @@ int fstarpu_sched_ctx_create(int *workerids, int nworkers, const char *sched_ctx
 	}
 
 	struct _starpu_sched_ctx *sched_ctx = NULL;
-	sched_ctx = _starpu_create_sched_ctx(sched_policy, workerids, nworkers, 0, sched_ctx_name, min_prio_set, min_prio, max_prio_set, max_prio, awake_workers, init_sched);
+	sched_ctx = _starpu_create_sched_ctx(sched_policy, workerids, nworkers, 0, sched_ctx_name, min_prio_set, min_prio, max_prio_set, max_prio, awake_workers, init_sched, user_data);
 	sched_ctx->hierarchy_level = hierarchy_level;
 	sched_ctx->nesting_sched_ctx = nesting_sched_ctx;
 
@@ -2575,4 +2588,11 @@ unsigned starpu_sched_ctx_has_starpu_scheduler(unsigned sched_ctx_id, unsigned *
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	*awake_workers = sched_ctx->awake_workers;
 	return sched_ctx->sched_policy != NULL;
+}
+
+void *starpu_sched_ctx_get_used_data(unsigned sched_ctx_id)
+{
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+	STARPU_ASSERT(sched_ctx != NULL);
+	return sched_ctx->user_data;
 }
