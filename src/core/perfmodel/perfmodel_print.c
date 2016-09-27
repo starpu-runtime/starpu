@@ -295,22 +295,27 @@ int starpu_perfmodel_print_estimations(struct starpu_perfmodel *model, uint32_t 
 	{
 		struct starpu_perfmodel_arch* arch = starpu_worker_get_perf_archtype(workerid, STARPU_NMAX_SCHED_CTXS);
 		int comb = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
-		struct starpu_perfmodel_per_arch *arch_model = &model->state->per_arch[comb][0];
-		struct starpu_perfmodel_history_list *ptr;
+		struct starpu_perfmodel_per_arch *arch_model;
+		struct starpu_perfmodel_history_list *ptr = NULL;
 
-		for (ptr = arch_model->list; ptr; ptr = ptr->next)
+		if (comb >= 0 && model->state->per_arch[comb])
 		{
-			struct starpu_perfmodel_history_entry *entry = ptr->entry;
-			if (entry->footprint == footprint)
+			arch_model = &model->state->per_arch[comb][0];
+
+			for (ptr = arch_model->list; ptr; ptr = ptr->next)
 			{
-				fprintf(output, "%s%e", workerid?" ":"", entry->mean);
-				break;
+				struct starpu_perfmodel_history_entry *entry = ptr->entry;
+				if (entry->footprint == footprint)
+				{
+					fprintf(output, "%s%e", workerid?" ":"", entry->mean);
+					break;
+				}
 			}
 		}
 		if (!ptr)
 		{
 			/* Didn't find any entry :/ */
-			fprintf(output, "%sNaN", workerid?" ":"");
+			fprintf(output, "%sinf", workerid?" ":"");
 		}
 	}
 	return 0;
