@@ -1150,14 +1150,13 @@ if test x$enable_mlr = xyes; then
 		else
 			AC_MSG_RESULT(no-need to install LAPACK or min-dgels library)
 			AC_MSG_CHECKING(installation of min-dgels)
-			wget https://github.com/stanisic/min-dgels/raw/master/min-dgels-src.tar.gz 1> min-dgels.out 2> min-dgels.err
-			mkdir -p min-dgels
-			tar xvzf min-dgels-src.tar.gz --strip-components=1 -C min-dgels 1> min-dgels.out 2> min-dgels.err
-			cd min-dgels
-			make 1> ../min-dgels.out 2> ../min-dgels.err
-			cd ..
+			mkdir -p min-dgels-build
+			cd $STARPU_SRC_DIR/min-dgels
+			make 1> $STARPU_BUILD_DIR/min-dgels-build/min-dgels.out 2> $STARPU_BUILD_DIR/min-dgels-build/min-dgels.err
+			cd -
+			cp $STARPU_SRC_DIR/min-dgels/build/*.a min-dgels-build/
 			AC_MSG_RESULT(done)
-			DGELS_LIBS="-Wl,--start-group $PWD/min-dgels/build/*.a -Wl,--end-group"
+			DGELS_LIBS="-Wl,--start-group $STARPU_BUILD_DIR/min-dgels-build/*.a -Wl,--end-group"
 			AC_DEFINE(STARPU_MLR_MODEL, [1], [use user defined library])
 			LDFLAGS="$DGELS_LIBS $LDFLAGS"
 			AC_ARG_VAR([DGELS_LIBS], [linker flags for lapack dgels])
