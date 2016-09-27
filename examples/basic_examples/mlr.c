@@ -38,7 +38,7 @@
 #include <stdint.h>
 #include <starpu.h>
 
-int sum;
+long sum;
 
 /* Performance function of the task, which is in this case very simple, as the parameter values just need to be written in the array "parameters" */
 void cl_perf_func(struct starpu_task *task, double *parameters)
@@ -52,24 +52,30 @@ void cl_perf_func(struct starpu_task *task, double *parameters)
 /* Function of the task that will be executed. In this case running dummy cycles, just to make sure task duration is significant */
 void cpu_func(void *buffers[], void *cl_arg)
 {
+	long i;
 	double m,n,k;
 	starpu_codelet_unpack_args(cl_arg,
 			     	  &m,
      			     	  &n,
      			     	  &k);
 	
-	for(int i=0; i < (int) (m*m*n); i++)
+	for(i=0; i < (long) (m*m*n); i++)
 		sum+=i;
 
-	for(int i=0; i < (int) (n*n*n*k); i++)
+	for(i=0; i < (long) (n*n*n*k); i++)
 		sum+=i;
 }
 
 int main(int argc, char **argv)
 {
+	/* Initialization */
+	unsigned i,j;
 	struct starpu_codelet cl;
-	starpu_init(NULL);
-
+	int ret;
+	ret = starpu_init(NULL);
+	if (ret == -ENODEV)
+		return 77;
+	
 	/* Allocating and naming codelet, similar to any other StarPU program */
 	memset(&cl, 0, sizeof(cl));	
 	cl.cpu_funcs[0] = cpu_func;
@@ -100,7 +106,7 @@ int main(int argc, char **argv)
 
 	if (cl.model->combinations)
 	{
-		for (unsigned i = 0; i < cl.model->ncombinations; i++)
+		for (i=0; i < cl.model->ncombinations; i++)
 		{
 			cl.model->combinations[i] = (unsigned *) 	malloc(cl.model->nparameters*sizeof(unsigned));
 		}
@@ -121,13 +127,13 @@ int main(int argc, char **argv)
 	double m,n,k;
 
         /* Giving pseudo-random values to the M,N,K parameters and inserting tasks */
-	for(int i=0; i < 42; i++)
+	for(i=0; i < 42; i++)
 	{
 		m = (double) ((rand() % 10)+1);
 		n = (double) ((rand() % 10)+1);
 		k = (double) ((rand() % 10)+1);
 		
-		for(int j=0; j < 42; j++)
+		for(j=0; j < 42; j++)
 			starpu_insert_task(&cl,
 				   STARPU_VALUE, &m, sizeof(double),
 				   STARPU_VALUE, &n, sizeof(double),
