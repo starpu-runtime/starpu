@@ -60,7 +60,7 @@ AC_CANONICAL_SYSTEM
 dnl Automake 1.11 introduced `silent-rules' and `color-tests'.  Use them
 dnl when they're available.
 m4_ifdef([AM_SILENT_RULES],
-  [AM_INIT_AUTOMAKE([1.11 -Wall foreign silent-rules color-tests parallel-tests])],
+  [AM_INIT_AUTOMAKE([1.11 -Wall foreign silent-rules color-tests parallel-tests subdir-objects])],
   [AM_INIT_AUTOMAKE([1.10 -Wall foreign])])
 
 m4_ifdef([AM_SILENT_RULES],
