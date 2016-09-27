@@ -3,7 +3,7 @@
  * Copyright (C) 2010-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
  * Copyright (C) 2011  Télécom-SudParis
- * Copyright (C) 2014  INRIA
+ * Copyright (C) 2014, 2016  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -57,9 +57,7 @@ void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job 
 
 	if (rank == 0)
 	{
-#ifdef HAVE_AYUDAME_H
-		if (AYU_event) AYU_event(AYU_RUNTASK, j->job_id, NULL);
-#endif
+		STARPU_AYU_RUNTASK(j->job_id);
 		cl->per_worker_stats[workerid]++;
 
 		profiling_info = task->profiling_info;
@@ -141,9 +139,7 @@ void _starpu_driver_end_job(struct _starpu_worker *worker, struct _starpu_job *j
 			_starpu_clock_gettime(codelet_end);
 			_starpu_worker_register_executing_end(workerid);
 		}
-#ifdef HAVE_AYUDAME_H
-		if (AYU_event) AYU_event(AYU_POSTRUNTASK, j->job_id, NULL);
-#endif
+		STARPU_AYU_POSTRUNTASK(j->job_id);
 	}
 
 	if (starpu_top)
@@ -470,13 +466,7 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 
 
-#ifdef HAVE_AYUDAME_H
-	if (AYU_event)
-	{
-		intptr_t id = workerid;
-		AYU_event(AYU_PRERUNTASK, _starpu_get_job_associated_to_task(task)->job_id, &id);
-	}
-#endif
+	STARPU_AYU_PRERUNTASK(_starpu_get_job_associated_to_task(task)->job_id, workerid);
 
 	return task;
 }
@@ -559,13 +549,7 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 					workers[i].worker_size = 1;
 					workers[i].current_rank = 0;
 				}
-#ifdef HAVE_AYUDAME_H
-				if (AYU_event)
-				{
-					intptr_t id = workers[i].workerid;
-					AYU_event(AYU_PRERUNTASK, _starpu_get_job_associated_to_task(tasks[i])->job_id, &id);
-				}
-#endif
+				STARPU_AYU_PRERUNTASK(_starpu_get_job_associated_to_task(tasks[i])->job_id, workers[i].workerid);
 			}
 			else
 			{

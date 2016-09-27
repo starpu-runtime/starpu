@@ -3,8 +3,7 @@
 # Copyright (C) 2009-2016  Université de Bordeaux
 # Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
 # Copyright (C) 2011  Télécom-SudParis
-# Copyright (C) 2011, 2012, 2014  INRIA
-# Copyright (C) 2015, 2016  Inria
+# Copyright (C) 2011, 2012, 2014-2016  INRIA
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -1677,7 +1676,50 @@ fi
 
 AC_CHECK_HEADERS([glpk.h], [AC_DEFINE([STARPU_HAVE_GLPK_H], [1], [Define to 1 if you have the <glpk.h> header file.])])
 STARPU_HAVE_LIBRARY(GLPK, [glpk])
+
+AC_ARG_WITH(ayudame1-include-dir,
+	[AS_HELP_STRING([--with-ayudame1-include-dir=<path>],
+	[specify where Ayudame version 1 headers are installed])],
+	[
+		ayudame1_include_dir="$withval"
+		if test -n "$ayudame1_include_dir"; then
+			CPPFLAGS="-I$ayudame1_include_dir $CPPFLAGS"
+		fi
+	], [ayudame1_include_dir=no])
+AC_ARG_WITH(ayudame2-include-dir,
+	[AS_HELP_STRING([--with-ayudame2-include-dir=<path>],
+	[specify where Ayudame version 2 headers are installed])],
+	[
+		ayudame2_include_dir="$withval"
+		if test -n "$ayudame2_include_dir"; then
+			CPPFLAGS="-I$ayudame2_include_dir $CPPFLAGS"
+		fi
+	], [ayudame2_include_dir=no])
+
+# Ayudame 1 header is capitalized
 AC_CHECK_HEADERS([Ayudame.h])
+AC_ARG_ENABLE(ayudame1, [AS_HELP_STRING([--disable-ayudame1],
+				   [Do not use Ayudame lib version 1])],
+				   enable_ayudame1=$enableval, enable_ayudame1=yes)
+# Ayudame 2 header is lowercase
+AC_CHECK_HEADERS([ayudame.h])
+AC_ARG_ENABLE(ayudame2, [AS_HELP_STRING([--disable-ayudame2],
+				   [Do not use Ayudame lib version 2])],
+				   enable_ayudame2=$enableval, enable_ayudame2=yes)
+if test x$enable_ayudame1 = xyes -a x$ac_cv_header_Ayudame_h = xyes; then
+   AC_DEFINE([STARPU_USE_AYUDAME1], [1], [Define to 1 if Ayudame 1 is available and should be used])
+   ayu_msg="yes, use version 1"
+else
+   if test x$enable_ayudame2 = xyes -a x$ac_cv_header_ayudame_h = xyes; then
+      AC_DEFINE([STARPU_USE_AYUDAME2], [1], [Define to 1 if Ayudame 2 is available and should be used])
+      ayu_msg="yes, use version 2"
+   else
+      ayu_msg="no"
+   fi
+fi
+
+AM_CONDITIONAL([STARPU_USE_AYUDAME1], [test "x$enable_ayudame1" = "xyes"])
+AM_CONDITIONAL([STARPU_USE_AYUDAME2], [test "x$enable_ayudame2" = "xyes"])
 
 ###############################################################################
 #                                                                             #
@@ -2921,7 +2963,7 @@ AC_MSG_NOTICE([
                SOCL test suite:                             $run_socl_check
                Scheduler Hypervisor:                        $build_sc_hypervisor
                simgrid enabled:                             $enable_simgrid
-               ayudame enabled:                             $ac_cv_header_Ayudame_h
+               ayudame enabled:                             $ayu_msg
 	       Native fortran support:                      $enable_build_fortran
 	       Native MPI fortran support:                  $use_mpi_fort
 ])

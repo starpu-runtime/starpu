@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2010-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2013, 2015  CNRS
+ * Copyright (C) 2016  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -32,13 +33,7 @@ static void _starpu_add_ghost_dependency(starpu_data_handle_t handle STARPU_ATTR
 {
 	struct _starpu_job *next_job = _starpu_get_job_associated_to_task(next);
 	_starpu_bound_job_id_dep(handle, next_job, previous);
-#ifdef HAVE_AYUDAME_H
-	if (AYU_event)
-	{
-		uintptr_t AYU_data[3] = { previous, (uintptr_t) handle, (uintptr_t) handle };
-		AYU_event(AYU_ADDDEPENDENCY, next_job->job_id, AYU_data);
-	}
-#endif
+	STARPU_AYU_ADDDEPENDENCY(previous, handle, next_job->job_id);
 }
 
 static void _starpu_add_dependency(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED, struct starpu_task *previous STARPU_ATTRIBUTE_UNUSED, struct starpu_task *next STARPU_ATTRIBUTE_UNUSED)
@@ -81,9 +76,7 @@ static void _starpu_add_accessor(starpu_data_handle_t handle, struct starpu_task
 #else
 		_starpu_bound_recording
 #endif
-#ifdef HAVE_AYUDAME_H
-		|| AYU_event
-#endif
+		|| STARPU_AYU_EVENT
 		) && handle->last_submitted_ghost_sync_id_is_valid)
 	{
 		_STARPU_TRACE_GHOST_TASK_DEPS(handle->last_submitted_ghost_sync_id,

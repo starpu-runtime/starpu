@@ -3,7 +3,7 @@
  * Copyright (C) 2009-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
  * Copyright (C) 2011  Télécom-SudParis
- * Copyright (C) 2011, 2014  INRIA
+ * Copyright (C) 2011, 2014, 2016  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -832,10 +832,7 @@ int _starpu_task_wait_for_all_and_return_nb_waited_tasks(void)
 	{
 		_STARPU_DEBUG("Waiting for all tasks\n");
 		STARPU_ASSERT_MSG(_starpu_worker_may_perform_blocking_calls(), "starpu_task_wait_for_all must not be called from a task or callback");
-
-#ifdef HAVE_AYUDAME_H
-		if (AYU_event) AYU_event(AYU_BARRIER, 0, NULL);
-#endif
+		STARPU_AYU_BARRIER();
 		struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
 		if(config->topology.nsched_ctxs == 1)
 		{
@@ -881,10 +878,8 @@ int _starpu_task_wait_for_all_in_ctx_and_return_nb_waited_tasks(unsigned sched_c
 	_STARPU_TRACE_TASK_WAIT_FOR_ALL_START();
 	int ret = _starpu_wait_for_all_tasks_of_sched_ctx(sched_ctx);
 	_STARPU_TRACE_TASK_WAIT_FOR_ALL_END();
-#ifdef HAVE_AYUDAME_H
 	/* TODO: improve Temanejo into knowing about contexts ... */
-	if (AYU_event) AYU_event(AYU_BARRIER, 0, NULL);
-#endif
+	STARPU_AYU_BARRIER();
 	return ret;
 }
 

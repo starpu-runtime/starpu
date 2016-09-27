@@ -24,13 +24,10 @@
 #include <common/fxt.h>
 #include <core/task.h>
 #include <core/workers.h>
+#include <core/debug.h>
 
 #include <sched_policies/fifo_queues.h>
 #include <limits.h>
-
-#ifdef HAVE_AYUDAME_H
-#include <Ayudame.h>
-#endif
 
 #ifndef DBL_MIN
 #define DBL_MIN __DBL_MIN__
@@ -486,6 +483,7 @@ static struct starpu_task *pop_task_heteroprio_policy(unsigned sched_ctx_id)
 				struct starpu_task* task = _starpu_fifo_pop_local_task(bucket->tasks_queue);
 				STARPU_ASSERT(starpu_worker_can_execute_task(workerid, task, 0));
 				/* Save the task */
+				STARPU_AYU_ADDTOTASKQUEUE(_starpu_get_job_associated_to_task(task)->job_id, workerid);
 				_starpu_fifo_push_task(worker->tasks_queue, task);
 
 				/* Update general counter */
