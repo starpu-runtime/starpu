@@ -1135,6 +1135,7 @@ AC_ARG_ENABLE(mlr, [AS_HELP_STRING([--disable-mlr],
 			[Disable multiple linear regression models])],
 			enable_mlr=$enableval, enable_mlr=yes)
 
+install_min_dgels=no
 if test x$enable_mlr = xyes; then
    	STARPU_SEARCH_LIBS(LAPACK,[dgels_],[lapack],use_system_lapack=yes,,)
 	if test x$use_system_lapack = xyes; then
@@ -1148,21 +1149,19 @@ if test x$enable_mlr = xyes; then
 			LDFLAGS="$DGELS_LIBS $LDFLAGS"
 			AC_ARG_VAR([DGELS_LIBS], [linker flags for lapack dgels])
 		else
-			AC_MSG_RESULT(no-need to install LAPACK or min-dgels library)
-			AC_MSG_CHECKING(installation of min-dgels)
-			mkdir -p min-dgels-build
-			cd $STARPU_SRC_DIR/min-dgels
-			make 1> $STARPU_BUILD_DIR/min-dgels-build/min-dgels.out 2> $STARPU_BUILD_DIR/min-dgels-build/min-dgels.err
-			cd -
-			cp $STARPU_SRC_DIR/min-dgels/build/*.a min-dgels-build/
-			AC_MSG_RESULT(done)
-			DGELS_LIBS="-Wl,--start-group $STARPU_BUILD_DIR/min-dgels-build/*.a -Wl,--end-group"
+			AC_MSG_RESULT(no)
+			AC_MSG_CHECKING(min-dgels source)
+			cp -r $srcdir/min-dgels $PWD/
+			AC_MSG_RESULT(yes)
+			DGELS_LIBS="-Wl,--start-group $STARPU_BUILD_DIR/min-dgels/build/*.a -Wl,--end-group"
 			AC_DEFINE(STARPU_MLR_MODEL, [1], [use user defined library])
 			LDFLAGS="$DGELS_LIBS $LDFLAGS"
 			AC_ARG_VAR([DGELS_LIBS], [linker flags for lapack dgels])
+			install_min_dgels=yes
 		fi
 	fi
 fi
+AM_CONDITIONAL(STARPU_USE_MIN_DGELS, test x$install_min_dgels = xyes)
 
 ###############################################################################
 #                                                                             #
