@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  CNRS
- * Copyright (C) 2011, 2012  INRIA
+ * Copyright (C) 2011, 2012, 2016  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -25,10 +25,7 @@
 #include <core/debug.h>
 #include <starpu_scheduler.h>
 #include <core/sched_policy.h>
-
-#ifdef HAVE_AYUDAME_H
-#include <Ayudame.h>
-#endif
+#include <core/debug.h>
 
 /*
  * Experimental code for improving data cache locality:
@@ -621,15 +618,7 @@ int ws_push_task(struct starpu_task *task)
 
 	record_data_locality(task, workerid);
 
-#ifdef HAVE_AYUDAME_H
-	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
-	if (AYU_event)
-	{
-		intptr_t id = workerid;
-		AYU_event(AYU_ADDTASKTOQUEUE, j->job_id, &id);
-	}
-#endif
-
+	STARPU_AYU_ADDTOTASKQUEUE(_starpu_get_job_associated_to_task(task)->job_id, workerid);
 	STARPU_PTHREAD_MUTEX_LOCK(&ws->per_worker[workerid].worker_mutex);
 	_STARPU_TASK_BREAK_ON(task, sched);
 	_starpu_fifo_push_task(ws->per_worker[workerid].queue_array, task);
