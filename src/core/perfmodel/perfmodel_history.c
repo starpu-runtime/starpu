@@ -1321,12 +1321,12 @@ double _starpu_multiple_regression_based_job_expected_perf(struct starpu_perfmod
 	parameters = (double *) malloc(model->nparameters*sizeof(double));
 	model->parameters(j->task, parameters);
 	expected_duration=reg_model->coeff[0];
-	int i, j;
+	int i, k;
 	for (i=0; i < model->ncombinations; i++)
 	{
 		parameter_value=1.;
-		for (j=0; j < model->nparameters; j++)
-			parameter_value *= pow(parameters[j],model->combinations[i][j]);
+		for (k=0; k < model->nparameters; k++)
+			parameter_value *= pow(parameters[k],model->combinations[i][k]);
 
 		expected_duration += reg_model->coeff[i+1]*parameter_value;
 	}
