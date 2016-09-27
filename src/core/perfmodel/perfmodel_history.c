@@ -299,7 +299,8 @@ static void dump_reg_model(FILE *f, struct starpu_perfmodel *model, int comb, in
 		_starpu_multiple_regression(per_arch_model->list, reg_model->coeff, reg_model->ncoeff, model->nparameters, model->combinations, model->symbol);
 
 		fprintf(f, "# n\tintercept\t");
-		int i, j, first;
+	        unsigned i, j;
+		int first;
 		for (i=0; i < model->ncombinations; i++)
 		{
 			if (model->parameters_names == NULL)
@@ -388,7 +389,7 @@ static void scan_reg_model(FILE *f, struct starpu_perfmodel_regression_model *re
 		reg_model->coeff = malloc(reg_model->ncoeff*sizeof(double));
 
 		unsigned multi_invalid = 0;
-		int i;
+		unsigned i;
 		for (i=0; i < reg_model->ncoeff; i++)
 		{
 			res = _starpu_read_double(f, "%le", &reg_model->coeff[i]);
@@ -1321,7 +1322,7 @@ double _starpu_multiple_regression_based_job_expected_perf(struct starpu_perfmod
 	parameters = (double *) malloc(model->nparameters*sizeof(double));
 	model->parameters(j->task, parameters);
 	expected_duration=reg_model->coeff[0];
-	int i, k;
+	unsigned i, k;
 	for (i=0; i < model->ncombinations; i++)
 	{
 		parameter_value=1.;

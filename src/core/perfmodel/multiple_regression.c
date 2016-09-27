@@ -46,7 +46,7 @@ static void dump_multiple_regression_list(double *mpar, double *my, int start, u
 {
 	struct starpu_perfmodel_history_list *ptr = list_history;
 	int i = start;
-	int j;
+	unsigned j;
 	while (ptr)
 	{
 		my[i] = ptr->entry->duration;
@@ -193,7 +193,8 @@ int dgels_multiple_reg_coeff(double *mpar, double *my, long nn, unsigned ncoeff,
 	doublereal *Y = malloc(sizeof(double)*m);
 
 	double coefficient;
-	int i, j, k;
+	int i;
+	unsigned j, k;
 	for (i=0; i < m; i++)
 	{
 		Y[i] = my[i];
@@ -244,7 +245,7 @@ int dgels_multiple_reg_coeff(double *mpar, double *my, long nn, unsigned ncoeff,
  */
 void validate(double *coeff, unsigned ncoeff)
 {
-	int i;
+	unsigned i;
 	if (coeff[0] < 0)
 		_STARPU_DISP("Warning: Constant computed by least square method is negative (%f). The model is likely to be inaccurate.\n", coeff[0]);
 		
@@ -255,7 +256,8 @@ void validate(double *coeff, unsigned ncoeff)
 	
 int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, double *coeff, unsigned ncoeff, unsigned nparameters, unsigned **combinations, const char *codelet_name)
 {
-	int i, j;
+        long i;
+	unsigned j;
 #ifndef STARPU_MLR_MODEL
 	_STARPU_DISP("Warning: StarPU was compiled with '--disable-mlr' option, thus multiple linear regression model will not be computed.\n");
 	for(i=0; i<ncoeff; i++)
@@ -328,8 +330,8 @@ int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, doubl
 			f = fopen(filepath, "w+");
 			STARPU_ASSERT_MSG(f, "Could not save performance model into the file %s\n", filepath);
 			fprintf(f, "Duration");
-			for(i=0; k < nparameters; k++)
-				fprintf(f, ", P%d", k);
+			for(j=0; j<nparameters; j++)
+				fprintf(f, ", P%d", j);
 		}
 	}
 	
@@ -339,7 +341,7 @@ int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, doubl
 		for(i=old_lines; i<n; i++)
 		{
 			fprintf(f, "\n%f", my[i]);
-			for(j=0; j<nparameters;j++)
+			for(j=0; j<nparameters; j++)
 				fprintf(f, ", %f", mpar[i*nparameters+j]);
 		}
 		fclose(f);
