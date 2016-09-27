@@ -299,14 +299,15 @@ static void dump_reg_model(FILE *f, struct starpu_perfmodel *model, int comb, in
 		_starpu_multiple_regression(per_arch_model->list, reg_model->coeff, reg_model->ncoeff, model->nparameters, model->combinations, model->symbol);
 
 		fprintf(f, "# n\tintercept\t");
-		for (int i=0; i < model->ncombinations; i++)
+		int i, j, first;
+		for (i=0; i < model->ncombinations; i++)
 		{
 			if (model->parameters_names == NULL)
 				fprintf(f, "c%d", i+1);
 			else
 			{
-				int first=1;
-				for(int j=0; j < model->nparameters; j++)
+				first=1;
+				for(j=0; j < model->nparameters; j++)
 				{
 					if (model->combinations[i][j] > 0)
 					{
@@ -324,7 +325,7 @@ static void dump_reg_model(FILE *f, struct starpu_perfmodel *model, int comb, in
 		}
 
 		fprintf(f, "\n%u", reg_model->ncoeff);
-		for (int i=0; i < reg_model->ncoeff; i++)
+		for (i=0; i < reg_model->ncoeff; i++)
 			fprintf(f, "\t%-15e", reg_model->coeff[i]);
 
 	}
@@ -387,8 +388,9 @@ static void scan_reg_model(FILE *f, struct starpu_perfmodel_regression_model *re
 		reg_model->coeff = malloc(reg_model->ncoeff*sizeof(double));
 
 		unsigned multi_invalid = 0;
-
-		for (int i=0; i < reg_model->ncoeff; i++){
+		int i;
+		for (i=0; i < reg_model->ncoeff; i++)
+		{
 			res = _starpu_read_double(f, "%le", &reg_model->coeff[i]);
 			STARPU_ASSERT_MSG(res == 1, "Incorrect performance model file");
 			multi_invalid = (multi_invalid||isnan(reg_model->coeff[i]));
@@ -1319,9 +1321,11 @@ double _starpu_multiple_regression_based_job_expected_perf(struct starpu_perfmod
 	parameters = (double *) malloc(model->nparameters*sizeof(double));
 	model->parameters(j->task, parameters);
 	expected_duration=reg_model->coeff[0];
-	for (int i=0; i < model->ncombinations; i++){
+	int i, j;
+	for (i=0; i < model->ncombinations; i++)
+	{
 		parameter_value=1.;
-		for (int j=0; j < model->nparameters; j++)
+		for (j=0; j < model->nparameters; j++)
 			parameter_value *= pow(parameters[j],model->combinations[i][j]);
 
 		expected_duration += reg_model->coeff[i+1]*parameter_value;
