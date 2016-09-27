@@ -36,6 +36,7 @@
 #include <core/sched_ctx.h>
 #include <time.h>
 #include <signal.h>
+#include <core/simgrid.h>
 #ifdef STARPU_HAVE_WINDOWS
 #include <windows.h>
 #endif
@@ -681,7 +682,8 @@ int starpu_task_submit(struct starpu_task *task)
 
 	ret = _starpu_submit_job(j);
 #ifdef STARPU_SIMGRID
-	MSG_process_sleep(0.000001);
+	if (_starpu_simgrid_task_submit_cost())
+		MSG_process_sleep(0.000001);
 #endif
 
 	if (is_sync)
