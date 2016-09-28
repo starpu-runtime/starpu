@@ -1014,8 +1014,11 @@ void starpu_memchunk_tidy(unsigned node)
 			if (handle->current_mode == STARPU_W)
 			{
 				if (handle->write_invalidation_req)
+				{
 					/* Some request is invalidating it anyway */
+					_starpu_spin_unlock(&handle->header_lock);
 					continue;
+				}
 
 				unsigned n;
 				for (n = 0; n < STARPU_MAXNODES; n++)
