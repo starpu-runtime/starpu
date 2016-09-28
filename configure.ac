@@ -1491,7 +1491,6 @@ if test x$enable_debug = xyes; then
 			CFLAGS="$CFLAGS -fstack-protector-all"
 			CXXFLAGS="$CXXFLAGS -fstack-protector-all"
 		fi
-		CPPFLAGS="$CPPFLAGS -D_FORTIFY_SOURCE=2"
 	fi
 else
 	CFLAGS="-O3 $CFLAGS"
@@ -1517,6 +1516,12 @@ AC_ARG_ENABLE(fast, [AS_HELP_STRING([--enable-fast],
 AC_MSG_RESULT($enable_fast)
 if test x$enable_fast = xyes; then
 	AC_DEFINE(STARPU_NO_ASSERT, [1], [disable assertions])
+else
+	if test x$enable_debug != xyes; then
+		if test x$GCC = xyes; then
+			CPPFLAGS="$CPPFLAGS -D_FORTIFY_SOURCE=1"
+		fi
+	fi
 fi
 
 AC_MSG_CHECKING(whether debug messages should be displayed)
