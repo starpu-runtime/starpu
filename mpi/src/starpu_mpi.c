@@ -959,6 +959,7 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
 				{
 					// req->ptr is freed by starpu_data_unpack
 					starpu_data_unpack(req->data_handle, req->ptr, req->count);
+					starpu_memory_deallocate(STARPU_MAIN_RAM, req->count);
 				}
 			}
 			else
@@ -1483,6 +1484,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 						{
 							early_request->count = envelope->size;
 							early_request->ptr = malloc(early_request->count);
+							starpu_memory_allocate(STARPU_MAIN_RAM, early_request->count, STARPU_MEMORY_OVERFLOW);
 
 							STARPU_MPI_ASSERT_MSG(early_request->ptr, "cannot allocate message of size %ld\n", early_request->count);
 						}
