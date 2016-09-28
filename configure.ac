@@ -1480,6 +1480,7 @@ AC_ARG_ENABLE(debug, [AS_HELP_STRING([--enable-debug], [enable debug mode])],
 AC_MSG_RESULT($enable_debug)
 
 AC_ARG_ENABLE(spinlock_check, [AS_HELP_STRING([--enable-spinlock-check], [enable spinlock check])], enable_spinlock_check=$enableval, enable_spinlock_check=no)
+AC_ARG_ENABLE(fstack-protector-all, [AS_HELP_STRING([--enable-fstack-protector-all], [enable GCC option -fstack-protector-all])], enable_fstack_protector_all=$enableval, enable_fstack_protector_all=yes)
 
 if test x$enable_debug = xyes; then
 	AC_DEFINE(STARPU_DEBUG, [1], [enable debugging statements])
@@ -1488,8 +1489,10 @@ if test x$enable_debug = xyes; then
 	enable_spinlock_check=yes
 	if test x$GCC = xyes; then
 		if test x$starpu_windows != xyes ; then
-			CFLAGS="$CFLAGS -fstack-protector-all"
-			CXXFLAGS="$CXXFLAGS -fstack-protector-all"
+			if test x$enable_fstack_protector_all = xyes ; then
+			   CFLAGS="$CFLAGS -fstack-protector-all"
+			   CXXFLAGS="$CXXFLAGS -fstack-protector-all"
+			fi
 		fi
 	fi
 else
