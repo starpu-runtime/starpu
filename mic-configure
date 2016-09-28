@@ -127,7 +127,7 @@ do
 	fi
 
 	declare -a params
-	params=("--prefix=$prefix/$arch --disable-fstack-protector-all")
+	params=("--prefix=$prefix/$arch" "--disable-fstack-protector-all")
 
 	if [ "$native_mic" -eq "0" ]
 	then
