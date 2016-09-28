@@ -21,6 +21,10 @@ not to have the \ref enable-fast "--enable-fast" option which drops very useful
 catchup assertions. If your program is valgrind-safe, you can use it, see \ref
 UsingOtherDebugger.
 
+Depending on your toolchain, it might happen that you get
+<c>undefined reference to `__stack_chk_guard'</c> errors. In that case, use the
+<c>--disable-fstack-protector-all</c> option to avoid the issue.
+
 Then, if your program crashes with an assertion error, a segfault, etc. you can send us the result of
 
 \verbatim
