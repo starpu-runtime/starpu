@@ -1,6 +1,5 @@
 TOPDIR=../..
 include $(TOPDIR)/make.inc
-include ../$(TOPDIR)/min-make.inc
 
 #######################################################################
 #  This is the makefile to create a library for the BLAS.

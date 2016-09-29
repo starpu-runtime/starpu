@@ -1,7 +1,6 @@
 
 TOPDIR=../..
 include $(TOPDIR)/make.inc
-include $(TOPDIR)/../min-make.inc
 
 # Unix makefile: see README.
 # For C++, first "make hadd".

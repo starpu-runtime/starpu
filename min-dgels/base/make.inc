@@ -51,4 +51,9 @@ TIMER    = INT_CPU_TIME
 #  If you system has no ranlib, set RANLIB = echo.
 #
 
+ARCH     = ar
+ARCHFLAGS= cr
+RANLIB   = ranlib
 
+BLASLIB=../../../build/minlibblas.a
+F2CLIB=../../../build/minlibf2c.a

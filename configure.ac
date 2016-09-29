@@ -1135,8 +1135,10 @@ AC_ARG_ENABLE(mlr, [AS_HELP_STRING([--disable-mlr],
 			[Disable multiple linear regression models])],
 			enable_mlr=$enableval, enable_mlr=yes)
 
-install_min_dgels=no
+AC_MSG_CHECKING(whether multiple linear regression models are disabled)
 if test x$enable_mlr = xyes; then
+   	AC_MSG_RESULT(no)
+	install_min_dgels=no
    	STARPU_SEARCH_LIBS(LAPACK,[dgels_],[lapack],use_system_lapack=yes,,)
 	if test x$use_system_lapack = xyes; then
 	        AC_DEFINE(STARPU_MLR_MODEL, [1], [use reflapack library])
@@ -1160,6 +1162,8 @@ if test x$enable_mlr = xyes; then
 			install_min_dgels=yes
 		fi
 	fi
+else
+ 	AC_MSG_RESULT(yes)
 fi
 AM_CONDITIONAL(STARPU_USE_MIN_DGELS, test x$install_min_dgels = xyes)
 
@@ -2910,6 +2914,7 @@ AC_OUTPUT([
 	doc/doxygen/doxygen-config.cfg
 	doc/doxygen/doxygen_filter.sh
 	tools/msvc/starpu_var.bat
+	min-dgels/Makefile
 ])
 
 AC_MSG_NOTICE([
