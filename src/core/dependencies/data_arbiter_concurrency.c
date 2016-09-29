@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015  Université de Bordeaux
+ * Copyright (C) 2015-2016  Université de Bordeaux
  * Copyright (C) 2015  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -127,7 +127,7 @@ struct LockOrDelegateListNode
  */
 static int _starpu_LockOrDelegatePostOrPerform(starpu_arbiter_t arbiter, void (*func)(void*), void* data)
 {
-	struct LockOrDelegateListNode* newNode = malloc(sizeof(*newNode)), *iter;
+	struct LockOrDelegateListNode* newNode = malloc(sizeof(*newNode)), *iter, *next;
 	int did = 0;
 	STARPU_ASSERT(newNode);
 	newNode->data = data;
@@ -152,8 +152,9 @@ static int _starpu_LockOrDelegatePostOrPerform(starpu_arbiter_t arbiter, void (*
 		while (iter != NULL)
 		{
 			(*iter->func)(iter->data);
+			next = iter->next;
 			free(iter);
-			iter = iter->next;
+			iter = next;
 		}
 
 		/* And then do our job */
