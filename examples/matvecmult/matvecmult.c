@@ -224,6 +224,11 @@ int main(int argc, char **argv)
         printArray(vector, width);
         printArray(mult, height);
 #endif
+
+	free(matrix);
+	free(vector);
+	free(mult);
+	free(correctResult);
         starpu_shutdown();
 
 	return (submit == -ENODEV) ? 77 : 0;
