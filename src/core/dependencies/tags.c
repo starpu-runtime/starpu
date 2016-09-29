@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2013  Université de Bordeaux
+ * Copyright (C) 2009-2013, 2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  CNRS
  * Copyright (C) 2016  Inria
  *
@@ -27,11 +27,7 @@
 #include <common/uthash.h>
 #include <core/debug.h>
 
-#if defined(STARPU_USE_AYUDAME1) || defined(STARPU_USE_AYUDAME2)
-# define STARPU_AYUDAME_OFFSET 4000000000000000000ULL
-#else
-# define STARPU_AYUDAME_OFFSET 0
-#endif
+#define STARPU_AYUDAME_OFFSET 4000000000000000000ULL
 
 struct _starpu_tag_table
 {
@@ -144,7 +140,7 @@ void starpu_tag_remove(starpu_tag_t id)
 {
 	struct _starpu_tag_table *entry;
 
-	STARPU_ASSERT(STARPU_AYUDAME_OFFSET == 0 || id < STARPU_AYUDAME_OFFSET);
+	STARPU_ASSERT(!STARPU_AYU_EVENT || id < STARPU_AYUDAME_OFFSET);
 	STARPU_AYU_REMOVETASK(id + STARPU_AYUDAME_OFFSET);
 	STARPU_PTHREAD_RWLOCK_WRLOCK(&tag_global_rwlock);
 
@@ -202,7 +198,7 @@ static struct _starpu_tag *_gettag_struct(starpu_tag_t id)
 
 		HASH_ADD_UINT64_T(tag_htbl, id, entry2);
 
-		STARPU_ASSERT(STARPU_AYUDAME_OFFSET == 0 || id < STARPU_AYUDAME_OFFSET);
+		STARPU_ASSERT(!STARPU_AYU_EVENT || id < STARPU_AYUDAME_OFFSET);
 		STARPU_AYU_ADDTASK(id + STARPU_AYUDAME_OFFSET, NULL);
 	}
 
@@ -237,7 +233,7 @@ void _starpu_tag_set_ready(struct _starpu_tag *tag)
 	_starpu_enforce_deps_starting_from_task(j);
 
 	_starpu_spin_lock(&tag->lock);
-	STARPU_ASSERT(STARPU_AYUDAME_OFFSET == 0 || tag->id < STARPU_AYUDAME_OFFSET);
+	STARPU_ASSERT(!STARPU_AYU_EVENT || tag->id < STARPU_AYUDAME_OFFSET);
 	STARPU_AYU_PRERUNTASK(tag->id + STARPU_AYUDAME_OFFSET, -1);
 	STARPU_AYU_POSTRUNTASK(tag->id + STARPU_AYUDAME_OFFSET);
 }
@@ -318,7 +314,7 @@ void _starpu_tag_declare(starpu_tag_t id, struct _starpu_job *job)
 	if (job->task->regenerate || job->submitted == 2 ||
 			tag->state != STARPU_DONE)
 		tag->state = STARPU_ASSOCIATED;
-	STARPU_ASSERT(STARPU_AYUDAME_OFFSET == 0 || id < STARPU_AYUDAME_OFFSET);
+	STARPU_ASSERT(!STARPU_AYU_EVENT || id < STARPU_AYUDAME_OFFSET);
 	STARPU_AYU_ADDDEPENDENCY(id+STARPU_AYUDAME_OFFSET, 0, job->job_id);
 	STARPU_AYU_ADDDEPENDENCY(job->job_id, 0, id+STARPU_AYUDAME_OFFSET);
 	_starpu_spin_unlock(&tag->lock);
@@ -351,8 +347,8 @@ void starpu_tag_declare_deps_array(starpu_tag_t id, unsigned ndeps, starpu_tag_t
 		_starpu_spin_lock(&tag_dep->lock);
 		_starpu_spin_lock(&tag_child->lock);
 		_starpu_tag_add_succ(tag_dep, cg);
-		STARPU_ASSERT(STARPU_AYUDAME_OFFSET == 0 || dep_id < STARPU_AYUDAME_OFFSET);
-		STARPU_ASSERT(STARPU_AYUDAME_OFFSET == 0 || id < STARPU_AYUDAME_OFFSET);
+		STARPU_ASSERT(!STARPU_AYU_EVENT || dep_id < STARPU_AYUDAME_OFFSET);
+		STARPU_ASSERT(!STARPU_AYU_EVENT || id < STARPU_AYUDAME_OFFSET);
 		STARPU_AYU_ADDDEPENDENCY(dep_id+STARPU_AYUDAME_OFFSET, 0, id+STARPU_AYUDAME_OFFSET);
 		_starpu_spin_unlock(&tag_child->lock);
 		_starpu_spin_unlock(&tag_dep->lock);
@@ -389,8 +385,8 @@ void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...)
 		_starpu_spin_lock(&tag_dep->lock);
 		_starpu_spin_lock(&tag_child->lock);
 		_starpu_tag_add_succ(tag_dep, cg);
-		STARPU_ASSERT(STARPU_AYUDAME_OFFSET == 0 || dep_id < STARPU_AYUDAME_OFFSET);
-		STARPU_ASSERT(STARPU_AYUDAME_OFFSET == 0 || id < STARPU_AYUDAME_OFFSET);
+		STARPU_ASSERT(!STARPU_AYU_EVENT || dep_id < STARPU_AYUDAME_OFFSET);
+		STARPU_ASSERT(!STARPU_AYU_EVENT || id < STARPU_AYUDAME_OFFSET);
 		STARPU_AYU_ADDDEPENDENCY(dep_id+STARPU_AYUDAME_OFFSET, 0, id+STARPU_AYUDAME_OFFSET);
 		_starpu_spin_unlock(&tag_child->lock);
 		_starpu_spin_unlock(&tag_dep->lock);
