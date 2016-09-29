@@ -339,9 +339,9 @@ void _starpu_data_end_reduction_mode(starpu_data_handle_t handle)
 			redux_task->cl = handle->redux_cl;
 			STARPU_ASSERT(redux_task->cl);
 
-			if (!(STARPU_CODELET_GET_MODE(redux_task->cl, 0))
+			if (!(STARPU_CODELET_GET_MODE(redux_task->cl, 0)))
 				STARPU_CODELET_SET_MODE(redux_task->cl, STARPU_RW, 0);
-			if (!(STARPU_CODELET_GET_MODE(redux_task->cl, 1))
+			if (!(STARPU_CODELET_GET_MODE(redux_task->cl, 1)))
 				STARPU_CODELET_SET_MODE(redux_task->cl, STARPU_R, 1);
 
 			STARPU_ASSERT_MSG(STARPU_CODELET_GET_MODE(redux_task->cl, 0) == STARPU_RW, "First parameter of reduction codelet %p has to be RW", redux_task->cl);
