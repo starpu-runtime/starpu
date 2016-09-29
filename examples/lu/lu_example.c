@@ -27,13 +27,8 @@
 #include "xlu.h"
 #include "xlu_kernels.h"
 
-#ifdef STARPU_QUICK_CHECK
-static unsigned long size = 320*4;
-static unsigned nblocks = 4;
-#else
-static unsigned long size = 960*16;
-static unsigned nblocks = 16;
-#endif
+static unsigned long size = 0;
+static unsigned nblocks = 0;
 static unsigned check = 0;
 static unsigned pivot = 0;
 static unsigned no_stride = 0;
@@ -313,17 +308,29 @@ int main(int argc, char **argv)
 {
 	int ret;
 
-#ifdef STARPU_QUICK_CHECK
-	size /= 4;
-	nblocks /= 4;
-#endif
-
-	parse_args(argc, argv);
-
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV)
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+
+	int power = starpu_cpu_worker_get_count() + 32 * starpu_cuda_worker_get_count();
+	int power_sqrt = sqrt(power)/2;
+	if (power_sqrt < 1)
+		power_sqrt = 1;
+
+#ifdef STARPU_QUICK_CHECK
+	if (!size)
+		size = 320*2*power_sqrt;
+	if (!nblocks)
+		nblocks = 2*power_sqrt;
+#else
+	if (!size)
+		size = 960*8*power_sqrt;
+	if (!nblocks)
+		nblocks = 8*power_sqrt;
+#endif
+
+	parse_args(argc, argv);
 
 	starpu_cublas_init();
 

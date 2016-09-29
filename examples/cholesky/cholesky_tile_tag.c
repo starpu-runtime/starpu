@@ -220,11 +220,6 @@ int main(int argc, char **argv)
 	unsigned x, y;
 	int ret;
 
-	parse_args(argc, argv);
-	assert(nblocks <= NMAXBLOCKS);
-
-	FPRINTF(stderr, "BLOCK SIZE = %d\n", size / nblocks);
-
 #ifdef STARPU_HAVE_MAGMA
 	magma_init();
 #endif
@@ -233,6 +228,13 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV)
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+
+	init_sizes();
+
+	parse_args(argc, argv);
+	assert(nblocks <= NMAXBLOCKS);
+
+	FPRINTF(stderr, "BLOCK SIZE = %d\n", size / nblocks);
 
 #ifdef STARPU_USE_CUDA
 	initialize_chol_model(&chol_model_11,"chol_model_11",cpu_chol_task_11_cost,cuda_chol_task_11_cost);

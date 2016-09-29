@@ -227,7 +227,7 @@ static void _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 	PRINTF("%u\t%.0f\t%.1f\n", n, timing/1000, (flop/timing/1000.0f));
 }
 
-static int initialize_system(float **A, unsigned dim, unsigned pinned)
+static int initialize_system(int argc, char **argv, float **A, unsigned pinned)
 {
 	int ret;
 	int flags = STARPU_MALLOC_SIMULATION_FOLDED;
@@ -240,6 +240,10 @@ static int initialize_system(float **A, unsigned dim, unsigned pinned)
 	if (ret == -ENODEV)
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+
+	init_sizes();
+
+	parse_args(argc, argv);
 
 #ifdef STARPU_USE_CUDA
 	initialize_chol_model(&chol_model_11,"chol_model_11",cpu_chol_task_11_cost,cuda_chol_task_11_cost);
@@ -255,7 +259,7 @@ static int initialize_system(float **A, unsigned dim, unsigned pinned)
 
 	if (pinned)
 		flags |= STARPU_MALLOC_PINNED;
-	starpu_malloc_flags((void **)A, dim*dim*sizeof(float), flags);
+	starpu_malloc_flags((void **)A, size*size*sizeof(float), flags);
 
 	return 0;
 }
@@ -308,10 +312,8 @@ int main(int argc, char **argv)
 	 *	Hilbert matrix : h(i,j) = 1/(i+j+1)
 	 * */
 
-	parse_args(argc, argv);
-
 	float *mat = NULL;
-	int ret = initialize_system(&mat, size, pinned);
+	int ret = initialize_system(argc, argv, &mat, pinned);
 	if (ret) return ret;
 
 #ifndef STARPU_SIMGRID
