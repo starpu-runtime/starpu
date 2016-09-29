@@ -312,21 +312,23 @@ int main(int argc, char **argv)
 	 *	Hilbert matrix : h(i,j) = 1/(i+j+1)
 	 * */
 
-	parse_args(argc, argv);
-
-	if(with_ctxs || with_noctxs || chole1 || chole2)
-		parse_args_ctx(argc, argv);
-
 #ifdef STARPU_HAVE_MAGMA
 	magma_init();
 #endif
 
 	int ret;
 	ret = starpu_init(NULL);
-	//starpu_fxt_stop_profiling();
-
 	if (ret == -ENODEV) return 77;
         STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+
+	//starpu_fxt_stop_profiling();
+
+	init_sizes();
+
+	parse_args(argc, argv);
+
+	if(with_ctxs || with_noctxs || chole1 || chole2)
+		parse_args_ctx(argc, argv);
 
 #ifdef STARPU_USE_CUDA
 	initialize_chol_model(&chol_model_11,"chol_model_11",cpu_chol_task_11_cost,cuda_chol_task_11_cost);
