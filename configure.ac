@@ -2777,6 +2777,10 @@ if test "$enable_build_doc" = "yes" ; then
    if test "$epstopdfcommand" = "" ; then
 	enable_build_doc="no"
    fi
+   if test -f "$srcdir/doc/doxygen/starpu.pdf"
+   then
+	enable_build_doc="no"
+   fi
 fi
 AC_MSG_CHECKING(whether documentation should be compiled)
 AC_MSG_RESULT($enable_build_doc)
