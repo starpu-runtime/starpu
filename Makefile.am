@@ -2,8 +2,7 @@
 #
 # Copyright (C) 2009-2014, 2016  Université de Bordeaux
 # Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016  CNRS
-# Copyright (C) 2014  INRIA
-# Copyright (C) 2016  Inria
+# Copyright (C) 2014, 2016  Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -156,7 +155,7 @@ txtdir = ${prefix}
 else
 txtdir = ${docdir}
 endif
-txt_DATA = AUTHORS COPYING.LGPL README STARPU-REVISION
+txt_DATA = AUTHORS COPYING.LGPL README README.dev STARPU-REVISION
 EXTRA_DIST = autogen.sh AUTHORS COPYING.LGPL README STARPU-VERSION STARPU-REVISION build-aux/svn2cl.xsl mic-configure
 
 DISTCLEANFILES = STARPU-REVISION
