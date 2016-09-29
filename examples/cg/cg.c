@@ -404,7 +404,6 @@ static void parse_args(int argc, char **argv)
 		{
 			FPRINTF(stderr, "usage: %s [-h] [-nblocks #blocks] [-n problem_size] [-no-reduction] [-maxiter i]\n", argv[0]);
 			exit(-1);
-			continue;
 		}
         }
 }
