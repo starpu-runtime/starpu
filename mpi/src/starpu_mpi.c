@@ -1371,9 +1371,9 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 		}
 
 		/* get one request */
-		struct _starpu_mpi_req *req;
 		while (!_starpu_mpi_req_list_empty(ready_requests))
 		{
+			struct _starpu_mpi_req *req;
 			req = _starpu_mpi_req_list_pop_back(ready_requests);
 
 			/* handling a request is likely to block for a while
@@ -1688,7 +1688,9 @@ int starpu_mpi_initialize_extended(int *rank, int *world_size)
 
 int starpu_mpi_shutdown(void)
 {
+#ifndef STARPU_SIMGRID
 	void *value;
+#endif
 	int rank, world_size;
 
 	/* We need to get the rank before calling MPI_Finalize to pass to _starpu_mpi_comm_amounts_display() */

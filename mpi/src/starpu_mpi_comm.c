@@ -134,12 +134,11 @@ int _starpu_mpi_comm_test_recv(MPI_Status *status, struct _starpu_mpi_envelope *
 	STARPU_PTHREAD_MUTEX_LOCK(&_starpu_mpi_comms_mutex);
 	while (1)
 	{
-		int flag, res;
-
 		struct _starpu_mpi_comm *_comm = _starpu_mpi_comms[i]; // get the ith _comm;
 
 		if (_comm->posted)
 		{
+			int flag, res;
 			/* test whether an envelope has arrived. */
 #ifdef STARPU_SIMGRID
 			MSG_process_sleep(0.000001);
