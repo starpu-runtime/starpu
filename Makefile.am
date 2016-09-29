@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2009-2016  Université de Bordeaux
-# Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
+# Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016  CNRS
 # Copyright (C) 2014  INRIA
 # Copyright (C) 2016  Inria
 #
@@ -158,7 +158,7 @@ txtdir = ${prefix}
 else
 txtdir = ${docdir}
 endif
-txt_DATA = AUTHORS COPYING.LGPL README STARPU-REVISION
+txt_DATA = AUTHORS COPYING.LGPL README README.dev STARPU-REVISION
 EXTRA_DIST = autogen.sh AUTHORS COPYING.LGPL README STARPU-VERSION STARPU-REVISION build-aux/svn2cl.xsl mic-configure
 
 DISTCLEANFILES = STARPU-REVISION
