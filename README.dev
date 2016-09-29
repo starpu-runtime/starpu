@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009, 2010, 2011  Université de Bordeaux
+# Copyright (C) 2009, 2010, 2011, 2016  Université de Bordeaux
 # Copyright (C) 2010, 2011, 2016  CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -32,6 +32,7 @@ The directory structure is as follows:
 - tests      : unitary tests
 - examples   : examples using StarPU
 - doc        : documentation for StarPU
+- tools      : tools for StarPU
 
 StarPU extensions have their own directory (src/include/tests/examples) structure:
 
@@ -41,6 +42,11 @@ StarPU extensions have their own directory (src/include/tests/examples) structur
 - sc_hypervisor : The Scheduling Context Hypervisor
 - starpufft     : The FFT support
 - starpu-top    : StarPU-Top Interface
+
+Some directories contain only build system details:
+- build-aux
+- m4
+- autom4te.cache
 
 
 
