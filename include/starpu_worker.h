@@ -53,7 +53,8 @@ enum starpu_worker_collection_type
 
 struct starpu_worker_collection
 {
-	void *workerids;
+	int *workerids;
+	void *collection_private;
 	unsigned nworkers;
 	void *masters;
 	unsigned nmasters;
