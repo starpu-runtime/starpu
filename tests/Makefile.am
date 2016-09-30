@@ -298,6 +298,7 @@ myPROGRAMS +=				\
 	openmp/parallel_sections_combined_01	\
 	openmp/task_01				\
 	openmp/task_02				\
+	openmp/task_03				\
 	openmp/taskwait_01			\
 	openmp/taskgroup_01			\
 	openmp/taskgroup_02			\
@@ -650,6 +651,9 @@ openmp_task_01_SOURCES = 	\
 
 openmp_task_02_SOURCES = 	\
 	openmp/task_02.c
+
+openmp_task_03_SOURCES = 	\
+	openmp/task_03.c
 
 openmp_taskwait_01_SOURCES = 	\
 	openmp/taskwait_01.c

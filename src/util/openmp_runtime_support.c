@@ -1534,26 +1534,35 @@ void starpu_omp_task_region(const struct starpu_omp_task_region_attr *attr)
 	int is_merged = 0;
 	int ret;
 
-	if (!attr->if_clause)
+	if (generating_task == _global_state.initial_task)
 	{
 		is_undeferred = 1;
-	}
-	if (generating_task->flags & STARPU_OMP_TASK_FLAGS_FINAL)
-	{
 		is_final = 1;
 		is_included = 1;
 	}
-	else if (attr->final_clause)
+	else
 	{
-		is_final = 1;
-	}
-	if (is_included)
-	{
-		is_undeferred = 1;
-	}
-	if ((is_undeferred || is_included) & attr->mergeable_clause)
-	{
-		is_merged = 1;
+		if (!attr->if_clause)
+		{
+			is_undeferred = 1;
+		}
+		if (generating_task->flags & STARPU_OMP_TASK_FLAGS_FINAL)
+		{
+			is_final = 1;
+			is_included = 1;
+		}
+		else if (attr->final_clause)
+		{
+			is_final = 1;
+		}
+		if (is_included)
+		{
+			is_undeferred = 1;
+		}
+		if ((is_undeferred || is_included) & attr->mergeable_clause)
+		{
+			is_merged = 1;
+		}
 	}
 	if (is_merged)
 	{
