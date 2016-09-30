@@ -1016,11 +1016,11 @@ static void _fill_tree(struct starpu_tree *tree, hwloc_obj_t curr_obj, unsigned 
 	starpu_tree_prepare_children(curr_obj->arity, tree);
 	for(i = 0; i < curr_obj->arity; i++)
 	{
-		starpu_tree_insert(tree->nodes[i], curr_obj->children[i]->logical_index, depth, curr_obj->children[i]->type == HWLOC_OBJ_PU, curr_obj->children[i]->arity, tree);
+		starpu_tree_insert(&tree->nodes[i], curr_obj->children[i]->logical_index, depth, curr_obj->children[i]->type == HWLOC_OBJ_PU, curr_obj->children[i]->arity, tree);
 /* 		char string[128]; */
 /* 		hwloc_obj_snprintf(string, sizeof(string), topology, curr_obj->children[i], "#", 0); */
 /* 		printf("%*s%s %d is_pu %d \n", 0, "", string, curr_obj->children[i]->logical_index, curr_obj->children[i]->type == HWLOC_OBJ_PU); */
-		_fill_tree(tree->nodes[i], curr_obj->children[i], depth+1, topology);
+		_fill_tree(&tree->nodes[i], curr_obj->children[i], depth+1, topology);
 	}
 }
 #endif
