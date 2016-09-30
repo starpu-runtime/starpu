@@ -1778,17 +1778,11 @@ unsigned starpu_sched_ctx_contains_worker(int workerid, unsigned sched_ctx_id)
         struct starpu_worker_collection *workers = sched_ctx->workers;
 	if(workers)
 	{
-		int worker;
+		int i;
 
-		struct starpu_sched_ctx_iterator it;
-
-		workers->init_iterator(workers, &it);
-		while(workers->has_next(workers, &it))
-		{
-			worker = workers->get_next(workers, &it);
-			if(worker == workerid)
+		for (i = 0; i < workers->nworkers; i++)
+			if (workerid == workers->workerids[i])
 				return 1;
-		}
 	}
 	return 0;
 }
@@ -1798,12 +1792,11 @@ unsigned starpu_sched_ctx_contains_type_of_worker(enum starpu_worker_archtype ar
 	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 	int worker;
 
-	struct starpu_sched_ctx_iterator it;
+	int i;
 
-	workers->init_iterator(workers, &it);
-	while(workers->has_next(workers, &it))
+	for (i = 0; i < workers->nworkers; i++)
 	{
-		worker = workers->get_next(workers, &it);
+		worker = workers->workerids[i];
 		enum starpu_worker_archtype curr_arch = starpu_worker_get_type(worker);
 		if(curr_arch == arch)
 			return 1;
