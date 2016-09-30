@@ -520,16 +520,22 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 {
 	struct _starpu_work_stealing_data *ws = (struct _starpu_work_stealing_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
-	struct starpu_task *task;
-	int workerid = starpu_worker_get_id_check();
+	struct starpu_task *task = NULL;
+	unsigned workerid = starpu_worker_get_id_check();
 
 	STARPU_ASSERT(workerid != -1);
 
-	STARPU_PTHREAD_MUTEX_LOCK(&ws->per_worker[workerid].worker_mutex);
-	task = ws_pick_task(workerid, workerid, sched_ctx_id);
-	if (task)
-		locality_popped_task(task, workerid, sched_ctx_id);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&ws->per_worker[workerid].worker_mutex);
+#ifdef STARPU_NON_BLOCKING_DRIVERS
+	if (STARPU_RUNNING_ON_VALGRIND || !_starpu_fifo_empty(ws->per_worker[workerid].queue_array))
+#endif
+	{
+		STARPU_PTHREAD_MUTEX_LOCK(&ws->per_worker[workerid].worker_mutex);
+		task = ws_pick_task(workerid, workerid, sched_ctx_id);
+		if (task)
+			locality_popped_task(task, workerid, sched_ctx_id);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&ws->per_worker[workerid].worker_mutex);
+	}
+
 	if (task)
 	{
 		/* there was a local task */
@@ -540,6 +546,8 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 
 	/* we need to steal someone's job */
 	unsigned victim = select_victim(sched_ctx_id);
+	if (victim == workerid)
+		return NULL;
 
 	STARPU_PTHREAD_MUTEX_LOCK(&ws->per_worker[victim].worker_mutex);
 	if (ws->per_worker[victim].queue_array != NULL && ws->per_worker[victim].queue_array->ntasks > 0)
@@ -559,9 +567,12 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&ws->per_worker[victim].worker_mutex);
 
-	if(!task)
+	if(!task
+#ifdef STARPU_NON_BLOCKING_DRIVERS
+		&& (STARPU_RUNNING_ON_VALGRIND || !_starpu_fifo_empty(ws->per_worker[workerid].queue_array))
+#endif
+		)
 	{
-		task = ws_pick_task(workerid, workerid, sched_ctx_id);
 		STARPU_PTHREAD_MUTEX_LOCK(&ws->per_worker[workerid].worker_mutex);
 		if (ws->per_worker[workerid].queue_array != NULL && ws->per_worker[workerid].queue_array->ntasks > 0)
 			task = ws_pick_task(workerid, workerid, sched_ctx_id);

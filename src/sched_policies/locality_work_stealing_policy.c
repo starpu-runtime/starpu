@@ -403,16 +403,21 @@ static struct starpu_task *lws_pop_task(unsigned sched_ctx_id)
 	struct _starpu_lws_data *ws = (struct _starpu_lws_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
 	struct starpu_task *task = NULL;
-
-	int workerid = starpu_worker_get_id();
+	unsigned workerid = starpu_worker_get_id_check();
 
 	STARPU_ASSERT(workerid != -1);
 
-	STARPU_PTHREAD_MUTEX_LOCK(&ws->per_worker[workerid].worker_mutex);
-	task = ws_pick_task(workerid, workerid, sched_ctx_id);
-	if (task)
-		locality_popped_task(task, workerid, sched_ctx_id);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&ws->per_worker[workerid].worker_mutex);
+#ifdef STARPU_NON_BLOCKING_DRIVERS
+	if (STARPU_RUNNING_ON_VALGRIND || !_starpu_fifo_empty(ws->per_worker[workerid].queue_array))
+#endif
+	{
+		STARPU_PTHREAD_MUTEX_LOCK(&ws->per_worker[workerid].worker_mutex);
+		task = ws_pick_task(workerid, workerid, sched_ctx_id);
+		if (task)
+			locality_popped_task(task, workerid, sched_ctx_id);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&ws->per_worker[workerid].worker_mutex);
+	}
+
 	if (task)
 	{
 		/* there was a local task */
@@ -422,6 +427,8 @@ static struct starpu_task *lws_pop_task(unsigned sched_ctx_id)
 
 	/* we need to steal someone's job */
 	unsigned victim = select_victim(sched_ctx_id, workerid);
+	if (victim == workerid)
+		return NULL;
 
 	STARPU_PTHREAD_MUTEX_LOCK(&ws->per_worker[victim].worker_mutex);
 	if (ws->per_worker[victim].queue_array != NULL && ws->per_worker[victim].queue_array->ntasks > 0)
@@ -432,13 +439,18 @@ static struct starpu_task *lws_pop_task(unsigned sched_ctx_id)
 	if (task)
 	{
 		_STARPU_TRACE_WORK_STEALING(workerid, victim);
+		_STARPU_TASK_BREAK_ON(task, sched);
 		record_data_locality(task, workerid);
 		record_worker_locality(task, workerid, sched_ctx_id);
 		locality_popped_task(task, victim, sched_ctx_id);
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&ws->per_worker[victim].worker_mutex);
 
-	if(!task)
+	if(!task
+#ifdef STARPU_NON_BLOCKING_DRIVERS
+		&& (STARPU_RUNNING_ON_VALGRIND || !_starpu_fifo_empty(ws->per_worker[workerid].queue_array))
+#endif
+		)
 	{
 		STARPU_PTHREAD_MUTEX_LOCK(&ws->per_worker[workerid].worker_mutex);
 		if (ws->per_worker[workerid].queue_array != NULL && ws->per_worker[workerid].queue_array->ntasks > 0)
@@ -447,6 +459,7 @@ static struct starpu_task *lws_pop_task(unsigned sched_ctx_id)
 		if (task)
 			locality_popped_task(task, workerid, sched_ctx_id);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&ws->per_worker[workerid].worker_mutex);
+
 		if (task)
 		{
 			/* there was a local task */
@@ -486,6 +499,7 @@ static int lws_push_task(struct starpu_task *task)
 	STARPU_PTHREAD_MUTEX_LOCK_SCHED(sched_mutex);
 
 	STARPU_PTHREAD_MUTEX_LOCK(&ws->per_worker[workerid].worker_mutex);
+	_STARPU_TASK_BREAK_ON(task, sched);
 	_starpu_fifo_push_task(ws->per_worker[workerid].queue_array, task);
 	locality_pushed_task(task, workerid, sched_ctx_id);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&ws->per_worker[workerid].worker_mutex);
