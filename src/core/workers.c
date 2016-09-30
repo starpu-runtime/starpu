@@ -1007,6 +1007,13 @@ struct starpu_tree* starpu_workers_get_tree(void)
 static void _fill_tree(struct starpu_tree *tree, hwloc_obj_t curr_obj, unsigned depth, hwloc_topology_t topology)
 {
 	unsigned i;
+	if (curr_obj->arity == 1)
+	{
+		/* Nothing interestin here, skip level */
+		_fill_tree(tree, curr_obj->children[0], depth+1, topology);
+		return;
+	}
+	starpu_tree_prepare_children(curr_obj->arity, tree);
 	for(i = 0; i < curr_obj->arity; i++)
 	{
 		starpu_tree_insert(tree->nodes[i], curr_obj->children[i]->logical_index, depth, curr_obj->children[i]->type == HWLOC_OBJ_PU, curr_obj->children[i]->arity, tree);

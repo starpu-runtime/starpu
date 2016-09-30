@@ -35,15 +35,19 @@ void starpu_tree_reset_visited(struct starpu_tree *tree, char *visited)
 		starpu_tree_reset_visited(tree->nodes[i], visited);
 }
 
+void starpu_tree_prepare_children(unsigned arity, struct starpu_tree *father)
+{
+	unsigned i;
+	father->nodes = (struct starpu_tree**)malloc(arity*sizeof(struct starpu_tree*));
+	for(i = 0; i < arity; i++)
+		father->nodes[i] = (struct starpu_tree*)malloc(sizeof(struct starpu_tree));
+}
+
 void starpu_tree_insert(struct starpu_tree *tree, int id, int level, int is_pu, int arity, struct starpu_tree *father)
 {
 	tree->level = level;
 	tree->arity = arity;
-	tree->nodes = (struct starpu_tree**)malloc(arity*sizeof(struct starpu_tree*));
-	int i;
-	for(i = 0; i < arity; i++)
-		tree->nodes[i] = (struct starpu_tree*)malloc(sizeof(struct starpu_tree));
-
+	tree->nodes = NULL;
 	tree->id = is_pu ? id : level;
 	tree->is_pu = is_pu;
 	tree->father = father;
