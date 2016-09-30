@@ -38,6 +38,7 @@ void starpu_tree_reset_visited(struct starpu_tree *tree, char *visited)
 void starpu_tree_prepare_children(unsigned arity, struct starpu_tree *father)
 {
 	father->nodes = (struct starpu_tree*)malloc(arity*sizeof(struct starpu_tree));
+	father->arity = arity;
 }
 
 void starpu_tree_insert(struct starpu_tree *tree, int id, int level, int is_pu, int arity, struct starpu_tree *father)
