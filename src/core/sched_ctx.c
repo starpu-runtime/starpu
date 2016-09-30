@@ -1665,6 +1665,13 @@ void starpu_sched_ctx_display_workers(unsigned sched_ctx_id, FILE *f)
 	free(workerids);
 }
 
+unsigned starpu_sched_ctx_get_workers_list_raw(unsigned sched_ctx_id, int **workerids)
+{
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+	*workerids = sched_ctx->workers->workerids;
+	return sched_ctx->workers->nworkers;
+}
+
 unsigned starpu_sched_ctx_get_workers_list(unsigned sched_ctx_id, int **workerids)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);

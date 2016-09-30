@@ -1733,6 +1733,7 @@ module fstarpu_mod
                 end subroutine fstarpu_sched_ctx_finished_submit
 
                 ! unsigned starpu_sched_ctx_get_workers_list(unsigned sched_ctx_id, int **workerids);
+                ! unsigned starpu_sched_ctx_get_workers_list_raw(unsigned sched_ctx_id, int **workerids);
 
                 ! unsigned starpu_sched_ctx_get_nworkers(unsigned sched_ctx_id);
                 function fstarpu_sched_ctx_get_nworkers (sched_ctx_id) &
