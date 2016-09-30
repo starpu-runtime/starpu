@@ -25,7 +25,7 @@ extern "C"
 
 struct starpu_tree
 {
-	struct starpu_tree **nodes;
+	struct starpu_tree *nodes;
 	struct starpu_tree *father;
 	int arity;
 	int id;
