@@ -96,6 +96,10 @@ then
     dev_list="mic"
 fi
 
+# prepend mic_params with "--with-mpicc=mpicc -mmic", to allow possible override by the user
+mic_params=("--with-mpicc=mpicc -mmic" "${mic_params[@]}")
+mic_params=("--with-mpifort=mpifort -mmic" "${mic_params[@]}")
+
 for arch in $dev_list #host mic
 do
 	# We call the configure script from a build directory further in the
