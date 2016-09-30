@@ -739,7 +739,7 @@ static void lws_add_workers(unsigned sched_ctx_id, int *workerids,
 	 * than traversing the hwloc tree every time a task must be
 	 * stolen */
 	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
-	struct starpu_tree *tree = (struct starpu_tree*)workers->workerids;
+	struct starpu_tree *tree = (struct starpu_tree*)workers->collection_private;
 	int workerid;
 	unsigned i;
 	for (i = 0; i < nworkers; i++)
