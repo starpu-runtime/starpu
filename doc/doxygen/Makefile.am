@@ -19,12 +19,17 @@ DOXYGEN = doxygen
 PDFLATEX = pdflatex
 MAKEINDEX = makeindex
 
+if BUILD_DOC
 DOX_DIR = $(top_builddir)/doc/doxygen
+else
+DOX_DIR = $(top_srcdir)/doc/doxygen
+endif
+
 DOX_CONFIG = $(top_srcdir)/doc/doxygen/doxygen.cfg
 
 DOX_HTML_DIR = html
 DOX_LATEX_DIR = latex
-DOX_PDF = starpu.pdf
+DOX_PDF = $(DOX_DIR)/starpu.pdf
 DOX_TAG = starpu.tag
 
 chapters =	\
@@ -297,11 +302,13 @@ $(DOX_PDF): $(DOX_TAG) refman.tex
 	done
 	mv $(DOX_LATEX_DIR)/refman.pdf $(DOX_PDF)
 
+if BUILD_DOC
 CLEANFILES = $(DOX_TAG) starpu_config.h \
     -r \
     $(DOX_HTML_DIR) \
     $(DOX_LATEX_DIR) \
     $(DOX_PDF)
+endif
 
 # Rule to update documentation on web server. Should only be used locally.
 PUBLISHHOST	?= gforge
