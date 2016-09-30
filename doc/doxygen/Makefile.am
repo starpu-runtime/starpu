@@ -278,6 +278,7 @@ $(DOX_TAG): $(dox_inputs)
 
 dist_pdf_DATA = $(DOX_PDF)
 
+if BUILD_DOC
 $(DOX_PDF): $(DOX_TAG) refman.tex
 	@cp $(top_srcdir)/doc/doxygen/chapters/version.sty $(DOX_LATEX_DIR)
 	@cp $(top_srcdir)/doc/doxygen/chapters/*pdf $(DOX_LATEX_DIR)
@@ -301,6 +302,7 @@ $(DOX_PDF): $(DOX_TAG) refman.tex
 	   fi; \
 	done
 	mv $(DOX_LATEX_DIR)/refman.pdf $(DOX_PDF)
+endif
 
 if BUILD_DOC
 CLEANFILES = $(DOX_TAG) starpu_config.h \
