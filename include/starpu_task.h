@@ -105,7 +105,7 @@ struct starpu_codelet
 	starpu_mic_func_t mic_funcs[STARPU_MAXIMPLEMENTATIONS];
 	starpu_scc_func_t scc_funcs[STARPU_MAXIMPLEMENTATIONS];
 
-	char *cpu_funcs_name[STARPU_MAXIMPLEMENTATIONS];
+	const char *cpu_funcs_name[STARPU_MAXIMPLEMENTATIONS];
 
 	int nbuffers;
 	enum starpu_data_access_mode modes[STARPU_NMAXBUFS];
