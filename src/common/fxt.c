@@ -244,7 +244,7 @@ void starpu_fxt_trace_user_event(unsigned long code STARPU_ATTRIBUTE_UNUSED)
 #endif
 }
 
-void starpu_fxt_trace_user_event_string(const char *s)
+void starpu_fxt_trace_user_event_string(const char *s STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_FXT
 	_STARPU_TRACE_EVENT(s);
