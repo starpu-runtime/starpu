@@ -116,7 +116,7 @@ static inline starpu_scc_func_t _starpu_task_get_scc_nth_implementation(struct s
 	return cl->scc_funcs[nimpl];
 }
 
-static inline char *_starpu_task_get_cpu_name_nth_implementation(struct starpu_codelet *cl, unsigned nimpl)
+static inline const char *_starpu_task_get_cpu_name_nth_implementation(struct starpu_codelet *cl, unsigned nimpl)
 {
 	return cl->cpu_funcs_name[nimpl];
 }
