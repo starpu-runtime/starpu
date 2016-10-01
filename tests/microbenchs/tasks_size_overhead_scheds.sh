@@ -18,4 +18,6 @@
 
 source $(dirname $0)/microbench.sh
 
+XFAIL="heteroprio"
+
 test_scheds tasks_size_overhead
