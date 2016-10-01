@@ -273,14 +273,14 @@ static inline int _starpu_can_use_nth_implementation(enum starpu_worker_archtype
 	case STARPU_MIC_WORKER:
 	{
 		starpu_mic_func_t func = _starpu_task_get_mic_nth_implementation(cl, nimpl);
-		char *func_name = _starpu_task_get_cpu_name_nth_implementation(cl, nimpl);
+		const char *func_name = _starpu_task_get_cpu_name_nth_implementation(cl, nimpl);
 
 		return func != NULL || func_name != NULL;
 	}
 	case STARPU_SCC_WORKER:
 	{
 		starpu_scc_func_t func = _starpu_task_get_scc_nth_implementation(cl, nimpl);
-		char *func_name = _starpu_task_get_cpu_name_nth_implementation(cl, nimpl);
+		const char *func_name = _starpu_task_get_cpu_name_nth_implementation(cl, nimpl);
 
 		return func != NULL || func_name != NULL;
 	}
