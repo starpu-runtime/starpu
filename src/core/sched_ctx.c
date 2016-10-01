@@ -803,7 +803,7 @@ unsigned starpu_sched_ctx_create(int *workerids, int nworkers, const char *sched
 	if (workerids && nworkers != -1)
 	{
 		/* Make sure the user doesn't use invalid worker IDs. */
-		unsigned num_workers = starpu_worker_get_count();
+		int num_workers = starpu_worker_get_count();
 		int i;
 		for (i = 0; i < nworkers; i++)
 		{
@@ -912,7 +912,7 @@ int fstarpu_sched_ctx_create(int *workerids, int nworkers, const char *sched_ctx
 	if (workerids && nworkers != -1)
 	{
 		/* Make sure the user doesn't use invalid worker IDs. */
-		unsigned num_workers = starpu_worker_get_count();
+		int num_workers = starpu_worker_get_count();
 		int i;
 		for (i = 0; i < nworkers; i++)
 		{
@@ -1778,7 +1778,7 @@ unsigned starpu_sched_ctx_contains_worker(int workerid, unsigned sched_ctx_id)
         struct starpu_worker_collection *workers = sched_ctx->workers;
 	if(workers)
 	{
-		int i;
+		unsigned i;
 
 		for (i = 0; i < workers->nworkers; i++)
 			if (workerid == workers->workerids[i])
@@ -1792,7 +1792,7 @@ unsigned starpu_sched_ctx_contains_type_of_worker(enum starpu_worker_archtype ar
 	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 	int worker;
 
-	int i;
+	unsigned i;
 
 	for (i = 0; i < workers->nworkers; i++)
 	{
