@@ -2178,7 +2178,7 @@ void starpu_sched_ctx_list_task_counters_decrement_all(struct starpu_task *task,
 	if (_starpu_get_nsched_ctxs() > 1)
 	{
 		int curr_workerid = starpu_worker_get_id();
-		struct _starpu_worker *curr_worker_str, *worker_str;
+		struct _starpu_worker *curr_worker_str = NULL, *worker_str;
 		if(curr_workerid != -1)
 		{
 			curr_worker_str = _starpu_get_worker_struct(curr_workerid);
@@ -2215,7 +2215,7 @@ void starpu_sched_ctx_list_task_counters_reset_all(struct starpu_task *task, uns
 	if (_starpu_get_nsched_ctxs() > 1)
 	{
 		int curr_workerid = starpu_worker_get_id();
-		struct _starpu_worker *curr_worker_str, *worker_str;
+		struct _starpu_worker *curr_worker_str = NULL, *worker_str;
 		if(curr_workerid != -1)
 		{
 			curr_worker_str = _starpu_get_worker_struct(curr_workerid);
