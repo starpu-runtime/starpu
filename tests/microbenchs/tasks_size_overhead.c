@@ -39,10 +39,13 @@
 #endif
 
 #ifdef STARPU_QUICK_CHECK
-static unsigned ntasks = 10;
+static unsigned ntasks = 1;
+#elif !defined(STARPU_LONG_CHECK)
+static unsigned ntasks = 64;
 #else
-static unsigned ntasks = 1000;
+static unsigned ntasks = 256;
 #endif
+
 static unsigned nbuffers = 0;
 static unsigned total_nbuffers = 0;
 
@@ -127,7 +130,7 @@ int main(int argc, char **argv)
 	for (buffer = 0; buffer < total_nbuffers; buffer++)
 		buffers[buffer] = (float *) malloc(16*sizeof(float));
 
-	tasks = (struct starpu_task *) calloc(1, ntasks*sizeof(struct starpu_task));
+	tasks = (struct starpu_task *) calloc(1, ntasks*totcpus*sizeof(struct starpu_task));
 
 	/* Emit headers and compute raw tasks speed */
 	FPRINTF(stdout, "# tasks : %u buffers : %u total_nbuffers : %u\n", ntasks, nbuffers, total_nbuffers);
@@ -168,7 +171,7 @@ int main(int argc, char **argv)
 		{
 			/* submit tasks */
 			start = starpu_timing_now();
-			for (i = 0; i < ntasks; i++)
+			for (i = 0; i < ntasks * ncpus; i++)
 			{
 				starpu_data_handle_t *handles;
 				starpu_task_init(&tasks[i]);
@@ -203,7 +206,7 @@ int main(int argc, char **argv)
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 			end = starpu_timing_now();
 
-			for (i = 0; i < ntasks; i++)
+			for (i = 0; i < ntasks * ncpus; i++)
 				starpu_task_clean(&tasks[i]);
 
 			timing = end - start;
