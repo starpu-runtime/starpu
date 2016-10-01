@@ -214,13 +214,14 @@ int main(int argc, char **argv)
 			{
 				char *output_dir = getenv("STARPU_BENCH_DIR");
 				char *bench_id = getenv("STARPU_BENCH_ID");
+				char *sched = getenv("STARPU_SCHED");
 
 				if (output_dir && bench_id)
 				{
 					char file[1024];
 					FILE *f;
 
-					snprintf(file, 1024, "%s/tasks_size_overhead_total.dat", output_dir);
+					snprintf(file, 1024, "%s/tasks_size_overhead_total%s%s.dat", output_dir, sched?"_":"", sched?sched:"");
 					f = fopen(file, "a");
 					fprintf(f, "%s\t%u\t%u\t%f\n", bench_id, ncpus, size, timing/1000000);
 					fclose(f);
