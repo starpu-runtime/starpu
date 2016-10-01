@@ -116,7 +116,6 @@ static unsigned select_victim_round_robin(unsigned sched_ctx_id)
 {
 	struct _starpu_work_stealing_data *ws = (struct _starpu_work_stealing_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	unsigned worker = ws->last_pop_worker;
-	/* This is horribly expensive... */
 	unsigned nworkers = starpu_sched_ctx_get_nworkers(sched_ctx_id);
 	int *workerids = NULL;
 	starpu_sched_ctx_get_workers_list(sched_ctx_id, &workerids);
