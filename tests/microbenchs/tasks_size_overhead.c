@@ -226,7 +226,7 @@ int main(int argc, char **argv)
 
 					snprintf(file, 1024, "%s/tasks_size_overhead_total%s%s.dat", output_dir, sched?"_":"", sched?sched:"");
 					f = fopen(file, "a");
-					fprintf(f, "%s\t%u\t%u\t%f\n", bench_id, ncpus, size, timing/1000000 /ncpus *1000);
+					fprintf(f, "%s\t%u\t%u\t%f\n", bench_id, ncpus, size, timing/1000000 /(ntasks*ncpus) *1000);
 					fclose(f);
 				}
 			}
