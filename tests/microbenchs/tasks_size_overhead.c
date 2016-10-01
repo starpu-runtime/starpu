@@ -211,7 +211,7 @@ int main(int argc, char **argv)
 
 			timing = end - start;
 
-			FPRINTF(stdout, "%u\t%f\t", size, timing/1000000);
+			FPRINTF(stdout, "%u\t%f\t", size, timing/ncpus/1000000);
 			fflush(stdout);
 
 			{
@@ -226,7 +226,7 @@ int main(int argc, char **argv)
 
 					snprintf(file, 1024, "%s/tasks_size_overhead_total%s%s.dat", output_dir, sched?"_":"", sched?sched:"");
 					f = fopen(file, "a");
-					fprintf(f, "%s\t%u\t%u\t%f\n", bench_id, ncpus, size, timing/1000000);
+					fprintf(f, "%s\t%u\t%u\t%f\n", bench_id, ncpus, size, timing/ncpus/1000000);
 					fclose(f);
 				}
 			}
