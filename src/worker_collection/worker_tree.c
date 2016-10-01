@@ -268,8 +268,8 @@ static int tree_remove(struct starpu_worker_collection *workers, int worker)
 {
 	if(workers->present[worker])
 	{
-		int i;
-		for (i = 0; i < workers->nworkers--; i++)
+		unsigned i;
+		for (i = 0; i < workers->nworkers; i++)
 			if (workers->workerids[i] == worker)
 			{
 				memmove(&workers->workerids[i], &workers->workerids[i+1], (workers->nworkers-1-i) * sizeof(workers->workerids[i]));

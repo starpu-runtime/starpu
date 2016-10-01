@@ -132,7 +132,7 @@ static void _starpu_data_request_destroy(struct _starpu_data_request *r)
 struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t handle,
 							 struct _starpu_data_replicate *src_replicate,
 							 struct _starpu_data_replicate *dst_replicate,
-							 unsigned handling_node,
+							 int handling_node,
 							 enum starpu_data_access_mode mode,
 							 unsigned ndeps,
 							 unsigned is_prefetch,
