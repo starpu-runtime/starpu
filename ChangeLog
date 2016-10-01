@@ -37,6 +37,9 @@ New features:
   * Add starpu_tasks_rec_complete tool to add estimation times in tasks.rec
     files.
 
+Changes:
+  * Fix performance regression of lws for small tasks.
+
 
 StarPU 1.2.0 (svn revision 18521)
 ==============================================
