@@ -110,20 +110,19 @@ static int calibration_value = 0;
  * the worker previously selected doesn't own any task,
  * then we return the first non-empty worker.
  */
-static unsigned select_victim_round_robin(unsigned sched_ctx_id)
+static int select_victim_round_robin(unsigned sched_ctx_id)
 {
 	struct _starpu_work_stealing_data *ws = (struct _starpu_work_stealing_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	unsigned worker = ws->last_pop_worker;
-	unsigned nworkers = starpu_sched_ctx_get_nworkers(sched_ctx_id);
+	unsigned nworkers;
 	int *workerids = NULL;
-	starpu_sched_ctx_get_workers_list(sched_ctx_id, &workerids);
+	nworkers = starpu_sched_ctx_get_workers_list_raw(sched_ctx_id, &workerids);
+	unsigned ntasks = 0;
 
 	/* If the worker's queue is empty, let's try
 	 * the next ones */
 	while (1)
 	{
-		unsigned ntasks;
-
 		/* Here helgrind would shout that this is unprotected, but we
 		 * are fine with getting outdated values, this is just an
 		 * estimation */
@@ -144,9 +143,11 @@ static unsigned select_victim_round_robin(unsigned sched_ctx_id)
 	ws->last_pop_worker = (worker + 1) % nworkers;
 
 	worker = workerids[worker];
-	free(workerids);
 
-	return worker;
+	if (ntasks)
+		return worker;
+	else
+		return -1;
 }
 
 /**
@@ -157,14 +158,13 @@ static unsigned select_worker_round_robin(unsigned sched_ctx_id)
 {
 	struct _starpu_work_stealing_data *ws = (struct _starpu_work_stealing_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	unsigned worker = ws->last_push_worker;
-	unsigned nworkers = starpu_sched_ctx_get_nworkers(sched_ctx_id);
-	int *workerids = NULL;
-	starpu_sched_ctx_get_workers_list(sched_ctx_id, &workerids);
+	unsigned nworkers;
+	int *workerids;
+	nworkers = starpu_sched_ctx_get_workers_list_raw(sched_ctx_id, &workerids);
 
 	ws->last_push_worker = (ws->last_push_worker + 1) % nworkers;
 
 	worker = workerids[worker];
-	free(workerids);
 
 	return worker;
 }
@@ -411,7 +411,7 @@ static float overload_metric(unsigned sched_ctx_id, unsigned id)
  * by the tasks are taken into account to select the most suitable
  * worker to steal task from.
  */
-static unsigned select_victim_overload(unsigned sched_ctx_id)
+static int select_victim_overload(unsigned sched_ctx_id)
 {
 	unsigned worker;
 	float  worker_ratio;
@@ -491,7 +491,7 @@ static unsigned select_worker_overload(unsigned sched_ctx_id)
  * This is a phony function used to call the right
  * function depending on the value of USE_OVERLOAD.
  */
-static inline unsigned select_victim(unsigned sched_ctx_id)
+static inline int select_victim(unsigned sched_ctx_id)
 {
 #ifdef USE_OVERLOAD
 	return select_victim_overload(sched_ctx_id);
@@ -543,8 +543,8 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 
 
 	/* we need to steal someone's job */
-	unsigned victim = select_victim(sched_ctx_id);
-	if (victim == workerid)
+	int victim = select_victim(sched_ctx_id);
+	if (victim == -1)
 		return NULL;
 
 	STARPU_PTHREAD_MUTEX_LOCK(&ws->per_worker[victim].worker_mutex);

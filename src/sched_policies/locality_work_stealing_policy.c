@@ -92,7 +92,7 @@ struct _starpu_lws_data
 /* Return a worker to steal a task from. The worker is selected
  * according to the proximity list built using the info on te
  * architecture provided by hwloc */
-static unsigned select_victim_neighborhood(unsigned sched_ctx_id, int workerid)
+static int select_victim_neighborhood(unsigned sched_ctx_id, int workerid)
 {
 
 	struct _starpu_lws_data *ws = (struct _starpu_lws_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
@@ -115,13 +115,13 @@ static unsigned select_victim_neighborhood(unsigned sched_ctx_id, int workerid)
 #else
 /* Return a worker to steal a task from. The worker is selected
  * in a round-robin fashion */
-static unsigned select_victim_round_robin(unsigned sched_ctx_id)
+static int select_victim_round_robin(unsigned sched_ctx_id)
 {
 	struct _starpu_lws_data *ws = (struct _starpu_lws_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	unsigned worker = ws->last_pop_worker;
-	unsigned nworkers = starpu_sched_ctx_get_nworkers(sched_ctx_id);
-	int *workerids = NULL;
-	starpu_sched_ctx_get_workers_list(sched_ctx_id, &workerids);
+	unsigned nworkers;
+	int *workerids;
+	nworkers = starpu_sched_ctx_get_workers_list_raw(sched_ctx_id, &workerids);
 
 	/* If the worker's queue is empty, let's try
 	 * the next ones */
@@ -145,9 +145,11 @@ static unsigned select_victim_round_robin(unsigned sched_ctx_id)
 	ws->last_pop_worker = (worker + 1) % nworkers;
 
 	worker = workerids[worker];
-	free(workerids);
 
-	return worker;
+	if (ntasks)
+		return worker;
+	else
+		return -1;
 }
 
 
@@ -162,15 +164,14 @@ static unsigned select_worker_round_robin(unsigned sched_ctx_id)
 {
 	struct _starpu_lws_data *ws = (struct _starpu_lws_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	unsigned worker = ws->last_push_worker;
-	unsigned nworkers = starpu_sched_ctx_get_nworkers(sched_ctx_id);
-	int *workerids = NULL;
-	starpu_sched_ctx_get_workers_list(sched_ctx_id, &workerids);
+	unsigned nworkers;
+	int *workerids;
+	nworkers = starpu_sched_ctx_get_workers_list_raw(sched_ctx_id, &workerids);
 
 	/* TODO: use an atomic update operation for this */
 	ws->last_push_worker = (ws->last_push_worker + 1) % nworkers;
 
 	worker = workerids[worker];
-	free(workerids);
 
 	return worker;
 }
@@ -379,7 +380,7 @@ static void locality_popped_task(struct starpu_task *task STARPU_ATTRIBUTE_UNUSE
 /**
  * Return a worker from which a task can be stolen.
  */
-static inline unsigned select_victim(unsigned sched_ctx_id, int workerid STARPU_ATTRIBUTE_UNUSED)
+static inline int select_victim(unsigned sched_ctx_id, int workerid STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_HAVE_HWLOC
 	return select_victim_neighborhood(sched_ctx_id, workerid);
@@ -424,8 +425,8 @@ static struct starpu_task *lws_pop_task(unsigned sched_ctx_id)
 	}
 
 	/* we need to steal someone's job */
-	unsigned victim = select_victim(sched_ctx_id, workerid);
-	if (victim == workerid)
+	int victim = select_victim(sched_ctx_id, workerid);
+	if (victim == -1)
 		return NULL;
 
 	STARPU_PTHREAD_MUTEX_LOCK(&ws->per_worker[victim].worker_mutex);
