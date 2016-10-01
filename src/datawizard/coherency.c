@@ -1063,7 +1063,7 @@ void __starpu_push_task_output(struct _starpu_job *j)
 		if (node == -1 && task->cl->where != STARPU_NOWHERE)
 			node = local_memory_node;
 
-		struct _starpu_data_replicate *local_replicate;
+		struct _starpu_data_replicate *local_replicate = NULL;
 
 		if (index && descrs[index-1].handle == descrs[index].handle)
 			/* We have already released this data, skip it. This
