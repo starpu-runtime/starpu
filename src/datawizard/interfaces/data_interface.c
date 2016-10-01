@@ -333,7 +333,7 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 		replicate->relaxed_coherency = 0;
 		replicate->refcnt = 0;
 
-		if (node == home_node)
+		if ((int) node == home_node)
 		{
 			/* this is the home node with the only valid copy */
 			replicate->state = STARPU_OWNER;

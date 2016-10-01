@@ -523,8 +523,6 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 	struct starpu_task *task = NULL;
 	unsigned workerid = starpu_worker_get_id_check();
 
-	STARPU_ASSERT(workerid != -1);
-
 #ifdef STARPU_NON_BLOCKING_DRIVERS
 	if (STARPU_RUNNING_ON_VALGRIND || !_starpu_fifo_empty(ws->per_worker[workerid].queue_array))
 #endif

@@ -807,7 +807,6 @@ int fstarpu_sched_ctx_create(int *workerids, int nworkers, const char *sched_ctx
 	unsigned hierarchy_level = 0;
 	unsigned nesting_sched_ctx = STARPU_NMAX_SCHED_CTXS;
 	unsigned awake_workers = 0;
-	void (*init_sched)(void) = NULL;
 
 	while (arglist[arg_i] != NULL)
 	{
