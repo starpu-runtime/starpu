@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2015  Université de Bordeaux
+ * Copyright (C) 2010-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  INRIA
  *
@@ -128,6 +128,9 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 	unsigned priolevel = task->priority - STARPU_MIN_PRIO;
 	
+	STARPU_ASSERT_MSG(task->priority >= STARPU_MIN_PRIO &&
+			  task->priority <= STARPU_MAX_PRIO, "task priority %d is not between minimum %d and maximum %d\n", task->priority, STARPU_MIN_PRIO, STARPU_MAX_PRIO);
+
 	starpu_task_list_push_back(&taskq->taskq[priolevel], task);
 	taskq->ntasks[priolevel]++;
 	taskq->total_ntasks++;
