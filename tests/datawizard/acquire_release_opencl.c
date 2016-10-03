@@ -29,7 +29,6 @@ void increment_opencl(void *buffers[], void *args)
         cl_int err;
 	cl_kernel kernel;
 	cl_command_queue queue;
-	cl_event event;
 
 	cl_mem val = (cl_mem)STARPU_VARIABLE_GET_PTR(buffers[0]);
 
