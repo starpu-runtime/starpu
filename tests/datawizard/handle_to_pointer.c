@@ -104,7 +104,6 @@ static struct starpu_codelet cl =
 int main(int argc, char *argv[])
 {
 	int err, ret;
-	int i;
 	int *pointer;
 	starpu_data_handle_t handle;
 	static const int count = 123;
@@ -154,20 +153,21 @@ int main(int argc, char *argv[])
 	pointer = (int *) starpu_data_handle_to_pointer(handle, STARPU_MAIN_RAM);
 	if (pointer == NULL)
 	{
-	     FPRINTF(stderr, "pointer should be non NULL\n");
-	     ret = EXIT_FAILURE;
+		FPRINTF(stderr, "pointer should be non NULL\n");
+		ret = EXIT_FAILURE;
 	}
 	else
 	{
-	     for(i = 0; i < count; i++)
-	     {
-		  int *numbers = (int *)pointer;
-		  if (numbers[i] != i)
-		  {
-		       FPRINTF(stderr, "Incorrect value numbers[%d] == %d should be %d\n", (int)i, numbers[i], (int)i);
-		       ret = EXIT_FAILURE;
-		  }
-	     }
+		int i;
+		for(i = 0; i < count; i++)
+		{
+			int *numbers = (int *)pointer;
+			if (numbers[i] != i)
+			{
+				FPRINTF(stderr, "Incorrect value numbers[%d] == %d should be %d\n", (int)i, numbers[i], (int)i);
+				ret = EXIT_FAILURE;
+			}
+		}
 	}
 	starpu_data_release(handle);
 
