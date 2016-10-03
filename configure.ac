@@ -1136,7 +1136,7 @@ AC_ARG_ENABLE(mlr, [AS_HELP_STRING([--disable-mlr],
 			enable_mlr=$enableval, enable_mlr=yes)
 
 AC_MSG_CHECKING(whether multiple linear regression models are disabled)
-if test x$enable_mlr = xyes; then
+if test x$enable_mlr = xyes -a "$starpu_windows" != "yes" ; then
    	AC_MSG_RESULT(no)
 	install_min_dgels=no
    	STARPU_SEARCH_LIBS(LAPACK,[dgels_],[lapack],use_system_lapack=yes,,)

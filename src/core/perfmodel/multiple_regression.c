@@ -259,7 +259,7 @@ int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, doubl
         long i;
 	unsigned j;
 #ifndef STARPU_MLR_MODEL
-	_STARPU_DISP("Warning: StarPU was compiled with '--disable-mlr' option, thus multiple linear regression model will not be computed.\n");
+	_STARPU_DISP("Warning: StarPU was compiled with '--disable-mlr' option or on Windows machine, thus multiple linear regression model will not be computed.\n");
 	for(i=0; i<ncoeff; i++)
 		coeff[i] = 0.;
 	return 1;

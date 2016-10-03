@@ -24,5 +24,7 @@ distdir:
 	cp -fRp $(STARPU_SRCDIR)/* $(distdir)
 	cd $(distdir) && cp Makefile.in Makefile && make clean && rm -rf Makefile
 
-check: install
+check:
 	echo "No checks are implemented for min-dgels"
+
+showcheck: check
