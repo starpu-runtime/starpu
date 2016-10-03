@@ -167,11 +167,10 @@ create_and_submit_task(unsigned int dev)
 static void
 create_and_submit_tasks(void)
 {
-	int err;
-
 #ifdef STARPU_USE_CUDA
 	if (ncuda > 0)
 	{
+		int err;
 		err = create_and_submit_task(STARPU_CUDA);
 		if (err != 0)
 		{
@@ -184,6 +183,7 @@ create_and_submit_tasks(void)
 #ifdef STARPU_USE_CPU
 	if (ncpu > 0)
 	{
+		int err;
 		err = create_and_submit_task(STARPU_CPU);
 		if (err != 0)
 		{
@@ -196,6 +196,7 @@ create_and_submit_tasks(void)
 #ifdef STARPU_USE_OPENCL
 	if (nopencl > 0)
 	{
+		int err;
 		err = create_and_submit_task(STARPU_OPENCL);
 		if (err != 0)
 		{

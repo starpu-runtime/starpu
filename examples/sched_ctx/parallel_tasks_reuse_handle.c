@@ -39,7 +39,6 @@ struct context
 void parallel_task_prologue_init_once_and_for_all(void * sched_ctx_)
 {
 	int sched_ctx = *(int *)sched_ctx_;
-	int i;
 	int *cpuids = NULL;
 	int ncpuids = 0;
 	starpu_sched_ctx_get_available_cpuids(sched_ctx, &cpuids, &ncpuids);
@@ -79,7 +78,7 @@ void parallel_task_init_one_context(unsigned * context_id)
 	t->prologue_callback_pop_arg=context_id;
 	t->prologue_callback_pop_arg_free=0;
 
-	int ret=starpu_task_submit(t);
+	starpu_task_submit(t);
 }
 
 struct context main_context;

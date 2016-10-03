@@ -120,12 +120,12 @@ void start_2benchs(void (*bench)(unsigned, unsigned))
 {
 	p1.bench = bench;
 	p1.size = size1;
-	printf("size %d\n", size1);
+	printf("size %u\n", size1);
 	p1.nblocks = nblocks1;
 
 	p2.bench = bench;
 	p2.size = size2;
-	printf("size %d\n", size2);
+	printf("size %u\n", size2);
 	p2.nblocks = nblocks2;
 
 	starpu_pthread_t tid[2];
@@ -216,20 +216,20 @@ void construct_contexts(void (*bench)(unsigned, unsigned))
 	for(i = 0; i < gpu; i++)
 	{
 		procs[k++] = i;
-		printf("%d ", i);
+		printf("%u ", i);
 	}
 
 	for(i = gpu; i < gpu + gpu1; i++)
 	{
 		procs[k++] = i;
-		printf("%d ", i);
+		printf("%u ", i);
 	}
 
 
 	for(i = n_all_gpus; i < n_all_gpus + cpu1; i++)
 	{
 		procs[k++] = i;
-		printf("%d ", i);
+		printf("%u ", i);
 	}
 	printf("\n ");
 
@@ -244,19 +244,19 @@ void construct_contexts(void (*bench)(unsigned, unsigned))
 	for(i = 0; i < gpu; i++)
 	{
 		procs2[k++] = i;
-		printf("%d ", i);
+		printf("%u ", i);
 	}
 
 	for(i = gpu + gpu1; i < gpu + gpu1 + gpu2; i++)
 	{
 		procs2[k++] = i;
-		printf("%d ", i);
+		printf("%u ", i);
 	}
 
 	for(i = n_all_gpus  + cpu1; i < n_all_gpus + cpu1 + cpu2; i++)
 	{
 		procs2[k++] = i;
-		printf("%d ", i);
+		printf("%u ", i);
 	}
 	printf("\n");
 

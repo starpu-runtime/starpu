@@ -113,7 +113,6 @@ opencl_life_update_host(int bz, const TYPE *old, TYPE *newp, int nx, int ny, int
   clSetKernelArg(kernel, 7, sizeof(ldz), &ldz);
   clSetKernelArg(kernel, 8, sizeof(iter), &iter);
 
-  cl_event ev;
   err = clEnqueueNDRangeKernel(cq, kernel, 3, NULL, dim, NULL, 0, NULL, NULL);
   if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 }

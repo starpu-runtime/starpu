@@ -395,7 +395,7 @@ void check(int rank)
 				for (y = 0; y < sizey; y++)
 					for (z = 0; z < size_bz; z++)
 						sum += block->layers[0][(K+x)+(K+y)*(sizex + 2*K)+(K+z)*(sizex+2*K)*(sizey+2*K)];
-			printf("block %d got %d/%d alive\n", bz, sum, sizex*sizey*size_bz);
+			printf("block %u got %u/%u alive\n", bz, sum, sizex*sizey*size_bz);
 #endif
 		}
 	}

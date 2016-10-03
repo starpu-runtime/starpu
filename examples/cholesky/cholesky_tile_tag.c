@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -234,7 +234,7 @@ int main(int argc, char **argv)
 	parse_args(argc, argv);
 	assert(nblocks <= NMAXBLOCKS);
 
-	FPRINTF(stderr, "BLOCK SIZE = %d\n", size / nblocks);
+	FPRINTF(stderr, "BLOCK SIZE = %u\n", size / nblocks);
 
 #ifdef STARPU_USE_CUDA
 	initialize_chol_model(&chol_model_11,"chol_model_11",cpu_chol_task_11_cost,cuda_chol_task_11_cost);

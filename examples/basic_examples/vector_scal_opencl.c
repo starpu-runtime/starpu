@@ -31,7 +31,6 @@ void scal_opencl_func(void *buffers[], void *_args)
         cl_int err;
 	cl_kernel kernel;
 	cl_command_queue queue;
-	cl_event event;
 
 	/* length of the vector */
 	unsigned int n = STARPU_VECTOR_GET_NX(buffers[0]);

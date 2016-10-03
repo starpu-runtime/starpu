@@ -28,7 +28,6 @@ void cpu_to_opencl_opencl_func(void *buffers[], void *args)
         cl_int err;
 	cl_kernel kernel;
 	cl_command_queue queue;
-	cl_event event;
 
 	unsigned n = CUSTOM_GET_NX(buffers[0]);
 	n*=2;

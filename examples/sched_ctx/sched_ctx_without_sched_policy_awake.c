@@ -153,8 +153,8 @@ int main(int argc, char **argv)
 		tasks_per_ctx[1] += tasks_executed[1][i];
 	}
 
-	printf("ctx%d: tasks starpu executed %d out of %d\n", sched_ctx1, tasks_per_ctx[0]/nprocs1, NTASKS);
-	printf("ctx%d: tasks starpu executed %d out of %d\n", sched_ctx2, tasks_per_ctx[1]/nprocs2, NTASKS);
+	printf("ctx%u: tasks starpu executed %d out of %d\n", sched_ctx1, tasks_per_ctx[0]/nprocs1, NTASKS);
+	printf("ctx%u: tasks starpu executed %d out of %d\n", sched_ctx2, tasks_per_ctx[1]/nprocs2, NTASKS);
 
 enodev:
 #ifdef STARPU_USE_CPU

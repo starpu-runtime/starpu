@@ -32,7 +32,6 @@ void opencl_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 	cl_mem mult = (cl_mem)STARPU_VECTOR_GET_DEV_HANDLE(descr[2]);
 	int nx = STARPU_MATRIX_GET_NX(descr[0]);
 	int ny = STARPU_MATRIX_GET_NY(descr[0]);
-	cl_event event;
 
         id = starpu_worker_get_id_check();
         devid = starpu_worker_get_devid(id);
@@ -67,6 +66,7 @@ void fillArray(float* pfData, int iSize)
     }
 }
 
+#if 0
 void printArray(float* pfData, int iSize)
 {
     int i;
@@ -76,6 +76,7 @@ void printArray(float* pfData, int iSize)
     }
     FPRINTF(stderr, "\n");
 }
+#endif
 
 void matVecMult(const float *matrix, const float *vector, int width, int height, float *mult)
 {
