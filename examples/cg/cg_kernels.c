@@ -550,10 +550,10 @@ int scal_axpy_kernel(starpu_data_handle_t v1, TYPE p1,
 		     starpu_data_handle_t v2, TYPE p2,
 		     unsigned nblocks)
 {
-	int ret;
 	unsigned b;
 	for (b = 0; b < nblocks; b++)
 	{
+		int ret;
 		ret = starpu_task_insert(&scal_axpy_kernel_cl,
 					 STARPU_RW, starpu_data_get_sub_data(v1, 1, b),
 					 STARPU_R,  starpu_data_get_sub_data(v2, 1, b),
@@ -626,10 +626,10 @@ int axpy_kernel(starpu_data_handle_t v1,
 		starpu_data_handle_t v2, TYPE p1,
 		unsigned nblocks)
 {
-	int ret;
 	unsigned b;
 	for (b = 0; b < nblocks; b++)
 	{
+		int ret;
 		ret = starpu_task_insert(&axpy_kernel_cl,
 					 STARPU_RW, starpu_data_get_sub_data(v1, 1, b),
 					 STARPU_R,  starpu_data_get_sub_data(v2, 1, b),

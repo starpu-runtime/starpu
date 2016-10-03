@@ -40,7 +40,6 @@ static void callback_turn_spmd_on(void *arg STARPU_ATTRIBUTE_UNUSED)
 
 static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 {
-	int ret;
 	double start;
 	double end;
 
@@ -59,6 +58,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 	/* create all the DAG nodes */
 	for (k = 0; k < nblocks; k++)
 	{
+		int ret;
                 starpu_data_handle_t sdatakk = starpu_data_get_sub_data(dataA, 2, k, k);
 
                 ret = starpu_task_insert(&cl11,

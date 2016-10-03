@@ -634,12 +634,11 @@ static unsigned build_sparse_stiffness_matrix_A(point *pmesh, float **nzval, uin
 
 		for (neighbour = 0; neighbour < nneighbours; neighbour++)
 		{
-			float val;
 			unsigned nodeneighbour =  neighbours[neighbour];
 
 			if (nodeneighbour < newsize)
 			{
-
+				float val;
 				val = compute_A_value(TRANSLATE(j), TRANSLATE(nodeneighbour), pmesh);
 
 				if (val != 0.0f)
@@ -657,8 +656,6 @@ static unsigned build_sparse_stiffness_matrix_A(point *pmesh, float **nzval, uin
 	}
 
 	rowptr[newsize] = pos;
-
-
 
 	return pos;
 }

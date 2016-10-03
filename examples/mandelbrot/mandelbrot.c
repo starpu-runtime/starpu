@@ -135,13 +135,13 @@ static void init_x11(int width, int height, unsigned *buffer)
 static int handle_events(void)
 {
 	XEvent event;
+
 	XNextEvent(dpy, &event);
-
-	KeySym key;
-	char text[255];
-
 	if (event.type == KeyPress)
 	{
+		KeySym key;
+		char text[255];
+
 		XLookupString(&event.xkey,text,255,&key,0);
 		if (key == Left)
 		{
@@ -256,7 +256,6 @@ static void compute_block_opencl(void *descr[], void *cl_arg)
 
 	cl_kernel kernel;
 	cl_command_queue queue;
-	cl_event event;
 	cl_int err;
 
 	int id = starpu_worker_get_id_check();
@@ -290,11 +289,10 @@ static void compute_block_opencl(void *descr[], void *cl_arg)
 
 static void compute_block(void *descr[], void *cl_arg)
 {
-	int ix, iy;
-
 	int iby, block_size;
 	double stepX, stepY;
 	int *pcnt; /* unused for sequential tasks */
+
 	starpu_codelet_unpack_args(cl_arg, &iby, &block_size, &stepX, &stepY, &pcnt);
 
 	unsigned *data = (unsigned *)STARPU_VECTOR_GET_PTR(descr[0]);
@@ -302,6 +300,8 @@ static void compute_block(void *descr[], void *cl_arg)
 	int local_iy;
 	for (local_iy = 0; local_iy < block_size; local_iy++)
 	{
+		int ix, iy;
+
 		iy = iby*block_size + local_iy;
 		for (ix = 0; ix < width; ix++)
 		{
@@ -343,11 +343,11 @@ static void compute_block_spmd(void *descr[], void *cl_arg)
 
 	unsigned *data = (unsigned *)STARPU_VECTOR_GET_PTR(descr[0]);
 
-	int ix, iy; /* global coordinates */
-	int local_iy; /* current line */
-
 	while (1)
 	{
+		int ix, iy; /* global coordinates */
+		int local_iy; /* current line */
+
 		local_iy = STARPU_ATOMIC_ADD((unsigned int *)pcnt, 1) - 1;
 		ANNOTATE_HAPPENS_BEFORE(pcnt);
 		if (local_iy >= block_size)

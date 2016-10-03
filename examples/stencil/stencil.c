@@ -114,10 +114,10 @@ static void parse_args(int argc, char **argv)
 			 fprintf(stderr, "\n");
 			 fprintf(stderr, "Options:\n");
 			 fprintf(stderr, "-b			bind tasks on CPUs/GPUs\n");
-			 fprintf(stderr, "-nbz <n>		Number of blocks on Z axis (%d by default)\n", nbz);
-			 fprintf(stderr, "-size[xyz] <size>	Domain size on x/y/z axis (%dx%dx%d by default)\n", sizex, sizey, sizez);
-			 fprintf(stderr, "-niter <n>		Number of iterations (%d by default)\n", niter);
-			 fprintf(stderr, "-ticks <t>		How often to put ticks in the output (ms, %d by default)\n", ticks);
+			 fprintf(stderr, "-nbz <n>		Number of blocks on Z axis (%u by default)\n", nbz);
+			 fprintf(stderr, "-size[xyz] <size>	Domain size on x/y/z axis (%ux%ux%u by default)\n", sizex, sizey, sizez);
+			 fprintf(stderr, "-niter <n>		Number of iterations (%u by default)\n", niter);
+			 fprintf(stderr, "-ticks <t>		How often to put ticks in the output (ms, %u by default)\n", ticks);
 			 exit(0);
 		}
 	}
@@ -181,7 +181,7 @@ void f(unsigned task_per_worker[STARPU_NMAXWORKERS])
 		{
 			char name[32];
 			starpu_worker_get_name(worker, name, sizeof(name));
-			FPRINTF(stderr,"\t%s -> %d (%2.2f%%)\n", name, task_per_worker[worker], (100.0*task_per_worker[worker])/total);
+			FPRINTF(stderr,"\t%s -> %u (%2.2f%%)\n", name, task_per_worker[worker], (100.0*task_per_worker[worker])/total);
 		}
 	}
 }
@@ -328,9 +328,9 @@ int main(int argc, char **argv)
 		unsigned nzblocks_per_process = (nbz + world_size - 1) / world_size;
 
 		int iter;
-		unsigned last, bz;
 		for (iter = 0; iter < who_runs_what_len; iter++)
 		{
+			unsigned last, bz;
 			last = 1;
 			for (bz = 0; bz < nbz; bz++)
 			{

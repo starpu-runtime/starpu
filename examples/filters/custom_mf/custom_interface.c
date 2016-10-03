@@ -245,7 +245,7 @@ static void display_custom_interface(starpu_data_handle_t handle, FILE *f)
 {
 	struct custom_data_interface *ci = (struct custom_data_interface *)
 		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
-	fprintf(f, "Custom interface of size %d", ci->nx);
+	fprintf(f, "Custom interface of size %u", ci->nx);
 }
 
 static uint32_t

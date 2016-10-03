@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2013, 2014  CNRS
+ * Copyright (C) 2010, 2013, 2014, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -126,8 +126,7 @@ int mm_read_banner(FILE *f, MM_typecode *matcode)
     if (fgets(line, MM_MAX_LINE_LENGTH, f) == NULL)
         return MM_PREMATURE_EOF;
 
-    if (sscanf(line, "%s %s %s %s %s", banner, mtx, crd, data_type,
-        storage_scheme) != 5)
+    if (sscanf(line, "%MM_MAX_TOKEN_LENGTHs %MM_MAX_TOKEN_LENGTHs %MM_MAX_TOKEN_LENGTHs %MM_MAX_TOKEN_LENGTHs %MM_MAX_TOKEN_LENGTHs", banner, mtx, crd, data_type, storage_scheme) != 5)
         return MM_PREMATURE_EOF;
 
     for (p=mtx; *p!='\0'; *p=tolower(*p),p++);  /* convert to lower case */
@@ -206,7 +205,6 @@ int mm_write_mtx_crd_size(FILE *f, int M, int N, int nz)
 int mm_read_mtx_crd_size(FILE *f, int *M, int *N, int *nz )
 {
     char line[MM_MAX_LINE_LENGTH];
-    int num_items_read;
 
     /* set return null parameter values, in case we exit with errors */
     *M = *N = *nz = 0;
@@ -225,8 +223,9 @@ int mm_read_mtx_crd_size(FILE *f, int *M, int *N, int *nz )
     else
     do
     {
-        num_items_read = fscanf(f, "%d %d %d", M, N, nz);
-        if (num_items_read == EOF) return MM_PREMATURE_EOF;
+	    int num_items_read;
+	    num_items_read = fscanf(f, "%d %d %d", M, N, nz);
+	    if (num_items_read == EOF) return MM_PREMATURE_EOF;
     }
     while (num_items_read != 3);
 
@@ -237,7 +236,6 @@ int mm_read_mtx_crd_size(FILE *f, int *M, int *N, int *nz )
 int mm_read_mtx_array_size(FILE *f, int *M, int *N)
 {
     char line[MM_MAX_LINE_LENGTH];
-    int num_items_read;
     /* set return null parameter values, in case we exit with errors */
     *M = *N = 0;
 
@@ -255,8 +253,9 @@ int mm_read_mtx_array_size(FILE *f, int *M, int *N)
     else /* we have a blank line */
     do
     {
-        num_items_read = fscanf(f, "%d %d", M, N);
-        if (num_items_read == EOF) return MM_PREMATURE_EOF;
+	    int num_items_read;
+	    num_items_read = fscanf(f, "%d %d", M, N);
+	    if (num_items_read == EOF) return MM_PREMATURE_EOF;
     }
     while (num_items_read != 2);
 
@@ -361,15 +360,23 @@ int mm_read_mtx_crd(char *fname, int *M, int *N, int *nz, int **I, int **J,
 
 
     if ((ret_code = mm_read_banner(f, matcode)) != 0)
-        return ret_code;
+    {
+	    if (f != stdin) fclose(f);
+	    return ret_code;
+    }
 
     if (!(mm_is_valid(*matcode) && mm_is_sparse(*matcode) &&
             mm_is_matrix(*matcode)))
-        return MM_UNSUPPORTED_TYPE;
+    {
+	    if (f != stdin) fclose(f);
+	    return MM_UNSUPPORTED_TYPE;
+    }
 
     if ((ret_code = mm_read_mtx_crd_size(f, M, N, nz)) != 0)
-        return ret_code;
-
+    {
+	    if (f != stdin) fclose(f);
+	    return ret_code;
+    }
 
     *I = (int *)  malloc(*nz * sizeof(int));
     *J = (int *)  malloc(*nz * sizeof(int));
@@ -380,21 +387,33 @@ int mm_read_mtx_crd(char *fname, int *M, int *N, int *nz, int **I, int **J,
         *val = (double *) malloc(*nz * 2 * sizeof(double));
         ret_code = mm_read_mtx_crd_data(f, *M, *N, *nz, *I, *J, *val,
                 *matcode);
-        if (ret_code != 0) return ret_code;
+        if (ret_code != 0)
+	{
+		if (f != stdin) fclose(f);
+		return ret_code;
+	}
     }
     else if (mm_is_real(*matcode))
     {
         *val = (double *) malloc(*nz * sizeof(double));
         ret_code = mm_read_mtx_crd_data(f, *M, *N, *nz, *I, *J, *val,
                 *matcode);
-        if (ret_code != 0) return ret_code;
+        if (ret_code != 0)
+	{
+		if (f != stdin) fclose(f);
+		return ret_code;
+	}
     }
 
     else if (mm_is_pattern(*matcode))
     {
         ret_code = mm_read_mtx_crd_data(f, *M, *N, *nz, *I, *J, *val,
                 *matcode);
-        if (ret_code != 0) return ret_code;
+        if (ret_code != 0)
+	{
+		if (f != stdin) fclose(f);
+		return ret_code;
+	}
     }
 
     if (f != stdin) fclose(f);
@@ -475,13 +494,10 @@ char  *mm_typecode_to_str(MM_typecode matcode)
     char buffer[MM_MAX_LINE_LENGTH];
     char *types[4];
 /*	char *mm_strdup(const char *); */
-    int error =0;
 
     /* check for MTX type */
     if (mm_is_matrix(matcode))
         types[0] = MM_MTX_STR;
-    else
-        error=1;
 
     /* check for CRD or ARR matrix */
     if (mm_is_sparse(matcode))

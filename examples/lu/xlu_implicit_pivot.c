@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2012, 2014-2015  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -160,7 +160,6 @@ static int dw_codelet_facto_pivot(starpu_data_handle_t *dataAp,
 {
 	double start;
 	double end;
-	int ret;
 
 	/* create all the DAG nodes */
 	unsigned i,j,k;
@@ -172,8 +171,10 @@ static int dw_codelet_facto_pivot(starpu_data_handle_t *dataAp,
 
 	for (k = 0; k < nblocks; k++)
 	{
-	     ret = create_task_11_pivot(dataAp, nblocks, k, piv_description, get_block);
-	     if (ret == -ENODEV) return ret;
+		int ret;
+
+		ret = create_task_11_pivot(dataAp, nblocks, k, piv_description, get_block);
+		if (ret == -ENODEV) return ret;
 
 		for (i = 0; i < nblocks; i++)
 		{

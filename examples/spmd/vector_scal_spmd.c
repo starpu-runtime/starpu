@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016  CNRS
  * Copyright (C) 2010-2013, 2015  Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -109,22 +109,20 @@ int main(int argc, char **argv)
 	unsigned i;
 	int ret;
 
-	vector = malloc(NX*sizeof(*vector));
-
-	for (i = 0; i < NX; i++)
-		vector[i] = (i+1.0f);
-
-	FPRINTF(stderr, "BEFORE: First element was %f\n", vector[0]);
-	FPRINTF(stderr, "BEFORE: Last element was %f\n", vector[NX-1]);
-
 	starpu_conf_init(&conf);
-
 	conf.single_combined_worker = 1;
 	conf.sched_policy_name = "pheft";
 
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV) return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+
+	vector = malloc(NX*sizeof(*vector));
+	for (i = 0; i < NX; i++)
+		vector[i] = (i+1.0f);
+
+	FPRINTF(stderr, "BEFORE: First element was %f\n", vector[0]);
+	FPRINTF(stderr, "BEFORE: Last element was %f\n", vector[NX-1]);
 
 	starpu_data_handle_t vector_handle;
 	starpu_vector_data_register(&vector_handle, STARPU_MAIN_RAM, (uintptr_t)vector, NX, sizeof(vector[0]));

@@ -28,7 +28,6 @@ void copy_complex_codelet_opencl(void *buffers[], void *_args)
         cl_int err;
 	cl_kernel kernel;
 	cl_command_queue queue;
-	cl_event event;
 
 	/* length of the vector */
 	unsigned n = STARPU_COMPLEX_GET_NX(buffers[0]);

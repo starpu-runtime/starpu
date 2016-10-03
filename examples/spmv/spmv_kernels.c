@@ -27,7 +27,6 @@ void spmv_kernel_opencl(void *descr[], void *args)
 {
 	cl_kernel kernel;
 	cl_command_queue queue;
-	cl_event event;
 	int id, devid, err, n;
 
 	int nnz = (int) STARPU_CSR_GET_NNZ(descr[0]);

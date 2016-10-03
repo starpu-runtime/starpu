@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2013  CNRS
+ * Copyright (C) 2010, 2011, 2013, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -54,7 +54,7 @@ struct ppm_image *file_to_ppm(char *filename)
 
 	struct ppm_image *ppm = (struct ppm_image *) malloc(sizeof(struct ppm_image));
 	assert(ppm);
-	
+
 	FILE *file = fopen(filename, "r");
 	assert(file);
 
@@ -66,7 +66,7 @@ struct ppm_image *file_to_ppm(char *filename)
 		fprintf(stderr, "file %s is not valid\n", filename);
 		exit(-1);
 	}
-	
+
 	/* allocate a buffer for the image */
 #ifdef STARPU_HAVE_MEMALIGN
 	ppm->data = (struct ppm_color *) memalign(16384, ppm->ncols*ppm->nlines*sizeof(struct ppm_color));
@@ -98,7 +98,7 @@ void ppm_to_file(struct ppm_image *ppm, char *filename)
 	fprintf(file, "P6\n%d %d\n%d\n", ppm->ncols, ppm->nlines, ppm->coldepth);
 
 	fwrite(&ppm->data[0], sizeof(struct ppm_color), ppm->ncols*ppm->nlines, file);
-	
+
 	fclose(file);
 }
 
@@ -133,7 +133,7 @@ void dummy_downscale(struct ppm_image *input_ppm, struct ppm_image *output_ppm)
 
 			unsigned big_col = col*FACTOR;
 			unsigned big_line = line*FACTOR;
-			
+
 			/* compute the average value of all components */
 			unsigned i, j;
 			for (i = 0; i < FACTOR; i++)
@@ -155,7 +155,7 @@ void dummy_downscale(struct ppm_image *input_ppm, struct ppm_image *output_ppm)
 			out[col + line*output_ppm->ncols].b = (unsigned char)(sum_b/(FACTOR*FACTOR));
 
 /*			fprintf(stderr, "col %d line %d -> sum_r = %d out -> %d\n", col, line, sum_r, out[col + line*FACTOR].r); */
-	
+
 		}
 	}
 }
@@ -179,6 +179,9 @@ int main(int argc, char **argv)
 	dummy_downscale(input_ppm, output_ppm);
 
 	ppm_to_file(output_ppm, filename_out);
+
+	free(input_ppm);
+	free(output_ppm);
 
 	return 0;
 }
