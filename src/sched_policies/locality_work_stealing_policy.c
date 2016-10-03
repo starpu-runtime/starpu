@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
  * Copyright (C) 2011, 2012  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -121,14 +121,14 @@ static int select_victim_round_robin(unsigned sched_ctx_id)
 	unsigned worker = ws->last_pop_worker;
 	unsigned nworkers;
 	int *workerids;
+	unsigned ntasks;
+
 	nworkers = starpu_sched_ctx_get_workers_list_raw(sched_ctx_id, &workerids);
 
 	/* If the worker's queue is empty, let's try
 	 * the next ones */
 	while (1)
 	{
-		unsigned ntasks;
-
 		ntasks = ws->per_worker[workerids[worker]].queue_array->ntasks;
 		if (ntasks)
 			break;
