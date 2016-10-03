@@ -1144,6 +1144,7 @@ if test x$enable_mlr = xyes; then
 	        AC_DEFINE(STARPU_MLR_MODEL, [1], [use reflapack library])
 		LDFLAGS="-llapack $LDFLAGS"
 	else
+		LIBS="$LIBS -lrt"
 		AC_MSG_CHECKING(whether min-dgels is linked)
 		if test x"$DGELS_LIBS" != x; then
 		   	AC_MSG_RESULT(yes)
