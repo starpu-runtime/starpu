@@ -76,7 +76,7 @@ int _check_number(double val, int checknan)
 	char str[10];
 	// ... but is read with the format %le
 	int x = _starpu_read_double(f, "%le", &lat);
-	int y = fscanf(f, " %10s", str);
+	int y = fscanf(f, " %9s", str);
 	fclose(f);
 	unlink(filename);
 
