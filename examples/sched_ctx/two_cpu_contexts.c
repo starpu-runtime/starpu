@@ -112,5 +112,8 @@ int main(int argc, char **argv)
 	starpu_sched_ctx_delete(sched_ctx1);
 	starpu_sched_ctx_delete(sched_ctx2);
 	starpu_shutdown();
+	free(procs);
+	free(procs1);
+	free(procs2);
 	return 0;
 }
