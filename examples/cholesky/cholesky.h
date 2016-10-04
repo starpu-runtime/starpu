@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
+ * Copyright (C) 2009-2016  Université de Bordeaux
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -32,7 +32,7 @@
 
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 #define PRINTF(fmt, ...) do { if (!getenv("STARPU_SSILENT")) {printf(fmt, ## __VA_ARGS__); }} while(0)
-#define NMAXBLOCKS	32
+#define NMAXBLOCKS	128
 
 #define TAG11(k)	((starpu_tag_t)( (1ULL<<60) | (unsigned long long)(k)))
 #define TAG21(k,j)	((starpu_tag_t)(((3ULL<<60) | (((unsigned long long)(k))<<32)	\
@@ -113,15 +113,33 @@
 
 /* End of magma code */
 
+static unsigned size;
+static unsigned nblocks;
+static unsigned nbigblocks;
+
+static inline void init_sizes(void) {
+	int power = starpu_cpu_worker_get_count() + 32 * starpu_cuda_worker_get_count();
+	int power_sqrt = sqrt(power)/2;
+	if (power_sqrt < 1)
+		power_sqrt = 1;
+
 #ifdef STARPU_QUICK_CHECK
-static unsigned size = 320*4;
-static unsigned nblocks = 4;
-static unsigned nbigblocks = 2;
+	if (!size)
+		size = 320*2*power_sqrt;
+	if (!nblocks)
+		nblocks = 2*power_sqrt;
+	if (!nbigblocks)
+		nbigblocks = power_sqrt;
 #else
-static unsigned size = 960*16;
-static unsigned nblocks = 16;
-static unsigned nbigblocks = 8;
+	if (!size)
+		size = 960*8*power_sqrt;
+	if (!nblocks)
+		nblocks = 8*power_sqrt;
+	if (!nbigblocks)
+		nbigblocks = 4*power_sqrt;
 #endif
+}
+
 static unsigned pinned = 1;
 static unsigned noprio = 0;
 static unsigned check = 0;

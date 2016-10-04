@@ -262,6 +262,10 @@ int main(int argc, char *argv[])
 	if (timeout <= 0)
 		timeout = DEFAULT_TIMEOUT;
 
+	if (strstr(test_name, "tasks_size_overhead_scheds.sh"))
+		/* This extensively tests various schedulers, let it run longer */
+		timeout *= 10;
+
 	/* set SIGALARM handler */
 	sa.sa_flags = 0;
 	sigemptyset(&sa.sa_mask);

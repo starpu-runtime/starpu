@@ -16,8 +16,14 @@ can be generated and displayed graphically, see \ref GeneratingTracesWithFxT.
 Generally-speaking, if you have troubles, pass \ref enable-debug "--enable-debug" to
 <c>./configure</c> to enable some checks which impact performance, but will
 catch common issues, possibly earlier than the actual problem you are observing,
-which may just be a consequence of a bug that happened earlier. If your program
-is valgrind-safe, you can use it, see \ref UsingOtherDebugger.
+which may just be a consequence of a bug that happened earlier. Also, make sure
+not to have the \ref enable-fast "--enable-fast" option which drops very useful
+catchup assertions. If your program is valgrind-safe, you can use it, see \ref
+UsingOtherDebugger.
+
+Depending on your toolchain, it might happen that you get
+<c>undefined reference to `__stack_chk_guard'</c> errors. In that case, use the
+<c>--disable-fstack-protector-all</c> option to avoid the issue.
 
 Then, if your program crashes with an assertion error, a segfault, etc. you can send us the result of
 

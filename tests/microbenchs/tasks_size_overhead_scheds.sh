@@ -2,8 +2,8 @@
 #
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2014 Université de Bordeaux
-# Copyright (C) 2012 Inria
+# Copyright (C) 2016  Université de Bordeaux
+# Copyright (C) 2016  CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -16,17 +16,8 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
-CFLAGS += $(shell pkg-config --cflags starpu-1.0) -g -O0 -Wall -Werror
-LDFLAGS += $(shell pkg-config --libs starpu-1.0) -g -O0 -Wall -Werror
- 
-all: bfs
- 
-bfs : bfs.o bfs_omp_func.o
-	g++ bfs.o bfs_omp_func.o $(CFLAGS) $(LDFLAGS) -fopenmp -O3 -o bfs
-bfs.o : bfs.cpp
-	g++ bfs.cpp $(CFLAGS) -fopenmp -O3 -c -o bfs.o
-bfs_omp_func.o : ./bfs_func/bfs_omp_func.cpp
-	g++ ./bfs_func/bfs_omp_func.cpp $(CFLAGS) -fopenmp -O3 -c -o bfs_omp_func.o
- 
-clean:
-	rm -f bfs *.o *~
+source $(dirname $0)/microbench.sh
+
+XFAIL="heteroprio"
+
+test_scheds tasks_size_overhead

@@ -186,9 +186,9 @@ static void update_func_cuda(void *descr[], void *arg)
 	int workerid = starpu_worker_get_id_check();
 	DEBUG( "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
 	if (block->bz == 0)
-		FPRINTF(stderr,"!!! DO update_func_cuda z %d CUDA%d !!!\n", block->bz, workerid);
+		FPRINTF(stderr,"!!! DO update_func_cuda z %u CUDA%d !!!\n", block->bz, workerid);
 	else
-		DEBUG( "!!! DO update_func_cuda z %d CUDA%d !!!\n", block->bz, workerid);
+		DEBUG( "!!! DO update_func_cuda z %u CUDA%d !!!\n", block->bz, workerid);
 #if defined(STARPU_USE_MPI) && !defined(STARPU_SIMGRID)
 	int rank = 0;
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -257,7 +257,6 @@ static void load_subblock_from_buffer_opencl(struct starpu_block_interface *bloc
 	unsigned offset = firstz*block->ldz;
 	cl_mem block_data = (cl_mem)block->dev_handle;
 	cl_mem boundary_data = (cl_mem)boundary->dev_handle;
-	cl_event event;
 
         cl_command_queue cq;
         starpu_opencl_get_current_queue(&cq);
@@ -274,9 +273,9 @@ static void update_func_opencl(void *descr[], void *arg)
 	int workerid = starpu_worker_get_id_check();
 	DEBUG( "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
 	if (block->bz == 0)
-		FPRINTF(stderr,"!!! DO update_func_opencl z %d OPENCL%d !!!\n", block->bz, workerid);
+		FPRINTF(stderr,"!!! DO update_func_opencl z %u OPENCL%d !!!\n", block->bz, workerid);
 	else
-		DEBUG( "!!! DO update_func_opencl z %d OPENCL%d !!!\n", block->bz, workerid);
+		DEBUG( "!!! DO update_func_opencl z %u OPENCL%d !!!\n", block->bz, workerid);
 #if defined(STARPU_USE_MPI) && !defined(STARPU_SIMGRID)
 	int rank = 0;
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -344,9 +343,9 @@ void update_func_cpu(void *descr[], void *arg)
 	int workerid = starpu_worker_get_id_check();
 	DEBUG( "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
 	if (block->bz == 0)
-		FPRINTF(stderr,"!!! DO update_func_cpu z %d CPU%d !!!\n", block->bz, workerid);
+		FPRINTF(stderr,"!!! DO update_func_cpu z %u CPU%d !!!\n", block->bz, workerid);
 	else
-		DEBUG( "!!! DO update_func_cpu z %d CPU%d !!!\n", block->bz, workerid);
+		DEBUG( "!!! DO update_func_cpu z %u CPU%d !!!\n", block->bz, workerid);
 #if defined(STARPU_USE_MPI) && !defined(STARPU_SIMGRID)
 	int rank = 0;
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -491,7 +490,6 @@ static void load_subblock_into_buffer_opencl(struct starpu_block_interface *bloc
 
         cl_command_queue cq;
         starpu_opencl_get_current_queue(&cq);
-	cl_event event;
 
         cl_int ret = clEnqueueCopyBuffer(cq, block_data, boundary_data, offset, 0, boundary_size, 0, NULL, NULL);
 	if (ret != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(ret);

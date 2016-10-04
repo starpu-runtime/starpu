@@ -3,8 +3,7 @@
 # Copyright (C) 2009-2016  Université de Bordeaux
 # Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
 # Copyright (C) 2011  Télécom-SudParis
-# Copyright (C) 2011, 2012, 2014  INRIA
-# Copyright (C) 2015, 2016  Inria
+# Copyright (C) 2011, 2012, 2014-2016  INRIA
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -60,6 +59,7 @@ AC_CANONICAL_SYSTEM
 
 dnl Automake 1.11 introduced `silent-rules' and `color-tests'.  Use them
 dnl when they're available.
+dnl do not use option subdir-objects, it causes fortran compilation to fail
 m4_ifdef([AM_SILENT_RULES],
   [AM_INIT_AUTOMAKE([1.11 -Wall foreign silent-rules color-tests parallel-tests])],
   [AM_INIT_AUTOMAKE([1.10 -Wall foreign])])
@@ -157,15 +157,15 @@ case "$target" in
 *-*-mingw*|*-*-cygwin*)
   starpu_windows=yes
   libext=a
-  AC_DEFINE(STARPU_HAVE_WINDOWS, [], [Define this on windows.])
+  AC_DEFINE(STARPU_HAVE_WINDOWS, [1], [Define this on windows.])
   ;;
 *-*-linux*)
   starpu_linux=yes
-  AC_DEFINE(STARPU_LINUX_SYS, 1, [Define to 1 on Linux])
+  AC_DEFINE(STARPU_LINUX_SYS, [1], [Define to 1 on Linux])
   ;;
 *-*darwin*)
   starpu_darwin=yes
-  AC_DEFINE(STARPU_HAVE_DARWIN, [], [Define this on darwin.])
+  AC_DEFINE(STARPU_HAVE_DARWIN, [1], [Define this on darwin.])
   ;;
 esac
 AM_CONDITIONAL([STARPU_HAVE_WINDOWS], [test "x$starpu_windows" = "xyes"])
@@ -212,7 +212,7 @@ then
 fi
 
 AC_CHECK_TYPE([struct timespec], 
-	       AC_DEFINE(STARPU_HAVE_STRUCT_TIMESPEC,[],[struct timespec is defined]),
+	       AC_DEFINE(STARPU_HAVE_STRUCT_TIMESPEC,[1],[struct timespec is defined]),
 	       [], [
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -234,7 +234,7 @@ then
 		#include <pthread.h>
 		]],
 		[[ pthread_t t; pthread_create(&t, NULL, NULL, NULL); ]])],
-		AC_DEFINE(STARPU_NATIVE_WINTHREADS,[],[Using native windows threads]),
+		AC_DEFINE(STARPU_NATIVE_WINTHREADS,[1],[Using native windows threads]),
 		AC_MSG_ERROR([pthread_create unavailable]))
 else
     AC_CHECK_LIB([pthread], [pthread_create])
@@ -246,13 +246,13 @@ AC_CHECK_FUNCS([sysconf])
 
 AC_CHECK_FUNC([pthread_spin_lock], have_pthread_spin_lock=yes, have_pthread_spin_lock=no)
 if test x$have_pthread_spin_lock = xyes; then
-	AC_DEFINE(HAVE_PTHREAD_SPIN_LOCK,[],[pthread_spin_lock is available])
-	AC_DEFINE(STARPU_HAVE_PTHREAD_SPIN_LOCK,[],[pthread_spin_lock is available])
+	AC_DEFINE(HAVE_PTHREAD_SPIN_LOCK,[1],[pthread_spin_lock is available])
+	AC_DEFINE(STARPU_HAVE_PTHREAD_SPIN_LOCK,[1],[pthread_spin_lock is available])
 fi
 
 AC_CHECK_FUNC([pthread_barrier_init], have_pthread_barrier=yes, have_pthread_barrier=no)
 if test x$have_pthread_barrier = xyes; then
-	AC_DEFINE(STARPU_HAVE_PTHREAD_BARRIER,[],[pthread_barrier is available])
+	AC_DEFINE(STARPU_HAVE_PTHREAD_BARRIER,[1],[pthread_barrier is available])
 fi
 
 # yes, that's non portable, but it's still better than sched_setaffinity
@@ -364,7 +364,7 @@ STARPU_SEARCH_LIBS([LIBNUMA],[set_mempolicy],[numa],[enable_libnuma=yes],[enable
 AC_MSG_CHECKING(whether libnuma is available)
 AC_MSG_RESULT($enable_libnuma)
 if test x$enable_libnuma = xyes; then
-	AC_DEFINE(STARPU_HAVE_LIBNUMA,[],[libnuma is available])
+	AC_DEFINE(STARPU_HAVE_LIBNUMA,[1],[libnuma is available])
 fi
 
 ###############################################################################
@@ -741,7 +741,7 @@ if test x$enable_cuda_memcpy_peer = xyes -a x$enable_cuda = xyes ; then
     LDFLAGS="${SAVED_LDFLAGS}"
 fi
 if test x$have_cuda_memcpy_peer = xyes; then
-    AC_DEFINE(HAVE_CUDA_MEMCPY_PEER,[],[Peer transfers are supported in CUDA])
+    AC_DEFINE(HAVE_CUDA_MEMCPY_PEER,[1],[Peer transfers are supported in CUDA])
 fi
 
 if test x$enable_cuda = xyes; then
@@ -1013,7 +1013,7 @@ AC_ARG_ENABLE(opencl-simulator, [AS_HELP_STRING([--enable-opencl-simulator],
 				enable_opencl_simulator=$enableval, enable_opencl_simulator=no)
 if test x$enable_opencl_simulator = xyes; then
 	enable_simgrid=yes
-	AC_DEFINE(STARPU_OPENCL_SIMULATOR, 1, [Define this to enable using an OpenCL simulator])
+	AC_DEFINE(STARPU_OPENCL_SIMULATOR, [1], [Define this to enable using an OpenCL simulator])
 fi
 
 AC_ARG_WITH(simgrid-dir,
@@ -1093,7 +1093,7 @@ if test x$enable_simgrid = xyes ; then
 	                 [
 			   AC_MSG_ERROR(StarPU needs a version of Simgrid which defines the type msg_host_t (should be any version >= 3.8.1))
 		         ])
-	AC_DEFINE(STARPU_SIMGRID, 1, [Define this to enable simgrid execution])
+	AC_DEFINE(STARPU_SIMGRID, [1], [Define this to enable simgrid execution])
 	# We won't bind or detect anything
 	with_hwloc=no
 
@@ -1523,6 +1523,7 @@ AC_ARG_ENABLE(debug, [AS_HELP_STRING([--enable-debug], [enable debug mode])],
 AC_MSG_RESULT($enable_debug)
 
 AC_ARG_ENABLE(spinlock_check, [AS_HELP_STRING([--enable-spinlock-check], [enable spinlock check])], enable_spinlock_check=$enableval, enable_spinlock_check=no)
+AC_ARG_ENABLE(fstack-protector-all, [AS_HELP_STRING([--disable-fstack-protector-all], [disable GCC option -fstack-protector-all])], enable_fstack_protector_all=$enableval, enable_fstack_protector_all=yes)
 
 if test x$enable_debug = xyes; then
 	AC_DEFINE(STARPU_DEBUG, [1], [enable debugging statements])
@@ -1531,10 +1532,11 @@ if test x$enable_debug = xyes; then
 	enable_spinlock_check=yes
 	if test x$GCC = xyes; then
 		if test x$starpu_windows != xyes ; then
-			CFLAGS="$CFLAGS -fstack-protector-all"
-			CXXFLAGS="$CXXFLAGS -fstack-protector-all"
+			if test x$enable_fstack_protector_all = xyes ; then
+			   CFLAGS="$CFLAGS -fstack-protector-all"
+			   CXXFLAGS="$CXXFLAGS -fstack-protector-all"
+			fi
 		fi
-		CPPFLAGS="$CPPFLAGS -D_FORTIFY_SOURCE=2"
 	fi
 else
 	CFLAGS="-O3 $CFLAGS"
@@ -1560,6 +1562,15 @@ AC_ARG_ENABLE(fast, [AS_HELP_STRING([--enable-fast],
 AC_MSG_RESULT($enable_fast)
 if test x$enable_fast = xyes; then
 	AC_DEFINE(STARPU_NO_ASSERT, [1], [disable assertions])
+else
+        # fortify gets really enabled only with optimizations, avoid enabling it
+        # when they optimizations are not enabled, because with some glibc it
+        # spews a lot of warnings.
+	if test x$enable_debug != xyes; then
+		if test x$GCC = xyes; then
+			CPPFLAGS="$CPPFLAGS -D_FORTIFY_SOURCE=1"
+		fi
+	fi
 fi
 
 AC_MSG_CHECKING(whether debug messages should be displayed)
@@ -1719,7 +1730,50 @@ fi
 
 AC_CHECK_HEADERS([glpk.h], [AC_DEFINE([STARPU_HAVE_GLPK_H], [1], [Define to 1 if you have the <glpk.h> header file.])])
 STARPU_HAVE_LIBRARY(GLPK, [glpk])
+
+AC_ARG_WITH(ayudame1-include-dir,
+	[AS_HELP_STRING([--with-ayudame1-include-dir=<path>],
+	[specify where Ayudame version 1 headers are installed])],
+	[
+		ayudame1_include_dir="$withval"
+		if test -n "$ayudame1_include_dir"; then
+			CPPFLAGS="-I$ayudame1_include_dir $CPPFLAGS"
+		fi
+	], [ayudame1_include_dir=no])
+AC_ARG_WITH(ayudame2-include-dir,
+	[AS_HELP_STRING([--with-ayudame2-include-dir=<path>],
+	[specify where Ayudame version 2 headers are installed])],
+	[
+		ayudame2_include_dir="$withval"
+		if test -n "$ayudame2_include_dir"; then
+			CPPFLAGS="-I$ayudame2_include_dir $CPPFLAGS"
+		fi
+	], [ayudame2_include_dir=no])
+
+# Ayudame 1 header is capitalized
 AC_CHECK_HEADERS([Ayudame.h])
+AC_ARG_ENABLE(ayudame1, [AS_HELP_STRING([--disable-ayudame1],
+				   [Do not use Ayudame lib version 1])],
+				   enable_ayudame1=$enableval, enable_ayudame1=yes)
+# Ayudame 2 header is lowercase
+AC_CHECK_HEADERS([ayudame.h])
+AC_ARG_ENABLE(ayudame2, [AS_HELP_STRING([--disable-ayudame2],
+				   [Do not use Ayudame lib version 2])],
+				   enable_ayudame2=$enableval, enable_ayudame2=yes)
+if test x$enable_ayudame1 = xyes -a x$ac_cv_header_Ayudame_h = xyes; then
+   AC_DEFINE([STARPU_USE_AYUDAME1], [1], [Define to 1 if Ayudame 1 is available and should be used])
+   ayu_msg="yes, use version 1"
+else
+   if test x$enable_ayudame2 = xyes -a x$ac_cv_header_ayudame_h = xyes; then
+      AC_DEFINE([STARPU_USE_AYUDAME2], [1], [Define to 1 if Ayudame 2 is available and should be used])
+      ayu_msg="yes, use version 2"
+   else
+      ayu_msg="no"
+   fi
+fi
+
+AM_CONDITIONAL([STARPU_USE_AYUDAME1], [test "x$enable_ayudame1" = "xyes"])
+AM_CONDITIONAL([STARPU_USE_AYUDAME2], [test "x$enable_ayudame2" = "xyes"])
 
 ###############################################################################
 #                                                                             #
@@ -2000,7 +2054,7 @@ AC_MSG_RESULT($use_mpi)
 AC_SUBST(USE_MPI, $use_mpi)
 AM_CONDITIONAL(USE_MPI, test x$use_mpi = xyes)
 if test x$use_mpi = xyes; then
-	AC_DEFINE(STARPU_USE_MPI,[],[whether the StarPU MPI library is available])
+	AC_DEFINE(STARPU_USE_MPI,[1],[whether the StarPU MPI library is available])
 else
 	running_mpi_check=no
 fi
@@ -2181,7 +2235,7 @@ if test "x$FC" != "x"; then
 		fi
 	fi
 	if test "x$enable_build_fortran" = "xyes" ; then
-		AC_DEFINE(STARPU_HAVE_FC, [], [Define this if a Fortran compiler is available])
+		AC_DEFINE(STARPU_HAVE_FC, [1], [Define this if a Fortran compiler is available])
 		if test x$use_mpi = xyes; then
 			AC_ARG_WITH(mpifort, [AS_HELP_STRING([--with-mpifort[=<path to mpifort>]],
 				    [Path of the mpifort compiler])],
@@ -2220,7 +2274,7 @@ if test "x$FC" != "x"; then
 						)
 				CC=$OLD_CC
 				if test "x$use_mpi_fort" = xyes; then
-					AC_DEFINE([HAVE_MPI_COMM_F2C], 1, [Function MPI_Comm_f2c is available])
+					AC_DEFINE([HAVE_MPI_COMM_F2C], [1], [Function MPI_Comm_f2c is available])
 					AC_MSG_CHECKING(mpifort path)
 					AC_MSG_RESULT($mpifort_path)
 					AC_SUBST(MPIFORT, $mpifort_path)
@@ -2323,7 +2377,7 @@ AC_ARG_ENABLE(openmp, [AS_HELP_STRING([--enable-openmp],
 AC_MSG_CHECKING(for OpenMP runtime support)
 
 if test x$enable_openmp = xyes; then
-	AC_DEFINE(STARPU_OPENMP, 1, [Define this to enable OpenMP runtime support])
+	AC_DEFINE(STARPU_OPENMP, [1], [Define this to enable OpenMP runtime support])
 fi
 
 AM_CONDITIONAL([STARPU_OPENMP], [test "x$enable_openmp" = "xyes"])
@@ -2717,7 +2771,7 @@ if test "x$ICC" != "x" -a "$starpu_windows" = "yes" ; then
     ICC=""
 fi
 if test "x$ICC" != "x"; then
-  AC_DEFINE(STARPU_HAVE_ICC, [], [Define this if icc is available])
+  AC_DEFINE(STARPU_HAVE_ICC, [1], [Define this if icc is available])
 fi
 AM_CONDITIONAL([STARPU_HAVE_ICC], [test "x$ICC" != "x"])
 
@@ -2763,6 +2817,10 @@ if test "$enable_build_doc" = "yes" ; then
    fi
    AC_PATH_PROG(epstopdfcommand, epstopdf)
    if test "$epstopdfcommand" = "" ; then
+	enable_build_doc="no"
+   fi
+   if test -f "$srcdir/doc/doxygen/starpu.pdf"
+   then
 	enable_build_doc="no"
    fi
 fi
@@ -2813,6 +2871,7 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   chmod +x doc/doxygen/doxygen_filter.sh
   mkdir -p tests/microbenchs
   test -e tests/microbenchs/tasks_size_overhead.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/tasks_size_overhead.sh tests/microbenchs/
+  test -e tests/microbenchs/tasks_size_overhead_scheds.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/tasks_size_overhead_scheds.sh tests/microbenchs/
   test -e tests/microbenchs/tasks_size_overhead.gp || ln -sf $ac_abs_top_srcdir/tests/microbenchs/tasks_size_overhead.gp tests/microbenchs/
   test -e tests/microbenchs/microbench.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/microbench.sh tests/microbenchs/
   test -e tests/microbenchs/parallel_dependent_homogeneous_tasks_data.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/parallel_dependent_homogeneous_tasks_data.sh tests/microbenchs/
@@ -2964,7 +3023,7 @@ AC_MSG_NOTICE([
                SOCL test suite:                             $run_socl_check
                Scheduler Hypervisor:                        $build_sc_hypervisor
                simgrid enabled:                             $enable_simgrid
-               ayudame enabled:                             $ac_cv_header_Ayudame_h
+               ayudame enabled:                             $ayu_msg
 	       Native fortran support:                      $enable_build_fortran
 	       Native MPI fortran support:                  $use_mpi_fort
 ])

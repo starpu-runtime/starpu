@@ -27,7 +27,7 @@ static unsigned tree_has_next_unblocked_worker(struct starpu_worker_collection *
 	if(workers->nworkers == 0)
 		return 0;
 
-	struct starpu_tree *tree = (struct starpu_tree*)workers->workerids;
+	struct starpu_tree *tree = (struct starpu_tree*)workers->collection_private;
 	struct starpu_tree *neighbour = starpu_tree_get_neighbour(tree, (struct starpu_tree*)it->value, it->visited, workers->present);
 
 	if(!neighbour)
@@ -70,7 +70,7 @@ static int tree_get_next_unblocked_worker(struct starpu_worker_collection *worke
 {
 	int ret = -1;
 
-	struct starpu_tree *tree = (struct starpu_tree *)workers->workerids;
+	struct starpu_tree *tree = (struct starpu_tree *)workers->collection_private;
 	struct starpu_tree *neighbour = NULL;
 	if(it->possible_value)
 	{
@@ -106,7 +106,7 @@ static unsigned tree_has_next_master(struct starpu_worker_collection *workers, s
 	if(workers->nworkers == 0)
 		return 0;
 
-	struct starpu_tree *tree = (struct starpu_tree*)workers->workerids;
+	struct starpu_tree *tree = (struct starpu_tree*)workers->collection_private;
 	struct starpu_tree *neighbour = starpu_tree_get_neighbour(tree, (struct starpu_tree*)it->value, it->visited, workers->is_master);
 
 	if(!neighbour)
@@ -139,7 +139,7 @@ static int tree_get_next_master(struct starpu_worker_collection *workers, struct
 {
 	int ret = -1;
 
-	struct starpu_tree *tree = (struct starpu_tree *)workers->workerids;
+	struct starpu_tree *tree = (struct starpu_tree *)workers->collection_private;
 	struct starpu_tree *neighbour = NULL;
 	if(it->possible_value)
 	{
@@ -181,7 +181,7 @@ static unsigned tree_has_next(struct starpu_worker_collection *workers, struct s
 	if(workers->nworkers == 0)
 		return 0;
 
-	struct starpu_tree *tree = (struct starpu_tree*)workers->workerids;
+	struct starpu_tree *tree = (struct starpu_tree*)workers->collection_private;
 	struct starpu_tree *neighbour = starpu_tree_get_neighbour(tree, (struct starpu_tree*)it->value, it->visited, workers->present);
 
 	if(!neighbour)
@@ -219,7 +219,7 @@ static int tree_get_next(struct starpu_worker_collection *workers, struct starpu
 
 	int ret = -1;
 
-	struct starpu_tree *tree = (struct starpu_tree *)workers->workerids;
+	struct starpu_tree *tree = (struct starpu_tree *)workers->collection_private;
 	struct starpu_tree *neighbour = NULL;
 	if(it->possible_value)
 	{
@@ -255,6 +255,7 @@ static int tree_add(struct starpu_worker_collection *workers, int worker)
 	if(!workers->present[worker])
 	{
 		workers->present[worker] = 1;
+		workers->workerids[workers->nworkers] = worker;
 		workers->nworkers++;
 		return worker;
 	}
@@ -267,6 +268,13 @@ static int tree_remove(struct starpu_worker_collection *workers, int worker)
 {
 	if(workers->present[worker])
 	{
+		unsigned i;
+		for (i = 0; i < workers->nworkers; i++)
+			if (workers->workerids[i] == worker)
+			{
+				memmove(&workers->workerids[i], &workers->workerids[i+1], (workers->nworkers-1-i) * sizeof(workers->workerids[i]));
+				break;
+			}
 		workers->present[worker] = 0;
 		workers->is_unblocked[worker] = 0;
 		workers->is_master[worker] = 0;
@@ -279,13 +287,15 @@ static int tree_remove(struct starpu_worker_collection *workers, int worker)
 
 static void tree_init(struct starpu_worker_collection *workers)
 {
-	workers->workerids = (void*)starpu_workers_get_tree();
+	workers->workerids = (int*)malloc((STARPU_NMAXWORKERS+STARPU_NMAX_COMBINEDWORKERS) * sizeof(int));
+	workers->collection_private = (void*)starpu_workers_get_tree();
 	workers->nworkers = 0;
 
 	int i;
 	int nworkers = starpu_worker_get_count();
 	for(i = 0; i < nworkers; i++)
 	{
+		workers->workerids[i] = -1;
 		workers->present[i] = 0;
 		workers->is_unblocked[i] = 0;
 		workers->is_master[i] = 0;
@@ -297,7 +307,7 @@ static void tree_init(struct starpu_worker_collection *workers)
 static void tree_deinit(struct starpu_worker_collection *workers)
 {
 	(void) workers;
-//	free(workers->workerids);
+	free(workers->workerids);
 }
 
 static void tree_init_iterator(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it)

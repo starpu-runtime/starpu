@@ -527,6 +527,8 @@ void* _starpu_sink_thread(void * thread_arg)
 
 	struct _starpu_worker *worker = &_starpu_get_machine_config()->workers[node->baseworkerid + coreid];
 
+	node->bind_thread(node, coreid, &coreid, 1);
+
 	_starpu_set_local_worker_key(worker);
 	while(node->is_running)
 	{

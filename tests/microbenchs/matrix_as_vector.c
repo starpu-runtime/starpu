@@ -25,7 +25,13 @@
  * Compare the efficiency of matrix and vector interfaces
  */
 
+#ifdef STARPU_QUICK_CHECK
+#define LOOPS 10
+#elif !defined(STARPU_LONG_CHECK)
+#define LOOPS 30
+#else
 #define LOOPS 100
+#endif
 
 void vector_cpu_func(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
 {

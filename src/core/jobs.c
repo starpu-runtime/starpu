@@ -3,7 +3,7 @@
  * Copyright (C) 2009-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
  * Copyright (C) 2011  Télécom-SudParis
- * Copyright (C) 2011, 2014  INRIA
+ * Copyright (C) 2011, 2014, 2016  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -89,21 +89,11 @@ struct _starpu_job* STARPU_ATTRIBUTE_MALLOC _starpu_job_create(struct starpu_tas
 #ifndef STARPU_USE_FXT
 	if (_starpu_bound_recording || _starpu_top_status_get() ||
 		_starpu_task_break_on_push != -1 || _starpu_task_break_on_pop != -1 || _starpu_task_break_on_sched != -1
-#ifdef HAVE_AYUDAME_H
-		|| AYU_event
-#endif
-			)
+		|| STARPU_AYU_EVENT)
 #endif
 	{
 		job->job_id = STARPU_ATOMIC_ADDL(&job_cnt, 1);
-#ifdef HAVE_AYUDAME_H
-		if (AYU_event)
-		{
-			/* Declare task to Ayudame */
-			int64_t AYU_data[2] = {_starpu_ayudame_get_func_id(task->cl), task->priority > STARPU_MIN_PRIO};
-			AYU_event(AYU_ADDTASK, job->job_id, AYU_data);
-		}
-#endif
+		STARPU_AYU_ADDTASK(job->job_id, task);
 	}
 	if (max_memory_use)
 	{
@@ -418,7 +408,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	 * scheduler to process it : the task structure doesn't contain any valuable
 	 * data as it's not linked to an actual worker */
 	/* control task should not execute post_exec_hook */
-	if(j->task_size == 1 && task->cl != NULL && !j->internal
+	if(j->task_size == 1 && task->cl != NULL && task->cl->where != STARPU_NOWHERE && !j->internal
 #ifdef STARPU_OPENMP
 	/* If this is a continuation, we do not execute the post_exec_hook. The
 	 * post_exec_hook will be run only when the continued task fully
@@ -468,11 +458,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 		j->terminated = 2;
 	}
 	STARPU_PTHREAD_COND_BROADCAST(&j->sync_cond);
-
-#ifdef HAVE_AYUDAME_H
-	if (AYU_event) AYU_event(AYU_REMOVETASK, j->job_id, NULL);
-#endif
-
+	STARPU_AYU_REMOVETASK(j->job_id);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 
 	if (detach && !continuation)
@@ -491,14 +477,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 		STARPU_ASSERT_MSG((detach && !destroy && !task->synchronous)
 				|| continuation
 				, "Regenerated task must be detached (was %d), and not have detroy=1 (was %d) or synchronous=1 (was %d)", detach, destroy, task->synchronous);
-
-#ifdef HAVE_AYUDAME_H
-		if (AYU_event)
-		{
-			int64_t AYU_data[2] = {j->exclude_from_dag?0:_starpu_ayudame_get_func_id(task->cl), task->priority > STARPU_MIN_PRIO};
-			AYU_event(AYU_ADDTASK, j->job_id, AYU_data);
-		}
-#endif
+		STARPU_AYU_ADDTASK(j->job_id, j->exclude_from_dag?NULL:task);
 
 		{
 #ifdef STARPU_OPENMP

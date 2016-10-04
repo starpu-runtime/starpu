@@ -4,24 +4,32 @@
 # Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
 # Copyright (C) 2014  INRIA
 #
-# Permission is granted to copy, distribute and/or modify this document
-# under the terms of the GNU Free Documentation License, Version 1.3
-# or any later version published by the Free Software Foundation;
-# with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+# StarPU is free software; you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation; either version 2.1 of the License, or (at
+# your option) any later version.
 #
-# See the GNU Free Documentation License in COPYING.GFDL for more details.
-
+# StarPU is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
+# See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
 DOXYGEN = doxygen
 PDFLATEX = pdflatex
 MAKEINDEX = makeindex
 
+if BUILD_DOC
 DOX_DIR = $(top_builddir)/doc/doxygen
+else
+DOX_DIR = $(top_srcdir)/doc/doxygen
+endif
+
 DOX_CONFIG = $(top_srcdir)/doc/doxygen/doxygen.cfg
 
 DOX_HTML_DIR = html
 DOX_LATEX_DIR = latex
-DOX_PDF = starpu.pdf
+DOX_PDF = $(DOX_DIR)/starpu.pdf
 DOX_TAG = starpu.tag
 
 chapters =	\
@@ -268,6 +276,7 @@ $(DOX_TAG): $(dox_inputs)
 	@$(SED) -i '/\\begin{titlepage}/,$$d' $(DOX_LATEX_DIR)/refman.tex
 	@cat $(top_srcdir)/doc/doxygen/refman.tex >> $(DOX_LATEX_DIR)/refman.tex
 
+if BUILD_DOC
 dist_pdf_DATA = $(DOX_PDF)
 
 $(DOX_PDF): $(DOX_TAG) refman.tex
@@ -299,6 +308,7 @@ CLEANFILES = $(DOX_TAG) starpu_config.h \
     $(DOX_HTML_DIR) \
     $(DOX_LATEX_DIR) \
     $(DOX_PDF)
+endif
 
 # Rule to update documentation on web server. Should only be used locally.
 PUBLISHHOST	?= gforge

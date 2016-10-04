@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2016  Université de Bordeaux
  * Copyright (C) 2010-2015  CNRS
- * Copyright (C) 2011  INRIA
+ * Copyright (C) 2011, 2016  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -413,14 +413,7 @@ int _starpu_repush_task(struct _starpu_job *j)
 
 	unsigned can_push = _starpu_increment_nready_tasks_of_sched_ctx(task->sched_ctx, task->flops, task);
 	task->status = STARPU_TASK_READY;
-
-#ifdef HAVE_AYUDAME_H
-	if (AYU_event)
-	{
-		intptr_t id = -1;
-		AYU_event(AYU_ADDTASKTOQUEUE, j->job_id, &id);
-	}
-#endif
+	STARPU_AYU_ADDTOTASKQUEUE(j->job_id, -1);
 	/* if the context does not have any workers save the tasks in a temp list */
 	if(!sched_ctx->is_initial_sched)
 	{

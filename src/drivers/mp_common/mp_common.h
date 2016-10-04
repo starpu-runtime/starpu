@@ -65,6 +65,8 @@ enum _starpu_mp_command
 	STARPU_SYNC_WORKERS,
 };
 
+const char *_starpu_mp_common_command_to_string(const int command);
+
 enum _starpu_mp_node_kind
 {
 	STARPU_MIC_SINK,
@@ -75,6 +77,8 @@ enum _starpu_mp_node_kind
 	STARPU_MPI_SOURCE,
 	STARPU_INVALID_KIND
 };
+
+const char *_starpu_mp_common_node_kind_to_string(const int kind);
 
 union _starpu_mp_connection
 {

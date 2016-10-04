@@ -109,7 +109,6 @@ opencl_shadow_host(int bz, TYPE *ptr, int nx, int ny, int nz, int ldy, int ldz, 
         clSetKernelArg(kernel, 6, sizeof(ldz), &ldz);
         clSetKernelArg(kernel, 7, sizeof(i), &i);
 
-        cl_event ev;
         err = clEnqueueNDRangeKernel(cq, kernel, 3, NULL, dim, NULL, 0, NULL, NULL);
         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 }

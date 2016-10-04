@@ -82,7 +82,6 @@ static int push_task_dummy(struct starpu_task *task)
 
         /*if there are no tasks block */
         /* wake people waiting for a task */
-        unsigned worker = 0;
 	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 
         struct starpu_sched_ctx_iterator it;
@@ -90,6 +89,7 @@ static int push_task_dummy(struct starpu_task *task)
 	workers->init_iterator(workers, &it);
 	while(workers->has_next(workers, &it))
         {
+		unsigned worker;
                 worker = workers->get_next(workers, &it);
 		starpu_pthread_mutex_t *sched_mutex;
                 starpu_pthread_cond_t *sched_cond;

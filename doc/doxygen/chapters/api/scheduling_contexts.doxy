@@ -71,6 +71,9 @@ scheduling policy.
 <li> ::STARPU_SCHED_CTX_POLICY_INIT, followed by a function pointer
 (ie. void init_sched(void)) allowing to initialize the scheduling policy.
 </li>
+<li> ::STARPU_SCHED_CTX_USER_DATA, followed by a pointer
+to a custom user data structure, to be retrieved by \ref starpu_sched_ctx_get_user_data().
+</li>
 </ul>
 
 \def STARPU_SCHED_CTX_POLICY_NAME
@@ -97,6 +100,11 @@ maximum scheduler priority value.
 \ingroup API_Scheduling_Contexts
 This macro is used when calling starpu_sched_ctx_create() to specify a
 function pointer allowing to initialize the scheduling policy.
+
+\def STARPU_SCHED_CTX_USER_DATA
+\ingroup API_Scheduling_Contexts
+This macro is used when calling starpu_sched_ctx_create() to specify a
+pointer to some user data related to the context being created.
 
 \fn unsigned starpu_sched_ctx_create_inside_interval(const char *policy_name, const char *sched_ctx_name, int min_ncpus, int max_ncpus, int min_ngpus, int max_ngpus, unsigned allow_overlap)
 \ingroup API_Scheduling_Contexts
@@ -159,6 +167,13 @@ possible.
 Returns the list of workers in the array \p workerids, the returned value is the 
 number of workers. The user should free the \p workerids table after finishing
 using it (it is allocated inside the function with the proper size)
+
+\fn unsigned starpu_sched_ctx_get_workers_list_raw(unsigned sched_ctx_id, int **workerids)
+\ingroup API_Scheduling_Contexts
+Returns the list of workers in the array \p workerids, the returned value is the 
+number of workers. This list is provided in raw order, i.e. not sorted by tree or list order,
+and the user should not free the \p workerids table.
+This function is thus much less costly than starpu_sched_ctx_get_workers_list.
 
 \fn unsigned starpu_sched_ctx_get_nworkers(unsigned sched_ctx_id)
 \ingroup API_Scheduling_Contexts
@@ -236,6 +251,10 @@ todo
 \fn int starpu_sched_ctx_max_priority_is_set(unsigned sched_ctx_id)
 \ingroup API_Scheduling_Contexts
 todo
+
+\fn void *starpu_sched_ctx_get_user_data(unsigned sched_ctx_id)
+\ingroup API_Scheduling_Contexts
+Return the user data pointer associated to the scheduling context.
 
 @name Scheduling Context Worker Collection
 \ingroup API_Scheduling_Contexts

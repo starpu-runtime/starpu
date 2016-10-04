@@ -39,10 +39,13 @@
 #endif
 
 #ifdef STARPU_QUICK_CHECK
-static unsigned ntasks = 10;
+static unsigned ntasks = 1;
+#elif !defined(STARPU_LONG_CHECK)
+static unsigned ntasks = 64;
 #else
-static unsigned ntasks = 1000;
+static unsigned ntasks = 256;
 #endif
+
 static unsigned nbuffers = 0;
 static unsigned total_nbuffers = 0;
 
@@ -127,7 +130,7 @@ int main(int argc, char **argv)
 	for (buffer = 0; buffer < total_nbuffers; buffer++)
 		buffers[buffer] = (float *) malloc(16*sizeof(float));
 
-	tasks = (struct starpu_task *) calloc(1, ntasks*sizeof(struct starpu_task));
+	tasks = (struct starpu_task *) calloc(1, ntasks*totcpus*sizeof(struct starpu_task));
 
 	/* Emit headers and compute raw tasks speed */
 	FPRINTF(stdout, "# tasks : %u buffers : %u total_nbuffers : %u\n", ntasks, nbuffers, total_nbuffers);
@@ -168,7 +171,7 @@ int main(int argc, char **argv)
 		{
 			/* submit tasks */
 			start = starpu_timing_now();
-			for (i = 0; i < ntasks; i++)
+			for (i = 0; i < ntasks * ncpus; i++)
 			{
 				starpu_data_handle_t *handles;
 				starpu_task_init(&tasks[i]);
@@ -203,26 +206,27 @@ int main(int argc, char **argv)
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 			end = starpu_timing_now();
 
-			for (i = 0; i < ntasks; i++)
+			for (i = 0; i < ntasks * ncpus; i++)
 				starpu_task_clean(&tasks[i]);
 
 			timing = end - start;
 
-			FPRINTF(stdout, "%u\t%f\t", size, timing/1000000);
+			FPRINTF(stdout, "%u\t%f\t", size, timing/ncpus/1000000);
 			fflush(stdout);
 
 			{
 				char *output_dir = getenv("STARPU_BENCH_DIR");
 				char *bench_id = getenv("STARPU_BENCH_ID");
+				char *sched = getenv("STARPU_SCHED");
 
 				if (output_dir && bench_id)
 				{
 					char file[1024];
 					FILE *f;
 
-					snprintf(file, 1024, "%s/tasks_size_overhead_total.dat", output_dir);
+					snprintf(file, 1024, "%s/tasks_size_overhead_total%s%s.dat", output_dir, sched?"_":"", sched?sched:"");
 					f = fopen(file, "a");
-					fprintf(f, "%s\t%u\t%u\t%f\n", bench_id, ncpus, size, timing/1000000);
+					fprintf(f, "%s\t%u\t%u\t%f\n", bench_id, ncpus, size, timing/1000000 /(ntasks*ncpus) *1000);
 					fclose(f);
 				}
 			}

@@ -120,8 +120,6 @@ init_perfmodels_gpu(int gpu_type)
 static void
 init_perfmodels(void)
 {
-	unsigned devid, ncore;
-
 	starpu_perfmodel_init(&model_cpu_task);
 	starpu_perfmodel_init(&model_gpu_task);
 

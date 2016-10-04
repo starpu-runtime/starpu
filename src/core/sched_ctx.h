@@ -51,6 +51,9 @@ struct _starpu_sched_ctx
 	/* data necessary for the policy */
 	void *policy_data;
 
+	/* pointer for application use */
+	void *user_data;
+
 	struct starpu_worker_collection *workers;
 
 	/* we keep an initial sched which we never delete */
@@ -181,7 +184,7 @@ void _starpu_init_all_sched_ctxs(struct _starpu_machine_config *config);
 /* allocate all structures belonging to a context */
 struct _starpu_sched_ctx*  _starpu_create_sched_ctx(struct starpu_sched_policy *policy, int *workerid, int nworkerids, unsigned is_init_sched, const char *sched_name,
 						    int min_prio_set, int min_prio,
-						    int max_prio_set, int max_prio, unsigned awake_workers, void (*sched_policy_init)(void));
+						    int max_prio_set, int max_prio, unsigned awake_workers, void (*sched_policy_init)(void), void *user_data);
 
 /* delete all sched_ctx */
 void _starpu_delete_all_sched_ctxs();

@@ -32,18 +32,20 @@ void starpu_tree_reset_visited(struct starpu_tree *tree, char *visited)
 	}
 	int i;
 	for(i = 0; i < tree->arity; i++)
-		starpu_tree_reset_visited(tree->nodes[i], visited);
+		starpu_tree_reset_visited(&tree->nodes[i], visited);
+}
+
+void starpu_tree_prepare_children(unsigned arity, struct starpu_tree *father)
+{
+	father->nodes = (struct starpu_tree*)malloc(arity*sizeof(struct starpu_tree));
+	father->arity = arity;
 }
 
 void starpu_tree_insert(struct starpu_tree *tree, int id, int level, int is_pu, int arity, struct starpu_tree *father)
 {
 	tree->level = level;
 	tree->arity = arity;
-	tree->nodes = (struct starpu_tree**)malloc(arity*sizeof(struct starpu_tree*));
-	int i;
-	for(i = 0; i < arity; i++)
-		tree->nodes[i] = (struct starpu_tree*)malloc(sizeof(struct starpu_tree));
-
+	tree->nodes = NULL;
 	tree->id = is_pu ? id : level;
 	tree->is_pu = is_pu;
 	tree->father = father;
@@ -63,7 +65,7 @@ struct starpu_tree* starpu_tree_get(struct starpu_tree *tree, int id)
 	int i;
 	for(i = 0; i < tree->arity; i++)
 	{
-		found_tree = starpu_tree_get(tree->nodes[i], id);
+		found_tree = starpu_tree_get(&tree->nodes[i], id);
 		if(found_tree)
 			return found_tree;
 	}
@@ -77,23 +79,23 @@ static struct starpu_tree* _get_down_to_leaves(struct starpu_tree *node, char *v
 	int i;
 	for(i = 0; i < node->arity; i++)
 	{
-		if(node->nodes[i]->arity == 0)
+		if(node->nodes[i].arity == 0)
 		{
-			if(node->nodes[i]->is_pu)
+			if(node->nodes[i].is_pu)
 			{
 				int *workerids;
-				int nworkers = starpu_bindid_get_workerids(node->nodes[i]->id, &workerids);
+				int nworkers = starpu_bindid_get_workerids(node->nodes[i].id, &workerids);
 				int w;
 				for(w = 0; w < nworkers; w++)
 				{
 					if(!visited[workerids[w]] && present[workerids[w]])
-						return node->nodes[i];
+						return &node->nodes[i];
 				}
 			}
 		}
 		else
 		{
-			found_tree =_get_down_to_leaves(node->nodes[i], visited, present);
+			found_tree =_get_down_to_leaves(&node->nodes[i], visited, present);
 			if(found_tree)
 				return found_tree;
 		}
@@ -109,32 +111,32 @@ struct starpu_tree* starpu_tree_get_neighbour(struct starpu_tree *tree, struct s
 
 	for(st = 0; st < father->arity; st++)
 	{
-		if(father->nodes[st] == node)
+		if(&father->nodes[st] == node)
 			break;
 	}
 
 	for(n = 0; n < father->arity; n++)
 	{
 		i = (st+n)%father->arity;
-		if(father->nodes[i] != node)
+		if(&father->nodes[i] != node)
 		{
-			if(father->nodes[i]->arity == 0)
+			if(father->nodes[i].arity == 0)
 			{
-				if(father->nodes[i]->is_pu)
+				if(father->nodes[i].is_pu)
 				{
 					int *workerids;
-					int nworkers = starpu_bindid_get_workerids(father->nodes[i]->id, &workerids);
+					int nworkers = starpu_bindid_get_workerids(father->nodes[i].id, &workerids);
 					int w;
 					for(w = 0; w < nworkers; w++)
 					{
 						if(!visited[workerids[w]] && present[workerids[w]])
-							return father->nodes[i];
+							return &father->nodes[i];
 					}
 				}
 			}
 			else
 			{
-				struct starpu_tree *leaf = _get_down_to_leaves(father->nodes[i], visited, present);
+				struct starpu_tree *leaf = _get_down_to_leaves(&father->nodes[i], visited, present);
 				if(leaf)
 					return leaf;
 			}
@@ -151,11 +153,7 @@ void starpu_tree_free(struct starpu_tree *tree)
 {
 	int i;
 	for(i = 0; i < tree->arity; i++)
-	{
-		starpu_tree_free(tree->nodes[i]);
-		free(tree->nodes[i]);
-		tree->nodes[i] = NULL;
-	}
+		starpu_tree_free(&tree->nodes[i]);
 	free(tree->nodes);
 	tree->nodes = NULL;
 	tree->arity = 0;

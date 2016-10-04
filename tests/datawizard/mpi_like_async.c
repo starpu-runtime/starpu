@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2014, 2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -143,7 +143,7 @@ static int test_recv_handle_async(void *arg)
 	if (ret)
 	{
 #ifdef DEBUG_MESSAGES
-		FPRINTF(stderr, "Thread %d received value %d from thread %d\n",
+		FPRINTF(stderr, "Thread %u received value %u from thread %d\n",
 			thread_data->index, thread_data->val, (thread_data->index - 1)%nthreads);
 #endif
 		starpu_data_release(thread_data->handle);

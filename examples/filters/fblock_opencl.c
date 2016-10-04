@@ -35,7 +35,6 @@ void opencl_func(void *buffers[], void *cl_arg)
 	int id, devid, err;
 	cl_kernel kernel;
 	cl_command_queue queue;
-	cl_event event;
 
         int *factor = cl_arg;
 	cl_mem block = (cl_mem)STARPU_BLOCK_GET_DEV_HANDLE(buffers[0]);

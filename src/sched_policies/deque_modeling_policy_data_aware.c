@@ -3,7 +3,7 @@
  * Copyright (C) 2010-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016  CNRS
  * Copyright (C) 2011  Télécom-SudParis
- * Copyright (C) 2011-2012  INRIA
+ * Copyright (C) 2011-2012, 2016  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -26,13 +26,11 @@
 #include <core/task.h>
 #include <core/workers.h>
 #include <core/sched_policy.h>
+#include <core/debug.h>
 
 #include <sched_policies/fifo_queues.h>
 #include <limits.h>
 
-#ifdef HAVE_AYUDAME_H
-#include <Ayudame.h>
-#endif
 
 #ifndef DBL_MIN
 #define DBL_MIN __DBL_MIN__
@@ -413,13 +411,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 		starpu_prefetch_task_input_on_node(task, memory_node);
 	}
 
-#ifdef HAVE_AYUDAME_H
-	if (AYU_event)
-	{
-		intptr_t id = best_workerid;
-		AYU_event(AYU_ADDTASKTOQUEUE, _starpu_get_job_associated_to_task(task)->job_id, &id);
-	}
-#endif
+	STARPU_AYU_ADDTOTASKQUEUE(_starpu_get_job_associated_to_task(task)->job_id, best_workerid);
 	int ret = 0;
 	if (prio)
 	{

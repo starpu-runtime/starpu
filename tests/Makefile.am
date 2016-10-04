@@ -35,6 +35,7 @@ EXTRA_DIST =					\
 	datawizard/scal.h			\
 	datawizard/mpi_like.h			\
 	microbenchs/tasks_size_overhead.sh	\
+	microbenchs/tasks_size_overhead_scheds.sh	\
 	microbenchs/tasks_size_overhead.gp	\
 	datawizard/scratch_opencl_kernel.cl     \
 	datawizard/sync_and_notify_data_opencl_codelet.cl\
@@ -298,6 +299,7 @@ myPROGRAMS +=				\
 	openmp/parallel_sections_combined_01	\
 	openmp/task_01				\
 	openmp/task_02				\
+	openmp/task_03				\
 	openmp/taskwait_01			\
 	openmp/taskgroup_01			\
 	openmp/taskgroup_02			\
@@ -353,6 +355,7 @@ examplebin_PROGRAMS = \
 examplebin_SCRIPTS = \
 	microbenchs/tasks_size_overhead.gp \
 	microbenchs/tasks_size_overhead.sh
+TESTS += microbenchs/tasks_size_overhead_scheds.sh
 
 if STARPU_HAVE_WINDOWS
 check_PROGRAMS	=	$(myPROGRAMS)
@@ -650,6 +653,9 @@ openmp_task_01_SOURCES = 	\
 
 openmp_task_02_SOURCES = 	\
 	openmp/task_02.c
+
+openmp_task_03_SOURCES = 	\
+	openmp/task_03.c
 
 openmp_taskwait_01_SOURCES = 	\
 	openmp/taskwait_01.c

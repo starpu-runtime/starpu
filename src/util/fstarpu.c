@@ -75,6 +75,7 @@ static const intptr_t fstarpu_sched_ctx_hierarchy_level	= STARPU_SCHED_CTX_HIERA
 static const intptr_t fstarpu_sched_ctx_nested	= STARPU_SCHED_CTX_NESTED;
 static const intptr_t fstarpu_sched_ctx_awake_workers	= STARPU_SCHED_CTX_AWAKE_WORKERS;
 static const intptr_t fstarpu_sched_ctx_policy_init	= STARPU_SCHED_CTX_POLICY_INIT;
+static const intptr_t fstarpu_sched_ctx_user_data	= STARPU_SCHED_CTX_USER_DATA;
 
 intptr_t fstarpu_get_constant(char *s)
 {
@@ -130,6 +131,7 @@ intptr_t fstarpu_get_constant(char *s)
 	else if (!strcmp(s, "FSTARPU_SCHED_CTX_NESTED"))	{ return fstarpu_sched_ctx_nested; }
 	else if (!strcmp(s, "FSTARPU_SCHED_CTX_AWAKE_WORKERS"))	{ return fstarpu_sched_ctx_awake_workers; }
 	else if (!strcmp(s, "FSTARPU_SCHED_CTX_POLICY_INIT"))	{ return fstarpu_sched_ctx_policy_init; }
+	else if (!strcmp(s, "FSTARPU_SCHED_CTX_USER_DATA"))	{ return fstarpu_sched_ctx_user_data; }
 
 	else { _FSTARPU_ERROR("unknown constant"); }
 }
@@ -245,7 +247,7 @@ void fstarpu_codelet_add_cpu_func(struct starpu_codelet *cl, void *f_ptr)
 void fstarpu_codelet_add_cuda_func(struct starpu_codelet *cl, void *f_ptr)
 {
 	const size_t max_cuda_funcs = sizeof(cl->cuda_funcs)/sizeof(cl->cuda_funcs[0])-1;
-	int i;
+	unsigned i;
 	for (i = 0; i < max_cuda_funcs; i++)
 	{
 		if (cl->cuda_funcs[i] == NULL)
@@ -260,7 +262,7 @@ void fstarpu_codelet_add_cuda_func(struct starpu_codelet *cl, void *f_ptr)
 void fstarpu_codelet_add_opencl_func(struct starpu_codelet *cl, void *f_ptr)
 {
 	const size_t max_opencl_funcs = sizeof(cl->opencl_funcs)/sizeof(cl->opencl_funcs[0])-1;
-	int i;
+	unsigned i;
 	for (i = 0; i < max_opencl_funcs; i++)
 	{
 		if (cl->opencl_funcs[i] == NULL)
@@ -275,7 +277,7 @@ void fstarpu_codelet_add_opencl_func(struct starpu_codelet *cl, void *f_ptr)
 void fstarpu_codelet_add_mic_func(struct starpu_codelet *cl, void *f_ptr)
 {
 	const size_t max_mic_funcs = sizeof(cl->mic_funcs)/sizeof(cl->mic_funcs[0])-1;
-	int i;
+	unsigned i;
 	for (i = 0; i < max_mic_funcs; i++)
 	{
 		if (cl->mic_funcs[i] == NULL)
@@ -290,7 +292,7 @@ void fstarpu_codelet_add_mic_func(struct starpu_codelet *cl, void *f_ptr)
 void fstarpu_codelet_add_scc_func(struct starpu_codelet *cl, void *f_ptr)
 {
 	const size_t max_scc_funcs = sizeof(cl->scc_funcs)/sizeof(cl->scc_funcs[0])-1;
-	int i;
+	unsigned i;
 	for (i = 0; i < max_scc_funcs; i++)
 	{
 		if (cl->scc_funcs[i] == NULL)
@@ -311,7 +313,7 @@ void fstarpu_codelet_add_buffer(struct starpu_codelet *cl, intptr_t _mode)
 	{
 		_FSTARPU_ERROR("fstarpu: invalid data mode");
 	}
-	if  (cl->nbuffers < max_modes)
+	if  (cl->nbuffers < (int) max_modes)
 	{
 		cl->modes[cl->nbuffers] = (unsigned int)mode;
 		cl->nbuffers++;

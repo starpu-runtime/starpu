@@ -2,7 +2,7 @@
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
- * Copyright (C) 2011, 2012 INRIA
+ * Copyright (C) 2011, 2012, 2016 INRIA
  * See the file version.doxy for copying conditions.
  */
 
@@ -106,11 +106,11 @@ MIC equivalent of the environment variable \ref STARPU_NCUDA, i.e. the number of
 MIC devices to use.
 </dd>
 
-<dt>STARPU_NMICCORES</dt>
+<dt>STARPU_NMICTHREADS</dt>
 <dd>
-\anchor STARPU_NMICCORES
-\addindex __env__STARPU_NMICCORES
-Number of cores to use on the MIC devices.
+\anchor STARPU_NMICTHREADS
+\addindex __env__STARPU_NMICTHREADS
+Number of threads to use on the MIC devices.
 </dd>
 
 <dt>STARPU_NSCC</dt>
@@ -531,7 +531,7 @@ taken into account in simgrid mode.
 <dd>
 \anchor STARPU_PCI_FLAT
 \addindex __env__STARPU_PCI_FLAT
-When unset or set to to 0, the platform file created for simgrid will
+When unset or set to 0, the platform file created for simgrid will
 contain PCI bandwidths and routes.
 </dd>
 
@@ -549,6 +549,15 @@ When unset or set to 1, simulate within simgrid the GPU transfer queueing.
 This defines the size of the file used for folding virtual allocation, in
 MiB. The default is 1, thus allowing 64GiB virtual memory when Linux's
 <c>sysctl vm.max_map_count</c> value is the default 65535.
+</dd>
+
+<dt>STARPU_SIMGRID_TASK_SUBMIT_COST</dt>
+<dd>
+\anchor STARPU_SIMGRID_TASK_SUBMIT_COST
+\addindex __env__STARPU_SIMGRID_TASK_SUBMIT_COST
+When set to 1 (which is the default), task submission costs are taken into
+account in simgrid mode. This provides more accurate simgrid predictions,
+especially for the beginning of the execution.
 </dd>
 
 </dl>

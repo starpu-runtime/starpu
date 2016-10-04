@@ -31,14 +31,25 @@ test_scheds()
 	xfailed=""
 	failed=""
 	pass=""
+	skip=""
 
 	RESULT=0
 	for sched in $SCHEDS;
 	do
-		if STARPU_SCHED=$sched $(dirname $0)/$TEST
+	    	set +e
+	    	STARPU_SCHED=$sched $(dirname $0)/$TEST
+		ret=$?
+	    	set -e
+		if test $ret == 0
 		then
 		    	echo "SUCCESS: STARPU_SCHED=$sched ./microbenchs/$TEST"
 			pass="$pass $sched"
+			continue
+		fi
+		if test $ret == 77
+		then
+		    	echo "SKIP: STARPU_SCHED=$sched ./microbenchs/$TEST"
+			skip="$skip $sched"
 			continue
 		fi
 
@@ -75,6 +86,7 @@ test_scheds()
 
 	done
 	echo "passed schedulers:$pass"| ( tee /dev/tty || true )
+	echo "skipped schedulers:$skip"| ( tee /dev/tty || true )
 	echo "failed schedulers:$failed"| ( tee /dev/tty || true )
 	echo "xfailed schedulers:$xfailed"| ( tee /dev/tty || true )
 	return $RESULT

@@ -32,6 +32,7 @@ extern "C"
 #define STARPU_SCHED_CTX_NESTED                  (6<<16)
 #define STARPU_SCHED_CTX_AWAKE_WORKERS           (7<<16)
 #define STARPU_SCHED_CTX_POLICY_INIT             (8<<16)
+#define STARPU_SCHED_CTX_USER_DATA               (9<<16)
 
 unsigned starpu_sched_ctx_create(int *workerids_ctx, int nworkers_ctx, const char *sched_ctx_name, ...);
 
@@ -62,6 +63,7 @@ void starpu_sched_ctx_stop_task_submission(void);
 void starpu_sched_ctx_finished_submit(unsigned sched_ctx_id);
 
 unsigned starpu_sched_ctx_get_workers_list(unsigned sched_ctx_id, int **workerids);
+unsigned starpu_sched_ctx_get_workers_list_raw(unsigned sched_ctx_id, int **workerids);
 
 unsigned starpu_sched_ctx_get_nworkers(unsigned sched_ctx_id);
 
@@ -101,6 +103,8 @@ int starpu_sched_ctx_max_priority_is_set(unsigned sched_ctx_id);
 #define STARPU_MAX_PRIO		(starpu_sched_get_max_priority())
 
 #define STARPU_DEFAULT_PRIO	0
+
+void *starpu_sched_ctx_get_user_data(unsigned sched_ctx_id);
 
 struct starpu_worker_collection *starpu_sched_ctx_create_worker_collection(unsigned sched_ctx_id, enum starpu_worker_collection_type type) STARPU_ATTRIBUTE_MALLOC;
 

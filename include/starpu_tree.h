@@ -25,7 +25,7 @@ extern "C"
 
 struct starpu_tree
 {
-	struct starpu_tree **nodes;
+	struct starpu_tree *nodes;
 	struct starpu_tree *father;
 	int arity;
 	int id;
@@ -35,6 +35,7 @@ struct starpu_tree
 
 void starpu_tree_reset_visited(struct starpu_tree *tree, char *visited);
 
+void starpu_tree_prepare_children(unsigned arity, struct starpu_tree *father);
 void starpu_tree_insert(struct starpu_tree *tree, int id, int level, int is_pu, int arity, struct starpu_tree *father);
 
 struct starpu_tree *starpu_tree_get(struct starpu_tree *tree, int id);

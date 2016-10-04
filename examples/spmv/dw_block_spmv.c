@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009-2012, 2014-2015  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -44,7 +44,7 @@ static sem_t sem;
 static unsigned c = 256;
 static unsigned r = 256;
 
-static unsigned remainingtasks = -1;
+static int remainingtasks = -1;
 
 static starpu_data_handle_t sparse_matrix;
 static starpu_data_handle_t vector_in, vector_out;
@@ -271,7 +271,7 @@ void launch_spmv_codelets(void)
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
-	printf("end of task submission (there was %d chains for %d tasks : ratio %d tasks per chain) !\n", nchains, totaltasks, totaltasks/nchains);
+	printf("end of task submission (there was %u chains for %u tasks : ratio %u tasks per chain) !\n", nchains, totaltasks, totaltasks/nchains);
 }
 
 void init_problem(void)

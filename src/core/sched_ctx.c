@@ -450,9 +450,10 @@ static void _starpu_sched_ctx_create_hwloc_tree(struct _starpu_sched_ctx *sched_
 	workers->init_iterator(workers, &it);
 	while(workers->has_next(workers, &it))
 	{
-		worker = _starpu_get_worker_struct(workers->get_next(workers, &it));
-		if(!starpu_worker_is_combined_worker(worker->workerid))
+		unsigned workerid = workers->get_next(workers, &it);
+		if(!starpu_worker_is_combined_worker(workerid))
 		{
+			worker = _starpu_get_worker_struct(workerid);
 			hwloc_bitmap_or(sched_ctx->hwloc_workers_set,
 					sched_ctx->hwloc_workers_set,
 					worker->hwloc_cpu_set);
@@ -469,7 +470,8 @@ struct _starpu_sched_ctx* _starpu_create_sched_ctx(struct starpu_sched_policy *p
 						   int min_prio_set, int min_prio,
 						   int max_prio_set, int max_prio,
 						   unsigned awake_workers,
-						   void (*sched_policy_init)(void))
+						   void (*sched_policy_init)(void),
+						   void * user_data)
 {
 	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
 
@@ -515,6 +517,7 @@ struct _starpu_sched_ctx* _starpu_create_sched_ctx(struct starpu_sched_policy *p
 	sched_ctx->perf_arch.devices = NULL;
 	sched_ctx->perf_arch.ndevices = 0;
 	sched_ctx->init_sched = sched_policy_init;
+	sched_ctx->user_data = user_data;
 	int w;
 	for(w = 0; w < nworkers; w++)
 	{
@@ -713,7 +716,7 @@ unsigned starpu_sched_ctx_create_inside_interval(const char *policy_name, const 
 	for(i = 0; i < nw; i++)
 		printf("%d ", workers[i]);
 	printf("\n");
-	sched_ctx = _starpu_create_sched_ctx(selected_policy, workers, nw, 0, sched_ctx_name, 0, 0, 0, 0, 1, NULL);
+	sched_ctx = _starpu_create_sched_ctx(selected_policy, workers, nw, 0, sched_ctx_name, 0, 0, 0, 0, 1, NULL, NULL);
 	sched_ctx->min_ncpus = min_ncpus;
 	sched_ctx->max_ncpus = max_ncpus;
 	sched_ctx->min_ngpus = min_ngpus;
@@ -739,6 +742,7 @@ unsigned starpu_sched_ctx_create(int *workerids, int nworkers, const char *sched
 	int max_prio_set = 0;
 	int min_prio = 0;
 	int max_prio = 0;
+	void *user_data = NULL;
 	struct starpu_sched_policy *sched_policy = NULL;
 	unsigned hierarchy_level = 0;
 	unsigned nesting_sched_ctx = STARPU_NMAX_SCHED_CTXS;
@@ -784,6 +788,10 @@ unsigned starpu_sched_ctx_create(int *workerids, int nworkers, const char *sched
 		{
 			init_sched = va_arg(varg_list, void(*)(void));
 		}
+		else if (arg_type == STARPU_SCHED_CTX_USER_DATA)
+		{
+			user_data = va_arg(varg_list, void *);
+		}
 		else
 		{
 			STARPU_ABORT_MSG("Unrecognized argument %d\n", arg_type);
@@ -795,7 +803,7 @@ unsigned starpu_sched_ctx_create(int *workerids, int nworkers, const char *sched
 	if (workerids && nworkers != -1)
 	{
 		/* Make sure the user doesn't use invalid worker IDs. */
-		unsigned num_workers = starpu_worker_get_count();
+		int num_workers = starpu_worker_get_count();
 		int i;
 		for (i = 0; i < nworkers; i++)
 		{
@@ -808,7 +816,7 @@ unsigned starpu_sched_ctx_create(int *workerids, int nworkers, const char *sched
 	}
 
 	struct _starpu_sched_ctx *sched_ctx = NULL;
-	sched_ctx = _starpu_create_sched_ctx(sched_policy, workerids, nworkers, 0, sched_ctx_name, min_prio_set, min_prio, max_prio_set, max_prio, awake_workers, init_sched);
+	sched_ctx = _starpu_create_sched_ctx(sched_policy, workerids, nworkers, 0, sched_ctx_name, min_prio_set, min_prio, max_prio_set, max_prio, awake_workers, init_sched, user_data);
 	sched_ctx->hierarchy_level = hierarchy_level;
 	sched_ctx->nesting_sched_ctx = nesting_sched_ctx;
 
@@ -832,6 +840,7 @@ int fstarpu_sched_ctx_create(int *workerids, int nworkers, const char *sched_ctx
 	int max_prio_set = 0;
 	int min_prio = 0;
 	int max_prio = 0;
+	void *user_data = NULL;
 	struct starpu_sched_policy *sched_policy = NULL;
 	unsigned hierarchy_level = 0;
 	unsigned nesting_sched_ctx = STARPU_NMAX_SCHED_CTXS;
@@ -888,6 +897,11 @@ int fstarpu_sched_ctx_create(int *workerids, int nworkers, const char *sched_ctx
 			arg_i++;
 			init_sched = arglist[arg_i];
 		}
+		else if (arg_type == STARPU_SCHED_CTX_USER_DATA)
+		{
+			arg_i++;
+			user_data = arglist[arg_i];
+		}
 		else
 		{
 			STARPU_ABORT_MSG("Unrecognized argument %d\n", arg_type);
@@ -898,7 +912,7 @@ int fstarpu_sched_ctx_create(int *workerids, int nworkers, const char *sched_ctx
 	if (workerids && nworkers != -1)
 	{
 		/* Make sure the user doesn't use invalid worker IDs. */
-		unsigned num_workers = starpu_worker_get_count();
+		int num_workers = starpu_worker_get_count();
 		int i;
 		for (i = 0; i < nworkers; i++)
 		{
@@ -911,7 +925,7 @@ int fstarpu_sched_ctx_create(int *workerids, int nworkers, const char *sched_ctx
 	}
 
 	struct _starpu_sched_ctx *sched_ctx = NULL;
-	sched_ctx = _starpu_create_sched_ctx(sched_policy, workerids, nworkers, 0, sched_ctx_name, min_prio_set, min_prio, max_prio_set, max_prio, awake_workers, init_sched);
+	sched_ctx = _starpu_create_sched_ctx(sched_policy, workerids, nworkers, 0, sched_ctx_name, min_prio_set, min_prio, max_prio_set, max_prio, awake_workers, init_sched, user_data);
 	sched_ctx->hierarchy_level = hierarchy_level;
 	sched_ctx->nesting_sched_ctx = nesting_sched_ctx;
 
@@ -1651,6 +1665,13 @@ void starpu_sched_ctx_display_workers(unsigned sched_ctx_id, FILE *f)
 	free(workerids);
 }
 
+unsigned starpu_sched_ctx_get_workers_list_raw(unsigned sched_ctx_id, int **workerids)
+{
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+	*workerids = sched_ctx->workers->workerids;
+	return sched_ctx->workers->nworkers;
+}
+
 unsigned starpu_sched_ctx_get_workers_list(unsigned sched_ctx_id, int **workerids)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
@@ -1757,17 +1778,11 @@ unsigned starpu_sched_ctx_contains_worker(int workerid, unsigned sched_ctx_id)
         struct starpu_worker_collection *workers = sched_ctx->workers;
 	if(workers)
 	{
-		int worker;
+		unsigned i;
 
-		struct starpu_sched_ctx_iterator it;
-
-		workers->init_iterator(workers, &it);
-		while(workers->has_next(workers, &it))
-		{
-			worker = workers->get_next(workers, &it);
-			if(worker == workerid)
+		for (i = 0; i < workers->nworkers; i++)
+			if (workerid == workers->workerids[i])
 				return 1;
-		}
 	}
 	return 0;
 }
@@ -1777,12 +1792,11 @@ unsigned starpu_sched_ctx_contains_type_of_worker(enum starpu_worker_archtype ar
 	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 	int worker;
 
-	struct starpu_sched_ctx_iterator it;
+	unsigned i;
 
-	workers->init_iterator(workers, &it);
-	while(workers->has_next(workers, &it))
+	for (i = 0; i < workers->nworkers; i++)
 	{
-		worker = workers->get_next(workers, &it);
+		worker = workers->workerids[i];
 		enum starpu_worker_archtype curr_arch = starpu_worker_get_type(worker);
 		if(curr_arch == arch)
 			return 1;
@@ -2164,7 +2178,7 @@ void starpu_sched_ctx_list_task_counters_decrement_all(struct starpu_task *task,
 	if (_starpu_get_nsched_ctxs() > 1)
 	{
 		int curr_workerid = starpu_worker_get_id();
-		struct _starpu_worker *curr_worker_str, *worker_str;
+		struct _starpu_worker *curr_worker_str = NULL, *worker_str;
 		if(curr_workerid != -1)
 		{
 			curr_worker_str = _starpu_get_worker_struct(curr_workerid);
@@ -2201,7 +2215,7 @@ void starpu_sched_ctx_list_task_counters_reset_all(struct starpu_task *task, uns
 	if (_starpu_get_nsched_ctxs() > 1)
 	{
 		int curr_workerid = starpu_worker_get_id();
-		struct _starpu_worker *curr_worker_str, *worker_str;
+		struct _starpu_worker *curr_worker_str = NULL, *worker_str;
 		if(curr_workerid != -1)
 		{
 			curr_worker_str = _starpu_get_worker_struct(curr_workerid);
@@ -2574,4 +2588,11 @@ unsigned starpu_sched_ctx_has_starpu_scheduler(unsigned sched_ctx_id, unsigned *
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	*awake_workers = sched_ctx->awake_workers;
 	return sched_ctx->sched_policy != NULL;
+}
+
+void *starpu_sched_ctx_get_used_data(unsigned sched_ctx_id)
+{
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+	STARPU_ASSERT(sched_ctx != NULL);
+	return sched_ctx->user_data;
 }

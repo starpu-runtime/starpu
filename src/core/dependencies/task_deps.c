@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
- * Copyright (C) 2014  INRIA
+ * Copyright (C) 2014, 2016  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -112,13 +112,10 @@ void _starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, s
 
 		_STARPU_TRACE_TASK_DEPS(dep_job, job);
 		_starpu_bound_task_dep(job, dep_job);
-#ifdef HAVE_AYUDAME_H
-		if (AYU_event && check)
+		if (check)
 		{
-			uintptr_t AYU_data[3] = {dep_job->job_id, 0, 0};
-			AYU_event(AYU_ADDDEPENDENCY, job->job_id, AYU_data);
+			STARPU_AYU_ADDDEPENDENCY(dep_job->job_id, 0, job->job_id);
 		}
-#endif
 		if (_starpu_graph_record)
 			_starpu_graph_add_job_dep(job, dep_job);
 

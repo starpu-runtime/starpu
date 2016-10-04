@@ -483,7 +483,7 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 	/* This function is called with handle's header lock taken */
 	_starpu_spin_checklocked(&handle->header_lock);
 
-	unsigned requesting_node = dst_replicate ? dst_replicate->memory_node : -1;
+	int requesting_node = dst_replicate ? dst_replicate->memory_node : -1;
 	unsigned nwait = 0;
 
 	if (mode & STARPU_W)
@@ -527,8 +527,8 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 				_starpu_memory_handle_stats_shared_to_owner(handle, requesting_node);
 #endif
 
-		if (dst_replicate->mc)
-			_starpu_memchunk_recently_used(dst_replicate->mc, requesting_node);
+			if (dst_replicate->mc)
+				_starpu_memchunk_recently_used(dst_replicate->mc, requesting_node);
 		}
 
 		_starpu_spin_unlock(&handle->header_lock);
@@ -540,7 +540,8 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 		return NULL;
 	}
 
-	_starpu_msi_cache_miss(requesting_node);
+	if (dst_replicate)
+		_starpu_msi_cache_miss(requesting_node);
 
 	/* the only remaining situation is that the local copy was invalid */
 	STARPU_ASSERT((dst_replicate && dst_replicate->state == STARPU_INVALID) || nwait);
@@ -1063,7 +1064,7 @@ void __starpu_push_task_output(struct _starpu_job *j)
 		if (node == -1 && task->cl->where != STARPU_NOWHERE)
 			node = local_memory_node;
 
-		struct _starpu_data_replicate *local_replicate;
+		struct _starpu_data_replicate *local_replicate = NULL;
 
 		if (index && descrs[index-1].handle == descrs[index].handle)
 			/* We have already released this data, skip it. This

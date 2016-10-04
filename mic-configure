@@ -96,6 +96,10 @@ then
     dev_list="mic"
 fi
 
+# prepend mic_params with "--with-mpicc=mpicc -mmic", to allow possible override by the user
+mic_params=("--with-mpicc=mpicc -mmic" "${mic_params[@]}")
+mic_params=("--with-mpifort=mpifort -mmic" "${mic_params[@]}")
+
 for arch in $dev_list #host mic
 do
 	# We call the configure script from a build directory further in the
@@ -122,11 +126,12 @@ do
 		    unset CXXLD
 		    unset F77
 		    unset FC
+		    params+=(--disable-fortran)
 		fi
 	fi
 
 	declare -a params
-	params=("--prefix=$prefix/$arch")
+	params=("--prefix=$prefix/$arch" "--disable-fstack-protector-all")
 
 	if [ "$native_mic" -eq "0" ]
 	then
@@ -134,7 +139,7 @@ do
 	fi
 
 	if test x$arch = xmic ; then
-	    params+=(--disable-build-doc --host=$mic_host)
+	    params+=(--host=$mic_host --disable-build-doc)
 	    if [ "$native_mic" -eq "1" ]
 	    then
 		params+=(--enable-maxcpus=250)

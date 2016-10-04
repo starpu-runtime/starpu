@@ -182,7 +182,7 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 {
 	struct _starpu_peager_data *data = (struct _starpu_peager_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
-	unsigned workerid = starpu_worker_get_id_check();
+	int workerid = starpu_worker_get_id_check();
 
 	/* If this is not a CPU or a MIC, then the worker simply grabs tasks from the fifo */
 	if (starpu_worker_get_type(workerid) != STARPU_CPU_WORKER && starpu_worker_get_type(workerid) != STARPU_MIC_WORKER)

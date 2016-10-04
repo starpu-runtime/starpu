@@ -4,7 +4,7 @@
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
  * Copyright (C) 2010, 2011  INRIA
  * Copyright (C) 2011  Télécom-SudParis
- * Copyright (C) 2011-2012  INRIA
+ * Copyright (C) 2011-2012, 2016  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -273,14 +273,14 @@ static inline int _starpu_can_use_nth_implementation(enum starpu_worker_archtype
 	case STARPU_MIC_WORKER:
 	{
 		starpu_mic_func_t func = _starpu_task_get_mic_nth_implementation(cl, nimpl);
-		char *func_name = _starpu_task_get_cpu_name_nth_implementation(cl, nimpl);
+		const char *func_name = _starpu_task_get_cpu_name_nth_implementation(cl, nimpl);
 
 		return func != NULL || func_name != NULL;
 	}
 	case STARPU_SCC_WORKER:
 	{
 		starpu_scc_func_t func = _starpu_task_get_scc_nth_implementation(cl, nimpl);
-		char *func_name = _starpu_task_get_cpu_name_nth_implementation(cl, nimpl);
+		const char *func_name = _starpu_task_get_cpu_name_nth_implementation(cl, nimpl);
 
 		return func != NULL || func_name != NULL;
 	}
@@ -584,20 +584,9 @@ void _starpu_driver_start(struct _starpu_worker *worker, unsigned fut_key, unsig
 	int devid = worker->devid;
 	(void) devid;
 
-#if defined(STARPU_PERF_DEBUG) && !defined(STARPU_SIMGRID)
-	setitimer(ITIMER_PROF, &prof_itimer, NULL);
-#endif
-
 #ifdef STARPU_USE_FXT
 	_starpu_fxt_register_thread(worker->bindid);
 	_starpu_worker_start(worker, fut_key, sync);
-#endif
-
-	_starpu_bind_thread_on_cpu(worker->config, worker->bindid, worker->workerid);
-
-        _STARPU_DEBUG("worker %p %d for dev %d is ready on logical cpu %d\n", worker, worker->workerid, devid, worker->bindid);
-#ifdef STARPU_HAVE_HWLOC
-	_STARPU_DEBUG("worker %p %d cpuset start at %d\n", worker, worker->workerid, hwloc_bitmap_first(worker->hwloc_cpu_set));
 #endif
 
 	_starpu_memory_node_set_local_key(&worker->memory_node);
@@ -608,6 +597,17 @@ void _starpu_driver_start(struct _starpu_worker *worker, unsigned fut_key, unsig
 	worker->worker_is_running = 1;
 	STARPU_PTHREAD_COND_SIGNAL(&worker->started_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&worker->mutex);
+
+	_starpu_bind_thread_on_cpu(worker->config, worker->bindid, worker->workerid);
+
+#if defined(STARPU_PERF_DEBUG) && !defined(STARPU_SIMGRID)
+	setitimer(ITIMER_PROF, &prof_itimer, NULL);
+#endif
+
+        _STARPU_DEBUG("worker %p %d for dev %d is ready on logical cpu %d\n", worker, worker->workerid, devid, worker->bindid);
+#ifdef STARPU_HAVE_HWLOC
+	_STARPU_DEBUG("worker %p %d cpuset start at %d\n", worker, worker->workerid, hwloc_bitmap_first(worker->hwloc_cpu_set));
+#endif
 }
 
 static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
@@ -626,10 +626,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 	/* Get itimer of the main thread, to set it for the worker threads */
 	getitimer(ITIMER_PROF, &prof_itimer);
 #endif
-
-#ifdef HAVE_AYUDAME_H
-	if (AYU_event) AYU_event(AYU_INIT, 0, NULL);
-#endif
+	STARPU_AYU_INIT();
 
 	for (worker = 0; worker < nworkers; worker++)
 	{
@@ -718,13 +715,6 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 					STARPU_PTHREAD_COND_WAIT(&workerarg->started_cond, &workerarg->mutex);
 				STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
 #endif
-				STARPU_PTHREAD_MUTEX_LOCK(&worker_set->mutex);
-				while (!worker_set->set_is_initialized)
-					STARPU_PTHREAD_COND_WAIT(&worker_set->ready_cond,
-								 &worker_set->mutex);
-				STARPU_PTHREAD_MUTEX_UNLOCK(&worker_set->mutex);
-				worker_set->started = 1;
-
 				break;
 #endif
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
@@ -820,6 +810,9 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 		struct starpu_driver driver;
 		unsigned devid = workerarg->devid;
 		driver.type = workerarg->arch;
+#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
+		struct _starpu_worker_set *worker_set = workerarg->set;
+#endif
 
 		switch (workerarg->arch)
 		{
@@ -833,9 +826,23 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 					STARPU_PTHREAD_COND_WAIT(&workerarg->ready_cond, &workerarg->mutex);
 				STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
 				break;
+#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 			case STARPU_CUDA_WORKER:
-				/* Already waited above */
+#ifndef STARPU_SIMGRID
+				driver.id.cuda_id = devid;
+				if (!_starpu_may_launch_driver(&pconfig->conf, &driver))
+					break;
+#endif
+				_STARPU_DEBUG("waiting for worker %u initialization\n", worker);
+				STARPU_PTHREAD_MUTEX_LOCK(&worker_set->mutex);
+				while (!worker_set->set_is_initialized)
+					STARPU_PTHREAD_COND_WAIT(&worker_set->ready_cond,
+								 &worker_set->mutex);
+				STARPU_PTHREAD_MUTEX_UNLOCK(&worker_set->mutex);
+				worker_set->started = 1;
+
 				break;
+#endif
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 			case STARPU_OPENCL_WORKER:
 #ifndef STARPU_SIMGRID
@@ -997,16 +1004,23 @@ struct starpu_tree* starpu_workers_get_tree(void)
 }
 
 #ifdef STARPU_HAVE_HWLOC
-static void _fill_tree(struct starpu_tree *tree, hwloc_obj_t curr_obj, unsigned depth, hwloc_topology_t topology)
+static void _fill_tree(struct starpu_tree *tree, hwloc_obj_t curr_obj, unsigned depth, hwloc_topology_t topology, struct starpu_tree *father)
 {
 	unsigned i;
+	if (curr_obj->arity == 1)
+	{
+		/* Nothing interestin here, skip level */
+		_fill_tree(tree, curr_obj->children[0], depth+1, topology, father);
+		return;
+	}
+	starpu_tree_insert(tree, curr_obj->logical_index, depth, curr_obj->type == HWLOC_OBJ_PU, curr_obj->arity, father);
+	starpu_tree_prepare_children(curr_obj->arity, tree);
 	for(i = 0; i < curr_obj->arity; i++)
 	{
-		starpu_tree_insert(tree->nodes[i], curr_obj->children[i]->logical_index, depth, curr_obj->children[i]->type == HWLOC_OBJ_PU, curr_obj->children[i]->arity, tree);
 /* 		char string[128]; */
 /* 		hwloc_obj_snprintf(string, sizeof(string), topology, curr_obj->children[i], "#", 0); */
 /* 		printf("%*s%s %d is_pu %d \n", 0, "", string, curr_obj->children[i]->logical_index, curr_obj->children[i]->type == HWLOC_OBJ_PU); */
-		_fill_tree(tree->nodes[i], curr_obj->children[i], depth+1, topology);
+		_fill_tree(&tree->nodes[i], curr_obj->children[i], depth+1, topology, tree);
 	}
 }
 #endif
@@ -1024,8 +1038,7 @@ static void _starpu_build_tree(void)
 /* 	printf("%*s%s %d is_pu = %d \n", 0, "", string, root->logical_index, root->type == HWLOC_OBJ_PU); */
 
 	/* level, is_pu, is in the tree (it will be true only after add*/
-	starpu_tree_insert(tree, root->logical_index, 0,root->type == HWLOC_OBJ_PU, root->arity, NULL);
-	_fill_tree(tree, root, 1, _starpu_config.topology.hwtopology);
+	_fill_tree(tree, root, 0, _starpu_config.topology.hwtopology, NULL);
 #endif
 }
 
@@ -1136,16 +1149,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 
 	srand(2008);
 
-#ifdef HAVE_AYUDAME_H
-#ifndef AYU_RT_STARPU
-#define AYU_RT_STARPU 4
-#endif
-	if (AYU_event)
-	{
-		enum ayu_runtime_t ayu_rt = AYU_RT_STARPU;
-		AYU_event(AYU_PREINIT, 0, (void*) &ayu_rt);
-	}
-#endif
+	STARPU_AYU_PREINIT();
 	/* store the pointer to the user explicit configuration during the
 	 * initialization */
 	if (user_conf == NULL)
@@ -1242,7 +1246,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	if (!is_a_sink)
 	{
 		struct starpu_sched_policy *selected_policy = _starpu_select_sched_policy(&_starpu_config, _starpu_config.conf.sched_policy_name);
-		_starpu_create_sched_ctx(selected_policy, NULL, -1, 1, "init", (_starpu_config.conf.global_sched_ctx_min_priority != -1), _starpu_config.conf.global_sched_ctx_min_priority, (_starpu_config.conf.global_sched_ctx_min_priority != -1), _starpu_config.conf.global_sched_ctx_max_priority, 1, _starpu_config.conf.sched_policy_init);
+		_starpu_create_sched_ctx(selected_policy, NULL, -1, 1, "init", (_starpu_config.conf.global_sched_ctx_min_priority != -1), _starpu_config.conf.global_sched_ctx_min_priority, (_starpu_config.conf.global_sched_ctx_min_priority != -1), _starpu_config.conf.global_sched_ctx_max_priority, 1, _starpu_config.conf.sched_policy_init, NULL);
 	}
 
 	_starpu_initialize_registered_performance_models();
@@ -1555,10 +1559,7 @@ void starpu_shutdown(void)
 		free(_starpu_config.conf.cuda_opengl_interoperability);
 	if (_starpu_config.conf.n_not_launched_drivers)
 		free(_starpu_config.conf.not_launched_drivers);
-
-#ifdef HAVE_AYUDAME_H
-	if (AYU_event) AYU_event(AYU_FINISH, 0, NULL);
-#endif
+	STARPU_AYU_FINISH();
 
 #ifdef STARPU_USE_SCC
 	if (_starpu_scc_common_is_mp_initialized())
@@ -1573,7 +1574,7 @@ void starpu_shutdown(void)
 #endif
 }
 
-
+#undef starpu_worker_get_count
 unsigned starpu_worker_get_count(void)
 {
 	return _starpu_config.topology.nworkers;

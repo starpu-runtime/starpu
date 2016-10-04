@@ -3442,7 +3442,10 @@ void starpu_fxt_write_data_trace(char *filename_in)
 
 	while(1)
 	{
+		unsigned i;
 		int ret = fxt_next_ev(block, FXT_EV_TYPE_64, (struct fxt_ev *)&ev);
+		for (i = ev.nb_params; i < FXT_MAX_PARAMS; i++)
+			ev.param[i] = 0;
 		if (ret != FXT_EV_OK)
 		{
 			break;
@@ -3457,7 +3460,7 @@ void starpu_fxt_write_data_trace(char *filename_in)
 		case _STARPU_FUT_START_CODELET_BODY:
 			workerid = ev.param[2];
 			tasks[workerid].exec_time = ev.time;
-			has_name = ev.param[3];
+			has_name = ev.param[4];
 			tasks[workerid].codelet_name = strdup(has_name ? get_fxt_string(&ev, 5): "unknown");
 			//fprintf(stderr, "start codelet :[%d][%s]\n", workerid, tasks[workerid].codelet_name);
 			break;

@@ -29,6 +29,77 @@
 
 #include <common/list.h>
 
+const char *_starpu_mp_common_command_to_string(const int command)
+{
+	switch(command)
+	{
+		case STARPU_EXIT:
+			return "EXIT";
+		case STARPU_EXECUTE:
+			return "EXECUTE";
+		case STARPU_ERROR_EXECUTE:
+			return "ERROR_EXECUTE";
+		case STARPU_LOOKUP:
+			return "LOOKUP";
+		case STARPU_ANSWER_LOOKUP:
+			return "ANSWER_LOOKUP";
+		case STARPU_ERROR_LOOKUP:
+			return "ERROR_LOOKUP";
+		case STARPU_ALLOCATE:
+			return "ALLOCATE";
+		case STARPU_ANSWER_ALLOCATE:
+			return "ANSWER_ALLOCATE";
+		case STARPU_ERROR_ALLOCATE:
+			return "ERROR_ALLOCATE";
+		case STARPU_FREE:
+			return "FREE";
+		case STARPU_RECV_FROM_HOST:
+			return "RECV_FROM_HOST";
+		case STARPU_SEND_TO_HOST:
+			return "SEND_TO_HOST";
+		case STARPU_RECV_FROM_SINK:
+			return "RECV_FROM_SINK";
+		case STARPU_SEND_TO_SINK:
+			return "SEND_TO_SINK";
+		case STARPU_TRANSFER_COMPLETE:
+			return "TRANSFER_COMPLETE";
+		case STARPU_SINK_NBCORES:
+			return "SINK_NBCORES";
+		case STARPU_ANSWER_SINK_NBCORES:
+			return "ANSWER_SINK_NBCORES";
+		case STARPU_EXECUTION_SUBMITTED:
+			return "EXECUTION_SUBMITTED";
+		case STARPU_EXECUTION_COMPLETED:
+			return "EXECUTION_COMPLETED";
+		case STARPU_PRE_EXECUTION:
+			return "PRE_EXECUTION";
+		case STARPU_SYNC_WORKERS:
+			return "SYNC_WORKERS";
+		default:
+			return "<invalid command code>";
+	}
+}
+
+const char *_starpu_mp_common_node_kind_to_string(const int kind)
+{
+	switch(kind)
+	{
+		case STARPU_MIC_SINK:
+			return "MIC_SINK";
+		case STARPU_MIC_SOURCE:
+			return "MIC_SOURCE";
+		case STARPU_SCC_SINK:
+			return "SCC_SINK";
+		case STARPU_SCC_SOURCE:
+			return "SCC_SOURCE";
+		case STARPU_MPI_SINK:
+			return "MPI_SINK";
+		case STARPU_MPI_SOURCE:
+			return "MPI_SOURCE";
+		default:
+			return "<invalid command code>";
+	}
+}
 /* Allocate and initialize the sink structure, when the function returns
  * all the pointer of functions are linked to the right ones.
  */

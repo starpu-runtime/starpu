@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2016  CNRS
- * Copyright (C) 2011, 2012  INRIA
+ * Copyright (C) 2011, 2012, 2016  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -25,10 +25,7 @@
 #include <core/debug.h>
 #include <starpu_scheduler.h>
 #include <core/sched_policy.h>
-
-#ifdef HAVE_AYUDAME_H
-#include <Ayudame.h>
-#endif
+#include <core/debug.h>
 
 /* Experimental (dead) code which needs to be tested, fixed... */
 /* #define USE_OVERLOAD */
@@ -89,7 +86,7 @@ struct _starpu_work_stealing_data_per_worker
 
 struct _starpu_work_stealing_data
 {
-	unsigned (*select_victim)(unsigned, int);
+	int (*select_victim)(unsigned, int);
 	struct _starpu_work_stealing_data_per_worker *per_worker;
 	/* keep track of the work performed from the beginning of the algorithm to make
 	 * better decisions about which queue to select when stealing or deferring work
@@ -115,20 +112,19 @@ static int calibration_value = 0;
  * the worker previously selected doesn't own any task,
  * then we return the first non-empty worker.
  */
-static unsigned select_victim_round_robin(unsigned sched_ctx_id)
+static int select_victim_round_robin(unsigned sched_ctx_id)
 {
 	struct _starpu_work_stealing_data *ws = (struct _starpu_work_stealing_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	unsigned worker = ws->last_pop_worker;
-	unsigned nworkers = starpu_sched_ctx_get_nworkers(sched_ctx_id);
+	unsigned nworkers;
 	int *workerids = NULL;
-	starpu_sched_ctx_get_workers_list(sched_ctx_id, &workerids);
+	nworkers = starpu_sched_ctx_get_workers_list_raw(sched_ctx_id, &workerids);
+	unsigned ntasks = 0;
 
 	/* If the worker's queue is empty, let's try
 	 * the next ones */
 	while (1)
 	{
-		unsigned ntasks;
-
 		/* Here helgrind would shout that this is unprotected, but we
 		 * are fine with getting outdated values, this is just an
 		 * estimation */
@@ -149,9 +145,11 @@ static unsigned select_victim_round_robin(unsigned sched_ctx_id)
 	ws->last_pop_worker = (worker + 1) % nworkers;
 
 	worker = workerids[worker];
-	free(workerids);
 
-	return worker;
+	if (ntasks)
+		return worker;
+	else
+		return -1;
 }
 
 /**
@@ -162,14 +160,13 @@ static unsigned select_worker_round_robin(unsigned sched_ctx_id)
 {
 	struct _starpu_work_stealing_data *ws = (struct _starpu_work_stealing_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	unsigned worker = ws->last_push_worker;
-	unsigned nworkers = starpu_sched_ctx_get_nworkers(sched_ctx_id);
-	int *workerids = NULL;
-	starpu_sched_ctx_get_workers_list(sched_ctx_id, &workerids);
+	unsigned nworkers;
+	int *workerids;
+	nworkers = starpu_sched_ctx_get_workers_list_raw(sched_ctx_id, &workerids);
 
 	ws->last_push_worker = (ws->last_push_worker + 1) % nworkers;
 
 	worker = workerids[worker];
-	free(workerids);
 
 	return worker;
 }
@@ -416,7 +413,7 @@ static float overload_metric(unsigned sched_ctx_id, unsigned id)
  * by the tasks are taken into account to select the most suitable
  * worker to steal task from.
  */
-static unsigned select_victim_overload(unsigned sched_ctx_id)
+static int select_victim_overload(unsigned sched_ctx_id)
 {
 	unsigned worker;
 	float  worker_ratio;
@@ -496,7 +493,7 @@ static unsigned select_worker_overload(unsigned sched_ctx_id)
  * This is a phony function used to call the right
  * function depending on the value of USE_OVERLOAD.
  */
-static inline unsigned select_victim(unsigned sched_ctx_id,
+static inline int select_victim(unsigned sched_ctx_id,
 				     int workerid STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef USE_OVERLOAD
@@ -526,14 +523,20 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 {
 	struct _starpu_work_stealing_data *ws = (struct _starpu_work_stealing_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
-	struct starpu_task *task;
-	int workerid = starpu_worker_get_id_check();
+	struct starpu_task *task = NULL;
+	unsigned workerid = starpu_worker_get_id_check();
 
-	STARPU_PTHREAD_MUTEX_LOCK(&ws->per_worker[workerid].worker_mutex);
-	task = ws_pick_task(workerid, workerid, sched_ctx_id);
-	if (task)
-		locality_popped_task(task, workerid, sched_ctx_id);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&ws->per_worker[workerid].worker_mutex);
+#ifdef STARPU_NON_BLOCKING_DRIVERS
+	if (STARPU_RUNNING_ON_VALGRIND || !_starpu_fifo_empty(ws->per_worker[workerid].queue_array))
+#endif
+	{
+		STARPU_PTHREAD_MUTEX_LOCK(&ws->per_worker[workerid].worker_mutex);
+		task = ws_pick_task(workerid, workerid, sched_ctx_id);
+		if (task)
+			locality_popped_task(task, workerid, sched_ctx_id);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&ws->per_worker[workerid].worker_mutex);
+	}
+
 	if (task)
 	{
 		/* there was a local task */
@@ -542,7 +545,9 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 
 
 	/* we need to steal someone's job */
-	unsigned victim = ws->select_victim(sched_ctx_id, workerid);
+	int victim = ws->select_victim(sched_ctx_id, workerid);
+	if (victim == -1)
+		return NULL;
 
 	STARPU_PTHREAD_MUTEX_LOCK(&ws->per_worker[victim].worker_mutex);
 	if (ws->per_worker[victim].queue_array != NULL && ws->per_worker[victim].queue_array->ntasks > 0)
@@ -560,7 +565,11 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&ws->per_worker[victim].worker_mutex);
 
-	if(!task)
+	if(!task
+#ifdef STARPU_NON_BLOCKING_DRIVERS
+		&& (STARPU_RUNNING_ON_VALGRIND || !_starpu_fifo_empty(ws->per_worker[workerid].queue_array))
+#endif
+		)
 	{
 		STARPU_PTHREAD_MUTEX_LOCK(&ws->per_worker[workerid].worker_mutex);
 		if (ws->per_worker[workerid].queue_array != NULL && ws->per_worker[workerid].queue_array->ntasks > 0)
@@ -603,15 +612,7 @@ int ws_push_task(struct starpu_task *task)
 	starpu_pthread_cond_t *sched_cond;
 	starpu_worker_get_sched_condition(workerid, &sched_mutex, &sched_cond);
 	STARPU_PTHREAD_MUTEX_LOCK_SCHED(sched_mutex);
-#ifdef HAVE_AYUDAME_H
-	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
-	if (AYU_event)
-	{
-		intptr_t id = workerid;
-		AYU_event(AYU_ADDTASKTOQUEUE, j->job_id, &id);
-	}
-#endif
-
+	STARPU_AYU_ADDTOTASKQUEUE(_starpu_get_job_associated_to_task(task)->job_id, workerid);
 	STARPU_PTHREAD_MUTEX_LOCK(&ws->per_worker[workerid].worker_mutex);
 	_STARPU_TASK_BREAK_ON(task, sched);
 	record_data_locality(task, workerid);
@@ -720,7 +721,7 @@ struct starpu_sched_policy _starpu_sched_ws_policy =
  * the proximity list built using the info on te architecture provided by hwloc
  */
 #ifdef STARPU_HAVE_HWLOC
-static unsigned lws_select_victim(unsigned sched_ctx_id, int workerid)
+static int lws_select_victim(unsigned sched_ctx_id, int workerid)
 {
 	struct _starpu_work_stealing_data *ws = (struct _starpu_work_stealing_data *)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	int nworkers = starpu_sched_ctx_get_nworkers(sched_ctx_id);
@@ -734,7 +735,7 @@ static unsigned lws_select_victim(unsigned sched_ctx_id, int workerid)
 		if (ntasks)
 			return neighbor;
 	}
-	return workerid;
+	return -1;
 }
 #endif
 
@@ -750,7 +751,7 @@ static void lws_add_workers(unsigned sched_ctx_id, int *workerids,
 	 * than traversing the hwloc tree every time a task must be
 	 * stolen */
 	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
-	struct starpu_tree *tree = (struct starpu_tree*)workers->workerids;
+	struct starpu_tree *tree = (struct starpu_tree*)workers->collection_private;
 	int workerid;
 	unsigned i;
 	for (i = 0; i < nworkers; i++)

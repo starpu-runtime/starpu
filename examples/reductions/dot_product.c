@@ -162,7 +162,6 @@ void redux_opencl_func(void *buffers[], void *args)
         cl_int err;
 	cl_kernel kernel;
 	cl_command_queue queue;
-	cl_event event;
 
 	cl_mem dota = (cl_mem) STARPU_VARIABLE_GET_PTR(buffers[0]);
 	cl_mem dotb = (cl_mem) STARPU_VARIABLE_GET_PTR(buffers[1]);
@@ -274,7 +273,6 @@ void dot_opencl_func(void *buffers[], void *args)
         cl_int err;
 	cl_kernel kernel;
 	cl_command_queue queue;
-	cl_event event;
 
 	cl_mem x = (cl_mem) STARPU_VECTOR_GET_DEV_HANDLE(buffers[0]);
 	cl_mem y = (cl_mem) STARPU_VECTOR_GET_DEV_HANDLE(buffers[1]);

@@ -135,7 +135,7 @@ int _starpu_check_that_no_data_request_is_pending(unsigned node);
 struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t handle,
 							 struct _starpu_data_replicate *src_replicate,
 							 struct _starpu_data_replicate *dst_replicate,
-							 unsigned handling_node,
+							 int handling_node,
 							 enum starpu_data_access_mode mode,
 							 unsigned ndeps,
 							 unsigned is_prefetch,
