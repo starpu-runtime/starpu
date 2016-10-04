@@ -145,7 +145,7 @@ instance, to force execution of a task on CUDA0:
 
 \code{.c}
 task->execute_on_a_specific_worker = 1;
-task->worker = starpu_worker_get_by_type(STARPU_CUDA_WORKER, 0);
+task->workerid = starpu_worker_get_by_type(STARPU_CUDA_WORKER, 0);
 \endcode
 
 One can also specify the order in which tasks must be executed by setting the
