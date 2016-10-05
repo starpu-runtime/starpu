@@ -18,12 +18,11 @@
 #ifndef __DRIVER_MIC_COMMON_H__
 #define __DRIVER_MIC_COMMON_H__
 
-
-#include <source/COIProcess_source.h>
 #include <common/config.h>
 
-
 #ifdef STARPU_USE_MIC
+
+#include <source/COIProcess_source.h>
 
 #define STARPU_TO_MIC_ID(id) ((id) + 1)
 
