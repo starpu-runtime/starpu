@@ -1870,14 +1870,12 @@ AC_ARG_ENABLE(mpi, [AS_HELP_STRING([--disable-mpi],
             [enable_mpi=$enableval],
             [enable_mpi=yes])
 
-AC_MSG_CHECKING(if master-slave mode should be enabled)
 AC_ARG_ENABLE(mpi-master-slave, [AS_HELP_STRING([--enable-mpi-master-slave],
                               [Enable StarPU to run with the master-slave mode])],
             use_mpi_master_slave=$enableval,
             use_mpi_master_slave=no)
-AC_MSG_RESULT($use_mpi_master_slave)
 
-
+#Check MPICC
 AC_ARG_WITH(mpicc, [AS_HELP_STRING([--with-mpicc[=<path to mpicc>]],
            [Path of the mpicc compiler])],
    [
@@ -1922,10 +1920,50 @@ else
     fi
 fi
 
-
 AC_MSG_CHECKING(mpicc path)
 AC_MSG_RESULT($mpicc_path)
 AC_SUBST(MPICC, $mpicc_path)
+
+
+#Check MPICXX/MPIC++
+AC_ARG_WITH(mpicxx, [AS_HELP_STRING([--with-mpicxx[=<path to mpicxx>]],
+           [Path of the mpicxx/mpic++ compiler])],
+   [
+       if test x$withval = xyes; then
+           AC_MSG_ERROR(--with-mpicxx must be given a pathname)
+       else
+           mpicxx_path=$withval
+       fi
+   ],
+   [
+       if test x$enable_simgrid = xyes ; then
+           DEFAULT_MPICXX=smpicxx
+       else
+           DEFAULT_MPICXX=mpicxx
+       fi
+       # nothing was specified: default value is used
+       AC_PATH_PROG(mpicxx_path, $DEFAULT_MPICXX, [no], [$simgrid_dir/bin:$PATH])
+       
+       # try with mpic++ if mpicxx was not found
+       if test x$mpicxx_path = xno ; then
+            DEFAULT_MPICXX=mpic++
+            AC_PATH_PROG(mpicxx_path, $DEFAULT_MPICXX, [no], [$simgrid_dir/bin:$PATH])
+       fi
+   ])
+
+# We test if the MPICXX/MPIC++ compiler exists
+if test ! -x $mpicxx_path; then
+    #MPICXX/MPIC++ does not exists or is not executable
+    AC_MSG_RESULT(The mpicxx compiler '$mpicxx_path' does not have the execute permission)
+    use_mpicxx=no
+else
+    use_mpicxx=yes
+fi
+
+AC_MSG_CHECKING(mpicxx/mpic++ path)
+AC_MSG_RESULT($mpicxx_path)
+AC_SUBST(MPICXX, $mpicxx_path)
+
 
 if test x$use_mpi = xyes -a x$enable_mpi = xyes; then
     cc_or_mpicc=$mpicc_path
@@ -1995,8 +2033,8 @@ else
 fi
 
 AC_MSG_CHECKING(whether the StarPU MPI library should be generated)
-
 AC_MSG_RESULT($build_mpi_lib)
+
 AC_SUBST(USE_MPI, $build_mpi_lib)
 AM_CONDITIONAL(USE_MPI, test x$build_mpi_lib = xyes)
 if test x$build_mpi_lib = xyes; then
@@ -2020,7 +2058,7 @@ if  test x$enable_mpi_progression_hook = xyes; then
 fi
 
 #We can only build MPI Master Slave if User wants it and MPI is available
-if test x$use_mpi_master_slave = xyes -a x$use_mpi = xyes; then
+if test x$use_mpi_master_slave = xyes -a x$use_mpi = xyes -a x$use_mpicxx = xyes; then
     build_mpi_master_slave=yes
 else
     build_mpi_master_slave=no
@@ -2028,9 +2066,15 @@ fi
 
 if test x$build_mpi_master_slave = xyes; then
         AC_SUBST(MPISLAVECC, $mpicc_path)
+        AC_SUBST(MPISLAVECXX, $mpicxx_path)
+        AC_DEFINE(STARPU_USE_MPI_MASTER_SLAVE, [1], [MPI Master Slave support is enabled])
 else
         AC_SUBST(MPISLAVECC, $CC)
+        AC_SUBST(MPISLAVECXX, $CXX)
 fi
+
+AC_MSG_CHECKING(whether the master-slave mode should be enabled)
+AC_MSG_RESULT($build_mpi_master_slave)
 AM_CONDITIONAL([STARPU_USE_MPI_MASTER_SLAVE], [test x$build_mpi_master_slave = xyes])
 
 
