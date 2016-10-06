@@ -92,7 +92,11 @@ the environment variable \ref STARPU_FXT_PREFIX.
 
 The additional configure option \ref enable-fxt-lock "--enable-fxt-lock" can
 be used to generate trace events which describes the locks behaviour during
-the execution.
+the execution. It is however very heavy and should not be used unless debugging
+StarPU's internal locking.
+
+The environment variable \ref STARPU_FXT_TRACE can be set to 0 to disable the
+generation of the <c>prof_file_XXX_YYY</c> file.
 
 \subsection CreatingAGanttDiagram Creating a Gantt Diagram
 
