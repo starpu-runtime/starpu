@@ -62,6 +62,7 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
+	setenv("STARPU_FXT_TRACE", "0", 1);
 	if (starpu_init(NULL) != 0)
 	{
 		fprintf(stderr, "StarPU initialization failure\n");
