@@ -924,8 +924,12 @@ do {										\
 #define _STARPU_TRACE_HANDLE_DATA_REGISTER(handle)		\
 	FUT_DO_PROBE1(_STARPU_FUT_HANDLE_DATA_REGISTER, handle)
 
+#if 0
 #define _STARPU_TRACE_DATA_INVALIDATE(handle, node)		\
 	FUT_DO_PROBE2(_STARPU_FUT_DATA_INVALIDATE, handle, node)
+#else
+#define _STARPU_TRACE_DATA_INVALIDATE(handle, node)	do {} while (0)
+#endif
 
 #else // !STARPU_USE_FXT
 
