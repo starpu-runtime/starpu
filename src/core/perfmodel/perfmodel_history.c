@@ -1316,6 +1316,8 @@ double _starpu_multiple_regression_based_job_expected_perf(struct starpu_perfmod
 		// The model has not been executed on this combination
 		goto docal;
 	reg_model = &model->state->per_arch[comb][nimpl].regression;
+	if (reg_model->coeff == NULL)
+		goto docal;
 
 	double parameter_value;
 	double *parameters;
