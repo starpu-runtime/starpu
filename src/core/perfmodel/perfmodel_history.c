@@ -1223,7 +1223,7 @@ docal:
 			char archname[32];
 
 			starpu_perfmodel_get_arch_name(arch, archname, sizeof(archname), nimpl);
-			_STARPU_DISP("Warning: model %s is not calibrated enough for %s (only %u measurements), forcing calibration for this run. Use the STARPU_CALIBRATE environment variable to control this.\n", model->symbol, archname, entry && entry->history_entry ? entry->history_entry->nsample : 0);
+			_STARPU_DISP("Warning: model %s is not calibrated enough for %s size %lu (only %u measurements), forcing calibration for this run. Use the STARPU_CALIBRATE environment variable to control this.\n", model->symbol, archname, _starpu_job_get_data_size(model, arch, nimpl, j), entry && entry->history_entry ? entry->history_entry->nsample : 0);
 			_starpu_set_calibrate_flag(1);
 			model->benchmarking = 1;
 		}
@@ -1274,7 +1274,7 @@ docal:
 		char archname[32];
 
 		starpu_perfmodel_get_arch_name(arch, archname, sizeof(archname), nimpl);
-		_STARPU_DISP("Warning: model %s is not calibrated enough for %s (only %u measurements), forcing calibration for this run. Use the STARPU_CALIBRATE environment variable to control this.\n", model->symbol, archname, entry ? entry->nsample : 0);
+		_STARPU_DISP("Warning: model %s is not calibrated enough for %s size %lu (only %u measurements), forcing calibration for this run. Use the STARPU_CALIBRATE environment variable to control this.\n", model->symbol, archname, _starpu_job_get_data_size(model, arch, nimpl, j), entry ? entry->nsample : 0);
 		_starpu_set_calibrate_flag(1);
 		model->benchmarking = 1;
 	}
