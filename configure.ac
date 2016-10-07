@@ -2065,12 +2065,11 @@ else
 fi
 
 if test x$build_mpi_master_slave = xyes; then
-        AC_SUBST(MPISLAVECC, $mpicc_path)
-        AC_SUBST(MPISLAVECXX, $mpicxx_path)
-        AC_DEFINE(STARPU_USE_MPI_MASTER_SLAVE, [1], [MPI Master Slave support is enabled])
-else
-        AC_SUBST(MPISLAVECC, $CC)
-        AC_SUBST(MPISLAVECXX, $CXX)
+    AC_DEFINE(STARPU_USE_MPI_MASTER_SLAVE, [1], [MPI Master Slave support is enabled])
+    CC=$mpicc_path    
+    CCLD=$mpicc_path      
+    CXX=$mpicxx_path      
+    CXXLD=mpicxx_path    
 fi
 
 AC_MSG_CHECKING(whether the master-slave mode should be enabled)
@@ -2330,6 +2329,20 @@ if test "x$enable_build_fortran" = "xyes" ; then
       enable_build_fortran="no"
    fi
 fi
+
+#We have MPI C/C++ compiler
+if test x$build_mpi_master_slave = xyes; then
+    #Check if we can compile fortran cases
+    if test x$use_mpi_fort = xyes ; then
+        F77LD=$mpifort_path    
+        FCLD=$mpifort_path
+        F77=$mpifort_path    
+        FC=$mpifort_path
+    else
+        enable_build_fortran=no
+    fi
+fi
+
 
 AM_CONDITIONAL([STARPU_HAVE_FC], [test "x$FC" != "x" -a "x$enable_build_fortran" = "xyes"])
 AM_CONDITIONAL([STARPU_HAVE_F77], [test "x$F77" != "x" -a "x$enable_build_fortran" = "xyes"])
