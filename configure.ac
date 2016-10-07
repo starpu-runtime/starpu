@@ -1144,12 +1144,10 @@ if test x$enable_mlr = xyes -a "$starpu_windows" != "yes" ; then
 	        AC_DEFINE(STARPU_MLR_MODEL, [1], [use reflapack library])
 		LDFLAGS="-llapack $LDFLAGS"
 	else
-		LIBS="$LIBS -lrt"
 		AC_MSG_CHECKING(whether min-dgels is linked)
 		if test x"$DGELS_LIBS" != x; then
 		   	AC_MSG_RESULT(yes)
         		AC_DEFINE(STARPU_MLR_MODEL, [1], [use user defined library])
-			LDFLAGS="$DGELS_LIBS $LDFLAGS"
 			AC_ARG_VAR([DGELS_LIBS], [linker flags for lapack dgels])
 		else
 			AC_MSG_RESULT(no)
@@ -1158,7 +1156,6 @@ if test x$enable_mlr = xyes -a "$starpu_windows" != "yes" ; then
 			AC_MSG_RESULT(yes)
 			DGELS_LIBS="-Wl,--start-group $STARPU_BUILD_DIR/min-dgels/build/*.a -Wl,--end-group"
 			AC_DEFINE(STARPU_MLR_MODEL, [1], [use user defined library])
-			LDFLAGS="$DGELS_LIBS $LDFLAGS"
 			AC_ARG_VAR([DGELS_LIBS], [linker flags for lapack dgels])
 			install_min_dgels=yes
 		fi
@@ -2836,7 +2833,7 @@ AM_CONDITIONAL(BUILD_DOC, [test x$enable_build_doc != xno])
 ###############################################################################
 
 # these are the flags needed for linking libstarpu (and thus also for static linking)
-LIBSTARPU_LDFLAGS="$HWLOC_LIBS $FXT_LIBS $STARPU_COI_LDFLAGS $STARPU_SCIF_LDFLAGS $STARPU_RCCE_LDFLAGS $STARPU_LEVELDB_LDFLAGS $STARPU_GLPK_LDFLAGS $STARPU_LEVELDB_LDFLAGS $SIMGRID_LIBS $STARPU_BLAS_LDFLAGS $STARPU_OMP_LDFLAGS"
+LIBSTARPU_LDFLAGS="$HWLOC_LIBS $FXT_LIBS $STARPU_COI_LDFLAGS $STARPU_SCIF_LDFLAGS $STARPU_RCCE_LDFLAGS $STARPU_LEVELDB_LDFLAGS $STARPU_GLPK_LDFLAGS $STARPU_LEVELDB_LDFLAGS $SIMGRID_LIBS $STARPU_BLAS_LDFLAGS $STARPU_OMP_LDFLAGS $DGELS_LIBS"
 AC_SUBST([LIBSTARPU_LDFLAGS])
 
 LIBSTARPU_LINK=libstarpu-$STARPU_EFFECTIVE_VERSION.la
