@@ -15,9 +15,6 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
-CC=$(MPISLAVECC)
-CCLD=$(MPISLAVECC)
-
 include $(top_srcdir)/starpu.mk
 
 if STARPU_SIMGRID
