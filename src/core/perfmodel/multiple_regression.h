@@ -24,6 +24,6 @@
 #include <core/perfmodel/perfmodel.h>
 #include <starpu.h>
 
-int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, double *coeff, unsigned ncoeff, unsigned nparameters, unsigned **combinations, const char *codelet_name);
+int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, double *coeff, unsigned ncoeff, unsigned nparameters, const char **parameters_names, unsigned **combinations, const char *codelet_name);
 
 #endif // __MULTIPLE_REGRESSION_H__

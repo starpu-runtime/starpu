@@ -254,7 +254,7 @@ void validate(double *coeff, unsigned ncoeff)
 			_STARPU_DISP("Warning: Coefficient computed by least square method is extremelly small (%f). The model is likely to be inaccurate.\n", coeff[i]);
 }
 	
-int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, double *coeff, unsigned ncoeff, unsigned nparameters, unsigned **combinations, const char *codelet_name)
+int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, double *coeff, unsigned ncoeff, unsigned nparameters, const char **parameters_names, unsigned **combinations, const char *codelet_name)
 {
         long i;
 	unsigned j;
@@ -331,7 +331,12 @@ int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, doubl
 			STARPU_ASSERT_MSG(f, "Could not save performance model into the file %s\n", filepath);
 			fprintf(f, "Duration");
 			for(j=0; j<nparameters; j++)
-				fprintf(f, ", P%d", j);
+			{
+				if(parameters_names != NULL && parameters_names[j]!= NULL)
+					fprintf(f, ", %s", parameters_names[j]);
+				else
+					fprintf(f, ", P%d", j);
+			}
 		}
 	}
 	

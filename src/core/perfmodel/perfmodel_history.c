@@ -296,7 +296,7 @@ static void dump_reg_model(FILE *f, struct starpu_perfmodel *model, int comb, in
 			reg_model->ncoeff = model->ncombinations + 1;
 
 		reg_model->coeff = (double *) malloc(reg_model->ncoeff*sizeof(double));
-		_starpu_multiple_regression(per_arch_model->list, reg_model->coeff, reg_model->ncoeff, model->nparameters, model->combinations, model->symbol);
+		_starpu_multiple_regression(per_arch_model->list, reg_model->coeff, reg_model->ncoeff, model->nparameters, model->parameters_names, model->combinations, model->symbol);
 
 		fprintf(f, "# n\tintercept\t");
 	        unsigned i, j;
@@ -316,7 +316,12 @@ static void dump_reg_model(FILE *f, struct starpu_perfmodel *model, int comb, in
 							first=0;
 						else
 							fprintf(f, "*");
-						fprintf(f, "%s", model->parameters_names[j]);
+						
+						if(model->parameters_names[j]!= NULL)
+							fprintf(f, "%s", model->parameters_names[j]);
+						else
+							fprintf(f, "P%d", j);
+						
 						if (model->combinations[i][j] > 1)
 							fprintf(f, "^%d", model->combinations[i][j]);
 					}
