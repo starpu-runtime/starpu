@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2015  Université de Bordeaux
+ * Copyright (C) 2010, 2015-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -38,10 +38,10 @@
 #include <stdint.h>
 #include <starpu.h>
 
-long sum;
+static long sum;
 
 /* Performance function of the task, which is in this case very simple, as the parameter values just need to be written in the array "parameters" */
-void cl_perf_func(struct starpu_task *task, double *parameters)
+static void cl_params(struct starpu_task *task, double *parameters)
 {
 	starpu_codelet_unpack_args(task->cl_arg,
 			     	  &parameters[0],
@@ -66,62 +66,49 @@ void cpu_func(void *buffers[], void *cl_arg)
 		sum+=i;
 }
 
+/* ############################################ */
+/* Start of the part specific to multiple linear regression perfmodels */
+
+/* Defining perfmodel, number of parameters and their names  */
+
+/* Defining the equation for modeling duration of the task */
+/* Refer to the explanation and equation on the top of this file
+   to get more detailed explanation, here we have M^2*N and N^3*K */
+
+static const char * parameters_names[]	= {	"M",	"N",	"K", };
+static unsigned combi1 [3]		= {	2,	1,	0 };
+static unsigned combi2 [3]		= {	0,	3,	1 };
+
+static unsigned *combinations[] = { combi1, combi2 };
+
+static struct starpu_perfmodel cl_model = {
+	.type = STARPU_MULTIPLE_REGRESSION_BASED,
+	.symbol = "test_mlr",
+	.parameters = cl_params,
+	.nparameters = 3,
+	.parameters_names = parameters_names,
+	.ncombinations = 2,
+	.combinations = combinations,
+};
+
+static struct starpu_codelet cl = {
+	.cpu_funcs = { cpu_func },
+	.cpu_funcs_name = { "mlr_codelet" },
+	.nbuffers = 0,
+	.model = &cl_model,
+};
+
+/* End of the part specific to multiple linear regression perfmodels */
+/* ############################################ */
+	
 int main(int argc, char **argv)
 {
 	/* Initialization */
 	unsigned i,j;
-	struct starpu_codelet cl;
 	int ret;
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV)
 		return 77;
-	
-	/* Allocating and naming codelet, similar to any other StarPU program */
-	memset(&cl, 0, sizeof(cl));	
-	cl.cpu_funcs[0] = cpu_func;
-	cl.cpu_funcs_name[0] = "mlr_codelet";
-	cl.nbuffers = 0;
-	cl.name="test_mlr";
-
-	/* ############################################ */
-	/* Start of the part specific to multiple linear regression perfmodels */
-	
-	/* Defining perfmodel, number of parameters and their names  */
-	struct starpu_perfmodel *model = calloc(1,sizeof(struct starpu_perfmodel));
-	cl.model = model;
-	cl.model->type = STARPU_MULTIPLE_REGRESSION_BASED;
-	cl.model->symbol = cl.name;
-	cl.model->parameters = cl_perf_func;
-	cl.model->nparameters = 3;
-	cl.model->parameters_names = (const char **) calloc(1, cl.model->nparameters*sizeof(char *));
-	cl.model->parameters_names[0] = "M";
-	cl.model->parameters_names[1] = "N";
-	cl.model->parameters_names[2] = "K";
-
-	/* Defining the equation for modeling duration of the task */
-	/* Refer to the explanation and equation on the top of this file
-	   to get more detailed explanation */
-	cl.model->ncombinations = 2;
-	cl.model->combinations = (unsigned **) malloc(cl.model->ncombinations*sizeof(unsigned *));
-
-	if (cl.model->combinations)
-	{
-		for (i=0; i < cl.model->ncombinations; i++)
-		{
-			cl.model->combinations[i] = (unsigned *) 	malloc(cl.model->nparameters*sizeof(unsigned));
-		}
-	}
-
-	cl.model->combinations[0][0] = 2;
-	cl.model->combinations[0][1] = 1;
-	cl.model->combinations[0][2] = 0;
-
-	cl.model->combinations[1][0] = 0;
-	cl.model->combinations[1][1] = 3;
-	cl.model->combinations[1][2] = 1;
-
-	/* End of the part specific to multiple linear regression perfmodels */
-	/* ############################################ */
 	
 	sum=0;
 	double m,n,k;

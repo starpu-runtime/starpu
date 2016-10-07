@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2011, 2015  Université de Bordeaux
+ * Copyright (C) 2009, 2010, 2011, 2015-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -280,7 +280,7 @@ int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, doubl
 	snprintf(filepath, 100, "%s/%s.out", directory,codelet_name);
 	
 	long old_lines=0;
-	int calibrate = starpu_get_env_number("STARPU_CALIBRATE");	
+	int calibrate = _starpu_get_calibrate_flag();
 	if (calibrate==1)
 	{
 		f = fopen(filepath, "a+");
