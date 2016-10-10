@@ -357,7 +357,8 @@ Use the compiler <c>mpicc</c> at <c>path</c>, for StarPU-MPI.
 <dd>
 \anchor enable-mpi-progression-hook
 \addindex __configure__--enable-mpi-progression-hook
-Enable the activity polling method for StarPU-MPI.
+Enable the activity polling method for StarPU-MPI. This is however experimental,
+do not enable it unless you know what you are doing.
 </dd>
 
 <dt>--with-coi-dir</dt>
