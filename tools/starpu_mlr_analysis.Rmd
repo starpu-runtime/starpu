@@ -54,6 +54,8 @@ print_codelet <- function(reg,codelet){
 }
 
 df<-read.csv(input_trace, header=TRUE)
+
+opts_chunk$set(echo=TRUE)
 ```
 
 # Multiple Linear Regression Model Example

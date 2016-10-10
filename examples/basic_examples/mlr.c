@@ -19,18 +19,15 @@
  * This examples demonstrates how to use multiple linear regression
    models.
 
-   First, there is cl_model_init codelet for which we know the
+   First, there is mlr_codelet__init codelet for which we know the
    parameters, but not the their exponents and relations. This tasks
    should be benchmarked and analyzed to find the model, using
-   "tools/starpu_mlr_analysis" script as a template. Before the model
-   is defined by the application developer, the default model is
-   automatically computed. This default models is a simple constant
-   (thus making STARPU_MULTIPLE_REGRESSION_BASED model equal to the
-   history based model).
+   "tools/starpu_mlr_analysis" script as a template.
 
    For the second (codelet cl_model_final), it is assumed that the
-   analysis has already been performend and that he duration of the
-   task test_mlr will be computed using the following equation:
+   analysis has already been performed and that the duration of the
+   codelet mlr_codelet_final will be computed using the following
+   equation:
 
    T = a + b * (M^2*N) + c * (N^3*K)
 
