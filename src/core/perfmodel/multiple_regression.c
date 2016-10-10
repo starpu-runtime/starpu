@@ -243,15 +243,15 @@ int dgels_multiple_reg_coeff(double *mpar, double *my, long nn, unsigned ncoeff,
    Validating the accuracy of the coefficients.
    For the the validation is extremely basic, but it should be improved.
  */
-void validate(double *coeff, unsigned ncoeff)
+void validate(double *coeff, unsigned ncoeff, const char *codelet_name)
 {
 	unsigned i;
 	if (coeff[0] < 0)
-		_STARPU_DISP("Warning: Constant computed by least square method is negative (%f). The model is likely to be inaccurate.\n", coeff[0]);
+		_STARPU_DISP("Warning: Constant computed by least square method is negative (%f). The model %s is likely to be inaccurate.\n", coeff[0], codelet_name);
 		
 	for(i=1; i<ncoeff; i++)
 		if(coeff[i] < 1E-10)
-			_STARPU_DISP("Warning: Coefficient computed by least square method is extremelly small (%f). The model is likely to be inaccurate.\n", coeff[i]);
+			_STARPU_DISP("Warning: Coefficient computed by least square method is extremelly small (%f). The model %s is likely to be inaccurate.\n", coeff[i], codelet_name);
 }
 	
 int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, double *coeff, unsigned ncoeff, unsigned nparameters, const char **parameters_names, unsigned **combinations, const char *codelet_name)
@@ -260,6 +260,8 @@ int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, doubl
 	unsigned j;
 #ifndef STARPU_MLR_MODEL
 	_STARPU_DISP("Warning: StarPU was compiled with '--disable-mlr' option or on Windows machine, thus multiple linear regression model will not be computed.\n");
+	if (ncoeff==0 || combinations==NULL)
+		return 2;
 	for(i=0; i<ncoeff; i++)
 		coeff[i] = 0.;
 	return 1;
@@ -308,14 +310,17 @@ int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, doubl
 	/* Filling X and Y matrices with measured values */
 	dump_multiple_regression_list(mpar, my, old_lines, nparameters, ptr);
 
+	if (ncoeff!=0 && combinations!=NULL)
+	{
 #ifdef STARPU_MLR_MODEL
-	/* Computing coefficients using multiple linear regression */
-	if(dgels_multiple_reg_coeff(mpar, my, n, ncoeff, nparameters, coeff, combinations))
+		/* Computing coefficients using multiple linear regression */
+		if(dgels_multiple_reg_coeff(mpar, my, n, ncoeff, nparameters, coeff, combinations))
 		return 1;
 #endif //STARPU_MLR_MODEL
 
-	/* Basic validation of the model accuracy */
-	validate(coeff, ncoeff);
+		/* Basic validation of the model accuracy */
+		validate(coeff, ncoeff, codelet_name);
+	}
 	
 	/* Preparing new output calibration file */
 	if (calibrate==1 || calibrate==2)

@@ -292,8 +292,10 @@ static void dump_reg_model(FILE *f, struct starpu_perfmodel *model, int comb, in
 
 	if (model->type == STARPU_MULTIPLE_REGRESSION_BASED)
 	{
-		if (reg_model->ncoeff==0)
+		if (reg_model->ncoeff==0 && model->ncombinations!=0 && model->combinations!=NULL)
+		{
 			reg_model->ncoeff = model->ncombinations + 1;
+		}
 
 		reg_model->coeff = (double *) malloc(reg_model->ncoeff*sizeof(double));
 		_starpu_multiple_regression(per_arch_model->list, reg_model->coeff, reg_model->ncoeff, model->nparameters, model->parameters_names, model->combinations, model->symbol);
@@ -301,39 +303,43 @@ static void dump_reg_model(FILE *f, struct starpu_perfmodel *model, int comb, in
 		fprintf(f, "# n\tintercept\t");
 	        unsigned i, j;
 		int first;
-		for (i=0; i < model->ncombinations; i++)
+		if (reg_model->ncoeff==0 || model->ncombinations==0 || model->combinations==NULL)
+			fprintf(f, "\n1\tnan");
+		else
 		{
-			if (model->parameters_names == NULL)
-				fprintf(f, "c%d", i+1);
-			else
+			for (i=0; i < model->ncombinations; i++)
 			{
-				first=1;
-				for(j=0; j < model->nparameters; j++)
+				if (model->parameters_names == NULL)
+					fprintf(f, "c%d", i+1);
+				else
 				{
-					if (model->combinations[i][j] > 0)
+					first=1;
+					for(j=0; j < model->nparameters; j++)
 					{
-						if (first)
-							first=0;
-						else
-							fprintf(f, "*");
+						if (model->combinations[i][j] > 0)
+						{
+							if (first)
+								first=0;
+							else
+								fprintf(f, "*");
 						
-						if(model->parameters_names[j]!= NULL)
-							fprintf(f, "%s", model->parameters_names[j]);
-						else
-							fprintf(f, "P%d", j);
+							if(model->parameters_names[j] != NULL)
+								fprintf(f, "%s", model->parameters_names[j]);
+							else
+								fprintf(f, "P%d", j);
 						
-						if (model->combinations[i][j] > 1)
-							fprintf(f, "^%d", model->combinations[i][j]);
+							if (model->combinations[i][j] > 1)
+								fprintf(f, "^%d", model->combinations[i][j]);
+						}
 					}
 				}
+				fprintf(f, "\t\t");
 			}
-			fprintf(f, "\t\t");
+
+			fprintf(f, "\n%u", reg_model->ncoeff);
+			for (i=0; i < reg_model->ncoeff; i++)
+				fprintf(f, "\t%-15e", reg_model->coeff[i]);
 		}
-
-		fprintf(f, "\n%u", reg_model->ncoeff);
-		for (i=0; i < reg_model->ncoeff; i++)
-			fprintf(f, "\t%-15e", reg_model->coeff[i]);
-
 	}
 }
 #endif
@@ -1323,7 +1329,7 @@ double _starpu_multiple_regression_based_job_expected_perf(struct starpu_perfmod
 	reg_model = &model->state->per_arch[comb][nimpl].regression;
 	if (reg_model->coeff == NULL)
 		goto docal;
-
+	
 	double parameter_value;
 	double *parameters;
 	parameters = (double *) malloc(model->nparameters*sizeof(double));
