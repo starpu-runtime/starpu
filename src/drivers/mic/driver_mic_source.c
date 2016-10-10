@@ -535,6 +535,12 @@ void *_starpu_mic_src_worker(void *arg)
 	{
 		struct _starpu_worker *worker = &config->workers[baseworkerid+i];
 		snprintf(worker->name, sizeof(worker->name), "MIC %d core %u", devid, i);
+		snprintf(worker->short_name, sizeof(worker->short_name), "MIC %d.%u", devid, i);
+	}
+	{
+		char thread_name[16];
+		snprintf(thread_name, sizeof(thread_name), "MIC %d", devid);
+		starpu_pthread_setname(pthread_self(), thread_name);
 	}
 
 	for (i = 0; i < worker_set->nworkers; i++)
