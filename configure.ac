@@ -1700,168 +1700,6 @@ AM_CONDITIONAL([STARPU_USE_AYUDAME2], [test "x$enable_ayudame2" = "xyes"])
 
 ###############################################################################
 #                                                                             #
-#                  Miscellaneous options for StarPU                           #
-#                                                                             #
-###############################################################################
-
-AC_MSG_CHECKING(how many buffers can be manipulated per task)
-AC_ARG_ENABLE(maxbuffers, [AS_HELP_STRING([--enable-maxbuffers=<nbuffers>],
-			[maximum number of buffers per task])],
-			nmaxbuffers=$enableval, nmaxbuffers=8)
-AC_MSG_RESULT($nmaxbuffers)
-AC_DEFINE_UNQUOTED(STARPU_NMAXBUFS, [$nmaxbuffers],
-		[how many buffers can be manipulated per task])
-
-AC_MSG_CHECKING(maximum number of nodes to use)
-AC_ARG_ENABLE(maxnodes, [AS_HELP_STRING([--enable-maxnodes=<nnodes>],
-			[maximum number of nodes])],
-			maxnodes=$enableval, maxnodes=0)
-
-if test x$maxnodes = x0 ; then
-	if test x$enable_simgrid = xyes ; then
-		# We still need the room for the virtual CUDA/OpenCL devices
-		maxnodes=16
-	else
-		# We have one memory node shared by all CPU workers, one node per GPU
-		# and per MIC device
-		# we add nodes to use 3 memory disks
-		nodes=4
-		if test x$enable_cuda = xyes ; then
-			# we could have used nmaxcudadev + 1, but this would certainly give an
-			# odd number.
-			nodes=`expr $nodes + $nmaxcudadev`
-		fi
-		if test x$enable_opencl = xyes ; then
-			# we could have used nmaxcudadev + 1, but this would certainly give an
-			# odd number.
-			nodes=`expr $nodes + $nmaxopencldev`
-		fi
-		if test x$enable_mic = xyes ; then
-			nodes=`expr $nodes + $nmaxmicdev`
-		fi
-		if test x$enable_rcce = xyes ; then
-			# Only 1 memory node for the shared memory.
-			nodes=`expr $nodes + 1`
-		fi
-
-		# set maxnodes to the next power of 2 greater than nodes
-		maxnodes=1
-		while test "$maxnodes" -lt "$nodes"
-		do
-			maxnodes=`expr $maxnodes \* 2`
-		done
- 	fi
-fi
-if test $maxnodes -gt 32 ; then
-	AC_MSG_ERROR([selected number of nodes ($maxnodes) can not be greater than 32])
-fi
-
-AC_MSG_CHECKING(maximum number of memory nodes)
-AC_MSG_RESULT($maxnodes)
-AC_DEFINE_UNQUOTED(STARPU_MAXNODES, [$maxnodes],
-		[maximum number of memory nodes])
-
-
-AC_MSG_CHECKING(whether allocation cache should be used)
-AC_ARG_ENABLE(allocation-cache, [AS_HELP_STRING([--disable-allocation-cache],
-			[disable data allocation cache])],
-			enable_allocation_cache=$enableval, enable_allocation_cache=yes)
-AC_MSG_RESULT($enable_allocation_cache)
-if test x$enable_allocation_cache = xyes; then
-	AC_DEFINE(STARPU_USE_ALLOCATION_CACHE, [1], [enable data allocation cache])
-fi
-
-AC_ARG_WITH(perf-model-dir, [AS_HELP_STRING([--with-perf-model-dir=<dir>], [specify where performance models should be stored])],
-	[
-		if test x$withval = xno; then
-			AC_MSG_ERROR(--without-perf-model-dir is not a valid option)
-		fi
-
-		perf_model_dir="$withval"
-		have_explicit_perf_model_dir=yes
-		AC_DEFINE_UNQUOTED(STARPU_PERF_MODEL_DIR, ["$perf_model_dir"], [performance models location])
-	], [
-		# by default, we put the performance models in
-		# $HOME/.starpu/sampling/
-		have_explicit_perf_model_dir=no
-		perf_model_dir="\$HOME/.starpu/sampling/"
-	]
-	)
-AC_MSG_CHECKING(using explicit performance model location)
-AC_MSG_RESULT($have_explicit_perf_model_dir)
-
-AC_MSG_CHECKING(performance models location)
-AC_MSG_RESULT($perf_model_dir)
-
-# On many multicore CPUs, clock cycles are not synchronized
-AC_CHECK_LIB([rt], [clock_gettime])
-AC_CHECK_FUNCS([clock_gettime])
-
-# Compute the maximum number of workers (we round it to 16 for alignment
-# purposes).
-if test x$enable_simgrid != xyes; then
-	if test x$enable_cpu != xyes; then
-		maxcpus=0
-	fi
-	if test x$enable_cuda != xyes; then
-		nmaxcudadev=0
-	fi
-	if test x$enable_opencl != xyes; then
-		nmaxopencldev=0
-	fi
-	if test x$enable_mic != xyes; then
-		nmaxmicthreads=0
-	fi
-	if test x$enable_rcce != xyes; then
-		nmaxsccdev=0
-	fi
-fi
-nmaxworkers=`expr 16 \* \( \( $maxcpus + $nmaxcudadev + $nmaxopencldev + $nmaxmicthreads + $nmaxsccdev + 15 \) / 16 \) `
-AC_MSG_CHECKING(Maximum number of workers)
-AC_MSG_RESULT($nmaxworkers)
-AC_DEFINE_UNQUOTED(STARPU_NMAXWORKERS, [$nmaxworkers], [Maximum number of workers])
-
-# Computes the maximun number of combined worker
-nmaxcombinedworkers=`expr $maxcpus + $nmaxmicthreads`  
-AC_MSG_CHECKING(Maximum number of workers combinations)
-AC_MSG_RESULT($nmaxcombinedworkers)
-AC_DEFINE_UNQUOTED(STARPU_NMAX_COMBINEDWORKERS,
-	[$nmaxcombinedworkers], [Maximum number of worker combinations])
-
-
-
-# Computes the maximum number of implementations per arch
-AC_MSG_CHECKING(maximum number of implementations)
-AC_ARG_ENABLE(maximplementations, [AS_HELP_STRING([--enable-maximplementations=<number>],
-		[maximum number of implementations])],
-		maximplementations=$enableval, maximplementations=4)
-AC_MSG_RESULT($maximplementations)
-AC_DEFINE_UNQUOTED(STARPU_MAXIMPLEMENTATIONS, [$maximplementations],
-		[maximum number of implementations])
-
-# Enable LevelDB support if requested and the lib is found
-AC_ARG_ENABLE(leveldb, [AS_HELP_STRING([--enable-leveldb],
-				   [Enable linking with LevelDB if available])],
-				   enable_leveldb=$enableval, enable_leveldb=no)
-if  test x$enable_leveldb = xyes; then
-AC_LANG_PUSH([C++])
-AC_CHECK_HEADERS([leveldb/db.h], [AC_DEFINE([STARPU_HAVE_LEVELDB], [1], [Define to 1 if you have the <leveldb/db.h> header file.])])
-STARPU_HAVE_LIBRARY(LEVELDB, [leveldb])
-AC_LANG_POP([C++])
-fi
-AM_CONDITIONAL(STARPU_HAVE_LEVELDB, test  "x$enable_leveldb" = "xyes" -a "x$ac_cv_lib_leveldb_main" = "xyes")
-
-# Defines the calibration heuristic for the history-based calibration of StarPU
-AC_MSG_CHECKING(calibration heuristic of history-based StarPU calibrator)
-AC_ARG_ENABLE(calibration-heuristic, [AS_HELP_STRING([--enable-calibration-heuristic=<number>],
-			[Define the maximum authorized deviation of StarPU history-based calibrator.])],
-			calibration_heuristic=$enableval, calibration_heuristic=50)
-AC_MSG_RESULT($calibration_heuristic)
-AC_DEFINE_UNQUOTED(STARPU_HISTORYMAXERROR, [$calibration_heuristic], [calibration heuristic value])
-
-
-###############################################################################
-#                                                                             #
 #                                    MPI                                      #
 #                                                                             #
 ###############################################################################
@@ -2076,6 +1914,186 @@ fi
 AC_MSG_CHECKING(whether the master-slave mode should be enabled)
 AC_MSG_RESULT($build_mpi_master_slave)
 AM_CONDITIONAL([STARPU_USE_MPI_MASTER_SLAVE], [test x$build_mpi_master_slave = xyes])
+
+AC_MSG_CHECKING(maximum number of MPI master-slave devices)
+AC_ARG_ENABLE(maxmpidev, [AS_HELP_STRING([--enable-maxmpidev=<number>],
+			[maximum number of MPI master-slave devices])],
+			nmaxmpidev=$enableval,
+            [
+             if test x$build_mpi_master_slave = xyes; then
+                 nmaxmpidev=4
+             else
+                 nmaxmpidev=0
+             fi
+            ])
+AC_MSG_RESULT($nmaxmpidev)
+AC_DEFINE_UNQUOTED(STARPU_MAXMPIDEVS, [$nmaxmpidev], [maximum number of MPI devices])
+
+
+###############################################################################
+#                                                                             #
+#                  Miscellaneous options for StarPU                           #
+#                                                                             #
+###############################################################################
+
+AC_MSG_CHECKING(how many buffers can be manipulated per task)
+AC_ARG_ENABLE(maxbuffers, [AS_HELP_STRING([--enable-maxbuffers=<nbuffers>],
+			[maximum number of buffers per task])],
+			nmaxbuffers=$enableval, nmaxbuffers=8)
+AC_MSG_RESULT($nmaxbuffers)
+AC_DEFINE_UNQUOTED(STARPU_NMAXBUFS, [$nmaxbuffers],
+		[how many buffers can be manipulated per task])
+
+AC_MSG_CHECKING(maximum number of nodes to use)
+AC_ARG_ENABLE(maxnodes, [AS_HELP_STRING([--enable-maxnodes=<nnodes>],
+			[maximum number of nodes])],
+			maxnodes=$enableval, maxnodes=0)
+
+if test x$maxnodes = x0 ; then
+	if test x$enable_simgrid = xyes ; then
+		# We still need the room for the virtual CUDA/OpenCL devices
+		maxnodes=16
+	else
+		# We have one memory node shared by all CPU workers, one node per GPU
+		# and per MIC device
+		# we add nodes to use 3 memory disks
+		nodes=4
+		if test x$enable_cuda = xyes ; then
+			# we could have used nmaxcudadev + 1, but this would certainly give an
+			# odd number.
+			nodes=`expr $nodes + $nmaxcudadev`
+		fi
+		if test x$enable_opencl = xyes ; then
+			# we could have used nmaxcudadev + 1, but this would certainly give an
+			# odd number.
+			nodes=`expr $nodes + $nmaxopencldev`
+		fi
+		if test x$enable_mic = xyes ; then
+			nodes=`expr $nodes + $nmaxmicdev`
+		fi
+		if test x$enable_rcce = xyes ; then
+			# Only 1 memory node for the shared memory.
+			nodes=`expr $nodes + 1`
+		fi
+
+        #nmaxmpidev = 0 if mpi master-slave is disabled
+        nodes=`expr $nodes + $nmaxmpidev`
+
+		# set maxnodes to the next power of 2 greater than nodes
+		maxnodes=1
+		while test "$maxnodes" -lt "$nodes"
+		do
+			maxnodes=`expr $maxnodes \* 2`
+		done
+ 	fi
+fi
+if test $maxnodes -gt 32 ; then
+	AC_MSG_ERROR([selected number of nodes ($maxnodes) can not be greater than 32])
+fi
+
+AC_MSG_CHECKING(maximum number of memory nodes)
+AC_MSG_RESULT($maxnodes)
+AC_DEFINE_UNQUOTED(STARPU_MAXNODES, [$maxnodes],
+		[maximum number of memory nodes])
+
+
+AC_MSG_CHECKING(whether allocation cache should be used)
+AC_ARG_ENABLE(allocation-cache, [AS_HELP_STRING([--disable-allocation-cache],
+			[disable data allocation cache])],
+			enable_allocation_cache=$enableval, enable_allocation_cache=yes)
+AC_MSG_RESULT($enable_allocation_cache)
+if test x$enable_allocation_cache = xyes; then
+	AC_DEFINE(STARPU_USE_ALLOCATION_CACHE, [1], [enable data allocation cache])
+fi
+
+AC_ARG_WITH(perf-model-dir, [AS_HELP_STRING([--with-perf-model-dir=<dir>], [specify where performance models should be stored])],
+	[
+		if test x$withval = xno; then
+			AC_MSG_ERROR(--without-perf-model-dir is not a valid option)
+		fi
+
+		perf_model_dir="$withval"
+		have_explicit_perf_model_dir=yes
+		AC_DEFINE_UNQUOTED(STARPU_PERF_MODEL_DIR, ["$perf_model_dir"], [performance models location])
+	], [
+		# by default, we put the performance models in
+		# $HOME/.starpu/sampling/
+		have_explicit_perf_model_dir=no
+		perf_model_dir="\$HOME/.starpu/sampling/"
+	]
+	)
+AC_MSG_CHECKING(using explicit performance model location)
+AC_MSG_RESULT($have_explicit_perf_model_dir)
+
+AC_MSG_CHECKING(performance models location)
+AC_MSG_RESULT($perf_model_dir)
+
+# On many multicore CPUs, clock cycles are not synchronized
+AC_CHECK_LIB([rt], [clock_gettime])
+AC_CHECK_FUNCS([clock_gettime])
+
+# Compute the maximum number of workers (we round it to 16 for alignment
+# purposes).
+if test x$enable_simgrid != xyes; then
+	if test x$enable_cpu != xyes; then
+		maxcpus=0
+	fi
+	if test x$enable_cuda != xyes; then
+		nmaxcudadev=0
+	fi
+	if test x$enable_opencl != xyes; then
+		nmaxopencldev=0
+	fi
+	if test x$enable_mic != xyes; then
+		nmaxmicthreads=0
+	fi
+	if test x$enable_rcce != xyes; then
+		nmaxsccdev=0
+	fi
+fi
+#We suppose Master adds nmaxmpidev workers but slaves don't.
+nmaxworkers=`expr 16 \* \( \( $maxcpus + $nmaxcudadev + $nmaxopencldev + $nmaxmicthreads + $nmaxmpidev + $nmaxsccdev + 15 \) / 16 \) `
+AC_MSG_CHECKING(Maximum number of workers)
+AC_MSG_RESULT($nmaxworkers)
+AC_DEFINE_UNQUOTED(STARPU_NMAXWORKERS, [$nmaxworkers], [Maximum number of workers])
+
+# Computes the maximun number of combined worker
+nmaxcombinedworkers=`expr $maxcpus + $nmaxmicthreads`  
+AC_MSG_CHECKING(Maximum number of workers combinations)
+AC_MSG_RESULT($nmaxcombinedworkers)
+AC_DEFINE_UNQUOTED(STARPU_NMAX_COMBINEDWORKERS,
+	[$nmaxcombinedworkers], [Maximum number of worker combinations])
+
+
+
+# Computes the maximum number of implementations per arch
+AC_MSG_CHECKING(maximum number of implementations)
+AC_ARG_ENABLE(maximplementations, [AS_HELP_STRING([--enable-maximplementations=<number>],
+		[maximum number of implementations])],
+		maximplementations=$enableval, maximplementations=4)
+AC_MSG_RESULT($maximplementations)
+AC_DEFINE_UNQUOTED(STARPU_MAXIMPLEMENTATIONS, [$maximplementations],
+		[maximum number of implementations])
+
+# Enable LevelDB support if requested and the lib is found
+AC_ARG_ENABLE(leveldb, [AS_HELP_STRING([--enable-leveldb],
+				   [Enable linking with LevelDB if available])],
+				   enable_leveldb=$enableval, enable_leveldb=no)
+if  test x$enable_leveldb = xyes; then
+AC_LANG_PUSH([C++])
+AC_CHECK_HEADERS([leveldb/db.h], [AC_DEFINE([STARPU_HAVE_LEVELDB], [1], [Define to 1 if you have the <leveldb/db.h> header file.])])
+STARPU_HAVE_LIBRARY(LEVELDB, [leveldb])
+AC_LANG_POP([C++])
+fi
+AM_CONDITIONAL(STARPU_HAVE_LEVELDB, test  "x$enable_leveldb" = "xyes" -a "x$ac_cv_lib_leveldb_main" = "xyes")
+
+# Defines the calibration heuristic for the history-based calibration of StarPU
+AC_MSG_CHECKING(calibration heuristic of history-based StarPU calibrator)
+AC_ARG_ENABLE(calibration-heuristic, [AS_HELP_STRING([--enable-calibration-heuristic=<number>],
+			[Define the maximum authorized deviation of StarPU history-based calibrator.])],
+			calibration_heuristic=$enableval, calibration_heuristic=50)
+AC_MSG_RESULT($calibration_heuristic)
+AC_DEFINE_UNQUOTED(STARPU_HISTORYMAXERROR, [$calibration_heuristic], [calibration heuristic value])
 
 
 ###############################################################################
@@ -3047,13 +3065,14 @@ AC_MSG_NOTICE([
         (Note these numbers do not represent the number of detected
 	devices, but the maximum number of devices StarPU can manage)
 
-	Maximum number of CPUs:           $maxcpus
-	Maximum number of CUDA devices:   $nmaxcudadev
-	Maximum number of OpenCL devices: $nmaxopencldev
-	Maximum number of SCC devices:    $nmaxsccdev
-	Maximum number of MIC threads:    $nmaxmicthreads
-	Maximum number of memory nodes:   $maxnodes
-	Maximum number of task buffers:   $nmaxbuffers
+	Maximum number of CPUs:                     $maxcpus
+	Maximum number of CUDA devices:             $nmaxcudadev
+	Maximum number of OpenCL devices:           $nmaxopencldev
+	Maximum number of SCC devices:              $nmaxsccdev
+	Maximum number of MIC threads:              $nmaxmicthreads
+	Maximum number of MPI master-slave devices: $nmaxmpidev
+	Maximum number of memory nodes:             $maxnodes
+	Maximum number of task buffers:             $nmaxbuffers
 
 	GPU-GPU transfers: $have_cuda_memcpy_peer
 	Allocation cache:  $enable_allocation_cache
