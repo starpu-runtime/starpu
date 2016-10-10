@@ -50,10 +50,11 @@ static long sum;
 /* Performance function of the task, which is in this case very simple, as the parameter values just need to be written in the array "parameters" */
 static void cl_params(struct starpu_task *task, double *parameters)
 {
-	starpu_codelet_unpack_args(task->cl_arg,
-			     	  &parameters[0],
-     			     	  &parameters[1],
-     			     	  &parameters[2]);
+	int m, n, k;
+	starpu_codelet_unpack_args(task->cl_arg, &m, &n, &k);
+	parameters[0] = m;
+	parameters[1] = n;
+	parameters[2] = k;
 }
 
 /* Function of the task that will be executed. In this case running dummy cycles, just to make sure task duration is significant */
@@ -142,26 +143,26 @@ int main(int argc, char **argv)
 		return 77;
 	
 	sum=0;
-	double m,n,k;
+	int m,n,k;
 
         /* Giving pseudo-random values to the M,N,K parameters and inserting tasks */
 	for(i=0; i < 42; i++)
 	{
-		m = (double) ((rand() % 10)+1);
-		n = (double) ((rand() % 10)+1);
-		k = (double) ((rand() % 10)+1);
+		m = (int) ((rand() % 10)+1);
+		n = (int) ((rand() % 10)+1);
+		k = (int) ((rand() % 10)+1);
 		
 		for(j=0; j < 42; j++)
 		{
 			starpu_insert_task(&cl_init,
-				   STARPU_VALUE, &m, sizeof(double),
-				   STARPU_VALUE, &n, sizeof(double),
-				   STARPU_VALUE, &k, sizeof(double),
+				   STARPU_VALUE, &m, sizeof(int),
+				   STARPU_VALUE, &n, sizeof(int),
+				   STARPU_VALUE, &k, sizeof(int),
 				   0);
 			starpu_insert_task(&cl_final,
-				   STARPU_VALUE, &m, sizeof(double),
-				   STARPU_VALUE, &n, sizeof(double),
-				   STARPU_VALUE, &k, sizeof(double),
+				   STARPU_VALUE, &m, sizeof(int),
+				   STARPU_VALUE, &n, sizeof(int),
+				   STARPU_VALUE, &k, sizeof(int),
 				   0);
 		}
 	}
