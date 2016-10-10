@@ -1280,6 +1280,8 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	struct _starpu_mpi_argc_argv *argc_argv = (struct _starpu_mpi_argc_argv *) arg;
 	int rank, worldsize;
 
+	starpu_pthread_setname(pthread_self(), "MPI");
+
 #ifndef STARPU_SIMGRID
 	_starpu_mpi_do_initialize(argc_argv);
 #endif

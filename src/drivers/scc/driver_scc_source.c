@@ -298,7 +298,13 @@ void *_starpu_scc_src_worker(void *arg)
 	for (i = 0; i < config->topology.nmiccores[devid]; i++)
 	{
 		struct _starpu_worker *worker = &config->workers[baseworkerid+i];
-		snprintf(worker->name, sizeof(worker->name), "MIC %d core %u", devid, i);
+		snprintf(worker->name, sizeof(worker->name), "SCC %d core %u", devid, i);
+		snprintf(worker->short_name, sizeof(worker->short_name), "SCC %d core %u", devid, i);
+	}
+	{
+		char thread_name[16];
+		snprintf(thread_name, sizeof(thread_name), "SCC %d", devid);
+		starpu_pthread_setname(pthread_self(), thread_name);
 	}
 
 	_STARPU_TRACE_WORKER_INIT_END(workerid);

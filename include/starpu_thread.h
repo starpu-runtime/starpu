@@ -47,6 +47,7 @@ typedef msg_process_t starpu_pthread_t;
 typedef int starpu_pthread_attr_t;
 
 int starpu_pthread_create_on(char *name, starpu_pthread_t *thread, const starpu_pthread_attr_t *attr, void *(*start_routine) (void *), void *arg, msg_host_t host);
+#define starpu_pthread_setname(thread, name)
 int starpu_pthread_create(starpu_pthread_t *thread, const starpu_pthread_attr_t *attr, void *(*start_routine) (void *), void *arg);
 int starpu_pthread_join(starpu_pthread_t thread, void **retval);
 int starpu_pthread_exit(void *retval) STARPU_ATTRIBUTE_NORETURN;
@@ -61,6 +62,11 @@ typedef pthread_attr_t starpu_pthread_attr_t;
 
 #define starpu_pthread_create pthread_create
 #define starpu_pthread_create_on(name, thread, attr, routine, arg, where) starpu_pthread_create(thread, attr, routine, arg)
+#ifdef STARPU_HAVE_PTHREAD_SETNAME_NP
+#define starpu_pthread_setname(thread, name) pthread_setname_np(thread, name)
+#else
+#define starpu_pthread_setname(thread, name)
+#endif
 #define starpu_pthread_join pthread_join
 #define starpu_pthread_exit pthread_exit
 #define starpu_pthread_attr_init pthread_attr_init

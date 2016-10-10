@@ -258,6 +258,11 @@ fi
 # yes, that's non portable, but it's still better than sched_setaffinity
 AC_CHECK_FUNCS(pthread_setaffinity_np)
 
+AC_CHECK_FUNC([pthread_setname_np], have_pthread_setname_np=yes, have_pthread_setname_np=no)
+if test x$have_pthread_setname_np = xyes; then
+	AC_DEFINE(STARPU_HAVE_PTHREAD_SETNAME_NP,[1],[pthread_setname_np is available])
+fi
+
 # There is no posix_memalign on Mac OS X, only memalign
 AC_CHECK_FUNCS([posix_memalign], [AC_DEFINE([STARPU_HAVE_POSIX_MEMALIGN], [1], [Define to 1 if you have the `posix_memalign' function.])])
 AC_CHECK_FUNCS([memalign], [AC_DEFINE([STARPU_HAVE_MEMALIGN], [1], [Define to 1 if you have the `memalign' function.])])

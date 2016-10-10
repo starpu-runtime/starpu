@@ -134,6 +134,7 @@ typedef ssize_t starpu_ssize_t;
 #undef STARPU_HAVE_HWLOC
 #undef STARPU_HAVE_PTHREAD_SPIN_LOCK
 #undef STARPU_HAVE_PTHREAD_BARRIER
+#undef STARPU_HAVE_PTHREAD_SETNAME_NP
 #undef STARPU_HAVE_STRUCT_TIMESPEC
 
 /* This is only for building examples */
