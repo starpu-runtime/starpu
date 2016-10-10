@@ -16,20 +16,30 @@
  */
 
 /*
- * This examples demonstrates how to use multiple linear regression models.
+ * This examples demonstrates how to use multiple linear regression
+   models.
 
-   The duration of the task test_mlr will
-   be computed using the following equation:
+   First, there is cl_model_init codelet for which we know the
+   parameters, but not the their exponents and relations. This tasks
+   should be benchmarked and analyzed to find the model, using
+   "tools/starpu_mlr_analysis" script as a template. Before the model
+   is defined by the application developer, the default model is
+   automatically computed. This default models is a simple constant
+   (thus making STARPU_MULTIPLE_REGRESSION_BASED model equal to the
+   history based model).
+
+   For the second (codelet cl_model_final), it is assumed that the
+   analysis has already been performend and that he duration of the
+   task test_mlr will be computed using the following equation:
 
    T = a + b * (M^2*N) + c * (N^3*K)
 
-   where M, N, K are the parameters of the task,
-   exponents are coming from cl.model->combinations[..][..] 
-   and finally a, b, c are coefficients
-   which mostly depend on the machine speed. 
+   where M, N, K are the parameters of the task, exponents are coming
+   from model->combinations[..][..]  and finally a, b, c are
+   coefficients which mostly depend on the machine speed.
    
-   These coefficients are going to be automatically computed	
-   using least square method.
+   These coefficients are going to be automatically computed using
+   least square method.
 
  */
 
@@ -69,21 +79,37 @@ void cpu_func(void *buffers[], void *cl_arg)
 /* ############################################ */
 /* Start of the part specific to multiple linear regression perfmodels */
 
-/* Defining perfmodel, number of parameters and their names  */
-
-/* Defining the equation for modeling duration of the task */
-/* Refer to the explanation and equation on the top of this file
-   to get more detailed explanation, here we have M^2*N and N^3*K */
+/* Defining perfmodel, number of parameters and their names Initially
+   application developer only knows these parameters. The execution of
+   this codelet will generate traces that can be analyzed using
+   "tools/starpu_mlr_analysis" as a template to obtain the parameters
+   combinations and exponents.
+ */
 
 static const char * parameters_names[]	= {	"M",	"N",	"K", };
+
+static struct starpu_perfmodel cl_model_init = {
+	.type = STARPU_MULTIPLE_REGRESSION_BASED,
+	.symbol = "mlr_init",
+	.parameters = cl_params,
+	.nparameters = 3,
+	.parameters_names = parameters_names,
+};
+
+/* Defining the equation for modeling duration of the task. The
+   parameters combinations and exponents are computed externally
+   offline, for example using "tools/starpu_mlr_analysis" tool as a
+   template.
+ */
+
 static unsigned combi1 [3]		= {	2,	1,	0 };
 static unsigned combi2 [3]		= {	0,	3,	1 };
 
 static unsigned *combinations[] = { combi1, combi2 };
 
-static struct starpu_perfmodel cl_model = {
+static struct starpu_perfmodel cl_model_final = {
 	.type = STARPU_MULTIPLE_REGRESSION_BASED,
-	.symbol = "test_mlr",
+	.symbol = "mlr_final",
 	.parameters = cl_params,
 	.nparameters = 3,
 	.parameters_names = parameters_names,
@@ -91,16 +117,24 @@ static struct starpu_perfmodel cl_model = {
 	.combinations = combinations,
 };
 
-static struct starpu_codelet cl = {
-	.cpu_funcs = { cpu_func },
-	.cpu_funcs_name = { "mlr_codelet" },
-	.nbuffers = 0,
-	.model = &cl_model,
-};
-
 /* End of the part specific to multiple linear regression perfmodels */
 /* ############################################ */
-	
+
+static struct starpu_codelet cl_init = {
+	.cpu_funcs = { cpu_func },
+	.cpu_funcs_name = { "mlr_codelet_init" },
+	.nbuffers = 0,
+	.model = &cl_model_init,
+};
+
+static struct starpu_codelet cl_final = {
+	.cpu_funcs = { cpu_func },
+	.cpu_funcs_name = { "mlr_codelet_final" },
+	.nbuffers = 0,
+	.model = &cl_model_final,
+};
+
+
 int main(int argc, char **argv)
 {
 	/* Initialization */
@@ -121,11 +155,18 @@ int main(int argc, char **argv)
 		k = (double) ((rand() % 10)+1);
 		
 		for(j=0; j < 42; j++)
-			starpu_insert_task(&cl,
+		{
+			starpu_insert_task(&cl_init,
 				   STARPU_VALUE, &m, sizeof(double),
 				   STARPU_VALUE, &n, sizeof(double),
 				   STARPU_VALUE, &k, sizeof(double),
 				   0);
+			starpu_insert_task(&cl_final,
+				   STARPU_VALUE, &m, sizeof(double),
+				   STARPU_VALUE, &n, sizeof(double),
+				   STARPU_VALUE, &k, sizeof(double),
+				   0);
+		}
 	}
 			  
 	starpu_shutdown();
