@@ -86,6 +86,8 @@ fi
 
 #####################################
 # Running analysis file to get actual results
-Rscript -e "library(knitr); input_trace = '$inputfile' ; outputhtml='$outputfile';\
+in="$(cd "$(dirname "$inputfile")"; pwd)/$(basename "$inputfile")"
+
+Rscript -e "library(knitr); input_trace = '$in' ; outputhtml='$outputfile';\
             outputRmd = gsub('.html\$','.Rmd',outputhtml);\
             knit('$analysis_script',output=outputRmd); knitr::knit2html(outputRmd)"

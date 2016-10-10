@@ -225,8 +225,8 @@ be somehow useful. This is a simple helper to generate C code for the
 parameters combinations and it should be copied to the task
 description in the application. The function generating the code is
 not so robust, so make sure that the generated code correctly
-corresponds to computed model (for example parameters are considered
-in the alphabetical order).
+corresponds to computed model (e.g., parameters are considered in the
+alphabetical order).
 
 ```{r Code}
 print_codelet(model4, "mlr_cl")
