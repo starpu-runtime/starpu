@@ -64,6 +64,9 @@ struct _starpu_data_descr
 	int node;
 };
 
+#ifdef STARPU_DEBUG
+MULTILIST_CREATE_TYPE(_starpu_job, all_submitted)
+#endif
 /* A job is the internal representation of a task. */
 struct _starpu_job {
 
@@ -192,9 +195,13 @@ struct _starpu_job {
 
 #ifdef STARPU_DEBUG
 	/* Linked-list of all jobs, for debugging */
-	struct _starpu_job_list all_submitted;
+	struct _starpu_job_multilist_all_submitted all_submitted;
 #endif
 };
+
+#ifdef STARPU_DEBUG
+MULTILIST_CREATE_INLINES(struct _starpu_job, _starpu_job, all_submitted)
+#endif
 
 void _starpu_job_init(void);
 void _starpu_job_fini(void);
