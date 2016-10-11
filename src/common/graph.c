@@ -30,27 +30,27 @@ static starpu_pthread_rwlock_t graph_lock;
 int _starpu_graph_record;
 
 /* This list contains all jobs without incoming dependency */
-struct _starpu_job_list top;
+struct _starpu_job_multilist_top top;
 /* This list contains all jobs without outgoing dependency */
-struct _starpu_job_list bottom;
+struct _starpu_job_multilist_bottom bottom;
 /* This list contains all jobs */
-struct _starpu_job_list all;
+struct _starpu_job_multilist_all all;
 
 void _starpu_graph_init(void)
 {
 	STARPU_PTHREAD_RWLOCK_INIT(&graph_lock, NULL);
-	_starpu_job_list_init(&top);
-	_starpu_job_list_init(&bottom);
-	_starpu_job_list_init(&all);
+	_starpu_job_multilist_init_top(&top);
+	_starpu_job_multilist_init_bottom(&bottom);
+	_starpu_job_multilist_init_all(&all);
 }
 
 static void __starpu_graph_foreach(void (*func)(void *data, struct _starpu_job *job), void *data)
 {
 	struct _starpu_job *job;
 
-	for (job = _starpu_job_list_begin(&all, all);
-	     job != _starpu_job_list_end(&all, all);
-	     job = _starpu_job_list_next(&all, job, all))
+	for (job = _starpu_job_multilist_begin_all(&all);
+	     job != _starpu_job_multilist_end_all(&all);
+	     job = _starpu_job_multilist_next_all(job))
 		func(data, job);
 }
 
@@ -60,9 +60,9 @@ void _starpu_graph_add_job(struct _starpu_job *job)
 	STARPU_PTHREAD_RWLOCK_WRLOCK(&graph_lock);
 
 	/* It does not have any dependency yet, add to all lists */
-	_starpu_job_list_push_back(&top, job, top);
-	_starpu_job_list_push_back(&bottom, job, bottom);
-	_starpu_job_list_push_back(&all, job, all);
+	_starpu_job_multilist_push_back_top(&top, job);
+	_starpu_job_multilist_push_back_bottom(&bottom, job);
+	_starpu_job_multilist_push_back_all(&all, job);
 
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&graph_lock);
 }
@@ -92,13 +92,13 @@ void _starpu_graph_add_job_dep(struct _starpu_job *job, struct _starpu_job *prev
 	unsigned rank_incoming, rank_outgoing;
 	STARPU_PTHREAD_RWLOCK_WRLOCK(&graph_lock);
 
-	if (_starpu_job_list_queued(prev_job, bottom))
+	if (_starpu_job_multilist_queued_bottom(prev_job))
 		/* Previous job is not at bottom any more */
-		_starpu_job_list_erase(bottom, prev_job, bottom);
+		_starpu_job_multilist_erase_bottom(&bottom, prev_job);
 
-	if (_starpu_job_list_queued(job, top))
+	if (_starpu_job_multilist_queued_top(job))
 		/* Next job is not at top any more */
-		_starpu_job_list_erase(top, job, top);
+		_starpu_job_multilist_erase_top(&top, job);
 
 	rank_incoming = add_job(prev_job, &job->incoming, &job->n_incoming, &job->alloc_incoming, NULL);
 	rank_outgoing = add_job(job, &prev_job->outgoing, &prev_job->n_outgoing, &prev_job->alloc_outgoing, &prev_job->outgoing_slot);
@@ -113,12 +113,12 @@ void _starpu_graph_drop_job(struct _starpu_job *job)
 	unsigned i;
 	STARPU_PTHREAD_RWLOCK_WRLOCK(&graph_lock);
 
-	if (_starpu_job_list_queued(job, bottom))
-		_starpu_job_list_erase(bottom, job, bottom);
-	if (_starpu_job_list_queued(job, top))
-		_starpu_job_list_erase(top, job, top);
-	if (_starpu_job_list_queued(job, all))
-		_starpu_job_list_erase(all, job, all);
+	if (_starpu_job_multilist_queued_bottom(job))
+		_starpu_job_multilist_erase_bottom(&bottom, job);
+	if (_starpu_job_multilist_queued_top(job))
+		_starpu_job_multilist_erase_top(&top, job);
+	if (_starpu_job_multilist_queued_all(job))
+		_starpu_job_multilist_erase_all(&all, job);
 
 	/* Drop ourself from the incoming part of the outgoing jobs */
 	for (i = 0; i < job->n_outgoing; i++)
@@ -160,9 +160,9 @@ static void _starpu_graph_compute_bottom_up(void (*func)(struct _starpu_job *nex
 
 	/* Start with the bottom of the graph */
 	current_n = 0;
-	for (job = _starpu_job_list_begin(&bottom, bottom);
-	     job != _starpu_job_list_end(&bottom, bottom);
-	     job = _starpu_job_list_next(&bottom, job, bottom))
+	for (job = _starpu_job_multilist_begin_bottom(&bottom);
+	     job != _starpu_job_multilist_end_bottom(&bottom);
+	     job = _starpu_job_multilist_next_bottom(job))
 		add_job(job, &current_set, &current_n, &current_alloc, NULL);
 
 	/* Now propagate to top as long as we have current nodes */
@@ -216,9 +216,9 @@ void _starpu_graph_compute_depths(void)
 	STARPU_PTHREAD_RWLOCK_WRLOCK(&graph_lock);
 
 	/* The bottom of the graph has depth 0 */
-	for (job = _starpu_job_list_begin(&bottom, bottom);
-	     job != _starpu_job_list_end(&bottom, bottom);
-	     job = _starpu_job_list_next(&bottom, job, bottom))
+	for (job = _starpu_job_multilist_begin_bottom(&bottom);
+	     job != _starpu_job_multilist_end_bottom(&bottom);
+	     job = _starpu_job_multilist_next_bottom(job))
 		job->depth = 0;
 
 	_starpu_graph_compute_bottom_up(compute_depth, NULL);
@@ -243,14 +243,14 @@ void _starpu_graph_compute_descendants(void)
 	 * |E| is usually O(|V|), though (bounded number of data dependencies,
 	 * and we use synchronization tasks) */
 
-	for (job = _starpu_job_list_begin(&all, all);
-	     job != _starpu_job_list_end(&all, all);
-	     job = _starpu_job_list_next(&all, job, all))
+	for (job = _starpu_job_multilist_begin_all(&all);
+	     job != _starpu_job_multilist_end_all(&all);
+	     job = _starpu_job_multilist_next_all(job))
 	{
 		/* Mark all nodes as unseen */
-		for (job2 = _starpu_job_list_begin(&all, all);
-		     job2 != _starpu_job_list_end(&all, all);
-		     job2 = _starpu_job_list_next(&all, job2, all))
+		for (job2 = _starpu_job_multilist_begin_all(&all);
+		     job2 != _starpu_job_multilist_end_all(&all);
+		     job2 = _starpu_job_multilist_next_all(job2))
 			job2->graph_n = 0;
 
 		/* Start with the node we want to compute the number of descendants of */
