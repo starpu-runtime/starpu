@@ -14,6 +14,50 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#ifndef __GRAPH_H__
+#define __GRAPH_H__
+
+#include <common/list.h>
+MULTILIST_CREATE_TYPE(_starpu_graph_node, all)
+MULTILIST_CREATE_TYPE(_starpu_graph_node, top)
+MULTILIST_CREATE_TYPE(_starpu_graph_node, bottom)
+
+struct _starpu_graph_node {
+	starpu_pthread_mutex_t mutex;	/* protects access to the job */
+	struct _starpu_job *job;
+
+	/*
+	 * Fields for graph analysis for scheduling heuristics
+	 */
+	/* Member of list of all jobs without incoming dependency */
+	struct _starpu_graph_node_multilist_top top;
+	/* Member of list of all jobs without outgoing dependency */
+	struct _starpu_graph_node_multilist_bottom bottom;
+	/* Member of list of all jobs */
+	struct _starpu_graph_node_multilist_all all;
+
+	/* set of incoming dependencies */
+	struct _starpu_graph_node **incoming;	/* May contain NULLs for terminated jobs */
+	unsigned n_incoming;		/* Number of slots used */
+	unsigned alloc_incoming;	/* Size of incoming */
+	/* set of outgoing dependencies */
+	struct _starpu_graph_node **outgoing;
+	unsigned *outgoing_slot;	/* Index within corresponding incoming array */
+	unsigned n_outgoing;		/* Number of slots used */
+	unsigned alloc_outgoing;	/* Size of outgoing */
+
+	unsigned depth;			/* Rank from bottom, in number of jobs */
+					/* Only available if _starpu_graph_compute_depths was called */
+	unsigned descendants;		/* Number of children, grand-children, etc. */
+					/* Only available if _starpu_graph_compute_descendants was called */
+
+	int graph_n;			/* Variable available for graph flow */
+};
+
+MULTILIST_CREATE_INLINES(struct _starpu_graph_node, _starpu_graph_node, all)
+MULTILIST_CREATE_INLINES(struct _starpu_graph_node, _starpu_graph_node, top)
+MULTILIST_CREATE_INLINES(struct _starpu_graph_node, _starpu_graph_node, bottom)
+
 void _starpu_graph_init(void);
 extern int _starpu_graph_record;
 
@@ -35,4 +79,6 @@ void _starpu_graph_compute_descendants(void);
 
 /* This calls \e func for each node of the task graph, passing also \e data as it */
 /* Apply func on each job of the graph */
-void _starpu_graph_foreach(void (*func)(void *data, struct _starpu_job *job), void *data);
+void _starpu_graph_foreach(void (*func)(void *data, struct _starpu_graph_node *node), void *data);
+
+#endif /* __GRAPH_H__ */

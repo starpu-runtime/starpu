@@ -64,10 +64,6 @@ struct _starpu_data_descr
 	int node;
 };
 
-MULTILIST_CREATE_TYPE(_starpu_job, all)
-MULTILIST_CREATE_TYPE(_starpu_job, top)
-MULTILIST_CREATE_TYPE(_starpu_job, bottom)
-
 /* A job is the internal representation of a task. */
 struct _starpu_job {
 
@@ -192,42 +188,13 @@ struct _starpu_job {
 	starpu_pthread_barrier_t after_work_barrier;
 	unsigned after_work_busy_barrier;
 
-	/*
-	 * Fields for graph analysis for scheduling heuristics
-	 */
-	/* Member of list of all jobs without incoming dependency */
-	struct _starpu_job_multilist_top top;
-	/* Member of list of all jobs without outgoing dependency */
-	struct _starpu_job_multilist_bottom bottom;
-	/* Member of list of all jobs */
-	struct _starpu_job_multilist_all all;
-
-	/* set of incoming dependencies */
-	struct _starpu_job **incoming;	/* May contain NULLs for terminated jobs */
-	unsigned n_incoming;		/* Number of slots used */
-	unsigned alloc_incoming;	/* Size of incoming */
-	/* set of outgoing dependencies */
-	struct _starpu_job **outgoing;
-	unsigned *outgoing_slot;	/* Index within corresponding incoming array */
-	unsigned n_outgoing;		/* Number of slots used */
-	unsigned alloc_outgoing;	/* Size of outgoing */
-
-	unsigned depth;			/* Rank from bottom, in number of jobs */
-					/* Only available if _starpu_graph_compute_depths was called */
-	unsigned descendants;		/* Number of children, grand-children, etc. */
-					/* Only available if _starpu_graph_compute_descendants was called */
-
-	int graph_n;			/* Variable available for graph flow */
+	struct _starpu_graph_node *graph_node;
 
 #ifdef STARPU_DEBUG
 	/* Linked-list of all jobs, for debugging */
 	struct _starpu_job_list all_submitted;
 #endif
 };
-
-MULTILIST_CREATE_INLINES(struct _starpu_job, _starpu_job, all)
-MULTILIST_CREATE_INLINES(struct _starpu_job, _starpu_job, top)
-MULTILIST_CREATE_INLINES(struct _starpu_job, _starpu_job, bottom)
 
 void _starpu_job_init(void);
 void _starpu_job_fini(void);
