@@ -82,6 +82,10 @@ AC_CHECK_PROGS(PROG_STAT,gstat stat)
 AC_CHECK_PROGS(PROG_DATE,gdate date)
 AC_OPENMP
 
+if test x$ac_cv_env_CXX_set = x; then
+   AC_MSG_ERROR([No compiler C++ found])
+fi
+
 if test x$enable_perf_debug = xyes; then
     enable_shared=no
 fi
