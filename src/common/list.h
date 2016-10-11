@@ -285,6 +285,20 @@ static inline TYPE *ENAME##_multilist_end_##MEMBER(struct ENAME##_multilist_##ME
 /* Return the next element of the list.  */ \
 static inline TYPE *ENAME##_multilist_next_##MEMBER(TYPE *e) { \
 	return ENAME##_of_multilist_##MEMBER(e->MEMBER.next); \
+} \
+\
+ /* Move a list from its head to another head.  */ \
+static inline void ENAME##_multilist_move_##MEMBER(struct ENAME##_multilist_##MEMBER *head, struct ENAME##_multilist_##MEMBER *newhead) { \
+	if (ENAME##_multilist_empty_##MEMBER(head)) \
+		ENAME##_multilist_init_##MEMBER(newhead); \
+	else { \
+		newhead->next = head->next; \
+		newhead->next->prev = newhead; \
+		newhead->prev = head->prev; \
+		newhead->prev->next = newhead; \
+		head->next = head; \
+		head->prev = head; \
+	} \
 }
 
 #endif /* __LIST_H__ */

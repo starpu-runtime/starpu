@@ -148,11 +148,16 @@ static struct _starpu_prio_deque *select_prio(unsigned sched_ctx_id, struct _sta
 static void set_priority(void *_data, struct _starpu_graph_node *node)
 {
 	struct _starpu_graph_test_policy_data *data = _data;
+	STARPU_PTHREAD_MUTEX_LOCK(&node->mutex);
 	struct _starpu_job *job = node->job;
-	if (data->descendants)
-		job->task->priority = node->descendants;
-	else
-		job->task->priority = node->depth;
+	if (job)
+	{
+		if (data->descendants)
+			job->task->priority = node->descendants;
+		else
+			job->task->priority = node->depth;
+	}
+	STARPU_PTHREAD_MUTEX_UNLOCK(&node->mutex);
 }
 
 static void do_schedule_graph_test_policy(unsigned sched_ctx_id)
