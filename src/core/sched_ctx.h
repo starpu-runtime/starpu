@@ -173,7 +173,7 @@ struct _starpu_sched_ctx
 	unsigned awake_workers;
 
 	/* function called when initializing the scheduler */
-	void (*init_sched)();
+	void (*init_sched)(unsigned);
 };
 
 struct _starpu_machine_config;
