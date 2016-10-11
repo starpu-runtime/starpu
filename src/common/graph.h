@@ -21,10 +21,11 @@
 MULTILIST_CREATE_TYPE(_starpu_graph_node, all)
 MULTILIST_CREATE_TYPE(_starpu_graph_node, top)
 MULTILIST_CREATE_TYPE(_starpu_graph_node, bottom)
+MULTILIST_CREATE_TYPE(_starpu_graph_node, dropped)
 
 struct _starpu_graph_node {
 	starpu_pthread_mutex_t mutex;	/* protects access to the job */
-	struct _starpu_job *job;
+	struct _starpu_job *job;	/* pointer to the job, if it is still alive, NULL otherwise */
 
 	/*
 	 * Fields for graph analysis for scheduling heuristics
@@ -35,6 +36,8 @@ struct _starpu_graph_node {
 	struct _starpu_graph_node_multilist_bottom bottom;
 	/* Member of list of all jobs */
 	struct _starpu_graph_node_multilist_all all;
+	/* Member of list of dropped jobs */
+	struct _starpu_graph_node_multilist_dropped dropped;
 
 	/* set of incoming dependencies */
 	struct _starpu_graph_node **incoming;	/* May contain NULLs for terminated jobs */
@@ -57,9 +60,14 @@ struct _starpu_graph_node {
 MULTILIST_CREATE_INLINES(struct _starpu_graph_node, _starpu_graph_node, all)
 MULTILIST_CREATE_INLINES(struct _starpu_graph_node, _starpu_graph_node, top)
 MULTILIST_CREATE_INLINES(struct _starpu_graph_node, _starpu_graph_node, bottom)
+MULTILIST_CREATE_INLINES(struct _starpu_graph_node, _starpu_graph_node, dropped)
 
-void _starpu_graph_init(void);
 extern int _starpu_graph_record;
+void _starpu_graph_init(void);
+void _starpu_graph_wrlock(void);
+void _starpu_graph_rdlock(void);
+void _starpu_graph_wrunlock(void);
+void _starpu_graph_rdunlock(void);
 
 /* Add a job to the graph, called before any _starpu_graph_add_job_dep call */
 void _starpu_graph_add_job(struct _starpu_job *job);
