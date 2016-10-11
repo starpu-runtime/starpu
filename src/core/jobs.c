@@ -148,7 +148,7 @@ void _starpu_job_destroy(struct _starpu_job *j)
 		j->dyn_dep_slots = NULL;
 	}
 
-	if (_starpu_graph_record)
+	if (_starpu_graph_record && j->graph_node)
 		_starpu_graph_drop_job(j);
 
 	if (max_memory_use)
