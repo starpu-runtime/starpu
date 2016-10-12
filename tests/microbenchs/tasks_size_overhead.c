@@ -120,7 +120,12 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
+#ifdef STARPU_SIMGRID
+	/* This will get serialized, avoid spending too much time on it. */
+	totcpus = 2;
+#else
 	totcpus = starpu_worker_get_count_by_type(STARPU_CPU_WORKER);
+#endif
 
 	starpu_shutdown();
 
