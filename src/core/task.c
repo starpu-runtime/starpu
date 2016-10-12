@@ -1191,7 +1191,7 @@ static void *watchdog_func(void *arg)
 	timeout = ((float) atoll(timeout_env)) / 1000000;
 #endif
 	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
-	starpu_pthread_setname(pthread_self(), "watchdog");
+	starpu_pthread_setname("watchdog");
 
 	STARPU_PTHREAD_MUTEX_LOCK(&config->submitted_mutex);
 	while (_starpu_machine_is_running())

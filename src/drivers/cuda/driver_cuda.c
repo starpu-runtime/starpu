@@ -661,7 +661,7 @@ int _starpu_cuda_driver_init(struct _starpu_worker_set *worker_set)
 	{
 		char thread_name[16];
 		snprintf(thread_name, sizeof(thread_name), "CUDA %u", worker0->devid);
-		starpu_pthread_setname(pthread_self(), thread_name);
+		starpu_pthread_setname(thread_name);
 	}
 
 	/* tell the main thread that this one is ready */
