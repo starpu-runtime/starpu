@@ -75,6 +75,18 @@ static const intptr_t fstarpu_sched_ctx_hierarchy_level	= STARPU_SCHED_CTX_HIERA
 static const intptr_t fstarpu_sched_ctx_nested	= STARPU_SCHED_CTX_NESTED;
 static const intptr_t fstarpu_sched_ctx_awake_workers	= STARPU_SCHED_CTX_AWAKE_WORKERS;
 
+static const intptr_t fstarpu_starpu_nowhere	= STARPU_NOWHERE;
+static const intptr_t fstarpu_starpu_cpu	= STARPU_CPU;
+static const intptr_t fstarpu_starpu_cuda	= STARPU_CUDA;
+static const intptr_t fstarpu_starpu_opencl	= STARPU_OPENCL;
+static const intptr_t fstarpu_starpu_mic	= STARPU_MIC;
+static const intptr_t fstarpu_starpu_scc	= STARPU_SCC;
+
+static const intptr_t fstarpu_starpu_codelet_simgrid_execute	= STARPU_CODELET_SIMGRID_EXECUTE;
+static const intptr_t fstarpu_starpu_cuda_async	= STARPU_CUDA_ASYNC;
+static const intptr_t fstarpu_starpu_opencl_async	= STARPU_OPENCL_ASYNC;
+
+
 intptr_t fstarpu_get_constant(char *s)
 {
 	if	(!strcmp(s, "FSTARPU_R"))	{ return fstarpu_r; }
@@ -128,6 +140,17 @@ intptr_t fstarpu_get_constant(char *s)
 	else if (!strcmp(s, "FSTARPU_SCHED_CTX_HIERARCHY_LEVEL"))	{ return fstarpu_sched_ctx_hierarchy_level; }
 	else if (!strcmp(s, "FSTARPU_SCHED_CTX_NESTED"))	{ return fstarpu_sched_ctx_nested; }
 	else if (!strcmp(s, "FSTARPU_SCHED_CTX_AWAKE_WORKERS"))	{ return fstarpu_sched_ctx_awake_workers; }
+
+	else if (!strcmp(s, "FSTARPU_NOWHERE"))	{ return fstarpu_starpu_nowhere; }
+	else if (!strcmp(s, "FSTARPU_CPU"))	{ return fstarpu_starpu_cpu; }
+	else if (!strcmp(s, "FSTARPU_CUDA"))	{ return fstarpu_starpu_cuda; }
+	else if (!strcmp(s, "FSTARPU_OPENCL"))	{ return fstarpu_starpu_opencl; }
+	else if (!strcmp(s, "FSTARPU_MIC"))	{ return fstarpu_starpu_mic; }
+	else if (!strcmp(s, "FSTARPU_SCC"))	{ return fstarpu_starpu_scc; }
+
+	else if (!strcmp(s, "FSTARPU_CODELET_SIMGRID_EXECUTE"))	{ return fstarpu_starpu_codelet_simgrid_execute; }
+	else if (!strcmp(s, "FSTARPU_CUDA_ASYNC"))	{ return fstarpu_starpu_cuda_async; }
+	else if (!strcmp(s, "FSTARPU_OPENCL_ASYNC"))	{ return fstarpu_starpu_opencl_async; }
 
 	else { _FSTARPU_ERROR("unknown constant"); }
 }
@@ -255,6 +278,21 @@ void fstarpu_codelet_add_cuda_func(struct starpu_codelet *cl, void *f_ptr)
 	_FSTARPU_ERROR("fstarpu: too many cuda functions in Fortran codelet");
 }
 
+void fstarpu_codelet_add_cuda_flags(struct starpu_codelet *cl, intptr_t flags)
+{
+	const size_t max_cuda_flags = sizeof(cl->cuda_flags)/sizeof(cl->cuda_flags[0])-1;
+	unsigned i;
+	for (i = 0; i < max_cuda_flags; i++)
+	{
+		if (cl->cuda_flags[i] == NULL)
+		{
+			cl->cuda_flags[i] = (char)flags;
+			return;
+		}
+	}
+	_FSTARPU_ERROR("fstarpu: too many cuda flags in Fortran codelet");
+}
+
 void fstarpu_codelet_add_opencl_func(struct starpu_codelet *cl, void *f_ptr)
 {
 	const size_t max_opencl_funcs = sizeof(cl->opencl_funcs)/sizeof(cl->opencl_funcs[0])-1;
@@ -268,6 +306,21 @@ void fstarpu_codelet_add_opencl_func(struct starpu_codelet *cl, void *f_ptr)
 		}
 	}
 	_FSTARPU_ERROR("fstarpu: too many opencl functions in Fortran codelet");
+}
+
+void fstarpu_codelet_add_opencl_flags(struct starpu_codelet *cl, intptr_t flags)
+{
+	const size_t max_opencl_flags = sizeof(cl->opencl_flags)/sizeof(cl->opencl_flags[0])-1;
+	unsigned i;
+	for (i = 0; i < max_opencl_flags; i++)
+	{
+		if (cl->opencl_flags[i] == NULL)
+		{
+			cl->opencl_flags[i] = (char)flags;
+			return;
+		}
+	}
+	_FSTARPU_ERROR("fstarpu: too many opencl flags in Fortran codelet");
 }
 
 void fstarpu_codelet_add_mic_func(struct starpu_codelet *cl, void *f_ptr)
@@ -335,6 +388,17 @@ void fstarpu_codelet_set_nbuffers(struct starpu_codelet *cl, int nbuffers)
 	{
 		_FSTARPU_ERROR("fstarpu: invalid nbuffers parameter");
 	}
+}
+
+void fstarpu_codelet_set_flags(struct starpu_codelet *cl, intptr_t flags)
+{
+	cl->flags = (int)flags;
+}
+
+void fstarpu_codelet_set_where(struct starpu_codelet *cl, intptr_t where)
+{
+	STARPU_ASSERT(where >= 0);
+	cl->where = (uint32_t)where;
 }
 
 void * fstarpu_variable_get_ptr(void *buffers[], int i)
