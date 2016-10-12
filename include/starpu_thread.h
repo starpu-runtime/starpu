@@ -63,7 +63,11 @@ typedef pthread_attr_t starpu_pthread_attr_t;
 #define starpu_pthread_create pthread_create
 #define starpu_pthread_create_on(name, thread, attr, routine, arg, where) starpu_pthread_create(thread, attr, routine, arg)
 #ifdef STARPU_HAVE_PTHREAD_SETNAME_NP
+#ifdef STARPU_HAVE_DARWIN
+#define starpu_pthread_setname(thread, name) pthread_setname_np(name)
+#else
 #define starpu_pthread_setname(thread, name) pthread_setname_np(thread, name)
+#endif
 #else
 #define starpu_pthread_setname(thread, name)
 #endif
