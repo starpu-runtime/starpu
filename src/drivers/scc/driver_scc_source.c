@@ -304,7 +304,7 @@ void *_starpu_scc_src_worker(void *arg)
 	{
 		char thread_name[16];
 		snprintf(thread_name, sizeof(thread_name), "SCC %d", devid);
-		starpu_pthread_setname(pthread_self(), thread_name);
+		starpu_pthread_setname(thread_name);
 	}
 
 	_STARPU_TRACE_WORKER_INIT_END(workerid);

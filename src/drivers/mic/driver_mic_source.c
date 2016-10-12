@@ -540,7 +540,7 @@ void *_starpu_mic_src_worker(void *arg)
 	{
 		char thread_name[16];
 		snprintf(thread_name, sizeof(thread_name), "MIC %d", devid);
-		starpu_pthread_setname(pthread_self(), thread_name);
+		starpu_pthread_setname(thread_name);
 	}
 
 	for (i = 0; i < worker_set->nworkers; i++)
