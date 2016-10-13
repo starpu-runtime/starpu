@@ -61,7 +61,7 @@ static void cl_params(struct starpu_task *task, double *parameters)
 void cpu_func(void *buffers[], void *cl_arg)
 {
 	long i;
-	double m,n,k;
+	int m,n,k;
 	starpu_codelet_unpack_args(cl_arg,
 			     	  &m,
      			     	  &n,
