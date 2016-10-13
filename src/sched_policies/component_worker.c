@@ -280,12 +280,6 @@ static inline struct starpu_task * _starpu_worker_task_list_pop(struct _starpu_w
 
 			l->ntasks--;
 
-			if(!isnan(task->predicted))
-			{
-				l->exp_len -= task->predicted_transfer;
-				l->exp_end = l->exp_start + l->exp_len;
-			}
-
 			return task;
 		}
 		t = t->up;
@@ -845,21 +839,34 @@ int starpu_sched_component_worker_get_workerid(struct starpu_sched_component * w
 
 void starpu_sched_component_worker_pre_exec_hook(struct starpu_task * task)
 {
-	if(!isnan(task->predicted))
+	double model = task->predicted;
+	double transfer_model = task->predicted_transfer;
+
+	if(!isnan(task->predicted) || !isnan(task->predicted_transfer))
 	{
 		unsigned sched_ctx_id = task->sched_ctx;
 		struct _starpu_worker_task_list * list = _worker_get_list(sched_ctx_id);
 		STARPU_PTHREAD_MUTEX_LOCK(&list->mutex);
 
-		list->exp_start = starpu_timing_now() + task->predicted;
+		list->exp_start = STARPU_MAX(starpu_timing_now(), list->exp_start);
 
-		if(list->ntasks == 0)
+		/* The transfer is over, get rid of it in the completion
+		 * prediction */
+		if (!isnan(transfer_model))
+			list->exp_len -= transfer_model;
+
+		if (!isnan(model))
 		{
-			list->exp_end = list->exp_start;
-			list->exp_len = 0.0;
+			/* We now start the computation, get rid of it in the
+			 * completion prediction */
+			list->exp_len -= model;
+			list->exp_start += model;
 		}
-		else
-			list->exp_end = list->exp_start + list->exp_len;
+		
+		if(list->ntasks == 0)
+			list->exp_len = 0.0;
+
+		list->exp_end = list->exp_start + list->exp_len;
 		STARPU_PTHREAD_MUTEX_UNLOCK(&list->mutex);
 	}
 }
