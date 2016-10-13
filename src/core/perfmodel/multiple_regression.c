@@ -258,14 +258,6 @@ int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, doubl
 {
         long i;
 	unsigned j;
-#ifndef STARPU_MLR_MODEL
-	_STARPU_DISP("Warning: StarPU was compiled with '--disable-mlr' option or on Windows machine, thus multiple linear regression model will not be computed.\n");
-	if (ncoeff==0 || combinations==NULL)
-		return 2;
-	for(i=0; i<ncoeff; i++)
-		coeff[i] = 0.;
-	return 1;
-#endif //STARPU_MLR_MODEL
 	
 	/* Computing number of rows */
 	long n=find_long_list_size(ptr);
@@ -315,11 +307,14 @@ int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, doubl
 #ifdef STARPU_MLR_MODEL
 		/* Computing coefficients using multiple linear regression */
 		if(dgels_multiple_reg_coeff(mpar, my, n, ncoeff, nparameters, coeff, combinations))
-		return 1;
-#endif //STARPU_MLR_MODEL
-
+			return 1;
 		/* Basic validation of the model accuracy */
 		validate(coeff, ncoeff, codelet_name);
+#else
+		_STARPU_DISP("Warning: StarPU was compiled with '--disable-mlr' option or on Windows machine, thus multiple linear regression model will not be computed.\n");
+		for(i=0; i<ncoeff; i++)
+			coeff[i] = 0.;
+#endif //STARPU_MLR_MODEL
 	}
 	
 	/* Preparing new output calibration file */
