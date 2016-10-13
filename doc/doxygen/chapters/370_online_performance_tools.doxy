@@ -417,7 +417,7 @@ function, which should be defined by the user. \f$\alpha, \beta,
 are computed automatically at the end of the execution, using least
 squares method of the <c>dgels_</c> LAPACK function.
 
-<c>examples/basic_examples/mlr.c</c> example provides more details on
+<c>examples/mlr/mlr.c</c> example provides more details on
 the usage of ::STARPU_MULTIPLE_REGRESSION_BASED models.
 
 Coefficients computation is done at the end of the execution, and the
