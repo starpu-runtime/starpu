@@ -60,6 +60,7 @@ void * message_from_ui(void * p)
 {
 	(void) p;
 	char str[STARPU_TOP_BUFFER_SIZE];
+	starpu_pthread_setname("starpu_top_message_from_ui");
 	while(1)
 	{
 		char * check=fgets (str, STARPU_TOP_BUFFER_SIZE, starpu_top_socket_fd_read);
@@ -85,6 +86,7 @@ static
 void * message_to_ui(void * p)
 {
 	(void) p;
+	starpu_pthread_setname("starpu_top_message_to_ui");
 	while(1)
 	{
 		char* message = _starpu_top_message_remove(_starpu_top_mt);

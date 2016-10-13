@@ -134,6 +134,9 @@ void _starpu_fxt_init_profiling(unsigned trace_buffer_size)
 {
 	unsigned threadid;
 
+	if (!starpu_get_env_number_default("STARPU_FXT_TRACE", 1))
+		return;
+
 	STARPU_PTHREAD_MUTEX_LOCK(&_starpu_fxt_started_mutex);
 	if (!_starpu_fxt_started)
 	{
@@ -189,6 +192,8 @@ static void _starpu_generate_paje_trace(char *input_fxt_filename, char *output_p
 
 void _starpu_stop_fxt_profiling(void)
 {
+	if (!_starpu_fxt_started)
+		return;
 	if (!_starpu_written)
 	{
 #ifdef STARPU_VERBOSE

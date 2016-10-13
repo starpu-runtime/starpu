@@ -217,6 +217,7 @@ int _starpu_cpu_driver_init(struct _starpu_worker *cpu_worker)
 
 	snprintf(cpu_worker->name, sizeof(cpu_worker->name), "CPU %d", devid);
 	snprintf(cpu_worker->short_name, sizeof(cpu_worker->short_name), "CPU %d", devid);
+	starpu_pthread_setname(cpu_worker->short_name);
 
 	_STARPU_TRACE_WORKER_INIT_END(cpu_worker->workerid);
 

@@ -51,6 +51,7 @@ struct _starpu_dmda_data
 
 	long int total_task_cnt;
 	long int ready_task_cnt;
+	long int eager_task_cnt; /* number of tasks scheduled without model */
 	int num_priorities;
 };
 
@@ -574,6 +575,9 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio, unsigned sched
 		best = ntasks_best;
 		model_best = 0.0;
 		transfer_model_best = 0.0;
+#ifdef STARPU_VERBOSE
+		dt->eager_task_cnt++;
+#endif
 	}
 
 	//_STARPU_DEBUG("Scheduler dm: kernel (%u)\n", best_impl);
@@ -758,6 +762,13 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 
 	*forced_worker = unknown?ntasks_best:-1;
 	*forced_impl = unknown?nimpl_best:-1;
+
+#ifdef STARPU_VERBOSE
+	if (unknown)
+	{
+		dt->eager_task_cnt++;
+	}
+#endif
 
 	*best_exp_endp = best_exp_end;
 	*max_exp_endp = max_exp_end;
@@ -1041,8 +1052,21 @@ static void initialize_dmda_sorted_policy(unsigned sched_ctx_id)
 static void deinitialize_dmda_policy(unsigned sched_ctx_id)
 {
 	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-
-	_STARPU_DEBUG("total_task_cnt %ld ready_task_cnt %ld -> %f\n", dt->total_task_cnt, dt->ready_task_cnt, (100.0f*dt->ready_task_cnt)/dt->total_task_cnt);
+#if STARPU_VERBOSE
+	{
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+	long int modelled_task_cnt = dt->total_task_cnt - dt->eager_task_cnt;
+	_STARPU_DEBUG("%s sched policy (sched_ctx %u): total_task_cnt %ld ready_task_cnt %ld (%.1f%%), modelled_task_cnt = %ld (%.1f%%)%s\n",
+		sched_ctx->sched_policy?sched_ctx->sched_policy->policy_name:"<none>",
+		sched_ctx_id,
+		dt->total_task_cnt,
+		dt->ready_task_cnt,
+		(100.0f*dt->ready_task_cnt)/dt->total_task_cnt,
+		modelled_task_cnt,
+		(100.0f*modelled_task_cnt)/dt->total_task_cnt,
+		modelled_task_cnt==0?" *** Check if performance models are enabled and converging on a per-codelet basis, or use an non-modeling scheduling policy. ***":"");
+	}
+#endif
 
 	free(dt->queue_array);
 	free(dt);

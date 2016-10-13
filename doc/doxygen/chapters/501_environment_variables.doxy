@@ -637,6 +637,13 @@ This variable specifies in which file the debugging output should be saved to.
 This variable specifies in which directory to save the trace generated if FxT is enabled. It needs to have a trailing '/' character.
 </dd>
 
+<dt>STARPU_FXT_TRACE</dt>
+<dd>
+\anchor STARPU_FXT_TRACE
+\addindex __env__STARPU_FXT_TRACE
+This variable specifies whether to generate (1) or not (0) the FxT trace in /tmp/prof_file_XXX_YYY . The default is 1 (generate it)
+</dd>
+
 <dt>STARPU_LIMIT_CUDA_devid_MEM</dt>
 <dd>
 \anchor STARPU_LIMIT_CUDA_devid_MEM

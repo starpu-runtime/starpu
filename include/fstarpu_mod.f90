@@ -74,6 +74,17 @@ module fstarpu_mod
         type(c_ptr), bind(C) :: FSTARPU_SCHED_CTX_POLICY_INIT
         type(c_ptr), bind(C) :: FSTARPU_SCHED_CTX_USER_DATA
 
+        type(c_ptr), bind(C) :: FSTARPU_NOWHERE
+        type(c_ptr), bind(C) :: FSTARPU_CPU
+        type(c_ptr), bind(C) :: FSTARPU_CUDA
+        type(c_ptr), bind(C) :: FSTARPU_OPENCL
+        type(c_ptr), bind(C) :: FSTARPU_MIC
+        type(c_ptr), bind(C) :: FSTARPU_SCC
+
+        type(c_ptr), bind(C) :: FSTARPU_CODELET_SIMGRID_EXECUTE
+        type(c_ptr), bind(C) :: FSTARPU_CUDA_ASYNC
+        type(c_ptr), bind(C) :: FSTARPU_OPENCL_ASYNC
+
         ! (some) portable iso_c_binding types
         type(c_ptr), bind(C) :: FSTARPU_SZ_C_DOUBLE
         type(c_ptr), bind(C) :: FSTARPU_SZ_C_FLOAT
@@ -655,11 +666,23 @@ module fstarpu_mod
                         type(c_funptr), value, intent(in) :: f_ptr
                 end subroutine fstarpu_codelet_add_cuda_func
 
+                subroutine fstarpu_codelet_add_cuda_flags (cl, flags) bind(C)
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), value, intent(in) :: cl
+                        type(c_ptr), value, intent(in) :: flags ! C function expects an intptr_t
+                end subroutine fstarpu_codelet_add_cuda_flags
+
                 subroutine fstarpu_codelet_add_opencl_func (cl, f_ptr) bind(C)
                         use iso_c_binding, only: c_ptr, c_funptr
                         type(c_ptr), value, intent(in) :: cl
                         type(c_funptr), value, intent(in) :: f_ptr
                 end subroutine fstarpu_codelet_add_opencl_func
+
+                subroutine fstarpu_codelet_add_opencl_flags (cl, flags) bind(C)
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), value, intent(in) :: cl
+                        type(c_ptr), value, intent(in) :: flags ! C function expects an intptr_t
+                end subroutine fstarpu_codelet_add_opencl_flags
 
                 subroutine fstarpu_codelet_add_mic_func (cl, f_ptr) bind(C)
                         use iso_c_binding, only: c_ptr, c_funptr
@@ -689,6 +712,18 @@ module fstarpu_mod
                         type(c_ptr), value, intent(in) :: cl
                         integer(c_int), value, intent(in) :: nbuffers
                 end subroutine fstarpu_codelet_set_nbuffers
+
+                subroutine fstarpu_codelet_set_flags (cl, flags) bind(C)
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), value, intent(in) :: cl
+                        type(c_ptr), value, intent(in) :: flags ! C function expects an intptr_t
+                end subroutine fstarpu_codelet_set_flags
+
+                subroutine fstarpu_codelet_set_where (cl, where) bind(C)
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), value, intent(in) :: cl
+                        type(c_ptr), value, intent(in) :: where ! C function expects an intptr_t
+                end subroutine fstarpu_codelet_set_where
 
                 ! == starpu_data_interface.h ==
 
@@ -2281,6 +2316,26 @@ module fstarpu_mod
                             fstarpu_get_constant(C_CHAR_"FSTARPU_SCHED_CTX_POLICY_INIT"//C_NULL_CHAR)
                         FSTARPU_SCHED_CTX_USER_DATA    = &
                             fstarpu_get_constant(C_CHAR_"FSTARPU_SCHED_CTX_USER_DATA"//C_NULL_CHAR)
+
+                        FSTARPU_NOWHERE = &
+                            fstarpu_get_constant(C_CHAR_"FSTARPU_NOWHERE"//C_NULL_CHAR)
+                        FSTARPU_CPU = &
+                            fstarpu_get_constant(C_CHAR_"FSTARPU_CPU"//C_NULL_CHAR)
+                        FSTARPU_CUDA = &
+                            fstarpu_get_constant(C_CHAR_"FSTARPU_CUDA"//C_NULL_CHAR)
+                        FSTARPU_OPENCL = &
+                            fstarpu_get_constant(C_CHAR_"FSTARPU_OPENCL"//C_NULL_CHAR)
+                        FSTARPU_MIC = &
+                            fstarpu_get_constant(C_CHAR_"FSTARPU_MIC"//C_NULL_CHAR)
+                        FSTARPU_SCC = &
+                            fstarpu_get_constant(C_CHAR_"FSTARPU_SCC"//C_NULL_CHAR)
+
+                        FSTARPU_CODELET_SIMGRID_EXECUTE = &
+                            fstarpu_get_constant(C_CHAR_"FSTARPU_CODELET_SIMGRID_EXECUTE"//C_NULL_CHAR)
+                        FSTARPU_CUDA_ASYNC = &
+                            fstarpu_get_constant(C_CHAR_"FSTARPU_CUDA_ASYNC"//C_NULL_CHAR)
+                        FSTARPU_OPENCL_ASYNC = &
+                            fstarpu_get_constant(C_CHAR_"FSTARPU_OPENCL_ASYNC"//C_NULL_CHAR)
 
                         ! Initialize size constants as 'c_ptr'
                         FSTARPU_SZ_C_DOUBLE        = sz_to_p(c_sizeof(FSTARPU_SZ_C_DOUBLE_dummy))

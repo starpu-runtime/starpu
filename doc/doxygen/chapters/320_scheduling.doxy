@@ -8,9 +8,9 @@
 
 /*! \page Scheduling Scheduling
 
-\section TaskSchedulingPolicy Task Scheduling Policy
+\section TaskSchedulingPolicy Task Scheduling Policies
 
-The basics of the scheduling policy are that
+The basics of the scheduling policy are that:
 
 <ul>
 <li>The scheduler gets to schedule tasks (<c>push</c> operation) when they become
@@ -24,18 +24,18 @@ store them between the time when they become available, and the time when a
 worker gets to grab them.
 
 By default, StarPU uses the simple greedy scheduler <c>eager</c>. This is
-because it provides correct load balance even if the application codelets do not
-have performance models. If your application codelets have performance models
-(\ref PerformanceModelExample), you should change the scheduler thanks
-to the environment variable \ref STARPU_SCHED. For instance <c>export
-STARPU_SCHED=dmda</c> . Use <c>help</c> to get the list of available schedulers.
+because it provides correct load balance even if the application codelets do
+not have performance models. Other non-modelling scheduling policies can be
+selected among the list below, thanks to the environment variable \ref
+STARPU_SCHED. For instance <c>export STARPU_SCHED=dmda</c> . Use <c>help</c> to
+get the list of available schedulers.
+
+
+<b>Non Performance Modelling Policies:</b>
 
 The <b>eager</b> scheduler uses a central task queue, from which all workers draw tasks
 to work on concurrently. This however does not permit to prefetch data since the scheduling
 decision is taken late. If a task has a non-0 priority, it is put at the front of the queue.
-
-The <b>prio</b> scheduler also uses a central task queue, but sorts tasks by
-priority (between -5 and 5).
 
 The <b>random</b> scheduler uses a queue per worker, and distributes tasks randomly according to assumed worker
 overall performance.
@@ -50,7 +50,34 @@ a task on the worker which released it by
 default. When a worker becomes idle, it steals a task from neighbour workers. It
 also takes into account priorities.
 
-The <b>dm</b> (deque model) scheduler uses task execution performance models into account to
+The <b>prio</b> scheduler also uses a central task queue, but sorts tasks by
+priority specified by the programmer (between -5 and 5).
+
+\section DMTaskSchedulingPolicy Performance Model-Based Task Scheduling Policies
+
+If (<b>and only if</b>) your application <b>codelets have performance models</b> (\ref
+PerformanceModelExample), you should change the scheduler thanks to the
+environment variable \ref STARPU_SCHED, to select one of the policies below, in
+order to take advantage of StarPU's performance modelling. For instance
+<c>export STARPU_SCHED=dmda</c> . Use <c>help</c> to get the list of available
+schedulers.
+
+<b>Note:</B> Depending on the performance model type chosen, some preliminary
+calibration runs may be needed for the model to converge. If the calibration
+has not been done, or is insufficient yet, or if no performance model is
+specified for a codelet, every task built from this codelet will be scheduled
+using an <b>eager</b> fallback policy.
+
+<b>Troubleshooting:</b> Configuring and recompiling StarPU using the
+<c>--enable-verbose</c> configure flag displays some statistics at the end of
+execution about the percentage of tasks that have been scheduled by a DM*
+family policy using performance model hints. A low or zero percentage may be
+the sign that performance models are not converging or that codelets do not
+have performance models enabled.
+
+<b>Performance Modelling Policies:</b>
+
+The <b>dm</b> (deque model) scheduler takes task execution performance models into account to
 perform a HEFT-similar scheduling strategy: it schedules tasks where their
 termination time will be minimal. The difference with HEFT is that <b>dm</b>
 schedules tasks as soon as they become available, and thus in the order they

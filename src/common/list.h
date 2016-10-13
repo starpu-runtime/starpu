@@ -15,6 +15,9 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#ifndef __LIST_H__
+#define __LIST_H__
+
 /** @file
  * @brief Listes doublement chainées automatiques
  */
@@ -193,3 +196,109 @@
     { if ((i->_next == NULL) && i != l->_tail) return 0; \
       if (i->_next == i) return 0; \
       i=i->_next;} return 1; }
+
+
+#ifdef STARPU_DEBUG
+#define STARPU_ASSERT_MULTILIST(expr) STARPU_ASSERT(expr)
+#else
+#define STARPU_ASSERT_MULTILIST(expr) ((void) 0)
+#endif
+
+/*
+ * This is an implementation of list allowing to be member of several lists.
+ * - One should first call MULTILIST_CREATE_TYPE for the ENAME and for each
+ *   MEMBER type
+ * - Then the main element type should include fields of type
+ *   ENAME_multilist_MEMBER
+ * - Then one should call MULTILIST_CREATE_INLINES to create the inlines which
+ *   manipulate lists for this MEMBER type.
+ */
+
+/* Create the ENAME_multilist_MEMBER, to be used both as head and as member of main element type */
+#define MULTILIST_CREATE_TYPE(ENAME, MEMBER) \
+struct ENAME##_multilist_##MEMBER { \
+	struct ENAME##_multilist_##MEMBER *next; \
+	struct ENAME##_multilist_##MEMBER *prev; \
+};
+
+/* Create the inlines */
+#define MULTILIST_CREATE_INLINES(TYPE, ENAME, MEMBER) \
+/* Cast from list element to real type.  */ \
+static inline TYPE *ENAME##_of_multilist_##MEMBER(struct ENAME##_multilist_##MEMBER *elt) { \
+	return ((TYPE *) ((uintptr_t) (elt) - ((uintptr_t) (&((TYPE *) 0)->MEMBER)))); \
+} \
+\
+/* Initialize a list head.  */ \
+static inline void ENAME##_multilist_init_##MEMBER(struct ENAME##_multilist_##MEMBER *head) { \
+	head->next = head; \
+	head->prev = head; \
+} \
+\
+/* Push element to head of a list.  */ \
+static inline void ENAME##_multilist_push_front_##MEMBER(struct ENAME##_multilist_##MEMBER *head, TYPE *e) { \
+	STARPU_ASSERT_MULTILIST(e->MEMBER.prev == NULL); \
+	STARPU_ASSERT_MULTILIST(e->MEMBER.next == NULL); \
+	e->MEMBER.next = head->next; \
+	e->MEMBER.prev = head; \
+	head->next->prev = &e->MEMBER; \
+	head->next = &e->MEMBER; \
+} \
+\
+/* Push element to tail of a list.  */ \
+static inline void ENAME##_multilist_push_back_##MEMBER(struct ENAME##_multilist_##MEMBER *head, TYPE *e) { \
+	STARPU_ASSERT_MULTILIST(e->MEMBER.prev == NULL); \
+	STARPU_ASSERT_MULTILIST(e->MEMBER.next == NULL); \
+	e->MEMBER.prev = head->prev; \
+	e->MEMBER.next = head; \
+	head->prev->next = &e->MEMBER; \
+	head->prev = &e->MEMBER; \
+} \
+\
+/* Erase element from a list.  */ \
+static inline void ENAME##_multilist_erase_##MEMBER(struct ENAME##_multilist_##MEMBER *head STARPU_ATTRIBUTE_UNUSED, TYPE *e) { \
+	STARPU_ASSERT_MULTILIST(e->MEMBER.next->prev == &e->MEMBER); \
+	e->MEMBER.next->prev = e->MEMBER.prev; \
+	STARPU_ASSERT_MULTILIST(e->MEMBER.prev->next == &e->MEMBER); \
+	e->MEMBER.prev->next = e->MEMBER.next; \
+	e->MEMBER.next = NULL; \
+	e->MEMBER.prev = NULL; \
+} \
+\
+/* Test whether the element was queued on the list.  */ \
+static inline int ENAME##_multilist_queued_##MEMBER(TYPE *e) { \
+	return ((e)->MEMBER.next != NULL); \
+} \
+\
+/* Test whether the list is empty.  */ \
+static inline int ENAME##_multilist_empty_##MEMBER(struct ENAME##_multilist_##MEMBER *head) { \
+	return head->next != head; \
+} \
+\
+/* Return the first element of the list.  */ \
+static inline TYPE *ENAME##_multilist_begin_##MEMBER(struct ENAME##_multilist_##MEMBER *head) { \
+	return ENAME##_of_multilist_##MEMBER(head->next); \
+} \
+/* Return the value to be tested at the end of the list.  */ \
+static inline TYPE *ENAME##_multilist_end_##MEMBER(struct ENAME##_multilist_##MEMBER *head) { \
+	return ENAME##_of_multilist_##MEMBER(head); \
+} \
+/* Return the next element of the list.  */ \
+static inline TYPE *ENAME##_multilist_next_##MEMBER(TYPE *e) { \
+	return ENAME##_of_multilist_##MEMBER(e->MEMBER.next); \
+} \
+\
+ /* Move a list from its head to another head.  */ \
+static inline void ENAME##_multilist_move_##MEMBER(struct ENAME##_multilist_##MEMBER *head, struct ENAME##_multilist_##MEMBER *newhead) { \
+	if (ENAME##_multilist_empty_##MEMBER(head)) \
+		ENAME##_multilist_init_##MEMBER(newhead); \
+	else { \
+		newhead->next = head->next; \
+		newhead->next->prev = newhead; \
+		newhead->prev = head->prev; \
+		newhead->prev->next = newhead; \
+		head->next = head; \
+		head->prev = head; \
+	} \
+}
+
+#endif /* __LIST_H__ */

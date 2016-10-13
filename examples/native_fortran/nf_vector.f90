@@ -57,6 +57,9 @@ program nf_vector
         ! add a CPU implementation function to the codelet
         call fstarpu_codelet_add_cpu_func(cl_vec, C_FUNLOC(cl_cpu_func_vec))
 
+        ! optionally set 'where' field to CPU only
+        call fstarpu_codelet_set_where(cl_vec, FSTARPU_CPU)
+
         ! add a Read-only mode data buffer to the codelet
         call fstarpu_codelet_add_buffer(cl_vec, FSTARPU_R)
 

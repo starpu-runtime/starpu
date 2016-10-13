@@ -213,10 +213,10 @@ static void initialize_heteroprio_policy(unsigned sched_ctx_id)
 	for(idx_prio = 0; idx_prio < STARPU_HETEROPRIO_MAX_PRIO; ++idx_prio)
 		_heteroprio_bucket_init(&hp->buckets[idx_prio]);
 
-	void (*init_sched)(void) = starpu_sched_ctx_get_sched_policy_init(sched_ctx_id);
+	void (*init_sched)(unsigned) = starpu_sched_ctx_get_sched_policy_init(sched_ctx_id);
 
 	if(init_sched)
-		init_sched();
+		init_sched(sched_ctx_id);
 	else
 		default_init_sched(sched_ctx_id);
 

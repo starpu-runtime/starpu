@@ -2577,7 +2577,7 @@ int starpu_sched_ctx_get_worker_rank(unsigned sched_ctx_id)
 	return -1;
 }
 
-void (*starpu_sched_ctx_get_sched_policy_init(unsigned sched_ctx_id))(void)
+void (*starpu_sched_ctx_get_sched_policy_init(unsigned sched_ctx_id))(unsigned)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	return sched_ctx->init_sched;

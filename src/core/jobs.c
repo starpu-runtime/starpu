@@ -38,7 +38,7 @@ static int njobs, maxnjobs;
 
 #ifdef STARPU_DEBUG
 /* List of all jobs, for debugging */
-static struct _starpu_job_list all_jobs_list;
+static struct _starpu_job_multilist_all_submitted all_jobs_list;
 static starpu_pthread_mutex_t all_jobs_list_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 #endif
 
@@ -46,7 +46,7 @@ void _starpu_job_init(void)
 {
 	max_memory_use = starpu_get_env_number_default("STARPU_MAX_MEMORY_USE", 0);
 #ifdef STARPU_DEBUG
-	_starpu_job_list_init(&all_jobs_list);
+	_starpu_job_multilist_init_all_submitted(&all_jobs_list);
 #endif
 }
 
@@ -148,7 +148,7 @@ void _starpu_job_destroy(struct _starpu_job *j)
 		j->dyn_dep_slots = NULL;
 	}
 
-	if (_starpu_graph_record)
+	if (_starpu_graph_record && j->graph_node)
 		_starpu_graph_drop_job(j);
 
 	if (max_memory_use)
@@ -255,7 +255,7 @@ void _starpu_handle_job_submission(struct _starpu_job *j)
 
 #ifdef STARPU_DEBUG
 	STARPU_PTHREAD_MUTEX_LOCK(&all_jobs_list_mutex);
-	_starpu_job_list_push_back(&all_jobs_list, j, all_submitted);
+	_starpu_job_multilist_push_back_all_submitted(&all_jobs_list, j);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&all_jobs_list_mutex);
 #endif
 }
@@ -275,7 +275,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 
 #ifdef STARPU_DEBUG
 	STARPU_PTHREAD_MUTEX_LOCK(&all_jobs_list_mutex);
-	_starpu_job_list_erase(&all_jobs_list, j, all_submitted);
+	_starpu_job_multilist_erase_all_submitted(&all_jobs_list, j);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&all_jobs_list_mutex);
 #endif
 
@@ -334,6 +334,30 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 		/* Tell other tasks that we don't exist any more, thus no need for
 		 * implicit dependencies any more.  */
 		_starpu_release_task_enforce_sequential_consistency(j);
+	}
+
+	/* If the job was executed on a combined worker there is no need for the
+	 * scheduler to process it : the task structure doesn't contain any valuable
+	 * data as it's not linked to an actual worker */
+	/* control task should not execute post_exec_hook */
+	if(j->task_size == 1 && task->cl != NULL && task->cl->where != STARPU_NOWHERE && !j->internal
+#ifdef STARPU_OPENMP
+	/* If this is a continuation, we do not execute the post_exec_hook. The
+	 * post_exec_hook will be run only when the continued task fully
+	 * completes.
+	 *
+	 * Note: If needed, a specific hook could be added to handle stopped
+	 * tasks */
+	&& !continuation
+#endif
+			)
+	{
+		_starpu_sched_post_exec_hook(task);
+#ifdef STARPU_USE_SC_HYPERVISOR
+		int workerid = starpu_worker_get_id();
+		_starpu_sched_ctx_post_exec_task_cb(workerid, task, data_size, j->footprint);
+#endif //STARPU_USE_SC_HYPERVISOR
+
 	}
 
 	/* Remove ourself from the graph before notifying dependencies */
@@ -402,30 +426,6 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 			if (profiling && task->profiling_info)
 				_starpu_clock_gettime(&task->profiling_info->callback_end_time);
 		}
-	}
-
-	/* If the job was executed on a combined worker there is no need for the
-	 * scheduler to process it : the task structure doesn't contain any valuable
-	 * data as it's not linked to an actual worker */
-	/* control task should not execute post_exec_hook */
-	if(j->task_size == 1 && task->cl != NULL && task->cl->where != STARPU_NOWHERE && !j->internal
-#ifdef STARPU_OPENMP
-	/* If this is a continuation, we do not execute the post_exec_hook. The
-	 * post_exec_hook will be run only when the continued task fully
-	 * completes.
-	 *
-	 * Note: If needed, a specific hook could be added to handle stopped
-	 * tasks */
-	&& !continuation
-#endif
-			)
-	{
-		_starpu_sched_post_exec_hook(task);
-#ifdef STARPU_USE_SC_HYPERVISOR
-		int workerid = starpu_worker_get_id();
-		_starpu_sched_ctx_post_exec_task_cb(workerid, task, data_size, j->footprint);
-#endif //STARPU_USE_SC_HYPERVISOR
-
 	}
 
 	/* Note: For now, we keep the TASK_DONE trace event for continuation,

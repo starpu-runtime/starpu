@@ -658,6 +658,11 @@ int _starpu_cuda_driver_init(struct _starpu_worker_set *worker_set)
 
 		_STARPU_TRACE_WORKER_INIT_END(workerid);
 	}
+	{
+		char thread_name[16];
+		snprintf(thread_name, sizeof(thread_name), "CUDA %u", worker0->devid);
+		starpu_pthread_setname(thread_name);
+	}
 
 	/* tell the main thread that this one is ready */
 	STARPU_PTHREAD_MUTEX_LOCK(&worker0->mutex);

@@ -25,7 +25,7 @@
 
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 
-void initSchedulerCallback()
+void initSchedulerCallback(unsigned sched_ctx)
 {
 	// CPU uses 3 buckets
 #ifdef STARPU_USE_CPU
@@ -36,28 +36,28 @@ void initSchedulerCallback()
 		unsigned idx;
 		for(idx = 0; idx < 3; ++idx)
 		{
-			starpu_heteroprio_set_mapping(0, STARPU_CPU_IDX, idx, idx);
-			starpu_heteroprio_set_faster_arch(0, STARPU_CPU_IDX, idx);
+			starpu_heteroprio_set_mapping(sched_ctx, STARPU_CPU_IDX, idx, idx);
+			starpu_heteroprio_set_faster_arch(sched_ctx, STARPU_CPU_IDX, idx);
 		}
 	}
 #endif
 #ifdef STARPU_USE_OPENCL
 	// OpenCL is enabled and uses 2 buckets
-	starpu_heteroprio_set_nb_prios(0, STARPU_OPENCL_IDX, 2);
+	starpu_heteroprio_set_nb_prios(sched_ctx, STARPU_OPENCL_IDX, 2);
 	// OpenCL will first look to priority 2
 	int prio2 = starpu_cpu_worker_get_count() ? 2 : 1;
-	starpu_heteroprio_set_mapping(0, STARPU_OPENCL_IDX, 0, prio2);
+	starpu_heteroprio_set_mapping(sched_ctx, STARPU_OPENCL_IDX, 0, prio2);
 	// For this bucket OpenCL is the fastest
-	starpu_heteroprio_set_faster_arch(0, STARPU_OPENCL_IDX, prio2);
+	starpu_heteroprio_set_faster_arch(sched_ctx, STARPU_OPENCL_IDX, prio2);
 	// And CPU is 4 times slower
 #ifdef STARPU_USE_CPU
-	starpu_heteroprio_set_arch_slow_factor(0, STARPU_CPU_IDX, 2, 4.0f);
+	starpu_heteroprio_set_arch_slow_factor(sched_ctx, STARPU_CPU_IDX, 2, 4.0f);
 #endif
 
 	int prio1 = starpu_cpu_worker_get_count() ? 1 : 0;
-	starpu_heteroprio_set_mapping(0, STARPU_OPENCL_IDX, 1, prio1);
+	starpu_heteroprio_set_mapping(sched_ctx, STARPU_OPENCL_IDX, 1, prio1);
 	// We let the CPU as the fastest and tell that OpenCL is 1.7 times slower
-	starpu_heteroprio_set_arch_slow_factor(0, STARPU_OPENCL_IDX, prio1, 1.7f);
+	starpu_heteroprio_set_arch_slow_factor(sched_ctx, STARPU_OPENCL_IDX, prio1, 1.7f);
 #endif
 }
 
