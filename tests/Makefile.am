@@ -355,7 +355,9 @@ examplebin_PROGRAMS = \
 examplebin_SCRIPTS = \
 	microbenchs/tasks_size_overhead.gp \
 	microbenchs/tasks_size_overhead.sh
+if !STARPU_SIMGRID
 TESTS += microbenchs/tasks_size_overhead_scheds.sh
+endif
 
 if STARPU_HAVE_WINDOWS
 check_PROGRAMS	=	$(myPROGRAMS)
