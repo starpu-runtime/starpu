@@ -22,6 +22,7 @@ New features:
   * New scheduler with heterogeneous priorities
   * Support priorities for data transfers.
   * Add support for Ayudame version 2.x debugging library.
+  * Add support for multiple linear regression performance models
 
 Small features:
   * Scheduling contexts may now be associated a user data pointer at creation
