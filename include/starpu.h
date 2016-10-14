@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009-2014, 2016  Université de Bordeaux
  * Copyright (C) 2010-2015  CNRS
- * Copyright (C) 2014  INRIA
+ * Copyright (C) 2014, 2016  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -90,6 +90,7 @@ struct starpu_conf
 	int nopencl;
 	int nmic;
 	int nscc;
+    int nmpi_ms;
 
 	unsigned use_explicit_workers_bindid;
 	unsigned workers_bindid[STARPU_NMAXWORKERS];
@@ -105,6 +106,9 @@ struct starpu_conf
 
 	unsigned use_explicit_workers_scc_deviceid;
 	unsigned workers_scc_deviceid[STARPU_NMAXWORKERS];
+
+	unsigned use_explicit_workers_mpi_deviceid;
+	unsigned workers_mpi_deviceid[STARPU_NMAXWORKERS];
 
 	int bus_calibrate;
 	int calibrate;

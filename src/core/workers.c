@@ -36,6 +36,7 @@
 #include <top/starpu_top_core.h>
 #include <drivers/mp_common/sink_common.h>
 #include <drivers/scc/driver_scc_common.h>
+#include <drivers/mpi/driver_mpi_common.h>
 
 #include <drivers/cpu/driver_cpu.h>
 #include <drivers/cuda/driver_cuda.h>
@@ -632,7 +633,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 	{
 		struct _starpu_worker *workerarg = &pconfig->workers[worker];
 		unsigned devid = workerarg->devid;
-#if defined(STARPU_USE_MIC) || defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
+#if defined(STARPU_USE_MIC) || defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID) || defined(STARPU_USE_MPI_MASTER_SLAVE)
 		struct _starpu_worker_set *worker_set = workerarg->set;
 #endif
 
@@ -797,7 +798,44 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
 #endif
 				break;
+#endif /* STARPU_USE_SCC */
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+			case STARPU_MPI_WORKER:
+				/* We spawn only one thread
+				 * per MPI device, which will control all MPI
+				 * workers of this device. (by using a worker set). */
+				if (worker_set->workers != workerarg)
+					break;
+
+				worker_set->nworkers = pconfig->topology.nmpicores[devid];
+
+				worker_set->set_is_initialized = 0;
+
+				STARPU_PTHREAD_CREATE_ON(
+						workerarg->name,
+						&worker_set->worker_thread,
+						NULL,
+						_starpu_mpi_src_worker,
+						worker_set,
+						_starpu_simgrid_get_host_by_worker(workerarg));
+
+#ifdef STARPU_USE_FXT
+				STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
+				while (!workerarg->worker_is_running)
+					STARPU_PTHREAD_COND_WAIT(&workerarg->started_cond, &workerarg->mutex);
+				STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
 #endif
+
+				STARPU_PTHREAD_MUTEX_LOCK(&worker_set->mutex);
+				while (!worker_set->set_is_initialized)
+					STARPU_PTHREAD_COND_WAIT(&worker_set->ready_cond,
+								  &worker_set->mutex);
+				STARPU_PTHREAD_MUTEX_UNLOCK(&worker_set->mutex);
+
+				worker_set->started = 1;
+
+				break;
+#endif /* STARPU_USE_MPI_MASTER_SLAVE */
 
 			default:
 				STARPU_ABORT();
@@ -858,6 +896,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				break;
 #endif
 			case STARPU_MIC_WORKER:
+            case STARPU_MPI_WORKER:
 				/* Already waited above */
 				break;
 			case STARPU_SCC_WORKER:
@@ -900,6 +939,7 @@ int starpu_conf_init(struct starpu_conf *conf)
 	conf->nopencl = starpu_get_env_number("STARPU_NOPENCL");
 	conf->nmic = starpu_get_env_number("STARPU_NMIC");
 	conf->nscc = starpu_get_env_number("STARPU_NSCC");
+	conf->nmpi_ms = starpu_get_env_number("STARPU_NMPI_MS");
 	conf->calibrate = starpu_get_env_number("STARPU_CALIBRATE");
 	conf->bus_calibrate = starpu_get_env_number("STARPU_BUS_CALIBRATE");
 	conf->mic_sink_program_path = starpu_getenv("STARPU_MIC_PROGRAM_PATH");
@@ -915,6 +955,7 @@ int starpu_conf_init(struct starpu_conf *conf)
 	conf->use_explicit_workers_opencl_gpuid = 0; /* TODO */
 	conf->use_explicit_workers_mic_deviceid = 0; /* TODO */
 	conf->use_explicit_workers_scc_deviceid = 0; /* TODO */
+	conf->use_explicit_workers_mpi_deviceid = 0; /* TODO */
 
 	conf->single_combined_worker = starpu_get_env_number("STARPU_SINGLE_COMBINED_WORKER");
 	if (conf->single_combined_worker == -1)
@@ -1088,6 +1129,12 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 		setenv("STARPU_SINK", "STARPU_SCC", 1);
 #	endif
 
+#   ifdef STARPU_USE_MPI_MASTER_SLAVE
+	/* In MPI case we look at the rank to know if we are a sink */
+	if (_starpu_mpi_common_mp_init() && !_starpu_mpi_common_is_src_node())
+		setenv("STARPU_SINK", "STARPU_MPI", 1);
+#   endif
+
 	/* If StarPU was configured to use MP sinks, we have to control the
 	 * kind on node we are running on : host or sink ? */
 	if (starpu_getenv("STARPU_SINK"))
@@ -1223,6 +1270,11 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 		if (_starpu_scc_common_is_mp_initialized())
 			_starpu_scc_src_mp_deinit();
 #endif
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+        if (_starpu_mpi_common_is_mp_initialized())
+            _starpu_mpi_src_mp_deinit();
+#endif
+
 		initialized = UNINITIALIZED;
 		/* Let somebody else try to do it */
 		STARPU_PTHREAD_COND_SIGNAL(&init_cond);

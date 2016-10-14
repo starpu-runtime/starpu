@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2010-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2016  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -114,7 +115,8 @@ enum starpu_node_kind
 	STARPU_DISK_RAM   = 0x04,
 	STARPU_MIC_RAM    = 0x05,
 	STARPU_SCC_RAM    = 0x06,
-	STARPU_SCC_SHM    = 0x07
+	STARPU_SCC_SHM    = 0x07,
+	STARPU_MPI_MS_RAM = 0x08
 
 };
 

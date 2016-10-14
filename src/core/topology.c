@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016 CNRS
- * Copyright (C) 2011  INRIA
+ * Copyright (C) 2011, 2016  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -25,6 +25,7 @@
 #include <drivers/cuda/driver_cuda.h>
 #include <drivers/mic/driver_mic_source.h>
 #include <drivers/scc/driver_scc_source.h>
+#include <drivers/mpi/driver_mpi_source.h>
 #include <drivers/mp_common/source_common.h>
 #include <drivers/opencl/driver_opencl.h>
 #include <profiling/profiling.h>
@@ -75,6 +76,9 @@ static struct _starpu_worker_set cuda_worker_set[STARPU_MAXCUDADEVS];
 #endif
 #ifdef STARPU_USE_MIC
 static struct _starpu_worker_set mic_worker_set[STARPU_MAXMICDEVS];
+#endif
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+static struct _starpu_worker_set mpi_worker_set[STARPU_MAXMPIDEVS];
 #endif
 
 void *
@@ -127,7 +131,7 @@ _starpu_get_worker_from_driver(struct starpu_driver *d)
  * Discover the topology of the machine
  */
 
-#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) || defined(STARPU_USE_SCC)  || defined(STARPU_SIMGRID)
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) || defined(STARPU_USE_SCC)  || defined(STARPU_SIMGRID) || defined(STARPU_USE_MPI_MASTER_SLAVE)
 static void
 _starpu_initialize_workers_deviceid (int *explicit_workers_gpuid,
 				  int *current, int *workers_gpuid,
@@ -385,6 +389,31 @@ static inline int _starpu_get_next_scc_deviceid(struct _starpu_machine_config *c
 }
 #endif
 
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+static inline int _starpu_get_next_mpi_deviceid(struct _starpu_machine_config *config)
+{
+	unsigned i = ((config->current_mpi_deviceid++) % config->topology.nmpidevices);
+
+	return (int)config->topology.workers_mpi_deviceid[i];
+}
+
+static void
+_starpu_init_mpi_topology (struct _starpu_machine_config *config, long mpi_idx)
+{
+	/* Discover the topology of the mpi node identifier by MPI_IDX. That
+	 * means, make this StarPU instance aware of the number of cores available
+	 * on this MPI device. Update the `nhwmpicores' topology field
+	 * accordingly. */
+
+	struct _starpu_machine_topology *topology = &config->topology;
+
+	int nbcores;
+	_starpu_src_common_sink_nbcores (mpi_ms_nodes[mpi_idx], &nbcores);
+	topology->nhwmpicores[mpi_idx] = nbcores;
+}
+
+#endif /* STARPU_USE_MPI_MASTER_SLAVE */
+
 #ifdef STARPU_USE_MIC
 static void
 _starpu_init_mic_topology (struct _starpu_machine_config *config, long mic_idx)
@@ -544,6 +573,9 @@ _starpu_init_topology (struct _starpu_machine_config *config)
 	_starpu_opencl_discover_devices(config);
 #ifdef STARPU_USE_SCC
 	config->topology.nhwscc = _starpu_scc_src_get_device_count();
+#endif
+#ifdef STARPU_USE_MPI_MASTER_SLAVE 
+    config->topology.nhwmpi = _starpu_mpi_src_get_device_count();
 #endif
 
 	topology_is_initialized = 1;
@@ -823,11 +855,70 @@ _starpu_init_mic_config (struct _starpu_machine_config *config,
 	}
 
 	topology->nworkers += topology->nmiccores[mic_idx];
-    }
+}  
 
-#ifdef STARPU_USE_MIC
 static COIENGINE mic_handles[STARPU_MAXMICDEVS];
 COIPROCESS _starpu_mic_process[STARPU_MAXMICDEVS];
+#endif
+
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+static void
+_starpu_init_mpi_config (struct _starpu_machine_config *config,
+			 struct starpu_conf *user_conf,
+			 unsigned mpi_idx)
+{
+	struct _starpu_machine_topology *topology = &config->topology;
+
+	topology->nhwmpicores[mpi_idx] = 0;
+
+	_starpu_init_mpi_topology (config, mpi_idx);
+
+	int nmpicores;
+	nmpicores = starpu_get_env_number("STARPU_NMPITHREADS");
+
+	if (nmpicores == -1)
+	{
+		/* Nothing was specified, so let's use the number of
+		 * detected mpi cores. ! */
+		nmpicores = topology->nhwmpicores[mpi_idx];
+	}
+	else
+	{
+		if ((unsigned) nmpicores > topology->nhwmpicores[mpi_idx])
+		{
+			/* The user requires more MPI cores than there is available */
+			fprintf(stderr,
+				"# Warning: %d MPI cores requested. Only %d available.\n",
+				nmpicores, topology->nhwmpicores[mpi_idx]);
+			nmpicores = topology->nhwmpicores[mpi_idx];
+		}
+	}
+
+	topology->nmpicores[mpi_idx] = nmpicores;
+	STARPU_ASSERT_MSG(topology->nmpicores[mpi_idx] + topology->nworkers <= STARPU_NMAXWORKERS,
+			  "topology->nmpicores[mpi_idx(%d)] (%d) + topology->nworkers (%d) <= STARPU_NMAXWORKERS (%d)",
+			  mpi_idx, topology->nmpicores[mpi_idx], topology->nworkers, STARPU_NMAXWORKERS);
+
+	mpi_worker_set[mpi_idx].workers = &config->workers[topology->nworkers];
+	unsigned mpicore_id;
+	for (mpicore_id = 0; mpicore_id < topology->nmpicores[mpi_idx]; mpicore_id++)
+	{
+		int worker_idx = topology->nworkers + mpicore_id;
+		config->workers[worker_idx].set = &mpi_worker_set[mpi_idx];
+		config->workers[worker_idx].arch = STARPU_MPI_WORKER;
+		config->workers[worker_idx].perf_arch.devices = (struct starpu_perfmodel_device *) malloc(sizeof(struct starpu_perfmodel_device));
+		config->workers[worker_idx].perf_arch.ndevices = 1;
+		config->workers[worker_idx].perf_arch.devices[0].type = STARPU_MPI_WORKER;
+		config->workers[worker_idx].perf_arch.devices[0].devid = mpi_idx;
+		config->workers[worker_idx].perf_arch.devices[0].ncores = 1;
+		config->workers[worker_idx].devid = mpi_idx;
+		config->workers[worker_idx].subworkerid = mpicore_id;
+		config->workers[worker_idx].worker_mask = STARPU_MPI;
+		config->worker_mask |= STARPU_MPI;
+	}
+
+	topology->nworkers += topology->nmpicores[mpi_idx];
+}  
 #endif
 
 static void
@@ -843,49 +934,87 @@ _starpu_init_mp_config (struct _starpu_machine_config *config,
 
 	struct _starpu_machine_topology *topology = &config->topology;
 
-	// We currently only support MIC at this level.
 #ifdef STARPU_USE_MIC
+    {
+        /* Discover and initialize the number of MIC nodes through the mp
+         * infrastructure. */
+        unsigned nhwmicdevices = _starpu_mic_src_get_device_count();
 
-	/* Discover and initialize the number of MIC nodes through the mp
-	 * infrastructure. */
-	unsigned nhwmicdevices = _starpu_mic_src_get_device_count();
+        int reqmicdevices = starpu_get_env_number("STARPU_NMIC");
+        if (reqmicdevices == -1 && user_conf)
+            reqmicdevices = user_conf->nmic;
+        if (reqmicdevices == -1)
+            reqmicdevices = nhwmicdevices;
 
-	int reqmicdevices = starpu_get_env_number("STARPU_NMIC");
-	if (reqmicdevices == -1 && user_conf)
-		reqmicdevices = user_conf->nmic;
-	if (reqmicdevices == -1)
-		reqmicdevices = nhwmicdevices;
+        if (reqmicdevices == -1)
+        {
+            /* Nothing was specified, so let's use the number of
+             * detected mic devices. ! */
+            reqmicdevices = nhwmicdevices;
+        }
+        else
+        {
+            if ((unsigned) reqmicdevices > nhwmicdevices)
+            {
+                /* The user requires more MIC devices than there is available */
+                fprintf(stderr,
+                    "# Warning: %d MIC devices requested. Only %d available.\n",
+                    reqmicdevices, nhwmicdevices);
+                reqmicdevices = nhwmicdevices;
+            }
+        }
 
-	if (reqmicdevices == -1)
-	{
-		/* Nothing was specified, so let's use the number of
-		 * detected mic devices. ! */
-		reqmicdevices = nhwmicdevices;
-	}
-	else
-	{
-		if ((unsigned) reqmicdevices > nhwmicdevices)
-		{
-			/* The user requires more MIC devices than there is available */
-			fprintf(stderr,
-				"# Warning: %d MIC devices requested. Only %d available.\n",
-				reqmicdevices, nhwmicdevices);
-			reqmicdevices = nhwmicdevices;
-		}
-	}
-
-	topology->nmicdevices = 0;
-	unsigned i;
-	for (i = 0; i < (unsigned) reqmicdevices; i++)
-		if (0 == _starpu_init_mic_node (config, i, &mic_handles[i], &_starpu_mic_process[i]))
-			topology->nmicdevices++;
+        topology->nmicdevices = 0;
+        unsigned i;
+        for (i = 0; i < (unsigned) reqmicdevices; i++)
+            if (0 == _starpu_init_mic_node (config, i, &mic_handles[i], &_starpu_mic_process[i]))
+                topology->nmicdevices++;
 
 
-	for (i = 0; i < topology->nmicdevices; i++)
-		_starpu_init_mic_config (config, user_conf, i);
+        for (i = 0; i < topology->nmicdevices; i++)
+            _starpu_init_mic_config (config, user_conf, i);
+    }
+#endif
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+    {
+        /* Discover and initialize the number of MIC nodes through the mp
+         * infrastructure. */
+        unsigned nhwmpidevices = _starpu_mpi_src_get_device_count();
+
+        int reqmpidevices = starpu_get_env_number("STARPU_NMPI_MS");
+        if (reqmpidevices == -1 && user_conf)
+            reqmpidevices = user_conf->nmpi_ms;
+        if (reqmpidevices == -1)
+            /* Nothing was specified, so let's use the number of
+             * detected mpi devices. ! */
+            reqmpidevices = nhwmpidevices;
+
+        if (reqmpidevices != -1)
+        {
+            if ((unsigned) reqmpidevices > nhwmpidevices)
+            {
+                /* The user requires more MPI devices than there is available */
+                fprintf(stderr,
+                    "# Warning: %d MPI Master-Slave devices requested. Only %d available.\n",
+                    reqmpidevices, nhwmpidevices);
+                reqmpidevices = nhwmpidevices;
+            }
+        }
+
+        topology->nmpidevices = reqmpidevices;
+
+        unsigned i;
+        for (i = 0; i < topology->nmpidevices; i++)
+            mpi_ms_nodes[i] = _starpu_mp_common_node_create(STARPU_MPI_SOURCE, i);
+
+
+        for (i = 0; i < topology->nmpidevices; i++)
+            _starpu_init_mpi_config (config, user_conf, i);
+    }
 #endif
 }
 
+#ifdef STARPU_USE_MIC
 static void
 _starpu_deinit_mic_node (unsigned mic_idx)
 {
@@ -895,6 +1024,17 @@ _starpu_deinit_mic_node (unsigned mic_idx)
 
 	_starpu_mp_common_node_destroy(mic_nodes[mic_idx]);
 }
+#endif
+
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+static void _starpu_deinit_mpi_node(int devid)
+{
+    _starpu_mp_common_send_command(mpi_ms_nodes[devid], STARPU_EXIT, NULL, 0);                          
+
+    _starpu_mp_common_node_destroy(mpi_ms_nodes[devid]);
+}
+#endif
+
 
 static void
 _starpu_deinit_mp_config (struct _starpu_machine_config *config)
@@ -902,11 +1042,16 @@ _starpu_deinit_mp_config (struct _starpu_machine_config *config)
 	struct _starpu_machine_topology *topology = &config->topology;
 	unsigned i;
 
+#ifdef STARPU_USE_MIC
 	for (i = 0; i < topology->nmicdevices; i++)
 		_starpu_deinit_mic_node (i);
 	_starpu_mic_clear_kernels();
-}
 #endif
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+	for (i = 0; i < topology->nmpidevices; i++)
+		_starpu_deinit_mpi_node (i);
+#endif
+}
 
 static int
 _starpu_init_machine_config(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED)
@@ -941,6 +1086,10 @@ _starpu_init_machine_config(struct _starpu_machine_config *config, int no_mp_con
 #ifdef STARPU_USE_MIC
 	for (i = 0; i < (int) (sizeof(mic_worker_set)/sizeof(mic_worker_set[0])); i++)
 		mic_worker_set[i].workers = NULL;
+#endif
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+	for (i = 0; i < (int) (sizeof(mpi_worker_set)/sizeof(mpi_worker_set[0])); i++)
+		mpi_worker_set[i].workers = NULL;
 #endif
 
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
@@ -1143,12 +1292,12 @@ _starpu_init_machine_config(struct _starpu_machine_config *config, int no_mp_con
 	{
 		config->workers[topology->nworkers + sccdev].arch = STARPU_SCC_WORKER;
 		int devid = _starpu_get_next_scc_deviceid(config);
-		config->workers[topology->nworkers + sccdev].perf_arch.devices = (struct starpu_perfmodel_device)malloc(sizeof(struct starpu_perfmodel_device));
+		config->workers[topology->nworkers + sccdev].perf_arch.devices = (struct starpu_perfmodel_device *)malloc(sizeof(struct starpu_perfmodel_device));
 		config->workers[topology->nworkers + sccdev].perf_arch.ndevices = 1;
 
 		config->workers[topology->nworkers + sccdev].perf_arch.devices[0].type = STARPU_SCC_WORKER;
 		config->workers[topology->nworkers + sccdev].perf_arch.devices[0].devid = sccdev;
-		config->workers[topology->nworkers + sccdev].perf_arch.devices[0].ncore = 1;
+		config->workers[topology->nworkers + sccdev].perf_arch.devices[0].ncores = 1;
 		config->workers[topology->nworkers + sccdev].subworkerid = 0;
 		config->workers[topology->nworkers + sccdev].devid = devid;
 		config->workers[topology->nworkers + sccdev].worker_mask = STARPU_SCC;
@@ -1161,10 +1310,9 @@ _starpu_init_machine_config(struct _starpu_machine_config *config, int no_mp_con
 	topology->nworkers += topology->nsccdevices;
 #endif /* STARPU_USE_SCC */
 
-
 	/* Unless not requested, we need to complete configuration with the
 	 * ones of the mp nodes. */
-#ifdef STARPU_USE_MIC
+#if defined(STARPU_USE_MIC) || defined(STARPU_USE_MPI_MASTER_SLAVE)
 	if (! no_mp_config)
 	    _starpu_init_mp_config (config, &config->conf);
 #endif
@@ -1464,6 +1612,11 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 	unsigned mic_memory_nodes[STARPU_MAXMICDEVS];
 	unsigned mic_bindid[STARPU_MAXMICDEVS];
 #endif
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+	unsigned mpi_init[STARPU_MAXMPIDEVS] = { };
+	unsigned mpi_memory_nodes[STARPU_MAXMPIDEVS];
+	unsigned mpi_bindid[STARPU_MAXMPIDEVS];
+#endif
 	unsigned bindid;
 
 	for (bindid = 0; bindid < config->nbindid; bindid++)
@@ -1480,7 +1633,7 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 		struct _starpu_worker *workerarg = &config->workers[worker];
 		unsigned devid = workerarg->devid;
 
-#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) || defined(STARPU_USE_MIC) || defined(STARPU_SIMGRID)
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) || defined(STARPU_USE_MIC) || defined(STARPU_SIMGRID) || defined(STARPU_USE_MPI_MASTER_SLAVE)
 		/* Perhaps the worker has some "favourite" bindings  */
 		int *preferred_binding = NULL;
 		int npreferred = 0;
@@ -1667,7 +1820,34 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 #endif
 			}
 				break;
+#endif /* STARPU_USE_SCC */
+
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+			case STARPU_MPI_WORKER:
+			{
+				if (mpi_init[devid])
+				{
+					memory_node = mpi_memory_nodes[devid];
+				}
+				else
+				{
+					mpi_init[devid] = 1;
+					mpi_bindid[devid] = _starpu_get_next_bindid(config, preferred_binding, npreferred);
+					memory_node = mpi_memory_nodes[devid] = _starpu_memory_node_register(STARPU_MPI_MS_RAM, devid);
+					_starpu_register_bus(STARPU_MAIN_RAM, memory_node);
+					_starpu_register_bus(memory_node, STARPU_MAIN_RAM);
+
+				}
+				workerarg->bindid = mpi_bindid[devid];
+				_starpu_memory_node_add_nworkers(memory_node);
+#ifdef STARPU_SIMGRID
+				starpu_pthread_queue_register(&workerarg->set->workers[0].wait, &_starpu_simgrid_transfer_queue[memory_node]);
+				starpu_pthread_queue_register(&workerarg->set->workers[0].wait, &_starpu_simgrid_transfer_queue[STARPU_MAIN_RAM]);
 #endif
+				break;
+			}
+#endif /* STARPU_USE_MPI_MASTER_SLAVE */
+
 
 			default:
 				STARPU_ABORT();
@@ -1752,6 +1932,7 @@ _starpu_build_topology (struct _starpu_machine_config *config, int no_mp_config)
 	config->opencl_nodeid = -1;
 	config->mic_nodeid = -1;
 	config->scc_nodeid = -1;
+    config->mpi_nodeid = -1;
 	for (i = 0; i < starpu_worker_get_count(); i++)
 	{
 		switch (starpu_worker_get_type(i))
@@ -1786,6 +1967,12 @@ _starpu_build_topology (struct _starpu_machine_config *config, int no_mp_config)
 				else if (config->scc_nodeid != (int) starpu_worker_get_memory_node(i))
 					config->scc_nodeid = -2;
 				break;
+			case STARPU_MPI_WORKER:
+				if (config->mpi_nodeid == -1)
+					config->mpi_nodeid = starpu_worker_get_memory_node(i);
+				else if (config->mpi_nodeid != (int) starpu_worker_get_memory_node(i))
+					config->mpi_nodeid = -2;
+				break;
 			case STARPU_ANY_WORKER:
 				STARPU_ASSERT(0);
 		}
@@ -1796,7 +1983,7 @@ _starpu_build_topology (struct _starpu_machine_config *config, int no_mp_config)
 
 void _starpu_destroy_topology(struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED)
 {
-#ifdef STARPU_USE_MIC
+#if defined(STARPU_USE_MIC) || defined(STARPU_USE_MPI_MASTER_SLAVE)
 	_starpu_deinit_mp_config(config);
 #endif
 

@@ -3,7 +3,7 @@
  * Copyright (C) 2010-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
  * Copyright (C) 2011  Télécom-SudParis
- * Copyright (C) 2011, 2014  INRIA
+ * Copyright (C) 2011, 2014, 2016  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -42,6 +42,7 @@ extern "C"
 #define STARPU_OPENCL	((1ULL)<<6)
 #define STARPU_MIC	((1ULL)<<7)
 #define STARPU_SCC	((1ULL)<<8)
+#define STARPU_MPI	((1ULL)<<9)
 
 #define STARPU_CODELET_SIMGRID_EXECUTE	(1<<0)
 #define STARPU_CUDA_ASYNC	(1<<0)

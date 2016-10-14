@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016  CNRS
- * Copyright (C) 2011  INRIA
+ * Copyright (C) 2011, 2016  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -217,6 +217,11 @@ struct _starpu_machine_topology
 	 */
 	unsigned nhwscc;
 
+	/* Total number of MPI nodes, as detected. May be different
+	 * from the actual number of node workers.
+	 */
+	unsigned nhwmpi;
+
 	/* Actual number of CPU workers used by StarPU. */
 	unsigned ncpus;
 
@@ -228,6 +233,13 @@ struct _starpu_machine_topology
 
 	/* Actual number of SCC workers used by StarPU. */
 	unsigned nsccdevices;
+
+	/* Actual number of MPI workers used by StarPU. */
+	unsigned nmpidevices;
+    unsigned nhwmpidevices;
+
+	unsigned nhwmpicores[STARPU_MAXMPIDEVS]; // Each MPI node has its set of cores.
+	unsigned nmpicores[STARPU_MAXMPIDEVS];
 
 	/* Topology of MP nodes (mainly MIC and SCC) as well as necessary
 	 * objects to communicate with them. */
@@ -278,6 +290,8 @@ struct _starpu_machine_topology
 	 * are taken in ID order.
 	 */
 	unsigned workers_scc_deviceid[STARPU_NMAXWORKERS];
+
+	unsigned workers_mpi_deviceid[STARPU_NMAXWORKERS];
 };
 
 struct _starpu_machine_config
@@ -304,6 +318,9 @@ struct _starpu_machine_config
 	/* Which SCC do we use? */
 	int current_scc_deviceid;
 
+	/* Which MPI do we use? */
+	int current_mpi_deviceid;
+
 	/* Memory node for cpus, if only one */
 	int cpus_nodeid;
 	/* Memory node for CUDA, if only one */
@@ -314,6 +331,8 @@ struct _starpu_machine_config
 	int mic_nodeid;
 	/* Memory node for SCC, if only one */
 	int scc_nodeid;
+	/* Memory node for MPI, if only one */
+	int mpi_nodeid;
 
 	/* Basic workers : each of this worker is running its own driver and
 	 * can be combined with other basic workers. */

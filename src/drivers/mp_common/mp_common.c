@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012  INRIA
+ * Copyright (C) 2012, 2016  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -219,15 +219,63 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
 	break;
 #endif /* STARPU_USE_SCC */
 
-#ifdef STARPU_USE_MPI
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
 	case STARPU_MPI_SOURCE:
-		STARPU_ABORT();
-		break;
+    {
+    /*
+		node->nb_mp_sinks = 
+		node->devid = 
+
+        node->init = _starpu_mpi_source_init;
+        node->launch_workers = NULL;
+        node->deinit = _starpu_mpi_source_deinit;
+        node->report_error = 
+
+		node->mp_recv_is_ready = 
+		node->mp_send = 
+		node->mp_recv = 
+		node->dt_send = 
+		node->dt_recv = 
+
+		node->get_kernel_from_job = 
+		node->lookup = 
+		node->bind_thread = 
+		node->execute = 
+		node->allocate = 
+		node->free = 
+
+        */
+    }
+	break;
 
 	case STARPU_MPI_SINK:
-		STARPU_ABORT();
+    {
+    /*
+		node->nb_mp_sinks = 
+		node->devid = 
+
+        node->init = _starpu_mpi_sink_init;
+        node->launch_workers = _starpu_mpi_sink_launch_workers;
+        node->deinit = _starpu_mpi_sink_deinit;
+        node->report_error = 
+
+		node->mp_recv_is_ready = ;
+		node->mp_send = 
+		node->mp_recv = 
+		node->dt_send = 
+		node->dt_recv = 
+
+		node->get_kernel_from_job = 
+		node->lookup = 
+		node->bind_thread = 
+		node->execute = 
+		node->allocate = 
+		node->free = 
+
+        */
+    }
 		break;
-#endif /* STARPU_USE_MPI */
+#endif /* STARPU_USE_MPI_MASTER_SLAVE */
 
 	default:
 		STARPU_ASSERT(0);
@@ -244,7 +292,7 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
 	STARPU_PTHREAD_MUTEX_INIT(&node->message_queue_mutex,NULL);
 
 	/* If the node is a sink then we must initialize some field */
-	if(node->kind == STARPU_MIC_SINK || node->kind == STARPU_SCC_SINK)
+	if(node->kind == STARPU_MIC_SINK || node->kind == STARPU_SCC_SINK || node->kind == STARPU_MPI_SINK)
 	{
 		int i;
 		node->is_running = 1;
