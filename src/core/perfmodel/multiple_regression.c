@@ -250,7 +250,7 @@ void validate(double *coeff, unsigned ncoeff, const char *codelet_name)
 		_STARPU_DISP("Warning: Constant computed by least square method is negative (%f). The model %s is likely to be inaccurate.\n", coeff[0], codelet_name);
 		
 	for(i=1; i<ncoeff; i++)
-		if(coeff[i] < 1E-10)
+		if(fabs(coeff[i]) < 1E-10)
 			_STARPU_DISP("Warning: Coefficient computed by least square method is extremelly small (%f). The model %s is likely to be inaccurate.\n", coeff[i], codelet_name);
 }
 	
