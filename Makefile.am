@@ -19,7 +19,14 @@
 ACLOCAL_AMFLAGS=-I m4
 CLEANFILES = *.gcno *.gcda *.linkinfo
 
-SUBDIRS = src
+SUBDIRS = 
+
+if STARPU_USE_MIN_DGELS
+SUBDIRS += min-dgels
+endif
+
+SUBDIRS += src
+
 SUBDIRS += tools
 
 if BUILD_TESTS

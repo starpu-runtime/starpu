@@ -31,6 +31,7 @@
 #include <core/workers.h>
 #include <datawizard/datawizard.h>
 #include <core/perfmodel/regression.h>
+#include <core/perfmodel/multiple_regression.h>
 #include <common/config.h>
 #include <starpu_parameters.h>
 #include <common/uthash.h>
@@ -284,10 +285,66 @@ static void dump_reg_model(FILE *f, struct starpu_perfmodel *model, int comb, in
 	fprintf(f, "\t");
 	_starpu_write_double(f, "%-15e", c);
 	fprintf(f, "\n");
+
+	/*
+	 * Multiple Regression Model
+	 */
+
+	if (model->type == STARPU_MULTIPLE_REGRESSION_BASED)
+	{
+		if (reg_model->ncoeff==0 && model->ncombinations!=0 && model->combinations!=NULL)
+		{
+			reg_model->ncoeff = model->ncombinations + 1;
+		}
+
+		reg_model->coeff = (double *) malloc(reg_model->ncoeff*sizeof(double));
+		_starpu_multiple_regression(per_arch_model->list, reg_model->coeff, reg_model->ncoeff, model->nparameters, model->parameters_names, model->combinations, model->symbol);
+
+		fprintf(f, "# n\tintercept\t");
+	        unsigned i, j;
+		int first;
+		if (reg_model->ncoeff==0 || model->ncombinations==0 || model->combinations==NULL)
+			fprintf(f, "\n1\tnan");
+		else
+		{
+			for (i=0; i < model->ncombinations; i++)
+			{
+				if (model->parameters_names == NULL)
+					fprintf(f, "c%d", i+1);
+				else
+				{
+					first=1;
+					for(j=0; j < model->nparameters; j++)
+					{
+						if (model->combinations[i][j] > 0)
+						{
+							if (first)
+								first=0;
+							else
+								fprintf(f, "*");
+						
+							if(model->parameters_names[j] != NULL)
+								fprintf(f, "%s", model->parameters_names[j]);
+							else
+								fprintf(f, "P%d", j);
+						
+							if (model->combinations[i][j] > 1)
+								fprintf(f, "^%d", model->combinations[i][j]);
+						}
+					}
+				}
+				fprintf(f, "\t\t");
+			}
+
+			fprintf(f, "\n%u", reg_model->ncoeff);
+			for (i=0; i < reg_model->ncoeff; i++)
+				fprintf(f, "\t%-15e", reg_model->coeff[i]);
+		}
+	}
 }
 #endif
 
-static void scan_reg_model(FILE *f, struct starpu_perfmodel_regression_model *reg_model)
+static void scan_reg_model(FILE *f, struct starpu_perfmodel_regression_model *reg_model, enum starpu_perfmodel_type model_type)
 {
 	int res;
 
@@ -328,7 +385,32 @@ static void scan_reg_model(FILE *f, struct starpu_perfmodel_regression_model *re
 	/* If any of the parameters describing the non-linear regression model is NaN, the model is invalid */
 	unsigned nl_invalid = (isnan(reg_model->a)||isnan(reg_model->b)||isnan(reg_model->c));
 	reg_model->nl_valid = !nl_invalid && VALID_REGRESSION(reg_model);
+
+	/*
+	 * Multiple Regression Model
+	 */
+	if (model_type == STARPU_MULTIPLE_REGRESSION_BASED)
+	{
+		_starpu_drop_comments(f);
+
+		// Read how many coefficients is there
+		res = fscanf(f, "%u", &reg_model->ncoeff);
+		STARPU_ASSERT_MSG(res == 1, "Incorrect performance model file");
+
+		reg_model->coeff = malloc(reg_model->ncoeff*sizeof(double));
+
+		unsigned multi_invalid = 0;
+		unsigned i;
+		for (i=0; i < reg_model->ncoeff; i++)
+		{
+			res = _starpu_read_double(f, "%le", &reg_model->coeff[i]);
+			STARPU_ASSERT_MSG(res == 1, "Incorrect performance model file");
+			multi_invalid = (multi_invalid||isnan(reg_model->coeff[i]));
+		}
+		reg_model->multi_valid = !multi_invalid;
+	}
 }
+
 
 #ifndef STARPU_SIMGRID
 static void dump_history_entry(FILE *f, struct starpu_perfmodel_history_entry *entry)
@@ -384,7 +466,7 @@ static void scan_history_entry(FILE *f, struct starpu_perfmodel_history_entry *e
 	}
 }
 
-static void parse_per_arch_model_file(FILE *f, struct starpu_perfmodel_per_arch *per_arch_model, unsigned scan_history)
+static void parse_per_arch_model_file(FILE *f, struct starpu_perfmodel_per_arch *per_arch_model, unsigned scan_history, enum starpu_perfmodel_type model_type)
 {
 	unsigned nentries;
 
@@ -393,7 +475,7 @@ static void parse_per_arch_model_file(FILE *f, struct starpu_perfmodel_per_arch 
 	int res = fscanf(f, "%u\n", &nentries);
 	STARPU_ASSERT_MSG(res == 1, "Incorrect performance model file");
 
-	scan_reg_model(f, &per_arch_model->regression);
+	scan_reg_model(f, &per_arch_model->regression, model_type);
 
 	/* parse entries */
 	unsigned i;
@@ -452,7 +534,7 @@ static void parse_arch(FILE *f, struct starpu_perfmodel *model, unsigned scan_hi
 		{
 			struct starpu_perfmodel_per_arch *per_arch_model = &model->state->per_arch[comb][impl];
 			model->state->per_arch_is_set[comb][impl] = 1;
-			parse_per_arch_model_file(f, per_arch_model, scan_history);
+			parse_per_arch_model_file(f, per_arch_model, scan_history, model->type);
 		}
 	}
 	else
@@ -463,7 +545,7 @@ static void parse_arch(FILE *f, struct starpu_perfmodel *model, unsigned scan_hi
 	/* if the number of implementation is greater than STARPU_MAXIMPLEMENTATIONS
 	 * we skip the last implementation */
 	for (i = impl; i < nimpls; i++)
-		parse_per_arch_model_file(f, &dummy, 0);
+		parse_per_arch_model_file(f, &dummy, 0, model->type);
 
 }
 
@@ -1232,6 +1314,58 @@ docal:
 	return exp;
 }
 
+double _starpu_multiple_regression_based_job_expected_perf(struct starpu_perfmodel *model, struct starpu_perfmodel_arch* arch, struct _starpu_job *j, unsigned nimpl)
+{
+	int comb;
+	double expected_duration=NAN;
+
+	struct starpu_perfmodel_regression_model *reg_model = NULL;
+	comb = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
+	if(comb == -1)
+		goto docal;
+	if (model->state->per_arch[comb] == NULL)
+		// The model has not been executed on this combination
+		goto docal;
+	reg_model = &model->state->per_arch[comb][nimpl].regression;
+	if (reg_model->coeff == NULL)
+		goto docal;
+	
+	double parameter_value;
+	double *parameters;
+	parameters = (double *) malloc(model->nparameters*sizeof(double));
+	model->parameters(j->task, parameters);
+	expected_duration=reg_model->coeff[0];
+	unsigned i, k;
+	for (i=0; i < model->ncombinations; i++)
+	{
+		parameter_value=1.;
+		for (k=0; k < model->nparameters; k++)
+			parameter_value *= pow(parameters[k],model->combinations[i][k]);
+
+		expected_duration += reg_model->coeff[i+1]*parameter_value;
+	}
+
+docal:
+	STARPU_HG_DISABLE_CHECKING(model->benchmarking);
+	if (isnan(expected_duration) && !model->benchmarking)
+	{
+		char archname[32];
+
+		starpu_perfmodel_get_arch_name(arch, archname, sizeof(archname), nimpl);
+		_STARPU_DISP("Warning: model %s is not calibrated enough for %s, forcing calibration for this run. Use the STARPU_CALIBRATE environment variable to control this.\n", model->symbol, archname);
+		_starpu_set_calibrate_flag(1);
+		model->benchmarking = 1;
+	}
+
+	// In the unlikely event that predicted duration is negative
+	// in case multiple linear regression is not so accurate
+	if (expected_duration < 0 )
+		expected_duration = 0.00001;
+
+	//Make sure that the injected time is in milliseconds
+	return expected_duration;
+}
+
 double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, struct starpu_perfmodel_arch* arch, struct _starpu_job *j,unsigned nimpl)
 {
 	int comb;
@@ -1466,6 +1600,27 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 				reg_model->alpha = exp((reg_model->sumlny - reg_model->beta*reg_model->sumlnx)/n);
 				reg_model->valid = 1;
 			}
+		}
+
+		if (model->type == STARPU_MULTIPLE_REGRESSION_BASED)
+		{
+			struct starpu_perfmodel_history_entry *entry;
+			struct starpu_perfmodel_history_list **list;
+			list = &per_arch_model->list;
+
+			entry = (struct starpu_perfmodel_history_entry *) calloc(1, sizeof(struct starpu_perfmodel_history_entry));
+			STARPU_ASSERT(entry);
+
+			entry->parameters = (double *) malloc(model->nparameters*sizeof(double));
+			model->parameters(j->task, entry->parameters);
+			entry->tag = j->task->tag_id;
+			entry->duration = measured;
+
+			struct starpu_perfmodel_history_list *link;
+			link = (struct starpu_perfmodel_history_list *) malloc(sizeof(struct starpu_perfmodel_history_list));
+			link->next = *list;
+			link->entry = entry;
+			*list = link;
 		}
 
 #ifdef STARPU_MODEL_DEBUG

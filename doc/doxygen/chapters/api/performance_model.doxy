@@ -26,6 +26,9 @@ Automatic linear regression-based cost model  (alpha * size ^ beta)
 \var starpu_perfmodel_type::STARPU_NL_REGRESSION_BASED
 \ingroup API_Performance_Model
 Automatic non-linear regression-based cost model (a * size ^ b + c)
+\var starpu_perfmodel_type::STARPU_MULTIPLE_REGRESSION_BASED
+\ingroup API_Performance_Model
+Automatic multiple linear regression-based cost model. Application provides parameters, their combinations and exponents
 
 \struct starpu_perfmodel_device
 todo
@@ -59,6 +62,8 @@ is the type of performance model
 <li>::STARPU_HISTORY_BASED, ::STARPU_REGRESSION_BASED,
 ::STARPU_NL_REGRESSION_BASED: No other fields needs to be provided,
 this is purely history-based.
+</li>
+<li> ::STARPU_MULTIPLE_REGRESSION_BASED: Need to provide fields starpu_perfmodel::nparameters (number of different parameters),  starpu_perfmodel::ncombinations (number of parameters combinations-tuples) and table starpu_perfmodel::combinations which defines exponents of the equation. Function cl_perf_func also needs to define how to extract parameters from the task.
 </li>
 <li> ::STARPU_PER_ARCH: either field starpu_perfmodel::arch_cost_function has to be
 filled with a function that returns the cost in micro-seconds on the arch given
@@ -99,6 +104,18 @@ Whether the performance model is already loaded from the disk.
 todo
 \var starpu_perfmodel_state_t starpu_perfmodel::state
 \private
+\var const char ** starpu_perfmodel::parameters_names
+\private
+Names of parameters used for multiple linear regression models (M, N, K)
+\var unsigned starpu_perfmodel::nparameters
+\private
+Number of parameters used for multiple linear regression models
+\var unsigned ** starpu_perfmodel::combinations
+\private
+Table of combinations of parameters (and the exponents) used for multiple linear regression models
+\var unsigned starpu_perfmodel::ncombinations
+\private
+Number of combination of parameters used for multiple linear regression models
 
 
 \struct starpu_perfmodel_regression_model
@@ -132,6 +149,12 @@ estimated = a size ^b + c
 whether the non-linear regression model is valid (i.e. enough measures)
 \var unsigned starpu_perfmodel_regression_model::nsample
 number of sample values for non-linear regression
+\var double starpu_perfmodel_regression_model::coeff[]
+list of computed coefficients for multiple linear regression model
+\var double starpu_perfmodel_regression_model::ncoeff
+number of coefficients for multiple linear regression model
+\var double starpu_perfmodel_regression_model::multi_valid
+whether the multiple linear regression model is valid
 
 \struct starpu_perfmodel_per_arch
 contains information about the performance model of a given
@@ -150,12 +173,12 @@ depends on the architecture-specific implementation.
 The history of performance measurements.
 \var struct starpu_perfmodel_history_list *starpu_perfmodel_per_arch::list
 \private
-Used by ::STARPU_HISTORY_BASED and ::STARPU_NL_REGRESSION_BASED,
+Used by ::STARPU_HISTORY_BASED, ::STARPU_NL_REGRESSION_BASED and ::STARPU_MULTIPLE_REGRESSION_BASED,
 records all execution history measures.
 \var struct starpu_perfmodel_regression_model starpu_perfmodel_per_arch::regression
 \private
-Used by ::STARPU_REGRESSION_BASED and
-::STARPU_NL_REGRESSION_BASED, contains the estimated factors of the
+Used by ::STARPU_REGRESSION_BASED, 
+::STARPU_NL_REGRESSION_BASED and ::STARPU_MULTIPLE_REGRESSION_BASED, contains the estimated factors of the
 regression.
 
 \struct starpu_perfmodel_history_list

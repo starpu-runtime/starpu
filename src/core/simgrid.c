@@ -382,7 +382,7 @@ void _starpu_simgrid_submit_job(int workerid, struct _starpu_job *j, struct star
 		/* This is not useful to include in simulation (and probably
 		 * doesn't have a perfmodel anyway) */
 		return;
-
+	
 	if (isnan(length))
 	{
 		length = starpu_task_expected_length(starpu_task, perf_arch, j->nimpl);

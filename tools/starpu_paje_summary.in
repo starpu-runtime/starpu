@@ -21,9 +21,10 @@
 set -e # fail fast
 
 # File names
-basename="$PWD"
+SOURCE_DIR=@abs_srcdir@
+
 outputfile="summary.html"
-analysis_script="$(dirname $(which $0))/starpu_paje_summary.Rmd"
+analysis_script="$SOURCE_DIR/starpu_paje_summary.Rmd"
 analysis_input=""
 
 # Command line arguments

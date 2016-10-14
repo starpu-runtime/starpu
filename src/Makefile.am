@@ -78,6 +78,7 @@ noinst_HEADERS = 						\
 	core/sched_ctx_list.h					\
 	core/perfmodel/perfmodel.h				\
 	core/perfmodel/regression.h				\
+	core/perfmodel/multiple_regression.h			\
 	core/jobs.h						\
 	core/task.h						\
 	core/workers.h						\
@@ -190,6 +191,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	core/perfmodel/perfmodel_print.c			\
 	core/perfmodel/perfmodel_nan.c				\
 	core/perfmodel/regression.c				\
+	core/perfmodel/multiple_regression.c			\
 	core/sched_policy.c					\
 	core/simgrid.c						\
 	core/sched_ctx.c					\

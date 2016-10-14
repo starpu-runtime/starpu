@@ -1134,6 +1134,45 @@ fi
 
 ###############################################################################
 #                                                                             #
+#			 Multiple linear regression			      #
+#                                                                             #
+###############################################################################
+AC_ARG_ENABLE(mlr, [AS_HELP_STRING([--disable-mlr],
+			[Disable multiple linear regression models])],
+			enable_mlr=$enableval, enable_mlr=yes)
+
+AC_MSG_CHECKING(whether multiple linear regression models are disabled)
+if test x$enable_mlr = xyes -a "$starpu_windows" != "yes" ; then
+   	AC_MSG_RESULT(no)
+	install_min_dgels=no
+   	STARPU_SEARCH_LIBS(LAPACK,[dgels_],[lapack],use_system_lapack=yes,,)
+	if test x$use_system_lapack = xyes; then
+	        AC_DEFINE(STARPU_MLR_MODEL, [1], [use reflapack library])
+		LDFLAGS="-llapack $LDFLAGS"
+	else
+		AC_MSG_CHECKING(whether min-dgels is linked)
+		if test x"$DGELS_LIBS" != x; then
+		   	AC_MSG_RESULT(yes)
+        		AC_DEFINE(STARPU_MLR_MODEL, [1], [use user defined library])
+			AC_ARG_VAR([DGELS_LIBS], [linker flags for lapack dgels])
+		else
+			AC_MSG_RESULT(no)
+			AC_MSG_CHECKING(min-dgels source)
+			cp -r $srcdir/min-dgels $PWD/
+			AC_MSG_RESULT(yes)
+			DGELS_LIBS="-Wl,--start-group $STARPU_BUILD_DIR/min-dgels/build/*.a -Wl,--end-group"
+			AC_DEFINE(STARPU_MLR_MODEL, [1], [use user defined library])
+			AC_ARG_VAR([DGELS_LIBS], [linker flags for lapack dgels])
+			install_min_dgels=yes
+		fi
+	fi
+else
+ 	AC_MSG_RESULT(yes)
+fi
+AM_CONDITIONAL(STARPU_USE_MIN_DGELS, test x$install_min_dgels = xyes)
+
+###############################################################################
+#                                                                             #
 #                                 MIC settings                                #
 #                                                                             #
 ###############################################################################
@@ -2915,7 +2954,7 @@ AM_CONDITIONAL(BUILD_DOC, [test x$enable_build_doc != xno])
 ###############################################################################
 
 # these are the flags needed for linking libstarpu (and thus also for static linking)
-LIBSTARPU_LDFLAGS="$HWLOC_LIBS $FXT_LIBS $STARPU_COI_LDFLAGS $STARPU_SCIF_LDFLAGS $STARPU_RCCE_LDFLAGS $STARPU_LEVELDB_LDFLAGS $STARPU_GLPK_LDFLAGS $STARPU_LEVELDB_LDFLAGS $SIMGRID_LIBS $STARPU_BLAS_LDFLAGS $STARPU_OMP_LDFLAGS"
+LIBSTARPU_LDFLAGS="$HWLOC_LIBS $FXT_LIBS $STARPU_COI_LDFLAGS $STARPU_SCIF_LDFLAGS $STARPU_RCCE_LDFLAGS $STARPU_LEVELDB_LDFLAGS $STARPU_GLPK_LDFLAGS $STARPU_LEVELDB_LDFLAGS $SIMGRID_LIBS $STARPU_BLAS_LDFLAGS $STARPU_OMP_LDFLAGS $DGELS_LIBS"
 AC_SUBST([LIBSTARPU_LDFLAGS])
 
 LIBSTARPU_LINK=libstarpu-$STARPU_EFFECTIVE_VERSION.la
@@ -2945,6 +2984,7 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   chmod +x tools/starpu_paje_draw_histogram
   chmod +x tools/starpu_paje_state_stats
   chmod +x tools/starpu_paje_summary
+  chmod +x tools/starpu_mlr_analysis
   chmod +x tools/starpu_paje_sort
   chmod +x tools/starpu_smpirun
   chmod +x doc/doxygen/doxygen_filter.sh
@@ -3002,6 +3042,7 @@ AC_OUTPUT([
 	tools/starpu_paje_draw_histogram
 	tools/starpu_paje_state_stats
 	tools/starpu_paje_summary
+	tools/starpu_mlr_analysis
 	tools/starpu_paje_sort
 	tools/starpu_smpirun
 	socl/Makefile
@@ -3053,6 +3094,7 @@ AC_OUTPUT([
 	doc/doxygen/doxygen-config.cfg
 	doc/doxygen/doxygen_filter.sh
 	tools/msvc/starpu_var.bat
+	min-dgels/Makefile
 ])
 
 AC_MSG_NOTICE([

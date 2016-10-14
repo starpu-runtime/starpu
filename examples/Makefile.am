@@ -199,6 +199,7 @@ STARPU_EXAMPLES +=				\
 	basic_examples/variable			\
 	basic_examples/multiformat              \
 	basic_examples/dynamic_handles          \
+	mlr/mlr					\
 	cpp/incrementer_cpp			\
 	filters/fvector				\
 	filters/fblock				\

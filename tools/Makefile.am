@@ -135,6 +135,7 @@ EXTRA_DIST =				\
 	dev/rename.sed			\
 	dev/rename.sh			\
 	perfmodels/README		\
+	perfmodels/sampling/codelets/tmp/mlr_init.out	 \
 	valgrind/hwloc.suppr		\
 	valgrind/libc.suppr		\
 	valgrind/libgomp.suppr		\
@@ -155,7 +156,7 @@ EXTRA_DIST =				\
 	msvc/starpu.sln			\
 	msvc/starpu/starpu.vcxproj
 
-CLEANFILES = *.gcno *.gcda *.linkinfo starpu_idle_microsec.log
+CLEANFILES = *.gcno *.gcda *.linkinfo starpu_idle_microsec.log figure/* mlr_*
 
 #####################################
 # What to install and what to check #
@@ -246,6 +247,10 @@ dist_bin_SCRIPTS +=			\
 	starpu_codelet_profile		\
 	starpu_paje_draw_histogram	\
 	starpu_paje_draw_histogram.R	\
+	starpu_paje_summary		\
+	starpu_paje_summary.Rmd		\
+	starpu_mlr_analysis		\
+	starpu_mlr_analysis.Rmd		\
 	starpu_paje_state_stats		\
 	starpu_trace_state_stats.py
 
