@@ -10,8 +10,8 @@ all:
 install:
 
 clean:
-	cd $(CLAPACK) && $(MAKE) clean && rm -rf *~
-	cd $(ADDITIONAL) && rm -rf *.o *~
+	-cd $(CLAPACK) && $(MAKE) clean && rm -rf *~
+	-cd $(ADDITIONAL) && rm -rf *.o *~
 	rm -rf build *~
 
 distclean: clean
