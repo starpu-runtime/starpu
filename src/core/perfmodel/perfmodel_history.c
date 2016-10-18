@@ -546,8 +546,12 @@ static void parse_arch(FILE *f, struct starpu_perfmodel *model, unsigned scan_hi
 	/* if the number of implementation is greater than STARPU_MAXIMPLEMENTATIONS
 	 * we skip the last implementation */
 	for (i = impl; i < nimpls; i++)
-		parse_per_arch_model_file(f, &dummy, 0, model->type);
-
+	{
+		if( model != NULL)
+			parse_per_arch_model_file(f, &dummy, 0, model->type);
+		else
+			parse_per_arch_model_file(f, &dummy, 0, 0);
+	}
 }
 
 static enum starpu_worker_archtype _get_enum_type(int type)
