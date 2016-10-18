@@ -308,7 +308,11 @@ int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, doubl
 #ifdef STARPU_MLR_MODEL
 		/* Computing coefficients using multiple linear regression */
 		if(dgels_multiple_reg_coeff(mpar, my, n, ncoeff, nparameters, coeff, combinations))
+		{
+			free(mpar);
+			free(my);	
 			return 1;
+		}
 		/* Basic validation of the model accuracy */
 		validate(coeff, ncoeff, codelet_name);
 #else
