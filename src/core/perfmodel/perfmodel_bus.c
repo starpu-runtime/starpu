@@ -76,6 +76,7 @@ static unsigned ncpus = 0;
 static unsigned ncuda = 0;
 static unsigned nopencl = 0;
 static unsigned nmic = 0;
+static unsigned nmpi_ms = 0;
 
 /* Benchmarking the performance of the bus */
 
@@ -118,6 +119,11 @@ static struct dev_timing opencldev_timing_per_cpu[STARPU_MAXNODES*STARPU_MAXCPUS
 static double mic_time_host_to_device[STARPU_MAXNODES] = {0.0};
 static double mic_time_device_to_host[STARPU_MAXNODES] = {0.0};
 #endif /* STARPU_USE_MIC */
+
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+static double mpi_time_host_to_device[STARPU_MAXNODES] = {0.0};
+static double mpi_time_device_to_host[STARPU_MAXNODES] = {0.0};
+#endif
 
 #ifdef STARPU_HAVE_HWLOC
 static hwloc_topology_t hwtopology;
@@ -741,6 +747,19 @@ static void benchmark_all_gpu_devices(void)
 	}
 #endif /* STARPU_USE_MIC */
 
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+	/* TODO: implement real calibration ! For now we only put an arbitrary
+	 * value for each device during at the declaration as a bug fix, else
+	 * we get problems on heft scheduler */
+        nmpi_ms = _starpu_mpi_src_get_device_count();
+
+	for (i = 0; i < STARPU_MAXNODES; i++)
+	{
+		mpi_time_host_to_device[i] = 0.1;
+		mpi_time_device_to_host[i] = 0.1;
+	}
+#endif /* STARPU_USE_MIC */
+
 #ifdef STARPU_HAVE_HWLOC
 	hwloc_set_cpubind(hwtopology, former_cpuset, HWLOC_CPUBIND_THREAD);
 	hwloc_bitmap_free(former_cpuset);
@@ -1139,6 +1158,9 @@ static void write_bus_latency_file_content(void)
 #ifdef STARPU_USE_MIC
         maxnode += nmic;
 #endif
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+        maxnode += nmpi_ms;
+#endif
         for (src = 0; src < STARPU_MAXNODES; src++)
 	{
 		for (dst = 0; dst < STARPU_MAXNODES; dst++)
@@ -1356,6 +1378,9 @@ static void write_bus_bandwidth_file_content(void)
 #ifdef STARPU_USE_MIC
         maxnode += nmic;
 #endif
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+        maxnode += nmpi_ms;
+#endif
 	for (src = 0; src < STARPU_MAXNODES; src++)
 	{
 		for (dst = 0; dst < STARPU_MAXNODES; dst++)
@@ -1366,7 +1391,7 @@ static void write_bus_bandwidth_file_content(void)
 			{
 				bandwidth = NAN;
 			}
-#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) || defined(STARPU_USE_MIC)
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) || defined(STARPU_USE_MIC) || defined(STARPU_USE_MPI_MASTER_SLAVE)
 			else if (src != dst)
 			{
 				double slowness = 0.0;
@@ -1393,10 +1418,16 @@ static void write_bus_bandwidth_file_content(void)
 					slowness += opencldev_timing_htod[dst-ncuda];
 #endif
 #ifdef STARPU_USE_MIC
-				if (src > ncuda + nopencl)
+				if (src > ncuda + nopencl && src <= ncuda + nopencl + nmic)
 					slowness += mic_time_device_to_host[src - (ncuda + nopencl)];
-				if (dst > ncuda + nopencl)
+				if (dst > ncuda + nopencl && dst <= ncuda + nopencl + nmic)
 					slowness += mic_time_host_to_device[dst - (ncuda + nopencl)];
+#endif
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+				if (src > ncuda + nopencl + nmic)
+					slowness += mpi_time_device_to_host[src - (ncuda + nopencl + nmic)];
+				if (dst > ncuda + nopencl + nmic)
+					slowness += mpi_time_host_to_device[dst - (ncuda + nopencl + nmic)];
 #endif
 				bandwidth = 1.0/slowness;
 			}
@@ -1446,6 +1477,9 @@ void starpu_bus_print_bandwidth(FILE *f)
 #ifdef STARPU_USE_MIC
         maxnode += nmic;
 #endif
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+        maxnode += nmpi_ms;
+#endif
 
 	fprintf(f, "from/to\t");
 	fprintf(f, "RAM\t");
@@ -1455,6 +1489,8 @@ void starpu_bus_print_bandwidth(FILE *f)
 		fprintf(f, "OpenCL%d\t", dst);
 	for (dst = 0; dst < nmic; dst++)
 		fprintf(f, "MIC%d\t", dst);
+	for (dst = 0; dst < nmpi_ms; dst++)
+		fprintf(f, "MPI_MS%d\t", dst);
 	fprintf(f, "\n");
 
 	for (src = 0; src <= maxnode; src++)
@@ -1465,8 +1501,10 @@ void starpu_bus_print_bandwidth(FILE *f)
 			fprintf(f, "CUDA %d\t", src-1);
 		else if (src <= ncuda + nopencl)
 			fprintf(f, "OpenCL%d\t", src-ncuda-1);
-		else
+		else if (src <= ncuda + nopencl + nmic)
 			fprintf(f, "MIC%d\t", src-ncuda-nopencl-1);
+        else
+			fprintf(f, "MPI_MS%d\t", src-ncuda-nopencl-nmic-1);
 		for (dst = 0; dst <= maxnode; dst++)
 			fprintf(f, "%.0f\t", bandwidth_matrix[src][dst]);
 
@@ -1482,8 +1520,10 @@ void starpu_bus_print_bandwidth(FILE *f)
 			fprintf(f, "CUDA %d\t", src-1);
 		else if (src <= ncuda + nopencl)
 			fprintf(f, "OpenCL%d\t", src-ncuda-1);
-		else
+		else if (src <= ncuda + nopencl + nmic)
 			fprintf(f, "MIC%d\t", src-ncuda-nopencl-1);
+        else
+			fprintf(f, "MPI_MS%d\t", src-ncuda-nopencl-nmic-1);
 		for (dst = 0; dst <= maxnode; dst++)
 			fprintf(f, "%.0f\t", latency_matrix[src][dst]);
 

@@ -46,6 +46,9 @@
 #include <drivers/scc/driver_scc_source.h>
 #endif
 
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+#include <drivers/mpi/driver_mpi_source.h>
+#endif
 
 #include <drivers/cpu/driver_cpu.h>
 
