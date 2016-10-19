@@ -2055,9 +2055,13 @@ if test x$enable_simgrid != xyes; then
 	if test x$enable_rcce != xyes; then
 		nmaxsccdev=0
 	fi
+    #By default, if we cannot build mpi master-slave nmaxmpidev is set to zero.
+    #But with the multiplication with maxcpus, we need to put it to one.
+    if test x$build_mpi_master_slave != xyes; then
+        nmaxmpidev=1
+    fi
 fi
-#We suppose Master adds nmaxmpidev workers but slaves don't.
-nmaxworkers=`expr 16 \* \( \( $maxcpus + $nmaxcudadev + $nmaxopencldev + $nmaxmicthreads + $nmaxmpidev + $nmaxsccdev + 15 \) / 16 \) `
+nmaxworkers=`expr 16 \* \( \( \( $nmaxmpidev \* $maxcpus \) + $nmaxcudadev + $nmaxopencldev + $nmaxmicthreads + $nmaxsccdev + 15 \) / 16 \) `
 AC_MSG_CHECKING(Maximum number of workers)
 AC_MSG_RESULT($nmaxworkers)
 AC_DEFINE_UNQUOTED(STARPU_NMAXWORKERS, [$nmaxworkers], [Maximum number of workers])
