@@ -157,7 +157,7 @@ char *_starpu_mktemp(const char *directory, int flags, int *fd)
 #elif defined (HAVE_MKOSTEMP)
 	*fd = mkostemp(baseCpy, flags);
 #else
-	STARPU_ASSERT(flags == (O_RDWR | O_BINARY));
+	STARPU_ASSERT(flags == (O_RDWR | O_BINARY) || flags == (O_RDWR | O_BINARY | O_DIRECT));
 	*fd = mkstemp(baseCpy);
 #endif
 
@@ -165,11 +165,25 @@ char *_starpu_mktemp(const char *directory, int flags, int *fd)
 	if (*fd < 0)
 	{
 		int err = errno;
-		_STARPU_DISP("Could not create temporary file in directory '%s', mskostemp failed with error '%s'\n", directory, strerror(errno));
+		_STARPU_DISP("Could not create temporary file directory '%s', mskostemp failed with error '%s'\n", directory, strerror(errno));
 		free(baseCpy);
 		errno = err;
 		return NULL;
 	}
+
+#if !defined(STARPU_HAVE_WINDOWS) && !defined (HAVE_MKOSTEMP)
+	if ((flags & O_DIRECT) != 0)
+	{
+		if (fcntl(*fd, F_SETFL, O_DIRECT) < 0)
+		{
+			int err = errno;
+			_STARPU_DISP("Could set O_DIRECT on the temporary file  directory '%s', fcntl failed with error '%s'\n", directory, strerror(errno));
+			free(baseCpy);
+			errno = err;
+			return NULL;
+		}		
+	}
+#endif
 
 	return baseCpy;
 }
