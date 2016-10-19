@@ -89,7 +89,7 @@ union _starpu_mp_connection
 	int scc_nodeid;
 #endif
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
-	int mpi_nodeid;
+	int mpi_remote_nodeid;
 #endif
 };
 

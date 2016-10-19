@@ -22,6 +22,11 @@
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 
+void _starpu_mpi_sink_init(struct _starpu_mp_node *node);
+void _starpu_mpi_sink_deinit(struct _starpu_mp_node *node);
+void _starpu_mpi_sink_launch_workers(struct _starpu_mp_node *node);
+void _starpu_mpi_sink_bind_thread(const struct _starpu_mp_node *mp_node STARPU_ATTRIBUTE_UNUSED, int coreid, int * core_table, int nb_core);
+
 ///* Send *MSG which can be an answer or data, to MPI SOURCE. */
 //extern void _starpu_mpi_sink_send(const struct _starpu_mp_node *source,
 //				  void *msg, int len);

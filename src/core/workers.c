@@ -1272,7 +1272,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 #endif
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
         if (_starpu_mpi_common_is_mp_initialized())
-            _starpu_mpi_src_mp_deinit();
+            _starpu_mpi_common_mp_deinit();
 #endif
 
 		initialized = UNINITIALIZED;

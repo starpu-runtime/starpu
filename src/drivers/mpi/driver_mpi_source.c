@@ -29,28 +29,15 @@
 
 struct _starpu_mp_node *mpi_ms_nodes[STARPU_MAXMPIDEVS];
 
-//static void _starpu_mpi_src_init_context(int devid)
-//{
-//    mpi_mp_nodes[devid] = _starpu_mp_common_node_create(STARPU_MPI_SOURCE, devid);
-//}
-
-static void _starpu_mpi_src_deinit_context(int devid)
-{
-    _starpu_mp_common_send_command(mpi_ms_nodes[devid], STARPU_EXIT, NULL, 0);
-
-    _starpu_mp_common_node_destroy(mpi_ms_nodes[devid]);
-}
-
-
-
 void _starpu_mpi_source_init(struct _starpu_mp_node *node)
 {
+    _starpu_mpi_common_mp_initialize_src_sink(node);
     //TODO
 }
 
 void _starpu_mpi_source_deinit(struct _starpu_mp_node *node)
 {
-    //TODO
+
 }
 
 unsigned _starpu_mpi_src_get_device_count()

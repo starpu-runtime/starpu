@@ -26,6 +26,9 @@
 #include <drivers/scc/driver_scc_common.h>
 #include <drivers/scc/driver_scc_source.h>
 #include <drivers/scc/driver_scc_sink.h>
+#include <drivers/mpi/driver_mpi_common.h>
+#include <drivers/mpi/driver_mpi_source.h>
+#include <drivers/mpi/driver_mpi_sink.h>
 
 #include <common/list.h>
 
@@ -225,22 +228,26 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
     /*
 		node->nb_mp_sinks = 
 		node->devid = 
+    */
+        node->mp_connection.mpi_remote_nodeid = peer_id+1;
 
         node->init = _starpu_mpi_source_init;
         node->launch_workers = NULL;
         node->deinit = _starpu_mpi_source_deinit;
-        node->report_error = 
+   /*     node->report_error = 
 
-		node->mp_recv_is_ready = 
-		node->mp_send = 
-		node->mp_recv = 
-		node->dt_send = 
-		node->dt_recv = 
+	*/	node->mp_recv_is_ready = _starpu_mpi_common_recv_is_ready;
+		node->mp_send = _starpu_mpi_common_send;
+		node->mp_recv = _starpu_mpi_common_recv;
+		node->dt_send = _starpu_mpi_common_send;
+		node->dt_recv = _starpu_mpi_common_recv;
+        node->dt_send_to_device = _starpu_mpi_common_send_to_device;
+        node->dt_recv_from_device = _starpu_mpi_common_recv_from_device;
 
-		node->get_kernel_from_job = 
+/*		node->get_kernel_from_job = 
 		node->lookup = 
-		node->bind_thread = 
-		node->execute = 
+*/		node->bind_thread = NULL;
+/*		node->execute = 
 		node->allocate = 
 		node->free = 
 
@@ -253,22 +260,24 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
     /*
 		node->nb_mp_sinks = 
 		node->devid = 
+    */
+        node->mp_connection.mpi_remote_nodeid = _starpu_mpi_common_get_src_node();
 
         node->init = _starpu_mpi_sink_init;
         node->launch_workers = _starpu_mpi_sink_launch_workers;
         node->deinit = _starpu_mpi_sink_deinit;
-        node->report_error = 
+    /*    node->report_error = 
 
-		node->mp_recv_is_ready = ;
-		node->mp_send = 
-		node->mp_recv = 
-		node->dt_send = 
-		node->dt_recv = 
+	*/	node->mp_recv_is_ready = _starpu_mpi_common_recv_is_ready;
+        node->mp_send = _starpu_mpi_common_send;
+		node->mp_recv = _starpu_mpi_common_recv;
+		node->dt_send = _starpu_mpi_common_send;
+		node->dt_recv = _starpu_mpi_common_recv;
 
-		node->get_kernel_from_job = 
+	/*	node->get_kernel_from_job = 
 		node->lookup = 
-		node->bind_thread = 
-		node->execute = 
+*/		node->bind_thread = _starpu_mpi_sink_bind_thread;
+/*		node->execute = 
 		node->allocate = 
 		node->free = 
 
@@ -306,7 +315,6 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
 		}
 		mp_barrier_list_init(&node->barrier_list);
 		STARPU_PTHREAD_MUTEX_INIT(&node->barrier_mutex,NULL);
-
 		STARPU_PTHREAD_BARRIER_INIT(&node->init_completed_barrier, NULL, node->nb_cores+1);
 
 		node->launch_workers(node);

@@ -30,6 +30,9 @@ unsigned _starpu_mpi_src_get_device_count();
 void *_starpu_mpi_src_worker(void *arg);
 void _starpu_mpi_exit_useless_node(int devid);
 
+void _starpu_mpi_source_init(struct _starpu_mp_node *node);
+void _starpu_mpi_source_deinit(struct _starpu_mp_node *node);
+
 ///* Send *MSG which can be a command or data, to a MPI sink. */
 //extern void _starpu_mpi_source_send(const struct _starpu_mp_node *node,
 //				    void *msg, int len);

@@ -977,7 +977,7 @@ _starpu_init_mp_config (struct _starpu_machine_config *config,
 #endif
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
     {
-        /* Discover and initialize the number of MIC nodes through the mp
+        /* Discover and initialize the number of MPI nodes through the mp
          * infrastructure. */
         unsigned nhwmpidevices = _starpu_mpi_src_get_device_count();
 

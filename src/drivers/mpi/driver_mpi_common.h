@@ -24,9 +24,21 @@
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 
 int _starpu_mpi_common_mp_init();
-void _starpu_mpi_src_mp_deinit();
+void _starpu_mpi_common_mp_deinit();
+
 int _starpu_mpi_common_is_src_node();
+int _starpu_mpi_common_get_src_node();
+
 int _starpu_mpi_common_is_mp_initialized();
+int _starpu_mpi_common_recv_is_ready(const struct _starpu_mp_node *mp_node);
+
+void _starpu_mpi_common_mp_initialize_src_sink(struct _starpu_mp_node *node);
+
+void _starpu_mpi_common_send(const struct _starpu_mp_node *node, void *msg, int len);
+void _starpu_mpi_common_recv(const struct _starpu_mp_node *node, void *msg, int len);
+
+void _starpu_mpi_common_recv_from_device(const struct _starpu_mp_node *node, int src_devid, void *msg, int len);
+void _starpu_mpi_common_send_to_device(const struct _starpu_mp_node *node, int dst_devid, void *msg, int len);
 
 
 #endif  /* STARPU_USE_MPI_MASTER_SLAVE */
