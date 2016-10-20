@@ -288,7 +288,7 @@ void fstarpu_codelet_add_cuda_flags(struct starpu_codelet *cl, intptr_t flags)
 	unsigned i;
 	for (i = 0; i < max_cuda_flags; i++)
 	{
-		if (cl->cuda_flags[i] == NULL)
+		if (cl->cuda_flags[i] == 0)
 		{
 			cl->cuda_flags[i] = (char)flags;
 			return;
@@ -318,7 +318,7 @@ void fstarpu_codelet_add_opencl_flags(struct starpu_codelet *cl, intptr_t flags)
 	unsigned i;
 	for (i = 0; i < max_opencl_flags; i++)
 	{
-		if (cl->opencl_flags[i] == NULL)
+		if (cl->opencl_flags[i] == 0)
 		{
 			cl->opencl_flags[i] = (char)flags;
 			return;
