@@ -75,6 +75,7 @@ versinclude_HEADERS = 				\
 	include/starpu_openmp.h			\
 	include/starpu_sink.h			\
 	include/starpu_mic.h			\
+	include/starpu_mpi_ms.h			\
 	include/starpu_scc.h			\
 	include/starpu_expert.h			\
 	include/starpu_profiling.h		\

@@ -244,14 +244,12 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
         node->dt_send_to_device = _starpu_mpi_common_send_to_device;
         node->dt_recv_from_device = _starpu_mpi_common_recv_from_device;
 
-/*		node->get_kernel_from_job = 
-		node->lookup = 
+		node->get_kernel_from_job = _starpu_mpi_ms_src_get_kernel_from_job;
+/*		node->lookup = 
 */		node->bind_thread = NULL;
-/*		node->execute = 
-		node->allocate = 
-		node->free = 
-
-        */
+		node->execute = NULL;
+		node->allocate = NULL;
+		node->free = NULL;
     }
 	break;
 

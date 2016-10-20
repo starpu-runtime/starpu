@@ -19,6 +19,7 @@
 #define __DRIVER_MPI_SOURCE_H__
 
 #include <drivers/mp_common/mp_common.h>
+#include <starpu_mpi_ms.h>
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 
@@ -32,6 +33,8 @@ void _starpu_mpi_exit_useless_node(int devid);
 
 void _starpu_mpi_source_init(struct _starpu_mp_node *node);
 void _starpu_mpi_source_deinit(struct _starpu_mp_node *node);
+
+void(* _starpu_mpi_ms_src_get_kernel_from_job(const struct _starpu_mp_node *node STARPU_ATTRIBUTE_UNUSED, struct _starpu_job *j))(void);
 
 ///* Send *MSG which can be a command or data, to a MPI sink. */
 //extern void _starpu_mpi_source_send(const struct _starpu_mp_node *node,
