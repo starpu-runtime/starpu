@@ -2335,7 +2335,15 @@ if test "x$FC" != "x"; then
 				enable_build_fortran="no"
 			fi
 		else
-			AC_MSG_WARN(Fortran compiler has not been tested for StarPU native Fortran support)
+			if $FC -qversion 2>&1|grep -q 'IBM XL Fortran'; then
+				xlf_fc_version=`$FC -V 2>&1 |tail -1|sed 's/.*Version: //'`
+				xlf_maj_version=`echo $xlf_fc_version|cut -d. -f1`
+
+				AC_MSG_WARN([IBM Fortran compiler $xlf_fc_version not validated with the native StarPU Fortran API, Fortran examples will not be built])
+				enable_build_fortran="no"
+			else
+				AC_MSG_WARN(Fortran compiler has not been tested for StarPU native Fortran support)
+			fi
 		fi
 	fi
 	if test "x$enable_build_fortran" = "xyes" ; then
