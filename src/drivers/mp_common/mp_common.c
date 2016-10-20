@@ -234,9 +234,9 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
         node->init = _starpu_mpi_source_init;
         node->launch_workers = NULL;
         node->deinit = _starpu_mpi_source_deinit;
-   /*     node->report_error = 
+   /*     node->report_error = */
 
-	*/	node->mp_recv_is_ready = _starpu_mpi_common_recv_is_ready;
+	 	node->mp_recv_is_ready = _starpu_mpi_common_recv_is_ready;
 		node->mp_send = _starpu_mpi_common_send;
 		node->mp_recv = _starpu_mpi_common_recv;
 		node->dt_send = _starpu_mpi_common_send;
@@ -245,8 +245,8 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
         node->dt_recv_from_device = _starpu_mpi_common_recv_from_device;
 
 		node->get_kernel_from_job = _starpu_mpi_ms_src_get_kernel_from_job;
-/*		node->lookup = 
-*/		node->bind_thread = NULL;
+		node->lookup = NULL;
+		node->bind_thread = NULL;
 		node->execute = NULL;
 		node->allocate = NULL;
 		node->free = NULL;
@@ -264,22 +264,22 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
         node->init = _starpu_mpi_sink_init;
         node->launch_workers = _starpu_mpi_sink_launch_workers;
         node->deinit = _starpu_mpi_sink_deinit;
-    /*    node->report_error = 
+    /*    node->report_error =  */
 
-	*/	node->mp_recv_is_ready = _starpu_mpi_common_recv_is_ready;
+    	node->mp_recv_is_ready = _starpu_mpi_common_recv_is_ready;
         node->mp_send = _starpu_mpi_common_send;
 		node->mp_recv = _starpu_mpi_common_recv;
 		node->dt_send = _starpu_mpi_common_send;
 		node->dt_recv = _starpu_mpi_common_recv;
 
-	/*	node->get_kernel_from_job = 
-		node->lookup = 
-*/		node->bind_thread = _starpu_mpi_sink_bind_thread;
-/*		node->execute = 
-		node->allocate = 
-		node->free = 
+		node->get_kernel_from_job = NULL;
+		node->lookup = _starpu_mpi_sink_lookup;
+		node->bind_thread = _starpu_mpi_sink_bind_thread;
+		node->execute = _starpu_sink_common_execute;
+		node->allocate = _starpu_sink_common_allocate;
+		node->free = _starpu_sink_common_free;
 
-        */
+        
     }
 		break;
 #endif /* STARPU_USE_MPI_MASTER_SLAVE */

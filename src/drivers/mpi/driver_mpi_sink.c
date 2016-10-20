@@ -17,6 +17,8 @@
 
 
 #include <mpi.h>
+#include <dlfcn.h>
+
 #include "driver_mpi_sink.h"
 #include "driver_mpi_common.h"
 
@@ -32,6 +34,12 @@ void _starpu_mpi_sink_deinit(struct _starpu_mp_node *node)
 {
     free(node->thread_table);
     //TODO
+}
+
+void (*_starpu_mpi_sink_lookup (const struct _starpu_mp_node * node STARPU_ATTRIBUTE_UNUSED, char* func_name))(void)
+{
+	void *dl_handle = dlopen(NULL, RTLD_NOW);
+	return dlsym(dl_handle, func_name);
 }
 
 void _starpu_mpi_sink_launch_workers(struct _starpu_mp_node *node)
