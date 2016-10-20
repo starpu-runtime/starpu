@@ -161,6 +161,7 @@ chapters/version.html: $(chapters)
 		if test -f $$f ; then $(RM) $$f ; fi ;\
 	done
 
+if BUILD_DOC
 EXTRA_DIST	= 					\
 	$(chapters) 					\
 	chapters/version.sty				\
@@ -196,6 +197,7 @@ EXTRA_DIST	= 					\
 	doxygen.cfg 					\
 	refman.tex					\
 	$(DOX_HTML_DIR)
+endif
 
 dox_inputs = $(DOX_CONFIG) 				\
 	$(chapters) 					\
@@ -270,7 +272,7 @@ $(DOX_TAG): $(dox_inputs)
 	@cat $(top_srcdir)/doc/doxygen/refman.tex >> $(DOX_LATEX_DIR)/refman.tex
 
 if BUILD_DOC
-dist_pdf_DATA = $(DOX_PDF)
+EXTRA_DIST += $(DOX_PDF)
 
 $(DOX_PDF): $(DOX_TAG) refman.tex
 	@cp $(top_srcdir)/doc/doxygen/chapters/version.sty $(DOX_LATEX_DIR)
