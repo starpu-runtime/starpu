@@ -1358,7 +1358,8 @@ _starpu_bind_thread_on_cpu (
 	ret = pthread_setaffinity_np(self, sizeof(aff_mask), &aff_mask);
 	if (ret)
 	{
-		perror("binding thread");
+		const char *msg = strerror(ret);
+		fprintf(stderr, "pthread_setaffinity_np: %s\n", msg);
 		STARPU_ABORT();
 	}
 
