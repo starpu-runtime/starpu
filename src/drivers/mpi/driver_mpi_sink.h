@@ -28,14 +28,6 @@ void _starpu_mpi_sink_launch_workers(struct _starpu_mp_node *node);
 void _starpu_mpi_sink_bind_thread(const struct _starpu_mp_node *mp_node STARPU_ATTRIBUTE_UNUSED, int coreid, int * core_table, int nb_core);
 void (*_starpu_mpi_sink_lookup (const struct _starpu_mp_node * node STARPU_ATTRIBUTE_UNUSED, char* func_name))(void);
 
-///* Send *MSG which can be an answer or data, to MPI SOURCE. */
-//extern void _starpu_mpi_sink_send(const struct _starpu_mp_node *source,
-//				  void *msg, int len);
-//
-///* Receive *MSG which can be either a command or data, from MPI SOURCE. */
-//extern void _starpu_mpi_sink_recv(const struct _starpu_mp_node *source,
-//				  void *msg, int len);
-
 #endif  /* STARPU_USE_MPI_MASTER_SLAVE */
 
 #endif	/* __DRIVER_MPI_SINK_H__ */

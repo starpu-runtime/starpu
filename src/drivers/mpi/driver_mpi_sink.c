@@ -78,22 +78,3 @@ void _starpu_mpi_sink_bind_thread(const struct _starpu_mp_node *mp_node STARPU_A
 {
     //TODO
 }
-
-
-//void _starpu_mpi_sink_send(const struct _starpu_mp_node *sink, void *msg,
-//			   int len)
-//{
-//	int dst = STARPU_MP_SRC_NODE;
-//	if (MPI_Send(msg, len, MPI_CHAR, dst, dst, MPI_COMM_WORLD))
-//		STARPU_MP_COMMON_REPORT_ERROR(sink, errno);
-//}
-//
-//void _starpu_mpi_sink_recv(const struct _starpu_mp_node *sink, void *msg,
-//			   int len)
-//{
-//	int src = STARPU_MP_SRC_NODE;
-//	if (MPI_Recv(msg, len, MPI_CHAR, src, sink->mp_connection.mpi_nodeid,
-//		     MPI_COMM_WORLD, MPI_STATUS_IGNORE))
-//		STARPU_MP_COMMON_REPORT_ERROR(sink, errno);
-//}
-
