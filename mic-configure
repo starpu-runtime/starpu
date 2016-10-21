@@ -17,6 +17,7 @@ declare -a mic_params
 unset host_params
 unset mic_params
 native_mic=0
+mpi=0
 for arg in "$@"
 do
 	case $arg in
@@ -43,6 +44,9 @@ do
 			;;
 		--with-host-param=*)
 			host_params+=("${arg#--with-host-param=}")
+			;;
+		--with-mpi*)
+			mpi=1
 			;;
 		--help)
 			cat << EOF
@@ -97,8 +101,11 @@ then
 fi
 
 # prepend mic_params with "--with-mpicc=mpicc -mmic", to allow possible override by the user
-mic_params=("--with-mpicc=mpicc -mmic" "${mic_params[@]}")
-mic_params=("--with-mpifort=mpifort -mmic" "${mic_params[@]}")
+if [ $mpi = 1 ]
+then
+	mic_params=("--with-mpicc=mpicc -mmic" "${mic_params[@]}")
+	mic_params=("--with-mpifort=mpifort -mmic" "${mic_params[@]}")
+fi
 
 for arch in $dev_list #host mic
 do
