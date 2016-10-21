@@ -549,7 +549,9 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 	if (victim == -1)
 		return NULL;
 
-	STARPU_PTHREAD_MUTEX_LOCK(&ws->per_worker[victim].worker_mutex);
+	if (STARPU_PTHREAD_MUTEX_TRYLOCK(&ws->per_worker[victim].worker_mutex))
+		/* victim is busy, don't bother it, come back later */
+		return NULL;
 	if (ws->per_worker[victim].queue_array != NULL && ws->per_worker[victim].queue_array->ntasks > 0)
 	{
 		task = ws_pick_task(victim, workerid, sched_ctx_id);
