@@ -110,6 +110,9 @@ do
 		*) command="../${ROOT_DIR}/configure";;
 	esac
 
+	declare -a params
+	params=("--prefix=$prefix/$arch" "--disable-fstack-protector-all")
+
 	if [ "$arch" = mic ] ; then
 		if [ $compiler = "icc" ] ; then
 		    export CC="icc -mmic"
@@ -129,9 +132,6 @@ do
 		    params+=(--disable-fortran)
 		fi
 	fi
-
-	declare -a params
-	params=("--prefix=$prefix/$arch" "--disable-fstack-protector-all")
 
 	if [ "$native_mic" -eq "0" ]
 	then
