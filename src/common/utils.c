@@ -278,6 +278,17 @@ int _starpu_frdlock(FILE *file)
 	};
 	ret = fcntl(fileno(file), F_SETLKW, &lock);
 #endif
+#ifdef ENOLCK
+	if (ret != 0 && errno == ENOLCK)
+	{
+		static int warn;
+		if (!warn) {
+			warn = 1;
+			_STARPU_DISP("warning: Couldn't lock performance file, StarPU home is probably on NFS which does not support locking.\n");
+		}
+		return -1;
+	}
+#endif
 	STARPU_ASSERT(ret == 0);
 	return ret;
 }
@@ -326,6 +337,18 @@ int _starpu_fwrlock(FILE *file)
 		.l_len = 0
 	};
 	ret = fcntl(fileno(file), F_SETLKW, &lock);
+#endif
+
+#ifdef ENOLCK
+	if (ret != 0 && errno == ENOLCK)
+	{
+		static int warn;
+		if (!warn) {
+			warn = 1;
+			_STARPU_DISP("warning: Couldn't lock performance file, StarPU home is probably on NFS which does not support locking.\n");
+		}
+		return -1;
+	}
 #endif
 	STARPU_ASSERT(ret == 0);
 	return ret;

@@ -787,6 +787,7 @@ static void load_bus_affinity_file_content(void)
 {
 #if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 	FILE *f;
+	int locked;
 
 	char path[256];
 	get_affinity_path(path, sizeof(path));
@@ -796,7 +797,7 @@ static void load_bus_affinity_file_content(void)
 	f = fopen(path, "r");
 	STARPU_ASSERT(f);
 
-	_starpu_frdlock(f);
+	locked = _starpu_frdlock(f) == 0;
 
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	ncpus = _starpu_topology_get_nhwcpu(config);
@@ -850,7 +851,8 @@ static void load_bus_affinity_file_content(void)
 		STARPU_ASSERT(ret == 0);
 	}
 #endif /* !STARPU_USE_OPENCL */
-	_starpu_frdunlock(f);
+	if (locked)
+		_starpu_frdunlock(f);
 
 	fclose(f);
 #endif /* !(STARPU_USE_CUDA_ || STARPU_USE_OPENCL */
@@ -865,6 +867,8 @@ static void write_bus_affinity_file_content(void)
 #if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 	FILE *f;
 	char path[256];
+	int locked;
+
 	get_affinity_path(path, sizeof(path));
 
 	_STARPU_DEBUG("writing affinities to %s\n", path);
@@ -878,7 +882,7 @@ static void write_bus_affinity_file_content(void)
 		STARPU_ABORT();
 	}
 
-	_starpu_frdlock(f);
+	locked = _starpu_frdlock(f) == 0;
 	unsigned cpu;
         unsigned gpu;
 
@@ -914,7 +918,8 @@ static void write_bus_affinity_file_content(void)
 	}
 #endif
 
-	_starpu_frdunlock(f);
+	if (locked)
+		_starpu_frdunlock(f);
 	fclose(f);
 #endif
 }
@@ -1010,6 +1015,7 @@ static int load_bus_latency_file_content(void)
 	unsigned src, dst;
 	FILE *f;
 	double latency;
+	int locked;
 
 	char path[256];
 	get_latency_path(path, sizeof(path));
@@ -1024,7 +1030,7 @@ static int load_bus_latency_file_content(void)
 		fflush(stderr);
 		STARPU_ABORT();
 	}
-	_starpu_frdlock(f);
+	locked = _starpu_frdlock(f) == 0;
 
 	for (src = 0; src < STARPU_MAXNODES; src++)
 	{
@@ -1092,7 +1098,8 @@ static int load_bus_latency_file_content(void)
 			break;
 		ungetc(n, f);
 	}
-	_starpu_frdunlock(f);
+	if (locked)
+		_starpu_frdunlock(f);
 	fclose(f);
 
 	/* No more values, take NAN */
@@ -1108,6 +1115,7 @@ static void write_bus_latency_file_content(void)
 {
         unsigned src, dst, maxnode;
 	FILE *f;
+	int locked;
 
 	STARPU_ASSERT(was_benchmarked);
 
@@ -1124,7 +1132,7 @@ static void write_bus_latency_file_content(void)
 		fflush(stderr);
 		STARPU_ABORT();
 	}
-	_starpu_fwrlock(f);
+	locked = _starpu_fwrlock(f) == 0;
 	_starpu_fftruncate(f, 0);
 
 	fprintf(f, "# ");
@@ -1185,7 +1193,8 @@ static void write_bus_latency_file_content(void)
 
 		fprintf(f, "\n");
 	}
-	_starpu_fwrunlock(f);
+	if (locked)
+		_starpu_fwrunlock(f);
 
 	fclose(f);
 }
@@ -1232,6 +1241,7 @@ static int load_bus_bandwidth_file_content(void)
 	unsigned src, dst;
 	FILE *f;
 	double bandwidth;
+	int locked;
 
 	char path[256];
 	get_bandwidth_path(path, sizeof(path));
@@ -1246,7 +1256,7 @@ static int load_bus_bandwidth_file_content(void)
 		fflush(stderr);
 		STARPU_ABORT();
 	}
-	_starpu_frdlock(f);
+	locked = _starpu_frdlock(f) == 0;
 
 	for (src = 0; src < STARPU_MAXNODES; src++)
 	{
@@ -1314,7 +1324,8 @@ static int load_bus_bandwidth_file_content(void)
 			break;
 		ungetc(n, f);
 	}
-	_starpu_frdunlock(f);
+	if (locked)
+		_starpu_frdunlock(f);
 	fclose(f);
 
 	/* No more values, take NAN */
@@ -1330,6 +1341,7 @@ static void write_bus_bandwidth_file_content(void)
 {
 	unsigned src, dst, maxnode;
 	FILE *f;
+	int locked;
 
 	STARPU_ASSERT(was_benchmarked);
 
@@ -1341,7 +1353,7 @@ static void write_bus_bandwidth_file_content(void)
 	f = fopen(path, "w+");
 	STARPU_ASSERT(f);
 
-	_starpu_fwrlock(f);
+	locked = _starpu_fwrlock(f) == 0;
 	_starpu_fftruncate(f, 0);
 
 	fprintf(f, "# ");
@@ -1415,7 +1427,8 @@ static void write_bus_bandwidth_file_content(void)
 		fprintf(f, "\n");
 	}
 
-	_starpu_fwrunlock(f);
+	if (locked)
+		_starpu_fwrunlock(f);
 	fclose(f);
 }
 #endif /* STARPU_SIMGRID */
@@ -1591,11 +1604,12 @@ static void check_bus_config_file(void)
                 int ret;
 		unsigned read_cuda = -1, read_opencl = -1, read_mic = -1;
                 unsigned read_cpus = -1;
+		int locked;
 
                 // Loading configuration from file
                 f = fopen(path, "r");
                 STARPU_ASSERT(f);
-		_starpu_frdlock(f);
+		locked = _starpu_frdlock(f) == 0;
                 _starpu_drop_comments(f);
                 ret = fscanf(f, "%u\t", &read_cpus);
 		STARPU_ASSERT(ret == 1);
@@ -1610,7 +1624,8 @@ static void check_bus_config_file(void)
 		if (ret == 0)
 			read_mic = 0;
                 _starpu_drop_comments(f);
-		_starpu_frdunlock(f);
+		if (locked)
+			_starpu_frdunlock(f);
                 fclose(f);
 
                 // Loading current configuration
@@ -1657,6 +1672,7 @@ static void write_bus_config_file_content(void)
 {
 	FILE *f;
 	char path[256];
+	int locked;
 
 	STARPU_ASSERT(was_benchmarked);
         get_config_path(path, sizeof(path));
@@ -1665,7 +1681,7 @@ static void write_bus_config_file_content(void)
 
         f = fopen(path, "w+");
 	STARPU_ASSERT(f);
-	_starpu_fwrlock(f);
+	locked = _starpu_fwrlock(f) == 0;
 	_starpu_fftruncate(f, 0);
 
         fprintf(f, "# Current configuration\n");
@@ -1674,7 +1690,8 @@ static void write_bus_config_file_content(void)
         fprintf(f, "%d # Number of OpenCL devices\n", nopencl);
         fprintf(f, "%d # Number of MIC devices\n", nmic);
 
-	_starpu_fwrunlock(f);
+	if (locked)
+		_starpu_fwrunlock(f);
         fclose(f);
 }
 
@@ -2124,6 +2141,7 @@ static void write_bus_platform_file_content(int version)
 	unsigned i;
 	const char *speed, *flops, *Bps, *s;
 	char dash;
+	int locked;
 
 	if (version == 3)
 	{
@@ -2156,7 +2174,7 @@ static void write_bus_platform_file_content(int version)
 		fflush(stderr);
 		STARPU_ABORT();
 	}
-	_starpu_fwrlock(f);
+	locked = _starpu_fwrlock(f) == 0;
 	_starpu_fftruncate(f, 0);
 
 	fprintf(f,
@@ -2399,7 +2417,8 @@ flat_cuda:
 " </platform>\n"
 		);
 
-	_starpu_fwrunlock(f);
+	if (locked)
+		_starpu_fwrunlock(f);
 	fclose(f);
 }
 

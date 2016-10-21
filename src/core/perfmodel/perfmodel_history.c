@@ -848,6 +848,7 @@ static void save_history_based_model(struct starpu_perfmodel *model)
 {
 	STARPU_ASSERT(model);
 	STARPU_ASSERT(model->symbol);
+	int locked;
 
 	/* TODO checks */
 
@@ -862,10 +863,11 @@ static void save_history_based_model(struct starpu_perfmodel *model)
 	f = fopen(path, "w+");
 	STARPU_ASSERT_MSG(f, "Could not save performance model %s\n", path);
 
-	_starpu_fwrlock(f);
+	locked = _starpu_fwrlock(f) == 0;
 	_starpu_fftruncate(f, 0);
 	dump_model_file(f, model);
-	_starpu_fwrunlock(f);
+	if (locked)
+		_starpu_fwrunlock(f);
 
 	fclose(f);
 }
@@ -1056,9 +1058,11 @@ void _starpu_load_history_based_model(struct starpu_perfmodel *model, unsigned s
 			f = fopen(path, "r");
 			if (f)
 			{
-				_starpu_frdlock(f);
+				int locked;
+				locked = _starpu_frdlock(f) == 0;
 				parse_model_file(f, model, scan_history);
-				_starpu_frdunlock(f);
+				if (locked)
+					_starpu_frdunlock(f);
 				fclose(f);
 				_STARPU_DEBUG("Performance model file %s for model %s is loaded\n", path, model->symbol);
 			}
@@ -1149,14 +1153,16 @@ int starpu_perfmodel_load_file(const char *filename, struct starpu_perfmodel *mo
 {
 	int res;
 	FILE *f = fopen(filename, "r");
+	int locked;
 
 	STARPU_ASSERT(f);
 
 	starpu_perfmodel_init(model);
 
-	_starpu_frdlock(f);
+	locked = _starpu_frdlock(f) == 0;
 	parse_model_file(f, model, 1);
-	_starpu_frdunlock(f);
+	if (locked)
+		_starpu_frdunlock(f);
 
 	res = fclose(f);
 	STARPU_ASSERT(res == 0);
@@ -1632,13 +1638,14 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 		struct starpu_task *task = j->task;
 		starpu_perfmodel_debugfilepath(model, arch_combs[comb], per_arch_model->debug_path, 256, impl);
 		FILE *f = fopen(per_arch_model->debug_path, "a+");
+		int locked;
 		if (f == NULL)
 		{
 			_STARPU_DISP("Error <%s> when opening file <%s>\n", strerror(errno), per_arch_model->debug_path);
 			STARPU_PTHREAD_RWLOCK_UNLOCK(&model->state->model_rwlock);
 			return;
 		}
-		_starpu_fwrlock(f);
+		locked = _starpu_fwrlock(f) == 0;
 
 		if (!j->footprint_is_computed)
 			(void) _starpu_compute_buffers_footprint(model, arch, impl, j);
@@ -1658,7 +1665,8 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 			handle->ops->display(handle, f);
 		}
 		fprintf(f, "\n");
-		_starpu_fwrunlock(f);
+		if (locked)
+			_starpu_fwrunlock(f);
 		fclose(f);
 #endif
 		STARPU_PTHREAD_RWLOCK_UNLOCK(&model->state->model_rwlock);
