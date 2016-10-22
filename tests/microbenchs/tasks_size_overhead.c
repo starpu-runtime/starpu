@@ -49,6 +49,9 @@ static unsigned ntasks = 256;
 static unsigned nbuffers = 0;
 static unsigned total_nbuffers = 0;
 
+static unsigned mincpus = 1, maxcpus, cpustep = 1;
+static unsigned mintime = START, maxtime = STOP, factortime = FACTOR;
+
 struct starpu_task *tasks;
 
 void func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
@@ -75,7 +78,7 @@ static struct starpu_codelet codelet =
 static void parse_args(int argc, char **argv)
 {
 	int c;
-	while ((c = getopt(argc, argv, "i:b:B:h")) != -1)
+	while ((c = getopt(argc, argv, "i:b:B:c:C:t:T:f:h")) != -1)
 	switch(c)
 	{
 		case 'i':
@@ -88,8 +91,38 @@ static void parse_args(int argc, char **argv)
 		case 'B':
 			total_nbuffers = atoi(optarg);
 			break;
+		case 'c':
+			mincpus = atoi(optarg);
+			break;
+		case 'C':
+			maxcpus = atoi(optarg);
+			break;
+		case 's':
+			cpustep = atoi(optarg);
+			break;
+		case 't':
+			mintime = atoi(optarg);
+			break;
+		case 'T':
+			maxtime = atoi(optarg);
+			break;
+		case 'f':
+			factortime = atoi(optarg);
+			break;
 		case 'h':
-			fprintf(stderr, "Usage: %s [-i ntasks] [-b nbuffers] [-B total_nbuffers] [-h]\n", argv[0]);
+			fprintf(stderr, "\
+Usage: %s [-h]\n\
+          [-i ntasks] [-b nbuffers] [-B total_nbuffers]\n\
+          [-c mincpus] [ -C maxcpus] [-s cpustep]\n\
+	  [-t mintime] [-T maxtime] [-f factortime]\n\n", argv[0]);
+			fprintf(stderr,"\
+runs 'ntasks' tasks\n\
+- using 'nbuffers' data each, randomly among 'total_nbuffers' choices,\n\
+- with varying task durations, from 'mintime' to 'maxtime' (using 'factortime')\n\
+- on varying numbers of cpus, from 'mincpus' to 'maxcpus' (using 'cpustep')\n\
+\n\
+currently selected parameters: %u tasks using %u buffers among %u, from %uus to %uus (factor %u), from %u cpus to %u cpus (step %u)\n\
+", ntasks, nbuffers, total_nbuffers, mintime, maxtime, factortime, mincpus, maxcpus, cpustep);
 			exit(EXIT_SUCCESS);
 			break;
 	}
@@ -100,7 +133,7 @@ int main(int argc, char **argv)
 	int ret;
 	unsigned i;
 	unsigned size;
-	unsigned totcpus, ncpus;
+	unsigned ncpus;
 
 	double timing;
 	double start;
@@ -110,24 +143,22 @@ int main(int argc, char **argv)
 
 	unsigned buffer;
 
-	parse_args(argc, argv);
-
 	/* Get number of CPUs */
 	starpu_conf_init(&conf);
 	conf.ncuda = 0;
 	conf.nopencl = 0;
+#ifdef STARPU_SIMGRID
+	/* This will get serialized, avoid spending too much time on it. */
+	maxcpus = 2;
+#else
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-
-#ifdef STARPU_SIMGRID
-	/* This will get serialized, avoid spending too much time on it. */
-	totcpus = 2;
-#else
-	totcpus = starpu_worker_get_count_by_type(STARPU_CPU_WORKER);
+	maxcpus = starpu_worker_get_count_by_type(STARPU_CPU_WORKER);
+	starpu_shutdown();
 #endif
 
-	starpu_shutdown();
+	parse_args(argc, argv);
 
 	float *buffers[total_nbuffers?total_nbuffers:1];
 
@@ -135,16 +166,16 @@ int main(int argc, char **argv)
 	for (buffer = 0; buffer < total_nbuffers; buffer++)
 		buffers[buffer] = (float *) malloc(16*sizeof(float));
 
-	tasks = (struct starpu_task *) calloc(1, ntasks*totcpus*sizeof(struct starpu_task));
+	tasks = (struct starpu_task *) calloc(1, ntasks*maxcpus*sizeof(struct starpu_task));
 
 	/* Emit headers and compute raw tasks speed */
 	FPRINTF(stdout, "# tasks : %u buffers : %u total_nbuffers : %u\n", ntasks, nbuffers, total_nbuffers);
 	FPRINTF(stdout, "# ncpus\t");
-	for (size = START; size <= STOP; size *= FACTOR)
+	for (size = mintime; size <= maxtime; size *= factortime)
 		FPRINTF(stdout, "%u iters(us)\ttotal(s)\t", size);
 	FPRINTF(stdout, "\n");
 	FPRINTF(stdout, "\"seq\"\t");
-	for (size = START; size <= STOP; size *= FACTOR)
+	for (size = mintime; size <= maxtime; size *= factortime)
 	{
 		double dstart, dend;
 		dstart = starpu_timing_now();
@@ -159,7 +190,7 @@ int main(int argc, char **argv)
 	starpu_data_handle_t data_handles[total_nbuffers?total_nbuffers:1];
 
 	/* For each number of cpus, benchmark */
-	for (ncpus= 1; ncpus <= totcpus; ncpus++)
+	for (ncpus= mincpus; ncpus <= maxcpus; ncpus += cpustep)
 	{
 		FPRINTF(stdout, "%u\t", ncpus);
 		fflush(stdout);
@@ -172,7 +203,7 @@ int main(int argc, char **argv)
 		for (buffer = 0; buffer < total_nbuffers; buffer++)
 			starpu_vector_data_register(&data_handles[buffer], STARPU_MAIN_RAM, (uintptr_t)buffers[buffer], 16, sizeof(float));
 
-		for (size = START; size <= STOP; size *= FACTOR)
+		for (size = mintime; size <= maxtime; size *= factortime)
 		{
 			/* submit tasks */
 			start = starpu_timing_now();
