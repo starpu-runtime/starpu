@@ -278,7 +278,7 @@ static void locality_pushed_task(struct starpu_task *task, int workerid, unsigne
 }
 
 /* Pick a task from workerid's queue, for execution on target */
-static struct starpu_task *ws_pick_task(struct _starpu_work_stealing_data *ws, int source, int target, unsigned sched_ctx_id)
+static struct starpu_task *ws_pick_task(struct _starpu_work_stealing_data *ws, int source, int target)
 {
 	struct _starpu_work_stealing_data_per_worker *data_source = &ws->per_worker[source];
 	struct _starpu_work_stealing_data_per_worker *data_target = &ws->per_worker[target];
@@ -362,7 +362,7 @@ static void locality_pushed_task(struct starpu_task *task STARPU_ATTRIBUTE_UNUSE
 {
 }
 /* Pick a task from workerid's queue, for execution on target */
-static struct starpu_task *ws_pick_task(struct _starpu_work_stealing_data *ws, int source, int target, unsigned sched_ctx_id)
+static struct starpu_task *ws_pick_task(struct _starpu_work_stealing_data *ws, int source, int target)
 {
 	return _starpu_fifo_pop_task(ws->per_worker[source].queue_array, target);
 }
@@ -535,7 +535,7 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 #endif
 	{
 		STARPU_PTHREAD_MUTEX_LOCK(&ws->per_worker[workerid].worker_mutex);
-		task = ws_pick_task(ws, workerid, workerid, sched_ctx_id);
+		task = ws_pick_task(ws, workerid, workerid);
 		if (task)
 			locality_popped_task(task, workerid, sched_ctx_id);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&ws->per_worker[workerid].worker_mutex);
@@ -571,7 +571,7 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 	}
 	if (ws->per_worker[victim].queue_array != NULL && ws->per_worker[victim].queue_array->ntasks > 0)
 	{
-		task = ws_pick_task(ws, victim, workerid, sched_ctx_id);
+		task = ws_pick_task(ws, victim, workerid);
 	}
 
 	if (task)
