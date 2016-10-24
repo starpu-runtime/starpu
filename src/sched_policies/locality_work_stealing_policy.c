@@ -162,27 +162,29 @@ static int select_victim_round_robin(unsigned sched_ctx_id)
  * Return a worker to whom add a task.
  * Selecting a worker is done in a round-robin fashion.
  */
-static unsigned select_worker_round_robin(unsigned sched_ctx_id)
+static unsigned select_worker_round_robin(struct starpu_task *task, unsigned sched_ctx_id)
 {
 	struct _starpu_lws_data *ws = (struct _starpu_lws_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-	unsigned worker = ws->last_push_worker;
+	unsigned worker;
 	unsigned nworkers;
 	int *workerids;
 	nworkers = starpu_sched_ctx_get_workers_list_raw(sched_ctx_id, &workerids);
 
-	/* TODO: use an atomic update operation for this */
-	ws->last_push_worker = (ws->last_push_worker + 1) % nworkers;
+	worker = ws->last_push_worker;
+	do
+		worker = (worker + 1) % nworkers;
+	while (!starpu_worker_can_execute_task_first_impl(workerids[worker], task, NULL));
 
-	worker = workerids[worker];
+	ws->last_push_worker = worker;
 
-	return worker;
+	return workerids[worker];
 }
 
 #ifdef USE_LOCALITY
 /* Select a worker according to the locality of the data of the task to be scheduled */
 static unsigned select_worker_locality(struct starpu_task *task, unsigned sched_ctx_id)
 {
-	struct _starpu_work_stealing_data *ws = (struct _starpu_work_stealing_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
+	struct _starpu_lws_data *ws = (struct _starpu_lws_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
 	if (nbuffers == 0)
 		return -1;
@@ -214,7 +216,7 @@ static unsigned select_worker_locality(struct starpu_task *task, unsigned sched_
 		while(workers->has_next(workers, &it))
 		{
 			int workerid = workers->get_next(workers, &it);
-			if (ndata[workerid] > best_ndata && ws->per_worker[worker].busy)
+			if (ndata[workerid] > best_ndata && ws->per_worker[workerid].busy)
 			{
 				best_worker = workerid;
 				best_ndata = ndata[workerid];
@@ -283,7 +285,7 @@ static void locality_pushed_task(struct starpu_task *task, int workerid, unsigne
 }
 
 /* Pick a task from workerid's queue, for execution on target */
-static struct starpu_task *ws_pick_task(struct _starpu_work_stealing_data *ws, int source, int target)
+static struct starpu_task *ws_pick_task(struct _starpu_lws_data *ws, int source, int target)
 {
 	struct _starpu_lws_data_per_worker *data_source = &ws->per_worker[source];
 	struct _starpu_lws_data_per_worker *data_target = &ws->per_worker[target];
@@ -394,9 +396,9 @@ static inline int select_victim(unsigned sched_ctx_id, int workerid STARPU_ATTRI
  * Return a worker on whose queue a task can be pushed. This is only
  * needed when the push is done by the master
  */
-static inline unsigned select_worker(unsigned sched_ctx_id)
+static inline unsigned select_worker(struct starpu_task *task, unsigned sched_ctx_id)
 {
-	return select_worker_round_robin(sched_ctx_id);
+	return select_worker_round_robin(task, sched_ctx_id);
 }
 
 
@@ -487,8 +489,9 @@ static int lws_push_task(struct starpu_task *task)
 	/* If the current thread is not a worker but
 	 * the main thread (-1) or the current worker is not in the target
 	 * context, we find the better one to put task on its queue */
-	if (workerid == -1 || !starpu_sched_ctx_contains_worker(workerid, sched_ctx_id))
-		workerid = select_worker(sched_ctx_id);
+	if (workerid == -1 || !starpu_sched_ctx_contains_worker(workerid, sched_ctx_id) ||
+			!starpu_worker_can_execute_task_first_impl(workerid, task, NULL))
+		workerid = select_worker(task, sched_ctx_id);
 
 	record_data_locality(task, workerid);
 	/* int workerid = starpu_worker_get_id(); */
@@ -499,6 +502,7 @@ static int lws_push_task(struct starpu_task *task)
 	starpu_worker_get_sched_condition(workerid, &sched_mutex, &sched_cond);
 	STARPU_PTHREAD_MUTEX_LOCK_SCHED(sched_mutex);
 
+	STARPU_AYU_ADDTOTASKQUEUE(_starpu_get_job_associated_to_task(task)->job_id, workerid);
 	STARPU_PTHREAD_MUTEX_LOCK(&ws->per_worker[workerid].worker_mutex);
 	_STARPU_TASK_BREAK_ON(task, sched);
 	_starpu_fifo_push_task(ws->per_worker[workerid].queue_array, task);
