@@ -189,6 +189,12 @@ int main(int argc, char **argv)
 
 	starpu_data_handle_t data_handles[total_nbuffers?total_nbuffers:1];
 
+	if (nbuffers && !total_nbuffers)
+	{
+		fprintf(stderr,"can not have %u buffers with %u total buffers\n", nbuffers, total_nbuffers);
+		goto error;
+	}
+
 	/* For each number of cpus, benchmark */
 	for (ncpus= mincpus; ncpus <= maxcpus; ncpus += cpustep)
 	{
@@ -286,6 +292,7 @@ enodev:
 	fprintf(stderr, "WARNING: No one can execute this task\n");
 	/* yes, we do not perform the computation but we did detect that no one
  	 * could perform the kernel, so this is not an error from StarPU */
+error:
 	starpu_shutdown();
 	free(tasks);
 	return STARPU_TEST_SKIPPED;
