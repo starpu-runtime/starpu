@@ -135,7 +135,7 @@ void _starpu_mpi_sync_data_add(struct _starpu_mpi_req *sync_req)
 	HASH_FIND(hh, _starpu_mpi_sync_data_handle_hashmap, &sync_req->node_tag, sizeof(struct _starpu_mpi_node_tag), hashlist);
 	if (hashlist == NULL)
 	{
-		STARPU_MPI_MALLOC(hashlist, sizeof(struct _starpu_mpi_sync_data_handle_hashlist));
+		_STARPU_MPI_MALLOC(hashlist, sizeof(struct _starpu_mpi_sync_data_handle_hashlist));
 		hashlist->list = _starpu_mpi_req_list_new();
 		hashlist->node_tag = sync_req->node_tag;
 		HASH_ADD(hh, _starpu_mpi_sync_data_handle_hashmap, node_tag, sizeof(hashlist->node_tag), hashlist);

@@ -80,7 +80,7 @@ int _starpu_mpi_select_node_with_most_R_data(int me, int nb_nodes, struct starpu
 	int xrank = 0;
 
 	(void)me;
-	STARPU_MPI_CALLOC(size_on_nodes, nb_nodes, sizeof(size_t));
+	_STARPU_MPI_CALLOC(size_on_nodes, nb_nodes, sizeof(size_t));
 
 	for(i= 0 ; i<nb_data ; i++)
 	{

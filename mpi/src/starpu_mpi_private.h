@@ -69,9 +69,9 @@ int _starpu_debug_rank;
 #  endif
 #endif
 
-#define STARPU_MPI_MALLOC(ptr, size) do { ptr = malloc(size); STARPU_MPI_ASSERT_MSG(ptr != NULL, "Cannot allocate %ld bytes\n", size); } while (0)
-#define STARPU_MPI_CALLOC(ptr, nmemb, size) do { ptr = calloc(nmemb, size); STARPU_MPI_ASSERT_MSG(ptr != NULL, "Cannot allocate %ld bytes\n", nmemb*size); } while (0)
-#define STARPU_MPI_REALLOC(ptr, size) do { ptr = realloc(ptr, size); STARPU_MPI_ASSERT_MSG(ptr != NULL, "Cannot reallocate %ld bytes\n", size); } while (0)
+#define _STARPU_MPI_MALLOC(ptr, size) do { ptr = malloc(size); STARPU_MPI_ASSERT_MSG(ptr != NULL, "Cannot allocate %ld bytes\n", size); } while (0)
+#define _STARPU_MPI_CALLOC(ptr, nmemb, size) do { ptr = calloc(nmemb, size); STARPU_MPI_ASSERT_MSG(ptr != NULL, "Cannot allocate %ld bytes\n", nmemb*size); } while (0)
+#define _STARPU_MPI_REALLOC(ptr, size) do { ptr = realloc(ptr, size); STARPU_MPI_ASSERT_MSG(ptr != NULL, "Cannot reallocate %ld bytes\n", size); } while (0)
 
 #ifdef STARPU_VERBOSE
 #  define _STARPU_MPI_COMM_DEBUG(count, datatype, node, tag, utag, comm, way) \

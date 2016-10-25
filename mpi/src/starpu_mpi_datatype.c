@@ -214,9 +214,9 @@ static void _starpu_mpi_handle_free_complex_datatype(MPI_Datatype *datatype)
 		MPI_Aint *array_of_adds;
 		MPI_Datatype *array_of_datatypes;
 
-		STARPU_MPI_MALLOC(array_of_ints, num_ints * sizeof(int));
-		STARPU_MPI_MALLOC(array_of_adds, num_adds * sizeof(MPI_Aint));
-		STARPU_MPI_MALLOC(array_of_datatypes, num_datatypes * sizeof(MPI_Datatype));
+		_STARPU_MPI_MALLOC(array_of_ints, num_ints * sizeof(int));
+		_STARPU_MPI_MALLOC(array_of_adds, num_adds * sizeof(MPI_Aint));
+		_STARPU_MPI_MALLOC(array_of_datatypes, num_datatypes * sizeof(MPI_Datatype));
 
 		MPI_Type_get_contents(*datatype, num_ints, num_adds, num_datatypes, array_of_ints, array_of_adds, array_of_datatypes);
 		for(i=0 ; i<num_datatypes ; i++)
@@ -284,7 +284,7 @@ int starpu_mpi_datatype_register(starpu_data_handle_t handle, starpu_mpi_datatyp
 	}
 	else
 	{
-		STARPU_MPI_MALLOC(table, sizeof(struct _starpu_mpi_datatype_funcs));
+		_STARPU_MPI_MALLOC(table, sizeof(struct _starpu_mpi_datatype_funcs));
 		table->id = id;
 		table->allocate_datatype_func = allocate_datatype_func;
 		table->free_datatype_func = free_datatype_func;

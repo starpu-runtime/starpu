@@ -38,7 +38,7 @@ int _fstarpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_no
 
 	_STARPU_TRACE_TASK_MPI_DECODE_START();
 
-	STARPU_MPI_MALLOC(descrs, nb_allocated_data * sizeof(struct starpu_data_descr));
+	_STARPU_MPI_MALLOC(descrs, nb_allocated_data * sizeof(struct starpu_data_descr));
 	nb_data = 0;
 	*do_execute = -1;
 	*xrank = -1;
@@ -93,7 +93,7 @@ int _fstarpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_no
 			if (nb_data >= nb_allocated_data)
 			{
 				nb_allocated_data *= 2;
-				STARPU_MPI_REALLOC(descrs, nb_allocated_data * sizeof(struct starpu_data_descr));
+				_STARPU_MPI_REALLOC(descrs, nb_allocated_data * sizeof(struct starpu_data_descr));
 			}
 			descrs[nb_data].handle = data;
 			descrs[nb_data].mode = mode;
@@ -124,7 +124,7 @@ int _fstarpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_no
 				if (nb_data >= nb_allocated_data)
 				{
 					nb_allocated_data *= 2;
-					STARPU_MPI_REALLOC(descrs, nb_allocated_data * sizeof(struct starpu_data_descr));
+					_STARPU_MPI_REALLOC(descrs, nb_allocated_data * sizeof(struct starpu_data_descr));
 				}
 				descrs[nb_data].handle = datas[i];
 				descrs[nb_data].mode = mode;
@@ -155,7 +155,7 @@ int _fstarpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_no
 				if (nb_data >= nb_allocated_data)
 				{
 					nb_allocated_data *= 2;
-					STARPU_MPI_REALLOC(descrs, nb_allocated_data * sizeof(struct starpu_data_descr));
+					_STARPU_MPI_REALLOC(descrs, nb_allocated_data * sizeof(struct starpu_data_descr));
 				}
 				descrs[nb_data].handle = _descrs[i].handle;
 				descrs[nb_data].mode = mode;

@@ -53,7 +53,7 @@ int starpu_mpi_scatter_detached(starpu_data_handle_t *data_handles, int count, i
 	if (callback)
 	{
 		callback_func = _callback_collective;
-		STARPU_MPI_MALLOC(callback_arg, sizeof(struct _callback_arg));
+		_STARPU_MPI_MALLOC(callback_arg, sizeof(struct _callback_arg));
 		callback_arg->count = 0;
 		callback_arg->nb = 0;
 		callback_arg->callback = (rank == root) ? scallback : rcallback;
@@ -121,7 +121,7 @@ int starpu_mpi_gather_detached(starpu_data_handle_t *data_handles, int count, in
 	{
 		callback_func = _callback_collective;
 
-		STARPU_MPI_MALLOC(callback_arg, sizeof(struct _callback_arg));
+		_STARPU_MPI_MALLOC(callback_arg, sizeof(struct _callback_arg));
 		callback_arg->count = 0;
 		callback_arg->nb = 0;
 		callback_arg->callback = callback;

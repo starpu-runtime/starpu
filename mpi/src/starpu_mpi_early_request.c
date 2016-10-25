@@ -106,7 +106,7 @@ void _starpu_mpi_early_request_enqueue(struct _starpu_mpi_req *req)
 	HASH_FIND(hh, _starpu_mpi_early_request_hash, &req->node_tag, sizeof(struct _starpu_mpi_node_tag), hashlist);
 	if (hashlist == NULL)
 	{
-		STARPU_MPI_MALLOC(hashlist, sizeof(struct _starpu_mpi_early_request_hashlist));
+		_STARPU_MPI_MALLOC(hashlist, sizeof(struct _starpu_mpi_early_request_hashlist));
 		hashlist->list = _starpu_mpi_req_list_new();
 		hashlist->node_tag = req->node_tag;
 		HASH_ADD(hh, _starpu_mpi_early_request_hash, node_tag, sizeof(hashlist->node_tag), hashlist);

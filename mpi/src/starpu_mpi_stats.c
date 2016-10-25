@@ -39,7 +39,7 @@ void _starpu_mpi_comm_amounts_init(MPI_Comm comm)
 	starpu_mpi_comm_size(comm, &world_size);
 	_STARPU_MPI_DEBUG(1, "allocating for %d nodes\n", world_size);
 
-	STARPU_MPI_CALLOC(comm_amount, world_size, sizeof(size_t));
+	_STARPU_MPI_CALLOC(comm_amount, world_size, sizeof(size_t));
 }
 
 void _starpu_mpi_comm_amounts_free()

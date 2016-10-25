@@ -60,7 +60,7 @@ void _starpu_mpi_early_data_free(void)
 struct _starpu_mpi_early_data_handle *_starpu_mpi_early_data_create(struct _starpu_mpi_envelope *envelope, int source, MPI_Comm comm)
 {
 	struct _starpu_mpi_early_data_handle* early_data_handle;
-	STARPU_MPI_CALLOC(early_data_handle, 1, sizeof(struct _starpu_mpi_early_data_handle));
+	_STARPU_MPI_CALLOC(early_data_handle, 1, sizeof(struct _starpu_mpi_early_data_handle));
 	STARPU_PTHREAD_MUTEX_INIT(&early_data_handle->req_mutex, NULL);
 	STARPU_PTHREAD_COND_INIT(&early_data_handle->req_cond, NULL);
 	early_data_handle->env = envelope;
@@ -109,7 +109,7 @@ void _starpu_mpi_early_data_add(struct _starpu_mpi_early_data_handle *early_data
 	HASH_FIND(hh, _starpu_mpi_early_data_handle_hashmap, &early_data_handle->node_tag, sizeof(struct _starpu_mpi_node_tag), hashlist);
 	if (hashlist == NULL)
 	{
-		STARPU_MPI_MALLOC(hashlist, sizeof(struct _starpu_mpi_early_data_handle_hashlist));
+		_STARPU_MPI_MALLOC(hashlist, sizeof(struct _starpu_mpi_early_data_handle_hashlist));
 		hashlist->list = _starpu_mpi_early_data_handle_list_new();
 		hashlist->node_tag = early_data_handle->node_tag;
 		HASH_ADD(hh, _starpu_mpi_early_data_handle_hashmap, node_tag, sizeof(hashlist->node_tag), hashlist);

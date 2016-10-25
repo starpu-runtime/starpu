@@ -76,7 +76,7 @@ starpu_data_handle_t _starpu_mpi_data_get_data_handle_from_tag(int tag)
 void _starpu_mpi_data_register_tag(starpu_data_handle_t handle, int tag)
 {
 	struct handle_tag_entry *entry;
-	STARPU_MPI_MALLOC(entry, sizeof(*entry));
+	_STARPU_MPI_MALLOC(entry, sizeof(*entry));
 
 	STARPU_ASSERT_MSG(!(_starpu_mpi_data_get_data_handle_from_tag(tag)),
 			  "There is already a data handle %p registered with the tag %d\n", _starpu_mpi_data_get_data_handle_from_tag(tag), tag);
