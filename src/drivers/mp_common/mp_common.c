@@ -33,47 +33,47 @@ const char *_starpu_mp_common_command_to_string(const int command)
 {
 	switch(command)
 	{
-		case STARPU_EXIT:
+		case STARPU_MP_COMMAND_EXIT:
 			return "EXIT";
-		case STARPU_EXECUTE:
+		case STARPU_MP_COMMAND_EXECUTE:
 			return "EXECUTE";
-		case STARPU_ERROR_EXECUTE:
+		case STARPU_MP_COMMAND_ERROR_EXECUTE:
 			return "ERROR_EXECUTE";
-		case STARPU_LOOKUP:
+		case STARPU_MP_COMMAND_LOOKUP:
 			return "LOOKUP";
-		case STARPU_ANSWER_LOOKUP:
+		case STARPU_MP_COMMAND_ANSWER_LOOKUP:
 			return "ANSWER_LOOKUP";
-		case STARPU_ERROR_LOOKUP:
+		case STARPU_MP_COMMAND_ERROR_LOOKUP:
 			return "ERROR_LOOKUP";
-		case STARPU_ALLOCATE:
+		case STARPU_MP_COMMAND_ALLOCATE:
 			return "ALLOCATE";
-		case STARPU_ANSWER_ALLOCATE:
+		case STARPU_MP_COMMAND_ANSWER_ALLOCATE:
 			return "ANSWER_ALLOCATE";
-		case STARPU_ERROR_ALLOCATE:
+		case STARPU_MP_COMMAND_ERROR_ALLOCATE:
 			return "ERROR_ALLOCATE";
-		case STARPU_FREE:
+		case STARPU_MP_COMMAND_FREE:
 			return "FREE";
-		case STARPU_RECV_FROM_HOST:
+		case STARPU_MP_COMMAND_RECV_FROM_HOST:
 			return "RECV_FROM_HOST";
-		case STARPU_SEND_TO_HOST:
+		case STARPU_MP_COMMAND_SEND_TO_HOST:
 			return "SEND_TO_HOST";
-		case STARPU_RECV_FROM_SINK:
+		case STARPU_MP_COMMAND_RECV_FROM_SINK:
 			return "RECV_FROM_SINK";
-		case STARPU_SEND_TO_SINK:
+		case STARPU_MP_COMMAND_SEND_TO_SINK:
 			return "SEND_TO_SINK";
-		case STARPU_TRANSFER_COMPLETE:
+		case STARPU_MP_COMMAND_TRANSFER_COMPLETE:
 			return "TRANSFER_COMPLETE";
-		case STARPU_SINK_NBCORES:
+		case STARPU_MP_COMMAND_SINK_NBCORES:
 			return "SINK_NBCORES";
-		case STARPU_ANSWER_SINK_NBCORES:
+		case STARPU_MP_COMMAND_ANSWER_SINK_NBCORES:
 			return "ANSWER_SINK_NBCORES";
-		case STARPU_EXECUTION_SUBMITTED:
+		case STARPU_MP_COMMAND_EXECUTION_SUBMITTED:
 			return "EXECUTION_SUBMITTED";
-		case STARPU_EXECUTION_COMPLETED:
+		case STARPU_MP_COMMAND_EXECUTION_COMPLETED:
 			return "EXECUTION_COMPLETED";
-		case STARPU_PRE_EXECUTION:
+		case STARPU_MP_COMMAND_PRE_EXECUTION:
 			return "PRE_EXECUTION";
-		case STARPU_SYNC_WORKERS:
+		case STARPU_MP_COMMAND_SYNC_WORKERS:
 			return "SYNC_WORKERS";
 		default:
 			return "<invalid command code>";
@@ -84,17 +84,17 @@ const char *_starpu_mp_common_node_kind_to_string(const int kind)
 {
 	switch(kind)
 	{
-		case STARPU_MIC_SINK:
+		case STARPU_NODE_MIC_SINK:
 			return "MIC_SINK";
-		case STARPU_MIC_SOURCE:
+		case STARPU_NODE_MIC_SOURCE:
 			return "MIC_SOURCE";
-		case STARPU_SCC_SINK:
+		case STARPU_NODE_SCC_SINK:
 			return "SCC_SINK";
-		case STARPU_SCC_SOURCE:
+		case STARPU_NODE_SCC_SOURCE:
 			return "SCC_SOURCE";
-		case STARPU_MPI_SINK:
+		case STARPU_NODE_MPI_SINK:
 			return "MPI_SINK";
-		case STARPU_MPI_SOURCE:
+		case STARPU_NODE_MPI_SOURCE:
 			return "MPI_SOURCE";
 		default:
 			return "<invalid command code>";
@@ -118,7 +118,7 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
 	switch(node->kind)
 	{
 #ifdef STARPU_USE_MIC
-	case STARPU_MIC_SOURCE:
+	case STARPU_NODE_MIC_SOURCE:
 	{
 		node->nb_mp_sinks = starpu_mic_worker_get_count();
 		node->devid = peer_id;
@@ -143,7 +143,7 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
 	}
 	break;
 
-	case STARPU_MIC_SINK:
+	case STARPU_NODE_MIC_SINK:
 	{
 		node->devid = atoi(starpu_getenv("_STARPU_MIC_DEVID"));
 		node->nb_mp_sinks = atoi(starpu_getenv("_STARPU_MIC_NB"));
@@ -171,12 +171,12 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
 #endif /* STARPU_USE_MIC */
 
 #ifdef STARPU_USE_SCC
-	case STARPU_SCC_SOURCE:
+	case STARPU_NODE_SCC_SOURCE:
 	{
 		node->init = _starpu_scc_src_init;
 		node->deinit = NULL;
 		node->report_error = _starpu_scc_common_report_rcce_error;
-				
+
 		node->mp_recv_is_ready = _starpu_scc_common_recv_is_ready;
 		node->mp_send = _starpu_scc_common_send;
 		node->mp_recv = _starpu_scc_common_recv;
@@ -194,7 +194,7 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
 	}
 	break;
 
-	case STARPU_SCC_SINK:
+	case STARPU_NODE_SCC_SINK:
 	{
 		node->init = _starpu_scc_sink_init;
 		node->launch_workers = _starpu_scc_sink_launch_workers;
@@ -220,11 +220,11 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
 #endif /* STARPU_USE_SCC */
 
 #ifdef STARPU_USE_MPI
-	case STARPU_MPI_SOURCE:
+	case STARPU_NODE_MPI_SOURCE:
 		STARPU_ABORT();
 		break;
 
-	case STARPU_MPI_SINK:
+	case STARPU_NODE_MPI_SINK:
 		STARPU_ABORT();
 		break;
 #endif /* STARPU_USE_MPI */
@@ -244,7 +244,7 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
 	STARPU_PTHREAD_MUTEX_INIT(&node->message_queue_mutex,NULL);
 
 	/* If the node is a sink then we must initialize some field */
-	if(node->kind == STARPU_MIC_SINK || node->kind == STARPU_SCC_SINK)
+	if(node->kind == STARPU_NODE_MIC_SINK || node->kind == STARPU_NODE_SCC_SINK)
 	{
 		int i;
 		node->is_running = 1;
@@ -272,11 +272,11 @@ void _starpu_mp_common_node_destroy(struct _starpu_mp_node *node)
 {
 	if (node->deinit)
 		node->deinit(node);
-		
+
 	STARPU_PTHREAD_MUTEX_DESTROY(&node->message_queue_mutex);
 
 	/* If the node is a sink then we must destroy some field */
-	if(node->kind == STARPU_MIC_SINK || node->kind == STARPU_SCC_SINK)
+	if(node->kind == STARPU_NODE_MIC_SINK || node->kind == STARPU_NODE_SCC_SINK)
 	{
 		int i;
 		for(i=0; i<node->nb_cores; i++)

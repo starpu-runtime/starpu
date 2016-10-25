@@ -263,7 +263,7 @@ starpu_mic_kernel_t _starpu_mic_src_get_kernel_from_codelet(struct starpu_codele
 		/* If user dont define any starpu_mic_fun_t in cl->mic_func we try to use
 		 * cpu_func_name.
 		 */
-		char *func_name = _starpu_task_get_cpu_name_nth_implementation(cl, nimpl);
+		const char *func_name = _starpu_task_get_cpu_name_nth_implementation(cl, nimpl);
 		if (func_name)
 		{
 			starpu_mic_func_symbol_t symbol;
@@ -298,7 +298,7 @@ void(* _starpu_mic_src_get_kernel_from_job(const struct _starpu_mp_node *node ST
 		/* If user dont define any starpu_mic_fun_t in cl->mic_func we try to use
 		 * cpu_func_name.
 		 */
-		char *func_name = _starpu_task_get_cpu_name_nth_implementation(j->task->cl, j->nimpl);
+		const char *func_name = _starpu_task_get_cpu_name_nth_implementation(j->task->cl, j->nimpl);
 		if (func_name)
 		{
 			starpu_mic_func_symbol_t symbol;
@@ -397,7 +397,7 @@ void _starpu_mic_free_memory(void *addr, size_t size, unsigned memory_node)
 	const struct _starpu_mp_node *mp_node = _starpu_mic_src_get_mp_node_from_memory_node(memory_node);
 	struct _starpu_mic_free_command cmd = {addr, size};
 
-	return _starpu_mp_common_send_command(mp_node, STARPU_FREE, &cmd, sizeof(cmd));
+	return _starpu_mp_common_send_command(mp_node, STARPU_MP_COMMAND_FREE, &cmd, sizeof(cmd));
 }
 
 /* Transfert SIZE bytes from the address pointed by SRC in the SRC_NODE memory

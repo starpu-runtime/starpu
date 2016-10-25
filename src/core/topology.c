@@ -463,7 +463,7 @@ _starpu_init_mic_node (struct _starpu_machine_config *config, int mic_idx,
 	/* Let's create the node structure, we'll communicate with the peer
 	 * through scif thanks to it */
 	mic_nodes[mic_idx] =
-		_starpu_mp_common_node_create(STARPU_MIC_SOURCE, mic_idx);
+		_starpu_mp_common_node_create(STARPU_NODE_MIC_SOURCE, mic_idx);
 
 	return 0;
 }
@@ -884,7 +884,7 @@ _starpu_init_mp_config (struct _starpu_machine_config *config,
 static void
 _starpu_deinit_mic_node (unsigned mic_idx)
 {
-	_starpu_mp_common_send_command(mic_nodes[mic_idx], STARPU_EXIT, NULL, 0);
+	_starpu_mp_common_send_command(mic_nodes[mic_idx], STARPU_MP_COMMAND_EXIT, NULL, 0);
 
 	COIProcessDestroy(_starpu_mic_process[mic_idx], -1, 0, NULL, NULL);
 

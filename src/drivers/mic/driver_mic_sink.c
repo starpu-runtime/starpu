@@ -167,7 +167,7 @@ void _starpu_mic_sink_allocate(const struct _starpu_mp_node *mp_node, void *arg,
 	size_t size = *(size_t *)(arg);
 
 	if (posix_memalign(&addr, STARPU_MIC_PAGE_SIZE, size) != 0)
-		_starpu_mp_common_send_command(mp_node, STARPU_ERROR_ALLOCATE, NULL, 0);
+		_starpu_mp_common_send_command(mp_node, STARPU_MP_COMMAND_ERROR_ALLOCATE, NULL, 0);
 
 #ifndef STARPU_DISABLE_ASYNCHRONOUS_MIC_COPY
 	scif_epd_t epd = mp_node->host_sink_dt_connection.mic_endpoint;
@@ -176,11 +176,11 @@ void _starpu_mic_sink_allocate(const struct _starpu_mp_node *mp_node, void *arg,
 	if (scif_register(epd, addr, window_size, (off_t)addr, SCIF_PROT_READ | SCIF_PROT_WRITE, SCIF_MAP_FIXED) < 0)
 	{
 		free(addr);
-		_starpu_mp_common_send_command(mp_node, STARPU_ERROR_ALLOCATE, NULL, 0);
+		_starpu_mp_common_send_command(mp_node, STARPU_MP_COMMAND_ERROR_ALLOCATE, NULL, 0);
 	}
 #endif
 
-	_starpu_mp_common_send_command(mp_node, STARPU_ANSWER_ALLOCATE, &addr, sizeof(addr));
+	_starpu_mp_common_send_command(mp_node, STARPU_MP_COMMAND_ANSWER_ALLOCATE, &addr, sizeof(addr));
 }
 
 /* Unregister and free memory. */

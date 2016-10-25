@@ -42,13 +42,13 @@ static enum _starpu_mp_node_kind _starpu_sink_common_get_kind(void)
 	STARPU_ASSERT(node_kind);
 
 	if (!strcmp(node_kind, "STARPU_MIC"))
-		return STARPU_MIC_SINK;
+		return STARPU_NODE_MIC_SINK;
 	else if (!strcmp(node_kind, "STARPU_SCC"))
-		return STARPU_SCC_SINK;
+		return STARPU_NODE_SCC_SINK;
 	else if (!strcmp(node_kind, "STARPU_MPI"))
-		return STARPU_MPI_SINK;
+		return STARPU_NODE_MPI_SINK;
 	else
-		return STARPU_INVALID_KIND;
+		return STARPU_NODE_INVALID_KIND;
 }
 
 /* Send to host the number of cores of the sink device
@@ -56,7 +56,7 @@ static enum _starpu_mp_node_kind _starpu_sink_common_get_kind(void)
 static void _starpu_sink_common_get_nb_cores (struct _starpu_mp_node *node)
 {
 	// Process packet received from `_starpu_src_common_sink_cores'.
-     	_starpu_mp_common_send_command (node, STARPU_ANSWER_SINK_NBCORES,
+     	_starpu_mp_common_send_command (node, STARPU_MP_COMMAND_ANSWER_SINK_NBCORES,
 					&node->nb_cores, sizeof (int));
 }
 
@@ -73,10 +73,10 @@ static void _starpu_sink_common_lookup(const struct _starpu_mp_node *node,
 	/* If we couldn't find the function, let's send an error to the host.
 	 * The user probably made a mistake in the name */
 	if (func)
-		_starpu_mp_common_send_command(node, STARPU_ANSWER_LOOKUP,
+		_starpu_mp_common_send_command(node, STARPU_MP_COMMAND_ANSWER_LOOKUP,
 					       &func, sizeof(func));
 	else
-		_starpu_mp_common_send_command(node, STARPU_ERROR_LOOKUP,
+		_starpu_mp_common_send_command(node, STARPU_MP_COMMAND_ERROR_LOOKUP,
 					       NULL, 0);
 }
 
@@ -93,10 +93,10 @@ void _starpu_sink_common_allocate(const struct _starpu_mp_node *mp_node,
 	/* If the allocation fail, let's send an error to the host.
 	 */
 	if (addr)
-		_starpu_mp_common_send_command(mp_node, STARPU_ANSWER_ALLOCATE,
+		_starpu_mp_common_send_command(mp_node, STARPU_MP_COMMAND_ANSWER_ALLOCATE,
 					       &addr, sizeof(addr));
 	else
-		_starpu_mp_common_send_command(mp_node, STARPU_ERROR_ALLOCATE,
+		_starpu_mp_common_send_command(mp_node, STARPU_MP_COMMAND_ERROR_ALLOCATE,
 					       NULL, 0);
 }
 
@@ -137,7 +137,7 @@ static void _starpu_sink_common_copy_from_sink(const struct _starpu_mp_node *mp_
 
 	mp_node->dt_recv_from_device(mp_node, cmd->devid, cmd->addr, cmd->size);
 
-	_starpu_mp_common_send_command(mp_node, STARPU_TRANSFER_COMPLETE, NULL, 0);
+	_starpu_mp_common_send_command(mp_node, STARPU_MP_COMMAND_TRANSFER_COMPLETE, NULL, 0);
 }
 
 static void _starpu_sink_common_copy_to_sink(const struct _starpu_mp_node *mp_node,
@@ -219,13 +219,13 @@ static void _starpu_sink_common_recv_workers(struct _starpu_mp_node * node, void
 void _starpu_sink_common_worker(void)
 {
 	struct _starpu_mp_node *node = NULL;
-	enum _starpu_mp_command command = STARPU_EXIT;
+	enum _starpu_mp_command command = STARPU_MP_COMMAND_EXIT;
 	int arg_size = 0;
 	void *arg = NULL;
 	int exit_starpu = 0;
 	enum _starpu_mp_node_kind node_kind = _starpu_sink_common_get_kind();
 
-	if (node_kind == STARPU_INVALID_KIND)
+	if (node_kind == STARPU_NODE_INVALID_KIND)
 		_STARPU_ERROR("No valid sink kind retrieved, use the"
 			      "STARPU_SINK environment variable to specify"
 			      "this\n");
@@ -245,44 +245,44 @@ void _starpu_sink_common_worker(void)
 			command = _starpu_mp_common_recv_command(node, &arg, &arg_size);
 			switch(command)
 			{
-				case STARPU_EXIT:
+				case STARPU_MP_COMMAND_EXIT:
 					exit_starpu = 1;
 					break;
-				case STARPU_EXECUTE:
+				case STARPU_MP_COMMAND_EXECUTE:
 					node->execute(node, arg, arg_size);
 					break;
-				case STARPU_SINK_NBCORES:
+				case STARPU_MP_COMMAND_SINK_NBCORES:
 					_starpu_sink_common_get_nb_cores(node);
 					break;
-				case STARPU_LOOKUP:
+				case STARPU_MP_COMMAND_LOOKUP:
 					_starpu_sink_common_lookup(node, (char *) arg);
 					break;
 
-				case STARPU_ALLOCATE:
+				case STARPU_MP_COMMAND_ALLOCATE:
 					node->allocate(node, arg, arg_size);
 					break;
 
-				case STARPU_FREE:
+				case STARPU_MP_COMMAND_FREE:
 					node->free(node, arg, arg_size);
 					break;
 
-				case STARPU_RECV_FROM_HOST:
+				case STARPU_MP_COMMAND_RECV_FROM_HOST:
 					_starpu_sink_common_copy_from_host(node, arg, arg_size);
 					break;
 
-				case STARPU_SEND_TO_HOST:
+				case STARPU_MP_COMMAND_SEND_TO_HOST:
 					_starpu_sink_common_copy_to_host(node, arg, arg_size);
 					break;
 
-				case STARPU_RECV_FROM_SINK:
+				case STARPU_MP_COMMAND_RECV_FROM_SINK:
 					_starpu_sink_common_copy_from_sink(node, arg, arg_size);
 					break;
 
-				case STARPU_SEND_TO_SINK:
+				case STARPU_MP_COMMAND_SEND_TO_SINK:
 					_starpu_sink_common_copy_to_sink(node, arg, arg_size);
 					break;
 
-				case STARPU_SYNC_WORKERS:
+				case STARPU_MP_COMMAND_SYNC_WORKERS:
 					_starpu_sink_common_recv_workers(node, arg, arg_size);
 					break;
 				default:
@@ -375,7 +375,7 @@ static void _starpu_sink_common_pre_execution_message(struct _starpu_mp_node *no
 {
 	/* Init message to tell the sink that the execution has begun */
 	struct mp_message * message = mp_message_new();
-	message->type = STARPU_PRE_EXECUTION;
+	message->type = STARPU_MP_COMMAND_PRE_EXECUTION;
 	STARPU_MALLOC(message->buffer, sizeof(int));
 	*(int *) message->buffer = task->combined_workerid;
 	message->size = sizeof(int);
@@ -392,7 +392,7 @@ static void _starpu_sink_common_execution_completed_message(struct _starpu_mp_no
 {
 	/* Init message to tell the sink that the execution is completed */
 	struct mp_message * message = mp_message_new();
-	message->type = STARPU_EXECUTION_COMPLETED;
+	message->type = STARPU_MP_COMMAND_EXECUTION_COMPLETED;
 	STARPU_MALLOC(message->buffer, sizeof(int));
 	*(int*) message->buffer = task->coreid;
 	message->size = sizeof(int);
@@ -618,7 +618,7 @@ void _starpu_sink_common_execute(struct _starpu_mp_node *node,
 
 
 	//_STARPU_DEBUG("telling host that we have submitted the task %p.\n", task->kernel);
-	_starpu_mp_common_send_command(node, STARPU_EXECUTION_SUBMITTED,
+	_starpu_mp_common_send_command(node, STARPU_MP_COMMAND_EXECUTION_SUBMITTED,
 			NULL, 0);
 
 	//_STARPU_DEBUG("executing the task %p\n", task->kernel);
