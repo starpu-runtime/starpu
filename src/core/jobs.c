@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2011, 2014, 2016  INRIA
  *
@@ -72,7 +72,7 @@ struct _starpu_job* STARPU_ATTRIBUTE_MALLOC _starpu_job_create(struct starpu_tas
 	struct _starpu_job *job;
         _STARPU_LOG_IN();
 
-	job = malloc(sizeof(*job));
+	STARPU_MALLOC(job, sizeof(*job));
 
 	/* As most of the fields must be initialized at NULL, let's put 0
 	 * everywhere */
@@ -80,8 +80,8 @@ struct _starpu_job* STARPU_ATTRIBUTE_MALLOC _starpu_job_create(struct starpu_tas
 
 	if (task->dyn_handles)
 	{
-	     job->dyn_ordered_buffers = malloc(STARPU_TASK_GET_NBUFFERS(task) * sizeof(job->dyn_ordered_buffers[0]));
-	     job->dyn_dep_slots = calloc(STARPU_TASK_GET_NBUFFERS(task), sizeof(job->dyn_dep_slots[0]));
+		STARPU_MALLOC(job->dyn_ordered_buffers, STARPU_TASK_GET_NBUFFERS(task) * sizeof(job->dyn_ordered_buffers[0]));
+		STARPU_CALLOC(job->dyn_dep_slots, STARPU_TASK_GET_NBUFFERS(task), sizeof(job->dyn_dep_slots[0]));
 	}
 
 	job->task = task;
@@ -727,7 +727,7 @@ int _starpu_push_local_task(struct _starpu_worker *worker, struct starpu_task *t
 				alloc = 1;
 			while (alloc < needed)
 				alloc *= 2;
-			new = malloc(alloc * sizeof(*new));
+			STARPU_MALLOC(new, alloc * sizeof(*new));
 
 			if (worker->local_ordered_tasks_size)
 			{

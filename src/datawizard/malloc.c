@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2010, 2012-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -255,7 +255,7 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 				}
 				unlink(name);
 				free(name);
-				dumb = calloc(1,_starpu_malloc_simulation_fold);
+				STARPU_CALLOC(dumb, 1,_starpu_malloc_simulation_fold);
 				write(bogusfile, dumb, _starpu_malloc_simulation_fold);
 				free(dumb);
 			}

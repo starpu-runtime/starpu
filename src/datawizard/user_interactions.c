@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -126,8 +126,8 @@ int starpu_data_acquire_on_node_cb_sequential_consistency(starpu_data_handle_t h
 	STARPU_ASSERT_MSG(handle->nchildren == 0, "Acquiring a partitioned data (%p) is not possible", handle);
         _STARPU_LOG_IN();
 
-	struct user_interaction_wrapper *wrapper = (struct user_interaction_wrapper *) malloc(sizeof(struct user_interaction_wrapper));
-	STARPU_ASSERT(wrapper);
+	struct user_interaction_wrapper *wrapper;
+	STARPU_MALLOC(wrapper, sizeof(struct user_interaction_wrapper));
 
 	wrapper->handle = handle;
 	wrapper->node = node;
@@ -388,7 +388,8 @@ int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle_t handle, unsigne
 	/* it is forbidden to call this function from a callback or a codelet */
 	STARPU_ASSERT_MSG(async || _starpu_worker_may_perform_blocking_calls(), "Synchronous prefetch is not possible from a task or a callback");
 
-	struct user_interaction_wrapper *wrapper = (struct user_interaction_wrapper *) malloc(sizeof(*wrapper));
+	struct user_interaction_wrapper *wrapper;
+	STARPU_MALLOC(wrapper, sizeof(*wrapper));
 
 	wrapper->handle = handle;
 	wrapper->node = node;

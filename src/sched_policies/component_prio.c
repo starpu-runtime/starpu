@@ -262,7 +262,8 @@ int starpu_sched_component_is_prio(struct starpu_sched_component * component)
 struct starpu_sched_component * starpu_sched_component_prio_create(struct starpu_sched_tree *tree, struct starpu_sched_component_prio_data * params)
 {
 	struct starpu_sched_component * component = starpu_sched_component_create(tree, "prio");
-	struct _starpu_prio_data * data = malloc(sizeof(*data));
+	struct _starpu_prio_data *data;
+	STARPU_MALLOC(data, sizeof(*data));
 	_starpu_prio_deque_init(&data->prio);
 	STARPU_PTHREAD_MUTEX_INIT(&data->mutex,NULL);
 	component->data = data;

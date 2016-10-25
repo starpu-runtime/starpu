@@ -49,7 +49,8 @@ struct _starpu_graph_test_policy_data
 
 static void initialize_graph_test_policy(unsigned sched_ctx_id)
 {
-	struct _starpu_graph_test_policy_data *data = (struct _starpu_graph_test_policy_data*)malloc(sizeof(struct _starpu_graph_test_policy_data));
+	struct _starpu_graph_test_policy_data *data;
+	STARPU_MALLOC(data, sizeof(struct _starpu_graph_test_policy_data));
 
 	/* there is only a single queue in that trivial design */
 	data->fifo =  _starpu_create_fifo();

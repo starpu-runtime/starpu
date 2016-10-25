@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2014, 2016  Université de Bordeaux
- * Copyright (C) 2011, 2012, 2013  CNRS
+ * Copyright (C) 2011, 2012, 2013, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -160,7 +160,7 @@ void _starpu_data_end_reduction_mode(starpu_data_handle_t handle)
 	/* Register all valid per-worker replicates */
 	unsigned nworkers = starpu_worker_get_count();
 	STARPU_ASSERT(!handle->reduction_tmp_handles);
-	handle->reduction_tmp_handles = malloc(nworkers * sizeof(handle->reduction_tmp_handles[0]));
+	STARPU_MALLOC(handle->reduction_tmp_handles, nworkers*sizeof(handle->reduction_tmp_handles[0]));
 	for (worker = 0; worker < nworkers; worker++)
 	{
 		if (handle->per_worker[worker].initialized)

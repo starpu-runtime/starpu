@@ -158,7 +158,7 @@ int _starpu_src_common_store_message(struct _starpu_mp_node *node,
 		case STARPU_PRE_EXECUTION:
 			message = mp_message_new();
 			message->type = answer;
-			message->buffer = malloc(arg_size);
+			STARPU_MALLOC(message->buffer, arg_size);
 			memcpy(message->buffer, arg, arg_size);
 			message->size = arg_size;
 
@@ -340,7 +340,7 @@ int _starpu_src_common_execute_kernel(struct _starpu_mp_node *node,
 	 * a pointer to the function (sink-side), core on which execute this
 	 * function (sink-side), number of interfaces we send,
 	 * an array of generic (union) interfaces and the value of cl_arg */
-	buffer = (void *) malloc(buffer_size);
+	STARPU_MALLOC(buffer, buffer_size);
 	buffer_ptr = (uintptr_t) buffer;
 
 	*(void(**)(void)) buffer = kernel;
@@ -677,7 +677,9 @@ void _starpu_src_common_worker(struct _starpu_worker_set * worker_set,
 		struct _starpu_mp_node * mp_node)
 {
 	unsigned memnode = worker_set->workers[0].memory_node;
-	struct starpu_task **tasks = malloc(sizeof(struct starpu_task *)*worker_set->nworkers);
+	struct starpu_task **tasks;
+
+	STARPU_MALLOC(tasks, sizeof(struct starpu_task *)*worker_set->nworkers);
 
 	_starpu_src_common_send_workers(mp_node, baseworkerid, worker_set->nworkers);
 

@@ -161,7 +161,8 @@ intptr_t fstarpu_get_constant(char *s)
 
 struct starpu_conf *fstarpu_conf_allocate(void)
 {
-	struct starpu_conf *conf = malloc(sizeof(*conf));
+	struct starpu_conf *conf;
+	STARPU_MALLOC(conf, sizeof(*conf));
 	starpu_conf_init(conf);
 	return conf;
 }
@@ -236,7 +237,8 @@ void fstarpu_topology_print(void)
 
 struct starpu_codelet *fstarpu_codelet_allocate(void)
 {
-	struct starpu_codelet *cl = malloc(sizeof(*cl));
+	struct starpu_codelet *cl;
+	STARPU_MALLOC(cl, sizeof(*cl));
 	starpu_codelet_init(cl);
 	return cl;
 }
@@ -542,7 +544,9 @@ void fstarpu_worker_get_type_as_string(intptr_t type, char *dst, size_t maxlen)
 
 struct starpu_data_handle *fstarpu_data_handle_array_alloc(int nb)
 {
-	return calloc((size_t)nb, sizeof(starpu_data_handle_t));
+	void *ptr;
+	STARPU_CALLOC(ptr, (size_t)nb, sizeof(starpu_data_handle_t));
+	return ptr;
 }
 
 void fstarpu_data_handle_array_free(starpu_data_handle_t *handles)
@@ -557,7 +561,9 @@ void fstarpu_data_handle_array_set(starpu_data_handle_t *handles, int i, starpu_
 
 struct starpu_data_descr *fstarpu_data_descr_array_alloc(int nb)
 {
-	return calloc((size_t)nb, sizeof(struct starpu_data_descr));
+	void *ptr;
+	STARPU_CALLOC(ptr, (size_t)nb, sizeof(struct starpu_data_descr));
+	return ptr;
 }
 
 struct starpu_data_descr *fstarpu_data_descr_alloc(void)
@@ -588,7 +594,8 @@ void fstarpu_data_descr_set(struct starpu_data_descr *descr, starpu_data_handle_
 
 struct starpu_data_filter *fstarpu_data_filter_allocate(void)
 {
-	struct starpu_data_filter *filter = calloc(1, sizeof(*filter));
+	struct starpu_data_filter *filter;
+	STARPU_CALLOC(filter, 1, sizeof(*filter));
 	return filter;
 }
 

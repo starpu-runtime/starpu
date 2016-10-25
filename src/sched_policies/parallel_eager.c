@@ -30,7 +30,7 @@ struct _starpu_peager_data
         starpu_pthread_mutex_t policy_mutex;
 };
 
-#define STARPU_NMAXCOMBINED_WORKERS 520 
+#define STARPU_NMAXCOMBINED_WORKERS 520
 /* instead of STARPU_NMAXCOMBINED_WORKERS, we should use some "MAX combination .."*/
 static int possible_combinations_cnt[STARPU_NMAXWORKERS];
 static int possible_combinations[STARPU_NMAXWORKERS][STARPU_NMAXCOMBINED_WORKERS];
@@ -88,13 +88,13 @@ static void peager_add_workers(unsigned sched_ctx_id, int *workerids, unsigned n
 	for(i = 0; i < nworkers; i++)
 	{
 		workerid = workerids[i];
-		
+
 		/* slaves pick up tasks from their local queue, their master
 		 * will put tasks directly in that local list when a parallel
 		 * tasks comes. */
 		data->local_fifo[workerid] = _starpu_create_fifo();
 	}
-	
+
 #if 0
 	for(i = 0; i < nworkers; i++)
         {
@@ -120,7 +120,8 @@ static void peager_remove_workers(unsigned sched_ctx_id, int *workerids, unsigne
 
 static void initialize_peager_policy(unsigned sched_ctx_id)
 {
-	struct _starpu_peager_data *data = (struct _starpu_peager_data*)malloc(sizeof(struct _starpu_peager_data));
+	struct _starpu_peager_data *data;
+	STARPU_MALLOC(data, sizeof(struct _starpu_peager_data));
 	/* masters pick tasks from that queue */
 	data->fifo = _starpu_create_fifo();
 
@@ -145,9 +146,9 @@ static int push_task_peager_policy(struct starpu_task *task)
 {
 	unsigned sched_ctx_id = task->sched_ctx;
 	int ret_val = -1;
-	
+
 	struct _starpu_peager_data *data = (struct _starpu_peager_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-	
+
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 	ret_val = _starpu_fifo_push_task(data->fifo, task);
 	starpu_push_task_end(task);
@@ -167,9 +168,9 @@ static int push_task_peager_policy(struct starpu_task *task)
 		worker = workers->get_next(workers, &it);
 		int master = data->master_id[worker];
 		/* If this is not a CPU or a MIC, then the worker simply grabs tasks from the fifo */
-		if ((!starpu_worker_is_combined_worker(worker) && 
+		if ((!starpu_worker_is_combined_worker(worker) &&
 		    starpu_worker_get_type(worker) != STARPU_MIC_WORKER &&
-		    starpu_worker_get_type(worker) != STARPU_CPU_WORKER)  
+		    starpu_worker_get_type(worker) != STARPU_CPU_WORKER)
 			|| (master == worker))
 			starpu_wake_worker(worker);
 	}

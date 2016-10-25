@@ -552,7 +552,8 @@ static void parallel_heft_add_workers(__attribute__((unused)) unsigned sched_ctx
 
 static void initialize_parallel_heft_policy(unsigned sched_ctx_id)
 {
-	struct _starpu_pheft_data *hd = (struct _starpu_pheft_data*)malloc(sizeof(struct _starpu_pheft_data));
+	struct _starpu_pheft_data *hd;
+	STARPU_MALLOC(hd, sizeof(struct _starpu_pheft_data));
 
 	if (starpu_sched_ctx_min_priority_is_set(sched_ctx_id) == 0)
 		starpu_sched_ctx_set_min_priority(sched_ctx_id, DEFAULT_MIN_PRIORITY);

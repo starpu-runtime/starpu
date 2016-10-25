@@ -33,8 +33,8 @@
 /* allocation memory on disk */
 static void *starpu_unistd_o_direct_alloc(void *base, size_t size)
 {
-        struct starpu_unistd_global_obj *obj = malloc(sizeof(struct starpu_unistd_global_obj));
-        STARPU_ASSERT(obj != NULL);
+        struct starpu_unistd_global_obj *obj;
+	STARPU_MALLOC(obj, sizeof(struct starpu_unistd_global_obj));
         /* only flags change between unistd and unistd_o_direct */
         obj->flags = O_RDWR | O_DIRECT | O_BINARY;
         return starpu_unistd_global_alloc (obj, base, size);
@@ -43,8 +43,8 @@ static void *starpu_unistd_o_direct_alloc(void *base, size_t size)
 /* open an existing memory on disk */
 static void *starpu_unistd_o_direct_open(void *base, void *pos, size_t size)
 {
-        struct starpu_unistd_global_obj * obj = malloc(sizeof(struct starpu_unistd_global_obj));
-        STARPU_ASSERT(obj != NULL);
+        struct starpu_unistd_global_obj *obj;
+	STARPU_MALLOC(obj, sizeof(struct starpu_unistd_global_obj));
         /* only flags change between unistd and unistd_o_direct */
         obj->flags = O_RDWR | O_DIRECT | O_BINARY;
         return starpu_unistd_global_open (obj, base, pos, size);

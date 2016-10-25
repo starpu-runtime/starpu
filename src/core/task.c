@@ -148,9 +148,7 @@ struct starpu_task * STARPU_ATTRIBUTE_MALLOC starpu_task_create(void)
 {
 	struct starpu_task *task;
 
-	task = (struct starpu_task *) malloc(sizeof(struct starpu_task));
-	STARPU_ASSERT(task);
-
+	STARPU_MALLOC(task, sizeof(struct starpu_task));
 	starpu_task_init(task);
 
 	/* Dynamically allocated tasks are destroyed by default */
@@ -311,7 +309,7 @@ int _starpu_submit_job(struct _starpu_job *j)
 	   && sched_ctx->perf_counters != NULL)
 	{
 		struct starpu_perfmodel_arch arch;
-		arch.devices = (struct starpu_perfmodel_device*)malloc(sizeof(struct starpu_perfmodel_device));
+		STARPU_MALLOC(arch.devices, sizeof(struct starpu_perfmodel_device));
 		arch.ndevices = 1;
 		arch.devices[0].type = STARPU_CPU_WORKER;
 		arch.devices[0].devid = 0;
@@ -552,7 +550,7 @@ static int _starpu_task_submit_head(struct starpu_task *task)
 
 		if (task->dyn_handles)
 		{
-			task->dyn_interfaces = malloc(nbuffers * sizeof(void *));
+			STARPU_MALLOC(task->dyn_interfaces, nbuffers * sizeof(void *));
 		}
 
 		for (i = 0; i < nbuffers; i++)

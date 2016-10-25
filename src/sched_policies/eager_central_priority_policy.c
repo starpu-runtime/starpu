@@ -58,12 +58,12 @@ static struct _starpu_priority_taskq *_starpu_create_priority_taskq(int min_prio
 {
 	struct _starpu_priority_taskq *central_queue;
 
-	central_queue = (struct _starpu_priority_taskq *) malloc(sizeof(struct _starpu_priority_taskq));
+	STARPU_MALLOC(central_queue, sizeof(struct _starpu_priority_taskq));
 	central_queue->min_prio = min_prio;
 	central_queue->max_prio = max_prio;
 	central_queue->total_ntasks = 0;
-	central_queue->taskq = malloc((max_prio-min_prio+1) * sizeof(struct starpu_task_list));
-	central_queue->ntasks = malloc((max_prio-min_prio+1) * sizeof(unsigned));
+	STARPU_MALLOC(central_queue->taskq, (max_prio-min_prio+1) * sizeof(struct starpu_task_list));
+	STARPU_MALLOC(central_queue->ntasks, (max_prio-min_prio+1) * sizeof(unsigned));
 
 	int prio;
 	for (prio = 0; prio < (max_prio-min_prio+1); prio++)
@@ -84,7 +84,8 @@ static void _starpu_destroy_priority_taskq(struct _starpu_priority_taskq *priori
 
 static void initialize_eager_center_priority_policy(unsigned sched_ctx_id)
 {
-	struct _starpu_eager_central_prio_data *data = (struct _starpu_eager_central_prio_data*)malloc(sizeof(struct _starpu_eager_central_prio_data));
+	struct _starpu_eager_central_prio_data *data;
+	STARPU_MALLOC(data, sizeof(struct _starpu_eager_central_prio_data));
 
 	/* In this policy, we support more than two levels of priority. */
 

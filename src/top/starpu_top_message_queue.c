@@ -99,12 +99,8 @@ char* _starpu_top_message_remove(struct _starpu_top_message_queue* s)
 
 struct _starpu_top_message_queue* _starpu_top_message_queue_new(void)
 {
-	struct _starpu_top_message_queue* p = (struct _starpu_top_message_queue *) malloc( 1 * sizeof(*p));
-	if( NULL == p )
-	{
-		fprintf(stderr, "LINE: %d, malloc() failed\n", __LINE__);
-		return NULL;
-	}
+	struct _starpu_top_message_queue *p;
+	STARPU_MALLOC(p, sizeof(*p));
 
 	p->head = p->tail = NULL;
 	sem_init(&(p->semaphore),0,0);

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2013, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2013, 2015, 2016  CNRS
  * Copyright (C) 2016  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -434,8 +434,8 @@ void _starpu_release_data_enforce_sequential_consistency(struct starpu_task *tas
 			{
 				/* Save the job id of the reader task in the ghost reader linked list list */
 				struct _starpu_job *ghost_reader_job = _starpu_get_job_associated_to_task(task);
-				struct _starpu_jobid_list *link = (struct _starpu_jobid_list *) malloc(sizeof(struct _starpu_jobid_list));
-				STARPU_ASSERT(link);
+				struct _starpu_jobid_list *link;
+				STARPU_MALLOC(link, sizeof(struct _starpu_jobid_list));
 				link->next = handle->last_submitted_ghost_accessors_id;
 				link->id = ghost_reader_job->job_id;
 				handle->last_submitted_ghost_accessors_id = link;
@@ -498,7 +498,8 @@ void _starpu_add_post_sync_tasks(struct starpu_task *post_sync_task, starpu_data
 	{
 		handle->post_sync_tasks_cnt++;
 
-		struct _starpu_task_wrapper_list *link = (struct _starpu_task_wrapper_list *) malloc(sizeof(struct _starpu_task_wrapper_list));
+		struct _starpu_task_wrapper_list *link;
+		STARPU_MALLOC(link, sizeof(struct _starpu_task_wrapper_list));
 		link->task = post_sync_task;
 		link->next = handle->post_sync_tasks;
 		handle->post_sync_tasks = link;

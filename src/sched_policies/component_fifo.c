@@ -240,8 +240,9 @@ int starpu_sched_component_is_fifo(struct starpu_sched_component * component)
 
 struct starpu_sched_component * starpu_sched_component_fifo_create(struct starpu_sched_tree *tree, struct starpu_sched_component_fifo_data * params)
 {
-	struct starpu_sched_component * component = starpu_sched_component_create(tree, "fifo");
-	struct _starpu_fifo_data * data = malloc(sizeof(*data));
+	struct starpu_sched_component *component = starpu_sched_component_create(tree, "fifo");
+	struct _starpu_fifo_data *data;
+	STARPU_MALLOC(data, sizeof(*data));
 	data->fifo = _starpu_create_fifo();
 	STARPU_PTHREAD_MUTEX_INIT(&data->mutex,NULL);
 	component->data = data;

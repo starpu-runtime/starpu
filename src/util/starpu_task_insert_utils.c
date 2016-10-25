@@ -30,7 +30,7 @@ static void _starpu_pack_arguments(size_t *current_offset, size_t *arg_buffer_si
 			*arg_buffer_size_ = 128 + sizeof(ptr_size) + ptr_size;
 		else
 			*arg_buffer_size_ = 2 * *arg_buffer_size_ + sizeof(ptr_size) + ptr_size;
-		*arg_buffer_ = realloc(*arg_buffer_, *arg_buffer_size_);
+		STARPU_REALLOC(*arg_buffer_, *arg_buffer_size_);
 	}
 	memcpy(*arg_buffer_+*current_offset, (void *)&ptr_size, sizeof(ptr_size));
 	*current_offset += sizeof(ptr_size);
@@ -186,14 +186,14 @@ void _starpu_task_insert_check_nb_buffers(struct starpu_codelet *cl, struct star
 			int i;
 			struct starpu_codelet *cl2 = (*task)->cl;
 			*allocated_buffers = STARPU_NMAXBUFS * 2;
-			(*task)->dyn_handles = malloc(*allocated_buffers * sizeof(starpu_data_handle_t));
+			STARPU_MALLOC((*task)->dyn_handles, *allocated_buffers * sizeof(starpu_data_handle_t));
 			for(i=0 ; i<current_buffer ; i++)
 			{
 				(*task)->dyn_handles[i] = (*task)->handles[i];
 			}
 			if (cl2->nbuffers == STARPU_VARIABLE_NBUFFERS || !cl2->dyn_modes)
 			{
-				(*task)->dyn_modes = malloc(*allocated_buffers * sizeof(enum starpu_data_access_mode));
+				STARPU_MALLOC((*task)->dyn_modes, *allocated_buffers * sizeof(enum starpu_data_access_mode));
 				for(i=0 ; i<current_buffer ; i++)
 				{
 					(*task)->dyn_modes[i] = (*task)->modes[i];
@@ -203,9 +203,11 @@ void _starpu_task_insert_check_nb_buffers(struct starpu_codelet *cl, struct star
 		else if (current_buffer >= *allocated_buffers)
 		{
 			*allocated_buffers *= 2;
-			(*task)->dyn_handles = realloc((*task)->dyn_handles, *allocated_buffers * sizeof(starpu_data_handle_t));
+			STARPU_REALLOC((*task)->dyn_handles, *allocated_buffers * sizeof(starpu_data_handle_t));
 			if (cl->nbuffers == STARPU_VARIABLE_NBUFFERS || !cl->dyn_modes)
-				(*task)->dyn_modes = realloc((*task)->dyn_modes, *allocated_buffers * sizeof(enum starpu_data_access_mode));
+			{
+				STARPU_REALLOC((*task)->dyn_modes, *allocated_buffers * sizeof(enum starpu_data_access_mode));
+			}
 		}
 	}
 }

@@ -112,7 +112,7 @@
 		if (node) \
 			stage = ENAME##_node_to_list_stage(node); \
 		else { \
-			stage = malloc(sizeof(*stage)); \
+			STARPU_MALLOC(stage, sizeof(*stage));	\
 			starpu_rbtree_node_init(&stage->node); \
 			stage->prio = prio; \
 			_starpu_data_request_list_init(&stage->list); \

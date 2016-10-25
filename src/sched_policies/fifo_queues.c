@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2013  CNRS
+ * Copyright (C) 2010, 2011, 2013, 2016  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -44,7 +44,7 @@ static int is_sorted_task_list(struct starpu_task * task)
 struct _starpu_fifo_taskq *_starpu_create_fifo(void)
 {
 	struct _starpu_fifo_taskq *fifo;
-	fifo = (struct _starpu_fifo_taskq *) malloc(sizeof(struct _starpu_fifo_taskq));
+	STARPU_MALLOC(fifo, sizeof(struct _starpu_fifo_taskq));
 
 	/* note that not all mechanisms (eg. the semaphore) have to be used */
 	starpu_task_list_init(&fifo->taskq);

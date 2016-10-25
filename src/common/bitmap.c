@@ -74,8 +74,8 @@ static int _count_bit(unsigned long e)
 
 struct starpu_bitmap * starpu_bitmap_create(void)
 {
-	struct starpu_bitmap * b = malloc(sizeof(*b));
-	memset(b,0,sizeof(*b));
+	struct starpu_bitmap *b;
+	STARPU_CALLOC(b, 1, sizeof(*b));
 	return b;
 }
 void starpu_bitmap_destroy(struct starpu_bitmap * b)
@@ -96,7 +96,7 @@ void starpu_bitmap_set(struct starpu_bitmap * b, int e)
 		return;
 	if((e/LONG_BIT) + 1 > b->size)
 	{
-		b->bits = realloc(b->bits, sizeof(unsigned long) * ((e/LONG_BIT) + 1));
+		STARPU_REALLOC(b->bits, sizeof(unsigned long) * ((e/LONG_BIT) + 1));
 		memset(b->bits + b->size, 0, sizeof(unsigned long) * ((e/LONG_BIT + 1) - b->size));
 		b->size = (e/LONG_BIT) + 1;
 	}
@@ -125,7 +125,7 @@ void starpu_bitmap_unset_all(struct starpu_bitmap * b)
 void starpu_bitmap_unset_and(struct starpu_bitmap * a, struct starpu_bitmap * b, struct starpu_bitmap * c)
 {
 	int n = STARPU_MIN(b->size, c->size);
-	a->bits = realloc(a->bits, sizeof(unsigned long) * n);
+	STARPU_REALLOC(a->bits, sizeof(unsigned long) * n);
 	a->size = n;
 	a->cardinal = 0;
 	int i;
@@ -149,7 +149,7 @@ void starpu_bitmap_or(struct starpu_bitmap * a, struct starpu_bitmap * b)
 {
 	if(a->size < b->size)
 	{
-		a->bits = realloc(a->bits, b->size * sizeof(unsigned long));
+		STARPU_REALLOC(a->bits, b->size * sizeof(unsigned long));
 		memset(a->bits + a->size, 0, (b->size - a->size) * sizeof(unsigned long));
 		a->size = b->size;
 

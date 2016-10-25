@@ -109,7 +109,7 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
 {
 	struct _starpu_mp_node *node;
 
-	node = (struct _starpu_mp_node *) malloc(sizeof(struct _starpu_mp_node));
+	STARPU_MALLOC(node, sizeof(struct _starpu_mp_node));
 
 	node->kind = node_kind;
 
@@ -235,7 +235,7 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
 
 	/* Let's allocate the buffer, we want it to be big enough to contain
 	 * a command, an argument and the argument size */
-	node->buffer = (void *) malloc(BUFFER_SIZE);
+	STARPU_MALLOC(node->buffer, BUFFER_SIZE);
 
 	if (node->init)
 		node->init(node);
@@ -248,8 +248,8 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
 	{
 		int i;
 		node->is_running = 1;
-		node->run_table = malloc(sizeof(struct mp_task *)*node->nb_cores);
-		node->sem_run_table = malloc(sizeof(sem_t)*node->nb_cores);
+		STARPU_MALLOC(node->run_table, sizeof(struct mp_task *)*node->nb_cores);
+		STARPU_MALLOC(node->sem_run_table, sizeof(sem_t)*node->nb_cores);
 
 		for(i=0; i<node->nb_cores; i++)
 		{

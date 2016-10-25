@@ -65,7 +65,8 @@ struct _starpu_sched_ctx_elt* _starpu_sched_ctx_elt_add_after(struct _starpu_sch
 							      unsigned sched_ctx)
 {
 	struct _starpu_sched_ctx_elt *head, *next;
-	struct _starpu_sched_ctx_elt *elt = (struct _starpu_sched_ctx_elt*)malloc(sizeof(struct _starpu_sched_ctx_elt));
+	struct _starpu_sched_ctx_elt *elt;
+	STARPU_MALLOC(elt, sizeof(struct _starpu_sched_ctx_elt));
 
 	_starpu_sched_ctx_elt_init(elt, sched_ctx);
 	elt->parent = list;
@@ -96,7 +97,8 @@ struct _starpu_sched_ctx_elt* _starpu_sched_ctx_elt_add_before(struct _starpu_sc
 							       unsigned sched_ctx)
 {
 	struct _starpu_sched_ctx_elt *head, *prev;
-	struct _starpu_sched_ctx_elt *elt = (struct _starpu_sched_ctx_elt*)malloc(sizeof(struct _starpu_sched_ctx_elt));
+	struct _starpu_sched_ctx_elt *elt;
+	STARPU_MALLOC(elt, sizeof(struct _starpu_sched_ctx_elt));
 
 	_starpu_sched_ctx_elt_init(elt, sched_ctx);
 	elt->parent = list;
@@ -194,7 +196,7 @@ struct _starpu_sched_ctx_elt* _starpu_sched_ctx_list_add_prio(struct _starpu_sch
 	}
 	else //l's priority is inferior or inexistant, add before
 	{
-		parent_list = (struct _starpu_sched_ctx_list*)malloc(sizeof(struct _starpu_sched_ctx_list));
+		STARPU_MALLOC(parent_list, sizeof(struct _starpu_sched_ctx_list));
 		parent_list->priority = prio;
 		parent_list->next = l;
 		parent_list->head = NULL;

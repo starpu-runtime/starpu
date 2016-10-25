@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010, 2011, 2015-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011  CNRS
+ * Copyright (C) 2010, 2011, 2016  CNRS
  * Copyright (C) 2016  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -104,7 +104,7 @@ static long find_long_list_size(struct starpu_perfmodel_history_list *list_histo
 
 #ifdef STARPU_MLR_MODEL
 int dgels_multiple_reg_coeff(double *mpar, double *my, long nn, unsigned ncoeff, unsigned nparameters, double *coeff, unsigned **combinations)
-{	
+{
  /*  Arguments */
 /*  ========= */
 
@@ -185,13 +185,15 @@ int dgels_multiple_reg_coeff(double *mpar, double *my, long nn, unsigned ncoeff,
 		_STARPU_DISP("Warning: This function is not intended for the use when number of parameters is larger than the number of observations. Check how your matrices A and B were allocated or simply add more benchmarks.\n Multiple linear regression model will not be written into perfmodel file.\n");
 		return 1;
 	}
-	
+
 	char trans = 'N';
 	integer m = nn;
 	integer n = ncoeff;
 	integer nrhs = 1; // number of columns of B and X (wich are vectors therefore nrhs=1)
-	doublereal *X = malloc(sizeof(double)*n*m); // (/!\ modified at the output) contain the model and the different values of pararmters
-	doublereal *Y = malloc(sizeof(double)*m);
+	doublereal *X;
+	STARPU_MALLOC(X, sizeof(double)*n*m); // (/!\ modified at the output) contain the model and the different values of pararmters
+	doublereal *Y;
+	STARPU_MALLOC(Y, sizeof(double)*m);
 
 	double coefficient;
 	int i;
@@ -206,17 +208,18 @@ int dgels_multiple_reg_coeff(double *mpar, double *my, long nn, unsigned ncoeff,
 			for(k=0; k < nparameters; k++)
 			{
 				coefficient *= pow(mpar[i*nparameters+k],combinations[j-1][k]);
-			}			
+			}
 			X[i*n+j] = coefficient;
 		}
 	}
 
-	integer lda = m; 
+	integer lda = m;
 	integer ldb = m; //
 	integer info = 0;
 
 	integer lwork = n*2;
-	doublereal *work = malloc(sizeof(double)*lwork); // (output)
+	doublereal *work; // (output)
+	STARPU_MALLOC(work, sizeof(double)*lwork);
 
 	/* // Running LAPACK dgels_ */
 	dgels_(&trans, &m, &n, &nrhs, X, &lda, Y, &ldb, work, &lwork, &info);
@@ -249,38 +252,38 @@ void validate(double *coeff, unsigned ncoeff, const char *codelet_name)
 	unsigned i;
 	if (coeff[0] < 0)
 		_STARPU_DISP("Warning: Constant computed by least square method is negative (%f). The model %s is likely to be inaccurate.\n", coeff[0], codelet_name);
-		
+
 	for(i=1; i<ncoeff; i++)
 		if(fabs(coeff[i]) < 1E-10)
 			_STARPU_DISP("Warning: Coefficient computed by least square method is extremelly small (%f). The model %s is likely to be inaccurate.\n", coeff[i], codelet_name);
 }
-	
+
 int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, double *coeff, unsigned ncoeff, unsigned nparameters, const char **parameters_names, unsigned **combinations, const char *codelet_name)
 {
         long i;
 	unsigned j;
-	
+
 	/* Computing number of rows */
 	long n=find_long_list_size(ptr);
 	STARPU_ASSERT(n);
-	
+
         /* Reading old calibrations if necessary */
 	FILE *f=NULL;
-	
+
 	char directory[300];
 	snprintf(directory, 300, "%s/.starpu/sampling/codelets/tmp", _starpu_get_home_path());
 	_starpu_mkpath_and_check(directory, S_IRWXU);
-	
+
 	char filepath[300];
 	snprintf(filepath, 300, "%s/%s.out", directory,codelet_name);
-	
+
 	long old_lines=0;
 	int calibrate = _starpu_get_calibrate_flag();
 	if (calibrate==1)
 	{
 		f = fopen(filepath, "a+");
 		STARPU_ASSERT_MSG(f, "Could not save performance model into the file %s\n", filepath);
-		
+
 		old_lines=count_file_lines(f);
 		/* If the program is run for the first time the old_lines will be 0 */
 		//STARPU_ASSERT(old_lines);
@@ -291,10 +294,10 @@ int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, doubl
 	}
 
 	/* Allocating X and Y matrices */
-	double *mpar = (double *) malloc(nparameters*n*sizeof(double));
-	STARPU_ASSERT(mpar);
-	double *my = (double *) malloc(n*sizeof(double));
-	STARPU_ASSERT(my);
+	double *mpar;
+	STARPU_MALLOC(mpar, nparameters*n*sizeof(double));
+	double *my;
+	STARPU_MALLOC(my, n*sizeof(double));
 
 	/* Loading old calibration */
 	if (calibrate==1)
@@ -310,7 +313,7 @@ int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, doubl
 		if(dgels_multiple_reg_coeff(mpar, my, n, ncoeff, nparameters, coeff, combinations))
 		{
 			free(mpar);
-			free(my);	
+			free(my);
 			return 1;
 		}
 		/* Basic validation of the model accuracy */
@@ -321,7 +324,7 @@ int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, doubl
 			coeff[i] = 0.;
 #endif //STARPU_MLR_MODEL
 	}
-	
+
 	/* Preparing new output calibration file */
 	if (calibrate==1 || calibrate==2)
 	{
@@ -344,7 +347,7 @@ int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, doubl
 			}
 		}
 	}
-	
+
 	/* Writing parameters to calibration file */
 	if (calibrate==1 || calibrate==2)
 	{

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016  CNRS
  * Copyright (C) 2014, 2016  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -30,8 +30,8 @@
 
 static struct _starpu_cg *create_cg_task(unsigned ntags, struct _starpu_job *j)
 {
-	struct _starpu_cg *cg = (struct _starpu_cg *) malloc(sizeof(struct _starpu_cg));
-	STARPU_ASSERT(cg);
+	struct _starpu_cg *cg;
+	STARPU_MALLOC(cg, sizeof(struct _starpu_cg));
 
 	cg->ntags = ntags;
 	cg->remaining = ntags;

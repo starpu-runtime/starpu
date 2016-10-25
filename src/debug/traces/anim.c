@@ -56,7 +56,8 @@ static struct component *fxt_component_root(void)
 
 void _starpu_fxt_component_new(uint64_t component, char *name)
 {
-	struct component *comp = malloc(sizeof(*comp));
+	struct component *comp;
+	STARPU_MALLOC(comp, sizeof(*comp));
 
 	if (!strncmp(name, "worker ", 7))
 	{
@@ -368,7 +369,7 @@ void _starpu_fxt_component_connect(uint64_t parent, uint64_t child)
 	STARPU_ASSERT(child_p);
 
 	n = ++parent_p->nchildren;
-	parent_p->children = realloc(parent_p->children, n * sizeof(*parent_p->children));
+	STARPU_REALLOC(parent_p->children, n * sizeof(*parent_p->children));
 	parent_p->children[n-1] = child_p;
 	if (!child_p->parent)
 		child_p->parent = parent_p;

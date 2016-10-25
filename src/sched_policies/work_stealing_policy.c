@@ -267,7 +267,7 @@ static void locality_pushed_task(struct _starpu_work_stealing_data *ws, struct s
 			HASH_FIND_PTR(data->queued_tasks_per_data, &handle, entry);
 			if (STARPU_LIKELY(!entry))
 			{
-				entry = malloc(sizeof(*entry));
+				STARPU_MALLOC(entry, sizeof(*entry));
 				entry->data = handle;
 				entry->task = task;
 				HASH_ADD_PTR(data->queued_tasks_per_data, data, entry);
@@ -681,7 +681,8 @@ static void ws_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned nw
 
 static void initialize_ws_policy(unsigned sched_ctx_id)
 {
-	struct _starpu_work_stealing_data *ws = (struct _starpu_work_stealing_data*)malloc(sizeof(struct _starpu_work_stealing_data));
+	struct _starpu_work_stealing_data *ws;
+	STARPU_MALLOC(ws, sizeof(struct _starpu_work_stealing_data));
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)ws);
 
 	ws->last_pop_worker = 0;
@@ -691,7 +692,7 @@ static void initialize_ws_policy(unsigned sched_ctx_id)
 	ws->select_victim = select_victim;
 
 	unsigned nw = starpu_worker_get_count();
-	ws->per_worker = calloc(nw, sizeof(struct _starpu_work_stealing_data_per_worker));
+	STARPU_CALLOC(ws->per_worker, nw, sizeof(struct _starpu_work_stealing_data_per_worker));
 }
 
 static void deinit_ws_policy(unsigned sched_ctx_id)
@@ -758,7 +759,7 @@ static void lws_add_workers(unsigned sched_ctx_id, int *workerids,
 	for (i = 0; i < nworkers; i++)
 	{
 		workerid = workerids[i];
-		ws->per_worker[workerid].proxlist = (int*)malloc(nworkers*sizeof(int));
+		STARPU_MALLOC(ws->per_worker[workerid].proxlist, nworkers*sizeof(int));
 		int bindid;
 
 		struct starpu_tree *neighbour = NULL;

@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2012-2016  Université de Bordeaux
  * Copyright (C) 2016  	    Inria
+ * Copyright (C) 2016  	    CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -248,7 +249,8 @@ int main(int argc, char **argv)
 	start_simgrid(&argc, argv);
 
 	/* Create a simgrid process for main */
-	struct main_args *args = malloc(sizeof(*args));
+	struct main_args *args;
+	STARPU_MALLOC(args, sizeof(*args));
 	args->argc = argc;
 	args->argv = argv;
 	MSG_process_create_with_arguments("main", &do_starpu_main, calloc(MAX_TSD, sizeof(void*)), MSG_get_host_by_name("MAIN"), 0, (char**) args);
@@ -411,7 +413,8 @@ void _starpu_simgrid_submit_job(int workerid, struct _starpu_job *j, struct star
 	else
 	{
 		/* Asynchronous execution */
-		struct task *task = malloc(sizeof(*task));
+		struct task *task;
+		STARPU_MALLOC(task, sizeof(*task));
 		task->task = simgrid_task;
 		task->workerid = workerid;
 		task->finished = finished;
@@ -568,7 +571,7 @@ static void transfer_submit(struct transfer *transfer)
 			/* Make new wait for the old */
 			transfer->nwait++;
 			/* Make old wake the new */
-			old->wake = realloc(old->wake, (old->nwake + 1) * sizeof(old->wake));
+			STARPU_REALLOC(old->wake, (old->nwake + 1) * sizeof(old->wake));
 			old->wake[old->nwake] = transfer;
 			old->nwake++;
 		}
@@ -589,13 +592,18 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 	/* Simgrid does not like 0-bytes transfers */
 	if (!size)
 		return 0;
+
 	msg_task_t task;
-	msg_host_t *hosts = calloc(2, sizeof(*hosts));
-	double *computation = calloc(2, sizeof(*computation));
-	double *communication = calloc(4, sizeof(*communication));
+	msg_host_t *hosts;
+	double *computation;
+	double *communication;
 	starpu_pthread_mutex_t mutex;
 	starpu_pthread_cond_t cond;
 	unsigned finished;
+
+	STARPU_CALLOC(hosts, 2, sizeof(*hosts));
+	STARPU_CALLOC(computation, 2, sizeof(*computation));
+	STARPU_CALLOC(communication, 4, sizeof(*communication));
 
 	hosts[0] = _starpu_simgrid_memory_node_get_host(src_node);
 	hosts[1] = _starpu_simgrid_memory_node_get_host(dst_node);

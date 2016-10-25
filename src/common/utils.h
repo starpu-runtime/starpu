@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2012-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -115,6 +115,11 @@
 		STARPU_ABORT();                                                       \
 	} while (0)
 
+
+#define STARPU_MALLOC(ptr, size) do { ptr = malloc(size); STARPU_ASSERT_MSG(ptr != NULL, "Cannot allocate %ld bytes\n", size); } while (0)
+#define STARPU_CALLOC(ptr, nmemb, size) do { ptr = calloc(nmemb, size); STARPU_ASSERT_MSG(ptr != NULL, "Cannot allocate %ld bytes\n", nmemb*size); } while (0)
+#define STARPU_REALLOC(ptr, size) do { ptr = realloc(ptr, size); STARPU_ASSERT_MSG(ptr != NULL, "Cannot reallocate %ld bytes\n", size); } while (0)
+#define STARPU_FREE(ptr) do { free(ptr); ptr = NULL; } while(0)
 
 #ifdef _MSC_VER
 #define _STARPU_IS_ZERO(a) (a == 0.0)

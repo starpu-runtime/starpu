@@ -247,7 +247,9 @@ static void _starpu_add_workers_to_sched_ctx(struct _starpu_sched_ctx *sched_ctx
 	{
 
 		if(sched_ctx->perf_arch.devices == NULL)
-			sched_ctx->perf_arch.devices = (struct starpu_perfmodel_device*)malloc(ndevices*sizeof(struct starpu_perfmodel_device));
+		{
+			STARPU_MALLOC(sched_ctx->perf_arch.devices, ndevices*sizeof(struct starpu_perfmodel_device));
+		}
 		else
 		{
 			int nfinal_devices = 0;
@@ -272,7 +274,7 @@ static void _starpu_add_workers_to_sched_ctx(struct _starpu_sched_ctx *sched_ctx
 
 
 			int nsize =  (sched_ctx->perf_arch.ndevices+nfinal_devices);
-			sched_ctx->perf_arch.devices  = (struct starpu_perfmodel_device*)realloc(sched_ctx->perf_arch.devices, nsize*sizeof(struct starpu_perfmodel_device));
+			STARPU_REALLOC(sched_ctx->perf_arch.devices, nsize*sizeof(struct starpu_perfmodel_device));
 
 		}
 
@@ -498,7 +500,14 @@ struct _starpu_sched_ctx* _starpu_create_sched_ctx(struct starpu_sched_policy *p
 
 	STARPU_PTHREAD_MUTEX_INIT(&sched_ctx->sched_ctx_list_mutex, NULL);
 
-	sched_ctx->sched_policy = policy ? (struct starpu_sched_policy*)malloc(sizeof(struct starpu_sched_policy)) : NULL;
+	if (policy)
+	{
+		STARPU_MALLOC(sched_ctx->sched_policy, sizeof(struct starpu_sched_policy));
+	}
+	else
+	{
+		sched_ctx->sched_policy = NULL;
+	}
 	sched_ctx->is_initial_sched = is_initial_sched;
 	sched_ctx->name = sched_ctx_name;
 	sched_ctx->inheritor = STARPU_NMAX_SCHED_CTXS;
@@ -1610,7 +1619,7 @@ void* starpu_sched_ctx_get_policy_data(unsigned sched_ctx_id)
 struct starpu_worker_collection* starpu_sched_ctx_create_worker_collection(unsigned sched_ctx_id, enum starpu_worker_collection_type  worker_collection_type)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
-	sched_ctx->workers = (struct starpu_worker_collection*)malloc(sizeof(struct starpu_worker_collection));
+	STARPU_MALLOC(sched_ctx->workers, sizeof(struct starpu_worker_collection));
 
 	switch(worker_collection_type)
 	{
@@ -1676,11 +1685,12 @@ unsigned starpu_sched_ctx_get_workers_list(unsigned sched_ctx_id, int **workerid
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	struct starpu_worker_collection *workers = sched_ctx->workers;
-	if(!workers) return 0;
-	*workerids = (int*)malloc(workers->nworkers*sizeof(int));
 	int worker;
 	unsigned nworkers = 0;
 	struct starpu_sched_ctx_iterator it;
+
+	if(!workers) return 0;
+	STARPU_MALLOC(*workerids, workers->nworkers*sizeof(int));
 
 	workers->init_iterator(workers, &it);
 	while(workers->has_next(workers, &it))
@@ -2371,7 +2381,7 @@ void starpu_sched_ctx_get_available_cpuids(unsigned sched_ctx_id, int **cpuids, 
 	int current_worker_id = starpu_worker_get_id();
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	struct starpu_worker_collection *workers = sched_ctx->workers;
-	(*cpuids) = (int*)malloc(workers->nworkers*sizeof(int));
+	STARPU_MALLOC((*cpuids), workers->nworkers*sizeof(int));
 	int w = 0;
 
 	struct starpu_sched_ctx_iterator it;

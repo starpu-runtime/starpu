@@ -172,8 +172,7 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 	/* allocate the children */
 	if (inherit_state)
 	{
-		initial_handle->children = (struct _starpu_data_state *) calloc(nparts, sizeof(struct _starpu_data_state));
-		STARPU_ASSERT(initial_handle->children);
+		STARPU_CALLOC(initial_handle->children, nparts, sizeof(struct _starpu_data_state));
 
 		/* this handle now has children */
 		initial_handle->nchildren = nparts;
@@ -556,13 +555,16 @@ void starpu_data_partition_plan(starpu_data_handle_t initial_handle, struct star
 		home_node = STARPU_MAIN_RAM;
 
 	for (i = 0; i < nparts; i++)
-		childrenp[i] = calloc(1, sizeof(struct _starpu_data_state));
+	{
+		STARPU_CALLOC(childrenp[i], 1, sizeof(struct _starpu_data_state));
+	}
 	_starpu_data_partition(initial_handle, childrenp, nparts, f, 0);
 
 	if (!cl)
 	{
 		/* Create a codelet that will make the coherency on the home node */
-		cl = initial_handle->switch_cl = calloc(1, sizeof(*initial_handle->switch_cl));
+		STARPU_CALLOC(initial_handle->switch_cl, 1, sizeof(*initial_handle->switch_cl));
+		cl = initial_handle->switch_cl;
 		cl->where = STARPU_NOWHERE;
 		cl->nbuffers = STARPU_VARIABLE_NBUFFERS;
 		cl->name = "data_partition_switch";
@@ -571,7 +573,7 @@ void starpu_data_partition_plan(starpu_data_handle_t initial_handle, struct star
 	if (initial_handle->switch_cl_nparts < nparts)
 	{
 		/* First initialization, or previous initialization was with fewer parts, enlarge it */
-		cl->dyn_nodes = realloc(cl->dyn_nodes, (nparts+1) * sizeof(*cl->dyn_nodes));
+		STARPU_REALLOC(cl->dyn_nodes, (nparts+1) * sizeof(*cl->dyn_nodes));
 		for (i = initial_handle->switch_cl_nparts; i < nparts+1; i++)
 			cl->dyn_nodes[i] = home_node;
 		initial_handle->switch_cl_nparts = nparts;

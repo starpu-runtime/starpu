@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2013  Corentin Salingue
- * Copyright (C) 2015  CNRS
+ * Copyright (C) 2015, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -276,27 +276,17 @@ static void add_disk_in_list(unsigned node,  struct starpu_disk_ops *func, void 
 	/* initialization */
 	if (disk_register_list == NULL)
 	{
-		disk_register_list = malloc(size_register_list*sizeof(struct disk_register *));
-		STARPU_ASSERT(disk_register_list != NULL);
+		STARPU_MALLOC(disk_register_list, size_register_list*sizeof(struct disk_register *));
 	}
 	/* small size -> new size  */
 	if ((disk_number+1) > size_register_list)
 	{
-		struct disk_register **ptr_realloc = realloc(disk_register_list, 2*size_register_list*sizeof(struct disk_register *));
-
-		if (ptr_realloc != NULL)
-		{
-			size_register_list *= 2;
-			disk_register_list = ptr_realloc;
-		}
-		else
-		{
-			STARPU_ASSERT(ptr_realloc != NULL);
-		}
+		size_register_list *= 2;
+		STARPU_REALLOC(disk_register_list, size_register_list*sizeof(struct disk_register *));
 	}
 
-	struct disk_register *dr = malloc(sizeof(struct disk_register));
-	STARPU_ASSERT(dr != NULL);
+	struct disk_register *dr;
+	STARPU_MALLOC(dr, sizeof(struct disk_register));
 	dr->node = node;
 	dr->base = base;
 	dr->flag = STARPU_DISK_ALL;

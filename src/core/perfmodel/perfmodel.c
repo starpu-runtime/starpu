@@ -452,10 +452,10 @@ static char *_perf_model_dir_debug = NULL;
 
 void _starpu_set_perf_model_dirs()
 {
-	_perf_model_dir = malloc(_PERF_MODEL_DIR_MAXLEN);
-	_perf_model_dir_codelet = malloc(_PERF_MODEL_DIR_MAXLEN);
-	_perf_model_dir_bus = malloc(_PERF_MODEL_DIR_MAXLEN);
-	_perf_model_dir_debug = malloc(_PERF_MODEL_DIR_MAXLEN);
+	STARPU_MALLOC(_perf_model_dir, _PERF_MODEL_DIR_MAXLEN);
+	STARPU_MALLOC(_perf_model_dir_codelet, _PERF_MODEL_DIR_MAXLEN);
+	STARPU_MALLOC(_perf_model_dir_bus, _PERF_MODEL_DIR_MAXLEN);
+	STARPU_MALLOC(_perf_model_dir_debug, _PERF_MODEL_DIR_MAXLEN);
 
 #ifdef STARPU_PERF_MODEL_DIR
 	/* use the directory specified at configure time */

@@ -152,7 +152,8 @@ int _starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_h
 
 	task->cl = &copy_cl;
 
-	unsigned *interface_id = malloc(sizeof(*interface_id));
+	unsigned *interface_id;
+	STARPU_MALLOC(interface_id, sizeof(*interface_id));
 	*interface_id = dst_handle->ops->interfaceid; 
 	task->cl_arg = interface_id;
 	task->cl_arg_size = sizeof(*interface_id);

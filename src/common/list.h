@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2012, 2015-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011  CNRS
+ * Copyright (C) 2010, 2011, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -135,7 +135,7 @@
     struct ENAME *_tail; /**< @internal tail of the list */ \
   }; \
   /** @internal */static inline struct ENAME *ENAME##_new(void) \
-    { struct ENAME *e = (struct ENAME *)malloc(sizeof(struct ENAME)); \
+    { struct ENAME *e; STARPU_MALLOC(e, sizeof(struct ENAME)); \
       e->_next = NULL; e->_prev = NULL; return e; } \
   /** @internal */static inline void ENAME##_delete(struct ENAME *e) \
     { free(e); } \
@@ -164,7 +164,7 @@
   /** @internal */static inline void ENAME##_list_init(struct ENAME##_list *l) \
     { l->_head=NULL; l->_tail=l->_head; } \
   /** @internal */static inline struct ENAME##_list *ENAME##_list_new(void) \
-    { struct ENAME##_list *l; l=(struct ENAME##_list *)malloc(sizeof(struct ENAME##_list)); \
+    { struct ENAME##_list *l; STARPU_MALLOC(l, sizeof(struct ENAME##_list)); \
       ENAME##_list_init(l); return l; } \
   /** @internal */static inline int ENAME##_list_empty(const struct ENAME##_list *l) \
     { return (l->_head == NULL); } \

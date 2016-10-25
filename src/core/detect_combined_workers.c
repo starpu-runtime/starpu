@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2016  Université de Bordeaux
- * Copyright (C) 2011, 2012, 2013       CNRS
+ * Copyright (C) 2011, 2012, 2013, 2016       CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -254,14 +254,14 @@ static void find_and_assign_combinations_without_hwloc(int *workerids, int nwork
 	unsigned * nmics_table;
 	int * mic_id;
 	int ** mic_workers;
-	mic_id = malloc(sizeof(int)*nb_mics);
-	nmics_table = malloc(sizeof(unsigned)*nb_mics);
-	mic_workers = malloc(sizeof(int*)*nb_mics);
+	STARPU_MALLOC(mic_id, sizeof(int)*nb_mics);
+	STARPU_MALLOC(nmics_table, sizeof(unsigned)*nb_mics);
+	STARPU_MALLOC(mic_workers, sizeof(int*)*nb_mics);
 	for(j=0; j<nb_mics; j++)
 	{
 		mic_id[j] = -1;
 		nmics_table[j] = 0;
-		mic_workers[j] = malloc(sizeof(int)*STARPU_NMAXWORKERS);
+		STARPU_MALLOC(mic_workers[j], sizeof(int)*STARPU_NMAXWORKERS);
 	}
 #endif /* STARPU_USE_MIC */
 
@@ -279,7 +279,7 @@ static void find_and_assign_combinations_without_hwloc(int *workerids, int nwork
 			{
 				if(mic_id[j] == -1)
 				{
-					mic_id[j] = worker->devid;					
+					mic_id[j] = worker->devid;
 				}
 				mic_workers[j][nmics_table[j]++] = i;
 			}
@@ -295,7 +295,7 @@ static void find_and_assign_combinations_without_hwloc(int *workerids, int nwork
 	max = starpu_get_env_number("STARPU_MAX_WORKERSIZE");
 	if (max == -1 || max > (int) ncpus)
 		max = ncpus;
-	
+
 	assign_combinations_without_hwloc(workers,cpu_workers,ncpus,min,max);
 #ifdef STARPU_USE_MIC
 	mic_min = starpu_get_env_number("STARPU_MIN_WORKERSIZE");

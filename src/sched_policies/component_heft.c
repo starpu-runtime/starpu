@@ -230,7 +230,8 @@ struct starpu_sched_component * starpu_sched_component_heft_create(struct starpu
 {
 	struct starpu_sched_component * component = starpu_sched_component_create(tree, "heft");
 	struct _starpu_mct_data *mct_data = starpu_mct_init_parameters(params);
-	struct _starpu_heft_data *data = malloc(sizeof(*data));
+	struct _starpu_heft_data *data;
+	STARPU_MALLOC(data, sizeof(*data));
 
 	_starpu_prio_deque_init(&data->prio);
 	STARPU_PTHREAD_MUTEX_INIT(&data->mutex,NULL);

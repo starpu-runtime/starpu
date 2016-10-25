@@ -52,9 +52,9 @@ void _starpu_mic_sink_init(struct _starpu_mp_node *node)
 
 	_starpu_mic_common_accept(&node->host_sink_dt_connection.mic_endpoint,
 									 STARPU_MIC_SOURCE_DT_PORT_NUMBER);
-	
+
 	node->nb_cores = COISysGetHardwareThreadCount() - COISysGetHardwareThreadCount() / COISysGetCoreCount();
-	node->thread_table = malloc(sizeof(starpu_pthread_t)*node->nb_cores);
+	STARPU_MALLOC(node->thread_table, sizeof(starpu_pthread_t)*node->nb_cores);
 
 #ifdef STARPU_DEVEL
 #warning rather use hwloc
@@ -75,7 +75,7 @@ void _starpu_mic_sink_init(struct _starpu_mp_node *node)
 	//	_starpu_mic_common_connect(&node->sink_sink_dt_connections[i].mic_endpoint,
 	//								STARPU_TO_MIC_ID(i),
 	//								NULL,
-	//								STARPU_MIC_SINK_SINK_DT_PORT_NUMBER(node->devid, i),	
+	//								STARPU_MIC_SINK_SINK_DT_PORT_NUMBER(node->devid, i),
 	//								STARPU_MIC_SINK_SINK_DT_PORT_NUMBER(i, node->devid));
 
 	//for (i = node->devid + 1; i < node->nb_mp_sinks; ++i)
@@ -92,7 +92,7 @@ void _starpu_mic_sink_launch_workers(struct _starpu_mp_node *node)
 	cpu_set_t cpuset;
 	starpu_pthread_attr_t attr;
 	starpu_pthread_t thread;
-	
+
 	/*for each core init the mutex, the task pointer and launch the thread */
 	for(i=0; i<node->nb_cores; i++)
 	{
@@ -106,10 +106,10 @@ void _starpu_mic_sink_launch_workers(struct _starpu_mp_node *node)
 		STARPU_ASSERT(ret == 0);
 
 		/*prepare the argument for the thread*/
-		arg= malloc(sizeof(struct arg_sink_thread));
+		STARPU_MALLOC(arg, sizeof(struct arg_sink_thread));
 		arg->coreid = i;
 		arg->node = node;
-		
+
 		ret = starpu_pthread_create(&thread, &attr, _starpu_sink_thread, arg);
 		STARPU_ASSERT(ret == 0);
 		((starpu_pthread_t *)node->thread_table)[i] = thread;
@@ -121,7 +121,7 @@ void _starpu_mic_sink_launch_workers(struct _starpu_mp_node *node)
  */
 void _starpu_mic_sink_deinit(struct _starpu_mp_node *node)
 {
-	
+
 	int i;
 	node->is_running = 0;
 	for(i=0; i<node->nb_cores; i++)
@@ -165,7 +165,7 @@ void _starpu_mic_sink_allocate(const struct _starpu_mp_node *mp_node, void *arg,
 
 	void *addr = NULL;
 	size_t size = *(size_t *)(arg);
-	
+
 	if (posix_memalign(&addr, STARPU_MIC_PAGE_SIZE, size) != 0)
 		_starpu_mp_common_send_command(mp_node, STARPU_ERROR_ALLOCATE, NULL, 0);
 
@@ -179,7 +179,7 @@ void _starpu_mic_sink_allocate(const struct _starpu_mp_node *mp_node, void *arg,
 		_starpu_mp_common_send_command(mp_node, STARPU_ERROR_ALLOCATE, NULL, 0);
 	}
 #endif
-	
+
 	_starpu_mp_common_send_command(mp_node, STARPU_ANSWER_ALLOCATE, &addr, sizeof(addr));
 }
 
@@ -189,7 +189,7 @@ void _starpu_mic_sink_free(const struct _starpu_mp_node *mp_node STARPU_ATTRIBUT
 	STARPU_ASSERT(arg_size == sizeof(struct _starpu_mic_free_command));
 
 	void *addr = ((struct _starpu_mic_free_command *)arg)->addr;
-	
+
 #ifndef STARPU_DISABLE_ASYNCHRONOUS_MIC_COPY
 	scif_epd_t epd = mp_node->host_sink_dt_connection.mic_endpoint;
 	size_t size = ((struct _starpu_mic_free_command *)arg)->size;
@@ -226,4 +226,3 @@ void (*_starpu_mic_sink_lookup (const struct _starpu_mp_node * node STARPU_ATTRI
 	void *dl_handle = dlopen(NULL, RTLD_NOW);
 	return dlsym(dl_handle, func_name);
 }
-

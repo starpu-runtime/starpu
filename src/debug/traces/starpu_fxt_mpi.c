@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012-2013, 2016  Université Bordeaux
- * Copyright (C) 2010, 2011, 2014  CNRS
+ * Copyright (C) 2010, 2011, 2014, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -132,7 +132,7 @@ void _starpu_fxt_mpi_add_send_transfer(int src, int dst STARPU_ATTRIBUTE_UNUSED,
 			mpi_sends_list_size[src] = 1;
 		}
 
-		mpi_sends[src] = realloc(mpi_sends[src], mpi_sends_list_size[src]*sizeof(struct mpi_transfer));
+		STARPU_REALLOC(mpi_sends[src], mpi_sends_list_size[src]*sizeof(struct mpi_transfer));
 	}
 
 	mpi_sends[src][slot].matched = 0;
@@ -157,7 +157,7 @@ void _starpu_fxt_mpi_add_recv_transfer(int src STARPU_ATTRIBUTE_UNUSED, int dst,
 			mpi_recvs_list_size[dst] = 1;
 		}
 
-		mpi_recvs[dst] = realloc(mpi_recvs[dst], mpi_recvs_list_size[dst]*sizeof(struct mpi_transfer));
+		STARPU_REALLOC(mpi_recvs[dst], mpi_recvs_list_size[dst]*sizeof(struct mpi_transfer));
 	}
 
 	mpi_recvs[dst][slot].matched = 0;

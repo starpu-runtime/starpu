@@ -112,7 +112,8 @@ static void __starpu_graph_foreach(void (*func)(void *data, struct _starpu_graph
 /* Add a node to the graph */
 void _starpu_graph_add_job(struct _starpu_job *job)
 {
-	struct _starpu_graph_node *node = calloc(1, sizeof(*node));
+	struct _starpu_graph_node *node;
+	STARPU_CALLOC(node, 1, sizeof(*node));
 	node->job = job;
 	job->graph_node = node;
 	STARPU_PTHREAD_MUTEX_INIT(&node->mutex, NULL);
@@ -137,9 +138,11 @@ static unsigned add_node(struct _starpu_graph_node *node, struct _starpu_graph_n
 			*alloc_nodes *= 2;
 		else
 			*alloc_nodes = 4;
-		*nodes = realloc(*nodes, *alloc_nodes * sizeof(**nodes));
+		STARPU_REALLOC(*nodes, *alloc_nodes * sizeof(**nodes));
 		if (slot)
-			*slot = realloc(*slot, *alloc_nodes * sizeof(**slot));
+		{
+			STARPU_REALLOC(*slot, *alloc_nodes * sizeof(**slot));
+		}
 	}
 	ret = (*n_nodes)++;
 	(*nodes)[ret] = node;
