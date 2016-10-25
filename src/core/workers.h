@@ -178,6 +178,10 @@ struct _starpu_worker_set
 	unsigned set_is_initialized;
 };
 
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+extern struct _starpu_worker_set mpi_worker_set[STARPU_MAXMPIDEVS];
+#endif
+
 struct _starpu_machine_topology
 {
 	/* Total number of workers. */

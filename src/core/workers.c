@@ -811,6 +811,12 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 
 				worker_set->set_is_initialized = 0;
 
+#ifdef STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD
+                /* if MPI has multiple threads supports
+                 * we launch 1 thread per device 
+                 * else 
+                 * we launch one thread for all devices
+                 */
 				STARPU_PTHREAD_CREATE_ON(
 						workerarg->name,
 						&worker_set->worker_thread,
@@ -833,6 +839,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				STARPU_PTHREAD_MUTEX_UNLOCK(&worker_set->mutex);
 
 				worker_set->started = 1;
+#endif /* STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD */
 
 				break;
 #endif /* STARPU_USE_MPI_MASTER_SLAVE */
@@ -841,6 +848,44 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				STARPU_ABORT();
 		}
 	}
+
+#if defined(STARPU_USE_MPI_MASTER_SLAVE) && !defined(STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD)
+    if (pconfig->topology.nmpidevices > 0)
+    {
+        struct _starpu_worker_set * worker_set_zero = &mpi_worker_set[0];
+        struct _starpu_worker * worker_zero = &worker_set_zero->workers[0];
+        STARPU_PTHREAD_CREATE_ON(
+                worker_zero->name,
+                &worker_set_zero->worker_thread,
+                NULL,
+                _starpu_mpi_src_worker,
+                &mpi_worker_set,
+                _starpu_simgrid_get_host_by_worker(worker_zero));
+
+        /* We use the first worker to know if everything are finished */
+#ifdef STARPU_USE_FXT
+        STARPU_PTHREAD_MUTEX_LOCK(&worker_zero->mutex);
+        while (!worker_zero->worker_is_running)
+            STARPU_PTHREAD_COND_WAIT(&worker_zero->started_cond, &worker_zero->mutex);
+        STARPU_PTHREAD_MUTEX_UNLOCK(&worker_zero->mutex);
+#endif
+
+        STARPU_PTHREAD_MUTEX_LOCK(&worker_set_zero->mutex);
+        while (!worker_set_zero->set_is_initialized)
+            STARPU_PTHREAD_COND_WAIT(&worker_set_zero->ready_cond,
+                    &worker_set_zero->mutex);
+        STARPU_PTHREAD_MUTEX_UNLOCK(&worker_set_zero->mutex);
+
+        int mpidevice;
+        for (mpidevice = 0; mpidevice < pconfig->topology.nmpidevices; mpidevice++)
+        {
+            mpi_worker_set[mpidevice].started = 1;
+            mpi_worker_set[mpidevice].worker_thread = mpi_worker_set[0].worker_thread;
+        }
+
+    }
+
+#endif
 
 	for (worker = 0; worker < nworkers; worker++)
 	{

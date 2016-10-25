@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012  INRIA
+ * Copyright (C) 2012, 2016  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -24,9 +24,21 @@
 
 
 #include <datawizard/coherency.h>
+#include <datawizard/memory_nodes.h>
 #include <datawizard/interfaces/data_interface.h>
 #include <drivers/mp_common/mp_common.h>
 
+#if defined(STARPU_USE_MPI_MASTER_SLAVE) && !defined(STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD)
+struct starpu_save_thread_env
+{
+    struct starpu_task * current_task;
+    struct _starpu_worker * current_worker;
+    struct _starpu_worker_set * current_worker_set;
+    unsigned * current_mem_node;
+};
+
+struct starpu_save_thread_env save_thread_env[STARPU_MAXMPIDEVS];
+#endif
 
 /* Finalize the execution of a task by a worker*/
 static int _starpu_src_common_finalize_job (struct _starpu_job *j, struct _starpu_worker *worker)
@@ -646,6 +658,23 @@ int _starpu_src_common_locate_file(char *located_file_name,
 	return 1;
 }
 
+
+#if defined(STARPU_USE_MPI_MASTER_SLAVE) && !defined(STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD)
+static void _starpu_src_common_switch_env(unsigned old, unsigned new)
+{
+    save_thread_env[old].current_task = starpu_task_get_current();
+    save_thread_env[old].current_worker = STARPU_PTHREAD_GETSPECIFIC(_starpu_worker_key);
+    save_thread_env[old].current_worker_set = STARPU_PTHREAD_GETSPECIFIC(_starpu_worker_set_key);
+    save_thread_env[old].current_mem_node = STARPU_PTHREAD_GETSPECIFIC(_starpu_memory_node_key);
+
+    _starpu_set_current_task(save_thread_env[new].current_task);
+    STARPU_PTHREAD_SETSPECIFIC(_starpu_worker_key, save_thread_env[new].current_worker);
+    STARPU_PTHREAD_SETSPECIFIC(_starpu_worker_set_key, save_thread_env[new].current_worker_set);
+    STARPU_PTHREAD_SETSPECIFIC(_starpu_memory_node_key, save_thread_env[new].current_mem_node);
+}
+#endif
+
+
 /* Send workers to the sink node
  */
 static void _starpu_src_common_send_workers(struct _starpu_mp_node * node, int baseworkerid, int nworkers)
@@ -671,6 +700,125 @@ static void _starpu_src_common_send_workers(struct _starpu_mp_node * node, int b
 	node->dt_send(node, &config->combined_workers,combined_worker_size);
 }
 
+
+static void _starpu_src_common_worker_internal_work(struct _starpu_worker_set * worker_set, struct _starpu_mp_node * mp_node, struct starpu_task **tasks, unsigned memnode)
+{
+    int res = 0;
+    struct _starpu_job * j;
+
+    _starpu_may_pause();
+
+#ifdef STARPU_SIMGRID
+    starpu_pthread_wait_reset(&worker_set->workers[0].wait);
+#endif
+
+    _STARPU_TRACE_START_PROGRESS(memnode);
+    res |= __starpu_datawizard_progress(memnode, 1, 1);
+    res |= __starpu_datawizard_progress(STARPU_MAIN_RAM, 1, 1);
+    _STARPU_TRACE_END_PROGRESS(memnode);
+
+    /* Handle message which have been store */
+    _starpu_src_common_handle_stored_async(mp_node);
+
+    /* poll the device for completed jobs.*/
+    while(mp_node->mp_recv_is_ready(mp_node))
+        _starpu_src_common_recv_async(mp_node);
+
+    /* get task for each worker*/
+    res |= _starpu_get_multi_worker_task(worker_set->workers, tasks, worker_set->nworkers, memnode);
+
+#ifdef STARPU_SIMGRID
+    if (!res)
+        starpu_pthread_wait_wait(&worker_set->workers[0].wait);
+#endif
+
+    /*if at least one worker have pop a task*/
+    if(res != 0)
+    {
+        unsigned i;
+        for(i=0; i<worker_set->nworkers; i++)
+        {
+            if(tasks[i] != NULL)
+            {
+                j = _starpu_get_job_associated_to_task(tasks[i]);
+                _starpu_set_local_worker_key(&worker_set->workers[i]);
+                res =  _starpu_src_common_execute(j, &worker_set->workers[i], mp_node);
+                switch (res)
+                {
+                    case 0:
+                        /* The task task has been launched with no error */
+                        break;
+                    case -EAGAIN:
+                        _STARPU_DISP("ouch, this MP worker could not actually run task %p, putting it back...\n", tasks[i]);
+                        _starpu_push_task_to_workers(tasks[i]);
+                        STARPU_ABORT();
+                        continue;
+                        break;
+                    default:
+                        STARPU_ASSERT(0);
+                }
+            }
+        }
+    }
+
+}
+
+
+#if defined(STARPU_USE_MPI_MASTER_SLAVE) && !defined(STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD)
+/* Function looping on the source node */
+void _starpu_src_common_workers_set(struct _starpu_worker_set * worker_set,
+        int ndevices,
+		struct _starpu_mp_node ** mp_node)
+{
+    unsigned memnode[ndevices];
+    unsigned offsetmemnode[ndevices];
+    memset(offsetmemnode, 0, ndevices*sizeof(unsigned));
+
+    unsigned device;
+    int nbworkers = 0;
+    for (device = 0; device < ndevices; device++)
+    {
+        memnode[device] = worker_set[device].workers[0].memory_node;
+        nbworkers += worker_set[device].nworkers;
+        if (device != 0)
+            offsetmemnode[device] += offsetmemnode[device-1];
+        if (device != ndevices -1)
+            offsetmemnode[device+1] += worker_set[device].nworkers;
+    }
+
+	struct starpu_task **tasks = malloc(sizeof(struct starpu_task *)*nbworkers);
+
+    for (device = 0; device < ndevices; device++)
+    {
+        struct _starpu_worker *baseworker = &worker_set[device].workers[0];
+        struct _starpu_machine_config *config = baseworker->config;
+        unsigned baseworkerid = baseworker - config->workers;
+        _starpu_src_common_send_workers(mp_node[device], baseworkerid, worker_set[device].nworkers);
+    }
+
+	/*main loop*/
+	while (_starpu_machine_is_running())
+	{
+        for (device = 0; device < ndevices ; device++)
+        {
+            _starpu_src_common_worker_internal_work(&worker_set[device], mp_node[device], tasks+offsetmemnode[device], memnode[device]);
+            _starpu_src_common_switch_env(device, (device+1)%ndevices);
+        }
+    }
+	free(tasks);
+
+    for (device = 0; device < ndevices; device++)
+        _starpu_handle_all_pending_node_data_requests(memnode[device]);
+
+	/* In case there remains some memory that was automatically
+	 * allocated by StarPU, we release it now. Note that data
+	 * coherency is not maintained anymore at that point ! */
+    for (device = 0; device < ndevices; device++)
+        _starpu_free_all_automatically_allocated_buffers(memnode[device]);
+
+}
+#endif
+
 /* Function looping on the source node */
 void _starpu_src_common_worker(struct _starpu_worker_set * worker_set,
 		unsigned baseworkerid,
@@ -684,63 +832,7 @@ void _starpu_src_common_worker(struct _starpu_worker_set * worker_set,
 	/*main loop*/
 	while (_starpu_machine_is_running())
 	{
-		int res = 0;
-		struct _starpu_job * j;
-
-		_starpu_may_pause();
-
-#ifdef STARPU_SIMGRID
-		starpu_pthread_wait_reset(&worker_set->workers[0].wait);
-#endif
-
-		_STARPU_TRACE_START_PROGRESS(memnode);
-		res |= __starpu_datawizard_progress(memnode, 1, 1);
-		res |= __starpu_datawizard_progress(STARPU_MAIN_RAM, 1, 1);
-		_STARPU_TRACE_END_PROGRESS(memnode);
-
-		/* Handle message which have been store */
-		_starpu_src_common_handle_stored_async(mp_node);
-
-		/* poll the device for completed jobs.*/
-		while(mp_node->mp_recv_is_ready(mp_node))
-			_starpu_src_common_recv_async(mp_node);
-
-		/* get task for each worker*/
-		res |= _starpu_get_multi_worker_task(worker_set->workers, tasks, worker_set->nworkers, memnode);
-
-#ifdef STARPU_SIMGRID
-		if (!res)
-			starpu_pthread_wait_wait(&worker_set->workers[0].wait);
-#endif
-
-		/*if at least one worker have pop a task*/
-		if(res != 0)
-		{
-			unsigned i;
-			for(i=0; i<worker_set->nworkers; i++)
-			{
-				if(tasks[i] != NULL)
-				{
-					j = _starpu_get_job_associated_to_task(tasks[i]);
-					_starpu_set_local_worker_key(&worker_set->workers[i]);
-					res =  _starpu_src_common_execute(j, &worker_set->workers[i], mp_node);
-					switch (res)
-					{
-						case 0:
-							/* The task task has been launched with no error */
-							break;
-						case -EAGAIN:
-							_STARPU_DISP("ouch, this MP worker could not actually run task %p, putting it back...\n", tasks[i]);
-							_starpu_push_task_to_workers(tasks[i]);
-							STARPU_ABORT();
-							continue;
-							break;
-						default:
-							STARPU_ASSERT(0);
-					}
-				}
-			}
-		}
+        _starpu_src_common_worker_internal_work(worker_set, mp_node, tasks, memnode);
 	}
 	free(tasks);
 

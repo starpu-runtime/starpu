@@ -78,7 +78,7 @@ static struct _starpu_worker_set cuda_worker_set[STARPU_MAXCUDADEVS];
 static struct _starpu_worker_set mic_worker_set[STARPU_MAXMICDEVS];
 #endif
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
-static struct _starpu_worker_set mpi_worker_set[STARPU_MAXMPIDEVS];
+struct _starpu_worker_set mpi_worker_set[STARPU_MAXMPIDEVS];
 #endif
 
 void *

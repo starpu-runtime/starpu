@@ -193,52 +193,91 @@ unsigned _starpu_mpi_src_get_device_count()
 
 void *_starpu_mpi_src_worker(void *arg)
 {
-    struct _starpu_worker_set *worker_set = arg;
-    /* As all workers of a set share common data, we just use the first
-     *       * one for intializing the following stuffs. */
-    struct _starpu_worker *baseworker = &worker_set->workers[0];
-    struct _starpu_machine_config *config = baseworker->config;
-    unsigned baseworkerid = baseworker - config->workers;
-    unsigned devid = baseworker->devid;
-    unsigned i;
+#ifndef STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD
+    struct _starpu_worker_set *worker_set_mpi = (struct _starpu_worker_set *) arg;
+    int nbsinknodes = _starpu_mpi_src_get_device_count();
 
-    /* unsigned memnode = baseworker->memory_node; */
+    int workersetnum;
+    for (workersetnum = 0; workersetnum < nbsinknodes; workersetnum++)
+    {
+        struct _starpu_worker_set * worker_set = &worker_set_mpi[workersetnum];
+#else
+        struct _starpu_worker_set *worker_set = arg;
+#endif
 
-    _starpu_driver_start(baseworker, _STARPU_FUT_MPI_KEY, 0);
+        /* As all workers of a set share common data, we just use the first
+         *       * one for intializing the following stuffs. */
+        struct _starpu_worker *baseworker = &worker_set->workers[0];
+        struct _starpu_machine_config *config = baseworker->config;
+        unsigned baseworkerid = baseworker - config->workers;
+        unsigned devid = baseworker->devid;
+        unsigned i;
+
+        /* unsigned memnode = baseworker->memory_node; */
+
+        _starpu_driver_start(baseworker, _STARPU_FUT_MPI_KEY, 0);
 #ifdef STARPU_USE_FXT             
-    for (i = 1; i < worker_set->nworkers; i++)
-        _starpu_worker_start(&worker_set->workers[i], _STARPU_FUT_MPI_KEY, 0);
+        for (i = 1; i < worker_set->nworkers; i++)
+            _starpu_worker_start(&worker_set->workers[i], _STARPU_FUT_MPI_KEY, 0);
 #endif          
 
-    // Current task for a thread managing a worker set has no sense.
-    _starpu_set_current_task(NULL);
+        // Current task for a thread managing a worker set has no sense.
+        _starpu_set_current_task(NULL);
 
-    for (i = 0; i < config->topology.nmpicores[devid]; i++)
+        for (i = 0; i < config->topology.nmpicores[devid]; i++)
+        {
+            struct _starpu_worker *worker = &config->workers[baseworkerid+i];
+            snprintf(worker->name, sizeof(worker->name), "MPI_MS %d core %u", devid, i);
+            snprintf(worker->short_name, sizeof(worker->short_name), "MPI_MS %d.%u", devid, i);
+        }
+
+#ifndef STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD
+        {
+            char thread_name[16];
+            snprintf(thread_name, sizeof(thread_name), "MPI_MS");
+            starpu_pthread_setname(thread_name);
+        }
+#else
+        {
+            char thread_name[16];
+            snprintf(thread_name, sizeof(thread_name), "MPI_MS %d", devid);
+            starpu_pthread_setname(thread_name);
+        }
+#endif
+
+        for (i = 0; i < worker_set->nworkers; i++)
+        {
+            struct _starpu_worker *worker = &worker_set->workers[i];
+            _STARPU_TRACE_WORKER_INIT_END(worker->workerid);
+        }
+    
+#ifndef STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD
+    }  /* for */
+
+    /* set the worker zero for the main thread */
+    for (workersetnum = 0; workersetnum < nbsinknodes; workersetnum++)
     {
-        struct _starpu_worker *worker = &config->workers[baseworkerid+i];
-        snprintf(worker->name, sizeof(worker->name), "MPI_MS %d core %u", devid, i);
-        snprintf(worker->short_name, sizeof(worker->short_name), "MPI_MS %d.%u", devid, i);
-    }
-    {
-        char thread_name[16];
-        snprintf(thread_name, sizeof(thread_name), "MPI_MS %d", devid);
-        starpu_pthread_setname(thread_name);
-    }
+        struct _starpu_worker_set * worker_set = &worker_set_mpi[workersetnum];
+        struct _starpu_worker *baseworker = &worker_set->workers[0];
+#endif
 
-    for (i = 0; i < worker_set->nworkers; i++)
-    {
-        struct _starpu_worker *worker = &worker_set->workers[i];
-        _STARPU_TRACE_WORKER_INIT_END(worker->workerid);
+        /* tell the main thread that this one is ready */
+        STARPU_PTHREAD_MUTEX_LOCK(&worker_set->mutex);
+        baseworker->status = STATUS_UNKNOWN;
+        worker_set->set_is_initialized = 1;
+        STARPU_PTHREAD_COND_SIGNAL(&worker_set->ready_cond);
+        STARPU_PTHREAD_MUTEX_UNLOCK(&worker_set->mutex);
+
+#ifndef STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD
     }
+#endif
 
-    /* tell the main thread that this one is ready */
-    STARPU_PTHREAD_MUTEX_LOCK(&worker_set->mutex);
-    baseworker->status = STATUS_UNKNOWN;
-    worker_set->set_is_initialized = 1;
-    STARPU_PTHREAD_COND_SIGNAL(&worker_set->ready_cond);
-    STARPU_PTHREAD_MUTEX_UNLOCK(&worker_set->mutex);
 
+#ifndef STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD
+    _starpu_src_common_workers_set(worker_set_mpi, nbsinknodes, mpi_ms_nodes);
+#else
     _starpu_src_common_worker(worker_set, baseworkerid, mpi_ms_nodes[devid]);
+#endif
 
     return NULL;
 
