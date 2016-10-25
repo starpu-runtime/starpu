@@ -407,8 +407,7 @@ int starpu_pthread_queue_register(starpu_pthread_wait_t *w, starpu_pthread_queue
 		newalloc = q->allocqueue * 2;
 		if (!newalloc)
 			newalloc = 1;
-		STARPU_REALLOC(newqueue, newalloc * sizeof(*(q->queue)));
-		q->queue = newqueue;
+		STARPU_REALLOC(q->queue, newalloc * sizeof(*(q->queue)));
 		q->allocqueue = newalloc;
 	}
 	q->queue[q->nqueue++] = w;
