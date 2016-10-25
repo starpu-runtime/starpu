@@ -67,18 +67,22 @@ int _starpu_mpi_common_mp_init()
         return 1;
 
 #if defined(STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD)
+    int required = MPI_THREAD_MULTIPLE;
+#else
+    int required = MPI_THREAD_FUNNELED;
+#endif
+
     int thread_support;
-	if (MPI_Init_thread(_starpu_get_argc(), _starpu_get_argv(), MPI_THREAD_MULTIPLE, &thread_support) != MPI_SUCCESS)
+	if (MPI_Init_thread(_starpu_get_argc(), _starpu_get_argv(), required, &thread_support) != MPI_SUCCESS)
         return 0;
 
-    if (thread_support != MPI_THREAD_MULTIPLE)
+    if (thread_support != required)
     {
-        fprintf(stderr, "MPI doesn't support MPI_THREAD_MULTIPLE option. MPI Master-Slave can have problems if multiple slaves are launched. \n");
+        if (required == MPI_THREAD_MULTIPLE)
+            fprintf(stderr, "MPI doesn't support MPI_THREAD_MULTIPLE option. MPI Master-Slave can have problems if multiple slaves are launched. \n");
+        if (required == MPI_THREAD_FUNNELED)
+            fprintf(stderr, "MPI doesn't support MPI_THREAD_FUNNELED option. Many errors can occur. \n");
     }
-#else
-    if (MPI_Init(_starpu_get_argc(), _starpu_get_argv()) != MPI_SUCCESS)
-        return 0;
-#endif
 
 	mpi_initialized = 1;
 
