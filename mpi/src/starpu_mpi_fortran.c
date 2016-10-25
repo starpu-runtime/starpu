@@ -24,7 +24,8 @@
 /* Fortran related functions */
 struct _starpu_mpi_argc_argv *fstarpu_mpi_argcv_alloc(int argc, int initialize_mpi, int comm_present, MPI_Fint comm)
 {
-	struct _starpu_mpi_argc_argv *argcv = calloc(1,sizeof(*argcv));
+	struct _starpu_mpi_argc_argv *argcv;
+	STARPU_MPI_CALLOC(argcv, 1,sizeof(*argcv));
 	argcv->initialize_mpi = initialize_mpi;
 	if (comm_present) {
 		argcv->comm = MPI_Comm_f2c(comm);
@@ -33,7 +34,7 @@ struct _starpu_mpi_argc_argv *fstarpu_mpi_argcv_alloc(int argc, int initialize_m
 	}
 	argcv->fargc = argc;
 	argcv->argc = &argcv->fargc;
-	argcv->fargv = calloc(argc, sizeof(char *));
+	STARPU_MPI_CALLOC(argcv->fargv, argc, sizeof(char *));
 	argcv->argv = &argcv->fargv;
 	return argcv;
 }
@@ -42,7 +43,8 @@ void fstarpu_mpi_argcv_set_arg(struct _starpu_mpi_argc_argv *argcv, int i, int l
 {
 	STARPU_ASSERT(len >= 0);
 	STARPU_ASSERT(i >= 0 && i < argcv->fargc);
-	char *s = malloc(len+1);
+	char *s;
+	STARPU_MPI_MALLOC(s, len+1);
 	memcpy(s, _s, len);
 	s[len] = '\0';
 	argcv->fargv[i] = s;
@@ -64,7 +66,9 @@ void fstarpu_mpi_argcv_free(struct _starpu_mpi_argc_argv *argcv)
 
 starpu_mpi_req *fstarpu_mpi_req_alloc(void)
 {
-	return calloc(1, sizeof(starpu_mpi_req));
+	void *ptr;
+	STARPU_MPI_CALLOC(ptr, 1, sizeof(starpu_mpi_req));
+	return ptr;
 }
 
 void fstarpu_mpi_req_free(starpu_mpi_req *req)
@@ -74,7 +78,9 @@ void fstarpu_mpi_req_free(starpu_mpi_req *req)
 
 MPI_Status *fstarpu_mpi_status_alloc(void)
 {
-	return calloc(1, sizeof(MPI_Status));
+	void *ptr;
+	STARPU_MPI_CALLOC(ptr, 1, sizeof(MPI_Status));
+	return ptr;
 }
 
 void fstarpu_mpi_status_free(MPI_Status *status)

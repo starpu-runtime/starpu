@@ -46,7 +46,7 @@ void _starpu_mpi_comm_init(MPI_Comm comm)
 {
 	_STARPU_MPI_DEBUG(10, "allocating for %d communicators\n", _starpu_mpi_comm_allocated);
 	_starpu_mpi_comm_allocated=10;
-	_starpu_mpi_comms = calloc(_starpu_mpi_comm_allocated, sizeof(struct _starpu_mpi_comm *));
+	STARPU_MPI_CALLOC(_starpu_mpi_comms, _starpu_mpi_comm_allocated, sizeof(struct _starpu_mpi_comm *));
 	_starpu_mpi_comm_nb=0;
 	_starpu_mpi_comm_tested=0;
 	_starpu_mpi_comms_cache = NULL;
@@ -92,16 +92,18 @@ void _starpu_mpi_comm_register(MPI_Comm comm)
 		{
 			_starpu_mpi_comm_allocated *= 2;
 			_STARPU_MPI_DEBUG(10, "reallocating for %d communicators\n", _starpu_mpi_comm_allocated);
-			_starpu_mpi_comms = realloc(_starpu_mpi_comms, _starpu_mpi_comm_allocated * sizeof(struct _starpu_mpi_comm *));
+			STARPU_MPI_REALLOC(_starpu_mpi_comms, _starpu_mpi_comm_allocated * sizeof(struct _starpu_mpi_comm *));
 		}
 		_STARPU_MPI_DEBUG(10, "registering comm %d (%d) number %d\n", comm, MPI_COMM_WORLD, _starpu_mpi_comm_nb);
-		struct _starpu_mpi_comm *_comm = calloc(1, sizeof(struct _starpu_mpi_comm));
+		struct _starpu_mpi_comm *_comm;
+		STARPU_MPI_CALLOC(_comm, 1, sizeof(struct _starpu_mpi_comm));
 		_comm->comm = comm;
-		_comm->envelope = calloc(1,sizeof(struct _starpu_mpi_envelope));
+		STARPU_MPI_CALLOC(_comm->envelope, 1,sizeof(struct _starpu_mpi_envelope));
 		_comm->posted = 0;
 		_starpu_mpi_comms[_starpu_mpi_comm_nb] = _comm;
 		_starpu_mpi_comm_nb++;
-		struct _starpu_mpi_comm_hashtable *entry = (struct _starpu_mpi_comm_hashtable *)malloc(sizeof(*entry));
+		struct _starpu_mpi_comm_hashtable *entry;
+		STARPU_MPI_MALLOC(entry, sizeof(*entry));
 		entry->comm = comm;
 		HASH_ADD(hh, _starpu_mpi_comms_cache, comm, sizeof(entry->comm), entry);
 	}

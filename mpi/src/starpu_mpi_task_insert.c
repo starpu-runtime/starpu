@@ -192,7 +192,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 
 	_STARPU_TRACE_TASK_MPI_DECODE_START();
 
-	descrs = (struct starpu_data_descr *)malloc(nb_allocated_data * sizeof(struct starpu_data_descr));
+	STARPU_MPI_MALLOC(descrs, nb_allocated_data * sizeof(struct starpu_data_descr));
 	nb_data = 0;
 	*do_execute = -1;
 	*xrank = -1;
@@ -244,7 +244,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 			if (nb_data >= nb_allocated_data)
 			{
 				nb_allocated_data *= 2;
-				descrs = (struct starpu_data_descr *)realloc(descrs, nb_allocated_data * sizeof(struct starpu_data_descr));
+				STARPU_MPI_REALLOC(descrs, nb_allocated_data * sizeof(struct starpu_data_descr));
 			}
 			descrs[nb_data].handle = data;
 			descrs[nb_data].mode = mode;
@@ -274,7 +274,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 				if (nb_data >= nb_allocated_data)
 				{
 					nb_allocated_data *= 2;
-					descrs = (struct starpu_data_descr *)realloc(descrs, nb_allocated_data * sizeof(struct starpu_data_descr));
+					STARPU_MPI_REALLOC(descrs, nb_allocated_data * sizeof(struct starpu_data_descr));
 				}
 				descrs[nb_data].handle = datas[i];
 				descrs[nb_data].mode = mode;
@@ -304,7 +304,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 				if (nb_data >= nb_allocated_data)
 				{
 					nb_allocated_data *= 2;
-					descrs = (struct starpu_data_descr *)realloc(descrs, nb_allocated_data * sizeof(struct starpu_data_descr));
+					STARPU_MPI_REALLOC(descrs, nb_allocated_data * sizeof(struct starpu_data_descr));
 				}
 				descrs[nb_data].handle = _descrs[i].handle;
 				descrs[nb_data].mode = mode;
@@ -711,7 +711,8 @@ void starpu_mpi_redux_data(MPI_Comm comm, starpu_data_handle_t data_handle)
 				 * reduction.
 				 */
 
-				struct _starpu_mpi_redux_data_args *args = malloc(sizeof(struct _starpu_mpi_redux_data_args));
+				struct _starpu_mpi_redux_data_args *args;
+				STARPU_MPI_MALLOC(args, sizeof(struct _starpu_mpi_redux_data_args));
 				args->data_handle = data_handle;
 				args->tag = tag;
 				args->node = i;
