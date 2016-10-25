@@ -22,6 +22,7 @@
 #define DRIVER_MPI_MASTER_NODE_DEFAULT 0
 
 static int mpi_initialized;
+static int extern_initialized;
 static int src_node_id;
 
 static void _starpu_mpi_set_src_node_id()
@@ -54,15 +55,30 @@ static void _starpu_mpi_set_src_node_id()
 
 int _starpu_mpi_common_mp_init()
 {
+    //Here we supposed the programmer has already called this function
+    if (mpi_initialized)
+        return 0;
+
+    if (MPI_Initialized(&extern_initialized) != MPI_SUCCESS)
+        STARPU_ABORT_MSG("Cannot check if MPI is initialized or not !");
+
+    //Here MPI_Init or MPI_Init_thread is already called
+    if (extern_initialized)
+        return 1;
+
+#if defined(STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD)
     int thread_support;
-	if (mpi_initialized || MPI_Init_thread(_starpu_get_argc(), _starpu_get_argv(), MPI_THREAD_MULTIPLE, &thread_support) != MPI_SUCCESS)
+	if (MPI_Init_thread(_starpu_get_argc(), _starpu_get_argv(), MPI_THREAD_MULTIPLE, &thread_support) != MPI_SUCCESS)
         return 0;
 
     if (thread_support != MPI_THREAD_MULTIPLE)
     {
         fprintf(stderr, "MPI doesn't support MPI_THREAD_MULTIPLE option. MPI Master-Slave can have problems if multiple slaves are launched. \n");
     }
-
+#else
+    if (MPI_Init(_starpu_get_argc(), _starpu_get_argv()) != MPI_SUCCESS)
+        return 0;
+#endif
 
 	mpi_initialized = 1;
 
@@ -74,7 +90,9 @@ int _starpu_mpi_common_mp_init()
 
 void _starpu_mpi_common_mp_deinit()
 {
-    MPI_Finalize();    
+    if (!extern_initialized)
+        MPI_Finalize();    
+
     mpi_initialized = 0;
 }
 
