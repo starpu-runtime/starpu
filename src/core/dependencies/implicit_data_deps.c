@@ -435,7 +435,7 @@ void _starpu_release_data_enforce_sequential_consistency(struct starpu_task *tas
 				/* Save the job id of the reader task in the ghost reader linked list list */
 				struct _starpu_job *ghost_reader_job = _starpu_get_job_associated_to_task(task);
 				struct _starpu_jobid_list *link;
-				STARPU_MALLOC(link, sizeof(struct _starpu_jobid_list));
+				_STARPU_MALLOC(link, sizeof(struct _starpu_jobid_list));
 				link->next = handle->last_submitted_ghost_accessors_id;
 				link->id = ghost_reader_job->job_id;
 				handle->last_submitted_ghost_accessors_id = link;
@@ -499,7 +499,7 @@ void _starpu_add_post_sync_tasks(struct starpu_task *post_sync_task, starpu_data
 		handle->post_sync_tasks_cnt++;
 
 		struct _starpu_task_wrapper_list *link;
-		STARPU_MALLOC(link, sizeof(struct _starpu_task_wrapper_list));
+		_STARPU_MALLOC(link, sizeof(struct _starpu_task_wrapper_list));
 		link->task = post_sync_task;
 		link->next = handle->post_sync_tasks;
 		handle->post_sync_tasks = link;

@@ -53,14 +53,14 @@ int _starpu_opencl_locate_file(const char *source_file_name, char **located_file
 	_STARPU_DEBUG("Trying to locate <%s>\n", source_file_name);
 	if (access(source_file_name, R_OK) == 0)
 	{
-		STARPU_CALLOC(*located_file_name, 1, strlen(source_file_name)+1);
+		_STARPU_CALLOC(*located_file_name, 1, strlen(source_file_name)+1);
 		sprintf(*located_file_name, "%s", source_file_name);
 		ret = EXIT_SUCCESS;
 	}
 
 	if (ret == EXIT_FAILURE && _starpu_opencl_program_dir)
 	{
-		STARPU_CALLOC(*located_file_name, 1, strlen(_starpu_opencl_program_dir)+1+strlen(source_file_name)+1);
+		_STARPU_CALLOC(*located_file_name, 1, strlen(_starpu_opencl_program_dir)+1+strlen(source_file_name)+1);
 		sprintf(*located_file_name, "%s/%s", _starpu_opencl_program_dir, source_file_name);
 		_STARPU_DEBUG("Trying to locate <%s>\n", *located_file_name);
 		if (access(*located_file_name, R_OK) == 0)
@@ -69,7 +69,7 @@ int _starpu_opencl_locate_file(const char *source_file_name, char **located_file
 
 	if (ret == EXIT_FAILURE)
 	{
-		STARPU_CALLOC(*located_file_name, 1, strlen(STARPU_SRC_DIR)+1+strlen(source_file_name)+1);
+		_STARPU_CALLOC(*located_file_name, 1, strlen(STARPU_SRC_DIR)+1+strlen(source_file_name)+1);
 		sprintf(*located_file_name, "%s/%s", STARPU_SRC_DIR, source_file_name);
 		_STARPU_DEBUG("Trying to locate <%s>\n", *located_file_name);
 		if (access(*located_file_name, R_OK) == 0)
@@ -78,7 +78,7 @@ int _starpu_opencl_locate_file(const char *source_file_name, char **located_file
 
 	if (ret == EXIT_FAILURE)
 	{
-		STARPU_CALLOC(*located_file_name, 1, strlen(_STARPU_STRINGIFY(STARPU_OPENCL_DATADIR))+1+strlen(source_file_name)+1);
+		_STARPU_CALLOC(*located_file_name, 1, strlen(_STARPU_STRINGIFY(STARPU_OPENCL_DATADIR))+1+strlen(source_file_name)+1);
 		sprintf(*located_file_name, "%s/%s", _STARPU_STRINGIFY(STARPU_OPENCL_DATADIR), source_file_name);
 		_STARPU_DEBUG("Trying to locate <%s>\n", *located_file_name);
 		if (access(*located_file_name, R_OK) == 0)
@@ -95,12 +95,12 @@ int _starpu_opencl_locate_file(const char *source_file_name, char **located_file
 
 		if (!last)
 		{
-			STARPU_CALLOC(*located_dir_name, 2, sizeof(char));
+			_STARPU_CALLOC(*located_dir_name, 2, sizeof(char));
 			sprintf(*located_dir_name, "%s", "");
 		}
 		else
 		{
-			STARPU_CALLOC(*located_dir_name, 1, 1+strlen(*located_file_name));
+			_STARPU_CALLOC(*located_dir_name, 1, 1+strlen(*located_file_name));
 			sprintf(*located_dir_name, "%s", *located_file_name);
 			(*located_dir_name)[strlen(*located_file_name)-strlen(last)+1] = '\0';
 		}
@@ -161,7 +161,7 @@ char *_starpu_opencl_load_program_source(const char *filename)
 
 	err = stat(filename, &statbuf);
 	STARPU_ASSERT_MSG(err == 0, "could not open file %s\n", filename);
-	STARPU_MALLOC(source, statbuf.st_size + 1);
+	_STARPU_MALLOC(source, statbuf.st_size + 1);
 
 	for(c=(char)fgetc(fh), x=0 ; c != EOF ; c =(char)fgetc(fh), x++)
 	{
@@ -311,7 +311,7 @@ int _starpu_opencl_compile_or_load_opencl_from_string(const char *opencl_program
 			if (len > 2)
 			{
 				char *buffer;
-				STARPU_MALLOC(buffer, len);
+				_STARPU_MALLOC(buffer, len);
 
 				clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, len, buffer, &len);
 				_STARPU_DISP("Compilation output\n%s\n", buffer);
@@ -345,7 +345,7 @@ int _starpu_opencl_compile_or_load_opencl_from_string(const char *opencl_program
 
 			err = clGetProgramInfo(program, CL_PROGRAM_BINARY_SIZES, sizeof(size_t), &binary_len, NULL);
 			if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
-			STARPU_MALLOC(binary, binary_len);
+			_STARPU_MALLOC(binary, binary_len);
 
 			err = clGetProgramInfo(program, CL_PROGRAM_BINARIES, sizeof(binary), &binary, NULL);
 			if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
@@ -381,7 +381,7 @@ void starpu_opencl_load_program_source_malloc(const char *source_file_name, char
 	if(!source)
 		_STARPU_ERROR("Failed to load compute program from file <%s>!\n", *located_file_name);
 
-	STARPU_MALLOC(*opencl_program_source, strlen(source)+1);
+	_STARPU_MALLOC(*opencl_program_source, strlen(source)+1);
 	sprintf(*opencl_program_source, "%s", source);
 	free(source);
 }
@@ -524,7 +524,7 @@ int starpu_opencl_load_binary_opencl(const char *kernel_id, struct starpu_opencl
 			if (len > 2)
 			{
 				char *buffer;
-				STARPU_MALLOC(buffer, len);
+				_STARPU_MALLOC(buffer, len);
 
 				clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, len, buffer, &len);
 				_STARPU_DISP("Compilation output\n%s\n", buffer);

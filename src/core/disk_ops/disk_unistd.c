@@ -34,7 +34,7 @@
 static void *starpu_unistd_alloc(void *base, size_t size)
 {
         struct starpu_unistd_global_obj *obj;
-	STARPU_MALLOC(obj, sizeof(struct starpu_unistd_global_obj));
+	_STARPU_MALLOC(obj, sizeof(struct starpu_unistd_global_obj));
 	/* only flags change between unistd and unistd_o_direct */
 	obj->flags = O_RDWR | O_BINARY;
 	return starpu_unistd_global_alloc(obj, base, size);
@@ -44,7 +44,7 @@ static void *starpu_unistd_alloc(void *base, size_t size)
 static void *starpu_unistd_open(void *base, void *pos, size_t size)
 {
 	struct starpu_unistd_global_obj *obj;
-	STARPU_MALLOC(obj, sizeof(struct starpu_unistd_global_obj));
+	_STARPU_MALLOC(obj, sizeof(struct starpu_unistd_global_obj));
 	/* only flags change between unistd and unistd_o_direct */
 	obj->flags = O_RDWR | O_BINARY;
 	return starpu_unistd_global_open(obj, base, pos, size);

@@ -37,7 +37,7 @@ struct starpu_sched_component_composed_recipe
 struct starpu_sched_component_composed_recipe * starpu_sched_component_composed_recipe_create(void)
 {
 	struct starpu_sched_component_composed_recipe *recipe;
-	STARPU_MALLOC(recipe, sizeof(*recipe));
+	_STARPU_MALLOC(recipe, sizeof(*recipe));
 	fun_create_component_list_init(&recipe->list);
 	return recipe;
 }
@@ -214,7 +214,7 @@ struct starpu_sched_component * starpu_sched_component_composed_component_create
 	struct starpu_sched_component * component = starpu_sched_component_create(tree, "composed");
 
 	struct composed_component *c;
-	STARPU_MALLOC(c, sizeof(struct composed_component));
+	_STARPU_MALLOC(c, sizeof(struct composed_component));
 	*c = create_composed_component(tree, recipe
 #ifdef STARPU_HAVE_HWLOC
 				  ,component->obj

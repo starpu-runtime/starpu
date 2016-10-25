@@ -121,7 +121,7 @@ static void peager_remove_workers(unsigned sched_ctx_id, int *workerids, unsigne
 static void initialize_peager_policy(unsigned sched_ctx_id)
 {
 	struct _starpu_peager_data *data;
-	STARPU_MALLOC(data, sizeof(struct _starpu_peager_data));
+	_STARPU_MALLOC(data, sizeof(struct _starpu_peager_data));
 	/* masters pick tasks from that queue */
 	data->fifo = _starpu_create_fifo();
 

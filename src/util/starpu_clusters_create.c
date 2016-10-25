@@ -97,9 +97,9 @@ struct starpu_cluster_machine *starpu_cluster_machine(hwloc_obj_type_t cluster_l
 	int arg_type;
 	struct _starpu_cluster_parameters *params;
 	struct starpu_cluster_machine *machine;
-	STARPU_MALLOC(machine, sizeof(struct starpu_cluster_machine));
+	_STARPU_MALLOC(machine, sizeof(struct starpu_cluster_machine));
 
-	STARPU_MALLOC(machine->params, sizeof(struct _starpu_cluster_parameters));
+	_STARPU_MALLOC(machine->params, sizeof(struct _starpu_cluster_parameters));
 	machine->id = STARPU_NMAX_SCHED_CTXS;
 	machine->groups = _starpu_cluster_group_list_new();
 	machine->nclusters = 0;
@@ -342,7 +342,7 @@ void _starpu_cluster_group_init(struct _starpu_cluster_group *group,
 	group->nclusters = 0;
 	group->clusters = _starpu_cluster_list_new();
 	group->father = father;
-	STARPU_MALLOC(group->params, sizeof(struct _starpu_cluster_parameters));
+	_STARPU_MALLOC(group->params, sizeof(struct _starpu_cluster_parameters));
 	_starpu_cluster_copy_parameters(group->params, father->params);
 	return;
 }
@@ -356,7 +356,7 @@ void _starpu_cluster_init(struct _starpu_cluster *cluster,
 	cluster->cores = NULL;
 	cluster->workerids = NULL;
 	cluster->father = father;
-	STARPU_MALLOC(cluster->params, sizeof(struct _starpu_cluster_parameters));
+	_STARPU_MALLOC(cluster->params, sizeof(struct _starpu_cluster_parameters));
 	_starpu_cluster_copy_parameters(cluster->params, father->params);
 }
 
@@ -540,7 +540,7 @@ int _starpu_cluster_topology(hwloc_obj_type_t cluster_level,
 	if (nworkers == 0)
 		return -ENODEV;
 	int *workers;
-	STARPU_MALLOC(workers, sizeof(int) * nworkers);
+	_STARPU_MALLOC(workers, sizeof(int) * nworkers);
 	starpu_worker_get_ids_by_type(STARPU_CPU_WORKER, workers, nworkers);
 
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
@@ -628,8 +628,8 @@ void _starpu_cluster(struct _starpu_cluster_group *group)
 
 		if (cluster->ncores > 0)
 		{
-			STARPU_MALLOC(cluster->cores, sizeof(int)*cluster->ncores);
-			STARPU_MALLOC(cluster->workerids, sizeof(int)*cluster->ncores);
+			_STARPU_MALLOC(cluster->cores, sizeof(int)*cluster->ncores);
+			_STARPU_MALLOC(cluster->workerids, sizeof(int)*cluster->ncores);
 			avail_pus -= cluster->ncores;
 			npreset++;
 		}
@@ -660,8 +660,8 @@ void _starpu_cluster(struct _starpu_cluster_group *group)
 					avail_pus/(group->nclusters-i);
 		}
 		avail_pus -= cluster->ncores;
-		STARPU_MALLOC(cluster->cores, sizeof(int)*cluster->ncores);
-		STARPU_MALLOC(cluster->workerids, sizeof(int)*cluster->ncores);
+		_STARPU_MALLOC(cluster->cores, sizeof(int)*cluster->ncores);
+		_STARPU_MALLOC(cluster->workerids, sizeof(int)*cluster->ncores);
 
 		cluster = _starpu_cluster_list_next(cluster);
 	}
@@ -699,8 +699,8 @@ void _starpu_cluster(struct _starpu_cluster_group *group)
 				starpu_cluster_warned = 1;
 			}
 			cluster->ncores += size-1;
-			STARPU_REALLOC(cluster->cores, sizeof(int)*cluster->ncores);
-			STARPU_REALLOC(cluster->workerids, sizeof(int)*cluster->ncores);
+			_STARPU_REALLOC(cluster->cores, sizeof(int)*cluster->ncores);
+			_STARPU_REALLOC(cluster->workerids, sizeof(int)*cluster->ncores);
 		}
 
 		/* grab workerid list and return first cpu */

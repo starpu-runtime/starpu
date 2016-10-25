@@ -276,17 +276,17 @@ static void add_disk_in_list(unsigned node,  struct starpu_disk_ops *func, void 
 	/* initialization */
 	if (disk_register_list == NULL)
 	{
-		STARPU_MALLOC(disk_register_list, size_register_list*sizeof(struct disk_register *));
+		_STARPU_MALLOC(disk_register_list, size_register_list*sizeof(struct disk_register *));
 	}
 	/* small size -> new size  */
 	if ((disk_number+1) > size_register_list)
 	{
 		size_register_list *= 2;
-		STARPU_REALLOC(disk_register_list, size_register_list*sizeof(struct disk_register *));
+		_STARPU_REALLOC(disk_register_list, size_register_list*sizeof(struct disk_register *));
 	}
 
 	struct disk_register *dr;
-	STARPU_MALLOC(dr, sizeof(struct disk_register));
+	_STARPU_MALLOC(dr, sizeof(struct disk_register));
 	dr->node = node;
 	dr->base = base;
 	dr->flag = STARPU_DISK_ALL;

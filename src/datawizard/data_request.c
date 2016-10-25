@@ -320,7 +320,7 @@ void _starpu_data_request_append_callback(struct _starpu_data_request *r, void (
 	if (callback_func)
 	{
 		struct _starpu_callback_list *link;
-		STARPU_MALLOC(link, sizeof(struct _starpu_callback_list));
+		_STARPU_MALLOC(link, sizeof(struct _starpu_callback_list));
 
 		link->callback_func = callback_func;
 		link->callback_arg = callback_arg;

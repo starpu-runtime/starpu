@@ -31,7 +31,7 @@
 static struct _starpu_cg *create_cg_task(unsigned ntags, struct _starpu_job *j)
 {
 	struct _starpu_cg *cg;
-	STARPU_MALLOC(cg, sizeof(struct _starpu_cg));
+	_STARPU_MALLOC(cg, sizeof(struct _starpu_cg));
 
 	cg->ntags = ntags;
 	cg->remaining = ntags;

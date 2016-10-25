@@ -108,7 +108,7 @@ static struct task_info *get_task(unsigned long job_id, int mpi_rank)
 	HASH_FIND(hh, tasks_info, &job_id, sizeof(job_id), task);
 	if (!task)
 	{
-		STARPU_MALLOC(task, sizeof(*task));
+		_STARPU_MALLOC(task, sizeof(*task));
 		task->model_name = NULL;
 		task->name = NULL;
 		task->exclude_from_dag = 0;
@@ -396,7 +396,7 @@ static int register_thread(unsigned long tid, int workerid, int sync)
 	if (entry)
 		return 0;
 
-	STARPU_MALLOC(entry, sizeof(*entry));
+	_STARPU_MALLOC(entry, sizeof(*entry));
 	entry->tid = tid;
 	entry->workerid = workerid;
 	entry->sync = sync;
@@ -864,7 +864,7 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 	char *kindstr = "";
 	struct starpu_perfmodel_arch arch;
 	arch.ndevices = 1;
-	STARPU_MALLOC(arch.devices, sizeof(struct starpu_perfmodel_device));
+	_STARPU_MALLOC(arch.devices, sizeof(struct starpu_perfmodel_device));
 
 	switch (ev->param[0])
 	{
@@ -1034,7 +1034,7 @@ static void create_paje_state_if_not_found(char *name, struct starpu_fxt_options
 
 	/* it's the first time ... */
 	struct _starpu_symbol_name *entry = _starpu_symbol_name_new();
-	STARPU_MALLOC(entry->name, strlen(name) + 1);
+	_STARPU_MALLOC(entry->name, strlen(name) + 1);
 	strcpy(entry->name, name);
 
 	_starpu_symbol_name_list_push_front(&symbol_list, entry);
@@ -1236,7 +1236,7 @@ static void handle_codelet_data_handle(struct fxt_ev_64 *ev, struct starpu_fxt_o
 	}
 	if (alloc)
 	{
-		STARPU_REALLOC(task->data, sizeof(*task->data) * alloc);
+		_STARPU_REALLOC(task->data, sizeof(*task->data) * alloc);
 	}
 	task->data[task->ndata].handle = ev->param[1];
 	task->data[task->ndata].size = ev->param[2];
@@ -1326,7 +1326,7 @@ static void handle_end_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 	if (options->dumped_codelets)
 	{
 		dumped_codelets_count++;
-		STARPU_REALLOC(dumped_codelets, dumped_codelets_count*sizeof(struct starpu_fxt_codelet_event));
+		_STARPU_REALLOC(dumped_codelets, dumped_codelets_count*sizeof(struct starpu_fxt_codelet_event));
 
 		snprintf(dumped_codelets[dumped_codelets_count - 1].symbol, sizeof(dumped_codelets[dumped_codelets_count - 1].symbol)-1, "%s", _starpu_last_codelet_symbol[worker]);
 		dumped_codelets[dumped_codelets_count - 1].symbol[sizeof(dumped_codelets[dumped_codelets_count - 1].symbol)-1] = 0;
@@ -2007,7 +2007,7 @@ static void handle_task_deps(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 	}
 	if (alloc)
 	{
-		STARPU_REALLOC(task->dependencies, sizeof(*task->dependencies) * alloc);
+		_STARPU_REALLOC(task->dependencies, sizeof(*task->dependencies) * alloc);
 	}
 	task->dependencies[task->ndeps++] = dep_prev;
 
@@ -3395,7 +3395,7 @@ static void write_task(struct parse_task pt)
 	//fprintf(stderr, "%p %p %s\n", kernel, kernels, codelet_name);
 	if(kernel == NULL)
 	{
-		STARPU_MALLOC(kernel, sizeof(*kernel));
+		_STARPU_MALLOC(kernel, sizeof(*kernel));
 		kernel->name = strdup(codelet_name);
 		//fprintf(stderr, "%s\n", kernel->name);
 		kernel->file = fopen(codelet_name, "w+");

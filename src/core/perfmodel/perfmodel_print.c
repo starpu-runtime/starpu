@@ -190,7 +190,7 @@ int starpu_perfmodel_print_all(struct starpu_perfmodel *model, char *arch, char 
 			int implid;
 			struct starpu_perfmodel_arch perf_arch;
 			perf_arch.ndevices = 1;
-			STARPU_MALLOC(perf_arch.devices, sizeof(struct starpu_perfmodel_device));
+			_STARPU_MALLOC(perf_arch.devices, sizeof(struct starpu_perfmodel_device));
 			perf_arch.devices[0].type = STARPU_CPU_WORKER;
 			perf_arch.devices[0].devid = 0;
 			perf_arch.devices[0].ncores = 1;
@@ -216,7 +216,7 @@ int starpu_perfmodel_print_all(struct starpu_perfmodel *model, char *arch, char 
 			int implid;
 			struct starpu_perfmodel_arch perf_arch;
 			perf_arch.ndevices = 1;
-			STARPU_MALLOC(perf_arch.devices, sizeof(struct starpu_perfmodel_device));
+			_STARPU_MALLOC(perf_arch.devices, sizeof(struct starpu_perfmodel_device));
 			perf_arch.devices[0].type = STARPU_CPU_WORKER;
 			perf_arch.devices[0].devid = 0;
 			perf_arch.devices[0].ncores = k;
@@ -236,7 +236,7 @@ int starpu_perfmodel_print_all(struct starpu_perfmodel *model, char *arch, char 
 			struct starpu_perfmodel_arch perf_arch;
 
 			perf_arch.ndevices = 1;
-			STARPU_MALLOC(perf_arch.devices, sizeof(struct starpu_perfmodel_device));
+			_STARPU_MALLOC(perf_arch.devices, sizeof(struct starpu_perfmodel_device));
 			perf_arch.devices[0].type = STARPU_CUDA_WORKER;
 			perf_arch.devices[0].ncores = 1;
 			int comb;
@@ -266,7 +266,7 @@ int starpu_perfmodel_print_all(struct starpu_perfmodel *model, char *arch, char 
 		{
 			struct starpu_perfmodel_arch perf_arch;
 			perf_arch.ndevices = 1;
-			STARPU_MALLOC(perf_arch.devices, sizeof(struct starpu_perfmodel_device));
+			_STARPU_MALLOC(perf_arch.devices, sizeof(struct starpu_perfmodel_device));
 
 			perf_arch.devices[0].type = STARPU_CUDA_WORKER;
 			perf_arch.devices[0].devid = gpuid;

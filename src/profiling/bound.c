@@ -193,7 +193,7 @@ static double** initialize_arch_duration(int maxdevid, unsigned* maxncore_table)
 {
 	int devid, maxncore;
 	double ** arch_model;
-	STARPU_MALLOC(arch_model, sizeof(*arch_model)*(maxdevid+1));
+	_STARPU_MALLOC(arch_model, sizeof(*arch_model)*(maxdevid+1));
 	arch_model[maxdevid] = NULL;
 	for(devid=0; devid<maxdevid; devid++)
 	{
@@ -201,7 +201,7 @@ static double** initialize_arch_duration(int maxdevid, unsigned* maxncore_table)
 			maxncore = maxncore_table[devid];
 		else
 			maxncore = 1;
-		STARPU_CALLOC(arch_model[devid], maxncore+1,sizeof(*arch_model[devid]));
+		_STARPU_CALLOC(arch_model[devid], maxncore+1,sizeof(*arch_model[devid]));
 	}
 	return arch_model;
 }
@@ -235,7 +235,7 @@ static void new_task(struct _starpu_job *j)
 	if (j->bound_task)
 		return;
 
-	STARPU_MALLOC(t, sizeof(*t));
+	_STARPU_MALLOC(t, sizeof(*t));
 	memset(t, 0, sizeof(*t));
 	t->id = j->job_id;
 	t->tag_id = j->task->tag_id;
@@ -287,7 +287,7 @@ void _starpu_bound_record(struct _starpu_job *j)
 
 		if (!tp)
 		{
-			STARPU_MALLOC(tp, sizeof(*tp));
+			_STARPU_MALLOC(tp, sizeof(*tp));
 			tp->cl = j->task->cl;
 			tp->footprint = j->footprint;
 			tp->n = 0;
@@ -318,7 +318,7 @@ void _starpu_bound_tag_dep(starpu_tag_t id, starpu_tag_t dep_id)
 		return;
 	}
 
-	STARPU_MALLOC(td, sizeof(*td));
+	_STARPU_MALLOC(td, sizeof(*td));
 	td->tag = id;
 	td->dep_tag = dep_id;
 	td->next = tag_deps;
@@ -355,7 +355,7 @@ void _starpu_bound_task_dep(struct _starpu_job *j, struct _starpu_job *dep_j)
 	if (i == t->depsn)
 	{
 		/* Not already there, add */
-		STARPU_REALLOC(t->deps, ++t->depsn * sizeof(t->deps[0]));
+		_STARPU_REALLOC(t->deps, ++t->depsn * sizeof(t->deps[0]));
 		t->deps[t->depsn-1].dep = dep_j->bound_task;
 		t->deps[t->depsn-1].size = 0; /* We don't have data information in that case */
 	}
@@ -412,7 +412,7 @@ void _starpu_bound_job_id_dep(starpu_data_handle_t handle, struct _starpu_job *j
 	if (i == t->depsn)
 	{
 		/* Not already there, add */
-		STARPU_REALLOC(t->deps, ++t->depsn * sizeof(t->deps[0]));
+		_STARPU_REALLOC(t->deps, ++t->depsn * sizeof(t->deps[0]));
 		t->deps[t->depsn-1].dep = dep_t;
 		t->deps[t->depsn-1].size = _starpu_data_get_size(handle);
 	}

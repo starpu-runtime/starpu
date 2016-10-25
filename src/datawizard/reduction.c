@@ -160,7 +160,7 @@ void _starpu_data_end_reduction_mode(starpu_data_handle_t handle)
 	/* Register all valid per-worker replicates */
 	unsigned nworkers = starpu_worker_get_count();
 	STARPU_ASSERT(!handle->reduction_tmp_handles);
-	STARPU_MALLOC(handle->reduction_tmp_handles, nworkers*sizeof(handle->reduction_tmp_handles[0]));
+	_STARPU_MALLOC(handle->reduction_tmp_handles, nworkers*sizeof(handle->reduction_tmp_handles[0]));
 	for (worker = 0; worker < nworkers; worker++)
 	{
 		if (handle->per_worker[worker].initialized)

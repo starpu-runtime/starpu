@@ -88,7 +88,7 @@ void _starpu_sink_common_allocate(const struct _starpu_mp_node *mp_node,
 	STARPU_ASSERT(arg_size == sizeof(size_t));
 
 	void *addr;
-	STARPU_MALLOC(addr, *(size_t *)(arg));
+	_STARPU_MALLOC(addr, *(size_t *)(arg));
 
 	/* If the allocation fail, let's send an error to the host.
 	 */
@@ -376,7 +376,7 @@ static void _starpu_sink_common_pre_execution_message(struct _starpu_mp_node *no
 	/* Init message to tell the sink that the execution has begun */
 	struct mp_message * message = mp_message_new();
 	message->type = STARPU_MP_COMMAND_PRE_EXECUTION;
-	STARPU_MALLOC(message->buffer, sizeof(int));
+	_STARPU_MALLOC(message->buffer, sizeof(int));
 	*(int *) message->buffer = task->combined_workerid;
 	message->size = sizeof(int);
 
@@ -393,7 +393,7 @@ static void _starpu_sink_common_execution_completed_message(struct _starpu_mp_no
 	/* Init message to tell the sink that the execution is completed */
 	struct mp_message * message = mp_message_new();
 	message->type = STARPU_MP_COMMAND_EXECUTION_COMPLETED;
-	STARPU_MALLOC(message->buffer, sizeof(int));
+	_STARPU_MALLOC(message->buffer, sizeof(int));
 	*(int*) message->buffer = task->coreid;
 	message->size = sizeof(int);
 
@@ -407,7 +407,7 @@ static void _starpu_sink_common_bind_to_combined_worker(struct _starpu_mp_node *
 {
 	int i;
 	int * bind_set;
-	STARPU_MALLOC(bind_set, sizeof(int)*combined_worker->worker_size);
+	_STARPU_MALLOC(bind_set, sizeof(int)*combined_worker->worker_size);
 	for(i=0;i<combined_worker->worker_size;i++)
 		bind_set[i] = combined_worker->combined_workerid[i] - node->baseworkerid;
 	node->bind_thread(node, coreid, bind_set, combined_worker->worker_size);
@@ -571,7 +571,7 @@ void _starpu_sink_common_execute(struct _starpu_mp_node *node,
 	uintptr_t arg_ptr = (uintptr_t) arg;
 	struct mp_task *task;
 
-	STARPU_MALLOC(task, sizeof(struct mp_task));
+	_STARPU_MALLOC(task, sizeof(struct mp_task));
 	task->kernel = *(void(**)(void **, void *)) arg_ptr;
 	arg_ptr += sizeof(task->kernel);
 
@@ -595,7 +595,7 @@ void _starpu_sink_common_execute(struct _starpu_mp_node *node,
 	task->nb_interfaces = *(unsigned *) arg_ptr;
 	arg_ptr += sizeof(task->nb_interfaces);
 
-	STARPU_MALLOC(task->interfaces, task->nb_interfaces * sizeof(*task->interfaces));
+	_STARPU_MALLOC(task->interfaces, task->nb_interfaces * sizeof(*task->interfaces));
 
 	/* The function needs an array pointing to each interface it needs
 	 * during execution. As in sink-side there is no mean to know which
@@ -604,7 +604,7 @@ void _starpu_sink_common_execute(struct _starpu_mp_node *node,
 	for (i = 0; i < task->nb_interfaces; i++)
 	{
 		union _starpu_interface * interface;
-		STARPU_MALLOC(interface, sizeof(union _starpu_interface));
+		_STARPU_MALLOC(interface, sizeof(union _starpu_interface));
 		memcpy(interface, (void*) arg_ptr, sizeof(union _starpu_interface));
 		task->interfaces[i] = interface;
 		arg_ptr += sizeof(union _starpu_interface);

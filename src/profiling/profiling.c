@@ -147,7 +147,7 @@ struct starpu_profiling_task_info *_starpu_allocate_profiling_info_if_needed(str
 	/* If we are benchmarking, we need room for the energy */
 	if (starpu_profiling_status_get() || (task->cl && task->cl->energy_model && (task->cl->energy_model->benchmarking || _starpu_get_calibrate_flag())))
 	{
-		STARPU_CALLOC(info, 1, sizeof(struct starpu_profiling_task_info));
+		_STARPU_CALLOC(info, 1, sizeof(struct starpu_profiling_task_info));
 	}
 
 	return info;

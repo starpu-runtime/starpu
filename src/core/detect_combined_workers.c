@@ -254,14 +254,14 @@ static void find_and_assign_combinations_without_hwloc(int *workerids, int nwork
 	unsigned * nmics_table;
 	int * mic_id;
 	int ** mic_workers;
-	STARPU_MALLOC(mic_id, sizeof(int)*nb_mics);
-	STARPU_MALLOC(nmics_table, sizeof(unsigned)*nb_mics);
-	STARPU_MALLOC(mic_workers, sizeof(int*)*nb_mics);
+	_STARPU_MALLOC(mic_id, sizeof(int)*nb_mics);
+	_STARPU_MALLOC(nmics_table, sizeof(unsigned)*nb_mics);
+	_STARPU_MALLOC(mic_workers, sizeof(int*)*nb_mics);
 	for(j=0; j<nb_mics; j++)
 	{
 		mic_id[j] = -1;
 		nmics_table[j] = 0;
-		STARPU_MALLOC(mic_workers[j], sizeof(int)*STARPU_NMAXWORKERS);
+		_STARPU_MALLOC(mic_workers[j], sizeof(int)*STARPU_NMAXWORKERS);
 	}
 #endif /* STARPU_USE_MIC */
 

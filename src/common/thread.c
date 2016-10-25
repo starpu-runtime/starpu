@@ -47,7 +47,7 @@ extern int _starpu_simgrid_thread_start(int argc, char *argv[]);
 int starpu_pthread_create_on(char *name, starpu_pthread_t *thread, const starpu_pthread_attr_t *attr STARPU_ATTRIBUTE_UNUSED, void *(*start_routine) (void *), void *arg, msg_host_t host)
 {
 	char **_args;
-	STARPU_MALLOC(_args, 3*sizeof(char*));
+	_STARPU_MALLOC(_args, 3*sizeof(char*));
 	asprintf(&_args[0], "%p", start_routine);
 	asprintf(&_args[1], "%p", arg);
 	_args[2] = NULL;
@@ -407,7 +407,7 @@ int starpu_pthread_queue_register(starpu_pthread_wait_t *w, starpu_pthread_queue
 		newalloc = q->allocqueue * 2;
 		if (!newalloc)
 			newalloc = 1;
-		STARPU_REALLOC(q->queue, newalloc * sizeof(*(q->queue)));
+		_STARPU_REALLOC(q->queue, newalloc * sizeof(*(q->queue)));
 		q->allocqueue = newalloc;
 	}
 	q->queue[q->nqueue++] = w;

@@ -916,8 +916,8 @@ static void dmda_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nwo
 
 		if(dt->num_priorities != -1)
 		{
-			STARPU_MALLOC(dt->queue_array[workerid]->exp_len_per_priority, dt->num_priorities*sizeof(double));
-			STARPU_MALLOC(dt->queue_array[workerid]->ntasks_per_priority, dt->num_priorities*sizeof(unsigned));
+			_STARPU_MALLOC(dt->queue_array[workerid]->exp_len_per_priority, dt->num_priorities*sizeof(double));
+			_STARPU_MALLOC(dt->queue_array[workerid]->ntasks_per_priority, dt->num_priorities*sizeof(unsigned));
 			int j;
 			for(j = 0; j < dt->num_priorities; j++)
 			{
@@ -954,11 +954,11 @@ static void dmda_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned 
 static void initialize_dmda_policy(unsigned sched_ctx_id)
 {
 	struct _starpu_dmda_data *dt;
-	STARPU_CALLOC(dt, 1, sizeof(struct _starpu_dmda_data));
+	_STARPU_CALLOC(dt, 1, sizeof(struct _starpu_dmda_data));
 
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)dt);
 
-	STARPU_MALLOC(dt->queue_array, STARPU_NMAXWORKERS*sizeof(struct _starpu_fifo_taskq*));
+	_STARPU_MALLOC(dt->queue_array, STARPU_NMAXWORKERS*sizeof(struct _starpu_fifo_taskq*));
 
 	int i;
 	for(i = 0; i < STARPU_NMAXWORKERS; i++)

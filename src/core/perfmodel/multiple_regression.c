@@ -191,9 +191,9 @@ int dgels_multiple_reg_coeff(double *mpar, double *my, long nn, unsigned ncoeff,
 	integer n = ncoeff;
 	integer nrhs = 1; // number of columns of B and X (wich are vectors therefore nrhs=1)
 	doublereal *X;
-	STARPU_MALLOC(X, sizeof(double)*n*m); // (/!\ modified at the output) contain the model and the different values of pararmters
+	_STARPU_MALLOC(X, sizeof(double)*n*m); // (/!\ modified at the output) contain the model and the different values of pararmters
 	doublereal *Y;
-	STARPU_MALLOC(Y, sizeof(double)*m);
+	_STARPU_MALLOC(Y, sizeof(double)*m);
 
 	double coefficient;
 	int i;
@@ -219,7 +219,7 @@ int dgels_multiple_reg_coeff(double *mpar, double *my, long nn, unsigned ncoeff,
 
 	integer lwork = n*2;
 	doublereal *work; // (output)
-	STARPU_MALLOC(work, sizeof(double)*lwork);
+	_STARPU_MALLOC(work, sizeof(double)*lwork);
 
 	/* // Running LAPACK dgels_ */
 	dgels_(&trans, &m, &n, &nrhs, X, &lda, Y, &ldb, work, &lwork, &info);
@@ -295,9 +295,9 @@ int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, doubl
 
 	/* Allocating X and Y matrices */
 	double *mpar;
-	STARPU_MALLOC(mpar, nparameters*n*sizeof(double));
+	_STARPU_MALLOC(mpar, nparameters*n*sizeof(double));
 	double *my;
-	STARPU_MALLOC(my, n*sizeof(double));
+	_STARPU_MALLOC(my, n*sizeof(double));
 
 	/* Loading old calibration */
 	if (calibrate==1)

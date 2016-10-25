@@ -45,7 +45,7 @@ static starpu_pthread_rwlock_t tag_global_rwlock;
 static struct _starpu_cg *create_cg_apps(unsigned ntags)
 {
 	struct _starpu_cg *cg;
-	STARPU_MALLOC(cg, sizeof(struct _starpu_cg));
+	_STARPU_MALLOC(cg, sizeof(struct _starpu_cg));
 
 	cg->ntags = ntags;
 	cg->remaining = ntags;
@@ -61,7 +61,7 @@ static struct _starpu_cg *create_cg_apps(unsigned ntags)
 static struct _starpu_cg *create_cg_tag(unsigned ntags, struct _starpu_tag *tag)
 {
 	struct _starpu_cg *cg;
-	STARPU_MALLOC(cg, sizeof(struct _starpu_cg));
+	_STARPU_MALLOC(cg, sizeof(struct _starpu_cg));
 
 	cg->ntags = ntags;
 	cg->remaining = ntags;
@@ -76,7 +76,7 @@ static struct _starpu_cg *create_cg_tag(unsigned ntags, struct _starpu_tag *tag)
 static struct _starpu_tag *_starpu_tag_init(starpu_tag_t id)
 {
 	struct _starpu_tag *tag;
-	STARPU_MALLOC(tag, sizeof(struct _starpu_tag));
+	_STARPU_MALLOC(tag, sizeof(struct _starpu_tag));
 
 	tag->job = NULL;
 	tag->is_assigned = 0;
@@ -190,7 +190,7 @@ static struct _starpu_tag *_gettag_struct(starpu_tag_t id)
 		tag = _starpu_tag_init(id);
 
 		struct _starpu_tag_table *entry2;
-		STARPU_MALLOC(entry2, sizeof(*entry2));
+		_STARPU_MALLOC(entry2, sizeof(*entry2));
 		entry2->id = id;
 		entry2->tag = tag;
 

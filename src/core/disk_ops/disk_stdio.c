@@ -58,7 +58,7 @@ struct starpu_stdio_obj
 static struct starpu_stdio_obj *_starpu_stdio_init(int descriptor, char *path, size_t size)
 {
 	struct starpu_stdio_obj *obj;
-	STARPU_MALLOC(obj, sizeof(struct starpu_stdio_obj));
+	_STARPU_MALLOC(obj, sizeof(struct starpu_stdio_obj));
 
 	FILE *f = fdopen(descriptor,"rb+");
 	if (f == NULL)
@@ -174,7 +174,7 @@ static void *starpu_stdio_open(void *base, void *pos, size_t size)
 	struct starpu_stdio_obj *obj;
 	/* create template */
 	char *baseCpy;
-	STARPU_MALLOC(baseCpy, strlen(base)+1+strlen(pos)+1);
+	_STARPU_MALLOC(baseCpy, strlen(base)+1+strlen(pos)+1);
 	strcpy(baseCpy,(char *) base);
 	strcat(baseCpy,(char *) "/");
 	strcat(baseCpy,(char *) pos);
@@ -320,7 +320,7 @@ static int starpu_stdio_full_write(void *base STARPU_ATTRIBUTE_UNUSED, void *obj
 static void *starpu_stdio_plug(void *parameter, starpu_ssize_t size STARPU_ATTRIBUTE_UNUSED)
 {
 	char *tmp;
-	STARPU_MALLOC(tmp, sizeof(char)*(strlen(parameter)+1));
+	_STARPU_MALLOC(tmp, sizeof(char)*(strlen(parameter)+1));
 	strcpy(tmp,(char *) parameter);
 
 	{

@@ -201,7 +201,7 @@ static void initialize_heteroprio_policy(unsigned sched_ctx_id)
 {
 	/* Alloc the scheduler data  */
 	struct _starpu_heteroprio_data *hp;
-	STARPU_MALLOC(hp, sizeof(struct _starpu_heteroprio_data));
+	_STARPU_MALLOC(hp, sizeof(struct _starpu_heteroprio_data));
 	memset(hp, 0, sizeof(*hp));
 
 	hp->waiters = starpu_bitmap_create();

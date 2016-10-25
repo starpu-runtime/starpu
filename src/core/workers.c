@@ -1029,7 +1029,7 @@ static void _starpu_build_tree(void)
 {
 #ifdef STARPU_HAVE_HWLOC
 	struct starpu_tree *tree;
-	STARPU_MALLOC(tree, sizeof(struct starpu_tree));
+	_STARPU_MALLOC(tree, sizeof(struct starpu_tree));
 	_starpu_config.topology.tree = tree;
 
 	hwloc_obj_t root = hwloc_get_root_obj(_starpu_config.topology.hwtopology);
@@ -1175,7 +1175,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	{
 		size_t size = _starpu_config.conf.n_cuda_opengl_interoperability * sizeof(*_starpu_config.conf.cuda_opengl_interoperability);
 		unsigned *copy;
-		STARPU_MALLOC(copy, size);
+		_STARPU_MALLOC(copy, size);
 		memcpy(copy, _starpu_config.conf.cuda_opengl_interoperability, size);
 		_starpu_config.conf.cuda_opengl_interoperability = copy;
 	}
@@ -1183,7 +1183,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	{
 		size_t size = _starpu_config.conf.n_not_launched_drivers * sizeof(*_starpu_config.conf.not_launched_drivers);
 		struct starpu_driver *copy;
-		STARPU_MALLOC(copy, size);
+		_STARPU_MALLOC(copy, size);
 		memcpy(copy, _starpu_config.conf.not_launched_drivers, size);
 		_starpu_config.conf.not_launched_drivers = copy;
 	}
@@ -2119,7 +2119,7 @@ unsigned starpu_worker_get_sched_ctx_list(int workerid, unsigned **sched_ctxs)
 {
 	unsigned s = 0;
 	unsigned nsched_ctxs = _starpu_worker_get_nsched_ctxs(workerid);
-	STARPU_MALLOC(*sched_ctxs, nsched_ctxs*sizeof(unsigned));
+	_STARPU_MALLOC(*sched_ctxs, nsched_ctxs*sizeof(unsigned));
 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 	struct _starpu_sched_ctx_elt *e = NULL;
 	struct _starpu_sched_ctx_list_iterator list_it;

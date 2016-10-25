@@ -106,7 +106,7 @@ int64_t _starpu_ayudame_get_func_id(struct starpu_codelet *cl)
 			ncodelets_alloc = 16;
 		else
 			ncodelets_alloc *= 2;
-		STARPU_REALLOC(codelets, ncodelets_alloc * sizeof(*codelets));
+		_STARPU_REALLOC(codelets, ncodelets_alloc * sizeof(*codelets));
 	}
 	codelets[ncodelets].cl = cl;
 	if (name)

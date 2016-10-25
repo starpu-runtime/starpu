@@ -135,7 +135,7 @@
     struct ENAME *_tail; /**< @internal tail of the list */ \
   }; \
   /** @internal */static inline struct ENAME *ENAME##_new(void) \
-    { struct ENAME *e; STARPU_MALLOC(e, sizeof(struct ENAME)); \
+    { struct ENAME *e; _STARPU_MALLOC(e, sizeof(struct ENAME)); \
       e->_next = NULL; e->_prev = NULL; return e; } \
   /** @internal */static inline void ENAME##_delete(struct ENAME *e) \
     { free(e); } \
@@ -164,7 +164,7 @@
   /** @internal */static inline void ENAME##_list_init(struct ENAME##_list *l) \
     { l->_head=NULL; l->_tail=l->_head; } \
   /** @internal */static inline struct ENAME##_list *ENAME##_list_new(void) \
-    { struct ENAME##_list *l; STARPU_MALLOC(l, sizeof(struct ENAME##_list)); \
+    { struct ENAME##_list *l; _STARPU_MALLOC(l, sizeof(struct ENAME##_list)); \
       ENAME##_list_init(l); return l; } \
   /** @internal */static inline int ENAME##_list_empty(const struct ENAME##_list *l) \
     { return (l->_head == NULL); } \

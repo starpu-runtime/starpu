@@ -82,7 +82,7 @@ int _starpu_add_successor_to_cg_list(struct _starpu_cg_list *successors, struct 
 		else
 			successors->succ_list_size = 4;
 
-		STARPU_REALLOC(successors->succ, successors->succ_list_size*sizeof(struct _starpu_cg *));
+		_STARPU_REALLOC(successors->succ, successors->succ_list_size*sizeof(struct _starpu_cg *));
 	}
 #else
 	STARPU_ASSERT(index < STARPU_NMAXDEPS);

@@ -1142,7 +1142,7 @@ void _starpu_fetch_nowhere_task_input(struct _starpu_job *j)
 		return;
 	}
 
-	STARPU_MALLOC(wrapper, (sizeof(*wrapper)));
+	_STARPU_MALLOC(wrapper, (sizeof(*wrapper)));
 	wrapper->j = j;
 	/* +1 for the call below */
 	wrapper->pending = nfetchbuffers + 1;

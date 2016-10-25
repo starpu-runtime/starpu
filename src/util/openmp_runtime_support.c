@@ -263,7 +263,7 @@ static struct starpu_omp_critical *create_omp_critical_struct(void)
 {
 	struct starpu_omp_critical *critical;
 
-	STARPU_CALLOC(critical, 1, sizeof(*critical));
+	_STARPU_CALLOC(critical, 1, sizeof(*critical));
 	_starpu_spin_init(&critical->lock);
 	return critical;
 }
@@ -281,7 +281,7 @@ static struct starpu_omp_device *create_omp_device_struct(void)
 {
 	struct starpu_omp_device *device;
 
-	STARPU_CALLOC(device, 1, sizeof(*device));
+	_STARPU_CALLOC(device, 1, sizeof(*device));
 	_starpu_spin_init(&device->atomic_lock);
 	return device;
 }
@@ -314,7 +314,7 @@ static struct starpu_omp_region *create_omp_region_struct(struct starpu_omp_regi
 {
 	struct starpu_omp_region *region;
 
-	STARPU_CALLOC(region, 1, sizeof(*region));
+	_STARPU_CALLOC(region, 1, sizeof(*region));
 	region->parent_region = parent_region;
 	region->owner_device = owner_device;
 	starpu_omp_thread_list_init(&region->thread_list);
@@ -468,7 +468,7 @@ static void starpu_omp_implicit_task_exec(void *buffers[], void *cl_arg)
 		task->starpu_cl_arg = cl_arg;
 		STARPU_ASSERT(task->stack == NULL);
 		STARPU_ASSERT(task->stacksize > 0);
-		STARPU_MALLOC(task->stack, task->stacksize);
+		_STARPU_MALLOC(task->stack, task->stacksize);
 		getcontext(&task->ctx);
 		/*
 		 * we do not use uc_link, starpu_omp_task_entry will handle
@@ -636,7 +636,7 @@ static void starpu_omp_explicit_task_exec(void *buffers[], void *cl_arg)
 		task->starpu_cl_arg = cl_arg;
 		STARPU_ASSERT(task->stack == NULL);
 		STARPU_ASSERT(task->stacksize > 0);
-		STARPU_MALLOC(task->stack, task->stacksize);
+		_STARPU_MALLOC(task->stack, task->stacksize);
 		getcontext(&task->ctx);
 		/*
 		 * we do not use uc_link, starpu_omp_task_entry will handle
@@ -731,7 +731,7 @@ static void omp_initial_thread_setup(void)
 	initial_thread->current_task = initial_task;
 	/* .owner_region already set in create_omp_thread_struct */
 	/* .initial_thread_stack */
-	STARPU_MALLOC(initial_thread->initial_thread_stack, _STARPU_INITIAL_THREAD_STACKSIZE);
+	_STARPU_MALLOC(initial_thread->initial_thread_stack, _STARPU_INITIAL_THREAD_STACKSIZE);
 	if (initial_thread->initial_thread_stack == NULL)
 		_STARPU_ERROR("memory allocation failed");
 	/* .ctx */
@@ -764,7 +764,7 @@ static void omp_initial_thread_setup(void)
 	_starpu_omp_set_task(initial_task);
 
 	_global_state.nb_starpu_cpu_workers = starpu_worker_get_count_by_type(STARPU_CPU_WORKER);
-	STARPU_MALLOC(_global_state.starpu_cpu_worker_ids, _global_state.nb_starpu_cpu_workers * sizeof(int));
+	_STARPU_MALLOC(_global_state.starpu_cpu_worker_ids, _global_state.nb_starpu_cpu_workers * sizeof(int));
 	if (_global_state.starpu_cpu_worker_ids == NULL)
 		_STARPU_ERROR("memory allocation failed");
 	ret = starpu_worker_get_ids_by_type(STARPU_CPU_WORKER, _global_state.starpu_cpu_worker_ids, _global_state.nb_starpu_cpu_workers);
@@ -834,7 +834,7 @@ static void omp_initial_region_setup(void)
 	_global_state.initial_region->icvs.nest_var = _starpu_omp_initial_icv_values->nest_var;
 	if (_starpu_omp_initial_icv_values->nthreads_var[1] != 0)
 	{
-		STARPU_MALLOC(_global_state.initial_region->icvs.nthreads_var, (1+max_active_levels-_global_state.initial_region->level) * sizeof(*_global_state.initial_region->icvs.nthreads_var));
+		_STARPU_MALLOC(_global_state.initial_region->icvs.nthreads_var, (1+max_active_levels-_global_state.initial_region->level) * sizeof(*_global_state.initial_region->icvs.nthreads_var));
 		int i,j;
 		for (i = _global_state.initial_region->level, j = 0; i < max_active_levels; i++, j++)
 		{
@@ -844,14 +844,14 @@ static void omp_initial_region_setup(void)
 	}
 	else
 	{
-		STARPU_MALLOC(_global_state.initial_region->icvs.nthreads_var, 2 * sizeof(*_global_state.initial_region->icvs.nthreads_var));
+		_STARPU_MALLOC(_global_state.initial_region->icvs.nthreads_var, 2 * sizeof(*_global_state.initial_region->icvs.nthreads_var));
 		_global_state.initial_region->icvs.nthreads_var[0] = _starpu_omp_initial_icv_values->nthreads_var[0];
 		_global_state.initial_region->icvs.nthreads_var[1] = 0;
 	}
 
 	if (_starpu_omp_initial_icv_values->bind_var[1] != starpu_omp_proc_bind_undefined)
 	{
-		STARPU_MALLOC(_global_state.initial_region->icvs.bind_var, (1+max_active_levels-_global_state.initial_region->level) * sizeof(*_global_state.initial_region->icvs.bind_var));
+		_STARPU_MALLOC(_global_state.initial_region->icvs.bind_var, (1+max_active_levels-_global_state.initial_region->level) * sizeof(*_global_state.initial_region->icvs.bind_var));
 		int i,j;
 		for (i = _global_state.initial_region->level, j = 0; i < max_active_levels; i++, j++)
 		{
@@ -861,7 +861,7 @@ static void omp_initial_region_setup(void)
 	}
 	else
 	{
-		STARPU_MALLOC(_global_state.initial_region->icvs.bind_var, 2 * sizeof(*_global_state.initial_region->icvs.bind_var));
+		_STARPU_MALLOC(_global_state.initial_region->icvs.bind_var, 2 * sizeof(*_global_state.initial_region->icvs.bind_var));
 		_global_state.initial_region->icvs.bind_var[0] = _starpu_omp_initial_icv_values->bind_var[0];
 		_global_state.initial_region->icvs.bind_var[1] = starpu_omp_proc_bind_undefined;
 	}
@@ -1038,7 +1038,7 @@ void starpu_omp_parallel_region(const struct starpu_omp_parallel_region_attr *at
 	{
 		if (generating_region->icvs.nthreads_var[1] != 0)
 		{
-			STARPU_MALLOC(new_region->icvs.nthreads_var, (1+max_active_levels-new_region->level) * sizeof(*new_region->icvs.nthreads_var));
+			_STARPU_MALLOC(new_region->icvs.nthreads_var, (1+max_active_levels-new_region->level) * sizeof(*new_region->icvs.nthreads_var));
 			int i,j;
 			for (i = new_region->level, j = 0; i < max_active_levels; i++, j++)
 			{
@@ -1048,14 +1048,14 @@ void starpu_omp_parallel_region(const struct starpu_omp_parallel_region_attr *at
 		}
 		else
 		{
-			STARPU_MALLOC(new_region->icvs.nthreads_var, 2 * sizeof(*new_region->icvs.nthreads_var));
+			_STARPU_MALLOC(new_region->icvs.nthreads_var, 2 * sizeof(*new_region->icvs.nthreads_var));
 			new_region->icvs.nthreads_var[0] = generating_region->icvs.nthreads_var[0];
 			new_region->icvs.nthreads_var[1] = 0;
 		}
 
 		if (generating_region->icvs.bind_var[1] != starpu_omp_proc_bind_undefined)
 		{
-			STARPU_MALLOC(new_region->icvs.bind_var, (1+max_active_levels-new_region->level) * sizeof(*new_region->icvs.bind_var));
+			_STARPU_MALLOC(new_region->icvs.bind_var, (1+max_active_levels-new_region->level) * sizeof(*new_region->icvs.bind_var));
 			int i,j;
 			for (i = new_region->level, j = 0; i < max_active_levels; i++, j++)
 			{
@@ -1065,17 +1065,17 @@ void starpu_omp_parallel_region(const struct starpu_omp_parallel_region_attr *at
 		}
 		else
 		{
-			STARPU_MALLOC(new_region->icvs.bind_var, 2 * sizeof(*new_region->icvs.bind_var));
+			_STARPU_MALLOC(new_region->icvs.bind_var, 2 * sizeof(*new_region->icvs.bind_var));
 			new_region->icvs.bind_var[0] = generating_region->icvs.bind_var[0];
 			new_region->icvs.bind_var[1] = starpu_omp_proc_bind_undefined;
 		}
 	}
 	else
 	{
-		STARPU_MALLOC(new_region->icvs.nthreads_var, sizeof(*new_region->icvs.nthreads_var));
+		_STARPU_MALLOC(new_region->icvs.nthreads_var, sizeof(*new_region->icvs.nthreads_var));
 		new_region->icvs.nthreads_var[0] = generating_region->icvs.nthreads_var[0];
 
-		STARPU_MALLOC(new_region->icvs.bind_var, sizeof(*new_region->icvs.bind_var));
+		_STARPU_MALLOC(new_region->icvs.bind_var, sizeof(*new_region->icvs.bind_var));
 		new_region->icvs.bind_var[0] = generating_region->icvs.bind_var[0];
 	}
 	new_region->icvs.thread_limit_var = generating_region->icvs.thread_limit_var;
@@ -1753,7 +1753,7 @@ void starpu_omp_taskgroup_inline_begin(void)
 {
 	struct starpu_omp_task *task = _starpu_omp_get_task();
 	struct starpu_omp_task_group *p_task_group;
-	STARPU_MALLOC(p_task_group, sizeof(*p_task_group));
+	_STARPU_MALLOC(p_task_group, sizeof(*p_task_group));
 	p_task_group->p_previous_task_group = task->task_group;
 	p_task_group->descendent_task_count = 0;
 	p_task_group->leader_task = task;
@@ -1936,7 +1936,7 @@ static inline struct starpu_omp_loop *_starpu_omp_for_loop_begin(struct starpu_o
 	loop = _starpu_omp_for_get_loop(parallel_region, task);
 	if (!loop)
 	{
-		STARPU_MALLOC(loop, sizeof(*loop));
+		_STARPU_MALLOC(loop, sizeof(*loop));
 		loop->id = task->loop_id;
 		loop->next_iteration = 0;
 		loop->nb_completed_threads = 0;
@@ -2113,7 +2113,7 @@ static inline struct starpu_omp_sections *_starpu_omp_sections_begin(struct star
 	sections = _starpu_omp_get_sections(parallel_region, task);
 	if (!sections)
 	{
-		STARPU_MALLOC(sections, sizeof(*sections));
+		_STARPU_MALLOC(sections, sizeof(*sections));
 		sections->id = task->sections_id;
 		sections->next_section_num = 0;
 		sections->nb_completed_threads = 0;
@@ -2207,7 +2207,7 @@ static void _starpu_omp_lock_init(void **_internal)
 {
 	struct _starpu_omp_lock_internal *_lock;
 
-	STARPU_CALLOC(_lock, 1, sizeof(*_lock));
+	_STARPU_CALLOC(_lock, 1, sizeof(*_lock));
 	_starpu_spin_init(&_lock->lock);
 	condition_init(&_lock->cond);
 	*_internal = _lock;
@@ -2264,7 +2264,7 @@ static void _starpu_omp_nest_lock_init(void **_internal)
 {
 	struct _starpu_omp_nest_lock_internal *_nest_lock;
 
-	STARPU_CALLOC(_nest_lock, 1, sizeof(*_nest_lock));
+	_STARPU_CALLOC(_nest_lock, 1, sizeof(*_nest_lock));
 	_starpu_spin_init(&_nest_lock->lock);
 	condition_init(&_nest_lock->cond);
 	*_internal = _nest_lock;

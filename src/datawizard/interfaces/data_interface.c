@@ -149,7 +149,7 @@ void _starpu_data_register_ram_pointer(starpu_data_handle_t handle, void *ptr)
 {
 	struct handle_entry *entry;
 
-	STARPU_MALLOC(entry, sizeof(*entry));
+	_STARPU_MALLOC(entry, sizeof(*entry));
 
 	entry->pointer = ptr;
 	entry->handle = handle;
@@ -369,7 +369,7 @@ _starpu_data_initialize_per_worker(starpu_data_handle_t handle)
 
 	_starpu_spin_checklocked(&handle->header_lock);
 
-	STARPU_CALLOC(handle->per_worker, nworkers, sizeof(*handle->per_worker));
+	_STARPU_CALLOC(handle->per_worker, nworkers, sizeof(*handle->per_worker));
 
 	size_t interfacesize = handle->ops->interface_size;
 
@@ -395,7 +395,7 @@ _starpu_data_initialize_per_worker(starpu_data_handle_t handle)
 		replicate->initialized = 0;
 		replicate->memory_node = starpu_worker_get_memory_node(worker);
 
-		STARPU_CALLOC(replicate->data_interface, 1, interfacesize);
+		_STARPU_CALLOC(replicate->data_interface, 1, interfacesize);
 		/* duplicate  the content of the interface on node 0 */
 		memcpy(replicate->data_interface, handle->per_node[STARPU_MAIN_RAM].data_interface, interfacesize);
 	}
@@ -438,7 +438,7 @@ int _starpu_data_handle_init(starpu_data_handle_t handle, struct starpu_data_int
 
 		replicate->handle = handle;
 
-		STARPU_CALLOC(replicate->data_interface, 1, interfacesize);
+		_STARPU_CALLOC(replicate->data_interface, 1, interfacesize);
 	}
 
 	return 0;
@@ -448,7 +448,7 @@ static
 starpu_data_handle_t _starpu_data_handle_allocate(struct starpu_data_interface_ops *interface_ops, unsigned int mf_node)
 {
 	starpu_data_handle_t handle;
-	STARPU_CALLOC(handle, 1, sizeof(struct _starpu_data_state));
+	_STARPU_CALLOC(handle, 1, sizeof(struct _starpu_data_state));
 	_starpu_data_handle_init(handle, interface_ops, mf_node);
 	return handle;
 }

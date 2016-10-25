@@ -160,7 +160,7 @@ void *starpu_unistd_global_open(struct starpu_unistd_global_obj *obj, void *base
 {
 	/* create template */
 	char *baseCpy;
-	STARPU_MALLOC(baseCpy, strlen(base)+1+strlen(pos)+1);
+	_STARPU_MALLOC(baseCpy, strlen(base)+1+strlen(pos)+1);
 	strcpy(baseCpy,(char *) base);
 	strcat(baseCpy,(char *) "/");
 	strcat(baseCpy,(char *) pos);
@@ -227,7 +227,7 @@ void *starpu_unistd_global_async_read(void *base STARPU_ATTRIBUTE_UNUSED, void *
 {
         struct starpu_unistd_global_obj *tmp = obj;
         struct starpu_unistd_aiocb *starpu_aiocb;
-	STARPU_CALLOC(starpu_aiocb, 1,sizeof(*starpu_aiocb));
+	_STARPU_CALLOC(starpu_aiocb, 1,sizeof(*starpu_aiocb));
         struct aiocb *aiocb = &starpu_aiocb->aiocb;
         starpu_aiocb->obj = obj;
         int fd = tmp->descriptor;
@@ -317,7 +317,7 @@ void *starpu_unistd_global_async_write(void *base STARPU_ATTRIBUTE_UNUSED, void 
 {
         struct starpu_unistd_global_obj *tmp = obj;
         struct starpu_unistd_aiocb *starpu_aiocb;
-	STARPU_CALLOC(starpu_aiocb, 1,sizeof(*starpu_aiocb));
+	_STARPU_CALLOC(starpu_aiocb, 1,sizeof(*starpu_aiocb));
         struct aiocb *aiocb = &starpu_aiocb->aiocb;
         starpu_aiocb->obj = obj;
         int fd = tmp->descriptor;
@@ -369,7 +369,7 @@ int starpu_unistd_global_full_write(void *base STARPU_ATTRIBUTE_UNUSED, void *ob
 void *starpu_unistd_global_plug(void *parameter, starpu_ssize_t size STARPU_ATTRIBUTE_UNUSED)
 {
 	char *tmp;
-	STARPU_MALLOC(tmp, sizeof(char)*(strlen(parameter)+1));
+	_STARPU_MALLOC(tmp, sizeof(char)*(strlen(parameter)+1));
 	strcpy(tmp,(char *) parameter);
 
 	{

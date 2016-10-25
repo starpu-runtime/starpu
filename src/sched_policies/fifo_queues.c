@@ -44,7 +44,7 @@ static int is_sorted_task_list(struct starpu_task * task)
 struct _starpu_fifo_taskq *_starpu_create_fifo(void)
 {
 	struct _starpu_fifo_taskq *fifo;
-	STARPU_MALLOC(fifo, sizeof(struct _starpu_fifo_taskq));
+	_STARPU_MALLOC(fifo, sizeof(struct _starpu_fifo_taskq));
 
 	/* note that not all mechanisms (eg. the semaphore) have to be used */
 	starpu_task_list_init(&fifo->taskq);

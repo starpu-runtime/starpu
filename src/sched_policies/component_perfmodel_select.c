@@ -73,7 +73,7 @@ struct starpu_sched_component * starpu_sched_component_perfmodel_select_create(s
 	struct starpu_sched_component * component = starpu_sched_component_create(tree, "perfmodel_selector");
 
 	struct _starpu_perfmodel_select_data *data;
-	STARPU_MALLOC(data, sizeof(*data));
+	_STARPU_MALLOC(data, sizeof(*data));
 
 	data->calibrator_component = params->calibrator_component;
 	data->no_perfmodel_component = params->no_perfmodel_component;

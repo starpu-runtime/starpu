@@ -145,7 +145,7 @@ char *_starpu_mktemp(const char *directory, int flags, int *fd)
 	/* create template for mkstemp */
 	const char *tmp = "STARPU_XXXXXX";
 	char *baseCpy;
-	STARPU_MALLOC(baseCpy, strlen(directory)+1+strlen(tmp)+1);
+	_STARPU_MALLOC(baseCpy, strlen(directory)+1+strlen(tmp)+1);
 	STARPU_ASSERT(baseCpy != NULL);
 
 	strcpy(baseCpy, directory);

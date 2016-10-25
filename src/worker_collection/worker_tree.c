@@ -287,7 +287,7 @@ static int tree_remove(struct starpu_worker_collection *workers, int worker)
 
 static void tree_init(struct starpu_worker_collection *workers)
 {
-	STARPU_MALLOC(workers->workerids, (STARPU_NMAXWORKERS+STARPU_NMAX_COMBINEDWORKERS) * sizeof(int));
+	_STARPU_MALLOC(workers->workerids, (STARPU_NMAXWORKERS+STARPU_NMAX_COMBINEDWORKERS) * sizeof(int));
 	workers->collection_private = (void*)starpu_workers_get_tree();
 	workers->nworkers = 0;
 

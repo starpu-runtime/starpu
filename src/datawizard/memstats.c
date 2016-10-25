@@ -23,7 +23,7 @@
 void _starpu_memory_stats_init(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_MEMORY_STATS
-	STARPU_CALLOC(handle->memory_stats, 1, sizeof(struct _starpu_memory_stats));
+	_STARPU_CALLOC(handle->memory_stats, 1, sizeof(struct _starpu_memory_stats));
 #endif
 }
 

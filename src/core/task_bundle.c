@@ -28,7 +28,7 @@
 /* Initialize a task bundle */
 void starpu_task_bundle_create(starpu_task_bundle_t *bundle)
 {
-	STARPU_MALLOC(*bundle, sizeof(struct _starpu_task_bundle));
+	_STARPU_MALLOC(*bundle, sizeof(struct _starpu_task_bundle));
 
 	STARPU_PTHREAD_MUTEX_INIT(&(*bundle)->mutex, NULL);
 	/* Of course at the beginning a bundle is open,
@@ -61,7 +61,7 @@ int starpu_task_bundle_insert(starpu_task_bundle_t bundle, struct starpu_task *t
 
 	/* Insert a task at the end of the bundle */
 	struct _starpu_task_bundle_entry *entry;
-	STARPU_MALLOC(entry, sizeof(struct _starpu_task_bundle_entry));
+	_STARPU_MALLOC(entry, sizeof(struct _starpu_task_bundle_entry));
 	entry->task = task;
 	entry->next = NULL;
 
@@ -197,7 +197,7 @@ void _insertion_handle_sorted(struct _starpu_handle_list **listp, starpu_data_ha
 	if (!list || list->handle > handle)
 	{
 		struct _starpu_handle_list *link;
-		STARPU_MALLOC(link, sizeof(struct _starpu_handle_list));
+		_STARPU_MALLOC(link, sizeof(struct _starpu_handle_list));
 		link->handle = handle;
 		link->mode = mode;
 		link->next = list;
@@ -225,7 +225,7 @@ void _insertion_handle_sorted(struct _starpu_handle_list **listp, starpu_data_ha
 		/* The handle was not in the list, we insert it after 'prev', thus right before
 		 * 'list' which is the smallest following handle */
 		struct _starpu_handle_list *link;
-		STARPU_MALLOC(link, sizeof(struct _starpu_handle_list));
+		_STARPU_MALLOC(link, sizeof(struct _starpu_handle_list));
 		link->handle = handle;
 		link->mode = mode;
 		link->next = prev->next;

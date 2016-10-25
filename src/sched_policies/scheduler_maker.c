@@ -48,7 +48,7 @@ static void destroy_list(struct sched_component_list * list)
 }
 static void add_component(struct sched_component_list *list, struct starpu_sched_component * component)
 {
-	STARPU_REALLOC(list->arr, sizeof(*list->arr) * (list->size + 1));
+	_STARPU_REALLOC(list->arr, sizeof(*list->arr) * (list->size + 1));
 	list->arr[list->size] = component;
 	list->size++;
 }

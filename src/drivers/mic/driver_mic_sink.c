@@ -54,7 +54,7 @@ void _starpu_mic_sink_init(struct _starpu_mp_node *node)
 									 STARPU_MIC_SOURCE_DT_PORT_NUMBER);
 
 	node->nb_cores = COISysGetHardwareThreadCount() - COISysGetHardwareThreadCount() / COISysGetCoreCount();
-	STARPU_MALLOC(node->thread_table, sizeof(starpu_pthread_t)*node->nb_cores);
+	_STARPU_MALLOC(node->thread_table, sizeof(starpu_pthread_t)*node->nb_cores);
 
 #ifdef STARPU_DEVEL
 #warning rather use hwloc
@@ -106,7 +106,7 @@ void _starpu_mic_sink_launch_workers(struct _starpu_mp_node *node)
 		STARPU_ASSERT(ret == 0);
 
 		/*prepare the argument for the thread*/
-		STARPU_MALLOC(arg, sizeof(struct arg_sink_thread));
+		_STARPU_MALLOC(arg, sizeof(struct arg_sink_thread));
 		arg->coreid = i;
 		arg->node = node;
 

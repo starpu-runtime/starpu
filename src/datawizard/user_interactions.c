@@ -127,7 +127,7 @@ int starpu_data_acquire_on_node_cb_sequential_consistency(starpu_data_handle_t h
         _STARPU_LOG_IN();
 
 	struct user_interaction_wrapper *wrapper;
-	STARPU_MALLOC(wrapper, sizeof(struct user_interaction_wrapper));
+	_STARPU_MALLOC(wrapper, sizeof(struct user_interaction_wrapper));
 
 	wrapper->handle = handle;
 	wrapper->node = node;
@@ -389,7 +389,7 @@ int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle_t handle, unsigne
 	STARPU_ASSERT_MSG(async || _starpu_worker_may_perform_blocking_calls(), "Synchronous prefetch is not possible from a task or a callback");
 
 	struct user_interaction_wrapper *wrapper;
-	STARPU_MALLOC(wrapper, sizeof(*wrapper));
+	_STARPU_MALLOC(wrapper, sizeof(*wrapper));
 
 	wrapper->handle = handle;
 	wrapper->node = node;

@@ -102,7 +102,7 @@ int starpu_combined_worker_assign_workerid(int nworkers, int workerid_array[])
 		&config->combined_workers[combined_worker_id];
 
 	combined_worker->worker_size = nworkers;
-	STARPU_MALLOC(combined_worker->perf_arch.devices, sizeof(struct starpu_perfmodel_device));
+	_STARPU_MALLOC(combined_worker->perf_arch.devices, sizeof(struct starpu_perfmodel_device));
 	combined_worker->perf_arch.ndevices = 1;
 	combined_worker->perf_arch.devices[0].type = config->workers[workerid_array[0]].perf_arch.devices[0].type;
 	combined_worker->perf_arch.devices[0].devid = config->workers[workerid_array[0]].perf_arch.devices[0].devid;

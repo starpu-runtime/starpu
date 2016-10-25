@@ -60,7 +60,7 @@ static struct starpu_task_list * get_prio(struct _starpu_prio_deque * pdeque, in
 				break;
 	}
 	pdeque->size_array++;
-	STARPU_REALLOC(pdeque->array, sizeof(struct _starpu_prio_list) * (pdeque->size_array));
+	_STARPU_REALLOC(pdeque->array, sizeof(struct _starpu_prio_list) * (pdeque->size_array));
 	memmove(pdeque->array + i + 1,
 		pdeque->array + i,
 		(pdeque->size_array - i - 1) * sizeof(struct _starpu_prio_list));
