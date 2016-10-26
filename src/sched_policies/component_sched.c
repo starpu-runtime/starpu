@@ -69,9 +69,8 @@ int starpu_sched_component_execute_preds(struct starpu_sched_component * compone
 					return can_execute;
 						
 				}
-				if(_STARPU_IS_ZERO(d) && !can_execute)
+				if(_STARPU_IS_ZERO(d))
 				{
-					can_execute = 1;
 					continue;
 				}
 				if(d < len)
