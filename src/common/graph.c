@@ -63,12 +63,11 @@ void _starpu_graph_wrlock(void)
 }
 
 void _starpu_graph_drop_node(struct _starpu_graph_node *node);
-void _starpu_graph_wrunlock(void)
+void _starpu_graph_drop_dropped_nodes(void)
 {
 	struct _starpu_graph_node *node, *next;
 	struct _starpu_graph_node_multilist_dropped dropping;
 
-	STARPU_PTHREAD_RWLOCK_UNLOCK(&graph_lock);
 	STARPU_PTHREAD_MUTEX_LOCK(&dropped_lock);
 	/* Pick up the list of dropped nodes */
 	_starpu_graph_node_multilist_move_dropped(&dropped, &dropping);
@@ -87,6 +86,12 @@ void _starpu_graph_wrunlock(void)
 		}
 		STARPU_PTHREAD_RWLOCK_UNLOCK(&graph_lock);
 	}
+}
+
+void _starpu_graph_wrunlock(void)
+{
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&graph_lock);
+	_starpu_graph_drop_dropped_nodes();
 }
 
 void _starpu_graph_rdlock(void)
