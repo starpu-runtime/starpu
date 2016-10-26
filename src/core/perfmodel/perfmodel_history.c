@@ -1278,6 +1278,7 @@ double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfm
 	struct starpu_perfmodel_regression_model *regmodel;
 	struct starpu_perfmodel_history_table *entry = NULL;
 
+	size = _starpu_job_get_data_size(model, arch, nimpl, j);
 	comb = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
 	if(comb == -1)
 		goto docal;
@@ -1286,7 +1287,6 @@ double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfm
 		goto docal;
 
 	regmodel = &model->state->per_arch[comb][nimpl].regression;
-	size = _starpu_job_get_data_size(model, arch, nimpl, j);
 
 	if (regmodel->nl_valid && size >= regmodel->minx * 0.9 && size <= regmodel->maxx * 1.1)
 		exp = regmodel->a*pow((double)size, regmodel->b) + regmodel->c;
