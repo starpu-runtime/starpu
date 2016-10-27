@@ -2471,6 +2471,9 @@ void _starpu_load_bus_performance_files(void)
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_USE_SIMGRID)
 	nopencl = _starpu_opencl_get_device_count();
 #endif
+#if defined(STARPU_USE_MIC) || defined(STARPU_USE_SIMGRID)
+	nmic = _starpu_mic_src_get_device_count();
+#endif
 
 #ifndef STARPU_SIMGRID
         check_bus_config_file();
