@@ -140,6 +140,10 @@ static uint32_t _starpu_worker_exists_and_can_execute(struct starpu_task *task,
 				if (task->cl->cpu_funcs_name[impl] != NULL || task->cl->mic_funcs[impl] != NULL)
 					test_implementation = 1;
 				break;
+			case STARPU_MPI_WORKER:
+				if (task->cl->cpu_funcs_name[impl] != NULL || task->cl->mpi_ms_funcs[impl] != NULL)
+					test_implementation = 1;
+				break;
 			case STARPU_SCC_WORKER:
 				if (task->cl->cpu_funcs_name[impl] != NULL || task->cl->scc_funcs[impl] != NULL)
 					test_implementation = 1;
@@ -201,6 +205,11 @@ uint32_t _starpu_worker_exists(struct starpu_task *task)
 #ifdef STARPU_USE_MIC
 	if ((task->cl->where & STARPU_MIC) &&
 	    _starpu_worker_exists_and_can_execute(task, STARPU_MIC_WORKER))
+		return 1;
+#endif
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+	if ((task->cl->where & STARPU_MPI) &&
+	    _starpu_worker_exists_and_can_execute(task, STARPU_MPI_WORKER))
 		return 1;
 #endif
 #ifdef STARPU_USE_SCC
@@ -274,6 +283,13 @@ static inline int _starpu_can_use_nth_implementation(enum starpu_worker_archtype
 	case STARPU_MIC_WORKER:
 	{
 		starpu_mic_func_t func = _starpu_task_get_mic_nth_implementation(cl, nimpl);
+		const char *func_name = _starpu_task_get_cpu_name_nth_implementation(cl, nimpl);
+
+		return func != NULL || func_name != NULL;
+	}
+	case STARPU_MPI_WORKER:
+	{
+		starpu_mpi_ms_func_t func = _starpu_task_get_mpi_ms_nth_implementation(cl, nimpl);
 		const char *func_name = _starpu_task_get_cpu_name_nth_implementation(cl, nimpl);
 
 		return func != NULL || func_name != NULL;
@@ -1706,6 +1722,9 @@ int starpu_worker_get_count_by_type(enum starpu_worker_archtype type)
 		case STARPU_SCC_WORKER:
 			return _starpu_config.topology.nsccdevices;
 
+        case STARPU_MPI_WORKER:
+            return _starpu_config.topology.nmpidevices;
+
 		default:
 			return -EINVAL;
 	}
@@ -2233,6 +2252,7 @@ char *starpu_worker_get_type_as_string(enum starpu_worker_archtype type)
 	if (type == STARPU_CUDA_WORKER) return "STARPU_CUDA_WORKER";
 	if (type == STARPU_OPENCL_WORKER) return "STARPU_OPENCL_WORKER";
 	if (type == STARPU_MIC_WORKER) return "STARPU_MIC_WORKER";
+    if (type == STARPU_MPI_WORKER) return "STARPU_MPI_WORKER";
 	if (type == STARPU_SCC_WORKER) return "STARPU_SCC_WORKER";
 	if (type == STARPU_ANY_WORKER) return "STARPU_ANY_WORKER";
 	return "STARPU_unknown_WORKER";
