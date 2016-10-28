@@ -40,6 +40,10 @@ void _starpu_mpi_common_recv(const struct _starpu_mp_node *node, void *msg, int 
 void _starpu_mpi_common_recv_from_device(const struct _starpu_mp_node *node, int src_devid, void *msg, int len);
 void _starpu_mpi_common_send_to_device(const struct _starpu_mp_node *node, int dst_devid, void *msg, int len);
 
+void _starpu_mpi_common_barrier(void);
+
+void _starpu_mpi_common_measure_bandwidth_latency(double * bandwidth_htod, double * bandwidth_dtoh, double * latency_htod, double * latency_dtoh);
+
 
 #endif  /* STARPU_USE_MPI_MASTER_SLAVE */
 

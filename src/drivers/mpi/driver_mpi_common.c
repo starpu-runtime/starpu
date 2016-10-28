@@ -17,7 +17,11 @@
 
 #include <mpi.h>
 #include <core/workers.h>
+#include <core/perfmodel/perfmodel.h>
 #include "driver_mpi_common.h"
+
+#define NITER 32
+#define SIZE_BANDWIDTH (1024*1024)
 
 #define DRIVER_MPI_MASTER_NODE_DEFAULT 0
 
@@ -99,7 +103,6 @@ void _starpu_mpi_common_mp_deinit()
 
     mpi_initialized = 0;
 }
-
 
 int _starpu_mpi_common_is_src_node()
 {   
@@ -208,4 +211,116 @@ void _starpu_mpi_common_recv_from_device(const struct _starpu_mp_node *node, int
 
     res = MPI_Recv(msg, len, MPI_BYTE, src_devid, tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     STARPU_ASSERT_MSG(res == MPI_SUCCESS, "MPI Master/Slave cannot receive a msg with a size of %d Bytes !", len);
+}
+
+void _starpu_mpi_common_barrier(void)
+{
+    MPI_Barrier(MPI_COMM_WORLD);
+}
+
+/* Compute bandwidth and latency between source and sink nodes
+ * Source node has to have the entire set of times at the end
+ */
+void _starpu_mpi_common_measure_bandwidth_latency(double * bandwidth_htod, double * bandwidth_dtoh, double * latency_htod, double * latency_dtoh)
+{
+    int ret;
+    unsigned iter;
+
+    int nb_proc, id_proc;
+    MPI_Comm_rank(MPI_COMM_WORLD, &id_proc);
+    MPI_Comm_size(MPI_COMM_WORLD, &nb_proc);
+
+    char * buf = malloc(SIZE_BANDWIDTH);
+    memset(buf, 0, SIZE_BANDWIDTH);
+
+    unsigned node;
+    unsigned id = 0;
+    for(node = 0; node < nb_proc; node++)
+    {
+        MPI_Barrier(MPI_COMM_WORLD);
+
+        //Don't measure link master <-> master
+        if(node == src_node_id)
+            continue;
+
+        if(_starpu_mpi_common_is_src_node())
+        {
+            double start, end;
+
+            /* measure bandwidth host to device */
+            start = starpu_timing_now();
+            for (iter = 0; iter < NITER; iter++)
+            {
+                ret = MPI_Send(buf, SIZE_BANDWIDTH, MPI_BYTE, node, node, MPI_COMM_WORLD); 
+                STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "Bandwidth of MPI Master/Slave cannot be measured !");
+            }
+            end = starpu_timing_now();
+            bandwidth_htod[id] = (NITER*1000000)/(end - start);
+
+            /* measure bandwidth device to host */
+            start = starpu_timing_now();
+            for (iter = 0; iter < NITER; iter++)
+            {
+                ret = MPI_Recv(buf, SIZE_BANDWIDTH, MPI_BYTE, node, node, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "Bandwidth of MPI Master/Slave cannot be measured !");
+            }
+            end = starpu_timing_now();
+            bandwidth_dtoh[id] = (NITER*1000000)/(end - start);
+
+            /* measure latency host to device */
+            start = starpu_timing_now();
+            for (iter = 0; iter < NITER; iter++)
+            {
+                ret = MPI_Send(buf, 1, MPI_BYTE, node, node, MPI_COMM_WORLD); 
+                STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "Latency of MPI Master/Slave cannot be measured !");
+            }
+            end = starpu_timing_now();
+            latency_htod[id] = (end - start)/NITER;
+
+            /* measure latency device to host */
+            start = starpu_timing_now();
+            for (iter = 0; iter < NITER; iter++)
+            {
+                ret = MPI_Recv(buf, 1, MPI_BYTE, node, node, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "Bandwidth of MPI Master/Slave cannot be measured !");
+            }
+            end = starpu_timing_now();
+            latency_dtoh[id] = (end - start)/NITER;
+
+        }
+        else if (node == id_proc) /* if we are the sink node evaluated */
+        {
+            /* measure bandwidth host to device */
+            for (iter = 0; iter < NITER; iter++)
+            {
+                ret = MPI_Recv(buf, SIZE_BANDWIDTH, MPI_BYTE, src_node_id, node, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "Bandwidth of MPI Master/Slave cannot be measured !");
+            }
+
+            /* measure bandwidth device to host */
+            for (iter = 0; iter < NITER; iter++)
+            {
+                ret = MPI_Send(buf, SIZE_BANDWIDTH, MPI_BYTE, src_node_id, node, MPI_COMM_WORLD); 
+                STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "Bandwidth of MPI Master/Slave cannot be measured !");
+            }
+
+            /* measure latency host to device */
+            for (iter = 0; iter < NITER; iter++)
+            {
+                ret = MPI_Recv(buf, 1, MPI_BYTE, src_node_id, node, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "Bandwidth of MPI Master/Slave cannot be measured !");
+            }
+
+            /* measure latency device to host */
+            for (iter = 0; iter < NITER; iter++)
+            {
+                ret = MPI_Send(buf, 1, MPI_BYTE, src_node_id, node, MPI_COMM_WORLD); 
+                STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "Latency of MPI Master/Slave cannot be measured !");
+            }
+        }
+
+        id++;
+    }
+    
+    free(buf);
 }
