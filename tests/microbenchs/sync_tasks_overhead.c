@@ -76,6 +76,9 @@ int main(int argc, char **argv)
 	double timing;
 	double start;
 	double end;
+	struct starpu_conf conf;
+	starpu_conf_init(&conf);
+	conf.ncpus = 2;
 
 #ifdef STARPU_QUICK_CHECK
 	ntasks = 128;
@@ -83,7 +86,7 @@ int main(int argc, char **argv)
 
 	parse_args(argc, argv);
 
-	ret = starpu_initialize(NULL, &argc, &argv);
+	ret = starpu_initialize(&conf, &argc, &argv);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
