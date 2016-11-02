@@ -115,7 +115,7 @@
 			_STARPU_MALLOC(stage, sizeof(*stage));	\
 			starpu_rbtree_node_init(&stage->node); \
 			stage->prio = prio; \
-			_starpu_data_request_list_init(&stage->list); \
+			ENAME##_list_init(&stage->list); \
 			starpu_rbtree_insert_slot(&priolist->tree, slot, &stage->node); \
 		} \
 		return stage; \
