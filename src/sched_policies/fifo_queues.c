@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013, 2015  Université de Bordeaux
+ * Copyright (C) 2010-2013, 2015-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
@@ -62,6 +62,15 @@ _starpu_fifo_push_sorted_task(struct _starpu_fifo_taskq *fifo_queue, struct star
 		list->tail = task;
 		task->prev = NULL;
 		task->next = NULL;
+	}
+	else if (list->head->priority == task->priority &&
+		 list->head->priority == list->tail->priority)
+	{
+		/* They all have the same priority, just put at the end */
+		list->tail->next = task;
+		task->next = NULL;
+		task->prev = list->tail;
+		list->tail = task;
 	}
 	else
 	{
