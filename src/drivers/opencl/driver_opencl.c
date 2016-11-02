@@ -265,6 +265,7 @@ cl_int starpu_opencl_allocate_memory(int devid STARPU_ATTRIBUTE_UNUSED, cl_mem *
 
 	memory = clCreateBuffer(contexts[devid], flags, size, NULL, &err);
 	if (err == CL_OUT_OF_HOST_MEMORY) return err;
+	if (err == CL_MEM_OBJECT_ALLOCATION_FAILURE) return err;
         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
 	/*
