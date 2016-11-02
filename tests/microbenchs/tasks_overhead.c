@@ -98,10 +98,13 @@ int main(int argc, char **argv)
 	double timing_exec;
 	double start_exec;
 	double end_exec;
+	struct starpu_conf conf;
+	starpu_conf_init(&conf);
+	conf.ncpus = 2;
 
 	parse_args(argc, argv);
 
-	ret = starpu_initialize(NULL, &argc, &argv);
+	ret = starpu_initialize(&conf, &argc, &argv);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
