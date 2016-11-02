@@ -765,7 +765,7 @@ void _starpu_perfmodel_realloc(struct starpu_perfmodel *model, int nb)
 void starpu_perfmodel_init(struct starpu_perfmodel *model)
 {
 	int already_init;
-	int i, ncombs;
+	int ncombs;
 
 	STARPU_ASSERT(model);
 
