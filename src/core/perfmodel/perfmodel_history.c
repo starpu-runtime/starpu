@@ -793,20 +793,12 @@ void starpu_perfmodel_init(struct starpu_perfmodel *model)
 	STARPU_PTHREAD_RWLOCK_RDLOCK(&arch_combs_mutex);
 	model->state->ncombs_set = ncombs = nb_arch_combs;
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&arch_combs_mutex);
-	_STARPU_MALLOC(model->state->per_arch, ncombs*sizeof(struct starpu_perfmodel_per_arch*));
-	_STARPU_MALLOC(model->state->per_arch_is_set, ncombs*sizeof(int*));
-	_STARPU_MALLOC(model->state->nimpls, ncombs*sizeof(int));
-	_STARPU_MALLOC(model->state->nimpls_set, ncombs*sizeof(int));
+	_STARPU_CALLOC(model->state->per_arch, ncombs, sizeof(struct starpu_perfmodel_per_arch*));
+	_STARPU_CALLOC(model->state->per_arch_is_set, ncombs, sizeof(int*));
+	_STARPU_CALLOC(model->state->nimpls, ncombs, sizeof(int));
+	_STARPU_CALLOC(model->state->nimpls_set, ncombs, sizeof(int));
 	_STARPU_MALLOC(model->state->combs, ncombs*sizeof(int));
 	model->state->ncombs = 0;
-
-	for(i = 0; i < ncombs; i++)
-	{
-		model->state->per_arch[i] = NULL;
-		model->state->per_arch_is_set[i] = NULL;
-		model->state->nimpls[i] = 0;
-		model->state->nimpls_set[i] = 0;
-	}
 
 	/* add the model to a linked list */
 	struct _starpu_perfmodel_list *node;
