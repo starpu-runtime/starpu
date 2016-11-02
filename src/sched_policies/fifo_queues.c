@@ -82,6 +82,14 @@ _starpu_fifo_get_exp_len_prev_task_list(struct _starpu_fifo_taskq *fifo_queue, s
 		struct starpu_task *current = list->head;
 		struct starpu_task *prev = NULL;
 
+		if (list->head->priority == task->priority &&
+		    list->head->priority == list->tail->priority)
+		{
+			/* They all have the same priority, the task's place is at the end */
+			prev = list->tail;
+			current = NULL;
+		}
+		else
 		while (current)
 		{
 			if (current->priority < task->priority)
@@ -127,6 +135,15 @@ _starpu_fifo_push_sorted_task(struct _starpu_fifo_taskq *fifo_queue, struct star
 		list->tail = task;
 		task->prev = NULL;
 		task->next = NULL;
+	}
+	else if (list->head->priority == task->priority &&
+		 list->head->priority == list->tail->priority)
+	{
+		/* They all have the same priority, just put at the end */
+		list->tail->next = task;
+		task->next = NULL;
+		task->prev = list->tail;
+		list->tail = task;
 	}
 	else
 	{
