@@ -260,6 +260,10 @@ main(void)
 #else
 	setenv("STARPU_SCHED_BETA", "0", 1);
 
+#ifdef STARPU_HAVE_UNSETENV
+	unsetenv("STARPU_SCHED");
+#endif
+
 	int i;
 	int n_policies = sizeof(policies)/sizeof(policies[0]);
 	for (i = 0; i < n_policies; ++i)

@@ -199,6 +199,10 @@ main(void)
 	int n_policies = sizeof(policies)/sizeof(policies[0]);
 	int global_ret = 0;
 
+#ifdef STARPU_HAVE_UNSETENV
+	unsetenv("STARPU_SCHED");
+#endif
+
 	for (i = 0; i < n_policies; ++i)
 	{
 		struct starpu_sched_policy *policy = policies[i];

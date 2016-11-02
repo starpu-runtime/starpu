@@ -156,6 +156,10 @@ int main(int argc, char **argv)
 	int ret;
 	struct starpu_conf conf;
 
+#ifdef STARPU_HAVE_UNSETENV
+	unsetenv("STARPU_SCHED");
+#endif
+
 	starpu_conf_init(&conf);
 	conf.sched_policy = &dummy_sched_policy,
 	ret = starpu_init(&conf);
