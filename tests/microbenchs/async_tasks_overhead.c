@@ -87,6 +87,7 @@ int main(int argc, char **argv)
 
 	struct starpu_conf conf;
 	starpu_conf_init(&conf);
+	conf.ncpus = 2;
 
 	parse_args(argc, argv, &conf);
 
