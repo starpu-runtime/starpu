@@ -19,6 +19,7 @@
 
 static int eager_push_task(struct starpu_sched_component * component, struct starpu_task * task)
 {
+	int ret;
 	STARPU_ASSERT(component && task && starpu_sched_component_is_eager(component));
 	STARPU_ASSERT(starpu_sched_component_can_execute_task(component,task));
 	
@@ -49,7 +50,11 @@ static int eager_push_task(struct starpu_sched_component * component, struct sta
 								return 1;
 							}
 							else
-								return starpu_sched_component_push_task(component,component->children[i],task);
+							{
+								ret = starpu_sched_component_push_task(component,component->children[i],task);
+								if (!ret)
+									return 0;
+							}
 						}
 					}
 				}
