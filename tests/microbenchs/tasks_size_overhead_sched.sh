@@ -18,6 +18,7 @@
 
 ROOT=${0%.sh}
 ROOT=${ROOT%_sched}
+unset STARPU_SSILENT
 $ROOT "$@" > tasks_size_overhead.output
 DIR=
 [ -z "$STARPU_BENCH_DIR" ] || DIR="$STARPU_BENCH_DIR/"
