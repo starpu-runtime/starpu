@@ -17,7 +17,6 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
 
-#!/bin/sh
 OUTPUT=tasks_size_overhead.output
 VALS=$(sed -n -e '3p' < $OUTPUT)
 VAL1=$(echo "$VALS" | cut -d '	' -f 3)
@@ -31,9 +30,11 @@ VAL8=$(echo "$VALS" | cut -d '	' -f 17)
 VAL9=$(echo "$VALS" | cut -d '	' -f 19)
 VAL10=$(echo "$VALS" | cut -d '	' -f 21)
 VAL11=$(echo "$VALS" | cut -d '	' -f 23)
+[ -n "$TERMINAL" ] || TERMINAL=eps
+[ -n "$OUTFILE" ] || OUTFILE=tasks_size_overhead.eps
 gnuplot << EOF
-set terminal eps
-set output "tasks_size_overhead.eps"
+set terminal $TERMINAL
+set output "$OUTFILE"
 set key top left
 set xlabel "number of cores"
 set ylabel "speedup"

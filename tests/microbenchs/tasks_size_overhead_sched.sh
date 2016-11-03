@@ -17,6 +17,8 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
 ROOT=${0%.sh}
+ROOT=${ROOT%_sched}
 $ROOT "$@" > tasks_size_overhead.output
+export TERMINAL=png
+export OUTFILE=tasks_size_overhead_${STARPU_SCHED}.png
 $ROOT.gp
-gv tasks_size_overhead.eps
