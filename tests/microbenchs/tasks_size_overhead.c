@@ -68,11 +68,25 @@ void func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
 	while (usec < n);
 }
 
+double cost_function(struct starpu_task *t, struct starpu_perfmodel_arch *a, unsigned i)
+{
+	(void) t; (void) i;
+	unsigned n = (uintptr_t) t->cl_arg;
+	return n;
+}
+
+static struct starpu_perfmodel perf_model =
+{
+	.type = STARPU_PER_ARCH,
+	.arch_cost_function = cost_function,
+};
+
 static struct starpu_codelet codelet =
 {
 	.cpu_funcs = {func},
 	.nbuffers = 0,
-	.modes = {STARPU_R, STARPU_R, STARPU_R, STARPU_R, STARPU_R, STARPU_R, STARPU_R, STARPU_R}
+	.modes = {STARPU_R, STARPU_R, STARPU_R, STARPU_R, STARPU_R, STARPU_R, STARPU_R, STARPU_R},
+	.model = &perf_model,
 };
 
 static void parse_args(int argc, char **argv)
