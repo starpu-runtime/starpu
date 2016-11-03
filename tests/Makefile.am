@@ -35,6 +35,7 @@ EXTRA_DIST =					\
 	datawizard/scal.h			\
 	datawizard/mpi_like.h			\
 	microbenchs/tasks_size_overhead.sh	\
+	microbenchs/tasks_size_overhead_sched.sh	\
 	microbenchs/tasks_size_overhead_scheds.sh	\
 	microbenchs/tasks_size_overhead.gp	\
 	datawizard/scratch_opencl_kernel.cl     \
