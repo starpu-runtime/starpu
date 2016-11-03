@@ -19,6 +19,8 @@
 ROOT=${0%.sh}
 ROOT=${ROOT%_sched}
 $ROOT "$@" > tasks_size_overhead.output
+DIR=
+[ -z "STARPU_BENCH_DIR" ] || DIR="$STARPU_BENCH_DIR/"
 export TERMINAL=png
-export OUTFILE=tasks_size_overhead_${STARPU_SCHED}.png
+export OUTFILE=${DIR}tasks_size_overhead_${STARPU_SCHED}.png
 $ROOT.gp
