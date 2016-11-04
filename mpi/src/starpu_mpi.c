@@ -1355,9 +1355,6 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 		STARPU_PTHREAD_MUTEX_UNLOCK(&detached_requests_mutex);
 #endif /* STARPU_MPI_ACTIVITY */
 
-#ifdef STARPU_SIMGRID
-		MSG_process_sleep(0.000010);
-#endif
 		if (block)
 		{
 			_STARPU_MPI_DEBUG(3, "NO MORE REQUESTS TO HANDLE\n");
@@ -1508,6 +1505,11 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 				//_STARPU_MPI_DEBUG(4, "Nothing received, continue ..\n");
 			}
 		}
+#ifdef STARPU_SIMGRID
+		STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+		MSG_process_sleep(0.000010);
+		STARPU_PTHREAD_MUTEX_LOCK(&mutex);
+#endif
 	}
 
 	if (envelope_request_submitted)
