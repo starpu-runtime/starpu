@@ -157,35 +157,61 @@ char *_starpu_mktemp(const char *directory, int flags, int *fd)
 	*fd = open(baseCpy, flags);
 #elif defined (HAVE_MKOSTEMP)
 	*fd = mkostemp(baseCpy, flags);
-#else
+#elif defined (O_DIRECT)
 	STARPU_ASSERT(flags == (O_RDWR | O_BINARY) || flags == (O_RDWR | O_BINARY | O_DIRECT));
 	*fd = mkstemp(baseCpy);
+#elif defined (STARPU_HAVE_DARWIN) // MACOS
+	STARPU_ASSERT(flags == (O_RDWR | O_BINARY) || flags == (O_RDWR | O_BINARY | F_NOCACHE));
+	*fd = mkstemp(baseCpy);
+#else
+	/* nothing for now */
 #endif
 
 	/* fail */
 	if (*fd < 0)
 	{
 		int err = errno;
-		_STARPU_DISP("Could not create temporary file directory '%s', mskostemp failed with error '%s'\n", directory, strerror(errno));
+		_STARPU_DISP("Could not create temporary file in directory '%s', mskostemp failed with error '%s'\n", directory, strerror(errno));
 		free(baseCpy);
 		errno = err;
 		return NULL;
 	}
-
+	
 #if !defined(STARPU_HAVE_WINDOWS) && !defined (HAVE_MKOSTEMP)
+#if defined (O_DIRECT)
 	if ((flags & O_DIRECT) != 0)
 	{
-		if (fcntl(*fd, F_SETFL, O_DIRECT) < 0)
+		int flag = fcntl(*fd, F_GETFL);
+		flag |= O_DIRECT;
+		if (fcntl(*fd, F_SETFL, flag) < 0)
 		{
 			int err = errno;
-			_STARPU_DISP("Could set O_DIRECT on the temporary file  directory '%s', fcntl failed with error '%s'\n", directory, strerror(errno));
+			_STARPU_DISP("Could set O_DIRECT on the temporary file  in directory '%s', fcntl failed with error '%s'\n", directory, strerror(errno));
 			free(baseCpy);
 			errno = err;
 			return NULL;
 		}		
 	}
-#endif
-
+#elif defined (STARPU_HAVE_DARWIN) //MACOS
+	if ((flags & F_NOCACHE) != 0)
+	{
+		int flag = fcntl(*fd, F_GETFL);
+		flag |= F_NOCACHE;
+		if (fcntl(*fd, F_SETFL, F_NOCACHE) < 0)
+		{
+			int err = errno;
+			_STARPU_DISP("Could set F_NOCACHE on the temporary file in  directory '%s', fcntl failed with error '%s'\n", directory, strerror(errno));
+			free(baseCpy);
+			errno = err;
+			return NULL;
+		}
+	}	
+#else
+	/* nothing for now */
+#endif	
+#endif	  
+	
+	
 	return baseCpy;
 }
 
