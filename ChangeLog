@@ -41,6 +41,7 @@ New features:
   * Add starpu_tasks_rec_complete tool to add estimation times in tasks.rec
     files.
   * Add STARPU_FXT_TRACE environment variable.
+  * Add starpu_data_set_user_data and starpu_data_get_user_data.
 
 StarPU 1.2.0 (svn revision 18521)
 ==============================================

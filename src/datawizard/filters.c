@@ -3,7 +3,7 @@
  * Copyright (C) 2010-2016  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016  CNRS
- * Copyright (C) 2012 INRIA
+ * Copyright (C) 2012, 2016  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -312,6 +312,7 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 		}
 
 		child->per_worker = NULL;
+		child->user_data = NULL;
 
 		/* We compute the size and the footprint of the child once and
 		 * store it in the handle */

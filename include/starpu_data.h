@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2010-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2016  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -141,6 +142,8 @@ unsigned starpu_data_test_if_allocated_on_node(starpu_data_handle_t handle, unsi
 
 void starpu_memchunk_tidy(unsigned memory_node);
 
+void starpu_data_set_user_data(starpu_data_handle_t handle, void* user_data);
+void *starpu_data_get_user_data(starpu_data_handle_t handle);
 
 #ifdef __cplusplus
 }
