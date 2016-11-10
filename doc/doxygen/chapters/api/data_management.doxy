@@ -243,6 +243,17 @@ done with the codelet \p redux_cl.
 \ingroup API_Data_Management
 todo
 
+\fn void starpu_data_set_user_data(starpu_data_handle_t handle, void* user_data)
+\ingroup API_Data_Management
+This sets the "user_data" field for the \p handle to \p user_data . It can
+then be retrieved with starpu_data_get_user_data. \p user_data can be any
+application-defined value, for instance a pointer to an object-oriented
+container for the data.
+
+\fn void *starpu_data_get_user_data(starpu_data_handle_t handle)
+\ingroup API_Data_Management
+This retrieves the "user_data" field previously set for the \p handle .
+
 @name Access registered data from the application
 \ingroup API_Data_Management
 

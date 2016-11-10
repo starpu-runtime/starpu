@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
- * Copyright (C) 2014-2015  Inria
+ * Copyright (C) 2014-2016  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -113,6 +113,7 @@ extern int _starpu_has_not_important_data;
 
 typedef void (*_starpu_data_handle_unregister_hook)(starpu_data_handle_t);
 
+/* This is initialized in both _starpu_register_new_data and _starpu_data_partition */
 struct _starpu_data_state
 {
 	int magic;
@@ -264,6 +265,10 @@ struct _starpu_data_state
 	/* Last worker that took this data in locality mode, or -1 if nobody
 	 * took it yet */
 	int last_locality;
+
+	/* A generic pointer to data in the user land (could be anything and this
+	 * is not manage by StarPU) */
+	void *user_data;
 };
 
 void _starpu_display_msi_stats(void);
