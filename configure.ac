@@ -1916,7 +1916,7 @@ if test x$build_mpi_master_slave = xyes; then
     CXXLD=mpicxx_path    
 fi
 
-AC_ARG_WITH(mpi-master-slave-multiple-thread, [AS_HELP_STRING([--with-mpiexec-args])],
+AC_ARG_WITH(mpi-master-slave-multiple-thread, [AS_HELP_STRING([--with-mpi-master-slave-multiple-thread])],
 	[AC_DEFINE([STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD], [1], [Use multiple threads to communicate with slaves])])
 
 AC_MSG_CHECKING(whether the master-slave mode should be enabled)
