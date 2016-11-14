@@ -232,7 +232,7 @@ int dgels_multiple_reg_coeff(double *mpar, double *my, long nn, unsigned ncoeff,
 	}
 
 	/* Copy computed coefficients */
-	for(i=0; i<ncoeff; i++)
+	for(i=0; i<(int) ncoeff; i++)
 		coeff[i] = Y[i];
 
 	free(X);

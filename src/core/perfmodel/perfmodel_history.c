@@ -1410,7 +1410,7 @@ docal:
 		char archname[32];
 
 		starpu_perfmodel_get_arch_name(arch, archname, sizeof(archname), nimpl);
-		_STARPU_DISP("Warning: model %s is not calibrated enough for %s size %ld (only %u measurements), forcing calibration for this run. Use the STARPU_CALIBRATE environment variable to control this.\n", model->symbol, archname, j->task?_starpu_job_get_data_size(model, arch, nimpl, j):-1, entry ? entry->nsample : 0);
+		_STARPU_DISP("Warning: model %s is not calibrated enough for %s size %ld (only %u measurements), forcing calibration for this run. Use the STARPU_CALIBRATE environment variable to control this.\n", model->symbol, archname, j->task?(long int)_starpu_job_get_data_size(model, arch, nimpl, j):-1, entry ? entry->nsample : 0);
 		_starpu_set_calibrate_flag(1);
 		model->benchmarking = 1;
 	}

@@ -926,7 +926,7 @@ void starpu_bound_print_mps(FILE *output)
 			for (t = 0, tp = task_pools; tp; t++, tp = tp->next)
 				if (!isnan(times[w*nt+t]))
 				{
-					char name[9];
+					char name[23];
 					snprintf(name, sizeof(name), "W%dT%d", w, t);
 					fprintf(output,"    %-8s  W%-7d  %12f\n", name, w, times[w*nt+t]);
 					fprintf(output,"    %-8s  T%-7d  %12d\n", name, t, 1);

@@ -1002,7 +1002,7 @@ static void initialize_dmda_sorted_policy(unsigned sched_ctx_id)
 static void deinitialize_dmda_policy(unsigned sched_ctx_id)
 {
 	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-#if STARPU_VERBOSE
+#ifdef STARPU_VERBOSE
 	{
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	long int modelled_task_cnt = dt->total_task_cnt - dt->eager_task_cnt;
