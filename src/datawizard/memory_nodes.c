@@ -92,6 +92,9 @@ void _starpu_memory_node_get_name(unsigned node, char *name, int size)
 	case STARPU_MIC_RAM:
 		prefix = "MIC";
 		break;
+	case STARPU_MPI_MS_RAM:
+		prefix = "MPI_MS";
+		break;
 	case STARPU_SCC_RAM:
 		prefix = "SCC_RAM";
 		break;

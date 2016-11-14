@@ -605,7 +605,6 @@ void _starpu_driver_start(struct _starpu_worker *worker, unsigned fut_key, unsig
 	_starpu_fxt_register_thread(worker->bindid);
 	_starpu_worker_start(worker, fut_key, sync);
 #endif
-
 	_starpu_memory_node_set_local_key(&worker->memory_node);
 
 	_starpu_set_local_worker_key(worker);
@@ -1193,7 +1192,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 #   ifdef STARPU_USE_MPI_MASTER_SLAVE
 	/* In MPI case we look at the rank to know if we are a sink */
 	if (_starpu_mpi_common_mp_init() && !_starpu_mpi_common_is_src_node())
-		setenv("STARPU_SINK", "STARPU_MPI", 1);
+		setenv("STARPU_SINK", "STARPU_MPI_MS", 1);
 #   endif
 
 	/* If StarPU was configured to use MP sinks, we have to control the

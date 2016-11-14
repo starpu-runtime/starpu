@@ -45,7 +45,7 @@ static enum _starpu_mp_node_kind _starpu_sink_common_get_kind(void)
 		return STARPU_MIC_SINK;
 	else if (!strcmp(node_kind, "STARPU_SCC"))
 		return STARPU_SCC_SINK;
-	else if (!strcmp(node_kind, "STARPU_MPI"))
+	else if (!strcmp(node_kind, "STARPU_MPI_MS"))
 		return STARPU_MPI_SINK;
 	else
 		return STARPU_INVALID_KIND;
@@ -123,8 +123,13 @@ static void _starpu_sink_common_copy_to_host(const struct _starpu_mp_node *mp_no
 	STARPU_ASSERT(arg_size == sizeof(struct _starpu_mp_transfer_command));
 
 	struct _starpu_mp_transfer_command *cmd = (struct _starpu_mp_transfer_command *)arg;
+    /* Save values before sending command to prevent the overwriting */
+    size_t size = cmd->size;
+    void * addr = cmd->addr;
 
-	mp_node->dt_send(mp_node, cmd->addr, cmd->size);
+	_starpu_mp_common_send_command(mp_node, STARPU_SEND_TO_HOST, NULL, 0);
+    
+	mp_node->dt_send(mp_node, addr, size);
 }
 
 static void _starpu_sink_common_copy_from_sink(const struct _starpu_mp_node *mp_node,

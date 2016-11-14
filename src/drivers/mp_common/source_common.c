@@ -35,6 +35,10 @@ struct starpu_save_thread_env
     struct _starpu_worker * current_worker;
     struct _starpu_worker_set * current_worker_set;
     unsigned * current_mem_node;
+#ifdef STARPU_OPENMP
+    struct starpu_omp_thread * current_omp_thread;
+    struct starpu_omp_task * current_omp_task;
+#endif
 };
 
 struct starpu_save_thread_env save_thread_env[STARPU_MAXMPIDEVS];
@@ -149,10 +153,14 @@ static void _starpu_src_common_handle_stored_async(struct _starpu_mp_node *node)
 	{
 		/* We pop a message and handle it */
 		struct mp_message * message = mp_message_list_pop_back(&node->message_queue);
+        /* Release mutex during handle */
+	    STARPU_PTHREAD_MUTEX_UNLOCK(&node->message_queue_mutex);
 		_starpu_src_common_handle_async(node, message->buffer,
 				message->size, message->type);
 		free(message->buffer);
 		mp_message_delete(message);
+        /* Take it again */
+	    STARPU_PTHREAD_MUTEX_LOCK(&node->message_queue_mutex);
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&node->message_queue_mutex);
 }
@@ -476,7 +484,7 @@ int _starpu_src_common_allocate(struct _starpu_mp_node *mp_node,
 
 	STARPU_ASSERT(answer == STARPU_ANSWER_ALLOCATE &&
 			arg_size == sizeof(*addr));
-
+    
 	memcpy(addr, arg, arg_size);
 
 	return 0;
@@ -499,6 +507,7 @@ int _starpu_src_common_copy_host_to_sink(const struct _starpu_mp_node *mp_node,
 	struct _starpu_mp_transfer_command cmd = {size, dst};
 
 	_starpu_mp_common_send_command(mp_node, STARPU_RECV_FROM_HOST, &cmd, sizeof(cmd));
+
 	mp_node->dt_send(mp_node, src, size);
 
 	return 0;
@@ -509,9 +518,17 @@ int _starpu_src_common_copy_host_to_sink(const struct _starpu_mp_node *mp_node,
 int _starpu_src_common_copy_sink_to_host(const struct _starpu_mp_node *mp_node,
 		void *src, void *dst, size_t size)
 {
+    enum _starpu_mp_command answer;
+	void *arg;
+	int arg_size;
 	struct _starpu_mp_transfer_command cmd = {size, src};
 
 	_starpu_mp_common_send_command(mp_node, STARPU_SEND_TO_HOST, &cmd, sizeof(cmd));
+
+    answer = _starpu_src_common_wait_command_sync(mp_node, &arg, &arg_size);
+     
+    STARPU_ASSERT(answer == STARPU_SEND_TO_HOST);
+
 	mp_node->dt_recv(mp_node, dst, size);
 
 	return 0;
@@ -660,17 +677,39 @@ int _starpu_src_common_locate_file(char *located_file_name,
 
 
 #if defined(STARPU_USE_MPI_MASTER_SLAVE) && !defined(STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD)
+
+void _starpu_src_common_init_switch_env(unsigned this)
+{
+    save_thread_env[this].current_task = starpu_task_get_current();
+    save_thread_env[this].current_worker = STARPU_PTHREAD_GETSPECIFIC(_starpu_worker_key);
+    save_thread_env[this].current_worker_set = STARPU_PTHREAD_GETSPECIFIC(_starpu_worker_set_key);
+    save_thread_env[this].current_mem_node = STARPU_PTHREAD_GETSPECIFIC(_starpu_memory_node_key);
+#ifdef STARPU_OPENMP
+    save_thread_env[this].current_omp_thread = STARPU_PTHREAD_GETSPECIFIC(omp_thread_key);
+    save_thread_env[this].current_omp_task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
+#endif
+}
+
 static void _starpu_src_common_switch_env(unsigned old, unsigned new)
 {
     save_thread_env[old].current_task = starpu_task_get_current();
     save_thread_env[old].current_worker = STARPU_PTHREAD_GETSPECIFIC(_starpu_worker_key);
     save_thread_env[old].current_worker_set = STARPU_PTHREAD_GETSPECIFIC(_starpu_worker_set_key);
     save_thread_env[old].current_mem_node = STARPU_PTHREAD_GETSPECIFIC(_starpu_memory_node_key);
+#ifdef STARPU_OPENMP
+    save_thread_env[old].current_omp_thread = STARPU_PTHREAD_GETSPECIFIC(omp_thread_key);
+    save_thread_env[old].current_omp_task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
+#endif
+
 
     _starpu_set_current_task(save_thread_env[new].current_task);
     STARPU_PTHREAD_SETSPECIFIC(_starpu_worker_key, save_thread_env[new].current_worker);
     STARPU_PTHREAD_SETSPECIFIC(_starpu_worker_set_key, save_thread_env[new].current_worker_set);
     STARPU_PTHREAD_SETSPECIFIC(_starpu_memory_node_key, save_thread_env[new].current_mem_node);
+#ifdef STARPU_OPENMP
+    STARPU_PTHREAD_SETSPECIFIC(omp_thread_key, save_thread_env[new].current_omp_thread);
+    STARPU_PTHREAD_SETSPECIFIC(omp_task_key, save_thread_env[new].current_omp_task); 
+#endif
 }
 #endif
 
@@ -801,8 +840,8 @@ void _starpu_src_common_workers_set(struct _starpu_worker_set * worker_set,
 	{
         for (device = 0; device < ndevices ; device++)
         {
+            _starpu_src_common_switch_env((device-1)%ndevices, device);
             _starpu_src_common_worker_internal_work(&worker_set[device], mp_node[device], tasks+offsetmemnode[device], memnode[device]);
-            _starpu_src_common_switch_env(device, (device+1)%ndevices);
         }
     }
 	free(tasks);

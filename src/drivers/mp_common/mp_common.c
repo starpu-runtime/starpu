@@ -271,6 +271,8 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
 		node->mp_recv = _starpu_mpi_common_recv;
 		node->dt_send = _starpu_mpi_common_send;
 		node->dt_recv = _starpu_mpi_common_recv;
+        node->dt_send_to_device = _starpu_mpi_common_send_to_device;
+        node->dt_recv_from_device = _starpu_mpi_common_recv_from_device;
 
 		node->get_kernel_from_job = NULL;
 		node->lookup = _starpu_mpi_sink_lookup;

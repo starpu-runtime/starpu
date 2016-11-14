@@ -22,6 +22,8 @@
 #include <datawizard/datastats.h>
 #include <datawizard/memory_nodes.h>
 #include <drivers/disk/driver_disk.h>
+#include <drivers/mpi/driver_mpi_sink.h>
+#include <drivers/mpi/driver_mpi_source.h>
 #include <common/fxt.h>
 #include "copy_driver.h"
 #include "memalloc.h"
@@ -420,6 +422,28 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 		break;
 	/* TODO: MIC -> MIC */
 #endif
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_MPI_MS_RAM):
+	//	if (copy_methods->mpi_ms_src_to_sink)
+	//		copy_methods->mpi_ms_src_to_sink(src_interface, src_node, dst_interface, dst_node);
+	//	else
+			copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
+		break;
+
+	case _STARPU_MEMORY_NODE_TUPLE(STARPU_MPI_MS_RAM,STARPU_CPU_RAM):
+	//	if (copy_methods->mpi_ms_sink_to_src)
+	//		copy_methods->mpi_ms_sink_to_src(src_interface, src_node, dst_interface, dst_node);
+	//	else
+			copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
+		break;
+
+	case _STARPU_MEMORY_NODE_TUPLE(STARPU_MPI_MS_RAM,STARPU_MPI_MS_RAM):
+	//	if (copy_methods->mpi_ms_sink_to_sink)
+	//		copy_methods->mpi_ms_sink_to_sink(src_interface, src_node, dst_interface, dst_node);
+	//	else
+			copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
+		break;
+#endif
 #ifdef STARPU_USE_SCC
 		/* SCC RAM associated to the master process is considered as
 		 * the main memory node. */
@@ -662,6 +686,30 @@ int starpu_interface_copy(uintptr_t src, size_t src_offset, unsigned src_node, u
 				(void*) (dst + dst_offset), dst_node,
 				size);
 #endif
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+    case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM, STARPU_MPI_MS_RAM):
+        /* TODO ASYNC */
+        return _starpu_mpi_copy_ram_to_mpi(
+                (void*) (src + src_offset), src_node,
+                (void*) (dst + dst_offset), dst_node,
+                size);
+
+    case _STARPU_MEMORY_NODE_TUPLE(STARPU_MPI_MS_RAM, STARPU_CPU_RAM):
+        /* TODO ASYNC */
+        return _starpu_mpi_copy_mpi_to_ram(
+                (void*) (src + src_offset), src_node,
+                (void*) (dst + dst_offset), dst_node,
+                size);
+
+    case _STARPU_MEMORY_NODE_TUPLE(STARPU_MPI_MS_RAM, STARPU_MPI_MS_RAM):
+        /* TODO : not used now + ASYNC */
+        STARPU_ABORT();
+        return _starpu_mpi_copy_sink_to_sink(
+                (void*) (src + src_offset), src_node,
+                (void*) (dst + dst_offset), dst_node,
+                size);
+#endif
+
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM, STARPU_DISK_RAM):
 	{
 		return _starpu_disk_copy_src_to_disk(

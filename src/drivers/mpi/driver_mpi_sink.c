@@ -20,6 +20,7 @@
 #include <dlfcn.h>
 
 #include "driver_mpi_sink.h"
+#include "driver_mpi_source.h"
 #include "driver_mpi_common.h"
 
 void _starpu_mpi_sink_init(struct _starpu_mp_node *node)

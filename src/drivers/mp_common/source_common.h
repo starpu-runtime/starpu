@@ -76,6 +76,7 @@ void _starpu_src_common_worker(struct _starpu_worker_set * worker_set,
 			       struct _starpu_mp_node * node_set);
 
 #if defined(STARPU_USE_MPI_MASTER_SLAVE) && !defined(STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD)
+void _starpu_src_common_init_switch_env(unsigned this);
 void _starpu_src_common_workers_set(struct _starpu_worker_set * worker_set,
                  int ndevices,
                  struct _starpu_mp_node ** mp_node);

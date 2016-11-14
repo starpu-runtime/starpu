@@ -26,6 +26,7 @@
 /* Array of structures containing all the informations useful to send
  * and receive informations with devices */
 extern struct _starpu_mp_node *mpi_ms_nodes[STARPU_MAXMICDEVS];
+struct _starpu_mp_node *_starpu_mpi_src_get_mp_node_from_memory_node(int memory_node);
 
 unsigned _starpu_mpi_src_get_device_count();
 void *_starpu_mpi_src_worker(void *arg);
@@ -33,6 +34,13 @@ void _starpu_mpi_exit_useless_node(int devid);
 
 void _starpu_mpi_source_init(struct _starpu_mp_node *node);
 void _starpu_mpi_source_deinit(struct _starpu_mp_node *node);
+
+int _starpu_mpi_src_allocate_memory(void ** addr, size_t size, unsigned memory_node);
+void _starpu_mpi_source_free_memory(void *addr, unsigned memory_node);
+
+int _starpu_mpi_copy_mpi_to_ram(void *src, unsigned src_node, void *dst, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size);
+int _starpu_mpi_copy_ram_to_mpi(void *src, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst, unsigned dst_node, size_t size);
+int _starpu_mpi_copy_sink_to_sink(void *src, unsigned src_node, void *dst, unsigned dst_node, size_t size);
 
 void(* _starpu_mpi_ms_src_get_kernel_from_job(const struct _starpu_mp_node *node STARPU_ATTRIBUTE_UNUSED, struct _starpu_job *j))(void);
 

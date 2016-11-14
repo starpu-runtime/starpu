@@ -23,6 +23,8 @@
 #include <drivers/mpi/driver_mpi_source.h>
 #include <drivers/mpi/driver_mpi_common.h>
 
+#include <datawizard/memory_nodes.h>
+
 #include <drivers/driver_common/driver_common.h>
 #include <drivers/mp_common/source_common.h>
 
@@ -57,6 +59,52 @@ void _starpu_mpi_source_deinit(struct _starpu_mp_node *node)
 {
 
 }
+
+struct _starpu_mp_node *_starpu_mpi_src_get_mp_node_from_memory_node(int memory_node)
+{
+    int devid = _starpu_memory_node_get_devid(memory_node);
+    STARPU_ASSERT_MSG(devid >= 0 && devid < STARPU_MAXMPIDEVS, "bogus devid %d for memory node %d\n", devid, memory_node);
+
+    return mpi_ms_nodes[devid];
+}
+
+int _starpu_mpi_src_allocate_memory(void ** addr, size_t size, unsigned memory_node)
+{
+    const struct _starpu_mp_node *mp_node = _starpu_mpi_src_get_mp_node_from_memory_node(memory_node);
+    return _starpu_src_common_allocate(mp_node, addr, size);
+}
+
+void _starpu_mpi_source_free_memory(void *addr, unsigned memory_node)
+{
+	const struct _starpu_mp_node *mp_node = _starpu_mpi_src_get_mp_node_from_memory_node(memory_node);
+    _starpu_src_common_free(mp_node, addr);
+}
+
+ /* Transfert SIZE bytes from the address pointed by SRC in the SRC_NODE memory
+  * node to the address pointed by DST in the DST_NODE memory node
+  */
+int _starpu_mpi_copy_ram_to_mpi(void *src, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst, unsigned dst_node, size_t size)
+{
+    const struct _starpu_mp_node *mp_node = _starpu_mpi_src_get_mp_node_from_memory_node(dst_node);
+    return _starpu_src_common_copy_host_to_sink(mp_node, src, dst, size);
+}   
+ 
+ /* Transfert SIZE bytes from the address pointed by SRC in the SRC_NODE memory
+  * node to the address pointed by DST in the DST_NODE memory node
+  */    
+int _starpu_mpi_copy_mpi_to_ram(void *src, unsigned src_node, void *dst, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size)
+{
+    const struct _starpu_mp_node *mp_node = _starpu_mpi_src_get_mp_node_from_memory_node(src_node);
+    return _starpu_src_common_copy_sink_to_host(mp_node, src, dst, size);
+}   
+
+int _starpu_mpi_copy_sink_to_sink(void *src, unsigned src_node, void *dst, unsigned dst_node, size_t size)
+{
+    return _starpu_src_common_copy_sink_to_sink(_starpu_mpi_src_get_mp_node_from_memory_node(src_node),
+            _starpu_mpi_src_get_mp_node_from_memory_node(dst_node),
+            src, dst, size);
+}
+
 
 int _starpu_mpi_ms_src_register_kernel(starpu_mpi_ms_func_symbol_t *symbol, const char *func_name)
 {
@@ -149,7 +197,7 @@ void(* _starpu_mpi_ms_src_get_kernel_from_job(const struct _starpu_mp_node *node
 		/* If user dont define any starpu_mpi_ms_fun_t in cl->mpi_ms_func we try to use
 		 * cpu_func_name.
 		 */
-		char *func_name = _starpu_task_get_cpu_name_nth_implementation(j->task->cl, j->nimpl);
+		const char *func_name = _starpu_task_get_cpu_name_nth_implementation(j->task->cl, j->nimpl);
 		if (func_name)
 		{
 			starpu_mpi_ms_func_symbol_t symbol;
@@ -216,6 +264,7 @@ void *_starpu_mpi_src_worker(void *arg)
         /* unsigned memnode = baseworker->memory_node; */
 
         _starpu_driver_start(baseworker, _STARPU_FUT_MPI_KEY, 0);
+
 #ifdef STARPU_USE_FXT             
         for (i = 1; i < worker_set->nworkers; i++)
             _starpu_worker_start(&worker_set->workers[i], _STARPU_FUT_MPI_KEY, 0);
@@ -252,6 +301,7 @@ void *_starpu_mpi_src_worker(void *arg)
         }
     
 #ifndef STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD
+        _starpu_src_common_init_switch_env(workersetnum);
     }  /* for */
 
     /* set the worker zero for the main thread */
