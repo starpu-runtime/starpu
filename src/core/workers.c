@@ -1677,6 +1677,10 @@ void starpu_shutdown(void)
 	if (_starpu_scc_common_is_mp_initialized())
 		_starpu_scc_src_mp_deinit();
 #endif
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+    if (_starpu_mpi_common_is_mp_initialized())
+        _starpu_mpi_common_mp_deinit();
+#endif 
 	_starpu_print_idle_time();
 	_STARPU_DEBUG("Shutdown finished\n");
 

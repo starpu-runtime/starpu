@@ -332,7 +332,7 @@ void _starpu_mp_common_node_destroy(struct _starpu_mp_node *node)
 	STARPU_PTHREAD_MUTEX_DESTROY(&node->message_queue_mutex);
 
 	/* If the node is a sink then we must destroy some field */
-	if(node->kind == STARPU_MIC_SINK || node->kind == STARPU_SCC_SINK)
+	if(node->kind == STARPU_MIC_SINK || node->kind == STARPU_SCC_SINK || node->kind == STARPU_MPI_SINK)
 	{
 		int i;
 		for(i=0; i<node->nb_cores; i++)
