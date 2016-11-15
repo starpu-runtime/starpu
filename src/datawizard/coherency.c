@@ -725,14 +725,13 @@ int _starpu_fetch_data_on_node(starpu_data_handle_t handle, struct _starpu_data_
 			       enum starpu_data_access_mode mode, unsigned detached, unsigned is_prefetch, unsigned async,
 			       void (*callback_func)(void *), void *callback_arg, int prio, const char *origin)
 {
-	unsigned local_node = _starpu_memory_node_get_local_key();
         _STARPU_LOG_IN();
 
 	int cpt = 0;
 	while (cpt < STARPU_SPIN_MAXTRY && _starpu_spin_trylock(&handle->header_lock))
 	{
 		cpt++;
-		_starpu_datawizard_progress(local_node, 1);
+		_starpu_datawizard_progress(1);
 	}
 	if (cpt == STARPU_SPIN_MAXTRY)
 		_starpu_spin_lock(&handle->header_lock);
@@ -810,12 +809,11 @@ void _starpu_release_data_on_node(starpu_data_handle_t handle, uint32_t default_
 	if ((wt_mask & ~(1<<memory_node)))
 		_starpu_write_through_data(handle, memory_node, wt_mask);
 
-	unsigned local_node = _starpu_memory_node_get_local_key();
 	int cpt = 0;
 	while (cpt < STARPU_SPIN_MAXTRY && _starpu_spin_trylock(&handle->header_lock))
 	{
 		cpt++;
-		_starpu_datawizard_progress(local_node, 1);
+		_starpu_datawizard_progress(1);
 	}
 	if (cpt == STARPU_SPIN_MAXTRY)
 		_starpu_spin_lock(&handle->header_lock);
@@ -833,12 +831,11 @@ void _starpu_release_data_on_node(starpu_data_handle_t handle, uint32_t default_
 
 static void _starpu_set_data_requested_flag_if_needed(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate)
 {
-	unsigned local_node = _starpu_memory_node_get_local_key();
 	int cpt = 0;
 	while (cpt < STARPU_SPIN_MAXTRY && _starpu_spin_trylock(&handle->header_lock))
 	{
 		cpt++;
-		_starpu_datawizard_progress(local_node, 1);
+		_starpu_datawizard_progress(1);
 	}
 	if (cpt == STARPU_SPIN_MAXTRY)
 		_starpu_spin_lock(&handle->header_lock);

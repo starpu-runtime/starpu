@@ -25,7 +25,9 @@
 #include <core/simgrid.h>
 #endif
 
-int __starpu_datawizard_progress(unsigned memory_node, unsigned may_alloc, unsigned push_requests)
+static char worker_drives_memory[STARPU_NMAXWORKERS][STARPU_MAXNODES];
+
+int ___starpu_datawizard_progress(unsigned memory_node, unsigned may_alloc, unsigned push_requests)
 {
 	int ret = 0;
 
@@ -63,7 +65,28 @@ int __starpu_datawizard_progress(unsigned memory_node, unsigned may_alloc, unsig
 	return ret;
 }
 
-void _starpu_datawizard_progress(unsigned memory_node, unsigned may_alloc)
+int __starpu_datawizard_progress(unsigned may_alloc, unsigned push_requests)
 {
-	__starpu_datawizard_progress(memory_node, may_alloc, 1);
+    int current_worker_id = starpu_worker_get_id();
+    unsigned memnode;
+
+    int ret = 0;
+
+    for (memnode = 0; memnode < STARPU_MAXNODES; memnode++)
+    {
+        if (worker_drives_memory[current_worker_id][memnode] == 1)
+            ret |= ___starpu_datawizard_progress(memnode, may_alloc, push_requests);
+    }
+
+    return ret;
+}
+
+void _starpu_datawizard_progress(unsigned may_alloc)
+{
+	__starpu_datawizard_progress(may_alloc, 1);
+}
+
+void _starpu_worker_drives_memory_node(unsigned worker_id, unsigned memnode)
+{
+    worker_drives_memory[worker_id][memnode] = 1;   
 }

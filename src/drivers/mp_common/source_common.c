@@ -752,8 +752,7 @@ static void _starpu_src_common_worker_internal_work(struct _starpu_worker_set * 
 #endif
 
     _STARPU_TRACE_START_PROGRESS(memnode);
-    res |= __starpu_datawizard_progress(memnode, 1, 1);
-    res |= __starpu_datawizard_progress(STARPU_MAIN_RAM, 1, 1);
+    res |= __starpu_datawizard_progress(1, 1);
     _STARPU_TRACE_END_PROGRESS(memnode);
 
     /* Handle message which have been store */
@@ -799,6 +798,9 @@ static void _starpu_src_common_worker_internal_work(struct _starpu_worker_set * 
             }
         }
     }
+
+    /* Handle message which have been store */
+    _starpu_src_common_handle_stored_async(mp_node);
 
 }
 

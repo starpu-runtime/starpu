@@ -130,7 +130,7 @@ static unsigned _starpu_attempt_to_submit_data_request(unsigned request_from_cod
 		while (cpt < STARPU_SPIN_MAXTRY && _starpu_spin_trylock(&handle->header_lock))
 		{
 			cpt++;
-			_starpu_datawizard_progress(_starpu_memory_node_get_local_key(), 0);
+			_starpu_datawizard_progress(0);
 		}
 		if (cpt == STARPU_SPIN_MAXTRY)
 			_starpu_spin_lock(&handle->header_lock);

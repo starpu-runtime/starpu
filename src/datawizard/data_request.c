@@ -244,7 +244,7 @@ int _starpu_wait_data_request_completion(struct _starpu_data_request *r, unsigne
 #endif
 #endif
 
-		_starpu_datawizard_progress(local_node, may_alloc);
+		_starpu_datawizard_progress(may_alloc);
 
 #ifdef STARPU_SIMGRID
 		starpu_pthread_wait_wait(&wait);
