@@ -266,7 +266,7 @@ static int worker_supports_direct_access(unsigned node, unsigned handling_node)
 			return 0;
         case STARPU_MPI_MS_RAM:
             /* Don't support MPI-MPI transfers yet */
-            return starpu_node_get_kind(handling_node) != STARPU_MPI_MS_RAM;
+            return 0;
 		case STARPU_SCC_RAM:
 			return 1;
 		default:

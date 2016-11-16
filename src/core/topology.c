@@ -1677,6 +1677,7 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 
                 _starpu_worker_drives_memory_node(workerarg->workerid, STARPU_MAIN_RAM);
                 _starpu_worker_drives_memory_node(workerarg->workerid, memory_node);
+
 #ifdef STARPU_SIMGRID
 				starpu_pthread_queue_register(&workerarg->wait, &_starpu_simgrid_transfer_queue[memory_node]);
 				if (memory_node != STARPU_MAIN_RAM)
@@ -1874,10 +1875,9 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
                     if (findworkerarg->arch == STARPU_MPI_WORKER)
                     {
                         _starpu_worker_drives_memory_node(workerarg->workerid, findworkerarg->memory_node);
-                        _starpu_worker_drives_memory_node(findworkerarg->workerid, workerarg->memory_node);
+                        _starpu_worker_drives_memory_node(findworkerarg->workerid, memory_node);
                     }
                 }
-              
 #endif
                 
 				workerarg->bindid = mpi_bindid[devid];
