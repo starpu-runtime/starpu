@@ -23,6 +23,8 @@
 #define NITER 32
 #define SIZE_BANDWIDTH (1024*1024)
 
+#define SYNC_TAG 42
+
 #define DRIVER_MPI_MASTER_NODE_DEFAULT 0
 
 static int mpi_initialized;
@@ -131,7 +133,7 @@ void _starpu_mpi_common_mp_initialize_src_sink(struct _starpu_mp_node *node)
 
 int _starpu_mpi_common_recv_is_ready(const struct _starpu_mp_node *mp_node)
 {
-    int res, tag, source;
+    int res, source;
     int flag = 0;
     int id_proc;
     MPI_Comm_rank(MPI_COMM_WORLD, &id_proc);
@@ -139,17 +141,15 @@ int _starpu_mpi_common_recv_is_ready(const struct _starpu_mp_node *mp_node)
     if (id_proc == src_node_id)
     {
         /* Source has mp_node defined */
-        tag = mp_node->mp_connection.mpi_remote_nodeid;
         source = mp_node->mp_connection.mpi_remote_nodeid;
     }
     else
     {
         /* Sink can have sink to sink message */
-        tag = MPI_ANY_TAG;
         source = MPI_ANY_SOURCE;
     }
         
-    res = MPI_Iprobe(source, tag, MPI_COMM_WORLD, &flag, MPI_STATUS_IGNORE);
+    res = MPI_Iprobe(source, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, MPI_STATUS_IGNORE);
     STARPU_ASSERT_MSG(res == MPI_SUCCESS, "MPI Master/Slave cannot test if we received a message !");
 
     return flag;
@@ -158,37 +158,27 @@ int _starpu_mpi_common_recv_is_ready(const struct _starpu_mp_node *mp_node)
 /* SEND to source node */
 void _starpu_mpi_common_send(const struct _starpu_mp_node *node, void *msg, int len)
 {
-    int res, tag;
+    int res;
     int id_proc;
     MPI_Comm_rank(MPI_COMM_WORLD, &id_proc);
 
-    if (id_proc == src_node_id)
-        tag = node->mp_connection.mpi_remote_nodeid;
-    else
-        tag = id_proc;
+    printf("envoi %d B to %d\n", len, node->mp_connection.mpi_remote_nodeid);
 
-    printf("envoi %d B to %d et tag %d\n", len, node->mp_connection.mpi_remote_nodeid, tag);
-
-    res = MPI_Send(msg, len, MPI_BYTE, node->mp_connection.mpi_remote_nodeid, tag, MPI_COMM_WORLD);
+    res = MPI_Send(msg, len, MPI_BYTE, node->mp_connection.mpi_remote_nodeid, SYNC_TAG, MPI_COMM_WORLD);
     STARPU_ASSERT_MSG(res == MPI_SUCCESS, "MPI Master/Slave cannot receive a msg with a size of %d Bytes !", len);
 }
 
 /* RECV to source node */
 void _starpu_mpi_common_recv(const struct _starpu_mp_node *node, void *msg, int len)
 {
-    int res, tag;
+    int res;
     int id_proc;
     MPI_Status s;
     MPI_Comm_rank(MPI_COMM_WORLD, &id_proc);
 
-    if (id_proc == src_node_id)
-        tag = node->mp_connection.mpi_remote_nodeid;
-    else
-        tag = id_proc;
+    printf("recv %d B from %d in %p\n", len, node->mp_connection.mpi_remote_nodeid, msg);
 
-    printf("recv %d B from %d in %p et tag %d\n", len, node->mp_connection.mpi_remote_nodeid, msg, tag);
-
-    res = MPI_Recv(msg, len, MPI_BYTE, node->mp_connection.mpi_remote_nodeid, tag, MPI_COMM_WORLD, &s);
+    res = MPI_Recv(msg, len, MPI_BYTE, node->mp_connection.mpi_remote_nodeid, SYNC_TAG, MPI_COMM_WORLD, &s);
     int num_expected;
     MPI_Get_count(&s, MPI_BYTE, &num_expected);
 
@@ -199,28 +189,26 @@ void _starpu_mpi_common_recv(const struct _starpu_mp_node *node, void *msg, int 
 /* SEND to any node */
 void _starpu_mpi_common_send_to_device(const struct _starpu_mp_node *node, int dst_devid, void *msg, int len)
 {   
-    int res, tag;
+    int res;
     int id_proc;
     MPI_Comm_rank(MPI_COMM_WORLD, &id_proc);
 
-    tag = dst_devid;
-    printf("send %d bytes from %d from %p et tag %d\n", len, dst_devid, msg, tag);
+    printf("send %d bytes from %d from %p\n", len, dst_devid, msg);
 
-    res = MPI_Send(msg, len, MPI_BYTE, dst_devid, tag, MPI_COMM_WORLD);
+    res = MPI_Send(msg, len, MPI_BYTE, dst_devid, SYNC_TAG, MPI_COMM_WORLD);
     STARPU_ASSERT_MSG(res == MPI_SUCCESS, "MPI Master/Slave cannot receive a msg with a size of %d Bytes !", len);
 }
 
 /* RECV to any node */
 void _starpu_mpi_common_recv_from_device(const struct _starpu_mp_node *node, int src_devid, void *msg, int len)
 {
-    int res, tag;
+    int res;
     int id_proc;
     MPI_Comm_rank(MPI_COMM_WORLD, &id_proc);
 
-    tag = src_devid;
-    printf("nop recv %d bytes from %d et tag %d\n", len, src_devid, tag);
+    printf("nop recv %d bytes from %d\n", len, src_devid);
 
-    res = MPI_Recv(msg, len, MPI_BYTE, src_devid, tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    res = MPI_Recv(msg, len, MPI_BYTE, src_devid, SYNC_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     STARPU_ASSERT_MSG(res == MPI_SUCCESS, "MPI Master/Slave cannot receive a msg with a size of %d Bytes !", len);
 }
 
