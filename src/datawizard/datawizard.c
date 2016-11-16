@@ -19,13 +19,12 @@
 #include <common/config.h>
 #include <datawizard/datawizard.h>
 #include <datawizard/memalloc.h>
+#include <datawizard/memory_nodes.h>
 #include <core/workers.h>
 #include <core/progress_hook.h>
 #ifdef STARPU_SIMGRID
 #include <core/simgrid.h>
 #endif
-
-static char worker_drives_memory[STARPU_NMAXWORKERS][STARPU_MAXNODES];
 
 int ___starpu_datawizard_progress(unsigned memory_node, unsigned may_alloc, unsigned push_requests)
 {
@@ -84,9 +83,4 @@ int __starpu_datawizard_progress(unsigned may_alloc, unsigned push_requests)
 void _starpu_datawizard_progress(unsigned may_alloc)
 {
 	__starpu_datawizard_progress(may_alloc, 1);
-}
-
-void _starpu_worker_drives_memory_node(unsigned worker_id, unsigned memnode)
-{
-    worker_drives_memory[worker_id][memnode] = 1;   
 }

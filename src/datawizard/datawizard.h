@@ -36,6 +36,5 @@
 int ___starpu_datawizard_progress(unsigned memory_node, unsigned may_alloc, unsigned push_requests);
 int __starpu_datawizard_progress(unsigned may_alloc, unsigned push_requests);
 void _starpu_datawizard_progress(unsigned may_alloc);
-void _starpu_worker_drives_memory_node(unsigned worker_id, unsigned memnode);
 
 #endif // __DATAWIZARD_H__
