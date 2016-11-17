@@ -68,10 +68,10 @@ void starpu_perfmodel_print(struct starpu_perfmodel *model, struct starpu_perfmo
 	STARPU_ASSERT(comb != -1);
 
 	struct starpu_perfmodel_per_arch *arch_model = &model->state->per_arch[comb][nimpl];
-	char archname[32];
 
 	if (arch_model->regression.nsample || arch_model->regression.valid || arch_model->regression.nl_valid || arch_model->list)
 	{
+		char archname[32];
 		starpu_perfmodel_get_arch_name(arch, archname, 32, nimpl);
 		fprintf(output, "# performance model for %s\n", archname);
 	}

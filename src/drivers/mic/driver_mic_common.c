@@ -23,7 +23,7 @@
 void _starpu_mic_common_report_scif_error(const char *func, const char *file, const int line, const int status)
 {
 	const char *errormsg = strerror(status);
-	printf("Common: oops in %s (%s:%u)... %d: %s \n", func, file, line, status, errormsg);
+	printf("Common: oops in %s (%s:%d)... %d: %s \n", func, file, line, status, errormsg);
 	STARPU_ASSERT(0);
 }
 
@@ -48,7 +48,7 @@ int _starpu_mic_common_recv_is_ready(const struct _starpu_mp_node *mp_node)
   pollepd.events = SCIF_POLLIN;
   pollepd.revents = 0;
   return  scif_poll(&pollepd,1,0);
-	
+
 }
 
 

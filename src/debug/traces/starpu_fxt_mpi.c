@@ -235,8 +235,8 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, int src)
 				snprintf(mpi_container, sizeof(mpi_container), "%d_mpict", /* XXX */dst);
 				poti_EndLink(end_date, "MPICt", "MPIL", mpi_container, paje_value, paje_key);
 #else
-				fprintf(out_paje_file, "18	%.9f	MPIL	MPIroot	%ld	%d_mpict	mpicom_%lu\n", start_date, size, /* XXX */src, id);
-				fprintf(out_paje_file, "19	%.9f	MPIL	MPIroot	%ld	%d_mpict	mpicom_%lu\n", end_date, size, /* XXX */dst, id);
+				fprintf(out_paje_file, "18	%.9f	MPIL	MPIroot	%lu	%d_mpict	mpicom_%lu\n", start_date, (unsigned long)size, /* XXX */src, id);
+				fprintf(out_paje_file, "19	%.9f	MPIL	MPIroot	%lu	%d_mpict	mpicom_%lu\n", end_date, (unsigned long)size, /* XXX */dst, id);
 #endif
 			}
 		}

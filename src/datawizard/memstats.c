@@ -64,7 +64,7 @@ void _starpu_memory_display_handle_stats(starpu_data_handle_t handle)
 		if (handle->memory_stats->direct_access[node]+handle->memory_stats->loaded_shared[node]
 		    +handle->memory_stats->invalidated[node]+handle->memory_stats->loaded_owner[node])
 		{
-			fprintf(stderr, "Node #%d\n", node);
+			fprintf(stderr, "Node #%u\n", node);
 			fprintf(stderr, "\tDirect access : %d\n", handle->memory_stats->direct_access[node]);
 			/* XXX Not Working yet. */
 			if (handle->memory_stats->shared_to_owner[node])

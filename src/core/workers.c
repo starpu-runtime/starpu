@@ -96,7 +96,6 @@ int _starpu_is_initialized(void)
 static uint32_t _starpu_worker_exists_and_can_execute(struct starpu_task *task,
 						      enum starpu_worker_archtype arch)
 {
-	int i;
 	_starpu_codelet_check_deprecated_fields(task->cl);
 
         /* make sure there is a worker on the machine able to execute the
@@ -109,7 +108,7 @@ static uint32_t _starpu_worker_exists_and_can_execute(struct starpu_task *task,
 	workers->init_iterator(workers, &it);
 	while(workers->has_next(workers, &it))
 	{
-		i = workers->get_next(workers, &it);
+		int i = workers->get_next(workers, &it);
 		if (starpu_worker_get_type(i) != arch)
 			continue;
 
@@ -1931,19 +1930,17 @@ int starpu_worker_get_nids_by_type(enum starpu_worker_archtype type, int *worker
 int starpu_worker_get_nids_ctx_free_by_type(enum starpu_worker_archtype type, int *workerids, int maxsize)
 {
 	unsigned nworkers = starpu_worker_get_count();
-
 	int cnt = 0;
+	unsigned id;
 
-	unsigned id, worker;
-	unsigned found = 0;
 	for (id = 0; id < nworkers; id++)
 	{
-		found = 0;
 		if (starpu_worker_get_type(id) == type)
 		{
 			/* Perhaps the array is too small ? */
 			if (cnt >= maxsize)
 				return cnt;
+			unsigned found = 0;
 			int s;
 			for(s = 1; s < STARPU_NMAX_SCHED_CTXS; s++)
 			{
@@ -1955,7 +1952,7 @@ int starpu_worker_get_nids_ctx_free_by_type(enum starpu_worker_archtype type, in
 					workers->init_iterator(workers, &it);
 					while(workers->has_next(workers, &it))
 					{
-						worker = workers->get_next(workers, &it);
+						unsigned worker = workers->get_next(workers, &it);
 						if(worker == id)
 						{
 							found = 1;

@@ -720,7 +720,7 @@ static void recfmt_dump_state(double time, const char *event, int workerid, long
 	if (threadid == -1)
 		fprintf(trace_file, "T: -1\n");
 	else
-		fprintf(trace_file, "T: %lu\n", threadid);
+		fprintf(trace_file, "T: %ld\n", threadid);
 	fprintf(trace_file, "S: %f\n", time);
 	fprintf(trace_file, "\n");
 }
@@ -1184,7 +1184,7 @@ static void handle_start_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_op
 #ifdef STARPU_HAVE_POTI
 			char container[STARPU_POTI_STR_LEN];
 			char ctx[6];
-			snprintf(ctx, sizeof(ctx), "Ctx%d", sched_ctx);
+			snprintf(ctx, sizeof(ctx), "Ctx%u", sched_ctx);
 			worker_container_alias(container, STARPU_POTI_STR_LEN, prefix, ev->param[2]);
 			poti_SetState(start_codelet_time, container, ctx, name);
 #else
@@ -1281,11 +1281,11 @@ static void handle_codelet_details(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 #ifdef STARPU_HAVE_POTI
 			char container[STARPU_POTI_STR_LEN];
 			char ctx[6];
-			snprintf(ctx, sizeof(ctx), "Ctx%d", sched_ctx);
+			snprintf(ctx, sizeof(ctx), "Ctx%u", sched_ctx);
 			worker_container_alias(container, STARPU_POTI_STR_LEN, prefix, worker);
 			poti_SetState(last_codelet_start[worker], container, ctx, _starpu_last_codelet_symbol[worker]);
 #else
-			fprintf(out_paje_file, "20	%.9f	%sw%d	Ctx%u	%s	%ld	%s	%08lx	%016lx	%ld\n", last_codelet_start[worker], prefix, worker, sched_ctx, _starpu_last_codelet_symbol[worker], ev->param[2], parameters,  ev->param[3], ev->param[4], job_id);
+			fprintf(out_paje_file, "20	%.9f	%sw%d	Ctx%u	%s	%ld	%s	%08lx	%016lx	%lu\n", last_codelet_start[worker], prefix, worker, sched_ctx, _starpu_last_codelet_symbol[worker], ev->param[2], parameters,  ev->param[3], ev->param[4], job_id);
 #endif
 		}
 #endif /* STARPU_ENABLE_PAJE_CODELET_DETAILS */
@@ -1711,8 +1711,8 @@ static void handle_work_stealing(struct fxt_ev_64 *ev, struct starpu_fxt_options
 		poti_EndLink(time+0.000000001, program_container, "WSL", dst_worker_container, paje_value, paje_key);
 #else
 
-		fprintf(out_paje_file, "18	%.9f	WSL	%sp	%u	%sw%d	steal_%u\n", time, prefix, size, prefix, src, steal_number);
-		fprintf(out_paje_file, "19	%.9f	WSL	%sp	%u	%sw%d	steal_%u\n", time+0.000000001, prefix, size, prefix, dst, steal_number);
+		fprintf(out_paje_file, "18	%.9f	WSL	%sp	%u	%sw%u	steal_%u\n", time, prefix, size, prefix, src, steal_number);
+		fprintf(out_paje_file, "19	%.9f	WSL	%sp	%u	%sw%u	steal_%u\n", time+0.000000001, prefix, size, prefix, dst, steal_number);
 #endif
 	}
 
@@ -3408,7 +3408,7 @@ static void write_task(struct parse_task pt)
 		fprintf(codelet_list, "%s\n", codelet_name);
 	}
 	double time = pt.exec_time * NANO_SEC_TO_MILI_SEC;
-	fprintf(kernel->file, "%lf %d\n", time, pt.data_total);
+	fprintf(kernel->file, "%lf %u\n", time, pt.data_total);
 }
 
 void starpu_fxt_write_data_trace(char *filename_in)

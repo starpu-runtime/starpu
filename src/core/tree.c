@@ -61,11 +61,10 @@ struct starpu_tree* starpu_tree_get(struct starpu_tree *tree, int id)
 			return NULL;
 	}
 
-	struct starpu_tree *found_tree = NULL;
 	int i;
 	for(i = 0; i < tree->arity; i++)
 	{
-		found_tree = starpu_tree_get(&tree->nodes[i], id);
+		struct starpu_tree *found_tree = starpu_tree_get(&tree->nodes[i], id);
 		if(found_tree)
 			return found_tree;
 	}
@@ -107,7 +106,7 @@ struct starpu_tree* starpu_tree_get_neighbour(struct starpu_tree *tree, struct s
 {
 	struct starpu_tree *father = node == NULL ? tree : node->father;
 
-	int i, st, n;
+	int st, n;
 
 	for(st = 0; st < father->arity; st++)
 	{
@@ -117,7 +116,7 @@ struct starpu_tree* starpu_tree_get_neighbour(struct starpu_tree *tree, struct s
 
 	for(n = 0; n < father->arity; n++)
 	{
-		i = (st+n)%father->arity;
+		int i = (st+n)%father->arity;
 		if(&father->nodes[i] != node)
 		{
 			if(father->nodes[i].arity == 0)

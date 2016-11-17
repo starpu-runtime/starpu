@@ -265,10 +265,9 @@ static void find_and_assign_combinations_without_hwloc(int *workerids, int nwork
 	}
 #endif /* STARPU_USE_MIC */
 
-	struct _starpu_worker *worker;
 	for (i = 0; i < nworkers; i++)
 	{
-		worker = _starpu_get_worker_struct(workerids[i]);
+		struct _starpu_worker *worker = _starpu_get_worker_struct(workerids[i]);
 		if (worker->arch == STARPU_CPU_WORKER)
 			cpu_workers[ncpus++] = i;
 #ifdef STARPU_USE_MIC
@@ -299,14 +298,15 @@ static void find_and_assign_combinations_without_hwloc(int *workerids, int nwork
 	assign_combinations_without_hwloc(workers,cpu_workers,ncpus,min,max);
 #ifdef STARPU_USE_MIC
 	mic_min = starpu_get_env_number("STARPU_MIN_WORKERSIZE");
+	mic_max = starpu_get_env_number("STARPU_MAX_WORKERSIZE");
 	if (mic_min < 2)
 		mic_min = 2;
 	for(j=0; j<nb_mics; j++)
 	{
-		mic_max = starpu_get_env_number("STARPU_MAX_WORKERSIZE");
-		if (mic_max == -1 || mic_max > (int) nmics_table[j])
-			mic_max = nmics_table[j];
-		assign_combinations_without_hwloc(workers,mic_workers[j],nmics_table[j],mic_min,mic_max);
+		int _mic_max = mic_max;
+		if (_mic_max == -1 || _mic_max > (int) nmics_table[j])
+			_mic_max = nmics_table[j];
+		assign_combinations_without_hwloc(workers,mic_workers[j],nmics_table[j],mic_min,_mic_max);
 		free(mic_workers[j]);
 	}
 	free(mic_id);
@@ -325,14 +325,13 @@ static void combine_all_cpu_workers(int *workerids, int nworkers)
 	struct starpu_worker_collection* workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 	int cpu_workers[STARPU_NMAXWORKERS];
 	int ncpus = 0;
-	struct _starpu_worker *worker;
 	int i;
 	int min;
 	int max;
 
 	for (i = 0; i < nworkers; i++)
 	{
-		worker = _starpu_get_worker_struct(workerids[i]);
+		struct _starpu_worker *worker = _starpu_get_worker_struct(workerids[i]);
 
 		if (worker->arch == STARPU_CPU_WORKER)
 			cpu_workers[ncpus++] = workerids[i];
@@ -347,8 +346,7 @@ static void combine_all_cpu_workers(int *workerids, int nworkers)
 
 	for (i = min; i <= max; i++)
 	{
-		int newworkerid;
-		newworkerid = starpu_combined_worker_assign_workerid(i, cpu_workers);
+		int newworkerid = starpu_combined_worker_assign_workerid(i, cpu_workers);
 		STARPU_ASSERT(newworkerid >= 0);
 		workers->add(workers, newworkerid);
 	}

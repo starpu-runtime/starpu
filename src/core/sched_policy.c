@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2016  Université de Bordeaux
- * Copyright (C) 2010-2015  CNRS
+ * Copyright (C) 2010-2016  CNRS
  * Copyright (C) 2011, 2016  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -255,15 +255,13 @@ void _starpu_sched_do_schedule(unsigned sched_ctx_id)
 static void _starpu_push_task_on_specific_worker_notify_sched(struct starpu_task *task, struct _starpu_worker *worker, int workerid, int perf_workerid)
 {
 	/* if we push a task on a specific worker, notify all the sched_ctxs the worker belongs to */
-	struct _starpu_sched_ctx *sched_ctx;
-	struct _starpu_sched_ctx_elt *e = NULL;
 	struct _starpu_sched_ctx_list_iterator list_it;
 
 	_starpu_sched_ctx_list_iterator_init(worker->sched_ctx_list, &list_it);
 	while (_starpu_sched_ctx_list_iterator_has_next(&list_it))
 	{
-		e = _starpu_sched_ctx_list_iterator_get_next(&list_it);
-		sched_ctx = _starpu_get_sched_ctx_struct(e->sched_ctx);
+		struct _starpu_sched_ctx_elt *e = _starpu_sched_ctx_list_iterator_get_next(&list_it);
+		struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(e->sched_ctx);
 		if (sched_ctx->sched_policy != NULL && sched_ctx->sched_policy->push_task_notify)
 		{
 			_STARPU_TRACE_WORKER_SCHEDULING_PUSH;
@@ -320,13 +318,13 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 #ifdef STARPU_USE_SC_HYPERVISOR
 	starpu_sched_ctx_call_pushed_task_cb(workerid, task->sched_ctx);
 #endif //STARPU_USE_SC_HYPERVISOR
-	unsigned i;
 	if (is_basic_worker)
 	{
 		unsigned node = starpu_worker_get_memory_node(workerid);
 		if (_starpu_task_uses_multiformat_handles(task))
 		{
 			unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
+			unsigned i;
 			for (i = 0; i < nbuffers; i++)
 			{
 				struct starpu_task *conversion_task;
@@ -406,7 +404,6 @@ int _starpu_repush_task(struct _starpu_job *j)
 {
 	struct starpu_task *task = j->task;
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
-	unsigned nworkers = 0;
 	int ret;
 
 	_STARPU_LOG_IN();
@@ -419,7 +416,7 @@ int _starpu_repush_task(struct _starpu_job *j)
 	{
 		/*if there are workers in the ctx that are not able to execute tasks
 		  we consider the ctx empty */
-		nworkers = _starpu_nworkers_able_to_execute_task(task, sched_ctx);
+		unsigned nworkers = _starpu_nworkers_able_to_execute_task(task, sched_ctx);
 
 		if(nworkers == 0)
 		{
@@ -548,7 +545,7 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 			else
 			{
 				struct starpu_worker_collection *workers = sched_ctx->workers;
-				
+
 				struct _starpu_job *job = _starpu_get_job_associated_to_task(task);
 				job->task_size = workers->nworkers;
 				job->combined_workerid = -1; // workerid; its a ctx not combined worker
@@ -558,14 +555,13 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 				STARPU_PTHREAD_BARRIER_INIT(&job->after_work_barrier, NULL, workers->nworkers);
 				job->after_work_busy_barrier = workers->nworkers;
 
-				unsigned workerid;
 				struct starpu_sched_ctx_iterator it;
 				if(workers->init_iterator)
 					workers->init_iterator(workers, &it);
 
 				while(workers->has_next(workers, &it))
 				{
-					workerid = workers->get_next(workers, &it);
+					unsigned workerid = workers->get_next(workers, &it);
 					struct starpu_task *alias = starpu_task_dup(task);
 					alias->destroy = 1;
 					ret |= _starpu_push_task_on_specific_worker(alias, workerid);
@@ -847,12 +843,12 @@ pick:
 					_starpu_pop_task_end(task);
 				}
 			}
-			
+
 			if(!task)
 			{
 				/* it doesn't matter if it shares tasks list or not in the scheduler,
 				   if it does not have any task to pop just get it out of here */
-				/* however if it shares a task list it will be removed as soon as he 
+				/* however if it shares a task list it will be removed as soon as he
 				  finishes this job (in handle_job_termination) */
 				if(worker->removed_from_ctx[sched_ctx->id])
 				{
@@ -871,7 +867,7 @@ pick:
 					}
 				}
 #endif //STARPU_USE_SC_HYPERVISOR
-				
+
 #ifndef STARPU_NON_BLOCKING_DRIVERS
 				if(been_here[sched_ctx->id] || worker->nsched_ctxs == 1)
 					break;
@@ -896,7 +892,7 @@ pick:
 		idle[worker->workerid] += (idle_end - idle_start[worker->workerid]);
 		idle_start[worker->workerid] = 0.0;
 	}
-	
+
 
 #ifdef STARPU_USE_SC_HYPERVISOR
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
@@ -994,7 +990,7 @@ struct starpu_task *_starpu_pop_every_task(struct _starpu_sched_ctx *sched_ctx)
 	if(sched_ctx->sched_policy)
 	{
 		STARPU_ASSERT(sched_ctx->sched_policy->pop_every_task);
-		
+
 		/* TODO set profiling info */
 		if(sched_ctx->sched_policy->pop_every_task)
 		{

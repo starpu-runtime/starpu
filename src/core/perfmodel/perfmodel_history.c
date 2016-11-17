@@ -301,19 +301,19 @@ static void dump_reg_model(FILE *f, struct starpu_perfmodel *model, int comb, in
 		_starpu_multiple_regression(per_arch_model->list, reg_model->coeff, reg_model->ncoeff, model->nparameters, model->parameters_names, model->combinations, model->symbol);
 
 		fprintf(f, "# n\tintercept\t");
-	        unsigned i, j;
-		int first;
 		if (reg_model->ncoeff==0 || model->ncombinations==0 || model->combinations==NULL)
 			fprintf(f, "\n1\tnan");
 		else
 		{
+			unsigned i;
 			for (i=0; i < model->ncombinations; i++)
 			{
 				if (model->parameters_names == NULL)
-					fprintf(f, "c%d", i+1);
+					fprintf(f, "c%u", i+1);
 				else
 				{
-					first=1;
+					unsigned j;
+					int first=1;
 					for(j=0; j < model->nparameters; j++)
 					{
 						if (model->combinations[i][j] > 0)
@@ -326,7 +326,7 @@ static void dump_reg_model(FILE *f, struct starpu_perfmodel *model, int comb, in
 							if(model->parameters_names[j] != NULL)
 								fprintf(f, "%s", model->parameters_names[j]);
 							else
-								fprintf(f, "P%d", j);
+								fprintf(f, "P%u", j);
 
 							if (model->combinations[i][j] > 1)
 								fprintf(f, "^%d", model->combinations[i][j]);
@@ -508,7 +508,7 @@ static void parse_per_arch_model_file(FILE *f, struct starpu_perfmodel_per_arch 
 static void parse_arch(FILE *f, struct starpu_perfmodel *model, unsigned scan_history, int comb)
 {
 	struct starpu_perfmodel_per_arch dummy;
-	unsigned nimpls, implmax, impl, i, ret;
+	unsigned nimpls, impl, i, ret;
 
 	/* Parsing number of implementation */
 	_starpu_drop_comments(f);
@@ -518,7 +518,7 @@ static void parse_arch(FILE *f, struct starpu_perfmodel *model, unsigned scan_hi
 	if( model != NULL)
 	{
 		/* Parsing each implementation */
-		implmax = STARPU_MIN(nimpls, STARPU_MAXIMPLEMENTATIONS);
+		unsigned implmax = STARPU_MIN(nimpls, STARPU_MAXIMPLEMENTATIONS);
 		model->state->nimpls[comb] = implmax;
 		if (!model->state->per_arch[comb])
 		{
@@ -697,7 +697,7 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel *model)
 	fprintf(f, "####################\n");
 	fprintf(f, "# COMBs\n");
 	fprintf(f, "# number of combinations\n");
-	fprintf(f, "%u\n", ncombs);
+	fprintf(f, "%d\n", ncombs);
 
 	int i, impl, dev;
 	for(i = 0; i < ncombs; i++)
@@ -707,7 +707,7 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel *model)
 		fprintf(f, "####################\n");
 		fprintf(f, "# COMB_%d\n", comb);
 		fprintf(f, "# number of types devices\n");
-		fprintf(f, "%u\n", ndevices);
+		fprintf(f, "%d\n", ndevices);
 
 		for(dev = 0; dev < ndevices; dev++)
 		{
@@ -730,7 +730,7 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel *model)
 		int nimpls = model->state->nimpls[comb];
 		fprintf(f, "##########\n");
 		fprintf(f, "# number of implementations\n");
-		fprintf(f, "%u\n", nimpls);
+		fprintf(f, "%d\n", nimpls);
 		for (impl = 0; impl < nimpls; impl++)
 		{
 			dump_per_arch_model_file(f, model, comb, impl);
@@ -929,7 +929,7 @@ void _starpu_deinitialize_performance_model(struct starpu_perfmodel *model)
 					struct starpu_perfmodel_per_arch *archmodel = &model->state->per_arch[i][impl];
 					if (archmodel->history)
 					{
-						struct starpu_perfmodel_history_list *list, *plist;
+						struct starpu_perfmodel_history_list *list;
 						struct starpu_perfmodel_history_table *entry, *tmp;
 
 						HASH_ITER(hh, archmodel->history, entry, tmp)
@@ -942,6 +942,7 @@ void _starpu_deinitialize_performance_model(struct starpu_perfmodel *model)
 						list = archmodel->list;
 						while (list)
 						{
+							struct starpu_perfmodel_history_list *plist;
 							free(list->entry);
 							plist = list;
 							list = list->next;
@@ -985,7 +986,7 @@ void _starpu_deinitialize_registered_performance_models(void)
 
 	STARPU_PTHREAD_RWLOCK_WRLOCK(&registered_models_rwlock);
 
-	struct _starpu_perfmodel_list *node, *pnode;
+	struct _starpu_perfmodel_list *node;
 	node = registered_models;
 
 	_STARPU_DEBUG("FREE MODELS !\n");
@@ -993,6 +994,7 @@ void _starpu_deinitialize_registered_performance_models(void)
 	while (node)
 	{
 		struct starpu_perfmodel *model = node->model;
+		struct _starpu_perfmodel_list *pnode;
 
 		STARPU_PTHREAD_RWLOCK_WRLOCK(&model->state->model_rwlock);
 		_starpu_deinitialize_performance_model(model);
@@ -1080,12 +1082,12 @@ int starpu_perfmodel_list(FILE *output)
 #if !defined(_WIN32) || defined(__MINGW32__) || defined(__CYGWIN__)
         char *path;
         DIR *dp;
-        struct dirent *ep;
 
 	path = _starpu_get_perf_model_dir_codelet();
         dp = opendir(path);
         if (dp != NULL)
 	{
+		struct dirent *ep;
                 while ((ep = readdir(dp)))
 		{
                         if (strcmp(ep->d_name, ".") && strcmp(ep->d_name, ".."))
@@ -1332,15 +1334,15 @@ double _starpu_multiple_regression_based_job_expected_perf(struct starpu_perfmod
 	if (reg_model->coeff == NULL)
 		goto docal;
 
-	double parameter_value;
 	double *parameters;
 	_STARPU_MALLOC(parameters, model->nparameters*sizeof(double));
 	model->parameters(j->task, parameters);
 	expected_duration=reg_model->coeff[0];
-	unsigned i, k;
+	unsigned i;
 	for (i=0; i < model->ncombinations; i++)
 	{
-		parameter_value=1.;
+		double parameter_value=1.;
+		unsigned k;
 		for (k=0; k < model->nparameters; k++)
 			parameter_value *= pow(parameters[k],model->combinations[i][k]);
 

@@ -335,7 +335,6 @@ int _starpu_sched_ctx_list_iterator_init(struct _starpu_sched_ctx_list *list,
 
 int _starpu_sched_ctx_list_iterator_has_next(struct _starpu_sched_ctx_list_iterator *it)
 {
-	struct _starpu_sched_ctx_list *parent;
 	if (it->cursor == NULL)
 	{
 		if (it->list_head != NULL)
@@ -345,7 +344,7 @@ int _starpu_sched_ctx_list_iterator_has_next(struct _starpu_sched_ctx_list_itera
 	}
 	else
 	{
-		parent = it->cursor->parent;
+		struct _starpu_sched_ctx_list *parent = it->cursor->parent;
 		if (it->cursor->next == parent->head)
 			return parent->next != NULL;
 	}

@@ -223,7 +223,7 @@ int starpu_uncluster_machine(struct starpu_cluster_machine *machine)
 {
 	if (machine == NULL)
 		return -1;
-	struct _starpu_cluster_group *g, *tmp;
+	struct _starpu_cluster_group *g;
 	struct _starpu_cluster_group_list *group_list = machine->groups;
 
 	if (machine->id != STARPU_NMAX_SCHED_CTXS)
@@ -231,7 +231,7 @@ int starpu_uncluster_machine(struct starpu_cluster_machine *machine)
 	g = _starpu_cluster_group_list_begin(group_list);
 	while (g != _starpu_cluster_group_list_end(group_list))
 	{
-		tmp = g;
+		struct _starpu_cluster_group *tmp = g;
 		g = _starpu_cluster_group_list_next(g);
 		_starpu_cluster_group_remove(group_list, tmp);
 	}
@@ -383,12 +383,11 @@ int _starpu_cluster_remove(struct _starpu_cluster_list *cluster_list,
 int _starpu_cluster_group_remove(struct _starpu_cluster_group_list *group_list,
 				 struct _starpu_cluster_group *group)
 {
-	struct _starpu_cluster *tmp;
 	struct _starpu_cluster_list *cluster_list = group->clusters;
 	struct _starpu_cluster *c = _starpu_cluster_list_begin(cluster_list);
 	while (c != _starpu_cluster_list_end(cluster_list))
 	{
-		tmp = c;
+		struct _starpu_cluster *tmp = c;
 		c = _starpu_cluster_list_next(c);
 		_starpu_cluster_remove(cluster_list, tmp);
 	}

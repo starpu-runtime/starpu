@@ -436,9 +436,9 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	/* NB: we do not save those values before the callback, in case the
 	 * application changes some parameters eventually (eg. a task may not
 	 * be generated if the application is terminated). */
-	int destroy = task->destroy;
-	int detach = task->detach;
-	int regenerate = task->regenerate;
+	unsigned destroy = task->destroy;
+	unsigned detach = task->detach;
+	unsigned regenerate = task->regenerate;
 
 	/* we do not desallocate the job structure if some is going to
 	 * wait after the task */
@@ -476,7 +476,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	{
 		STARPU_ASSERT_MSG((detach && !destroy && !task->synchronous)
 				|| continuation
-				, "Regenerated task must be detached (was %d), and not have detroy=1 (was %d) or synchronous=1 (was %d)", detach, destroy, task->synchronous);
+				, "Regenerated task must be detached (was %u), and not have detroy=1 (was %u) or synchronous=1 (was %u)", detach, destroy, task->synchronous);
 		STARPU_AYU_ADDTASK(j->job_id, j->exclude_from_dag?NULL:task);
 
 		{
@@ -721,7 +721,6 @@ int _starpu_push_local_task(struct _starpu_worker *worker, struct starpu_task *t
 			/* Increase the size */
 			unsigned alloc = worker->local_ordered_tasks_size;
 			struct starpu_task **new;
-			unsigned copied;
 
 			if (!alloc)
 				alloc = 1;
@@ -732,7 +731,7 @@ int _starpu_push_local_task(struct _starpu_worker *worker, struct starpu_task *t
 			if (worker->local_ordered_tasks_size)
 			{
 				/* Put existing tasks at the beginning of the new ring */
-				copied = worker->local_ordered_tasks_size - worker->current_ordered_task;
+				unsigned copied = worker->local_ordered_tasks_size - worker->current_ordered_task;
 				memcpy(new, &worker->local_ordered_tasks[worker->current_ordered_task], copied * sizeof(*new));
 				memcpy(new + copied, worker->local_ordered_tasks, (worker->local_ordered_tasks_size - copied) * sizeof(*new));
 			}

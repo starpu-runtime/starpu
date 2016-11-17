@@ -246,11 +246,10 @@ int starpu_task_wait(struct starpu_task *task)
 int starpu_task_wait_array(struct starpu_task **tasks, unsigned nb_tasks)
 {
 	unsigned i;
-	int ret;
 
 	for (i = 0; i < nb_tasks; i++)
 	{
-		ret = starpu_task_wait(tasks[i]);
+		int ret = starpu_task_wait(tasks[i]);
 		if (ret)
 			return ret;
 	}

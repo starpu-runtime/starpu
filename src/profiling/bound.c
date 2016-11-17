@@ -607,7 +607,7 @@ void starpu_bound_print_lp(FILE *output)
 							/* If predecessor is on worker w and successor
 							 * on worker w2 on different nodes, we need to
 							 * transfer the data. */
-							fprintf(output, " + d_t%luw%ut%luw%u", t1->deps[i].dep->id, w, t1->id, w2);
+							fprintf(output, " + d_t%luw%dt%luw%d", t1->deps[i].dep->id, w, t1->id, w2);
 
 						}
 					}
@@ -626,9 +626,9 @@ void starpu_bound_print_lp(FILE *output)
 						if (starpu_worker_get_memory_node(w2) == n2)
 						{
 							/* The data transfer is at least 0ms */
-							fprintf(output, "d_t%luw%ut%luw%u >= 0;\n", t1->deps[i].dep->id, w, t1->id, w2);
+							fprintf(output, "d_t%luw%dt%luw%d >= 0;\n", t1->deps[i].dep->id, w, t1->id, w2);
 							/* The data transfer from w to w2 only happens if tasks run there */
-							fprintf(output, "d_t%luw%ut%luw%u >= %f - 2e5 + 1e5 t%luw%u + 1e5 t%luw%u;\n",
+							fprintf(output, "d_t%luw%dt%luw%d >= %f - 2e5 + 1e5 t%luw%d + 1e5 t%luw%d;\n",
 									t1->deps[i].dep->id, w, t1->id, w2,
 									starpu_transfer_predict(n, n2, t1->deps[i].size)/1000.,
 									t1->deps[i].dep->id, w, t1->id, w2);

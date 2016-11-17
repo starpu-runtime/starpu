@@ -343,7 +343,7 @@ int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, doubl
 				if(parameters_names != NULL && parameters_names[j]!= NULL)
 					fprintf(f, ", %s", parameters_names[j]);
 				else
-					fprintf(f, ", P%d", j);
+					fprintf(f, ", P%u", j);
 			}
 		}
 	}
