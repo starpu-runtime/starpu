@@ -25,7 +25,7 @@
 #include "copy_driver.h"
 #include "memalloc.h"
 
-char worker_drives_memory[STARPU_NMAXWORKERS][STARPU_MAXNODES];
+static char worker_drives_memory[STARPU_NMAXWORKERS][STARPU_MAXNODES];
 
 struct _starpu_memory_node_descr _starpu_descr;
 starpu_pthread_key_t _starpu_memory_node_key STARPU_ATTRIBUTE_INTERNAL;
