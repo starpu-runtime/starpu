@@ -153,7 +153,7 @@ void _starpu_mic_sink_deinit(struct _starpu_mp_node *node)
 void _starpu_mic_sink_report_error(const char *func, const char *file, const int line, const int status)
 {
 	const char *errormsg = strerror(status);
-	printf("SINK: oops in %s (%s:%u)... %d: %s \n", func, file, line, status, errormsg);
+	printf("SINK: oops in %s (%s:%d)... %d: %s \n", func, file, line, status, errormsg);
 	STARPU_ASSERT(0);
 }
 

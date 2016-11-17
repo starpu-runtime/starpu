@@ -117,7 +117,7 @@ int _starpu_mic_src_register_kernel(starpu_mic_func_symbol_t *symbol, const char
 
 	STARPU_PTHREAD_MUTEX_LOCK(&htbl_mutex);
 	struct _starpu_mic_kernel *kernel;
-	
+
 	HASH_FIND_STR(kernels, func_name, kernel);
 
 	if (kernel != NULL)
@@ -163,7 +163,7 @@ int _starpu_mic_src_register_kernel(starpu_mic_func_symbol_t *symbol, const char
 starpu_mic_kernel_t _starpu_mic_src_get_kernel(starpu_mic_func_symbol_t symbol)
 {
 	int workerid = starpu_worker_get_id();
-	
+
 	/* This function has to be called in the codelet only, by the thread
 	 * which will handle the task */
 	if (workerid < 0)
@@ -193,7 +193,7 @@ void _starpu_mic_src_report_coi_error(const char *func, const char *file,
 				      const int line, const COIRESULT status)
 {
 	const char *errormsg = COIResultGetName(status);
-	printf("SRC: oops in %s (%s:%u)... %d: %s \n", func, file, line, status, errormsg);
+	printf("SRC: oops in %s (%s:%d)... %d: %s \n", func, file, line, status, errormsg);
 	STARPU_ASSERT(0);
 }
 
@@ -205,7 +205,7 @@ void _starpu_mic_src_report_coi_error(const char *func, const char *file,
 void _starpu_mic_src_report_scif_error(const char *func, const char *file, const int line, const int status)
 {
 	const char *errormsg = strerror(status);
-	printf("SRC: oops in %s (%s:%u)... %d: %s \n", func, file, line, status, errormsg);
+	printf("SRC: oops in %s (%s:%d)... %d: %s \n", func, file, line, status, errormsg);
 	STARPU_ASSERT(0);
 }
 
@@ -534,12 +534,12 @@ void *_starpu_mic_src_worker(void *arg)
 	for (i = 0; i < config->topology.nmiccores[devid]; i++)
 	{
 		struct _starpu_worker *worker = &config->workers[baseworkerid+i];
-		snprintf(worker->name, sizeof(worker->name), "MIC %d core %u", devid, i);
-		snprintf(worker->short_name, sizeof(worker->short_name), "MIC %d.%u", devid, i);
+		snprintf(worker->name, sizeof(worker->name), "MIC %u core %u", devid, i);
+		snprintf(worker->short_name, sizeof(worker->short_name), "MIC %u.%u", devid, i);
 	}
 	{
 		char thread_name[16];
-		snprintf(thread_name, sizeof(thread_name), "MIC %d", devid);
+		snprintf(thread_name, sizeof(thread_name), "MIC %u", devid);
 		starpu_pthread_setname(thread_name);
 	}
 

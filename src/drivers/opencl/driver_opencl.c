@@ -639,8 +639,8 @@ int _starpu_opencl_driver_init(struct _starpu_worker *worker)
 	char devname[128];
 	_starpu_opencl_get_device_name(devid, devname, 128);
 #endif
-	snprintf(worker->name, sizeof(worker->name), "OpenCL %u (%s %.1f GiB)", devid, devname, size);
-	snprintf(worker->short_name, sizeof(worker->short_name), "OpenCL %u", devid);
+	snprintf(worker->name, sizeof(worker->name), "OpenCL %d (%s %.1f GiB)", devid, devname, size);
+	snprintf(worker->short_name, sizeof(worker->short_name), "OpenCL %d", devid);
 	starpu_pthread_setname(worker->short_name);
 
 	worker->pipeline_length = starpu_get_env_number_default("STARPU_OPENCL_PIPELINE", 2);

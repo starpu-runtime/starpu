@@ -583,7 +583,7 @@ static struct starpu_sched_component * starpu_sched_component_worker_create(stru
 	if(worker == NULL)
 		return NULL;
 	char name[32];
-	snprintf(name, sizeof(name), "worker %u", workerid);
+	snprintf(name, sizeof(name), "worker %d", workerid);
 	struct starpu_sched_component * component = starpu_sched_component_create(tree, name);
 	struct _starpu_worker_component_data * data = malloc(sizeof(*data));
 	memset(data, 0, sizeof(*data));
