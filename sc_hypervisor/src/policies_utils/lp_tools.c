@@ -20,14 +20,14 @@
 #include "sc_hypervisor_intern.h"
 #include <starpu_config.h>
 
-double sc_hypervisor_lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_workers, double res[nsched_ctxs][ntypes_of_workers], 
+double sc_hypervisor_lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_workers, double res[nsched_ctxs][ntypes_of_workers],
 					     int total_nw[ntypes_of_workers], struct types_of_workers *tw, unsigned *in_sched_ctxs)
 {
 	unsigned *sched_ctxs = in_sched_ctxs == NULL ? sc_hypervisor_get_sched_ctxs() : in_sched_ctxs;
 #ifdef STARPU_HAVE_GLPK_H
 	double v[nsched_ctxs][ntypes_of_workers];
 	double flops[nsched_ctxs];
-	
+
 /* 	unsigned nhierarchy_levels = sc_hypervisor_get_nhierarchy_levels(); */
 /* 	if(nhierarchy_levels <= 1) */
 	sc_hypervisor_update_resize_interval(sched_ctxs, nsched_ctxs, total_nw[0]);
@@ -41,7 +41,7 @@ double sc_hypervisor_lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_work
 		sc_w = sc_hypervisor_get_wrapper(sched_ctxs[i]);
 		int w;
 		for(w = 0; w < nw; w++)
-			v[i][w] = sc_hypervisor_get_speed(sc_w, sc_hypervisor_get_arch_for_index(w, tw)); 
+			v[i][w] = sc_hypervisor_get_speed(sc_w, sc_hypervisor_get_arch_for_index(w, tw));
 
 		double ready_flops = starpu_sched_ctx_get_nready_flops(sc_w->sched_ctx);
 		unsigned nhierarchy_levels = sc_hypervisor_get_nhierarchy_levels();
@@ -49,7 +49,7 @@ double sc_hypervisor_lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_work
 			ready_flops = sc_hypervisor_get_nready_flops_of_all_sons_of_sched_ctx(sc_w->sched_ctx);
 
 		int nready_tasks = starpu_sched_ctx_get_nready_tasks(sc_w->sched_ctx);
-		
+
 		if(sc_w->to_be_sized)
 		{
 			flops[i] = sc_w->remaining_flops/1000000000.0; /* in gflops*/
@@ -73,7 +73,7 @@ double sc_hypervisor_lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_work
 		if(flops[i] < 0.0)
 			flops[i] = 0.0;
 #ifdef STARPU_SC_HYPERVISOR_DEBUG
-		printf("%d: flops %lf remaining flops %lf ready flops %lf nready_tasks %d\n",
+		printf("%u: flops %lf remaining flops %lf ready flops %lf nready_tasks %d\n",
 		       sched_ctxs[i], flops[i], sc_w->remaining_flops/1000000000, ready_flops/1000000000, nready_tasks);
 #endif
 
@@ -92,11 +92,11 @@ double sc_hypervisor_lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_work
 			for(i = 0; i < nsched_ctxs; i++)
 			{
 				sc_w = sc_hypervisor_get_wrapper(sched_ctxs[i]);
-				
+
 				if(!sc_w->consider_max)
 				{
 #ifdef STARPU_SC_HYPERVISOR_DEBUG
-					printf("ctx %d: current speed is %lf and compare speed is min %lf max %lf\n", sched_ctxs[i], v[i][w], (0.1*avg_speed), (2*avg_speed));
+					printf("ctx %u: current speed is %lf and compare speed is min %lf max %lf\n", sched_ctxs[i], v[i][w], (0.1*avg_speed), (2*avg_speed));
 #endif
 					if(v[i][w] < 0.1*avg_speed || v[i][w] > 2*avg_speed)
 					{
@@ -104,7 +104,7 @@ double sc_hypervisor_lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_work
 						consider_max_for_all = 1;
 					}
 #ifdef STARPU_SC_HYPERVISOR_DEBUG
-					printf("ctx %d consider max %d \n", sched_ctxs[i], sc_w->consider_max);
+					printf("ctx %u consider max %d \n", sched_ctxs[i], sc_w->consider_max);
 #endif
 				}
 
@@ -116,7 +116,7 @@ double sc_hypervisor_lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_work
 					sc_w = sc_hypervisor_get_wrapper(sched_ctxs[i]);
 					sc_w->consider_max = 1;
 #ifdef STARPU_SC_HYPERVISOR_DEBUG
-					printf("ctx %d consider max %d anyway \n", sched_ctxs[i], sc_w->consider_max);
+					printf("ctx %u consider max %d anyway \n", sched_ctxs[i], sc_w->consider_max);
 #endif
 				}
 			}
@@ -215,7 +215,7 @@ double sc_hypervisor_lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_work
 		if(used_cpus < 0.8 * total_nw[0] && nselected > 1)
 		{
 			double old_ret = ret;
-			
+
 			if(nselected <= 0 || nselected == nsched_ctxs)
 			{
 				nselected = nsched_ctxs;
@@ -228,10 +228,10 @@ double sc_hypervisor_lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_work
 			}
 			else
 				total_nw[0] = available_cpus;
-			
+
 			double selected_res[nselected][ntypes_of_workers];
 			ret = sc_hypervisor_lp_simulate_distrib_flops(nselected, ntypes_of_workers, selected_v, selected_flops, selected_res, total_nw, selected_sched_ctxs, ret);
-			
+
 			if(ret != 0)
 			{
 				int j;
@@ -252,7 +252,7 @@ double sc_hypervisor_lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_work
 
 	}
 
-	/* if the lp could not give any workers to any context 
+	/* if the lp could not give any workers to any context
 	   just split the workers btw the contexts */
 	if(ret == 0.0)
 	{
@@ -290,22 +290,22 @@ double sc_hypervisor_lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_work
 				break;
 			}
 		}
-		
+
 		sc_w = sc_hypervisor_get_wrapper(sched_ctxs[i]);
-		
-/* if the hypervisor gave 0 workers to a context but the context still 
+
+/* if the hypervisor gave 0 workers to a context but the context still
    has some last flops or a ready task that does not even have any flops
    we give a worker (in shared mode) to the context in order to leave him
    finish its work = we give -1.0 value instead of 0.0 and further on in
    the distribution function we take this into account and revert the variable
-   to its 0.0 value */ 
+   to its 0.0 value */
 //		if(no_workers && (flops[i] != 0.0 || sc_w->nready_tasks > 0))
 		if(no_workers)
 		{
 			for(w = 0; w < nw; w++)
 				res[i][w] = -1.0;
 		}
-			
+
 //			if(optimal_v != 0.0)
 		_set_optimal_v(sched_ctxs[i], optimal_v);
 	}
@@ -382,14 +382,14 @@ void sc_hypervisor_lp_round_double_to_int(int ns, int nw, double res[ns][nw], in
 					}
 				}
 			}
-			else 
+			else
 				res_rounded[s][w] = x;
 		}
 	}
 }
 
-void _lp_find_workers_to_give_away(int nw, int ns, unsigned sched_ctx, int sched_ctx_idx, 
-				   int tmp_nw_move[nw], int tmp_workers_move[nw][STARPU_NMAXWORKERS], 
+void _lp_find_workers_to_give_away(int nw, int ns, unsigned sched_ctx, int sched_ctx_idx,
+				   int tmp_nw_move[nw], int tmp_workers_move[nw][STARPU_NMAXWORKERS],
 				   int tmp_nw_add[nw], int tmp_workers_add[nw][STARPU_NMAXWORKERS],
 				   int res_rounded[ns][nw], double res[ns][nw], struct types_of_workers *tw)
 {
@@ -404,8 +404,8 @@ void _lp_find_workers_to_give_away(int nw, int ns, unsigned sched_ctx, int sched
 	for(w = 0; w < nw; w++)
 	{
 		enum starpu_worker_archtype arch = sc_hypervisor_get_arch_for_index(w, tw);
-		
-		if(arch == STARPU_CPU_WORKER) 
+
+		if(arch == STARPU_CPU_WORKER)
 		{
 			int nworkers_ctx = sc_hypervisor_get_nworkers_ctx(sched_ctx, arch);
 			if(nworkers_ctx > res_rounded[sched_ctx_idx][w])
@@ -444,7 +444,7 @@ void _lp_find_workers_to_give_away(int nw, int ns, unsigned sched_ctx, int sched
 						int i;
 						for(i = 0; i < x; i++)
 							tmp_workers_move[w][tmp_nw_move[w]++] = workers_to_move[i];
-						
+
 					}
 					free(workers_to_move);
 				}
@@ -457,13 +457,13 @@ void _lp_find_workers_to_give_away(int nw, int ns, unsigned sched_ctx, int sched
 						int i;
 						for(i = 0; i < x-1; i++)
 							tmp_workers_move[w][tmp_nw_move[w]++] = workers_to_move[i];
-						
+
 						if(diff > 0.8)
 							tmp_workers_move[w][tmp_nw_move[w]++] = workers_to_move[x-1];
 						else
 							if(diff > 0.3)
 								tmp_workers_add[w][tmp_nw_add[w]++] = workers_to_move[x-1];
-						
+
 					}
 					free(workers_to_move);
 				}
@@ -472,10 +472,10 @@ void _lp_find_workers_to_give_away(int nw, int ns, unsigned sched_ctx, int sched
 	}
 }
 
-void _lp_find_workers_to_accept(int nw, int ns, unsigned sched_ctx, int sched_ctx_idx, 
-				int tmp_nw_move[nw], int tmp_workers_move[nw][STARPU_NMAXWORKERS], 
+void _lp_find_workers_to_accept(int nw, int ns, unsigned sched_ctx, int sched_ctx_idx,
+				int tmp_nw_move[nw], int tmp_workers_move[nw][STARPU_NMAXWORKERS],
 				int tmp_nw_add[nw], int tmp_workers_add[nw][STARPU_NMAXWORKERS],
-				int *nw_move, int workers_move[STARPU_NMAXWORKERS], 
+				int *nw_move, int workers_move[STARPU_NMAXWORKERS],
 				int *nw_add, int workers_add[STARPU_NMAXWORKERS],
 				int res_rounded[ns][nw], double res[ns][nw], struct types_of_workers *tw)
 {
@@ -484,7 +484,7 @@ void _lp_find_workers_to_accept(int nw, int ns, unsigned sched_ctx, int sched_ct
 	for(w = 0; w < nw; w++)
 	{
 		enum starpu_worker_archtype arch = sc_hypervisor_get_arch_for_index(w, tw);
-		
+
 		int nw_ctx2 = sc_hypervisor_get_nworkers_ctx(sched_ctx, arch);
 		int nw_needed = res_rounded[sched_ctx_idx][w] - nw_ctx2;
 
@@ -504,8 +504,8 @@ void _lp_find_workers_to_accept(int nw, int ns, unsigned sched_ctx, int sched_ct
 			}
 			tmp_nw_move[w] -=  *nw_move;
 		}
-		
-		
+
+
 		double needed = res[sched_ctx_idx][w] - (nw_ctx2 * 1.0);
 		int x = floor(needed);
 		double x_double = (double)x;
@@ -529,7 +529,7 @@ void _lp_find_workers_to_accept(int nw, int ns, unsigned sched_ctx, int sched_ct
 	}
 }
 
-void _lp_find_workers_to_remove(int nw, int tmp_nw_move[nw], int tmp_workers_move[nw][STARPU_NMAXWORKERS], 
+void _lp_find_workers_to_remove(int nw, int tmp_nw_move[nw], int tmp_workers_move[nw][STARPU_NMAXWORKERS],
 				int *nw_move, int workers_move[STARPU_NMAXWORKERS])
 {
 	int w;
@@ -549,7 +549,7 @@ void _lp_find_workers_to_remove(int nw, int tmp_nw_move[nw], int tmp_workers_mov
 						break;
 				}
 			}
-			
+
 		}
 	}
 }
@@ -564,9 +564,9 @@ void sc_hypervisor_lp_redistribute_resources_in_ctxs(int ns, int nw, int res_rou
 
 		int tmp_workers_add[nw][STARPU_NMAXWORKERS];
 		int tmp_nw_add[nw];
-		
 
-		for(w = 0; w < nw; w++)		
+
+		for(w = 0; w < nw; w++)
 		{
 			tmp_nw_move[w] = 0;
 			tmp_nw_add[w] = 0;
@@ -579,30 +579,30 @@ void sc_hypervisor_lp_redistribute_resources_in_ctxs(int ns, int nw, int res_rou
 		}
 
 		/* find workers that ctx s has to give away */
-		_lp_find_workers_to_give_away(nw, ns, sched_ctxs[s], s, 
-					      tmp_nw_move, tmp_workers_move, 
-					      tmp_nw_add, tmp_workers_add, res_rounded, 
+		_lp_find_workers_to_give_away(nw, ns, sched_ctxs[s], s,
+					      tmp_nw_move, tmp_workers_move,
+					      tmp_nw_add, tmp_workers_add, res_rounded,
 					      res, tw);
 		for(s2 = 0; s2 < ns; s2++)
 		{
 			if(sched_ctxs[s2] != sched_ctxs[s])
 			{
-				/* find workers that ctx s2 wants to accept from ctx s 
+				/* find workers that ctx s2 wants to accept from ctx s
 				   the rest of it will probably accepted by another ctx */
 				int workers_move[STARPU_NMAXWORKERS];
 				int nw_move = 0;
-				
+
 				int workers_add[STARPU_NMAXWORKERS];
 				int nw_add = 0;
-				
 
-				_lp_find_workers_to_accept(nw, ns, sched_ctxs[s2], s2, 
-							   tmp_nw_move, tmp_workers_move, 
+
+				_lp_find_workers_to_accept(nw, ns, sched_ctxs[s2], s2,
+							   tmp_nw_move, tmp_workers_move,
 							   tmp_nw_add, tmp_workers_add,
-							   &nw_move, workers_move, 
+							   &nw_move, workers_move,
 							   &nw_add, workers_add,
 							   res_rounded, res, tw);
-				
+
 				if(nw_move > 0)
 				{
 					sc_hypervisor_move_workers(sched_ctxs[s], sched_ctxs[s2], workers_move, nw_move, !(_sc_hypervisor_use_lazy_resize()));
@@ -621,8 +621,8 @@ void sc_hypervisor_lp_redistribute_resources_in_ctxs(int ns, int nw, int res_rou
 		   to get rid of them just remove them from ctx s */
 		int workers_move[STARPU_NMAXWORKERS];
 		int nw_move = 0;
-				
-		_lp_find_workers_to_remove(nw, tmp_nw_move, tmp_workers_move, 
+
+		_lp_find_workers_to_remove(nw, tmp_nw_move, tmp_workers_move,
 					   &nw_move, workers_move);
 
 		if(nw_move > 0)
@@ -657,7 +657,7 @@ int _lp_get_unwanted_workers(int *workers_add, int nw_add, unsigned sched_ctx, i
 	return nw_remove;
 }
 
-void sc_hypervisor_lp_distribute_resources_in_ctxs(unsigned* sched_ctxs, int ns, int nw, int res_rounded[ns][nw], 
+void sc_hypervisor_lp_distribute_resources_in_ctxs(unsigned* sched_ctxs, int ns, int nw, int res_rounded[ns][nw],
 						   double res[ns][nw], int *workers, int nworkers, struct types_of_workers *tw)
 {
 	int s, w;
@@ -678,8 +678,8 @@ void sc_hypervisor_lp_distribute_resources_in_ctxs(unsigned* sched_ctxs, int ns,
 		for(w = 0; w < nw; w++)
 		{
 			enum starpu_worker_archtype arch = sc_hypervisor_get_arch_for_index(w, tw);
-			
-			if(arch == STARPU_CPU_WORKER) 
+
+			if(arch == STARPU_CPU_WORKER)
 			{
 				int nworkers_to_add = res_rounded[s][w];
 				if(target_res < 0.0)
@@ -731,7 +731,7 @@ void sc_hypervisor_lp_distribute_resources_in_ctxs(unsigned* sched_ctxs, int ns,
 					else
 						for(i = 0; i < x-1; i++)
 							workers_add[nw_add++] = workers_to_add[i];
-					
+
 					free(workers_to_add);
 				}
 			}
@@ -744,7 +744,7 @@ void sc_hypervisor_lp_distribute_resources_in_ctxs(unsigned* sched_ctxs, int ns,
 	}
 }
 
-void sc_hypervisor_lp_distribute_floating_no_resources_in_ctxs(unsigned* sched_ctxs, int ns, int nw, double res[ns][nw], 
+void sc_hypervisor_lp_distribute_floating_no_resources_in_ctxs(unsigned* sched_ctxs, int ns, int nw, double res[ns][nw],
 							       int *workers, int nworkers, struct types_of_workers *tw)
 {
 	int s, w;
@@ -765,8 +765,8 @@ void sc_hypervisor_lp_distribute_floating_no_resources_in_ctxs(unsigned* sched_c
 		for(w = 0; w < nw; w++)
 		{
 			enum starpu_worker_archtype arch = sc_hypervisor_get_arch_for_index(w, tw);
-			
-			if(arch == STARPU_CPU_WORKER) 
+
+			if(arch == STARPU_CPU_WORKER)
 			{
 				int nworkers_to_add = ceil(res[s][w]);
 				double ceil_double = (double)nworkers_to_add;
@@ -823,7 +823,7 @@ void sc_hypervisor_lp_distribute_floating_no_resources_in_ctxs(unsigned* sched_c
 					else
 						for(i = 0; i < x-1; i++)
 							workers_add[nw_add++] = workers_to_add[i];
-					
+
 					free(workers_to_add);
 				}
 			}
@@ -840,7 +840,7 @@ void sc_hypervisor_lp_distribute_floating_no_resources_in_ctxs(unsigned* sched_c
 void sc_hypervisor_lp_place_resources_in_ctx(int ns, int nw, double w_in_s[ns][nw], unsigned *sched_ctxs_input, int *workers_input, unsigned do_size, struct types_of_workers *tw)
 {
 	int w, s;
-	int ntypes_of_workers = tw->nw; 
+	int ntypes_of_workers = tw->nw;
 	double nworkers[ns][ntypes_of_workers];
 	int nworkers_rounded[ns][ntypes_of_workers];
 	for(s = 0; s < ns; s++)
@@ -850,9 +850,9 @@ void sc_hypervisor_lp_place_resources_in_ctx(int ns, int nw, double w_in_s[ns][n
 			nworkers[s][w] = 0.0;
 			nworkers_rounded[s][w] = 0;
 		}
-		
+
 	}
-	
+
 	for(s = 0; s < ns; s++)
 	{
 		for(w = 0; w < nw; w++)
@@ -860,7 +860,7 @@ void sc_hypervisor_lp_place_resources_in_ctx(int ns, int nw, double w_in_s[ns][n
 			enum starpu_worker_archtype arch = starpu_worker_get_type(w);
 			int idx = sc_hypervisor_get_index_for_arch(arch, tw);
 			nworkers[s][idx] += w_in_s[s][w];
-				
+
 			if(arch == STARPU_CUDA_WORKER)
 			{
 				if(w_in_s[s][w] >= 0.3)
@@ -873,7 +873,7 @@ void sc_hypervisor_lp_place_resources_in_ctx(int ns, int nw, double w_in_s[ns][n
 			}
 		}
 	}
-	
+
 	if(!do_size)
 		sc_hypervisor_lp_redistribute_resources_in_ctxs(ns, ntypes_of_workers, nworkers_rounded, nworkers, sched_ctxs_input, tw);
 	else
@@ -883,7 +883,7 @@ void sc_hypervisor_lp_place_resources_in_ctx(int ns, int nw, double w_in_s[ns][n
 		unsigned has_workers = 0;
 		for(s = 0; s < ns; s++)
 		{
-			int nworkers_ctx = sc_hypervisor_get_nworkers_ctx(current_sched_ctxs[s], 
+			int nworkers_ctx = sc_hypervisor_get_nworkers_ctx(current_sched_ctxs[s],
 										 STARPU_ANY_WORKER);
 			if(nworkers_ctx != 0)
 			{
@@ -928,7 +928,7 @@ void sc_hypervisor_lp_share_remaining_resources(int ns, unsigned *sched_ctxs,  i
 			for(w = 0; w < nw; w++)
 				_sc_hypervisor_allow_compute_idle(sched_ctxs[s], remaining_workers[w], 0);
 			sc_hypervisor_add_workers_to_sched_ctx(remaining_workers, nw, sched_ctxs[s]);
-		}		
+		}
 	}
 }
 
