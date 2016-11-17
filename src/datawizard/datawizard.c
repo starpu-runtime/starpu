@@ -73,7 +73,7 @@ int __starpu_datawizard_progress(unsigned may_alloc, unsigned push_requests)
 
     for (memnode = 0; memnode < STARPU_MAXNODES; memnode++)
     {
-        if (worker_drives_memory[current_worker_id][memnode] == 1)
+        if (_starpu_worker_drives_memory[current_worker_id][memnode] == 1)
             ret |= ___starpu_datawizard_progress(memnode, may_alloc, push_requests);
     }
 

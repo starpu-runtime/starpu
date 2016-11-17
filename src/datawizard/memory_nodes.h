@@ -33,7 +33,7 @@
 #define _STARPU_MEMORY_NODE_TUPLE_FIRST(tuple) (tuple & 0x0F)
 #define _STARPU_MEMORY_NODE_TUPLE_SECOND(tuple) (tuple & 0xF0)
 
-extern char worker_drives_memory[STARPU_NMAXWORKERS][STARPU_MAXNODES];
+extern char _starpu_worker_drives_memory[STARPU_NMAXWORKERS][STARPU_MAXNODES];
 
 struct _starpu_cond_and_mutex
 {
@@ -101,7 +101,7 @@ static inline void _starpu_memory_node_add_nworkers(unsigned node)
 /* same utility as _starpu_memory_node_add_nworkers */
 static inline void _starpu_worker_drives_memory_node(unsigned worker_id, unsigned memnode)
 {
-    worker_drives_memory[worker_id][memnode] = 1;   
+    _starpu_worker_drives_memory[worker_id][memnode] = 1;   
 }
 
 static inline unsigned _starpu_memory_node_get_nworkers(unsigned node)
