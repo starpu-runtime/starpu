@@ -891,12 +891,8 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
                     &worker_set_zero->mutex);
         STARPU_PTHREAD_MUTEX_UNLOCK(&worker_set_zero->mutex);
 
-        int mpidevice;
-        for (mpidevice = 0; mpidevice < pconfig->topology.nmpidevices; mpidevice++)
-        {
-            mpi_worker_set[mpidevice].started = 1;
-            mpi_worker_set[mpidevice].worker_thread = mpi_worker_set[0].worker_thread;
-        }
+        worker_set_zero.started = 1;
+        worker_set_zero.worker_thread = mpi_worker_set[0].worker_thread;
 
     }
 
