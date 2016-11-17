@@ -1,16 +1,16 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011 - 2013  INRIA 
- *                                                                                                                                                   
- * StarPU is free software; you can redistribute it and/or modify       
- * it under the terms of the GNU Lesser General Public License as published by                                                             
+ * Copyright (C) 2011 - 2013  INRIA
+ *
+ * StarPU is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation; either version 2.1 of the License, or (at
- * your option) any later version.     
- *                                                                                                                                         
+ * your option) any later version.
+ *
  * StarPU is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- *                                                        
+ *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
@@ -37,7 +37,7 @@ unsigned sc_hypervisor_lp_execute_dichotomy(int ns, int nw, double w_in_s[ns][nw
 	double potential_tmid = tmid;
 	double threashold = tmax*0.1;
 	gettimeofday(&start_time, NULL);
-	
+
 	/* we fix tmax and we do not treat it as an unknown
 	   we just vary by dichotomy its values*/
 	while(1)
@@ -76,10 +76,10 @@ unsigned sc_hypervisor_lp_execute_dichotomy(int ns, int nw, double w_in_s[ns][nw
 		if(has_sol)
 		{
 			/* if the difference between tmax and tmid is smaller than
-			   a given threashold there is no point in searching more 
+			   a given threashold there is no point in searching more
 			   precision */
 			tmax = tmid;
-			potential_tmid = tmin + ((tmax-tmin)/2.0); 
+			potential_tmid = tmin + ((tmax-tmin)/2.0);
 			if((tmax - potential_tmid) < threashold)
 			{
 				printf("had_sol but stop doing it for tmin %lf tmax %lf and potential tmid %lf \n", tmin, tmax, potential_tmid);
@@ -92,7 +92,7 @@ unsigned sc_hypervisor_lp_execute_dichotomy(int ns, int nw, double w_in_s[ns][nw
 			/* if we previously found a good sol and we keep failing
 			   we stop searching for a better sol */
 			tmin = tmid;
-			potential_tmid = tmin + ((tmax-tmin)/2.0); 
+			potential_tmid = tmin + ((tmax-tmin)/2.0);
 			if((tmax - potential_tmid) < threashold)
 			{
 				printf("didn't have sol but stop doing it for tmin %lf tmax %lf and potential tmid %lf \n", tmin, tmax, potential_tmid);
@@ -111,7 +111,7 @@ unsigned sc_hypervisor_lp_execute_dichotomy(int ns, int nw, double w_in_s[ns][nw
 		res = lp_estimated_distrib_func(ns, nw, w_in_s, solve_lp_integer, found_tmid, specific_data);
 		found_sol = (res != 0.0);
 	}
-	printf("found sol %d for tmid %lf\n", found_sol, found_tmid);
+	printf("found sol %u for tmid %lf\n", found_sol, found_tmid);
 	gettimeofday(&end_time, NULL);
 
 	long diff_s = end_time.tv_sec  - start_time.tv_sec;
@@ -121,4 +121,3 @@ unsigned sc_hypervisor_lp_execute_dichotomy(int ns, int nw, double w_in_s[ns][nw
 
 	return found_sol;
 }
-
