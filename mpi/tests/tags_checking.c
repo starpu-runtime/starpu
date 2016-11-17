@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015  CNRS
+ * Copyright (C) 2015, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -29,7 +29,7 @@ void callback(void *arg)
 
 	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	*received = *received + 1;
-	FPRINTF_MPI(stderr, "Request %d received\n", *received);
+	FPRINTF_MPI(stderr, "Request %u received\n", *received);
 	STARPU_PTHREAD_COND_SIGNAL(&cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 }
