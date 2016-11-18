@@ -93,12 +93,14 @@ endif
 ###################
 
 STARPU_EXAMPLES =				\
-	stencil
+	stencil						\
+	implicit_stencil
 
 examplebindir = $(libdir)/starpu/examples/stencil
 
 examplebin_PROGRAMS =				\
-	stencil
+	stencil							\
+	implicit_stencil
 
 stencil_SOURCES =				\
 	life.c					\
@@ -119,6 +121,29 @@ endif
 
 if STARPU_USE_OPENCL
 stencil_SOURCES +=				\
+	life_opencl.c				\
+	shadow_opencl.c
+endif
+
+implicit_stencil_SOURCES =				\
+	life.c					\
+	implicit-stencil-kernels.c			\
+	implicit-stencil-tasks.c				\
+	implicit-stencil-blocks.c			\
+	implicit-stencil.c
+
+noinst_HEADERS =				\
+	implicit-stencil.h				\
+	shadow.h
+
+if STARPU_USE_CUDA
+implicit_stencil_SOURCES +=				\
+	life_cuda.cu				\
+	shadow.cu
+endif
+
+if STARPU_USE_OPENCL
+implicit_stencil_SOURCES +=				\
 	life_opencl.c				\
 	shadow_opencl.c
 endif
