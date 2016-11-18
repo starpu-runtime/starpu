@@ -19,6 +19,7 @@
 #include <common/config.h>
 #include <common/utils.h>
 #include <drivers/mp_common/mp_common.h>
+#include <drivers/mpi/driver_mpi_common.h>
 #include <datawizard/interfaces/data_interface.h>
 #include <common/barrier.h>
 #include <core/workers.h>
@@ -317,6 +318,10 @@ void _starpu_sink_common_worker(void)
 
 	/* Deinitialize the node and release it */
 	_starpu_mp_common_node_destroy(node);
+
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+    _starpu_mpi_common_mp_deinit();
+#endif
 
 	exit(0);
 }

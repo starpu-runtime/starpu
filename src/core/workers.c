@@ -891,8 +891,8 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
                     &worker_set_zero->mutex);
         STARPU_PTHREAD_MUTEX_UNLOCK(&worker_set_zero->mutex);
 
-        worker_set_zero.started = 1;
-        worker_set_zero.worker_thread = mpi_worker_set[0].worker_thread;
+        worker_set_zero->started = 1;
+        worker_set_zero->worker_thread = mpi_worker_set[0].worker_thread;
 
     }
 
@@ -1186,9 +1186,15 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 #	endif
 
 #   ifdef STARPU_USE_MPI_MASTER_SLAVE
-	/* In MPI case we look at the rank to know if we are a sink */
-	if (_starpu_mpi_common_mp_init() && !_starpu_mpi_common_is_src_node())
-		setenv("STARPU_SINK", "STARPU_MPI_MS", 1);
+	if (_starpu_mpi_common_mp_init() == -ENODEV)
+    {
+        initialized = UNINITIALIZED;
+        return -ENODEV;
+    }
+
+    /* In MPI case we look at the rank to know if we are a sink */
+    if (!_starpu_mpi_common_is_src_node())
+        setenv("STARPU_SINK", "STARPU_MPI_MS", 1);
 #   endif
 
 	/* If StarPU was configured to use MP sinks, we have to control the
