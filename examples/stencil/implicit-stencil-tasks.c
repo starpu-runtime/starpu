@@ -35,8 +35,10 @@
 # define DEBUG(fmt, ...)
 #endif
 
+#ifdef STARPU_USE_MPI
 #include <starpu_mpi.h>
 #define starpu_insert_task(...) starpu_mpi_insert_task(MPI_COMM_WORLD, __VA_ARGS__)
+#endif
 
 /*
  * Schedule initialization tasks

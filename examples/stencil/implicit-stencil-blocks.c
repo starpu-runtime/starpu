@@ -289,7 +289,7 @@ void allocate_memory_on_node(int rank)
 {
 	unsigned bz;
 
-    /* Correctly allocate and declare all data handles to StarPU. */
+	/* Correctly allocate and declare all data handles to StarPU. */
 	for (bz = 0; bz < nbz; bz++)
 	{
 		struct block_description *block = get_block_description(bz);
@@ -298,60 +298,60 @@ void allocate_memory_on_node(int rank)
 
 		if (node == rank)
 		{
-            /* Main blocks */
+			/* Main blocks */
 			allocate_block_on_node(&block->layers_handle[0], &block->layers[0],
-						(sizex + 2*K), (sizey + 2*K), (size_bz + 2*K));
+					       (sizex + 2*K), (sizey + 2*K), (size_bz + 2*K));
 			allocate_block_on_node(&block->layers_handle[1], &block->layers[1],
-						(sizex + 2*K), (sizey + 2*K), (size_bz + 2*K));
+					       (sizex + 2*K), (sizey + 2*K), (size_bz + 2*K));
 
-            /* Boundary blocks : Top */
+			/* Boundary blocks : Top */
 			allocate_block_on_node(&block->boundaries_handle[T][0], &block->boundaries[T][0],
-						(sizex + 2*K), (sizey + 2*K), K);
+					       (sizex + 2*K), (sizey + 2*K), K);
 			allocate_block_on_node(&block->boundaries_handle[T][1], &block->boundaries[T][1],
-						(sizex + 2*K), (sizey + 2*K), K);
+					       (sizex + 2*K), (sizey + 2*K), K);
 
-            /* Boundary blocks : Bottom */
+			/* Boundary blocks : Bottom */
 			allocate_block_on_node(&block->boundaries_handle[B][0], &block->boundaries[B][0],
-						(sizex + 2*K), (sizey + 2*K), K);
+					       (sizex + 2*K), (sizey + 2*K), K);
 			allocate_block_on_node(&block->boundaries_handle[B][1], &block->boundaries[B][1],
-						(sizex + 2*K), (sizey + 2*K), K);
+					       (sizex + 2*K), (sizey + 2*K), K);
+		}
+		/* Register void blocks to StarPU, that StarPU-MPI will request to
+		 * neighbour nodes if needed for the local computation */
+		else
+		{
+			/* Main blocks */
+			starpu_block_data_register(&block->layers_handle[0], -1, (uintptr_t) NULL, (sizex + 2*K), (sizex + 2*K)*(sizey + 2*K), (sizex + 2*K), (sizey + 2*K), (size_bz + 2*K), sizeof(TYPE));
+			starpu_block_data_register(&block->layers_handle[1], -1, (uintptr_t) NULL, (sizex + 2*K), (sizex + 2*K)*(sizey + 2*K), (sizex + 2*K), (sizey + 2*K), (size_bz + 2*K), sizeof(TYPE));
+
+			/* Boundary blocks : Top */
+			starpu_block_data_register(&block->boundaries_handle[T][0], -1, (uintptr_t) NULL, (sizex + 2*K), (sizex + 2*K)*(sizey + 2*K), (sizex + 2*K), (sizey + 2*K), K, sizeof(TYPE));
+			starpu_block_data_register(&block->boundaries_handle[T][1], -1, (uintptr_t) NULL, (sizex + 2*K), (sizex + 2*K)*(sizey + 2*K), (sizex + 2*K), (sizey + 2*K), K, sizeof(TYPE));
+
+			/* Boundary blocks : Bottom */
+			starpu_block_data_register(&block->boundaries_handle[B][0], -1, (uintptr_t) NULL, (sizex + 2*K), (sizex + 2*K)*(sizey + 2*K), (sizex + 2*K), (sizey + 2*K), K, sizeof(TYPE));
+			starpu_block_data_register(&block->boundaries_handle[B][1], -1, (uintptr_t) NULL, (sizex + 2*K), (sizex + 2*K)*(sizey + 2*K), (sizex + 2*K), (sizey + 2*K), K, sizeof(TYPE));
 		}
 
-        /* Register void blocks to StarPU, that StarPU-MPI will request to
-         * neighbour nodes if needed for the local computation */
-        else
-        {
-            /* Main blocks */
-            starpu_block_data_register(&block->layers_handle[0], -1, (uintptr_t) NULL, (sizex + 2*K), (sizex + 2*K)*(sizey + 2*K), (sizex + 2*K), (sizey + 2*K), (size_bz + 2*K), sizeof(TYPE));
-            starpu_block_data_register(&block->layers_handle[1], -1, (uintptr_t) NULL, (sizex + 2*K), (sizex + 2*K)*(sizey + 2*K), (sizex + 2*K), (sizey + 2*K), (size_bz + 2*K), sizeof(TYPE));
+#ifdef STARPU_USE_MPI
+		/* Register all data to StarPU-MPI, even the ones that are not
+		 * allocated on the local node. */
 
-            /* Boundary blocks : Top */
-            starpu_block_data_register(&block->boundaries_handle[T][0], -1, (uintptr_t) NULL, (sizex + 2*K), (sizex + 2*K)*(sizey + 2*K), (sizex + 2*K), (sizey + 2*K), K, sizeof(TYPE));
-            starpu_block_data_register(&block->boundaries_handle[T][1], -1, (uintptr_t) NULL, (sizex + 2*K), (sizex + 2*K)*(sizey + 2*K), (sizex + 2*K), (sizey + 2*K), K, sizeof(TYPE));
-        
-            /* Boundary blocks : Bottom */
-            starpu_block_data_register(&block->boundaries_handle[B][0], -1, (uintptr_t) NULL, (sizex + 2*K), (sizex + 2*K)*(sizey + 2*K), (sizex + 2*K), (sizey + 2*K), K, sizeof(TYPE));
-            starpu_block_data_register(&block->boundaries_handle[B][1], -1, (uintptr_t) NULL, (sizex + 2*K), (sizex + 2*K)*(sizey + 2*K), (sizex + 2*K), (sizey + 2*K), K, sizeof(TYPE));
-        }
+		/* Main blocks */
+		starpu_mpi_data_register(block->layers_handle[0], MPI_TAG_LAYERS(bz, 0), node);
+		starpu_mpi_data_register(block->layers_handle[1], MPI_TAG_LAYERS(bz, 1), node);
 
+		/* Boundary blocks : Top */
+		starpu_mpi_data_register(block->boundaries_handle[T][0], MPI_TAG_BOUNDARIES(bz, T, 0), node);
+		starpu_mpi_data_register(block->boundaries_handle[T][1], MPI_TAG_BOUNDARIES(bz, T, 1), node);
 
-        /* Register all data to StarPU-MPI, even the ones that are not
-         * allocated on the local node. */
-
-        /* Main blocks */
-        starpu_mpi_data_register(block->layers_handle[0], MPI_TAG_LAYERS(bz, 0), node);
-        starpu_mpi_data_register(block->layers_handle[1], MPI_TAG_LAYERS(bz, 1), node);
-
-        /* Boundary blocks : Top */
-        starpu_mpi_data_register(block->boundaries_handle[T][0], MPI_TAG_BOUNDARIES(bz, T, 0), node);
-        starpu_mpi_data_register(block->boundaries_handle[T][1], MPI_TAG_BOUNDARIES(bz, T, 1), node);
-
-        /* Boundary blocks : Bottom */
-        starpu_mpi_data_register(block->boundaries_handle[B][0], MPI_TAG_BOUNDARIES(bz, B, 0), node);
-        starpu_mpi_data_register(block->boundaries_handle[B][1], MPI_TAG_BOUNDARIES(bz, B, 1), node);
+		/* Boundary blocks : Bottom */
+		starpu_mpi_data_register(block->boundaries_handle[B][0], MPI_TAG_BOUNDARIES(bz, B, 0), node);
+		starpu_mpi_data_register(block->boundaries_handle[B][1], MPI_TAG_BOUNDARIES(bz, B, 1), node);
+#endif
 	}
 
-    /* Initialize all the data in parallel */
+	/* Initialize all the data in parallel */
 	for (bz = 0; bz < nbz; bz++)
 	{
 		struct block_description *block = get_block_description(bz);
