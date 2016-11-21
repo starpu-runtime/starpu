@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2013-2015  Université de Bordeaux
- * Copyright (C) 2012, 2013, 2015  CNRS
+ * Copyright (C) 2012, 2013, 2015, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -34,11 +34,12 @@
 #else
 # define DEBUG(fmt, ...)
 #endif
- 
+
+#include <starpu_mpi.h>
 #define starpu_insert_task(...) starpu_mpi_insert_task(MPI_COMM_WORLD, __VA_ARGS__)
 
-/* 
- * Schedule initialization tasks 
+/*
+ * Schedule initialization tasks
  */
 
 void create_task_memset(unsigned sizex, unsigned sizey, unsigned z)
