@@ -581,6 +581,7 @@ AC_DEFUN([STARPU_CHECK_CUDA],
 	    AC_MSG_WARN(['nvcc' not found, disabling CUDA])
 	    have_valid_cuda=no
 	else
+	    # This is for very old cuda, to enable the use of double etc.
 	    AC_MSG_CHECKING(whether nvcc supports sm_13 architecture)
 	    OLD_NVCCFLAGS="$NVCCFLAGS"
 	    NVCCFLAGS="$NVCCFLAGS -arch sm_13"
@@ -593,6 +594,21 @@ AC_DEFUN([STARPU_CHECK_CUDA],
 		AC_MSG_RESULT(no)
 		NVCCFLAGS="$OLD_NVCCFLAGS"
 	    fi
+
+	    # This is for recent cuda, which complains if we don't actually set an arch!?
+	    AC_MSG_CHECKING(whether nvcc supports -Wno-deprecated-gpu-targets)
+	    OLD_NVCCFLAGS="$NVCCFLAGS"
+	    NVCCFLAGS="$NVCCFLAGS -Wno-deprecated-gpu-targets"
+	    echo "int main(int argc, char **argv) { return 0;}" > cuda_test.cu
+	    $NVCC $NVCCFLAGS -c cuda_test.cu >/dev/null 2>&1
+	    if test $? -eq 0
+	    then
+		AC_MSG_RESULT(yes)
+	    else
+		AC_MSG_RESULT(no)
+		NVCCFLAGS="$OLD_NVCCFLAGS"
+	    fi
+
 	    rm -f cuda_test*
 	fi
 
