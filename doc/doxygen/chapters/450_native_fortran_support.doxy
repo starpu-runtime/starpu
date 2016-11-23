@@ -216,8 +216,9 @@ Basically, the main FORTRAN code calls some C wrapper functions to
 submit tasks to StarPU. Then, when StarPU starts a task, another C
 wrapper function calls the FORTRAN routine for the task.
 
-Note that you will have to disable the native support through the
-configure option \ref disable-fortran "--disable-fortran".
+Note that this marshalled FORTRAN support remains available even
+when specifying configure option \ref disable-fortran "--disable-fortran"
+(which only disables StarPU's native Fortran layer).
 
 \subsection APIMIX Valid API Mixes and Language Mixes
 
