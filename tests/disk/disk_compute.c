@@ -228,7 +228,14 @@ int main(void)
 	ret = merge_result(ret, dotest(&starpu_disk_stdio_ops, s));
 	ret = merge_result(ret, dotest(&starpu_disk_unistd_ops, s));
 #ifdef STARPU_LINUX_SYS
-	ret = merge_result(ret, dotest(&starpu_disk_unistd_o_direct_ops, s));
+	if ((NX * sizeof(int)) % getpagesize() == 0)
+	{
+		ret = merge_result(ret, dotest(&starpu_disk_unistd_o_direct_ops, s));
+	}
+	else
+	{
+		ret = merge_result(ret, STARPU_TEST_SKIPPED);
+	}
 #endif
 	rmdir(s);
 	return ret;
