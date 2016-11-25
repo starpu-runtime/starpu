@@ -633,9 +633,9 @@ void _starpu_check_if_valid_and_fetch_data_on_node(starpu_data_handle_t handle, 
 	}
 	if (valid)
 	{
-		int ret = _starpu_fetch_data_on_node(handle, replicate, STARPU_R, 0, 0, 0, NULL, NULL, 0, origin);
+		int ret = _starpu_fetch_data_on_node(handle, handle->home_node, replicate, STARPU_R, 0, 0, 0, NULL, NULL, 0, origin);
 		STARPU_ASSERT(!ret);
-		_starpu_release_data_on_node(handle, 0, &handle->per_node[handle->home_node]);
+		_starpu_release_data_on_node(handle, handle->home_node, replicate);
 	}
 	else
 	{
@@ -906,7 +906,7 @@ static void _starpu_data_unregister_submit_cb(void *arg)
 	STARPU_ASSERT(handle->busy_count);
         _starpu_spin_unlock(&handle->header_lock);
 
-	starpu_data_release_on_node(handle, -1);
+	starpu_data_release_on_node(handle, STARPU_ACQUIRE_ALL_NODES);
 }
 
 void starpu_data_unregister_submit(starpu_data_handle_t handle)
@@ -920,7 +920,7 @@ void starpu_data_unregister_submit(starpu_data_handle_t handle)
 	}
 
 	/* Wait for all task dependencies on this handle before putting it for free */
-	starpu_data_acquire_on_node_cb(handle, -1, STARPU_RW, _starpu_data_unregister_submit_cb, handle);
+	starpu_data_acquire_on_node_cb(handle, STARPU_ACQUIRE_ALL_NODES, STARPU_RW, _starpu_data_unregister_submit_cb, handle);
 }
 
 static void _starpu_data_invalidate(void *data)
@@ -976,14 +976,14 @@ static void _starpu_data_invalidate(void *data)
 
 	_starpu_spin_unlock(&handle->header_lock);
 
-	starpu_data_release_on_node(handle, -1);
+	starpu_data_release_on_node(handle, STARPU_ACQUIRE_ALL_NODES);
 }
 
 void starpu_data_invalidate(starpu_data_handle_t handle)
 {
 	STARPU_ASSERT(handle);
 
-	starpu_data_acquire_on_node(handle, -1, STARPU_W);
+	starpu_data_acquire_on_node(handle, STARPU_ACQUIRE_ALL_NODES, STARPU_W);
 
 	_starpu_data_invalidate(handle);
 
@@ -994,7 +994,7 @@ void starpu_data_invalidate_submit(starpu_data_handle_t handle)
 {
 	STARPU_ASSERT(handle);
 
-	starpu_data_acquire_on_node_cb(handle, -1, STARPU_W, _starpu_data_invalidate, handle);
+	starpu_data_acquire_on_node_cb(handle, STARPU_ACQUIRE_ALL_NODES, STARPU_W, _starpu_data_invalidate, handle);
 
 	handle->initialized = 0;
 }

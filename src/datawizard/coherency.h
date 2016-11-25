@@ -279,7 +279,7 @@ void _starpu_display_msi_stats(void);
  * should thus *not* take a reference since it can not know whether the request will complete
  * async means that _starpu_fetch_data_on_node will wait for completion of the request
  */
-int _starpu_fetch_data_on_node(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate,
+int _starpu_fetch_data_on_node(starpu_data_handle_t handle, int node, struct _starpu_data_replicate *replicate,
 			       enum starpu_data_access_mode mode, unsigned detached, unsigned is_prefetch, unsigned async,
 			       void (*callback_func)(void *), void *callback_arg, int prio, const char *origin);
 /* This releases a reference on the handle */
