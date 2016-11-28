@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2010, 2012, 2014-2015  Université de Bordeaux
+ * Copyright (C) 2009-2010, 2012, 2014-2016  Université de Bordeaux
  * Copyright (C) 2010, 2015  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -25,6 +25,15 @@
 
 /* TODO actually move this struct into this header */
 struct _starpu_machine_config;
+
+#ifndef STARPU_SIMGRID
+#ifdef STARPU_HAVE_HWLOC
+/* This is allocated for each hwloc object */
+struct _starpu_hwloc_userdata {
+	struct _starpu_worker_list *worker_list; /* List of workers running on this obj */
+};
+#endif
+#endif
 
 /* Detect the number of memory nodes and where to bind the different workers. */
 int _starpu_build_topology(struct _starpu_machine_config *config, int no_mp_config);
