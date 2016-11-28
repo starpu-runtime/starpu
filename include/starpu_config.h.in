@@ -145,4 +145,6 @@ typedef ssize_t starpu_ssize_t;
 
 #undef STARPU_HAVE_DARWIN
 
+#undef STARPU_HAVE_CXX11
+
 #endif

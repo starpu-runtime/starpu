@@ -201,6 +201,7 @@ STARPU_EXAMPLES +=				\
 	basic_examples/dynamic_handles          \
 	mlr/mlr					\
 	cpp/incrementer_cpp			\
+	cpp/add_vectors				\
 	filters/fvector				\
 	filters/fblock				\
 	filters/fmatrix				\
@@ -229,11 +230,17 @@ STARPU_EXAMPLES +=				\
 	worker_collections/worker_tree_example  \
 	reductions/dot_product			\
 	reductions/minmax_reduction
+
 endif
 
 if !STARPU_SIMGRID
 STARPU_EXAMPLES +=				\
 	scheduler/dummy_sched
+
+if STARPU_HAVE_CXX11
+STARPU_EXAMPLES +=	\
+	cpp/add_vectors_cpp11
+endif
 
 if STARPU_HAVE_F77
 if STARPU_HAVE_F77_H
@@ -836,6 +843,18 @@ endif
 if STARPU_USE_OPENCL
 cpp_incrementer_cpp_SOURCES += \
 	incrementer/incrementer_kernels_opencl.c
+endif
+
+###########################
+# C++ Add vectors example #
+###########################
+
+cpp_add_vectors_SOURCES	=	\
+	cpp/add_vectors.cpp
+	
+if STARPU_HAVE_CXX11
+cpp_add_vectors_cpp11_SOURCES	=	\
+	cpp/add_vectors_cpp11.cpp
 endif
 
 #######################
