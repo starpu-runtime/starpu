@@ -403,7 +403,6 @@ int starpu_pthread_queue_register(starpu_pthread_wait_t *w, starpu_pthread_queue
 	{
 		/* Make room for the new waiter */
 		unsigned newalloc;
-		starpu_pthread_wait_t **newqueue;
 		newalloc = q->allocqueue * 2;
 		if (!newalloc)
 			newalloc = 1;
