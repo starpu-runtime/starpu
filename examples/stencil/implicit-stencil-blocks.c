@@ -276,8 +276,8 @@ static void free_block_on_node(starpu_data_handle_t handleptr, unsigned nx, unsi
 {
 	void *ptr = (void *) starpu_block_get_local_ptr(handleptr);
 	size_t block_size = nx*ny*nz*sizeof(TYPE);
-	starpu_free_flags(ptr, block_size, STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
 	starpu_data_unregister(handleptr);
+	starpu_free_flags(ptr, block_size, STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
 }
 
 void display_memory_consumption(int rank, double time)
