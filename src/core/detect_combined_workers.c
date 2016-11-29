@@ -26,11 +26,10 @@
 
 static void find_workers(hwloc_obj_t obj, int cpu_workers[STARPU_NMAXWORKERS], unsigned *n)
 {
-	struct _starpu_hwloc_userdata *data = obj->userdata;
-	if (!data->worker_list)
+	if (!obj->userdata)
 		/* Not something we run something on, don't care */
 		return;
-	if (data->worker_list == (void*) -1)
+	if (obj->userdata == (void*) -1)
 	{
 		/* Intra node, recurse */
 		unsigned i;
@@ -40,7 +39,7 @@ static void find_workers(hwloc_obj_t obj, int cpu_workers[STARPU_NMAXWORKERS], u
 	}
 
 	/* Got to a PU leaf */
-	struct _starpu_worker_list *workers = data->worker_list;
+	struct _starpu_worker_list *workers = obj->userdata;
 	struct _starpu_worker *worker;
 	for(worker = _starpu_worker_list_begin(workers); worker != _starpu_worker_list_end(workers); worker = _starpu_worker_list_next(worker))
 	{
@@ -74,7 +73,7 @@ static void synthesize_intermediate_workers(hwloc_obj_t *children, unsigned min,
 	chunk_start = 0;
 	for (i = 0 ; i < arity; i++)
 	{
-		if (((struct _starpu_hwloc_userdata*)children[i]->userdata)->worker_list)
+		if (children[i]->userdata)
 		{
 			n++;
 			_STARPU_DEBUG("child %u\n", i);
@@ -121,7 +120,7 @@ static void find_and_assign_combinations(hwloc_obj_t obj, unsigned min, unsigned
 	_STARPU_DEBUG("Looking at %s\n", name);
 
 	for (n = 0, i = 0; i < obj->arity; i++)
-		if (((struct _starpu_hwloc_userdata *)obj->children[i]->userdata)->worker_list)
+		if (obj->children[i]->userdata)
 			/* it has a CPU worker */
 			n++;
 
@@ -155,7 +154,7 @@ static void find_and_assign_combinations(hwloc_obj_t obj, unsigned min, unsigned
 
 	/* And recurse */
 	for (i = 0; i < obj->arity; i++)
-		if (((struct _starpu_hwloc_userdata*) obj->children[i]->userdata)->worker_list == (void*) -1)
+		if (obj->children[i]->userdata == (void*) -1)
 			find_and_assign_combinations(obj->children[i], min, max, synthesize_arity);
 }
 
@@ -186,7 +185,7 @@ static void find_and_assign_combinations_with_hwloc(int *workerids, int nworkers
 			obj = obj->parent;
 			while (obj)
 			{
-				((struct _starpu_hwloc_userdata*) obj->userdata)->worker_list = (void*) -1;
+				obj->userdata = (void*) -1;
 				obj = obj->parent;
 			}
 		}

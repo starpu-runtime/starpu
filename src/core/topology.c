@@ -417,32 +417,6 @@ _starpu_init_mic_node (struct _starpu_machine_config *config, int mic_idx,
 }
 #endif
 
-#ifndef STARPU_SIMGRID
-#ifdef STARPU_HAVE_HWLOC
-static void
-_starpu_allocate_topology_userdata(hwloc_obj_t obj)
-{
-	unsigned i;
-
-	obj->userdata = calloc(1, sizeof(struct _starpu_hwloc_userdata));
-	for (i = 0; i < obj->arity; i++)
-		_starpu_allocate_topology_userdata(obj->children[i]);
-}
-
-static void
-_starpu_deallocate_topology_userdata(hwloc_obj_t obj)
-{
-	unsigned i;
-	struct _starpu_hwloc_userdata *data = obj->userdata;
-
-	STARPU_ASSERT(!data->worker_list || data->worker_list == (void*)-1);
-	free(data);
-	for (i = 0; i < obj->arity; i++)
-		_starpu_allocate_topology_userdata(obj->children[i]);
-}
-#endif
-#endif
-
 static void
 _starpu_init_topology (struct _starpu_machine_config *config)
 {
@@ -465,7 +439,6 @@ _starpu_init_topology (struct _starpu_machine_config *config)
 #ifdef STARPU_HAVE_HWLOC
 	hwloc_topology_init(&topology->hwtopology);
 	hwloc_topology_load(topology->hwtopology);
-	_starpu_allocate_topology_userdata(hwloc_get_root_obj(topology->hwtopology));
 #endif
 #endif
 
@@ -1208,11 +1181,10 @@ void _starpu_destroy_machine_config(struct _starpu_machine_config *config)
 			hwloc_obj_t worker_obj = hwloc_get_obj_by_depth(config->topology.hwtopology,
 									config->pu_depth,
 									bindid);
-			struct _starpu_hwloc_userdata *data = worker_obj->userdata;
-			if (data->worker_list)
+			if (worker_obj->userdata)
 			{
-				_starpu_worker_list_delete(data->worker_list);
-				data->worker_list = NULL;
+				_starpu_worker_list_delete(worker_obj->userdata);
+				worker_obj->userdata = NULL;
 			}
 		}
 #endif
@@ -1236,7 +1208,6 @@ void _starpu_destroy_machine_config(struct _starpu_machine_config *config)
 	}
 
 #ifdef STARPU_HAVE_HWLOC
-	_starpu_deallocate_topology_userdata(hwloc_get_root_obj(config->topology.hwtopology));
 	hwloc_topology_destroy(config->topology.hwtopology);
 #endif
 
@@ -1637,10 +1608,11 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 			hwloc_obj_t worker_obj = hwloc_get_obj_by_depth(config->topology.hwtopology,
 									config->pu_depth,
 									workerarg->bindid);
-			struct _starpu_hwloc_userdata *data = worker_obj->userdata;
-			if (data->worker_list == NULL)
-				data->worker_list = _starpu_worker_list_new();
-			_starpu_worker_list_push_front(data->worker_list, workerarg);
+			if (worker_obj->userdata == NULL)
+			{
+				worker_obj->userdata = _starpu_worker_list_new();
+			}
+			_starpu_worker_list_push_front(worker_obj->userdata, workerarg);
 
 			/* Clear the cpu set and set the cpu */
 			workerarg->hwloc_cpu_set = hwloc_bitmap_dup (worker_obj->cpuset);
