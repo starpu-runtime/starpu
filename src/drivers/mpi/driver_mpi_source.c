@@ -83,26 +83,78 @@ void _starpu_mpi_source_free_memory(void *addr, unsigned memory_node)
  /* Transfert SIZE bytes from the address pointed by SRC in the SRC_NODE memory
   * node to the address pointed by DST in the DST_NODE memory node
   */
-int _starpu_mpi_copy_ram_to_mpi(void *src, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst, unsigned dst_node, size_t size)
+int _starpu_mpi_copy_ram_to_mpi_sync(void *src, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst, unsigned dst_node, size_t size)
 {
-    const struct _starpu_mp_node *mp_node = _starpu_mpi_src_get_mp_node_from_memory_node(dst_node);
-    return _starpu_src_common_copy_host_to_sink(mp_node, src, dst, size);
+    struct _starpu_mp_node *mp_node = _starpu_mpi_src_get_mp_node_from_memory_node(dst_node);
+    return _starpu_src_common_copy_host_to_sink_sync(mp_node, src, dst, size);
 }   
  
  /* Transfert SIZE bytes from the address pointed by SRC in the SRC_NODE memory
   * node to the address pointed by DST in the DST_NODE memory node
   */    
-int _starpu_mpi_copy_mpi_to_ram(void *src, unsigned src_node, void *dst, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size)
+int _starpu_mpi_copy_mpi_to_ram_sync(void *src, unsigned src_node, void *dst, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size)
 {
-    const struct _starpu_mp_node *mp_node = _starpu_mpi_src_get_mp_node_from_memory_node(src_node);
-    return _starpu_src_common_copy_sink_to_host(mp_node, src, dst, size);
+    struct _starpu_mp_node *mp_node = _starpu_mpi_src_get_mp_node_from_memory_node(src_node);
+    return _starpu_src_common_copy_sink_to_host_sync(mp_node, src, dst, size);
 }   
 
-int _starpu_mpi_copy_sink_to_sink(void *src, unsigned src_node, void *dst, unsigned dst_node, size_t size)
+int _starpu_mpi_copy_sink_to_sink_sync(void *src, unsigned src_node, void *dst, unsigned dst_node, size_t size)
 {
-    return _starpu_src_common_copy_sink_to_sink(_starpu_mpi_src_get_mp_node_from_memory_node(src_node),
+    return _starpu_src_common_copy_sink_to_sink_sync(_starpu_mpi_src_get_mp_node_from_memory_node(src_node),
             _starpu_mpi_src_get_mp_node_from_memory_node(dst_node),
             src, dst, size);
+}
+
+int _starpu_mpi_copy_mpi_to_ram_async(void *src, unsigned src_node, void *dst, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size, void * event)
+{
+    /* By default, init the request with MPI_REQUEST_NULL */
+    struct _starpu_async_channel * channel = event;
+    channel->event.mpi_ms_event.request = MPI_REQUEST_NULL;
+
+    struct _starpu_mp_node *mp_node = _starpu_mpi_src_get_mp_node_from_memory_node(src_node);
+    return _starpu_src_common_copy_sink_to_host_async(mp_node, src, dst, size, event);
+}
+
+int _starpu_mpi_copy_ram_to_mpi_async(void *src, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst, unsigned dst_node, size_t size, void * event)
+{
+    /* By default, init the request with MPI_REQUEST_NULL */
+    struct _starpu_async_channel * channel = event;
+    channel->event.mpi_ms_event.request = MPI_REQUEST_NULL;
+
+    struct _starpu_mp_node *mp_node = _starpu_mpi_src_get_mp_node_from_memory_node(dst_node);
+    return _starpu_src_common_copy_host_to_sink_async(mp_node, src, dst, size, event);
+}
+
+int _starpu_mpi_copy_sink_to_sink_async(void *src, unsigned src_node, void *dst, unsigned dst_node, size_t size, void * event)
+{
+    /* By default, init the request with MPI_REQUEST_NULL */
+    struct _starpu_async_channel * channel = event;
+    channel->event.mpi_ms_event.request = MPI_REQUEST_NULL;
+
+    return _starpu_src_common_copy_sink_to_sink_async(_starpu_mpi_src_get_mp_node_from_memory_node(src_node),
+            _starpu_mpi_src_get_mp_node_from_memory_node(dst_node),
+            src, dst, size, event);
+}
+
+/* - In device to device communications, the first ack received by host
+ * is considered as the sender (but it cannot be, in fact, the sender)
+ */
+void _starpu_mpi_src_wait_event(struct _starpu_async_channel * event)
+{
+    if (!event->event.mpi_ms_event.finished)
+    {
+        MPI_Wait(&event->event.mpi_ms_event.request, MPI_STATUS_IGNORE);
+        event->event.mpi_ms_event.finished = 1;
+        if (event->event.mpi_ms_event.is_sender)
+            event->starpu_mp_common_finished_sender = 1;
+        else
+            event->starpu_mp_common_finished_receiver = 1;
+    }
+
+    //XXX: Maybe cause deadlock when the same thread is waiting here and cannot handle
+    //incoming ack from devices
+    while(!event->starpu_mp_common_finished_sender || !event->starpu_mp_common_finished_receiver)
+        ;
 }
 
 
@@ -229,15 +281,6 @@ unsigned _starpu_mpi_src_get_device_count()
     return nb_mpi_devices;
 
 }
-
- void _starpu_mpi_exit_useless_node(int devid)
-{   
-    struct _starpu_mp_node *node = _starpu_mp_common_node_create(STARPU_MPI_SOURCE, devid);
-
-    _starpu_mp_common_send_command(node, STARPU_EXIT, NULL, 0);
-
-    _starpu_mp_common_node_destroy(node);
-}  
 
 void *_starpu_mpi_src_worker(void *arg)
 {

@@ -26,6 +26,7 @@
 #include <common/barrier.h>
 #include <common/thread.h>
 #include <datawizard/interfaces/data_interface.h>
+#include <datawizard/copy_driver.h>
 
 #ifdef STARPU_USE_MP
 
@@ -52,10 +53,21 @@ enum _starpu_mp_command
 	STARPU_ANSWER_ALLOCATE,
 	STARPU_ERROR_ALLOCATE,
 	STARPU_FREE,
+    /* Synchronous send */
 	STARPU_RECV_FROM_HOST,
 	STARPU_SEND_TO_HOST,
 	STARPU_RECV_FROM_SINK,
 	STARPU_SEND_TO_SINK,
+    /* Asynchronous send */
+	STARPU_RECV_FROM_HOST_ASYNC,
+    STARPU_RECV_FROM_HOST_ASYNC_COMPLETED,
+	STARPU_SEND_TO_HOST_ASYNC,
+	STARPU_SEND_TO_HOST_ASYNC_COMPLETED,
+	STARPU_RECV_FROM_SINK_ASYNC,
+	STARPU_RECV_FROM_SINK_ASYNC_COMPLETED,
+	STARPU_SEND_TO_SINK_ASYNC,
+	STARPU_SEND_TO_SINK_ASYNC_COMPLETED,
+
 	STARPU_TRANSFER_COMPLETE,
 	STARPU_SINK_NBCORES,
 	STARPU_ANSWER_SINK_NBCORES,
@@ -97,6 +109,7 @@ struct _starpu_mp_transfer_command
 {
 	size_t size;
 	void *addr;
+    void *event;
 };
 
 struct _starpu_mp_transfer_command_to_device
@@ -104,6 +117,7 @@ struct _starpu_mp_transfer_command_to_device
 	int devid;
 	size_t size;
 	void *addr;
+    void *event;
 };
 
 LIST_TYPE(mp_barrier,
@@ -130,6 +144,12 @@ struct mp_task
 	int combined_workerid;
  	struct mp_barrier* mp_barrier;
 };
+
+LIST_TYPE(_starpu_mp_event,
+    struct _starpu_async_channel event;
+    void * remote_event;
+    enum _starpu_mp_command answer_cmd;
+);
 
 
 /* Message-passing working node, whether source
@@ -183,6 +203,11 @@ struct _starpu_mp_node
 	 *  - sink_sink_dt_connections[j] is not initialized for the sink number j. */
 	union _starpu_mp_connection *sink_sink_dt_connections;
 
+    /* This list contains events
+     * about asynchronous request
+     */
+    struct _starpu_mp_event_list event_list;
+
 	/* */
 	starpu_pthread_barrier_t init_completed_barrier; 
 	
@@ -202,28 +227,31 @@ struct _starpu_mp_node
 	sem_t * sem_run_table;
 
 	/* Node general functions */
-	void (*init)(struct _starpu_mp_node *node);
-	void (*launch_workers)(struct _starpu_mp_node *node);
-	void (*deinit)(struct _starpu_mp_node *node);
-	void (*report_error)(const char *, const char *, const int, const int);
+	void (*init)            (struct _starpu_mp_node *node);
+	void (*launch_workers)  (struct _starpu_mp_node *node);
+	void (*deinit)          (struct _starpu_mp_node *node);
+	void (*report_error)    (const char *, const char *, const int, const int);
 
 	/* Message passing */
-	int (*mp_recv_is_ready)(const struct _starpu_mp_node *);
-	void (*mp_send)(const struct _starpu_mp_node *, void *, int);
-	void (*mp_recv)(const struct _starpu_mp_node *, void *, int);
+	int (*mp_recv_is_ready) (const struct _starpu_mp_node *);
+	void (*mp_send)         (const struct _starpu_mp_node *, void *, int);
+	void (*mp_recv)         (const struct _starpu_mp_node *, void *, int);
 
 	/* Data transfers */
-	void (*dt_send)(const struct _starpu_mp_node *, void *, int);
-	void (*dt_recv)(const struct _starpu_mp_node *, void *, int);
-	void (*dt_send_to_device)(const struct _starpu_mp_node *, int, void *, int);
-	void (*dt_recv_from_device)(const struct _starpu_mp_node *, int, void *, int);
+	void (*dt_send)             (const struct _starpu_mp_node *, void *, int, void *);
+	void (*dt_recv)             (const struct _starpu_mp_node *, void *, int, void *);
+	void (*dt_send_to_device)   (const struct _starpu_mp_node *, int, void *, int, void *);
+	void (*dt_recv_from_device) (const struct _starpu_mp_node *, int, void *, int, void *);
 
-	void (*(*get_kernel_from_job)(const struct _starpu_mp_node *,struct _starpu_job *))(void);
-	void (*(*lookup)(const struct _starpu_mp_node *, char* ))(void);
-	void (*bind_thread)(const struct _starpu_mp_node *, int,int *,int);
-	void (*execute)(struct _starpu_mp_node *, void *, int);
-	void (*allocate)(const struct _starpu_mp_node *, void *, int);
-	void (*free)(const struct _starpu_mp_node *, void *, int);
+    /* Test async transfers */
+    int (*dt_test) (struct _starpu_async_channel *);
+
+	void (*(*get_kernel_from_job)   (const struct _starpu_mp_node *,struct _starpu_job *))(void);
+	void (*(*lookup)                (const struct _starpu_mp_node *, char* ))(void);
+	void (*bind_thread)             (const struct _starpu_mp_node *, int,int *,int);
+	void (*execute)                 (struct _starpu_mp_node *, void *, int);
+	void (*allocate)                (const struct _starpu_mp_node *, void *, int);
+	void (*free)                    (const struct _starpu_mp_node *, void *, int);
 };
 
 struct _starpu_mp_node * _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind, int peer_devid) STARPU_ATTRIBUTE_MALLOC;

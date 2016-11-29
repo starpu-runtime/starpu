@@ -127,7 +127,7 @@ static int _starpu_src_common_handle_async(const struct _starpu_mp_node *node ST
 		void * arg, int arg_size,
 		enum _starpu_mp_command answer)
 {
-	struct _starpu_worker_set * worker_set=NULL;
+	struct _starpu_worker_set * worker_set = NULL;
 	switch(answer)
 	{
 		case STARPU_EXECUTION_COMPLETED:
@@ -137,6 +137,20 @@ static int _starpu_src_common_handle_async(const struct _starpu_mp_node *node ST
 		case STARPU_PRE_EXECUTION:
 			_starpu_src_common_pre_exec(arg,arg_size);
 			break;
+        case STARPU_RECV_FROM_HOST_ASYNC_COMPLETED:
+        case STARPU_RECV_FROM_SINK_ASYNC_COMPLETED:
+        {
+            struct _starpu_async_channel * event = arg;
+            event->starpu_mp_common_finished_receiver = 1;
+            break;
+        }
+        case STARPU_SEND_TO_HOST_ASYNC_COMPLETED:
+        case STARPU_SEND_TO_SINK_ASYNC_COMPLETED:
+        {
+            struct _starpu_async_channel * event = arg;
+            event->starpu_mp_common_finished_sender = 1;
+            break;
+        }
 		default:
 			return 0;
 			break;
@@ -187,6 +201,23 @@ int _starpu_src_common_store_message(struct _starpu_mp_node *node,
 			STARPU_PTHREAD_MUTEX_UNLOCK(&node->message_queue_mutex);
 			return 1;
 			break;
+        /* For ASYNC commands don't store them, update event */
+        case STARPU_RECV_FROM_HOST_ASYNC_COMPLETED:
+        case STARPU_RECV_FROM_SINK_ASYNC_COMPLETED:
+        {
+            struct _starpu_async_channel * event = arg;
+            event->starpu_mp_common_finished_receiver = 1;
+            return 1;
+            break;
+        }
+        case STARPU_SEND_TO_HOST_ASYNC_COMPLETED:
+        case STARPU_SEND_TO_SINK_ASYNC_COMPLETED:
+        {
+            struct _starpu_async_channel * event = arg;
+            event->starpu_mp_common_finished_sender = 1;
+            return 1;
+            break;
+        }
 		default:
 			return 0;
 			break;
@@ -499,29 +530,53 @@ void _starpu_src_common_free(const struct _starpu_mp_node *mp_node,
 	_starpu_mp_common_send_command(mp_node, STARPU_FREE, &addr, sizeof(addr));
 }
 
-/* Send SIZE bytes pointed by SRC to DST on the sink linked to the MP_NODE.
-*/
-int _starpu_src_common_copy_host_to_sink(const struct _starpu_mp_node *mp_node,
+/* Send SIZE bytes pointed by SRC to DST on the sink linked to the MP_NODE with a
+ * synchronous mode.
+ */
+int _starpu_src_common_copy_host_to_sink_sync(const struct _starpu_mp_node *mp_node,
 		void *src, void *dst, size_t size)
 {
-	struct _starpu_mp_transfer_command cmd = {size, dst};
+	struct _starpu_mp_transfer_command cmd = {size, dst, NULL};
 
 	_starpu_mp_common_send_command(mp_node, STARPU_RECV_FROM_HOST, &cmd, sizeof(cmd));
 
-	mp_node->dt_send(mp_node, src, size);
+	mp_node->dt_send(mp_node, src, size, NULL);
 
 	return 0;
 }
 
-/* Receive SIZE bytes pointed by SRC on the sink linked to the MP_NODE and store them in DST.
-*/
-int _starpu_src_common_copy_sink_to_host(const struct _starpu_mp_node *mp_node,
+/* Send SIZE bytes pointed by SRC to DST on the sink linked to the MP_NODE with an
+ * asynchronous mode.
+ */
+int _starpu_src_common_copy_host_to_sink_async(const struct _starpu_mp_node *mp_node,
+		void *src, void *dst, size_t size, void * event)
+{
+	struct _starpu_mp_transfer_command cmd = {size, dst, event};
+
+    /* For asynchronous transfers, we save informations
+     * to test is they are finished
+     */
+    struct _starpu_async_channel * async_channel = event;
+    async_channel->starpu_mp_common_finished_sender = 0;
+    async_channel->starpu_mp_common_finished_receiver = 0;
+
+	_starpu_mp_common_send_command(mp_node, STARPU_RECV_FROM_HOST_ASYNC, &cmd, sizeof(cmd));
+
+	mp_node->dt_send(mp_node, src, size, event);
+
+	return 0;
+}
+
+/* Receive SIZE bytes pointed by SRC on the sink linked to the MP_NODE and store them in DST
+ * with a synchronous mode.
+ */
+int _starpu_src_common_copy_sink_to_host_sync(struct _starpu_mp_node *mp_node,
 		void *src, void *dst, size_t size)
 {
     enum _starpu_mp_command answer;
 	void *arg;
 	int arg_size;
-	struct _starpu_mp_transfer_command cmd = {size, src};
+	struct _starpu_mp_transfer_command cmd = {size, src, NULL};
 
 	_starpu_mp_common_send_command(mp_node, STARPU_SEND_TO_HOST, &cmd, sizeof(cmd));
 
@@ -529,22 +584,45 @@ int _starpu_src_common_copy_sink_to_host(const struct _starpu_mp_node *mp_node,
      
     STARPU_ASSERT(answer == STARPU_SEND_TO_HOST);
 
-	mp_node->dt_recv(mp_node, dst, size);
+	mp_node->dt_recv(mp_node, dst, size, NULL);
 
 	return 0;
 }
 
-/* Tell the sink linked to SRC_NODE to send SIZE bytes of data pointed by SRC
- * to the sink linked to DST_NODE. The latter store them in DST.
+/* Receive SIZE bytes pointed by SRC on the sink linked to the MP_NODE and store them in DST
+ * with an asynchronous mode.
  */
-int _starpu_src_common_copy_sink_to_sink(const struct _starpu_mp_node *src_node,
+int _starpu_src_common_copy_sink_to_host_async(struct _starpu_mp_node *mp_node,
+		void *src, void *dst, size_t size, void * event)
+{
+	struct _starpu_mp_transfer_command cmd = {size, src, event};
+
+    /* For asynchronous transfers, we save informations
+     * to test is they are finished
+     */
+    struct _starpu_async_channel * async_channel = event;
+    async_channel->starpu_mp_common_finished_sender = 0;
+    async_channel->starpu_mp_common_finished_receiver = 0;
+
+	_starpu_mp_common_send_command(mp_node, STARPU_SEND_TO_HOST_ASYNC, &cmd, sizeof(cmd));
+
+	mp_node->dt_recv(mp_node, dst, size, event);
+    
+	return 0;
+}
+
+/* Tell the sink linked to SRC_NODE to send SIZE bytes of data pointed by SRC
+ * to the sink linked to DST_NODE. The latter store them in DST with a synchronous
+ * mode.
+ */
+int _starpu_src_common_copy_sink_to_sink_sync(const struct _starpu_mp_node *src_node,
 		const struct _starpu_mp_node *dst_node, void *src, void *dst, size_t size)
 {
 	enum _starpu_mp_command answer;
 	void *arg;
 	int arg_size;
 
-	struct _starpu_mp_transfer_command_to_device cmd = {dst_node->peer_id, size, src};
+	struct _starpu_mp_transfer_command_to_device cmd = {dst_node->peer_id, size, src, NULL};
 
 	/* Tell source to send data to dest. */
 	_starpu_mp_common_send_command(src_node, STARPU_SEND_TO_SINK, &cmd, sizeof(cmd));
@@ -560,6 +638,35 @@ int _starpu_src_common_copy_sink_to_sink(const struct _starpu_mp_node *src_node,
 	answer = _starpu_mp_common_recv_command(dst_node, &arg, &arg_size);
 
 	STARPU_ASSERT(answer == STARPU_TRANSFER_COMPLETE);
+
+	return 0;
+}
+
+/* Tell the sink linked to SRC_NODE to send SIZE bytes of data pointed by SRC
+ * to the sink linked to DST_NODE. The latter store them in DST with an asynchronous
+ * mode.
+ */
+int _starpu_src_common_copy_sink_to_sink_async(const struct _starpu_mp_node *src_node,
+		const struct _starpu_mp_node *dst_node, void *src, void *dst, size_t size, void * event)
+{
+	struct _starpu_mp_transfer_command_to_device cmd = {dst_node->peer_id, size, src, event};
+
+    /* For asynchronous transfers, we save informations
+     * to test is they are finished
+     */
+    struct _starpu_async_channel * async_channel = event;
+    async_channel->starpu_mp_common_finished_sender = 0;
+    async_channel->starpu_mp_common_finished_receiver = 0;
+
+	/* Tell source to send data to dest. */
+	_starpu_mp_common_send_command(src_node, STARPU_SEND_TO_SINK_ASYNC, &cmd, sizeof(cmd));
+
+	cmd.devid = src_node->peer_id;
+	cmd.size = size;
+	cmd.addr = dst;
+
+	/* Tell dest to receive data from source. */
+	_starpu_mp_common_send_command(dst_node, STARPU_RECV_FROM_SINK_ASYNC, &cmd, sizeof(cmd));
 
 	return 0;
 }
@@ -677,7 +784,6 @@ int _starpu_src_common_locate_file(char *located_file_name,
 
 
 #if defined(STARPU_USE_MPI_MASTER_SLAVE) && !defined(STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD)
-
 void _starpu_src_common_init_switch_env(unsigned this)
 {
     save_thread_env[this].current_task = starpu_task_get_current();
@@ -733,10 +839,10 @@ static void _starpu_src_common_send_workers(struct _starpu_mp_node * node, int b
 			&msg, sizeof(msg));
 
 	/* Send all worker to the sink node */
-	node->dt_send(node,&config->workers[baseworkerid],worker_size);
+	node->dt_send(node,&config->workers[baseworkerid],worker_size, NULL);
 
 	/* Send all combined workers to the sink node */
-	node->dt_send(node, &config->combined_workers,combined_worker_size);
+	node->dt_send(node, &config->combined_workers,combined_worker_size, NULL);
 }
 
 

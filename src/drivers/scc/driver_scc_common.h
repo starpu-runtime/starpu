@@ -39,8 +39,8 @@ int _starpu_scc_common_is_mp_initialized();
 int _starpu_scc_common_get_src_node_id();
 int _starpu_scc_common_is_src_node();
 
-void _starpu_scc_common_send(const struct _starpu_mp_node *node, void *msg, int len);
-void _starpu_scc_common_recv(const struct _starpu_mp_node *node, void *msg, int len);
+void _starpu_scc_common_send(const struct _starpu_mp_node *node, void *msg, int len, void * event);
+void _starpu_scc_common_recv(const struct _starpu_mp_node *node, void *msg, int len, void * event);
 
 void _starpu_scc_common_report_rcce_error(const char *func, const char *file, const int line, const int err_no);
 

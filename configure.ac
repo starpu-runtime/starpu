@@ -1008,6 +1008,19 @@ if test x$disable_asynchronous_mic_copy = xyes ; then
    AC_DEFINE([STARPU_DISABLE_ASYNCHRONOUS_MIC_COPY], [1], [Define to 1 to disable asynchronous copy between CPU and MIC devices])
 fi
 
+AC_MSG_CHECKING(whether asynchronous MPI Master Slave copy should be disabled)
+AC_ARG_ENABLE(asynchronous-mpi-master-slave-copy, [AS_HELP_STRING([--disable-asynchronous-mpi-master-slave-copy],
+			[disable asynchronous copy between MPI Master and MPI Slave devices])],
+			enable_asynchronous_mpi_master_slave_copy=$enableval, enable_asynchronous_mpi_master_slave_copy=yes)
+disable_asynchronous_mpi_master_slave_copy=no
+if test x$enable_asynchronous_mpi_master_slave_copy = xno ; then
+   disable_asynchronous_mpi_master_slave_copy=yes
+fi
+AC_MSG_RESULT($disable_asynchronous_mpi_master_slave_copy)
+if test x$disable_asynchronous_mpi_master_slave_copy = xyes ; then
+   AC_DEFINE([STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY], [1], [Define to 1 to disable asynchronous copy between MPI Master and MPI Slave devices])
+fi
+
 ###############################################################################
 #                                                                             #
 #                                 Drivers                                     #

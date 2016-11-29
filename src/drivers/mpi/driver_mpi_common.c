@@ -23,7 +23,8 @@
 #define NITER 32
 #define SIZE_BANDWIDTH (1024*1024)
 
-#define SYNC_TAG 42
+#define SYNC_TAG 44
+#define ASYNC_TAG 45
 
 #define DRIVER_MPI_MASTER_NODE_DEFAULT 0
 
@@ -80,23 +81,23 @@ int _starpu_mpi_common_mp_init()
         int required = MPI_THREAD_FUNNELED;
 #endif
 
-        int thread_support;
-        STARPU_ASSERT(MPI_Init_thread(_starpu_get_argc(), _starpu_get_argv(), required, &thread_support) == MPI_SUCCESS);
+            int thread_support;
+            STARPU_ASSERT(MPI_Init_thread(_starpu_get_argc(), _starpu_get_argv(), required, &thread_support) == MPI_SUCCESS);
 
-        if (thread_support != required)
-        {
-            if (required == MPI_THREAD_MULTIPLE)
-                fprintf(stderr, "MPI doesn't support MPI_THREAD_MULTIPLE option. MPI Master-Slave can have problems if multiple slaves are launched. \n");
-            if (required == MPI_THREAD_FUNNELED)
-                fprintf(stderr, "MPI doesn't support MPI_THREAD_FUNNELED option. Many errors can occur. \n");
+            if (thread_support != required)
+            {
+                if (required == MPI_THREAD_MULTIPLE)
+                    fprintf(stderr, "MPI doesn't support MPI_THREAD_MULTIPLE option. MPI Master-Slave can have problems if multiple slaves are launched. \n");
+                if (required == MPI_THREAD_FUNNELED)
+                    fprintf(stderr, "MPI doesn't support MPI_THREAD_FUNNELED option. Many errors can occur. \n");
+            }
         }
-    }
-    
-    /* Find which node is the master */
-    _starpu_mpi_set_src_node_id();
+        
+        /* Find which node is the master */
+        _starpu_mpi_set_src_node_id();
 
-    return 1;
-}
+        return 1;
+    }
 
 void _starpu_mpi_common_mp_deinit()
 {
@@ -118,7 +119,7 @@ int _starpu_mpi_common_get_src_node()
 
 int _starpu_mpi_common_is_mp_initialized()
 {
-	return mpi_initialized;
+    return mpi_initialized;
 }
 
 /* common parts to initialize a source or a sink node */
@@ -146,7 +147,7 @@ int _starpu_mpi_common_recv_is_ready(const struct _starpu_mp_node *mp_node)
         /* Sink can have sink to sink message */
         source = MPI_ANY_SOURCE;
     }
-        
+
     res = MPI_Iprobe(source, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, MPI_STATUS_IGNORE);
     STARPU_ASSERT_MSG(res == MPI_SUCCESS, "MPI Master/Slave cannot test if we received a message !");
 
@@ -154,7 +155,7 @@ int _starpu_mpi_common_recv_is_ready(const struct _starpu_mp_node *mp_node)
 }
 
 /* SEND to source node */
-void _starpu_mpi_common_send(const struct _starpu_mp_node *node, void *msg, int len)
+void _starpu_mpi_common_send(const struct _starpu_mp_node *node, void *msg, int len, void * event)
 {
     int res;
     int id_proc;
@@ -162,12 +163,30 @@ void _starpu_mpi_common_send(const struct _starpu_mp_node *node, void *msg, int 
 
     printf("envoi %d B to %d\n", len, node->mp_connection.mpi_remote_nodeid);
 
-    res = MPI_Send(msg, len, MPI_BYTE, node->mp_connection.mpi_remote_nodeid, SYNC_TAG, MPI_COMM_WORLD);
+    if (event)
+    {
+        /* Asynchronous send */
+        struct _starpu_async_channel * channel = event;
+        channel->event.mpi_ms_event.finished = 0;
+        channel->event.mpi_ms_event.is_sender = 1;
+        res = MPI_Isend(msg, len, MPI_BYTE, node->mp_connection.mpi_remote_nodeid, ASYNC_TAG, MPI_COMM_WORLD, &channel->event.mpi_ms_event.request);
+    } 
+    else
+    {
+        /* Synchronous send */
+        res = MPI_Send(msg, len, MPI_BYTE, node->mp_connection.mpi_remote_nodeid, SYNC_TAG, MPI_COMM_WORLD);
+    }
     STARPU_ASSERT_MSG(res == MPI_SUCCESS, "MPI Master/Slave cannot receive a msg with a size of %d Bytes !", len);
 }
 
+void _starpu_mpi_common_mp_send(const struct _starpu_mp_node *node, void *msg, int len)
+{
+    _starpu_mpi_common_send(node, msg, len, NULL);
+}
+
+
 /* RECV to source node */
-void _starpu_mpi_common_recv(const struct _starpu_mp_node *node, void *msg, int len)
+void _starpu_mpi_common_recv(const struct _starpu_mp_node *node, void *msg, int len, void * event)
 {
     int res;
     int id_proc;
@@ -176,16 +195,33 @@ void _starpu_mpi_common_recv(const struct _starpu_mp_node *node, void *msg, int 
 
     printf("recv %d B from %d in %p\n", len, node->mp_connection.mpi_remote_nodeid, msg);
 
-    res = MPI_Recv(msg, len, MPI_BYTE, node->mp_connection.mpi_remote_nodeid, SYNC_TAG, MPI_COMM_WORLD, &s);
-    int num_expected;
-    MPI_Get_count(&s, MPI_BYTE, &num_expected);
+    if (event)
+    {
+        /* Asynchronous recv */
+        struct _starpu_async_channel * channel = event;
+        channel->event.mpi_ms_event.finished = 0;
+        channel->event.mpi_ms_event.is_sender = 0;
+        res = MPI_Irecv(msg, len, MPI_BYTE, node->mp_connection.mpi_remote_nodeid, ASYNC_TAG, MPI_COMM_WORLD, &channel->event.mpi_ms_event.request);
+    } 
+    else
+    {
+        /* Synchronous recv */
+        res = MPI_Recv(msg, len, MPI_BYTE, node->mp_connection.mpi_remote_nodeid, SYNC_TAG, MPI_COMM_WORLD, &s);
+        int num_expected;
+        MPI_Get_count(&s, MPI_BYTE, &num_expected);
 
-    STARPU_ASSERT_MSG(num_expected == len, "MPI Master/Slave received a msg with a size of %d Bytes (expected %d Bytes) !", num_expected, len);
+        STARPU_ASSERT_MSG(num_expected == len, "MPI Master/Slave received a msg with a size of %d Bytes (expected %d Bytes) !", num_expected, len);
+    }
     STARPU_ASSERT_MSG(res == MPI_SUCCESS, "MPI Master/Slave cannot receive a msg with a size of %d Bytes !", len);
 }
 
+void _starpu_mpi_common_mp_recv(const struct _starpu_mp_node *node, void *msg, int len)
+{
+    _starpu_mpi_common_recv(node, msg, len, NULL);
+}
+
 /* SEND to any node */
-void _starpu_mpi_common_send_to_device(const struct _starpu_mp_node *node, int dst_devid, void *msg, int len)
+void _starpu_mpi_common_send_to_device(const struct _starpu_mp_node *node, int dst_devid, void *msg, int len, void * event)
 {   
     int res;
     int id_proc;
@@ -193,12 +229,25 @@ void _starpu_mpi_common_send_to_device(const struct _starpu_mp_node *node, int d
 
     printf("send %d bytes from %d from %p\n", len, dst_devid, msg);
 
-    res = MPI_Send(msg, len, MPI_BYTE, dst_devid, SYNC_TAG, MPI_COMM_WORLD);
+    if (event)
+    {
+        /* Asynchronous send */
+        struct _starpu_async_channel * channel = event;
+        channel->event.mpi_ms_event.finished = 0;
+        channel->event.mpi_ms_event.is_sender = 1;
+        res = MPI_Isend(msg, len, MPI_BYTE, dst_devid, ASYNC_TAG, MPI_COMM_WORLD, &channel->event.mpi_ms_event.request);
+    } 
+    else
+    {
+        /* Synchronous send */
+        res = MPI_Send(msg, len, MPI_BYTE, dst_devid, SYNC_TAG, MPI_COMM_WORLD);
+    }    
+
     STARPU_ASSERT_MSG(res == MPI_SUCCESS, "MPI Master/Slave cannot receive a msg with a size of %d Bytes !", len);
 }
 
 /* RECV to any node */
-void _starpu_mpi_common_recv_from_device(const struct _starpu_mp_node *node, int src_devid, void *msg, int len)
+void _starpu_mpi_common_recv_from_device(const struct _starpu_mp_node *node, int src_devid, void *msg, int len, void * event)
 {
     int res;
     int id_proc;
@@ -206,9 +255,50 @@ void _starpu_mpi_common_recv_from_device(const struct _starpu_mp_node *node, int
 
     printf("nop recv %d bytes from %d\n", len, src_devid);
 
-    res = MPI_Recv(msg, len, MPI_BYTE, src_devid, SYNC_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-    STARPU_ASSERT_MSG(res == MPI_SUCCESS, "MPI Master/Slave cannot receive a msg with a size of %d Bytes !", len);
+    if (event)
+    {
+        /* Asynchronous recv */
+        struct _starpu_async_channel * channel = event;
+        channel->event.mpi_ms_event.finished = 0;
+        channel->event.mpi_ms_event.is_sender = 0;
+        res = MPI_Irecv(msg, len, MPI_BYTE, src_devid, ASYNC_TAG, MPI_COMM_WORLD, &channel->event.mpi_ms_event.request);
+    } 
+    else
+    {
+        /* Synchronous recv */
+        res = MPI_Recv(msg, len, MPI_BYTE, src_devid, SYNC_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        STARPU_ASSERT_MSG(res == MPI_SUCCESS, "MPI Master/Slave cannot receive a msg with a size of %d Bytes !", len);
+    }
 }
+
+/* - In MPI Master-Slave communications between host and device,
+ * host is always considered as the sender and the device, the receiver.
+ * - In device to device communications, the first ack received by host
+ * is considered as the sender (but it cannot be, in fact, the sender)
+ */
+int _starpu_mpi_common_test_event(struct _starpu_async_channel * event)
+{
+    //if the event is not finished, maybe it's a host-device communication
+    //or host has already finished its work
+    if (!event->event.mpi_ms_event.finished)
+    {
+        int flag = 0;
+        MPI_Test(&event->event.mpi_ms_event.request, &flag, MPI_STATUS_IGNORE);
+        if (flag)
+        {
+            event->event.mpi_ms_event.finished = 1;
+            if (event->event.mpi_ms_event.is_sender)
+                event->starpu_mp_common_finished_sender = 1;
+            else
+                event->starpu_mp_common_finished_receiver = 1;
+        }
+    }
+
+    return event->starpu_mp_common_finished_sender && event->starpu_mp_common_finished_receiver;
+}
+
+
+
 
 void _starpu_mpi_common_barrier(void)
 {

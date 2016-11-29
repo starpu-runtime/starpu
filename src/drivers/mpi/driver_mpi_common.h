@@ -34,11 +34,16 @@ int _starpu_mpi_common_recv_is_ready(const struct _starpu_mp_node *mp_node);
 
 void _starpu_mpi_common_mp_initialize_src_sink(struct _starpu_mp_node *node);
 
-void _starpu_mpi_common_send(const struct _starpu_mp_node *node, void *msg, int len);
-void _starpu_mpi_common_recv(const struct _starpu_mp_node *node, void *msg, int len);
+void _starpu_mpi_common_send(const struct _starpu_mp_node *node, void *msg, int len, void * event);
+void _starpu_mpi_common_recv(const struct _starpu_mp_node *node, void *msg, int len, void * event);
 
-void _starpu_mpi_common_recv_from_device(const struct _starpu_mp_node *node, int src_devid, void *msg, int len);
-void _starpu_mpi_common_send_to_device(const struct _starpu_mp_node *node, int dst_devid, void *msg, int len);
+void _starpu_mpi_common_mp_send(const struct _starpu_mp_node *node, void *msg, int len);
+void _starpu_mpi_common_mp_recv(const struct _starpu_mp_node *node, void *msg, int len);
+
+void _starpu_mpi_common_recv_from_device(const struct _starpu_mp_node *node, int src_devid, void *msg, int len, void * event);
+void _starpu_mpi_common_send_to_device(const struct _starpu_mp_node *node, int dst_devid, void *msg, int len, void * event);
+
+int _starpu_mpi_common_test_event(struct _starpu_async_channel * event);
 
 void _starpu_mpi_common_barrier(void);
 

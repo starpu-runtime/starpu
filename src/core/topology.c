@@ -874,7 +874,7 @@ _starpu_init_mpi_config (struct _starpu_machine_config *config,
 	_starpu_init_mpi_topology (config, mpi_idx);
 
 	int nmpicores;
-	nmpicores = starpu_get_env_number("STARPU_NMPITHREADS");
+	nmpicores = starpu_get_env_number("STARPU_NMPIMSTHREADS");
 
 	if (nmpicores == -1)
 	{

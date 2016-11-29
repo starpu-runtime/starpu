@@ -57,14 +57,23 @@ int _starpu_src_common_execute_kernel(const struct _starpu_mp_node *node,
 				      void *cl_arg, size_t cl_arg_size);
 
 
-int _starpu_src_common_copy_host_to_sink(const struct _starpu_mp_node *mp_node,
+int _starpu_src_common_copy_host_to_sink_sync(const struct _starpu_mp_node *mp_node,
 					 void *src, void *dst, size_t size);
 
-int _starpu_src_common_copy_sink_to_host(const struct _starpu_mp_node *mp_node,
+int _starpu_src_common_copy_sink_to_host_sync(struct _starpu_mp_node *mp_node,
 					 void *src, void *dst, size_t size);
 
-int _starpu_src_common_copy_sink_to_sink(const struct _starpu_mp_node *src_node,
+int _starpu_src_common_copy_sink_to_sink_sync(const struct _starpu_mp_node *src_node,
 					 const struct _starpu_mp_node *dst_node, void *src, void *dst, size_t size);
+
+int _starpu_src_common_copy_host_to_sink_async(const struct _starpu_mp_node *mp_node,
+					 void *src, void *dst, size_t size, void *event);
+
+int _starpu_src_common_copy_sink_to_host_async(struct _starpu_mp_node *mp_node,
+					 void *src, void *dst, size_t size, void *event);
+
+int _starpu_src_common_copy_sink_to_sink_async(const struct _starpu_mp_node *src_node,
+					 const struct _starpu_mp_node *dst_node, void *src, void *dst, size_t size, void *event);
 
 int _starpu_src_common_locate_file(char *located_file_name,
 				   const char *env_file_name, const char *env_mic_path,

@@ -1049,6 +1049,14 @@ int starpu_conf_init(struct starpu_conf *conf)
 		conf->disable_asynchronous_mic_copy = 0;
 #endif
 
+#if defined(STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY)
+    conf->disable_asynchronous_mpi_ms_copy = 1;
+#else
+    conf->disable_asynchronous_mpi_ms_copy = starpu_get_env_number("STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY");
+    if(conf->disable_asynchronous_mpi_ms_copy == -1)
+        conf->disable_asynchronous_mpi_ms_copy = 0;
+#endif
+
 	/* 64MiB by default */
 	conf->trace_buffer_size = starpu_get_env_number_default("STARPU_TRACE_BUFFER_SIZE", 64) << 20;
 	return 0;
@@ -1093,6 +1101,7 @@ void _starpu_conf_check_environment(struct starpu_conf *conf)
 	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_CUDA_COPY", &conf->disable_asynchronous_cuda_copy);
 	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_OPENCL_COPY", &conf->disable_asynchronous_opencl_copy);
 	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_MIC_COPY", &conf->disable_asynchronous_mic_copy);
+	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY", &conf->disable_asynchronous_mpi_ms_copy);
 }
 
 struct starpu_tree* starpu_workers_get_tree(void)
@@ -1773,6 +1782,11 @@ int starpu_asynchronous_opencl_copy_disabled(void)
 int starpu_asynchronous_mic_copy_disabled(void)
 {
 	return _starpu_config.conf.disable_asynchronous_mic_copy;
+}
+
+int starpu_asynchronous_mpi_ms_copy_disabled(void)
+{
+    return _starpu_config.conf.disable_asynchronous_mpi_ms_copy;
 }
 
 unsigned starpu_mic_worker_get_count(void)

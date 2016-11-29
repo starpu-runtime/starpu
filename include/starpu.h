@@ -121,6 +121,7 @@ struct starpu_conf
 	int disable_asynchronous_cuda_copy;
 	int disable_asynchronous_opencl_copy;
 	int disable_asynchronous_mic_copy;
+	int disable_asynchronous_mpi_ms_copy;
 
 	unsigned *cuda_opengl_interoperability;
 	unsigned n_cuda_opengl_interoperability;
@@ -150,6 +151,7 @@ int starpu_asynchronous_copy_disabled(void);
 int starpu_asynchronous_cuda_copy_disabled(void);
 int starpu_asynchronous_opencl_copy_disabled(void);
 int starpu_asynchronous_mic_copy_disabled(void);
+int starpu_asynchronous_mpi_ms_copy_disabled(void);
 
 void starpu_display_stats();
 

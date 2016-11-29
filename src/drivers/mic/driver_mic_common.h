@@ -56,13 +56,13 @@ void _starpu_mic_common_report_scif_error(const char *func, const char *file, in
 
 int _starpu_mic_common_recv_is_ready(const struct _starpu_mp_node *mp_node);
 
-void _starpu_mic_common_send(const struct _starpu_mp_node *node, void *msg, int len);
+void _starpu_mic_common_send(const struct _starpu_mp_node *node, void *msg, int len, void * event);
 
-void _starpu_mic_common_recv(const struct _starpu_mp_node *node, void *msg, int len);
+void _starpu_mic_common_recv(const struct _starpu_mp_node *node, void *msg, int len, void * event);
 
-void _starpu_mic_common_dt_send(const struct _starpu_mp_node *node, void *msg, int len);
+void _starpu_mic_common_dt_send(const struct _starpu_mp_node *node, void *msg, int len, void * event);
 
-void _starpu_mic_common_dt_recv(const struct _starpu_mp_node *node, void *msg, int len);
+void _starpu_mic_common_dt_recv(const struct _starpu_mp_node *node, void *msg, int len, void * event);
 
 void _starpu_mic_common_connect(scif_epd_t *endpoint, uint16_t remote_node, COIPROCESS process,
 				uint16_t local_port_number, uint16_t remote_port_number);

@@ -58,6 +58,9 @@ void _starpu_scc_sink_deinit(struct _starpu_mp_node *node)
 void _starpu_scc_sink_send_to_device(const struct _starpu_mp_node *node, int dst_devid, void *msg, int len)
 {
 	int ret;
+
+    STARPU_ASSERT_MSG(!event, "Asynchronous msg is not used here");
+
 	if ((ret = RCCE_send(msg, len, STARPU_TO_SCC_SINK_ID(dst_devid))) != RCCE_SUCCESS)
 		STARPU_MP_COMMON_REPORT_ERROR(node, ret);
 }
@@ -65,6 +68,9 @@ void _starpu_scc_sink_send_to_device(const struct _starpu_mp_node *node, int dst
 void _starpu_scc_sink_recv_from_device(const struct _starpu_mp_node *node, int src_devid, void *msg, int len)
 {
 	int ret;
+
+    STARPU_ASSERT_MSG(!event, "Asynchronous msg is not used here");
+
 	if ((ret = RCCE_recv(msg, len, STARPU_TO_SCC_SINK_ID(src_devid))) != RCCE_SUCCESS)
 		STARPU_MP_COMMON_REPORT_ERROR(node, ret);
 }
