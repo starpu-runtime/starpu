@@ -1192,6 +1192,7 @@ if test x$enable_mlr = xyes -a "$starpu_windows" != "yes" ; then
 	fi
 else
  	AC_MSG_RESULT(yes)
+	install_min_dgels=no
 fi
 AM_CONDITIONAL(STARPU_USE_MIN_DGELS, test x$install_min_dgels = xyes)
 
@@ -2339,6 +2340,7 @@ AC_SUBST([pkglibdir])
 AC_ARG_ENABLE(fortran, [AS_HELP_STRING([--disable-fortran],
 			[disable build of fortran examples])],
 			enable_build_fortran=$enableval, enable_build_fortran=yes)
+use_mpi_fort=no
 if test "x$FC" != "x"; then
 	if $FC --version|grep -q 'GNU Fortran'; then
 		gfortran_fc_version=`$FC --version|head -1|sed 's/.*)//;s/^.*\([[0-9]][[0-9]]*\)\.\([[0-9]][[0-9]]*\)\.\([[0-9]][[0-9]]*\).*/\1.\2.\3/'`
@@ -3167,20 +3169,21 @@ AC_MSG_NOTICE([
         Examples:          $enable_build_examples
 
 	StarPU Extensions:
-	       StarPU MPI enabled:                          $build_mpi_lib
-	       MPI test suite:                              $running_mpi_check
-	       Master-Slave MPI enabled:                    $use_mpi_master_slave
-	       FFT Support:                                 $fft_support
-	       GCC plug-in:                                 $build_gcc_plugin
-	       GCC plug-in test suite (requires GNU Guile): $run_gcc_plugin_test_suite
-	       OpenMP runtime support enabled:              $enable_openmp
-	       SOCL enabled:                                $build_socl
-               SOCL test suite:                             $run_socl_check
-               Scheduler Hypervisor:                        $build_sc_hypervisor
-               simgrid enabled:                             $enable_simgrid
-               ayudame enabled:                             $ayu_msg
-	       Native fortran support:                      $enable_build_fortran
-	       Native MPI fortran support:                  $use_mpi_fort
+	       StarPU MPI enabled:                            $build_mpi_lib
+	       MPI test suite:                                $running_mpi_check
+	       Master-Slave MPI enabled:                      $use_mpi_master_slave
+	       FFT Support:                                   $fft_support
+	       GCC plug-in:                                   $build_gcc_plugin
+	       GCC plug-in test suite (requires GNU Guile):   $run_gcc_plugin_test_suite
+	       OpenMP runtime support enabled:                $enable_openmp
+	       SOCL enabled:                                  $build_socl
+               SOCL test suite:                               $run_socl_check
+               Scheduler Hypervisor:                          $build_sc_hypervisor
+               simgrid enabled:                               $enable_simgrid
+               ayudame enabled:                               $ayu_msg
+	       Native fortran support:                        $enable_build_fortran
+	       Native MPI fortran support:                    $use_mpi_fort
+	       Support for multiple linear regression models: $install_min_dgels
 ])
 
 if test "$build_socl" = "yes" -a "$run_socl_check" = "no" ; then
