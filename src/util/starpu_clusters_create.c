@@ -679,12 +679,15 @@ void _starpu_cluster(struct _starpu_cluster_group *group)
 		/* If we have more than one worker on this resource, let's add them too --
 		   even if it's bad (they'll all be boud on the same PU) */
 		int size = 0, j;
-		struct _starpu_worker *worker_str = _starpu_worker_list_front(pu->userdata);
-		for (j = 0; j < _starpu_worker_list_size(pu->userdata) ; j++)
+		struct _starpu_hwloc_userdata *data = pu->userdata;
+		struct _starpu_worker_list *list = data->worker_list;
+		struct _starpu_worker *worker_str = _starpu_worker_list_front(list);
+		for (worker_str = _starpu_worker_list_begin(list);
+			worker_str != _starpu_worker_list_end(list);
+			worker_str = _starpu_worker_list_next(worker_str))
 		{
 			if (worker_str->arch == STARPU_CPU_WORKER)
 				size++;
-			worker_str = _starpu_worker_list_next(worker_str);
 		}
 
 		if (size > 1)
@@ -703,12 +706,12 @@ void _starpu_cluster(struct _starpu_cluster_group *group)
 		}
 
 		/* grab workerid list and return first cpu */
-		worker_str = _starpu_worker_list_front(pu->userdata);
+		worker_str = _starpu_worker_list_begin(list);
 		if (worker_str)
 			hwloc_bitmap_or(cluster->cpuset, cluster->cpuset,
 					worker_str->hwloc_cpu_set);
 		j = 0;
-		while (worker_str)
+		while (worker_str != _starpu_worker_list_end(list))
 		{
 			if (worker_str->arch == STARPU_CPU_WORKER)
 			{
