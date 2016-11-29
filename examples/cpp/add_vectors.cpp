@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010-2011, 2013-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016  CNRS
  * Copyright (C) 2012 INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -39,15 +39,15 @@ void cpu_kernel_add_vectors(void *buffers[], void *cl_arg)
 	void* u_data0 = starpu_data_get_user_data(task->handles[0]); assert(u_data0);
 	void* u_data1 = starpu_data_get_user_data(task->handles[1]); assert(u_data1);
 	void* u_data2 = starpu_data_get_user_data(task->handles[2]); assert(u_data2);
-	
+
 	// cast void* in std::vector<char>*
 	std::vector<char>* vec_A = static_cast<std::vector<char>*>(u_data0);
 	std::vector<char>* vec_B = static_cast<std::vector<char>*>(u_data1);
 	std::vector<char>* vec_C = static_cast<std::vector<char>*>(u_data2);
-	
+
 	// all the std::vector have to have the same size
 	assert(vec_A->size() == vec_B->size() && vec_B->size() == vec_C->size());
-	
+
 	// performs the vector addition (vec_C[] = vec_A[] + vec_B[])
 	for (size_t i = 0; i < vec_C->size(); i++)
 		(*vec_C)[i] = (*vec_A)[i] + (*vec_B)[i];
@@ -69,17 +69,17 @@ int main(int argc, char **argv)
 	starpu_data_handle_t spu_vec_A;
 	starpu_data_handle_t spu_vec_B;
 	starpu_data_handle_t spu_vec_C;
-	
+
 	// give the data of the vector to StarPU (C array)
 	starpu_vector_data_register(&spu_vec_A, STARPU_MAIN_RAM, (uintptr_t)&vec_A[0], vec_A.size(), sizeof(char));
 	starpu_vector_data_register(&spu_vec_B, STARPU_MAIN_RAM, (uintptr_t)&vec_B[0], vec_B.size(), sizeof(char));
 	starpu_vector_data_register(&spu_vec_C, STARPU_MAIN_RAM, (uintptr_t)&vec_C[0], vec_C.size(), sizeof(char));
-	
+
 	// pass the pointer to the C++ vector object to StarPU
 	starpu_data_set_user_data(spu_vec_A, (void*)&vec_A);
 	starpu_data_set_user_data(spu_vec_B, (void*)&vec_B);
 	starpu_data_set_user_data(spu_vec_C, (void*)&vec_C);
-	
+
 	// create the StarPU codelet
 	starpu_codelet cl;
 	starpu_codelet_init(&cl);
@@ -90,19 +90,31 @@ int main(int argc, char **argv)
 	cl.modes         [1] = STARPU_R;
 	cl.modes         [2] = STARPU_W;
 	cl.name              = "add_vectors";
-	
+
 	// submit a new StarPU task to execute
 	ret = starpu_task_insert(&cl,
 	                         STARPU_R, spu_vec_A,
 	                         STARPU_R, spu_vec_B,
 	                         STARPU_W, spu_vec_C,
 	                         0);
-	
+	if (ret == -ENODEV)
+	{
+		// StarPU data unregistering
+		starpu_data_unregister(spu_vec_C);
+		starpu_data_unregister(spu_vec_B);
+		starpu_data_unregister(spu_vec_A);
+
+		// terminate StarPU, no task can be submitted after
+		starpu_shutdown();
+
+		return 77;
+	}
+
 	STARPU_CHECK_RETURN_VALUE(ret, "task_submit::add_vectors");
-	
+
 	// wait the task
 	starpu_task_wait_for_all();
-	
+
 	// StarPU data unregistering
 	starpu_data_unregister(spu_vec_C);
 	starpu_data_unregister(spu_vec_B);
@@ -116,7 +128,7 @@ int main(int argc, char **argv)
 	int i = 0;
 	while (!fail && i < VEC_SIZE)
 		fail = vec_C[i++] != 5;
-		
+
 	if (fail)
 	{
 #ifdef PRINT_OUTPUT
