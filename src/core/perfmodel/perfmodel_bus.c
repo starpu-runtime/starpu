@@ -1030,7 +1030,7 @@ static int load_bus_latency_file_content(void)
 			n = _starpu_read_double(f, "%le", &latency);
 			if (n != 1)
 			{
-				_STARPU_DISP("Error while reading latency file <%s>. Expected a number\n", path);
+				_STARPU_DISP("Error while reading latency file <%s>. Expected a number. Did you change the maximum number of GPUs at ./configure time?\n", path);
 				fclose(f);
 				return 0;
 			}
@@ -1069,7 +1069,7 @@ static int load_bus_latency_file_content(void)
 			n = _starpu_read_double(f, "%le", &latency);
 			if (n && !isnan(latency))
 			{
-				_STARPU_DISP("Too many nodes in latency file %s for this configuration (%d)\n", path, STARPU_MAXNODES);
+				_STARPU_DISP("Too many nodes in latency file %s for this configuration (%d). Did you change the maximum number of GPUs at ./configure time?\n", path, STARPU_MAXNODES);
 				fclose(f);
 				return 0;
 			}

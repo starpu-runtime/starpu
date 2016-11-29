@@ -61,7 +61,8 @@ run several times before the model is calibrated.
 \section Simulation Simulation
 
 Then, recompile StarPU, passing \ref enable-simgrid "--enable-simgrid"
-to <c>./configure</c>.
+to <c>./configure</c>. Make sure to keep all other <c>./configure</c> options
+the same, and notably options such as <c>--enable-maxcudadev</c>.
 
 \verbatim
 $ ./configure --enable-simgrid
