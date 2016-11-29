@@ -65,7 +65,7 @@ struct _starpu_lws_data_per_worker
 {
 	struct _starpu_fifo_taskq *queue_array;
 	int *proxlist;
-	pthread_mutex_t worker_mutex;
+	starpu_pthread_mutex_t worker_mutex;
 	int busy;
 
 #ifdef USE_LOCALITY_TASKS
@@ -547,7 +547,7 @@ static void lws_add_workers(unsigned sched_ctx_id, int *workerids,unsigned nwork
 
 		ws->per_worker[workerid].queue_array->nprocessed = 0;
 		ws->per_worker[workerid].queue_array->ntasks = 0;
-		pthread_mutex_init(&ws->per_worker[workerid].worker_mutex, NULL);
+		STARPU_PTHREAD_MUTEX_INIT(&ws->per_worker[workerid].worker_mutex, NULL);
 		ws->per_worker[workerid].busy = 0;
 		STARPU_HG_DISABLE_CHECKING(ws->per_worker[workerid].busy);
 	}
@@ -612,7 +612,7 @@ static void lws_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned n
 		free(ws->per_worker[workerid].proxlist);
 		ws->per_worker[workerid].proxlist = NULL;
 #endif
-		pthread_mutex_destroy(&ws->per_worker[workerid].worker_mutex);
+		STARPU_PTHREAD_MUTEX_DESTROY(&ws->per_worker[workerid].worker_mutex);
 	}
 }
 
