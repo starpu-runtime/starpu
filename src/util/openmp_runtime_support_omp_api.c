@@ -267,7 +267,10 @@ int starpu_omp_get_team_num(void)
 
 int starpu_omp_is_initial_device(void)
 {
-	const struct starpu_omp_device * const device = _starpu_omp_get_task()->owner_region->owner_device;
+	struct starpu_omp_task *task = _starpu_omp_get_task();
+	if (!task)
+		return 0;
+	const struct starpu_omp_device * const device = task->owner_region->owner_device;
 	return device == _starpu_omp_global_state->initial_device;
 }
 
