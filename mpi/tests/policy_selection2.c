@@ -52,7 +52,6 @@ int main(int argc, char **argv)
 	int ret;
 	int i;
 	int rank, size;
-	struct starpu_task *task;
 	int data[3];
 	starpu_data_handle_t handles[3];
 

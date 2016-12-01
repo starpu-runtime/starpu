@@ -242,7 +242,6 @@ int main(int argc, char **argv)
 		}
 	}
 
-end:
 	MPI_Finalize();
 	return global_ret==-ENODEV?STARPU_TEST_SKIPPED:global_ret;
 }
