@@ -138,7 +138,7 @@ static void show_task_perfs(int size, struct starpu_task *task)
 		unsigned nimpl;
 		for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 		{
-			FPRINTF(stdout, "Expected time for %d on %s (impl %d):\t%f\n",
+			FPRINTF(stdout, "Expected time for %d on %s (impl %u):\t%f\n",
 				size, name, nimpl, starpu_task_expected_length(task, starpu_worker_get_perf_archtype(workerid, task->sched_ctx), nimpl));
 		}
 	}

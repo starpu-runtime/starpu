@@ -103,12 +103,12 @@ int mm_is_valid(MM_typecode matcode)
 
 int mm_read_banner(FILE *f, MM_typecode *matcode)
 {
-	char line[MM_MAX_LINE_LENGTH];
-	char banner[MM_MAX_TOKEN_LENGTH];
-	char mtx[MM_MAX_TOKEN_LENGTH];
-	char crd[MM_MAX_TOKEN_LENGTH];
-	char data_type[MM_MAX_TOKEN_LENGTH];
-	char storage_scheme[MM_MAX_TOKEN_LENGTH];
+	char line[MM_MAX_LINE_LENGTH+1];
+	char banner[MM_MAX_TOKEN_LENGTH+1];
+	char mtx[MM_MAX_TOKEN_LENGTH+1];
+	char crd[MM_MAX_TOKEN_LENGTH+1];
+	char data_type[MM_MAX_TOKEN_LENGTH+1];
+	char storage_scheme[MM_MAX_TOKEN_LENGTH+1];
 	char *p;
 
 	mm_clear_typecode(matcode);

@@ -379,5 +379,6 @@ void dw_factoLU_grain(float *matA, unsigned size, unsigned ld, unsigned nblocks,
 
 #ifdef CHECK_RESULTS
 	compare_A_LU(Asaved, matA, size, ld);
+	free(Asaved);
 #endif
 }
