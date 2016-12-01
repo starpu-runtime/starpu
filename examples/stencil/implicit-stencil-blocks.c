@@ -282,7 +282,7 @@ static void free_block_on_node(starpu_data_handle_t handleptr, unsigned nx, unsi
 
 void display_memory_consumption(int rank, double time)
 {
-	FPRINTF(stderr, "%lu B of memory were allocated on node %d in %f ms\n", allocated, rank, time/1000);
+	FPRINTF(stderr, "%lu B of memory were allocated on node %d in %f ms\n", (unsigned long)allocated, rank, time/1000);
 }
 
 void allocate_memory_on_node(int rank)
@@ -356,18 +356,17 @@ void allocate_memory_on_node(int rank)
 	{
 		struct block_description *block = get_block_description(bz);
 		int node = block->mpi_node;
-		unsigned size_bz = block_sizes_z[bz];
 
 		if (node == rank)
 		{
-            /* Set all the data to 0 */
-            create_task_memset(sizex, sizey, bz);
+			/* Set all the data to 0 */
+			create_task_memset(sizex, sizey, bz);
 
-            /* Initialize the first layer with some random data */
-            create_task_initlayer(sizex, sizey, bz);
+			/* Initialize the first layer with some random data */
+			create_task_initlayer(sizex, sizey, bz);
 		}
 	}
-    starpu_task_wait_for_all();
+	starpu_task_wait_for_all();
 }
 
 void free_memory_on_node(int rank)

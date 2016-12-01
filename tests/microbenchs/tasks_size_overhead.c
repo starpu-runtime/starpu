@@ -56,13 +56,12 @@ struct starpu_task *tasks;
 
 void func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
 {
-	double tv1, tv2;
 	unsigned n = (uintptr_t)arg;
 	long usec = 0;
-	tv1 = starpu_timing_now();
+	double tv1 = starpu_timing_now();
 	do
 	{
-		tv2 = starpu_timing_now();
+		double tv2 = starpu_timing_now();
 		usec = tv2 - tv1;
 	}
 	while (usec < n);

@@ -32,7 +32,6 @@ void opencl_codelet_incA(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 	cl_mem val = (cl_mem)STARPU_VECTOR_GET_DEV_HANDLE(descr[0]);
 	cl_kernel kernel;
 	cl_command_queue queue;
-	cl_event event;
 	int id, devid, err;
 
 	id = starpu_worker_get_id_check();
@@ -60,7 +59,6 @@ void opencl_codelet_incC(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 	cl_mem val = (cl_mem)STARPU_VECTOR_GET_DEV_HANDLE(descr[0]);
 	cl_kernel kernel;
 	cl_command_queue queue;
-	cl_event event;
 	int id, devid, err;
 
 	id = starpu_worker_get_id_check();

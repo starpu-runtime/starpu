@@ -124,7 +124,7 @@ int main(int argc, char *argv[])
 	check = speed_up >= (1 - MARGIN) * expected_speed_up;
 	check_sup = speed_up <= (1 + MARGIN) * expected_speed_up;
 
-	printf("measured time = %f seconds\nsequential time = %f seconds\nspeed up = %f\nnumber of workers CPU = %d\nnumber of workers CUDA = %d\nnumber of workers OPENCL = %d\nnumber of tasks = %d\nexpected speed up = %f\npercentage of expected speed up = %.2f%%\n", time_m, time_s, speed_up, nb_workers_CPU, nb_workers_CUDA, nb_workers_OPENCL, nb_tasks, expected_speed_up, percentage_expected_speed_up);
+	printf("measured time = %f seconds\nsequential time = %f seconds\nspeed up = %f\nnumber of workers CPU = %u\nnumber of workers CUDA = %u\nnumber of workers OPENCL = %u\nnumber of tasks = %u\nexpected speed up = %f\npercentage of expected speed up = %.2f%%\n", time_m, time_s, speed_up, nb_workers_CPU, nb_workers_CUDA, nb_workers_OPENCL, nb_tasks, expected_speed_up, percentage_expected_speed_up);
 
 	starpu_shutdown();
 

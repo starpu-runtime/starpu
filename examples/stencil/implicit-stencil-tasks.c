@@ -100,29 +100,27 @@ void create_task_initlayer(unsigned sizex, unsigned sizey, unsigned z)
 static void create_task_save_local(unsigned iter, unsigned z, int dir, int local_rank)
 {
 	struct block_description *descr = get_block_description(z);
-	int node_z = get_block_mpi_node(z);
-	int node_z_and_d = get_block_mpi_node(z+dir);
-    struct starpu_codelet *codelet;
-    int ret;
+	struct starpu_codelet *codelet;
+	int ret;
 
-    codelet = (dir == -1)?&save_cl_bottom:&save_cl_top;
-    ret = starpu_insert_task(
-            codelet,
-            STARPU_VALUE,   &z,  sizeof(unsigned),
-            STARPU_R,   descr->layers_handle[0],
-            STARPU_R,   descr->layers_handle[1],
-            STARPU_W,   descr->boundaries_handle[(1-dir)/2][0],
-            STARPU_W,   descr->boundaries_handle[(1-dir)/2][1],
-            STARPU_PRIORITY,    STARPU_MAX_PRIO,
-                0);
+	codelet = (dir == -1)?&save_cl_bottom:&save_cl_top;
+	ret = starpu_insert_task(
+				 codelet,
+				 STARPU_VALUE,   &z,  sizeof(unsigned),
+				 STARPU_R,   descr->layers_handle[0],
+				 STARPU_R,   descr->layers_handle[1],
+				 STARPU_W,   descr->boundaries_handle[(1-dir)/2][0],
+				 STARPU_W,   descr->boundaries_handle[(1-dir)/2][1],
+				 STARPU_PRIORITY,    STARPU_MAX_PRIO,
+				 0);
 
-    if (ret)
-    {
-        FPRINTF(stderr, "Could not submit task save: %d\n", ret);
-        if (ret == -ENODEV)
-            exit(77);
-        STARPU_ABORT();
-    }
+	if (ret)
+	{
+		FPRINTF(stderr, "Could not submit task save: %d\n", ret);
+		if (ret == -ENODEV)
+			exit(77);
+		STARPU_ABORT();
+	}
 }
 
 /*
@@ -191,14 +189,14 @@ void create_tasks(int rank)
 	     {
 		     if (iter != niter)
 		     {
-                int node_z = get_block_mpi_node(bz);
-                int node_z_and_b = get_block_mpi_node(bz-1);
-                int node_z_and_t = get_block_mpi_node(bz+1);
+			     int node_z = get_block_mpi_node(bz);
+			     int node_z_and_b = get_block_mpi_node(bz-1);
+			     int node_z_and_t = get_block_mpi_node(bz+1);
 
-                  if ((node_z == rank) || ((node_z != node_z_and_b) && (node_z_and_b == rank)))
+			     if ((node_z == rank) || ((node_z != node_z_and_b) && (node_z_and_b == rank)))
 				     create_task_save_local(iter, bz, +1, rank);
 
-                  if ((node_z == rank) || ((node_z != node_z_and_t) && (node_z_and_t == rank)))
+			     if ((node_z == rank) || ((node_z != node_z_and_t) && (node_z_and_t == rank)))
 				     create_task_save_local(iter, bz, -1, rank);
 		     }
 	     }
