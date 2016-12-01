@@ -76,7 +76,6 @@ static void _starpu_opencl_limit_gpu_mem_if_needed(unsigned devid)
 	starpu_ssize_t limit;
 	size_t STARPU_ATTRIBUTE_UNUSED totalGlobalMem = 0;
 	size_t STARPU_ATTRIBUTE_UNUSED to_waste = 0;
-	char name[30];
 
 #ifdef STARPU_SIMGRID
 	totalGlobalMem = _starpu_simgrid_get_memsize("OpenCL", devid);
@@ -93,6 +92,7 @@ static void _starpu_opencl_limit_gpu_mem_if_needed(unsigned devid)
 	limit = starpu_get_env_number("STARPU_LIMIT_OPENCL_MEM");
 	if (limit == -1)
 	{
+		char name[30];
 		sprintf(name, "STARPU_LIMIT_OPENCL_%u_MEM", devid);
 		limit = starpu_get_env_number(name);
 	}
@@ -518,9 +518,9 @@ void _starpu_opencl_init(void)
                 err = clGetPlatformIDs(_STARPU_OPENCL_PLATFORM_MAX, platform_id, &nb_platforms);
                 if (STARPU_UNLIKELY(err != CL_SUCCESS)) nb_platforms=0;
                 _STARPU_DEBUG("Platforms detected: %u\n", nb_platforms);
-		_STARPU_DEBUG("CPU device type: %s\n", device_type&CL_DEVICE_TYPE_CPU?"requested":"not requested");
-		_STARPU_DEBUG("GPU device type: %s\n", device_type&CL_DEVICE_TYPE_GPU?"requested":"not requested");
-		_STARPU_DEBUG("Accelerator device type: %s\n", device_type&CL_DEVICE_TYPE_ACCELERATOR?"requested":"not requested");
+		_STARPU_DEBUG("CPU device type: %s\n", (device_type&CL_DEVICE_TYPE_CPU)?"requested":"not requested");
+		_STARPU_DEBUG("GPU device type: %s\n", (device_type&CL_DEVICE_TYPE_GPU)?"requested":"not requested");
+		_STARPU_DEBUG("Accelerator device type: %s\n", (device_type&CL_DEVICE_TYPE_ACCELERATOR)?"requested":"not requested");
 
                 // Get devices
                 nb_devices = 0;
@@ -556,7 +556,7 @@ void _starpu_opencl_init(void)
 				if (platform_valid)
 					_STARPU_DEBUG("Platform: %s - %s\n", name, vendor);
 				else
-					_STARPU_DEBUG("Platform invalid\n");
+					_STARPU_DEBUG("Platform invalid: %s - %s\n", name, vendor);
 #endif
 				if (platform_valid && nb_devices <= STARPU_MAXOPENCLDEVS)
 				{

@@ -240,10 +240,6 @@ static unsigned may_free_subtree(starpu_data_handle_t handle, unsigned node)
 static int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT transfer_subtree_to_node(starpu_data_handle_t handle, unsigned src_node,
 				     unsigned dst_node)
 {
-	unsigned i;
-	unsigned last = 0;
-	unsigned cnt;
-
 	STARPU_ASSERT(dst_node != src_node);
 
 	if (handle->nchildren == 0)
@@ -279,12 +275,15 @@ static int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT transfer_subtree_to_node(starpu_d
 
 		if (src_replicate->state == STARPU_SHARED)
 		{
+			unsigned i;
+			unsigned last = 0;
+			unsigned cnt = 0;
+
 			/* some other node may have the copy */
 			_STARPU_TRACE_DATA_INVALIDATE(handle, src_node);
 			src_replicate->state = STARPU_INVALID;
 
 			/* count the number of copies */
-			cnt = 0;
 			for (i = 0; i < STARPU_MAXNODES; i++)
 			{
 				if (handle->per_node[i].state == STARPU_SHARED)
@@ -307,11 +306,10 @@ static int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT transfer_subtree_to_node(starpu_d
 	{
 		/* transfer all sub-subtrees children */
 		unsigned child;
-		int res;
 		for (child = 0; child < handle->nchildren; child++)
 		{
 			starpu_data_handle_t child_handle = starpu_data_get_child(handle, child);
-			res = transfer_subtree_to_node(child_handle, src_node, dst_node);
+			int res = transfer_subtree_to_node(child_handle, src_node, dst_node);
 			if (res == 0)
 				return 0;
 			/* There is no way children have disappeared since we

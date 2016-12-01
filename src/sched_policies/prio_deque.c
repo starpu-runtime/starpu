@@ -137,7 +137,7 @@ struct starpu_task * _starpu_prio_deque_pop_task(struct _starpu_prio_deque * pde
 struct starpu_task * _starpu_prio_deque_pop_task_for_worker(struct _starpu_prio_deque * pdeque, int workerid)
 {
 	STARPU_ASSERT(pdeque);
-	STARPU_ASSERT(0 <= workerid && (unsigned) workerid < starpu_worker_get_count());
+	STARPU_ASSERT(workerid >= 0 && (unsigned) workerid < starpu_worker_get_count());
 	REMOVE_TASK(pdeque, head, prev, pred_can_execute, &workerid);
 }
 
@@ -151,6 +151,6 @@ struct starpu_task * _starpu_prio_deque_deque_task(struct _starpu_prio_deque * p
 struct starpu_task * _starpu_prio_deque_deque_task_for_worker(struct _starpu_prio_deque * pdeque, int workerid)
 {
 	STARPU_ASSERT(pdeque);
-	STARPU_ASSERT(0 <= workerid && (unsigned) workerid < starpu_worker_get_count());
+	STARPU_ASSERT(workerid >= 0 && (unsigned) workerid < starpu_worker_get_count());
 	REMOVE_TASK(pdeque, tail, next, pred_can_execute, &workerid);
 }

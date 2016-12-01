@@ -149,7 +149,6 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 
 	/*if there are no tasks block */
 	/* wake people waiting for a task */
-	unsigned worker = 0;
 	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 	
 	struct starpu_sched_ctx_iterator it;
@@ -160,7 +159,7 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 	workers->init_iterator(workers, &it);
 	while(workers->has_next(workers, &it))
 	{
-		worker = workers->get_next(workers, &it);
+		unsigned worker = workers->get_next(workers, &it);
 
 #ifdef STARPU_NON_BLOCKING_DRIVERS
 		if (!starpu_bitmap_get(data->waiters, worker))
@@ -189,7 +188,7 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 	workers->init_iterator(workers, &it);
 	while(workers->has_next(workers, &it))
 	{
-		worker = workers->get_next(workers, &it);
+		unsigned worker = workers->get_next(workers, &it);
 		if (dowake[worker])
 			if (starpu_wake_worker(worker))
 				break; // wake up a single worker
@@ -264,7 +263,6 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 	if (!chosen_task && skipped)
 	{
 		/* Notify another worker to do that task */
-		unsigned worker = 0;
 		struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 
 		struct starpu_sched_ctx_iterator it;
@@ -272,7 +270,7 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 		workers->init_iterator(workers, &it);
 		while(workers->has_next(workers, &it))
 		{
-			worker = workers->get_next(workers, &it);
+			unsigned worker = workers->get_next(workers, &it);
 			if(worker != workerid)
 			{
 #ifdef STARPU_NON_BLOCKING_DRIVERS
@@ -299,12 +297,10 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 
 static void eager_center_priority_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
 {
-
-        int workerid;
 	unsigned i;
         for (i = 0; i < nworkers; i++)
         {
-		workerid = workerids[i];
+		int workerid = workerids[i];
 		int curr_workerid = starpu_worker_get_id();
 		if(workerid != curr_workerid)
 			starpu_wake_worker(workerid);

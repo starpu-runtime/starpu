@@ -85,7 +85,7 @@ void starpu_profiling_worker_helper_display_summary(void)
 			fprintf(stderr, "%-32s\n", name);
 			fprintf(stderr, "\t%d task(s)\n\ttotal: %.2lf ms executing: %.2lf ms sleeping: %.2lf ms overhead %.2lf ms\n", info.executed_tasks, total_time, executing_time, sleeping_time, total_time - executing_time - sleeping_time);
 			if (info.used_cycles || info.stall_cycles)
-				fprintf(stderr, "\t%lu Mcy %lu Mcy stall\n", info.used_cycles/1000000, info.stall_cycles/1000000);
+				fprintf(stderr, "\t%llu Mcy %llu Mcy stall\n", (unsigned long long)info.used_cycles/1000000, (unsigned long long)info.stall_cycles/1000000);
 			if (info.energy_consumed)
 				fprintf(stderr, "\t%f J consumed\n", info.energy_consumed);
 		}
