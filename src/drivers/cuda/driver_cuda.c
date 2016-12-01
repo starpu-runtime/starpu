@@ -50,6 +50,7 @@
 static unsigned ncudagpus;
 
 static size_t global_mem[STARPU_MAXCUDADEVS];
+int _starpu_cuda_bus_ids[STARPU_MAXCUDADEVS+1][STARPU_MAXCUDADEVS+1];
 #ifdef STARPU_USE_CUDA
 static cudaStream_t streams[STARPU_NMAXWORKERS];
 static cudaStream_t out_transfer_streams[STARPU_MAXCUDADEVS];
@@ -270,7 +271,11 @@ static void init_device_context(unsigned devid)
 				{
 					cures = cudaDeviceEnablePeerAccess(worker->devid, 0);
 					if (!cures)
+					{
 						_STARPU_DEBUG("Enabled GPU-Direct %d -> %d\n", worker->devid, devid);
+						/* direct copies are made from the destination, see link_supports_direct_transfers */
+						starpu_bus_set_direct(_starpu_cuda_bus_ids[worker->devid][devid], 1);
+					}
 				}
 			}
 		}

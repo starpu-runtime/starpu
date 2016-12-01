@@ -31,6 +31,7 @@ struct _starpu_machine_config;
 /* This is allocated for each hwloc object */
 struct _starpu_hwloc_userdata {
 	struct _starpu_worker_list *worker_list; /* List of workers running on this obj */
+	unsigned ngpus; /* Number of GPUs sharing this PCI link */
 };
 #endif
 #endif

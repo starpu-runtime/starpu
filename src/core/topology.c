@@ -47,6 +47,10 @@
 #include <core/simgrid.h>
 #endif
 
+#if defined(HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX) && HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX
+#include <hwloc/cuda.h>
+#endif
+
 static unsigned topology_is_initialized = 0;
 static int nobind;
 
@@ -516,6 +520,7 @@ _starpu_init_topology (struct _starpu_machine_config *config)
 #ifndef STARPU_SIMGRID
 #ifdef STARPU_HAVE_HWLOC
 	hwloc_topology_init(&topology->hwtopology);
+	hwloc_topology_set_flags(topology->hwtopology, HWLOC_TOPOLOGY_FLAG_IO_DEVICES | HWLOC_TOPOLOGY_FLAG_IO_BRIDGES);
 	hwloc_topology_load(topology->hwtopology);
 	_starpu_allocate_topology_userdata(hwloc_get_root_obj(topology->hwtopology));
 #endif
@@ -930,6 +935,29 @@ _starpu_deinit_mp_config (struct _starpu_machine_config *config)
 }
 #endif
 
+#ifdef STARPU_HAVE_HWLOC
+static unsigned
+_starpu_topology_count_ngpus(hwloc_obj_t obj)
+{
+	struct _starpu_hwloc_userdata *data = obj->userdata;
+	unsigned n = data->ngpus;
+	unsigned i;
+
+	for (i = 0; i < obj->arity; i++)
+		n += _starpu_topology_count_ngpus(obj->children[i]);
+
+	data->ngpus = n;
+#ifdef STARPU_VERBOSE
+	{
+		char name[64];
+		hwloc_obj_type_snprintf(name, sizeof(name), obj, 0);
+		_STARPU_DEBUG("hwloc obj %s has %u GPUs below\n", name, n);
+	}
+#endif
+	return n;
+}
+#endif
+
 static int
 _starpu_init_machine_config(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED)
 {
@@ -1039,6 +1067,23 @@ _starpu_init_machine_config(struct _starpu_machine_config *config, int no_mp_con
 			entry->gpuid = devid;
 			HASH_ADD_INT(devices_using_cuda, gpuid, entry);
 		}
+
+#ifndef STARPU_SIMGRID
+#if defined(HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX) && HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX
+		{
+			hwloc_obj_t obj = hwloc_cuda_get_device_osdev_by_index(topology->hwtopology, devid);
+			if (obj)
+			{
+				struct _starpu_hwloc_userdata *data = obj->userdata;
+				data->ngpus++;
+			}
+			else
+			{
+				_STARPU_DISP("Warning: could not find location of CUDA%u, do you have the hwloc CUDA plugin installed?\n", devid);
+			}
+		}
+#endif
+#endif
         }
 
 	topology->nworkers += topology->ncudagpus * nworker_per_cuda;
@@ -1565,8 +1610,8 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 					workerarg->bindid = cuda_bindid[devid] = _starpu_get_next_bindid(config, preferred_binding, npreferred);
 					memory_node = cuda_memory_nodes[devid] = _starpu_memory_node_register(STARPU_CUDA_RAM, devid);
 
-					_starpu_register_bus(STARPU_MAIN_RAM, memory_node);
-					_starpu_register_bus(memory_node, STARPU_MAIN_RAM);
+					_starpu_cuda_bus_ids[0][devid+1] = _starpu_register_bus(STARPU_MAIN_RAM, memory_node);
+					_starpu_cuda_bus_ids[devid+1][0] = _starpu_register_bus(memory_node, STARPU_MAIN_RAM);
 #ifdef STARPU_SIMGRID
 					const char* cuda_memcpy_peer;
 					snprintf(name, sizeof(name), "CUDA%d", devid);
@@ -1589,11 +1634,35 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 						for (worker2 = 0; worker2 < worker; worker2++)
 						{
 							struct _starpu_worker *workerarg2 = &config->workers[worker2];
+							int devid2 = workerarg2->devid;
 							if (workerarg2->arch == STARPU_CUDA_WORKER)
 							{
 								unsigned memory_node2 = starpu_worker_get_memory_node(worker2);
-								_starpu_register_bus(memory_node2, memory_node);
-								_starpu_register_bus(memory_node, memory_node2);
+								_starpu_cuda_bus_ids[devid2][devid] = _starpu_register_bus(memory_node2, memory_node);
+								_starpu_cuda_bus_ids[devid][devid2] = _starpu_register_bus(memory_node, memory_node2);
+#ifndef STARPU_SIMGRID
+#if defined(HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX) && HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX
+								{
+									hwloc_obj_t obj, obj2, ancestor;
+									obj = hwloc_cuda_get_device_osdev_by_index(config->topology.hwtopology, devid);
+									obj2 = hwloc_cuda_get_device_osdev_by_index(config->topology.hwtopology, devid2);
+									ancestor = hwloc_get_common_ancestor_obj(config->topology.hwtopology, obj, obj2);
+									if (ancestor)
+									{
+										struct _starpu_hwloc_userdata *data = ancestor->userdata;
+#ifdef STARPU_VERBOSE
+										{
+											char name[64];
+											hwloc_obj_type_snprintf(name, sizeof(name), ancestor, 0);
+											_STARPU_DEBUG("CUDA%u and CUDA%u are linked through %s, along %u GPUs\n", devid, devid2, name, data->ngpus);
+										}
+#endif
+										starpu_bus_set_ngpus(_starpu_cuda_bus_ids[devid2][devid], data->ngpus);
+										starpu_bus_set_ngpus(_starpu_cuda_bus_ids[devid][devid2], data->ngpus);
+									}
+								}
+#endif
+#endif
 							}
 						}
 					}
@@ -1752,6 +1821,14 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 			config->bindid_workers[bindid].workerids[config->bindid_workers[bindid].nworkers-1] = worker;
 		}
 	}
+
+#ifdef STARPU_SIMGRID
+	_starpu_simgrid_count_ngpus();
+#else
+#ifdef STARPU_HAVE_HWLOC
+	_starpu_topology_count_ngpus(hwloc_get_root_obj(config->topology.hwtopology));
+#endif
+#endif
 }
 
 int

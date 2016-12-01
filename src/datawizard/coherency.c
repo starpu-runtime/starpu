@@ -239,12 +239,8 @@ static int worker_supports_direct_access(unsigned node, unsigned handling_node)
 #ifdef STARPU_SIMGRID
 			if (starpu_node_get_kind(handling_node) == STARPU_CUDA_RAM)
 			{
-				char name[16];
-				msg_host_t host;
-				const char* cuda_memcpy_peer;
-				snprintf(name, sizeof(name), "CUDA%d", _starpu_memory_node_get_devid(handling_node));
-				host = _starpu_simgrid_get_host_by_name(name);
-				cuda_memcpy_peer = MSG_host_get_property_value(host, "memcpy_peer");
+				msg_host_t host = _starpu_simgrid_get_memnode_host(handling_node);
+				const char* cuda_memcpy_peer = MSG_host_get_property_value(host, "memcpy_peer");
 				return cuda_memcpy_peer && atoll(cuda_memcpy_peer);
 			}
 			else

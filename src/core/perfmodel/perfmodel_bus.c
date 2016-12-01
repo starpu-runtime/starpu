@@ -97,6 +97,7 @@ static double cudadev_latency_dtod[STARPU_MAXNODES][STARPU_MAXNODES] = {{0.0}};
 #endif
 #endif
 static struct dev_timing cudadev_timing_per_cpu[STARPU_MAXNODES*STARPU_MAXCPUS];
+static char cudadev_direct[STARPU_MAXNODES][STARPU_MAXNODES];
 #endif
 
 #ifndef STARPU_SIMGRID
@@ -267,7 +268,10 @@ static void measure_bandwidth_between_dev_and_dev_cuda(int src, int dst)
 		{
 			cures = cudaDeviceEnablePeerAccess(dst, 0);
 			if (!cures)
+			{
 				_STARPU_DISP("GPU-Direct %d -> %d\n", dst, src);
+				cudadev_direct[src][dst] = 1;
+			}
 		}
 	}
 
@@ -289,7 +293,10 @@ static void measure_bandwidth_between_dev_and_dev_cuda(int src, int dst)
 		{
 			cures = cudaDeviceEnablePeerAccess(src, 0);
 			if (!cures)
+			{
 				_STARPU_DISP("GPU-Direct %d -> %d\n", src, dst);
+				cudadev_direct[dst][src] = 1;
+			}
 		}
 	}
 
@@ -2195,6 +2202,7 @@ static void write_bus_platform_file_content(int version)
 #ifdef HAVE_CUDA_MEMCPY_PEER
 		fprintf(f, "     <prop id=\"memcpy_peer\" value=\"1\"/>\n");
 #endif
+		/* TODO: record cudadev_direct instead of assuming it's NUMA nodes */
 		fprintf(f, "   </host>\n");
 	}
 
@@ -2504,8 +2512,24 @@ double starpu_transfer_predict(unsigned src_node, unsigned dst_node, size_t size
 	double bandwidth = bandwidth_matrix[src_node][dst_node];
 	double latency = latency_matrix[src_node][dst_node];
 	struct _starpu_machine_topology *topology = &_starpu_get_machine_config()->topology;
+	int busid = starpu_bus_get_id(src_node, dst_node);
+	int direct = starpu_bus_get_direct(busid);
+	float ngpus = topology->ncudagpus+topology->nopenclgpus;
 
-	return latency + (size/bandwidth)*2*(topology->ncudagpus+topology->nopenclgpus);
+#if 0
+	/* Ideally we should take into account that some GPUs are directly
+	 * connected through a PCI switch, which has less contention that the
+	 * Host bridge, but doing that seems to *decrease* performance... */
+	if (direct)
+	{
+		float neighbours = starpu_bus_get_ngpus(busid);
+		/* Count transfers of these GPUs, and count transfers between
+		 * other GPUs and these GPUs */
+		ngpus = neighbours + (ngpus - neighbours) * neighbours / ngpus;
+	}
+#endif
+
+	return latency + (size/bandwidth)*2*ngpus;
 }
 
 
