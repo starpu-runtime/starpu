@@ -205,7 +205,7 @@ static void _starpu_mpi_handle_free_simple_datatype(MPI_Datatype *datatype)
 
 static void _starpu_mpi_handle_free_complex_datatype(MPI_Datatype *datatype)
 {
-	int num_ints, num_adds, num_datatypes, combiner, i;
+	int num_ints, num_adds, num_datatypes, combiner;
 
 	MPI_Type_get_envelope(*datatype, &num_ints, &num_adds, &num_datatypes, &combiner);
 	if (combiner != MPI_COMBINER_NAMED)
@@ -213,6 +213,7 @@ static void _starpu_mpi_handle_free_complex_datatype(MPI_Datatype *datatype)
 		int *array_of_ints;
 		MPI_Aint *array_of_adds;
 		MPI_Datatype *array_of_datatypes;
+		int i;
 
 		_STARPU_MPI_MALLOC(array_of_ints, num_ints * sizeof(int));
 		_STARPU_MPI_MALLOC(array_of_adds, num_adds * sizeof(MPI_Aint));

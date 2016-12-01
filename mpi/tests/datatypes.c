@@ -27,7 +27,6 @@ void check_void(starpu_data_handle_t handle_s, starpu_data_handle_t handle_r, in
 
 void check_variable(starpu_data_handle_t handle_s, starpu_data_handle_t handle_r, int *error)
 {
-	int ret;
 	float *v_s, *v_r;
 
 	STARPU_ASSERT(starpu_variable_get_elemsize(handle_s) == starpu_variable_get_elemsize(handle_r));
@@ -48,7 +47,7 @@ void check_variable(starpu_data_handle_t handle_s, starpu_data_handle_t handle_r
 
 void check_vector(starpu_data_handle_t handle_s, starpu_data_handle_t handle_r, int *error)
 {
-	int ret, i;
+	int i;
 	int nx;
 	int *v_r, *v_s;
 

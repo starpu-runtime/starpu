@@ -29,7 +29,6 @@ int _fstarpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_no
 {
 	int arg_i = 0;
 	int inconsistent_execute = 0;
-	int arg_type, arg_type_nocommute;
 	int node_selected = 0;
 	int nb_allocated_data = 16;
 	struct starpu_data_descr *descrs;
@@ -45,8 +44,8 @@ int _fstarpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_no
 
 	while (arglist[arg_i] != NULL)
 	{
-		arg_type = (int)(intptr_t)arglist[arg_i];
-		arg_type_nocommute = arg_type & ~STARPU_COMMUTE;
+		int arg_type = (int)(intptr_t)arglist[arg_i];
+		int arg_type_nocommute = arg_type & ~STARPU_COMMUTE;
 
 		if (arg_type==STARPU_EXECUTE_ON_NODE)
 		{
