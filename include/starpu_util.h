@@ -112,9 +112,9 @@ extern "C"
 #endif
 
 #ifdef STARPU_NO_ASSERT
-#define STARPU_ASSERT(x)		do { } while(0)
-#define STARPU_ASSERT_ACCESSIBLE(x)	do { } while(0)
-#define STARPU_ASSERT_MSG(x, msg, ...)	do { } while(0)
+#define STARPU_ASSERT(x)		do { (void) x; } while(0)
+#define STARPU_ASSERT_ACCESSIBLE(x)	do { (void) x; } while(0)
+#define STARPU_ASSERT_MSG(x, msg, ...)	do { (void) x; (void) msg; } while(0)
 #else
 #  if defined(__CUDACC__) || defined(STARPU_HAVE_WINDOWS)
 #    define STARPU_ASSERT(x)		do { if (STARPU_UNLIKELY(!(x))) { STARPU_DUMP_BACKTRACE(); *(int*)NULL = 0; } } while(0)
