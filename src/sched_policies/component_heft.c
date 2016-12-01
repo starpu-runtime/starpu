@@ -43,8 +43,7 @@ static int heft_progress_one(struct starpu_sched_component *component)
 	starpu_pthread_mutex_t * mutex = &data->mutex;
 	struct _starpu_prio_deque * prio = &data->prio;
 	struct starpu_task * (tasks[NTASKS]);
-
-	unsigned ntasks, n, i;
+	unsigned ntasks;
 
 	STARPU_PTHREAD_MUTEX_LOCK(mutex);
 	/* Try to look at NTASKS from the queue */
@@ -64,6 +63,7 @@ static int heft_progress_one(struct starpu_sched_component *component)
 	{
 		struct _starpu_mct_data * d = data->mct_data;
 		struct starpu_sched_component * best_component = NULL;
+		unsigned n, i;
 
 		/* Estimated task duration for each child */
 		double estimated_lengths[component->nchildren * ntasks];

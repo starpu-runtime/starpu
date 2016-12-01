@@ -87,7 +87,7 @@ void _starpu_mic_sink_init(struct _starpu_mp_node *node)
  */
 void _starpu_mic_sink_launch_workers(struct _starpu_mp_node *node)
 {
-	int i, ret;
+	int i;
 	struct arg_sink_thread * arg;
 	cpu_set_t cpuset;
 	starpu_pthread_attr_t attr;
@@ -96,6 +96,8 @@ void _starpu_mic_sink_launch_workers(struct _starpu_mp_node *node)
 	/*for each core init the mutex, the task pointer and launch the thread */
 	for(i=0; i<node->nb_cores; i++)
 	{
+		int ret;
+
 		//init the set
 		CPU_ZERO(&cpuset);
 		CPU_SET(i,&cpuset);
@@ -114,7 +116,6 @@ void _starpu_mic_sink_launch_workers(struct _starpu_mp_node *node)
 		STARPU_ASSERT(ret == 0);
 		((starpu_pthread_t *)node->thread_table)[i] = thread;
 	}
-
 }
 
 /* Deinitialize the MIC sink, close all the connections.

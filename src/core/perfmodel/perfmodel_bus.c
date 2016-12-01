@@ -808,7 +808,7 @@ static void load_bus_affinity_file_content(void)
 		unsigned dummy;
 
 		_starpu_drop_comments(f);
-		ret = fscanf(f, "%d\t", &dummy);
+		ret = fscanf(f, "%u\t", &dummy);
 		STARPU_ASSERT(ret == 1);
 
 		STARPU_ASSERT(dummy == gpu);
@@ -832,7 +832,7 @@ static void load_bus_affinity_file_content(void)
 		unsigned dummy;
 
 		_starpu_drop_comments(f);
-		ret = fscanf(f, "%d\t", &dummy);
+		ret = fscanf(f, "%u\t", &dummy);
 		STARPU_ASSERT(ret == 1);
 
 		STARPU_ASSERT(dummy == gpu);
@@ -1611,13 +1611,13 @@ static void check_bus_config_file(void)
                 ret = fscanf(f, "%u\t", &read_cpus);
 		STARPU_ASSERT(ret == 1);
                 _starpu_drop_comments(f);
-		ret = fscanf(f, "%d\t", &read_cuda);
+		ret = fscanf(f, "%u\t", &read_cuda);
 		STARPU_ASSERT(ret == 1);
                 _starpu_drop_comments(f);
-		ret = fscanf(f, "%d\t", &read_opencl);
+		ret = fscanf(f, "%u\t", &read_opencl);
 		STARPU_ASSERT(ret == 1);
                 _starpu_drop_comments(f);
-		ret = fscanf(f, "%d\t", &read_mic);
+		ret = fscanf(f, "%u\t", &read_mic);
 		if (ret == 0)
 			read_mic = 0;
                 _starpu_drop_comments(f);

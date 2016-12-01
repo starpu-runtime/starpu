@@ -282,17 +282,13 @@ struct starpu_task *_starpu_fifo_pop_local_task(struct _starpu_fifo_taskq *fifo_
 /* pop every task that can be executed on the calling driver */
 struct starpu_task *_starpu_fifo_pop_every_task(struct _starpu_fifo_taskq *fifo_queue, int workerid)
 {
-	struct starpu_task_list *old_list;
-	unsigned size;
-
+	unsigned size = fifo_queue->ntasks;
 	struct starpu_task *new_list = NULL;
-	struct starpu_task *new_list_tail = NULL;
-
-	size = fifo_queue->ntasks;
 
 	if (size > 0)
 	{
-		old_list = &fifo_queue->taskq;
+		struct starpu_task_list *old_list = &fifo_queue->taskq;
+		struct starpu_task *new_list_tail = NULL;
 		unsigned new_list_size = 0;
 
 		struct starpu_task *task, *next_task;

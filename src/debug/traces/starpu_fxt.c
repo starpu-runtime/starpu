@@ -1251,15 +1251,17 @@ static void handle_codelet_details(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 
 	if (worker < 0) return;
 
-	int i;
 	char parameters[256];
 	size_t eaten = 0;
 	if (!last_codelet_parameter[worker])
 		eaten += snprintf(parameters + eaten, sizeof(parameters) - eaten - 1, "nodata");
 	else
-	for (i = 0; i < last_codelet_parameter[worker] && i < MAX_PARAMETERS; i++)
 	{
-		eaten += snprintf(parameters + eaten, sizeof(parameters) - eaten - 1, "%s%s", i?"_":"", last_codelet_parameter_description[worker][i]);
+		int i;
+		for (i = 0; i < last_codelet_parameter[worker] && i < MAX_PARAMETERS; i++)
+		{
+			eaten += snprintf(parameters + eaten, sizeof(parameters) - eaten - 1, "%s%s", i?"_":"", last_codelet_parameter_description[worker][i]);
+		}
 	}
 	parameters[sizeof(parameters)-1] = 0;
 
@@ -1689,19 +1691,17 @@ static void handle_start_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 
 static void handle_work_stealing(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
-	unsigned dst = ev->param[0];
-	unsigned src = ev->param[1];
-	unsigned size = 0;
-
-	char *prefix = options->file_prefix;
-
-
 	if (out_paje_file)
 	{
+		unsigned dst = ev->param[0];
+		unsigned src = ev->param[1];
+		char *prefix = options->file_prefix;
+		unsigned size = 0;
 		double time = get_event_time_stamp(ev, options);
 #ifdef STARPU_HAVE_POTI
 		char paje_value[STARPU_POTI_STR_LEN], paje_key[STARPU_POTI_STR_LEN], src_worker_container[STARPU_POTI_STR_LEN], dst_worker_container[STARPU_POTI_STR_LEN];
 		char program_container[STARPU_POTI_STR_LEN];
+
 		snprintf(paje_value, STARPU_POTI_STR_LEN, "%u", size);
 		snprintf(paje_key, STARPU_POTI_STR_LEN, "steal_%u", steal_number);
 		program_container_alias(program_container, STARPU_POTI_STR_LEN, prefix);

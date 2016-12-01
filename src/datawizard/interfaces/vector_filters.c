@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009-2013, 2016  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011  CNRS
+ * Copyright (C) 2010, 2011, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -87,7 +87,7 @@ void starpu_vector_filter_block_shadow(void *father_interface, void *child_inter
 void starpu_vector_filter_divide_in_2(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, STARPU_ATTRIBUTE_UNUSED unsigned nchunks)
 {
         /* there cannot be more than 2 chunks */
-	STARPU_ASSERT_MSG(id < 2, "Only %d parts", id);
+	STARPU_ASSERT_MSG(id < 2, "Only %u parts", id);
 
 	struct starpu_vector_interface *vector_father = (struct starpu_vector_interface *) father_interface;
 	struct starpu_vector_interface *vector_child = (struct starpu_vector_interface *) child_interface;
@@ -141,8 +141,6 @@ void starpu_vector_filter_list(void *father_interface, void *child_interface, st
 
 	size_t elemsize = vector_father->elemsize;
 
-	unsigned current_pos = 0;
-
 	uint32_t chunk_size = length_tab[id];
 
 	STARPU_ASSERT_MSG(vector_father->id == STARPU_VECTOR_INTERFACE_ID, "%s can only be applied on a vector data", __func__);
@@ -153,6 +151,7 @@ void starpu_vector_filter_list(void *father_interface, void *child_interface, st
 	if (vector_father->dev_handle)
 	{
 		/* compute the current position */
+		unsigned current_pos = 0;
 		unsigned i;
 		for (i = 0; i < id; i++)
 			current_pos += length_tab[i];

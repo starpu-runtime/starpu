@@ -170,10 +170,6 @@ void _starpu_notify_cg(struct _starpu_cg *cg)
 		ANNOTATE_HAPPENS_AFTER(&cg->remaining);
 		cg->remaining = cg->ntags;
 
-		struct _starpu_tag *tag;
-		struct _starpu_cg_list *tag_successors, *job_successors;
-		struct _starpu_job *j;
-
 		/* the group is now completed */
 		switch (cg->cg_type)
 		{
@@ -190,6 +186,9 @@ void _starpu_notify_cg(struct _starpu_cg *cg)
 
 			case STARPU_CG_TAG:
 			{
+				struct _starpu_cg_list *tag_successors;
+				struct _starpu_tag *tag;
+
 				tag = cg->succ.tag;
 				tag_successors = &tag->tag_successors;
 
@@ -209,6 +208,9 @@ void _starpu_notify_cg(struct _starpu_cg *cg)
 
  		        case STARPU_CG_TASK:
 			{
+				struct _starpu_cg_list *job_successors;
+				struct _starpu_job *j;
+
 				j = cg->succ.job;
 
 				STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);

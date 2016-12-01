@@ -418,10 +418,10 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 		forced_nimpl = nimpl_best;
 	}
 
-	double best_fitness = -1;
 
 	if (forced_best == -1)
 	{
+		double best_fitness = -1;
 		worker_ctx = 0;
 		while(workers->has_next(workers, &it))
 		{
@@ -503,11 +503,10 @@ static int parallel_heft_push_task(struct starpu_task *task)
 
 static void parallel_heft_add_workers(__attribute__((unused)) unsigned sched_ctx_id, int *workerids, unsigned nworkers)
 {
-	int workerid;
 	unsigned i;
 	for (i = 0; i < nworkers; i++)
 	{
-		workerid = workerids[i];
+		int workerid = workerids[i];
 		struct _starpu_worker *workerarg = _starpu_get_worker_struct(workerid);
 		/* init these structures only once for each worker */
 		if(!workerarg->has_prev_init)

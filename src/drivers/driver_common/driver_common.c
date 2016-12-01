@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2014, 2016  INRIA
  *
@@ -38,7 +38,6 @@ void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job 
 {
 	struct starpu_task *task = j->task;
 	struct starpu_codelet *cl = task->cl;
-	struct starpu_profiling_task_info *profiling_info;
 	int starpu_top=_starpu_top_status_get();
 	int workerid = worker->workerid;
 	unsigned calibrate_model = 0;
@@ -60,7 +59,7 @@ void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job 
 		STARPU_AYU_RUNTASK(j->job_id);
 		cl->per_worker_stats[workerid]++;
 
-		profiling_info = task->profiling_info;
+		struct starpu_profiling_task_info *profiling_info = task->profiling_info;
 
 		if ((profiling && profiling_info) || calibrate_model || starpu_top)
 		{
@@ -108,7 +107,6 @@ void _starpu_driver_end_job(struct _starpu_worker *worker, struct _starpu_job *j
 {
 	struct starpu_task *task = j->task;
 	struct starpu_codelet *cl = task->cl;
-	struct starpu_profiling_task_info *profiling_info = task->profiling_info;
 	int starpu_top=_starpu_top_status_get();
 	int workerid = worker->workerid;
 	unsigned calibrate_model = 0;
@@ -134,6 +132,7 @@ void _starpu_driver_end_job(struct _starpu_worker *worker, struct _starpu_job *j
 
 	if (rank == 0)
 	{
+		struct starpu_profiling_task_info *profiling_info = task->profiling_info;
 		if ((profiling && profiling_info) || calibrate_model || starpu_top)
 		{
 			_starpu_clock_gettime(codelet_end);
@@ -175,7 +174,6 @@ void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_wo
 {
 	struct starpu_profiling_task_info *profiling_info = j->task->profiling_info;
 	struct timespec measured_ts;
-	double measured;
 	int workerid = worker->workerid;
 	struct starpu_codelet *cl = j->task->cl;
 	int calibrate_model = 0;
@@ -190,6 +188,8 @@ void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_wo
 
 	if ((profiling && profiling_info) || calibrate_model)
 	{
+		double measured;
+
 		starpu_timespec_sub(codelet_end, codelet_start, &measured_ts);
 		measured = starpu_timing_timespec_to_us(&measured_ts);
 
@@ -258,7 +258,7 @@ void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_wo
 			j->cumulated_energy_consumed += energy_consumed;
 			do_update_energy_model = 0;
 		}
-		else 
+		else
 		{
 			if (j->discontinuous)
 			{

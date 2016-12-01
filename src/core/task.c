@@ -714,8 +714,7 @@ int starpu_task_submit_to_ctx(struct starpu_task *task, unsigned sched_ctx_id)
  * skipping dependencies completely (when it knows what it is doing).  */
 int _starpu_task_submit_nodeps(struct starpu_task *task)
 {
-	int ret;
-	ret = _starpu_task_submit_head(task);
+	int ret = _starpu_task_submit_head(task);
 	STARPU_ASSERT(ret == 0);
 
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);

@@ -63,9 +63,9 @@ void _starpu_graph_wrlock(void)
 }
 
 void _starpu_graph_drop_node(struct _starpu_graph_node *node);
+
 void _starpu_graph_drop_dropped_nodes(void)
 {
-	struct _starpu_graph_node *node, *next;
 	struct _starpu_graph_node_multilist_dropped dropping;
 
 	STARPU_PTHREAD_MUTEX_LOCK(&dropped_lock);
@@ -76,6 +76,8 @@ void _starpu_graph_drop_dropped_nodes(void)
 	/* And now process it if it's not empty.  */
 	if (!_starpu_graph_node_multilist_empty_dropped(&dropping))
 	{
+		struct _starpu_graph_node *node, *next;
+
 		STARPU_PTHREAD_RWLOCK_WRLOCK(&graph_lock);
 		for (node = _starpu_graph_node_multilist_begin_dropped(&dropping);
 		     node != _starpu_graph_node_multilist_end_dropped(&dropping);
@@ -327,7 +329,6 @@ void _starpu_graph_compute_descendants(void)
 	struct _starpu_graph_node **current_set = NULL, **next_set = NULL, **swap_set;
 	unsigned current_n, next_n, i, j;
 	unsigned current_alloc = 0, next_alloc = 0, swap_alloc;
-	unsigned descendants;
 
 	_starpu_graph_wrlock();
 
@@ -342,6 +343,8 @@ void _starpu_graph_compute_descendants(void)
 	     node != _starpu_graph_node_multilist_end_all(&all);
 	     node = _starpu_graph_node_multilist_next_all(node))
 	{
+		unsigned descendants;
+
 		/* Mark all nodes as unseen */
 		for (node2 = _starpu_graph_node_multilist_begin_all(&all);
 		     node2 != _starpu_graph_node_multilist_end_all(&all);

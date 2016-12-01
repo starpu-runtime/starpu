@@ -197,10 +197,9 @@ int starpu_unistd_global_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, voi
 #ifdef HAVE_PREAD
 	if (fd >= 0)
 		nb = pread(fd, buf, size, offset);
-	else
 #endif
 	{
-		if (fd >= 0)
+		if (tmp->descriptor >= 0)
 			STARPU_PTHREAD_MUTEX_LOCK(&tmp->mutex);
 		else
 			fd = _starpu_unistd_reopen(obj);
@@ -258,15 +257,14 @@ int starpu_unistd_global_full_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj
 {
         struct starpu_unistd_global_obj *tmp = (struct starpu_unistd_global_obj *) obj;
 	int fd = tmp->descriptor;
-	int ret;
-	struct stat st;
 
 	if (fd < 0)
 		fd = _starpu_unistd_reopen(obj);
 #ifdef STARPU_HAVE_WINDOWS
 	*size = _filelength(fd);
 #else
-	ret = fstat(fd, &st);
+	struct stat st;
+	int ret = fstat(fd, &st);
 	STARPU_ASSERT(ret==0);
 
 	*size = st.st_size;
@@ -292,7 +290,7 @@ int starpu_unistd_global_write(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, co
 	else
 #endif
 	{
-		if (fd >= 0)
+		if (tmp->descriptor >= 0)
 			STARPU_PTHREAD_MUTEX_LOCK(&tmp->mutex);
 		else
 			fd = _starpu_unistd_reopen(obj);

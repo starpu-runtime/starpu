@@ -260,7 +260,7 @@ static void initialize_heteroprio_policy(unsigned sched_ctx_id)
 				nb_arch_on_bucket += 1;
 			}
 		}
-		STARPU_ASSERT_MSG(check_all_archs[idx_prio] == nb_arch_on_bucket, "check_all_archs[idx_prio(%d)] = %d != nb_arch_on_bucket = %d\n", idx_prio, check_all_archs[idx_prio], nb_arch_on_bucket);
+		STARPU_ASSERT_MSG(check_all_archs[idx_prio] == nb_arch_on_bucket, "check_all_archs[idx_prio(%u)] = %u != nb_arch_on_bucket = %u\n", idx_prio, check_all_archs[idx_prio], nb_arch_on_bucket);
 	}
 }
 
@@ -293,11 +293,10 @@ static void add_workers_heteroprio_policy(unsigned sched_ctx_id, int *workerids,
 {
 	struct _starpu_heteroprio_data *hp = (struct _starpu_heteroprio_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
-	int workerid;
 	unsigned i;
 	for (i = 0; i < nworkers; i++)
 	{
-		workerid = workerids[i];
+		int workerid = workerids[i];
 		memset(&hp->workers_heteroprio[workerid], 0, sizeof(hp->workers_heteroprio[workerid]));
 		/* if the worker has already belonged to this context
 		   the queue and the synchronization variables have been already initialized */
@@ -338,12 +337,11 @@ static void add_workers_heteroprio_policy(unsigned sched_ctx_id, int *workerids,
 static void remove_workers_heteroprio_policy(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
 {
 	struct _starpu_heteroprio_data *hp = (struct _starpu_heteroprio_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-
-	int workerid;
 	unsigned i;
+
 	for (i = 0; i < nworkers; i++)
 	{
-		workerid = workerids[i];
+		int workerid = workerids[i];
 		if(hp->workers_heteroprio[workerid].tasks_queue != NULL)
 		{
 			_starpu_destroy_fifo(hp->workers_heteroprio[workerid].tasks_queue);
@@ -386,7 +384,6 @@ static int push_task_heteroprio_policy(struct starpu_task *task)
 
 	/*if there are no tasks_queue block */
 	/* wake people waiting for a task */
-	unsigned worker = 0;
 	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 
 	struct starpu_sched_ctx_iterator it;
@@ -397,7 +394,7 @@ static int push_task_heteroprio_policy(struct starpu_task *task)
 	workers->init_iterator(workers, &it);
 	while(workers->has_next(workers, &it))
 	{
-		worker = workers->get_next(workers, &it);
+		unsigned worker = workers->get_next(workers, &it);
 
 #ifdef STARPU_NON_BLOCKING_DRIVERS
 		if (!starpu_bitmap_get(hp->waiters, worker))
@@ -426,7 +423,7 @@ static int push_task_heteroprio_policy(struct starpu_task *task)
 	workers->init_iterator(workers, &it);
 	while(workers->has_next(workers, &it))
 	{
-		worker = workers->get_next(workers, &it);
+		unsigned worker = workers->get_next(workers, &it);
 		if (dowake[worker])
 			if (starpu_wake_worker(worker))
 				break; // wake up a single worker

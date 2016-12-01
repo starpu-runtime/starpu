@@ -274,7 +274,7 @@ static void find_and_assign_combinations_without_hwloc(int *workerids, int nwork
 #ifdef STARPU_USE_MIC
 		else if(worker->arch == STARPU_MIC_WORKER)
 		{
-			for(j=0; mic_id[j] != worker->devid && mic_id[j] != -1 && j<nb_mics; j++);
+			for(j=0; j<nb_mics && mic_id[j] != worker->devid && mic_id[j] != -1; j++);
 			if(j<nb_mics)
 			{
 				if(mic_id[j] == -1)

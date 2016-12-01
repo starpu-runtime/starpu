@@ -277,7 +277,7 @@ int inject_task_list(struct _starpu_job_list *list, struct _starpu_worker *worke
 {
 	/* first put back all tasks that can not be performed by Gordon */
 	unsigned nvalids = 0;
-	unsigned ninvalids = 0;
+//	unsigned ninvalids = 0;
 	struct _starpu_job *j;
 
 	// TODO !

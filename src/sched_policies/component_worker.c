@@ -313,13 +313,13 @@ struct _starpu_combined_worker * _starpu_sched_component_combined_worker_get_com
 
 void _starpu_sched_component_lock_worker(unsigned sched_ctx_id, int workerid)
 {
-	STARPU_ASSERT(0 <= workerid && workerid < (int) starpu_worker_get_count());
+	STARPU_ASSERT(workerid >= 0 && workerid < (int) starpu_worker_get_count());
 	struct _starpu_worker_component_data * data = starpu_sched_component_worker_get(sched_ctx_id, workerid)->data;
 	STARPU_PTHREAD_MUTEX_LOCK(&data->lock);
 }
 void _starpu_sched_component_unlock_worker(unsigned sched_ctx_id, int workerid)
 {
-	STARPU_ASSERT(0 <= workerid && workerid < (int)starpu_worker_get_count());
+	STARPU_ASSERT(workerid >= 0  && workerid < (int)starpu_worker_get_count());
 	struct _starpu_worker_component_data * data = starpu_sched_component_worker_get(sched_ctx_id, workerid)->data;
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data->lock);
 }
@@ -580,7 +580,7 @@ static void _worker_component_deinit_data(struct starpu_sched_component * compon
 
 static struct starpu_sched_component * starpu_sched_component_worker_create(struct starpu_sched_tree *tree, int workerid)
 {
-	STARPU_ASSERT(0 <=  workerid && workerid < (int) starpu_worker_get_count());
+	STARPU_ASSERT(workerid >= 0 && workerid < (int) starpu_worker_get_count());
 
 	if(_worker_components[tree->sched_ctx_id][workerid])
 		return _worker_components[tree->sched_ctx_id][workerid];
@@ -766,7 +766,7 @@ static double combined_worker_estimated_load(struct starpu_sched_component * com
 
 static struct starpu_sched_component  * starpu_sched_component_combined_worker_create(struct starpu_sched_tree *tree, int workerid)
 {
-	STARPU_ASSERT(0 <= workerid && workerid <  STARPU_NMAXWORKERS);
+	STARPU_ASSERT(workerid >= 0 && workerid <  STARPU_NMAXWORKERS);
 
 	if(_worker_components[tree->sched_ctx_id][workerid])
 		return _worker_components[tree->sched_ctx_id][workerid];

@@ -226,7 +226,7 @@ double _ws_estimated_load(struct starpu_sched_component * component)
 static int push_task(struct starpu_sched_component * component, struct starpu_task * task)
 {
 	struct _starpu_work_stealing_data * wsd = component->data;
-	int ret = -1;
+	int ret;
 	int i = wsd->last_push_child;
 	i = (i+1)%component->nchildren;
 

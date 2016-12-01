@@ -1699,7 +1699,7 @@ int starpu_worker_get_id(void)
 unsigned _starpu_worker_get_id_check(const char *f, int l)
 {
 	int id = _starpu_worker_get_id();
-	STARPU_ASSERT_MSG(id>=0, "%s:%u Cannot be called from outside a worker\n", f, l);
+	STARPU_ASSERT_MSG(id>=0, "%s:%d Cannot be called from outside a worker\n", f, l);
 	return id;
 }
 

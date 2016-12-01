@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009-2016  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -99,7 +99,6 @@ static void _starpu_cuda_limit_gpu_mem_if_needed(unsigned devid)
 	starpu_ssize_t limit;
 	size_t STARPU_ATTRIBUTE_UNUSED totalGlobalMem = 0;
 	size_t STARPU_ATTRIBUTE_UNUSED to_waste = 0;
-	char name[30];
 
 #ifdef STARPU_SIMGRID
 	totalGlobalMem = _starpu_simgrid_get_memsize("CUDA", devid);
@@ -111,6 +110,7 @@ static void _starpu_cuda_limit_gpu_mem_if_needed(unsigned devid)
 	limit = starpu_get_env_number("STARPU_LIMIT_CUDA_MEM");
 	if (limit == -1)
 	{
+		char name[30];
 		sprintf(name, "STARPU_LIMIT_CUDA_%u_MEM", devid);
 		limit = starpu_get_env_number(name);
 	}
@@ -247,7 +247,6 @@ done:
 #ifndef STARPU_SIMGRID
 static void init_device_context(unsigned devid)
 {
-	int workerid;
 	unsigned i;
 
 	cudaError_t cures;
@@ -260,6 +259,7 @@ static void init_device_context(unsigned devid)
 	if (starpu_get_env_number("STARPU_ENABLE_CUDA_GPU_GPU_DIRECT") != 0)
 	{
 		int nworkers = starpu_worker_get_count();
+		int workerid;
 		for (workerid = 0; workerid < nworkers; workerid++)
 		{
 			struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);

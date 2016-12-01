@@ -176,7 +176,7 @@ char *_starpu_mktemp(const char *directory, int flags, int *fd)
 		errno = err;
 		return NULL;
 	}
-	
+
 #if !defined(STARPU_HAVE_WINDOWS) && !defined (HAVE_MKOSTEMP)
 #if defined (O_DIRECT)
 	if ((flags & O_DIRECT) != 0)
@@ -190,13 +190,13 @@ char *_starpu_mktemp(const char *directory, int flags, int *fd)
 			free(baseCpy);
 			errno = err;
 			return NULL;
-		}		
+		}
 	}
 #elif defined (STARPU_HAVE_DARWIN) //MACOS
 	if ((flags & F_NOCACHE) != 0)
 	{
 		int flag = fcntl(*fd, F_GETFL);
-		flag |= F_NOCACHE;
+		//flag |= F_NOCACHE;
 		if (fcntl(*fd, F_SETFL, F_NOCACHE) < 0)
 		{
 			int err = errno;
@@ -205,13 +205,13 @@ char *_starpu_mktemp(const char *directory, int flags, int *fd)
 			errno = err;
 			return NULL;
 		}
-	}	
+	}
 #else
 	/* nothing for now */
-#endif	
-#endif	  
-	
-	
+#endif
+#endif
+
+
 	return baseCpy;
 }
 

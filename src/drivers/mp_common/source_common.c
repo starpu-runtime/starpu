@@ -403,8 +403,6 @@ static int _starpu_src_common_execute(struct _starpu_job *j,
 		struct _starpu_worker *worker,
 		struct _starpu_mp_node * node)
 {
-	int ret;
-
 	STARPU_ASSERT(j);
 	struct starpu_task *task = j->task;
 
@@ -413,7 +411,7 @@ static int _starpu_src_common_execute(struct _starpu_job *j,
 	STARPU_ASSERT(task);
 	if (worker->current_rank == 0)
 	{
-		ret = _starpu_fetch_task_input(j);
+		int ret = _starpu_fetch_task_input(j);
 		if (ret != 0)
 		{
 			/* there was not enough memory, so the input of
@@ -426,7 +424,6 @@ static int _starpu_src_common_execute(struct _starpu_job *j,
 	void (*kernel)(void)  = node->get_kernel_from_job(node,j);
 
 	_starpu_driver_start_job(worker, j, &worker->perf_arch, &j->cl_start, 0, profiling);
-
 
 	//_STARPU_DEBUG("\nworkerid:%d, rank:%d, type:%d,	cb_workerid:%d, task_size:%d\n\n",worker->devid,worker->current_rank,task->cl->type,j->combined_workerid,j->task_size);
 
@@ -687,7 +684,6 @@ void _starpu_src_common_worker(struct _starpu_worker_set * worker_set,
 	while (_starpu_machine_is_running())
 	{
 		int res = 0;
-		struct _starpu_job * j;
 
 		_starpu_may_pause();
 
@@ -723,7 +719,7 @@ void _starpu_src_common_worker(struct _starpu_worker_set * worker_set,
 			{
 				if(tasks[i] != NULL)
 				{
-					j = _starpu_get_job_associated_to_task(tasks[i]);
+					struct _starpu_job * j = _starpu_get_job_associated_to_task(tasks[i]);
 					_starpu_set_local_worker_key(&worker_set->workers[i]);
 					res =  _starpu_src_common_execute(j, &worker_set->workers[i], mp_node);
 					switch (res)

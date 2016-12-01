@@ -152,7 +152,7 @@ char *_starpu_opencl_load_program_source(const char *filename)
 	FILE        *fh;
 	char        *source;
 	int         x;
-	char        c;
+	int         c;
 	int         err;
 
 	fh = fopen(filename, "r");
@@ -163,9 +163,9 @@ char *_starpu_opencl_load_program_source(const char *filename)
 	STARPU_ASSERT_MSG(err == 0, "could not open file %s\n", filename);
 	_STARPU_MALLOC(source, statbuf.st_size + 1);
 
-	for(c=(char)fgetc(fh), x=0 ; c != EOF ; c =(char)fgetc(fh), x++)
+	for(c=fgetc(fh), x=0 ; c != EOF ; c =fgetc(fh), x++)
 	{
-		source[x] = c;
+		source[x] = (char)c;
 	}
 	source[x] = '\0';
 
@@ -177,7 +177,6 @@ char *_starpu_opencl_load_program_source(const char *filename)
 
 	return source;
 }
-
 
 static
 char *_starpu_opencl_load_program_binary(const char *filename, size_t *len)

@@ -477,7 +477,7 @@ int starpu_data_idle_prefetch_on_node(starpu_data_handle_t handle, unsigned node
 
 static void _starpu_data_wont_use(void *data)
 {
-	unsigned node, worker, nworkers = starpu_worker_get_count();
+	unsigned node;
 	starpu_data_handle_t handle = data;
 
 	_starpu_spin_lock(&handle->header_lock);
@@ -488,11 +488,15 @@ static void _starpu_data_wont_use(void *data)
 			_starpu_memchunk_wont_use(local->mc, node);
 	}
 	if (handle->per_worker)
-	for (worker = 0; worker < nworkers; worker++)
 	{
-		struct _starpu_data_replicate *local = &handle->per_worker[worker];
-		if (local->allocated && local->automatically_allocated)
-			_starpu_memchunk_wont_use(local->mc, starpu_worker_get_memory_node(worker));
+		unsigned nworkers = starpu_worker_get_count();
+		unsigned worker;
+		for (worker = 0; worker < nworkers; worker++)
+		{
+			struct _starpu_data_replicate *local = &handle->per_worker[worker];
+			if (local->allocated && local->automatically_allocated)
+				_starpu_memchunk_wont_use(local->mc, starpu_worker_get_memory_node(worker));
+		}
 	}
 	_starpu_spin_unlock(&handle->header_lock);
 	starpu_data_release_on_node(handle, STARPU_ACQUIRE_ALL_NODES);

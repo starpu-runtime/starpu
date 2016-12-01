@@ -542,7 +542,6 @@ static void read_proc_bind_var()
 	static const char *strings[] = { "false", "true", "master", "close", "spread", NULL };
 	const int max_levels = _initial_icv_values.max_active_levels_var + 1;
 	int *bind_list = NULL;
-	int level = 0;
 	char *env;
 
 	_STARPU_CALLOC(bind_list, max_levels, sizeof(*bind_list));
@@ -551,9 +550,11 @@ static void read_proc_bind_var()
 	if (env)
 	{
 		char *saveptr, *token;
+		int level = 0;
 
 		token = strtok_r(env, ",", &saveptr);
-		for (; token != NULL; token = strtok_r(NULL, ",", &saveptr)) {
+		for (; token != NULL; token = strtok_r(NULL, ",", &saveptr))
+		{
 			int value;
 
 			if (!read_string_var(token, strings, &value))
@@ -572,7 +573,6 @@ static void read_num_threads_var()
 {
 	const int max_levels = _initial_icv_values.max_active_levels_var + 1;
 	int *num_threads_list = NULL;
-	int level = 0;
 	char *env;
 
 	_STARPU_CALLOC(num_threads_list, max_levels, sizeof(*num_threads_list));
@@ -581,9 +581,11 @@ static void read_num_threads_var()
 	if (env)
 	{
 		char *saveptr, *token;
+		int level = 0;
 
 		token = strtok_r(env, ",", &saveptr);
-		for (; token != NULL; token = strtok_r(NULL, ",", &saveptr)) {
+		for (; token != NULL; token = strtok_r(NULL, ",", &saveptr))
+		{
 			int value;
 
 			if (!read_int_var(token, &value))
