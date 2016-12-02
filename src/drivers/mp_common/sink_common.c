@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012  INRIA
+ * Copyright (C) 2012, 2016  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -133,8 +133,10 @@ static void _starpu_sink_common_copy_from_host_async(struct _starpu_mp_node *mp_
 
     /* Set the sender (host) ready because we don't want to wait its ack */
     struct _starpu_async_channel * async_channel = &sink_event->event;
-    async_channel->starpu_mp_common_finished_sender = 1;
+    async_channel->type = STARPU_UNUSED;
+    async_channel->starpu_mp_common_finished_sender = -1;
     async_channel->starpu_mp_common_finished_receiver = 0;
+    async_channel->polling_node = NULL;
 
     mp_node->dt_recv(mp_node, cmd->addr, cmd->size, &sink_event->event);
     /* Push event on the list */
@@ -176,8 +178,10 @@ static void _starpu_sink_common_copy_to_host_async(struct _starpu_mp_node *mp_no
     
     /* Set the receiver (host) ready because we don't want to wait its ack */
     struct _starpu_async_channel * async_channel = &sink_event->event;
+    async_channel->type = STARPU_UNUSED;
     async_channel->starpu_mp_common_finished_sender = 0;
-    async_channel->starpu_mp_common_finished_receiver = 1;
+    async_channel->starpu_mp_common_finished_receiver = -1;
+    async_channel->polling_node = NULL;
 
     mp_node->dt_send(mp_node, cmd->addr, cmd->size, &sink_event->event);
     /* Push event on the list */
@@ -213,8 +217,10 @@ static void _starpu_sink_common_copy_from_sink_async(struct _starpu_mp_node *mp_
 
     /* Set the sender ready because we don't want to wait its ack */
     struct _starpu_async_channel * async_channel = &sink_event->event;
-    async_channel->starpu_mp_common_finished_sender = 1;
+    async_channel->type = STARPU_UNUSED;
+    async_channel->starpu_mp_common_finished_sender = -1;
     async_channel->starpu_mp_common_finished_receiver = 0;
+    async_channel->polling_node = NULL;
 
     mp_node->dt_recv_from_device(mp_node, cmd->devid, cmd->addr, cmd->size, &sink_event->event);
     /* Push event on the list */
@@ -250,8 +256,10 @@ static void _starpu_sink_common_copy_to_sink_async(struct _starpu_mp_node *mp_no
 
     /* Set the receiver ready because we don't want to wait its ack */
     struct _starpu_async_channel * async_channel = &sink_event->event;
+    async_channel->type = STARPU_UNUSED;
     async_channel->starpu_mp_common_finished_sender = 0;
-    async_channel->starpu_mp_common_finished_receiver = 1;
+    async_channel->starpu_mp_common_finished_receiver = -1;
+    async_channel->polling_node = NULL;
 
     mp_node->dt_send_to_device(mp_node, cmd->devid, cmd->addr, cmd->size, &sink_event->event);
 

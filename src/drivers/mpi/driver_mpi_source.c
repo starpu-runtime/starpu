@@ -107,30 +107,18 @@ int _starpu_mpi_copy_sink_to_sink_sync(void *src, unsigned src_node, void *dst, 
 
 int _starpu_mpi_copy_mpi_to_ram_async(void *src, unsigned src_node, void *dst, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size, void * event)
 {
-    /* By default, init the request with MPI_REQUEST_NULL */
-    struct _starpu_async_channel * channel = event;
-    channel->event.mpi_ms_event.request = MPI_REQUEST_NULL;
-
     struct _starpu_mp_node *mp_node = _starpu_mpi_src_get_mp_node_from_memory_node(src_node);
     return _starpu_src_common_copy_sink_to_host_async(mp_node, src, dst, size, event);
 }
 
 int _starpu_mpi_copy_ram_to_mpi_async(void *src, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst, unsigned dst_node, size_t size, void * event)
 {
-    /* By default, init the request with MPI_REQUEST_NULL */
-    struct _starpu_async_channel * channel = event;
-    channel->event.mpi_ms_event.request = MPI_REQUEST_NULL;
-
     struct _starpu_mp_node *mp_node = _starpu_mpi_src_get_mp_node_from_memory_node(dst_node);
     return _starpu_src_common_copy_host_to_sink_async(mp_node, src, dst, size, event);
 }
 
 int _starpu_mpi_copy_sink_to_sink_async(void *src, unsigned src_node, void *dst, unsigned dst_node, size_t size, void * event)
 {
-    /* By default, init the request with MPI_REQUEST_NULL */
-    struct _starpu_async_channel * channel = event;
-    channel->event.mpi_ms_event.request = MPI_REQUEST_NULL;
-
     return _starpu_src_common_copy_sink_to_sink_async(_starpu_mpi_src_get_mp_node_from_memory_node(src_node),
             _starpu_mpi_src_get_mp_node_from_memory_node(dst_node),
             src, dst, size, event);
@@ -141,20 +129,54 @@ int _starpu_mpi_copy_sink_to_sink_async(void *src, unsigned src_node, void *dst,
  */
 void _starpu_mpi_src_wait_event(struct _starpu_async_channel * event)
 {
-    if (!event->event.mpi_ms_event.finished)
+    if (event->event.mpi_ms_event.requests != NULL && !_starpu_mpi_ms_event_request_list_empty(event->event.mpi_ms_event.requests))
     {
-        MPI_Wait(&event->event.mpi_ms_event.request, MPI_STATUS_IGNORE);
-        event->event.mpi_ms_event.finished = 1;
-        if (event->event.mpi_ms_event.is_sender)
-            event->starpu_mp_common_finished_sender = 1;
-        else
-            event->starpu_mp_common_finished_receiver = 1;
+        struct _starpu_mpi_ms_event_request * req = _starpu_mpi_ms_event_request_list_begin(event->event.mpi_ms_event.requests);
+        struct _starpu_mpi_ms_event_request * req_next;
+
+        while (req != _starpu_mpi_ms_event_request_list_end(event->event.mpi_ms_event.requests))
+        {
+            req_next = _starpu_mpi_ms_event_request_list_next(req);
+
+            MPI_Wait(&req->request, MPI_STATUS_IGNORE);
+            _starpu_mpi_ms_event_request_list_erase(event->event.mpi_ms_event.requests, req);
+
+            _starpu_mpi_ms_event_request_delete(req);
+            req = req_next;
+
+            if (event->event.mpi_ms_event.is_sender)
+                event->starpu_mp_common_finished_sender--;
+            else
+                event->starpu_mp_common_finished_receiver--;
+
+        }
+
+        STARPU_ASSERT_MSG(_starpu_mpi_ms_event_request_list_empty(event->event.mpi_ms_event.requests), "MPI Request list is not empty after a wait_event !");
+
+        /* Destroy the list */
+        _starpu_mpi_ms_event_request_list_delete(event->event.mpi_ms_event.requests);
+        event->event.mpi_ms_event.requests = NULL;
     }
 
     //XXX: Maybe cause deadlock when the same thread is waiting here and cannot handle
     //incoming ack from devices
-    while(!event->starpu_mp_common_finished_sender || !event->starpu_mp_common_finished_receiver)
-        ;
+    while(event->starpu_mp_common_finished_sender > 0 || event->starpu_mp_common_finished_receiver > 0)
+        /* poll the asynchronous messages.*/
+        if (event->polling_node != NULL)
+        {
+            while(event->polling_node->mp_recv_is_ready(event->polling_node))
+            {
+                enum _starpu_mp_command answer;
+                void *arg;
+                int arg_size;
+                answer = _starpu_mp_common_recv_command(event->polling_node, &arg, &arg_size);
+                if(!_starpu_src_common_store_message(event->polling_node,arg,arg_size,answer))
+                {
+                    printf("incorrect commande: unknown command or sync command");
+                    STARPU_ASSERT(0);
+                }
+            }
+        }
 }
 
 

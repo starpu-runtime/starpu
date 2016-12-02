@@ -18,6 +18,7 @@
 #include <mpi.h>
 #include <core/workers.h>
 #include <core/perfmodel/perfmodel.h>
+#include <drivers/mp_common/source_common.h>
 #include "driver_mpi_common.h"
 
 #define NITER 32
@@ -167,9 +168,27 @@ void _starpu_mpi_common_send(const struct _starpu_mp_node *node, void *msg, int 
     {
         /* Asynchronous send */
         struct _starpu_async_channel * channel = event;
-        channel->event.mpi_ms_event.finished = 0;
         channel->event.mpi_ms_event.is_sender = 1;
-        res = MPI_Isend(msg, len, MPI_BYTE, node->mp_connection.mpi_remote_nodeid, ASYNC_TAG, MPI_COMM_WORLD, &channel->event.mpi_ms_event.request);
+
+        /* call by sink, we need to initialize some parts, for host it's done in data_request.c */
+        if (channel->type == STARPU_UNUSED)
+            channel->event.mpi_ms_event.requests = NULL;
+
+        /* Initialize the list */
+        if (channel->event.mpi_ms_event.requests == NULL)
+        {
+            channel->event.mpi_ms_event.requests = _starpu_mpi_ms_event_request_list_new();            
+            _starpu_mpi_ms_event_request_list_init(channel->event.mpi_ms_event.requests);
+        }
+
+        struct _starpu_mpi_ms_event_request * req = _starpu_mpi_ms_event_request_new();
+
+        res = MPI_Isend(msg, len, MPI_BYTE, node->mp_connection.mpi_remote_nodeid, ASYNC_TAG, MPI_COMM_WORLD, &req->request);
+
+        channel->starpu_mp_common_finished_receiver++;
+        channel->starpu_mp_common_finished_sender++;
+
+        _starpu_mpi_ms_event_request_list_push_back(channel->event.mpi_ms_event.requests, req);
     } 
     else
     {
@@ -199,9 +218,27 @@ void _starpu_mpi_common_recv(const struct _starpu_mp_node *node, void *msg, int 
     {
         /* Asynchronous recv */
         struct _starpu_async_channel * channel = event;
-        channel->event.mpi_ms_event.finished = 0;
         channel->event.mpi_ms_event.is_sender = 0;
-        res = MPI_Irecv(msg, len, MPI_BYTE, node->mp_connection.mpi_remote_nodeid, ASYNC_TAG, MPI_COMM_WORLD, &channel->event.mpi_ms_event.request);
+
+        /* call by sink, we need to initialize some parts, for host it's done in data_request.c */
+        if (channel->type == STARPU_UNUSED)
+            channel->event.mpi_ms_event.requests = NULL;
+
+        /* Initialize the list */
+        if (channel->event.mpi_ms_event.requests == NULL)
+        {
+            channel->event.mpi_ms_event.requests = _starpu_mpi_ms_event_request_list_new();            
+            _starpu_mpi_ms_event_request_list_init(channel->event.mpi_ms_event.requests);
+        }
+
+        struct _starpu_mpi_ms_event_request * req = _starpu_mpi_ms_event_request_new();
+
+        res = MPI_Irecv(msg, len, MPI_BYTE, node->mp_connection.mpi_remote_nodeid, ASYNC_TAG, MPI_COMM_WORLD, &req->request);
+
+        channel->starpu_mp_common_finished_receiver++;
+        channel->starpu_mp_common_finished_sender++;
+
+        _starpu_mpi_ms_event_request_list_push_back(channel->event.mpi_ms_event.requests, req);
     } 
     else
     {
@@ -233,9 +270,27 @@ void _starpu_mpi_common_send_to_device(const struct _starpu_mp_node *node, int d
     {
         /* Asynchronous send */
         struct _starpu_async_channel * channel = event;
-        channel->event.mpi_ms_event.finished = 0;
         channel->event.mpi_ms_event.is_sender = 1;
-        res = MPI_Isend(msg, len, MPI_BYTE, dst_devid, ASYNC_TAG, MPI_COMM_WORLD, &channel->event.mpi_ms_event.request);
+
+        /* call by sink, we need to initialize some parts, for host it's done in data_request.c */
+        if (channel->type == STARPU_UNUSED)
+            channel->event.mpi_ms_event.requests = NULL;
+
+        /* Initialize the list */
+        if (channel->event.mpi_ms_event.requests == NULL)
+        {
+            channel->event.mpi_ms_event.requests = _starpu_mpi_ms_event_request_list_new();            
+            _starpu_mpi_ms_event_request_list_init(channel->event.mpi_ms_event.requests);
+        }
+
+        struct _starpu_mpi_ms_event_request * req = _starpu_mpi_ms_event_request_new();
+
+        res = MPI_Isend(msg, len, MPI_BYTE, dst_devid, ASYNC_TAG, MPI_COMM_WORLD, &req->request);
+
+        channel->starpu_mp_common_finished_receiver++;
+        channel->starpu_mp_common_finished_sender++;
+
+        _starpu_mpi_ms_event_request_list_push_back(channel->event.mpi_ms_event.requests, req);
     } 
     else
     {
@@ -259,9 +314,27 @@ void _starpu_mpi_common_recv_from_device(const struct _starpu_mp_node *node, int
     {
         /* Asynchronous recv */
         struct _starpu_async_channel * channel = event;
-        channel->event.mpi_ms_event.finished = 0;
         channel->event.mpi_ms_event.is_sender = 0;
-        res = MPI_Irecv(msg, len, MPI_BYTE, src_devid, ASYNC_TAG, MPI_COMM_WORLD, &channel->event.mpi_ms_event.request);
+
+        /* call by sink, we need to initialize some parts, for host it's done in data_request.c */
+        if (channel->type == STARPU_UNUSED)
+            channel->event.mpi_ms_event.requests = NULL;
+
+        /* Initialize the list */
+        if (channel->event.mpi_ms_event.requests == NULL)
+        {
+            channel->event.mpi_ms_event.requests = _starpu_mpi_ms_event_request_list_new();            
+            _starpu_mpi_ms_event_request_list_init(channel->event.mpi_ms_event.requests);
+        }
+
+        struct _starpu_mpi_ms_event_request * req = _starpu_mpi_ms_event_request_new();
+
+        res = MPI_Irecv(msg, len, MPI_BYTE, src_devid, ASYNC_TAG, MPI_COMM_WORLD, &req->request);
+
+        channel->starpu_mp_common_finished_receiver++;
+        channel->starpu_mp_common_finished_sender++;
+
+        _starpu_mpi_ms_event_request_list_push_back(channel->event.mpi_ms_event.requests, req);
     } 
     else
     {
@@ -271,30 +344,63 @@ void _starpu_mpi_common_recv_from_device(const struct _starpu_mp_node *node, int
     }
 }
 
-/* - In MPI Master-Slave communications between host and device,
- * host is always considered as the sender and the device, the receiver.
- * - In device to device communications, the first ack received by host
+ /* - In device to device communications, the first ack received by host
  * is considered as the sender (but it cannot be, in fact, the sender)
  */
 int _starpu_mpi_common_test_event(struct _starpu_async_channel * event)
 {
-    //if the event is not finished, maybe it's a host-device communication
-    //or host has already finished its work
-    if (!event->event.mpi_ms_event.finished)
+    if (event->event.mpi_ms_event.requests != NULL && !_starpu_mpi_ms_event_request_list_empty(event->event.mpi_ms_event.requests))
     {
-        int flag = 0;
-        MPI_Test(&event->event.mpi_ms_event.request, &flag, MPI_STATUS_IGNORE);
-        if (flag)
+        struct _starpu_mpi_ms_event_request * req = _starpu_mpi_ms_event_request_list_begin(event->event.mpi_ms_event.requests);
+        struct _starpu_mpi_ms_event_request * req_next;
+
+        while (req != _starpu_mpi_ms_event_request_list_end(event->event.mpi_ms_event.requests))
         {
-            event->event.mpi_ms_event.finished = 1;
-            if (event->event.mpi_ms_event.is_sender)
-                event->starpu_mp_common_finished_sender = 1;
-            else
-                event->starpu_mp_common_finished_receiver = 1;
+            req_next = _starpu_mpi_ms_event_request_list_next(req);
+
+            int flag = 0;
+            MPI_Test(&req->request, &flag, MPI_STATUS_IGNORE);
+            if (flag)
+            {
+                _starpu_mpi_ms_event_request_list_erase(event->event.mpi_ms_event.requests, req);
+                _starpu_mpi_ms_event_request_delete(req);
+
+                if (event->event.mpi_ms_event.is_sender)
+                    event->starpu_mp_common_finished_sender--;
+                else
+                    event->starpu_mp_common_finished_receiver--;
+
+            }
+            req = req_next;
+        }
+
+        /* When the list is empty, we finished to wait each request */
+        if (_starpu_mpi_ms_event_request_list_empty(event->event.mpi_ms_event.requests))
+        {
+            /* Destroy the list */
+            _starpu_mpi_ms_event_request_list_delete(event->event.mpi_ms_event.requests);
+            event->event.mpi_ms_event.requests = NULL;
         }
     }
 
-    return event->starpu_mp_common_finished_sender && event->starpu_mp_common_finished_receiver;
+    /* poll the asynchronous messages.*/
+    if (event->polling_node != NULL)
+    {
+        while(event->polling_node->mp_recv_is_ready(event->polling_node))
+        {
+            enum _starpu_mp_command answer;
+            void *arg;
+            int arg_size;
+            answer = _starpu_mp_common_recv_command(event->polling_node, &arg, &arg_size);
+            if(!_starpu_src_common_store_message(event->polling_node,arg,arg_size,answer))
+            {
+                printf("incorrect commande: unknown command or sync command");
+                STARPU_ASSERT(0);
+            }
+        }
+    }
+
+    return !event->starpu_mp_common_finished_sender && !event->starpu_mp_common_finished_receiver;
 }
 
 

@@ -140,15 +140,15 @@ static int _starpu_src_common_handle_async(const struct _starpu_mp_node *node ST
         case STARPU_RECV_FROM_HOST_ASYNC_COMPLETED:
         case STARPU_RECV_FROM_SINK_ASYNC_COMPLETED:
         {
-            struct _starpu_async_channel * event = arg;
-            event->starpu_mp_common_finished_receiver = 1;
+            struct _starpu_async_channel * event = *((struct _starpu_async_channel **) arg);
+            event->starpu_mp_common_finished_receiver--;
             break;
         }
         case STARPU_SEND_TO_HOST_ASYNC_COMPLETED:
         case STARPU_SEND_TO_SINK_ASYNC_COMPLETED:
         {
-            struct _starpu_async_channel * event = arg;
-            event->starpu_mp_common_finished_sender = 1;
+            struct _starpu_async_channel * event = *((struct _starpu_async_channel **) arg);
+            event->starpu_mp_common_finished_sender--;
             break;
         }
 		default:
@@ -205,16 +205,16 @@ int _starpu_src_common_store_message(struct _starpu_mp_node *node,
         case STARPU_RECV_FROM_HOST_ASYNC_COMPLETED:
         case STARPU_RECV_FROM_SINK_ASYNC_COMPLETED:
         {
-            struct _starpu_async_channel * event = arg;
-            event->starpu_mp_common_finished_receiver = 1;
+            struct _starpu_async_channel * event = *((struct _starpu_async_channel **) arg);
+            event->starpu_mp_common_finished_receiver--;
             return 1;
             break;
         }
         case STARPU_SEND_TO_HOST_ASYNC_COMPLETED:
         case STARPU_SEND_TO_SINK_ASYNC_COMPLETED:
         {
-            struct _starpu_async_channel * event = arg;
-            event->starpu_mp_common_finished_sender = 1;
+            struct _starpu_async_channel * event = *((struct _starpu_async_channel **) arg);
+            event->starpu_mp_common_finished_sender--;
             return 1;
             break;
         }
@@ -548,7 +548,7 @@ int _starpu_src_common_copy_host_to_sink_sync(const struct _starpu_mp_node *mp_n
 /* Send SIZE bytes pointed by SRC to DST on the sink linked to the MP_NODE with an
  * asynchronous mode.
  */
-int _starpu_src_common_copy_host_to_sink_async(const struct _starpu_mp_node *mp_node,
+int _starpu_src_common_copy_host_to_sink_async(struct _starpu_mp_node *mp_node,
 		void *src, void *dst, size_t size, void * event)
 {
 	struct _starpu_mp_transfer_command cmd = {size, dst, event};
@@ -557,14 +557,13 @@ int _starpu_src_common_copy_host_to_sink_async(const struct _starpu_mp_node *mp_
      * to test is they are finished
      */
     struct _starpu_async_channel * async_channel = event;
-    async_channel->starpu_mp_common_finished_sender = 0;
-    async_channel->starpu_mp_common_finished_receiver = 0;
+    async_channel->polling_node = mp_node;
 
 	_starpu_mp_common_send_command(mp_node, STARPU_RECV_FROM_HOST_ASYNC, &cmd, sizeof(cmd));
 
 	mp_node->dt_send(mp_node, src, size, event);
 
-	return 0;
+	return -EAGAIN;
 }
 
 /* Receive SIZE bytes pointed by SRC on the sink linked to the MP_NODE and store them in DST
@@ -601,14 +600,13 @@ int _starpu_src_common_copy_sink_to_host_async(struct _starpu_mp_node *mp_node,
      * to test is they are finished
      */
     struct _starpu_async_channel * async_channel = event;
-    async_channel->starpu_mp_common_finished_sender = 0;
-    async_channel->starpu_mp_common_finished_receiver = 0;
+    async_channel->polling_node = mp_node;
 
 	_starpu_mp_common_send_command(mp_node, STARPU_SEND_TO_HOST_ASYNC, &cmd, sizeof(cmd));
 
 	mp_node->dt_recv(mp_node, dst, size, event);
-    
-	return 0;
+
+	return -EAGAIN;
 }
 
 /* Tell the sink linked to SRC_NODE to send SIZE bytes of data pointed by SRC
@@ -655,8 +653,7 @@ int _starpu_src_common_copy_sink_to_sink_async(const struct _starpu_mp_node *src
      * to test is they are finished
      */
     struct _starpu_async_channel * async_channel = event;
-    async_channel->starpu_mp_common_finished_sender = 0;
-    async_channel->starpu_mp_common_finished_receiver = 0;
+    async_channel->polling_node = NULL; /* TODO which node ? */
 
 	/* Tell source to send data to dest. */
 	_starpu_mp_common_send_command(src_node, STARPU_SEND_TO_SINK_ASYNC, &cmd, sizeof(cmd));
@@ -668,7 +665,8 @@ int _starpu_src_common_copy_sink_to_sink_async(const struct _starpu_mp_node *src
 	/* Tell dest to receive data from source. */
 	_starpu_mp_common_send_command(dst_node, STARPU_RECV_FROM_SINK_ASYNC, &cmd, sizeof(cmd));
 
-	return 0;
+
+	return -EAGAIN;
 }
 
 /* 5 functions to determine the executable to run on the device (MIC, SCC,

@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2009-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2016  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -152,6 +153,11 @@ struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t ha
 	r->dst_replicate = dst_replicate;
 	r->mode = mode;
 	r->async_channel.type = STARPU_UNUSED;
+    r->async_channel.starpu_mp_common_finished_sender = 0;
+    r->async_channel.starpu_mp_common_finished_receiver = 0;
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+    r->async_channel.event.mpi_ms_event.requests = NULL;
+#endif
 	if (handling_node == -1)
 		handling_node = STARPU_MAIN_RAM;
 	r->handling_node = handling_node;
