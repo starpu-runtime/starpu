@@ -197,6 +197,7 @@ int starpu_unistd_global_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, voi
 #ifdef HAVE_PREAD
 	if (fd >= 0)
 		nb = pread(fd, buf, size, offset);
+	else
 #endif
 	{
 		if (tmp->descriptor >= 0)
