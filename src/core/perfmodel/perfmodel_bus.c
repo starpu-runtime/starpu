@@ -2512,8 +2512,8 @@ double starpu_transfer_predict(unsigned src_node, unsigned dst_node, size_t size
 	double bandwidth = bandwidth_matrix[src_node][dst_node];
 	double latency = latency_matrix[src_node][dst_node];
 	struct _starpu_machine_topology *topology = &_starpu_get_machine_config()->topology;
-	int busid = starpu_bus_get_id(src_node, dst_node);
 #if 0
+	int busid = starpu_bus_get_id(src_node, dst_node);
 	int direct = starpu_bus_get_direct(busid);
 #endif
 	float ngpus = topology->ncudagpus+topology->nopenclgpus;

@@ -65,6 +65,7 @@ double cost_function(struct starpu_task *t, struct starpu_perfmodel_arch *a, uns
 		return TIME/TIME_OPENCL_COEFFICIENT * 1000000;
 	}
 	STARPU_ASSERT(0);
+	return 0.0;
 }
 
 static struct starpu_perfmodel perf_model =

@@ -112,6 +112,7 @@ static struct starpu_data_filter filter_uv =
 int main(int argc, char **argv)
 {
 	int ret;
+	size_t sret;
 
 	assert(HEIGHT % (2*BLOCK_HEIGHT) == 0);
 	assert(HEIGHT % FACTOR == 0);
@@ -146,8 +147,8 @@ int main(int argc, char **argv)
 	FILE *f_out = fopen(filename_out, "w+");
 	assert(f_out);
 
-	ret = fread(yuv_in_buffer, FRAMESIZE, nframes, f_in);
-	assert(ret == nframes);
+	sret = fread(yuv_in_buffer, FRAMESIZE, nframes, f_in);
+	assert(sret == nframes);
 
 	starpu_data_handle_t *frame_y_handle = (starpu_data_handle_t *)  calloc(nframes, sizeof(starpu_data_handle_t));
 	starpu_data_handle_t *frame_u_handle = (starpu_data_handle_t *)  calloc(nframes, sizeof(starpu_data_handle_t));

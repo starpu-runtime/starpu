@@ -68,6 +68,8 @@ static struct starpu_codelet init_parallel_worker_cl=
 void parallel_task_init_one_context(unsigned * context_id)
 {
 	struct starpu_task * t;
+	int ret;
+
 	t = starpu_task_build(&init_parallel_worker_cl,
 			      STARPU_SCHED_CTX, *context_id,
 			      0);
@@ -78,7 +80,8 @@ void parallel_task_init_one_context(unsigned * context_id)
 	t->prologue_callback_pop_arg=context_id;
 	t->prologue_callback_pop_arg_free=0;
 
-	starpu_task_submit(t);
+	ret = starpu_task_submit(t);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 }
 
 struct context main_context;

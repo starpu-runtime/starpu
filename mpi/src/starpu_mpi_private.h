@@ -41,7 +41,7 @@ void _starpu_mpi_set_debug_level_max(int level);
 #endif
 
 #ifdef STARPU_NO_ASSERT
-#  define STARPU_MPI_ASSERT_MSG(x, msg, ...)	do { } while(0)
+#  define STARPU_MPI_ASSERT_MSG(x, msg, ...)	do { if (0) { (void) (x); }} while(0)
 #else
 #  if defined(__CUDACC__) && defined(STARPU_HAVE_WINDOWS)
 int _starpu_debug_rank;
