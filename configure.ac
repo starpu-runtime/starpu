@@ -1778,8 +1778,12 @@ AC_ARG_ENABLE(maxnodes, [AS_HELP_STRING([--enable-maxnodes=<nnodes>],
 
 if test x$maxnodes = x0 ; then
 	if test x$enable_simgrid = xyes ; then
-		# We still need the room for the virtual CUDA/OpenCL devices
-		maxnodes=16
+		# We need the room for the virtual CUDA/OpenCL devices
+		nodes=`expr 4 + $nmaxcudadev + $nmaxopencldev + $nmaxmicdev + 1`
+		if test $nodes -gt 32
+		then
+			nodes=32
+		fi
 	else
 		# We have one memory node shared by all CPU workers, one node per GPU
 		# and per MIC device
@@ -1802,14 +1806,14 @@ if test x$maxnodes = x0 ; then
 			# Only 1 memory node for the shared memory.
 			nodes=`expr $nodes + 1`
 		fi
+	fi
 
-		# set maxnodes to the next power of 2 greater than nodes
-		maxnodes=1
-		while test "$maxnodes" -lt "$nodes"
-		do
-			maxnodes=`expr $maxnodes \* 2`
-		done
- 	fi
+	# set maxnodes to the next power of 2 greater than nodes
+	maxnodes=1
+	while test "$maxnodes" -lt "$nodes"
+	do
+		maxnodes=`expr $maxnodes \* 2`
+	done
 fi
 if test $maxnodes -gt 32 ; then
 	AC_MSG_ERROR([selected number of nodes ($maxnodes) can not be greater than 32])
