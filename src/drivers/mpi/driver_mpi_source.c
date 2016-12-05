@@ -197,14 +197,14 @@ int _starpu_mpi_ms_src_register_kernel(starpu_mpi_ms_func_symbol_t *symbol, cons
 		return 0;
 	}
 
-	kernel = malloc(sizeof(*kernel));
+	_STARPU_MALLOC(kernel, sizeof(*kernel));
 	if (kernel == NULL)
 	{
 		STARPU_PTHREAD_MUTEX_UNLOCK(&htbl_mutex);
 		return -ENOMEM;
 	}
 
-	kernel->name = malloc(func_name_size);
+	_STARPU_MALLOC(kernel->name, func_name_size);
 	if (kernel->name == NULL)
 	{
 		STARPU_PTHREAD_MUTEX_UNLOCK(&htbl_mutex);

@@ -927,7 +927,8 @@ void _starpu_src_common_workers_set(struct _starpu_worker_set * worker_set,
             offsetmemnode[device+1] += worker_set[device].nworkers;
     }
 
-	struct starpu_task **tasks = malloc(sizeof(struct starpu_task *)*nbworkers);
+	struct starpu_task **tasks;
+    _STARPU_MALLOC(tasks, sizeof(struct starpu_task *)*nbworkers);
 
     for (device = 0; device < ndevices; device++)
     {

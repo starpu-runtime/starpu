@@ -423,7 +423,8 @@ void _starpu_mpi_common_measure_bandwidth_latency(double * bandwidth_htod, doubl
     MPI_Comm_rank(MPI_COMM_WORLD, &id_proc);
     MPI_Comm_size(MPI_COMM_WORLD, &nb_proc);
 
-    char * buf = malloc(SIZE_BANDWIDTH);
+    char * buf;
+    _STARPU_MALLOC(buf, SIZE_BANDWIDTH);
     memset(buf, 0, SIZE_BANDWIDTH);
 
     unsigned node;
