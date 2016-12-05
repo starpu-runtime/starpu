@@ -2753,12 +2753,13 @@ AC_MSG_CHECKING(whether multiple linear regression models are disabled)
 if test x$enable_mlr = xyes -a "$starpu_windows" != "yes" ; then
    	AC_MSG_RESULT(no)
 	install_min_dgels=no
+	support_mlr=yes
    	STARPU_SEARCH_LIBS(LAPACK,[dgels_],[lapack],use_system_lapack=yes,,)
 	if test x$use_system_lapack = xyes; then
 	   	AC_DEFINE(STARPU_MLR_MODEL, [1], [use reflapack library])
 		LDFLAGS="-llapack $LDFLAGS"
 	else
-		if test test x$blas_lib = xmkl; then
+		if test x$blas_lib = xmkl; then
 		   	AC_DEFINE(STARPU_MLR_MODEL, [1], [use mkl library])			
 		else
 			AC_MSG_CHECKING(whether min-dgels is linked)
@@ -2781,6 +2782,7 @@ if test x$enable_mlr = xyes -a "$starpu_windows" != "yes" ; then
 else
  	AC_MSG_RESULT(yes)
 	install_min_dgels=no
+	support_mlr=no
 fi
 AM_CONDITIONAL(STARPU_USE_MIN_DGELS, test x$install_min_dgels = xyes)
 
@@ -3191,7 +3193,7 @@ AC_MSG_NOTICE([
                ayudame enabled:                               $ayu_msg
 	       Native fortran support:                        $enable_build_fortran
 	       Native MPI fortran support:                    $use_mpi_fort
-	       Support for multiple linear regression models: $install_min_dgels
+	       Support for multiple linear regression models: $support_mlr
 ])
 
 if test "$build_socl" = "yes" -a "$run_socl_check" = "no" ; then
