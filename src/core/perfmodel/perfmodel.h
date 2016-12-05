@@ -3,6 +3,7 @@
  * Copyright (C) 2009-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
  * Copyright (C) 2011  Télécom-SudParis
+ * Copyright (C) 2016  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -80,6 +81,8 @@ double _starpu_regression_based_job_expected_perf(struct starpu_perfmodel *model
 					struct starpu_perfmodel_arch* arch, struct _starpu_job *j, unsigned nimpl);
 double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfmodel *model,
 					struct starpu_perfmodel_arch* arch, struct _starpu_job *j, unsigned nimpl);
+double _starpu_multiple_regression_based_job_expected_perf(struct starpu_perfmodel *model, struct starpu_perfmodel_arch* arch,
+					struct _starpu_job *j, unsigned nimpl);
 void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfmodel *model, struct starpu_perfmodel_arch * arch,
 				unsigned cpuid, double measured, unsigned nimpl);
 int _starpu_perfmodel_create_comb_if_needed(struct starpu_perfmodel_arch* arch);

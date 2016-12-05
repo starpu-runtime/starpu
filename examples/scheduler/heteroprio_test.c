@@ -117,7 +117,7 @@ int main(int argc, char** argv)
 
 	ncpus = starpu_cpu_worker_get_count();
 	nopencls = starpu_opencl_worker_get_count();
-	FPRINTF(stderr, "Worker = %d\n",  starpu_worker_get_count());
+	FPRINTF(stderr, "Worker = %u\n",  starpu_worker_get_count());
 	FPRINTF(stderr, "Worker CPU = %d\n", ncpus);
 	FPRINTF(stderr, "Worker OpenCL = %d\n", nopencls);
 	if (ncpus + nopencls == 0)

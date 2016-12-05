@@ -30,7 +30,6 @@ void opencl_f(void *buffers[], void *args)
         cl_int err;
 	cl_kernel kernel;
 	cl_command_queue queue;
-	cl_event event;
 
 	unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
 	unsigned elemsize = STARPU_VECTOR_GET_ELEMSIZE(buffers[0]);

@@ -78,6 +78,9 @@ void _starpu_graph_add_job_dep(struct _starpu_job *job, struct _starpu_job *prev
 /* Remove a job from the graph */
 void _starpu_graph_drop_job(struct _starpu_job *job);
 
+/* Really drop the nodes from the graph now */
+void _starpu_graph_drop_dropped_nodes(void);
+
 /* This make StarPU compute for each task the depth, i.e. the length of the longest path to a task without outgoing dependencies. */
 /* This does not take job duration into account, just the number */
 void _starpu_graph_compute_depths(void);

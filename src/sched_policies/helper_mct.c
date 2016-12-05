@@ -50,7 +50,8 @@ static const float idle_power_maximum=10000.0;
 
 struct _starpu_mct_data *starpu_mct_init_parameters(struct starpu_sched_component_mct_data *params)
 {
-	struct _starpu_mct_data * data = malloc(sizeof(*data));
+	struct _starpu_mct_data *data;
+	_STARPU_MALLOC(data, sizeof(*data));
 	if (params)
 	{
 		data->alpha = params->alpha;

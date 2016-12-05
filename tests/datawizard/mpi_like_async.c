@@ -181,7 +181,7 @@ static int test_send_handle_async(void *arg)
 	if (ret)
 	{
 #ifdef DEBUG_MESSAGES
-		FPRINTF(stderr, "Thread %d sends value %d to thread %d\n", thread_data->index, thread_data->val, neighbour_data->index);
+		FPRINTF(stderr, "Thread %u sends value %u to thread %u\n", thread_data->index, thread_data->val, neighbour_data->index);
 #endif
 		starpu_data_release(thread_data->handle);
 	}
@@ -395,7 +395,7 @@ int main(int argc, char **argv)
 	ret = EXIT_SUCCESS;
 	if (problem_data[nthreads - 1].val != (nthreads * niter))
 	{
-		FPRINTF(stderr, "Final value : %u should be %d\n", problem_data[nthreads - 1].val, (nthreads * niter));
+		FPRINTF(stderr, "Final value : %u should be %u\n", problem_data[nthreads - 1].val, (nthreads * niter));
 		ret = EXIT_FAILURE;
 	}
 	starpu_data_release(last_handle);

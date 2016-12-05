@@ -103,12 +103,12 @@ int mm_is_valid(MM_typecode matcode)
 
 int mm_read_banner(FILE *f, MM_typecode *matcode)
 {
-	char line[MM_MAX_LINE_LENGTH];
-	char banner[MM_MAX_TOKEN_LENGTH];
-	char mtx[MM_MAX_TOKEN_LENGTH];
-	char crd[MM_MAX_TOKEN_LENGTH];
-	char data_type[MM_MAX_TOKEN_LENGTH];
-	char storage_scheme[MM_MAX_TOKEN_LENGTH];
+	char line[MM_MAX_LINE_LENGTH+1];
+	char banner[MM_MAX_TOKEN_LENGTH+1];
+	char mtx[MM_MAX_TOKEN_LENGTH+1];
+	char crd[MM_MAX_TOKEN_LENGTH+1];
+	char data_type[MM_MAX_TOKEN_LENGTH+1];
+	char storage_scheme[MM_MAX_TOKEN_LENGTH+1];
 	char *p;
 
 	mm_clear_typecode(matcode);
@@ -116,7 +116,7 @@ int mm_read_banner(FILE *f, MM_typecode *matcode)
 	if (fgets(line, MM_MAX_LINE_LENGTH, f) == NULL)
 		return MM_PREMATURE_EOF;
 
-	if (sscanf(line, "%MM_MAX_TOKEN_LENGTHs %MM_MAX_TOKEN_LENGTHs %MM_MAX_TOKEN_LENGTHs %MM_MAX_TOKEN_LENGTHs %MM_MAX_TOKEN_LENGTHs", banner, mtx, crd, data_type, storage_scheme) != 5)
+	if (sscanf(line, "%"MM_MAX_TOKEN_LENGTH_S"s %"MM_MAX_TOKEN_LENGTH_S"s %"MM_MAX_TOKEN_LENGTH_S"s %"MM_MAX_TOKEN_LENGTH_S"s %"MM_MAX_TOKEN_LENGTH_S"s", banner, mtx, crd, data_type, storage_scheme) != 5)
 		return MM_PREMATURE_EOF;
 
 	for (p=mtx; *p!='\0'; *p=tolower(*p),p++);  /* convert to lower case */

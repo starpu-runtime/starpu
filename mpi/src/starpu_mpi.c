@@ -95,8 +95,7 @@ extern void smpi_process_set_user_data(void *);
 
 static void _starpu_mpi_request_init(struct _starpu_mpi_req **req)
 {
-	*req = calloc(1, sizeof(struct _starpu_mpi_req));
-	STARPU_MPI_ASSERT_MSG(*req, "Invalid request");
+	_STARPU_MPI_CALLOC(*req, 1, sizeof(struct _starpu_mpi_req));
 
 	/* Initialize the request structure */
 	(*req)->data_handle = NULL;
@@ -200,8 +199,7 @@ static void _starpu_mpi_submit_ready_request(void *arg)
 			else
 			{
 				STARPU_ASSERT(req->count);
-				req->ptr = malloc(req->count);
-				STARPU_MPI_ASSERT_MSG(req->ptr, "cannot allocate message of size %ld\n", req->count);
+				_STARPU_MPI_MALLOC(req->ptr, req->count);
 			}
 
 			_STARPU_MPI_DEBUG(3, "Pushing internal starpu_mpi_irecv request %p type %s tag %d src %d data %p ptr %p datatype '%s' count %d registered_datatype %d \n",
@@ -241,7 +239,8 @@ static void _starpu_mpi_submit_ready_request(void *arg)
 				req->internal_req = early_data_handle->req;
 				req->early_data_handle = early_data_handle;
 
-				struct _starpu_mpi_early_data_cb_args *cb_args = malloc(sizeof(struct _starpu_mpi_early_data_cb_args));
+				struct _starpu_mpi_early_data_cb_args *cb_args;
+				_STARPU_MPI_MALLOC(cb_args, sizeof(struct _starpu_mpi_early_data_cb_args));
 				cb_args->data_handle = req->data_handle;
 				cb_args->early_handle = early_data_handle->handle;
 				cb_args->buffer = early_data_handle->buffer;
@@ -270,8 +269,7 @@ static void _starpu_mpi_submit_ready_request(void *arg)
 					{
 						req->count = sync_req->count;
 						STARPU_ASSERT(req->count);
-						req->ptr = malloc(req->count);
-						STARPU_MPI_ASSERT_MSG(req->ptr, "cannot allocate message of size %ld\n", req->count);
+						_STARPU_MPI_MALLOC(req->ptr, req->count);
 					}
 					_starpu_mpi_req_list_push_front(ready_requests, req);
 					_starpu_mpi_request_destroy(sync_req);
@@ -385,7 +383,7 @@ static void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req)
 {
 	_starpu_mpi_handle_allocate_datatype(req->data_handle, req);
 
-	req->envelope = calloc(1,sizeof(struct _starpu_mpi_envelope));
+	_STARPU_MPI_CALLOC(req->envelope, 1,sizeof(struct _starpu_mpi_envelope));
 	req->envelope->mode = _STARPU_MPI_ENVELOPE_DATA;
 	req->envelope->data_tag = req->node_tag.data_tag;
 	req->envelope->sync = req->sync;
@@ -539,7 +537,8 @@ static void _starpu_mpi_irecv_data_func(struct _starpu_mpi_req *req)
 
 	if (req->sync)
 	{
-		struct _starpu_mpi_envelope *_envelope = calloc(1,sizeof(struct _starpu_mpi_envelope));
+		struct _starpu_mpi_envelope *_envelope;
+		_STARPU_MPI_CALLOC(_envelope, 1, sizeof(struct _starpu_mpi_envelope));
 		_envelope->mode = _STARPU_MPI_ENVELOPE_SYNC_READY;
 		_envelope->data_tag = req->node_tag.data_tag;
 		_STARPU_MPI_DEBUG(20, "Telling node %d it can send the data and waiting for the data back ...\n", req->node_tag.rank);
@@ -1225,7 +1224,7 @@ static void _starpu_mpi_receive_early_data(struct _starpu_mpi_envelope *envelope
 		 * to the application when it post a receive for this tag
 		 */
 		_STARPU_MPI_DEBUG(3, "Posting a receive for a data of size %d which has not yet been registered\n", (int)early_data_handle->env->size);
-		early_data_handle->buffer = malloc(early_data_handle->env->size);
+		_STARPU_MPI_MALLOC(early_data_handle->buffer, early_data_handle->env->size);
 		starpu_variable_data_register(&early_data_handle->handle, STARPU_MAIN_RAM, (uintptr_t) early_data_handle->buffer, early_data_handle->env->size);
 		//_starpu_mpi_early_data_add(early_data_handle);
 	}
@@ -1296,7 +1295,8 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 
 #ifdef STARPU_SIMGRID
 	/* Now that MPI is set up, let the rest of simgrid get initialized */
-	char ** argv_cpy = malloc(*(argc_argv->argc) * sizeof(char*));
+	char **argv_cpy;
+	_STARPU_MPI_MALLOC(argv_cpy, *(argc_argv->argc) * sizeof(char*));
 	int i;
 	for (i = 0; i < *(argc_argv->argc); i++)
 		argv_cpy[i] = strdup((*(argc_argv->argv))[i]);
@@ -1355,9 +1355,6 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 		STARPU_PTHREAD_MUTEX_UNLOCK(&detached_requests_mutex);
 #endif /* STARPU_MPI_ACTIVITY */
 
-#ifdef STARPU_SIMGRID
-		MSG_process_sleep(0.000010);
-#endif
 		if (block)
 		{
 			_STARPU_MPI_DEBUG(3, "NO MORE REQUESTS TO HANDLE\n");
@@ -1485,7 +1482,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 						else
 						{
 							early_request->count = envelope->size;
-							early_request->ptr = malloc(early_request->count);
+							_STARPU_MPI_MALLOC(early_request->ptr, early_request->count);
 							starpu_memory_allocate(STARPU_MAIN_RAM, early_request->count, STARPU_MEMORY_OVERFLOW);
 
 							STARPU_MPI_ASSERT_MSG(early_request->ptr, "cannot allocate message of size %ld\n", early_request->count);
@@ -1508,6 +1505,11 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 				//_STARPU_MPI_DEBUG(4, "Nothing received, continue ..\n");
 			}
 		}
+#ifdef STARPU_SIMGRID
+		STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+		MSG_process_sleep(0.000010);
+		STARPU_PTHREAD_MUTEX_LOCK(&mutex);
+#endif
 	}
 
 	if (envelope_request_submitted)
@@ -1587,7 +1589,8 @@ static void _starpu_mpi_add_sync_point_in_fxt(void)
 static
 int _starpu_mpi_initialize(int *argc, char ***argv, int initialize_mpi, MPI_Comm comm)
 {
-	struct _starpu_mpi_argc_argv *argc_argv = malloc(sizeof(struct _starpu_mpi_argc_argv));
+	struct _starpu_mpi_argc_argv *argc_argv;
+	_STARPU_MALLOC(argc_argv, sizeof(struct _starpu_mpi_argc_argv));
 	argc_argv->initialize_mpi = initialize_mpi;
 	argc_argv->argc = argc;
 	argc_argv->argv = argv;
@@ -1748,7 +1751,7 @@ void starpu_mpi_data_register_comm(starpu_data_handle_t data_handle, int tag, in
 	}
 	else
 	{
-		mpi_data = calloc(1, sizeof(struct _starpu_mpi_node_tag));
+		_STARPU_CALLOC(mpi_data, 1, sizeof(struct _starpu_mpi_node_tag));
 		mpi_data->data_tag = -1;
 		mpi_data->rank = -1;
 		mpi_data->comm = MPI_COMM_WORLD;

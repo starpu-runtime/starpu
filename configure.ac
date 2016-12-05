@@ -81,6 +81,14 @@ AC_PROG_FC
 AC_CHECK_PROGS(PROG_STAT,gstat stat)
 AC_CHECK_PROGS(PROG_DATE,gdate date)
 AC_OPENMP
+#c++11 detection
+AX_CXX_COMPILE_STDCXX(11,noext,optional)
+
+AC_SUBST([STARPU_HAVE_CXX11], [test "$HAVE_CXX11" -eq 1])
+AM_CONDITIONAL([STARPU_HAVE_CXX11], [test "$HAVE_CXX11" -eq 1])
+if test $HAVE_CXX11 -eq 1; then
+  AC_DEFINE(STARPU_HAVE_CXX11, [1], [compiler supports cxx11])
+fi
 
 if test x$enable_perf_debug = xyes; then
     enable_shared=no
@@ -581,6 +589,7 @@ AC_DEFUN([STARPU_CHECK_CUDA],
 	    AC_MSG_WARN(['nvcc' not found, disabling CUDA])
 	    have_valid_cuda=no
 	else
+	    # This is for very old cuda, to enable the use of double etc.
 	    AC_MSG_CHECKING(whether nvcc supports sm_13 architecture)
 	    OLD_NVCCFLAGS="$NVCCFLAGS"
 	    NVCCFLAGS="$NVCCFLAGS -arch sm_13"
@@ -593,6 +602,21 @@ AC_DEFUN([STARPU_CHECK_CUDA],
 		AC_MSG_RESULT(no)
 		NVCCFLAGS="$OLD_NVCCFLAGS"
 	    fi
+
+	    # This is for recent cuda, which complains if we don't actually set an arch!?
+	    AC_MSG_CHECKING(whether nvcc supports -Wno-deprecated-gpu-targets)
+	    OLD_NVCCFLAGS="$NVCCFLAGS"
+	    NVCCFLAGS="$NVCCFLAGS -Wno-deprecated-gpu-targets"
+	    echo "int main(int argc, char **argv) { return 0;}" > cuda_test.cu
+	    $NVCC $NVCCFLAGS -c cuda_test.cu >/dev/null 2>&1
+	    if test $? -eq 0
+	    then
+		AC_MSG_RESULT(yes)
+	    else
+		AC_MSG_RESULT(no)
+		NVCCFLAGS="$OLD_NVCCFLAGS"
+	    fi
+
 	    rm -f cuda_test*
 	fi
 
@@ -1147,6 +1171,46 @@ fi
 
 ###############################################################################
 #                                                                             #
+#			 Multiple linear regression			      #
+#                                                                             #
+###############################################################################
+AC_ARG_ENABLE(mlr, [AS_HELP_STRING([--disable-mlr],
+			[Disable multiple linear regression models])],
+			enable_mlr=$enableval, enable_mlr=yes)
+
+AC_MSG_CHECKING(whether multiple linear regression models are disabled)
+if test x$enable_mlr = xyes -a "$starpu_windows" != "yes" ; then
+   	AC_MSG_RESULT(no)
+	install_min_dgels=no
+   	STARPU_SEARCH_LIBS(LAPACK,[dgels_],[lapack],use_system_lapack=yes,,)
+	if test x$use_system_lapack = xyes; then
+	        AC_DEFINE(STARPU_MLR_MODEL, [1], [use reflapack library])
+		LDFLAGS="-llapack $LDFLAGS"
+	else
+		AC_MSG_CHECKING(whether min-dgels is linked)
+		if test x"$DGELS_LIBS" != x; then
+		   	AC_MSG_RESULT(yes)
+        		AC_DEFINE(STARPU_MLR_MODEL, [1], [use user defined library])
+			AC_ARG_VAR([DGELS_LIBS], [linker flags for lapack dgels])
+		else
+			AC_MSG_RESULT(no)
+			AC_MSG_CHECKING(min-dgels source)
+			cp -r $srcdir/min-dgels $PWD/
+			AC_MSG_RESULT(yes)
+			DGELS_LIBS="-Wl,--start-group $STARPU_BUILD_DIR/min-dgels/build/*.a -Wl,--end-group"
+			AC_DEFINE(STARPU_MLR_MODEL, [1], [use user defined library])
+			AC_ARG_VAR([DGELS_LIBS], [linker flags for lapack dgels])
+			install_min_dgels=yes
+		fi
+	fi
+else
+ 	AC_MSG_RESULT(yes)
+	install_min_dgels=no
+fi
+AM_CONDITIONAL(STARPU_USE_MIN_DGELS, test x$install_min_dgels = xyes)
+
+###############################################################################
+#                                                                             #
 #                                 MIC settings                                #
 #                                                                             #
 ###############################################################################
@@ -1604,8 +1668,8 @@ if test x$use_fxt = xyes; then
 	LIBS="$save_LIBS"
 	save_CFLAGS="$CFLAGS"
 	CFLAGS="$CFLAGS $FXT_CFLAGS"
-	AC_CHECK_DECLS([enable_fut_flush])
-	AC_CHECK_DECLS([fut_set_filename])
+	AC_CHECK_DECLS([enable_fut_flush], [], [], [[#include <fut.h>]])
+	AC_CHECK_DECLS([fut_set_filename], [], [], [[#include <fut.h>]])
 	CFLAGS="$save_CFLAGS"
 
 	if test x$enable_simgrid = xyes -a x$enable_shared = xno ; then
@@ -2296,6 +2360,7 @@ AC_SUBST([pkglibdir])
 AC_ARG_ENABLE(fortran, [AS_HELP_STRING([--disable-fortran],
 			[disable build of fortran examples])],
 			enable_build_fortran=$enableval, enable_build_fortran=yes)
+use_mpi_fort=no
 if test "x$FC" != "x"; then
 	if $FC --version|grep -q 'GNU Fortran'; then
 		gfortran_fc_version=`$FC --version|head -1|sed 's/.*)//;s/^.*\([[0-9]][[0-9]]*\)\.\([[0-9]][[0-9]]*\)\.\([[0-9]][[0-9]]*\).*/\1.\2.\3/'`
@@ -2316,7 +2381,15 @@ if test "x$FC" != "x"; then
 				enable_build_fortran="no"
 			fi
 		else
-			AC_MSG_WARN(Fortran compiler has not been tested for StarPU native Fortran support)
+			if $FC -qversion 2>&1|grep -q 'IBM XL Fortran'; then
+				xlf_fc_version=`$FC -V 2>&1 |tail -1|sed 's/.*Version: //'`
+				xlf_maj_version=`echo $xlf_fc_version|cut -d. -f1`
+
+				AC_MSG_WARN([IBM Fortran compiler $xlf_fc_version not validated with the native StarPU Fortran API, Fortran examples will not be built])
+				enable_build_fortran="no"
+			else
+				AC_MSG_WARN(Fortran compiler has not been tested for StarPU native Fortran support)
+			fi
 		fi
 	fi
 	if test "x$enable_build_fortran" = "xyes" ; then
@@ -2935,7 +3008,7 @@ AM_CONDITIONAL(BUILD_DOC, [test x$enable_build_doc != xno])
 ###############################################################################
 
 # these are the flags needed for linking libstarpu (and thus also for static linking)
-LIBSTARPU_LDFLAGS="$HWLOC_LIBS $FXT_LIBS $STARPU_COI_LDFLAGS $STARPU_SCIF_LDFLAGS $STARPU_RCCE_LDFLAGS $STARPU_LEVELDB_LDFLAGS $STARPU_GLPK_LDFLAGS $STARPU_LEVELDB_LDFLAGS $SIMGRID_LIBS $STARPU_BLAS_LDFLAGS $STARPU_OMP_LDFLAGS"
+LIBSTARPU_LDFLAGS="$HWLOC_LIBS $FXT_LIBS $STARPU_COI_LDFLAGS $STARPU_SCIF_LDFLAGS $STARPU_RCCE_LDFLAGS $STARPU_LEVELDB_LDFLAGS $STARPU_GLPK_LDFLAGS $STARPU_LEVELDB_LDFLAGS $SIMGRID_LIBS $STARPU_BLAS_LDFLAGS $STARPU_OMP_LDFLAGS $DGELS_LIBS"
 AC_SUBST([LIBSTARPU_LDFLAGS])
 
 LIBSTARPU_LINK=libstarpu-$STARPU_EFFECTIVE_VERSION.la
@@ -2965,11 +3038,13 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   chmod +x tools/starpu_paje_draw_histogram
   chmod +x tools/starpu_paje_state_stats
   chmod +x tools/starpu_paje_summary
+  chmod +x tools/starpu_mlr_analysis
   chmod +x tools/starpu_paje_sort
   chmod +x tools/starpu_smpirun
   chmod +x doc/doxygen/doxygen_filter.sh
   mkdir -p tests/microbenchs
   test -e tests/microbenchs/tasks_size_overhead.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/tasks_size_overhead.sh tests/microbenchs/
+  test -e tests/microbenchs/tasks_size_overhead_sched.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/tasks_size_overhead_sched.sh tests/microbenchs/
   test -e tests/microbenchs/tasks_size_overhead_scheds.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/tasks_size_overhead_scheds.sh tests/microbenchs/
   test -e tests/microbenchs/tasks_size_overhead.gp || ln -sf $ac_abs_top_srcdir/tests/microbenchs/tasks_size_overhead.gp tests/microbenchs/
   test -e tests/microbenchs/microbench.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/microbench.sh tests/microbenchs/
@@ -3022,6 +3097,7 @@ AC_OUTPUT([
 	tools/starpu_paje_draw_histogram
 	tools/starpu_paje_state_stats
 	tools/starpu_paje_summary
+	tools/starpu_mlr_analysis
 	tools/starpu_paje_sort
 	tools/starpu_smpirun
 	socl/Makefile
@@ -3073,6 +3149,7 @@ AC_OUTPUT([
 	doc/doxygen/doxygen-config.cfg
 	doc/doxygen/doxygen_filter.sh
 	tools/msvc/starpu_var.bat
+	min-dgels/Makefile
 ])
 
 AC_MSG_NOTICE([
@@ -3112,20 +3189,21 @@ AC_MSG_NOTICE([
         Examples:          $enable_build_examples
 
 	StarPU Extensions:
-	       StarPU MPI enabled:                          $build_mpi_lib
-	       MPI test suite:                              $running_mpi_check
-	       Master-Slave MPI enabled:                    $use_mpi_master_slave
-	       FFT Support:                                 $fft_support
-	       GCC plug-in:                                 $build_gcc_plugin
-	       GCC plug-in test suite (requires GNU Guile): $run_gcc_plugin_test_suite
-	       OpenMP runtime support enabled:              $enable_openmp
-	       SOCL enabled:                                $build_socl
-               SOCL test suite:                             $run_socl_check
-               Scheduler Hypervisor:                        $build_sc_hypervisor
-               simgrid enabled:                             $enable_simgrid
-               ayudame enabled:                             $ayu_msg
-	       Native fortran support:                      $enable_build_fortran
-	       Native MPI fortran support:                  $use_mpi_fort
+	       StarPU MPI enabled:                            $build_mpi_lib
+	       MPI test suite:                                $running_mpi_check
+	       Master-Slave MPI enabled:                      $use_mpi_master_slave
+	       FFT Support:                                   $fft_support
+	       GCC plug-in:                                   $build_gcc_plugin
+	       GCC plug-in test suite (requires GNU Guile):   $run_gcc_plugin_test_suite
+	       OpenMP runtime support enabled:                $enable_openmp
+	       SOCL enabled:                                  $build_socl
+               SOCL test suite:                               $run_socl_check
+               Scheduler Hypervisor:                          $build_sc_hypervisor
+               simgrid enabled:                               $enable_simgrid
+               ayudame enabled:                               $ayu_msg
+	       Native fortran support:                        $enable_build_fortran
+	       Native MPI fortran support:                    $use_mpi_fort
+	       Support for multiple linear regression models: $install_min_dgels
 ])
 
 if test "$build_socl" = "yes" -a "$run_socl_check" = "no" ; then

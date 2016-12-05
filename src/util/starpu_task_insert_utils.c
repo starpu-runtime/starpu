@@ -30,7 +30,7 @@ static void _starpu_pack_arguments(size_t *current_offset, size_t *arg_buffer_si
 			*arg_buffer_size_ = 128 + sizeof(ptr_size) + ptr_size;
 		else
 			*arg_buffer_size_ = 2 * *arg_buffer_size_ + sizeof(ptr_size) + ptr_size;
-		*arg_buffer_ = realloc(*arg_buffer_, *arg_buffer_size_);
+		_STARPU_REALLOC(*arg_buffer_, *arg_buffer_size_);
 	}
 	memcpy(*arg_buffer_+*current_offset, (void *)&ptr_size, sizeof(ptr_size));
 	*current_offset += sizeof(ptr_size);
@@ -186,14 +186,14 @@ void _starpu_task_insert_check_nb_buffers(struct starpu_codelet *cl, struct star
 			int i;
 			struct starpu_codelet *cl2 = (*task)->cl;
 			*allocated_buffers = STARPU_NMAXBUFS * 2;
-			(*task)->dyn_handles = malloc(*allocated_buffers * sizeof(starpu_data_handle_t));
+			_STARPU_MALLOC((*task)->dyn_handles, *allocated_buffers * sizeof(starpu_data_handle_t));
 			for(i=0 ; i<current_buffer ; i++)
 			{
 				(*task)->dyn_handles[i] = (*task)->handles[i];
 			}
 			if (cl2->nbuffers == STARPU_VARIABLE_NBUFFERS || !cl2->dyn_modes)
 			{
-				(*task)->dyn_modes = malloc(*allocated_buffers * sizeof(enum starpu_data_access_mode));
+				_STARPU_MALLOC((*task)->dyn_modes, *allocated_buffers * sizeof(enum starpu_data_access_mode));
 				for(i=0 ; i<current_buffer ; i++)
 				{
 					(*task)->dyn_modes[i] = (*task)->modes[i];
@@ -203,9 +203,11 @@ void _starpu_task_insert_check_nb_buffers(struct starpu_codelet *cl, struct star
 		else if (current_buffer >= *allocated_buffers)
 		{
 			*allocated_buffers *= 2;
-			(*task)->dyn_handles = realloc((*task)->dyn_handles, *allocated_buffers * sizeof(starpu_data_handle_t));
+			_STARPU_REALLOC((*task)->dyn_handles, *allocated_buffers * sizeof(starpu_data_handle_t));
 			if (cl->nbuffers == STARPU_VARIABLE_NBUFFERS || !cl->dyn_modes)
-				(*task)->dyn_modes = realloc((*task)->dyn_modes, *allocated_buffers * sizeof(enum starpu_data_access_mode));
+			{
+				_STARPU_REALLOC((*task)->dyn_modes, *allocated_buffers * sizeof(enum starpu_data_access_mode));
+			}
 		}
 	}
 }
@@ -213,9 +215,8 @@ void _starpu_task_insert_check_nb_buffers(struct starpu_codelet *cl, struct star
 static inline void starpu_task_insert_process_data_arg(struct starpu_codelet *cl, struct starpu_task **task, int arg_type, starpu_data_handle_t handle, int *current_buffer, int *allocated_buffers)
 {
 	enum starpu_data_access_mode mode = (enum starpu_data_access_mode) arg_type & ~STARPU_SSEND;
-	STARPU_ASSERT_MSG(cl->nbuffers == STARPU_VARIABLE_NBUFFERS || *current_buffer < cl->nbuffers, "Too many data passed to starpu_task_insert");
-
 	STARPU_ASSERT(cl != NULL);
+	STARPU_ASSERT_MSG(cl->nbuffers == STARPU_VARIABLE_NBUFFERS || *current_buffer < cl->nbuffers, "Too many data passed to starpu_task_insert");
 
 	_starpu_task_insert_check_nb_buffers(cl, task, allocated_buffers, *current_buffer);
 
@@ -504,7 +505,7 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task **
 		{
 			arg_i++;
 			starpu_data_handle_t handle = arglist[arg_i];
-			starpu_task_insert_process_data_arg(cl, &(*task), arg_type, handle, &current_buffer, &allocated_buffers);
+			starpu_task_insert_process_data_arg(cl, task, arg_type, handle, &current_buffer, &allocated_buffers);
 		}
 		else if (arg_type == STARPU_DATA_ARRAY)
 		{
@@ -512,7 +513,7 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task **
 			starpu_data_handle_t *handles = arglist[arg_i];
 			arg_i++;
 			int nb_handles = *(int *)arglist[arg_i];
-			starpu_task_insert_process_data_array_arg(cl, &(*task), nb_handles, handles, &current_buffer, &allocated_buffers);
+			starpu_task_insert_process_data_array_arg(cl, task, nb_handles, handles, &current_buffer, &allocated_buffers);
 		}
 		else if (arg_type == STARPU_DATA_MODE_ARRAY)
 		{
@@ -520,7 +521,7 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task **
 			struct starpu_data_descr *descrs = arglist[arg_i];
 			arg_i++;
 			int nb_descrs = *(int *)arglist[arg_i];
-			starpu_task_insert_process_data_mode_array_arg(cl, &(*task), nb_descrs, descrs, &current_buffer, &allocated_buffers);
+			starpu_task_insert_process_data_mode_array_arg(cl, task, nb_descrs, descrs, &current_buffer, &allocated_buffers);
 		}
 		else if (arg_type == STARPU_VALUE)
 		{

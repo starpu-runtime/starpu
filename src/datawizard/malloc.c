@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2010, 2012-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -255,7 +255,7 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 				}
 				unlink(name);
 				free(name);
-				dumb = calloc(1,_starpu_malloc_simulation_fold);
+				_STARPU_CALLOC(dumb, 1,_starpu_malloc_simulation_fold);
 				write(bogusfile, dumb, _starpu_malloc_simulation_fold);
 				free(dumb);
 			}
@@ -315,7 +315,7 @@ end:
 #endif
 	if (ret == 0)
 	{
-		STARPU_ASSERT_MSG(*A, "Failed to allocated memory of size %ld b\n", dim);
+		STARPU_ASSERT_MSG(*A, "Failed to allocated memory of size %ld b\n", (unsigned long)dim);
 	}
 	else if (flags & STARPU_MALLOC_COUNT)
 	{
@@ -1048,7 +1048,7 @@ starpu_free_on_node_flags(unsigned dst_node, uintptr_t addr, size_t size, int fl
 
 void starpu_malloc_on_node_set_default_flags(unsigned node, int flags)
 {
-	STARPU_ASSERT_MSG(node < STARPU_MAXNODES, "bogus node value %d given to starpu_malloc_on_node_set_default_flags\n", node);
+	STARPU_ASSERT_MSG(node < STARPU_MAXNODES, "bogus node value %u given to starpu_malloc_on_node_set_default_flags\n", node);
 	malloc_on_node_default_flags[node] = flags;
 }
 

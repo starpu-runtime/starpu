@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2016  Université de Bordeaux
- * Copyright (C) 2011, 2012, 2013       CNRS
+ * Copyright (C) 2011, 2012, 2013, 2016       CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -26,10 +26,11 @@
 
 static void find_workers(hwloc_obj_t obj, int cpu_workers[STARPU_NMAXWORKERS], unsigned *n)
 {
-	if (!obj->userdata)
+	struct _starpu_hwloc_userdata *data = obj->userdata;
+	if (!data->worker_list)
 		/* Not something we run something on, don't care */
 		return;
-	if (obj->userdata == (void*) -1)
+	if (data->worker_list == (void*) -1)
 	{
 		/* Intra node, recurse */
 		unsigned i;
@@ -39,7 +40,7 @@ static void find_workers(hwloc_obj_t obj, int cpu_workers[STARPU_NMAXWORKERS], u
 	}
 
 	/* Got to a PU leaf */
-	struct _starpu_worker_list *workers = obj->userdata;
+	struct _starpu_worker_list *workers = data->worker_list;
 	struct _starpu_worker *worker;
 	for(worker = _starpu_worker_list_begin(workers); worker != _starpu_worker_list_end(workers); worker = _starpu_worker_list_next(worker))
 	{
@@ -73,7 +74,7 @@ static void synthesize_intermediate_workers(hwloc_obj_t *children, unsigned min,
 	chunk_start = 0;
 	for (i = 0 ; i < arity; i++)
 	{
-		if (children[i]->userdata)
+		if (((struct _starpu_hwloc_userdata*)children[i]->userdata)->worker_list)
 		{
 			n++;
 			_STARPU_DEBUG("child %u\n", i);
@@ -120,7 +121,7 @@ static void find_and_assign_combinations(hwloc_obj_t obj, unsigned min, unsigned
 	_STARPU_DEBUG("Looking at %s\n", name);
 
 	for (n = 0, i = 0; i < obj->arity; i++)
-		if (obj->children[i]->userdata)
+		if (((struct _starpu_hwloc_userdata *)obj->children[i]->userdata)->worker_list)
 			/* it has a CPU worker */
 			n++;
 
@@ -154,7 +155,7 @@ static void find_and_assign_combinations(hwloc_obj_t obj, unsigned min, unsigned
 
 	/* And recurse */
 	for (i = 0; i < obj->arity; i++)
-		if (obj->children[i]->userdata == (void*) -1)
+		if (((struct _starpu_hwloc_userdata*) obj->children[i]->userdata)->worker_list == (void*) -1)
 			find_and_assign_combinations(obj->children[i], min, max, synthesize_arity);
 }
 
@@ -187,7 +188,7 @@ static void find_and_assign_combinations_with_hwloc(int *workerids, int nworkers
 			obj = obj->parent;
 			while (obj)
 			{
-				obj->userdata = (void*) -1;
+				((struct _starpu_hwloc_userdata*) obj->userdata)->worker_list = (void*) -1;
 				obj = obj->parent;
 			}
 		}
@@ -254,32 +255,31 @@ static void find_and_assign_combinations_without_hwloc(int *workerids, int nwork
 	unsigned * nmics_table;
 	int * mic_id;
 	int ** mic_workers;
-	mic_id = malloc(sizeof(int)*nb_mics);
-	nmics_table = malloc(sizeof(unsigned)*nb_mics);
-	mic_workers = malloc(sizeof(int*)*nb_mics);
+	_STARPU_MALLOC(mic_id, sizeof(int)*nb_mics);
+	_STARPU_MALLOC(nmics_table, sizeof(unsigned)*nb_mics);
+	_STARPU_MALLOC(mic_workers, sizeof(int*)*nb_mics);
 	for(j=0; j<nb_mics; j++)
 	{
 		mic_id[j] = -1;
 		nmics_table[j] = 0;
-		mic_workers[j] = malloc(sizeof(int)*STARPU_NMAXWORKERS);
+		_STARPU_MALLOC(mic_workers[j], sizeof(int)*STARPU_NMAXWORKERS);
 	}
 #endif /* STARPU_USE_MIC */
 
-	struct _starpu_worker *worker;
 	for (i = 0; i < nworkers; i++)
 	{
-		worker = _starpu_get_worker_struct(workerids[i]);
+		struct _starpu_worker *worker = _starpu_get_worker_struct(workerids[i]);
 		if (worker->arch == STARPU_CPU_WORKER)
 			cpu_workers[ncpus++] = i;
 #ifdef STARPU_USE_MIC
 		else if(worker->arch == STARPU_MIC_WORKER)
 		{
-			for(j=0; mic_id[j] != worker->devid && mic_id[j] != -1 && j<nb_mics; j++);
+			for(j=0; j<nb_mics && mic_id[j] != worker->devid && mic_id[j] != -1; j++);
 			if(j<nb_mics)
 			{
 				if(mic_id[j] == -1)
 				{
-					mic_id[j] = worker->devid;					
+					mic_id[j] = worker->devid;
 				}
 				mic_workers[j][nmics_table[j]++] = i;
 			}
@@ -295,18 +295,19 @@ static void find_and_assign_combinations_without_hwloc(int *workerids, int nwork
 	max = starpu_get_env_number("STARPU_MAX_WORKERSIZE");
 	if (max == -1 || max > (int) ncpus)
 		max = ncpus;
-	
+
 	assign_combinations_without_hwloc(workers,cpu_workers,ncpus,min,max);
 #ifdef STARPU_USE_MIC
 	mic_min = starpu_get_env_number("STARPU_MIN_WORKERSIZE");
+	mic_max = starpu_get_env_number("STARPU_MAX_WORKERSIZE");
 	if (mic_min < 2)
 		mic_min = 2;
 	for(j=0; j<nb_mics; j++)
 	{
-		mic_max = starpu_get_env_number("STARPU_MAX_WORKERSIZE");
-		if (mic_max == -1 || mic_max > (int) nmics_table[j])
-			mic_max = nmics_table[j];
-		assign_combinations_without_hwloc(workers,mic_workers[j],nmics_table[j],mic_min,mic_max);
+		int _mic_max = mic_max;
+		if (_mic_max == -1 || _mic_max > (int) nmics_table[j])
+			_mic_max = nmics_table[j];
+		assign_combinations_without_hwloc(workers,mic_workers[j],nmics_table[j],mic_min,_mic_max);
 		free(mic_workers[j]);
 	}
 	free(mic_id);
@@ -325,14 +326,13 @@ static void combine_all_cpu_workers(int *workerids, int nworkers)
 	struct starpu_worker_collection* workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 	int cpu_workers[STARPU_NMAXWORKERS];
 	int ncpus = 0;
-	struct _starpu_worker *worker;
 	int i;
 	int min;
 	int max;
 
 	for (i = 0; i < nworkers; i++)
 	{
-		worker = _starpu_get_worker_struct(workerids[i]);
+		struct _starpu_worker *worker = _starpu_get_worker_struct(workerids[i]);
 
 		if (worker->arch == STARPU_CPU_WORKER)
 			cpu_workers[ncpus++] = workerids[i];
@@ -347,8 +347,7 @@ static void combine_all_cpu_workers(int *workerids, int nworkers)
 
 	for (i = min; i <= max; i++)
 	{
-		int newworkerid;
-		newworkerid = starpu_combined_worker_assign_workerid(i, cpu_workers);
+		int newworkerid = starpu_combined_worker_assign_workerid(i, cpu_workers);
 		STARPU_ASSERT(newworkerid >= 0);
 		workers->add(workers, newworkerid);
 	}

@@ -3,6 +3,7 @@
  * Copyright (C) 2009-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
  * Copyright (C) 2011  Télécom-SudParis
+ * Copyright (C) 2016  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -160,6 +161,7 @@ void _starpu_init_and_load_perfmodel(struct starpu_perfmodel *model)
 			_starpu_load_history_based_model(model, 1);
 			break;
 		case STARPU_REGRESSION_BASED:
+		case STARPU_MULTIPLE_REGRESSION_BASED:
 			_starpu_load_history_based_model(model, 0);
 			break;
 
@@ -190,6 +192,8 @@ static double starpu_model_expected_perf(struct starpu_task *task, struct starpu
 				return _starpu_regression_based_job_expected_perf(model, arch, j, nimpl);
 			case STARPU_NL_REGRESSION_BASED:
 				return _starpu_non_linear_regression_based_job_expected_perf(model, arch, j,nimpl);
+			case STARPU_MULTIPLE_REGRESSION_BASED:
+				return _starpu_multiple_regression_based_job_expected_perf(model, arch, j, nimpl);
 			default:
 				STARPU_ABORT();
 		}
@@ -448,10 +452,10 @@ static char *_perf_model_dir_debug = NULL;
 
 void _starpu_set_perf_model_dirs()
 {
-	_perf_model_dir = malloc(_PERF_MODEL_DIR_MAXLEN);
-	_perf_model_dir_codelet = malloc(_PERF_MODEL_DIR_MAXLEN);
-	_perf_model_dir_bus = malloc(_PERF_MODEL_DIR_MAXLEN);
-	_perf_model_dir_debug = malloc(_PERF_MODEL_DIR_MAXLEN);
+	_STARPU_MALLOC(_perf_model_dir, _PERF_MODEL_DIR_MAXLEN);
+	_STARPU_MALLOC(_perf_model_dir_codelet, _PERF_MODEL_DIR_MAXLEN);
+	_STARPU_MALLOC(_perf_model_dir_bus, _PERF_MODEL_DIR_MAXLEN);
+	_STARPU_MALLOC(_perf_model_dir_debug, _PERF_MODEL_DIR_MAXLEN);
 
 #ifdef STARPU_PERF_MODEL_DIR
 	/* use the directory specified at configure time */

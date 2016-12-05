@@ -69,9 +69,8 @@ int starpu_sched_component_execute_preds(struct starpu_sched_component * compone
 					return can_execute;
 						
 				}
-				if(_STARPU_IS_ZERO(d) && !can_execute)
+				if(_STARPU_IS_ZERO(d))
 				{
-					can_execute = 1;
 					continue;
 				}
 				if(d < len)
@@ -411,8 +410,8 @@ struct starpu_sched_tree * starpu_sched_tree_create(unsigned sched_ctx_id)
 {
 	STARPU_ASSERT(sched_ctx_id < STARPU_NMAX_SCHED_CTXS);
 	STARPU_ASSERT(!trees[sched_ctx_id]);
-	struct starpu_sched_tree * t = malloc(sizeof(*t));
-	memset(t, 0, sizeof(*t));
+	struct starpu_sched_tree *t;
+	_STARPU_CALLOC(t, 1, sizeof(*t));
 	t->sched_ctx_id = sched_ctx_id;
 	t->workers = starpu_bitmap_create();
 	STARPU_PTHREAD_MUTEX_INIT(&t->lock,NULL);
@@ -455,7 +454,7 @@ void starpu_sched_component_add_child(struct starpu_sched_component* component, 
 		STARPU_ASSERT(component->children[i] != NULL);
 	}
 
-	component->children = realloc(component->children, sizeof(struct starpu_sched_component *) * (component->nchildren + 1));
+	_STARPU_REALLOC(component->children, sizeof(struct starpu_sched_component *) * (component->nchildren + 1));
 	component->children[component->nchildren] = child;
 	component->nchildren++;
 }
@@ -482,7 +481,7 @@ static void starpu_sched_component_add_parent(struct starpu_sched_component* com
 		STARPU_ASSERT(component->parents[i] != NULL);
 	}
 
-	component->parents = realloc(component->parents, sizeof(struct starpu_sched_component *) * (component->nparents + 1));
+	_STARPU_REALLOC(component->parents, sizeof(struct starpu_sched_component *) * (component->nparents + 1));
 	component->parents[component->nparents] = parent;
 	component->nparents++;
 }
@@ -588,8 +587,8 @@ static void take_component_and_does_nothing(struct starpu_sched_component * comp
 
 struct starpu_sched_component * starpu_sched_component_create(struct starpu_sched_tree *tree, const char *name)
 {
-	struct starpu_sched_component * component = malloc(sizeof(*component));
-	memset(component,0,sizeof(*component));
+	struct starpu_sched_component *component;
+	_STARPU_CALLOC(component, 1, sizeof(*component));
 	component->tree = tree;
 	component->workers = starpu_bitmap_create();
 	component->workers_in_ctx = starpu_bitmap_create();

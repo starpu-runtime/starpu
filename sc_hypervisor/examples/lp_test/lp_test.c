@@ -130,7 +130,7 @@ int main()
 	starpu_shutdown();
 	sc_hypervisor_shutdown();
 
-	FPRINTF(stdout, "ctx = %d executed %d counter_tests out of %d \n", sched_ctx1, val[0], NTASKS*NINCR);
-	FPRINTF(stdout, "ctx = %d executed %d counter_tests out of %d \n", sched_ctx2, val[1], NTASKS*NINCR);
+	FPRINTF(stdout, "ctx = %u executed %u counter_tests out of %d \n", sched_ctx1, val[0], NTASKS*NINCR);
+	FPRINTF(stdout, "ctx = %u executed %u counter_tests out of %d \n", sched_ctx2, val[1], NTASKS*NINCR);
 	return 0;
 }

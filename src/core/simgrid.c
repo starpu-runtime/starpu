@@ -1,6 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012-2016  Université de Bordeaux
+ * Copyright (C) 2016  	    Inria
+ * Copyright (C) 2016  	    CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -247,7 +249,8 @@ int main(int argc, char **argv)
 	start_simgrid(&argc, argv);
 
 	/* Create a simgrid process for main */
-	struct main_args *args = malloc(sizeof(*args));
+	struct main_args *args;
+	_STARPU_MALLOC(args, sizeof(*args));
 	args->argc = argc;
 	args->argv = argv;
 	MSG_process_create_with_arguments("main", &do_starpu_main, calloc(MAX_TSD, sizeof(void*)), MSG_get_host_by_name("MAIN"), 0, (char**) args);
@@ -382,7 +385,7 @@ void _starpu_simgrid_submit_job(int workerid, struct _starpu_job *j, struct star
 		/* This is not useful to include in simulation (and probably
 		 * doesn't have a perfmodel anyway) */
 		return;
-
+	
 	if (isnan(length))
 	{
 		length = starpu_task_expected_length(starpu_task, perf_arch, j->nimpl);
@@ -410,7 +413,8 @@ void _starpu_simgrid_submit_job(int workerid, struct _starpu_job *j, struct star
 	else
 	{
 		/* Asynchronous execution */
-		struct task *task = malloc(sizeof(*task));
+		struct task *task;
+		_STARPU_MALLOC(task, sizeof(*task));
 		task->task = simgrid_task;
 		task->workerid = workerid;
 		task->finished = finished;
@@ -567,7 +571,7 @@ static void transfer_submit(struct transfer *transfer)
 			/* Make new wait for the old */
 			transfer->nwait++;
 			/* Make old wake the new */
-			old->wake = realloc(old->wake, (old->nwake + 1) * sizeof(old->wake));
+			_STARPU_REALLOC(old->wake, (old->nwake + 1) * sizeof(old->wake));
 			old->wake[old->nwake] = transfer;
 			old->nwake++;
 		}
@@ -588,13 +592,18 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 	/* Simgrid does not like 0-bytes transfers */
 	if (!size)
 		return 0;
+
 	msg_task_t task;
-	msg_host_t *hosts = calloc(2, sizeof(*hosts));
-	double *computation = calloc(2, sizeof(*computation));
-	double *communication = calloc(4, sizeof(*communication));
+	msg_host_t *hosts;
+	double *computation;
+	double *communication;
 	starpu_pthread_mutex_t mutex;
 	starpu_pthread_cond_t cond;
 	unsigned finished;
+
+	_STARPU_CALLOC(hosts, 2, sizeof(*hosts));
+	_STARPU_CALLOC(computation, 2, sizeof(*computation));
+	_STARPU_CALLOC(communication, 4, sizeof(*communication));
 
 	hosts[0] = _starpu_simgrid_memory_node_get_host(src_node);
 	hosts[1] = _starpu_simgrid_memory_node_get_host(dst_node);
@@ -667,5 +676,113 @@ _starpu_simgrid_thread_start(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[])
 	/* _args is freed with process context */
 	f(arg);
 	return 0;
+}
+
+msg_host_t
+_starpu_simgrid_get_memnode_host(unsigned node)
+{
+	const char *fmt;
+	char name[16];
+
+	switch (starpu_node_get_kind(node))
+	{
+		case STARPU_CPU_RAM:
+			fmt = "RAM";
+			break;
+		case STARPU_CUDA_RAM:
+			fmt = "CUDA%u";
+			break;
+		case STARPU_OPENCL_RAM:
+			fmt = "OpenCL%u";
+			break;
+		default:
+			STARPU_ABORT();
+			break;
+	}
+	snprintf(name, sizeof(name), fmt, _starpu_memory_node_get_devid(node));
+
+	return _starpu_simgrid_get_host_by_name(name);
+}
+
+void _starpu_simgrid_count_ngpus(void)
+{
+	unsigned src, dst;
+	msg_host_t ramhost = _starpu_simgrid_get_host_by_name("RAM");
+
+	/* For each pair of memory nodes, get the route */
+	for (src = 1; src < STARPU_MAXNODES; src++)
+		for (dst = 1; dst < STARPU_MAXNODES; dst++)
+		{
+			int busid;
+			msg_host_t srchost, dsthost;
+			const SD_link_t *route;
+			int i, routesize;
+			int through;
+			unsigned src2;
+			unsigned ngpus;
+			const char *name;
+
+			if (dst == src)
+				continue;
+			busid = starpu_bus_get_id(src, dst);
+			if (busid == -1)
+				continue;
+
+			srchost = _starpu_simgrid_get_memnode_host(src);
+			dsthost = _starpu_simgrid_get_memnode_host(dst);
+			routesize = SD_route_get_size(srchost, dsthost);
+			route = SD_route_get_list(srchost, dsthost);
+
+			/* If it goes through "Host", do not care, there is no
+			 * direct transfer support */
+			for (i = 0; i < routesize; i++)
+				if (!strcmp(sg_link_name(route[i]), "Host"))
+					break;
+			if (i < routesize)
+				continue;
+
+			/* Get the PCI bridge between down and up links */
+			through = -1;
+			for (i = 0; i < routesize; i++)
+			{
+				name = sg_link_name(route[i]);
+				size_t len = strlen(name);
+				if (!strcmp(" through", name+len-8))
+					through = i;
+				else if (!strcmp(" up", name+len-3))
+					break;
+			}
+			/* Didn't find it ?! */
+			if (through == -1)
+			{
+				_STARPU_DEBUG("Didn't find through-link for %d->%d\n", src, dst);
+				continue;
+			}
+			name = sg_link_name(route[through]);
+
+			/*
+			 * count how many direct routes go through it between
+			 * GPUs and RAM
+			 */
+			ngpus = 0;
+			for (src2 = 1; src2 < STARPU_MAXNODES; src2++)
+			{
+				if (starpu_bus_get_id(src2, STARPU_MAIN_RAM) == -1)
+					continue;
+				msg_host_t srchost2 = _starpu_simgrid_get_memnode_host(src2);
+				int routesize2 = SD_route_get_size(srchost2, ramhost);
+				const SD_link_t *route2 = SD_route_get_list(srchost2, ramhost);
+
+				for (i = 0; i < routesize2; i++)
+					if (!strcmp(name, sg_link_name(route2[i])))
+					{
+						/* This GPU goes through this PCI bridge to access RAM */
+						ngpus++;
+						break;
+					}
+			}
+			_STARPU_DEBUG("%d->%d through %s, %u GPUs\n", src, dst, name, ngpus);
+			starpu_bus_set_ngpus(busid, ngpus);
+		}
 }
 #endif

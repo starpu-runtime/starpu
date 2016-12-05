@@ -130,22 +130,22 @@ static int _starpu_src_common_handle_async(const struct _starpu_mp_node *node ST
 	struct _starpu_worker_set * worker_set = NULL;
 	switch(answer)
 	{
-		case STARPU_EXECUTION_COMPLETED:
+		case STARPU_MP_COMMAND_EXECUTION_COMPLETED:
 			worker_set = _starpu_get_worker_struct(starpu_worker_get_id())->set;
 			_starpu_src_common_process_completed_job(worker_set, arg, arg_size);
 			break;
-		case STARPU_PRE_EXECUTION:
+		case STARPU_MP_COMMAND_PRE_EXECUTION:
 			_starpu_src_common_pre_exec(arg,arg_size);
 			break;
-        case STARPU_RECV_FROM_HOST_ASYNC_COMPLETED:
-        case STARPU_RECV_FROM_SINK_ASYNC_COMPLETED:
+        case STARPU_MP_COMMAND_RECV_FROM_HOST_ASYNC_COMPLETED:
+        case STARPU_MP_COMMAND_RECV_FROM_SINK_ASYNC_COMPLETED:
         {
             struct _starpu_async_channel * event = *((struct _starpu_async_channel **) arg);
             event->starpu_mp_common_finished_receiver--;
             break;
         }
-        case STARPU_SEND_TO_HOST_ASYNC_COMPLETED:
-        case STARPU_SEND_TO_SINK_ASYNC_COMPLETED:
+        case STARPU_MP_COMMAND_SEND_TO_HOST_ASYNC_COMPLETED:
+        case STARPU_MP_COMMAND_SEND_TO_SINK_ASYNC_COMPLETED:
         {
             struct _starpu_async_channel * event = *((struct _starpu_async_channel **) arg);
             event->starpu_mp_common_finished_sender--;
@@ -188,11 +188,11 @@ int _starpu_src_common_store_message(struct _starpu_mp_node *node,
 	struct mp_message * message = NULL;
 	switch(answer)
 	{
-		case STARPU_EXECUTION_COMPLETED:
-		case STARPU_PRE_EXECUTION:
+		case STARPU_MP_COMMAND_EXECUTION_COMPLETED:
+		case STARPU_MP_COMMAND_PRE_EXECUTION:
 			message = mp_message_new();
 			message->type = answer;
-			message->buffer = malloc(arg_size);
+			_STARPU_MALLOC(message->buffer, arg_size);
 			memcpy(message->buffer, arg, arg_size);
 			message->size = arg_size;
 
@@ -202,16 +202,16 @@ int _starpu_src_common_store_message(struct _starpu_mp_node *node,
 			return 1;
 			break;
         /* For ASYNC commands don't store them, update event */
-        case STARPU_RECV_FROM_HOST_ASYNC_COMPLETED:
-        case STARPU_RECV_FROM_SINK_ASYNC_COMPLETED:
+        case STARPU_MP_COMMAND_RECV_FROM_HOST_ASYNC_COMPLETED:
+        case STARPU_MP_COMMAND_RECV_FROM_SINK_ASYNC_COMPLETED:
         {
             struct _starpu_async_channel * event = *((struct _starpu_async_channel **) arg);
             event->starpu_mp_common_finished_receiver--;
             return 1;
             break;
         }
-        case STARPU_SEND_TO_HOST_ASYNC_COMPLETED:
-        case STARPU_SEND_TO_SINK_ASYNC_COMPLETED:
+        case STARPU_MP_COMMAND_SEND_TO_HOST_ASYNC_COMPLETED:
+        case STARPU_MP_COMMAND_SEND_TO_SINK_ASYNC_COMPLETED:
         {
             struct _starpu_async_channel * event = *((struct _starpu_async_channel **) arg);
             event->starpu_mp_common_finished_sender--;
@@ -264,7 +264,7 @@ static void _starpu_src_common_recv_async(struct _starpu_mp_node * node)
 	{
 		answer = _starpu_mp_common_recv_command (node, arg, arg_size);
 
-		if(answer == STARPU_EXECUTION_COMPLETED)
+		if(answer == STARPU_MP_COMMAND_EXECUTION_COMPLETED)
 		{
 			int coreid;
 			STARPU_ASSERT(sizeof(coreid) == *arg_size);
@@ -295,11 +295,11 @@ int _starpu_src_common_sink_nbcores (const struct _starpu_mp_node *node, int *bu
 	void *arg;
 	int arg_size = sizeof (int);
 
-	_starpu_mp_common_send_command (node, STARPU_SINK_NBCORES, NULL, 0);
+	_starpu_mp_common_send_command (node, STARPU_MP_COMMAND_SINK_NBCORES, NULL, 0);
 
 	answer = _starpu_mp_common_recv_command (node, &arg, &arg_size);
 
-	STARPU_ASSERT (answer == STARPU_ANSWER_SINK_NBCORES && arg_size == sizeof (int));
+	STARPU_ASSERT(answer == STARPU_MP_COMMAND_ANSWER_SINK_NBCORES && arg_size == sizeof (int));
 
 	memcpy (buf, arg, arg_size);
 
@@ -322,13 +322,13 @@ int _starpu_src_common_lookup(struct _starpu_mp_node *node,
 	arg_size = (strlen(func_name) + 1) * sizeof(char);
 
 	//_STARPU_DEBUG("Looking up %s\n", func_name);
-	_starpu_mp_common_send_command(node, STARPU_LOOKUP, (void *) func_name,
+	_starpu_mp_common_send_command(node, STARPU_MP_COMMAND_LOOKUP, (void *) func_name,
 			arg_size);
 
 	answer = _starpu_src_common_wait_command_sync(node, (void **) &arg,
 			&arg_size);
 
-	if (answer == STARPU_ERROR_LOOKUP)
+	if (answer == STARPU_MP_COMMAND_ERROR_LOOKUP)
 	{
 		_STARPU_DISP("Error looking up symbol %s\n", func_name);
 		return -ESPIPE;
@@ -336,7 +336,7 @@ int _starpu_src_common_lookup(struct _starpu_mp_node *node,
 
 	/* We have to be sure the device answered the right question and the
 	 * answer has the right size */
-	STARPU_ASSERT(answer == STARPU_ANSWER_LOOKUP);
+	STARPU_ASSERT(answer == STARPU_MP_COMMAND_ANSWER_LOOKUP);
 	STARPU_ASSERT(arg_size == sizeof(*func_ptr));
 
 	memcpy(func_ptr, arg, arg_size);
@@ -391,7 +391,7 @@ int _starpu_src_common_execute_kernel(struct _starpu_mp_node *node,
 	 * a pointer to the function (sink-side), core on which execute this
 	 * function (sink-side), number of interfaces we send,
 	 * an array of generic (union) interfaces and the value of cl_arg */
-	buffer = (void *) malloc(buffer_size);
+	_STARPU_MALLOC(buffer, buffer_size);
 	buffer_ptr = (uintptr_t) buffer;
 
 	*(void(**)(void)) buffer = kernel;
@@ -435,13 +435,13 @@ int _starpu_src_common_execute_kernel(struct _starpu_mp_node *node,
 	if (cl_arg)
 		memcpy((void*) buffer_ptr, cl_arg, cl_arg_size);
 
-	_starpu_mp_common_send_command(node, STARPU_EXECUTE, buffer, buffer_size);
+	_starpu_mp_common_send_command(node, STARPU_MP_COMMAND_EXECUTE, buffer, buffer_size);
 	enum _starpu_mp_command answer = _starpu_src_common_wait_command_sync(node, &arg, &arg_size);
 
-	if (answer == STARPU_ERROR_EXECUTE)
+	if (answer == STARPU_MP_COMMAND_ERROR_EXECUTE)
 		return -EINVAL;
 
-	STARPU_ASSERT(answer == STARPU_EXECUTION_SUBMITTED);
+	STARPU_ASSERT(answer == STARPU_MP_COMMAND_EXECUTION_SUBMITTED);
 
 	free(buffer);
 
@@ -454,8 +454,6 @@ static int _starpu_src_common_execute(struct _starpu_job *j,
 		struct _starpu_worker *worker,
 		struct _starpu_mp_node * node)
 {
-	int ret;
-
 	STARPU_ASSERT(j);
 	struct starpu_task *task = j->task;
 
@@ -464,7 +462,7 @@ static int _starpu_src_common_execute(struct _starpu_job *j,
 	STARPU_ASSERT(task);
 	if (worker->current_rank == 0)
 	{
-		ret = _starpu_fetch_task_input(j);
+		int ret = _starpu_fetch_task_input(j);
 		if (ret != 0)
 		{
 			/* there was not enough memory, so the input of
@@ -477,7 +475,6 @@ static int _starpu_src_common_execute(struct _starpu_job *j,
 	void (*kernel)(void)  = node->get_kernel_from_job(node,j);
 
 	_starpu_driver_start_job(worker, j, &worker->perf_arch, &j->cl_start, 0, profiling);
-
 
 	//_STARPU_DEBUG("\nworkerid:%d, rank:%d, type:%d,	cb_workerid:%d, task_size:%d\n\n",worker->devid,worker->current_rank,task->cl->type,j->combined_workerid,j->task_size);
 
@@ -505,15 +502,15 @@ int _starpu_src_common_allocate(struct _starpu_mp_node *mp_node,
 	void *arg;
 	int arg_size;
 
-	_starpu_mp_common_send_command(mp_node, STARPU_ALLOCATE, &size,
+	_starpu_mp_common_send_command(mp_node, STARPU_MP_COMMAND_ALLOCATE, &size,
 			sizeof(size));
 
 	answer = _starpu_src_common_wait_command_sync(mp_node, &arg, &arg_size);
 
-	if (answer == STARPU_ERROR_ALLOCATE)
+	if (answer == STARPU_MP_COMMAND_ERROR_ALLOCATE)
 		return 1;
 
-	STARPU_ASSERT(answer == STARPU_ANSWER_ALLOCATE &&
+	STARPU_ASSERT(answer == STARPU_MP_COMMAND_ANSWER_ALLOCATE &&
 			arg_size == sizeof(*addr));
     
 	memcpy(addr, arg, arg_size);
@@ -527,7 +524,7 @@ int _starpu_src_common_allocate(struct _starpu_mp_node *mp_node,
 void _starpu_src_common_free(const struct _starpu_mp_node *mp_node,
 		void *addr)
 {
-	_starpu_mp_common_send_command(mp_node, STARPU_FREE, &addr, sizeof(addr));
+	_starpu_mp_common_send_command(mp_node, STARPU_MP_COMMAND_FREE, &addr, sizeof(addr));
 }
 
 /* Send SIZE bytes pointed by SRC to DST on the sink linked to the MP_NODE with a
@@ -538,7 +535,7 @@ int _starpu_src_common_copy_host_to_sink_sync(const struct _starpu_mp_node *mp_n
 {
 	struct _starpu_mp_transfer_command cmd = {size, dst, NULL};
 
-	_starpu_mp_common_send_command(mp_node, STARPU_RECV_FROM_HOST, &cmd, sizeof(cmd));
+	_starpu_mp_common_send_command(mp_node, STARPU_MP_COMMAND_RECV_FROM_HOST, &cmd, sizeof(cmd));
 
 	mp_node->dt_send(mp_node, src, size, NULL);
 
@@ -559,7 +556,7 @@ int _starpu_src_common_copy_host_to_sink_async(struct _starpu_mp_node *mp_node,
     struct _starpu_async_channel * async_channel = event;
     async_channel->polling_node = mp_node;
 
-	_starpu_mp_common_send_command(mp_node, STARPU_RECV_FROM_HOST_ASYNC, &cmd, sizeof(cmd));
+	_starpu_mp_common_send_command(mp_node, STARPU_MP_COMMAND_RECV_FROM_HOST_ASYNC, &cmd, sizeof(cmd));
 
 	mp_node->dt_send(mp_node, src, size, event);
 
@@ -577,11 +574,11 @@ int _starpu_src_common_copy_sink_to_host_sync(struct _starpu_mp_node *mp_node,
 	int arg_size;
 	struct _starpu_mp_transfer_command cmd = {size, src, NULL};
 
-	_starpu_mp_common_send_command(mp_node, STARPU_SEND_TO_HOST, &cmd, sizeof(cmd));
+	_starpu_mp_common_send_command(mp_node, STARPU_MP_COMMAND_SEND_TO_HOST, &cmd, sizeof(cmd));
 
     answer = _starpu_src_common_wait_command_sync(mp_node, &arg, &arg_size);
      
-    STARPU_ASSERT(answer == STARPU_SEND_TO_HOST);
+    STARPU_ASSERT(answer == STARPU_MP_COMMAND_SEND_TO_HOST);
 
 	mp_node->dt_recv(mp_node, dst, size, NULL);
 
@@ -602,7 +599,7 @@ int _starpu_src_common_copy_sink_to_host_async(struct _starpu_mp_node *mp_node,
     struct _starpu_async_channel * async_channel = event;
     async_channel->polling_node = mp_node;
 
-	_starpu_mp_common_send_command(mp_node, STARPU_SEND_TO_HOST_ASYNC, &cmd, sizeof(cmd));
+	_starpu_mp_common_send_command(mp_node, STARPU_MP_COMMAND_SEND_TO_HOST_ASYNC, &cmd, sizeof(cmd));
 
 	mp_node->dt_recv(mp_node, dst, size, event);
 
@@ -623,19 +620,19 @@ int _starpu_src_common_copy_sink_to_sink_sync(const struct _starpu_mp_node *src_
 	struct _starpu_mp_transfer_command_to_device cmd = {dst_node->peer_id, size, src, NULL};
 
 	/* Tell source to send data to dest. */
-	_starpu_mp_common_send_command(src_node, STARPU_SEND_TO_SINK, &cmd, sizeof(cmd));
+	_starpu_mp_common_send_command(src_node, STARPU_MP_COMMAND_SEND_TO_SINK, &cmd, sizeof(cmd));
 
 	cmd.devid = src_node->peer_id;
 	cmd.size = size;
 	cmd.addr = dst;
 
 	/* Tell dest to receive data from source. */
-	_starpu_mp_common_send_command(dst_node, STARPU_RECV_FROM_SINK, &cmd, sizeof(cmd));
+	_starpu_mp_common_send_command(dst_node, STARPU_MP_COMMAND_RECV_FROM_SINK, &cmd, sizeof(cmd));
 
 	/* Wait for answer from dest to know wether transfer is finished. */
 	answer = _starpu_mp_common_recv_command(dst_node, &arg, &arg_size);
 
-	STARPU_ASSERT(answer == STARPU_TRANSFER_COMPLETE);
+	STARPU_ASSERT(answer == STARPU_MP_COMMAND_TRANSFER_COMPLETE);
 
 	return 0;
 }
@@ -656,14 +653,14 @@ int _starpu_src_common_copy_sink_to_sink_async(const struct _starpu_mp_node *src
     async_channel->polling_node = NULL; /* TODO which node ? */
 
 	/* Tell source to send data to dest. */
-	_starpu_mp_common_send_command(src_node, STARPU_SEND_TO_SINK_ASYNC, &cmd, sizeof(cmd));
+	_starpu_mp_common_send_command(src_node, STARPU_MP_COMMAND_SEND_TO_SINK_ASYNC, &cmd, sizeof(cmd));
 
 	cmd.devid = src_node->peer_id;
 	cmd.size = size;
 	cmd.addr = dst;
 
 	/* Tell dest to receive data from source. */
-	_starpu_mp_common_send_command(dst_node, STARPU_RECV_FROM_SINK_ASYNC, &cmd, sizeof(cmd));
+	_starpu_mp_common_send_command(dst_node, STARPU_MP_COMMAND_RECV_FROM_SINK_ASYNC, &cmd, sizeof(cmd));
 
 
 	return -EAGAIN;
@@ -833,7 +830,7 @@ static void _starpu_src_common_send_workers(struct _starpu_mp_node * node, int b
 	msg[4] = starpu_worker_get_count();
 
 	/* tell the sink node that we will send him all workers */
-	_starpu_mp_common_send_command(node, STARPU_SYNC_WORKERS,
+	_starpu_mp_common_send_command(node, STARPU_MP_COMMAND_SYNC_WORKERS,
 			&msg, sizeof(msg));
 
 	/* Send all worker to the sink node */
@@ -847,7 +844,6 @@ static void _starpu_src_common_send_workers(struct _starpu_mp_node * node, int b
 static void _starpu_src_common_worker_internal_work(struct _starpu_worker_set * worker_set, struct _starpu_mp_node * mp_node, struct starpu_task **tasks, unsigned memnode)
 {
     int res = 0;
-    struct _starpu_job * j;
 
     _starpu_may_pause();
 
@@ -882,7 +878,7 @@ static void _starpu_src_common_worker_internal_work(struct _starpu_worker_set * 
         {
             if(tasks[i] != NULL)
             {
-                j = _starpu_get_job_associated_to_task(tasks[i]);
+                struct _starpu_job * j = _starpu_get_job_associated_to_task(tasks[i]);
                 _starpu_set_local_worker_key(&worker_set->workers[i]);
                 res =  _starpu_src_common_execute(j, &worker_set->workers[i], mp_node);
                 switch (res)
@@ -970,7 +966,9 @@ void _starpu_src_common_worker(struct _starpu_worker_set * worker_set,
 		struct _starpu_mp_node * mp_node)
 {
 	unsigned memnode = worker_set->workers[0].memory_node;
-	struct starpu_task **tasks = malloc(sizeof(struct starpu_task *)*worker_set->nworkers);
+    struct starpu_task **tasks;
+
+	_STARPU_MALLOC(tasks, sizeof(struct starpu_task *)*worker_set->nworkers);
 
 	_starpu_src_common_send_workers(mp_node, baseworkerid, worker_set->nworkers);
 

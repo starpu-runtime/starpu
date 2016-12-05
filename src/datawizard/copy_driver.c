@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2013  CNRS
+ * Copyright (C) 2010, 2011, 2013, 2016  CNRS
  * Copyright (C) 2016  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -542,9 +542,9 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 			STARPU_ASSERT(ret == 0);
 		}
 		break;
-		
+
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_DISK_RAM,STARPU_CPU_RAM):
-		if(copy_methods->any_to_any) 
+		if(copy_methods->any_to_any)
 			ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, req && !starpu_asynchronous_copy_disabled()  ? &req->async_channel : NULL);
 		else
 		{
@@ -555,7 +555,7 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 			if (ret == 0)
 			{
 				/* read is already finished, we can already unpack */
-				handle->ops->unpack_data(handle, dst_node, ptr, size); 
+				handle->ops->unpack_data(handle, dst_node, ptr, size);
 				/* ptr is allocated in full_read */
 				free(ptr);
 			}
@@ -565,15 +565,15 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 		}
 		break;
 
-	case _STARPU_MEMORY_NODE_TUPLE(STARPU_DISK_RAM,STARPU_DISK_RAM):	
+	case _STARPU_MEMORY_NODE_TUPLE(STARPU_DISK_RAM,STARPU_DISK_RAM):
 		ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, req ? &req->async_channel : NULL);
 		break;
-		
+
 	default:
 		STARPU_ABORT();
 		break;
 	}
-	
+
 	return ret;
 #endif /* !SIMGRID */
 }
@@ -592,9 +592,6 @@ int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT _starpu_driver_copy_data_1_to_1(starpu_d
 		STARPU_ASSERT(src_replicate->refcnt);
 	}
 
-	int ret_alloc, ret_copy;
-	unsigned long STARPU_ATTRIBUTE_UNUSED com_id = 0;
-
 	unsigned src_node = src_replicate->memory_node;
 	unsigned dst_node = dst_replicate->memory_node;
 
@@ -605,7 +602,7 @@ int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT _starpu_driver_copy_data_1_to_1(starpu_d
 			/* We're not supposed to allocate there at the moment */
 			return -ENOMEM;
 
-		ret_alloc = _starpu_allocate_memory_on_node(handle, dst_replicate, req ? req->prefetch : 0);
+		int ret_alloc = _starpu_allocate_memory_on_node(handle, dst_replicate, req ? req->prefetch : 0);
 		if (ret_alloc)
 			return -ENOMEM;
 	}
@@ -617,6 +614,7 @@ int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT _starpu_driver_copy_data_1_to_1(starpu_d
 	 * we do not perform any transfer */
 	if (!donotread)
 	{
+		unsigned long STARPU_ATTRIBUTE_UNUSED com_id = 0;
 		size_t size = _starpu_data_get_size(handle);
 		_starpu_bus_update_profiling_info((int)src_node, (int)dst_node, size);
 
@@ -630,7 +628,7 @@ int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT _starpu_driver_copy_data_1_to_1(starpu_d
 		dst_replicate->initialized = 1;
 
 		_STARPU_TRACE_START_DRIVER_COPY(src_node, dst_node, size, com_id, prefetch, handle);
-		ret_copy = copy_data_1_to_1_generic(handle, src_replicate, dst_replicate, req);
+		int ret_copy = copy_data_1_to_1_generic(handle, src_replicate, dst_replicate, req);
 		if (!req)
 			/* Synchronous, this is already finished */
 			_STARPU_TRACE_END_DRIVER_COPY(src_node, dst_node, size, com_id, prefetch);

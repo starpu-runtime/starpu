@@ -49,7 +49,8 @@ struct _starpu_graph_test_policy_data
 
 static void initialize_graph_test_policy(unsigned sched_ctx_id)
 {
-	struct _starpu_graph_test_policy_data *data = (struct _starpu_graph_test_policy_data*)malloc(sizeof(struct _starpu_graph_test_policy_data));
+	struct _starpu_graph_test_policy_data *data;
+	_STARPU_MALLOC(data, sizeof(struct _starpu_graph_test_policy_data));
 
 	/* there is only a single queue in that trivial design */
 	data->fifo =  _starpu_create_fifo();
@@ -95,13 +96,12 @@ static struct _starpu_prio_deque *select_prio(unsigned sched_ctx_id, struct _sta
 	double gpu_speed = 0.;
 
 	/* Compute how fast CPUs can compute it, and how fast GPUs can compute it */
-	unsigned worker;
 	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 	struct starpu_sched_ctx_iterator it;
 	workers->init_iterator(workers, &it);
 	while(workers->has_next(workers, &it))
 	{
-		worker = workers->get_next(workers, &it);
+		unsigned worker = workers->get_next(workers, &it);
 		if (!starpu_worker_can_execute_task(worker, task, 0))
 			/* This worker can not execute this task, don't count it */
 			continue;
@@ -180,7 +180,6 @@ static void do_schedule_graph_test_policy(unsigned sched_ctx_id)
 	}
 
 	/* And unleash the beast! */
-	unsigned worker;
 	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 	struct starpu_sched_ctx_iterator it;
 #ifdef STARPU_NON_BLOCKING_DRIVERS
@@ -188,7 +187,7 @@ static void do_schedule_graph_test_policy(unsigned sched_ctx_id)
 	while(workers->has_next(workers, &it))
 	{
 		/* Tell each worker is shouldn't sleep any more */
-		worker = workers->get_next(workers, &it);
+		unsigned worker = workers->get_next(workers, &it);
 		starpu_bitmap_unset(data->waiters, worker);
 	}
 #endif
@@ -199,7 +198,7 @@ static void do_schedule_graph_test_policy(unsigned sched_ctx_id)
 	while(workers->has_next(workers, &it))
 	{
 		/* Wake each worker */
-		worker = workers->get_next(workers, &it);
+		unsigned worker = workers->get_next(workers, &it);
 		starpu_wake_worker(worker);
 	}
 #endif
@@ -230,9 +229,8 @@ static int push_task_graph_test_policy(struct starpu_task *task)
 
 	/*if there are no tasks block */
 	/* wake people waiting for a task */
-	unsigned worker = 0;
 	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
-	
+
 	struct starpu_sched_ctx_iterator it;
 #ifndef STARPU_NON_BLOCKING_DRIVERS
 	char dowake[STARPU_NMAXWORKERS] = { 0 };
@@ -241,7 +239,7 @@ static int push_task_graph_test_policy(struct starpu_task *task)
 	workers->init_iterator_for_parallel_tasks(workers, &it, task);
 	while(workers->has_next(workers, &it))
 	{
-		worker = workers->get_next(workers, &it);
+		unsigned worker = workers->get_next(workers, &it);
 
 #ifdef STARPU_NON_BLOCKING_DRIVERS
 		if (!starpu_bitmap_get(data->waiters, worker))
@@ -276,7 +274,7 @@ static int push_task_graph_test_policy(struct starpu_task *task)
 	workers->init_iterator_for_parallel_tasks(workers, &it, task);
 	while(workers->has_next(workers, &it))
 	{
-		worker = workers->get_next(workers, &it);
+		unsigned worker = workers->get_next(workers, &it);
 		if (dowake[worker])
 			if (starpu_wake_worker(worker))
 				break; // wake up a single worker

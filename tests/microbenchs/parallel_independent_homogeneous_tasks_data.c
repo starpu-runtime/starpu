@@ -132,7 +132,7 @@ int main(int argc, char *argv[])
 	check = speed_up >= ((1 - MARGIN) * expected_speed_up);
 	check_sup = speed_up <= ((1 + MARGIN) * expected_speed_up);
 
-	printf("measured time = %f seconds\nsequential time = %f seconds\nspeed up = %f\nnumber of workers = %d\nnumber of tasks = %d\nexpected speed up = %f\npercentage of expected speed up %.2f%%\n", time_m, time_s, speed_up, nb_workers, nb_tasks, expected_speed_up, percentage_expected_speed_up);
+	printf("measured time = %f seconds\nsequential time = %f seconds\nspeed up = %f\nnumber of workers = %u\nnumber of tasks = %u\nexpected speed up = %f\npercentage of expected speed up %.2f%%\n", time_m, time_s, speed_up, nb_workers, nb_tasks, expected_speed_up, percentage_expected_speed_up);
 
 	starpu_shutdown();
 	for (j = 0; j < nb_tasks; j++)

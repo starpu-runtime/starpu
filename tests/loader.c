@@ -214,7 +214,6 @@ int main(int argc, char *argv[])
 {
 	int   child_exit_status;
 	char *test_args;
-	int   status;
 	char *launcher;
 	char *launcher_args;
 	struct sigaction sa;
@@ -343,7 +342,7 @@ int main(int argc, char *argv[])
 	{
 		if (WIFEXITED(child_exit_status))
 		{
-			status = WEXITSTATUS(child_exit_status);
+			int status = WEXITSTATUS(child_exit_status);
 			if (status == EXIT_SUCCESS)
 			{
 				alarm(0);

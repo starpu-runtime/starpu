@@ -29,7 +29,6 @@ int _fstarpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_no
 {
 	int arg_i = 0;
 	int inconsistent_execute = 0;
-	int arg_type, arg_type_nocommute;
 	int node_selected = 0;
 	int nb_allocated_data = 16;
 	struct starpu_data_descr *descrs;
@@ -38,15 +37,15 @@ int _fstarpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_no
 
 	_STARPU_TRACE_TASK_MPI_DECODE_START();
 
-	descrs = (struct starpu_data_descr *)malloc(nb_allocated_data * sizeof(struct starpu_data_descr));
+	_STARPU_MPI_MALLOC(descrs, nb_allocated_data * sizeof(struct starpu_data_descr));
 	nb_data = 0;
 	*do_execute = -1;
 	*xrank = -1;
 
 	while (arglist[arg_i] != NULL)
 	{
-		arg_type = (int)(intptr_t)arglist[arg_i];
-		arg_type_nocommute = arg_type & ~STARPU_COMMUTE;
+		int arg_type = (int)(intptr_t)arglist[arg_i];
+		int arg_type_nocommute = arg_type & ~STARPU_COMMUTE;
 
 		if (arg_type==STARPU_EXECUTE_ON_NODE)
 		{
@@ -93,7 +92,7 @@ int _fstarpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_no
 			if (nb_data >= nb_allocated_data)
 			{
 				nb_allocated_data *= 2;
-				descrs = (struct starpu_data_descr *)realloc(descrs, nb_allocated_data * sizeof(struct starpu_data_descr));
+				_STARPU_MPI_REALLOC(descrs, nb_allocated_data * sizeof(struct starpu_data_descr));
 			}
 			descrs[nb_data].handle = data;
 			descrs[nb_data].mode = mode;
@@ -124,7 +123,7 @@ int _fstarpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_no
 				if (nb_data >= nb_allocated_data)
 				{
 					nb_allocated_data *= 2;
-					descrs = (struct starpu_data_descr *)realloc(descrs, nb_allocated_data * sizeof(struct starpu_data_descr));
+					_STARPU_MPI_REALLOC(descrs, nb_allocated_data * sizeof(struct starpu_data_descr));
 				}
 				descrs[nb_data].handle = datas[i];
 				descrs[nb_data].mode = mode;
@@ -155,7 +154,7 @@ int _fstarpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_no
 				if (nb_data >= nb_allocated_data)
 				{
 					nb_allocated_data *= 2;
-					descrs = (struct starpu_data_descr *)realloc(descrs, nb_allocated_data * sizeof(struct starpu_data_descr));
+					_STARPU_MPI_REALLOC(descrs, nb_allocated_data * sizeof(struct starpu_data_descr));
 				}
 				descrs[nb_data].handle = _descrs[i].handle;
 				descrs[nb_data].mode = mode;

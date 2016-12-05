@@ -135,8 +135,8 @@ int main(int argc, char *argv[])
 	FPRINTF(stderr, "measured time = %f seconds\n", time_m);
 	FPRINTF(stderr, "sequential time = %f seconds\n", time_s);
 	FPRINTF(stderr, "speed up = %f\n", speed_up);
-	FPRINTF(stderr, "number of workers = %d\n", nb_workers);
-	FPRINTF(stderr, "number of tasks = %d\n", nb_tasks);
+	FPRINTF(stderr, "number of workers = %u\n", nb_workers);
+	FPRINTF(stderr, "number of tasks = %u\n", nb_tasks);
 	FPRINTF(stderr, "expected speed up = %f\n", expected_speed_up);
 	FPRINTF(stderr, "percentage of expected speed up %.2f%%\n", percentage_expected_speed_up);
 

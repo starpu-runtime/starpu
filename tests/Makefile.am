@@ -35,6 +35,7 @@ EXTRA_DIST =					\
 	datawizard/scal.h			\
 	datawizard/mpi_like.h			\
 	microbenchs/tasks_size_overhead.sh	\
+	microbenchs/tasks_size_overhead_sched.sh	\
 	microbenchs/tasks_size_overhead_scheds.sh	\
 	microbenchs/tasks_size_overhead.gp	\
 	datawizard/scratch_opencl_kernel.cl     \
@@ -59,7 +60,7 @@ EXTRA_DIST =					\
 	microbenchs/microbench.sh
 
 CLEANFILES = 					\
-	*.gcno *.gcda *.linkinfo core starpu_idle_microsec.log *.mod
+	*.gcno *.gcda *.linkinfo core starpu_idle_microsec.log *.mod *.png *.output
 
 BUILT_SOURCES =
 SUBDIRS =
@@ -355,7 +356,9 @@ examplebin_PROGRAMS = \
 examplebin_SCRIPTS = \
 	microbenchs/tasks_size_overhead.gp \
 	microbenchs/tasks_size_overhead.sh
+if !STARPU_SIMGRID
 TESTS += microbenchs/tasks_size_overhead_scheds.sh
+endif
 
 if STARPU_HAVE_WINDOWS
 check_PROGRAMS	=	$(myPROGRAMS)

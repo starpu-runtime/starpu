@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2009-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+ * Copyright (C) 2016  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -239,10 +240,6 @@ static unsigned may_free_subtree(starpu_data_handle_t handle, unsigned node)
 static int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT transfer_subtree_to_node(starpu_data_handle_t handle, unsigned src_node,
 				     unsigned dst_node)
 {
-	unsigned i;
-	unsigned last = 0;
-	unsigned cnt;
-
 	STARPU_ASSERT(dst_node != src_node);
 
 	if (handle->nchildren == 0)
@@ -278,12 +275,15 @@ static int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT transfer_subtree_to_node(starpu_d
 
 		if (src_replicate->state == STARPU_SHARED)
 		{
+			unsigned i;
+			unsigned last = 0;
+			unsigned cnt = 0;
+
 			/* some other node may have the copy */
 			_STARPU_TRACE_DATA_INVALIDATE(handle, src_node);
 			src_replicate->state = STARPU_INVALID;
 
 			/* count the number of copies */
-			cnt = 0;
 			for (i = 0; i < STARPU_MAXNODES; i++)
 			{
 				if (handle->per_node[i].state == STARPU_SHARED)
@@ -306,11 +306,10 @@ static int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT transfer_subtree_to_node(starpu_d
 	{
 		/* transfer all sub-subtrees children */
 		unsigned child;
-		int res;
 		for (child = 0; child < handle->nchildren; child++)
 		{
 			starpu_data_handle_t child_handle = starpu_data_get_child(handle, child);
-			res = transfer_subtree_to_node(child_handle, src_node, dst_node);
+			int res = transfer_subtree_to_node(child_handle, src_node, dst_node);
 			if (res == 0)
 				return 0;
 			/* There is no way children have disappeared since we
@@ -1631,4 +1630,14 @@ choose_target(starpu_data_handle_t handle, unsigned node)
 		target = -1;
 
 	return target;
+}
+
+void starpu_data_set_user_data(starpu_data_handle_t handle, void* user_data)
+{
+	handle->user_data = user_data;
+}
+
+void *starpu_data_get_user_data(starpu_data_handle_t handle)
+{
+	return handle->user_data;
 }

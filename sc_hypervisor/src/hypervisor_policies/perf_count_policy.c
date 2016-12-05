@@ -145,13 +145,13 @@ void print_results_for_ctx(unsigned sched_ctx, struct starpu_task *task)
         /* total_branch_instr[sched_ctx] += curr_total_branch_instr; */
         total_fps[sched_ctx] += curr_total_fps;
 
-        printf("%d: Instrs %lf k curr instr %lf k\n", sched_ctx, (double)total_instr[sched_ctx]/1000,
+        printf("%u: Instrs %lf k curr instr %lf k\n", sched_ctx, (double)total_instr[sched_ctx]/1000,
                (double)curr_total_instr/1000);
-        printf("%d: Fps %lf k curr fps %lf k\n",  sched_ctx,
+        printf("%u: Fps %lf k curr fps %lf k\n",  sched_ctx,
 	       (double)total_fps[sched_ctx]/1000,
 	       (double)curr_total_fps/1000);
 
-	printf("%d: Task Flops %lf k %s \n", sched_ctx, task->flops/1000, (task->cl && task->cl->model) ? task->cl->model->symbol : "task null");
+	printf("%u: Task Flops %lf k %s \n", sched_ctx, task->flops/1000, (task->cl && task->cl->model) ? task->cl->model->symbol : "task null");
         printf("-------------------------------------------\n");
 }
 

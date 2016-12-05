@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011, 2012, 2013  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2016  CNRS
  * Copyright (C) 2010-2016  Université de Bordeaux
  * Copyright (C) 2011  Télécom-SudParis
  *
@@ -192,7 +192,8 @@ static int good_job(struct _starpu_job *j)
 static double** initialize_arch_duration(int maxdevid, unsigned* maxncore_table)
 {
 	int devid, maxncore;
-	double ** arch_model = malloc(sizeof(*arch_model)*(maxdevid+1));
+	double ** arch_model;
+	_STARPU_MALLOC(arch_model, sizeof(*arch_model)*(maxdevid+1));
 	arch_model[maxdevid] = NULL;
 	for(devid=0; devid<maxdevid; devid++)
 	{
@@ -200,7 +201,7 @@ static double** initialize_arch_duration(int maxdevid, unsigned* maxncore_table)
 			maxncore = maxncore_table[devid];
 		else
 			maxncore = 1;
-		arch_model[devid] = calloc(maxncore+1,sizeof(*arch_model[devid]));
+		_STARPU_CALLOC(arch_model[devid], maxncore+1,sizeof(*arch_model[devid]));
 	}
 	return arch_model;
 }
@@ -234,7 +235,7 @@ static void new_task(struct _starpu_job *j)
 	if (j->bound_task)
 		return;
 
-	t = (struct bound_task *) malloc(sizeof(*t));
+	_STARPU_MALLOC(t, sizeof(*t));
 	memset(t, 0, sizeof(*t));
 	t->id = j->job_id;
 	t->tag_id = j->task->tag_id;
@@ -286,7 +287,7 @@ void _starpu_bound_record(struct _starpu_job *j)
 
 		if (!tp)
 		{
-			tp = (struct bound_task_pool *) malloc(sizeof(*tp));
+			_STARPU_MALLOC(tp, sizeof(*tp));
 			tp->cl = j->task->cl;
 			tp->footprint = j->footprint;
 			tp->n = 0;
@@ -317,7 +318,7 @@ void _starpu_bound_tag_dep(starpu_tag_t id, starpu_tag_t dep_id)
 		return;
 	}
 
-	td = (struct bound_tag_dep *) malloc(sizeof(*td));
+	_STARPU_MALLOC(td, sizeof(*td));
 	td->tag = id;
 	td->dep_tag = dep_id;
 	td->next = tag_deps;
@@ -354,7 +355,7 @@ void _starpu_bound_task_dep(struct _starpu_job *j, struct _starpu_job *dep_j)
 	if (i == t->depsn)
 	{
 		/* Not already there, add */
-		t->deps = (struct task_dep *) realloc(t->deps, ++t->depsn * sizeof(t->deps[0]));
+		_STARPU_REALLOC(t->deps, ++t->depsn * sizeof(t->deps[0]));
 		t->deps[t->depsn-1].dep = dep_j->bound_task;
 		t->deps[t->depsn-1].size = 0; /* We don't have data information in that case */
 	}
@@ -411,7 +412,7 @@ void _starpu_bound_job_id_dep(starpu_data_handle_t handle, struct _starpu_job *j
 	if (i == t->depsn)
 	{
 		/* Not already there, add */
-		t->deps = (struct task_dep *) realloc(t->deps, ++t->depsn * sizeof(t->deps[0]));
+		_STARPU_REALLOC(t->deps, ++t->depsn * sizeof(t->deps[0]));
 		t->deps[t->depsn-1].dep = dep_t;
 		t->deps[t->depsn-1].size = _starpu_data_get_size(handle);
 	}
@@ -606,7 +607,7 @@ void starpu_bound_print_lp(FILE *output)
 							/* If predecessor is on worker w and successor
 							 * on worker w2 on different nodes, we need to
 							 * transfer the data. */
-							fprintf(output, " + d_t%luw%ut%luw%u", t1->deps[i].dep->id, w, t1->id, w2);
+							fprintf(output, " + d_t%luw%dt%luw%d", t1->deps[i].dep->id, w, t1->id, w2);
 
 						}
 					}
@@ -625,9 +626,9 @@ void starpu_bound_print_lp(FILE *output)
 						if (starpu_worker_get_memory_node(w2) == n2)
 						{
 							/* The data transfer is at least 0ms */
-							fprintf(output, "d_t%luw%ut%luw%u >= 0;\n", t1->deps[i].dep->id, w, t1->id, w2);
+							fprintf(output, "d_t%luw%dt%luw%d >= 0;\n", t1->deps[i].dep->id, w, t1->id, w2);
 							/* The data transfer from w to w2 only happens if tasks run there */
-							fprintf(output, "d_t%luw%ut%luw%u >= %f - 2e5 + 1e5 t%luw%u + 1e5 t%luw%u;\n",
+							fprintf(output, "d_t%luw%dt%luw%d >= %f - 2e5 + 1e5 t%luw%d + 1e5 t%luw%d;\n",
 									t1->deps[i].dep->id, w, t1->id, w2,
 									starpu_transfer_predict(n, n2, t1->deps[i].size)/1000.,
 									t1->deps[i].dep->id, w, t1->id, w2);
@@ -925,7 +926,7 @@ void starpu_bound_print_mps(FILE *output)
 			for (t = 0, tp = task_pools; tp; t++, tp = tp->next)
 				if (!isnan(times[w*nt+t]))
 				{
-					char name[9];
+					char name[23];
 					snprintf(name, sizeof(name), "W%dT%d", w, t);
 					fprintf(output,"    %-8s  W%-7d  %12f\n", name, w, times[w*nt+t]);
 					fprintf(output,"    %-8s  T%-7d  %12d\n", name, t, 1);

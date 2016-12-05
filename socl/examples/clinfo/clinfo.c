@@ -108,7 +108,7 @@ main(void) {
             unsigned int j;
             for (j=0; j<num_devices; j++) {
                cl_device_type dev_type;
-               printf("\n  DEVICE %d\n", j);
+               printf("\n  DEVICE %u\n", j);
 
                err = clGetDeviceInfo(devices[j], CL_DEVICE_TYPE, sizeof(dev_type), &dev_type, NULL);
                checkErr(err, "clGetDeviceInfo(CL_DEVICE_TYPE)");

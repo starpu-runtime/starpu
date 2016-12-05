@@ -33,7 +33,7 @@ static void soclCreateKernel_task(void *data) {
    k->cl_kernels[range] = clCreateKernel(k->program->cl_programs[range], k->kernel_name, &err);
    if (err != CL_SUCCESS) {
       k->errcodes[range] = err;
-      ERROR_STOP("[Device %d] Unable to create kernel. Error %d. Aborting.\n", starpu_worker_get_id_check(), err);
+      ERROR_STOP("[Device %u] Unable to create kernel. Error %d. Aborting.\n", starpu_worker_get_id_check(), err);
       return;
    }
 

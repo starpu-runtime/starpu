@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010, 2011, 2015  Université de Bordeaux
- * Copyright (C) 2010, 2011  CNRS
+ * Copyright (C) 2010, 2011, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -164,10 +164,11 @@ int _starpu_regression_non_linear_power(struct starpu_perfmodel_history_list *pt
 	unsigned n = find_list_size(ptr);
 	STARPU_ASSERT(n);
 
-	unsigned *x = (unsigned *) malloc(n*sizeof(unsigned));
-	STARPU_ASSERT(x);
+	unsigned *x;
+	_STARPU_MALLOC(x, n*sizeof(unsigned));
 
-	double *y = (double *) malloc(n*sizeof(double));
+	double *y;
+	_STARPU_MALLOC(y, n*sizeof(double));
 	STARPU_ASSERT(y);
 
 	dump_list(x, y, ptr);

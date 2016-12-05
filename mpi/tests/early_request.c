@@ -134,7 +134,7 @@ void init_element(struct element *el, int size, int foreign_domain)
 	el->tag=size;
 	el->foreign_domain=foreign_domain;
 
-	int mpi_rank, mpi_size;
+	int mpi_rank;
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &mpi_rank);
 
 	starpu_vector_data_register(&el->recv, 0, (uintptr_t)el->array_recv, size, sizeof(int));

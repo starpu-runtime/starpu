@@ -42,3 +42,7 @@ penalty ratio), run make pics or make view to get pictures.
 mpi.out: results on MPI.
 
 results: a few results
+
+You can also use the implicit distributed flavour of this application (e.g.
+with communications between processes automatically inferred by StarPU-MPI),
+which is called implicit_stencil.

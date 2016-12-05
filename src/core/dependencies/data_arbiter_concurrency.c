@@ -127,9 +127,10 @@ struct LockOrDelegateListNode
  */
 static int _starpu_LockOrDelegatePostOrPerform(starpu_arbiter_t arbiter, void (*func)(void*), void* data)
 {
-	struct LockOrDelegateListNode* newNode = malloc(sizeof(*newNode)), *iter, *next;
+	struct LockOrDelegateListNode *newNode, *iter, *next;
 	int did = 0;
-	STARPU_ASSERT(newNode);
+
+	_STARPU_MALLOC(newNode, sizeof(*newNode));
 	newNode->data = data;
 	newNode->func = func;
 
@@ -226,7 +227,8 @@ unsigned _starpu_attempt_to_submit_arbitered_data_request(unsigned request_from_
 						       void (*callback)(void *), void *argcb,
 						       struct _starpu_job *j, unsigned buffer_index)
 {
-	struct starpu_submit_arbitered_args* args = malloc(sizeof(*args));
+	struct starpu_submit_arbitered_args* args;
+	_STARPU_MALLOC(args, sizeof(*args));
 	args->request_from_codelet = request_from_codelet;
 	args->handle = handle;
 	args->mode = mode;
@@ -361,7 +363,8 @@ static void __starpu_submit_job_enforce_arbitered_deps(void* inData)
 
 void _starpu_submit_job_enforce_arbitered_deps(struct _starpu_job *j, unsigned buf, unsigned nbuffers)
 {
-	struct starpu_enforce_arbitered_args* args = malloc(sizeof(*args));
+	struct starpu_enforce_arbitered_args* args;
+	_STARPU_MALLOC(args, sizeof(*args));
 	starpu_data_handle_t handle = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, buf);
 	args->j = j;
 	args->buf = buf;
@@ -665,7 +668,8 @@ void _starpu_notify_arbitered_dependencies(starpu_data_handle_t handle)
 
 starpu_arbiter_t starpu_arbiter_create(void)
 {
-	starpu_arbiter_t res = malloc(sizeof(*res));
+	starpu_arbiter_t res;
+	_STARPU_MALLOC(res, sizeof(*res));
 
 #ifdef LOCK_OR_DELEGATE
 	res->dlTaskListHead = NULL;

@@ -3,7 +3,7 @@
  * Copyright (C) 2010-2016  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016  CNRS
- * Copyright (C) 2012 INRIA
+ * Copyright (C) 2012, 2016  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -172,8 +172,7 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 	/* allocate the children */
 	if (inherit_state)
 	{
-		initial_handle->children = (struct _starpu_data_state *) calloc(nparts, sizeof(struct _starpu_data_state));
-		STARPU_ASSERT(initial_handle->children);
+		_STARPU_CALLOC(initial_handle->children, nparts, sizeof(struct _starpu_data_state));
 
 		/* this handle now has children */
 		initial_handle->nchildren = nparts;
@@ -313,6 +312,7 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 		}
 
 		child->per_worker = NULL;
+		child->user_data = NULL;
 
 		/* We compute the size and the footprint of the child once and
 		 * store it in the handle */
@@ -533,8 +533,8 @@ void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_da
 	initial_handle->children = NULL;
 
 	/* Make sure to wait for previous tasks working on the whole data */
-	starpu_data_acquire_on_node(initial_handle, -1, STARPU_RW);
-	starpu_data_release_on_node(initial_handle, -1);
+	starpu_data_acquire_on_node(initial_handle, STARPU_ACQUIRE_NO_NODE, STARPU_RW);
+	starpu_data_release_on_node(initial_handle, STARPU_ACQUIRE_NO_NODE);
 
 	_starpu_data_partition(initial_handle, NULL, nparts, f, 1);
 }
@@ -556,13 +556,16 @@ void starpu_data_partition_plan(starpu_data_handle_t initial_handle, struct star
 		home_node = STARPU_MAIN_RAM;
 
 	for (i = 0; i < nparts; i++)
-		childrenp[i] = calloc(1, sizeof(struct _starpu_data_state));
+	{
+		_STARPU_CALLOC(childrenp[i], 1, sizeof(struct _starpu_data_state));
+	}
 	_starpu_data_partition(initial_handle, childrenp, nparts, f, 0);
 
 	if (!cl)
 	{
 		/* Create a codelet that will make the coherency on the home node */
-		cl = initial_handle->switch_cl = calloc(1, sizeof(*initial_handle->switch_cl));
+		_STARPU_CALLOC(initial_handle->switch_cl, 1, sizeof(*initial_handle->switch_cl));
+		cl = initial_handle->switch_cl;
 		cl->where = STARPU_NOWHERE;
 		cl->nbuffers = STARPU_VARIABLE_NBUFFERS;
 		cl->name = "data_partition_switch";
@@ -571,7 +574,7 @@ void starpu_data_partition_plan(starpu_data_handle_t initial_handle, struct star
 	if (initial_handle->switch_cl_nparts < nparts)
 	{
 		/* First initialization, or previous initialization was with fewer parts, enlarge it */
-		cl->dyn_nodes = realloc(cl->dyn_nodes, (nparts+1) * sizeof(*cl->dyn_nodes));
+		_STARPU_REALLOC(cl->dyn_nodes, (nparts+1) * sizeof(*cl->dyn_nodes));
 		for (i = initial_handle->switch_cl_nparts; i < nparts+1; i++)
 			cl->dyn_nodes[i] = home_node;
 		initial_handle->switch_cl_nparts = nparts;

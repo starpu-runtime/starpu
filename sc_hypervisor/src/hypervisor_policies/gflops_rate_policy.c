@@ -259,7 +259,7 @@ static void gflops_rate_resize(unsigned sched_ctx)
 				struct sc_hypervisor_policy_config* config = sc_hypervisor_get_config(sched_ctx);
 				config->min_nworkers = 0;
 				config->max_nworkers = 0;
-				printf("ctx %d finished & gives away the res to %d; slow_left %lf\n", sched_ctx, slowest_sched_ctx, slowest_flops_left_pct);
+				printf("ctx %u finished & gives away the res to %d; slow_left %lf\n", sched_ctx, slowest_sched_ctx, slowest_flops_left_pct);
 				sc_hypervisor_policy_resize(sched_ctx, slowest_sched_ctx, 1, 1);
 				sc_hypervisor_stop_resize(slowest_sched_ctx);
 			}

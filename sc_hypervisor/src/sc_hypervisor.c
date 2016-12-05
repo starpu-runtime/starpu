@@ -608,7 +608,7 @@ void sc_hypervisor_move_workers(unsigned sender_sched_ctx, unsigned receiver_sch
 		_print_current_time();
 		unsigned j;
 #ifdef STARPU_SC_HYPERVISOR_DEBUG
-		printf("resize ctx %d with %d workers", sender_sched_ctx, nworkers_to_move);
+		printf("resize ctx %u with %u workers", sender_sched_ctx, nworkers_to_move);
 		for(j = 0; j < nworkers_to_move; j++)
 			printf(" %d", workers_to_move[j]);
 		printf("\n");
@@ -621,7 +621,7 @@ void sc_hypervisor_move_workers(unsigned sender_sched_ctx, unsigned receiver_sch
 		{
 			unsigned j;
 #ifdef STARPU_SC_HYPERVISOR_DEBUG
-			printf("remove now from ctx %d:", sender_sched_ctx);
+			printf("remove now from ctx %u:", sender_sched_ctx);
 			for(j = 0; j < nworkers_to_move; j++)
 				printf(" %d", workers_to_move[j]);
 			printf("\n");
@@ -670,7 +670,7 @@ void sc_hypervisor_add_workers_to_sched_ctx(int* workers_to_add, unsigned nworke
 		_print_current_time();
 		unsigned j;
 #ifdef STARPU_SC_HYPERVISOR_DEBUG
-		printf("add to ctx %d:", sched_ctx);
+		printf("add to ctx %u:", sched_ctx);
 		for(j = 0; j < nworkers_to_add; j++)
 			printf(" %d", workers_to_add[j]);
 		printf("\n");
@@ -703,7 +703,7 @@ void sc_hypervisor_remove_workers_from_sched_ctx(int* workers_to_remove, unsigne
 		{
 			unsigned j;
 #ifdef STARPU_SC_HYPERVISOR_DEBUG
-			printf("remove explicitley now from ctx %d:", sched_ctx);
+			printf("remove explicitley now from ctx %u:", sched_ctx);
 			for(j = 0; j < nworkers_to_remove; j++)
 				printf(" %d", workers_to_remove[j]);
 			printf("\n");
@@ -714,7 +714,7 @@ void sc_hypervisor_remove_workers_from_sched_ctx(int* workers_to_remove, unsigne
 		else
 		{
 #ifdef STARPU_SC_HYPERVISOR_DEBUG
-			printf("try to remove from ctx %d: ", sched_ctx);
+			printf("try to remove from ctx %u: ", sched_ctx);
 			unsigned j;
 			for(j = 0; j < nworkers_to_remove; j++)
 				printf(" %d", workers_to_remove[j]);
@@ -930,7 +930,7 @@ int _update_max_hierarchically(unsigned *sched_ctxs, int nsched_ctxs)
 
 			}
 #ifdef STARPU_SC_HYPERVISOR_DEBUG
-			printf("ctx %d has max %d \n", sched_ctxs[s], config->max_nworkers);
+			printf("ctx %u has max %d \n", sched_ctxs[s], config->max_nworkers);
 #endif
 		}
 		max += config->max_nworkers;
@@ -963,7 +963,7 @@ void _update_max_diff_hierarchically(unsigned father, double diff)
 				current_diff += (diff - accumulated_diff);
 			config->max_nworkers += current_diff;
 #ifdef STARPU_SC_HYPERVISOR_DEBUG
-			printf("%d: redib max_nworkers incr %d diff = %d \n",  sched_ctxs_child[s], config->max_nworkers, current_diff);
+			printf("%u: redib max_nworkers incr %d diff = %d \n",  sched_ctxs_child[s], config->max_nworkers, current_diff);
 #endif
 			_update_max_diff_hierarchically(sched_ctxs_child[s], current_diff);
 		}
@@ -1086,7 +1086,7 @@ void sc_hypervisor_update_resize_interval(unsigned *sched_ctxs, int nsched_ctxs,
 /* 			config->max_nworkers = max_workers; */
 
 #ifdef STARPU_SC_HYPERVISOR_DEBUG
-		printf("%d: ready tasks  %d norm_idle_time %lf elapsed_time %lf norm_exec_time %lf nworker %d max %d \n",
+		printf("%u: ready tasks  %d norm_idle_time %lf elapsed_time %lf norm_exec_time %lf nworker %d max %d \n",
 		       sched_ctx, nready_tasks, norm_idle_time, elapsed_time, norm_exec_time, workers->nworkers, config->max_nworkers);
 #endif
 
@@ -1129,7 +1129,7 @@ void sc_hypervisor_update_resize_interval(unsigned *sched_ctxs, int nsched_ctxs,
 				struct sc_hypervisor_policy_config *config = sc_hypervisor_get_config(max_nflops_sched_ctx);
 				config->max_nworkers += diff;
 #ifdef STARPU_SC_HYPERVISOR_DEBUG
-				printf("%d: redib max_nworkers incr %d \n",  max_nflops_sched_ctx, config->max_nworkers);
+				printf("%u: redib max_nworkers incr %d \n",  max_nflops_sched_ctx, config->max_nworkers);
 #endif
 				_update_max_diff_hierarchically(max_nflops_sched_ctx, diff);
 			}

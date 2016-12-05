@@ -2,7 +2,7 @@
 
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009, 2010  Université de Bordeaux
+# Copyright (C) 2009, 2010, 2016  Université de Bordeaux
 # Copyright (C) 2010, 2011  CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -17,7 +17,6 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
 
-#!/bin/sh
 OUTPUT=tasks_size_overhead.output
 VALS=$(sed -n -e '3p' < $OUTPUT)
 VAL1=$(echo "$VALS" | cut -d '	' -f 3)
@@ -31,23 +30,25 @@ VAL8=$(echo "$VALS" | cut -d '	' -f 17)
 VAL9=$(echo "$VALS" | cut -d '	' -f 19)
 VAL10=$(echo "$VALS" | cut -d '	' -f 21)
 VAL11=$(echo "$VALS" | cut -d '	' -f 23)
+[ -n "$TERMINAL" ] || TERMINAL=eps
+[ -n "$OUTFILE" ] || OUTFILE=tasks_size_overhead.eps
 gnuplot << EOF
-set terminal eps
-set output "tasks_size_overhead.eps"
+set terminal $TERMINAL
+set output "$OUTFILE"
 set key top left
 set xlabel "number of cores"
 set ylabel "speedup"
 plot \
-	"$OUTPUT" using 1:($VAL1)/(\$3) with linespoints title columnheader(2), \
-	"$OUTPUT" using 1:($VAL2)/(\$5) with linespoints title columnheader(4), \
-	"$OUTPUT" using 1:($VAL3)/(\$7) with linespoints title columnheader(6), \
-	"$OUTPUT" using 1:($VAL4)/(\$9) with linespoints title columnheader(8), \
-	"$OUTPUT" using 1:($VAL5)/(\$11) with linespoints title columnheader(10), \
-	"$OUTPUT" using 1:($VAL6)/(\$13) with linespoints title columnheader(12), \
-	"$OUTPUT" using 1:($VAL7)/(\$15) with linespoints title columnheader(14), \
-	"$OUTPUT" using 1:($VAL8)/(\$17) with linespoints title columnheader(16), \
-	"$OUTPUT" using 1:($VAL9)/(\$19) with linespoints title columnheader(18), \
-	"$OUTPUT" using 1:($VAL10)/(\$21) with linespoints title columnheader(20), \
+	x title "linear", \
 	"$OUTPUT" using 1:($VAL11)/(\$23) with linespoints title columnheader(22), \
-	x title "linear"
+	"$OUTPUT" using 1:($VAL10)/(\$21) with linespoints title columnheader(20), \
+	"$OUTPUT" using 1:($VAL9)/(\$19) with linespoints title columnheader(18), \
+	"$OUTPUT" using 1:($VAL8)/(\$17) with linespoints title columnheader(16), \
+	"$OUTPUT" using 1:($VAL7)/(\$15) with linespoints title columnheader(14), \
+	"$OUTPUT" using 1:($VAL6)/(\$13) with linespoints title columnheader(12), \
+	"$OUTPUT" using 1:($VAL5)/(\$11) with linespoints title columnheader(10), \
+	"$OUTPUT" using 1:($VAL4)/(\$9) with linespoints title columnheader(8), \
+	"$OUTPUT" using 1:($VAL3)/(\$7) with linespoints title columnheader(6), \
+	"$OUTPUT" using 1:($VAL2)/(\$5) with linespoints title columnheader(4), \
+	"$OUTPUT" using 1:($VAL1)/(\$3) with linespoints title columnheader(2)
 EOF

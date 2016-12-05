@@ -47,6 +47,7 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 int _starpu_simgrid_get_nbhosts(const char *prefix);
 unsigned long long _starpu_simgrid_get_memsize(const char *prefix, unsigned devid);
 msg_host_t _starpu_simgrid_get_host_by_name(const char *name);
+msg_host_t _starpu_simgrid_get_memnode_host(unsigned node);
 struct _starpu_worker;
 msg_host_t _starpu_simgrid_get_host_by_worker(struct _starpu_worker *worker);
 void _starpu_simgrid_get_platform_path(int version, char *path, size_t maxlen);
@@ -62,6 +63,10 @@ starpu_pthread_queue_t _starpu_simgrid_task_queue[STARPU_NMAXWORKERS];
 #define _starpu_simgrid_cuda_malloc_cost() starpu_get_env_number_default("STARPU_SIMGRID_CUDA_MALLOC_COST", 1)
 #define _starpu_simgrid_queue_malloc_cost() starpu_get_env_number_default("STARPU_SIMGRID_QUEUE_MALLOC_COST", 1)
 #define _starpu_simgrid_task_submit_cost() starpu_get_env_number_default("STARPU_SIMGRID_TASK_SUBMIT_COST", 1)
+
+/* Called at initialization to count how many GPUs are interfering with each
+ * bus */
+void _starpu_simgrid_count_ngpus(void);
 
 #endif
 

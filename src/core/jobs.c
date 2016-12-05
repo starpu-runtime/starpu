@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2011, 2014, 2016  INRIA
  *
@@ -72,7 +72,7 @@ struct _starpu_job* STARPU_ATTRIBUTE_MALLOC _starpu_job_create(struct starpu_tas
 	struct _starpu_job *job;
         _STARPU_LOG_IN();
 
-	job = malloc(sizeof(*job));
+	_STARPU_MALLOC(job, sizeof(*job));
 
 	/* As most of the fields must be initialized at NULL, let's put 0
 	 * everywhere */
@@ -80,8 +80,8 @@ struct _starpu_job* STARPU_ATTRIBUTE_MALLOC _starpu_job_create(struct starpu_tas
 
 	if (task->dyn_handles)
 	{
-	     job->dyn_ordered_buffers = malloc(STARPU_TASK_GET_NBUFFERS(task) * sizeof(job->dyn_ordered_buffers[0]));
-	     job->dyn_dep_slots = calloc(STARPU_TASK_GET_NBUFFERS(task), sizeof(job->dyn_dep_slots[0]));
+		_STARPU_MALLOC(job->dyn_ordered_buffers, STARPU_TASK_GET_NBUFFERS(task) * sizeof(job->dyn_ordered_buffers[0]));
+		_STARPU_CALLOC(job->dyn_dep_slots, STARPU_TASK_GET_NBUFFERS(task), sizeof(job->dyn_dep_slots[0]));
 	}
 
 	job->task = task;
@@ -436,9 +436,9 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	/* NB: we do not save those values before the callback, in case the
 	 * application changes some parameters eventually (eg. a task may not
 	 * be generated if the application is terminated). */
-	int destroy = task->destroy;
-	int detach = task->detach;
-	int regenerate = task->regenerate;
+	unsigned destroy = task->destroy;
+	unsigned detach = task->detach;
+	unsigned regenerate = task->regenerate;
 
 	/* we do not desallocate the job structure if some is going to
 	 * wait after the task */
@@ -476,7 +476,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	{
 		STARPU_ASSERT_MSG((detach && !destroy && !task->synchronous)
 				|| continuation
-				, "Regenerated task must be detached (was %d), and not have detroy=1 (was %d) or synchronous=1 (was %d)", detach, destroy, task->synchronous);
+				, "Regenerated task must be detached (was %u), and not have detroy=1 (was %u) or synchronous=1 (was %u)", detach, destroy, task->synchronous);
 		STARPU_AYU_ADDTASK(j->job_id, j->exclude_from_dag?NULL:task);
 
 		{
@@ -713,7 +713,7 @@ int _starpu_push_local_task(struct _starpu_worker *worker, struct starpu_task *t
 
 	if (task->execute_on_a_specific_worker && task->workerorder)
 	{
-		STARPU_ASSERT_MSG(task->workerorder >= worker->current_ordered_task_order, "worker order values must not have duplicates (%d pushed to worker %d, but %d already passed)", task->workerorder, worker->workerid, worker->current_ordered_task_order);
+		STARPU_ASSERT_MSG(task->workerorder >= worker->current_ordered_task_order, "worker order values must not have duplicates (%u pushed to worker %d, but %d already passed)", task->workerorder, worker->workerid, worker->current_ordered_task_order);
 		/* Put it in the ordered task ring */
 		unsigned needed = task->workerorder - worker->current_ordered_task_order + 1;
 		if (worker->local_ordered_tasks_size < needed)
@@ -721,18 +721,17 @@ int _starpu_push_local_task(struct _starpu_worker *worker, struct starpu_task *t
 			/* Increase the size */
 			unsigned alloc = worker->local_ordered_tasks_size;
 			struct starpu_task **new;
-			unsigned copied;
 
 			if (!alloc)
 				alloc = 1;
 			while (alloc < needed)
 				alloc *= 2;
-			new = malloc(alloc * sizeof(*new));
+			_STARPU_MALLOC(new, alloc * sizeof(*new));
 
 			if (worker->local_ordered_tasks_size)
 			{
 				/* Put existing tasks at the beginning of the new ring */
-				copied = worker->local_ordered_tasks_size - worker->current_ordered_task;
+				unsigned copied = worker->local_ordered_tasks_size - worker->current_ordered_task;
 				memcpy(new, &worker->local_ordered_tasks[worker->current_ordered_task], copied * sizeof(*new));
 				memcpy(new + copied, worker->local_ordered_tasks, (worker->local_ordered_tasks_size - copied) * sizeof(*new));
 			}

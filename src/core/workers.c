@@ -97,7 +97,6 @@ int _starpu_is_initialized(void)
 static uint32_t _starpu_worker_exists_and_can_execute(struct starpu_task *task,
 						      enum starpu_worker_archtype arch)
 {
-	int i;
 	_starpu_codelet_check_deprecated_fields(task->cl);
 
         /* make sure there is a worker on the machine able to execute the
@@ -110,7 +109,7 @@ static uint32_t _starpu_worker_exists_and_can_execute(struct starpu_task *task,
 	workers->init_iterator(workers, &it);
 	while(workers->has_next(workers, &it))
 	{
-		i = workers->get_next(workers, &it);
+		int i = workers->get_next(workers, &it);
 		if (starpu_worker_get_type(i) != arch)
 			continue;
 
@@ -1134,7 +1133,8 @@ static void _fill_tree(struct starpu_tree *tree, hwloc_obj_t curr_obj, unsigned 
 static void _starpu_build_tree(void)
 {
 #ifdef STARPU_HAVE_HWLOC
-	struct starpu_tree* tree = (struct starpu_tree*)malloc(sizeof(struct starpu_tree));
+	struct starpu_tree *tree;
+	_STARPU_MALLOC(tree, sizeof(struct starpu_tree));
 	_starpu_config.topology.tree = tree;
 
 	hwloc_obj_t root = hwloc_get_root_obj(_starpu_config.topology.hwtopology);
@@ -1291,14 +1291,16 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	if (_starpu_config.conf.n_cuda_opengl_interoperability)
 	{
 		size_t size = _starpu_config.conf.n_cuda_opengl_interoperability * sizeof(*_starpu_config.conf.cuda_opengl_interoperability);
-		unsigned *copy = malloc(size);
+		unsigned *copy;
+		_STARPU_MALLOC(copy, size);
 		memcpy(copy, _starpu_config.conf.cuda_opengl_interoperability, size);
 		_starpu_config.conf.cuda_opengl_interoperability = copy;
 	}
 	if (_starpu_config.conf.n_not_launched_drivers)
 	{
 		size_t size = _starpu_config.conf.n_not_launched_drivers * sizeof(*_starpu_config.conf.not_launched_drivers);
-		struct starpu_driver *copy = malloc(size);
+		struct starpu_driver *copy;
+		_STARPU_MALLOC(copy, size);
 		memcpy(copy, _starpu_config.conf.not_launched_drivers, size);
 		_starpu_config.conf.not_launched_drivers = copy;
 	}
@@ -1831,8 +1833,10 @@ int starpu_worker_get_id(void)
 #undef _starpu_worker_get_id_check
 unsigned _starpu_worker_get_id_check(const char *f, int l)
 {
+	(void) f;
+	(void) l;
 	int id = _starpu_worker_get_id();
-	STARPU_ASSERT_MSG(id>=0, "%s:%u Cannot be called from outside a worker\n", f, l);
+	STARPU_ASSERT_MSG(id>=0, "%s:%d Cannot be called from outside a worker\n", f, l);
 	return id;
 }
 
@@ -2063,19 +2067,17 @@ int starpu_worker_get_nids_by_type(enum starpu_worker_archtype type, int *worker
 int starpu_worker_get_nids_ctx_free_by_type(enum starpu_worker_archtype type, int *workerids, int maxsize)
 {
 	unsigned nworkers = starpu_worker_get_count();
-
 	int cnt = 0;
+	unsigned id;
 
-	unsigned id, worker;
-	unsigned found = 0;
 	for (id = 0; id < nworkers; id++)
 	{
-		found = 0;
 		if (starpu_worker_get_type(id) == type)
 		{
 			/* Perhaps the array is too small ? */
 			if (cnt >= maxsize)
 				return cnt;
+			unsigned found = 0;
 			int s;
 			for(s = 1; s < STARPU_NMAX_SCHED_CTXS; s++)
 			{
@@ -2087,7 +2089,7 @@ int starpu_worker_get_nids_ctx_free_by_type(enum starpu_worker_archtype type, in
 					workers->init_iterator(workers, &it);
 					while(workers->has_next(workers, &it))
 					{
-						worker = workers->get_next(workers, &it);
+						unsigned worker = workers->get_next(workers, &it);
 						if(worker == id)
 						{
 							found = 1;
@@ -2251,7 +2253,7 @@ unsigned starpu_worker_get_sched_ctx_list(int workerid, unsigned **sched_ctxs)
 {
 	unsigned s = 0;
 	unsigned nsched_ctxs = _starpu_worker_get_nsched_ctxs(workerid);
-	*sched_ctxs = (unsigned*)malloc(nsched_ctxs*sizeof(unsigned));
+	_STARPU_MALLOC(*sched_ctxs, nsched_ctxs*sizeof(unsigned));
 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 	struct _starpu_sched_ctx_elt *e = NULL;
 	struct _starpu_sched_ctx_list_iterator list_it;

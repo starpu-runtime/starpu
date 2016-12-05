@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016  CNRS
  * Copyright (C) 2014, 2016  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -30,8 +30,8 @@
 
 static struct _starpu_cg *create_cg_task(unsigned ntags, struct _starpu_job *j)
 {
-	struct _starpu_cg *cg = (struct _starpu_cg *) malloc(sizeof(struct _starpu_cg));
-	STARPU_ASSERT(cg);
+	struct _starpu_cg *cg;
+	_STARPU_MALLOC(cg, sizeof(struct _starpu_cg));
 
 	cg->ntags = ntags;
 	cg->remaining = ntags;
@@ -74,7 +74,7 @@ void _starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, s
 #ifdef STARPU_OPENMP
 				|| job->continuation
 #endif
-				, "Task dependencies have to be set before submission (submitted %u destroy %d detach %d)", job->submitted, task->destroy, task->detach);
+				, "Task dependencies have to be set before submission (submitted %u destroy %u detach %u)", job->submitted, task->destroy, task->detach);
 	else
 		STARPU_ASSERT_MSG(job->terminated <= 1, "Task dependencies have to be set before termination (terminated %u)", job->terminated);
 

@@ -52,16 +52,16 @@ void read_file(char *input_f, unsigned int *nb_nodes, unsigned int *nb_edges,
 	}
 
 	fscanf(fp, "%u", nb_nodes);
-	
+
 	// allocate host memory
 	*origin_graph_nodes = (Node *) malloc(sizeof(Node) * (*nb_nodes));
 	*origin_graph_mask = (bool *) malloc(sizeof(bool) * (*nb_nodes));
 	*origin_updating_graph_mask = (bool *) malloc(sizeof(bool) * (*nb_nodes));
 	*origin_graph_visited = (bool *) malloc(sizeof(bool) * (*nb_nodes));
 
-	int start, edgeno;   
+	int start, edgeno;
 	// initalize the memory
-	for( unsigned int i = 0; i < *nb_nodes; i++) 
+	for( unsigned int i = 0; i < *nb_nodes; i++)
 	{
 		fscanf(fp,"%d %d",&start,&edgeno);
 		(*origin_graph_nodes)[i].starting = start;
@@ -89,7 +89,7 @@ void read_file(char *input_f, unsigned int *nb_nodes, unsigned int *nb_edges,
 		fscanf(fp,"%d",&cost);
 		(*origin_graph_edges)[i] = id;
 	}
-    
+
 
 	// allocate mem for the result on host side
 	*origin_cost = (int*) malloc( sizeof(int)* (*nb_nodes));
@@ -105,7 +105,7 @@ void read_file(char *input_f, unsigned int *nb_nodes, unsigned int *nb_edges,
 ////////////////////////////////////////////////////////////////////////////////
 // Main Program
 ////////////////////////////////////////////////////////////////////////////////
-int main( int argc, char** argv) 
+int main( int argc, char** argv)
 {
 	int ret;
 	char *input_f;
@@ -150,25 +150,25 @@ int main( int argc, char** argv)
 		Usage(argc, argv);
 		exit(1);
 	}
-    
+
 	input_f = argv[1];
 	read_file(input_f, &nb_nodes, &nb_edges, &origin_graph_nodes,
 		  &origin_graph_mask, &origin_updating_graph_mask,
 		  &origin_graph_visited, &origin_graph_edges, &origin_cost);
 
-	graph_nodes = (Node *) malloc(sizeof(Node)*nb_nodes);
-	graph_mask = (bool *) malloc(sizeof(bool)*nb_nodes);
-	updating_graph_mask = (bool *) malloc(sizeof(bool)*nb_nodes);
-	graph_visited = (bool *) malloc(sizeof(bool)*nb_nodes);
-	graph_edges = (int*) malloc(sizeof(int)*nb_edges);
-	cost = (int*) malloc( sizeof(int)*nb_nodes);
+	graph_nodes = (Node *) calloc(nb_nodes, sizeof(Node));
+	graph_mask = (bool *) calloc(nb_nodes, sizeof(bool));
+	updating_graph_mask = (bool *) calloc(nb_nodes, sizeof(bool));
+	graph_visited = (bool *) calloc(nb_nodes, sizeof(bool));
+	graph_edges = (int*) calloc(nb_edges, sizeof(int));
+	cost = (int*) calloc(nb_nodes, sizeof(int));
 
 	memcpy(graph_nodes, origin_graph_nodes, nb_nodes*sizeof(Node));
 	memcpy(graph_edges, origin_graph_edges, nb_edges*sizeof(int));
 
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-	
+
 	starpu_vector_data_register(&graph_nodes_handle, STARPU_MAIN_RAM,
 				    (uintptr_t) graph_nodes, nb_nodes,
 				    sizeof(graph_nodes[0] ));
@@ -187,7 +187,7 @@ int main( int argc, char** argv)
 				    sizeof(graph_visited[0]));
 	starpu_vector_data_register(&cost_handle, STARPU_MAIN_RAM, (uintptr_t)cost,
 				    nb_nodes, sizeof(cost[0]));
-	
+
 	for(int it=0; it < NB_ITERATION; it++)
 	{
 		starpu_data_acquire(graph_mask_handle, STARPU_W);
@@ -243,7 +243,7 @@ int main( int argc, char** argv)
 	//Store the result into a file
 	FILE *fpo = fopen("result.txt","w");
 	for(unsigned int i=0;i<nb_nodes;i++)
-		fprintf(fpo,"%d) cost:%d\n", i, cost[i]);
+		fprintf(fpo,"%u) cost:%d\n", i, cost[i]);
 	fclose(fpo);
 	printf("Result stored in result.txt\n");
 

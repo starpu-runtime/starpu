@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2013, 2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -49,6 +49,8 @@ struct node_pair
 static int busid_matrix[STARPU_MAXNODES][STARPU_MAXNODES];
 static struct starpu_profiling_bus_info bus_profiling_info[STARPU_MAXNODES][STARPU_MAXNODES];
 static struct node_pair busid_to_node_pair[STARPU_MAXNODES*STARPU_MAXNODES];
+static char bus_direct[STARPU_MAXNODES*STARPU_MAXNODES];
+static int bus_ngpus[STARPU_MAXNODES*STARPU_MAXNODES];
 static unsigned busid_cnt = 0;
 
 static void _starpu_bus_reset_profiling_info(struct starpu_profiling_bus_info *bus_info);
@@ -147,8 +149,7 @@ struct starpu_profiling_task_info *_starpu_allocate_profiling_info_if_needed(str
 	/* If we are benchmarking, we need room for the energy */
 	if (starpu_profiling_status_get() || (task->cl && task->cl->energy_model && (task->cl->energy_model->benchmarking || _starpu_get_calibrate_flag())))
 	{
-		info = (struct starpu_profiling_task_info *) calloc(1, sizeof(struct starpu_profiling_task_info));
-		STARPU_ASSERT(info);
+		_STARPU_CALLOC(info, 1, sizeof(struct starpu_profiling_task_info));
 	}
 
 	return info;
@@ -428,6 +429,31 @@ int starpu_bus_get_src(int busid)
 int starpu_bus_get_dst(int busid)
 {
 	return busid_to_node_pair[busid].dst;
+}
+
+void starpu_bus_set_direct(int busid, int direct)
+{
+	bus_direct[busid] = direct;
+}
+
+int starpu_bus_get_direct(int busid)
+{
+	return bus_direct[busid];
+}
+
+void starpu_bus_set_ngpus(int busid, int ngpus)
+{
+	bus_ngpus[busid] = ngpus;
+}
+
+int starpu_bus_get_ngpus(int busid)
+{
+	struct _starpu_machine_topology *topology = &_starpu_get_machine_config()->topology;
+	int ngpus = bus_ngpus[busid];
+	if (!ngpus)
+		/* Unknown number of GPUs, assume it's shared by all GPUs */
+		ngpus = topology->ncudagpus+topology->nopenclgpus;
+	return ngpus;
 }
 
 int starpu_bus_get_profiling_info(int busid, struct starpu_profiling_bus_info *bus_info)

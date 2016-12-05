@@ -108,7 +108,7 @@ static struct task_info *get_task(unsigned long job_id, int mpi_rank)
 	HASH_FIND(hh, tasks_info, &job_id, sizeof(job_id), task);
 	if (!task)
 	{
-		task = malloc(sizeof(*task));
+		_STARPU_MALLOC(task, sizeof(*task));
 		task->model_name = NULL;
 		task->name = NULL;
 		task->exclude_from_dag = 0;
@@ -396,7 +396,7 @@ static int register_thread(unsigned long tid, int workerid, int sync)
 	if (entry)
 		return 0;
 
-	entry = malloc(sizeof(*entry));
+	_STARPU_MALLOC(entry, sizeof(*entry));
 	entry->tid = tid;
 	entry->workerid = workerid;
 	entry->sync = sync;
@@ -720,7 +720,7 @@ static void recfmt_dump_state(double time, const char *event, int workerid, long
 	if (threadid == -1)
 		fprintf(trace_file, "T: -1\n");
 	else
-		fprintf(trace_file, "T: %lu\n", threadid);
+		fprintf(trace_file, "T: %ld\n", threadid);
 	fprintf(trace_file, "S: %f\n", time);
 	fprintf(trace_file, "\n");
 }
@@ -864,7 +864,7 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 	char *kindstr = "";
 	struct starpu_perfmodel_arch arch;
 	arch.ndevices = 1;
-	arch.devices = (struct starpu_perfmodel_device *)malloc(sizeof(struct starpu_perfmodel_device));
+	_STARPU_MALLOC(arch.devices, sizeof(struct starpu_perfmodel_device));
 
 	switch (ev->param[0])
 	{
@@ -1034,7 +1034,7 @@ static void create_paje_state_if_not_found(char *name, struct starpu_fxt_options
 
 	/* it's the first time ... */
 	struct _starpu_symbol_name *entry = _starpu_symbol_name_new();
-	entry->name = malloc(strlen(name) + 1);
+	_STARPU_MALLOC(entry->name, strlen(name) + 1);
 	strcpy(entry->name, name);
 
 	_starpu_symbol_name_list_push_front(&symbol_list, entry);
@@ -1184,7 +1184,7 @@ static void handle_start_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_op
 #ifdef STARPU_HAVE_POTI
 			char container[STARPU_POTI_STR_LEN];
 			char ctx[6];
-			snprintf(ctx, sizeof(ctx), "Ctx%d", sched_ctx);
+			snprintf(ctx, sizeof(ctx), "Ctx%u", sched_ctx);
 			worker_container_alias(container, STARPU_POTI_STR_LEN, prefix, ev->param[2]);
 			poti_SetState(start_codelet_time, container, ctx, name);
 #else
@@ -1235,7 +1235,9 @@ static void handle_codelet_data_handle(struct fxt_ev_64 *ev, struct starpu_fxt_o
 		}
 	}
 	if (alloc)
-		task->data = realloc(task->data, sizeof(*task->data) * alloc);
+	{
+		_STARPU_REALLOC(task->data, sizeof(*task->data) * alloc);
+	}
 	task->data[task->ndata].handle = ev->param[1];
 	task->data[task->ndata].size = ev->param[2];
 	task->data[task->ndata].mode = ev->param[3];
@@ -1249,15 +1251,17 @@ static void handle_codelet_details(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 
 	if (worker < 0) return;
 
-	int i;
 	char parameters[256];
 	size_t eaten = 0;
 	if (!last_codelet_parameter[worker])
 		eaten += snprintf(parameters + eaten, sizeof(parameters) - eaten - 1, "nodata");
 	else
-	for (i = 0; i < last_codelet_parameter[worker] && i < MAX_PARAMETERS; i++)
 	{
-		eaten += snprintf(parameters + eaten, sizeof(parameters) - eaten - 1, "%s%s", i?"_":"", last_codelet_parameter_description[worker][i]);
+		int i;
+		for (i = 0; i < last_codelet_parameter[worker] && i < MAX_PARAMETERS; i++)
+		{
+			eaten += snprintf(parameters + eaten, sizeof(parameters) - eaten - 1, "%s%s", i?"_":"", last_codelet_parameter_description[worker][i]);
+		}
 	}
 	parameters[sizeof(parameters)-1] = 0;
 
@@ -1279,11 +1283,11 @@ static void handle_codelet_details(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 #ifdef STARPU_HAVE_POTI
 			char container[STARPU_POTI_STR_LEN];
 			char ctx[6];
-			snprintf(ctx, sizeof(ctx), "Ctx%d", sched_ctx);
+			snprintf(ctx, sizeof(ctx), "Ctx%u", sched_ctx);
 			worker_container_alias(container, STARPU_POTI_STR_LEN, prefix, worker);
 			poti_SetState(last_codelet_start[worker], container, ctx, _starpu_last_codelet_symbol[worker]);
 #else
-			fprintf(out_paje_file, "20	%.9f	%sw%d	Ctx%u	%s	%ld	%s	%08lx	%016lx	%ld\n", last_codelet_start[worker], prefix, worker, sched_ctx, _starpu_last_codelet_symbol[worker], ev->param[2], parameters,  ev->param[3], ev->param[4], job_id);
+			fprintf(out_paje_file, "20	%.9f	%sw%d	Ctx%u	%s	%ld	%s	%08lx	%016lx	%lu\n", last_codelet_start[worker], prefix, worker, sched_ctx, _starpu_last_codelet_symbol[worker], ev->param[2], parameters,  ev->param[3], ev->param[4], job_id);
 #endif
 		}
 #endif /* STARPU_ENABLE_PAJE_CODELET_DETAILS */
@@ -1324,7 +1328,7 @@ static void handle_end_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 	if (options->dumped_codelets)
 	{
 		dumped_codelets_count++;
-		dumped_codelets = realloc(dumped_codelets, dumped_codelets_count*sizeof(struct starpu_fxt_codelet_event));
+		_STARPU_REALLOC(dumped_codelets, dumped_codelets_count*sizeof(struct starpu_fxt_codelet_event));
 
 		snprintf(dumped_codelets[dumped_codelets_count - 1].symbol, sizeof(dumped_codelets[dumped_codelets_count - 1].symbol)-1, "%s", _starpu_last_codelet_symbol[worker]);
 		dumped_codelets[dumped_codelets_count - 1].symbol[sizeof(dumped_codelets[dumped_codelets_count - 1].symbol)-1] = 0;
@@ -1687,19 +1691,17 @@ static void handle_start_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 
 static void handle_work_stealing(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
-	unsigned dst = ev->param[0];
-	unsigned src = ev->param[1];
-	unsigned size = 0;
-
-	char *prefix = options->file_prefix;
-
-
 	if (out_paje_file)
 	{
+		unsigned dst = ev->param[0];
+		unsigned src = ev->param[1];
+		char *prefix = options->file_prefix;
+		unsigned size = 0;
 		double time = get_event_time_stamp(ev, options);
 #ifdef STARPU_HAVE_POTI
 		char paje_value[STARPU_POTI_STR_LEN], paje_key[STARPU_POTI_STR_LEN], src_worker_container[STARPU_POTI_STR_LEN], dst_worker_container[STARPU_POTI_STR_LEN];
 		char program_container[STARPU_POTI_STR_LEN];
+
 		snprintf(paje_value, STARPU_POTI_STR_LEN, "%u", size);
 		snprintf(paje_key, STARPU_POTI_STR_LEN, "steal_%u", steal_number);
 		program_container_alias(program_container, STARPU_POTI_STR_LEN, prefix);
@@ -1709,8 +1711,8 @@ static void handle_work_stealing(struct fxt_ev_64 *ev, struct starpu_fxt_options
 		poti_EndLink(time+0.000000001, program_container, "WSL", dst_worker_container, paje_value, paje_key);
 #else
 
-		fprintf(out_paje_file, "18	%.9f	WSL	%sp	%u	%sw%d	steal_%u\n", time, prefix, size, prefix, src, steal_number);
-		fprintf(out_paje_file, "19	%.9f	WSL	%sp	%u	%sw%d	steal_%u\n", time+0.000000001, prefix, size, prefix, dst, steal_number);
+		fprintf(out_paje_file, "18	%.9f	WSL	%sp	%u	%sw%u	steal_%u\n", time, prefix, size, prefix, src, steal_number);
+		fprintf(out_paje_file, "19	%.9f	WSL	%sp	%u	%sw%u	steal_%u\n", time+0.000000001, prefix, size, prefix, dst, steal_number);
 #endif
 	}
 
@@ -2004,7 +2006,9 @@ static void handle_task_deps(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 		}
 	}
 	if (alloc)
-		task->dependencies = realloc(task->dependencies, sizeof(*task->dependencies) * alloc);
+	{
+		_STARPU_REALLOC(task->dependencies, sizeof(*task->dependencies) * alloc);
+	}
 	task->dependencies[task->ndeps++] = dep_prev;
 
 	/* There is a dependency between both job id : dep_prev -> dep_succ */
@@ -3391,7 +3395,7 @@ static void write_task(struct parse_task pt)
 	//fprintf(stderr, "%p %p %s\n", kernel, kernels, codelet_name);
 	if(kernel == NULL)
 	{
-		kernel = malloc(sizeof(*kernel));
+		_STARPU_MALLOC(kernel, sizeof(*kernel));
 		kernel->name = strdup(codelet_name);
 		//fprintf(stderr, "%s\n", kernel->name);
 		kernel->file = fopen(codelet_name, "w+");
@@ -3404,7 +3408,7 @@ static void write_task(struct parse_task pt)
 		fprintf(codelet_list, "%s\n", codelet_name);
 	}
 	double time = pt.exec_time * NANO_SEC_TO_MILI_SEC;
-	fprintf(kernel->file, "%lf %d\n", time, pt.data_total);
+	fprintf(kernel->file, "%lf %u\n", time, pt.data_total);
 }
 
 void starpu_fxt_write_data_trace(char *filename_in)

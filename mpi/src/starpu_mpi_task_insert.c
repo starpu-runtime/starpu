@@ -183,7 +183,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 {
 	va_list varg_list_copy;
 	int inconsistent_execute = 0;
-	int arg_type, arg_type_nocommute;
+	int arg_type;
 	int node_selected = 0;
 	int nb_allocated_data = 16;
 	struct starpu_data_descr *descrs;
@@ -192,7 +192,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 
 	_STARPU_TRACE_TASK_MPI_DECODE_START();
 
-	descrs = (struct starpu_data_descr *)malloc(nb_allocated_data * sizeof(struct starpu_data_descr));
+	_STARPU_MPI_MALLOC(descrs, nb_allocated_data * sizeof(struct starpu_data_descr));
 	nb_data = 0;
 	*do_execute = -1;
 	*xrank = -1;
@@ -200,7 +200,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 	va_copy(varg_list_copy, varg_list);
 	while ((arg_type = va_arg(varg_list_copy, int)) != 0)
 	{
-		arg_type_nocommute = arg_type & ~STARPU_COMMUTE;
+		int arg_type_nocommute = arg_type & ~STARPU_COMMUTE;
 		if (arg_type==STARPU_EXECUTE_ON_NODE)
 		{
 			*xrank = va_arg(varg_list_copy, int);
@@ -244,7 +244,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 			if (nb_data >= nb_allocated_data)
 			{
 				nb_allocated_data *= 2;
-				descrs = (struct starpu_data_descr *)realloc(descrs, nb_allocated_data * sizeof(struct starpu_data_descr));
+				_STARPU_MPI_REALLOC(descrs, nb_allocated_data * sizeof(struct starpu_data_descr));
 			}
 			descrs[nb_data].handle = data;
 			descrs[nb_data].mode = mode;
@@ -274,7 +274,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 				if (nb_data >= nb_allocated_data)
 				{
 					nb_allocated_data *= 2;
-					descrs = (struct starpu_data_descr *)realloc(descrs, nb_allocated_data * sizeof(struct starpu_data_descr));
+					_STARPU_MPI_REALLOC(descrs, nb_allocated_data * sizeof(struct starpu_data_descr));
 				}
 				descrs[nb_data].handle = datas[i];
 				descrs[nb_data].mode = mode;
@@ -304,7 +304,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 				if (nb_data >= nb_allocated_data)
 				{
 					nb_allocated_data *= 2;
-					descrs = (struct starpu_data_descr *)realloc(descrs, nb_allocated_data * sizeof(struct starpu_data_descr));
+					_STARPU_MPI_REALLOC(descrs, nb_allocated_data * sizeof(struct starpu_data_descr));
 				}
 				descrs[nb_data].handle = _descrs[i].handle;
 				descrs[nb_data].mode = mode;
@@ -434,7 +434,6 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 static
 int _starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, struct starpu_task **task, int *xrank_p, struct starpu_data_descr **descrs_p, int *nb_data_p, va_list varg_list)
 {
-	va_list varg_list_copy;
 	int me, do_execute, xrank, nb_nodes;
 	int ret;
 	int i;
@@ -468,6 +467,7 @@ int _starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, stru
 	if (do_execute == 0) return 1;
 	else
 	{
+		va_list varg_list_copy;
 		_STARPU_MPI_DEBUG(100, "Execution of the codelet %p (%s)\n", codelet, codelet?codelet->name:NULL);
 
 		*task = starpu_task_create();
@@ -711,7 +711,8 @@ void starpu_mpi_redux_data(MPI_Comm comm, starpu_data_handle_t data_handle)
 				 * reduction.
 				 */
 
-				struct _starpu_mpi_redux_data_args *args = malloc(sizeof(struct _starpu_mpi_redux_data_args));
+				struct _starpu_mpi_redux_data_args *args;
+				_STARPU_MPI_MALLOC(args, sizeof(struct _starpu_mpi_redux_data_args));
 				args->data_handle = data_handle;
 				args->tag = tag;
 				args->node = i;

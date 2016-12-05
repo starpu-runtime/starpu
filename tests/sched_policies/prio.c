@@ -121,6 +121,10 @@ main(void)
 	struct starpu_sched_policy **policies;
 	struct starpu_sched_policy **policy;
 
+#ifdef STARPU_HAVE_UNSETENV
+	unsetenv("STARPU_SCHED");
+#endif
+
 	policies = starpu_sched_get_predefined_policies();
 	for(policy=policies ; *policy!=NULL ; policy++)
 	{

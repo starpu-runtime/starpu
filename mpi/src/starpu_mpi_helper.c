@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2015  Université de Bordeaux
- * Copyright (C) 2010, 2012, 2014  CNRS
+ * Copyright (C) 2010, 2012, 2014, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,6 +16,7 @@
  */
 
 #include <starpu_mpi.h>
+#include <starpu_mpi_private.h>
 
 static void starpu_mpi_unlock_tag_callback(void *arg)
 {
@@ -28,7 +29,8 @@ static void starpu_mpi_unlock_tag_callback(void *arg)
 
 int starpu_mpi_isend_detached_unlock_tag(starpu_data_handle_t data_handle, int dest, int data_tag, MPI_Comm comm, starpu_tag_t tag)
 {
-	starpu_tag_t *tagptr = malloc(sizeof(starpu_tag_t));
+	starpu_tag_t *tagptr;
+	_STARPU_MPI_MALLOC(tagptr, sizeof(starpu_tag_t));
 	*tagptr = tag;
 
 	return starpu_mpi_isend_detached(data_handle, dest, data_tag, comm, starpu_mpi_unlock_tag_callback, tagptr);
@@ -37,7 +39,8 @@ int starpu_mpi_isend_detached_unlock_tag(starpu_data_handle_t data_handle, int d
 
 int starpu_mpi_irecv_detached_unlock_tag(starpu_data_handle_t data_handle, int source, int data_tag, MPI_Comm comm, starpu_tag_t tag)
 {
-	starpu_tag_t *tagptr = malloc(sizeof(starpu_tag_t));
+	starpu_tag_t *tagptr;
+	_STARPU_MPI_MALLOC(tagptr, sizeof(starpu_tag_t));
 	*tagptr = tag;
 
 	return starpu_mpi_irecv_detached(data_handle, source, data_tag, comm, starpu_mpi_unlock_tag_callback, tagptr);
@@ -68,7 +71,8 @@ int starpu_mpi_isend_array_detached_unlock_tag(unsigned array_size,
 {
 	if (!array_size)
 		return 0;
-	struct arg_array *arg = malloc(sizeof(struct arg_array));
+	struct arg_array *arg;
+	_STARPU_MPI_MALLOC(arg, sizeof(struct arg_array));
 
 	arg->array_size = array_size;
 	arg->tag = tag;
@@ -87,7 +91,8 @@ int starpu_mpi_irecv_array_detached_unlock_tag(unsigned array_size, starpu_data_
 {
 	if (!array_size)
 		return 0;
-	struct arg_array *arg = malloc(sizeof(struct arg_array));
+	struct arg_array *arg;
+	_STARPU_MPI_MALLOC(arg, sizeof(struct arg_array));
 
 	arg->array_size = array_size;
 	arg->tag = tag;

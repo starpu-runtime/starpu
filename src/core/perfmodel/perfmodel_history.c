@@ -32,6 +32,7 @@
 #include <core/workers.h>
 #include <datawizard/datawizard.h>
 #include <core/perfmodel/regression.h>
+#include <core/perfmodel/multiple_regression.h>
 #include <common/config.h>
 #include <starpu_parameters.h>
 #include <common/uthash.h>
@@ -72,7 +73,7 @@ void _starpu_perfmodel_malloc_per_arch(struct starpu_perfmodel *model, int comb,
 {
 	int i;
 
-	model->state->per_arch[comb] = (struct starpu_perfmodel_per_arch*)malloc(nb_impl*sizeof(struct starpu_perfmodel_per_arch));
+	_STARPU_MALLOC(model->state->per_arch[comb], nb_impl*sizeof(struct starpu_perfmodel_per_arch));
 	for(i = 0; i < nb_impl; i++)
 	{
 		memset(&model->state->per_arch[comb][i], 0, sizeof(struct starpu_perfmodel_per_arch));
@@ -84,7 +85,7 @@ void _starpu_perfmodel_malloc_per_arch_is_set(struct starpu_perfmodel *model, in
 {
 	int i;
 
-	model->state->per_arch_is_set[comb] = (int*)malloc(nb_impl*sizeof(int));
+	_STARPU_MALLOC(model->state->per_arch_is_set[comb], nb_impl*sizeof(int));
 	for(i = 0; i < nb_impl; i++)
 	{
 		model->state->per_arch_is_set[comb][i] = 0;
@@ -144,10 +145,10 @@ int starpu_perfmodel_arch_comb_add(int ndevices, struct starpu_perfmodel_device*
 	{
 		// We need to allocate more arch_combs
 		nb_arch_combs = current_arch_comb+10;
-		arch_combs = (struct starpu_perfmodel_arch**) realloc(arch_combs, nb_arch_combs*sizeof(struct starpu_perfmodel_arch*));
+		_STARPU_REALLOC(arch_combs, nb_arch_combs*sizeof(struct starpu_perfmodel_arch*));
 	}
-	arch_combs[current_arch_comb] = (struct starpu_perfmodel_arch*)malloc(sizeof(struct starpu_perfmodel_arch));
-	arch_combs[current_arch_comb]->devices = (struct starpu_perfmodel_device*)malloc(ndevices*sizeof(struct starpu_perfmodel_device));
+	_STARPU_MALLOC(arch_combs[current_arch_comb], sizeof(struct starpu_perfmodel_arch));
+	_STARPU_MALLOC(arch_combs[current_arch_comb]->devices, ndevices*sizeof(struct starpu_perfmodel_device));
 	arch_combs[current_arch_comb]->ndevices = ndevices;
 	int dev;
 	for(dev = 0; dev < ndevices; dev++)
@@ -222,7 +223,7 @@ static void insert_history_entry(struct starpu_perfmodel_history_entry *entry, s
 	struct starpu_perfmodel_history_list *link;
 	struct starpu_perfmodel_history_table *table;
 
-	link = (struct starpu_perfmodel_history_list *) malloc(sizeof(struct starpu_perfmodel_history_list));
+	_STARPU_MALLOC(link, sizeof(struct starpu_perfmodel_history_list));
 	link->next = *list;
 	link->entry = entry;
 	*list = link;
@@ -231,8 +232,7 @@ static void insert_history_entry(struct starpu_perfmodel_history_entry *entry, s
 	//HASH_FIND_UINT32_T(*history_ptr, &entry->footprint, table);
 	//STARPU_ASSERT(table == NULL);
 
-	table = (struct starpu_perfmodel_history_table*) malloc(sizeof(*table));
-	STARPU_ASSERT(table != NULL);
+	_STARPU_MALLOC(table, sizeof(*table));
 	table->footprint = entry->footprint;
 	table->history_entry = entry;
 	HASH_ADD_UINT32_T(*history_ptr, footprint, table);
@@ -285,10 +285,66 @@ static void dump_reg_model(FILE *f, struct starpu_perfmodel *model, int comb, in
 	fprintf(f, "\t");
 	_starpu_write_double(f, "%-15e", c);
 	fprintf(f, "\n");
+
+	/*
+	 * Multiple Regression Model
+	 */
+
+	if (model->type == STARPU_MULTIPLE_REGRESSION_BASED)
+	{
+		if (reg_model->ncoeff==0 && model->ncombinations!=0 && model->combinations!=NULL)
+		{
+			reg_model->ncoeff = model->ncombinations + 1;
+		}
+
+		_STARPU_MALLOC(reg_model->coeff,  reg_model->ncoeff*sizeof(double));
+		_starpu_multiple_regression(per_arch_model->list, reg_model->coeff, reg_model->ncoeff, model->nparameters, model->parameters_names, model->combinations, model->symbol);
+
+		fprintf(f, "# n\tintercept\t");
+		if (reg_model->ncoeff==0 || model->ncombinations==0 || model->combinations==NULL)
+			fprintf(f, "\n1\tnan");
+		else
+		{
+			unsigned i;
+			for (i=0; i < model->ncombinations; i++)
+			{
+				if (model->parameters_names == NULL)
+					fprintf(f, "c%u", i+1);
+				else
+				{
+					unsigned j;
+					int first=1;
+					for(j=0; j < model->nparameters; j++)
+					{
+						if (model->combinations[i][j] > 0)
+						{
+							if (first)
+								first=0;
+							else
+								fprintf(f, "*");
+
+							if(model->parameters_names[j] != NULL)
+								fprintf(f, "%s", model->parameters_names[j]);
+							else
+								fprintf(f, "P%u", j);
+
+							if (model->combinations[i][j] > 1)
+								fprintf(f, "^%d", model->combinations[i][j]);
+						}
+					}
+				}
+				fprintf(f, "\t\t");
+			}
+
+			fprintf(f, "\n%u", reg_model->ncoeff);
+			for (i=0; i < reg_model->ncoeff; i++)
+				fprintf(f, "\t%-15e", reg_model->coeff[i]);
+		}
+	}
 }
 #endif
 
-static void scan_reg_model(FILE *f, struct starpu_perfmodel_regression_model *reg_model)
+static void scan_reg_model(FILE *f, struct starpu_perfmodel_regression_model *reg_model, enum starpu_perfmodel_type model_type)
 {
 	int res;
 
@@ -329,7 +385,32 @@ static void scan_reg_model(FILE *f, struct starpu_perfmodel_regression_model *re
 	/* If any of the parameters describing the non-linear regression model is NaN, the model is invalid */
 	unsigned nl_invalid = (isnan(reg_model->a)||isnan(reg_model->b)||isnan(reg_model->c));
 	reg_model->nl_valid = !nl_invalid && VALID_REGRESSION(reg_model);
+
+	/*
+	 * Multiple Regression Model
+	 */
+	if (model_type == STARPU_MULTIPLE_REGRESSION_BASED)
+	{
+		_starpu_drop_comments(f);
+
+		// Read how many coefficients is there
+		res = fscanf(f, "%u", &reg_model->ncoeff);
+		STARPU_ASSERT_MSG(res == 1, "Incorrect performance model file");
+
+		_STARPU_MALLOC(reg_model->coeff, reg_model->ncoeff*sizeof(double));
+
+		unsigned multi_invalid = 0;
+		unsigned i;
+		for (i=0; i < reg_model->ncoeff; i++)
+		{
+			res = _starpu_read_double(f, "%le", &reg_model->coeff[i]);
+			STARPU_ASSERT_MSG(res == 1, "Incorrect performance model file");
+			multi_invalid = (multi_invalid||isnan(reg_model->coeff[i]));
+		}
+		reg_model->multi_valid = !multi_invalid;
+	}
 }
+
 
 #ifndef STARPU_SIMGRID
 static void dump_history_entry(FILE *f, struct starpu_perfmodel_history_entry *entry)
@@ -385,7 +466,7 @@ static void scan_history_entry(FILE *f, struct starpu_perfmodel_history_entry *e
 	}
 }
 
-static void parse_per_arch_model_file(FILE *f, struct starpu_perfmodel_per_arch *per_arch_model, unsigned scan_history)
+static void parse_per_arch_model_file(FILE *f, struct starpu_perfmodel_per_arch *per_arch_model, unsigned scan_history, enum starpu_perfmodel_type model_type)
 {
 	unsigned nentries;
 
@@ -394,7 +475,7 @@ static void parse_per_arch_model_file(FILE *f, struct starpu_perfmodel_per_arch 
 	int res = fscanf(f, "%u\n", &nentries);
 	STARPU_ASSERT_MSG(res == 1, "Incorrect performance model file");
 
-	scan_reg_model(f, &per_arch_model->regression);
+	scan_reg_model(f, &per_arch_model->regression, model_type);
 
 	/* parse entries */
 	unsigned i;
@@ -403,8 +484,7 @@ static void parse_per_arch_model_file(FILE *f, struct starpu_perfmodel_per_arch 
 		struct starpu_perfmodel_history_entry *entry = NULL;
 		if (scan_history)
 		{
-			entry = (struct starpu_perfmodel_history_entry *) malloc(sizeof(struct starpu_perfmodel_history_entry));
-			STARPU_ASSERT(entry);
+			_STARPU_MALLOC(entry, sizeof(struct starpu_perfmodel_history_entry));
 
 			/* Tell  helgrind that we do not care about
 			 * racing access to the sampling, we only want a
@@ -428,7 +508,7 @@ static void parse_per_arch_model_file(FILE *f, struct starpu_perfmodel_per_arch 
 static void parse_arch(FILE *f, struct starpu_perfmodel *model, unsigned scan_history, int comb)
 {
 	struct starpu_perfmodel_per_arch dummy;
-	unsigned nimpls, implmax, impl, i, ret;
+	unsigned nimpls, impl, i, ret;
 
 	/* Parsing number of implementation */
 	_starpu_drop_comments(f);
@@ -438,7 +518,7 @@ static void parse_arch(FILE *f, struct starpu_perfmodel *model, unsigned scan_hi
 	if( model != NULL)
 	{
 		/* Parsing each implementation */
-		implmax = STARPU_MIN(nimpls, STARPU_MAXIMPLEMENTATIONS);
+		unsigned implmax = STARPU_MIN(nimpls, STARPU_MAXIMPLEMENTATIONS);
 		model->state->nimpls[comb] = implmax;
 		if (!model->state->per_arch[comb])
 		{
@@ -453,7 +533,7 @@ static void parse_arch(FILE *f, struct starpu_perfmodel *model, unsigned scan_hi
 		{
 			struct starpu_perfmodel_per_arch *per_arch_model = &model->state->per_arch[comb][impl];
 			model->state->per_arch_is_set[comb][impl] = 1;
-			parse_per_arch_model_file(f, per_arch_model, scan_history);
+			parse_per_arch_model_file(f, per_arch_model, scan_history, model->type);
 		}
 	}
 	else
@@ -464,8 +544,12 @@ static void parse_arch(FILE *f, struct starpu_perfmodel *model, unsigned scan_hi
 	/* if the number of implementation is greater than STARPU_MAXIMPLEMENTATIONS
 	 * we skip the last implementation */
 	for (i = impl; i < nimpls; i++)
-		parse_per_arch_model_file(f, &dummy, 0);
-
+	{
+		if( model != NULL)
+			parse_per_arch_model_file(f, &dummy, 0, model->type);
+		else
+			parse_per_arch_model_file(f, &dummy, 0, 0);
+	}
 }
 
 static enum starpu_worker_archtype _get_enum_type(int type)
@@ -615,7 +699,7 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel *model)
 	fprintf(f, "####################\n");
 	fprintf(f, "# COMBs\n");
 	fprintf(f, "# number of combinations\n");
-	fprintf(f, "%u\n", ncombs);
+	fprintf(f, "%d\n", ncombs);
 
 	int i, impl, dev;
 	for(i = 0; i < ncombs; i++)
@@ -625,7 +709,7 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel *model)
 		fprintf(f, "####################\n");
 		fprintf(f, "# COMB_%d\n", comb);
 		fprintf(f, "# number of types devices\n");
-		fprintf(f, "%u\n", ndevices);
+		fprintf(f, "%d\n", ndevices);
 
 		for(dev = 0; dev < ndevices; dev++)
 		{
@@ -648,7 +732,7 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel *model)
 		int nimpls = model->state->nimpls[comb];
 		fprintf(f, "##########\n");
 		fprintf(f, "# number of implementations\n");
-		fprintf(f, "%u\n", nimpls);
+		fprintf(f, "%d\n", nimpls);
 		for (impl = 0; impl < nimpls; impl++)
 		{
 			dump_per_arch_model_file(f, model, comb, impl);
@@ -665,11 +749,11 @@ void _starpu_perfmodel_realloc(struct starpu_perfmodel *model, int nb)
 #ifdef SSIZE_MAX
 	STARPU_ASSERT((size_t) nb < SSIZE_MAX / sizeof(struct starpu_perfmodel_per_arch*));
 #endif
-	model->state->per_arch = (struct starpu_perfmodel_per_arch**) realloc(model->state->per_arch, nb*sizeof(struct starpu_perfmodel_per_arch*));
-	model->state->per_arch_is_set = (int**) realloc(model->state->per_arch_is_set, nb*sizeof(int*));
-	model->state->nimpls = (int *)realloc(model->state->nimpls, nb*sizeof(int));
-	model->state->nimpls_set = (int *)realloc(model->state->nimpls_set, nb*sizeof(int));
-	model->state->combs = (int*)realloc(model->state->combs, nb*sizeof(int));
+	_STARPU_REALLOC(model->state->per_arch, nb*sizeof(struct starpu_perfmodel_per_arch*));
+	_STARPU_REALLOC(model->state->per_arch_is_set, nb*sizeof(int*));
+	_STARPU_REALLOC(model->state->nimpls, nb*sizeof(int));
+	_STARPU_REALLOC(model->state->nimpls_set, nb*sizeof(int));
+	_STARPU_REALLOC(model->state->combs, nb*sizeof(int));
 	for(i = model->state->ncombs_set; i < nb; i++)
 	{
 		model->state->per_arch[i] = NULL;
@@ -683,7 +767,7 @@ void _starpu_perfmodel_realloc(struct starpu_perfmodel *model, int nb)
 void starpu_perfmodel_init(struct starpu_perfmodel *model)
 {
 	int already_init;
-	int i, ncombs;
+	int ncombs;
 
 	STARPU_ASSERT(model);
 
@@ -705,29 +789,22 @@ void starpu_perfmodel_init(struct starpu_perfmodel *model)
 		return;
 	}
 
-	model->state = malloc(sizeof(struct _starpu_perfmodel_state));
+	_STARPU_MALLOC(model->state, sizeof(struct _starpu_perfmodel_state));
 	STARPU_PTHREAD_RWLOCK_INIT(&model->state->model_rwlock, NULL);
 
 	STARPU_PTHREAD_RWLOCK_RDLOCK(&arch_combs_mutex);
 	model->state->ncombs_set = ncombs = nb_arch_combs;
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&arch_combs_mutex);
-	model->state->per_arch = (struct starpu_perfmodel_per_arch**) malloc(ncombs*sizeof(struct starpu_perfmodel_per_arch*));
-	model->state->per_arch_is_set = (int**) malloc(ncombs*sizeof(int*));
-	model->state->nimpls = (int *)malloc(ncombs*sizeof(int));
-	model->state->nimpls_set = (int *)malloc(ncombs*sizeof(int));
-	model->state->combs = (int*)malloc(ncombs*sizeof(int));
+	_STARPU_CALLOC(model->state->per_arch, ncombs, sizeof(struct starpu_perfmodel_per_arch*));
+	_STARPU_CALLOC(model->state->per_arch_is_set, ncombs, sizeof(int*));
+	_STARPU_CALLOC(model->state->nimpls, ncombs, sizeof(int));
+	_STARPU_CALLOC(model->state->nimpls_set, ncombs, sizeof(int));
+	_STARPU_MALLOC(model->state->combs, ncombs*sizeof(int));
 	model->state->ncombs = 0;
 
-	for(i = 0; i < ncombs; i++)
-	{
-		model->state->per_arch[i] = NULL;
-		model->state->per_arch_is_set[i] = NULL;
-		model->state->nimpls[i] = 0;
-		model->state->nimpls_set[i] = 0;
-	}
-
 	/* add the model to a linked list */
-	struct _starpu_perfmodel_list *node = (struct _starpu_perfmodel_list *) malloc(sizeof(struct _starpu_perfmodel_list));
+	struct _starpu_perfmodel_list *node;
+	_STARPU_MALLOC(node, sizeof(struct _starpu_perfmodel_list));
 
 	node->model = model;
 	//model->debug_modelid = debug_modelid++;
@@ -764,6 +841,7 @@ static void save_history_based_model(struct starpu_perfmodel *model)
 {
 	STARPU_ASSERT(model);
 	STARPU_ASSERT(model->symbol);
+	int locked;
 
 	/* TODO checks */
 
@@ -778,10 +856,11 @@ static void save_history_based_model(struct starpu_perfmodel *model)
 	f = fopen(path, "w+");
 	STARPU_ASSERT_MSG(f, "Could not save performance model %s\n", path);
 
-	_starpu_fwrlock(f);
+	locked = _starpu_fwrlock(f) == 0;
 	_starpu_fftruncate(f, 0);
 	dump_model_file(f, model);
-	_starpu_fwrunlock(f);
+	if (locked)
+		_starpu_fwrunlock(f);
 
 	fclose(f);
 }
@@ -833,7 +912,7 @@ void _starpu_initialize_registered_performance_models(void)
 	// We used to allocate 2**(ncores + ncuda + nopencl + nmic + nscc + nmpi), this is too big
 	// We now allocate only 2*(ncores + ncuda + nopencl + nmic + nscc + nmpi), and reallocate when necessary in starpu_perfmodel_arch_comb_add
 	nb_arch_combs = 2 * (ncores + ncuda + nopencl + nmic + nscc + nmpi);
-	arch_combs = (struct starpu_perfmodel_arch**) malloc(nb_arch_combs*sizeof(struct starpu_perfmodel_arch*));
+	_STARPU_MALLOC(arch_combs, nb_arch_combs*sizeof(struct starpu_perfmodel_arch*));
 	current_arch_comb = 0;
 	STARPU_PTHREAD_RWLOCK_INIT(&arch_combs_mutex, NULL);
 	historymaxerror = starpu_get_env_number_default("STARPU_HISTORY_MAX_ERROR", STARPU_HISTORYMAXERROR);
@@ -855,7 +934,7 @@ void _starpu_deinitialize_performance_model(struct starpu_perfmodel *model)
 					struct starpu_perfmodel_per_arch *archmodel = &model->state->per_arch[i][impl];
 					if (archmodel->history)
 					{
-						struct starpu_perfmodel_history_list *list, *plist;
+						struct starpu_perfmodel_history_list *list;
 						struct starpu_perfmodel_history_table *entry, *tmp;
 
 						HASH_ITER(hh, archmodel->history, entry, tmp)
@@ -868,6 +947,7 @@ void _starpu_deinitialize_performance_model(struct starpu_perfmodel *model)
 						list = archmodel->list;
 						while (list)
 						{
+							struct starpu_perfmodel_history_list *plist;
 							free(list->entry);
 							plist = list;
 							list = list->next;
@@ -911,7 +991,7 @@ void _starpu_deinitialize_registered_performance_models(void)
 
 	STARPU_PTHREAD_RWLOCK_WRLOCK(&registered_models_rwlock);
 
-	struct _starpu_perfmodel_list *node, *pnode;
+	struct _starpu_perfmodel_list *node;
 	node = registered_models;
 
 	_STARPU_DEBUG("FREE MODELS !\n");
@@ -919,6 +999,7 @@ void _starpu_deinitialize_registered_performance_models(void)
 	while (node)
 	{
 		struct starpu_perfmodel *model = node->model;
+		struct _starpu_perfmodel_list *pnode;
 
 		STARPU_PTHREAD_RWLOCK_WRLOCK(&model->state->model_rwlock);
 		_starpu_deinitialize_performance_model(model);
@@ -975,9 +1056,11 @@ void _starpu_load_history_based_model(struct starpu_perfmodel *model, unsigned s
 			f = fopen(path, "r");
 			if (f)
 			{
-				_starpu_frdlock(f);
+				int locked;
+				locked = _starpu_frdlock(f) == 0;
 				parse_model_file(f, model, scan_history);
-				_starpu_frdunlock(f);
+				if (locked)
+					_starpu_frdunlock(f);
 				fclose(f);
 				_STARPU_DEBUG("Performance model file %s for model %s is loaded\n", path, model->symbol);
 			}
@@ -1004,12 +1087,12 @@ int starpu_perfmodel_list(FILE *output)
 #if !defined(_WIN32) || defined(__MINGW32__) || defined(__CYGWIN__)
         char *path;
         DIR *dp;
-        struct dirent *ep;
 
 	path = _starpu_get_perf_model_dir_codelet();
         dp = opendir(path);
         if (dp != NULL)
 	{
+		struct dirent *ep;
                 while ((ep = readdir(dp)))
 		{
                         if (strcmp(ep->d_name, ".") && strcmp(ep->d_name, ".."))
@@ -1068,14 +1151,16 @@ int starpu_perfmodel_load_file(const char *filename, struct starpu_perfmodel *mo
 {
 	int res;
 	FILE *f = fopen(filename, "r");
+	int locked;
 
 	STARPU_ASSERT(f);
 
 	starpu_perfmodel_init(model);
 
-	_starpu_frdlock(f);
+	locked = _starpu_frdlock(f) == 0;
 	parse_model_file(f, model, 1);
-	_starpu_frdunlock(f);
+	if (locked)
+		_starpu_frdunlock(f);
 
 	res = fclose(f);
 	STARPU_ASSERT(res == 0);
@@ -1195,6 +1280,7 @@ double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfm
 	struct starpu_perfmodel_regression_model *regmodel;
 	struct starpu_perfmodel_history_table *entry = NULL;
 
+	size = _starpu_job_get_data_size(model, arch, nimpl, j);
 	comb = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
 	if(comb == -1)
 		goto docal;
@@ -1203,7 +1289,6 @@ double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfm
 		goto docal;
 
 	regmodel = &model->state->per_arch[comb][nimpl].regression;
-	size = _starpu_job_get_data_size(model, arch, nimpl, j);
 
 	if (regmodel->nl_valid && size >= regmodel->minx * 0.9 && size <= regmodel->maxx * 1.1)
 		exp = regmodel->a*pow((double)size, regmodel->b) + regmodel->c;
@@ -1239,6 +1324,58 @@ docal:
 	}
 
 	return exp;
+}
+
+double _starpu_multiple_regression_based_job_expected_perf(struct starpu_perfmodel *model, struct starpu_perfmodel_arch* arch, struct _starpu_job *j, unsigned nimpl)
+{
+	int comb;
+	double expected_duration=NAN;
+
+	struct starpu_perfmodel_regression_model *reg_model = NULL;
+	comb = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
+	if(comb == -1)
+		goto docal;
+	if (model->state->per_arch[comb] == NULL)
+		// The model has not been executed on this combination
+		goto docal;
+	reg_model = &model->state->per_arch[comb][nimpl].regression;
+	if (reg_model->coeff == NULL)
+		goto docal;
+
+	double *parameters;
+	_STARPU_MALLOC(parameters, model->nparameters*sizeof(double));
+	model->parameters(j->task, parameters);
+	expected_duration=reg_model->coeff[0];
+	unsigned i;
+	for (i=0; i < model->ncombinations; i++)
+	{
+		double parameter_value=1.;
+		unsigned k;
+		for (k=0; k < model->nparameters; k++)
+			parameter_value *= pow(parameters[k],model->combinations[i][k]);
+
+		expected_duration += reg_model->coeff[i+1]*parameter_value;
+	}
+
+docal:
+	STARPU_HG_DISABLE_CHECKING(model->benchmarking);
+	if (isnan(expected_duration) && !model->benchmarking)
+	{
+		char archname[32];
+
+		starpu_perfmodel_get_arch_name(arch, archname, sizeof(archname), nimpl);
+		_STARPU_DISP("Warning: model %s is not calibrated enough for %s, forcing calibration for this run. Use the STARPU_CALIBRATE environment variable to control this.\n", model->symbol, archname);
+		_starpu_set_calibrate_flag(1);
+		model->benchmarking = 1;
+	}
+
+	// In the unlikely event that predicted duration is negative
+	// in case multiple linear regression is not so accurate
+	if (expected_duration < 0 )
+		expected_duration = 0.00001;
+
+	//Make sure that the injected time is in milliseconds
+	return expected_duration;
 }
 
 double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, struct starpu_perfmodel_arch* arch, struct _starpu_job *j,unsigned nimpl)
@@ -1283,7 +1420,7 @@ docal:
 		char archname[32];
 
 		starpu_perfmodel_get_arch_name(arch, archname, sizeof(archname), nimpl);
-		_STARPU_DISP("Warning: model %s is not calibrated enough for %s size %ld (only %u measurements), forcing calibration for this run. Use the STARPU_CALIBRATE environment variable to control this.\n", model->symbol, archname, j->task?_starpu_job_get_data_size(model, arch, nimpl, j):-1, entry ? entry->nsample : 0);
+		_STARPU_DISP("Warning: model %s is not calibrated enough for %s size %ld (only %u measurements), forcing calibration for this run. Use the STARPU_CALIBRATE environment variable to control this.\n", model->symbol, archname, j->task?(long int)_starpu_job_get_data_size(model, arch, nimpl, j):-1, entry ? entry->nsample : 0);
 		_starpu_set_calibrate_flag(1);
 		model->benchmarking = 1;
 	}
@@ -1367,8 +1504,7 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 			if (!entry)
 			{
 				/* this is the first entry with such a footprint */
-				entry = (struct starpu_perfmodel_history_entry *) malloc(sizeof(struct starpu_perfmodel_history_entry));
-				STARPU_ASSERT(entry);
+				_STARPU_MALLOC(entry, sizeof(struct starpu_perfmodel_history_entry));
 
 				/* Tell  helgrind that we do not care about
 				 * racing access to the sampling, we only want a
@@ -1477,17 +1613,37 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 			}
 		}
 
+		if (model->type == STARPU_MULTIPLE_REGRESSION_BASED)
+		{
+			struct starpu_perfmodel_history_entry *entry;
+			struct starpu_perfmodel_history_list **list;
+			list = &per_arch_model->list;
+
+			_STARPU_CALLOC(entry, 1, sizeof(struct starpu_perfmodel_history_entry));
+			_STARPU_MALLOC(entry->parameters, model->nparameters*sizeof(double));
+			model->parameters(j->task, entry->parameters);
+			entry->tag = j->task->tag_id;
+			entry->duration = measured;
+
+			struct starpu_perfmodel_history_list *link;
+			_STARPU_MALLOC(link, sizeof(struct starpu_perfmodel_history_list));
+			link->next = *list;
+			link->entry = entry;
+			*list = link;
+		}
+
 #ifdef STARPU_MODEL_DEBUG
 		struct starpu_task *task = j->task;
 		starpu_perfmodel_debugfilepath(model, arch_combs[comb], per_arch_model->debug_path, 256, impl);
 		FILE *f = fopen(per_arch_model->debug_path, "a+");
+		int locked;
 		if (f == NULL)
 		{
 			_STARPU_DISP("Error <%s> when opening file <%s>\n", strerror(errno), per_arch_model->debug_path);
 			STARPU_PTHREAD_RWLOCK_UNLOCK(&model->state->model_rwlock);
 			return;
 		}
-		_starpu_fwrlock(f);
+		locked = _starpu_fwrlock(f) == 0;
 
 		if (!j->footprint_is_computed)
 			(void) _starpu_compute_buffers_footprint(model, arch, impl, j);
@@ -1507,7 +1663,8 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 			handle->ops->display(handle, f);
 		}
 		fprintf(f, "\n");
-		_starpu_fwrunlock(f);
+		if (locked)
+			_starpu_fwrunlock(f);
 		fclose(f);
 #endif
 		STARPU_PTHREAD_RWLOCK_UNLOCK(&model->state->model_rwlock);
@@ -1589,7 +1746,7 @@ struct starpu_perfmodel_per_arch *_starpu_perfmodel_get_model_per_devices(struct
 	va_end(varg_list_copy);
 
 	// We set the devices
-	arch.devices = (struct starpu_perfmodel_device*)malloc(arch.ndevices * sizeof(struct starpu_perfmodel_device));
+	_STARPU_MALLOC(arch.devices, arch.ndevices * sizeof(struct starpu_perfmodel_device));
 	va_copy(varg_list_copy, varg_list);
 	for(i=0 ; i<arch.ndevices ; i++)
 	{

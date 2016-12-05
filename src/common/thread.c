@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2012-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -46,7 +46,8 @@ extern int _starpu_simgrid_thread_start(int argc, char *argv[]);
 
 int starpu_pthread_create_on(char *name, starpu_pthread_t *thread, const starpu_pthread_attr_t *attr STARPU_ATTRIBUTE_UNUSED, void *(*start_routine) (void *), void *arg, msg_host_t host)
 {
-	char **_args = malloc(3*sizeof(char*));
+	char **_args;
+	_STARPU_MALLOC(_args, 3*sizeof(char*));
 	asprintf(&_args[0], "%p", start_routine);
 	asprintf(&_args[1], "%p", arg);
 	_args[2] = NULL;
@@ -402,13 +403,10 @@ int starpu_pthread_queue_register(starpu_pthread_wait_t *w, starpu_pthread_queue
 	{
 		/* Make room for the new waiter */
 		unsigned newalloc;
-		starpu_pthread_wait_t **newqueue;
 		newalloc = q->allocqueue * 2;
 		if (!newalloc)
 			newalloc = 1;
-		newqueue = realloc(q->queue, newalloc * sizeof(*(q->queue)));
-		STARPU_ASSERT(newqueue);
-		q->queue = newqueue;
+		_STARPU_REALLOC(q->queue, newalloc * sizeof(*(q->queue)));
 		q->allocqueue = newalloc;
 	}
 	q->queue[q->nqueue++] = w;

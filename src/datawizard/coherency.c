@@ -240,12 +240,8 @@ static int worker_supports_direct_access(unsigned node, unsigned handling_node)
 #ifdef STARPU_SIMGRID
 			if (starpu_node_get_kind(handling_node) == STARPU_CUDA_RAM)
 			{
-				char name[16];
-				msg_host_t host;
-				const char* cuda_memcpy_peer;
-				snprintf(name, sizeof(name), "CUDA%d", _starpu_memory_node_get_devid(handling_node));
-				host = _starpu_simgrid_get_host_by_name(name);
-				cuda_memcpy_peer = MSG_host_get_property_value(host, "memcpy_peer");
+				msg_host_t host = _starpu_simgrid_get_memnode_host(handling_node);
+				const char* cuda_memcpy_peer = MSG_host_get_property_value(host, "memcpy_peer");
 				return cuda_memcpy_peer && atoll(cuda_memcpy_peer);
 			}
 			else
@@ -372,7 +368,7 @@ static int determine_request_path(starpu_data_handle_t handle,
 		}
 		else
 		{
-			STARPU_ASSERT_MSG(can_copy(src_interface, src_node, dst_interface, dst_node, dst_node), "interface %d refuses all kinds of transfers from node %u to node %u\n", handle->ops->interfaceid, src_node, dst_node);
+			STARPU_ASSERT_MSG(can_copy(src_interface, src_node, dst_interface, dst_node, dst_node), "interface %d refuses all kinds of transfers from node %d to node %d\n", handle->ops->interfaceid, src_node, dst_node);
 			handling_nodes[0] = dst_node;
 		}
 
@@ -389,7 +385,7 @@ static int determine_request_path(starpu_data_handle_t handle,
 		}
 		else
 		{
-			STARPU_ASSERT_MSG(can_copy(src_interface, src_node, dst_interface, dst_node, src_node), "interface %d refuses all kinds of transfers from node %u to node %u\n", handle->ops->interfaceid, src_node, dst_node);
+			STARPU_ASSERT_MSG(can_copy(src_interface, src_node, dst_interface, dst_node, src_node), "interface %d refuses all kinds of transfers from node %d to node %d\n", handle->ops->interfaceid, src_node, dst_node);
 			handling_nodes[1] = src_node;
 		}
 
@@ -721,7 +717,7 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 	return requests[nhops - 1];
 }
 
-int _starpu_fetch_data_on_node(starpu_data_handle_t handle, struct _starpu_data_replicate *dst_replicate,
+int _starpu_fetch_data_on_node(starpu_data_handle_t handle, int node, struct _starpu_data_replicate *dst_replicate,
 			       enum starpu_data_access_mode mode, unsigned detached, unsigned is_prefetch, unsigned async,
 			       void (*callback_func)(void *), void *callback_arg, int prio, const char *origin)
 {
@@ -741,6 +737,12 @@ int _starpu_fetch_data_on_node(starpu_data_handle_t handle, struct _starpu_data_
 		/* Take references which will be released by _starpu_release_data_on_node */
 		if (dst_replicate)
 			dst_replicate->refcnt++;
+		else if (node == STARPU_ACQUIRE_ALL_NODES)
+		{
+			int i;
+			for (i = 0; i < STARPU_MAXNODES; i++)
+				handle->per_node[i].refcnt++;
+		}
 		handle->busy_count++;
 	}
 
@@ -761,19 +763,19 @@ int _starpu_fetch_data_on_node(starpu_data_handle_t handle, struct _starpu_data_
         return ret;
 }
 
-static int idle_prefetch_data_on_node(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, enum starpu_data_access_mode mode, int prio)
+static int idle_prefetch_data_on_node(starpu_data_handle_t handle, int node, struct _starpu_data_replicate *replicate, enum starpu_data_access_mode mode, int prio)
 {
-	return _starpu_fetch_data_on_node(handle, replicate, mode, 1, 2, 1, NULL, NULL, prio, "idle_prefetch_data_on_node");
+	return _starpu_fetch_data_on_node(handle, node, replicate, mode, 1, 2, 1, NULL, NULL, prio, "idle_prefetch_data_on_node");
 }
 
-static int prefetch_data_on_node(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, enum starpu_data_access_mode mode, int prio)
+static int prefetch_data_on_node(starpu_data_handle_t handle, int node, struct _starpu_data_replicate *replicate, enum starpu_data_access_mode mode, int prio)
 {
-	return _starpu_fetch_data_on_node(handle, replicate, mode, 1, 1, 1, NULL, NULL, prio, "prefetch_data_on_node");
+	return _starpu_fetch_data_on_node(handle, node, replicate, mode, 1, 1, 1, NULL, NULL, prio, "prefetch_data_on_node");
 }
 
-static int fetch_data(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, enum starpu_data_access_mode mode, int prio)
+static int fetch_data(starpu_data_handle_t handle, int node, struct _starpu_data_replicate *replicate, enum starpu_data_access_mode mode, int prio)
 {
-	return _starpu_fetch_data_on_node(handle, replicate, mode, 0, 0, 0, NULL, NULL, prio, "fetch_data");
+	return _starpu_fetch_data_on_node(handle, node, replicate, mode, 0, 0, 0, NULL, NULL, prio, "fetch_data");
 }
 
 uint32_t _starpu_get_data_refcnt(starpu_data_handle_t handle, unsigned node)
@@ -864,7 +866,7 @@ int starpu_prefetch_task_input_on_node_prio(struct starpu_task *task, unsigned n
 			continue;
 
 		struct _starpu_data_replicate *replicate = &handle->per_node[node];
-		prefetch_data_on_node(handle, replicate, mode, prio);
+		prefetch_data_on_node(handle, node, replicate, mode, prio);
 
 		_starpu_set_data_requested_flag_if_needed(handle, replicate);
 	}
@@ -894,7 +896,7 @@ int starpu_idle_prefetch_task_input_on_node_prio(struct starpu_task *task, unsig
 			continue;
 
 		struct _starpu_data_replicate *replicate = &handle->per_node[node];
-		idle_prefetch_data_on_node(handle, replicate, mode, prio);
+		idle_prefetch_data_on_node(handle, node, replicate, mode, prio);
 	}
 
 	return 0;
@@ -972,7 +974,7 @@ int _starpu_fetch_task_input(struct _starpu_job *j)
 
 		local_replicate = get_replicate(handle, mode, workerid, node);
 
-		ret = fetch_data(handle, local_replicate, mode, 0);
+		ret = fetch_data(handle, node, local_replicate, mode, 0);
 		if (STARPU_UNLIKELY(ret))
 			goto enomem;
 
@@ -1143,7 +1145,7 @@ void _starpu_fetch_nowhere_task_input(struct _starpu_job *j)
 		return;
 	}
 
-	wrapper = malloc(sizeof(*wrapper));
+	_STARPU_MALLOC(wrapper, (sizeof(*wrapper)));
 	wrapper->j = j;
 	/* +1 for the call below */
 	wrapper->pending = nfetchbuffers + 1;
@@ -1166,7 +1168,7 @@ void _starpu_fetch_nowhere_task_input(struct _starpu_job *j)
 
 		local_replicate = get_replicate(handle, mode, -1, node);
 
-		_starpu_fetch_data_on_node(handle, local_replicate, mode, 0, 0, 1, _starpu_fetch_nowhere_task_input_cb, wrapper, 0, "_starpu_fetch_nowhere_task_input");
+		_starpu_fetch_data_on_node(handle, node, local_replicate, mode, 0, 0, 1, _starpu_fetch_nowhere_task_input_cb, wrapper, 0, "_starpu_fetch_nowhere_task_input");
 	}
 
 	if (profiling && task->profiling_info)

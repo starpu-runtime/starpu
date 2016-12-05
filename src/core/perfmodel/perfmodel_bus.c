@@ -99,6 +99,7 @@ static double cudadev_latency_dtod[STARPU_MAXNODES][STARPU_MAXNODES] = {{0.0}};
 #endif
 #endif
 static struct dev_timing cudadev_timing_per_cpu[STARPU_MAXNODES*STARPU_MAXCPUS];
+static char cudadev_direct[STARPU_MAXNODES][STARPU_MAXNODES];
 #endif
 
 #ifndef STARPU_SIMGRID
@@ -276,7 +277,10 @@ static void measure_bandwidth_between_dev_and_dev_cuda(int src, int dst)
 		{
 			cures = cudaDeviceEnablePeerAccess(dst, 0);
 			if (!cures)
+			{
 				_STARPU_DISP("GPU-Direct %d -> %d\n", dst, src);
+				cudadev_direct[src][dst] = 1;
+			}
 		}
 	}
 
@@ -298,7 +302,10 @@ static void measure_bandwidth_between_dev_and_dev_cuda(int src, int dst)
 		{
 			cures = cudaDeviceEnablePeerAccess(src, 0);
 			if (!cures)
+			{
 				_STARPU_DISP("GPU-Direct %d -> %d\n", src, dst);
+				cudadev_direct[dst][src] = 1;
+			}
 		}
 	}
 
@@ -400,8 +407,7 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_opencl(int dev, i
 	_starpu_bind_thread_on_cpu(config, cpu, STARPU_NOWORKERID);
         /* Allocate a buffer on the host */
 	unsigned char *h_buffer;
-        h_buffer = (unsigned char *)malloc(size);
-	STARPU_ASSERT(h_buffer);
+	_STARPU_MALLOC(h_buffer, size);
 
 	/* hack to avoid third party libs to rebind threads */
 	_starpu_bind_thread_on_cpu(config, cpu, STARPU_NOWORKERID);
@@ -544,20 +550,11 @@ static void measure_bandwidth_between_cpus_and_dev(int dev, struct dev_timing *d
 
 	if (!no_node_obj_was_found)
 	{
-		is_available_per_numa_node = (unsigned *)malloc(nnuma_nodes * sizeof(unsigned));
-		STARPU_ASSERT(is_available_per_numa_node);
-
-		dev_timing_htod_per_numa_node = (double *)malloc(nnuma_nodes * sizeof(double));
-		STARPU_ASSERT(dev_timing_htod_per_numa_node);
-		dev_latency_htod_per_numa_node = (double *)malloc(nnuma_nodes * sizeof(double));
-		STARPU_ASSERT(dev_latency_htod_per_numa_node);
-
-		dev_timing_dtoh_per_numa_node = (double *)malloc(nnuma_nodes * sizeof(double));
-		STARPU_ASSERT(dev_timing_dtoh_per_numa_node);
-		dev_latency_dtoh_per_numa_node = (double *)malloc(nnuma_nodes * sizeof(double));
-		STARPU_ASSERT(dev_latency_dtoh_per_numa_node);
-
-		memset(is_available_per_numa_node, 0, nnuma_nodes*sizeof(unsigned));
+		_STARPU_CALLOC(is_available_per_numa_node, nnuma_nodes, sizeof(unsigned));
+		_STARPU_MALLOC(dev_timing_htod_per_numa_node, nnuma_nodes * sizeof(double));
+		_STARPU_MALLOC(dev_latency_htod_per_numa_node, nnuma_nodes * sizeof(double));
+		_STARPU_MALLOC(dev_timing_dtoh_per_numa_node, nnuma_nodes * sizeof(double));
+		_STARPU_MALLOC(dev_latency_dtoh_per_numa_node, nnuma_nodes * sizeof(double));
 	}
 #endif
 
@@ -802,6 +799,7 @@ static void load_bus_affinity_file_content(void)
 {
 #if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 	FILE *f;
+	int locked;
 
 	char path[256];
 	get_affinity_path(path, sizeof(path));
@@ -811,7 +809,7 @@ static void load_bus_affinity_file_content(void)
 	f = fopen(path, "r");
 	STARPU_ASSERT(f);
 
-	_starpu_frdlock(f);
+	locked = _starpu_frdlock(f) == 0;
 
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	ncpus = _starpu_topology_get_nhwcpu(config);
@@ -825,7 +823,7 @@ static void load_bus_affinity_file_content(void)
 		unsigned dummy;
 
 		_starpu_drop_comments(f);
-		ret = fscanf(f, "%d\t", &dummy);
+		ret = fscanf(f, "%u\t", &dummy);
 		STARPU_ASSERT(ret == 1);
 
 		STARPU_ASSERT(dummy == gpu);
@@ -849,7 +847,7 @@ static void load_bus_affinity_file_content(void)
 		unsigned dummy;
 
 		_starpu_drop_comments(f);
-		ret = fscanf(f, "%d\t", &dummy);
+		ret = fscanf(f, "%u\t", &dummy);
 		STARPU_ASSERT(ret == 1);
 
 		STARPU_ASSERT(dummy == gpu);
@@ -865,7 +863,8 @@ static void load_bus_affinity_file_content(void)
 		STARPU_ASSERT(ret == 0);
 	}
 #endif /* !STARPU_USE_OPENCL */
-	_starpu_frdunlock(f);
+	if (locked)
+		_starpu_frdunlock(f);
 
 	fclose(f);
 #endif /* !(STARPU_USE_CUDA_ || STARPU_USE_OPENCL */
@@ -880,6 +879,8 @@ static void write_bus_affinity_file_content(void)
 #if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 	FILE *f;
 	char path[256];
+	int locked;
+
 	get_affinity_path(path, sizeof(path));
 
 	_STARPU_DEBUG("writing affinities to %s\n", path);
@@ -893,7 +894,7 @@ static void write_bus_affinity_file_content(void)
 		STARPU_ABORT();
 	}
 
-	_starpu_frdlock(f);
+	locked = _starpu_frdlock(f) == 0;
 	unsigned cpu;
         unsigned gpu;
 
@@ -905,7 +906,7 @@ static void write_bus_affinity_file_content(void)
 #ifdef STARPU_USE_CUDA
 	for (gpu = 0; gpu < ncuda; gpu++)
 	{
-		fprintf(f, "%d\t", gpu);
+		fprintf(f, "%u\t", gpu);
 
 		for (cpu = 0; cpu < ncpus; cpu++)
 		{
@@ -918,7 +919,7 @@ static void write_bus_affinity_file_content(void)
 #ifdef STARPU_USE_OPENCL
 	for (gpu = 0; gpu < nopencl; gpu++)
 	{
-		fprintf(f, "%d\t", gpu);
+		fprintf(f, "%u\t", gpu);
 
 		for (cpu = 0; cpu < ncpus; cpu++)
 		{
@@ -929,7 +930,8 @@ static void write_bus_affinity_file_content(void)
 	}
 #endif
 
-	_starpu_frdunlock(f);
+	if (locked)
+		_starpu_frdunlock(f);
 	fclose(f);
 #endif
 }
@@ -993,7 +995,7 @@ void starpu_bus_print_affinity(FILE *f)
 	fprintf(f, "# CUDA\n");
 	for(gpu = 0 ; gpu<ncuda ; gpu++)
 	{
-		fprintf(f, "%d\t", gpu);
+		fprintf(f, "%u\t", gpu);
 		for (cpu = 0; cpu < ncpus; cpu++)
 		{
 			fprintf(f, "%d\t", cuda_affinity_matrix[gpu][cpu]);
@@ -1005,7 +1007,7 @@ void starpu_bus_print_affinity(FILE *f)
 	fprintf(f, "# OpenCL\n");
 	for(gpu = 0 ; gpu<nopencl ; gpu++)
 	{
-		fprintf(f, "%d\t", gpu);
+		fprintf(f, "%u\t", gpu);
 		for (cpu = 0; cpu < ncpus; cpu++)
 		{
 			fprintf(f, "%d\t", opencl_affinity_matrix[gpu][cpu]);
@@ -1031,6 +1033,7 @@ static int load_bus_latency_file_content(void)
 	unsigned src, dst;
 	FILE *f;
 	double latency;
+	int locked;
 
 	char path[256];
 	get_latency_path(path, sizeof(path));
@@ -1045,7 +1048,7 @@ static int load_bus_latency_file_content(void)
 		fflush(stderr);
 		STARPU_ABORT();
 	}
-	_starpu_frdlock(f);
+	locked = _starpu_frdlock(f) == 0;
 
 	for (src = 0; src < STARPU_MAXNODES; src++)
 	{
@@ -1055,7 +1058,7 @@ static int load_bus_latency_file_content(void)
 			n = _starpu_read_double(f, "%le", &latency);
 			if (n != 1)
 			{
-				_STARPU_DISP("Error while reading latency file <%s>. Expected a number\n", path);
+				_STARPU_DISP("Error while reading latency file <%s>. Expected a number. Did you change the maximum number of GPUs at ./configure time?\n", path);
 				fclose(f);
 				return 0;
 			}
@@ -1094,7 +1097,7 @@ static int load_bus_latency_file_content(void)
 			n = _starpu_read_double(f, "%le", &latency);
 			if (n && !isnan(latency))
 			{
-				_STARPU_DISP("Too many nodes in latency file %s for this configuration (%d)\n", path, STARPU_MAXNODES);
+				_STARPU_DISP("Too many nodes in latency file %s for this configuration (%d). Did you change the maximum number of GPUs at ./configure time?\n", path, STARPU_MAXNODES);
 				fclose(f);
 				return 0;
 			}
@@ -1113,7 +1116,8 @@ static int load_bus_latency_file_content(void)
 			break;
 		ungetc(n, f);
 	}
-	_starpu_frdunlock(f);
+	if (locked)
+		_starpu_frdunlock(f);
 	fclose(f);
 
 	/* No more values, take NAN */
@@ -1129,6 +1133,7 @@ static void write_bus_latency_file_content(void)
 {
     unsigned src, dst, maxnode;
 	FILE *f;
+	int locked;
 
 	STARPU_ASSERT(was_benchmarked);
 
@@ -1145,12 +1150,12 @@ static void write_bus_latency_file_content(void)
 		fflush(stderr);
 		STARPU_ABORT();
 	}
-	_starpu_fwrlock(f);
+	locked = _starpu_fwrlock(f) == 0;
 	_starpu_fftruncate(f, 0);
 
 	fprintf(f, "# ");
 	for (dst = 0; dst < STARPU_MAXNODES; dst++)
-		fprintf(f, "to %d\t\t", dst);
+		fprintf(f, "to %u\t\t", dst);
 	fprintf(f, "\n");
 
         maxnode = ncuda;
@@ -1216,7 +1221,8 @@ static void write_bus_latency_file_content(void)
 
 		fprintf(f, "\n");
 	}
-	_starpu_fwrunlock(f);
+	if (locked)
+		_starpu_fwrunlock(f);
 
 	fclose(f);
 }
@@ -1269,6 +1275,7 @@ static int load_bus_bandwidth_file_content(void)
 	unsigned src, dst;
 	FILE *f;
 	double bandwidth;
+	int locked;
 
 	char path[256];
 	get_bandwidth_path(path, sizeof(path));
@@ -1283,7 +1290,7 @@ static int load_bus_bandwidth_file_content(void)
 		fflush(stderr);
 		STARPU_ABORT();
 	}
-	_starpu_frdlock(f);
+	locked = _starpu_frdlock(f) == 0;
 
 	for (src = 0; src < STARPU_MAXNODES; src++)
 	{
@@ -1351,7 +1358,8 @@ static int load_bus_bandwidth_file_content(void)
 			break;
 		ungetc(n, f);
 	}
-	_starpu_frdunlock(f);
+	if (locked)
+		_starpu_frdunlock(f);
 	fclose(f);
 
 	/* No more values, take NAN */
@@ -1367,6 +1375,7 @@ static void write_bus_bandwidth_file_content(void)
 {
 	unsigned src, dst, maxnode;
 	FILE *f;
+	int locked;
 
 	STARPU_ASSERT(was_benchmarked);
 
@@ -1378,12 +1387,12 @@ static void write_bus_bandwidth_file_content(void)
 	f = fopen(path, "w+");
 	STARPU_ASSERT(f);
 
-	_starpu_fwrlock(f);
+	locked = _starpu_fwrlock(f) == 0;
 	_starpu_fftruncate(f, 0);
 
 	fprintf(f, "# ");
 	for (dst = 0; dst < STARPU_MAXNODES; dst++)
-		fprintf(f, "to %d\t\t", dst);
+		fprintf(f, "to %u\t\t", dst);
 	fprintf(f, "\n");
 
         maxnode = ncuda;
@@ -1462,7 +1471,8 @@ static void write_bus_bandwidth_file_content(void)
 		fprintf(f, "\n");
 	}
 
-	_starpu_fwrunlock(f);
+	if (locked)
+		_starpu_fwrunlock(f);
 	fclose(f);
 }
 #endif /* STARPU_SIMGRID */
@@ -1500,11 +1510,11 @@ void starpu_bus_print_bandwidth(FILE *f)
 	fprintf(f, "from/to\t");
 	fprintf(f, "RAM\t");
 	for (dst = 0; dst < ncuda; dst++)
-		fprintf(f, "CUDA %d\t", dst);
+		fprintf(f, "CUDA %u\t", dst);
 	for (dst = 0; dst < nopencl; dst++)
-		fprintf(f, "OpenCL%d\t", dst);
+		fprintf(f, "OpenCL%u\t", dst);
 	for (dst = 0; dst < nmic; dst++)
-		fprintf(f, "MIC%d\t", dst);
+		fprintf(f, "MIC%u\t", dst);
 	for (dst = 0; dst < nmpi_ms; dst++)
 		fprintf(f, "MPI_MS%d\t", dst);
 	fprintf(f, "\n");
@@ -1514,11 +1524,11 @@ void starpu_bus_print_bandwidth(FILE *f)
 		if (!src)
 			fprintf(f, "RAM\t");
 		else if (src <= ncuda)
-			fprintf(f, "CUDA %d\t", src-1);
+			fprintf(f, "CUDA %u\t", src-1);
 		else if (src <= ncuda + nopencl)
-			fprintf(f, "OpenCL%d\t", src-ncuda-1);
+			fprintf(f, "OpenCL%u\t", src-ncuda-1);
 		else if (src <= ncuda + nopencl + nmic)
-			fprintf(f, "MIC%d\t", src-ncuda-nopencl-1);
+			fprintf(f, "MIC%u\t", src-ncuda-nopencl-1);
         else
 			fprintf(f, "MPI_MS%d\t", src-ncuda-nopencl-nmic-1);
 		for (dst = 0; dst <= maxnode; dst++)
@@ -1533,11 +1543,11 @@ void starpu_bus_print_bandwidth(FILE *f)
 		if (!src)
 			fprintf(f, "RAM\t");
 		else if (src <= ncuda)
-			fprintf(f, "CUDA %d\t", src-1);
+			fprintf(f, "CUDA %u\t", src-1);
 		else if (src <= ncuda + nopencl)
-			fprintf(f, "OpenCL%d\t", src-ncuda-1);
+			fprintf(f, "OpenCL%u\t", src-ncuda-1);
 		else if (src <= ncuda + nopencl + nmic)
-			fprintf(f, "MIC%d\t", src-ncuda-nopencl-1);
+			fprintf(f, "MIC%u\t", src-ncuda-nopencl-1);
         else
 			fprintf(f, "MPI_MS%d\t", src-ncuda-nopencl-nmic-1);
 		for (dst = 0; dst <= maxnode; dst++)
@@ -1559,7 +1569,7 @@ void starpu_bus_print_bandwidth(FILE *f)
 #ifdef STARPU_USE_CUDA
 		if (src <= ncuda)
 		{
-			fprintf(f, "CUDA %d\t", src-1);
+			fprintf(f, "CUDA %u\t", src-1);
 			for (cpu = 0; cpu < config_ncpus; cpu++)
 			{
 				timing = &cudadev_timing_per_cpu[src*STARPU_MAXCPUS+cpu];
@@ -1575,7 +1585,7 @@ void starpu_bus_print_bandwidth(FILE *f)
 #endif
 #ifdef STARPU_USE_OPENCL
 		{
-			fprintf(f, "OpenCL%d\t", src-ncuda-1);
+			fprintf(f, "OpenCL%u\t", src-ncuda-1);
 			for (cpu = 0; cpu < config_ncpus; cpu++)
 			{
 				timing = &opencldev_timing_per_cpu[(src-ncuda)*STARPU_MAXCPUS+cpu];
@@ -1672,30 +1682,38 @@ static void check_bus_config_file(void)
         int ret;
         unsigned read_cuda = -1, read_opencl = -1, read_mic = -1, read_mpi_ms = -1;
         unsigned read_cpus = -1;
+		int locked;
 
         // Loading configuration from file
         f = fopen(path, "r");
         STARPU_ASSERT(f);
-        _starpu_frdlock(f);
+		locked = _starpu_frdlock(f) == 0;
         _starpu_drop_comments(f);
+        
         ret = fscanf(f, "%u\t", &read_cpus);
         STARPU_ASSERT(ret == 1);
         _starpu_drop_comments(f);
-        ret = fscanf(f, "%d\t", &read_cuda);
+
+        ret = fscanf(f, "%u\t", &read_cuda);
         STARPU_ASSERT(ret == 1);
         _starpu_drop_comments(f);
-        ret = fscanf(f, "%d\t", &read_opencl);
+
+        ret = fscanf(f, "%u\t", &read_opencl);
         STARPU_ASSERT(ret == 1);
         _starpu_drop_comments(f);
-        ret = fscanf(f, "%d\t", &read_mic);
+        
+        ret = fscanf(f, "%u\t", &read_mic);
         if (ret == 0)
             read_mic = 0;
         _starpu_drop_comments(f);
-        ret = fscanf(f, "%d\t", &read_mpi_ms);
+
+        ret = fscanf(f, "%u\t", &read_mpi_ms);
         if (ret == 0)
             read_mpi_ms = 0;
         _starpu_drop_comments(f);
-        _starpu_frdunlock(f);
+
+		if (locked)
+			_starpu_frdunlock(f);
         fclose(f);
 
         // Loading current configuration
@@ -1726,6 +1744,7 @@ static void write_bus_config_file_content(void)
 {
 	FILE *f;
 	char path[256];
+	int locked;
 
 	STARPU_ASSERT(was_benchmarked);
         get_config_path(path, sizeof(path));
@@ -1734,17 +1753,18 @@ static void write_bus_config_file_content(void)
 
         f = fopen(path, "w+");
 	STARPU_ASSERT(f);
-	_starpu_fwrlock(f);
+	locked = _starpu_fwrlock(f) == 0;
 	_starpu_fftruncate(f, 0);
 
         fprintf(f, "# Current configuration\n");
         fprintf(f, "%u # Number of CPUs\n", ncpus);
-        fprintf(f, "%d # Number of CUDA devices\n", ncuda);
-        fprintf(f, "%d # Number of OpenCL devices\n", nopencl);
-        fprintf(f, "%d # Number of MIC devices\n", nmic);
+        fprintf(f, "%u # Number of CUDA devices\n", ncuda);
+        fprintf(f, "%u # Number of OpenCL devices\n", nopencl);
+        fprintf(f, "%u # Number of MIC devices\n", nmic);
         fprintf(f, "%d # Number of MPI devices\n", nmpi_ms);
 
-	_starpu_fwrunlock(f);
+	if (locked)
+		_starpu_fwrunlock(f);
         fclose(f);
 }
 
@@ -1810,7 +1830,8 @@ static void allocate_userdata(hwloc_obj_t obj)
 	if (obj->userdata)
 		return;
 
-	data = obj->userdata = malloc(sizeof(*data));
+	_STARPU_MALLOC(obj->userdata, sizeof(*data));
+	data = obj->userdata;
 	data->bw_up = 0.0;
 	data->bw_down = 0.0;
 	data->bw = 0.0;
@@ -2200,6 +2221,7 @@ static void write_bus_platform_file_content(int version)
 	unsigned i;
 	const char *speed, *flops, *Bps, *s;
 	char dash;
+	int locked;
 
 	if (version == 3)
 	{
@@ -2232,13 +2254,13 @@ static void write_bus_platform_file_content(int version)
 		fflush(stderr);
 		STARPU_ABORT();
 	}
-	_starpu_fwrlock(f);
+	locked = _starpu_fwrlock(f) == 0;
 	_starpu_fftruncate(f, 0);
 
 	fprintf(f,
 "<?xml version='1.0'?>\n"
 "<!DOCTYPE platform SYSTEM '%s'>\n"
-" <platform version=\"%u\">\n"
+" <platform version=\"%d\">\n"
 " <config id=\"General\">\n"
 "   <prop id=\"network/TCP%cgamma\" value=\"-1\"></prop>\n"
 "   <prop id=\"network/latency%cfactor\" value=\"1\"></prop>\n"
@@ -2253,21 +2275,22 @@ static void write_bus_platform_file_content(int version)
 
 	for (i = 0; i < ncpus; i++)
 		/* TODO: host memory for out-of-core simulation */
-		fprintf(f, "   <host id=\"CPU%d\" %s=\"2000000000%s\"/>\n", i, speed, flops);
+		fprintf(f, "   <host id=\"CPU%u\" %s=\"2000000000%s\"/>\n", i, speed, flops);
 
 	for (i = 0; i < ncuda; i++)
 	{
-		fprintf(f, "   <host id=\"CUDA%d\" %s=\"2000000000%s\">\n", i, speed, flops);
+		fprintf(f, "   <host id=\"CUDA%u\" %s=\"2000000000%s\">\n", i, speed, flops);
 		fprintf(f, "     <prop id=\"memsize\" value=\"%llu\"/>\n", (unsigned long long) cuda_size[i]);
 #ifdef HAVE_CUDA_MEMCPY_PEER
 		fprintf(f, "     <prop id=\"memcpy_peer\" value=\"1\"/>\n");
 #endif
+		/* TODO: record cudadev_direct instead of assuming it's NUMA nodes */
 		fprintf(f, "   </host>\n");
 	}
 
 	for (i = 0; i < nopencl; i++)
 	{
-		fprintf(f, "   <host id=\"OpenCL%d\" %s=\"2000000000%s\">\n", i, speed, flops);
+		fprintf(f, "   <host id=\"OpenCL%u\" %s=\"2000000000%s\">\n", i, speed, flops);
 		fprintf(f, "     <prop id=\"memsize\" value=\"%llu\"/>\n", (unsigned long long) opencl_size[i]);
 		fprintf(f, "   </host>\n");
 	}
@@ -2310,7 +2333,7 @@ static void write_bus_platform_file_content(int version)
 	for (i = 0; i < nopencl; i++)
 	{
 		char i_name[16];
-		snprintf(i_name, sizeof(i_name), "OpenCL%d", i);
+		snprintf(i_name, sizeof(i_name), "OpenCL%u", i);
 		fprintf(f, "   <link id=\"RAM-%s\" bandwidth=\"%f%s\" latency=\"%f%s\"/>\n",
 			i_name,
 			1000000 / opencldev_timing_htod[1+i], Bps,
@@ -2332,7 +2355,7 @@ static void write_bus_platform_file_content(int version)
 	for (i = 0; i < ncuda; i++)
 	{
 		char i_name[16];
-		snprintf(i_name, sizeof(i_name), "CUDA%d", i);
+		snprintf(i_name, sizeof(i_name), "CUDA%u", i);
 		fprintf(f, "   <link id=\"RAM-%s\" bandwidth=\"%f%s\" latency=\"%f%s\"/>\n",
 			i_name,
 			1000000. / cudadev_timing_htod[1+i], Bps,
@@ -2432,7 +2455,7 @@ flat_cuda:
 	for (i = 0; i < ncuda; i++)
 	{
 		char i_name[16];
-		snprintf(i_name, sizeof(i_name), "CUDA%d", i);
+		snprintf(i_name, sizeof(i_name), "CUDA%u", i);
 		fprintf(f, "   <route src=\"RAM\" dst=\"%s\" symmetrical=\"NO\"><link_ctn id=\"RAM-%s\"/><link_ctn id=\"Host\"/></route>\n", i_name, i_name);
 		fprintf(f, "   <route src=\"%s\" dst=\"RAM\" symmetrical=\"NO\"><link_ctn id=\"%s-RAM\"/><link_ctn id=\"Host\"/></route>\n", i_name, i_name);
 	}
@@ -2464,7 +2487,7 @@ flat_cuda:
 	for (i = 0; i < nopencl; i++)
 	{
 		char i_name[16];
-		snprintf(i_name, sizeof(i_name), "OpenCL%d", i);
+		snprintf(i_name, sizeof(i_name), "OpenCL%u", i);
 		fprintf(f, "   <route src=\"RAM\" dst=\"%s\" symmetrical=\"NO\"><link_ctn id=\"RAM-%s\"/><link_ctn id=\"Host\"/></route>\n", i_name, i_name);
 		fprintf(f, "   <route src=\"%s\" dst=\"RAM\" symmetrical=\"NO\"><link_ctn id=\"%s-RAM\"/><link_ctn id=\"Host\"/></route>\n", i_name, i_name);
 	}
@@ -2475,7 +2498,8 @@ flat_cuda:
 " </platform>\n"
 		);
 
-	_starpu_fwrunlock(f);
+	if (locked)
+		_starpu_fwrunlock(f);
 	fclose(f);
 }
 
@@ -2546,6 +2570,9 @@ void _starpu_load_bus_performance_files(void)
 #if defined(STARPU_USE_MPI_MASTER_SLAVE) || defined(STARPU_USE_SIMGRID)
     nmpi_ms = _starpu_mpi_src_get_device_count();
 #endif
+#if defined(STARPU_USE_MIC) || defined(STARPU_USE_SIMGRID)
+	nmic = _starpu_mic_src_get_device_count();
+#endif
 
 #ifndef STARPU_SIMGRID
         check_bus_config_file();
@@ -2584,8 +2611,26 @@ double starpu_transfer_predict(unsigned src_node, unsigned dst_node, size_t size
 	double bandwidth = bandwidth_matrix[src_node][dst_node];
 	double latency = latency_matrix[src_node][dst_node];
 	struct _starpu_machine_topology *topology = &_starpu_get_machine_config()->topology;
+#if 0
+	int busid = starpu_bus_get_id(src_node, dst_node);
+	int direct = starpu_bus_get_direct(busid);
+#endif
+	float ngpus = topology->ncudagpus+topology->nopenclgpus;
 
-	return latency + (size/bandwidth)*2*(topology->ncudagpus+topology->nopenclgpus);
+#if 0
+	/* Ideally we should take into account that some GPUs are directly
+	 * connected through a PCI switch, which has less contention that the
+	 * Host bridge, but doing that seems to *decrease* performance... */
+	if (direct)
+	{
+		float neighbours = starpu_bus_get_ngpus(busid);
+		/* Count transfers of these GPUs, and count transfers between
+		 * other GPUs and these GPUs */
+		ngpus = neighbours + (ngpus - neighbours) * neighbours / ngpus;
+	}
+#endif
+
+	return latency + (size/bandwidth)*2*ngpus;
 }
 
 

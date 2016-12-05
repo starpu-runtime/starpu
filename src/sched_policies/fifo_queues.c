@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2013  CNRS
+ * Copyright (C) 2010, 2011, 2013, 2016  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -44,7 +44,7 @@ static int is_sorted_task_list(struct starpu_task * task)
 struct _starpu_fifo_taskq *_starpu_create_fifo(void)
 {
 	struct _starpu_fifo_taskq *fifo;
-	fifo = (struct _starpu_fifo_taskq *) malloc(sizeof(struct _starpu_fifo_taskq));
+	_STARPU_MALLOC(fifo, sizeof(struct _starpu_fifo_taskq));
 
 	/* note that not all mechanisms (eg. the semaphore) have to be used */
 	starpu_task_list_init(&fifo->taskq);
@@ -82,6 +82,14 @@ _starpu_fifo_get_exp_len_prev_task_list(struct _starpu_fifo_taskq *fifo_queue, s
 		struct starpu_task *current = list->head;
 		struct starpu_task *prev = NULL;
 
+		if (list->head->priority == task->priority &&
+		    list->head->priority == list->tail->priority)
+		{
+			/* They all have the same priority, the task's place is at the end */
+			prev = list->tail;
+			current = NULL;
+		}
+		else
 		while (current)
 		{
 			if (current->priority < task->priority)
@@ -127,6 +135,15 @@ _starpu_fifo_push_sorted_task(struct _starpu_fifo_taskq *fifo_queue, struct star
 		list->tail = task;
 		task->prev = NULL;
 		task->next = NULL;
+	}
+	else if (list->head->priority == task->priority &&
+		 list->head->priority == list->tail->priority)
+	{
+		/* They all have the same priority, just put at the end */
+		list->tail->next = task;
+		task->next = NULL;
+		task->prev = list->tail;
+		list->tail = task;
 	}
 	else
 	{
@@ -265,17 +282,13 @@ struct starpu_task *_starpu_fifo_pop_local_task(struct _starpu_fifo_taskq *fifo_
 /* pop every task that can be executed on the calling driver */
 struct starpu_task *_starpu_fifo_pop_every_task(struct _starpu_fifo_taskq *fifo_queue, int workerid)
 {
-	struct starpu_task_list *old_list;
-	unsigned size;
-
+	unsigned size = fifo_queue->ntasks;
 	struct starpu_task *new_list = NULL;
-	struct starpu_task *new_list_tail = NULL;
-
-	size = fifo_queue->ntasks;
 
 	if (size > 0)
 	{
-		old_list = &fifo_queue->taskq;
+		struct starpu_task_list *old_list = &fifo_queue->taskq;
+		struct starpu_task *new_list_tail = NULL;
 		unsigned new_list_size = 0;
 
 		struct starpu_task *task, *next_task;

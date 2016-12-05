@@ -48,7 +48,7 @@ static void destroy_list(struct sched_component_list * list)
 }
 static void add_component(struct sched_component_list *list, struct starpu_sched_component * component)
 {
-	list->arr = realloc(list->arr,sizeof(*list->arr) * (list->size + 1));
+	_STARPU_REALLOC(list->arr, sizeof(*list->arr) * (list->size + 1));
 	list->arr[list->size] = component;
 	list->size++;
 }
@@ -127,7 +127,7 @@ static int is_same_kind_of_all(struct starpu_sched_component * root, struct _sta
 		struct _starpu_worker * w = root->data;
 		return w->perf_arch.type == w_ref->perf_arch.type;
 	}
-	
+
 	int i;
 	for(i = 0;i < root->nchildren; i++)
 		if(!is_same_kind_of_all(root->children[i], w_ref))
@@ -150,7 +150,7 @@ static struct starpu_sched_component * find_mem_component(struct starpu_sched_co
 			tmp = tmp->parent;
 		}
 		while(!component);
-		
+
 	}
 	return component;
 }
@@ -243,7 +243,7 @@ static void helper_display_scheduler(FILE* out, unsigned depth, struct starpu_sc
 struct starpu_sched_tree * starpu_sched_component_make_scheduler(unsigned sched_ctx_id, struct starpu_sched_component_specs specs)
 {
 	struct starpu_sched_tree * tree = starpu_sched_tree_create(sched_ctx_id);
-	
+
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	hwloc_topology_t topology = config->topology.hwtopology;
 
@@ -252,12 +252,12 @@ struct starpu_sched_tree * starpu_sched_component_make_scheduler(unsigned sched_
 
 	tree->root = list.arr[0];
 	destroy_list(&list);
-	
+
 	unsigned i;
 	for(i = 0; i < starpu_worker_get_count(); i++)
 	{
-		struct _starpu_worker * worker = _starpu_get_worker_struct(i);
-		struct starpu_sched_component * worker_component = starpu_sched_component_worker_get(sched_ctx_id, i);
+		struct _starpu_worker *worker = _starpu_get_worker_struct(i);
+		struct starpu_sched_component *worker_component = starpu_sched_component_worker_get(sched_ctx_id, i);
 		STARPU_ASSERT(worker);
 		set_worker_leaf(tree->root,worker_component, sched_ctx_id, specs);
 	}

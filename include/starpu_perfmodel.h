@@ -3,6 +3,7 @@
  * Copyright (C) 2010-2014, 2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
  * Copyright (C) 2011  Télécom-SudParis
+ * Copyright (C) 2016  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -60,6 +61,10 @@ struct starpu_perfmodel_history_entry
 	uint32_t footprint;
 	size_t size;
 	double flops;
+
+	double duration;
+	starpu_tag_t tag;
+	double *parameters;
 };
 
 struct starpu_perfmodel_history_list
@@ -88,6 +93,10 @@ struct starpu_perfmodel_regression_model
 	unsigned nl_valid;
 
 	unsigned nsample;
+
+	double *coeff;
+	unsigned ncoeff;
+	unsigned multi_valid;
 };
 
 struct starpu_perfmodel_history_table;
@@ -116,7 +125,8 @@ enum starpu_perfmodel_type
 	STARPU_COMMON,
 	STARPU_HISTORY_BASED,
 	STARPU_REGRESSION_BASED,
-	STARPU_NL_REGRESSION_BASED
+	STARPU_NL_REGRESSION_BASED,
+	STARPU_MULTIPLE_REGRESSION_BASED
 };
 
 struct _starpu_perfmodel_state;
@@ -137,6 +147,12 @@ struct starpu_perfmodel
 	unsigned is_loaded;
 	unsigned benchmarking;
 	unsigned is_init;
+
+	void (*parameters)(struct starpu_task * task, double *parameters);
+	const char **parameters_names;
+	unsigned nparameters;
+	unsigned **combinations;
+	unsigned ncombinations;
 
 	starpu_perfmodel_state_t state;
 };

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2013  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2013, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2013, 2015, 2016  CNRS
  * Copyright (C) 2016  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -106,7 +106,7 @@ int64_t _starpu_ayudame_get_func_id(struct starpu_codelet *cl)
 			ncodelets_alloc = 16;
 		else
 			ncodelets_alloc *= 2;
-		codelets = realloc(codelets, ncodelets_alloc * sizeof(*codelets));
+		_STARPU_REALLOC(codelets, ncodelets_alloc * sizeof(*codelets));
 	}
 	codelets[ncodelets].cl = cl;
 	if (name)

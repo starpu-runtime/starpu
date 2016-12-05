@@ -594,8 +594,10 @@ static inline int _starpu_worker_get_id(void)
 /* Similar behaviour to starpu_worker_get_id() but fails when called from outside a worker */
 static inline unsigned __starpu_worker_get_id_check(const char *f, int l)
 {
+	(void) l;
+	(void) f;
 	int id = starpu_worker_get_id();
-	STARPU_ASSERT_MSG(id>=0, "%s:%u Cannot be called from outside a worker\n", f, l);
+	STARPU_ASSERT_MSG(id>=0, "%s:%d Cannot be called from outside a worker\n", f, l);
 	return id;
 }
 #define _starpu_worker_get_id_check(f,l) __starpu_worker_get_id_check(f,l)

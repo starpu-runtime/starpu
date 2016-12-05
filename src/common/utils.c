@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2012-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -144,7 +144,8 @@ char *_starpu_mktemp(const char *directory, int flags, int *fd)
 {
 	/* create template for mkstemp */
 	const char *tmp = "STARPU_XXXXXX";
-	char *baseCpy = malloc(strlen(directory)+1+strlen(tmp)+1);
+	char *baseCpy;
+	_STARPU_MALLOC(baseCpy, strlen(directory)+1+strlen(tmp)+1);
 	STARPU_ASSERT(baseCpy != NULL);
 
 	strcpy(baseCpy, directory);
@@ -156,9 +157,14 @@ char *_starpu_mktemp(const char *directory, int flags, int *fd)
 	*fd = open(baseCpy, flags);
 #elif defined (HAVE_MKOSTEMP)
 	*fd = mkostemp(baseCpy, flags);
-#else
-	STARPU_ASSERT(flags == (O_RDWR | O_BINARY));
+#elif defined (O_DIRECT)
+	STARPU_ASSERT(flags == (O_RDWR | O_BINARY) || flags == (O_RDWR | O_BINARY | O_DIRECT));
 	*fd = mkstemp(baseCpy);
+#elif defined (STARPU_HAVE_DARWIN) // MACOS
+	STARPU_ASSERT(flags == (O_RDWR | O_BINARY) || flags == (O_RDWR | O_BINARY | F_NOCACHE));
+	*fd = mkstemp(baseCpy);
+#else
+	/* nothing for now */
 #endif
 
 	/* fail */
@@ -170,6 +176,41 @@ char *_starpu_mktemp(const char *directory, int flags, int *fd)
 		errno = err;
 		return NULL;
 	}
+
+#if !defined(STARPU_HAVE_WINDOWS) && !defined (HAVE_MKOSTEMP)
+#if defined (O_DIRECT)
+	if ((flags & O_DIRECT) != 0)
+	{
+		int flag = fcntl(*fd, F_GETFL);
+		flag |= O_DIRECT;
+		if (fcntl(*fd, F_SETFL, flag) < 0)
+		{
+			int err = errno;
+			_STARPU_DISP("Could set O_DIRECT on the temporary file  in directory '%s', fcntl failed with error '%s'\n", directory, strerror(errno));
+			free(baseCpy);
+			errno = err;
+			return NULL;
+		}
+	}
+#elif defined (STARPU_HAVE_DARWIN) //MACOS
+	if ((flags & F_NOCACHE) != 0)
+	{
+		int flag = fcntl(*fd, F_GETFL);
+		//flag |= F_NOCACHE;
+		if (fcntl(*fd, F_SETFL, F_NOCACHE) < 0)
+		{
+			int err = errno;
+			_STARPU_DISP("Could set F_NOCACHE on the temporary file in  directory '%s', fcntl failed with error '%s'\n", directory, strerror(errno));
+			free(baseCpy);
+			errno = err;
+			return NULL;
+		}
+	}
+#else
+	/* nothing for now */
+#endif
+#endif
+
 
 	return baseCpy;
 }
@@ -264,6 +305,17 @@ int _starpu_frdlock(FILE *file)
 	};
 	ret = fcntl(fileno(file), F_SETLKW, &lock);
 #endif
+#ifdef ENOLCK
+	if (ret != 0 && errno == ENOLCK)
+	{
+		static int warn;
+		if (!warn) {
+			warn = 1;
+			_STARPU_DISP("warning: Couldn't lock performance file, StarPU home is probably on NFS which does not support locking.\n");
+		}
+		return -1;
+	}
+#endif
 	STARPU_ASSERT(ret == 0);
 	return ret;
 }
@@ -312,6 +364,18 @@ int _starpu_fwrlock(FILE *file)
 		.l_len = 0
 	};
 	ret = fcntl(fileno(file), F_SETLKW, &lock);
+#endif
+
+#ifdef ENOLCK
+	if (ret != 0 && errno == ENOLCK)
+	{
+		static int warn;
+		if (!warn) {
+			warn = 1;
+			_STARPU_DISP("warning: Couldn't lock performance file, StarPU home is probably on NFS which does not support locking.\n");
+		}
+		return -1;
+	}
 #endif
 	STARPU_ASSERT(ret == 0);
 	return ret;

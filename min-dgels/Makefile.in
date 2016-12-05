@@ -1,0 +1,30 @@
+CLAPACK=base
+ADDITIONAL=additional
+
+all:
+	mkdir -p build
+	cd $(CLAPACK) && $(MAKE) blaslib
+	cd $(CLAPACK) && $(MAKE) f2clib
+	cd $(ADDITIONAL) && gcc -c -fPIC *.c && ar cr ../build/minlibdgels.a *.o && ranlib ../build/minlibdgels.a
+
+install:
+
+clean:
+	-cd $(CLAPACK) && $(MAKE) clean && rm -rf *~
+	-cd $(ADDITIONAL) && rm -rf *.o *~
+	rm -rf build *~
+
+distclean: clean
+
+# This part is needed by StarPU
+
+STARPU_SRCDIR = @srcdir@
+
+distdir:
+	cp -fRp $(STARPU_SRCDIR)/* $(distdir)
+	cd $(distdir) && make -f Makefile.in clean
+
+check:
+	echo "No checks are implemented for min-dgels"
+
+showcheck: check

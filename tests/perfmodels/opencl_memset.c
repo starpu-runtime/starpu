@@ -30,7 +30,6 @@ void memset_opencl(void *buffers[], void *args)
         cl_int err;
 	cl_kernel kernel;
 	cl_command_queue queue;
-	cl_event event;
 
 	unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
 	cl_mem val = (cl_mem)STARPU_VECTOR_GET_DEV_HANDLE(buffers[0]);

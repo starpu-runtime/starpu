@@ -76,7 +76,6 @@ static void _starpu_opencl_limit_gpu_mem_if_needed(unsigned devid)
 	starpu_ssize_t limit;
 	size_t STARPU_ATTRIBUTE_UNUSED totalGlobalMem = 0;
 	size_t STARPU_ATTRIBUTE_UNUSED to_waste = 0;
-	char name[30];
 
 #ifdef STARPU_SIMGRID
 	totalGlobalMem = _starpu_simgrid_get_memsize("OpenCL", devid);
@@ -93,6 +92,7 @@ static void _starpu_opencl_limit_gpu_mem_if_needed(unsigned devid)
 	limit = starpu_get_env_number("STARPU_LIMIT_OPENCL_MEM");
 	if (limit == -1)
 	{
+		char name[30];
 		sprintf(name, "STARPU_LIMIT_OPENCL_%u_MEM", devid);
 		limit = starpu_get_env_number(name);
 	}
@@ -265,6 +265,7 @@ cl_int starpu_opencl_allocate_memory(int devid STARPU_ATTRIBUTE_UNUSED, cl_mem *
 
 	memory = clCreateBuffer(contexts[devid], flags, size, NULL, &err);
 	if (err == CL_OUT_OF_HOST_MEMORY) return err;
+	if (err == CL_MEM_OBJECT_ALLOCATION_FAILURE) return err;
         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
 	/*
@@ -517,9 +518,9 @@ void _starpu_opencl_init(void)
                 err = clGetPlatformIDs(_STARPU_OPENCL_PLATFORM_MAX, platform_id, &nb_platforms);
                 if (STARPU_UNLIKELY(err != CL_SUCCESS)) nb_platforms=0;
                 _STARPU_DEBUG("Platforms detected: %u\n", nb_platforms);
-		_STARPU_DEBUG("CPU device type: %s\n", device_type&CL_DEVICE_TYPE_CPU?"requested":"not requested");
-		_STARPU_DEBUG("GPU device type: %s\n", device_type&CL_DEVICE_TYPE_GPU?"requested":"not requested");
-		_STARPU_DEBUG("Accelerator device type: %s\n", device_type&CL_DEVICE_TYPE_ACCELERATOR?"requested":"not requested");
+		_STARPU_DEBUG("CPU device type: %s\n", (device_type&CL_DEVICE_TYPE_CPU)?"requested":"not requested");
+		_STARPU_DEBUG("GPU device type: %s\n", (device_type&CL_DEVICE_TYPE_GPU)?"requested":"not requested");
+		_STARPU_DEBUG("Accelerator device type: %s\n", (device_type&CL_DEVICE_TYPE_ACCELERATOR)?"requested":"not requested");
 
                 // Get devices
                 nb_devices = 0;
@@ -555,7 +556,7 @@ void _starpu_opencl_init(void)
 				if (platform_valid)
 					_STARPU_DEBUG("Platform: %s - %s\n", name, vendor);
 				else
-					_STARPU_DEBUG("Platform invalid\n");
+					_STARPU_DEBUG("Platform invalid: %s - %s\n", name, vendor);
 #endif
 				if (platform_valid && nb_devices <= STARPU_MAXOPENCLDEVS)
 				{
@@ -638,8 +639,8 @@ int _starpu_opencl_driver_init(struct _starpu_worker *worker)
 	char devname[128];
 	_starpu_opencl_get_device_name(devid, devname, 128);
 #endif
-	snprintf(worker->name, sizeof(worker->name), "OpenCL %u (%s %.1f GiB)", devid, devname, size);
-	snprintf(worker->short_name, sizeof(worker->short_name), "OpenCL %u", devid);
+	snprintf(worker->name, sizeof(worker->name), "OpenCL %d (%s %.1f GiB)", devid, devname, size);
+	snprintf(worker->short_name, sizeof(worker->short_name), "OpenCL %d", devid);
 	starpu_pthread_setname(worker->short_name);
 
 	worker->pipeline_length = starpu_get_env_number_default("STARPU_OPENCL_PIPELINE", 2);

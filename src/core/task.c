@@ -148,9 +148,7 @@ struct starpu_task * STARPU_ATTRIBUTE_MALLOC starpu_task_create(void)
 {
 	struct starpu_task *task;
 
-	task = (struct starpu_task *) malloc(sizeof(struct starpu_task));
-	STARPU_ASSERT(task);
-
+	_STARPU_MALLOC(task, sizeof(struct starpu_task));
 	starpu_task_init(task);
 
 	/* Dynamically allocated tasks are destroyed by default */
@@ -248,11 +246,10 @@ int starpu_task_wait(struct starpu_task *task)
 int starpu_task_wait_array(struct starpu_task **tasks, unsigned nb_tasks)
 {
 	unsigned i;
-	int ret;
 
 	for (i = 0; i < nb_tasks; i++)
 	{
-		ret = starpu_task_wait(tasks[i]);
+		int ret = starpu_task_wait(tasks[i]);
 		if (ret)
 			return ret;
 	}
@@ -311,7 +308,7 @@ int _starpu_submit_job(struct _starpu_job *j)
 	   && sched_ctx->perf_counters != NULL)
 	{
 		struct starpu_perfmodel_arch arch;
-		arch.devices = (struct starpu_perfmodel_device*)malloc(sizeof(struct starpu_perfmodel_device));
+		_STARPU_MALLOC(arch.devices, sizeof(struct starpu_perfmodel_device));
 		arch.ndevices = 1;
 		arch.devices[0].type = STARPU_CPU_WORKER;
 		arch.devices[0].devid = 0;
@@ -564,7 +561,7 @@ static int _starpu_task_submit_head(struct starpu_task *task)
 
 		if (task->dyn_handles)
 		{
-			task->dyn_interfaces = malloc(nbuffers * sizeof(void *));
+			_STARPU_MALLOC(task->dyn_interfaces, nbuffers * sizeof(void *));
 		}
 
 		for (i = 0; i < nbuffers; i++)
@@ -729,8 +726,7 @@ int starpu_task_submit_to_ctx(struct starpu_task *task, unsigned sched_ctx_id)
  * skipping dependencies completely (when it knows what it is doing).  */
 int _starpu_task_submit_nodeps(struct starpu_task *task)
 {
-	int ret;
-	ret = _starpu_task_submit_head(task);
+	int ret = _starpu_task_submit_head(task);
 	STARPU_ASSERT(ret == 0);
 
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);

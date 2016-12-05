@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010, 2013, 2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2015, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -67,7 +67,7 @@ void _starpu_display_msi_stats(void)
 	{
 		if (hit_cnt[node]+miss_cnt[node])
 		{
-			fprintf(stderr, "memory node %d\n", node);
+			fprintf(stderr, "memory node %u\n", node);
 			fprintf(stderr, "\thit : %u (%2.2f %%)\n", hit_cnt[node], (100.0f*hit_cnt[node])/(hit_cnt[node]+miss_cnt[node]));
 			fprintf(stderr, "\tmiss : %u (%2.2f %%)\n", miss_cnt[node], (100.0f*miss_cnt[node])/(hit_cnt[node]+miss_cnt[node]));
 		}
@@ -103,13 +103,13 @@ void _starpu_display_alloc_cache_stats(void)
 	{
 		if (alloc_cnt[node])
 		{
-			fprintf(stderr, "memory node %d\n", node);
+			fprintf(stderr, "memory node %u\n", node);
 			fprintf(stderr, "\ttotal alloc : %u\n", alloc_cnt[node]);
 			fprintf(stderr, "\tcached alloc: %u (%2.2f %%)\n",
 				alloc_cache_hit_cnt[node], (100.0f*alloc_cache_hit_cnt[node])/(alloc_cnt[node]));
 		}
 		else
-			fprintf(stderr, "No allocation on node %d\n", node);
+			fprintf(stderr, "No allocation on node %u\n", node);
 	}
 	fprintf(stderr, "#---------------------\n");
 }

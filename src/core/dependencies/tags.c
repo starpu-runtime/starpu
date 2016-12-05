@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2013, 2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2016  CNRS
  * Copyright (C) 2016  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -44,8 +44,8 @@ static starpu_pthread_rwlock_t tag_global_rwlock;
 
 static struct _starpu_cg *create_cg_apps(unsigned ntags)
 {
-	struct _starpu_cg *cg = (struct _starpu_cg *) malloc(sizeof(struct _starpu_cg));
-	STARPU_ASSERT(cg);
+	struct _starpu_cg *cg;
+	_STARPU_MALLOC(cg, sizeof(struct _starpu_cg));
 
 	cg->ntags = ntags;
 	cg->remaining = ntags;
@@ -60,8 +60,8 @@ static struct _starpu_cg *create_cg_apps(unsigned ntags)
 
 static struct _starpu_cg *create_cg_tag(unsigned ntags, struct _starpu_tag *tag)
 {
-	struct _starpu_cg *cg = (struct _starpu_cg *) malloc(sizeof(struct _starpu_cg));
-	STARPU_ASSERT(cg);
+	struct _starpu_cg *cg;
+	_STARPU_MALLOC(cg, sizeof(struct _starpu_cg));
 
 	cg->ntags = ntags;
 	cg->remaining = ntags;
@@ -76,8 +76,7 @@ static struct _starpu_cg *create_cg_tag(unsigned ntags, struct _starpu_tag *tag)
 static struct _starpu_tag *_starpu_tag_init(starpu_tag_t id)
 {
 	struct _starpu_tag *tag;
-	tag = (struct _starpu_tag *) malloc(sizeof(struct _starpu_tag));
-	STARPU_ASSERT(tag);
+	_STARPU_MALLOC(tag, sizeof(struct _starpu_tag));
 
 	tag->job = NULL;
 	tag->is_assigned = 0;
@@ -191,8 +190,7 @@ static struct _starpu_tag *_gettag_struct(starpu_tag_t id)
 		tag = _starpu_tag_init(id);
 
 		struct _starpu_tag_table *entry2;
-		entry2 = (struct _starpu_tag_table *) malloc(sizeof(*entry2));
-		STARPU_ASSERT(entry2 != NULL);
+		_STARPU_MALLOC(entry2, sizeof(*entry2));
 		entry2->id = id;
 		entry2->tag = tag;
 

@@ -286,7 +286,6 @@ void *_starpu_scc_src_worker(void *arg)
 	int devid = args->devid;
 	int workerid = args->workerid;
 	struct _starpu_machine_config *config = args->config;
-	unsigned memnode = args->memory_node;
 	unsigned baseworkerid = args - config->workers;
 	unsigned subworkerid = args->subworkerid;
 	unsigned i;
