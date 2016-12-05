@@ -706,6 +706,7 @@ _starpu_simgrid_get_memnode_host(unsigned node)
 
 void _starpu_simgrid_count_ngpus(void)
 {
+#if defined(HAVE_SG_LINK_NAME) && SIMGRID_VERSION_MAJOR >= 4 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR >= 13)
 	unsigned src, dst;
 	msg_host_t ramhost = _starpu_simgrid_get_host_by_name("RAM");
 
@@ -733,16 +734,6 @@ void _starpu_simgrid_count_ngpus(void)
 			routesize = SD_route_get_size(srchost, dsthost);
 			route = SD_route_get_list(srchost, dsthost);
 
-#ifndef HAVE_SG_LINK_NAME
-#ifdef HAVE_SD_LINK_GET_NAME
-/* Simgrid 3.11 name */
-#define sg_link_name(link) SD_link_get_name(link)
-#endif
-#ifdef HAVE_SURF_NETWORK_LINK_GET_NAME
-/* Simgrid 3.11+something name */
-#define sg_link_name(link) surf_network_link_get_name(link)
-#endif
-#endif
 			/* If it goes through "Host", do not care, there is no
 			 * direct transfer support */
 			for (i = 0; i < routesize; i++)
@@ -794,5 +785,6 @@ void _starpu_simgrid_count_ngpus(void)
 			_STARPU_DEBUG("%d->%d through %s, %u GPUs\n", src, dst, name, ngpus);
 			starpu_bus_set_ngpus(busid, ngpus);
 		}
+#endif
 }
 #endif
