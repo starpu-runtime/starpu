@@ -21,11 +21,12 @@ PLAT = _LINUX
 #
 #######################################################
 # This is used to compile C libary
-CC        = gcc
+#CC        = gcc
 # if no wrapping of the blas library is needed, uncomment next line
 #CC        = gcc -DNO_BLAS_WRAP
 CFLAGS    = -O3 -I$(TOPDIR)/INCLUDE -fPIC
-LOADER    = gcc
+#LOADER    = gcc
+LOADER    = $(CC)
 LOADOPTS  =
 NOOPT     = -O0 -I$(TOPDIR)/INCLUDE
 DRVCFLAGS = $(CFLAGS)
