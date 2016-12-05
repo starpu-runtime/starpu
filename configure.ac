@@ -1158,46 +1158,6 @@ fi
 
 ###############################################################################
 #                                                                             #
-#			 Multiple linear regression			      #
-#                                                                             #
-###############################################################################
-AC_ARG_ENABLE(mlr, [AS_HELP_STRING([--disable-mlr],
-			[Disable multiple linear regression models])],
-			enable_mlr=$enableval, enable_mlr=yes)
-
-AC_MSG_CHECKING(whether multiple linear regression models are disabled)
-if test x$enable_mlr = xyes -a "$starpu_windows" != "yes" ; then
-   	AC_MSG_RESULT(no)
-	install_min_dgels=no
-   	STARPU_SEARCH_LIBS(LAPACK,[dgels_],[lapack],use_system_lapack=yes,,)
-	if test x$use_system_lapack = xyes; then
-	        AC_DEFINE(STARPU_MLR_MODEL, [1], [use reflapack library])
-		LDFLAGS="-llapack $LDFLAGS"
-	else
-		AC_MSG_CHECKING(whether min-dgels is linked)
-		if test x"$DGELS_LIBS" != x; then
-		   	AC_MSG_RESULT(yes)
-        		AC_DEFINE(STARPU_MLR_MODEL, [1], [use user defined library])
-			AC_ARG_VAR([DGELS_LIBS], [linker flags for lapack dgels])
-		else
-			AC_MSG_RESULT(no)
-			AC_MSG_CHECKING(min-dgels source)
-			cp -r $srcdir/min-dgels $PWD/
-			AC_MSG_RESULT(yes)
-			DGELS_LIBS="-Wl,--start-group $STARPU_BUILD_DIR/min-dgels/build/*.a -Wl,--end-group"
-			AC_DEFINE(STARPU_MLR_MODEL, [1], [use user defined library])
-			AC_ARG_VAR([DGELS_LIBS], [linker flags for lapack dgels])
-			install_min_dgels=yes
-		fi
-	fi
-else
- 	AC_MSG_RESULT(yes)
-	install_min_dgels=no
-fi
-AM_CONDITIONAL(STARPU_USE_MIN_DGELS, test x$install_min_dgels = xyes)
-
-###############################################################################
-#                                                                             #
 #                                 MIC settings                                #
 #                                                                             #
 ###############################################################################
@@ -2779,6 +2739,50 @@ AC_SUBST(STARPU_BLAS_LDFLAGS)
 AC_MSG_CHECKING(which BLAS lib should be used)
 AC_MSG_RESULT($blas_lib)
 AC_SUBST(BLAS_LIB,$blas_lib)
+
+###############################################################################
+#                                                                             #
+#			 Multiple linear regression			      #
+#                                                                             #
+###############################################################################
+AC_ARG_ENABLE(mlr, [AS_HELP_STRING([--disable-mlr],
+			[Disable multiple linear regression models])],
+			enable_mlr=$enableval, enable_mlr=yes)
+
+AC_MSG_CHECKING(whether multiple linear regression models are disabled)
+if test x$enable_mlr = xyes -a "$starpu_windows" != "yes" ; then
+   	AC_MSG_RESULT(no)
+	install_min_dgels=no
+   	STARPU_SEARCH_LIBS(LAPACK,[dgels_],[lapack],use_system_lapack=yes,,)
+	if test x$use_system_lapack = xyes; then
+	   	AC_DEFINE(STARPU_MLR_MODEL, [1], [use reflapack library])
+		LDFLAGS="-llapack $LDFLAGS"
+	else
+		if test test x$blas_lib = xmkl; then
+		   	AC_DEFINE(STARPU_MLR_MODEL, [1], [use mkl library])			
+		else
+			AC_MSG_CHECKING(whether min-dgels is linked)
+			if test x"$DGELS_LIBS" != x; then
+		   	   	AC_MSG_RESULT(yes)
+        		   	AC_DEFINE(STARPU_MLR_MODEL, [1], [use user defined library])
+			   	AC_ARG_VAR([DGELS_LIBS], [linker flags for lapack dgels])
+			else
+				AC_MSG_RESULT(no)
+				AC_MSG_CHECKING(min-dgels source)
+				cp -r $srcdir/min-dgels $PWD/
+				AC_MSG_RESULT(yes)
+				DGELS_LIBS="-Wl,--start-group $STARPU_BUILD_DIR/min-dgels/build/*.a -Wl,--end-group"
+				AC_DEFINE(STARPU_MLR_MODEL, [1], [use user defined library])
+				AC_ARG_VAR([DGELS_LIBS], [linker flags for lapack dgels])
+				install_min_dgels=yes
+			fi
+		fi
+	fi
+else
+ 	AC_MSG_RESULT(yes)
+	install_min_dgels=no
+fi
+AM_CONDITIONAL(STARPU_USE_MIN_DGELS, test x$install_min_dgels = xyes)
 
 ##########################################
 # FFT                                    #
