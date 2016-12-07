@@ -307,7 +307,7 @@ completion, this function returns 0.
 This macro can be used to acquire data, but not require it to be available on a given node, only enforce R/W dependencies.
 This can for instance be used to wait for tasks which produce the data, but without requesting a fetch to the main memory.
 
-\def STARPU_ACQUIRE_ALL_NODES
+\def STARPU_ACQUIRE_NO_NODE_LOCK_ALL
 \ingroup API_Data_Management
 This is the same as STARPU_ACQUIRE_NO_NODE, but will lock the data on all nodes, preventing them from being evicted for instance.
 This is mostly useful inside starpu only.
@@ -317,7 +317,7 @@ This is mostly useful inside starpu only.
 This is the same as starpu_data_acquire(), except that the data
 will be available on the given memory node instead of main
 memory.
-STARPU_ACQUIRE_NO_NODE and STARPU_ACQUIRE_ALL_NODES can be used instead of an
+STARPU_ACQUIRE_NO_NODE and STARPU_ACQUIRE_NO_NODE_LOCK_ALL can be used instead of an
 explicit node number.
 
 \fn int starpu_data_acquire_on_node_cb(starpu_data_handle_t handle, int node, enum starpu_data_access_mode mode, void (*callback)(void *), void *arg)
@@ -325,7 +325,7 @@ explicit node number.
 This is the same as starpu_data_acquire_cb(), except that the
 data will be available on the given memory node instead of main
 memory.
-STARPU_ACQUIRE_NO_NODE and STARPU_ACQUIRE_ALL_NODES can be used instead of an
+STARPU_ACQUIRE_NO_NODE and STARPU_ACQUIRE_NO_NODE_LOCK_ALL can be used instead of an
 explicit node number.
 
 \fn int starpu_data_acquire_on_node_cb_sequential_consistency(starpu_data_handle_t handle, int node, enum starpu_data_access_mode mode, void (*callback)(void *), void *arg, int sequential_consistency)
@@ -333,7 +333,7 @@ explicit node number.
 This is the same as starpu_data_acquire_cb_sequential_consistency(), except that the
 data will be available on the given memory node instead of main
 memory.
-STARPU_ACQUIRE_NO_NODE and STARPU_ACQUIRE_ALL_NODES can be used instead of an
+STARPU_ACQUIRE_NO_NODE and STARPU_ACQUIRE_NO_NODE_LOCK_ALL can be used instead of an
 explicit node number.
 
 \def STARPU_DATA_ACQUIRE_CB(handle, mode, code)
