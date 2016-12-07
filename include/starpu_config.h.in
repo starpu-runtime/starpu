@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2015  Université de Bordeaux
+ * Copyright (C) 2009-2015, 2019  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2015  Centre National de la Recherche Scientifique
  * Copyright (C) 2014  INRIA
  *
@@ -37,6 +37,7 @@
 #undef STARPU_SIMGRID
 #undef STARPU_HAVE_SIMGRID_MSG_H
 #undef STARPU_NON_BLOCKING_DRIVERS
+#undef STARPU_HAVE_XBT_SYNCHRO_H
 
 #undef STARPU_HAVE_ICC
 

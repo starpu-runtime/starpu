@@ -20,7 +20,11 @@
 
 #include <starpu_config.h>
 #ifdef STARPU_SIMGRID
+#ifdef STARPU_HAVE_XBT_SYNCHRO_H
+#include <xbt/synchro.h>
+#else
 #include <xbt/synchro_core.h>
+#endif
 #ifdef STARPU_HAVE_SIMGRID_MSG_H
 #include <simgrid/msg.h>
 #else
