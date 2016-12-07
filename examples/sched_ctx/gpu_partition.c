@@ -1,8 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2015  Université de Bordeaux
- * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
+ * Copyright (C) 2016  Uppsala University
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,8 +15,8 @@
  */
 
 /*
- * This creates two dumb vectors, splits them into chunks, and for each pair of
- * chunk, run axpy on them.
+ * This creates two dumb vectors & run axpy on them.
+ * You have to set STARPU_NWORKER_PER_CUDA=2 
  */
 
 #include <starpu.h>
