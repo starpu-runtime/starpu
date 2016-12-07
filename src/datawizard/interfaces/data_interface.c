@@ -70,7 +70,7 @@ void _starpu_data_interface_shutdown()
  * some handle, the new mapping shadows the previous one.   */
 void _starpu_data_register_ram_pointer(starpu_data_handle_t handle, void *ptr)
 {
-	struct handle_entry *entry;
+	struct handle_entry *entry, *old_entry;
 
 	entry = (struct handle_entry *) malloc(sizeof(*entry));
 	STARPU_ASSERT(entry != NULL);
@@ -79,8 +79,17 @@ void _starpu_data_register_ram_pointer(starpu_data_handle_t handle, void *ptr)
 	entry->handle = handle;
 
 	_starpu_spin_lock(&registered_handles_lock);
-	HASH_ADD_PTR(registered_handles, pointer, entry);
-	_starpu_spin_unlock(&registered_handles_lock);
+	HASH_FIND_PTR(registered_handles, &ptr, old_entry);
+	if (old_entry)
+	{
+		_starpu_spin_unlock(&registered_handles_lock);
+		free(entry);
+	}
+	else
+	{
+		HASH_ADD_PTR(registered_handles, pointer, entry);
+		_starpu_spin_unlock(&registered_handles_lock);
+	}
 }
 
 starpu_data_handle_t starpu_data_lookup(const void *ptr)
@@ -363,10 +372,8 @@ void _starpu_data_unregister_ram_pointer(starpu_data_handle_t handle)
 
 		_starpu_spin_lock(&registered_handles_lock);
 		HASH_FIND_PTR(registered_handles, &ram_ptr, entry);
-		STARPU_ASSERT(entry != NULL);
-
-		HASH_DEL(registered_handles, entry);
-
+		if (entry)
+			HASH_DEL(registered_handles, entry);
 		_starpu_spin_unlock(&registered_handles_lock);
 
 		free(entry);
