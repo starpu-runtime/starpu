@@ -147,9 +147,22 @@ do {                                                                            
 #define HASH_ADD(hh,head,fieldname,keylen_in,add)                                \
         HASH_ADD_KEYPTR(hh,head,&add->fieldname,keylen_in,add)
  
+#ifdef STARPU_DEBUG
+/* Check that we don't insert the same key several times */
+#define HASH_CHECK_KEY(hh,head,keyptr,keylen,out)                                \
+do {                                                                             \
+  __typeof__(out) _out;                                                          \
+  HASH_FIND(hh,head,keyptr,keylen,_out);                                         \
+  STARPU_ASSERT(!_out);                                                          \
+} while(0)
+#else
+#define HASH_CHECK_KEY(hh,head,keyptr,keylen,out)
+#endif
+
 #define HASH_ADD_KEYPTR(hh,head,keyptr,keylen_in,add)                            \
 do {                                                                             \
  unsigned _ha_bkt;                                                               \
+ HASH_CHECK_KEY(hh,head,keyptr,keylen_in,add);                                   \
  (add)->hh.next = NULL;                                                          \
  (add)->hh.key = (char*)keyptr;                                                  \
  (add)->hh.keylen = keylen_in;                                                   \
