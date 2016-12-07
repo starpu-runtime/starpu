@@ -371,7 +371,7 @@ int starpu_worker_can_execute_task_first_impl(unsigned workerid, struct starpu_t
 	{
 		for (i = 0; i < STARPU_MAXIMPLEMENTATIONS; i++)
 			if (_starpu_can_use_nth_implementation(arch, cl, i)
-			 && task->cl->can_execute(workerid, task, i))
+			 && (!task->cl->can_execute || task->cl->can_execute(workerid, task, i)))
 			{
 				if (nimpl)
 					*nimpl = i;
@@ -676,12 +676,16 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 			case STARPU_CUDA_WORKER:
 				driver.id.cuda_id = devid;
-
-				/* We spawn only one thread per CUDA driver,
-				 * which will control all CUDA workers of this
-				 * driver. (by using a worker set). */
-				if (worker_set->workers != workerarg)
-					break;
+				/* allow having one worker per stream */
+				unsigned th_per_stream = starpu_get_env_number_default("STARPU_ONE_THREAD_PER_STREAM", 1);
+				if(th_per_stream == 0)
+				{
+					/* We spawn only one thread per CUDA driver,
+					 * which will control all CUDA workers of this
+					 * driver. (by using a worker set). */
+					if (worker_set->workers != workerarg)
+						break;
+				}
 
 				worker_set->nworkers = starpu_get_env_number_default("STARPU_NWORKER_PER_CUDA", 1);
 
@@ -701,19 +705,53 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 					break;
 				}
 
-				STARPU_PTHREAD_CREATE_ON(
-					workerarg->name,
-					&worker_set->worker_thread,
-					NULL,
-					_starpu_cuda_worker,
-					worker_set,
-					_starpu_simgrid_get_host_by_worker(workerarg));
+
+				if(th_per_stream == 0)
+				{
+					STARPU_PTHREAD_CREATE_ON(
+						workerarg->name,
+						&worker_set->worker_thread,
+						NULL,
+						_starpu_cuda_worker,
+						worker_set,
+						_starpu_simgrid_get_host_by_worker(workerarg));
+				}
+				else
+				{
+					worker_set->nworkers = 1;
+					STARPU_PTHREAD_CREATE_ON(
+						workerarg->name,
+						&workerarg->worker_thread,
+						NULL,
+						_starpu_cuda_worker,
+//						workerarg,
+						worker_set,
+						_starpu_simgrid_get_host_by_worker(workerarg));
+				}
 #ifdef STARPU_USE_FXT
 				STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
 				while (!workerarg->worker_is_running)
 					STARPU_PTHREAD_COND_WAIT(&workerarg->started_cond, &workerarg->mutex);
 				STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
 #endif
+
+				if(th_per_stream == 0)
+				{
+
+					STARPU_PTHREAD_MUTEX_LOCK(&worker_set->mutex);
+					while (!worker_set->set_is_initialized)
+						STARPU_PTHREAD_COND_WAIT(&worker_set->ready_cond,
+									 &worker_set->mutex);
+					STARPU_PTHREAD_MUTEX_UNLOCK(&worker_set->mutex);
+				}
+				else
+				{
+					STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
+					while (!workerarg->worker_is_initialized)
+						STARPU_PTHREAD_COND_WAIT(&workerarg->ready_cond, &workerarg->mutex);
+					STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
+				}
+				worker_set->started = 1;
 				break;
 #endif
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
@@ -809,9 +847,6 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 		struct starpu_driver driver;
 		unsigned devid = workerarg->devid;
 		driver.type = workerarg->arch;
-#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
-		struct _starpu_worker_set *worker_set = workerarg->set;
-#endif
 
 		switch (workerarg->arch)
 		{
@@ -827,19 +862,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				break;
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 			case STARPU_CUDA_WORKER:
-#ifndef STARPU_SIMGRID
-				driver.id.cuda_id = devid;
-				if (!_starpu_may_launch_driver(&pconfig->conf, &driver))
-					break;
-#endif
-				_STARPU_DEBUG("waiting for worker %u initialization\n", worker);
-				STARPU_PTHREAD_MUTEX_LOCK(&worker_set->mutex);
-				while (!worker_set->set_is_initialized)
-					STARPU_PTHREAD_COND_WAIT(&worker_set->ready_cond,
-								 &worker_set->mutex);
-				STARPU_PTHREAD_MUTEX_UNLOCK(&worker_set->mutex);
-				worker_set->started = 1;
-
+				/* Already waited above */
 				break;
 #endif
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
@@ -1248,7 +1271,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	if (!is_a_sink)
 	{
 		struct starpu_sched_policy *selected_policy = _starpu_select_sched_policy(&_starpu_config, _starpu_config.conf.sched_policy_name);
-		_starpu_create_sched_ctx(selected_policy, NULL, -1, 1, "init", (_starpu_config.conf.global_sched_ctx_min_priority != -1), _starpu_config.conf.global_sched_ctx_min_priority, (_starpu_config.conf.global_sched_ctx_min_priority != -1), _starpu_config.conf.global_sched_ctx_max_priority, 1, _starpu_config.conf.sched_policy_init, NULL);
+		_starpu_create_sched_ctx(selected_policy, NULL, -1, 1, "init", (_starpu_config.conf.global_sched_ctx_min_priority != -1), _starpu_config.conf.global_sched_ctx_min_priority, (_starpu_config.conf.global_sched_ctx_min_priority != -1), _starpu_config.conf.global_sched_ctx_max_priority, 1, _starpu_config.conf.sched_policy_init, NULL,  0, NULL, 0);
 	}
 
 	_starpu_initialize_registered_performance_models();
@@ -1310,7 +1333,7 @@ static void _starpu_terminate_workers(struct _starpu_machine_config *pconfig)
 
 		/* in case StarPU termination code is called from a callback,
  		 * we have to check if pthread_self() is the worker itself */
-		if (set)
+		if (set && set->nworkers > 1)
 		{
 			if (set->started)
 			{
@@ -1842,6 +1865,47 @@ int starpu_worker_get_by_devid(enum starpu_worker_archtype type, int devid)
 	return -1;
 }
 
+int starpu_worker_get_devids(enum starpu_worker_archtype type, int *devids, int num)
+{
+	int cnt = 0;
+	unsigned nworkers = starpu_worker_get_count();
+	int *workerids = (int *)malloc(nworkers*sizeof(int));
+
+	int ndevice_workers = starpu_worker_get_ids_by_type(type, workerids, nworkers);
+
+	int ndevids = 0;
+
+	if(ndevice_workers > 0)
+	{
+		unsigned id, devid;
+		int curr_devid = -1;
+		unsigned found = 0;
+		for(id = 0; id < ndevice_workers; id++)
+		{
+			curr_devid = _starpu_config.workers[workerids[id]].devid;
+			for(devid = 0; devid < ndevids; devid++)
+			{
+				if(curr_devid == devids[devid])
+				{
+					found = 1;
+					break;
+				}
+			}
+			if(!found)
+			{
+				devids[ndevids++] = curr_devid;
+				cnt++;
+			}
+			else
+				found = 0;
+
+			if(cnt == num)
+				break;
+		}
+	}
+	return ndevids;
+}
+
 void starpu_worker_get_name(int id, char *dst, size_t maxlen)
 {
 	char *name = _starpu_config.workers[id].name;
@@ -1860,6 +1924,19 @@ int starpu_bindid_get_workerids(int bindid, int **workerids)
 		return 0;
 	*workerids = _starpu_config.bindid_workers[bindid].workerids;
 	return _starpu_config.bindid_workers[bindid].nworkers;
+}
+
+int starpu_worker_get_stream_workerids(int devid, int *workerids, enum starpu_worker_archtype type)
+{
+	unsigned nworkers = starpu_worker_get_count();
+	int nw = 0;
+	unsigned id;
+	for (id = 0; id < nworkers; id++)
+	{
+		if (_starpu_config.workers[id].devid == devid && _starpu_config.workers[id].arch == type)
+			workerids[nw++] = id;
+	}
+	return nw;
 }
 
 void starpu_worker_get_sched_condition(int workerid, starpu_pthread_mutex_t **sched_mutex, starpu_pthread_cond_t **sched_cond)
@@ -2142,3 +2219,23 @@ char *starpu_worker_get_type_as_string(enum starpu_worker_archtype type)
 	if (type == STARPU_ANY_WORKER) return "STARPU_ANY_WORKER";
 	return "STARPU_unknown_WORKER";
 }
+
+void _starpu_worker_set_stream_ctx(int workerid, struct _starpu_sched_ctx *sched_ctx)
+{
+        struct _starpu_worker *w = _starpu_get_worker_struct(workerid);
+        w->stream_ctx = sched_ctx;
+}
+
+struct _starpu_sched_ctx* _starpu_worker_get_ctx_stream(int stream_workerid)
+{
+        struct _starpu_worker *w = _starpu_get_worker_struct(stream_workerid);
+        return w->stream_ctx;
+}
+
+unsigned starpu_worker_get_sched_ctx_id_stream(int stream_workerid)
+{
+        struct _starpu_worker *w = _starpu_get_worker_struct(stream_workerid);
+	return w->stream_ctx != NULL ? w->stream_ctx->id : STARPU_NMAX_SCHED_CTXS;
+}
+
+

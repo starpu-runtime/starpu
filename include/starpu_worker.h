@@ -129,6 +129,11 @@ char *starpu_worker_get_type_as_string(enum starpu_worker_archtype type);
 
 int starpu_bindid_get_workerids(int bindid, int **workerids);
 
+int starpu_worker_get_devids(enum starpu_worker_archtype type, int *devids, int num);
+
+int starpu_worker_get_stream_workerids(int devid, int *workerids, enum starpu_worker_archtype type);
+
+unsigned starpu_worker_get_sched_ctx_id_stream(int stream_workerid);
 #ifdef __cplusplus
 }
 #endif

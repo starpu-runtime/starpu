@@ -94,6 +94,7 @@ void starpu_task_init(struct starpu_task *task)
 
 	task->predicted = NAN;
 	task->predicted_transfer = NAN;
+	task->predicted_start = NAN;
 
 	task->magic = 42;
 	task->sched_ctx = STARPU_NMAX_SCHED_CTXS;

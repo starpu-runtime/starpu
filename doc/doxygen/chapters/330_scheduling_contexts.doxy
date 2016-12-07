@@ -96,6 +96,36 @@ int id_ctx = starpu_sched_ctx_create(workerids, 3, "my_ctx", STARPU_SCHED_CTX_PO
 /* .... */
 \endcode
 
+\section CreatingAContext Creating A Context To Partition a GPU
+
+The contexts can also be used to group set of SMs of an NVIDIA GPU in order to isolate
+the parallel kernels and allow them to coexecution on a specified partiton of the GPU.
+
+Each context will be mapped to a stream and the user can indicate the number of SMs.
+The context can be added to a larger context already grouping CPU cores. 
+This larger context can use a scheduling policy that assigns tasks to both CPUs and contexts (partitions of the GPU)
+based on performance models adjusted to the number of SMs.
+
+The GPU implementation of the task has to be modified accordingly and receive as a parameter the number of SMs.
+
+\code{.c}
+/* get the available streams (suppose we have nstreams = 2 by specifying them with STARPU_NWORKER_PER_CUDA=2  */
+int nstreams = starpu_worker_get_stream_workerids(gpu_devid, stream_workerids, STARPU_CUDA_WORKER);
+
+int sched_ctx[nstreams];
+sched_ctx[0] = starpu_sched_ctx_create(&stream_workerids[0], 1, "subctx",  STARPU_SCHED_CTX_CUDA_NSMS, 6, 0);
+sched_ctx[1] = starpu_sched_ctx_create(&stream_workerids[1], 1, "subctx",  STARPU_SCHED_CTX_CUDA_NSMS, 7, 0);
+
+int ncpus = 4;
+int workers[ncpus+nstreams];
+workers[ncpus+0] = stream_workerids[0];
+workers[ncpus+1] = stream_workerids[1];
+
+big_sched_ctx = starpu_sched_ctx_create(workers, ncpus+nstreams, "ctx1", STARPU_SCHED_CTX_SUB_CTXS, sched_ctxs, nstreams, STARPU_SCHED_CTX_POLICY_NAME, "dmdas", 0); 
+
+starpu_task_submit_to_ctx(task, big_sched_ctx);
+
+\endcode
 
 \section ModifyingAContext Modifying A Context
 

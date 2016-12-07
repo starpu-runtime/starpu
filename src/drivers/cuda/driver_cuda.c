@@ -70,6 +70,9 @@ static starpu_pthread_mutex_t task_mutex[STARPU_NMAXWORKERS][STARPU_MAX_PIPELINE
 static starpu_pthread_cond_t task_cond[STARPU_NMAXWORKERS][STARPU_MAX_PIPELINE];
 #endif /* STARPU_SIMGRID */
 
+static unsigned cuda_memnode_deinit[STARPU_MAXCUDADEVS];
+static starpu_pthread_mutex_t cuda_deinit_mutex[STARPU_MAXCUDADEVS];
+
 void
 _starpu_cuda_discover_devices (struct _starpu_machine_config *config)
 {
@@ -676,11 +679,16 @@ int _starpu_cuda_driver_init(struct _starpu_worker_set *worker_set)
 	STARPU_PTHREAD_COND_SIGNAL(&worker0->ready_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&worker0->mutex);
 
-	/* tell the main thread that this one is ready */
-	STARPU_PTHREAD_MUTEX_LOCK(&worker_set->mutex);
-	worker_set->set_is_initialized = 1;
-	STARPU_PTHREAD_COND_SIGNAL(&worker_set->ready_cond);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&worker_set->mutex);
+	unsigned th_per_stream = starpu_get_env_number_default("STARPU_ONE_THREAD_PER_STREAM", 1);
+
+	if(th_per_stream == 0)
+	{
+		/* tell the main thread that this one is ready */
+		STARPU_PTHREAD_MUTEX_LOCK(&worker_set->mutex);
+		worker_set->set_is_initialized = 1;
+		STARPU_PTHREAD_COND_SIGNAL(&worker_set->ready_cond);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&worker_set->mutex);
+	}
 
 	return 0;
 }
@@ -852,18 +860,27 @@ int _starpu_cuda_driver_deinit(struct _starpu_worker_set *worker_set)
 			continue;
 		lastdevid = devid;
 
-		_starpu_handle_all_pending_node_data_requests(memnode);
+		STARPU_PTHREAD_MUTEX_LOCK(&cuda_deinit_mutex[memnode]);
+		if(!cuda_memnode_deinit[devid])
+                {
 
-		/* In case there remains some memory that was automatically
-		 * allocated by StarPU, we release it now. Note that data
-		 * coherency is not maintained anymore at that point ! */
-		_starpu_free_all_automatically_allocated_buffers(memnode);
-
-		_starpu_malloc_shutdown(memnode);
+			_starpu_handle_all_pending_node_data_requests(memnode);
+			
+			/* In case there remains some memory that was automatically
+			 * allocated by StarPU, we release it now. Note that data
+			 * coherency is not maintained anymore at that point ! */
+			_starpu_free_all_automatically_allocated_buffers(memnode);
+			
+			_starpu_malloc_shutdown(memnode);
+			cuda_memnode_deinit[devid] = 1;
 
 #ifndef STARPU_SIMGRID
-		deinit_device_context(devid);
+			deinit_device_context(devid);
 #endif /* !STARPU_SIMGRID */
+                }
+
+                STARPU_PTHREAD_MUTEX_UNLOCK(&cuda_deinit_mutex[memnode]);
+
 	}
 
 	for (i = 0; i < worker_set->nworkers; i++)

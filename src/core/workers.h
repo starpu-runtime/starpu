@@ -133,6 +133,8 @@ LIST_TYPE(_starpu_worker,
 	/* bool to indicate if the worker is slave in a ctx */
 	unsigned is_slave_somewhere;
 
+	struct _starpu_sched_ctx *stream_ctx;
+
 #ifdef __GLIBC__
 	cpu_set_t cpu_set;
 #endif /* __GLIBC__ */
@@ -575,5 +577,9 @@ static inline unsigned __starpu_worker_get_id_check(const char *f, int l)
 	return id;
 }
 #define _starpu_worker_get_id_check(f,l) __starpu_worker_get_id_check(f,l)
+
+void _starpu_worker_set_stream_ctx(int workerid, struct _starpu_sched_ctx *sched_ctx);
+
+struct _starpu_sched_ctx* _starpu_worker_get_ctx_stream(int stream_workerid);
 
 #endif // __WORKERS_H__

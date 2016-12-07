@@ -196,6 +196,7 @@ struct starpu_task
 	double flops;
 	double predicted;
 	double predicted_transfer;
+	double predicted_start;
 
 	struct starpu_task *prev;
 	struct starpu_task *next;

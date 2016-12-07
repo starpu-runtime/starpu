@@ -59,6 +59,9 @@ struct starpu_perfmodel_arch* starpu_worker_get_perf_archtype(int workerid, unsi
 		unsigned child_sched_ctx = starpu_sched_ctx_worker_is_master_for_child_ctx(workerid, sched_ctx_id);
 		if(child_sched_ctx != STARPU_NMAX_SCHED_CTXS)
 			return _starpu_sched_ctx_get_perf_archtype(child_sched_ctx);
+		struct _starpu_sched_ctx *stream_ctx = _starpu_worker_get_ctx_stream(workerid);
+		if(stream_ctx != NULL)
+			return _starpu_sched_ctx_get_perf_archtype(stream_ctx->id); 
 	}
 
 	struct _starpu_machine_config *config = _starpu_get_machine_config();

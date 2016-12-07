@@ -39,8 +39,8 @@ struct starpu_sched_policy
 	struct starpu_task *(*pop_every_task)(unsigned sched_ctx_id);
 
 	void (*submit_hook)(struct starpu_task *task);
-	void (*pre_exec_hook)(struct starpu_task *);
-	void (*post_exec_hook)(struct starpu_task *);
+	void (*pre_exec_hook)(struct starpu_task *, unsigned sched_ctx_id);
+	void (*post_exec_hook)(struct starpu_task *, unsigned sched_ctx_id);
 
 	void (*do_schedule)(unsigned sched_ctx_id);
 

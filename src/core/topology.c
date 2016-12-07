@@ -89,7 +89,12 @@ _starpu_get_worker_from_driver(struct starpu_driver *d)
 
 #ifdef STARPU_USE_CUDA
 	if (d->type == STARPU_CUDA_WORKER)
-		return &cuda_worker_set[d->id.cuda_id];
+	{
+		unsigned th_per_stream = starpu_get_env_number_default("STARPU_ONE_THREAD_PER_STREAM", 1);
+		if(th_per_stream == 0)
+			return &cuda_worker_set[d->id.cuda_id];
+
+	}
 #endif
 
 	for (workerid = 0; workerid < nworkers; workerid++)
@@ -116,6 +121,16 @@ _starpu_get_worker_from_driver(struct starpu_driver *d)
 				break;
 			}
 #endif
+#ifdef STARPU_USE_CUDA
+			case STARPU_CUDA_WORKER:
+			{
+				if (worker->devid == d->id.cuda_id)
+					return &worker->set;
+				break;
+
+			}
+#endif
+
 			default:
 				_STARPU_DEBUG("Invalid device type\n");
 				return NULL;
@@ -1038,17 +1053,27 @@ _starpu_init_machine_config(struct _starpu_machine_config *config, int no_mp_con
 
 	_starpu_initialize_workers_cuda_gpuid(config);
 
+	/* allow having one worker per stream */
+	unsigned th_per_stream = starpu_get_env_number_default("STARPU_WORKER_PER_STREAM", 1);
+
 	unsigned cudagpu;
 	for (cudagpu = 0; cudagpu < topology->ncudagpus; cudagpu++)
 	{
 		int devid = _starpu_get_next_cuda_gpuid(config);
 		int worker_idx0 = topology->nworkers + cudagpu * nworker_per_cuda;
 		cuda_worker_set[devid].workers = &config->workers[worker_idx0];
+
 		for (i = 0; i < nworker_per_cuda; i++)
 		{
 			int worker_idx = worker_idx0 + i;
+			if(th_per_stream)
+			{
+				config->workers[worker_idx].set = (struct _starpu_worker_set *)malloc(sizeof(struct _starpu_worker_set));
+				config->workers[worker_idx].set->workers = &config->workers[worker_idx];
+			}
+			else
+				config->workers[worker_idx].set = &cuda_worker_set[devid];
 
-			config->workers[worker_idx].set = &cuda_worker_set[devid];
 			config->workers[worker_idx].arch = STARPU_CUDA_WORKER;
 			_STARPU_MALLOC(config->workers[worker_idx].perf_arch.devices, sizeof(struct starpu_perfmodel_device));
 			config->workers[worker_idx].perf_arch.ndevices = 1;
@@ -1554,7 +1579,6 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 		int *preferred_binding = NULL;
 		int npreferred = 0;
 #endif
-
 		/* select the memory node that contains worker's memory */
 		switch (workerarg->arch)
 		{
@@ -1601,7 +1625,7 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 				{
 					memory_node = cuda_memory_nodes[devid];
 #ifndef STARPU_SIMGRID
-					workerarg->bindid = cuda_bindid[devid];
+					workerarg->bindid = _starpu_get_next_bindid(config, preferred_binding, npreferred);//cuda_bindid[devid];
 #endif /* SIMGRID */
 				}
 				else
