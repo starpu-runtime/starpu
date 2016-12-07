@@ -147,7 +147,7 @@ struct starpu_data_interface_ops *_starpu_data_interface_get_ops(unsigned interf
  * some handle, the new mapping shadows the previous one.   */
 void _starpu_data_register_ram_pointer(starpu_data_handle_t handle, void *ptr)
 {
-	struct handle_entry *entry;
+	struct handle_entry *entry, *old_entry;
 
 	_STARPU_MALLOC(entry, sizeof(*entry));
 
@@ -174,11 +174,19 @@ void _starpu_data_register_ram_pointer(starpu_data_handle_t handle, void *ptr)
 #endif
 	{
 		_starpu_spin_lock(&registered_handles_lock);
-		nregistered++;
-		if (nregistered > maxnregistered)
-			maxnregistered = nregistered;
-		HASH_ADD_PTR(registered_handles, pointer, entry);
-		_starpu_spin_unlock(&registered_handles_lock);
+		HASH_FIND_PTR(registered_handles, &ptr, old_entry);
+		if (old_entry) {
+			/* Already registered this pointer, avoid undefined
+			 * behavior of duplicate in hash table */
+			_starpu_spin_unlock(&registered_handles_lock);
+			free(entry);
+		} else {
+			nregistered++;
+			if (nregistered > maxnregistered)
+				maxnregistered = nregistered;
+			HASH_ADD_PTR(registered_handles, pointer, entry);
+			_starpu_spin_unlock(&registered_handles_lock);
+		}
 	}
 }
 
@@ -544,9 +552,10 @@ void _starpu_data_unregister_ram_pointer(starpu_data_handle_t handle)
 
 			_starpu_spin_lock(&registered_handles_lock);
 			HASH_FIND_PTR(registered_handles, &ram_ptr, entry);
-			STARPU_ASSERT(entry != NULL);
-			nregistered--;
-			HASH_DEL(registered_handles, entry);
+			if (entry) {
+				nregistered--;
+				HASH_DEL(registered_handles, entry);
+			}
 			_starpu_spin_unlock(&registered_handles_lock);
 		}
 		free(entry);

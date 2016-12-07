@@ -195,6 +195,8 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 		STARPU_ASSERT(!ret);
 	}
 
+	_starpu_data_unregister_ram_pointer(initial_handle);
+
 	for (i = 0; i < nparts; i++)
 	{
 		starpu_data_handle_t child;
@@ -341,6 +343,7 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 	unsigned nworkers = starpu_worker_get_count();
 	unsigned node;
 	unsigned sizes[root_handle->nchildren];
+	void *ptr;
 
 	_STARPU_TRACE_START_UNPARTITION(root_handle, gathering_node);
 	_starpu_spin_lock(&root_handle->header_lock);
@@ -427,6 +430,10 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 
 		_starpu_memory_stats_free(child_handle);
 	}
+
+	ptr = starpu_data_handle_to_pointer(root_handle, STARPU_MAIN_RAM);
+	if (ptr != NULL)
+		_starpu_data_register_ram_pointer(root_handle, ptr);
 
 	/* the gathering_node should now have a valid copy of all the children.
 	 * For all nodes, if the node had all copies and none was locally
