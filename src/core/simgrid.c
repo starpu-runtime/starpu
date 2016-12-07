@@ -227,10 +227,9 @@ struct main_args
 };
 static int main_ret;
 
-int do_starpu_main(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[])
+int do_starpu_main(int argc, char *argv[])
 {
-	struct main_args *args = (void*) argv;
-	main_ret = starpu_main(args->argc, args->argv);
+	main_ret = starpu_main(argc, argv);
 	return main_ret;
 }
 
@@ -249,11 +248,12 @@ int main(int argc, char **argv)
 	start_simgrid(&argc, argv);
 
 	/* Create a simgrid process for main */
-	struct main_args *args;
-	_STARPU_MALLOC(args, sizeof(*args));
-	args->argc = argc;
-	args->argv = argv;
-	MSG_process_create_with_arguments("main", &do_starpu_main, calloc(MAX_TSD, sizeof(void*)), MSG_get_host_by_name("MAIN"), 0, (char**) args);
+	char **argv_cpy;
+	_STARPU_MALLOC(argv_cpy, argc * sizeof(char*));
+	int i;
+	for (i = 0; i < argc; i++)
+		argv_cpy[i] = strdup(argv[i]);
+	MSG_process_create_with_arguments("main", &do_starpu_main, calloc(MAX_TSD+1, sizeof(void*)), MSG_get_host_by_name("MAIN"), argc, argv_cpy);
 
 	/* And run maestro in main thread */
 	MSG_main();
@@ -265,7 +265,7 @@ static void maestro(void *data STARPU_ATTRIBUTE_UNUSED)
 	MSG_main();
 }
 
-void _starpu_simgrid_init(int *argc, char ***argv)
+void _starpu_simgrid_init(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef HAVE_MSG_PROCESS_ATTACH
 	if (!simgrid_started && !(smpi_main && smpi_simulated_main_ != _starpu_smpi_simulated_main_))
@@ -336,9 +336,9 @@ struct task
 static struct task *last_task[STARPU_NMAXWORKERS];
 
 /* Actually execute the task.  */
-static int task_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[])
+static int task_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED)
 {
-	struct task *task = (void*) argv;
+	struct task *task = starpu_pthread_getspecific(0);
 	_STARPU_DEBUG("task %p started\n", task);
 	MSG_task_execute(task->task);
 	MSG_task_destroy(task->task);
@@ -354,7 +354,11 @@ static int task_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[])
 	if (last_task[task->workerid] == task)
 		last_task[task->workerid] = NULL;
 	if (task->next)
-		MSG_process_create_with_arguments("task", task_execute, calloc(MAX_TSD, sizeof(void*)), MSG_host_self(), 0, (char**) task->next);
+	{
+		void **tsd = calloc(MAX_TSD+1, sizeof(void*));
+		tsd[0] = task->next;
+		MSG_process_create_with_arguments("task", task_execute, tsd, MSG_host_self(), 0, NULL);
+	}
 	/* Task is freed with process context */
 	return 0;
 }
@@ -433,8 +437,11 @@ void _starpu_simgrid_submit_job(int workerid, struct _starpu_job *j, struct star
 		}
 		else
 		{
+			void **tsd;
 			last_task[workerid] = task;
-			MSG_process_create_with_arguments("task", task_execute, calloc(MAX_TSD, sizeof(void*)), MSG_host_self(), 0, (char**) task);
+			tsd = calloc(MAX_TSD+1, sizeof(void*));
+			tsd[0] = task;
+			MSG_process_create_with_arguments("task", task_execute, tsd, MSG_host_self(), 0, NULL);
 		}
 	}
 }
@@ -517,9 +524,9 @@ static int transfers_are_sequential(struct transfer *new_transfer, struct transf
 }
 
 /* Actually execute the transfer, and then start transfers waiting for this one.  */
-static int transfer_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[])
+static int transfer_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED)
 {
-	struct transfer *transfer = (void*) argv;
+	struct transfer *transfer = starpu_pthread_getspecific(0);
 	unsigned i;
 	_STARPU_DEBUG("transfer %p started\n", transfer);
 	MSG_task_execute(transfer->task);
@@ -543,8 +550,11 @@ static int transfer_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[])
 		wake->nwait--;
 		if (!wake->nwait)
 		{
+			void **tsd;
 			_STARPU_DEBUG("triggering transfer %p\n", wake);
-			MSG_process_create_with_arguments("transfer task", transfer_execute, calloc(MAX_TSD, sizeof(void*)), _starpu_simgrid_get_host_by_name("MAIN"), 0, (char**) wake);
+			tsd = calloc(MAX_TSD+1, sizeof(void*));
+			tsd[0] = wake;
+			MSG_process_create_with_arguments("transfer task", transfer_execute, tsd, _starpu_simgrid_get_host_by_name("MAIN"), 0, NULL);
 		}
 	}
 
@@ -581,8 +591,11 @@ static void transfer_submit(struct transfer *transfer)
 
 	if (!transfer->nwait)
 	{
+		void **tsd;
 		_STARPU_DEBUG("transfer %p waits for nobody, starting\n", transfer);
-		MSG_process_create_with_arguments("transfer task", transfer_execute, calloc(MAX_TSD, sizeof(void*)), _starpu_simgrid_get_host_by_name("MAIN"), 0, (char**) transfer);
+		tsd = calloc(MAX_TSD+1, sizeof(void*));
+		tsd[0] = transfer;
+		MSG_process_create_with_arguments("transfer task", transfer_execute, tsd, _starpu_simgrid_get_host_by_name("MAIN"), 0, NULL);
 	}
 }
 
