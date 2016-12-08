@@ -628,6 +628,8 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 #endif
 	STARPU_AYU_INIT();
 
+	unsigned th_per_stream = starpu_get_env_number_default("STARPU_ONE_THREAD_PER_STREAM", 1);
+
 	for (worker = 0; worker < nworkers; worker++)
 	{
 		struct _starpu_worker *workerarg = &pconfig->workers[worker];
@@ -678,7 +680,6 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 			case STARPU_CUDA_WORKER:
 				driver.id.cuda_id = devid;
 				/* allow having one worker per stream */
-				unsigned th_per_stream = starpu_get_env_number_default("STARPU_ONE_THREAD_PER_STREAM", 1);
 				if(th_per_stream == 0)
 				{
 					/* We spawn only one thread per CUDA driver,
@@ -736,23 +737,6 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
 #endif
 
-				if(th_per_stream == 0)
-				{
-
-					STARPU_PTHREAD_MUTEX_LOCK(&worker_set->mutex);
-					while (!worker_set->set_is_initialized)
-						STARPU_PTHREAD_COND_WAIT(&worker_set->ready_cond,
-									 &worker_set->mutex);
-					STARPU_PTHREAD_MUTEX_UNLOCK(&worker_set->mutex);
-				}
-				else
-				{
-					STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
-					while (!workerarg->worker_is_initialized)
-						STARPU_PTHREAD_COND_WAIT(&workerarg->ready_cond, &workerarg->mutex);
-					STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
-				}
-				worker_set->started = 1;
 				break;
 #endif
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
@@ -848,7 +832,9 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 		struct starpu_driver driver;
 		unsigned devid = workerarg->devid;
 		driver.type = workerarg->arch;
-
+#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
+		struct _starpu_worker_set *worker_set = workerarg->set;
+#endif
 		switch (workerarg->arch)
 		{
 			case STARPU_CPU_WORKER:
@@ -863,7 +849,29 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				break;
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 			case STARPU_CUDA_WORKER:
-				/* Already waited above */
+#ifndef STARPU_SIMGRID
+				driver.id.cuda_id = devid;
+				if (!_starpu_may_launch_driver(&pconfig->conf, &driver))
+					break;
+#endif
+				_STARPU_DEBUG("waiting for worker %u initialization\n", worker);
+				if(th_per_stream == 0)
+				{
+					STARPU_PTHREAD_MUTEX_LOCK(&worker_set->mutex);
+					while (!worker_set->set_is_initialized)
+						STARPU_PTHREAD_COND_WAIT(&worker_set->ready_cond,
+									 &worker_set->mutex);
+					STARPU_PTHREAD_MUTEX_UNLOCK(&worker_set->mutex);
+				}
+				else
+				{
+					STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
+					while (!workerarg->worker_is_initialized)
+						STARPU_PTHREAD_COND_WAIT(&workerarg->ready_cond, &workerarg->mutex);
+					STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
+				}
+				worker_set->started = 1;
+
 				break;
 #endif
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
