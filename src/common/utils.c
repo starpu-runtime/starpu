@@ -196,8 +196,8 @@ char *_starpu_mktemp(const char *directory, int flags, int *fd)
 	if ((flags & F_NOCACHE) != 0)
 	{
 		int flag = fcntl(*fd, F_GETFL);
-		//flag |= F_NOCACHE;
-		if (fcntl(*fd, F_SETFL, F_NOCACHE) < 0)
+		flag |= F_NOCACHE;
+		if (fcntl(*fd, F_SETFL, flag) < 0)
 		{
 			int err = errno;
 			_STARPU_DISP("Could set F_NOCACHE on the temporary file in  directory '%s', fcntl failed with error '%s'\n", directory, strerror(errno));
