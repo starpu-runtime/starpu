@@ -88,7 +88,17 @@ if(block_start > active_blocks)						\
 
 template <typename F>
 static void buildPartitionedBlockMapping(F cudaFun, int threads, int shmem, int mapping_start, int allocation,
-				  int &width, int &active_blocks, unsigned int *block_assignment_d,cudaStream_t current_stream = cudaStreamPerThread)
+				  int &width, int &active_blocks, unsigned int *block_assignment_d,cudaStream_t current_stream =
+#ifdef cudaStreamPerThread
+				  cudaStreamPerThread
+#elif defined(cudaStreamNonBlocking)
+				  cudaStreamNonBlocking
+#elif defined(cudeStreamDefault)
+				  cudaStreamDefault
+#else
+				  NULL
+#endif
+				  )
 {
   int occupancy;
   int nb_SM = 13; //TODO: replace with call
