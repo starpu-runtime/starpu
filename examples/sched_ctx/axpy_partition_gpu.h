@@ -91,10 +91,6 @@ static void buildPartitionedBlockMapping(F cudaFun, int threads, int shmem, int 
 				  int &width, int &active_blocks, unsigned int *block_assignment_d,cudaStream_t current_stream =
 #ifdef cudaStreamPerThread
 				  cudaStreamPerThread
-#elif defined(cudaStreamNonBlocking)
-				  cudaStreamNonBlocking
-#elif defined(cudeStreamDefault)
-				  cudaStreamDefault
 #else
 				  NULL
 #endif
@@ -105,8 +101,11 @@ static void buildPartitionedBlockMapping(F cudaFun, int threads, int shmem, int 
   int mapping_end = mapping_start + allocation - 1; // exclusive
   unsigned int block_assignment[15];
   
+#if CUDART_VERSION >= 6050
   cudaOccupancyMaxActiveBlocksPerMultiprocessor(&occupancy,cudaFun,threads,shmem);
-  //occupancy = 4;
+#else
+  occupancy = 4;
+#endif
   width = occupancy * nb_SM; // Physical wrapper grid size. Fits GPU exactly
   active_blocks = occupancy*allocation; // The total number of blocks doing work
 
