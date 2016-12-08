@@ -1089,9 +1089,13 @@ _starpu_init_machine_config(struct _starpu_machine_config *config, int no_mp_con
 			config->worker_mask |= STARPU_CUDA;
 
 			struct handle_entry *entry;
-			_STARPU_MALLOC(entry, sizeof(*entry));
-			entry->gpuid = devid;
-			HASH_ADD_INT(devices_using_cuda, gpuid, entry);
+			HASH_FIND_INT(devices_using_cuda, &devid, entry);
+			if (!entry)
+			{
+				_STARPU_MALLOC(entry, sizeof(*entry));
+				entry->gpuid = devid;
+				HASH_ADD_INT(devices_using_cuda, gpuid, entry);
+			}
 		}
 
 #ifndef STARPU_SIMGRID
