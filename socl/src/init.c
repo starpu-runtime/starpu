@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012 University of Bordeaux
+ * Copyright (C) 2010-2012, 2016 University of Bordeaux
  * Copyright (C) 2012,2014,2016 CNRS
  * Copyright (C) 2012 Vincent Danjean <Vincent.Danjean@ens-lyon.org>
  *
@@ -23,12 +23,17 @@
 
 int _starpu_init_failed;
 volatile int _starpu_init = 0;
+volatile int _starpu_initing = 0;
 static starpu_pthread_mutex_t _socl_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 static struct starpu_conf conf;
 
-void socl_init_starpu(void) {
+int socl_init_starpu(void) {
+  if (_starpu_initing)
+    /* Avoid recursion when starpu_init calls hwloc initialization which uses its opencl plugin */
+    return -1;
   STARPU_PTHREAD_MUTEX_LOCK(&_socl_mutex);
   if( ! _starpu_init ){
+    _starpu_initing = 1;
     starpu_conf_init(&conf);
     conf.ncuda = 0;
     conf.ncpus = 0;
@@ -50,9 +55,11 @@ void socl_init_starpu(void) {
     /* Disable dataflow implicit dependencies */
     starpu_data_set_default_sequential_consistency_flag(0);
     _starpu_init = 1;
+    _starpu_initing = 0;
   }
   STARPU_PTHREAD_MUTEX_UNLOCK(&_socl_mutex);
 
+  return 0;
 }
 /**
  * Initialize SOCL

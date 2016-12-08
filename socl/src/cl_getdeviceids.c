@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012 University of Bordeaux
+ * Copyright (C) 2010-2012, 2016 University of Bordeaux
  * Copyright (C) 2012 CNRS
  * Copyright (C) 2012 Vincent Danjean <Vincent.Danjean@ens-lyon.org>
  *
@@ -32,7 +32,11 @@ soclGetDeviceIDs(cl_platform_id   platform,
                cl_uint *        num_devices) CL_API_SUFFIX__VERSION_1_0
 {
    if( ! _starpu_init )
-      socl_init_starpu();
+      if (socl_init_starpu() < 0)
+      {
+         *num_devices = 0;
+         return CL_SUCCESS;
+      }
 
    if (_starpu_init_failed) {
       *num_devices = 0;
