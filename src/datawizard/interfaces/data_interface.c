@@ -552,9 +552,16 @@ void _starpu_data_unregister_ram_pointer(starpu_data_handle_t handle)
 
 			_starpu_spin_lock(&registered_handles_lock);
 			HASH_FIND_PTR(registered_handles, &ram_ptr, entry);
-			if (entry && entry->handle == handle) {
-				nregistered--;
-				HASH_DEL(registered_handles, entry);
+			if (entry)
+			{
+				if (entry->handle == handle)
+				{
+					nregistered--;
+					HASH_DEL(registered_handles, entry);
+				}
+				else
+					/* don't free it, it's not ours */
+					entry = NULL;
 			}
 			_starpu_spin_unlock(&registered_handles_lock);
 		}
