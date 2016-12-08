@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2015  Université de Bordeaux
+ * Copyright (C) 2009-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2015 Centre National de la Recherche Scientifique
  * Copyright (C) 2011  INRIA
  *
@@ -547,10 +547,14 @@ _starpu_init_machine_config(struct _starpu_machine_config *config)
 		config->worker_mask |= STARPU_CUDA;
 
 		struct handle_entry *entry;
-		entry = (struct handle_entry *) malloc(sizeof(*entry));
-		STARPU_ASSERT(entry != NULL);
-		entry->gpuid = devid;
-		HASH_ADD_INT(devices_using_cuda, gpuid, entry);
+		HASH_FIND_INT(devices_using_cuda, &devid, entry);
+		if (!entry)
+		{
+			entry = (struct handle_entry *) malloc(sizeof(*entry));
+			STARPU_ASSERT(entry != NULL);
+			entry->gpuid = devid;
+			HASH_ADD_INT(devices_using_cuda, gpuid, entry);
+		}
         }
 
 	topology->nworkers += topology->ncudagpus;
