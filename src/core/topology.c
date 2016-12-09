@@ -88,15 +88,6 @@ _starpu_get_worker_from_driver(struct starpu_driver *d)
 	unsigned nworkers = starpu_worker_get_count();
 	unsigned workerid;
 
-#ifdef STARPU_USE_CUDA
-	if (d->type == STARPU_CUDA_WORKER)
-	{
-		unsigned th_per_stream = starpu_get_env_number_default("STARPU_ONE_THREAD_PER_STREAM", 0);
-		if(th_per_stream == 0)
-			return &cuda_worker_set[d->id.cuda_id];
-	}
-#endif
-
 	for (workerid = 0; workerid < nworkers; workerid++)
 	{
 		if (starpu_worker_get_type(workerid) == d->type)
@@ -125,7 +116,7 @@ _starpu_get_worker_from_driver(struct starpu_driver *d)
 			case STARPU_CUDA_WORKER:
 			{
 				if (worker->devid == d->id.cuda_id)
-					return &worker->set;
+					return worker->set;
 				break;
 
 			}
