@@ -2211,18 +2211,23 @@ char *starpu_worker_get_type_as_string(enum starpu_worker_archtype type)
 
 void _starpu_worker_set_stream_ctx(int workerid, struct _starpu_sched_ctx *sched_ctx)
 {
+	STARPU_ASSERT(stream_workerid < starpu_worker_get_count());
         struct _starpu_worker *w = _starpu_get_worker_struct(workerid);
         w->stream_ctx = sched_ctx;
 }
 
 struct _starpu_sched_ctx* _starpu_worker_get_ctx_stream(int stream_workerid)
 {
+	if (stream_workerid >= starpu_worker_get_count())
+		return NULL;
         struct _starpu_worker *w = _starpu_get_worker_struct(stream_workerid);
         return w->stream_ctx;
 }
 
 unsigned starpu_worker_get_sched_ctx_id_stream(int stream_workerid)
 {
+	if (stream_workerid >= starpu_worker_get_count())
+		return STARPU_NMAX_SCHED_CTXS;
         struct _starpu_worker *w = _starpu_get_worker_struct(stream_workerid);
 	return w->stream_ctx != NULL ? w->stream_ctx->id : STARPU_NMAX_SCHED_CTXS;
 }
