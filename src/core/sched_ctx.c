@@ -541,7 +541,7 @@ struct _starpu_sched_ctx* _starpu_create_sched_ctx(struct starpu_sched_policy *p
 		sched_ctx->sms_start_idx = occupied_sms;
 		sched_ctx->sms_end_idx = occupied_sms+nsms;
 		occupied_sms += nsms;
-		printf("ctx %d: stream worker %d nsms %d ocupied sms %d\n", sched_ctx->id, workerids[0], nsms, occupied_sms);
+		_STARPU_DEBUG("ctx %d: stream worker %d nsms %d ocupied sms %d\n", sched_ctx->id, workerids[0], nsms, occupied_sms);
 		STARPU_ASSERT_MSG(occupied_sms <= STARPU_NMAXSMS , "STARPU:requested more sms than available");
 		_starpu_worker_set_stream_ctx(workerids[0], sched_ctx);
 		sched_ctx->stream_worker = workerids[0];
