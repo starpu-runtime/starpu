@@ -538,6 +538,7 @@ struct _starpu_sched_ctx* _starpu_create_sched_ctx(struct starpu_sched_policy *p
 	sched_ctx->stream_worker = -1;
 	if(nsms > 0)
 	{
+		STARPU_ASSERT_MSG(workerids, "workerids is needed when setting nsms");
 		sched_ctx->sms_start_idx = occupied_sms;
 		sched_ctx->sms_end_idx = occupied_sms+nsms;
 		occupied_sms += nsms;

@@ -1860,7 +1860,7 @@ int starpu_worker_get_devids(enum starpu_worker_archtype type, int *devids, int 
 {
 	int cnt = 0;
 	unsigned nworkers = starpu_worker_get_count();
-	int *workerids = (int *)malloc(nworkers*sizeof(int));
+	int workerids[nworkers];
 
 	unsigned ndevice_workers = starpu_worker_get_ids_by_type(type, workerids, nworkers);
 
@@ -1895,7 +1895,6 @@ int starpu_worker_get_devids(enum starpu_worker_archtype type, int *devids, int 
 		}
 	}
 
-	free(workerids);
 	return ndevids;
 }
 
