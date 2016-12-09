@@ -2211,7 +2211,7 @@ char *starpu_worker_get_type_as_string(enum starpu_worker_archtype type)
 
 void _starpu_worker_set_stream_ctx(int workerid, struct _starpu_sched_ctx *sched_ctx)
 {
-	STARPU_ASSERT(stream_workerid < starpu_worker_get_count());
+	STARPU_ASSERT(workerid < starpu_worker_get_count());
         struct _starpu_worker *w = _starpu_get_worker_struct(workerid);
         w->stream_ctx = sched_ctx;
 }
