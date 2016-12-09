@@ -16,7 +16,6 @@
 
 /*
  * This creates two dumb vectors & run axpy on them.
- * You have to set STARPU_NWORKER_PER_CUDA=2
  */
 
 #include <starpu.h>
@@ -110,9 +109,13 @@ int main(int argc, char **argv)
 	int ncuda = 0;
 	int gpu_devid = -1;
 
-	/* Check we have separate threads for streams */
-	if (!starpu_get_env_number_default("STARPU_ONE_THREAD_PER_STREAM", 0))
-		return 77;
+#ifndef STARPU_HAVE_SETENV
+	return 77;
+#else
+	/* Have separate threads for streams */
+	setenv("STARPU_ONE_THREAD_PER_STREAM", "1", 1);
+	setenv("STARPU_NWORKER_PER_CUDA", "2", 1);
+#endif
 
 	/* Initialize StarPU */
 	ret = starpu_init(NULL);
