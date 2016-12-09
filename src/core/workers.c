@@ -628,7 +628,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 #endif
 	STARPU_AYU_INIT();
 
-	unsigned th_per_stream = starpu_get_env_number_default("STARPU_ONE_THREAD_PER_STREAM", 1);
+	unsigned th_per_stream = starpu_get_env_number_default("STARPU_ONE_THREAD_PER_STREAM", 0);
 
 	for (worker = 0; worker < nworkers; worker++)
 	{

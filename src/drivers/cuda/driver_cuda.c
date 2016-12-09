@@ -680,7 +680,7 @@ int _starpu_cuda_driver_init(struct _starpu_worker_set *worker_set)
 	STARPU_PTHREAD_COND_SIGNAL(&worker0->ready_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&worker0->mutex);
 
-	unsigned th_per_stream = starpu_get_env_number_default("STARPU_ONE_THREAD_PER_STREAM", 1);
+	unsigned th_per_stream = starpu_get_env_number_default("STARPU_ONE_THREAD_PER_STREAM", 0);
 
 	if(th_per_stream == 0)
 	{

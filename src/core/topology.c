@@ -91,7 +91,7 @@ _starpu_get_worker_from_driver(struct starpu_driver *d)
 #ifdef STARPU_USE_CUDA
 	if (d->type == STARPU_CUDA_WORKER)
 	{
-		unsigned th_per_stream = starpu_get_env_number_default("STARPU_ONE_THREAD_PER_STREAM", 1);
+		unsigned th_per_stream = starpu_get_env_number_default("STARPU_ONE_THREAD_PER_STREAM", 0);
 		if(th_per_stream == 0)
 			return &cuda_worker_set[d->id.cuda_id];
 
@@ -1055,7 +1055,7 @@ _starpu_init_machine_config(struct _starpu_machine_config *config, int no_mp_con
 	_starpu_initialize_workers_cuda_gpuid(config);
 
 	/* allow having one worker per stream */
-	unsigned th_per_stream = starpu_get_env_number_default("STARPU_WORKER_PER_STREAM", 1);
+	unsigned th_per_stream = starpu_get_env_number_default("STARPU_ONE_THREAD_PER_STREAM", 0);
 
 	unsigned cudagpu;
 	for (cudagpu = 0; cudagpu < topology->ncudagpus; cudagpu++)
