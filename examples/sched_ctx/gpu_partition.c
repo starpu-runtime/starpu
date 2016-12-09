@@ -118,7 +118,7 @@ int main(int argc, char **argv)
 
 #ifdef STARPU_USE_CUDA
 	ncuda = starpu_worker_get_devids(STARPU_CUDA_WORKER, &gpu_devid, 1);
-	printf("gpu_devid found %d \n", gpu_devid);
+	FPRINTF(stderr, "gpu_devid found %d \n", gpu_devid);
 #endif
 	if (ncuda == 0)
 	{
@@ -160,7 +160,7 @@ int main(int argc, char **argv)
 
 	int s;
 	for(s = 0; s < nstreams; s++)
-		printf("stream w %d \n", stream_workerids[s]);
+		FPRINTF(stderr, "stream w %d \n", stream_workerids[s]);
 
 	int ncpus = starpu_cpu_worker_get_count();
 	int workers[ncpus+nstreams];
@@ -178,7 +178,7 @@ int main(int argc, char **argv)
 	}
 	unsigned sched_ctx1 = starpu_sched_ctx_create(workers, ncpus+nstreams, "ctx1", STARPU_SCHED_CTX_SUB_CTXS, sched_ctxs, nstreams, STARPU_SCHED_CTX_POLICY_NAME, "dmdas", 0);
 
-	printf("parent ctx %d\n", sched_ctx1);
+	FPRINTF(stderr, "parent ctx %d\n", sched_ctx1);
 	starpu_sched_ctx_set_context(&sched_ctx1);
 
 #endif
