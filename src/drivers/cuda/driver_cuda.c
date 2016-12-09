@@ -86,6 +86,11 @@ void _starpu_cuda_init(void)
 	}
 }
 
+static size_t _starpu_cuda_get_global_mem_size(unsigned devid)
+{
+	return global_mem[devid];
+}
+
 void
 _starpu_cuda_discover_devices (struct _starpu_machine_config *config)
 {
@@ -260,16 +265,17 @@ done:
 #endif
 }
 
-#ifndef STARPU_SIMGRID
-static void init_device_context(unsigned devid)
+static void init_device_context(unsigned devid, unsigned memnode)
 {
 	unsigned i;
 
+#ifndef STARPU_SIMGRID
 	cudaError_t cures;
 
 	/* TODO: cudaSetDeviceFlag(cudaDeviceMapHost) */
 
 	starpu_cuda_set_device(devid);
+#endif /* !STARPU_SIMGRID */
 
 	STARPU_PTHREAD_MUTEX_LOCK(&cuda_device_init_mutex[devid]);
 	cuda_device_users[devid]++;
@@ -286,6 +292,7 @@ static void init_device_context(unsigned devid)
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&cuda_device_init_mutex[devid]);
 
+#ifndef STARPU_SIMGRID
 #ifdef HAVE_CUDA_MEMCPY_PEER
 	if (starpu_get_env_number("STARPU_ENABLE_CUDA_GPU_GPU_DIRECT") != 0)
 	{
@@ -353,13 +360,16 @@ static void init_device_context(unsigned devid)
 		if (STARPU_UNLIKELY(cures))
 			STARPU_CUDA_REPORT_ERROR(cures);
 	}
+#endif /* !STARPU_SIMGRID */
 
 	STARPU_PTHREAD_MUTEX_LOCK(&cuda_device_init_mutex[devid]);
 	cuda_device_init[devid] = INITIALIZED;
 	STARPU_PTHREAD_COND_BROADCAST(&cuda_device_init_cond[devid]);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&cuda_device_init_mutex[devid]);
+
+	_starpu_cuda_limit_gpu_mem_if_needed(devid);
+	_starpu_memory_manager_set_global_memory_size(memnode, _starpu_cuda_get_global_mem_size(devid));
 }
-#endif /* !STARPU_SIMGRID */
 
 static void init_worker_context(unsigned workerid)
 {
@@ -418,11 +428,6 @@ static void deinit_worker_context(unsigned workerid)
 		cudaEventDestroy(task_events[workerid][j]);
 	cudaStreamDestroy(streams[workerid]);
 #endif /* STARPU_SIMGRID */
-}
-
-static size_t _starpu_cuda_get_global_mem_size(unsigned devid)
-{
-	return global_mem[devid];
 }
 
 
@@ -633,9 +638,7 @@ int _starpu_cuda_driver_init(struct _starpu_worker_set *worker_set)
 			/* Already initialized */
 			continue;
 		lastdevid = devid;
-#ifndef STARPU_SIMGRID
-		init_device_context(devid);
-#endif
+		init_device_context(devid, memnode);
 
 #ifdef STARPU_SIMGRID
 		STARPU_ASSERT_MSG(worker_set->nworkers == 1, "Simgrid mode does not support concurrent kernel execution yet\n");
@@ -643,9 +646,6 @@ int _starpu_cuda_driver_init(struct _starpu_worker_set *worker_set)
 		if (worker_set->nworkers > 1 && props[devid].concurrentKernels == 0)
 			_STARPU_DISP("Warning: STARPU_NWORKER_PER_CUDA is %u, but the device does not support concurrent kernel execution!\n", worker_set->nworkers);
 #endif /* !STARPU_SIMGRID */
-
-		_starpu_cuda_limit_gpu_mem_if_needed(devid);
-		_starpu_memory_manager_set_global_memory_size(memnode, _starpu_cuda_get_global_mem_size(devid));
 	}
 
 	/* one more time to avoid hacks from third party lib :) */
