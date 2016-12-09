@@ -94,7 +94,6 @@ _starpu_get_worker_from_driver(struct starpu_driver *d)
 		unsigned th_per_stream = starpu_get_env_number_default("STARPU_ONE_THREAD_PER_STREAM", 0);
 		if(th_per_stream == 0)
 			return &cuda_worker_set[d->id.cuda_id];
-
 	}
 #endif
 
@@ -1069,6 +1068,7 @@ _starpu_init_machine_config(struct _starpu_machine_config *config, int no_mp_con
 			int worker_idx = worker_idx0 + i;
 			if(th_per_stream)
 			{
+				/* Just one worker in the set */
 				config->workers[worker_idx].set = (struct _starpu_worker_set *)malloc(sizeof(struct _starpu_worker_set));
 				config->workers[worker_idx].set->workers = &config->workers[worker_idx];
 			}
@@ -1552,6 +1552,7 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 	unsigned cuda_init[STARPU_MAXCUDADEVS] = { };
 	unsigned cuda_memory_nodes[STARPU_MAXCUDADEVS];
 	unsigned cuda_bindid[STARPU_MAXCUDADEVS];
+	unsigned th_per_stream = starpu_get_env_number_default("STARPU_ONE_THREAD_PER_STREAM", 0);
 #endif
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 	unsigned opencl_init[STARPU_MAXOPENCLDEVS] = { };
@@ -1584,6 +1585,7 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 		int *preferred_binding = NULL;
 		int npreferred = 0;
 #endif
+
 		/* select the memory node that contains worker's memory */
 		switch (workerarg->arch)
 		{
@@ -1630,7 +1632,10 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 				{
 					memory_node = cuda_memory_nodes[devid];
 #ifndef STARPU_SIMGRID
-					workerarg->bindid = _starpu_get_next_bindid(config, preferred_binding, npreferred);//cuda_bindid[devid];
+					if (th_per_stream == 0)
+						workerarg->bindid = cuda_bindid[devid];
+					else
+						workerarg->bindid = _starpu_get_next_bindid(config, preferred_binding, npreferred);
 #endif /* SIMGRID */
 				}
 				else

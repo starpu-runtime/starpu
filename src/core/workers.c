@@ -54,7 +54,7 @@
 static starpu_pthread_mutex_t init_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 static starpu_pthread_cond_t init_cond = STARPU_PTHREAD_COND_INITIALIZER;
 static int init_count = 0;
-static enum { UNINITIALIZED, CHANGING, INITIALIZED } initialized = UNINITIALIZED;
+static enum initialization initialized = UNINITIALIZED;
 
 int _starpu_keys_initialized STARPU_ATTRIBUTE_INTERNAL;
 starpu_pthread_key_t _starpu_worker_key STARPU_ATTRIBUTE_INTERNAL;
@@ -372,7 +372,7 @@ int starpu_worker_can_execute_task_first_impl(unsigned workerid, struct starpu_t
 	{
 		for (i = 0; i < STARPU_MAXIMPLEMENTATIONS; i++)
 			if (_starpu_can_use_nth_implementation(arch, cl, i)
-			 && (!task->cl->can_execute || task->cl->can_execute(workerid, task, i)))
+			 && (task->cl->can_execute(workerid, task, i)))
 			{
 				if (nimpl)
 					*nimpl = i;
@@ -679,25 +679,25 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 			case STARPU_CUDA_WORKER:
 				driver.id.cuda_id = devid;
-				/* allow having one worker per stream */
+
+				if (worker_set->workers != workerarg)
+					/* We are not the first worker of the
+					 * set, don't start a thread for it. */
+					break;
+
 				if(th_per_stream == 0)
 				{
-					/* We spawn only one thread per CUDA driver,
-					 * which will control all CUDA workers of this
-					 * driver. (by using a worker set). */
-					if (worker_set->workers != workerarg)
-						break;
-				}
-
-				worker_set->nworkers = starpu_get_env_number_default("STARPU_NWORKER_PER_CUDA", 1);
-
+					worker_set->nworkers = starpu_get_env_number_default("STARPU_NWORKER_PER_CUDA", 1);
 #ifndef STARPU_NON_BLOCKING_DRIVERS
-				if (worker_set->nworkers > 1)
-				{
-					_STARPU_DISP("Warning: reducing STARPU_NWORKER_PER_CUDA to 1 because blocking drivers are enabled\n");
-					worker_set->nworkers = 1;
-				}
+					if (worker_set->nworkers > 1)
+					{
+						_STARPU_DISP("Warning: reducing STARPU_NWORKER_PER_CUDA to 1 because blocking drivers are enabled\n");
+						worker_set->nworkers = 1;
+					}
 #endif
+				}
+				else
+					worker_set->nworkers = 1;
 
 				worker_set->set_is_initialized = 0;
 
@@ -708,35 +708,19 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				}
 
 
-				if(th_per_stream == 0)
-				{
-					STARPU_PTHREAD_CREATE_ON(
-						workerarg->name,
-						&worker_set->worker_thread,
-						NULL,
-						_starpu_cuda_worker,
-						worker_set,
-						_starpu_simgrid_get_host_by_worker(workerarg));
-				}
-				else
-				{
-					worker_set->nworkers = 1;
-					STARPU_PTHREAD_CREATE_ON(
-						workerarg->name,
-						&workerarg->worker_thread,
-						NULL,
-						_starpu_cuda_worker,
-//						workerarg,
-						worker_set,
-						_starpu_simgrid_get_host_by_worker(workerarg));
-				}
+				STARPU_PTHREAD_CREATE_ON(
+					workerarg->name,
+					&worker_set->worker_thread,
+					NULL,
+					_starpu_cuda_worker,
+					worker_set,
+					_starpu_simgrid_get_host_by_worker(workerarg));
 #ifdef STARPU_USE_FXT
 				STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
 				while (!workerarg->worker_is_running)
 					STARPU_PTHREAD_COND_WAIT(&workerarg->started_cond, &workerarg->mutex);
 				STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
 #endif
-
 				break;
 #endif
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
@@ -835,6 +819,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 		struct _starpu_worker_set *worker_set = workerarg->set;
 #endif
+
 		switch (workerarg->arch)
 		{
 			case STARPU_CPU_WORKER:
@@ -855,21 +840,11 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 					break;
 #endif
 				_STARPU_DEBUG("waiting for worker %u initialization\n", worker);
-				if(th_per_stream == 0)
-				{
-					STARPU_PTHREAD_MUTEX_LOCK(&worker_set->mutex);
-					while (!worker_set->set_is_initialized)
-						STARPU_PTHREAD_COND_WAIT(&worker_set->ready_cond,
-									 &worker_set->mutex);
-					STARPU_PTHREAD_MUTEX_UNLOCK(&worker_set->mutex);
-				}
-				else
-				{
-					STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
-					while (!workerarg->worker_is_initialized)
-						STARPU_PTHREAD_COND_WAIT(&workerarg->ready_cond, &workerarg->mutex);
-					STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
-				}
+				STARPU_PTHREAD_MUTEX_LOCK(&worker_set->mutex);
+				while (!worker_set->set_is_initialized)
+					STARPU_PTHREAD_COND_WAIT(&worker_set->ready_cond,
+								 &worker_set->mutex);
+				STARPU_PTHREAD_MUTEX_UNLOCK(&worker_set->mutex);
 				worker_set->started = 1;
 
 				break;
@@ -1285,6 +1260,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 
 	_starpu_initialize_registered_performance_models();
 
+	_starpu_cuda_init();
 	/* Launch "basic" workers (ie. non-combined workers) */
 	if (!is_a_sink)
 		_starpu_launch_drivers(&_starpu_config);
@@ -1340,17 +1316,26 @@ static void _starpu_terminate_workers(struct _starpu_machine_config *pconfig)
 		struct _starpu_worker_set *set = pconfig->workers[workerid].set;
 		struct _starpu_worker *worker = &pconfig->workers[workerid];
 
+					fprintf(stderr,"worker %p %p\n", set, worker);
 		/* in case StarPU termination code is called from a callback,
  		 * we have to check if pthread_self() is the worker itself */
-		if (set && set->nworkers > 1)
+					if (set)
+					fprintf(stderr,"worker %p %u\n", set, set->nworkers);
+		if (set && set->nworkers > 0)
 		{
+					fprintf(stderr,"set started for %u %u\n", workerid, set->nworkers);
 			if (set->started)
 			{
+					fprintf(stderr,"set started for %u\n", workerid);
 #ifdef STARPU_SIMGRID
 				status = starpu_pthread_join(set->worker_thread, NULL);
 #else
 				if (!pthread_equal(pthread_self(), set->worker_thread))
+				{
+					fprintf(stderr,"waiting worker %u\n", workerid);
 					status = starpu_pthread_join(set->worker_thread, NULL);
+					fprintf(stderr,"waited worker %u\n", workerid);
+				}
 #endif
 				if (status)
 				{

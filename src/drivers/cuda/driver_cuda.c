@@ -71,8 +71,20 @@ static starpu_pthread_mutex_t task_mutex[STARPU_NMAXWORKERS][STARPU_MAX_PIPELINE
 static starpu_pthread_cond_t task_cond[STARPU_NMAXWORKERS][STARPU_MAX_PIPELINE];
 #endif /* STARPU_SIMGRID */
 
-static unsigned cuda_memnode_deinit[STARPU_MAXCUDADEVS];
-static starpu_pthread_mutex_t cuda_deinit_mutex[STARPU_MAXCUDADEVS];
+static enum initialization cuda_device_init[STARPU_MAXCUDADEVS];
+static int cuda_device_users[STARPU_MAXCUDADEVS];
+static starpu_pthread_mutex_t cuda_device_init_mutex[STARPU_MAXCUDADEVS];
+static starpu_pthread_cond_t cuda_device_init_cond[STARPU_MAXCUDADEVS];
+
+void _starpu_cuda_init(void)
+{
+	unsigned i;
+	for (i = 0; i < STARPU_MAXCUDADEVS; i++)
+	{
+		STARPU_PTHREAD_MUTEX_INIT(&cuda_device_init_mutex[i], NULL);
+		STARPU_PTHREAD_COND_INIT(&cuda_device_init_cond[i], NULL);
+	}
+}
 
 void
 _starpu_cuda_discover_devices (struct _starpu_machine_config *config)
@@ -259,6 +271,21 @@ static void init_device_context(unsigned devid)
 
 	starpu_cuda_set_device(devid);
 
+	STARPU_PTHREAD_MUTEX_LOCK(&cuda_device_init_mutex[devid]);
+	cuda_device_users[devid]++;
+	if (cuda_device_init[devid] == UNINITIALIZED)
+		/* Nobody started initialization yet, do it */
+		cuda_device_init[devid] = CHANGING;
+	else
+	{
+		/* Somebody else is doing initialization, wait for it */
+		while (cuda_device_init[devid] != INITIALIZED)
+			STARPU_PTHREAD_COND_WAIT(&cuda_device_init_cond[devid], &cuda_device_init_mutex[devid]);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&cuda_device_init_mutex[devid]);
+		return;
+	}
+	STARPU_PTHREAD_MUTEX_UNLOCK(&cuda_device_init_mutex[devid]);
+
 #ifdef HAVE_CUDA_MEMCPY_PEER
 	if (starpu_get_env_number("STARPU_ENABLE_CUDA_GPU_GPU_DIRECT") != 0)
 	{
@@ -326,6 +353,11 @@ static void init_device_context(unsigned devid)
 		if (STARPU_UNLIKELY(cures))
 			STARPU_CUDA_REPORT_ERROR(cures);
 	}
+
+	STARPU_PTHREAD_MUTEX_LOCK(&cuda_device_init_mutex[devid]);
+	cuda_device_init[devid] = INITIALIZED;
+	STARPU_PTHREAD_COND_BROADCAST(&cuda_device_init_cond[devid]);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&cuda_device_init_mutex[devid]);
 }
 #endif /* !STARPU_SIMGRID */
 
@@ -680,16 +712,11 @@ int _starpu_cuda_driver_init(struct _starpu_worker_set *worker_set)
 	STARPU_PTHREAD_COND_SIGNAL(&worker0->ready_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&worker0->mutex);
 
-	unsigned th_per_stream = starpu_get_env_number_default("STARPU_ONE_THREAD_PER_STREAM", 0);
-
-	if(th_per_stream == 0)
-	{
-		/* tell the main thread that this one is ready */
-		STARPU_PTHREAD_MUTEX_LOCK(&worker_set->mutex);
-		worker_set->set_is_initialized = 1;
-		STARPU_PTHREAD_COND_SIGNAL(&worker_set->ready_cond);
-		STARPU_PTHREAD_MUTEX_UNLOCK(&worker_set->mutex);
-	}
+	/* tell the main thread that this one is ready */
+	STARPU_PTHREAD_MUTEX_LOCK(&worker_set->mutex);
+	worker_set->set_is_initialized = 1;
+	STARPU_PTHREAD_COND_SIGNAL(&worker_set->ready_cond);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&worker_set->mutex);
 
 	return 0;
 }
@@ -856,15 +883,19 @@ int _starpu_cuda_driver_deinit(struct _starpu_worker_set *worker_set)
 		struct _starpu_worker *worker = &worker_set->workers[i];
 		unsigned devid = worker->devid;
 		unsigned memnode = worker->memory_node;
+		unsigned usersleft;
 		if ((int) devid == lastdevid)
 			/* Already initialized */
 			continue;
 		lastdevid = devid;
 
-		STARPU_PTHREAD_MUTEX_LOCK(&cuda_deinit_mutex[memnode]);
-		if(!cuda_memnode_deinit[devid])
-                {
+		STARPU_PTHREAD_MUTEX_LOCK(&cuda_device_init_mutex[devid]);
+		usersleft = --cuda_device_users[devid];
+		STARPU_PTHREAD_MUTEX_UNLOCK(&cuda_device_init_mutex[devid]);
 
+		if (!usersleft)
+                {
+			/* I'm last, deinitialize device */
 			_starpu_handle_all_pending_node_data_requests(memnode);
 			
 			/* In case there remains some memory that was automatically
@@ -873,14 +904,14 @@ int _starpu_cuda_driver_deinit(struct _starpu_worker_set *worker_set)
 			_starpu_free_all_automatically_allocated_buffers(memnode);
 			
 			_starpu_malloc_shutdown(memnode);
-			cuda_memnode_deinit[devid] = 1;
 
 #ifndef STARPU_SIMGRID
 			deinit_device_context(devid);
 #endif /* !STARPU_SIMGRID */
                 }
-
-                STARPU_PTHREAD_MUTEX_UNLOCK(&cuda_deinit_mutex[memnode]);
+		STARPU_PTHREAD_MUTEX_LOCK(&cuda_device_init_mutex[devid]);
+		cuda_device_init[devid] = UNINITIALIZED;
+		STARPU_PTHREAD_MUTEX_UNLOCK(&cuda_device_init_mutex[devid]);
 
 	}
 

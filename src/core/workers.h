@@ -56,6 +56,8 @@
 
 #define STARPU_MAX_PIPELINE 4
 
+enum initialization { UNINITIALIZED = 0, CHANGING, INITIALIZED };
+
 /* This is initialized from in _starpu_worker_init */
 LIST_TYPE(_starpu_worker,
 	struct _starpu_machine_config *config;
