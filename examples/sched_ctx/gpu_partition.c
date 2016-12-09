@@ -110,6 +110,12 @@ int main(int argc, char **argv)
 	int ncuda = 0;
 	int gpu_devid = -1;
 
+#ifndef STARPU_HAVE_SETENV
+	return STARPU_TEST_SKIPPED;
+#endif
+	/* Request separate threads for streams */
+	setenv("STARPU_ONE_THREAD_PER_STREAM", "1");
+
 	/* Initialize StarPU */
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV)
