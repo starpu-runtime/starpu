@@ -1894,6 +1894,8 @@ int starpu_worker_get_devids(enum starpu_worker_archtype type, int *devids, int 
 				break;
 		}
 	}
+
+	free(workerids);
 	return ndevids;
 }
 
