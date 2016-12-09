@@ -16,7 +16,7 @@
 
 /*
  * This creates two dumb vectors & run axpy on them.
- * You have to set STARPU_NWORKER_PER_CUDA=2 
+ * You have to set STARPU_NWORKER_PER_CUDA=2
  */
 
 #include <starpu.h>
@@ -95,7 +95,7 @@ check(int niter)
 		float expected_value = _alpha * _vec_x[niter][i] + 4.0;
 		if (fabs(_vec_y[niter][i] - expected_value) > expected_value * EPSILON)
 		{
-			FPRINTF(stderr,"at %d, %f*%f+%f=%f, expected %f\n", i, _alpha, _vec_x[niter][i], 4.0, _vec_y[niter][i], expected_value);
+			FPRINTF(stderr,"[error] at %d, %f*%f+%f==%f, expected %f\n", i, _alpha, _vec_x[niter][i], 4.0, _vec_y[niter][i], expected_value);
 			return EXIT_FAILURE;
 		}
 	}
@@ -107,19 +107,31 @@ int main(int argc, char **argv)
 {
 	int ret, exit_value = 0;
 	int iter;
+	int ncuda = 0;
+	int gpu_devid = -1;
+
 	/* Initialize StarPU */
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV)
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
+#ifdef STARPU_USE_CUDA
+	ncuda = starpu_worker_get_devids(STARPU_CUDA_WORKER, &gpu_devid, 1);
+	printf("gpu_devid found %d \n", gpu_devid);
+#endif
+	if (ncuda == 0)
+	{
+		starpu_shutdown();
+		return 77;
+	}
 
 	/* This is equivalent to
 		vec_a = malloc(N*sizeof(float));
 		vec_b = malloc(N*sizeof(float));
 	*/
 	for(iter = 0; iter < NITER; iter++)
-	{  
+	{
 		starpu_malloc((void **)&_vec_x[iter], N*sizeof(float));
 		assert(_vec_x[iter]);
 
@@ -132,7 +144,7 @@ int main(int argc, char **argv)
 			_vec_x[iter][i] = 1.0f; /*(float)starpu_drand48(); */
 			_vec_y[iter][i] = 4.0f; /*(float)starpu_drand48(); */
 		}
-		
+
 		/* Declare the data to StarPU */
 		starpu_vector_data_register(&_handle_x[iter], STARPU_MAIN_RAM, (uintptr_t)_vec_x[iter], N, sizeof(float));
 		starpu_vector_data_register(&_handle_y[iter], STARPU_MAIN_RAM, (uintptr_t)_vec_y[iter], N, sizeof(float));
@@ -141,13 +153,6 @@ int main(int argc, char **argv)
 	double start;
 	double end;
 #ifdef STARPU_USE_CUDA
-	int gpu_devid = -1;
-	int nfound_gpus = starpu_worker_get_devids(STARPU_CUDA_WORKER, &gpu_devid, 1);
-
-	printf("gpu_devid found %d \n", gpu_devid);
-	if(nfound_gpus == 0)
-		return 0;
-
 	unsigned nworkers = starpu_worker_get_count();
 	int stream_workerids[nworkers];
 
@@ -165,11 +170,11 @@ int main(int argc, char **argv)
 	int nsms[nstreams];
 	nsms[0] = 6;
 	nsms[1] = 7;
-	
+
 	for(s = 0; s < nstreams; s++)
 	{
 		sched_ctxs[s] = starpu_sched_ctx_create(&stream_workerids[s], 1, "subctx",  STARPU_SCHED_CTX_CUDA_NSMS, nsms[s], 0);
-		workers[ncpus+s] = stream_workerids[s];  
+		workers[ncpus+s] = stream_workerids[s];
 	}
 	unsigned sched_ctx1 = starpu_sched_ctx_create(workers, ncpus+nstreams, "ctx1", STARPU_SCHED_CTX_SUB_CTXS, sched_ctxs, nstreams, STARPU_SCHED_CTX_POLICY_NAME, "dmdas", 0);
 
@@ -218,7 +223,7 @@ enodev:
 	if (exit_value != 77)
 	{
 		for(iter = 0; iter < NITER; iter++)
-		{			
+		{
 			exit_value = check(iter);
 			if(exit_value != EXIT_SUCCESS)
 				break;
