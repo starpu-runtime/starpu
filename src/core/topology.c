@@ -1069,7 +1069,7 @@ _starpu_init_machine_config(struct _starpu_machine_config *config, int no_mp_con
 			if(th_per_stream)
 			{
 				/* Just one worker in the set */
-				config->workers[worker_idx].set = (struct _starpu_worker_set *)malloc(sizeof(struct _starpu_worker_set));
+				config->workers[worker_idx].set = (struct _starpu_worker_set *)calloc(1, sizeof(struct _starpu_worker_set));
 				config->workers[worker_idx].set->workers = &config->workers[worker_idx];
 			}
 			else
