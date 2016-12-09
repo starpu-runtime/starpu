@@ -1260,7 +1260,9 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 
 	_starpu_initialize_registered_performance_models();
 
+#if defined(STARPU_USE_CUDA)
 	_starpu_cuda_init();
+#endif
 	/* Launch "basic" workers (ie. non-combined workers) */
 	if (!is_a_sink)
 		_starpu_launch_drivers(&_starpu_config);
