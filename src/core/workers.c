@@ -1316,25 +1316,18 @@ static void _starpu_terminate_workers(struct _starpu_machine_config *pconfig)
 		struct _starpu_worker_set *set = pconfig->workers[workerid].set;
 		struct _starpu_worker *worker = &pconfig->workers[workerid];
 
-					fprintf(stderr,"worker %p %p\n", set, worker);
 		/* in case StarPU termination code is called from a callback,
  		 * we have to check if pthread_self() is the worker itself */
-					if (set)
-					fprintf(stderr,"worker %p %u\n", set, set->nworkers);
 		if (set && set->nworkers > 0)
 		{
-					fprintf(stderr,"set started for %u %u\n", workerid, set->nworkers);
 			if (set->started)
 			{
-					fprintf(stderr,"set started for %u\n", workerid);
 #ifdef STARPU_SIMGRID
 				status = starpu_pthread_join(set->worker_thread, NULL);
 #else
 				if (!pthread_equal(pthread_self(), set->worker_thread))
 				{
-					fprintf(stderr,"waiting worker %u\n", workerid);
 					status = starpu_pthread_join(set->worker_thread, NULL);
-					fprintf(stderr,"waited worker %u\n", workerid);
 				}
 #endif
 				if (status)
