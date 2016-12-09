@@ -60,12 +60,14 @@
 #define MAX_LOCALITY 8
 
 /* Entry for queued_tasks_per_data: records that a queued task is accessing the data with locality flag */
+#ifdef USE_LOCALITY_TASKS
 struct locality_entry
 {
 	UT_hash_handle hh;
 	starpu_data_handle_t data;
 	struct starpu_task *task;
 };
+#endif
 
 struct _starpu_work_stealing_data_per_worker
 {
