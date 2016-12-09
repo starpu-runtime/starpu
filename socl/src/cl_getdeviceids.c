@@ -31,12 +31,11 @@ soclGetDeviceIDs(cl_platform_id   platform,
                cl_device_id *   devices,
                cl_uint *        num_devices) CL_API_SUFFIX__VERSION_1_0
 {
-   if( ! _starpu_init )
-      if (socl_init_starpu() < 0)
-      {
-         *num_devices = 0;
-         return CL_SUCCESS;
-      }
+    if (socl_init_starpu() < 0)
+    {
+       *num_devices = 0;
+       return CL_SUCCESS;
+    }
 
    if (_starpu_init_failed) {
       *num_devices = 0;

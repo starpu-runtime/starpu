@@ -26,9 +26,8 @@ soclCreateContextFromType(const cl_context_properties * properties,
                         void *                        user_data,
                         cl_int *                      errcode_ret) CL_API_SUFFIX__VERSION_1_0
 {
-   if( ! _starpu_init )
-      if (socl_init_starpu() < 0)
-	return NULL;
+    if (socl_init_starpu() < 0)
+      return NULL;
 
 
    //TODO: appropriate error messages
