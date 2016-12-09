@@ -72,7 +72,7 @@ static int ntasks[STARPU_NMAXWORKERS];
   from the workers available to the program, and not to the context !!!!!!!!!!!!!!!!!!!!!!!
 */
 
-static void parallel_heft_pre_exec_hook(struct starpu_task *task)
+static void parallel_heft_pre_exec_hook(struct starpu_task *task, unsigned sched_ctx_id STARPU_ATTRIBUTE_UNUSED)
 {
 	if (!task->cl || task->execute_on_a_specific_worker)
 		return;

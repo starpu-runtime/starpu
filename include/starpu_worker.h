@@ -106,7 +106,7 @@ enum starpu_worker_archtype starpu_worker_get_type(int id);
 
 int starpu_worker_get_count_by_type(enum starpu_worker_archtype type);
 
-int starpu_worker_get_ids_by_type(enum starpu_worker_archtype type, int *workerids, int maxsize);
+unsigned starpu_worker_get_ids_by_type(enum starpu_worker_archtype type, int *workerids, unsigned maxsize);
 
 int starpu_worker_get_by_type(enum starpu_worker_archtype type, int num);
 
@@ -132,9 +132,9 @@ int starpu_bindid_get_workerids(int bindid, int **workerids);
 
 int starpu_worker_get_devids(enum starpu_worker_archtype type, int *devids, int num);
 
-int starpu_worker_get_stream_workerids(int devid, int *workerids, enum starpu_worker_archtype type);
+int starpu_worker_get_stream_workerids(unsigned devid, int *workerids, enum starpu_worker_archtype type);
 
-unsigned starpu_worker_get_sched_ctx_id_stream(int stream_workerid);
+unsigned starpu_worker_get_sched_ctx_id_stream(unsigned stream_workerid);
 #ifdef __cplusplus
 }
 #endif

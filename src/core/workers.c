@@ -1800,11 +1800,11 @@ enum starpu_worker_archtype starpu_worker_get_type(int id)
 	return _starpu_config.workers[id].arch;
 }
 
-int starpu_worker_get_ids_by_type(enum starpu_worker_archtype type, int *workerids, int maxsize)
+unsigned starpu_worker_get_ids_by_type(enum starpu_worker_archtype type, int *workerids, unsigned maxsize)
 {
 	unsigned nworkers = starpu_worker_get_count();
 
-	int cnt = 0;
+	unsigned cnt = 0;
 
 	unsigned id;
 	for (id = 0; id < nworkers; id++)
@@ -1862,9 +1862,9 @@ int starpu_worker_get_devids(enum starpu_worker_archtype type, int *devids, int 
 	unsigned nworkers = starpu_worker_get_count();
 	int *workerids = (int *)malloc(nworkers*sizeof(int));
 
-	int ndevice_workers = starpu_worker_get_ids_by_type(type, workerids, nworkers);
+	unsigned ndevice_workers = starpu_worker_get_ids_by_type(type, workerids, nworkers);
 
-	int ndevids = 0;
+	unsigned ndevids = 0;
 
 	if(ndevice_workers > 0)
 	{
@@ -1917,7 +1917,7 @@ int starpu_bindid_get_workerids(int bindid, int **workerids)
 	return _starpu_config.bindid_workers[bindid].nworkers;
 }
 
-int starpu_worker_get_stream_workerids(int devid, int *workerids, enum starpu_worker_archtype type)
+int starpu_worker_get_stream_workerids(unsigned devid, int *workerids, enum starpu_worker_archtype type)
 {
 	unsigned nworkers = starpu_worker_get_count();
 	int nw = 0;
@@ -2211,14 +2211,14 @@ char *starpu_worker_get_type_as_string(enum starpu_worker_archtype type)
 	return "STARPU_unknown_WORKER";
 }
 
-void _starpu_worker_set_stream_ctx(int workerid, struct _starpu_sched_ctx *sched_ctx)
+void _starpu_worker_set_stream_ctx(unsigned workerid, struct _starpu_sched_ctx *sched_ctx)
 {
 	STARPU_ASSERT(workerid < starpu_worker_get_count());
         struct _starpu_worker *w = _starpu_get_worker_struct(workerid);
         w->stream_ctx = sched_ctx;
 }
 
-struct _starpu_sched_ctx* _starpu_worker_get_ctx_stream(int stream_workerid)
+struct _starpu_sched_ctx* _starpu_worker_get_ctx_stream(unsigned stream_workerid)
 {
 	if (stream_workerid >= starpu_worker_get_count())
 		return NULL;
@@ -2226,7 +2226,7 @@ struct _starpu_sched_ctx* _starpu_worker_get_ctx_stream(int stream_workerid)
         return w->stream_ctx;
 }
 
-unsigned starpu_worker_get_sched_ctx_id_stream(int stream_workerid)
+unsigned starpu_worker_get_sched_ctx_id_stream(unsigned stream_workerid)
 {
 	if (stream_workerid >= starpu_worker_get_count())
 		return STARPU_NMAX_SCHED_CTXS;

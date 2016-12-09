@@ -1100,7 +1100,6 @@ static void dmda_pre_exec_hook(struct starpu_task *task, unsigned sched_ctx_id)
 	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	struct _starpu_fifo_taskq *fifo = dt->queue_array[workerid];
 	double model = task->predicted;
-	double transfer_model = task->predicted_transfer;
 
 	starpu_pthread_mutex_t *sched_mutex;
 	starpu_pthread_cond_t *sched_cond;
@@ -1222,7 +1221,7 @@ static void dmda_push_task_notify(struct starpu_task *task, int workerid, int pe
 	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(sched_mutex);
 }
 
-static void dmda_post_exec_hook(struct starpu_task * task, unsigned sched_ctx_id)
+static void dmda_post_exec_hook(struct starpu_task * task STARPU_ATTRIBUTE_UNUSED, unsigned sched_ctx_id)
 {
 	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	unsigned workerid = starpu_worker_get_id_check();
