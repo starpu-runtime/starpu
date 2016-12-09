@@ -29,7 +29,9 @@ int main(int argc, char **argv)
 	float ***bmat;
 	int rank, nodes, ret;
 	double timing, flops;
+#ifndef STARPU_SIMGRID
 	int correctness;
+#endif
 
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");

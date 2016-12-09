@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009-2012, 2015  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -28,19 +28,21 @@ int my_distrib(int x, int y, int nb_nodes)
 
 void matrix_display(float ***bmat, int rank)
 {
-	unsigned i,j,x,y;
-
 	if (display)
 	{
+		unsigned y;
 		printf("[%d] Input :\n", rank);
 
 		for(y=0 ; y<nblocks ; y++)
 		{
+			unsigned x;
 			for(x=0 ; x<nblocks ; x++)
 			{
+				unsigned j;
 				printf("Block %u,%u :\n", x, y);
 				for (j = 0; j < BLOCKSIZE; j++)
 				{
+					unsigned i;
 					for (i = 0; i < BLOCKSIZE; i++)
 					{
 						if (i <= j)
