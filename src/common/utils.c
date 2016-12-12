@@ -37,6 +37,9 @@
 #ifndef O_BINARY
 #define O_BINARY 0
 #endif
+#if !defined(O_DIRECT) && defined(F_NOCACHE)
+#define O_DIRECT F_NOCACHE
+#endif
 
 int _starpu_silent;
 
@@ -157,7 +160,11 @@ char *_starpu_mktemp(const char *directory, int flags, int *fd)
 #elif defined (HAVE_MKOSTEMP)
 	*fd = mkostemp(baseCpy, flags);
 #else
+#  ifdef O_DIRECT
+	STARPU_ASSERT(flags == (O_RDWR | O_BINARY) || flags == (O_RDWR | O_BINARY | O_DIRECT));
+#  else
 	STARPU_ASSERT(flags == (O_RDWR | O_BINARY));
+#  endif
 	*fd = mkstemp(baseCpy);
 #endif
 
@@ -170,6 +177,23 @@ char *_starpu_mktemp(const char *directory, int flags, int *fd)
 		errno = err;
 		return NULL;
 	}
+	
+#if !defined(STARPU_HAVE_WINDOWS) && !defined (HAVE_MKOSTEMP) && defined(O_DIRECT)
+	/* Add O_DIRECT after the mkstemp call */
+	if ((flags & O_DIRECT) != 0)
+	{
+		int flag = fcntl(*fd, F_GETFL);
+		flag |= O_DIRECT;
+		if (fcntl(*fd, F_SETFL, flag) < 0)
+		{
+			int err = errno;
+			_STARPU_DISP("Could set O_DIRECT on the temporary file in directory '%s', fcntl failed with error '%s'\n", directory, strerror(errno));
+			free(baseCpy);
+			errno = err;
+			return NULL;
+		}		
+	}
+#endif
 
 	return baseCpy;
 }
