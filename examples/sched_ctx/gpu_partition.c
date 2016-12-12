@@ -94,7 +94,7 @@ check(int niter)
 		float expected_value = _alpha * _vec_x[niter][i] + 4.0;
 		if (fabs(_vec_y[niter][i] - expected_value) > expected_value * EPSILON)
 		{
-			FPRINTF(stderr,"[error] at %d, %f*%f+%f==%f, expected %f\n", i, _alpha, _vec_x[niter][i], 4.0, _vec_y[niter][i], expected_value);
+			FPRINTF(stderr,"[error for iter %d, indice %d], obtained value %f NOT expected value %f (%f*%f+%f)\n", niter, i, _vec_y[niter][i], expected_value, _alpha, _vec_x[niter][i], 4.0);
 			return EXIT_FAILURE;
 		}
 	}
@@ -133,12 +133,12 @@ int main(int argc, char **argv)
 		return 77;
 	}
 
-	/* This is equivalent to
-		vec_a = malloc(N*sizeof(float));
-		vec_b = malloc(N*sizeof(float));
-	*/
 	for(iter = 0; iter < NITER; iter++)
 	{
+		/* This is equivalent to
+		   vec_a = malloc(N*sizeof(float));
+		   vec_b = malloc(N*sizeof(float));
+		*/
 		starpu_malloc((void **)&_vec_x[iter], N*sizeof(float));
 		assert(_vec_x[iter]);
 
