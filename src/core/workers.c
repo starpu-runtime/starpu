@@ -629,7 +629,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 	STARPU_AYU_INIT();
 
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
-	unsigned th_per_stream = starpu_get_env_number_default("STARPU_ONE_THREAD_PER_STREAM", 0);
+	unsigned th_per_stream = starpu_get_env_number_default("STARPU_CUDA_THREAD_PER_WORKER", 0);
 #endif
 
 	for (worker = 0; worker < nworkers; worker++)

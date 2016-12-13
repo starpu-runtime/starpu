@@ -54,8 +54,8 @@ which will be concurrently running on the devices. The default value is 1.
 
 <dt>STARPU_NWORKER_PER_CUDA</dt>
 <dd>
-\anchor STARPU_ONE_THREAD_PER_STREAM
-\addindex __env__STARPU_ONE_THREAD_PER_STREAM
+\anchor STARPU_CUDA_THREAD_PER_WORKER
+\addindex __env__STARPU_CUDA_THREAD_PER_WORKER
 Specify if the cuda driver should provide a thread per stream or a single thread 
 dealing with all the streams. 0 if one thread per stream, 1 otherwise. The default 
 value is 1.

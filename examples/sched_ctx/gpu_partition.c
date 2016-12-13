@@ -116,7 +116,7 @@ int main(int argc, char **argv)
 	return 77;
 #else
 	/* Have separate threads for streams */
-	setenv("STARPU_ONE_THREAD_PER_STREAM", "1", 1);
+	setenv("STARPU_CUDA_THREAD_PER_WORKER", "1", 1);
 	setenv("STARPU_NWORKER_PER_CUDA", "2", 1);
 #endif
 

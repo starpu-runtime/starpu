@@ -1045,7 +1045,7 @@ _starpu_init_machine_config(struct _starpu_machine_config *config, int no_mp_con
 	_starpu_initialize_workers_cuda_gpuid(config);
 
 	/* allow having one worker per stream */
-	unsigned th_per_stream = starpu_get_env_number_default("STARPU_ONE_THREAD_PER_STREAM", 0);
+	unsigned th_per_stream = starpu_get_env_number_default("STARPU_CUDA_THREAD_PER_WORKER", 0);
 
 	unsigned cudagpu;
 	for (cudagpu = 0; cudagpu < topology->ncudagpus; cudagpu++)
@@ -1543,7 +1543,7 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 	unsigned cuda_init[STARPU_MAXCUDADEVS] = { };
 	unsigned cuda_memory_nodes[STARPU_MAXCUDADEVS];
 	unsigned cuda_bindid[STARPU_MAXCUDADEVS];
-	unsigned th_per_stream = starpu_get_env_number_default("STARPU_ONE_THREAD_PER_STREAM", 0);
+	unsigned th_per_stream = starpu_get_env_number_default("STARPU_CUDA_THREAD_PER_WORKER", 0);
 #endif
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 	unsigned opencl_init[STARPU_MAXOPENCLDEVS] = { };
