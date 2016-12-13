@@ -58,7 +58,6 @@ struct _starpu_fifo_taskq *_starpu_create_fifo(void)
 	fifo->exp_end = fifo->exp_start;
 	fifo->exp_len_per_priority = NULL;
 	fifo->pipeline_len = 0.0;
-	fifo->pipelined_tasks = 0;
 
 	return fifo;
 }
