@@ -110,7 +110,8 @@ struct _starpu_async_channel
 	union _starpu_async_channel_event event;
 	enum starpu_node_kind type;
     /* Which node to polling when needing ACK msg */
-    struct _starpu_mp_node *polling_node;
+    struct _starpu_mp_node *polling_node_sender;
+    struct _starpu_mp_node *polling_node_receiver;
     /* Used to know if the acknowlegdment msg is arrived from sinks */
     volatile int starpu_mp_common_finished_sender; 
     volatile int starpu_mp_common_finished_receiver; 

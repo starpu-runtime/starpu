@@ -261,8 +261,11 @@ static int worker_supports_direct_access(unsigned node, unsigned handling_node)
 			/* TODO: We don't handle direct MIC-MIC transfers yet */
 			return 0;
         case STARPU_MPI_MS_RAM:
+        {
             /* Don't support MPI-MPI transfers yet */
-            return 0;
+            enum starpu_node_kind kind = starpu_node_get_kind(handling_node);
+            return kind == STARPU_MPI_MS_RAM;
+        }
 		case STARPU_SCC_RAM:
 			return 1;
 		default:

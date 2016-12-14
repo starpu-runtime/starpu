@@ -264,7 +264,7 @@ void _starpu_mpi_common_send_to_device(const struct _starpu_mp_node *node, int d
     int id_proc;
     MPI_Comm_rank(MPI_COMM_WORLD, &id_proc);
 
-    printf("send %d bytes from %d from %p\n", len, dst_devid, msg);
+    printf("S_to_D send %d bytes from %d from %p\n", len, dst_devid, msg);
 
     if (event)
     {
@@ -308,7 +308,7 @@ void _starpu_mpi_common_recv_from_device(const struct _starpu_mp_node *node, int
     int id_proc;
     MPI_Comm_rank(MPI_COMM_WORLD, &id_proc);
 
-    printf("nop recv %d bytes from %d\n", len, src_devid);
+    printf("R_to_D nop recv %d bytes from %d\n", len, src_devid);
 
     if (event)
     {
@@ -339,8 +339,34 @@ void _starpu_mpi_common_recv_from_device(const struct _starpu_mp_node *node, int
     else
     {
         /* Synchronous recv */
-        res = MPI_Recv(msg, len, MPI_BYTE, src_devid, SYNC_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        res = MPI_Recv(msg, len, MPI_BYTE, src_devid, SYNC_TAG, MPI_COMM_WORLD, &s);
+        int num_expected;
+        MPI_Get_count(&s, MPI_BYTE, &num_expected);
+
+        STARPU_ASSERT_MSG(num_expected == len, "MPI Master/Slave received a msg with a size of %d Bytes (expected %d Bytes) !", num_expected, len);
         STARPU_ASSERT_MSG(res == MPI_SUCCESS, "MPI Master/Slave cannot receive a msg with a size of %d Bytes !", len);
+    }
+}
+
+static void _starpu_mpi_common_polling_node(struct _starpu_mp_node * node)
+{
+    /* poll the asynchronous messages.*/
+    if (node != NULL)
+    {
+        STARPU_PTHREAD_MUTEX_LOCK(&node->connection_mutex);
+        while(node->mp_recv_is_ready(node))
+        {
+            enum _starpu_mp_command answer;
+            void *arg;
+            int arg_size;
+            answer = _starpu_mp_common_recv_command(node, &arg, &arg_size);
+            if(!_starpu_src_common_store_message(node,arg,arg_size,answer))
+            {
+                printf("incorrect commande: unknown command or sync command");
+                STARPU_ASSERT(0);
+            }
+        }
+        STARPU_PTHREAD_MUTEX_UNLOCK(&node->connection_mutex);
     }
 }
 
@@ -383,26 +409,54 @@ int _starpu_mpi_common_test_event(struct _starpu_async_channel * event)
         }
     }
 
-    /* poll the asynchronous messages.*/
-    if (event->polling_node != NULL)
-    {
-        while(event->polling_node->mp_recv_is_ready(event->polling_node))
-        {
-            enum _starpu_mp_command answer;
-            void *arg;
-            int arg_size;
-            answer = _starpu_mp_common_recv_command(event->polling_node, &arg, &arg_size);
-            if(!_starpu_src_common_store_message(event->polling_node,arg,arg_size,answer))
-            {
-                printf("incorrect commande: unknown command or sync command");
-                STARPU_ASSERT(0);
-            }
-        }
-    }
+    _starpu_mpi_common_polling_node(event->polling_node_sender);
+    _starpu_mpi_common_polling_node(event->polling_node_receiver);
 
     return !event->starpu_mp_common_finished_sender && !event->starpu_mp_common_finished_receiver;
 }
 
+
+/* - In device to device communications, the first ack received by host
+ * is considered as the sender (but it cannot be, in fact, the sender)
+ */
+void _starpu_mpi_common_wait_event(struct _starpu_async_channel * event)
+{
+    if (event->event.mpi_ms_event.requests != NULL && !_starpu_mpi_ms_event_request_list_empty(event->event.mpi_ms_event.requests))
+    {
+        struct _starpu_mpi_ms_event_request * req = _starpu_mpi_ms_event_request_list_begin(event->event.mpi_ms_event.requests);
+        struct _starpu_mpi_ms_event_request * req_next;
+
+        while (req != _starpu_mpi_ms_event_request_list_end(event->event.mpi_ms_event.requests))
+        {
+            req_next = _starpu_mpi_ms_event_request_list_next(req);
+
+            MPI_Wait(&req->request, MPI_STATUS_IGNORE);
+            _starpu_mpi_ms_event_request_list_erase(event->event.mpi_ms_event.requests, req);
+
+            _starpu_mpi_ms_event_request_delete(req);
+            req = req_next;
+
+            if (event->event.mpi_ms_event.is_sender)
+                event->starpu_mp_common_finished_sender--;
+            else
+                event->starpu_mp_common_finished_receiver--;
+
+        }
+
+        STARPU_ASSERT_MSG(_starpu_mpi_ms_event_request_list_empty(event->event.mpi_ms_event.requests), "MPI Request list is not empty after a wait_event !");
+
+        /* Destroy the list */
+        _starpu_mpi_ms_event_request_list_delete(event->event.mpi_ms_event.requests);
+        event->event.mpi_ms_event.requests = NULL;
+    }
+
+    //incoming ack from devices
+    while(event->starpu_mp_common_finished_sender > 0 || event->starpu_mp_common_finished_receiver > 0)
+    {
+        _starpu_mpi_common_polling_node(event->polling_node_sender);
+        _starpu_mpi_common_polling_node(event->polling_node_receiver);
+    }
+}
 
 
 

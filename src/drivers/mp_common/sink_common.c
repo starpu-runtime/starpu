@@ -137,7 +137,8 @@ static void _starpu_sink_common_copy_from_host_async(struct _starpu_mp_node *mp_
     async_channel->type = STARPU_UNUSED;
     async_channel->starpu_mp_common_finished_sender = -1;
     async_channel->starpu_mp_common_finished_receiver = 0;
-    async_channel->polling_node = NULL;
+    async_channel->polling_node_receiver = NULL;
+    async_channel->polling_node_sender = NULL;
 
     mp_node->dt_recv(mp_node, cmd->addr, cmd->size, &sink_event->event);
     /* Push event on the list */
@@ -182,7 +183,8 @@ static void _starpu_sink_common_copy_to_host_async(struct _starpu_mp_node *mp_no
     async_channel->type = STARPU_UNUSED;
     async_channel->starpu_mp_common_finished_sender = 0;
     async_channel->starpu_mp_common_finished_receiver = -1;
-    async_channel->polling_node = NULL;
+    async_channel->polling_node_receiver = NULL;
+    async_channel->polling_node_sender = NULL;
 
     mp_node->dt_send(mp_node, cmd->addr, cmd->size, &sink_event->event);
     /* Push event on the list */
@@ -221,7 +223,8 @@ static void _starpu_sink_common_copy_from_sink_async(struct _starpu_mp_node *mp_
     async_channel->type = STARPU_UNUSED;
     async_channel->starpu_mp_common_finished_sender = -1;
     async_channel->starpu_mp_common_finished_receiver = 0;
-    async_channel->polling_node = NULL;
+    async_channel->polling_node_receiver = NULL;
+    async_channel->polling_node_sender = NULL;
 
     mp_node->dt_recv_from_device(mp_node, cmd->devid, cmd->addr, cmd->size, &sink_event->event);
     /* Push event on the list */
@@ -260,7 +263,8 @@ static void _starpu_sink_common_copy_to_sink_async(struct _starpu_mp_node *mp_no
     async_channel->type = STARPU_UNUSED;
     async_channel->starpu_mp_common_finished_sender = 0;
     async_channel->starpu_mp_common_finished_receiver = -1;
-    async_channel->polling_node = NULL;
+    async_channel->polling_node_receiver = NULL;
+    async_channel->polling_node_sender = NULL;
 
     mp_node->dt_send_to_device(mp_node, cmd->devid, cmd->addr, cmd->size, &sink_event->event);
 

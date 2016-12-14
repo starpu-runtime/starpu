@@ -193,6 +193,11 @@ struct _starpu_mp_node
 	 * Connection used for data transfers between the host and his sink. */
 	union _starpu_mp_connection host_sink_dt_connection;
 
+    /* Mutex to protect the interleaving of communications when using one thread per node,
+     * for instance, when a thread transfers piece of data and an other wants to use
+     * a sink_to_sink communication */
+	starpu_pthread_mutex_t connection_mutex;
+
 	/* Only MIC use this for now !!
 	 * Only sink use this for now !!
 	 * Connection used for data transfer between devices.

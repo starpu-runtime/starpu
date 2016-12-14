@@ -233,7 +233,8 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
 		node->nb_mp_sinks = 
 		node->devid = 
     */
-        node->mp_connection.mpi_remote_nodeid = peer_id+1;
+        node->peer_id = (_starpu_mpi_common_get_src_node() <= peer_id ? peer_id+1 : peer_id);
+        node->mp_connection.mpi_remote_nodeid = node->peer_id;
 
         node->init = _starpu_mpi_source_init;
         node->launch_workers = NULL;
@@ -306,6 +307,8 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
 	mp_message_list_init(&node->message_queue);
 	STARPU_PTHREAD_MUTEX_INIT(&node->message_queue_mutex,NULL);
 
+    STARPU_PTHREAD_MUTEX_INIT(&node->connection_mutex, NULL);
+
     _starpu_mp_event_list_init(&node->event_list);
 
 	/* If the node is a sink then we must initialize some field */
@@ -367,6 +370,8 @@ void _starpu_mp_common_send_command(const struct _starpu_mp_node *node,
 {
 	STARPU_ASSERT_MSG(arg_size <= BUFFER_SIZE, "Too much data (%d) for the static MIC buffer (%d), increase BUFFER_SIZE perhaps?", arg_size, BUFFER_SIZE);
 
+    printf("SEND CMD : %d - arg_size %d by %lu \n", command, arg_size, pthread_self());
+
 	/* MIC and MPI sizes are given through a int */
 	int command_size = sizeof(enum _starpu_mp_command);
 	int arg_size_size = sizeof(int);
@@ -400,6 +405,8 @@ enum _starpu_mp_command _starpu_mp_common_recv_command(const struct _starpu_mp_n
 
 	command = *((enum _starpu_mp_command *) node->buffer);
 	*arg_size = *((int *) ((uintptr_t)node->buffer + command_size));
+
+    printf("RECV command : %d - arg_size %d by %lu \n", command, *arg_size, pthread_self());
 
 	/* If there is no argument (ie. arg_size == 0),
 	 * let's return the command right now */

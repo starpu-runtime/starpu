@@ -762,8 +762,6 @@ int starpu_interface_copy(uintptr_t src, size_t src_offset, unsigned src_node, u
                     size);
 
     case _STARPU_MEMORY_NODE_TUPLE(STARPU_MPI_MS_RAM, STARPU_MPI_MS_RAM):
-        /* TODO : not used now */
-        STARPU_ABORT();
         if (async_data)
             return _starpu_mpi_copy_sink_to_sink_async(
                     (void*) (src + src_offset), src_node,
@@ -854,7 +852,7 @@ void _starpu_driver_wait_request_completion(struct _starpu_async_channel *async_
 #endif
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
     case STARPU_MPI_MS_RAM:
-        _starpu_mpi_src_wait_event(async_channel);
+        _starpu_mpi_common_wait_event(async_channel);
         break;
 #endif
 	case STARPU_MAIN_RAM:

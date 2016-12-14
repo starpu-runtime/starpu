@@ -44,6 +44,7 @@ void _starpu_mpi_common_recv_from_device(const struct _starpu_mp_node *node, int
 void _starpu_mpi_common_send_to_device(const struct _starpu_mp_node *node, int dst_devid, void *msg, int len, void * event);
 
 int _starpu_mpi_common_test_event(struct _starpu_async_channel * event);
+void _starpu_mpi_common_wait_event(struct _starpu_async_channel * event);
 
 void _starpu_mpi_common_barrier(void);
 
