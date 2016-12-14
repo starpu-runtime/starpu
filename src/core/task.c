@@ -948,10 +948,20 @@ int starpu_task_wait_for_no_ready(void)
 
 	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
 	if(config->topology.nsched_ctxs == 1)
+	{
+		_starpu_sched_do_schedule(0);
 		_starpu_wait_for_no_ready_of_sched_ctx(0);
+	}
 	else
 	{
 		int s;
+		for(s = 0; s < STARPU_NMAX_SCHED_CTXS; s++)
+		{
+			if(config->sched_ctxs[s].id != STARPU_NMAX_SCHED_CTXS)
+			{
+				_starpu_sched_do_schedule(config->sched_ctxs[s].id);
+			}
+		}
 		for(s = 0; s < STARPU_NMAX_SCHED_CTXS; s++)
 		{
 			if(config->sched_ctxs[s].id != STARPU_NMAX_SCHED_CTXS)
