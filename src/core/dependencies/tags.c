@@ -405,6 +405,7 @@ int starpu_tag_wait_array(unsigned ntags, starpu_tag_t *id)
 	/* It is forbidden to block within callbacks or codelets */
 	STARPU_ASSERT_MSG(_starpu_worker_may_perform_blocking_calls(), "starpu_tag_wait must not be called from a task or callback");
 
+	starpu_do_schedule();
 	STARPU_PTHREAD_RWLOCK_WRLOCK(&tag_global_rwlock);
 	/* only wait the tags that are not done yet */
 	for (i = 0, current = 0; i < ntags; i++)
