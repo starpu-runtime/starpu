@@ -167,6 +167,7 @@ int main(int argc, char **argv)
 	ret = starpu_task_submit(&taskC); if (ret == -ENODEV) goto enodev; STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	ret = starpu_task_submit(&taskD); if (ret == -ENODEV) goto enodev; STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
+	starpu_do_schedule();
 	/* Wait for the termination of all loops */
 	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	while (loop_cntD < niter)

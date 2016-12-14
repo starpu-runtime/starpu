@@ -141,6 +141,7 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
+	starpu_do_schedule();
 	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	while (completed < 3)
 		STARPU_PTHREAD_COND_WAIT(&cond, &mutex);
