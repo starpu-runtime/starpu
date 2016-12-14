@@ -149,7 +149,7 @@ static void _starpu_add_workers_to_sched_ctx(struct _starpu_sched_ctx *sched_ctx
 					     int *added_workers, int *n_added_workers)
 {
 	struct starpu_worker_collection *workers = sched_ctx->workers;
-	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
+	struct _starpu_machine_config *config = _starpu_get_machine_config();
 
 	int nworkers_to_add = nworkers == -1 ? (int)config->topology.nworkers : nworkers;
 	if (!nworkers_to_add)
@@ -480,7 +480,7 @@ struct _starpu_sched_ctx* _starpu_create_sched_ctx(struct starpu_sched_policy *p
 						   void * user_data,
 						   int nsub_ctxs, int *sub_ctxs, int nsms)
 {
-	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
+	struct _starpu_machine_config *config = _starpu_get_machine_config();
 
 	STARPU_PTHREAD_MUTEX_LOCK(&sched_ctx_manag);
 	STARPU_ASSERT(config->topology.nsched_ctxs < STARPU_NMAX_SCHED_CTXS);
@@ -628,7 +628,7 @@ static void _get_workers(int min, int max, int *workers, int *nw, enum starpu_wo
 	int npus = 0;
 	int i;
 
-	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
+	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	if(config->topology.nsched_ctxs == 1)
 	{
 		/*we have all available resources */
@@ -742,7 +742,7 @@ unsigned starpu_sched_ctx_create_inside_interval(const char *policy_name, const 
 						 int min_ncpus, int max_ncpus, int min_ngpus, int max_ngpus,
 						 unsigned allow_overlap)
 {
-	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
+	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	struct starpu_sched_policy *selected_policy = _starpu_select_sched_policy(config, policy_name);
 
 	struct _starpu_sched_ctx *sched_ctx = NULL;
@@ -838,7 +838,7 @@ unsigned starpu_sched_ctx_create(int *workerids, int nworkers, const char *sched
 		if (arg_type == STARPU_SCHED_CTX_POLICY_NAME)
 		{
 			char *policy_name = va_arg(varg_list, char *);
-			struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
+			struct _starpu_machine_config *config = _starpu_get_machine_config();
 			sched_policy = _starpu_select_sched_policy(config, policy_name);
 		}
 		else if (arg_type == STARPU_SCHED_CTX_POLICY_STRUCT)
@@ -949,7 +949,7 @@ int fstarpu_sched_ctx_create(int *workerids, int nworkers, const char *sched_ctx
 		{
 			arg_i++;
 			char *policy_name = arglist[arg_i];
-			struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
+			struct _starpu_machine_config *config = _starpu_get_machine_config();
 			sched_policy = _starpu_select_sched_policy(config, policy_name);
 		}
 		else if (arg_type == STARPU_SCHED_CTX_POLICY_STRUCT)
@@ -1137,7 +1137,7 @@ void starpu_sched_ctx_delete(unsigned sched_ctx_id)
 
 	/*if both of them have all the ressources is pointless*/
 	/*trying to transfer ressources from one ctx to the other*/
-	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
+	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	unsigned nworkers = config->topology.nworkers;
 
 	if(nworkers_ctx > 0 && inheritor_sched_ctx && inheritor_sched_ctx->id != STARPU_NMAX_SCHED_CTXS &&
@@ -1193,7 +1193,7 @@ void _starpu_delete_all_sched_ctxs()
 
 static void _starpu_check_workers(int *workerids, int nworkers)
 {
-	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
+	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	int nworkers_conf = config->topology.nworkers;
 
 	int i;
@@ -1475,7 +1475,7 @@ int _starpu_wait_for_n_submitted_tasks_of_sched_ctx(unsigned sched_ctx_id, unsig
 
 void _starpu_decrement_nsubmitted_tasks_of_sched_ctx(unsigned sched_ctx_id)
 {
-	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
+	struct _starpu_machine_config *config = _starpu_get_machine_config();
 #ifndef STARPU_SANITIZE_THREAD
 	if (!config->watchdog_ok)
 		config->watchdog_ok = 1;
@@ -1914,7 +1914,7 @@ unsigned starpu_sched_ctx_contains_type_of_worker(enum starpu_worker_archtype ar
 
 unsigned _starpu_worker_belongs_to_a_sched_ctx(int workerid, unsigned sched_ctx_id)
 {
-	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
+	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	int i;
 	for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
 	{
