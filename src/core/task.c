@@ -233,6 +233,7 @@ int starpu_task_wait(struct starpu_task *task)
 
 	_STARPU_TRACE_TASK_WAIT_START(j);
 
+	starpu_do_schedule();
 	_starpu_wait_job(j);
 
 	/* as this is a synchronous task, the liberation of the job
