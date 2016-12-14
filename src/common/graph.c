@@ -163,6 +163,8 @@ void _starpu_graph_add_job_dep(struct _starpu_job *job, struct _starpu_job *prev
 	_starpu_graph_wrlock();
 	struct _starpu_graph_node *node = job->graph_node;
 	struct _starpu_graph_node *prev_node = prev_job->graph_node;
+	if (!node || !prev_node)
+		return;
 
 	if (_starpu_graph_node_multilist_queued_bottom(prev_node))
 		/* Previous node is not at bottom any more */
@@ -217,6 +219,8 @@ void _starpu_graph_drop_job(struct _starpu_job *job)
 {
 	struct _starpu_graph_node *node = job->graph_node;
 	job->graph_node = NULL;
+	if (!node)
+		return;
 
 	STARPU_PTHREAD_MUTEX_LOCK(&node->mutex);
 	/* Will not be able to use the job any more */
