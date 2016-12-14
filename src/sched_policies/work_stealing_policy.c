@@ -724,7 +724,7 @@ static int lws_select_victim(struct _starpu_work_stealing_data *ws, unsigned sch
 	{
 		int neighbor = ws->per_worker[workerid].proxlist[i];
 		int ntasks = ws->per_worker[neighbor].queue_array->ntasks;
-		if (ntasks && ws->per_worker[workerid].busy)
+		if (ntasks && ws->per_worker[neighbor].busy)
 			return neighbor;
 	}
 	return -1;
