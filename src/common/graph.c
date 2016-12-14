@@ -57,6 +57,7 @@ void _starpu_graph_init(void)
 	_starpu_graph_node_multilist_init_dropped(&dropped);
 }
 
+/* LockWR the graph lock */
 void _starpu_graph_wrlock(void)
 {
 	STARPU_PTHREAD_RWLOCK_WRLOCK(&graph_lock);
@@ -64,11 +65,12 @@ void _starpu_graph_wrlock(void)
 
 void _starpu_graph_drop_node(struct _starpu_graph_node *node);
 
+/* This flushes the list of nodes to be dropped. Both the dropped_lock and
+ * graph_lock mutexes have to be held on entry, and are released.  */
 void _starpu_graph_drop_dropped_nodes(void)
 {
 	struct _starpu_graph_node_multilist_dropped dropping;
 
-	STARPU_PTHREAD_MUTEX_LOCK(&dropped_lock);
 	/* Pick up the list of dropped nodes */
 	_starpu_graph_node_multilist_move_dropped(&dropped, &dropping);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&dropped_lock);
@@ -78,7 +80,6 @@ void _starpu_graph_drop_dropped_nodes(void)
 	{
 		struct _starpu_graph_node *node, *next;
 
-		STARPU_PTHREAD_RWLOCK_WRLOCK(&graph_lock);
 		for (node = _starpu_graph_node_multilist_begin_dropped(&dropping);
 		     node != _starpu_graph_node_multilist_end_dropped(&dropping);
 		     node = next)
@@ -86,24 +87,31 @@ void _starpu_graph_drop_dropped_nodes(void)
 			next = _starpu_graph_node_multilist_next_dropped(node);
 			_starpu_graph_drop_node(node);
 		}
-		STARPU_PTHREAD_RWLOCK_UNLOCK(&graph_lock);
 	}
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&graph_lock);
 }
 
+/* UnlockWR the graph lock */
 void _starpu_graph_wrunlock(void)
 {
-	STARPU_PTHREAD_RWLOCK_UNLOCK(&graph_lock);
+	STARPU_PTHREAD_MUTEX_LOCK(&dropped_lock);
 	_starpu_graph_drop_dropped_nodes();
 }
 
+/* LockRD the graph lock */
 void _starpu_graph_rdlock(void)
 {
 	STARPU_PTHREAD_RWLOCK_RDLOCK(&graph_lock);
 }
 
+/* UnlockRD the graph lock */
 void _starpu_graph_rdunlock(void)
 {
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&graph_lock);
+	/* Take the opportunity to try to take it WR */
+	if (STARPU_PTHREAD_RWLOCK_TRYWRLOCK(&graph_lock) == 0)
+		/* Good, flush dropped nodes */
+		_starpu_graph_wrunlock();
 }
 
 static void __starpu_graph_foreach(void (*func)(void *data, struct _starpu_graph_node *node), void *data)
@@ -228,16 +236,15 @@ void _starpu_graph_drop_job(struct _starpu_job *job)
 	STARPU_PTHREAD_MUTEX_UNLOCK(&node->mutex);
 
 	STARPU_PTHREAD_MUTEX_LOCK(&dropped_lock);
+	/* Queue for removal when lock becomes available */
+	_starpu_graph_node_multilist_push_back_dropped(&dropped, node);
 	if (STARPU_PTHREAD_RWLOCK_TRYWRLOCK(&graph_lock) == 0)
 	{
-		/* Graph wrlock is available, drop node immediately */
-		_starpu_graph_drop_node(node);
-		STARPU_PTHREAD_RWLOCK_UNLOCK(&graph_lock);
+		/* Graph wrlock is available, drop nodes immediately */
+		_starpu_graph_drop_dropped_nodes();
 	}
 	else
-		/* Queue for removal when lock becomes available */
-		_starpu_graph_node_multilist_push_back_dropped(&dropped, node);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&dropped_lock);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&dropped_lock);
 }
 
 static void _starpu_graph_set_n(void *data, struct _starpu_graph_node *node)
