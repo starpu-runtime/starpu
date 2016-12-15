@@ -171,6 +171,13 @@ int main(int argc, char **argv)
 	starpu_shutdown();
 #endif
 
+#ifdef STARPU_HAVE_UNSETENV
+	/* That was useful to force the max number of cpus to use, but now we
+	 * want to make it vary */
+	unsetenv("STARPU_NCPUS");
+	unsetenv("STARPU_NCPU");
+#endif
+
 	parse_args(argc, argv);
 
 	float *buffers[total_nbuffers?total_nbuffers:1];
