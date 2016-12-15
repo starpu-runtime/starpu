@@ -151,6 +151,8 @@ static int _starpu_src_common_handle_async(struct _starpu_mp_node *node,
         {
             struct _starpu_async_channel * event = *((struct _starpu_async_channel **) arg);
             event->starpu_mp_common_finished_receiver--;
+            if (!stored)
+                STARPU_PTHREAD_MUTEX_UNLOCK(&node->connection_mutex);
             break;
         }
         case STARPU_MP_COMMAND_SEND_TO_HOST_ASYNC_COMPLETED:
@@ -158,6 +160,8 @@ static int _starpu_src_common_handle_async(struct _starpu_mp_node *node,
         {
             struct _starpu_async_channel * event = *((struct _starpu_async_channel **) arg);
             event->starpu_mp_common_finished_sender--;
+            if (!stored)
+                STARPU_PTHREAD_MUTEX_UNLOCK(&node->connection_mutex);
             break;
         }
 		default:
@@ -734,6 +738,9 @@ int _starpu_src_common_copy_sink_to_sink_async(struct _starpu_mp_node *src_node,
     struct _starpu_async_channel * async_channel = event;
     async_channel->polling_node_sender = src_node; 
     async_channel->polling_node_receiver = dst_node; 
+    /* Increase number of ack waited */
+    async_channel->starpu_mp_common_finished_receiver++;
+    async_channel->starpu_mp_common_finished_sender++;
 
 	/* Tell source to send data to dest. */
 	_starpu_mp_common_send_command(src_node, STARPU_MP_COMMAND_SEND_TO_SINK_ASYNC, &cmd, sizeof(cmd));

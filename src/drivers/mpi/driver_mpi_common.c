@@ -339,6 +339,7 @@ void _starpu_mpi_common_recv_from_device(const struct _starpu_mp_node *node, int
     else
     {
         /* Synchronous recv */
+        MPI_Status s;
         res = MPI_Recv(msg, len, MPI_BYTE, src_devid, SYNC_TAG, MPI_COMM_WORLD, &s);
         int num_expected;
         MPI_Get_count(&s, MPI_BYTE, &num_expected);
@@ -411,7 +412,7 @@ int _starpu_mpi_common_test_event(struct _starpu_async_channel * event)
 
     _starpu_mpi_common_polling_node(event->polling_node_sender);
     _starpu_mpi_common_polling_node(event->polling_node_receiver);
-
+    
     return !event->starpu_mp_common_finished_sender && !event->starpu_mp_common_finished_receiver;
 }
 
