@@ -263,6 +263,8 @@ main(void)
 #ifdef STARPU_HAVE_UNSETENV
 	unsetenv("STARPU_SCHED");
 #endif
+	if (starpu_get_env_number_default("STARPU_NWORKER_PER_CUDA", 1) != 1)
+		return STARPU_TEST_SKIPPED;
 
 	int i;
 	int n_policies = sizeof(policies)/sizeof(policies[0]);
