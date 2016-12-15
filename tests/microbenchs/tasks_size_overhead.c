@@ -91,7 +91,7 @@ static struct starpu_codelet codelet =
 static void parse_args(int argc, char **argv)
 {
 	int c;
-	while ((c = getopt(argc, argv, "i:b:B:c:C:t:T:f:h")) != -1)
+	while ((c = getopt(argc, argv, "i:b:B:c:C:s:t:T:f:h")) != -1)
 	switch(c)
 	{
 		case 'i':
