@@ -137,7 +137,7 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 			starpu_memory_allocate(STARPU_MAIN_RAM, dim, flags | STARPU_MEMORY_OVERFLOW);
 	}
 
-	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
+	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	if (flags & STARPU_MALLOC_PINNED && disable_pinning <= 0 && STARPU_RUNNING_ON_VALGRIND == 0 && config->conf.ncuda != 0)
 	{
 #ifdef STARPU_SIMGRID
