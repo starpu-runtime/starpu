@@ -2279,6 +2279,11 @@ AC_DEFUN([IS_SUPPORTED_CFLAG],
 IS_SUPPORTED_CFLAG(-Wall)
 IS_SUPPORTED_CFLAG(-Werror=implicit)
 IS_SUPPORTED_CFLAG(-Werror=implicit-function-declaration)
+if test x$enable_perf_debug = xyes; then
+	IS_SUPPORTED_CFLAG(-no-pie)
+	IS_SUPPORTED_CFLAG(-no-PIE)
+	IS_SUPPORTED_CFLAG(-fno-pie)
+fi
 
 if test "x$STARPU_DEVEL" != x; then
 	AC_DEFINE(STARPU_DEVEL, [1], [enable developer warnings])
