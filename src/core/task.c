@@ -1216,11 +1216,8 @@ static void *watchdog_func(void *arg)
 		{
 			starpu_sleep(1.);
 			if (!_starpu_machine_is_running())
-			{
 				/* Application finished, don't bother finishing the sleep */
-				STARPU_PTHREAD_MUTEX_UNLOCK(&config->submitted_mutex);
 				return NULL;
-			}
 		}
 		/* and one final sleep (of less than 1 s) with the rest (if needed) */
 		if (t > 0.)
