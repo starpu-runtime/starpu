@@ -32,12 +32,14 @@ static double idle_start[STARPU_NMAXWORKERS];
 long _starpu_task_break_on_push = -1;
 long _starpu_task_break_on_pop = -1;
 long _starpu_task_break_on_sched = -1;
+static const char *starpu_idle_file;
 
 void _starpu_sched_init(void)
 {
 	_starpu_task_break_on_push = starpu_get_env_number_default("STARPU_TASK_BREAK_ON_PUSH", -1);
 	_starpu_task_break_on_pop = starpu_get_env_number_default("STARPU_TASK_BREAK_ON_POP", -1);
 	_starpu_task_break_on_sched = starpu_get_env_number_default("STARPU_TASK_BREAK_ON_SCHED", -1);
+	starpu_idle_file = starpu_getenv("STARPU_IDLE_FILE");
 }
 
 int starpu_get_prefetch_flag(void)
@@ -883,11 +885,12 @@ pick:
 
 	if (!task)
 	{
-		idle_start[worker->workerid] = starpu_timing_now();
+		if (starpu_idle_file)
+			idle_start[worker->workerid] = starpu_timing_now();
 		return NULL;
 	}
 
-	if(idle_start[worker->workerid] != 0.0)
+	if(starpu_idle_file && idle_start[worker->workerid] != 0.0)
 	{
 		double idle_end = starpu_timing_now();
 		idle[worker->workerid] += (idle_end - idle_start[worker->workerid]);
@@ -1108,8 +1111,7 @@ int starpu_push_local_task(int workerid, struct starpu_task *task, int prio)
 
 void _starpu_print_idle_time()
 {
-	const char *sched_env = starpu_getenv("STARPU_IDLE_FILE");
-	if(!sched_env)
+	if(!starpu_idle_file)
 		return;
 	double all_idle = 0.0;
 	int i = 0;
@@ -1117,10 +1119,10 @@ void _starpu_print_idle_time()
 		all_idle += idle[i];
 
 	FILE *f;
-	f = fopen(sched_env, "a");
+	f = fopen(starpu_idle_file, "a");
 	if (!f)
 	{
-		fprintf(stderr, "couldn't open %s: %s\n", sched_env, strerror(errno));
+		fprintf(stderr, "couldn't open %s: %s\n", starpu_idle_file, strerror(errno));
 	}
 	else
 	{
