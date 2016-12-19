@@ -1280,6 +1280,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	int rank, worldsize;
 
 	starpu_pthread_setname("MPI");
+	STARPU_PTHREAD_DEPRESS_PRIORITY();
 
 #ifndef STARPU_SIMGRID
 	_starpu_mpi_do_initialize(argc_argv);
