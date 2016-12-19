@@ -15,6 +15,13 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+/*
+ * This is an example of an application-defined scheduler run inside a
+ * scheduling context.
+ * This is a mere eager scheduler with a centralized list of tasks to schedule:
+ * when a task becomes ready (push) it is put on the list. When a device
+ * becomes ready (pop), a task is taken from the list.
+ */
 #include <starpu.h>
 #include <starpu_scheduler.h>
 #include <config.h>
@@ -111,6 +118,10 @@ static struct starpu_task *pop_task_dummy(unsigned sched_ctx_id)
 	 * the calling worker. So we just take the head of the list and give it
 	 * to the worker. */
 	struct dummy_sched_data *data = (struct dummy_sched_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
+#ifdef STARPU_NON_BLOCKING_DRIVERS
+	if (starpu_task_list_empty(&data->sched_list))
+		return NULL;
+#endif
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 	struct starpu_task *task = starpu_task_list_pop_back(&data->sched_list);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
