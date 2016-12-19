@@ -25,10 +25,6 @@
 #include <stdlib.h>
 #include <math.h>
 #include <pthread.h>
-#ifdef __linux__
-#include <sys/resource.h>
-#include <sys/syscall.h>
-#endif
 #ifdef STARPU_HAVE_SCHED_YIELD
 #include <sched.h>
 #endif
@@ -92,12 +88,6 @@
 #define STARPU_UYIELD() do { if (STARPU_RUNNING_ON_VALGRIND) sched_yield(); else _STARPU_UYIELD(); } while (0)
 #else
 #define STARPU_UYIELD() _STARPU_UYIELD()
-#endif
-
-#if !defined(STARPU_SIMGRID) && defined(__linux__) && defined(SYS_gettid)
-#define STARPU_PTHREAD_DEPRESS_PRIORITY() setpriority(PRIO_PROCESS, syscall(SYS_gettid), 19)
-#else
-#define STARPU_PTHREAD_DEPRESS_PRIORITY() ((void)0)
 #endif
 
 #ifdef STARPU_VERBOSE

@@ -598,8 +598,6 @@ void _starpu_driver_start(struct _starpu_worker *worker, unsigned fut_key, unsig
 	STARPU_PTHREAD_COND_SIGNAL(&worker->started_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&worker->mutex);
 
-	STARPU_PTHREAD_DEPRESS_PRIORITY();
-
 	_starpu_bind_thread_on_cpu(worker->config, worker->bindid, worker->workerid);
 
 #if defined(STARPU_PERF_DEBUG) && !defined(STARPU_SIMGRID)
