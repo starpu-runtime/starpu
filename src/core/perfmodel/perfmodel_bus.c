@@ -123,10 +123,8 @@ static double mic_time_device_to_host[STARPU_MAXNODES] = {0.0};
 #endif /* STARPU_USE_MIC */
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
-static double mpi_time_host_to_device[STARPU_MAXNODES] = {0.0};
-static double mpi_time_device_to_host[STARPU_MAXNODES] = {0.0};
-static double mpi_latency_host_to_device[STARPU_MAXNODES] = {0.0};
-static double mpi_latency_device_to_host[STARPU_MAXNODES] = {0.0};
+static double mpi_time_device_to_device[STARPU_MAXMPIDEVS][STARPU_MAXMPIDEVS] = {{0.0}};
+static double mpi_latency_device_to_device[STARPU_MAXMPIDEVS][STARPU_MAXMPIDEVS] = {{0.0}};
 #endif
 
 #ifdef STARPU_HAVE_HWLOC
@@ -749,7 +747,7 @@ static void benchmark_all_gpu_devices(void)
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
     
-    _starpu_mpi_common_measure_bandwidth_latency(mpi_time_host_to_device, mpi_time_device_to_host, mpi_latency_host_to_device, mpi_latency_device_to_host);
+    _starpu_mpi_common_measure_bandwidth_latency(mpi_time_device_to_device, mpi_latency_device_to_device);
 
 #endif /* STARPU_USE_MPI_MASTER_SLAVE */
 
@@ -1207,10 +1205,39 @@ static void write_bus_latency_file_content(void)
 #endif
                 /* TODO Latency MIC */
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
+                /* Modify MPI src and MPI dst if they contain the master node or not 
+                 * Because, we only take care about slaves */
+                int mpi_master = _starpu_mpi_common_get_src_node();
+
+                int mpi_src = src - (ncuda + nopencl + nmic) - 1;
+                mpi_src = (mpi_master <= mpi_src) ? mpi_src+1 : mpi_src;
+                
+                int mpi_dst = dst - (ncuda + nopencl + nmic) - 1;
+                mpi_dst = (mpi_master <= mpi_dst) ? mpi_dst+1 : mpi_dst;
+
 				if (src > ncuda + nopencl + nmic && src <= ncuda + nopencl + nmic + nmpi_ms)
-					latency += mpi_latency_device_to_host[src - (ncuda + nopencl + nmic) - 1];
-				if (dst > ncuda + nopencl + nmic && dst <= ncuda + nopencl + nmic + nmpi_ms)
-					latency += mpi_latency_host_to_device[dst - (ncuda + nopencl + nmic) - 1];
+                {
+                    if (dst > ncuda + nopencl + nmic && dst <= ncuda + nopencl + nmic + nmpi_ms)
+                    {
+                        /* src and dst identify 2 MPI devices */
+                        latency += mpi_latency_device_to_device[mpi_src][mpi_dst];
+                    }
+                    else
+                    {
+                        /* Only src represents an MPI device 
+                         * So we add latency between src and master */
+                        latency += mpi_latency_device_to_device[mpi_src][mpi_master];
+                    }
+                }
+                else
+                {
+                    if (dst > ncuda + nopencl + nmic && dst <= ncuda + nopencl + nmic + nmpi_ms)
+                    {
+                        /* Only dst identifies an MPI device 
+                         * So we add latency between master and dst */
+                        latency += mpi_latency_device_to_device[mpi_master][mpi_dst];
+                    }
+                }
 #endif
 			}
 
@@ -1448,11 +1475,40 @@ static void write_bus_bandwidth_file_content(void)
 					slowness += mic_time_host_to_device[dst - (ncuda + nopencl)];
 #endif
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
+                /* Modify MPI src and MPI dst if they contain the master node or not 
+                 * Because, we only take care about slaves */
+                int mpi_master = _starpu_mpi_common_get_src_node();
+
+                int mpi_src = src - (ncuda + nopencl + nmic) - 1;
+                mpi_src = (mpi_master <= mpi_src) ? mpi_src+1 : mpi_src;
+                
+                int mpi_dst = dst - (ncuda + nopencl + nmic) - 1;
+                mpi_dst = (mpi_master <= mpi_dst) ? mpi_dst+1 : mpi_dst;
+
                 /* here we have bandwidth */
 				if (src > ncuda + nopencl + nmic && src <= ncuda + nopencl + nmic + nmpi_ms)
-					slowness += 1.0/mpi_time_device_to_host[src - (ncuda + nopencl + nmic) - 1];
-				if (dst > ncuda + nopencl + nmic && dst <= ncuda + nopencl + nmic +nmpi_ms)
-					slowness += 1.0/mpi_time_host_to_device[dst - (ncuda + nopencl + nmic) - 1];
+                {
+                    if (dst > ncuda + nopencl + nmic && dst <= ncuda + nopencl + nmic + nmpi_ms)
+                    {
+                        /* src and dst identify 2 MPI devices */
+					    slowness += 1.0/mpi_time_device_to_device[mpi_src][mpi_dst];
+                    }
+                    else
+                    {
+                        /* Only src represents an MPI device 
+                         * So we add bandwidth between src and master */
+					    slowness += 1.0/mpi_time_device_to_device[mpi_src][mpi_master];
+                    }
+                }
+                else
+                {
+                    if (dst > ncuda + nopencl + nmic && dst <= ncuda + nopencl + nmic + nmpi_ms)
+                    {
+                        /* Only dst identifies an MPI device 
+                         * So we add bandwidth between master and dst */
+					    slowness += 1.0/mpi_time_device_to_device[mpi_master][mpi_dst];
+                    }
+                }
 #endif
 				bandwidth = 1.0/slowness;
 			}

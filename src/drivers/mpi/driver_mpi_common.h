@@ -48,7 +48,7 @@ void _starpu_mpi_common_wait_event(struct _starpu_async_channel * event);
 
 void _starpu_mpi_common_barrier(void);
 
-void _starpu_mpi_common_measure_bandwidth_latency(double * bandwidth_htod, double * bandwidth_dtoh, double * latency_htod, double * latency_dtoh);
+void _starpu_mpi_common_measure_bandwidth_latency(double bandwidth_dtod[STARPU_MAXMPIDEVS][STARPU_MAXMPIDEVS], double latency_dtod[STARPU_MAXMPIDEVS][STARPU_MAXMPIDEVS]);
 
 
 #endif  /* STARPU_USE_MPI_MASTER_SLAVE */
