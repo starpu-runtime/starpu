@@ -23,6 +23,9 @@
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 
+#define SYNC_TAG 44
+#define ASYNC_TAG 45
+
 int _starpu_mpi_common_mp_init();
 void _starpu_mpi_common_mp_deinit();
 

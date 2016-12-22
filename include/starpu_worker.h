@@ -90,6 +90,7 @@ unsigned starpu_cuda_worker_get_count(void);
 unsigned starpu_opencl_worker_get_count(void);
 unsigned starpu_mic_worker_get_count(void);
 unsigned starpu_scc_worker_get_count(void);
+unsigned starpu_mpi_ms_worker_get_count(void);
 
 unsigned starpu_mic_device_get_count(void);
 

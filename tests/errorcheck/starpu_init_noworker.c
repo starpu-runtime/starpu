@@ -57,6 +57,7 @@ int main(int argc, char **argv)
 	conf.nopencl = 0;
 	conf.nmic = 0;
 	conf.nscc = 0;
+    conf.nmpi_ms = 0;
 
 	/* starpu_init should return -ENODEV */
 	ret = starpu_initialize(&conf, &argc, &argv);
@@ -64,14 +65,18 @@ int main(int argc, char **argv)
 	     return EXIT_SUCCESS;
 	else
 	{
-	     	unsigned ncpu = starpu_cpu_worker_get_count();
-		unsigned ncuda = starpu_cuda_worker_get_count();
-		unsigned nopencl = starpu_opencl_worker_get_count();
-		FPRINTF(stderr, "StarPU has found :\n");
-		FPRINTF(stderr, "\t%u CPU cores\n", ncpu);
-		FPRINTF(stderr, "\t%u CUDA devices\n", ncuda);
-		FPRINTF(stderr, "\t%u OpenCL devices\n", nopencl);
-		return EXIT_FAILURE;
+        unsigned ncpu = starpu_cpu_worker_get_count();
+        unsigned ncuda = starpu_cuda_worker_get_count();
+        unsigned nopencl = starpu_opencl_worker_get_count();
+        unsigned nmic = starpu_mic_worker_get_count();
+        unsigned nmpi_ms = starpu_mpi_ms_worker_get_count();
+        FPRINTF(stderr, "StarPU has found :\n");
+        FPRINTF(stderr, "\t%u CPU cores\n", ncpu);
+        FPRINTF(stderr, "\t%u CUDA devices\n", ncuda);
+        FPRINTF(stderr, "\t%u OpenCL devices\n", nopencl);
+        FPRINTF(stderr, "\t%u MIC devices\n", nmic);
+        FPRINTF(stderr, "\t%u MPI Master-Slaves devices\n", nmpi_ms);
+        return EXIT_FAILURE;
 	}
 
 

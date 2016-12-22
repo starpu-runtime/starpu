@@ -26,6 +26,7 @@
 #include <drivers/mic/driver_mic_source.h>
 #include <drivers/scc/driver_scc_source.h>
 #include <drivers/mpi/driver_mpi_source.h>
+#include <drivers/mpi/driver_mpi_common.h>
 #include <drivers/mp_common/source_common.h>
 #include <drivers/opencl/driver_opencl.h>
 #include <profiling/profiling.h>
@@ -954,7 +955,7 @@ _starpu_init_mpi_config (struct _starpu_machine_config *config,
 
 static void
 _starpu_init_mp_config (struct _starpu_machine_config *config,
-			struct starpu_conf *user_conf)
+			struct starpu_conf *user_conf, int no_mp_config)
 {
 	/* Discover and configure the mp topology. That means:
 	 * - discover the number of mp nodes;
@@ -966,6 +967,7 @@ _starpu_init_mp_config (struct _starpu_machine_config *config,
 	struct _starpu_machine_topology *topology = &config->topology;
 
 #ifdef STARPU_USE_MIC
+    if (!no_mp_config)
     {
         /* Discover and initialize the number of MIC nodes through the mp
          * infrastructure. */
@@ -1030,13 +1032,23 @@ _starpu_init_mp_config (struct _starpu_machine_config *config,
 
         topology->nmpidevices = reqmpidevices;
 
-        unsigned i;
-        for (i = 0; i < topology->nmpidevices; i++)
-            mpi_ms_nodes[i] = _starpu_mp_common_node_create(STARPU_NODE_MPI_SOURCE, i);
+        /* if user don't want to use MPI slaves, we close the slave processes */
+        if (no_mp_config && topology->nmpidevices == 0)
+        {
+            _starpu_mpi_common_mp_deinit();
+            exit(0);
+        }
+
+        if (!no_mp_config)
+        {
+            unsigned i;
+            for (i = 0; i < topology->nmpidevices; i++)
+                mpi_ms_nodes[i] = _starpu_mp_common_node_create(STARPU_NODE_MPI_SOURCE, i);
 
 
-        for (i = 0; i < topology->nmpidevices; i++)
-            _starpu_init_mpi_config (config, user_conf, i);
+            for (i = 0; i < topology->nmpidevices; i++)
+                _starpu_init_mpi_config (config, user_conf, i);
+        }
     }
 #endif
 }
@@ -1376,11 +1388,8 @@ _starpu_init_machine_config(struct _starpu_machine_config *config, int no_mp_con
 	topology->nworkers += topology->nsccdevices;
 #endif /* STARPU_USE_SCC */
 
-	/* Unless not requested, we need to complete configuration with the
-	 * ones of the mp nodes. */
 #if defined(STARPU_USE_MIC) || defined(STARPU_USE_MPI_MASTER_SLAVE)
-	if (! no_mp_config)
-	    _starpu_init_mp_config (config, &config->conf);
+	    _starpu_init_mp_config (config, &config->conf, no_mp_config);
 #endif
 
 /* we put the CPU section after the accelerator : in case there was an

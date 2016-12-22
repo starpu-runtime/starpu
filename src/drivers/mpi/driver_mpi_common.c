@@ -24,9 +24,6 @@
 #define NITER 32
 #define SIZE_BANDWIDTH (1024*1024)
 
-#define SYNC_TAG 44
-#define ASYNC_TAG 45
-
 #define DRIVER_MPI_MASTER_NODE_DEFAULT 0
 
 static int mpi_initialized = 0;

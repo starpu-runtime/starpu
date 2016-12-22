@@ -1331,7 +1331,8 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	/* Depending on whether we are a MP sink or not, we must build the
 	 * topology with MP nodes or not. */
 	ret = _starpu_build_topology(&_starpu_config, is_a_sink);
-	if (ret)
+    /* sink doesn't exit even if no worker discorvered */
+	if (ret && !is_a_sink)
 	{
 		starpu_perfmodel_free_sampling_directories();
 		STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
@@ -1804,6 +1805,11 @@ unsigned starpu_mic_worker_get_count(void)
 unsigned starpu_scc_worker_get_count(void)
 {
 	return _starpu_config.topology.nsccdevices;
+}
+
+unsigned starpu_mpi_ms_worker_get_count(void)
+{
+    return _starpu_config.topology.nmpidevices;
 }
 
 /* When analyzing performance, it is useful to see what is the processing unit

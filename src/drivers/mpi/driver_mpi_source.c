@@ -231,8 +231,6 @@ void(* _starpu_mpi_ms_src_get_kernel_from_job(const struct _starpu_mp_node *node
 	return (void (*)(void))kernel;
 }
 
-
-
 unsigned _starpu_mpi_src_get_device_count()
 {
     int nb_mpi_devices;
