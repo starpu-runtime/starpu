@@ -207,7 +207,7 @@ uint32_t _starpu_worker_exists(struct starpu_task *task)
 		return 1;
 #endif
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
-	if ((task->cl->where & STARPU_MPI) &&
+	if ((task->cl->where & STARPU_MPI_MS) &&
 	    _starpu_worker_exists_and_can_execute(task, STARPU_MPI_WORKER))
 		return 1;
 #endif

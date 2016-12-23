@@ -175,6 +175,7 @@ int main(int argc, char **argv)
 
 	starpu_conf_init(&conf);
 	conf.nmic = 0;
+	conf.nmpi_ms = 0;
 	conf.nscc = 0;
 
 	variable = INIT_VALUE;

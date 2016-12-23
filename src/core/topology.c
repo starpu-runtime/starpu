@@ -945,8 +945,8 @@ _starpu_init_mpi_config (struct _starpu_machine_config *config,
 		config->workers[worker_idx].perf_arch.devices[0].ncores = 1;
 		config->workers[worker_idx].devid = mpi_idx;
 		config->workers[worker_idx].subworkerid = mpicore_id;
-		config->workers[worker_idx].worker_mask = STARPU_MPI;
-		config->worker_mask |= STARPU_MPI;
+		config->workers[worker_idx].worker_mask = STARPU_MPI_MS;
+		config->worker_mask |= STARPU_MPI_MS;
 	}
 
 	topology->nworkers += topology->nmpicores[mpi_idx];

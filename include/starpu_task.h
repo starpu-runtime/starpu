@@ -42,7 +42,7 @@ extern "C"
 #define STARPU_OPENCL	((1ULL)<<6)
 #define STARPU_MIC	((1ULL)<<7)
 #define STARPU_SCC	((1ULL)<<8)
-#define STARPU_MPI	((1ULL)<<9)
+#define STARPU_MPI_MS	((1ULL)<<9)
 
 #define STARPU_CODELET_SIMGRID_EXECUTE	(1<<0)
 #define STARPU_CUDA_ASYNC	(1<<0)

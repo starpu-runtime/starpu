@@ -489,7 +489,7 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 		}
 	if (some_impl && is_where_unset)
 	{
-		cl->where |= STARPU_MPI;
+		cl->where |= STARPU_MPI_MS;
 	}
 
 	some_impl = 0;
@@ -513,7 +513,7 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 		}
 	if (some_impl && is_where_unset)
 	{
-		cl->where |= STARPU_MIC|STARPU_SCC|STARPU_MPI;
+		cl->where |= STARPU_MIC|STARPU_SCC|STARPU_MPI_MS;
 	}
 }
 
