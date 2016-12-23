@@ -25,7 +25,7 @@
 
 /* Array of structures containing all the informations useful to send
  * and receive informations with devices */
-extern struct _starpu_mp_node *mpi_ms_nodes[STARPU_MAXMICDEVS];
+extern struct _starpu_mp_node *mpi_ms_nodes[STARPU_MAXMPIDEVS];
 struct _starpu_mp_node *_starpu_mpi_src_get_mp_node_from_memory_node(int memory_node);
 
 unsigned _starpu_mpi_src_get_device_count();
