@@ -388,7 +388,6 @@ int _starpu_src_common_execute_kernel(struct _starpu_mp_node *node,
 		unsigned nb_interfaces,
 		void *cl_arg, size_t cl_arg_size)
 {
-
 	void *buffer, *arg =NULL;
 	uintptr_t buffer_ptr;
 	int buffer_size = 0, arg_size =0;
@@ -1020,7 +1019,7 @@ void _starpu_src_common_workers_set(struct _starpu_worker_set * worker_set,
     unsigned offsetmemnode[ndevices];
     memset(offsetmemnode, 0, ndevices*sizeof(unsigned));
 
-    unsigned device;
+    int device;
     int nbworkers = 0;
     for (device = 0; device < ndevices; device++)
     {
@@ -1048,7 +1047,7 @@ void _starpu_src_common_workers_set(struct _starpu_worker_set * worker_set,
 	{
         for (device = 0; device < ndevices ; device++)
         {
-            _starpu_src_common_switch_env((device-1)%ndevices, device);
+            _starpu_src_common_switch_env(((device-1)+ndevices)%ndevices, device);
             _starpu_src_common_worker_internal_work(&worker_set[device], mp_node[device], tasks+offsetmemnode[device], memnode[device]);
         }
     }
