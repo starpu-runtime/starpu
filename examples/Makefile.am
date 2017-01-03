@@ -5,6 +5,7 @@
 # Copyright (C) 2011  Télécom-SudParis
 # Copyright (C) 2011-2012  INRIA
 # Copyright (C) 2015-2016  Inria
+# Copyright (C) 2016  Uppsala University
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -73,7 +74,10 @@ EXTRA_DIST = 					\
 	reductions/dot_product_opencl_kernels.cl	\
 	scheduler/schedulers.sh				\
 	scheduler/schedulers_context.sh			\
-	fortran/Makefile
+	fortran/Makefile				\
+	sched_ctx/axpy_partition_gpu.h				\
+	sched_ctx/axpy_partition_gpu.cu		
+
 
 CLEANFILES = *.gcno *.gcda *.linkinfo *.mod starpu_idle_microsec.log
 
@@ -138,7 +142,8 @@ noinst_HEADERS = 				\
 	pi/SobolQRNG/sobol_gpu.h		\
 	pi/SobolQRNG/sobol_primitives.h         \
 	reductions/dot_product.h                \
-	basic_examples/vector_scal_cpu_template.h
+	basic_examples/vector_scal_cpu_template.h \
+	sched_ctx/axpy_partition_gpu.h				
 
 #####################################
 # What to install and what to check #
@@ -229,7 +234,8 @@ STARPU_EXAMPLES +=				\
 	sched_ctx/dummy_sched_with_ctx		\
 	worker_collections/worker_tree_example  \
 	reductions/dot_product			\
-	reductions/minmax_reduction
+	reductions/minmax_reduction		\
+	sched_ctx/gpu_partition
 
 endif
 
@@ -336,6 +342,14 @@ endif
 endif
 
 endif !STARPU_SIMGRID
+
+sched_ctx_gpu_partition_SOURCES =		\
+	sched_ctx/gpu_partition.c
+
+if STARPU_USE_CUDA
+sched_ctx_gpu_partition_SOURCES +=		\
+	sched_ctx/axpy_partition_gpu.cu
+endif
 
 ##################
 # Basic examples #
@@ -851,7 +865,7 @@ endif
 
 cpp_add_vectors_SOURCES	=	\
 	cpp/add_vectors.cpp
-	
+
 if STARPU_HAVE_CXX11
 cpp_add_vectors_cpp11_SOURCES	=	\
 	cpp/add_vectors_cpp11.cpp

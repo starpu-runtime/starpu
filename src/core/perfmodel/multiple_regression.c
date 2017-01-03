@@ -201,7 +201,7 @@ int dgels_multiple_reg_coeff(double *mpar, double *my, long nn, unsigned ncoeff,
 	for (i=0; i < m; i++)
 	{
 		Y[i] = my[i];
-		X[i*n] = 1.;
+		X[i] = 1.;
 		for (j=1; j < n; j++)
 		{
 			coefficient = 1.;
@@ -209,7 +209,7 @@ int dgels_multiple_reg_coeff(double *mpar, double *my, long nn, unsigned ncoeff,
 			{
 				coefficient *= pow(mpar[i*nparameters+k],combinations[j-1][k]);
 			}
-			X[i*n+j] = coefficient;
+			X[i+j*m] = coefficient;
 		}
 	}
 

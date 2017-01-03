@@ -206,6 +206,7 @@ int main(int argc, char **argv)
 
 	starpu_tag_notify_from_apps((starpu_tag_t) TAG_START);
 
+	starpu_do_schedule();
 	/* Wait for the termination of all loops */
 	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	if (loop_cnt < niter)

@@ -4,6 +4,7 @@
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2011, 2014, 2016  INRIA
+ * Copyright (C) 2016  Uppsala University
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -94,6 +95,7 @@ void starpu_task_init(struct starpu_task *task)
 
 	task->predicted = NAN;
 	task->predicted_transfer = NAN;
+	task->predicted_start = NAN;
 
 	task->magic = 42;
 	task->sched_ctx = STARPU_NMAX_SCHED_CTXS;
@@ -231,6 +233,7 @@ int starpu_task_wait(struct starpu_task *task)
 
 	_STARPU_TRACE_TASK_WAIT_START(j);
 
+	starpu_do_schedule();
 	_starpu_wait_job(j);
 
 	/* as this is a synchronous task, the liberation of the job
@@ -843,7 +846,7 @@ int _starpu_task_wait_for_all_and_return_nb_waited_tasks(void)
 		_STARPU_DEBUG("Waiting for all tasks\n");
 		STARPU_ASSERT_MSG(_starpu_worker_may_perform_blocking_calls(), "starpu_task_wait_for_all must not be called from a task or callback");
 		STARPU_AYU_BARRIER();
-		struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
+		struct _starpu_machine_config *config = _starpu_get_machine_config();
 		if(config->topology.nsched_ctxs == 1)
 		{
 			_starpu_sched_do_schedule(0);
@@ -916,7 +919,7 @@ int starpu_task_wait_for_n_submitted(unsigned n)
 		_STARPU_DEBUG("Waiting for all tasks\n");
 		STARPU_ASSERT_MSG(_starpu_worker_may_perform_blocking_calls(), "starpu_task_wait_for_n_submitted must not be called from a task or callback");
 
-		struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
+		struct _starpu_machine_config *config = _starpu_get_machine_config();
 		if(config->topology.nsched_ctxs == 1)
 			_starpu_wait_for_n_submitted_tasks_of_sched_ctx(0, n);
 		else
@@ -955,12 +958,22 @@ int starpu_task_wait_for_no_ready(void)
 {
 	STARPU_ASSERT_MSG(_starpu_worker_may_perform_blocking_calls(), "starpu_task_wait_for_no_ready must not be called from a task or callback");
 
-	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
+	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	if(config->topology.nsched_ctxs == 1)
+	{
+		_starpu_sched_do_schedule(0);
 		_starpu_wait_for_no_ready_of_sched_ctx(0);
+	}
 	else
 	{
 		int s;
+		for(s = 0; s < STARPU_NMAX_SCHED_CTXS; s++)
+		{
+			if(config->sched_ctxs[s].id != STARPU_NMAX_SCHED_CTXS)
+			{
+				_starpu_sched_do_schedule(config->sched_ctxs[s].id);
+			}
+		}
 		for(s = 0; s < STARPU_NMAX_SCHED_CTXS; s++)
 		{
 			if(config->sched_ctxs[s].id != STARPU_NMAX_SCHED_CTXS)
@@ -975,7 +988,7 @@ int starpu_task_wait_for_no_ready(void)
 
 void starpu_do_schedule(void)
 {
-	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
+	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	if(config->topology.nsched_ctxs == 1)
 		_starpu_sched_do_schedule(0);
 	else
@@ -1021,7 +1034,7 @@ starpu_drivers_request_termination(void)
 int starpu_task_nsubmitted(void)
 {
 	int nsubmitted = 0;
-	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
+	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	if(config->topology.nsched_ctxs == 1)
 		nsubmitted = _starpu_get_nsubmitted_tasks_of_sched_ctx(0);
 	else
@@ -1042,7 +1055,7 @@ int starpu_task_nsubmitted(void)
 int starpu_task_nready(void)
 {
 	int nready = 0;
-	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
+	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	if(config->topology.nsched_ctxs == 1)
 		nready = starpu_sched_ctx_get_nready_tasks(0);
 	else
@@ -1200,7 +1213,7 @@ static void *watchdog_func(void *arg)
 #else
 	timeout = ((float) atoll(timeout_env)) / 1000000;
 #endif
-	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
+	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	starpu_pthread_setname("watchdog");
 
 	STARPU_PTHREAD_MUTEX_LOCK(&config->submitted_mutex);
@@ -1217,11 +1230,8 @@ static void *watchdog_func(void *arg)
 		{
 			starpu_sleep(1.);
 			if (!_starpu_machine_is_running())
-			{
 				/* Application finished, don't bother finishing the sleep */
-				STARPU_PTHREAD_MUTEX_UNLOCK(&config->submitted_mutex);
 				return NULL;
-			}
 		}
 		/* and one final sleep (of less than 1 s) with the rest (if needed) */
 		if (t > 0.)
@@ -1249,7 +1259,7 @@ static void *watchdog_func(void *arg)
 
 void _starpu_watchdog_init(void)
 {
-	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
+	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	char *timeout_env = starpu_getenv("STARPU_WATCHDOG_TIMEOUT");
 
 	STARPU_PTHREAD_MUTEX_INIT(&config->submitted_mutex, NULL);

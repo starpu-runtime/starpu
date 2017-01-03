@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2010-2016  Université de Bordeaux
  * Copyright (C) 2011  Télécom-SudParis
+ * Copyright (C) 2016  Uppsala University
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -39,8 +40,8 @@ struct starpu_sched_policy
 	struct starpu_task *(*pop_every_task)(unsigned sched_ctx_id);
 
 	void (*submit_hook)(struct starpu_task *task);
-	void (*pre_exec_hook)(struct starpu_task *);
-	void (*post_exec_hook)(struct starpu_task *);
+	void (*pre_exec_hook)(struct starpu_task *, unsigned sched_ctx_id);
+	void (*post_exec_hook)(struct starpu_task *, unsigned sched_ctx_id);
 
 	void (*do_schedule)(unsigned sched_ctx_id);
 

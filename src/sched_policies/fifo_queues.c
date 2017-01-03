@@ -3,6 +3,7 @@
  * Copyright (C) 2010-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2013, 2016  CNRS
  * Copyright (C) 2011  Télécom-SudParis
+ * Copyright (C) 2016  Uppsala University
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -56,6 +57,7 @@ struct _starpu_fifo_taskq *_starpu_create_fifo(void)
 	fifo->exp_len = 0.0;
 	fifo->exp_end = fifo->exp_start;
 	fifo->exp_len_per_priority = NULL;
+	fifo->pipeline_len = 0.0;
 
 	return fifo;
 }

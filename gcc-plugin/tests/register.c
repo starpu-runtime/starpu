@@ -15,6 +15,7 @@
    along with GCC-StarPU.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Test whether `#pragma starpu register ...' generates the right code.  */
+/* r19465 is modifying the test to avoid calling starpu_data_register twice with the same variable, starpu now checks that the same key is not entered twice in the same hashtable */
 
 #undef NDEBUG
 
@@ -31,6 +32,7 @@ foo (void)
 #pragma starpu register x /* (warning "considered unsafe") */
 }
 
+#if 0
 static void
 bar (float *p, int s)
 {
@@ -50,6 +52,7 @@ baz (int s, float *p)
   expected_register_arguments.element_size = sizeof *p;
 #pragma starpu register p s
 }
+#endif
 
 /* Check the interaction between `register' and `heap_allocated'.  This test
    assumes `heap_allocated' works as expected.  */
@@ -84,6 +87,7 @@ main (int argc, char *argv[])
 
   int x[123];
   double *y;
+  double *yy;
   static char z[345];
   static float m[7][42];
   static float m3d[14][11][80];
@@ -91,6 +95,7 @@ main (int argc, char *argv[])
   size_t y_size = 234;
 
   y = malloc (234 * sizeof *y);
+  yy = malloc (234 * sizeof *yy);
 
   expected_register_arguments.pointer = x;
   expected_register_arguments.elements = 123;
@@ -102,10 +107,10 @@ main (int argc, char *argv[])
   expected_register_arguments.element_size = sizeof *y;
 #pragma starpu register y 234
 
-  expected_register_arguments.pointer = y;
+  expected_register_arguments.pointer = yy;
   expected_register_arguments.elements = y_size;
-  expected_register_arguments.element_size = sizeof *y;
-#pragma starpu register y y_size
+  expected_register_arguments.element_size = sizeof *yy;
+#pragma starpu register yy y_size
 
   expected_register_arguments.pointer = z;
   expected_register_arguments.elements = 345;
@@ -122,6 +127,7 @@ main (int argc, char *argv[])
   expected_register_arguments.element_size = sizeof argv[0];
 #pragma starpu register argv 456
 
+#if 0
 #define ARGV argv
 #define N 456
   expected_register_arguments.pointer = argv;
@@ -130,22 +136,25 @@ main (int argc, char *argv[])
 #pragma starpu register   ARGV /* hello, world! */  N
 #undef ARGV
 #undef N
+#endif
 
   foo ();
-  bar ((float *) argv, argc);
-  baz (argc, (float *) argv);
+  //  bar ((float *) argv, argc);
+  //  baz (argc, (float *) argv);
 
+#if 0
   expected_register_arguments.pointer = argv;
   expected_register_arguments.elements = argc;
   expected_register_arguments.element_size = sizeof argv[0];
 
   int chbouib = argc;
 #pragma starpu register argv chbouib
+#endif
 
-  expected_register_arguments.pointer = &argv[2];
+  expected_register_arguments.pointer = &argv[1];
   expected_register_arguments.elements = 3;
   expected_register_arguments.element_size = sizeof argv[0];
-#pragma starpu register &argv[2] 3
+#pragma starpu register &argv[1] 3
 
   expected_register_arguments.pointer = &argv[argc + 3 / 2];
   expected_register_arguments.elements = argc * 4;
@@ -172,9 +181,14 @@ main (int argc, char *argv[])
   expected_register_arguments.element_size = sizeof m3d[0];
 #pragma starpu register m3d
 
+#if 0
   assert (data_register_calls == 17);
+#else
+  assert (data_register_calls == 13);
+#endif
 
   free (y);
+  free (yy);
 
   heap_alloc (42, 77);
   assert (free_calls == 1);

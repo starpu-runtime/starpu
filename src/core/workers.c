@@ -5,6 +5,7 @@
  * Copyright (C) 2010, 2011  INRIA
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2011-2012, 2016  INRIA
+ * Copyright (C) 2016  Uppsala University
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -54,7 +55,7 @@
 static starpu_pthread_mutex_t init_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 static starpu_pthread_cond_t init_cond = STARPU_PTHREAD_COND_INITIALIZER;
 static int init_count = 0;
-static enum { UNINITIALIZED, CHANGING, INITIALIZED } initialized = UNINITIALIZED;
+static enum initialization initialized = UNINITIALIZED;
 
 int _starpu_keys_initialized STARPU_ATTRIBUTE_INTERNAL;
 starpu_pthread_key_t _starpu_worker_key STARPU_ATTRIBUTE_INTERNAL;
@@ -388,7 +389,7 @@ int starpu_worker_can_execute_task_first_impl(unsigned workerid, struct starpu_t
 	{
 		for (i = 0; i < STARPU_MAXIMPLEMENTATIONS; i++)
 			if (_starpu_can_use_nth_implementation(arch, cl, i)
-			 && task->cl->can_execute(workerid, task, i))
+			 && (task->cl->can_execute(workerid, task, i)))
 			{
 				if (nimpl)
 					*nimpl = i;
@@ -643,6 +644,10 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 #endif
 	STARPU_AYU_INIT();
 
+#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
+	unsigned th_per_stream = starpu_get_env_number_default("STARPU_CUDA_THREAD_PER_WORKER", 0);
+#endif
+
 	for (worker = 0; worker < nworkers; worker++)
 	{
 		struct _starpu_worker *workerarg = &pconfig->workers[worker];
@@ -693,21 +698,24 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 			case STARPU_CUDA_WORKER:
 				driver.id.cuda_id = devid;
 
-				/* We spawn only one thread per CUDA driver,
-				 * which will control all CUDA workers of this
-				 * driver. (by using a worker set). */
 				if (worker_set->workers != workerarg)
+					/* We are not the first worker of the
+					 * set, don't start a thread for it. */
 					break;
 
-				worker_set->nworkers = starpu_get_env_number_default("STARPU_NWORKER_PER_CUDA", 1);
-
-#ifndef STARPU_NON_BLOCKING_DRIVERS
-				if (worker_set->nworkers > 1)
+				if(th_per_stream == 0)
 				{
-					_STARPU_DISP("Warning: reducing STARPU_NWORKER_PER_CUDA to 1 because blocking drivers are enabled\n");
-					worker_set->nworkers = 1;
-				}
+					worker_set->nworkers = starpu_get_env_number_default("STARPU_NWORKER_PER_CUDA", 1);
+#ifndef STARPU_NON_BLOCKING_DRIVERS
+					if (worker_set->nworkers > 1)
+					{
+						_STARPU_DISP("Warning: reducing STARPU_NWORKER_PER_CUDA to 1 because blocking drivers are enabled\n");
+						worker_set->nworkers = 1;
+					}
 #endif
+				}
+				else
+					worker_set->nworkers = 1;
 
 				worker_set->set_is_initialized = 0;
 
@@ -716,6 +724,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 					workerarg->run_by_starpu = 0;
 					break;
 				}
+
 
 				STARPU_PTHREAD_CREATE_ON(
 					workerarg->name,
@@ -1372,11 +1381,14 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	if (!is_a_sink)
 	{
 		struct starpu_sched_policy *selected_policy = _starpu_select_sched_policy(&_starpu_config, _starpu_config.conf.sched_policy_name);
-		_starpu_create_sched_ctx(selected_policy, NULL, -1, 1, "init", (_starpu_config.conf.global_sched_ctx_min_priority != -1), _starpu_config.conf.global_sched_ctx_min_priority, (_starpu_config.conf.global_sched_ctx_min_priority != -1), _starpu_config.conf.global_sched_ctx_max_priority, 1, _starpu_config.conf.sched_policy_init, NULL);
+		_starpu_create_sched_ctx(selected_policy, NULL, -1, 1, "init", (_starpu_config.conf.global_sched_ctx_min_priority != -1), _starpu_config.conf.global_sched_ctx_min_priority, (_starpu_config.conf.global_sched_ctx_min_priority != -1), _starpu_config.conf.global_sched_ctx_max_priority, 1, _starpu_config.conf.sched_policy_init, NULL,  0, NULL, 0);
 	}
 
 	_starpu_initialize_registered_performance_models();
 
+#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
+	_starpu_cuda_init();
+#endif
 	/* Launch "basic" workers (ie. non-combined workers) */
 	if (!is_a_sink)
 		_starpu_launch_drivers(&_starpu_config);
@@ -1434,7 +1446,7 @@ static void _starpu_terminate_workers(struct _starpu_machine_config *pconfig)
 
 		/* in case StarPU termination code is called from a callback,
  		 * we have to check if pthread_self() is the worker itself */
-		if (set)
+		if (set && set->nworkers > 0)
 		{
 			if (set->started)
 			{
@@ -1442,7 +1454,9 @@ static void _starpu_terminate_workers(struct _starpu_machine_config *pconfig)
 				status = starpu_pthread_join(set->worker_thread, NULL);
 #else
 				if (!pthread_equal(pthread_self(), set->worker_thread))
+				{
 					status = starpu_pthread_join(set->worker_thread, NULL);
+				}
 #endif
 				if (status)
 				{
@@ -1927,11 +1941,11 @@ enum starpu_worker_archtype starpu_worker_get_type(int id)
 	return _starpu_config.workers[id].arch;
 }
 
-int starpu_worker_get_ids_by_type(enum starpu_worker_archtype type, int *workerids, int maxsize)
+unsigned starpu_worker_get_ids_by_type(enum starpu_worker_archtype type, int *workerids, unsigned maxsize)
 {
 	unsigned nworkers = starpu_worker_get_count();
 
-	int cnt = 0;
+	unsigned cnt = 0;
 
 	unsigned id;
 	for (id = 0; id < nworkers; id++)
@@ -1983,6 +1997,48 @@ int starpu_worker_get_by_devid(enum starpu_worker_archtype type, int devid)
 	return -1;
 }
 
+int starpu_worker_get_devids(enum starpu_worker_archtype type, int *devids, int num)
+{
+	int cnt = 0;
+	unsigned nworkers = starpu_worker_get_count();
+	int workerids[nworkers];
+
+	unsigned ndevice_workers = starpu_worker_get_ids_by_type(type, workerids, nworkers);
+
+	unsigned ndevids = 0;
+
+	if(ndevice_workers > 0)
+	{
+		unsigned id, devid;
+		int curr_devid = -1;
+		unsigned found = 0;
+		for(id = 0; id < ndevice_workers; id++)
+		{
+			curr_devid = _starpu_config.workers[workerids[id]].devid;
+			for(devid = 0; devid < ndevids; devid++)
+			{
+				if(curr_devid == devids[devid])
+				{
+					found = 1;
+					break;
+				}
+			}
+			if(!found)
+			{
+				devids[ndevids++] = curr_devid;
+				cnt++;
+			}
+			else
+				found = 0;
+
+			if(cnt == num)
+				break;
+		}
+	}
+
+	return ndevids;
+}
+
 void starpu_worker_get_name(int id, char *dst, size_t maxlen)
 {
 	char *name = _starpu_config.workers[id].name;
@@ -2001,6 +2057,19 @@ int starpu_bindid_get_workerids(int bindid, int **workerids)
 		return 0;
 	*workerids = _starpu_config.bindid_workers[bindid].workerids;
 	return _starpu_config.bindid_workers[bindid].nworkers;
+}
+
+int starpu_worker_get_stream_workerids(unsigned devid, int *workerids, enum starpu_worker_archtype type)
+{
+	unsigned nworkers = starpu_worker_get_count();
+	int nw = 0;
+	unsigned id;
+	for (id = 0; id < nworkers; id++)
+	{
+		if (_starpu_config.workers[id].devid == devid && _starpu_config.workers[id].arch == type)
+			workerids[nw++] = id;
+	}
+	return nw;
 }
 
 void starpu_worker_get_sched_condition(int workerid, starpu_pthread_mutex_t **sched_mutex, starpu_pthread_cond_t **sched_cond)
@@ -2284,3 +2353,28 @@ char *starpu_worker_get_type_as_string(enum starpu_worker_archtype type)
 	if (type == STARPU_ANY_WORKER) return "STARPU_ANY_WORKER";
 	return "STARPU_unknown_WORKER";
 }
+
+void _starpu_worker_set_stream_ctx(unsigned workerid, struct _starpu_sched_ctx *sched_ctx)
+{
+	STARPU_ASSERT(workerid < starpu_worker_get_count());
+        struct _starpu_worker *w = _starpu_get_worker_struct(workerid);
+        w->stream_ctx = sched_ctx;
+}
+
+struct _starpu_sched_ctx* _starpu_worker_get_ctx_stream(unsigned stream_workerid)
+{
+	if (stream_workerid >= starpu_worker_get_count())
+		return NULL;
+        struct _starpu_worker *w = _starpu_get_worker_struct(stream_workerid);
+        return w->stream_ctx;
+}
+
+unsigned starpu_worker_get_sched_ctx_id_stream(unsigned stream_workerid)
+{
+	if (stream_workerid >= starpu_worker_get_count())
+		return STARPU_NMAX_SCHED_CTXS;
+        struct _starpu_worker *w = _starpu_get_worker_struct(stream_workerid);
+	return w->stream_ctx != NULL ? w->stream_ctx->id : STARPU_NMAX_SCHED_CTXS;
+}
+
+

@@ -539,7 +539,6 @@ static void free_places(struct starpu_omp_place *places)
 
 static void read_proc_bind_var()
 {
-	static const char *strings[] = { "false", "true", "master", "close", "spread", NULL };
 	const int max_levels = _initial_icv_values.max_active_levels_var + 1;
 	int *bind_list = NULL;
 	char *env;
@@ -549,6 +548,7 @@ static void read_proc_bind_var()
 	env = starpu_getenv("OMP_PROC_BIND");
 	if (env)
 	{
+		static const char *strings[] = { "false", "true", "master", "close", "spread", NULL };
 		char *saveptr, *token;
 		int level = 0;
 

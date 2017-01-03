@@ -147,7 +147,7 @@ struct starpu_data_interface_ops *_starpu_data_interface_get_ops(unsigned interf
  * some handle, the new mapping shadows the previous one.   */
 void _starpu_data_register_ram_pointer(starpu_data_handle_t handle, void *ptr)
 {
-	struct handle_entry *entry;
+	struct handle_entry *entry, *old_entry;
 
 	_STARPU_MALLOC(entry, sizeof(*entry));
 
@@ -174,11 +174,19 @@ void _starpu_data_register_ram_pointer(starpu_data_handle_t handle, void *ptr)
 #endif
 	{
 		_starpu_spin_lock(&registered_handles_lock);
-		nregistered++;
-		if (nregistered > maxnregistered)
-			maxnregistered = nregistered;
-		HASH_ADD_PTR(registered_handles, pointer, entry);
-		_starpu_spin_unlock(&registered_handles_lock);
+		HASH_FIND_PTR(registered_handles, &ptr, old_entry);
+		if (old_entry) {
+			/* Already registered this pointer, avoid undefined
+			 * behavior of duplicate in hash table */
+			_starpu_spin_unlock(&registered_handles_lock);
+			free(entry);
+		} else {
+			nregistered++;
+			if (nregistered > maxnregistered)
+				maxnregistered = nregistered;
+			HASH_ADD_PTR(registered_handles, pointer, entry);
+			_starpu_spin_unlock(&registered_handles_lock);
+		}
 	}
 }
 
@@ -544,9 +552,17 @@ void _starpu_data_unregister_ram_pointer(starpu_data_handle_t handle)
 
 			_starpu_spin_lock(&registered_handles_lock);
 			HASH_FIND_PTR(registered_handles, &ram_ptr, entry);
-			STARPU_ASSERT(entry != NULL);
-			nregistered--;
-			HASH_DEL(registered_handles, entry);
+			if (entry)
+			{
+				if (entry->handle == handle)
+				{
+					nregistered--;
+					HASH_DEL(registered_handles, entry);
+				}
+				else
+					/* don't free it, it's not ours */
+					entry = NULL;
+			}
 			_starpu_spin_unlock(&registered_handles_lock);
 		}
 		free(entry);
@@ -908,7 +924,7 @@ static void _starpu_data_unregister_submit_cb(void *arg)
 	STARPU_ASSERT(handle->busy_count);
         _starpu_spin_unlock(&handle->header_lock);
 
-	starpu_data_release_on_node(handle, STARPU_ACQUIRE_ALL_NODES);
+	starpu_data_release_on_node(handle, STARPU_ACQUIRE_NO_NODE_LOCK_ALL);
 }
 
 void starpu_data_unregister_submit(starpu_data_handle_t handle)
@@ -922,7 +938,7 @@ void starpu_data_unregister_submit(starpu_data_handle_t handle)
 	}
 
 	/* Wait for all task dependencies on this handle before putting it for free */
-	starpu_data_acquire_on_node_cb(handle, STARPU_ACQUIRE_ALL_NODES, STARPU_RW, _starpu_data_unregister_submit_cb, handle);
+	starpu_data_acquire_on_node_cb(handle, STARPU_ACQUIRE_NO_NODE_LOCK_ALL, STARPU_RW, _starpu_data_unregister_submit_cb, handle);
 }
 
 static void _starpu_data_invalidate(void *data)
@@ -980,14 +996,14 @@ static void _starpu_data_invalidate(void *data)
 
 	_starpu_spin_unlock(&handle->header_lock);
 
-	starpu_data_release_on_node(handle, STARPU_ACQUIRE_ALL_NODES);
+	starpu_data_release_on_node(handle, STARPU_ACQUIRE_NO_NODE_LOCK_ALL);
 }
 
 void starpu_data_invalidate(starpu_data_handle_t handle)
 {
 	STARPU_ASSERT(handle);
 
-	starpu_data_acquire_on_node(handle, STARPU_ACQUIRE_ALL_NODES, STARPU_W);
+	starpu_data_acquire_on_node(handle, STARPU_ACQUIRE_NO_NODE_LOCK_ALL, STARPU_W);
 
 	_starpu_data_invalidate(handle);
 
@@ -998,7 +1014,7 @@ void starpu_data_invalidate_submit(starpu_data_handle_t handle)
 {
 	STARPU_ASSERT(handle);
 
-	starpu_data_acquire_on_node_cb(handle, STARPU_ACQUIRE_ALL_NODES, STARPU_W, _starpu_data_invalidate, handle);
+	starpu_data_acquire_on_node_cb(handle, STARPU_ACQUIRE_NO_NODE_LOCK_ALL, STARPU_W, _starpu_data_invalidate, handle);
 
 	handle->initialized = 0;
 }

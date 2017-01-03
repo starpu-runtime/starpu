@@ -3,6 +3,7 @@
  * Copyright (C) 2009-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016  CNRS
  * Copyright (C) 2011, 2016  INRIA
+ * Copyright (C) 2016  Uppsala University
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -57,6 +58,8 @@
 #include <starpu_parameters.h>
 
 #define STARPU_MAX_PIPELINE 4
+
+enum initialization { UNINITIALIZED = 0, CHANGING, INITIALIZED };
 
 /* This is initialized from in _starpu_worker_init */
 LIST_TYPE(_starpu_worker,
@@ -135,6 +138,8 @@ LIST_TYPE(_starpu_worker,
 
 	/* bool to indicate if the worker is slave in a ctx */
 	unsigned is_slave_somewhere;
+
+	struct _starpu_sched_ctx *stream_ctx;
 
 #ifdef __GLIBC__
 	cpu_set_t cpu_set;
@@ -601,5 +606,9 @@ static inline unsigned __starpu_worker_get_id_check(const char *f, int l)
 	return id;
 }
 #define _starpu_worker_get_id_check(f,l) __starpu_worker_get_id_check(f,l)
+
+void _starpu_worker_set_stream_ctx(unsigned workerid, struct _starpu_sched_ctx *sched_ctx);
+
+struct _starpu_sched_ctx* _starpu_worker_get_ctx_stream(unsigned stream_workerid);
 
 #endif // __WORKERS_H__

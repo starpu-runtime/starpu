@@ -376,7 +376,7 @@ struct starpu_omp_global
 	struct starpu_omp_thread *hash_workers;
 	struct _starpu_spinlock hash_workers_lock;
 	struct starpu_arbiter *default_arbiter;
-	int nb_starpu_cpu_workers;
+	unsigned nb_starpu_cpu_workers;
 	int *starpu_cpu_worker_ids;
 };
 

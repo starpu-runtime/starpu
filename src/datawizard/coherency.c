@@ -740,7 +740,7 @@ int _starpu_fetch_data_on_node(starpu_data_handle_t handle, int node, struct _st
 		/* Take references which will be released by _starpu_release_data_on_node */
 		if (dst_replicate)
 			dst_replicate->refcnt++;
-		else if (node == STARPU_ACQUIRE_ALL_NODES)
+		else if (node == STARPU_ACQUIRE_NO_NODE_LOCK_ALL)
 		{
 			int i;
 			for (i = 0; i < STARPU_MAXNODES; i++)

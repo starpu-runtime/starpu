@@ -3,6 +3,7 @@
  * Copyright (C) 2010-2016  Université de Bordeaux
  * Copyright (C) 2010-2016  CNRS
  * Copyright (C) 2011, 2016  INRIA
+ * Copyright (C) 2016  Uppsala University
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -31,12 +32,14 @@ static double idle_start[STARPU_NMAXWORKERS];
 long _starpu_task_break_on_push = -1;
 long _starpu_task_break_on_pop = -1;
 long _starpu_task_break_on_sched = -1;
+static const char *starpu_idle_file;
 
 void _starpu_sched_init(void)
 {
 	_starpu_task_break_on_push = starpu_get_env_number_default("STARPU_TASK_BREAK_ON_PUSH", -1);
 	_starpu_task_break_on_pop = starpu_get_env_number_default("STARPU_TASK_BREAK_ON_POP", -1);
 	_starpu_task_break_on_sched = starpu_get_env_number_default("STARPU_TASK_BREAK_ON_SCHED", -1);
+	starpu_idle_file = starpu_getenv("STARPU_IDLE_FILE");
 }
 
 int starpu_get_prefetch_flag(void)
@@ -882,11 +885,12 @@ pick:
 
 	if (!task)
 	{
-		idle_start[worker->workerid] = starpu_timing_now();
+		if (starpu_idle_file)
+			idle_start[worker->workerid] = starpu_timing_now();
 		return NULL;
 	}
 
-	if(idle_start[worker->workerid] != 0.0)
+	if(starpu_idle_file && idle_start[worker->workerid] != 0.0)
 	{
 		double idle_end = starpu_timing_now();
 		idle[worker->workerid] += (idle_end - idle_start[worker->workerid]);
@@ -1009,9 +1013,34 @@ void _starpu_sched_pre_exec_hook(struct starpu_task *task)
 	if (sched_ctx->sched_policy && sched_ctx->sched_policy->pre_exec_hook)
 	{
 		_STARPU_TRACE_WORKER_SCHEDULING_PUSH;
-		sched_ctx->sched_policy->pre_exec_hook(task);
+		sched_ctx->sched_policy->pre_exec_hook(task, sched_ctx_id);
 		_STARPU_TRACE_WORKER_SCHEDULING_POP;
 	}
+
+	if(!sched_ctx->sched_policy)
+	{
+		int workerid = starpu_worker_get_id();
+		struct _starpu_worker *worker =  _starpu_get_worker_struct(workerid);
+		struct _starpu_sched_ctx *other_sched_ctx;
+		struct _starpu_sched_ctx_elt *e = NULL;
+		struct _starpu_sched_ctx_list_iterator list_it;
+		
+		_starpu_sched_ctx_list_iterator_init(worker->sched_ctx_list, &list_it);
+		while (_starpu_sched_ctx_list_iterator_has_next(&list_it))
+		{
+			e = _starpu_sched_ctx_list_iterator_get_next(&list_it);
+			other_sched_ctx = _starpu_get_sched_ctx_struct(e->sched_ctx);
+			if (other_sched_ctx != sched_ctx && 
+			    other_sched_ctx->sched_policy != NULL && 
+			    other_sched_ctx->sched_policy->pre_exec_hook)
+			{
+				_STARPU_TRACE_WORKER_SCHEDULING_PUSH;
+				other_sched_ctx->sched_policy->pre_exec_hook(task, other_sched_ctx->id);
+				_STARPU_TRACE_WORKER_SCHEDULING_POP;
+			}
+		}
+	}
+
 }
 
 void _starpu_sched_post_exec_hook(struct starpu_task *task)
@@ -1021,8 +1050,31 @@ void _starpu_sched_post_exec_hook(struct starpu_task *task)
 	if (sched_ctx->sched_policy && sched_ctx->sched_policy->post_exec_hook)
 	{
 		_STARPU_TRACE_WORKER_SCHEDULING_PUSH;
-		sched_ctx->sched_policy->post_exec_hook(task);
+		sched_ctx->sched_policy->post_exec_hook(task, sched_ctx_id);
 		_STARPU_TRACE_WORKER_SCHEDULING_POP;
+	}
+	if(!sched_ctx->sched_policy)
+	{
+		int workerid = starpu_worker_get_id();
+		struct _starpu_worker *worker =  _starpu_get_worker_struct(workerid);
+		struct _starpu_sched_ctx *other_sched_ctx;
+		struct _starpu_sched_ctx_elt *e = NULL;
+		struct _starpu_sched_ctx_list_iterator list_it;
+		
+		_starpu_sched_ctx_list_iterator_init(worker->sched_ctx_list, &list_it);
+		while (_starpu_sched_ctx_list_iterator_has_next(&list_it))
+		{
+			e = _starpu_sched_ctx_list_iterator_get_next(&list_it);
+			other_sched_ctx = _starpu_get_sched_ctx_struct(e->sched_ctx);
+			if (other_sched_ctx != sched_ctx && 
+			    other_sched_ctx->sched_policy != NULL && 
+			    other_sched_ctx->sched_policy->post_exec_hook)
+			{
+				_STARPU_TRACE_WORKER_SCHEDULING_PUSH;
+				other_sched_ctx->sched_policy->post_exec_hook(task, other_sched_ctx->id);
+				_STARPU_TRACE_WORKER_SCHEDULING_POP;
+			}
+		}
 	}
 }
 
@@ -1059,8 +1111,7 @@ int starpu_push_local_task(int workerid, struct starpu_task *task, int prio)
 
 void _starpu_print_idle_time()
 {
-	const char *sched_env = starpu_getenv("STARPU_IDLE_FILE");
-	if(!sched_env)
+	if(!starpu_idle_file)
 		return;
 	double all_idle = 0.0;
 	int i = 0;
@@ -1068,10 +1119,10 @@ void _starpu_print_idle_time()
 		all_idle += idle[i];
 
 	FILE *f;
-	f = fopen(sched_env, "a");
+	f = fopen(starpu_idle_file, "a");
 	if (!f)
 	{
-		fprintf(stderr, "couldn't open %s: %s\n", sched_env, strerror(errno));
+		fprintf(stderr, "couldn't open %s: %s\n", starpu_idle_file, strerror(errno));
 	}
 	else
 	{

@@ -841,14 +841,13 @@ int starpu_sched_component_worker_get_workerid(struct starpu_sched_component * w
 	return starpu_bitmap_first(worker_component->workers);
 }
 
-void starpu_sched_component_worker_pre_exec_hook(struct starpu_task * task)
+void starpu_sched_component_worker_pre_exec_hook(struct starpu_task * task, unsigned sched_ctx_id STARPU_ATTRIBUTE_UNUSED)
 {
 	double model = task->predicted;
 	double transfer_model = task->predicted_transfer;
 
 	if(!isnan(task->predicted) || !isnan(task->predicted_transfer))
 	{
-		unsigned sched_ctx_id = task->sched_ctx;
 		struct _starpu_worker_task_list * list = _worker_get_list(sched_ctx_id);
 		STARPU_PTHREAD_MUTEX_LOCK(&list->mutex);
 
@@ -875,11 +874,10 @@ void starpu_sched_component_worker_pre_exec_hook(struct starpu_task * task)
 	}
 }
 
-void starpu_sched_component_worker_post_exec_hook(struct starpu_task * task)
+void starpu_sched_component_worker_post_exec_hook(struct starpu_task * task, unsigned sched_ctx_id STARPU_ATTRIBUTE_UNUSED)
 {
 	if(task->execute_on_a_specific_worker)
 		return;
-	unsigned sched_ctx_id = task->sched_ctx;
 	struct _starpu_worker_task_list * list = _worker_get_list(sched_ctx_id);
 	STARPU_PTHREAD_MUTEX_LOCK(&list->mutex);
 	list->exp_start = starpu_timing_now();

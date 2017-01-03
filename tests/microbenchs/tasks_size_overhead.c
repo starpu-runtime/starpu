@@ -91,7 +91,7 @@ static struct starpu_codelet codelet =
 static void parse_args(int argc, char **argv)
 {
 	int c;
-	while ((c = getopt(argc, argv, "i:b:B:c:C:t:T:f:h")) != -1)
+	while ((c = getopt(argc, argv, "i:b:B:c:C:s:t:T:f:h")) != -1)
 	switch(c)
 	{
 		case 'i':
@@ -169,6 +169,13 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 	maxcpus = starpu_worker_get_count_by_type(STARPU_CPU_WORKER);
 	starpu_shutdown();
+#endif
+
+#ifdef STARPU_HAVE_UNSETENV
+	/* That was useful to force the max number of cpus to use, but now we
+	 * want to make it vary */
+	unsetenv("STARPU_NCPUS");
+	unsetenv("STARPU_NCPU");
 #endif
 
 	parse_args(argc, argv);

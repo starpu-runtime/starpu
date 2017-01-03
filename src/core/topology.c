@@ -3,6 +3,7 @@
  * Copyright (C) 2009-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016 CNRS
  * Copyright (C) 2011, 2016  INRIA
+ * Copyright (C) 2016  Uppsala University
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -92,11 +93,6 @@ _starpu_get_worker_from_driver(struct starpu_driver *d)
 	unsigned nworkers = starpu_worker_get_count();
 	unsigned workerid;
 
-#ifdef STARPU_USE_CUDA
-	if (d->type == STARPU_CUDA_WORKER)
-		return &cuda_worker_set[d->id.cuda_id];
-#endif
-
 	for (workerid = 0; workerid < nworkers; workerid++)
 	{
 		if (starpu_worker_get_type(workerid) == d->type)
@@ -121,6 +117,16 @@ _starpu_get_worker_from_driver(struct starpu_driver *d)
 				break;
 			}
 #endif
+#ifdef STARPU_USE_CUDA
+			case STARPU_CUDA_WORKER:
+			{
+				if (worker->devid == d->id.cuda_id)
+					return worker->set;
+				break;
+
+			}
+#endif
+
 			default:
 				_STARPU_DEBUG("Invalid device type\n");
 				return NULL;
@@ -1199,17 +1205,28 @@ _starpu_init_machine_config(struct _starpu_machine_config *config, int no_mp_con
 
 	_starpu_initialize_workers_cuda_gpuid(config);
 
+	/* allow having one worker per stream */
+	unsigned th_per_stream = starpu_get_env_number_default("STARPU_CUDA_THREAD_PER_WORKER", 0);
+
 	unsigned cudagpu;
 	for (cudagpu = 0; cudagpu < topology->ncudagpus; cudagpu++)
 	{
 		int devid = _starpu_get_next_cuda_gpuid(config);
 		int worker_idx0 = topology->nworkers + cudagpu * nworker_per_cuda;
 		cuda_worker_set[devid].workers = &config->workers[worker_idx0];
+
 		for (i = 0; i < nworker_per_cuda; i++)
 		{
 			int worker_idx = worker_idx0 + i;
+			if(th_per_stream)
+			{
+				/* Just one worker in the set */
+				config->workers[worker_idx].set = (struct _starpu_worker_set *)calloc(1, sizeof(struct _starpu_worker_set));
+				config->workers[worker_idx].set->workers = &config->workers[worker_idx];
+			}
+			else
+				config->workers[worker_idx].set = &cuda_worker_set[devid];
 
-			config->workers[worker_idx].set = &cuda_worker_set[devid];
 			config->workers[worker_idx].arch = STARPU_CUDA_WORKER;
 			_STARPU_MALLOC(config->workers[worker_idx].perf_arch.devices, sizeof(struct starpu_perfmodel_device));
 			config->workers[worker_idx].perf_arch.ndevices = 1;
@@ -1224,9 +1241,13 @@ _starpu_init_machine_config(struct _starpu_machine_config *config, int no_mp_con
 			config->worker_mask |= STARPU_CUDA;
 
 			struct handle_entry *entry;
-			_STARPU_MALLOC(entry, sizeof(*entry));
-			entry->gpuid = devid;
-			HASH_ADD_INT(devices_using_cuda, gpuid, entry);
+			HASH_FIND_INT(devices_using_cuda, &devid, entry);
+			if (!entry)
+			{
+				_STARPU_MALLOC(entry, sizeof(*entry));
+				entry->gpuid = devid;
+				HASH_ADD_INT(devices_using_cuda, gpuid, entry);
+			}
 		}
 
 #ifndef STARPU_SIMGRID
@@ -1689,6 +1710,7 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 	unsigned cuda_init[STARPU_MAXCUDADEVS] = { };
 	unsigned cuda_memory_nodes[STARPU_MAXCUDADEVS];
 	unsigned cuda_bindid[STARPU_MAXCUDADEVS];
+	unsigned th_per_stream = starpu_get_env_number_default("STARPU_CUDA_THREAD_PER_WORKER", 0);
 #endif
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 	unsigned opencl_init[STARPU_MAXOPENCLDEVS] = { };
@@ -1777,7 +1799,10 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 				{
 					memory_node = cuda_memory_nodes[devid];
 #ifndef STARPU_SIMGRID
-					workerarg->bindid = cuda_bindid[devid];
+					if (th_per_stream == 0)
+						workerarg->bindid = cuda_bindid[devid];
+					else
+						workerarg->bindid = _starpu_get_next_bindid(config, preferred_binding, npreferred);
 #endif /* SIMGRID */
 				}
 				else

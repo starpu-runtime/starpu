@@ -112,8 +112,8 @@ int starpu_sched_component_worker_get_workerid(struct starpu_sched_component *wo
 int starpu_sched_component_is_worker(struct starpu_sched_component *component);
 int starpu_sched_component_is_simple_worker(struct starpu_sched_component *component);
 int starpu_sched_component_is_combined_worker(struct starpu_sched_component *component);
-void starpu_sched_component_worker_pre_exec_hook(struct starpu_task *task);
-void starpu_sched_component_worker_post_exec_hook(struct starpu_task *task);
+void starpu_sched_component_worker_pre_exec_hook(struct starpu_task *task, unsigned sched_ctx_id);
+void starpu_sched_component_worker_post_exec_hook(struct starpu_task *task, unsigned sched_ctx_id);
 
 struct starpu_sched_component_fifo_data
 {

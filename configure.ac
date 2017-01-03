@@ -1118,7 +1118,8 @@ if test x$enable_simgrid = xyes ; then
 		]
 	)
 	AC_CHECK_HEADERS([simgrid/msg.h], [AC_DEFINE([STARPU_HAVE_SIMGRID_MSG_H], [1], [Define to 1 if you have msg.h in simgrid/.])])
-   	AC_CHECK_FUNCS([MSG_process_join MSG_process_attach MSG_get_as_by_name MSG_environment_get_routing_root MSG_host_get_speed xbt_mutex_try_acquire smpi_process_set_user_data])
+	AC_CHECK_HEADERS([xbt/synchro.h], [AC_DEFINE([STARPU_HAVE_XBT_SYNCHRO_H], [1], [Define to 1 if you have synchro.h in xbt/.])])
+   	AC_CHECK_FUNCS([MSG_process_join MSG_process_attach MSG_get_as_by_name MSG_environment_get_routing_root MSG_host_get_speed xbt_mutex_try_acquire smpi_process_set_user_data sg_link_name])
 	AC_CHECK_FUNCS([xbt_barrier_init], [AC_DEFINE([STARPU_SIMGRID_HAVE_XBT_BARRIER_INIT], [1], [Define to 1 if you have the `xbt_barrier_init' function.])])
 	AC_CHECK_DECLS([smpi_process_set_user_data], [], [], [[#include <smpi/smpi.h>]])
 	AC_CHECK_FUNCS([SIMIX_process_get_code], [AC_DEFINE([STARPU_SIMGRID_HAVE_SIMIX_PROCESS_GET_CODE], [1], [Define to 1 if you have the `SIMIX_process_get_code' function.])])
@@ -1168,46 +1169,6 @@ AC_MSG_RESULT($enable_blocking)
 if test x$enable_blocking = xno ; then
 	AC_DEFINE(STARPU_NON_BLOCKING_DRIVERS, [1], [drivers must progress])
 fi
-
-###############################################################################
-#                                                                             #
-#			 Multiple linear regression			      #
-#                                                                             #
-###############################################################################
-AC_ARG_ENABLE(mlr, [AS_HELP_STRING([--disable-mlr],
-			[Disable multiple linear regression models])],
-			enable_mlr=$enableval, enable_mlr=yes)
-
-AC_MSG_CHECKING(whether multiple linear regression models are disabled)
-if test x$enable_mlr = xyes -a "$starpu_windows" != "yes" ; then
-   	AC_MSG_RESULT(no)
-	install_min_dgels=no
-   	STARPU_SEARCH_LIBS(LAPACK,[dgels_],[lapack],use_system_lapack=yes,,)
-	if test x$use_system_lapack = xyes; then
-	        AC_DEFINE(STARPU_MLR_MODEL, [1], [use reflapack library])
-		LDFLAGS="-llapack $LDFLAGS"
-	else
-		AC_MSG_CHECKING(whether min-dgels is linked)
-		if test x"$DGELS_LIBS" != x; then
-		   	AC_MSG_RESULT(yes)
-        		AC_DEFINE(STARPU_MLR_MODEL, [1], [use user defined library])
-			AC_ARG_VAR([DGELS_LIBS], [linker flags for lapack dgels])
-		else
-			AC_MSG_RESULT(no)
-			AC_MSG_CHECKING(min-dgels source)
-			cp -r $srcdir/min-dgels $PWD/
-			AC_MSG_RESULT(yes)
-			DGELS_LIBS="-Wl,--start-group $STARPU_BUILD_DIR/min-dgels/build/*.a -Wl,--end-group"
-			AC_DEFINE(STARPU_MLR_MODEL, [1], [use user defined library])
-			AC_ARG_VAR([DGELS_LIBS], [linker flags for lapack dgels])
-			install_min_dgels=yes
-		fi
-	fi
-else
- 	AC_MSG_RESULT(yes)
-	install_min_dgels=no
-fi
-AM_CONDITIONAL(STARPU_USE_MIN_DGELS, test x$install_min_dgels = xyes)
 
 ###############################################################################
 #                                                                             #
@@ -2036,8 +1997,12 @@ AC_ARG_ENABLE(maxnodes, [AS_HELP_STRING([--enable-maxnodes=<nnodes>],
 
 if test x$maxnodes = x0 ; then
 	if test x$enable_simgrid = xyes ; then
-		# We still need the room for the virtual CUDA/OpenCL devices
-		maxnodes=16
+		# We need the room for the virtual CUDA/OpenCL devices
+		nodes=`expr 4 + $nmaxcudadev + $nmaxopencldev + $nmaxmicdev + 1 + $nmaxmpidev`
+		if test $nodes -gt 32
+		then
+			nodes=32
+		fi
 	else
 		# We have one memory node shared by all CPU workers, one node per GPU
 		# and per MIC device
@@ -2061,16 +2026,16 @@ if test x$maxnodes = x0 ; then
 			nodes=`expr $nodes + 1`
 		fi
 
-        #nmaxmpidev = 0 if mpi master-slave is disabled
-        nodes=`expr $nodes + $nmaxmpidev`
-
-		# set maxnodes to the next power of 2 greater than nodes
-		maxnodes=1
-		while test "$maxnodes" -lt "$nodes"
-		do
-			maxnodes=`expr $maxnodes \* 2`
-		done
+		#nmaxmpidev = 0 if mpi master-slave is disabled
+		nodes=`expr $nodes + $nmaxmpidev`
  	fi
+
+	# set maxnodes to the next power of 2 greater than nodes
+	maxnodes=1
+	while test "$maxnodes" -lt "$nodes"
+	do
+		maxnodes=`expr $maxnodes \* 2`
+	done
 fi
 if test $maxnodes -gt 32 ; then
 	AC_MSG_ERROR([selected number of nodes ($maxnodes) can not be greater than 32])
@@ -2334,6 +2299,11 @@ AC_DEFUN([IS_SUPPORTED_CFLAG],
 IS_SUPPORTED_CFLAG(-Wall)
 IS_SUPPORTED_CFLAG(-Werror=implicit)
 IS_SUPPORTED_CFLAG(-Werror=implicit-function-declaration)
+if test x$enable_perf_debug = xyes; then
+	IS_SUPPORTED_CFLAG(-no-pie)
+	IS_SUPPORTED_CFLAG(-no-PIE)
+	IS_SUPPORTED_CFLAG(-fno-pie)
+fi
 
 if test "x$STARPU_DEVEL" != x; then
 	AC_DEFINE(STARPU_DEVEL, [1], [enable developer warnings])
@@ -2796,6 +2766,52 @@ AC_MSG_CHECKING(which BLAS lib should be used)
 AC_MSG_RESULT($blas_lib)
 AC_SUBST(BLAS_LIB,$blas_lib)
 
+###############################################################################
+#                                                                             #
+#			 Multiple linear regression			      #
+#                                                                             #
+###############################################################################
+AC_ARG_ENABLE(mlr, [AS_HELP_STRING([--disable-mlr],
+			[Disable multiple linear regression models])],
+			enable_mlr=$enableval, enable_mlr=yes)
+
+AC_MSG_CHECKING(whether multiple linear regression models are disabled)
+if test x$enable_mlr = xyes -a "$starpu_windows" != "yes" ; then
+   	AC_MSG_RESULT(no)
+	install_min_dgels=no
+	support_mlr=yes
+   	STARPU_SEARCH_LIBS(LAPACK,[dgels_],[lapack],use_system_lapack=yes,,)
+	if test x$use_system_lapack = xyes; then
+	   	AC_DEFINE(STARPU_MLR_MODEL, [1], [use reflapack library])
+		LDFLAGS="-llapack $LDFLAGS"
+	else
+		if test x$blas_lib = xmkl; then
+		   	AC_DEFINE(STARPU_MLR_MODEL, [1], [use mkl library])			
+		else
+			AC_MSG_CHECKING(whether min-dgels is linked)
+			if test x"$DGELS_LIBS" != x; then
+		   	   	AC_MSG_RESULT(yes)
+        		   	AC_DEFINE(STARPU_MLR_MODEL, [1], [use user defined library])
+			   	AC_ARG_VAR([DGELS_LIBS], [linker flags for lapack dgels])
+			else
+				AC_MSG_RESULT(no)
+				AC_MSG_CHECKING(min-dgels source)
+				cp -r $srcdir/min-dgels $PWD/
+				AC_MSG_RESULT(yes)
+				DGELS_LIBS="-Wl,--start-group $STARPU_BUILD_DIR/min-dgels/build/*.a -Wl,--end-group"
+				AC_DEFINE(STARPU_MLR_MODEL, [1], [use user defined library])
+				AC_ARG_VAR([DGELS_LIBS], [linker flags for lapack dgels])
+				install_min_dgels=yes
+			fi
+		fi
+	fi
+else
+ 	AC_MSG_RESULT(yes)
+	install_min_dgels=no
+	support_mlr=no
+fi
+AM_CONDITIONAL(STARPU_USE_MIN_DGELS, test x$install_min_dgels = xyes)
+
 ##########################################
 # FFT                                    #
 ##########################################
@@ -3203,7 +3219,7 @@ AC_MSG_NOTICE([
                ayudame enabled:                               $ayu_msg
 	       Native fortran support:                        $enable_build_fortran
 	       Native MPI fortran support:                    $use_mpi_fort
-	       Support for multiple linear regression models: $install_min_dgels
+	       Support for multiple linear regression models: $support_mlr
 ])
 
 if test "$build_socl" = "yes" -a "$run_socl_check" = "no" ; then

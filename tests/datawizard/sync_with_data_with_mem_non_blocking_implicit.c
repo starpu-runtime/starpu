@@ -137,6 +137,7 @@ int main(int argc, char **argv)
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_acquire_cb");
 		}
 
+		starpu_do_schedule();
 		/* Wait for all buffers to be available */
 		STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 

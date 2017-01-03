@@ -62,7 +62,7 @@ void starpu_data_invalidate_submit(starpu_data_handle_t handle);
 void starpu_data_advise_as_important(starpu_data_handle_t handle, unsigned is_important);
 
 #define STARPU_ACQUIRE_NO_NODE -1
-#define STARPU_ACQUIRE_ALL_NODES -2
+#define STARPU_ACQUIRE_NO_NODE_LOCK_ALL -2
 int starpu_data_acquire(starpu_data_handle_t handle, enum starpu_data_access_mode mode);
 int starpu_data_acquire_on_node(starpu_data_handle_t handle, int node, enum starpu_data_access_mode mode);
 int starpu_data_acquire_cb(starpu_data_handle_t handle, enum starpu_data_access_mode mode, void (*callback)(void *), void *arg);

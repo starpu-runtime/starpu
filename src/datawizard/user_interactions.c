@@ -344,7 +344,7 @@ void starpu_data_release_on_node(starpu_data_handle_t handle, int node)
 	else
 	{
 		_starpu_spin_lock(&handle->header_lock);
-		if (node == STARPU_ACQUIRE_ALL_NODES)
+		if (node == STARPU_ACQUIRE_NO_NODE_LOCK_ALL)
 		{
 			int i;
 			for (i = 0; i < STARPU_MAXNODES; i++)
@@ -499,14 +499,14 @@ static void _starpu_data_wont_use(void *data)
 		}
 	}
 	_starpu_spin_unlock(&handle->header_lock);
-	starpu_data_release_on_node(handle, STARPU_ACQUIRE_ALL_NODES);
+	starpu_data_release_on_node(handle, STARPU_ACQUIRE_NO_NODE_LOCK_ALL);
 	if (handle->home_node != -1)
 		starpu_data_idle_prefetch_on_node(handle, handle->home_node, 1);
 }
 
 void starpu_data_wont_use(starpu_data_handle_t handle)
 {
-	starpu_data_acquire_on_node_cb(handle, STARPU_ACQUIRE_ALL_NODES, STARPU_R, _starpu_data_wont_use, handle);
+	starpu_data_acquire_on_node_cb(handle, STARPU_ACQUIRE_NO_NODE_LOCK_ALL, STARPU_R, _starpu_data_wont_use, handle);
 }
 
 /*

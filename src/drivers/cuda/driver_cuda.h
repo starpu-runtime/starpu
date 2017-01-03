@@ -34,6 +34,7 @@
 
 #include <common/fxt.h>
 
+void _starpu_cuda_init(void);
 unsigned _starpu_get_cuda_device_count(void);
 extern int _starpu_cuda_bus_ids[STARPU_MAXCUDADEVS+1][STARPU_MAXCUDADEVS+1];
 

@@ -5,7 +5,7 @@ all:
 	mkdir -p build
 	cd $(CLAPACK) && $(MAKE) blaslib
 	cd $(CLAPACK) && $(MAKE) f2clib
-	cd $(ADDITIONAL) && gcc -c -fPIC *.c && ar cr ../build/minlibdgels.a *.o && ranlib ../build/minlibdgels.a
+	cd $(ADDITIONAL) && $(CC) -c -fPIC *.c && ar cr ../build/minlibdgels.a *.o && ranlib ../build/minlibdgels.a
 
 install:
 

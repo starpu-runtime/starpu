@@ -20,7 +20,11 @@
 #include <core/workers.h>
 
 #ifdef STARPU_SIMGRID
+#ifdef STARPU_HAVE_XBT_SYNCHRO_H
+#include <xbt/synchro.h>
+#else
 #include <xbt/synchro_core.h>
+#endif
 #include <smpi/smpi.h>
 #else
 
@@ -53,7 +57,7 @@ int starpu_pthread_create_on(char *name, starpu_pthread_t *thread, const starpu_
 	_args[2] = NULL;
 	if (!host)
 		host = MSG_get_host_by_name("MAIN");
-	*thread = MSG_process_create_with_arguments(name, _starpu_simgrid_thread_start, calloc(MAX_TSD, sizeof(void*)), host, 2, _args);
+	*thread = MSG_process_create_with_arguments(name, _starpu_simgrid_thread_start, calloc(MAX_TSD+1, sizeof(void*)), host, 2, _args);
 	return 0;
 }
 
@@ -181,6 +185,7 @@ int starpu_pthread_mutexattr_init(starpu_pthread_mutexattr_t *attr STARPU_ATTRIB
 }
 
 
+/* Indexed by key-1 */
 static int used_key[MAX_TSD];
 
 int starpu_pthread_key_create(starpu_pthread_key_t *key, void (*destr_function) (void *) STARPU_ATTRIBUTE_UNUSED)
@@ -195,13 +200,14 @@ int starpu_pthread_key_create(starpu_pthread_key_t *key, void (*destr_function) 
 			break;
 		}
 	STARPU_ASSERT(i < MAX_TSD);
-	*key = i;
+	/* key 0 is for process pointer argument */
+	*key = i+1;
 	return 0;
 }
 
 int starpu_pthread_key_delete(starpu_pthread_key_t key)
 {
-	used_key[key] = 0;
+	used_key[key-1] = 0;
 	return 0;
 }
 

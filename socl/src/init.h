@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012 University of Bordeaux
+ * Copyright (C) 2010-2012, 2016 University of Bordeaux
  * Copyright (C) 2012, 2014 CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -28,7 +28,7 @@ extern volatile int _starpu_init;
  * Initialize StarPU
  */
 
-void socl_init_starpu(void);
+int socl_init_starpu(void);
 void soclShutdown(void);
 
 #endif /* SOCL_INIT_H */

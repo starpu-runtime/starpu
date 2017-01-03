@@ -3,6 +3,7 @@
  * Copyright (C) 2009-2013, 2016  Université de Bordeaux
  * Copyright (C) 2010-2014  CNRS
  * Copyright (C) 2016  INRIA
+ * Copyright (C) 2016  Uppsala University
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -108,7 +109,7 @@ enum starpu_worker_archtype starpu_worker_get_type(int id);
 
 int starpu_worker_get_count_by_type(enum starpu_worker_archtype type);
 
-int starpu_worker_get_ids_by_type(enum starpu_worker_archtype type, int *workerids, int maxsize);
+unsigned starpu_worker_get_ids_by_type(enum starpu_worker_archtype type, int *workerids, unsigned maxsize);
 
 int starpu_worker_get_by_type(enum starpu_worker_archtype type, int num);
 
@@ -132,6 +133,11 @@ char *starpu_worker_get_type_as_string(enum starpu_worker_archtype type);
 
 int starpu_bindid_get_workerids(int bindid, int **workerids);
 
+int starpu_worker_get_devids(enum starpu_worker_archtype type, int *devids, int num);
+
+int starpu_worker_get_stream_workerids(unsigned devid, int *workerids, enum starpu_worker_archtype type);
+
+unsigned starpu_worker_get_sched_ctx_id_stream(unsigned stream_workerid);
 #ifdef __cplusplus
 }
 #endif

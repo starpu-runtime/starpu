@@ -521,7 +521,7 @@ int fstarpu_worker_get_count_by_type(intptr_t type)
 	return starpu_worker_get_count_by_type((enum starpu_worker_archtype)type);
 }
 
-int fstarpu_worker_get_ids_by_type(intptr_t type, int *workerids, int maxsize)
+unsigned fstarpu_worker_get_ids_by_type(intptr_t type, int *workerids, unsigned maxsize)
 {
 	return starpu_worker_get_ids_by_type((enum starpu_worker_archtype)type, workerids, maxsize);
 }

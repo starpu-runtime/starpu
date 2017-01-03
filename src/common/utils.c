@@ -37,6 +37,9 @@
 #ifndef O_BINARY
 #define O_BINARY 0
 #endif
+#if !defined(O_DIRECT) && defined(F_NOCACHE)
+#define O_DIRECT F_NOCACHE
+#endif
 
 int _starpu_silent;
 
@@ -157,14 +160,13 @@ char *_starpu_mktemp(const char *directory, int flags, int *fd)
 	*fd = open(baseCpy, flags);
 #elif defined (HAVE_MKOSTEMP)
 	*fd = mkostemp(baseCpy, flags);
-#elif defined (O_DIRECT)
-	STARPU_ASSERT(flags == (O_RDWR | O_BINARY) || flags == (O_RDWR | O_BINARY | O_DIRECT));
-	*fd = mkstemp(baseCpy);
-#elif defined (STARPU_HAVE_DARWIN) // MACOS
-	STARPU_ASSERT(flags == (O_RDWR | O_BINARY) || flags == (O_RDWR | O_BINARY | F_NOCACHE));
-	*fd = mkstemp(baseCpy);
 #else
-	/* nothing for now */
+#  ifdef O_DIRECT
+	STARPU_ASSERT(flags == (O_RDWR | O_BINARY) || flags == (O_RDWR | O_BINARY | O_DIRECT));
+#  else
+	STARPU_ASSERT(flags == (O_RDWR | O_BINARY));
+#  endif
+	*fd = mkstemp(baseCpy);
 #endif
 
 	/* fail */
@@ -177,8 +179,8 @@ char *_starpu_mktemp(const char *directory, int flags, int *fd)
 		return NULL;
 	}
 
-#if !defined(STARPU_HAVE_WINDOWS) && !defined (HAVE_MKOSTEMP)
-#if defined (O_DIRECT)
+#if !defined(STARPU_HAVE_WINDOWS) && !defined (HAVE_MKOSTEMP) && defined(O_DIRECT)
+	/* Add O_DIRECT after the mkstemp call */
 	if ((flags & O_DIRECT) != 0)
 	{
 		int flag = fcntl(*fd, F_GETFL);
@@ -186,29 +188,12 @@ char *_starpu_mktemp(const char *directory, int flags, int *fd)
 		if (fcntl(*fd, F_SETFL, flag) < 0)
 		{
 			int err = errno;
-			_STARPU_DISP("Could set O_DIRECT on the temporary file  in directory '%s', fcntl failed with error '%s'\n", directory, strerror(errno));
+			_STARPU_DISP("Could set O_DIRECT on the temporary file in directory '%s', fcntl failed with error '%s'\n", directory, strerror(errno));
 			free(baseCpy);
 			errno = err;
 			return NULL;
 		}
 	}
-#elif defined (STARPU_HAVE_DARWIN) //MACOS
-	if ((flags & F_NOCACHE) != 0)
-	{
-		int flag = fcntl(*fd, F_GETFL);
-		//flag |= F_NOCACHE;
-		if (fcntl(*fd, F_SETFL, F_NOCACHE) < 0)
-		{
-			int err = errno;
-			_STARPU_DISP("Could set F_NOCACHE on the temporary file in  directory '%s', fcntl failed with error '%s'\n", directory, strerror(errno));
-			free(baseCpy);
-			errno = err;
-			return NULL;
-		}
-	}
-#else
-	/* nothing for now */
-#endif
 #endif
 
 

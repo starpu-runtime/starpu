@@ -271,7 +271,7 @@ static inline int ENAME##_multilist_queued_##MEMBER(TYPE *e) { \
 \
 /* Test whether the list is empty.  */ \
 static inline int ENAME##_multilist_empty_##MEMBER(struct ENAME##_multilist_##MEMBER *head) { \
-	return head->next != head; \
+	return head->next == head; \
 } \
 \
 /* Return the first element of the list.  */ \
