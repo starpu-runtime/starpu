@@ -333,7 +333,7 @@ void allocate_memory_on_node(int rank)
 			starpu_block_data_register(&block->boundaries_handle[B][1], -1, (uintptr_t) NULL, (sizex + 2*K), (sizex + 2*K)*(sizey + 2*K), (sizex + 2*K), (sizey + 2*K), K, sizeof(TYPE));
 		}
 
-#ifdef STARPU_USE_MPI
+#if defined(STARPU_USE_MPI)  && !defined(STARPU_USE_MPI_MASTER_SLAVE)
 		/* Register all data to StarPU-MPI, even the ones that are not
 		 * allocated on the local node. */
 

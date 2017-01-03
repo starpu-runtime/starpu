@@ -23,7 +23,7 @@
 #include <starpu.h>
 
 #ifndef __CUDACC__
-#ifdef STARPU_USE_MPI
+#if defined(STARPU_USE_MPI) && !defined(STARPU_USE_MPI_MASTER_SLAVE)
 #include <mpi.h>
 #include <starpu_mpi.h>
 #endif
