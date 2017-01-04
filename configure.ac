@@ -1847,7 +1847,7 @@ AC_MSG_RESULT($mpicxx_path)
 AC_SUBST(MPICXX, $mpicxx_path)
 
 
-if test x$use_mpi = xyes -a x$enable_mpi = xyes; then
+if test x$use_mpi = xyes -a \( x$enable_mpi = xyes -o x$use_mpi_master_slave = xyes \) ; then
     cc_or_mpicc=$mpicc_path
         # For some reason, libtool uses gcc instead of mpicc when linking
         # libstarpumpi.
@@ -1944,6 +1944,11 @@ if test x$use_mpi_master_slave = xyes -a x$use_mpi = xyes -a x$use_mpicxx = xyes
     build_mpi_master_slave=yes
 else
     build_mpi_master_slave=no
+fi
+
+#Warn users that they cannot use both at the same time
+if test x$build_mpi_master_slave = xyes -a x$enable_mpi = xyes; then
+    AC_MSG_WARN(StarPU-MPI and MPI Master-Slave cannot be used at the same time !)
 fi
 
 if test x$build_mpi_master_slave = xyes; then
