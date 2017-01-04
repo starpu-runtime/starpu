@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2016  Université de Bordeaux
- * Copyright (C) 2010-2015  CNRS
+ * Copyright (C) 2010-2015, 2017  CNRS
  * Copyright (C) 2011, 2016  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -113,9 +113,12 @@ static struct starpu_sched_policy *find_sched_policy_from_name(const char *polic
 	if (!policy_name)
 		return NULL;
 
-	if (strncmp(policy_name, "heft", 5) == 0)
+	if (strcmp(policy_name, "") == 0)
+		return NULL;
+
+	if (strncmp(policy_name, "heft", 4) == 0)
 	{
-		_STARPU_DISP("Warning: heft is now called \"dmda\".\n");
+		_STARPU_MSG("Warning: heft is now called \"dmda\".\n");
 		return &_starpu_sched_dmda_policy;
 	}
 
@@ -133,7 +136,7 @@ static struct starpu_sched_policy *find_sched_policy_from_name(const char *polic
 		}
 	}
 	if (strcmp(policy_name, "help") != 0)
-	     fprintf(stderr, "Warning: scheduling policy \"%s\" was not found, try \"help\" to get a list\n", policy_name);
+		_STARPU_MSG("Warning: scheduling policy '%s' was not found, try 'help' to get a list\n", policy_name);
 
 	/* nothing was found */
 	return NULL;
@@ -165,8 +168,12 @@ struct starpu_sched_policy *_starpu_select_sched_policy(struct _starpu_machine_c
 	if(required_policy)
 		selected_policy = find_sched_policy_from_name(required_policy);
 
+	/* If there is a policy that matches the required name, return it */
+	if (selected_policy)
+		return selected_policy;
+
 	/* First, we check whether the application explicitely gave a scheduling policy or not */
-	if (!selected_policy && user_conf && (user_conf->sched_policy))
+	if (user_conf && (user_conf->sched_policy))
 		return user_conf->sched_policy;
 
 	/* Otherwise, we look if the application specified the name of a policy to load */
@@ -174,15 +181,14 @@ struct starpu_sched_policy *_starpu_select_sched_policy(struct _starpu_machine_c
 	sched_pol_name = starpu_getenv("STARPU_SCHED");
 	if (sched_pol_name == NULL && user_conf && user_conf->sched_policy_name)
 		sched_pol_name = user_conf->sched_policy_name;
-
-	if (!selected_policy && sched_pol_name)
+	if (sched_pol_name)
 		selected_policy = find_sched_policy_from_name(sched_pol_name);
 
-	/* Perhaps there was no policy that matched the name */
+	/* If there is a policy that matches the name, return it */
 	if (selected_policy)
 		return selected_policy;
 
-	/* If no policy was specified, we use the greedy policy as a default */
+	/* If no policy was specified, we use the eager policy by default */
 	return &_starpu_sched_eager_policy;
 }
 
