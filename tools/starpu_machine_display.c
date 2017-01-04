@@ -178,7 +178,7 @@ int main(int argc, char **argv)
 	display_worker_names(STARPU_OPENCL_WORKER);
 
 #ifdef STARPU_USE_MIC
-	fprintf(stdout, "\t%d MIC cores (from %d devices)\n", nmiccores, nmicdevs);
+	fprintf(stdout, "\t%u MIC cores (from %u devices)\n", nmiccores, nmicdevs);
 	display_worker_names(STARPU_MIC_WORKER);
 #endif
 
