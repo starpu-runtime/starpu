@@ -564,10 +564,7 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 		_starpu_worker_set_status_sleeping(workerid);
 
 		if (_starpu_worker_can_block(memnode, worker)
-#ifndef STARPU_SIMGRID
-				&& !_starpu_sched_ctx_last_worker_awake(worker)
-#endif
-				)
+				&& !_starpu_sched_ctx_last_worker_awake(worker))
 		{
 			STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
 			STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
@@ -576,18 +573,7 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 		{
 			STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 			if (_starpu_machine_is_running())
-			{
 				_starpu_exponential_backoff(worker);
-#ifdef STARPU_SIMGRID
-				static int warned;
-				if (!warned)
-				{
-					warned = 1;
-					_STARPU_DISP("Has to make simgrid spin for CPU idle time.  You can try to pass --enable-blocking-drivers to ./configure to avoid this\n");
-				}
-				MSG_process_sleep(0.000010);
-#endif
-			}
 		}
 		return 0;
 	}

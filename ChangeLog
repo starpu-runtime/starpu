@@ -42,6 +42,8 @@ New features:
     files.
   * Add STARPU_FXT_TRACE environment variable.
   * Add starpu_data_set_user_data and starpu_data_get_user_data.
+  * Add STARPU_MPI_FAKE_SIZE and STARPU_MPI_FAKE_RANK to allow simulating
+    execution of just one MPI node.
 
 StarPU 1.2.0 (svn revision 18521)
 ==============================================
