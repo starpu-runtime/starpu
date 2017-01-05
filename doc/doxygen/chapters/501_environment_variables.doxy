@@ -521,26 +521,6 @@ it prints messages on the standard output when data are added or removed from th
 communication cache.
 </dd>
 
-<dt>STARPU_MPI_FAKE_SIZE</dt>
-<dd>
-\anchor STARPU_MPI_FAKE_SIZE
-\addindex __env__STARPU_MPI_FAKE_SIZE
-Setting to a number makes StarPU believe that there are as many MPI nodes, even
-if it was run on only one MPI node. This allows e.g. to simulate the execution
-of one of the nodes of a big cluster without actually running the rest.
-It of course does not provide computation results and timing.
-</dd>
-
-<dt>STARPU_MPI_FAKE_RANK</dt>
-<dd>
-\anchor STARPU_MPI_FAKE_RANK
-\addindex __env__STARPU_MPI_FAKE_RANK
-Setting to a number makes StarPU believe that it runs the given MPI node, even
-if it was run on only one MPI node. This allows e.g. to simulate the execution
-of one of the nodes of a big cluster without actually running the rest.
-It of course does not provide computation results and timing.
-</dd>
-
 <dt>STARPU_SIMGRID_CUDA_MALLOC_COST</dt>
 <dd>
 \anchor STARPU_SIMGRID_CUDA_MALLOC_COST

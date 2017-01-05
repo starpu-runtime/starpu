@@ -77,8 +77,6 @@ static int running = 0;
 static int _mpi_world_size;
 static int _mpi_world_rank;
 #endif
-int _starpu_mpi_fake_world_size;
-int _starpu_mpi_fake_world_rank;
 
 /* Count requests posted by the application and not yet submitted to MPI */
 static starpu_pthread_mutex_t mutex_posted_requests;
@@ -298,11 +296,6 @@ static void _starpu_mpi_submit_ready_request(void *arg)
 	_STARPU_MPI_LOG_OUT();
 }
 
-static void nop_acquire_cb(void *arg)
-{
-	starpu_data_release(arg);
-}
-
 static struct _starpu_mpi_req *_starpu_mpi_isend_irecv_common(starpu_data_handle_t data_handle,
 							      int srcdst, int data_tag, MPI_Comm comm,
 							      unsigned detached, unsigned sync, void (*callback)(void *), void *arg,
@@ -313,12 +306,6 @@ static struct _starpu_mpi_req *_starpu_mpi_isend_irecv_common(starpu_data_handle
 							      starpu_ssize_t count)
 {
 	struct _starpu_mpi_req *req;
-
-	if (_starpu_mpi_fake_world_size != -1)
-	{
-		starpu_data_acquire_cb_sequential_consistency(data_handle, mode, nop_acquire_cb, data_handle, sequential_consistency);
-		return NULL;
-	}
 
 	_STARPU_MPI_LOG_IN();
 	_STARPU_MPI_INC_POSTED_REQUESTS(1);
@@ -1305,8 +1292,6 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	_mpi_world_size = worldsize;
 	_mpi_world_rank = rank;
 #endif
-	_starpu_mpi_fake_world_size = starpu_get_env_number("STARPU_MPI_FAKE_SIZE");
-	_starpu_mpi_fake_world_rank = starpu_get_env_number("STARPU_MPI_FAKE_RANK");
 
 #ifdef STARPU_SIMGRID
 	/* Now that MPI is set up, let the rest of simgrid get initialized */
@@ -1913,11 +1898,6 @@ void starpu_mpi_data_migrate(MPI_Comm comm, starpu_data_handle_t data, int new_r
 
 int starpu_mpi_comm_size(MPI_Comm comm, int *size)
 {
-	if (_starpu_mpi_fake_world_size != -1)
-	{
-		*size = _starpu_mpi_fake_world_size;
-		return 0;
-	}
 #ifdef STARPU_SIMGRID
 	STARPU_MPI_ASSERT_MSG(comm == MPI_COMM_WORLD, "StarPU-SMPI only works with MPI_COMM_WORLD for now");
 	*size = _mpi_world_size;
@@ -1929,11 +1909,6 @@ int starpu_mpi_comm_size(MPI_Comm comm, int *size)
 
 int starpu_mpi_comm_rank(MPI_Comm comm, int *rank)
 {
-	if (_starpu_mpi_fake_world_rank != -1)
-	{
-		*rank = _starpu_mpi_fake_world_rank;
-		return 0;
-	}
 #ifdef STARPU_SIMGRID
 	STARPU_MPI_ASSERT_MSG(comm == MPI_COMM_WORLD, "StarPU-SMPI only works with MPI_COMM_WORLD for now");
 	*rank = _mpi_world_rank;
