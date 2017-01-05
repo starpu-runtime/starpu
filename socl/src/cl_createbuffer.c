@@ -127,8 +127,8 @@ soclCreateBuffer(cl_context   context,
    }
 
    // Access mode
-   mem->mode = flags & CL_MEM_READ_ONLY  ? CL_MEM_READ_ONLY :
-               flags & CL_MEM_WRITE_ONLY ? CL_MEM_WRITE_ONLY : CL_MEM_READ_WRITE;
+   mem->mode = (flags & CL_MEM_READ_ONLY) ? CL_MEM_READ_ONLY :
+	   (flags & CL_MEM_WRITE_ONLY) ? CL_MEM_WRITE_ONLY : CL_MEM_READ_WRITE;
 
    // Perform data copy if necessary
    if (flags & CL_MEM_COPY_HOST_PTR)

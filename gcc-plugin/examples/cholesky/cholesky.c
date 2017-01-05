@@ -137,7 +137,7 @@ int main(int argc, char **argv)
 		{
 			for(x=0 ; x<nblocks ; x++)
 			{
-                                printf("Block %d,%d :\n", x, y);
+                                printf("Block %u,%u :\n", x, y);
 				for (j = 0; j < BLOCKSIZE; j++)
 				{
 					for (i = 0; i < BLOCKSIZE; i++)
@@ -163,7 +163,7 @@ int main(int argc, char **argv)
 		{
 			for(x=0 ; x<nblocks ; x++)
 			{
-                                printf("Block %d,%d :\n", x, y);
+                                printf("Block %u,%u :\n", x, y);
 				for (j = 0; j < BLOCKSIZE; j++)
 				{
 					for (i = 0; i < BLOCKSIZE; i++)
@@ -237,7 +237,7 @@ int main(int argc, char **argv)
 									float orig = (1.0f/(1.0f+i+j)) + ((i == j)?1.0f*size:0.0f);
 									float err = abs(test_mat[j +i*size] - orig);
 									if (err > 0.00001) {
-										fprintf(stderr, "Error[%d, %d] --> %2.2f != %2.2f (err %2.2f)\n", i, j, test_mat[j +i*size], orig, err);
+										fprintf(stderr, "Error[%u, %u] --> %2.2f != %2.2f (err %2.2f)\n", i, j, test_mat[j +i*size], orig, err);
 										correctness = 0;
 										break;
 									}

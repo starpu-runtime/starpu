@@ -203,7 +203,7 @@ int main(int UNUSED(argc), char** UNUSED(argv)) {
   cl_uint niter = 15;
 
    for (i=0; i<niter; i++) {
-      printf("Iteration %d...\n", i);
+      printf("Iteration %u...\n", i);
      add(cq, SIZE, s1, s2, d, 0, NULL, NULL);
       printf("Finishing iteration...\n");
       clFinish(cq);

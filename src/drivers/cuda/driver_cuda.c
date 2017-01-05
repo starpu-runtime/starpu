@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009-2015  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016, 2017  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -246,8 +246,6 @@ done:
 #ifndef STARPU_SIMGRID
 static void init_device_context(unsigned devid)
 {
-	unsigned i;
-
 	cudaError_t cures;
 
 	/* TODO: cudaSetDeviceFlag(cudaDeviceMapHost) */
@@ -308,6 +306,7 @@ static void init_device_context(unsigned devid)
 	if (STARPU_UNLIKELY(cures))
 		STARPU_CUDA_REPORT_ERROR(cures);
 
+	unsigned i;
 	for (i = 0; i < ncudagpus; i++)
 	{
 		cures = starpu_cudaStreamCreate(&in_peer_transfer_streams[i][devid]);
