@@ -2,7 +2,7 @@
 
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2010  Université de Bordeaux
+# Copyright (C) 2010, 2017  Université de Bordeaux
 # Copyright (C) 2010, 2011  CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -28,33 +28,43 @@ check_success()
 
 apps()
 {
-    echo "block opencl"
-    STARPU_NCUDA=0 STARPU_NCPUS=0 $exampledir/basic_examples/block
-    check_success $?
+    if [ -f $exampledir/basic_examples/block ] ; then
+	echo "block opencl"
+	STARPU_NCUDA=0 STARPU_NCPUS=0 $exampledir/basic_examples/block
+	check_success $?
+    fi
 
-    echo "variable opencl"
-    STARPU_NCUDA=0 STARPU_NCPUS=0 $exampledir/basic_examples/variable 100
-    check_success $?
+    if [ -f $exampledir/basic_examples/variable ] ; then
+	echo "variable opencl"
+	STARPU_NCUDA=0 STARPU_NCPUS=0 $exampledir/basic_examples/variable 100
+	check_success $?
 
-    echo "variable no worker"
-    STARPU_NCUDA=0 STARPU_NOPENCL=0 STARPU_NCPUS=0 $exampledir/basic_examples/variable
-    check_success $?
+	echo "variable no worker"
+	STARPU_NCUDA=0 STARPU_NOPENCL=0 STARPU_NCPUS=0 $exampledir/basic_examples/variable
+	check_success $?
+    fi
 
-    echo "incrementer opencl"
-    STARPU_NCUDA=0 STARPU_NCPUS=0 $exampledir/incrementer/incrementer 10
-    check_success $?
+    if [ -f $exampledir/incrementer/incrementer ] ; then
+	echo "incrementer opencl"
+	STARPU_NCUDA=0 STARPU_NCPUS=0 $exampledir/incrementer/incrementer 10
+	check_success $?
 
-    echo "incrementer no worker"
-    STARPU_NCUDA=0 STARPU_NOPENCL=0 STARPU_NCPUS=0 $exampledir/incrementer/incrementer
-    check_success $?
+	echo "incrementer no worker"
+	STARPU_NCUDA=0 STARPU_NOPENCL=0 STARPU_NCPUS=0 $exampledir/incrementer/incrementer
+	check_success $?
+    fi
 
-    echo "tag_example"
-    $exampledir/tag_example/tag_example -iter 64 -i 128 -j 24
-    check_success $?
+    if [ -f $exampledir/tag_example/tag_example ] ; then
+	echo "tag_example"
+	$exampledir/tag_example/tag_example -iter 64 -i 128 -j 24
+	check_success $?
+    fi
 
-    echo "tag_example2"
-    $exampledir/tag_example/tag_example2 -iter 64 -i 128
-    check_success $?
+    if [ -f $exampledir/tag_example/tag_example2 ] ; then
+	echo "tag_example2"
+	$exampledir/tag_example/tag_example2 -iter 64 -i 128
+	check_success $?
+    fi
 
     if [ -f $exampledir/cholesky/dw_cholesky ] ; then
 	echo "chol.dm"
