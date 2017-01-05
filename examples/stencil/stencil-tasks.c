@@ -197,11 +197,9 @@ void create_task_update(unsigned iter, unsigned z, int local_rank)
 	task->handles[1] = descr->layers_handle[old_layer];
 
 	task->handles[2] = descr->boundaries_handle[T][new_layer];
-	// cppcheck-suppress negativeIndex
 	task->handles[3] = descr->boundaries_handle[T][old_layer];
 
 	task->handles[4] = descr->boundaries_handle[B][new_layer];
-	// cppcheck-suppress negativeIndex
 	task->handles[5] = descr->boundaries_handle[B][old_layer];
 
 	task->cl = &cl_update;
