@@ -49,6 +49,7 @@ unusedStructMember:src/core/simgrid.c:226
 redundantCopy:src/core/disk_ops/disk_leveldb.cpp:192
 
 nullPointerRedundantCheck:src/common/rbtree.c
+wrongPrintfScanfArgNum:src/core/simgrid.c:715
 unreadVariable:src/datawizard/interfaces/*
 unreadVariable:src/drivers/driver_common/driver_common.c:482
 clarifyCondition:src/drivers/opencl/driver_opencl.c:936
@@ -63,4 +64,3 @@ unusedVariable:gcc-plugin/tests/*
 unreadVariable:gcc-plugin/tests/*
 
 pointerSize:socl/src/cl_getcontextinfo.c:33
-

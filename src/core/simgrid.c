@@ -700,7 +700,7 @@ _starpu_simgrid_get_memnode_host(unsigned node)
 	switch (starpu_node_get_kind(node))
 	{
 		case STARPU_CPU_RAM:
-			fmt = "RAM%u";
+			fmt = "RAM";
 			break;
 		case STARPU_CUDA_RAM:
 			fmt = "CUDA%u";
