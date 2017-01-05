@@ -94,9 +94,6 @@ if test x$enable_perf_debug = xyes; then
     enable_shared=no
 fi
 
-LT_PREREQ([2.2])
-LT_INIT([win32-dll])
-
 AC_PROG_INSTALL
 AC_PROG_MKDIR_P
 AC_PROG_LN_S
@@ -3107,6 +3104,10 @@ AH_BOTTOM([
 
 SANITIZE=$(echo $CFLAGS | grep sanitize)
 AM_CONDITIONAL(STARPU_SANITIZE, test -n "$SANITIZE")
+
+#init libtool after all checks to have all compilers correctly defined
+LT_PREREQ([2.2])
+LT_INIT([win32-dll])
 
 AC_OUTPUT([
 	Makefile
