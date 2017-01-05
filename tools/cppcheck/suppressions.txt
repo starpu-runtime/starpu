@@ -2,3 +2,11 @@ memleakOnRealloc
 knownConditionTrueFalse
 variableScope
 constStatement:examples/stencil/*
+unreadVariable:tests/openmp/*
+unusedLabel:tests/datawizard/gpu_register.c
+unusedLabel:tests/datawizard/gpu_ptr_register.c
+varFuncNullUB:examples/sched_ctx/two_cpu_contexts.c:76
+negativeIndex:examples/stencil/stencil-tasks.c:200
+negativeIndex:examples/stencil/stencil-tasks.c:203
+
+
