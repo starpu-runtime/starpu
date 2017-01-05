@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2014, 2016  Université de Bordeaux
- * Copyright (C) 2010-2016  CNRS
+ * Copyright (C) 2010-2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -87,8 +87,8 @@ int main(int argc, char **argv)
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	int nprocs1 = 1;
-	int nprocs2 = 1;
+	int nprocs1;
+	int nprocs2;
 	int *procs1, *procs2;
 
 #ifdef STARPU_USE_CPU
@@ -103,6 +103,8 @@ int main(int argc, char **argv)
 	for(j = nprocs1; j < nprocs1+nprocs2; j++)
 		procs2[k++] = j;
 #else
+	nprocs1 = 1;
+	nprocs2 = 1;
 	procs1 = (int*)malloc(nprocs1*sizeof(int));
 	procs2 = (int*)malloc(nprocs2*sizeof(int));
 	procs1[0] = 0;
