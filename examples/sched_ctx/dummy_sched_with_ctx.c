@@ -116,7 +116,7 @@ static struct starpu_task *pop_task_dummy(unsigned sched_ctx_id)
 	 * the calling worker. So we just take the head of the list and give it
 	 * to the worker. */
 	struct dummy_sched_data *data = (struct dummy_sched_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
+	starpu_pthread_mutex_lock(&data->policy_mutex);
 	struct starpu_task *task = starpu_task_list_pop_back(&data->sched_list);
 	starpu_pthread_mutex_unlock(&data->policy_mutex);
 	return task;
