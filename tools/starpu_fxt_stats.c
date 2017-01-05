@@ -193,7 +193,7 @@ int main(int argc, char **argv)
 		{
 			if (transfers[src][dst] != 0)
 			{
-				fprintf(fd_out, "%u -> %u \t %lu MB\n", src, dst, transfers[src][dst]/(1024*1024));
+				fprintf(fd_out, "%u -> %u \t %lu MB\n", src, dst, (unsigned long)(transfers[src][dst]/(1024*1024)));
 			}
 		}
 	}
