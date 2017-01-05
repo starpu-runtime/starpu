@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  CNRS
+ * Copyright (C) 2010, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -13,6 +13,7 @@
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
+
 #include "mm_to_bcsr.h"
 
 int main(int argc, char *argv[])
@@ -30,6 +31,7 @@ int main(int argc, char *argv[])
 
 	bcsr_t *bcsr;
 	bcsr = mm_file_to_bcsr(argv[1], c, r);
+	(void) bcsr;
 
 	return 0;
 }

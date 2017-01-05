@@ -73,6 +73,7 @@ int main(int argc, char **argv)
 	}
 
         /* create sched context 1 with default policy, by giving a NULL policy name */
+	// cppcheck-suppress varFuncNullUB
 	unsigned sched_ctx1 = starpu_sched_ctx_create(procs1, nprocs1, "ctx1", STARPU_SCHED_CTX_POLICY_NAME, NULL, 0);
         /* create sched context 2 with a user selected policy name */
 	unsigned sched_ctx2 = starpu_sched_ctx_create(procs2, nprocs2, "ctx2", STARPU_SCHED_CTX_POLICY_NAME, "eager", 0);
@@ -85,14 +86,14 @@ int main(int argc, char **argv)
 	for (i=0; i < n; i++)
 	{
 		int arg_id = 1*1000 + i;
-		ret = starpu_insert_task(&sched_ctx_codelet, STARPU_VALUE, &arg_id, sizeof(int), STARPU_SCHED_CTX, sched_ctx1, NULL);
+		ret = starpu_task_insert(&sched_ctx_codelet, STARPU_VALUE, &arg_id, sizeof(int), STARPU_SCHED_CTX, sched_ctx1, 0);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
 	for (i=0; i < n; i++)
 	{
 		int arg_id = 2*1000 + i;
-		ret = starpu_insert_task(&sched_ctx_codelet, STARPU_VALUE, &arg_id, sizeof(int), STARPU_SCHED_CTX, sched_ctx2, NULL);
+		ret = starpu_task_insert(&sched_ctx_codelet, STARPU_VALUE, &arg_id, sizeof(int), STARPU_SCHED_CTX, sched_ctx2, 0);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
@@ -101,7 +102,7 @@ int main(int argc, char **argv)
 	for (i=0; i < n; i++)
 	{
 		int arg_id = 1*10000 + i;
-		ret = starpu_insert_task(&sched_ctx_codelet, STARPU_VALUE, &arg_id, sizeof(int), STARPU_SCHED_CTX, sched_ctx1, NULL);
+		ret = starpu_task_insert(&sched_ctx_codelet, STARPU_VALUE, &arg_id, sizeof(int), STARPU_SCHED_CTX, sched_ctx1, 0);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
