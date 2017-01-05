@@ -1,0 +1,4 @@
+memleakOnRealloc
+knownConditionTrueFalse
+variableScope
+constStatement:examples/stencil/*
