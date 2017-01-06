@@ -501,7 +501,7 @@ _starpu_deallocate_topology_userdata(hwloc_obj_t obj)
 	STARPU_ASSERT(!data->worker_list || data->worker_list == (void*)-1);
 	free(data);
 	for (i = 0; i < obj->arity; i++)
-		_starpu_allocate_topology_userdata(obj->children[i]);
+		_starpu_deallocate_topology_userdata(obj->children[i]);
 }
 #endif
 #endif
