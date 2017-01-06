@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2009-2016  Université de Bordeaux
-# Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+# Copyright (C) 2010, 2011, 2012, 2013, 2017 CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -98,7 +98,8 @@ EXTRA_DIST =				\
 	mvsc/starpu_exec.bat		\
 	mvsc/starpu_var.bat		\
 	mvsc/starpu.sln			\
-	mvsc/starpu/starpu.vcxproj
+	mvsc/starpu/starpu.vcxproj	\
+	cppcheck/suppressions.txt
 
 CLEANFILES = *.gcno *.gcda *.linkinfo
 
