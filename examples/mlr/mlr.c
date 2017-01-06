@@ -119,14 +119,14 @@ static struct starpu_perfmodel cl_model_final = {
 
 static struct starpu_codelet cl_init = {
 	.cpu_funcs = { cpu_func },
-	.cpu_funcs_name = { "mlr_codelet_init" },
+	.cpu_funcs_name = { "cpu_func " },
 	.nbuffers = 0,
 	.model = &cl_model_init,
 };
 
 static struct starpu_codelet cl_final = {
 	.cpu_funcs = { cpu_func },
-	.cpu_funcs_name = { "mlr_codelet_final" },
+	.cpu_funcs_name = { "cpu_func " },
 	.nbuffers = 0,
 	.model = &cl_model_final,
 };
