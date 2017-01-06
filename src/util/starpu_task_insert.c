@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012, 2014-2016  Université de Bordeaux
+ * Copyright (C) 2010, 2012, 2014-2017  Université de Bordeaux
  * Copyright (C) 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -49,7 +49,7 @@ void _starpu_codelet_unpack_args_and_copyleft(char *cl_arg, void *_buffer, size_
 		// NULL was the initial end marker, we now use 0
 		// 0 and NULL should be the same value, but we
 		// keep both equalities for systems on which they could be different
-		if(argptr == 0 || argptr == NULL)
+		if(argptr == 0 || argptr == NULL)
 			break;
 
 		size_t arg_size;
