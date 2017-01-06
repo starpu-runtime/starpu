@@ -101,7 +101,10 @@ main(void) {
          cl_device_id devices[num_devices];
 
          err = clGetDeviceIDs(platforms[i], CL_DEVICE_TYPE_ALL, num_devices, devices, NULL);
-         checkErr(err, "clGetDeviceIDs(CL_DEVICE_TYPE_ALL)");
+         if (err == CL_DEVICE_NOT_FOUND)
+            num_devices = 0;
+         else
+            checkErr(err, "clGetDeviceIDs(CL_DEVICE_TYPE_ALL)");
 
          printf("  Number of devices:\t\t\t\t %d\n", num_devices);
          {
