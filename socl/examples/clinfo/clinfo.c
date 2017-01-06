@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010,2011 University of Bordeaux
+ * Copyright (C) 2010,2011, 2017 University of Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -92,7 +92,7 @@ main(void) {
          printf("  Plaform Name:\t\t\t\t\t %s\n", str);
 
          err = clGetDeviceIDs(platforms[i], CL_DEVICE_TYPE_ALL, 0, NULL, &num_devices);
-         checkErr(err, "clGetDeviceIds(CL_DEVICE_TYPE_ALL)");
+         checkErr(err, "clGetDeviceIDs(CL_DEVICE_TYPE_ALL)");
          if (num_devices == 0) {
             printf("  No devices found\n");
             continue;
@@ -101,7 +101,7 @@ main(void) {
          cl_device_id devices[num_devices];
 
          err = clGetDeviceIDs(platforms[i], CL_DEVICE_TYPE_ALL, num_devices, devices, NULL);
-         checkErr(err, "clGetDeviceIds(CL_DEVICE_TYPE_ALL)");
+         checkErr(err, "clGetDeviceIDs(CL_DEVICE_TYPE_ALL)");
 
          printf("  Number of devices:\t\t\t\t %d\n", num_devices);
          {
