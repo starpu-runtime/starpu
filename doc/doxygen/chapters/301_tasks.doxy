@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016, 2017  CNRS
  * Copyright (C) 2011, 2012 INRIA
  * See the file version.doxy for copying conditions.
  */
@@ -371,7 +371,7 @@ void func_cpu(void *descr[], void *_args)
         int ifactor;
         float ffactor;
 
-        starpu_codelet_unpack_args(_args, &ifactor, NULL);
+        starpu_codelet_unpack_args(_args, &ifactor, 0);
         starpu_codelet_unpack_args(_args, &ifactor, &ffactor);
 }
 \endcode
@@ -383,7 +383,7 @@ void func_cpu(void *descr[], void *_args)
         float ffactor;
 	char buffer[100];
 
-        starpu_codelet_unpack_args_and_copyleft(_args, buffer, 100, &ifactor, NULL);
+        starpu_codelet_unpack_args_and_copyleft(_args, buffer, 100, &ifactor, 0);
         starpu_codelet_unpack_args(buffer, &ffactor);
 }
 \endcode

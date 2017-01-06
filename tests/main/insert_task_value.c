@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015, 2016  CNRS
+ * Copyright (C) 2015, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -43,7 +43,7 @@ void func_cpu_int_float_multiple_unpack(void *descr[], void *_args)
 	float ffactor;
 	(void) descr;
 
-	starpu_codelet_unpack_args(_args, ifactor, NULL);
+	starpu_codelet_unpack_args(_args, ifactor, 0);
 	starpu_codelet_unpack_args(_args, ifactor, &ffactor);
 
 	FPRINTF(stderr, "[func_cpu_int_float_multiple_unpack] Values %d - %3.2f\n", ifactor[0], ffactor);
@@ -60,7 +60,7 @@ void func_cpu_int_float_unpack_copyleft(void *descr[], void *_args)
 
 	buffer_size = sizeof(int)+sizeof(float)+sizeof(size_t);
 	buffer = calloc(buffer_size, 1);
-	starpu_codelet_unpack_args_and_copyleft(_args, buffer, buffer_size, ifactor, NULL);
+	starpu_codelet_unpack_args_and_copyleft(_args, buffer, buffer_size, ifactor, 0);
 	starpu_codelet_unpack_args(buffer, &ffactor);
 
 	FPRINTF(stderr, "[func_cpu_int_float_unpack_copyleft] Values %d - %3.2f\n", ifactor[0], ffactor);
@@ -86,7 +86,7 @@ void func_cpu_float_int_multiple_unpack(void *descr[], void *_args)
 	float ffactor;
 	(void) descr;
 
-	starpu_codelet_unpack_args(_args, &ffactor, NULL);
+	starpu_codelet_unpack_args(_args, &ffactor, 0);
 	starpu_codelet_unpack_args(_args, &ffactor, ifactor);
 
 	FPRINTF(stderr, "[func_cpu_float_int_multiple_unpack] Values %d - %3.2f\n", ifactor[0], ffactor);
@@ -103,7 +103,7 @@ void func_cpu_float_int_unpack_copyleft(void *descr[], void *_args)
 
 	buffer_size = sizeof(int)+2048*sizeof(int)+sizeof(size_t);
 	buffer = calloc(buffer_size, 1);
-	starpu_codelet_unpack_args_and_copyleft(_args, buffer, buffer_size, &ffactor, NULL);
+	starpu_codelet_unpack_args_and_copyleft(_args, buffer, buffer_size, &ffactor, 0);
 	starpu_codelet_unpack_args(buffer, ifactor);
 
 	FPRINTF(stderr, "[func_cpu_float_int_multiple_unpack] Values %d - %3.2f\n", ifactor[0], ffactor);

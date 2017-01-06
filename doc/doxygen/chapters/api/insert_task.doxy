@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  * Copyright (C) 2011, 2012 INRIA
  * See the file version.doxy for copying conditions.
  */
@@ -140,13 +140,13 @@ starpu_codelet_unpack_args().
 \ingroup API_Insert_Task
 Retrieve the arguments of type ::STARPU_VALUE associated to a
 task automatically created using the function starpu_task_insert(). If
-some parameter is NULL, unpacking will stop there and ignore the remaining
+any parameter's value is 0, unpacking will stop there and ignore the remaining
 parameters.
 
 \fn void starpu_codelet_unpack_args_and_copyleft(void *cl_arg, void *buffer, size_t buffer_size, ...)
 \ingroup API_Insert_Task
-Similar to starpu_codelet_unpack_args(), but if some parameter is
-NULL, copy the part of cl_arg that has not been read in buffer which
+Similar to starpu_codelet_unpack_args(), but if any parameter is
+0, copy the part of cl_arg that has not been read in buffer which
 can then be used in a later call to one of the unpack functions.
 
 \fn struct starpu_task *starpu_task_build(struct starpu_codelet *cl, ...)
