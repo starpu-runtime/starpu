@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2016  Université de Bordeaux
+ * Copyright (C) 2009-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2015  Centre National de la Recherche Scientifique
  * Copyright (C) 2010, 2011  Institut National de Recherche en Informatique et Automatique
  * Copyright (C) 2011  Télécom-SudParis
@@ -20,6 +20,9 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#ifdef __linux__
+#include <sys/utsname.h>
+#endif
 #include <common/config.h>
 #include <common/utils.h>
 #include <core/progress_hook.h>
@@ -766,6 +769,15 @@ int starpu_init(struct starpu_conf *user_conf)
 #endif
 #ifdef STARPU_ENABLE_STATS
 	_STARPU_DISP("Warning: StarPU was configured with --enable-stats, which slows down a bit\n");
+#endif
+#ifdef __linux__
+	{
+		struct utsname buf;
+		if (uname(&buf) == 0
+		 && (!strncmp(buf.release, "4.7.", 4)
+		  || !strncmp(buf.release, "4.8.", 4)))
+			_STARPU_DISP("Warning: This system is running a 4.7 or 4.8 kernel. These have a severe scheduling performance regression issue, please upgrade to at least 4.9.\n");
+	}
 #endif
 #endif
 
