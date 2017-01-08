@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013  Université de Bordeaux
+ * Copyright (C) 2010-2013, 2017  Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -154,7 +154,7 @@ static void pi_func_cpu(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
 	unsigned short *worker_xsub;
 	worker_xsub = &xsubi[PADDING*workerid];
 
-	struct drand48_data *buffer;
+	starpu_drand48_data *buffer;
 	buffer = &randbuffer[PADDING*workerid];
 
 	unsigned long local_cnt = 0;
