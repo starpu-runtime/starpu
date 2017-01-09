@@ -509,6 +509,8 @@ static void _starpu_sink_common_execute_kernel(struct _starpu_mp_node *node, int
 	for (i = 0; i < task->nb_interfaces; i++)
 		free(task->interfaces[i]);
 	free(task->interfaces);
+    	if (task->cl_arg != NULL)
+        	free(task->cl_arg);
 	free(task);
 
 }
@@ -612,7 +614,12 @@ void _starpu_sink_common_execute(struct _starpu_mp_node *node,
 
 	/* Was cl_arg sent ? */
 	if (arg_size > arg_ptr - (uintptr_t) arg)
-		task->cl_arg = (void*) arg_ptr;
+    {
+        /* Copy cl_arg to prevent overwriting by an other task */
+        unsigned cl_arg_size = arg_size - (arg_ptr - (uintptr_t) arg);
+        _STARPU_MALLOC(task->cl_arg, cl_arg_size);
+        memcpy(task->cl_arg, (void *) arg_ptr, cl_arg_size);
+    }
 	else
 		task->cl_arg = NULL;
 
