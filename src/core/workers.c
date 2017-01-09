@@ -1039,18 +1039,26 @@ static void _fill_tree(struct starpu_tree *tree, hwloc_obj_t curr_obj, unsigned 
 static void _starpu_build_tree(void)
 {
 #ifdef STARPU_HAVE_HWLOC
+	hwloc_topology_t cpu_topo;
 	struct starpu_tree *tree;
 	_STARPU_MALLOC(tree, sizeof(struct starpu_tree));
 	_starpu_config.topology.tree = tree;
 
-	hwloc_obj_t root = hwloc_get_root_obj(_starpu_config.topology.hwtopology);
+	hwloc_topology_dup(&cpu_topo, _starpu_config.topology.hwtopology);
+#if HWLOC_API_VERSION >= 0x20000
+	hwloc_topology_set_all_types_filter(cpu_topo, HWLOC_TYPE_FILTER_KEEP_STRUCTURE);
+#else
+	hwloc_topology_ignore_all_keep_structure(cpu_topo);
+#endif
+	hwloc_obj_t root = hwloc_get_root_obj(cpu_topo);
 
 /* 	char string[128]; */
 /* 	hwloc_obj_snprintf(string, sizeof(string), topology, root, "#", 0); */
 /* 	printf("%*s%s %d is_pu = %d \n", 0, "", string, root->logical_index, root->type == HWLOC_OBJ_PU); */
 
-	/* level, is_pu, is in the tree (it will be true only after add*/
-	_fill_tree(tree, root, 0, _starpu_config.topology.hwtopology, NULL);
+	/* level, is_pu, is in the tree (it will be true only after add) */
+	_fill_tree(tree, root, 0, cpu_topo, NULL);
+	hwloc_topology_destroy(cpu_topo);
 #endif
 }
 
