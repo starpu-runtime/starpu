@@ -1043,8 +1043,13 @@ static void _starpu_build_tree(void)
 	struct starpu_tree *tree;
 	_STARPU_MALLOC(tree, sizeof(struct starpu_tree));
 	_starpu_config.topology.tree = tree;
-
+#if HWLOC_API_VERSION >= 0x00010800
 	hwloc_topology_dup(&cpu_topo, _starpu_config.topology.hwtopology);
+#else
+	hwloc_topology_init(&cpu_topo);
+	hwloc_topology_load(cpu_topo);
+#endif
+
 #if HWLOC_API_VERSION >= 0x20000
 	hwloc_topology_set_all_types_filter(cpu_topo, HWLOC_TYPE_FILTER_KEEP_STRUCTURE);
 #else
