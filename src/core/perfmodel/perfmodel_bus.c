@@ -1721,10 +1721,33 @@ static void check_bus_config_file(void)
         int res;
         char path[256];
         struct _starpu_machine_config *config = _starpu_get_machine_config();
+	int recalibrate = 0;
 
         get_config_path(path, sizeof(path));
         res = access(path, F_OK);
+
 	if (res || config->conf.bus_calibrate > 0)
+		recalibrate = 1;
+
+#if defined(STARPU_USE_MPI_MASTER_SLAVE)
+	//Send to each other to know if we had to recalibrate because someone cannot have the config file
+	int nb_mpi = _starpu_mpi_src_get_device_count() + 1;
+	int mpi_recalibrate[nb_mpi];
+
+	MPI_Allgather(&recalibrate, 1, MPI_INT, mpi_recalibrate, 1, MPI_INT, MPI_COMM_WORLD);
+
+
+	for (int i = 0; i < nb_mpi; i++)
+	{
+		if (mpi_recalibrate[i])
+		{
+			recalibrate = 1;	
+			break;
+		}
+	}
+#endif
+
+	if (recalibrate)
 	{
 		if (res)
 			_STARPU_DISP("No performance model for the bus, calibrating...\n");
