@@ -30,10 +30,8 @@ redundantAssignment:tests/main/driver_api/run_driver.c
 
 uselessAssignmentPtrArg:mpi/src/starpu_mpi.c:155
 unreadVariable:mpi/src/starpu_mpi.c:849
+redundantAssignment:src/core/workers.c
 
-redundantAssignment:src/core/workers.c:249
-redundantAssignment:src/core/workers.c:245
-redundantAssignment:src/core/workers.c:253
 invalidPointerCast:src/core/perfmodel/perfmodel_nan.c:74
 unreadVariable:src/core/dependencies/tags.c:111
 uselessAssignmentPtrArg:src/core/sched_ctx_list.c:144
@@ -44,6 +42,7 @@ unusedStructMember:src/core/perfmodel/perfmodel_bus.c:65
 unusedStructMember:src/core/perfmodel/perfmodel_bus.c:66
 unusedStructMember:src/core/simgrid.c:225
 unusedStructMember:src/core/simgrid.c:226
+duplicateExpression:src/util/starpu_task_insert.c:52
 
 // TODO: this could be an error?
 redundantCopy:src/core/disk_ops/disk_leveldb.cpp:192
@@ -62,5 +61,6 @@ sizeofDereferencedVoidPointer:src/util/fstarpu.c
 allocaCalled:gcc-plugin/src/*
 unusedVariable:gcc-plugin/tests/*
 unreadVariable:gcc-plugin/tests/*
+duplicateExpression:gcc-plugin/src/*
 
 pointerSize:socl/src/cl_getcontextinfo.c:33
