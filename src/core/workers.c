@@ -1646,6 +1646,12 @@ int starpu_worker_get_count_by_type(enum starpu_worker_archtype type)
 		case STARPU_SCC_WORKER:
 			return _starpu_config.topology.nsccdevices;
 
+		case STARPU_ANY_WORKER:
+			return _starpu_config.topology.ncpus+
+			       _starpu_config.topology.ncudagpus+
+			       _starpu_config.topology.nopenclgpus+
+			       _starpu_config.topology.nmicdevices+
+			       _starpu_config.topology.nsccdevices;
 		default:
 			return -EINVAL;
 	}
@@ -1830,7 +1836,7 @@ unsigned starpu_worker_get_ids_by_type(enum starpu_worker_archtype type, int *wo
 	unsigned id;
 	for (id = 0; id < nworkers; id++)
 	{
-		if (starpu_worker_get_type(id) == type)
+		if (type == STARPU_ANY_WORKER || starpu_worker_get_type(id) == type)
 		{
 			/* Perhaps the array is too small ? */
 			if (cnt >= maxsize)
@@ -1852,7 +1858,7 @@ int starpu_worker_get_by_type(enum starpu_worker_archtype type, int num)
 	unsigned id;
 	for (id = 0; id < nworkers; id++)
 	{
-		if (starpu_worker_get_type(id) == type)
+		if (type == STARPU_ANY_WORKER || starpu_worker_get_type(id) == type)
 		{
 			if (num == cnt)
 				return id;
@@ -1946,7 +1952,8 @@ int starpu_worker_get_stream_workerids(unsigned devid, int *workerids, enum star
 	unsigned id;
 	for (id = 0; id < nworkers; id++)
 	{
-		if (_starpu_config.workers[id].devid == devid && _starpu_config.workers[id].arch == type)
+		if (_starpu_config.workers[id].devid == devid &&
+		    (type == STARPU_ANY_WORKER || _starpu_config.workers[id].arch == type))
 			workerids[nw++] = id;
 	}
 	return nw;
@@ -2006,7 +2013,7 @@ int starpu_worker_get_nids_by_type(enum starpu_worker_archtype type, int *worker
 	unsigned id;
 	for (id = 0; id < nworkers; id++)
 	{
-		if (starpu_worker_get_type(id) == type)
+		if (type == STARPU_ANY_WORKER || starpu_worker_get_type(id) == type)
 		{
 			/* Perhaps the array is too small ? */
 			if (cnt >= maxsize)
@@ -2027,7 +2034,7 @@ int starpu_worker_get_nids_ctx_free_by_type(enum starpu_worker_archtype type, in
 
 	for (id = 0; id < nworkers; id++)
 	{
-		if (starpu_worker_get_type(id) == type)
+		if (type == STARPU_ANY_WORKER || starpu_worker_get_type(id) == type)
 		{
 			/* Perhaps the array is too small ? */
 			if (cnt >= maxsize)
