@@ -39,6 +39,8 @@ extern int _starpu_debug_level_max;
 void _starpu_mpi_set_debug_level_min(int level);
 void _starpu_mpi_set_debug_level_max(int level);
 #endif
+extern int _starpu_mpi_fake_world_size;
+extern int _starpu_mpi_fake_world_rank;
 
 #ifdef STARPU_NO_ASSERT
 #  define STARPU_MPI_ASSERT_MSG(x, msg, ...)	do { if (0) { (void) (x); }} while(0)
