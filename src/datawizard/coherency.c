@@ -913,7 +913,7 @@ int starpu_idle_prefetch_task_input_on_node(struct starpu_task *task, unsigned n
 	return starpu_idle_prefetch_task_input_on_node_prio(task, node, prio);
 }
 
-static struct _starpu_data_replicate *get_replicate(starpu_data_handle_t handle, enum starpu_data_access_mode mode, int workerid, unsigned node)
+struct _starpu_data_replicate *get_replicate(starpu_data_handle_t handle, enum starpu_data_access_mode mode, int workerid, unsigned node)
 {
 	if (mode & (STARPU_SCRATCH|STARPU_REDUX))
 	{

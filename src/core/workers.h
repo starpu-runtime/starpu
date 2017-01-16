@@ -115,6 +115,8 @@ LIST_TYPE(_starpu_worker,
 
 	unsigned spinning_backoff ; /* number of cycles to pause when spinning  */
 
+    unsigned nb_buffers_sent; /* number of piece of data already send to remote side */
+    struct starpu_task *task_sending; /* The buffers of this task are being sent */
 
 	/* indicate whether the workers shares tasks lists with other workers*/
 	/* in this case when removing him from a context it disapears instantly */

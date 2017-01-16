@@ -936,6 +936,15 @@ static void _starpu_src_common_send_workers(struct _starpu_mp_node * node, int b
     STARPU_PTHREAD_MUTEX_UNLOCK(&node->connection_mutex);
 }
 
+/* Callback used when a buffer is send asynchronously to the sink */
+static void _starpu_src_common_send_data_callback(void *arg)
+{
+   struct _starpu_worker * worker = (struct _starpu_worker *) arg;
+
+   /* increase the number of buffer received */
+   worker->task_sending++;
+}
+
 
 static void _starpu_src_common_worker_internal_work(struct _starpu_worker_set * worker_set, struct _starpu_mp_node * mp_node, struct starpu_task **tasks, unsigned memnode)
 {
@@ -946,6 +955,44 @@ static void _starpu_src_common_worker_internal_work(struct _starpu_worker_set * 
 #ifdef STARPU_SIMGRID
     starpu_pthread_wait_reset(&worker_set->workers[0].wait);
 #endif
+
+
+    /* Test if async transfers are completed */
+    for (unsigned i = 0; i < worker_set->nworkers; i++)
+        /* We send all buffers to execute the task */
+        if (worker_set->workers[i].task_sending != NULL && worker_set->workers[i].nb_buffers_sent == STARPU_TASK_GET_NBUFFERS(worker_set->workers[i].task_sending))
+        {
+            unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(worker_set->workers[i].task_sending);
+            unsigned buf;
+            for (buf = 0; buf < nbuffers; buf++)
+            {
+                starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(worker_set->workers[i].task_sending, buf);
+                _starpu_release_data_on_node(handle, 0, &handle->per_node[memnode]);
+            }
+
+            /* Execute the task */
+            struct _starpu_job * j = _starpu_get_job_associated_to_task(worker_set->workers[i].task_sending);
+            _starpu_set_local_worker_key(&worker_set->workers[i]);
+            res =  _starpu_src_common_execute(j, &worker_set->workers[i], mp_node);
+            switch (res)
+            {
+                case 0:
+                    /* The task task has been launched with no error */
+                    break;
+                case -EAGAIN:
+                    _STARPU_DISP("ouch, this MP worker could not actually run task %p, putting it back...\n", tasks[i]);
+                    _starpu_push_task_to_workers(worker_set->workers[i].task_sending);
+                    STARPU_ABORT();
+                    continue;
+                    break;
+                default:
+                    STARPU_ASSERT(0);
+            }
+
+            /* Reset it */
+            worker_set->workers[i].task_sending = NULL;
+            worker_set->workers[i].nb_buffers_sent = 0;
+        }
 
     _STARPU_TRACE_START_PROGRESS(memnode);
     res |= __starpu_datawizard_progress(1, 1);
@@ -977,27 +1024,23 @@ static void _starpu_src_common_worker_internal_work(struct _starpu_worker_set * 
     /*if at least one worker have pop a task*/
     if(res != 0)
     {
-        unsigned i;
+        unsigned i, buf;
         for(i=0; i<worker_set->nworkers; i++)
         {
             if(tasks[i] != NULL)
             {
-                struct _starpu_job * j = _starpu_get_job_associated_to_task(tasks[i]);
-                _starpu_set_local_worker_key(&worker_set->workers[i]);
-                res =  _starpu_src_common_execute(j, &worker_set->workers[i], mp_node);
-                switch (res)
+                unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(tasks[i]);
+
+                for (buf = 0; buf < nbuffers; buf++)
                 {
-                    case 0:
-                        /* The task task has been launched with no error */
-                        break;
-                    case -EAGAIN:
-                        _STARPU_DISP("ouch, this MP worker could not actually run task %p, putting it back...\n", tasks[i]);
-                        _starpu_push_task_to_workers(tasks[i]);
-                        STARPU_ABORT();
-                        continue;
-                        break;
-                    default:
-                        STARPU_ASSERT(0);
+                    starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(tasks[i], buf);
+                    enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(tasks[i], buf);
+                    int workerid = starpu_worker_get_id_check();
+                    struct _starpu_data_replicate *local_replicate = get_replicate(handle, mode, workerid, memnode);
+                    
+                    int ret = _starpu_fetch_data_on_node(handle, memnode, local_replicate, mode, 0, 0, 1,
+                                     _starpu_src_common_send_data_callback, &worker_set->workers[i], 0, "_starpu_src_common_worker_internal_work");
+                    STARPU_ASSERT(!ret);
                 }
             }
         }
