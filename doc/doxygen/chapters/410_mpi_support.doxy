@@ -501,6 +501,21 @@ If the distribution function is not too complex and the compiler is very good,
 the latter can even optimize the <c>for</c> loops, thus dramatically reducing
 the cost of task submission.
 
+To estimate quickly how long task submission takes, and notably how much pruning
+saves, a quick and easy way is to measure the submission time of just one of the
+MPI nodes. This can be achieved by running the application on just one MPI node
+with the following environment variables:
+
+\code
+export STARPU_DISABLE_KERNELS=1
+export STARPU_MPI_FAKE_RANK=2
+export STARPU_MPI_FAKE_SIZE=1024
+\endcode
+
+Here we have disabled the kernel function call to skip the actual computation
+time and only keep submission time, and we have asked StarPU to fake running on
+MPI node 2 out of 1024 nodes.
+
 A function starpu_mpi_task_build() is also provided with the aim to
 only construct the task structure. All MPI nodes need to call the
 function, only the node which is to execute the task will return a
