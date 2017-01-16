@@ -942,7 +942,7 @@ static void _starpu_src_common_send_data_callback(void *arg)
    struct _starpu_worker * worker = (struct _starpu_worker *) arg;
 
    /* increase the number of buffer received */
-   worker->task_sending++;
+   worker->nb_buffers_sent++;
 }
 
 
@@ -959,6 +959,7 @@ static void _starpu_src_common_worker_internal_work(struct _starpu_worker_set * 
 
     /* Test if async transfers are completed */
     for (unsigned i = 0; i < worker_set->nworkers; i++)
+    {
         /* We send all buffers to execute the task */
         if (worker_set->workers[i].task_sending != NULL && worker_set->workers[i].nb_buffers_sent == STARPU_TASK_GET_NBUFFERS(worker_set->workers[i].task_sending))
         {
@@ -993,6 +994,7 @@ static void _starpu_src_common_worker_internal_work(struct _starpu_worker_set * 
             worker_set->workers[i].task_sending = NULL;
             worker_set->workers[i].nb_buffers_sent = 0;
         }
+    }
 
     _STARPU_TRACE_START_PROGRESS(memnode);
     res |= __starpu_datawizard_progress(1, 1);
@@ -1042,6 +1044,7 @@ static void _starpu_src_common_worker_internal_work(struct _starpu_worker_set * 
                                      _starpu_src_common_send_data_callback, &worker_set->workers[i], 0, "_starpu_src_common_worker_internal_work");
                     STARPU_ASSERT(!ret);
                 }
+                worker_set->workers[i].task_sending = tasks[i];
             }
         }
     }
