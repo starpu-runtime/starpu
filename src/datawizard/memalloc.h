@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2010, 2012-2015  Université de Bordeaux
+ * Copyright (C) 2009-2010, 2012-2015, 2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -73,6 +73,9 @@ LIST_TYPE(_starpu_mem_chunk,
 	 * remove this entry from the mc_list, so we know we have to restart
 	 * from zero. This is protected by the corresponding mc_lock.  */
 	struct _starpu_mem_chunk **remove_notify;
+
+	/* Was this chunk used since it got allocated?  */
+	int diduse;
 )
 
 void _starpu_init_mem_chunk_lists(void);

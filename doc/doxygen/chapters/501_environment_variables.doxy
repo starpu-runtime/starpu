@@ -743,6 +743,15 @@ GPUs (or in main memory, when using out of core), when performing an asynchronou
 writeback pass. The default is 10%.
 </dd>
 
+<dt>STARPU_DIDUSE_BARRIER</dt>
+<dd>
+\anchor STARPU_DIDUSE_BARRIER
+\addindex __env__STARPU_DIDUSE_BARRIER
+When set to 1, StarPU will never evict a piece of data if it has not been used
+by at least one task. This avoids odd behaviors under high memory pressure, but
+can lead to deadlocks, so is to be considered experimental only.
+</dd>
+
 <dt>STARPU_DISK_SWAP</dt>
 <dd>
 \anchor STARPU_DISK_SWAP

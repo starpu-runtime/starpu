@@ -42,6 +42,10 @@ int test_prefetch(unsigned memnodes)
 	unsigned i;
 	starpu_ssize_t available_size;
 
+	if (starpu_get_env_number_default("STARPU_DIDUSE_BARRIER", 0))
+		/* This would hang */
+		return STARPU_TEST_SKIPPED;
+
 	buffers[0] = malloc(SIZE_ALLOC*1024*512);
 	STARPU_ASSERT(buffers[0]);
 
