@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010-2016  Université de Bordeaux
+ * Copyright (C) 2009, 2010-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
  * Copyright (C) 2016  Inria
  *
@@ -77,8 +77,8 @@ static int running = 0;
 static int _mpi_world_size;
 static int _mpi_world_rank;
 #endif
-int _starpu_mpi_fake_world_size;
-int _starpu_mpi_fake_world_rank;
+int _starpu_mpi_fake_world_size = -1;
+int _starpu_mpi_fake_world_rank = -1;
 
 /* Count requests posted by the application and not yet submitted to MPI */
 static starpu_pthread_mutex_t mutex_posted_requests;
