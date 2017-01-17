@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016 Université de Bordeaux
+ * Copyright (C) 2016-2017 Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,7 +17,7 @@
 /* Check that defining a main makes starpu use MSG_process_attach. */
 #include "locality.c"
 #include <config.h>
-#if defined(HAVE_MSG_PROCESS_ATTACH) && SIMGRID_VERSION_MAJOR > 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR >= 14)
+#if defined(HAVE_MSG_PROCESS_ATTACH) && SIMGRID_VERSION_MAJOR > 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR >= 15)
 #undef main
 int main(int argc, char *argv[]) {
 	return starpu_main(argc, argv);
