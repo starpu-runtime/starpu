@@ -964,7 +964,11 @@ static void _starpu_src_common_worker_internal_work(struct _starpu_worker_set * 
         /* We send all buffers to execute the task */
         if (worker_set->workers[i].task_sending != NULL && worker_set->workers[i].nb_buffers_sent == STARPU_TASK_GET_NBUFFERS(worker_set->workers[i].task_sending))
         {
+            int workerid = worker_set->workers[i].workerid;
+
             STARPU_RMB();
+	        _STARPU_TRACE_WORKER_END_FETCH_INPUT(NULL, workerid);
+
             unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(worker_set->workers[i].task_sending);
             unsigned buf;
             for (buf = 0; buf < nbuffers; buf++)
@@ -1041,13 +1045,14 @@ static void _starpu_src_common_worker_internal_work(struct _starpu_worker_set * 
         {
             if(tasks[i] != NULL)
             {
+                int workerid = worker_set->workers[i].workerid;
+                _STARPU_TRACE_WORKER_START_FETCH_INPUT(NULL, workerid);
                 unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(tasks[i]);
 
                 for (buf = 0; buf < nbuffers; buf++)
                 {
                     starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(tasks[i], buf);
                     enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(tasks[i], buf);
-                    int workerid = starpu_worker_get_id_check();
                     struct _starpu_data_replicate *local_replicate = get_replicate(handle, mode, workerid, memnode);
 
                     int ret = _starpu_fetch_data_on_node(handle, memnode, local_replicate, mode, 0, 0, 1,

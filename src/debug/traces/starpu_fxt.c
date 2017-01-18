@@ -1516,10 +1516,23 @@ static void handle_hypervisor_end(struct fxt_ev_64 *ev, struct starpu_fxt_option
 	}
 }
 
-static void handle_worker_status(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *newstatus)
+static void handle_worker_status_on_tid(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *newstatus)
 {
 	int worker;
 	worker = find_worker_id(ev->param[1]);
+	if (worker < 0)
+		return;
+
+	if (out_paje_file)
+		thread_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[1], newstatus);
+	if (trace_file)
+		recfmt_thread_set_state(get_event_time_stamp(ev, options), ev->param[1], newstatus, "Runtime");
+}
+
+static void handle_worker_status(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *newstatus)
+{
+	int worker;
+	worker = ev->param[1];
 	if (worker < 0)
 		return;
 
@@ -2591,24 +2604,32 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 				break;
 
 			/* check the memory transfer overhead */
-			case _STARPU_FUT_START_FETCH_INPUT:
-				handle_worker_status(&ev, options, "Fi");
+			case _STARPU_FUT_START_FETCH_INPUT_ON_TID:
+				handle_worker_status_on_tid(&ev, options, "Fi");
 				break;
-			case _STARPU_FUT_START_PUSH_OUTPUT:
-				handle_worker_status(&ev, options, "Po");
+			case _STARPU_FUT_START_PUSH_OUTPUT_ON_TID:
+				handle_worker_status_on_tid(&ev, options, "Po");
 				break;
-			case _STARPU_FUT_START_PROGRESS:
-				handle_worker_status(&ev, options, "P");
+			case _STARPU_FUT_START_PROGRESS_ON_TID:
+				handle_worker_status_on_tid(&ev, options, "P");
 				break;
-			case _STARPU_FUT_START_UNPARTITION:
-				handle_worker_status(&ev, options, "U");
+			case _STARPU_FUT_START_UNPARTITION_ON_TID:
+				handle_worker_status_on_tid(&ev, options, "U");
 				break;
-			case _STARPU_FUT_END_FETCH_INPUT:
-			case _STARPU_FUT_END_PROGRESS:
-			case _STARPU_FUT_END_PUSH_OUTPUT:
-			case _STARPU_FUT_END_UNPARTITION:
-				handle_worker_status(&ev, options, "B");
+			case _STARPU_FUT_END_FETCH_INPUT_ON_TID:
+			case _STARPU_FUT_END_PROGRESS_ON_TID:
+			case _STARPU_FUT_END_PUSH_OUTPUT_ON_TID:
+			case _STARPU_FUT_END_UNPARTITION_ON_TID:
+				handle_worker_status_on_tid(&ev, options, "B");
 				break;
+
+            case _STARPU_FUT_START_FETCH_INPUT:
+                handle_worker_status(&ev, options, "Fi");
+                break;
+
+            case _STARPU_FUT_END_FETCH_INPUT:
+                handle_worker_status(&ev, options, "B");
+                break;
 
 			case _STARPU_FUT_WORKER_SCHEDULING_START:
 				handle_worker_scheduling_start(&ev, options);
