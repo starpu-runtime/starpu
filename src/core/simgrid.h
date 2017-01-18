@@ -68,6 +68,8 @@ starpu_pthread_queue_t _starpu_simgrid_task_queue[STARPU_NMAXWORKERS];
  * bus */
 void _starpu_simgrid_count_ngpus(void);
 
+void _starpu_simgrid_xbt_thread_create(const char *name, void_f_pvoid_t code,
+				       void *param);
 #endif
 
 #endif // __SIMGRID_H__

@@ -24,11 +24,28 @@
 #include "starpu_mpi.h"
 #include "starpu_mpi_fxt.h"
 #include <common/list.h>
+#include <core/simgrid.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+	
+#ifdef STARPU_SIMGRID
+starpu_pthread_wait_t wait;
+starpu_pthread_queue_t dontsleep;
 
+struct _starpu_simgrid_mpi_req
+{
+	MPI_Request *request;
+	MPI_Status *status;
+	starpu_pthread_queue_t *queue;
+	unsigned *done;
+};
+
+int _starpu_mpi_simgrid_mpi_test(int *done, int *flag);
+void _starpu_mpi_simgrid_wait_req(MPI_Request *request, 	MPI_Status *status, starpu_pthread_queue_t *queue, unsigned *done);
+#endif
+	
 extern int _starpu_debug_rank;
 char *_starpu_mpi_get_mpi_error_code(int code);
 extern int _starpu_mpi_comm;
@@ -224,6 +241,13 @@ LIST_TYPE(_starpu_mpi_req,
 	int sequential_consistency;
 
      	UT_hash_handle hh;
+
+#ifdef STARPU_SIMGRID
+        MPI_Status status_store;
+	starpu_pthread_queue_t queue;
+	unsigned done;
+#endif
+	  
 );
 
 struct _starpu_mpi_argc_argv
