@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009-2016  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016, 2017  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2016  Uppsala University
  *
@@ -267,8 +267,6 @@ done:
 
 static void init_device_context(unsigned devid, unsigned memnode)
 {
-	unsigned i;
-
 #ifndef STARPU_SIMGRID
 	cudaError_t cures;
 
@@ -351,6 +349,7 @@ static void init_device_context(unsigned devid, unsigned memnode)
 	if (STARPU_UNLIKELY(cures))
 		STARPU_CUDA_REPORT_ERROR(cures);
 
+	unsigned i;
 	for (i = 0; i < ncudagpus; i++)
 	{
 		cures = starpu_cudaStreamCreate(&in_peer_transfer_streams[i][devid]);

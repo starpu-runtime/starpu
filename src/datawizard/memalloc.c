@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2016  Université de Bordeaux
+ * Copyright (C) 2009-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
  * Copyright (C) 2016  Inria
  *
@@ -32,6 +32,9 @@ static unsigned minimum_clean_p;
 static unsigned target_clean_p;
 /* Whether CPU memory has been explicitly limited by user */
 static int limit_cpu_mem;
+
+/* Prevent memchunks from being evicted from memory before they are actually used */
+static int diduse_barrier;
 
 /* This per-node RW-locks protect mc_list and memchunk_cache entries */
 /* Note: handle header lock is always taken before this (normal add/remove case) */
@@ -133,6 +136,7 @@ void _starpu_init_mem_chunk_lists(void)
 	minimum_clean_p = starpu_get_env_number_default("STARPU_MINIMUM_CLEAN_BUFFERS", 5);
 	target_clean_p = starpu_get_env_number_default("STARPU_TARGET_CLEAN_BUFFERS", 10);
 	limit_cpu_mem = starpu_get_env_number("STARPU_LIMIT_CPU_MEM");
+	diduse_barrier = starpu_get_env_number_default("STARPU_DIDUSE_BARRIER", 0);
 }
 
 void _starpu_deinit_mem_chunk_lists(void)
@@ -441,6 +445,10 @@ static size_t try_to_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 
 	/* This data was registered from this node, we will not be able to drop it anyway */
 	if ((int) node == handle->home_node)
+		return 0;
+
+	if (diduse_barrier && !mc->diduse)
+		/* Hasn't been used yet, avoid evicting it */
 		return 0;
 
 	/* REDUX memchunk */
@@ -1160,6 +1168,7 @@ static struct _starpu_mem_chunk *_starpu_memchunk_init(struct _starpu_data_repli
 	mc->chunk_interface = NULL;
 	mc->size_interface = interface_size;
 	mc->remove_notify = NULL;
+	mc->diduse = 0;
 
 	return mc;
 }
@@ -1455,6 +1464,7 @@ void _starpu_memchunk_recently_used(struct _starpu_mem_chunk *mc, unsigned node)
 		/* user-allocated memory */
 		return;
 	_starpu_spin_lock(&mc_lock[node]);
+	mc->diduse = 1;
 	MC_LIST_ERASE(node, mc);
 	MC_LIST_PUSH_BACK(node, mc);
 	_starpu_spin_unlock(&mc_lock[node]);
@@ -1468,6 +1478,8 @@ void _starpu_memchunk_wont_use(struct _starpu_mem_chunk *mc, unsigned node)
 		/* user-allocated memory */
 		return;
 	_starpu_spin_lock(&mc_lock[node]);
+	/* Avoid preventing it from being evicted */
+	mc->diduse = 1;
 	MC_LIST_ERASE(node, mc);
 	/* Caller will schedule a clean transfer */
 	mc->clean = 1;

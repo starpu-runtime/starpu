@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2015  Université de Bordeaux
- * Copyright (C) 2012, 2013, 2016  CNRS
+ * Copyright (C) 2012, 2013, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -571,6 +571,7 @@ static void dummy_func_bottom_cuda(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *
 	unsigned z;
 	starpu_codelet_unpack_args(arg, &z);
 	struct block_description *block = get_block_description(z);
+	(void) block;
 
 	int workerid = starpu_worker_get_id_check();
 	bottom_per_worker[workerid]++;
@@ -605,9 +606,10 @@ static void dummy_func_top_opencl(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *a
 /* bottom save, OPENCL version */
 static void dummy_func_bottom_opencl(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
 {
-    unsigned z;
-    starpu_codelet_unpack_args(arg, &z);
+	unsigned z;
+	starpu_codelet_unpack_args(arg, &z);
 	struct block_description *block = get_block_description(z);
+	(void) block;
 
 	int workerid = starpu_worker_get_id_check();
 	bottom_per_worker[workerid]++;

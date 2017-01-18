@@ -85,14 +85,14 @@ int main(int argc, char **argv)
 	for (i=0; i < n; i++)
 	{
 		int arg_id = 1*1000 + i;
-		ret = starpu_insert_task(&sched_ctx_codelet, STARPU_VALUE, &arg_id, sizeof(int), STARPU_SCHED_CTX, sched_ctx1, NULL);
+		ret = starpu_task_insert(&sched_ctx_codelet, STARPU_VALUE, &arg_id, sizeof(int), STARPU_SCHED_CTX, sched_ctx1, 0);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
 	for (i=0; i < n; i++)
 	{
 		int arg_id = 2*1000 + i;
-		ret = starpu_insert_task(&sched_ctx_codelet, STARPU_VALUE, &arg_id, sizeof(int), STARPU_SCHED_CTX, sched_ctx2, NULL);
+		ret = starpu_task_insert(&sched_ctx_codelet, STARPU_VALUE, &arg_id, sizeof(int), STARPU_SCHED_CTX, sched_ctx2, 0);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
@@ -101,7 +101,7 @@ int main(int argc, char **argv)
 	for (i=0; i < n; i++)
 	{
 		int arg_id = 1*10000 + i;
-		ret = starpu_insert_task(&sched_ctx_codelet, STARPU_VALUE, &arg_id, sizeof(int), STARPU_SCHED_CTX, sched_ctx1, NULL);
+		ret = starpu_task_insert(&sched_ctx_codelet, STARPU_VALUE, &arg_id, sizeof(int), STARPU_SCHED_CTX, sched_ctx1, 0);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 

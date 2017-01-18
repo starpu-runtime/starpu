@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2016  Université de Bordeaux
-# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+# Copyright (C) 2009-2017  Université de Bordeaux
+# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
 # Copyright (C) 2016  Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -20,8 +20,10 @@ include $(top_srcdir)/starpu.mk
 if STARPU_SIMGRID
 STARPU_PERF_MODEL_DIR=$(abs_top_srcdir)/tools/perfmodels/sampling
 STARPU_HOSTNAME=mirage
+MALLOC_PERTURB_=0
 export STARPU_PERF_MODEL_DIR
 export STARPU_HOSTNAME
+export MALLOC_PERTURB_
 endif
 
 SUBDIRS =
@@ -154,7 +156,8 @@ EXTRA_DIST =				\
 	msvc/starpu_exec.bat		\
 	msvc/starpu_var.bat		\
 	msvc/starpu.sln			\
-	msvc/starpu/starpu.vcxproj
+	msvc/starpu/starpu.vcxproj	\
+	cppcheck/suppressions.txt
 
 CLEANFILES = *.gcno *.gcda *.linkinfo starpu_idle_microsec.log figure/* mlr_*
 

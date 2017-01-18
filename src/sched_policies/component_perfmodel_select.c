@@ -44,7 +44,14 @@ static int perfmodel_select_push_task(struct starpu_sched_component * component,
 	if(can_execute)
 	{
 		if(isnan(length))
+		{
+			static int warned;
+			if (!warned) {
+				warned = 1;
+				_STARPU_DISP("Warning: performance model for %s not finished calibrating, using a dumb scheduling heuristic for now\n",starpu_task_get_name(task));
+			}
 			return starpu_sched_component_push_task(component,data->calibrator_component,task);
+		}
 		if(_STARPU_IS_ZERO(length))
 			return starpu_sched_component_push_task(component,data->no_perfmodel_component,task);
 		return starpu_sched_component_push_task(component,data->perfmodel_component,task);

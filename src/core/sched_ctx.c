@@ -2682,7 +2682,7 @@ unsigned starpu_sched_ctx_has_starpu_scheduler(unsigned sched_ctx_id, unsigned *
 	return sched_ctx->sched_policy != NULL;
 }
 
-void *starpu_sched_ctx_get_used_data(unsigned sched_ctx_id)
+void *starpu_sched_ctx_get_user_data(unsigned sched_ctx_id)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	STARPU_ASSERT(sched_ctx != NULL);

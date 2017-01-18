@@ -237,13 +237,12 @@ int main(int argc, char *argv[])
 		test_args = (char *) calloc(150, sizeof(char));
 		sprintf(test_args, "%s/examples/spmv/matrix_market/examples/fidapm05.mtx", STARPU_SRC_DIR);
 	}
-
-	if (strstr(test_name, "starpu_perfmodel_display"))
+	else if (strstr(test_name, "starpu_perfmodel_display"))
 	{
 		test_args = (char *) calloc(5, sizeof(char));
 		sprintf(test_args, "-l");
 	}
-	if (strstr(test_name, "starpu_perfmodel_plot"))
+	else if (strstr(test_name, "starpu_perfmodel_plot"))
 	{
 		test_args = (char *) calloc(5, sizeof(char));
 		sprintf(test_args, "-l");

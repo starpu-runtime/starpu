@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2013-2015  Université de Bordeaux
- * Copyright (C) 2012, 2013, 2015  CNRS
+ * Copyright (C) 2012, 2013, 2015, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -78,6 +78,7 @@ static void create_task_save_local(unsigned iter, unsigned z, int dir, int local
 static void send_done(void *arg)
 {
 	uintptr_t z = (uintptr_t) arg;
+	(void) z;
 	DEBUG("DO SEND %d\n", (int)z);
 }
 
@@ -106,6 +107,7 @@ static void create_task_save_mpi_send(unsigned iter, unsigned z, int dir, int lo
 static void recv_done(void *arg)
 {
 	uintptr_t z = (uintptr_t) arg;
+	(void) z;
 	DEBUG("DO RECV %d\n", (int)z);
 }
 

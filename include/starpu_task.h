@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2016  Université de Bordeaux
+ * Copyright (C) 2010-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2011, 2014, 2016  INRIA
@@ -321,6 +321,9 @@ void starpu_codelet_init(struct starpu_codelet *cl);
 void starpu_codelet_display_stats(struct starpu_codelet *cl);
 
 struct starpu_task *starpu_task_get_current(void);
+
+const char *starpu_task_get_model_name(struct starpu_task *task);
+const char *starpu_task_get_name(struct starpu_task *task);
 
 void starpu_parallel_task_barrier_init(struct starpu_task *task, int workerid);
 void starpu_parallel_task_barrier_init_n(struct starpu_task *task, int worker_size);

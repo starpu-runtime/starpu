@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016 CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017 CNRS
  * Copyright (C) 2011, 2016  INRIA
  * Copyright (C) 2016  Uppsala University
  *
@@ -128,6 +128,7 @@ _starpu_get_worker_from_driver(struct starpu_driver *d)
 #endif
 
 			default:
+				(void) worker;
 				_STARPU_DEBUG("Invalid device type\n");
 				return NULL;
 			}
@@ -530,7 +531,7 @@ _starpu_deallocate_topology_userdata(hwloc_obj_t obj)
 	STARPU_ASSERT(!data->worker_list || data->worker_list == (void*)-1);
 	free(data);
 	for (i = 0; i < obj->arity; i++)
-		_starpu_allocate_topology_userdata(obj->children[i]);
+		_starpu_deallocate_topology_userdata(obj->children[i]);
 }
 #endif
 #endif
@@ -556,7 +557,11 @@ _starpu_init_topology (struct _starpu_machine_config *config)
 #ifndef STARPU_SIMGRID
 #ifdef STARPU_HAVE_HWLOC
 	hwloc_topology_init(&topology->hwtopology);
+#if HWLOC_API_VERSION >= 0x20000
+	hwloc_topology_set_io_types_filter(topology->hwtopology, HWLOC_TYPE_FILTER_KEEP_IMPORTANT);
+#else
 	hwloc_topology_set_flags(topology->hwtopology, HWLOC_TOPOLOGY_FLAG_IO_DEVICES | HWLOC_TOPOLOGY_FLAG_IO_BRIDGES);
+#endif
 	hwloc_topology_load(topology->hwtopology);
 	_starpu_allocate_topology_userdata(hwloc_get_root_obj(topology->hwtopology));
 #endif

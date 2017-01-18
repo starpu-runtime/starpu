@@ -853,6 +853,15 @@ This function returns the task currently executed by the
 worker, or <c>NULL</c> if it is called either from a thread that is not a
 task or simply because there is no task being executed at the moment.
 
+\fn const char *starpu_task_get_name(struct starpu_task *task)
+\ingroup API_Codelet_And_Tasks
+This function returns the name of \p task, i.e. either its task->name field, or
+the name of the corresponding performance model.
+
+\fn const char *starpu_task_get_model_name(struct starpu_task *task)
+\ingroup API_Codelet_And_Tasks
+This function returns the name of the performance model of \p task.
+
 \fn void starpu_codelet_display_stats(struct starpu_codelet *cl)
 \ingroup API_Codelet_And_Tasks
 Output on stderr some statistics on the codelet \p cl.

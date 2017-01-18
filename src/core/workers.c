@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+ * Copyright (C) 2009-2017  Université de Bordeaux
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  * Copyright (C) 2010, 2011  INRIA
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2011-2012, 2016  INRIA
@@ -21,6 +21,9 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#ifdef __linux__
+#include <sys/utsname.h>
+#endif
 #include <common/config.h>
 #include <common/utils.h>
 #include <common/graph.h>
@@ -1145,18 +1148,27 @@ static void _fill_tree(struct starpu_tree *tree, hwloc_obj_t curr_obj, unsigned 
 static void _starpu_build_tree(void)
 {
 #ifdef STARPU_HAVE_HWLOC
+	hwloc_topology_t cpu_topo;
 	struct starpu_tree *tree;
 	_STARPU_MALLOC(tree, sizeof(struct starpu_tree));
 	_starpu_config.topology.tree = tree;
 
-	hwloc_obj_t root = hwloc_get_root_obj(_starpu_config.topology.hwtopology);
+	hwloc_topology_init(&cpu_topo);
+#if HWLOC_API_VERSION >= 0x20000
+	hwloc_topology_set_all_types_filter(cpu_topo, HWLOC_TYPE_FILTER_KEEP_STRUCTURE);
+#else
+	hwloc_topology_ignore_all_keep_structure(cpu_topo);
+#endif
+	hwloc_topology_load(cpu_topo);
+	hwloc_obj_t root = hwloc_get_root_obj(cpu_topo);
 
 /* 	char string[128]; */
 /* 	hwloc_obj_snprintf(string, sizeof(string), topology, root, "#", 0); */
 /* 	printf("%*s%s %d is_pu = %d \n", 0, "", string, root->logical_index, root->type == HWLOC_OBJ_PU); */
 
-	/* level, is_pu, is in the tree (it will be true only after add*/
-	_fill_tree(tree, root, 0, _starpu_config.topology.hwtopology, NULL);
+	/* level, is_pu, is in the tree (it will be true only after add) */
+	_fill_tree(tree, root, 0, cpu_topo, NULL);
+	hwloc_topology_destroy(cpu_topo);
 #endif
 }
 
@@ -1264,6 +1276,15 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 #endif
 #ifdef STARPU_MODEL_DEBUG
 	_STARPU_DISP("Warning: StarPU was configured with --enable-model-debug, which slows down a bit\n");
+#endif
+#ifdef __linux__
+	{
+		struct utsname buf;
+		if (uname(&buf) == 0
+		 && (!strncmp(buf.release, "4.7.", 4)
+		  || !strncmp(buf.release, "4.8.", 4)))
+			_STARPU_DISP("Warning: This system is running a 4.7 or 4.8 kernel. These have a severe scheduling performance regression issue, please upgrade to at least 4.9.\n");
+	}
 #endif
 #endif
 
@@ -1759,6 +1780,13 @@ int starpu_worker_get_count_by_type(enum starpu_worker_archtype type)
         case STARPU_MPI_WORKER:
             return _starpu_config.topology.nmpidevices;
 
+		case STARPU_ANY_WORKER:
+			return _starpu_config.topology.ncpus+
+			       _starpu_config.topology.ncudagpus+
+			       _starpu_config.topology.nopenclgpus+
+			       _starpu_config.topology.nmicdevices+
+			       _starpu_config.topology.nsccdevices+
+		           _starpu_config.topology.nmpidevices;
 		default:
 			return -EINVAL;
 	}
@@ -1953,7 +1981,7 @@ unsigned starpu_worker_get_ids_by_type(enum starpu_worker_archtype type, int *wo
 	unsigned id;
 	for (id = 0; id < nworkers; id++)
 	{
-		if (starpu_worker_get_type(id) == type)
+		if (type == STARPU_ANY_WORKER || starpu_worker_get_type(id) == type)
 		{
 			/* Perhaps the array is too small ? */
 			if (cnt >= maxsize)
@@ -1975,7 +2003,7 @@ int starpu_worker_get_by_type(enum starpu_worker_archtype type, int num)
 	unsigned id;
 	for (id = 0; id < nworkers; id++)
 	{
-		if (starpu_worker_get_type(id) == type)
+		if (type == STARPU_ANY_WORKER || starpu_worker_get_type(id) == type)
 		{
 			if (num == cnt)
 				return id;
@@ -2069,7 +2097,8 @@ int starpu_worker_get_stream_workerids(unsigned devid, int *workerids, enum star
 	unsigned id;
 	for (id = 0; id < nworkers; id++)
 	{
-		if (_starpu_config.workers[id].devid == devid && _starpu_config.workers[id].arch == type)
+		if (_starpu_config.workers[id].devid == devid &&
+		    (type == STARPU_ANY_WORKER || _starpu_config.workers[id].arch == type))
 			workerids[nw++] = id;
 	}
 	return nw;
@@ -2129,7 +2158,7 @@ int starpu_worker_get_nids_by_type(enum starpu_worker_archtype type, int *worker
 	unsigned id;
 	for (id = 0; id < nworkers; id++)
 	{
-		if (starpu_worker_get_type(id) == type)
+		if (type == STARPU_ANY_WORKER || starpu_worker_get_type(id) == type)
 		{
 			/* Perhaps the array is too small ? */
 			if (cnt >= maxsize)
@@ -2150,7 +2179,7 @@ int starpu_worker_get_nids_ctx_free_by_type(enum starpu_worker_archtype type, in
 
 	for (id = 0; id < nworkers; id++)
 	{
-		if (starpu_worker_get_type(id) == type)
+		if (type == STARPU_ANY_WORKER || starpu_worker_get_type(id) == type)
 		{
 			/* Perhaps the array is too small ? */
 			if (cnt >= maxsize)
@@ -2213,6 +2242,7 @@ starpu_driver_run(struct starpu_driver *d)
 		return _starpu_run_opencl(worker);
 #endif
 	default:
+		(void) worker;
 		_STARPU_DEBUG("Invalid device type\n");
 		return -EINVAL;
 	}
@@ -2239,6 +2269,7 @@ starpu_driver_init(struct starpu_driver *d)
 		return _starpu_opencl_driver_init(worker);
 #endif
 	default:
+		(void) worker;
 		return -EINVAL;
 	}
 }
@@ -2264,6 +2295,7 @@ starpu_driver_run_once(struct starpu_driver *d)
 		return _starpu_opencl_driver_run_once(worker);
 #endif
 	default:
+		(void) worker;
 		return -EINVAL;
 	}
 }
@@ -2289,6 +2321,7 @@ starpu_driver_deinit(struct starpu_driver *d)
 		return _starpu_opencl_driver_deinit(worker);
 #endif
 	default:
+		(void) worker;
 		return -EINVAL;
 	}
 }

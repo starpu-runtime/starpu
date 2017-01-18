@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2014, 2015, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2014, 2015, 2016, 2017  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2011-2013  INRIA
  * Copyright (C) 2013  Simon Archipoff
@@ -683,7 +683,7 @@ static int combined_worker_push_task(struct starpu_sched_component * component, 
 		task_alias[i]->task->workerid = combined_worker->combined_workerid[i];
 		task_alias[i]->left = task_alias[i-1];
 		task_alias[i - 1]->right = task_alias[i];
-		task_alias[i]->pntasks = &task_alias[0]->ntasks;
+		task_alias[i]->pntasks = &(task_alias[0]->ntasks);
 	}
 
 	starpu_pthread_mutex_t * mutex_to_unlock = NULL;
