@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012 INRIA
- * Copyright (C) 2010-2016  Université de Bordeaux
+ * Copyright (C) 2010-2017  Université de Bordeaux
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2016  CNRS
  *
@@ -374,11 +374,17 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 				nimpl_best = nimpl;
 			}
 
-			if (isnan(local_task_length[worker_ctx][nimpl]))
+			if (isnan(local_task_length[worker_ctx][nimpl])) {
+				static int warned;
+				if (!warned) {
+					warned = 1;
+					_STARPU_DISP("Warning: performance model for %s not finished calibrating on %u, using a dumb scheduling heuristic for now\n", starpu_task_get_name(task), worker);
+				}
 				/* we are calibrating, we want to speed-up calibration time
 				 * so we privilege non-calibrated tasks (but still
 				 * greedily distribute them to avoid dumb schedules) */
 				calibrating = 1;
+			}
 
 			if (isnan(local_task_length[worker_ctx][nimpl])
 					|| _STARPU_IS_ZERO(local_task_length[worker_ctx][nimpl]))

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2016  Université de Bordeaux
+ * Copyright (C) 2010-2017  Université de Bordeaux
  * Copyright (C) 2010-2013, 2016  CNRS
  * Copyright (C) 2011  INRIA
  *
@@ -124,7 +124,7 @@ static struct _starpu_prio_deque *select_prio(unsigned sched_ctx_id, struct _sta
 		if (length == 0.)
 		{
 			_STARPU_DISP("Warning: graph_test needs performance models for all tasks, including %s\n",
-					_starpu_job_get_task_name(_starpu_get_job_associated_to_task(task)));
+					starpu_task_get_name(task));
 			power = 0.;
 		}
 		else
