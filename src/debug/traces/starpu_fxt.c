@@ -1537,9 +1537,9 @@ static void handle_worker_status(struct fxt_ev_64 *ev, struct starpu_fxt_options
 		return;
 
 	if (out_paje_file)
-		thread_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[1], newstatus);
+		worker_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[1], newstatus);
 	if (trace_file)
-		recfmt_thread_set_state(get_event_time_stamp(ev, options), ev->param[1], newstatus, "Runtime");
+		recfmt_worker_set_state(get_event_time_stamp(ev, options), ev->param[1], newstatus, "Runtime");
 }
 
 static double last_sleep_start[STARPU_NMAXWORKERS];
@@ -2623,13 +2623,13 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 				handle_worker_status_on_tid(&ev, options, "B");
 				break;
 
-            case _STARPU_FUT_START_FETCH_INPUT:
-                handle_worker_status(&ev, options, "Fi");
-                break;
+			case _STARPU_FUT_START_FETCH_INPUT:
+				handle_worker_status(&ev, options, "Fi");
+				break;
 
-            case _STARPU_FUT_END_FETCH_INPUT:
-                handle_worker_status(&ev, options, "B");
-                break;
+			case _STARPU_FUT_END_FETCH_INPUT:
+				handle_worker_status(&ev, options, "B");
+				break;
 
 			case _STARPU_FUT_WORKER_SCHEDULING_START:
 				handle_worker_scheduling_start(&ev, options);
