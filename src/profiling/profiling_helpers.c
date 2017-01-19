@@ -18,15 +18,13 @@
 #include <starpu_profiling.h>
 #include <profiling/profiling.h>
 
-void starpu_profiling_bus_helper_display_summary(void)
+void _starpu_profiling_bus_helper_display_summary(FILE *stream)
 {
 	const char *stats;
 	int long long sum_transferred = 0;
 
-	if (!((stats = starpu_getenv("STARPU_BUS_STATS")) && atoi(stats))) return;
-
-	fprintf(stderr, "\nData transfer statistics:\n");
-	fprintf(stderr,   "*************************\n");
+	fprintf(stream, "\nData transfer statistics:\n");
+	fprintf(stream,   "*************************\n");
 
 	int busid;
 	int bus_cnt = starpu_bus_get_count();
@@ -44,27 +42,31 @@ void starpu_profiling_bus_helper_display_summary(void)
 		int long long transfer_cnt =  bus_info.transfer_count;
 		double elapsed_time = starpu_timing_timespec_to_us(&bus_info.total_time);
 
-		fprintf(stderr, "\t%d -> %d\t%.2lf MB\t%.2lfMB/s\t(transfers : %lld - avg %.2lf MB)\n", src, dst, (1.0*transferred)/(1024*1024), transferred/elapsed_time, transfer_cnt, (1.0*transferred)/(transfer_cnt*1024*1024));
+		fprintf(stream, "\t%d -> %d\t%.2lf MB\t%.2lfMB/s\t(transfers : %lld - avg %.2lf MB)\n", src, dst, (1.0*transferred)/(1024*1024), transferred/elapsed_time, transfer_cnt, (1.0*transferred)/(transfer_cnt*1024*1024));
 
 		sum_transferred += transferred;
 	}
 
-	fprintf(stderr, "Total transfers: %.2lf MB\n", (1.0*sum_transferred)/(1024*1024));
+	fprintf(stream, "Total transfers: %.2lf MB\n", (1.0*sum_transferred)/(1024*1024));
 }
 
-void starpu_profiling_worker_helper_display_summary(void)
+void starpu_profiling_bus_helper_display_summary(void)
 {
 	const char *stats;
+	if (!((stats = starpu_getenv("STARPU_BUS_STATS")) && atoi(stats))) return;
+	_starpu_profiling_bus_helper_display_summary(stderr);
+}
+
+void _starpu_profiling_worker_helper_display_summary(FILE *stream)
+{
 	double sum_consumed = 0.;
 	int profiling = starpu_profiling_status_get();
 	double overall_time = 0;
 	int workerid;
 	int worker_cnt = starpu_worker_get_count();
 
-	if (!((stats = starpu_getenv("STARPU_WORKER_STATS")) && atoi(stats))) return;
-
-	fprintf(stderr, "\nWorker statistics:\n");
-	fprintf(stderr,   "******************\n");
+	fprintf(stream, "\nWorker statistics:\n");
+	fprintf(stream,   "******************\n");
 
 	for (workerid = 0; workerid < worker_cnt; workerid++)
 	{
@@ -82,16 +84,16 @@ void starpu_profiling_worker_helper_display_summary(void)
 			if (total_time > overall_time)
 				overall_time = total_time;
 
-			fprintf(stderr, "%-32s\n", name);
-			fprintf(stderr, "\t%d task(s)\n\ttotal: %.2lf ms executing: %.2lf ms sleeping: %.2lf ms overhead %.2lf ms\n", info.executed_tasks, total_time, executing_time, sleeping_time, total_time - executing_time - sleeping_time);
+			fprintf(stream, "%-32s\n", name);
+			fprintf(stream, "\t%d task(s)\n\ttotal: %.2lf ms executing: %.2lf ms sleeping: %.2lf ms overhead %.2lf ms\n", info.executed_tasks, total_time, executing_time, sleeping_time, total_time - executing_time - sleeping_time);
 			if (info.used_cycles || info.stall_cycles)
-				fprintf(stderr, "\t%llu Mcy %llu Mcy stall\n", (unsigned long long)info.used_cycles/1000000, (unsigned long long)info.stall_cycles/1000000);
+				fprintf(stream, "\t%llu Mcy %llu Mcy stall\n", (unsigned long long)info.used_cycles/1000000, (unsigned long long)info.stall_cycles/1000000);
 			if (info.energy_consumed)
-				fprintf(stderr, "\t%f J consumed\n", info.energy_consumed);
+				fprintf(stream, "\t%f J consumed\n", info.energy_consumed);
 		}
 		else
 		{
-			fprintf(stderr, "\t%-32s\t%d task(s)\n", name, info.executed_tasks);
+			fprintf(stream, "\t%-32s\t%d task(s)\n", name, info.executed_tasks);
 		}
 
 		sum_consumed += info.energy_consumed;
@@ -105,10 +107,17 @@ void starpu_profiling_worker_helper_display_summary(void)
 			double idle_power = atof(strval_idle_power); /* Watt */
 			double idle_energy = idle_power * overall_time / 1000.; /* J */
 
-			fprintf(stderr, "Idle energy: %.2lf J\n", idle_energy);
+			fprintf(stream, "Idle energy: %.2lf J\n", idle_energy);
 			sum_consumed += idle_energy;
 		}
 	}
 	if (profiling && sum_consumed)
-		fprintf(stderr, "Total consumption: %.2lf J\n", sum_consumed);
+		fprintf(stream, "Total consumption: %.2lf J\n", sum_consumed);
+}
+
+void starpu_profiling_worker_helper_display_summary(void)
+{
+	const char *stats;
+	if (!((stats = starpu_getenv("STARPU_WORKER_STATS")) && atoi(stats))) return;
+	_starpu_profiling_worker_helper_display_summary(stderr);
 }

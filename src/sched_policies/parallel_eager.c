@@ -99,7 +99,7 @@ static void peager_add_workers(unsigned sched_ctx_id, int *workerids, unsigned n
         {
 		workerid = workerids[i];
 
-		fprintf(stderr, "MASTER of %d = %d\n", workerid, master_id[workerid]);
+		_STARPU_MSG("MASTER of %d = %d\n", workerid, master_id[workerid]);
 	}
 #endif
 }

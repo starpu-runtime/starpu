@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010, 2013  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -42,15 +42,15 @@ void _starpu_msi_cache_miss(unsigned node STARPU_ATTRIBUTE_UNUSED)
 #endif
 }
 
-void _starpu_display_msi_stats(void)
+void _starpu_display_msi_stats(FILE *stream)
 {
 #ifdef STARPU_ENABLE_STATS
 	unsigned node;
 	unsigned total_hit_cnt = 0;
 	unsigned total_miss_cnt = 0;
 
-	fprintf(stderr, "\n#---------------------\n");
-	fprintf(stderr, "MSI cache stats :\n");
+	fprintf(stream, "\n#---------------------\n");
+	fprintf(stream, "MSI cache stats :\n");
 
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
@@ -58,18 +58,18 @@ void _starpu_display_msi_stats(void)
 		total_miss_cnt += miss_cnt[node];
 	}
 
-	fprintf(stderr, "TOTAL MSI stats\thit %u (%2.2f \%%)\tmiss %u (%2.2f \%%)\n", total_hit_cnt, (100.0f*total_hit_cnt)/(total_hit_cnt+total_miss_cnt), total_miss_cnt, (100.0f*total_miss_cnt)/(total_hit_cnt+total_miss_cnt));
+	fprintf(stream, "TOTAL MSI stats\thit %u (%2.2f \%%)\tmiss %u (%2.2f \%%)\n", total_hit_cnt, (100.0f*total_hit_cnt)/(total_hit_cnt+total_miss_cnt), total_miss_cnt, (100.0f*total_miss_cnt)/(total_hit_cnt+total_miss_cnt));
 
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
 		if (hit_cnt[node]+miss_cnt[node])
 		{
-			fprintf(stderr, "memory node %d\n", node);
-			fprintf(stderr, "\thit : %u (%2.2f \%%)\n", hit_cnt[node], (100.0f*hit_cnt[node])/(hit_cnt[node]+miss_cnt[node]));
-			fprintf(stderr, "\tmiss : %u (%2.2f \%%)\n", miss_cnt[node], (100.0f*miss_cnt[node])/(hit_cnt[node]+miss_cnt[node]));
+			fprintf(stream, "memory node %d\n", node);
+			fprintf(stream, "\thit : %u (%2.2f \%%)\n", hit_cnt[node], (100.0f*hit_cnt[node])/(hit_cnt[node]+miss_cnt[node]));
+			fprintf(stream, "\tmiss : %u (%2.2f \%%)\n", miss_cnt[node], (100.0f*miss_cnt[node])/(hit_cnt[node]+miss_cnt[node]));
 		}
 	}
-	fprintf(stderr, "#---------------------\n");
+	fprintf(stream, "#---------------------\n");
 #endif
 }
 
@@ -96,25 +96,25 @@ void _starpu_data_allocation_inc_stats(unsigned node STARPU_ATTRIBUTE_UNUSED)
 #endif
 }
 
-void _starpu_display_alloc_cache_stats(void)
+void _starpu_display_alloc_cache_stats(FILE *stream)
 {
 #ifdef STARPU_ENABLE_STATS
-	fprintf(stderr, "\n#---------------------\n");
-	fprintf(stderr, "Allocation cache stats:\n");
+	fprintf(stream, "\n#---------------------\n");
+	fprintf(stream, "Allocation cache stats:\n");
 	unsigned node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
 		if (alloc_cnt[node])
 		{
-			fprintf(stderr, "memory node %d\n", node);
-			fprintf(stderr, "\ttotal alloc : %u\n", alloc_cnt[node]);
-			fprintf(stderr, "\tcached alloc: %u (%2.2f \%%)\n",
+			fprintf(stream, "memory node %d\n", node);
+			fprintf(stream, "\ttotal alloc : %u\n", alloc_cnt[node]);
+			fprintf(stream, "\tcached alloc: %u (%2.2f \%%)\n",
 				alloc_cache_hit_cnt[node], (100.0f*alloc_cache_hit_cnt[node])/(alloc_cnt[node]));
 		}
 		else
-			fprintf(stderr, "No allocation on node %d\n", node);
+			fprintf(stream, "No allocation on node %d\n", node);
 	}
-	fprintf(stderr, "#---------------------\n");
+	fprintf(stream, "#---------------------\n");
 #endif
 }
 
@@ -131,7 +131,7 @@ void _starpu_comm_amounts_inc(unsigned src  STARPU_ATTRIBUTE_UNUSED, unsigned ds
 #endif /* STARPU_ENABLE_STATS */
 }
 
-void _starpu_display_comm_amounts(void)
+void _starpu_display_comm_amounts(FILE *stream)
 {
 #ifdef STARPU_DEVEL
 #  warning TODO. The information displayed here seems to be similar to the one displayed by starpu_profiling_bus_helper_display_summary()
@@ -141,8 +141,8 @@ void _starpu_display_comm_amounts(void)
 	unsigned src, dst;
 	size_t sum = 0;
 
-	fprintf(stderr, "\n#---------------------\n");
-	fprintf(stderr, "Data transfer stats:\n");
+	fprintf(stream, "\n#---------------------\n");
+	fprintf(stream, "Data transfer stats:\n");
 
 	for (dst = 0; dst < STARPU_MAXNODES; dst++)
 		for (src = 0; src < STARPU_MAXNODES; src++)
@@ -151,18 +151,18 @@ void _starpu_display_comm_amounts(void)
 			sum += comm_amount[dst][src];
 		}
 
-	fprintf(stderr, "TOTAL transfers %f MB\n", (float)sum/1024/1024);
+	fprintf(stream, "TOTAL transfers %f MB\n", (float)sum/1024/1024);
 
 	for (dst = 0; dst < STARPU_MAXNODES; dst++)
 		for (src = dst + 1; src < STARPU_MAXNODES; src++)
 		{
 			if (comm_amount[src][dst])
-				fprintf(stderr, "\t%d <-> %d\t%f MB\n\t\t%d -> %d\t%f MB\n\t\t%d -> %d\t%f MB\n",
+				fprintf(stream, "\t%d <-> %d\t%f MB\n\t\t%d -> %d\t%f MB\n\t\t%d -> %d\t%f MB\n",
 					src, dst, ((float)comm_amount[src][dst] + (float)comm_amount[dst][src])/(1024*1024),
 					src, dst, ((float)comm_amount[src][dst])/(1024*1024),
 					dst, src, ((float)comm_amount[dst][src])/(1024*1024));
 		}
-	fprintf(stderr, "#---------------------\n");
+	fprintf(stream, "#---------------------\n");
 #endif
 }
 

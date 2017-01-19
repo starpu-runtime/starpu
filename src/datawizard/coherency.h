@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2017  CNRS
  * Copyright (C) 2014-2016  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -270,8 +270,6 @@ struct _starpu_data_state
 	 * is not manage by StarPU) */
 	void *user_data;
 };
-
-void _starpu_display_msi_stats(void);
 
 /* This does not take a reference on the handle, the caller has to do it,
  * e.g. through _starpu_attempt_to_submit_data_request_from_apps()

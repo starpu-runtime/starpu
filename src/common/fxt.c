@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -199,7 +199,7 @@ void _starpu_stop_fxt_profiling(void)
 #ifdef STARPU_VERBOSE
 	        char hostname[128];
 		gethostname(hostname, 128);
-		fprintf(stderr, "Writing FxT traces into file %s:%s\n", hostname, _STARPU_PROF_FILE_USER);
+		_STARPU_MSG("Writing FxT traces into file %s:%s\n", hostname, _STARPU_PROF_FILE_USER);
 #endif
 		fut_endup(_STARPU_PROF_FILE_USER);
 
@@ -213,7 +213,7 @@ void _starpu_stop_fxt_profiling(void)
 		{
 			/* Something went wrong with the FxT trace (eg. there
 			 * was too many events) */
-			fprintf(stderr, "Warning: the FxT trace could not be generated properly\n");
+			_STARPU_MSG("Warning: the FxT trace could not be generated properly\n");
 		}
 
 		_starpu_written = 1;

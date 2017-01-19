@@ -32,8 +32,7 @@
 static void param_modified(struct starpu_top_param* d)
 {
 	/* Just to show parameter modification. */
-	fprintf(stderr, "%s has been modified : %f\n",
-			d->name, *(double*) d->value);
+	_STARPU_MSG("%s has been modified : %f\n", d->name, *(double*) d->value);
 }
 #endif /* !STARPU_USE_TOP */
 
