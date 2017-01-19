@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2016  Inria
  *
@@ -1101,7 +1101,7 @@ int starpu_perfmodel_list(FILE *output)
         }
 	return 0;
 #else
-	fprintf(stderr,"Listing perfmodels is not implemented on pure Windows yet\n");
+	_STARPU_MSG("Listing perfmodels is not implemented on pure Windows yet\n");
 	return 1;
 #endif
 }

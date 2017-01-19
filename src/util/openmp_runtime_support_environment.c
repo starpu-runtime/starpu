@@ -236,7 +236,7 @@ static void read_wait_policy_var()
 	ret = read_string_var(env, strings, &value);
 	if (!ret)
 	{
-		fprintf(stderr, "StarPU: Invalid value for environment variable OMP_WAIT_POLICY\n");
+		_STARPU_MSG("StarPU: Invalid value for environment variable OMP_WAIT_POLICY\n");
 		return;
 	}
 	_initial_icv_values.wait_policy_var = value;
@@ -256,7 +256,7 @@ static void read_display_env_var(int *dest)
 	ret = read_string_var(env, strings, &value);
 	if (!ret)
 	{
-		fprintf(stderr, "StarPU: Invalid value for environment variable OMP_DISPLAY_ENV\n");
+		_STARPU_MSG("StarPU: Invalid value for environment variable OMP_DISPLAY_ENV\n");
 		return;
 	}
 
@@ -559,7 +559,7 @@ static void read_proc_bind_var()
 
 			if (!read_string_var(token, strings, &value))
 			{
-				fprintf(stderr, "StarPU: Invalid value for environment variable OMP_PROC_BIND\n");
+				_STARPU_MSG("StarPU: Invalid value for environment variable OMP_PROC_BIND\n");
 				break;
 			}
 
@@ -590,7 +590,7 @@ static void read_num_threads_var()
 
 			if (!read_int_var(token, &value))
 			{
-				fprintf(stderr, "StarPU: Invalid value for environment variable OMP_NUM_THREADS\n");
+				_STARPU_MSG("StarPU: Invalid value for environment variable OMP_NUM_THREADS\n");
 				break;
 			}
 
@@ -613,7 +613,7 @@ static void read_omp_int_var(const char *name, int *icv)
 	ret = read_int_var(env, &value);
 	if (!ret || value < 0)
 	{
-		fprintf(stderr, "StarPU: Invalid value for environment variable %s\n", name);
+		_STARPU_MSG("StarPU: Invalid value for environment variable %s\n", name);
 		return;
 	}
 	*icv = value;
@@ -632,7 +632,7 @@ static void read_omp_boolean_var(const char *name, int *icv)
 	ret = read_string_var(env, strings, &value);
 	if (!ret)
 	{
-		fprintf(stderr, "StarPU: Invalid value for environment variable %s\n", name);
+		_STARPU_MSG("StarPU: Invalid value for environment variable %s\n", name);
 		return;
 	}
 	*icv = value;

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010, 2013, 2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2015, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2015, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -43,7 +43,7 @@ void __starpu_msi_cache_miss(unsigned node)
 	miss_cnt[node]++;
 }
 
-void _starpu_display_msi_stats(void)
+void _starpu_display_msi_stats(FILE *stream)
 {
 	if (!starpu_enable_stats())
 		return;
@@ -52,8 +52,8 @@ void _starpu_display_msi_stats(void)
 	unsigned total_hit_cnt = 0;
 	unsigned total_miss_cnt = 0;
 
-	fprintf(stderr, "\n#---------------------\n");
-	fprintf(stderr, "MSI cache stats :\n");
+	fprintf(stream, "\n#---------------------\n");
+	fprintf(stream, "MSI cache stats :\n");
 
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
@@ -61,18 +61,18 @@ void _starpu_display_msi_stats(void)
 		total_miss_cnt += miss_cnt[node];
 	}
 
-	fprintf(stderr, "TOTAL MSI stats\thit %u (%2.2f %%)\tmiss %u (%2.2f %%)\n", total_hit_cnt, (100.0f*total_hit_cnt)/(total_hit_cnt+total_miss_cnt), total_miss_cnt, (100.0f*total_miss_cnt)/(total_hit_cnt+total_miss_cnt));
+	fprintf(stream, "TOTAL MSI stats\thit %u (%2.2f %%)\tmiss %u (%2.2f %%)\n", total_hit_cnt, (100.0f*total_hit_cnt)/(total_hit_cnt+total_miss_cnt), total_miss_cnt, (100.0f*total_miss_cnt)/(total_hit_cnt+total_miss_cnt));
 
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
 		if (hit_cnt[node]+miss_cnt[node])
 		{
-			fprintf(stderr, "memory node %u\n", node);
-			fprintf(stderr, "\thit : %u (%2.2f %%)\n", hit_cnt[node], (100.0f*hit_cnt[node])/(hit_cnt[node]+miss_cnt[node]));
-			fprintf(stderr, "\tmiss : %u (%2.2f %%)\n", miss_cnt[node], (100.0f*miss_cnt[node])/(hit_cnt[node]+miss_cnt[node]));
+			fprintf(stream, "memory node %u\n", node);
+			fprintf(stream, "\thit : %u (%2.2f %%)\n", hit_cnt[node], (100.0f*hit_cnt[node])/(hit_cnt[node]+miss_cnt[node]));
+			fprintf(stream, "\tmiss : %u (%2.2f %%)\n", miss_cnt[node], (100.0f*miss_cnt[node])/(hit_cnt[node]+miss_cnt[node]));
 		}
 	}
-	fprintf(stderr, "#---------------------\n");
+	fprintf(stream, "#---------------------\n");
 }
 
 /* measure the efficiency of our allocation cache */
@@ -91,25 +91,25 @@ void __starpu_data_allocation_inc_stats(unsigned node)
 	alloc_cnt[node]++;
 }
 
-void _starpu_display_alloc_cache_stats(void)
+void _starpu_display_alloc_cache_stats(FILE *stream)
 {
 	if (!starpu_enable_stats())
 		return;
 
-	fprintf(stderr, "\n#---------------------\n");
-	fprintf(stderr, "Allocation cache stats:\n");
+	fprintf(stream, "\n#---------------------\n");
+	fprintf(stream, "Allocation cache stats:\n");
 	unsigned node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
 		if (alloc_cnt[node])
 		{
-			fprintf(stderr, "memory node %u\n", node);
-			fprintf(stderr, "\ttotal alloc : %u\n", alloc_cnt[node]);
-			fprintf(stderr, "\tcached alloc: %u (%2.2f %%)\n",
+			fprintf(stream, "memory node %u\n", node);
+			fprintf(stream, "\ttotal alloc : %u\n", alloc_cnt[node]);
+			fprintf(stream, "\tcached alloc: %u (%2.2f %%)\n",
 				alloc_cache_hit_cnt[node], (100.0f*alloc_cache_hit_cnt[node])/(alloc_cnt[node]));
 		}
 		else
-			fprintf(stderr, "No allocation on node %u\n", node);
+			fprintf(stream, "No allocation on node %u\n", node);
 	}
-	fprintf(stderr, "#---------------------\n");
+	fprintf(stream, "#---------------------\n");
 }

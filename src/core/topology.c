@@ -447,10 +447,10 @@ _starpu_init_mic_node (struct _starpu_machine_config *config, int mic_idx,
 
 	if (0 != mic_file_found)
 	{
-		fprintf(stderr, "No MIC program specified, use the environment\n"
-			"variable STARPU_MIC_SINK_PROGRAM_NAME or the environment\n"
-			"or the field 'starpu_conf.mic_sink_program_path'\n"
-			"to define it.\n");
+		_STARPU_MSG("No MIC program specified, use the environment\n"
+			    "variable STARPU_MIC_SINK_PROGRAM_NAME or the environment\n"
+			    "or the field 'starpu_conf.mic_sink_program_path'\n"
+			    "to define it.\n");
 
 		return -1;
 	}
@@ -832,9 +832,7 @@ _starpu_init_mic_config (struct _starpu_machine_config *config,
 		if ((unsigned) nmiccores > topology->nhwmiccores[mic_idx])
 		{
 			/* The user requires more MIC cores than there is available */
-			fprintf(stderr,
-				"# Warning: %d MIC cores requested. Only %d available.\n",
-				nmiccores, topology->nhwmiccores[mic_idx]);
+			_STARPU_MSG("# Warning: %d MIC cores requested. Only %d available.\n", nmiccores, topology->nhwmiccores[mic_idx]);
 			nmiccores = topology->nhwmiccores[mic_idx];
 		}
 	}
@@ -905,9 +903,7 @@ _starpu_init_mp_config (struct _starpu_machine_config *config,
 		if ((unsigned) reqmicdevices > nhwmicdevices)
 		{
 			/* The user requires more MIC devices than there is available */
-			fprintf(stderr,
-				"# Warning: %d MIC devices requested. Only %d available.\n",
-				reqmicdevices, nhwmicdevices);
+			_STARPU_MSG("# Warning: %d MIC devices requested. Only %d available.\n", reqmicdevices, nhwmicdevices);
 			reqmicdevices = nhwmicdevices;
 		}
 	}
@@ -1457,7 +1453,7 @@ _starpu_bind_thread_on_cpu (
 	if (ret)
 	{
 		const char *msg = strerror(ret);
-		fprintf(stderr, "pthread_setaffinity_np: %s\n", msg);
+		_STARPU_MSG("pthread_setaffinity_np: %s\n", msg);
 		STARPU_ABORT();
 	}
 

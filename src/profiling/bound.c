@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011, 2012, 2013, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2016, 2017  CNRS
  * Copyright (C) 2010-2016  Université de Bordeaux
  * Copyright (C) 2011  Télécom-SudParis
  *
@@ -397,7 +397,7 @@ void _starpu_bound_job_id_dep(starpu_data_handle_t handle, struct _starpu_job *j
 	dep_t = find_job(id);
 	if (!dep_t)
 	{
-		fprintf(stderr,"dependency %lu not found !\n", id);
+		_STARPU_MSG("dependency %lu not found !\n", id);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 		return;
 	}
@@ -520,7 +520,7 @@ void starpu_bound_print_lp(FILE *output)
 			if (t1->cl->model->type != STARPU_HISTORY_BASED &&
 			    t1->cl->model->type != STARPU_NL_REGRESSION_BASED)
 				/* TODO: */
-				fprintf(stderr, "Warning: task %s uses a perf model which is neither history nor non-linear regression-based, support for such model is not implemented yet, system will not be solvable.\n", _starpu_codelet_get_model_name(t1->cl));
+				_STARPU_MSG("Warning: task %s uses a perf model which is neither history nor non-linear regression-based, support for such model is not implemented yet, system will not be solvable.\n", _starpu_codelet_get_model_name(t1->cl));
 
 			struct _starpu_job j =
 			{
@@ -824,7 +824,7 @@ void starpu_bound_print_lp(FILE *output)
 				for (w = 0; w < nw; w++)
 				{
 					if (isnan(times[w*nt+t]))
-						fprintf(stderr, "Warning: task %s has no performance measurement for worker %d.\n", _starpu_codelet_get_model_name(tp->cl), w);
+						_STARPU_MSG("Warning: task %s has no performance measurement for worker %d.\n", _starpu_codelet_get_model_name(tp->cl), w);
 					else
 					{
 						got_one = 1;
@@ -833,7 +833,7 @@ void starpu_bound_print_lp(FILE *output)
 				}
 				fprintf(output, " = %lu;\n", tp->n);
 				if (!got_one)
-					fprintf(stderr, "Warning: task %s has no performance measurement for any worker, system will not be solvable!\n", _starpu_codelet_get_model_name(tp->cl));
+					_STARPU_MSG("Warning: task %s has no performance measurement for any worker, system will not be solvable!\n", _starpu_codelet_get_model_name(tp->cl));
 				/* Show actual values */
 				fprintf(output, "/*");
 				for (w = 0; w < nw; w++)
@@ -1133,7 +1133,7 @@ void starpu_bound_print(FILE *output, int integer STARPU_ATTRIBUTE_UNUSED)
 	}
 	else
 	{
-		fprintf(stderr, "Simplex failed\n");
+		_STARPU_MSG("Simplex failed\n");
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 #else /* STARPU_HAVE_GLPK_H */

@@ -144,7 +144,7 @@ static struct starpu_sched_policy *find_sched_policy_from_name(const char *polic
 	return NULL;
 }
 
-static void display_sched_help_message(void)
+static void display_sched_help_message(FILE *stream)
 {
 	const char *sched_env = starpu_getenv("STARPU_SCHED");
 	if (sched_env && (strcmp(sched_env, "help") == 0))
@@ -152,13 +152,13 @@ static void display_sched_help_message(void)
 		/* display the description of all predefined policies */
 		struct starpu_sched_policy **policy;
 
-		fprintf(stderr, "\nThe variable STARPU_SCHED can be set to one of the following strings:\n");
+		fprintf(stream, "\nThe variable STARPU_SCHED can be set to one of the following strings:\n");
 		for(policy=predefined_policies ; *policy!=NULL ; policy++)
 		{
 			struct starpu_sched_policy *p = *policy;
-			fprintf(stderr, "%-30s\t-> %s\n", p->policy_name, p->policy_description);
+			fprintf(stream, "%-30s\t-> %s\n", p->policy_name, p->policy_description);
 		}
-		fprintf(stderr, "\n");
+		fprintf(stream, "\n");
 	 }
 }
 
@@ -197,7 +197,7 @@ struct starpu_sched_policy *_starpu_select_sched_policy(struct _starpu_machine_c
 void _starpu_init_sched_policy(struct _starpu_machine_config *config, struct _starpu_sched_ctx *sched_ctx, struct starpu_sched_policy *selected_policy)
 {
 	/* Perhaps we have to display some help */
-	display_sched_help_message();
+	display_sched_help_message(stderr);
 
 	/* Prefetch is activated by default */
 	use_prefetch = starpu_get_env_number("STARPU_PREFETCH");
@@ -598,7 +598,7 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 
 		if(ret == -1)
 		{
-			fprintf(stderr, "repush task \n");
+			_STARPU_MSG("repush task \n");
 			_STARPU_TRACE_JOB_POP(task, task->priority > 0);
 			ret = _starpu_push_task_to_workers(task);
 		}
@@ -1128,7 +1128,7 @@ void _starpu_print_idle_time()
 	f = fopen(starpu_idle_file, "a");
 	if (!f)
 	{
-		fprintf(stderr, "couldn't open %s: %s\n", starpu_idle_file, strerror(errno));
+		_STARPU_MSG("couldn't open %s: %s\n", starpu_idle_file, strerror(errno));
 	}
 	else
 	{

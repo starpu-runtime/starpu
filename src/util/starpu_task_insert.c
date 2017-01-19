@@ -141,11 +141,11 @@ int _starpu_task_insert_v(struct starpu_codelet *cl, va_list varg_list)
 
 	if (STARPU_UNLIKELY(ret == -ENODEV))
 	{
-		fprintf(stderr, "submission of task %p wih codelet %p failed (symbol `%s') (err: ENODEV)\n",
-			task, task->cl,
-			(cl == NULL) ? "none" :
-			task->cl->name ? task->cl->name :
-			(task->cl->model && task->cl->model->symbol)?task->cl->model->symbol:"none");
+		_STARPU_MSG("submission of task %p wih codelet %p failed (symbol `%s') (err: ENODEV)\n",
+			    task, task->cl,
+			    (cl == NULL) ? "none" :
+			    task->cl->name ? task->cl->name :
+			    (task->cl->model && task->cl->model->symbol)?task->cl->model->symbol:"none");
 
 		task->destroy = 0;
 		starpu_task_destroy(task);

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012-2013, 2016  Université Bordeaux
- * Copyright (C) 2010, 2011, 2014, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2014, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -70,7 +70,7 @@ int _starpu_fxt_mpi_find_sync_point(char *filename_in, uint64_t *offset, int *ke
 		int ret = fxt_next_ev(block, FXT_EV_TYPE_64, (struct fxt_ev *)&ev);
 		if (ret != FXT_EV_OK)
 		{
-			fprintf(stderr, "no more block ...\n");
+			_STARPU_MSG("no more block ...\n");
 			break;
 		}
 

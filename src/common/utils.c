@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2012-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -104,7 +104,7 @@ int _starpu_mkpath(const char *s, mode_t mode)
 	{
 		if (!S_ISDIR(sb.st_mode))
 		{
-			fprintf(stderr,"Error: %s is not a directory:\n", path);
+			_STARPU_MSG("Error: %s is not a directory:\n", path);
 			STARPU_ABORT();
 		}
 		/* It already exists and is a directory.  */
@@ -137,7 +137,7 @@ void _starpu_mkpath_and_check(const char *path, mode_t mode)
 
 	if (ret == -1 && errno != EEXIST)
 	{
-		fprintf(stderr,"Error making StarPU directory %s:\n", path);
+		_STARPU_MSG("Error making StarPU directory %s:\n", path);
 		perror("mkdir");
 		STARPU_ABORT();
 	}

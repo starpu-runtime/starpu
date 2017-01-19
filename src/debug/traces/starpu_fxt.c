@@ -2181,7 +2181,7 @@ static void handle_mpi_isend_submit_end(struct fxt_ev_64 *ev, struct starpu_fxt_
 	{
 		if (!mpi_warned)
 		{
-			fprintf(stderr,"Warning : Only one trace file is given. MPI transfers will not be displayed. Add all trace files to show them ! \n");
+			_STARPU_MSG("Warning : Only one trace file is given. MPI transfers will not be displayed. Add all trace files to show them ! \n");
 			mpi_warned = 1;
 		}
 	}
@@ -2244,7 +2244,7 @@ static void handle_mpi_irecv_complete_begin(struct fxt_ev_64 *ev, struct starpu_
 	{
 		if (!mpi_warned)
 		{
-			fprintf(stderr,"Warning : Only one trace file is given. MPI transfers will not be displayed. Add all trace files to show them ! \n");
+			_STARPU_MSG("Warning : Only one trace file is given. MPI transfers will not be displayed. Add all trace files to show them ! \n");
 			mpi_warned = 1;
 		}
 	}
@@ -2997,8 +2997,8 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 
 			default:
 #ifdef STARPU_VERBOSE
-				fprintf(stderr, "unknown event.. %x at time %llx WITH OFFSET %llx\n",
-					(unsigned)ev.code, (long long unsigned)ev.time, (long long unsigned)(ev.time-options->file_offset));
+				_STARPU_MSG("unknown event.. %x at time %llx WITH OFFSET %llx\n",
+					    (unsigned)ev.code, (long long unsigned)ev.time, (long long unsigned)(ev.time-options->file_offset));
 #endif
 				break;
 		}
@@ -3155,7 +3155,7 @@ void _starpu_fxt_paje_file_init(struct starpu_fxt_options *options)
 		out_paje_file = fopen(options->out_paje_path, "w+");
 		if (!out_paje_file)
 		{
-			fprintf(stderr,"error while opening %s\n", options->out_paje_path);
+			_STARPU_MSG("error while opening %s\n", options->out_paje_path);
 			perror("fopen");
 			exit(1);
 		}
@@ -3303,7 +3303,7 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 				{
 					if (key != unique_keys[inputfile])
 					{
-						fprintf(stderr, "Warning: traces are coming from different run so we will not try to display MPI communications.\n");
+						_STARPU_MSG("Warning: traces are coming from different run so we will not try to display MPI communications.\n");
 						display_mpi = 0;
 					}
 				}
@@ -3483,8 +3483,8 @@ void starpu_fxt_write_data_trace(char *filename_in)
 
 		default:
 #ifdef STARPU_VERBOSE
-			fprintf(stderr, "unknown event.. %x at time %llx WITH OFFSET %llx\n",
-				(unsigned)ev.code, (long long unsigned)ev.time, (long long unsigned)(ev.time));
+			_STARPU_MSG("unknown event.. %x at time %llx WITH OFFSET %llx\n",
+				    (unsigned)ev.code, (long long unsigned)ev.time, (long long unsigned)(ev.time));
 #endif
 			break;
 		}

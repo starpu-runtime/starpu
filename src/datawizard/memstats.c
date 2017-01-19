@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010, 2012  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -47,31 +47,31 @@ void _starpu_memory_stats_free(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUS
 }
 
 #ifdef STARPU_MEMORY_STATS
-void _starpu_memory_display_handle_stats(starpu_data_handle_t handle)
+void _starpu_memory_display_handle_stats(FILE *stream, starpu_data_handle_t handle)
 {
 	unsigned node;
 
-	fprintf(stderr, "#-----\n");
-	fprintf(stderr, "Data : %p\n", handle);
-	fprintf(stderr, "Size : %d\n", (int)handle->ops->get_size(handle));
-	fprintf(stderr, "\n");
+	fprintf(stream, "#-----\n");
+	fprintf(stream, "Data : %p\n", handle);
+	fprintf(stream, "Size : %d\n", (int)handle->ops->get_size(handle));
+	fprintf(stream, "\n");
 
-	fprintf(stderr, "#--\n");
-	fprintf(stderr, "Data access stats\n");
-	fprintf(stderr, "/!\\ Work Underway\n");
+	fprintf(stream, "#--\n");
+	fprintf(stream, "Data access stats\n");
+	fprintf(stream, "/!\\ Work Underway\n");
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
 		if (handle->memory_stats->direct_access[node]+handle->memory_stats->loaded_shared[node]
 		    +handle->memory_stats->invalidated[node]+handle->memory_stats->loaded_owner[node])
 		{
-			fprintf(stderr, "Node #%u\n", node);
-			fprintf(stderr, "\tDirect access : %d\n", handle->memory_stats->direct_access[node]);
+			fprintf(stream, "Node #%u\n", node);
+			fprintf(stream, "\tDirect access : %d\n", handle->memory_stats->direct_access[node]);
 			/* XXX Not Working yet. */
 			if (handle->memory_stats->shared_to_owner[node])
-				fprintf(stderr, "\t\tShared to Owner : %d\n", handle->memory_stats->shared_to_owner[node]);
-			fprintf(stderr, "\tLoaded (Owner) : %d\n", handle->memory_stats->loaded_owner[node]);
-			fprintf(stderr, "\tLoaded (Shared) : %d\n", handle->memory_stats->loaded_shared[node]);
-			fprintf(stderr, "\tInvalidated (was Owner) : %d\n\n", handle->memory_stats->invalidated[node]);
+				fprintf(stream, "\t\tShared to Owner : %d\n", handle->memory_stats->shared_to_owner[node]);
+			fprintf(stream, "\tLoaded (Owner) : %d\n", handle->memory_stats->loaded_owner[node]);
+			fprintf(stream, "\tLoaded (Shared) : %d\n", handle->memory_stats->loaded_shared[node]);
+			fprintf(stream, "\tInvalidated (was Owner) : %d\n\n", handle->memory_stats->invalidated[node]);
 		}
 	}
 }
