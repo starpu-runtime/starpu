@@ -622,6 +622,46 @@ This specifies the main directory in which StarPU stores its
 performance model files. The default is <c>$STARPU_HOME/.starpu/sampling</c>.
 </dd>
 
+<dt>STARPU_PERF_MODEL_IGNORE_CUDAID</dt>
+<dd>
+\anchor STARPU_PERF_MODEL_HOMOGENEOUS_CUDA
+\addindex __env__STARPU_PERF_MODEL_HOMOGENEOUS_CUDA
+When this is set to 1, StarPU will assume that all CUDA devices have the same
+performance, and thus share performance models for them, thus allowing kernel
+calibration to be much faster, since measurements only have to be once for all
+CUDA GPUs.
+</dd>
+
+<dt>STARPU_PERF_MODEL_IGNORE_OPENCLID</dt>
+<dd>
+\anchor STARPU_PERF_MODEL_HOMOGENEOUS_OPENCL
+\addindex __env__STARPU_PERF_MODEL_HOMOGENEOUS_OPENCL
+When this is set to 1, StarPU will assume that all OPENCL devices have the same
+performance, and thus share performance models for them, thus allowing kernel
+calibration to be much faster, since measurements only have to be once for all
+OPENCL GPUs.
+</dd>
+
+<dt>STARPU_PERF_MODEL_IGNORE_MICID</dt>
+<dd>
+\anchor STARPU_PERF_MODEL_HOMOGENEOUS_MIC
+\addindex __env__STARPU_PERF_MODEL_HOMOGENEOUS_MIC
+When this is set to 1, StarPU will assume that all MIC devices have the same
+performance, and thus share performance models for them, thus allowing kernel
+calibration to be much faster, since measurements only have to be once for all
+MIC GPUs.
+</dd>
+
+<dt>STARPU_PERF_MODEL_IGNORE_SCCID</dt>
+<dd>
+\anchor STARPU_PERF_MODEL_HOMOGENEOUS_SCC
+\addindex __env__STARPU_PERF_MODEL_HOMOGENEOUS_SCC
+When this is set to 1, StarPU will assume that all SCC devices have the same
+performance, and thus share performance models for them, thus allowing kernel
+calibration to be much faster, since measurements only have to be once for all
+SCC GPUs.
+</dd>
+
 <dt>STARPU_HOSTNAME</dt>
 <dd>
 \anchor STARPU_HOSTNAME
