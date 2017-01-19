@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010-2017  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  * Copyright (C) 2016  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -308,9 +308,9 @@ static void _starpu_mpi_submit_ready_request(void *arg)
 
 	newer_requests = 1;
 	STARPU_PTHREAD_COND_BROADCAST(&cond_progression);
-#ifdef STARPU_SIMGRID	
+#ifdef STARPU_SIMGRID
 	starpu_pthread_queue_signal(&dontsleep);
-#endif	
+#endif
 	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 	_STARPU_MPI_LOG_OUT();
 }
@@ -375,9 +375,9 @@ int _starpu_mpi_simgrid_mpi_test(int *done, int *flag)
 	{
 		starpu_pthread_queue_signal(&dontsleep);
 		*flag = 1;
-	}	
+	}
 	return MPI_SUCCESS;
-}	
+}
 static void* _starpu_mpi_simgrid_wait_req_func(void* arg)
 {
 	struct _starpu_simgrid_mpi_req *sim_req = arg;
@@ -387,7 +387,7 @@ static void* _starpu_mpi_simgrid_wait_req_func(void* arg)
 	STARPU_PTHREAD_MUTEX_UNLOCK(&wait_counter_mutex);
 
 	ret = MPI_Wait(sim_req->request, sim_req->status);
-	
+
 	STARPU_MPI_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Wait returning %s", _starpu_mpi_get_mpi_error_code(ret));
 
 	*(sim_req->done) = 1;
@@ -399,7 +399,7 @@ static void* _starpu_mpi_simgrid_wait_req_func(void* arg)
 	if (--wait_counter == 0)
 		STARPU_PTHREAD_COND_SIGNAL(&wait_counter_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&wait_counter_mutex);
-	
+
 	return NULL;
 }
 void _starpu_mpi_simgrid_wait_req(MPI_Request *request, MPI_Status *status, starpu_pthread_queue_t *queue, unsigned *done)
@@ -412,7 +412,7 @@ void _starpu_mpi_simgrid_wait_req(MPI_Request *request, MPI_Status *status, star
 	sim_req->done = done;
 	*done = 0;
 
-	_starpu_simgrid_xbt_thread_create("wait for mpi transfer", _starpu_mpi_simgrid_wait_req_func, sim_req);    
+	_starpu_simgrid_xbt_thread_create("wait for mpi transfer", _starpu_mpi_simgrid_wait_req_func, sim_req);
 }
 #endif
 
@@ -444,11 +444,11 @@ static void _starpu_mpi_isend_data_func(struct _starpu_mpi_req *req)
 		req->ret = MPI_Issend(req->ptr, req->count, req->datatype, req->node_tag.rank, _STARPU_MPI_TAG_SYNC_DATA, req->node_tag.comm, &req->data_request);
 		STARPU_MPI_ASSERT_MSG(req->ret == MPI_SUCCESS, "MPI_Issend returning %s", _starpu_mpi_get_mpi_error_code(req->ret));
 	}
-	
+
 #ifdef STARPU_SIMGRID
 	_starpu_mpi_simgrid_wait_req(&req->data_request, &req->status_store, &req->queue, &req->done);
 #endif
-	
+
 	_STARPU_MPI_TRACE_ISEND_SUBMIT_END(req->node_tag.rank, req->node_tag.data_tag, 0);
 
 	/* somebody is perhaps waiting for the MPI request to be posted */
@@ -835,10 +835,10 @@ static void _starpu_mpi_test_func(struct _starpu_mpi_req *testing_req)
 #ifdef STARPU_SIMGRID
 	req->ret = _starpu_mpi_simgrid_mpi_test(&req->done, testing_req->flag);
 	memcpy(testing_req->status, &req->status_store, sizeof(*testing_req->status));
-#else			
+#else
 	req->ret = MPI_Test(&req->data_request, testing_req->flag, testing_req->status);
 #endif
-	
+
 	STARPU_MPI_ASSERT_MSG(req->ret == MPI_SUCCESS, "MPI_Test returning %s", _starpu_mpi_get_mpi_error_code(req->ret));
 
 	_STARPU_MPI_TRACE_UTESTING_END(req->node_tag.rank, req->node_tag.data_tag);
@@ -1190,9 +1190,9 @@ static void _starpu_mpi_test_detached_requests(void)
 		//_STARPU_MPI_DEBUG(3, "Test detached request %p - mpitag %d - TYPE %s %d\n", &req->data_request, req->node_tag.data_tag, _starpu_mpi_request_type(req->request_type), req->node_tag.rank);
 #ifdef STARPU_SIMGRID
 		req->ret = _starpu_mpi_simgrid_mpi_test(&req->done, &flag);
-#else			
+#else
 		req->ret = MPI_Test(&req->data_request, &flag, MPI_STATUS_IGNORE);
-#endif		
+#endif
 
 		STARPU_MPI_ASSERT_MSG(req->ret == MPI_SUCCESS, "MPI_Test returning %s", _starpu_mpi_get_mpi_error_code(req->ret));
 
@@ -1626,7 +1626,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 		_starpu_mpi_comm_cancel_recv();
 		envelope_request_submitted = 0;
 	}
-	
+
 
 #ifdef STARPU_SIMGRID
 	STARPU_PTHREAD_MUTEX_LOCK(&wait_counter_mutex);
@@ -1636,12 +1636,12 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 
 	STARPU_PTHREAD_MUTEX_DESTROY(&wait_counter_mutex);
 	STARPU_PTHREAD_COND_DESTROY(&wait_counter_cond);
-	
+
 	starpu_pthread_queue_unregister(&wait, &dontsleep);
 	starpu_pthread_queue_destroy(&dontsleep);
 	starpu_pthread_wait_destroy(&wait);
 #endif
-	
+
 	STARPU_MPI_ASSERT_MSG(_starpu_mpi_req_list_empty(detached_requests), "List of detached requests not empty");
 	STARPU_MPI_ASSERT_MSG(_starpu_mpi_req_list_empty(ready_requests), "List of ready requests not empty");
 	STARPU_MPI_ASSERT_MSG(posted_requests == 0, "Number of posted request is not zero");
@@ -1741,7 +1741,7 @@ int _starpu_mpi_initialize(int *argc, char ***argv, int initialize_mpi, MPI_Comm
 	STARPU_PTHREAD_MUTEX_INIT(&wait_counter_mutex, NULL);
 	STARPU_PTHREAD_COND_INIT(&wait_counter_cond, NULL);
 #endif
- 
+
 #ifdef STARPU_MPI_ACTIVITY
 	hookid = starpu_progression_hook_register(_starpu_mpi_progression_hook_func, NULL);
 	STARPU_MPI_ASSERT_MSG(hookid >= 0, "starpu_progression_hook_register failed");
@@ -1836,8 +1836,8 @@ int starpu_mpi_shutdown(void)
 	running = 0;
 	STARPU_PTHREAD_COND_BROADCAST(&cond_progression);
 #ifdef STARPU_SIMGRID
-	starpu_pthread_queue_signal(&dontsleep);	
-#endif		
+	starpu_pthread_queue_signal(&dontsleep);
+#endif
 	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 
 #ifndef STARPU_SIMGRID
@@ -1857,7 +1857,7 @@ int starpu_mpi_shutdown(void)
 	_starpu_mpi_req_list_delete(detached_requests);
 	_starpu_mpi_req_list_delete(ready_requests);
 
-	_starpu_mpi_comm_amounts_display(rank);
+	_starpu_mpi_comm_amounts_display(stderr, rank);
 	_starpu_mpi_comm_amounts_free();
 	_starpu_mpi_cache_free(world_size);
 	_starpu_mpi_tag_free();
@@ -1974,13 +1974,11 @@ void starpu_mpi_get_data_on_node(MPI_Comm comm, starpu_data_handle_t data_handle
 	tag = starpu_mpi_data_get_tag(data_handle);
 	if (rank == -1)
 	{
-		fprintf(stderr,"StarPU needs to be told the MPI rank of this data, using starpu_mpi_data_register\n");
-		STARPU_ABORT();
+		_STARPU_ERROR("StarPU needs to be told the MPI rank of this data, using starpu_mpi_data_register\n");
 	}
 	if (tag == -1)
 	{
-		fprintf(stderr,"StarPU needs to be told the MPI tag of this data, using starpu_mpi_data_register\n");
-		STARPU_ABORT();
+		_STARPU_ERROR("StarPU needs to be told the MPI tag of this data, using starpu_mpi_data_register\n");
 	}
 	starpu_mpi_comm_rank(comm, &me);
 
@@ -2085,4 +2083,3 @@ int starpu_mpi_wait_for_all(MPI_Comm comm)
 	}
 	return 0;
 }
-

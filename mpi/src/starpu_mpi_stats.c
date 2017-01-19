@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012, 2013, 2016  CNRS
+ * Copyright (C) 2012, 2013, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -34,7 +34,7 @@ void _starpu_mpi_comm_amounts_init(MPI_Comm comm)
 
 	if (stats_enabled == 0) return;
 
-	if (!_starpu_silent) fprintf(stderr,"Warning: StarPU is executed with STARPU_COMM_STATS=1, which slows down a bit\n");
+	_STARPU_DISP("Warning: StarPU is executed with STARPU_COMM_STATS=1, which slows down a bit\n");
 
 	starpu_mpi_comm_size(comm, &world_size);
 	_STARPU_MPI_DEBUG(1, "allocating for %d nodes\n", world_size);
@@ -68,7 +68,7 @@ void starpu_mpi_comm_amounts_retrieve(size_t *comm_amounts)
 	memcpy(comm_amounts, comm_amount, world_size * sizeof(size_t));
 }
 
-void _starpu_mpi_comm_amounts_display(int node)
+void _starpu_mpi_comm_amounts_display(FILE *stream, int node)
 {
 	int dst;
 	size_t sum = 0;
@@ -80,13 +80,13 @@ void _starpu_mpi_comm_amounts_display(int node)
 		sum += comm_amount[dst];
 	}
 
-	fprintf(stderr, "\n[starpu_comm_stats][%d] TOTAL:\t%f B\t%f MB\n", node, (float)sum, (float)sum/1024/1024);
+	fprintf(stream, "\n[starpu_comm_stats][%d] TOTAL:\t%f B\t%f MB\n", node, (float)sum, (float)sum/1024/1024);
 
 	for (dst = 0; dst < world_size; dst++)
 	{
 		if (comm_amount[dst])
 		{
-			fprintf(stderr, "[starpu_comm_stats][%d->%d]\t%f B\t%f MB\n",
+			fprintf(stream, "[starpu_comm_stats][%d->%d]\t%f B\t%f MB\n",
 				node, dst, (float)comm_amount[dst], ((float)comm_amount[dst])/(1024*1024));
 		}
 	}

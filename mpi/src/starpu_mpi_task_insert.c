@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+ * Copyright (C) 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  * Copyright (C) 2011-2016  Université de Bordeaux
  * Copyright (C) 2014, 2016 Inria
  *
@@ -84,13 +84,11 @@ void _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum 
 		int data_tag = starpu_mpi_data_get_tag(data);
 		if (mpi_rank == -1)
 		{
-			fprintf(stderr,"StarPU needs to be told the MPI rank of this data, using starpu_mpi_data_register\n");
-			STARPU_ABORT();
+			_STARPU_ERROR("StarPU needs to be told the MPI rank of this data, using starpu_mpi_data_register\n");
 		}
 		if (data_tag == -1)
 		{
-			fprintf(stderr,"StarPU needs to be told the MPI tag of this data, using starpu_mpi_data_register\n");
-			STARPU_ABORT();
+			_STARPU_ERROR("StarPU needs to be told the MPI tag of this data, using starpu_mpi_data_register\n");
 		}
 
 		if (do_execute && mpi_rank != me)
@@ -128,13 +126,11 @@ void _starpu_mpi_exchange_data_after_execution(starpu_data_handle_t data, enum s
 		int data_tag = starpu_mpi_data_get_tag(data);
 		if(mpi_rank == -1)
 		{
-			fprintf(stderr,"StarPU needs to be told the MPI rank of this data, using starpu_mpi_data_register\n");
-			STARPU_ABORT();
+			_STARPU_ERROR("StarPU needs to be told the MPI rank of this data, using starpu_mpi_data_register\n");
 		}
 		if(data_tag == -1)
 		{
-			fprintf(stderr,"StarPU needs to be told the MPI tag of this data, using starpu_mpi_data_register\n");
-			STARPU_ABORT();
+			_STARPU_ERROR("StarPU needs to be told the MPI tag of this data, using starpu_mpi_data_register\n");
 		}
 		if (mpi_rank == me)
 		{
@@ -520,11 +516,11 @@ int _starpu_mpi_task_insert_v(MPI_Comm comm, struct starpu_codelet *codelet, va_
 
 		if (STARPU_UNLIKELY(ret == -ENODEV))
 		{
-			fprintf(stderr, "submission of task %p wih codelet %p failed (symbol `%s') (err: ENODEV)\n",
-				task, task->cl,
-				(codelet == NULL) ? "none" :
-				task->cl->name ? task->cl->name :
-				(task->cl->model && task->cl->model->symbol)?task->cl->model->symbol:"none");
+			_STARPU_MSG("submission of task %p wih codelet %p failed (symbol `%s') (err: ENODEV)\n",
+				    task, task->cl,
+				    (codelet == NULL) ? "none" :
+				    task->cl->name ? task->cl->name :
+				    (task->cl->model && task->cl->model->symbol)?task->cl->model->symbol:"none");
 
 			task->destroy = 0;
 			starpu_task_destroy(task);
@@ -668,13 +664,11 @@ void starpu_mpi_redux_data(MPI_Comm comm, starpu_data_handle_t data_handle)
 	tag = starpu_mpi_data_get_tag(data_handle);
 	if (rank == -1)
 	{
-		fprintf(stderr,"StarPU needs to be told the MPI rank of this data, using starpu_mpi_data_register\n");
-		STARPU_ABORT();
+		_STARPU_ERROR("StarPU needs to be told the MPI rank of this data, using starpu_mpi_data_register\n");
 	}
 	if (tag == -1)
 	{
-		fprintf(stderr,"StarPU needs to be told the MPI tag of this data, using starpu_mpi_data_register\n");
-		STARPU_ABORT();
+		_STARPU_ERROR("StarPU needs to be told the MPI tag of this data, using starpu_mpi_data_register\n");
 	}
 
 	starpu_mpi_comm_rank(comm, &me);
