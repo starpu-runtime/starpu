@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  * Copyright (C) 2011, 2012, 2016 INRIA
  * Copyright (C) 2016 Uppsala University
  * See the file version.doxy for copying conditions.
@@ -622,7 +622,7 @@ This specifies the main directory in which StarPU stores its
 performance model files. The default is <c>$STARPU_HOME/.starpu/sampling</c>.
 </dd>
 
-<dt>STARPU_PERF_MODEL_IGNORE_CUDAID</dt>
+<dt>STARPU_PERF_MODEL_HOMEGENEOUS_CUDA</dt>
 <dd>
 \anchor STARPU_PERF_MODEL_HOMOGENEOUS_CUDA
 \addindex __env__STARPU_PERF_MODEL_HOMOGENEOUS_CUDA
@@ -632,7 +632,7 @@ calibration to be much faster, since measurements only have to be once for all
 CUDA GPUs.
 </dd>
 
-<dt>STARPU_PERF_MODEL_IGNORE_OPENCLID</dt>
+<dt>STARPU_PERF_MODEL_HOMEGENEOUS_OPENCL</dt>
 <dd>
 \anchor STARPU_PERF_MODEL_HOMOGENEOUS_OPENCL
 \addindex __env__STARPU_PERF_MODEL_HOMOGENEOUS_OPENCL
@@ -642,7 +642,7 @@ calibration to be much faster, since measurements only have to be once for all
 OPENCL GPUs.
 </dd>
 
-<dt>STARPU_PERF_MODEL_IGNORE_MICID</dt>
+<dt>STARPU_PERF_MODEL_HOMEGENEOUS_MIC</dt>
 <dd>
 \anchor STARPU_PERF_MODEL_HOMOGENEOUS_MIC
 \addindex __env__STARPU_PERF_MODEL_HOMOGENEOUS_MIC
@@ -652,7 +652,7 @@ calibration to be much faster, since measurements only have to be once for all
 MIC GPUs.
 </dd>
 
-<dt>STARPU_PERF_MODEL_IGNORE_SCCID</dt>
+<dt>STARPU_PERF_MODEL_HOMEGENEOUS_SCC</dt>
 <dd>
 \anchor STARPU_PERF_MODEL_HOMOGENEOUS_SCC
 \addindex __env__STARPU_PERF_MODEL_HOMOGENEOUS_SCC
