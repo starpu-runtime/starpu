@@ -33,7 +33,6 @@ static double convert_to_byte_units(float d, unsigned max_unit, unsigned *unit)
 
 void _starpu_profiling_bus_helper_display_summary(FILE *stream)
 {
-	const char *stats;
 	int long long sum_transferred = 0;
 	const char *byte_units[] = { "B", "KB", "MB", "GB", "TB" };
 	unsigned max_unit = sizeof(byte_units) / sizeof(byte_units[0]);

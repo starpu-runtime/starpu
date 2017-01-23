@@ -28,8 +28,8 @@ unusedPrivateFunction:tests/main/combined_workers/bfs/timer.h:45
 redundantAssignment:tests/main/driver_api/init_run_deinit.c
 redundantAssignment:tests/main/driver_api/run_driver.c
 
-uselessAssignmentPtrArg:mpi/src/starpu_mpi.c:155
-unreadVariable:mpi/src/starpu_mpi.c:849
+uselessAssignmentPtrArg:mpi/src/starpu_mpi.c:171
+unreadVariable:mpi/src/starpu_mpi.c:945
 redundantAssignment:src/core/workers.c
 
 invalidPointerCast:src/core/perfmodel/perfmodel_nan.c:74
@@ -42,20 +42,20 @@ unusedStructMember:src/core/perfmodel/perfmodel_bus.c:65
 unusedStructMember:src/core/perfmodel/perfmodel_bus.c:66
 unusedStructMember:src/core/simgrid.c:225
 unusedStructMember:src/core/simgrid.c:226
+wrongPrintfScanfArgNum:src/core/simgrid.c:719
 duplicateExpression:src/util/starpu_task_insert.c:52
 
 // TODO: this could be an error?
 redundantCopy:src/core/disk_ops/disk_leveldb.cpp:192
 
 nullPointerRedundantCheck:src/common/rbtree.c
-wrongPrintfScanfArgNum:src/core/simgrid.c:715
 unreadVariable:src/datawizard/interfaces/*
 unreadVariable:src/drivers/driver_common/driver_common.c:482
 clarifyCondition:src/drivers/opencl/driver_opencl.c:936
 unreadVariable:src/drivers/opencl/driver_opencl.c:767
 clarifyCondition:src/drivers/cuda/driver_cuda.c:506
 arithOperationsOnVoidPointer:src/drivers/scc/*
-nullPointerRedundantCheck:src/sched_policies/deque_modeling_policy_data_aware.c:197
+nullPointerRedundantCheck:src/sched_policies/deque_modeling_policy_data_aware.c:196
 sizeofDereferencedVoidPointer:src/util/fstarpu.c
 
 allocaCalled:gcc-plugin/src/*
