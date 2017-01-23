@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2009-2017  Université de Bordeaux
-# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
 # Copyright (C) 2010, 2011, 2012  INRIA
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -157,6 +157,7 @@ myPROGRAMS +=				\
 	microbenchs/display_structures_size	\
 	microbenchs/local_pingpong		\
 	sched_ctx/sched_ctx_list		\
+	sched_ctx/sched_ctx_hierarchy		\
 	perfmodels/value_nan
 
 if !STARPU_SIMGRID
@@ -578,6 +579,9 @@ endif
 
 sched_ctx_sched_ctx_list_SOURCES =	\
 	sched_ctx/sched_ctx_list.c
+
+sched_ctx_sched_ctx_hierarchy_SOURCES =	\
+	sched_ctx/sched_ctx_hierarchy.c
 
 openmp_init_exit_01_SOURCES = 	\
 	openmp/init_exit_01.c

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+ * Copyright (C) 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  * Copyright (C) 2011-2016  Université de Bordeaux
  * Copyright (C) 2014 INRIA
  *
@@ -28,6 +28,12 @@ struct _starpu_mpi_comm
 	struct _starpu_mpi_envelope *envelope;
 	MPI_Request request;
 	int posted;
+
+#ifdef STARPU_SIMGRID
+	MPI_Status status;
+	starpu_pthread_queue_t queue;
+	unsigned done;
+#endif
 };
 struct _starpu_mpi_comm_hashtable
 {
@@ -62,6 +68,10 @@ void _starpu_mpi_comm_free()
 	{
 		struct _starpu_mpi_comm *_comm = _starpu_mpi_comms[i]; // get the ith _comm;
 		free(_comm->envelope);
+#ifdef STARPU_SIMGRID
+		starpu_pthread_queue_unregister(&wait, &_comm->queue);
+		starpu_pthread_queue_destroy(&_comm->queue);
+#endif
 		free(_comm);
 	}
 	free(_starpu_mpi_comms);
@@ -106,6 +116,12 @@ void _starpu_mpi_comm_register(MPI_Comm comm)
 		_STARPU_MPI_MALLOC(entry, sizeof(*entry));
 		entry->comm = comm;
 		HASH_ADD(hh, _starpu_mpi_comms_cache, comm, sizeof(entry->comm), entry);
+
+#ifdef STARPU_SIMGRID
+		starpu_pthread_queue_init(&_comm->queue);
+		starpu_pthread_queue_register(&wait, &_comm->queue);
+		_comm->done = 0;
+#endif
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_mpi_comms_mutex);
 }
@@ -123,6 +139,9 @@ void _starpu_mpi_comm_post_recv()
 			_STARPU_MPI_DEBUG(3, "Posting a receive to get a data envelop on comm %d %d\n", i, _comm->comm);
 			_STARPU_MPI_COMM_FROM_DEBUG(sizeof(struct _starpu_mpi_envelope), MPI_BYTE, MPI_ANY_SOURCE, _STARPU_MPI_TAG_ENVELOPE, _STARPU_MPI_TAG_ENVELOPE, _comm->comm);
 			MPI_Irecv(_comm->envelope, sizeof(struct _starpu_mpi_envelope), MPI_BYTE, MPI_ANY_SOURCE, _STARPU_MPI_TAG_ENVELOPE, _comm->comm, &_comm->request);
+#ifdef STARPU_SIMGRID
+			_starpu_mpi_simgrid_wait_req(&_comm->request, &_comm->status, &_comm->queue, &_comm->done);
+#endif
 			_comm->posted = 1;
 		}
 	}
@@ -143,9 +162,11 @@ int _starpu_mpi_comm_test_recv(MPI_Status *status, struct _starpu_mpi_envelope *
 			int flag, res;
 			/* test whether an envelope has arrived. */
 #ifdef STARPU_SIMGRID
-			MSG_process_sleep(0.000001);
-#endif
+			res = _starpu_mpi_simgrid_mpi_test(&_comm->done, &flag);
+			memcpy(status, &_comm->status, sizeof(*status));
+#else
 			res = MPI_Test(&_comm->request, &flag, status);
+#endif
 			STARPU_ASSERT(res == MPI_SUCCESS);
 			if (flag)
 			{
@@ -182,9 +203,13 @@ void _starpu_mpi_comm_cancel_recv()
 		struct _starpu_mpi_comm *_comm = _starpu_mpi_comms[i]; // get the ith _comm;
 		if (_comm->posted == 1)
 		{
-			MPI_Status status;
 			MPI_Cancel(&_comm->request);
-			MPI_Wait(&_comm->request, &status);
+#ifndef STARPU_SIMGRID
+			{
+				MPI_Status status;
+				MPI_Wait(&_comm->request, &status);
+			}
+#endif
 			_comm->posted = 0;
 		}
 	}

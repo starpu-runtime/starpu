@@ -227,13 +227,13 @@ void starpu_cuda_set_device(unsigned devid STARPU_ATTRIBUTE_UNUSED)
 #ifdef HAVE_CUDA_MEMCPY_PEER
 	if (conf->n_cuda_opengl_interoperability)
 	{
-		fprintf(stderr, "OpenGL interoperability was requested, but StarPU was built with multithread GPU control support, please reconfigure with --disable-cuda-memcpy-peer but that will disable the memcpy-peer optimizations\n");
+		_STARPU_MSG("OpenGL interoperability was requested, but StarPU was built with multithread GPU control support, please reconfigure with --disable-cuda-memcpy-peer but that will disable the memcpy-peer optimizations\n");
 		STARPU_ABORT();
 	}
 #elif !defined(HAVE_CUDA_GL_INTEROP_H)
 	if (conf->n_cuda_opengl_interoperability)
 	{
-		fprintf(stderr,"OpenGL interoperability was requested, but cuda_gl_interop.h could not be compiled, please make sure that OpenGL headers were available before ./configure run.");
+		_STARPU_MSG("OpenGL interoperability was requested, but cuda_gl_interop.h could not be compiled, please make sure that OpenGL headers were available before ./configure run.");
 		STARPU_ABORT();
 	}
 #else
@@ -324,7 +324,7 @@ static void init_device_context(unsigned devid, unsigned memnode)
 	{
 		if (cures == cudaErrorDevicesUnavailable)
 		{
-			fprintf(stderr,"All CUDA-capable devices are busy or unavailable\n");
+			_STARPU_MSG("All CUDA-capable devices are busy or unavailable\n");
 			exit(77);
 		}
 		STARPU_CUDA_REPORT_ERROR(cures);
@@ -336,7 +336,7 @@ static void init_device_context(unsigned devid, unsigned memnode)
 #ifdef HAVE_CUDA_MEMCPY_PEER
 	if (props[devid].computeMode == cudaComputeModeExclusive)
 	{
-		fprintf(stderr, "CUDA is in EXCLUSIVE-THREAD mode, but StarPU was built with multithread GPU control support, please either ask your administrator to use EXCLUSIVE-PROCESS mode (which should really be fine), or reconfigure with --disable-cuda-memcpy-peer but that will disable the memcpy-peer optimizations\n");
+		_STARPU_MSG("CUDA is in EXCLUSIVE-THREAD mode, but StarPU was built with multithread GPU control support, please either ask your administrator to use EXCLUSIVE-PROCESS mode (which should really be fine), or reconfigure with --disable-cuda-memcpy-peer but that will disable the memcpy-peer optimizations\n");
 		STARPU_ABORT();
 	}
 #endif
@@ -447,7 +447,7 @@ unsigned _starpu_get_cuda_device_count(void)
 
 	if (cnt > STARPU_MAXCUDADEVS)
 	{
-		fprintf(stderr, "# Warning: %d CUDA devices available. Only %d enabled. Use configure option --enable-maxcudadev=xxx to update the maximum value of supported CUDA devices.\n", cnt, STARPU_MAXCUDADEVS);
+		_STARPU_MSG("# Warning: %d CUDA devices available. Only %d enabled. Use configure option --enable-maxcudadev=xxx to update the maximum value of supported CUDA devices.\n", cnt, STARPU_MAXCUDADEVS);
 		cnt = STARPU_MAXCUDADEVS;
 	}
 	return (unsigned)cnt;
@@ -973,7 +973,7 @@ void starpu_cublas_report_error(const char *func, const char *file, int line, in
 			errormsg = "unknown error";
 			break;
 	}
-	fprintf(stderr, "oops in %s (%s:%d)... %d: %s \n", func, file, line, status, errormsg);
+	_STARPU_MSG("oops in %s (%s:%d)... %d: %s \n", func, file, line, status, errormsg);
 	STARPU_ABORT();
 }
 

@@ -1649,8 +1649,8 @@ void starpu_shutdown(void)
 	     int stats = starpu_get_env_number("STARPU_STATS");
 	     if (stats != 0)
 	     {
-		  _starpu_display_msi_stats();
-		  _starpu_display_alloc_cache_stats();
+		  _starpu_display_msi_stats(stderr);
+		  _starpu_display_alloc_cache_stats(stderr);
 	     }
 	}
 

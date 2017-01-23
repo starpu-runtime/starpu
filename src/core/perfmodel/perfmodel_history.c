@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2016  Inria
  *
@@ -50,6 +50,7 @@ static int current_arch_comb;
 static int nb_arch_combs;
 static starpu_pthread_rwlock_t arch_combs_mutex;
 static int historymaxerror;
+static char ignore_devid[STARPU_ANY_WORKER];
 
 /* How many executions a codelet will have to be measured before we
  * consider that calibration will provide a value good enough for scheduling */
@@ -108,7 +109,8 @@ int _starpu_perfmodel_arch_comb_get(int ndevices, struct starpu_perfmodel_device
 				for(dev2 = 0; dev2 < ndevices; dev2++)
 				{
 					if(arch_combs[comb]->devices[dev1].type == devices[dev2].type &&
-					   arch_combs[comb]->devices[dev1].devid == devices[dev2].devid &&
+					   (ignore_devid[devices[dev2].type] ||
+					    arch_combs[comb]->devices[dev1].devid == devices[dev2].devid) &&
 					   arch_combs[comb]->devices[dev1].ncores == devices[dev2].ncores)
 						nfounded++;
 				}
@@ -917,6 +919,11 @@ void _starpu_initialize_registered_performance_models(void)
 	STARPU_PTHREAD_RWLOCK_INIT(&arch_combs_mutex, NULL);
 	historymaxerror = starpu_get_env_number_default("STARPU_HISTORY_MAX_ERROR", STARPU_HISTORYMAXERROR);
 	_starpu_calibration_minimum = starpu_get_env_number_default("STARPU_CALIBRATE_MINIMUM", 10);
+	/* ignore_devid[STARPU_CPU_WORKER]; */ /* Always true for now */
+	ignore_devid[STARPU_CUDA_WORKER] = starpu_get_env_number_default("STARPU_PERF_MODEL_HOMOGENEOUS_CUDA", 0);
+	ignore_devid[STARPU_OPENCL_WORKER] = starpu_get_env_number_default("STARPU_PERF_MODEL_HOMOGENEOUS_OPENCL", 0);
+	ignore_devid[STARPU_MIC_WORKER] = starpu_get_env_number_default("STARPU_PERF_MODEL_HOMOGENEOUS_MIC", 0);
+	ignore_devid[STARPU_SCC_WORKER] = starpu_get_env_number_default("STARPU_PERF_MODEL_HOMOGENEOUS_SCC", 0);
 }
 
 void _starpu_deinitialize_performance_model(struct starpu_perfmodel *model)
@@ -1106,7 +1113,7 @@ int starpu_perfmodel_list(FILE *output)
         }
 	return 0;
 #else
-	fprintf(stderr,"Listing perfmodels is not implemented on pure Windows yet\n");
+	_STARPU_MSG("Listing perfmodels is not implemented on pure Windows yet\n");
 	return 1;
 #endif
 }

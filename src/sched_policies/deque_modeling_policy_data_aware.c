@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2017  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016, 2017  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2011-2012, 2016  INRIA
  * Copyright (C) 2016  Uppsala University
@@ -111,10 +111,9 @@ static void param_modified(struct starpu_top_param* d)
 #warning FIXME: get sched ctx to get alpha/beta/gamma/idle values
 #endif
 	/* Just to show parameter modification. */
-	fprintf(stderr,
-		"%s has been modified : "
-		"alpha=%f|beta=%f|gamma=%f|idle_power=%f !\n",
-		d->name, alpha,beta,_gamma, idle_power);
+	_STARPU_MSG("%s has been modified : "
+		    "alpha=%f|beta=%f|gamma=%f|idle_power=%f !\n",
+		    d->name, alpha,beta,_gamma, idle_power);
 }
 #endif /* !STARPU_USE_TOP */
 

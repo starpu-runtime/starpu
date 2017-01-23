@@ -37,7 +37,7 @@ void _starpu_fxt_dag_init(char *out_path)
 	out_file = fopen(out_path, "w+");
 	if (!out_file)
 	{
-		fprintf(stderr,"error while opening %s\n", out_path);
+		_STARPU_MSG("error while opening %s\n", out_path);
 		perror("fopen");
 		exit(1);
 	}

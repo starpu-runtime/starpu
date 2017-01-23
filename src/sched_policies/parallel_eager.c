@@ -3,7 +3,7 @@
  * Copyright (C) 2011-2016  Université de Bordeaux
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2011-2013  INRIA
- * Copyright (C) 2016       CNRS
+ * Copyright (C) 2016, 2017       CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -100,7 +100,7 @@ static void peager_add_workers(unsigned sched_ctx_id, int *workerids, unsigned n
         {
 		workerid = workerids[i];
 
-		fprintf(stderr, "MASTER of %d = %d\n", workerid, master_id[workerid]);
+		_STARPU_MSG("MASTER of %d = %d\n", workerid, master_id[workerid]);
 	}
 #endif
 }

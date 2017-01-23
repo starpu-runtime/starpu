@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  * Copyright (C) 2011, 2012, 2016 INRIA
  * Copyright (C) 2016 Uppsala University
  * See the file version.doxy for copying conditions.
@@ -620,6 +620,46 @@ This specifies the main directory in which StarPU is installed
 \addindex __env__STARPU_PERF_MODEL_DIR
 This specifies the main directory in which StarPU stores its
 performance model files. The default is <c>$STARPU_HOME/.starpu/sampling</c>.
+</dd>
+
+<dt>STARPU_PERF_MODEL_HOMEGENEOUS_CUDA</dt>
+<dd>
+\anchor STARPU_PERF_MODEL_HOMOGENEOUS_CUDA
+\addindex __env__STARPU_PERF_MODEL_HOMOGENEOUS_CUDA
+When this is set to 1, StarPU will assume that all CUDA devices have the same
+performance, and thus share performance models for them, thus allowing kernel
+calibration to be much faster, since measurements only have to be once for all
+CUDA GPUs.
+</dd>
+
+<dt>STARPU_PERF_MODEL_HOMEGENEOUS_OPENCL</dt>
+<dd>
+\anchor STARPU_PERF_MODEL_HOMOGENEOUS_OPENCL
+\addindex __env__STARPU_PERF_MODEL_HOMOGENEOUS_OPENCL
+When this is set to 1, StarPU will assume that all OPENCL devices have the same
+performance, and thus share performance models for them, thus allowing kernel
+calibration to be much faster, since measurements only have to be once for all
+OPENCL GPUs.
+</dd>
+
+<dt>STARPU_PERF_MODEL_HOMEGENEOUS_MIC</dt>
+<dd>
+\anchor STARPU_PERF_MODEL_HOMOGENEOUS_MIC
+\addindex __env__STARPU_PERF_MODEL_HOMOGENEOUS_MIC
+When this is set to 1, StarPU will assume that all MIC devices have the same
+performance, and thus share performance models for them, thus allowing kernel
+calibration to be much faster, since measurements only have to be once for all
+MIC GPUs.
+</dd>
+
+<dt>STARPU_PERF_MODEL_HOMEGENEOUS_SCC</dt>
+<dd>
+\anchor STARPU_PERF_MODEL_HOMOGENEOUS_SCC
+\addindex __env__STARPU_PERF_MODEL_HOMOGENEOUS_SCC
+When this is set to 1, StarPU will assume that all SCC devices have the same
+performance, and thus share performance models for them, thus allowing kernel
+calibration to be much faster, since measurements only have to be once for all
+SCC GPUs.
 </dd>
 
 <dt>STARPU_HOSTNAME</dt>

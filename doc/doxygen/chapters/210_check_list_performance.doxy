@@ -246,9 +246,24 @@ to configure a performance model for the codelets of the application (see
 use on-line calibration.  StarPU will automatically calibrate codelets
 which have never been calibrated yet, and save the result in
 <c>$STARPU_HOME/.starpu/sampling/codelets</c>.
-The models are indexed by machine name. To share the models between
-machines (e.g. for a homogeneous cluster), use <c>export
-STARPU_HOSTNAME=some_global_name</c> (\ref STARPU_HOSTNAME). To force continuing calibration,
+The models are indexed by machine name.
+
+By default, StarPU stores separate performance models according to the hostname
+of the system. To avoid having to calibrate performance models for each node
+of a homogeneous cluster for instance, the model can be shared by using
+<c>export STARPU_HOSTNAME=some_global_name</c> (\ref STARPU_HOSTNAME), where
+<c>some_global_name</c> is the name of the cluster for instance, which thus
+overrides the hostname of the system.
+
+By default, StarPU stores separate performance models for each GPU. To avoid
+having to calibrate performance models for each GPU of a homogeneous set of GPU
+devices for instance, the model can be shared by setting
+<c>export STARPU_PERF_MODEL_HOMOGENEOUS_CUDA=1</c> ,
+<c>export STARPU_PERF_MODEL_HOMOGENEOUS_OPENCL=1</c> ,
+<c>export STARPU_PERF_MODEL_HOMOGENEOUS_MIC=1</c> , or
+<c>export STARPU_PERF_MODEL_HOMOGENEOUS_SCC=1</c> (depending on your GPU device type).
+
+To force continuing calibration,
 use <c>export STARPU_CALIBRATE=1</c> (\ref STARPU_CALIBRATE). This may be necessary if your application
 has not-so-stable performance. StarPU will force calibration (and thus ignore
 the current result) until 10 (<c>_STARPU_CALIBRATION_MINIMUM</c>) measurements have been

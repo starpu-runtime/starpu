@@ -215,7 +215,7 @@ int starpu_pthread_setspecific(starpu_pthread_key_t key, const void *pointer)
 {
 	void **array;
 #ifdef STARPU_SIMGRID_HAVE_SIMIX_PROCESS_GET_CODE
-	if (SIMIX_process_get_code() == _starpu_mpi_simgrid_init)
+	if ((SIMIX_process_get_code() == _starpu_mpi_simgrid_init) || (!strcmp(SIMIX_process_self_get_name(),"wait for mpi transfer")))
 		/* Special-case the SMPI process */
 		array = smpi_process_get_user_data();
 	else
@@ -229,7 +229,7 @@ void* starpu_pthread_getspecific(starpu_pthread_key_t key)
 {
 	void **array;
 #ifdef STARPU_SIMGRID_HAVE_SIMIX_PROCESS_GET_CODE
-	if (SIMIX_process_get_code() == _starpu_mpi_simgrid_init)
+	if ((SIMIX_process_get_code() == _starpu_mpi_simgrid_init) || (!strcmp(SIMIX_process_self_get_name(),"wait for mpi transfer")))
 		/* Special-case the SMPI process */
 		array = smpi_process_get_user_data();
 	else

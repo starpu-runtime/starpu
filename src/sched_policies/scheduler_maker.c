@@ -265,7 +265,7 @@ struct starpu_sched_tree * starpu_sched_component_make_scheduler(unsigned sched_
 
 	starpu_sched_tree_update_workers(tree);
 #ifdef STARPU_DEVEL
-	fprintf(stderr, "scheduler created :\n");
+	_STARPU_MSG("scheduler created :\n");
 	helper_display_scheduler(stderr, 0, tree->root);
 #endif
 

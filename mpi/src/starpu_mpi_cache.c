@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+ * Copyright (C) 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  * Copyright (C) 2011-2016  Université de Bordeaux
  * Copyright (C) 2014 INRIA
  *
@@ -74,7 +74,7 @@ void _starpu_mpi_cache_init(MPI_Comm comm)
 
 	if (_starpu_cache_enabled == 0)
 	{
-		if (!_starpu_silent) fprintf(stderr,"Warning: StarPU MPI Communication cache is disabled\n");
+		_STARPU_DISP("Warning: StarPU MPI Communication cache is disabled\n");
 		return;
 	}
 

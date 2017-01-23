@@ -239,8 +239,8 @@ void _starpu_scc_set_offset_in_shared_memory(void *ptr, void **dev_handle, size_
 	{
 		if (!_starpu_scc_common_is_in_shared_memory(ptr))
 		{
-			fprintf(stderr, "The data (%p) you want to register does not seem to be allocated in shared memory. "
-					"Please use starpu_malloc to do this.\n", ptr);
+			_STARPU_MSG("The data (%p) you want to register does not seem to be allocated in shared memory. "
+				    "Please use starpu_malloc to do this.\n", ptr);
 			STARPU_ABORT();
 		}
 

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016  CNRS
+ * Copyright (C) 2016, 2017  CNRS
  * Copyright (C) 2016 Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -366,11 +366,11 @@ int _fstarpu_mpi_task_insert_v(MPI_Comm comm, struct starpu_codelet *codelet, vo
 
 		if (STARPU_UNLIKELY(ret == -ENODEV))
 		{
-			fprintf(stderr, "submission of task %p wih codelet %p failed (symbol `%s') (err: ENODEV)\n",
-				task, task->cl,
-				(codelet == NULL) ? "none" :
-				task->cl->name ? task->cl->name :
-				(task->cl->model && task->cl->model->symbol)?task->cl->model->symbol:"none");
+			_STARPU_MSG("submission of task %p wih codelet %p failed (symbol `%s') (err: ENODEV)\n",
+				    task, task->cl,
+				    (codelet == NULL) ? "none" :
+				    task->cl->name ? task->cl->name :
+				    (task->cl->model && task->cl->model->symbol)?task->cl->model->symbol:"none");
 
 			task->destroy = 0;
 			starpu_task_destroy(task);

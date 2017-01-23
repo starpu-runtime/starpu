@@ -47,9 +47,9 @@ static void _starpu_scc_set_src_node_id()
 		else if (RCCE_ue() == 0)
 		{
 			/* Only node 0 print the error message. */
-			fprintf(stderr, "The node you specify to be the master is "
-					"greater than the total number of nodes.\n"
-					"Taking node 0 (core %d) by default...\n", RC_COREID[0]);
+			_STARPU_MSG("The node you specify to be the master is "
+				    "greater than the total number of nodes.\n"
+				    "Taking node 0 (core %d) by default...\n", RC_COREID[0]);
 		}
 	}
 
@@ -173,7 +173,7 @@ void _starpu_scc_common_report_rcce_error(const char *func, const char *file, co
 
 	RCCE_error_string(err_no, error_string, &error_string_length); 
 
-	fprintf(stderr, "RCCE error in %s (%s:%d): %s\n", func, file, line, error_string); 
+	_STARPU_MSG("RCCE error in %s (%s:%d): %s\n", func, file, line, error_string); 
 	STARPU_ABORT();
 }
 
