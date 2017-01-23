@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016, 2017  CNRS
  * Copyright (C) 2011  INRIA
  * Copyright (C) 2016  Uppsala University
  *
@@ -571,7 +571,7 @@ static inline int _starpu_worker_get_id(void)
 #define starpu_worker_get_id _starpu_worker_get_id
 
 /* Similar behaviour to starpu_worker_get_id() but fails when called from outside a worker */
-static inline unsigned __starpu_worker_get_id_check(const char *f, int l)
+static inline int __starpu_worker_get_id_check(const char *f, int l)
 {
 	(void) l;
 	(void) f;
