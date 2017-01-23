@@ -58,17 +58,17 @@ void func_cpu(void *descr[], void *_args)
 	int worker_id_expected;
 	int ntasks;
 	unsigned sched_ctx_id;
-	unsigned *sched_ctx_id_p = malloc(sizeof(unsigned));
+	unsigned *sched_ctx_id_p;
 
 	starpu_worker_get_name(worker_id, worker_name, 256);
-	starpu_codelet_unpack_args(_args, &msg, &ntasks, &sched_ctx_id, &worker_id_expected);
+	starpu_codelet_unpack_args(_args, &msg, &ntasks, &sched_ctx_id, &worker_id_expected, &sched_ctx_id_p);
 
 	STARPU_ASSERT(worker_id == worker_id_expected);
 
 	*sched_ctx_id_p = sched_ctx_id;
 	starpu_sched_ctx_set_context(sched_ctx_id_p);
 
-	FPRINTF(stderr, "[msg '%c'] [worker id %d] [worker name %s] [sched_ctx_id %u] [tasks %d]\n", msg, worker_id, worker_name, sched_ctx_id, ntasks);
+	FPRINTF(stderr, "[msg '%c'] [worker id %d] [worker name %s] [sched_ctx_id %u] [tasks %d] [buffer %p]\n", msg, worker_id, worker_name, sched_ctx_id, ntasks, sched_ctx_id_p);
 	if (ntasks > 0)
 	{
 		int nntasks = ntasks - 1;
@@ -93,6 +93,7 @@ int main(int argc, char **argv)
         int procs[STARPU_NMAXWORKERS];
 	int ntasks=10;
 	char msg[2] = "ab";
+	unsigned *buffer[2];
 
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
@@ -123,11 +124,16 @@ int main(int argc, char **argv)
 		starpu_sched_ctx_display_workers(sched_ctx_1, stderr);
 	}
 
+	buffer[0] = malloc(sizeof(unsigned));
+	buffer[1] = malloc(sizeof(unsigned));
+	FPRINTF(stderr, "allocating %p and %p\n", buffer[0], buffer[1]);
+
 	ret = starpu_task_insert(&mycodelet, STARPU_SCHED_CTX, sched_ctx_0,
 				 STARPU_VALUE, &msg[0], sizeof(msg[0]),
 				 STARPU_VALUE, &ntasks, sizeof(ntasks),
 				 STARPU_VALUE, &sched_ctx_0, sizeof(sched_ctx_0),
 				 STARPU_VALUE, &procs[0], sizeof(procs[0]),
+				 STARPU_VALUE, &buffer[0], sizeof(buffer[0]),
 				 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 	ret = starpu_task_insert(&mycodelet, STARPU_SCHED_CTX, sched_ctx_1,
@@ -135,6 +141,7 @@ int main(int argc, char **argv)
 				 STARPU_VALUE, &ntasks, sizeof(ntasks),
 				 STARPU_VALUE, &sched_ctx_1, sizeof(sched_ctx_1),
 				 STARPU_VALUE, &procs[1], sizeof(procs[1]),
+				 STARPU_VALUE, &buffer[1], sizeof(buffer[1]),
 				 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
@@ -142,6 +149,8 @@ int main(int argc, char **argv)
 	starpu_sched_ctx_delete(sched_ctx_0);
 	starpu_sched_ctx_delete(sched_ctx_1);
 	starpu_shutdown();
+	free(buffer[0]);
+	free(buffer[1]);
 	return 0;
 
 enodev:
