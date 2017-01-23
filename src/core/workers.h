@@ -571,7 +571,8 @@ static inline int _starpu_worker_get_id(void)
 #define starpu_worker_get_id _starpu_worker_get_id
 
 /* Similar behaviour to starpu_worker_get_id() but fails when called from outside a worker */
-static inline int __starpu_worker_get_id_check(const char *f, int l)
+/* This returns an unsigned object on purpose, so that the caller is sure to get a positive value */
+static inline unsigned __starpu_worker_get_id_check(const char *f, int l)
 {
 	(void) l;
 	(void) f;
