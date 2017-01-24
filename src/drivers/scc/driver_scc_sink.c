@@ -139,7 +139,7 @@ void _starpu_scc_sink_execute(const struct _starpu_mp_node *node, void *arg, int
 			case STARPU_CSR_INTERFACE_ID:
 			case STARPU_BCSR_INTERFACE_ID:
 			case STARPU_MULTIFORMAT_INTERFACE_ID:
-			fprintf(stderr, "Data type not supported on SCC.\n");
+				_STARPU_MSG("Data type not supported on SCC.\n");
 
 			default:
 				STARPU_ABORT();

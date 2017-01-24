@@ -197,9 +197,9 @@ print_stats(struct stats *s)
 			s->opencl_to_cpu);
 #endif /* !STARPU_USE_OPENCL */
 #ifdef STARPU_USE_MIC
-	FPRINTF(stderr, "mic	: %d\n"
-			"cpu->mic : %d\n"
-			"mic->cpu : %d\n",
+	FPRINTF(stderr, "mic	: %u\n"
+			"cpu->mic : %u\n"
+			"mic->cpu : %u\n",
 			s->mic,
 			s->cpu_to_mic,
 			s->mic_to_cpu);

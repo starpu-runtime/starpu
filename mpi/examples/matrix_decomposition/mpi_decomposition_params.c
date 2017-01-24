@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
+ * Copyright (C) 2009, 2010, 2015-2016  Université de Bordeaux
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -25,8 +25,12 @@
 unsigned size = 4*64;
 unsigned nblocks = 2;
 unsigned nbigblocks = 2;
+#elif !defined(STARPU_LONG_CHECK)
+unsigned size = 4*320;
+unsigned nblocks = 16;
+unsigned nbigblocks = 2;
 #else
-unsigned size = 4*960;
+unsigned size = 16*320;
 unsigned nblocks = 16;
 unsigned nbigblocks = 2;
 #endif
@@ -80,7 +84,7 @@ void parse_args(int argc, char **argv, int nodes)
                         display = 1;
                 }
 
-                if (strcmp(argv[i], "-h") == 0)
+                if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0)
                 {
                         printf("usage : %s [-display] [-size size] [-nblocks nblocks]\n", argv[0]);
                 }
@@ -103,6 +107,6 @@ void parse_args(int argc, char **argv, int nodes)
 			}
 		}
 	}
-	FPRINTF(stdout, "size: %u - nblocks: %d - dblocksx: %d - dblocksy: %d\n", size, nblocks, dblockx, dblocky);
+	FPRINTF(stdout, "size: %u - nblocks: %u - dblocksx: %d - dblocksy: %d\n", size, nblocks, dblockx, dblocky);
 }
 

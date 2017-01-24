@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2015  Université Bordeaux
+ * Copyright (C) 2013-2016  Université Bordeaux
  * Copyright (C) 2012 INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -218,7 +218,7 @@ struct starpu_data_interface_ops starpu_interface_coo_ops =
 };
 
 void
-starpu_coo_data_register(starpu_data_handle_t *handleptr, unsigned home_node,
+starpu_coo_data_register(starpu_data_handle_t *handleptr, int home_node,
 			 uint32_t nx, uint32_t ny, uint32_t n_values,
 			 uint32_t *columns, uint32_t *rows,
 			 uintptr_t values, size_t elemsize)
@@ -234,6 +234,17 @@ starpu_coo_data_register(starpu_data_handle_t *handleptr, unsigned home_node,
 		.n_values = n_values,
 		.elemsize = elemsize,
 	};
+#ifndef STARPU_SIMGRID
+	if (home_node == STARPU_MAIN_RAM)
+	{
+		STARPU_ASSERT_ACCESSIBLE(columns);
+		STARPU_ASSERT_ACCESSIBLE((uintptr_t) columns + n_values*sizeof(uint32_t) - 1);
+		STARPU_ASSERT_ACCESSIBLE(rows);
+		STARPU_ASSERT_ACCESSIBLE((uintptr_t) rows + n_values*sizeof(uint32_t) - 1);
+		STARPU_ASSERT_ACCESSIBLE(values);
+		STARPU_ASSERT_ACCESSIBLE(values + n_values*elemsize - 1);
+	}
+#endif
 
 	starpu_data_register(handleptr, home_node, &coo_interface,
 			     &starpu_interface_coo_ops);

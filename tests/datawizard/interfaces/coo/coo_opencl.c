@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012 INRIA
+ * Copyright (C) 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -47,7 +48,7 @@ test_coo_opencl_func(void *buffers[], void *args)
 	n = STARPU_COO_GET_NVALUES(buffers[0]);
 	val = (cl_mem) STARPU_COO_GET_VALUES(buffers[0]);
 
-	id = starpu_worker_get_id();
+	id = starpu_worker_get_id_check();
 	devid = starpu_worker_get_devid(id);
 	starpu_opencl_get_context(devid, &context);
 

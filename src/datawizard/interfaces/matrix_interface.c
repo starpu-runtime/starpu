@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
+ * Copyright (C) 2010-2016  Université de Bordeaux
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -157,7 +157,7 @@ static void *matrix_handle_to_pointer(starpu_data_handle_t handle, unsigned node
 
 
 /* declare a new data with the matrix interface */
-void starpu_matrix_data_register(starpu_data_handle_t *handleptr, unsigned home_node,
+void starpu_matrix_data_register(starpu_data_handle_t *handleptr, int home_node,
 			uintptr_t ptr, uint32_t ld, uint32_t nx,
 			uint32_t ny, size_t elemsize)
 {
@@ -172,6 +172,13 @@ void starpu_matrix_data_register(starpu_data_handle_t *handleptr, unsigned home_
                 .dev_handle = ptr,
                 .offset = 0
 	};
+#ifndef STARPU_SIMGRID
+	if (home_node == STARPU_MAIN_RAM)
+	{
+		STARPU_ASSERT_ACCESSIBLE(ptr);
+		STARPU_ASSERT_ACCESSIBLE(ptr + (ny-1)*ld*elemsize + nx*elemsize - 1);
+	}
+#endif
 
 #ifdef STARPU_USE_SCC
 	_starpu_scc_set_offset_in_shared_memory((void*)matrix_interface.ptr,
@@ -552,7 +559,6 @@ static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_int
 	struct starpu_matrix_interface *dst_matrix = (struct starpu_matrix_interface *) dst_interface;
 	int ret = 0;
 
-	unsigned y;
 	uint32_t nx = dst_matrix->nx;
 	uint32_t ny = dst_matrix->ny;
 	size_t elemsize = dst_matrix->elemsize;
@@ -570,16 +576,17 @@ static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_int
 	}
 	else
 	{
-	     for (y = 0; y < ny; y++)
-	     {
-		     uint32_t src_offset = y*ld_src*elemsize;
-		     uint32_t dst_offset = y*ld_dst*elemsize;
+		unsigned y;
+		for (y = 0; y < ny; y++)
+		{
+			uint32_t src_offset = y*ld_src*elemsize;
+			uint32_t dst_offset = y*ld_dst*elemsize;
 
-		     if (starpu_interface_copy(src_matrix->dev_handle, src_matrix->offset + src_offset, src_node,
-					       dst_matrix->dev_handle, dst_matrix->offset + dst_offset, dst_node,
-					       nx*elemsize, async_data))
-			     ret = -EAGAIN;
-	     }
+			if (starpu_interface_copy(src_matrix->dev_handle, src_matrix->offset + src_offset, src_node,
+						  dst_matrix->dev_handle, dst_matrix->offset + dst_offset, dst_node,
+						  nx*elemsize, async_data))
+				ret = -EAGAIN;
+		}
 	}
 
 	_STARPU_TRACE_DATA_COPY(src_node, dst_node, (size_t)nx*ny*elemsize);

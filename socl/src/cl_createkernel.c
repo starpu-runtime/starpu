@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010,2011 University of Bordeaux
+ * Copyright (C) 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -24,15 +25,15 @@ static void soclCreateKernel_task(void *data) {
 
    if (k->program->cl_programs[range] == NULL) {
       k->errcodes[range] = CL_SUCCESS;
-      DEBUG_MSG("[Device %d] Kernel creation skipped: program has not been built for this device.\n", starpu_worker_get_id());
+      DEBUG_MSG("[Device %d] Kernel creation skipped: program has not been built for this device.\n", starpu_worker_get_id_check());
       return;
    }
 
-   DEBUG_MSG("[Device %d] Creating kernel...\n", starpu_worker_get_id());
+   DEBUG_MSG("[Device %d] Creating kernel...\n", starpu_worker_get_id_check());
    k->cl_kernels[range] = clCreateKernel(k->program->cl_programs[range], k->kernel_name, &err);
    if (err != CL_SUCCESS) {
       k->errcodes[range] = err;
-      ERROR_STOP("[Device %d] Unable to create kernel. Error %d. Aborting.\n", starpu_worker_get_id(), err);
+      ERROR_STOP("[Device %u] Unable to create kernel. Error %d. Aborting.\n", starpu_worker_get_id_check(), err);
       return;
    }
 

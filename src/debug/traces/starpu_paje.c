@@ -153,11 +153,13 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 	poti_DefineContainerType("UT", "P", "User Thread");
 	poti_DefineContainerType("Mm", "Mn", "Memory Manager");
 	poti_DefineContainerType("W", "T", "Worker");
-	poti_DefineContainerType("MPICt", "T", "MPI Communication Thread");
+	poti_DefineContainerType("MPICt", "P", "MPI Communication Thread");
 	poti_DefineContainerType("Sc", "P", "Scheduler");
 	poti_DefineEventType("prog_event", "P", "program event type");
+	poti_DefineEventType("register", "P", "data registration");
 
 	/* Types for the memory node */
+	poti_DefineEventType("invalidate", "Mm", "data invalidation");
 	poti_DefineVariableType("bw", "Mm", "Bandwidth", "0 0 0");
 	poti_DefineStateType("MS", "Mm", "Memory Node State");
 	poti_DefineEntityValue("A", "MS", "Allocating", ".4 .1 .0");
@@ -206,6 +208,8 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 	poti_DefineEntityValue("P", "WS", "Progressing", ".4 .1 .6");
 	poti_DefineEntityValue("U", "WS", "Unpartitioning", ".0 .0 1.0");
 	poti_DefineEntityValue("H", "WS", "Hypervisor", ".5 .18 .0");
+	poti_DefineEntityValue("Bu", "WS", "Building task", ".5 .18 .0");
+	poti_DefineEntityValue("Su", "WS", "Submiting task", ".3 .09 .0");
 
 	/* Types for the MPI Communication Thread of the Memory Node */
 	poti_DefineEventType("MPIev", "MPICt", "MPI event type");
@@ -215,7 +219,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 	poti_DefineEntityValue("UT", "CtS", "UserTesting", ".2 .1 .6");
 	poti_DefineEntityValue("UW", "CtS", "UserWaiting", ".4 .1 .3");
 	poti_DefineEntityValue("SdS", "CtS", "SendSubmitted", "1.0 .1 1.0");
-	poti_DefineEntityValue("RvS", "CtS", "RecieveSubmitted", "0.1 1.0 1.0");
+	poti_DefineEntityValue("RvS", "CtS", "ReceiveSubmitted", "0.1 1.0 1.0");
 	poti_DefineEntityValue("SdC", "CtS", "SendCompleted", "1.0 .5 1.0");
 	poti_DefineEntityValue("RvC", "CtS", "ReceiveCompleted", "0.5 1.0 1.0");
 	poti_DefineEntityValue("Bu", "CtS", "Building task", ".5 .18 .0");
@@ -277,9 +281,10 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 1       UT      P       \"User Thread\"                               \n\
 1       Mm      Mn       \"Memory Manager\"                         \n\
 1       W      T       \"Worker\"                               \n\
-1       MPICt   T       \"MPI Communication Thread\"              \n\
+1       MPICt   P       \"MPI Communication Thread\"              \n\
 1       Sc       P       \"Scheduler State\"                        \n\
 2       prog_event   P       \"program event type\"				\n\
+2       register     P       \"data registration\"				\n\
 2       user_event   T       \"user event type\"				\n\
 2       thread_event   T       \"thread event type\"				\n\
 2       user_user_event   UT       \"user event type\"				\n\
@@ -290,6 +295,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 	for (i=1; i<STARPU_NMAX_SCHED_CTXS; i++)
 		fprintf(file, "3       Ctx%u      T     \"InCtx%u\"         		\n", i, i);
 	fprintf(file, "\
+2       invalidate Mm \"data invalidation\"                            \n\
 3       MS       Mm       \"Memory Node State\"                        \n\
 4       nsubmitted    Sc       \"Number of Submitted Uncompleted Tasks\"                        \n\
 4       nready    Sc       \"Number of Ready Tasks\"                        \n\
@@ -308,7 +314,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 6       U       S       Unpartitioning      \".0 .0 1.0\"		\n\
 6       H       S       Hypervisor      \".5 .18 .0\"		\n\
 6       Bu      S       \"Building task\"   \".5 .18 .0\"		\n\
-6       Su      S       \"Submittings task\" \".3 .09 .0\"		\n\
+6       Su      S       \"Submitting task\" \".3 .09 .0\"		\n\
 6       MD      S       \"Decoding task for MPI\" \".5 .18 .2\"		\n\
 6       MPr     S       \"Preparing task for MPI\" \".4 .14 .2\"		\n\
 6       MPo     S       \"Post-processing task for MPI\" \".3 .09 .2\"		\n\
@@ -326,9 +332,11 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 6       P       WS       Progressing         \".4 .1 .6\"		\n\
 6       U       WS       Unpartitioning      \".0 .0 1.0\"		\n\
 6       H       WS       Hypervisor      \".5 .18 .0\"		\n\
+6       Bu      WS       \"Building task\"   \".5 .18 .0\"		\n\
+6       Su      WS       \"Submitting task\" \".3 .09 .0\"		\n\
 3       US       UT       \"User Thread State\"                        \n\
 6       Bu      US      \"Building task\"   \".5 .18 .0\"		\n\
-6       Su      US      \"Submittings task\" \".3 .09 .0\"		\n\
+6       Su      US      \"Submitting task\" \".3 .09 .0\"		\n\
 6       MD      US      \"Decoding task for MPI\" \".5 .18 .2\"		\n\
 6       MPr     US      \"Preparing task for MPI\" \".4 .14 .2\"		\n\
 6       MPo     US      \"Post-processing task for MPI\" \".3 .09 .2\"		\n\
@@ -342,11 +350,11 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 6       UT       CtS      UserTesting        \".2 .1 .6\"	\n\
 6       UW       CtS      UserWaiting        \".4 .1 .3\"	\n\
 6       SdS       CtS      SendSubmitted     \"1.0 .1 1.0\"	\n\
-6       RvS       CtS      RecieveSubmitted  \"0.1 1.0 1.0\"	\n\
+6       RvS       CtS      ReceiveSubmitted  \"0.1 1.0 1.0\"	\n\
 6       SdC       CtS      SendCompleted     \"1.0 .5 1.0\"	\n\
 6       RvC       CtS      ReceiveCompleted  \"0.5 1.0 1.0\"	\n\
 6       Bu      CtS      \"Building task\"   \".5 .18 .0\"		\n\
-6       Su      CtS      \"Submittings task\" \".3 .09 .0\"		\n\
+6       Su      CtS      \"Submitting task\" \".3 .09 .0\"		\n\
 ");
 	for (i=1; i<STARPU_NMAX_SCHED_CTXS; i++)
 		fprintf(file, "\

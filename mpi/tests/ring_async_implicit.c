@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  CNRS
+ * Copyright (C) 2010, 2015-2016  Université de Bordeaux
+ * Copyright (C) 2010, 2011, 2012, 2013, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -20,6 +20,8 @@
 
 #ifdef STARPU_QUICK_CHECK
 #  define NITER	32
+#elif !defined(STARPU_LONG_CHECK)
+#  define NITER	256
 #else
 #  define NITER	2048
 #endif
@@ -81,15 +83,19 @@ int main(int argc, char **argv)
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
 
-	if (size < 2)
+	if (size < 2 || (starpu_cpu_worker_get_count() + starpu_cuda_worker_get_count() == 0))
 	{
 		if (rank == 0)
-			FPRINTF(stderr, "We need at least 2 processes.\n");
-
-		MPI_Finalize();
+		{
+			if (size < 2)
+				FPRINTF(stderr, "We need at least 2 processes.\n");
+			else
+				FPRINTF(stderr, "We need at least 1 CPU or CUDA worker.\n");
+		}
+		starpu_mpi_shutdown();
+		starpu_shutdown();
 		return STARPU_TEST_SKIPPED;
 	}
-
 
 	starpu_vector_data_register(&token_handle, STARPU_MAIN_RAM, (uintptr_t)&token, 1, sizeof(token));
 
@@ -106,7 +112,7 @@ int main(int argc, char **argv)
 		if (loop == 0 && rank == 0)
 		{
 			token = 0;
-			FPRINTF(stdout, "Start with token value %u\n", token);
+			FPRINTF(stdout, "Start with token value %d\n", token);
 		}
 		else
 		{
@@ -118,7 +124,7 @@ int main(int argc, char **argv)
 		if (loop == last_loop && rank == last_rank)
 		{
 			starpu_data_acquire(token_handle, STARPU_R);
-			FPRINTF(stdout, "Finished : token value %u\n", token);
+			FPRINTF(stdout, "Finished : token value %d\n", token);
 			starpu_data_release(token_handle);
 		}
 		else
@@ -136,7 +142,7 @@ int main(int argc, char **argv)
 #ifndef STARPU_SIMGRID
 	if (rank == last_rank)
 	{
-		FPRINTF(stderr, "[%d] token = %u == %u * %d ?\n", rank, token, nloops, size);
+		FPRINTF(stderr, "[%d] token = %d == %d * %d ?\n", rank, token, nloops, size);
 		STARPU_ASSERT(token == nloops*size);
 	}
 #endif

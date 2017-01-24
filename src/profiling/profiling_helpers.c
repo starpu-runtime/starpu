@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2013  Université de Bordeaux
+ * Copyright (C) 2011, 2013, 2016  Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -31,17 +31,14 @@ static double convert_to_byte_units(float d, unsigned max_unit, unsigned *unit)
 	return d;
 }
 
-void starpu_profiling_bus_helper_display_summary(void)
+void _starpu_profiling_bus_helper_display_summary(FILE *stream)
 {
-	const char *stats;
 	int long long sum_transferred = 0;
 	const char *byte_units[] = { "B", "KB", "MB", "GB", "TB" };
 	unsigned max_unit = sizeof(byte_units) / sizeof(byte_units[0]);
 
-	if (!((stats = starpu_getenv("STARPU_BUS_STATS")) && atoi(stats))) return;
-
-	fprintf(stderr, "\n#---------------------\n");
-	fprintf(stderr, "Data transfer stats:\n");
+	fprintf(stream, "\n#---------------------\n");
+	fprintf(stream, "Data transfer stats:\n");
 
 	int busid;
 	int bus_cnt = starpu_bus_get_count();
@@ -66,10 +63,10 @@ void starpu_profiling_bus_helper_display_summary(void)
 		_starpu_memory_node_get_name(src, src_name, sizeof(src_name));
 		_starpu_memory_node_get_name(dst, dst_name, sizeof(dst_name));
 
-		fprintf(stderr, "\t%s -> %s", src_name, dst_name);
-		fprintf(stderr, "\t%.2lf %s", d, byte_units[unit]);
-		fprintf(stderr, "\t%.2lf %s/s", d / elapsed_time, byte_units[unit]);
-		fprintf(stderr, "\t(transfers : %lld - avg %.2lf %s)\n", transfer_cnt, d / transfer_cnt, byte_units[unit]);
+		fprintf(stream, "\t%s -> %s", src_name, dst_name);
+		fprintf(stream, "\t%.2lf %s", d, byte_units[unit]);
+		fprintf(stream, "\t%.2lf %s/s", d / elapsed_time, byte_units[unit]);
+		fprintf(stream, "\t(transfers : %lld - avg %.2lf %s)\n", transfer_cnt, d / transfer_cnt, byte_units[unit]);
 
 		sum_transferred += transferred;
 	}
@@ -77,23 +74,27 @@ void starpu_profiling_bus_helper_display_summary(void)
 	unsigned unit = 0;
 	double d = convert_to_byte_units(sum_transferred, max_unit, &unit);
 
-	fprintf(stderr, "Total transfers: %.2lf %s\n", d, byte_units[unit]);
-	fprintf(stderr, "#---------------------\n");
+	fprintf(stream, "Total transfers: %.2lf %s\n", d, byte_units[unit]);
+	fprintf(stream, "#---------------------\n");
 }
 
-void starpu_profiling_worker_helper_display_summary(void)
+void starpu_profiling_bus_helper_display_summary(void)
 {
 	const char *stats;
+	if (!((stats = starpu_getenv("STARPU_BUS_STATS")) && atoi(stats))) return;
+	_starpu_profiling_bus_helper_display_summary(stderr);
+}
+
+void _starpu_profiling_worker_helper_display_summary(FILE *stream)
+{
 	double sum_consumed = 0.;
 	int profiling = starpu_profiling_status_get();
 	double overall_time = 0;
 	int workerid;
 	int worker_cnt = starpu_worker_get_count();
 
-	if (!((stats = starpu_getenv("STARPU_WORKER_STATS")) && atoi(stats))) return;
-
-	fprintf(stderr, "\n#---------------------\n");
-	fprintf(stderr, "Worker stats:\n");
+	fprintf(stream, "\n#---------------------\n");
+	fprintf(stream, "Worker stats:\n");
 
 	for (workerid = 0; workerid < worker_cnt; workerid++)
 	{
@@ -103,8 +104,8 @@ void starpu_profiling_worker_helper_display_summary(void)
 
 		starpu_worker_get_name(workerid, name, sizeof(name));
 
-		fprintf(stderr, "%-32s\n", name);
-		fprintf(stderr, "\t%d task(s)\n", info.executed_tasks);
+		fprintf(stream, "%-32s\n", name);
+		fprintf(stream, "\t%d task(s)\n", info.executed_tasks);
 
 		if (profiling)
 		{
@@ -114,17 +115,17 @@ void starpu_profiling_worker_helper_display_summary(void)
 			if (total_time > overall_time)
 				overall_time = total_time;
 
-			fprintf(stderr, "\ttotal: %.2lf ms executing: %.2lf ms sleeping: %.2lf ms overhead %.2lf ms\n",
+			fprintf(stream, "\ttotal: %.2lf ms executing: %.2lf ms sleeping: %.2lf ms overhead %.2lf ms\n",
 				total_time, executing_time, sleeping_time, total_time - executing_time - sleeping_time);
 			if (info.used_cycles || info.stall_cycles)
-				fprintf(stderr, "\t%lu Mcy %lu Mcy stall\n", info.used_cycles/1000000, info.stall_cycles/1000000);
-			if (info.power_consumed)
-				fprintf(stderr, "\t%f J consumed\n", info.power_consumed);
+				fprintf(stream, "\t%llu Mcy %llu Mcy stall\n", (unsigned long long)info.used_cycles/1000000, (unsigned long long)info.stall_cycles/1000000);
+			if (info.energy_consumed)
+				fprintf(stream, "\t%f J consumed\n", info.energy_consumed);
 			if (info.flops)
-				fprintf(stderr, "\t%f GFlop/s\n\n", info.flops / total_time / 1000000);
+				fprintf(stream, "\t%f GFlop/s\n\n", info.flops / total_time / 1000000);
 		}
 
-		sum_consumed += info.power_consumed;
+		sum_consumed += info.energy_consumed;
 	}
 
 	if (profiling)
@@ -133,12 +134,19 @@ void starpu_profiling_worker_helper_display_summary(void)
 		if (strval_idle_power)
 		{
 			double idle_power = atof(strval_idle_power); /* Watt */
-			double idle_consumption = idle_power * overall_time / 1000.; /* J */
+			double idle_energy = idle_power * overall_time / 1000.; /* J */
 
-			fprintf(stderr, "Idle consumption: %.2lf J\n", idle_consumption);
-			fprintf(stderr, "Total consumption: %.2lf J\n",
-				sum_consumed + idle_consumption);
+			fprintf(stream, "Idle energy: %.2lf J\n", idle_energy);
+			fprintf(stream, "Total energy: %.2lf J\n",
+				sum_consumed + idle_energy);
 		}
 	}
-	fprintf(stderr, "#---------------------\n");
+	fprintf(stream, "#---------------------\n");
+}
+
+void starpu_profiling_worker_helper_display_summary(void)
+{
+	const char *stats;
+	if (!((stats = starpu_getenv("STARPU_WORKER_STATS")) && atoi(stats))) return;
+	_starpu_profiling_worker_helper_display_summary(stderr);
 }

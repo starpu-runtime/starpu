@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015  CNRS
+ * Copyright (C) 2015, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -46,9 +46,9 @@ int main(int argc, char **argv)
 {
 	int rank, n;
 	int ret;
-	unsigned val;
+	unsigned *val;
 	starpu_data_handle_t data;
-	void *ptr;
+	void *ptr = NULL;
 	int cache;
 
 	ret = starpu_init(NULL);
@@ -60,8 +60,11 @@ int main(int argc, char **argv)
 	cache = starpu_mpi_cache_is_enabled();
 	if (cache == 0) goto skip;
 
+	val = malloc(sizeof(*val));
+	*val = 12;
+
 	if (rank == 0)
-		starpu_variable_data_register(&data, STARPU_MAIN_RAM, (uintptr_t)&val, sizeof(unsigned));
+		starpu_variable_data_register(&data, STARPU_MAIN_RAM, (uintptr_t)val, sizeof(unsigned));
 	else
 		starpu_variable_data_register(&data, -1, (uintptr_t)NULL, sizeof(unsigned));
 	starpu_mpi_data_register(data, 42, 0);
@@ -98,6 +101,7 @@ int main(int argc, char **argv)
 	starpu_task_wait_for_all();
 
 	starpu_data_unregister(data);
+	free(val);
 
 skip:
 	starpu_mpi_shutdown();

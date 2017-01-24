@@ -43,7 +43,7 @@ static struct load_balancer_policy *predefined_policies[] =
 
 void starpu_mpi_lb_init(struct starpu_mpi_lb_conf *itf)
 {
-    const char *policy_name = getenv("STARPU_MPI_LB");
+    const char *policy_name = starpu_getenv("STARPU_MPI_LB");
     if (!policy_name && itf)
         policy_name = itf->name;
 
@@ -98,7 +98,7 @@ void starpu_mpi_lb_init(struct starpu_mpi_lb_conf *itf)
         STARPU_ASSERT(saved_post_exec_hook == NULL);
         struct starpu_sched_policy **predefined_sched_policies = starpu_sched_get_predefined_policies();
         struct starpu_sched_policy **sched_policy;
-        const char *sched_policy_name = getenv("STARPU_SCHED");
+        const char *sched_policy_name = starpu_getenv("STARPU_SCHED");
 
         if (!sched_policy_name)
             sched_policy_name = "eager";
@@ -134,7 +134,7 @@ void starpu_mpi_lb_shutdown()
     {
         struct starpu_sched_policy **predefined_sched_policies = starpu_sched_get_predefined_policies();
         struct starpu_sched_policy **sched_policy;
-        const char *sched_policy_name = getenv("STARPU_SCHED");
+        const char *sched_policy_name = starpu_getenv("STARPU_SCHED");
 
         if (!sched_policy_name)
             sched_policy_name = "eager";

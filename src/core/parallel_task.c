@@ -24,8 +24,8 @@
 
 struct starpu_task *starpu_task_dup(struct starpu_task *task)
 {
-	struct starpu_task *task_dup = (struct starpu_task *) malloc(sizeof(struct starpu_task));
-	STARPU_ASSERT(task_dup);
+	struct starpu_task *task_dup;
+	_STARPU_MALLOC(task_dup, sizeof(struct starpu_task));
 
 	/* TODO perhaps this is a bit too much overhead and we should only copy
 	 * part of the structure ? */

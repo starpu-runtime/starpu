@@ -114,13 +114,12 @@ init_perfmodels_gpu(int gpu_type)
 							       gpu_type, starpu_worker_get_devid(worker_gpu_ids[worker_gpu]), 1,
 							       -1);
 	}
+	free(worker_gpu_ids);
 }
 
 static void
 init_perfmodels(void)
 {
-	unsigned devid, ncore;
-
 	starpu_perfmodel_init(&model_cpu_task);
 	starpu_perfmodel_init(&model_gpu_task);
 
@@ -260,6 +259,12 @@ main(void)
 	return STARPU_TEST_SKIPPED;
 #else
 	setenv("STARPU_SCHED_BETA", "0", 1);
+
+#ifdef STARPU_HAVE_UNSETENV
+	unsetenv("STARPU_SCHED");
+#endif
+	if (starpu_get_env_number_default("STARPU_NWORKER_PER_CUDA", 1) != 1)
+		return STARPU_TEST_SKIPPED;
 
 	int i;
 	int n_policies = sizeof(policies)/sizeof(policies[0]);

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015  CNRS
+ * Copyright (C) 2015, 2016  CNRS
  * Copyright (C) 2015  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -134,7 +134,7 @@ void init_element(struct element *el, int size, int foreign_domain)
 	el->tag=size;
 	el->foreign_domain=foreign_domain;
 
-	int mpi_rank, mpi_size;
+	int mpi_rank;
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &mpi_rank);
 
 	starpu_vector_data_register(&el->recv, 0, (uintptr_t)el->array_recv, size, sizeof(int));
@@ -200,6 +200,16 @@ int main(int argc, char * argv[])
 	ret = starpu_mpi_init(NULL, NULL, 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
 
+	if (starpu_cpu_worker_get_count() == 0)
+	{
+		if (mpi_rank == 0)
+			FPRINTF(stderr, "We need at least 1 CPU worker.\n");
+		starpu_mpi_shutdown();
+		starpu_shutdown();
+		MPI_Finalize();
+		return STARPU_TEST_SKIPPED;
+	}
+
 	/*element initialization : domains are connected as a ring for this test*/
 	int num_elements=NUM_EL;
 	struct element * el_left=malloc(num_elements*sizeof(el_left[0]));
@@ -229,6 +239,8 @@ int main(int argc, char * argv[])
 		free_element(el_left+i);
 		free_element(el_right+i);
 	}
+	free(el_left);
+	free(el_right);
 
 	starpu_mpi_shutdown();
 	starpu_shutdown();

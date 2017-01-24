@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -51,6 +51,7 @@ extern "C"
 #  define STARPU_ATTRIBUTE_WARN_UNUSED_RESULT      __attribute__((warn_unused_result))
 #  define STARPU_ATTRIBUTE_PURE                    __attribute__((pure))
 #  define STARPU_ATTRIBUTE_ALIGNED(size)           __attribute__((aligned(size)))
+#  define STARPU_ATTRIBUTE_FORMAT(type, string, first)                  __attribute__((format(type, string, first)))
 #else
 #  define STARPU_UNLIKELY(expr)          (expr)
 #  define STARPU_LIKELY(expr)            (expr)
@@ -61,6 +62,7 @@ extern "C"
 #  define STARPU_ATTRIBUTE_WARN_UNUSED_RESULT
 #  define STARPU_ATTRIBUTE_PURE
 #  define STARPU_ATTRIBUTE_ALIGNED(size)
+#  define STARPU_ATTRIBUTE_FORMAT(type, string, first)
 #endif
 
 /* Note that if we're compiling C++, then just use the "inline"
@@ -71,6 +73,14 @@ extern "C"
 #  define STARPU_INLINE __inline
 #else
 #  define STARPU_INLINE __inline__
+#endif
+
+#if STARPU_GNUC_PREREQ(4, 3)
+#  define STARPU_ATTRIBUTE_CALLOC_SIZE(num,size)   __attribute__((alloc_size(num,size)))
+#  define STARPU_ATTRIBUTE_ALLOC_SIZE(size)        __attribute__((alloc_size(size)))
+#else
+#  define STARPU_ATTRIBUTE_CALLOC_SIZE(num,size)
+#  define STARPU_ATTRIBUTE_ALLOC_SIZE(size)
 #endif
 
 #if STARPU_GNUC_PREREQ(3, 1) && !defined(BUILDING_STARPU) && !defined(STARPU_USE_DEPRECATED_API) && !defined(STARPU_USE_DEPRECATED_ONE_ZERO_API)
@@ -102,8 +112,9 @@ extern "C"
 #endif
 
 #ifdef STARPU_NO_ASSERT
-#define STARPU_ASSERT(x)		do { } while(0)
-#define STARPU_ASSERT_MSG(x, msg, ...)	do { } while(0)
+#define STARPU_ASSERT(x)		do { if (0) { (void) (x); } } while(0)
+#define STARPU_ASSERT_ACCESSIBLE(x)	do { if (0) { (void) (x); } } while(0)
+#define STARPU_ASSERT_MSG(x, msg, ...)	do { if (0) { (void) (x); (void) msg; } } while(0)
 #else
 #  if defined(__CUDACC__) || defined(STARPU_HAVE_WINDOWS)
 #    define STARPU_ASSERT(x)		do { if (STARPU_UNLIKELY(!(x))) { STARPU_DUMP_BACKTRACE(); *(int*)NULL = 0; } } while(0)
@@ -113,6 +124,9 @@ extern "C"
 #    define STARPU_ASSERT_MSG(x, msg, ...)	do { if (STARPU_UNLIKELY(!(x))) { STARPU_DUMP_BACKTRACE(); fprintf(stderr, "\n[starpu][%s][assert failure] " msg "\n\n", __starpu_func__, ## __VA_ARGS__); assert(x); } } while(0)
 
 #  endif
+#  define STARPU_ASSERT_ACCESSIBLE(ptr)	do { \
+	volatile char __c STARPU_ATTRIBUTE_UNUSED = *(char*) (ptr); \
+} while(0)
 #endif
 
 #ifdef __APPLE_CC__
@@ -338,6 +352,7 @@ static __starpu_inline int starpu_get_env_number(const char *str)
 		}
 
 		/* fprintf(stderr, "ENV %s WAS %d\n", str, val); */
+		STARPU_ASSERT_MSG(val >= 0, "The value for the environment variable '%s' cannot be negative", str);
 		return (int)val;
 	}
 	else

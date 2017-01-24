@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2012, 2013  CNRS
+ * Copyright (C) 2011, 2012, 2013, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -61,6 +61,21 @@ static int _starpu_valgrind_print_once STARPU_ATTRIBUTE_UNUSED = 0;
 		}							\
 	} while(0)
 
+#  define STARPU_SKIP_IF_VALGRIND_RETURN_ZERO \
+	do \
+	{								\
+		if(STARPU_RUNNING_ON_VALGRIND)					\
+		{							\
+			STARPU_HG_DISABLE_CHECKING(_starpu_valgrind_print_once);	\
+			if (!_starpu_valgrind_print_once)		\
+			{						\
+				FPRINTF(stderr, "Running on valgrind, skipping the actual computations\n"); \
+				_starpu_valgrind_print_once = 1;	\
+			}						\
+			return 0;					\
+		}							\
+	} while(0)
+
 #  define STARPU_RETURN(ret) \
 	do								\
 	{								\
@@ -75,6 +90,7 @@ static int _starpu_valgrind_print_once STARPU_ATTRIBUTE_UNUSED = 0;
 #else /* defined(STARPU_HAVE_VALGRIND_H) && !defined(STARPU_VALGRIND_FULL) */
 #  define STARPU_RETURN(ret) return ret
 #  define STARPU_SKIP_IF_VALGRIND
+#  define STARPU_SKIP_IF_VALGRIND_RETURN_ZERO
 #endif  /* defined(STARPU_HAVE_VALGRIND_H) && !defined(STARPU_VALGRIND_FULL) */
 
 #ifndef ANNOTATE_HAPPENS_BEFORE

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2014, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2014, 2015, 2016, 2017  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2011-2013  INRIA
  * Copyright (C) 2013  Simon Archipoff
@@ -108,13 +108,13 @@ enum _starpu_worker_component_status
 
 struct _starpu_worker_component_data
 {
-	union 
+	union
 	{
 		struct
 		{
 			struct _starpu_worker * worker;
 			starpu_pthread_mutex_t lock;
-		};	
+		};
 		struct _starpu_combined_worker * combined_worker;
 	};
 	struct _starpu_worker_task_list * list;
@@ -133,7 +133,8 @@ static struct starpu_sched_component * _worker_components[STARPU_NMAX_SCHED_CTXS
 
 static struct _starpu_worker_task_list * _starpu_worker_task_list_create(void)
 {
-	struct _starpu_worker_task_list * l = malloc(sizeof(*l));
+	struct _starpu_worker_task_list *l;
+	_STARPU_MALLOC(l, sizeof(*l));
 	memset(l, 0, sizeof(*l));
 	l->exp_len = 0.0;
 	l->exp_start = l->exp_end = starpu_timing_now();
@@ -143,15 +144,16 @@ static struct _starpu_worker_task_list * _starpu_worker_task_list_create(void)
 
 static struct _starpu_task_grid * _starpu_task_grid_create(void)
 {
-	struct _starpu_task_grid * t = malloc(sizeof(*t));
+	struct _starpu_task_grid *t;
+	_STARPU_MALLOC(t, sizeof(*t));
 	memset(t, 0, sizeof(*t));
 	return t;
 }
 
 static struct _starpu_worker_task_list * _worker_get_list(unsigned sched_ctx_id)
 {
-	int workerid = starpu_worker_get_id();
-	STARPU_ASSERT(0 <= workerid && workerid < (int) starpu_worker_get_count());
+	unsigned workerid = starpu_worker_get_id_check();
+	STARPU_ASSERT(workerid < starpu_worker_get_count());
 	struct _starpu_worker_component_data * d = starpu_sched_component_worker_get(sched_ctx_id, workerid)->data;
 	return d->list;
 }
@@ -273,18 +275,12 @@ static inline struct starpu_task * _starpu_worker_task_list_pop(struct _starpu_w
 			t->task = NULL;
 			/* the leftist thing hold the number of tasks, other have a pointer to it */
 			int * p = t->left ? t->pntasks : &t->ntasks;
-			
+
 			/* the worker who pop the last task allow the rope to be freed */
-			if(STARPU_ATOMIC_ADD(p, -1) == 0) 
+			if(STARPU_ATOMIC_ADD(p, -1) == 0)
 				_starpu_task_grid_unset_left_right_member(t);
 
 			l->ntasks--;
-
-			if(!isnan(task->predicted))
-			{
-				l->exp_len -= task->predicted_transfer;
-				l->exp_end = l->exp_start + l->exp_len;
-			}
 
 			return task;
 		}
@@ -317,13 +313,13 @@ struct _starpu_combined_worker * _starpu_sched_component_combined_worker_get_com
 
 void _starpu_sched_component_lock_worker(unsigned sched_ctx_id, int workerid)
 {
-	STARPU_ASSERT(0 <= workerid && workerid < (int) starpu_worker_get_count());
+	STARPU_ASSERT(workerid >= 0 && workerid < (int) starpu_worker_get_count());
 	struct _starpu_worker_component_data * data = starpu_sched_component_worker_get(sched_ctx_id, workerid)->data;
 	STARPU_PTHREAD_MUTEX_LOCK(&data->lock);
 }
 void _starpu_sched_component_unlock_worker(unsigned sched_ctx_id, int workerid)
 {
-	STARPU_ASSERT(0 <= workerid && workerid < (int)starpu_worker_get_count());
+	STARPU_ASSERT(workerid >= 0  && workerid < (int)starpu_worker_get_count());
 	struct _starpu_worker_component_data * data = starpu_sched_component_worker_get(sched_ctx_id, workerid)->data;
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data->lock);
 }
@@ -336,28 +332,32 @@ void _starpu_sched_component_unlock_worker(unsigned sched_ctx_id, int workerid)
 
 
 
-/* Allows a worker to lock/unlock scheduling mutexes. Currently used in 
- * self-defined can_push calls to allow can_pull calls to take those mutexes while the 
- * current worker is pushing tasks on other workers (or itself). 
+/* Allows a worker to lock/unlock scheduling mutexes. Currently used in
+ * self-defined can_push calls to allow can_pull calls to take those mutexes while the
+ * current worker is pushing tasks on other workers (or itself).
  */
 static void _starpu_sched_component_worker_lock_scheduling(unsigned sched_ctx_id)
 {
-	int workerid = starpu_worker_get_id();
+	unsigned workerid = starpu_worker_get_id_check();
 	starpu_pthread_mutex_t *sched_mutex;
 	starpu_pthread_cond_t *sched_cond;
 	starpu_worker_get_sched_condition(workerid, &sched_mutex, &sched_cond);
-	_starpu_sched_component_lock_worker(sched_ctx_id, workerid);	
+	_starpu_sched_component_lock_worker(sched_ctx_id, workerid);
+#ifdef STARPU_DEVEL
+#warning Reverses locking order between worker lock and worker component lock!
+#warning See helgrind suppression file for the details
+#endif
 	STARPU_PTHREAD_MUTEX_LOCK_SCHED(sched_mutex);
 }
 
 static void _starpu_sched_component_worker_unlock_scheduling(unsigned sched_ctx_id)
 {
-	int workerid = starpu_worker_get_id();
+	unsigned workerid = starpu_worker_get_id_check();
 	starpu_pthread_mutex_t *sched_mutex;
 	starpu_pthread_cond_t *sched_cond;
 	starpu_worker_get_sched_condition(workerid, &sched_mutex, &sched_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(sched_mutex);
-	_starpu_sched_component_unlock_worker(sched_ctx_id, workerid);	
+	_starpu_sched_component_unlock_worker(sched_ctx_id, workerid);
 }
 
 static void _starpu_sched_component_worker_set_sleep_status(struct starpu_sched_component * worker_component)
@@ -435,7 +435,7 @@ static void simple_worker_can_pull(struct starpu_sched_component * worker_compon
 	if(_starpu_sched_component_worker_is_reset_status(worker_component))
 		_starpu_sched_component_worker_set_changed_status(worker_component);
 
-	if(w->workerid == starpu_worker_get_id())
+	if(w->workerid == _starpu_worker_get_id())
 	{
 		_starpu_sched_component_unlock_worker(worker_component->tree->sched_ctx_id, w->workerid);
 		return;
@@ -472,13 +472,13 @@ static int simple_worker_push_task(struct starpu_sched_component * component, st
 	STARPU_PTHREAD_MUTEX_LOCK(&data->list->mutex);
 	_starpu_worker_task_list_push(data->list, t);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data->list->mutex);
-	simple_worker_can_pull(component);	
+	simple_worker_can_pull(component);
 	return 0;
 }
 
 static struct starpu_task * simple_worker_pull_task(struct starpu_sched_component *component)
 {
-	int workerid = starpu_worker_get_id();
+	unsigned workerid = starpu_worker_get_id_check();
 	struct _starpu_worker_component_data * data = component->data;
 	struct _starpu_worker_task_list * list = data->list;
 	STARPU_PTHREAD_MUTEX_LOCK(&list->mutex);
@@ -489,7 +489,7 @@ static struct starpu_task * simple_worker_pull_task(struct starpu_sched_componen
 		starpu_push_task_end(task);
 		return task;
 	}
-	_starpu_sched_component_lock_worker(component->tree->sched_ctx_id, workerid);	
+	_starpu_sched_component_lock_worker(component->tree->sched_ctx_id, workerid);
 	int i;
 	do
 	{
@@ -510,7 +510,7 @@ static struct starpu_task * simple_worker_pull_task(struct starpu_sched_componen
 	}
 	while((!task) && _starpu_sched_component_worker_is_changed_status(component));
 	_starpu_sched_component_worker_set_sleep_status(component);
-	_starpu_sched_component_unlock_worker(component->tree->sched_ctx_id, workerid);	
+	_starpu_sched_component_unlock_worker(component->tree->sched_ctx_id, workerid);
 	if(!task)
 		return NULL;
 	if(task->cl->type == STARPU_SPMD)
@@ -580,7 +580,7 @@ static void _worker_component_deinit_data(struct starpu_sched_component * compon
 
 static struct starpu_sched_component * starpu_sched_component_worker_create(struct starpu_sched_tree *tree, int workerid)
 {
-	STARPU_ASSERT(0 <=  workerid && workerid < (int) starpu_worker_get_count());
+	STARPU_ASSERT(workerid >= 0 && workerid < (int) starpu_worker_get_count());
 
 	if(_worker_components[tree->sched_ctx_id][workerid])
 		return _worker_components[tree->sched_ctx_id][workerid];
@@ -589,9 +589,10 @@ static struct starpu_sched_component * starpu_sched_component_worker_create(stru
 	if(worker == NULL)
 		return NULL;
 	char name[32];
-	snprintf(name, sizeof(name), "worker %u", workerid);
+	snprintf(name, sizeof(name), "worker %d", workerid);
 	struct starpu_sched_component * component = starpu_sched_component_create(tree, name);
-	struct _starpu_worker_component_data * data = malloc(sizeof(*data));
+	struct _starpu_worker_component_data *data;
+	_STARPU_MALLOC(data, sizeof(*data));
 	memset(data, 0, sizeof(*data));
 
 	data->worker = worker;
@@ -636,11 +637,11 @@ static void combined_worker_can_pull(struct starpu_sched_component * component)
 	(void) component;
 	STARPU_ASSERT(starpu_sched_component_is_combined_worker(component));
 	struct _starpu_worker_component_data * data = component->data;
-	int workerid = starpu_worker_get_id();
+	unsigned workerid = starpu_worker_get_id_check();
 	int i;
 	for(i = 0; i < data->combined_worker->worker_size; i++)
 	{
-		if(i == workerid)
+		if((unsigned) i == workerid)
 			continue;
 		int worker = data->combined_worker->combined_workerid[i];
 		_starpu_sched_component_lock_worker(component->tree->sched_ctx_id, worker);
@@ -682,7 +683,7 @@ static int combined_worker_push_task(struct starpu_sched_component * component, 
 		task_alias[i]->task->workerid = combined_worker->combined_workerid[i];
 		task_alias[i]->left = task_alias[i-1];
 		task_alias[i - 1]->right = task_alias[i];
-		task_alias[i]->pntasks = &task_alias[0]->ntasks;
+		task_alias[i]->pntasks = &(task_alias[0]->ntasks);
 	}
 
 	starpu_pthread_mutex_t * mutex_to_unlock = NULL;
@@ -701,7 +702,7 @@ static int combined_worker_push_task(struct starpu_sched_component * component, 
 		i++;
 	}
 	while(i < combined_worker->worker_size);
-	
+
 	STARPU_PTHREAD_MUTEX_UNLOCK(mutex_to_unlock);
 
 	int workerid = starpu_worker_get_id();
@@ -765,7 +766,7 @@ static double combined_worker_estimated_load(struct starpu_sched_component * com
 
 static struct starpu_sched_component  * starpu_sched_component_combined_worker_create(struct starpu_sched_tree *tree, int workerid)
 {
-	STARPU_ASSERT(0 <= workerid && workerid <  STARPU_NMAXWORKERS);
+	STARPU_ASSERT(workerid >= 0 && workerid <  STARPU_NMAXWORKERS);
 
 	if(_worker_components[tree->sched_ctx_id][workerid])
 		return _worker_components[tree->sched_ctx_id][workerid];
@@ -774,7 +775,8 @@ static struct starpu_sched_component  * starpu_sched_component_combined_worker_c
 	if(combined_worker == NULL)
 		return NULL;
 	struct starpu_sched_component * component = starpu_sched_component_create(tree, "combined_worker");
-	struct _starpu_worker_component_data * data = malloc(sizeof(*data));
+	struct _starpu_worker_component_data *data;
+	_STARPU_MALLOC(data, sizeof(*data));
 	memset(data, 0, sizeof(*data));
 	data->combined_worker = combined_worker;
 	data->status = COMPONENT_STATUS_SLEEPING;
@@ -839,32 +841,43 @@ int starpu_sched_component_worker_get_workerid(struct starpu_sched_component * w
 	return starpu_bitmap_first(worker_component->workers);
 }
 
-void starpu_sched_component_worker_pre_exec_hook(struct starpu_task * task)
+void starpu_sched_component_worker_pre_exec_hook(struct starpu_task * task, unsigned sched_ctx_id STARPU_ATTRIBUTE_UNUSED)
 {
-	if(!isnan(task->predicted))
+	double model = task->predicted;
+	double transfer_model = task->predicted_transfer;
+
+	if(!isnan(task->predicted) || !isnan(task->predicted_transfer))
 	{
-		unsigned sched_ctx_id = task->sched_ctx;
 		struct _starpu_worker_task_list * list = _worker_get_list(sched_ctx_id);
 		STARPU_PTHREAD_MUTEX_LOCK(&list->mutex);
 
-		list->exp_start = starpu_timing_now() + task->predicted;
+		list->exp_start = STARPU_MAX(starpu_timing_now(), list->exp_start);
 
-		if(list->ntasks == 0)
+		/* The transfer is over, get rid of it in the completion
+		 * prediction */
+		if (!isnan(transfer_model))
+			list->exp_len -= transfer_model;
+
+		if (!isnan(model))
 		{
-			list->exp_end = list->exp_start;
-			list->exp_len = 0.0;
+			/* We now start the computation, get rid of it in the
+			 * completion prediction */
+			list->exp_len -= model;
+			list->exp_start += model;
 		}
-		else
-			list->exp_end = list->exp_start + list->exp_len;
+		
+		if(list->ntasks == 0)
+			list->exp_len = 0.0;
+
+		list->exp_end = list->exp_start + list->exp_len;
 		STARPU_PTHREAD_MUTEX_UNLOCK(&list->mutex);
 	}
 }
 
-void starpu_sched_component_worker_post_exec_hook(struct starpu_task * task)
+void starpu_sched_component_worker_post_exec_hook(struct starpu_task * task, unsigned sched_ctx_id STARPU_ATTRIBUTE_UNUSED)
 {
 	if(task->execute_on_a_specific_worker)
 		return;
-	unsigned sched_ctx_id = task->sched_ctx;
 	struct _starpu_worker_task_list * list = _worker_get_list(sched_ctx_id);
 	STARPU_PTHREAD_MUTEX_LOCK(&list->mutex);
 	list->exp_start = starpu_timing_now();

@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012 INRIA
+ * Copyright (C) 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,6 +17,10 @@
 
 #include <starpu.h>
 
+/*
+ * Queue an OpenCL kernel which just increments a variable
+ */
+
 extern struct starpu_opencl_program opencl_program;
 
 void opencl_codelet_unsigned_inc(void *buffers[], void *args)
@@ -26,11 +31,10 @@ void opencl_codelet_unsigned_inc(void *buffers[], void *args)
         cl_int err;
 	cl_kernel kernel;
 	cl_command_queue queue;
-	cl_event event;
 
 	cl_mem val = (cl_mem) STARPU_VARIABLE_GET_PTR(buffers[0]);
 
-	id = starpu_worker_get_id();
+	id = starpu_worker_get_id_check();
 	devid = starpu_worker_get_devid(id);
 
 	err = starpu_opencl_load_kernel(&kernel, &queue, &opencl_program, "_opencl_unsigned_inc", devid);

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2013 Corentin Salingue
- * Copyright (C) 2015 CNRS
+ * Copyright (C) 2015, 2016 CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -57,8 +57,8 @@ struct starpu_stdio_obj
 
 static struct starpu_stdio_obj *_starpu_stdio_init(int descriptor, char *path, size_t size)
 {
-	struct starpu_stdio_obj *obj = malloc(sizeof(struct starpu_stdio_obj));
-	STARPU_ASSERT(obj != NULL);
+	struct starpu_stdio_obj *obj;
+	_STARPU_MALLOC(obj, sizeof(struct starpu_stdio_obj));
 
 	FILE *f = fdopen(descriptor,"rb+");
 	if (f == NULL)
@@ -173,8 +173,8 @@ static void *starpu_stdio_open(void *base, void *pos, size_t size)
 {
 	struct starpu_stdio_obj *obj;
 	/* create template */
-	char *baseCpy = malloc(strlen(base)+1+strlen(pos)+1);
-	STARPU_ASSERT(baseCpy != NULL);
+	char *baseCpy;
+	_STARPU_MALLOC(baseCpy, strlen(base)+1+strlen(pos)+1);
 	strcpy(baseCpy,(char *) base);
 	strcat(baseCpy,(char *) "/");
 	strcat(baseCpy,(char *) pos);
@@ -230,6 +230,7 @@ static int starpu_stdio_full_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj,
 {
 	struct starpu_stdio_obj *tmp = (struct starpu_stdio_obj *) obj;
 	FILE *f = tmp->file;
+	starpu_ssize_t ssize;
 
 	if (f)
 		STARPU_PTHREAD_MUTEX_LOCK(&tmp->mutex);
@@ -238,7 +239,9 @@ static int starpu_stdio_full_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj,
 
 	int res = fseek(f, 0, SEEK_END);
 	STARPU_ASSERT_MSG(res == 0, "Stdio write failed");
-	*size = ftell(f);
+	ssize = ftell(f);
+	STARPU_ASSERT_MSG(ssize >= 0, "Stdio write failed");
+	*size = ssize;
 
 	if (tmp->file)
 		STARPU_PTHREAD_MUTEX_UNLOCK(&tmp->mutex);
@@ -316,8 +319,8 @@ static int starpu_stdio_full_write(void *base STARPU_ATTRIBUTE_UNUSED, void *obj
 /* create a new copy of parameter == base */
 static void *starpu_stdio_plug(void *parameter, starpu_ssize_t size STARPU_ATTRIBUTE_UNUSED)
 {
-	char *tmp = malloc(sizeof(char)*(strlen(parameter)+1));
-	STARPU_ASSERT(tmp != NULL);
+	char *tmp;
+	_STARPU_MALLOC(tmp, sizeof(char)*(strlen(parameter)+1));
 	strcpy(tmp,(char *) parameter);
 
 	{

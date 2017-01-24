@@ -264,7 +264,7 @@ static int cholesky_grain_rec(float *matA, unsigned size, unsigned ld, unsigned 
 	}
 }
 
-static void initialize_system(float **A, unsigned dim, unsigned pinned)
+static void initialize_system(int argc, char **argv, float **A, unsigned pinned)
 {
 	int ret;
 	int flags = STARPU_MALLOC_SIMULATION_FOLDED;
@@ -277,6 +277,10 @@ static void initialize_system(float **A, unsigned dim, unsigned pinned)
 	if (ret == -ENODEV)
 		exit(77);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+
+	init_sizes();
+
+	parse_args(argc, argv);
 
 #ifdef STARPU_USE_CUDA
 	initialize_chol_model(&chol_model_11,"chol_model_11",cpu_chol_task_11_cost,cuda_chol_task_11_cost);
@@ -292,7 +296,7 @@ static void initialize_system(float **A, unsigned dim, unsigned pinned)
 
 	if (pinned)
 		flags |= STARPU_MALLOC_PINNED;
-	starpu_malloc_flags((void **)A, dim*dim*sizeof(float), flags);
+	starpu_malloc_flags((void **)A, size*size*sizeof(float), flags);
 }
 
 int cholesky_grain(float *matA, unsigned size, unsigned ld, unsigned nblocks, unsigned nbigblocks, unsigned pinned)
@@ -338,10 +342,8 @@ int main(int argc, char **argv)
 
      	int ret;
 
-	parse_args(argc, argv);
-
 	float *mat = NULL;
-	initialize_system(&mat, size, pinned);
+	initialize_system(argc, argv, &mat, pinned);
 
 #ifndef STARPU_SIMGRID
 	unsigned i,j;

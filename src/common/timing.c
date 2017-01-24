@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012, 2014-2015  Université de Bordeaux
+ * Copyright (C) 2009-2012, 2014-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -171,11 +171,10 @@ void _starpu_timing_init(void)
 
 	{
 		struct timeval tv1,tv2;
-		struct timespec ts = { .tv_sec = 0, .tv_nsec = 500000000UL };
 
 		STARPU_GET_TICK(t1);
 		mygettimeofday(&tv1,0);
-		_starpu_sleep(ts);
+		starpu_sleep(0.5);
 		STARPU_GET_TICK(t2);
 		mygettimeofday(&tv2,0);
 		_starpu_scale = ((tv2.tv_sec*1e6 + tv2.tv_usec) -

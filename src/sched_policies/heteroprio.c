@@ -1,6 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2015  INRIA
+ * Copyright (C) 2016  CNRS
+ * Copyright (C) 2016  Uppsala University
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -22,13 +24,11 @@
 
 #include <common/fxt.h>
 #include <core/task.h>
+#include <core/workers.h>
+#include <core/debug.h>
 
 #include <sched_policies/fifo_queues.h>
 #include <limits.h>
-
-#ifdef HAVE_AYUDAME_H
-#include <Ayudame.h>
-#endif
 
 #ifndef DBL_MIN
 #define DBL_MIN __DBL_MIN__
@@ -157,26 +157,28 @@ inline void starpu_heteroprio_set_arch_slow_factor(unsigned sched_ctx_id, enum s
 /** If the user does not provide an init callback we create a single bucket for all architectures */
 static inline void default_init_sched(unsigned sched_ctx_id)
 {
+	int min_prio = starpu_sched_ctx_get_min_priority(sched_ctx_id);
+	int max_prio = starpu_sched_ctx_get_max_priority(sched_ctx_id);
 	// By default each type of devices uses 1 bucket and no slow factor
 #ifdef STARPU_USE_CPU
-	starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_CPU_IDX, STARPU_MAX_PRIO-STARPU_MIN_PRIO+1);
+	starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_CPU_IDX, max_prio-min_prio+1);
 #endif
 #ifdef STARPU_USE_CUDA
-	starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_CUDA_IDX, STARPU_MAX_PRIO-STARPU_MIN_PRIO+1);
+	starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_CUDA_IDX, max_prio-min_prio+1);
 #endif
 #ifdef STARPU_USE_OPENCL
-	starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_OPENCL_IDX, STARPU_MAX_PRIO-STARPU_MIN_PRIO+1);
+	starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_OPENCL_IDX, max_prio-min_prio+1);
 #endif
 #ifdef STARPU_USE_MIC
-	starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_MIC_IDX, STARPU_MAX_PRIO-STARPU_MIN_PRIO+1);
+	starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_MIC_IDX, max_prio-min_prio+1);
 #endif
 #ifdef STARPU_USE_SCC
-	starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_SCC_IDX, STARPU_MAX_PRIO-STARPU_MIN_PRIO+1);
+	starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_SCC_IDX, max_prio-min_prio+1);
 #endif
 
 	// Direct mapping
 	int prio;
-	for(prio=STARPU_MIN_PRIO ; prio<=STARPU_MAX_PRIO ; prio++)
+	for(prio=min_prio ; prio<=max_prio ; prio++)
 	{
 #ifdef STARPU_USE_CPU
 		starpu_heteroprio_set_mapping(sched_ctx_id, STARPU_CPU_IDX, prio, prio);
@@ -199,7 +201,8 @@ static inline void default_init_sched(unsigned sched_ctx_id)
 static void initialize_heteroprio_policy(unsigned sched_ctx_id)
 {
 	/* Alloc the scheduler data  */
-	struct _starpu_heteroprio_data *hp = (struct _starpu_heteroprio_data*)malloc(sizeof(struct _starpu_heteroprio_data));
+	struct _starpu_heteroprio_data *hp;
+	_STARPU_MALLOC(hp, sizeof(struct _starpu_heteroprio_data));
 	memset(hp, 0, sizeof(*hp));
 
 	hp->waiters = starpu_bitmap_create();
@@ -212,10 +215,10 @@ static void initialize_heteroprio_policy(unsigned sched_ctx_id)
 	for(idx_prio = 0; idx_prio < STARPU_HETEROPRIO_MAX_PRIO; ++idx_prio)
 		_heteroprio_bucket_init(&hp->buckets[idx_prio]);
 
-	void (*init_sched)(void) = starpu_sched_ctx_get_sched_policy_init(sched_ctx_id);
+	void (*init_sched)(unsigned) = starpu_sched_ctx_get_sched_policy_init(sched_ctx_id);
 
 	if(init_sched)
-		init_sched();
+		init_sched(sched_ctx_id);
 	else
 		default_init_sched(sched_ctx_id);
 
@@ -258,7 +261,7 @@ static void initialize_heteroprio_policy(unsigned sched_ctx_id)
 				nb_arch_on_bucket += 1;
 			}
 		}
-		STARPU_ASSERT_MSG(check_all_archs[idx_prio] == nb_arch_on_bucket, "check_all_archs[idx_prio(%d)] = %d != nb_arch_on_bucket = %d\n", idx_prio, check_all_archs[idx_prio], nb_arch_on_bucket);
+		STARPU_ASSERT_MSG(check_all_archs[idx_prio] == nb_arch_on_bucket, "check_all_archs[idx_prio(%u)] = %u != nb_arch_on_bucket = %u\n", idx_prio, check_all_archs[idx_prio], nb_arch_on_bucket);
 	}
 }
 
@@ -291,11 +294,10 @@ static void add_workers_heteroprio_policy(unsigned sched_ctx_id, int *workerids,
 {
 	struct _starpu_heteroprio_data *hp = (struct _starpu_heteroprio_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
-	int workerid;
 	unsigned i;
 	for (i = 0; i < nworkers; i++)
 	{
-		workerid = workerids[i];
+		int workerid = workerids[i];
 		memset(&hp->workers_heteroprio[workerid], 0, sizeof(hp->workers_heteroprio[workerid]));
 		/* if the worker has already belonged to this context
 		   the queue and the synchronization variables have been already initialized */
@@ -304,36 +306,26 @@ static void add_workers_heteroprio_policy(unsigned sched_ctx_id, int *workerids,
 			hp->workers_heteroprio[workerid].tasks_queue = _starpu_create_fifo();
 			switch(starpu_worker_get_type(workerid))
 			{
-#ifdef STARPU_USE_CPU
 			case STARPU_CPU_WORKER:
 				hp->workers_heteroprio[workerid].arch_type = STARPU_CPU;
 				hp->workers_heteroprio[workerid].arch_index = STARPU_CPU_IDX;
 				break;
-#endif
-#ifdef STARPU_USE_CUDA
 			case STARPU_CUDA_WORKER:
 				hp->workers_heteroprio[workerid].arch_type = STARPU_CUDA;
 				hp->workers_heteroprio[workerid].arch_index = STARPU_CUDA_IDX;
 				break;
-#endif
-#ifdef STARPU_USE_OPENCL
 			case STARPU_OPENCL_WORKER:
 				hp->workers_heteroprio[workerid].arch_type = STARPU_OPENCL;
 				hp->workers_heteroprio[workerid].arch_index = STARPU_OPENCL_IDX;
 				break;
-#endif
-#ifdef STARPU_USE_MIC
 			case STARPU_MIC_WORKER:
 				hp->workers_heteroprio[workerid].arch_type = STARPU_MIC;
 				hp->workers_heteroprio[workerid].arch_index = STARPU_MIC_IDX;
 				break;
-#endif
-#ifdef STARPU_USE_SCC
 			case STARPU_SCC_WORKER:
 				hp->workers_heteroprio[workerid].arch_type = STARPU_SCC;
 				hp->workers_heteroprio[workerid].arch_index = STARPU_SCC_IDX;
 				break;
-#endif
 			default:
 				STARPU_ASSERT(0);
 			}
@@ -346,12 +338,11 @@ static void add_workers_heteroprio_policy(unsigned sched_ctx_id, int *workerids,
 static void remove_workers_heteroprio_policy(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
 {
 	struct _starpu_heteroprio_data *hp = (struct _starpu_heteroprio_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-
-	int workerid;
 	unsigned i;
+
 	for (i = 0; i < nworkers; i++)
 	{
-		workerid = workerids[i];
+		int workerid = workerids[i];
 		if(hp->workers_heteroprio[workerid].tasks_queue != NULL)
 		{
 			_starpu_destroy_fifo(hp->workers_heteroprio[workerid].tasks_queue);
@@ -394,7 +385,6 @@ static int push_task_heteroprio_policy(struct starpu_task *task)
 
 	/*if there are no tasks_queue block */
 	/* wake people waiting for a task */
-	unsigned worker = 0;
 	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 
 	struct starpu_sched_ctx_iterator it;
@@ -405,7 +395,7 @@ static int push_task_heteroprio_policy(struct starpu_task *task)
 	workers->init_iterator(workers, &it);
 	while(workers->has_next(workers, &it))
 	{
-		worker = workers->get_next(workers, &it);
+		unsigned worker = workers->get_next(workers, &it);
 
 #ifdef STARPU_NON_BLOCKING_DRIVERS
 		if (!starpu_bitmap_get(hp->waiters, worker))
@@ -434,7 +424,7 @@ static int push_task_heteroprio_policy(struct starpu_task *task)
 	workers->init_iterator(workers, &it);
 	while(workers->has_next(workers, &it))
 	{
-		worker = workers->get_next(workers, &it);
+		unsigned worker = workers->get_next(workers, &it);
 		if (dowake[worker])
 			if (starpu_wake_worker(worker))
 				break; // wake up a single worker
@@ -446,7 +436,7 @@ static int push_task_heteroprio_policy(struct starpu_task *task)
 
 static struct starpu_task *pop_task_heteroprio_policy(unsigned sched_ctx_id)
 {
-	const unsigned workerid = starpu_worker_get_id();
+	const unsigned workerid = starpu_worker_get_id_check();
 	struct _starpu_heteroprio_data *hp = (struct _starpu_heteroprio_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	struct _heteroprio_worker_wrapper* worker = &hp->workers_heteroprio[workerid];
 
@@ -512,6 +502,7 @@ static struct starpu_task *pop_task_heteroprio_policy(unsigned sched_ctx_id)
 				struct starpu_task* task = _starpu_fifo_pop_local_task(bucket->tasks_queue);
 				STARPU_ASSERT(starpu_worker_can_execute_task(workerid, task, 0));
 				/* Save the task */
+				STARPU_AYU_ADDTOTASKQUEUE(_starpu_get_job_associated_to_task(task)->job_id, workerid);
 				_starpu_fifo_push_task(worker->tasks_queue, task);
 
 				/* Update general counter */
@@ -619,7 +610,7 @@ done:		;
 		unsigned child_sched_ctx = starpu_sched_ctx_worker_is_master_for_child_ctx(workerid, sched_ctx_id);
 		if(child_sched_ctx != STARPU_NMAX_SCHED_CTXS)
 		{
-			starpu_sched_ctx_move_task_to_ctx(task, child_sched_ctx, 1);
+			starpu_sched_ctx_move_task_to_ctx(task, child_sched_ctx, 1, 1);
 			starpu_sched_ctx_revert_task_counters(sched_ctx_id, task->flops);
 			return NULL;
 		}

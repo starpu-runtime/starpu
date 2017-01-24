@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015  CNRS
+ * Copyright (C) 2015, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -29,7 +29,6 @@ void _starpu_mpi_tag_init(void);
 void _starpu_mpi_tag_free(void);
 void _starpu_mpi_data_register_tag(starpu_data_handle_t handle, int tag);
 int _starpu_mpi_data_release_tag(starpu_data_handle_t handle);
-starpu_data_handle_t starpu_mpi_data_get_data_handle_from_tag(int tag);
 
 #ifdef __cplusplus
 }

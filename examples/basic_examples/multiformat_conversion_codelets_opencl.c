@@ -25,13 +25,12 @@ void cpu_to_opencl_opencl_func(void *buffers[], void *args)
         cl_int err;
 	cl_kernel kernel;
 	cl_command_queue queue;
-	cl_event event;
 
 	unsigned n = STARPU_MULTIFORMAT_GET_NX(buffers[0]);
 	cl_mem src = (cl_mem) STARPU_MULTIFORMAT_GET_CPU_PTR(buffers[0]);
 	cl_mem dst = (cl_mem) STARPU_MULTIFORMAT_GET_OPENCL_PTR(buffers[0]);
 
-	id = starpu_worker_get_id();
+	id = starpu_worker_get_id_check();
 	devid = starpu_worker_get_devid(id);
 
 	err = starpu_opencl_load_kernel(&kernel,

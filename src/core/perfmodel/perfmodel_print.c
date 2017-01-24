@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2013-2015  Université de Bordeaux
- * Copyright (C) 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2011, 2013-2016  Université de Bordeaux
+ * Copyright (C) 2011, 2012, 2013, 2014, 2015, 2016  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -68,10 +68,10 @@ void starpu_perfmodel_print(struct starpu_perfmodel *model, struct starpu_perfmo
 	STARPU_ASSERT(comb != -1);
 
 	struct starpu_perfmodel_per_arch *arch_model = &model->state->per_arch[comb][nimpl];
-	char archname[32];
 
 	if (arch_model->regression.nsample || arch_model->regression.valid || arch_model->regression.nl_valid || arch_model->list)
 	{
+		char archname[32];
 		starpu_perfmodel_get_arch_name(arch, archname, 32, nimpl);
 		fprintf(output, "# performance model for %s\n", archname);
 	}
@@ -190,7 +190,7 @@ int starpu_perfmodel_print_all(struct starpu_perfmodel *model, char *arch, char 
 			int implid;
 			struct starpu_perfmodel_arch perf_arch;
 			perf_arch.ndevices = 1;
-			perf_arch.devices = (struct starpu_perfmodel_device*)malloc(sizeof(struct starpu_perfmodel_device));
+			_STARPU_MALLOC(perf_arch.devices, sizeof(struct starpu_perfmodel_device));
 			perf_arch.devices[0].type = STARPU_CPU_WORKER;
 			perf_arch.devices[0].devid = 0;
 			perf_arch.devices[0].ncores = 1;
@@ -216,7 +216,7 @@ int starpu_perfmodel_print_all(struct starpu_perfmodel *model, char *arch, char 
 			int implid;
 			struct starpu_perfmodel_arch perf_arch;
 			perf_arch.ndevices = 1;
-			perf_arch.devices = (struct starpu_perfmodel_device*)malloc(sizeof(struct starpu_perfmodel_device));
+			_STARPU_MALLOC(perf_arch.devices, sizeof(struct starpu_perfmodel_device));
 			perf_arch.devices[0].type = STARPU_CPU_WORKER;
 			perf_arch.devices[0].devid = 0;
 			perf_arch.devices[0].ncores = k;
@@ -236,7 +236,7 @@ int starpu_perfmodel_print_all(struct starpu_perfmodel *model, char *arch, char 
 			struct starpu_perfmodel_arch perf_arch;
 
 			perf_arch.ndevices = 1;
-			perf_arch.devices = (struct starpu_perfmodel_device*)malloc(sizeof(struct starpu_perfmodel_device));
+			_STARPU_MALLOC(perf_arch.devices, sizeof(struct starpu_perfmodel_device));
 			perf_arch.devices[0].type = STARPU_CUDA_WORKER;
 			perf_arch.devices[0].ncores = 1;
 			int comb;
@@ -266,7 +266,7 @@ int starpu_perfmodel_print_all(struct starpu_perfmodel *model, char *arch, char 
 		{
 			struct starpu_perfmodel_arch perf_arch;
 			perf_arch.ndevices = 1;
-			perf_arch.devices = (struct starpu_perfmodel_device*)malloc(sizeof(struct starpu_perfmodel_device));
+			_STARPU_MALLOC(perf_arch.devices, sizeof(struct starpu_perfmodel_device));
 
 			perf_arch.devices[0].type = STARPU_CUDA_WORKER;
 			perf_arch.devices[0].devid = gpuid;
@@ -288,3 +288,35 @@ int starpu_perfmodel_print_all(struct starpu_perfmodel *model, char *arch, char 
 	return 0;
 }
 
+int starpu_perfmodel_print_estimations(struct starpu_perfmodel *model, uint32_t footprint, FILE *output)
+{
+	unsigned workerid;
+	for (workerid = 0; workerid < starpu_worker_get_count(); workerid++)
+	{
+		struct starpu_perfmodel_arch* arch = starpu_worker_get_perf_archtype(workerid, STARPU_NMAX_SCHED_CTXS);
+		int comb = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
+		struct starpu_perfmodel_per_arch *arch_model;
+		struct starpu_perfmodel_history_list *ptr = NULL;
+
+		if (comb >= 0 && model->state->per_arch[comb])
+		{
+			arch_model = &model->state->per_arch[comb][0];
+
+			for (ptr = arch_model->list; ptr; ptr = ptr->next)
+			{
+				struct starpu_perfmodel_history_entry *entry = ptr->entry;
+				if (entry->footprint == footprint)
+				{
+					fprintf(output, "%s%e", workerid?" ":"", entry->mean);
+					break;
+				}
+			}
+		}
+		if (!ptr)
+		{
+			/* Didn't find any entry :/ */
+			fprintf(output, "%sinf", workerid?" ":"");
+		}
+	}
+	return 0;
+}

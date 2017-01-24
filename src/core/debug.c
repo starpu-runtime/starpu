@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2013  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2013, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2013, 2015, 2016  CNRS
+ * Copyright (C) 2016  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -73,7 +74,7 @@ void _starpu_print_to_logfile(const char *format STARPU_ATTRIBUTE_UNUSED, ...)
 }
 
 /* Record codelet to give ayudame nice function ids starting from 0. */
-#ifdef HAVE_AYUDAME_H
+#if defined(STARPU_USE_AYUDAME1)
 struct ayudame_codelet
 {
 	char *name;
@@ -105,7 +106,7 @@ int64_t _starpu_ayudame_get_func_id(struct starpu_codelet *cl)
 			ncodelets_alloc = 16;
 		else
 			ncodelets_alloc *= 2;
-		codelets = realloc(codelets, ncodelets_alloc * sizeof(*codelets));
+		_STARPU_REALLOC(codelets, ncodelets_alloc * sizeof(*codelets));
 	}
 	codelets[ncodelets].cl = cl;
 	if (name)
@@ -119,4 +120,4 @@ int64_t _starpu_ayudame_get_func_id(struct starpu_codelet *cl)
 	STARPU_PTHREAD_MUTEX_UNLOCK(&ayudame_mutex);
 	return i + 1;
 }
-#endif
+#endif /* AYUDAME1 */

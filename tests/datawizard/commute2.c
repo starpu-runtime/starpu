@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2014-2015 Université Bordeaux
+ * Copyright (C) 2014-2016 Université Bordeaux
  * Copyright (C) 2014 INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -22,6 +22,10 @@
 #include <unistd.h>
 #include "../helper.h"
 #include "../helper.h"
+
+/*
+ * Test that STARPU_RW vs STARPU_RW|STARPU_COMMUTE get proper dependency
+ */
 
 static unsigned cnt;
 

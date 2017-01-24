@@ -239,8 +239,8 @@ void _starpu_scc_set_offset_in_shared_memory(void *ptr, void **dev_handle, size_
 	{
 		if (!_starpu_scc_common_is_in_shared_memory(ptr))
 		{
-			fprintf(stderr, "The data (%p) you want to register does not seem to be allocated in shared memory. "
-					"Please use starpu_malloc to do this.\n", ptr);
+			_STARPU_MSG("The data (%p) you want to register does not seem to be allocated in shared memory. "
+				    "Please use starpu_malloc to do this.\n", ptr);
 			STARPU_ABORT();
 		}
 
@@ -286,7 +286,6 @@ void *_starpu_scc_src_worker(void *arg)
 	int devid = args->devid;
 	int workerid = args->workerid;
 	struct _starpu_machine_config *config = args->config;
-	unsigned memnode = args->memory_node;
 	unsigned baseworkerid = args - config->workers;
 	unsigned subworkerid = args->subworkerid;
 	unsigned i;
@@ -298,7 +297,13 @@ void *_starpu_scc_src_worker(void *arg)
 	for (i = 0; i < config->topology.nmiccores[devid]; i++)
 	{
 		struct _starpu_worker *worker = &config->workers[baseworkerid+i];
-		snprintf(worker->name, sizeof(worker->name), "MIC %d core %u", devid, i);
+		snprintf(worker->name, sizeof(worker->name), "SCC %d core %u", devid, i);
+		snprintf(worker->short_name, sizeof(worker->short_name), "SCC %d core %u", devid, i);
+	}
+	{
+		char thread_name[16];
+		snprintf(thread_name, sizeof(thread_name), "SCC %d", devid);
+		starpu_pthread_setname(thread_name);
 	}
 
 	_STARPU_TRACE_WORKER_INIT_END(workerid);

@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010 - 2012  INRIA
+ * Copyright (C) 2016  Uppsala University
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -32,6 +33,9 @@ extern "C"
 #define STARPU_SCHED_CTX_NESTED                  (6<<16)
 #define STARPU_SCHED_CTX_AWAKE_WORKERS           (7<<16)
 #define STARPU_SCHED_CTX_POLICY_INIT             (8<<16)
+#define STARPU_SCHED_CTX_USER_DATA               (9<<16)
+#define STARPU_SCHED_CTX_CUDA_NSMS               (10<<16)
+#define STARPU_SCHED_CTX_SUB_CTXS                (11<<16)
 
 unsigned starpu_sched_ctx_create(int *workerids_ctx, int nworkers_ctx, const char *sched_ctx_name, ...);
 
@@ -62,6 +66,7 @@ void starpu_sched_ctx_stop_task_submission(void);
 void starpu_sched_ctx_finished_submit(unsigned sched_ctx_id);
 
 unsigned starpu_sched_ctx_get_workers_list(unsigned sched_ctx_id, int **workerids);
+unsigned starpu_sched_ctx_get_workers_list_raw(unsigned sched_ctx_id, int **workerids);
 
 unsigned starpu_sched_ctx_get_nworkers(unsigned sched_ctx_id);
 
@@ -102,7 +107,9 @@ int starpu_sched_ctx_max_priority_is_set(unsigned sched_ctx_id);
 
 #define STARPU_DEFAULT_PRIO	0
 
-struct starpu_worker_collection *starpu_sched_ctx_create_worker_collection(unsigned sched_ctx_id, enum starpu_worker_collection_type type);
+void *starpu_sched_ctx_get_user_data(unsigned sched_ctx_id);
+
+struct starpu_worker_collection *starpu_sched_ctx_create_worker_collection(unsigned sched_ctx_id, enum starpu_worker_collection_type type) STARPU_ATTRIBUTE_MALLOC;
 
 void starpu_sched_ctx_delete_worker_collection(unsigned sched_ctx_id);
 
@@ -153,16 +160,20 @@ unsigned starpu_sched_ctx_master_get_context(int masterid);
 
 void starpu_sched_ctx_revert_task_counters(unsigned sched_ctx_id, double flops);
 
-void starpu_sched_ctx_move_task_to_ctx(struct starpu_task *task, unsigned sched_ctx, unsigned manage_mutex);
+void starpu_sched_ctx_move_task_to_ctx(struct starpu_task *task, unsigned sched_ctx, unsigned manage_mutex, unsigned with_repush);
 
 int starpu_sched_ctx_get_worker_rank(unsigned sched_ctx_id);
 
-void (*starpu_sched_ctx_get_sched_policy_init(unsigned sched_ctx_id))(void);
+void (*starpu_sched_ctx_get_sched_policy_init(unsigned sched_ctx_id))(unsigned);
 
 unsigned starpu_sched_ctx_has_starpu_scheduler(unsigned sched_ctx_id, unsigned *awake_workers);
 #ifdef STARPU_USE_SC_HYPERVISOR
 void starpu_sched_ctx_call_pushed_task_cb(int workerid, unsigned sched_ctx_id);
 #endif /* STARPU_USE_SC_HYPERVISOR */
+
+int starpu_sched_ctx_get_stream_worker(unsigned sub_ctx);
+int starpu_sched_ctx_get_nsms(unsigned sched_ctx);
+void starpu_sched_ctx_get_sms_interval(int stream_workerid, int *start, int *end);
 
 #ifdef __cplusplus
 }

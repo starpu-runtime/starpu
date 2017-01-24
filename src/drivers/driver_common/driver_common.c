@@ -1,9 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2010-2017  Université de Bordeaux
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  * Copyright (C) 2011  Télécom-SudParis
- * Copyright (C) 2014  INRIA
+ * Copyright (C) 2014, 2016  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -38,7 +38,6 @@ void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job 
 {
 	struct starpu_task *task = j->task;
 	struct starpu_codelet *cl = task->cl;
-	struct starpu_profiling_task_info *profiling_info;
 	int starpu_top=_starpu_top_status_get();
 	int workerid = worker->workerid;
 	unsigned calibrate_model = 0;
@@ -57,12 +56,10 @@ void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job 
 
 	if (rank == 0)
 	{
-#ifdef HAVE_AYUDAME_H
-		if (AYU_event) AYU_event(AYU_RUNTASK, j->job_id, NULL);
-#endif
+		STARPU_AYU_RUNTASK(j->job_id);
 		cl->per_worker_stats[workerid]++;
 
-		profiling_info = task->profiling_info;
+		struct starpu_profiling_task_info *profiling_info = task->profiling_info;
 
 		if ((profiling && profiling_info) || calibrate_model || starpu_top)
 		{
@@ -110,7 +107,6 @@ void _starpu_driver_end_job(struct _starpu_worker *worker, struct _starpu_job *j
 {
 	struct starpu_task *task = j->task;
 	struct starpu_codelet *cl = task->cl;
-	struct starpu_profiling_task_info *profiling_info = task->profiling_info;
 	int starpu_top=_starpu_top_status_get();
 	int workerid = worker->workerid;
 	unsigned calibrate_model = 0;
@@ -136,11 +132,13 @@ void _starpu_driver_end_job(struct _starpu_worker *worker, struct _starpu_job *j
 
 	if (rank == 0)
 	{
+		struct starpu_profiling_task_info *profiling_info = task->profiling_info;
 		if ((profiling && profiling_info) || calibrate_model || starpu_top)
+		{
 			_starpu_clock_gettime(codelet_end);
-#ifdef HAVE_AYUDAME_H
-		if (AYU_event) AYU_event(AYU_POSTRUNTASK, j->job_id, NULL);
-#endif
+			_starpu_worker_register_executing_end(workerid);
+		}
+		STARPU_AYU_POSTRUNTASK(j->job_id);
 	}
 
 	if (starpu_top)
@@ -176,7 +174,6 @@ void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_wo
 {
 	struct starpu_profiling_task_info *profiling_info = j->task->profiling_info;
 	struct timespec measured_ts;
-	double measured;
 	int workerid = worker->workerid;
 	struct starpu_codelet *cl = j->task->cl;
 	int calibrate_model = 0;
@@ -191,6 +188,8 @@ void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_wo
 
 	if ((profiling && profiling_info) || calibrate_model)
 	{
+		double measured;
+
 		starpu_timespec_sub(codelet_end, codelet_start, &measured_ts);
 		measured = starpu_timing_timespec_to_us(&measured_ts);
 
@@ -204,7 +203,7 @@ void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_wo
 			_starpu_worker_update_profiling_info_executing(workerid, &measured_ts, 1,
 								       profiling_info->used_cycles,
 								       profiling_info->stall_cycles,
-								       profiling_info->power_consumed,
+								       profiling_info->energy_consumed,
 								       j->task->flops);
 			updated =  1;
 		}
@@ -249,32 +248,32 @@ void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_wo
 	if (!updated)
 		_starpu_worker_update_profiling_info_executing(workerid, NULL, 1, 0, 0, 0, 0);
 
-	if (profiling_info && profiling_info->power_consumed && cl->power_model && cl->power_model->benchmarking)
+	if (profiling_info && profiling_info->energy_consumed && cl->energy_model && cl->energy_model->benchmarking)
 	{
 #ifdef STARPU_OPENMP
-		double power_consumed = profiling_info->power_consumed;
-		unsigned do_update_power_model;
+		double energy_consumed = profiling_info->energy_consumed;
+		unsigned do_update_energy_model;
 		if (j->continuation)
 		{
-			j->cumulated_power_consumed += power_consumed;
-			do_update_power_model = 0;
+			j->cumulated_energy_consumed += energy_consumed;
+			do_update_energy_model = 0;
 		}
-		else 
+		else
 		{
 			if (j->discontinuous)
 			{
-				power_consumed += j->cumulated_power_consumed;
+				energy_consumed += j->cumulated_energy_consumed;
 			}
-			do_update_power_model = 1;
+			do_update_energy_model = 1;
 		}
 #else
-		const double power_consumed = profiling_info->power_consumed;
-		const unsigned do_update_power_model = 1;
+		const double energy_consumed = profiling_info->energy_consumed;
+		const unsigned do_update_energy_model = 1;
 #endif
 
-		if (do_update_power_model)
+		if (do_update_energy_model)
 		{
-			_starpu_update_perfmodel_history(j, j->task->cl->power_model, perf_arch, worker->devid, power_consumed, j->nimpl);
+			_starpu_update_perfmodel_history(j, j->task->cl->energy_model, perf_arch, worker->devid, energy_consumed, j->nimpl);
 		}
 	}
 }
@@ -429,10 +428,7 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 		_starpu_worker_set_status_sleeping(workerid);
 
 		if (_starpu_worker_can_block(memnode, worker)
-#ifndef STARPU_SIMGRID
-				&& !_starpu_sched_ctx_last_worker_awake(worker)
-#endif
-				)
+			&& !_starpu_sched_ctx_last_worker_awake(worker))
 		{
 			STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
 			STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
@@ -441,18 +437,7 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 		{
 			STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 			if (_starpu_machine_is_running())
-			{
 				_starpu_exponential_backoff(worker);
-#ifdef STARPU_SIMGRID
-				static int warned;
-				if (!warned)
-				{
-					warned = 1;
-					_STARPU_DISP("Has to make simgrid spin for CPU idle time.  You can try to pass --enable-blocking-drivers to ./configure to avoid this\n");
-				}
-				MSG_process_sleep(0.000010);
-#endif
-			}
 		}
 
 		return NULL;
@@ -467,13 +452,7 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 
 
-#ifdef HAVE_AYUDAME_H
-	if (AYU_event)
-	{
-		intptr_t id = workerid;
-		AYU_event(AYU_PRERUNTASK, _starpu_get_job_associated_to_task(task)->job_id, &id);
-	}
-#endif
+	STARPU_AYU_PRERUNTASK(_starpu_get_job_associated_to_task(task)->job_id, workerid);
 
 	return task;
 }
@@ -556,13 +535,7 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 					workers[i].worker_size = 1;
 					workers[i].current_rank = 0;
 				}
-#ifdef HAVE_AYUDAME_H
-				if (AYU_event)
-				{
-					intptr_t id = workers[i].workerid;
-					AYU_event(AYU_PRERUNTASK, _starpu_get_job_associated_to_task(tasks[i])->job_id, &id);
-				}
-#endif
+				STARPU_AYU_PRERUNTASK(_starpu_get_job_associated_to_task(tasks[i])->job_id, workers[i].workerid);
 			}
 			else
 			{
@@ -591,10 +564,7 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 		_starpu_worker_set_status_sleeping(workerid);
 
 		if (_starpu_worker_can_block(memnode, worker)
-#ifndef STARPU_SIMGRID
-				&& !_starpu_sched_ctx_last_worker_awake(worker)
-#endif
-				)
+				&& !_starpu_sched_ctx_last_worker_awake(worker))
 		{
 			STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
 			STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
@@ -603,25 +573,14 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 		{
 			STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 			if (_starpu_machine_is_running())
-			{
 				_starpu_exponential_backoff(worker);
-#ifdef STARPU_SIMGRID
-				static int warned;
-				if (!warned)
-				{
-					warned = 1;
-					_STARPU_DISP("Has to make simgrid spin for CPU idle time.  You can try to pass --enable-blocking-drivers to ./configure to avoid this\n");
-				}
-				MSG_process_sleep(0.000010);
-#endif
-			}
 		}
 		return 0;
 	}
 
 	_starpu_worker_set_status_wakeup(workerid);
 	worker->spinning_backoff = BACKOFF_MIN;
-#endif /* STARPU_SIMGRID */
+#endif /* !STARPU_SIMGRID */
 
 	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&workers[0].sched_mutex);
 #endif /* !STARPU_NON_BLOCKING_DRIVERS */

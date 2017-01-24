@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2011-2012, 2014-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -32,9 +32,8 @@ void opencl_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 	cl_mem mult = (cl_mem)STARPU_VECTOR_GET_DEV_HANDLE(descr[2]);
 	int nx = STARPU_MATRIX_GET_NX(descr[0]);
 	int ny = STARPU_MATRIX_GET_NY(descr[0]);
-	cl_event event;
 
-        id = starpu_worker_get_id();
+        id = starpu_worker_get_id_check();
         devid = starpu_worker_get_devid(id);
 
         err = starpu_opencl_load_kernel(&kernel, &queue, &opencl_code, "matVecMult", devid);
@@ -67,6 +66,7 @@ void fillArray(float* pfData, int iSize)
     }
 }
 
+#if 0
 void printArray(float* pfData, int iSize)
 {
     int i;
@@ -76,6 +76,7 @@ void printArray(float* pfData, int iSize)
     }
     FPRINTF(stderr, "\n");
 }
+#endif
 
 void matVecMult(const float *matrix, const float *vector, int width, int height, float *mult)
 {
@@ -224,6 +225,11 @@ int main(int argc, char **argv)
         printArray(vector, width);
         printArray(mult, height);
 #endif
+
+	free(matrix);
+	free(vector);
+	free(mult);
+	free(correctResult);
         starpu_shutdown();
 
 	return (submit == -ENODEV) ? 77 : 0;

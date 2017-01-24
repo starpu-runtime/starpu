@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2015  Université de Bordeaux
+ * Copyright (C) 2010-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2016  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -28,6 +29,7 @@ extern "C"
 struct _starpu_data_state;
 typedef struct _starpu_data_state* starpu_data_handle_t;
 
+/* Note: when adding a flag here, update _starpu_detect_implicit_data_deps_with_handle */
 enum starpu_data_access_mode
 {
 	STARPU_NONE=0,
@@ -38,7 +40,8 @@ enum starpu_data_access_mode
 	STARPU_REDUX=(1<<3),
 	STARPU_COMMUTE=(1<<4),
 	STARPU_SSEND=(1<<5),
-	STARPU_ACCESS_MODE_MAX=(1<<6)
+	STARPU_LOCALITY=(1<<6),
+	STARPU_ACCESS_MODE_MAX=(1<<7)
 	/* Note: other STARPU_* values in include/starpu_task_util.h */
 };
 
@@ -58,6 +61,8 @@ void starpu_data_invalidate_submit(starpu_data_handle_t handle);
 
 void starpu_data_advise_as_important(starpu_data_handle_t handle, unsigned is_important);
 
+#define STARPU_ACQUIRE_NO_NODE -1
+#define STARPU_ACQUIRE_NO_NODE_LOCK_ALL -2
 int starpu_data_acquire(starpu_data_handle_t handle, enum starpu_data_access_mode mode);
 int starpu_data_acquire_on_node(starpu_data_handle_t handle, int node, enum starpu_data_access_mode mode);
 int starpu_data_acquire_cb(starpu_data_handle_t handle, enum starpu_data_access_mode mode, void (*callback)(void *), void *arg);
@@ -82,7 +87,7 @@ void starpu_data_release(starpu_data_handle_t handle);
 void starpu_data_release_on_node(starpu_data_handle_t handle, int node);
 
 typedef struct starpu_arbiter *starpu_arbiter_t;
-starpu_arbiter_t starpu_arbiter_create(void);
+starpu_arbiter_t starpu_arbiter_create(void) STARPU_ATTRIBUTE_MALLOC;
 void starpu_data_assign_arbiter(starpu_data_handle_t handle, starpu_arbiter_t arbiter);
 void starpu_arbiter_destroy(starpu_arbiter_t arbiter);
 
@@ -139,6 +144,8 @@ unsigned starpu_data_test_if_allocated_on_node(starpu_data_handle_t handle, unsi
 
 void starpu_memchunk_tidy(unsigned memory_node);
 
+void starpu_data_set_user_data(starpu_data_handle_t handle, void* user_data);
+void *starpu_data_get_user_data(starpu_data_handle_t handle);
 
 #ifdef __cplusplus
 }

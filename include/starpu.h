@@ -83,7 +83,7 @@ struct starpu_conf
 
 	const char *sched_policy_name;
 	struct starpu_sched_policy *sched_policy;
-	void (*sched_policy_init)(void);
+	void (*sched_policy_init)(unsigned);
 
 	int ncpus;
 	int ncuda;

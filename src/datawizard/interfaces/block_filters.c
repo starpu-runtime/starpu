@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2011  CNRS
- * Copyright (C) 2013  Université de Bordeaux
+ * Copyright (C) 2013, 2016  Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -37,6 +37,7 @@ void starpu_block_filter_block(void *father_interface, void *child_interface, ST
 	_starpu_filter_nparts_compute_chunk_size_and_offset(nx, nparts, elemsize, id, 1,
 				       &chunk_size, &offset);
 
+	STARPU_ASSERT_MSG(block_father->id == STARPU_BLOCK_INTERFACE_ID, "%s can only be applied on a block data", __func__);
 	block_child->id = block_father->id;
 	block_child->nx = chunk_size;
 	block_child->ny = ny;
@@ -76,6 +77,8 @@ void starpu_block_filter_block_shadow(void *father_interface, void *child_interf
 						     &child_nx, &offset);
 	
 
+	STARPU_ASSERT_MSG(block_father->id == STARPU_BLOCK_INTERFACE_ID, "%s can only be applied on a block data", __func__);
+	block_child->id = block_father->id;
 	block_child->nx = child_nx + 2 * shadow_size;
 	block_child->ny = ny;
 	block_child->nz = nz;
@@ -110,6 +113,8 @@ void starpu_block_filter_vertical_block(void *father_interface, void *child_inte
 	_starpu_filter_nparts_compute_chunk_size_and_offset(ny, nparts, elemsize, id, block_father->ldy,
 				       &child_ny, &offset);
 
+	STARPU_ASSERT_MSG(block_father->id == STARPU_BLOCK_INTERFACE_ID, "%s can only be applied on a block data", __func__);
+	block_child->id = block_father->id;
 	block_child->nx = nx;
 	block_child->ny = child_ny;
 	block_child->nz = nz;
@@ -149,6 +154,8 @@ void starpu_block_filter_vertical_block_shadow(void *father_interface, void *chi
 						     block_father->ldy,
 						     &child_ny, &offset);
 
+	STARPU_ASSERT_MSG(block_father->id == STARPU_BLOCK_INTERFACE_ID, "%s can only be applied on a block data", __func__);
+	block_child->id = block_father->id;
 	block_child->nx = nx;
 	block_child->ny = child_ny + 2 * shadow_size;
 	block_child->nz = nz;
@@ -184,6 +191,8 @@ void starpu_block_filter_depth_block(void *father_interface, void *child_interfa
 	_starpu_filter_nparts_compute_chunk_size_and_offset(nz, nparts, elemsize, id,
 				       block_father->ldz, &child_nz, &offset);
 
+	STARPU_ASSERT_MSG(block_father->id == STARPU_BLOCK_INTERFACE_ID, "%s can only be applied on a block data", __func__);
+	block_child->id = block_father->id;
 	block_child->nx = nx;
 	block_child->ny = ny;
 	block_child->nz = child_nz;
@@ -223,6 +232,8 @@ void starpu_block_filter_depth_block_shadow(void *father_interface, void *child_
 						     block_father->ldz,
 						     &child_nz, &offset);
 
+	STARPU_ASSERT_MSG(block_father->id == STARPU_BLOCK_INTERFACE_ID, "%s can only be applied on a block data", __func__);
+	block_child->id = block_father->id;
 	block_child->nx = nx;
 	block_child->ny = ny;
 	block_child->nz = child_nz + 2 * shadow_size;

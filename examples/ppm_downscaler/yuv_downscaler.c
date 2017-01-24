@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2011, 2013-2015  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012, 2013  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -43,13 +43,13 @@ void parse_args(int argc, char **argv)
 {
 	if (argc == 3)
 	{
-		strcpy(filename_in, argv[1]);
-		strcpy(filename_out, argv[2]);
+		strncpy(filename_in, argv[1], 1024);
+		strncpy(filename_out, argv[2], 1024);
 	}
 	else
 	{
-		sprintf(filename_in, "%s/examples/ppm_downscaler/%s", STARPU_BUILD_DIR, filename_in_default);
-		sprintf(filename_out, "%s/examples/ppm_downscaler/%s", STARPU_BUILD_DIR, filename_out_default);
+		snprintf(filename_in, 1024, "%s/examples/ppm_downscaler/%s", STARPU_BUILD_DIR, filename_in_default);
+		snprintf(filename_out, 1024, "%s/examples/ppm_downscaler/%s", STARPU_BUILD_DIR, filename_out_default);
 	}
 }
 
@@ -112,20 +112,22 @@ static struct starpu_data_filter filter_uv =
 int main(int argc, char **argv)
 {
 	int ret;
+	size_t sret;
 
 	assert(HEIGHT % (2*BLOCK_HEIGHT) == 0);
 	assert(HEIGHT % FACTOR == 0);
-	
+
 	parse_args(argc, argv);
 
 /*	fprintf(stderr, "Reading input file ...\n"); */
 
 	/* how many frames ? */
 	struct stat stbuf;
-	stat(filename_in, &stbuf);
+	ret = stat(filename_in, &stbuf);
+	assert(ret);
 	size_t filesize = stbuf.st_size;
 
-	unsigned nframes = filesize/FRAMESIZE; 
+	unsigned nframes = filesize/FRAMESIZE;
 
 /*	fprintf(stderr, "filesize %lx (FRAME SIZE %lx NEW SIZE %lx); nframes %d\n", filesize, FRAMESIZE, NEW_FRAMESIZE, nframes); */
 	assert((filesize % sizeof(struct yuv_frame)) == 0);
@@ -145,7 +147,8 @@ int main(int argc, char **argv)
 	FILE *f_out = fopen(filename_out, "w+");
 	assert(f_out);
 
-	fread(yuv_in_buffer, FRAMESIZE, nframes, f_in);
+	sret = fread(yuv_in_buffer, FRAMESIZE, nframes, f_in);
+	assert(sret == nframes);
 
 	starpu_data_handle_t *frame_y_handle = (starpu_data_handle_t *)  calloc(nframes, sizeof(starpu_data_handle_t));
 	starpu_data_handle_t *frame_u_handle = (starpu_data_handle_t *)  calloc(nframes, sizeof(starpu_data_handle_t));

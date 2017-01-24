@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2014, 2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,19 +15,20 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-/* This benchmark creates a thousand tasks of the same (small) duration, with
+#include <stdio.h>
+#include <unistd.h>
+
+#include <starpu.h>
+#include "../helper.h"
+
+/*
+ * This benchmark creates a thousand tasks of the same (small) duration, with
  * various number of cpus and various durations.
  *
  * Use ./tasks_size_overhead.sh to generate a plot of the result.
  *
  * Thanks Martin Tillenius for the idea.
  */
-
-#include <stdio.h>
-#include <unistd.h>
-
-#include <starpu.h>
-#include "../helper.h"
 
 #define START 4
 #define STOP 4096
@@ -38,40 +39,59 @@
 #endif
 
 #ifdef STARPU_QUICK_CHECK
-static unsigned ntasks = 10;
+static unsigned ntasks = 1;
+#elif !defined(STARPU_LONG_CHECK)
+static unsigned ntasks = 64;
 #else
-static unsigned ntasks = 1000;
+static unsigned ntasks = 256;
 #endif
+
 static unsigned nbuffers = 0;
 static unsigned total_nbuffers = 0;
+
+static unsigned mincpus = 1, maxcpus, cpustep = 1;
+static unsigned mintime = START, maxtime = STOP, factortime = FACTOR;
 
 struct starpu_task *tasks;
 
 void func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
 {
-	double tv1, tv2;
 	unsigned n = (uintptr_t)arg;
 	long usec = 0;
-	tv1 = starpu_timing_now();
+	double tv1 = starpu_timing_now();
 	do
 	{
-		tv2 = starpu_timing_now();
+		double tv2 = starpu_timing_now();
 		usec = tv2 - tv1;
 	}
 	while (usec < n);
 }
 
+double cost_function(struct starpu_task *t, struct starpu_perfmodel_arch *a, unsigned i)
+{
+	(void) t; (void) i;
+	unsigned n = (uintptr_t) t->cl_arg;
+	return n;
+}
+
+static struct starpu_perfmodel perf_model =
+{
+	.type = STARPU_PER_ARCH,
+	.arch_cost_function = cost_function,
+};
+
 static struct starpu_codelet codelet =
 {
 	.cpu_funcs = {func},
 	.nbuffers = 0,
-	.modes = {STARPU_R, STARPU_R, STARPU_R, STARPU_R, STARPU_R, STARPU_R, STARPU_R, STARPU_R}
+	.modes = {STARPU_R, STARPU_R, STARPU_R, STARPU_R, STARPU_R, STARPU_R, STARPU_R, STARPU_R},
+	.model = &perf_model,
 };
 
 static void parse_args(int argc, char **argv)
 {
 	int c;
-	while ((c = getopt(argc, argv, "i:b:B:h")) != -1)
+	while ((c = getopt(argc, argv, "i:b:B:c:C:s:t:T:f:h")) != -1)
 	switch(c)
 	{
 		case 'i':
@@ -84,8 +104,38 @@ static void parse_args(int argc, char **argv)
 		case 'B':
 			total_nbuffers = atoi(optarg);
 			break;
+		case 'c':
+			mincpus = atoi(optarg);
+			break;
+		case 'C':
+			maxcpus = atoi(optarg);
+			break;
+		case 's':
+			cpustep = atoi(optarg);
+			break;
+		case 't':
+			mintime = atoi(optarg);
+			break;
+		case 'T':
+			maxtime = atoi(optarg);
+			break;
+		case 'f':
+			factortime = atoi(optarg);
+			break;
 		case 'h':
-			fprintf(stderr, "Usage: %s [-i ntasks] [-b nbuffers] [-B total_nbuffers] [-h]\n", argv[0]);
+			fprintf(stderr, "\
+Usage: %s [-h]\n\
+          [-i ntasks] [-b nbuffers] [-B total_nbuffers]\n\
+          [-c mincpus] [ -C maxcpus] [-s cpustep]\n\
+	  [-t mintime] [-T maxtime] [-f factortime]\n\n", argv[0]);
+			fprintf(stderr,"\
+runs 'ntasks' tasks\n\
+- using 'nbuffers' data each, randomly among 'total_nbuffers' choices,\n\
+- with varying task durations, from 'mintime' to 'maxtime' (using 'factortime')\n\
+- on varying numbers of cpus, from 'mincpus' to 'maxcpus' (using 'cpustep')\n\
+\n\
+currently selected parameters: %u tasks using %u buffers among %u, from %uus to %uus (factor %u), from %u cpus to %u cpus (step %u)\n\
+", ntasks, nbuffers, total_nbuffers, mintime, maxtime, factortime, mincpus, maxcpus, cpustep);
 			exit(EXIT_SUCCESS);
 			break;
 	}
@@ -96,7 +146,7 @@ int main(int argc, char **argv)
 	int ret;
 	unsigned i;
 	unsigned size;
-	unsigned totcpus, ncpus;
+	unsigned ncpus;
 
 	double timing;
 	double start;
@@ -106,36 +156,46 @@ int main(int argc, char **argv)
 
 	unsigned buffer;
 
-	parse_args(argc, argv);
-
 	/* Get number of CPUs */
 	starpu_conf_init(&conf);
 	conf.ncuda = 0;
 	conf.nopencl = 0;
+#ifdef STARPU_SIMGRID
+	/* This will get serialized, avoid spending too much time on it. */
+	maxcpus = 2;
+#else
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-
-	totcpus = starpu_worker_get_count_by_type(STARPU_CPU_WORKER);
-
+	maxcpus = starpu_worker_get_count_by_type(STARPU_CPU_WORKER);
 	starpu_shutdown();
+#endif
 
-	float *buffers[total_nbuffers];
+#ifdef STARPU_HAVE_UNSETENV
+	/* That was useful to force the max number of cpus to use, but now we
+	 * want to make it vary */
+	unsetenv("STARPU_NCPUS");
+	unsetenv("STARPU_NCPU");
+#endif
+
+	parse_args(argc, argv);
+
+	float *buffers[total_nbuffers?total_nbuffers:1];
 
 	/* Allocate data */
 	for (buffer = 0; buffer < total_nbuffers; buffer++)
 		buffers[buffer] = (float *) malloc(16*sizeof(float));
 
-	tasks = (struct starpu_task *) calloc(1, ntasks*sizeof(struct starpu_task));
+	tasks = (struct starpu_task *) calloc(1, ntasks*maxcpus*sizeof(struct starpu_task));
 
 	/* Emit headers and compute raw tasks speed */
 	FPRINTF(stdout, "# tasks : %u buffers : %u total_nbuffers : %u\n", ntasks, nbuffers, total_nbuffers);
 	FPRINTF(stdout, "# ncpus\t");
-	for (size = START; size <= STOP; size *= FACTOR)
+	for (size = mintime; size <= maxtime; size *= factortime)
 		FPRINTF(stdout, "%u iters(us)\ttotal(s)\t", size);
 	FPRINTF(stdout, "\n");
 	FPRINTF(stdout, "\"seq\"\t");
-	for (size = START; size <= STOP; size *= FACTOR)
+	for (size = mintime; size <= maxtime; size *= factortime)
 	{
 		double dstart, dend;
 		dstart = starpu_timing_now();
@@ -147,10 +207,16 @@ int main(int argc, char **argv)
 	FPRINTF(stdout, "\n");
 	fflush(stdout);
 
-	starpu_data_handle_t data_handles[total_nbuffers];
+	starpu_data_handle_t data_handles[total_nbuffers?total_nbuffers:1];
+
+	if (nbuffers && !total_nbuffers)
+	{
+		fprintf(stderr,"can not have %u buffers with %u total buffers\n", nbuffers, total_nbuffers);
+		goto error;
+	}
 
 	/* For each number of cpus, benchmark */
-	for (ncpus= 1; ncpus <= totcpus; ncpus++)
+	for (ncpus= mincpus; ncpus <= maxcpus; ncpus += cpustep)
 	{
 		FPRINTF(stdout, "%u\t", ncpus);
 		fflush(stdout);
@@ -163,11 +229,11 @@ int main(int argc, char **argv)
 		for (buffer = 0; buffer < total_nbuffers; buffer++)
 			starpu_vector_data_register(&data_handles[buffer], STARPU_MAIN_RAM, (uintptr_t)buffers[buffer], 16, sizeof(float));
 
-		for (size = START; size <= STOP; size *= FACTOR)
+		for (size = mintime; size <= maxtime; size *= factortime)
 		{
 			/* submit tasks */
 			start = starpu_timing_now();
-			for (i = 0; i < ntasks; i++)
+			for (i = 0; i < ntasks * ncpus; i++)
 			{
 				starpu_data_handle_t *handles;
 				starpu_task_init(&tasks[i]);
@@ -180,7 +246,7 @@ int main(int argc, char **argv)
 				{
 					tasks[i].dyn_handles = malloc(nbuffers * sizeof(*data_handles));
 					handles = tasks[i].dyn_handles;
-					tasks[i].dyn_modes = malloc(nbuffers * sizeof(tasks[i].dyn_modes));
+					tasks[i].dyn_modes = malloc(nbuffers * sizeof(*(tasks[i].dyn_modes)));
 					for (buffer = 0; buffer < nbuffers; buffer++)
 						tasks[i].dyn_modes[buffer] = STARPU_R;
 				}
@@ -202,26 +268,27 @@ int main(int argc, char **argv)
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 			end = starpu_timing_now();
 
-			for (i = 0; i < ntasks; i++)
+			for (i = 0; i < ntasks * ncpus; i++)
 				starpu_task_clean(&tasks[i]);
 
 			timing = end - start;
 
-			FPRINTF(stdout, "%u\t%f\t", size, timing/1000000);
+			FPRINTF(stdout, "%u\t%f\t", size, timing/ncpus/1000000);
 			fflush(stdout);
 
 			{
 				char *output_dir = getenv("STARPU_BENCH_DIR");
 				char *bench_id = getenv("STARPU_BENCH_ID");
+				char *sched = getenv("STARPU_SCHED");
 
 				if (output_dir && bench_id)
 				{
 					char file[1024];
 					FILE *f;
 
-					sprintf(file, "%s/tasks_size_overhead_total.dat", output_dir);
+					snprintf(file, 1024, "%s/tasks_size_overhead_total%s%s.dat", output_dir, sched?"_":"", sched?sched:"");
 					f = fopen(file, "a");
-					fprintf(f, "%s\t%u\t%u\t%f\n", bench_id, ncpus, size, timing/1000000);
+					fprintf(f, "%s\t%u\t%u\t%f\n", bench_id, ncpus, size, timing/1000000 /(ntasks*ncpus) *1000);
 					fclose(f);
 				}
 			}
@@ -245,6 +312,7 @@ enodev:
 	fprintf(stderr, "WARNING: No one can execute this task\n");
 	/* yes, we do not perform the computation but we did detect that no one
  	 * could perform the kernel, so this is not an error from StarPU */
+error:
 	starpu_shutdown();
 	free(tasks);
 	return STARPU_TEST_SKIPPED;

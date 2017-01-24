@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2013  Université de Bordeaux
+ * Copyright (C) 2009-2013, 2016  Université de Bordeaux
  * Copyright (C) 2010-2014  CNRS
+ * Copyright (C) 2016  Uppsala University
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -42,7 +43,7 @@ struct starpu_sched_ctx_iterator
 	int cursor;
 	void *value;
 	void *possible_value;
-	int visited[STARPU_NMAXWORKERS];
+	char visited[STARPU_NMAXWORKERS];
 	int possibly_parallel; 
 };
 
@@ -55,15 +56,16 @@ enum starpu_worker_collection_type
 
 struct starpu_worker_collection
 {
-	void *workerids;
+	int *workerids;
+	void *collection_private;
 	unsigned nworkers;
 	void *unblocked_workers;
 	unsigned nunblocked_workers;
 	void *masters;
 	unsigned nmasters;
-	int present[STARPU_NMAXWORKERS];
-	int is_unblocked[STARPU_NMAXWORKERS];
-	int is_master[STARPU_NMAXWORKERS];
+	char present[STARPU_NMAXWORKERS];
+	char is_unblocked[STARPU_NMAXWORKERS];
+	char is_master[STARPU_NMAXWORKERS];
 	enum starpu_worker_collection_type type;
 	unsigned (*has_next)(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it);
 	int (*get_next)(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it);
@@ -91,6 +93,9 @@ unsigned starpu_scc_worker_get_count(void);
 unsigned starpu_mic_device_get_count(void);
 
 int starpu_worker_get_id(void);
+unsigned _starpu_worker_get_id_check(const char *f, int l);
+unsigned starpu_worker_get_id_check(void);
+#define starpu_worker_get_id_check() _starpu_worker_get_id_check(__FILE__, __LINE__)
 int starpu_worker_get_bindid(int workerid);
 
 int starpu_combined_worker_get_id(void);
@@ -101,7 +106,7 @@ enum starpu_worker_archtype starpu_worker_get_type(int id);
 
 int starpu_worker_get_count_by_type(enum starpu_worker_archtype type);
 
-int starpu_worker_get_ids_by_type(enum starpu_worker_archtype type, int *workerids, int maxsize);
+unsigned starpu_worker_get_ids_by_type(enum starpu_worker_archtype type, int *workerids, unsigned maxsize);
 
 int starpu_worker_get_by_type(enum starpu_worker_archtype type, int num);
 
@@ -123,8 +128,13 @@ unsigned starpu_worker_is_slave_somewhere(int workerid);
 
 char *starpu_worker_get_type_as_string(enum starpu_worker_archtype type);
 
-int starpu_worker_get_workerids(int bindid, int *workerids);
+int starpu_bindid_get_workerids(int bindid, int **workerids);
 
+int starpu_worker_get_devids(enum starpu_worker_archtype type, int *devids, int num);
+
+int starpu_worker_get_stream_workerids(unsigned devid, int *workerids, enum starpu_worker_archtype type);
+
+unsigned starpu_worker_get_sched_ctx_id_stream(unsigned stream_workerid);
 #ifdef __cplusplus
 }
 #endif

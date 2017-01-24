@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2011, 2013-2015  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012, 2013  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -146,7 +146,7 @@ int main(int argc, char **argv)
 	starpu_vector_data_register(&sobol_qrng_direction_handle, STARPU_MAIN_RAM,
 		(uintptr_t)sobol_qrng_directions, n_dimensions*n_directions, sizeof(unsigned));
 
-	unsigned *cnt_array = malloc(ntasks*sizeof(unsigned));
+	unsigned *cnt_array = calloc(ntasks, sizeof(unsigned));
 	STARPU_ASSERT(cnt_array);
 	starpu_data_handle_t cnt_array_handle;
 	starpu_vector_data_register(&cnt_array_handle, STARPU_MAIN_RAM, (uintptr_t)cnt_array, ntasks, sizeof(unsigned));
@@ -161,7 +161,7 @@ int main(int argc, char **argv)
 		.filter_func = starpu_vector_filter_block,
 		.nchildren = ntasks
 	};
-	
+
 	starpu_data_partition(cnt_array_handle, &f);
 
 	double start;
@@ -203,7 +203,7 @@ int main(int argc, char **argv)
 	unsigned long total_shot_cnt = ntasks * nshot_per_task;
 
 	/* Total surface : Pi * r^ 2 = Pi*1^2, total square surface : 2^2 = 4, probability to impact the disk: pi/4 */
-	FPRINTF(stderr, "Pi approximation : %f (%ld / %ld)\n", ((TYPE)total_cnt*4)/(total_shot_cnt), total_cnt, total_shot_cnt);
+	FPRINTF(stderr, "Pi approximation : %f (%lu / %lu)\n", ((TYPE)total_cnt*4)/(total_shot_cnt), total_cnt, total_shot_cnt);
 	FPRINTF(stderr, "Total time : %f ms\n", timing/1000.0);
 	FPRINTF(stderr, "Speed : %f GShot/s\n", total_shot_cnt/(1e3*timing));
 

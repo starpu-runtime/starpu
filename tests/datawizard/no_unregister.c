@@ -14,14 +14,16 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-/* Check that not unregistering a data is not too crashy */
-
 #include <config.h>
 #include <starpu.h>
 #include <stdlib.h>
 #include <unistd.h>
 
 #include "../helper.h"
+
+/*
+ * Check that not unregistering a data is not too crashy
+ */
 
 void dummy_func(void ** buffers, void * args)
 {
@@ -46,6 +48,9 @@ int main(void)
 
 #ifdef STARPU_HAVE_VALGRIND_H
 	if(RUNNING_ON_VALGRIND) return STARPU_TEST_SKIPPED;
+#endif
+#ifdef STARPU_SANITIZE_LEAK
+	return STARPU_TEST_SKIPPED;
 #endif
 
 	ret = starpu_init(NULL);

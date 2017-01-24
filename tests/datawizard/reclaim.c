@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012, 2015  Université de Bordeaux
- * Copyright (C) 2012  CNRS
+ * Copyright (C) 2010-2012, 2015-2016  Université de Bordeaux
+ * Copyright (C) 2012, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,11 +15,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-/*
- * This test stress the memory allocation system and should force StarPU to
- * reclaim memory from time to time.
- */
-
 #include <assert.h>
 #include <starpu.h>
 #include <common/config.h>
@@ -27,6 +22,11 @@
 #include <hwloc.h>
 #endif
 #include "../helper.h"
+
+/*
+ * Stress the memory allocation system and force StarPU to reclaim memory from
+ * time to time.
+ */
 
 #ifdef STARPU_QUICK_CHECK
 #  define BLOCK_SIZE (64*1024)
@@ -58,7 +58,7 @@ void dummy_func(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 static unsigned int i = 0;
 void f(void *arg)
 {
-	printf("%d\n", ++i);
+	printf("%u\n", ++i);
 }
 
 static struct starpu_codelet dummy_cl =

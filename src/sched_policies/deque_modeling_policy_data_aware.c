@@ -1,9 +1,10 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
+ * Copyright (C) 2010-2017  Université de Bordeaux
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016, 2017  CNRS
  * Copyright (C) 2011  Télécom-SudParis
- * Copyright (C) 2011-2012  INRIA
+ * Copyright (C) 2011-2012, 2016  INRIA
+ * Copyright (C) 2016  Uppsala University
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -24,13 +25,13 @@
 
 #include <common/fxt.h>
 #include <core/task.h>
+#include <core/workers.h>
+#include <core/sched_policy.h>
+#include <core/debug.h>
 
 #include <sched_policies/fifo_queues.h>
 #include <limits.h>
 
-#ifdef HAVE_AYUDAME_H
-#include <Ayudame.h>
-#endif
 
 #ifndef DBL_MIN
 #define DBL_MIN __DBL_MIN__
@@ -51,6 +52,7 @@ struct _starpu_dmda_data
 
 	long int total_task_cnt;
 	long int ready_task_cnt;
+	long int eager_task_cnt; /* number of tasks scheduled without model */
 	int num_priorities;
 };
 
@@ -109,10 +111,9 @@ static void param_modified(struct starpu_top_param* d)
 #warning FIXME: get sched ctx to get alpha/beta/gamma/idle values
 #endif
 	/* Just to show parameter modification. */
-	fprintf(stderr,
-		"%s has been modified : "
-		"alpha=%f|beta=%f|gamma=%f|idle_power=%f !\n",
-		d->name, alpha,beta,_gamma, idle_power);
+	_STARPU_MSG("%s has been modified : "
+		    "alpha=%f|beta=%f|gamma=%f|idle_power=%f !\n",
+		    d->name, alpha,beta,_gamma, idle_power);
 }
 #endif /* !STARPU_USE_TOP */
 
@@ -122,6 +123,63 @@ static int _normalize_prio(int priority, int num_priorities, unsigned sched_ctx_
 	int max = starpu_sched_ctx_get_max_priority(sched_ctx_id);
 	return ((num_priorities-1)/(max-min)) * (priority - min);
 }
+
+/* This is called when a transfer request is actually pushed to the worker */
+static void _starpu_fifo_task_transfer_started(struct _starpu_fifo_taskq *fifo, struct starpu_task *task, int num_priorities)
+{
+	double transfer_model = task->predicted_transfer;
+	if (isnan(transfer_model))
+		return;
+
+	/* We now start the transfer, move it from predicted to pipelined */
+	fifo->exp_len -= transfer_model;
+	fifo->pipeline_len += transfer_model;
+	fifo->exp_start = starpu_timing_now() + fifo->pipeline_len;
+	fifo->exp_end = fifo->exp_start + fifo->exp_len;
+	if(num_priorities != -1)
+	{
+		int i;
+		int task_prio = _normalize_prio(task->priority, num_priorities, task->sched_ctx);
+		for(i = 0; i <= task_prio; i++)
+			fifo->exp_len_per_priority[i] -= transfer_model;
+	}
+}
+
+/* This is called when a task is actually pushed to the worker (i.e. the transfer finished */
+static void _starpu_fifo_task_started(struct _starpu_fifo_taskq *fifo, struct starpu_task *task, int num_priorities)
+{
+	double model = task->predicted;
+	double transfer_model = task->predicted_transfer;
+	if(!isnan(transfer_model))
+		/* The transfer is over, remove it from pipelined */
+		fifo->pipeline_len -= transfer_model;
+
+	if(!isnan(model))
+	{
+		/* We now start the computation, move it from predicted to pipelined */
+		fifo->exp_len -= model;
+		fifo->pipeline_len += model;
+		fifo->exp_start = starpu_timing_now() + fifo->pipeline_len;
+                fifo->exp_end= fifo->exp_start + fifo->exp_len;
+		if(num_priorities != -1)
+		{
+			int i;
+			int task_prio = _normalize_prio(task->priority, num_priorities, task->sched_ctx);
+			for(i = 0; i <= task_prio; i++)
+				fifo->exp_len_per_priority[i] -= model;
+		}
+	}
+}
+
+/* This is called when a task is actually finished */
+static void _starpu_fifo_task_finished(struct _starpu_fifo_taskq *fifo, struct starpu_task *task, int num_priorities STARPU_ATTRIBUTE_UNUSED)
+{
+	if(!isnan(task->predicted))
+		/* The execution is over, remove it from pipelined */
+		fifo->pipeline_len -= task->predicted;
+}
+
+
 
 static struct starpu_task *_starpu_fifo_pop_first_ready_task(struct _starpu_fifo_taskq *fifo_queue, unsigned node, int num_priorities)
 {
@@ -184,31 +242,18 @@ static struct starpu_task *dmda_pop_ready_task(unsigned sched_ctx_id)
 
 	struct starpu_task *task;
 
-	int workerid = starpu_worker_get_id();
+	unsigned workerid = starpu_worker_get_id_check();
 	struct _starpu_fifo_taskq *fifo = dt->queue_array[workerid];
 
 	unsigned node = starpu_worker_get_memory_node(workerid);
 
+	/* Take the opportunity to update start time */
+	fifo->exp_start = STARPU_MAX(starpu_timing_now(), fifo->exp_start);
+
 	task = _starpu_fifo_pop_first_ready_task(fifo, node, dt->num_priorities);
 	if (task)
 	{
-		/* We now start the transfer, get rid of it in the completion
-		 * prediction */
-		double transfer_model = task->predicted_transfer;
-		if(!isnan(transfer_model)) 
-		{
-			fifo->exp_len -= transfer_model;
-			fifo->exp_start = starpu_timing_now() + transfer_model;
-			fifo->exp_end = fifo->exp_start + fifo->exp_len;
-			if(dt->num_priorities != -1)
-			{
-				int i;
-				int task_prio = _normalize_prio(task->priority, dt->num_priorities, task->sched_ctx);
-				for(i = 0; i <= task_prio; i++)
-					fifo->exp_len_per_priority[i] -= transfer_model;
-			}
-			
-		}
+		_starpu_fifo_task_transfer_started(fifo, task, dt->num_priorities);
 
 		starpu_sched_ctx_list_task_counters_decrement(sched_ctx_id, workerid);
 
@@ -233,33 +278,18 @@ static struct starpu_task *dmda_pop_task(unsigned sched_ctx_id)
 
 	struct starpu_task *task;
 
-	int workerid = starpu_worker_get_id();
+	unsigned workerid = starpu_worker_get_id_check();
 	struct _starpu_fifo_taskq *fifo = dt->queue_array[workerid];
 
-	STARPU_ASSERT_MSG(fifo, "worker %d does not belong to ctx %d anymore.\n", workerid, sched_ctx_id);
+	/* Take the opportunity to update start time */
+	fifo->exp_start = STARPU_MAX(starpu_timing_now(), fifo->exp_start);
+
+	STARPU_ASSERT_MSG(fifo, "worker %u does not belong to ctx %u anymore.\n", workerid, sched_ctx_id);
 
 	task = _starpu_fifo_pop_local_task(fifo);
 	if (task)
 	{
-		double transfer_model = task->predicted_transfer;
-		/* We now start the transfer, get rid of it in the completion
-		 * prediction */
-
-		if(!isnan(transfer_model)) 
-		{
-			double model = task->predicted;
-			fifo->exp_len -= transfer_model;
-			fifo->exp_start = starpu_timing_now() + transfer_model+model;
-			fifo->exp_end = fifo->exp_start + fifo->exp_len;
-			if(dt->num_priorities != -1)
-			{
-				int i;
-				int task_prio = _normalize_prio(task->priority, dt->num_priorities, task->sched_ctx);
-				for(i = 0; i <= task_prio; i++)
-					fifo->exp_len_per_priority[i] -= transfer_model;
-			}
-
-		}
+		_starpu_fifo_task_transfer_started(fifo, task, dt->num_priorities);
 
 		starpu_sched_ctx_list_task_counters_decrement(sched_ctx_id, workerid);
 		  
@@ -270,7 +300,7 @@ static struct starpu_task *dmda_pop_task(unsigned sched_ctx_id)
 			if (non_ready == 0)
 				dt->ready_task_cnt++;
 		}
-		
+
 		dt->total_task_cnt++;
 #endif
 	}
@@ -282,10 +312,13 @@ static struct starpu_task *dmda_pop_every_task(unsigned sched_ctx_id)
 {
 	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
-	struct starpu_task *new_list;
+	struct starpu_task *new_list, *task;
 
-	int workerid = starpu_worker_get_id();
+	unsigned workerid = starpu_worker_get_id_check();
 	struct _starpu_fifo_taskq *fifo = dt->queue_array[workerid];
+
+	/* Take the opportunity to update start time */
+	fifo->exp_start = STARPU_MAX(starpu_timing_now(), fifo->exp_start);
 
 	starpu_pthread_mutex_t *sched_mutex;
 	starpu_pthread_cond_t *sched_cond;
@@ -296,27 +329,8 @@ static struct starpu_task *dmda_pop_every_task(unsigned sched_ctx_id)
 
 	starpu_sched_ctx_list_task_counters_reset(sched_ctx_id, workerid);
 
-	while (new_list)
-	{
-		double transfer_model = new_list->predicted_transfer;
-		/* We now start the transfer, get rid of it in the completion
-		 * prediction */
-		if(!isnan(transfer_model)) 
-		{
-			fifo->exp_len -= transfer_model;
-			fifo->exp_start = starpu_timing_now() + transfer_model;
-			fifo->exp_end = fifo->exp_start + fifo->exp_len;
-			if(dt->num_priorities != -1)
-			{
-				int i;
-				for(i = 0; i < new_list->priority; i++)
-					fifo->exp_len_per_priority[i] -= transfer_model;
-			}
-		
-		}
-
-		new_list = new_list->next;
-	}
+	for (task = new_list; task; task = task->next)
+		_starpu_fifo_task_transfer_started(fifo, task, dt->num_priorities);
 
 	return new_list;
 }
@@ -332,7 +346,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 
         if(child_sched_ctx != STARPU_NMAX_SCHED_CTXS)
         {
-                starpu_sched_ctx_move_task_to_ctx(task, child_sched_ctx, 0);
+                starpu_sched_ctx_move_task_to_ctx(task, child_sched_ctx, 0, 1);
 		starpu_sched_ctx_revert_task_counters(sched_ctx_id, task->flops);
                 return 0;
         }
@@ -350,7 +364,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 	STARPU_PTHREAD_MUTEX_LOCK_SCHED(sched_mutex);
 
         /* Sometimes workers didn't take the tasks as early as we expected */
-	fifo->exp_start = isnan(fifo->exp_start) ? starpu_timing_now() : STARPU_MAX(fifo->exp_start, starpu_timing_now());
+	fifo->exp_start = isnan(fifo->exp_start) ? starpu_timing_now() + fifo->pipeline_len : STARPU_MAX(fifo->exp_start, starpu_timing_now());
 	fifo->exp_end = fifo->exp_start + fifo->exp_len;
 
 	if ((starpu_timing_now() + predicted_transfer) < fifo->exp_end)
@@ -366,7 +380,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 		predicted_transfer = (starpu_timing_now() + predicted_transfer) - fifo->exp_end;
 	}
 
-	if(!isnan(predicted_transfer)) 
+	if(!isnan(predicted_transfer))
 	{
 		fifo->exp_end += predicted_transfer;
 		fifo->exp_len += predicted_transfer;
@@ -411,13 +425,14 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 		starpu_prefetch_task_input_on_node(task, memory_node);
 	}
 
-#ifdef HAVE_AYUDAME_H
-	if (AYU_event)
+	STARPU_AYU_ADDTOTASKQUEUE(_starpu_get_job_associated_to_task(task)->job_id, best_workerid);
+	unsigned stream_ctx_id = starpu_worker_get_sched_ctx_id_stream(best_workerid);
+	if(stream_ctx_id != STARPU_NMAX_SCHED_CTXS)
 	{
-		intptr_t id = best_workerid;
-		AYU_event(AYU_ADDTASKTOQUEUE, _starpu_get_job_associated_to_task(task)->job_id, &id);
+		starpu_sched_ctx_move_task_to_ctx(task, stream_ctx_id, 0, 0);
+		starpu_sched_ctx_revert_task_counters(sched_ctx_id, task->flops);
 	}
-#endif
+
 	int ret = 0;
 	if (prio)
 	{
@@ -460,8 +475,8 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 static int _dm_push_task(struct starpu_task *task, unsigned prio, unsigned sched_ctx_id)
 {
 	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-	unsigned worker, worker_ctx = 0;
 	int best = -1;
+	unsigned worker_ctx = 0;
 
 	double best_exp_end = 0.0;
 	double model_best = 0.0;
@@ -475,8 +490,6 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio, unsigned sched
 	int unknown = 0;
 
 	unsigned best_impl = 0;
-	unsigned nimpl;
-	unsigned impl_mask;
 	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 
 	struct starpu_sched_ctx_iterator it;
@@ -484,13 +497,15 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio, unsigned sched
 	workers->init_iterator_for_parallel_tasks(workers, &it, task);
 	while(workers->has_next(workers, &it))
 	{
-		worker = workers->get_next(workers, &it);
+		unsigned nimpl;
+		unsigned impl_mask;
+		unsigned worker = workers->get_next(workers, &it);
 		struct _starpu_fifo_taskq *fifo  = dt->queue_array[worker];
 		unsigned memory_node = starpu_worker_get_memory_node(worker);
 		struct starpu_perfmodel_arch* perf_arch = starpu_worker_get_perf_archtype(worker, sched_ctx_id);
 
 		/* Sometimes workers didn't take the tasks as early as we expected */
-		double exp_start = isnan(fifo->exp_start) ? starpu_timing_now() : STARPU_MAX(fifo->exp_start, starpu_timing_now());
+		double exp_start = isnan(fifo->exp_start) ? starpu_timing_now() + fifo->pipeline_len : STARPU_MAX(fifo->exp_start, starpu_timing_now());
 
 		if (!starpu_worker_can_execute_task_impl(worker, task, &impl_mask))
 			continue;
@@ -525,7 +540,7 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio, unsigned sched
 			 * no performance model, or is not calibrated yet.
 			 */
 			if (ntasks_best == -1
-			
+
 			    /* Always compute the greedy decision, at least for
 			     * the tasks with no performance model. */
 			    || (!calibrating && ntasks_end < ntasks_best_end)
@@ -546,11 +561,17 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio, unsigned sched
 				best_impl = nimpl;
 			}
 
-			if (isnan(local_length))
+			if (isnan(local_length)) {
 				/* we are calibrating, we want to speed-up calibration time
 				 * so we privilege non-calibrated tasks (but still
 				 * greedily distribute them to avoid dumb schedules) */
+				static int warned;
+				if (!warned) {
+					warned = 1;
+					_STARPU_DISP("Warning: performance model for %s not finished calibrating on worker %u, using a dumb scheduling heuristic for now\n", starpu_task_get_name(task), worker);
+				}
 				calibrating = 1;
+			}
 
 			if (isnan(local_length) || _STARPU_IS_ZERO(local_length))
 				/* there is no prediction available for that task
@@ -580,12 +601,16 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio, unsigned sched
 		best = ntasks_best;
 		model_best = 0.0;
 		transfer_model_best = 0.0;
+#ifdef STARPU_VERBOSE
+		dt->eager_task_cnt++;
+#endif
 	}
 
 	//_STARPU_DEBUG("Scheduler dm: kernel (%u)\n", best_impl);
 
 	starpu_task_set_implementation(task, best_impl);
 
+	_STARPU_TASK_BREAK_ON(task, sched);
 	/* we should now have the best worker in variable "best" */
 	return push_task_on_best_worker(task, best,
 					model_best, transfer_model_best, prio, sched_ctx_id);
@@ -599,7 +624,7 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 						double *max_exp_endp,
 						double *best_exp_endp,
 						double local_data_penalty[nworkers][STARPU_MAXIMPLEMENTATIONS],
-						double local_power[nworkers][STARPU_MAXIMPLEMENTATIONS],
+						double local_energy[nworkers][STARPU_MAXIMPLEMENTATIONS],
 						int *forced_worker, int *forced_impl, unsigned sched_ctx_id, unsigned sorted_decision)
 {
 	int calibrating = 0;
@@ -611,15 +636,13 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 
 	/* A priori, we know all estimations */
 	int unknown = 0;
-	unsigned worker, worker_ctx = 0;
+	unsigned worker_ctx = 0;
 
-	unsigned nimpl;
-	unsigned impl_mask;
 	int task_prio = 0;
 
 	starpu_task_bundle_t bundle = task->bundle;
 	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-	
+
 	if(sorted_decision && dt->num_priorities != -1)
 		task_prio = _normalize_prio(task->priority, dt->num_priorities, sched_ctx_id);
 
@@ -629,13 +652,16 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 	workers->init_iterator_for_parallel_tasks(workers, &it, task);
 	while(workers->has_next(workers, &it))
 	{
-		worker = workers->get_next(workers, &it);
+		unsigned nimpl;
+		unsigned impl_mask;
+		unsigned worker = workers->get_next(workers, &it);
 		struct _starpu_fifo_taskq *fifo = dt->queue_array[worker];
 		struct starpu_perfmodel_arch* perf_arch = starpu_worker_get_perf_archtype(worker, sched_ctx_id);
 		unsigned memory_node = starpu_worker_get_memory_node(worker);
 
 		/* Sometimes workers didn't take the tasks as early as we expected */
-		double exp_start = isnan(fifo->exp_start) ? starpu_timing_now() : STARPU_MAX(fifo->exp_start, starpu_timing_now());
+		double exp_start = isnan(fifo->exp_start) ? starpu_timing_now() + fifo->pipeline_len : STARPU_MAX(fifo->exp_start, starpu_timing_now());
+
 		if (!starpu_worker_can_execute_task_impl(worker, task, &impl_mask))
 			continue;
 
@@ -646,11 +672,11 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 				/* no one on that queue may execute this task */
 				continue;
 			}
-			STARPU_ASSERT_MSG(fifo != NULL, "worker %d ctx %d\n", worker, sched_ctx_id);
+			STARPU_ASSERT_MSG(fifo != NULL, "worker %u ctx %u\n", worker, sched_ctx_id);
 
 			int fifo_ntasks = fifo->ntasks;
 			double prev_exp_len = fifo->exp_len;
-			/* consider the priority of the task when deciding on which worker to schedule, 
+			/* consider the priority of the task when deciding on which worker to schedule,
 			   compute the expected_end of the task if it is inserted before other tasks already scheduled */
 			if(sorted_decision)
 			{
@@ -669,7 +695,7 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 					STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(sched_mutex);
 				}
 			}
-				
+
 			exp_end[worker_ctx][nimpl] = exp_start + prev_exp_len;
 			if (exp_end[worker_ctx][nimpl] > max_exp_end)
 				max_exp_end = exp_end[worker_ctx][nimpl];
@@ -681,14 +707,14 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 				/* TODO : conversion time */
 				local_task_length[worker_ctx][nimpl] = starpu_task_bundle_expected_length(bundle, perf_arch, nimpl);
 				local_data_penalty[worker_ctx][nimpl] = starpu_task_bundle_expected_data_transfer_time(bundle, memory_node);
-				local_power[worker_ctx][nimpl] = starpu_task_bundle_expected_power(bundle, perf_arch,nimpl);
+				local_energy[worker_ctx][nimpl] = starpu_task_bundle_expected_energy(bundle, perf_arch,nimpl);
 
 			}
 			else
 			{
 				local_task_length[worker_ctx][nimpl] = starpu_task_expected_length(task, perf_arch, nimpl);
 				local_data_penalty[worker_ctx][nimpl] = starpu_task_expected_data_transfer_time(memory_node, task);
-				local_power[worker_ctx][nimpl] = starpu_task_expected_power(task, perf_arch,nimpl);
+				local_energy[worker_ctx][nimpl] = starpu_task_expected_energy(task, perf_arch,nimpl);
 				double conversion_time = starpu_task_expected_conversion_time(task, perf_arch, nimpl);
 				if (conversion_time > 0.0)
 					local_task_length[worker_ctx][nimpl] += conversion_time;
@@ -754,8 +780,8 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 				nimpl_best = nimpl;
 			}
 
-			if (isnan(local_power[worker_ctx][nimpl]))
-				local_power[worker_ctx][nimpl] = 0.;
+			if (isnan(local_energy[worker_ctx][nimpl]))
+				local_energy[worker_ctx][nimpl] = 0.;
 
 		}
 		worker_ctx++;
@@ -764,6 +790,13 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 	*forced_worker = unknown?ntasks_best:-1;
 	*forced_impl = unknown?nimpl_best:-1;
 
+#ifdef STARPU_VERBOSE
+	if (unknown)
+	{
+		dt->eager_task_cnt++;
+	}
+#endif
+
 	*best_exp_endp = best_exp_end;
 	*max_exp_endp = max_exp_end;
 }
@@ -771,7 +804,6 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 static double _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned sched_ctx_id, unsigned simulate, unsigned sorted_decision)
 {
 	/* find the queue */
-	unsigned worker, worker_ctx = 0;
 	int best = -1, best_in_ctx = -1;
 	int selected_impl = 0;
 	double model_best = 0.0;
@@ -787,7 +819,7 @@ static double _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned 
 	unsigned nworkers_ctx = workers->nworkers;
 	double local_task_length[nworkers_ctx][STARPU_MAXIMPLEMENTATIONS];
 	double local_data_penalty[nworkers_ctx][STARPU_MAXIMPLEMENTATIONS];
-	double local_power[nworkers_ctx][STARPU_MAXIMPLEMENTATIONS];
+	double local_energy[nworkers_ctx][STARPU_MAXIMPLEMENTATIONS];
 
 	/* Expected end of this task on the workers */
 	double exp_end[nworkers_ctx][STARPU_MAXIMPLEMENTATIONS];
@@ -808,22 +840,22 @@ static double _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned 
 					    &max_exp_end,
 					    &best_exp_end,
 					    local_data_penalty,
-					    local_power,
+					    local_energy,
 					    &forced_best,
 					    &forced_impl, sched_ctx_id, sorted_decision);
-	
-	
-	double best_fitness = -1;
 
-	unsigned nimpl;
-	unsigned impl_mask;
+
 	if (forced_best == -1)
 	{
+		double best_fitness = -1;
+		unsigned worker_ctx = 0;
 		struct starpu_sched_ctx_iterator it;
 		workers->init_iterator_for_parallel_tasks(workers, &it, task);
 		while(workers->has_next(workers, &it))
 		{
-			worker = workers->get_next(workers, &it);
+			unsigned worker = workers->get_next(workers, &it);
+			unsigned nimpl;
+			unsigned impl_mask;
 
 			if (!starpu_worker_can_execute_task_impl(worker, task, &impl_mask))
 				continue;
@@ -837,7 +869,7 @@ static double _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned 
 				}
 				fitness[worker_ctx][nimpl] = dt->alpha*(exp_end[worker_ctx][nimpl] - best_exp_end)
 					+ dt->beta*(local_data_penalty[worker_ctx][nimpl])
-					+ dt->_gamma*(local_power[worker_ctx][nimpl]);
+					+ dt->_gamma*(local_energy[worker_ctx][nimpl]);
 
 				if (exp_end[worker_ctx][nimpl] > max_exp_end)
 				{
@@ -855,7 +887,7 @@ static double _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned 
 					best_in_ctx = worker_ctx;
 					selected_impl = nimpl;
 
-					//_STARPU_DEBUG("best fitness (worker %d) %e = alpha*(%e) + beta(%e) +gamma(%e)\n", worker, best_fitness, exp_end[worker][nimpl] - best_exp_end, local_data_penalty[worker][nimpl], local_power[worker][nimpl]);
+					//_STARPU_DEBUG("best fitness (worker %d) %e = alpha*(%e) + beta(%e) +gamma(%e)\n", worker, best_fitness, exp_end[worker][nimpl] - best_exp_end, local_data_penalty[worker][nimpl], local_energy[worker][nimpl]);
 
 				}
 			}
@@ -890,6 +922,7 @@ static double _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned 
 	//_STARPU_DEBUG("Scheduler dmda: kernel (%u)\n", best_impl);
 	starpu_task_set_implementation(task, selected_impl);
 
+	_STARPU_TASK_BREAK_ON(task, sched);
 	if(!simulate)
 	{
 		/* we should now have the best worker in variable "best" */
@@ -897,8 +930,6 @@ static double _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned 
 	}
 	else
 	{
-//		double max_len = (max_exp_end - starpu_timing_now());
-		/* printf("%d: dmda max_exp_end %lf best_exp_end %lf max_len %lf \n", sched_ctx_id, max_exp_end/1000000.0, best_exp_end/1000000.0, max_len/1000000.0);	 */
 		return exp_end[best_in_ctx][selected_impl] ;
 	}
 }
@@ -948,11 +979,10 @@ static void dmda_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nwo
 {
 	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
-	int workerid;
 	unsigned i;
 	for (i = 0; i < nworkers; i++)
 	{
-		workerid = workerids[i];
+		int workerid = workerids[i];
 		/* if the worker has alreadry belonged to this context
 		   the queue and the synchronization variables have been already initialized */
 		if(dt->queue_array[workerid] == NULL)
@@ -960,8 +990,8 @@ static void dmda_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nwo
 
 		if(dt->num_priorities != -1)
 		{
-			dt->queue_array[workerid]->exp_len_per_priority = (double*)malloc(dt->num_priorities*sizeof(double));
-			dt->queue_array[workerid]->ntasks_per_priority = (unsigned*)malloc(dt->num_priorities*sizeof(unsigned));
+			_STARPU_MALLOC(dt->queue_array[workerid]->exp_len_per_priority, dt->num_priorities*sizeof(double));
+			_STARPU_MALLOC(dt->queue_array[workerid]->ntasks_per_priority, dt->num_priorities*sizeof(unsigned));
 			int j;
 			for(j = 0; j < dt->num_priorities; j++)
 			{
@@ -976,11 +1006,10 @@ static void dmda_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned 
 {
 	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
-	int workerid;
 	unsigned i;
 	for (i = 0; i < nworkers; i++)
 	{
-		workerid = workerids[i];
+		int workerid = workerids[i];
 		if(dt->queue_array[workerid] != NULL)
 		{
 			if(dt->num_priorities != -1)
@@ -997,11 +1026,12 @@ static void dmda_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned 
 
 static void initialize_dmda_policy(unsigned sched_ctx_id)
 {
-	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)malloc(sizeof(struct _starpu_dmda_data));
+	struct _starpu_dmda_data *dt;
+	_STARPU_CALLOC(dt, 1, sizeof(struct _starpu_dmda_data));
 
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)dt);
 
-	dt->queue_array = (struct _starpu_fifo_taskq**)malloc(STARPU_NMAXWORKERS*sizeof(struct _starpu_fifo_taskq*));
+	_STARPU_MALLOC(dt->queue_array, STARPU_NMAXWORKERS*sizeof(struct _starpu_fifo_taskq*));
 
 	int i;
 	for(i = 0; i < STARPU_NMAXWORKERS; i++)
@@ -1014,7 +1044,7 @@ static void initialize_dmda_policy(unsigned sched_ctx_id)
 
 	if(starpu_sched_ctx_min_priority_is_set(sched_ctx_id) != 0 && starpu_sched_ctx_max_priority_is_set(sched_ctx_id) != 0)
 		dt->num_priorities = starpu_sched_ctx_get_max_priority(sched_ctx_id) - starpu_sched_ctx_get_min_priority(sched_ctx_id) + 1;
-	else 
+	else
 		dt->num_priorities = -1;
 
 
@@ -1045,8 +1075,21 @@ static void initialize_dmda_sorted_policy(unsigned sched_ctx_id)
 static void deinitialize_dmda_policy(unsigned sched_ctx_id)
 {
 	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-
-	_STARPU_DEBUG("total_task_cnt %ld ready_task_cnt %ld -> %f\n", dt->total_task_cnt, dt->ready_task_cnt, (100.0f*dt->ready_task_cnt)/dt->total_task_cnt);
+#ifdef STARPU_VERBOSE
+	{
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+	long int modelled_task_cnt = dt->total_task_cnt - dt->eager_task_cnt;
+	_STARPU_DEBUG("%s sched policy (sched_ctx %u): total_task_cnt %ld ready_task_cnt %ld (%.1f%%), modelled_task_cnt = %ld (%.1f%%)%s\n",
+		sched_ctx->sched_policy?sched_ctx->sched_policy->policy_name:"<none>",
+		sched_ctx_id,
+		dt->total_task_cnt,
+		dt->ready_task_cnt,
+		(100.0f*dt->ready_task_cnt)/dt->total_task_cnt,
+		modelled_task_cnt,
+		(100.0f*modelled_task_cnt)/dt->total_task_cnt,
+		modelled_task_cnt==0?" *** Check if performance models are enabled and converging on a per-codelet basis, or use an non-modeling scheduling policy. ***":"");
+	}
+#endif
 
 	free(dt->queue_array);
 	free(dt);
@@ -1055,13 +1098,11 @@ static void deinitialize_dmda_policy(unsigned sched_ctx_id)
 /* dmda_pre_exec_hook is called right after the data transfer is done and right
  * before the computation to begin, it is useful to update more precisely the
  * value of the expected start, end, length, etc... */
-static void dmda_pre_exec_hook(struct starpu_task *task)
+static void dmda_pre_exec_hook(struct starpu_task *task, unsigned sched_ctx_id)
 {
-	unsigned sched_ctx_id = starpu_sched_ctx_get_ctx_for_task(task);
-	int workerid = starpu_worker_get_id();
+	unsigned workerid = starpu_worker_get_id_check();
 	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	struct _starpu_fifo_taskq *fifo = dt->queue_array[workerid];
-	double model = task->predicted;
 
 	starpu_pthread_mutex_t *sched_mutex;
 	starpu_pthread_cond_t *sched_cond;
@@ -1070,21 +1111,12 @@ static void dmda_pre_exec_hook(struct starpu_task *task)
 	/* Once the task is executing, we can update the predicted amount
 	 * of work. */
 	STARPU_PTHREAD_MUTEX_LOCK_SCHED(sched_mutex);
-	if(!isnan(model))
-	{
-		/* We now start the computation, get rid of it in the completion
-		 * prediction */
-		fifo->exp_len-= model;
-		fifo->exp_start = starpu_timing_now() + model;
-		fifo->exp_end= fifo->exp_start + fifo->exp_len;
-		if(dt->num_priorities != -1)
-		{
-			int i;
-			int task_prio = _normalize_prio(task->priority, dt->num_priorities, task->sched_ctx);
-			for(i = 0; i <= task_prio; i++)
-				fifo->exp_len_per_priority[i] -= model;
-		}
-	}
+
+	_starpu_fifo_task_started(fifo, task, dt->num_priorities);
+
+	/* Take the opportunity to update start time */
+	fifo->exp_start = STARPU_MAX(starpu_timing_now() + fifo->pipeline_len, fifo->exp_start);
+
 	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(sched_mutex);
 }
 
@@ -1108,7 +1140,7 @@ static void dmda_push_task_notify(struct starpu_task *task, int workerid, int pe
 	/* Update the predictions */
 	STARPU_PTHREAD_MUTEX_LOCK_SCHED(sched_mutex);
 	/* Sometimes workers didn't take the tasks as early as we expected */
-	fifo->exp_start = isnan(fifo->exp_start) ? starpu_timing_now() : STARPU_MAX(fifo->exp_start, starpu_timing_now());
+	fifo->exp_start = isnan(fifo->exp_start) ? starpu_timing_now() + fifo->pipeline_len : STARPU_MAX(fifo->exp_start, starpu_timing_now());
 	fifo->exp_end = fifo->exp_start + fifo->exp_len;
 
 	/* If there is no prediction available, we consider the task has a null length */
@@ -1167,17 +1199,17 @@ static void dmda_push_task_notify(struct starpu_task *task, int workerid, int pe
 	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(sched_mutex);
 }
 
-static void dmda_post_exec_hook(struct starpu_task * task)
+static void dmda_post_exec_hook(struct starpu_task * task, unsigned sched_ctx_id)
 {
-	unsigned sched_ctx_id = starpu_sched_ctx_get_ctx_for_task(task);
 	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-	int workerid = starpu_worker_get_id();
+	unsigned workerid = starpu_worker_get_id_check();
 	struct _starpu_fifo_taskq *fifo = dt->queue_array[workerid];
 	starpu_pthread_mutex_t *sched_mutex;
 	starpu_pthread_cond_t *sched_cond;
 	starpu_worker_get_sched_condition(workerid, &sched_mutex, &sched_cond);
 	STARPU_PTHREAD_MUTEX_LOCK_SCHED(sched_mutex);
-	fifo->exp_start = starpu_timing_now();
+	_starpu_fifo_task_finished(fifo, task, dt->num_priorities);
+	fifo->exp_start = STARPU_MAX(starpu_timing_now() + fifo->pipeline_len, fifo->exp_start);
 	fifo->exp_end = fifo->exp_start + fifo->exp_len;
 	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(sched_mutex);
 }

@@ -1,9 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
  * Copyright (C) 2011  Télécom-SudParis
- * Copyright (C) 2011, 2014  INRIA
+ * Copyright (C) 2011, 2014, 2016  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -24,6 +24,7 @@
 #include <core/dependencies/data_concurrency.h>
 #include <common/config.h>
 #include <common/utils.h>
+#include <common/graph.h>
 #include <profiling/profiling.h>
 #include <profiling/bound.h>
 #include <starpu_top.h>
@@ -32,12 +33,31 @@
 
 /* we need to identify each task to generate the DAG. */
 static unsigned long job_cnt = 0;
+static int max_memory_use;
+static int njobs, maxnjobs;
 
 #ifdef STARPU_DEBUG
 /* List of all jobs, for debugging */
-static struct _starpu_job *all_jobs_list;
+static struct _starpu_job_multilist_all_submitted all_jobs_list;
 static starpu_pthread_mutex_t all_jobs_list_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 #endif
+
+void _starpu_job_init(void)
+{
+	max_memory_use = starpu_get_env_number_default("STARPU_MAX_MEMORY_USE", 0);
+#ifdef STARPU_DEBUG
+	_starpu_job_multilist_init_all_submitted(&all_jobs_list);
+#endif
+}
+
+void _starpu_job_fini(void)
+{
+	if (max_memory_use)
+	{
+		_STARPU_DISP("Memory used for %d tasks: %lu MiB\n", maxnjobs, (unsigned long) (maxnjobs * (sizeof(struct starpu_task) + sizeof(struct _starpu_job))) >> 20);
+		STARPU_ASSERT_MSG(njobs == 0, "Some tasks have not been cleaned, did you forget to call starpu_task_destroy or starpu_task_clean?");
+	}
+}
 
 void _starpu_exclude_task_from_dag(struct starpu_task *task)
 {
@@ -52,7 +72,7 @@ struct _starpu_job* STARPU_ATTRIBUTE_MALLOC _starpu_job_create(struct starpu_tas
 	struct _starpu_job *job;
         _STARPU_LOG_IN();
 
-	job = _starpu_job_new();
+	_STARPU_MALLOC(job, sizeof(*job));
 
 	/* As most of the fields must be initialized at NULL, let's put 0
 	 * everywhere */
@@ -60,29 +80,26 @@ struct _starpu_job* STARPU_ATTRIBUTE_MALLOC _starpu_job_create(struct starpu_tas
 
 	if (task->dyn_handles)
 	{
-	     job->dyn_ordered_buffers = malloc(STARPU_TASK_GET_NBUFFERS(task) * sizeof(job->dyn_ordered_buffers[0]));
-	     job->dyn_dep_slots = calloc(STARPU_TASK_GET_NBUFFERS(task), sizeof(job->dyn_dep_slots[0]));
+		_STARPU_MALLOC(job->dyn_ordered_buffers, STARPU_TASK_GET_NBUFFERS(task) * sizeof(job->dyn_ordered_buffers[0]));
+		_STARPU_CALLOC(job->dyn_dep_slots, STARPU_TASK_GET_NBUFFERS(task), sizeof(job->dyn_dep_slots[0]));
 	}
 
 	job->task = task;
 
 #ifndef STARPU_USE_FXT
-	if (_starpu_bound_recording || _starpu_top_status_get()
-#ifdef HAVE_AYUDAME_H
-		|| AYU_event
-#endif
-			)
+	if (_starpu_bound_recording || _starpu_top_status_get() ||
+		_starpu_task_break_on_push != -1 || _starpu_task_break_on_pop != -1 || _starpu_task_break_on_sched != -1
+		|| STARPU_AYU_EVENT)
 #endif
 	{
 		job->job_id = STARPU_ATOMIC_ADDL(&job_cnt, 1);
-#ifdef HAVE_AYUDAME_H
-		if (AYU_event)
-		{
-			/* Declare task to Ayudame */
-			int64_t AYU_data[2] = {_starpu_ayudame_get_func_id(task->cl), task->priority > STARPU_MIN_PRIO};
-			AYU_event(AYU_ADDTASK, job->job_id, AYU_data);
-		}
-#endif
+		STARPU_AYU_ADDTASK(job->job_id, task);
+	}
+	if (max_memory_use)
+	{
+		int jobs = STARPU_ATOMIC_ADDL(&njobs, 1);
+		if (jobs > maxnjobs)
+			maxnjobs = jobs;
 	}
 
 	_starpu_cg_list_init(&job->job_successors);
@@ -95,6 +112,9 @@ struct _starpu_job* STARPU_ATTRIBUTE_MALLOC _starpu_job_create(struct starpu_tas
 
 	if (task->use_tag)
 		_starpu_tag_declare(task->tag_id, job);
+
+	if (_starpu_graph_record)
+		_starpu_graph_add_job(job);
 
         _STARPU_LOG_OUT();
 	return job;
@@ -128,7 +148,13 @@ void _starpu_job_destroy(struct _starpu_job *j)
 		j->dyn_dep_slots = NULL;
 	}
 
-	_starpu_job_delete(j);
+	if (_starpu_graph_record && j->graph_node)
+		_starpu_graph_drop_job(j);
+
+	if (max_memory_use)
+		(void) STARPU_ATOMIC_ADDL(&njobs, -1);
+
+	free(j);
 }
 
 int _starpu_job_finished(struct _starpu_job *j)
@@ -229,13 +255,7 @@ void _starpu_handle_job_submission(struct _starpu_job *j)
 
 #ifdef STARPU_DEBUG
 	STARPU_PTHREAD_MUTEX_LOCK(&all_jobs_list_mutex);
-	STARPU_ASSERT(!j->next_all);
-	STARPU_ASSERT(!j->prev_all && all_jobs_list != j);
-	if (all_jobs_list)
-		all_jobs_list->prev_all = j;
-	j->next_all = all_jobs_list;
-	j->prev_all = NULL;
-	all_jobs_list = j;
+	_starpu_job_multilist_push_back_all_submitted(&all_jobs_list, j);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&all_jobs_list_mutex);
 #endif
 }
@@ -255,23 +275,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 
 #ifdef STARPU_DEBUG
 	STARPU_PTHREAD_MUTEX_LOCK(&all_jobs_list_mutex);
-	if (j->next_all)
-	{
-		STARPU_ASSERT(j->next_all->prev_all == j);
-		j->next_all->prev_all = j->prev_all;
-	}
-	if (j->prev_all)
-	{
-		STARPU_ASSERT(j->prev_all->next_all == j);
-		j->prev_all->next_all = j->next_all;
-	}
-	else
-	{
-		STARPU_ASSERT(all_jobs_list == j);
-		all_jobs_list = j->next_all;
-	}
-	j->next_all = NULL;
-	j->prev_all = NULL;
+	_starpu_job_multilist_erase_all_submitted(&all_jobs_list, j);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&all_jobs_list_mutex);
 #endif
 
@@ -331,6 +335,34 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 		 * implicit dependencies any more.  */
 		_starpu_release_task_enforce_sequential_consistency(j);
 	}
+
+	/* If the job was executed on a combined worker there is no need for the
+	 * scheduler to process it : the task structure doesn't contain any valuable
+	 * data as it's not linked to an actual worker */
+	/* control task should not execute post_exec_hook */
+	if(j->task_size == 1 && task->cl != NULL && task->cl->where != STARPU_NOWHERE && !j->internal
+#ifdef STARPU_OPENMP
+	/* If this is a continuation, we do not execute the post_exec_hook. The
+	 * post_exec_hook will be run only when the continued task fully
+	 * completes.
+	 *
+	 * Note: If needed, a specific hook could be added to handle stopped
+	 * tasks */
+	&& !continuation
+#endif
+			)
+	{
+		_starpu_sched_post_exec_hook(task);
+#ifdef STARPU_USE_SC_HYPERVISOR
+		int workerid = starpu_worker_get_id();
+		_starpu_sched_ctx_post_exec_task_cb(workerid, task, data_size, j->footprint);
+#endif //STARPU_USE_SC_HYPERVISOR
+
+	}
+
+	/* Remove ourself from the graph before notifying dependencies */
+	if (_starpu_graph_record)
+		_starpu_graph_drop_job(j);
 
 	/* Task does not have a cl, but has explicit data dependencies, we need
 	 * to tell them that we will not exist any more before notifying the
@@ -396,30 +428,6 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 		}
 	}
 
-	/* If the job was executed on a combined worker there is no need for the
-	 * scheduler to process it : the task structure doesn't contain any valuable
-	 * data as it's not linked to an actual worker */
-	/* control task should not execute post_exec_hook */
-	if(j->task_size == 1 && task->cl != NULL && !j->internal
-#ifdef STARPU_OPENMP
-	/* If this is a continuation, we do not execute the post_exec_hook. The
-	 * post_exec_hook will be run only when the continued task fully
-	 * completes.
-	 *
-	 * Note: If needed, a specific hook could be added to handle stopped
-	 * tasks */
-	&& !continuation
-#endif
-			)
-	{
-		_starpu_sched_post_exec_hook(task);
-#ifdef STARPU_USE_SC_HYPERVISOR
-		int workerid = starpu_worker_get_id();
-		_starpu_sched_ctx_post_exec_task_cb(workerid, task, data_size, j->footprint);
-#endif //STARPU_USE_SC_HYPERVISOR
-
-	}
-
 	/* Note: For now, we keep the TASK_DONE trace event for continuation,
 	 * however we could add a specific event for stopped tasks if needed.
 	 */
@@ -428,9 +436,9 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	/* NB: we do not save those values before the callback, in case the
 	 * application changes some parameters eventually (eg. a task may not
 	 * be generated if the application is terminated). */
-	int destroy = task->destroy;
-	int detach = task->detach;
-	int regenerate = task->regenerate;
+	unsigned destroy = task->destroy;
+	unsigned detach = task->detach;
+	unsigned regenerate = task->regenerate;
 
 	/* we do not desallocate the job structure if some is going to
 	 * wait after the task */
@@ -450,11 +458,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 		j->terminated = 2;
 	}
 	STARPU_PTHREAD_COND_BROADCAST(&j->sync_cond);
-
-#ifdef HAVE_AYUDAME_H
-	if (AYU_event) AYU_event(AYU_REMOVETASK, j->job_id, NULL);
-#endif
-
+	STARPU_AYU_REMOVETASK(j->job_id);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 
 	if (detach && !continuation)
@@ -472,15 +476,8 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	{
 		STARPU_ASSERT_MSG((detach && !destroy && !task->synchronous)
 				|| continuation
-				, "Regenerated task must be detached (was %d), and not have detroy=1 (was %d) or synchronous=1 (was %d)", detach, destroy, task->synchronous);
-
-#ifdef HAVE_AYUDAME_H
-		if (AYU_event)
-		{
-			int64_t AYU_data[2] = {j->exclude_from_dag?0:_starpu_ayudame_get_func_id(task->cl), task->priority > STARPU_MIN_PRIO};
-			AYU_event(AYU_ADDTASK, j->job_id, AYU_data);
-		}
-#endif
+				, "Regenerated task must be detached (was %u), and not have detroy=1 (was %u) or synchronous=1 (was %u)", detach, destroy, task->synchronous);
+		STARPU_AYU_ADDTASK(j->job_id, j->exclude_from_dag?NULL:task);
 
 		{
 #ifdef STARPU_OPENMP
@@ -716,7 +713,7 @@ int _starpu_push_local_task(struct _starpu_worker *worker, struct starpu_task *t
 
 	if (task->execute_on_a_specific_worker && task->workerorder)
 	{
-		STARPU_ASSERT_MSG(task->workerorder >= worker->current_ordered_task_order, "worker order values must not have duplicates (%d pushed to worker %d, but %d already passed)", task->workerorder, worker->workerid, worker->current_ordered_task_order);
+		STARPU_ASSERT_MSG(task->workerorder >= worker->current_ordered_task_order, "worker order values must not have duplicates (%u pushed to worker %d, but %d already passed)", task->workerorder, worker->workerid, worker->current_ordered_task_order);
 		/* Put it in the ordered task ring */
 		unsigned needed = task->workerorder - worker->current_ordered_task_order + 1;
 		if (worker->local_ordered_tasks_size < needed)
@@ -724,18 +721,20 @@ int _starpu_push_local_task(struct _starpu_worker *worker, struct starpu_task *t
 			/* Increase the size */
 			unsigned alloc = worker->local_ordered_tasks_size;
 			struct starpu_task **new;
-			unsigned copied;
 
 			if (!alloc)
 				alloc = 1;
 			while (alloc < needed)
 				alloc *= 2;
-			new = malloc(alloc * sizeof(*new));
+			_STARPU_MALLOC(new, alloc * sizeof(*new));
 
-			/* Put existing tasks at the beginning of the new ring */
-			copied = worker->local_ordered_tasks_size - worker->current_ordered_task;
-			memcpy(new, &worker->local_ordered_tasks[worker->current_ordered_task], copied * sizeof(*new));
-			memcpy(new + copied, worker->local_ordered_tasks, (worker->local_ordered_tasks_size - copied) * sizeof(*new));
+			if (worker->local_ordered_tasks_size)
+			{
+				/* Put existing tasks at the beginning of the new ring */
+				unsigned copied = worker->local_ordered_tasks_size - worker->current_ordered_task;
+				memcpy(new, &worker->local_ordered_tasks[worker->current_ordered_task], copied * sizeof(*new));
+				memcpy(new + copied, worker->local_ordered_tasks, (worker->local_ordered_tasks_size - copied) * sizeof(*new));
+			}
 			memset(new + worker->local_ordered_tasks_size, 0, (alloc - worker->local_ordered_tasks_size) * sizeof(*new));
 			free(worker->local_ordered_tasks);
 			worker->local_ordered_tasks = new;

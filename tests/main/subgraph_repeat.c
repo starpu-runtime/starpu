@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012-2015  Université de Bordeaux
+ * Copyright (C) 2010, 2012-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -19,6 +19,10 @@
 #include <common/thread.h>
 
 #include "../helper.h"
+
+/*
+ * Test that one can resubmit a whole task graph repeatedly
+ */
 
 #ifdef STARPU_QUICK_CHECK
 static unsigned niter = 64;
@@ -143,6 +147,7 @@ int main(int argc, char **argv)
 	ret = starpu_task_submit(&taskC); if (ret == -ENODEV) goto enodev; STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	ret = starpu_task_submit(&taskD); if (ret == -ENODEV) goto enodev; STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
+	starpu_do_schedule();
 	/* Wait for the termination of all loops */
 	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	if (loop_cnt < niter)
@@ -157,13 +162,13 @@ int main(int argc, char **argv)
 	starpu_free(check_cnt);
 	starpu_data_unregister(check_data);
 
-	starpu_shutdown();
-
-	/* Cleanup the statically allocated tasks after shutdown, as StarPU is still working on it after the callback */
+	starpu_task_wait_for_all();
 	starpu_task_clean(&taskA);
 	starpu_task_clean(&taskB);
 	starpu_task_clean(&taskC);
 	starpu_task_clean(&taskD);
+
+	starpu_shutdown();
 
 	return EXIT_SUCCESS;
 

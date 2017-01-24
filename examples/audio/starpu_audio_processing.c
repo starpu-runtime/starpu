@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2012, 2014-2015  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012, 2013  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -68,8 +68,8 @@ static double start;
 static double end;
 static unsigned task_per_worker[STARPU_NMAXWORKERS] = {0};
 
-/* 
- *	Functions to Manipulate WAV files 
+/*
+ *	Functions to Manipulate WAV files
  */
 
 unsigned get_wav_data_bytes_length(FILE *file)
@@ -91,8 +91,8 @@ void copy_wav_header(FILE *srcfile, FILE *dstfile)
 	fseek(srcfile, 0, SEEK_SET);
 	fseek(dstfile, 0, SEEK_SET);
 
-	fread(buffer, 1, headersize, infile);	
-	fwrite(buffer, 1, headersize, outfile);	
+	fread(buffer, 1, headersize, infile);
+	fwrite(buffer, 1, headersize, outfile);
 }
 
 void read_16bit_wav(FILE *infile, unsigned size, float *arrayout, FILE *save_file)
@@ -104,7 +104,7 @@ void read_16bit_wav(FILE *infile, unsigned size, float *arrayout, FILE *save_fil
 
 	/* we skip the header to only keep the data */
 	fseek(infile, headersize, SEEK_SET);
-	
+
 	for (v=0;v<size;v++)
 	{
 		signed char val = (signed char)fgetc(infile);
@@ -113,7 +113,7 @@ void read_16bit_wav(FILE *infile, unsigned size, float *arrayout, FILE *save_fil
 		arrayout[v] = 256*val2 + val;
 
 #if SAVE_RAW
-		fprintf(save_file, "%d %f\n", currentpos++, arrayout[v]);
+		fprintf(save_file, "%u %f\n", currentpos++, arrayout[v]);
 #endif
 	}
 }
@@ -128,10 +128,10 @@ void write_16bit_wav(FILE *outfile, unsigned size, float *arrayin, FILE *save_fi
 
 	/* we assume that the header is copied using copy_wav_header */
 	fseek(outfile, headersize, SEEK_SET);
-	
+
 	for (v=0;v<size;v++)
 	{
-		signed char val = ((int)arrayin[v]) % 256; 
+		signed char val = ((int)arrayin[v]) % 256;
 		signed char val2  = ((int)arrayin[v]) / 256;
 
 		fputc(val, outfile);
@@ -139,7 +139,7 @@ void write_16bit_wav(FILE *outfile, unsigned size, float *arrayin, FILE *save_fi
 
 #if SAVE_RAW
 		if (save_file)
-	                fprintf(save_file, "%d %f\n", currentpos++, arrayin[v]);
+	                fprintf(save_file, "%u %f\n", currentpos++, arrayin[v]);
 #endif
 	}
 }
@@ -177,7 +177,7 @@ static void band_filter_kernel_gpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *
 	cufftComplex *localout;
 
 	int workerid = starpu_worker_get_id();
-	
+
 	/* initialize the plane only during the first iteration */
 	if (!plans[workerid].is_initialized)
 	{
@@ -201,7 +201,7 @@ static void band_filter_kernel_gpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *
 	/* FFT */
 	cures = cufftExecR2C(plans[workerid].plan, localA, localout);
 	STARPU_ASSERT(cures == CUFFT_SUCCESS);
-	
+
 	/* filter low freqs */
 	unsigned lowfreq_index = (LOWFREQ*nsamples)/SAMPLERATE;
 	cudaMemsetAsync(&localout[0], 0, lowfreq_index*sizeof(fftwf_complex), starpu_cuda_get_local_stream());
@@ -226,11 +226,11 @@ static void band_filter_kernel_cpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *
 	float *localA = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
 
 	int workerid = starpu_worker_get_id();
-	
+
 	/* initialize the plane only during the first iteration */
 	if (!plans[workerid].is_initialized)
 	{
-		plans[workerid].localout_cpu = malloc(nsamples*sizeof(fftwf_complex)); 
+		plans[workerid].localout_cpu = malloc(nsamples*sizeof(fftwf_complex));
 		plans[workerid].Acopy = malloc(nsamples*sizeof(float));
 
 		/* create plans, only "fftwf_execute" is thread safe in FFTW ... */
@@ -255,7 +255,7 @@ static void band_filter_kernel_cpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *
 
 	/* FFT */
 	fftwf_execute(plans[workerid].plan_cpu);
-	
+
 	/* filter low freqs */
 	unsigned lowfreq_index = (LOWFREQ*nsamples)/SAMPLERATE;
 	memset(&localout[0], 0, lowfreq_index*sizeof(fftwf_complex));
@@ -408,7 +408,7 @@ int main(int argc, char **argv)
 
 	unsigned niter = length_data/nsamples;
 
-	fprintf(stderr, "input: %s\noutput: %s\n#chunks %d\n", inputfilename, outputfilename, niter);
+	fprintf(stderr, "input: %s\noutput: %s\n#chunks %u\n", inputfilename, outputfilename, niter);
 
 	/* launch StarPU */
 	ret = starpu_init(NULL);

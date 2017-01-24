@@ -25,6 +25,7 @@
 #include <math.h>
 #include <starpu.h>
 #include <starpu_mpi.h>
+#include "helper.h"
 
 #define VERBOSE 0
 
@@ -181,8 +182,7 @@ static void distribute_matrix_C(void)
 			int target_rank = (b_row+b_col)%comm_size;
 
 			/* Move the block on to its new owner. */
-			starpu_mpi_get_data_on_node(MPI_COMM_WORLD, h, target_rank);
-			starpu_mpi_data_set_rank(h, target_rank);
+			starpu_mpi_data_migrate(MPI_COMM_WORLD, h, target_rank);
 		}
 	}
 }
@@ -194,8 +194,7 @@ static void undistribute_matrix_C(void)
 	for (b_row = 0; b_row < NB; b_row++) {
 		for (b_col = 0; b_col < NB; b_col++) {
 			starpu_data_handle_t h = C_h[b_row*NB+b_col]; 
-			starpu_mpi_get_data_on_node(MPI_COMM_WORLD, h, 0);
-			starpu_mpi_data_set_rank(h, 0);
+			starpu_mpi_data_migrate(MPI_COMM_WORLD, h, 0);
 		}
 	}
 }
@@ -249,7 +248,7 @@ static void cpu_mult(void *handles[], STARPU_ATTRIBUTE_UNUSED void *arg)
 	assert(n_row_C == n_row_A);
 	assert(n_col_A == n_row_B);
 
-	int i,j,k;
+	unsigned i,j,k;
 	for (k = 0; k < n_row_C; k++) {
 		for (j = 0; j < n_col_C; j++) {
 			for (i = 0; i < n_col_A; i++) {
@@ -284,6 +283,14 @@ int main(int argc, char *argv[])
 	/* Initializes the StarPU-MPI layer */
 	ret = starpu_mpi_init(&argc, &argv, 1);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
+
+	if (starpu_cpu_worker_get_count() == 0)
+	{
+		FPRINTF(stderr, "We need at least 1 CPU worker.\n");
+		starpu_mpi_shutdown();
+		starpu_shutdown();
+		return STARPU_TEST_SKIPPED;
+	}
 
 	/* Parse the matrix size and block size optional args */
 	if (argc > 1) {

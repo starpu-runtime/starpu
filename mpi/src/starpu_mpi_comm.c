@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2012, 2013, 2014, 2015  CNRS
- * Copyright (C) 2011-2015  Université de Bordeaux
+ * Copyright (C) 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
+ * Copyright (C) 2011-2016  Université de Bordeaux
  * Copyright (C) 2014 INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -28,12 +28,20 @@ struct _starpu_mpi_comm
 	struct _starpu_mpi_envelope *envelope;
 	MPI_Request request;
 	int posted;
+
+#ifdef STARPU_SIMGRID
+	MPI_Status status;
+	starpu_pthread_queue_t queue;
+	unsigned done;
+#endif
 };
 struct _starpu_mpi_comm_hashtable
 {
 	UT_hash_handle hh;
 	MPI_Comm comm;
 };
+
+static starpu_pthread_mutex_t _starpu_mpi_comms_mutex;
 struct _starpu_mpi_comm_hashtable *_starpu_mpi_comms_cache;
 struct _starpu_mpi_comm **_starpu_mpi_comms;
 int _starpu_mpi_comm_nb;
@@ -44,10 +52,11 @@ void _starpu_mpi_comm_init(MPI_Comm comm)
 {
 	_STARPU_MPI_DEBUG(10, "allocating for %d communicators\n", _starpu_mpi_comm_allocated);
 	_starpu_mpi_comm_allocated=10;
-	_starpu_mpi_comms = calloc(_starpu_mpi_comm_allocated, sizeof(struct _starpu_mpi_comm *));
+	_STARPU_MPI_CALLOC(_starpu_mpi_comms, _starpu_mpi_comm_allocated, sizeof(struct _starpu_mpi_comm *));
 	_starpu_mpi_comm_nb=0;
 	_starpu_mpi_comm_tested=0;
 	_starpu_mpi_comms_cache = NULL;
+	STARPU_PTHREAD_MUTEX_INIT(&_starpu_mpi_comms_mutex, NULL);
 
 	_starpu_mpi_comm_register(comm);
 }
@@ -59,6 +68,10 @@ void _starpu_mpi_comm_free()
 	{
 		struct _starpu_mpi_comm *_comm = _starpu_mpi_comms[i]; // get the ith _comm;
 		free(_comm->envelope);
+#ifdef STARPU_SIMGRID
+		starpu_pthread_queue_unregister(&wait, &_comm->queue);
+		starpu_pthread_queue_destroy(&_comm->queue);
+#endif
 		free(_comm);
 	}
 	free(_starpu_mpi_comms);
@@ -69,16 +82,19 @@ void _starpu_mpi_comm_free()
 		HASH_DEL(_starpu_mpi_comms_cache, entry);
 		free(entry);
 	}
+
+	STARPU_PTHREAD_MUTEX_DESTROY(&_starpu_mpi_comms_mutex);
 }
 
 void _starpu_mpi_comm_register(MPI_Comm comm)
 {
 	struct _starpu_mpi_comm_hashtable *found;
 
+	STARPU_PTHREAD_MUTEX_LOCK(&_starpu_mpi_comms_mutex);
 	HASH_FIND(hh, _starpu_mpi_comms_cache, &comm, sizeof(MPI_Comm), found);
 	if (found)
 	{
-		_STARPU_MPI_DEBUG(10, "comm %p (%p) already registered\n", comm, MPI_COMM_WORLD);
+		_STARPU_MPI_DEBUG(10, "comm %d (%d) already registered\n", comm, MPI_COMM_WORLD);
 	}
 	else
 	{
@@ -86,53 +102,71 @@ void _starpu_mpi_comm_register(MPI_Comm comm)
 		{
 			_starpu_mpi_comm_allocated *= 2;
 			_STARPU_MPI_DEBUG(10, "reallocating for %d communicators\n", _starpu_mpi_comm_allocated);
-			_starpu_mpi_comms = realloc(_starpu_mpi_comms, _starpu_mpi_comm_allocated * sizeof(struct _starpu_mpi_comm *));
+			_STARPU_MPI_REALLOC(_starpu_mpi_comms, _starpu_mpi_comm_allocated * sizeof(struct _starpu_mpi_comm *));
 		}
-		_STARPU_MPI_DEBUG(10, "registering comm %p (%p) number %d\n", comm, MPI_COMM_WORLD, _starpu_mpi_comm_nb);
-		struct _starpu_mpi_comm *_comm = calloc(1, sizeof(struct _starpu_mpi_comm));
+		_STARPU_MPI_DEBUG(10, "registering comm %d (%d) number %d\n", comm, MPI_COMM_WORLD, _starpu_mpi_comm_nb);
+		struct _starpu_mpi_comm *_comm;
+		_STARPU_MPI_CALLOC(_comm, 1, sizeof(struct _starpu_mpi_comm));
 		_comm->comm = comm;
-		_comm->envelope = calloc(1,sizeof(struct _starpu_mpi_envelope));
+		_STARPU_MPI_CALLOC(_comm->envelope, 1,sizeof(struct _starpu_mpi_envelope));
 		_comm->posted = 0;
 		_starpu_mpi_comms[_starpu_mpi_comm_nb] = _comm;
 		_starpu_mpi_comm_nb++;
-		struct _starpu_mpi_comm_hashtable *entry = (struct _starpu_mpi_comm_hashtable *)malloc(sizeof(*entry));
+		struct _starpu_mpi_comm_hashtable *entry;
+		_STARPU_MPI_MALLOC(entry, sizeof(*entry));
 		entry->comm = comm;
 		HASH_ADD(hh, _starpu_mpi_comms_cache, comm, sizeof(entry->comm), entry);
+
+#ifdef STARPU_SIMGRID
+		starpu_pthread_queue_init(&_comm->queue);
+		starpu_pthread_queue_register(&wait, &_comm->queue);
+		_comm->done = 0;
+#endif
 	}
+	STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_mpi_comms_mutex);
 }
 
 void _starpu_mpi_comm_post_recv()
 {
 	int i;
+
+	STARPU_PTHREAD_MUTEX_LOCK(&_starpu_mpi_comms_mutex);
 	for(i=0 ; i<_starpu_mpi_comm_nb ; i++)
 	{
 		struct _starpu_mpi_comm *_comm = _starpu_mpi_comms[i]; // get the ith _comm;
 		if (_comm->posted == 0)
 		{
-			_STARPU_MPI_DEBUG(3, "Posting a receive to get a data envelop on comm %d %p\n", i, _comm->comm);
+			_STARPU_MPI_DEBUG(3, "Posting a receive to get a data envelop on comm %d %d\n", i, _comm->comm);
 			_STARPU_MPI_COMM_FROM_DEBUG(sizeof(struct _starpu_mpi_envelope), MPI_BYTE, MPI_ANY_SOURCE, _STARPU_MPI_TAG_ENVELOPE, _STARPU_MPI_TAG_ENVELOPE, _comm->comm);
 			MPI_Irecv(_comm->envelope, sizeof(struct _starpu_mpi_envelope), MPI_BYTE, MPI_ANY_SOURCE, _STARPU_MPI_TAG_ENVELOPE, _comm->comm, &_comm->request);
+#ifdef STARPU_SIMGRID
+			_starpu_mpi_simgrid_wait_req(&_comm->request, &_comm->status, &_comm->queue, &_comm->done);
+#endif
 			_comm->posted = 1;
 		}
 	}
+	STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_mpi_comms_mutex);
 }
 
 int _starpu_mpi_comm_test_recv(MPI_Status *status, struct _starpu_mpi_envelope **envelope, MPI_Comm *comm)
 {
 	int i=_starpu_mpi_comm_tested;
+
+	STARPU_PTHREAD_MUTEX_LOCK(&_starpu_mpi_comms_mutex);
 	while (1)
 	{
-		int flag, res;
-
 		struct _starpu_mpi_comm *_comm = _starpu_mpi_comms[i]; // get the ith _comm;
 
 		if (_comm->posted)
 		{
+			int flag, res;
 			/* test whether an envelope has arrived. */
 #ifdef STARPU_SIMGRID
-			MSG_process_sleep(0.000010);
-#endif
+			res = _starpu_mpi_simgrid_mpi_test(&_comm->done, &flag);
+			memcpy(status, &_comm->status, sizeof(*status));
+#else
 			res = MPI_Test(&_comm->request, &flag, status);
+#endif
 			STARPU_ASSERT(res == MPI_SUCCESS);
 			if (flag)
 			{
@@ -142,30 +176,42 @@ int _starpu_mpi_comm_test_recv(MPI_Status *status, struct _starpu_mpi_envelope *
 					_starpu_mpi_comm_tested = 0;
 				*envelope = _comm->envelope;
 				*comm = _comm->comm;
+				STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_mpi_comms_mutex);
 				return 1;
 			}
 		}
 		i++;
 		if (i == _starpu_mpi_comm_nb) i=0;
 		if (i == _starpu_mpi_comm_tested)
+		{
 			// We have tested all the requests, none has completed
+			STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_mpi_comms_mutex);
 			return 0;
+		}
 	}
+	STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_mpi_comms_mutex);
 	return 0;
 }
 
 void _starpu_mpi_comm_cancel_recv()
 {
 	int i;
+
+	STARPU_PTHREAD_MUTEX_LOCK(&_starpu_mpi_comms_mutex);
 	for(i=0 ; i<_starpu_mpi_comm_nb ; i++)
 	{
 		struct _starpu_mpi_comm *_comm = _starpu_mpi_comms[i]; // get the ith _comm;
 		if (_comm->posted == 1)
 		{
-			MPI_Status status;
 			MPI_Cancel(&_comm->request);
-			MPI_Wait(&_comm->request, &status);
+#ifndef STARPU_SIMGRID
+			{
+				MPI_Status status;
+				MPI_Wait(&_comm->request, &status);
+			}
+#endif
 			_comm->posted = 0;
 		}
 	}
+	STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_mpi_comms_mutex);
 }

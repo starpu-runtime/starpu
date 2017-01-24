@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012, 2014-2016  Université de Bordeaux
- * Copyright (C) 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2010, 2012, 2014-2017  Université de Bordeaux
+ * Copyright (C) 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -32,17 +32,12 @@ void starpu_codelet_pack_args(void **arg_buffer, size_t *arg_buffer_size, ...)
 	va_end(varg_list);
 }
 
-void starpu_codelet_unpack_args(void *_cl_arg, ...)
+void _starpu_codelet_unpack_args_and_copyleft(char *cl_arg, void *_buffer, size_t buffer_size, va_list varg_list)
 {
-	char *cl_arg = (char *) _cl_arg;
-	int current_arg_offset = 0;
+	size_t current_arg_offset = 0;
 	int nargs, arg;
-	va_list varg_list;
 
-	STARPU_ASSERT(cl_arg);
-	va_start(varg_list, _cl_arg);
-
-	/* We fill the different pointers with the appropriate arguments */
+     	/* We fill the different pointers with the appropriate arguments */
 	memcpy(&nargs, cl_arg, sizeof(nargs));
 	current_arg_offset += sizeof(nargs);
 
@@ -51,7 +46,10 @@ void starpu_codelet_unpack_args(void *_cl_arg, ...)
 		void *argptr = va_arg(varg_list, void *);
 
 		/* If not reading all cl_args */
-		if(argptr == NULL)
+		// NULL was the initial end marker, we now use 0
+		// 0 and NULL should be the same value, but we
+		// keep both equalities for systems on which they could be different
+		if(argptr == 0 || argptr == NULL)
 			break;
 
 		size_t arg_size;
@@ -62,6 +60,51 @@ void starpu_codelet_unpack_args(void *_cl_arg, ...)
 		current_arg_offset += arg_size;
 	}
 
+	if (buffer_size)
+	{
+		int left = nargs-arg;
+		char *buffer = (char *) _buffer;
+		int current_buffer_offset = 0;
+		memcpy(buffer, (int *)&left, sizeof(left));
+		current_buffer_offset += sizeof(left);
+		for ( ; arg < nargs; arg++)
+		{
+			size_t arg_size;
+			memcpy(&arg_size, cl_arg+current_arg_offset, sizeof(arg_size));
+			current_arg_offset += sizeof(arg_size);
+			memcpy(buffer+current_buffer_offset, &arg_size, sizeof(arg_size));
+			current_buffer_offset += sizeof(arg_size);
+
+			memcpy(buffer+current_buffer_offset, cl_arg+current_arg_offset, arg_size);
+			current_arg_offset += arg_size;
+			current_buffer_offset += arg_size;
+		}
+	}
+}
+
+void starpu_codelet_unpack_args_and_copyleft(void *_cl_arg, void *buffer, size_t buffer_size, ...)
+{
+	char *cl_arg = (char *) _cl_arg;
+	va_list varg_list;
+
+	STARPU_ASSERT(cl_arg);
+	va_start(varg_list, buffer_size);
+
+	_starpu_codelet_unpack_args_and_copyleft(cl_arg, buffer, buffer_size, varg_list);
+
+	va_end(varg_list);
+}
+
+void starpu_codelet_unpack_args(void *_cl_arg, ...)
+{
+	char *cl_arg = (char *) _cl_arg;
+	va_list varg_list;
+
+	STARPU_ASSERT(cl_arg);
+	va_start(varg_list, _cl_arg);
+
+	_starpu_codelet_unpack_args_and_copyleft(cl_arg, NULL, 0, varg_list);
+
 	va_end(varg_list);
 }
 
@@ -69,16 +112,22 @@ static
 struct starpu_task *_starpu_task_build_v(struct starpu_codelet *cl, const char* task_name, int cl_arg_free, va_list varg_list)
 {
 	va_list varg_list_copy;
+	int ret;
 
 	struct starpu_task *task = starpu_task_create();
 	task->name = task_name;
 	task->cl_arg_free = cl_arg_free;
 
 	va_copy(varg_list_copy, varg_list);
-	_starpu_task_insert_create(cl, &task, varg_list_copy);
+	ret = _starpu_task_insert_create(cl, &task, varg_list_copy);
 	va_end(varg_list_copy);
 
-	return task;
+	if (ret != 0)
+	{
+		task->destroy = 0;
+		starpu_task_destroy(task);
+	}
+	return (ret == 0) ? task : NULL;
 }
 
 static
@@ -92,11 +141,11 @@ int _starpu_task_insert_v(struct starpu_codelet *cl, va_list varg_list)
 
 	if (STARPU_UNLIKELY(ret == -ENODEV))
 	{
-		fprintf(stderr, "submission of task %p wih codelet %p failed (symbol `%s') (err: ENODEV)\n",
-			task, task->cl,
-			(cl == NULL) ? "none" :
-			task->cl->name ? task->cl->name :
-			(task->cl->model && task->cl->model->symbol)?task->cl->model->symbol:"none");
+		_STARPU_MSG("submission of task %p wih codelet %p failed (symbol `%s') (err: ENODEV)\n",
+			    task, task->cl,
+			    (cl == NULL) ? "none" :
+			    task->cl->name ? task->cl->name :
+			    (task->cl->model && task->cl->model->symbol)?task->cl->model->symbol:"none");
 
 		task->destroy = 0;
 		starpu_task_destroy(task);
@@ -133,7 +182,7 @@ struct starpu_task *starpu_task_build(struct starpu_codelet *cl, ...)
 
 	va_start(varg_list, cl);
 	task = _starpu_task_build_v(cl, "task_build", 0, varg_list);
-	if (task->cl_arg)
+	if (task && task->cl_arg)
 	{
 		task->cl_arg_free = 1;
 }

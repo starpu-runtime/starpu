@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2012, 2014-2015  Université de Bordeaux
+ * Copyright (C) 2011-2012, 2014-2016  Université de Bordeaux
  * Copyright (C) 2012 INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -18,6 +18,10 @@
 #include <starpu.h>
 #include "../helper.h"
 #include "scal.h"
+
+/*
+ * Register a handle from a GPU buffer, and performs a partitioned operation
+ */
 
 #if ! (defined(STARPU_USE_OPENCL) || defined(STARPU_USE_CUDA))
 int main(int argc, char **argv)
@@ -72,7 +76,7 @@ check_result(unsigned *t, size_t size)
 	{
 		if (t[i] != i*2)
 		{
-			FPRINTF(stderr,"t[%d] is %u instead of %u\n", i, t[i], 2*i);
+			FPRINTF(stderr,"t[%u] is %u instead of %u\n", i, t[i], 2*i);
 			return 1;
 		}
 	}
@@ -134,7 +138,11 @@ test_cuda(void)
 
 	ret = submit_tasks(handle, pieces, n);
 	if (ret == -ENODEV)
+	{
+		starpu_free_on_node(starpu_worker_get_memory_node(chosen), (uintptr_t) foo_gpu, size * sizeof(*foo_gpu));
+		free(foo);
 		return -ENODEV;
+	}
 
 	starpu_data_unpartition(handle, starpu_worker_get_memory_node(chosen));
 	starpu_data_unregister(handle);
@@ -142,7 +150,11 @@ test_cuda(void)
 	starpu_cuda_set_device(devid);
 	cures = cudaMemcpy(foo, foo_gpu, size * sizeof(*foo_gpu), cudaMemcpyDeviceToHost);
 	if (STARPU_UNLIKELY(cures))
+	{
+		starpu_free_on_node(starpu_worker_get_memory_node(chosen), (uintptr_t) foo_gpu, size * sizeof(*foo_gpu));
+		free(foo);
 		STARPU_CUDA_REPORT_ERROR(cures);
+	}
 
 	ret = check_result(foo, size);
 	starpu_free_on_node(starpu_worker_get_memory_node(chosen), (uintptr_t) foo_gpu, size * sizeof(*foo_gpu));

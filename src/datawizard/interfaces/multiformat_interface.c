@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2012  INRIA
- * Copyright (C) 2012, 2013, 2014       CNRS
+ * Copyright (C) 2012, 2013, 2014, 2016       CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -189,7 +189,7 @@ static void register_multiformat_handle(starpu_data_handle_t handle, unsigned ho
 }
 
 void starpu_multiformat_data_register(starpu_data_handle_t *handleptr,
-				      unsigned home_node,
+				      int home_node,
 				      void *ptr,
 				      uint32_t nobjects,
 				      struct starpu_multiformat_data_interface_ops *format_ops)
@@ -649,7 +649,7 @@ static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node,
 	if (dst_multiformat->opencl_ptr == NULL)
 	{
 		/* XXX : it is weird that we might have to allocate memory here... */
-		dst_multiformat->opencl_ptr = malloc(dst_multiformat->nx * dst_multiformat->ops->opencl_elemsize);
+		_STARPU_MALLOC(dst_multiformat->opencl_ptr, dst_multiformat->nx * dst_multiformat->ops->opencl_elemsize);
 	}
 	err = starpu_opencl_copy_opencl_to_ram((cl_mem)src_multiformat->opencl_ptr,
 					       src_node,
@@ -711,7 +711,7 @@ static int copy_mic_common_ram_to_mic(void *src_interface, unsigned src_node, vo
 		if (src_multiformat->mic_ptr == NULL)
 			return -ENOMEM;
 	}
-	
+
 	copy_func(src_multiformat->cpu_ptr, src_node, dst_multiformat->cpu_ptr, dst_node, size);
 
 	_STARPU_TRACE_DATA_COPY(src_node, dst_node, size);
@@ -728,7 +728,7 @@ static int copy_mic_common_mic_to_ram(void *src_interface, unsigned src_node, vo
 	STARPU_ASSERT(src_multiformat != NULL);
 	STARPU_ASSERT(dst_multiformat != NULL);
 	STARPU_ASSERT(dst_multiformat->ops != NULL);
-			
+
 	size_t size = src_multiformat->nx * src_multiformat->ops->mic_elemsize;
 	copy_func(src_multiformat->mic_ptr, src_node, dst_multiformat->mic_ptr, dst_node, size);
 

@@ -1,0 +1,93 @@
+#!/bin/bash
+
+# StarPU --- Runtime system for heterogeneous multicore architectures.
+# 
+# Copyright (C) 2016  Inria
+# 
+# StarPU is free software; you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation; either version 2.1 of the License, or (at
+# your option) any later version.
+# 
+# StarPU is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# 
+# See the GNU Lesser General Public License in COPYING.LGPL for more details.
+
+# Script for giving statistical analysis of the paje trace
+
+set -e # fail fast
+
+# File names
+SOURCE_DIR=@abs_srcdir@
+
+outputfile="mlr_analysis.html"
+analysis_script="$SOURCE_DIR/starpu_mlr_analysis.Rmd"
+
+# Command line arguments
+inputfile=""
+
+help_script()
+{
+cat << EOF
+Give an example of the trace analysis for computing multiple linear regression model
+
+Options:
+   -h      Show this message
+
+Examples:
+$0 .starpu/sampling/codelets/tmp/test_mlr.out
+$0 
+
+Report bugs to <@PACKAGE_BUGREPORT@>
+EOF
+}
+
+if [ "$1" = "--version" ] ; then
+    echo "$PROGNAME (@PACKAGE_NAME@) @PACKAGE_VERSION@"
+    exit 0
+fi
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ] ; then
+    help_script
+    exit 0
+fi
+
+while getopts "h" opt; do
+    case $opt in
+    \?)
+      echo "Invalid option: -$OPTARG"
+      help_script
+      exit 3
+      ;;
+  esac
+done
+
+# Reading files that need to be analyzed
+shift $((OPTIND - 1))
+inputfile=$1
+if [[ $# < 1 ]]; then
+    inputfile="$SOURCE_DIR/perfmodels/sampling/codelets/tmp/mlr_init.out"
+else
+# Error if there is more than one input file
+    if [[ $# > 1 ]]; then
+	echo "Error!"
+	help_script
+	exit 2
+    fi
+fi
+
+if [ ! -s $inputfile ]
+    then
+	echo "Error: file $inputfile does not exist!"
+	exit 5
+fi
+
+#####################################
+# Running analysis file to get actual results
+in="$(cd "$(dirname "$inputfile")"; pwd)/$(basename "$inputfile")"
+
+Rscript -e "library(knitr); input_trace = '$in' ; outputhtml='$outputfile';\
+            outputRmd = gsub('.html\$','.Rmd',outputhtml);\
+            knit('$analysis_script',output=outputRmd); knitr::knit2html(outputRmd)"

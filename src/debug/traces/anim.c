@@ -56,7 +56,8 @@ static struct component *fxt_component_root(void)
 
 void _starpu_fxt_component_new(uint64_t component, char *name)
 {
-	struct component *comp = malloc(sizeof(*comp));
+	struct component *comp;
+	_STARPU_MALLOC(comp, sizeof(*comp));
 
 	if (!strncmp(name, "worker ", 7))
 	{
@@ -117,7 +118,7 @@ static void fxt_component_print(FILE *file, struct starpu_fxt_options *options, 
 	for (i = 0, n = 0; i < comp->nchildren; i++)
 		if (comp->children[i]->parent == comp)
 			n++;
-	fprintf(file, "\t\t\t%*s<table><tr><td class='box' colspan=%d><center>%s\n", 2*depth, "", n, comp->name);
+	fprintf(file, "\t\t\t%*s<table><tr><td class='box' colspan=%u><center>%s\n", 2*depth, "", n, comp->name);
 
 	if (!strcmp(comp->name,"prio") || !strcmp(comp->name,"fifo") || !strcmp(comp->name,"heft") || !strcmp(comp->name,"work_stealing"))
 	{
@@ -131,7 +132,7 @@ static void fxt_component_print(FILE *file, struct starpu_fxt_options *options, 
 		if (ntasks)
 		{
 			if (ntasks > N)
-				fprintf(file, "\t\t\t%*s<table><tr><td class='%s'>%d</td></tr></table>\n", 2*depth, "",
+				fprintf(file, "\t\t\t%*s<table><tr><td class='%s'>%u</td></tr></table>\n", 2*depth, "",
 					from == comp
 						? (comp->npriotasks >= N ? "last_task_full_prio" : "last_task_full")
 						: (comp->npriotasks >= N ? "task_prio" : "task"),
@@ -156,7 +157,7 @@ static void fxt_component_print(FILE *file, struct starpu_fxt_options *options, 
 					? "last_task_empty"
 					: (comp->npriotasks ? "task_prio" : "task"));
 		else
-			fprintf(file, "\t\t\t%*s<table><tr><td class='%s'>%d</td></tr></table>\n", 2*depth, "",
+			fprintf(file, "\t\t\t%*s<table><tr><td class='%s'>%u</td></tr></table>\n", 2*depth, "",
 				from == comp
 					? (comp->npriotasks ? "last_task_full_prio" : "last_task_full")
 					: (comp->npriotasks ? "task_prio" : "task"), comp->ntasks + comp->npriotasks);
@@ -345,9 +346,9 @@ void _starpu_fxt_component_print_header(FILE *file)
 
 static void fxt_component_print_step(FILE *file, struct starpu_fxt_options *options, double timestamp, int workerid, unsigned push, struct component *from, struct component *to)
 {
-	fprintf(file, "\t\t<div id='et%d' style='display:%s;'><center><!-- Étape %d -->\n",
+	fprintf(file, "\t\t<div id='et%u' style='display:%s;'><center><!-- Étape %u -->\n",
 			global_state, global_state > 1 ? "none":"block", global_state);
-	fprintf(file, "\t\t<p>Time %f, %d submitted %d ready, %s</p>\n", timestamp, nsubmitted, curq_size-nflowing, push?"push":"pull");
+	fprintf(file, "\t\t<p>Time %f, %u submitted %u ready, %s</p>\n", timestamp, nsubmitted, curq_size-nflowing, push?"push":"pull");
 	//fprintf(file, "\t\t\t<tt><pre>\n");
 	//_starpu_fxt_component_dump(file);
 	//fprintf(file, "\t\t\t</pre></tt>\n");
@@ -368,7 +369,7 @@ void _starpu_fxt_component_connect(uint64_t parent, uint64_t child)
 	STARPU_ASSERT(child_p);
 
 	n = ++parent_p->nchildren;
-	parent_p->children = realloc(parent_p->children, n * sizeof(*parent_p->children));
+	_STARPU_REALLOC(parent_p->children, n * sizeof(*parent_p->children));
 	parent_p->children[n-1] = child_p;
 	if (!child_p->parent)
 		child_p->parent = parent_p;
@@ -459,7 +460,7 @@ void _starpu_fxt_component_finish(FILE *file)
 	fprintf(file, "\t\t\t\tsliderDiv.slider({\n");
 	fprintf(file, "\t\t\t\t\tvalue: 1,\n");
 	fprintf(file, "\t\t\t\t\tmin: 1,\n");
-	fprintf(file, "\t\t\t\t\tmax: %d,\n", global_state-1);
+	fprintf(file, "\t\t\t\t\tmax: %u,\n", global_state-1);
 	fprintf(file, "\t\t\t\t\tstep: 1,\n");
 	fprintf(file, "\t\t\t\t\tanimate: 'fast',\n");
 	fprintf(file, "\t\t\t\t\tslide: function(event, ui){\n");

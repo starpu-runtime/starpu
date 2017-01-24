@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012  Université de Bordeaux
+ * Copyright (C) 2010, 2012, 2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -22,6 +22,11 @@
 #include <stdlib.h>
 #include "../helper.h"
 #include <common/thread.h>
+
+/*
+ * Mix submitting tasks and asynchronously acquiring the corresponding
+ * data, but without implicit dependencies.
+ */
 
 #define NBUFFERS_DEF	64
 #define NITER_DEF	128
@@ -132,6 +137,7 @@ int main(int argc, char **argv)
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_acquire_cb");
 		}
 
+		starpu_do_schedule();
 		/* Wait for all buffers to be available */
 		STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 

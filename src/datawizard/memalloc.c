@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2009-2017  Université de Bordeaux
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
+ * Copyright (C) 2016  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -31,6 +32,9 @@ static unsigned minimum_clean_p;
 static unsigned target_clean_p;
 /* Whether CPU memory has been explicitly limited by user */
 static int limit_cpu_mem;
+
+/* Prevent memchunks from being evicted from memory before they are actually used */
+static int diduse_barrier;
 
 /* This per-node RW-locks protect mc_list and memchunk_cache entries */
 /* Note: handle header lock is always taken before this (normal add/remove case) */
@@ -132,6 +136,7 @@ void _starpu_init_mem_chunk_lists(void)
 	minimum_clean_p = starpu_get_env_number_default("STARPU_MINIMUM_CLEAN_BUFFERS", 5);
 	target_clean_p = starpu_get_env_number_default("STARPU_TARGET_CLEAN_BUFFERS", 10);
 	limit_cpu_mem = starpu_get_env_number("STARPU_LIMIT_CPU_MEM");
+	diduse_barrier = starpu_get_env_number_default("STARPU_DIDUSE_BARRIER", 0);
 }
 
 void _starpu_deinit_mem_chunk_lists(void)
@@ -207,6 +212,18 @@ static unsigned may_free_subtree(starpu_data_handle_t handle, unsigned node)
 	if (refcnt)
 		return 0;
 
+	if (handle->current_mode == STARPU_W)
+	{
+		if (handle->write_invalidation_req)
+			/* Some request is invalidating it anyway */
+			return 0;
+		unsigned n;
+		for (n = 0; n < STARPU_MAXNODES; n++)
+			if (_starpu_get_data_refcnt(handle, n))
+				/* Some task is writing to the handle somewhere */
+				return 0;
+	}
+
 	/* look into all sub-subtrees children */
 	unsigned child;
 	for (child = 0; child < handle->nchildren; child++)
@@ -227,10 +244,6 @@ static unsigned may_free_subtree(starpu_data_handle_t handle, unsigned node)
 static int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT transfer_subtree_to_node(starpu_data_handle_t handle, unsigned src_node,
 				     unsigned dst_node)
 {
-	unsigned i;
-	unsigned last = 0;
-	unsigned cnt;
-
 	STARPU_ASSERT(dst_node != src_node);
 
 	if (handle->nchildren == 0)
@@ -244,7 +257,7 @@ static int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT transfer_subtree_to_node(starpu_d
 		{
 			/* This is the only copy, push it to destination */
 			struct _starpu_data_request *r;
-			r = _starpu_create_request_to_fetch_data(handle, dst_replicate, STARPU_R, 0, 0, NULL, NULL, 0);
+			r = _starpu_create_request_to_fetch_data(handle, dst_replicate, STARPU_R, 0, 0, NULL, NULL, 0, "transfer_subtree_to_node");
 			/* There is no way we don't need a request, since
 			 * source is OWNER, destination can't be having it */
 			STARPU_ASSERT(r);
@@ -266,11 +279,15 @@ static int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT transfer_subtree_to_node(starpu_d
 
 		if (src_replicate->state == STARPU_SHARED)
 		{
+			unsigned i;
+			unsigned last = 0;
+			unsigned cnt = 0;
+
 			/* some other node may have the copy */
+			_STARPU_TRACE_DATA_INVALIDATE(handle, src_node);
 			src_replicate->state = STARPU_INVALID;
 
 			/* count the number of copies */
-			cnt = 0;
 			for (i = 0; i < STARPU_MAXNODES; i++)
 			{
 				if (handle->per_node[i].state == STARPU_SHARED)
@@ -293,11 +310,10 @@ static int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT transfer_subtree_to_node(starpu_d
 	{
 		/* transfer all sub-subtrees children */
 		unsigned child;
-		int res;
 		for (child = 0; child < handle->nchildren; child++)
 		{
 			starpu_data_handle_t child_handle = starpu_data_get_child(handle, child);
-			res = transfer_subtree_to_node(child_handle, src_node, dst_node);
+			int res = transfer_subtree_to_node(child_handle, src_node, dst_node);
 			if (res == 0)
 				return 0;
 			/* There is no way children have disappeared since we
@@ -431,6 +447,10 @@ static size_t try_to_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 	if ((int) node == handle->home_node)
 		return 0;
 
+	if (diduse_barrier && !mc->diduse)
+		/* Hasn't been used yet, avoid evicting it */
+		return 0;
+
 	/* REDUX memchunk */
 	if (mc->relaxed_coherency == 2)
 	{
@@ -472,7 +492,7 @@ static size_t try_to_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 
 			/* in case there was nobody using that buffer, throw it
 			 * away after writing it back to main memory */
-			
+
 			/* choose the best target */
 			target = choose_target(handle, node);
 
@@ -637,8 +657,12 @@ static unsigned try_to_reuse_mem_chunk(struct _starpu_mem_chunk *mc, unsigned no
 					/* mc is still associated with the old
 					 * handle, now replace the previous data
 					 */
-					reuse_mem_chunk(node, replicate, mc, is_already_in_mc_list);
-					success = 1;
+					if (old_data->per_node[node].refcnt == 0)
+					{
+						/* And still nobody on it, now the actual buffer may be reused */
+						reuse_mem_chunk(node, replicate, mc, is_already_in_mc_list);
+						success = 1;
+					}
 				}
 			}
 		}
@@ -743,7 +767,6 @@ restart:
 
 		if (mc->data->is_not_important && (mc->footprint == footprint))
 		{
-//			fprintf(stderr, "found a candidate ...\n");
 			/* Note: this may unlock mc_list! */
 			success = try_to_reuse_mem_chunk(mc, node, replicate, 1);
 		}
@@ -943,6 +966,13 @@ void starpu_memchunk_tidy(unsigned node)
 	starpu_ssize_t available = starpu_memory_get_available(node);
 	size_t target, amount;
 
+	/* Count cached allocation as being available */
+	available += mc_cache_size[node];
+
+	if (total > 0 && available >= (total * minimum_p) / 100)
+		/* Enough available space, do not trigger reclaiming */
+		return;
+
 	if (mc_clean_nb[node] < (mc_nb[node] * minimum_clean_p) / 100)
 	{
 		struct _starpu_mem_chunk *mc, *orig_next_mc, *next_mc;
@@ -987,6 +1017,28 @@ void starpu_memchunk_tidy(unsigned node)
 				continue;
 			}
 
+			if (handle->current_mode == STARPU_W)
+			{
+				if (handle->write_invalidation_req)
+				{
+					/* Some request is invalidating it anyway */
+					_starpu_spin_unlock(&handle->header_lock);
+					continue;
+				}
+
+				unsigned n;
+				for (n = 0; n < STARPU_MAXNODES; n++)
+					if (_starpu_get_data_refcnt(handle, n))
+						break;
+				if (n < STARPU_MAXNODES)
+				{
+					/* Some task is writing to the handle somewhere */
+					_starpu_spin_unlock(&handle->header_lock);
+					skipped = 1;
+					continue;
+				}
+			}
+
 			if (
 				/* This data should be written through to this node, avoid
 				 * dropping it! */
@@ -994,8 +1046,6 @@ void starpu_memchunk_tidy(unsigned node)
 				/* This is partitioned, don't care about the
 				 * whole data, we'll work on the subdatas.  */
 			     || handle->nchildren
-			        /* Somebody is still writing to it */
-			     || (_starpu_get_data_refcnt(handle, node) && handle->current_mode == STARPU_W)
 				/* REDUX, can't do anything with it, skip it */
 			     || mc->relaxed_coherency == 2
 			)
@@ -1027,7 +1077,7 @@ void starpu_memchunk_tidy(unsigned node)
 				}
 
 				_starpu_spin_unlock(&mc_lock[node]);
-				if (!_starpu_create_request_to_fetch_data(handle, &handle->per_node[handle->home_node], STARPU_R, 2, 1, NULL, NULL, 0))
+				if (!_starpu_create_request_to_fetch_data(handle, &handle->per_node[handle->home_node], STARPU_R, 2, 1, NULL, NULL, 0, "starpu_memchunk_tidy"))
 				{
 					/* No request was actually needed??
 					 * Odd, but cope with it.  */
@@ -1058,13 +1108,6 @@ void starpu_memchunk_tidy(unsigned node)
 	}
 
 	if (total <= 0)
-		return;
-
-	/* Count cached allocation as being available */
-	available += mc_cache_size[node];
-
-	if (available >= (total * minimum_p) / 100)
-		/* Enough available space, do not trigger reclaiming */
 		return;
 
 	/* Not enough available space, reclaim until we reach the target.  */
@@ -1116,7 +1159,7 @@ static struct _starpu_mem_chunk *_starpu_memchunk_init(struct _starpu_data_repli
 	if (replicate->relaxed_coherency == 1)
 		/* SCRATCH is always easy to drop, thus clean */
 		mc->clean = 1;
-	else if (replicate->relaxed_coherency == 0 && handle->home_node != -1 && handle->per_node[replicate->memory_node].state != STARPU_INVALID)
+	else if (replicate->relaxed_coherency == 0 && handle->home_node != -1 && handle->per_node[(int) replicate->memory_node].state != STARPU_INVALID)
 		/* This is a normal data and the home node has the value */
 		mc->clean = 1;
 	mc->replicate = replicate;
@@ -1124,6 +1167,7 @@ static struct _starpu_mem_chunk *_starpu_memchunk_init(struct _starpu_data_repli
 	mc->chunk_interface = NULL;
 	mc->size_interface = interface_size;
 	mc->remove_notify = NULL;
+	mc->diduse = 0;
 
 	return mc;
 }
@@ -1419,6 +1463,7 @@ void _starpu_memchunk_recently_used(struct _starpu_mem_chunk *mc, unsigned node)
 		/* user-allocated memory */
 		return;
 	_starpu_spin_lock(&mc_lock[node]);
+	mc->diduse = 1;
 	MC_LIST_ERASE(node, mc);
 	MC_LIST_PUSH_BACK(node, mc);
 	_starpu_spin_unlock(&mc_lock[node]);
@@ -1432,6 +1477,8 @@ void _starpu_memchunk_wont_use(struct _starpu_mem_chunk *mc, unsigned node)
 		/* user-allocated memory */
 		return;
 	_starpu_spin_lock(&mc_lock[node]);
+	/* Avoid preventing it from being evicted */
+	mc->diduse = 1;
 	MC_LIST_ERASE(node, mc);
 	/* Caller will schedule a clean transfer */
 	mc->clean = 1;
@@ -1470,7 +1517,7 @@ void _starpu_memchunk_dirty(struct _starpu_mem_chunk *mc, unsigned node)
 }
 
 #ifdef STARPU_MEMORY_STATS
-void _starpu_memory_display_stats_by_node(int node)
+void _starpu_memory_display_stats_by_node(FILE *stream, int node)
 {
 	_starpu_spin_lock(&mc_lock[node]);
 
@@ -1478,38 +1525,42 @@ void _starpu_memory_display_stats_by_node(int node)
 	{
 		struct _starpu_mem_chunk *mc;
 
-		fprintf(stderr, "#-------\n");
-		fprintf(stderr, "Data on Node #%d\n",node);
+		fprintf(stream, "#-------\n");
+		fprintf(stream, "Data on Node #%d\n",node);
 
 		for (mc = _starpu_mem_chunk_list_begin(&mc_list[node]);
 		     mc != _starpu_mem_chunk_list_end(&mc_list[node]);
 		     mc = _starpu_mem_chunk_list_next(mc))
 		{
 			if (mc->automatically_allocated == 0)
-				_starpu_memory_display_handle_stats(mc->data);
+				_starpu_memory_display_handle_stats(stream, mc->data);
 		}
 
 	}
 
 	_starpu_spin_unlock(&mc_lock[node]);
 }
+
+void _starpu_data_display_memory_stats(FILE *stream)
+{
+	unsigned node;
+
+	fprintf(stream, "\n#---------------------\n");
+	fprintf(stream, "Memory stats :\n");
+	for (node = 0; node < STARPU_MAXNODES; node++)
+	{
+		_starpu_memory_display_stats_by_node(stream, node);
+	}
+	fprintf(stream, "\n#---------------------\n");
+}
 #endif
 
 void starpu_data_display_memory_stats(void)
 {
 #ifdef STARPU_MEMORY_STATS
-	unsigned node;
-
-	fprintf(stderr, "\n#---------------------\n");
-	fprintf(stderr, "Memory stats :\n");
-	for (node = 0; node < STARPU_MAXNODES; node++)
-	{
-	     _starpu_memory_display_stats_by_node(node);
-	}
-	fprintf(stderr, "\n#---------------------\n");
+	_starpu_data_display_memory_stats(stderr);
 #endif
 }
-
 
 static int
 get_better_disk_can_accept_size(starpu_data_handle_t handle, unsigned node)
@@ -1518,7 +1569,7 @@ get_better_disk_can_accept_size(starpu_data_handle_t handle, unsigned node)
 	unsigned nnodes = starpu_memory_nodes_get_count();
 	unsigned int i;
 	double time_disk = 0;
-				
+
 	for (i = 0; i < nnodes; i++)
 	{
 		if (starpu_node_get_kind(i) == STARPU_DISK_RAM && i != node &&
@@ -1528,7 +1579,7 @@ get_better_disk_can_accept_size(starpu_data_handle_t handle, unsigned node)
 			/* if we can write on the disk */
 			if (_starpu_get_disk_flag(i) != STARPU_DISK_NO_RECLAIM)
 			{
-				/* only time can change between disk <-> main_ram 
+				/* only time can change between disk <-> main_ram
 				 * and not between main_ram <-> worker if we compare diks*/
 				double time_tmp = starpu_transfer_predict(i, STARPU_MAIN_RAM, _starpu_data_get_size(handle));
 				if (target == -1 || time_disk > time_tmp)
@@ -1552,7 +1603,7 @@ choose_target(starpu_data_handle_t handle, unsigned node)
 		/* try to push on RAM if we can before to push on disk */
 		if(starpu_node_get_kind(handle->home_node) == STARPU_DISK_RAM && node != STARPU_MAIN_RAM)
 		{
-			if (handle->per_node[STARPU_MAIN_RAM].allocated || 
+			if (handle->per_node[STARPU_MAIN_RAM].allocated ||
 			    _starpu_memory_manager_test_allocate_size(STARPU_MAIN_RAM, size_handle) == 1)
 			{
 				target = STARPU_MAIN_RAM;
@@ -1564,7 +1615,7 @@ choose_target(starpu_data_handle_t handle, unsigned node)
 
 		}
           	/* others memory nodes */
-		else 
+		else
 		{
 			target = handle->home_node;
 		}
@@ -1578,7 +1629,7 @@ choose_target(starpu_data_handle_t handle, unsigned node)
 		}
 		/* node != 0 */
 		/* try to push data to RAM if we can before to push on disk*/
-		else if (handle->per_node[STARPU_MAIN_RAM].allocated || 
+		else if (handle->per_node[STARPU_MAIN_RAM].allocated ||
 			 _starpu_memory_manager_test_allocate_size(STARPU_MAIN_RAM, size_handle) == 1)
 		{
 			target = STARPU_MAIN_RAM;
@@ -1594,4 +1645,14 @@ choose_target(starpu_data_handle_t handle, unsigned node)
 		target = -1;
 
 	return target;
+}
+
+void starpu_data_set_user_data(starpu_data_handle_t handle, void* user_data)
+{
+	handle->user_data = user_data;
+}
+
+void *starpu_data_get_user_data(starpu_data_handle_t handle)
+{
+	return handle->user_data;
 }

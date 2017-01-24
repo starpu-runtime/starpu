@@ -60,6 +60,7 @@ void * message_from_ui(void * p)
 {
 	(void) p;
 	char str[STARPU_TOP_BUFFER_SIZE];
+	starpu_pthread_setname("starpu_top_message_from_ui");
 	while(1)
 	{
 		char * check=fgets (str, STARPU_TOP_BUFFER_SIZE, starpu_top_socket_fd_read);
@@ -85,6 +86,7 @@ static
 void * message_to_ui(void * p)
 {
 	(void) p;
+	starpu_pthread_setname("starpu_top_message_to_ui");
 	while(1)
 	{
 		char* message = _starpu_top_message_remove(_starpu_top_mt);
@@ -128,14 +130,25 @@ void _starpu_top_communications_threads_launcher(void)
 		exit(EXIT_FAILURE);
    	}
   	int sock=socket(ans->ai_family, ans->ai_socktype, ans->ai_protocol);
+	if (sock < 0)
+	{
+		perror("socket");
+		exit(EXIT_FAILURE);
+	}
 	int optval = 1;
-	setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (void*) &optval, sizeof(optval));
+	if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (void*) &optval, sizeof(optval)) == -1)
+	{
+		perror("setsockopt");
+		exit(EXIT_FAILURE);
+	}
 
 	if (bind(sock, ans->ai_addr, ans->ai_addrlen) < 0)
 	{
 		perror("bind");
 		exit(EXIT_FAILURE);
 	}
+
+	freeaddrinfo(ans);
 
 	listen(sock, 2);
 
@@ -155,6 +168,11 @@ void _starpu_top_communications_threads_launcher(void)
 	}
 
 	starpu_top_socket_fd=dup(starpu_top_socket_fd);
+	if (starpu_top_socket_fd == -1)
+	{
+		perror("dup");
+		exit(EXIT_FAILURE);
+	}
 
 	if ((starpu_top_socket_fd_write=fdopen(starpu_top_socket_fd, "w")) == NULL)
 	{

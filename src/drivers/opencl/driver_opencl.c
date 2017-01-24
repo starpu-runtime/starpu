@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2015  Université de Bordeaux
+ * Copyright (C) 2010-2016  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -76,7 +76,6 @@ static void _starpu_opencl_limit_gpu_mem_if_needed(unsigned devid)
 	starpu_ssize_t limit;
 	size_t STARPU_ATTRIBUTE_UNUSED totalGlobalMem = 0;
 	size_t STARPU_ATTRIBUTE_UNUSED to_waste = 0;
-	char name[30];
 
 #ifdef STARPU_SIMGRID
 	totalGlobalMem = _starpu_simgrid_get_memsize("OpenCL", devid);
@@ -93,6 +92,7 @@ static void _starpu_opencl_limit_gpu_mem_if_needed(unsigned devid)
 	limit = starpu_get_env_number("STARPU_LIMIT_OPENCL_MEM");
 	if (limit == -1)
 	{
+		char name[30];
 		sprintf(name, "STARPU_LIMIT_OPENCL_%u_MEM", devid);
 		limit = starpu_get_env_number(name);
 	}
@@ -218,20 +218,32 @@ int _starpu_opencl_deinit_context(int devid)
 
         _STARPU_DEBUG("De-initialising context for dev %d\n", devid);
 
-        err = clReleaseContext(contexts[devid]);
+        err = clFinish(queues[devid]);
         if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
-
         err = clReleaseCommandQueue(queues[devid]);
         if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 
+        err = clFinish(in_transfer_queues[devid]);
+        if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
         err = clReleaseCommandQueue(in_transfer_queues[devid]);
         if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+
+        err = clFinish(out_transfer_queues[devid]);
+        if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
         err = clReleaseCommandQueue(out_transfer_queues[devid]);
+        if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+
+        err = clFinish(peer_transfer_queues[devid]);
         if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
         err = clReleaseCommandQueue(peer_transfer_queues[devid]);
         if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 
+        err = clFinish(alloc_queues[devid]);
+        if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
         err = clReleaseCommandQueue(alloc_queues[devid]);
+        if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+
+        err = clReleaseContext(contexts[devid]);
         if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 
         contexts[devid] = NULL;
@@ -253,6 +265,7 @@ cl_int starpu_opencl_allocate_memory(int devid STARPU_ATTRIBUTE_UNUSED, cl_mem *
 
 	memory = clCreateBuffer(contexts[devid], flags, size, NULL, &err);
 	if (err == CL_OUT_OF_HOST_MEMORY) return err;
+	if (err == CL_MEM_OBJECT_ALLOCATION_FAILURE) return err;
         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
 	/*
@@ -505,9 +518,9 @@ void _starpu_opencl_init(void)
                 err = clGetPlatformIDs(_STARPU_OPENCL_PLATFORM_MAX, platform_id, &nb_platforms);
                 if (STARPU_UNLIKELY(err != CL_SUCCESS)) nb_platforms=0;
                 _STARPU_DEBUG("Platforms detected: %u\n", nb_platforms);
-		_STARPU_DEBUG("CPU device type: %s\n", device_type&CL_DEVICE_TYPE_CPU?"requested":"not requested");
-		_STARPU_DEBUG("GPU device type: %s\n", device_type&CL_DEVICE_TYPE_GPU?"requested":"not requested");
-		_STARPU_DEBUG("Accelerator device type: %s\n", device_type&CL_DEVICE_TYPE_ACCELERATOR?"requested":"not requested");
+		_STARPU_DEBUG("CPU device type: %s\n", (device_type&CL_DEVICE_TYPE_CPU)?"requested":"not requested");
+		_STARPU_DEBUG("GPU device type: %s\n", (device_type&CL_DEVICE_TYPE_GPU)?"requested":"not requested");
+		_STARPU_DEBUG("Accelerator device type: %s\n", (device_type&CL_DEVICE_TYPE_ACCELERATOR)?"requested":"not requested");
 
                 // Get devices
                 nb_devices = 0;
@@ -543,7 +556,7 @@ void _starpu_opencl_init(void)
 				if (platform_valid)
 					_STARPU_DEBUG("Platform: %s - %s\n", name, vendor);
 				else
-					_STARPU_DEBUG("Platform invalid\n");
+					_STARPU_DEBUG("Platform invalid: %s - %s\n", name, vendor);
 #endif
 				if (platform_valid && nb_devices <= STARPU_MAXOPENCLDEVS)
 				{
@@ -626,8 +639,9 @@ int _starpu_opencl_driver_init(struct _starpu_worker *worker)
 	char devname[128];
 	_starpu_opencl_get_device_name(devid, devname, 128);
 #endif
-	snprintf(worker->name, sizeof(worker->name), "OpenCL %u (%s %.1f GiB)", devid, devname, size);
-	snprintf(worker->short_name, sizeof(worker->short_name), "OpenCL %u", devid);
+	snprintf(worker->name, sizeof(worker->name), "OpenCL %d (%s %.1f GiB)", devid, devname, size);
+	snprintf(worker->short_name, sizeof(worker->short_name), "OpenCL %d", devid);
+	starpu_pthread_setname(worker->short_name);
 
 	worker->pipeline_length = starpu_get_env_number_default("STARPU_OPENCL_PIPELINE", 2);
 	if (worker->pipeline_length > STARPU_MAX_PIPELINE)
@@ -703,6 +717,8 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 		else
 		{
 #ifndef STARPU_SIMGRID
+			err = clReleaseEvent(task_events[worker->devid][worker->first_task]);
+			if (STARPU_UNLIKELY(err)) STARPU_OPENCL_REPORT_ERROR(err);
 			task_events[worker->devid][worker->first_task] = 0;
 #endif
 
@@ -915,21 +931,34 @@ static int _starpu_opencl_start_job(struct _starpu_job *j, struct _starpu_worker
 		_STARPU_TRACE_START_EXECUTING();
 #ifdef STARPU_SIMGRID
 		double length = NAN;
-	  #ifdef STARPU_OPENCL_SIMULATOR
-		func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
-	    #ifndef CL_PROFILING_CLOCK_CYCLE_COUNT
-	      #ifdef CL_PROFILING_COMMAND_SHAVE_CYCLE_COUNT
-		#define CL_PROFILING_CLOCK_CYCLE_COUNT CL_PROFILING_COMMAND_SHAVE_CYCLE_COUNT
-	      #else
-		#error The OpenCL simulator must provide CL_PROFILING_CLOCK_CYCLE_COUNT
-	      #endif
-	    #endif
-		struct starpu_profiling_task_info *profiling_info = task->profiling_info;
-		STARPU_ASSERT_MSG(profiling_info->used_cycles, "Application kernel must call starpu_opencl_collect_stats to collect simulated time");
-		length = ((double) profiling_info->used_cycles)/MSG_get_host_speed(MSG_host_self());
-	  #endif
 		int async = task->cl->opencl_flags[j->nimpl] & STARPU_OPENCL_ASYNC;
-		_starpu_simgrid_submit_job(worker->workerid, j, &worker->perf_arch, length,
+		int simulate = 1;
+		if (cl->flags & STARPU_CODELET_SIMGRID_EXECUTE & !async)
+		{
+			/* Actually execute function */
+			simulate = 0;
+			func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
+		#ifdef STARPU_OPENCL_SIMULATOR
+		    #ifndef CL_PROFILING_CLOCK_CYCLE_COUNT
+		      #ifdef CL_PROFILING_COMMAND_SHAVE_CYCLE_COUNT
+			#define CL_PROFILING_CLOCK_CYCLE_COUNT CL_PROFILING_COMMAND_SHAVE_CYCLE_COUNT
+		      #else
+			#error The OpenCL simulator must provide CL_PROFILING_CLOCK_CYCLE_COUNT
+		      #endif
+		    #endif
+			struct starpu_profiling_task_info *profiling_info = task->profiling_info;
+			STARPU_ASSERT_MSG(profiling_info->used_cycles, "Application kernel must call starpu_opencl_collect_stats to collect simulated time");
+#ifdef HAVE_MSG_HOST_GET_SPEED
+			length = ((double) profiling_info->used_cycles)/MSG_host_get_speed(MSG_host_self());
+#else
+			length = ((double) profiling_info->used_cycles)/MSG_get_host_speed(MSG_host_self());
+#endif
+			/* And give the simulated time to simgrid */
+			simulate = 1;
+		#endif
+		}
+		if (simulate)
+			_starpu_simgrid_submit_job(worker->workerid, j, &worker->perf_arch, length,
 				async ? &task_finished[worker->devid][pipeline_idx] : NULL,
 				async ? &task_mutex[worker->devid][pipeline_idx] : NULL,
 				async ? &task_cond[worker->devid][pipeline_idx] : NULL);

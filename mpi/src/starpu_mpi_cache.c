@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2012, 2013, 2014, 2015  CNRS
- * Copyright (C) 2011-2015  Université de Bordeaux
+ * Copyright (C) 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
+ * Copyright (C) 2011-2016  Université de Bordeaux
  * Copyright (C) 2014 INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -91,7 +91,7 @@ void _starpu_mpi_cache_init(MPI_Comm comm)
 
 	if (_starpu_cache_enabled == 0)
 	{
-		if (!_starpu_silent) fprintf(stderr,"Warning: StarPU MPI Communication cache is disabled\n");
+		_STARPU_DISP("Warning: StarPU MPI Communication cache is disabled\n");
 		return;
 	}
 
@@ -99,10 +99,10 @@ void _starpu_mpi_cache_init(MPI_Comm comm)
 	starpu_mpi_comm_size(comm, &_starpu_cache_comm_size);
 	_STARPU_MPI_DEBUG(2, "Initialising htable for cache\n");
 
-	_cache_sent_data = malloc(_starpu_cache_comm_size * sizeof(struct _starpu_data_entry *));
-	_cache_received_data = malloc(_starpu_cache_comm_size * sizeof(struct _starpu_data_entry *));
-	_cache_sent_mutex = malloc(_starpu_cache_comm_size * sizeof(starpu_pthread_mutex_t));
-	_cache_received_mutex = malloc(_starpu_cache_comm_size * sizeof(starpu_pthread_mutex_t));
+	_STARPU_MPI_MALLOC(_cache_sent_data, _starpu_cache_comm_size * sizeof(struct _starpu_data_entry *));
+	_STARPU_MPI_MALLOC(_cache_received_data, _starpu_cache_comm_size * sizeof(struct _starpu_data_entry *));
+	_STARPU_MPI_MALLOC(_cache_sent_mutex, _starpu_cache_comm_size * sizeof(starpu_pthread_mutex_t));
+	_STARPU_MPI_MALLOC(_cache_received_mutex, _starpu_cache_comm_size * sizeof(starpu_pthread_mutex_t));
 
 	for(i=0 ; i<_starpu_cache_comm_size ; i++)
 	{
@@ -307,9 +307,11 @@ void *_starpu_mpi_cache_received_data_set(starpu_data_handle_t data, int mpi_ran
 	HASH_FIND_PTR(_cache_received_data[mpi_rank], &data, already_received);
 	if (already_received == NULL)
 	{
-		struct _starpu_data_entry *entry = (struct _starpu_data_entry *)malloc(sizeof(*entry));
+		struct _starpu_data_entry *entry;
+		_STARPU_MPI_MALLOC(entry, sizeof(*entry));
 		entry->data = data;
 		HASH_ADD_PTR(_cache_received_data[mpi_rank], data, entry);
+		_STARPU_MPI_DEBUG(2, "Noting that data %p has already been received by %d\n", data, mpi_rank);
 		_starpu_mpi_cache_stats_inc(mpi_rank, data);
 	}
 	else
@@ -346,7 +348,8 @@ void *_starpu_mpi_cache_sent_data_set(starpu_data_handle_t data, int dest)
 	HASH_FIND_PTR(_cache_sent_data[dest], &data, already_sent);
 	if (already_sent == NULL)
 	{
-		struct _starpu_data_entry *entry = (struct _starpu_data_entry *)malloc(sizeof(*entry));
+		struct _starpu_data_entry *entry;
+		_STARPU_MPI_MALLOC(entry, sizeof(*entry));
 		entry->data = data;
 		HASH_ADD_PTR(_cache_sent_data[dest], data, entry);
 		_STARPU_MPI_DEBUG(2, "Noting that data %p has already been sent to %d\n", data, dest);

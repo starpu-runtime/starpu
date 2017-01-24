@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2014  Université de Bordeaux
- * Copyright (C) 2010-2015  CNRS
+ * Copyright (C) 2010-2014, 2016  Université de Bordeaux
+ * Copyright (C) 2010-2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -25,7 +25,6 @@
 #endif
 
 int tasks_executed[2];
-starpu_pthread_mutex_t mut;
 
 int parallel_code(unsigned *sched_ctx)
 {
@@ -88,9 +87,8 @@ int main(int argc, char **argv)
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	starpu_pthread_mutex_init(&mut, NULL);
-	int nprocs1 = 1;
-	int nprocs2 = 1;
+	int nprocs1;
+	int nprocs2;
 	int *procs1, *procs2;
 
 #ifdef STARPU_USE_CPU
@@ -105,11 +103,22 @@ int main(int argc, char **argv)
 	for(j = nprocs1; j < nprocs1+nprocs2; j++)
 		procs2[k++] = j;
 #else
+	nprocs1 = 1;
+	nprocs2 = 1;
 	procs1 = (int*)malloc(nprocs1*sizeof(int));
 	procs2 = (int*)malloc(nprocs2*sizeof(int));
 	procs1[0] = 0;
 	procs2[0] = 0;
 #endif
+
+	if (nprocs1 < 4)
+	{
+		/* Not enough procs */
+		free(procs1);
+		free(procs2);
+		starpu_shutdown();
+		return 77;
+	}
 
 	/*create contexts however you want*/
 	unsigned sched_ctx1 = starpu_sched_ctx_create(procs1, nprocs1, "ctx1", STARPU_SCHED_CTX_POLICY_NAME, "dmda", 0);
@@ -209,9 +218,12 @@ enodev:
 
 	starpu_sched_ctx_delete(sched_ctx1);
 	starpu_sched_ctx_delete(sched_ctx2);
-	printf("ctx%d: tasks starpu executed %d out of %d\n", sched_ctx1, tasks_executed[0], NTASKS);
-	printf("ctx%d: tasks starpu executed %d out of %d\n", sched_ctx2, tasks_executed[1], NTASKS);
+	printf("ctx%u: tasks starpu executed %d out of %d\n", sched_ctx1, tasks_executed[0], NTASKS);
+	printf("ctx%u: tasks starpu executed %d out of %d\n", sched_ctx2, tasks_executed[1], NTASKS);
 	starpu_shutdown();
+
+	free(procs1);
+	free(procs2);
 
 	return (ret == -ENODEV ? 77 : 0);
 }

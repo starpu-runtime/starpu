@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012-2014  Université de Bordeaux
+ * Copyright (C) 2010, 2012-2014, 2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  CNRS
  * Copyright (C) 2012 INRIA
  *
@@ -23,6 +23,10 @@
 #include <starpu.h>
 
 #include "../helper.h"
+
+/*
+ * Mix synchronous tasks and data acquisitions
+ */
 
 #define N_DEF	100
 #define K_DEF	256
@@ -79,6 +83,8 @@ int main(int argc, char **argv)
 
 #ifdef STARPU_QUICK_CHECK
 	n /= 10;
+#endif
+#ifndef STARPU_LONG_CHECK
 	k /= 16;
 #endif
 

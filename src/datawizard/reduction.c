@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2014  Université de Bordeaux
- * Copyright (C) 2011, 2012, 2013  CNRS
+ * Copyright (C) 2010-2014, 2016  Université de Bordeaux
+ * Copyright (C) 2011, 2012, 2013, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -112,6 +112,9 @@ void _starpu_data_start_reduction_mode(starpu_data_handle_t handle)
 {
 	STARPU_ASSERT(handle->reduction_refcnt == 0);
 
+	if (!handle->per_worker)
+		_starpu_data_initialize_per_worker(handle);
+
 	unsigned worker;
 
 	unsigned nworkers = starpu_worker_get_count();
@@ -157,7 +160,7 @@ void _starpu_data_end_reduction_mode(starpu_data_handle_t handle)
 	/* Register all valid per-worker replicates */
 	unsigned nworkers = starpu_worker_get_count();
 	STARPU_ASSERT(!handle->reduction_tmp_handles);
-	handle->reduction_tmp_handles = malloc(nworkers * sizeof(handle->reduction_tmp_handles[0]));
+	_STARPU_MALLOC(handle->reduction_tmp_handles, nworkers*sizeof(handle->reduction_tmp_handles[0]));
 	for (worker = 0; worker < nworkers; worker++)
 	{
 		if (handle->per_worker[worker].initialized)
@@ -336,9 +339,9 @@ void _starpu_data_end_reduction_mode(starpu_data_handle_t handle)
 			redux_task->cl = handle->redux_cl;
 			STARPU_ASSERT(redux_task->cl);
 
-			if (!(STARPU_CODELET_GET_MODE(redux_task->cl, 0))
+			if (!(STARPU_CODELET_GET_MODE(redux_task->cl, 0)))
 				STARPU_CODELET_SET_MODE(redux_task->cl, STARPU_RW, 0);
-			if (!(STARPU_CODELET_GET_MODE(redux_task->cl, 1))
+			if (!(STARPU_CODELET_GET_MODE(redux_task->cl, 1)))
 				STARPU_CODELET_SET_MODE(redux_task->cl, STARPU_R, 1);
 
 			STARPU_ASSERT_MSG(STARPU_CODELET_GET_MODE(redux_task->cl, 0) == STARPU_RW, "First parameter of reduction codelet %p has to be RW", redux_task->cl);

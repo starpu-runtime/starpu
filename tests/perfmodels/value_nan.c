@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013, 2015  CNRS
+ * Copyright (C) 2013, 2015, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -23,6 +23,11 @@
 #include <io.h>
 #include <fcntl.h>
 #endif
+
+/*
+ * Test that _starpu_write_double and _starpu_read_double properly manipulate
+ * NaN values
+ */
 
 #define STRING "booh"
 
@@ -71,7 +76,7 @@ int _check_number(double val, int checknan)
 	char str[10];
 	// ... but is read with the format %le
 	int x = _starpu_read_double(f, "%le", &lat);
-	int y = fscanf(f, " %s", str);
+	int y = fscanf(f, " %9s", str);
 	fclose(f);
 	unlink(filename);
 

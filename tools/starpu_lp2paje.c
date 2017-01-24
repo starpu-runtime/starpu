@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2011, 2013-2014  Université de Bordeaux
- * Copyright (C) 2014, 2015                  CNRS
+ * Copyright (C) 2014, 2015, 2016, 2017                  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
 {
 	int nw, nt;
 	double tmax;
-	int i, w, ww, t, tt, t2;
+	int i, w, ww, t, tt;
 	int foo;
 	double bar;
 
@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "\n");
 		exit(EXIT_SUCCESS);
 	}
-	scanf("Suboptimal solution\n");
+	assert(scanf("Suboptimal solution\n") == 0);
 	assert(scanf("\nValue of objective function: %lf\n", &tmax) == 1);
 
 	assert(scanf("Actual values of the variables:\n") == 0);
@@ -142,6 +142,7 @@ int main(int argc, char *argv[])
 
 		for (t = 0; t < nt; t++)
 		{
+			int t2;
 			for (t2 = 0; t2 < nt; t2++)
 			{
 				if (t != t2 && task[t].worker == task[t2].worker)

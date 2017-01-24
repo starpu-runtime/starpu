@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011 William Braik, Yann Courtois, Jean-Marie Couteyen, Anthony Roy
- * Copyright (C) 2011, 2013 CNRS
+ * Copyright (C) 2011, 2013, 2016 CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -34,7 +34,8 @@ void _starpu_top_task_started(struct starpu_task *task,
 {
 	unsigned long long taskid = _starpu_get_job_associated_to_task(task)->job_id;
 	STARPU_ASSERT(_starpu_top_status_get());
-	char *str = (char *) malloc(sizeof(char)*64);
+	char *str;
+	_STARPU_MALLOC(str, sizeof(char)*64);
 	snprintf(str, 64,
 				"START;%llu;%d;%llu\n",
 				taskid,
@@ -51,7 +52,8 @@ void _starpu_top_task_ended(struct starpu_task *task,
 	unsigned long long taskid = _starpu_get_job_associated_to_task(task)->job_id;
 	(void) devid; //unused
 	STARPU_ASSERT(_starpu_top_status_get());
-	char *str = (char *) malloc(sizeof(char)*64);
+	char *str;
+	_STARPU_MALLOC(str, sizeof(char)*64);
 	snprintf(str, 64,
 				"END;%llu;%llu\n",
 				taskid,
@@ -83,7 +85,8 @@ void starpu_top_task_prevision(struct starpu_task *task,
 	STARPU_ASSERT(_starpu_top_status_get());
 	struct timespec now;
 	_starpu_clock_gettime(&now);
-	char * str= (char *)malloc(sizeof(char)*200);
+	char *str;
+	_STARPU_MALLOC(str, sizeof(char)*200);
 	snprintf(str, 128,
 		 "PREV;%llu;%d;%llu;%llu;%llu\n",
 		 taskid,

@@ -41,6 +41,7 @@ struct _starpu_callback_list
 LIST_TYPE(_starpu_data_request,
 	struct _starpu_spinlock lock;
 	unsigned refcnt;
+	const char *origin; /* Name of the function that triggered the request */
 
 	starpu_data_handle_t handle;
 	struct _starpu_data_replicate *src_replicate;
@@ -134,12 +135,13 @@ int _starpu_check_that_no_data_request_is_pending(unsigned node);
 struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t handle,
 							 struct _starpu_data_replicate *src_replicate,
 							 struct _starpu_data_replicate *dst_replicate,
-							 unsigned handling_node,
+							 int handling_node,
 							 enum starpu_data_access_mode mode,
 							 unsigned ndeps,
 							 unsigned is_prefetch,
 							 int prio,
-							 unsigned is_write_invalidation);
+							 unsigned is_write_invalidation,
+							 const char *origin) STARPU_ATTRIBUTE_MALLOC;
 
 int _starpu_wait_data_request_completion(struct _starpu_data_request *r, unsigned may_alloc);
 

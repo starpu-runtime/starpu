@@ -19,6 +19,8 @@
 #include <stdlib.h>
 #include <datawizard/memory_manager.h>
 
+/* Stress data allocation on a GPU, triggering eviction */
+
 #define SIZE_LIMIT 128
 #define STR_LIMIT "128"
 #define SIZE_ALLOC 128
@@ -39,6 +41,10 @@ int test_prefetch(unsigned memnodes)
 	starpu_data_handle_t handles[4];
 	unsigned i;
 	starpu_ssize_t available_size;
+
+	if (starpu_get_env_number_default("STARPU_DIDUSE_BARRIER", 0))
+		/* This would hang */
+		return STARPU_TEST_SKIPPED;
 
 	buffers[0] = malloc(SIZE_ALLOC*1024*512);
 	STARPU_ASSERT(buffers[0]);

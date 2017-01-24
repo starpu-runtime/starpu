@@ -29,7 +29,7 @@ static void soclBuildProgram_task(void *data) {
    cl_int err;
    unsigned int i;
 
-   int wid = starpu_worker_get_id();
+   int wid = starpu_worker_get_id_check();
 
    /* Check if the kernel has to be built for this device */
    for (i=0; i <= d->num_devices; i++) {

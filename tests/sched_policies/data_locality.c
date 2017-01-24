@@ -19,6 +19,11 @@
 
 #include "../helper.h"
 
+/*
+ * Check that scheduling policies tend to put tasks on the worker which has a
+ * copy of the data
+ */
+
 #define NTASKS 8
 
 /*
@@ -193,6 +198,10 @@ main(void)
 	int i;
 	int n_policies = sizeof(policies)/sizeof(policies[0]);
 	int global_ret = 0;
+
+#ifdef STARPU_HAVE_UNSETENV
+	unsetenv("STARPU_SCHED");
+#endif
 
 	for (i = 0; i < n_policies; ++i)
 	{

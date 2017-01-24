@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2011, 2012, 2013, 2014, 2015, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -53,7 +53,7 @@ int starpu_mpi_scatter_detached(starpu_data_handle_t *data_handles, int count, i
 	if (callback)
 	{
 		callback_func = _callback_collective;
-		callback_arg = malloc(sizeof(struct _callback_arg));
+		_STARPU_MPI_MALLOC(callback_arg, sizeof(struct _callback_arg));
 		callback_arg->count = 0;
 		callback_arg->nb = 0;
 		callback_arg->callback = (rank == root) ? scallback : rcallback;
@@ -121,7 +121,7 @@ int starpu_mpi_gather_detached(starpu_data_handle_t *data_handles, int count, in
 	{
 		callback_func = _callback_collective;
 
-		callback_arg = malloc(sizeof(struct _callback_arg));
+		_STARPU_MPI_MALLOC(callback_arg, sizeof(struct _callback_arg));
 		callback_arg->count = 0;
 		callback_arg->nb = 0;
 		callback_arg->callback = callback;

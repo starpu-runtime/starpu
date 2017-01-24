@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012, 2014  Université de Bordeaux
+ * Copyright (C) 2010-2012, 2014, 2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2013  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -32,7 +32,7 @@ void _starpu_worker_reset_profiling_info(int workerid);
 
 /* Update the per-worker profiling info after a task (or more) was executed.
  * This tells StarPU how much time was spent doing computation. */
-void _starpu_worker_update_profiling_info_executing(int workerid, struct timespec *executing_time, int executed_tasks, uint64_t used_cycles, uint64_t stall_cycles, double consumed_power, double flops);
+void _starpu_worker_update_profiling_info_executing(int workerid, struct timespec *executing_time, int executed_tasks, uint64_t used_cycles, uint64_t stall_cycles, double consumed_energy, double flops);
 
 /* Record the date when the worker started to sleep. This permits to measure
  * how much time was spent sleeping. */
@@ -46,6 +46,9 @@ void _starpu_worker_stop_sleeping(int workerid);
  * permits to measure how much time was really spent doing computation at the
  * end of the codelet. */
 void _starpu_worker_register_executing_start_date(int workerid, struct timespec *executing_start);
+
+/* Record that the worker is not executing any more. */
+void _starpu_worker_register_executing_end(int workerid);
 
 /* When StarPU is initialized, a matrix describing all the bus between memory
  * nodes is created: it indicates whether there is a physical link between two
@@ -67,6 +70,9 @@ void _starpu_profiling_set_task_push_end_time(struct starpu_task *task);
 
 /* This function needs to be called before other starpu_profile_* functions */
 void _starpu_profiling_init(void);
+
+/* This function starts profiling if the STARPU_PROFILING environment variable was set */
+void _starpu_profiling_start(void);
 
 void _starpu_profiling_terminate(void);
 void _starpu_profiling_reset_counters();

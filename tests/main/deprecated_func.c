@@ -18,6 +18,10 @@
 #include <starpu.h>
 #include "../helper.h"
 
+/*
+ * Test that we support the cpu_func and where deprecated field
+ */
+
 void cpu_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	int *valin = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);

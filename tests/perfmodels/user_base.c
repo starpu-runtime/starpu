@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2014-2015  Université Bordeaux
- * Copyright (C) 2012, 2013, 2014  CNRS
+ * Copyright (C) 2014-2016  Université Bordeaux
+ * Copyright (C) 2012, 2013, 2014, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,6 +19,10 @@
 #include <starpu.h>
 #include <starpu_scheduler.h>
 #include "../helper.h"
+
+/*
+ * Test using a user-provided base for the perfmodel
+ */
 
 void func(void *descr[], void *arg)
 {
@@ -38,28 +42,28 @@ uint32_t get_footprint(struct starpu_task *task)
 static struct starpu_perfmodel rb_model =
 {
 	.type = STARPU_REGRESSION_BASED,
-	.symbol = "valid_model_regression_based",
+	.symbol = "user_base_valid_model_regression_based",
 	.size_base = get_size_base,
 };
 
 static struct starpu_perfmodel nlrb_model =
 {
 	.type = STARPU_NL_REGRESSION_BASED,
-	.symbol = "valid_model_non_linear_regression_based",
+	.symbol = "user_base_valid_model_non_linear_regression_based",
 	.size_base = get_size_base,
 };
 
 static struct starpu_perfmodel hb_model =
 {
 	.type = STARPU_HISTORY_BASED,
-	.symbol = "valid_model_history_based",
+	.symbol = "user_base_valid_model_history_based",
 	.size_base = get_size_base,
 };
 
 static struct starpu_perfmodel hb_model_foot =
 {
 	.type = STARPU_HISTORY_BASED,
-	.symbol = "valid_model_history_based_footprint",
+	.symbol = "user_base_valid_model_history_based_footprint",
 	.footprint = get_footprint,
 };
 
@@ -78,11 +82,8 @@ static int submit(struct starpu_codelet *codelet, struct starpu_perfmodel *model
 	int nloops = 123;
 	int loop;
 	starpu_data_handle_t handle;
-	struct starpu_perfmodel lmodel;
 	int ret;
-	int old_nsamples, new_nsamples;
 	struct starpu_conf conf;
-	unsigned archid, archtype, devid, ncore;
 
 	starpu_conf_init(&conf);
 	conf.sched_policy_name = "eager";

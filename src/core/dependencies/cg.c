@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2012, 2014-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016  CNRS
  * Copyright (C) 2012 INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -82,8 +82,7 @@ int _starpu_add_successor_to_cg_list(struct _starpu_cg_list *successors, struct 
 		else
 			successors->succ_list_size = 4;
 
-		successors->succ = (struct _starpu_cg **) realloc(successors->succ,
-			successors->succ_list_size*sizeof(struct _starpu_cg *));
+		_STARPU_REALLOC(successors->succ, successors->succ_list_size*sizeof(struct _starpu_cg *));
 	}
 #else
 	STARPU_ASSERT(index < STARPU_NMAXDEPS);
@@ -171,10 +170,6 @@ void _starpu_notify_cg(struct _starpu_cg *cg)
 		ANNOTATE_HAPPENS_AFTER(&cg->remaining);
 		cg->remaining = cg->ntags;
 
-		struct _starpu_tag *tag;
-		struct _starpu_cg_list *tag_successors, *job_successors;
-		struct _starpu_job *j;
-
 		/* the group is now completed */
 		switch (cg->cg_type)
 		{
@@ -191,6 +186,9 @@ void _starpu_notify_cg(struct _starpu_cg *cg)
 
 			case STARPU_CG_TAG:
 			{
+				struct _starpu_cg_list *tag_successors;
+				struct _starpu_tag *tag;
+
 				tag = cg->succ.tag;
 				tag_successors = &tag->tag_successors;
 
@@ -210,6 +208,9 @@ void _starpu_notify_cg(struct _starpu_cg *cg)
 
  		        case STARPU_CG_TASK:
 			{
+				struct _starpu_cg_list *job_successors;
+				struct _starpu_job *j;
+
 				j = cg->succ.job;
 
 				STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);

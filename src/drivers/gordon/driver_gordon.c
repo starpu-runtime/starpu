@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2013  CNRS
+ * Copyright (C) 2010, 2011, 2013, 2016  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -277,7 +277,7 @@ int inject_task_list(struct _starpu_job_list *list, struct _starpu_worker *worke
 {
 	/* first put back all tasks that can not be performed by Gordon */
 	unsigned nvalids = 0;
-	unsigned ninvalids = 0;
+//	unsigned ninvalids = 0;
 	struct _starpu_job *j;
 
 	// TODO !
@@ -352,7 +352,6 @@ void *gordon_worker_inject(struct _starpu_worker_set *arg)
 		else
 		{
 #ifndef NOCHAIN
-			int ret = 0;
 #ifdef STARPU_DEVEL
 #warning we should look into the local job list here !
 #endif
@@ -401,7 +400,7 @@ void *gordon_worker_inject(struct _starpu_worker_set *arg)
 						chunk_list = list;
 					}
 
-					ret = inject_task_list(chunk_list, &arg->workers[0]);
+					inject_task_list(chunk_list, &arg->workers[0]);
 				}
 			}
 			else

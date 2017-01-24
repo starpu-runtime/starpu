@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2015  Université de Bordeaux
+ * Copyright (C) 2011-2016  Université de Bordeaux
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2012 INRIA
  *
@@ -20,6 +20,10 @@
 #include <starpu.h>
 #include <starpu_scheduler.h>
 #include "../helper.h"
+
+/*
+ * Benchmark memset with a linear regression
+ */
 
 #define START 1024
 #ifdef STARPU_QUICK_CHECK
@@ -134,7 +138,7 @@ static void show_task_perfs(int size, struct starpu_task *task)
 		unsigned nimpl;
 		for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 		{
-			FPRINTF(stdout, "Expected time for %d on %s (impl %d):\t%f\n",
+			FPRINTF(stdout, "Expected time for %d on %s (impl %u):\t%f\n",
 				size, name, nimpl, starpu_task_expected_length(task, starpu_worker_get_perf_archtype(workerid, task->sched_ctx), nimpl));
 		}
 	}

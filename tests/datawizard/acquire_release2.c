@@ -19,8 +19,14 @@
 
 #include "../helper.h"
 
+/*
+ * Call acquire/release in competition with inserting task working on the same data 
+ */
+
 #ifdef STARPU_QUICK_CHECK
 static unsigned ntasks = 40;
+#elif !defined(STARPU_LONG_CHECK)
+static unsigned ntasks = 4000;
 #else
 static unsigned ntasks = 40000;
 #endif

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2014  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  CNRS
+ * Copyright (C) 2010-2014, 2016  Université de Bordeaux
+ * Copyright (C) 2010, 2011, 2012, 2013, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -20,6 +20,10 @@
 
 #include <starpu.h>
 #include "../helper.h"
+
+/*
+ * Measure the cost of submitting synchronous tasks
+ */
 
 static unsigned ntasks = 65536;
 
@@ -72,6 +76,9 @@ int main(int argc, char **argv)
 	double timing;
 	double start;
 	double end;
+	struct starpu_conf conf;
+	starpu_conf_init(&conf);
+	conf.ncpus = 2;
 
 #ifdef STARPU_QUICK_CHECK
 	ntasks = 128;
@@ -79,7 +86,7 @@ int main(int argc, char **argv)
 
 	parse_args(argc, argv);
 
-	ret = starpu_initialize(NULL, &argc, &argv);
+	ret = starpu_initialize(&conf, &argc, &argv);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
@@ -108,12 +115,12 @@ int main(int argc, char **argv)
                         char file[1024];
                         FILE *f;
 
-                        sprintf(file, "%s/sync_tasks_overhead_total.dat", output_dir);
+                        snprintf(file, 1024, "%s/sync_tasks_overhead_total.dat", output_dir);
                         f = fopen(file, "a");
                         fprintf(f, "%s\t%f\n", bench_id, timing/1000000);
                         fclose(f);
 
-                        sprintf(file, "%s/sync_tasks_overhead_per_task.dat", output_dir);
+                        snprintf(file, 1024, "%s/sync_tasks_overhead_per_task.dat", output_dir);
                         f = fopen(file, "a");
                         fprintf(f, "%s\t%f\n", bench_id, timing/ntasks);
                         fclose(f);

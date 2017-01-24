@@ -2,8 +2,8 @@
  *
  * Copyright (C) 2010-2016  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
- * Copyright (C) 2012 INRIA
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016  CNRS
+ * Copyright (C) 2012, 2016  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -66,6 +66,18 @@ void starpu_data_map_filters(starpu_data_handle_t root_handle, unsigned nfilters
 	va_end(pa);
 }
 
+void fstarpu_data_map_filters(starpu_data_handle_t root_handle, int nfilters, struct starpu_data_filter **filters)
+{
+	int i;
+	assert(nfilters >= 0);
+	for (i = 0; i < nfilters; i++)
+	{
+		struct starpu_data_filter *next_filter = filters[i];
+		STARPU_ASSERT(next_filter);
+		map_filter(root_handle, next_filter);
+	}
+}
+
 int starpu_data_get_nb_children(starpu_data_handle_t handle)
 {
         return handle->nchildren;
@@ -112,6 +124,29 @@ starpu_data_handle_t starpu_data_vget_sub_data(starpu_data_handle_t root_handle,
 	return current_handle;
 }
 
+starpu_data_handle_t fstarpu_data_get_sub_data(starpu_data_handle_t root_handle, int depth, int *indices)
+{
+	STARPU_ASSERT(root_handle);
+	starpu_data_handle_t current_handle = root_handle;
+
+	STARPU_ASSERT(depth >= 0);
+	/* the variable number of argument must correlate the depth in the tree */
+	int i;
+	for (i = 0; i < depth; i++)
+	{
+		int next_child;
+		next_child = indices[i];
+		STARPU_ASSERT(next_child >= 0);
+
+		STARPU_ASSERT_MSG(current_handle->nchildren != 0, "Data %p has to be partitioned before accessing children", current_handle);
+		STARPU_ASSERT_MSG((unsigned) next_child < current_handle->nchildren, "Bogus child number %u, data %p only has %u children", next_child, current_handle, current_handle->nchildren);
+
+		current_handle = &current_handle->children[next_child];
+	}
+
+	return current_handle;
+}
+
 static unsigned _starpu_data_partition_nparts(starpu_data_handle_t initial_handle, struct starpu_data_filter *f)
 {
 	/* how many parts ? */
@@ -127,10 +162,6 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 	unsigned i;
 	unsigned node;
 
-	/* Make sure to wait for previous tasks working on the whole data */
-	starpu_data_acquire_on_node(initial_handle, -1, STARPU_RW);
-	starpu_data_release_on_node(initial_handle, -1);
-
 	/* first take care to properly lock the data header */
 	_starpu_spin_lock(&initial_handle->header_lock);
 
@@ -141,14 +172,11 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 	/* allocate the children */
 	if (inherit_state)
 	{
-		initial_handle->children = (struct _starpu_data_state *) calloc(nparts, sizeof(struct _starpu_data_state));
-		STARPU_ASSERT(initial_handle->children);
+		_STARPU_CALLOC(initial_handle->children, nparts, sizeof(struct _starpu_data_state));
 
 		/* this handle now has children */
 		initial_handle->nchildren = nparts;
 	}
-
-	unsigned nworkers = starpu_worker_get_count();
 
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
@@ -167,6 +195,8 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 		STARPU_ASSERT(!ret);
 	}
 
+	_starpu_data_unregister_ram_pointer(initial_handle);
+
 	for (i = 0; i < nparts; i++)
 	{
 		starpu_data_handle_t child;
@@ -176,6 +206,7 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 		else
 			child = childrenp[i];
 		STARPU_ASSERT(child);
+		_STARPU_TRACE_HANDLE_DATA_REGISTER(child);
 
 		struct starpu_data_interface_ops *ops;
 
@@ -202,7 +233,6 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 		child->is_not_important = initial_handle->is_not_important;
 		child->wt_mask = initial_handle->wt_mask;
 		child->home_node = initial_handle->home_node;
-		child->is_readonly = initial_handle->is_readonly;
 
 		/* initialize the chunk lock */
 		_starpu_data_requester_list_init(&child->req_list);
@@ -283,30 +313,8 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 			f->filter_func(initial_interface, child_interface, f, i, nparts);
 		}
 
-		unsigned worker;
-		for (worker = 0; worker < nworkers; worker++)
-		{
-			struct _starpu_data_replicate *child_replicate;
-			child_replicate = &child->per_worker[worker];
-
-			child_replicate->state = STARPU_INVALID;
-			child_replicate->allocated = 0;
-			child_replicate->automatically_allocated = 0;
-			child_replicate->refcnt = 0;
-			child_replicate->memory_node = starpu_worker_get_memory_node(worker);
-			child_replicate->requested = 0;
-
-			for (node = 0; node < STARPU_MAXNODES; node++)
-			{
-				child_replicate->request[node] = NULL;
-			}
-
-			child_replicate->relaxed_coherency = 1;
-			child_replicate->initialized = 0;
-
-			/* duplicate  the content of the interface on node 0 */
-			memcpy(child_replicate->data_interface, child->per_node[0].data_interface, child->ops->interface_size);
-		}
+		child->per_worker = NULL;
+		child->user_data = NULL;
 
 		/* We compute the size and the footprint of the child once and
 		 * store it in the handle */
@@ -335,6 +343,7 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 	unsigned nworkers = starpu_worker_get_count();
 	unsigned node;
 	unsigned sizes[root_handle->nchildren];
+	void *ptr;
 
 	_STARPU_TRACE_START_UNPARTITION(root_handle, gathering_node);
 	_starpu_spin_lock(&root_handle->header_lock);
@@ -410,6 +419,7 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 
 		_starpu_data_unregister_ram_pointer(child_handle);
 
+		if (child_handle->per_worker)
 		for (worker = 0; worker < nworkers; worker++)
 		{
 			struct _starpu_data_replicate *local = &child_handle->per_worker[worker];
@@ -420,6 +430,10 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 
 		_starpu_memory_stats_free(child_handle);
 	}
+
+	ptr = starpu_data_handle_to_pointer(root_handle, STARPU_MAIN_RAM);
+	if (ptr != NULL)
+		_starpu_data_register_ram_pointer(root_handle, ptr);
 
 	/* the gathering_node should now have a valid copy of all the children.
 	 * For all nodes, if the node had all copies and none was locally
@@ -492,9 +506,12 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 		_starpu_data_free_interfaces(child_handle);
 		_starpu_spin_unlock(&child_handle->header_lock);
 		_starpu_spin_destroy(&child_handle->header_lock);
+	}
 
+	for (child = 0; child < root_handle->nchildren; child++)
+	{
+		starpu_data_handle_t child_handle = starpu_data_get_child(root_handle, child);
 		_starpu_data_clear_implicit(child_handle);
-
 		STARPU_PTHREAD_MUTEX_DESTROY(&child_handle->busy_mutex);
 		STARPU_PTHREAD_COND_DESTROY(&child_handle->busy_cond);
 		STARPU_PTHREAD_MUTEX_DESTROY(&child_handle->sequential_consistency_mutex);
@@ -521,6 +538,11 @@ void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_da
 	STARPU_ASSERT_MSG(initial_handle->nplans == 0, "partition planning and synchronous partitioning is not supported");
 
 	initial_handle->children = NULL;
+
+	/* Make sure to wait for previous tasks working on the whole data */
+	starpu_data_acquire_on_node(initial_handle, STARPU_ACQUIRE_NO_NODE, STARPU_RW);
+	starpu_data_release_on_node(initial_handle, STARPU_ACQUIRE_NO_NODE);
+
 	_starpu_data_partition(initial_handle, NULL, nparts, f, 1);
 }
 
@@ -530,22 +552,39 @@ void starpu_data_partition_plan(starpu_data_handle_t initial_handle, struct star
 	unsigned nparts = _starpu_data_partition_nparts(initial_handle, f);
 	STARPU_ASSERT_MSG(initial_handle->nchildren == 0, "partition planning and synchronous partitioning is not supported");
 	STARPU_ASSERT_MSG(initial_handle->sequential_consistency, "partition planning is currently only supported for data with sequential consistency");
+	struct starpu_codelet *cl = initial_handle->switch_cl;
+	int home_node = initial_handle->home_node;
+	if (home_node == -1)
+		/* Nothing better for now */
+		/* TODO: pass -1, and make _starpu_fetch_nowhere_task_input
+		 * really call _starpu_fetch_data_on_node, and make that update
+		 * the coherency.
+		 */
+		home_node = STARPU_MAIN_RAM;
 
 	for (i = 0; i < nparts; i++)
-		childrenp[i] = calloc(1, sizeof(struct _starpu_data_state));
+	{
+		_STARPU_CALLOC(childrenp[i], 1, sizeof(struct _starpu_data_state));
+	}
 	_starpu_data_partition(initial_handle, childrenp, nparts, f, 0);
 
-	if (!initial_handle->switch_cl)
+	if (!cl)
 	{
 		/* Create a codelet that will make the coherency on the home node */
-		struct starpu_codelet *cl = initial_handle->switch_cl = calloc(1, sizeof(*initial_handle->switch_cl));
+		_STARPU_CALLOC(initial_handle->switch_cl, 1, sizeof(*initial_handle->switch_cl));
+		cl = initial_handle->switch_cl;
 		cl->where = STARPU_NOWHERE;
 		cl->nbuffers = STARPU_VARIABLE_NBUFFERS;
 		cl->name = "data_partition_switch";
 		cl->specific_nodes = 1;
-		cl->dyn_nodes = malloc((nparts+1) * sizeof(*cl->dyn_nodes));
-		for (i = 0; i < nparts+1; i++)
-			cl->dyn_nodes[i] = initial_handle->home_node;
+	}
+	if (initial_handle->switch_cl_nparts < nparts)
+	{
+		/* First initialization, or previous initialization was with fewer parts, enlarge it */
+		_STARPU_REALLOC(cl->dyn_nodes, (nparts+1) * sizeof(*cl->dyn_nodes));
+		for (i = initial_handle->switch_cl_nparts; i < nparts+1; i++)
+			cl->dyn_nodes[i] = home_node;
+		initial_handle->switch_cl_nparts = nparts;
 	}
 }
 
@@ -570,6 +609,9 @@ void starpu_data_partition_submit(starpu_data_handle_t initial_handle, unsigned 
 	initial_handle->partitioned++;
 	_starpu_spin_unlock(&initial_handle->header_lock);
 
+	if (!initial_handle->initialized)
+		/* No need for coherency, it is not initialized */
+		return;
 	unsigned i;
 	struct starpu_data_descr descr[nparts];
 	for (i = 0; i < nparts; i++)
@@ -592,6 +634,7 @@ void starpu_data_partition_readonly_submit(starpu_data_handle_t initial_handle, 
 	initial_handle->readonly = 1;
 	_starpu_spin_unlock(&initial_handle->header_lock);
 
+	STARPU_ASSERT_MSG(initial_handle->initialized, "It is odd to read-only-partition a data which does not have a value yet");
 	unsigned i;
 	struct starpu_data_descr descr[nparts];
 	for (i = 0; i < nparts; i++)
@@ -637,16 +680,20 @@ void starpu_data_unpartition_submit(starpu_data_handle_t initial_handle, unsigne
 		initial_handle->readonly = 0;
 	_starpu_spin_unlock(&initial_handle->header_lock);
 
-	unsigned i;
+	unsigned i, n;
 	struct starpu_data_descr descr[nparts];
-	for (i = 0; i < nparts; i++)
+	for (i = 0, n = 0; i < nparts; i++)
 	{
 		STARPU_ASSERT_MSG(children[i]->father_handle == initial_handle, "children parameter of starpu_data_partition_submit must be the children of the parent parameter");
-		descr[i].handle = children[i];
-		descr[i].mode = STARPU_RW;
+		if (!children[i]->initialized)
+			/* Dropped value, do not care about coherency for this one */
+			continue;
+		descr[n].handle = children[i];
+		descr[n].mode = STARPU_RW;
+		n++;
 	}
 	/* TODO: assert nparts too */
-	starpu_task_insert(initial_handle->switch_cl, STARPU_W, initial_handle, STARPU_DATA_MODE_ARRAY, descr, nparts, 0);
+	starpu_task_insert(initial_handle->switch_cl, STARPU_W, initial_handle, STARPU_DATA_MODE_ARRAY, descr, n, 0);
 	for (i = 0; i < nparts; i++)
 		starpu_data_invalidate_submit(children[i]);
 }
@@ -660,16 +707,20 @@ void starpu_data_unpartition_readonly_submit(starpu_data_handle_t initial_handle
 	initial_handle->readonly = 1;
 	_starpu_spin_unlock(&initial_handle->header_lock);
 
-	unsigned i;
+	unsigned i, n;
 	struct starpu_data_descr descr[nparts];
-	for (i = 0; i < nparts; i++)
+	for (i = 0, n = 0; i < nparts; i++)
 	{
 		STARPU_ASSERT_MSG(children[i]->father_handle == initial_handle, "children parameter of starpu_data_partition_submit must be the children of the parent parameter");
-		descr[i].handle = children[i];
-		descr[i].mode = STARPU_R;
+		if (!children[i]->initialized)
+			/* Dropped value, do not care about coherency for this one */
+			continue;
+		descr[n].handle = children[i];
+		descr[n].mode = STARPU_R;
+		n++;
 	}
 	/* TODO: assert nparts too */
-	starpu_task_insert(initial_handle->switch_cl, STARPU_W, initial_handle, STARPU_DATA_MODE_ARRAY, descr, nparts, 0);
+	starpu_task_insert(initial_handle->switch_cl, STARPU_W, initial_handle, STARPU_DATA_MODE_ARRAY, descr, n, 0);
 }
 
 /*

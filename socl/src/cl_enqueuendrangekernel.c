@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010,2011 University of Bordeaux
+ * Copyright (C) 2010,2011, 2016 University of Bordeaux
+ * Copyright (C) 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -29,7 +30,7 @@ void soclEnqueueNDRangeKernel_task(void *descr[], void *args) {
   ev->prof_start = _socl_nanotime();
   gc_entity_release(ev);
 
-   wid = starpu_worker_get_id();
+   wid = starpu_worker_get_id_check();
    starpu_opencl_get_queue(wid, &cq);
 
    DEBUG_MSG("[worker %d] [kernel %d] Executing kernel...\n", wid, cmd->kernel->id);
@@ -173,7 +174,7 @@ soclEnqueueNDRangeKernel(cl_command_queue cq,
       cl_uint iter = 1;
       cl_uint split_min = CL_UINT_MAX;
       cl_uint split_min_iter = 1;
-      while (kernel->split_perfs[iter] != 0 && iter < kernel->split_space) {
+      while (iter < kernel->split_space && kernel->split_perfs[iter] != 0) {
          if (kernel->split_perfs[iter] < split_min) {
             split_min = kernel->split_perfs[iter];
             split_min_iter = iter;

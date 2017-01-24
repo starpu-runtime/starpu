@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2012-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -20,7 +20,11 @@
 #include <core/workers.h>
 
 #ifdef STARPU_SIMGRID
+#ifdef STARPU_HAVE_XBT_SYNCHRO_H
+#include <xbt/synchro.h>
+#else
 #include <xbt/synchro_core.h>
+#endif
 #include <smpi/smpi.h>
 #else
 
@@ -46,12 +50,14 @@ extern int _starpu_simgrid_thread_start(int argc, char *argv[]);
 
 int starpu_pthread_create_on(char *name, starpu_pthread_t *thread, const starpu_pthread_attr_t *attr STARPU_ATTRIBUTE_UNUSED, void *(*start_routine) (void *), void *arg, msg_host_t host)
 {
-	struct _starpu_pthread_args *_args = malloc(sizeof(*_args));
-	_args->f = start_routine;
-	_args->arg = arg;
+	char **_args;
+	_STARPU_MALLOC(_args, 3*sizeof(char*));
+	asprintf(&_args[0], "%p", start_routine);
+	asprintf(&_args[1], "%p", arg);
+	_args[2] = NULL;
 	if (!host)
 		host = MSG_get_host_by_name("MAIN");
-	*thread = MSG_process_create_with_arguments(name, _starpu_simgrid_thread_start, calloc(MAX_TSD, sizeof(void*)), host, 0, (char **) _args);
+	*thread = MSG_process_create_with_arguments(name, _starpu_simgrid_thread_start, calloc(MAX_TSD+1, sizeof(void*)), host, 2, _args);
 	return 0;
 }
 
@@ -63,6 +69,7 @@ int starpu_pthread_create(starpu_pthread_t *thread, const starpu_pthread_attr_t 
 int starpu_pthread_join(starpu_pthread_t thread STARPU_ATTRIBUTE_UNUSED, void **retval STARPU_ATTRIBUTE_UNUSED)
 {
 #if 0 //def HAVE_MSG_PROCESS_JOIN
+	/* https://gforge.inria.fr/tracker/index.php?func=detail&aid=13601&group_id=12&atid=165 */
 	MSG_process_join(thread, 100);
 #else
 	MSG_process_sleep(1);
@@ -109,7 +116,18 @@ int starpu_pthread_mutex_lock(starpu_pthread_mutex_t *mutex)
 {
 	_STARPU_TRACE_LOCKING_MUTEX();
 
-	if (!*mutex) STARPU_PTHREAD_MUTEX_INIT(mutex, NULL);
+	/* Note: this is actually safe, because simgrid only preempts within
+	 * simgrid functions */
+	if (!*mutex) {
+		/* Here we may get preempted */
+		xbt_mutex_t new_mutex = xbt_mutex_init();
+		if (!*mutex)
+			*mutex = new_mutex;
+		else
+			/* Somebody already initialized it while we were
+			 * calling xbt_mutex_init, this one is now useless */
+			xbt_mutex_destroy(new_mutex);
+	}
 
 	xbt_mutex_acquire(*mutex);
 
@@ -167,6 +185,7 @@ int starpu_pthread_mutexattr_init(starpu_pthread_mutexattr_t *attr STARPU_ATTRIB
 }
 
 
+/* Indexed by key-1 */
 static int used_key[MAX_TSD];
 
 int starpu_pthread_key_create(starpu_pthread_key_t *key, void (*destr_function) (void *) STARPU_ATTRIBUTE_UNUSED)
@@ -181,13 +200,14 @@ int starpu_pthread_key_create(starpu_pthread_key_t *key, void (*destr_function) 
 			break;
 		}
 	STARPU_ASSERT(i < MAX_TSD);
-	*key = i;
+	/* key 0 is for process pointer argument */
+	*key = i+1;
 	return 0;
 }
 
 int starpu_pthread_key_delete(starpu_pthread_key_t key)
 {
-	used_key[key] = 0;
+	used_key[key-1] = 0;
 	return 0;
 }
 
@@ -195,7 +215,7 @@ int starpu_pthread_setspecific(starpu_pthread_key_t key, const void *pointer)
 {
 	void **array;
 #ifdef STARPU_SIMGRID_HAVE_SIMIX_PROCESS_GET_CODE
-	if (SIMIX_process_get_code() == _starpu_mpi_simgrid_init)
+	if ((SIMIX_process_get_code() == _starpu_mpi_simgrid_init) || (!strcmp(SIMIX_process_self_get_name(),"wait for mpi transfer")))
 		/* Special-case the SMPI process */
 		array = smpi_process_get_user_data();
 	else
@@ -209,7 +229,7 @@ void* starpu_pthread_getspecific(starpu_pthread_key_t key)
 {
 	void **array;
 #ifdef STARPU_SIMGRID_HAVE_SIMIX_PROCESS_GET_CODE
-	if (SIMIX_process_get_code() == _starpu_mpi_simgrid_init)
+	if ((SIMIX_process_get_code() == _starpu_mpi_simgrid_init) || (!strcmp(SIMIX_process_self_get_name(),"wait for mpi transfer")))
 		/* Special-case the SMPI process */
 		array = smpi_process_get_user_data();
 	else
@@ -226,18 +246,32 @@ int starpu_pthread_cond_init(starpu_pthread_cond_t *cond, starpu_pthread_condatt
 	return 0;
 }
 
+static void _starpu_pthread_cond_auto_init(starpu_pthread_cond_t *cond)
+{
+	/* Note: this is actually safe, because simgrid only preempts within
+	 * simgrid functions */
+	if (!*cond) {
+		/* Here we may get preempted */
+		xbt_cond_t new_cond = xbt_cond_init();
+		if (!*cond)
+			*cond = new_cond;
+		else
+			/* Somebody already initialized it while we were
+			 * calling xbt_cond_init, this one is now useless */
+			xbt_cond_destroy(new_cond);
+	}
+}
+
 int starpu_pthread_cond_signal(starpu_pthread_cond_t *cond)
 {
-	if (!*cond)
-		STARPU_PTHREAD_COND_INIT(cond, NULL);
+	_starpu_pthread_cond_auto_init(cond);
 	xbt_cond_signal(*cond);
 	return 0;
 }
 
 int starpu_pthread_cond_broadcast(starpu_pthread_cond_t *cond)
 {
-	if (!*cond)
-		STARPU_PTHREAD_COND_INIT(cond, NULL);
+	_starpu_pthread_cond_auto_init(cond);
 	xbt_cond_broadcast(*cond);
 	return 0;
 }
@@ -246,8 +280,7 @@ int starpu_pthread_cond_wait(starpu_pthread_cond_t *cond, starpu_pthread_mutex_t
 {
 	_STARPU_TRACE_COND_WAIT_BEGIN();
 
-	if (!*cond)
-		STARPU_PTHREAD_COND_INIT(cond, NULL);
+	_starpu_pthread_cond_auto_init(cond);
 	xbt_cond_wait(*cond, *mutex);
 
 	_STARPU_TRACE_COND_WAIT_END();
@@ -376,13 +409,10 @@ int starpu_pthread_queue_register(starpu_pthread_wait_t *w, starpu_pthread_queue
 	{
 		/* Make room for the new waiter */
 		unsigned newalloc;
-		starpu_pthread_wait_t **newqueue;
 		newalloc = q->allocqueue * 2;
 		if (!newalloc)
 			newalloc = 1;
-		newqueue = realloc(q->queue, newalloc * sizeof(*(q->queue)));
-		STARPU_ASSERT(newqueue);
-		q->queue = newqueue;
+		_STARPU_REALLOC(q->queue, newalloc * sizeof(*(q->queue)));
 		q->allocqueue = newalloc;
 	}
 	q->queue[q->nqueue++] = w;

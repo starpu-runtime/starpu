@@ -21,16 +21,33 @@
 
 #define PROGNAME "starpu_machine_display"
 
+static void usage()
+{
+	fprintf(stderr, "Show the processing units that StarPU can use,\n");
+	fprintf(stderr, "and the bandwitdh and affinity measured between the memory nodes.\n");
+	fprintf(stderr, "\n");
+	fprintf(stderr, "Usage: %s [OPTION]\n", PROGNAME);
+	fprintf(stderr, "\n");
+	fprintf(stderr, "Options:\n");
+	fprintf(stderr, "\t-h, --help       display this help and exit\n");
+	fprintf(stderr, "\t-v, --version    output version information and exit\n");
+	fprintf(stderr, "\t-i, --info       display the name of the files containing the information\n");
+	fprintf(stderr, "\t-f, --force      force bus sampling and show measures \n");
+	fprintf(stderr, "\n");
+	fprintf(stderr, "Report bugs to <" PACKAGE_BUGREPORT ">.\n");
+}
+
 static void display_worker_names(enum starpu_worker_archtype type)
 {
-	unsigned nworkers = starpu_worker_get_count_by_type(type);
+	int nworkers = starpu_worker_get_count_by_type(type);
 	if (!nworkers)
 		return;
+	STARPU_ASSERT(nworkers>0);
 
 	int ids[nworkers];
 	starpu_worker_get_ids_by_type(type, ids, nworkers);
 
-	unsigned i;
+	int i;
 	for (i = 0; i < nworkers; i++)
 	{
 		char name[256];
@@ -76,7 +93,7 @@ static void display_all_combined_workers(void)
 		display_combined_worker(nworkers + i);
 }
 
-static void parse_args(int argc, char **argv, int *force)
+static void parse_args(int argc, char **argv, int *force, int *info)
 {
 	int i;
 
@@ -89,21 +106,13 @@ static void parse_args(int argc, char **argv, int *force)
 		{
 			*force = 1;
 		}
+		else if (strncmp(argv[i], "--info", 6) == 0 || strncmp(argv[i], "-i", 2) == 0)
+		{
+			*info = 1;
+		}
 		else if (strncmp(argv[i], "--help", 6) == 0 || strncmp(argv[i], "-h", 2) == 0)
 		{
-			(void) fprintf(stderr, "\
-Show the processing units that StarPU can use, and the	      \n	\
-bandwitdh and affinity measured between the memory nodes.     \n	\
-                                                              \n	\
-Usage: %s [OPTION]                                            \n	\
-                                                              \n	\
-Options:                                                      \n	\
-	-h, --help       display this help and exit           \n	\
-	-v, --version    output version information and exit  \n	\
-	-f, --force      force bus sampling and show measures \n	\
-                                                              \n	\
-Report bugs to <" PACKAGE_BUGREPORT ">.\n",
-PROGNAME);
+			usage();
 			exit(EXIT_FAILURE);
 		}
 		else if (strncmp(argv[i], "--version", 9) == 0 || strncmp(argv[i], "-v", 2) == 0)
@@ -114,6 +123,7 @@ PROGNAME);
 		else
 		{
 			fprintf(stderr, "Unknown arg %s\n", argv[1]);
+			usage();
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -123,9 +133,10 @@ int main(int argc, char **argv)
 {
 	int ret;
 	int force = 0;
+	int info = 0;
 	struct starpu_conf conf;
 
-	parse_args(argc, argv, &force);
+	parse_args(argc, argv, &force, &info);
 
 	starpu_conf_init(&conf);
 	if (force)
@@ -137,6 +148,13 @@ int main(int argc, char **argv)
 	if (ret != 0 && ret != -ENODEV)
 	{
 		return ret;
+	}
+
+	if (info)
+	{
+		starpu_bus_print_filenames(stdout);
+		starpu_shutdown();
+		return 0;
 	}
 
 	unsigned ncpu = starpu_cpu_worker_get_count();
@@ -160,7 +178,7 @@ int main(int argc, char **argv)
 	display_worker_names(STARPU_OPENCL_WORKER);
 
 #ifdef STARPU_USE_MIC
-	fprintf(stdout, "\t%d MIC cores (from %d devices)\n", nmiccores, nmicdevs);
+	fprintf(stdout, "\t%u MIC cores (from %u devices)\n", nmiccores, nmicdevs);
 	display_worker_names(STARPU_MIC_WORKER);
 #endif
 

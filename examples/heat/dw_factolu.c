@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009-2015  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -90,7 +90,7 @@ static struct starpu_codelet cl21 =
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_RW},
 	.model = &model_21
-}; 
+};
 
 static struct starpu_codelet cl22 =
 {
@@ -103,7 +103,7 @@ static struct starpu_codelet cl22 =
 	.nbuffers = 3,
 	.modes = {STARPU_R, STARPU_R, STARPU_RW},
 	.model = &model_22
-}; 
+};
 
 
 
@@ -117,7 +117,7 @@ static struct starpu_codelet cl22 =
 void dw_callback_v2_codelet_update_u22(void *argcb)
 {
 	int ret;
-	cl_args *args = argcb;	
+	cl_args *args = argcb;
 
 	unsigned k = args->k;
 	unsigned i = args->i;
@@ -128,7 +128,7 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 
 	/* we did task 22k,i,j */
 	advance_22[k*nblocks*nblocks + i + j*nblocks] = DONE;
-	
+
 	if ( (i == j) && (i == k+1))
 	{
 		/* we now reduce the LU22 part (recursion appears there) */
@@ -142,7 +142,7 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 		task->cl_arg_size = sizeof(*u11arg);
 
 		task->handles[0] = starpu_data_get_sub_data(args->dataA, 2, k+1, k+1);
-	
+
 		u11arg->dataA = args->dataA;
 		u11arg->i = k + 1;
 		u11arg->nblocks = args->nblocks;
@@ -236,7 +236,7 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 void dw_callback_v2_codelet_update_u12(void *argcb)
 {
 	int ret;
-	cl_args *args = argcb;	
+	cl_args *args = argcb;
 
 	/* now launch the update of LU22 */
 	unsigned i = args->i;
@@ -297,7 +297,7 @@ void dw_callback_v2_codelet_update_u12(void *argcb)
 void dw_callback_v2_codelet_update_u21(void *argcb)
 {
 	int ret;
-	cl_args *args = argcb;	
+	cl_args *args = argcb;
 
 	/* now launch the update of LU22 */
 	unsigned i = args->i;
@@ -357,7 +357,6 @@ void dw_callback_v2_codelet_update_u21(void *argcb)
 
 void dw_callback_v2_codelet_update_u11(void *argcb)
 {
-	int ret;
 	/* in case there remains work, go on */
 	cl_args *args = argcb;
 
@@ -369,13 +368,13 @@ void dw_callback_v2_codelet_update_u11(void *argcb)
 	/* we did task 11k */
 	advance_11[i] = DONE;
 
-	if (i == nblocks - 1) 
+	if (i == nblocks - 1)
 	{
 		/* we are done */
 		free(argcb);
 		return;
 	}
-	else 
+	else
 	{
 		/* put new tasks */
 		unsigned slice;
@@ -390,23 +389,25 @@ void dw_callback_v2_codelet_update_u11(void *argcb)
 			}
 			else
 			{
-				deps12 = advance_22[(i-1)*nblocks*nblocks + slice + i*nblocks];		
+				deps12 = advance_22[(i-1)*nblocks*nblocks + slice + i*nblocks];
 			}
 			if (deps12 & DONE)
 			{
 				/* we may perhaps launch the task 12i,slice */
-				 uint8_t u = STARPU_ATOMIC_OR(&advance_12_21[i*nblocks + slice], STARTED);
-				 if ((u & STARTED) == 0)
-				 {
+				uint8_t u = STARPU_ATOMIC_OR(&advance_12_21[i*nblocks + slice], STARTED);
+				if ((u & STARTED) == 0)
+				{
+					int ret;
+
 					/* we are the only one that should launch that task */
 					cl_args *u12a = malloc(sizeof(cl_args));
 
 					struct starpu_task *task12 = starpu_task_create();
-						task12->callback_func = dw_callback_v2_codelet_update_u12;
-						task12->callback_arg = u12a;
-						task12->cl = &cl12;
-						task12->cl_arg = u12a;
-						task12->cl_arg_size = sizeof(*u12a);
+					task12->callback_func = dw_callback_v2_codelet_update_u12;
+					task12->callback_arg = u12a;
+					task12->cl = &cl12;
+					task12->cl_arg = u12a;
+					task12->cl_arg_size = sizeof(*u12a);
 
 					u12a->i = i;
 					u12a->k = slice;
@@ -432,14 +433,16 @@ void dw_callback_v2_codelet_update_u11(void *argcb)
 			}
 			else
 			{
-				deps12 = advance_22[(i-1)*nblocks*nblocks + slice*nblocks + i];		
+				deps12 = advance_22[(i-1)*nblocks*nblocks + slice*nblocks + i];
 			}
 			if (deps12 & DONE)
 			{
 				/* we may perhaps launch the task 12i,slice */
-				 uint8_t u = STARPU_ATOMIC_OR(&advance_12_21[i + slice*nblocks], STARTED);
-				 if ((u & STARTED) == 0)
-				 {
+				uint8_t u = STARPU_ATOMIC_OR(&advance_12_21[i + slice*nblocks], STARTED);
+				if ((u & STARTED) == 0)
+				{
+					int ret;
+
 					/* we are the only one that should launch that task */
 					cl_args *u21a = malloc(sizeof(cl_args));
 
@@ -474,34 +477,34 @@ void dw_callback_v2_codelet_update_u11(void *argcb)
 
 
 /*
- *	Callbacks 
+ *	Callbacks
  */
 
 
 void dw_callback_codelet_update_u11(void *argcb)
 {
-	int ret;
 	/* in case there remains work, go on */
 	cl_args *args = argcb;
 
-	if (args->i == args->nblocks - 1) 
+	if (args->i == args->nblocks - 1)
 	{
 		/* we are done */
 		free(argcb);
 		return;
 	}
-	else 
+	else
 	{
 		/* put new tasks */
 		unsigned nslices;
 		nslices = args->nblocks - 1 - args->i;
 
 		unsigned *remaining = malloc(sizeof(unsigned));
-		*remaining = 2*nslices; 
+		*remaining = 2*nslices;
 
 		unsigned slice;
 		for (slice = args->i + 1; slice < args->nblocks; slice++)
 		{
+			int ret;
 
 			/* update slice from u12 */
 			cl_args *u12a = malloc(sizeof(cl_args));
@@ -546,35 +549,38 @@ void dw_callback_codelet_update_u11(void *argcb)
 			ret = starpu_task_submit(task21);
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		}
+
+		free(remaining);
 	}
 }
 
 
 void dw_callback_codelet_update_u22(void *argcb)
 {
-	int ret;
-	cl_args *args = argcb;	
+	cl_args *args = argcb;
 	unsigned remaining = STARPU_ATOMIC_ADD(args->remaining, (-1));
 	ANNOTATE_HAPPENS_BEFORE(args->remaining);
 
 	if (remaining == 0)
 	{
+		int ret;
+
 		ANNOTATE_HAPPENS_AFTER(args->remaining);
 		/* all worker already used the counter */
 		free(args->remaining);
 
 		/* we now reduce the LU22 part (recursion appears there) */
 		cl_args *u11arg = malloc(sizeof(cl_args));
-	
-		struct starpu_task *task = starpu_task_create();
-			task->callback_func = dw_callback_codelet_update_u11;
-			task->callback_arg = u11arg;
-			task->cl = &cl11;
-			task->cl_arg = u11arg;
-			task->cl_arg_size = sizeof(*u11arg);
 
-			task->handles[0] = starpu_data_get_sub_data(args->dataA, 2, args->k + 1, args->k + 1);
-	
+		struct starpu_task *task = starpu_task_create();
+		task->callback_func = dw_callback_codelet_update_u11;
+		task->callback_arg = u11arg;
+		task->cl = &cl11;
+		task->cl_arg = u11arg;
+		task->cl_arg_size = sizeof(*u11arg);
+
+		task->handles[0] = starpu_data_get_sub_data(args->dataA, 2, args->k + 1, args->k + 1);
+
 		u11arg->dataA = args->dataA;
 		u11arg->i = args->k + 1;
 		u11arg->nblocks = args->nblocks;
@@ -589,8 +595,7 @@ void dw_callback_codelet_update_u22(void *argcb)
 
 void dw_callback_codelet_update_u12_21(void *argcb)
 {
-	int ret;
-	cl_args *args = argcb;	
+	cl_args *args = argcb;
 	unsigned remaining = STARPU_ATOMIC_ADD(args->remaining, -1);
 	ANNOTATE_HAPPENS_BEFORE(args->remaining);
 
@@ -610,6 +615,8 @@ void dw_callback_codelet_update_u12_21(void *argcb)
 		{
 			for (slicex = i+1; slicex < nblocks; slicex++)
 			{
+				int ret;
+
 				/* update that square matrix */
 				cl_args *u22a = malloc(sizeof(cl_args));
 
@@ -636,13 +643,15 @@ void dw_callback_codelet_update_u12_21(void *argcb)
 				STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 			}
 		}
+
+		free(remaining);
 	}
 }
 
 
 
 /*
- *	code to bootstrap the factorization 
+ *	code to bootstrap the factorization
  */
 
 void dw_codelet_facto(starpu_data_handle_t dataA, unsigned nblocks)
@@ -656,7 +665,7 @@ void dw_codelet_facto(starpu_data_handle_t dataA, unsigned nblocks)
 
 	start = starpu_timing_now();
 
-	/* inject a new task with this codelet into the system */ 
+	/* inject a new task with this codelet into the system */
 	struct starpu_task *task = starpu_task_create();
 	task->callback_func = dw_callback_codelet_update_u11;
 	task->callback_arg = args;
@@ -702,7 +711,7 @@ void dw_codelet_facto_v2(starpu_data_handle_t dataA, unsigned nblocks)
 
 	start = starpu_timing_now();
 
-	/* inject a new task with this codelet into the system */ 
+	/* inject a new task with this codelet into the system */
 	struct starpu_task *task = starpu_task_create();
 	task->callback_func = dw_callback_v2_codelet_update_u11;
 	task->callback_arg = args;
@@ -710,7 +719,7 @@ void dw_codelet_facto_v2(starpu_data_handle_t dataA, unsigned nblocks)
 	task->cl_arg = args;
 	task->cl_arg_size = sizeof(*args);
 
-	task->handles[0] = starpu_data_get_sub_data(dataA, 2, 0, 0); 
+	task->handles[0] = starpu_data_get_sub_data(dataA, 2, 0, 0);
 
 	/* schedule the codelet */
 	int ret = starpu_task_submit(task);
@@ -773,7 +782,7 @@ void initialize_system(float **A, float **B, unsigned dim, unsigned pinned)
 	{
 		starpu_malloc((void **)A, (size_t)dim*dim*sizeof(float));
 		starpu_malloc((void **)B, (size_t)dim*sizeof(float));
-	} 
+	}
 	else
 	{
 		*A = malloc((size_t)dim*dim*sizeof(float));
@@ -797,8 +806,8 @@ void free_system(float *A, float *B, unsigned dim, unsigned pinned)
 	}
 }
 
-void dw_factoLU(float *matA, unsigned size, 
-		unsigned ld, unsigned nblocks, 
+void dw_factoLU(float *matA, unsigned size,
+		unsigned ld, unsigned nblocks,
 		unsigned version, unsigned _no_prio)
 {
 
@@ -816,7 +825,7 @@ void dw_factoLU(float *matA, unsigned size,
 
 	/* monitor and partition the A matrix into blocks :
 	 * one block is now determined by 2 unsigned (i,j) */
-	starpu_matrix_data_register(&dataA, STARPU_MAIN_RAM, (uintptr_t)matA, ld, 
+	starpu_matrix_data_register(&dataA, STARPU_MAIN_RAM, (uintptr_t)matA, ld,
 			size, size, sizeof(float));
 
 	struct starpu_data_filter f =

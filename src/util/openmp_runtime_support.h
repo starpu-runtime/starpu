@@ -193,7 +193,9 @@ enum starpu_omp_task_wait_on
 	starpu_omp_task_wait_on_barrier      = 1 << 2,
 	starpu_omp_task_wait_on_group        = 1 << 3,
 	starpu_omp_task_wait_on_critical     = 1 << 4,
-	starpu_omp_task_wait_on_condition    = 1 << 5
+	starpu_omp_task_wait_on_ordered      = 1 << 5,
+	starpu_omp_task_wait_on_lock         = 1 << 6,
+	starpu_omp_task_wait_on_nest_lock    = 1 << 7,
 };
 
 enum starpu_omp_task_flags
@@ -374,7 +376,7 @@ struct starpu_omp_global
 	struct starpu_omp_thread *hash_workers;
 	struct _starpu_spinlock hash_workers_lock;
 	struct starpu_arbiter *default_arbiter;
-	int nb_starpu_cpu_workers;
+	unsigned nb_starpu_cpu_workers;
 	int *starpu_cpu_worker_ids;
 };
 
@@ -391,7 +393,9 @@ extern double _starpu_omp_clock_ref;
 void _starpu_omp_environment_init(void);
 void _starpu_omp_environment_exit(void);
 struct starpu_omp_thread *_starpu_omp_get_thread(void);
+struct starpu_omp_region *_starpu_omp_get_region_at_level(int level);
 struct starpu_omp_task *_starpu_omp_get_task(void);
+int _starpu_omp_get_region_thread_num(const struct starpu_omp_region *const region);
 void _starpu_omp_dummy_init(void);
 void _starpu_omp_dummy_shutdown(void);
 #endif // STARPU_OPENMP

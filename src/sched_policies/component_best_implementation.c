@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2013  INRIA
+ * Copyright (C) 2016  CNRS
  * Copyright (C) 2013  Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -15,10 +16,11 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <float.h>
+
 #include <starpu_sched_component.h>
 #include <starpu_scheduler.h>
-
-#include <float.h>
+#include <core/workers.h>
 
 /* return true if workerid can execute task, and fill task->predicted and task->predicted_transfer
  *  according to best implementation predictions
@@ -100,7 +102,7 @@ static struct starpu_task * best_implementation_pull_task(struct starpu_sched_co
 	}
 	if(task)
 		/* this worker can execute this task as it was returned by a pop*/
-		(void)find_best_impl(component->tree->sched_ctx_id, task, starpu_worker_get_id());
+		(void)find_best_impl(component->tree->sched_ctx_id, task, starpu_worker_get_id_check());
 	return task;
 }
 

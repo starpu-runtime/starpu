@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010, 2013, 2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -109,12 +109,12 @@ static void create_task_grid(unsigned iter)
 static int start_task_grid(unsigned iter)
 {
 	unsigned i;
-	int ret;
 
 	/* FPRINTF(stderr, "start grid %d ni %d...\n", iter, ni); */
 
 	for (i = 0; i < ni; i++)
 	{
+		int ret;
 		ret = starpu_task_submit(tasks[iter][i]);
 		if (ret == -ENODEV) return 77;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");

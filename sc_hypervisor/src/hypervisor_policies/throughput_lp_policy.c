@@ -28,7 +28,7 @@ static unsigned _compute_max_speed(int ns, int nw, double w_in_s[ns][nw], unsign
 	double speed[ns][nw];
 
 	unsigned *sched_ctxs = in_sched_ctxs == NULL ? sc_hypervisor_get_sched_ctxs() : in_sched_ctxs;
-	
+
 	int w,s;
 
 	struct sc_hypervisor_wrapper* sc_w = NULL;
@@ -44,7 +44,7 @@ static unsigned _compute_max_speed(int ns, int nw, double w_in_s[ns][nw], unsign
 			speed[s][w] = sc_hypervisor_get_speed(sc_w, arch);
 		}
 	}
-	
+
 
 	struct timeval start_time;
 	struct timeval end_time;
@@ -90,7 +90,7 @@ static double _glp_resolve(int ns, int nw, double speed[ns][nw], double w_in_s[n
 		/* Variables:  x[s][w]
 		 the acknwoledgment that the worker w belongs to the context s */
 		glp_add_cols(lp, nw*ns + 1);
-		
+
 		for(s = 0; s < ns; s++)
 			for(w = 0; w < nw; w++)
 			{
@@ -159,7 +159,7 @@ static double _glp_resolve(int ns, int nw, double speed[ns][nw], double w_in_s[n
 				ar[n] = 1;
 				n++;
 			}
-			if(integer)				
+			if(integer)
 				glp_set_row_bnds(lp, curr_row_idx+w+1, GLP_FX, 1, 1);
 			else
 				glp_set_row_bnds(lp, curr_row_idx+w+1, GLP_FX, 1.0, 1.0);
@@ -229,7 +229,7 @@ static void _try_resizing(unsigned *sched_ctxs, int nsched_ctxs , int *workers, 
 {
 	int ns = sched_ctxs == NULL ? sc_hypervisor_get_nsched_ctxs() : nsched_ctxs;
 	int nw = workers == NULL ? (int)starpu_worker_get_count() : nworkers; /* Number of different workers */
-	
+
 	sched_ctxs = sched_ctxs == NULL ? sc_hypervisor_get_sched_ctxs() : sched_ctxs;
 
 	double w_in_s[ns][nw];
@@ -249,7 +249,7 @@ static void _try_resizing(unsigned *sched_ctxs, int nsched_ctxs , int *workers, 
 				nworkers_per_ctx_rounded[s][w] = 0;
 			}
 		}
-		
+
 		for(s = 0; s < ns; s++)
 		{
 			for(w = 0; w < nw; w++)
@@ -257,7 +257,7 @@ static void _try_resizing(unsigned *sched_ctxs, int nsched_ctxs , int *workers, 
 				enum starpu_worker_archtype arch = starpu_worker_get_type(w);
 				int idx = sc_hypervisor_get_index_for_arch(STARPU_CUDA_WORKER, tw);
 				nworkers_per_ctx[s][idx] += w_in_s[s][w];
-				
+
 				if(arch == STARPU_CUDA_WORKER)
 				{
 					if(w_in_s[s][w] >= 0.3)
@@ -275,14 +275,14 @@ static void _try_resizing(unsigned *sched_ctxs, int nsched_ctxs , int *workers, 
 /* 				for(s = 0; s < ns; s++) */
 /* 					printf("%d: cpus = %lf gpus = %lf cpus_round = %d gpus_round = %d\n", s, nworkers[s][1], nworkers[s][0], */
 /* 					       nworkers_rounded[s][1], nworkers_rounded[s][0]); */
-		
+
 
 		sc_hypervisor_lp_redistribute_resources_in_ctxs(ns, tw->nw, nworkers_per_ctx_rounded, nworkers_per_ctx, sched_ctxs, tw);
-		
+
 	}
 }
 
-static void throughput_lp_handle_poped_task(__attribute__((unused))unsigned sched_ctx, __attribute__((unused))int worker, 
+static void throughput_lp_handle_poped_task(__attribute__((unused))unsigned sched_ctx, __attribute__((unused))int worker,
 				       __attribute__((unused))struct starpu_task *task, __attribute__((unused))uint32_t footprint)
 {
 	int ret = starpu_pthread_mutex_trylock(&act_hypervisor_mutex);
@@ -296,7 +296,7 @@ static void throughput_lp_handle_poped_task(__attribute__((unused))unsigned sche
 				_try_resizing(NULL, -1, NULL, -1);
 			}
 		}
-                starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
+                STARPU_PTHREAD_MUTEX_UNLOCK(&act_hypervisor_mutex);
 	}
 }
 
@@ -315,7 +315,7 @@ static void throughput_lp_handle_idle_cycle(unsigned sched_ctx, int worker)
 //                              sc_hypervisor_move_workers(sched_ctx, 3 - sched_ctx, &worker, 1, 1);
 			}
                 }
-                starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
+                STARPU_PTHREAD_MUTEX_UNLOCK(&act_hypervisor_mutex);
         }
 }
 
@@ -325,7 +325,7 @@ static void throughput_lp_resize_ctxs(unsigned *sched_ctxs, int nsched_ctxs , in
 	if(ret != EBUSY)
 	{
 		_try_resizing(sched_ctxs, nsched_ctxs, workers, nworkers);
-		starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&act_hypervisor_mutex);
 	}
 }
 

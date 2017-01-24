@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2015  Université de Bordeaux
- * Copyright (C) 2012, 2013  CNRS
+ * Copyright (C) 2012, 2013, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -106,7 +106,7 @@ unsigned update_per_worker[STARPU_NMAXWORKERS];
 static void record_who_runs_what(struct block_description *block)
 {
 	double now, now2, diff, delta = get_ticks() * 1000;
-	int workerid = starpu_worker_get_id();
+	int workerid = starpu_worker_get_id_check();
 
 	now = starpu_timing_now();
 	now2 = now - start;
@@ -183,12 +183,12 @@ static void load_subblock_from_buffer_cuda(void *_block,
 static void update_func_cuda(void *descr[], void *arg)
 {
 	struct block_description *block = arg;
-	int workerid = starpu_worker_get_id();
+	int workerid = starpu_worker_get_id_check();
 	DEBUG( "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
 	if (block->bz == 0)
-		FPRINTF(stderr,"!!! DO update_func_cuda z %d CUDA%d !!!\n", block->bz, workerid);
+		FPRINTF(stderr,"!!! DO update_func_cuda z %u CUDA%d !!!\n", block->bz, workerid);
 	else
-		DEBUG( "!!! DO update_func_cuda z %d CUDA%d !!!\n", block->bz, workerid);
+		DEBUG( "!!! DO update_func_cuda z %u CUDA%d !!!\n", block->bz, workerid);
 #if defined(STARPU_USE_MPI) && !defined(STARPU_SIMGRID)
 	int rank = 0;
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -257,7 +257,6 @@ static void load_subblock_from_buffer_opencl(struct starpu_block_interface *bloc
 	unsigned offset = firstz*block->ldz;
 	cl_mem block_data = (cl_mem)block->dev_handle;
 	cl_mem boundary_data = (cl_mem)boundary->dev_handle;
-	cl_event event;
 
         cl_command_queue cq;
         starpu_opencl_get_current_queue(&cq);
@@ -271,12 +270,12 @@ static void load_subblock_from_buffer_opencl(struct starpu_block_interface *bloc
 static void update_func_opencl(void *descr[], void *arg)
 {
 	struct block_description *block = arg;
-	int workerid = starpu_worker_get_id();
+	int workerid = starpu_worker_get_id_check();
 	DEBUG( "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
 	if (block->bz == 0)
-		FPRINTF(stderr,"!!! DO update_func_opencl z %d OPENCL%d !!!\n", block->bz, workerid);
+		FPRINTF(stderr,"!!! DO update_func_opencl z %u OPENCL%d !!!\n", block->bz, workerid);
 	else
-		DEBUG( "!!! DO update_func_opencl z %d OPENCL%d !!!\n", block->bz, workerid);
+		DEBUG( "!!! DO update_func_opencl z %u OPENCL%d !!!\n", block->bz, workerid);
 #if defined(STARPU_USE_MPI) && !defined(STARPU_SIMGRID)
 	int rank = 0;
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -341,12 +340,12 @@ static void update_func_opencl(void *descr[], void *arg)
 void update_func_cpu(void *descr[], void *arg)
 {
 	struct block_description *block = (struct block_description *) arg;
-	int workerid = starpu_worker_get_id();
+	int workerid = starpu_worker_get_id_check();
 	DEBUG( "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
 	if (block->bz == 0)
-		FPRINTF(stderr,"!!! DO update_func_cpu z %d CPU%d !!!\n", block->bz, workerid);
+		FPRINTF(stderr,"!!! DO update_func_cpu z %u CPU%d !!!\n", block->bz, workerid);
 	else
-		DEBUG( "!!! DO update_func_cpu z %d CPU%d !!!\n", block->bz, workerid);
+		DEBUG( "!!! DO update_func_cpu z %u CPU%d !!!\n", block->bz, workerid);
 #if defined(STARPU_USE_MPI) && !defined(STARPU_SIMGRID)
 	int rank = 0;
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -491,7 +490,6 @@ static void load_subblock_into_buffer_opencl(struct starpu_block_interface *bloc
 
         cl_command_queue cq;
         starpu_opencl_get_current_queue(&cq);
-	cl_event event;
 
         cl_int ret = clEnqueueCopyBuffer(cq, block_data, boundary_data, offset, 0, boundary_size, 0, NULL, NULL);
 	if (ret != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(ret);
@@ -506,7 +504,7 @@ unsigned bottom_per_worker[STARPU_NMAXWORKERS];
 void dummy_func_top_cpu(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
 {
 	struct block_description *block = (struct block_description *) arg;
-	int workerid = starpu_worker_get_id();
+	int workerid = starpu_worker_get_id_check();
 	top_per_worker[workerid]++;
 
 	DEBUG( "DO SAVE Bottom block %d\n", block->bz);
@@ -522,7 +520,8 @@ void dummy_func_top_cpu(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
 void dummy_func_bottom_cpu(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
 {
 	struct block_description *block = (struct block_description *) arg;
-	int workerid = starpu_worker_get_id();
+	(void) block;
+	int workerid = starpu_worker_get_id_check();
 	bottom_per_worker[workerid]++;
 
 	DEBUG( "DO SAVE Top block %d\n", block->bz);
@@ -536,7 +535,7 @@ void dummy_func_bottom_cpu(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
 static void dummy_func_top_cuda(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
 {
 	struct block_description *block = (struct block_description *) arg;
-	int workerid = starpu_worker_get_id();
+	int workerid = starpu_worker_get_id_check();
 	top_per_worker[workerid]++;
 
 	DEBUG( "DO SAVE Top block %d\n", block->bz);
@@ -552,7 +551,8 @@ static void dummy_func_top_cuda(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg
 static void dummy_func_bottom_cuda(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
 {
 	struct block_description *block = (struct block_description *) arg;
-	int workerid = starpu_worker_get_id();
+	(void) block;
+	int workerid = starpu_worker_get_id_check();
 	bottom_per_worker[workerid]++;
 
 	DEBUG( "DO SAVE Bottom block %d on CUDA\n", block->bz);
@@ -567,7 +567,8 @@ static void dummy_func_bottom_cuda(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *
 static void dummy_func_top_opencl(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
 {
 	struct block_description *block = (struct block_description *) arg;
-	int workerid = starpu_worker_get_id();
+	(void) block;
+	int workerid = starpu_worker_get_id_check();
 	top_per_worker[workerid]++;
 
 	DEBUG( "DO SAVE Top block %d\n", block->bz);
@@ -583,7 +584,8 @@ static void dummy_func_top_opencl(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *a
 static void dummy_func_bottom_opencl(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
 {
 	struct block_description *block = (struct block_description *) arg;
-	int workerid = starpu_worker_get_id();
+	(void) block;
+	int workerid = starpu_worker_get_id_check();
 	bottom_per_worker[workerid]++;
 
 	DEBUG( "DO SAVE Bottom block %d on OPENCL\n", block->bz);

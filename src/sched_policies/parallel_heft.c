@@ -1,8 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012 INRIA
- * Copyright (C) 2010-2016  Université de Bordeaux
+ * Copyright (C) 2010-2017  Université de Bordeaux
  * Copyright (C) 2011  Télécom-SudParis
+ * Copyright (C) 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -24,6 +25,7 @@
 #include <core/perfmodel/perfmodel.h>
 #include <starpu_parameters.h>
 #include <core/detect_combined_workers.h>
+#include <core/sched_policy.h>
 
 #ifndef DBL_MIN
 #define DBL_MIN __DBL_MIN__
@@ -70,12 +72,12 @@ static int ntasks[STARPU_NMAXWORKERS];
   from the workers available to the program, and not to the context !!!!!!!!!!!!!!!!!!!!!!!
 */
 
-static void parallel_heft_pre_exec_hook(struct starpu_task *task)
+static void parallel_heft_pre_exec_hook(struct starpu_task *task, unsigned sched_ctx_id STARPU_ATTRIBUTE_UNUSED)
 {
 	if (!task->cl || task->execute_on_a_specific_worker)
 		return;
 
-	int workerid = starpu_worker_get_id();
+	unsigned workerid = starpu_worker_get_id_check();
 	double model = task->predicted;
 	double transfer_model = task->predicted_transfer;
 
@@ -290,7 +292,7 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 
 	double local_task_length[nworkers_ctx][STARPU_MAXIMPLEMENTATIONS];
 	double local_data_penalty[nworkers_ctx][STARPU_MAXIMPLEMENTATIONS];
-	double local_power[nworkers_ctx][STARPU_MAXIMPLEMENTATIONS];
+	double local_energy[nworkers_ctx][STARPU_MAXIMPLEMENTATIONS];
 	double local_exp_end[nworkers_ctx][STARPU_MAXIMPLEMENTATIONS];
 	double fitness[nworkers_ctx][STARPU_MAXIMPLEMENTATIONS];
 
@@ -308,6 +310,8 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 	/* A priori, we know all estimations */
 	int unknown = 0;
 	struct starpu_sched_ctx_iterator it;
+
+	memset(skip_worker, 0, nworkers_ctx*STARPU_MAXIMPLEMENTATIONS*sizeof(int));
 
 	workers->init_iterator(workers, &it);
 	while(workers->has_next(workers, &it))
@@ -370,11 +374,17 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 				nimpl_best = nimpl;
 			}
 
-			if (isnan(local_task_length[worker_ctx][nimpl]))
+			if (isnan(local_task_length[worker_ctx][nimpl])) {
+				static int warned;
+				if (!warned) {
+					warned = 1;
+					_STARPU_DISP("Warning: performance model for %s not finished calibrating on %u, using a dumb scheduling heuristic for now\n", starpu_task_get_name(task), worker);
+				}
 				/* we are calibrating, we want to speed-up calibration time
 				 * so we privilege non-calibrated tasks (but still
 				 * greedily distribute them to avoid dumb schedules) */
 				calibrating = 1;
+			}
 
 			if (isnan(local_task_length[worker_ctx][nimpl])
 					|| _STARPU_IS_ZERO(local_task_length[worker_ctx][nimpl]))
@@ -397,11 +407,11 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 			}
 
 
-			local_power[worker_ctx][nimpl] = starpu_task_expected_power(task, perf_arch,nimpl);
-			//_STARPU_DEBUG("Scheduler parallel heft: task length (%lf) local power (%lf) worker (%u) kernel (%u) \n", local_task_length[worker],local_power[worker],worker,nimpl);
+			local_energy[worker_ctx][nimpl] = starpu_task_expected_energy(task, perf_arch,nimpl);
+			//_STARPU_DEBUG("Scheduler parallel heft: task length (%lf) local energy (%lf) worker (%u) kernel (%u) \n", local_task_length[worker],local_energy[worker],worker,nimpl);
 
-			if (isnan(local_power[worker_ctx][nimpl]))
-				local_power[worker_ctx][nimpl] = 0.;
+			if (isnan(local_energy[worker_ctx][nimpl]))
+				local_energy[worker_ctx][nimpl] = 0.;
 
 		}
 		worker_ctx++;
@@ -414,10 +424,10 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 		forced_nimpl = nimpl_best;
 	}
 
-	double best_fitness = -1;
 
 	if (forced_best == -1)
 	{
+		double best_fitness = -1;
 		worker_ctx = 0;
 		while(workers->has_next(workers, &it))
 		{
@@ -433,7 +443,7 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 
 				fitness[worker_ctx][nimpl] = hd->alpha*(local_exp_end[worker_ctx][nimpl] - best_exp_end)
 						+ hd->beta*(local_data_penalty[worker_ctx][nimpl])
-						+ hd->_gamma*(local_power[worker_ctx][nimpl]);
+						+ hd->_gamma*(local_energy[worker_ctx][nimpl]);
 
 				if (local_exp_end[worker_ctx][nimpl] > max_exp_end)
 					/* This placement will make the computation
@@ -478,6 +488,7 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 	//_STARPU_DEBUG("Scheduler parallel heft: kernel (%u)\n", nimpl_best);
 	_starpu_get_job_associated_to_task(task)->nimpl = nimpl_best;
 	/* we should now have the best worker in variable "best" */
+	_STARPU_TASK_BREAK_ON(task, sched);
 	return push_task_on_best_worker(task, best, best_exp_end, prio, sched_ctx_id);
 }
 
@@ -498,11 +509,10 @@ static int parallel_heft_push_task(struct starpu_task *task)
 
 static void parallel_heft_add_workers(__attribute__((unused)) unsigned sched_ctx_id, int *workerids, unsigned nworkers)
 {
-	int workerid;
 	unsigned i;
 	for (i = 0; i < nworkers; i++)
 	{
-		workerid = workerids[i];
+		int workerid = workerids[i];
 		struct _starpu_worker *workerarg = _starpu_get_worker_struct(workerid);
 		/* init these structures only once for each worker */
 		if(!workerarg->has_prev_init)
@@ -517,7 +527,7 @@ static void parallel_heft_add_workers(__attribute__((unused)) unsigned sched_ctx
 	_starpu_sched_find_worker_combinations(workerids, nworkers);
 
 // start_unclear_part: not very clear where this is used
-/* 	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config(); */
+/* 	struct _starpu_machine_config *config = _starpu_get_machine_config(); */
 /* 	ncombinedworkers = config->topology.ncombinedworkers; */
 
 /* 	/\* We pre-compute an array of all the perfmodel archs that are applicable *\/ */
@@ -547,7 +557,8 @@ static void parallel_heft_add_workers(__attribute__((unused)) unsigned sched_ctx
 
 static void initialize_parallel_heft_policy(unsigned sched_ctx_id)
 {
-	struct _starpu_pheft_data *hd = (struct _starpu_pheft_data*)malloc(sizeof(struct _starpu_pheft_data));
+	struct _starpu_pheft_data *hd;
+	_STARPU_MALLOC(hd, sizeof(struct _starpu_pheft_data));
 
 	if (starpu_sched_ctx_min_priority_is_set(sched_ctx_id) == 0)
 		starpu_sched_ctx_set_min_priority(sched_ctx_id, DEFAULT_MIN_PRIORITY);

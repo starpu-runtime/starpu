@@ -30,7 +30,7 @@ double sc_hypervisor_lp_simulate_distrib_tasks(int ns, int nw, int nt, double w_
 	int t, w, s;
 	glp_prob *lp;
 
-	
+
 	lp = glp_create_prob();
 	glp_set_prob_name(lp, "StarPU theoretical bound");
 	glp_set_obj_dir(lp, GLP_MAX);
@@ -262,7 +262,7 @@ double sc_hypervisor_lp_simulate_distrib_tasks(int ns, int nw, int nt, double w_
 	return res;
 }
 
-double sc_hypervisor_lp_simulate_distrib_flops(int ns, int nw, double v[ns][nw], double flops[ns], double res[ns][nw], 
+double sc_hypervisor_lp_simulate_distrib_flops(int ns, int nw, double v[ns][nw], double flops[ns], double res[ns][nw],
 					       int  total_nw[nw], unsigned sched_ctxs[ns], double last_vmax)
 {
 	int integer = 1;
@@ -333,7 +333,7 @@ double sc_hypervisor_lp_simulate_distrib_flops(int ns, int nw, double v[ns][nw],
 					else
 						glp_set_col_bnds(lp, n, GLP_DB, config->min_nworkers*1.0, total_nw[w]*1.0);
 #ifdef STARPU_SC_HYPERVISOR_DEBUG
-					printf("%d****************don't consider max %d but total %d in lp\n", sched_ctxs[s], config->max_nworkers, total_nw[w]);
+					printf("%u****************don't consider max %d but total %d in lp\n", sched_ctxs[s], config->max_nworkers, total_nw[w]);
 #endif
 				}
 			}
@@ -434,7 +434,7 @@ double sc_hypervisor_lp_simulate_distrib_flops(int ns, int nw, double v[ns][nw],
 		/*sum(all gpus) = 3*/
 		if(w == 0)
 			glp_set_row_bnds(lp, ns+w+1, GLP_FX, total_nw[0], total_nw[0]);
-		
+
 		/*sum(all cpus) = 9*/
 		if(w == 1)
 			glp_set_row_bnds(lp, ns+w+1, GLP_FX, total_nw[1], total_nw[1]);
@@ -461,7 +461,7 @@ double sc_hypervisor_lp_simulate_distrib_flops(int ns, int nw, double v[ns][nw],
         if(stat == GLP_NOFEAS)
         {
                 glp_delete_prob(lp);
-		printf("no_sol\n");                                                                                                                                                             
+		printf("no_sol\n");
                 lp = NULL;
                 return 0.0;
         }
@@ -477,7 +477,7 @@ double sc_hypervisor_lp_simulate_distrib_flops(int ns, int nw, double v[ns][nw],
                 /* if we don't have a solution return */
                 if(stat == GLP_NOFEAS)
                 {
-			printf("no int sol\n");                                                                                                                                                 
+			printf("no int sol\n");
                         glp_delete_prob(lp);
                         lp = NULL;
                         return 0.0;
@@ -508,7 +508,7 @@ double sc_hypervisor_lp_simulate_distrib_flops(int ns, int nw, double v[ns][nw],
 	return vmax;
 }
 
-double sc_hypervisor_lp_simulate_distrib_flops_on_sample(int ns, int nw, double final_w_in_s[ns][nw], unsigned is_integer, double tmax, 
+double sc_hypervisor_lp_simulate_distrib_flops_on_sample(int ns, int nw, double final_w_in_s[ns][nw], unsigned is_integer, double tmax,
 							 double **speed, double flops[ns], double **final_flops_on_w)
 {
 	double w_in_s[ns][nw];
@@ -531,14 +531,14 @@ double sc_hypervisor_lp_simulate_distrib_flops_on_sample(int ns, int nw, double 
 		double ar[ne];
 
 
-		/* Variables: number of flops assigned to worker w in context s, and 
+		/* Variables: number of flops assigned to worker w in context s, and
 		 the acknwoledgment that the worker w belongs to the context s */
 		glp_add_cols(lp, 2*nw*ns);
 #define colnum_sample(w, s) ((s)*nw+(w)+1)
 		for(s = 0; s < ns; s++)
 			for(w = 0; w < nw; w++)
 				glp_set_obj_coef(lp, nw*ns+colnum_sample(w,s), 1.);
-		
+
 		for(s = 0; s < ns; s++)
 			for(w = 0; w < nw; w++)
 			{
@@ -580,7 +580,7 @@ double sc_hypervisor_lp_simulate_distrib_flops_on_sample(int ns, int nw, double 
 				ar[n] = 1 / speed[s][w];
 
 				n++;
-				
+
 				/* x[s][w] = 1 | 0 */
 				ia[n] = curr_row_idx+s*nw+w+1;
 				ja[n] = nw*ns+colnum_sample(w,s);
@@ -627,7 +627,7 @@ double sc_hypervisor_lp_simulate_distrib_flops_on_sample(int ns, int nw, double 
 				ar[n] = 1;
 				n++;
 			}
-			if(is_integer)				
+			if(is_integer)
 				glp_set_row_bnds(lp, curr_row_idx+w+1, GLP_FX, 1, 1);
 			else
 				glp_set_row_bnds(lp, curr_row_idx+w+1, GLP_FX, 1.0, 1.0);

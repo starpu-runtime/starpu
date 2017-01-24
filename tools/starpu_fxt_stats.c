@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2012, 2013, 2014  CNRS
+ * Copyright (C) 2011, 2012, 2013, 2014, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -51,7 +51,7 @@ static void usage()
         fprintf(stderr, "\n");
 }
 
-static void parse_args(int argc, char **argv, char **fin, char **fout)
+static int parse_args(int argc, char **argv, char **fin, char **fout)
 {
 	int i;
 
@@ -74,13 +74,13 @@ static void parse_args(int argc, char **argv, char **fin, char **fout)
 		if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0)
 		{
 			usage();
-			exit(EXIT_SUCCESS);
+			return EXIT_SUCCESS;
 		}
 
 		if (strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "--version") == 0)
 		{
 		        fputs(PROGNAME " (" PACKAGE_NAME ") " PACKAGE_VERSION "\n", stderr);
-			exit(EXIT_SUCCESS);
+			return EXIT_SUCCESS;
 		}
 	}
 
@@ -88,8 +88,9 @@ static void parse_args(int argc, char **argv, char **fin, char **fout)
 	{
 		fprintf(stderr, "Incorrect usage, aborting\n");
                 usage();
-		exit(77);
+		return 77;
 	}
+	return 0;
 }
 
 static void handle_data_copy(void)
@@ -113,7 +114,8 @@ int main(int argc, char **argv)
 	int fd_in;
 	FILE *fd_out;
 
-	parse_args(argc, argv, &fin, &fout);
+	ret = parse_args(argc, argv, &fin, &fout);
+	if (ret) return ret;
 
 	fd_in = open(fin, O_RDONLY);
 	if (fd_in < 0)
@@ -191,12 +193,14 @@ int main(int argc, char **argv)
 		{
 			if (transfers[src][dst] != 0)
 			{
-				fprintf(fd_out, "%d -> %d \t %ld MB\n", src, dst, transfers[src][dst]/(1024*1024));
+				fprintf(fd_out, "%u -> %u \t %lu MB\n", src, dst, (unsigned long)(transfers[src][dst]/(1024*1024)));
 			}
 		}
 	}
 
-	fprintf(fd_out, "There was %d tasks and %d work stealing\n", njob, nws);
+	fprintf(fd_out, "There was %u tasks and %u work stealing\n", njob, nws);
+	if (fd_out != stdout)
+		fclose(fd_out);
 
 	return 0;
 }

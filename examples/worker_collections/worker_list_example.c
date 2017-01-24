@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2015  Université de Bordeaux
- * Copyright (C) 2010-2014  CNRS
+ * Copyright (C) 2010-2014, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -45,7 +45,7 @@ int main()
 	co->init_iterator = worker_list.init_iterator;
 	co->type = STARPU_WORKER_LIST;
 
-	FPRINTF(stderr, "ncpus %d \n", ncpus);
+	FPRINTF(stderr, "ncpus %u\n", ncpus);
 
 	double start_time;
 	double end_time;
@@ -72,19 +72,19 @@ int main()
 	while(co->has_next(co, &it))
 	{
 		pu = co->get_next(co, &it);
-		FPRINTF(stderr, "pu = %d out of %d workers \n", pu, co->nworkers);
+		FPRINTF(stderr, "pu = %d out of %u workers \n", pu, co->nworkers);
 	}
 
 	for(i = 0; i < 6; i++)
 	{
 		co->remove(co, i);
-		FPRINTF(stderr, "remove %d out of %d workers\n", i, co->nworkers);
+		FPRINTF(stderr, "remove %u out of %u workers\n", i, co->nworkers);
 	}
 
 	while(co->has_next(co, &it))
 	{
 		pu = co->get_next(co, &it);
-		FPRINTF(stderr, "pu = %d out of %d workers \n", pu, co->nworkers);
+		FPRINTF(stderr, "pu = %d out of %u workers\n", pu, co->nworkers);
 	}
 
 	FPRINTF(stderr, "timing init = %lf \n", timing);

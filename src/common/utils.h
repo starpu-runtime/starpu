@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2012-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -107,6 +107,7 @@
 #endif
 
 /* TODO: cache */
+#define _STARPU_MSG(fmt, ...) do { fprintf(stderr, STARPU_DEBUG_PREFIX"[%s] " fmt ,__starpu_func__ ,## __VA_ARGS__); } while(0)
 #define _STARPU_DISP(fmt, ...) do { if (!_starpu_silent) {fprintf(stderr, STARPU_DEBUG_PREFIX"[%s] " fmt ,__starpu_func__ ,## __VA_ARGS__); }} while(0)
 #define _STARPU_ERROR(fmt, ...)                                                  \
 	do {                                                                          \
@@ -115,6 +116,11 @@
 		STARPU_ABORT();                                                       \
 	} while (0)
 
+
+#define _STARPU_MALLOC(ptr, size) do { ptr = malloc(size); STARPU_ASSERT_MSG(ptr != NULL, "Cannot allocate %ld bytes\n", (long) size); } while (0)
+#define _STARPU_CALLOC(ptr, nmemb, size) do { ptr = calloc(nmemb, size); STARPU_ASSERT_MSG(ptr != NULL, "Cannot allocate %ld bytes\n", (long) (nmemb*size)); } while (0)
+#define _STARPU_REALLOC(ptr, size) do { ptr = realloc(ptr, size); STARPU_ASSERT_MSG(ptr != NULL, "Cannot reallocate %ld bytes\n", (long) size); } while (0)
+#define _STARPU_FREE(ptr) do { free(ptr); ptr = NULL; } while(0)
 
 #ifdef _MSC_VER
 #define _STARPU_IS_ZERO(a) (a == 0.0)
@@ -152,8 +158,6 @@ struct starpu_codelet;
 const char *_starpu_codelet_get_model_name(struct starpu_codelet *cl);
 
 int _starpu_check_mutex_deadlock(starpu_pthread_mutex_t *mutex);
-
-void _starpu_sleep(struct timespec ts);
 
 void _starpu_util_init(void);
 

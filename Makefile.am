@@ -1,8 +1,9 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2015  Université de Bordeaux
-# Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
+# Copyright (C) 2009-2016  Université de Bordeaux
+# Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016  CNRS
 # Copyright (C) 2014  INRIA
+# Copyright (C) 2016  Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -18,7 +19,14 @@
 ACLOCAL_AMFLAGS=-I m4
 CLEANFILES = *.gcno *.gcda *.linkinfo
 
-SUBDIRS = src
+SUBDIRS = 
+
+if STARPU_USE_MIN_DGELS
+SUBDIRS += min-dgels
+endif
+
+SUBDIRS += src
+
 SUBDIRS += tools
 
 if BUILD_TESTS
@@ -96,6 +104,7 @@ versinclude_HEADERS = 				\
 	include/starpu_tree.h			\
 	include/starpu_simgrid_wrap.h		\
 	include/starpu_mod.f90			\
+	include/fstarpu_mod.f90			\
 	include/starpu_clusters_util.h
 
 nodist_versinclude_HEADERS = 			\
@@ -156,8 +165,8 @@ txtdir = ${prefix}
 else
 txtdir = ${docdir}
 endif
-txt_DATA = AUTHORS COPYING.LGPL README STARPU-REVISION
-EXTRA_DIST = AUTHORS COPYING.LGPL README STARPU-VERSION STARPU-REVISION build-aux/svn2cl.xsl mic-configure
+txt_DATA = AUTHORS COPYING.LGPL README README.dev STARPU-REVISION
+EXTRA_DIST = autogen.sh AUTHORS COPYING.LGPL README README.dev STARPU-VERSION STARPU-REVISION build-aux/svn2cl.xsl mic-configure
 
 DISTCLEANFILES = STARPU-REVISION
 

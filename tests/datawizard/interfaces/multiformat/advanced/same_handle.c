@@ -80,7 +80,11 @@ create_and_submit_tasks(void)
 
 	ret = starpu_task_submit(task);
 	if (ret == -ENODEV)
+	{
+		task->destroy = 0;
+		starpu_task_destroy(task);
 		return -ENODEV;
+	}
 
 	return 0;
 }

@@ -29,6 +29,13 @@ struct _starpu_top_message_queue*  _starpu_top_mt = NULL;
 struct _starpu_top_message_queue* _starpu_top_message_add(struct _starpu_top_message_queue* s,
 							char* msg)
 {
+	if( NULL == s )
+	{
+		printf("Queue not initialized\n");
+		free(msg);
+		return s;
+	}
+
 	struct _starpu_top_message_queue_item* p = (struct _starpu_top_message_queue_item *) malloc( 1 * sizeof(*p) );
 	STARPU_PTHREAD_MUTEX_LOCK(&(s->mutex));
 	if( NULL == p )
@@ -42,15 +49,7 @@ struct _starpu_top_message_queue* _starpu_top_message_add(struct _starpu_top_mes
 	p->message = msg;
 	p->next = NULL;
 
-	if( NULL == s )
-	{
-		printf("Queue not initialized\n");
-		free(msg);
-		free(p);
-		STARPU_PTHREAD_MUTEX_UNLOCK(&(s->mutex));
-		return s;
-	}
-	else if( NULL == s->head && NULL == s->tail )
+	if( NULL == s->head && NULL == s->tail )
 	{
 		/* printf("Empty list, adding p->num: %d\n\n", p->num);  */
 		sem_post(&(s->semaphore));
@@ -72,15 +71,16 @@ struct _starpu_top_message_queue* _starpu_top_message_add(struct _starpu_top_mes
 //this is a queue and it is FIFO, so we will always remove the first element
 char* _starpu_top_message_remove(struct _starpu_top_message_queue* s)
 {
-	sem_wait(&(s->semaphore));
-	struct _starpu_top_message_queue_item* h = NULL;
-	struct _starpu_top_message_queue_item* p = NULL;
-
 	if( NULL == s )
 	{
 		printf("List is null\n");
 		return NULL;
 	}
+
+	sem_wait(&(s->semaphore));
+	struct _starpu_top_message_queue_item* h = NULL;
+	struct _starpu_top_message_queue_item* p = NULL;
+
 	STARPU_PTHREAD_MUTEX_LOCK(&(s->mutex));
 	h = s->head;
 	p = h->next;
@@ -99,12 +99,8 @@ char* _starpu_top_message_remove(struct _starpu_top_message_queue* s)
 
 struct _starpu_top_message_queue* _starpu_top_message_queue_new(void)
 {
-	struct _starpu_top_message_queue* p = (struct _starpu_top_message_queue *) malloc( 1 * sizeof(*p));
-	if( NULL == p )
-	{
-		fprintf(stderr, "LINE: %d, malloc() failed\n", __LINE__);
-		return NULL;
-	}
+	struct _starpu_top_message_queue *p;
+	_STARPU_MALLOC(p, sizeof(*p));
 
 	p->head = p->tail = NULL;
 	sem_init(&(p->semaphore),0,0);

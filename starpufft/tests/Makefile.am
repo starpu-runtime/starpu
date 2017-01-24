@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2013, 2015  Université de Bordeaux
+# Copyright (C) 2009-2013, 2015-2016  Université de Bordeaux
 # Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -14,6 +14,8 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
+
+include $(top_srcdir)/starpu.mk
 
 CLEANFILES = starpu_idle_microsec.log
 examplebindir = $(libdir)/starpu/examples/starpufft
@@ -78,11 +80,3 @@ TESTS = $(STARPU_FFT_EXAMPLES)
 #check_PROGRAMS += examples/test_threads examples/testf_threads
 #examples_test_threads_LDADD = libstarpufft-@STARPU_EFFECTIVE_VERSION@.la $(top_builddir)/src/libstarpu.la -lfftw3_threads
 #examples_testf_threads_LDADD = libstarpufft-@STARPU_EFFECTIVE_VERSION@.la $(top_builddir)/src/libstarpu.la -lfftw3f_threads
-
-
-showcheck:
-	-cat $(TEST_LOGS) /dev/null
-	! grep -q "ERROR: AddressSanitizer: " $(TEST_LOGS) /dev/null
-	! grep -q "WARNING: AddressSanitizer: " $(TEST_LOGS) /dev/null
-	! grep -q "ERROR: ThreadSanitizer: " $(TEST_LOGS) /dev/null
-	! grep -q "WARNING: ThreadSanitizer: " $(TEST_LOGS) /dev/null

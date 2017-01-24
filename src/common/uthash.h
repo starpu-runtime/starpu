@@ -147,9 +147,22 @@ do {                                                                            
 #define HASH_ADD(hh,head,fieldname,keylen_in,add)                                \
         HASH_ADD_KEYPTR(hh,head,&add->fieldname,keylen_in,add)
  
+#ifdef STARPU_DEBUG
+/* Check that we don't insert the same key several times */
+#define HASH_CHECK_KEY(hh,head,keyptr,keylen,out)                                \
+do {                                                                             \
+  __typeof__(out) _out;                                                          \
+  HASH_FIND(hh,head,keyptr,keylen,_out);                                         \
+  STARPU_ASSERT(!_out);                                                          \
+} while(0)
+#else
+#define HASH_CHECK_KEY(hh,head,keyptr,keylen,out)
+#endif
+
 #define HASH_ADD_KEYPTR(hh,head,keyptr,keylen_in,add)                            \
 do {                                                                             \
  unsigned _ha_bkt;                                                               \
+ HASH_CHECK_KEY(hh,head,keyptr,keylen_in,add);                                   \
  (add)->hh.next = NULL;                                                          \
  (add)->hh.key = (char*)keyptr;                                                  \
  (add)->hh.keylen = keylen_in;                                                   \
@@ -410,16 +423,27 @@ do {                                                                            
   hashv += keylen;                                                               \
   switch ( _hj_k ) {                                                             \
      case 11: hashv += ( (unsigned)_hj_key[10] << 24 );                          \
+     /* FALLTHRU */                                                              \
      case 10: hashv += ( (unsigned)_hj_key[9] << 16 );                           \
+     /* FALLTHRU */                                                              \
      case 9:  hashv += ( (unsigned)_hj_key[8] << 8 );                            \
+     /* FALLTHRU */                                                              \
      case 8:  _hj_j += ( (unsigned)_hj_key[7] << 24 );                           \
+     /* FALLTHRU */                                                              \
      case 7:  _hj_j += ( (unsigned)_hj_key[6] << 16 );                           \
+     /* FALLTHRU */                                                              \
      case 6:  _hj_j += ( (unsigned)_hj_key[5] << 8 );                            \
+     /* FALLTHRU */                                                              \
      case 5:  _hj_j += _hj_key[4];                                               \
+     /* FALLTHRU */                                                              \
      case 4:  _hj_i += ( (unsigned)_hj_key[3] << 24 );                           \
+     /* FALLTHRU */                                                              \
      case 3:  _hj_i += ( (unsigned)_hj_key[2] << 16 );                           \
+     /* FALLTHRU */                                                              \
      case 2:  _hj_i += ( (unsigned)_hj_key[1] << 8 );                            \
+     /* FALLTHRU */                                                              \
      case 1:  _hj_i += _hj_key[0];                                               \
+     /* FALLTHRU */                                                              \
   }                                                                              \
   HASH_JEN_MIX(_hj_i, _hj_j, hashv);                                             \
   bkt = hashv & (num_bkts-1);                                                    \

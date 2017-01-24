@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2009-2016  Université de Bordeaux
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -51,12 +51,14 @@ void _starpu_init_data_request_lists(void)
 		_starpu_data_request_prio_list_init(&prefetch_requests[i]);
 		_starpu_data_request_prio_list_init(&idle_requests[i]);
 
+#ifndef STARPU_DEBUG
 		/* Tell helgrind that we are fine with checking for list_empty
 		 * in _starpu_handle_node_data_requests, we will call it
 		 * periodically anyway */
 		STARPU_HG_DISABLE_CHECKING(data_requests[i].tree.root);
 		STARPU_HG_DISABLE_CHECKING(prefetch_requests[i].tree.root);
 		STARPU_HG_DISABLE_CHECKING(idle_requests[i].tree.root);
+#endif
 
 		STARPU_PTHREAD_MUTEX_INIT(&data_requests_list_mutex[i], NULL);
 
@@ -130,12 +132,13 @@ static void _starpu_data_request_destroy(struct _starpu_data_request *r)
 struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t handle,
 							 struct _starpu_data_replicate *src_replicate,
 							 struct _starpu_data_replicate *dst_replicate,
-							 unsigned handling_node,
+							 int handling_node,
 							 enum starpu_data_access_mode mode,
 							 unsigned ndeps,
 							 unsigned is_prefetch,
 							 int prio,
-							 unsigned is_write_invalidation)
+							 unsigned is_write_invalidation,
+							 const char *origin)
 {
 	struct _starpu_data_request *r = _starpu_data_request_new();
 
@@ -143,11 +146,14 @@ struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t ha
 
 	_starpu_spin_init(&r->lock);
 
+	r->origin = origin;
 	r->handle = handle;
 	r->src_replicate = src_replicate;
 	r->dst_replicate = dst_replicate;
 	r->mode = mode;
 	r->async_channel.type = STARPU_UNUSED;
+	if (handling_node == -1)
+		handling_node = STARPU_MAIN_RAM;
 	r->handling_node = handling_node;
 	STARPU_ASSERT(handling_node == STARPU_MAIN_RAM || _starpu_memory_node_get_nworkers(handling_node));
 	r->completed = 0;
@@ -157,11 +163,13 @@ struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t ha
 	r->ndeps = ndeps;
 	r->next_req_count = 0;
 	r->callbacks = NULL;
+	r->com_id = 0;
 
 	_starpu_spin_lock(&r->lock);
 
 	/* Take a reference on the target for the request to be able to write it */
-	dst_replicate->refcnt++;
+	if (dst_replicate)
+		dst_replicate->refcnt++;
 	handle->busy_count++;
 
 	if (is_write_invalidation)
@@ -311,8 +319,8 @@ void _starpu_data_request_append_callback(struct _starpu_data_request *r, void (
 
 	if (callback_func)
 	{
-		struct _starpu_callback_list *link = (struct _starpu_callback_list *) malloc(sizeof(struct _starpu_callback_list));
-		STARPU_ASSERT(link);
+		struct _starpu_callback_list *link;
+		_STARPU_MALLOC(link, sizeof(struct _starpu_callback_list));
 
 		link->callback_func = callback_func;
 		link->callback_arg = callback_arg;
@@ -332,39 +340,45 @@ static void starpu_handle_data_request_completion(struct _starpu_data_request *r
 	struct _starpu_data_replicate *dst_replicate = r->dst_replicate;
 
 
+	if (dst_replicate)
+	{
 #ifdef STARPU_MEMORY_STATS
-	enum _starpu_cache_state old_src_replicate_state = src_replicate->state;
+		enum _starpu_cache_state old_src_replicate_state = src_replicate->state;
 #endif
 
-	_starpu_spin_checklocked(&handle->header_lock);
-	_starpu_update_data_state(handle, r->dst_replicate, mode);
+		_starpu_spin_checklocked(&handle->header_lock);
+		_starpu_update_data_state(handle, r->dst_replicate, mode);
 
 #ifdef STARPU_MEMORY_STATS
-	if (src_replicate->state == STARPU_INVALID)
-	{
-		if (old_src_replicate_state == STARPU_OWNER)
-			_starpu_memory_handle_stats_invalidated(handle, src_replicate->memory_node);
-		else
+		if (src_replicate->state == STARPU_INVALID)
 		{
-			/* XXX Currently only ex-OWNER are tagged as invalidated */
-			/* XXX Have to check all old state of every node in case a SHARED data become OWNED by the dst_replicate */
+			if (old_src_replicate_state == STARPU_OWNER)
+				_starpu_memory_handle_stats_invalidated(handle, src_replicate->memory_node);
+			else
+			{
+				/* XXX Currently only ex-OWNER are tagged as invalidated */
+				/* XXX Have to check all old state of every node in case a SHARED data become OWNED by the dst_replicate */
+			}
+
 		}
-
+		if (dst_replicate->state == STARPU_SHARED)
+			_starpu_memory_handle_stats_loaded_shared(handle, dst_replicate->memory_node);
+		else if (dst_replicate->state == STARPU_OWNER)
+		{
+			_starpu_memory_handle_stats_loaded_owner(handle, dst_replicate->memory_node);
+		}
+#endif
 	}
-	if (dst_replicate->state == STARPU_SHARED)
-		_starpu_memory_handle_stats_loaded_shared(handle, dst_replicate->memory_node);
-	else if (dst_replicate->state == STARPU_OWNER)
+
+	if (r->com_id > 0)
 	{
-		_starpu_memory_handle_stats_loaded_owner(handle, dst_replicate->memory_node);
-	}
-#endif
-
 #ifdef STARPU_USE_FXT
-	unsigned src_node = src_replicate->memory_node;
-	unsigned dst_node = dst_replicate->memory_node;
-	size_t size = _starpu_data_get_size(handle);
-	_STARPU_TRACE_END_DRIVER_COPY(src_node, dst_node, size, r->com_id, r->prefetch);
+		unsigned src_node = src_replicate->memory_node;
+		unsigned dst_node = dst_replicate->memory_node;
+		size_t size = _starpu_data_get_size(handle);
+		_STARPU_TRACE_END_DRIVER_COPY(src_node, dst_node, size, r->com_id, r->prefetch);
 #endif
+	}
 
 	/* Once the request has been fulfilled, we may submit the requests that
 	 * were chained to that request. */
@@ -381,12 +395,16 @@ static void starpu_handle_data_request_completion(struct _starpu_data_request *r
 
 #ifdef STARPU_SIMGRID
 	/* Wake potential worker which was waiting for it */
-	_starpu_wake_all_blocked_workers_on_node(dst_replicate->memory_node);
+	if (dst_replicate)
+		_starpu_wake_all_blocked_workers_on_node(dst_replicate->memory_node);
 #endif
 
 	/* Remove a reference on the destination replicate for the request */
-	STARPU_ASSERT(dst_replicate->refcnt > 0);
-	dst_replicate->refcnt--;
+	if (dst_replicate)
+	{
+		STARPU_ASSERT(dst_replicate->refcnt > 0);
+		dst_replicate->refcnt--;
+	}
 	STARPU_ASSERT(handle->busy_count > 0);
 	handle->busy_count--;
 
@@ -471,7 +489,7 @@ static int starpu_handle_data_request(struct _starpu_data_request *r, unsigned m
 	/* the header of the data must be locked by the worker that submitted the request */
 
 
-	if (dst_replicate->state == STARPU_INVALID)
+	if (dst_replicate && dst_replicate->state == STARPU_INVALID)
 		r->retval = _starpu_driver_copy_data_1_to_1(handle, src_replicate,
 						    dst_replicate, !(r_mode & STARPU_R), r, may_alloc, prefetch);
 	else
@@ -628,7 +646,7 @@ static int __starpu_handle_node_data_requests(struct _starpu_data_request_prio_l
 			 * rather have the caller block, and explicitly wait
 			 * for eviction to happen.
 			 */
-			MSG_process_sleep(0.000010);
+			MSG_process_sleep(0.000001);
 			_starpu_wake_all_blocked_workers_on_node(src_node);
 		}
 #elif !defined(STARPU_NON_BLOCKING_DRIVERS)

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2012-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -36,6 +36,9 @@
 
 #ifndef O_BINARY
 #define O_BINARY 0
+#endif
+#if !defined(O_DIRECT) && defined(F_NOCACHE)
+#define O_DIRECT F_NOCACHE
 #endif
 
 int _starpu_silent;
@@ -101,7 +104,7 @@ int _starpu_mkpath(const char *s, mode_t mode)
 	{
 		if (!S_ISDIR(sb.st_mode))
 		{
-			fprintf(stderr,"Error: %s is not a directory:\n", path);
+			_STARPU_MSG("Error: %s is not a directory:\n", path);
 			STARPU_ABORT();
 		}
 		/* It already exists and is a directory.  */
@@ -134,7 +137,7 @@ void _starpu_mkpath_and_check(const char *path, mode_t mode)
 
 	if (ret == -1 && errno != EEXIST)
 	{
-		fprintf(stderr,"Error making StarPU directory %s:\n", path);
+		_STARPU_MSG("Error making StarPU directory %s:\n", path);
 		perror("mkdir");
 		STARPU_ABORT();
 	}
@@ -144,7 +147,8 @@ char *_starpu_mktemp(const char *directory, int flags, int *fd)
 {
 	/* create template for mkstemp */
 	const char *tmp = "STARPU_XXXXXX";
-	char *baseCpy = malloc(strlen(directory)+1+strlen(tmp)+1);
+	char *baseCpy;
+	_STARPU_MALLOC(baseCpy, strlen(directory)+1+strlen(tmp)+1);
 	STARPU_ASSERT(baseCpy != NULL);
 
 	strcpy(baseCpy, directory);
@@ -157,7 +161,11 @@ char *_starpu_mktemp(const char *directory, int flags, int *fd)
 #elif defined (HAVE_MKOSTEMP)
 	*fd = mkostemp(baseCpy, flags);
 #else
+#  ifdef O_DIRECT
+	STARPU_ASSERT(flags == (O_RDWR | O_BINARY) || flags == (O_RDWR | O_BINARY | O_DIRECT));
+#  else
 	STARPU_ASSERT(flags == (O_RDWR | O_BINARY));
+#  endif
 	*fd = mkstemp(baseCpy);
 #endif
 
@@ -170,6 +178,24 @@ char *_starpu_mktemp(const char *directory, int flags, int *fd)
 		errno = err;
 		return NULL;
 	}
+
+#if !defined(STARPU_HAVE_WINDOWS) && !defined (HAVE_MKOSTEMP) && defined(O_DIRECT)
+	/* Add O_DIRECT after the mkstemp call */
+	if ((flags & O_DIRECT) != 0)
+	{
+		int flag = fcntl(*fd, F_GETFL);
+		flag |= O_DIRECT;
+		if (fcntl(*fd, F_SETFL, flag) < 0)
+		{
+			int err = errno;
+			_STARPU_DISP("Could set O_DIRECT on the temporary file in directory '%s', fcntl failed with error '%s'\n", directory, strerror(errno));
+			free(baseCpy);
+			errno = err;
+			return NULL;
+		}
+	}
+#endif
+
 
 	return baseCpy;
 }
@@ -264,6 +290,17 @@ int _starpu_frdlock(FILE *file)
 	};
 	ret = fcntl(fileno(file), F_SETLKW, &lock);
 #endif
+#ifdef ENOLCK
+	if (ret != 0 && errno == ENOLCK)
+	{
+		static int warn;
+		if (!warn) {
+			warn = 1;
+			_STARPU_DISP("warning: Couldn't lock performance file, StarPU home is probably on NFS which does not support locking.\n");
+		}
+		return -1;
+	}
+#endif
 	STARPU_ASSERT(ret == 0);
 	return ret;
 }
@@ -275,6 +312,8 @@ int _starpu_frdunlock(FILE *file)
 #  ifndef _LK_UNLCK
 #    define _LK_UNLCK _LK_UNLOCK
 #  endif
+	ret = _lseek(fileno(file), 0, SEEK_SET);
+	STARPU_ASSERT(ret == 0);
 	ret = _locking(fileno(file), _LK_UNLCK, 10);
 #else
 	struct flock lock =
@@ -294,6 +333,8 @@ int _starpu_fwrlock(FILE *file)
 {
 	int ret;
 #if defined(_WIN32) && !defined(__CYGWIN__)
+	ret = _lseek(fileno(file), 0, SEEK_SET);
+	STARPU_ASSERT(ret == 0);
 	do
 	{
 		ret = _locking(fileno(file), _LK_LOCK, 10);
@@ -308,6 +349,18 @@ int _starpu_fwrlock(FILE *file)
 		.l_len = 0
 	};
 	ret = fcntl(fileno(file), F_SETLKW, &lock);
+#endif
+
+#ifdef ENOLCK
+	if (ret != 0 && errno == ENOLCK)
+	{
+		static int warn;
+		if (!warn) {
+			warn = 1;
+			_STARPU_DISP("warning: Couldn't lock performance file, StarPU home is probably on NFS which does not support locking.\n");
+		}
+		return -1;
+	}
 #endif
 	STARPU_ASSERT(ret == 0);
 	return ret;
@@ -341,10 +394,14 @@ char *_starpu_get_home_path(void)
 	char *path = starpu_getenv("XDG_CACHE_HOME");
 	if (!path)
 		path = starpu_getenv("STARPU_HOME");
+#ifdef _WIN32
 	if (!path)
-		path = starpu_getenv("HOME");
+		path = starpu_getenv("LOCALAPPDATA");
 	if (!path)
 		path = starpu_getenv("USERPROFILE");
+#endif
+	if (!path)
+		path = starpu_getenv("HOME");
 	if (!path)
 	{
 		static int warn;
@@ -379,16 +436,17 @@ void _starpu_gethostname(char *hostname, size_t size)
 	}
 }
 
-void _starpu_sleep(struct timespec ts)
+void starpu_sleep(float nb_sec)
 {
 #ifdef STARPU_SIMGRID
-	MSG_process_sleep(ts.tv_sec + ts.tv_nsec / 1000000000.);
+	MSG_process_sleep(nb_sec);
 #elif defined(STARPU_HAVE_WINDOWS)
-	Sleep((ts.tv_sec * 1000) + (ts.tv_nsec / 1000000));
+	Sleep(nb_sec * 1000);
 #else
 	struct timespec req, rem;
 
-	req = ts;
+	req.tv_sec = nb_sec;
+	req.tv_nsec = (nb_sec - (float) req.tv_sec) * 1000000000;
 	while (nanosleep(&req, &rem))
 		req = rem;
 #endif

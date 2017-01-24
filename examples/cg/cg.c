@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012, 2014-2015  Université de Bordeaux
+ * Copyright (C) 2010-2012, 2014-2016  Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -44,18 +44,18 @@
  *		d <- r
  *		delta_new <- dot(r,r)
  *		delta_0 <- delta_new
- *	
+ *
  *		while (i < i_max && delta_new > eps^2 delta_0)
  *		{
  *			q <- Ad
  *			alpha <- delta_new/dot(d, q)
  *			x <- x + alpha d
- *	
+ *
  *			If (i is divisible by 50)
  *				r <- b - Ax
  *			else
  *				r <- r - alpha q
- *			
+ *
  *			delta_old <- delta_new
  *			delta_new <- dot(r,r)
  *			beta <- delta_new/delta_old
@@ -77,6 +77,8 @@ static starpu_data_handle_t A_handle, b_handle, x_handle;
 static TYPE *A, *b, *x;
 
 #ifdef STARPU_QUICK_CHECK
+static int i_max = 10;
+#elif !defined(STARPU_LONG_CHECK)
 static int i_max = 100;
 #else
 static int i_max = 1000;
@@ -157,7 +159,7 @@ static void register_data(void)
 	{
 		starpu_data_set_reduction_methods(q_handle, &accumulate_vector_cl, &bzero_vector_cl);
 		starpu_data_set_reduction_methods(r_handle, &accumulate_vector_cl, &bzero_vector_cl);
-	
+
 		starpu_data_set_reduction_methods(dtq_handle, &accumulate_variable_cl, &bzero_variable_cl);
 		starpu_data_set_reduction_methods(rtr_handle, &accumulate_variable_cl, &bzero_variable_cl);
 	}
@@ -269,8 +271,7 @@ static void display_matrix(void)
 
 static int cg(void)
 {
-	double delta_new, delta_old, delta_0;
-	double alpha, beta;
+	double delta_new, delta_0;
 
 	int i = 0;
 	int ret;
@@ -280,7 +281,7 @@ static int cg(void)
 	if (ret == -ENODEV) return ret;
 
 	/* r <- r - A x */
-	ret = gemv_kernel(r_handle, A_handle, x_handle, 1.0, -1.0, nblocks, use_reduction); 
+	ret = gemv_kernel(r_handle, A_handle, x_handle, 1.0, -1.0, nblocks, use_reduction);
 	if (ret == -ENODEV) return ret;
 
 	/* d <- r */
@@ -305,6 +306,9 @@ static int cg(void)
 
 	while ((i < i_max) && ((double)delta_new > (double)(eps*eps*delta_0)))
 	{
+		double delta_old;
+		double alpha, beta;
+
 		/* q <- A d */
 		gemv_kernel(q_handle, A_handle, d_handle, 0.0, 1.0, nblocks, use_reduction);
 
@@ -315,7 +319,7 @@ static int cg(void)
 		starpu_data_acquire(dtq_handle, STARPU_R);
 		alpha = delta_new/dtq;
 		starpu_data_release(dtq_handle);
-		
+
 		/* x <- x + alpha d */
 		axpy_kernel(x_handle, d_handle, alpha, nblocks);
 
@@ -323,9 +327,9 @@ static int cg(void)
 		{
 			/* r <- b */
 			copy_handle(r_handle, b_handle, nblocks);
-		
+
 			/* r <- r - A x */
-			gemv_kernel(r_handle, A_handle, x_handle, 1.0, -1.0, nblocks, use_reduction); 
+			gemv_kernel(r_handle, A_handle, x_handle, 1.0, -1.0, nblocks, use_reduction);
 		}
 		else
 		{
@@ -402,7 +406,6 @@ static void parse_args(int argc, char **argv)
 		{
 			FPRINTF(stderr, "usage: %s [-h] [-nblocks #blocks] [-n problem_size] [-no-reduction] [-maxiter i]\n", argv[0]);
 			exit(-1);
-			continue;
 		}
         }
 }
@@ -433,7 +436,7 @@ int main(int argc, char **argv)
 	partition_data();
 
 	ret = cg();
-	if (ret == -ENODEV) 
+	if (ret == -ENODEV)
 	{
 		ret = 77;
 		goto enodev;

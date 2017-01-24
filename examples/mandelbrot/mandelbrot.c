@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2011, 2014-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -135,13 +135,13 @@ static void init_x11(int width, int height, unsigned *buffer)
 static int handle_events(void)
 {
 	XEvent event;
+
 	XNextEvent(dpy, &event);
-
-	KeySym key;
-	char text[255];
-
 	if (event.type == KeyPress)
 	{
+		KeySym key;
+		char text[255];
+
 		XLookupString(&event.xkey,text,255,&key,0);
 		if (key == Left)
 		{
@@ -256,12 +256,13 @@ static void compute_block_opencl(void *descr[], void *cl_arg)
 
 	cl_kernel kernel;
 	cl_command_queue queue;
-	cl_event event;
+	cl_int err;
 
-	int id = starpu_worker_get_id();
+	int id = starpu_worker_get_id_check();
 	int devid = starpu_worker_get_devid(id);
 
-	starpu_opencl_load_kernel(&kernel, &queue, &opencl_programs, "mandelbrot_kernel", devid);
+	err = starpu_opencl_load_kernel(&kernel, &queue, &opencl_programs, "mandelbrot_kernel", devid);
+	if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
 	clSetKernelArg(kernel, 0, sizeof(data), &data);
 	clSetKernelArg(kernel, 1, sizeof(leftX), &leftX);
@@ -276,7 +277,8 @@ static void compute_block_opencl(void *descr[], void *cl_arg)
 	unsigned dim = 16;
 	size_t local[2] = {dim, 1};
 	size_t global[2] = {width, block_size};
-	clEnqueueNDRangeKernel(queue, kernel, 2, NULL, global, local, 0, NULL, NULL);
+	err = clEnqueueNDRangeKernel(queue, kernel, 2, NULL, global, local, 0, NULL, NULL);
+	if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 	starpu_opencl_release_kernel(kernel);
 }
 #endif
@@ -287,11 +289,10 @@ static void compute_block_opencl(void *descr[], void *cl_arg)
 
 static void compute_block(void *descr[], void *cl_arg)
 {
-	int ix, iy;
-
 	int iby, block_size;
 	double stepX, stepY;
 	int *pcnt; /* unused for sequential tasks */
+
 	starpu_codelet_unpack_args(cl_arg, &iby, &block_size, &stepX, &stepY, &pcnt);
 
 	unsigned *data = (unsigned *)STARPU_VECTOR_GET_PTR(descr[0]);
@@ -299,6 +300,8 @@ static void compute_block(void *descr[], void *cl_arg)
 	int local_iy;
 	for (local_iy = 0; local_iy < block_size; local_iy++)
 	{
+		int ix, iy;
+
 		iy = iby*block_size + local_iy;
 		for (ix = 0; ix < width; ix++)
 		{
@@ -340,11 +343,11 @@ static void compute_block_spmd(void *descr[], void *cl_arg)
 
 	unsigned *data = (unsigned *)STARPU_VECTOR_GET_PTR(descr[0]);
 
-	int ix, iy; /* global coordinates */
-	int local_iy; /* current line */
-
 	while (1)
 	{
+		int ix, iy; /* global coordinates */
+		int local_iy; /* current line */
+
 		local_iy = STARPU_ATOMIC_ADD((unsigned int *)pcnt, 1) - 1;
 		ANNOTATE_HAPPENS_BEFORE(pcnt);
 		if (local_iy >= block_size)
@@ -552,7 +555,7 @@ int main(int argc, char **argv)
 						 STARPU_VALUE, &stepY, sizeof(stepY),
 						 STARPU_W, block_handles[iby],
 						 STARPU_VALUE, &pcnt, sizeof(int *),
-						 STARPU_TAG_ONLY, (starpu_tag_t) (niter*nblocks + iby),
+						 STARPU_TAG_ONLY, ((starpu_tag_t)niter)*nblocks + iby,
 						 0);
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 		}

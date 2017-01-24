@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2015  Université de Bordeaux
+ * Copyright (C) 2010-2016  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010-2015  CNRS
+ * Copyright (C) 2010-2016  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2014  INRIA
  *
@@ -51,7 +51,6 @@
 
 static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_task, struct _starpu_worker *cpu_args, int rank, struct starpu_perfmodel_arch* perf_arch)
 {
-	int ret;
 	int is_parallel_task = (j->task_size > 1);
 	int profiling = starpu_profiling_status_get();
 	struct timespec codelet_start, codelet_end;
@@ -70,7 +69,7 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 
 	if (rank == 0 && !continuation_wake_up)
 	{
-		ret = _starpu_fetch_task_input(j);
+		int ret = _starpu_fetch_task_input(j);
 		if (ret != 0)
 		{
 			/* there was not enough memory so the codelet cannot be executed right now ... */
@@ -104,7 +103,10 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 		{
 			_STARPU_TRACE_START_EXECUTING();
 #ifdef STARPU_SIMGRID
-			_starpu_simgrid_submit_job(cpu_args->workerid, j, perf_arch, NAN, NULL, NULL, NULL);
+			if (cl->flags & STARPU_CODELET_SIMGRID_EXECUTE)
+				func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
+			else
+				_starpu_simgrid_submit_job(cpu_args->workerid, j, perf_arch, NAN, NULL, NULL, NULL);
 #else
 			func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
 #endif
@@ -214,6 +216,7 @@ int _starpu_cpu_driver_init(struct _starpu_worker *cpu_worker)
 
 	snprintf(cpu_worker->name, sizeof(cpu_worker->name), "CPU %d", devid);
 	snprintf(cpu_worker->short_name, sizeof(cpu_worker->short_name), "CPU %d", devid);
+	starpu_pthread_setname(cpu_worker->short_name);
 
 	_STARPU_TRACE_WORKER_INIT_END(cpu_worker->workerid);
 

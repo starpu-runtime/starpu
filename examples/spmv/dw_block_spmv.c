@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009-2012, 2014-2015  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -44,7 +44,7 @@ static sem_t sem;
 static unsigned c = 256;
 static unsigned r = 256;
 
-static unsigned remainingtasks = -1;
+static int remainingtasks = -1;
 
 static starpu_data_handle_t sparse_matrix;
 static starpu_data_handle_t vector_in, vector_out;
@@ -63,7 +63,7 @@ void create_data(void)
 
 	/* declare the corresponding block CSR to the runtime */
 	starpu_bcsr_data_register(&sparse_matrix, STARPU_MAIN_RAM, bcsr_matrix->nnz_blocks, bcsr_matrix->nrows_blocks,
-	                (uintptr_t)bcsr_matrix->val, bcsr_matrix->colind, bcsr_matrix->rowptr, 
+	                (uintptr_t)bcsr_matrix->val, bcsr_matrix->colind, bcsr_matrix->rowptr,
 			0, bcsr_matrix->r, bcsr_matrix->c, sizeof(float));
 
 	size = c*r*starpu_bcsr_get_nnz(sparse_matrix);
@@ -125,7 +125,7 @@ unsigned get_bcsr_nchildren(STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f
   return (unsigned)starpu_bcsr_get_nnz(handle);
 }
 
-struct starpu_data_interface_ops *get_bcsr_child_ops(STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, STARPU_ATTRIBUTE_UNUSED unsigned child) 
+struct starpu_data_interface_ops *get_bcsr_child_ops(STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, STARPU_ATTRIBUTE_UNUSED unsigned child)
 {
   return &starpu_interface_matrix_ops;
 }
@@ -145,7 +145,7 @@ void call_filters(void)
 	vector_in_f.nchildren  = size/c;
 	vector_in_f.get_nchildren  = NULL;
 	vector_in_f.get_child_ops  = NULL;
-	
+
 	vector_out_f.filter_func = starpu_vector_filter_block;
 	vector_out_f.nchildren  = size/r;
 	vector_out_f.get_nchildren  = NULL;
@@ -178,8 +178,8 @@ void launch_spmv_codelets(void)
 	int ret;
 
 	/* we call one codelet per block */
-	unsigned nblocks = starpu_bcsr_get_nnz(sparse_matrix); 
-	unsigned nrows = starpu_bcsr_get_nrow(sparse_matrix); 
+	unsigned nblocks = starpu_bcsr_get_nnz(sparse_matrix);
+	unsigned nrows = starpu_bcsr_get_nrow(sparse_matrix);
 
 	remainingtasks = NSPMV*nblocks;
 	totaltasks = remainingtasks;
@@ -235,7 +235,7 @@ void launch_spmv_codelets(void)
 				task->handles[1] = starpu_data_get_sub_data(vector_in, 1, i);
 				task->handles[2] = starpu_data_get_sub_data(vector_out, 1, j);
 
-				/* all tasks in the same row are dependant so that we don't wait too much for data 
+				/* all tasks in the same row are dependant so that we don't wait too much for data
 				 * we need to wait on the previous task if we are not the first task of a row */
 				if (index != rowptr[row & ~0x3])
 				{
@@ -271,7 +271,8 @@ void launch_spmv_codelets(void)
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
-	printf("end of task submission (there was %d chains for %d tasks : ratio %d tasks per chain) !\n", nchains, totaltasks, totaltasks/nchains);
+	printf("end of task submission (there was %u chains for %u tasks : ratio %u tasks per chain) !\n", nchains, totaltasks, totaltasks/nchains);
+	free(is_entry_tab);
 }
 
 void init_problem(void)

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2013 Corentin Salingue
- * Copyright (C) 2015 CNRS
+ * Copyright (C) 2015, 2016 CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,10 +15,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-/* Try to write into disk memory
- * Use mechanism to push datas from main ram to disk ram
- */
-
 #include <fcntl.h>
 #include <starpu.h>
 #include <stdlib.h>
@@ -30,6 +26,12 @@
 #include <math.h>
 #include <common/config.h>
 #include "../helper.h"
+
+/*
+ * Try to write into disk memory
+ * Use mechanism to push datas from main ram to disk ram
+ * Here we stress the memory with more tasks than what the RAM can fit.
+ */
 
 #ifdef STARPU_HAVE_MEMCHECK_H
 #include <valgrind/memcheck.h>
@@ -47,6 +49,9 @@
 #ifdef STARPU_QUICK_CHECK
 #  define NDATA 4
 #  define NITER 16
+#elif !defined(STARPU_LONG_CHECK)
+#  define NDATA 32
+#  define NITER 256
 #else
 #  define NDATA 128
 #  define NITER 1024
@@ -65,7 +70,7 @@ int main(int argc, char **argv)
 const struct starpu_data_copy_methods my_vector_copy_data_methods_s;
 struct starpu_data_interface_ops starpu_interface_my_vector_ops;
 
-void starpu_my_vector_data_register(starpu_data_handle_t *handleptr, unsigned home_node,
+void starpu_my_vector_data_register(starpu_data_handle_t *handleptr, int home_node,
                         uintptr_t ptr, uint32_t nx, size_t elemsize)
 {
 	struct starpu_vector_interface vector =
@@ -132,10 +137,14 @@ static struct starpu_codelet check_cl =
 	.modes = { STARPU_R },
 };
 
-int dotest(struct starpu_disk_ops *ops, char *base, void (*vector_data_register)(starpu_data_handle_t *handleptr, unsigned home_node, uintptr_t ptr, uint32_t nx, size_t elemsize), const char *text)
+int dotest(struct starpu_disk_ops *ops, char *base, void (*vector_data_register)(starpu_data_handle_t *handleptr, int home_node, uintptr_t ptr, uint32_t nx, size_t elemsize), const char *text)
 {
 	int *A, *C;
 	starpu_data_handle_t handles[NDATA];
+
+	if (starpu_get_env_number_default("STARPU_DIDUSE_BARRIER", 0))
+		/* This would hang */
+		return STARPU_TEST_SKIPPED;
 
 	FPRINTF(stderr, "Testing <%s>\n", text);
 	/* Initialize StarPU without GPU devices to make sure the memory of the GPU devices will not be used */
@@ -202,8 +211,10 @@ int main(void)
 {
 	int ret = 0;
 	char s[128];
+
 	snprintf(s, sizeof(s), "/tmp/%s-disk-%d", getenv("USER"), getpid());
-	mkdir(s, 0777);
+	ret = mkdir(s, 0777);
+	STARPU_CHECK_RETURN_VALUE(ret, "mkdir '%s'\n", s);
 
 	setenv("STARPU_LIMIT_CPU_MEM", MEMSIZE_STR, 1);
 

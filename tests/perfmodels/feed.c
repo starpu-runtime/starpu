@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012  Université de Bordeaux
+ * Copyright (C) 2012, 2016  Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,13 +14,13 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-/*
- * Test the starpu_perfmodel_update_history function
- */
-
 #include <config.h>
 #include <starpu.h>
 #include "../helper.h"
+
+/*
+ * Test the starpu_perfmodel_update_history function
+ */
 
 static struct starpu_perfmodel model =
 {

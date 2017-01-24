@@ -1,9 +1,10 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2016  Université de Bordeaux
+ * Copyright (C) 2010-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2011, 2014  INRIA
+ * Copyright (C) 2016  Uppsala University
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -25,6 +26,7 @@
 #include <starpu_util.h>
 #include <starpu_task_bundle.h>
 #include <errno.h>
+#include <assert.h>
 
 #if defined STARPU_USE_CUDA && !defined STARPU_DONT_INCLUDE_CUDA_HEADERS
 # include <cuda.h>
@@ -42,6 +44,7 @@ extern "C"
 #define STARPU_MIC	((1ULL)<<7)
 #define STARPU_SCC	((1ULL)<<8)
 
+#define STARPU_CODELET_SIMGRID_EXECUTE	(1<<0)
 #define STARPU_CUDA_ASYNC	(1<<0)
 #define STARPU_OPENCL_ASYNC	(1<<0)
 
@@ -103,7 +106,7 @@ struct starpu_codelet
 	starpu_mic_func_t mic_funcs[STARPU_MAXIMPLEMENTATIONS];
 	starpu_scc_func_t scc_funcs[STARPU_MAXIMPLEMENTATIONS];
 
-	char *cpu_funcs_name[STARPU_MAXIMPLEMENTATIONS];
+	const char *cpu_funcs_name[STARPU_MAXIMPLEMENTATIONS];
 
 	int nbuffers;
 	enum starpu_data_access_mode modes[STARPU_NMAXBUFS];
@@ -114,11 +117,13 @@ struct starpu_codelet
 	int *dyn_nodes;
 
 	struct starpu_perfmodel *model;
-	struct starpu_perfmodel *power_model;
+	struct starpu_perfmodel *energy_model;
 
 	unsigned long per_worker_stats[STARPU_NMAXWORKERS];
 
 	const char *name;
+
+	int flags;
 };
 
 struct starpu_task
@@ -192,6 +197,7 @@ struct starpu_task
 	double flops;
 	double predicted;
 	double predicted_transfer;
+	double predicted_start;
 
 	struct starpu_task *prev;
 	struct starpu_task *next;
@@ -244,7 +250,7 @@ struct starpu_task
 #define STARPU_TASK_GET_HANDLES(task) (((task)->dyn_handles) ? (task)->dyn_handles : (task)->handles)
 #define STARPU_TASK_SET_HANDLE(task, handle, i) do { if ((task)->dyn_handles) (task)->dyn_handles[i] = handle; else (task)->handles[i] = handle; } while(0)
 
-#define STARPU_CODELET_GET_MODE(codelet, i) (((codelet)->dyn_modes) ? (codelet)->dyn_modes[i] : (codelet)->modes[i])
+#define STARPU_CODELET_GET_MODE(codelet, i) (((codelet)->dyn_modes) ? (codelet)->dyn_modes[i] : (assert(i < STARPU_NMAXBUFS), (codelet)->modes[i]))
 #define STARPU_CODELET_SET_MODE(codelet, mode, i) do { if ((codelet)->dyn_modes) (codelet)->dyn_modes[i] = mode; else (codelet)->modes[i] = mode; } while(0)
 
 #define STARPU_TASK_GET_MODE(task, i) ((task)->cl->nbuffers == STARPU_VARIABLE_NBUFFERS || (task)->dyn_modes ? \
@@ -282,7 +288,7 @@ struct starpu_task *starpu_tag_get_task(starpu_tag_t id);
 void starpu_task_init(struct starpu_task *task);
 void starpu_task_clean(struct starpu_task *task);
 
-struct starpu_task *starpu_task_create(void);
+struct starpu_task *starpu_task_create(void) STARPU_ATTRIBUTE_MALLOC;
 
 void starpu_task_destroy(struct starpu_task *task);
 int starpu_task_submit(struct starpu_task *task) STARPU_WARN_UNUSED_RESULT;
@@ -304,11 +310,16 @@ int starpu_task_wait_for_no_ready(void);
 int starpu_task_nready(void);
 int starpu_task_nsubmitted(void);
 
+void starpu_do_schedule(void);
+
 void starpu_codelet_init(struct starpu_codelet *cl);
 
 void starpu_codelet_display_stats(struct starpu_codelet *cl);
 
 struct starpu_task *starpu_task_get_current(void);
+
+const char *starpu_task_get_model_name(struct starpu_task *task);
+const char *starpu_task_get_name(struct starpu_task *task);
 
 void starpu_parallel_task_barrier_init(struct starpu_task *task, int workerid);
 void starpu_parallel_task_barrier_init_n(struct starpu_task *task, int worker_size);

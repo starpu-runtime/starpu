@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2015  Université de Bordeaux
  * Copyright (C) 2015  INRIA
- * Copyright (C) 2015  CNRS
+ * Copyright (C) 2015, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -100,15 +100,16 @@ int _starpu_cluster_group_remove(struct _starpu_cluster_group_list* group_list,
 /* Binding helpers */
 void _starpu_cluster_noop(void* buffers[], void* cl_arg)
 {
+	(void) buffers;
+	(void) cl_arg;
 }
 
 static struct starpu_codelet _starpu_cluster_bind_cl=
 {
-		.cpu_funcs = {_starpu_cluster_noop},
-		.nbuffers = 0,
-		.name = "cluster internal runtime init"
+	.cpu_funcs = {_starpu_cluster_noop},
+	.nbuffers = 0,
+	.name = "cluster_internal_runtime_init"
 };
-
 
 typedef void (*starpu_binding_function)(void*);
 starpu_binding_function _starpu_cluster_type_get_func(starpu_cluster_types type);

@@ -1,8 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016  CNRS
  * Copyright (C) 2011  INRIA
+ * Copyright (C) 2016  Uppsala University
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -26,6 +27,7 @@
 #include <starpu_bitmap.h>
 
 #include <common/fxt.h>
+#include <core/workers.h>
 
 #define DEFAULT_MIN_LEVEL	(-5)
 #define DEFAULT_MAX_LEVEL	(+5)
@@ -57,12 +59,12 @@ static struct _starpu_priority_taskq *_starpu_create_priority_taskq(int min_prio
 {
 	struct _starpu_priority_taskq *central_queue;
 
-	central_queue = (struct _starpu_priority_taskq *) malloc(sizeof(struct _starpu_priority_taskq));
+	_STARPU_MALLOC(central_queue, sizeof(struct _starpu_priority_taskq));
 	central_queue->min_prio = min_prio;
 	central_queue->max_prio = max_prio;
 	central_queue->total_ntasks = 0;
-	central_queue->taskq = malloc((max_prio-min_prio+1) * sizeof(struct starpu_task_list));
-	central_queue->ntasks = malloc((max_prio-min_prio+1) * sizeof(unsigned));
+	_STARPU_MALLOC(central_queue->taskq, (max_prio-min_prio+1) * sizeof(struct starpu_task_list));
+	_STARPU_MALLOC(central_queue->ntasks, (max_prio-min_prio+1) * sizeof(unsigned));
 
 	int prio;
 	for (prio = 0; prio < (max_prio-min_prio+1); prio++)
@@ -83,7 +85,8 @@ static void _starpu_destroy_priority_taskq(struct _starpu_priority_taskq *priori
 
 static void initialize_eager_center_priority_policy(unsigned sched_ctx_id)
 {
-	struct _starpu_eager_central_prio_data *data = (struct _starpu_eager_central_prio_data*)malloc(sizeof(struct _starpu_eager_central_prio_data));
+	struct _starpu_eager_central_prio_data *data;
+	_STARPU_MALLOC(data, sizeof(struct _starpu_eager_central_prio_data));
 
 	/* In this policy, we support more than two levels of priority. */
 
@@ -124,8 +127,10 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 	struct _starpu_priority_taskq *taskq = data->taskq;
 
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
-	unsigned priolevel = task->priority - STARPU_MIN_PRIO;
-	
+	unsigned priolevel = task->priority - starpu_sched_ctx_get_min_priority(sched_ctx_id);
+	STARPU_ASSERT_MSG(task->priority >= starpu_sched_ctx_get_min_priority(sched_ctx_id) &&
+			  task->priority <= starpu_sched_ctx_get_max_priority(sched_ctx_id), "task priority %d is not between minimum %d and maximum %d\n", task->priority, starpu_sched_ctx_get_min_priority(sched_ctx_id), starpu_sched_ctx_get_max_priority(sched_ctx_id));
+
 	starpu_task_list_push_back(&taskq->taskq[priolevel], task);
 	taskq->ntasks[priolevel]++;
 	taskq->total_ntasks++;
@@ -133,9 +138,8 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 
 	/*if there are no tasks block */
 	/* wake people waiting for a task */
-	unsigned worker = 0;
 	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
-	
+
 	struct starpu_sched_ctx_iterator it;
 #ifndef STARPU_NON_BLOCKING_DRIVERS
 	char dowake[STARPU_NMAXWORKERS] = { 0 };
@@ -144,7 +148,7 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 	workers->init_iterator_for_parallel_tasks(workers, &it, task);
 	while(workers->has_next(workers, &it))
 	{
-		worker = workers->get_next(workers, &it);
+		unsigned worker = workers->get_next(workers, &it);
 
 #ifdef STARPU_NON_BLOCKING_DRIVERS
 		if (!starpu_bitmap_get(data->waiters, worker))
@@ -173,7 +177,7 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 	workers->init_iterator(workers, &it);
 	while(workers->has_next(workers, &it))
 	{
-		worker = workers->get_next(workers, &it);
+		unsigned worker = workers->get_next(workers, &it);
 		if (dowake[worker])
 			if (starpu_wake_worker(worker))
 				break; // wake up a single worker
@@ -188,7 +192,7 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 {
 	struct starpu_task *chosen_task = NULL, *task, *nexttask;
-	unsigned workerid = starpu_worker_get_id();
+	unsigned workerid = starpu_worker_get_id_check();
 	int skipped = 0;
 
 	struct _starpu_eager_central_prio_data *data = (struct _starpu_eager_central_prio_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
@@ -213,8 +217,8 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 	starpu_pthread_cond_t *curr_sched_cond;
 	starpu_worker_get_sched_condition(workerid, &curr_sched_mutex, &curr_sched_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(curr_sched_mutex);
-	
-	/* all workers will block on this mutex anyway so 
+
+	/* all workers will block on this mutex anyway so
 	   there's no need for their own mutex to be locked */
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 
@@ -225,7 +229,7 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 		{
 			for (task  = starpu_task_list_begin(&taskq->taskq[priolevel]);
 			     task != starpu_task_list_end(&taskq->taskq[priolevel]) && !chosen_task;
-			     task  = nexttask) 
+			     task  = nexttask)
 			{
 				unsigned nimpl;
 				nexttask = starpu_task_list_next(task);
@@ -250,14 +254,13 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 	if (!chosen_task && skipped)
 	{
 		/* Notify another worker to do that task */
-		unsigned worker = 0;
 		struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 
 		struct starpu_sched_ctx_iterator it;
 		workers->init_iterator_for_parallel_tasks(workers, &it, chosen_task);
 		while(workers->has_next(workers, &it))
 		{
-			worker = workers->get_next(workers, &it);
+			unsigned worker = workers->get_next(workers, &it);
 
 			if(worker != workerid)
 			{
@@ -268,7 +271,7 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 #endif
 			}
 		}
-	
+
 	}
 
 	if (!chosen_task)
@@ -287,7 +290,7 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
                 unsigned child_sched_ctx = starpu_sched_ctx_worker_is_master_for_child_ctx(workerid, sched_ctx_id);
 		if(child_sched_ctx != STARPU_NMAX_SCHED_CTXS)
 		{
-			starpu_sched_ctx_move_task_to_ctx(chosen_task, child_sched_ctx, 1);
+			starpu_sched_ctx_move_task_to_ctx(chosen_task, child_sched_ctx, 1, 1);
 			starpu_sched_ctx_revert_task_counters(sched_ctx_id, chosen_task->flops);
 			return NULL;
 		}
@@ -299,13 +302,11 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 
 static void eager_center_priority_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
 {
-
-        int workerid;
 	unsigned i;
         for (i = 0; i < nworkers; i++)
         {
-		workerid = workerids[i];
-		int curr_workerid = starpu_worker_get_id();
+		int workerid = workerids[i];
+		int curr_workerid = _starpu_worker_get_id();
 		if(workerid != curr_workerid)
 			starpu_wake_worker(workerid);
 

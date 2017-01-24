@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2013  Université Bordeaux
- * Copyright (C) 2010, 2011, 2014  CNRS
+ * Copyright (C) 2012-2013, 2016  Université Bordeaux
+ * Copyright (C) 2010, 2011, 2014, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -70,7 +70,7 @@ int _starpu_fxt_mpi_find_sync_point(char *filename_in, uint64_t *offset, int *ke
 		int ret = fxt_next_ev(block, FXT_EV_TYPE_64, (struct fxt_ev *)&ev);
 		if (ret != FXT_EV_OK)
 		{
-			fprintf(stderr, "no more block ...\n");
+			_STARPU_MSG("no more block ...\n");
 			break;
 		}
 
@@ -118,6 +118,7 @@ unsigned mpi_recvs_matched[64] = {0};
 
 void _starpu_fxt_mpi_add_send_transfer(int src, int dst STARPU_ATTRIBUTE_UNUSED, int mpi_tag, size_t size, float date)
 {
+	STARPU_ASSERT(src >= 0);
 	unsigned slot = mpi_sends_used[src]++;
 
 	if (mpi_sends_used[src] > mpi_sends_list_size[src])
@@ -131,7 +132,7 @@ void _starpu_fxt_mpi_add_send_transfer(int src, int dst STARPU_ATTRIBUTE_UNUSED,
 			mpi_sends_list_size[src] = 1;
 		}
 
-		mpi_sends[src] = realloc(mpi_sends[src], mpi_sends_list_size[src]*sizeof(struct mpi_transfer));
+		_STARPU_REALLOC(mpi_sends[src], mpi_sends_list_size[src]*sizeof(struct mpi_transfer));
 	}
 
 	mpi_sends[src][slot].matched = 0;
@@ -156,7 +157,7 @@ void _starpu_fxt_mpi_add_recv_transfer(int src STARPU_ATTRIBUTE_UNUSED, int dst,
 			mpi_recvs_list_size[dst] = 1;
 		}
 
-		mpi_recvs[dst] = realloc(mpi_recvs[dst], mpi_recvs_list_size[dst]*sizeof(struct mpi_transfer));
+		_STARPU_REALLOC(mpi_recvs[dst], mpi_recvs_list_size[dst]*sizeof(struct mpi_transfer));
 	}
 
 	mpi_recvs[dst][slot].matched = 0;
@@ -234,8 +235,8 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, int src)
 				snprintf(mpi_container, sizeof(mpi_container), "%d_mpict", /* XXX */dst);
 				poti_EndLink(end_date, "MPICt", "MPIL", mpi_container, paje_value, paje_key);
 #else
-				fprintf(out_paje_file, "18	%.9f	MPIL	MPIroot	%ld	%d_mpict	mpicom_%lu\n", start_date, size, /* XXX */src, id);
-				fprintf(out_paje_file, "19	%.9f	MPIL	MPIroot	%ld	%d_mpict	mpicom_%lu\n", end_date, size, /* XXX */dst, id);
+				fprintf(out_paje_file, "18	%.9f	MPIL	MPIroot	%lu	%d_mpict	mpicom_%lu\n", start_date, (unsigned long)size, /* XXX */src, id);
+				fprintf(out_paje_file, "19	%.9f	MPIL	MPIroot	%lu	%d_mpict	mpicom_%lu\n", end_date, (unsigned long)size, /* XXX */dst, id);
 #endif
 			}
 		}

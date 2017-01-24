@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012 INRIA
+ * Copyright (C) 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -244,7 +245,7 @@ static void display_custom_interface(starpu_data_handle_t handle, FILE *f)
 {
 	struct custom_data_interface *ci = (struct custom_data_interface *)
 		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
-	fprintf(f, "Custom interface of size %d", ci->nx);
+	fprintf(f, "Custom interface of size %u", ci->nx);
 }
 
 static uint32_t
@@ -413,7 +414,7 @@ static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node,
 	 */
 	cl_context context;
 	cl_command_queue queue;
-	int id = starpu_worker_get_id();
+	int id = starpu_worker_get_id_check();
 	int devid = starpu_worker_get_devid(id);
 	starpu_opencl_get_queue(devid, &queue);
 	starpu_opencl_get_context(devid, &context);
@@ -456,7 +457,7 @@ static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node,
 	 */
 	cl_context context;
 	cl_command_queue queue;
-	int id = starpu_worker_get_id();
+	int id = starpu_worker_get_id_check();
 	int devid = starpu_worker_get_devid(id);
 	starpu_opencl_get_queue(devid, &queue);
 	starpu_opencl_get_context(devid, &context);

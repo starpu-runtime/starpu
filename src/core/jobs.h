@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2015  Université de Bordeaux
+ * Copyright (C) 2009-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2013, 2014, 2015  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2014  INRIA
@@ -40,6 +40,7 @@
 #include <core/errorcheck.h>
 #include <common/barrier.h>
 #include <common/utils.h>
+#include <common/list.h>
 
 #ifdef STARPU_USE_CUDA
 #include <cuda.h>
@@ -63,8 +64,11 @@ struct _starpu_data_descr
 	int node;
 };
 
+#ifdef STARPU_DEBUG
+MULTILIST_CREATE_TYPE(_starpu_job, all_submitted)
+#endif
 /* A job is the internal representation of a task. */
-LIST_TYPE(_starpu_job,
+struct _starpu_job {
 
 	/* Each job is attributed a unique id. */
 	unsigned long job_id;
@@ -140,8 +144,8 @@ LIST_TYPE(_starpu_job,
 	/* Cumulated execution time for discontinuous jobs */
 	struct timespec cumulated_ts;
 
-	/* Cumulated power consumption for discontinuous jobs */
-	double cumulated_power_consumed;
+	/* Cumulated energy consumption for discontinuous jobs */
+	double cumulated_energy_consumed;
 #endif
 
 	/* The value of the footprint that identifies the job may be stored in
@@ -187,15 +191,23 @@ LIST_TYPE(_starpu_job,
 	starpu_pthread_barrier_t after_work_barrier;
 	unsigned after_work_busy_barrier;
 
+	struct _starpu_graph_node *graph_node;
+
 #ifdef STARPU_DEBUG
 	/* Linked-list of all jobs, for debugging */
-	struct _starpu_job *prev_all;
-	struct _starpu_job *next_all;
+	struct _starpu_job_multilist_all_submitted all_submitted;
 #endif
-)
+};
+
+#ifdef STARPU_DEBUG
+MULTILIST_CREATE_INLINES(struct _starpu_job, _starpu_job, all_submitted)
+#endif
+
+void _starpu_job_init(void);
+void _starpu_job_fini(void);
 
 /* Create an internal struct _starpu_job *structure to encapsulate the task. */
-struct _starpu_job* STARPU_ATTRIBUTE_MALLOC _starpu_job_create(struct starpu_task *task);
+struct _starpu_job* _starpu_job_create(struct starpu_task *task) STARPU_ATTRIBUTE_MALLOC;
 
 /* Destroy the data structure associated to the job structure */
 void _starpu_job_destroy(struct _starpu_job *j);

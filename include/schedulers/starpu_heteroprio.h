@@ -38,42 +38,22 @@ extern "C"
 enum starpu_heteroprio_types
 {
 // First will be zero
-#ifdef STARPU_USE_CPU
 	STARPU_CPU_IDX, // = 0
-#endif
-#ifdef STARPU_USE_CUDA
 	STARPU_CUDA_IDX,
-#endif
-#ifdef STARPU_USE_OPENCL
 	STARPU_OPENCL_IDX,
-#endif
-#ifdef STARPU_USE_MIC
 	STARPU_MIC_IDX,
-#endif
-#ifdef STARPU_USE_SCC
 	STARPU_SCC_IDX,
-#endif
 // This will be the number of archs
 	STARPU_NB_TYPES
 };
 
 static const unsigned starpu_heteroprio_types_to_arch[STARPU_NB_TYPES+1] =
 {
-#ifdef STARPU_USE_CPU
 	STARPU_CPU,
-#endif
-#ifdef STARPU_USE_CUDA
 	STARPU_CUDA,
-#endif
-#ifdef STARPU_USE_OPENCL
 	STARPU_OPENCL,
-#endif
-#ifdef STARPU_USE_MIC
 	STARPU_MIC,
-#endif
-#ifdef STARPU_USE_SCC
 	STARPU_SCC,
-#endif
 	0
 };
 

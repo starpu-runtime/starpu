@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  CNRS
+ * Copyright (C) 2010-2013, 2016  Université de Bordeaux
+ * Copyright (C) 2010, 2011, 2012, 2013, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -49,6 +49,8 @@ struct node_pair
 static int busid_matrix[STARPU_MAXNODES][STARPU_MAXNODES];
 static struct starpu_profiling_bus_info bus_profiling_info[STARPU_MAXNODES][STARPU_MAXNODES];
 static struct node_pair busid_to_node_pair[STARPU_MAXNODES*STARPU_MAXNODES];
+static char bus_direct[STARPU_MAXNODES*STARPU_MAXNODES];
+static int bus_ngpus[STARPU_MAXNODES*STARPU_MAXNODES];
 static unsigned busid_cnt = 0;
 
 static void _starpu_bus_reset_profiling_info(struct starpu_profiling_bus_info *bus_info);
@@ -109,14 +111,17 @@ int starpu_profiling_status_set(int status)
 
 void _starpu_profiling_init(void)
 {
-	const char *env;
 	int worker;
 
 	for (worker = 0; worker < STARPU_NMAXWORKERS; worker++)
 	{
 		STARPU_PTHREAD_MUTEX_INIT(&worker_info_mutex[worker], NULL);
 	}
+}
 
+void _starpu_profiling_start(void)
+{
+	const char *env;
 	if ((env = starpu_getenv("STARPU_PROFILING")) && atoi(env))
 	{
 		starpu_profiling_status_set(STARPU_PROFILING_ENABLE);
@@ -141,11 +146,10 @@ struct starpu_profiling_task_info *_starpu_allocate_profiling_info_if_needed(str
 {
 	struct starpu_profiling_task_info *info = NULL;
 
-	/* If we are benchmarking, we need room for the power consumption */
-	if (starpu_profiling_status_get() || (task->cl && task->cl->power_model && (task->cl->power_model->benchmarking || _starpu_get_calibrate_flag())))
+	/* If we are benchmarking, we need room for the energy */
+	if (starpu_profiling_status_get() || (task->cl && task->cl->energy_model && (task->cl->energy_model->benchmarking || _starpu_get_calibrate_flag())))
 	{
-		info = (struct starpu_profiling_task_info *) calloc(1, sizeof(struct starpu_profiling_task_info));
-		STARPU_ASSERT(info);
+		_STARPU_CALLOC(info, 1, sizeof(struct starpu_profiling_task_info));
 	}
 
 	return info;
@@ -170,7 +174,7 @@ static void _starpu_worker_reset_profiling_info_with_lock(int workerid)
 
 	worker_info[workerid].used_cycles = 0;
 	worker_info[workerid].stall_cycles = 0;
-	worker_info[workerid].power_consumed = 0;
+	worker_info[workerid].energy_consumed = 0;
 	worker_info[workerid].flops = 0;
 
 	/* We detect if the worker is already sleeping or doing some
@@ -265,8 +269,18 @@ void _starpu_worker_register_executing_start_date(int workerid, struct timespec 
 	}
 }
 
+void _starpu_worker_register_executing_end(int workerid)
+{
+	if (starpu_profiling_status_get())
+	{
+		STARPU_PTHREAD_MUTEX_LOCK(&worker_info_mutex[workerid]);
+		worker_registered_executing_start[workerid] = 0;
+		STARPU_PTHREAD_MUTEX_UNLOCK(&worker_info_mutex[workerid]);
+	}
+}
 
-void _starpu_worker_update_profiling_info_executing(int workerid, struct timespec *executing_time, int executed_tasks, uint64_t used_cycles, uint64_t stall_cycles, double power_consumed, double flops)
+
+void _starpu_worker_update_profiling_info_executing(int workerid, struct timespec *executing_time, int executed_tasks, uint64_t used_cycles, uint64_t stall_cycles, double energy_consumed, double flops)
 {
 	if (starpu_profiling_status_get())
 	{
@@ -277,7 +291,7 @@ void _starpu_worker_update_profiling_info_executing(int workerid, struct timespe
 
 		worker_info[workerid].used_cycles += used_cycles;
 		worker_info[workerid].stall_cycles += stall_cycles;
-		worker_info[workerid].power_consumed += power_consumed;
+		worker_info[workerid].energy_consumed += energy_consumed;
 		worker_info[workerid].executed_tasks += executed_tasks;
 		worker_info[workerid].flops += flops;
 
@@ -415,6 +429,31 @@ int starpu_bus_get_src(int busid)
 int starpu_bus_get_dst(int busid)
 {
 	return busid_to_node_pair[busid].dst;
+}
+
+void starpu_bus_set_direct(int busid, int direct)
+{
+	bus_direct[busid] = direct;
+}
+
+int starpu_bus_get_direct(int busid)
+{
+	return bus_direct[busid];
+}
+
+void starpu_bus_set_ngpus(int busid, int ngpus)
+{
+	bus_ngpus[busid] = ngpus;
+}
+
+int starpu_bus_get_ngpus(int busid)
+{
+	struct _starpu_machine_topology *topology = &_starpu_get_machine_config()->topology;
+	int ngpus = bus_ngpus[busid];
+	if (!ngpus)
+		/* Unknown number of GPUs, assume it's shared by all GPUs */
+		ngpus = topology->ncudagpus+topology->nopenclgpus;
+	return ngpus;
 }
 
 int starpu_bus_get_profiling_info(int busid, struct starpu_profiling_bus_info *bus_info)

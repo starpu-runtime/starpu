@@ -35,6 +35,9 @@
 #ifdef STARPU_QUICK_CHECK
 #define SLEEP_SLOW 6000
 #define SLEEP_FAST 1000
+#elif !defined(STARPU_LONG_CHECK)
+#define SLEEP_SLOW 60000
+#define SLEEP_FAST 10000
 #else
 #define SLEEP_SLOW 600000
 #define SLEEP_FAST 100000
@@ -46,20 +49,20 @@ void callback(void * /*buffers*/[], void * /*cl_arg*/)
 {
 	unsigned val;
 	val = STARPU_ATOMIC_ADD(&nb, 1);
-	FPRINTF(stdout,"callback in (%d)\n", val); fflush(stdout);
+	FPRINTF(stdout,"callback in (%u)\n", val); fflush(stdout);
 	usleep(SLEEP_FAST);
 	val = STARPU_ATOMIC_ADD(&nb, -1);
-	FPRINTF(stdout,"callback out (%d)\n", val); fflush(stdout);
+	FPRINTF(stdout,"callback out (%u)\n", val); fflush(stdout);
 }
 
 void callback_slow(void * /*buffers*/[], void * /*cl_arg*/)
 {
 	unsigned val;
 	val = STARPU_ATOMIC_ADD(&nb_slow, 1);
-	FPRINTF(stdout,"callback_slow in (%d)\n", val); fflush(stdout);
+	FPRINTF(stdout,"callback_slow in (%u)\n", val); fflush(stdout);
 	usleep(SLEEP_SLOW);
 	val = STARPU_ATOMIC_ADD(&nb_slow, -1);
-	FPRINTF(stdout,"callback_slow out (%d)\n", val); fflush(stdout);
+	FPRINTF(stdout,"callback_slow out (%u)\n", val); fflush(stdout);
 }
 
 
@@ -75,7 +78,7 @@ int main(int /*argc*/, char** /*argv*/)
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_ASSERT(ret == 0);
 
-	FPRINTF(stdout, "Max Thread %d\n", starpu_worker_get_count());
+	FPRINTF(stdout, "Max Thread %u\n", starpu_worker_get_count());
 
 	//////////////////////////////////////////////////////
 
@@ -162,7 +165,7 @@ int main(int /*argc*/, char** /*argv*/)
 	for(int idxHandle = 0 ; idxHandle < nbA ; ++idxHandle)
 	{
 		starpu_variable_data_register(&handleA[idxHandle], 0, (uintptr_t)&dataA[idxHandle], sizeof(dataA[idxHandle]));
-		starpu_data_assign_arbiter(handleA[idxHandle], idxHandle%2?arbiter:arbiter2);
+		starpu_data_assign_arbiter(handleA[idxHandle], (idxHandle%2)?arbiter:arbiter2);
 	}
 
 	//////////////////////////////////////////////////////

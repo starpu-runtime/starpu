@@ -12,10 +12,13 @@ prefix="/usr/local"
 coi_dir="/opt/intel/mic/coi"
 scif_dir="/opt/intel/mic/scif"
 mic_host="x86_64-k1om-linux"
-host_params=""
-mic_params=""
+declare -a host_params
+declare -a mic_params
+unset host_params
+unset mic_params
 native_mic=0
-for arg in $*
+mpi=0
+for arg in "$@"
 do
 	case $arg in
 		--prefix=*)
@@ -33,38 +36,75 @@ do
 	        --enable-native-mic)
 		        native_mic=1
 		        ;;
+		--with-compiler=*)
+			compiler="${arg#--with-compiler=}"
+			;;
 		--with-mic-param=*)
-			mic_params="$mic_params ${arg#--with-mic-param=}"
+			mic_params+=("${arg#--with-mic-param=}")
 			;;
 		--with-host-param=*)
-			host_params="$host_params ${arg#--with-host-param=}"
+			host_params+=("${arg#--with-host-param=}")
+			;;
+		--with-mpi*)
+			mpi=1
+			;;
+		--help)
+			cat << EOF
+mic-configure specific options:
+
+  --with-coi-dir=DIR	Specify directory that contains
+			device-linux-release/lib/libcoi_device and 
+			host-linux-release/lib/libcoi_host and 
+  --with-scif-dir=DIR	Specify directory that contains
+			device-linux-release/lib/libscif_device and 
+			host-linux-release/lib/libscif_host and 
+  --mic-host=HOST	Specify the precise Phi host to build for
+			(default: k1om)
+  --with-compiler=[icc|gcc]
+			Specify whether to build with icc or with gcc
+  --enable-native-mic	Only build the Phi binaries
+  --with-mic-param=--OPTION
+			Pass --OPTION to the Phi configure script
+  --with-host-param=--OPTION
+			Pass --OPTION to the host configure script
+EOF
 			;;
 	esac
 done
 
-# Test gcc compiler
-x=$(type -t ${mic_host}-gcc)
-if [ -z "$x" ]
+if [ -z "$compiler" ]
 then
-    # Test icc compiler
-    echo "int main(int argc, char **argv) { return 0; }" > /tmp/icc_$USER_$$.c
-    icc -mmic /tmp/icc_$USER_$$.c > /dev/null 2>/tmp/icc_$USER_$$.err
-    l=$(grep -c "invalid argument" /tmp/icc_$USER_$$.err)
-    if [ "$l" != "0" ]
+    # Test gcc compiler
+    x=$(type -t ${mic_host}-gcc)
+    if [ -z "$x" ]
     then
-        echo "[error] no compiler found. please add path to either ${mic_host}-gcc or to an enabled mic icc compiler in your PATH"
-	exit 1
+	# Test icc compiler
+	echo "int main(int argc, char **argv) { return 0; }" > /tmp/icc_$USER_$$.c
+	icc -mmic /tmp/icc_$USER_$$.c > /dev/null 2>/tmp/icc_$USER_$$.err
+	l=$(grep -c "invalid argument" /tmp/icc_$USER_$$.err)
+	if [ "$l" != "0" ]
+	then
+	    echo "[error] no compiler found. please add path to either ${mic_host}-gcc or to an enabled mic icc compiler in your PATH"
+	    exit 1
+	else
+	    compiler="icc"
+	fi
     else
-	compiler="icc"
+	compiler="gcc"
     fi
-else
-    compiler="gcc"
 fi
 
 dev_list="host mic"
 if [ "$native_mic" -eq "1" ]
 then
     dev_list="mic"
+fi
+
+# prepend mic_params with "--with-mpicc=mpicc -mmic", to allow possible override by the user
+if [ $mpi = 1 ]
+then
+	mic_params=("--with-mpicc=mpicc -mmic" "${mic_params[@]}")
+	mic_params=("--with-mpifort=mpifort -mmic" "${mic_params[@]}")
 fi
 
 for arch in $dev_list #host mic
@@ -77,24 +117,44 @@ do
 		*) command="../${ROOT_DIR}/configure";;
 	esac
 
-	if [ $compiler = "icc" -a "$arch" = "mic" ] ; then
-	    export CC="icc -mmic"
-	    export CXX="icc -mmic"
-	    export LD="icc -mmic"
-	    export CXXLD="icc -mmic"
+	declare -a params
+	params=("--prefix=$prefix/$arch" "--disable-fstack-protector-all")
+
+	if [ "$arch" = mic ] ; then
+		if [ $compiler = "icc" ] ; then
+		    export CC="icc -mmic"
+		    export CXX="icc -mmic"
+		    export LD="icc -mmic"
+		    export CXXLD="icc -mmic"
+		    export F77="ifort -mmic"
+		    export FC="ifort -mmic"
+		else
+		    # let configure auto-detect GNU cross-building tools
+		    unset CC
+		    unset CXX
+		    unset LD
+		    unset CXXLD
+		    unset F77
+		    unset FC
+		    params+=(--disable-fortran)
+		fi
 	fi
 
-	params="--enable-mic --with-coi-dir=$coi_dir --with-scif-dir=$scif_dir --prefix=$prefix/$arch"
+	if [ "$native_mic" -eq "0" ]
+	then
+		params+=(--enable-mic "--with-coi-dir=$coi_dir" "--with-scif-dir=$scif_dir")
+	fi
 
 	if test x$arch = xmic ; then
+	    params+=(--host=$mic_host --disable-build-doc)
 	    if [ "$native_mic" -eq "1" ]
 	    then
-		params="$params --disable-build-doc --with-coi-lib-dir=$coi_dir/device-linux-release/lib --with-scif-lib-dir=$scif_dir/device-linux-release/lib --host=$mic_host --enable-maxcpus=250"
+		params+=(--enable-maxcpus=250)
 	    else
-		params="$params --disable-build-doc --with-coi-lib-dir=$coi_dir/device-linux-release/lib --with-scif-lib-dir=$scif_dir/device-linux-release/lib --host=$mic_host"
+		params+=("--with-coi-lib-dir=$coi_dir/device-linux-release/lib" "--with-scif-lib-dir=$scif_dir/device-linux-release/lib")
 	    fi
 	else
-		params="$params --with-coi-lib-dir=$coi_dir/host-linux-release/lib --with-scif-lib-dir=$scif_dir/host-linux-release/lib"
+	    params+=("--with-coi-lib-dir=$coi_dir/host-linux-release/lib" "--with-scif-lib-dir=$scif_dir/host-linux-release/lib")
 	fi
 
 	# If the build directory doesn't exist yet, create it
@@ -110,9 +170,16 @@ do
 		C_INCLUDE_PATH=$SINK_C_INCLUDE_PATH \
 		CPLUS_INCLUDE_PATH=$SINK_CPLUS_INCLUDE_PATH \
 		PKG_CONFIG_PATH=$SINK_PKG_CONFIG_PATH \
-		$command $* $params $mic_params
+		$command "$@" "${params[@]}" "${mic_params[@]}"
+		MIC_BUILD_ENV="\
+LIBRARY_PATH=$SINK_LIBRARY_PATH \\
+	INCLUDE=$SINK_INCLUDE \\
+	C_INCLUDE_PATH=$SINK_C_INCLUDE_PATH \\
+	CPLUS_INCLUDE_PATH=$SINK_CPLUS_INCLUDE_PATH \\
+	PKG_CONFIG_PATH=$SINK_PKG_CONFIG_PATH \\\
+"
 	else
-		$command $* $params $host_params
+		$command "$@" "${params[@]}""${host_params[@]}"
 	fi
 	if [ "$?" != 0 ]
 	then
@@ -124,6 +191,7 @@ if [ "$native_mic" -eq "1" ]
 then
 cat > Makefile << EOF
 all:
+	$MIC_BUILD_ENV
 	\$(MAKE) -C build_mic
 
 clean:
@@ -133,12 +201,14 @@ distclean: clean
 	rm -f Makefile
 
 check:
+	$MIC_BUILD_ENV
 	\$(MAKE) -C build_mic check
 
 showcheck:
 	\$(MAKE) -C build_mic showcheck
 
 install:
+	$MIC_BUILD_ENV
 	\$(MAKE) -C build_mic install
 	ln -sf "${prefix}/mic/lib/pkgconfig/starpu-1.3.pc" "${prefix}/mic/lib/pkgconfig/starpu-1.3-mic.pc"
 EOF
@@ -146,6 +216,7 @@ else
 cat > Makefile << EOF
 all:
 	\$(MAKE) -C build_host
+	$MIC_BUILD_ENV
 	\$(MAKE) -C build_mic
 
 clean:
@@ -157,6 +228,7 @@ distclean: clean
 
 check:
 	\$(MAKE) -C build_host check
+	$MIC_BUILD_ENV
 	\$(MAKE) -C build_mic check ; \
 	RET=\$\$? ; \
 	STARPU_NCPUS=0 \$(MAKE) -C build_mic check && [ \$\$RET == 0 ]
@@ -167,6 +239,7 @@ showcheck:
 
 install:
 	\$(MAKE) -C build_host install
+	$MIC_BUILD_ENV
 	\$(MAKE) -C build_mic install
 	ln -sf "${prefix}/mic/lib/pkgconfig/starpu-1.3.pc" "${prefix}/mic/lib/pkgconfig/starpu-1.3-mic.pc"
 EOF

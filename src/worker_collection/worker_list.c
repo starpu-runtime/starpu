@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2013-2014, 2016  Université de Bordeaux
- * Copyright (C) 2012-2013  CNRS
+ * Copyright (C) 2012-2013, 2016  CNRS
  * Copyright (C) 2011-2013  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -120,7 +120,7 @@ static int list_add(struct starpu_worker_collection *workers, int worker)
 	int *workerids = (int *)workers->workerids;
 	unsigned *nworkers = &workers->nworkers;
 
-	STARPU_ASSERT(*nworkers < STARPU_NMAXWORKERS);
+	STARPU_ASSERT(*nworkers < (STARPU_NMAXWORKERS+STARPU_NMAX_COMBINEDWORKERS));
 
 	if(!_worker_belongs_to_ctx(workers, worker))
 	{
@@ -234,9 +234,13 @@ static void _init_workers(int *workerids)
 
 static void list_init(struct starpu_worker_collection *workers)
 {
-	int *workerids = (int*)malloc(STARPU_NMAXWORKERS * sizeof(int));
-	int *unblocked_workers = (int*)malloc(STARPU_NMAXWORKERS * sizeof(int));
-	int *masters = (int*)malloc(STARPU_NMAXWORKERS * sizeof(int));
+	int *workerids;
+	int *unblocked_workers;
+	int *masters;
+
+	_STARPU_MALLOC(workerids, (STARPU_NMAXWORKERS+STARPU_NMAX_COMBINEDWORKERS) * sizeof(int));
+	_STARPU_MALLOC(unblocked_workers, (STARPU_NMAXWORKERS+STARPU_NMAX_COMBINEDWORKERS) * sizeof(int));
+	_STARPU_MALLOC(masters, (STARPU_NMAXWORKERS+STARPU_NMAX_COMBINEDWORKERS) * sizeof(int));
 	_init_workers(workerids);
 	_init_workers(unblocked_workers);
 	_init_workers(masters);
@@ -260,6 +264,7 @@ static void list_deinit(struct starpu_worker_collection *workers)
 
 static void list_init_iterator(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it)
 {
+	(void) workers;
 	it->cursor = 0;
 	it->possibly_parallel = -1; /* -1 => we don't care about this field */
 

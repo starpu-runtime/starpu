@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011, 2013, 2015  Université de Bordeaux
+ * Copyright (C) 2010-2011, 2013, 2015-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -15,17 +15,18 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-/*
- * Create task A and B such that
- * - B depends on A by tag dependency.
- * - A would depend on B by data dependency, but we disable that.
- */
-
 #include <stdio.h>
 #include <unistd.h>
 
 #include <starpu.h>
 #include "../helper.h"
+
+/*
+ * Create task A and B such that
+ * - B depends on A by tag dependency.
+ * - A would depend on B by data dependency, but we disable that by disabling
+ *   sequential consistency.
+ */
 
 void dummy_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE_UNUSED)
 {

@@ -18,8 +18,6 @@
 #ifdef STARPU_OPENMP
 #include <util/openmp_runtime_support.h>
 
-#define __not_implemented__ do { fprintf (stderr, "omp lib function %s not implemented\n", __func__); abort(); } while (0)
-
 void starpu_omp_set_num_threads(int threads)
 {
 	STARPU_ASSERT(threads > 0);
@@ -40,18 +38,6 @@ int starpu_omp_get_num_threads()
 
 	region = task->owner_region;
 	return region->nb_threads;
-}
-
-static int _starpu_omp_get_region_thread_num(const struct starpu_omp_region * const region)
-{
-	struct starpu_omp_thread *thread = _starpu_omp_get_thread();
-	STARPU_ASSERT(thread != NULL);
-	if (thread == region->master_thread)
-		return 0;
-	int tid = starpu_omp_thread_list_member(&region->thread_list, thread);
-	if (tid >= 0)
-		return tid+1;
-	_STARPU_ERROR("unrecognized omp thread\n");
 }
 
 int starpu_omp_get_thread_num()
@@ -167,35 +153,29 @@ int starpu_omp_get_level (void)
 
 int starpu_omp_get_ancestor_thread_num (int level)
 {
+	struct starpu_omp_region *parallel_region;
+
 	if (level == 0)
 		return 0;
-	const struct starpu_omp_task *task = _starpu_omp_get_task();
-	if (task == NULL)
+
+	parallel_region = _starpu_omp_get_region_at_level(level);
+	if (!parallel_region)
 		return -1;
-	const struct starpu_omp_region *parallel_region = task->owner_region;
-	if (level < 0 || level > parallel_region->icvs.levels_var)
-		return -1;
-	while (level < parallel_region->icvs.levels_var)
-	{
-		parallel_region = parallel_region->parent_region;
-	}
+
 	return _starpu_omp_get_region_thread_num(parallel_region);
 }
 
 int starpu_omp_get_team_size (int level)
 {
+	struct starpu_omp_region *parallel_region;
+
 	if (level == 0)
 		return 1;
-	const struct starpu_omp_task *task = _starpu_omp_get_task();
-	if (task == NULL)
+
+	parallel_region = _starpu_omp_get_region_at_level(level);
+	if (!parallel_region)
 		return -1;
-	const struct starpu_omp_region *parallel_region = task->owner_region;
-	if (level < 0 || level > parallel_region->icvs.levels_var)
-		return -1;
-	while (level < parallel_region->icvs.levels_var)
-	{
-		parallel_region = parallel_region->parent_region;
-	}
+
 	return parallel_region->nb_threads;
 }
 
@@ -216,6 +196,40 @@ enum starpu_omp_proc_bind_value starpu_omp_get_proc_bind(void)
 	const struct starpu_omp_region * const parallel_region = _starpu_omp_get_task()->owner_region;
 	int proc_bind = parallel_region->icvs.bind_var[0];
 	return proc_bind;
+}
+
+int starpu_omp_get_num_places(void)
+{
+	struct starpu_omp_place *places = &_starpu_omp_initial_icv_values->places;
+	return places->nb_numeric_places;
+}
+
+int starpu_omp_get_place_num_procs(int place_num)
+{
+  /* TODO */
+  return 0;
+}
+
+void starpu_omp_get_place_proc_ids(int place_num, int *ids)
+{
+  /* TODO */
+}
+
+int starpu_omp_get_place_num(void)
+{
+  /* TODO */
+  return -1;
+}
+
+int starpu_omp_get_partition_num_places(void)
+{
+  /* TODO */
+  return 0;
+}
+
+void starpu_omp_get_partition_place_nums(int *place_nums)
+{
+  /* TODO */
 }
 
 void starpu_omp_set_default_device(int device_num)
@@ -253,8 +267,17 @@ int starpu_omp_get_team_num(void)
 
 int starpu_omp_is_initial_device(void)
 {
-	const struct starpu_omp_device * const device = _starpu_omp_get_task()->owner_region->owner_device;
+	struct starpu_omp_task *task = _starpu_omp_get_task();
+	if (!task)
+		return 0;
+	const struct starpu_omp_device * const device = task->owner_region->owner_device;
 	return device == _starpu_omp_global_state->initial_device;
+}
+
+int starpu_omp_get_initial_device(void)
+{
+	/* Assume only one device for now. */
+	return 0;
 }
 
 int starpu_omp_get_max_task_priority(void)

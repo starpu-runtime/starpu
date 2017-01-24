@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
- * Copyright (C) 2014  INRIA
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016  CNRS
+ * Copyright (C) 2014, 2016  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,6 +19,7 @@
 #include <starpu.h>
 #include <common/config.h>
 #include <common/utils.h>
+#include <common/graph.h>
 #include <core/dependencies/tags.h>
 #include <core/jobs.h>
 #include <core/task.h>
@@ -29,8 +30,8 @@
 
 static struct _starpu_cg *create_cg_task(unsigned ntags, struct _starpu_job *j)
 {
-	struct _starpu_cg *cg = (struct _starpu_cg *) malloc(sizeof(struct _starpu_cg));
-	STARPU_ASSERT(cg);
+	struct _starpu_cg *cg;
+	_STARPU_MALLOC(cg, sizeof(struct _starpu_cg));
 
 	cg->ntags = ntags;
 	cg->remaining = ntags;
@@ -73,7 +74,7 @@ void _starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, s
 #ifdef STARPU_OPENMP
 				|| job->continuation
 #endif
-				, "Task dependencies have to be set before submission (submitted %u destroy %d detach %d)", job->submitted, task->destroy, task->detach);
+				, "Task dependencies have to be set before submission (submitted %u destroy %u detach %u)", job->submitted, task->destroy, task->detach);
 	else
 		STARPU_ASSERT_MSG(job->terminated <= 1, "Task dependencies have to be set before termination (terminated %u)", job->terminated);
 
@@ -111,13 +112,12 @@ void _starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, s
 
 		_STARPU_TRACE_TASK_DEPS(dep_job, job);
 		_starpu_bound_task_dep(job, dep_job);
-#ifdef HAVE_AYUDAME_H
-		if (AYU_event && check)
+		if (check)
 		{
-			uintptr_t AYU_data[3] = {dep_job->job_id, 0, 0};
-			AYU_event(AYU_ADDDEPENDENCY, job->job_id, AYU_data);
+			STARPU_AYU_ADDDEPENDENCY(dep_job->job_id, 0, job->job_id);
 		}
-#endif
+		if (_starpu_graph_record)
+			_starpu_graph_add_job_dep(job, dep_job);
 
 		_starpu_task_add_succ(dep_job, cg);
 		if (dep_job->task->regenerate)

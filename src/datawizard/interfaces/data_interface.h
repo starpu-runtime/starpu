@@ -56,6 +56,7 @@ void _starpu_data_free_interfaces(starpu_data_handle_t handle)
 
 extern
 int _starpu_data_handle_init(starpu_data_handle_t handle, struct starpu_data_interface_ops *interface_ops, unsigned int mf_node);
+void _starpu_data_initialize_per_worker(starpu_data_handle_t handle);
 
 extern struct starpu_arbiter *_starpu_global_arbiter;
 extern void _starpu_data_interface_init(void) STARPU_ATTRIBUTE_INTERNAL;

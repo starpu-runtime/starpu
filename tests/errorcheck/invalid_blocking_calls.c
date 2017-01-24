@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2013, 2015  Université de Bordeaux
+ * Copyright (C) 2009, 2010, 2013, 2015-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -18,6 +18,11 @@
 #include <config.h>
 #include <starpu.h>
 #include "../helper.h"
+
+/*
+ * Check that we catch calling tag_wait, i.e. a blocking call, from the
+ * codelet function, which is invalid. This test is thus expected to fail.
+ */
 
 #ifdef STARPU_NO_ASSERT
 int main(int argc, char **argv)

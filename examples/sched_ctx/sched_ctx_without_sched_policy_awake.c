@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2014  Université de Bordeaux
- * Copyright (C) 2010-2014  CNRS
+ * Copyright (C) 2010-2014, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -24,8 +24,6 @@
 #define NTASKS 100
 #endif
 
-
-starpu_pthread_mutex_t mut;
 
 int tasks_executed[2][STARPU_NMAXWORKERS];
 int parallel_code(int sched_ctx)
@@ -74,7 +72,6 @@ int main(int argc, char **argv)
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	starpu_pthread_mutex_init(&mut, NULL);
 	int nprocs1 = 1;
 	int nprocs2 = 1;
 	int *procs1, *procs2;
@@ -156,8 +153,8 @@ int main(int argc, char **argv)
 		tasks_per_ctx[1] += tasks_executed[1][i];
 	}
 
-	printf("ctx%d: tasks starpu executed %d out of %d\n", sched_ctx1, tasks_per_ctx[0]/nprocs1, NTASKS);
-	printf("ctx%d: tasks starpu executed %d out of %d\n", sched_ctx2, tasks_per_ctx[1]/nprocs2, NTASKS);
+	printf("ctx%u: tasks starpu executed %d out of %d\n", sched_ctx1, tasks_per_ctx[0]/nprocs1, NTASKS);
+	printf("ctx%u: tasks starpu executed %d out of %d\n", sched_ctx2, tasks_per_ctx[1]/nprocs2, NTASKS);
 
 enodev:
 #ifdef STARPU_USE_CPU

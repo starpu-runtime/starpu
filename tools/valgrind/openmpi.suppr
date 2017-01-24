@@ -39,6 +39,13 @@
 }
 
 {
+   suppr5
+   Helgrind:Race
+   ...
+   fun:ompi_mpi_init
+}
+
+{
    suppr6
    Memcheck:Leak
    ...
@@ -50,6 +57,20 @@
    Memcheck:Leak
    ...
    fun:orte_init
+}
+
+{
+   suppr7
+   Memcheck:Leak
+   ...
+   fun:orte_progress_thread_engine
+}
+
+{
+   suppr7
+   Helgrind:Race
+   ...
+   fun:orte_progress_thread_engine
 }
 
 {
@@ -69,6 +90,27 @@
 {
    suppr10
    Memcheck:Leak
+   ...
+   fun:ompi_mpi_finalize
+}
+
+{
+   suppr10
+   Helgrind:Race
+   ...
+   fun:ompi_mpi_finalize
+}
+
+{
+   suppr10
+   Helgrind:Misc
+   ...
+   fun:ompi_mpi_finalize
+}
+
+{
+   suppr10
+   Helgrind:PthAPIerror
    ...
    fun:ompi_mpi_finalize
 }
@@ -235,4 +277,269 @@
    ...
    fun:PMPI_Comm_split
    fun:main
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:orte_grpcomm_base_update_modex_entries
+   fun:orte_grpcomm_base_modex_unpack
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   fun:opal_event_base_loop
+   fun:opal_progress
+   obj:*
+   fun:ompi_modex_recv_key_value
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   obj:/usr/lib/openmpi/lib/libmpi.so.1.0.8
+   fun:orte_grpcomm_base_update_modex_entries
+   fun:orte_grpcomm_base_modex_unpack
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   fun:opal_event_base_loop
+   fun:opal_progress
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: indirect
+   fun:malloc
+   fun:orte_grpcomm_base_update_modex_entries
+   fun:orte_grpcomm_base_modex_unpack
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   fun:opal_event_base_loop
+   fun:opal_progress
+   obj:*
+   fun:ompi_modex_recv_key_value
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: indirect
+   fun:malloc
+   obj:/usr/lib/openmpi/lib/libmpi.so.1.0.8
+   fun:orte_grpcomm_base_update_modex_entries
+   fun:orte_grpcomm_base_modex_unpack
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   fun:opal_event_base_loop
+   fun:opal_progress
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:lt__malloc
+   fun:lt__zalloc
+   obj:/usr/lib/x86_64-linux-gnu/libltdl.so.7.3.0
+   fun:lt_dlopenadvise
+   obj:/usr/lib/x86_64-linux-gnu/hwloc/hwloc_cuda.so
+   obj:/usr/lib/x86_64-linux-gnu/hwloc/hwloc_cuda.so
+   obj:/usr/lib/x86_64-linux-gnu/libhwloc.so.5.6.8
+   fun:hwloc_topology_init
+   fun:opal_hwloc_unpack
+   fun:opal_dss_unpack_buffer
+   fun:opal_dss_unpack
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:strdup
+   obj:/usr/lib/x86_64-linux-gnu/libhwloc.so.5.6.8
+   obj:/usr/lib/x86_64-linux-gnu/libltdl.so.7.3.0
+   obj:/usr/lib/x86_64-linux-gnu/libltdl.so.7.3.0
+   fun:lt_dlforeachfile
+   obj:/usr/lib/x86_64-linux-gnu/libhwloc.so.5.6.8
+   obj:/usr/lib/x86_64-linux-gnu/libhwloc.so.5.6.8
+   fun:hwloc_topology_init
+   fun:opal_hwloc_unpack
+   fun:opal_dss_unpack_buffer
+   fun:opal_dss_unpack
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libhwloc.so.5.6.8
+   obj:/usr/lib/x86_64-linux-gnu/libltdl.so.7.3.0
+   obj:/usr/lib/x86_64-linux-gnu/libltdl.so.7.3.0
+   fun:lt_dlforeachfile
+   obj:/usr/lib/x86_64-linux-gnu/libhwloc.so.5.6.8
+   obj:/usr/lib/x86_64-linux-gnu/libhwloc.so.5.6.8
+   fun:hwloc_topology_init
+   fun:opal_hwloc_unpack
+   fun:opal_dss_unpack_buffer
+   fun:opal_dss_unpack
+   fun:orte_util_nidmap_init
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:opal_dss_unpack_string
+   fun:opal_dss_unpack_buffer
+   fun:opal_dss_unpack
+   fun:orte_grpcomm_base_update_modex_entries
+   fun:orte_grpcomm_base_modex_unpack
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   fun:opal_event_base_loop
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: indirect
+   fun:malloc
+   fun:strdup
+   fun:orte_grpcomm_base_update_modex_entries
+   fun:orte_grpcomm_base_modex_unpack
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   fun:opal_event_base_loop
+   fun:opal_progress
+   obj:*
+}
+
+# the following suppression occurs on bertha with openmpi 1.10.2
+# no idea why it is failing
+# Invalid read of size 8
+#    at 0x4C2E726: memcpy@@GLIBC_2.14 (vg_replace_strmem.c:1018)
+#    by 0x77F31C0: opal_convertor_pack (in /usr/lib/openmpi/lib/libopen-pal.so.13.0.2)
+#    by 0x105D8C41: mca_btl_vader_sendi (in /usr/lib/openmpi/lib/openmpi/mca_btl_vader.so)
+#    by 0x10C16F05: mca_pml_ob1_send_inline (in /usr/lib/openmpi/lib/openmpi/mca_pml_ob1.so)
+#    by 0x10C17662: mca_pml_ob1_isend (in /usr/lib/openmpi/lib/openmpi/mca_pml_ob1.so)
+#    by 0x5B6471D: PMPI_Isend (in /usr/lib/openmpi/lib/libmpi.so.12.0.2)
+#    by 0x4E3F08E: _starpu_mpi_isend_size_func (starpu_mpi.c:384)
+#    by 0x4E4602D: _starpu_mpi_handle_ready_request (starpu_mpi.c:1132)
+#    by 0x4E47C3C: _starpu_mpi_progress_thread_func (starpu_mpi.c:1342)
+#    by 0x58E6283: start_thread (pthread_create.c:333)
+#    by 0x60F5A4C: clone (in /lib/x86_64-linux-gnu/libc-2.21.so)
+#  Address 0x1ab67c40 is 16 bytes inside a block of size 24 alloc'd
+#    at 0x4C2BBD5: calloc (vg_replace_malloc.c:711)
+#    by 0x4E3EDBA: _starpu_mpi_isend_size_func (starpu_mpi.c:369)
+#    by 0x4E4602D: _starpu_mpi_handle_ready_request (starpu_mpi.c:1132)
+#    by 0x4E47C3C: _starpu_mpi_progress_thread_func (starpu_mpi.c:1342)
+#    by 0x58E6283: start_thread (pthread_create.c:333)
+#    by 0x60F5A4C: clone (in /lib/x86_64-linux-gnu/libc-2.21.so)
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr8
+   fun:memcpy@@GLIBC_2.14
+   fun:opal_convertor_pack
+   fun:mca_btl_vader_sendi
+   fun:mca_pml_ob1_send_inline
+   fun:mca_pml_ob1_isend
+   fun:PMPI_Isend
+   fun:_starpu_mpi_isend_size_func
+   fun:_starpu_mpi_handle_ready_request
+   fun:_starpu_mpi_progress_thread_func
+   fun:start_thread
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr2
+   fun:memcpy@@GLIBC_2.14
+   fun:opal_convertor_pack
+   fun:mca_btl_vader_sendi
+   fun:mca_pml_ob1_send_inline
+   fun:mca_pml_ob1_isend
+   fun:PMPI_Isend
+   fun:_starpu_mpi_isend_data_func
+   fun:_starpu_mpi_isend_size_func
+   fun:_starpu_mpi_handle_ready_request
+   fun:_starpu_mpi_progress_thread_func
+   fun:start_thread
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr8
+   fun:memcpy@@GLIBC_2.14
+   fun:vader_prepare_src
+   fun:mca_pml_ob1_send_request_start_prepare
+   fun:mca_pml_ob1_isend
+   fun:PMPI_Isend
+   fun:_starpu_mpi_isend_data_func
+   fun:_starpu_mpi_isend_size_func
+   fun:_starpu_mpi_handle_ready_request
+   fun:_starpu_mpi_progress_thread_func
+   fun:start_thread
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr8
+   fun:memcpy@@GLIBC_2.14
+   fun:mca_btl_vader_sendi
+   fun:mca_pml_ob1_send_inline
+   fun:mca_pml_ob1_isend
+   fun:PMPI_Isend
+   fun:_starpu_mpi_isend_size_func
+   fun:_starpu_mpi_handle_ready_request
+   fun:_starpu_mpi_progress_thread_func
+   fun:start_thread
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr8
+   fun:memcpy@@GLIBC_2.14
+   fun:opal_convertor_pack
+   ...
+   fun:PMPI_Isend
+   fun:_starpu_mpi_isend_size_func
+   fun:_starpu_mpi_handle_ready_request
+   fun:_starpu_mpi_progress_thread_func
+   fun:start_thread
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr2
+   fun:memcpy@@GLIBC_2.14
+   fun:opal_convertor_pack
+   ...
+   fun:PMPI_Isend
+   fun:_starpu_mpi_isend_data_func
+   fun:_starpu_mpi_isend_size_func
+   fun:_starpu_mpi_handle_ready_request
+   fun:_starpu_mpi_progress_thread_func
+   fun:start_thread
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr8
+   fun:_starpu_mpi_isend_size_func
+   fun:_starpu_mpi_handle_ready_request
+   fun:_starpu_mpi_progress_thread_func
+   fun:start_thread
 }

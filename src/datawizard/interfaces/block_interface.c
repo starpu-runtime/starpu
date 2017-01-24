@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
+ * Copyright (C) 2009-2016  Université de Bordeaux
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -144,7 +144,7 @@ static void register_block_handle(starpu_data_handle_t handle, unsigned home_nod
 }
 
 /* declare a new data with the BLAS interface */
-void starpu_block_data_register(starpu_data_handle_t *handleptr, unsigned home_node,
+void starpu_block_data_register(starpu_data_handle_t *handleptr, int home_node,
 			uintptr_t ptr, uint32_t ldy, uint32_t ldz, uint32_t nx,
 			uint32_t ny, uint32_t nz, size_t elemsize)
 {
@@ -161,6 +161,13 @@ void starpu_block_data_register(starpu_data_handle_t *handleptr, unsigned home_n
 		.nz = nz,
 		.elemsize = elemsize
 	};
+#ifndef STARPU_SIMGRID
+	if (home_node == STARPU_MAIN_RAM)
+	{
+		STARPU_ASSERT_ACCESSIBLE(ptr);
+		STARPU_ASSERT_ACCESSIBLE(ptr + (nz-1)*ldz*elemsize + (ny-1)*ldy*elemsize + nx*elemsize - 1);
+	}
+#endif
 
 #ifdef STARPU_USE_SCC
 	_starpu_scc_set_offset_in_shared_memory((void*)block_interface.ptr,
@@ -691,8 +698,6 @@ static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_int
 	uint32_t ldy_dst = dst_block->ldy;
 	uint32_t ldz_dst = dst_block->ldz;
 
-	unsigned y, z;
-
 	if (ldy_src == nx && ldy_dst == nx && ldz_src == ny && ldz_dst == ny)
 	{
 		/* Optimise non-partitioned and z-partitioned case */
@@ -702,30 +707,36 @@ static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_int
 				ret = -EAGAIN;
 	}
 	else
-	for (z = 0; z < nz; z++)
 	{
-		if (ldy_src == nx && ldy_dst == nx)
+		unsigned z;
+		for (z = 0; z < nz; z++)
 		{
-			/* Optimise y-partitioned case */
-			uint32_t src_offset = z*ldz_src*elemsize;
-			uint32_t dst_offset = z*ldz_dst*elemsize;
+			if (ldy_src == nx && ldy_dst == nx)
+			{
+				/* Optimise y-partitioned case */
+				uint32_t src_offset = z*ldz_src*elemsize;
+				uint32_t dst_offset = z*ldz_dst*elemsize;
 
-			if (starpu_interface_copy(src_block->dev_handle, src_block->offset + src_offset, src_node,
-			                          dst_block->dev_handle, dst_block->offset + dst_offset, dst_node,
-			                          nx*ny*elemsize, async_data))
-				ret = -EAGAIN;
-		}
-		else
-		for (y = 0; y < ny; y++)
-		{
-			/* Eerf, x-partitioned case */
-			uint32_t src_offset = (y*ldy_src + z*ldz_src)*elemsize;
-			uint32_t dst_offset = (y*ldy_dst + z*ldz_dst)*elemsize;
+				if (starpu_interface_copy(src_block->dev_handle, src_block->offset + src_offset, src_node,
+							  dst_block->dev_handle, dst_block->offset + dst_offset, dst_node,
+							  nx*ny*elemsize, async_data))
+					ret = -EAGAIN;
+			}
+			else
+			{
+				unsigned y;
+				for (y = 0; y < ny; y++)
+				{
+					/* Eerf, x-partitioned case */
+					uint32_t src_offset = (y*ldy_src + z*ldz_src)*elemsize;
+					uint32_t dst_offset = (y*ldy_dst + z*ldz_dst)*elemsize;
 
-			if (starpu_interface_copy(src_block->dev_handle, src_block->offset + src_offset, src_node,
-			                          dst_block->dev_handle, dst_block->offset + dst_offset, dst_node,
-			                          nx*elemsize, async_data))
-				ret = -EAGAIN;
+					if (starpu_interface_copy(src_block->dev_handle, src_block->offset + src_offset, src_node,
+								  dst_block->dev_handle, dst_block->offset + dst_offset, dst_node,
+								  nx*elemsize, async_data))
+						ret = -EAGAIN;
+				}
+			}
 		}
 	}
 

@@ -49,7 +49,7 @@ void cpu_func(__attribute__((unused))void *buffers[], void *cl_arg)
 		pthread_mutex_unlock(&mut[params->sched_ctx - 1]);
 	}
 	if(params->task_tag != 0)
-		FPRINTF(stdout, "Task with tag %d executed in ctx = %d %d counter_tests\n", params->task_tag, params->sched_ctx, val[params->sched_ctx - 1]);
+		FPRINTF(stdout, "Task with tag %d executed in ctx = %u %u counter_tests\n", params->task_tag, params->sched_ctx, val[params->sched_ctx - 1]);
 }
 
 struct starpu_codelet cl = {0};
@@ -85,7 +85,7 @@ void* submit_tasks_thread(void *arg)
 						   SC_HYPERVISOR_MIN_WORKERS, 2,
 						   SC_HYPERVISOR_MAX_WORKERS, 12,
 						   SC_HYPERVISOR_NULL);
-			printf("require resize for sched_ctx %d at tag %d\n", sched_ctx, tag);
+			printf("require resize for sched_ctx %u at tag %d\n", sched_ctx, tag);
 			/* specify that the contexts should be resized when the task having this
 			   particular tag will finish executing */
 			sc_hypervisor_post_resize_request(sched_ctx, tag);
@@ -167,7 +167,7 @@ int main()
 	starpu_shutdown();
 	sc_hypervisor_shutdown();
 
-	FPRINTF(stdout, "ctx = %d executed %d counter_tests out of %d \n", sched_ctx1, val[0], NTASKS*NINCR);
-	FPRINTF(stdout, "ctx = %d executed %d counter_tests out of %d \n", sched_ctx2, val[1], NTASKS*NINCR);
+	FPRINTF(stdout, "ctx = %u executed %u counter_tests out of %d \n", sched_ctx1, val[0], NTASKS*NINCR);
+	FPRINTF(stdout, "ctx = %u executed %u counter_tests out of %d \n", sched_ctx2, val[1], NTASKS*NINCR);
 	return 0;
 }

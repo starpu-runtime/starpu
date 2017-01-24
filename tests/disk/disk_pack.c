@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2013 Corentin Salingue
- * Copyright (C) 2015 CNRS
+ * Copyright (C) 2015, 2016 CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -13,10 +13,6 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
- */
-
-/* Try to write into disk memory
- * Use mechanism to push datas from main ram to disk ram
  */
 
 #include <fcntl.h>
@@ -31,6 +27,12 @@
 #include <common/config.h>
 #include "../helper.h"
 
+/*
+ * Try to write into disk memory
+ * Use mechanism to push datas from main ram to disk ram
+ * Here we force using the pack/unpack mechanism
+ */
+
 #ifdef STARPU_HAVE_WINDOWS
 #  include <io.h>
 #  if defined(_WIN32) && !defined(__CYGWIN__)
@@ -38,11 +40,7 @@
 #  endif
 #endif
 
-#ifdef STARPU_QUICK_CHECK
-#  define NX (128)
-#else
-#  define NX (1024)
-#endif
+#define NX (1024)
 
 const struct starpu_data_copy_methods my_vector_copy_data_methods_s;
 struct starpu_data_interface_ops starpu_interface_my_vector_ops;
@@ -79,6 +77,13 @@ int dotest(struct starpu_disk_ops *ops, char *base)
 	conf.nscc = 0;
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV) goto enodev;
+
+	if (starpu_cpu_worker_get_count() == 0)
+	{
+		FPRINTF(stderr, "We need at least 1 CPU worker.\n");
+		starpu_shutdown();
+		return STARPU_TEST_SKIPPED;
+	}
 
 	/* Initialize path and name */
 	const char *name_file_start = "STARPU_DISK_COMPUTE_DATA_";
@@ -127,6 +132,9 @@ int dotest(struct starpu_disk_ops *ops, char *base)
 	fclose(f);
 
 	int descriptor = open(path_file_start, O_RDWR);
+	if (descriptor < 0)
+		goto enoent2;
+
 #ifdef STARPU_HAVE_WINDOWS
 	_commit(descriptor);
 #else
@@ -146,6 +154,8 @@ int dotest(struct starpu_disk_ops *ops, char *base)
 	fclose(f);
 
         descriptor = open(path_file_end, O_RDWR);
+	if (descriptor < 0)
+		goto enoent2;
 #ifdef STARPU_HAVE_WINDOWS
         _commit(descriptor);
 #else

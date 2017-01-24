@@ -1,10 +1,11 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2009-2017  Université de Bordeaux
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  * Copyright (C) 2010, 2011  INRIA
  * Copyright (C) 2011  Télécom-SudParis
- * Copyright (C) 2011-2012  INRIA
+ * Copyright (C) 2011-2012, 2016  INRIA
+ * Copyright (C) 2016  Uppsala University
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -20,8 +21,12 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#ifdef __linux__
+#include <sys/utsname.h>
+#endif
 #include <common/config.h>
 #include <common/utils.h>
+#include <common/graph.h>
 #include <core/progress_hook.h>
 #include <core/workers.h>
 #include <core/debug.h>
@@ -32,6 +37,7 @@
 #include <starpu_task_list.h>
 #include <sched_policies/sched_component.h>
 #include <datawizard/memory_nodes.h>
+#include <top/starpu_top_core.h>
 #include <drivers/mp_common/sink_common.h>
 #include <drivers/scc/driver_scc_common.h>
 
@@ -51,7 +57,7 @@
 static starpu_pthread_mutex_t init_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 static starpu_pthread_cond_t init_cond = STARPU_PTHREAD_COND_INITIALIZER;
 static int init_count = 0;
-static enum { UNINITIALIZED, CHANGING, INITIALIZED } initialized = UNINITIALIZED;
+static enum initialization initialized = UNINITIALIZED;
 
 int _starpu_keys_initialized STARPU_ATTRIBUTE_INTERNAL;
 starpu_pthread_key_t _starpu_worker_key STARPU_ATTRIBUTE_INTERNAL;
@@ -94,7 +100,6 @@ int _starpu_is_initialized(void)
 static uint32_t _starpu_worker_exists_and_can_execute(struct starpu_task *task,
 						      enum starpu_worker_archtype arch)
 {
-	int i;
 	_starpu_codelet_check_deprecated_fields(task->cl);
 
         /* make sure there is a worker on the machine able to execute the
@@ -107,7 +112,7 @@ static uint32_t _starpu_worker_exists_and_can_execute(struct starpu_task *task,
 	workers->init_iterator(workers, &it);
 	while(workers->has_next(workers, &it))
 	{
-		i = workers->get_next(workers, &it);
+		int i = workers->get_next(workers, &it);
 		if (starpu_worker_get_type(i) != arch)
 			continue;
 
@@ -271,14 +276,14 @@ static inline int _starpu_can_use_nth_implementation(enum starpu_worker_archtype
 	case STARPU_MIC_WORKER:
 	{
 		starpu_mic_func_t func = _starpu_task_get_mic_nth_implementation(cl, nimpl);
-		char *func_name = _starpu_task_get_cpu_name_nth_implementation(cl, nimpl);
+		const char *func_name = _starpu_task_get_cpu_name_nth_implementation(cl, nimpl);
 
 		return func != NULL || func_name != NULL;
 	}
 	case STARPU_SCC_WORKER:
 	{
 		starpu_scc_func_t func = _starpu_task_get_scc_nth_implementation(cl, nimpl);
-		char *func_name = _starpu_task_get_cpu_name_nth_implementation(cl, nimpl);
+		const char *func_name = _starpu_task_get_cpu_name_nth_implementation(cl, nimpl);
 
 		return func != NULL || func_name != NULL;
 	}
@@ -370,7 +375,7 @@ int starpu_worker_can_execute_task_first_impl(unsigned workerid, struct starpu_t
 	{
 		for (i = 0; i < STARPU_MAXIMPLEMENTATIONS; i++)
 			if (_starpu_can_use_nth_implementation(arch, cl, i)
-			 && task->cl->can_execute(workerid, task, i))
+			 && (task->cl->can_execute(workerid, task, i)))
 			{
 				if (nimpl)
 					*nimpl = i;
@@ -398,12 +403,12 @@ int starpu_combined_worker_can_execute_task(unsigned workerid, struct starpu_tas
 	}
 	else
 	{
-		if ((cl->type == STARPU_SPMD)
+		if (cl->type == STARPU_SPMD
 #ifdef STARPU_HAVE_HWLOC
-				|| (cl->type == STARPU_FORKJOIN)
+				|| cl->type == STARPU_FORKJOIN
 #else
 #ifdef __GLIBC__
-				|| (cl->type == STARPU_FORKJOIN)
+				|| cl->type == STARPU_FORKJOIN
 #endif
 #endif
 
@@ -559,6 +564,8 @@ static void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu
 
 static void _starpu_worker_deinit(struct _starpu_worker *workerarg)
 {
+	(void) workerarg;
+
 #ifdef STARPU_SIMGRID
 	starpu_pthread_queue_unregister(&workerarg->wait, &_starpu_simgrid_task_queue[workerarg->workerid]);
 	starpu_pthread_wait_destroy(&workerarg->wait);
@@ -580,20 +587,9 @@ void _starpu_driver_start(struct _starpu_worker *worker, unsigned fut_key, unsig
 	int devid = worker->devid;
 	(void) devid;
 
-#if defined(STARPU_PERF_DEBUG) && !defined(STARPU_SIMGRID)
-	setitimer(ITIMER_PROF, &prof_itimer, NULL);
-#endif
-
 #ifdef STARPU_USE_FXT
 	_starpu_fxt_register_thread(worker->bindid);
 	_starpu_worker_start(worker, fut_key, sync);
-#endif
-
-	_starpu_bind_thread_on_cpu(worker->config, worker->bindid, worker->workerid);
-
-        _STARPU_DEBUG("worker %p %d for dev %d is ready on logical cpu %d\n", worker, worker->workerid, devid, worker->bindid);
-#ifdef STARPU_HAVE_HWLOC
-	_STARPU_DEBUG("worker %p %d cpuset start at %d\n", worker, worker->workerid, hwloc_bitmap_first(worker->hwloc_cpu_set));
 #endif
 
 	_starpu_memory_node_set_local_key(&worker->memory_node);
@@ -604,6 +600,17 @@ void _starpu_driver_start(struct _starpu_worker *worker, unsigned fut_key, unsig
 	worker->worker_is_running = 1;
 	STARPU_PTHREAD_COND_SIGNAL(&worker->started_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&worker->mutex);
+
+	_starpu_bind_thread_on_cpu(worker->config, worker->bindid, worker->workerid);
+
+#if defined(STARPU_PERF_DEBUG) && !defined(STARPU_SIMGRID)
+	setitimer(ITIMER_PROF, &prof_itimer, NULL);
+#endif
+
+        _STARPU_DEBUG("worker %p %d for dev %d is ready on logical cpu %d\n", worker, worker->workerid, devid, worker->bindid);
+#ifdef STARPU_HAVE_HWLOC
+	_STARPU_DEBUG("worker %p %d cpuset start at %d\n", worker, worker->workerid, hwloc_bitmap_first(worker->hwloc_cpu_set));
+#endif
 }
 
 static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
@@ -622,9 +629,10 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 	/* Get itimer of the main thread, to set it for the worker threads */
 	getitimer(ITIMER_PROF, &prof_itimer);
 #endif
+	STARPU_AYU_INIT();
 
-#ifdef HAVE_AYUDAME_H
-	if (AYU_event) AYU_event(AYU_INIT, 0, NULL);
+#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
+	unsigned th_per_stream = starpu_get_env_number_default("STARPU_CUDA_THREAD_PER_WORKER", 0);
 #endif
 
 	for (worker = 0; worker < nworkers; worker++)
@@ -677,21 +685,24 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 			case STARPU_CUDA_WORKER:
 				driver.id.cuda_id = devid;
 
-				/* We spawn only one thread per CUDA driver,
-				 * which will control all CUDA workers of this
-				 * driver. (by using a worker set). */
 				if (worker_set->workers != workerarg)
+					/* We are not the first worker of the
+					 * set, don't start a thread for it. */
 					break;
 
-				worker_set->nworkers = starpu_get_env_number_default("STARPU_NWORKER_PER_CUDA", 1);
-
-#ifndef STARPU_NON_BLOCKING_DRIVERS
-				if (worker_set->nworkers > 1)
+				if(th_per_stream == 0)
 				{
-					_STARPU_DISP("Warning: reducing STARPU_NWORKER_PER_CUDA to 1 because blocking drivers are enabled\n");
-					worker_set->nworkers = 1;
-				}
+					worker_set->nworkers = starpu_get_env_number_default("STARPU_NWORKER_PER_CUDA", 1);
+#ifndef STARPU_NON_BLOCKING_DRIVERS
+					if (worker_set->nworkers > 1)
+					{
+						_STARPU_DISP("Warning: reducing STARPU_NWORKER_PER_CUDA to 1 because blocking drivers are enabled\n");
+						worker_set->nworkers = 1;
+					}
 #endif
+				}
+				else
+					worker_set->nworkers = 1;
 
 				worker_set->set_is_initialized = 0;
 
@@ -700,6 +711,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 					workerarg->run_by_starpu = 0;
 					break;
 				}
+
 
 				STARPU_PTHREAD_CREATE_ON(
 					workerarg->name,
@@ -714,13 +726,6 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 					STARPU_PTHREAD_COND_WAIT(&workerarg->started_cond, &workerarg->mutex);
 				STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
 #endif
-				STARPU_PTHREAD_MUTEX_LOCK(&worker_set->mutex);
-				while (!worker_set->set_is_initialized)
-					STARPU_PTHREAD_COND_WAIT(&worker_set->ready_cond,
-								 &worker_set->mutex);
-				STARPU_PTHREAD_MUTEX_UNLOCK(&worker_set->mutex);
-				worker_set->started = 1;
-
 				break;
 #endif
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
@@ -816,6 +821,9 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 		struct starpu_driver driver;
 		unsigned devid = workerarg->devid;
 		driver.type = workerarg->arch;
+#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
+		struct _starpu_worker_set *worker_set = workerarg->set;
+#endif
 
 		switch (workerarg->arch)
 		{
@@ -829,9 +837,23 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 					STARPU_PTHREAD_COND_WAIT(&workerarg->ready_cond, &workerarg->mutex);
 				STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
 				break;
+#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 			case STARPU_CUDA_WORKER:
-				/* Already waited above */
+#ifndef STARPU_SIMGRID
+				driver.id.cuda_id = devid;
+				if (!_starpu_may_launch_driver(&pconfig->conf, &driver))
+					break;
+#endif
+				_STARPU_DEBUG("waiting for worker %u initialization\n", worker);
+				STARPU_PTHREAD_MUTEX_LOCK(&worker_set->mutex);
+				while (!worker_set->set_is_initialized)
+					STARPU_PTHREAD_COND_WAIT(&worker_set->ready_cond,
+								 &worker_set->mutex);
+				STARPU_PTHREAD_MUTEX_UNLOCK(&worker_set->mutex);
+				worker_set->started = 1;
+
 				break;
+#endif
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 			case STARPU_OPENCL_WORKER:
 #ifndef STARPU_SIMGRID
@@ -993,16 +1015,23 @@ struct starpu_tree* starpu_workers_get_tree(void)
 }
 
 #ifdef STARPU_HAVE_HWLOC
-static void _fill_tree(struct starpu_tree *tree, hwloc_obj_t curr_obj, unsigned depth, hwloc_topology_t topology)
+static void _fill_tree(struct starpu_tree *tree, hwloc_obj_t curr_obj, unsigned depth, hwloc_topology_t topology, struct starpu_tree *father)
 {
 	unsigned i;
+	if (curr_obj->arity == 1)
+	{
+		/* Nothing interestin here, skip level */
+		_fill_tree(tree, curr_obj->children[0], depth+1, topology, father);
+		return;
+	}
+	starpu_tree_insert(tree, curr_obj->logical_index, depth, curr_obj->type == HWLOC_OBJ_PU, curr_obj->arity, father);
+	starpu_tree_prepare_children(curr_obj->arity, tree);
 	for(i = 0; i < curr_obj->arity; i++)
 	{
-		starpu_tree_insert(tree->nodes[i], curr_obj->children[i]->logical_index, depth, curr_obj->children[i]->type == HWLOC_OBJ_PU, curr_obj->children[i]->arity, tree);
 /* 		char string[128]; */
 /* 		hwloc_obj_snprintf(string, sizeof(string), topology, curr_obj->children[i], "#", 0); */
 /* 		printf("%*s%s %d is_pu %d \n", 0, "", string, curr_obj->children[i]->logical_index, curr_obj->children[i]->type == HWLOC_OBJ_PU); */
-		_fill_tree(tree->nodes[i], curr_obj->children[i], depth+1, topology);
+		_fill_tree(&tree->nodes[i], curr_obj->children[i], depth+1, topology, tree);
 	}
 }
 #endif
@@ -1010,18 +1039,27 @@ static void _fill_tree(struct starpu_tree *tree, hwloc_obj_t curr_obj, unsigned 
 static void _starpu_build_tree(void)
 {
 #ifdef STARPU_HAVE_HWLOC
-	struct starpu_tree* tree = (struct starpu_tree*)malloc(sizeof(struct starpu_tree));
+	hwloc_topology_t cpu_topo;
+	struct starpu_tree *tree;
+	_STARPU_MALLOC(tree, sizeof(struct starpu_tree));
 	_starpu_config.topology.tree = tree;
 
-	hwloc_obj_t root = hwloc_get_root_obj(_starpu_config.topology.hwtopology);
+	hwloc_topology_init(&cpu_topo);
+#if HWLOC_API_VERSION >= 0x20000
+	hwloc_topology_set_all_types_filter(cpu_topo, HWLOC_TYPE_FILTER_KEEP_STRUCTURE);
+#else
+	hwloc_topology_ignore_all_keep_structure(cpu_topo);
+#endif
+	hwloc_topology_load(cpu_topo);
+	hwloc_obj_t root = hwloc_get_root_obj(cpu_topo);
 
 /* 	char string[128]; */
 /* 	hwloc_obj_snprintf(string, sizeof(string), topology, root, "#", 0); */
 /* 	printf("%*s%s %d is_pu = %d \n", 0, "", string, root->logical_index, root->type == HWLOC_OBJ_PU); */
 
-	/* level, is_pu, is in the tree (it will be true only after add*/
-	starpu_tree_insert(tree, root->logical_index, 0,root->type == HWLOC_OBJ_PU, root->arity, NULL);
-	_fill_tree(tree, root, 1, _starpu_config.topology.hwtopology);
+	/* level, is_pu, is in the tree (it will be true only after add) */
+	_fill_tree(tree, root, 0, cpu_topo, NULL);
+	hwloc_topology_destroy(cpu_topo);
 #endif
 }
 
@@ -1044,7 +1082,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 
 #ifdef STARPU_SIMGRID
 	/* This initializes the simgrid thread library, thus needs to be early */
-	_starpu_simgrid_init();
+	_starpu_simgrid_init(argc, argv);
 #endif
 
 	STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
@@ -1088,7 +1126,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	 * processes will take a long time to get initialized */
 	char *perturb = starpu_getenv("MALLOC_PERTURB_");
 	if (perturb && perturb[0] && atoi(perturb) != 0)
-		_STARPU_DISP("Warning: MALLOC_PERTURB_ is set to non-zero, this makes simgrid runs very slow\n");
+		_STARPU_DISP("Warning: MALLOC_PERTURB_ is set to non-zero, this makes simgrid run very slow\n");
 #else
 #ifdef __GNUC__
 #ifndef __OPTIMIZE__
@@ -1118,6 +1156,15 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 #ifdef STARPU_MODEL_DEBUG
 	_STARPU_DISP("Warning: StarPU was configured with --enable-model-debug, which slows down a bit\n");
 #endif
+#ifdef __linux__
+	{
+		struct utsname buf;
+		if (uname(&buf) == 0
+		 && (!strncmp(buf.release, "4.7.", 4)
+		  || !strncmp(buf.release, "4.8.", 4)))
+			_STARPU_DISP("Warning: This system is running a 4.7 or 4.8 kernel. These have a severe scheduling performance regression issue, please upgrade to at least 4.9.\n");
+	}
+#endif
 #endif
 
 	if (starpu_getenv("STARPU_ENABLE_STATS"))
@@ -1132,16 +1179,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 
 	srand(2008);
 
-#ifdef HAVE_AYUDAME_H
-#ifndef AYU_RT_STARPU
-#define AYU_RT_STARPU 4
-#endif
-	if (AYU_event)
-	{
-		enum ayu_runtime_t ayu_rt = AYU_RT_STARPU;
-		AYU_event(AYU_PREINIT, 0, (void*) &ayu_rt);
-	}
-#endif
+	STARPU_AYU_PREINIT();
 	/* store the pointer to the user explicit configuration during the
 	 * initialization */
 	if (user_conf == NULL)
@@ -1165,17 +1203,23 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	if (_starpu_config.conf.n_cuda_opengl_interoperability)
 	{
 		size_t size = _starpu_config.conf.n_cuda_opengl_interoperability * sizeof(*_starpu_config.conf.cuda_opengl_interoperability);
-		unsigned *copy = malloc(size);
+		unsigned *copy;
+		_STARPU_MALLOC(copy, size);
 		memcpy(copy, _starpu_config.conf.cuda_opengl_interoperability, size);
 		_starpu_config.conf.cuda_opengl_interoperability = copy;
 	}
 	if (_starpu_config.conf.n_not_launched_drivers)
 	{
 		size_t size = _starpu_config.conf.n_not_launched_drivers * sizeof(*_starpu_config.conf.not_launched_drivers);
-		struct starpu_driver *copy = malloc(size);
+		struct starpu_driver *copy;
+		_STARPU_MALLOC(copy, size);
 		memcpy(copy, _starpu_config.conf.not_launched_drivers, size);
 		_starpu_config.conf.not_launched_drivers = copy;
 	}
+
+	_starpu_sched_init();
+	_starpu_job_init();
+	_starpu_graph_init();
 
 	_starpu_init_all_sched_ctxs(&_starpu_config);
 	_starpu_init_progression_hooks();
@@ -1234,11 +1278,14 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	if (!is_a_sink)
 	{
 		struct starpu_sched_policy *selected_policy = _starpu_select_sched_policy(&_starpu_config, _starpu_config.conf.sched_policy_name);
-		_starpu_create_sched_ctx(selected_policy, NULL, -1, 1, "init", (_starpu_config.conf.global_sched_ctx_min_priority != -1), _starpu_config.conf.global_sched_ctx_min_priority, (_starpu_config.conf.global_sched_ctx_min_priority != -1), _starpu_config.conf.global_sched_ctx_max_priority, 1, _starpu_config.conf.sched_policy_init);
+		_starpu_create_sched_ctx(selected_policy, NULL, -1, 1, "init", (_starpu_config.conf.global_sched_ctx_min_priority != -1), _starpu_config.conf.global_sched_ctx_min_priority, (_starpu_config.conf.global_sched_ctx_min_priority != -1), _starpu_config.conf.global_sched_ctx_max_priority, 1, _starpu_config.conf.sched_policy_init, NULL,  0, NULL, 0);
 	}
 
 	_starpu_initialize_registered_performance_models();
 
+#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
+	_starpu_cuda_init();
+#endif
 	/* Launch "basic" workers (ie. non-combined workers) */
 	if (!is_a_sink)
 		_starpu_launch_drivers(&_starpu_config);
@@ -1247,6 +1294,8 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	_starpu_swap_init();
 
 	_starpu_watchdog_init();
+
+	_starpu_profiling_start();
 
 	STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
 	initialized = INITIALIZED;
@@ -1294,7 +1343,7 @@ static void _starpu_terminate_workers(struct _starpu_machine_config *pconfig)
 
 		/* in case StarPU termination code is called from a callback,
  		 * we have to check if pthread_self() is the worker itself */
-		if (set)
+		if (set && set->nworkers > 0)
 		{
 			if (set->started)
 			{
@@ -1302,7 +1351,9 @@ static void _starpu_terminate_workers(struct _starpu_machine_config *pconfig)
 				status = starpu_pthread_join(set->worker_thread, NULL);
 #else
 				if (!pthread_equal(pthread_self(), set->worker_thread))
+				{
 					status = starpu_pthread_join(set->worker_thread, NULL);
+				}
 #endif
 				if (status)
 				{
@@ -1471,8 +1522,8 @@ void starpu_shutdown(void)
 	     int stats = starpu_get_env_number("STARPU_STATS");
 	     if (stats != 0)
 	     {
-		  _starpu_display_msi_stats();
-		  _starpu_display_alloc_cache_stats();
+		  _starpu_display_msi_stats(stderr);
+		  _starpu_display_alloc_cache_stats(stderr);
 	     }
 	}
 
@@ -1497,6 +1548,7 @@ void starpu_shutdown(void)
 
 	_starpu_delete_all_sched_ctxs();
 	_starpu_sched_component_workers_destroy();
+	_starpu_top_shutdown();
 
 	for (worker = 0; worker < _starpu_config.topology.nworkers; worker++)
 		_starpu_worker_deinit(&_starpu_config.workers[worker]);
@@ -1514,6 +1566,8 @@ void starpu_shutdown(void)
 #endif
 
 	_starpu_data_interface_shutdown();
+
+	_starpu_job_fini();
 
 	/* Drop all remaining tags */
 	_starpu_tag_clear();
@@ -1542,10 +1596,7 @@ void starpu_shutdown(void)
 		free(_starpu_config.conf.cuda_opengl_interoperability);
 	if (_starpu_config.conf.n_not_launched_drivers)
 		free(_starpu_config.conf.not_launched_drivers);
-
-#ifdef HAVE_AYUDAME_H
-	if (AYU_event) AYU_event(AYU_FINISH, 0, NULL);
-#endif
+	STARPU_AYU_FINISH();
 
 #ifdef STARPU_USE_SCC
 	if (_starpu_scc_common_is_mp_initialized())
@@ -1553,9 +1604,14 @@ void starpu_shutdown(void)
 #endif
 	_starpu_print_idle_time();
 	_STARPU_DEBUG("Shutdown finished\n");
+
+#ifdef STARPU_SIMGRID
+	/* This finalizes the simgrid thread library, thus needs to be late */
+	_starpu_simgrid_deinit();
+#endif
 }
 
-
+#undef starpu_worker_get_count
 unsigned starpu_worker_get_count(void)
 {
 	return _starpu_config.topology.nworkers;
@@ -1590,6 +1646,12 @@ int starpu_worker_get_count_by_type(enum starpu_worker_archtype type)
 		case STARPU_SCC_WORKER:
 			return _starpu_config.topology.nsccdevices;
 
+		case STARPU_ANY_WORKER:
+			return _starpu_config.topology.ncpus+
+			       _starpu_config.topology.ncudagpus+
+			       _starpu_config.topology.nopenclgpus+
+			       _starpu_config.topology.nmicdevices+
+			       _starpu_config.topology.nsccdevices;
 		default:
 			return -EINVAL;
 	}
@@ -1674,6 +1736,16 @@ int starpu_worker_get_id(void)
 }
 #define starpu_worker_get_id _starpu_worker_get_id
 
+#undef _starpu_worker_get_id_check
+unsigned _starpu_worker_get_id_check(const char *f, int l)
+{
+	(void) f;
+	(void) l;
+	int id = _starpu_worker_get_id();
+	STARPU_ASSERT_MSG(id>=0, "%s:%d Cannot be called from outside a worker\n", f, l);
+	return id;
+}
+
 int starpu_combined_worker_get_id(void)
 {
 	struct _starpu_worker *worker;
@@ -1755,16 +1827,16 @@ enum starpu_worker_archtype starpu_worker_get_type(int id)
 	return _starpu_config.workers[id].arch;
 }
 
-int starpu_worker_get_ids_by_type(enum starpu_worker_archtype type, int *workerids, int maxsize)
+unsigned starpu_worker_get_ids_by_type(enum starpu_worker_archtype type, int *workerids, unsigned maxsize)
 {
 	unsigned nworkers = starpu_worker_get_count();
 
-	int cnt = 0;
+	unsigned cnt = 0;
 
 	unsigned id;
 	for (id = 0; id < nworkers; id++)
 	{
-		if (starpu_worker_get_type(id) == type)
+		if (type == STARPU_ANY_WORKER || starpu_worker_get_type(id) == type)
 		{
 			/* Perhaps the array is too small ? */
 			if (cnt >= maxsize)
@@ -1786,7 +1858,7 @@ int starpu_worker_get_by_type(enum starpu_worker_archtype type, int num)
 	unsigned id;
 	for (id = 0; id < nworkers; id++)
 	{
-		if (starpu_worker_get_type(id) == type)
+		if (type == STARPU_ANY_WORKER || starpu_worker_get_type(id) == type)
 		{
 			if (num == cnt)
 				return id;
@@ -1811,6 +1883,48 @@ int starpu_worker_get_by_devid(enum starpu_worker_archtype type, int devid)
 	return -1;
 }
 
+int starpu_worker_get_devids(enum starpu_worker_archtype type, int *devids, int num)
+{
+	int cnt = 0;
+	unsigned nworkers = starpu_worker_get_count();
+	int workerids[nworkers];
+
+	unsigned ndevice_workers = starpu_worker_get_ids_by_type(type, workerids, nworkers);
+
+	unsigned ndevids = 0;
+
+	if(ndevice_workers > 0)
+	{
+		unsigned id, devid;
+		int curr_devid = -1;
+		unsigned found = 0;
+		for(id = 0; id < ndevice_workers; id++)
+		{
+			curr_devid = _starpu_config.workers[workerids[id]].devid;
+			for(devid = 0; devid < ndevids; devid++)
+			{
+				if(curr_devid == devids[devid])
+				{
+					found = 1;
+					break;
+				}
+			}
+			if(!found)
+			{
+				devids[ndevids++] = curr_devid;
+				cnt++;
+			}
+			else
+				found = 0;
+
+			if(cnt == num)
+				break;
+		}
+	}
+
+	return ndevids;
+}
+
 void starpu_worker_get_name(int id, char *dst, size_t maxlen)
 {
 	char *name = _starpu_config.workers[id].name;
@@ -1823,14 +1937,25 @@ int starpu_worker_get_bindid(int workerid)
 	return _starpu_config.workers[workerid].bindid;
 }
 
-int starpu_worker_get_workerids(int bindid, int *workerids)
+int starpu_bindid_get_workerids(int bindid, int **workerids)
+{
+	if (bindid >= (int) _starpu_config.nbindid)
+		return 0;
+	*workerids = _starpu_config.bindid_workers[bindid].workerids;
+	return _starpu_config.bindid_workers[bindid].nworkers;
+}
+
+int starpu_worker_get_stream_workerids(unsigned devid, int *workerids, enum starpu_worker_archtype type)
 {
 	unsigned nworkers = starpu_worker_get_count();
 	int nw = 0;
 	unsigned id;
 	for (id = 0; id < nworkers; id++)
-		if (_starpu_config.workers[id].bindid == bindid)
+	{
+		if (_starpu_config.workers[id].devid == devid &&
+		    (type == STARPU_ANY_WORKER || _starpu_config.workers[id].arch == type))
 			workerids[nw++] = id;
+	}
 	return nw;
 }
 
@@ -1888,7 +2013,7 @@ int starpu_worker_get_nids_by_type(enum starpu_worker_archtype type, int *worker
 	unsigned id;
 	for (id = 0; id < nworkers; id++)
 	{
-		if (starpu_worker_get_type(id) == type)
+		if (type == STARPU_ANY_WORKER || starpu_worker_get_type(id) == type)
 		{
 			/* Perhaps the array is too small ? */
 			if (cnt >= maxsize)
@@ -1904,19 +2029,17 @@ int starpu_worker_get_nids_by_type(enum starpu_worker_archtype type, int *worker
 int starpu_worker_get_nids_ctx_free_by_type(enum starpu_worker_archtype type, int *workerids, int maxsize)
 {
 	unsigned nworkers = starpu_worker_get_count();
-
 	int cnt = 0;
+	unsigned id;
 
-	unsigned id, worker;
-	unsigned found = 0;
 	for (id = 0; id < nworkers; id++)
 	{
-		found = 0;
-		if (starpu_worker_get_type(id) == type)
+		if (type == STARPU_ANY_WORKER || starpu_worker_get_type(id) == type)
 		{
 			/* Perhaps the array is too small ? */
 			if (cnt >= maxsize)
 				return cnt;
+			unsigned found = 0;
 			int s;
 			for(s = 1; s < STARPU_NMAX_SCHED_CTXS; s++)
 			{
@@ -1928,7 +2051,7 @@ int starpu_worker_get_nids_ctx_free_by_type(enum starpu_worker_archtype type, in
 					workers->init_iterator(workers, &it);
 					while(workers->has_next(workers, &it))
 					{
-						worker = workers->get_next(workers, &it);
+						unsigned worker = workers->get_next(workers, &it);
 						if(worker == id)
 						{
 							found = 1;
@@ -1974,6 +2097,7 @@ starpu_driver_run(struct starpu_driver *d)
 		return _starpu_run_opencl(worker);
 #endif
 	default:
+		(void) worker;
 		_STARPU_DEBUG("Invalid device type\n");
 		return -EINVAL;
 	}
@@ -2000,6 +2124,7 @@ starpu_driver_init(struct starpu_driver *d)
 		return _starpu_opencl_driver_init(worker);
 #endif
 	default:
+		(void) worker;
 		return -EINVAL;
 	}
 }
@@ -2025,6 +2150,7 @@ starpu_driver_run_once(struct starpu_driver *d)
 		return _starpu_opencl_driver_run_once(worker);
 #endif
 	default:
+		(void) worker;
 		return -EINVAL;
 	}
 }
@@ -2050,6 +2176,7 @@ starpu_driver_deinit(struct starpu_driver *d)
 		return _starpu_opencl_driver_deinit(worker);
 #endif
 	default:
+		(void) worker;
 		return -EINVAL;
 	}
 }
@@ -2092,7 +2219,7 @@ unsigned starpu_worker_get_sched_ctx_list(int workerid, unsigned **sched_ctxs)
 {
 	unsigned s = 0;
 	unsigned nsched_ctxs = _starpu_worker_get_nsched_ctxs(workerid);
-	*sched_ctxs = (unsigned*)malloc(nsched_ctxs*sizeof(unsigned));
+	_STARPU_MALLOC(*sched_ctxs, nsched_ctxs*sizeof(unsigned));
 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 	struct _starpu_sched_ctx_elt *e = NULL;
 	struct _starpu_sched_ctx_list_iterator list_it;
@@ -2116,3 +2243,28 @@ char *starpu_worker_get_type_as_string(enum starpu_worker_archtype type)
 	if (type == STARPU_ANY_WORKER) return "STARPU_ANY_WORKER";
 	return "STARPU_unknown_WORKER";
 }
+
+void _starpu_worker_set_stream_ctx(unsigned workerid, struct _starpu_sched_ctx *sched_ctx)
+{
+	STARPU_ASSERT(workerid < starpu_worker_get_count());
+        struct _starpu_worker *w = _starpu_get_worker_struct(workerid);
+        w->stream_ctx = sched_ctx;
+}
+
+struct _starpu_sched_ctx* _starpu_worker_get_ctx_stream(unsigned stream_workerid)
+{
+	if (stream_workerid >= starpu_worker_get_count())
+		return NULL;
+        struct _starpu_worker *w = _starpu_get_worker_struct(stream_workerid);
+        return w->stream_ctx;
+}
+
+unsigned starpu_worker_get_sched_ctx_id_stream(unsigned stream_workerid)
+{
+	if (stream_workerid >= starpu_worker_get_count())
+		return STARPU_NMAX_SCHED_CTXS;
+        struct _starpu_worker *w = _starpu_get_worker_struct(stream_workerid);
+	return w->stream_ctx != NULL ? w->stream_ctx->id : STARPU_NMAX_SCHED_CTXS;
+}
+
+

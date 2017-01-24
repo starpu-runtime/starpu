@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2011, 2014-2015  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2015, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -114,7 +114,6 @@ static int dw_codelet_facto_v3(starpu_data_handle_t dataA, unsigned nblocks)
 {
 	double start;
 	double end;
-	int ret;
 
 	/* create all the DAG nodes */
 	unsigned i,j,k;
@@ -126,6 +125,8 @@ static int dw_codelet_facto_v3(starpu_data_handle_t dataA, unsigned nblocks)
 
 	for (k = 0; k < nblocks; k++)
 	{
+		int ret;
+
 		ret = create_task_11(dataA, k);
 		if (ret == -ENODEV) return ret;
 

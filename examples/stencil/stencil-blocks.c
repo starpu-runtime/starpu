@@ -283,7 +283,7 @@ static void free_block_on_node(starpu_data_handle_t handleptr, unsigned nx, unsi
 
 void display_memory_consumption(int rank)
 {
-	FPRINTF(stderr, "%lu B of memory were allocated on node %d\n", allocated, rank);
+	FPRINTF(stderr, "%lu B of memory were allocated on node %d\n", (unsigned long) allocated, rank);
 }
 
 void allocate_memory_on_node(int rank)
@@ -395,7 +395,7 @@ void check(int rank)
 				for (y = 0; y < sizey; y++)
 					for (z = 0; z < size_bz; z++)
 						sum += block->layers[0][(K+x)+(K+y)*(sizex + 2*K)+(K+z)*(sizex+2*K)*(sizey+2*K)];
-			printf("block %d got %d/%d alive\n", bz, sum, sizex*sizey*size_bz);
+			printf("block %u got %u/%u alive\n", bz, sum, sizex*sizey*size_bz);
 #endif
 		}
 	}

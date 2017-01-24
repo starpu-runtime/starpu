@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012-2015  Université de Bordeaux
+ * Copyright (C) 2010, 2012-2016  Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -262,7 +262,7 @@ void dot_kernel_cpu(void *descr[], void *cl_arg)
 
 	unsigned n = STARPU_VECTOR_GET_NX(descr[1]);
 
-	TYPE local_dot = 0.0;
+	TYPE local_dot;
 	/* Note that we explicitely cast the result of the DOT kernel because
 	 * some BLAS library will return a double for sdot for instance. */
 	local_dot = (TYPE)DOT(n, v1, 1, v2, 1);
@@ -478,7 +478,7 @@ int gemv_kernel(starpu_data_handle_t v1,
 						 STARPU_R,	starpu_data_get_sub_data(v2, 1, b1),
 						 STARPU_VALUE,	&one,	sizeof(one),
 						 STARPU_VALUE,	&p2,	sizeof(p2),
-						 STARPU_TAG_ONLY, (starpu_tag_t) (b2 * nblocks + b1),
+						 STARPU_TAG_ONLY, ((starpu_tag_t)b2) * nblocks + b1,
 						 0);
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 		}
@@ -550,10 +550,10 @@ int scal_axpy_kernel(starpu_data_handle_t v1, TYPE p1,
 		     starpu_data_handle_t v2, TYPE p2,
 		     unsigned nblocks)
 {
-	int ret;
 	unsigned b;
 	for (b = 0; b < nblocks; b++)
 	{
+		int ret;
 		ret = starpu_task_insert(&scal_axpy_kernel_cl,
 					 STARPU_RW, starpu_data_get_sub_data(v1, 1, b),
 					 STARPU_R,  starpu_data_get_sub_data(v2, 1, b),
@@ -626,10 +626,10 @@ int axpy_kernel(starpu_data_handle_t v1,
 		starpu_data_handle_t v2, TYPE p1,
 		unsigned nblocks)
 {
-	int ret;
 	unsigned b;
 	for (b = 0; b < nblocks; b++)
 	{
+		int ret;
 		ret = starpu_task_insert(&axpy_kernel_cl,
 					 STARPU_RW, starpu_data_get_sub_data(v1, 1, b),
 					 STARPU_R,  starpu_data_get_sub_data(v2, 1, b),

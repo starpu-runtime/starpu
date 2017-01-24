@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2016  Université de Bordeaux
- * Copyright (C) 2010-2015  CNRS
+ * Copyright (C) 2010-2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -54,7 +54,7 @@ int main()
 	co->init_iterator = worker_tree.init_iterator;
 	co->type = STARPU_WORKER_TREE;
 
-	FPRINTF(stderr, "ncpus %d \n", ncpus);
+	FPRINTF(stderr, "ncpus %u \n", ncpus);
 
 	double start_time;
 	double end_time;
@@ -71,7 +71,7 @@ int main()
 	for(i = 0; i < ncpus; i++)
 	{
 		int added = co->add(co, procs[i]);
-//		FPRINTF(stderr, "added proc %d to the tree \n", added);
+		FPRINTF(stderr, "added proc %d to the tree \n", added);
 	}
 
 	struct starpu_sched_ctx_iterator it;
@@ -81,7 +81,7 @@ int main()
 	while(co->has_next(co, &it))
 	{
 		pu = co->get_next(co, &it);
-//		FPRINTF(stderr, "pu = %d out of %d workers \n", pu, co->nworkers);
+		FPRINTF(stderr, "pu = %d out of %u workers \n", pu, co->nworkers);
 	}
 
 	unsigned six = 6;
@@ -90,13 +90,13 @@ int main()
 	for(i = 0; i < six; i++)
 	{
 		co->remove(co, i);
-//		FPRINTF(stderr, "remove %d out of %d workers\n", i, co->nworkers);
+		FPRINTF(stderr, "remove %u out of %u workers\n", i, co->nworkers);
 	}
 
 	while(co->has_next(co, &it))
 	{
 		pu = co->get_next(co, &it);
-//		FPRINTF(stderr, "pu = %d out of %d workers \n", pu, co->nworkers);
+		FPRINTF(stderr, "pu = %d out of %u workers \n", pu, co->nworkers);
 	}
 
 	FPRINTF(stderr, "timing init = %lf \n", timing);

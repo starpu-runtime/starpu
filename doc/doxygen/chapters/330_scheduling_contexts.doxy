@@ -1,0 +1,211 @@
+/*
+ * This file is part of the StarPU Handbook.
+//  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
+ * Copyright (C) 2010, 2011, 2012, 2013, 2016  CNRS
+ * Copyright (C) 2011, 2012 INRIA
+ * Copyright (C) 2016 Uppsala University
+ * See the file version.doxy for copying conditions.
+ */
+
+/*! \page SchedulingContexts Scheduling Contexts
+
+TODO: improve!
+
+\section GeneralIdeas General Ideas
+
+Scheduling contexts represent abstracts sets of workers that allow the
+programmers to control the distribution of computational resources
+(i.e. CPUs and GPUs) to concurrent kernels. The main goal is
+to minimize interferences between the execution of multiple parallel
+kernels, by partitioning the underlying pool of workers using
+contexts. Scheduling contexts additionally allow a user to make use of
+a different scheduling policy depending on the target resource set.
+
+
+\section CreatingAContext Creating A Context
+
+By default, the application submits tasks to an initial context, which
+disposes of all the computation resources available to StarPU (all
+the workers). If the application programmer plans to launch several
+kernels simultaneously, by default these kernels will be
+executed within this initial context, using a single scheduler
+policy(see \ref TaskSchedulingPolicy). Meanwhile, if the application
+programmer is aware of the demands of these kernels and of the
+specificity of the machine used to execute them, the workers can be
+divided between several contexts. These scheduling contexts will
+isolate the execution of each kernel and they will permit the use of a
+scheduling policy proper to each one of them.
+
+Scheduling Contexts may be created in two ways: either the programmers
+indicates the set of workers corresponding to each context (providing
+he knows the identifiers of the workers running within StarPU), or the
+programmer does not provide any worker list and leaves the Hypervisor
+assign workers to each context according to their needs (\ref
+SchedulingContextHypervisor).
+
+Both cases require a call to the function
+starpu_sched_ctx_create(), which requires as input the worker
+list (the exact list or a <c>NULL</c> pointer), the amount of workers
+(or <c>-1</c> to designate all workers on the platform) and a list of
+optional parameters such as the scheduling policy, terminated by a
+<c>0</c>. The scheduling policy can be a character list corresponding
+to the name of a StarPU predefined policy or the pointer to a custom
+policy. The function returns an identifier of the context created
+which you will use to indicate the context you want to submit the
+tasks to.
+
+\code{.c}
+/* the list of resources the context will manage */
+int workerids[3] = {1, 3, 10};
+
+/* indicate the list of workers assigned to it, the number of workers,
+the name of the context and the scheduling policy to be used within
+the context */
+int id_ctx = starpu_sched_ctx_create(workerids, 3, "my_ctx", STARPU_SCHED_CTX_POLICY_NAME, "dmda", 0);
+
+/* let StarPU know that the following tasks will be submitted to this context */
+starpu_sched_ctx_set_task_context(id);
+
+/* submit the task to StarPU */
+starpu_task_submit(task);
+\endcode
+
+Note: Parallel greedy and parallel heft scheduling policies do not support the existence of several disjoint contexts on the machine.
+Combined workers are constructed depending on the entire topology of the machine, not only the one belonging to a context.
+
+\subsection CreatingAContextWithTheDefaultBehavior Creating A Context With The Default Behavior
+
+If <b>no scheduling policy</b> is specified when creating the context,
+it will be used as <b>another type of resource</b>: a cluster. A
+cluster is a context without scheduler (eventually delegated to
+another runtime). For more information see \ref ClusteringAMachine. It
+is therefore <b>mandatory</b> to stipulate a scheduler to use the
+contexts in this traditional way.
+
+To create a <b>context</b> with the default scheduler, that is either
+controlled through the environment variable <c>STARPU_SCHED</c> or the
+StarPU default scheduler, one can explicitly use the option <c>STARPU_SCHED_CTX_POLICY_NAME, NULL</c> as in the following example:
+
+\code{.c}
+/* the list of resources the context will manage */
+int workerids[3] = {1, 3, 10};
+
+/* indicate the list of workers assigned to it, the number of workers,
+and use the default scheduling policy. */
+int id_ctx = starpu_sched_ctx_create(workerids, 3, "my_ctx", STARPU_SCHED_CTX_POLICY_NAME, NULL, 0);
+
+/* .... */
+\endcode
+
+\section CreatingAContext Creating A Context To Partition a GPU
+
+The contexts can also be used to group set of SMs of an NVIDIA GPU in order to isolate
+the parallel kernels and allow them to coexecution on a specified partiton of the GPU.
+
+Each context will be mapped to a stream and the user can indicate the number of SMs.
+The context can be added to a larger context already grouping CPU cores. 
+This larger context can use a scheduling policy that assigns tasks to both CPUs and contexts (partitions of the GPU)
+based on performance models adjusted to the number of SMs.
+
+The GPU implementation of the task has to be modified accordingly and receive as a parameter the number of SMs.
+
+\code{.c}
+/* get the available streams (suppose we have nstreams = 2 by specifying them with STARPU_NWORKER_PER_CUDA=2  */
+int nstreams = starpu_worker_get_stream_workerids(gpu_devid, stream_workerids, STARPU_CUDA_WORKER);
+
+int sched_ctx[nstreams];
+sched_ctx[0] = starpu_sched_ctx_create(&stream_workerids[0], 1, "subctx",  STARPU_SCHED_CTX_CUDA_NSMS, 6, 0);
+sched_ctx[1] = starpu_sched_ctx_create(&stream_workerids[1], 1, "subctx",  STARPU_SCHED_CTX_CUDA_NSMS, 7, 0);
+
+int ncpus = 4;
+int workers[ncpus+nstreams];
+workers[ncpus+0] = stream_workerids[0];
+workers[ncpus+1] = stream_workerids[1];
+
+big_sched_ctx = starpu_sched_ctx_create(workers, ncpus+nstreams, "ctx1", STARPU_SCHED_CTX_SUB_CTXS, sched_ctxs, nstreams, STARPU_SCHED_CTX_POLICY_NAME, "dmdas", 0); 
+
+starpu_task_submit_to_ctx(task, big_sched_ctx);
+
+\endcode
+
+\section ModifyingAContext Modifying A Context
+
+A scheduling context can be modified dynamically. The application may
+change its requirements during the execution and the programmer can
+add additional workers to a context or remove those no longer needed. In
+the following example we have two scheduling contexts
+<c>sched_ctx1</c> and <c>sched_ctx2</c>. After executing a part of the
+tasks some of the workers of <c>sched_ctx1</c> will be moved to
+context <c>sched_ctx2</c>.
+
+\code{.c}
+/* the list of ressources that context 1 will give away */
+int workerids[3] = {1, 3, 10};
+
+/* add the workers to context 1 */
+starpu_sched_ctx_add_workers(workerids, 3, sched_ctx2);
+
+/* remove the workers from context 2 */
+starpu_sched_ctx_remove_workers(workerids, 3, sched_ctx1);
+\endcode
+
+\section SubmittingTasksToAContext Submitting Tasks To A Context
+The application may submit tasks to several contexts either 
+simultaneously or sequnetially. If several threads of submission
+are used the function starpu_sched_ctx_set_context() may be called just
+before starpu_task_submit(). Thus StarPU considers that 
+the current thread will submit tasks to the coresponding context.
+ 
+When the application may not assign a thread of submission to each
+context, the id of the context must be indicated by using the
+function starpu_task_submit_to_ctx() or the field \ref STARPU_SCHED_CTX 
+for starpu_task_insert().
+
+\section DeletingAContext Deleting A Context
+
+When a context is no longer needed it must be deleted. The application
+can indicate which context should keep the resources of a deleted one.
+All the tasks of the context should be executed before doing this. 
+Thus, the programmer may use either a barrier and then delete the context 
+directly, or just indicate
+that other tasks will not be submitted later on to the context (such that when 
+the last task is executed its workers will be moved to the inheritor)
+and delete the context at the end of the execution (when a barrier will
+be used eventually).
+
+\code{.c}
+/* when the context 2 is deleted context 1 inherits its resources */
+starpu_sched_ctx_set_inheritor(sched_ctx2, sched_ctx1);
+
+/* submit tasks to context 2 */
+for (i = 0; i < ntasks; i++)
+    starpu_task_submit_to_ctx(task[i],sched_ctx2);
+
+/* indicate that context 2 finished submitting and that */
+/* as soon as the last task of context 2 finished executing */
+/* its workers can be moved to the inheritor context */
+starpu_sched_ctx_finished_submit(sched_ctx1);
+
+/* wait for the tasks of both contexts to finish */
+starpu_task_wait_for_all();
+
+/* delete context 2 */
+starpu_sched_ctx_delete(sched_ctx2);
+
+/* delete context 1 */
+starpu_sched_ctx_delete(sched_ctx1);
+\endcode
+
+\section EmptyingAContext Emptying A Context
+
+A context may have no resources at the begining or at a certain
+moment of the execution. Task can still be submitted to these contexts
+and they will be executed as soon as the contexts will have resources. A list
+of tasks pending to be executed is kept and when workers are added to
+the contexts these tasks start being submitted. However, if resources 
+are never allocated to the context the program will not terminate. 
+If these tasks have low
+priority the programmer can forbid the application to submit them
+by calling the function starpu_sched_ctx_stop_task_submission().
+
+*/

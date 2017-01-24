@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2015  Université de Bordeaux
+ * Copyright (C) 2010-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -20,6 +20,10 @@
 #include <starpu.h>
 #include "../helper.h"
 #include <common/thread.h>
+
+/*
+ * Create a pipeline of regenerated tasks, i.e. a sort of data flow graph
+ */
 
 #ifdef STARPU_QUICK_CHECK
 static unsigned ntasks = 64;
@@ -137,6 +141,7 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
+	starpu_do_schedule();
 	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	while (completed < 3)
 		STARPU_PTHREAD_COND_WAIT(&cond, &mutex);
@@ -155,12 +160,12 @@ int main(int argc, char **argv)
 	FPRINTF(stderr, "Total: %f secs\n", timing/1000000);
 	FPRINTF(stderr, "Per task: %f usecs\n", timing/(ntasks*3));
 
-	starpu_shutdown();
-
-	/* Cleanup the statically allocated tasks after shutdown, as StarPU is still working on it after the callback */
+	starpu_task_wait_for_all();
 	starpu_task_clean(&taskA);
 	starpu_task_clean(&taskB);
 	starpu_task_clean(&taskC);
+
+	starpu_shutdown();
 
 	return EXIT_SUCCESS;
 

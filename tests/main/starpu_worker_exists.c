@@ -18,6 +18,10 @@
 #include "core/workers.h"
 #include "../helper.h"
 
+/*
+ * Test that _starpu_worker_exists works appropriately
+ */
+
 static int can_always_execute(unsigned workerid,
 			      struct starpu_task *task,
 			      unsigned nimpl)

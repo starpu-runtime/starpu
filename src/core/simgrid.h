@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2015  Université de Bordeaux
+ * Copyright (C) 2012-2016  Université de Bordeaux
+ * Copyright (C) 2016  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -37,7 +38,8 @@ struct _starpu_pthread_args
 #define STARPU_MPI_AS_PREFIX "StarPU-MPI"
 #define _starpu_simgrid_running_smpi() (getenv("SMPI_GLOBAL_SIZE") != NULL)
 
-void _starpu_simgrid_init(void);
+void _starpu_simgrid_init(int *argc, char ***argv);
+void _starpu_simgrid_deinit(void);
 void _starpu_simgrid_wait_tasks(int workerid);
 void _starpu_simgrid_submit_job(int workerid, struct _starpu_job *job, struct starpu_perfmodel_arch* perf_arch, double length, unsigned *finished, starpu_pthread_mutex_t *mutex, starpu_pthread_cond_t *cond);
 int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, struct _starpu_data_request *req);
@@ -45,9 +47,10 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 int _starpu_simgrid_get_nbhosts(const char *prefix);
 unsigned long long _starpu_simgrid_get_memsize(const char *prefix, unsigned devid);
 msg_host_t _starpu_simgrid_get_host_by_name(const char *name);
+msg_host_t _starpu_simgrid_get_memnode_host(unsigned node);
 struct _starpu_worker;
 msg_host_t _starpu_simgrid_get_host_by_worker(struct _starpu_worker *worker);
-void _starpu_simgrid_get_platform_path(char *path, size_t maxlen);
+void _starpu_simgrid_get_platform_path(int version, char *path, size_t maxlen);
 msg_as_t _starpu_simgrid_get_as_by_name(const char *name);
 #pragma weak starpu_mpi_world_rank
 extern int starpu_mpi_world_rank(void);
@@ -59,7 +62,14 @@ starpu_pthread_queue_t _starpu_simgrid_task_queue[STARPU_NMAXWORKERS];
 
 #define _starpu_simgrid_cuda_malloc_cost() starpu_get_env_number_default("STARPU_SIMGRID_CUDA_MALLOC_COST", 1)
 #define _starpu_simgrid_queue_malloc_cost() starpu_get_env_number_default("STARPU_SIMGRID_QUEUE_MALLOC_COST", 1)
+#define _starpu_simgrid_task_submit_cost() starpu_get_env_number_default("STARPU_SIMGRID_TASK_SUBMIT_COST", 1)
 
+/* Called at initialization to count how many GPUs are interfering with each
+ * bus */
+void _starpu_simgrid_count_ngpus(void);
+
+void _starpu_simgrid_xbt_thread_create(const char *name, void_f_pvoid_t code,
+				       void *param);
 #endif
 
 #endif // __SIMGRID_H__

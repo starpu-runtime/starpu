@@ -1,10 +1,9 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2009-2016  Université de Bordeaux
-# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
 # Copyright (C) 2011  Télécom-SudParis
-# Copyright (C) 2011, 2012, 2014  INRIA
-# Copyright (C) 2015  Inria
+# Copyright (C) 2011, 2012, 2014-2016  INRIA
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -60,6 +59,7 @@ AC_CANONICAL_SYSTEM
 
 dnl Automake 1.11 introduced `silent-rules' and `color-tests'.  Use them
 dnl when they're available.
+dnl do not use option subdir-objects, it causes fortran compilation to fail
 m4_ifdef([AM_SILENT_RULES],
   [AM_INIT_AUTOMAKE([1.11 -Wall foreign silent-rules color-tests parallel-tests])],
   [AM_INIT_AUTOMAKE([1.10 -Wall foreign])])
@@ -81,6 +81,14 @@ AC_PROG_FC
 AC_CHECK_PROGS(PROG_STAT,gstat stat)
 AC_CHECK_PROGS(PROG_DATE,gdate date)
 AC_OPENMP
+#c++11 detection
+AX_CXX_COMPILE_STDCXX(11,noext,optional)
+
+AC_SUBST([STARPU_HAVE_CXX11], $HAVE_CXX11)
+AM_CONDITIONAL([STARPU_HAVE_CXX11], [test "$HAVE_CXX11" -eq 1])
+if test $HAVE_CXX11 -eq 1; then
+  AC_DEFINE(STARPU_HAVE_CXX11, [1], [compiler supports cxx11])
+fi
 
 if test x$enable_perf_debug = xyes; then
     enable_shared=no
@@ -157,15 +165,15 @@ case "$target" in
 *-*-mingw*|*-*-cygwin*)
   starpu_windows=yes
   libext=a
-  AC_DEFINE(STARPU_HAVE_WINDOWS, [], [Define this on windows.])
+  AC_DEFINE(STARPU_HAVE_WINDOWS, [1], [Define this on windows.])
   ;;
 *-*-linux*)
   starpu_linux=yes
-  AC_DEFINE(STARPU_LINUX_SYS, 1, [Define to 1 on Linux])
+  AC_DEFINE(STARPU_LINUX_SYS, [1], [Define to 1 on Linux])
   ;;
 *-*darwin*)
   starpu_darwin=yes
-  AC_DEFINE(STARPU_HAVE_DARWIN, [], [Define this on darwin.])
+  AC_DEFINE(STARPU_HAVE_DARWIN, [1], [Define this on darwin.])
   ;;
 esac
 AM_CONDITIONAL([STARPU_HAVE_WINDOWS], [test "x$starpu_windows" = "xyes"])
@@ -212,7 +220,7 @@ then
 fi
 
 AC_CHECK_TYPE([struct timespec], 
-	       AC_DEFINE(STARPU_HAVE_STRUCT_TIMESPEC,[],[struct timespec is defined]),
+	       AC_DEFINE(STARPU_HAVE_STRUCT_TIMESPEC,[1],[struct timespec is defined]),
 	       [], [
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -234,7 +242,7 @@ then
 		#include <pthread.h>
 		]],
 		[[ pthread_t t; pthread_create(&t, NULL, NULL, NULL); ]])],
-		AC_DEFINE(STARPU_NATIVE_WINTHREADS,[],[Using native windows threads]),
+		AC_DEFINE(STARPU_NATIVE_WINTHREADS,[1],[Using native windows threads]),
 		AC_MSG_ERROR([pthread_create unavailable]))
 else
     AC_CHECK_LIB([pthread], [pthread_create])
@@ -246,17 +254,22 @@ AC_CHECK_FUNCS([sysconf])
 
 AC_CHECK_FUNC([pthread_spin_lock], have_pthread_spin_lock=yes, have_pthread_spin_lock=no)
 if test x$have_pthread_spin_lock = xyes; then
-	AC_DEFINE(HAVE_PTHREAD_SPIN_LOCK,[],[pthread_spin_lock is available])
-	AC_DEFINE(STARPU_HAVE_PTHREAD_SPIN_LOCK,[],[pthread_spin_lock is available])
+	AC_DEFINE(HAVE_PTHREAD_SPIN_LOCK,[1],[pthread_spin_lock is available])
+	AC_DEFINE(STARPU_HAVE_PTHREAD_SPIN_LOCK,[1],[pthread_spin_lock is available])
 fi
 
 AC_CHECK_FUNC([pthread_barrier_init], have_pthread_barrier=yes, have_pthread_barrier=no)
 if test x$have_pthread_barrier = xyes; then
-	AC_DEFINE(STARPU_HAVE_PTHREAD_BARRIER,[],[pthread_barrier is available])
+	AC_DEFINE(STARPU_HAVE_PTHREAD_BARRIER,[1],[pthread_barrier is available])
 fi
 
 # yes, that's non portable, but it's still better than sched_setaffinity
 AC_CHECK_FUNCS(pthread_setaffinity_np)
+
+AC_CHECK_FUNC([pthread_setname_np], have_pthread_setname_np=yes, have_pthread_setname_np=no)
+if test x$have_pthread_setname_np = xyes; then
+	AC_DEFINE(STARPU_HAVE_PTHREAD_SETNAME_NP,[1],[pthread_setname_np is available])
+fi
 
 # There is no posix_memalign on Mac OS X, only memalign
 AC_CHECK_FUNCS([posix_memalign], [AC_DEFINE([STARPU_HAVE_POSIX_MEMALIGN], [1], [Define to 1 if you have the `posix_memalign' function.])])
@@ -335,6 +348,7 @@ fi
 AC_CHECK_FUNC([sched_yield], [AC_DEFINE([STARPU_HAVE_SCHED_YIELD], [1], [Define to 1 if the function sched_yield is available.])])
 
 AC_CHECK_HEADERS([aio.h])
+AC_CHECK_LIB([rt], [aio_read])
 
 AC_CHECK_FUNCS([mkostemp])
 
@@ -364,7 +378,7 @@ STARPU_SEARCH_LIBS([LIBNUMA],[set_mempolicy],[numa],[enable_libnuma=yes],[enable
 AC_MSG_CHECKING(whether libnuma is available)
 AC_MSG_RESULT($enable_libnuma)
 if test x$enable_libnuma = xyes; then
-	AC_DEFINE(STARPU_HAVE_LIBNUMA,[],[libnuma is available])
+	AC_DEFINE(STARPU_HAVE_LIBNUMA,[1],[libnuma is available])
 fi
 
 ###############################################################################
@@ -575,6 +589,7 @@ AC_DEFUN([STARPU_CHECK_CUDA],
 	    AC_MSG_WARN(['nvcc' not found, disabling CUDA])
 	    have_valid_cuda=no
 	else
+	    # This is for very old cuda, to enable the use of double etc.
 	    AC_MSG_CHECKING(whether nvcc supports sm_13 architecture)
 	    OLD_NVCCFLAGS="$NVCCFLAGS"
 	    NVCCFLAGS="$NVCCFLAGS -arch sm_13"
@@ -587,6 +602,21 @@ AC_DEFUN([STARPU_CHECK_CUDA],
 		AC_MSG_RESULT(no)
 		NVCCFLAGS="$OLD_NVCCFLAGS"
 	    fi
+
+	    # This is for recent cuda, which complains if we don't actually set an arch!?
+	    AC_MSG_CHECKING(whether nvcc supports -Wno-deprecated-gpu-targets)
+	    OLD_NVCCFLAGS="$NVCCFLAGS"
+	    NVCCFLAGS="$NVCCFLAGS -Wno-deprecated-gpu-targets"
+	    echo "int main(int argc, char **argv) { return 0;}" > cuda_test.cu
+	    $NVCC $NVCCFLAGS -c cuda_test.cu >/dev/null 2>&1
+	    if test $? -eq 0
+	    then
+		AC_MSG_RESULT(yes)
+	    else
+		AC_MSG_RESULT(no)
+		NVCCFLAGS="$OLD_NVCCFLAGS"
+	    fi
+
 	    rm -f cuda_test*
 	fi
 
@@ -741,7 +771,7 @@ if test x$enable_cuda_memcpy_peer = xyes -a x$enable_cuda = xyes ; then
     LDFLAGS="${SAVED_LDFLAGS}"
 fi
 if test x$have_cuda_memcpy_peer = xyes; then
-    AC_DEFINE(HAVE_CUDA_MEMCPY_PEER,[],[Peer transfers are supported in CUDA])
+    AC_DEFINE(HAVE_CUDA_MEMCPY_PEER,[1],[Peer transfers are supported in CUDA])
 fi
 
 if test x$enable_cuda = xyes; then
@@ -1013,7 +1043,7 @@ AC_ARG_ENABLE(opencl-simulator, [AS_HELP_STRING([--enable-opencl-simulator],
 				enable_opencl_simulator=$enableval, enable_opencl_simulator=no)
 if test x$enable_opencl_simulator = xyes; then
 	enable_simgrid=yes
-	AC_DEFINE(STARPU_OPENCL_SIMULATOR, 1, [Define this to enable using an OpenCL simulator])
+	AC_DEFINE(STARPU_OPENCL_SIMULATOR, [1], [Define this to enable using an OpenCL simulator])
 fi
 
 AC_ARG_WITH(simgrid-dir,
@@ -1075,7 +1105,8 @@ if test x$enable_simgrid = xyes ; then
 		]
 	)
 	AC_CHECK_HEADERS([simgrid/msg.h], [AC_DEFINE([STARPU_HAVE_SIMGRID_MSG_H], [1], [Define to 1 if you have msg.h in simgrid/.])])
-   	AC_CHECK_FUNCS([MSG_process_join MSG_get_as_by_name MSG_environment_get_routing_root xbt_mutex_try_acquire smpi_process_set_user_data])
+	AC_CHECK_HEADERS([xbt/synchro.h], [AC_DEFINE([STARPU_HAVE_XBT_SYNCHRO_H], [1], [Define to 1 if you have synchro.h in xbt/.])])
+   	AC_CHECK_FUNCS([MSG_process_join MSG_process_attach MSG_get_as_by_name MSG_environment_get_routing_root MSG_host_get_speed xbt_mutex_try_acquire smpi_process_set_user_data sg_link_name])
 	AC_CHECK_FUNCS([xbt_barrier_init], [AC_DEFINE([STARPU_SIMGRID_HAVE_XBT_BARRIER_INIT], [1], [Define to 1 if you have the `xbt_barrier_init' function.])])
 	AC_CHECK_DECLS([smpi_process_set_user_data], [], [], [[#include <smpi/smpi.h>]])
 	AC_CHECK_FUNCS([SIMIX_process_get_code], [AC_DEFINE([STARPU_SIMGRID_HAVE_SIMIX_PROCESS_GET_CODE], [1], [Define to 1 if you have the `SIMIX_process_get_code' function.])])
@@ -1093,9 +1124,23 @@ if test x$enable_simgrid = xyes ; then
 	                 [
 			   AC_MSG_ERROR(StarPU needs a version of Simgrid which defines the type msg_host_t (should be any version >= 3.8.1))
 		         ])
-	AC_DEFINE(STARPU_SIMGRID, 1, [Define this to enable simgrid execution])
+	AC_DEFINE(STARPU_SIMGRID, [1], [Define this to enable simgrid execution])
 	# We won't bind or detect anything
 	with_hwloc=no
+
+	# Simgrid 3.12 & 3.13 need -std=c++11 to be able to build anything in C++...
+	AC_LANG_PUSH([C++])
+	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+			  #ifdef HAVE_SIMGRID_MSG_H
+			  #include <simgrid/msg.h>
+			  #include <simgrid/host.h>
+			  #else
+			  #include <msg/msg.h>
+			  #endif
+			  ]])],,
+			  CXXFLAGS="-std=c++11 $CXXFLAGS"
+			  NVCCFLAGS="-std=c++11 $NVCCFLAGS")
+	AC_LANG_POP([C++])
 fi
 AM_CONDITIONAL(STARPU_SIMGRID, test x$enable_simgrid = xyes)
 AC_SUBST(SIMGRID_CFLAGS)
@@ -1117,6 +1162,12 @@ fi
 #                                 MIC settings                                #
 #                                                                             #
 ###############################################################################
+
+# ignore these otions, only meant for mic-configure, but also passed here.
+AC_ARG_ENABLE(native-mic)
+AC_ARG_WITH(compiler)
+AC_ARG_WITH(mic-param)
+AC_ARG_WITH(host-param)
 
 AC_MSG_CHECKING(maximum number of MIC devices)
 AC_ARG_ENABLE(maxmicdev, [AS_HELP_STRING([--enable-maxmicdev=<number>],
@@ -1299,13 +1350,16 @@ if test x$enable_mic = xyes ; then
 	AC_MSG_ERROR([cannot find MIC's SCIF runtime])
     fi
 
-    STARPU_CHECK_COI_RUNTIME($coi_dir, $coi_include_dir, $coi_lib_dir, coi_host)
-
-    # Host runtime is not compatible, we are probably cross-compiling
-    # Let's have a look for the device runtime which lib has a different name
-    if test "$have_valid_coi" = "no" ; then
+    case $host_vendor in
+	*1om)
+	    # We are cross-compiling.
+	    # Let's have a look for the device runtime which lib has a different name
 	    STARPU_CHECK_COI_RUNTIME($coi_dir, $coi_include_dir, $coi_lib_dir, coi_device)
-    fi
+	    ;;
+	*)
+	    STARPU_CHECK_COI_RUNTIME($coi_dir, $coi_include_dir, $coi_lib_dir, coi_host)
+	    ;;
+    esac
 
     if test "$have_valid_coi" = "no" ; then
 	AC_MSG_ERROR([cannot find MIC's COI runtime])
@@ -1412,42 +1466,6 @@ AC_MSG_RESULT($enable_rcce)
 
 ###############################################################################
 #                                                                             #
-#                             MP Common settings                              #
-#                                                                             #
-###############################################################################
-
-AM_CONDITIONAL([STARPU_USE_MP], [test "x$enable_mic" = "xyes" -o "x$enable_mpi" = "xyes" -o "x$enable_rcce" = "xyes"])
-
-AC_ARG_ENABLE([export-dynamic], [AS_HELP_STRING([--disable-export-dynamic],
-			  [Prevent the linker from adding all symbols to the dynamic symbol table])], [], [])
-
-if test x$enable_mic = xyes -o x$enable_mpi = xyes -o x$enable_rcce = xyes ; then
-	AC_DEFINE(STARPU_USE_MP, [1], [Message-passing SINKs support
-		  is enabled])
-
-	if test x$enable_export_dynamic != xno ; then
-		STARPU_EXPORT_DYNAMIC="-rdynamic"
-	fi
-fi
-
-AC_SUBST(STARPU_EXPORT_DYNAMIC)
-
-# Computes the maximum number of different kernels a message-passing sink
-# can lookup for and launch.
-AC_MSG_CHECKING(Maximum number of message-passing kernels)
-AC_ARG_ENABLE(maxmpkernels, [AS_HELP_STRING([
-	      -enable-maxmpkernels=<number>],
-	      [maximum number of kernels a message-passing sink can lookup
-	      for and execute])],
-	      maxmpkernels=$enableval, maxmpkernels=10)
-AC_MSG_RESULT($maxmpkernels)
-AC_DEFINE_UNQUOTED(STARPU_MAXMPKERNELS, [$maxmpkernels],
-		[maximum number of message-passing kernels])
-
-###############################################################################
-
-###############################################################################
-#                                                                             #
 #                   Debug and Performance analysis tools                      #
 #                                                                             #
 ###############################################################################
@@ -1458,19 +1476,33 @@ AC_ARG_ENABLE(debug, [AS_HELP_STRING([--enable-debug], [enable debug mode])],
 AC_MSG_RESULT($enable_debug)
 
 AC_ARG_ENABLE(spinlock_check, [AS_HELP_STRING([--enable-spinlock-check], [enable spinlock check])], enable_spinlock_check=$enableval, enable_spinlock_check=no)
+AC_ARG_ENABLE(fstack-protector-all, [AS_HELP_STRING([--disable-fstack-protector-all], [disable GCC option -fstack-protector-all])], enable_fstack_protector_all=$enableval, enable_fstack_protector_all=yes)
 
 if test x$enable_debug = xyes; then
 	AC_DEFINE(STARPU_DEBUG, [1], [enable debugging statements])
 	CFLAGS="$CFLAGS -O0"
 	CXXFLAGS="$CXXFLAGS -O0"
 	enable_spinlock_check=yes
+	if test x$GCC = xyes; then
+		if test x$starpu_windows != xyes ; then
+			if test x$enable_fstack_protector_all = xyes ; then
+			   CFLAGS="$CFLAGS -fstack-protector-all"
+			   CXXFLAGS="$CXXFLAGS -fstack-protector-all"
+			fi
+		fi
+	fi
 else
 	CFLAGS="-O3 $CFLAGS"
 	CXXFLAGS="-O3 $CXXFLAGS"
 fi
-CFLAGS+=" -gdwarf-2 -g3 "
-CXXFLAGS+=" -gdwarf-2 -g3 "
-LDFLAGS+=" -gdwarf-2 -g3 "
+if test x$GCC = xyes; then
+	CFLAGS+=" -gdwarf-2"
+	CXXFLAGS+=" -gdwarf-2"
+	LDFLAGS+=" -gdwarf-2"
+fi
+CFLAGS+=" -g3 "
+CXXFLAGS+=" -g3 "
+LDFLAGS+=" -g3 "
 
 if test x$enable_spinlock_check = xyes; then
 	AC_DEFINE(STARPU_SPINLOCK_CHECK, [1], [check spinlock use])
@@ -1483,6 +1515,15 @@ AC_ARG_ENABLE(fast, [AS_HELP_STRING([--enable-fast],
 AC_MSG_RESULT($enable_fast)
 if test x$enable_fast = xyes; then
 	AC_DEFINE(STARPU_NO_ASSERT, [1], [disable assertions])
+else
+        # fortify gets really enabled only with optimizations, avoid enabling it
+        # when they optimizations are not enabled, because with some glibc it
+        # spews a lot of warnings.
+	if test x$enable_debug != xyes; then
+		if test x$GCC = xyes; then
+			CPPFLAGS="$CPPFLAGS -D_FORTIFY_SOURCE=1"
+		fi
+	fi
 fi
 
 AC_MSG_CHECKING(whether debug messages should be displayed)
@@ -1509,7 +1550,14 @@ if test x$enable_coverage = xyes; then
 	CFLAGS="${CFLAGS} --coverage"
 	CXXFLAGS="${CXXFLAGS} --coverage"
 	LDFLAGS="${LDFLAGS} --coverage"
+	LIBS="${LIBS} -lgcov"
 fi
+
+AC_MSG_CHECKING(whether coverity mode should be enabled)
+AC_ARG_ENABLE(coverity, [AS_HELP_STRING([--enable-coverity], [enable coverity mode])],
+			enable_coverity=$enableval, enable_coverity=no)
+AC_MSG_RESULT($enable_coverity)
+AM_CONDITIONAL(STARPU_COVERITY, test x$enable_coverity = xyes)
 
 # shall we use FxT to generate trace of the execution ?
 AC_MSG_CHECKING(whether FxT traces should be generated)
@@ -1568,14 +1616,14 @@ if test x$use_fxt = xyes; then
 	LIBS="$save_LIBS"
 	save_CFLAGS="$CFLAGS"
 	CFLAGS="$CFLAGS $FXT_CFLAGS"
-	AC_CHECK_DECLS([enable_fut_flush])
-	AC_CHECK_DECLS([fut_set_filename])
+	AC_CHECK_DECLS([enable_fut_flush], [], [], [[#include <fut.h>]])
+	AC_CHECK_DECLS([fut_set_filename], [], [], [[#include <fut.h>]])
 	CFLAGS="$save_CFLAGS"
 
-	if test x$enable_simgrid = xyes; then
+	if test x$enable_simgrid = xyes -a x$enable_shared = xno ; then
                 # simgrid's SMPI needs fxt to be linked in statically for
                 # variable privatization to work
-		FXT_LIBS="$(pkg-config --variable=libdir fxt)/libfxt.a -lrt"
+		FXT_LIBS="$(pkg-config --variable=libdir fxt)/libfxt.a -Wl,--as-needed $(pkg-config --libs --static fxt) -Wl,--no-as-needed"
 	fi
 
         AC_ARG_ENABLE(paje-codelet-details, [AS_HELP_STRING([--enable-paje-codelet-details],
@@ -1635,7 +1683,282 @@ fi
 
 AC_CHECK_HEADERS([glpk.h], [AC_DEFINE([STARPU_HAVE_GLPK_H], [1], [Define to 1 if you have the <glpk.h> header file.])])
 STARPU_HAVE_LIBRARY(GLPK, [glpk])
+
+AC_ARG_WITH(ayudame1-include-dir,
+	[AS_HELP_STRING([--with-ayudame1-include-dir=<path>],
+	[specify where Ayudame version 1 headers are installed])],
+	[
+		ayudame1_include_dir="$withval"
+		if test -n "$ayudame1_include_dir"; then
+			CPPFLAGS="-I$ayudame1_include_dir $CPPFLAGS"
+		fi
+	], [ayudame1_include_dir=no])
+AC_ARG_WITH(ayudame2-include-dir,
+	[AS_HELP_STRING([--with-ayudame2-include-dir=<path>],
+	[specify where Ayudame version 2 headers are installed])],
+	[
+		ayudame2_include_dir="$withval"
+		if test -n "$ayudame2_include_dir"; then
+			CPPFLAGS="-I$ayudame2_include_dir $CPPFLAGS"
+		fi
+	], [ayudame2_include_dir=no])
+
+# Ayudame 1 header is capitalized
 AC_CHECK_HEADERS([Ayudame.h])
+AC_ARG_ENABLE(ayudame1, [AS_HELP_STRING([--disable-ayudame1],
+				   [Do not use Ayudame lib version 1])],
+				   enable_ayudame1=$enableval, enable_ayudame1=yes)
+# Ayudame 2 header is lowercase
+AC_CHECK_HEADERS([ayudame.h])
+AC_ARG_ENABLE(ayudame2, [AS_HELP_STRING([--disable-ayudame2],
+				   [Do not use Ayudame lib version 2])],
+				   enable_ayudame2=$enableval, enable_ayudame2=yes)
+if test x$enable_ayudame1 = xyes -a x$ac_cv_header_Ayudame_h = xyes; then
+   AC_DEFINE([STARPU_USE_AYUDAME1], [1], [Define to 1 if Ayudame 1 is available and should be used])
+   ayu_msg="yes, use version 1"
+else
+   if test x$enable_ayudame2 = xyes -a x$ac_cv_header_ayudame_h = xyes; then
+      AC_DEFINE([STARPU_USE_AYUDAME2], [1], [Define to 1 if Ayudame 2 is available and should be used])
+      ayu_msg="yes, use version 2"
+   else
+      ayu_msg="no"
+   fi
+fi
+
+AM_CONDITIONAL([STARPU_USE_AYUDAME1], [test "x$enable_ayudame1" = "xyes"])
+AM_CONDITIONAL([STARPU_USE_AYUDAME2], [test "x$enable_ayudame2" = "xyes"])
+
+###############################################################################
+#                                                                             #
+#                                    MPI                                      #
+#                                                                             #
+###############################################################################
+
+AC_ARG_ENABLE(mpi, [AS_HELP_STRING([--disable-mpi],
+                              [Disable StarPU MPI library generation])],
+            [enable_mpi=$enableval],
+            [enable_mpi=yes])
+
+AC_ARG_ENABLE(mpi-master-slave, [AS_HELP_STRING([--enable-mpi-master-slave],
+                              [Enable StarPU to run with the master-slave mode])],
+            use_mpi_master_slave=$enableval,
+            use_mpi_master_slave=no)
+
+#Check MPICC
+AC_ARG_WITH(mpicc, [AS_HELP_STRING([--with-mpicc[=<path to mpicc>]],
+           [Path of the mpicc compiler])],
+   [
+       if test x$withval = xyes; then
+           AC_MSG_ERROR(--with-mpicc must be given a pathname)
+       else
+           mpicc_path=$withval
+       fi
+   ],
+   [
+       if test x$enable_simgrid = xyes ; then
+           DEFAULT_MPICC=smpicc
+       else
+           DEFAULT_MPICC=mpicc
+       fi
+       # nothing was specified: default value is used
+       AC_PATH_PROG(mpicc_path, $DEFAULT_MPICC, [no], [$simgrid_dir/bin:$PATH])
+   ])
+
+# We test if the MPICC compiler exists
+if test ! -x $mpicc_path; then
+    #MPICC does not exists or is not executable
+    AC_MSG_RESULT(The mpicc compiler '$mpicc_path' does not have the execute permission)
+    use_mpi=no
+else
+    use_mpi=yes
+    if test x$enable_simgrid = xyes ; then
+        AC_ARG_WITH(smpirun, [AS_HELP_STRING([--with-smpirun[=<path to smpirun>]],
+                    [Path of the smpirun helper])],
+            [
+                if test x$withval = xyes; then
+                    AC_MSG_ERROR(--with-smpirun must be given a pathname)
+                else
+                    smpirun_path=$withval
+                fi
+            ],
+            [
+                # nothing was specified: default value is used
+                AC_PATH_PROG(smpirun_path, smpirun, [no], [$simgrid_dir/bin:$PATH])
+            ])
+
+    fi
+fi
+
+AC_MSG_CHECKING(mpicc path)
+AC_MSG_RESULT($mpicc_path)
+AC_SUBST(MPICC, $mpicc_path)
+
+
+#Check MPICXX/MPIC++
+AC_ARG_WITH(mpicxx, [AS_HELP_STRING([--with-mpicxx[=<path to mpicxx>]],
+           [Path of the mpicxx/mpic++ compiler])],
+   [
+       if test x$withval = xyes; then
+           AC_MSG_ERROR(--with-mpicxx must be given a pathname)
+       else
+           mpicxx_path=$withval
+       fi
+   ],
+   [
+       if test x$enable_simgrid = xyes ; then
+           DEFAULT_MPICXX=smpicxx
+       else
+           DEFAULT_MPICXX=mpicxx
+       fi
+       # nothing was specified: default value is used
+       AC_PATH_PROG(mpicxx_path, $DEFAULT_MPICXX, [no], [$simgrid_dir/bin:$PATH])
+       
+       # try with mpic++ if mpicxx was not found
+       if test x$mpicxx_path = xno ; then
+            DEFAULT_MPICXX=mpic++
+            AC_PATH_PROG(mpicxx_path, $DEFAULT_MPICXX, [no], [$simgrid_dir/bin:$PATH])
+       fi
+   ])
+
+# We test if the MPICXX/MPIC++ compiler exists
+if test ! -x $mpicxx_path; then
+    #MPICXX/MPIC++ does not exists or is not executable
+    AC_MSG_RESULT(The mpicxx compiler '$mpicxx_path' does not have the execute permission)
+    use_mpicxx=no
+else
+    use_mpicxx=yes
+fi
+
+AC_MSG_CHECKING(mpicxx/mpic++ path)
+AC_MSG_RESULT($mpicxx_path)
+AC_SUBST(MPICXX, $mpicxx_path)
+
+
+if test x$use_mpi = xyes -a x$enable_mpi = xyes; then
+    cc_or_mpicc=$mpicc_path
+        # For some reason, libtool uses gcc instead of mpicc when linking
+        # libstarpumpi.
+        # On Darwin (and maybe other systems ?) the linker will fail (undefined
+        # references to MPI_*). We manually add the required flags to fix this
+        # issue.
+        AC_SUBST(MPICC_LDFLAGS, `$mpicc_path --showme:link`)
+else
+    cc_or_mpicc=$CC
+fi
+AC_SUBST(CC_OR_MPICC, $cc_or_mpicc)
+
+# If the user specifically asks for it, or if we are in a developer checkout, we enable mpi check
+AC_ARG_ENABLE(mpi-check, AC_HELP_STRING([--enable-mpi-check], [Enable execution of MPI testcases]))
+running_mpi_check=no
+if test $svndir = 1 -o -d "$srcdir/.git" ; then
+    running_mpi_check=yes
+fi
+if test x$enable_mpi_check = xyes ; then
+    running_mpi_check=yes
+fi
+if test x$enable_mpi_check = xno ; then
+    running_mpi_check=no
+fi
+
+
+# Check if mpiexec is available
+AC_ARG_WITH(mpiexec, [AS_HELP_STRING([--with-mpiexec[=<path to mpiexec>]],
+            [Path of mpiexec])],
+    [
+        if test x$withval = xyes; then
+            AC_MSG_ERROR(--with-mpiexec must be given a pathname)
+        else
+            mpiexec_path=$withval
+        fi
+    ],
+    [
+        # nothing was specified: look in the path
+        AC_PATH_PROG(mpiexec_path, mpiexec, [no], [$(dirname $mpicc_path):$PATH])
+    ])
+
+AC_MSG_CHECKING(whether mpiexec is available)
+AC_MSG_RESULT($mpiexec_path)
+
+# We test if MPIEXEC exists
+if test ! -x $mpiexec_path; then
+    #MPIEXEC does not exists or is not executable
+    AC_MSG_RESULT(The mpiexec script is not valid)
+        running_mpi_check=no
+        mpiexec_path=""
+fi
+
+AM_CONDITIONAL(STARPU_MPI_CHECK, test x$running_mpi_check = xyes)
+if test x$use_mpi = xyes ; then
+    AC_MSG_CHECKING(whether MPI tests should be run)
+    AC_MSG_RESULT($running_mpi_check)
+    AC_SUBST(MPIEXEC,$mpiexec_path)
+fi
+
+#We can only build StarPU MPI Library if User wants it and MPI is available
+if test x$use_mpi = xyes -a x$enable_mpi = xyes ; then
+    build_mpi_lib=yes
+else
+    build_mpi_lib=no
+fi
+
+AC_MSG_CHECKING(whether the StarPU MPI library should be generated)
+AC_MSG_RESULT($build_mpi_lib)
+
+AC_SUBST(USE_MPI, $build_mpi_lib)
+AM_CONDITIONAL(USE_MPI, test x$build_mpi_lib = xyes)
+if test x$build_mpi_lib = xyes; then
+	AC_DEFINE(STARPU_USE_MPI,[1],[whether the StarPU MPI library is available])
+else
+	running_mpi_check=no
+fi
+
+AC_ARG_WITH(mpiexec-args, [AS_HELP_STRING([--with-mpiexec-args[=<arguments to give when running mpiexec>]],
+			[Arguments for mpiexec])],
+	[
+		mpiexec_args=$withval
+	])
+AC_SUBST(MPIEXEC_ARGS,$mpiexec_args)
+
+AC_ARG_ENABLE(mpi-progression-hook, [AS_HELP_STRING([--enable-mpi-progression-hook],
+				   [Enable StarPU MPI activity polling method])],
+				   enable_mpi_progression_hook=$enableval, enable_mpi_progression_hook=no)
+if  test x$enable_mpi_progression_hook = xyes; then
+	AC_DEFINE(STARPU_MPI_ACTIVITY, [1], [enable StarPU MPI activity polling method])
+fi
+
+#We can only build MPI Master Slave if User wants it and MPI is available
+if test x$use_mpi_master_slave = xyes -a x$use_mpi = xyes -a x$use_mpicxx = xyes; then
+    build_mpi_master_slave=yes
+else
+    build_mpi_master_slave=no
+fi
+
+if test x$build_mpi_master_slave = xyes; then
+    AC_DEFINE(STARPU_USE_MPI_MASTER_SLAVE, [1], [MPI Master Slave support is enabled])
+    CC=$mpicc_path    
+    CCLD=$mpicc_path      
+    CXX=$mpicxx_path      
+    CXXLD=mpicxx_path    
+fi
+
+AC_MSG_CHECKING(whether the master-slave mode should be enabled)
+AC_MSG_RESULT($build_mpi_master_slave)
+AM_CONDITIONAL([STARPU_USE_MPI_MASTER_SLAVE], [test x$build_mpi_master_slave = xyes])
+
+AC_MSG_CHECKING(maximum number of MPI master-slave devices)
+AC_ARG_ENABLE(maxmpidev, [AS_HELP_STRING([--enable-maxmpidev=<number>],
+			[maximum number of MPI master-slave devices])],
+			nmaxmpidev=$enableval,
+            [
+             if test x$build_mpi_master_slave = xyes; then
+                 nmaxmpidev=4
+             else
+                 nmaxmpidev=0
+             fi
+            ])
+AC_MSG_RESULT($nmaxmpidev)
+AC_DEFINE_UNQUOTED(STARPU_MAXMPIDEVS, [$nmaxmpidev], [maximum number of MPI devices])
+
 
 ###############################################################################
 #                                                                             #
@@ -1658,8 +1981,12 @@ AC_ARG_ENABLE(maxnodes, [AS_HELP_STRING([--enable-maxnodes=<nnodes>],
 
 if test x$maxnodes = x0 ; then
 	if test x$enable_simgrid = xyes ; then
-		# We still need the room for the virtual CUDA/OpenCL devices
-		maxnodes=16
+		# We need the room for the virtual CUDA/OpenCL devices
+		nodes=`expr 4 + $nmaxcudadev + $nmaxopencldev + $nmaxmicdev + 1 + $nmaxmpidev`
+		if test $nodes -gt 32
+		then
+			nodes=32
+		fi
 	else
 		# We have one memory node shared by all CPU workers, one node per GPU
 		# and per MIC device
@@ -1683,13 +2010,16 @@ if test x$maxnodes = x0 ; then
 			nodes=`expr $nodes + 1`
 		fi
 
-		# set maxnodes to the next power of 2 greater than nodes
-		maxnodes=1
-		while test "$maxnodes" -lt "$nodes"
-		do
-			maxnodes=`expr $maxnodes \* 2`
-		done
+		#nmaxmpidev = 0 if mpi master-slave is disabled
+		nodes=`expr $nodes + $nmaxmpidev`
  	fi
+
+	# set maxnodes to the next power of 2 greater than nodes
+	maxnodes=1
+	while test "$maxnodes" -lt "$nodes"
+	do
+		maxnodes=`expr $maxnodes \* 2`
+	done
 fi
 if test $maxnodes -gt 32 ; then
 	AC_MSG_ERROR([selected number of nodes ($maxnodes) can not be greater than 32])
@@ -1755,7 +2085,8 @@ if test x$enable_simgrid != xyes; then
 		nmaxsccdev=0
 	fi
 fi
-nmaxworkers=`expr 16 \* \( \( $maxcpus + $nmaxcudadev + $nmaxopencldev + $nmaxmicthreads + $nmaxsccdev + 15 \) / 16 \) `
+#We suppose Master adds nmaxmpidev workers but slaves don't.
+nmaxworkers=`expr 16 \* \( \( $maxcpus + $nmaxcudadev + $nmaxopencldev + $nmaxmicthreads + $nmaxmpidev + $nmaxsccdev + 15 \) / 16 \) `
 AC_MSG_CHECKING(Maximum number of workers)
 AC_MSG_RESULT($nmaxworkers)
 AC_DEFINE_UNQUOTED(STARPU_NMAXWORKERS, [$nmaxworkers], [Maximum number of workers])
@@ -1778,11 +2109,17 @@ AC_MSG_RESULT($maximplementations)
 AC_DEFINE_UNQUOTED(STARPU_MAXIMPLEMENTATIONS, [$maximplementations],
 		[maximum number of implementations])
 
+# Enable LevelDB support if requested and the lib is found
+AC_ARG_ENABLE(leveldb, [AS_HELP_STRING([--enable-leveldb],
+				   [Enable linking with LevelDB if available])],
+				   enable_leveldb=$enableval, enable_leveldb=no)
+if  test x$enable_leveldb = xyes; then
 AC_LANG_PUSH([C++])
 AC_CHECK_HEADERS([leveldb/db.h], [AC_DEFINE([STARPU_HAVE_LEVELDB], [1], [Define to 1 if you have the <leveldb/db.h> header file.])])
 STARPU_HAVE_LIBRARY(LEVELDB, [leveldb])
-AM_CONDITIONAL(STARPU_HAVE_LEVELDB, test "x$ac_cv_lib_leveldb_main" = "xyes")
 AC_LANG_POP([C++])
+fi
+AM_CONDITIONAL(STARPU_HAVE_LEVELDB, test  "x$enable_leveldb" = "xyes" -a "x$ac_cv_lib_leveldb_main" = "xyes")
 
 # Defines the calibration heuristic for the history-based calibration of StarPU
 AC_MSG_CHECKING(calibration heuristic of history-based StarPU calibrator)
@@ -1795,132 +2132,40 @@ AC_DEFINE_UNQUOTED(STARPU_HISTORYMAXERROR, [$calibration_heuristic], [calibratio
 
 ###############################################################################
 #                                                                             #
-#                                    MPI                                      #
+#                             MP Common settings                              #
 #                                                                             #
 ###############################################################################
 
-AC_ARG_WITH(mpicc, [AS_HELP_STRING([--with-mpicc[=<path to mpicc>]],
-			[Path of the mpicc compiler])],
-	[
-		if test x$withval = xyes; then
-			AC_MSG_ERROR(--with-mpicc must be given a pathname)
-		else
-			mpicc_path=$withval
-		fi
-	],
-	[
-		if test x$enable_simgrid = xyes ; then
-			DEFAULT_MPICC=smpicc
-		else
-			DEFAULT_MPICC=mpicc
-		fi
-		# nothing was specified: default value is used
-		AC_PATH_PROG(mpicc_path, $DEFAULT_MPICC, [no], [$simgrid_dir/bin:$PATH])
-	])
+AM_CONDITIONAL([STARPU_USE_MP], [test "x$enable_mic" = "xyes" -o "x$build_mpi_master_slave" = "xyes" -o "x$enable_rcce" = "xyes"])
 
-# We test if the MPICC compiler exists
-if test ! -x $mpicc_path; then
-	#MPICC does not exists or is not executable
-	AC_MSG_RESULT(The mpicc compiler '$mpicc_path' does not have the execute permission)
-	use_mpi=no
-else
-	use_mpi=yes
-	if test x$enable_simgrid = xyes ; then
-		AC_ARG_WITH(smpirun, [AS_HELP_STRING([--with-smpirun[=<path to smpirun>]],
-					[Path of the smpirun helper])],
-			[
-				if test x$withval = xyes; then
-					AC_MSG_ERROR(--with-smpirun must be given a pathname)
-				else
-					smpirun_path=$withval
-				fi
-			],
-			[
-				# nothing was specified: default value is used
-				AC_PATH_PROG(smpirun_path, smpirun, [no], [$simgrid_dir/bin:$PATH])
-			])
+AC_ARG_ENABLE([export-dynamic], [AS_HELP_STRING([--disable-export-dynamic],
+			  [Prevent the linker from adding all symbols to the dynamic symbol table])], [], [])
 
+if test x$enable_mic = xyes -o x$build_mpi_master_slave = xyes -o x$enable_rcce = xyes ; then
+	AC_DEFINE(STARPU_USE_MP, [1], [Message-passing SINKs support
+		  is enabled])
+
+	if test x$enable_export_dynamic != xno ; then
+		STARPU_EXPORT_DYNAMIC="-rdynamic"
 	fi
 fi
 
-AC_MSG_CHECKING(mpicc path)
-AC_MSG_RESULT($mpicc_path)
-AC_SUBST(MPICC, $mpicc_path)
-if test x$use_mpi = xyes; then
-	cc_or_mpicc=$mpicc_path
-        # For some reason, libtool uses gcc instead of mpicc when linking
-        # libstarpumpi.
-        # On Darwin (and maybe other systems ?) the linker will fail (undefined
-        # references to MPI_*). We manually add the required flags to fix this
-        # issue.
-        AC_SUBST(MPICC_LDFLAGS, `$mpicc_path --showme:link`)
-else
-	cc_or_mpicc=$CC
-fi
-AC_SUBST(CC_OR_MPICC, $cc_or_mpicc)
+AC_SUBST(STARPU_EXPORT_DYNAMIC)
 
-# If the user specifically asks for it, or if we are in a developer checkout, we enable mpi check
-AC_ARG_ENABLE(mpi-check, AC_HELP_STRING([--enable-mpi-check], [Enable execution of MPI testcases]))
-running_mpi_check=no
-if test $svndir = 1 -o -d "$srcdir/.git" ; then
-    running_mpi_check=yes
-fi
-if test x$enable_mpi_check = xyes ; then
-    running_mpi_check=yes
-fi
-if test x$enable_mpi_check = xno ; then
-    running_mpi_check=no
-fi
+# Computes the maximum number of different kernels a message-passing sink
+# can lookup for and launch.
+AC_MSG_CHECKING(Maximum number of message-passing kernels)
+AC_ARG_ENABLE(maxmpkernels, [AS_HELP_STRING([
+	      -enable-maxmpkernels=<number>],
+	      [maximum number of kernels a message-passing sink can lookup
+	      for and execute])],
+	      maxmpkernels=$enableval, maxmpkernels=10)
+AC_MSG_RESULT($maxmpkernels)
+AC_DEFINE_UNQUOTED(STARPU_MAXMPKERNELS, [$maxmpkernels],
+		[maximum number of message-passing kernels])
 
-# Check if mpiexec is available
-AC_ARG_WITH(mpiexec, [AS_HELP_STRING([--with-mpiexec[=<path to mpiexec>]],
-			[Path of mpiexec])],
-	[
-		if test x$withval = xyes; then
-			AC_MSG_ERROR(--with-mpiexec must be given a pathname)
-		else
-			mpiexec_path=$withval
-		fi
-	],
-	[
-		# nothing was specified: look in the path
-		AC_PATH_PROG(mpiexec_path, mpiexec, [no], [$(dirname $mpicc_path):$PATH])
-	])
+###############################################################################
 
-AC_MSG_CHECKING(whether mpiexec is available)
-AC_MSG_RESULT($mpiexec_path)
-
-# We test if MPIEXEC exists
-if test ! -x $mpiexec_path; then
-	#MPIEXEC does not exists or is not executable
-	AC_MSG_RESULT(The mpiexec script is not valid)
-        running_mpi_check=no
-        mpiexec_path=""
-fi
-
-AM_CONDITIONAL(STARPU_MPI_CHECK, test x$running_mpi_check = xyes)
-if test x$use_mpi = xyes; then
-        AC_MSG_CHECKING(whether MPI tests should be run)
-        AC_MSG_RESULT($running_mpi_check)
-	AC_SUBST(MPIEXEC,$mpiexec_path)
-fi
-
-AC_MSG_CHECKING(whether the StarPU MPI library should be generated)
-AC_MSG_RESULT($use_mpi)
-AC_SUBST(USE_MPI, $use_mpi)
-AM_CONDITIONAL(USE_MPI, test x$use_mpi = xyes)
-if test x$use_mpi = xyes; then
-	AC_DEFINE(STARPU_USE_MPI,[],[whether the StarPU MPI library is available])
-else
-	running_mpi_check=no
-fi
-
-AC_ARG_ENABLE(mpi-progression-hook, [AS_HELP_STRING([--enable-mpi-progression-hook],
-				   [Enable StarPU MPI activity polling method])],
-				   enable_mpi_progression_hook=$enableval, enable_mpi_progression_hook=no)
-if  test x$enable_mpi_progression_hook = xyes; then
-	AC_DEFINE(STARPU_MPI_ACTIVITY, [1], [enable StarPU MPI activity polling method])
-fi
 
 ###############################################################################
 #                                                                             #
@@ -2034,6 +2279,11 @@ AC_DEFUN([IS_SUPPORTED_CFLAG],
 IS_SUPPORTED_CFLAG(-Wall)
 IS_SUPPORTED_CFLAG(-Werror=implicit)
 IS_SUPPORTED_CFLAG(-Werror=implicit-function-declaration)
+if test x$enable_perf_debug = xyes; then
+	IS_SUPPORTED_CFLAG(-no-pie)
+	IS_SUPPORTED_CFLAG(-no-PIE)
+	IS_SUPPORTED_CFLAG(-fno-pie)
+fi
 
 if test "x$STARPU_DEVEL" != x; then
 	AC_DEFINE(STARPU_DEVEL, [1], [enable developer warnings])
@@ -2060,10 +2310,110 @@ AC_SUBST([pkglibdir])
 AC_ARG_ENABLE(fortran, [AS_HELP_STRING([--disable-fortran],
 			[disable build of fortran examples])],
 			enable_build_fortran=$enableval, enable_build_fortran=yes)
-if test "x$FC" != "x" -a "x$enable_build_fortran" = "xyes" ; then
-  AC_DEFINE(STARPU_HAVE_FC, [], [Define this if a Fortran compiler is available])
+use_mpi_fort=no
+if test "x$FC" != "x"; then
+	if $FC --version|grep -q 'GNU Fortran'; then
+		gfortran_fc_version=`$FC --version|head -1|sed 's/.*)//;s/^.*\([[0-9]][[0-9]]*\)\.\([[0-9]][[0-9]]*\)\.\([[0-9]][[0-9]]*\).*/\1.\2.\3/'`
+		gfortran_maj_version=`echo $gfortran_fc_version|cut -d. -f1`
+		gfortran_min_version=`echo $gfortran_fc_version|cut -d. -f2`
+
+		if test $gfortran_maj_version -lt 4 -o \( $gfortran_maj_version -eq 4 -a $gfortran_min_version -lt 9 \) ; then
+			AC_MSG_WARN([GFortran $gfortran_fc_version too old, version >= 4.9.x needed, Fortran examples will not be built])
+			enable_build_fortran="no"
+		fi
+	else
+		if $FC -V 2>&1|grep -q 'Intel(R) Fortran'; then
+			ifort_fc_version=`$FC -V 2>&1 |head -1|sed 's/.*Version //;s/ Build.*//'`
+			ifort_maj_version=`echo $ifort_fc_version|cut -d. -f1`
+
+			if test $ifort_maj_version -lt 16; then
+				AC_MSG_WARN([Intel Fortran compiler $ifort_fc_version too old, version >= 2016.x needed, Fortran examples will not be built])
+				enable_build_fortran="no"
+			fi
+		else
+			if $FC -qversion 2>&1|grep -q 'IBM XL Fortran'; then
+				xlf_fc_version=`$FC -V 2>&1 |tail -1|sed 's/.*Version: //'`
+				xlf_maj_version=`echo $xlf_fc_version|cut -d. -f1`
+
+				AC_MSG_WARN([IBM Fortran compiler $xlf_fc_version not validated with the native StarPU Fortran API, Fortran examples will not be built])
+				enable_build_fortran="no"
+			else
+				AC_MSG_WARN(Fortran compiler has not been tested for StarPU native Fortran support)
+			fi
+		fi
+	fi
+	if test "x$enable_build_fortran" = "xyes" ; then
+		AC_DEFINE(STARPU_HAVE_FC, [1], [Define this if a Fortran compiler is available])
+		if test x$build_mpi_lib = xyes -o x$build_mpi_master_slave = xyes ; then
+			AC_ARG_WITH(mpifort, [AS_HELP_STRING([--with-mpifort[=<path to mpifort>]],
+				    [Path of the mpifort compiler])],
+				    [
+				     if test x$withval = xyes; then
+					     AC_MSG_ERROR(--with-mpifort must be given a pathname)
+					     else
+						     mpifort_path=$withval
+					     fi
+					     ],
+					     [
+					      if test x$enable_simgrid = xyes ; then
+						      DEFAULT_MPIFORT=smpifort
+					      else
+						      DEFAULT_MPIFORT=mpif90
+					      fi
+					      # nothing was specified: default value is used
+					      AC_PATH_PROG(mpifort_path, $DEFAULT_MPIFORT, [no], [$(dirname $mpicc_path):$simgrid_dir/bin:$PATH])
+					      ])
+
+			# We test if the MPIFORT compiler exists
+			if test ! -x $mpifort_path; then
+				#MPIFORT does not exists or is not executable
+				AC_MSG_RESULT(The mpifort compiler '$mpifort_path' does not have the execute permission)
+				use_mpi_fort=no
+			else
+				OLD_CC=$CC
+				CC=$mpicc_path
+				AC_LINK_IFELSE(
+						AC_LANG_PROGRAM(
+							[[#include <mpi.h>]],
+							[[AC_LANG_SOURCE([return MPI_Comm_f2c(0);])]]
+							),
+						[use_mpi_fort=yes],
+						[use_mpi_fort=no]
+						)
+				CC=$OLD_CC
+				if test "x$use_mpi_fort" = xyes; then
+					AC_DEFINE([HAVE_MPI_COMM_F2C], [1], [Function MPI_Comm_f2c is available])
+					AC_MSG_CHECKING(mpifort path)
+					AC_MSG_RESULT($mpifort_path)
+					AC_SUBST(MPIFORT, $mpifort_path)
+				fi
+			fi
+		fi
+	fi
 fi
+if test "x$enable_build_fortran" = "xyes" ; then
+   if test "x$FC" = "x" ; then
+      enable_build_fortran="no"
+   fi
+fi
+
+#We have MPI C/C++ compiler
+if test x$build_mpi_master_slave = xyes; then
+    #Check if we can compile fortran cases
+    if test x$use_mpi_fort = xyes ; then
+        F77LD=$mpifort_path    
+        FCLD=$mpifort_path
+        F77=$mpifort_path    
+        FC=$mpifort_path
+    else
+        enable_build_fortran=no
+    fi
+fi
+
+
 AM_CONDITIONAL([STARPU_HAVE_FC], [test "x$FC" != "x" -a "x$enable_build_fortran" = "xyes"])
+AM_CONDITIONAL([STARPU_HAVE_F77], [test "x$F77" != "x" -a "x$enable_build_fortran" = "xyes"])
+AM_CONDITIONAL([STARPU_HAVE_MPIFORT], [test "x$use_mpi_fort" = "xyes"])
 
 ###############################################################################
 #                                                                             #
@@ -2143,13 +2493,13 @@ AM_CONDITIONAL([RUN_GCC_PLUGIN_TESTS],
 ###############################################################################
 
 AC_ARG_ENABLE(openmp, [AS_HELP_STRING([--enable-openmp],
-			[build the OpenMP runtime support (experimental)])],
+			[build the OpenMP runtime support])],
 			enable_openmp=$enableval, enable_openmp=no)
 
 AC_MSG_CHECKING(for OpenMP runtime support)
 
 if test x$enable_openmp = xyes; then
-	AC_DEFINE(STARPU_OPENMP, 1, [Define this to enable OpenMP runtime support])
+	AC_DEFINE(STARPU_OPENMP, [1], [Define this to enable OpenMP runtime support])
 fi
 
 AM_CONDITIONAL([STARPU_OPENMP], [test "x$enable_openmp" = "xyes"])
@@ -2193,7 +2543,7 @@ AM_CONDITIONAL([STARPU_USE_SOCL], [test "x$build_socl" = "xyes"])
 
 if test "$build_socl" = "yes" ; then
    AC_CHECK_FUNCS([clGetExtensionFunctionAddressForPlatform])
-   if test -n "$SOCL_OCL_LIB_OPENCL" -a -f $SOCL_OCL_LIB_OPENCL ; then
+   if test -n "$SOCL_OCL_LIB_OPENCL" -a -f "$SOCL_OCL_LIB_OPENCL" ; then
       run_socl_check=yes
       SOCL_OCL_LIB_OPENCL_DIR=$(dirname $SOCL_OCL_LIB_OPENCL)
       AC_SUBST(SOCL_OCL_LIB_OPENCL_DIR)
@@ -2396,6 +2746,52 @@ AC_MSG_CHECKING(which BLAS lib should be used)
 AC_MSG_RESULT($blas_lib)
 AC_SUBST(BLAS_LIB,$blas_lib)
 
+###############################################################################
+#                                                                             #
+#			 Multiple linear regression			      #
+#                                                                             #
+###############################################################################
+AC_ARG_ENABLE(mlr, [AS_HELP_STRING([--disable-mlr],
+			[Disable multiple linear regression models])],
+			enable_mlr=$enableval, enable_mlr=yes)
+
+AC_MSG_CHECKING(whether multiple linear regression models are disabled)
+if test x$enable_mlr = xyes -a "$starpu_windows" != "yes" ; then
+   	AC_MSG_RESULT(no)
+	install_min_dgels=no
+	support_mlr=yes
+   	STARPU_SEARCH_LIBS(LAPACK,[dgels_],[lapack],use_system_lapack=yes,,)
+	if test x$use_system_lapack = xyes; then
+	   	AC_DEFINE(STARPU_MLR_MODEL, [1], [use reflapack library])
+		LDFLAGS="-llapack $LDFLAGS"
+	else
+		if test x$blas_lib = xmkl; then
+		   	AC_DEFINE(STARPU_MLR_MODEL, [1], [use mkl library])			
+		else
+			AC_MSG_CHECKING(whether min-dgels is linked)
+			if test x"$DGELS_LIBS" != x; then
+		   	   	AC_MSG_RESULT(yes)
+        		   	AC_DEFINE(STARPU_MLR_MODEL, [1], [use user defined library])
+			   	AC_ARG_VAR([DGELS_LIBS], [linker flags for lapack dgels])
+			else
+				AC_MSG_RESULT(no)
+				AC_MSG_CHECKING(min-dgels source)
+				cp -r $srcdir/min-dgels $PWD/
+				AC_MSG_RESULT(yes)
+				DGELS_LIBS="-Wl,--start-group $STARPU_BUILD_DIR/min-dgels/build/*.a -Wl,--end-group"
+				AC_DEFINE(STARPU_MLR_MODEL, [1], [use user defined library])
+				AC_ARG_VAR([DGELS_LIBS], [linker flags for lapack dgels])
+				install_min_dgels=yes
+			fi
+		fi
+	fi
+else
+ 	AC_MSG_RESULT(yes)
+	install_min_dgels=no
+	support_mlr=no
+fi
+AM_CONDITIONAL(STARPU_USE_MIN_DGELS, test x$install_min_dgels = xyes)
+
 ##########################################
 # FFT                                    #
 ##########################################
@@ -2444,20 +2840,25 @@ AM_CONDITIONAL(BUILD_STARPUFFT_EXAMPLES, [test x$enable_starpufft_examples = xye
 # hwloc                                  #
 ##########################################
 
+have_valid_hwloc=no
+SAVED_LDFLAGS="${LDFLAGS}"
+SAVED_CPPFLAGS="${CPPFLAGS}"
+SAVED_PKG_CONFIG_PATH="$PKG_CONFIG_PATH"
 AC_ARG_WITH([hwloc],
 	[AS_HELP_STRING([--without-hwloc], [Disable hwloc (enabled by default)])],
 	[
 		if test x$withval != xno; then
 			if test "$withval" = "yes" ; then
-				use_hwloc_from_system=yes
 				use_hwloc=yes
 			else
 				# use specified path
-				use_hwloc_from_system=no
 				if test ! -d "$withval" ; then
 				   AC_MSG_ERROR("Directory specified for hwloc <$withval> does not exist")
 				fi
-				hwloc_dir=$withval
+				if test ! -d "$withval/lib/pkgconfig" ; then
+				   AC_MSG_ERROR("Hwloc directory <$withval> does not have a subdirectory lib/pkgconfig")
+				fi
+				export PKG_CONFIG_PATH=$withval/lib/pkgconfig:$PKG_CONFIG_PATH
 				use_hwloc=yes
 			fi
 		else
@@ -2466,28 +2867,10 @@ AC_ARG_WITH([hwloc],
 	],
 	[
 		use_hwloc=maybe
-		use_hwloc_from_system=yes
 	])
-SAVED_LDFLAGS="${LDFLAGS}"
-SAVED_CPPFLAGS="${CPPFLAGS}"
-AS_IF([test "$use_hwloc" = "no"],
-  [have_valid_hwloc=no],
-  [AS_IF([test "$use_hwloc_from_system" = "yes"],
-  	  [PKG_CHECK_MODULES([HWLOC],[hwloc], [
-	      	have_valid_hwloc=yes
-            have_pkgconfig_hwloc=yes],
-		[
-            have_valid_hwloc=no
-            have_pkgconfig_hwloc=no])
-	  ],
-	  #else
-	  [have_pkgconfig_hwloc=no
-	   CPPFLAGS="${SAVED_CPPFLAGS} -I$hwloc_dir/include"
-	   AC_CHECK_HEADER([hwloc.h],[have_valid_hwloc=yes],[have_valid_hwloc=no])
-	   LDFLAGS="${SAVED_LDFLAGS} -L$hwloc_dir/lib"
-       AC_HAVE_LIBRARY([hwloc],[have_valid_hwloc=yes],[have_valid_hwloc=no])
-	  ])
-  ])
+AS_IF([test "$use_hwloc" != "no"],
+      [PKG_CHECK_MODULES([HWLOC],[hwloc], [have_valid_hwloc=yes], [have_valid_hwloc=no])]
+     )
 AM_CONDITIONAL(STARPU_HAVE_HWLOC, test "x$have_valid_hwloc" = "xyes")
 # in case hwloc was explicitely required, but is not available, this is an error
 AS_IF([test "$use_hwloc" = "yes" -a "$have_valid_hwloc" = "no"],
@@ -2498,25 +2881,22 @@ AS_IF([test "$have_valid_hwloc" = "no" -a "$use_hwloc" != "no"],
       [AC_MSG_ERROR([libhwloc was not found on your system. If the target machine is hyperthreaded the performance may be impacted a lot.  It is strongly recommended to install libhwloc. However, if you really want to use StarPU without enabling libhwloc, please restart configure by specifying the option '--without-hwloc'.])]
      )
 
+LDFLAGS="${HWLOC_LIBS} ${SAVED_LDFLAGS}"
+CPPFLAGS="${HWLOC_CFLAGS} ${SAVED_CPPFLAGS}"
+
 AS_IF([test "$have_valid_hwloc" = "yes"],
       [AC_DEFINE([STARPU_HAVE_HWLOC], [1], [Define to 1 if you have the hwloc library.])
        HWLOC_REQUIRES=hwloc
        AC_SUBST([STARPU_HAVE_HWLOC], [1])
        AC_CHECK_DECLS([hwloc_cuda_get_device_osdev_by_index], [], [], [[#include <hwloc/cuda.h>]])
-       AS_IF([test "$have_pkgconfig_hwloc" = "no"],
-             [HWLOC_CFLAGS="-I$hwloc_dir/include"
-          HWLOC_LIBS="-L$hwloc_dir/lib -lhwloc"
-          # TODO: either detect this or make the API compatible with older hwloc versions
-          ],)
       ])
 
-LDFLAGS="${HWLOC_LIBS} ${SAVED_LDFLAGS}"
-CPPFLAGS="${HWLOC_CFLAGS} ${SAVED_CPPFLAGS}"
 AC_CHECK_FUNCS([hwloc_topology_dup])
 AM_CONDITIONAL(STARPU_HWLOC_HAVE_TOPOLOGY_DUP, test $ac_cv_func_hwloc_topology_dup = yes)
 
 LDFLAGS="${SAVED_LDFLAGS}"
 CPPFLAGS="${SAVED_CPPFLAGS}"
+export PKG_CONFIG_PATH=$SAVED_PKG_CONFIG_PATH
 
 AC_MSG_CHECKING(whether hwloc should be used)
 AC_MSG_RESULT($have_valid_hwloc)
@@ -2559,7 +2939,7 @@ if test "x$ICC" != "x" -a "$starpu_windows" = "yes" ; then
     ICC=""
 fi
 if test "x$ICC" != "x"; then
-  AC_DEFINE(STARPU_HAVE_ICC, [], [Define this if icc is available])
+  AC_DEFINE(STARPU_HAVE_ICC, [1], [Define this if icc is available])
 fi
 AM_CONDITIONAL([STARPU_HAVE_ICC], [test "x$ICC" != "x"])
 
@@ -2607,6 +2987,10 @@ if test "$enable_build_doc" = "yes" ; then
    if test "$epstopdfcommand" = "" ; then
 	enable_build_doc="no"
    fi
+   if test -f "$srcdir/doc/doxygen/starpu.pdf"
+   then
+	enable_build_doc="no"
+   fi
 fi
 AC_MSG_CHECKING(whether documentation should be compiled)
 AC_MSG_RESULT($enable_build_doc)
@@ -2620,7 +3004,7 @@ AM_CONDITIONAL(BUILD_DOC, [test x$enable_build_doc != xno])
 ###############################################################################
 
 # these are the flags needed for linking libstarpu (and thus also for static linking)
-LIBSTARPU_LDFLAGS="$HWLOC_LIBS $FXT_LIBS $STARPU_COI_LDFLAGS $STARPU_SCIF_LDFLAGS $STARPU_RCCE_LDFLAGS $STARPU_LEVELDB_LDFLAGS $STARPU_GLPK_LDFLAGS $STARPU_LEVELDB_LDFLAGS $SIMGRID_LIBS $STARPU_BLAS_LDFLAGS $STARPU_OMP_LDFLAGS"
+LIBSTARPU_LDFLAGS="$HWLOC_LIBS $FXT_LIBS $STARPU_COI_LDFLAGS $STARPU_SCIF_LDFLAGS $STARPU_RCCE_LDFLAGS $STARPU_LEVELDB_LDFLAGS $STARPU_GLPK_LDFLAGS $STARPU_LEVELDB_LDFLAGS $SIMGRID_LIBS $STARPU_BLAS_LDFLAGS $STARPU_OMP_LDFLAGS $DGELS_LIBS"
 AC_SUBST([LIBSTARPU_LDFLAGS])
 
 LIBSTARPU_LINK=libstarpu-$STARPU_EFFECTIVE_VERSION.la
@@ -2650,9 +3034,21 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   chmod +x tools/starpu_paje_draw_histogram
   chmod +x tools/starpu_paje_state_stats
   chmod +x tools/starpu_paje_summary
+  chmod +x tools/starpu_mlr_analysis
   chmod +x tools/starpu_paje_sort
   chmod +x tools/starpu_smpirun
   chmod +x doc/doxygen/doxygen_filter.sh
+  mkdir -p tests/microbenchs
+  test -e tests/microbenchs/tasks_size_overhead.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/tasks_size_overhead.sh tests/microbenchs/
+  test -e tests/microbenchs/tasks_size_overhead_sched.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/tasks_size_overhead_sched.sh tests/microbenchs/
+  test -e tests/microbenchs/tasks_size_overhead_scheds.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/tasks_size_overhead_scheds.sh tests/microbenchs/
+  test -e tests/microbenchs/tasks_size_overhead.gp || ln -sf $ac_abs_top_srcdir/tests/microbenchs/tasks_size_overhead.gp tests/microbenchs/
+  test -e tests/microbenchs/microbench.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/microbench.sh tests/microbenchs/
+  test -e tests/microbenchs/parallel_dependent_homogeneous_tasks_data.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/parallel_dependent_homogeneous_tasks_data.sh tests/microbenchs/
+  test -e tests/microbenchs/parallel_independent_heterogeneous_tasks_data.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/parallel_independent_heterogeneous_tasks_data.sh tests/microbenchs/
+  test -e tests/microbenchs/parallel_independent_heterogeneous_tasks.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/parallel_independent_heterogeneous_tasks.sh tests/microbenchs/
+  test -e tests/microbenchs/parallel_independent_homogeneous_tasks_data.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/parallel_independent_homogeneous_tasks_data.sh tests/microbenchs/
+  test -e tests/microbenchs/parallel_independent_homogeneous_tasks.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/parallel_independent_homogeneous_tasks.sh tests/microbenchs/
 ])
 
 # Create links to ICD files in build/socl/vendors directory. SOCL will use this
@@ -2697,6 +3093,7 @@ AC_OUTPUT([
 	tools/starpu_paje_draw_histogram
 	tools/starpu_paje_state_stats
 	tools/starpu_paje_summary
+	tools/starpu_mlr_analysis
 	tools/starpu_paje_sort
 	tools/starpu_smpirun
 	socl/Makefile
@@ -2748,6 +3145,7 @@ AC_OUTPUT([
 	doc/doxygen/doxygen-config.cfg
 	doc/doxygen/doxygen_filter.sh
 	tools/msvc/starpu_var.bat
+	min-dgels/Makefile
 ])
 
 AC_MSG_NOTICE([
@@ -2765,13 +3163,14 @@ AC_MSG_NOTICE([
         (Note these numbers do not represent the number of detected
 	devices, but the maximum number of devices StarPU can manage)
 
-	Maximum number of CPUs:           $maxcpus
-	Maximum number of CUDA devices:   $nmaxcudadev
-	Maximum number of OpenCL devices: $nmaxopencldev
-	Maximum number of SCC devices:    $nmaxsccdev
-	Maximum number of MIC threads:    $nmaxmicthreads
-	Maximum number of memory nodes:   $maxnodes
-	Maximum number of task buffers:   $nmaxbuffers
+	Maximum number of CPUs:                     $maxcpus
+	Maximum number of CUDA devices:             $nmaxcudadev
+	Maximum number of OpenCL devices:           $nmaxopencldev
+	Maximum number of SCC devices:              $nmaxsccdev
+	Maximum number of MIC threads:              $nmaxmicthreads
+	Maximum number of MPI master-slave devices: $nmaxmpidev
+	Maximum number of memory nodes:             $maxnodes
+	Maximum number of task buffers:             $nmaxbuffers
 
 	GPU-GPU transfers: $have_cuda_memcpy_peer
 	Allocation cache:  $enable_allocation_cache
@@ -2786,17 +3185,21 @@ AC_MSG_NOTICE([
         Examples:          $enable_build_examples
 
 	StarPU Extensions:
-	       MPI enabled:                                 $use_mpi
-	       MPI test suite:                              $running_mpi_check
-	       FFT Support:                                 $fft_support
-	       GCC plug-in:                                 $build_gcc_plugin
-	       GCC plug-in test suite (requires GNU Guile): $run_gcc_plugin_test_suite
-	       OpenMP runtime support enabled:              $enable_openmp
-	       SOCL enabled:                                $build_socl
-               SOCL test suite:                             $run_socl_check
-               Scheduler Hypervisor:                        $build_sc_hypervisor
-               simgrid enabled:                             $enable_simgrid
-               ayudame enabled:                             $ac_cv_header_Ayudame_h
+	       StarPU MPI enabled:                            $build_mpi_lib
+	       MPI test suite:                                $running_mpi_check
+	       Master-Slave MPI enabled:                      $use_mpi_master_slave
+	       FFT Support:                                   $fft_support
+	       GCC plug-in:                                   $build_gcc_plugin
+	       GCC plug-in test suite (requires GNU Guile):   $run_gcc_plugin_test_suite
+	       OpenMP runtime support enabled:                $enable_openmp
+	       SOCL enabled:                                  $build_socl
+               SOCL test suite:                               $run_socl_check
+               Scheduler Hypervisor:                          $build_sc_hypervisor
+               simgrid enabled:                               $enable_simgrid
+               ayudame enabled:                               $ayu_msg
+	       Native fortran support:                        $enable_build_fortran
+	       Native MPI fortran support:                    $use_mpi_fort
+	       Support for multiple linear regression models: $support_mlr
 ])
 
 if test "$build_socl" = "yes" -a "$run_socl_check" = "no" ; then

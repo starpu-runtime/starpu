@@ -35,7 +35,7 @@ void hard_coded_handle_idle_cycle(unsigned sched_ctx, int worker)
 	unsigned criteria = sc_hypervisor_get_resize_criteria();
         if(criteria != SC_NOTHING)// && criteria == SC_SPEED)
         {
-		
+
 		int ret = starpu_pthread_mutex_trylock(&act_hypervisor_mutex);
 		if(ret != EBUSY)
 		{
@@ -50,8 +50,8 @@ void hard_coded_handle_idle_cycle(unsigned sched_ctx, int worker)
 					//	sc_hypervisor_policy_resize_to_unknown_receiver(sched_ctx, 0);
 					unsigned *sched_ctxs = sc_hypervisor_get_sched_ctxs();
 					int ns = sc_hypervisor_get_nsched_ctxs();
-					
-				
+
+
 					int nworkers = (int)starpu_worker_get_count();
 					struct types_of_workers *tw = sc_hypervisor_get_types_of_workers(NULL, nworkers);
 					int nw = tw->nw;
@@ -66,8 +66,8 @@ void hard_coded_handle_idle_cycle(unsigned sched_ctx, int worker)
 					sc_hypervisor_lp_distribute_floating_no_resources_in_ctxs(sched_ctxs, ns, tw->nw, w_in_s, NULL, nworkers, tw);
 					free(tw);
 				}
-			}	
-			starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
+			}
+			STARPU_PTHREAD_MUTEX_UNLOCK(&act_hypervisor_mutex);
 		}
 	}
 }
@@ -80,27 +80,27 @@ static void hard_coded_handle_poped_task(unsigned sched_ctx, __attribute__((unus
 		int ret = starpu_pthread_mutex_trylock(&act_hypervisor_mutex);
 		if(ret != EBUSY)
 		{
-			
+
 			if(sc_hypervisor_criteria_fulfilled(sched_ctx, worker))
-			{	
+			{
 				//	sc_hypervisor_policy_resize_to_unknown_receiver(sched_ctx, 0);
 				unsigned *sched_ctxs = sc_hypervisor_get_sched_ctxs();
 				int ns = sc_hypervisor_get_nsched_ctxs();
-				
+
 				int nworkers = (int)starpu_worker_get_count();
 				struct types_of_workers *tw = sc_hypervisor_get_types_of_workers(NULL, nworkers);
 				int nw = tw->nw;
 				double w_in_s[ns][nw];
 				w_in_s[0][0] = 1;
 				w_in_s[0][1] = 3;
-				
+
 				w_in_s[1][0] = 8;
 				w_in_s[1][1] = 0;
 //				sc_hypervisor_lp_place_resources_in_ctx(ns, nw, w_in_s, sched_ctxs, NULL, 1, tw);
 				sc_hypervisor_lp_distribute_floating_no_resources_in_ctxs(sched_ctxs, ns, tw->nw, w_in_s, NULL, nworkers, tw);
 				free(tw);
 			}
-			starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
+			STARPU_PTHREAD_MUTEX_UNLOCK(&act_hypervisor_mutex);
 		}
 	}
 }

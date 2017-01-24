@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2014  Université de Bordeaux
- * Copyright (C) 2010-2014  CNRS
+ * Copyright (C) 2010-2014, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -29,9 +29,9 @@ starpu_pthread_mutex_t mut;
 
 static void sched_ctx_cpu_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE_UNUSED)
 {
-	starpu_pthread_mutex_lock(&mut);
+	STARPU_PTHREAD_MUTEX_LOCK(&mut);
 	tasks_executed++;
-	starpu_pthread_mutex_unlock(&mut);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&mut);
 }
 
 static void sched_ctx_cuda_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE_UNUSED)
@@ -71,7 +71,7 @@ int main(int argc, char **argv)
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	starpu_pthread_mutex_init(&mut, NULL);
+	STARPU_PTHREAD_MUTEX_INIT(&mut, NULL);
 
 #ifdef STARPU_USE_CPU
 	nprocs1 = starpu_cpu_worker_get_count();

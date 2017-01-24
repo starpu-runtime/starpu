@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2015  Université de Bordeaux
- * Copyright (C) 2010-2013  CNRS
+ * Copyright (C) 2010-2016  Université de Bordeaux
+ * Copyright (C) 2010-2013, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -23,8 +23,15 @@
  */
 #include <starpu.h>
 #include <starpu_scheduler.h>
+#include <config.h>
 
+#ifdef STARPU_QUICK_CHECK
+#define NTASKS	320
+#elif !defined(STARPU_LONG_CHECK)
+#define NTASKS	3200
+#else
 #define NTASKS	32000
+#endif
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 
 struct dummy_sched_data
@@ -43,7 +50,7 @@ static void init_dummy_sched(unsigned sched_ctx_id)
 
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)data);
 
-	starpu_pthread_mutex_init(&data->policy_mutex, NULL);
+	STARPU_PTHREAD_MUTEX_INIT(&data->policy_mutex, NULL);
 	FPRINTF(stderr, "Initialising Dummy scheduler\n");
 }
 
@@ -53,7 +60,7 @@ static void deinit_dummy_sched(unsigned sched_ctx_id)
 
 	STARPU_ASSERT(starpu_task_list_empty(&data->sched_list));
 
-	starpu_pthread_mutex_destroy(&data->policy_mutex);
+	STARPU_PTHREAD_MUTEX_DESTROY(&data->policy_mutex);
 
 	free(data);
 
@@ -71,17 +78,16 @@ static int push_task_dummy(struct starpu_task *task)
 
 	/* lock all workers when pushing tasks on a list where all
 	   of them would pop for tasks */
-        starpu_pthread_mutex_lock(&data->policy_mutex);
+        STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 
 	starpu_task_list_push_front(&data->sched_list, task);
 
 	starpu_push_task_end(task);
-	starpu_pthread_mutex_unlock(&data->policy_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 
 
         /*if there are no tasks block */
         /* wake people waiting for a task */
-        unsigned worker = 0;
 	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 
         struct starpu_sched_ctx_iterator it;
@@ -89,13 +95,14 @@ static int push_task_dummy(struct starpu_task *task)
 	workers->init_iterator(workers, &it);
 	while(workers->has_next(workers, &it))
         {
+		unsigned worker;
                 worker = workers->get_next(workers, &it);
 		starpu_pthread_mutex_t *sched_mutex;
                 starpu_pthread_cond_t *sched_cond;
                 starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
-		starpu_pthread_mutex_lock(sched_mutex);
-                starpu_pthread_cond_signal(sched_cond);
-                starpu_pthread_mutex_unlock(sched_mutex);
+		STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
+                STARPU_PTHREAD_COND_SIGNAL(sched_cond);
+                STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
         }
 
 	return 0;
@@ -110,22 +117,22 @@ static struct starpu_task *pop_task_dummy(unsigned sched_ctx_id)
 	 * the calling worker. So we just take the head of the list and give it
 	 * to the worker. */
 	struct dummy_sched_data *data = (struct dummy_sched_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-	starpu_pthread_mutex_lock(&data->policy_mutex);
+#ifdef STARPU_NON_BLOCKING_DRIVERS
+	if (starpu_task_list_empty(&data->sched_list))
+		return NULL;
+#endif
+	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 	struct starpu_task *task = starpu_task_list_pop_back(&data->sched_list);
-	starpu_pthread_mutex_unlock(&data->policy_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 	return task;
 }
 
 static struct starpu_sched_policy dummy_sched_policy =
 {
 	.init_sched = init_dummy_sched,
-	.add_workers = NULL,
-	.remove_workers = NULL,
 	.deinit_sched = deinit_dummy_sched,
 	.push_task = push_task_dummy,
 	.pop_task = pop_task_dummy,
-	.post_exec_hook = NULL,
-	.pop_every_task = NULL,
 	.policy_name = "dummy",
 	.policy_description = "dummy scheduling strategy",
 	.worker_type = STARPU_WORKER_LIST,
@@ -152,6 +159,10 @@ int main(int argc, char **argv)
 	int ntasks = NTASKS;
 	int ret;
 	struct starpu_conf conf;
+
+#ifdef STARPU_HAVE_UNSETENV
+	unsetenv("STARPU_SCHED");
+#endif
 
 	starpu_conf_init(&conf);
 	conf.sched_policy = &dummy_sched_policy,

@@ -36,7 +36,8 @@ struct starpu_sched_component_composed_recipe
 
 struct starpu_sched_component_composed_recipe * starpu_sched_component_composed_recipe_create(void)
 {
-	struct starpu_sched_component_composed_recipe * recipe = malloc(sizeof(*recipe));
+	struct starpu_sched_component_composed_recipe *recipe;
+	_STARPU_MALLOC(recipe, sizeof(*recipe));
 	fun_create_component_list_init(&recipe->list);
 	return recipe;
 }
@@ -190,10 +191,11 @@ void composed_component_deinit_data(struct starpu_sched_component * _component)
 	struct composed_component *c = _component->data;
 	c->bottom->children = NULL;
 	c->bottom->nchildren = 0;
-	struct starpu_sched_component * component = c->top;
-	struct starpu_sched_component * next = NULL;
+	struct starpu_sched_component * component;
+	struct starpu_sched_component * next = c->top;
 	do
 	{
+		component = next;
 		component->workers = NULL;
 		next = component->children ? component->children[0] : NULL;
 		starpu_sched_component_destroy(component);
@@ -211,7 +213,8 @@ struct starpu_sched_component * starpu_sched_component_composed_component_create
 		return l->_head->create_component(tree, l->_head->arg);
 	struct starpu_sched_component * component = starpu_sched_component_create(tree, "composed");
 
-	struct composed_component * c = malloc(sizeof(struct composed_component));
+	struct composed_component *c;
+	_STARPU_MALLOC(c, sizeof(struct composed_component));
 	*c = create_composed_component(tree, recipe
 #ifdef STARPU_HAVE_HWLOC
 				  ,component->obj

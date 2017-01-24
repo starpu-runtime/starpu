@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011, 2014  CNRS
+ * Copyright (C) 2010, 2011, 2014, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,7 +19,7 @@
 
 static void print_block(tmp_block_t *block, unsigned r, unsigned c)
 {
-	printf(" **** block %d %d **** \n", block->i, block->j);
+	printf(" **** block %u %u **** \n", block->i, block->j);
 
 	unsigned i, j;
 	for (j = 0; j < r; j++)
@@ -47,9 +47,9 @@ static void print_all_blocks(tmp_block_t *block_list, unsigned r, unsigned c)
 static void print_bcsr(bcsr_t *bcsr)
 {
 	fprintf(stderr, "** BSCR **\n");
-	fprintf(stderr, "non zero - blocks = %d\n", bcsr->nnz_blocks);
-	fprintf(stderr, "nrows - blocks = %d\n", bcsr->nrows_blocks);
-	fprintf(stderr, "block size : c %d r %d\n", bcsr->c, bcsr->r);
+	fprintf(stderr, "non zero - blocks = %u\n", bcsr->nnz_blocks);
+	fprintf(stderr, "nrows - blocks = %u\n", bcsr->nrows_blocks);
+	fprintf(stderr, "block size : c %u r %u\n", bcsr->c, bcsr->r);
 }
 
 static unsigned count_blocks(tmp_block_t *block_list)
@@ -358,7 +358,7 @@ bcsr_t *mm_file_to_bcsr(char *filename, unsigned c, unsigned r)
 
 	for (i=0; i<nz; i++)
 	{
-		fscanf(f, "%d %d %f\n", &I[i], &J[i], &val[i]);
+		fscanf(f, "%u %u %f\n", &I[i], &J[i], &val[i]);
 		I[i]--;  /* adjust from 1-based to 0-based */
 		J[i]--;
 	}

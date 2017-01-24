@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2013  CNRS
+ * Copyright (C) 2010, 2011, 2013, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -41,6 +41,12 @@ void _starpu_wake_all_blocked_workers_on_node(unsigned nodeid)
 
 	struct _starpu_memory_node_descr * const descr = _starpu_memory_node_get_description();
 
+	starpu_pthread_mutex_t *mymutex = NULL;
+	starpu_pthread_cond_t *mycond = NULL;
+	const int myworkerid = starpu_worker_get_id();
+	if (myworkerid >= 0)
+		starpu_worker_get_sched_condition(myworkerid, &mymutex, &mycond);
+
 	STARPU_PTHREAD_RWLOCK_RDLOCK(&descr->conditions_rwlock);
 
 	unsigned nconds = descr->condition_count[nodeid];
@@ -48,6 +54,12 @@ void _starpu_wake_all_blocked_workers_on_node(unsigned nodeid)
 	{
 		struct _starpu_cond_and_mutex *condition;
 		condition  = &descr->conditions_attached_to_node[nodeid][cond_id];
+
+		if (condition->mutex == mymutex)
+			/* No need to wake myself, and I might be called from
+			 * the scheduler with mutex locked, through
+			 * starpu_prefetch_task_input_on_node */
+			continue;
 
 		/* wake anybody waiting on that condition */
 		STARPU_PTHREAD_MUTEX_LOCK_SCHED(condition->mutex);
@@ -69,6 +81,12 @@ void starpu_wake_all_blocked_workers(void)
 
 	struct _starpu_memory_node_descr * const descr = _starpu_memory_node_get_description();
 
+	starpu_pthread_mutex_t *mymutex = NULL;
+	starpu_pthread_cond_t *mycond = NULL;
+	const int myworkerid = starpu_worker_get_id();
+	if (myworkerid >= 0)
+		starpu_worker_get_sched_condition(myworkerid, &mymutex, &mycond);
+
 	STARPU_PTHREAD_RWLOCK_RDLOCK(&descr->conditions_rwlock);
 
 	unsigned nconds = descr->total_condition_count;
@@ -76,6 +94,12 @@ void starpu_wake_all_blocked_workers(void)
 	{
 		struct _starpu_cond_and_mutex *condition;
 		condition  = &descr->conditions_all[cond_id];
+
+		if (condition->mutex == mymutex)
+			/* No need to wake myself, and I might be called from
+			 * the scheduler with mutex locked, through
+			 * starpu_prefetch_task_input_on_node */
+			continue;
 
 		/* wake anybody waiting on that condition */
 		STARPU_PTHREAD_MUTEX_LOCK_SCHED(condition->mutex);
@@ -141,7 +165,7 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 		if ((src_kind == STARPU_CUDA_RAM) && (dst_kind == STARPU_CUDA_RAM))
 		{
 			/* GPU-GPU transfer, issue it from the device we are supposed to drive */
-			int worker = starpu_worker_get_id();
+			int worker = starpu_worker_get_id_check();
 			devid = starpu_worker_get_devid(worker);
 		}
 		else
@@ -441,9 +465,9 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 			STARPU_ASSERT(ret == 0);
 		}
 		break;
-		
+
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_DISK_RAM,STARPU_CPU_RAM):
-		if(copy_methods->any_to_any) 
+		if(copy_methods->any_to_any)
 			ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, req && !starpu_asynchronous_copy_disabled()  ? &req->async_channel : NULL);
 		else
 		{
@@ -454,7 +478,7 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 			if (ret == 0)
 			{
 				/* read is already finished, we can already unpack */
-				handle->ops->unpack_data(handle, dst_node, ptr, size); 
+				handle->ops->unpack_data(handle, dst_node, ptr, size);
 				/* ptr is allocated in full_read */
 				free(ptr);
 			}
@@ -464,15 +488,15 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 		}
 		break;
 
-	case _STARPU_MEMORY_NODE_TUPLE(STARPU_DISK_RAM,STARPU_DISK_RAM):	
+	case _STARPU_MEMORY_NODE_TUPLE(STARPU_DISK_RAM,STARPU_DISK_RAM):
 		ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, req ? &req->async_channel : NULL);
 		break;
-		
+
 	default:
 		STARPU_ABORT();
 		break;
 	}
-	
+
 	return ret;
 #endif /* !SIMGRID */
 }
@@ -491,9 +515,6 @@ int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT _starpu_driver_copy_data_1_to_1(starpu_d
 		STARPU_ASSERT(src_replicate->refcnt);
 	}
 
-	int ret_alloc, ret_copy;
-	unsigned long STARPU_ATTRIBUTE_UNUSED com_id = 0;
-
 	unsigned src_node = src_replicate->memory_node;
 	unsigned dst_node = dst_replicate->memory_node;
 
@@ -504,7 +525,7 @@ int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT _starpu_driver_copy_data_1_to_1(starpu_d
 			/* We're not supposed to allocate there at the moment */
 			return -ENOMEM;
 
-		ret_alloc = _starpu_allocate_memory_on_node(handle, dst_replicate, req ? req->prefetch : 0);
+		int ret_alloc = _starpu_allocate_memory_on_node(handle, dst_replicate, req ? req->prefetch : 0);
 		if (ret_alloc)
 			return -ENOMEM;
 	}
@@ -516,6 +537,7 @@ int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT _starpu_driver_copy_data_1_to_1(starpu_d
 	 * we do not perform any transfer */
 	if (!donotread)
 	{
+		unsigned long STARPU_ATTRIBUTE_UNUSED com_id = 0;
 		size_t size = _starpu_data_get_size(handle);
 		_starpu_bus_update_profiling_info((int)src_node, (int)dst_node, size);
 
@@ -528,8 +550,8 @@ int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT _starpu_driver_copy_data_1_to_1(starpu_d
 
 		dst_replicate->initialized = 1;
 
-		_STARPU_TRACE_START_DRIVER_COPY(src_node, dst_node, size, com_id, prefetch);
-		ret_copy = copy_data_1_to_1_generic(handle, src_replicate, dst_replicate, req);
+		_STARPU_TRACE_START_DRIVER_COPY(src_node, dst_node, size, com_id, prefetch, handle);
+		int ret_copy = copy_data_1_to_1_generic(handle, src_replicate, dst_replicate, req);
 		if (!req)
 			/* Synchronous, this is already finished */
 			_STARPU_TRACE_END_DRIVER_COPY(src_node, dst_node, size, com_id, prefetch);
@@ -764,6 +786,11 @@ unsigned _starpu_driver_test_request_completion(struct _starpu_async_channel *as
 			STARPU_OPENCL_REPORT_ERROR(err);
 		if (event_status < 0)
 			STARPU_OPENCL_REPORT_ERROR(event_status);
+		if (event_status == CL_COMPLETE)
+		{
+			err = clReleaseEvent(opencl_event);
+			if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+		}
 		success = (event_status == CL_COMPLETE);
 		break;
 	}

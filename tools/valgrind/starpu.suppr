@@ -81,9 +81,17 @@
 {
    mc / handle locking order. We always take handle before mc, except when we tidy memory, where we use trylock, but helgrind doesn't handle that :/ https://bugs.kde.org/show_bug.cgi?id=243232
    Helgrind:LockOrder
+   fun:mutex_trylock_WRK
+   fun:__starpu_spin_trylock
    ...
-   fun:_starpu_spin_trylock
-   fun:lock_all_subtree
+}
+
+{
+   mc / handle locking order1
+   Helgrind:LockOrder
+   ...
+   fun:__starpu_spin_lock
+   fun:try_to_free_mem_chunk
    ...
 }
 
@@ -91,8 +99,8 @@
    mc / handle locking order2
    Helgrind:LockOrder
    ...
-   fun:_starpu_spin_lock
-   fun:_starpu_memchunk_recently_used
+   fun:__starpu_spin_lock
+   fun:try_to_find_reusable_mem_chunk
    ...
 }
 
@@ -100,8 +108,8 @@
    mc / handle locking order3
    Helgrind:LockOrder
    ...
-   fun:_starpu_spin_lock
-   fun:_starpu_request_mem_chunk_removal
+   fun:__starpu_spin_lock
+   fun:free_potentially_in_use_mc
    ...
 }
 
@@ -109,16 +117,51 @@
    mc / handle locking order4
    Helgrind:LockOrder
    ...
-   fun:_starpu_spin_lock
+   fun:__starpu_spin_lock
+   fun:free_potentially_in_use_mc
+   ...
+}
+
+{
+   mc / handle locking order5
+   Helgrind:LockOrder
+   ...
+   fun:__starpu_spin_lock
+   fun:register_mem_chunk
+   ...
+}
+
+{
+   mc / handle locking order6
+   Helgrind:LockOrder
+   ...
+   fun:__starpu_spin_lock
+   fun:_starpu_request_mem_chunk_removal
+   ...
+}
+
+{
+   mc / handle locking order7
+   Helgrind:LockOrder
+   ...
+   fun:__starpu_spin_lock
    fun:_starpu_allocate_interface
+   ...
+}
+
+{
+   mc / handle locking order8
+   Helgrind:LockOrder
+   ...
+   fun:__starpu_spin_lock
+   fun:_starpu_memchunk_recently_used
    ...
 }
 
 {
    TODO1: This is temporary. It perhaps does not pose problem because only the worker takes this mutex. Fixing this will require changing the scheduler interface, so that the schedulers themselves take the scheduling lock, not the caller. Filter it out for now, so we can see other races more easily.
    Helgrind:LockOrder
-   fun:pthread_mutex_lock
-   fun:starpu_pthread_mutex_lock
+   fun:mutex_lock_WRK
    fun:simple_worker_pull_task
    ...
 }
@@ -126,8 +169,8 @@
 {
    TODO1: This is temporary. It perhaps does not pose problem because only the worker takes this mutex. Fixing this will require changing the scheduler interface, so that the schedulers themselves take the scheduling lock, not the caller. Filter it out for now, so we can see other races more easily.
    Helgrind:LockOrder
-   fun:pthread_mutex_lock
-   fun:starpu_pthread_mutex_lock
+   fun:mutex_lock_WRK
+   fun:starpu_pthread_mutex_lock_sched
    fun:_starpu_sched_component_worker_lock_scheduling
    fun:simple_worker_pull_task
    ...
@@ -136,8 +179,7 @@
 {
    TODO2: This is temporary. It perhaps does not pose problem because only the worker takes this mutex. Fixing this will require changing the scheduler interface, so that the schedulers themselves take the scheduling lock, not the caller. Filter it out for now, so we can see other races more easily.
    Helgrind:LockOrder
-   fun:pthread_mutex_lock
-   fun:starpu_pthread_mutex_lock
+   fun:mutex_lock_WRK
    fun:_starpu_sched_component_lock_worker
    fun:simple_worker_pull_task
    ...
@@ -146,8 +188,7 @@
 {
    TODO2: This is temporary. It perhaps does not pose problem because only the worker takes this mutex. Fixing this will require changing the scheduler interface, so that the schedulers themselves take the scheduling lock, not the caller. Filter it out for now, so we can see other races more easily.
    Helgrind:LockOrder
-   fun:pthread_mutex_lock
-   fun:starpu_pthread_mutex_lock
+   fun:mutex_lock_WRK
    fun:_starpu_sched_component_lock_worker
    fun:_starpu_sched_component_worker_lock_scheduling
    fun:simple_worker_pull_task

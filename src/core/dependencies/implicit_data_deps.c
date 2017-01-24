@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2013, 2015  CNRS
+ * Copyright (C) 2010-2016  Université de Bordeaux
+ * Copyright (C) 2010, 2011, 2013, 2015, 2016  CNRS
+ * Copyright (C) 2016  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -32,13 +33,7 @@ static void _starpu_add_ghost_dependency(starpu_data_handle_t handle STARPU_ATTR
 {
 	struct _starpu_job *next_job = _starpu_get_job_associated_to_task(next);
 	_starpu_bound_job_id_dep(handle, next_job, previous);
-#ifdef HAVE_AYUDAME_H
-	if (AYU_event)
-	{
-		uintptr_t AYU_data[3] = { previous, (uintptr_t) handle, (uintptr_t) handle };
-		AYU_event(AYU_ADDDEPENDENCY, next_job->job_id, AYU_data);
-	}
-#endif
+	STARPU_AYU_ADDDEPENDENCY(previous, handle, next_job->job_id);
 }
 
 static void _starpu_add_dependency(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED, struct starpu_task *previous STARPU_ATTRIBUTE_UNUSED, struct starpu_task *next STARPU_ATTRIBUTE_UNUSED)
@@ -81,9 +76,7 @@ static void _starpu_add_accessor(starpu_data_handle_t handle, struct starpu_task
 #else
 		_starpu_bound_recording
 #endif
-#ifdef HAVE_AYUDAME_H
-		|| AYU_event
-#endif
+		|| STARPU_AYU_EVENT
 		) && handle->last_submitted_ghost_sync_id_is_valid)
 	{
 		_STARPU_TRACE_GHOST_TASK_DEPS(handle->last_submitted_ghost_sync_id,
@@ -206,6 +199,10 @@ struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_
 {
 	struct starpu_task *task = NULL;
 
+	/* Do not care about some flags */
+	mode &= ~ STARPU_SSEND;
+	mode &= ~ STARPU_LOCALITY;
+
 	STARPU_ASSERT(!(mode & STARPU_SCRATCH));
         _STARPU_LOG_IN();
 
@@ -213,6 +210,9 @@ struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_
 	{
 		struct _starpu_job *pre_sync_job = _starpu_get_job_associated_to_task(pre_sync_task);
 		struct _starpu_job *post_sync_job = _starpu_get_job_associated_to_task(post_sync_task);
+
+		if (mode & STARPU_W || mode == STARPU_REDUX)
+			handle->initialized = 1;
 
 		/* Skip tasks that are associated to a reduction phase so that
 		 * they do not interfere with the application. */
@@ -434,8 +434,8 @@ void _starpu_release_data_enforce_sequential_consistency(struct starpu_task *tas
 			{
 				/* Save the job id of the reader task in the ghost reader linked list list */
 				struct _starpu_job *ghost_reader_job = _starpu_get_job_associated_to_task(task);
-				struct _starpu_jobid_list *link = (struct _starpu_jobid_list *) malloc(sizeof(struct _starpu_jobid_list));
-				STARPU_ASSERT(link);
+				struct _starpu_jobid_list *link;
+				_STARPU_MALLOC(link, sizeof(struct _starpu_jobid_list));
 				link->next = handle->last_submitted_ghost_accessors_id;
 				link->id = ghost_reader_job->job_id;
 				handle->last_submitted_ghost_accessors_id = link;
@@ -498,7 +498,8 @@ void _starpu_add_post_sync_tasks(struct starpu_task *post_sync_task, starpu_data
 	{
 		handle->post_sync_tasks_cnt++;
 
-		struct _starpu_task_wrapper_list *link = (struct _starpu_task_wrapper_list *) malloc(sizeof(struct _starpu_task_wrapper_list));
+		struct _starpu_task_wrapper_list *link;
+		_STARPU_MALLOC(link, sizeof(struct _starpu_task_wrapper_list));
 		link->task = post_sync_task;
 		link->next = handle->post_sync_tasks;
 		handle->post_sync_tasks = link;

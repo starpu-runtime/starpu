@@ -19,6 +19,10 @@
 #include <core/perfmodel/perfmodel.h>
 #include "../helper.h"
 
+/*
+ * Test providing the memory perfmodel function
+ */
+
 void func(void *descr[], void *arg)
 {
 }

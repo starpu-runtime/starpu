@@ -56,7 +56,7 @@ void _starpu_sched_ctx_elt_ensure_consistency(struct _starpu_sched_ctx_list *lis
 					      unsigned sched_ctx)
 {
 	struct _starpu_sched_ctx_elt *elt = _starpu_sched_ctx_elt_find(list, sched_ctx);
-	if (elt->task_number>0)
+	if (elt && elt->task_number>0)
 		elt->task_number = 0;
 }
 
@@ -65,7 +65,8 @@ struct _starpu_sched_ctx_elt* _starpu_sched_ctx_elt_add_after(struct _starpu_sch
 							      unsigned sched_ctx)
 {
 	struct _starpu_sched_ctx_elt *head, *next;
-	struct _starpu_sched_ctx_elt *elt = (struct _starpu_sched_ctx_elt*)malloc(sizeof(struct _starpu_sched_ctx_elt));
+	struct _starpu_sched_ctx_elt *elt;
+	_STARPU_MALLOC(elt, sizeof(struct _starpu_sched_ctx_elt));
 
 	_starpu_sched_ctx_elt_init(elt, sched_ctx);
 	elt->parent = list;
@@ -96,7 +97,8 @@ struct _starpu_sched_ctx_elt* _starpu_sched_ctx_elt_add_before(struct _starpu_sc
 							       unsigned sched_ctx)
 {
 	struct _starpu_sched_ctx_elt *head, *prev;
-	struct _starpu_sched_ctx_elt *elt = (struct _starpu_sched_ctx_elt*)malloc(sizeof(struct _starpu_sched_ctx_elt));
+	struct _starpu_sched_ctx_elt *elt;
+	_STARPU_MALLOC(elt, sizeof(struct _starpu_sched_ctx_elt));
 
 	_starpu_sched_ctx_elt_init(elt, sched_ctx);
 	elt->parent = list;
@@ -179,7 +181,7 @@ struct _starpu_sched_ctx_elt* _starpu_sched_ctx_list_add_prio(struct _starpu_sch
 							      unsigned prio, unsigned sched_ctx)
 {
 	struct _starpu_sched_ctx_list *parent_list = NULL, *prev = NULL, *last = NULL;
-	struct _starpu_sched_ctx_list *l = *list;
+	struct _starpu_sched_ctx_list *l;
 
 	for (l = *list; l != NULL; l=l->next)
 	{
@@ -194,7 +196,7 @@ struct _starpu_sched_ctx_elt* _starpu_sched_ctx_list_add_prio(struct _starpu_sch
 	}
 	else //l's priority is inferior or inexistant, add before
 	{
-		parent_list = (struct _starpu_sched_ctx_list*)malloc(sizeof(struct _starpu_sched_ctx_list));
+		_STARPU_MALLOC(parent_list, sizeof(struct _starpu_sched_ctx_list));
 		parent_list->priority = prio;
 		parent_list->next = l;
 		parent_list->head = NULL;
@@ -333,7 +335,6 @@ int _starpu_sched_ctx_list_iterator_init(struct _starpu_sched_ctx_list *list,
 
 int _starpu_sched_ctx_list_iterator_has_next(struct _starpu_sched_ctx_list_iterator *it)
 {
-	struct _starpu_sched_ctx_list *parent;
 	if (it->cursor == NULL)
 	{
 		if (it->list_head != NULL)
@@ -343,7 +344,7 @@ int _starpu_sched_ctx_list_iterator_has_next(struct _starpu_sched_ctx_list_itera
 	}
 	else
 	{
-		parent = it->cursor->parent;
+		struct _starpu_sched_ctx_list *parent = it->cursor->parent;
 		if (it->cursor->next == parent->head)
 			return parent->next != NULL;
 	}

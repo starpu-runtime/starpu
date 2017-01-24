@@ -1,8 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016, 2017  CNRS
  * Copyright (C) 2011  INRIA
+ * Copyright (C) 2016  Uppsala University
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -55,6 +56,8 @@
 
 #define STARPU_MAX_PIPELINE 4
 
+enum initialization { UNINITIALIZED = 0, CHANGING, INITIALIZED };
+
 /* This is initialized from in _starpu_worker_init */
 LIST_TYPE(_starpu_worker,
 	struct _starpu_machine_config *config;
@@ -105,17 +108,17 @@ LIST_TYPE(_starpu_worker,
 
 	unsigned has_prev_init; /* had already been inited in another ctx */
 
-	unsigned removed_from_ctx[STARPU_NMAX_SCHED_CTXS];
+	unsigned removed_from_ctx[STARPU_NMAX_SCHED_CTXS+1];
 
 	unsigned spinning_backoff ; /* number of cycles to pause when spinning  */
 
 
 	/* indicate whether the workers shares tasks lists with other workers*/
 	/* in this case when removing him from a context it disapears instantly */
-	unsigned shares_tasks_lists[STARPU_NMAX_SCHED_CTXS];
+	unsigned shares_tasks_lists[STARPU_NMAX_SCHED_CTXS+1];
 
         /* boolean to chose the next ctx a worker will pop into */
-	unsigned poped_in_ctx[STARPU_NMAX_SCHED_CTXS];	  
+	unsigned poped_in_ctx[STARPU_NMAX_SCHED_CTXS+1];
 
        /* boolean indicating at which moment we checked all ctxs and change phase for the booleab poped_in_ctx*/
        /* one for each of the 2 priorities*/
@@ -132,6 +135,8 @@ LIST_TYPE(_starpu_worker,
 
 	/* bool to indicate if the worker is slave in a ctx */
 	unsigned is_slave_somewhere;
+
+	struct _starpu_sched_ctx *stream_ctx;
 
 #ifdef __GLIBC__
 	cpu_set_t cpu_set;
@@ -323,6 +328,13 @@ struct _starpu_machine_config
 	 * that can run parallel tasks together. */
 	struct _starpu_combined_worker combined_workers[STARPU_NMAX_COMBINEDWORKERS];
 
+	/* Translation table from bindid to worker IDs */
+	struct {
+		int *workerids;
+		unsigned nworkers; /* size of workerids */
+	} *bindid_workers;
+	unsigned nbindid; /* size of bindid_workers */
+
 	/* This bitmask indicates which kinds of worker are available. For
 	 * instance it is possible to test if there is a CUDA worker with
 	 * the result of (worker_mask & STARPU_CUDA). */
@@ -341,7 +353,7 @@ struct _starpu_machine_config
 	int pause_depth;
 
 	/* all the sched ctx of the current instance of starpu */
-	struct _starpu_sched_ctx sched_ctxs[STARPU_NMAX_SCHED_CTXS];
+	struct _starpu_sched_ctx sched_ctxs[STARPU_NMAX_SCHED_CTXS+1];
 
 	/* this flag is set until the application is finished submitting tasks */
 	unsigned submitting;
@@ -410,6 +422,12 @@ void _starpu_driver_start(struct _starpu_worker *worker, unsigned fut_key, unsig
 /* This function initializes the current thread for the given worker */
 void _starpu_worker_start(struct _starpu_worker *worker, unsigned fut_key, unsigned sync);
 
+static inline unsigned _starpu_worker_get_count(void)
+{
+	return _starpu_config.topology.nworkers;
+}
+#define starpu_worker_get_count _starpu_worker_get_count
+
 /* The _starpu_worker structure describes all the state of a StarPU worker.
  * This function sets the pthread key which stores a pointer to this structure.
  * */
@@ -450,6 +468,7 @@ static inline struct _starpu_worker_set *_starpu_get_local_worker_set_key(void)
  * specified worker. */
 static inline struct _starpu_worker *_starpu_get_worker_struct(unsigned id)
 {
+	STARPU_ASSERT(id < starpu_worker_get_count());
 	return &_starpu_config.workers[id];
 }
 
@@ -551,5 +570,20 @@ static inline int _starpu_worker_get_id(void)
 }
 #define starpu_worker_get_id _starpu_worker_get_id
 
+/* Similar behaviour to starpu_worker_get_id() but fails when called from outside a worker */
+/* This returns an unsigned object on purpose, so that the caller is sure to get a positive value */
+static inline unsigned __starpu_worker_get_id_check(const char *f, int l)
+{
+	(void) l;
+	(void) f;
+	int id = starpu_worker_get_id();
+	STARPU_ASSERT_MSG(id>=0, "%s:%d Cannot be called from outside a worker\n", f, l);
+	return id;
+}
+#define _starpu_worker_get_id_check(f,l) __starpu_worker_get_id_check(f,l)
+
+void _starpu_worker_set_stream_ctx(unsigned workerid, struct _starpu_sched_ctx *sched_ctx);
+
+struct _starpu_sched_ctx* _starpu_worker_get_ctx_stream(unsigned stream_workerid);
 
 #endif // __WORKERS_H__

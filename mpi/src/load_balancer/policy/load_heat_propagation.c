@@ -436,19 +436,19 @@ static int init_heat(struct starpu_mpi_lb_conf *itf)
      * submitted to the local MPI node: the sleeping of the submission threads
      * checks the numbering of the tasks, not how many tasks have been
      * submitted to the local MPI node, which are two different things. */
-    char *sleep_env = getenv("LB_HEAT_SLEEP_THRESHOLD");
+    char *sleep_env = starpu_getenv("LB_HEAT_SLEEP_THRESHOLD");
     if (sleep_env)
         sleep_task_threshold = atoi(sleep_env);
     else
         sleep_task_threshold = 2000; 
 
-    char *wakeup_env = getenv("LB_HEAT_WAKEUP_RATIO");
+    char *wakeup_env = starpu_getenv("LB_HEAT_WAKEUP_RATIO");
     if (wakeup_env)
         wakeup_ratio = atof(wakeup_env);
     else
         wakeup_ratio = 0.5; 
 
-    char *time_env = getenv("LB_HEAT_TIME_THRESHOLD");
+    char *time_env = starpu_getenv("LB_HEAT_TIME_THRESHOLD");
     if (time_env)
         time_threshold = atoi(time_env);
     else

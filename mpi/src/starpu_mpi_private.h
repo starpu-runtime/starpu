@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2010, 2012-2016  Université de Bordeaux
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -24,13 +24,30 @@
 #include "starpu_mpi.h"
 #include "starpu_mpi_fxt.h"
 #include <common/list.h>
+#include <core/simgrid.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+	
+#ifdef STARPU_SIMGRID
+starpu_pthread_wait_t wait;
+starpu_pthread_queue_t dontsleep;
 
+struct _starpu_simgrid_mpi_req
+{
+	MPI_Request *request;
+	MPI_Status *status;
+	starpu_pthread_queue_t *queue;
+	unsigned *done;
+};
+
+int _starpu_mpi_simgrid_mpi_test(int *done, int *flag);
+void _starpu_mpi_simgrid_wait_req(MPI_Request *request, 	MPI_Status *status, starpu_pthread_queue_t *queue, unsigned *done);
+#endif
+	
 extern int _starpu_debug_rank;
-char *_starpu_mpi_get_mpi_code(int code);
+char *_starpu_mpi_get_mpi_error_code(int code);
 extern int _starpu_mpi_comm;
 
 #ifdef STARPU_VERBOSE
@@ -39,9 +56,11 @@ extern int _starpu_debug_level_max;
 void _starpu_mpi_set_debug_level_min(int level);
 void _starpu_mpi_set_debug_level_max(int level);
 #endif
+extern int _starpu_mpi_fake_world_size;
+extern int _starpu_mpi_fake_world_rank;
 
 #ifdef STARPU_NO_ASSERT
-#  define STARPU_MPI_ASSERT_MSG(x, msg, ...)	do { } while(0)
+#  define STARPU_MPI_ASSERT_MSG(x, msg, ...)	do { if (0) { (void) (x); }} while(0)
 #else
 #  if defined(__CUDACC__) && defined(STARPU_HAVE_WINDOWS)
 int _starpu_debug_rank;
@@ -69,6 +88,10 @@ int _starpu_debug_rank;
 #  endif
 #endif
 
+#define _STARPU_MPI_MALLOC(ptr, size) do { ptr = malloc(size); STARPU_MPI_ASSERT_MSG(ptr != NULL, "Cannot allocate %ld bytes\n", (long) size); } while (0)
+#define _STARPU_MPI_CALLOC(ptr, nmemb, size) do { ptr = calloc(nmemb, size); STARPU_MPI_ASSERT_MSG(ptr != NULL, "Cannot allocate %ld bytes\n", (long) (nmemb*size)); } while (0)
+#define _STARPU_MPI_REALLOC(ptr, size) do { ptr = realloc(ptr, size); STARPU_MPI_ASSERT_MSG(ptr != NULL, "Cannot reallocate %ld bytes\n", (long) size); } while (0)
+
 #ifdef STARPU_VERBOSE
 #  define _STARPU_MPI_COMM_DEBUG(count, datatype, node, tag, utag, comm, way) \
 	do \
@@ -76,9 +99,13 @@ int _starpu_debug_rank;
 	     	if (_starpu_mpi_comm)	\
 	     	{ \
      			int __size; \
-			if (_starpu_debug_rank == -1) starpu_mpi_comm_rank(MPI_COMM_WORLD, &_starpu_debug_rank); \
+			char _comm_name[128]; \
+			int _comm_name_len; \
+			int _rank; \
+			starpu_mpi_comm_rank(comm, &_rank); \
 			MPI_Type_size(datatype, &__size); \
-			fprintf(stderr, "[%d][starpu_mpi] %s %d:%d(%d):%p %12s %ld     [%s:%d]\n", _starpu_debug_rank, way, node, tag, utag, comm, " ", count*__size, __starpu_func__ , __LINE__); \
+			MPI_Comm_get_name(comm, _comm_name, &_comm_name_len); \
+			fprintf(stderr, "[%d][starpu_mpi] %s %d:%d(%d):%s %12s %ld     [%s:%d]\n", _rank, way, node, tag, utag, _comm_name, " ", count*__size, __starpu_func__ , __LINE__); \
 			fflush(stderr); \
 		} \
 	} while(0);
@@ -165,6 +192,7 @@ LIST_TYPE(_starpu_mpi_req,
 
 	/* description of the data to be sent/received */
 	MPI_Datatype datatype;
+	char *datatype_name;
 	void *ptr;
 	starpu_ssize_t count;
 	int registered_datatype;
@@ -208,11 +236,30 @@ LIST_TYPE(_starpu_mpi_req,
 
 	int is_internal_req;
 	struct _starpu_mpi_req *internal_req;
+	struct _starpu_mpi_early_data_handle *early_data_handle;
 
 	int sequential_consistency;
 
      	UT_hash_handle hh;
+
+#ifdef STARPU_SIMGRID
+        MPI_Status status_store;
+	starpu_pthread_queue_t queue;
+	unsigned done;
+#endif
+	  
 );
+
+struct _starpu_mpi_argc_argv
+{
+	int initialize_mpi;
+	int *argc;
+	char ***argv;
+	MPI_Comm comm;
+	int fargc;	// Fortran argc
+	char **fargv;	// Fortran argv
+};
+
 
 #ifdef __cplusplus
 }

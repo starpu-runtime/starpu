@@ -1,0 +1,530 @@
+/*
+ * This file is part of the StarPU Handbook.
+ * Copyright (C) 2009--2011  Universit@'e de Bordeaux
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016  CNRS
+ * Copyright (C) 2011, 2012, 2016 INRIA
+ * See the file version.doxy for copying conditions.
+ */
+
+/*! \page OnlinePerformanceTools Online Performance Tools
+
+\section On-linePerformanceFeedback On-line Performance Feedback
+
+\subsection EnablingOn-linePerformanceMonitoring Enabling On-line Performance Monitoring
+
+In order to enable online performance monitoring, the application can
+call starpu_profiling_status_set() with the parameter
+::STARPU_PROFILING_ENABLE. It is possible to detect whether monitoring
+is already enabled or not by calling starpu_profiling_status_get().
+Enabling monitoring also reinitialize all previously collected
+feedback. The environment variable \ref STARPU_PROFILING can also be
+set to <c>1</c> to achieve the same effect. The function
+starpu_profiling_init() can also be called during the execution to
+reinitialize performance counters and to start the profiling if the
+environment variable \ref STARPU_PROFILING is set to <c>1</c>.
+
+Likewise, performance monitoring is stopped by calling
+starpu_profiling_status_set() with the parameter
+::STARPU_PROFILING_DISABLE. Note that this does not reset the
+performance counters so that the application may consult them later
+on.
+
+More details about the performance monitoring API are available in \ref API_Profiling.
+
+\subsection Per-taskFeedback Per-task Feedback
+
+If profiling is enabled, a pointer to a structure
+starpu_profiling_task_info is put in the field
+starpu_task::profiling_info when a task terminates. This structure is
+automatically destroyed when the task structure is destroyed, either
+automatically or by calling starpu_task_destroy().
+
+The structure starpu_profiling_task_info indicates the date when the
+task was submitted (starpu_profiling_task_info::submit_time), started
+(starpu_profiling_task_info::start_time), and terminated
+(starpu_profiling_task_info::end_time), relative to the initialization
+of StarPU with starpu_init(). It also specifies the identifier of the worker
+that has executed the task (starpu_profiling_task_info::workerid).
+These date are stored as <c>timespec</c> structures which the user may convert
+into micro-seconds using the helper function
+starpu_timing_timespec_to_us().
+
+It it worth noting that the application may directly access this structure from
+the callback executed at the end of the task. The structure starpu_task
+associated to the callback currently being executed is indeed accessible with
+the function starpu_task_get_current().
+
+\subsection Per-codeletFeedback Per-codelet Feedback
+
+The field starpu_codelet::per_worker_stats is
+an array of counters. The <c>i</c>-th entry of the array is incremented every time a
+task implementing the codelet is executed on the <c>i</c>-th worker.
+This array is not reinitialized when profiling is enabled or disabled.
+
+\subsection Per-workerFeedback Per-worker Feedback
+
+The second argument returned by the function
+starpu_profiling_worker_get_info() is a structure
+starpu_profiling_worker_info that gives statistics about the specified
+worker. This structure specifies when StarPU started collecting
+profiling information for that worker
+(starpu_profiling_worker_info::start_time), the
+duration of the profiling measurement interval
+(starpu_profiling_worker_info::total_time), the time spent executing
+kernels (starpu_profiling_worker_info::executing_time), the time
+spent sleeping because there is no task to execute at all
+(starpu_profiling_worker_info::sleeping_time), and the number of tasks that were executed
+while profiling was enabled. These values give an estimation of the
+proportion of time spent do real work, and the time spent either
+sleeping because there are not enough executable tasks or simply
+wasted in pure StarPU overhead.
+
+Calling starpu_profiling_worker_get_info() resets the profiling
+information associated to a worker.
+
+To easily display all this information, the environment variable
+\ref STARPU_WORKER_STATS can be set to <c>1</c> (in addition to setting
+\ref STARPU_PROFILING to 1). A summary will then be displayed at program termination:
+
+\verbatim
+Worker stats:
+CUDA 0.0 (4.7 GiB)
+	480 task(s)
+	total: 1574.82 ms executing: 1510.72 ms sleeping: 0.00 ms overhead 64.10 ms
+	325.217970 GFlop/s
+
+CPU 0
+	22 task(s)
+	total: 1574.82 ms executing: 1364.81 ms sleeping: 0.00 ms overhead 210.01 ms
+	7.512057 GFlop/s
+
+CPU 1
+	14 task(s)
+	total: 1574.82 ms executing: 1500.13 ms sleeping: 0.00 ms overhead 74.69 ms
+	6.675853 GFlop/s
+
+CPU 2
+	14 task(s)
+	total: 1574.82 ms executing: 1553.12 ms sleeping: 0.00 ms overhead 21.70 ms
+	7.152886 GFlop/s
+\endverbatim
+
+The number of GFlops is available because the starpu_task::flops field of the
+tasks were filled (or \ref STARPU_FLOPS used in starpu_task_insert()).
+
+When an FxT trace is generated (see \ref GeneratingTracesWithFxT), it is also
+possible to use the tool <c>starpu_workers_activity</c> (see
+\ref MonitoringActivity) to generate a graphic showing the evolution of
+these values during the time, for the different workers.
+
+\subsection Bus-relatedFeedback Bus-related Feedback
+
+// how to enable/disable performance monitoring
+// what kind of information do we get ?
+
+The bus speed measured by StarPU can be displayed by using the tool
+<c>starpu_machine_display</c>, for instance:
+
+\verbatim
+StarPU has found:
+        3 CUDA devices
+                CUDA 0 (Tesla C2050 02:00.0)
+                CUDA 1 (Tesla C2050 03:00.0)
+                CUDA 2 (Tesla C2050 84:00.0)
+from    to RAM          to CUDA 0       to CUDA 1       to CUDA 2
+RAM     0.000000        5176.530428     5176.492994     5191.710722
+CUDA 0  4523.732446     0.000000        2414.074751     2417.379201
+CUDA 1  4523.718152     2414.078822     0.000000        2417.375119
+CUDA 2  4534.229519     2417.069025     2417.060863     0.000000
+\endverbatim
+
+Statistics about the data transfers which were performed and temporal average
+of bandwidth usage can be obtained by setting the environment variable
+\ref STARPU_BUS_STATS to <c>1</c>; a summary will then be displayed at program termination:
+
+\verbatim
+Data transfer stats:
+	RAM 0 -> CUDA 0	319.92 MB	213.10 MB/s	(transfers : 91 - avg 3.52 MB)
+	CUDA 0 -> RAM 0	214.45 MB	142.85 MB/s	(transfers : 61 - avg 3.52 MB)
+	RAM 0 -> CUDA 1	302.34 MB	201.39 MB/s	(transfers : 86 - avg 3.52 MB)
+	CUDA 1 -> RAM 0	133.59 MB	88.99 MB/s	(transfers : 38 - avg 3.52 MB)
+	CUDA 0 -> CUDA 1	144.14 MB	96.01 MB/s	(transfers : 41 - avg 3.52 MB)
+	CUDA 1 -> CUDA 0	130.08 MB	86.64 MB/s	(transfers : 37 - avg 3.52 MB)
+	RAM 0 -> CUDA 2	312.89 MB	208.42 MB/s	(transfers : 89 - avg 3.52 MB)
+	CUDA 2 -> RAM 0	133.59 MB	88.99 MB/s	(transfers : 38 - avg 3.52 MB)
+	CUDA 0 -> CUDA 2	151.17 MB	100.69 MB/s	(transfers : 43 - avg 3.52 MB)
+	CUDA 2 -> CUDA 0	105.47 MB	70.25 MB/s	(transfers : 30 - avg 3.52 MB)
+	CUDA 1 -> CUDA 2	175.78 MB	117.09 MB/s	(transfers : 50 - avg 3.52 MB)
+	CUDA 2 -> CUDA 1	203.91 MB	135.82 MB/s	(transfers : 58 - avg 3.52 MB)
+Total transfers: 2.27 GB
+\endverbatim
+
+\subsection StarPU-TopInterface StarPU-Top Interface
+
+StarPU-Top is an interface which remotely displays the on-line state of a StarPU
+application and permits the user to change parameters on the fly.
+
+Variables to be monitored can be registered by calling the functions
+starpu_top_add_data_boolean(), starpu_top_add_data_integer(),
+starpu_top_add_data_float(), e.g.:
+
+\code{.c}
+starpu_top_data *data = starpu_top_add_data_integer("mynum", 0, 100, 1);
+\endcode
+
+The application should then call starpu_top_init_and_wait() to give its name
+and wait for StarPU-Top to get a start request from the user. The name is used
+by StarPU-Top to quickly reload a previously-saved layout of parameter display.
+
+\code{.c}
+starpu_top_init_and_wait("the application");
+\endcode
+
+The new values can then be provided thanks to
+starpu_top_update_data_boolean(), starpu_top_update_data_integer(),
+starpu_top_update_data_float(), e.g.:
+
+\code{.c}
+starpu_top_update_data_integer(data, mynum);
+\endcode
+
+Updateable parameters can be registered thanks to starpu_top_register_parameter_boolean(), starpu_top_register_parameter_integer(), starpu_top_register_parameter_float(), e.g.:
+
+\code{.c}
+float alpha;
+starpu_top_register_parameter_float("alpha", &alpha, 0, 10, modif_hook);
+\endcode
+
+<c>modif_hook</c> is a function which will be called when the parameter is being modified, it can for instance print the new value:
+
+\code{.c}
+void modif_hook(struct starpu_top_param *d) {
+    fprintf(stderr,"%s has been modified: %f\n", d->name, alpha);
+}
+\endcode
+
+Task schedulers should notify StarPU-Top when it has decided when a task will be
+scheduled, so that it can show it in its Gantt chart, for instance:
+
+\code{.c}
+starpu_top_task_prevision(task, workerid, begin, end);
+\endcode
+
+Starting StarPU-Top (StarPU-Top is started via the binary
+<c>starpu_top</c>) and the application can be done in two ways:
+
+<ul>
+<li> The application is started by hand on some machine (and thus already
+waiting for the start event). In the Preference dialog of StarPU-Top, the SSH
+checkbox should be unchecked, and the hostname and port (default is 2011) on
+which the application is already running should be specified. Clicking on the
+connection button will thus connect to the already-running application.
+</li>
+<li> StarPU-Top is started first, and clicking on the connection button will
+start the application itself (possibly on a remote machine). The SSH checkbox
+should be checked, and a command line provided, e.g.:
+
+\verbatim
+$ ssh myserver STARPU_SCHED=dmda ./application
+\endverbatim
+
+If port 2011 of the remote machine can not be accessed directly, an ssh port bridge should be added:
+
+\verbatim
+$ ssh -L 2011:localhost:2011 myserver STARPU_SCHED=dmda ./application
+\endverbatim
+
+and "localhost" should be used as IP Address to connect to.
+</li>
+</ul>
+
+\section TaskAndWorkerProfiling Task And Worker Profiling
+
+A full example showing how to use the profiling API is available in
+the StarPU sources in the directory <c>examples/profiling/</c>.
+
+\code{.c}
+struct starpu_task *task = starpu_task_create();
+task->cl = &cl;
+task->synchronous = 1;
+/* We will destroy the task structure by hand so that we can
+ * query the profiling info before the task is destroyed. */
+task->destroy = 0;
+
+/* Submit and wait for completion (since synchronous was set to 1) */
+starpu_task_submit(task);
+
+/* The task is finished, get profiling information */
+struct starpu_profiling_task_info *info = task->profiling_info;
+
+/* How much time did it take before the task started ? */
+double delay += starpu_timing_timespec_delay_us(&info->submit_time, &info->start_time);
+
+/* How long was the task execution ? */
+double length += starpu_timing_timespec_delay_us(&info->start_time, &info->end_time);
+
+/* We don't need the task structure anymore */
+starpu_task_destroy(task);
+\endcode
+
+\code{.c}
+/* Display the occupancy of all workers during the test */
+int worker;
+for (worker = 0; worker < starpu_worker_get_count(); worker++)
+{
+        struct starpu_profiling_worker_info worker_info;
+        int ret = starpu_profiling_worker_get_info(worker, &worker_info);
+        STARPU_ASSERT(!ret);
+
+        double total_time = starpu_timing_timespec_to_us(&worker_info.total_time);
+        double executing_time = starpu_timing_timespec_to_us(&worker_info.executing_time);
+        double sleeping_time = starpu_timing_timespec_to_us(&worker_info.sleeping_time);
+        double overhead_time = total_time - executing_time - sleeping_time;
+
+        float executing_ratio = 100.0*executing_time/total_time;
+        float sleeping_ratio = 100.0*sleeping_time/total_time;
+        float overhead_ratio = 100.0 - executing_ratio - sleeping_ratio;
+
+        char workername[128];
+        starpu_worker_get_name(worker, workername, 128);
+        fprintf(stderr, "Worker %s:\n", workername);
+        fprintf(stderr, "\ttotal time: %.2lf ms\n", total_time*1e-3);
+        fprintf(stderr, "\texec time: %.2lf ms (%.2f %%)\n",
+                executing_time*1e-3, executing_ratio);
+        fprintf(stderr, "\tblocked time: %.2lf ms (%.2f %%)\n",
+                sleeping_time*1e-3, sleeping_ratio);
+        fprintf(stderr, "\toverhead time: %.2lf ms (%.2f %%)\n",
+                overhead_time*1e-3, overhead_ratio);
+}
+\endcode
+
+\section PerformanceModelExample Performance Model Example
+
+To achieve good scheduling, StarPU scheduling policies need to be able to
+estimate in advance the duration of a task. This is done by giving to codelets
+a performance model, by defining a structure starpu_perfmodel and
+providing its address in the field starpu_codelet::model. The fields
+starpu_perfmodel::symbol and starpu_perfmodel::type are mandatory, to
+give a name to the model, and the type of the model, since there are
+several kinds of performance models. For compatibility, make sure to
+initialize the whole structure to zero, either by using explicit
+memset(), or by letting the compiler implicitly do it as examplified
+below.
+
+<ul>
+<li>
+Measured at runtime (model type ::STARPU_HISTORY_BASED). This assumes that for a
+given set of data input/output sizes, the performance will always be about the
+same. This is very true for regular kernels on GPUs for instance (<0.1% error),
+and just a bit less true on CPUs (~=1% error). This also assumes that there are
+few different sets of data input/output sizes. StarPU will then keep record of
+the average time of previous executions on the various processing units, and use
+it as an estimation. History is done per task size, by using a hash of the input
+and ouput sizes as an index.
+It will also save it in <c>$STARPU_HOME/.starpu/sampling/codelets</c>
+for further executions, and can be observed by using the tool
+<c>starpu_perfmodel_display</c>, or drawn by using
+the tool <c>starpu_perfmodel_plot</c> (\ref PerformanceModelCalibration).  The
+models are indexed by machine name. To
+share the models between machines (e.g. for a homogeneous cluster), use
+<c>export STARPU_HOSTNAME=some_global_name</c>. Measurements are only done
+when using a task scheduler which makes use of it, such as
+<c>dmda</c>. Measurements can also be provided explicitly by the application, by
+using the function starpu_perfmodel_update_history().
+
+The following is a small code example.
+
+If e.g. the code is recompiled with other compilation options, or several
+variants of the code are used, the <c>symbol</c> string should be changed to reflect
+that, in order to recalibrate a new model from zero. The <c>symbol</c> string can even
+be constructed dynamically at execution time, as long as this is done before
+submitting any task using it.
+
+\code{.c}
+static struct starpu_perfmodel mult_perf_model = {
+    .type = STARPU_HISTORY_BASED,
+    .symbol = "mult_perf_model"
+};
+
+struct starpu_codelet cl = {
+    .cpu_funcs = { cpu_mult },
+    .cpu_funcs_name = { "cpu_mult" },
+    .nbuffers = 3,
+    .modes = { STARPU_R, STARPU_R, STARPU_W },
+    /* for the scheduling policy to be able to use performance models */
+    .model = &mult_perf_model
+};
+\endcode
+
+</li>
+<li>
+Measured at runtime and refined by regression (model types
+::STARPU_REGRESSION_BASED and ::STARPU_NL_REGRESSION_BASED). This
+still assumes performance regularity, but works
+with various data input sizes, by applying regression over observed
+execution times. ::STARPU_REGRESSION_BASED uses an <c>a*n^b</c> regression
+form, ::STARPU_NL_REGRESSION_BASED uses an <c>a*n^b+c</c> (more precise than
+::STARPU_REGRESSION_BASED, but costs a lot more to compute).
+
+For instance,
+<c>tests/perfmodels/regression_based.c</c> uses a regression-based performance
+model for the function memset().
+
+Of course, the application has to issue
+tasks with varying size so that the regression can be computed. StarPU will not
+trust the regression unless there is at least 10% difference between the minimum
+and maximum observed input size. It can be useful to set the
+environment variable \ref STARPU_CALIBRATE to <c>1</c> and run the application
+on varying input sizes with \ref STARPU_SCHED set to <c>dmda</c> scheduler,
+so as to feed the performance model for a variety of
+inputs. The application can also provide the measurements explictly by
+using the function starpu_perfmodel_update_history(). The tools
+<c>starpu_perfmodel_display</c> and <c>starpu_perfmodel_plot</c> can
+be used to observe how much the performance model is calibrated
+(\ref PerformanceModelCalibration); when their output look good,
+\ref STARPU_CALIBRATE can be reset to <c>0</c> to let
+StarPU use the resulting performance model without recording new measures, and
+\ref STARPU_SCHED can be set to <c>dmda</c> to benefit from the performance models. If
+the data input sizes vary a lot, it is really important to set
+\ref STARPU_CALIBRATE to <c>0</c>, otherwise StarPU will continue adding the
+measures, and result with a very big performance model, which will take time a
+lot of time to load and save.
+
+For non-linear regression, since computing it
+is quite expensive, it is only done at termination of the application. This
+means that the first execution of the application will use only history-based
+performance model to perform scheduling, without using regression.
+</li>
+
+<li>
+
+Another type of model is ::STARPU_MULTIPLE_REGRESSION_BASED, which
+is based on multiple linear regression. In this model, the user
+defines both the relevant parameters and the equation for computing the
+task duration.
+
+
+\f[
+T_{kernel} = a + b(M^{\alpha_1} * N^{\beta_1} * K^{\gamma_1}) + c(M^{\alpha_2} * N^{\beta_2} * K^{\gamma_2}) + ...
+\f]
+
+
+\f$M, N, K\f$ are the parameters of the task, added at the task
+creation. These need to be extracted by the <c>cl_perf_func</c>
+function, which should be defined by the user. \f$\alpha, \beta,
+\gamma\f$ are the exponents defined by the user in
+<c>model->combinations</c> table. Finally, coefficients \f$a, b, c\f$
+are computed automatically by the StarPU at the end of the execution, using least
+squares method of the <c>dgels_</c> LAPACK function.
+
+<c>examples/mlr/mlr.c</c> example provides more details on
+the usage of ::STARPU_MULTIPLE_REGRESSION_BASED models.
+
+Coefficients computation is done at the end of the execution, and the
+results are stored in standard codelet perfmodel files. Additional
+files containing the duration of task together with the value of each
+parameter are stored in <c>.starpu/sampling/codelets/tmp/</c>
+directory. These files are reused when \ref STARPU_CALIBRATE
+environment variable is set to <c>1</c>, to recompute coefficients
+based on the current, but also on the previous
+executions. Additionally, when multiple linear regression models are
+disabled (using "--disable-mlr" configuration option) or when the
+<c>model->combinations</c> are not defined, StarPU will still write
+output files into <c>.starpu/sampling/codelets/tmp/</c> to allow
+performing an analysis. This analysis typically aims at finding the
+most appropriate equation for the codelet and
+<c>tools/starpu_mlr_analysis</c> script provides an example of how to
+perform such study.
+
+</li>
+
+<li>
+Provided as an estimation from the application itself (model type
+::STARPU_COMMON and field starpu_perfmodel::cost_function),
+see for instance
+<c>examples/common/blas_model.h</c> and <c>examples/common/blas_model.c</c>.
+</li>
+
+<li>
+Provided explicitly by the application (model type ::STARPU_PER_ARCH):
+either field starpu_perfmodel::arch_cost_function, or
+the fields <c>.per_arch[arch][nimpl].cost_function</c> have to be
+filled with pointers to functions which return the expected duration
+of the task in micro-seconds, one per architecture, see for instance
+<c>tests/datawizard/locality.c</c>
+</li>
+</ul>
+
+For ::STARPU_HISTORY_BASED, ::STARPU_REGRESSION_BASED, and
+::STARPU_NL_REGRESSION_BASED, the dimensions of task data (both input
+and output) are used as an index by default. ::STARPU_HISTORY_BASED uses a CRC
+hash of the dimensions as an index to distinguish histories, and
+::STARPU_REGRESSION_BASED and ::STARPU_NL_REGRESSION_BASED use the total
+size as an index for the regression.
+
+The starpu_perfmodel::size_base and starpu_perfmodel::footprint fields however
+permit the application to override that, when for instance some of the data
+do not matter for task cost (e.g. mere reference table), or when using sparse
+structures (in which case it is the number of non-zeros which matter), or when
+there is some hidden parameter such as the number of iterations, or when the
+application actually has a very good idea of the complexity of the algorithm,
+and just not the speed of the processor, etc.  The example in the directory
+<c>examples/pi</c> uses this to include the number of iterations in the base
+size. starpu_perfmodel::size_base should be used when the variance of the actual
+performance is known (i.e. bigger returned value is longer execution
+time), and thus particularly useful for ::STARPU_REGRESSION_BASED or
+::STARPU_NL_REGRESSION_BASED. starpu_perfmodel::footprint can be used when the
+variance of the actual performance is unknown (irregular performance behavior,
+etc.), and thus only useful for ::STARPU_HISTORY_BASED.
+starpu_task_data_footprint() can be used as a base and combined with other
+parameters through starpu_hash_crc32c_be() for instance.
+
+StarPU will automatically determine when the performance model is calibrated,
+or rather, it will assume the performance model is calibrated until the
+application submits a task for which the performance can not be predicted. For
+::STARPU_HISTORY_BASED, StarPU will require 10 (STARPU_CALIBRATE_MINIMUM)
+measurements for a given size before estimating that an average can be taken as
+estimation for further executions with the same size. For
+::STARPU_REGRESSION_BASED and ::STARPU_NL_REGRESSION_BASED, StarPU will require
+10 (STARPU_CALIBRATE_MINIMUM) measurements, and that the minimum measured
+data size is smaller than 90% of the maximum measured data size (i.e. the
+measurement interval is large enough for a regression to have a meaning).
+Calibration can also be forced by setting the \ref STARPU_CALIBRATE environment
+variable to <c>1</c>, or even reset by setting it to <c>2</c>.
+
+How to use schedulers which can benefit from such performance model is explained
+in \ref TaskSchedulingPolicy.
+
+The same can be done for task energy consumption estimation, by setting
+the field starpu_codelet::energy_model the same way as the field
+starpu_codelet::model. Note: for now, the application has to give to
+the energy consumption performance model a name which is different from
+the execution time performance model.
+
+The application can request time estimations from the StarPU performance
+models by filling a task structure as usual without actually submitting
+it. The data handles can be created by calling any of the functions
+<c>starpu_*_data_register</c> with a <c>NULL</c> pointer and <c>-1</c>
+node and the desired data sizes, and need to be unregistered as usual.
+The functions starpu_task_expected_length() and
+starpu_task_expected_energy() can then be called to get an estimation
+of the task cost on a given arch. starpu_task_footprint() can also be
+used to get the footprint used for indexing history-based performance
+models. starpu_task_destroy() needs to be called to destroy the dummy
+task afterwards. See <c>tests/perfmodels/regression_based.c</c> for an example.
+
+\section DataTrace Data trace and tasks length
+It is possible to get statistics about tasks length and data size by using :
+\verbatim
+$ starpu_fxt_data_trace filename [codelet1 codelet2 ... codeletn]
+\endverbatim
+Where filename is the FxT trace file and codeletX the names of the codelets you
+want to profile (if no names are specified, <c>starpu_fxt_data_trace</c> will profile them all).
+This will create a file, <c>data_trace.gp</c> which
+can be executed to get a <c>.eps</c> image of these results. On the image, each point represents a
+task, and each color corresponds to a codelet.
+
+\image html data_trace.png
+\image latex data_trace.eps "" width=\textwidth
+
+*/

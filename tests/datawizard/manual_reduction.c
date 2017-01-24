@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012-2015  Université de Bordeaux
- * Copyright (C) 2012, 2013  CNRS
+ * Copyright (C) 2010, 2012-2016  Université de Bordeaux
+ * Copyright (C) 2012, 2013, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,6 +19,11 @@
 #include <starpu.h>
 #include "../helper.h"
 
+/*
+ * Allocate one buffer per worker, doing computations with it, and
+ * eventually reducing it into a single buffer
+ */
+
 #define INIT_VALUE	42
 #define NTASKS		10000
 
@@ -31,7 +36,7 @@ static starpu_data_handle_t per_worker_handle[STARPU_NMAXWORKERS];
 /* Create per-worker handles */
 static void initialize_per_worker_handle(void *arg STARPU_ATTRIBUTE_UNUSED)
 {
-	int workerid = starpu_worker_get_id();
+	int workerid = starpu_worker_get_id_check();
 
 	/* Allocate memory on the worker, and initialize it to 0 */
 	switch (starpu_worker_get_type(workerid))
@@ -59,9 +64,16 @@ static void initialize_per_worker_handle(void *arg STARPU_ATTRIBUTE_UNUSED)
 #endif
 #ifdef STARPU_USE_CUDA
 		case STARPU_CUDA_WORKER:
-			cudaMalloc((void **)&per_worker[workerid], sizeof(variable));
+		{
+		     	cudaError_t status;
+			status = cudaMalloc((void **)&per_worker[workerid], sizeof(variable));
+			if (!per_worker[workerid] || (status != cudaSuccess))
+			{
+				STARPU_CUDA_REPORT_ERROR(status);
+			}
 			cudaMemset((void *)per_worker[workerid], 0, sizeof(variable));
 			break;
+		}
 #endif
 		default:
 			STARPU_ABORT();

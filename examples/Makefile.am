@@ -1,10 +1,11 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2016  Université de Bordeaux
+# Copyright (C) 2009-2017  Université de Bordeaux
 # Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
 # Copyright (C) 2011  Télécom-SudParis
 # Copyright (C) 2011-2012  INRIA
-# Copyright (C) 2015  Inria
+# Copyright (C) 2015-2016  Inria
+# Copyright (C) 2016  Uppsala University
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -16,6 +17,17 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
+
+include $(top_srcdir)/starpu.mk
+
+if STARPU_SIMGRID
+STARPU_PERF_MODEL_DIR=$(abs_top_srcdir)/tools/perfmodels/sampling
+STARPU_HOSTNAME=mirage
+MALLOC_PERTURB_=0
+export STARPU_PERF_MODEL_DIR
+export STARPU_HOSTNAME
+export MALLOC_PERTURB_
+endif
 
 AM_CFLAGS = $(MAGMA_CFLAGS) $(HWLOC_CFLAGS) -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(GLOBAL_AM_CFLAGS) -Wno-unused
 AM_CXXFLAGS = $(MAGMA_CFLAGS) $(HWLOC_CFLAGS) -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(GLOBAL_AM_CXXFLAGS) -Wno-unused
@@ -63,16 +75,24 @@ EXTRA_DIST = 					\
 	reductions/dot_product.h	\
 	reductions/dot_product_opencl_kernels.cl	\
 	scheduler/schedulers.sh				\
-	scheduler/schedulers_context.sh
+	scheduler/schedulers_context.sh			\
+	fortran/Makefile				\
+	sched_ctx/axpy_partition_gpu.h				\
+	sched_ctx/axpy_partition_gpu.cu		
+
 
 CLEANFILES = *.gcno *.gcda *.linkinfo *.mod starpu_idle_microsec.log
 
 if STARPU_USE_CUDA
 
+if STARPU_COVERITY
+include $(top_srcdir)/starpu-mynvcc.mk
+else
 NVCCFLAGS += --compiler-options -fno-strict-aliasing  -I$(top_srcdir)/include/ -I$(top_builddir)/include/ -I$(top_srcdir)/examples/  $(HWLOC_CFLAGS)
 
 .cu.o:
 	$(NVCC) $< -c -o $@ $(NVCCFLAGS)
+endif
 
 endif
 
@@ -124,7 +144,8 @@ noinst_HEADERS = 				\
 	pi/SobolQRNG/sobol_gpu.h		\
 	pi/SobolQRNG/sobol_primitives.h         \
 	reductions/dot_product.h                \
-	basic_examples/vector_scal_cpu_template.h
+	basic_examples/vector_scal_cpu_template.h \
+	sched_ctx/axpy_partition_gpu.h				
 
 #####################################
 # What to install and what to check #
@@ -170,7 +191,14 @@ endif
 # Applications which should only be compiled are added directly in examplebin_PROGRAMS
 # see for instance mandelbrot/mandelbrot
 
-STARPU_EXAMPLES =				\
+STARPU_EXAMPLES =
+
+STARPU_EXAMPLES +=				\
+	sched_ctx/prio				\
+	worker_collections/worker_list_example
+
+if !STARPU_SIMGRID
+STARPU_EXAMPLES +=				\
 	basic_examples/hello_world		\
 	basic_examples/vector_scal		\
 	basic_examples/mult			\
@@ -178,7 +206,9 @@ STARPU_EXAMPLES =				\
 	basic_examples/variable			\
 	basic_examples/multiformat              \
 	basic_examples/dynamic_handles          \
+	mlr/mlr					\
 	cpp/incrementer_cpp			\
+	cpp/add_vectors				\
 	filters/fvector				\
 	filters/fblock				\
 	filters/fmatrix				\
@@ -202,40 +232,61 @@ STARPU_EXAMPLES =				\
 	scheduler/dummy_sched			\
 	scheduler/heteroprio_test		\
 	sched_ctx/sched_ctx			\
-	sched_ctx/prio				\
+	sched_ctx/two_cpu_contexts		\
 	sched_ctx/dummy_sched_with_ctx		\
 	worker_collections/worker_tree_example  \
-	worker_collections/worker_list_example  \
 	reductions/dot_product			\
-	reductions/minmax_reduction
+	reductions/minmax_reduction		\
+	sched_ctx/gpu_partition
+
+endif
 
 if !STARPU_SIMGRID
 STARPU_EXAMPLES +=				\
 	scheduler/dummy_sched
 
+if STARPU_HAVE_CXX11
+STARPU_EXAMPLES +=	\
+	cpp/add_vectors_cpp11
+endif
+
+if STARPU_HAVE_F77
 if STARPU_HAVE_F77_H
 STARPU_EXAMPLES +=				\
-	basic_examples/vector_scal_fortran	\
 	fortran/hello
+endif
+
+STARPU_EXAMPLES +=				\
+	basic_examples/vector_scal_fortran
 endif
 
 if STARPU_HAVE_FC
 if !STARPU_SANITIZE
 STARPU_EXAMPLES +=				\
-	fortran90/f90_example
+	fortran90/f90_example			\
+	native_fortran/nf_vector		\
+	native_fortran/nf_matrix		\
+	native_fortran/nf_example		\
+	native_fortran/nf_dynbuf		\
+	native_fortran/nf_varbuf		\
+	native_fortran/nf_sched_ctx		\
+	native_fortran/nf_partition
 endif
 endif
 endif
 
 if !NO_BLAS_LIB
 STARPU_EXAMPLES +=				\
-	axpy/axpy				\
 	mult/sgemm 				\
 	mult/dgemm				\
 	cholesky/cholesky_tag			\
 	cholesky/cholesky_tile_tag		\
+	cholesky/cholesky_implicit
+
+if !STARPU_SIMGRID
+STARPU_EXAMPLES +=				\
+	axpy/axpy				\
 	cholesky/cholesky_grain_tag		\
-	cholesky/cholesky_implicit		\
 	lu/lu_example_float			\
 	lu/lu_example_double			\
 	lu/lu_implicit_example_float		\
@@ -244,6 +295,9 @@ STARPU_EXAMPLES +=				\
 	cg/cg					\
 	pipeline/pipeline
 endif
+endif
+
+if !STARPU_SIMGRID
 
 if MKL_BLAS_LIB
 STARPU_EXAMPLES +=				\
@@ -259,10 +313,13 @@ STARPU_EXAMPLES +=				\
 endif
 
 if !STARPU_SIMGRID
+if STARPU_HAVE_F77
 if STARPU_HAVE_F77_H
 STARPU_EXAMPLES +=				\
-	basic_examples/vector_scal_fortran	\
 	fortran/hello
+endif
+STARPU_EXAMPLES +=				\
+	basic_examples/vector_scal_fortran
 endif
 endif
 
@@ -284,6 +341,16 @@ STARPU_EXAMPLES +=				\
 	sched_ctx/parallel_tasks_with_cluster_api
 endif
 endif
+endif
+
+endif !STARPU_SIMGRID
+
+sched_ctx_gpu_partition_SOURCES =		\
+	sched_ctx/gpu_partition.c
+
+if STARPU_USE_CUDA
+sched_ctx_gpu_partition_SOURCES +=		\
+	sched_ctx/axpy_partition_gpu.cu
 endif
 
 ##################
@@ -314,7 +381,7 @@ nobase_STARPU_OPENCL_DATA_DATA += \
 	basic_examples/vector_scal_opencl_kernel.cl
 endif
 
-if STARPU_HAVE_F77_H
+if STARPU_HAVE_F77
 basic_examples_vector_scal_fortran_SOURCES =	\
 	basic_examples/vector_scal_fortran.F	\
 	basic_examples/vector_scal_c.c		\
@@ -327,10 +394,12 @@ basic_examples_vector_scal_fortran_LDADD =	\
 	$(STARPU_CUDA_FORTRAN_LDFLAGS)
 endif
 
+if STARPU_HAVE_F77_H
 fortran_hello_SOURCES	=		\
 	fortran/hello_c.c		\
 	fortran/hello.F			\
 	fortran/StarPU_fortran.h
+endif
 endif
 
 if STARPU_HAVE_FC
@@ -341,6 +410,42 @@ fortran90_f90_example_SOURCES =	\
 	fortran90/mod_compute.f90	\
 	fortran90/marshalling.c		\
 	fortran90/f90_example.f90
+
+native_fortran_nf_vector_SOURCES =	\
+	native_fortran/nf_codelets.f90		\
+	$(top_srcdir)/include/fstarpu_mod.f90	\
+	native_fortran/nf_vector.f90
+
+native_fortran_nf_matrix_SOURCES =	\
+	native_fortran/nf_codelets.f90		\
+	$(top_srcdir)/include/fstarpu_mod.f90	\
+	native_fortran/nf_matrix.f90
+
+native_fortran_nf_example_SOURCES =	\
+	native_fortran/nf_types.f90		\
+	native_fortran/nf_compute.f90		\
+	$(top_srcdir)/include/fstarpu_mod.f90	\
+	native_fortran/nf_example.f90
+
+native_fortran_nf_dynbuf_SOURCES =	\
+	native_fortran/nf_dynbuf_cl.f90		\
+	$(top_srcdir)/include/fstarpu_mod.f90	\
+	native_fortran/nf_dynbuf.f90
+
+native_fortran_nf_varbuf_SOURCES =	\
+	native_fortran/nf_varbuf_cl.f90		\
+	$(top_srcdir)/include/fstarpu_mod.f90	\
+	native_fortran/nf_varbuf.f90
+
+native_fortran_nf_sched_ctx_SOURCES =	\
+	native_fortran/nf_sched_ctx_cl.f90		\
+	$(top_srcdir)/include/fstarpu_mod.f90	\
+	native_fortran/nf_sched_ctx.f90
+
+native_fortran_nf_partition_SOURCES =	\
+	native_fortran/nf_partition_cl.f90		\
+	$(top_srcdir)/include/fstarpu_mod.f90	\
+	native_fortran/nf_partition.f90
 endif
 
 #######################
@@ -756,6 +861,18 @@ cpp_incrementer_cpp_SOURCES += \
 	incrementer/incrementer_kernels_opencl.c
 endif
 
+###########################
+# C++ Add vectors example #
+###########################
+
+cpp_add_vectors_SOURCES	=	\
+	cpp/add_vectors.cpp
+
+if STARPU_HAVE_CXX11
+cpp_add_vectors_cpp11_SOURCES	=	\
+	cpp/add_vectors_cpp11.cpp
+endif
+
 #######################
 # Incrementer example #
 #######################
@@ -947,18 +1064,6 @@ sched_ctx_parallel_tasks_reuse_handle_CFLAGS = \
 
 endif
 
-showcheck:
-	-cat $(TEST_LOGS) /dev/null
-	! grep -q "ERROR: AddressSanitizer: " $(TEST_LOGS) /dev/null
-	! grep -q "WARNING: AddressSanitizer: " $(TEST_LOGS) /dev/null
-	! grep -q "ERROR: ThreadSanitizer: " $(TEST_LOGS) /dev/null
-	! grep -q "WARNING: ThreadSanitizer: " $(TEST_LOGS) /dev/null
-	RET=0 ; \
-	for i in $(SUBDIRS) ; do \
-		make -C $$i showcheck || RET=1 ; \
-	done ; \
-	exit $$RET
-
 if STARPU_HAVE_FC
 # Fortran90 example
 # - list explicit dependences to control proper module files generation
@@ -977,4 +1082,60 @@ mod_compute.o: $(top_srcdir)/examples/fortran90/mod_compute.f90 mod_types.mod mo
 
 f90_example.o: $(top_srcdir)/examples/fortran90/f90_example.f90 $(top_srcdir)/examples/fortran90/marshalling.c mod_types.mod mod_interface.mod mod_compute.mod starpu_mod.mod
 	$(AM_V_FC)$(FC) $(fortran90_f90_example_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'fortran90/f90_example.f90' || echo '$(srcdir)/'`fortran90/f90_example.f90
+
+# Native Fortran example
+# - list explicit dependences to control proper module files generation
+# - the overriding rule fully disables the corresponing default rule, thus
+#   the default rule body must be copied entirely
+nf_types.mod: nf_types.o
+nf_compute.mod: nf_compute.o
+fstarpu_mod.mod: fstarpu_mod.o
+nf_codelets.mod: nf_codelets.o
+nf_dynbuf_cl.mod: nf_dynbuf_cl.o
+nf_varbuf_cl.mod: nf_varbuf_cl.o
+nf_sched_ctx_cl.mod: nf_sched_ctx_cl.o
+nf_partition_cl.mod: nf_partition_cl.o
+
+fstarpu_mod.o: $(top_srcdir)/include/fstarpu_mod.f90
+	$(AM_V_FC)$(FC) $(native_fortran_nf_vector_FCFLAGS) $(FCFLAGS) -c -o $@ '$(top_srcdir)/'include/fstarpu_mod.f90
+
+nf_codelets.o: $(top_srcdir)/examples/native_fortran/nf_codelets.f90 fstarpu_mod.mod
+	$(AM_V_FC)$(FC) $(native_fortran_nf_vector_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'native_fortran/nf_codelets.f90' || echo '$(srcdir)/'`native_fortran/nf_codelets.f90
+
+nf_vector.o: $(top_srcdir)/examples/native_fortran/nf_vector.f90 nf_codelets.mod fstarpu_mod.mod
+	$(AM_V_FC)$(FC) $(native_fortran_nf_vector_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'native_fortran/nf_vector.f90' || echo '$(srcdir)/'`native_fortran/nf_vector.f90
+
+nf_matrix.o: $(top_srcdir)/examples/native_fortran/nf_matrix.f90 nf_codelets.mod fstarpu_mod.mod
+	$(AM_V_FC)$(FC) $(native_fortran_nf_matrix_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'native_fortran/nf_matrix.f90' || echo '$(srcdir)/'`native_fortran/nf_matrix.f90
+
+nf_compute.o: $(top_srcdir)/examples/native_fortran/nf_compute.f90 nf_types.mod fstarpu_mod.mod
+	$(AM_V_FC)$(FC) $(native_fortran_nf_example_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'native_fortran/nf_compute.f90' || echo '$(srcdir)/'`native_fortran/nf_compute.f90
+
+nf_example.o: $(top_srcdir)/examples/native_fortran/nf_example.f90 nf_types.mod nf_compute.mod fstarpu_mod.mod
+	$(AM_V_FC)$(FC) $(native_fortran_nf_example_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'native_fortran/nf_example.f90' || echo '$(srcdir)/'`native_fortran/nf_example.f90
+
+nf_dynbuf_cl.o: $(top_srcdir)/examples/native_fortran/nf_dynbuf_cl.f90 nf_types.mod fstarpu_mod.mod
+	$(AM_V_FC)$(FC) $(native_fortran_nf_dynbuf_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'native_fortran/nf_dynbuf_cl.f90' || echo '$(srcdir)/'`native_fortran/nf_dynbuf_cl.f90
+
+nf_dynbuf.o: $(top_srcdir)/examples/native_fortran/nf_dynbuf.f90 nf_types.mod nf_dynbuf_cl.mod fstarpu_mod.mod
+	$(AM_V_FC)$(FC) $(native_fortran_nf_dynbuf_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'native_fortran/nf_dynbuf.f90' || echo '$(srcdir)/'`native_fortran/nf_dynbuf.f90
+
+nf_varbuf_cl.o: $(top_srcdir)/examples/native_fortran/nf_varbuf_cl.f90 nf_types.mod fstarpu_mod.mod
+	$(AM_V_FC)$(FC) $(native_fortran_nf_varbuf_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'native_fortran/nf_varbuf_cl.f90' || echo '$(srcdir)/'`native_fortran/nf_varbuf_cl.f90
+
+nf_varbuf.o: $(top_srcdir)/examples/native_fortran/nf_varbuf.f90 nf_types.mod nf_varbuf_cl.mod fstarpu_mod.mod
+	$(AM_V_FC)$(FC) $(native_fortran_nf_varbuf_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'native_fortran/nf_varbuf.f90' || echo '$(srcdir)/'`native_fortran/nf_varbuf.f90
+
+nf_sched_ctx_cl.o: $(top_srcdir)/examples/native_fortran/nf_sched_ctx_cl.f90 nf_types.mod fstarpu_mod.mod
+	$(AM_V_FC)$(FC) $(native_fortran_nf_sched_ctx_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'native_fortran/nf_sched_ctx_cl.f90' || echo '$(srcdir)/'`native_fortran/nf_sched_ctx_cl.f90
+
+nf_sched_ctx.o: $(top_srcdir)/examples/native_fortran/nf_sched_ctx.f90 nf_types.mod nf_sched_ctx_cl.mod fstarpu_mod.mod
+	$(AM_V_FC)$(FC) $(native_fortran_nf_sched_ctx_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'native_fortran/nf_sched_ctx.f90' || echo '$(srcdir)/'`native_fortran/nf_sched_ctx.f90
+
+nf_partition_cl.o: $(top_srcdir)/examples/native_fortran/nf_partition_cl.f90 nf_types.mod fstarpu_mod.mod
+	$(AM_V_FC)$(FC) $(native_fortran_nf_partition_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'native_fortran/nf_partition_cl.f90' || echo '$(srcdir)/'`native_fortran/nf_partition_cl.f90
+
+nf_partition.o: $(top_srcdir)/examples/native_fortran/nf_partition.f90 nf_types.mod nf_partition_cl.mod fstarpu_mod.mod
+	$(AM_V_FC)$(FC) $(native_fortran_nf_partition_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'native_fortran/nf_partition.f90' || echo '$(srcdir)/'`native_fortran/nf_partition.f90
+
 endif

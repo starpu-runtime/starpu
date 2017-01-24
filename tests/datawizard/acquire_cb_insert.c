@@ -18,6 +18,11 @@
 #include <starpu.h>
 #include "../helper.h"
 
+/*
+ * Test that inserting a task from the callback of a starpu_data_acquire_cb
+ * call, with proper dependency with an already-submitted task
+ */
+
 #define N 16
 #define M 4
 #define X 2

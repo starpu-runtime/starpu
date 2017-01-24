@@ -1,6 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2016  Université de Bordeaux
+ * Copyright (C) 2012-2017  Université de Bordeaux
+ * Copyright (C) 2016  	    Inria
+ * Copyright (C) 2016, 2017  	    CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -23,9 +25,13 @@
 #include <core/perfmodel/perfmodel.h>
 #include <core/workers.h>
 #include <core/simgrid.h>
+#if defined(HAVE_SG_LINK_NAME) && (SIMGRID_VERSION_MAJOR >= 4 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR >= 13))
+#include <simgrid/simdag.h>
+#endif
 
 #ifdef STARPU_SIMGRID
 #include <sys/resource.h>
+#include <simgrid/simix.h>
 
 #pragma weak starpu_main
 extern int starpu_main(int argc, char *argv[]);
@@ -34,25 +40,14 @@ extern int smpi_main(int (*realmain) (int argc, char *argv[]), int argc, char *a
 #pragma weak _starpu_mpi_simgrid_init
 extern int _starpu_mpi_simgrid_init(int argc, char *argv[]);
 
+static int simgrid_started;
+
 starpu_pthread_queue_t _starpu_simgrid_transfer_queue[STARPU_MAXNODES];
 starpu_pthread_queue_t _starpu_simgrid_task_queue[STARPU_NMAXWORKERS];
 
-struct main_args
-{
-	int argc;
-	char **argv;
-};
-
-int do_starpu_main(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[])
-{
-	struct main_args *args = (void*) argv;
-	return starpu_main(args->argc, args->argv);
-}
-
 /* In case the MPI application didn't use smpicc to build the file containing
  * main(), try to cope by calling starpu_main */
-#pragma weak smpi_simulated_main_
-int smpi_simulated_main_(int argc, char *argv[])
+int _starpu_smpi_simulated_main_(int argc, char *argv[])
 {
 	if (!starpu_main)
 	{
@@ -61,6 +56,7 @@ int smpi_simulated_main_(int argc, char *argv[])
 
 	return starpu_main(argc, argv);
 }
+int smpi_simulated_main_(int argc, char *argv[]) __attribute__((weak, alias("_starpu_smpi_simulated_main_")));
 
 #ifdef HAVE_MSG_ENVIRONMENT_GET_ROUTING_ROOT
 #ifdef HAVE_MSG_GET_AS_BY_NAME
@@ -109,7 +105,7 @@ int _starpu_simgrid_get_nbhosts(const char *prefix)
 		STARPU_ASSERT(starpu_mpi_world_rank);
 		snprintf(name, sizeof(name), STARPU_MPI_AS_PREFIX"%u", starpu_mpi_world_rank());
 		hosts = MSG_environment_as_get_hosts(_starpu_simgrid_get_as_by_name(name));
-		len = snprintf(new_prefix, sizeof(new_prefix), "%s-%s", name, prefix);
+		snprintf(new_prefix, sizeof(new_prefix), "%s-%s", name, prefix);
 		prefix = new_prefix;
 		len = strlen(prefix);
 	}
@@ -190,19 +186,61 @@ msg_host_t _starpu_simgrid_get_host_by_worker(struct _starpu_worker *worker)
 	return host;
 }
 
-#ifdef STARPU_DEVEL
-#warning TODO: use another way to start main, when simgrid provides it, and then include the application-provided configuration for platform numbers
-#endif
-#undef main
-int main(int argc, char **argv)
+static void start_simgrid(int *argc, char **argv)
 {
 	char path[256];
 
-	if (!starpu_main && !(smpi_main && smpi_simulated_main_))
+	simgrid_started = 1;
+
+	if (!starpu_main && !(smpi_main && smpi_simulated_main_ != _starpu_smpi_simulated_main_))
 	{
-		_STARPU_ERROR("In simgrid mode, the file containing the main() function of this application needs to be compiled with starpu.h included, to properly rename it into starpu_main\n");
+		_STARPU_ERROR("In simgrid mode, the file containing the main() function of this application needs to be compiled with starpu.h or starpu_simgrid_wrap.h included, to properly rename it into starpu_main\n");
 	}
 
+	MSG_init(argc, argv);
+#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 9)
+	/* Versions earlier than 3.9 didn't support our communication tasks */
+	MSG_config("workstation/model", "ptask_L07");
+#endif
+	/* Simgrid uses tiny stacks by default.  This comes unexpected to our users.  */
+	unsigned stack_size = 8192;
+	struct rlimit rlim;
+	if (getrlimit(RLIMIT_STACK, &rlim) == 0 && rlim.rlim_cur != 0 && rlim.rlim_cur != RLIM_INFINITY)
+		stack_size = rlim.rlim_cur / 1024;
+
+#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 13)
+	extern xbt_cfg_t _sg_cfg_set;
+	xbt_cfg_set_int(_sg_cfg_set, "contexts/stack_size", stack_size);
+#else
+	xbt_cfg_set_int("contexts/stack-size", stack_size);
+#endif
+
+	/* Load XML platform */
+#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 13)
+	_starpu_simgrid_get_platform_path(3, path, sizeof(path));
+#else
+	_starpu_simgrid_get_platform_path(4, path, sizeof(path));
+#endif
+	MSG_create_environment(path);
+}
+
+struct main_args
+{
+	int argc;
+	char **argv;
+};
+static int main_ret;
+
+int do_starpu_main(int argc, char *argv[])
+{
+	main_ret = starpu_main(argc, argv);
+	return main_ret;
+}
+
+#undef main
+#pragma weak main
+int main(int argc, char **argv)
+{
 	if (_starpu_simgrid_running_smpi())
 	{
 		/* Oops, we are running SMPI, let it start Simgrid, and we'll
@@ -210,39 +248,51 @@ int main(int argc, char **argv)
 		return smpi_main(_starpu_mpi_simgrid_init, argc, argv);
 	}
 
-	MSG_init(&argc, argv);
-#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 9)
-	/* Versions earlier than 3.9 didn't support our communication tasks */
-	MSG_config("workstation/model", "ptask_L07");
-#endif
-	/* Simgrid uses tiny stacks by default.  This comes unexpected to our users.  */
-	extern xbt_cfg_t _sg_cfg_set;
-	unsigned stack_size = 8192;
-	struct rlimit rlim;
-	if (getrlimit(RLIMIT_STACK, &rlim) == 0 && rlim.rlim_cur != 0 && rlim.rlim_cur != RLIM_INFINITY)
-		stack_size = rlim.rlim_cur / 1024;
+	/* Managed to catch application's main, initialize simgrid first */
+	start_simgrid(&argc, argv);
 
-	xbt_cfg_set_int(_sg_cfg_set, "contexts/stack_size", stack_size);
+	/* Create a simgrid process for main */
+	char **argv_cpy;
+	_STARPU_MALLOC(argv_cpy, argc * sizeof(char*));
+	int i;
+	for (i = 0; i < argc; i++)
+		argv_cpy[i] = strdup(argv[i]);
+	MSG_process_create_with_arguments("main", &do_starpu_main, calloc(MAX_TSD+1, sizeof(void*)), MSG_get_host_by_name("MAIN"), argc, argv_cpy);
 
-	/* Load XML platform */
-	_starpu_simgrid_get_platform_path(path, sizeof(path));
-	MSG_create_environment(path);
-
-	struct main_args *args = malloc(sizeof(*args));
-	args->argc = argc;
-	args->argv = argv;
-	MSG_process_create_with_arguments("main", &do_starpu_main, calloc(MAX_TSD, sizeof(void*)), MSG_get_host_by_name("MAIN"), 0, (char**) args);
-
+	/* And run maestro in main thread */
 	MSG_main();
-	return 0;
+	return main_ret;
 }
 
-void _starpu_simgrid_init()
+static void maestro(void *data STARPU_ATTRIBUTE_UNUSED)
 {
-	unsigned i;
-	if (!starpu_main && !(smpi_main && smpi_simulated_main_))
+	MSG_main();
+}
+
+void _starpu_simgrid_init(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv STARPU_ATTRIBUTE_UNUSED)
+{
+#ifdef HAVE_MSG_PROCESS_ATTACH
+	if (!simgrid_started && !(smpi_main && smpi_simulated_main_ != _starpu_smpi_simulated_main_))
 	{
-		_STARPU_ERROR("In simgrid mode, the file containing the main() function of this application needs to be compiled with starpu.h included, to properly rename it into starpu_main\n");
+		_STARPU_DISP("Warning: In simgrid mode, the file containing the main() function of this application should to be compiled with starpu.h or starpu_simgrid_wrap.h included, to properly rename it into starpu_main to avoid having to use --cfg=contexts/factory:thread which reduces performance\n");
+#if SIMGRID_VERSION_MAJOR > 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR >= 14)
+		xbt_cfg_set_string("contexts/factory", "thread");
+#endif
+		/* We didn't catch application's main. */
+		/* Start maestro as a separate thread */
+		SIMIX_set_maestro(maestro, NULL);
+		/* Initialize simgrid */
+		start_simgrid(argc, *argv);
+		/* And attach the main thread to the main simgrid process */
+		MSG_process_attach("main", calloc(MAX_TSD, sizeof(void*)), MSG_get_host_by_name("MAIN"), NULL);
+		simgrid_started = 2;
+	}
+#endif
+
+	unsigned i;
+	if (!simgrid_started && !starpu_main && !(smpi_main && smpi_simulated_main_ != _starpu_smpi_simulated_main_))
+	{
+		_STARPU_ERROR("In simgrid mode, the file containing the main() function of this application needs to be compiled with starpu.h or starpu_simgrid_wrap.h included, to properly rename it into starpu_main\n");
 	}
 	if (_starpu_simgrid_running_smpi())
 	{
@@ -255,6 +305,18 @@ void _starpu_simgrid_init()
 		starpu_pthread_queue_init(&_starpu_simgrid_transfer_queue[i]);
 	for (i = 0; i < STARPU_NMAXWORKERS; i++)
 		starpu_pthread_queue_init(&_starpu_simgrid_task_queue[i]);
+}
+
+void _starpu_simgrid_deinit(void)
+{
+#ifdef HAVE_MSG_PROCESS_ATTACH
+	if (simgrid_started == 2)
+	{
+		/* Started with MSG_process_attach, now detach */
+		MSG_process_detach();
+		simgrid_started = 0;
+	}
+#endif
 }
 
 /*
@@ -278,9 +340,9 @@ struct task
 static struct task *last_task[STARPU_NMAXWORKERS];
 
 /* Actually execute the task.  */
-static int task_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[])
+static int task_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED)
 {
-	struct task *task = (void*) argv;
+	struct task *task = starpu_pthread_getspecific(0);
 	_STARPU_DEBUG("task %p started\n", task);
 	MSG_task_execute(task->task);
 	MSG_task_destroy(task->task);
@@ -296,7 +358,11 @@ static int task_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[])
 	if (last_task[task->workerid] == task)
 		last_task[task->workerid] = NULL;
 	if (task->next)
-		MSG_process_create_with_arguments("task", task_execute, calloc(MAX_TSD, sizeof(void*)), MSG_host_self(), 0, (char**) task->next);
+	{
+		void **tsd = calloc(MAX_TSD+1, sizeof(void*));
+		tsd[0] = task->next;
+		MSG_process_create_with_arguments("task", task_execute, tsd, MSG_host_self(), 0, NULL);
+	}
 	/* Task is freed with process context */
 	return 0;
 }
@@ -327,7 +393,7 @@ void _starpu_simgrid_submit_job(int workerid, struct _starpu_job *j, struct star
 		/* This is not useful to include in simulation (and probably
 		 * doesn't have a perfmodel anyway) */
 		return;
-
+	
 	if (isnan(length))
 	{
 		length = starpu_task_expected_length(starpu_task, perf_arch, j->nimpl);
@@ -337,7 +403,11 @@ void _starpu_simgrid_submit_job(int workerid, struct _starpu_job *j, struct star
 	}
 
 	simgrid_task = MSG_task_create(_starpu_job_get_task_name(j),
+#ifdef HAVE_MSG_HOST_GET_SPEED
+			length/1000000.0*MSG_host_get_speed(MSG_host_self()),
+#else
 			length/1000000.0*MSG_get_host_speed(MSG_host_self()),
+#endif
 			0, NULL);
 
 	if (finished == NULL)
@@ -351,7 +421,8 @@ void _starpu_simgrid_submit_job(int workerid, struct _starpu_job *j, struct star
 	else
 	{
 		/* Asynchronous execution */
-		struct task *task = malloc(sizeof(*task));
+		struct task *task;
+		_STARPU_MALLOC(task, sizeof(*task));
 		task->task = simgrid_task;
 		task->workerid = workerid;
 		task->finished = finished;
@@ -370,8 +441,11 @@ void _starpu_simgrid_submit_job(int workerid, struct _starpu_job *j, struct star
 		}
 		else
 		{
+			void **tsd;
 			last_task[workerid] = task;
-			MSG_process_create_with_arguments("task", task_execute, calloc(MAX_TSD, sizeof(void*)), MSG_host_self(), 0, (char**) task);
+			tsd = calloc(MAX_TSD+1, sizeof(void*));
+			tsd[0] = task;
+			MSG_process_create_with_arguments("task", task_execute, tsd, MSG_host_self(), 0, NULL);
 		}
 	}
 }
@@ -454,9 +528,9 @@ static int transfers_are_sequential(struct transfer *new_transfer, struct transf
 }
 
 /* Actually execute the transfer, and then start transfers waiting for this one.  */
-static int transfer_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[])
+static int transfer_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED)
 {
-	struct transfer *transfer = (void*) argv;
+	struct transfer *transfer = starpu_pthread_getspecific(0);
 	unsigned i;
 	_STARPU_DEBUG("transfer %p started\n", transfer);
 	MSG_task_execute(transfer->task);
@@ -480,8 +554,11 @@ static int transfer_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[])
 		wake->nwait--;
 		if (!wake->nwait)
 		{
+			void **tsd;
 			_STARPU_DEBUG("triggering transfer %p\n", wake);
-			MSG_process_create_with_arguments("transfer task", transfer_execute, calloc(MAX_TSD, sizeof(void*)), _starpu_simgrid_get_host_by_name("MAIN"), 0, (char**) wake);
+			tsd = calloc(MAX_TSD+1, sizeof(void*));
+			tsd[0] = wake;
+			MSG_process_create_with_arguments("transfer task", transfer_execute, tsd, _starpu_simgrid_get_host_by_name("MAIN"), 0, NULL);
 		}
 	}
 
@@ -508,7 +585,7 @@ static void transfer_submit(struct transfer *transfer)
 			/* Make new wait for the old */
 			transfer->nwait++;
 			/* Make old wake the new */
-			old->wake = realloc(old->wake, (old->nwake + 1) * sizeof(old->wake));
+			_STARPU_REALLOC(old->wake, (old->nwake + 1) * sizeof(old->wake));
 			old->wake[old->nwake] = transfer;
 			old->nwake++;
 		}
@@ -518,21 +595,32 @@ static void transfer_submit(struct transfer *transfer)
 
 	if (!transfer->nwait)
 	{
+		void **tsd;
 		_STARPU_DEBUG("transfer %p waits for nobody, starting\n", transfer);
-		MSG_process_create_with_arguments("transfer task", transfer_execute, calloc(MAX_TSD, sizeof(void*)), _starpu_simgrid_get_host_by_name("MAIN"), 0, (char**) transfer);
+		tsd = calloc(MAX_TSD+1, sizeof(void*));
+		tsd[0] = transfer;
+		MSG_process_create_with_arguments("transfer task", transfer_execute, tsd, _starpu_simgrid_get_host_by_name("MAIN"), 0, NULL);
 	}
 }
 
 /* Data transfer issued by StarPU */
 int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, struct _starpu_data_request *req)
 {
+	/* Simgrid does not like 0-bytes transfers */
+	if (!size)
+		return 0;
+
 	msg_task_t task;
-	msg_host_t *hosts = calloc(2, sizeof(*hosts));
-	double *computation = calloc(2, sizeof(*computation));
-	double *communication = calloc(4, sizeof(*communication));
+	msg_host_t *hosts;
+	double *computation;
+	double *communication;
 	starpu_pthread_mutex_t mutex;
 	starpu_pthread_cond_t cond;
 	unsigned finished;
+
+	_STARPU_CALLOC(hosts, 2, sizeof(*hosts));
+	_STARPU_CALLOC(computation, 2, sizeof(*computation));
+	_STARPU_CALLOC(communication, 4, sizeof(*communication));
 
 	hosts[0] = _starpu_simgrid_memory_node_get_host(src_node);
 	hosts[1] = _starpu_simgrid_memory_node_get_host(dst_node);
@@ -599,10 +687,152 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 int
 _starpu_simgrid_thread_start(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[])
 {
-	struct _starpu_pthread_args *_args = (void*) argv;
-	struct _starpu_pthread_args args = *_args;
+	void *(*f)(void*) = (void*) (uintptr_t) strtol(argv[0], NULL, 16);
+	void *arg = (void*) (uintptr_t) strtol(argv[1], NULL, 16);
+
 	/* _args is freed with process context */
-	args.f(args.arg);
+	f(arg);
 	return 0;
+}
+
+msg_host_t
+_starpu_simgrid_get_memnode_host(unsigned node)
+{
+	const char *fmt;
+	char name[16];
+
+	switch (starpu_node_get_kind(node))
+	{
+		case STARPU_CPU_RAM:
+			fmt = "RAM";
+			break;
+		case STARPU_CUDA_RAM:
+			fmt = "CUDA%u";
+			break;
+		case STARPU_OPENCL_RAM:
+			fmt = "OpenCL%u";
+			break;
+		default:
+			STARPU_ABORT();
+			break;
+	}
+	snprintf(name, sizeof(name), fmt, _starpu_memory_node_get_devid(node));
+
+	return _starpu_simgrid_get_host_by_name(name);
+}
+
+void _starpu_simgrid_count_ngpus(void)
+{
+#if defined(HAVE_SG_LINK_NAME) && (SIMGRID_VERSION_MAJOR >= 4 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR >= 13))
+	unsigned src, dst;
+	msg_host_t ramhost = _starpu_simgrid_get_host_by_name("RAM");
+
+	/* For each pair of memory nodes, get the route */
+	for (src = 1; src < STARPU_MAXNODES; src++)
+		for (dst = 1; dst < STARPU_MAXNODES; dst++)
+		{
+			int busid;
+			msg_host_t srchost, dsthost;
+			const SD_link_t *route;
+			int i, routesize;
+			int through;
+			unsigned src2;
+			unsigned ngpus;
+			const char *name;
+
+			if (dst == src)
+				continue;
+			busid = starpu_bus_get_id(src, dst);
+			if (busid == -1)
+				continue;
+
+			srchost = _starpu_simgrid_get_memnode_host(src);
+			dsthost = _starpu_simgrid_get_memnode_host(dst);
+			routesize = SD_route_get_size(srchost, dsthost);
+			route = SD_route_get_list(srchost, dsthost);
+
+			/* If it goes through "Host", do not care, there is no
+			 * direct transfer support */
+			for (i = 0; i < routesize; i++)
+				if (!strcmp(sg_link_name(route[i]), "Host"))
+					break;
+			if (i < routesize)
+				continue;
+
+			/* Get the PCI bridge between down and up links */
+			through = -1;
+			for (i = 0; i < routesize; i++)
+			{
+				name = sg_link_name(route[i]);
+				size_t len = strlen(name);
+				if (!strcmp(" through", name+len-8))
+					through = i;
+				else if (!strcmp(" up", name+len-3))
+					break;
+			}
+			/* Didn't find it ?! */
+			if (through == -1)
+			{
+				_STARPU_DEBUG("Didn't find through-link for %d->%d\n", src, dst);
+				continue;
+			}
+			name = sg_link_name(route[through]);
+
+			/*
+			 * count how many direct routes go through it between
+			 * GPUs and RAM
+			 */
+			ngpus = 0;
+			for (src2 = 1; src2 < STARPU_MAXNODES; src2++)
+			{
+				if (starpu_bus_get_id(src2, STARPU_MAIN_RAM) == -1)
+					continue;
+				msg_host_t srchost2 = _starpu_simgrid_get_memnode_host(src2);
+				int routesize2 = SD_route_get_size(srchost2, ramhost);
+				const SD_link_t *route2 = SD_route_get_list(srchost2, ramhost);
+
+				for (i = 0; i < routesize2; i++)
+					if (!strcmp(name, sg_link_name(route2[i])))
+					{
+						/* This GPU goes through this PCI bridge to access RAM */
+						ngpus++;
+						break;
+					}
+			}
+			_STARPU_DEBUG("%d->%d through %s, %u GPUs\n", src, dst, name, ngpus);
+			starpu_bus_set_ngpus(busid, ngpus);
+		}
+#endif
+}
+
+typedef struct{
+  void_f_pvoid_t code;
+  void *userparam;
+  void *father_data;
+} thread_data_t;
+
+static int _starpu_simgrid_xbt_thread_create_wrapper(int argc, char *argv[])
+{
+  smx_process_t self = SIMIX_process_self();
+  thread_data_t *t = SIMIX_process_self_get_data(self);
+  simcall_process_set_data(self, t->father_data);
+  t->code(t->userparam);
+  simcall_process_set_data(self, NULL);
+  free(t);
+  
+  return 0;
+}
+
+void _starpu_simgrid_xbt_thread_create(const char *name, void_f_pvoid_t code, void *param)
+{
+  thread_data_t *res = malloc(sizeof(thread_data_t));
+  res->userparam = param;
+  res->code = code;
+  res->father_data = SIMIX_process_self_get_data(SIMIX_process_self());
+
+  simcall_process_create(name,
+                           _starpu_simgrid_xbt_thread_create_wrapper, res,
+                           SIMIX_host_self_get_name(), -1.0, 0, NULL,
+                           /*props */ NULL,0);
 }
 #endif

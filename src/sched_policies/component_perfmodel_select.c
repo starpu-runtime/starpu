@@ -40,11 +40,18 @@ static int perfmodel_select_push_task(struct starpu_sched_component * component,
 	struct _starpu_perfmodel_select_data * data = component->data;
 	double length;
 	int can_execute = starpu_sched_component_execute_preds(component,task,&length);
-	
+
 	if(can_execute)
 	{
 		if(isnan(length))
+		{
+			static int warned;
+			if (!warned) {
+				warned = 1;
+				_STARPU_DISP("Warning: performance model for %s not finished calibrating, using a dumb scheduling heuristic for now\n",starpu_task_get_name(task));
+			}
 			return starpu_sched_component_push_task(component,data->calibrator_component,task);
+		}
 		if(_STARPU_IS_ZERO(length))
 			return starpu_sched_component_push_task(component,data->no_perfmodel_component,task);
 		return starpu_sched_component_push_task(component,data->perfmodel_component,task);
@@ -72,11 +79,13 @@ struct starpu_sched_component * starpu_sched_component_perfmodel_select_create(s
 	STARPU_ASSERT(params->calibrator_component && params->no_perfmodel_component && params->perfmodel_component);
 	struct starpu_sched_component * component = starpu_sched_component_create(tree, "perfmodel_selector");
 
-	struct _starpu_perfmodel_select_data * data = malloc(sizeof(*data));
+	struct _starpu_perfmodel_select_data *data;
+	_STARPU_MALLOC(data, sizeof(*data));
+
 	data->calibrator_component = params->calibrator_component;
 	data->no_perfmodel_component = params->no_perfmodel_component;
 	data->perfmodel_component = params->perfmodel_component;
-	
+
 	component->data = data;
 	component->push_task = perfmodel_select_push_task;
 	component->deinit_data = perfmodel_select_component_deinit_data;

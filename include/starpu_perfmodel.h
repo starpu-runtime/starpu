@@ -1,8 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2014  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2010-2014, 2016  Université de Bordeaux
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
  * Copyright (C) 2011  Télécom-SudParis
+ * Copyright (C) 2016  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -38,8 +39,8 @@ struct starpu_data_descr;
 struct starpu_perfmodel_device
 {
 	enum starpu_worker_archtype type;
-	int devid;	/* identifier of the precise device */
-	int ncores;	/* number of execution in parallel, minus 1 */
+	int devid;
+	int ncores;
 };
 
 struct starpu_perfmodel_arch
@@ -60,6 +61,10 @@ struct starpu_perfmodel_history_entry
 	uint32_t footprint;
 	size_t size;
 	double flops;
+
+	double duration;
+	starpu_tag_t tag;
+	double *parameters;
 };
 
 struct starpu_perfmodel_history_list
@@ -88,6 +93,10 @@ struct starpu_perfmodel_regression_model
 	unsigned nl_valid;
 
 	unsigned nsample;
+
+	double *coeff;
+	unsigned ncoeff;
+	unsigned multi_valid;
 };
 
 struct starpu_perfmodel_history_table;
@@ -116,7 +125,8 @@ enum starpu_perfmodel_type
 	STARPU_COMMON,
 	STARPU_HISTORY_BASED,
 	STARPU_REGRESSION_BASED,
-	STARPU_NL_REGRESSION_BASED
+	STARPU_NL_REGRESSION_BASED,
+	STARPU_MULTIPLE_REGRESSION_BASED
 };
 
 struct _starpu_perfmodel_state;
@@ -127,6 +137,7 @@ struct starpu_perfmodel
 	enum starpu_perfmodel_type type;
 
 	double (*cost_function)(struct starpu_task *, unsigned nimpl);
+	double (*arch_cost_function)(struct starpu_task *, struct starpu_perfmodel_arch * arch, unsigned nimpl);
 
 	size_t (*size_base)(struct starpu_task *, unsigned nimpl);
 	uint32_t (*footprint)(struct starpu_task *);
@@ -136,6 +147,12 @@ struct starpu_perfmodel
 	unsigned is_loaded;
 	unsigned benchmarking;
 	unsigned is_init;
+
+	void (*parameters)(struct starpu_task * task, double *parameters);
+	const char **parameters_names;
+	unsigned nparameters;
+	unsigned **combinations;
+	unsigned ncombinations;
 
 	starpu_perfmodel_state_t state;
 };
@@ -167,6 +184,7 @@ double starpu_perfmodel_history_based_expected_perf(struct starpu_perfmodel *mod
 int starpu_perfmodel_list(FILE *output);
 void starpu_perfmodel_print(struct starpu_perfmodel *model, struct starpu_perfmodel_arch *arch, unsigned nimpl, char *parameter, uint32_t *footprint, FILE *output);
 int starpu_perfmodel_print_all(struct starpu_perfmodel *model, char *arch, char *parameter, uint32_t *footprint, FILE *output);
+int starpu_perfmodel_print_estimations(struct starpu_perfmodel *model, uint32_t footprint, FILE *output);
 
 int starpu_perfmodel_list_combs(FILE *output, struct starpu_perfmodel *model);
 
@@ -175,6 +193,7 @@ void starpu_perfmodel_directory(FILE *output);
 
 void starpu_bus_print_bandwidth(FILE *f);
 void starpu_bus_print_affinity(FILE *f);
+void starpu_bus_print_filenames(FILE *f);
 
 double starpu_transfer_bandwidth(unsigned src_node, unsigned dst_node);
 double starpu_transfer_latency(unsigned src_node, unsigned dst_node);

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2014  Université de Bordeaux
+ * Copyright (C) 2010-2014, 2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2013  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -57,7 +57,7 @@ struct starpu_profiling_task_info
 
 	uint64_t used_cycles;
 	uint64_t stall_cycles;
-	double power_consumed;
+	double energy_consumed;
 };
 
 struct starpu_profiling_worker_info
@@ -70,7 +70,7 @@ struct starpu_profiling_worker_info
 
 	uint64_t used_cycles;
 	uint64_t stall_cycles;
-	double power_consumed;
+	double energy_consumed;
 
 	double flops;
 };
@@ -108,6 +108,10 @@ int starpu_bus_get_count(void);
 int starpu_bus_get_id(int src, int dst);
 int starpu_bus_get_src(int busid);
 int starpu_bus_get_dst(int busid);
+void starpu_bus_set_direct(int busid, int direct);
+int starpu_bus_get_direct(int busid);
+void starpu_bus_set_ngpus(int busid, int ngpus);
+int starpu_bus_get_ngpus(int busid);
 
 int starpu_bus_get_profiling_info(int busid, struct starpu_profiling_bus_info *bus_info);
 

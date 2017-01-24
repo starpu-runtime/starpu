@@ -117,7 +117,7 @@ int _starpu_mic_src_register_kernel(starpu_mic_func_symbol_t *symbol, const char
 
 	STARPU_PTHREAD_MUTEX_LOCK(&htbl_mutex);
 	struct _starpu_mic_kernel *kernel;
-	
+
 	HASH_FIND_STR(kernels, func_name, kernel);
 
 	if (kernel != NULL)
@@ -163,7 +163,7 @@ int _starpu_mic_src_register_kernel(starpu_mic_func_symbol_t *symbol, const char
 starpu_mic_kernel_t _starpu_mic_src_get_kernel(starpu_mic_func_symbol_t symbol)
 {
 	int workerid = starpu_worker_get_id();
-	
+
 	/* This function has to be called in the codelet only, by the thread
 	 * which will handle the task */
 	if (workerid < 0)
@@ -193,7 +193,7 @@ void _starpu_mic_src_report_coi_error(const char *func, const char *file,
 				      const int line, const COIRESULT status)
 {
 	const char *errormsg = COIResultGetName(status);
-	printf("SRC: oops in %s (%s:%u)... %d: %s \n", func, file, line, status, errormsg);
+	printf("SRC: oops in %s (%s:%d)... %d: %s \n", func, file, line, status, errormsg);
 	STARPU_ASSERT(0);
 }
 
@@ -205,7 +205,7 @@ void _starpu_mic_src_report_coi_error(const char *func, const char *file,
 void _starpu_mic_src_report_scif_error(const char *func, const char *file, const int line, const int status)
 {
 	const char *errormsg = strerror(status);
-	printf("SRC: oops in %s (%s:%u)... %d: %s \n", func, file, line, status, errormsg);
+	printf("SRC: oops in %s (%s:%d)... %d: %s \n", func, file, line, status, errormsg);
 	STARPU_ASSERT(0);
 }
 
@@ -263,7 +263,7 @@ starpu_mic_kernel_t _starpu_mic_src_get_kernel_from_codelet(struct starpu_codele
 		/* If user dont define any starpu_mic_fun_t in cl->mic_func we try to use
 		 * cpu_func_name.
 		 */
-		char *func_name = _starpu_task_get_cpu_name_nth_implementation(cl, nimpl);
+		const char *func_name = _starpu_task_get_cpu_name_nth_implementation(cl, nimpl);
 		if (func_name)
 		{
 			starpu_mic_func_symbol_t symbol;
@@ -298,7 +298,7 @@ void(* _starpu_mic_src_get_kernel_from_job(const struct _starpu_mp_node *node ST
 		/* If user dont define any starpu_mic_fun_t in cl->mic_func we try to use
 		 * cpu_func_name.
 		 */
-		char *func_name = _starpu_task_get_cpu_name_nth_implementation(j->task->cl, j->nimpl);
+		const char *func_name = _starpu_task_get_cpu_name_nth_implementation(j->task->cl, j->nimpl);
 		if (func_name)
 		{
 			starpu_mic_func_symbol_t symbol;
@@ -397,7 +397,7 @@ void _starpu_mic_free_memory(void *addr, size_t size, unsigned memory_node)
 	const struct _starpu_mp_node *mp_node = _starpu_mic_src_get_mp_node_from_memory_node(memory_node);
 	struct _starpu_mic_free_command cmd = {addr, size};
 
-	return _starpu_mp_common_send_command(mp_node, STARPU_FREE, &cmd, sizeof(cmd));
+	return _starpu_mp_common_send_command(mp_node, STARPU_MP_COMMAND_FREE, &cmd, sizeof(cmd));
 }
 
 /* Transfert SIZE bytes from the address pointed by SRC in the SRC_NODE memory
@@ -534,7 +534,13 @@ void *_starpu_mic_src_worker(void *arg)
 	for (i = 0; i < config->topology.nmiccores[devid]; i++)
 	{
 		struct _starpu_worker *worker = &config->workers[baseworkerid+i];
-		snprintf(worker->name, sizeof(worker->name), "MIC %d core %u", devid, i);
+		snprintf(worker->name, sizeof(worker->name), "MIC %u core %u", devid, i);
+		snprintf(worker->short_name, sizeof(worker->short_name), "MIC %u.%u", devid, i);
+	}
+	{
+		char thread_name[16];
+		snprintf(thread_name, sizeof(thread_name), "MIC %u", devid);
+		starpu_pthread_setname(thread_name);
 	}
 
 	for (i = 0; i < worker_set->nworkers; i++)

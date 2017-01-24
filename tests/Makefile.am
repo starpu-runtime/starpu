@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2016  Université de Bordeaux
-# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+# Copyright (C) 2009-2017  Université de Bordeaux
+# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
 # Copyright (C) 2010, 2011, 2012  INRIA
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -15,6 +15,17 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
+include $(top_srcdir)/starpu.mk
+
+if STARPU_SIMGRID
+STARPU_PERF_MODEL_DIR=$(abs_top_srcdir)/tools/perfmodels/sampling
+STARPU_HOSTNAME=mirage
+MALLOC_PERTURB_=0
+export STARPU_PERF_MODEL_DIR
+export STARPU_HOSTNAME
+export MALLOC_PERTURB_
+endif
+
 AM_CFLAGS = $(HWLOC_CFLAGS) $(FXT_CFLAGS) -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(STARPU_COI_CPPFLAGS) $(STARPU_SCIF_CPPFLAGS) $(GLOBAL_AM_CFLAGS) -Wno-unused
 AM_CXXFLAGS = $(HWLOC_CFLAGS) $(FXT_CFLAGS) -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(STARPU_COI_CPPFLAGS) $(STARPU_SCIF_CPPFLAGS) $(GLOBAL_AM_CXXFLAGS) -Wno-unused
 LIBS = $(top_builddir)/src/@LIBSTARPU_LINK@ $(HWLOC_LIBS) @LIBS@ $(FXT_LIBS)
@@ -26,6 +37,8 @@ EXTRA_DIST =					\
 	datawizard/scal.h			\
 	datawizard/mpi_like.h			\
 	microbenchs/tasks_size_overhead.sh	\
+	microbenchs/tasks_size_overhead_sched.sh	\
+	microbenchs/tasks_size_overhead_scheds.sh	\
 	microbenchs/tasks_size_overhead.gp	\
 	datawizard/scratch_opencl_kernel.cl     \
 	datawizard/sync_and_notify_data_opencl_codelet.cl\
@@ -44,10 +57,12 @@ EXTRA_DIST =					\
 	datawizard/interfaces/multiformat/advanced/generic.h \
 	datawizard/interfaces/csr/csr_opencl_kernel.cl \
 	datawizard/interfaces/block/block_opencl_kernel.cl \
-	perfmodels/opencl_memset_kernel.cl
+	perfmodels/opencl_memset_kernel.cl \
+	$(MICROBENCHS:=.sh) \
+	microbenchs/microbench.sh
 
 CLEANFILES = 					\
-	*.gcno *.gcda *.linkinfo core starpu_idle_microsec.log *.mod
+	*.gcno *.gcda *.linkinfo core starpu_idle_microsec.log *.mod *.png *.output
 
 BUILT_SOURCES =
 SUBDIRS =
@@ -60,6 +75,9 @@ endif
 
 if STARPU_USE_CUDA
 
+if STARPU_COVERITY
+include $(top_srcdir)/starpu-mynvcc.mk
+else
 # TODO define NVCCFLAGS
 NVCC ?= nvcc
 
@@ -72,6 +90,7 @@ NVCCFLAGS += -I$(top_srcdir)/include/ -I$(top_srcdir)/src -I$(top_builddir)/src 
 .cu.o:
 	$(MKDIR_P) `dirname $@`
 	$(NVCC) $< -c -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS) -I${includedir}
+endif
 
 endif
 
@@ -99,29 +118,57 @@ TESTS_ENVIRONMENT	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_src
 endif
 endif
 
-TESTS = $(noinst_PROGRAMS)
+TESTS = $(myPROGRAMS)
 
 if STARPU_COVERAGE_ENABLED
 TESTS	+=	coverage/coverage.sh
 endif
 
-XFAIL_TESTS=	errorcheck/invalid_blocking_calls
+XFAIL_TESTS	=				\
+	errorcheck/invalid_blocking_calls
 
-noinst_PROGRAMS =				\
+myPROGRAMS =
+
+myPROGRAMS +=				\
+	main/restart				\
+	main/execute_schedule			\
+	main/insert_task_pack			\
+	main/insert_task_nullcodelet		\
+	main/multithreaded_init			\
+	main/empty_task				\
+	main/empty_task_chain			\
+	main/starpu_worker_exists		\
+	main/codelet_null_callback		\
+	datawizard/allocate			\
+	datawizard/acquire_cb			\
+	datawizard/user_interaction_implicit	\
+	datawizard/interfaces/copy_interfaces	\
+	datawizard/locality			\
+	datawizard/simgrid-locality		\
+	errorcheck/starpu_init_noworker		\
+	errorcheck/invalid_tasks		\
+	helper/cublas_init			\
+	helper/pinned_memory			\
+	helper/execute_on_all			\
+	microbenchs/display_structures_size	\
+	microbenchs/local_pingpong		\
+	sched_ctx/sched_ctx_list		\
+	sched_ctx/sched_ctx_hierarchy		\
+	perfmodels/value_nan
+
+if !STARPU_SIMGRID
+myPROGRAMS +=				\
 	main/deprecated_func			\
 	main/driver_api/init_run_deinit         \
 	main/driver_api/run_driver              \
 	main/deploop                            \
-	main/restart				\
 	main/execute_on_a_specific_worker	\
-	main/execute_schedule			\
 	main/insert_task			\
 	main/insert_task_value			\
 	main/insert_task_dyn_handles		\
-	main/insert_task_nullcodelet		\
 	main/insert_task_array			\
+	main/insert_task_many			\
 	main/multithreaded			\
-	main/multithreaded_init			\
 	main/starpu_task_bundle			\
 	main/starpu_task_wait_for_all		\
 	main/starpu_task_wait			\
@@ -135,10 +182,8 @@ noinst_PROGRAMS =				\
 	main/subgraph_repeat_tag		\
 	main/subgraph_repeat_regenerate		\
 	main/subgraph_repeat_regenerate_tag	\
-	main/empty_task				\
 	main/empty_task_sync_point		\
 	main/empty_task_sync_point_tasks	\
-	main/empty_task_chain			\
 	main/tag_wait_api			\
 	main/tag_get_task			\
 	main/task_wait_api			\
@@ -147,14 +192,10 @@ noinst_PROGRAMS =				\
 	main/declare_deps_after_submission_synchronous	\
 	main/get_current_task			\
 	main/starpu_init			\
-	main/starpu_worker_exists		\
 	main/submit				\
 	main/pause_resume			\
-	main/codelet_null_callback		\
 	main/pack				\
 	main/get_children_tasks			\
-	datawizard/allocate			\
-	datawizard/acquire_cb			\
 	datawizard/acquire_cb_insert		\
 	datawizard/acquire_release		\
 	datawizard/acquire_release2		\
@@ -175,7 +216,6 @@ noinst_PROGRAMS =				\
 	datawizard/manual_reduction		\
 	datawizard/readers_and_writers		\
 	datawizard/unpartition			\
-	datawizard/user_interaction_implicit	\
 	datawizard/sync_with_data_with_mem	\
 	datawizard/sync_with_data_with_mem_non_blocking\
 	datawizard/sync_with_data_with_mem_non_blocking_implicit\
@@ -192,7 +232,6 @@ noinst_PROGRAMS =				\
 	datawizard/no_unregister		\
 	datawizard/noreclaim			\
 	datawizard/nowhere			\
-	datawizard/interfaces/copy_interfaces	\
 	datawizard/interfaces/block/block_interface \
 	datawizard/interfaces/bcsr/bcsr_interface \
 	datawizard/interfaces/coo/coo_interface \
@@ -219,18 +258,15 @@ noinst_PROGRAMS =				\
 	datawizard/specific_node		\
 	datawizard/task_with_multiple_time_the_same_handle	\
 	datawizard/test_arbiter			\
+	datawizard/invalidate_pending_requests	\
+	datawizard/temporary_partition		\
 	disk/disk_copy				\
 	disk/disk_compute			\
 	disk/disk_pack				\
 	disk/mem_reclaim			\
-	errorcheck/starpu_init_noworker		\
 	errorcheck/invalid_blocking_calls	\
-	errorcheck/invalid_tasks		\
 	errorcheck/workers_cpuid		\
-	helper/cublas_init			\
 	helper/starpu_data_cpy			\
-	helper/pinned_memory			\
-	helper/execute_on_all			\
 	helper/starpu_create_sync_task		\
 	microbenchs/async_tasks_overhead	\
 	microbenchs/sync_tasks_overhead		\
@@ -238,9 +274,7 @@ noinst_PROGRAMS =				\
 	microbenchs/tasks_size_overhead		\
 	microbenchs/prefetch_data_on_node 	\
 	microbenchs/redundant_buffer		\
-	microbenchs/local_pingpong		\
 	microbenchs/matrix_as_vector		\
-	sched_ctx/sched_ctx_list		\
 	openmp/init_exit_01			\
 	openmp/init_exit_02			\
 	openmp/environment			\
@@ -269,6 +303,7 @@ noinst_PROGRAMS =				\
 	openmp/parallel_sections_combined_01	\
 	openmp/task_01				\
 	openmp/task_02				\
+	openmp/task_03				\
 	openmp/taskwait_01			\
 	openmp/taskgroup_01			\
 	openmp/taskgroup_02			\
@@ -286,27 +321,36 @@ noinst_PROGRAMS =				\
 	perfmodels/feed				\
 	perfmodels/user_base			\
 	perfmodels/valid_model			\
-	perfmodels/value_nan			\
 	perfmodels/memory			\
 	sched_policies/data_locality            \
 	sched_policies/execute_all_tasks        \
 	sched_policies/prio        		\
 	sched_policies/simple_deps              \
 	sched_policies/simple_cpu_gpu_sched
+endif
+
+MICROBENCHS = \
+	microbenchs/parallel_independent_homogeneous_tasks      \
+	microbenchs/parallel_independent_heterogeneous_tasks    \
+	microbenchs/parallel_independent_homogeneous_tasks_data	\
+	microbenchs/parallel_independent_heterogeneous_tasks_data \
+	microbenchs/parallel_dependent_homogeneous_tasks_data
 
 if STARPU_HAVE_FC
 if !STARPU_SANITIZE
 if !STARPU_SIMGRID
-noinst_PROGRAMS +=				\
+myPROGRAMS +=				\
 	fortran90/init_01
 endif
 endif
 endif
 
+if !STARPU_SIMGRID
 if STARPU_LONG_CHECK
-noinst_PROGRAMS +=				\
+myPROGRAMS +=				\
 	main/tag_task_data_deps			\
 	datawizard/reclaim
+endif
 endif
 
 examplebin_PROGRAMS = \
@@ -315,11 +359,20 @@ examplebin_PROGRAMS = \
 examplebin_SCRIPTS = \
 	microbenchs/tasks_size_overhead.gp \
 	microbenchs/tasks_size_overhead.sh
+if !STARPU_SIMGRID
+TESTS += microbenchs/tasks_size_overhead_scheds.sh
+endif
 
 if STARPU_HAVE_WINDOWS
-check_PROGRAMS	=	$(noinst_PROGRAMS)
+check_PROGRAMS	=	$(myPROGRAMS)
 else
-check_PROGRAMS	=	$(LOADER) $(noinst_PROGRAMS)
+check_PROGRAMS	=	$(LOADER) $(myPROGRAMS)
+endif
+noinst_PROGRAMS = $(myPROGRAMS)
+noinst_PROGRAMS += $(MICROBENCHS)
+
+if STARPU_SIMGRID
+TESTS += $(MICROBENCHS:=.sh)
 endif
 
 #######################
@@ -523,6 +576,9 @@ endif
 sched_ctx_sched_ctx_list_SOURCES =	\
 	sched_ctx/sched_ctx_list.c
 
+sched_ctx_sched_ctx_hierarchy_SOURCES =	\
+	sched_ctx/sched_ctx_hierarchy.c
+
 openmp_init_exit_01_SOURCES = 	\
 	openmp/init_exit_01.c
 
@@ -606,6 +662,9 @@ openmp_task_01_SOURCES = 	\
 
 openmp_task_02_SOURCES = 	\
 	openmp/task_02.c
+
+openmp_task_03_SOURCES = 	\
+	openmp/task_03.c
 
 openmp_taskwait_01_SOURCES = 	\
 	openmp/taskwait_01.c
@@ -838,14 +897,6 @@ perfmodels_feed_SOURCES=\
 	perfmodels/feed.c
 
 sched_policies_execute_all_tasks_LDFLAGS = $(AM_LDFLAGS) -lm
-
-showcheck:
-	-cat $(TEST_LOGS) /dev/null
-	! grep -q "ERROR: AddressSanitizer: " $(TEST_LOGS) /dev/null
-	! grep -q "WARNING: AddressSanitizer: " $(TEST_LOGS) /dev/null
-	! grep -q "ERROR: ThreadSanitizer: " $(TEST_LOGS) /dev/null
-	! grep -q "WARNING: ThreadSanitizer: " $(TEST_LOGS) /dev/null
-
 
 if STARPU_HAVE_FC
 # Fortran90 tests

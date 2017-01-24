@@ -17,6 +17,7 @@
 
 #include <starpu_sched_component.h>
 #include <starpu_scheduler.h>
+#include <core/workers.h>
 
 #include "fifo_queues.h"
 #include "sched_component.h"
@@ -110,7 +111,7 @@ static int fifo_push_local_task(struct starpu_sched_component * component, struc
 	else
 		exp_len = fifo->exp_len;
 
-	if((data->ntasks_threshold != 0) && (data->exp_len_threshold != 0.0) && 
+	if((data->ntasks_threshold != 0) && (data->exp_len_threshold != 0.0) &&
 			((fifo->ntasks >= data->ntasks_threshold) || (exp_len >= data->exp_len_threshold)))
 	{
 		static int warned;
@@ -141,12 +142,12 @@ static int fifo_push_local_task(struct starpu_sched_component * component, struc
 		STARPU_ASSERT(!isnan(fifo->exp_end));
 		STARPU_ASSERT(!isnan(fifo->exp_len));
 		STARPU_ASSERT(!isnan(fifo->exp_start));
-		
+
 		if(!is_pushback)
 			component->can_pull(component);
 		STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
 	}
-	
+
 	return ret;
 }
 
@@ -162,7 +163,7 @@ static struct starpu_task * fifo_pull_task(struct starpu_sched_component * compo
 	struct _starpu_fifo_taskq * fifo = data->fifo;
 	starpu_pthread_mutex_t * mutex = &data->mutex;
 	STARPU_PTHREAD_MUTEX_LOCK(mutex);
-	struct starpu_task * task = _starpu_fifo_pop_task(fifo, starpu_worker_get_id());
+	struct starpu_task * task = _starpu_fifo_pop_task(fifo, starpu_worker_get_id_check());
 	if(task)
 	{
 		if(!isnan(task->predicted))
@@ -193,7 +194,7 @@ static struct starpu_task * fifo_pull_task(struct starpu_sched_component * compo
 				break;
 		}
 	}
-	
+
 	if(task)
 		return task;
 
@@ -216,18 +217,18 @@ static int fifo_can_push(struct starpu_sched_component * component)
 
 	struct starpu_task * task = starpu_sched_component_pull_task(component,NULL);
 	if(task)
-		ret = starpu_sched_component_push_task(NULL,child,task);	
-	while(task && !ret) 
+		ret = starpu_sched_component_push_task(NULL,child,task);
+	while(task && !ret)
 	{
 		if(!res)
 			res = 1;
 
 		task = starpu_sched_component_pull_task(component,NULL);
 		if(task)
-			ret = starpu_sched_component_push_task(NULL,child,task);	
+			ret = starpu_sched_component_push_task(NULL,child,task);
 	}
 	if(task && ret)
-		fifo_push_local_task(component,task,1); 
+		fifo_push_local_task(component,task,1);
 
 	return res;
 }
@@ -239,8 +240,9 @@ int starpu_sched_component_is_fifo(struct starpu_sched_component * component)
 
 struct starpu_sched_component * starpu_sched_component_fifo_create(struct starpu_sched_tree *tree, struct starpu_sched_component_fifo_data * params)
 {
-	struct starpu_sched_component * component = starpu_sched_component_create(tree, "fifo");
-	struct _starpu_fifo_data * data = malloc(sizeof(*data));
+	struct starpu_sched_component *component = starpu_sched_component_create(tree, "fifo");
+	struct _starpu_fifo_data *data;
+	_STARPU_MALLOC(data, sizeof(*data));
 	data->fifo = _starpu_create_fifo();
 	STARPU_PTHREAD_MUTEX_INIT(&data->mutex,NULL);
 	component->data = data;
