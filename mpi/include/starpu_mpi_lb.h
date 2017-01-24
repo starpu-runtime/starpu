@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2016  Inria
+ * Copyright (C) 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +15,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#ifndef __LOAD_BALANCER_H__
-#define __LOAD_BALANCER_H__
+#ifndef __STARPU_MPI_LOAD_BALANCER_H__
+#define __STARPU_MPI_LOAD_BALANCER_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -29,7 +30,7 @@ struct starpu_mpi_lb_conf
 };
 
 /* Inits the load balancer's environment with the load policy provided by the
- * user 
+ * user
  */
 void starpu_mpi_lb_init(struct starpu_mpi_lb_conf *);
 void starpu_mpi_lb_shutdown();
@@ -38,4 +39,4 @@ void starpu_mpi_lb_shutdown();
 }
 #endif
 
-#endif // __LOAD_BALANCER_H__
+#endif // __STARPU_MPI_LOAD_BALANCER_H__

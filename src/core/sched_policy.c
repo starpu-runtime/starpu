@@ -87,18 +87,18 @@ struct starpu_sched_policy *_starpu_get_sched_policy(struct _starpu_sched_ctx *s
 	return sched_ctx->sched_policy;
 }
 
-void starpu_sched_policy_set_post_exec_hook(void (*post_exec_hook)(struct starpu_task *task), const char *policy_name)
+void starpu_sched_policy_set_post_exec_hook(void (*post_exec_hook)(struct starpu_task *task, unsigned sched_ctx_id), const char *policy_name)
 {
-    int i;
-    struct _starpu_sched_ctx *sched_ctx;
-    for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
-    {
-        sched_ctx = _starpu_get_sched_ctx_struct(i);
-        if (sched_ctx && sched_ctx->sched_policy)
-            sched_ctx->sched_policy->post_exec_hook = post_exec_hook;
-        else
-            break;
-    }
+	int i;
+	struct _starpu_sched_ctx *sched_ctx;
+	for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
+	{
+		sched_ctx = _starpu_get_sched_ctx_struct(i);
+		if (sched_ctx && sched_ctx->sched_policy)
+			sched_ctx->sched_policy->post_exec_hook = post_exec_hook;
+		else
+			break;
+	}
 }
 
 /*

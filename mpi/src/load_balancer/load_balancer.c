@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2016  Inria
+ * Copyright (C) 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -24,15 +25,15 @@
 #include "policy/load_balancer_policy.h"
 
 static struct load_balancer_policy *defined_policy = NULL;
-static void (*saved_post_exec_hook)(struct starpu_task *task) = NULL;
+static void (*saved_post_exec_hook)(struct starpu_task *task, unsigned sched_ctx_id) = NULL;
 
-static void post_exec_hook_wrapper(struct starpu_task *task)
+static void post_exec_hook_wrapper(struct starpu_task *task, unsigned sched_ctx_id)
 {
 	//fprintf(stderr,"I am called ! \n");
 	if (defined_policy && defined_policy->finished_task_entry_point)
 		defined_policy->finished_task_entry_point();
 	if (saved_post_exec_hook)
-		saved_post_exec_hook(task);
+		saved_post_exec_hook(task, sched_ctx_id);
 }
 
 static struct load_balancer_policy *predefined_policies[] =
@@ -61,17 +62,20 @@ void starpu_mpi_lb_init(struct starpu_mpi_lb_conf *itf)
 		return;
 	}
 
-	struct load_balancer_policy **policy;
-	for(policy=predefined_policies ; *policy!=NULL ; policy++)
+	if (policy_name)
 	{
-		struct load_balancer_policy *p = *policy;
-		if (p->policy_name)
+		struct load_balancer_policy **policy;
+		for(policy=predefined_policies ; *policy!=NULL ; policy++)
 		{
-			if (strcmp(policy_name, p->policy_name) == 0)
+			struct load_balancer_policy *p = *policy;
+			if (p->policy_name)
 			{
-				/* we found a policy with the requested name */
-				defined_policy = p;
-				break;
+				if (strcmp(policy_name, p->policy_name) == 0)
+				{
+					/* we found a policy with the requested name */
+					defined_policy = p;
+					break;
+				}
 			}
 		}
 	}
@@ -82,7 +86,7 @@ void starpu_mpi_lb_init(struct starpu_mpi_lb_conf *itf)
 		return;
 	}
 
-	if (defined_policy->init(itf))
+	if (defined_policy->init(itf) != 0)
 	{
 		fprintf(stderr,"Error in load_balancer->init: invalid starpu_mpi_lb_conf. Load balancing will be disabled for this run.\n");
 		return;
