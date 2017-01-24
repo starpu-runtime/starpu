@@ -40,7 +40,7 @@ int load_data_get_current_phase(starpu_data_handle_t handle)
 	struct load_data_interface *ld_interface =
 		(struct load_data_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
-    return ld_interface->phase;
+	return ld_interface->phase;
 }
 
 int load_data_get_nsubmitted_tasks(starpu_data_handle_t handle)
@@ -48,7 +48,7 @@ int load_data_get_nsubmitted_tasks(starpu_data_handle_t handle)
 	struct load_data_interface *ld_interface =
 		(struct load_data_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
-    return ld_interface->nsubmitted_tasks;
+	return ld_interface->nsubmitted_tasks;
 }
 
 int load_data_get_nfinished_tasks(starpu_data_handle_t handle)
@@ -56,7 +56,7 @@ int load_data_get_nfinished_tasks(starpu_data_handle_t handle)
 	struct load_data_interface *ld_interface =
 		(struct load_data_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
-    return ld_interface->nfinished_tasks;
+	return ld_interface->nfinished_tasks;
 }
 
 int load_data_inc_nsubmitted_tasks(starpu_data_handle_t handle)
@@ -64,7 +64,7 @@ int load_data_inc_nsubmitted_tasks(starpu_data_handle_t handle)
 	struct load_data_interface *ld_interface =
 		(struct load_data_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
-    (ld_interface->nsubmitted_tasks)++;
+	(ld_interface->nsubmitted_tasks)++;
 
 	return 0;
 }
@@ -74,7 +74,7 @@ int load_data_inc_nfinished_tasks(starpu_data_handle_t handle)
 	struct load_data_interface *ld_interface =
 		(struct load_data_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
-    (ld_interface->nfinished_tasks)++;
+	(ld_interface->nfinished_tasks)++;
 
 	return 0;
 }
@@ -84,7 +84,7 @@ int load_data_next_phase(starpu_data_handle_t handle)
 	struct load_data_interface *ld_interface =
 		(struct load_data_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
-    ld_interface->phase++;
+	ld_interface->phase++;
 
 	return 0;
 }
@@ -94,7 +94,7 @@ int load_data_update_elapsed_time(starpu_data_handle_t handle)
 	struct load_data_interface *ld_interface =
 		(struct load_data_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
-    ld_interface->elapsed_time = starpu_timing_now() - ld_interface->start;
+	ld_interface->elapsed_time = starpu_timing_now() - ld_interface->start;
 
 	return 0;
 }
@@ -112,8 +112,8 @@ int load_data_update_wakeup_cond(starpu_data_handle_t handle)
 	struct load_data_interface *ld_interface =
 		(struct load_data_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
-    int previous_threshold = ld_interface->wakeup_task_threshold;
-    ld_interface->wakeup_task_threshold += (ld_interface->nsubmitted_tasks - previous_threshold) * ld_interface->wakeup_ratio;
+	int previous_threshold = ld_interface->wakeup_task_threshold;
+	ld_interface->wakeup_task_threshold += (ld_interface->nsubmitted_tasks - previous_threshold) * ld_interface->wakeup_ratio;
 
 	return 0;
 }
@@ -123,7 +123,7 @@ int load_data_wakeup_cond(starpu_data_handle_t handle)
 	struct load_data_interface *ld_interface =
 		(struct load_data_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
-    return ((ld_interface->wakeup_task_threshold > 0) && (ld_interface->nfinished_tasks == ld_interface->wakeup_task_threshold));
+	return ((ld_interface->wakeup_task_threshold > 0) && (ld_interface->nfinished_tasks == ld_interface->wakeup_task_threshold));
 }
 
 static void load_data_register_data_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface)
@@ -141,29 +141,29 @@ static void load_data_register_data_handle(starpu_data_handle_t handle, unsigned
 		local_interface->phase = ld_interface->phase;
 		local_interface->nsubmitted_tasks = ld_interface->nsubmitted_tasks;
 		local_interface->nfinished_tasks = ld_interface->nsubmitted_tasks;
-        local_interface->wakeup_task_threshold = ld_interface->wakeup_task_threshold;
-        local_interface->wakeup_ratio = ld_interface->wakeup_ratio;
-        local_interface->sleep_task_threshold = ld_interface->sleep_task_threshold;
+		local_interface->wakeup_task_threshold = ld_interface->wakeup_task_threshold;
+		local_interface->wakeup_ratio = ld_interface->wakeup_ratio;
+		local_interface->sleep_task_threshold = ld_interface->sleep_task_threshold;
 	}
 }
 
 static starpu_ssize_t load_data_allocate_data_on_node(void *data_interface, unsigned node)
 {
-    (void) data_interface;
-    (void) node;
+	(void) data_interface;
+	(void) node;
 
-    return 0;
+	return 0;
 }
 
 static void load_data_free_data_on_node(void *data_interface, unsigned node)
 {
-    (void) data_interface;
-    (void) node;
+	(void) data_interface;
+	(void) node;
 }
 
 static size_t load_data_get_size(starpu_data_handle_t handle)
 {
-    (void) handle;
+	(void) handle;
 	return (sizeof(struct load_data_interface));
 }
 
@@ -171,7 +171,10 @@ static uint32_t load_data_footprint(starpu_data_handle_t handle)
 {
 	struct load_data_interface *ld_interface =
 		(struct load_data_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
-	return starpu_hash_crc32c_be(ld_interface->start, starpu_hash_crc32c_be(ld_interface->elapsed_time, starpu_hash_crc32c_be(ld_interface->nsubmitted_tasks, starpu_hash_crc32c_be(ld_interface->sleep_task_threshold, ld_interface->wakeup_task_threshold))));
+	return starpu_hash_crc32c_be(ld_interface->start,
+				     starpu_hash_crc32c_be(ld_interface->elapsed_time,
+							   starpu_hash_crc32c_be(ld_interface->nsubmitted_tasks,
+										 starpu_hash_crc32c_be(ld_interface->sleep_task_threshold, ld_interface->wakeup_task_threshold))));
 }
 
 static int load_data_pack_data(starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count)
@@ -204,7 +207,7 @@ static int load_data_unpack_data(starpu_data_handle_t handle, unsigned node, voi
 	STARPU_ASSERT(count == sizeof(struct load_data_interface));
 	memcpy(ld_interface, data, count);
 
-    return 0;
+	return 0;
 }
 
 static int copy_any_to_any(void *src_interface, unsigned src_node,
@@ -213,8 +216,8 @@ static int copy_any_to_any(void *src_interface, unsigned src_node,
 {
 	(void) src_interface;
 	(void) dst_interface;
-    (void) src_node;
-    (void) dst_node;
+	(void) src_node;
+	(void) dst_node;
 	(void) async_data;
 
 	return 0;
@@ -246,12 +249,12 @@ void load_data_data_register(starpu_data_handle_t *handleptr, unsigned home_node
 	struct load_data_interface load_data =
 	{
 		.start = starpu_timing_now(),
-        .elapsed_time = 0,
-        .phase = 0,
-        .nsubmitted_tasks = 0,
-        .nfinished_tasks = 0,
+		.elapsed_time = 0,
+		.phase = 0,
+		.nsubmitted_tasks = 0,
+		.nfinished_tasks = 0,
 		.sleep_task_threshold = sleep_task_threshold,
-        .wakeup_task_threshold = 0,
+		.wakeup_task_threshold = 0,
 		.wakeup_ratio = wakeup_ratio
 	};
 

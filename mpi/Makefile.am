@@ -24,7 +24,6 @@ versincludedir = $(includedir)/starpu/$(STARPU_EFFECTIVE_VERSION)
 versinclude_HEADERS = 					\
 	include/starpu_mpi.h				\
 	include/starpu_mpi_lb.h				\
-	include/starpu_mpi.h				\
 	include/fstarpu_mpi_mod.f90
 
 showcheck:

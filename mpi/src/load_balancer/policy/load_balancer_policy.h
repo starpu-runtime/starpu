@@ -30,15 +30,15 @@ extern "C" {
  * these entry points of the runtime system. */
 struct load_balancer_policy
 {
-    int (*init)(struct starpu_mpi_lb_conf *);
-    int (*deinit)();
-    void (*submitted_task_entry_point)();
-    void (*finished_task_entry_point)();
+	int (*init)(struct starpu_mpi_lb_conf *);
+	int (*deinit)();
+	void (*submitted_task_entry_point)();
+	void (*finished_task_entry_point)();
 
-    /* Name of the load balancing policy. The selection of the load balancer is
-     * performed through the use of the STARPU_MPI_LB=name environment
-     * variable.
-     */
+	/* Name of the load balancing policy. The selection of the load balancer is
+	 * performed through the use of the STARPU_MPI_LB=name environment
+	 * variable.
+	 */
 	const char *policy_name;
 };
 

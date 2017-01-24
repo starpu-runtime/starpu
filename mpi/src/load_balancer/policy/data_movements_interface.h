@@ -22,11 +22,11 @@
 /* interface for data_movements */
 struct data_movements_interface
 {
-    /* Data tags table */
+	/* Data tags table */
 	int *tags;
-    /* Ranks table (where to move the corresponding data) */
+	/* Ranks table (where to move the corresponding data) */
 	int *ranks;
-    /* Size of the tables */
+	/* Size of the tables */
 	int size;
 };
 

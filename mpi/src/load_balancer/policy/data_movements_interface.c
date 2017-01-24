@@ -24,10 +24,10 @@ int **data_movements_get_ref_tags_table(starpu_data_handle_t handle)
 	struct data_movements_interface *dm_interface =
 		(struct data_movements_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
-    if (dm_interface->tags)
-        return &dm_interface->tags;
-    else
-        return NULL;
+	if (dm_interface->tags)
+		return &dm_interface->tags;
+	else
+		return NULL;
 }
 
 int **data_movements_get_ref_ranks_table(starpu_data_handle_t handle)
@@ -35,10 +35,10 @@ int **data_movements_get_ref_ranks_table(starpu_data_handle_t handle)
 	struct data_movements_interface *dm_interface =
 		(struct data_movements_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
-    if (dm_interface->ranks)
-        return &dm_interface->ranks;
-    else
-        return NULL;
+	if (dm_interface->ranks)
+		return &dm_interface->ranks;
+	else
+		return NULL;
 }
 
 int *data_movements_get_tags_table(starpu_data_handle_t handle)
@@ -70,30 +70,29 @@ int data_movements_reallocate_tables(starpu_data_handle_t handle, int size)
 	struct data_movements_interface *dm_interface =
 		(struct data_movements_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
+	if (dm_interface->size)
+	{
+		STARPU_ASSERT(dm_interface->tags);
+		free(dm_interface->tags);
+		dm_interface->tags = NULL;
 
-    if (dm_interface->size)
-    {
-        STARPU_ASSERT(dm_interface->tags);
-        free(dm_interface->tags);
-        dm_interface->tags = NULL;
+		STARPU_ASSERT(dm_interface->ranks);
+		free(dm_interface->ranks);
+		dm_interface->ranks = NULL;
+	}
+	else
+	{
+		STARPU_ASSERT(!dm_interface->tags);
+		STARPU_ASSERT(!dm_interface->ranks);
+	}
 
-        STARPU_ASSERT(dm_interface->ranks);
-        free(dm_interface->ranks);
-        dm_interface->ranks = NULL;
-    }
-    else
-    {
-        STARPU_ASSERT(!dm_interface->tags);
-        STARPU_ASSERT(!dm_interface->ranks);
-    }
+	dm_interface->size = size;
 
-    dm_interface->size = size;
-
-    if (dm_interface->size)
-    {
-        dm_interface->tags = malloc(size*sizeof(int));
-        dm_interface->ranks = malloc(size*sizeof(int));
-    }
+	if (dm_interface->size)
+	{
+		dm_interface->tags = malloc(size*sizeof(int));
+		dm_interface->ranks = malloc(size*sizeof(int));
+	}
 
 	return 0 ;
 }
@@ -184,14 +183,14 @@ static int data_movements_pack_data(starpu_data_handle_t handle, unsigned node, 
 	{
 		char *data;
 		starpu_malloc_flags((void**) &data, *count, 0);
-        assert(data);
+		assert(data);
 		*ptr = data;
 		memcpy(data, &dm_interface->size, sizeof(int));
-        if (dm_interface->size)
-        {
-            memcpy(data+sizeof(int), dm_interface->tags, (dm_interface->size*sizeof(int)));
-            memcpy(data+sizeof(int)+(dm_interface->size*sizeof(int)), dm_interface->ranks, dm_interface->size*sizeof(int));
-        }
+		if (dm_interface->size)
+		{
+			memcpy(data+sizeof(int), dm_interface->tags, (dm_interface->size*sizeof(int)));
+			memcpy(data+sizeof(int)+(dm_interface->size*sizeof(int)), dm_interface->ranks, dm_interface->size*sizeof(int));
+		}
 	}
 
 	return 0;
@@ -205,17 +204,17 @@ static int data_movements_unpack_data(starpu_data_handle_t handle, unsigned node
 	struct data_movements_interface *dm_interface = (struct data_movements_interface *)
 		starpu_data_get_interface_on_node(handle, node);
 
-    int size = 0;
+	int size = 0;
 	memcpy(&size, data, sizeof(int));
 	STARPU_ASSERT(count == (2 * size * sizeof(int)) + sizeof(int));
-    
-    data_movements_reallocate_tables(handle, size);
 
-    if (dm_interface->size)
-    {
-        memcpy(dm_interface->tags, data+sizeof(int), dm_interface->size*sizeof(int));
-        memcpy(dm_interface->ranks, data+sizeof(int)+(dm_interface->size*sizeof(int)), dm_interface->size*sizeof(int));
-    }
+	data_movements_reallocate_tables(handle, size);
+
+	if (dm_interface->size)
+	{
+		memcpy(dm_interface->tags, data+sizeof(int), dm_interface->size*sizeof(int));
+		memcpy(dm_interface->ranks, data+sizeof(int)+(dm_interface->size*sizeof(int)), dm_interface->size*sizeof(int));
+	}
 
     return 0;
 }
