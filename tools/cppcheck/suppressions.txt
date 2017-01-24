@@ -61,6 +61,7 @@ sizeofDereferencedVoidPointer:src/util/fstarpu.c
 allocaCalled:gcc-plugin/src/*
 unusedVariable:gcc-plugin/tests/*
 unreadVariable:gcc-plugin/tests/*
+negativeIndex:gcc-plugin/src/*
 
 pointerSize:socl/src/cl_getcontextinfo.c:33
 
