@@ -1516,7 +1516,7 @@ void starpu_shutdown(void)
 	/* tell all workers to shutdown */
 	_starpu_kill_all_workers(&_starpu_config);
 	
-	int i;
+	unsigned i;
 	unsigned nb_numa_nodes = _starpu_get_nb_numa_nodes();
 	for (i=0; i<nb_numa_nodes; i++)
 	{

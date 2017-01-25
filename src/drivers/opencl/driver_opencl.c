@@ -757,26 +757,14 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 	{
 		/* Not ready yet, no better thing to do than waiting */
 		__starpu_datawizard_progress(memnode, 1, 0);
-		unsigned nb_numa_nodes = _starpu_get_nb_numa_nodes();
-		unsigned i;
-		for (i=0; i<nb_numa_nodes; i++)
-		{
-			unsigned id = _starpu_numaid_to_memnode(i);
-			__starpu_datawizard_progress(id, 1, 0);
-		}
+		__starpu_datawizard_progress_ram(1, 0);
 		return 0;
 	}
 #endif
 
 	res = !idle;
 	res |= __starpu_datawizard_progress(memnode, 1, 1);
-	unsigned nb_numa_nodes = _starpu_get_nb_numa_nodes();
-	unsigned i;
-	for (i=0; i<nb_numa_nodes; i++)
-	{
-		unsigned id = _starpu_numaid_to_memnode(i);
-		res |= __starpu_datawizard_progress(id, 1, 1);
-	}
+	res |= __starpu_datawizard_progress_ram(1, 1);
 
 	task = _starpu_get_worker_task(worker, workerid, memnode);
 

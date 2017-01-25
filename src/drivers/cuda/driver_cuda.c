@@ -809,14 +809,10 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 #if defined(STARPU_NON_BLOCKING_DRIVERS) && !defined(STARPU_SIMGRID)
 	if (!idle)
 	{
+
 		/* Nothing ready yet, no better thing to do than waiting */
 		__starpu_datawizard_progress(memnode, 1, 0);
-		int nb_numa_nodes = _starpu_get_nb_numa_nodes();
-		for (i=0; i<nb_numa_nodes; i++)
-		{
-			unsigned id = _starpu_numaid_to_memnode(i);
-			__starpu_datawizard_progress(id, 1, 0);
-		}
+		__starpu_datawizard_progress_ram(1, 0);
 		return 0;
 	}
 #endif
@@ -824,12 +820,7 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 	/* Something done, make some progress */
 	res = !idle;
 	res |= __starpu_datawizard_progress(memnode, 1, 1);
-	int nb_numa_nodes = _starpu_get_nb_numa_nodes();
-	for (i=0; i<nb_numa_nodes; i++)
-	{
-		unsigned id = _starpu_numaid_to_memnode(i);
-		res |= __starpu_datawizard_progress(id, 1, 1);
-	}
+	res |= __starpu_datawizard_progress_ram(1, 1);
 
 	/* And pull tasks */
 	res |= _starpu_get_multi_worker_task(worker_set->workers, tasks, worker_set->nworkers, memnode);

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2014  Université de Bordeaux
+ * Copyright (C) 2009, 2010, 2014, 2017  Université de Bordeaux
  * Copyright (C) 2010, 2013  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -35,5 +35,6 @@
 
 int __starpu_datawizard_progress(unsigned memory_node, unsigned may_alloc, unsigned push_requests);
 void _starpu_datawizard_progress(unsigned memory_node, unsigned may_alloc);
+int __starpu_datawizard_progress_ram(unsigned may_alloc, unsigned push_requests);
 
 #endif // __DATAWIZARD_H__

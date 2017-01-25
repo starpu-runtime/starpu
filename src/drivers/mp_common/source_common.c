@@ -693,12 +693,7 @@ void _starpu_src_common_worker(struct _starpu_worker_set * worker_set,
 
 		_STARPU_TRACE_START_PROGRESS(memnode);
 		res |= __starpu_datawizard_progress(memnode, 1, 1);
-		unsigned nb_numa_nodes = _starpu_get_nb_numa_nodes;
-		for (i=0; i<nb_numa_nodes; i++)
-		{
-			unsigned id = _starpu_numaid_to_memnode(i);
-			res |= __starpu_datawizard_progress(id, 1, 1);
-		}
+		res |= __starpu_datawizard_progress_ram(1, 1);
 		_STARPU_TRACE_END_PROGRESS(memnode);
 
 		/* Handle message which have been store */
