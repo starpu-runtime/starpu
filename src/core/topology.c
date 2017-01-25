@@ -58,8 +58,8 @@ static int nobind;
 /* For checking whether two workers share the same PU, indexed by PU number */
 static int cpu_worker[STARPU_MAXCPUS];
 static unsigned nb_numa_nodes = 0;
-static unsigned numa_memory_nodes[STARPU_MAXNUMANODES];
-static unsigned numa_numaid[STARPU_MAXNODES];
+static unsigned numa_memory_nodes[STARPU_MAXNUMANODES]; /* indexed by system logical numaid */
+static unsigned numa_numaid[STARPU_MAXNODES]; /* indexed by starpu memory node number */
 #ifdef STARPU_USE_NUMA
 static int _starpu_worker_numa_node(unsigned workerid);
 #else

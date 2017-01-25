@@ -631,7 +631,7 @@ static unsigned try_to_reuse_mem_chunk(struct _starpu_mem_chunk *mc, unsigned no
 			_starpu_spin_unlock(&mc_lock[node]);
 			_STARPU_TRACE_START_WRITEBACK(node);
 			int home_node = old_data->home_node;
-			if (home_node < 0 || (starpu_node_get_kind(home_node) != STARPU_CPU_RAM))
+			if (home_node < 0)
 				home_node = STARPU_MAIN_RAM;
 			res = transfer_subtree_to_node(old_data, node, home_node);
 			_STARPU_TRACE_END_WRITEBACK(node);

@@ -994,11 +994,7 @@ static void _starpu_data_invalidate(void *data)
 
 		if (local->mc && local->allocated && local->automatically_allocated)
 		{
-#ifdef STARPU_USE_NUMA
 			if (starpu_node_get_kind(node) == STARPU_CPU_RAM)
-#else /* STARPU_USE_NUMA */		
-			if (node == STARPU_MAIN_RAM)
-#endif /* STARPU_USE_NUMA */		
 				_starpu_data_unregister_ram_pointer(handle);
 
 			/* free the data copy in a lazy fashion */
