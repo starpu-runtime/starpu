@@ -408,21 +408,6 @@ _starpu_data_initialize_per_worker(starpu_data_handle_t handle)
 		/* duplicate  the content of the interface on node 0 */
 		memcpy(replicate->data_interface, handle->per_node[STARPU_MAIN_RAM].data_interface, interfacesize);
 	}
-
-	/* now the data is available ! */
-	_starpu_spin_unlock(&handle->header_lock);
-
-	int handle_node = STARPU_MAIN_RAM;
-#ifdef STARPU_USE_NUMA
-	handle_node = handle->home_node;
-	if (handle_node < 0 || (starpu_node_get_kind(handle_node) != STARPU_CPU_RAM))
-		handle_node = STARPU_MAIN_RAM;
-#endif /* STARPU_USE_NUMA */
-	void * ptr = starpu_data_handle_to_pointer(handle, handle_node);
-	if (ptr != NULL)
-	{
-		_starpu_data_register_ram_pointer(handle, ptr);
-	}
 }
 
 void starpu_data_ptr_register(starpu_data_handle_t handle, unsigned node)
