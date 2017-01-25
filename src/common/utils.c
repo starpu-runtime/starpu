@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012-2016  Université de Bordeaux
+ * Copyright (C) 2010, 2012-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -271,6 +271,33 @@ int _starpu_fftruncate(FILE *file, size_t length)
 	return ftruncate(fileno(file), length);
 }
 
+static int _starpu_warn_nolock(int err)
+{
+	if (0
+#ifdef ENOLCK
+		|| err == ENOLCK
+#endif
+#ifdef ENOTSUP
+		|| err == ENOTSUP
+#endif
+#ifdef EOPNOTSUPP
+		|| err == EOPNOTSUPP
+#endif
+#ifdef EROFS
+		|| err == EROFS
+#endif
+		)
+	{
+		static int warn;
+		if (!warn) {
+			warn = 1;
+			_STARPU_DISP("warning: Couldn't lock performance file, StarPU home (%s, coming from $HOME or $STARPU_HOME) is probably on some network filesystem like NFS which does not support locking.\n", _starpu_get_home_path());
+		}
+		return 1;
+	}
+	return 0;
+}
+
 int _starpu_frdlock(FILE *file)
 {
 	int ret;
@@ -290,17 +317,8 @@ int _starpu_frdlock(FILE *file)
 	};
 	ret = fcntl(fileno(file), F_SETLKW, &lock);
 #endif
-#ifdef ENOLCK
-	if (ret != 0 && errno == ENOLCK)
-	{
-		static int warn;
-		if (!warn) {
-			warn = 1;
-			_STARPU_DISP("warning: Couldn't lock performance file, StarPU home is probably on NFS which does not support locking.\n");
-		}
+	if (ret != 0 && _starpu_warn_nolock(errno))
 		return -1;
-	}
-#endif
 	STARPU_ASSERT(ret == 0);
 	return ret;
 }
@@ -325,6 +343,8 @@ int _starpu_frdunlock(FILE *file)
 	};
 	ret = fcntl(fileno(file), F_SETLKW, &lock);
 #endif
+	if (ret != 0 && _starpu_warn_nolock(errno))
+		return -1;
 	STARPU_ASSERT(ret == 0);
 	return ret;
 }
@@ -351,17 +371,8 @@ int _starpu_fwrlock(FILE *file)
 	ret = fcntl(fileno(file), F_SETLKW, &lock);
 #endif
 
-#ifdef ENOLCK
-	if (ret != 0 && errno == ENOLCK)
-	{
-		static int warn;
-		if (!warn) {
-			warn = 1;
-			_STARPU_DISP("warning: Couldn't lock performance file, StarPU home is probably on NFS which does not support locking.\n");
-		}
+	if (ret != 0 && _starpu_warn_nolock(errno))
 		return -1;
-	}
-#endif
 	STARPU_ASSERT(ret == 0);
 	return ret;
 }
