@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2016  Université de Bordeaux
+ * Copyright (C) 2009-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016, 2017  CNRS
  * Copyright (C) 2011  INRIA
  * Copyright (C) 2016  Uppsala University
@@ -76,7 +76,7 @@ LIST_TYPE(_starpu_worker,
 	starpu_pthread_cond_t started_cond; /* indicate when the worker is ready */
 	starpu_pthread_cond_t ready_cond; /* indicate when the worker is ready */
 	unsigned memory_node; /* which memory node is the worker associated with ? */
-	unsigned numa_memory_node; /* which numa memory node is the worker associated with ? */
+	unsigned numa_memory_node; /* which numa memory node is the worker associated with? (logical index) */
 	starpu_pthread_cond_t sched_cond; /* condition variable used when the worker waits for tasks. */
         starpu_pthread_mutex_t sched_mutex; /* mutex protecting sched_cond */
 	struct starpu_task_list local_tasks; /* this queue contains tasks that have been explicitely submitted to that queue */

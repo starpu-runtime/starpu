@@ -767,6 +767,14 @@ available to the application on each CPU device. Setting it enables allocation
 cache in main memory
 </dd>
 
+<dt>STARPU_LIMIT_CPU_NUMA_devid_MEM</dt>
+<dd>
+\anchor STARPU_LIMIT_CPU_NUMA_devid_MEM
+\addindex __env__STARPU_LIMIT_CPU_NUMA_devid_MEM
+This variable specifies the maximum number of megabytes that should be
+available to the application on the NUMA node with the OS identifier <c>devid</c>.
+</dd>
+
 <dt>STARPU_MINIMUM_AVAILABLE_MEM</dt>
 <dd>
 \anchor STARPU_MINIMUM_AVAILABLE_MEM

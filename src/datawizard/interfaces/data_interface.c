@@ -515,12 +515,9 @@ struct starpu_data_interface_ops* starpu_data_get_interface_ops(starpu_data_hand
 
 void _starpu_data_unregister_ram_pointer(starpu_data_handle_t handle)
 {
-	int node = STARPU_MAIN_RAM;
-#ifdef STARPU_USE_NUMA
-	node = handle->home_node;
+	int node = handle->home_node;
 	if (node < 0 || (starpu_node_get_kind(node) != STARPU_CPU_RAM))
 		node = STARPU_MAIN_RAM;
-#endif /* STARPU_USE_NUMA */
 
 	const void *ram_ptr = starpu_data_handle_to_pointer(handle, node);
 #ifdef STARPU_OPENMP
@@ -758,12 +755,9 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 			_STARPU_DEBUG("Conversion needed\n");
 			void *buffers[1];
 			struct starpu_multiformat_interface *format_interface;
-			home_node = STARPU_MAIN_RAM;
-#ifdef STARPU_USE_NUMA
 			home_node = handle->home_node;
 			if (home_node < 0 || (starpu_node_get_kind(home_node) != STARPU_CPU_RAM))
 				home_node = STARPU_MAIN_RAM;
-#endif /* STARPU_USE_NUMA */
 			format_interface = (struct starpu_multiformat_interface *) starpu_data_get_interface_on_node(handle, home_node);
 			struct starpu_codelet *cl = NULL;
 			enum starpu_node_kind node_kind = starpu_node_get_kind(handle->mf_node);

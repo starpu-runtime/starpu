@@ -216,12 +216,9 @@ uintptr_t starpu_bcsr_get_local_nzval(starpu_data_handle_t handle)
 
 uint32_t *starpu_bcsr_get_local_colind(starpu_data_handle_t handle)
 {
-	int node = STARPU_MAIN_RAM;
-#ifdef STARPU_USE_NUMA
-	node = handle->home_node;
+	int node = handle->home_node;
 	if (node < 0 || (starpu_node_get_kind(node) != STARPU_CPU_RAM))
 		node = STARPU_MAIN_RAM;
-#endif /* STARPU_USE_NUMA */
 
 	/* XXX 0 */
 	struct starpu_bcsr_interface *data_interface = (struct starpu_bcsr_interface *)
@@ -232,12 +229,9 @@ uint32_t *starpu_bcsr_get_local_colind(starpu_data_handle_t handle)
 
 uint32_t *starpu_bcsr_get_local_rowptr(starpu_data_handle_t handle)
 {
-	int node = STARPU_MAIN_RAM;
-#ifdef STARPU_USE_NUMA
-	node = handle->home_node;
+	int node = handle->home_node;
 	if (node < 0 || (starpu_node_get_kind(node) != STARPU_CPU_RAM))
 		node = STARPU_MAIN_RAM;
-#endif /* STARPU_USE_NUMA */
 
 	/* XXX 0 */
 	struct starpu_bcsr_interface *data_interface = (struct starpu_bcsr_interface *)

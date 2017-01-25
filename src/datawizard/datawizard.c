@@ -70,7 +70,8 @@ void _starpu_datawizard_progress(unsigned memory_node, unsigned may_alloc)
 
 int __starpu_datawizard_progress_ram(unsigned may_alloc, unsigned push_requests)
 {
-	int res = 0, i;
+	int res = 0;
+	unsigned i;
 	unsigned nb_numa_nodes = _starpu_get_nb_numa_nodes();
 	for (i=0; i<nb_numa_nodes; i++)
 	{

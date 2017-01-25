@@ -167,7 +167,7 @@ AM_CONDITIONAL([STARPU_USE_MIC], [test "x$enable_mic" = "xyes"])
 AC_MSG_CHECKING(maximum number of NUMA nodes)
 AC_ARG_ENABLE(maxnumanodes, [AS_HELP_STRING([--enable-maxnumanodes=<number>],
 			[maximum number of NUMA nodes])],
-			nmaxnumanodes=$enableval, nmaxnumanodes=4)
+			nmaxnumanodes=$enableval, nmaxnumanodes=2)
 AC_MSG_RESULT($nmaxnumanodes)
 AC_DEFINE_UNQUOTED(STARPU_MAXNUMANODES, [$nmaxnumanodes],
 		[maximum number of NUMA nodes])

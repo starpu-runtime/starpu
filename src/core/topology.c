@@ -1610,9 +1610,15 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 		{
 			case STARPU_CPU_WORKER:
 			{
+				/* "dedicate" a cpu core to that worker */
 				workerarg->bindid = _starpu_get_next_bindid(config, NULL, 0);
 				int numaid = workerarg->numa_memory_node = _starpu_worker_numa_node(worker);
-				/* "dedicate" a cpu core to that worker */
+				if (!numa_init[numaid] && nb_numa_nodes == STARPU_MAXNUMANODES-1)
+				{
+					_STARPU_MSG("Warning: %u NUMA nodes available. Only %u enabled. Use configure option --enable-maxnumanodes=xxx to update the maximum value of supported NUMA nodes.\n", _starpu_topology_get_nnumanodes(config), STARPU_MAXNUMANODES);
+					numaid = STARPU_MAIN_RAM;
+				}
+
 				if (numa_init[numaid])
 				{
 					memory_node = numa_memory_nodes[numaid];
@@ -2034,14 +2040,15 @@ static int _starpu_worker_numa_node(unsigned workerid)
 	struct _starpu_machine_topology *topology = &config->topology ;
 	hwloc_obj_t obj = hwloc_get_obj_by_depth(topology->hwtopology, config->pu_depth, worker->bindid) ;
 	STARPU_ASSERT(obj) ;
-	while (obj->depth != HWLOC_OBJ_NODE)
+	while (obj->type != HWLOC_OBJ_NODE)
 	{
 		obj = obj->parent;
 
 		/* If we don't find a "node" obj before the root, this means
 		 * hwloc does not know whether there are numa nodes or not, so
 		 * we should not use a per-node sampling in that case. */
-		STARPU_ASSERT(obj);
+		if (!obj)
+			return STARPU_MAIN_RAM;
 	}
 	STARPU_ASSERT(obj->depth == HWLOC_OBJ_NODE);
 	return obj->logical_index;

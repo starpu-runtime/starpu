@@ -1597,6 +1597,9 @@ get_better_disk_can_accept_size(starpu_data_handle_t handle, unsigned node)
 	return target;
 }
 
+#ifdef STARPU_DEVEL
+#  warning TODO: better choose NUMA node
+#endif
 
 static unsigned
 choose_target(starpu_data_handle_t handle, unsigned node)
@@ -1607,7 +1610,7 @@ choose_target(starpu_data_handle_t handle, unsigned node)
 		/* try to push on RAM if we can before to push on disk */
 		if(starpu_node_get_kind(handle->home_node) == STARPU_DISK_RAM && (starpu_node_get_kind(node) != STARPU_CPU_RAM))
 		{
- 	                int i;
+ 	                unsigned i;
 			unsigned nb_numa_nodes = _starpu_get_nb_numa_nodes();
 			for (i=0; i<nb_numa_nodes; i++)
 			{
@@ -1640,7 +1643,7 @@ choose_target(starpu_data_handle_t handle, unsigned node)
 		} else {
 		/* node != 0 */
 		/* try to push data to RAM if we can before to push on disk*/
-			int i;
+			unsigned i;
 			unsigned nb_numa_nodes = _starpu_get_nb_numa_nodes();
 			for (i=0; i<nb_numa_nodes; i++)
 			{
