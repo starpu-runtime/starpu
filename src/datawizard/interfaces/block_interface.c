@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2016  Université de Bordeaux
+ * Copyright (C) 2009-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -162,7 +162,7 @@ void starpu_block_data_register(starpu_data_handle_t *handleptr, int home_node,
 		.elemsize = elemsize
 	};
 #ifndef STARPU_SIMGRID
-	if (home_node == STARPU_MAIN_RAM)
+	if (starpu_node_get_kind(home_node) == STARPU_CPU_RAM)
 	{
 		STARPU_ASSERT_ACCESSIBLE(ptr);
 		STARPU_ASSERT_ACCESSIBLE(ptr + (nz-1)*ldz*elemsize + (ny-1)*ldy*elemsize + nx*elemsize - 1);
@@ -216,13 +216,7 @@ static void display_block_interface(starpu_data_handle_t handle, FILE *f)
 {
 	struct starpu_block_interface *block_interface;
 
-	int node = STARPU_MAIN_RAM;
-#ifdef STARPU_USE_NUMA
-	node = handle->home_node;
-	if (node < 0 || (_starpu_node_get_kind(node) != STARPU_CPU_RAM))
-		node = STARPU_MAIN_RAM;
-#endif /* STARPU_USE_NUMA */
-	block_interface = (struct starpu_block_interface *) starpu_data_get_interface_on_node(handle, node);
+	block_interface = (struct starpu_block_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 	fprintf(f, "%u\t%u\t%u\t", block_interface->nx, block_interface->ny, block_interface->nz);
 }
@@ -293,13 +287,7 @@ static size_t block_interface_get_size(starpu_data_handle_t handle)
 	size_t size;
 	struct starpu_block_interface *block_interface;
 
-	int node = STARPU_MAIN_RAM;
-#ifdef STARPU_USE_NUMA
-	node = handle->home_node;
-	if (node < 0 || (_starpu_node_get_kind(node) != STARPU_CPU_RAM))
-		node = STARPU_MAIN_RAM;
-#endif /* STARPU_USE_NUMA */
-	block_interface = (struct starpu_block_interface *) starpu_data_get_interface_on_node(handle, node);
+	block_interface = (struct starpu_block_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 	size = block_interface->nx*block_interface->ny*block_interface->nz*block_interface->elemsize;
 
@@ -309,45 +297,24 @@ static size_t block_interface_get_size(starpu_data_handle_t handle)
 /* offer an access to the data parameters */
 uint32_t starpu_block_get_nx(starpu_data_handle_t handle)
 {
-	int node = STARPU_MAIN_RAM;
-#ifdef STARPU_USE_NUMA
-	node = handle->home_node;
-	if (node < 0 || (_starpu_node_get_kind(node) != STARPU_CPU_RAM))
-		node = STARPU_MAIN_RAM;
-#endif /* STARPU_USE_NUMA */
-
 	struct starpu_block_interface *block_interface = (struct starpu_block_interface *)
-		starpu_data_get_interface_on_node(handle, node);
+		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 	return block_interface->nx;
 }
 
 uint32_t starpu_block_get_ny(starpu_data_handle_t handle)
 {
-	int node = STARPU_MAIN_RAM;
-#ifdef STARPU_USE_NUMA
-	node = handle->home_node;
-	if (node < 0 || (_starpu_node_get_kind(node) != STARPU_CPU_RAM))
-		node = STARPU_MAIN_RAM;
-#endif /* STARPU_USE_NUMA */
-
 	struct starpu_block_interface *block_interface = (struct starpu_block_interface *)
-		starpu_data_get_interface_on_node(handle, node);
+		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 	return block_interface->ny;
 }
 
 uint32_t starpu_block_get_nz(starpu_data_handle_t handle)
 {
-	int node = STARPU_MAIN_RAM;
-#ifdef STARPU_USE_NUMA
-	node = handle->home_node;
-	if (node < 0 || (_starpu_node_get_kind(node) != STARPU_CPU_RAM))
-		node = STARPU_MAIN_RAM;
-#endif /* STARPU_USE_NUMA */
-
 	struct starpu_block_interface *block_interface = (struct starpu_block_interface *)
-		starpu_data_get_interface_on_node(handle, node);
+		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 	return block_interface->nz;
 }
@@ -393,15 +360,8 @@ uintptr_t starpu_block_get_local_ptr(starpu_data_handle_t handle)
 
 size_t starpu_block_get_elemsize(starpu_data_handle_t handle)
 {
-	int node = STARPU_MAIN_RAM;
-#ifdef STARPU_USE_NUMA
-	node = handle->home_node;
-	if (node < 0 || (_starpu_node_get_kind(node) != STARPU_CPU_RAM))
-		node = STARPU_MAIN_RAM;
-#endif /* STARPU_USE_NUMA */
-
 	struct starpu_block_interface *block_interface = (struct starpu_block_interface *)
-		starpu_data_get_interface_on_node(handle, node);
+		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 	return block_interface->elemsize;
 }

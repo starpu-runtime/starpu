@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2016  Université de Bordeaux
+ * Copyright (C) 2009-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
  * Copyright (C) 2014, 2016  Inria
  *
@@ -415,10 +415,10 @@ _starpu_data_initialize_per_worker(starpu_data_handle_t handle)
 	int handle_node = STARPU_MAIN_RAM;
 #ifdef STARPU_USE_NUMA
 	handle_node = handle->home_node;
-	if (handle_node < 0 || (_starpu_node_get_kind(handle_node) != STARPU_CPU_RAM))
+	if (handle_node < 0 || (starpu_node_get_kind(handle_node) != STARPU_CPU_RAM))
 		handle_node = STARPU_MAIN_RAM;
 #endif /* STARPU_USE_NUMA */
-	ptr = starpu_data_handle_to_pointer(handle, handle_node);
+	void * ptr = starpu_data_handle_to_pointer(handle, handle_node);
 	if (ptr != NULL)
 	{
 		_starpu_data_register_ram_pointer(handle, ptr);
@@ -496,14 +496,7 @@ void starpu_data_register(starpu_data_handle_t *handleptr, int home_node,
 
 void starpu_data_register_same(starpu_data_handle_t *handledst, starpu_data_handle_t handlesrc)
 {
-	int node = STARPU_MAIN_RAM;
-#ifdef STARPU_USE_NUMA
-	node = handlesrc->home_node;
-	if (node < 0 || (_starpu_node_get_kind(node) != STARPU_CPU_RAM))
-		node = STARPU_MAIN_RAM;
-#endif /* STARPU_USE_NUMA */
-
-	void *local_interface = starpu_data_get_interface_on_node(handlesrc, node);
+	void *local_interface = starpu_data_get_interface_on_node(handlesrc, STARPU_MAIN_RAM);
 	starpu_data_register(handledst, -1, local_interface, handlesrc->ops);
 }
 
@@ -540,7 +533,7 @@ void _starpu_data_unregister_ram_pointer(starpu_data_handle_t handle)
 	int node = STARPU_MAIN_RAM;
 #ifdef STARPU_USE_NUMA
 	node = handle->home_node;
-	if (node < 0 || (_starpu_node_get_kind(node) != STARPU_CPU_RAM))
+	if (node < 0 || (starpu_node_get_kind(node) != STARPU_CPU_RAM))
 		node = STARPU_MAIN_RAM;
 #endif /* STARPU_USE_NUMA */
 
@@ -783,7 +776,7 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 			home_node = STARPU_MAIN_RAM;
 #ifdef STARPU_USE_NUMA
 			home_node = handle->home_node;
-			if (home_node < 0 || (_starpu_node_get_kind(home_node) != STARPU_CPU_RAM))
+			if (home_node < 0 || (starpu_node_get_kind(home_node) != STARPU_CPU_RAM))
 				home_node = STARPU_MAIN_RAM;
 #endif /* STARPU_USE_NUMA */
 			format_interface = (struct starpu_multiformat_interface *) starpu_data_get_interface_on_node(handle, home_node);
@@ -1002,7 +995,7 @@ static void _starpu_data_invalidate(void *data)
 		if (local->mc && local->allocated && local->automatically_allocated)
 		{
 #ifdef STARPU_USE_NUMA
-			if (_starpu_node_get_kind(node) == STARPU_CPU_RAM)
+			if (starpu_node_get_kind(node) == STARPU_CPU_RAM)
 #else /* STARPU_USE_NUMA */		
 			if (node == STARPU_MAIN_RAM)
 #endif /* STARPU_USE_NUMA */		

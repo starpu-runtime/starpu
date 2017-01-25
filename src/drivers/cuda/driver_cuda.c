@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2016  Université de Bordeaux
+ * Copyright (C) 2009-2017  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016, 2017  CNRS
  * Copyright (C) 2011  Télécom-SudParis
@@ -811,16 +811,12 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 	{
 		/* Nothing ready yet, no better thing to do than waiting */
 		__starpu_datawizard_progress(memnode, 1, 0);
-#ifdef STARPU_USE_NUMA
-		unsigned nb_numa_nodes = _starpu_get_nb_numa_nodes();
+		int nb_numa_nodes = _starpu_get_nb_numa_nodes();
 		for (i=0; i<nb_numa_nodes; i++)
 		{
 			unsigned id = _starpu_numaid_to_memnode(i);
 			__starpu_datawizard_progress(id, 1, 0);
 		}
-#else /* STARPU_USE_NUMA */
-		__starpu_datawizard_progress(STARPU_MAIN_RAM, 1, 0);
-#endif /* STARPU_USE_NUMA */
 		return 0;
 	}
 #endif
@@ -828,16 +824,12 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 	/* Something done, make some progress */
 	res = !idle;
 	res |= __starpu_datawizard_progress(memnode, 1, 1);
-#ifdef STARPU_USE_NUMA
-	unsigned nb_numa_nodes = _starpu_get_nb_numa_nodes();
+	int nb_numa_nodes = _starpu_get_nb_numa_nodes();
 	for (i=0; i<nb_numa_nodes; i++)
 	{
 		unsigned id = _starpu_numaid_to_memnode(i);
 		res |= __starpu_datawizard_progress(id, 1, 1);
 	}
-#else /* STARPU_USE_NUMA */
-	res |= __starpu_datawizard_progress(STARPU_MAIN_RAM, 1, 1);
-#endif /* STARPU_USE_NUMA */
 
 	/* And pull tasks */
 	res |= _starpu_get_multi_worker_task(worker_set->workers, tasks, worker_set->nworkers, memnode);

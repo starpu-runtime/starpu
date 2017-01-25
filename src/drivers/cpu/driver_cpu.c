@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2016  Université de Bordeaux
+ * Copyright (C) 2010-2017  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010-2016  CNRS
  * Copyright (C) 2011  Télécom-SudParis
@@ -222,12 +222,7 @@ int _starpu_cpu_driver_init(struct _starpu_worker *cpu_worker)
 	int devid = cpu_worker->devid;
 
 	_starpu_driver_start(cpu_worker, _STARPU_FUT_CPU_KEY, 1);
-	/* FIXME: when we have NUMA support, properly turn node number into NUMA node number */
-#ifdef STARPU_USE_NUMA
 	_starpu_memory_manager_set_global_memory_size(cpu_worker->memory_node, _starpu_cpu_get_global_mem_size(cpu_worker->numa_memory_node, cpu_worker->config));
-#else /* STARPU_USE_NUMA */
-	_starpu_memory_manager_set_global_memory_size(cpu_worker->memory_node, _starpu_cpu_get_global_mem_size(cpu_worker->memory_node, cpu_worker->config));
-#endif /* STARPU_USE_NUMA */
 	snprintf(cpu_worker->name, sizeof(cpu_worker->name), "CPU %d", devid);
 	snprintf(cpu_worker->short_name, sizeof(cpu_worker->short_name), "CPU %d", devid);
 	starpu_pthread_setname(cpu_worker->short_name);
@@ -248,29 +243,20 @@ int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
 	unsigned memnode = cpu_worker->memory_node;
 	int workerid = cpu_worker->workerid;
 
-	int res;
+	int res = 0;
 
 #ifdef STARPU_SIMGRID
 	starpu_pthread_wait_reset(&cpu_worker->wait);
 #endif
 
 	_STARPU_TRACE_START_PROGRESS(memnode);
-	res = __starpu_datawizard_progress(memnode, 1, 1);
-#ifdef STARPU_USE_NUMA
-	if (starpu_node_get_kind(memnode) != STARPU_CPU_RAM)
+	unsigned i;
+	unsigned nb_numa_nodes = _starpu_get_nb_numa_nodes();
+	for (i=0; i<nb_numa_nodes; i++)
 	{
-		int i;
-		unsigned nb_numa_nodes = _starpu_get_nb_numa_nodes();
-		for (i=0; i<nb_numa_nodes; i++)
-		{
-			unsigned id = _starpu_numaid_to_memnode(i);			
-			res |= __starpu_datawizard_progress(id, 1, 1);
-		}
+		unsigned id = _starpu_numaid_to_memnode(i);			
+		res |= __starpu_datawizard_progress(id, 1, 1);
 	}
-#else /* STARPU_USE_NUMA */
-	if (memnode != STARPU_MAIN_RAM)
-		res |= __starpu_datawizard_progress(STARPU_MAIN_RAM, 1, 1);
-#endif /* STARPU_USE_NUMA */
 	_STARPU_TRACE_END_PROGRESS(memnode);
 
 	struct _starpu_job *j;

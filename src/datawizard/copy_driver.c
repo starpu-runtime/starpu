@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2016  Université de Bordeaux
+ * Copyright (C) 2010-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2013, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -736,15 +736,9 @@ void _starpu_driver_wait_request_completion(struct _starpu_async_channel *async_
 		_starpu_mic_wait_request_completion(&(async_channel->event.mic_event));
 		break;
 #endif
-	case STARPU_MAIN_RAM:
-#ifdef STARPU_USE_NUMA
 	case STARPU_CPU_RAM:
-#endif /* STARPU_USE_NUMA */
 		starpu_disk_wait_request(async_channel);
 		break;
-#ifndef STARPU_USE_NUMA
-	case STARPU_CPU_RAM:
-#endif /* !STARPU_USE_NUMA */
 	default:
 		STARPU_ABORT();
 	}

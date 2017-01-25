@@ -70,14 +70,7 @@ static void register_void_handle(starpu_data_handle_t handle STARPU_ATTRIBUTE_UN
 /* declare a new data with the void interface */
 void starpu_void_data_register(starpu_data_handle_t *handleptr)
 {
-	int node = STARPU_MAIN_RAM;
-#ifdef STARPU_USE_NUMA
-	node = (*handleptr)->home_node;
-	if (node < 0 || (starpu_node_get_kind(node) != STARPU_CPU_RAM))
-		node = STARPU_MAIN_RAM;
-#endif /* STARPU_USE_NUMA */
-
-	starpu_data_register(handleptr, node, NULL, &starpu_interface_void_ops);
+	starpu_data_register(handleptr, STARPU_MAIN_RAM, NULL, &starpu_interface_void_ops);
 }
 
 

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2010, 2012, 2014-2016  Université de Bordeaux
+ * Copyright (C) 2009-2010, 2012, 2014-2017  Université de Bordeaux
  * Copyright (C) 2010, 2015  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -66,11 +66,8 @@ void _starpu_bind_thread_on_cpus(struct _starpu_machine_config *config STARPU_AT
 
 void *_starpu_get_worker_from_driver(struct starpu_driver *d);
 
-#ifdef STARPU_USE_NUMA
 int _starpu_numaid_to_memnode(unsigned numaid);
 int _starpu_memnode_to_numaid(unsigned memnode);
-int _starpu_get_nb_numa_nodes();
-int _starpu_worker_numa_node(unsigned workerid);
-#endif /* STARPU_USE_NUMA */
+int _starpu_get_nb_numa_nodes(void);
 	
 #endif // __TOPOLOGY_H__

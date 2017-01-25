@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2016  Université de Bordeaux
+ * Copyright (C) 2010-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -173,7 +173,7 @@ void starpu_matrix_data_register(starpu_data_handle_t *handleptr, int home_node,
                 .offset = 0
 	};
 #ifndef STARPU_SIMGRID
-	if (home_node == STARPU_MAIN_RAM)
+	if (starpu_node_get_kind(home_node) == STARPU_CPU_RAM)
 	{
 		STARPU_ASSERT_ACCESSIBLE(ptr);
 		STARPU_ASSERT_ACCESSIBLE(ptr + (ny-1)*ld*elemsize + nx*elemsize - 1);
@@ -217,15 +217,8 @@ static int matrix_compare(void *data_interface_a, void *data_interface_b)
 
 static void display_matrix_interface(starpu_data_handle_t handle, FILE *f)
 {
-	int node = STARPU_MAIN_RAM;
-#ifdef STARPU_USE_NUMA
-	node = handle->home_node;
-	if (node < 0 || (_starpu_node_get_kind(node) != STARPU_CPU_RAM))
-		node = STARPU_MAIN_RAM;
-#endif /* STARPU_USE_NUMA */
-
 	struct starpu_matrix_interface *matrix_interface = (struct starpu_matrix_interface *)
-		starpu_data_get_interface_on_node(handle, node);
+		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 	fprintf(f, "%u\t%u\t", matrix_interface->nx, matrix_interface->ny);
 }
@@ -282,15 +275,8 @@ static int unpack_matrix_handle(starpu_data_handle_t handle, unsigned node, void
 
 static size_t matrix_interface_get_size(starpu_data_handle_t handle)
 {
-	int node = STARPU_MAIN_RAM;
-#ifdef STARPU_USE_NUMA
-	node = handle->home_node;
-	if (node < 0 || (_starpu_node_get_kind(node) != STARPU_CPU_RAM))
-		node = STARPU_MAIN_RAM;
-#endif /* STARPU_USE_NUMA */
-
 	struct starpu_matrix_interface *matrix_interface = (struct starpu_matrix_interface *)
-		starpu_data_get_interface_on_node(handle, node);
+		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 	size_t size;
 	size = (size_t)matrix_interface->nx*matrix_interface->ny*matrix_interface->elemsize;
@@ -301,30 +287,16 @@ static size_t matrix_interface_get_size(starpu_data_handle_t handle)
 /* offer an access to the data parameters */
 uint32_t starpu_matrix_get_nx(starpu_data_handle_t handle)
 {
-	int node = STARPU_MAIN_RAM;
-#ifdef STARPU_USE_NUMA
-	node = handle->home_node;
-	if (node < 0 || (_starpu_node_get_kind(node) != STARPU_CPU_RAM))
-		node = STARPU_MAIN_RAM;
-#endif /* STARPU_USE_NUMA */
-
 	struct starpu_matrix_interface *matrix_interface = (struct starpu_matrix_interface *)
-		starpu_data_get_interface_on_node(handle, node);
+		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 	return matrix_interface->nx;
 }
 
 uint32_t starpu_matrix_get_ny(starpu_data_handle_t handle)
 {
-	int node = STARPU_MAIN_RAM;
-#ifdef STARPU_USE_NUMA
-	node = handle->home_node;
-	if (node < 0 || (_starpu_node_get_kind(node) != STARPU_CPU_RAM))
-		node = STARPU_MAIN_RAM;
-#endif /* STARPU_USE_NUMA */
-
 	struct starpu_matrix_interface *matrix_interface = (struct starpu_matrix_interface *)
-		starpu_data_get_interface_on_node(handle, node);
+		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 	return matrix_interface->ny;
 }
@@ -357,15 +329,8 @@ uintptr_t starpu_matrix_get_local_ptr(starpu_data_handle_t handle)
 
 size_t starpu_matrix_get_elemsize(starpu_data_handle_t handle)
 {
-	int node = STARPU_MAIN_RAM;
-#ifdef STARPU_USE_NUMA
-	node = handle->home_node;
-	if (node < 0 || (_starpu_node_get_kind(node) != STARPU_CPU_RAM))
-		node = STARPU_MAIN_RAM;
-#endif /* STARPU_USE_NUMA */
-
 	struct starpu_matrix_interface *matrix_interface = (struct starpu_matrix_interface *)
-		starpu_data_get_interface_on_node(handle, node);
+		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 	return matrix_interface->elemsize;
 }

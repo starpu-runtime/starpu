@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2016  Université de Bordeaux
+# Copyright (C) 2009-2017  Université de Bordeaux
 # Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
 # Copyright (C) 2011  Télécom-SudParis
 # Copyright (C) 2011, 2012, 2014-2016  INRIA
@@ -164,15 +164,6 @@ AM_CONDITIONAL([STARPU_USE_MIC], [test "x$enable_mic" = "xyes"])
 #                                                                             #
 ###############################################################################
 
-AC_ARG_ENABLE(numa, [AS_HELP_STRING([--enable-numa],
-	      [use NUMA node(s)])], [enable_numa=$enableval], [enable_numa=no])
-
-if test x$enable_numa = xyes ; then
-	AC_DEFINE(STARPU_USE_NUMA, [1], [NUMA memory nodes support is enabled])
-fi
-
-AM_CONDITIONAL([STARPU_USE_NUMA], [test "x$enable_numa" = "xyes"])
-
 AC_MSG_CHECKING(maximum number of NUMA nodes)
 AC_ARG_ENABLE(maxnumanodes, [AS_HELP_STRING([--enable-maxnumanodes=<number>],
 			[maximum number of NUMA nodes])],
@@ -180,6 +171,17 @@ AC_ARG_ENABLE(maxnumanodes, [AS_HELP_STRING([--enable-maxnumanodes=<number>],
 AC_MSG_RESULT($nmaxnumanodes)
 AC_DEFINE_UNQUOTED(STARPU_MAXNUMANODES, [$nmaxnumanodes],
 		[maximum number of NUMA nodes])
+
+AC_ARG_ENABLE(numa, [AS_HELP_STRING([--enable-numa],
+	      [use NUMA node(s)])], [enable_numa=$enableval], [enable_numa=no])
+
+if test x$enable_numa = xyes ; then
+	AC_DEFINE(STARPU_USE_NUMA, [1], [NUMA memory nodes support is enabled])
+else
+	nmaxnumanodes=1
+fi
+
+AM_CONDITIONAL([STARPU_USE_NUMA], [test "x$enable_numa" = "xyes"])
 
 
 ###############################################################################

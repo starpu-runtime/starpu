@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2016  Université de Bordeaux
+ * Copyright (C) 2009-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -120,7 +120,7 @@ void starpu_vector_data_register(starpu_data_handle_t *handleptr, int home_node,
                 .offset = 0
 	};
 #ifndef STARPU_SIMGRID
-	if (home_node == STARPU_MAIN_RAM)
+	if (starpu_node_get_kind(home_node) == STARPU_CPU_RAM)
 	{
 		STARPU_ASSERT_ACCESSIBLE(ptr);
 		STARPU_ASSERT_ACCESSIBLE(ptr + nx*elemsize - 1);
@@ -162,15 +162,8 @@ static int vector_compare(void *data_interface_a, void *data_interface_b)
 
 static void display_vector_interface(starpu_data_handle_t handle, FILE *f)
 {
-	int node = STARPU_MAIN_RAM;
-#ifdef STARPU_USE_NUMA
-	node = handle->home_node;
-	if (node < 0 || (_starpu_node_get_kind(node) != STARPU_CPU_RAM))
-		node = STARPU_MAIN_RAM;
-#endif /* STARPU_USE_NUMA */
-
 	struct starpu_vector_interface *vector_interface = (struct starpu_vector_interface *)
-		starpu_data_get_interface_on_node(handle, node);
+		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 	fprintf(f, "%u\t", vector_interface->nx);
 }
@@ -208,16 +201,9 @@ static int unpack_vector_handle(starpu_data_handle_t handle, unsigned node, void
 
 static size_t vector_interface_get_size(starpu_data_handle_t handle)
 {
-	int node = STARPU_MAIN_RAM;
-#ifdef STARPU_USE_NUMA
-	node = handle->home_node;
-	if (node < 0 || (_starpu_node_get_kind(node) != STARPU_CPU_RAM))
-		node = STARPU_MAIN_RAM;
-#endif /* STARPU_USE_NUMA */
-
 	size_t size;
 	struct starpu_vector_interface *vector_interface = (struct starpu_vector_interface *)
-		starpu_data_get_interface_on_node(handle, node);
+		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 	size = vector_interface->nx*vector_interface->elemsize;
 
@@ -227,15 +213,8 @@ static size_t vector_interface_get_size(starpu_data_handle_t handle)
 /* offer an access to the data parameters */
 uint32_t starpu_vector_get_nx(starpu_data_handle_t handle)
 {
-	int node = STARPU_MAIN_RAM;
-#ifdef STARPU_USE_NUMA
-	node = handle->home_node;
-	if (node < 0 || (_starpu_node_get_kind(node) != STARPU_CPU_RAM))
-		node = STARPU_MAIN_RAM;
-#endif /* STARPU_USE_NUMA */
-
 	struct starpu_vector_interface *vector_interface = (struct starpu_vector_interface *)
-		starpu_data_get_interface_on_node(handle, node);
+		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 	return vector_interface->nx;
 }
@@ -255,15 +234,8 @@ uintptr_t starpu_vector_get_local_ptr(starpu_data_handle_t handle)
 
 size_t starpu_vector_get_elemsize(starpu_data_handle_t handle)
 {
-	int node = STARPU_MAIN_RAM;
-#ifdef STARPU_USE_NUMA
-	node = handle->home_node;
-	if (node < 0 || (_starpu_node_get_kind(node) != STARPU_CPU_RAM))
-		node = STARPU_MAIN_RAM;
-#endif /* STARPU_USE_NUMA */
-
 	struct starpu_vector_interface *vector_interface = (struct starpu_vector_interface *)
-		starpu_data_get_interface_on_node(handle, node);
+		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 	return vector_interface->elemsize;
 }

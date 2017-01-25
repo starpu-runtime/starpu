@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2016  Université de Bordeaux
+ * Copyright (C) 2009-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017 CNRS
  * Copyright (C) 2011, 2016  INRIA
  * Copyright (C) 2016  Uppsala University
@@ -57,11 +57,14 @@ static int nobind;
 
 /* For checking whether two workers share the same PU, indexed by PU number */
 static int cpu_worker[STARPU_MAXCPUS];
-#ifdef STARPU_USE_NUMA
 static unsigned nb_numa_nodes = 0;
 static unsigned numa_memory_nodes[STARPU_MAXNUMANODES];
-#endif /* STARPU_USE_NUMA */
-
+static unsigned numa_numaid[STARPU_MAXNODES];
+#ifdef STARPU_USE_NUMA
+static int _starpu_worker_numa_node(unsigned workerid);
+#else
+#define _starpu_worker_numa_node(workerid) 0
+#endif
 
 
 #if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) || defined(STARPU_USE_SCC) || defined(STARPU_SIMGRID)
@@ -810,7 +813,7 @@ _starpu_topology_get_nhwpu (struct _starpu_machine_config *config)
 	return config->topology.nhwpus;
 }
 
-unsigned _starpu_topology_get_nnumanodes(struct _starpu_machine_config *config)
+unsigned _starpu_topology_get_nnumanodes(struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_NUMA
 	struct _starpu_machine_topology *topology = &config->topology ;
@@ -1537,7 +1540,6 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 
 	/* note that even if the CPU cpu are not used, we always have a RAM
 	 * node */
-	/* TODO : support NUMA  ;) */
 	ram_memory_node = _starpu_memory_node_register(STARPU_CPU_RAM, 0);
 	STARPU_ASSERT(ram_memory_node == STARPU_MAIN_RAM);
 
@@ -1555,21 +1557,16 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 	/* Each device is initialized,
 	 * giving it a memory node and a core bind id.
 	 */
-	/* TODO: STARPU_MAXNUMANODES */
-#ifdef STARPU_USE_NUMA
+	nb_numa_nodes = 1;
 	unsigned n;
 	unsigned numa_init[STARPU_MAXNUMANODES];
 	numa_init[0] = 1 ;
-	nb_numa_nodes = 1;
 	numa_memory_nodes[0] = ram_memory_node ;
+	numa_numaid[ram_memory_node] = 0;
 	for (n=1; n<STARPU_MAXNUMANODES; n++)
 	{
 		numa_init[n] = 0;
 	}	
-#else /* STARPU_USE_NUMA */
-	unsigned numa_init[1] = { 1 };
-	unsigned numa_memory_nodes[1] = { ram_memory_node };
-#endif /* STARPU_USE_NUMA */
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 	unsigned cuda_init[STARPU_MAXCUDADEVS] = { };
 	unsigned cuda_memory_nodes[STARPU_MAXCUDADEVS];
@@ -1614,12 +1611,7 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 			case STARPU_CPU_WORKER:
 			{
 				workerarg->bindid = _starpu_get_next_bindid(config, NULL, 0);
-				/* TODO: NUMA */
-#ifdef STARPU_USE_NUMA
 				int numaid = workerarg->numa_memory_node = _starpu_worker_numa_node(worker);
-#else /* STARPU_USE_NUMA */
-				int numaid = 0;
-#endif /* STARPU_USE_NUMA */
 				/* "dedicate" a cpu core to that worker */
 				if (numa_init[numaid])
 				{
@@ -1628,10 +1620,9 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 				else
 				{
 					numa_init[numaid] = 1;
-#ifdef STARPU_USE_NUMA
 					nb_numa_nodes++;
-#endif /* STARPU_USE_NUMA */
 					memory_node = numa_memory_nodes[numaid] = _starpu_memory_node_register(STARPU_CPU_RAM, numaid);
+					numa_numaid[memory_node] = numaid;
 #ifdef STARPU_SIMGRID
 					snprintf(name, sizeof(name), "RAM%d", numaid);
 					host = _starpu_simgrid_get_host_by_name(name);
@@ -1639,17 +1630,11 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 					_starpu_simgrid_memory_node_set_host(memory_node, host);
 #endif
 				}
-				//workerarg->bindid = _starpu_get_next_bindid(config, NULL, 0);
 				_starpu_memory_node_add_nworkers(memory_node);
 #ifdef STARPU_SIMGRID
 				starpu_pthread_queue_register(&workerarg->wait, &_starpu_simgrid_transfer_queue[memory_node]);
-#ifdef STARPU_USE_NUMA
-				if (_starpu_node_get_kind(memory_node) != STARPU_CPU_RAM)
+				if (starpu_node_get_kind(memory_node) != STARPU_CPU_RAM)
 					starpu_pthread_queue_register(&workerarg->wait, &_starpu_simgrid_transfer_queue[STARPU_MAIN_RAM]);
-#else /* STARPU_USE_NUMA */
-				if (memory_node != STARPU_MAIN_RAM)
-					starpu_pthread_queue_register(&workerarg->wait, &_starpu_simgrid_transfer_queue[STARPU_MAIN_RAM]);
-#endif /* STARPU_USE_NUMA */
 #endif
 				break;
 			}
@@ -2023,8 +2008,7 @@ starpu_topology_print (FILE *output)
 	}
 }
 
-#ifdef STARPU_USE_NUMA
-int _starpu_get_nb_numa_nodes()
+int _starpu_get_nb_numa_nodes(void)
 {
 	return nb_numa_nodes;
 }
@@ -2038,16 +2022,11 @@ int _starpu_numaid_to_memnode(unsigned numaid)
 
 int _starpu_memnode_to_numaid(unsigned memnode)
 {
-	int numaid;
-
-	for (numaid=0; numaid<nb_numa_nodes; numaid++)
-		if (numa_memory_nodes[numaid] == memnode)
-			return numaid;
-
-	return 0;
+	return numa_numaid[memnode];
 }
 
-int _starpu_worker_numa_node(unsigned workerid)
+#ifdef STARPU_USE_NUMA
+static int _starpu_worker_numa_node(unsigned workerid)
 {
 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 	#ifdef STARPU_HAVE_HWLOC
@@ -2067,7 +2046,7 @@ int _starpu_worker_numa_node(unsigned workerid)
 	STARPU_ASSERT(obj->depth == HWLOC_OBJ_NODE);
 	return obj->logical_index;
 	#else /* STARPU_HAVE_HWLOC */
-	return 0 ;
+	return STARPU_MAIN_RAM;
 	#endif /* STARPU_HAVE_HWLOC */
 }
 #endif /* STARPU_USE_NUMA */

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2016  Université de Bordeaux
+ * Copyright (C) 2009-2017  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
  *
@@ -107,7 +107,7 @@ void starpu_csr_data_register(starpu_data_handle_t *handleptr, int home_node,
 		.elemsize = elemsize
 	};
 #ifndef STARPU_SIMGRID
-	if (home_node == STARPU_MAIN_RAM)
+	if (starpu_node_get_kind(home_node) == STARPU_CPU_RAM)
 	{
 		STARPU_ASSERT_ACCESSIBLE(nzval);
 		STARPU_ASSERT_ACCESSIBLE(nzval + nnz*elemsize - 1);
@@ -140,60 +140,32 @@ static int csr_compare(void *data_interface_a, void *data_interface_b)
 /* offer an access to the data parameters */
 uint32_t starpu_csr_get_nnz(starpu_data_handle_t handle)
 {
-	int node = STARPU_MAIN_RAM;
-#ifdef STARPU_USE_NUMA
-	node = handle->home_node;
-	if (node < 0 || (_starpu_node_get_kind(node) != STARPU_CPU_RAM))
-		node = STARPU_MAIN_RAM;
-#endif /* STARPU_USE_NUMA */
-
 	struct starpu_csr_interface *csr_interface = (struct starpu_csr_interface *)
-		starpu_data_get_interface_on_node(handle, node);
+		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 	return csr_interface->nnz;
 }
 
 uint32_t starpu_csr_get_nrow(starpu_data_handle_t handle)
 {
-	int node = STARPU_MAIN_RAM;
-#ifdef STARPU_USE_NUMA
-	node = handle->home_node;
-	if (node < 0 || (_starpu_node_get_kind(node) != STARPU_CPU_RAM))
-		node = STARPU_MAIN_RAM;
-#endif /* STARPU_USE_NUMA */
-
 	struct starpu_csr_interface *csr_interface = (struct starpu_csr_interface *)
-		starpu_data_get_interface_on_node(handle, node);
+		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 	return csr_interface->nrow;
 }
 
 uint32_t starpu_csr_get_firstentry(starpu_data_handle_t handle)
 {
-	int node = STARPU_MAIN_RAM;
-#ifdef STARPU_USE_NUMA
-	node = handle->home_node;
-	if (node < 0 || (_starpu_node_get_kind(node) != STARPU_CPU_RAM))
-		node = STARPU_MAIN_RAM;
-#endif /* STARPU_USE_NUMA */
-	
 	struct starpu_csr_interface *csr_interface = (struct starpu_csr_interface *)
-		starpu_data_get_interface_on_node(handle, node);
+		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 	return csr_interface->firstentry;
 }
 
 size_t starpu_csr_get_elemsize(starpu_data_handle_t handle)
 {
-	int node = STARPU_MAIN_RAM;
-#ifdef STARPU_USE_NUMA
-	node = handle->home_node;
-	if (node < 0 || (_starpu_node_get_kind(node) != STARPU_CPU_RAM))
-		node = STARPU_MAIN_RAM;
-#endif /* STARPU_USE_NUMA */
-
 	struct starpu_csr_interface *csr_interface = (struct starpu_csr_interface *)
-		starpu_data_get_interface_on_node(handle, node);
+		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 	return csr_interface->elemsize;
 }

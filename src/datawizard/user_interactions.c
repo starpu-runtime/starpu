@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2016  Université de Bordeaux
+ * Copyright (C) 2009-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -189,25 +189,21 @@ int starpu_data_acquire_on_node_cb(starpu_data_handle_t handle, int node,
 int starpu_data_acquire_cb(starpu_data_handle_t handle,
 			   enum starpu_data_access_mode mode, void (*callback)(void *), void *arg)
 {
-#ifdef STARPU_USE_NUMA
 	int home_node = handle->home_node;
 	if (home_node >= 0 && (starpu_node_get_kind(home_node) == STARPU_CPU_RAM))
 		return starpu_data_acquire_on_node_cb(handle, home_node, mode, callback, arg);
 	else
-#endif /* STARPU_USE_NUMA */
-	return starpu_data_acquire_on_node_cb(handle, STARPU_MAIN_RAM, mode, callback, arg);
+		return starpu_data_acquire_on_node_cb(handle, STARPU_MAIN_RAM, mode, callback, arg);
 }
 
 int starpu_data_acquire_cb_sequential_consistency(starpu_data_handle_t handle,
 						  enum starpu_data_access_mode mode, void (*callback)(void *), void *arg, int sequential_consistency)
 {
-#ifdef STARPU_USE_NUMA
 	int home_node = handle->home_node;
 	if (home_node >= 0 && (starpu_node_get_kind(home_node) == STARPU_CPU_RAM))
 	 	return starpu_data_acquire_on_node_cb_sequential_consistency(handle, home_node, mode, callback, arg, sequential_consistency);
 	else
-#endif /* STARPU_USE_NUMA */
-	return starpu_data_acquire_on_node_cb_sequential_consistency(handle, STARPU_MAIN_RAM, mode, callback, arg, sequential_consistency);
+		return starpu_data_acquire_on_node_cb_sequential_consistency(handle, STARPU_MAIN_RAM, mode, callback, arg, sequential_consistency);
 }
 
 /*
@@ -338,13 +334,11 @@ int starpu_data_acquire_on_node(starpu_data_handle_t handle, int node, enum star
 
 int starpu_data_acquire(starpu_data_handle_t handle, enum starpu_data_access_mode mode)
 {
-#ifdef STARPU_USE_NUMA
 	int home_node = handle->home_node;
 	if (home_node >= 0 && (starpu_node_get_kind(home_node) == STARPU_CPU_RAM))
 	 	return starpu_data_acquire_on_node(handle, home_node, mode);
 	else
-#endif /* STARPU_USE_NUMA */
-	return starpu_data_acquire_on_node(handle, STARPU_MAIN_RAM, mode);
+		return starpu_data_acquire_on_node(handle, STARPU_MAIN_RAM, mode);
 }
 
 /* This function must be called after starpu_data_acquire so that the
@@ -376,13 +370,11 @@ void starpu_data_release_on_node(starpu_data_handle_t handle, int node)
 
 void starpu_data_release(starpu_data_handle_t handle)
 {
-#ifdef STARPU_USE_NUMA
 	int home_node = handle->home_node;
 	if (home_node >= 0 && (starpu_node_get_kind(home_node) == STARPU_CPU_RAM))
 	 	return starpu_data_release_on_node(handle, home_node);
 	else
-#endif /* STARPU_USE_NUMA */	
-	starpu_data_release_on_node(handle, STARPU_MAIN_RAM);
+		starpu_data_release_on_node(handle, STARPU_MAIN_RAM);
 }
 
 static void _prefetch_data_on_node(void *arg)

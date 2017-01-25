@@ -242,15 +242,8 @@ static int multiformat_compare(void *data_interface_a, void *data_interface_b)
 static void display_multiformat_interface(starpu_data_handle_t handle, FILE *f)
 {
 	struct starpu_multiformat_interface *multiformat_interface;
-	int node = STARPU_MAIN_RAM;
-#ifdef STARPU_USE_NUMA
-	node = handle->home_node;
-	if (node < 0 || (_starpu_node_get_kind(node) != STARPU_CPU_RAM))
-		node = STARPU_MAIN_RAM;
-#endif /* STARPU_USE_NUMA */
-
 	multiformat_interface = (struct starpu_multiformat_interface *)
-		starpu_data_get_interface_on_node(handle, node);
+		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 	fprintf(f, "%u\t", multiformat_interface->nx);
 }
@@ -260,13 +253,7 @@ static size_t multiformat_interface_get_size(starpu_data_handle_t handle)
 {
 	size_t size;
 	struct starpu_multiformat_interface *multiformat_interface;
-	int node = STARPU_MAIN_RAM;
-#ifdef STARPU_USE_NUMA
-	node = handle->home_node;
-	if (node < 0 || (_starpu_node_get_kind(node) != STARPU_CPU_RAM))
-		node = STARPU_MAIN_RAM;
-#endif /* STARPU_USE_NUMA */
-	multiformat_interface = (struct starpu_multiformat_interface *) starpu_data_get_interface_on_node(handle, node);
+	multiformat_interface = (struct starpu_multiformat_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 	size = multiformat_interface->nx * multiformat_interface->ops->cpu_elemsize;
 	return size;
 }
@@ -274,13 +261,7 @@ static size_t multiformat_interface_get_size(starpu_data_handle_t handle)
 uint32_t starpu_multiformat_get_nx(starpu_data_handle_t handle)
 {
 	struct starpu_multiformat_interface *multiformat_interface;
-	int node = STARPU_MAIN_RAM;
-#ifdef STARPU_USE_NUMA
-	node = handle->home_node;
-	if (node < 0 || (_starpu_node_get_kind(node) != STARPU_CPU_RAM))
-		node = STARPU_MAIN_RAM;
-#endif /* STARPU_USE_NUMA */
-	multiformat_interface = (struct starpu_multiformat_interface *) starpu_data_get_interface_on_node(handle, node);
+	multiformat_interface = (struct starpu_multiformat_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 	return multiformat_interface->nx;
 }
 

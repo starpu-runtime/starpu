@@ -21,6 +21,7 @@
 #include <datawizard/memalloc.h>
 #include <datawizard/footprint.h>
 #include <core/disk.h>
+#include <core/topology.h>
 #include <starpu.h>
 #include <common/uthash.h>
 
@@ -381,11 +382,7 @@ static size_t free_memory_on_node(struct _starpu_mem_chunk *mc, unsigned node)
 			data_interface = mc->chunk_interface;
 		STARPU_ASSERT(data_interface);
 
-#ifdef STARPU_USE_NUMA
 		if (handle && (starpu_node_get_kind(node) == STARPU_CPU_RAM))
-#else /* STARPU_USE_NUMA */
-		if (handle && node == STARPU_MAIN_RAM)
-#endif /* STARPU_USE_NUMA */
 			_starpu_data_unregister_ram_pointer(handle);
 
 		_STARPU_TRACE_START_FREE(node, mc->size);
@@ -633,14 +630,10 @@ static unsigned try_to_reuse_mem_chunk(struct _starpu_mem_chunk *mc, unsigned no
 			 * away after writing it back to main memory */
 			_starpu_spin_unlock(&mc_lock[node]);
 			_STARPU_TRACE_START_WRITEBACK(node);
-#ifdef STARPU_USE_NUMA
 			int home_node = old_data->home_node;
-			if (home_node < 0 || (_starpu_node_get_kind(home_node) != STARPU_CPU_RAM))
+			if (home_node < 0 || (starpu_node_get_kind(home_node) != STARPU_CPU_RAM))
 				home_node = STARPU_MAIN_RAM;
 			res = transfer_subtree_to_node(old_data, node, home_node);
-#else /* STARPU_USE_NUMA */
-			res = transfer_subtree_to_node(old_data, node, STARPU_MAIN_RAM);
-#endif /* STARPU_USE_NUMA */
 			_STARPU_TRACE_END_WRITEBACK(node);
 			_starpu_spin_lock(&mc_lock[node]);
 
@@ -1447,11 +1440,7 @@ int _starpu_allocate_memory_on_node(starpu_data_handle_t handle, struct _starpu_
 	replicate->allocated = 1;
 	replicate->automatically_allocated = 1;
 
-#ifdef STARPU_USE_NUMA
 	if (replicate->relaxed_coherency == 0 && (starpu_node_get_kind(dst_node) == STARPU_CPU_RAM))
-#else /* STARPU_USE_NUMA */
-	if (replicate->relaxed_coherency == 0 && dst_node == STARPU_MAIN_RAM)
-#endif /* STARPU_USE_NUMA */
 	{
 		/* We are allocating the buffer in main memory, also register it
 		 * for the gcc plugin.  */
@@ -1616,13 +1605,8 @@ choose_target(starpu_data_handle_t handle, unsigned node)
 	size_t size_handle = _starpu_data_get_size(handle);
 	if (handle->home_node != -1)
 		/* try to push on RAM if we can before to push on disk */
-#ifdef STARPU_USE_NUMA
 		if(starpu_node_get_kind(handle->home_node) == STARPU_DISK_RAM && (starpu_node_get_kind(node) != STARPU_CPU_RAM))
-#else /* STARPU_USE_NUMA */
-		if(starpu_node_get_kind(handle->home_node) == STARPU_DISK_RAM && node != STARPU_MAIN_RAM)
-#endif /* STARPU_USE_NUMA */
 		{
-#ifdef STARPU_USE_NUMA
  	                int i;
 			unsigned nb_numa_nodes = _starpu_get_nb_numa_nodes();
 			for (i=0; i<nb_numa_nodes; i++)
@@ -1636,14 +1620,6 @@ choose_target(starpu_data_handle_t handle, unsigned node)
 				}
 			}
 			if (target == -1)
-#else /* STARPU_USE_NUMA */
-			if (handle->per_node[STARPU_MAIN_RAM].allocated ||
-			    _starpu_memory_manager_test_allocate_size(STARPU_MAIN_RAM, size_handle) == 1)
-			{
-				target = STARPU_MAIN_RAM;
-			}
-			else
-#endif /* STARPU_USE_NUMA */
 			{
 				target = get_better_disk_can_accept_size(handle, node);
 			}
@@ -1658,18 +1634,12 @@ choose_target(starpu_data_handle_t handle, unsigned node)
 	{
 		/* handle->home_node == -1 */
 		/* no place for datas in RAM, we push on disk */
-#ifdef STARPU_USE_NUMA
 		if (starpu_node_get_kind(node) == STARPU_CPU_RAM)
-#else /* STARPU_USE_NUMA */
-		if (node == STARPU_MAIN_RAM)
-#endif /* STARPU_USE_NUMA */
 		{
 			target = get_better_disk_can_accept_size(handle, node);
-		}
+		} else {
 		/* node != 0 */
 		/* try to push data to RAM if we can before to push on disk*/
-#ifdef STARPU_USE_NUMA
-		else {
 			int i;
 			unsigned nb_numa_nodes = _starpu_get_nb_numa_nodes();
 			for (i=0; i<nb_numa_nodes; i++)
@@ -1685,15 +1655,6 @@ choose_target(starpu_data_handle_t handle, unsigned node)
 		}
 		/* no place in RAM */
 		if (target == -1)
-#else /* STARPU_USE_NUMA */
-		else if (handle->per_node[STARPU_MAIN_RAM].allocated ||
-			 _starpu_memory_manager_test_allocate_size(STARPU_MAIN_RAM, size_handle) == 1)
-		{
-			target = STARPU_MAIN_RAM;
-		}
-		/* no place in RAM */
-		else
-#endif /* STARPU_USE_NUMA */
 		{
 			target = get_better_disk_can_accept_size(handle, node);
 		}

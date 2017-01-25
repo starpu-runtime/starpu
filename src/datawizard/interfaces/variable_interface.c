@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2016  Université de Bordeaux
+ * Copyright (C) 2010-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -112,7 +112,7 @@ void starpu_variable_data_register(starpu_data_handle_t *handleptr, int home_nod
 		.elemsize = elemsize
 	};
 #ifndef STARPU_SIMGRID
-	if (home_node == STARPU_MAIN_RAM)
+	if (starpu_node_get_kind(home_node) == STARPU_CPU_RAM)
 	{
 		STARPU_ASSERT_ACCESSIBLE(ptr);
 		STARPU_ASSERT_ACCESSIBLE(ptr + elemsize - 1);
@@ -154,15 +154,8 @@ static int variable_compare(void *data_interface_a, void *data_interface_b)
 
 static void display_variable_interface(starpu_data_handle_t handle, FILE *f)
 {
-	int node = STARPU_MAIN_RAM;
-#ifdef STARPU_USE_NUMA
-	node = handle->home_node;
-	if (node < 0 || (_starpu_node_get_kind(node) != STARPU_CPU_RAM))
-		node = STARPU_MAIN_RAM;
-#endif /* STARPU_USE_NUMA */
-
 	struct starpu_variable_interface *variable_interface = (struct starpu_variable_interface *)
-		starpu_data_get_interface_on_node(handle, node);
+		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 	fprintf(f, "%ld\t", (long)variable_interface->elemsize);
 }
@@ -200,15 +193,8 @@ static int unpack_variable_handle(starpu_data_handle_t handle, unsigned node, vo
 
 static size_t variable_interface_get_size(starpu_data_handle_t handle)
 {
-	int node = STARPU_MAIN_RAM;
-#ifdef STARPU_USE_NUMA
-	node = handle->home_node;
-	if (node < 0 || (_starpu_node_get_kind(node) != STARPU_CPU_RAM))
-		node = STARPU_MAIN_RAM;
-#endif /* STARPU_USE_NUMA */
-
 	struct starpu_variable_interface *variable_interface = (struct starpu_variable_interface *)
-		starpu_data_get_interface_on_node(handle, node);
+		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 	return variable_interface->elemsize;
 }
@@ -225,14 +211,7 @@ uintptr_t starpu_variable_get_local_ptr(starpu_data_handle_t handle)
 
 size_t starpu_variable_get_elemsize(starpu_data_handle_t handle)
 {
-	int node = STARPU_MAIN_RAM;
-#ifdef STARPU_USE_NUMA
-	node = handle->home_node;
-	if (node < 0 || (_starpu_node_get_kind(node) != STARPU_CPU_RAM))
-		node = STARPU_MAIN_RAM;
-#endif /* STARPU_USE_NUMA */
-
-	return STARPU_VARIABLE_GET_ELEMSIZE(starpu_data_get_interface_on_node(handle, node));
+	return STARPU_VARIABLE_GET_ELEMSIZE(starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM));
 }
 
 /* memory allocation/deallocation primitives for the variable interface */

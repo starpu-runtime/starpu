@@ -1,5 +1,5 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures. *
- * Copyright (C) 2009-2016  Université de Bordeaux
+ * Copyright (C) 2009-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
  * Copyright (C) 2014  INRIA
  *
@@ -562,11 +562,7 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 		/* if the data is in write only mode (and not SCRATCH or REDUX), there is no need for a source, data will be initialized by the task itself */
 		if (mode & STARPU_W)
 			dst_replicate->initialized = 1;
-#ifdef STARPU_USE_NUMA
-		if (starpu_node_get_kind(requesting_node) == STARPU_CPU_RAM && !nwait)		
-#else /* STARPU_USE_NUMA */
-		if (requesting_node == STARPU_MAIN_RAM && !nwait)
-#endif /* STARPU_USE_NUMA */
+		if (starpu_node_get_kind(requesting_node) == STARPU_CPU_RAM && !nwait)
 		{
 			/* And this is the main RAM, really no need for a
 			 * request, just allocate */

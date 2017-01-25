@@ -2421,7 +2421,7 @@ void starpu_omp_vector_annotate(starpu_data_handle_t handle, uint32_t slice_base
 	int node = STARPU_MAIN_RAM;
 #ifdef STARPU_USE_NUMA
 	node = handle->home_node;
-	if (node < 0 || (_starpu_node_get_kind(node) != STARPU_CPU_RAM))
+	if (node < 0 || (starpu_node_get_kind(node) != STARPU_CPU_RAM))
 		node = STARPU_MAIN_RAM;
 #endif /* STARPU_USE_NUMA */
 	struct starpu_vector_interface *vector_interface = (struct starpu_vector_interface *)

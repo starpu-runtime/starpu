@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2016  Université Bordeaux
+ * Copyright (C) 2013-2017  Université Bordeaux
  * Copyright (C) 2012 INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -18,6 +18,7 @@
 #include <starpu.h>
 #include <common/fxt.h>
 #include <datawizard/memalloc.h>
+#include <datawizard/memory_nodes.h>
 
 static int
 copy_any_to_any(void *src_interface, unsigned src_node,
@@ -150,16 +151,9 @@ free_coo_buffer_on_node(void *data_interface, unsigned node)
 static size_t
 coo_interface_get_size(starpu_data_handle_t handle)
 {
-	int node = STARPU_MAIN_RAM;
-#ifdef STARPU_USE_NUMA
-	node = handle->home_node;
-	if (node < 0 || (starpu_node_get_kind(node) != STARPU_CPU_RAM))
-		node = STARPU_MAIN_RAM;
-#endif /* STARPU_USE_NUMA */
-
 	struct starpu_coo_interface *coo_interface;
 	coo_interface = (struct starpu_coo_interface *)
-		starpu_data_get_interface_on_node(handle, node);
+		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 	return coo_interface->nx * coo_interface->ny * coo_interface->elemsize;
 }
@@ -167,16 +161,9 @@ coo_interface_get_size(starpu_data_handle_t handle)
 static uint32_t
 coo_interface_footprint(starpu_data_handle_t handle)
 {
-	int node = STARPU_MAIN_RAM;
-#ifdef STARPU_USE_NUMA
-	node = handle->home_node;
-	if (node < 0 || (starpu_node_get_kind(node) != STARPU_CPU_RAM))
-		node = STARPU_MAIN_RAM;
-#endif /* STARPU_USE_NUMA */
-
 	struct starpu_coo_interface *coo_interface;
 	coo_interface = (struct starpu_coo_interface *)
-		starpu_data_get_interface_on_node(handle, node);
+		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 	return starpu_hash_crc32c_be(coo_interface->nx * coo_interface->ny, 0);
 }
@@ -198,16 +185,9 @@ coo_compare(void *a, void *b)
 static void
 display_coo_interface(starpu_data_handle_t handle, FILE *f)
 {
-	int node = STARPU_MAIN_RAM;
-#ifdef STARPU_USE_NUMA
-	node = handle->home_node;
-	if (node < 0 || (starpu_node_get_kind(node) != STARPU_CPU_RAM))
-		node = STARPU_MAIN_RAM;
-#endif /* STARPU_USE_NUMA */
-
 	struct starpu_coo_interface *coo_interface;
 	coo_interface = (struct starpu_coo_interface *)
-		starpu_data_get_interface_on_node(handle, node);
+		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 	fprintf(f, "%u\t%u", coo_interface->nx, coo_interface->ny);
 }
@@ -256,7 +236,7 @@ starpu_coo_data_register(starpu_data_handle_t *handleptr, int home_node,
 		.elemsize = elemsize,
 	};
 #ifndef STARPU_SIMGRID
-	if (home_node == STARPU_MAIN_RAM)
+	if (starpu_node_get_kind(home_node) == STARPU_CPU_RAM)
 	{
 		STARPU_ASSERT_ACCESSIBLE(columns);
 		STARPU_ASSERT_ACCESSIBLE((uintptr_t) columns + n_values*sizeof(uint32_t) - 1);
