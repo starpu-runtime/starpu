@@ -72,10 +72,10 @@ int starpu_uncluster_machine(struct starpu_cluster_machine* clusters);
 int starpu_cluster_print(struct starpu_cluster_machine* clusters);
 
 /* Prologue functions */
-void starpu_openmp_prologue(void * sched_ctx_id);
+void starpu_openmp_prologue(void*);
 #define starpu_intel_openmp_mkl_prologue starpu_openmp_prologue
 #ifdef STARPU_MKL
-void starpu_gnu_openmp_mkl_prologue(void * sched_ctx_id);
+void starpu_gnu_openmp_mkl_prologue(void*);
 #endif /* STARPU_MKL */
 
 #ifdef __cplusplus
