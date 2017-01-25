@@ -1061,3 +1061,9 @@ size_t starpu_data_get_size(starpu_data_handle_t handle)
 {
 	return handle->ops->get_size(handle);
 }
+
+int starpu_data_get_home_node(starpu_data_handle_t handle)
+{
+	return handle->home_node;
+}
+

@@ -2419,7 +2419,7 @@ void starpu_omp_atomic_fallback_inline_end(void)
 void starpu_omp_vector_annotate(starpu_data_handle_t handle, uint32_t slice_base)
 {
 	/* FIXME Oli: rather iterate over all nodes? */
-	int node = handle->home_node;
+	int node = starpu_data_get_home_node(handle);
 	if (node < 0 || (starpu_node_get_kind(node) != STARPU_CPU_RAM))
 		node = STARPU_MAIN_RAM;
 	struct starpu_vector_interface *vector_interface = (struct starpu_vector_interface *)
