@@ -813,7 +813,12 @@ typedef struct{
 
 static int _starpu_simgrid_xbt_thread_create_wrapper(int argc, char *argv[])
 {
-  smx_process_t self = SIMIX_process_self();
+#ifdef HAVE_SMX_ACTOR_T
+  smx_actor_t
+#else
+  smx_process_t
+#endif
+	  self = SIMIX_process_self();
   thread_data_t *t = SIMIX_process_self_get_data(self);
   simcall_process_set_data(self, t->father_data);
   t->code(t->userparam);
