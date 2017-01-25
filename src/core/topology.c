@@ -2050,7 +2050,6 @@ static int _starpu_worker_numa_node(unsigned workerid)
 		if (!obj)
 			return STARPU_MAIN_RAM;
 	}
-	STARPU_ASSERT(obj->depth == HWLOC_OBJ_NODE);
 	return obj->logical_index;
 	#else /* STARPU_HAVE_HWLOC */
 	return STARPU_MAIN_RAM;
