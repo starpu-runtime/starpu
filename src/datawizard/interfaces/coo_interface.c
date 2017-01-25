@@ -150,9 +150,16 @@ free_coo_buffer_on_node(void *data_interface, unsigned node)
 static size_t
 coo_interface_get_size(starpu_data_handle_t handle)
 {
+	int node = STARPU_MAIN_RAM;
+#ifdef STARPU_USE_NUMA
+	node = handle->home_node;
+	if (node < 0 || (starpu_node_get_kind(node) != STARPU_CPU_RAM))
+		node = STARPU_MAIN_RAM;
+#endif /* STARPU_USE_NUMA */
+
 	struct starpu_coo_interface *coo_interface;
 	coo_interface = (struct starpu_coo_interface *)
-		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
+		starpu_data_get_interface_on_node(handle, node);
 
 	return coo_interface->nx * coo_interface->ny * coo_interface->elemsize;
 }
@@ -160,9 +167,16 @@ coo_interface_get_size(starpu_data_handle_t handle)
 static uint32_t
 coo_interface_footprint(starpu_data_handle_t handle)
 {
+	int node = STARPU_MAIN_RAM;
+#ifdef STARPU_USE_NUMA
+	node = handle->home_node;
+	if (node < 0 || (starpu_node_get_kind(node) != STARPU_CPU_RAM))
+		node = STARPU_MAIN_RAM;
+#endif /* STARPU_USE_NUMA */
+
 	struct starpu_coo_interface *coo_interface;
 	coo_interface = (struct starpu_coo_interface *)
-		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
+		starpu_data_get_interface_on_node(handle, node);
 
 	return starpu_hash_crc32c_be(coo_interface->nx * coo_interface->ny, 0);
 }
@@ -184,9 +198,16 @@ coo_compare(void *a, void *b)
 static void
 display_coo_interface(starpu_data_handle_t handle, FILE *f)
 {
+	int node = STARPU_MAIN_RAM;
+#ifdef STARPU_USE_NUMA
+	node = handle->home_node;
+	if (node < 0 || (starpu_node_get_kind(node) != STARPU_CPU_RAM))
+		node = STARPU_MAIN_RAM;
+#endif /* STARPU_USE_NUMA */
+
 	struct starpu_coo_interface *coo_interface;
 	coo_interface = (struct starpu_coo_interface *)
-		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
+		starpu_data_get_interface_on_node(handle, node);
 
 	fprintf(f, "%u\t%u", coo_interface->nx, coo_interface->ny);
 }

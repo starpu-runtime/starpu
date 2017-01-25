@@ -217,8 +217,15 @@ static int matrix_compare(void *data_interface_a, void *data_interface_b)
 
 static void display_matrix_interface(starpu_data_handle_t handle, FILE *f)
 {
+	int node = STARPU_MAIN_RAM;
+#ifdef STARPU_USE_NUMA
+	node = handle->home_node;
+	if (node < 0 || (_starpu_node_get_kind(node) != STARPU_CPU_RAM))
+		node = STARPU_MAIN_RAM;
+#endif /* STARPU_USE_NUMA */
+
 	struct starpu_matrix_interface *matrix_interface = (struct starpu_matrix_interface *)
-		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
+		starpu_data_get_interface_on_node(handle, node);
 
 	fprintf(f, "%u\t%u\t", matrix_interface->nx, matrix_interface->ny);
 }
@@ -275,8 +282,15 @@ static int unpack_matrix_handle(starpu_data_handle_t handle, unsigned node, void
 
 static size_t matrix_interface_get_size(starpu_data_handle_t handle)
 {
+	int node = STARPU_MAIN_RAM;
+#ifdef STARPU_USE_NUMA
+	node = handle->home_node;
+	if (node < 0 || (_starpu_node_get_kind(node) != STARPU_CPU_RAM))
+		node = STARPU_MAIN_RAM;
+#endif /* STARPU_USE_NUMA */
+
 	struct starpu_matrix_interface *matrix_interface = (struct starpu_matrix_interface *)
-		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
+		starpu_data_get_interface_on_node(handle, node);
 
 	size_t size;
 	size = (size_t)matrix_interface->nx*matrix_interface->ny*matrix_interface->elemsize;
@@ -287,16 +301,30 @@ static size_t matrix_interface_get_size(starpu_data_handle_t handle)
 /* offer an access to the data parameters */
 uint32_t starpu_matrix_get_nx(starpu_data_handle_t handle)
 {
+	int node = STARPU_MAIN_RAM;
+#ifdef STARPU_USE_NUMA
+	node = handle->home_node;
+	if (node < 0 || (_starpu_node_get_kind(node) != STARPU_CPU_RAM))
+		node = STARPU_MAIN_RAM;
+#endif /* STARPU_USE_NUMA */
+
 	struct starpu_matrix_interface *matrix_interface = (struct starpu_matrix_interface *)
-		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
+		starpu_data_get_interface_on_node(handle, node);
 
 	return matrix_interface->nx;
 }
 
 uint32_t starpu_matrix_get_ny(starpu_data_handle_t handle)
 {
+	int node = STARPU_MAIN_RAM;
+#ifdef STARPU_USE_NUMA
+	node = handle->home_node;
+	if (node < 0 || (_starpu_node_get_kind(node) != STARPU_CPU_RAM))
+		node = STARPU_MAIN_RAM;
+#endif /* STARPU_USE_NUMA */
+
 	struct starpu_matrix_interface *matrix_interface = (struct starpu_matrix_interface *)
-		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
+		starpu_data_get_interface_on_node(handle, node);
 
 	return matrix_interface->ny;
 }
@@ -329,8 +357,15 @@ uintptr_t starpu_matrix_get_local_ptr(starpu_data_handle_t handle)
 
 size_t starpu_matrix_get_elemsize(starpu_data_handle_t handle)
 {
+	int node = STARPU_MAIN_RAM;
+#ifdef STARPU_USE_NUMA
+	node = handle->home_node;
+	if (node < 0 || (_starpu_node_get_kind(node) != STARPU_CPU_RAM))
+		node = STARPU_MAIN_RAM;
+#endif /* STARPU_USE_NUMA */
+
 	struct starpu_matrix_interface *matrix_interface = (struct starpu_matrix_interface *)
-		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
+		starpu_data_get_interface_on_node(handle, node);
 
 	return matrix_interface->elemsize;
 }

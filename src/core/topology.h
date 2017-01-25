@@ -51,6 +51,9 @@ unsigned _starpu_topology_get_nhwcpu(struct _starpu_machine_config *config);
 /* returns the number of logical cpus */
 unsigned _starpu_topology_get_nhwpu(struct _starpu_machine_config *config);
 
+/* returns the number of NUMA nodes */
+unsigned _starpu_topology_get_nnumanodes(struct _starpu_machine_config *config);
+
 #define STARPU_NOWORKERID -1
 /* Bind the current thread on the CPU logically identified by "cpuid". The
  * logical ordering of the processors is either that of hwloc (if available),
@@ -63,4 +66,11 @@ void _starpu_bind_thread_on_cpus(struct _starpu_machine_config *config STARPU_AT
 
 void *_starpu_get_worker_from_driver(struct starpu_driver *d);
 
+#ifdef STARPU_USE_NUMA
+int _starpu_numaid_to_memnode(unsigned numaid);
+int _starpu_memnode_to_numaid(unsigned memnode);
+int _starpu_get_nb_numa_nodes();
+int _starpu_worker_numa_node(unsigned workerid);
+#endif /* STARPU_USE_NUMA */
+	
 #endif // __TOPOLOGY_H__

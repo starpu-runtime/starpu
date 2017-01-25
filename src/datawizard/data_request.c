@@ -155,7 +155,11 @@ struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t ha
 	if (handling_node == -1)
 		handling_node = STARPU_MAIN_RAM;
 	r->handling_node = handling_node;
+#ifdef STARPU_USE_NUMA
+	STARPU_ASSERT(starpu_node_get_kind(handling_node) == STARPU_CPU_RAM || _starpu_memory_node_get_nworkers(handling_node));
+#else /* STARPU_USE_NUMA */
 	STARPU_ASSERT(handling_node == STARPU_MAIN_RAM || _starpu_memory_node_get_nworkers(handling_node));
+#endif /* STARPU_USE_NUMA */
 	r->completed = 0;
 	r->prefetch = is_prefetch;
 	r->prio = prio;
@@ -283,7 +287,11 @@ void _starpu_post_data_request(struct _starpu_data_request *r, unsigned handling
 {
 	/* We don't have a worker for disk nodes, these should have been posted to a main RAM node */
 	STARPU_ASSERT(starpu_node_get_kind(handling_node) != STARPU_DISK_RAM);
+#ifdef STARPU_USE_NUMA
+	STARPU_ASSERT(starpu_node_get_kind(handling_node) == STARPU_CPU_RAM || _starpu_memory_node_get_nworkers(handling_node));
+#else /* STARPU_USE_NUMA */
 	STARPU_ASSERT(handling_node == STARPU_MAIN_RAM || _starpu_memory_node_get_nworkers(handling_node));
+#endif /* STARPU_USE_NUMA */
 
 //	_STARPU_DEBUG("POST REQUEST\n");
 

@@ -408,6 +408,21 @@ _starpu_data_initialize_per_worker(starpu_data_handle_t handle)
 		/* duplicate  the content of the interface on node 0 */
 		memcpy(replicate->data_interface, handle->per_node[STARPU_MAIN_RAM].data_interface, interfacesize);
 	}
+
+	/* now the data is available ! */
+	_starpu_spin_unlock(&handle->header_lock);
+
+	int handle_node = STARPU_MAIN_RAM;
+#ifdef STARPU_USE_NUMA
+	handle_node = handle->home_node;
+	if (handle_node < 0 || (_starpu_node_get_kind(handle_node) != STARPU_CPU_RAM))
+		handle_node = STARPU_MAIN_RAM;
+#endif /* STARPU_USE_NUMA */
+	ptr = starpu_data_handle_to_pointer(handle, handle_node);
+	if (ptr != NULL)
+	{
+		_starpu_data_register_ram_pointer(handle, ptr);
+	}
 }
 
 void starpu_data_ptr_register(starpu_data_handle_t handle, unsigned node)
@@ -481,7 +496,14 @@ void starpu_data_register(starpu_data_handle_t *handleptr, int home_node,
 
 void starpu_data_register_same(starpu_data_handle_t *handledst, starpu_data_handle_t handlesrc)
 {
-	void *local_interface = starpu_data_get_interface_on_node(handlesrc, STARPU_MAIN_RAM);
+	int node = STARPU_MAIN_RAM;
+#ifdef STARPU_USE_NUMA
+	node = handlesrc->home_node;
+	if (node < 0 || (_starpu_node_get_kind(node) != STARPU_CPU_RAM))
+		node = STARPU_MAIN_RAM;
+#endif /* STARPU_USE_NUMA */
+
+	void *local_interface = starpu_data_get_interface_on_node(handlesrc, node);
 	starpu_data_register(handledst, -1, local_interface, handlesrc->ops);
 }
 
@@ -515,7 +537,14 @@ struct starpu_data_interface_ops* starpu_data_get_interface_ops(starpu_data_hand
 
 void _starpu_data_unregister_ram_pointer(starpu_data_handle_t handle)
 {
-	const void *ram_ptr = starpu_data_handle_to_pointer(handle, STARPU_MAIN_RAM);
+	int node = STARPU_MAIN_RAM;
+#ifdef STARPU_USE_NUMA
+	node = handle->home_node;
+	if (node < 0 || (_starpu_node_get_kind(node) != STARPU_CPU_RAM))
+		node = STARPU_MAIN_RAM;
+#endif /* STARPU_USE_NUMA */
+
+	const void *ram_ptr = starpu_data_handle_to_pointer(handle, node);
 #ifdef STARPU_OPENMP
 	if (handle->removed_from_context_hash)
 		return;
@@ -751,7 +780,13 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 			_STARPU_DEBUG("Conversion needed\n");
 			void *buffers[1];
 			struct starpu_multiformat_interface *format_interface;
-			format_interface = (struct starpu_multiformat_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
+			home_node = STARPU_MAIN_RAM;
+#ifdef STARPU_USE_NUMA
+			home_node = handle->home_node;
+			if (home_node < 0 || (_starpu_node_get_kind(home_node) != STARPU_CPU_RAM))
+				home_node = STARPU_MAIN_RAM;
+#endif /* STARPU_USE_NUMA */
+			format_interface = (struct starpu_multiformat_interface *) starpu_data_get_interface_on_node(handle, home_node);
 			struct starpu_codelet *cl = NULL;
 			enum starpu_node_kind node_kind = starpu_node_get_kind(handle->mf_node);
 
@@ -966,7 +1001,11 @@ static void _starpu_data_invalidate(void *data)
 
 		if (local->mc && local->allocated && local->automatically_allocated)
 		{
+#ifdef STARPU_USE_NUMA
+			if (_starpu_node_get_kind(node) == STARPU_CPU_RAM)
+#else /* STARPU_USE_NUMA */		
 			if (node == STARPU_MAIN_RAM)
+#endif /* STARPU_USE_NUMA */		
 				_starpu_data_unregister_ram_pointer(handle);
 
 			/* free the data copy in a lazy fashion */

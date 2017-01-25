@@ -158,6 +158,32 @@ AM_CONDITIONAL([STARPU_USE_MIC], [test "x$enable_mic" = "xyes"])
 
 ###############################################################################
 
+###############################################################################
+#                                                                             #
+#                           NUMA memory nodes                                 #
+#                                                                             #
+###############################################################################
+
+AC_ARG_ENABLE(numa, [AS_HELP_STRING([--enable-numa],
+	      [use NUMA node(s)])], [enable_numa=$enableval], [enable_numa=no])
+
+if test x$enable_numa = xyes ; then
+	AC_DEFINE(STARPU_USE_NUMA, [1], [NUMA memory nodes support is enabled])
+fi
+
+AM_CONDITIONAL([STARPU_USE_NUMA], [test "x$enable_numa" = "xyes"])
+
+AC_MSG_CHECKING(maximum number of NUMA nodes)
+AC_ARG_ENABLE(maxnumanodes, [AS_HELP_STRING([--enable-maxnumanodes=<number>],
+			[maximum number of NUMA nodes])],
+			nmaxnumanodes=$enableval, nmaxnumanodes=16)
+AC_MSG_RESULT($nmaxnumanodes)
+AC_DEFINE_UNQUOTED(STARPU_MAXNUMANODES, [$nmaxnumanodes],
+		[maximum number of NUMA nodes])
+
+
+###############################################################################
+
 AC_PATH_PROGS([STARPU_MS_LIB], [lib])
 AC_ARG_VAR([STARPU_MS_LIB], [Path to Microsoft's Visual Studio `lib' tool])
 AM_CONDITIONAL([STARPU_HAVE_MS_LIB], [test "x$STARPU_MS_LIB" != "x"])

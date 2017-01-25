@@ -107,23 +107,36 @@ static struct starpu_codelet malloc_pinned_cl =
 };
 #endif
 
+#ifdef STARPU_USE_NUMA
 int starpu_malloc_flags(void **A, size_t dim, int flags)
+{
+	return _starpu_malloc_flags_on_node(STARPU_MAIN_RAM, A, dim, flags);
+}
+
+int _starpu_malloc_flags_on_node(unsigned dst_node, void **A, size_t dim, int flags)
+#else /* STARPU_USE_NUMA */
+int starpu_malloc_flags(void **A, size_t dim, int flags)
+#endif /* STARPU_USE_NUMA */
 {
 	int ret=0;
 
+#ifndef STARPU_USE_NUMA
+	unsigned dst_node = STARPU_MAIN_RAM;
+#endif /* STARPU_USE_NUMA */
+	
 	STARPU_ASSERT(A);
 
 	if (flags & STARPU_MALLOC_COUNT)
 	{
 		if (!(flags & STARPU_MALLOC_NORECLAIM))
-			while (starpu_memory_allocate(STARPU_MAIN_RAM, dim, flags) != 0)
+			while (starpu_memory_allocate(dst_node, dim, flags) != 0)
 			{
 				size_t freed;
 				size_t reclaim = 2 * dim;
 				_STARPU_DEBUG("There is not enough memory left, we are going to reclaim %ld\n", reclaim);
-				_STARPU_TRACE_START_MEMRECLAIM(STARPU_MAIN_RAM,0);
-				freed = _starpu_memory_reclaim_generic(STARPU_MAIN_RAM, 0, reclaim);
-				_STARPU_TRACE_END_MEMRECLAIM(STARPU_MAIN_RAM,0);
+				_STARPU_TRACE_START_MEMRECLAIM(dst_node,0);
+				freed = _starpu_memory_reclaim_generic(dst_node, 0, reclaim);
+				_STARPU_TRACE_END_MEMRECLAIM(dst_node,0);
 				if (freed < dim && !(flags & STARPU_MEMORY_WAIT))
 				{
 					// We could not reclaim enough memory
@@ -132,9 +145,9 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 				}
 			}
 		else if (flags & STARPU_MEMORY_WAIT)
-			starpu_memory_allocate(STARPU_MAIN_RAM, dim, flags);
+			starpu_memory_allocate(dst_node, dim, flags);
 		else
-			starpu_memory_allocate(STARPU_MAIN_RAM, dim, flags | STARPU_MEMORY_OVERFLOW);
+			starpu_memory_allocate(dst_node, dim, flags | STARPU_MEMORY_OVERFLOW);
 	}
 
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
@@ -286,6 +299,18 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 #endif
 	}
 	else
+#ifdef STARPU_USE_NUMA
+	{
+		struct _starpu_machine_config *config = _starpu_get_machine_config();
+		hwloc_topology_t hwtopology = config->topology.hwtopology;
+		hwloc_obj_t numa_node_obj = hwloc_get_obj_by_type(hwtopology, HWLOC_OBJ_NODE, _starpu_memnode_to_numaid(dst_node));
+		hwloc_bitmap_t nodeset = numa_node_obj->nodeset;
+		*A = hwloc_alloc_membind_nodeset(hwtopology, dim, nodeset, HWLOC_MEMBIND_BIND | HWLOC_MEMBIND_NOCPUBIND, flags);
+		fprintf(stderr, "Allocation %d bytes on NUMA node %d [%p]\n", dim, _starpu_memnode_to_numaid(dst_node), *A);
+		if (!*A)
+			ret = -ENOMEM;
+	}
+#else /* STARPU_USE_NUMA */
 #ifdef STARPU_HAVE_POSIX_MEMALIGN
 	if (_malloc_align != sizeof(void*))
 	{
@@ -310,6 +335,7 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 			if (!*A)
 				ret = -ENOMEM;
 		}
+#endif /* STARPU_USE_NUMA */
 
 #if defined(STARPU_SIMGRID) || defined(STARPU_USE_CUDA)
 end:
@@ -320,7 +346,7 @@ end:
 	}
 	else if (flags & STARPU_MALLOC_COUNT)
 	{
-		starpu_memory_deallocate(STARPU_MAIN_RAM, dim);
+		starpu_memory_deallocate(dst_node, dim);
 	}
 
 	return ret;
@@ -496,7 +522,11 @@ _starpu_malloc_on_node(unsigned dst_node, size_t size, int flags)
 	{
 		case STARPU_CPU_RAM:
 		{
+#ifdef STARPU_USE_NUMA
+			_starpu_malloc_flags_on_node(dst_node, (void**) &addr, size,			
+#else /* STARPU_USE_NUMA */
 			starpu_malloc_flags((void**) &addr, size,
+#endif /* STARPU_USE_NUMA */
 #if defined(STARPU_USE_CUDA) && !defined(HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
 					/* without memcpy_peer, we can not
 					 * allocated pinned memory, since it

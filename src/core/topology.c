@@ -57,6 +57,12 @@ static int nobind;
 
 /* For checking whether two workers share the same PU, indexed by PU number */
 static int cpu_worker[STARPU_MAXCPUS];
+#ifdef STARPU_USE_NUMA
+static unsigned nb_numa_nodes = 0;
+static unsigned numa_memory_nodes[STARPU_MAXNUMANODES];
+#endif /* STARPU_USE_NUMA */
+
+
 
 #if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) || defined(STARPU_USE_SCC) || defined(STARPU_SIMGRID)
 
@@ -804,6 +810,18 @@ _starpu_topology_get_nhwpu (struct _starpu_machine_config *config)
 	return config->topology.nhwpus;
 }
 
+unsigned _starpu_topology_get_nnumanodes(struct _starpu_machine_config *config)
+{
+#ifdef STARPU_USE_NUMA
+	struct _starpu_machine_topology *topology = &config->topology ;
+        int nnumanodes = hwloc_get_nbobjs_by_type(topology->hwtopology, HWLOC_OBJ_NODE) ;
+	return nnumanodes > 0 ? nnumanodes : 1 ;
+#else /* STARPU_USE_NUMA */
+	return 1 ;
+#endif /* STARPU_USE_NUMA */
+}
+
+
 #ifdef STARPU_USE_MIC
 static void
 _starpu_init_mic_config (struct _starpu_machine_config *config,
@@ -1538,8 +1556,20 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 	 * giving it a memory node and a core bind id.
 	 */
 	/* TODO: STARPU_MAXNUMANODES */
+#ifdef STARPU_USE_NUMA
+	unsigned n;
+	unsigned numa_init[STARPU_MAXNUMANODES];
+	numa_init[0] = 1 ;
+	nb_numa_nodes = 1;
+	numa_memory_nodes[0] = ram_memory_node ;
+	for (n=1; n<STARPU_MAXNUMANODES; n++)
+	{
+		numa_init[n] = 0;
+	}	
+#else /* STARPU_USE_NUMA */
 	unsigned numa_init[1] = { 1 };
 	unsigned numa_memory_nodes[1] = { ram_memory_node };
+#endif /* STARPU_USE_NUMA */
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 	unsigned cuda_init[STARPU_MAXCUDADEVS] = { };
 	unsigned cuda_memory_nodes[STARPU_MAXCUDADEVS];
@@ -1583,8 +1613,13 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 		{
 			case STARPU_CPU_WORKER:
 			{
+				workerarg->bindid = _starpu_get_next_bindid(config, NULL, 0);
 				/* TODO: NUMA */
+#ifdef STARPU_USE_NUMA
+				int numaid = workerarg->numa_memory_node = _starpu_worker_numa_node(worker);
+#else /* STARPU_USE_NUMA */
 				int numaid = 0;
+#endif /* STARPU_USE_NUMA */
 				/* "dedicate" a cpu core to that worker */
 				if (numa_init[numaid])
 				{
@@ -1593,6 +1628,9 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 				else
 				{
 					numa_init[numaid] = 1;
+#ifdef STARPU_USE_NUMA
+					nb_numa_nodes++;
+#endif /* STARPU_USE_NUMA */
 					memory_node = numa_memory_nodes[numaid] = _starpu_memory_node_register(STARPU_CPU_RAM, numaid);
 #ifdef STARPU_SIMGRID
 					snprintf(name, sizeof(name), "RAM%d", numaid);
@@ -1601,12 +1639,17 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 					_starpu_simgrid_memory_node_set_host(memory_node, host);
 #endif
 				}
-				workerarg->bindid = _starpu_get_next_bindid(config, NULL, 0);
+				//workerarg->bindid = _starpu_get_next_bindid(config, NULL, 0);
 				_starpu_memory_node_add_nworkers(memory_node);
 #ifdef STARPU_SIMGRID
 				starpu_pthread_queue_register(&workerarg->wait, &_starpu_simgrid_transfer_queue[memory_node]);
+#ifdef STARPU_USE_NUMA
+				if (_starpu_node_get_kind(memory_node) != STARPU_CPU_RAM)
+					starpu_pthread_queue_register(&workerarg->wait, &_starpu_simgrid_transfer_queue[STARPU_MAIN_RAM]);
+#else /* STARPU_USE_NUMA */
 				if (memory_node != STARPU_MAIN_RAM)
 					starpu_pthread_queue_register(&workerarg->wait, &_starpu_simgrid_transfer_queue[STARPU_MAIN_RAM]);
+#endif /* STARPU_USE_NUMA */
 #endif
 				break;
 			}
@@ -1979,3 +2022,52 @@ starpu_topology_print (FILE *output)
 		fprintf(output, "\n");
 	}
 }
+
+#ifdef STARPU_USE_NUMA
+int _starpu_get_nb_numa_nodes()
+{
+	return nb_numa_nodes;
+}
+
+int _starpu_numaid_to_memnode(unsigned numaid)
+{
+	if (numaid < nb_numa_nodes)
+		return numa_memory_nodes[numaid];
+	return -1;
+}
+
+int _starpu_memnode_to_numaid(unsigned memnode)
+{
+	int numaid;
+
+	for (numaid=0; numaid<nb_numa_nodes; numaid++)
+		if (numa_memory_nodes[numaid] == memnode)
+			return numaid;
+
+	return 0;
+}
+
+int _starpu_worker_numa_node(unsigned workerid)
+{
+	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
+	#ifdef STARPU_HAVE_HWLOC
+	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config() ;
+	struct _starpu_machine_topology *topology = &config->topology ;
+	hwloc_obj_t obj = hwloc_get_obj_by_depth(topology->hwtopology, config->pu_depth, worker->bindid) ;
+	STARPU_ASSERT(obj) ;
+	while (obj->depth != HWLOC_OBJ_NODE)
+	{
+		obj = obj->parent;
+
+		/* If we don't find a "node" obj before the root, this means
+		 * hwloc does not know whether there are numa nodes or not, so
+		 * we should not use a per-node sampling in that case. */
+		STARPU_ASSERT(obj);
+	}
+	STARPU_ASSERT(obj->depth == HWLOC_OBJ_NODE);
+	return obj->logical_index;
+	#else /* STARPU_HAVE_HWLOC */
+	return 0 ;
+	#endif /* STARPU_HAVE_HWLOC */
+}
+#endif /* STARPU_USE_NUMA */

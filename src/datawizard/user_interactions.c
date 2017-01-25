@@ -189,12 +189,24 @@ int starpu_data_acquire_on_node_cb(starpu_data_handle_t handle, int node,
 int starpu_data_acquire_cb(starpu_data_handle_t handle,
 			   enum starpu_data_access_mode mode, void (*callback)(void *), void *arg)
 {
+#ifdef STARPU_USE_NUMA
+	int home_node = handle->home_node;
+	if (home_node >= 0 && (starpu_node_get_kind(home_node) == STARPU_CPU_RAM))
+		return starpu_data_acquire_on_node_cb(handle, home_node, mode, callback, arg);
+	else
+#endif /* STARPU_USE_NUMA */
 	return starpu_data_acquire_on_node_cb(handle, STARPU_MAIN_RAM, mode, callback, arg);
 }
 
 int starpu_data_acquire_cb_sequential_consistency(starpu_data_handle_t handle,
 						  enum starpu_data_access_mode mode, void (*callback)(void *), void *arg, int sequential_consistency)
 {
+#ifdef STARPU_USE_NUMA
+	int home_node = handle->home_node;
+	if (home_node >= 0 && (starpu_node_get_kind(home_node) == STARPU_CPU_RAM))
+	 	return starpu_data_acquire_on_node_cb_sequential_consistency(handle, home_node, mode, callback, arg, sequential_consistency);
+	else
+#endif /* STARPU_USE_NUMA */
 	return starpu_data_acquire_on_node_cb_sequential_consistency(handle, STARPU_MAIN_RAM, mode, callback, arg, sequential_consistency);
 }
 
@@ -326,6 +338,12 @@ int starpu_data_acquire_on_node(starpu_data_handle_t handle, int node, enum star
 
 int starpu_data_acquire(starpu_data_handle_t handle, enum starpu_data_access_mode mode)
 {
+#ifdef STARPU_USE_NUMA
+	int home_node = handle->home_node;
+	if (home_node >= 0 && (starpu_node_get_kind(home_node) == STARPU_CPU_RAM))
+	 	return starpu_data_acquire_on_node(handle, home_node, mode);
+	else
+#endif /* STARPU_USE_NUMA */
 	return starpu_data_acquire_on_node(handle, STARPU_MAIN_RAM, mode);
 }
 
@@ -358,6 +376,12 @@ void starpu_data_release_on_node(starpu_data_handle_t handle, int node)
 
 void starpu_data_release(starpu_data_handle_t handle)
 {
+#ifdef STARPU_USE_NUMA
+	int home_node = handle->home_node;
+	if (home_node >= 0 && (starpu_node_get_kind(home_node) == STARPU_CPU_RAM))
+	 	return starpu_data_release_on_node(handle, home_node);
+	else
+#endif /* STARPU_USE_NUMA */	
 	starpu_data_release_on_node(handle, STARPU_MAIN_RAM);
 }
 

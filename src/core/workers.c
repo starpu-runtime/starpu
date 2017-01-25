@@ -1515,8 +1515,20 @@ void starpu_shutdown(void)
 
 	/* tell all workers to shutdown */
 	_starpu_kill_all_workers(&_starpu_config);
-
+	
+#ifdef STARPU_USE_NUMA
+	{
+		int i;
+		unsigned nb_numa_nodes = _starpu_get_nb_numa_nodes();
+		for (i=0; i<nb_numa_nodes; i++)
+		{
+			unsigned id = _starpu_numaid_to_memnode(i);
+			_starpu_free_all_automatically_allocated_buffers(id);
+		}
+	}
+#else /* STARPU_USE_NUMA */
 	_starpu_free_all_automatically_allocated_buffers(STARPU_MAIN_RAM);
+#endif /* STARPU_USE_NUMA */
 
 	{
 	     int stats = starpu_get_env_number("STARPU_STATS");

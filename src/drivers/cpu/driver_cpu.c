@@ -168,7 +168,18 @@ static size_t _starpu_cpu_get_global_mem_size(int nodeid STARPU_ATTRIBUTE_UNUSED
 	size_t global_mem;
 	starpu_ssize_t limit;
 
-	limit = starpu_get_env_number("STARPU_LIMIT_CPU_MEM");
+#ifdef STARPU_USE_NUMA
+	char name[30];
+
+	sprintf(name, "STARPU_LIMIT_CPU_%d_MEM", nodeid);
+	limit = starpu_get_env_number(name);
+	if (limit == -1)
+	{
+		limit = starpu_get_env_number("STARPU_LIMIT_CPU_MEM");
+	}	
+#else /* STARPU_USE_NUMA */
+	limit = starpu_get_env_number("STARPU_LIMIT_CPU_MEM");	
+#endif /* STARPU_USE_NUMA */
 #ifdef STARPU_DEVEL
 #  warning TODO: take into account NUMA node and check STARPU_LIMIT_CPU_numanode_MEM
 #endif
@@ -176,17 +187,17 @@ static size_t _starpu_cpu_get_global_mem_size(int nodeid STARPU_ATTRIBUTE_UNUSED
 #if defined(STARPU_HAVE_HWLOC)
 	struct _starpu_machine_topology *topology = &config->topology;
 
-#if 0
-	/* Do not limit ourself to a single NUMA node yet, as we don't have real NUMA support for now */
+#ifdef STARPU_USE_NUMA
         int depth_node = hwloc_get_type_depth(topology->hwtopology, HWLOC_OBJ_NODE);
 
 	if (depth_node == HWLOC_TYPE_DEPTH_UNKNOWN)
 	     global_mem = hwloc_get_root_obj(topology->hwtopology)->memory.total_memory;
 	else
 	     global_mem = hwloc_get_obj_by_depth(topology->hwtopology, depth_node, nodeid)->memory.local_memory;
-#else
+#else /* STARPU_USE_NUMA */
+	/* Do not limit ourself to a single NUMA node yet, as we don't have real NUMA support for now */
 	global_mem = hwloc_get_root_obj(topology->hwtopology)->memory.total_memory;
-#endif
+#endif /* STARPU_USE_NUMA */
 
 #else /* STARPU_HAVE_HWLOC */
 #ifdef STARPU_DEVEL
@@ -212,8 +223,11 @@ int _starpu_cpu_driver_init(struct _starpu_worker *cpu_worker)
 
 	_starpu_driver_start(cpu_worker, _STARPU_FUT_CPU_KEY, 1);
 	/* FIXME: when we have NUMA support, properly turn node number into NUMA node number */
+#ifdef STARPU_USE_NUMA
+	_starpu_memory_manager_set_global_memory_size(cpu_worker->memory_node, _starpu_cpu_get_global_mem_size(cpu_worker->numa_memory_node, cpu_worker->config));
+#else /* STARPU_USE_NUMA */
 	_starpu_memory_manager_set_global_memory_size(cpu_worker->memory_node, _starpu_cpu_get_global_mem_size(cpu_worker->memory_node, cpu_worker->config));
-
+#endif /* STARPU_USE_NUMA */
 	snprintf(cpu_worker->name, sizeof(cpu_worker->name), "CPU %d", devid);
 	snprintf(cpu_worker->short_name, sizeof(cpu_worker->short_name), "CPU %d", devid);
 	starpu_pthread_setname(cpu_worker->short_name);
@@ -242,8 +256,21 @@ int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
 
 	_STARPU_TRACE_START_PROGRESS(memnode);
 	res = __starpu_datawizard_progress(memnode, 1, 1);
+#ifdef STARPU_USE_NUMA
+	if (starpu_node_get_kind(memnode) != STARPU_CPU_RAM)
+	{
+		int i;
+		unsigned nb_numa_nodes = _starpu_get_nb_numa_nodes();
+		for (i=0; i<nb_numa_nodes; i++)
+		{
+			unsigned id = _starpu_numaid_to_memnode(i);			
+			res |= __starpu_datawizard_progress(id, 1, 1);
+		}
+	}
+#else /* STARPU_USE_NUMA */
 	if (memnode != STARPU_MAIN_RAM)
 		res |= __starpu_datawizard_progress(STARPU_MAIN_RAM, 1, 1);
+#endif /* STARPU_USE_NUMA */
 	_STARPU_TRACE_END_PROGRESS(memnode);
 
 	struct _starpu_job *j;

@@ -163,7 +163,7 @@ cudaStream_t starpu_cuda_get_local_in_transfer_stream()
 	int worker = starpu_worker_get_id_check();
 	int devid = starpu_worker_get_devid(worker);
 	cudaStream_t stream;
-
+	
 	stream = in_transfer_streams[devid];
 	STARPU_ASSERT(stream);
 	return stream;
@@ -811,7 +811,16 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 	{
 		/* Nothing ready yet, no better thing to do than waiting */
 		__starpu_datawizard_progress(memnode, 1, 0);
+#ifdef STARPU_USE_NUMA
+		unsigned nb_numa_nodes = _starpu_get_nb_numa_nodes();
+		for (i=0; i<nb_numa_nodes; i++)
+		{
+			unsigned id = _starpu_numaid_to_memnode(i);
+			__starpu_datawizard_progress(id, 1, 0);
+		}
+#else /* STARPU_USE_NUMA */
 		__starpu_datawizard_progress(STARPU_MAIN_RAM, 1, 0);
+#endif /* STARPU_USE_NUMA */
 		return 0;
 	}
 #endif
@@ -819,7 +828,16 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 	/* Something done, make some progress */
 	res = !idle;
 	res |= __starpu_datawizard_progress(memnode, 1, 1);
+#ifdef STARPU_USE_NUMA
+	unsigned nb_numa_nodes = _starpu_get_nb_numa_nodes();
+	for (i=0; i<nb_numa_nodes; i++)
+	{
+		unsigned id = _starpu_numaid_to_memnode(i);
+		res |= __starpu_datawizard_progress(id, 1, 1);
+	}
+#else /* STARPU_USE_NUMA */
 	res |= __starpu_datawizard_progress(STARPU_MAIN_RAM, 1, 1);
+#endif /* STARPU_USE_NUMA */
 
 	/* And pull tasks */
 	res |= _starpu_get_multi_worker_task(worker_set->workers, tasks, worker_set->nworkers, memnode);
