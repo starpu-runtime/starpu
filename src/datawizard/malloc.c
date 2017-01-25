@@ -292,8 +292,8 @@ int _starpu_malloc_flags_on_node(unsigned dst_node, void **A, size_t dim, int fl
 #endif
 	}
 	else
-#ifdef STARPU_USE_NUMA
-	{
+#ifdef STARPU_HAVE_HWLOC
+	if (_starpu_get_nb_numa_nodes() > 1) {
 		hwloc_topology_t hwtopology = config->topology.hwtopology;
 		hwloc_obj_t numa_node_obj = hwloc_get_obj_by_type(hwtopology, HWLOC_OBJ_NODE, _starpu_memnode_to_numaid(dst_node));
 		hwloc_bitmap_t nodeset = numa_node_obj->nodeset;
@@ -302,7 +302,7 @@ int _starpu_malloc_flags_on_node(unsigned dst_node, void **A, size_t dim, int fl
 		if (!*A)
 			ret = -ENOMEM;
 	}
-#else /* STARPU_USE_NUMA */
+#endif /* STARPU_HAVE_HWLOC */
 #ifdef STARPU_HAVE_POSIX_MEMALIGN
 	if (_malloc_align != sizeof(void*))
 	{
@@ -327,7 +327,6 @@ int _starpu_malloc_flags_on_node(unsigned dst_node, void **A, size_t dim, int fl
 			if (!*A)
 				ret = -ENOMEM;
 		}
-#endif /* STARPU_USE_NUMA */
 
 #if defined(STARPU_SIMGRID) || defined(STARPU_USE_CUDA)
 end:
@@ -473,6 +472,13 @@ int _starpu_free_flags_on_node(unsigned dst_node, void *A, size_t dim, int flags
 		_starpu_scc_free_shared_memory(A);
 #endif
 	}
+#ifdef STARPU_HAVE_HWLOC
+	else if (_starpu_get_nb_numa_nodes() > 1) {
+		struct _starpu_machine_config *config = _starpu_get_machine_config();
+		hwloc_topology_t hwtopology = config->topology.hwtopology;
+		hwloc_free(hwtopology, A, dim);
+	}
+#endif /* STARPU_HAVE_HWLOC */
 	else
 		free(A);
 
