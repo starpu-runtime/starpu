@@ -2018,8 +2018,8 @@ if test x$maxnodes = x0 ; then
 	else
 		# We have one memory node shared by all CPU workers, one node per GPU
 		# and per MIC device
-		# we add nodes to use 3 memory disks
-		nodes=`expr $nmaxnumanodes + 3`
+		# we add nodes to use 2 memory disks
+		nodes=`expr $nmaxnumanodes + 2`
 		if test x$enable_cuda = xyes ; then
 			# we could have used nmaxcudadev + 1, but this would certainly give an
 			# odd number.
