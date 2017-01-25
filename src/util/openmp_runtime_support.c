@@ -2418,6 +2418,7 @@ void starpu_omp_atomic_fallback_inline_end(void)
 
 void starpu_omp_vector_annotate(starpu_data_handle_t handle, uint32_t slice_base)
 {
+	/* FIXME Oli? */
 	int node = STARPU_MAIN_RAM;
 #ifdef STARPU_USE_NUMA
 	node = handle->home_node;

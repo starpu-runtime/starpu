@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2010, 2012-2016  Université de Bordeaux
+ * Copyright (C) 2009-2010, 2012-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -107,23 +107,16 @@ static struct starpu_codelet malloc_pinned_cl =
 };
 #endif
 
-#ifdef STARPU_USE_NUMA
+/* Allocation in CPU RAM */
 int starpu_malloc_flags(void **A, size_t dim, int flags)
 {
 	return _starpu_malloc_flags_on_node(STARPU_MAIN_RAM, A, dim, flags);
 }
 
 int _starpu_malloc_flags_on_node(unsigned dst_node, void **A, size_t dim, int flags)
-#else /* STARPU_USE_NUMA */
-int starpu_malloc_flags(void **A, size_t dim, int flags)
-#endif /* STARPU_USE_NUMA */
 {
 	int ret=0;
 
-#ifndef STARPU_USE_NUMA
-	unsigned dst_node = STARPU_MAIN_RAM;
-#endif /* STARPU_USE_NUMA */
-	
 	STARPU_ASSERT(A);
 
 	if (flags & STARPU_MALLOC_COUNT)
@@ -301,12 +294,11 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 	else
 #ifdef STARPU_USE_NUMA
 	{
-		struct _starpu_machine_config *config = _starpu_get_machine_config();
 		hwloc_topology_t hwtopology = config->topology.hwtopology;
 		hwloc_obj_t numa_node_obj = hwloc_get_obj_by_type(hwtopology, HWLOC_OBJ_NODE, _starpu_memnode_to_numaid(dst_node));
 		hwloc_bitmap_t nodeset = numa_node_obj->nodeset;
 		*A = hwloc_alloc_membind_nodeset(hwtopology, dim, nodeset, HWLOC_MEMBIND_BIND | HWLOC_MEMBIND_NOCPUBIND, flags);
-		fprintf(stderr, "Allocation %d bytes on NUMA node %d [%p]\n", dim, _starpu_memnode_to_numaid(dst_node), *A);
+		fprintf(stderr, "Allocation %lu bytes on NUMA node %d [%p]\n", (unsigned long) dim, _starpu_memnode_to_numaid(dst_node), *A);
 		if (!*A)
 			ret = -ENOMEM;
 	}
@@ -396,6 +388,11 @@ static struct starpu_codelet free_pinned_cl =
 
 int starpu_free_flags(void *A, size_t dim, int flags)
 {
+	return _starpu_free_flags_on_node(STARPU_MAIN_RAM, A, dim, flags);
+}
+
+int _starpu_free_flags_on_node(unsigned dst_node, void *A, size_t dim, int flags)
+{
 #ifndef STARPU_SIMGRID
 	if (flags & STARPU_MALLOC_PINNED && disable_pinning <= 0 && STARPU_RUNNING_ON_VALGRIND == 0)
 	{
@@ -484,7 +481,7 @@ out:
 #endif
 	if (flags & STARPU_MALLOC_COUNT)
 	{
-		starpu_memory_deallocate(STARPU_MAIN_RAM, dim);
+		starpu_memory_deallocate(dst_node, dim);
 	}
 
 	return 0;
@@ -522,11 +519,7 @@ _starpu_malloc_on_node(unsigned dst_node, size_t size, int flags)
 	{
 		case STARPU_CPU_RAM:
 		{
-#ifdef STARPU_USE_NUMA
 			_starpu_malloc_flags_on_node(dst_node, (void**) &addr, size,			
-#else /* STARPU_USE_NUMA */
-			starpu_malloc_flags((void**) &addr, size,
-#endif /* STARPU_USE_NUMA */
 #if defined(STARPU_USE_CUDA) && !defined(HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
 					/* without memcpy_peer, we can not
 					 * allocated pinned memory, since it
@@ -650,7 +643,7 @@ _starpu_free_on_node_flags(unsigned dst_node, uintptr_t addr, size_t size, int f
 	switch(kind)
 	{
 		case STARPU_CPU_RAM:
-			starpu_free_flags((void*)addr, size,
+			_starpu_free_flags_on_node(dst_node, (void*)addr, size,
 #if defined(STARPU_USE_CUDA) && !defined(HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
 					flags & ~STARPU_MALLOC_PINNED
 #else

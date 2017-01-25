@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2016  Université de Bordeaux
+ * Copyright (C) 2010-2017  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016  CNRS
  * Copyright (C) 2012, 2016  Inria
@@ -188,12 +188,9 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 		/* This is lazy allocation, allocate it now in main RAM, so as
 		 * to have somewhere to gather pieces later */
 		/* FIXME: mark as unevictable! */
-		int home_node = STARPU_MAIN_RAM;
-#ifdef STARPU_USE_NUMA
-		home_node = initial_handle->home_node;
+		int home_node = initial_handle->home_node;
 		if (home_node < 0 || (starpu_node_get_kind(home_node) != STARPU_CPU_RAM))
 			home_node = STARPU_MAIN_RAM;
-#endif /* STARPU_USE_NUMA */
 		int ret = _starpu_allocate_memory_on_node(initial_handle, &initial_handle->per_node[home_node], 0);
 #ifdef STARPU_DEVEL
 #warning we should reclaim memory if allocation failed
@@ -326,14 +323,10 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 		 * store it in the handle */
 		child->footprint = _starpu_compute_data_footprint(child);
 
-		int home_node = STARPU_MAIN_RAM;
-#ifdef STARPU_USE_NUMA
-		home_node = child->home_node;
+		int home_node = child->home_node;
 		if (home_node < 0 || (starpu_node_get_kind(home_node) != STARPU_CPU_RAM))
 			home_node = STARPU_MAIN_RAM;
-#endif /* STARPU_USE_NUMA */
-		void *ptr;
-		ptr = starpu_data_handle_to_pointer(child, home_node);
+		void *ptr = starpu_data_handle_to_pointer(child, home_node);
 		if (ptr != NULL)
 			_starpu_data_register_ram_pointer(child, ptr);
 	}

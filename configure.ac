@@ -167,7 +167,7 @@ AM_CONDITIONAL([STARPU_USE_MIC], [test "x$enable_mic" = "xyes"])
 AC_MSG_CHECKING(maximum number of NUMA nodes)
 AC_ARG_ENABLE(maxnumanodes, [AS_HELP_STRING([--enable-maxnumanodes=<number>],
 			[maximum number of NUMA nodes])],
-			nmaxnumanodes=$enableval, nmaxnumanodes=16)
+			nmaxnumanodes=$enableval, nmaxnumanodes=4)
 AC_MSG_RESULT($nmaxnumanodes)
 AC_DEFINE_UNQUOTED(STARPU_MAXNUMANODES, [$nmaxnumanodes],
 		[maximum number of NUMA nodes])
@@ -2019,7 +2019,7 @@ if test x$maxnodes = x0 ; then
 		# We have one memory node shared by all CPU workers, one node per GPU
 		# and per MIC device
 		# we add nodes to use 3 memory disks
-		nodes=4
+		nodes=`expr $nmaxnumanodes + 3`
 		if test x$enable_cuda = xyes ; then
 			# we could have used nmaxcudadev + 1, but this would certainly give an
 			# odd number.

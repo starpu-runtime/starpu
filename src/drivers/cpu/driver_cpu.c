@@ -168,21 +168,13 @@ static size_t _starpu_cpu_get_global_mem_size(int nodeid STARPU_ATTRIBUTE_UNUSED
 	size_t global_mem;
 	starpu_ssize_t limit;
 
-#ifdef STARPU_USE_NUMA
-	char name[30];
+	char name[32];
 
-	sprintf(name, "STARPU_LIMIT_CPU_%d_MEM", nodeid);
+	/* FIXME: do we want logical or physical? */
+	sprintf(name, "STARPU_LIMIT_CPU_NUMA%d_MEM", nodeid);
 	limit = starpu_get_env_number(name);
 	if (limit == -1)
-	{
 		limit = starpu_get_env_number("STARPU_LIMIT_CPU_MEM");
-	}	
-#else /* STARPU_USE_NUMA */
-	limit = starpu_get_env_number("STARPU_LIMIT_CPU_MEM");	
-#endif /* STARPU_USE_NUMA */
-#ifdef STARPU_DEVEL
-#  warning TODO: take into account NUMA node and check STARPU_LIMIT_CPU_numanode_MEM
-#endif
 
 #if defined(STARPU_HAVE_HWLOC)
 	struct _starpu_machine_topology *topology = &config->topology;
@@ -195,7 +187,7 @@ static size_t _starpu_cpu_get_global_mem_size(int nodeid STARPU_ATTRIBUTE_UNUSED
 	else
 	     global_mem = hwloc_get_obj_by_depth(topology->hwtopology, depth_node, nodeid)->memory.local_memory;
 #else /* STARPU_USE_NUMA */
-	/* Do not limit ourself to a single NUMA node yet, as we don't have real NUMA support for now */
+	/* Do not limit ourself to a single NUMA node */
 	global_mem = hwloc_get_root_obj(topology->hwtopology)->memory.total_memory;
 #endif /* STARPU_USE_NUMA */
 
