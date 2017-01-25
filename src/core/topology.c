@@ -1613,7 +1613,7 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 				/* "dedicate" a cpu core to that worker */
 				workerarg->bindid = _starpu_get_next_bindid(config, NULL, 0);
 				int numaid = workerarg->numa_memory_node = _starpu_worker_numa_node(worker);
-				if (!numa_init[numaid] && nb_numa_nodes == STARPU_MAXNUMANODES-1)
+				if (!numa_init[numaid] && nb_numa_nodes == STARPU_MAXNUMANODES)
 				{
 					_STARPU_MSG("Warning: %u NUMA nodes available. Only %u enabled. Use configure option --enable-maxnumanodes=xxx to update the maximum value of supported NUMA nodes.\n", _starpu_topology_get_nnumanodes(config), STARPU_MAXNUMANODES);
 					numaid = STARPU_MAIN_RAM;
