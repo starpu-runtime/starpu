@@ -162,7 +162,7 @@ void starpu_block_data_register(starpu_data_handle_t *handleptr, int home_node,
 		.elemsize = elemsize
 	};
 #ifndef STARPU_SIMGRID
-	if (starpu_node_get_kind(home_node) == STARPU_CPU_RAM)
+	if (home_node >= 0 && starpu_node_get_kind(home_node) == STARPU_CPU_RAM)
 	{
 		STARPU_ASSERT_ACCESSIBLE(ptr);
 		STARPU_ASSERT_ACCESSIBLE(ptr + (nz-1)*ldz*elemsize + (ny-1)*ldy*elemsize + nx*elemsize - 1);

@@ -173,7 +173,7 @@ void starpu_matrix_data_register(starpu_data_handle_t *handleptr, int home_node,
                 .offset = 0
 	};
 #ifndef STARPU_SIMGRID
-	if (starpu_node_get_kind(home_node) == STARPU_CPU_RAM)
+	if (home_node >= 0 && starpu_node_get_kind(home_node) == STARPU_CPU_RAM)
 	{
 		STARPU_ASSERT_ACCESSIBLE(ptr);
 		STARPU_ASSERT_ACCESSIBLE(ptr + (ny-1)*ld*elemsize + nx*elemsize - 1);

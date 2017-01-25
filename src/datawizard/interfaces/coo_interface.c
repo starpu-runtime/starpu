@@ -236,7 +236,7 @@ starpu_coo_data_register(starpu_data_handle_t *handleptr, int home_node,
 		.elemsize = elemsize,
 	};
 #ifndef STARPU_SIMGRID
-	if (starpu_node_get_kind(home_node) == STARPU_CPU_RAM)
+	if (home_node >= 0 && starpu_node_get_kind(home_node) == STARPU_CPU_RAM)
 	{
 		STARPU_ASSERT_ACCESSIBLE(columns);
 		STARPU_ASSERT_ACCESSIBLE((uintptr_t) columns + n_values*sizeof(uint32_t) - 1);
