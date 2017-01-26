@@ -2928,9 +2928,9 @@ static void handle_mpi_sleep_end(struct fxt_ev_64 *ev, struct starpu_fxt_options
 	double date = get_event_time_stamp(ev, options);
 
 	if (out_paje_file)
-		mpicommthread_set_state(date, options->file_prefix, "P");
+		mpicommthread_set_state(date, options->file_prefix, "Pl");
 	if (trace_file)
-		recfmt_mpicommthread_set_state(date, "P");
+		recfmt_mpicommthread_set_state(date, "Pl");
 }
 
 static void handle_mpi_dtesting_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -3031,6 +3031,38 @@ static void handle_mpi_test_end(struct fxt_ev_64 *ev, struct starpu_fxt_options 
 		mpicommthread_pop_state(date, options->file_prefix);
 	if (trace_file)
 		recfmt_mpicommthread_pop_state(date);
+}
+
+static void handle_mpi_polling_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	double date = get_event_time_stamp(ev, options);
+
+	if (out_paje_file)
+		mpicommthread_set_state(date, options->file_prefix, "Pl");
+}
+
+static void handle_mpi_polling_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	double date = get_event_time_stamp(ev, options);
+
+	if (out_paje_file)
+		mpicommthread_set_state(date, options->file_prefix, "P");
+}
+
+static void handle_mpi_driver_run_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	double date = get_event_time_stamp(ev, options);
+
+	if (out_paje_file)
+		mpicommthread_set_state(date, options->file_prefix, "Dr");
+}
+
+static void handle_mpi_driver_run_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	double date = get_event_time_stamp(ev, options);
+
+	if (out_paje_file)
+		mpicommthread_set_state(date, options->file_prefix, "Pl");
 }
 
 static void handle_set_profiling(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -3666,6 +3698,21 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 
 			case _STARPU_MPI_FUT_TEST_END:
 				handle_mpi_test_end(&ev, options);
+
+			case _STARPU_MPI_FUT_POLLING_BEGIN:
+				handle_mpi_polling_begin(&ev, options);
+				break;
+
+			case _STARPU_MPI_FUT_POLLING_END:
+				handle_mpi_polling_end(&ev, options);
+				break;
+
+			case _STARPU_MPI_FUT_DRIVER_RUN_BEGIN:
+				handle_mpi_driver_run_begin(&ev, options);
+				break;
+
+			case _STARPU_MPI_FUT_DRIVER_RUN_END:
+				handle_mpi_driver_run_end(&ev, options);
 				break;
 
 			case _STARPU_FUT_SET_PROFILING:

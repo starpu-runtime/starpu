@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2010-2017                                CNRS
+# Copyright (C) 2010-2018                                CNRS
 # Copyright (C) 2009-2018                                Université de Bordeaux
 # Copyright (C) 2013                                     Thibaut Lambert
 #
@@ -127,7 +127,8 @@ starpu_mpi_TESTS +=				\
 	policy_selection			\
 	policy_selection2			\
 	ring_async_implicit			\
-	temporary
+	temporary				\
+	driver
 
 if !STARPU_SIMGRID
 starpu_mpi_TESTS +=				\
@@ -228,7 +229,8 @@ noinst_PROGRAMS =				\
 	policy_selection2			\
 	early_request				\
 	starpu_redefine				\
-	load_balancer
+	load_balancer				\
+	driver
 
 XFAIL_TESTS=					\
 	policy_register_toomany			\

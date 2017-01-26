@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2012                                     Inria
-# Copyright (C) 2010-2017                                CNRS
+# Copyright (C) 2010-2018                                CNRS
 # Copyright (C) 2009-2014, 2018                                Université de Bordeaux
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -72,6 +72,7 @@ noinst_HEADERS =					\
 	mpi/starpu_mpi_sync_data.h			\
 	mpi/starpu_mpi_comm.h				\
 	mpi/starpu_mpi_tag.h				\
+	mpi/starpu_mpi_driver.h				\
 	load_balancer/policy/data_movements_interface.h	\
 	load_balancer/policy/load_data_interface.h	\
 	load_balancer/policy/load_balancer_policy.h
