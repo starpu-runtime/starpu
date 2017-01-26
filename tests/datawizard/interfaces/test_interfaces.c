@@ -794,6 +794,8 @@ handle_to_pointer(void)
 	{
 		if (starpu_node_get_kind(node) != STARPU_CPU_RAM)
 			continue;
+		if (!starpu_data_test_if_allocated_on_node(handle, node))
+			continue;
 
 		ptr = handle->ops->handle_to_pointer(handle, node);
 		if (starpu_data_lookup(ptr) != handle)

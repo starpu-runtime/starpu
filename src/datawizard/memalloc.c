@@ -383,7 +383,7 @@ static size_t free_memory_on_node(struct _starpu_mem_chunk *mc, unsigned node)
 		STARPU_ASSERT(data_interface);
 
 		if (handle && (starpu_node_get_kind(node) == STARPU_CPU_RAM))
-			_starpu_data_unregister_ram_pointer(handle);
+			_starpu_data_unregister_ram_pointer(handle, node);
 
 		_STARPU_TRACE_START_FREE(node, mc->size);
 		mc->ops->free_data_on_node(data_interface, node);
