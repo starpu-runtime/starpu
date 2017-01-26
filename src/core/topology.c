@@ -1639,7 +1639,7 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 				_starpu_memory_node_add_nworkers(memory_node);
 #ifdef STARPU_SIMGRID
 				starpu_pthread_queue_register(&workerarg->wait, &_starpu_simgrid_transfer_queue[memory_node]);
-				if (starpu_node_get_kind(memory_node) != STARPU_CPU_RAM)
+				if (memory_node != STARPU_MAIN_RAM)
 					starpu_pthread_queue_register(&workerarg->wait, &_starpu_simgrid_transfer_queue[STARPU_MAIN_RAM]);
 #endif
 				break;
@@ -1670,6 +1670,7 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 					workerarg->bindid = cuda_bindid[devid] = _starpu_get_next_bindid(config, preferred_binding, npreferred);
 					memory_node = cuda_memory_nodes[devid] = _starpu_memory_node_register(STARPU_CUDA_RAM, devid);
 
+					/* TODO: NUMA nodes */
 					_starpu_cuda_bus_ids[0][devid+1] = _starpu_register_bus(STARPU_MAIN_RAM, memory_node);
 					_starpu_cuda_bus_ids[devid+1][0] = _starpu_register_bus(memory_node, STARPU_MAIN_RAM);
 #ifdef STARPU_SIMGRID
@@ -1757,6 +1758,7 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 					opencl_init[devid] = 1;
 					workerarg->bindid = opencl_bindid[devid] = _starpu_get_next_bindid(config, preferred_binding, npreferred);
 					memory_node = opencl_memory_nodes[devid] = _starpu_memory_node_register(STARPU_OPENCL_RAM, devid);
+					/* TODO: NUMA nodes */
 					_starpu_register_bus(STARPU_MAIN_RAM, memory_node);
 					_starpu_register_bus(memory_node, STARPU_MAIN_RAM);
 #ifdef STARPU_SIMGRID
@@ -1792,6 +1794,8 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 					//}
 					mic_bindid[devid] = _starpu_get_next_bindid(config, preferred_binding, npreferred);
 					memory_node = mic_memory_nodes[devid] = _starpu_memory_node_register(STARPU_MIC_RAM, devid);
+
+					/* TODO: NUMA nodes */
 					_starpu_register_bus(STARPU_MAIN_RAM, memory_node);
 					_starpu_register_bus(memory_node, STARPU_MAIN_RAM);
 

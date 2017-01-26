@@ -785,6 +785,7 @@ void _starpu_simgrid_count_ngpus(void)
 			ngpus = 0;
 			for (src2 = 1; src2 < STARPU_MAXNODES; src2++)
 			{
+				/* TODO: NUMA nodes */
 				if (starpu_bus_get_id(src2, STARPU_MAIN_RAM) == -1)
 					continue;
 				msg_host_t srchost2 = _starpu_simgrid_get_memnode_host(src2);

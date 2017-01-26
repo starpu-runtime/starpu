@@ -190,7 +190,7 @@ int starpu_data_acquire_cb(starpu_data_handle_t handle,
 			   enum starpu_data_access_mode mode, void (*callback)(void *), void *arg)
 {
 	int home_node = handle->home_node;
-	if (home_node < 0 || starpu_node_get_kind(home_node) != STARPU_CPU_RAM)
+	if (home_node < 0)
 		home_node = STARPU_MAIN_RAM;
 	return starpu_data_acquire_on_node_cb(handle, home_node, mode, callback, arg);
 }
@@ -199,7 +199,7 @@ int starpu_data_acquire_cb_sequential_consistency(starpu_data_handle_t handle,
 						  enum starpu_data_access_mode mode, void (*callback)(void *), void *arg, int sequential_consistency)
 {
 	int home_node = handle->home_node;
-	if (home_node < 0 || starpu_node_get_kind(home_node) != STARPU_CPU_RAM)
+	if (home_node < 0)
 		home_node = STARPU_MAIN_RAM;
 	return starpu_data_acquire_on_node_cb_sequential_consistency(handle, home_node, mode, callback, arg, sequential_consistency);
 }
@@ -333,7 +333,7 @@ int starpu_data_acquire_on_node(starpu_data_handle_t handle, int node, enum star
 int starpu_data_acquire(starpu_data_handle_t handle, enum starpu_data_access_mode mode)
 {
 	int home_node = handle->home_node;
-	if (home_node < 0 || starpu_node_get_kind(home_node) != STARPU_CPU_RAM)
+	if (home_node < 0)
 		home_node = STARPU_MAIN_RAM;
 	return starpu_data_acquire_on_node(handle, home_node, mode);
 }
@@ -368,7 +368,7 @@ void starpu_data_release_on_node(starpu_data_handle_t handle, int node)
 void starpu_data_release(starpu_data_handle_t handle)
 {
 	int home_node = handle->home_node;
-	if (home_node < 0 || starpu_node_get_kind(home_node) != STARPU_CPU_RAM)
+	if (home_node < 0)
 		home_node = STARPU_MAIN_RAM;
 	starpu_data_release_on_node(handle, home_node);
 }

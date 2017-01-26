@@ -615,6 +615,7 @@ static unsigned try_to_reuse_mem_chunk(struct _starpu_mem_chunk *mc, unsigned no
 	old_data = mc->data;
 
 	STARPU_ASSERT(old_data);
+	STARPU_ASSERT(old_data->home_node != node); /* Would be useless :) */
 
 	/* try to lock all the subtree */
 	/* and check if they are all "free" */
@@ -1585,6 +1586,7 @@ get_better_disk_can_accept_size(starpu_data_handle_t handle, unsigned node)
 			{
 				/* only time can change between disk <-> main_ram
 				 * and not between main_ram <-> worker if we compare diks*/
+				/* TODO: NUMA nodes */
 				double time_tmp = starpu_transfer_predict(i, STARPU_MAIN_RAM, _starpu_data_get_size(handle));
 				if (target == -1 || time_disk > time_tmp)
 				{

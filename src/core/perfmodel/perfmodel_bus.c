@@ -2534,6 +2534,7 @@ double starpu_transfer_predict(unsigned src_node, unsigned dst_node, size_t size
 	return latency + (size/bandwidth)*2*ngpus;
 }
 
+/* TODO: NUMA nodes */
 
 /* calculate save bandwidth and latency */
 /* bandwidth in MB/s - latency in µs */

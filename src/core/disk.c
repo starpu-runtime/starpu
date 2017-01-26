@@ -60,6 +60,7 @@ int starpu_disk_register(struct starpu_disk_ops *func, void *parameter, starpu_s
 	/* register disk */
 	unsigned memory_node = _starpu_memory_node_register(STARPU_DISK_RAM, 0);
 
+	/* TODO: all NUMA nodes actually... */
 	_starpu_register_bus(STARPU_MAIN_RAM, memory_node);
 	_starpu_register_bus(memory_node, STARPU_MAIN_RAM);
 

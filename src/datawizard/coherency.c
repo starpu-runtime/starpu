@@ -340,6 +340,7 @@ static int determine_request_path(starpu_data_handle_t handle,
 	unsigned handling_node;
 	int link_is_valid = link_supports_direct_transfers(handle, src_node, dst_node, &handling_node);
 
+	/* TODO: NUMA nodes */
 	if (!link_is_valid)
 	{
 		int (*can_copy)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, unsigned handling_node) = handle->ops->copy_methods->can_copy;
