@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2014,2016-2017                      Inria
- * Copyright (C) 2012,2014,2017                           CNRS
+ * Copyright (C) 2012,2014,2017,2018                      CNRS
  * Copyright (C) 2017                                     Universidade Federal do Rio Grande do Sul (UFRGS)
  * Copyright (C) 2010-2017                                Université de Bordeaux
  *
@@ -277,6 +277,8 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 	poti_DefineVariableType("bwo_mpi", "MPICt", "Bandwidth Out (MB/s)", "0 0 0");
 	poti_DefineStateType("CtS", "MPICt", "Communication Thread State");
 	poti_DefineEntityValue("P", "CtS", "Processing", "0 0 0");
+	poti_DefineEntityValue("Pl", "CtS", "Polling", "1.0 .5 0");
+	poti_DefineEntityValue("Dr", "CtS", "DriverRun", ".1 .1 1.0");
 	poti_DefineEntityValue("Sl", "CtS", "Sleeping", ".9 .1 .0");
 	poti_DefineEntityValue("UT", "CtS", "UserTesting", ".2 .1 .6");
 	poti_DefineEntityValue("UW", "CtS", "UserWaiting", ".4 .1 .3");
@@ -426,6 +428,8 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 ");
 	fprintf(file, "\
 6       P       CtS       Processing         \"0 0 0\"		\n\
+6       Pl       CtS      Polling	   \"1.0 .5 0\"		\n\
+6       Dr       CtS      DriverRun	   \".1 .1 1.0\"	\n\
 6       Sl       CtS      Sleeping         \".9 .1 .0\"		\n\
 6       UT       CtS      UserTesting        \".2 .1 .6\"	\n\
 6       UW       CtS      UserWaiting        \".4 .1 .3\"	\n\

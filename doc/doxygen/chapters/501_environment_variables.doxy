@@ -615,6 +615,30 @@ of one of the nodes of a big cluster without actually running the rest.
 It of course does not provide computation results and timing.
 </dd>
 
+<dt>STARPU_MPI_DRIVER_CALL_FREQUENCY</dt>
+<dd>
+\anchor STARPU_MPI_DRIVER_CALL_FREQUENCY
+\addindex __env__STARPU_MPI_DRIVER_CALL_FREQUENCY
+When set to a positive value, activates the interleaving of the execution of
+tasks with the progression of MPI communications (\ref MPISupport). The
+starpu_mpi_init_with_driver() function must have been called by the application
+for that environment variable to be used. When set to 0, the MPI progression
+thread does not use at all the driver given by the user, and only focuses on
+making MPI communications progress.
+</dd>
+
+<dt>STARPU_MPI_DRIVER_TASK_FREQUENCY</dt>
+<dd>
+\anchor STARPU_MPI_DRIVER_TASK_FREQUENCY
+\addindex __env__STARPU_MPI_DRIVER_TASK_FREQUENCY
+When set to a positive value, the interleaving of the execution of tasks with
+the progression of MPI communications mechanism to execute several tasks before
+checking communication requests again (\ref MPISupport). The
+starpu_mpi_init_with_driver() function must have been called by the application
+for that environment variable to be used, and the
+STARPU_MPI_DRIVER_CALL_FREQUENCY environment variable set to a positive value.
+</dd>
+
 <dt>STARPU_SIMGRID_CUDA_MALLOC_COST</dt>
 <dd>
 \anchor STARPU_SIMGRID_CUDA_MALLOC_COST

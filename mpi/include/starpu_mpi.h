@@ -56,6 +56,7 @@ int starpu_mpi_irecv_detached_sequential_consistency(starpu_data_handle_t data_h
 
 int starpu_mpi_init_comm(int *argc, char ***argv, int initialize_mpi, MPI_Comm comm);
 int starpu_mpi_init(int *argc, char ***argv, int initialize_mpi);
+int starpu_mpi_init_with_driver(int *argc, char ***argv, int initialize_mpi, struct starpu_conf *conf);
 int starpu_mpi_initialize(void) STARPU_DEPRECATED;
 int starpu_mpi_initialize_extended(int *rank, int *world_size) STARPU_DEPRECATED;
 int starpu_mpi_shutdown(void);

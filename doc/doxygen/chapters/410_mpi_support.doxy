@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2018                                CNRS
- * Copyright (C) 2011-2013,2017                           Inria
+ * Copyright (C) 2011-2013,2016,2017                      Inria
  * Copyright (C) 2009-2011,2013-2018                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -845,6 +845,46 @@ starpu_mpi_gather_detached(data_handles, nblocks, 0, MPI_COMM_WORLD);
 
 Other collective operations would be easy to define, just ask starpu-devel for
 them!
+
+\section MPIDriver Make StarPU-MPI progression thread execute tasks
+
+The default behaviour of StarPU-MPI is to spawn an MPI thread to take care only
+of MPI communications in an active fashion (i.e the StarPU-MPI thread sleeps
+only when there is no active request submitted by the application), with the
+goal of being as reactive as possible to communications. Knowing that, users
+usually leave one free core for the MPI thread when starting a distributed
+execution with StarPU-MPI.  However, this could result in a loss of performance
+for applications that does not require an extreme reactivity to MPI
+communications.
+
+The starpu_mpi_init_with_driver() routine allows the user to give the
+starpu_conf configuration structure of StarPU (usually given to the
+starpu_init() routine) to StarPU-MPI, so that StarPU-MPI reserves for its own
+use one of the CPU drivers of the current computing node, and then calls
+starpu_init() internally.
+
+This allows the MPI communication thread to call a StarPU CPU driver to run
+tasks when there is no active requests to take care of, and thus recover the
+computational power of the "lost" core. Since there is a trade-off between
+executing tasks and polling MPI requests, which is how much the application
+wants to lose in reactivity to MPI communications to get back the computing
+power of the core dedicated to the StarPU-MPI thread, there are two environment
+variables to pilot the behaviour of the MPI thread so that users can tune
+this trade-off depending of the behaviour of the application.
+
+The \ref STARPU_MPI_DRIVER_CALL_FREQUENCY environment variable sets how many times
+the MPI progression thread goes through the MPI_Test() loop on each active communication request
+(and thus try to make communications progress by going into the MPI layer)
+before executing tasks. The default value for this environment variable is 0,
+which means that the support for interleaving task execution and communication
+polling is deactivated, thus returning the MPI progression thread to its
+original behaviour.
+
+The \ref STARPU_MPI_DRIVER_TASK_FREQUENCY environment variable sets how many tasks
+are executed by the MPI communication thread before checking all active
+requests again. While this environment variable allows a better use of the core
+dedicated to StarPU-MPI for computations, it also decreases the reactivity of
+the MPI communication thread as much.
 
 \section MPIDebug Debugging MPI
 

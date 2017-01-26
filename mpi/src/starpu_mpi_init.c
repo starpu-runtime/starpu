@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2018                                CNRS
  * Copyright (C) 2009-2018                                Université de Bordeaux
  * Copyright (C) 2016                                     Inria
  *
@@ -35,6 +35,7 @@
 #if defined(STARPU_USE_MPI_MPI)
 #include <mpi/starpu_mpi_comm.h>
 #include <mpi/starpu_mpi_tag.h>
+#include <mpi/starpu_mpi_driver.h>
 #endif
 
 #ifdef STARPU_SIMGRID
@@ -177,6 +178,18 @@ int starpu_mpi_initialize_extended(int *rank, int *world_size)
 #endif
 }
 
+int starpu_mpi_init_with_driver(int *argc, char ***argv, int initialize_mpi, struct starpu_conf *conf)
+{
+#if defined(STARPU_USE_MPI_MPI)
+	_starpu_mpi_driver_init(conf);
+#endif
+
+	int ret = starpu_init(conf);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+
+	return starpu_mpi_init(argc, argv, initialize_mpi);
+}
+
 int starpu_mpi_shutdown(void)
 {
 	void *value;
@@ -197,6 +210,7 @@ int starpu_mpi_shutdown(void)
 #if defined(STARPU_USE_MPI_MPI)
 	_starpu_mpi_tag_shutdown();
 	_starpu_mpi_comm_shutdown();
+	_starpu_mpi_driver_shutdown();
 #endif
 
 	return 0;
