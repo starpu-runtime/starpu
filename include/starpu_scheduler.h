@@ -55,7 +55,6 @@ struct starpu_sched_policy
 };
 
 struct starpu_sched_policy **starpu_sched_get_predefined_policies();
-void starpu_sched_policy_set_post_exec_hook(void (*post_exec_hook)(struct starpu_task *task, unsigned sched_ctx_id), const char *policy_name);
 
 void starpu_worker_get_sched_condition(int workerid, starpu_pthread_mutex_t **sched_mutex, starpu_pthread_cond_t **sched_cond);
 
