@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2009-2013, 2015-2016  Université de Bordeaux
-# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
 # Copyright (C) 2016  Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -108,13 +108,19 @@ AM_LDFLAGS = $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(FXT_LDFLAGS) $(ST
 ###################
 if BUILD_EXAMPLES
 examplebin_PROGRAMS +=				\
-	stencil/stencil5
+	stencil/stencil5			\
+	stencil/stencil5_lb
 
 stencil_stencil5_LDADD =		\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la -lm
 
+stencil_stencil5_lb_LDADD =		\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la -lm
+
 starpu_mpi_EXAMPLES	+=	\
-	stencil/stencil5
+	stencil/stencil5	\
+	stencil/stencil5_lb
+
 endif
 
 ##################
