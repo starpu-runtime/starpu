@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2009-2017  Université de Bordeaux
-# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
 # Copyright (C) 2011  Télécom-SudParis
 # Copyright (C) 2011, 2012, 2014-2016  INRIA
 #
@@ -120,6 +120,8 @@ if test "$svncommand" != "" ; then
       svndir=1
    fi
 fi
+AC_MSG_CHECKING(if $srcdir is a subversion directory)
+AC_MSG_RESULT($svndir)
 
 # use svnversion to record the current repository revision only if
 # subversion is installed and we are in a working copy
