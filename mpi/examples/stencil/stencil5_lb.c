@@ -69,12 +69,6 @@ int my_distrib(int x, int y, int nb_nodes)
 	return ((int)(x / sqrt(nb_nodes) + (y / sqrt(nb_nodes)) * sqrt(nb_nodes))) % nb_nodes;
 }
 
-/* Shifted distribution, for migration example */
-int my_distrib2(int x, int y, int nb_nodes)
-{
-	return (my_distrib(x, y, nb_nodes) + 1) % nb_nodes;
-}
-
 static void parse_args(int argc, char **argv)
 {
 	int i;
@@ -97,9 +91,22 @@ void get_neighbors(int **neighbor_ids, int *nneighbors)
 	int ret, rank, size;
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
-	*nneighbors = 1;
-	*neighbor_ids = malloc(sizeof(int));
-	*neighbor_ids[0] = rank==size-1?0:rank+1;
+
+	if (size <= 2)
+	{
+		*nneighbors = 1;
+		*neighbor_ids = malloc(sizeof(int));
+		*neighbor_ids[0] = rank==size-1?0:rank+1;
+		fprintf(stderr, "rank %d has neighbor %d\n", rank, *neighbor_ids[0]);
+	}
+	else
+	{
+		*nneighbors = 2;
+		*neighbor_ids = malloc(2*sizeof(int));
+		(*neighbor_ids)[0] = rank==size-1?0:rank+1;
+		(*neighbor_ids)[1] = rank==0?size-1:rank-1;
+		fprintf(stderr, "rank %d has neighbor %d and %d\n", rank, (*neighbor_ids)[0], (*neighbor_ids)[1]);
+	}
 }
 
 struct data_node
@@ -149,6 +156,13 @@ int main(int argc, char **argv)
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &my_rank);
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
 
+	if (size > 2)
+	{
+		FPRINTF(stderr, "Only works with 2 nodes\n");
+		starpu_mpi_shutdown();
+		starpu_shutdown();
+		return 77;
+	}
 	if (starpu_cpu_worker_get_count() == 0)
 	{
 		FPRINTF(stderr, "We need at least 1 CPU worker.\n");
@@ -246,10 +260,6 @@ int main(int argc, char **argv)
 		{
 			if (data_nodes[x][y].data_handle)
 			{
-				int mpi_rank = my_distrib(x, y, size);
-				/* Get back data to original place where the user-provided buffer is. */
-				starpu_mpi_data_migrate(MPI_COMM_WORLD, data_nodes[x][y].data_handle, mpi_rank);
-				/* And unregister it */
 				starpu_data_unregister(data_nodes[x][y].data_handle);
 			}
 		}
