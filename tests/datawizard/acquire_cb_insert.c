@@ -114,8 +114,15 @@ int main(int argc, char **argv)
 	starpu_data_acquire_cb(x_handle, STARPU_R, callback, NULL);
 #endif
 
+	/* Wait for acquisition (and thus insertion) */
+	starpu_data_acquire(x_handle, STARPU_W);
+	starpu_data_release(x_handle);
+
+	/* Now wait for the inserted task */
 	ret = starpu_task_wait_for_all();
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
+
+	/* Can now clean */
 	starpu_data_unpartition(f_handle, STARPU_MAIN_RAM);
 	starpu_data_unregister(f_handle);
 	starpu_data_unregister(x_handle);
