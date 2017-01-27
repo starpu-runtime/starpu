@@ -114,13 +114,13 @@ static void balance(starpu_data_handle_t load_data_cpy)
 	/* We found it */
 	if (less_loaded >= 0)
 	{
+		_STARPU_DEBUG("Less loaded found on node %d : %d\n", my_rank, less_loaded);
 		double diff_time = my_elapsed_time - ref_elapsed_time;
 		/* If the difference is higher than a time threshold, we move
 		 * one data to the less loaded neighbour. */
 		/* TODO: How to decide the time threshold ? */
 		if ((time_threshold > 0) && (diff_time >= time_threshold))
 		{
-			//fprintf(stderr,"Less loaded found on node %d : %d\n", my_rank, less_loaded);
 			starpu_data_handle_t *handles = NULL;
 			int nhandles = 0;
 			user_itf->get_data_unit_to_migrate(&handles, &nhandles, less_loaded);
@@ -165,6 +165,7 @@ static void exchange_load_data_infos(starpu_data_handle_t load_data_cpy)
 	 * data from neighbour nodes */
 	for (i = 0; i < nneighbors; i++)
 	{
+		//_STARPU_DEBUG("[node %d] sending and receiving with %i-th neighbor %i\n", my_rank, i, neighbor_ids[i]);
 		starpu_mpi_isend(load_data_cpy, &load_send_req[i], neighbor_ids[i], TAG_LOAD(my_rank), MPI_COMM_WORLD);
 		starpu_mpi_irecv(neighbor_load_data_handles[i], &load_recv_req[i], neighbor_ids[i], TAG_LOAD(neighbor_ids[i]), MPI_COMM_WORLD);
 	}
@@ -205,9 +206,8 @@ static void exchange_data_movements_infos()
 	{
 		if (i != my_rank)
 		{
-			//fprintf(stderr,"Send data movement of %d to %d\n", my_rank, i);
+			//_STARPU_DEBUG("[node %d] Send and receive data movement with %d\n", my_rank, i);
 			starpu_mpi_isend(data_movements_handles[my_rank], &data_movements_send_req[i], i, TAG_MOV(my_rank), MPI_COMM_WORLD);
-			//fprintf(stderr,"Receive data movement from %d on %d\n", i, my_rank);
 			starpu_mpi_irecv(data_movements_handles[i], &data_movements_recv_req[i], i, TAG_MOV(i), MPI_COMM_WORLD);
 		}
 	}
@@ -284,12 +284,12 @@ static void update_data_ranks()
 				//        fprintf(stderr,"Bring back data %p (tag %d) from node %d on node %d\n", handle, (data_movements_get_tags_table(data_movements_handles[i]))[j], starpu_mpi_data_get_rank(handle), my_rank);
 				//}
 
-				//fprintf(stderr,"Call of starpu_mpi_get_data_on_node(%d,%d) on node %d\n", starpu_mpi_data_get_tag(handle), dst_rank, my_rank);
+				_STARPU_DEBUG("Call of starpu_mpi_get_data_on_node(%d,%d) on node %d\n", starpu_mpi_data_get_tag(handle), dst_rank, my_rank);
 
 				/* Migrate the data handle */
 				starpu_mpi_get_data_on_node_detached(MPI_COMM_WORLD, handle, dst_rank, NULL, NULL);
 
-				//fprintf(stderr,"New rank (%d) of data %d upgraded on node %d\n", dst_rank, starpu_mpi_data_get_tag(handle), my_rank);
+				_STARPU_DEBUG("New rank (%d) of data %d upgraded on node %d\n", dst_rank, starpu_mpi_data_get_tag(handle), my_rank);
 				starpu_mpi_data_set_rank_comm(handle, dst_rank, MPI_COMM_WORLD);
 			}
 		}
@@ -370,7 +370,7 @@ static void submitted_task_heat(struct starpu_task *task)
 		void* itf_dst = starpu_data_get_interface_on_node(*load_data_handle_cpy, STARPU_MAIN_RAM);
 		memcpy(itf_dst, itf_src, itf_load_data->interface_size);
 
-		fprintf(stderr,"Balance phase %d on node %d\n", load_data_get_current_phase(*load_data_handle), my_rank);
+		_STARPU_DEBUG("[node %d] Balance phase %d\n", my_rank, load_data_get_current_phase(*load_data_handle));
 		STARPU_PTHREAD_MUTEX_UNLOCK(&load_data_mutex);
 
 		heat_balance(*load_data_handle_cpy);
@@ -512,7 +512,7 @@ static void move_back_data()
 		int ndata_to_update = data_movements_get_size_tables(data_movements_handles[i]);
 		if (ndata_to_update)
 		{
-			//fprintf(stderr,"Move back %d data from table %d on node %d\n", ndata_to_update, i, my_rank);
+			_STARPU_DEBUG("Move back %d data from table %d on node %d\n", ndata_to_update, i, my_rank);
 
 			for (j = 0; j < ndata_to_update; j++)
 			{
