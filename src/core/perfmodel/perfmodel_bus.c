@@ -1697,9 +1697,39 @@ static void get_config_path(char *path, size_t maxlen)
 	get_bus_path("config", path, maxlen);
 }
 
+#if defined(STARPU_USE_MPI_MASTER_SLAVE)
+/* check if the master or one slave has to recalibrate */
+static int mpi_check_recalibrate(int my_recalibrate)
+{
+	int nb_mpi = _starpu_mpi_src_get_device_count() + 1;
+  int mpi_recalibrate[nb_mpi];
+
+  MPI_Allgather(&my_recalibrate, 1, MPI_INT, mpi_recalibrate, 1, MPI_INT, MPI_COMM_WORLD);
+
+  for (int i = 0; i < nb_mpi; i++)
+  {
+    if (mpi_recalibrate[i])
+    {
+      return 1;
+      break;
+    }
+  }
+	return 0;
+}
+#endif
+
 static void compare_value_and_recalibrate(char * msg, unsigned val_file, unsigned val_detected)
 {
+		int recalibrate = 0;
     if (val_file != val_detected)
+			recalibrate = 1;
+
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+	//Send to each other to know if we had to recalibrate because someone cannot have the correct value in the config file
+	recalibrate = mpi_check_recalibrate(recalibrate);
+#endif
+
+		if (recalibrate)
     {
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
         /* Only the master prints the message */
@@ -1731,20 +1761,7 @@ static void check_bus_config_file(void)
 
 #if defined(STARPU_USE_MPI_MASTER_SLAVE)
 	//Send to each other to know if we had to recalibrate because someone cannot have the config file
-	int nb_mpi = _starpu_mpi_src_get_device_count() + 1;
-	int mpi_recalibrate[nb_mpi];
-
-	MPI_Allgather(&recalibrate, 1, MPI_INT, mpi_recalibrate, 1, MPI_INT, MPI_COMM_WORLD);
-
-
-	for (int i = 0; i < nb_mpi; i++)
-	{
-		if (mpi_recalibrate[i])
-		{
-			recalibrate = 1;	
-			break;
-		}
-	}
+	recalibrate = mpi_check_recalibrate(recalibrate);
 #endif
 
 	if (recalibrate)
@@ -1754,8 +1771,8 @@ static void check_bus_config_file(void)
 		_starpu_bus_force_sampling();
 		if (res)
 			_STARPU_DISP("... done\n");
-        }
-        else
+	}
+	else
 	{
         FILE *f;
         int ret;
