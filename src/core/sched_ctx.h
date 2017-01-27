@@ -168,6 +168,10 @@ struct _starpu_sched_ctx
 	/* perf model for the device comb of the ctx */
 	struct starpu_perfmodel_arch perf_arch;
 
+	/* For parallel workers, say whether it is viewed as sequential or not. This
+		 is a helper for the prologue code. */
+	unsigned parallel_view;
+
 	/* for ctxs without policy: flag to indicate that we want to get
 	   the threads to sleep in order to replace them with other threads or leave
 	   them awake & use them in the parallel code*/

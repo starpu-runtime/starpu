@@ -101,7 +101,14 @@ int main(int argc, char **argv)
 				    STARPU_VALUE,&size,sizeof(int),
 				    0);
 		t->destroy = 1;
-		t->possibly_parallel = 1;
+		/* For two tasks, try out the case when the task isn't parallel and expect
+			 the configuration to be sequential due to this, then automatically changed
+			 back to the parallel one */
+		if (i<=4 || i > 6)
+			t->possibly_parallel = 1;
+		/* Note that this mode requires that you put a prologue callback managing
+			 this on all tasks to be taken into account. */
+		t->prologue_callback_pop_func = &starpu_openmp_prologue;
 
 		ret=starpu_task_submit(t);
 		if (ret == -ENODEV)

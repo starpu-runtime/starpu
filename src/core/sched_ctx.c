@@ -566,6 +566,7 @@ struct _starpu_sched_ctx* _starpu_create_sched_ctx(struct starpu_sched_policy *p
 		sched_ctx->sleeping[w] = 0;
 	}
 
+	sched_ctx->parallel_view = 0;
 
         /*init the strategy structs and the worker_collection of the ressources of the context */
 	if(policy)

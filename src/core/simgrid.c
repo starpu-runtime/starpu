@@ -233,6 +233,9 @@ static int main_ret;
 
 int do_starpu_main(int argc, char *argv[])
 {
+	/* FIXME: Ugly work-around for bug in simgrid: the MPI context is not properly set at MSG process startup */
+	MSG_process_sleep(0.000001);
+
 	main_ret = starpu_main(argc, argv);
 	return main_ret;
 }
@@ -342,6 +345,9 @@ static struct task *last_task[STARPU_NMAXWORKERS];
 /* Actually execute the task.  */
 static int task_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED)
 {
+	/* FIXME: Ugly work-around for bug in simgrid: the MPI context is not properly set at MSG process startup */
+	MSG_process_sleep(0.000001);
+
 	struct task *task = starpu_pthread_getspecific(0);
 	_STARPU_DEBUG("task %p started\n", task);
 	MSG_task_execute(task->task);
@@ -530,6 +536,9 @@ static int transfers_are_sequential(struct transfer *new_transfer, struct transf
 /* Actually execute the transfer, and then start transfers waiting for this one.  */
 static int transfer_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED)
 {
+	/* FIXME: Ugly work-around for bug in simgrid: the MPI context is not properly set at MSG process startup */
+	MSG_process_sleep(0.000001);
+
 	struct transfer *transfer = starpu_pthread_getspecific(0);
 	unsigned i;
 	_STARPU_DEBUG("transfer %p started\n", transfer);
@@ -690,6 +699,9 @@ _starpu_simgrid_thread_start(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[])
 	void *(*f)(void*) = (void*) (uintptr_t) strtol(argv[0], NULL, 16);
 	void *arg = (void*) (uintptr_t) strtol(argv[1], NULL, 16);
 
+	/* FIXME: Ugly work-around for bug in simgrid: the MPI context is not properly set at MSG process startup */
+	MSG_process_sleep(0.000001);
+
 	/* _args is freed with process context */
 	f(arg);
 	return 0;
@@ -813,7 +825,15 @@ typedef struct{
 
 static int _starpu_simgrid_xbt_thread_create_wrapper(int argc, char *argv[])
 {
-  smx_process_t self = SIMIX_process_self();
+  /* FIXME: Ugly work-around for bug in simgrid: the MPI context is not properly set at MSG process startup */
+  MSG_process_sleep(0.000001);
+
+#ifdef HAVE_SMX_ACTOR_T
+  smx_actor_t
+#else
+  smx_process_t
+#endif
+	  self = SIMIX_process_self();
   thread_data_t *t = SIMIX_process_self_get_data(self);
   simcall_process_set_data(self, t->father_data);
   t->code(t->userparam);
