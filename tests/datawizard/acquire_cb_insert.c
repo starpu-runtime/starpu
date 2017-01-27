@@ -111,7 +111,7 @@ int main(int argc, char **argv)
 			starpu_task_insert(&work, STARPU_W, starpu_data_get_sub_data(f_handle, 1, x), 0)
 			);
 #else
-	starpu_data_acquire_cb(x_handle, STARPU_W, callback, NULL);
+	starpu_data_acquire_cb(x_handle, STARPU_R, callback, NULL);
 #endif
 
 	ret = starpu_task_wait_for_all();
