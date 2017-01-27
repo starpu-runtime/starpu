@@ -17,6 +17,7 @@
 
 #include <starpu_mpi.h>
 #include <common/uthash.h>
+#include <common/utils.h>
 #include <math.h>
 
 #include "load_balancer_policy.h"
@@ -409,7 +410,10 @@ static int init_heat(struct starpu_mpi_lb_conf *itf)
 
 	/* Immediately return if the starpu_mpi_lb_conf is invalid. */
 	if (!(itf && itf->get_neighbors && itf->get_data_unit_to_migrate))
+	{
+		_STARPU_MSG("Error: struct starpu_mpi_lb_conf %p invalid\n", itf);
 		return 1;
+	}
 
 	user_itf = malloc(sizeof(struct starpu_mpi_lb_conf));
 	memcpy(user_itf, itf, sizeof(struct starpu_mpi_lb_conf));;
@@ -418,6 +422,7 @@ static int init_heat(struct starpu_mpi_lb_conf *itf)
 	user_itf->get_neighbors(&neighbor_ids, &nneighbors);
 	if (nneighbors == 0)
 	{
+		_STARPU_MSG("Error: Function get_neighbors returning 0 neighbor\n");
 		free(user_itf);
 		user_itf = NULL;
 		return 2;

@@ -24,9 +24,9 @@ extern "C" {
 
 struct starpu_mpi_lb_conf
 {
-    void (*get_neighbors)(int **neighbor_ids, int *nneighbors);
-    void (*get_data_unit_to_migrate)(starpu_data_handle_t **handle_unit, int *nhandles, int dst_node);
-    const char *name;
+	void (*get_neighbors)(int **neighbor_ids, int *nneighbors);
+	void (*get_data_unit_to_migrate)(starpu_data_handle_t **handle_unit, int *nhandles, int dst_node);
+	const char *name;
 };
 
 /* Inits the load balancer's environment with the load policy provided by the

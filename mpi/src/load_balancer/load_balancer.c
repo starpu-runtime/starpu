@@ -20,6 +20,7 @@
 #include <starpu.h>
 #include <starpu_mpi.h>
 #include <starpu_scheduler.h>
+#include <common/utils.h>
 
 #include <starpu_mpi_lb.h>
 #include "policy/load_balancer_policy.h"
@@ -44,15 +45,17 @@ static struct load_balancer_policy *predefined_policies[] =
 
 void starpu_mpi_lb_init(struct starpu_mpi_lb_conf *itf)
 {
+	int ret;
+
 	const char *policy_name = starpu_getenv("STARPU_MPI_LB");
 	if (!policy_name && itf)
 		policy_name = itf->name;
 
 	if (!policy_name || (strcmp(policy_name, "help") == 0))
 	{
-		fprintf(stderr,"Warning : load balancing is disabled for this run.\n");
-		fprintf(stderr,"Use the STARPU_MPI_LB = <name> environment variable to use a load balancer.\n");
-		fprintf(stderr,"Available load balancers :\n");
+		_STARPU_MSG("Warning : load balancing is disabled for this run.\n");
+		_STARPU_MSG("Use the STARPU_MPI_LB = <name> environment variable to use a load balancer.\n");
+		_STARPU_MSG("Available load balancers :\n");
 		struct load_balancer_policy **policy;
 		for(policy=predefined_policies ; *policy!=NULL ; policy++)
 		{
@@ -82,13 +85,14 @@ void starpu_mpi_lb_init(struct starpu_mpi_lb_conf *itf)
 
 	if (!defined_policy)
 	{
-		fprintf(stderr,"Error : no load balancer with the name %s. Load balancing will be disabled for this run.\n", policy_name);
+		_STARPU_MSG("Error : no load balancer with the name %s. Load balancing will be disabled for this run.\n", policy_name);
 		return;
 	}
 
-	if (defined_policy->init(itf) != 0)
+	ret = defined_policy->init(itf);
+	if (ret != 0)
 	{
-		fprintf(stderr,"Error in load_balancer->init: invalid starpu_mpi_lb_conf. Load balancing will be disabled for this run.\n");
+		_STARPU_MSG("Error (%d) in %s->init: invalid starpu_mpi_lb_conf. Load balancing will be disabled for this run.\n", ret, defined_policy->policy_name);
 		return;
 	}
 
@@ -119,6 +123,8 @@ void starpu_mpi_lb_init(struct starpu_mpi_lb_conf *itf)
 		}
 		starpu_sched_policy_set_post_exec_hook(post_exec_hook_wrapper, sched_policy_name);
 	}
+
+	return;
 }
 
 void starpu_mpi_lb_shutdown()
