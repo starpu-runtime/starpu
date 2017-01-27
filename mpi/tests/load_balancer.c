@@ -18,9 +18,9 @@
 #include <starpu_mpi_lb.h>
 #include "helper.h"
 
-#if !defined(STARPU_HAVE_SETENV) && !defined(STARPU_HAVE_UNSETENV)
+#if !defined(STARPU_HAVE_UNSETENV)
 
-#warning setenv and unsetenv are not defined. Skipping test
+#warning unsetenv is not defined. Skipping test
 int main(int argc, char **argv)
 {
 	return STARPU_TEST_SKIPPED;
