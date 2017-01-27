@@ -58,7 +58,7 @@ struct starpu_sched_policy **starpu_sched_get_predefined_policies();
 
 void starpu_worker_get_sched_condition(int workerid, starpu_pthread_mutex_t **sched_mutex, starpu_pthread_cond_t **sched_cond);
 
-/* This function must be called to wake up a worker that is sleeping on the cond.
+/* This function must be called to wake up a worker that is sleeping on the cond. 
  * It returns 0 whenever the worker is not in a sleeping state */
 int starpu_wake_worker(int workerid);
 int starpu_wakeup_worker(int workerid, starpu_pthread_cond_t *cond, starpu_pthread_mutex_t *mutex);
