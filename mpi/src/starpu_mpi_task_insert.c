@@ -40,17 +40,16 @@ static void (*pre_submit_hook)(struct starpu_task *task) = NULL;
 
 int starpu_mpi_pre_submit_hook_register(void (*f)(struct starpu_task *))
 {
-    if (pre_submit_hook)
-        fprintf(stderr,"Warning: a pre_submit_hook has already been registered.\nPlease check if you really want to erase the previously registered hook.\n");
-
-    pre_submit_hook = f; 
-    return 0;
+	if (pre_submit_hook)
+		_STARPU_MSG("Warning: a pre_submit_hook has already been registered. Please check if you really want to erase the previously registered hook.\n");
+	pre_submit_hook = f;
+	return 0;
 }
 
 int starpu_mpi_pre_submit_hook_unregister()
 {
-    pre_submit_hook = NULL;
-    return 0;
+	pre_submit_hook = NULL;
+	return 0;
 }
 
 int _starpu_mpi_find_executee_node(starpu_data_handle_t data, enum starpu_data_access_mode mode, int me, int *do_execute, int *inconsistent_execute, int *xrank)
@@ -547,10 +546,10 @@ int _starpu_mpi_task_insert_v(MPI_Comm comm, struct starpu_codelet *codelet, va_
 
 	int val = _starpu_mpi_task_postbuild_v(comm, xrank, do_execute, descrs, nb_data);
 
-    if (ret == 0 && pre_submit_hook)
-        pre_submit_hook(task);
+	if (ret == 0 && pre_submit_hook)
+		pre_submit_hook(task);
 
-    return val;
+	return val;
 }
 
 int starpu_mpi_task_insert(MPI_Comm comm, struct starpu_codelet *codelet, ...)

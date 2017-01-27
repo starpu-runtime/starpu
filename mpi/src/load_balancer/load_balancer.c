@@ -26,15 +26,16 @@
 #include "policy/load_balancer_policy.h"
 
 static struct load_balancer_policy *defined_policy = NULL;
-static void (*saved_post_exec_hook)(struct starpu_task *task, unsigned sched_ctx_id) = NULL;
+typedef void (*_post_exec_hook_func_t)(struct starpu_task *task, unsigned sched_ctx_id);
+static _post_exec_hook_func_t saved_post_exec_hook[STARPU_NMAX_SCHED_CTXS];
 
 static void post_exec_hook_wrapper(struct starpu_task *task, unsigned sched_ctx_id)
 {
 	//fprintf(stderr,"I am called ! \n");
 	if (defined_policy && defined_policy->finished_task_entry_point)
 		defined_policy->finished_task_entry_point();
-	if (saved_post_exec_hook)
-		saved_post_exec_hook(task, sched_ctx_id);
+	if (saved_post_exec_hook[sched_ctx_id])
+		saved_post_exec_hook[sched_ctx_id](task, sched_ctx_id);
 }
 
 static struct load_balancer_policy *predefined_policies[] =
@@ -43,13 +44,13 @@ static struct load_balancer_policy *predefined_policies[] =
 	NULL
 };
 
-void starpu_mpi_lb_init(struct starpu_mpi_lb_conf *itf)
+void starpu_mpi_lb_init(const char *lb_policy_name, struct starpu_mpi_lb_conf *itf)
 {
 	int ret;
 
 	const char *policy_name = starpu_getenv("STARPU_MPI_LB");
-	if (!policy_name && itf)
-		policy_name = itf->name;
+	if (!policy_name)
+		policy_name = lb_policy_name;
 
 	if (!policy_name || (strcmp(policy_name, "help") == 0))
 	{
@@ -103,25 +104,19 @@ void starpu_mpi_lb_init(struct starpu_mpi_lb_conf *itf)
 	/* starpu_register_hook(finished_task, defined_policy->finished_task_entry_point); */
 	if (defined_policy->finished_task_entry_point)
 	{
-		STARPU_ASSERT(saved_post_exec_hook == NULL);
-		struct starpu_sched_policy **predefined_sched_policies = starpu_sched_get_predefined_policies();
-		struct starpu_sched_policy **sched_policy;
-		const char *sched_policy_name = starpu_getenv("STARPU_SCHED");
-
-		if (!sched_policy_name)
-			sched_policy_name = "eager";
-
-		for(sched_policy=predefined_sched_policies ; *sched_policy!=NULL ; sched_policy++)
+		int i;
+		for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
 		{
-			struct starpu_sched_policy *sched_p = *sched_policy;
-			if (strcmp(sched_policy_name, sched_p->policy_name) == 0)
+			struct starpu_sched_policy *sched_policy = starpu_sched_ctx_get_sched_policy(i);
+			if (sched_policy)
 			{
-				/* We found the scheduling policy with the requested name */
-				saved_post_exec_hook = sched_p->post_exec_hook;
-				break;
+				_STARPU_DEBUG("Setting post_exec_hook for scheduling context %d %s (%d)\n", i, sched_policy->policy_name, STARPU_NMAX_SCHED_CTXS);
+				saved_post_exec_hook[i] = sched_policy->post_exec_hook;
+				sched_policy->post_exec_hook = post_exec_hook_wrapper;
 			}
+			else
+				saved_post_exec_hook[i] = NULL;
 		}
-		starpu_sched_policy_set_post_exec_hook(post_exec_hook_wrapper, sched_policy_name);
 	}
 
 	return;
@@ -132,35 +127,30 @@ void starpu_mpi_lb_shutdown()
 	if (!defined_policy)
 		return;
 
-	if (defined_policy && defined_policy->deinit())
+	int ret = defined_policy->deinit();
+	if (ret != 0)
+	{
+		_STARPU_MSG("Error (%d) in %s->deinit\n", ret, defined_policy->policy_name);
 		return;
+	}
 
 	/* starpu_unregister_hook(submitted_task, defined_policy->submitted_task_entry_point); */
 	if (defined_policy->submitted_task_entry_point)
 		starpu_mpi_pre_submit_hook_unregister();
 
 	/* starpu_unregister_hook(finished_task, defined_policy->finished_task_entry_point); */
-	if (defined_policy->finished_task_entry_point && saved_post_exec_hook != NULL)
+	if (defined_policy->finished_task_entry_point)
 	{
-		struct starpu_sched_policy **predefined_sched_policies = starpu_sched_get_predefined_policies();
-		struct starpu_sched_policy **sched_policy;
-		const char *sched_policy_name = starpu_getenv("STARPU_SCHED");
-
-		if (!sched_policy_name)
-			sched_policy_name = "eager";
-
-		for(sched_policy=predefined_sched_policies ; *sched_policy!=NULL ; sched_policy++)
+		int i;
+		for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
 		{
-			struct starpu_sched_policy *sched_p = *sched_policy;
-			if (strcmp(sched_policy_name, sched_p->policy_name) == 0)
+			if (saved_post_exec_hook[i])
 			{
-				/* We found the scheduling policy with the requested name */
-				sched_p->post_exec_hook = saved_post_exec_hook;
-				saved_post_exec_hook = NULL;
-				break;
+				struct starpu_sched_policy *sched_policy = starpu_sched_ctx_get_sched_policy(i);
+				sched_policy->post_exec_hook = saved_post_exec_hook[i];
+				saved_post_exec_hook[i] = NULL;
 			}
 		}
 	}
-	STARPU_ASSERT(saved_post_exec_hook == NULL);
 	defined_policy = NULL;
 }

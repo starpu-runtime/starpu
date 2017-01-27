@@ -26,13 +26,12 @@ struct starpu_mpi_lb_conf
 {
 	void (*get_neighbors)(int **neighbor_ids, int *nneighbors);
 	void (*get_data_unit_to_migrate)(starpu_data_handle_t **handle_unit, int *nhandles, int dst_node);
-	const char *name;
 };
 
 /* Inits the load balancer's environment with the load policy provided by the
  * user
  */
-void starpu_mpi_lb_init(struct starpu_mpi_lb_conf *);
+void starpu_mpi_lb_init(const char *lb_policy_name, struct starpu_mpi_lb_conf *);
 void starpu_mpi_lb_shutdown();
 
 #ifdef __cplusplus

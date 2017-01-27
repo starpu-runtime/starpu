@@ -39,7 +39,7 @@ void get_neighbors(int **neighbor_ids, int *nneighbors)
 
 void get_data_unit_to_migrate(starpu_data_handle_t **handle_unit, int *nhandles, int dst_node)
 {
-	STARPU_ASSERT(0);
+	*nhandles = 0;
 }
 
 int main(int argc, char **argv)
@@ -49,7 +49,6 @@ int main(int argc, char **argv)
 
 	itf.get_neighbors = get_neighbors;
 	itf.get_data_unit_to_migrate = get_data_unit_to_migrate;
-	itf.name = "my_itf";
 
 	MPI_Init(&argc, &argv);
 	ret = starpu_init(NULL);
@@ -58,11 +57,11 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
 
 	unsetenv("STARPU_MPI_LB");
-	starpu_mpi_lb_init(NULL);
+	starpu_mpi_lb_init(NULL, NULL);
 	starpu_mpi_lb_shutdown();
 
-	setenv("STARPU_MPI_LB", "heat", 1);
-	starpu_mpi_lb_init(&itf);
+	starpu_mpi_lb_init("heat", &itf);
+	starpu_mpi_lb_shutdown();
 
 	starpu_mpi_shutdown();
 	starpu_shutdown();

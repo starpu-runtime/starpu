@@ -554,11 +554,13 @@ static int deinit_heat()
 	if ((!user_itf) || (nneighbors == 0))
 		return 1;
 
+	_STARPU_DEBUG("Shutting down heat lb policy\n");
+
 	unsigned int ndata_to_move_back = HASH_COUNT(mdh);
 
 	if (ndata_to_move_back)
 	{
-		//fprintf(stderr,"Move back %u data on node %d ..\n", ndata_to_move_back, my_rank);
+		_STARPU_DEBUG("Move back %u data on node %d ..\n", ndata_to_move_back, my_rank);
 		data_movements_reallocate_tables(data_movements_handles[my_rank], ndata_to_move_back);
 
 		int *tags = data_movements_get_tags_table(data_movements_handles[my_rank]);
