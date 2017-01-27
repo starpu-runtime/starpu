@@ -75,8 +75,6 @@ void starpu_mpi_comm_amounts_retrieve(size_t *comm_amounts);
 void starpu_mpi_cache_flush(MPI_Comm comm, starpu_data_handle_t data_handle);
 void starpu_mpi_cache_flush_all_data(MPI_Comm comm);
 
-starpu_data_handle_t starpu_mpi_get_data_from_sent_cache(int dst_node);
-
 int starpu_mpi_comm_size(MPI_Comm comm, int *size);
 int starpu_mpi_comm_rank(MPI_Comm comm, int *rank);
 int starpu_mpi_world_rank(void);
@@ -99,7 +97,6 @@ int starpu_mpi_data_get_tag(starpu_data_handle_t handle);
 #define starpu_data_get_rank starpu_mpi_data_get_rank
 #define starpu_data_get_tag starpu_mpi_data_get_tag
 
-starpu_data_handle_t starpu_mpi_data_get_data_handle_from_tag(int tag);
 void starpu_mpi_data_migrate(MPI_Comm comm, starpu_data_handle_t handle, int new_rank);
 
 #define STARPU_MPI_NODE_SELECTION_CURRENT_POLICY -1

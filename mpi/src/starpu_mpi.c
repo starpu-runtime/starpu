@@ -1306,7 +1306,7 @@ static void _starpu_mpi_receive_early_data(struct _starpu_mpi_envelope *envelope
 
 	starpu_data_handle_t data_handle = NULL;
 	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
-	data_handle = starpu_mpi_data_get_data_handle_from_tag(envelope->data_tag);
+	data_handle = _starpu_mpi_data_get_data_handle_from_tag(envelope->data_tag);
 	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 
 	if (data_handle && starpu_data_get_interface_id(data_handle) < STARPU_MAX_INTERFACE_ID)
@@ -1767,7 +1767,7 @@ int _starpu_mpi_initialize(int *argc, char ***argv, int initialize_mpi, MPI_Comm
  * create MSG processes to run application's main */
 int _starpu_mpi_simgrid_init(int argc, char *argv[])
 {
-	return _starpu_mpi_initialize(&argc, &argv, 1, MPI_COMM_WORLD, NULL);
+	return _starpu_mpi_initialize(&argc, &argv, 1, MPI_COMM_WORLD);
 }
 #endif
 

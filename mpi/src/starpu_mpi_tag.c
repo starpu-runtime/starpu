@@ -55,7 +55,7 @@ void _starpu_mpi_tag_free(void)
 	registered_tag_handles = NULL;
 }
 
-starpu_data_handle_t starpu_mpi_data_get_data_handle_from_tag(int tag)
+starpu_data_handle_t _starpu_mpi_data_get_data_handle_from_tag(int tag)
 {
 	struct handle_tag_entry *ret;
 
@@ -78,8 +78,8 @@ void _starpu_mpi_data_register_tag(starpu_data_handle_t handle, int tag)
 	struct handle_tag_entry *entry;
 	_STARPU_MPI_MALLOC(entry, sizeof(*entry));
 
-	STARPU_ASSERT_MSG(!(starpu_mpi_data_get_data_handle_from_tag(tag)),
-			  "There is already a data handle %p registered with the tag %d\n", starpu_mpi_data_get_data_handle_from_tag(tag), tag);
+	STARPU_ASSERT_MSG(!(_starpu_mpi_data_get_data_handle_from_tag(tag)),
+			  "There is already a data handle %p registered with the tag %d\n", _starpu_mpi_data_get_data_handle_from_tag(tag), tag);
 
 	_STARPU_MPI_DEBUG(42, "Adding handle %p with tag %d in hashtable\n", handle, tag);
 
