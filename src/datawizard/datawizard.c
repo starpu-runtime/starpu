@@ -75,7 +75,7 @@ int __starpu_datawizard_progress_ram(unsigned may_alloc, unsigned push_requests)
 	unsigned nb_numa_nodes = _starpu_get_nb_numa_nodes();
 	for (i=0; i<nb_numa_nodes; i++)
 	{
-		unsigned id = _starpu_numaid_to_memnode(i);
+		unsigned id = _starpu_numalogid_to_memnode(i);
 		res |= __starpu_datawizard_progress(id, may_alloc, push_requests);
 	}
 	return res;

@@ -108,6 +108,10 @@ data to StarPU, the specified memory node indicates where the piece of
 data initially resides (we also call this memory node the home node of
 a piece of data).
 
+In the case of NUMA systems, functions starpu_numaphysid_get_memory_node()
+and starpu_memory_node_get_numaphysid() can be used to convert from NUMA node
+numbers as seen by the Operating System and NUMA node numbers as seen by StarPU.
+
 \fn void starpu_data_register(starpu_data_handle_t *handleptr, int home_node, void *data_interface, struct starpu_data_interface_ops *ops)
 \ingroup API_Data_Management
 Register a piece of data into the handle located at the

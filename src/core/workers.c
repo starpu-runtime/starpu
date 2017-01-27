@@ -1520,7 +1520,7 @@ void starpu_shutdown(void)
 	unsigned nb_numa_nodes = _starpu_get_nb_numa_nodes();
 	for (i=0; i<nb_numa_nodes; i++)
 	{
-		unsigned id = _starpu_numaid_to_memnode(i);
+		unsigned id = _starpu_numalogid_to_memnode(i);
 		_starpu_free_all_automatically_allocated_buffers(id);
 	}
 

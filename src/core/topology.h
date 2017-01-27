@@ -66,8 +66,8 @@ void _starpu_bind_thread_on_cpus(struct _starpu_machine_config *config STARPU_AT
 
 void *_starpu_get_worker_from_driver(struct starpu_driver *d);
 
-int _starpu_numaid_to_memnode(unsigned numaid);
-int _starpu_memnode_to_numaid(unsigned memnode);
+int _starpu_numalogid_to_memnode(unsigned numalogid);
+int _starpu_memnode_to_numalogid(unsigned memnode);
 int _starpu_get_nb_numa_nodes(void);
 	
 #endif // __TOPOLOGY_H__

@@ -295,10 +295,10 @@ int _starpu_malloc_flags_on_node(unsigned dst_node, void **A, size_t dim, int fl
 #ifdef STARPU_HAVE_HWLOC
 	if (_starpu_get_nb_numa_nodes() > 1) {
 		hwloc_topology_t hwtopology = config->topology.hwtopology;
-		hwloc_obj_t numa_node_obj = hwloc_get_obj_by_type(hwtopology, HWLOC_OBJ_NODE, _starpu_memnode_to_numaid(dst_node));
+		hwloc_obj_t numa_node_obj = hwloc_get_obj_by_type(hwtopology, HWLOC_OBJ_NODE, _starpu_memnode_to_numalogid(dst_node));
 		hwloc_bitmap_t nodeset = numa_node_obj->nodeset;
 		*A = hwloc_alloc_membind_nodeset(hwtopology, dim, nodeset, HWLOC_MEMBIND_BIND | HWLOC_MEMBIND_NOCPUBIND, flags);
-		//fprintf(stderr, "Allocation %lu bytes on NUMA node %d [%p]\n", (unsigned long) dim, _starpu_memnode_to_numaid(dst_node), *A);
+		//fprintf(stderr, "Allocation %lu bytes on NUMA node %d [%p]\n", (unsigned long) dim, starpu_memnode_get_numaphysid(dst_node), *A);
 		if (!*A)
 			ret = -ENOMEM;
 	}
