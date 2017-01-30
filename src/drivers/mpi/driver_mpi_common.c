@@ -48,7 +48,7 @@ static void _starpu_mpi_set_src_node_id()
 		else if (id_proc == DRIVER_MPI_MASTER_NODE_DEFAULT)
 		{
 			/* Only one node prints the error message. */
-			fprintf(stderr, "The node you specify to be the master is "
+			_STARPU_DISP("The node you specify to be the master is "
 					"greater than the total number of nodes.\n"
 					"Taking node %d by default...\n", DRIVER_MPI_MASTER_NODE_DEFAULT);
 		}
@@ -85,9 +85,9 @@ int _starpu_mpi_common_mp_init()
             if (thread_support != required)
             {
                 if (required == MPI_THREAD_MULTIPLE)
-                    fprintf(stderr, "MPI doesn't support MPI_THREAD_MULTIPLE option. MPI Master-Slave can have problems if multiple slaves are launched. \n");
+                    _STARPU_DISP("MPI doesn't support MPI_THREAD_MULTIPLE option. MPI Master-Slave can have problems if multiple slaves are launched. \n");
                 if (required == MPI_THREAD_FUNNELED)
-                    fprintf(stderr, "MPI doesn't support MPI_THREAD_FUNNELED option. Many errors can occur. \n");
+                    _STARPU_DISP("MPI doesn't support MPI_THREAD_FUNNELED option. Many errors can occur. \n");
             }
         }
         
