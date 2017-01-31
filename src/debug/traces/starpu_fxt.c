@@ -91,6 +91,7 @@ struct task_info {
 	double start_time;
 	double end_time;
 	unsigned long footprint;
+	unsigned long kflops;
 	char *parameters;
 	unsigned int ndeps;
 	unsigned long *dependencies;
@@ -931,12 +932,15 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 		if (new_thread)
 			poti_CreateContainer(get_event_time_stamp(ev, options), new_thread_container_alias, "T", memnode_container, new_thread_container_name);
 		poti_CreateContainer(get_event_time_stamp(ev, options), new_worker_container_alias, "W", new_thread_container_alias, new_worker_container_name);
+		poti_SetVariable(get_event_time_stamp(ev, options), new_worker_container_alias, "gf", get_event_time_stamp(ev, options));
 #else
 		if (new_thread)
 			fprintf(out_paje_file, "7	%.9f	%st%lu	T	%smn%d	%s%d\n",
 				get_event_time_stamp(ev, options), prefix, threadid, prefix, nodeid, prefix, bindid);
 		fprintf(out_paje_file, "7	%.9f	%sw%d	W	%st%lu	%s%s%d\n",
 			get_event_time_stamp(ev, options), prefix, workerid, prefix, threadid, prefix, kindstr, devid);
+		fprintf(out_paje_file, "13	%.9f	%sw%d	gf	0.0\n",
+			get_event_time_stamp(ev, options), prefix, workerid);
 #endif
 	}
 
@@ -1271,7 +1275,8 @@ static void handle_codelet_details(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 
 	struct task_info *task = get_task(job_id, options->file_rank);
 	task->parameters = strdup(parameters);
-	task->footprint = ev->param[3];
+	task->footprint = ev->param[2];
+	task->kflops = ev->param[3];
 	task->tag = ev->param[4];
 
 	if (out_paje_file)
@@ -1279,9 +1284,9 @@ static void handle_codelet_details(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 
 #ifdef STARPU_ENABLE_PAJE_CODELET_DETAILS
 		char *prefix = options->file_prefix;
-		unsigned sched_ctx = ev->param[1];
+		unsigned sched_ctx = ev->param[0];
 
-		worker_set_detailed_state(last_codelet_start[worker], prefix, worker, _starpu_last_codelet_symbol[worker], ev->param[2], parameters, ev->param[3], ev->param[4], job_id);
+		worker_set_detailed_state(last_codelet_start[worker], prefix, worker, _starpu_last_codelet_symbol[worker], ev->param[1], parameters, ev->param[2], ev->param[4], job_id);
 		if (sched_ctx != 0)
 		{
 #ifdef STARPU_HAVE_POTI
@@ -1291,7 +1296,7 @@ static void handle_codelet_details(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 			worker_container_alias(container, STARPU_POTI_STR_LEN, prefix, worker);
 			poti_SetState(last_codelet_start[worker], container, ctx, _starpu_last_codelet_symbol[worker]);
 #else
-			fprintf(out_paje_file, "20	%.9f	%sw%d	Ctx%u	%s	%ld	%s	%08lx	%016lx	%lu\n", last_codelet_start[worker], prefix, worker, sched_ctx, _starpu_last_codelet_symbol[worker], ev->param[2], parameters,  ev->param[3], ev->param[4], job_id);
+			fprintf(out_paje_file, "20	%.9f	%sw%d	Ctx%u	%s	%ld	%s	%08lx	%016lx	%lu\n", last_codelet_start[worker], prefix, worker, sched_ctx, _starpu_last_codelet_symbol[worker], ev->param[1], parameters,  ev->param[2], ev->param[4], job_id);
 #endif
 		}
 #endif /* STARPU_ENABLE_PAJE_CODELET_DETAILS */
@@ -1320,10 +1325,24 @@ static void handle_end_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 		recfmt_worker_set_state(end_codelet_time, worker, "I", "Other");
 
 	double codelet_length = (end_codelet_time - last_codelet_start[worker]);
+	struct task_info *task = get_task(ev->param[0], options->file_rank);
+	double gflops = (((double)task->kflops) / 1000000) / (codelet_length / 1000);
 
 	get_task(ev->param[0], options->file_rank)->end_time = end_codelet_time;
 
 	update_accumulated_time(worker, 0.0, codelet_length, end_codelet_time, 0);
+
+#ifdef STARPU_HAVE_POTI
+	char container[STARPU_POTI_STR_LEN];
+	worker_container_alias(container, STARPU_POTI_STR_LEN, prefix, worker);
+	poti_SetVariable(task->start_time, container, "gf", gflops);
+	poti_SetVariable(end_codelet_time, container, "gf", 0);
+#else
+	fprintf(out_paje_file, "13	%.9f	%sw%u	gf	%f\n",
+			task->start_time, prefix, worker, gflops);
+	fprintf(out_paje_file, "13	%.9f	%sw%u	gf	%f\n",
+			end_codelet_time, prefix, worker, 0.);
+#endif
 
 	if (distrib_time)
 	     fprintf(distrib_time, "%s\t%s%d\t%ld\t%"PRIx32"\t%.9f\n", _starpu_last_codelet_symbol[worker],
