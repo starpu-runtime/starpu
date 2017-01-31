@@ -17,6 +17,7 @@
 #include <starpu.h>
 #include <common/utils.h>
 #include <common/thread.h>
+#include <common/fxt.h>
 #include <datawizard/memory_manager.h>
 #include <starpu_stdlib.h>
 
@@ -92,6 +93,7 @@ int starpu_memory_allocate(unsigned node, size_t size, int flags)
 
 		/* And take it */
 		used_size[node] += size;
+		_STARPU_TRACE_USED_MEM(node, used_size[node]);
 		ret = 0;
 
 		if (!--waiters[node])
@@ -104,6 +106,7 @@ int starpu_memory_allocate(unsigned node, size_t size, int flags)
 			|| used_size[node] + size <= global_size[node])
 	{
 		used_size[node] += size;
+		_STARPU_TRACE_USED_MEM(node, used_size[node]);
 		ret = 0;
 	}
 	else
@@ -119,6 +122,7 @@ void starpu_memory_deallocate(unsigned node, size_t size)
 	STARPU_PTHREAD_MUTEX_LOCK(&lock_nodes[node]);
 
 	used_size[node] -= size;
+	_STARPU_TRACE_USED_MEM(node, used_size[node]);
 
 	/* If there's now room for waiters, wake them */
 	if (min_waiting_size[node] &&

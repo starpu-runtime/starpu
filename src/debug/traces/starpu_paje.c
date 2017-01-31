@@ -160,8 +160,9 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 
 	/* Types for the memory node */
 	poti_DefineEventType("invalidate", "Mm", "data invalidation");
-	poti_DefineVariableType("bwi", "Mm", "Bandwidth In", "0 0 0");
-	poti_DefineVariableType("bwo", "Mm", "Bandwidth Out", "0 0 0");
+	poti_DefineVariableType("use", "Mm", "Used (MB)", "0 0 0");
+	poti_DefineVariableType("bwi", "Mm", "Bandwidth In (MB/s)", "0 0 0");
+	poti_DefineVariableType("bwo", "Mm", "Bandwidth Out (MB/s)", "0 0 0");
 	poti_DefineStateType("MS", "Mm", "Memory Node State");
 	poti_DefineEntityValue("A", "MS", "Allocating", ".4 .1 .0");
 	poti_DefineEntityValue("Ar", "MS", "AllocatingReuse", ".1 .1 .8");
@@ -301,8 +302,9 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 3       MS       Mm       \"Memory Node State\"                        \n\
 4       nsubmitted    Sc       \"Number of Submitted Uncompleted Tasks\"                        \n\
 4       nready    Sc       \"Number of Ready Tasks\"                        \n\
-4       bwi     Mm       \"Bandwidth In\"                        \n\
-4       bwo     Mm       \"Bandwidth Out\"                        \n\
+4       use     Mm       \"Used (MB)\"                        \n\
+4       bwi     Mm       \"Bandwidth In (MB/s)\"                        \n\
+4       bwo     Mm       \"Bandwidth Out (MB/s)\"                        \n\
 4       gf      T       \"GFlops\"                        \n\
 6       I       S       Idle         \".9 .1 .0\"		\n\
 6       In       S      Initializing       \"0.0 .7 1.0\"            \n\

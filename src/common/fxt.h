@@ -93,6 +93,8 @@
 #define	_STARPU_FUT_START_ALLOC_REUSE	0x5129
 #define	_STARPU_FUT_END_ALLOC_REUSE	0x5130
 
+#define	_STARPU_FUT_USED_MEM	0x512a
+
 #define	_STARPU_FUT_START_MEMRECLAIM	0x5131
 #define	_STARPU_FUT_END_MEMRECLAIM	0x5132
 
@@ -689,6 +691,9 @@ do {										\
 #define _STARPU_TRACE_END_WRITEBACK(memnode)		\
 	FUT_DO_PROBE2(_STARPU_FUT_END_WRITEBACK, memnode, _starpu_gettid());
 
+#define _STARPU_TRACE_USED_MEM(memnode,used)		\
+	FUT_DO_PROBE3(_STARPU_FUT_USED_MEM, memnode, used, _starpu_gettid());
+	
 #define _STARPU_TRACE_START_MEMRECLAIM(memnode,is_prefetch)		\
 	FUT_DO_PROBE3(_STARPU_FUT_START_MEMRECLAIM, memnode, is_prefetch, _starpu_gettid());
 	
@@ -995,6 +1000,7 @@ do {										\
 #define _STARPU_TRACE_END_FREE(memnode)		do {} while(0)
 #define _STARPU_TRACE_START_WRITEBACK(memnode)	do {} while(0)
 #define _STARPU_TRACE_END_WRITEBACK(memnode)		do {} while(0)
+#define _STARPU_TRACE_USED_MEM(memnode,used)		do {} while (0)
 #define _STARPU_TRACE_START_MEMRECLAIM(memnode,is_prefetch)	do {} while(0)
 #define _STARPU_TRACE_END_MEMRECLAIM(memnode,is_prefetch)	do {} while(0)
 #define _STARPU_TRACE_START_WRITEBACK_ASYNC(memnode)	do {} while(0)
