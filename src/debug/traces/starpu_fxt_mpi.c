@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2013, 2016  Université Bordeaux
+ * Copyright (C) 2012-2013, 2016-2017  Université Bordeaux
  * Copyright (C) 2010, 2011, 2014, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -25,6 +25,8 @@
 #include <poti.h>
 #define STARPU_POTI_STR_LEN 200
 #endif
+
+#define MAX_MPI_NODES 64
 
 struct mpi_transfer
 {
@@ -100,25 +102,27 @@ int _starpu_fxt_mpi_find_sync_point(char *filename_in, uint64_t *offset, int *ke
  */
 
 /* the list of MPI transfers found in the different traces */
-static struct mpi_transfer *mpi_sends[64] = {NULL};
-static struct mpi_transfer *mpi_recvs[64] = {NULL};
+static struct mpi_transfer *mpi_sends[MAX_MPI_NODES] = {NULL};
+static struct mpi_transfer *mpi_recvs[MAX_MPI_NODES] = {NULL};
 
 /* number of available slots in the lists  */
-unsigned mpi_sends_list_size[64] = {0};
-unsigned mpi_recvs_list_size[64] = {0};
+unsigned mpi_sends_list_size[MAX_MPI_NODES] = {0};
+unsigned mpi_recvs_list_size[MAX_MPI_NODES] = {0};
 
 /* number of slots actually used in the list  */
-unsigned mpi_sends_used[64] = {0};
-unsigned mpi_recvs_used[64] = {0};
+unsigned mpi_sends_used[MAX_MPI_NODES] = {0};
+unsigned mpi_recvs_used[MAX_MPI_NODES] = {0};
 
 /* number of slots already matched at the beginning of the list. This permits
  * going through the lists from the beginning to match each and every
  * transfer, thus avoiding a quadratic complexity. */
-unsigned mpi_recvs_matched[64] = {0};
+unsigned mpi_recvs_matched[MAX_MPI_NODES] = {0};
 
 void _starpu_fxt_mpi_add_send_transfer(int src, int dst STARPU_ATTRIBUTE_UNUSED, int mpi_tag, size_t size, float date)
 {
 	STARPU_ASSERT(src >= 0);
+	if (src >= MAX_MPI_NODES)
+		return;
 	unsigned slot = mpi_sends_used[src]++;
 
 	if (mpi_sends_used[src] > mpi_sends_list_size[src])
@@ -144,6 +148,8 @@ void _starpu_fxt_mpi_add_send_transfer(int src, int dst STARPU_ATTRIBUTE_UNUSED,
 
 void _starpu_fxt_mpi_add_recv_transfer(int src STARPU_ATTRIBUTE_UNUSED, int dst, int mpi_tag, float date)
 {
+	if (dst >= MAX_MPI_NODES)
+		return;
 	unsigned slot = mpi_recvs_used[dst]++;
 
 	if (mpi_recvs_used[dst] > mpi_recvs_list_size[dst])
@@ -215,7 +221,10 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, int src)
 		size_t size = mpi_sends[src][slot].size;
 
 		struct mpi_transfer *match;
-		match = try_to_match_send_transfer(src, dst, mpi_tag);
+		if (dst < MAX_MPI_NODES)
+			match = try_to_match_send_transfer(src, dst, mpi_tag);
+		else
+			match = NULL;
 
 		if (match)
 		{
@@ -251,6 +260,12 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, int src)
 void _starpu_fxt_display_mpi_transfers(struct starpu_fxt_options *options, int *ranks, FILE *out_paje_file)
 {
 	unsigned inputfile;
+
+	if (options->ninputfiles > MAX_MPI_NODES)
+	{
+		_STARPU_DISP("Warning: %u files given, maximum %u supported, truncating to %u\n", options->ninputfiles, MAX_MPI_NODES, MAX_MPI_NODES);
+		options->ninputfiles = MAX_MPI_NODES;
+	}
 
 	/* display the MPI transfers if possible */
 	for (inputfile = 0; inputfile < options->ninputfiles; inputfile++)
