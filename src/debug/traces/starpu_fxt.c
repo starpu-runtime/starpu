@@ -834,6 +834,7 @@ static void handle_new_mem_node(struct fxt_ev_64 *ev, struct starpu_fxt_options 
 #endif
 
 		if (!options->no_bus)
+		{
 #ifdef STARPU_HAVE_POTI
 			poti_SetVariable(get_event_time_stamp(ev, options), new_memmanager_container_alias, "bwi", get_event_time_stamp(ev, options));
 			poti_SetVariable(get_event_time_stamp(ev, options), new_memmanager_container_alias, "bwo", get_event_time_stamp(ev, options));
@@ -841,6 +842,7 @@ static void handle_new_mem_node(struct fxt_ev_64 *ev, struct starpu_fxt_options 
 			fprintf(out_paje_file, "13	%.9f	%smm%"PRIu64"	bwi	0.0\n", get_event_time_stamp(ev, options), prefix, ev->param[0]);
 			fprintf(out_paje_file, "13	%.9f	%smm%"PRIu64"	bwo	0.0\n", get_event_time_stamp(ev, options), prefix, ev->param[0]);
 #endif
+		}
 	}
 }
 
