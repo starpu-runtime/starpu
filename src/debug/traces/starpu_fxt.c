@@ -837,9 +837,9 @@ static void handle_new_mem_node(struct fxt_ev_64 *ev, struct starpu_fxt_options 
 		if (!options->no_bus)
 		{
 #ifdef STARPU_HAVE_POTI
-			poti_SetVariable(get_event_time_stamp(ev, options), new_memmanager_container_alias, "use", get_event_time_stamp(ev, options));
-			poti_SetVariable(get_event_time_stamp(ev, options), new_memmanager_container_alias, "bwi", get_event_time_stamp(ev, options));
-			poti_SetVariable(get_event_time_stamp(ev, options), new_memmanager_container_alias, "bwo", get_event_time_stamp(ev, options));
+			poti_SetVariable(get_event_time_stamp(ev, options), new_memmanager_container_alias, "use", 0.0);
+			poti_SetVariable(get_event_time_stamp(ev, options), new_memmanager_container_alias, "bwi", 0.0);
+			poti_SetVariable(get_event_time_stamp(ev, options), new_memmanager_container_alias, "bwo", 0.0);
 #else
 			fprintf(out_paje_file, "13	%.9f	%smm%"PRIu64"	use	0.0\n", get_event_time_stamp(ev, options), prefix, ev->param[0]);
 			fprintf(out_paje_file, "13	%.9f	%smm%"PRIu64"	bwi	0.0\n", get_event_time_stamp(ev, options), prefix, ev->param[0]);
@@ -934,7 +934,7 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 		if (new_thread)
 			poti_CreateContainer(get_event_time_stamp(ev, options), new_thread_container_alias, "T", memnode_container, new_thread_container_name);
 		poti_CreateContainer(get_event_time_stamp(ev, options), new_worker_container_alias, "W", new_thread_container_alias, new_worker_container_name);
-		poti_SetVariable(get_event_time_stamp(ev, options), new_worker_container_alias, "gf", get_event_time_stamp(ev, options));
+		poti_SetVariable(get_event_time_stamp(ev, options), new_worker_container_alias, "gf", 0.0);
 #else
 		if (new_thread)
 			fprintf(out_paje_file, "7	%.9f	%st%lu	T	%smn%d	%s%d\n",
