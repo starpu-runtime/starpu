@@ -837,9 +837,11 @@ static void handle_new_mem_node(struct fxt_ev_64 *ev, struct starpu_fxt_options 
 		if (!options->no_bus)
 		{
 #ifdef STARPU_HAVE_POTI
+			poti_SetVariable(get_event_time_stamp(ev, options), new_memmanager_container_alias, "use", get_event_time_stamp(ev, options));
 			poti_SetVariable(get_event_time_stamp(ev, options), new_memmanager_container_alias, "bwi", get_event_time_stamp(ev, options));
 			poti_SetVariable(get_event_time_stamp(ev, options), new_memmanager_container_alias, "bwo", get_event_time_stamp(ev, options));
 #else
+			fprintf(out_paje_file, "13	%.9f	%smm%"PRIu64"	use	0.0\n", get_event_time_stamp(ev, options), prefix, ev->param[0]);
 			fprintf(out_paje_file, "13	%.9f	%smm%"PRIu64"	bwi	0.0\n", get_event_time_stamp(ev, options), prefix, ev->param[0]);
 			fprintf(out_paje_file, "13	%.9f	%smm%"PRIu64"	bwo	0.0\n", get_event_time_stamp(ev, options), prefix, ev->param[0]);
 #endif
@@ -1830,6 +1832,23 @@ static void handle_memnode_event(struct fxt_ev_64 *ev, struct starpu_fxt_options
 
 	if (out_paje_file)
 		memnode_set_state(get_event_time_stamp(ev, options), options->file_prefix, memnode, eventstr);
+}
+
+static void handle_used_mem(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	unsigned memnode = ev->param[0];
+
+	if (out_paje_file)
+	{
+#ifdef STARPU_HAVE_POTI
+		char memnode_container[STARPU_POTI_STR_LEN];
+		memmanager_container_alias(memnode_container, STARPU_POTI_STR_LEN, options->file_prefix, memnode);
+		poti_SetVariable(get_event_time_stamp(ev, options), memnode_container, "use", (double)ev->param[1] / (1<<20));
+#else
+		fprintf(out_paje_file, "13	%.9f	%smm%u	use	%f\n",
+			get_event_time_stamp(ev, options), options->file_prefix, memnode, (double)ev->param[1] / (1<<20));
+#endif
+	}
 }
 
 static void handle_task_submit_event(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, unsigned long tid, const char *eventstr)
@@ -2829,6 +2848,8 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 					handle_memnode_event(&ev, options, "No");
 				}
 				break;
+			case _STARPU_FUT_USED_MEM:
+				handle_used_mem(&ev, options);
 
 			case _STARPU_FUT_USER_EVENT:
 				handle_user_event(&ev, options);
