@@ -1775,6 +1775,9 @@ static void handle_end_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 		}
 
 		/* look for a data transfer to match */
+#ifdef STARPU_DEVEL
+#warning FIXME: use hash table instead
+#endif
 		struct _starpu_communication *itor;
 		for (itor = _starpu_communication_list_begin(&communication_list);
 			itor != _starpu_communication_list_end(&communication_list);
