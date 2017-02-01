@@ -76,7 +76,7 @@
  *     * retourne le dernier élément de la liste
  *   struct FOO*	FOO_list_last(struct FOO_list*);
  *     * retourne la valeur à tester en début de liste
- *   struct FOO*	FOO_list_first(struct FOO_list*);
+ *   struct FOO*	FOO_list_alpha(struct FOO_list*);
  *     * retourne l'élément précédent de la liste
  *   struct FOO*	FOO_list_prev(struct FOO*)
  *     * retourne la taille de la liste
