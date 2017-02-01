@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012, 2015  Université de Bordeaux
+ * Copyright (C) 2009-2012, 2015, 2017  Université de Bordeaux
  * Copyright (C) 2010, 2011  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -73,7 +73,13 @@
  *   struct FOO*	FOO_list_end(struct FOO_list*);
  *     *
  *   struct FOO*	FOO_list_next(struct FOO*)
- *     *
+ *     * retourne le dernier élément de la liste
+ *   struct FOO*	FOO_list_last(struct FOO_list*);
+ *     * retourne la valeur à tester en début de liste
+ *   struct FOO*	FOO_list_alpha(struct FOO_list*);
+ *     * retourne l'élément précédent de la liste
+ *   struct FOO*	FOO_list_prev(struct FOO*)
+ *     * retourne la taille de la liste
  *   int		FOO_list_size(struct FOO_list*)
  * *********************************************************
  * Exemples d'utilisation :
@@ -101,6 +107,14 @@
  *  for(i  = ma_structure_list_begin(l);
  *      i != ma_structure_list_end(l);
  *      i  = ma_structure_list_next(i))
+ *  {
+ *    printf("a=%d; b=%d\n", i->a, i->b);
+ *  }
+ *  - itérateur de liste :
+ *  struct ma_structure * i;
+ *  for(i  = ma_structure_list_last(l);
+ *      i != ma_structure_list_alpha(l);
+ *      i  = ma_structure_list_prev(i))
  *  {
  *    printf("a=%d; b=%d\n", i->a, i->b);
  *  }
@@ -181,7 +195,27 @@
     { return NULL; } \
   /** @internal */static inline struct ENAME *ENAME##_list_next(struct ENAME *i) \
     { return i->_next; } \
+<<<<<<< .working
   /** @internal */static inline int ENAME##_list_size(struct ENAME##_list *l) \
+||||||| .merge-left.r19804
+  /** @internal */static inline int ENAME##_list_ismember(const struct ENAME##_list *l, const struct ENAME *e) \
+    { struct ENAME *i=l->_head; while(i!=NULL){ if (i == e) return 1; i=i->_next; } return 0; } \
+  /** @internal */static inline int ENAME##_list_member(const struct ENAME##_list *l, const struct ENAME *e) \
+    { struct ENAME *i=l->_head; int k=0; while(i!=NULL){if (i == e) return k; k++; i=i->_next; } return -1; } \
+  /** @internal */static inline int ENAME##_list_size(const struct ENAME##_list *l) \
+=======
+  /** @internal */static inline struct ENAME *ENAME##_list_last(const struct ENAME##_list *l) \
+    { return l->_tail; } \
+  /** @internal */static inline struct ENAME *ENAME##_list_alpha(const struct ENAME##_list *l STARPU_ATTRIBUTE_UNUSED) \
+    { return NULL; } \
+  /** @internal */static inline struct ENAME *ENAME##_list_prev(const struct ENAME *i) \
+    { return i->_prev; } \
+  /** @internal */static inline int ENAME##_list_ismember(const struct ENAME##_list *l, const struct ENAME *e) \
+    { struct ENAME *i=l->_head; while(i!=NULL){ if (i == e) return 1; i=i->_next; } return 0; } \
+  /** @internal */static inline int ENAME##_list_member(const struct ENAME##_list *l, const struct ENAME *e) \
+    { struct ENAME *i=l->_head; int k=0; while(i!=NULL){if (i == e) return k; k++; i=i->_next; } return -1; } \
+  /** @internal */static inline int ENAME##_list_size(const struct ENAME##_list *l) \
+>>>>>>> .merge-right.r19805
     { struct ENAME *i=l->_head; int k=0; while(i!=NULL){k++;i=i->_next;} return k; } \
   /** @internal */static inline int ENAME##_list_check(struct ENAME##_list *l) \
     { struct ENAME *i=l->_head; while(i) \
