@@ -35,6 +35,7 @@
 #include <core/workers.h>
 #include <core/perfmodel/perfmodel.h>
 #include <core/simgrid.h>
+#include <core/topology.h>
 #include <common/utils.h>
 
 #ifdef STARPU_USE_OPENCL
@@ -2311,7 +2312,7 @@ static void write_bus_platform_file_content(int version)
 	{
 		hwloc_topology_t topology;
 		hwloc_topology_init(&topology);
-		hwloc_topology_set_flags(topology, HWLOC_TOPOLOGY_FLAG_IO_DEVICES | HWLOC_TOPOLOGY_FLAG_IO_BRIDGES);
+		_starpu_topology_filter(topology);
 		hwloc_topology_load(topology);
 
 		/* First find paths and record measured bandwidth along the path */

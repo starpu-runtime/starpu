@@ -527,11 +527,7 @@ _starpu_init_topology (struct _starpu_machine_config *config)
 #ifndef STARPU_SIMGRID
 #ifdef STARPU_HAVE_HWLOC
 	hwloc_topology_init(&topology->hwtopology);
-#if HWLOC_API_VERSION >= 0x20000
-	hwloc_topology_set_io_types_filter(topology->hwtopology, HWLOC_TYPE_FILTER_KEEP_IMPORTANT);
-#else
-	hwloc_topology_set_flags(topology->hwtopology, HWLOC_TOPOLOGY_FLAG_IO_DEVICES | HWLOC_TOPOLOGY_FLAG_IO_BRIDGES);
-#endif
+	_starpu_topology_filter(topology->hwtopology);
 	hwloc_topology_load(topology->hwtopology);
 	_starpu_allocate_topology_userdata(hwloc_get_root_obj(topology->hwtopology));
 #endif
@@ -802,6 +798,15 @@ _starpu_topology_get_nhwpu (struct _starpu_machine_config *config)
 	_starpu_init_topology(config);
 
 	return config->topology.nhwpus;
+}
+
+void _starpu_topology_filter(hwloc_topology_t topology)
+{
+#if HWLOC_API_VERSION >= 0x20000
+	hwloc_topology_set_io_types_filter(topology, HWLOC_TYPE_FILTER_KEEP_IMPORTANT);
+#else
+	hwloc_topology_set_flags(topology, HWLOC_TOPOLOGY_FLAG_IO_DEVICES | HWLOC_TOPOLOGY_FLAG_IO_BRIDGES);
+#endif
 }
 
 #ifdef STARPU_USE_MIC
