@@ -214,9 +214,9 @@ int _starpu_wait_data_request_completion(struct _starpu_data_request *r, unsigne
 	int do_delete = 0;
 	int completed;
 
+#ifdef STARPU_SIMGRID
 	unsigned local_node = _starpu_memory_node_get_local_key();
 
-#ifdef STARPU_SIMGRID
 	starpu_pthread_wait_t wait;
 
 	starpu_pthread_wait_init(&wait);
