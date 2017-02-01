@@ -377,6 +377,53 @@ static double get_event_time_stamp(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 	return (((double)(ev->time-options->file_offset))/1000000.0);
 }
 
+/*
+ *      Auxiliary functions for poti handling names
+ */
+#ifdef STARPU_HAVE_POTI
+static char *memnode_container_alias(char *output, int len, const char *prefix, long unsigned int memnodeid)
+{
+	snprintf(output, len, "%smn%lu", prefix, memnodeid);
+	return output;
+}
+
+static char *memmanager_container_alias(char *output, int len, const char *prefix, long unsigned int memnodeid)
+{
+	snprintf(output, len, "%smm%lu", prefix, memnodeid);
+	return output;
+}
+
+static char *thread_container_alias(char *output, int len, const char *prefix, long unsigned int threadid)
+{
+	snprintf(output, len, "%st%lu", prefix, threadid);
+	return output;
+}
+
+static char *worker_container_alias(char *output, int len, const char *prefix, long unsigned int workerid)
+{
+	snprintf(output, len, "%sw%lu", prefix, workerid);
+	return output;
+}
+
+static char *mpicommthread_container_alias(char *output, int len, const char *prefix)
+{
+	snprintf(output, len, "%smpict", prefix);
+	return output;
+}
+
+static char *program_container_alias(char *output, int len, const char *prefix)
+{
+	snprintf(output, len, "%sp", prefix);
+	return output;
+}
+
+static char *scheduler_container_alias(char *output, int len, const char *prefix)
+{
+	snprintf(output, len, "%ssched", prefix);
+	return output;
+}
+#endif
+
 static int nworkers = 0;
 
 struct worker_entry
@@ -482,53 +529,6 @@ static void update_accumulated_time(int worker, double sleep_time, double exec_t
 	}
 }
 
-/*
- *      Auxiliary functions for poti handling names
- */
-#ifdef STARPU_HAVE_POTI
-static char *memnode_container_alias(char *output, int len, const char *prefix, long unsigned int memnodeid)
-{
-	snprintf(output, len, "%smn%lu", prefix, memnodeid);
-	return output;
-}
-
-static char *memmanager_container_alias(char *output, int len, const char *prefix, long unsigned int memnodeid)
-{
-	snprintf(output, len, "%smm%lu", prefix, memnodeid);
-	return output;
-}
-
-static char *thread_container_alias(char *output, int len, const char *prefix, long unsigned int threadid)
-{
-	snprintf(output, len, "%st%lu", prefix, threadid);
-	return output;
-}
-
-static char *worker_container_alias(char *output, int len, const char *prefix, long unsigned int workerid)
-{
-	snprintf(output, len, "%sw%lu", prefix, workerid);
-	return output;
-}
-
-static char *mpicommthread_container_alias(char *output, int len, const char *prefix)
-{
-	snprintf(output, len, "%smpict", prefix);
-	return output;
-}
-
-static char *program_container_alias(char *output, int len, const char *prefix)
-{
-	snprintf(output, len, "%sp", prefix);
-	return output;
-}
-
-static char *scheduler_container_alias(char *output, int len, const char *prefix)
-{
-	snprintf(output, len, "%ssched", prefix);
-	return output;
-}
-#endif
-
 static void memnode_set_state(double time, const char *prefix, unsigned int memnodeid, const char *name)
 {
 #ifdef STARPU_HAVE_POTI
@@ -615,7 +615,7 @@ static void user_thread_push_state(double time, const char *prefix, long unsigne
 #ifdef STARPU_HAVE_POTI
 	char container[STARPU_POTI_STR_LEN];
 	thread_container_alias(container, STARPU_POTI_STR_LEN, prefix, threadid);
-	poti_SetState(time, container, "US", name);
+	poti_PushState(time, container, "US", name);
 #else
 	fprintf(out_paje_file, "11	%.9f	%st%lu	US	%s\n", time, prefix, threadid, name);
 #endif
@@ -627,7 +627,7 @@ static void user_thread_pop_state(double time, const char *prefix, long unsigned
 #ifdef STARPU_HAVE_POTI
 	char container[STARPU_POTI_STR_LEN];
 	thread_container_alias(container, STARPU_POTI_STR_LEN, prefix, threadid);
-	poti_SetState(time, container, "US", name);
+	poti_PopState(time, container, "US");
 #else
 	fprintf(out_paje_file, "12	%.9f	%st%lu	US\n", time, prefix, threadid);
 #endif
@@ -693,7 +693,7 @@ static void mpicommthread_push_state(double time, const char *prefix, const char
 #ifdef STARPU_HAVE_POTI
 	char container[STARPU_POTI_STR_LEN];
 	mpicommthread_container_alias(container, STARPU_POTI_STR_LEN, prefix);
-	poti_SetState(time, container, "CtS", name);
+	poti_PushState(time, container, "CtS", name);
 #else
 	fprintf(out_paje_file, "11	%.9f	%smpict	CtS 	%s\n", time, prefix, name);
 #endif
@@ -704,7 +704,7 @@ static void mpicommthread_pop_state(double time, const char *prefix)
 #ifdef STARPU_HAVE_POTI
 	char container[STARPU_POTI_STR_LEN];
 	mpicommthread_container_alias(container, STARPU_POTI_STR_LEN, prefix);
-	poti_SetState(time, container, "CtS", name);
+	poti_PopState(time, container, "CtS");
 #else
 	fprintf(out_paje_file, "12	%.9f	%smpict	CtS\n", time, prefix);
 #endif
@@ -1648,7 +1648,7 @@ static void handle_data_invalidate(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 		char paje_value[STARPU_POTI_STR_LEN], memnode_container[STARPU_POTI_STR_LEN];
 		memmanager_container_alias(memnode_container, STARPU_POTI_STR_LEN, prefix, node);
 		snprintf(paje_value, STARPU_POTI_STR_LEN, "%lx", handle);
-		poti_NewEvent(get_event_time_stamp(ev, options), container, "user_event", paje_value);
+		poti_NewEvent(get_event_time_stamp(ev, options), memnode_container, "user_event", paje_value);
 #else
 		fprintf(out_paje_file, "9	%.9f	invalidate	%smm%u	%lx\n", get_event_time_stamp(ev, options), prefix, node, handle);
 #endif

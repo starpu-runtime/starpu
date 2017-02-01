@@ -117,8 +117,8 @@ unsigned mpi_recvs_used[MAX_MPI_NODES] = {0};
 /* number of slots already matched at the beginning of the list. This permits
  * going through the lists from the beginning to match each and every
  * transfer, thus avoiding a quadratic complexity. */
-unsigned mpi_recvs_matched[MAX_MPI_NODES][MAX_MPI_NODES] = {0};
-unsigned mpi_sends_matched[MAX_MPI_NODES][MAX_MPI_NODES] = {0};
+unsigned mpi_recvs_matched[MAX_MPI_NODES][MAX_MPI_NODES] = { {0} };
+unsigned mpi_sends_matched[MAX_MPI_NODES][MAX_MPI_NODES] = { {0} };
 
 void _starpu_fxt_mpi_add_send_transfer(int src, int dst STARPU_ATTRIBUTE_UNUSED, int mpi_tag, size_t size, float date)
 {
@@ -227,8 +227,9 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, unsigned n)
 	for (node = 0; node < n ; node++)
 	{
 #ifdef STARPU_HAVE_POTI
-		poti_SetVariable(0., mpi_local_container, "bwi", 0.);
-		poti_SetVariable(0., mpi_local_container, "bwo", 0.);
+		snprintf(mpi_container, sizeof(mpi_container), "%d_mpict", node);
+		poti_SetVariable(0., mpi_container, "bwi", 0.);
+		poti_SetVariable(0., mpi_container, "bwo", 0.);
 #else
 		fprintf(out_paje_file, "13	%.9f	%d_mpict	bwi	%f\n", 0., node, 0.);
 		fprintf(out_paje_file, "13	%.9f	%d_mpict	bwo	%f\n", 0., node, 0.);
@@ -269,9 +270,9 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, unsigned n)
 			current_out_bandwidth[match->src] -= match->bandwidth;
 			current_in_bandwidth[match->dst] -= match->bandwidth;
 #ifdef STARPU_HAVE_POTI
-			snprintf(mpi_container, sizeof(mpi_container), "%d_mpict", src);
+			snprintf(mpi_container, sizeof(mpi_container), "%d_mpict", match->src);
 			poti_SetVariable(match->date, mpi_container, "bwo", current_out_bandwidth[match->src]);
-			snprintf(mpi_container, sizeof(mpi_container), "%d_mpict", dst);
+			snprintf(mpi_container, sizeof(mpi_container), "%d_mpict", match->dst);
 			poti_SetVariable(match->date, mpi_container, "bwi", current_in_bandwidth[match->dst]);
 #else
 			fprintf(out_paje_file, "13	%.9f	%d_mpict	bwo	%f\n", match->date, match->src, current_out_bandwidth[match->src]);
