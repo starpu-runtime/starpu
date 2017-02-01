@@ -148,17 +148,14 @@ struct _starpu_sched_ctx
 	   parallel sections to be executed on their allocated resources */
 	unsigned parallel_sect[STARPU_NMAXWORKERS];
 
-	/* id of the master worker */
-	int master[STARPU_NMAXWORKERS];
-
-	/* semaphore that block appl thread until starpu threads are 
+	/* semaphore that block appl thread until starpu threads are
 	   all blocked and ready to exec the parallel code */
 	sem_t fall_asleep_sem[STARPU_NMAXWORKERS];
 
 	/* semaphore that block appl thread until starpu threads are 
 	   all woke up and ready continue appl */
 	sem_t wake_up_sem[STARPU_NMAXWORKERS];
-       
+
 	/* bool indicating if the workers is sleeping in this ctx */
 	unsigned sleeping[STARPU_NMAXWORKERS];
 
