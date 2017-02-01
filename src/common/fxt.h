@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2016  Université de Bordeaux
+ * Copyright (C) 2009-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016  CNRS
  * Copyright (C) 2016  Inria
  *
@@ -94,6 +94,8 @@
 
 #define	_STARPU_FUT_START_ALLOC_REUSE	0x5129
 #define	_STARPU_FUT_END_ALLOC_REUSE	0x5130
+
+#define	_STARPU_FUT_USED_MEM	0x512a
 
 #define	_STARPU_FUT_START_MEMRECLAIM	0x5131
 #define	_STARPU_FUT_END_MEMRECLAIM	0x5132
@@ -493,7 +495,7 @@ do {									\
 		}							\
 		const size_t __job_size = _starpu_job_get_data_size((job)->task->cl?(job)->task->cl->model:NULL, perf_arch, nimpl, (job));	\
 		const uint32_t __job_hash = _starpu_compute_buffers_footprint((job)->task->cl?(job)->task->cl->model:NULL, perf_arch, nimpl, (job));\
-		FUT_DO_PROBE7(_STARPU_FUT_CODELET_DETAILS, (job), ((job)->task)->sched_ctx, __job_size, __job_hash, (job)->task->tag_id, workerid, ((job)->job_id)); \
+		FUT_DO_PROBE7(_STARPU_FUT_CODELET_DETAILS, ((job)->task)->sched_ctx, __job_size, __job_hash, (job)->task->flops / 1000, (job)->task->tag_id, workerid, ((job)->job_id)); \
 	}								\
 } while(0);
 
@@ -700,6 +702,9 @@ do {										\
 #define _STARPU_TRACE_END_WRITEBACK(memnode)		\
 	FUT_DO_PROBE2(_STARPU_FUT_END_WRITEBACK, memnode, _starpu_gettid());
 
+#define _STARPU_TRACE_USED_MEM(memnode,used)		\
+	FUT_DO_PROBE3(_STARPU_FUT_USED_MEM, memnode, used, _starpu_gettid());
+	
 #define _STARPU_TRACE_START_MEMRECLAIM(memnode,is_prefetch)		\
 	FUT_DO_PROBE3(_STARPU_FUT_START_MEMRECLAIM, memnode, is_prefetch, _starpu_gettid());
 	
@@ -1006,6 +1011,7 @@ do {										\
 #define _STARPU_TRACE_END_FREE(memnode)		do {} while(0)
 #define _STARPU_TRACE_START_WRITEBACK(memnode)	do {} while(0)
 #define _STARPU_TRACE_END_WRITEBACK(memnode)		do {} while(0)
+#define _STARPU_TRACE_USED_MEM(memnode,used)		do {} while (0)
 #define _STARPU_TRACE_START_MEMRECLAIM(memnode,is_prefetch)	do {} while(0)
 #define _STARPU_TRACE_END_MEMRECLAIM(memnode,is_prefetch)	do {} while(0)
 #define _STARPU_TRACE_START_WRITEBACK_ASYNC(memnode)	do {} while(0)

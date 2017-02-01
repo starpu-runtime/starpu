@@ -50,14 +50,14 @@ struct starpu_leveldb_base
 static void *starpu_leveldb_alloc(void *base, size_t size STARPU_ATTRIBUTE_UNUSED)
 {
 	struct starpu_leveldb_base *base_tmp = (struct starpu_leveldb_base *) base;
-	struct starpu_leveldb_obj *obj;
-	_STARPU_MALLOC(obj, sizeof(struct starpu_leveldb_obj));
+	struct starpu_leveldb_obj *obj = (struct starpu_leveldb_obj *)malloc(sizeof(struct starpu_leveldb_obj));
+	STARPU_ASSERT(obj);
 
         STARPU_PTHREAD_MUTEX_INIT(&obj->mutex, NULL);
 
 	size_t len = 6 + 1 + 2+sizeof(void*)*2 + 1;
-	char *key;
-	_STARPU_MALLOC(key, len*sizeof(char));
+	char *key = (char *)malloc(len*sizeof(char));
+	STARPU_ASSERT(key);
 	snprintf(key, len, "STARPU-%p", obj);
 
 	/* create and add a key with a small memory */
@@ -88,8 +88,8 @@ static void starpu_leveldb_free(void *base , void *obj, size_t size STARPU_ATTRI
 /* open an existing memory on disk */
 static void *starpu_leveldb_open(void *base STARPU_ATTRIBUTE_UNUSED, void *pos, size_t size)
 {
-	struct starpu_leveldb_obj *obj;
-	_STARPU_MALLOC(obj, sizeof(struct starpu_leveldb_obj));
+	struct starpu_leveldb_obj *obj = (struct starpu_leveldb_obj *)malloc(sizeof(struct starpu_leveldb_obj));
+	STARPU_ASSERT(obj);
 
         STARPU_PTHREAD_MUTEX_INIT(&obj->mutex, NULL);
 
@@ -149,7 +149,8 @@ static int starpu_leveldb_full_read(void *base, void *obj, void **ptr, size_t *s
 	STARPU_ASSERT(s.ok());
 
 	*size = value.length();
-	_STARPU_MALLOC(*ptr, *size);
+	*ptr = malloc(*size);
+	STARPU_ASSERT(*ptr);
 
 	/* use buffer */
 	memcpy(*ptr, value.c_str(), *size);
@@ -177,7 +178,8 @@ static int starpu_leveldb_write(void *base, void *obj, const void *buf, off_t of
 	else
 	{
 		uintptr_t buf_tmp = (uintptr_t) buf;
-		_STARPU_MALLOC(buffer, (tmp->size > (offset + size)) ? tmp->size : (offset + size));
+		buffer = malloc((tmp->size > (offset + size)) ? tmp->size : (offset + size));
+		STARPU_ASSERT(buffer);
 
 		/* we read the data */
 		std::string value;
@@ -224,8 +226,8 @@ static int starpu_leveldb_full_write(void *base, void *obj, void *ptr, size_t si
 /* create a new copy of parameter == base */
 static void *starpu_leveldb_plug(void *parameter, starpu_ssize_t size STARPU_ATTRIBUTE_UNUSED)
 {
-	struct starpu_leveldb_base *tmp;
-	_STARPU_MALLOC(tmp, sizeof(struct starpu_leveldb_base));
+	struct starpu_leveldb_base *tmp = (struct starpu_leveldb_base *)malloc(sizeof(struct starpu_leveldb_base));
+	STARPU_ASSERT(tmp);
 
 	leveldb::Status status;
 	leveldb::DB *db;
@@ -268,8 +270,8 @@ static int get_leveldb_bandwidth_between_disk_and_main_ram(unsigned node)
 	double end;
 
 	srand(time (NULL));
-	char *buf;
-	_STARPU_MALLOC(buf, SIZE_DISK_MIN*sizeof(char));
+	char *buf = (char *)malloc(SIZE_DISK_MIN*sizeof(char));
+	STARPU_ASSERT(buf);
 
 	/* allocate memory */
 	void *mem = _starpu_disk_alloc(node, SIZE_DISK_MIN);
@@ -293,7 +295,8 @@ static int get_leveldb_bandwidth_between_disk_and_main_ram(unsigned node)
 	/* free memory */
 	free(buf);
 
-	_STARPU_MALLOC(buf, sizeof(char));
+	buf = (char *)malloc(sizeof(char));
+	STARPU_ASSERT(buf);
 
 	/* Measure latency */
 	start = starpu_timing_now();

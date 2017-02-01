@@ -23,7 +23,7 @@ void func_cpu_bis(void *descr[], void *_args)
 {
 	char msg;
 	char worker_name[256];
-	int worker_id = starpu_worker_get_id();
+	int worker_id = starpu_worker_get_id_check();
 	int worker_id_expected;
 	int ntasks;
 
@@ -54,7 +54,7 @@ void func_cpu(void *descr[], void *_args)
 {
 	char msg;
 	char worker_name[256];
-	int worker_id = starpu_worker_get_id();
+	int worker_id = starpu_worker_get_id_check();
 	int worker_id_expected;
 	int ntasks;
 	unsigned sched_ctx_id;

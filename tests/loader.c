@@ -297,6 +297,7 @@ int main(int argc, char *argv[])
 				strcpy(libtool, top_builddir);
 				strcat(libtool, "/libtool");
 
+				decode(&launcher, "@top_srcdir@", top_srcdir);
 				decode(&launcher_args, "@top_srcdir@", top_srcdir);
 
 				launcher_argv[0] = libtool;

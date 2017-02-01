@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2016  Université de Bordeaux
+ * Copyright (C) 2009-2017  Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -94,6 +94,7 @@ struct task_info {
 	double start_time;
 	double end_time;
 	unsigned long footprint;
+	unsigned long kflops;
 	char *parameters;
 	unsigned int ndeps;
 	unsigned long *dependencies;
@@ -387,6 +388,53 @@ static double get_event_time_stamp(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 	return (((double)(ev->time-options->file_offset))/1000000.0);
 }
 
+/*
+ *      Auxiliary functions for poti handling names
+ */
+#ifdef STARPU_HAVE_POTI
+static char *memnode_container_alias(char *output, int len, const char *prefix, long unsigned int memnodeid)
+{
+	snprintf(output, len, "%smn%lu", prefix, memnodeid);
+	return output;
+}
+
+static char *memmanager_container_alias(char *output, int len, const char *prefix, long unsigned int memnodeid)
+{
+	snprintf(output, len, "%smm%lu", prefix, memnodeid);
+	return output;
+}
+
+static char *thread_container_alias(char *output, int len, const char *prefix, long unsigned int threadid)
+{
+	snprintf(output, len, "%st%lu", prefix, threadid);
+	return output;
+}
+
+static char *worker_container_alias(char *output, int len, const char *prefix, long unsigned int workerid)
+{
+	snprintf(output, len, "%sw%lu", prefix, workerid);
+	return output;
+}
+
+static char *mpicommthread_container_alias(char *output, int len, const char *prefix)
+{
+	snprintf(output, len, "%smpict", prefix);
+	return output;
+}
+
+static char *program_container_alias(char *output, int len, const char *prefix)
+{
+	snprintf(output, len, "%sp", prefix);
+	return output;
+}
+
+static char *scheduler_container_alias(char *output, int len, const char *prefix)
+{
+	snprintf(output, len, "%ssched", prefix);
+	return output;
+}
+#endif
+
 static int nworkers = 0;
 
 struct worker_entry
@@ -492,53 +540,6 @@ static void update_accumulated_time(int worker, double sleep_time, double exec_t
 	}
 }
 
-/*
- *      Auxiliary functions for poti handling names
- */
-#ifdef STARPU_HAVE_POTI
-static char *memnode_container_alias(char *output, int len, const char *prefix, long unsigned int memnodeid)
-{
-	snprintf(output, len, "%smn%lu", prefix, memnodeid);
-	return output;
-}
-
-static char *memmanager_container_alias(char *output, int len, const char *prefix, long unsigned int memnodeid)
-{
-	snprintf(output, len, "%smm%lu", prefix, memnodeid);
-	return output;
-}
-
-static char *thread_container_alias(char *output, int len, const char *prefix, long unsigned int threadid)
-{
-	snprintf(output, len, "%st%lu", prefix, threadid);
-	return output;
-}
-
-static char *worker_container_alias(char *output, int len, const char *prefix, long unsigned int workerid)
-{
-	snprintf(output, len, "%sw%lu", prefix, workerid);
-	return output;
-}
-
-static char *mpicommthread_container_alias(char *output, int len, const char *prefix)
-{
-	snprintf(output, len, "%smpict", prefix);
-	return output;
-}
-
-static char *program_container_alias(char *output, int len, const char *prefix)
-{
-	snprintf(output, len, "%sp", prefix);
-	return output;
-}
-
-static char *scheduler_container_alias(char *output, int len, const char *prefix)
-{
-	snprintf(output, len, "%ssched", prefix);
-	return output;
-}
-#endif
-
 static void memnode_set_state(double time, const char *prefix, unsigned int memnodeid, const char *name)
 {
 #ifdef STARPU_HAVE_POTI
@@ -625,7 +626,7 @@ static void user_thread_push_state(double time, const char *prefix, long unsigne
 #ifdef STARPU_HAVE_POTI
 	char container[STARPU_POTI_STR_LEN];
 	thread_container_alias(container, STARPU_POTI_STR_LEN, prefix, threadid);
-	poti_SetState(time, container, "US", name);
+	poti_PushState(time, container, "US", name);
 #else
 	fprintf(out_paje_file, "11	%.9f	%st%lu	US	%s\n", time, prefix, threadid, name);
 #endif
@@ -637,7 +638,7 @@ static void user_thread_pop_state(double time, const char *prefix, long unsigned
 #ifdef STARPU_HAVE_POTI
 	char container[STARPU_POTI_STR_LEN];
 	thread_container_alias(container, STARPU_POTI_STR_LEN, prefix, threadid);
-	poti_SetState(time, container, "US", name);
+	poti_PopState(time, container, "US");
 #else
 	fprintf(out_paje_file, "12	%.9f	%st%lu	US\n", time, prefix, threadid);
 #endif
@@ -703,7 +704,7 @@ static void mpicommthread_push_state(double time, const char *prefix, const char
 #ifdef STARPU_HAVE_POTI
 	char container[STARPU_POTI_STR_LEN];
 	mpicommthread_container_alias(container, STARPU_POTI_STR_LEN, prefix);
-	poti_SetState(time, container, "CtS", name);
+	poti_PushState(time, container, "CtS", name);
 #else
 	fprintf(out_paje_file, "11	%.9f	%smpict	CtS 	%s\n", time, prefix, name);
 #endif
@@ -714,7 +715,7 @@ static void mpicommthread_pop_state(double time, const char *prefix)
 #ifdef STARPU_HAVE_POTI
 	char container[STARPU_POTI_STR_LEN];
 	mpicommthread_container_alias(container, STARPU_POTI_STR_LEN, prefix);
-	poti_SetState(time, container, "CtS", name);
+	poti_PopState(time, container, "CtS");
 #else
 	fprintf(out_paje_file, "12	%.9f	%smpict	CtS\n", time, prefix);
 #endif
@@ -845,11 +846,17 @@ static void handle_new_mem_node(struct fxt_ev_64 *ev, struct starpu_fxt_options 
 #endif
 
 		if (!options->no_bus)
+		{
 #ifdef STARPU_HAVE_POTI
-			poti_SetVariable(get_event_time_stamp(ev, options), new_memmanager_container_alias, "bw", get_event_time_stamp(ev, options));
+			poti_SetVariable(get_event_time_stamp(ev, options), new_memmanager_container_alias, "use", 0.0);
+			poti_SetVariable(get_event_time_stamp(ev, options), new_memmanager_container_alias, "bwi", 0.0);
+			poti_SetVariable(get_event_time_stamp(ev, options), new_memmanager_container_alias, "bwo", 0.0);
 #else
-			fprintf(out_paje_file, "13	%.9f	%smm%"PRIu64"	bw	0.0\n", get_event_time_stamp(ev, options), prefix, ev->param[0]);
+			fprintf(out_paje_file, "13	%.9f	%smm%"PRIu64"	use	0.0\n", get_event_time_stamp(ev, options), prefix, ev->param[0]);
+			fprintf(out_paje_file, "13	%.9f	%smm%"PRIu64"	bwi	0.0\n", get_event_time_stamp(ev, options), prefix, ev->param[0]);
+			fprintf(out_paje_file, "13	%.9f	%smm%"PRIu64"	bwo	0.0\n", get_event_time_stamp(ev, options), prefix, ev->param[0]);
 #endif
+		}
 	}
 }
 
@@ -946,12 +953,15 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 		if (new_thread)
 			poti_CreateContainer(get_event_time_stamp(ev, options), new_thread_container_alias, "T", memnode_container, new_thread_container_name);
 		poti_CreateContainer(get_event_time_stamp(ev, options), new_worker_container_alias, "W", new_thread_container_alias, new_worker_container_name);
+		poti_SetVariable(get_event_time_stamp(ev, options), new_worker_container_alias, "gf", 0.0);
 #else
 		if (new_thread)
 			fprintf(out_paje_file, "7	%.9f	%st%lu	T	%smn%d	%s%d\n",
 				get_event_time_stamp(ev, options), prefix, threadid, prefix, nodeid, prefix, bindid);
 		fprintf(out_paje_file, "7	%.9f	%sw%d	W	%st%lu	%s%s%d\n",
 			get_event_time_stamp(ev, options), prefix, workerid, prefix, threadid, prefix, kindstr, devid);
+		fprintf(out_paje_file, "13	%.9f	%sw%d	gf	0.0\n",
+			get_event_time_stamp(ev, options), prefix, workerid);
 #endif
 	}
 
@@ -1286,7 +1296,8 @@ static void handle_codelet_details(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 
 	struct task_info *task = get_task(job_id, options->file_rank);
 	task->parameters = strdup(parameters);
-	task->footprint = ev->param[3];
+	task->footprint = ev->param[2];
+	task->kflops = ev->param[3];
 	task->tag = ev->param[4];
 
 	if (out_paje_file)
@@ -1294,9 +1305,9 @@ static void handle_codelet_details(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 
 #ifdef STARPU_ENABLE_PAJE_CODELET_DETAILS
 		char *prefix = options->file_prefix;
-		unsigned sched_ctx = ev->param[1];
+		unsigned sched_ctx = ev->param[0];
 
-		worker_set_detailed_state(last_codelet_start[worker], prefix, worker, _starpu_last_codelet_symbol[worker], ev->param[2], parameters, ev->param[3], ev->param[4], job_id);
+		worker_set_detailed_state(last_codelet_start[worker], prefix, worker, _starpu_last_codelet_symbol[worker], ev->param[1], parameters, ev->param[2], ev->param[4], job_id);
 		if (sched_ctx != 0)
 		{
 #ifdef STARPU_HAVE_POTI
@@ -1306,7 +1317,7 @@ static void handle_codelet_details(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 			worker_container_alias(container, STARPU_POTI_STR_LEN, prefix, worker);
 			poti_SetState(last_codelet_start[worker], container, ctx, _starpu_last_codelet_symbol[worker]);
 #else
-			fprintf(out_paje_file, "20	%.9f	%sw%d	Ctx%u	%s	%ld	%s	%08lx	%016lx	%lu\n", last_codelet_start[worker], prefix, worker, sched_ctx, _starpu_last_codelet_symbol[worker], ev->param[2], parameters,  ev->param[3], ev->param[4], job_id);
+			fprintf(out_paje_file, "20	%.9f	%sw%d	Ctx%u	%s	%ld	%s	%08lx	%016lx	%lu\n", last_codelet_start[worker], prefix, worker, sched_ctx, _starpu_last_codelet_symbol[worker], ev->param[1], parameters,  ev->param[2], ev->param[4], job_id);
 #endif
 		}
 #endif /* STARPU_ENABLE_PAJE_CODELET_DETAILS */
@@ -1335,10 +1346,24 @@ static void handle_end_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 		recfmt_worker_set_state(end_codelet_time, worker, "I", "Other");
 
 	double codelet_length = (end_codelet_time - last_codelet_start[worker]);
+	struct task_info *task = get_task(ev->param[0], options->file_rank);
+	double gflops = (((double)task->kflops) / 1000000) / (codelet_length / 1000);
 
 	get_task(ev->param[0], options->file_rank)->end_time = end_codelet_time;
 
 	update_accumulated_time(worker, 0.0, codelet_length, end_codelet_time, 0);
+
+#ifdef STARPU_HAVE_POTI
+	char container[STARPU_POTI_STR_LEN];
+	worker_container_alias(container, STARPU_POTI_STR_LEN, prefix, worker);
+	poti_SetVariable(task->start_time, container, "gf", gflops);
+	poti_SetVariable(end_codelet_time, container, "gf", 0);
+#else
+	fprintf(out_paje_file, "13	%.9f	%sw%d	gf	%f\n",
+			task->start_time, prefix, worker, gflops);
+	fprintf(out_paje_file, "13	%.9f	%sw%d	gf	%f\n",
+			end_codelet_time, prefix, worker, 0.);
+#endif
 
 	if (distrib_time)
 	     fprintf(distrib_time, "%s\t%s%d\t%ld\t%"PRIx32"\t%.9f\n", _starpu_last_codelet_symbol[worker],
@@ -1655,7 +1680,7 @@ static void handle_data_invalidate(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 		char paje_value[STARPU_POTI_STR_LEN], memnode_container[STARPU_POTI_STR_LEN];
 		memmanager_container_alias(memnode_container, STARPU_POTI_STR_LEN, prefix, node);
 		snprintf(paje_value, STARPU_POTI_STR_LEN, "%lx", handle);
-		poti_NewEvent(get_event_time_stamp(ev, options), container, "user_event", paje_value);
+		poti_NewEvent(get_event_time_stamp(ev, options), memnode_container, "user_event", paje_value);
 #else
 		fprintf(out_paje_file, "9	%.9f	invalidate	%smm%u	%lx\n", get_event_time_stamp(ev, options), prefix, node, handle);
 #endif
@@ -1782,6 +1807,9 @@ static void handle_end_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 		}
 
 		/* look for a data transfer to match */
+#ifdef STARPU_DEVEL
+#warning FIXME: use hash table instead
+#endif
 		struct _starpu_communication *itor;
 		for (itor = _starpu_communication_list_begin(&communication_list);
 			itor != _starpu_communication_list_end(&communication_list);
@@ -1839,6 +1867,23 @@ static void handle_memnode_event(struct fxt_ev_64 *ev, struct starpu_fxt_options
 
 	if (out_paje_file)
 		memnode_set_state(get_event_time_stamp(ev, options), options->file_prefix, memnode, eventstr);
+}
+
+static void handle_used_mem(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	unsigned memnode = ev->param[0];
+
+	if (out_paje_file)
+	{
+#ifdef STARPU_HAVE_POTI
+		char memnode_container[STARPU_POTI_STR_LEN];
+		memmanager_container_alias(memnode_container, STARPU_POTI_STR_LEN, options->file_prefix, memnode);
+		poti_SetVariable(get_event_time_stamp(ev, options), memnode_container, "use", (double)ev->param[1] / (1<<20));
+#else
+		fprintf(out_paje_file, "13	%.9f	%smm%u	use	%f\n",
+			get_event_time_stamp(ev, options), options->file_prefix, memnode, (double)ev->param[1] / (1<<20));
+#endif
+	}
 }
 
 static void handle_task_submit_event(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, unsigned long tid, const char *eventstr)
@@ -2426,7 +2471,8 @@ static void handle_thread_event(struct fxt_ev_64 *ev, struct starpu_fxt_options 
 static
 void _starpu_fxt_display_bandwidth(struct starpu_fxt_options *options)
 {
-	float current_bandwidth_per_node[STARPU_MAXNODES] = {0.0};
+	float current_bandwidth_in_per_node[STARPU_MAXNODES] = {0.0};
+	float current_bandwidth_out_per_node[STARPU_MAXNODES] = {0.0};
 
 	char *prefix = options->file_prefix;
 
@@ -2435,29 +2481,29 @@ void _starpu_fxt_display_bandwidth(struct starpu_fxt_options *options)
 		itor != _starpu_communication_list_end(&communication_list);
 		itor = _starpu_communication_list_next(itor))
 	{
-		current_bandwidth_per_node[itor->src_node] +=  itor->bandwidth;
+		current_bandwidth_out_per_node[itor->src_node] +=  itor->bandwidth;
 		if (out_paje_file)
 		{
 #ifdef STARPU_HAVE_POTI
 			char src_memnode_container[STARPU_POTI_STR_LEN];
 			memmanager_container_alias(src_memnode_container, STARPU_POTI_STR_LEN, prefix, itor->src_node);
-			poti_SetVariable(itor->comm_start, src_memnode_container, "bw", current_bandwidth_per_node[itor->src_node]);
+			poti_SetVariable(itor->comm_start, src_memnode_container, "bwo", current_bandwidth_out_per_node[itor->src_node]);
 #else
-			fprintf(out_paje_file, "13	%.9f	%smm%u	bw	%f\n",
-				itor->comm_start, prefix, itor->src_node, current_bandwidth_per_node[itor->src_node]);
+			fprintf(out_paje_file, "13	%.9f	%smm%u	bwo	%f\n",
+				itor->comm_start, prefix, itor->src_node, current_bandwidth_out_per_node[itor->src_node]);
 #endif
 		}
 
-		current_bandwidth_per_node[itor->dst_node] +=  itor->bandwidth;
+		current_bandwidth_in_per_node[itor->dst_node] +=  itor->bandwidth;
 		if (out_paje_file)
 		{
 #ifdef STARPU_HAVE_POTI
 			char dst_memnode_container[STARPU_POTI_STR_LEN];
 			memmanager_container_alias(dst_memnode_container, STARPU_POTI_STR_LEN, prefix, itor->dst_node);
-			poti_SetVariable(itor->comm_start, dst_memnode_container, "bw", current_bandwidth_per_node[itor->dst_node]);
+			poti_SetVariable(itor->comm_start, dst_memnode_container, "bwi", current_bandwidth_in_per_node[itor->dst_node]);
 #else
-			fprintf(out_paje_file, "13	%.9f	%smm%u	bw	%f\n",
-				itor->comm_start, prefix, itor->dst_node, current_bandwidth_per_node[itor->dst_node]);
+			fprintf(out_paje_file, "13	%.9f	%smm%u	bwi	%f\n",
+				itor->comm_start, prefix, itor->dst_node, current_bandwidth_in_per_node[itor->dst_node]);
 #endif
 		}
 	}
@@ -2845,6 +2891,8 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 					handle_memnode_event(&ev, options, "No");
 				}
 				break;
+			case _STARPU_FUT_USED_MEM:
+				handle_used_mem(&ev, options);
 
 			case _STARPU_FUT_USER_EVENT:
 				handle_user_event(&ev, options);

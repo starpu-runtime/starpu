@@ -989,7 +989,11 @@ profiling:
 	}
 
 	if(task->prologue_callback_pop_func)
+	{
+		_starpu_set_current_task(task);
 		task->prologue_callback_pop_func(task->prologue_callback_pop_arg);
+		_starpu_set_current_task(NULL);
+	}
 
 	return task;
 }

@@ -138,16 +138,21 @@ EXTRA_DIST =				\
 	dev/rename.sh			\
 	perfmodels/README		\
 	perfmodels/sampling/codelets/tmp/mlr_init.out	 \
+	valgrind/fxt.suppr		\
 	valgrind/hwloc.suppr		\
 	valgrind/libc.suppr		\
 	valgrind/libgomp.suppr		\
 	valgrind/libnuma.suppr		\
+	valgrind/madmpi.suppr		\
 	valgrind/opencl.suppr		\
 	valgrind/openmpi.suppr		\
+	valgrind/openmp.suppr		\
+	valgrind/padico.suppr		\
 	valgrind/pthread.suppr		\
 	valgrind/starpu.suppr		\
 	valgrind/valgrind.suppr		\
 	valgrind/valgrind.sh		\
+	valgrind/helgrind.sh		\
 	tsan/starpu.suppr		\
 	lsan/libc.suppr			\
 	lsan/openmpi.suppr		\
