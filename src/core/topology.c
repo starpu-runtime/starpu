@@ -753,6 +753,15 @@ _starpu_topology_get_nhwpu (struct _starpu_machine_config *config)
 	return config->topology.nhwpus;
 }
 
+void _starpu_topology_filter(hwloc_topology_t topology)
+{
+#if HWLOC_API_VERSION >= 0x20000
+	hwloc_topology_set_io_types_filter(topology, HWLOC_TYPE_FILTER_KEEP_IMPORTANT);
+#else
+	hwloc_topology_set_flags(topology, HWLOC_TOPOLOGY_FLAG_IO_DEVICES | HWLOC_TOPOLOGY_FLAG_IO_BRIDGES);
+#endif
+}
+
 #ifdef STARPU_USE_MIC
 static void
 _starpu_init_mic_config (struct _starpu_machine_config *config,
