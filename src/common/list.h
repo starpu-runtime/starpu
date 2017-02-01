@@ -195,27 +195,13 @@
     { return NULL; } \
   /** @internal */static inline struct ENAME *ENAME##_list_next(struct ENAME *i) \
     { return i->_next; } \
-<<<<<<< .working
-  /** @internal */static inline int ENAME##_list_size(struct ENAME##_list *l) \
-||||||| .merge-left.r19804
-  /** @internal */static inline int ENAME##_list_ismember(const struct ENAME##_list *l, const struct ENAME *e) \
-    { struct ENAME *i=l->_head; while(i!=NULL){ if (i == e) return 1; i=i->_next; } return 0; } \
-  /** @internal */static inline int ENAME##_list_member(const struct ENAME##_list *l, const struct ENAME *e) \
-    { struct ENAME *i=l->_head; int k=0; while(i!=NULL){if (i == e) return k; k++; i=i->_next; } return -1; } \
-  /** @internal */static inline int ENAME##_list_size(const struct ENAME##_list *l) \
-=======
   /** @internal */static inline struct ENAME *ENAME##_list_last(const struct ENAME##_list *l) \
     { return l->_tail; } \
   /** @internal */static inline struct ENAME *ENAME##_list_alpha(const struct ENAME##_list *l STARPU_ATTRIBUTE_UNUSED) \
     { return NULL; } \
   /** @internal */static inline struct ENAME *ENAME##_list_prev(const struct ENAME *i) \
     { return i->_prev; } \
-  /** @internal */static inline int ENAME##_list_ismember(const struct ENAME##_list *l, const struct ENAME *e) \
-    { struct ENAME *i=l->_head; while(i!=NULL){ if (i == e) return 1; i=i->_next; } return 0; } \
-  /** @internal */static inline int ENAME##_list_member(const struct ENAME##_list *l, const struct ENAME *e) \
-    { struct ENAME *i=l->_head; int k=0; while(i!=NULL){if (i == e) return k; k++; i=i->_next; } return -1; } \
-  /** @internal */static inline int ENAME##_list_size(const struct ENAME##_list *l) \
->>>>>>> .merge-right.r19805
+  /** @internal */static inline int ENAME##_list_size(struct ENAME##_list *l) \
     { struct ENAME *i=l->_head; int k=0; while(i!=NULL){k++;i=i->_next;} return k; } \
   /** @internal */static inline int ENAME##_list_check(struct ENAME##_list *l) \
     { struct ENAME *i=l->_head; while(i) \
