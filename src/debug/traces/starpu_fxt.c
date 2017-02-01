@@ -1340,9 +1340,9 @@ static void handle_end_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 	poti_SetVariable(task->start_time, container, "gf", gflops);
 	poti_SetVariable(end_codelet_time, container, "gf", 0);
 #else
-	fprintf(out_paje_file, "13	%.9f	%sw%u	gf	%f\n",
+	fprintf(out_paje_file, "13	%.9f	%sw%d	gf	%f\n",
 			task->start_time, prefix, worker, gflops);
-	fprintf(out_paje_file, "13	%.9f	%sw%u	gf	%f\n",
+	fprintf(out_paje_file, "13	%.9f	%sw%d	gf	%f\n",
 			end_codelet_time, prefix, worker, 0.);
 #endif
 
