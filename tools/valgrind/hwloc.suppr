@@ -110,3 +110,56 @@
    obj:*
    fun:hwloc_discover
 }
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:strdup
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   fun:hwloc_discover
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:strdup
+   obj:/usr/lib/x86_64-linux-gnu/libpciaccess.so.0.11.1
+   obj:/usr/lib/x86_64-linux-gnu/libpciaccess.so.0.11.1
+   fun:pci_device_get_device_name
+   fun:hwloc_look_pci
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:realloc
+   obj:/usr/lib/x86_64-linux-gnu/libpciaccess.so.0.11.1
+   obj:/usr/lib/x86_64-linux-gnu/libpciaccess.so.0.11.1
+   fun:pci_device_get_device_name
+   fun:hwloc_look_pci
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libpciaccess.so.0.11.1
+   obj:/usr/lib/x86_64-linux-gnu/libpciaccess.so.0.11.1
+   fun:hwloc_look_pci
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:strdup
+   obj:/usr/lib/x86_64-linux-gnu/libpciaccess.so.0.11.1
+   obj:/usr/lib/x86_64-linux-gnu/libpciaccess.so.0.11.1
+   fun:hwloc_look_pci
+}
