@@ -856,7 +856,7 @@ void _starpu_simgrid_xbt_thread_create(const char *name, void_f_pvoid_t code, vo
   res->father_data = SIMIX_process_self_get_data(SIMIX_process_self());
 
 #if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 12)
-  simcall_process_create(&process
+  simcall_process_create(&process,
 #else
   process = simcall_process_create(
 #endif
