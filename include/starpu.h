@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009-2014, 2016  Université de Bordeaux
  * Copyright (C) 2010-2015  CNRS
- * Copyright (C) 2014  INRIA
+ * Copyright (C) 2014, 2016  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -90,6 +90,7 @@ struct starpu_conf
 	int nopencl;
 	int nmic;
 	int nscc;
+        int nmpi_ms;
 
 	unsigned use_explicit_workers_bindid;
 	unsigned workers_bindid[STARPU_NMAXWORKERS];
@@ -106,6 +107,9 @@ struct starpu_conf
 	unsigned use_explicit_workers_scc_deviceid;
 	unsigned workers_scc_deviceid[STARPU_NMAXWORKERS];
 
+	unsigned use_explicit_workers_mpi_deviceid;
+	unsigned workers_mpi_deviceid[STARPU_NMAXWORKERS];
+
 	int bus_calibrate;
 	int calibrate;
 
@@ -117,6 +121,7 @@ struct starpu_conf
 	int disable_asynchronous_cuda_copy;
 	int disable_asynchronous_opencl_copy;
 	int disable_asynchronous_mic_copy;
+	int disable_asynchronous_mpi_ms_copy;
 
 	unsigned *cuda_opengl_interoperability;
 	unsigned n_cuda_opengl_interoperability;
@@ -146,6 +151,7 @@ int starpu_asynchronous_copy_disabled(void);
 int starpu_asynchronous_cuda_copy_disabled(void);
 int starpu_asynchronous_opencl_copy_disabled(void);
 int starpu_asynchronous_mic_copy_disabled(void);
+int starpu_asynchronous_mpi_ms_copy_disabled(void);
 
 void starpu_display_stats();
 

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2010, 2012-2017  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -621,6 +621,12 @@ _starpu_malloc_on_node(unsigned dst_node, size_t size, int flags)
 				addr = 0;
 			break;
 #endif
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+		case STARPU_MPI_MS_RAM:
+			if (_starpu_mpi_src_allocate_memory((void **)(&addr), size, dst_node))
+				addr = 0;
+			break;
+#endif
 #ifdef STARPU_USE_SCC
 		case STARPU_SCC_RAM:
 			if (_starpu_scc_allocate_memory((void **)(&addr), size, dst_node))
@@ -721,6 +727,11 @@ _starpu_free_on_node_flags(unsigned dst_node, uintptr_t addr, size_t size, int f
 		case STARPU_MIC_RAM:
 			_starpu_mic_free_memory((void*) addr, size, dst_node);
 			break;
+#endif
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+        case STARPU_MPI_MS_RAM:
+            _starpu_mpi_source_free_memory((void*) addr, dst_node);
+            break;
 #endif
 #ifdef STARPU_USE_SCC
 		case STARPU_SCC_RAM:

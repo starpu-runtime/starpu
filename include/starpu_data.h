@@ -117,7 +117,8 @@ enum starpu_node_kind
 	STARPU_DISK_RAM   = 0x04,
 	STARPU_MIC_RAM    = 0x05,
 	STARPU_SCC_RAM    = 0x06,
-	STARPU_SCC_SHM    = 0x07
+	STARPU_SCC_SHM    = 0x07,
+	STARPU_MPI_MS_RAM = 0x08
 
 };
 

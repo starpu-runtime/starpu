@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2016  Université de Bordeaux
+ * Copyright (C) 2009-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016  CNRS
+ * Copyright (C) 2016  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -40,6 +41,7 @@
 #define _STARPU_FUT_OPENCL_KEY	0x103
 #define _STARPU_FUT_MIC_KEY	0x104
 #define _STARPU_FUT_SCC_KEY	0x105
+#define _STARPU_FUT_MPI_KEY	0x106
 
 #define _STARPU_FUT_WORKER_INIT_START	0x5100
 #define _STARPU_FUT_WORKER_INIT_END	0x5101
@@ -52,10 +54,10 @@
 
 #define _STARPU_FUT_UPDATE_TASK_CNT	0x5106
 
-#define _STARPU_FUT_START_FETCH_INPUT	0x5107
-#define _STARPU_FUT_END_FETCH_INPUT	0x5108
-#define _STARPU_FUT_START_PUSH_OUTPUT	0x5109
-#define _STARPU_FUT_END_PUSH_OUTPUT	0x5110
+#define _STARPU_FUT_START_FETCH_INPUT_ON_TID	0x5107
+#define _STARPU_FUT_END_FETCH_INPUT_ON_TID	0x5108
+#define _STARPU_FUT_START_PUSH_OUTPUT_ON_TID	0x5109
+#define _STARPU_FUT_END_PUSH_OUTPUT_ON_TID	0x5110
 
 #define _STARPU_FUT_TAG		0x5111
 #define _STARPU_FUT_TAG_DEPS	0x5112
@@ -93,6 +95,8 @@
 #define	_STARPU_FUT_START_ALLOC_REUSE	0x5129
 #define	_STARPU_FUT_END_ALLOC_REUSE	0x5130
 
+#define	_STARPU_FUT_USED_MEM	0x512a
+
 #define	_STARPU_FUT_START_MEMRECLAIM	0x5131
 #define	_STARPU_FUT_END_MEMRECLAIM	0x5132
 
@@ -102,8 +106,8 @@
 #define	_STARPU_FUT_START_DRIVER_COPY_ASYNC	0x5135
 #define	_STARPU_FUT_END_DRIVER_COPY_ASYNC	0x5136
 
-#define	_STARPU_FUT_START_PROGRESS	0x5137
-#define	_STARPU_FUT_END_PROGRESS		0x5138
+#define	_STARPU_FUT_START_PROGRESS_ON_TID	0x5137
+#define	_STARPU_FUT_END_PROGRESS_ON_TID		0x5138
 
 #define _STARPU_FUT_USER_EVENT		0x5139
 
@@ -149,8 +153,8 @@
 
 #define _STARPU_FUT_DATA_LOAD 0x5153
 
-#define _STARPU_FUT_START_UNPARTITION 0x5154
-#define _STARPU_FUT_END_UNPARTITION 0x5155
+#define _STARPU_FUT_START_UNPARTITION_ON_TID 0x5154
+#define _STARPU_FUT_END_UNPARTITION_ON_TID 0x5155
 
 #define	_STARPU_FUT_START_FREE		0x5156
 #define	_STARPU_FUT_END_FREE		0x5157
@@ -206,6 +210,9 @@
 
 #define _STARPU_FUT_HANDLE_DATA_REGISTER 0x517c
 #define _STARPU_FUT_DATA_INVALIDATE 0x517d
+
+#define _STARPU_FUT_START_FETCH_INPUT	0x517e
+#define _STARPU_FUT_END_FETCH_INPUT	0x517f
 
 #ifdef STARPU_USE_FXT
 #include <fxt/fxt.h>
@@ -488,7 +495,7 @@ do {									\
 		}							\
 		const size_t __job_size = _starpu_job_get_data_size((job)->task->cl?(job)->task->cl->model:NULL, perf_arch, nimpl, (job));	\
 		const uint32_t __job_hash = _starpu_compute_buffers_footprint((job)->task->cl?(job)->task->cl->model:NULL, perf_arch, nimpl, (job));\
-		FUT_DO_PROBE7(_STARPU_FUT_CODELET_DETAILS, (job), ((job)->task)->sched_ctx, __job_size, __job_hash, (job)->task->tag_id, workerid, ((job)->job_id)); \
+		FUT_DO_PROBE7(_STARPU_FUT_CODELET_DETAILS, ((job)->task)->sched_ctx, __job_size, __job_hash, (job)->task->flops / 1000, (job)->task->tag_id, workerid, ((job)->job_id)); \
 	}								\
 } while(0);
 
@@ -523,16 +530,22 @@ do {									\
 	FUT_DO_PROBE2(_STARPU_FUT_UPDATE_TASK_CNT, counter, _starpu_gettid())
 
 #define _STARPU_TRACE_START_FETCH_INPUT(job)	\
-	FUT_DO_PROBE2(_STARPU_FUT_START_FETCH_INPUT, job, _starpu_gettid());
+	FUT_DO_PROBE2(_STARPU_FUT_START_FETCH_INPUT_ON_TID, job, _starpu_gettid());
 
 #define _STARPU_TRACE_END_FETCH_INPUT(job)	\
-	FUT_DO_PROBE2(_STARPU_FUT_END_FETCH_INPUT, job, _starpu_gettid());
+	FUT_DO_PROBE2(_STARPU_FUT_END_FETCH_INPUT_ON_TID, job, _starpu_gettid());
 
 #define _STARPU_TRACE_START_PUSH_OUTPUT(job)	\
-	FUT_DO_PROBE2(_STARPU_FUT_START_PUSH_OUTPUT, job, _starpu_gettid());
+	FUT_DO_PROBE2(_STARPU_FUT_START_PUSH_OUTPUT_ON_TID, job, _starpu_gettid());
 
 #define _STARPU_TRACE_END_PUSH_OUTPUT(job)	\
-	FUT_DO_PROBE2(_STARPU_FUT_END_PUSH_OUTPUT, job, _starpu_gettid());
+	FUT_DO_PROBE2(_STARPU_FUT_END_PUSH_OUTPUT_ON_TID, job, _starpu_gettid());
+
+#define _STARPU_TRACE_WORKER_END_FETCH_INPUT(job, id)	\
+	FUT_DO_PROBE2(_STARPU_FUT_END_FETCH_INPUT, job, id);
+
+#define _STARPU_TRACE_WORKER_START_FETCH_INPUT(job, id)	\
+	FUT_DO_PROBE2(_STARPU_FUT_START_FETCH_INPUT, job, id);
 
 #define _STARPU_TRACE_TAG(tag, job)	\
 	FUT_DO_PROBE2(_STARPU_FUT_TAG, tag, (job)->job_id)
@@ -689,6 +702,9 @@ do {										\
 #define _STARPU_TRACE_END_WRITEBACK(memnode)		\
 	FUT_DO_PROBE2(_STARPU_FUT_END_WRITEBACK, memnode, _starpu_gettid());
 
+#define _STARPU_TRACE_USED_MEM(memnode,used)		\
+	FUT_DO_PROBE3(_STARPU_FUT_USED_MEM, memnode, used, _starpu_gettid());
+	
 #define _STARPU_TRACE_START_MEMRECLAIM(memnode,is_prefetch)		\
 	FUT_DO_PROBE3(_STARPU_FUT_START_MEMRECLAIM, memnode, is_prefetch, _starpu_gettid());
 	
@@ -898,10 +914,10 @@ do {										\
 	FUT_DO_PROBE2(_STARPU_FUT_DATA_LOAD, workerid, size);
 
 #define _STARPU_TRACE_START_UNPARTITION(handle, memnode)		\
-	FUT_DO_PROBE3(_STARPU_FUT_START_UNPARTITION, memnode, _starpu_gettid(), handle);
+	FUT_DO_PROBE3(_STARPU_FUT_START_UNPARTITION_ON_TID, memnode, _starpu_gettid(), handle);
 	
 #define _STARPU_TRACE_END_UNPARTITION(handle, memnode)		\
-	FUT_DO_PROBE3(_STARPU_FUT_END_UNPARTITION, memnode, _starpu_gettid(), handle);
+	FUT_DO_PROBE3(_STARPU_FUT_END_UNPARTITION_ON_TID, memnode, _starpu_gettid(), handle);
 
 #define _STARPU_TRACE_SCHED_COMPONENT_PUSH_PRIO(workerid, ntasks, exp_len)		\
 	FUT_DO_PROBE4(_STARPU_FUT_SCHED_COMPONENT_PUSH_PRIO, _starpu_gettid(), workerid, ntasks, exp_len);
@@ -995,6 +1011,7 @@ do {										\
 #define _STARPU_TRACE_END_FREE(memnode)		do {} while(0)
 #define _STARPU_TRACE_START_WRITEBACK(memnode)	do {} while(0)
 #define _STARPU_TRACE_END_WRITEBACK(memnode)		do {} while(0)
+#define _STARPU_TRACE_USED_MEM(memnode,used)		do {} while (0)
 #define _STARPU_TRACE_START_MEMRECLAIM(memnode,is_prefetch)	do {} while(0)
 #define _STARPU_TRACE_END_MEMRECLAIM(memnode,is_prefetch)	do {} while(0)
 #define _STARPU_TRACE_START_WRITEBACK_ASYNC(memnode)	do {} while(0)
@@ -1040,6 +1057,8 @@ do {										\
 #define _STARPU_TRACE_SCHED_COMPONENT_PULL(from, to, task)	do {} while (0)
 #define _STARPU_TRACE_HANDLE_DATA_REGISTER(handle)	do {} while (0)
 #define _STARPU_TRACE_DATA_INVALIDATE(handle, node)	do {} while (0)
+#define _STARPU_TRACE_WORKER_START_FETCH_INPUT(job, id)	do {} while(0)
+#define _STARPU_TRACE_WORKER_END_FETCH_INPUT(job, id)	do {} while(0)
 
 #endif // STARPU_USE_FXT
 

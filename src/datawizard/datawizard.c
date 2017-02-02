@@ -19,13 +19,14 @@
 #include <common/config.h>
 #include <datawizard/datawizard.h>
 #include <datawizard/memalloc.h>
+#include <datawizard/memory_nodes.h>
 #include <core/workers.h>
 #include <core/progress_hook.h>
 #ifdef STARPU_SIMGRID
 #include <core/simgrid.h>
 #endif
 
-int __starpu_datawizard_progress(unsigned memory_node, unsigned may_alloc, unsigned push_requests)
+int ___starpu_datawizard_progress(unsigned memory_node, unsigned may_alloc, unsigned push_requests)
 {
 	int ret = 0;
 
@@ -63,20 +64,23 @@ int __starpu_datawizard_progress(unsigned memory_node, unsigned may_alloc, unsig
 	return ret;
 }
 
-void _starpu_datawizard_progress(unsigned memory_node, unsigned may_alloc)
+int __starpu_datawizard_progress(unsigned may_alloc, unsigned push_requests)
 {
-	__starpu_datawizard_progress(memory_node, may_alloc, 1);
+        int current_worker_id = starpu_worker_get_id();
+        unsigned memnode;
+
+        int ret = 0;
+
+        for (memnode = 0; memnode < STARPU_MAXNODES; memnode++)
+        {
+                if (_starpu_worker_drives_memory[current_worker_id][memnode] == 1)
+                        ret |= ___starpu_datawizard_progress(memnode, may_alloc, push_requests);
+        }
+
+        return ret;
 }
 
-int __starpu_datawizard_progress_ram(unsigned may_alloc, unsigned push_requests)
+void _starpu_datawizard_progress(unsigned may_alloc)
 {
-	int res = 0;
-	unsigned i;
-	unsigned nb_numa_nodes = _starpu_get_nb_numa_nodes();
-	for (i=0; i<nb_numa_nodes; i++)
-	{
-		unsigned id = _starpu_numalogid_to_memnode(i);
-		res |= __starpu_datawizard_progress(id, may_alloc, push_requests);
-	}
-	return res;
+        __starpu_datawizard_progress(may_alloc, 1);
 }

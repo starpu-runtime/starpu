@@ -45,45 +45,67 @@ starpu_binding_function _starpu_cluster_type_get_func(starpu_cluster_types type)
 	return prologue_func;
 }
 
-void starpu_openmp_prologue(void *sched_ctx_id)
+void starpu_openmp_prologue(void* arg)
 {
-	int sched_ctx = *(int*)sched_ctx_id;
-	int *cpuids = NULL;
-	int ncpuids = 0;
 	int workerid = starpu_worker_get_id_check();
 
 	if (starpu_worker_get_type(workerid) == STARPU_CPU_WORKER)
 	{
-		starpu_sched_ctx_get_available_cpuids(sched_ctx, &cpuids, &ncpuids);
-		omp_set_num_threads(ncpuids);
-#pragma omp parallel
+		struct starpu_task *task = starpu_task_get_current();
+		int sched_ctx = task->sched_ctx;
+		struct _starpu_sched_ctx *ctx_struct = _starpu_get_sched_ctx_struct(sched_ctx);
+		/* If the view of the worker doesn't correspond to the view of the task,
+			 adapt the thread team */
+		if (ctx_struct->parallel_view != task->possibly_parallel)
 		{
-			starpu_sched_ctx_bind_current_thread_to_cpuid(cpuids[omp_get_thread_num()]);
+			int *cpuids = NULL;
+			int ncpuids = 0;
+
+			starpu_sched_ctx_get_available_cpuids(sched_ctx, &cpuids, &ncpuids);
+			if (!task->possibly_parallel)
+				ncpuids=1;
+			omp_set_num_threads(ncpuids);
+#pragma omp parallel
+			{
+				starpu_sched_ctx_bind_current_thread_to_cpuid(cpuids[omp_get_thread_num()]);
+			}
+			free(cpuids);
+			ctx_struct->parallel_view = !ctx_struct->parallel_view;
 		}
-		free(cpuids);
 	}
 	return;
 }
 
 #ifdef STARPU_MKL
-void starpu_gnu_openmp_mkl_prologue(void *sched_ctx_id)
+void starpu_gnu_openmp_mkl_prologue(void* arg)
 {
-	int sched_ctx = *(int*)sched_ctx_id;
-	int *cpuids = NULL;
-	int ncpuids = 0;
 	int workerid = starpu_worker_get_id();
 
 	if (starpu_worker_get_type(workerid) == STARPU_CPU_WORKER)
 	{
-		starpu_sched_ctx_get_available_cpuids(sched_ctx, &cpuids, &ncpuids);
-		omp_set_num_threads(ncpuids);
-		mkl_set_num_threads(ncpuids);
-		mkl_set_dynamic(0);
-#pragma omp parallel
+		struct starpu_task *task = starpu_task_get_current();
+		int sched_ctx = task->sched_ctx;
+		struct _starpu_sched_ctx *ctx_struct = _starpu_get_sched_ctx_struct(sched_ctx);
+		/* If the view of the worker doesn't correspond to the view of the task,
+			 adapt the thread team */
+		if (ctx_struct->parallel_view != task->possibly_parallel)
 		{
-			starpu_sched_ctx_bind_current_thread_to_cpuid(cpuids[omp_get_thread_num()]);
+			int *cpuids = NULL;
+			int ncpuids = 0;
+
+			starpu_sched_ctx_get_available_cpuids(sched_ctx, &cpuids, &ncpuids);
+			if (!task->possibly_parallel)
+				ncpuids=1;
+			omp_set_num_threads(ncpuids);
+			mkl_set_num_threads(ncpuids);
+			mkl_set_dynamic(0);
+#pragma omp parallel
+			{
+				starpu_sched_ctx_bind_current_thread_to_cpuid(cpuids[omp_get_thread_num()]);
+			}
+			free(cpuids);
+			ctx_struct->parallel_view = !ctx_struct->parallel_view;
 		}
-		free(cpuids);
 	}
 	return;
 }
@@ -324,8 +346,8 @@ int _starpu_cluster_bind(struct _starpu_cluster *cluster)
 	else
 	{
 		func = _starpu_cluster_type_get_func(cluster->params->type);
-		func_arg = (void*) &cluster->id;
-		}
+		func_arg = NULL;
+	}
 
 	return starpu_task_insert(&_starpu_cluster_bind_cl,
 				  STARPU_SCHED_CTX, cluster->id,

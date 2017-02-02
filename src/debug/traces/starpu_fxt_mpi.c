@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2013, 2016  Université Bordeaux
+ * Copyright (C) 2012-2013, 2016-2017  Université Bordeaux
  * Copyright (C) 2010, 2011, 2014, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -26,14 +26,17 @@
 #define STARPU_POTI_STR_LEN 200
 #endif
 
-struct mpi_transfer
-{
+#define MAX_MPI_NODES 64
+
+LIST_TYPE(mpi_transfer,
 	unsigned matched;
-	int other_rank; /* src for a recv, dest for a send */
+	int src;
+	int dst;
 	int mpi_tag;
 	size_t size;
 	float date;
-};
+	double bandwidth;
+);
 
 /* Returns 0 if a barrier is found, -1 otherwise. In case of success, offset is
  * filled with the timestamp of the barrier */
@@ -100,25 +103,28 @@ int _starpu_fxt_mpi_find_sync_point(char *filename_in, uint64_t *offset, int *ke
  */
 
 /* the list of MPI transfers found in the different traces */
-static struct mpi_transfer *mpi_sends[64] = {NULL};
-static struct mpi_transfer *mpi_recvs[64] = {NULL};
+static struct mpi_transfer *mpi_sends[MAX_MPI_NODES] = {NULL};
+static struct mpi_transfer *mpi_recvs[MAX_MPI_NODES] = {NULL};
 
 /* number of available slots in the lists  */
-unsigned mpi_sends_list_size[64] = {0};
-unsigned mpi_recvs_list_size[64] = {0};
+unsigned mpi_sends_list_size[MAX_MPI_NODES] = {0};
+unsigned mpi_recvs_list_size[MAX_MPI_NODES] = {0};
 
 /* number of slots actually used in the list  */
-unsigned mpi_sends_used[64] = {0};
-unsigned mpi_recvs_used[64] = {0};
+unsigned mpi_sends_used[MAX_MPI_NODES] = {0};
+unsigned mpi_recvs_used[MAX_MPI_NODES] = {0};
 
 /* number of slots already matched at the beginning of the list. This permits
  * going through the lists from the beginning to match each and every
  * transfer, thus avoiding a quadratic complexity. */
-unsigned mpi_recvs_matched[64] = {0};
+unsigned mpi_recvs_matched[MAX_MPI_NODES][MAX_MPI_NODES] = { {0} };
+unsigned mpi_sends_matched[MAX_MPI_NODES][MAX_MPI_NODES] = { {0} };
 
 void _starpu_fxt_mpi_add_send_transfer(int src, int dst STARPU_ATTRIBUTE_UNUSED, int mpi_tag, size_t size, float date)
 {
 	STARPU_ASSERT(src >= 0);
+	if (src >= MAX_MPI_NODES)
+		return;
 	unsigned slot = mpi_sends_used[src]++;
 
 	if (mpi_sends_used[src] > mpi_sends_list_size[src])
@@ -136,7 +142,8 @@ void _starpu_fxt_mpi_add_send_transfer(int src, int dst STARPU_ATTRIBUTE_UNUSED,
 	}
 
 	mpi_sends[src][slot].matched = 0;
-	mpi_sends[src][slot].other_rank = dst;
+	mpi_sends[src][slot].src = src;
+	mpi_sends[src][slot].dst = dst;
 	mpi_sends[src][slot].mpi_tag = mpi_tag;
 	mpi_sends[src][slot].size = size;
 	mpi_sends[src][slot].date = date;
@@ -144,6 +151,8 @@ void _starpu_fxt_mpi_add_send_transfer(int src, int dst STARPU_ATTRIBUTE_UNUSED,
 
 void _starpu_fxt_mpi_add_recv_transfer(int src STARPU_ATTRIBUTE_UNUSED, int dst, int mpi_tag, float date)
 {
+	if (dst >= MAX_MPI_NODES)
+		return;
 	unsigned slot = mpi_recvs_used[dst]++;
 
 	if (mpi_recvs_used[dst] > mpi_recvs_list_size[dst])
@@ -161,7 +170,8 @@ void _starpu_fxt_mpi_add_recv_transfer(int src STARPU_ATTRIBUTE_UNUSED, int dst,
 	}
 
 	mpi_recvs[dst][slot].matched = 0;
-	mpi_recvs[dst][slot].other_rank = dst;
+	mpi_recvs[dst][slot].src = src;
+	mpi_recvs[dst][slot].dst = dst;
 	mpi_recvs[dst][slot].mpi_tag = mpi_tag;
 	mpi_recvs[dst][slot].date = date;
 }
@@ -170,7 +180,7 @@ static
 struct mpi_transfer *try_to_match_send_transfer(int src STARPU_ATTRIBUTE_UNUSED, int dst, int mpi_tag)
 {
 	unsigned slot;
-	unsigned firstslot = mpi_recvs_matched[dst];
+	unsigned firstslot = mpi_recvs_matched[src][dst];
 
 	unsigned all_previous_were_matched = 1;
 
@@ -193,7 +203,7 @@ struct mpi_transfer *try_to_match_send_transfer(int src STARPU_ATTRIBUTE_UNUSED,
 			{
 				/* All previous transfers are already matched,
 				 * we need not consider them anymore */
-				mpi_recvs_matched[dst] = slot;
+				mpi_recvs_matched[src][dst] = slot;
 			}
 		}
 	}
@@ -204,60 +214,146 @@ struct mpi_transfer *try_to_match_send_transfer(int src STARPU_ATTRIBUTE_UNUSED,
 
 static unsigned long mpi_com_id = 0;
 
-static void display_all_transfers_from_trace(FILE *out_paje_file, int src)
+static void display_all_transfers_from_trace(FILE *out_paje_file, unsigned n)
 {
-	unsigned slot;
-	for (slot = 0; slot < mpi_sends_used[src]; slot++)
-	{
-		int dst = mpi_sends[src][slot].other_rank;
-		int mpi_tag = mpi_sends[src][slot].mpi_tag;
-		float start_date = mpi_sends[src][slot].date;
-		size_t size = mpi_sends[src][slot].size;
+	unsigned slot[MAX_MPI_NODES] = { 0 }, node, src;
+	struct mpi_transfer_list pending_receives; /* Sorted list of matches which have not happened yet */
+	double current_out_bandwidth[MAX_MPI_NODES] = { 0. };
+	double current_in_bandwidth[MAX_MPI_NODES] = { 0. };
+#ifdef STARPU_HAVE_POTI
+	char mpi_container[STARPU_POTI_STR_LEN];
+#endif
 
-		struct mpi_transfer *match;
-		match = try_to_match_send_transfer(src, dst, mpi_tag);
+	for (node = 0; node < n ; node++)
+	{
+#ifdef STARPU_HAVE_POTI
+		snprintf(mpi_container, sizeof(mpi_container), "%d_mpict", node);
+		poti_SetVariable(0., mpi_container, "bwi", 0.);
+		poti_SetVariable(0., mpi_container, "bwo", 0.);
+#else
+		fprintf(out_paje_file, "13	%.9f	%d_mpict	bwi	%f\n", 0., node, 0.);
+		fprintf(out_paje_file, "13	%.9f	%d_mpict	bwo	%f\n", 0., node, 0.);
+#endif
+	}
+
+	mpi_transfer_list_init(&pending_receives);
+
+	while (1)
+	{
+		float start_date;
+		struct mpi_transfer *cur, *match;
+
+		/* Find out which event comes first: a pending receive, or a new send */
+
+		if (mpi_transfer_list_empty(&pending_receives))
+			start_date = INFINITY;
+		else
+			start_date = mpi_transfer_list_front(&pending_receives)->date;
+
+		src = MAX_MPI_NODES;
+		for (node = 0; node < n; node++) {
+			if (slot[node] < mpi_sends_used[node] && mpi_sends[node][slot[node]].date < start_date)
+			{
+				/* next send for node is earlier than others */
+				src = node;
+				start_date = mpi_sends[src][slot[src]].date;
+			}
+		}
+		if (start_date == INFINITY)
+			/* No event any more, we're finished! */
+			break;
+
+		if (src == MAX_MPI_NODES)
+		{
+			/* Pending match is earlier than all new sends, finish its communication */
+			match = mpi_transfer_list_pop_front(&pending_receives);
+			current_out_bandwidth[match->src] -= match->bandwidth;
+			current_in_bandwidth[match->dst] -= match->bandwidth;
+#ifdef STARPU_HAVE_POTI
+			snprintf(mpi_container, sizeof(mpi_container), "%d_mpict", match->src);
+			poti_SetVariable(match->date, mpi_container, "bwo", current_out_bandwidth[match->src]);
+			snprintf(mpi_container, sizeof(mpi_container), "%d_mpict", match->dst);
+			poti_SetVariable(match->date, mpi_container, "bwi", current_in_bandwidth[match->dst]);
+#else
+			fprintf(out_paje_file, "13	%.9f	%d_mpict	bwo	%f\n", match->date, match->src, current_out_bandwidth[match->src]);
+			fprintf(out_paje_file, "13	%.9f	%d_mpict	bwi	%f\n", match->date, match->dst, current_in_bandwidth[match->dst]);
+#endif
+			continue;
+		}
+
+		cur = &mpi_sends[src][slot[src]];
+		int dst = cur->dst;
+		int mpi_tag = cur->mpi_tag;
+		size_t size = cur->size;
+
+		if (dst < MAX_MPI_NODES)
+			match = try_to_match_send_transfer(src, dst, mpi_tag);
+		else
+			match = NULL;
 
 		if (match)
 		{
 			float end_date = match->date;
+			struct mpi_transfer *prev;
+
+			match->bandwidth = (0.001*size)/(end_date - start_date);
+			current_out_bandwidth[src] += match->bandwidth;
+			current_in_bandwidth[dst] += match->bandwidth;
+
+			/* Insert in sorted list, most probably at the end so let's use a mere insertion sort */
+			for (prev = mpi_transfer_list_last(&pending_receives);
+				prev != mpi_transfer_list_alpha(&pending_receives);
+				prev = mpi_transfer_list_prev(prev))
+				if (prev->date <= end_date)
+				{
+					/* Found its place */
+					mpi_transfer_list_insert_after(&pending_receives, match, prev);
+					break;
+				}
+			if (prev == mpi_transfer_list_alpha(&pending_receives))
+			{
+				/* No element earlier than this one, put it at the head */
+				mpi_transfer_list_push_front(&pending_receives, match);
+			}
 
 			unsigned long id = mpi_com_id++;
-			/* TODO replace 0 by a MPI program ? */
-			if (out_paje_file)
-			{
 #ifdef STARPU_HAVE_POTI
-				char paje_value[STARPU_POTI_STR_LEN], paje_key[STARPU_POTI_STR_LEN];
-				snprintf(paje_value, STARPU_POTI_STR_LEN, "%lu", (long unsigned) size);
-				snprintf(paje_key, STARPU_POTI_STR_LEN, "mpicom_%lu", id);
-				char mpi_container[STARPU_POTI_STR_LEN];
-				snprintf(mpi_container, sizeof(mpi_container), "%d_mpict", /* XXX */src);
-				poti_StartLink(start_date, "MPICt", "MPIL", mpi_container, paje_value, paje_key);
-				snprintf(mpi_container, sizeof(mpi_container), "%d_mpict", /* XXX */dst);
-				poti_EndLink(end_date, "MPICt", "MPIL", mpi_container, paje_value, paje_key);
+			char paje_value[STARPU_POTI_STR_LEN], paje_key[STARPU_POTI_STR_LEN];
+			snprintf(paje_value, STARPU_POTI_STR_LEN, "%lu", (long unsigned) size);
+			snprintf(paje_key, STARPU_POTI_STR_LEN, "mpicom_%lu", id);
+			snprintf(mpi_container, sizeof(mpi_container), "%d_mpict", src);
+			poti_StartLink(start_date, "MPICt", "MPIL", mpi_container, paje_value, paje_key);
+			poti_SetVariable(start_date, mpi_container, "bwo", current_out_bandwidth[src]);
+			snprintf(mpi_container, sizeof(mpi_container), "%d_mpict", dst);
+			poti_EndLink(end_date, "MPICt", "MPIL", mpi_container, paje_value, paje_key);
+			poti_SetVariable(start_date, mpi_container, "bwo", current_in_bandwidth[dst]);
 #else
-				fprintf(out_paje_file, "18	%.9f	MPIL	MPIroot	%lu	%d_mpict	mpicom_%lu\n", start_date, (unsigned long)size, /* XXX */src, id);
-				fprintf(out_paje_file, "19	%.9f	MPIL	MPIroot	%lu	%d_mpict	mpicom_%lu\n", end_date, (unsigned long)size, /* XXX */dst, id);
+			fprintf(out_paje_file, "18	%.9f	MPIL	MPIroot	%lu	%d_mpict	mpicom_%lu\n", start_date, (unsigned long)size, src, id);
+			fprintf(out_paje_file, "19	%.9f	MPIL	MPIroot	%lu	%d_mpict	mpicom_%lu\n", end_date, (unsigned long)size, dst, id);
+			fprintf(out_paje_file, "13	%.9f	%d_mpict	bwo	%f\n", start_date, src, current_out_bandwidth[src]);
+			fprintf(out_paje_file, "13	%.9f	%d_mpict	bwi	%f\n", start_date, dst, current_in_bandwidth[dst]);
 #endif
-			}
 		}
 		else
 		{
 			_STARPU_DISP("Warning, could not match MPI transfer from %d to %d (tag %x) starting at %f\n", src, dst, mpi_tag, start_date);
 		}
 
+		slot[src]++;
 	}
 }
 
-void _starpu_fxt_display_mpi_transfers(struct starpu_fxt_options *options, int *ranks, FILE *out_paje_file)
+void _starpu_fxt_display_mpi_transfers(struct starpu_fxt_options *options, int *ranks STARPU_ATTRIBUTE_UNUSED, FILE *out_paje_file)
 {
-	unsigned inputfile;
+	if (options->ninputfiles > MAX_MPI_NODES)
+	{
+		_STARPU_DISP("Warning: %u files given, maximum %u supported, truncating to %u\n", options->ninputfiles, MAX_MPI_NODES, MAX_MPI_NODES);
+		options->ninputfiles = MAX_MPI_NODES;
+	}
 
 	/* display the MPI transfers if possible */
-	for (inputfile = 0; inputfile < options->ninputfiles; inputfile++)
-	{
-		int filerank = ranks[inputfile];
-		display_all_transfers_from_trace(out_paje_file, filerank);
-	}
+	if (out_paje_file)
+		display_all_transfers_from_trace(out_paje_file, options->ninputfiles);
 }
 
 #endif // STARPU_USE_FXT

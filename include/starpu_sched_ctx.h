@@ -119,6 +119,8 @@ void starpu_sched_ctx_set_policy_data(unsigned sched_ctx_id, void *policy_data);
 
 void *starpu_sched_ctx_get_policy_data(unsigned sched_ctx_id);
 
+struct starpu_sched_policy *starpu_sched_ctx_get_sched_policy(unsigned sched_ctx_id);
+
 void *starpu_sched_ctx_exec_parallel_code(void* (*func)(void*), void *param, unsigned sched_ctx_id);
 
 int starpu_sched_ctx_get_nready_tasks(unsigned sched_ctx_id);

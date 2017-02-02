@@ -42,11 +42,11 @@ unusedStructMember:src/core/perfmodel/perfmodel_bus.c:65
 unusedStructMember:src/core/perfmodel/perfmodel_bus.c:66
 unusedStructMember:src/core/simgrid.c:225
 unusedStructMember:src/core/simgrid.c:226
-wrongPrintfScanfArgNum:src/core/simgrid.c:719
+wrongPrintfScanfArgNum:src/core/simgrid.c:731
 duplicateExpression:src/util/starpu_task_insert.c:52
 
 // TODO: this could be an error?
-redundantCopy:src/core/disk_ops/disk_leveldb.cpp:192
+redundantCopy:src/core/disk_ops/disk_leveldb.cpp:194
 
 nullPointerRedundantCheck:src/common/rbtree.c
 unreadVariable:src/datawizard/interfaces/*

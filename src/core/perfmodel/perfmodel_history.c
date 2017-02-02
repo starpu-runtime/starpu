@@ -568,6 +568,8 @@ static enum starpu_worker_archtype _get_enum_type(int type)
 			return STARPU_MIC_WORKER;
         	case 4:
 			return STARPU_SCC_WORKER;
+        	case 5:
+			return STARPU_MPI_WORKER;
 		default:
 			STARPU_ABORT();
 	}
@@ -715,7 +717,7 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel *model)
 		{
 			fprintf(f, "####################\n");
 			fprintf(f, "# DEV_%d\n", dev);
-			fprintf(f, "# device type (CPU - 0, CUDA - 1, OPENCL - 2, MIC - 3, SCC - 4)\n");
+			fprintf(f, "# device type (CPU - 0, CUDA - 1, OPENCL - 2, MIC - 3, SCC - 4, MPI_MS - 5)\n");
 			fprintf(f, "%u\n", arch_combs[comb]->devices[dev].type);
 
 			fprintf(f, "####################\n");
@@ -904,11 +906,14 @@ void _starpu_initialize_registered_performance_models(void)
 	unsigned i;
 	for(i = 0; i < conf->topology.nhwmicdevices; i++)
 		nmic += conf->topology.nhwmiccores[i];
+	unsigned nmpi = 0;
+	for(i = 0; i < conf->topology.nhwmpidevices; i++)
+		nmpi += conf->topology.nhwmpicores[i];
 	unsigned nscc = conf->topology.nhwscc;
 
-	// We used to allocate 2**(ncores + ncuda + nopencl + nmic + nscc), this is too big
-	// We now allocate only 2*(ncores + ncuda + nopencl + nmic + nscc), and reallocate when necessary in starpu_perfmodel_arch_comb_add
-	nb_arch_combs = 2 * (ncores + ncuda + nopencl + nmic + nscc);
+	// We used to allocate 2**(ncores + ncuda + nopencl + nmic + nscc + nmpi), this is too big
+	// We now allocate only 2*(ncores + ncuda + nopencl + nmic + nscc + nmpi), and reallocate when necessary in starpu_perfmodel_arch_comb_add
+	nb_arch_combs = 2 * (ncores + ncuda + nopencl + nmic + nscc + nmpi);
 	_STARPU_MALLOC(arch_combs, nb_arch_combs*sizeof(struct starpu_perfmodel_arch*));
 	current_arch_comb = 0;
 	STARPU_PTHREAD_RWLOCK_INIT(&arch_combs_mutex, NULL);
@@ -918,6 +923,7 @@ void _starpu_initialize_registered_performance_models(void)
 	ignore_devid[STARPU_CUDA_WORKER] = starpu_get_env_number_default("STARPU_PERF_MODEL_HOMOGENEOUS_CUDA", 0);
 	ignore_devid[STARPU_OPENCL_WORKER] = starpu_get_env_number_default("STARPU_PERF_MODEL_HOMOGENEOUS_OPENCL", 0);
 	ignore_devid[STARPU_MIC_WORKER] = starpu_get_env_number_default("STARPU_PERF_MODEL_HOMOGENEOUS_MIC", 0);
+	ignore_devid[STARPU_MPI_WORKER] = starpu_get_env_number_default("STARPU_PERF_MODEL_HOMOGENEOUS_MPI_MS", 0);
 	ignore_devid[STARPU_SCC_WORKER] = starpu_get_env_number_default("STARPU_PERF_MODEL_HOMOGENEOUS_SCC", 0);
 }
 
@@ -1199,6 +1205,9 @@ char* starpu_perfmodel_get_archtype_name(enum starpu_worker_archtype archtype)
 			break;
 		case(STARPU_SCC_WORKER):
 			return "scc";
+			break;
+		case(STARPU_MPI_WORKER):
+			return "mpi_ms";
 			break;
 		default:
 			STARPU_ABORT();

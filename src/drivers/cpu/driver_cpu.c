@@ -242,9 +242,7 @@ int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
 #endif
 
 	_STARPU_TRACE_START_PROGRESS(memnode);
-	res = __starpu_datawizard_progress_ram(1, 1);
-	if (starpu_node_get_kind(memnode) != STARPU_CPU_RAM)
-		res |= __starpu_datawizard_progress(memnode, 1, 1);
+	res = __starpu_datawizard_progress(1, 1);
 	_STARPU_TRACE_END_PROGRESS(memnode);
 
 	struct _starpu_job *j;

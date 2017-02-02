@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012  INRIA
+ * Copyright (C) 2012, 2016  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -31,7 +31,7 @@ void _starpu_mic_common_report_scif_error(const char *func, const char *file, co
  * care about it.
  */
 
-void _starpu_mic_common_send(const struct _starpu_mp_node *node, void *msg, int len)
+void _starpu_mic_common_send(const struct _starpu_mp_node *node, void *msg, int len, void * event)
 {
   if ((scif_send(node->mp_connection.mic_endpoint, msg, len, SCIF_SEND_BLOCK)) < 0)
 		STARPU_MP_COMMON_REPORT_ERROR(node, errno);
@@ -56,7 +56,7 @@ int _starpu_mic_common_recv_is_ready(const struct _starpu_mp_node *mp_node)
  * care about it.
  */
 
-void _starpu_mic_common_recv(const struct _starpu_mp_node *node, void *msg, int len)
+void _starpu_mic_common_recv(const struct _starpu_mp_node *node, void *msg, int len, void * event)
 {
 	if ((scif_recv(node->mp_connection.mic_endpoint, msg, len, SCIF_RECV_BLOCK)) < 0)
 		STARPU_MP_COMMON_REPORT_ERROR(node, errno);
@@ -65,7 +65,7 @@ void _starpu_mic_common_recv(const struct _starpu_mp_node *node, void *msg, int 
 /* Handles the error so the caller (which must be generic) doesn't have to
  * care about it.
  */
-void _starpu_mic_common_dt_send(const struct _starpu_mp_node *mp_node, void *msg, int len)
+void _starpu_mic_common_dt_send(const struct _starpu_mp_node *mp_node, void *msg, int len, void * event)
 {
 	if ((scif_send(mp_node->host_sink_dt_connection.mic_endpoint, msg, len, SCIF_SEND_BLOCK)) < 0)
 		STARPU_MP_COMMON_REPORT_ERROR(mp_node, errno);
@@ -74,7 +74,7 @@ void _starpu_mic_common_dt_send(const struct _starpu_mp_node *mp_node, void *msg
 /* Handles the error so the caller (which must be generic) doesn't have to
  * care about it.
  */
-void _starpu_mic_common_dt_recv(const struct _starpu_mp_node *mp_node, void *msg, int len)
+void _starpu_mic_common_dt_recv(const struct _starpu_mp_node *mp_node, void *msg, int len, void * event)
 {
 	if ((scif_recv(mp_node->host_sink_dt_connection.mic_endpoint, msg, len, SCIF_SEND_BLOCK)) < 0)
 		STARPU_MP_COMMON_REPORT_ERROR(mp_node, errno);

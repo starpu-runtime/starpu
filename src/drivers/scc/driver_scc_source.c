@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012  INRIA
+ * Copyright (C) 2012, 2016  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -259,7 +259,7 @@ void _starpu_scc_set_offset_in_shared_memory(void *ptr, void **dev_handle, size_
  */
 int _starpu_scc_copy_src_to_sink(void *src, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst, unsigned dst_node, size_t size)
 {
-	return _starpu_src_common_copy_host_to_sink(_starpu_scc_src_memory_node_to_mp_node(dst_node),
+	return _starpu_src_common_copy_host_to_sink_sync(_starpu_scc_src_memory_node_to_mp_node(dst_node),
 			src, dst, size);
 }
 
@@ -268,13 +268,13 @@ int _starpu_scc_copy_src_to_sink(void *src, unsigned src_node STARPU_ATTRIBUTE_U
  */
 int _starpu_scc_copy_sink_to_src(void *src, unsigned src_node, void *dst, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size)
 {
-	return _starpu_src_common_copy_sink_to_host(_starpu_scc_src_memory_node_to_mp_node(src_node),
+	return _starpu_src_common_copy_sink_to_host_sync(_starpu_scc_src_memory_node_to_mp_node(src_node),
 			src, dst, size);
 }
 
 int _starpu_scc_copy_sink_to_sink(void *src, unsigned src_node, void *dst, unsigned dst_node, size_t size)
 {
-	return _starpu_src_common_copy_sink_to_sink(_starpu_scc_src_memory_node_to_mp_node(src_node),
+	return _starpu_src_common_copy_sink_to_sink_sync(_starpu_scc_src_memory_node_to_mp_node(src_node),
 			_starpu_scc_src_memory_node_to_mp_node(dst_node),
 			src, dst, size);
 }

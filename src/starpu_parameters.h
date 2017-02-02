@@ -27,4 +27,5 @@
 #define _STARPU_OPENCL_ALPHA	12.22f
 #define _STARPU_MIC_ALPHA	0.5f
 #define _STARPU_SCC_ALPHA	1.0f
+#define _STARPU_MPI_MS_ALPHA	1.0f
 #endif /* _STARPU_PARAMETERS_H */

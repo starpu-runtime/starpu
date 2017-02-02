@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2017  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016, 2017  CNRS
  * Copyright (C) 2012, 2016  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -425,16 +425,23 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 
 		sizes[child] = _starpu_data_get_size(child_handle);
 
+		if (child_handle->unregister_hook)
+		{
+			child_handle->unregister_hook(child_handle);
+		}
+
 		for (node = 0; node < STARPU_MAXNODES; node++)
 			_starpu_data_unregister_ram_pointer(child_handle, node);
 
 		if (child_handle->per_worker)
-		for (worker = 0; worker < nworkers; worker++)
 		{
-			struct _starpu_data_replicate *local = &child_handle->per_worker[worker];
-			STARPU_ASSERT(local->state == STARPU_INVALID);
-			if (local->allocated && local->automatically_allocated)
-				_starpu_request_mem_chunk_removal(child_handle, local, starpu_worker_get_memory_node(worker), sizes[child]);
+			for (worker = 0; worker < nworkers; worker++)
+			{
+				struct _starpu_data_replicate *local = &child_handle->per_worker[worker];
+				STARPU_ASSERT(local->state == STARPU_INVALID);
+				if (local->allocated && local->automatically_allocated)
+					_starpu_request_mem_chunk_removal(child_handle, local, starpu_worker_get_memory_node(worker), sizes[child]);
+			}
 		}
 
 		_starpu_memory_stats_free(child_handle);

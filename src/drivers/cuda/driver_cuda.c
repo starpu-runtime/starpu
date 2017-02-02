@@ -811,16 +811,14 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 	{
 
 		/* Nothing ready yet, no better thing to do than waiting */
-		__starpu_datawizard_progress(memnode, 1, 0);
-		__starpu_datawizard_progress_ram(1, 0);
+		__starpu_datawizard_progress(1, 0);
 		return 0;
 	}
 #endif
 
 	/* Something done, make some progress */
 	res = !idle;
-	res |= __starpu_datawizard_progress(memnode, 1, 1);
-	res |= __starpu_datawizard_progress_ram(1, 1);
+	res |= __starpu_datawizard_progress(1, 1);
 
 	/* And pull tasks */
 	res |= _starpu_get_multi_worker_task(worker_set->workers, tasks, worker_set->nworkers, memnode);

@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2009-2012, 2015-2016  Université de Bordeaux
-# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -138,7 +138,8 @@ starpu_mpi_TESTS =				\
 	policy_selection			\
 	policy_selection2			\
 	early_request				\
-	starpu_redefine
+	starpu_redefine				\
+	load_balancer
 
 noinst_PROGRAMS =				\
 	datatypes				\
@@ -191,7 +192,8 @@ noinst_PROGRAMS =				\
 	policy_selection			\
 	policy_selection2			\
 	early_request				\
-	starpu_redefine
+	starpu_redefine				\
+	load_balancer
 
 
 XFAIL_TESTS=					\
@@ -300,6 +302,8 @@ policy_selection2_LDADD =			\
 early_request_LDADD =					\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 starpu_redefine_LDADD =					\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
+load_balancer_LDADD =					\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 
 ring_SOURCES = ring.c

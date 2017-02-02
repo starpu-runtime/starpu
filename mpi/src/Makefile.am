@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2009-2012  Université de Bordeaux
-# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -69,7 +69,10 @@ noinst_HEADERS =					\
 	starpu_mpi_sync_data.h				\
 	starpu_mpi_comm.h				\
 	starpu_mpi_tag.h				\
-	starpu_mpi_task_insert.h
+	starpu_mpi_task_insert.h			\
+	load_balancer/policy/data_movements_interface.h	\
+	load_balancer/policy/load_data_interface.h	\
+	load_balancer/policy/load_balancer_policy.h
 
 libstarpumpi_@STARPU_EFFECTIVE_VERSION@_la_SOURCES =	\
 	starpu_mpi.c					\
@@ -88,7 +91,12 @@ libstarpumpi_@STARPU_EFFECTIVE_VERSION@_la_SOURCES =	\
 	starpu_mpi_comm.c				\
 	starpu_mpi_tag.c				\
 	starpu_mpi_fortran.c				\
-	starpu_mpi_task_insert_fortran.c
+	starpu_mpi_task_insert_fortran.c		\
+	load_balancer/policy/data_movements_interface.c	\
+	load_balancer/policy/load_data_interface.c	\
+	load_balancer/policy/load_heat_propagation.c	\
+	load_balancer/load_balancer.c
+
 
 showcheck:
 	-cat /dev/null
