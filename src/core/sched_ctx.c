@@ -2520,11 +2520,11 @@ static void _starpu_sched_ctx_put_new_master(unsigned sched_ctx_id)
 
 	for (i=0; i<nworkers; i++)
 	{
-			 if (starpu_worker_get_type(workerids[i]) == STARPU_CPU_WORKER)
-			 {
-				 sched_ctx->main_master = workerids[i];
-				 break;
-			 }
+		if (starpu_worker_get_type(workerids[i]) == STARPU_CPU_WORKER)
+		{
+			sched_ctx->main_master = workerids[i];
+			break;
+		}
 	}
 }
 
