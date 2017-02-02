@@ -83,14 +83,6 @@ AC_PROG_EGREP
 AC_CHECK_PROGS(PROG_STAT,gstat stat)
 AC_CHECK_PROGS(PROG_DATE,gdate date)
 AC_OPENMP
-#c++11 detection
-AX_CXX_COMPILE_STDCXX(11,noext,optional)
-
-AC_SUBST([STARPU_HAVE_CXX11], $HAVE_CXX11)
-AM_CONDITIONAL([STARPU_HAVE_CXX11], [test "$HAVE_CXX11" -eq 1])
-if test $HAVE_CXX11 -eq 1; then
-  AC_DEFINE(STARPU_HAVE_CXX11, [1], [compiler supports cxx11])
-fi
 
 if test x$enable_perf_debug = xyes; then
     enable_shared=no
@@ -395,6 +387,15 @@ AC_DEFINE_UNQUOTED(STARPU_MAXMPIDEVS, [$nmaxmpidev], [maximum number of MPI devi
 #                                LIBTOOLS                                     #
 #                                                                             #
 ###############################################################################
+
+#c++11 detection
+AX_CXX_COMPILE_STDCXX(11,noext,optional)
+
+AC_SUBST([STARPU_HAVE_CXX11], $HAVE_CXX11)
+AM_CONDITIONAL([STARPU_HAVE_CXX11], [test "$HAVE_CXX11" -eq 1])
+if test $HAVE_CXX11 -eq 1; then
+  AC_DEFINE(STARPU_HAVE_CXX11, [1], [compiler supports cxx11])
+fi
 
 LT_PREREQ([2.2])
 LT_INIT([win32-dll])
