@@ -25,6 +25,13 @@
  * Try the NOWHERE flag
  */
 
+#ifdef STARPU_USE_NUMA
+int main(int argc, char **argv)
+{
+	/* FIXME: assumes only one RAM node */
+	return STARPU_TEST_SKIPPED;
+}
+#else
 static int x, y;
 
 static void prod(void *descr[], void *_args STARPU_ATTRIBUTE_UNUSED)
@@ -131,3 +138,4 @@ enodev:
 	starpu_shutdown();
 	return STARPU_TEST_SKIPPED;
 }
+#endif
