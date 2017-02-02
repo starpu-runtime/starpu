@@ -845,12 +845,22 @@ static int _starpu_simgrid_xbt_thread_create_wrapper(int argc, char *argv[])
 
 void _starpu_simgrid_xbt_thread_create(const char *name, void_f_pvoid_t code, void *param)
 {
+#ifdef HAVE_SMX_ACTOR_T
+  smx_actor_t process;
+#else
+  smx_process_t process;
+#endif
   thread_data_t *res = malloc(sizeof(thread_data_t));
   res->userparam = param;
   res->code = code;
   res->father_data = SIMIX_process_self_get_data(SIMIX_process_self());
 
-  simcall_process_create(name,
+#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 12)
+  simcall_process_create(&process
+#else
+  process = simcall_process_create(
+#endif
+                           name,
                            _starpu_simgrid_xbt_thread_create_wrapper, res,
                            SIMIX_host_self_get_name(), -1.0, 0, NULL,
                            /*props */ NULL,0);
