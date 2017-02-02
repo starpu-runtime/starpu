@@ -378,7 +378,7 @@ int _starpu_mpi_simgrid_mpi_test(int *done, int *flag)
 	}
 	return MPI_SUCCESS;
 }
-static void* _starpu_mpi_simgrid_wait_req_func(void* arg)
+static void _starpu_mpi_simgrid_wait_req_func(void* arg)
 {
 	struct _starpu_simgrid_mpi_req *sim_req = arg;
 	int ret;
@@ -399,8 +399,6 @@ static void* _starpu_mpi_simgrid_wait_req_func(void* arg)
 	if (--wait_counter == 0)
 		STARPU_PTHREAD_COND_SIGNAL(&wait_counter_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&wait_counter_mutex);
-
-	return NULL;
 }
 void _starpu_mpi_simgrid_wait_req(MPI_Request *request, MPI_Status *status, starpu_pthread_queue_t *queue, unsigned *done)
 {
