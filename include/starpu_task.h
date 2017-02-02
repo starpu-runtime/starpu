@@ -3,7 +3,7 @@
  * Copyright (C) 2010-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
  * Copyright (C) 2011  Télécom-SudParis
- * Copyright (C) 2011, 2014  INRIA
+ * Copyright (C) 2011, 2014, 2016  INRIA
  * Copyright (C) 2016  Uppsala University
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -43,6 +43,7 @@ extern "C"
 #define STARPU_OPENCL	((1ULL)<<6)
 #define STARPU_MIC	((1ULL)<<7)
 #define STARPU_SCC	((1ULL)<<8)
+#define STARPU_MPI_MS	((1ULL)<<9)
 
 #define STARPU_CODELET_SIMGRID_EXECUTE	(1<<0)
 #define STARPU_CUDA_ASYNC	(1<<0)
@@ -75,9 +76,11 @@ typedef void (*starpu_cpu_func_t)(void **, void*);
 typedef void (*starpu_cuda_func_t)(void **, void*);
 typedef void (*starpu_opencl_func_t)(void **, void*);
 typedef void (*starpu_mic_kernel_t)(void **, void*);
+typedef void (*starpu_mpi_ms_kernel_t)(void **, void*);
 typedef void (*starpu_scc_kernel_t)(void **, void*);
 
 typedef starpu_mic_kernel_t (*starpu_mic_func_t)(void);
+typedef starpu_mpi_ms_kernel_t (*starpu_mpi_ms_func_t)(void);
 typedef starpu_scc_kernel_t (*starpu_scc_func_t)(void);
 
 #define STARPU_MULTIPLE_CPU_IMPLEMENTATIONS    ((starpu_cpu_func_t) -1)
@@ -104,6 +107,7 @@ struct starpu_codelet
 	starpu_opencl_func_t opencl_funcs[STARPU_MAXIMPLEMENTATIONS];
 	char opencl_flags[STARPU_MAXIMPLEMENTATIONS];
 	starpu_mic_func_t mic_funcs[STARPU_MAXIMPLEMENTATIONS];
+	starpu_mpi_ms_func_t mpi_ms_funcs[STARPU_MAXIMPLEMENTATIONS];
 	starpu_scc_func_t scc_funcs[STARPU_MAXIMPLEMENTATIONS];
 
 	const char *cpu_funcs_name[STARPU_MAXIMPLEMENTATIONS];

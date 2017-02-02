@@ -50,7 +50,7 @@ void _starpu_write_through_data(starpu_data_handle_t handle, unsigned requesting
 				while (cpt < STARPU_SPIN_MAXTRY && _starpu_spin_trylock(&handle->header_lock))
 				{
 					cpt++;
-					_starpu_datawizard_progress(requesting_node, 1);
+					__starpu_datawizard_progress(1, 1);
 				}
 				if (cpt == STARPU_SPIN_MAXTRY)
 					_starpu_spin_lock(&handle->header_lock);

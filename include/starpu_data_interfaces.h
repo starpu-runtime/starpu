@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2016  Université de Bordeaux
  * Copyright (C) 2010-2014  CNRS
- * Copyright (C) 2011-2012  INRIA
+ * Copyright (C) 2011-2012, 2016  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -59,6 +59,10 @@ struct starpu_data_copy_methods
 	int (*scc_sink_to_src)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 	int (*scc_sink_to_sink)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 
+	int (*ram_to_mpi_ms)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+	int (*mpi_ms_to_ram)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+	int (*mpi_ms_to_mpi_ms)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+
 #ifdef STARPU_USE_CUDA
 	int (*ram_to_cuda_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, starpu_cudaStream_t stream);
 	int (*cuda_to_ram_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, starpu_cudaStream_t stream);
@@ -78,6 +82,10 @@ struct starpu_data_copy_methods
 	int (*opencl_to_ram_async)();
 	int (*opencl_to_opencl_async)();
 #endif
+
+	int (*ram_to_mpi_ms_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void * event);
+	int (*mpi_ms_to_ram_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void * event);
+	int (*mpi_ms_to_mpi_ms_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void * event);
 
 	int (*ram_to_mic_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 	int (*mic_to_ram_async)(void *src_interface, unsigned srd_node, void *dst_interface, unsigned dst_node);

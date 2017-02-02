@@ -33,6 +33,7 @@
 #define CUDA_WORKER_COLORS_NB	9
 #define OPENCL_WORKER_COLORS_NB 9
 #define MIC_WORKER_COLORS_NB	9
+#define MPI_MS_WORKER_COLORS_NB	9
 #define SCC_WORKER_COLORS_NB	9
 #define OTHER_WORKER_COLORS_NB	4
 
@@ -40,6 +41,7 @@ static char *cpus_worker_colors[CPUS_WORKER_COLORS_NB] = {"/greens9/7", "/greens
 static char *cuda_worker_colors[CUDA_WORKER_COLORS_NB] = {"/ylorrd9/9", "/ylorrd9/6", "/ylorrd9/3", "/ylorrd9/1", "/ylorrd9/8", "/ylorrd9/7", "/ylorrd9/4", "/ylorrd9/2",  "/ylorrd9/1"};
 static char *opencl_worker_colors[OPENCL_WORKER_COLORS_NB] = {"/blues9/9", "/blues9/6", "/blues9/3", "/blues9/1", "/blues9/8", "/blues9/7", "/blues9/4", "/blues9/2",  "/blues9/1"};
 static char *mic_worker_colors[MIC_WORKER_COLORS_NB] = {"/reds9/9", "/reds9/6", "/reds9/3", "/reds9/1", "/reds9/8", "/reds9/7", "/reds9/4", "/reds9/2",  "/reds9/1"};
+static char *mpi_ms_worker_colors[MPI_MS_WORKER_COLORS_NB] = {"/reds9/9", "/reds9/6", "/reds9/3", "/reds9/1", "/reds9/8", "/reds9/7", "/reds9/4", "/reds9/2",  "/reds9/1"};
 static char *scc_worker_colors[SCC_WORKER_COLORS_NB] = {"/reds9/9", "/reds9/6", "/reds9/3", "/reds9/1", "/reds9/8", "/reds9/7", "/reds9/4", "/reds9/2",  "/reds9/1"};
 static char *other_worker_colors[OTHER_WORKER_COLORS_NB] = {"/greys9/9", "/greys9/8", "/greys9/7", "/greys9/6"};
 static char *worker_colors[STARPU_NMAXWORKERS];
@@ -48,6 +50,7 @@ static unsigned opencl_index = 0;
 static unsigned cuda_index = 0;
 static unsigned cpus_index = 0;
 static unsigned mic_index = 0;
+static unsigned mpi_ms_index = 0;
 static unsigned scc_index = 0;
 static unsigned other_index = 0;
 
@@ -246,6 +249,14 @@ static void set_next_mic_worker_color(int workerid)
 		return;
 	worker_colors[workerid] = mic_worker_colors[mic_index++];
 	if (mic_index == MIC_WORKER_COLORS_NB) mic_index = 0;
+}
+
+static void set_next_mpi_ms_worker_color(int workerid)
+{
+	if (workerid >= STARPU_NMAXWORKERS)
+		return;
+	worker_colors[workerid] = mpi_ms_worker_colors[mpi_ms_index++];
+	if (mpi_ms_index == MPI_MS_WORKER_COLORS_NB) mpi_ms_index = 0;
 }
 
 static void set_next_scc_worker_color(int workerid)
@@ -907,6 +918,14 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 			arch.devices[0].devid = devid;
 			arch.devices[0].ncores = 1;
 			break;
+		case _STARPU_FUT_MPI_KEY:
+			set_next_mpi_ms_worker_color(workerid);
+			kindstr = "mpi_ms";
+			arch.devices[0].type = STARPU_MPI_WORKER;
+			arch.devices[0].devid = devid;
+			arch.devices[0].ncores = 1;
+			break;
+			
 		case _STARPU_FUT_SCC_KEY:
 			set_next_scc_worker_color(workerid);
 			kindstr = "scc";
@@ -1522,7 +1541,7 @@ static void handle_hypervisor_end(struct fxt_ev_64 *ev, struct starpu_fxt_option
 	}
 }
 
-static void handle_worker_status(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *newstatus)
+static void handle_worker_status_on_tid(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *newstatus)
 {
 	int worker;
 	worker = find_worker_id(ev->param[1]);
@@ -1533,6 +1552,19 @@ static void handle_worker_status(struct fxt_ev_64 *ev, struct starpu_fxt_options
 		thread_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[1], newstatus);
 	if (trace_file)
 		recfmt_thread_set_state(get_event_time_stamp(ev, options), ev->param[1], newstatus, "Runtime");
+}
+
+static void handle_worker_status(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *newstatus)
+{
+	int worker;
+	worker = ev->param[1];
+	if (worker < 0)
+		return;
+
+	if (out_paje_file)
+		worker_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[1], newstatus);
+	if (trace_file)
+		recfmt_worker_set_state(get_event_time_stamp(ev, options), ev->param[1], newstatus, "Runtime");
 }
 
 static double last_sleep_start[STARPU_NMAXWORKERS];
@@ -2618,22 +2650,30 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 				break;
 
 			/* check the memory transfer overhead */
+			case _STARPU_FUT_START_FETCH_INPUT_ON_TID:
+				handle_worker_status_on_tid(&ev, options, "Fi");
+				break;
+			case _STARPU_FUT_START_PUSH_OUTPUT_ON_TID:
+				handle_worker_status_on_tid(&ev, options, "Po");
+				break;
+			case _STARPU_FUT_START_PROGRESS_ON_TID:
+				handle_worker_status_on_tid(&ev, options, "P");
+				break;
+			case _STARPU_FUT_START_UNPARTITION_ON_TID:
+				handle_worker_status_on_tid(&ev, options, "U");
+				break;
+			case _STARPU_FUT_END_FETCH_INPUT_ON_TID:
+			case _STARPU_FUT_END_PROGRESS_ON_TID:
+			case _STARPU_FUT_END_PUSH_OUTPUT_ON_TID:
+			case _STARPU_FUT_END_UNPARTITION_ON_TID:
+				handle_worker_status_on_tid(&ev, options, "B");
+				break;
+
 			case _STARPU_FUT_START_FETCH_INPUT:
 				handle_worker_status(&ev, options, "Fi");
 				break;
-			case _STARPU_FUT_START_PUSH_OUTPUT:
-				handle_worker_status(&ev, options, "Po");
-				break;
-			case _STARPU_FUT_START_PROGRESS:
-				handle_worker_status(&ev, options, "P");
-				break;
-			case _STARPU_FUT_START_UNPARTITION:
-				handle_worker_status(&ev, options, "U");
-				break;
+
 			case _STARPU_FUT_END_FETCH_INPUT:
-			case _STARPU_FUT_END_PROGRESS:
-			case _STARPU_FUT_END_PUSH_OUTPUT:
-			case _STARPU_FUT_END_UNPARTITION:
 				handle_worker_status(&ev, options, "B");
 				break;
 

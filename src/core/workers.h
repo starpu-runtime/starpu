@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016, 2017  CNRS
- * Copyright (C) 2011  INRIA
+ * Copyright (C) 2011, 2016  INRIA
  * Copyright (C) 2016  Uppsala University
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -47,6 +47,9 @@
 #include <drivers/scc/driver_scc_source.h>
 #endif
 
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+#include <drivers/mpi/driver_mpi_source.h>
+#endif
 
 #include <drivers/cpu/driver_cpu.h>
 
@@ -112,6 +115,8 @@ LIST_TYPE(_starpu_worker,
 
 	unsigned spinning_backoff ; /* number of cycles to pause when spinning  */
 
+        unsigned nb_buffers_sent; /* number of piece of data already send to remote side */
+        struct starpu_task *task_sending; /* The buffers of this task are being sent */
 
 	/* indicate whether the workers shares tasks lists with other workers*/
 	/* in this case when removing him from a context it disapears instantly */
@@ -180,6 +185,10 @@ struct _starpu_worker_set
 	unsigned set_is_initialized;
 };
 
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+extern struct _starpu_worker_set mpi_worker_set[STARPU_MAXMPIDEVS];
+#endif
+
 struct _starpu_machine_topology
 {
 	/* Total number of workers. */
@@ -222,6 +231,11 @@ struct _starpu_machine_topology
 	 */
 	unsigned nhwscc;
 
+	/* Total number of MPI nodes, as detected. May be different
+	 * from the actual number of node workers.
+	 */
+	unsigned nhwmpi;
+
 	/* Actual number of CPU workers used by StarPU. */
 	unsigned ncpus;
 
@@ -233,6 +247,13 @@ struct _starpu_machine_topology
 
 	/* Actual number of SCC workers used by StarPU. */
 	unsigned nsccdevices;
+
+	/* Actual number of MPI workers used by StarPU. */
+	unsigned nmpidevices;
+        unsigned nhwmpidevices;
+
+	unsigned nhwmpicores[STARPU_MAXMPIDEVS]; // Each MPI node has its set of cores.
+	unsigned nmpicores[STARPU_MAXMPIDEVS];
 
 	/* Topology of MP nodes (mainly MIC and SCC) as well as necessary
 	 * objects to communicate with them. */
@@ -283,6 +304,8 @@ struct _starpu_machine_topology
 	 * are taken in ID order.
 	 */
 	unsigned workers_scc_deviceid[STARPU_NMAXWORKERS];
+
+	unsigned workers_mpi_deviceid[STARPU_NMAXWORKERS];
 };
 
 struct _starpu_machine_config
@@ -309,6 +332,9 @@ struct _starpu_machine_config
 	/* Which SCC do we use? */
 	int current_scc_deviceid;
 
+	/* Which MPI do we use? */
+	int current_mpi_deviceid;
+
 	/* Memory node for cpus, if only one */
 	int cpus_nodeid;
 	/* Memory node for CUDA, if only one */
@@ -319,6 +345,8 @@ struct _starpu_machine_config
 	int mic_nodeid;
 	/* Memory node for SCC, if only one */
 	int scc_nodeid;
+	/* Memory node for MPI, if only one */
+	int mpi_nodeid;
 
 	/* Basic workers : each of this worker is running its own driver and
 	 * can be combined with other basic workers. */

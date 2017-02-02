@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012  INRIA
+ * Copyright (C) 2012, 2016  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -407,7 +407,7 @@ int _starpu_mic_copy_ram_to_mic(void *src, unsigned src_node STARPU_ATTRIBUTE_UN
 {
 	const struct _starpu_mp_node *mp_node = _starpu_mic_src_get_mp_node_from_memory_node(dst_node);
 
-	return _starpu_src_common_copy_host_to_sink(mp_node, src, dst, size);
+	return _starpu_src_common_copy_host_to_sink_sync(mp_node, src, dst, size);
 }
 
 /* Transfert SIZE bytes from the address pointed by SRC in the SRC_NODE memory
@@ -417,7 +417,7 @@ int _starpu_mic_copy_mic_to_ram(void *src, unsigned src_node, void *dst, unsigne
 {
 	const struct _starpu_mp_node *mp_node = _starpu_mic_src_get_mp_node_from_memory_node(src_node);
 
-	return _starpu_src_common_copy_sink_to_host(mp_node, src, dst, size);
+	return _starpu_src_common_copy_sink_to_host_sync(mp_node, src, dst, size);
 }
 
 /* Asynchronous transfers */

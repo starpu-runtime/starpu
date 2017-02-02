@@ -127,6 +127,7 @@ int main(int argc, char **argv)
 	conf.ncuda = 0;
 	conf.nmic = 0;
 	conf.nscc = 0;
+	conf.nmpi_ms = 0;
 
         ret = starpu_init(&conf);
 	if (STARPU_UNLIKELY(ret == -ENODEV))

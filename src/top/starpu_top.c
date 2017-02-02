@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2011 William Braik, Yann Courtois, Jean-Marie Couteyen, Anthony Roy
  * Copyright (C) 2011, 2012, 2013, 2016 CNRS
+ * Copyright (C) 2016  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -110,6 +111,9 @@ static void starpu_top_get_device_type(int id, char* type)
 		break;
 	case STARPU_SCC_WORKER:
 		strncpy(type, "SCC", 9);
+		break;
+	case STARPU_MPI_WORKER:
+		strncpy(type, "MPI", 9);
 		break;
 	}
 	type[9] = 0;

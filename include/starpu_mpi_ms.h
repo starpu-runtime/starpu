@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2014-2015  Université de Bordeaux
+ * Copyright (C) 2016  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,18 +14,27 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#ifndef _STARPU_PARAMETERS_H
-#define _STARPU_PARAMETERS_H
+#ifndef __STARPU_MPI_MS_H__
+#define __STARPU_MPI_MS_H__
 
-/* Parameters which are not worth being added to ./configure options, but
- * still interesting to easily change */
+#include <starpu_config.h>
 
-/* Assumed relative performance ratios */
-/* TODO: benchmark a bit instead */
-#define _STARPU_CPU_ALPHA	1.0f
-#define _STARPU_CUDA_ALPHA	13.33f
-#define _STARPU_OPENCL_ALPHA	12.22f
-#define _STARPU_MIC_ALPHA	0.5f
-#define _STARPU_SCC_ALPHA	1.0f
-#define _STARPU_MPI_MS_ALPHA	1.0f
-#endif /* _STARPU_PARAMETERS_H */
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
+typedef void *starpu_mpi_ms_func_symbol_t;
+
+int starpu_mpi_ms_register_kernel(starpu_mpi_ms_func_symbol_t *symbol, const char *func_name);
+
+starpu_mpi_ms_kernel_t starpu_mpi_ms_get_kernel(starpu_mpi_ms_func_symbol_t symbol);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* STARPU_USE_MIC */
+#endif /* __STARPU_MIC_H__ */

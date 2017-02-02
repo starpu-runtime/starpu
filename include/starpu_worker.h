@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2009-2013, 2016  Université de Bordeaux
  * Copyright (C) 2010-2014  CNRS
+ * Copyright (C) 2016  INRIA
  * Copyright (C) 2016  Uppsala University
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -35,6 +36,7 @@ enum starpu_worker_archtype
 	STARPU_OPENCL_WORKER,
 	STARPU_MIC_WORKER,
 	STARPU_SCC_WORKER,
+	STARPU_MPI_WORKER,
 	STARPU_ANY_WORKER
 };
 
@@ -89,6 +91,7 @@ unsigned starpu_cuda_worker_get_count(void);
 unsigned starpu_opencl_worker_get_count(void);
 unsigned starpu_mic_worker_get_count(void);
 unsigned starpu_scc_worker_get_count(void);
+unsigned starpu_mpi_ms_worker_get_count(void);
 
 unsigned starpu_mic_device_get_count(void);
 

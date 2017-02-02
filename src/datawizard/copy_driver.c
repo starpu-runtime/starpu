@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2010-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2013, 2016  CNRS
+ * Copyright (C) 2016  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -22,6 +23,9 @@
 #include <datawizard/datastats.h>
 #include <datawizard/memory_nodes.h>
 #include <drivers/disk/driver_disk.h>
+#include <drivers/mpi/driver_mpi_sink.h>
+#include <drivers/mpi/driver_mpi_source.h>
+#include <drivers/mpi/driver_mpi_common.h>
 #include <common/fxt.h>
 #include "copy_driver.h"
 #include "memalloc.h"
@@ -420,6 +424,79 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 		break;
 	/* TODO: MIC -> MIC */
 #endif
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+        case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_MPI_MS_RAM):
+                if (!req || starpu_asynchronous_copy_disabled() || starpu_asynchronous_mpi_ms_copy_disabled() ||
+                                !(copy_methods->ram_to_mpi_ms_async || copy_methods->any_to_any))
+                {
+                        /* this is not associated to a request so it's synchronous */
+                        STARPU_ASSERT(copy_methods->ram_to_mpi_ms || copy_methods->any_to_any);
+                        if (copy_methods->ram_to_mpi_ms)
+                                copy_methods->ram_to_mpi_ms(src_interface, src_node, dst_interface, dst_node);
+                        else
+                                copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
+                }
+                else
+                {
+                        req->async_channel.type = STARPU_MPI_MS_RAM;
+                        if(copy_methods->ram_to_mpi_ms_async)
+                                ret = copy_methods->ram_to_mpi_ms_async(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
+                        else
+                        {
+                                STARPU_ASSERT(copy_methods->any_to_any);
+                                ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
+                        }
+                }
+                break;
+
+        case _STARPU_MEMORY_NODE_TUPLE(STARPU_MPI_MS_RAM,STARPU_CPU_RAM):
+                if (!req || starpu_asynchronous_copy_disabled() || starpu_asynchronous_mpi_ms_copy_disabled() ||
+                                !(copy_methods->mpi_ms_to_ram_async || copy_methods->any_to_any))
+                {
+                        /* this is not associated to a request so it's synchronous */
+                        STARPU_ASSERT(copy_methods->mpi_ms_to_ram || copy_methods->any_to_any);
+                        if (copy_methods->mpi_ms_to_ram)
+                                copy_methods->mpi_ms_to_ram(src_interface, src_node, dst_interface, dst_node);
+                        else
+                                copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
+                }
+                else
+                {
+                        req->async_channel.type = STARPU_MPI_MS_RAM;
+                        if(copy_methods->mpi_ms_to_ram_async)
+                                ret = copy_methods->mpi_ms_to_ram_async(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
+                        else
+                        {
+                                STARPU_ASSERT(copy_methods->any_to_any);
+                                ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
+                        }
+                }
+                break;
+
+        case _STARPU_MEMORY_NODE_TUPLE(STARPU_MPI_MS_RAM,STARPU_MPI_MS_RAM):
+                if (!req || starpu_asynchronous_copy_disabled() || starpu_asynchronous_mpi_ms_copy_disabled() ||
+                                !(copy_methods->mpi_ms_to_mpi_ms_async || copy_methods->any_to_any))
+                {
+                        /* this is not associated to a request so it's synchronous */
+                        STARPU_ASSERT(copy_methods->mpi_ms_to_mpi_ms || copy_methods->any_to_any);
+                        if (copy_methods->mpi_ms_to_mpi_ms)
+                                copy_methods->mpi_ms_to_mpi_ms(src_interface, src_node, dst_interface, dst_node);
+                        else
+                                copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
+                }
+                else
+                {
+                        req->async_channel.type = STARPU_MPI_MS_RAM;
+                        if(copy_methods->mpi_ms_to_mpi_ms_async)
+                                ret = copy_methods->mpi_ms_to_mpi_ms_async(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
+                        else
+                        {
+                                STARPU_ASSERT(copy_methods->any_to_any);
+                                ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
+                        }
+                }
+                break;
+#endif
 #ifdef STARPU_USE_SCC
 		/* SCC RAM associated to the master process is considered as
 		 * the main memory node. */
@@ -660,6 +737,43 @@ int starpu_interface_copy(uintptr_t src, size_t src_offset, unsigned src_node, u
 				(void*) (dst + dst_offset), dst_node,
 				size);
 #endif
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+        case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM, STARPU_MPI_MS_RAM):
+                if (async_data)
+                        return _starpu_mpi_copy_ram_to_mpi_async(
+                                        (void*) (src + src_offset), src_node,
+                                        (void*) (dst + dst_offset), dst_node,
+                                        size, async_data);
+                else
+                        return _starpu_mpi_copy_ram_to_mpi_sync(
+                                        (void*) (src + src_offset), src_node,
+                                        (void*) (dst + dst_offset), dst_node,
+                                        size);
+        case _STARPU_MEMORY_NODE_TUPLE(STARPU_MPI_MS_RAM, STARPU_CPU_RAM):
+                if (async_data)
+                        return _starpu_mpi_copy_mpi_to_ram_async(
+                                        (void*) (src + src_offset), src_node,
+                                        (void*) (dst + dst_offset), dst_node,
+                                        size, async_data);
+                else
+                        return _starpu_mpi_copy_mpi_to_ram_sync(
+                                        (void*) (src + src_offset), src_node,
+                                        (void*) (dst + dst_offset), dst_node,
+                                        size);
+
+        case _STARPU_MEMORY_NODE_TUPLE(STARPU_MPI_MS_RAM, STARPU_MPI_MS_RAM):
+                if (async_data)
+                        return _starpu_mpi_copy_sink_to_sink_async(
+                                        (void*) (src + src_offset), src_node,
+                                        (void*) (dst + dst_offset), dst_node,
+                                        size, async_data);
+                else
+                        return _starpu_mpi_copy_sink_to_sink_sync(
+                                        (void*) (src + src_offset), src_node,
+                                        (void*) (dst + dst_offset), dst_node,
+                                        size);
+#endif
+
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM, STARPU_DISK_RAM):
 	{
 		return _starpu_disk_copy_src_to_disk(
@@ -736,6 +850,11 @@ void _starpu_driver_wait_request_completion(struct _starpu_async_channel *async_
 		_starpu_mic_wait_request_completion(&(async_channel->event.mic_event));
 		break;
 #endif
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+        case STARPU_MPI_MS_RAM:
+                _starpu_mpi_common_wait_event(async_channel);
+                break;
+#endif
 	case STARPU_MAIN_RAM:
 		starpu_disk_wait_request(async_channel);
 		break;
@@ -799,6 +918,11 @@ unsigned _starpu_driver_test_request_completion(struct _starpu_async_channel *as
 	case STARPU_MIC_RAM:
 		success = _starpu_mic_request_is_complete(&(async_channel->event.mic_event));
 		break;
+#endif
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+        case STARPU_MPI_MS_RAM:
+                success = _starpu_mpi_common_test_event(async_channel);
+                break;
 #endif
 	case STARPU_DISK_RAM:
 		success = starpu_disk_test_request(async_channel);

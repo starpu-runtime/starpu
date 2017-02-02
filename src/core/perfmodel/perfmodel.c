@@ -123,6 +123,8 @@ double starpu_worker_get_relative_speedup(struct starpu_perfmodel_arch* perf_arc
 			coef = _STARPU_MIC_ALPHA;
 		else if (perf_arch->devices[dev].type == STARPU_SCC_WORKER)
 			coef = _STARPU_SCC_ALPHA;
+		else if (perf_arch->devices[dev].type == STARPU_MPI_WORKER)
+			coef = _STARPU_MPI_MS_ALPHA;
 
 		speedup += coef * (perf_arch->devices[dev].ncores);
 	}
@@ -262,6 +264,9 @@ double starpu_task_expected_conversion_time(struct starpu_task *task,
 				break;
 			case STARPU_SCC_WORKER:
 				node_kind = STARPU_SCC_RAM;
+				break;
+			case STARPU_MPI_WORKER:
+				node_kind = STARPU_MPI_MS_RAM;
 				break;
 			default:
 				STARPU_ABORT();

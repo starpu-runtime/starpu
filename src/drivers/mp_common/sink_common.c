@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012  INRIA
+ * Copyright (C) 2012, 2016  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,6 +19,7 @@
 #include <common/config.h>
 #include <common/utils.h>
 #include <drivers/mp_common/mp_common.h>
+#include <drivers/mpi/driver_mpi_common.h>
 #include <datawizard/interfaces/data_interface.h>
 #include <common/barrier.h>
 #include <core/workers.h>
@@ -28,7 +29,6 @@
 #endif
 
 #include "sink_common.h"
-
 
 /* Return the sink kind of the running process, based on the value of the
  * STARPU_SINK environment variable.
@@ -45,7 +45,7 @@ static enum _starpu_mp_node_kind _starpu_sink_common_get_kind(void)
 		return STARPU_NODE_MIC_SINK;
 	else if (!strcmp(node_kind, "STARPU_SCC"))
 		return STARPU_NODE_SCC_SINK;
-	else if (!strcmp(node_kind, "STARPU_MPI"))
+	else if (!strcmp(node_kind, "STARPU_MPI_MS"))
 		return STARPU_NODE_MPI_SINK;
 	else
 		return STARPU_NODE_INVALID_KIND;
@@ -108,46 +108,168 @@ void _starpu_sink_common_free(const struct _starpu_mp_node *mp_node STARPU_ATTRI
 	free(*(void **)(arg));
 }
 
-static void _starpu_sink_common_copy_from_host(const struct _starpu_mp_node *mp_node,
+static void _starpu_sink_common_copy_from_host_sync(const struct _starpu_mp_node *mp_node,
 					       void *arg, int arg_size)
 {
 	STARPU_ASSERT(arg_size == sizeof(struct _starpu_mp_transfer_command));
 
-	struct _starpu_mp_transfer_command *cmd = (struct _starpu_mp_transfer_command *)arg;
+        struct _starpu_mp_transfer_command *cmd = (struct _starpu_mp_transfer_command *)arg;
 
-	mp_node->dt_recv(mp_node, cmd->addr, cmd->size);
+        mp_node->dt_recv(mp_node, cmd->addr, cmd->size, NULL);
 }
 
-static void _starpu_sink_common_copy_to_host(const struct _starpu_mp_node *mp_node,
+
+static void _starpu_sink_common_copy_from_host_async(struct _starpu_mp_node *mp_node,
+					       void *arg, int arg_size)
+{
+	STARPU_ASSERT(arg_size == sizeof(struct _starpu_mp_transfer_command));
+
+        struct _starpu_mp_transfer_command *cmd = (struct _starpu_mp_transfer_command *)arg;
+
+        /* For asynchronous transfers, we store events to test them later when they are finished */
+        struct _starpu_mp_event * sink_event = _starpu_mp_event_new();
+        /* Save the command to send */
+        sink_event->answer_cmd = STARPU_MP_COMMAND_RECV_FROM_HOST_ASYNC_COMPLETED;
+        sink_event->remote_event = cmd->event;
+
+        /* Set the sender (host) ready because we don't want to wait its ack */
+        struct _starpu_async_channel * async_channel = &sink_event->event;
+        async_channel->type = STARPU_UNUSED;
+        async_channel->starpu_mp_common_finished_sender = -1;
+        async_channel->starpu_mp_common_finished_receiver = 0;
+        async_channel->polling_node_receiver = NULL;
+        async_channel->polling_node_sender = NULL;
+
+        mp_node->dt_recv(mp_node, cmd->addr, cmd->size, &sink_event->event);
+        /* Push event on the list */
+        _starpu_mp_event_list_push_back(&mp_node->event_list, sink_event);
+}
+
+
+static void _starpu_sink_common_copy_to_host_sync(const struct _starpu_mp_node *mp_node,
 					     void *arg, int arg_size)
 {
 	STARPU_ASSERT(arg_size == sizeof(struct _starpu_mp_transfer_command));
 
 	struct _starpu_mp_transfer_command *cmd = (struct _starpu_mp_transfer_command *)arg;
 
-	mp_node->dt_send(mp_node, cmd->addr, cmd->size);
+        /* Save values before sending command to prevent the overwriting */
+        size_t size = cmd->size;
+        void * addr = cmd->addr;
+
+        _starpu_mp_common_send_command(mp_node, STARPU_MP_COMMAND_SEND_TO_HOST, NULL, 0);
+
+        mp_node->dt_send(mp_node, addr, size, NULL);
 }
 
-static void _starpu_sink_common_copy_from_sink(const struct _starpu_mp_node *mp_node,
+
+static void _starpu_sink_common_copy_to_host_async(struct _starpu_mp_node *mp_node,
+					     void *arg, int arg_size)
+{
+	STARPU_ASSERT(arg_size == sizeof(struct _starpu_mp_transfer_command));
+
+	struct _starpu_mp_transfer_command *cmd = (struct _starpu_mp_transfer_command *)arg;
+
+        /* For asynchronous transfers, we need to say dt_send that we are in async mode 
+         * but we don't push event on list because we don't need to know if it's finished
+         */
+        struct _starpu_mp_event * sink_event = _starpu_mp_event_new();
+        /* Save the command to send */
+        sink_event->answer_cmd = STARPU_MP_COMMAND_SEND_TO_HOST_ASYNC_COMPLETED;
+        sink_event->remote_event = cmd->event;
+
+        /* Set the receiver (host) ready because we don't want to wait its ack */
+        struct _starpu_async_channel * async_channel = &sink_event->event;
+        async_channel->type = STARPU_UNUSED;
+        async_channel->starpu_mp_common_finished_sender = 0;
+        async_channel->starpu_mp_common_finished_receiver = -1;
+        async_channel->polling_node_receiver = NULL;
+        async_channel->polling_node_sender = NULL;
+
+        mp_node->dt_send(mp_node, cmd->addr, cmd->size, &sink_event->event);
+        /* Push event on the list */
+        _starpu_mp_event_list_push_back(&mp_node->event_list, sink_event);
+}
+
+
+static void _starpu_sink_common_copy_from_sink_sync(const struct _starpu_mp_node *mp_node,
 					       void *arg, int arg_size)
 {
 	STARPU_ASSERT(arg_size == sizeof(struct _starpu_mp_transfer_command_to_device));
 
 	struct _starpu_mp_transfer_command_to_device *cmd = (struct _starpu_mp_transfer_command_to_device *)arg;
 
-	mp_node->dt_recv_from_device(mp_node, cmd->devid, cmd->addr, cmd->size);
-
-	_starpu_mp_common_send_command(mp_node, STARPU_MP_COMMAND_TRANSFER_COMPLETE, NULL, 0);
+        mp_node->dt_recv_from_device(mp_node, cmd->devid, cmd->addr, cmd->size, NULL);
+        _starpu_mp_common_send_command(mp_node, STARPU_MP_COMMAND_TRANSFER_COMPLETE, NULL, 0);
 }
 
-static void _starpu_sink_common_copy_to_sink(const struct _starpu_mp_node *mp_node,
+
+static void _starpu_sink_common_copy_from_sink_async(struct _starpu_mp_node *mp_node,
+					       void *arg, int arg_size)
+{
+	STARPU_ASSERT(arg_size == sizeof(struct _starpu_mp_transfer_command_to_device));
+
+	struct _starpu_mp_transfer_command_to_device *cmd = (struct _starpu_mp_transfer_command_to_device *)arg;
+
+        /* For asynchronous transfers, we store events to test them later when they are finished
+        */
+        struct _starpu_mp_event * sink_event = _starpu_mp_event_new();
+        /* Save the command to send */
+        sink_event->answer_cmd = STARPU_MP_COMMAND_RECV_FROM_SINK_ASYNC_COMPLETED;
+        sink_event->remote_event = cmd->event;
+
+        /* Set the sender ready because we don't want to wait its ack */
+        struct _starpu_async_channel * async_channel = &sink_event->event;
+        async_channel->type = STARPU_UNUSED;
+        async_channel->starpu_mp_common_finished_sender = -1;
+        async_channel->starpu_mp_common_finished_receiver = 0;
+        async_channel->polling_node_receiver = NULL;
+        async_channel->polling_node_sender = NULL;
+
+        mp_node->dt_recv_from_device(mp_node, cmd->devid, cmd->addr, cmd->size, &sink_event->event);
+        /* Push event on the list */
+        _starpu_mp_event_list_push_back(&mp_node->event_list, sink_event);
+}
+
+
+static void _starpu_sink_common_copy_to_sink_sync(const struct _starpu_mp_node *mp_node,
 					     void *arg, int arg_size)
 {
 	STARPU_ASSERT(arg_size == sizeof(struct _starpu_mp_transfer_command_to_device));
 
 	struct _starpu_mp_transfer_command_to_device *cmd = (struct _starpu_mp_transfer_command_to_device *)arg;
 
-	mp_node->dt_send_to_device(mp_node, cmd->devid, cmd->addr, cmd->size);
+        mp_node->dt_send_to_device(mp_node, cmd->devid, cmd->addr, cmd->size, NULL);
+}
+
+
+static void _starpu_sink_common_copy_to_sink_async(struct _starpu_mp_node *mp_node,
+					     void *arg, int arg_size)
+{
+	STARPU_ASSERT(arg_size == sizeof(struct _starpu_mp_transfer_command_to_device));
+
+	struct _starpu_mp_transfer_command_to_device *cmd = (struct _starpu_mp_transfer_command_to_device *)arg;
+
+        /* For asynchronous transfers, we need to say dt_send that we are in async mode 
+         * but we don't push event on list because we don't need to know if it's finished
+         */
+        struct _starpu_mp_event * sink_event = _starpu_mp_event_new();
+        /* Save the command to send */
+        sink_event->answer_cmd = STARPU_MP_COMMAND_SEND_TO_SINK_ASYNC_COMPLETED;
+        sink_event->remote_event = cmd->event;
+
+        /* Set the receiver ready because we don't want to wait its ack */
+        struct _starpu_async_channel * async_channel = &sink_event->event;
+        async_channel->type = STARPU_UNUSED;
+        async_channel->starpu_mp_common_finished_sender = 0;
+        async_channel->starpu_mp_common_finished_receiver = -1;
+        async_channel->polling_node_receiver = NULL;
+        async_channel->polling_node_sender = NULL;
+
+        mp_node->dt_send_to_device(mp_node, cmd->devid, cmd->addr, cmd->size, &sink_event->event);
+
+        /* Push event on the list */
+        _starpu_mp_event_list_push_back(&mp_node->event_list, sink_event);
 }
 
 
@@ -178,7 +300,7 @@ static void _starpu_sink_common_recv_workers(struct _starpu_mp_node * node, void
 
 	/* Retrieve workers */
 	struct _starpu_worker * workers = &config->workers[baseworkerid];
-	node->dt_recv(node,workers,worker_size);
+	node->dt_recv(node,workers,worker_size, NULL);
 
 	/* Update workers to have coherent field */
 	for(i=0; i<nworkers; i++)
@@ -205,7 +327,7 @@ static void _starpu_sink_common_recv_workers(struct _starpu_mp_node * node, void
 
 	/* Retrieve combined workers */
 	struct _starpu_combined_worker * combined_workers = config->combined_workers;
-	node->dt_recv(node, combined_workers, combined_worker_size);
+	node->dt_recv(node, combined_workers, combined_worker_size, NULL);
 
 	node->baseworkerid = baseworkerid;
 	STARPU_PTHREAD_BARRIER_WAIT(&node->init_completed_barrier);
@@ -267,20 +389,36 @@ void _starpu_sink_common_worker(void)
 					break;
 
 				case STARPU_MP_COMMAND_RECV_FROM_HOST:
-					_starpu_sink_common_copy_from_host(node, arg, arg_size);
+					_starpu_sink_common_copy_from_host_sync(node, arg, arg_size);
 					break;
 
 				case STARPU_MP_COMMAND_SEND_TO_HOST:
-					_starpu_sink_common_copy_to_host(node, arg, arg_size);
+					_starpu_sink_common_copy_to_host_sync(node, arg, arg_size);
 					break;
 
 				case STARPU_MP_COMMAND_RECV_FROM_SINK:
-					_starpu_sink_common_copy_from_sink(node, arg, arg_size);
+					_starpu_sink_common_copy_from_sink_sync(node, arg, arg_size);
 					break;
 
 				case STARPU_MP_COMMAND_SEND_TO_SINK:
-					_starpu_sink_common_copy_to_sink(node, arg, arg_size);
+					_starpu_sink_common_copy_to_sink_sync(node, arg, arg_size);
 					break;
+
+                                case STARPU_MP_COMMAND_RECV_FROM_HOST_ASYNC:
+                                        _starpu_sink_common_copy_from_host_async(node, arg, arg_size);
+                                        break;
+
+                                case STARPU_MP_COMMAND_SEND_TO_HOST_ASYNC:
+                                        _starpu_sink_common_copy_to_host_async(node, arg, arg_size);
+                                        break;
+
+                                case STARPU_MP_COMMAND_RECV_FROM_SINK_ASYNC:
+                                        _starpu_sink_common_copy_from_sink_async(node, arg, arg_size);
+                                        break;
+
+                                case STARPU_MP_COMMAND_SEND_TO_SINK_ASYNC:
+                                        _starpu_sink_common_copy_to_sink_async(node, arg, arg_size);
+                                        break;
 
 				case STARPU_MP_COMMAND_SYNC_WORKERS:
 					_starpu_sink_common_recv_workers(node, arg, arg_size);
@@ -307,12 +445,34 @@ void _starpu_sink_common_worker(void)
 		{
 			STARPU_PTHREAD_MUTEX_UNLOCK(&node->message_queue_mutex);
 		}
+
+        if(!_starpu_mp_event_list_empty(&node->event_list))
+        {
+            struct _starpu_mp_event * sink_event = _starpu_mp_event_list_pop_front(&node->event_list);
+            if (node->dt_test(&sink_event->event))
+            {
+                /* send ACK to host */
+                _starpu_mp_common_send_command(node, sink_event->answer_cmd , &sink_event->remote_event, sizeof(sink_event->remote_event));
+                _starpu_mp_event_delete(sink_event);
+            }
+            else
+            {
+                /* try later */
+                 _starpu_mp_event_list_push_back(&node->event_list, sink_event);
+            }
+            
+
+        }
 	}
 
 	STARPU_PTHREAD_KEY_DELETE(worker_key);
 
 	/* Deinitialize the node and release it */
 	_starpu_mp_common_node_destroy(node);
+
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+        _starpu_mpi_common_mp_deinit();
+#endif
 
 	exit(0);
 }

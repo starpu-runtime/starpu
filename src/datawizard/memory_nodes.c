@@ -25,6 +25,8 @@
 #include "copy_driver.h"
 #include "memalloc.h"
 
+char _starpu_worker_drives_memory[STARPU_NMAXWORKERS][STARPU_MAXNODES];
+
 struct _starpu_memory_node_descr _starpu_descr;
 starpu_pthread_key_t _starpu_memory_node_key STARPU_ATTRIBUTE_INTERNAL;
 
@@ -91,6 +93,9 @@ void _starpu_memory_node_get_name(unsigned node, char *name, int size)
 		break;
 	case STARPU_MIC_RAM:
 		prefix = "MIC";
+		break;
+	case STARPU_MPI_MS_RAM:
+		prefix = "MPI_MS";
 		break;
 	case STARPU_SCC_RAM:
 		prefix = "SCC_RAM";

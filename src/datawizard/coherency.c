@@ -146,7 +146,8 @@ int _starpu_select_src_node(starpu_data_handle_t handle, unsigned destination)
 
 			if (starpu_node_get_kind(i) == STARPU_CPU_RAM || 
 			    starpu_node_get_kind(i) == STARPU_SCC_RAM ||
-			    starpu_node_get_kind(i) == STARPU_SCC_SHM)
+			    starpu_node_get_kind(i) == STARPU_SCC_SHM ||
+                            starpu_node_get_kind(i) == STARPU_MPI_MS_RAM)
 				i_ram = i;
 			if (starpu_node_get_kind(i) == STARPU_DISK_RAM)			
 				i_disk = i;
@@ -259,6 +260,11 @@ static int worker_supports_direct_access(unsigned node, unsigned handling_node)
 		case STARPU_MIC_RAM:
 			/* TODO: We don't handle direct MIC-MIC transfers yet */
 			return 0;
+                case STARPU_MPI_MS_RAM:
+                {
+                        enum starpu_node_kind kind = starpu_node_get_kind(handling_node);
+                        return kind == STARPU_MPI_MS_RAM;
+                }
 		case STARPU_SCC_RAM:
 			return 1;
 		default:
@@ -717,14 +723,13 @@ int _starpu_fetch_data_on_node(starpu_data_handle_t handle, int node, struct _st
 			       enum starpu_data_access_mode mode, unsigned detached, unsigned is_prefetch, unsigned async,
 			       void (*callback_func)(void *), void *callback_arg, int prio, const char *origin)
 {
-	unsigned local_node = _starpu_memory_node_get_local_key();
         _STARPU_LOG_IN();
 
 	int cpt = 0;
 	while (cpt < STARPU_SPIN_MAXTRY && _starpu_spin_trylock(&handle->header_lock))
 	{
 		cpt++;
-		_starpu_datawizard_progress(local_node, 1);
+		_starpu_datawizard_progress(1);
 	}
 	if (cpt == STARPU_SPIN_MAXTRY)
 		_starpu_spin_lock(&handle->header_lock);
@@ -808,12 +813,11 @@ void _starpu_release_data_on_node(starpu_data_handle_t handle, uint32_t default_
 	if ((wt_mask & ~(1<<memory_node)))
 		_starpu_write_through_data(handle, memory_node, wt_mask);
 
-	unsigned local_node = _starpu_memory_node_get_local_key();
 	int cpt = 0;
 	while (cpt < STARPU_SPIN_MAXTRY && _starpu_spin_trylock(&handle->header_lock))
 	{
 		cpt++;
-		_starpu_datawizard_progress(local_node, 1);
+		_starpu_datawizard_progress(1);
 	}
 	if (cpt == STARPU_SPIN_MAXTRY)
 		_starpu_spin_lock(&handle->header_lock);
@@ -831,12 +835,11 @@ void _starpu_release_data_on_node(starpu_data_handle_t handle, uint32_t default_
 
 static void _starpu_set_data_requested_flag_if_needed(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate)
 {
-	unsigned local_node = _starpu_memory_node_get_local_key();
 	int cpt = 0;
 	while (cpt < STARPU_SPIN_MAXTRY && _starpu_spin_trylock(&handle->header_lock))
 	{
 		cpt++;
-		_starpu_datawizard_progress(local_node, 1);
+		_starpu_datawizard_progress(1);
 	}
 	if (cpt == STARPU_SPIN_MAXTRY)
 		_starpu_spin_lock(&handle->header_lock);
@@ -909,7 +912,7 @@ int starpu_idle_prefetch_task_input_on_node(struct starpu_task *task, unsigned n
 	return starpu_idle_prefetch_task_input_on_node_prio(task, node, prio);
 }
 
-static struct _starpu_data_replicate *get_replicate(starpu_data_handle_t handle, enum starpu_data_access_mode mode, int workerid, unsigned node)
+struct _starpu_data_replicate *get_replicate(starpu_data_handle_t handle, enum starpu_data_access_mode mode, int workerid, unsigned node)
 {
 	if (mode & (STARPU_SCRATCH|STARPU_REDUX))
 	{

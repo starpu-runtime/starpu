@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2009-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+ * Copyright (C) 2016  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -152,6 +153,13 @@ struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t ha
 	r->dst_replicate = dst_replicate;
 	r->mode = mode;
 	r->async_channel.type = STARPU_UNUSED;
+        r->async_channel.starpu_mp_common_finished_sender = 0;
+        r->async_channel.starpu_mp_common_finished_receiver = 0;
+        r->async_channel.polling_node_sender = NULL;
+        r->async_channel.polling_node_receiver = NULL;
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+        r->async_channel.event.mpi_ms_event.requests = NULL;
+#endif
 	if (handling_node == -1)
 		handling_node = STARPU_MAIN_RAM;
 	r->handling_node = handling_node;
@@ -206,9 +214,9 @@ int _starpu_wait_data_request_completion(struct _starpu_data_request *r, unsigne
 	int do_delete = 0;
 	int completed;
 
+#ifdef STARPU_SIMGRID
 	unsigned local_node = _starpu_memory_node_get_local_key();
 
-#ifdef STARPU_SIMGRID
 	starpu_pthread_wait_t wait;
 
 	starpu_pthread_wait_init(&wait);
@@ -244,7 +252,7 @@ int _starpu_wait_data_request_completion(struct _starpu_data_request *r, unsigne
 #endif
 #endif
 
-		_starpu_datawizard_progress(local_node, may_alloc);
+		_starpu_datawizard_progress(may_alloc);
 
 #ifdef STARPU_SIMGRID
 		starpu_pthread_wait_wait(&wait);

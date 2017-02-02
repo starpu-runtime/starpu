@@ -136,6 +136,9 @@ noinst_HEADERS = 						\
 	drivers/scc/driver_scc_common.h				\
 	drivers/scc/driver_scc_source.h				\
 	drivers/scc/driver_scc_sink.h				\
+	drivers/mpi/driver_mpi_common.h				\
+	drivers/mpi/driver_mpi_source.h				\
+	drivers/mpi/driver_mpi_sink.h				\
 	drivers/disk/driver_disk.h				\
 	debug/traces/starpu_fxt.h				\
 	profiling/bound.h					\
@@ -366,6 +369,19 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/mic/driver_mic_source
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/mic/driver_mic_sink.c
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/mic/driver_mic_utils.c
 endif
+
+#########################################
+#                                       # 	 
+#     MPI Master/Slave compilation      # 	 
+#                                       # 	 
+######################################### 	 
+
+if STARPU_USE_MPI_MASTER_SLAVE 	 
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/mpi/driver_mpi_common.c 	 
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/mpi/driver_mpi_source.c 	 
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/mpi/driver_mpi_sink.c 	 
+endif 	 
+
 
 #########################################
 

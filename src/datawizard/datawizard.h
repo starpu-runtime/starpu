@@ -33,7 +33,8 @@
 
 #include <core/dependencies/implicit_data_deps.h>
 
-int __starpu_datawizard_progress(unsigned memory_node, unsigned may_alloc, unsigned push_requests);
-void _starpu_datawizard_progress(unsigned memory_node, unsigned may_alloc);
+int ___starpu_datawizard_progress(unsigned memory_node, unsigned may_alloc, unsigned push_requests);
+int __starpu_datawizard_progress(unsigned may_alloc, unsigned push_requests);
+void _starpu_datawizard_progress(unsigned may_alloc);
 
 #endif // __DATAWIZARD_H__
