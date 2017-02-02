@@ -34,6 +34,9 @@ Small features:
 Changes:
   * Vastly improve simgrid simulation time.
 
+Small changes:
+  * Use asynchronous transfers for task data fetches with were not prefetched.
+
 StarPU 1.2.1 (svn revision xxx)
 ==============================================
 New features:

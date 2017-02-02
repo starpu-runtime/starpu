@@ -472,6 +472,7 @@ static int start_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *worke
 	struct starpu_codelet *cl = task->cl;
 	STARPU_ASSERT(cl);
 
+	_starpu_set_local_worker_key(worker);
 	_starpu_set_current_task(task);
 
 	ret = _starpu_fetch_task_input(task, j, 0);
@@ -728,27 +729,65 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 	struct _starpu_job *j;
 	int i, res;
 
-	int idle;
+	int idle_tasks, idle_transfers;
 
 #ifdef STARPU_SIMGRID
 	starpu_pthread_wait_reset(&worker0->wait);
 #endif
 
 	/* First poll for completed jobs */
-	idle = 0;
+	idle_tasks = 0;
+	idle_transfers = 0;
 	for (i = 0; i < (int) worker_set->nworkers; i++)
 	{
 		struct _starpu_worker *worker = &worker_set->workers[i];
 		int workerid = worker->workerid;
 
 		if (!worker->ntasks)
+			idle_tasks++;
+		if (!worker->task_transferring)
+			idle_transfers++;
+
+		if (!worker->ntasks && !worker->task_transferring)
 		{
-			idle++;
 			/* Even nothing to test */
 			continue;
 		}
 
+		/* First test for transfers pending for next task */
+		task = worker->task_transferring;
+		if (task && worker->nb_buffers_transferred == worker->nb_buffers_totransfer)
+		{
+			struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
+
+			_starpu_release_fetch_task_input_async(j, workerid, worker->nb_buffers_totransfer);
+			/* Reset it */
+			worker->task_transferring = NULL;
+
+			if (worker->ntasks > 1 && !(task->cl->cuda_flags[j->nimpl] & STARPU_CUDA_ASYNC))
+			{
+				/* We have to execute a non-asynchronous task but we
+				 * still have tasks in the pipeline...  Record it to
+				 * prevent more tasks from coming, and do it later */
+				worker->pipeline_stuck = 1;
+			}
+			else
+			{
+				_STARPU_TRACE_END_PROGRESS(memnode);
+				execute_job_on_cuda(task, worker);
+				_STARPU_TRACE_START_PROGRESS(memnode);
+			}
+		}
+
+		/* Then test for termination of queued tasks */
+		if (!worker->ntasks)
+			/* No queued task */
+			continue;
+
 		task = worker->current_tasks[worker->first_task];
+		if (task == worker->task_transferring)
+			/* Next task is still pending transfer */
+			continue;
 
 		/* On-going asynchronous task, check for its termination first */
 #ifdef STARPU_SIMGRID
@@ -767,7 +806,7 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 			_starpu_set_local_worker_key(worker);
 			finish_job_on_cuda(_starpu_get_job_associated_to_task(task), worker);
 			/* See next task if any */
-			if (worker->ntasks)
+			if (worker->ntasks && worker->current_tasks[worker->first_task] != worker->task_transferring)
 			{
 				task = worker->current_tasks[worker->first_task];
 				j = _starpu_get_job_associated_to_task(task);
@@ -803,20 +842,20 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 		}
 
 		if (!worker->pipeline_length || worker->ntasks < worker->pipeline_length)
-			idle++;
+			idle_tasks++;
 	}
 
 #if defined(STARPU_NON_BLOCKING_DRIVERS) && !defined(STARPU_SIMGRID)
-	if (!idle)
+	if (!idle_tasks)
 	{
-		/* Nothing ready yet, no better thing to do than waiting */
-		__starpu_datawizard_progress(1, 0);
+		/* No task ready yet, no better thing to do than waiting */
+		__starpu_datawizard_progress(1, !idle_transfers);
 		return 0;
 	}
 #endif
 
 	/* Something done, make some progress */
-	res = !idle;
+	res = !idle_tasks || !idle_transfers;
 	res |= __starpu_datawizard_progress(1, 1);
 
 	/* And pull tasks */
@@ -850,19 +889,11 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 			continue;
 		}
 
-		if (worker->ntasks > 1 && !(task->cl->cuda_flags[j->nimpl] & STARPU_CUDA_ASYNC))
-		{
-			/* We have to execute a non-asynchronous task but we
-			 * still have tasks in the pipeline...  Record it to
-			 * prevent more tasks from coming, and do it later */
-			worker->pipeline_stuck = 1;
-			continue;
-		}
-
-		_starpu_set_local_worker_key(worker);
-
+		/* Fetch data asynchronously */
 		_STARPU_TRACE_END_PROGRESS(memnode);
-		execute_job_on_cuda(task, worker);
+		_starpu_set_local_worker_key(worker);
+		res = _starpu_fetch_task_input(task, j, 1);
+		STARPU_ASSERT(res == 0);
 		_STARPU_TRACE_START_PROGRESS(memnode);
 	}
 
