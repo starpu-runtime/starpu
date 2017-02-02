@@ -29,7 +29,7 @@
 #endif
 
 #include <starpu.h>
-#if !defined(STARPU_HAVE_CXX11)
+#if !defined(STARPU_HAVE_CXX11) || defined(STARPU_USE_NUMA)
 int main(int argc, char **argv)
 {
 	return STARPU_TEST_SKIPPED;
