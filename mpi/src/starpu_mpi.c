@@ -368,7 +368,7 @@ static struct _starpu_mpi_req *_starpu_mpi_isend_irecv_common(starpu_data_handle
  }
 
 #ifdef STARPU_SIMGRID
-int _starpu_mpi_simgrid_mpi_test(int *done, int *flag)
+int _starpu_mpi_simgrid_mpi_test(unsigned *done, int *flag)
 {
 	*flag = 0;
 	if (*done)
