@@ -2525,9 +2525,6 @@ static void _starpu_sched_ctx_put_new_master(unsigned sched_ctx_id)
 				 sched_ctx->main_master = workerids[i];
 				 break;
 			 }
-	     else {
-				 sched_ctx->main_master = -1;
-			 }
 	}
 }
 
