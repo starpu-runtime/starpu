@@ -231,6 +231,12 @@ struct starpu_codelet increment_cl_redux =
 int main(int argc, char **argv)
 {
 	int ret;
+	struct starpu_conf conf;
+
+	starpu_conf_init(&conf);
+
+	/* MPI Master-Slave doesn't support Redux */
+	conf.nmpi_ms = 0;
 
 	/* Not supported yet */
 	if (starpu_get_env_number_default("STARPU_GLOBAL_ARBITER", 0) > 0)
