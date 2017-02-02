@@ -51,7 +51,9 @@ int parallel_code(int sched_ctx)
 static void sched_ctx_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
 {
 	unsigned sched_ctx = (uintptr_t)arg;
-	tasks_executed[sched_ctx-1]+= parallel_code(sched_ctx);
+	int t = parallel_code(sched_ctx);
+	if (sched_ctx > 0 && sched_ctx < 3)
+		tasks_executed[sched_ctx-1] += t;
 	//printf("w %d executed %d it \n", w, n);
 }
 
