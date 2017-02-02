@@ -1018,7 +1018,8 @@ static void _starpu_src_common_worker_internal_work(struct _starpu_worker_set * 
 			if(tasks[i] != NULL)
 			{
 				_starpu_set_local_worker_key(&worker_set->workers[i]);
-				_starpu_fetch_task_input(tasks[i], _starpu_get_job_associated_to_task(tasks[i]), 1);
+				int ret = _starpu_fetch_task_input(tasks[i], _starpu_get_job_associated_to_task(tasks[i]), 1);
+				STARPU_ASSERT(!ret);
 			}
 		}
 
