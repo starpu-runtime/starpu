@@ -301,7 +301,8 @@ void _starpu_push_task_output(struct _starpu_job *j);
 void _starpu_release_nowhere_task_output(struct _starpu_job *j);
 
 STARPU_ATTRIBUTE_WARN_UNUSED_RESULT
-int _starpu_fetch_task_input(struct _starpu_job *j);
+int _starpu_fetch_task_input(struct starpu_task *task, struct _starpu_job *j, int async);
+int _starpu_release_fetch_task_input_async(struct _starpu_job *j, int workerid, int nbtransfers);
 void _starpu_fetch_nowhere_task_input(struct _starpu_job *j);
 
 unsigned _starpu_is_data_present_or_requested(struct _starpu_data_state *state, unsigned node);

@@ -253,9 +253,9 @@ static void gordon_callback_func(void *arg)
 int inject_task(struct _starpu_job *j, struct _starpu_worker *worker)
 {
 	struct starpu_task *task = j->task;
-	int ret = _starpu_fetch_task_input(j);
+	int ret = _starpu_fetch_task_input(task, j, 0);
 
-	if (ret != 0)
+	if (ret < 0)
 	{
 		/* there was not enough memory so the codelet cannot be executed right now ... */
 		/* push the codelet back and try another one ... */
@@ -316,8 +316,8 @@ int inject_task_list(struct _starpu_job_list *list, struct _starpu_worker *worke
 		int ret;
 
 		struct starpu_task *task = j->task;
-		ret = _starpu_fetch_task_input(j);
-		STARPU_ASSERT(!ret);
+		ret = _starpu_fetch_task_input(task, j, 0);
+		STARPU_ASSERT(ret >= 0);
 
 		_starpu_sched_pre_exec_hook(task);
 

@@ -538,8 +538,9 @@ static void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu
 	starpu_pthread_wait_init(&workerarg->wait);
 	starpu_pthread_queue_register(&workerarg->wait, &_starpu_simgrid_task_queue[workerarg->workerid]);
 #endif
-        workerarg->task_sending = NULL;
-        workerarg->nb_buffers_sent = 0;
+	workerarg->task_transferring = NULL;
+	workerarg->nb_buffers_transferred = 0;
+	workerarg->nb_buffers_totransfer = 0;
 
 	workerarg->first_task = 0;
 	workerarg->ntasks = 0;

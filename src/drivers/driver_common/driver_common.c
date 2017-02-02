@@ -489,11 +489,11 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 		{
 			tasks[i] = NULL;
 		}
-                /* don't push a task if we are already pushing one */
-                else if (workers[i].task_sending != NULL)
-                {
-                        tasks[i] = NULL;
-                }
+		/* don't push a task if we are already transferring one */
+		else if (workers[i].task_transferring != NULL)
+		{
+			tasks[i] = NULL;
+		}
 		/*else try to pop a task*/
 		else
 		{

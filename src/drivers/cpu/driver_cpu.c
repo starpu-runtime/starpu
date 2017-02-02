@@ -69,7 +69,7 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 
 	if (rank == 0 && !continuation_wake_up)
 	{
-		int ret = _starpu_fetch_task_input(j);
+		int ret = _starpu_fetch_task_input(task, j, 0);
 		if (ret != 0)
 		{
 			/* there was not enough memory so the codelet cannot be executed right now ... */
@@ -229,56 +229,20 @@ int _starpu_cpu_driver_init(struct _starpu_worker *cpu_worker)
 	return 0;
 }
 
-int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
+static int _starpu_cpu_driver_execute_task(struct _starpu_worker *cpu_worker, struct starpu_task *task, struct _starpu_job *j)
 {
-	unsigned memnode = cpu_worker->memory_node;
-	int workerid = cpu_worker->workerid;
-
 	int res;
 
-#ifdef STARPU_SIMGRID
-	starpu_pthread_wait_reset(&cpu_worker->wait);
-#endif
-
-	_STARPU_TRACE_START_PROGRESS(memnode);
-	res = __starpu_datawizard_progress(1, 1);
-	_STARPU_TRACE_END_PROGRESS(memnode);
-
-	struct _starpu_job *j;
-	struct starpu_task *task;
-
-	task = _starpu_get_worker_task(cpu_worker, workerid, memnode);
-
-#ifdef STARPU_SIMGRID
-	if (!res && !task)
-		starpu_pthread_wait_wait(&cpu_worker->wait);
-#endif
-
-	if (!task)
-		return 0;
-
-	j = _starpu_get_job_associated_to_task(task);
-
-	/* can a cpu perform that task ? */
-	if (!_STARPU_CPU_MAY_PERFORM(j))
-	{
-		/* put it and the end of the queue ... XXX */
-		_starpu_push_task_to_workers(task);
-		return 0;
-	}
-
-	int rank = 0;
+	int rank;
 	int is_parallel_task = (j->task_size > 1);
 
 	struct starpu_perfmodel_arch* perf_arch;
 
+	rank = cpu_worker->current_rank;
+
 	/* Get the rank in case it is a parallel task */
 	if (is_parallel_task)
 	{
-		STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
-		rank = j->active_task_alias_count++;
-		STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
-
 		if(j->combined_workerid != -1)
 		{
 			struct _starpu_combined_worker *combined_worker;
@@ -286,7 +250,6 @@ int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
 			
 			cpu_worker->combined_workerid = j->combined_workerid;
 			cpu_worker->worker_size = combined_worker->worker_size;
-			cpu_worker->current_rank = rank;
 			perf_arch = &combined_worker->perf_arch;
 		}
 		else
@@ -301,7 +264,6 @@ int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
 	{
 		cpu_worker->combined_workerid = cpu_worker->workerid;
 		cpu_worker->worker_size = 1;
-		cpu_worker->current_rank = 0;
 
 		struct _starpu_sched_ctx *sched_ctx = _starpu_sched_ctx_get_sched_ctx_for_worker_and_job(cpu_worker, j);
 		if (sched_ctx && !sched_ctx->sched_policy && !sched_ctx->awake_workers && sched_ctx->main_master == cpu_worker->workerid)
@@ -341,6 +303,85 @@ int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
 
 	if (rank == 0)
 		_starpu_handle_job_termination(j);
+	return 0;
+}
+
+int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
+{
+	unsigned memnode = cpu_worker->memory_node;
+	int workerid = cpu_worker->workerid;
+
+	int res;
+
+	struct _starpu_job *j;
+	struct starpu_task *task = NULL, *pending_task;
+
+	int rank = 0;
+
+#ifdef STARPU_SIMGRID
+	starpu_pthread_wait_reset(&cpu_worker->wait);
+#endif
+
+	/* Test if async transfers are completed */
+	pending_task = cpu_worker->task_transferring;
+	if (pending_task != NULL && cpu_worker->nb_buffers_transferred == cpu_worker->nb_buffers_totransfer)
+	{
+		struct _starpu_job *j = _starpu_get_job_associated_to_task(pending_task);
+
+		STARPU_RMB();
+		_starpu_release_fetch_task_input_async(j, workerid, cpu_worker->nb_buffers_totransfer);
+		/* Reset it */
+		cpu_worker->task_transferring = NULL;
+
+		return _starpu_cpu_driver_execute_task(cpu_worker, pending_task, j);
+	}
+
+	_STARPU_TRACE_START_PROGRESS(memnode);
+	res = __starpu_datawizard_progress(1, 1);
+	_STARPU_TRACE_END_PROGRESS(memnode);
+
+	if (!pending_task)
+		task = _starpu_get_worker_task(cpu_worker, workerid, memnode);
+
+#ifdef STARPU_SIMGRID
+	if (!res && !task)
+		/* No progress, wait */
+		starpu_pthread_wait_wait(&cpu_worker->wait);
+#endif
+
+	if (!task)
+		/* No task or task still pending transfers */
+		return 0;
+
+	j = _starpu_get_job_associated_to_task(task);
+	/* NOTE: j->task is != task for parallel tasks, which share the same
+	 * job. */
+
+	/* can a cpu perform that task ? */
+	if (!_STARPU_CPU_MAY_PERFORM(j))
+	{
+		/* put it and the end of the queue ... XXX */
+		_starpu_push_task_to_workers(task);
+		return 0;
+	}
+
+	/* Get the rank in case it is a parallel task */
+	if (j->task_size > 1)
+	{
+		STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
+		rank = j->active_task_alias_count++;
+		STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
+	}
+	else
+	{
+		rank = 0;
+	}
+	cpu_worker->current_rank = rank;
+
+	if (rank == 0)
+		_starpu_fetch_task_input(task, j, 1);
+	else
+		return _starpu_cpu_driver_execute_task(cpu_worker, task, j);
 	return 0;
 }
 

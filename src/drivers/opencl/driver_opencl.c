@@ -904,10 +904,10 @@ static int _starpu_opencl_start_job(struct _starpu_job *j, struct _starpu_worker
 	struct starpu_codelet *cl = task->cl;
 	STARPU_ASSERT(cl);
 
-	_starpu_set_current_task(j->task);
+	_starpu_set_current_task(task);
 
-	ret = _starpu_fetch_task_input(j);
-	if (ret != 0)
+	ret = _starpu_fetch_task_input(task, j, 0);
+	if (ret < 0)
 	{
 		/* there was not enough memory, so the input of
 		 * the codelet cannot be fetched ... put the
