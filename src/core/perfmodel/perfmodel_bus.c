@@ -748,7 +748,7 @@ static void benchmark_all_gpu_devices(void)
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
     
-    _starpu_mpi_common_measure_bandwidth_latency(mpi_time_device_to_device, mpi_latency_device_to_device);
+        _starpu_mpi_common_measure_bandwidth_latency(mpi_time_device_to_device, mpi_latency_device_to_device);
 
 #endif /* STARPU_USE_MPI_MASTER_SLAVE */
 
@@ -942,9 +942,9 @@ static void generate_bus_affinity_file(void)
 		benchmark_all_gpu_devices();
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
-    /* Slaves don't write files */
-    if (!_starpu_mpi_common_is_src_node())
-        return;
+        /* Slaves don't write files */
+        if (!_starpu_mpi_common_is_src_node())
+                return;
 #endif
 
 	write_bus_affinity_file_content();
@@ -1130,7 +1130,7 @@ static int load_bus_latency_file_content(void)
 #ifndef STARPU_SIMGRID
 static void write_bus_latency_file_content(void)
 {
-    unsigned src, dst, maxnode;
+        unsigned src, dst, maxnode;
 	FILE *f;
 	int locked;
 
@@ -1204,43 +1204,43 @@ static void write_bus_latency_file_content(void)
 				if (dst > ncuda && dst <= ncuda + nopencl)
 					latency += opencldev_latency_htod[dst-ncuda];
 #endif
-                /* TODO Latency MIC */
+                                /* TODO Latency MIC */
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
-                /* Modify MPI src and MPI dst if they contain the master node or not 
-                 * Because, we only take care about slaves */
-                int mpi_master = _starpu_mpi_common_get_src_node();
+                                /* Modify MPI src and MPI dst if they contain the master node or not 
+                                 * Because, we only take care about slaves */
+                                int mpi_master = _starpu_mpi_common_get_src_node();
 
-                int mpi_src = src - (ncuda + nopencl + nmic) - 1;
-                mpi_src = (mpi_master <= mpi_src) ? mpi_src+1 : mpi_src;
-                
-                int mpi_dst = dst - (ncuda + nopencl + nmic) - 1;
-                mpi_dst = (mpi_master <= mpi_dst) ? mpi_dst+1 : mpi_dst;
+                                int mpi_src = src - (ncuda + nopencl + nmic) - 1;
+                                mpi_src = (mpi_master <= mpi_src) ? mpi_src+1 : mpi_src;
 
-				if (src > ncuda + nopencl + nmic && src <= ncuda + nopencl + nmic + nmpi_ms)
-                {
-                    if (dst > ncuda + nopencl + nmic && dst <= ncuda + nopencl + nmic + nmpi_ms)
-                    {
-                        /* src and dst identify 2 MPI devices */
-                        latency += mpi_latency_device_to_device[mpi_src][mpi_dst];
-                    }
-                    else
-                    {
-                        /* Only src represents an MPI device 
-                         * So we add latency between src and master */
-                        latency += mpi_latency_device_to_device[mpi_src][mpi_master];
-                    }
-                }
-                else
-                {
-                    if (dst > ncuda + nopencl + nmic && dst <= ncuda + nopencl + nmic + nmpi_ms)
-                    {
-                        /* Only dst identifies an MPI device 
-                         * So we add latency between master and dst */
-                        latency += mpi_latency_device_to_device[mpi_master][mpi_dst];
-                    }
-                }
+                                int mpi_dst = dst - (ncuda + nopencl + nmic) - 1;
+                                mpi_dst = (mpi_master <= mpi_dst) ? mpi_dst+1 : mpi_dst;
+
+                                if (src > ncuda + nopencl + nmic && src <= ncuda + nopencl + nmic + nmpi_ms)
+                                {
+                                        if (dst > ncuda + nopencl + nmic && dst <= ncuda + nopencl + nmic + nmpi_ms)
+                                        {
+                                                /* src and dst identify 2 MPI devices */
+                                                latency += mpi_latency_device_to_device[mpi_src][mpi_dst];
+                                        }
+                                        else
+                                        {
+                                                /* Only src represents an MPI device 
+                                                 * So we add latency between src and master */
+                                                latency += mpi_latency_device_to_device[mpi_src][mpi_master];
+                                        }
+                                }
+                                else
+                                {
+                                        if (dst > ncuda + nopencl + nmic && dst <= ncuda + nopencl + nmic + nmpi_ms)
+                                        {
+                                                /* Only dst identifies an MPI device 
+                                                 * So we add latency between master and dst */
+                                                latency += mpi_latency_device_to_device[mpi_master][mpi_dst];
+                                        }
+                                }
 #endif
-			}
+                        }
 
 			if (dst)
 				fputc('\t', f);
@@ -1262,9 +1262,9 @@ static void generate_bus_latency_file(void)
 		benchmark_all_gpu_devices();
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
-    /* Slaves don't write files */
-    if (!_starpu_mpi_common_is_src_node())
-        return;
+        /* Slaves don't write files */
+        if (!_starpu_mpi_common_is_src_node())
+                return;
 #endif
 
 #ifndef STARPU_SIMGRID
@@ -1476,40 +1476,40 @@ static void write_bus_bandwidth_file_content(void)
 					slowness += mic_time_host_to_device[dst - (ncuda + nopencl)];
 #endif
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
-                /* Modify MPI src and MPI dst if they contain the master node or not 
-                 * Because, we only take care about slaves */
-                int mpi_master = _starpu_mpi_common_get_src_node();
+                                /* Modify MPI src and MPI dst if they contain the master node or not 
+                                 * Because, we only take care about slaves */
+                                int mpi_master = _starpu_mpi_common_get_src_node();
 
-                int mpi_src = src - (ncuda + nopencl + nmic) - 1;
-                mpi_src = (mpi_master <= mpi_src) ? mpi_src+1 : mpi_src;
-                
-                int mpi_dst = dst - (ncuda + nopencl + nmic) - 1;
-                mpi_dst = (mpi_master <= mpi_dst) ? mpi_dst+1 : mpi_dst;
+                                int mpi_src = src - (ncuda + nopencl + nmic) - 1;
+                                mpi_src = (mpi_master <= mpi_src) ? mpi_src+1 : mpi_src;
 
-                /* here we have bandwidth */
-				if (src > ncuda + nopencl + nmic && src <= ncuda + nopencl + nmic + nmpi_ms)
-                {
-                    if (dst > ncuda + nopencl + nmic && dst <= ncuda + nopencl + nmic + nmpi_ms)
-                    {
-                        /* src and dst identify 2 MPI devices */
-					    slowness += 1.0/mpi_time_device_to_device[mpi_src][mpi_dst];
-                    }
-                    else
-                    {
-                        /* Only src represents an MPI device 
-                         * So we add bandwidth between src and master */
-					    slowness += 1.0/mpi_time_device_to_device[mpi_src][mpi_master];
-                    }
-                }
-                else
-                {
-                    if (dst > ncuda + nopencl + nmic && dst <= ncuda + nopencl + nmic + nmpi_ms)
-                    {
-                        /* Only dst identifies an MPI device 
-                         * So we add bandwidth between master and dst */
-					    slowness += 1.0/mpi_time_device_to_device[mpi_master][mpi_dst];
-                    }
-                }
+                                int mpi_dst = dst - (ncuda + nopencl + nmic) - 1;
+                                mpi_dst = (mpi_master <= mpi_dst) ? mpi_dst+1 : mpi_dst;
+
+                                /* here we have bandwidth */
+                                if (src > ncuda + nopencl + nmic && src <= ncuda + nopencl + nmic + nmpi_ms)
+                                {
+                                        if (dst > ncuda + nopencl + nmic && dst <= ncuda + nopencl + nmic + nmpi_ms)
+                                        {
+                                                /* src and dst identify 2 MPI devices */
+                                                slowness += 1.0/mpi_time_device_to_device[mpi_src][mpi_dst];
+                                        }
+                                        else
+                                        {
+                                                /* Only src represents an MPI device 
+                                                 * So we add bandwidth between src and master */
+                                                slowness += 1.0/mpi_time_device_to_device[mpi_src][mpi_master];
+                                        }
+                                }
+                                else
+                                {
+                                        if (dst > ncuda + nopencl + nmic && dst <= ncuda + nopencl + nmic + nmpi_ms)
+                                        {
+                                                /* Only dst identifies an MPI device 
+                                                 * So we add bandwidth between master and dst */
+                                                slowness += 1.0/mpi_time_device_to_device[mpi_master][mpi_dst];
+                                        }
+                                }
 #endif
 				bandwidth = 1.0/slowness;
 			}
@@ -1586,7 +1586,7 @@ void starpu_bus_print_bandwidth(FILE *f)
 			fprintf(f, "OpenCL%u\t", src-ncuda-1);
 		else if (src <= ncuda + nopencl + nmic)
 			fprintf(f, "MIC%u\t", src-ncuda-nopencl-1);
-        else
+                else
 			fprintf(f, "MPI_MS%d\t", src-ncuda-nopencl-nmic-1);
 		for (dst = 0; dst <= maxnode; dst++)
 			fprintf(f, "%.0f\t", bandwidth_matrix[src][dst]);
@@ -1605,7 +1605,7 @@ void starpu_bus_print_bandwidth(FILE *f)
 			fprintf(f, "OpenCL%u\t", src-ncuda-1);
 		else if (src <= ncuda + nopencl + nmic)
 			fprintf(f, "MIC%u\t", src-ncuda-nopencl-1);
-        else
+                else
 			fprintf(f, "MPI_MS%d\t", src-ncuda-nopencl-nmic-1);
 		for (dst = 0; dst <= maxnode; dst++)
 			fprintf(f, "%.0f\t", latency_matrix[src][dst]);
@@ -1664,9 +1664,9 @@ static void generate_bus_bandwidth_file(void)
 		benchmark_all_gpu_devices();
     
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
-    /* Slaves don't write files */
-    if (!_starpu_mpi_common_is_src_node())
-        return;
+        /* Slaves don't write files */
+        if (!_starpu_mpi_common_is_src_node())
+                return;
 #endif
 
 #ifndef STARPU_SIMGRID
@@ -1702,49 +1702,49 @@ static void get_config_path(char *path, size_t maxlen)
 /* check if the master or one slave has to recalibrate */
 static int mpi_check_recalibrate(int my_recalibrate)
 {
-	int nb_mpi = _starpu_mpi_src_get_device_count() + 1;
-  int mpi_recalibrate[nb_mpi];
+        int nb_mpi = _starpu_mpi_src_get_device_count() + 1;
+        int mpi_recalibrate[nb_mpi];
 
-  MPI_Allgather(&my_recalibrate, 1, MPI_INT, mpi_recalibrate, 1, MPI_INT, MPI_COMM_WORLD);
+        MPI_Allgather(&my_recalibrate, 1, MPI_INT, mpi_recalibrate, 1, MPI_INT, MPI_COMM_WORLD);
 
-  for (int i = 0; i < nb_mpi; i++)
-  {
-    if (mpi_recalibrate[i])
-    {
-      return 1;
-      break;
-    }
-  }
-	return 0;
+        for (int i = 0; i < nb_mpi; i++)
+        {
+                if (mpi_recalibrate[i])
+                {
+                        return 1;
+                        break;
+                }
+        }
+        return 0;
 }
 #endif
 
 static void compare_value_and_recalibrate(char * msg, unsigned val_file, unsigned val_detected)
 {
-		int recalibrate = 0;
-    if (val_file != val_detected)
-			recalibrate = 1;
+        int recalibrate = 0;
+        if (val_file != val_detected)
+                recalibrate = 1;
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 	//Send to each other to know if we had to recalibrate because someone cannot have the correct value in the config file
 	recalibrate = mpi_check_recalibrate(recalibrate);
 #endif
 
-		if (recalibrate)
-    {
+        if (recalibrate)
+        {
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
-        /* Only the master prints the message */
-        if (_starpu_mpi_common_is_src_node())
+                /* Only the master prints the message */
+                if (_starpu_mpi_common_is_src_node())
 #endif
+                        _STARPU_DISP("Current configuration does not match the bus performance model (%s: (stored) %d != (current) %d), recalibrating...\n", msg, val_file, val_detected);
 
-        _STARPU_DISP("Current configuration does not match the bus performance model (%s: (stored) %d != (current) %d), recalibrating...\n", msg, val_file, val_detected);
-        _starpu_bus_force_sampling();
+                _starpu_bus_force_sampling();
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
-        if (_starpu_mpi_common_is_src_node())
+                if (_starpu_mpi_common_is_src_node())
 #endif
-        _STARPU_DISP("... done\n");
-    }
+                        _STARPU_DISP("... done\n");
+        }
 }
 
 static void check_bus_config_file(void)
@@ -1775,66 +1775,66 @@ static void check_bus_config_file(void)
 	}
 	else
 	{
-        FILE *f;
-        int ret;
-        unsigned read_cuda = -1, read_opencl = -1, read_mic = -1, read_mpi_ms = -1;
-        unsigned read_cpus = -1;
-		int locked;
+                FILE *f;
+                int ret;
+                unsigned read_cuda = -1, read_opencl = -1, read_mic = -1, read_mpi_ms = -1;
+                unsigned read_cpus = -1;
+                int locked;
 
-        // Loading configuration from file
-        f = fopen(path, "r");
-        STARPU_ASSERT(f);
-		locked = _starpu_frdlock(f) == 0;
-        _starpu_drop_comments(f);
-        
-        ret = fscanf(f, "%u\t", &read_cpus);
-        STARPU_ASSERT(ret == 1);
-        _starpu_drop_comments(f);
+                // Loading configuration from file
+                f = fopen(path, "r");
+                STARPU_ASSERT(f);
+                locked = _starpu_frdlock(f) == 0;
+                _starpu_drop_comments(f);
 
-        ret = fscanf(f, "%u\t", &read_cuda);
-        STARPU_ASSERT(ret == 1);
-        _starpu_drop_comments(f);
+                ret = fscanf(f, "%u\t", &read_cpus);
+                STARPU_ASSERT(ret == 1);
+                _starpu_drop_comments(f);
 
-        ret = fscanf(f, "%u\t", &read_opencl);
-        STARPU_ASSERT(ret == 1);
-        _starpu_drop_comments(f);
-        
-        ret = fscanf(f, "%u\t", &read_mic);
-        if (ret == 0)
-            read_mic = 0;
-        _starpu_drop_comments(f);
+                ret = fscanf(f, "%u\t", &read_cuda);
+                STARPU_ASSERT(ret == 1);
+                _starpu_drop_comments(f);
 
-        ret = fscanf(f, "%u\t", &read_mpi_ms);
-        if (ret == 0)
-            read_mpi_ms = 0;
-        _starpu_drop_comments(f);
+                ret = fscanf(f, "%u\t", &read_opencl);
+                STARPU_ASSERT(ret == 1);
+                _starpu_drop_comments(f);
 
-		if (locked)
-			_starpu_frdunlock(f);
-        fclose(f);
+                ret = fscanf(f, "%u\t", &read_mic);
+                if (ret == 0)
+                        read_mic = 0;
+                _starpu_drop_comments(f);
 
-        // Loading current configuration
-        ncpus = _starpu_topology_get_nhwcpu(config);
+                ret = fscanf(f, "%u\t", &read_mpi_ms);
+                if (ret == 0)
+                        read_mpi_ms = 0;
+                _starpu_drop_comments(f);
+
+                if (locked)
+                        _starpu_frdunlock(f);
+                fclose(f);
+
+                // Loading current configuration
+                ncpus = _starpu_topology_get_nhwcpu(config);
 #ifdef STARPU_USE_CUDA
-		ncuda = _starpu_get_cuda_device_count();
+                ncuda = _starpu_get_cuda_device_count();
 #endif
 #ifdef STARPU_USE_OPENCL
-        nopencl = _starpu_opencl_get_device_count();
+                nopencl = _starpu_opencl_get_device_count();
 #endif
 #ifdef STARPU_USE_MIC
-        nmic = _starpu_mic_src_get_device_count();
+                nmic = _starpu_mic_src_get_device_count();
 #endif /* STARPU_USE_MIC */
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
-        nmpi_ms = _starpu_mpi_src_get_device_count();
+                nmpi_ms = _starpu_mpi_src_get_device_count();
 #endif /* STARPU_USE_MPI_MASTER_SLAVE */
 
-        // Checking if both configurations match
-        compare_value_and_recalibrate("CPUS", read_cpus, ncpus);
-        compare_value_and_recalibrate("CUDA", read_cuda, ncuda);
-        compare_value_and_recalibrate("OpenCL", read_opencl, nopencl);
-        compare_value_and_recalibrate("MIC", read_mic, nmic);
-        compare_value_and_recalibrate("MPI Master-Slave", read_mpi_ms, nmpi_ms);
-    }
+                // Checking if both configurations match
+                compare_value_and_recalibrate("CPUS", read_cpus, ncpus);
+                compare_value_and_recalibrate("CUDA", read_cuda, ncuda);
+                compare_value_and_recalibrate("OpenCL", read_opencl, nopencl);
+                compare_value_and_recalibrate("MIC", read_mic, nmic);
+                compare_value_and_recalibrate("MPI Master-Slave", read_mpi_ms, nmpi_ms);
+        }
 }
 
 static void write_bus_config_file_content(void)
@@ -1871,9 +1871,9 @@ static void generate_bus_config_file(void)
 		benchmark_all_gpu_devices();
     
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
-    /* Slaves don't write files */
-    if (!_starpu_mpi_common_is_src_node())
-        return;
+        /* Slaves don't write files */
+        if (!_starpu_mpi_common_is_src_node())
+                return;
 #endif
 
 	write_bus_config_file_content();
@@ -2606,9 +2606,9 @@ static void generate_bus_platform_file(void)
 		benchmark_all_gpu_devices();
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
-    /* Slaves don't write files */
-    if (!_starpu_mpi_common_is_src_node())
-        return;
+        /* Slaves don't write files */
+        if (!_starpu_mpi_common_is_src_node())
+                return;
 #endif
 
 	write_bus_platform_file_content(3);
@@ -2665,7 +2665,7 @@ void _starpu_load_bus_performance_files(void)
 	nopencl = _starpu_opencl_get_device_count();
 #endif
 #if defined(STARPU_USE_MPI_MASTER_SLAVE) || defined(STARPU_USE_SIMGRID)
-    nmpi_ms = _starpu_mpi_src_get_device_count();
+        nmpi_ms = _starpu_mpi_src_get_device_count();
 #endif
 #if defined(STARPU_USE_MIC) || defined(STARPU_USE_SIMGRID)
 	nmic = _starpu_mic_src_get_device_count();

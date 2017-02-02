@@ -90,7 +90,7 @@ struct starpu_conf
 	int nopencl;
 	int nmic;
 	int nscc;
-    int nmpi_ms;
+        int nmpi_ms;
 
 	unsigned use_explicit_workers_bindid;
 	unsigned workers_bindid[STARPU_NMAXWORKERS];

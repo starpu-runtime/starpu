@@ -66,21 +66,21 @@ int ___starpu_datawizard_progress(unsigned memory_node, unsigned may_alloc, unsi
 
 int __starpu_datawizard_progress(unsigned may_alloc, unsigned push_requests)
 {
-    int current_worker_id = starpu_worker_get_id();
-    unsigned memnode;
+        int current_worker_id = starpu_worker_get_id();
+        unsigned memnode;
 
-    int ret = 0;
+        int ret = 0;
 
-    for (memnode = 0; memnode < STARPU_MAXNODES; memnode++)
-    {
-        if (_starpu_worker_drives_memory[current_worker_id][memnode] == 1)
-            ret |= ___starpu_datawizard_progress(memnode, may_alloc, push_requests);
-    }
+        for (memnode = 0; memnode < STARPU_MAXNODES; memnode++)
+        {
+                if (_starpu_worker_drives_memory[current_worker_id][memnode] == 1)
+                        ret |= ___starpu_datawizard_progress(memnode, may_alloc, push_requests);
+        }
 
-    return ret;
+        return ret;
 }
 
 void _starpu_datawizard_progress(unsigned may_alloc)
 {
-	__starpu_datawizard_progress(may_alloc, 1);
+        __starpu_datawizard_progress(may_alloc, 1);
 }

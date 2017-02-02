@@ -55,7 +55,7 @@ static const unsigned starpu_heteroprio_types_to_arch[STARPU_NB_TYPES+1] =
 	STARPU_OPENCL,
 	STARPU_MIC,
 	STARPU_SCC,
-    STARPU_MPI_MS,
+        STARPU_MPI_MS,
 	0
 };
 

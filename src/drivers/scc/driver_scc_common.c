@@ -141,7 +141,7 @@ void _starpu_scc_common_send(const struct _starpu_mp_node *node, void *msg, int 
 {
 	int ret;
 
-    STARPU_ASSERT_MSG(!event, "Asynchronous msg is not used here");
+        STARPU_ASSERT_MSG(!event, "Asynchronous msg is not used here");
 
 	/* There are potentially 48 threads running on the master core and RCCE_send write
 	 * data in the MPB associated to this core. It's not thread safe, so we have to protect it.
@@ -159,7 +159,7 @@ void _starpu_scc_common_send(const struct _starpu_mp_node *node, void *msg, int 
 
 void _starpu_scc_common_recv(const struct _starpu_mp_node *node, void *msg, int len, void * event)
 {
-    STARPU_ASSERT_MSG(!event, "Asynchronous msg is not used here");
+        STARPU_ASSERT_MSG(!event, "Asynchronous msg is not used here");
 
 	int ret;
 	if ((ret = RCCE_recv(msg, len, node->mp_connection.scc_nodeid)) != RCCE_SUCCESS)

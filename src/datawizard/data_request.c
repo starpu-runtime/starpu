@@ -153,12 +153,12 @@ struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t ha
 	r->dst_replicate = dst_replicate;
 	r->mode = mode;
 	r->async_channel.type = STARPU_UNUSED;
-    r->async_channel.starpu_mp_common_finished_sender = 0;
-    r->async_channel.starpu_mp_common_finished_receiver = 0;
-    r->async_channel.polling_node_sender = NULL;
-    r->async_channel.polling_node_receiver = NULL;
+        r->async_channel.starpu_mp_common_finished_sender = 0;
+        r->async_channel.starpu_mp_common_finished_receiver = 0;
+        r->async_channel.polling_node_sender = NULL;
+        r->async_channel.polling_node_receiver = NULL;
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
-    r->async_channel.event.mpi_ms_event.requests = NULL;
+        r->async_channel.event.mpi_ms_event.requests = NULL;
 #endif
 	if (handling_node == -1)
 		handling_node = STARPU_MAIN_RAM;

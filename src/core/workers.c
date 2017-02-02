@@ -143,10 +143,10 @@ static uint32_t _starpu_worker_exists_and_can_execute(struct starpu_task *task,
 				if (task->cl->cpu_funcs_name[impl] != NULL || task->cl->mic_funcs[impl] != NULL)
 					test_implementation = 1;
 				break;
-			case STARPU_MPI_WORKER:
-				if (task->cl->cpu_funcs_name[impl] != NULL || task->cl->mpi_ms_funcs[impl] != NULL)
-					test_implementation = 1;
-				break;
+                        case STARPU_MPI_WORKER:
+                                if (task->cl->cpu_funcs_name[impl] != NULL || task->cl->mpi_ms_funcs[impl] != NULL)
+                                        test_implementation = 1;
+                                break;
 			case STARPU_SCC_WORKER:
 				if (task->cl->cpu_funcs_name[impl] != NULL || task->cl->scc_funcs[impl] != NULL)
 					test_implementation = 1;
@@ -538,8 +538,8 @@ static void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu
 	starpu_pthread_wait_init(&workerarg->wait);
 	starpu_pthread_queue_register(&workerarg->wait, &_starpu_simgrid_task_queue[workerarg->workerid]);
 #endif
-    workerarg->task_sending = NULL;
-    workerarg->nb_buffers_sent = 0;
+        workerarg->task_sending = NULL;
+        workerarg->nb_buffers_sent = 0;
 
 	workerarg->first_task = 0;
 	workerarg->ntasks = 0;
@@ -879,36 +879,36 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 	}
 
 #if defined(STARPU_USE_MPI_MASTER_SLAVE) && !defined(STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD)
-    if (pconfig->topology.nmpidevices > 0)
-    {
-        struct _starpu_worker_set * worker_set_zero = &mpi_worker_set[0];
-        struct _starpu_worker * worker_zero = &worker_set_zero->workers[0];
-        STARPU_PTHREAD_CREATE_ON(
-                worker_zero->name,
-                &worker_set_zero->worker_thread,
-                NULL,
-                _starpu_mpi_src_worker,
-                &mpi_worker_set,
-                _starpu_simgrid_get_host_by_worker(worker_zero));
+        if (pconfig->topology.nmpidevices > 0)
+        {
+                struct _starpu_worker_set * worker_set_zero = &mpi_worker_set[0];
+                struct _starpu_worker * worker_zero = &worker_set_zero->workers[0];
+                STARPU_PTHREAD_CREATE_ON(
+                                worker_zero->name,
+                                &worker_set_zero->worker_thread,
+                                NULL,
+                                _starpu_mpi_src_worker,
+                                &mpi_worker_set,
+                                _starpu_simgrid_get_host_by_worker(worker_zero));
 
-        /* We use the first worker to know if everything are finished */
+                /* We use the first worker to know if everything are finished */
 #ifdef STARPU_USE_FXT
-        STARPU_PTHREAD_MUTEX_LOCK(&worker_zero->mutex);
-        while (!worker_zero->worker_is_running)
-            STARPU_PTHREAD_COND_WAIT(&worker_zero->started_cond, &worker_zero->mutex);
-        STARPU_PTHREAD_MUTEX_UNLOCK(&worker_zero->mutex);
+                STARPU_PTHREAD_MUTEX_LOCK(&worker_zero->mutex);
+                while (!worker_zero->worker_is_running)
+                        STARPU_PTHREAD_COND_WAIT(&worker_zero->started_cond, &worker_zero->mutex);
+                STARPU_PTHREAD_MUTEX_UNLOCK(&worker_zero->mutex);
 #endif
 
-        STARPU_PTHREAD_MUTEX_LOCK(&worker_set_zero->mutex);
-        while (!worker_set_zero->set_is_initialized)
-            STARPU_PTHREAD_COND_WAIT(&worker_set_zero->ready_cond,
-                    &worker_set_zero->mutex);
-        STARPU_PTHREAD_MUTEX_UNLOCK(&worker_set_zero->mutex);
+                STARPU_PTHREAD_MUTEX_LOCK(&worker_set_zero->mutex);
+                while (!worker_set_zero->set_is_initialized)
+                        STARPU_PTHREAD_COND_WAIT(&worker_set_zero->ready_cond,
+                                        &worker_set_zero->mutex);
+                STARPU_PTHREAD_MUTEX_UNLOCK(&worker_set_zero->mutex);
 
-        worker_set_zero->started = 1;
-        worker_set_zero->worker_thread = mpi_worker_set[0].worker_thread;
+                worker_set_zero->started = 1;
+                worker_set_zero->worker_thread = mpi_worker_set[0].worker_thread;
 
-    }
+        }
 
 #endif
 
@@ -966,7 +966,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				break;
 #endif
 			case STARPU_MIC_WORKER:
-            case STARPU_MPI_WORKER:
+                        case STARPU_MPI_WORKER:
 				/* Already waited above */
 				break;
 			case STARPU_SCC_WORKER:
@@ -1218,17 +1218,17 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 		setenv("STARPU_SINK", "STARPU_SCC", 1);
 #	endif
 
-#   ifdef STARPU_USE_MPI_MASTER_SLAVE
-	if (_starpu_mpi_common_mp_init() == -ENODEV)
-    {
-        initialized = UNINITIALIZED;
-        return -ENODEV;
-    }
+#       ifdef STARPU_USE_MPI_MASTER_SLAVE
+        if (_starpu_mpi_common_mp_init() == -ENODEV)
+        {
+                initialized = UNINITIALIZED;
+                return -ENODEV;
+        }
 
-    /* In MPI case we look at the rank to know if we are a sink */
-    if (!_starpu_mpi_common_is_src_node())
-        setenv("STARPU_SINK", "STARPU_MPI_MS", 1);
-#   endif
+        /* In MPI case we look at the rank to know if we are a sink */
+        if (!_starpu_mpi_common_is_src_node())
+                setenv("STARPU_SINK", "STARPU_MPI_MS", 1);
+#       endif
 
 	/* If StarPU was configured to use MP sinks, we have to control the
 	 * kind on node we are running on : host or sink ? */
@@ -1378,8 +1378,8 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 			_starpu_scc_src_mp_deinit();
 #endif
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
-        if (_starpu_mpi_common_is_mp_initialized())
-            _starpu_mpi_common_mp_deinit();
+                if (_starpu_mpi_common_is_mp_initialized())
+                        _starpu_mpi_common_mp_deinit();
 #endif
 
 		initialized = UNINITIALIZED;
@@ -1777,16 +1777,16 @@ int starpu_worker_get_count_by_type(enum starpu_worker_archtype type)
 		case STARPU_SCC_WORKER:
 			return _starpu_config.topology.nsccdevices;
 
-        case STARPU_MPI_WORKER:
-            return _starpu_config.topology.nmpidevices;
+                case STARPU_MPI_WORKER:
+                        return _starpu_config.topology.nmpidevices;
 
-		case STARPU_ANY_WORKER:
-			return _starpu_config.topology.ncpus+
-			       _starpu_config.topology.ncudagpus+
-			       _starpu_config.topology.nopenclgpus+
-			       _starpu_config.topology.nmicdevices+
-			       _starpu_config.topology.nsccdevices+
-		           _starpu_config.topology.nmpidevices;
+                case STARPU_ANY_WORKER:
+                        return _starpu_config.topology.ncpus+
+                                _starpu_config.topology.ncudagpus+
+                                _starpu_config.topology.nopenclgpus+
+                                _starpu_config.topology.nmicdevices+
+                                _starpu_config.topology.nsccdevices+
+                                _starpu_config.topology.nmpidevices;
 		default:
 			return -EINVAL;
 	}
@@ -1834,7 +1834,7 @@ int starpu_asynchronous_mic_copy_disabled(void)
 
 int starpu_asynchronous_mpi_ms_copy_disabled(void)
 {
-    return _starpu_config.conf.disable_asynchronous_mpi_ms_copy;
+        return _starpu_config.conf.disable_asynchronous_mpi_ms_copy;
 }
 
 unsigned starpu_mic_worker_get_count(void)
@@ -1854,7 +1854,7 @@ unsigned starpu_scc_worker_get_count(void)
 
 unsigned starpu_mpi_ms_worker_get_count(void)
 {
-    return _starpu_config.topology.nmpidevices;
+        return _starpu_config.topology.nmpidevices;
 }
 
 /* When analyzing performance, it is useful to see what is the processing unit
@@ -2384,7 +2384,7 @@ char *starpu_worker_get_type_as_string(enum starpu_worker_archtype type)
 	if (type == STARPU_CUDA_WORKER) return "STARPU_CUDA_WORKER";
 	if (type == STARPU_OPENCL_WORKER) return "STARPU_OPENCL_WORKER";
 	if (type == STARPU_MIC_WORKER) return "STARPU_MIC_WORKER";
-    if (type == STARPU_MPI_WORKER) return "STARPU_MPI_WORKER";
+        if (type == STARPU_MPI_WORKER) return "STARPU_MPI_WORKER";
 	if (type == STARPU_SCC_WORKER) return "STARPU_SCC_WORKER";
 	if (type == STARPU_ANY_WORKER) return "STARPU_ANY_WORKER";
 	return "STARPU_unknown_WORKER";

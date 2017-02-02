@@ -25,57 +25,57 @@
 
 void _starpu_mpi_sink_init(struct _starpu_mp_node *node)
 {
-    _starpu_mpi_common_mp_initialize_src_sink(node);
+        _starpu_mpi_common_mp_initialize_src_sink(node);
 
-    _STARPU_MALLOC(node->thread_table, sizeof(starpu_pthread_t)*node->nb_cores);
-    //TODO
+        _STARPU_MALLOC(node->thread_table, sizeof(starpu_pthread_t)*node->nb_cores);
+        //TODO
 }
 
 void _starpu_mpi_sink_deinit(struct _starpu_mp_node *node)
 {
-    free(node->thread_table);
-    //TODO
+        free(node->thread_table);
+        //TODO
 }
 
 void (*_starpu_mpi_sink_lookup (const struct _starpu_mp_node * node STARPU_ATTRIBUTE_UNUSED, char* func_name))(void)
 {
-	void *dl_handle = dlopen(NULL, RTLD_NOW);
-	return dlsym(dl_handle, func_name);
+        void *dl_handle = dlopen(NULL, RTLD_NOW);
+        return dlsym(dl_handle, func_name);
 }
 
 void _starpu_mpi_sink_launch_workers(struct _starpu_mp_node *node)
 {
-    //TODO
-    int i, ret;
-    struct arg_sink_thread * arg;
-    cpu_set_t cpuset;
-    starpu_pthread_attr_t attr;
-    starpu_pthread_t thread;
+        //TODO
+        int i, ret;
+        struct arg_sink_thread * arg;
+        cpu_set_t cpuset;
+        starpu_pthread_attr_t attr;
+        starpu_pthread_t thread;
 
-    for(i=0; i < node->nb_cores; i++)
-    {
-        //init the set
-        CPU_ZERO(&cpuset);
-        CPU_SET(i,&cpuset);
+        for(i=0; i < node->nb_cores; i++)
+        {
+                //init the set
+                CPU_ZERO(&cpuset);
+                CPU_SET(i,&cpuset);
 
-        ret = starpu_pthread_attr_init(&attr);
-        STARPU_ASSERT(ret == 0);
-        ret = pthread_attr_setaffinity_np(&attr, sizeof(cpu_set_t), &cpuset);
-        STARPU_ASSERT(ret == 0);
+                ret = starpu_pthread_attr_init(&attr);
+                STARPU_ASSERT(ret == 0);
+                ret = pthread_attr_setaffinity_np(&attr, sizeof(cpu_set_t), &cpuset);
+                STARPU_ASSERT(ret == 0);
 
-        /*prepare the argument for the thread*/
-        _STARPU_MALLOC(arg, sizeof(struct arg_sink_thread));
-        arg->coreid = i;
-        arg->node = node;
+                /*prepare the argument for the thread*/
+                _STARPU_MALLOC(arg, sizeof(struct arg_sink_thread));
+                arg->coreid = i;
+                arg->node = node;
 
-        ret = starpu_pthread_create(&thread, &attr, _starpu_sink_thread, arg);
-        STARPU_ASSERT(ret == 0);
-        ((starpu_pthread_t *)node->thread_table)[i] = thread;
+                ret = starpu_pthread_create(&thread, &attr, _starpu_sink_thread, arg);
+                STARPU_ASSERT(ret == 0);
+                ((starpu_pthread_t *)node->thread_table)[i] = thread;
 
-    }
+        }
 }
 
 void _starpu_mpi_sink_bind_thread(const struct _starpu_mp_node *mp_node STARPU_ATTRIBUTE_UNUSED, int coreid, int * core_table, int nb_core)
 {
-    //TODO
+        //TODO
 }

@@ -1158,7 +1158,7 @@ _starpu_handle_needs_conversion_task_for_arch(starpu_data_handle_t handle,
 				case STARPU_CUDA_RAM:      /* Fall through */
 				case STARPU_OPENCL_RAM:
 				case STARPU_MIC_RAM:
-                case STARPU_MPI_MS_RAM:
+                                case STARPU_MPI_MS_RAM:
 				case STARPU_SCC_RAM:
 					return 1;
 				default:
@@ -1176,7 +1176,7 @@ _starpu_handle_needs_conversion_task_for_arch(starpu_data_handle_t handle,
 				case STARPU_CUDA_RAM:
 				case STARPU_OPENCL_RAM:
 				case STARPU_MIC_RAM:
-                case STARPU_MPI_MS_RAM:
+                                case STARPU_MPI_MS_RAM:
 				case STARPU_SCC_RAM:
 					return 0;
 				default:

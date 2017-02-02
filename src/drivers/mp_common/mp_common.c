@@ -162,7 +162,7 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
 		node->dt_send = _starpu_mic_common_dt_send;
 		node->dt_recv = _starpu_mic_common_dt_recv;
 
-        node->dt_test = NULL; /* Not used now */
+                node->dt_test = NULL; /* Not used now */
 
 		node->get_kernel_from_job = NULL;
 		node->lookup = _starpu_mic_sink_lookup;
@@ -214,7 +214,7 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
 		node->dt_send_to_device = _starpu_scc_sink_send_to_device;
 		node->dt_recv_from_device = _starpu_scc_sink_recv_from_device;
 
-        node->dt_test = NULL /* not used now */
+                node->dt_test = NULL /* not used now */
 
 		node->get_kernel_from_job = NULL;
 		node->lookup = _starpu_scc_sink_lookup;
@@ -228,68 +228,68 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 	case STARPU_NODE_MPI_SOURCE:
-    {
-    /*
-		node->nb_mp_sinks = 
-		node->devid = 
-    */
-        node->peer_id = (_starpu_mpi_common_get_src_node() <= peer_id ? peer_id+1 : peer_id);
-        node->mp_connection.mpi_remote_nodeid = node->peer_id;
+        {
+                /*
+                   node->nb_mp_sinks = 
+                   node->devid = 
+                   */
+                node->peer_id = (_starpu_mpi_common_get_src_node() <= peer_id ? peer_id+1 : peer_id);
+                node->mp_connection.mpi_remote_nodeid = node->peer_id;
 
-        node->init = _starpu_mpi_source_init;
-        node->launch_workers = NULL;
-        node->deinit = _starpu_mpi_source_deinit;
-   /*     node->report_error = */
+                node->init = _starpu_mpi_source_init;
+                node->launch_workers = NULL;
+                node->deinit = _starpu_mpi_source_deinit;
+                /*     node->report_error = */
 
-	 	node->mp_recv_is_ready = _starpu_mpi_common_recv_is_ready;
-		node->mp_send = _starpu_mpi_common_mp_send;
-		node->mp_recv = _starpu_mpi_common_mp_recv;
-		node->dt_send = _starpu_mpi_common_send;
-		node->dt_recv = _starpu_mpi_common_recv;
-        node->dt_send_to_device = _starpu_mpi_common_send_to_device;
-        node->dt_recv_from_device = _starpu_mpi_common_recv_from_device;
+                node->mp_recv_is_ready = _starpu_mpi_common_recv_is_ready;
+                node->mp_send = _starpu_mpi_common_mp_send;
+                node->mp_recv = _starpu_mpi_common_mp_recv;
+                node->dt_send = _starpu_mpi_common_send;
+                node->dt_recv = _starpu_mpi_common_recv;
+                node->dt_send_to_device = _starpu_mpi_common_send_to_device;
+                node->dt_recv_from_device = _starpu_mpi_common_recv_from_device;
 
-		node->get_kernel_from_job = _starpu_mpi_ms_src_get_kernel_from_job;
-		node->lookup = NULL;
-		node->bind_thread = NULL;
-		node->execute = NULL;
-		node->allocate = NULL;
-		node->free = NULL;
-    }
-	break;
+                node->get_kernel_from_job = _starpu_mpi_ms_src_get_kernel_from_job;
+                node->lookup = NULL;
+                node->bind_thread = NULL;
+                node->execute = NULL;
+                node->allocate = NULL;
+                node->free = NULL;
+        }
+        break;
 
-	case STARPU_NODE_MPI_SINK:
-    {
-    /*
-		node->nb_mp_sinks = 
-		node->devid = 
-    */
-        node->mp_connection.mpi_remote_nodeid = _starpu_mpi_common_get_src_node();
+        case STARPU_NODE_MPI_SINK:
+        {
+                /*
+                   node->nb_mp_sinks = 
+                   node->devid = 
+                   */
+                node->mp_connection.mpi_remote_nodeid = _starpu_mpi_common_get_src_node();
 
-        node->init = _starpu_mpi_sink_init;
-        node->launch_workers = _starpu_mpi_sink_launch_workers;
-        node->deinit = _starpu_mpi_sink_deinit;
-    /*    node->report_error =  */
+                node->init = _starpu_mpi_sink_init;
+                node->launch_workers = _starpu_mpi_sink_launch_workers;
+                node->deinit = _starpu_mpi_sink_deinit;
+                /*    node->report_error =  */
 
-    	node->mp_recv_is_ready = _starpu_mpi_common_recv_is_ready;
-        node->mp_send = _starpu_mpi_common_mp_send;
-		node->mp_recv = _starpu_mpi_common_mp_recv;
-		node->dt_send = _starpu_mpi_common_send;
-		node->dt_recv = _starpu_mpi_common_recv;
-        node->dt_send_to_device = _starpu_mpi_common_send_to_device;
-        node->dt_recv_from_device = _starpu_mpi_common_recv_from_device;
+                node->mp_recv_is_ready = _starpu_mpi_common_recv_is_ready;
+                node->mp_send = _starpu_mpi_common_mp_send;
+                node->mp_recv = _starpu_mpi_common_mp_recv;
+                node->dt_send = _starpu_mpi_common_send;
+                node->dt_recv = _starpu_mpi_common_recv;
+                node->dt_send_to_device = _starpu_mpi_common_send_to_device;
+                node->dt_recv_from_device = _starpu_mpi_common_recv_from_device;
 
-        node->dt_test = _starpu_mpi_common_test_event;
+                node->dt_test = _starpu_mpi_common_test_event;
 
-		node->get_kernel_from_job = NULL;
-		node->lookup = _starpu_mpi_sink_lookup;
-		node->bind_thread = _starpu_mpi_sink_bind_thread;
-		node->execute = _starpu_sink_common_execute;
-		node->allocate = _starpu_sink_common_allocate;
-		node->free = _starpu_sink_common_free;
+                node->get_kernel_from_job = NULL;
+                node->lookup = _starpu_mpi_sink_lookup;
+                node->bind_thread = _starpu_mpi_sink_bind_thread;
+                node->execute = _starpu_sink_common_execute;
+                node->allocate = _starpu_sink_common_allocate;
+                node->free = _starpu_sink_common_free;
 
-        
-    }
+
+        }
 		break;
 #endif /* STARPU_USE_MPI_MASTER_SLAVE */
 
@@ -307,9 +307,9 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
 	mp_message_list_init(&node->message_queue);
 	STARPU_PTHREAD_MUTEX_INIT(&node->message_queue_mutex,NULL);
 
-    STARPU_PTHREAD_MUTEX_INIT(&node->connection_mutex, NULL);
+        STARPU_PTHREAD_MUTEX_INIT(&node->connection_mutex, NULL);
 
-    _starpu_mp_event_list_init(&node->event_list);
+        _starpu_mp_event_list_init(&node->event_list);
 
 	/* If the node is a sink then we must initialize some field */
 	if(node->kind == STARPU_NODE_MIC_SINK || node->kind == STARPU_NODE_SCC_SINK || node->kind == STARPU_NODE_MPI_SINK)
@@ -370,7 +370,7 @@ void _starpu_mp_common_send_command(const struct _starpu_mp_node *node,
 {
 	STARPU_ASSERT_MSG(arg_size <= BUFFER_SIZE, "Too much data (%d) for the static MIC buffer (%d), increase BUFFER_SIZE perhaps?", arg_size, BUFFER_SIZE);
 
-    printf("SEND CMD : %d - arg_size %d by %lu \n", command, arg_size, pthread_self());
+        //printf("SEND CMD : %d - arg_size %d by %lu \n", command, arg_size, pthread_self());
 
 	/* MIC and MPI sizes are given through a int */
 	int command_size = sizeof(enum _starpu_mp_command);
@@ -406,7 +406,7 @@ enum _starpu_mp_command _starpu_mp_common_recv_command(const struct _starpu_mp_n
 	command = *((enum _starpu_mp_command *) node->buffer);
 	*arg_size = *((int *) ((uintptr_t)node->buffer + command_size));
 
-    printf("RECV command : %d - arg_size %d by %lu \n", command, *arg_size, pthread_self());
+        //printf("RECV command : %d - arg_size %d by %lu \n", command, *arg_size, pthread_self());
 
 	/* If there is no argument (ie. arg_size == 0),
 	 * let's return the command right now */
