@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  * Copyright (C) 2013 Corentin Salingue
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -1704,10 +1704,11 @@ static int mpi_check_recalibrate(int my_recalibrate)
 {
         int nb_mpi = _starpu_mpi_src_get_device_count() + 1;
         int mpi_recalibrate[nb_mpi];
+	int i;
 
         MPI_Allgather(&my_recalibrate, 1, MPI_INT, mpi_recalibrate, 1, MPI_INT, MPI_COMM_WORLD);
 
-        for (int i = 0; i < nb_mpi; i++)
+        for (i = 0; i < nb_mpi; i++)
         {
                 if (mpi_recalibrate[i])
                 {
