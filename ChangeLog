@@ -2,7 +2,7 @@
 #
 # Copyright (C) 2009-2017  Université de Bordeaux
 # Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
-# Copyright (C) 2014, 2016 INRIA
+# Copyright (C) 2014, 2016, 2017  INRIA
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -23,6 +23,8 @@ New features:
   * Support priorities for data transfers.
   * Add support for Ayudame version 2.x debugging library.
   * Add support for multiple linear regression performance models
+  * Add MPI Master-Slave support to use the cores of remote nodes. Use the
+    --enable-mpi-master-slave option to activate it.
 
 Small features:
   * Scheduling contexts may now be associated a user data pointer at creation
