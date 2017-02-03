@@ -956,7 +956,7 @@ static void _starpu_src_common_worker_internal_work(struct _starpu_worker_set * 
 			struct _starpu_job * j = _starpu_get_job_associated_to_task(task);
 
 			_starpu_set_local_worker_key(&worker_set->workers[i]);
-			_starpu_release_fetch_task_input_async(j, worker_set->workers[i].workerid, worker_set->workers[i].nb_buffers_totransfer);
+			_starpu_release_fetch_task_input_async(j, &worker_set->workers[i]);
 
 			/* Execute the task */
 			res =  _starpu_src_common_execute(j, &worker_set->workers[i], mp_node);

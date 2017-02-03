@@ -760,7 +760,7 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 		{
 			j = _starpu_get_job_associated_to_task(task);
 
-			_starpu_release_fetch_task_input_async(j, workerid, worker->nb_buffers_totransfer);
+			_starpu_release_fetch_task_input_async(j, worker);
 			/* Reset it */
 			worker->task_transferring = NULL;
 

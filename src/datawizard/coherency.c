@@ -1,5 +1,5 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures. *
- * Copyright (C) 2009-2016  Université de Bordeaux
+ * Copyright (C) 2009-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
  * Copyright (C) 2014  INRIA
  *
@@ -961,7 +961,8 @@ int _starpu_fetch_task_input(struct starpu_task *task, struct _starpu_job *j, in
 	{
 		worker->task_transferring = task;
 		worker->nb_buffers_transferred = 0;
-		_STARPU_TRACE_WORKER_START_FETCH_INPUT(NULL, workerid);
+		if (worker->ntasks <= 1)
+			_STARPU_TRACE_WORKER_START_FETCH_INPUT(NULL, workerid);
 	}
 	else
 		_STARPU_TRACE_START_FETCH_INPUT(NULL);
@@ -1093,10 +1094,13 @@ enomem:
 }
 
 /* This is to be called after having called _starpu_fetch_task_input with async=1 and getting the cb called as many times as there are buffers.  */
-int _starpu_release_fetch_task_input_async(struct _starpu_job *j, int workerid, int nbtransfers)
+int _starpu_release_fetch_task_input_async(struct _starpu_job *j, struct _starpu_worker *worker)
 {
+	unsigned workerid = worker->workerid;
+	unsigned nbtransfers = worker->nb_buffers_totransfer;
 	STARPU_RMB();
-	_STARPU_TRACE_WORKER_END_FETCH_INPUT(NULL, workerid);
+	if (worker->ntasks <= 1)
+		_STARPU_TRACE_WORKER_END_FETCH_INPUT(NULL, workerid);
 	struct starpu_task *task = j->task;
 
 	struct _starpu_data_descr *descrs = _STARPU_JOB_GET_ORDERED_BUFFERS(j);

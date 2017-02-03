@@ -328,7 +328,7 @@ int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
 	{
 		j = _starpu_get_job_associated_to_task(pending_task);
 
-		_starpu_release_fetch_task_input_async(j, workerid, cpu_worker->nb_buffers_totransfer);
+		_starpu_release_fetch_task_input_async(j, cpu_worker);
 		/* Reset it */
 		cpu_worker->task_transferring = NULL;
 
