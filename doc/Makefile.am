@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2013, 2014, 2016  CNRS
+# Copyright (C) 2013, 2014, 2016, 2017  CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -28,6 +28,12 @@ EXTRA_DIST =    tutorial/hello_world.c \
 		tutorial/vector_scal_opencl_kernel.cl \
 		tutorial/vector_scal_plugin.c \
 		tutorial/vector_scal_plugin_cuda.cu
+
+if !BUILD_DOC
+EXTRA_DIST	+=	$(top_srcdir)/doc/doxygen/starpu.pdf \
+			$(top_srcdir)/doc/doxygen/html
+
+endif
 
 txtdir = ${docdir}/tutorial
 txt_DATA = $(EXTRA_DIST)
