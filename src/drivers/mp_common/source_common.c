@@ -203,6 +203,7 @@ int _starpu_src_common_store_message(struct _starpu_mp_node *node,
 	{
 		case STARPU_MP_COMMAND_EXECUTION_COMPLETED:
 		case STARPU_MP_COMMAND_PRE_EXECUTION:
+		{
 			message = mp_message_new();
 			message->type = answer;
 			_STARPU_MALLOC(message->buffer, arg_size);
@@ -213,27 +214,24 @@ int _starpu_src_common_store_message(struct _starpu_mp_node *node,
 			mp_message_list_push_front(&node->message_queue,message);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&node->message_queue_mutex);
 			return 1;
-			break;
-                        /* For ASYNC commands don't store them, update event */
+		}
+		/* For ASYNC commands don't store them, update event */
                 case STARPU_MP_COMMAND_RECV_FROM_HOST_ASYNC_COMPLETED:
                 case STARPU_MP_COMMAND_RECV_FROM_SINK_ASYNC_COMPLETED:
-                        {
+		{
                                 struct _starpu_async_channel * event = *((struct _starpu_async_channel **) arg);
                                 event->starpu_mp_common_finished_receiver--;
                                 return 1;
-                                break;
-                        }
+		}
                 case STARPU_MP_COMMAND_SEND_TO_HOST_ASYNC_COMPLETED:
                 case STARPU_MP_COMMAND_SEND_TO_SINK_ASYNC_COMPLETED:
-                        {
+		{
                                 struct _starpu_async_channel * event = *((struct _starpu_async_channel **) arg);
                                 event->starpu_mp_common_finished_sender--;
                                 return 1;
-                                break;
-                        }
+		}
                 default:
                         return 0;
-			break;
 	}
 }
 

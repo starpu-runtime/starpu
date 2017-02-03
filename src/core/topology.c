@@ -613,7 +613,7 @@ _starpu_init_topology (struct _starpu_machine_config *config)
 #ifdef STARPU_USE_SCC
 	config->topology.nhwscc = _starpu_scc_src_get_device_count();
 #endif
-#ifdef STARPU_USE_MPI_MASTER_SLAVE 
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
         config->topology.nhwmpi = _starpu_mpi_src_get_device_count();
 #endif
 
@@ -903,7 +903,7 @@ _starpu_init_mic_config (struct _starpu_machine_config *config,
 	}
 
 	topology->nworkers += topology->nmiccores[mic_idx];
-}  
+}
 
 static COIENGINE mic_handles[STARPU_MAXMICDEVS];
 COIPROCESS _starpu_mic_process[STARPU_MAXMICDEVS];
@@ -966,7 +966,7 @@ _starpu_init_mpi_config (struct _starpu_machine_config *config,
         }
 
         topology->nworkers += topology->nmpicores[mpi_idx];
-}  
+}
 #endif
 
 static void
@@ -980,90 +980,89 @@ _starpu_init_mp_config (struct _starpu_machine_config *config,
 	 * - configure the workers accordingly.
 	 */
 
-	struct _starpu_machine_topology *topology = &config->topology;
-
 #ifdef STARPU_USE_MIC
-    if (!no_mp_config)
-    {
-        /* Discover and initialize the number of MIC nodes through the mp
-         * infrastructure. */
-        unsigned nhwmicdevices = _starpu_mic_src_get_device_count();
-
-        int reqmicdevices = starpu_get_env_number("STARPU_NMIC");
-        if (reqmicdevices == -1 && user_conf)
-            reqmicdevices = user_conf->nmic;
-        if (reqmicdevices == -1)
-            /* Nothing was specified, so let's use the number of
-             * detected mic devices. ! */
-            reqmicdevices = nhwmicdevices;
-
-	if (reqmicdevices != -1)
+	if (!no_mp_config)
 	{
-		if ((unsigned) reqmicdevices > nhwmicdevices)
-		{
-			/* The user requires more MIC devices than there is available */
-			_STARPU_MSG("# Warning: %d MIC devices requested. Only %d available.\n", reqmicdevices, nhwmicdevices);
+		struct _starpu_machine_topology *topology = &config->topology;
+
+		/* Discover and initialize the number of MIC nodes through the mp
+		 * infrastructure. */
+		unsigned nhwmicdevices = _starpu_mic_src_get_device_count();
+
+		int reqmicdevices = starpu_get_env_number("STARPU_NMIC");
+		if (reqmicdevices == -1 && user_conf)
+			reqmicdevices = user_conf->nmic;
+		if (reqmicdevices == -1)
+			/* Nothing was specified, so let's use the number of
+			 * detected mic devices. ! */
 			reqmicdevices = nhwmicdevices;
+
+		if (reqmicdevices != -1)
+		{
+			if ((unsigned) reqmicdevices > nhwmicdevices)
+			{
+				/* The user requires more MIC devices than there is available */
+				_STARPU_MSG("# Warning: %d MIC devices requested. Only %d available.\n", reqmicdevices, nhwmicdevices);
+				reqmicdevices = nhwmicdevices;
+			}
 		}
+
+		topology->nmicdevices = 0;
+		unsigned i;
+		for (i = 0; i < (unsigned) reqmicdevices; i++)
+			if (0 == _starpu_init_mic_node (config, i, &mic_handles[i], &_starpu_mic_process[i]))
+				topology->nmicdevices++;
+
+		for (i = 0; i < topology->nmicdevices; i++)
+			_starpu_init_mic_config (config, user_conf, i);
 	}
-
-        topology->nmicdevices = 0;
-        unsigned i;
-        for (i = 0; i < (unsigned) reqmicdevices; i++)
-                if (0 == _starpu_init_mic_node (config, i, &mic_handles[i], &_starpu_mic_process[i]))
-                        topology->nmicdevices++;
-
-
-        for (i = 0; i < topology->nmicdevices; i++)
-                _starpu_init_mic_config (config, user_conf, i);
-    }
 #endif
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
-    {
-            /* Discover and initialize the number of MPI nodes through the mp
-             * infrastructure. */
-            unsigned nhwmpidevices = _starpu_mpi_src_get_device_count();
+	{
+		struct _starpu_machine_topology *topology = &config->topology;
 
-            int reqmpidevices = starpu_get_env_number("STARPU_NMPI_MS");
-            if (reqmpidevices == -1 && user_conf)
-                    reqmpidevices = user_conf->nmpi_ms;
-            if (reqmpidevices == -1)
-                    /* Nothing was specified, so let's use the number of
-                     * detected mpi devices. ! */
-                    reqmpidevices = nhwmpidevices;
+		/* Discover and initialize the number of MPI nodes through the mp
+		 * infrastructure. */
+		unsigned nhwmpidevices = _starpu_mpi_src_get_device_count();
 
-            if (reqmpidevices != -1)
-            {
-                    if ((unsigned) reqmpidevices > nhwmpidevices)
-                    {
-                            /* The user requires more MPI devices than there is available */
-                            fprintf(stderr,
-                                            "# Warning: %d MPI Master-Slave devices requested. Only %d available.\n",
-                                            reqmpidevices, nhwmpidevices);
-                            reqmpidevices = nhwmpidevices;
-                    }
-            }
+		int reqmpidevices = starpu_get_env_number("STARPU_NMPI_MS");
+		if (reqmpidevices == -1 && user_conf)
+			reqmpidevices = user_conf->nmpi_ms;
+		if (reqmpidevices == -1)
+			/* Nothing was specified, so let's use the number of
+			 * detected mpi devices. ! */
+			reqmpidevices = nhwmpidevices;
 
-            topology->nmpidevices = reqmpidevices;
+		if (reqmpidevices != -1)
+		{
+			if ((unsigned) reqmpidevices > nhwmpidevices)
+			{
+				/* The user requires more MPI devices than there is available */
+				_STARPU_MSG("# Warning: %d MPI Master-Slave devices requested. Only %d available.\n",
+					    reqmpidevices, nhwmpidevices);
+				reqmpidevices = nhwmpidevices;
+			}
+		}
 
-            /* if user don't want to use MPI slaves, we close the slave processes */
-            if (no_mp_config && topology->nmpidevices == 0)
-            {
-                    _starpu_mpi_common_mp_deinit();
-                    exit(0);
-            }
+		topology->nmpidevices = reqmpidevices;
 
-            if (!no_mp_config)
-            {
-                    unsigned i;
-                    for (i = 0; i < topology->nmpidevices; i++)
-                            mpi_ms_nodes[i] = _starpu_mp_common_node_create(STARPU_NODE_MPI_SOURCE, i);
+		/* if user don't want to use MPI slaves, we close the slave processes */
+		if (no_mp_config && topology->nmpidevices == 0)
+		{
+			_starpu_mpi_common_mp_deinit();
+			exit(0);
+		}
 
+		if (!no_mp_config)
+		{
+			unsigned i;
+			for (i = 0; i < topology->nmpidevices; i++)
+				mpi_ms_nodes[i] = _starpu_mp_common_node_create(STARPU_NODE_MPI_SOURCE, i);
 
-                    for (i = 0; i < topology->nmpidevices; i++)
-                            _starpu_init_mpi_config (config, user_conf, i);
-            }
-    }
+			for (i = 0; i < topology->nmpidevices; i++)
+				_starpu_init_mpi_config (config, user_conf, i);
+		}
+	}
 #endif
 }
 
@@ -1082,7 +1081,7 @@ _starpu_deinit_mic_node (unsigned mic_idx)
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 static void _starpu_deinit_mpi_node(int devid)
 {
-        _starpu_mp_common_send_command(mpi_ms_nodes[devid], STARPU_MP_COMMAND_EXIT, NULL, 0);                          
+        _starpu_mp_common_send_command(mpi_ms_nodes[devid], STARPU_MP_COMMAND_EXIT, NULL, 0);
 
         _starpu_mp_common_node_destroy(mpi_ms_nodes[devid]);
 }
@@ -2014,7 +2013,7 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
                                         }
                                 }
 #endif
-                
+
 				workerarg->bindid = mpi_bindid[devid];
 				_starpu_memory_node_add_nworkers(memory_node);
 #ifdef STARPU_SIMGRID

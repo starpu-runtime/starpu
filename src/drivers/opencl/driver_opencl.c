@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2016  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -957,14 +957,14 @@ static int _starpu_opencl_start_job(struct _starpu_job *j, struct _starpu_worker
 			/* Actually execute function */
 			simulate = 0;
 			func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
-		#ifdef STARPU_OPENCL_SIMULATOR
-		    #ifndef CL_PROFILING_CLOCK_CYCLE_COUNT
-		      #ifdef CL_PROFILING_COMMAND_SHAVE_CYCLE_COUNT
-			#define CL_PROFILING_CLOCK_CYCLE_COUNT CL_PROFILING_COMMAND_SHAVE_CYCLE_COUNT
-		      #else
-			#error The OpenCL simulator must provide CL_PROFILING_CLOCK_CYCLE_COUNT
-		      #endif
-		    #endif
+#ifdef STARPU_OPENCL_SIMULATOR
+#ifndef CL_PROFILING_CLOCK_CYCLE_COUNT
+#ifdef CL_PROFILING_COMMAND_SHAVE_CYCLE_COUNT
+#define CL_PROFILING_CLOCK_CYCLE_COUNT CL_PROFILING_COMMAND_SHAVE_CYCLE_COUNT
+#else
+#error The OpenCL simulator must provide CL_PROFILING_CLOCK_CYCLE_COUNT
+#endif
+#endif
 			struct starpu_profiling_task_info *profiling_info = task->profiling_info;
 			STARPU_ASSERT_MSG(profiling_info->used_cycles, "Application kernel must call starpu_opencl_collect_stats to collect simulated time");
 #ifdef HAVE_MSG_HOST_GET_SPEED
@@ -978,9 +978,9 @@ static int _starpu_opencl_start_job(struct _starpu_job *j, struct _starpu_worker
 		}
 		if (simulate)
 			_starpu_simgrid_submit_job(worker->workerid, j, &worker->perf_arch, length,
-				async ? &task_finished[worker->devid][pipeline_idx] : NULL,
-				async ? &task_mutex[worker->devid][pipeline_idx] : NULL,
-				async ? &task_cond[worker->devid][pipeline_idx] : NULL);
+						   async ? &task_finished[worker->devid][pipeline_idx] : NULL,
+						   async ? &task_mutex[worker->devid][pipeline_idx] : NULL,
+						   async ? &task_cond[worker->devid][pipeline_idx] : NULL);
 #else
 		func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
 #endif
