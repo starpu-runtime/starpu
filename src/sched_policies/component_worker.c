@@ -514,7 +514,7 @@ static int simple_worker_push_task(struct starpu_sched_component * component, st
 
 	task->workerid = starpu_bitmap_first(component->workers);
 #if 1 /* dead lock problem? */
-	if (starpu_get_prefetch_flag())
+	if (starpu_get_prefetch_flag() && !task->prefetched)
 	{
 		unsigned memory_node = starpu_worker_get_memory_node(task->workerid);
 		starpu_prefetch_task_input_on_node(task, memory_node);
