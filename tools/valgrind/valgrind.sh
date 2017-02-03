@@ -2,7 +2,7 @@
 #
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2016 CNRS
+# Copyright (C) 2016, 2017 CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -23,4 +23,4 @@ else
     RUN="valgrind --tool=$EXEC"
 fi
 SUPPRESSIONS=$(for f in $(dirname $0)/*.suppr ; do echo "--suppressions=$f" ; done)
-$RUN -v --num-callers=42 --error-exitcode=42 --track-origins=yes --leak-check=full --show-reachable=yes --errors-for-leak-kinds=all --show-leak-kinds=all --gen-suppressions=all $SUPPRESSIONS $*
+$RUN --num-callers=42 --error-exitcode=42 --track-origins=yes --leak-check=full --show-reachable=yes --errors-for-leak-kinds=all --show-leak-kinds=all --gen-suppressions=all $SUPPRESSIONS $*
