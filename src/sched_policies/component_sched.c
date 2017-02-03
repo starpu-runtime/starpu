@@ -558,7 +558,7 @@ static void starpu_sched_component_can_pull(struct starpu_sched_component * comp
 		component->children[i]->can_pull(component->children[i]);
 }
 
-static double starpu_sched_component_estimated_load(struct starpu_sched_component * component)
+double starpu_sched_component_estimated_load(struct starpu_sched_component * component)
 {
 	double sum = 0.0;
 	int i;
@@ -570,7 +570,7 @@ static double starpu_sched_component_estimated_load(struct starpu_sched_componen
 	return sum;
 }
 
-static double starpu_sched_component_estimated_end_min(struct starpu_sched_component * component)
+double starpu_sched_component_estimated_end_min(struct starpu_sched_component * component)
 {
 	STARPU_ASSERT(component);
 	double min = DBL_MAX;
@@ -582,6 +582,16 @@ static double starpu_sched_component_estimated_end_min(struct starpu_sched_compo
 			min = tmp;
 	}
 	return min;
+}
+
+double starpu_sched_component_estimated_end_average(struct starpu_sched_component * component)
+{
+	STARPU_ASSERT(component);
+	double sum = 0.0;
+	int i;
+	for(i = 0; i < component->nchildren; i++)
+		sum += component->children[i]->estimated_end(component->children[i]);
+	return sum / component->nchildren;
 }
 
 static void take_component_and_does_nothing(struct starpu_sched_component * component STARPU_ATTRIBUTE_UNUSED)
@@ -603,7 +613,7 @@ struct starpu_sched_component * starpu_sched_component_create(struct starpu_sche
 	component->can_push = starpu_sched_component_can_push;
 	component->can_pull = starpu_sched_component_can_pull;
 	component->estimated_load = starpu_sched_component_estimated_load;
-	component->estimated_end = starpu_sched_component_estimated_end_min;
+	component->estimated_end = starpu_sched_component_estimated_end_average;
 	component->deinit_data = take_component_and_does_nothing;
 	component->notify_change_workers = take_component_and_does_nothing;
 	component->name = strdup(name);

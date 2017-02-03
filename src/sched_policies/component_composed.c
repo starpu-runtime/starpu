@@ -229,6 +229,7 @@ struct starpu_sched_component * starpu_sched_component_composed_component_create
 	component->push_task = composed_component_push_task;
 	component->pull_task = composed_component_pull_task;
 	component->estimated_load = composed_component_estimated_load;
+	component->estimated_end = starpu_sched_component_estimated_end_min;
 	component->add_child = composed_component_add_child;
 	component->remove_child = composed_component_remove_child;
 	component->notify_change_workers = composed_component_notify_change_workers;
