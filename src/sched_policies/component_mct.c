@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2016  Université de Bordeaux
+ * Copyright (C) 2013-2017  Université de Bordeaux
  * Copyright (C) 2013  INRIA
  * Copyright (C) 2013  Simon Archipoff
  *
@@ -72,7 +72,7 @@ static int mct_push_task(struct starpu_sched_component * component, struct starp
 #warning FIXME: take energy consumption into account
 #endif
 		double tmp = starpu_mct_compute_fitness(d,
-					     estimated_ends_with_task[icomponent],
+					     estimated_ends_with_task[icomponent] - estimated_transfer_length[icomponent],
 					     min_exp_end_with_task,
 					     max_exp_end_with_task,
 					     estimated_transfer_length[icomponent],
