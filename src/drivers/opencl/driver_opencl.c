@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2016  Université de Bordeaux
+ * Copyright (C) 2010-2017  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  * Copyright (C) 2011  Télécom-SudParis
@@ -697,7 +697,7 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 		idle_transfers++;
 	if (task && worker->nb_buffers_transferred == worker->nb_buffers_totransfer)
 	{
-		struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
+		j = _starpu_get_job_associated_to_task(task);
 
 		_starpu_release_fetch_task_input_async(j, workerid, worker->nb_buffers_totransfer);
 		/* Reset it */
