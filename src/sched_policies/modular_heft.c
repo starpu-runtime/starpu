@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2015  Université de Bordeaux
+ * Copyright (C) 2013-2015, 2017  Université de Bordeaux
  * Copyright (C) 2013  INRIA
  * Copyright (C) 2013  Simon Archipoff
  *
@@ -44,7 +44,7 @@ static void initialize_heft_center_policy(unsigned sched_ctx_id)
  *                                    |
  *                              window_component
  *                                    |
- * perfmodel_component <--push-- perfmodel_select_component --push--> eager_component
+ * mct_component <--push-- perfmodel_select_component --push--> eager_component
  *          |                                                    |
  *          |                                                    |
  *          >----------------------------------------------------<

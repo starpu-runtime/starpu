@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2016  Université de Bordeaux
+ * Copyright (C) 2010-2017  Université de Bordeaux
  * Copyright (C) 2010-2017  CNRS
  * Copyright (C) 2011, 2016  INRIA
  * Copyright (C) 2016  Uppsala University
@@ -59,6 +59,7 @@ static struct starpu_sched_policy *predefined_policies[] =
 	&_starpu_sched_modular_random_prio_prefetching_policy,
 	&_starpu_sched_modular_ws_policy,
 	&_starpu_sched_modular_heft_policy,
+	&_starpu_sched_modular_heft_prio_policy,
 	&_starpu_sched_modular_heft2_policy,
 	&_starpu_sched_eager_policy,
 	&_starpu_sched_prio_policy,

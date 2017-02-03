@@ -224,6 +224,9 @@ void set_properties(struct starpu_sched_component * component)
 	int worker = starpu_bitmap_first(component->workers_in_ctx);
 	if (worker == -1)
 		return;
+#ifdef STARPU_DEVEL
+#warning FIXME: Not all CUDA devices have the same speed
+#endif
 	uint32_t first_worker = _starpu_get_worker_struct(worker)->worker_mask;
 	unsigned first_memory_node = _starpu_get_worker_struct(worker)->memory_node;
 	int is_homogeneous = 1;
