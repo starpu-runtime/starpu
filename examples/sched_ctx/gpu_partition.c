@@ -71,8 +71,8 @@ static struct starpu_perfmodel axpy_model =
 
 static struct starpu_codelet axpy_cl =
 {
-	/* .cpu_funcs = {axpy_cpu}, */
-	/* .cpu_funcs_name = {"axpy_cpu"}, */
+	.cpu_funcs = {axpy_cpu},
+	.cpu_funcs_name = {"axpy_cpu"},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {cuda_axpy},
 #elif defined(STARPU_SIMGRID)
