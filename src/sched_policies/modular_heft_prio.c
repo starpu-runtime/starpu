@@ -31,7 +31,7 @@
 #define _STARPU_SCHED_NTASKS_THRESHOLD_DEFAULT 30
 #define _STARPU_SCHED_EXP_LEN_THRESHOLD_DEFAULT 1000000000.0
 
-static void initialize_heft2_center_policy(unsigned sched_ctx_id)
+static void initialize_heft_prio_policy(unsigned sched_ctx_id)
 {
 	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
 
@@ -46,15 +46,16 @@ static void initialize_heft2_center_policy(unsigned sched_ctx_id)
  *                                    |
  *                              window_component
  *                                    |
- * heft_component <--push-- perfmodel_select_component --push--> eager_component
- *          |                                                    |
- *          |                                                    |
- *          >----------------------------------------------------<
+ *  mct_component <--push-- perfmodel_select_component --push--> eager_component
+ *  |     |     |                                                  |
+ * eager eager eager                                               |
+ *  |     |     |                                                  |
+ *  >--------------------------------------------------------------<
  *                    |                                |
- *              best_impl_component                    best_impl_component
+ *              best_impl_component              best_impl_component
  *                    |                                |
- *                prio_component                        prio_component
- *                    |                                |
+ *                prio_component                  prio_component
+ *                    |                               |
  *               worker_component                   worker_component
  *
  * A window contain the tasks that failed to be pushed, so as when the prio_components reclaim
@@ -71,7 +72,7 @@ static void initialize_heft2_center_policy(unsigned sched_ctx_id)
 
 	struct starpu_sched_component * window_component = starpu_sched_component_prio_create(t, NULL);
 
-	struct starpu_sched_component * perfmodel_component = starpu_sched_component_heft_create(t, NULL);
+	struct starpu_sched_component * perfmodel_component = starpu_sched_component_mct_create(t, NULL);
 	struct starpu_sched_component * no_perfmodel_component = starpu_sched_component_eager_create(t, NULL);
 	struct starpu_sched_component * calibrator_component = starpu_sched_component_eager_calibration_create(t, NULL);
 	
@@ -97,7 +98,23 @@ static void initialize_heft2_center_policy(unsigned sched_ctx_id)
 			.exp_len_threshold = starpu_get_env_float_default("STARPU_EXP_LEN_THRESHOLD", _STARPU_SCHED_EXP_LEN_THRESHOLD_DEFAULT),
 		};
 
-	unsigned i;
+	unsigned i, j;
+
+	struct starpu_sched_component * eagers[starpu_memory_nodes_get_count()];
+
+	/* Create one eager component per memory node, below mct */
+	for(i = 0; i < starpu_memory_nodes_get_count(); i++)
+	{
+		for(j = 0; j < starpu_worker_get_count() + starpu_combined_worker_get_count(); j++)
+			if (starpu_worker_get_memory_node(j) == i)
+				break;
+		if (j == starpu_worker_get_count() + starpu_combined_worker_get_count())
+			/* Don't create a component for this memory node with no worker */
+			continue;
+		eagers[i] = starpu_sched_component_eager_create(t, NULL);
+		starpu_sched_component_connect(perfmodel_component, eagers[i]);
+	}
+
 	for(i = 0; i < starpu_worker_get_count() + starpu_combined_worker_get_count(); i++)
 	{
 		struct starpu_sched_component * worker_component = starpu_sched_component_worker_get(sched_ctx_id, i);
@@ -107,7 +124,7 @@ static void initialize_heft2_center_policy(unsigned sched_ctx_id)
 		starpu_sched_component_connect(prio_component, worker_component);
 		starpu_sched_component_connect(impl_component, prio_component);
 
-		starpu_sched_component_connect(perfmodel_component, impl_component);
+		starpu_sched_component_connect(eagers[starpu_worker_get_memory_node(i)], impl_component);
 		starpu_sched_component_connect(no_perfmodel_component, impl_component);
 		starpu_sched_component_connect(calibrator_component, impl_component);
 	}
@@ -116,17 +133,17 @@ static void initialize_heft2_center_policy(unsigned sched_ctx_id)
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)t);
 }
 
-static void deinitialize_heft2_center_policy(unsigned sched_ctx_id)
+static void deinitialize_heft_prio_policy(unsigned sched_ctx_id)
 {
 	struct starpu_sched_tree *t = (struct starpu_sched_tree*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	starpu_sched_tree_destroy(t);
 	starpu_sched_ctx_delete_worker_collection(sched_ctx_id);
 }
 
-struct starpu_sched_policy _starpu_sched_modular_heft2_policy =
+struct starpu_sched_policy _starpu_sched_modular_heft_prio_policy =
 {
-	.init_sched = initialize_heft2_center_policy,
-	.deinit_sched = deinitialize_heft2_center_policy,
+	.init_sched = initialize_heft_prio_policy,
+	.deinit_sched = deinitialize_heft_prio_policy,
 	.add_workers = starpu_sched_tree_add_workers,
 	.remove_workers = starpu_sched_tree_remove_workers,
 	.push_task = starpu_sched_tree_push_task,
@@ -134,6 +151,6 @@ struct starpu_sched_policy _starpu_sched_modular_heft2_policy =
 	.pre_exec_hook = starpu_sched_component_worker_pre_exec_hook,
 	.post_exec_hook = starpu_sched_component_worker_post_exec_hook,
 	.pop_every_task = NULL,
-	.policy_name = "modular-heft2",
-	.policy_description = "heft modular2 policy"
+	.policy_name = "modular-heft-prio",
+	.policy_description = "heft+prio modular policy",
 };

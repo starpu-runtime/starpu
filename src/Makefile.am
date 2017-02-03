@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2016  Université de Bordeaux
+# Copyright (C) 2009-2017  Université de Bordeaux
 # Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
 # Copyright (C) 2011, 2014  INRIA
 # Copyright (C) 2016  Inria
@@ -282,6 +282,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	sched_policies/modular_random.c				\
 	sched_policies/modular_random_prefetching.c			\
 	sched_policies/modular_heft.c				\
+	sched_policies/modular_heft_prio.c			\
 	sched_policies/modular_heft2.c
 
 
