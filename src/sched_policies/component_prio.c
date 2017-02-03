@@ -65,9 +65,10 @@ static double prio_estimated_end(struct starpu_sched_component * component)
 	starpu_pthread_mutex_t * mutex = &data->mutex;
 	int card = starpu_bitmap_cardinal(component->workers_in_ctx);
 	STARPU_ASSERT(card != 0);
+	double estimated_end = starpu_sched_component_estimated_end_average(component);
 	STARPU_PTHREAD_MUTEX_LOCK(mutex);
 	prio->exp_start = STARPU_MAX(prio->exp_start, starpu_timing_now());
-	double estimated_end = prio->exp_start + prio->exp_len / card;
+	estimated_end += prio->exp_start + prio->exp_len / card;
 	STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
 
 	return estimated_end;
@@ -81,13 +82,13 @@ static double prio_estimated_load(struct starpu_sched_component * component)
 	struct _starpu_prio_deque * prio = &data->prio;
 	starpu_pthread_mutex_t * mutex = &data->mutex;
 	double relative_speedup = 0.0;
-	double load;
+	double load = starpu_sched_component_estimated_load(component);
 	if(STARPU_SCHED_COMPONENT_IS_HOMOGENEOUS(component))
 	{
 		int first_worker = starpu_bitmap_first(component->workers_in_ctx);
 		relative_speedup = starpu_worker_get_relative_speedup(starpu_worker_get_perf_archtype(first_worker, component->tree->sched_ctx_id));
 		STARPU_PTHREAD_MUTEX_LOCK(mutex);
-		load = prio->ntasks / relative_speedup;
+		load += prio->ntasks / relative_speedup;
 		STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
 		return load;
 	}
@@ -101,14 +102,8 @@ static double prio_estimated_load(struct starpu_sched_component * component)
 		relative_speedup /= starpu_bitmap_cardinal(component->workers_in_ctx);
 		STARPU_ASSERT(!_STARPU_IS_ZERO(relative_speedup));
 		STARPU_PTHREAD_MUTEX_LOCK(mutex);
-		load = prio->ntasks / relative_speedup;
+		load += prio->ntasks / relative_speedup;
 		STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
-	}
-	int i;
-	for(i = 0; i < component->nchildren; i++)
-	{
-		struct starpu_sched_component * c = component->children[i];
-		load += c->estimated_load(c);
 	}
 	return load;
 }

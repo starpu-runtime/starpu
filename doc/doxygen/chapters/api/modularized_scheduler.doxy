@@ -239,6 +239,20 @@ The actual scheduler
 @name Flow-control Fifo Component API
 \ingroup API_Modularized_Scheduler
 
+\fn double starpu_sched_component_estimated_load(struct starpu_sched_component * component);
+\ingroup API_Modularized_Scheduler
+default function for the estimated_load component method, just sums up the loads
+of the children of the component.
+
+\fn double starpu_sched_component_estimated_end_min(struct starpu_sched_component * component);
+\ingroup API_Modularized_Scheduler
+function that can be used for the estimated_end component method, which just computes the minimum completion time of the children.
+
+\fn double starpu_sched_component_estimated_end_average(struct starpu_sched_component * component);
+\ingroup API_Modularized_Scheduler
+default function for the estimated_end component method, which just computes the average completion time of the children.
+
+
 \struct starpu_sched_component_fifo_data
 \ingroup API_Modularized_Scheduler
 \var unsigned starpu_sched_component_fifo_data::ntasks_threshold
