@@ -51,6 +51,7 @@ New features:
     execution of just one MPI node.
   * Add STARPU_PERF_MODEL_HOMOGENEOUS_CUDA/OPENCL/MIC/SCC to share performance
     models between devices, making calibration much faster.
+  * Add modular-heft-prio scheduler.
 
 StarPU 1.2.0 (svn revision 18521)
 ==============================================
