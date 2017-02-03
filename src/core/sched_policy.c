@@ -562,9 +562,15 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 				while(workers->has_next(workers, &it))
 				{
 					workerid = workers->get_next(workers, &it);
-					struct starpu_task *alias = starpu_task_dup(task);
+					struct starpu_task *alias;
+					if (job->task_size > 1)
+					{
+						alias = starpu_task_dup(task);
+						alias->destroy = 1;
+					}
+					else
+						alias = task;
 					_STARPU_TRACE_JOB_PUSH(alias, alias->priority > 0);
-					alias->destroy = 1;
 					ret |= _starpu_push_task_on_specific_worker(alias, workerid);
 				}
 			}
