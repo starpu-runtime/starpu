@@ -243,8 +243,7 @@ STARPU_EXAMPLES +=				\
 	sched_ctx/dummy_sched_with_ctx		\
 	worker_collections/worker_tree_example  \
 	reductions/dot_product			\
-	reductions/minmax_reduction		\
-	sched_ctx/gpu_partition
+	reductions/minmax_reduction		
 
 endif
 
@@ -352,11 +351,11 @@ endif
 
 endif !STARPU_SIMGRID
 
-sched_ctx_gpu_partition_SOURCES =		\
-	sched_ctx/gpu_partition.c
-
 if STARPU_USE_CUDA
-sched_ctx_gpu_partition_SOURCES +=		\
+STARPU_EXAMPLES +=				\
+	sched_ctx/gpu_partition
+sched_ctx_gpu_partition_SOURCES =		\
+	sched_ctx/gpu_partition.c		\
 	sched_ctx/axpy_partition_gpu.cu
 endif
 
