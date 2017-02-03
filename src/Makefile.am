@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2016  Université de Bordeaux
+# Copyright (C) 2009-2017  Université de Bordeaux
 # Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
 # Copyright (C) 2011, 2014  INRIA
 # Copyright (C) 2016  Inria
@@ -384,6 +384,18 @@ endif
 
 
 #########################################
+
+# If some external references appear (U), it means the corresponding .c file has
+# only included <starpu.h> and not the internal src/ header which contains the
+# static inline definition
+dist-hook:
+	failed=0 ; \
+	for i in $$( grep "static inline" $$(find $(srcdir) -name \*.h) | sed -e 's/.*static inline //g' | grep -v ENAME | sed -e 's/[^(]* \(\|\*\)\([^ (]*\)(.*/\2/' ) ; do \
+		for j in .libs/*.o ; do \
+			nm $$j | grep "U $$i" && { echo $$j ; failed=1 ; } ; \
+		done ; \
+	done ; \
+	[ $$failed == 0 ]
 
 showcheck:
 	-cat /dev/null

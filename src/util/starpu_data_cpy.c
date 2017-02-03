@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012-2013, 2015-2016  Université de Bordeaux
+ * Copyright (C) 2010, 2012-2013, 2015-2017  Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,6 +17,7 @@
 #include <starpu.h>
 #include <common/config.h>
 #include <core/task.h>
+#include <core/workers.h>
 #include <datawizard/datawizard.h>
 #include <util/starpu_data_cpy.h>
 #include <starpu_mic.h>
