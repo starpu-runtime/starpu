@@ -1443,8 +1443,13 @@ _starpu_init_machine_config(struct _starpu_machine_config *config, int no_mp_con
             mpi_ms_busy_cpus = 1; /* we launch one thread to control all slaves */
 #endif
 #endif /* STARPU_USE_MPI_MASTER_SLAVE */
-
-			unsigned already_busy_cpus = mpi_ms_busy_cpus + mic_busy_cpus + topology->ncudagpus
+	    unsigned cuda_busy_cpus = 0;
+#if defined(STARPU_USE_CUDA)
+	    cuda_busy_cpus = th_per_stream ? (nworker_per_cuda * topology->ncudagpus) : 
+		    topology->ncudagpus;
+#endif
+			unsigned already_busy_cpus = mpi_ms_busy_cpus + mic_busy_cpus 
+				+ cuda_busy_cpus
 				+ topology->nopenclgpus + topology->nsccdevices;
 
 			long avail_cpus = (long) topology->nhwcpus - (long) already_busy_cpus;
