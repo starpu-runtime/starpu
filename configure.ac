@@ -3061,6 +3061,7 @@ AC_SUBST([LIBSTARPU_LINK])
 if test "x$enable_shared" = xno; then
         # No .so, so application will unexpected have to know which -l to
         # use. Give them in .pc file.
+	AC_DEFINE(STARPU_STATIC_ONLY, [1], [Only static compilation was made])
 	STARPU_EXPORTED_LIBS="$LDFLAGS $LIBS $LIBSTARPU_LDFLAGS"
 fi
 AC_SUBST(STARPU_EXPORTED_LIBS)
