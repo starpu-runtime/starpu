@@ -46,13 +46,13 @@ static void initialize_heft_prio_policy(unsigned sched_ctx_id)
  *                                    |
  *  mct_component <--push-- perfmodel_select_component --push--> eager_component
  *  |     |     |                                                  |
+ * prio  prio  prio                                                |
+ *  |     |     |                                                  |
  * eager eager eager                                               |
  *  |     |     |                                                  |
  *  >--------------------------------------------------------------<
  *                    |                                |
  *              best_impl_component              best_impl_component
- *                    |                                |
- *                prio_component                  prio_component
  *                    |                               |
  *               worker_component                   worker_component
  *
@@ -100,7 +100,7 @@ static void initialize_heft_prio_policy(unsigned sched_ctx_id)
 
 	struct starpu_sched_component * eagers[starpu_memory_nodes_get_count()];
 
-	/* Create one eager component per memory node, below mct */
+	/* Create one fifo+eager component pair per memory node, below mct */
 	for(i = 0; i < starpu_memory_nodes_get_count(); i++)
 	{
 		for(j = 0; j < starpu_worker_get_count() + starpu_combined_worker_get_count(); j++)
@@ -109,22 +109,21 @@ static void initialize_heft_prio_policy(unsigned sched_ctx_id)
 		if (j == starpu_worker_get_count() + starpu_combined_worker_get_count())
 			/* Don't create a component for this memory node with no worker */
 			continue;
+		struct starpu_sched_component * prio_component = starpu_sched_component_prio_create(t, &prio_data);
 		eagers[i] = starpu_sched_component_eager_create(t, NULL);
-		starpu_sched_component_connect(perfmodel_component, eagers[i]);
+		starpu_sched_component_connect(perfmodel_component, prio_component);
+		starpu_sched_component_connect(prio_component, eagers[i]);
 	}
 
 	for(i = 0; i < starpu_worker_get_count() + starpu_combined_worker_get_count(); i++)
 	{
 		struct starpu_sched_component * worker_component = starpu_sched_component_worker_get(sched_ctx_id, i);
-		struct starpu_sched_component * prio_component = starpu_sched_component_prio_create(t, &prio_data);
 		struct starpu_sched_component * impl_component = starpu_sched_component_best_implementation_create(t, NULL);
-
-		starpu_sched_component_connect(prio_component, worker_component);
-		starpu_sched_component_connect(impl_component, prio_component);
 
 		starpu_sched_component_connect(eagers[starpu_worker_get_memory_node(i)], impl_component);
 		starpu_sched_component_connect(no_perfmodel_component, impl_component);
 		starpu_sched_component_connect(calibrator_component, impl_component);
+		starpu_sched_component_connect(impl_component, worker_component);
 	}
 
 	starpu_sched_tree_update_workers(t);
