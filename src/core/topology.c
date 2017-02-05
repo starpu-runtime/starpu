@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2016  Université de Bordeaux
+ * Copyright (C) 2009-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017 CNRS
  * Copyright (C) 2011, 2016  INRIA
  * Copyright (C) 2016  Uppsala University
@@ -1092,7 +1092,9 @@ static void
 _starpu_deinit_mp_config (struct _starpu_machine_config *config)
 {
 	struct _starpu_machine_topology *topology = &config->topology;
+#if defined(STARPU_USE_MIC) || defined(STARPU_USE_MPI_MASTER_SLAVE)
 	unsigned i;
+#endif
 
 #ifdef STARPU_USE_MIC
 	for (i = 0; i < topology->nmicdevices; i++)
