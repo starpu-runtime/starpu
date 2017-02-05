@@ -969,6 +969,7 @@ _starpu_init_mpi_config (struct _starpu_machine_config *config,
 }
 #endif
 
+#if defined(STARPU_USE_MIC) || defined(STARPU_USE_MPI_MASTER_SLAVE)
 static void
 _starpu_init_mp_config (struct _starpu_machine_config *config,
 			struct starpu_conf *user_conf, int no_mp_config)
@@ -1065,6 +1066,7 @@ _starpu_init_mp_config (struct _starpu_machine_config *config,
 	}
 #endif
 }
+#endif
 
 #ifdef STARPU_USE_MIC
 static void
@@ -1088,13 +1090,12 @@ static void _starpu_deinit_mpi_node(int devid)
 #endif
 
 
+#if defined(STARPU_USE_MIC) || defined(STARPU_USE_MPI_MASTER_SLAVE)
 static void
 _starpu_deinit_mp_config (struct _starpu_machine_config *config)
 {
 	struct _starpu_machine_topology *topology = &config->topology;
-#if defined(STARPU_USE_MIC) || defined(STARPU_USE_MPI_MASTER_SLAVE)
 	unsigned i;
-#endif
 
 #ifdef STARPU_USE_MIC
 	for (i = 0; i < topology->nmicdevices; i++)
@@ -1106,6 +1107,7 @@ _starpu_deinit_mp_config (struct _starpu_machine_config *config)
 		_starpu_deinit_mpi_node (i);
 #endif
 }
+#endif
 
 #ifdef STARPU_HAVE_HWLOC
 static unsigned
