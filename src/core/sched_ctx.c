@@ -2516,7 +2516,7 @@ static void _starpu_sched_ctx_put_new_master(unsigned sched_ctx_id)
 	int *workerids;
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	unsigned nworkers = starpu_sched_ctx_get_workers_list_raw(sched_ctx_id, &workerids);
-	int i;
+	unsigned i;
 
 	for (i=0; i<nworkers; i++)
 	{
