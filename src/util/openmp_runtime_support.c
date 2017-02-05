@@ -1554,17 +1554,22 @@ void starpu_omp_task_region(const struct starpu_omp_task_region_attr *attr)
 			is_merged = 1;
 		}
 	}
-	if (is_merged)
+	if (is_merged || is_included)
 	{
-		/* note: no need to backup/restore ICVs for merged tasks, merged tasks use the data environment of the caller */
+		if (is_included) {
+			/* TODO: backup current ICVs and setup new ICVs for the included task */
+		}
 		int i;
+		void *data_interfaces[attr->cl.nbuffers];
 		for (i = 0; i < attr->cl.nbuffers; i++)
 		{
-			ret = starpu_data_acquire(attr->handles[i], attr->cl.modes[i]);
+			starpu_data_handle_t handle = attr->handles[i];
+			ret = starpu_data_acquire(handle, attr->cl.modes[i]);
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_acquire");
+			data_interfaces[i] = starpu_data_get_interface_on_node(handle, handle->home_node);
 		}
 		void (*f)(void **starpu_buffers, void *starpu_cl_arg) = attr->cl.cpu_funcs[0];
-		f((void**)attr->handles, attr->cl_arg);
+		f(data_interfaces, attr->cl_arg);
 		for (i = 0; i < attr->cl.nbuffers; i++)
 		{
 			starpu_data_release(attr->handles[i]);
@@ -1573,27 +1578,9 @@ void starpu_omp_task_region(const struct starpu_omp_task_region_attr *attr)
 		{
 			free(attr->cl_arg);
 		}
-	}
-	else if (is_included)
-	{
-		/* TODO: backup current ICVs and setup new ICVs for the included task */
-		int i;
-		for (i = 0; i < attr->cl.nbuffers; i++)
-		{
-			ret = starpu_data_acquire(attr->handles[i], attr->cl.modes[i]);
-			STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_acquire");
+		if (is_included) {
+			/* TODO: restore backuped ICVs */
 		}
-		void (*f)(void **starpu_buffers, void *starpu_cl_arg) = attr->cl.cpu_funcs[0];
-		f((void**)attr->handles, attr->cl_arg);
-		for (i = 0; i < attr->cl.nbuffers; i++)
-		{
-			starpu_data_release(attr->handles[i]);
-		}
-		if (attr->cl_arg_free)
-		{
-			free(attr->cl_arg);
-		}
-		/* TODO: restore backuped ICVs */
 	}
 	else
 	{
