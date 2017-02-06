@@ -65,7 +65,7 @@ static double prio_estimated_end(struct starpu_sched_component * component)
 	starpu_pthread_mutex_t * mutex = &data->mutex;
 	int card = starpu_bitmap_cardinal(component->workers_in_ctx);
 	STARPU_ASSERT(card != 0);
-	double estimated_end = starpu_sched_component_estimated_end_average(component);
+	double estimated_end = starpu_sched_component_estimated_end_min(component);
 	STARPU_PTHREAD_MUTEX_LOCK(mutex);
 	prio->exp_start = STARPU_MAX(prio->exp_start, starpu_timing_now());
 	estimated_end += prio->exp_start + prio->exp_len / card;
