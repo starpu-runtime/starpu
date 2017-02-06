@@ -1026,7 +1026,7 @@ int starpu_conf_init(struct starpu_conf *conf)
 	conf->use_explicit_workers_opencl_gpuid = 0; /* TODO */
 	conf->use_explicit_workers_mic_deviceid = 0; /* TODO */
 	conf->use_explicit_workers_scc_deviceid = 0; /* TODO */
-	conf->use_explicit_workers_mpi_deviceid = 0; /* TODO */
+	conf->use_explicit_workers_mpi_ms_deviceid = 0; /* TODO */
 
 	conf->single_combined_worker = starpu_get_env_number("STARPU_SINGLE_COMBINED_WORKER");
 	if (conf->single_combined_worker == -1)

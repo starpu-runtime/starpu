@@ -306,7 +306,7 @@ struct _starpu_machine_topology
 	 */
 	unsigned workers_scc_deviceid[STARPU_NMAXWORKERS];
 
-	unsigned workers_mpi_deviceid[STARPU_NMAXWORKERS];
+	unsigned workers_mpi_ms_deviceid[STARPU_NMAXWORKERS];
 };
 
 struct _starpu_machine_config

@@ -405,7 +405,7 @@ static inline int _starpu_get_next_mpi_deviceid(struct _starpu_machine_config *c
 {
 	unsigned i = ((config->current_mpi_deviceid++) % config->topology.nmpidevices);
 
-	return (int)config->topology.workers_mpi_deviceid[i];
+	return (int)config->topology.workers_mpi_ms_deviceid[i];
 }
 
 static void
