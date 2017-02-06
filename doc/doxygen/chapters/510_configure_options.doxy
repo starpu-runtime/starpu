@@ -298,6 +298,13 @@ Specify the maximum number of MIC threads
 Disable asynchronous copies between CPU and MIC devices.
 </dd>
 
+<dt>--disable-asynchronous-mpi-master-slave-copy</dt>
+<dd>
+\anchor disable-asynchronous-mpi-master-slave-copy
+\addindex __configure__--disable-asynchronous-mpi-master-slave-copy
+Disable asynchronous copies between CPU and MPI Slave devices.
+</dd>
+
 <dt>--enable-maxnodes=<c>count</c></dt>
 <dd>
 \anchor enable-maxnodes
@@ -325,6 +332,13 @@ Disable the build of libstarpumpi. By default, it is enabled when MPI is found.
 \anchor enable-mpi-master-slave
 \addindex __configure__--enable-mpi-master-slave
 Enable the MPI Master-Slave support. By default, it is disabled.
+</dd>
+
+<dt>--with-mpi-master-slave-multiple-thread</dt>
+<dd>
+\anchor with-mpi-master-slave-multiple-thread
+\addindex __configure__--with-mpi-master-slave-multiple-thread
+Create one thread per MPI Slave on the MPI master to manage communications.
 </dd>
 
 <dt>--disable-fortran</dt>

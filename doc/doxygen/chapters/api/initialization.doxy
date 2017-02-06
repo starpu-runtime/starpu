@@ -2,7 +2,7 @@
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016  CNRS
- * Copyright (C) 2011, 2012 INRIA
+ * Copyright (C) 2011, 2012, 2017  INRIA
  * See the file version.doxy for copying conditions.
  */
 
@@ -51,6 +51,10 @@ be specified with the environment variable \ref STARPU_NMIC.
 \var int starpu_conf::nscc
 This is the number of SCC devices that StarPU can use. This can also
 be specified with the environment variable \ref STARPU_NSCC.
+(default = -1)
+\var int starpu_conf::nmpi_ms
+This is the number of MPI Master Slave devices that StarPU can use. This can also
+be specified with the environment variable \ref STARPU_NMPI_MS.
 (default = -1)
 
 \var unsigned starpu_conf::use_explicit_workers_bindid
@@ -105,6 +109,14 @@ array contains the logical identifiers of the SCC devices to be used.
 Otherwise, StarPU affects the SCC devices in a round-robin fashion.
 This can also be specified with the environment variable
 \ref STARPU_WORKERS_SCCID.
+\var unsigned starpu_conf::use_explicit_workers_mpi_ms_deviceid
+If this flag is set, the MPI Master Slave workers will be attached to the MPI Master Slave
+devices specified in the array starpu_conf::workers_mpi_ms_deviceid.
+Otherwise, StarPU affects the MPI Master Slave devices in a round-robin fashion.
+(default = 0)
+\var unsigned starpu_conf::workers_mpi_ms_deviceid[STARPU_NMAXWORKERS]
+If the flag starpu_conf::use_explicit_workers_mpi_ms_deviceid is set, the
+array contains the logical identifiers of the MPI Master Slave devices to be used.
 
 \var int starpu_conf::bus_calibrate
 If this flag is set, StarPU will recalibrate the bus.  If this value
@@ -175,6 +187,13 @@ CPUs and MIC accelerators. This can also be specified with the
 environment variable \ref STARPU_DISABLE_ASYNCHRONOUS_MIC_COPY.
 This can also be specified at compilation time by giving to the
 configure script the option \ref disable-asynchronous-mic-copy "--disable-asynchronous-mic-copy".
+(default = 0).
+\var int starpu_conf::disable_asynchronous_mpi_ms_copy
+This flag should be set to 1 to disable asynchronous copies between
+CPUs and MPI Master Slave devices. This can also be specified with the
+environment variable \ref STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY.
+This can also be specified at compilation time by giving to the
+configure script the option \ref disable-asynchronous-mpi-master-slave-copy "--disable-asynchronous-mpi-master-slave-copy".
 (default = 0).
 
 \var unsigned *starpu_conf::cuda_opengl_interoperability
@@ -267,6 +286,11 @@ accelerators are disabled.
 \fn int starpu_asynchronous_mic_copy_disabled(void)
 \ingroup API_Initialization_and_Termination
 Return 1 if asynchronous data transfers between CPU and MIC
+devices are disabled.
+
+\fn int starpu_asynchronous_mpi_ms_copy_disabled(void)
+\ingroup API_Initialization_and_Termination
+Return 1 if asynchronous data transfers between CPU and MPI Slave
 devices are disabled.
 
 \fn void starpu_topology_print(FILE *f)

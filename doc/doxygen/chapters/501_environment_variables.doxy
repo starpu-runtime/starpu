@@ -123,6 +123,28 @@ MIC devices to use.
 Number of threads to use on the MIC devices.
 </dd>
 
+<dt>STARPU_NMPI_MS</dt>
+<dd>
+\anchor STARPU_NMPI_MS
+\addindex __env__STARPU_NMPI_MS
+MPI Master Slave equivalent of the environment variable \ref STARPU_NCUDA, i.e. the number of
+MPI Master Slave devices to use.
+</dd>
+
+<dt>STARPU_NMPIMSTHREADS</dt>
+<dd>
+\anchor STARPU_NMPIMSTHREADS
+\addindex __env__STARPU_NMPIMSTHREADS
+Number of threads to use on the MPI Slave devices.
+</dd>
+
+<dt>STARPU_MPI_MASTER_NODE</dt>
+<dd>
+\anchor STARPU_MPI_MASTER_NODE
+\addindex __env__STARPU_MPI_MASTER_NODE
+This variable allows to chose which MPI node (with the MPI ID) will be the master.
+</dd>
+
 <dt>STARPU_NSCC</dt>
 <dd>
 \anchor STARPU_NSCC
@@ -308,6 +330,13 @@ it is therefore necessary to disable asynchronous data transfers.
 \anchor STARPU_DISABLE_ASYNCHRONOUS_MIC_COPY
 \addindex __env__STARPU_DISABLE_ASYNCHRONOUS_MIC_COPY
 Disable asynchronous copies between CPU and MIC devices.
+</dd>
+
+<dt>STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY</dt>
+<dd>
+\anchor STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY 
+\addindex __env__STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY
+Disable asynchronous copies between CPU and MPI Slave devices.
 </dd>
 
 <dt>STARPU_ENABLE_CUDA_GPU_GPU_DIRECT</dt>

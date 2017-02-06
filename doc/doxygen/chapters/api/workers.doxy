@@ -2,7 +2,7 @@
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016  CNRS
- * Copyright (C) 2011, 2012 INRIA
+ * Copyright (C) 2011, 2012, 2017  INRIA
  * See the file version.doxy for copying conditions.
  */
 
@@ -39,6 +39,9 @@ TODO
 \var starpu_node_kind::STARPU_OPENCL_RAM
 \ingroup API_Workers_Properties
 TODO
+\var starpu_node_kind::STARPU_DISK_RAM
+\ingroup API_Workers_Properties
+TODO
 \var starpu_node_kind::STARPU_MIC_RAM
 \ingroup API_Workers_Properties
 TODO
@@ -47,6 +50,9 @@ TODO
 This node kind is not used anymore, but implementations in interfaces
 will be useful for MPI.
 \var starpu_node_kind::STARPU_SCC_SHM
+\ingroup API_Workers_Properties
+TODO
+\var starpu_node_kind::STARPU_MPI_MS_RAM
 \ingroup API_Workers_Properties
 TODO
 
@@ -71,6 +77,9 @@ Intel MIC device
 \var starpu_worker_archtype::STARPU_SCC_WORKER
 \ingroup API_Workers_Properties
 Intel SCC device
+\var starpu_worker_archtype::STARPU_MPI_MS_WORKER
+\ingroup API_Workers_Properties
+MPI Slave device
 
 
 \struct starpu_worker_collection
@@ -146,6 +155,10 @@ This function returns the number of MIC workers controlled by StarPU.
 \ingroup API_Workers_Properties
 This function returns the number of MIC devices controlled by StarPU.
 The returned value should be at most \ref STARPU_MAXMICDEVS.
+
+\fn unsigned starpu_mpi_ms_worker_get_count(void)
+\ingroup API_Workers_Properties
+This function returns the number of MPI Master Slave workers controlled by StarPU.
 
 \fn unsigned starpu_scc_worker_get_count(void)
 \ingroup API_Workers_Properties
