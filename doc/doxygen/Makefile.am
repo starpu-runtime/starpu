@@ -33,20 +33,19 @@ if BUILD_DOC
 all: $(DOX_HTML_DIR) $(DOX_PDF)
 EXTRA_DIST = $(DOX_HTML_DIR) $(DOX_PDF)
 txt_DATA = $(DOX_PDF)
-install-exec-hook:
-	mkdir -p ${docdir}/manual
-	cp -r $(DOX_HTML_DIR) ${docdir}/manual
-uninstall-hook:
-	rm -rf ${docdir}/manual/html
+#install-exec-hook:
+#	$(MKDIR_P) $(docdir)/manual/html
+#	(cd $(DOX_HTML_DIR) && find . -type f -exec $(INSTALL) -c -m 644 {} $(docdir)/manual/html \;)
 else
 EXTRA_DIST = $(top_srcdir)/doc/doxygen/starpu.pdf $(top_srcdir)/doc/doxygen/html
-txt_DATA = ${top_srcdir}/doc/doxygen/starpu.pdf
-install-exec-hook:
-	mkdir -p ${docdir}/manual
-	cp -r ${top_srcdir}/doc/doxygen/html ${docdir}/manual
-uninstall-hook:
-	rm -rf ${docdir}/manual/html
+txt_DATA = $(top_srcdir)/doc/doxygen/starpu.pdf
+#install-exec-hook:
+##	$(MKDIR_P) $(docdir)/manual/html
+#	(cd $(top_srcdir)/doc/doxygen/html && find . -type f -exec $(INSTALL) -c -m 644 {} $(docdir)/manual/html \;)
 endif
+#uninstall-hook:
+#	chmod -R u+w $(docdir)/manual/html
+#	rm -rf $(docdir)/manual/html
 
 chapters =	\
 	chapters/000_introduction.doxy		\
