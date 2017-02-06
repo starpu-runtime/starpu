@@ -27,11 +27,25 @@ DOX_LATEX_DIR = latex
 DOX_PDF = $(DOX_DIR)/starpu.pdf
 DOX_TAG = starpu.tag
 
+txtdir   = ${docdir}/manual
+
 if BUILD_DOC
 all: $(DOX_HTML_DIR) $(DOX_PDF)
 EXTRA_DIST = $(DOX_HTML_DIR) $(DOX_PDF)
+txt_DATA = $(DOX_PDF)
+install-exec-hook:
+	mkdir -p ${docdir}/manual
+	cp -r $(DOX_HTML_DIR) ${docdir}/manual
+uninstall-hook:
+	rm -rf ${docdir}/manual/html
 else
 EXTRA_DIST = $(top_srcdir)/doc/doxygen/starpu.pdf $(top_srcdir)/doc/doxygen/html
+txt_DATA = ${top_srcdir}/doc/doxygen/starpu.pdf
+install-exec-hook:
+	mkdir -p ${docdir}/manual
+	cp -r ${top_srcdir}/doc/doxygen/html ${docdir}/manual
+uninstall-hook:
+	rm -rf ${docdir}/manual/html
 endif
 
 chapters =	\
