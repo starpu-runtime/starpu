@@ -27,25 +27,23 @@ DOX_LATEX_DIR = latex
 DOX_PDF = $(DOX_DIR)/starpu.pdf
 DOX_TAG = starpu.tag
 
-txtdir   = ${docdir}/manual
+txtdir   = $(docdir)/manual
 
 if BUILD_DOC
 all: $(DOX_HTML_DIR) $(DOX_PDF)
 EXTRA_DIST = $(DOX_HTML_DIR) $(DOX_PDF)
 txt_DATA = $(DOX_PDF)
-#install-exec-hook:
-#	$(MKDIR_P) $(docdir)/manual/html
-#	(cd $(DOX_HTML_DIR) && find . -type f -exec $(INSTALL) -c -m 644 {} $(docdir)/manual/html \;)
+DOX_HTML_SRCDIR=$(DOX_HTML_DIR)
 else
-EXTRA_DIST = $(top_srcdir)/doc/doxygen/starpu.pdf $(top_srcdir)/doc/doxygen/html
+EXTRA_DIST = $(top_srcdir)/doc/doxygen/html $(top_srcdir)/doc/doxygen/starpu.pdf
 txt_DATA = $(top_srcdir)/doc/doxygen/starpu.pdf
-#install-exec-hook:
-##	$(MKDIR_P) $(docdir)/manual/html
-#	(cd $(top_srcdir)/doc/doxygen/html && find . -type f -exec $(INSTALL) -c -m 644 {} $(docdir)/manual/html \;)
+DOX_HTML_SRCDIR=$(top_srcdir)/doc/doxygen/html
 endif
-#uninstall-hook:
-#	chmod -R u+w $(docdir)/manual/html
-#	rm -rf $(docdir)/manual/html
+install-exec-hook:
+	$(MKDIR_P) $(DESTDIR)$(docdir)/manual/html
+	(cd $(DOX_HTML_SRCDIR) && find . -type f -exec $(INSTALL) -c -m 644 {} $(DESTDIR)$(docdir)/manual/html \;)
+uninstall-hook:
+	rm -rf $(DESTDIR)$(docdir)/manual/html
 
 chapters =	\
 	chapters/000_introduction.doxy		\
