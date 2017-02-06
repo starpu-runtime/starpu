@@ -57,7 +57,8 @@ void starpu_memory_wait_available(unsigned node, size_t size);
  *
  * @param size amount of memory to allocate
  * @param node node where the memory is to be allocated
- * @return 1 if the given amount of memory was allocated on the given node
+ * @param flags to set the behavior of the function : STARPU_MEMORY_WAIT (wait until memory space will be available), STARPU_MEMORY_OVERFLOW (overflow the memory space)
+ * @return 0 if the given amount of memory was allocated on the given node, -ENOMEM else
  */
 int starpu_memory_allocate(unsigned node, size_t size, int flags);
 

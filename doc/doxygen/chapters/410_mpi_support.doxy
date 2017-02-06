@@ -742,12 +742,12 @@ By default, one core is dedicated on the master to manage the entire set of slav
 has a good multiple threads support, you can use <c>--with-mpi-master-slave-multiple-thread</c> to
 dedicate one core per slave.
 
-If you want to chose the number of cores on the slave device, use the <c>STARPU_NMPIMSTHREADS=<number></c>
-with <c><number></c> is the number of cores wanted. The default value is all the slave's cores. To select
+If you want to chose the number of cores on the slave device, use the <c>STARPU_NMPIMSTHREADS=\<number\></c>
+with <c>\<number\></c> is the number of cores wanted. The default value is all the slave's cores. To select
 the number of slaves nodes, change the <c>-n</c> parameter when executing the application with mpirun
 or mpiexec.
 
 The node chosen by default is the with the MPI rank 0. To modify this, use the environment variable
-<c>STARPU_MPI_MASTER_NODE=<number></c> with <c><number></c> is the MPI rank wanted.
+<c>STARPU_MPI_MASTER_NODE=\<number\></c> with <c>\<number\></c> is the MPI rank wanted.
 
 */

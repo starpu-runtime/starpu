@@ -1,0 +1,13 @@
+/*
+ * This file is part of the StarPU Handbook.
+ * Copyright (C) 2017  Inria
+ * See the file version.doxy for copying conditions.
+ */
+
+/*! \defgroup API_Clustering_Machine Clustering Machine
+
+\def STARPU_CLUSTER_AWAKE_WORKERS
+\ingroup API_Clustering_Machine
+TODO
+
+*/
