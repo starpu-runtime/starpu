@@ -94,6 +94,9 @@ static int mct_push_task(struct starpu_sched_component * component, struct starp
 
 	best_component = component->children[best_icomponent];
 
+	task->predicted = estimated_lengths[best_icomponent];
+	task->predicted_transfer = estimated_transfer_length[best_icomponent];
+
 	if(starpu_sched_component_is_worker(best_component))
 	{
 		best_component->can_pull(best_component);

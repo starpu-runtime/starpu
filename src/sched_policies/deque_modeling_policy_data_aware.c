@@ -177,6 +177,8 @@ static void _starpu_fifo_task_finished(struct _starpu_fifo_taskq *fifo, struct s
 	if(!isnan(task->predicted))
 		/* The execution is over, remove it from pipelined */
 		fifo->pipeline_len -= task->predicted;
+	fifo->exp_start = STARPU_MAX(starpu_timing_now() + fifo->pipeline_len, fifo->exp_start);
+	fifo->exp_end = fifo->exp_start + fifo->exp_len;
 }
 
 
@@ -365,7 +367,6 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 
         /* Sometimes workers didn't take the tasks as early as we expected */
 	fifo->exp_start = isnan(fifo->exp_start) ? starpu_timing_now() + fifo->pipeline_len : STARPU_MAX(fifo->exp_start, starpu_timing_now());
-	fifo->exp_end = fifo->exp_start + fifo->exp_len;
 
 	if ((starpu_timing_now() + predicted_transfer) < fifo->exp_end)
 	{
@@ -382,7 +383,6 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 
 	if(!isnan(predicted_transfer))
 	{
-		fifo->exp_end += predicted_transfer;
 		fifo->exp_len += predicted_transfer;
 		if(dt->num_priorities != -1)
 		{
@@ -396,7 +396,6 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 
 	if(!isnan(predicted))
 	{
-		fifo->exp_end += predicted;
 		fifo->exp_len += predicted;
 		if(dt->num_priorities != -1)
 		{
@@ -407,6 +406,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 		}
 
 	}
+	fifo->exp_end = fifo->exp_start + fifo->exp_len;
 
 	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(sched_mutex);
 
@@ -1209,8 +1209,6 @@ static void dmda_post_exec_hook(struct starpu_task * task, unsigned sched_ctx_id
 	starpu_worker_get_sched_condition(workerid, &sched_mutex, &sched_cond);
 	STARPU_PTHREAD_MUTEX_LOCK_SCHED(sched_mutex);
 	_starpu_fifo_task_finished(fifo, task, dt->num_priorities);
-	fifo->exp_start = STARPU_MAX(starpu_timing_now() + fifo->pipeline_len, fifo->exp_start);
-	fifo->exp_end = fifo->exp_start + fifo->exp_len;
 	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(sched_mutex);
 }
 
