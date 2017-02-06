@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015  INRIA
+ * Copyright (C) 2015, 2017  INRIA
  * Copyright (C) 2016  CNRS
  * Copyright (C) 2016  Uppsala University
  *
@@ -332,7 +332,7 @@ static void add_workers_heteroprio_policy(unsigned sched_ctx_id, int *workerids,
 				hp->workers_heteroprio[workerid].arch_type = STARPU_SCC;
 				hp->workers_heteroprio[workerid].arch_index = STARPU_SCC_IDX;
 				break;
-			case STARPU_MPI_WORKER:
+			case STARPU_MPI_MS_WORKER:
 				hp->workers_heteroprio[workerid].arch_type = STARPU_MPI_MS;
 				hp->workers_heteroprio[workerid].arch_index = STARPU_MPI_MS_IDX;
 				break;

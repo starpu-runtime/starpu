@@ -3,7 +3,7 @@
  * Copyright (C) 2009-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  * Copyright (C) 2011  Télécom-SudParis
- * Copyright (C) 2016  Inria
+ * Copyright (C) 2016, 2017  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -569,7 +569,7 @@ static enum starpu_worker_archtype _get_enum_type(int type)
         	case 4:
 			return STARPU_SCC_WORKER;
         	case 5:
-			return STARPU_MPI_WORKER;
+			return STARPU_MPI_MS_WORKER;
 		default:
 			STARPU_ABORT();
 	}
@@ -923,7 +923,7 @@ void _starpu_initialize_registered_performance_models(void)
 	ignore_devid[STARPU_CUDA_WORKER] = starpu_get_env_number_default("STARPU_PERF_MODEL_HOMOGENEOUS_CUDA", 0);
 	ignore_devid[STARPU_OPENCL_WORKER] = starpu_get_env_number_default("STARPU_PERF_MODEL_HOMOGENEOUS_OPENCL", 0);
 	ignore_devid[STARPU_MIC_WORKER] = starpu_get_env_number_default("STARPU_PERF_MODEL_HOMOGENEOUS_MIC", 0);
-	ignore_devid[STARPU_MPI_WORKER] = starpu_get_env_number_default("STARPU_PERF_MODEL_HOMOGENEOUS_MPI_MS", 0);
+	ignore_devid[STARPU_MPI_MS_WORKER] = starpu_get_env_number_default("STARPU_PERF_MODEL_HOMOGENEOUS_MPI_MS", 0);
 	ignore_devid[STARPU_SCC_WORKER] = starpu_get_env_number_default("STARPU_PERF_MODEL_HOMOGENEOUS_SCC", 0);
 }
 
@@ -1206,7 +1206,7 @@ char* starpu_perfmodel_get_archtype_name(enum starpu_worker_archtype archtype)
 		case(STARPU_SCC_WORKER):
 			return "scc";
 			break;
-		case(STARPU_MPI_WORKER):
+		case(STARPU_MPI_MS_WORKER):
 			return "mpi_ms";
 			break;
 		default:

@@ -3,7 +3,7 @@
  * Copyright (C) 2009-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
  * Copyright (C) 2011  Télécom-SudParis
- * Copyright (C) 2016  Inria
+ * Copyright (C) 2016, 2017  Inria
  * Copyright (C) 2016  Uppsala University
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -123,7 +123,7 @@ double starpu_worker_get_relative_speedup(struct starpu_perfmodel_arch* perf_arc
 			coef = _STARPU_MIC_ALPHA;
 		else if (perf_arch->devices[dev].type == STARPU_SCC_WORKER)
 			coef = _STARPU_SCC_ALPHA;
-		else if (perf_arch->devices[dev].type == STARPU_MPI_WORKER)
+		else if (perf_arch->devices[dev].type == STARPU_MPI_MS_WORKER)
 			coef = _STARPU_MPI_MS_ALPHA;
 
 		speedup += coef * (perf_arch->devices[dev].ncores);
@@ -265,7 +265,7 @@ double starpu_task_expected_conversion_time(struct starpu_task *task,
 			case STARPU_SCC_WORKER:
 				node_kind = STARPU_SCC_RAM;
 				break;
-			case STARPU_MPI_WORKER:
+			case STARPU_MPI_MS_WORKER:
 				node_kind = STARPU_MPI_MS_RAM;
 				break;
 			default:

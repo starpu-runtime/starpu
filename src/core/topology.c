@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017 CNRS
- * Copyright (C) 2011, 2016  INRIA
+ * Copyright (C) 2011, 2016, 2017  INRIA
  * Copyright (C) 2016  Uppsala University
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -953,10 +953,10 @@ _starpu_init_mpi_config (struct _starpu_machine_config *config,
         {
                 int worker_idx = topology->nworkers + mpicore_id;
                 config->workers[worker_idx].set = &mpi_worker_set[mpi_idx];
-                config->workers[worker_idx].arch = STARPU_MPI_WORKER;
+                config->workers[worker_idx].arch = STARPU_MPI_MS_WORKER;
                 _STARPU_MALLOC(config->workers[worker_idx].perf_arch.devices, sizeof(struct starpu_perfmodel_device));
                 config->workers[worker_idx].perf_arch.ndevices = 1;
-                config->workers[worker_idx].perf_arch.devices[0].type = STARPU_MPI_WORKER;
+                config->workers[worker_idx].perf_arch.devices[0].type = STARPU_MPI_MS_WORKER;
                 config->workers[worker_idx].perf_arch.devices[0].devid = mpi_idx;
                 config->workers[worker_idx].perf_arch.devices[0].ncores = 1;
                 config->workers[worker_idx].devid = mpi_idx;
@@ -1992,7 +1992,7 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 #endif /* STARPU_USE_SCC */
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
-			case STARPU_MPI_WORKER:
+			case STARPU_MPI_MS_WORKER:
 			{
 				if (mpi_init[devid])
 				{
@@ -2015,7 +2015,7 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
                                 for (findworker = 0; findworker < worker; findworker++)
                                 {
                                         struct _starpu_worker *findworkerarg = &config->workers[findworker];
-                                        if (findworkerarg->arch == STARPU_MPI_WORKER)
+                                        if (findworkerarg->arch == STARPU_MPI_MS_WORKER)
                                         {
                                                 _starpu_worker_drives_memory_node(workerarg->workerid, findworkerarg->memory_node);
                                                 _starpu_worker_drives_memory_node(findworkerarg->workerid, memory_node);
@@ -2159,7 +2159,7 @@ _starpu_build_topology (struct _starpu_machine_config *config, int no_mp_config)
 				else if (config->scc_nodeid != (int) starpu_worker_get_memory_node(i))
 					config->scc_nodeid = -2;
 				break;
-			case STARPU_MPI_WORKER:
+			case STARPU_MPI_MS_WORKER:
 				if (config->mpi_nodeid == -1)
 					config->mpi_nodeid = starpu_worker_get_memory_node(i);
 				else if (config->mpi_nodeid != (int) starpu_worker_get_memory_node(i))
