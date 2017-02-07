@@ -18,9 +18,9 @@
 EXEC=$(basename $0 .sh)
 if test "$EXEC" == "valgrind"
 then
-    RUN="valgrind --track-origins=yes"
+    RUN="valgrind --track-origins=yes --show-reachable=yes --leak-check=full --errors-for-leak-kinds=all --show-leak-kinds=all"
 else
     RUN="valgrind --tool=$EXEC"
 fi
 SUPPRESSIONS=$(for f in $(dirname $0)/*.suppr ; do echo "--suppressions=$f" ; done)
-$RUN --num-callers=42 --error-exitcode=42 --leak-check=full --show-reachable=yes --errors-for-leak-kinds=all --show-leak-kinds=all --gen-suppressions=all $SUPPRESSIONS $*
+$RUN --num-callers=42 --error-exitcode=42 --gen-suppressions=all $SUPPRESSIONS $*
