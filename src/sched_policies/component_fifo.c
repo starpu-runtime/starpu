@@ -44,7 +44,6 @@ static double fifo_estimated_end(struct starpu_sched_component * component)
 	STARPU_ASSERT(component && component->data);
 	struct _starpu_fifo_data * data = component->data;
 	struct _starpu_fifo_taskq * fifo = data->fifo;
-	starpu_pthread_mutex_t * mutex = &data->mutex;
 	int card = starpu_bitmap_cardinal(component->workers_in_ctx);
 	STARPU_ASSERT(card != 0);
 	double estimated_end = starpu_sched_component_estimated_end_min(component);
