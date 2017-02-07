@@ -34,17 +34,26 @@ all: $(DOX_HTML_DIR) $(DOX_PDF)
 EXTRA_DIST = $(DOX_HTML_DIR) $(DOX_PDF)
 txt_DATA = $(DOX_PDF)
 DOX_HTML_SRCDIR=$(DOX_HTML_DIR)
-else
-EXTRA_DIST = $(top_srcdir)/doc/doxygen/html $(top_srcdir)/doc/doxygen/starpu.pdf
-txt_DATA = $(top_srcdir)/doc/doxygen/starpu.pdf
-DOX_HTML_SRCDIR=$(top_srcdir)/doc/doxygen/html
-endif
 install-exec-hook:
 	$(MKDIR_P) $(DESTDIR)$(docdir)/manual/html
 	(cd $(DOX_HTML_SRCDIR) && find . -type f -exec $(INSTALL) -c -m 644 {} $(DESTDIR)$(docdir)/manual/html \;)
 uninstall-hook:
 	rm -rf $(DESTDIR)$(docdir)/manual/html
+else
+if AVAILABLE_DOC
+EXTRA_DIST = $(top_srcdir)/doc/doxygen/html $(top_srcdir)/doc/doxygen/starpu.pdf
+txt_DATA = $(top_srcdir)/doc/doxygen/starpu.pdf
+DOX_HTML_SRCDIR=$(top_srcdir)/doc/doxygen/html
+install-exec-hook:
+	$(MKDIR_P) $(DESTDIR)$(docdir)/manual/html
+	(cd $(DOX_HTML_SRCDIR) && find . -type f -exec $(INSTALL) -c -m 644 {} $(DESTDIR)$(docdir)/manual/html \;)
+uninstall-hook:
+	rm -rf $(DESTDIR)$(docdir)/manual/html
+endif
+endif
 
+
+if BUILD_DOC
 chapters =	\
 	chapters/000_introduction.doxy		\
 	chapters/101_building.doxy		\
@@ -273,6 +282,7 @@ CLEANFILES = $(DOX_TAG) starpu_config.h \
     $(DOX_LATEX_DIR) \
     $(DOX_PDF)
 
+endif
 # Rule to update documentation on web server. Should only be used locally.
 PUBLISHHOST	?= gforge
 update-web: $(DOX_PDF)
