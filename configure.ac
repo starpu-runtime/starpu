@@ -3035,6 +3035,7 @@ fi
 available_doc="no"
 if test -f "$srcdir/doc/doxygen/starpu.pdf"
 then
+   enable_build_doc="no"
    available_doc="yes"
 fi
 AC_MSG_CHECKING(whether documentation should be compiled)
