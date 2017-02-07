@@ -87,6 +87,7 @@ int main(int argc, char **argv)
 	conf.nopencl = 0;
 	conf.nmic = 0;
 	conf.nscc = 0;
+	conf.nmpi_ms = 0;
 
         ret = starpu_initialize(&conf, &argc, &argv);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
