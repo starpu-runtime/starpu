@@ -96,12 +96,14 @@ static void initialize_heft_prio_policy(unsigned sched_ctx_id)
 			.exp_len_threshold = starpu_get_env_float_default("STARPU_EXP_LEN_THRESHOLD", _STARPU_SCHED_EXP_LEN_THRESHOLD_DEFAULT),
 		};
 
-	unsigned i, j;
+	unsigned i, j, n;
 
-	struct starpu_sched_component * eagers[starpu_memory_nodes_get_count()];
+	n = starpu_memory_nodes_get_count();
+	STARPU_ASSERT(n >= 1);
+	struct starpu_sched_component * eagers[n];
 
 	/* Create one fifo+eager component pair per memory node, below mct */
-	for(i = 0; i < starpu_memory_nodes_get_count(); i++)
+	for(i = 0; i < n; i++)
 	{
 		for(j = 0; j < starpu_worker_get_count() + starpu_combined_worker_get_count(); j++)
 			if (starpu_worker_get_memory_node(j) == i)
