@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  * Copyright (C) 2011, 2012, 2017  INRIA
  * See the file version.doxy for copying conditions.
  */
@@ -327,6 +327,34 @@ used by StarPU data structures.
 Disable the build of libstarpumpi. By default, it is enabled when MPI is found.
 </dd>
 
+<dt>--with-mpicc=<c>path</c></dt>
+<dd>
+\anchor with-mpicc
+\addindex __configure__--with-mpicc
+Use the compiler <c>mpicc</c> at <c>path</c>, for StarPU-MPI.
+(\ref MPISupport).
+</dd>
+
+<dt>--enable-mpi-progression-hook</dt>
+<dd>
+\anchor enable-mpi-progression-hook
+\addindex __configure__--enable-mpi-progression-hook
+Enable the activity polling method for StarPU-MPI. This is however experimental,
+do not enable it unless you know what you are doing.
+</dd>
+
+<dt>--enable-mpi-pedantic-isend</dt>
+<dd>
+\anchor enable-mpi-pedantic-isend
+\addindex __configure__--enable-mpi-pedantic-isend
+Before performing any MPI communication, StarPU-MPI waits for the data
+to be available in the main memory of the node submitting the request.
+For send communications, data is acquired with the mode ::STARPU_R.
+When enabling the pedantic mode, data are instead acquired with the
+::STARPU_RW which thus ensures that there is not more than 1
+concurrent MPI_Isend calls accessing the data.
+</dd>
+
 <dt>--enable-mpi-master-slave</dt>
 <dd>
 \anchor enable-mpi-master-slave
@@ -371,22 +399,6 @@ is enabled when the required dependencies are found.
 \addindex __configure__--disable-gcc-extensions
 Disable the GCC plug-in (\ref cExtensions).  By default, it is
 enabled when the GCC compiler provides a plug-in support.
-</dd>
-
-<dt>--with-mpicc=<c>path</c></dt>
-<dd>
-\anchor with-mpicc
-\addindex __configure__--with-mpicc
-Use the compiler <c>mpicc</c> at <c>path</c>, for StarPU-MPI.
-(\ref MPISupport).
-</dd>
-
-<dt>--enable-mpi-progression-hook</dt>
-<dd>
-\anchor enable-mpi-progression-hook
-\addindex __configure__--enable-mpi-progression-hook
-Enable the activity polling method for StarPU-MPI. This is however experimental,
-do not enable it unless you know what you are doing.
 </dd>
 
 <dt>--with-coi-dir</dt>

@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  * Copyright (C) 2011, 2012, 2017  INRIA
  * See the file version.doxy for copying conditions.
  */
@@ -207,6 +207,12 @@ internally by StarPU-MPI, on completion, the resources are
 automatically released. This mechanism is similar to the pthread
 detach state attribute which determines whether a thread will be
 created in a joinable or a detached state.
+
+For send communications, data is acquired with the mode ::STARPU_R.
+When using the configure option
+\ref enable-mpi-pedantic-isend "--enable-mpi-pedantic-isend", the mode
+::STARPU_RW is used to make sure there is no more than 1 concurrent
+MPI_Isend call accessing a data.
 
 Internally, all communication are divided in 2 communications, a first
 message is used to exchange an envelope describing the data (i.e its
