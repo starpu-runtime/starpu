@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2015  Université de Bordeaux
+ * Copyright (C) 2009-2015, 2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2011, 2014, 2016  INRIA
@@ -114,6 +114,7 @@ void starpu_task_init(struct starpu_task *task)
 void starpu_task_clean(struct starpu_task *task)
 {
 	STARPU_ASSERT(task);
+	task->magic = 0;
 
 	/* If a buffer was allocated to store the profiling info, we free it. */
 	if (task->profiling_info)
@@ -551,6 +552,8 @@ static int _starpu_task_submit_head(struct starpu_task *task)
 		for (i = 0; i < nbuffers; i++)
 		{
 			starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, i);
+			/* Make sure handles are valid */
+			STARPU_ASSERT_MSG(handle->magic == 42, "data %p is invalid (was it already unregistered?)", handle);
 			/* Make sure handles are not partitioned */
 			STARPU_ASSERT_MSG(handle->nchildren == 0, "only unpartitioned data (or the pieces of a partitioned data) can be used in a task");
 			/* Provide the home interface for now if any,
