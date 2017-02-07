@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2016  Université de Bordeaux
+ * Copyright (C) 2009-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -119,24 +119,28 @@ static unsigned nbigblocks;
 
 static inline void init_sizes(void) {
 	int power = starpu_cpu_worker_get_count() + 32 * starpu_cuda_worker_get_count();
-	int power_sqrt = sqrt(power)/2;
-	if (power_sqrt < 1)
-		power_sqrt = 1;
+	int power_cbrt = cbrt(power);
+#ifndef STARPU_LONG_CHECK
+	power_cbrt /= 2;
+#endif
+
+	if (power_cbrt < 1)
+		power_cbrt = 1;
 
 #ifdef STARPU_QUICK_CHECK
 	if (!size)
-		size = 320*2*power_sqrt;
+		size = 320*2*power_cbrt;
 	if (!nblocks)
-		nblocks = 2*power_sqrt;
+		nblocks = 2*power_cbrt;
 	if (!nbigblocks)
-		nbigblocks = power_sqrt;
+		nbigblocks = power_cbrt;
 #else
 	if (!size)
-		size = 960*8*power_sqrt;
+		size = 960*8*power_cbrt;
 	if (!nblocks)
-		nblocks = 8*power_sqrt;
+		nblocks = 8*power_cbrt;
 	if (!nbigblocks)
-		nbigblocks = 4*power_sqrt;
+		nbigblocks = 4*power_cbrt;
 #endif
 }
 
