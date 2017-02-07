@@ -572,7 +572,7 @@ static int _starpu_task_submit_head(struct starpu_task *task)
 		{
 			starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, i);
 			/* Make sure handles are valid */
-			STARPU_ASSERT_MSG(handle->magic == 42, "data %p is invalid (was it already registered?)", handle);
+			STARPU_ASSERT_MSG(handle->magic == 42, "data %p is invalid (was it already unregistered?)", handle);
 			/* Make sure handles are not partitioned */
 			STARPU_ASSERT_MSG(handle->nchildren == 0, "only unpartitioned data (or the pieces of a partitioned data) can be used in a task");
 			/* Provide the home interface for now if any,
