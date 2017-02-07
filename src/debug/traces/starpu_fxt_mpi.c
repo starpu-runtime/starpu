@@ -330,8 +330,8 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, unsigned n)
 #else
 			fprintf(out_paje_file, "18	%.9f	MPIL	MPIroot	%lu	%u_mpict	mpicom_%lu\n", start_date, (unsigned long)size, src, id);
 			fprintf(out_paje_file, "19	%.9f	MPIL	MPIroot	%lu	%u_mpict	mpicom_%lu\n", end_date, (unsigned long)size, dst, id);
-			fprintf(out_paje_file, "13	%.9f	%d_mpict	bwo	%f\n", start_date, src, current_out_bandwidth[src]);
-			fprintf(out_paje_file, "13	%.9f	%d_mpict	bwi	%f\n", start_date, dst, current_in_bandwidth[dst]);
+			fprintf(out_paje_file, "13	%.9f	%u_mpict	bwo	%f\n", start_date, src, current_out_bandwidth[src]);
+			fprintf(out_paje_file, "13	%.9f	%u_mpict	bwi	%f\n", start_date, dst, current_in_bandwidth[dst]);
 #endif
 		}
 		else
