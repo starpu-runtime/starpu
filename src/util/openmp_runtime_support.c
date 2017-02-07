@@ -1560,7 +1560,10 @@ void starpu_omp_task_region(const struct starpu_omp_task_region_attr *attr)
 			/* TODO: backup current ICVs and setup new ICVs for the included task */
 		}
 		int i;
-		void *data_interfaces[attr->cl.nbuffers];
+		unsigned n = attr->cl.nbuffers;
+		if (n == 0)
+			n = 1;
+		void *data_interfaces[n];
 		for (i = 0; i < attr->cl.nbuffers; i++)
 		{
 			starpu_data_handle_t handle = attr->handles[i];
