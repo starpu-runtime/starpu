@@ -336,11 +336,11 @@ STARPU_EXAMPLES +=				\
 	sched_ctx/nested_sched_ctxs		\
 	sched_ctx/sched_ctx_without_sched_policy_awake\
 	sched_ctx/parallel_tasks_reuse_handle
-# FIXME: does not compile any more due to missing starpu_sched_ctx_book/unbook_workers_for_task
-#if STARPU_LONG_CHECK
-#STARPU_EXAMPLES +=				\
-#	sched_ctx/parallel_code
-#endif
+
+if STARPU_LONG_CHECK
+STARPU_EXAMPLES +=				\
+	sched_ctx/parallel_code
+endif
 
 if STARPU_HAVE_HWLOC
 if STARPU_HWLOC_HAVE_TOPOLOGY_DUP

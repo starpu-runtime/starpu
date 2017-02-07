@@ -19,12 +19,10 @@
 #include <omp.h>
 
 #ifdef STARPU_QUICK_CHECK
-#define NTASKS 64
+#define NTASKS 4
 #else
 #define NTASKS 10
 #endif
-
-int tasks_executed[2];
 
 int parallel_code(unsigned *sched_ctx)
 {
@@ -34,53 +32,36 @@ int parallel_code(unsigned *sched_ctx)
 	int ncpuids = 0;
 	starpu_sched_ctx_get_available_cpuids(*sched_ctx, &cpuids, &ncpuids);
 
-//	printf("execute task of %d threads \n", ncpuids);
-#pragma omp parallel num_threads(ncpuids)
+	/* printf("execute task of %d threads \n", ncpuids); */
+	omp_set_num_threads(ncpuids);
+#pragma omp parallel
 	{
 		starpu_sched_ctx_bind_current_thread_to_cpuid(cpuids[omp_get_thread_num()]);
-// 			printf("cpu = %d ctx%d nth = %d\n", sched_getcpu(), sched_ctx, omp_get_num_threads());
+			/* printf("cpu = %d ctx%d nth = %d\n", sched_getcpu(), *sched_ctx, omp_get_num_threads()); */
 #pragma omp for
 		for(i = 0; i < NTASKS; i++)
-			t++;
+		{
+#pragma omp atomic
+				t++;
+		}
 	}
 
 	free(cpuids);
-	tasks_executed[*sched_ctx-1] = t;
 	return t;
 }
-
-static void sched_ctx_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
-{
-	int w = starpu_worker_get_id();
-	unsigned *sched_ctx = (unsigned*)arg;
-	int n = parallel_code(sched_ctx);
-	printf("w %d executed %d it \n", w, n);
-}
-
-
-static struct starpu_codelet sched_ctx_codelet =
-{
-	.cpu_funcs = {sched_ctx_func},
-	.model = NULL,
-	.nbuffers = 0,
-	.name = "sched_ctx"
-};
 
 void *th(void* p)
 {
 	unsigned* sched_ctx = (unsigned*)p;
-	tasks_executed[*sched_ctx-1] = 0;
-	//here the return of parallel code could be used (as a void*)
-	starpu_sched_ctx_exec_parallel_code((void*)parallel_code, p, *sched_ctx);
-	return &tasks_executed[*sched_ctx-1];
+	void* ret;
+	ret = starpu_sched_ctx_exec_parallel_code((void*)parallel_code, p, *sched_ctx);
+	pthread_exit(ret);
 }
 
 int main(int argc, char **argv)
 {
-	tasks_executed[0] = 0;
-	tasks_executed[1] = 0;
-	int ntasks = NTASKS;
-	int ret, j, k;
+	int ret;
+	void* tasks_executed;
 
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV)
@@ -88,142 +69,33 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	int nprocs1;
-	int nprocs2;
-	int *procs1, *procs2;
+	int *procs1;
 
 #ifdef STARPU_USE_CPU
 	unsigned ncpus =  starpu_cpu_worker_get_count();
 	procs1 = (int*)malloc(ncpus*sizeof(int));
-	procs2 = (int*)malloc(ncpus*sizeof(int));
 	starpu_worker_get_ids_by_type(STARPU_CPU_WORKER, procs1, ncpus);
-
-	nprocs1 = ncpus/2;
-	nprocs2 =  nprocs1;
-	k = 0;
-	for(j = nprocs1; j < nprocs1+nprocs2; j++)
-		procs2[k++] = j;
+	nprocs1 = ncpus;
 #else
 	nprocs1 = 1;
-	nprocs2 = 1;
 	procs1 = (int*)malloc(nprocs1*sizeof(int));
-	procs2 = (int*)malloc(nprocs2*sizeof(int));
-	procs1[0] = 0;
-	procs2[0] = 0;
 #endif
 
-	if (nprocs1 < 4)
-	{
-		/* Not enough procs */
-		free(procs1);
-		free(procs2);
-		starpu_shutdown();
-		return 77;
-	}
-
-	/*create contexts however you want*/
 	unsigned sched_ctx1 = starpu_sched_ctx_create(procs1, nprocs1, "ctx1", STARPU_SCHED_CTX_POLICY_NAME, "dmda", 0);
-	unsigned sched_ctx2 = starpu_sched_ctx_create(procs2, nprocs2, "ctx2", STARPU_SCHED_CTX_POLICY_NAME, "dmda", 0);
 
-	/*indicate what to do with the resources when context 2 finishes (it depends on your application)*/
-//	starpu_sched_ctx_set_inheritor(sched_ctx2, sched_ctx1);
+	/* This is the interesting part, we can launch a code to hijack the context and
+		 use its cores to do something else entirely thanks to this */
+	pthread_t mp;
+	pthread_create(&mp, NULL, th, &sched_ctx1);
 
-	int nprocs3 = nprocs1/2;
-	int nprocs4 = nprocs1/2;
-	int nprocs5 = nprocs2/2;
-	int nprocs6 = nprocs2/2;
-	int procs3[nprocs3];
-	int procs4[nprocs4];
-	int procs5[nprocs5];
-	int procs6[nprocs6];
+	pthread_join(mp, &tasks_executed);
 
-	k = 0;
-	for(j = 0; j < nprocs3; j++)
-		procs3[k++] = procs1[j];
-	k = 0;
-	for(j = nprocs3; j < nprocs3+nprocs4; j++)
-		procs4[k++] = procs1[j];
-
-	k = 0;
-	for(j = 0; j < nprocs5; j++)
-		procs5[k++] = procs2[j];
-	k = 0;
-	for(j = nprocs5; j < nprocs5+nprocs6; j++)
-		procs6[k++] = procs2[j];
-
-	int master3 = starpu_sched_ctx_book_workers_for_task(sched_ctx1, procs3, nprocs3);
-	int master4 = starpu_sched_ctx_book_workers_for_task(sched_ctx1, procs4, nprocs4);
-
-	int master5 = starpu_sched_ctx_book_workers_for_task(sched_ctx2, procs5, nprocs5);
-	int master6 = starpu_sched_ctx_book_workers_for_task(sched_ctx2, procs6, nprocs6);
-
-/* 	int master1 = starpu_sched_ctx_book_workers_for_task(procs1, nprocs1); */
-/* 	int master2 = starpu_sched_ctx_book_workers_for_task(procs2, nprocs2); */
-
-
-	int i;
-	for (i = 0; i < ntasks; i++)
-	{
-		struct starpu_task *task = starpu_task_create();
-
-		task->cl = &sched_ctx_codelet;
-		task->cl_arg = &sched_ctx1;
-
-		/*submit tasks to context*/
-		ret = starpu_task_submit_to_ctx(task,sched_ctx1);
-		if (ret == -ENODEV) goto enodev;
-
-		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
-	}
-
-	for (i = 0; i < ntasks; i++)
-	{
-		struct starpu_task *task = starpu_task_create();
-
-		task->cl = &sched_ctx_codelet;
-		task->cl_arg = &sched_ctx2;
-
-		/*submit tasks to context*/
-		ret = starpu_task_submit_to_ctx(task,sched_ctx2);
-		if (ret == -ENODEV) goto enodev;
-
-		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
-	}
-
-
-	/* tell starpu when you finished submitting tasks to this context
-	   in order to allow moving resources from this context to the inheritor one
-	   when its corresponding tasks finished executing */
-
-
-enodev:
-
-	/* wait for all tasks at the end*/
-	starpu_task_wait_for_all();
-
-/* 	starpu_sched_ctx_unbook_workers_for_task(sched_ctx1, master1); */
-/* 	starpu_sched_ctx_unbook_workers_for_task(sched_ctx2, master2); */
-
-	starpu_sched_ctx_unbook_workers_for_task(sched_ctx1, master3);
-	starpu_sched_ctx_unbook_workers_for_task(sched_ctx1, master4);
-
-	starpu_sched_ctx_unbook_workers_for_task(sched_ctx2, master5);
-	starpu_sched_ctx_unbook_workers_for_task(sched_ctx2, master6);
-
-	pthread_t mp[2];
-	pthread_create(&mp[0], NULL, th, &sched_ctx1);
-	pthread_create(&mp[1], NULL, th, &sched_ctx2);
-
-	pthread_join(mp[0], NULL);
-	pthread_join(mp[1], NULL);
-
+	/* Finished, delete the context and print the amount of executed tasks */
 	starpu_sched_ctx_delete(sched_ctx1);
-	starpu_sched_ctx_delete(sched_ctx2);
-	printf("ctx%u: tasks starpu executed %d out of %d\n", sched_ctx1, tasks_executed[0], NTASKS);
-	printf("ctx%u: tasks starpu executed %d out of %d\n", sched_ctx2, tasks_executed[1], NTASKS);
+	printf("ctx%u: tasks starpu executed %ld out of %d\n", sched_ctx1, (intptr_t)tasks_executed, NTASKS);
 	starpu_shutdown();
 
 	free(procs1);
-	free(procs2);
 
 	return (ret == -ENODEV ? 77 : 0);
 }
