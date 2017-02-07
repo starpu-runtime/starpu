@@ -46,7 +46,7 @@ void _starpu_open_debug_logfile(void)
 	}
 
 	logfile = fopen(logfile_name, "w+");
-	STARPU_ASSERT_MSG(logfile, "Could not open file %s for verbose logs. You can specify another file destination with the STARPU_LOGFILENAME environment variable", logfile_name);
+	STARPU_ASSERT_MSG(logfile, "Could not open file %s for verbose logs (%s). You can specify another file destination with the STARPU_LOGFILENAME environment variable", logfile_name, strerror(errno));
 #endif
 }
 
