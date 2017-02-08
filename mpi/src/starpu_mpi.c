@@ -832,7 +832,8 @@ static void _starpu_mpi_test_func(struct _starpu_mpi_req *testing_req)
 	struct _starpu_mpi_req *req = testing_req->other_request;
 
 	_STARPU_MPI_DEBUG(2, "Test request %p type %s tag %d src %d data %p ptr %p datatype '%s' count %d registered_datatype %d \n",
-			  req, _starpu_mpi_request_type(req->request_type), req->node_tag.data_tag, req->node_tag.rank, req->data_handle, req->ptr, req->datatype_name, (int)req->count, req->registered_datatype);
+			  req, _starpu_mpi_request_type(req->request_type), req->node_tag.data_tag, req->node_tag.rank, req->data_handle, req->ptr,
+			  req->datatype_name, (int)req->count, req->registered_datatype);
 
 	_STARPU_MPI_TRACE_UTESTING_BEGIN(req->node_tag.rank, req->node_tag.data_tag);
 
@@ -1272,7 +1273,8 @@ static void _starpu_mpi_handle_ready_request(struct _starpu_mpi_req *req)
 
 	/* submit the request to MPI */
 	_STARPU_MPI_DEBUG(2, "Handling new request %p type %s tag %d src %d data %p ptr %p datatype '%s' count %d registered_datatype %d \n",
-			  req, _starpu_mpi_request_type(req->request_type), req->node_tag.data_tag, req->node_tag.rank, req->data_handle, req->ptr, req->datatype_name, (int)req->count, req->registered_datatype);
+			  req, _starpu_mpi_request_type(req->request_type), req->node_tag.data_tag, req->node_tag.rank, req->data_handle,
+			  req->ptr, req->datatype_name, (int)req->count, req->registered_datatype);
 	req->func(req);
 
 	_STARPU_MPI_LOG_OUT();
@@ -1332,7 +1334,8 @@ static void _starpu_mpi_receive_early_data(struct _starpu_mpi_envelope *envelope
 		//_starpu_mpi_early_data_add(early_data_handle);
 	}
 
-	_STARPU_MPI_DEBUG(20, "Posting internal detached irecv on early_data_handle with tag %d from comm %d src %d ..\n", early_data_handle->node_tag.data_tag, comm, status.MPI_SOURCE);
+	_STARPU_MPI_DEBUG(20, "Posting internal detached irecv on early_data_handle with tag %d from comm %ld src %d ..\n",
+			  early_data_handle->node_tag.data_tag, (long int)comm, status.MPI_SOURCE);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 	early_data_handle->req = _starpu_mpi_irecv_common(early_data_handle->handle, status.MPI_SOURCE,
 							  early_data_handle->node_tag.data_tag, comm, 1, 0,
