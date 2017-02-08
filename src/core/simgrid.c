@@ -823,7 +823,7 @@ typedef struct{
 	void *father_data;
 } thread_data_t;
 
-static int _starpu_simgrid_xbt_thread_create_wrapper(int argc, char *argv[])
+static int _starpu_simgrid_xbt_thread_create_wrapper(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED)
 {
 	/* FIXME: Ugly work-around for bug in simgrid: the MPI context is not properly set at MSG process startup */
 	MSG_process_sleep(0.000001);
@@ -846,7 +846,7 @@ static int _starpu_simgrid_xbt_thread_create_wrapper(int argc, char *argv[])
 void _starpu_simgrid_xbt_thread_create(const char *name, void_f_pvoid_t code, void *param)
 {
 #ifdef HAVE_SMX_ACTOR_T
-	smx_actor_t process;
+	smx_actor_t process STARPU_ATTRIBUTE_UNUSED;
 #else
 	smx_process_t process;
 #endif
@@ -862,7 +862,12 @@ void _starpu_simgrid_xbt_thread_create(const char *name, void_f_pvoid_t code, vo
 #endif
 	                         name,
 	                         _starpu_simgrid_xbt_thread_create_wrapper, res,
-	                         SIMIX_host_self_get_name(), -1.0, 0, NULL,
+#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 14)
+	                         SIMIX_host_self_get_name(),
+#else
+	                         SIMIX_host_self(),
+#endif
+				 -1.0, 0, NULL,
 	                         /*props */ NULL,0);
 }
 #endif
