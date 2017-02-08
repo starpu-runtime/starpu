@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2016  Université de Bordeaux
+ * Copyright (C) 2012-2017  Université de Bordeaux
  * Copyright (C) 2016  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -38,7 +38,8 @@ struct _starpu_pthread_args
 #define STARPU_MPI_AS_PREFIX "StarPU-MPI"
 #define _starpu_simgrid_running_smpi() (getenv("SMPI_GLOBAL_SIZE") != NULL)
 
-void _starpu_simgrid_init(int *argc, char ***argv);
+void _starpu_simgrid_init_early(int *argc, char ***argv);
+void _starpu_simgrid_init(void);
 void _starpu_simgrid_deinit(void);
 void _starpu_simgrid_wait_tasks(int workerid);
 void _starpu_simgrid_submit_job(int workerid, struct _starpu_job *job, struct starpu_perfmodel_arch* perf_arch, double length, unsigned *finished, starpu_pthread_mutex_t *mutex, starpu_pthread_cond_t *cond);

@@ -1192,7 +1192,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 
 #ifdef STARPU_SIMGRID
 	/* This initializes the simgrid thread library, thus needs to be early */
-	_starpu_simgrid_init(argc, argv);
+	_starpu_simgrid_init_early(argc, argv);
 #endif
 
 	STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
@@ -1413,6 +1413,9 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 	_starpu_cuda_init();
+#endif
+#ifdef STARPU_SIMGRID
+	_starpu_simgrid_init();
 #endif
 	/* Launch "basic" workers (ie. non-combined workers) */
 	if (!is_a_sink)
