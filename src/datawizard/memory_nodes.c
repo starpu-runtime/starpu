@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2016  Université de Bordeaux
+ * Copyright (C) 2009-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -184,5 +184,14 @@ void _starpu_memory_node_register_condition(starpu_pthread_cond_t *cond, starpu_
 unsigned starpu_worker_get_memory_node(unsigned workerid)
 {
 	return _starpu_worker_get_memory_node(workerid);
+}
+
+/* same utility as _starpu_memory_node_add_nworkers */
+void _starpu_worker_drives_memory_node(struct _starpu_worker *worker, unsigned memnode)
+{
+	_starpu_worker_drives_memory[worker->workerid][memnode] = 1;
+#ifdef STARPU_SIMGRID
+	starpu_pthread_queue_register(&worker->wait, &_starpu_simgrid_transfer_queue[memnode]);
+#endif
 }
 

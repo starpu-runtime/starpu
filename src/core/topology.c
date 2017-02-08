@@ -1791,14 +1791,9 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 				workerarg->bindid = _starpu_get_next_bindid(config, NULL, 0);
 				_starpu_memory_node_add_nworkers(memory_node);
 
-                                _starpu_worker_drives_memory_node(workerarg->workerid, STARPU_MAIN_RAM);
-                                _starpu_worker_drives_memory_node(workerarg->workerid, memory_node);
-
-#ifdef STARPU_SIMGRID
-				starpu_pthread_queue_register(&workerarg->wait, &_starpu_simgrid_transfer_queue[memory_node]);
+                                _starpu_worker_drives_memory_node(workerarg, STARPU_MAIN_RAM);
 				if (memory_node != STARPU_MAIN_RAM)
-					starpu_pthread_queue_register(&workerarg->wait, &_starpu_simgrid_transfer_queue[STARPU_MAIN_RAM]);
-#endif
+					_starpu_worker_drives_memory_node(workerarg, memory_node);
 				break;
 			}
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
@@ -1886,12 +1881,9 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 				}
 				_starpu_memory_node_add_nworkers(memory_node);
 
-                                _starpu_worker_drives_memory_node(workerarg->workerid, STARPU_MAIN_RAM);
-                                _starpu_worker_drives_memory_node(workerarg->workerid, memory_node);
-#ifdef STARPU_SIMGRID
-				starpu_pthread_queue_register(&workerarg->set->workers[0].wait, &_starpu_simgrid_transfer_queue[memory_node]);
-				starpu_pthread_queue_register(&workerarg->set->workers[0].wait, &_starpu_simgrid_transfer_queue[STARPU_MAIN_RAM]);
-#endif
+                                _starpu_worker_drives_memory_node(&workerarg->set->workers[0], STARPU_MAIN_RAM);
+				if (memory_node != STARPU_MAIN_RAM)
+					_starpu_worker_drives_memory_node(&workerarg->set->workers[0], memory_node);
 				break;
 #endif
 
@@ -1928,12 +1920,9 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 				}
 				_starpu_memory_node_add_nworkers(memory_node);
 
-                                _starpu_worker_drives_memory_node(workerarg->workerid, STARPU_MAIN_RAM);
-                                _starpu_worker_drives_memory_node(workerarg->workerid, memory_node);
-#ifdef STARPU_SIMGRID
-				starpu_pthread_queue_register(&workerarg->wait, &_starpu_simgrid_transfer_queue[memory_node]);
-				starpu_pthread_queue_register(&workerarg->wait, &_starpu_simgrid_transfer_queue[STARPU_MAIN_RAM]);
-#endif
+                                _starpu_worker_drives_memory_node(workerarg, STARPU_MAIN_RAM);
+				if (memory_node != STARPU_MAIN_RAM)
+					_starpu_worker_drives_memory_node(workerarg, memory_node);
 				break;
 #endif
 
@@ -1962,12 +1951,9 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 				workerarg->bindid = mic_bindid[devid];
 				_starpu_memory_node_add_nworkers(memory_node);
 
-                                _starpu_worker_drives_memory_node(workerarg->workerid, STARPU_MAIN_RAM);
-                                _starpu_worker_drives_memory_node(workerarg->workerid, memory_node);
-#ifdef STARPU_SIMGRID
-				starpu_pthread_queue_register(&workerarg->set->workers[0].wait, &_starpu_simgrid_transfer_queue[memory_node]);
-				starpu_pthread_queue_register(&workerarg->set->workers[0].wait, &_starpu_simgrid_transfer_queue[STARPU_MAIN_RAM]);
-#endif
+                                _starpu_worker_drives_memory_node(&workerarg->set->workers[0], STARPU_MAIN_RAM);
+				if (memory_node != STARPU_MAIN_RAM)
+					_starpu_worker_drives_memory_node(workerarg->workerid, memory_node);
 				break;
 #endif /* STARPU_USE_MIC */
 
@@ -1981,12 +1967,9 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 				memory_node = ram_memory_node;
 				_starpu_memory_node_add_nworkers(memory_node);
 
-                                _starpu_worker_drives_memory_node(workerarg->workerid, STARPU_MAIN_RAM);
-                                _starpu_worker_drives_memory_node(workerarg->workerid, memory_node);
-#ifdef STARPU_SIMGRID
-				starpu_pthread_queue_register(&workerarg->wait, &_starpu_simgrid_transfer_queue[memory_node]);
-				starpu_pthread_queue_register(&workerarg->wait, &_starpu_simgrid_transfer_queue[STARPU_MAIN_RAM]);
-#endif
+                                _starpu_worker_drives_memory_node(workerarg, STARPU_MAIN_RAM);
+				if (memory_node != STARPU_MAIN_RAM)
+					_starpu_worker_drives_memory_node(workerarg, memory_node);
 			}
 				break;
 #endif /* STARPU_USE_SCC */
@@ -2007,8 +1990,9 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 					_starpu_register_bus(memory_node, STARPU_MAIN_RAM);
 
 				}
-                                _starpu_worker_drives_memory_node(workerarg->workerid, STARPU_MAIN_RAM);
-                                _starpu_worker_drives_memory_node(workerarg->workerid, memory_node);
+                                _starpu_worker_drives_memory_node(&workerarg->set->workers[0], STARPU_MAIN_RAM);
+				if (memory_node != STARPU_MAIN_RAM)
+					_starpu_worker_drives_memory_node(&workerarg->set->workers[0], memory_node);
 #ifndef STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD
                                 /* MPI driver thread can manage all slave memories if we disable the MPI multiple thread */
                                 unsigned findworker;
@@ -2017,18 +2001,14 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
                                         struct _starpu_worker *findworkerarg = &config->workers[findworker];
                                         if (findworkerarg->arch == STARPU_MPI_MS_WORKER)
                                         {
-                                                _starpu_worker_drives_memory_node(workerarg->workerid, findworkerarg->memory_node);
-                                                _starpu_worker_drives_memory_node(findworkerarg->workerid, memory_node);
+                                                _starpu_worker_drives_memory_node(workerarg, findworkerarg->memory_node);
+                                                _starpu_worker_drives_memory_node(findworkerarg, memory_node);
                                         }
                                 }
 #endif
 
 				workerarg->bindid = mpi_bindid[devid];
 				_starpu_memory_node_add_nworkers(memory_node);
-#ifdef STARPU_SIMGRID
-				starpu_pthread_queue_register(&workerarg->set->workers[0].wait, &_starpu_simgrid_transfer_queue[memory_node]);
-				starpu_pthread_queue_register(&workerarg->set->workers[0].wait, &_starpu_simgrid_transfer_queue[STARPU_MAIN_RAM]);
-#endif
 				break;
 			}
 #endif /* STARPU_USE_MPI_MASTER_SLAVE */
