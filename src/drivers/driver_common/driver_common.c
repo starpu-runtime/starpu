@@ -321,6 +321,7 @@ static void _starpu_worker_set_status_wakeup(int workerid)
 }
 
 
+#if !defined(STARPU_SIMGRID)
 static void _starpu_exponential_backoff(struct _starpu_worker *worker)
 {
 	int delay = worker->spinning_backoff;
@@ -331,16 +332,17 @@ static void _starpu_exponential_backoff(struct _starpu_worker *worker)
 	while(delay--)
 		STARPU_UYIELD();
 }
+#endif
 
 
 
 /* Workers may block when there is no work to do at all. */
-struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int workerid, unsigned memnode)
+struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int workerid, unsigned memnode STARPU_ATTRIBUTE_UNUSED)
 {
 	STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
 	struct starpu_task *task;
 	unsigned needed = 1;
-	unsigned executing = 0;
+	unsigned executing STARPU_ATTRIBUTE_UNUSED = 0;
 
 	_starpu_worker_set_status_scheduling(workerid);
 	while(needed)
@@ -449,9 +451,15 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 	}
 #endif
 
-	_starpu_worker_set_status_scheduling_done(workerid);
-
-	_starpu_worker_set_status_wakeup(workerid);
+	if (task)
+	{
+		_starpu_worker_set_status_scheduling_done(workerid);
+		_starpu_worker_set_status_wakeup(workerid);
+	}
+	else
+	{
+		_starpu_worker_set_status_sleeping(workerid);
+	}
 	worker->spinning_backoff = BACKOFF_MIN;
 
 	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
@@ -469,9 +477,7 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 	struct _starpu_job * j;
 	int is_parallel_task;
 	struct _starpu_combined_worker *combined_worker;
-#ifndef STARPU_NON_BLOCKING_DRIVERS
-	int executing = 0;
-#endif
+	int executing STARPU_ATTRIBUTE_UNUSED = 0;
 	/*for each worker*/
 #ifndef STARPU_NON_BLOCKING_DRIVERS
 	/* This assumes only 1 worker */
@@ -480,12 +486,10 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 #endif
 	for (i = 0; i < nworkers; i++)
 	{
-#ifndef STARPU_NON_BLOCKING_DRIVERS
 		if ((workers[i].pipeline_length == 0 && workers[i].current_task)
 			|| (workers[i].pipeline_length != 0 && workers[i].ntasks))
 			/* At least this worker is executing something */
 			executing = 1;
-#endif
 		/*if the worker is already executing a task then */
 		if((workers[i].pipeline_length == 0 && workers[i].current_task)
 			|| (workers[i].pipeline_length != 0 &&
