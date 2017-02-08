@@ -216,7 +216,8 @@ static unsigned long mpi_com_id = 0;
 
 static void display_all_transfers_from_trace(FILE *out_paje_file, unsigned n)
 {
-	unsigned slot[MAX_MPI_NODES] = { 0 }, node, src;
+	unsigned slot[MAX_MPI_NODES] = { 0 }, node;
+	int src;
 	struct mpi_transfer_list pending_receives; /* Sorted list of matches which have not happened yet */
 	double current_out_bandwidth[MAX_MPI_NODES] = { 0. };
 	double current_in_bandwidth[MAX_MPI_NODES] = { 0. };
@@ -321,17 +322,17 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, unsigned n)
 			char paje_value[STARPU_POTI_STR_LEN], paje_key[STARPU_POTI_STR_LEN];
 			snprintf(paje_value, STARPU_POTI_STR_LEN, "%lu", (long unsigned) size);
 			snprintf(paje_key, STARPU_POTI_STR_LEN, "mpicom_%lu", id);
-			snprintf(mpi_container, sizeof(mpi_container), "%u_mpict", src);
+			snprintf(mpi_container, sizeof(mpi_container), "%d_mpict", src);
 			poti_StartLink(start_date, "MPICt", "MPIL", mpi_container, paje_value, paje_key);
 			poti_SetVariable(start_date, mpi_container, "bwo", current_out_bandwidth[src]);
 			snprintf(mpi_container, sizeof(mpi_container), "%d_mpict", dst);
 			poti_EndLink(end_date, "MPICt", "MPIL", mpi_container, paje_value, paje_key);
 			poti_SetVariable(start_date, mpi_container, "bwo", current_in_bandwidth[dst]);
 #else
-			fprintf(out_paje_file, "18	%.9f	MPIL	MPIroot	%lu	%u_mpict	mpicom_%lu\n", start_date, (unsigned long)size, src, id);
-			fprintf(out_paje_file, "19	%.9f	MPIL	MPIroot	%lu	%u_mpict	mpicom_%lu\n", end_date, (unsigned long)size, dst, id);
-			fprintf(out_paje_file, "13	%.9f	%u_mpict	bwo	%f\n", start_date, src, current_out_bandwidth[src]);
-			fprintf(out_paje_file, "13	%.9f	%u_mpict	bwi	%f\n", start_date, dst, current_in_bandwidth[dst]);
+			fprintf(out_paje_file, "18	%.9f	MPIL	MPIroot	%lu	%d_mpict	mpicom_%lu\n", start_date, (unsigned long)size, src, id);
+			fprintf(out_paje_file, "19	%.9f	MPIL	MPIroot	%lu	%d_mpict	mpicom_%lu\n", end_date, (unsigned long)size, dst, id);
+			fprintf(out_paje_file, "13	%.9f	%d_mpict	bwo	%f\n", start_date, src, current_out_bandwidth[src]);
+			fprintf(out_paje_file, "13	%.9f	%d_mpict	bwi	%f\n", start_date, dst, current_in_bandwidth[dst]);
 #endif
 		}
 		else
