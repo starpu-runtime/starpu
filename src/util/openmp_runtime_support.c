@@ -564,7 +564,10 @@ static void starpu_omp_task_completion_accounting(struct starpu_omp_task *task)
 		weak_task_lock(leader_task);
 		if (STARPU_ATOMIC_ADD(&task->task_group->descendent_task_count, -1) == 0)
 		{
-			if (leader_task->wait_on & starpu_omp_task_wait_on_group)
+			if (leader_task->wait_on & starpu_omp_task_wait_on_group
+				&& task->task_group == leader_task->task_group)
+				/* only wake the leader_task if it is actually
+				 * waiting for the current task's task_group */
 			{
 				leader_task->wait_on &= ~starpu_omp_task_wait_on_group;
 				wake_up_and_unlock_task(leader_task);
