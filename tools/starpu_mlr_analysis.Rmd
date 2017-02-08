@@ -1,3 +1,17 @@
+# StarPU --- Runtime system for heterogeneous multicore architectures.
+#
+# Copyright (C) 2016  Inria
+#
+# StarPU is free software; you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation; either version 2.1 of the License, or (at
+# your option) any later version.
+#
+# StarPU is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
+# See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
 ```{r Setup, echo=FALSE}
 opts_chunk$set(echo=FALSE)
@@ -18,7 +32,7 @@ print_codelet <- function(reg,codelet){
    cat(paste("\t if (", codelet, ".model->combinations)", "\n", "\t {\n", sep=""))
    cat(paste("\t   for (unsigned i = 0; i < ", codelet, ".model->ncombinations; i++)", "\n", "\t   {\n", sep=""))
    cat(paste("\t     ", codelet, ".model->combinations[i] = (unsigned *) malloc(", codelet, ".model->nparameters*sizeof(unsigned))", ";\n", "\t   }\n", "\t }\n\n", sep=""))
-   
+
    # Computing combinations
    df <- data.frame(attr(reg$terms, "factors"))
    df <- df/2
@@ -41,7 +55,7 @@ print_codelet <- function(reg,codelet){
    options(warn=0)
 
    i=1
-   j=1 
+   j=1
    for(j in (2:length(df)))
    {
      for(i in (1:nrow(df)))
@@ -79,7 +93,7 @@ task.
 
 In order to run the analysis you need to have R installed:
 
-    sudo apt-get install r-base 
+    sudo apt-get install r-base
 
 In order to compile this document, you need *knitr* (although you can
 perfectly only use the R code from this document without knitr). If
@@ -140,7 +154,7 @@ model is perfect and we should always inspect the adjusted R^2 value
 are not common to the multiple linear regression analysis and R tools,
 we suggest to the R documentation. Some explanations are also provided
 in the following article https://hal.inria.fr/hal-01180272.
-       
+
 In this example, all parameters M, N, K are very important. However,
 it is not clear if there are some relations between them or if some of
 these parameters should be used with an exponent. Moreover, adjusted

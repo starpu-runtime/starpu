@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2009-2017  Université de Bordeaux
-# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2017  CNRS
 # Copyright (C) 2011  Télécom-SudParis
 # Copyright (C) 2011-2012  INRIA
 # Copyright (C) 2015-2016  Inria
@@ -78,7 +78,7 @@ EXTRA_DIST = 					\
 	scheduler/schedulers_context.sh			\
 	fortran/Makefile				\
 	sched_ctx/axpy_partition_gpu.h				\
-	sched_ctx/axpy_partition_gpu.cu		
+	sched_ctx/axpy_partition_gpu.cu
 
 
 CLEANFILES = *.gcno *.gcda *.linkinfo *.mod starpu_idle_microsec.log
@@ -145,7 +145,7 @@ noinst_HEADERS = 				\
 	pi/SobolQRNG/sobol_primitives.h         \
 	reductions/dot_product.h                \
 	basic_examples/vector_scal_cpu_template.h \
-	sched_ctx/axpy_partition_gpu.h				
+	sched_ctx/axpy_partition_gpu.h
 
 #####################################
 # What to install and what to check #
@@ -179,14 +179,17 @@ LOADER_BIN		=	$(top_builddir)/examples/loader-cross.sh
 endif
 
 if STARPU_USE_MPI_MASTER_SLAVE
-MPI = $(MPIEXEC) $(MPIEXEC_ARGS) -np 4
+MPI 			= $(MPIEXEC) $(MPIEXEC_ARGS) -np 4
+LOADER_BIN2		= $(MPI) $(LOADER_BIN)
+else
+LOADER_BIN2		= $(LOADER_BIN)
 endif
 
 if STARPU_HAVE_AM111
 TESTS_ENVIRONMENT	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
-LOG_COMPILER		=	$(MPI) $(LOADER_BIN)
+LOG_COMPILER		=	$(LOADER_BIN2)
 else
-TESTS_ENVIRONMENT	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(MPI) $(LOADER_BIN)
+TESTS_ENVIRONMENT	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(LOADER_BIN2)
 endif
 
 endif
@@ -240,8 +243,7 @@ STARPU_EXAMPLES +=				\
 	sched_ctx/dummy_sched_with_ctx		\
 	worker_collections/worker_tree_example  \
 	reductions/dot_product			\
-	reductions/minmax_reduction		\
-	sched_ctx/gpu_partition
+	reductions/minmax_reduction		
 
 endif
 
@@ -334,6 +336,7 @@ STARPU_EXAMPLES +=				\
 	sched_ctx/nested_sched_ctxs		\
 	sched_ctx/sched_ctx_without_sched_policy_awake\
 	sched_ctx/parallel_tasks_reuse_handle
+
 if STARPU_LONG_CHECK
 STARPU_EXAMPLES +=				\
 	sched_ctx/parallel_code
@@ -349,11 +352,11 @@ endif
 
 endif !STARPU_SIMGRID
 
-sched_ctx_gpu_partition_SOURCES =		\
-	sched_ctx/gpu_partition.c
-
 if STARPU_USE_CUDA
-sched_ctx_gpu_partition_SOURCES +=		\
+STARPU_EXAMPLES +=				\
+	sched_ctx/gpu_partition
+sched_ctx_gpu_partition_SOURCES =		\
+	sched_ctx/gpu_partition.c		\
 	sched_ctx/axpy_partition_gpu.cu
 endif
 

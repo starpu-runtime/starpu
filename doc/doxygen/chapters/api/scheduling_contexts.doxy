@@ -97,6 +97,11 @@ minimum scheduler priority value.
 This macro is used when calling starpu_sched_ctx_create() to specify a
 maximum scheduler priority value.
 
+\def STARPU_SCHED_CTX_AWAKE_WORKERS
+\ingroup API_Scheduling_Contexts
+This macro is used when calling starpu_sched_ctx_create() to specify a
+pointer to a scheduling policy
+
 \def STARPU_SCHED_CTX_POLICY_INIT
 \ingroup API_Scheduling_Contexts
 This macro is used when calling starpu_sched_ctx_create() to specify a

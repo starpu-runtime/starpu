@@ -564,7 +564,10 @@ static void starpu_omp_task_completion_accounting(struct starpu_omp_task *task)
 		weak_task_lock(leader_task);
 		if (STARPU_ATOMIC_ADD(&task->task_group->descendent_task_count, -1) == 0)
 		{
-			if (leader_task->wait_on & starpu_omp_task_wait_on_group)
+			if (leader_task->wait_on & starpu_omp_task_wait_on_group
+				&& task->task_group == leader_task->task_group)
+				/* only wake the leader_task if it is actually
+				 * waiting for the current task's task_group */
 			{
 				leader_task->wait_on &= ~starpu_omp_task_wait_on_group;
 				wake_up_and_unlock_task(leader_task);
@@ -1554,17 +1557,25 @@ void starpu_omp_task_region(const struct starpu_omp_task_region_attr *attr)
 			is_merged = 1;
 		}
 	}
-	if (is_merged)
+	if (is_merged || is_included)
 	{
-		/* note: no need to backup/restore ICVs for merged tasks, merged tasks use the data environment of the caller */
+		if (is_included) {
+			/* TODO: backup current ICVs and setup new ICVs for the included task */
+		}
 		int i;
+		unsigned n = attr->cl.nbuffers;
+		if (n == 0)
+			n = 1;
+		void *data_interfaces[n];
 		for (i = 0; i < attr->cl.nbuffers; i++)
 		{
-			ret = starpu_data_acquire(attr->handles[i], attr->cl.modes[i]);
+			starpu_data_handle_t handle = attr->handles[i];
+			ret = starpu_data_acquire(handle, attr->cl.modes[i]);
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_acquire");
+			data_interfaces[i] = starpu_data_get_interface_on_node(handle, handle->home_node);
 		}
 		void (*f)(void **starpu_buffers, void *starpu_cl_arg) = attr->cl.cpu_funcs[0];
-		f((void**)attr->handles, attr->cl_arg);
+		f(data_interfaces, attr->cl_arg);
 		for (i = 0; i < attr->cl.nbuffers; i++)
 		{
 			starpu_data_release(attr->handles[i]);
@@ -1573,27 +1584,9 @@ void starpu_omp_task_region(const struct starpu_omp_task_region_attr *attr)
 		{
 			free(attr->cl_arg);
 		}
-	}
-	else if (is_included)
-	{
-		/* TODO: backup current ICVs and setup new ICVs for the included task */
-		int i;
-		for (i = 0; i < attr->cl.nbuffers; i++)
-		{
-			ret = starpu_data_acquire(attr->handles[i], attr->cl.modes[i]);
-			STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_acquire");
+		if (is_included) {
+			/* TODO: restore backuped ICVs */
 		}
-		void (*f)(void **starpu_buffers, void *starpu_cl_arg) = attr->cl.cpu_funcs[0];
-		f((void**)attr->handles, attr->cl_arg);
-		for (i = 0; i < attr->cl.nbuffers; i++)
-		{
-			starpu_data_release(attr->handles[i]);
-		}
-		if (attr->cl_arg_free)
-		{
-			free(attr->cl_arg);
-		}
-		/* TODO: restore backuped ICVs */
 	}
 	else
 	{

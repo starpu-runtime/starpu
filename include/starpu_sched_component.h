@@ -115,6 +115,10 @@ int starpu_sched_component_is_combined_worker(struct starpu_sched_component *com
 void starpu_sched_component_worker_pre_exec_hook(struct starpu_task *task, unsigned sched_ctx_id);
 void starpu_sched_component_worker_post_exec_hook(struct starpu_task *task, unsigned sched_ctx_id);
 
+double starpu_sched_component_estimated_load(struct starpu_sched_component * component);
+double starpu_sched_component_estimated_end_min(struct starpu_sched_component * component);
+double starpu_sched_component_estimated_end_average(struct starpu_sched_component * component);
+
 struct starpu_sched_component_fifo_data
 {
 	unsigned ntasks_threshold;

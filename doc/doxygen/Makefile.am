@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2009, 2011, 2013-2014  Université de Bordeaux
-# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
 # Copyright (C) 2014  INRIA
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -19,12 +19,7 @@ DOXYGEN = doxygen
 PDFLATEX = pdflatex
 MAKEINDEX = makeindex
 
-if BUILD_DOC
 DOX_DIR = $(top_builddir)/doc/doxygen
-else
-DOX_DIR = $(top_srcdir)/doc/doxygen
-endif
-
 DOX_CONFIG = $(top_srcdir)/doc/doxygen/doxygen.cfg
 
 DOX_HTML_DIR = html
@@ -32,6 +27,33 @@ DOX_LATEX_DIR = latex
 DOX_PDF = $(DOX_DIR)/starpu.pdf
 DOX_TAG = starpu.tag
 
+txtdir   = $(docdir)/manual
+
+if BUILD_DOC
+all: $(DOX_HTML_DIR) $(DOX_PDF)
+EXTRA_DIST = $(DOX_HTML_DIR) $(DOX_PDF)
+txt_DATA = $(DOX_PDF)
+DOX_HTML_SRCDIR=$(DOX_HTML_DIR)
+install-exec-hook:
+	$(MKDIR_P) $(DESTDIR)$(docdir)/manual/html
+	(cd $(DOX_HTML_SRCDIR) && find . -type f -exec $(INSTALL) -c -m 644 {} $(DESTDIR)$(docdir)/manual/html \;)
+uninstall-hook:
+	rm -rf $(DESTDIR)$(docdir)/manual/html
+else
+if AVAILABLE_DOC
+EXTRA_DIST = $(top_srcdir)/doc/doxygen/html $(top_srcdir)/doc/doxygen/starpu.pdf
+txt_DATA = $(top_srcdir)/doc/doxygen/starpu.pdf
+DOX_HTML_SRCDIR=$(top_srcdir)/doc/doxygen/html
+install-exec-hook:
+	$(MKDIR_P) $(DESTDIR)$(docdir)/manual/html
+	(cd $(DOX_HTML_SRCDIR) && find . -type f -exec $(INSTALL) -c -m 644 {} $(DESTDIR)$(docdir)/manual/html \;)
+uninstall-hook:
+	rm -rf $(DESTDIR)$(docdir)/manual/html
+endif
+endif
+
+
+if BUILD_DOC
 chapters =	\
 	chapters/000_introduction.doxy		\
 	chapters/101_building.doxy		\
@@ -120,7 +142,8 @@ chapters =	\
 	chapters/api/toolbox.doxy \
 	chapters/api/sc_hypervisor/sc_hypervisor.doxy \
 	chapters/api/sc_hypervisor/sc_hypervisor_usage.doxy \
-	chapters/api/modularized_scheduler.doxy
+	chapters/api/modularized_scheduler.doxy \
+	chapters/api/clustering_machine.doxy
 
 starpu_config.h: $(top_srcdir)/include/starpu_config.h.in
 	@$(SED) 's/#undef \(.*\)/#define \1 1/' $< > $@
@@ -162,55 +185,6 @@ chapters/version.html: $(chapters)
 		if test -f $$f ; then $(RM) $$f ; fi ;\
 	done
 
-if BUILD_DOC
-EXTRA_DIST	= 					\
-	$(chapters) 					\
-	chapters/version.sty				\
-	chapters/version.html				\
-	chapters/data_trace.eps				\
-	chapters/data_trace.pdf				\
-	chapters/data_trace.png				\
-	chapters/distrib_data.png	\
-	chapters/distrib_data.eps	\
-	chapters/distrib_data.pdf	\
-	chapters/distrib_data_histo.png	\
-	chapters/distrib_data_histo.eps	\
-	chapters/distrib_data_histo.pdf	\
-	chapters/paje_draw_histogram.eps	\
-	chapters/paje_draw_histogram.png	\
-	chapters/paje_draw_histogram.pdf	\
-	chapters/parallel_worker1.eps		\
-	chapters/parallel_worker1.pdf		\
-	chapters/parallel_worker1.png		\
-	chapters/parallel_worker2.eps		\
-	chapters/parallel_worker2.pdf		\
-	chapters/parallel_worker2.png		\
-	chapters/runtime-par.eps			\
-	chapters/runtime-par.pdf			\
-	chapters/runtime-par.png			\
-	chapters/runtime-seq.eps			\
-	chapters/runtime-seq.pdf			\
-	chapters/runtime-seq.png			\
-	chapters/starpu_chol_model_11_type.png	\
-	chapters/starpu_chol_model_11_type.eps	\
-	chapters/starpu_chol_model_11_type.pdf	\
-	chapters/starpu_non_linear_memset_regression_based.png	\
-	chapters/starpu_non_linear_memset_regression_based.eps	\
-	chapters/starpu_non_linear_memset_regression_based.pdf	\
-	chapters/starpu_non_linear_memset_regression_based_2.png	\
-	chapters/starpu_non_linear_memset_regression_based_2.eps	\
-	chapters/starpu_non_linear_memset_regression_based_2.pdf	\
-	chapters/starpu_starpu_slu_lu_model_11.png	\
-	chapters/starpu_starpu_slu_lu_model_11.eps	\
-	chapters/starpu_starpu_slu_lu_model_11.pdf	\
-	chapters/tasks_size_overhead.png		\
-	chapters/tasks_size_overhead.eps		\
-	chapters/tasks_size_overhead.pdf		\
-	chapters/temanejo.png		\
-	doxygen.cfg 					\
-	refman.tex					\
-	$(DOX_HTML_DIR)
-endif
 
 dox_inputs = $(DOX_CONFIG) 				\
 	$(chapters) 					\
@@ -278,12 +252,9 @@ $(DOX_TAG): $(dox_inputs)
 	@$(SED) -i '/\\begin{titlepage}/,$$d' $(DOX_LATEX_DIR)/refman.tex
 	@cat $(top_srcdir)/doc/doxygen/refman.tex >> $(DOX_LATEX_DIR)/refman.tex
 
-if BUILD_DOC
-EXTRA_DIST += $(DOX_PDF)
-
 $(DOX_PDF): $(DOX_TAG) refman.tex
 	@cp $(top_srcdir)/doc/doxygen/chapters/version.sty $(DOX_LATEX_DIR)
-	@cp $(top_srcdir)/doc/doxygen/chapters/*pdf $(DOX_LATEX_DIR)
+	@cp $(top_srcdir)/doc/doxygen/chapters/images/*pdf $(DOX_LATEX_DIR)
 	@echo $(PDFLATEX) $(DOX_LATEX_DIR)/refman.tex
 	@cd $(DOX_LATEX_DIR) ;\
 	rm -f *.aux *.toc *.idx *.ind *.ilg *.log *.out ;\
@@ -310,8 +281,8 @@ CLEANFILES = $(DOX_TAG) starpu_config.h \
     $(DOX_HTML_DIR) \
     $(DOX_LATEX_DIR) \
     $(DOX_PDF)
-endif
 
+endif
 # Rule to update documentation on web server. Should only be used locally.
 PUBLISHHOST	?= gforge
 update-web: $(DOX_PDF)

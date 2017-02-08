@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015  INRIA
+ * Copyright (C) 2015, 2017  INRIA
  * Copyright (C) 2016  CNRS
  * Copyright (C) 2016  Uppsala University
  *
@@ -172,6 +172,9 @@ static inline void default_init_sched(unsigned sched_ctx_id)
 #ifdef STARPU_USE_MIC
 	starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_MIC_IDX, max_prio-min_prio+1);
 #endif
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+	starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_MPI_MS_IDX, max_prio-min_prio+1);
+#endif
 #ifdef STARPU_USE_SCC
 	starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_SCC_IDX, max_prio-min_prio+1);
 #endif
@@ -191,6 +194,9 @@ static inline void default_init_sched(unsigned sched_ctx_id)
 #endif
 #ifdef STARPU_USE_MIC
 		starpu_heteroprio_set_mapping(sched_ctx_id, STARPU_MIC_IDX, prio, prio);
+#endif
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+		starpu_heteroprio_set_mapping(sched_ctx_id, STARPU_MPI_MS_IDX, prio, prio);
 #endif
 #ifdef STARPU_USE_SCC
 		starpu_heteroprio_set_mapping(sched_ctx_id, STARPU_SCC_IDX, prio, prio);
@@ -325,6 +331,10 @@ static void add_workers_heteroprio_policy(unsigned sched_ctx_id, int *workerids,
 			case STARPU_SCC_WORKER:
 				hp->workers_heteroprio[workerid].arch_type = STARPU_SCC;
 				hp->workers_heteroprio[workerid].arch_index = STARPU_SCC_IDX;
+				break;
+			case STARPU_MPI_MS_WORKER:
+				hp->workers_heteroprio[workerid].arch_type = STARPU_MPI_MS;
+				hp->workers_heteroprio[workerid].arch_index = STARPU_MPI_MS_IDX;
 				break;
 			default:
 				STARPU_ASSERT(0);

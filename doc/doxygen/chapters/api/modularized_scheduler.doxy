@@ -2,7 +2,7 @@
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2013        Simon Archipoff
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2014, 2015, 2016        CNRS
+ * Copyright (C) 2014, 2015, 2016, 2017        CNRS
  * Copyright (C) 2013, 2014  INRIA
  * See the file version.doxy for copying conditions.
  */
@@ -227,17 +227,31 @@ The actual scheduler
 \ingroup API_Modularized_Scheduler
 	 return true iff \p component is a combined worker component
 
-\fn void starpu_sched_component_worker_pre_exec_hook(struct starpu_task *task)
+\fn void starpu_sched_component_worker_pre_exec_hook(struct starpu_task *task, unsigned sched_ctx_id)
 \ingroup API_Modularized_Scheduler
 	 compatibility with starpu_sched_policy interface
 	 update predictions for workers
 
-\fn void starpu_sched_component_worker_post_exec_hook(struct starpu_task *task)
+\fn void starpu_sched_component_worker_post_exec_hook(struct starpu_task *task, unsigned sched_ctx_id)
 \ingroup API_Modularized_Scheduler
 	 compatibility with starpu_sched_policy interface
 
 @name Flow-control Fifo Component API
 \ingroup API_Modularized_Scheduler
+
+\fn double starpu_sched_component_estimated_load(struct starpu_sched_component * component);
+\ingroup API_Modularized_Scheduler
+default function for the estimated_load component method, just sums up the loads
+of the children of the component.
+
+\fn double starpu_sched_component_estimated_end_min(struct starpu_sched_component * component);
+\ingroup API_Modularized_Scheduler
+function that can be used for the estimated_end component method, which just computes the minimum completion time of the children.
+
+\fn double starpu_sched_component_estimated_end_average(struct starpu_sched_component * component);
+\ingroup API_Modularized_Scheduler
+default function for the estimated_end component method, which just computes the average completion time of the children.
+
 
 \struct starpu_sched_component_fifo_data
 \ingroup API_Modularized_Scheduler

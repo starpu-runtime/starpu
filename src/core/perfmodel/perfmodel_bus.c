@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  * Copyright (C) 2013 Corentin Salingue
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -747,7 +747,7 @@ static void benchmark_all_gpu_devices(void)
 #endif /* STARPU_USE_MIC */
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
-    
+
         _starpu_mpi_common_measure_bandwidth_latency(mpi_time_device_to_device, mpi_latency_device_to_device);
 
 #endif /* STARPU_USE_MPI_MASTER_SLAVE */
@@ -1206,7 +1206,7 @@ static void write_bus_latency_file_content(void)
 #endif
                                 /* TODO Latency MIC */
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
-                                /* Modify MPI src and MPI dst if they contain the master node or not 
+                                /* Modify MPI src and MPI dst if they contain the master node or not
                                  * Because, we only take care about slaves */
                                 int mpi_master = _starpu_mpi_common_get_src_node();
 
@@ -1225,7 +1225,7 @@ static void write_bus_latency_file_content(void)
                                         }
                                         else
                                         {
-                                                /* Only src represents an MPI device 
+                                                /* Only src represents an MPI device
                                                  * So we add latency between src and master */
                                                 latency += mpi_latency_device_to_device[mpi_src][mpi_master];
                                         }
@@ -1234,7 +1234,7 @@ static void write_bus_latency_file_content(void)
                                 {
                                         if (dst > ncuda + nopencl + nmic && dst <= ncuda + nopencl + nmic + nmpi_ms)
                                         {
-                                                /* Only dst identifies an MPI device 
+                                                /* Only dst identifies an MPI device
                                                  * So we add latency between master and dst */
                                                 latency += mpi_latency_device_to_device[mpi_master][mpi_dst];
                                         }
@@ -1476,7 +1476,7 @@ static void write_bus_bandwidth_file_content(void)
 					slowness += mic_time_host_to_device[dst - (ncuda + nopencl)];
 #endif
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
-                                /* Modify MPI src and MPI dst if they contain the master node or not 
+                                /* Modify MPI src and MPI dst if they contain the master node or not
                                  * Because, we only take care about slaves */
                                 int mpi_master = _starpu_mpi_common_get_src_node();
 
@@ -1496,7 +1496,7 @@ static void write_bus_bandwidth_file_content(void)
                                         }
                                         else
                                         {
-                                                /* Only src represents an MPI device 
+                                                /* Only src represents an MPI device
                                                  * So we add bandwidth between src and master */
                                                 slowness += 1.0/mpi_time_device_to_device[mpi_src][mpi_master];
                                         }
@@ -1505,7 +1505,7 @@ static void write_bus_bandwidth_file_content(void)
                                 {
                                         if (dst > ncuda + nopencl + nmic && dst <= ncuda + nopencl + nmic + nmpi_ms)
                                         {
-                                                /* Only dst identifies an MPI device 
+                                                /* Only dst identifies an MPI device
                                                  * So we add bandwidth between master and dst */
                                                 slowness += 1.0/mpi_time_device_to_device[mpi_master][mpi_dst];
                                         }
@@ -1573,7 +1573,7 @@ void starpu_bus_print_bandwidth(FILE *f)
 	for (dst = 0; dst < nmic; dst++)
 		fprintf(f, "MIC%u\t", dst);
 	for (dst = 0; dst < nmpi_ms; dst++)
-		fprintf(f, "MPI_MS%d\t", dst);
+		fprintf(f, "MPI_MS%u\t", dst);
 	fprintf(f, "\n");
 
 	for (src = 0; src <= maxnode; src++)
@@ -1587,7 +1587,7 @@ void starpu_bus_print_bandwidth(FILE *f)
 		else if (src <= ncuda + nopencl + nmic)
 			fprintf(f, "MIC%u\t", src-ncuda-nopencl-1);
                 else
-			fprintf(f, "MPI_MS%d\t", src-ncuda-nopencl-nmic-1);
+			fprintf(f, "MPI_MS%u\t", src-ncuda-nopencl-nmic-1);
 		for (dst = 0; dst <= maxnode; dst++)
 			fprintf(f, "%.0f\t", bandwidth_matrix[src][dst]);
 
@@ -1606,7 +1606,7 @@ void starpu_bus_print_bandwidth(FILE *f)
 		else if (src <= ncuda + nopencl + nmic)
 			fprintf(f, "MIC%u\t", src-ncuda-nopencl-1);
                 else
-			fprintf(f, "MPI_MS%d\t", src-ncuda-nopencl-nmic-1);
+			fprintf(f, "MPI_MS%u\t", src-ncuda-nopencl-nmic-1);
 		for (dst = 0; dst <= maxnode; dst++)
 			fprintf(f, "%.0f\t", latency_matrix[src][dst]);
 
@@ -1662,7 +1662,7 @@ static void generate_bus_bandwidth_file(void)
 {
 	if (!was_benchmarked)
 		benchmark_all_gpu_devices();
-    
+
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
         /* Slaves don't write files */
         if (!_starpu_mpi_common_is_src_node())
@@ -1704,10 +1704,11 @@ static int mpi_check_recalibrate(int my_recalibrate)
 {
         int nb_mpi = _starpu_mpi_src_get_device_count() + 1;
         int mpi_recalibrate[nb_mpi];
+	int i;
 
         MPI_Allgather(&my_recalibrate, 1, MPI_INT, mpi_recalibrate, 1, MPI_INT, MPI_COMM_WORLD);
 
-        for (int i = 0; i < nb_mpi; i++)
+        for (i = 0; i < nb_mpi; i++)
         {
                 if (mpi_recalibrate[i])
                 {
@@ -1858,7 +1859,7 @@ static void write_bus_config_file_content(void)
         fprintf(f, "%u # Number of CUDA devices\n", ncuda);
         fprintf(f, "%u # Number of OpenCL devices\n", nopencl);
         fprintf(f, "%u # Number of MIC devices\n", nmic);
-        fprintf(f, "%d # Number of MPI devices\n", nmpi_ms);
+        fprintf(f, "%u # Number of MPI devices\n", nmpi_ms);
 
 	if (locked)
 		_starpu_fwrunlock(f);
@@ -1869,7 +1870,7 @@ static void generate_bus_config_file(void)
 {
 	if (!was_benchmarked)
 		benchmark_all_gpu_devices();
-    
+
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
         /* Slaves don't write files */
         if (!_starpu_mpi_common_is_src_node())
@@ -2760,7 +2761,7 @@ void _starpu_save_bandwidth_and_latency_disk(double bandwidth_write, double band
 					slowness_main_ram_between_node = 1/bandwidth_matrix[STARPU_MAIN_RAM][j];
 				else
 					slowness_main_ram_between_node = 0;
-				
+
 				bandwidth_matrix[i][j] = 1/(slowness_disk_between_main_ram+slowness_main_ram_between_node);
 			}
 			else if (j == node) /* destination == disk */

@@ -4,7 +4,7 @@
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  * Copyright (C) 2010, 2011  INRIA
  * Copyright (C) 2011  Télécom-SudParis
- * Copyright (C) 2011-2012, 2016  INRIA
+ * Copyright (C) 2011-2012, 2016, 2017  INRIA
  * Copyright (C) 2016  Uppsala University
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -143,7 +143,7 @@ static uint32_t _starpu_worker_exists_and_can_execute(struct starpu_task *task,
 				if (task->cl->cpu_funcs_name[impl] != NULL || task->cl->mic_funcs[impl] != NULL)
 					test_implementation = 1;
 				break;
-                        case STARPU_MPI_WORKER:
+                        case STARPU_MPI_MS_WORKER:
                                 if (task->cl->cpu_funcs_name[impl] != NULL || task->cl->mpi_ms_funcs[impl] != NULL)
                                         test_implementation = 1;
                                 break;
@@ -212,7 +212,7 @@ uint32_t _starpu_worker_exists(struct starpu_task *task)
 #endif
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 	if ((task->cl->where & STARPU_MPI_MS) &&
-	    _starpu_worker_exists_and_can_execute(task, STARPU_MPI_WORKER))
+	    _starpu_worker_exists_and_can_execute(task, STARPU_MPI_MS_WORKER))
 		return 1;
 #endif
 #ifdef STARPU_USE_SCC
@@ -290,7 +290,7 @@ static inline int _starpu_can_use_nth_implementation(enum starpu_worker_archtype
 
 		return func != NULL || func_name != NULL;
 	}
-	case STARPU_MPI_WORKER:
+	case STARPU_MPI_MS_WORKER:
 	{
 		starpu_mpi_ms_func_t func = _starpu_task_get_mpi_ms_nth_implementation(cl, nimpl);
 		const char *func_name = _starpu_task_get_cpu_name_nth_implementation(cl, nimpl);
@@ -538,8 +538,9 @@ static void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu
 	starpu_pthread_wait_init(&workerarg->wait);
 	starpu_pthread_queue_register(&workerarg->wait, &_starpu_simgrid_task_queue[workerarg->workerid]);
 #endif
-        workerarg->task_sending = NULL;
-        workerarg->nb_buffers_sent = 0;
+	workerarg->task_transferring = NULL;
+	workerarg->nb_buffers_transferred = 0;
+	workerarg->nb_buffers_totransfer = 0;
 
 	workerarg->first_task = 0;
 	workerarg->ntasks = 0;
@@ -829,7 +830,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				break;
 #endif /* STARPU_USE_SCC */
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
-			case STARPU_MPI_WORKER:
+			case STARPU_MPI_MS_WORKER:
 				/* We spawn only one thread
 				 * per MPI device, which will control all MPI
 				 * workers of this device. (by using a worker set). */
@@ -966,7 +967,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				break;
 #endif
 			case STARPU_MIC_WORKER:
-                        case STARPU_MPI_WORKER:
+                        case STARPU_MPI_MS_WORKER:
 				/* Already waited above */
 				break;
 			case STARPU_SCC_WORKER:
@@ -1025,7 +1026,7 @@ int starpu_conf_init(struct starpu_conf *conf)
 	conf->use_explicit_workers_opencl_gpuid = 0; /* TODO */
 	conf->use_explicit_workers_mic_deviceid = 0; /* TODO */
 	conf->use_explicit_workers_scc_deviceid = 0; /* TODO */
-	conf->use_explicit_workers_mpi_deviceid = 0; /* TODO */
+	conf->use_explicit_workers_mpi_ms_deviceid = 0; /* TODO */
 
 	conf->single_combined_worker = starpu_get_env_number("STARPU_SINGLE_COMBINED_WORKER");
 	if (conf->single_combined_worker == -1)
@@ -1783,7 +1784,7 @@ int starpu_worker_get_count_by_type(enum starpu_worker_archtype type)
 		case STARPU_SCC_WORKER:
 			return _starpu_config.topology.nsccdevices;
 
-                case STARPU_MPI_WORKER:
+                case STARPU_MPI_MS_WORKER:
                         return _starpu_config.topology.nmpidevices;
 
                 case STARPU_ANY_WORKER:
@@ -2390,7 +2391,7 @@ char *starpu_worker_get_type_as_string(enum starpu_worker_archtype type)
 	if (type == STARPU_CUDA_WORKER) return "STARPU_CUDA_WORKER";
 	if (type == STARPU_OPENCL_WORKER) return "STARPU_OPENCL_WORKER";
 	if (type == STARPU_MIC_WORKER) return "STARPU_MIC_WORKER";
-        if (type == STARPU_MPI_WORKER) return "STARPU_MPI_WORKER";
+        if (type == STARPU_MPI_MS_WORKER) return "STARPU_MPI_MS_WORKER";
 	if (type == STARPU_SCC_WORKER) return "STARPU_SCC_WORKER";
 	if (type == STARPU_ANY_WORKER) return "STARPU_ANY_WORKER";
 	return "STARPU_unknown_WORKER";

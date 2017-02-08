@@ -142,8 +142,14 @@ int main(int argc, char **argv)
 {
 	unsigned *pvar = NULL;
 	int ret;
+	struct starpu_conf conf;
+	
+	starpu_conf_init(&conf);
 
-	ret = starpu_init(NULL);
+	/* MPI Master Slave does not support Redux */
+	conf.nmpi_ms = 0;
+
+	ret = starpu_init(&conf);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 

@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2017  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -682,15 +682,43 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 	struct starpu_task *task;
 	int res;
 
-	int idle;
+	int idle_tasks, idle_transfers;
 
 #ifdef STARPU_SIMGRID
 	starpu_pthread_wait_reset(&worker->wait);
 #endif
 
-	/* First poll for completed jobs */
-	idle = 0;
-	if (worker->ntasks)
+	idle_tasks = 0;
+	idle_transfers = 0;
+
+	/* First test for transfers pending for next task */
+	task = worker->task_transferring;
+	if (!task)
+		idle_transfers++;
+	if (task && worker->nb_buffers_transferred == worker->nb_buffers_totransfer)
+	{
+		j = _starpu_get_job_associated_to_task(task);
+
+		_starpu_release_fetch_task_input_async(j, worker);
+		/* Reset it */
+		worker->task_transferring = NULL;
+
+		if (worker->ntasks > 1 && !(task->cl->opencl_flags[j->nimpl] & STARPU_OPENCL_ASYNC))
+		{
+			/* We have to execute a non-asynchronous task but we
+			 * still have tasks in the pipeline...  Record it to
+			 * prevent more tasks from coming, and do it later */
+			worker->pipeline_stuck = 1;
+			return 0;
+		}
+
+		_STARPU_TRACE_END_PROGRESS(memnode);
+		_starpu_opencl_execute_job(task, worker);
+		_STARPU_TRACE_START_PROGRESS(memnode);
+	}
+
+	/* Then poll for completed jobs */
+	if (worker->ntasks && worker->current_tasks[worker->first_task] != worker->task_transferring)
 	{
 #ifndef STARPU_SIMGRID
 		size_t size;
@@ -706,8 +734,8 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 #else /* !STARPU_SIMGRID */
 		cl_int status;
 		err = clGetEventInfo(task_events[worker->devid][worker->first_task], CL_EVENT_COMMAND_EXECUTION_STATUS, sizeof(cl_int), &status, &size);
-		STARPU_ASSERT(size == sizeof(cl_int));
 		if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+		STARPU_ASSERT(size == sizeof(cl_int));
 
 		if (status != CL_COMPLETE)
 #endif /* !STARPU_SIMGRID */
@@ -725,7 +753,7 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 			/* Asynchronous task completed! */
 			_starpu_opencl_stop_job(_starpu_get_job_associated_to_task(task), worker);
 			/* See next task if any */
-			if (worker->ntasks)
+			if (worker->ntasks && worker->current_tasks[worker->first_task] != worker->task_transferring)
 			{
 				task = worker->current_tasks[worker->first_task];
 				j = _starpu_get_job_associated_to_task(task);
@@ -750,18 +778,18 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 		}
 	}
 	if (!worker->pipeline_length || worker->ntasks < worker->pipeline_length)
-		idle++;
+		idle_tasks++;
 
 #if defined(STARPU_NON_BLOCKING_DRIVERS) && !defined(STARPU_SIMGRID)
-	if (!idle)
+	if (!idle_tasks)
 	{
-		/* Not ready yet, no better thing to do than waiting */
-		__starpu_datawizard_progress(1, 0);
+		/* No task ready yet, no better thing to do than waiting */
+		__starpu_datawizard_progress(1, !idle_transfers);
 		return 0;
 	}
 #endif
 
-	res = !idle;
+	res = !idle_tasks || !idle_transfers;
 	res |= __starpu_datawizard_progress(1, 1);
 
 	task = _starpu_get_worker_task(worker, workerid, memnode);
@@ -787,17 +815,10 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 	worker->current_tasks[(worker->first_task  + worker->ntasks)%STARPU_MAX_PIPELINE] = task;
 	worker->ntasks++;
 
-	if (worker->ntasks > 1 && !(task->cl->opencl_flags[j->nimpl] & STARPU_OPENCL_ASYNC))
-	{
-		/* We have to execute a non-asynchronous task but we
-		 * still have tasks in the pipeline...  Record it to
-		 * prevent more tasks from coming, and do it later */
-		worker->pipeline_stuck = 1;
-		return 0;
-	}
-
+	/* Fetch data asynchronously */
 	_STARPU_TRACE_END_PROGRESS(memnode);
-	_starpu_opencl_execute_job(task, worker);
+	res = _starpu_fetch_task_input(task, j, 1);
+	STARPU_ASSERT(res == 0);
 	_STARPU_TRACE_START_PROGRESS(memnode);
 
 	return 0;
@@ -904,10 +925,10 @@ static int _starpu_opencl_start_job(struct _starpu_job *j, struct _starpu_worker
 	struct starpu_codelet *cl = task->cl;
 	STARPU_ASSERT(cl);
 
-	_starpu_set_current_task(j->task);
+	_starpu_set_current_task(task);
 
-	ret = _starpu_fetch_task_input(j);
-	if (ret != 0)
+	ret = _starpu_fetch_task_input(task, j, 0);
+	if (ret < 0)
 	{
 		/* there was not enough memory, so the input of
 		 * the codelet cannot be fetched ... put the
@@ -936,14 +957,14 @@ static int _starpu_opencl_start_job(struct _starpu_job *j, struct _starpu_worker
 			/* Actually execute function */
 			simulate = 0;
 			func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
-		#ifdef STARPU_OPENCL_SIMULATOR
-		    #ifndef CL_PROFILING_CLOCK_CYCLE_COUNT
-		      #ifdef CL_PROFILING_COMMAND_SHAVE_CYCLE_COUNT
-			#define CL_PROFILING_CLOCK_CYCLE_COUNT CL_PROFILING_COMMAND_SHAVE_CYCLE_COUNT
-		      #else
-			#error The OpenCL simulator must provide CL_PROFILING_CLOCK_CYCLE_COUNT
-		      #endif
-		    #endif
+#ifdef STARPU_OPENCL_SIMULATOR
+#ifndef CL_PROFILING_CLOCK_CYCLE_COUNT
+#ifdef CL_PROFILING_COMMAND_SHAVE_CYCLE_COUNT
+#define CL_PROFILING_CLOCK_CYCLE_COUNT CL_PROFILING_COMMAND_SHAVE_CYCLE_COUNT
+#else
+#error The OpenCL simulator must provide CL_PROFILING_CLOCK_CYCLE_COUNT
+#endif
+#endif
 			struct starpu_profiling_task_info *profiling_info = task->profiling_info;
 			STARPU_ASSERT_MSG(profiling_info->used_cycles, "Application kernel must call starpu_opencl_collect_stats to collect simulated time");
 #ifdef HAVE_MSG_HOST_GET_SPEED
@@ -957,9 +978,9 @@ static int _starpu_opencl_start_job(struct _starpu_job *j, struct _starpu_worker
 		}
 		if (simulate)
 			_starpu_simgrid_submit_job(worker->workerid, j, &worker->perf_arch, length,
-				async ? &task_finished[worker->devid][pipeline_idx] : NULL,
-				async ? &task_mutex[worker->devid][pipeline_idx] : NULL,
-				async ? &task_cond[worker->devid][pipeline_idx] : NULL);
+						   async ? &task_finished[worker->devid][pipeline_idx] : NULL,
+						   async ? &task_mutex[worker->devid][pipeline_idx] : NULL,
+						   async ? &task_cond[worker->devid][pipeline_idx] : NULL);
 #else
 		func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
 #endif

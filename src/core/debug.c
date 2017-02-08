@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2013  Université de Bordeaux
+ * Copyright (C) 2009-2013, 2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2013, 2015, 2016  CNRS
  * Copyright (C) 2016  Inria
  *
@@ -46,7 +46,7 @@ void _starpu_open_debug_logfile(void)
 	}
 
 	logfile = fopen(logfile_name, "w+");
-	STARPU_ASSERT(logfile);
+	STARPU_ASSERT_MSG(logfile, "Could not open file %s for verbose logs (%s). You can specify another file destination with the STARPU_LOGFILENAME environment variable", logfile_name, strerror(errno));
 #endif
 }
 

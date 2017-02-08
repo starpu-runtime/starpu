@@ -52,21 +52,10 @@ starpu_ssize_t starpu_memory_get_available_all_nodes();
 
 void starpu_memory_wait_available(unsigned node, size_t size);
 
-/**
- * Try to allocate memory on the given node
- *
- * @param size amount of memory to allocate
- * @param node node where the memory is to be allocated
- * @return 1 if the given amount of memory was allocated on the given node
- */
+/* Try to allocate memory on the given node */
 int starpu_memory_allocate(unsigned node, size_t size, int flags);
 
-/**
- * Indicates the given amount of memory is going to be deallocated from the given node
- *
- * @param size amount of memory to be deallocated
- * @param node node where the memory is going to be deallocated
- */
+/* Indicates the given amount of memory is going to be deallocated from the given node */
 void starpu_memory_deallocate(unsigned node, size_t size);
 
 void starpu_sleep(float nb_sec);

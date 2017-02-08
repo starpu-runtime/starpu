@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2017  Université de Bordeaux
+ * Copyright (C) 2017  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -921,7 +922,7 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 		case _STARPU_FUT_MPI_KEY:
 			set_next_mpi_ms_worker_color(workerid);
 			kindstr = "mpi_ms";
-			arch.devices[0].type = STARPU_MPI_WORKER;
+			arch.devices[0].type = STARPU_MPI_MS_WORKER;
 			arch.devices[0].devid = devid;
 			arch.devices[0].ncores = 1;
 			break;
@@ -2893,6 +2894,7 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 				break;
 			case _STARPU_FUT_USED_MEM:
 				handle_used_mem(&ev, options);
+				break;
 
 			case _STARPU_FUT_USER_EVENT:
 				handle_user_event(&ev, options);

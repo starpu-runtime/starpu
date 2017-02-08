@@ -1,3 +1,18 @@
+// StarPU --- Runtime system for heterogeneous multicore architectures.
+//
+// Copyright (C) 2017       CNRS
+//
+// StarPU is free software; you can redistribute it and/or modify
+// it under the terms of the GNU Lesser General Public License as published by
+// the Free Software Foundation; either version 2.1 of the License, or (at
+// your option) any later version.
+//
+// StarPU is distributed in the hope that it will be useful, but
+// WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+//
+// See the GNU Lesser General Public License in COPYING.LGPL for more details.
+
 memleakOnRealloc
 knownConditionTrueFalse
 variableScope
@@ -29,7 +44,7 @@ redundantAssignment:tests/main/driver_api/init_run_deinit.c
 redundantAssignment:tests/main/driver_api/run_driver.c
 
 uselessAssignmentPtrArg:mpi/src/starpu_mpi.c:171
-unreadVariable:mpi/src/starpu_mpi.c:945
+unreadVariable:mpi/src/starpu_mpi.c:943
 redundantAssignment:src/core/workers.c
 
 invalidPointerCast:src/core/perfmodel/perfmodel_nan.c:74
@@ -50,12 +65,12 @@ redundantCopy:src/core/disk_ops/disk_leveldb.cpp:194
 
 nullPointerRedundantCheck:src/common/rbtree.c
 unreadVariable:src/datawizard/interfaces/*
-unreadVariable:src/drivers/driver_common/driver_common.c:482
-clarifyCondition:src/drivers/opencl/driver_opencl.c:936
+unreadVariable:src/drivers/driver_common/driver_common.c:487
+clarifyCondition:src/drivers/opencl/driver_opencl.c:955
 unreadVariable:src/drivers/opencl/driver_opencl.c:767
-clarifyCondition:src/drivers/cuda/driver_cuda.c:506
+clarifyCondition:src/drivers/cuda/driver_cuda.c:507
 arithOperationsOnVoidPointer:src/drivers/scc/*
-nullPointerRedundantCheck:src/sched_policies/deque_modeling_policy_data_aware.c:196
+nullPointerRedundantCheck:src/sched_policies/deque_modeling_policy_data_aware.c:198
 sizeofDereferencedVoidPointer:src/util/fstarpu.c
 
 allocaCalled:gcc-plugin/src/*

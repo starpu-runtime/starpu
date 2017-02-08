@@ -250,8 +250,7 @@ MACRO_END
  * must not compare equal to an existing node in the tree (i.e. the slot
  * must denote a null node).
  */
-static inline void
-starpu_rbtree_insert_slot(struct starpu_rbtree *tree, unsigned long slot,
+static inline void starpu_rbtree_insert_slot(struct starpu_rbtree *tree, unsigned long slot,
                    struct starpu_rbtree_node *node)
 {
     struct starpu_rbtree_node *parent;

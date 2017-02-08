@@ -50,11 +50,10 @@ int parallel_code(int sched_ctx)
 
 static void sched_ctx_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
 {
-	int w = starpu_worker_get_id();
-	(void) w;
 	unsigned sched_ctx = (uintptr_t)arg;
-	int n = parallel_code(sched_ctx);
-	(void) n;
+	int t = parallel_code(sched_ctx);
+	if (sched_ctx > 0 && sched_ctx < 3)
+		tasks_executed[sched_ctx-1] += t;
 	//printf("w %d executed %d it \n", w, n);
 }
 
@@ -232,8 +231,8 @@ int main(int argc, char **argv)
 	starpu_sched_ctx_delete(sched_ctx1);
 	starpu_sched_ctx_delete(sched_ctx2);
 
-	printf("ctx%u: tasks starpu executed %d out of %d\n", sched_ctx1, tasks_executed[0], NTASKS);
-	printf("ctx%u: tasks starpu executed %d out of %d\n", sched_ctx2, tasks_executed[1], NTASKS);
+	printf("ctx%u: tasks starpu executed %d out of %d\n", sched_ctx1, tasks_executed[0], NTASKS*NTASKS);
+	printf("ctx%u: tasks starpu executed %d out of %d\n", sched_ctx2, tasks_executed[1], NTASKS*NTASKS);
 
 #ifdef STARPU_USE_CPU
 	free(procs1);

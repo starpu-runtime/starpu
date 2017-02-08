@@ -224,6 +224,9 @@ void set_properties(struct starpu_sched_component * component)
 	int worker = starpu_bitmap_first(component->workers_in_ctx);
 	if (worker == -1)
 		return;
+#ifdef STARPU_DEVEL
+#warning FIXME: Not all CUDA devices have the same speed
+#endif
 	uint32_t first_worker = _starpu_get_worker_struct(worker)->worker_mask;
 	unsigned first_memory_node = _starpu_get_worker_struct(worker)->memory_node;
 	int is_homogeneous = 1;
@@ -555,7 +558,7 @@ static void starpu_sched_component_can_pull(struct starpu_sched_component * comp
 		component->children[i]->can_pull(component->children[i]);
 }
 
-static double starpu_sched_component_estimated_load(struct starpu_sched_component * component)
+double starpu_sched_component_estimated_load(struct starpu_sched_component * component)
 {
 	double sum = 0.0;
 	int i;
@@ -567,7 +570,7 @@ static double starpu_sched_component_estimated_load(struct starpu_sched_componen
 	return sum;
 }
 
-static double starpu_sched_component_estimated_end_min(struct starpu_sched_component * component)
+double starpu_sched_component_estimated_end_min(struct starpu_sched_component * component)
 {
 	STARPU_ASSERT(component);
 	double min = DBL_MAX;
@@ -579,6 +582,16 @@ static double starpu_sched_component_estimated_end_min(struct starpu_sched_compo
 			min = tmp;
 	}
 	return min;
+}
+
+double starpu_sched_component_estimated_end_average(struct starpu_sched_component * component)
+{
+	STARPU_ASSERT(component);
+	double sum = 0.0;
+	int i;
+	for(i = 0; i < component->nchildren; i++)
+		sum += component->children[i]->estimated_end(component->children[i]);
+	return sum / component->nchildren;
 }
 
 static void take_component_and_does_nothing(struct starpu_sched_component * component STARPU_ATTRIBUTE_UNUSED)

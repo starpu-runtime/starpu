@@ -299,7 +299,7 @@ void _starpu_simgrid_init(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv STARPU
 	}
 	if (_starpu_simgrid_running_smpi())
 	{
-#ifdef __PIC__
+#ifndef STARPU_STATIC_ONLY
 		_STARPU_ERROR("Simgrid currently does not support privatization for dynamically-linked libraries in SMPI. Please reconfigure and build StarPU with --disable-shared");
 #endif
 		MSG_process_set_data(MSG_process_self(), calloc(MAX_TSD, sizeof(void*)));
@@ -819,41 +819,56 @@ void _starpu_simgrid_count_ngpus(void)
 }
 
 typedef struct{
-  void_f_pvoid_t code;
-  void *userparam;
-  void *father_data;
+	void_f_pvoid_t code;
+	void *userparam;
+	void *father_data;
 } thread_data_t;
 
-static int _starpu_simgrid_xbt_thread_create_wrapper(int argc, char *argv[])
+static int _starpu_simgrid_xbt_thread_create_wrapper(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED)
 {
-  /* FIXME: Ugly work-around for bug in simgrid: the MPI context is not properly set at MSG process startup */
-  MSG_process_sleep(0.000001);
+	/* FIXME: Ugly work-around for bug in simgrid: the MPI context is not properly set at MSG process startup */
+	MSG_process_sleep(0.000001);
 
 #ifdef HAVE_SMX_ACTOR_T
-  smx_actor_t
+	smx_actor_t
 #else
-  smx_process_t
+	smx_process_t
 #endif
-	  self = SIMIX_process_self();
-  thread_data_t *t = SIMIX_process_self_get_data(self);
-  simcall_process_set_data(self, t->father_data);
-  t->code(t->userparam);
-  simcall_process_set_data(self, NULL);
-  free(t);
-  
-  return 0;
+	self = SIMIX_process_self();
+	thread_data_t *t = SIMIX_process_self_get_data(self);
+	simcall_process_set_data(self, t->father_data);
+	t->code(t->userparam);
+	simcall_process_set_data(self, NULL);
+	free(t);
+
+	return 0;
 }
 
 void _starpu_simgrid_xbt_thread_create(const char *name, void_f_pvoid_t code, void *param)
 {
-  thread_data_t *res = malloc(sizeof(thread_data_t));
-  res->userparam = param;
-  res->code = code;
-  res->father_data = SIMIX_process_self_get_data(SIMIX_process_self());
+#ifdef HAVE_SMX_ACTOR_T
+	smx_actor_t process STARPU_ATTRIBUTE_UNUSED;
+#else
+	smx_process_t process;
+#endif
+	thread_data_t *res = malloc(sizeof(thread_data_t));
+	res->userparam = param;
+	res->code = code;
+	res->father_data = SIMIX_process_self_get_data(SIMIX_process_self());
 
-  simcall_process_create(name,
-                           _starpu_simgrid_xbt_thread_create_wrapper, res,
-                           SIMIX_host_self_get_name(), -1.0, 0, NULL,
-                           /*props */ NULL,0);
+#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 12)
+	simcall_process_create(&process,
+#else
+	process = simcall_process_create(
+#endif
+	                         name,
+	                         _starpu_simgrid_xbt_thread_create_wrapper, res,
+#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 14)
+	                         SIMIX_host_self_get_name(),
+#else
+	                         SIMIX_host_self(),
+#endif
+				 -1.0, 0, NULL,
+	                         /*props */ NULL,0);
 }
 #endif

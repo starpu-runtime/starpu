@@ -83,14 +83,6 @@ AC_PROG_EGREP
 AC_CHECK_PROGS(PROG_STAT,gstat stat)
 AC_CHECK_PROGS(PROG_DATE,gdate date)
 AC_OPENMP
-#c++11 detection
-AX_CXX_COMPILE_STDCXX(11,noext,optional)
-
-AC_SUBST([STARPU_HAVE_CXX11], $HAVE_CXX11)
-AM_CONDITIONAL([STARPU_HAVE_CXX11], [test "$HAVE_CXX11" -eq 1])
-if test $HAVE_CXX11 -eq 1; then
-  AC_DEFINE(STARPU_HAVE_CXX11, [1], [compiler supports cxx11])
-fi
 
 if test x$enable_perf_debug = xyes; then
     enable_shared=no
@@ -306,7 +298,7 @@ AC_ARG_WITH(mpicxx, [AS_HELP_STRING([--with-mpicxx[=<path to mpicxx>]],
        fi
        # nothing was specified: default value is used
        AC_PATH_PROG(mpicxx_path, $DEFAULT_MPICXX, [no], [$simgrid_dir/bin:$PATH])
-       
+
        # try with mpic++ if mpicxx was not found
        if test x$mpicxx_path = xno ; then
             DEFAULT_MPICXX=mpic++
@@ -349,6 +341,13 @@ if  test x$enable_mpi_progression_hook = xyes; then
 	AC_DEFINE(STARPU_MPI_ACTIVITY, [1], [enable StarPU MPI activity polling method])
 fi
 
+AC_ARG_ENABLE(mpi-pedantic-isend, [AS_HELP_STRING([--enable-mpi-pedantic-isend],
+				   [Enable StarPU MPI pedantic isend])],
+				   enable_mpi_pedantic_isend=$enableval, enable_mpi_pedantic_isend=no)
+if  test x$enable_mpi_pedantic_isend = xyes; then
+	AC_DEFINE(STARPU_MPI_PEDANTIC_ISEND, [1], [enable StarPU MPI pedantic isend])
+fi
+
 #We can only build MPI Master Slave if User wants it and MPI is available
 if test x$use_mpi_master_slave = xyes -a x$use_mpi = xyes -a x$use_mpicxx = xyes; then
     build_mpi_master_slave=yes
@@ -363,10 +362,10 @@ fi
 
 if test x$build_mpi_master_slave = xyes; then
     AC_DEFINE(STARPU_USE_MPI_MASTER_SLAVE, [1], [MPI Master Slave support is enabled])
-    CC=$mpicc_path    
-    CCLD=$mpicc_path      
-    CXX=$mpicxx_path      
-    CXXLD=mpicxx_path    
+    CC=$mpicc_path
+    CCLD=$mpicc_path
+    CXX=$mpicxx_path
+    CXXLD=mpicxx_path
 fi
 
 AC_ARG_WITH(mpi-master-slave-multiple-thread, [AS_HELP_STRING([--with-mpi-master-slave-multiple-thread])],
@@ -395,6 +394,15 @@ AC_DEFINE_UNQUOTED(STARPU_MAXMPIDEVS, [$nmaxmpidev], [maximum number of MPI devi
 #                                LIBTOOLS                                     #
 #                                                                             #
 ###############################################################################
+
+#c++11 detection
+AX_CXX_COMPILE_STDCXX(11,noext,optional)
+
+AC_SUBST([STARPU_HAVE_CXX11], $HAVE_CXX11)
+AM_CONDITIONAL([STARPU_HAVE_CXX11], [test "$HAVE_CXX11" -eq 1])
+if test $HAVE_CXX11 -eq 1; then
+  AC_DEFINE(STARPU_HAVE_CXX11, [1], [compiler supports cxx11])
+fi
 
 LT_PREREQ([2.2])
 LT_INIT([win32-dll])
@@ -630,7 +638,7 @@ then
     INCLUDE_PTHREAD_H='#include <pthread.h>'
 fi
 
-AC_CHECK_TYPE([struct timespec], 
+AC_CHECK_TYPE([struct timespec],
 	       AC_DEFINE(STARPU_HAVE_STRUCT_TIMESPEC,[1],[struct timespec is defined]),
 	       [], [
 #include <sys/types.h>
@@ -1357,7 +1365,7 @@ if test x$enable_opencl = xyes -o x$enable_opencl = xmaybe; then
           [AC_MSG_RESULT(no)
              enable_opencl=no])
           LIBS=$SAVED_LIBS
-          ;;        
+          ;;
         *)
 	  STARPU_LOOK_FOR_OPENCL()
 	  # in case OpenCL was explicitely required, but is not available, this is an error
@@ -2163,7 +2171,7 @@ AC_MSG_RESULT($nmaxworkers)
 AC_DEFINE_UNQUOTED(STARPU_NMAXWORKERS, [$nmaxworkers], [Maximum number of workers])
 
 # Computes the maximun number of combined worker
-nmaxcombinedworkers=`expr $maxcpus + $nmaxmicthreads`  
+nmaxcombinedworkers=`expr $maxcpus + $nmaxmicthreads`
 AC_MSG_CHECKING(Maximum number of workers combinations)
 AC_MSG_RESULT($nmaxcombinedworkers)
 AC_DEFINE_UNQUOTED(STARPU_NMAX_COMBINEDWORKERS,
@@ -2472,9 +2480,9 @@ fi
 if test x$build_mpi_master_slave = xyes; then
     #Check if we can compile fortran cases
     if test x$use_mpi_fort = xyes ; then
-        F77LD=$mpifort_path    
+        F77LD=$mpifort_path
         FCLD=$mpifort_path
-        F77=$mpifort_path    
+        F77=$mpifort_path
         FC=$mpifort_path
     else
         enable_build_fortran=no
@@ -2837,7 +2845,7 @@ if test x$enable_mlr = xyes -a "$starpu_windows" != "yes" ; then
 		LDFLAGS="-llapack $LDFLAGS"
 	else
 		if test x$blas_lib = xmkl; then
-		   	AC_DEFINE(STARPU_MLR_MODEL, [1], [use mkl library])			
+		   	AC_DEFINE(STARPU_MLR_MODEL, [1], [use mkl library])
 		else
 			AC_MSG_CHECKING(whether min-dgels is linked)
 			if test x"$DGELS_LIBS" != x; then
@@ -3058,15 +3066,20 @@ if test "$enable_build_doc" = "yes" ; then
    if test "$epstopdfcommand" = "" ; then
 	enable_build_doc="no"
    fi
-   if test -f "$srcdir/doc/doxygen/starpu.pdf"
-   then
-	enable_build_doc="no"
-   fi
+fi
+available_doc="no"
+if test -f "$srcdir/doc/doxygen/starpu.pdf"
+then
+   enable_build_doc="no"
+   available_doc="yes"
 fi
 AC_MSG_CHECKING(whether documentation should be compiled)
 AC_MSG_RESULT($enable_build_doc)
+AC_MSG_CHECKING(whether documentation is available)
+AC_MSG_RESULT($available_doc)
 
 AM_CONDITIONAL(BUILD_DOC, [test x$enable_build_doc != xno])
+AM_CONDITIONAL(AVAILABLE_DOC, [test x$available_doc != xno])
 
 ###############################################################################
 #                                                                             #
@@ -3088,6 +3101,7 @@ AC_SUBST([LIBSTARPU_LINK])
 if test "x$enable_shared" = xno; then
         # No .so, so application will unexpected have to know which -l to
         # use. Give them in .pc file.
+	AC_DEFINE(STARPU_STATIC_ONLY, [1], [Only static compilation was made])
 	STARPU_EXPORTED_LIBS="$LDFLAGS $LIBS $LIBSTARPU_LDFLAGS"
 fi
 AC_SUBST(STARPU_EXPORTED_LIBS)

@@ -2,7 +2,7 @@
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
- * Copyright (C) 2011, 2012, 2016 INRIA
+ * Copyright (C) 2011, 2012, 2016, 2017  INRIA
  * Copyright (C) 2016 Uppsala University
  * See the file version.doxy for copying conditions.
  */
@@ -121,6 +121,28 @@ MIC devices to use.
 \anchor STARPU_NMICTHREADS
 \addindex __env__STARPU_NMICTHREADS
 Number of threads to use on the MIC devices.
+</dd>
+
+<dt>STARPU_NMPI_MS</dt>
+<dd>
+\anchor STARPU_NMPI_MS
+\addindex __env__STARPU_NMPI_MS
+MPI Master Slave equivalent of the environment variable \ref STARPU_NCUDA, i.e. the number of
+MPI Master Slave devices to use.
+</dd>
+
+<dt>STARPU_NMPIMSTHREADS</dt>
+<dd>
+\anchor STARPU_NMPIMSTHREADS
+\addindex __env__STARPU_NMPIMSTHREADS
+Number of threads to use on the MPI Slave devices.
+</dd>
+
+<dt>STARPU_MPI_MASTER_NODE</dt>
+<dd>
+\anchor STARPU_MPI_MASTER_NODE
+\addindex __env__STARPU_MPI_MASTER_NODE
+This variable allows to chose which MPI node (with the MPI ID) will be the master.
 </dd>
 
 <dt>STARPU_NSCC</dt>
@@ -308,6 +330,13 @@ it is therefore necessary to disable asynchronous data transfers.
 \anchor STARPU_DISABLE_ASYNCHRONOUS_MIC_COPY
 \addindex __env__STARPU_DISABLE_ASYNCHRONOUS_MIC_COPY
 Disable asynchronous copies between CPU and MIC devices.
+</dd>
+
+<dt>STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY</dt>
+<dd>
+\anchor STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY 
+\addindex __env__STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY
+Disable asynchronous copies between CPU and MPI Slave devices.
 </dd>
 
 <dt>STARPU_ENABLE_CUDA_GPU_GPU_DIRECT</dt>
@@ -650,6 +679,16 @@ When this is set to 1, StarPU will assume that all MIC devices have the same
 performance, and thus share performance models for them, thus allowing kernel
 calibration to be much faster, since measurements only have to be once for all
 MIC GPUs.
+</dd>
+
+<dt>STARPU_PERF_MODEL_HOMOGENEOUS_MPI_MS</dt>
+<dd>
+\anchor STARPU_PERF_MODEL_HOMOGENEOUS_MPI_MS
+\addindex __env__STARPU_PERF_MODEL_HOMOGENEOUS_MPI_MS
+When this is set to 1, StarPU will assume that all MPI Slave devices have the same
+performance, and thus share performance models for them, thus allowing kernel
+calibration to be much faster, since measurements only have to be once for all
+MPI Slaves.
 </dd>
 
 <dt>STARPU_PERF_MODEL_HOMEGENEOUS_SCC</dt>

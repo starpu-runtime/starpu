@@ -110,7 +110,7 @@ int main(int argc, char **argv)
 	int gpu_devid = -1;
 
 #warning temporary fix: skip test as cuda computation fails
-	return 77;
+ 	return 77;
 
 #ifndef STARPU_HAVE_SETENV
 	return 77;
@@ -118,6 +118,7 @@ int main(int argc, char **argv)
 	/* Have separate threads for streams */
 	setenv("STARPU_CUDA_THREAD_PER_WORKER", "1", 1);
 	setenv("STARPU_NWORKER_PER_CUDA", "2", 1);
+	setenv("STARPU_NCUDA", "1", 1);
 #endif
 
 	/* Initialize StarPU */
@@ -175,7 +176,7 @@ int main(int argc, char **argv)
 	int ncpus = starpu_cpu_worker_get_count();
 	int workers[ncpus+nstreams];
 	starpu_worker_get_ids_by_type(STARPU_CPU_WORKER, workers, ncpus);
-
+	
 	int sched_ctxs[nstreams];
 	int nsms[nstreams];
 	nsms[0] = 6;

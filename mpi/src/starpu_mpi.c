@@ -368,7 +368,7 @@ static struct _starpu_mpi_req *_starpu_mpi_isend_irecv_common(starpu_data_handle
  }
 
 #ifdef STARPU_SIMGRID
-int _starpu_mpi_simgrid_mpi_test(int *done, int *flag)
+int _starpu_mpi_simgrid_mpi_test(unsigned *done, int *flag)
 {
 	*flag = 0;
 	if (*done)
@@ -378,7 +378,7 @@ int _starpu_mpi_simgrid_mpi_test(int *done, int *flag)
 	}
 	return MPI_SUCCESS;
 }
-static void* _starpu_mpi_simgrid_wait_req_func(void* arg)
+static void _starpu_mpi_simgrid_wait_req_func(void* arg)
 {
 	struct _starpu_simgrid_mpi_req *sim_req = arg;
 	int ret;
@@ -399,8 +399,6 @@ static void* _starpu_mpi_simgrid_wait_req_func(void* arg)
 	if (--wait_counter == 0)
 		STARPU_PTHREAD_COND_SIGNAL(&wait_counter_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&wait_counter_mutex);
-
-	return NULL;
 }
 void _starpu_mpi_simgrid_wait_req(MPI_Request *request, MPI_Status *status, starpu_pthread_queue_t *queue, unsigned *done)
 {
@@ -535,7 +533,13 @@ static struct _starpu_mpi_req *_starpu_mpi_isend_common(starpu_data_handle_t dat
 							unsigned detached, unsigned sync, void (*callback)(void *), void *arg,
 							int sequential_consistency)
 {
-	return _starpu_mpi_isend_irecv_common(data_handle, dest, data_tag, comm, detached, sync, callback, arg, SEND_REQ, _starpu_mpi_isend_size_func, STARPU_R, sequential_consistency, 0, 0);
+	return _starpu_mpi_isend_irecv_common(data_handle, dest, data_tag, comm, detached, sync, callback, arg, SEND_REQ, _starpu_mpi_isend_size_func,
+#ifdef STARPU_MPI_PEDANTIC_ISEND
+					      STARPU_RW,
+#else
+					      STARPU_R,
+#endif
+					      sequential_consistency, 0, 0);
 }
 
 int starpu_mpi_isend(starpu_data_handle_t data_handle, starpu_mpi_req *public_req, int dest, int data_tag, MPI_Comm comm)
@@ -828,7 +832,8 @@ static void _starpu_mpi_test_func(struct _starpu_mpi_req *testing_req)
 	struct _starpu_mpi_req *req = testing_req->other_request;
 
 	_STARPU_MPI_DEBUG(2, "Test request %p type %s tag %d src %d data %p ptr %p datatype '%s' count %d registered_datatype %d \n",
-			  req, _starpu_mpi_request_type(req->request_type), req->node_tag.data_tag, req->node_tag.rank, req->data_handle, req->ptr, req->datatype_name, (int)req->count, req->registered_datatype);
+			  req, _starpu_mpi_request_type(req->request_type), req->node_tag.data_tag, req->node_tag.rank, req->data_handle, req->ptr,
+			  req->datatype_name, (int)req->count, req->registered_datatype);
 
 	_STARPU_MPI_TRACE_UTESTING_BEGIN(req->node_tag.rank, req->node_tag.data_tag);
 
@@ -1268,7 +1273,8 @@ static void _starpu_mpi_handle_ready_request(struct _starpu_mpi_req *req)
 
 	/* submit the request to MPI */
 	_STARPU_MPI_DEBUG(2, "Handling new request %p type %s tag %d src %d data %p ptr %p datatype '%s' count %d registered_datatype %d \n",
-			  req, _starpu_mpi_request_type(req->request_type), req->node_tag.data_tag, req->node_tag.rank, req->data_handle, req->ptr, req->datatype_name, (int)req->count, req->registered_datatype);
+			  req, _starpu_mpi_request_type(req->request_type), req->node_tag.data_tag, req->node_tag.rank, req->data_handle,
+			  req->ptr, req->datatype_name, (int)req->count, req->registered_datatype);
 	req->func(req);
 
 	_STARPU_MPI_LOG_OUT();
@@ -1328,7 +1334,8 @@ static void _starpu_mpi_receive_early_data(struct _starpu_mpi_envelope *envelope
 		//_starpu_mpi_early_data_add(early_data_handle);
 	}
 
-	_STARPU_MPI_DEBUG(20, "Posting internal detached irecv on early_data_handle with tag %d from comm %d src %d ..\n", early_data_handle->node_tag.data_tag, comm, status.MPI_SOURCE);
+	_STARPU_MPI_DEBUG(20, "Posting internal detached irecv on early_data_handle with tag %d from comm %ld src %d ..\n",
+			  early_data_handle->node_tag.data_tag, (long int)comm, status.MPI_SOURCE);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 	early_data_handle->req = _starpu_mpi_irecv_common(early_data_handle->handle, status.MPI_SOURCE,
 							  early_data_handle->node_tag.data_tag, comm, 1, 0,

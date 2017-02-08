@@ -2,7 +2,7 @@
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016  CNRS
- * Copyright (C) 2011, 2012 INRIA
+ * Copyright (C) 2011, 2012, 2017  INRIA
  * See the file version.doxy for copying conditions.
  */
 
@@ -136,6 +136,19 @@ Must return 0 if the transfer was actually completed completely
 synchronously, or -EAGAIN if at least some transfers are still ongoing
 and should be awaited for by the core.
 
+\var int (*starpu_data_copy_methods::ram_to_mpi_ms)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
+Define how to copy data from the \p src_interface interface on the
+\p src_node CPU node to the \p dst_interface interface on the \p dst_node MPI Slave
+node. Return 0 on success.
+\var int (*starpu_data_copy_methods::mpi_ms_to_ram)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
+Define how to copy data from the \p src_interface interface on the
+\p src_node MPI Slave node to the \p dst_interface interface on the \p dst_node CPU
+node. Return 0 on success.
+\var int (*starpu_data_copy_methods::mpi_ms_to_mpi_ms)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
+Define how to copy data from the \p src_interface interface on the
+\p src_node MPI Slave node to the \p dst_interface interface on the \p dst_node
+MPI Slave node. Return 0 on success.
+
 \var int (*starpu_data_copy_methods::ram_to_cuda_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cudaStream_t stream)
 Define how to copy data from the \p src_interface interface on the
 \p src_node CPU node to the \p dst_interface interface on the \p dst_node CUDA
@@ -179,6 +192,25 @@ of the last submitted transfer. Must return 0 if the transfer was
 actually completed completely synchronously, or -EAGAIN if at least
 some transfers are still ongoing and should be awaited for by the
 core.
+
+\var int (*starpu_data_copy_methods::ram_to_mpi_ms_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void * event)
+Define how to copy data from the \p src_interface interface on the
+\p src_node CPU node to the \p dst_interface interface on the \p dst_node MPI Slave
+node, with the given even. Must return 0 if the transfer was
+actually completed completely synchronously, or -EAGAIN if at least
+some transfers are still ongoing and should be awaited for by the core.
+\var int (*starpu_data_copy_methods::mpi_ms_to_ram_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void * event)
+Define how to copy data from the \p src_interface interface on the
+\p src_node MPI Slave node to the \p dst_interface interface on the \p dst_node CPU
+node, with the given event. Must return 0 if the transfer was
+actually completed completely synchronously, or -EAGAIN if at least
+some transfers are still ongoing and should be awaited for by the core.
+\var int (*starpu_data_copy_methods::mpi_ms_to_mpi_ms_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void * event)
+Define how to copy data from the \p src_interface interface on the
+\p src_node MPI Slave node to the \p dst_interface interface on the \p dst_node MPI Slave 
+node, using the given stream. Must return 0 if the transfer was
+actually completed completely synchronously, or -EAGAIN if at least
+some transfers are still ongoing and should be awaited for by the core.
 
 \var int (*starpu_data_copy_methods::ram_to_mic_async)(void *src_intreface, unsigned src_node, void *dst_interface, unsigned dst_node)
 Define how to copy data from the \p src_interface interface on the

@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2016  Université de Bordeaux
-# Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
+# Copyright (C) 2009-2017  Université de Bordeaux
+# Copyright (C) 2010, 2011, 2012, 2013, 2015, 2017  CNRS
 # Copyright (C) 2011, 2014  INRIA
 # Copyright (C) 2016  Inria
 #
@@ -293,6 +293,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	sched_policies/modular_random.c				\
 	sched_policies/modular_random_prefetching.c			\
 	sched_policies/modular_heft.c				\
+	sched_policies/modular_heft_prio.c			\
 	sched_policies/modular_heft2.c				\
 	sched_policies/modular_ws.c
 
@@ -371,19 +372,31 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/mic/driver_mic_utils.
 endif
 
 #########################################
-#                                       # 	 
-#     MPI Master/Slave compilation      # 	 
-#                                       # 	 
-######################################### 	 
+#                                       #
+#     MPI Master/Slave compilation      #
+#                                       #
+#########################################
 
-if STARPU_USE_MPI_MASTER_SLAVE 	 
-libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/mpi/driver_mpi_common.c 	 
-libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/mpi/driver_mpi_source.c 	 
-libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/mpi/driver_mpi_sink.c 	 
-endif 	 
+if STARPU_USE_MPI_MASTER_SLAVE
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/mpi/driver_mpi_common.c
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/mpi/driver_mpi_source.c
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/mpi/driver_mpi_sink.c
+endif
 
 
 #########################################
+
+# If some external references appear (U), it means the corresponding .c file has
+# only included <starpu.h> and not the internal src/ header which contains the
+# static inline definition
+dist-hook:
+	failed=0 ; \
+	for i in $$( grep "static inline" $$(find $(srcdir) -name \*.h) | sed -e 's/.*static inline //g' | grep -v ENAME | sed -e 's/[^(]* \(\|\*\)\([^ (]*\)(.*/\2/' | grep -v _starpu_spin_init) ; do \
+		for j in .libs/*.o ; do \
+			nm $$j | grep "U $$i" && { echo $$j ; failed=1 ; } ; \
+		done ; \
+	done ; \
+	[ $$failed == 0 ]
 
 showcheck:
 	-cat /dev/null

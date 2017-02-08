@@ -107,8 +107,8 @@ struct starpu_conf
 	unsigned use_explicit_workers_scc_deviceid;
 	unsigned workers_scc_deviceid[STARPU_NMAXWORKERS];
 
-	unsigned use_explicit_workers_mpi_deviceid;
-	unsigned workers_mpi_deviceid[STARPU_NMAXWORKERS];
+	unsigned use_explicit_workers_mpi_ms_deviceid;
+	unsigned workers_mpi_ms_deviceid[STARPU_NMAXWORKERS];
 
 	int bus_calibrate;
 	int calibrate;

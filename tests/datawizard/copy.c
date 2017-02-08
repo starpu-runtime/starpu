@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2011, 2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  CNRS
- * Copyright (C) 2016  INRIA
+ * Copyright (C) 2016, 2017  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -65,7 +65,7 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	if (starpu_worker_get_count_by_type(STARPU_CUDA_WORKER) == 0 && starpu_worker_get_count_by_type(STARPU_OPENCL_WORKER) == 0 &&
-		starpu_worker_get_count_by_type(STARPU_MIC_WORKER) == 0 && starpu_worker_get_count_by_type(STARPU_MPI_WORKER) == 0)
+		starpu_worker_get_count_by_type(STARPU_MIC_WORKER) == 0 && starpu_worker_get_count_by_type(STARPU_MPI_MS_WORKER) == 0)
 	{
 		FPRINTF(stderr, "This application requires a CUDA , OpenCL or MIC Worker\n");
 		starpu_shutdown();

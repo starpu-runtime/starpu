@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2016  Université de Bordeaux
+ * Copyright (C) 2013-2017  Université de Bordeaux
  * Copyright (C) 2013  INRIA
  * Copyright (C) 2013  Simon Archipoff
  *
@@ -131,7 +131,7 @@ static int heft_progress_one(struct starpu_sched_component *component)
 #warning FIXME: take energy consumption into account
 #endif
 			double tmp = starpu_mct_compute_fitness(d,
-						     estimated_ends_with_task[offset + icomponent],
+						     estimated_ends_with_task[offset + icomponent] - estimated_transfer_length[offset + icomponent],
 						     min_exp_end_with_task[best_task],
 						     max_exp_end_with_task[best_task],
 						     estimated_transfer_length[offset + icomponent],
@@ -217,6 +217,7 @@ static void heft_component_deinit_data(struct starpu_sched_component * component
 	STARPU_ASSERT(starpu_sched_component_is_heft(component));
 	struct _starpu_heft_data * d = component->data;
 	struct _starpu_mct_data * mct_d = d->mct_data;
+	_starpu_prio_deque_destroy(&d->prio);
 	free(mct_d);
 	free(d);
 }

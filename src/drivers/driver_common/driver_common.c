@@ -410,8 +410,13 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 		/* This worker is executing something */
 		executing = 1;
 
+	/*if the worker is already executing a task then */
 	if (worker->pipeline_length && (worker->ntasks == worker->pipeline_length || worker->pipeline_stuck))
 		task = NULL;
+	/* don't push a task if we are already transferring one */
+	else if (worker->task_transferring != NULL)
+		task = NULL;
+	/*else try to pop a task*/
 	else
 		task = _starpu_pop_task(worker);
 
@@ -489,11 +494,11 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 		{
 			tasks[i] = NULL;
 		}
-                /* don't push a task if we are already pushing one */
-                else if (workers[i].task_sending != NULL)
-                {
-                        tasks[i] = NULL;
-                }
+		/* don't push a task if we are already transferring one */
+		else if (workers[i].task_transferring != NULL)
+		{
+			tasks[i] = NULL;
+		}
 		/*else try to pop a task*/
 		else
 		{

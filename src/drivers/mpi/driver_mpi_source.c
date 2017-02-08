@@ -87,16 +87,16 @@ int _starpu_mpi_copy_ram_to_mpi_sync(void *src, unsigned src_node STARPU_ATTRIBU
 {
         struct _starpu_mp_node *mp_node = _starpu_mpi_src_get_mp_node_from_memory_node(dst_node);
         return _starpu_src_common_copy_host_to_sink_sync(mp_node, src, dst, size);
-}   
- 
+}
+
 /* Transfert SIZE bytes from the address pointed by SRC in the SRC_NODE memory
  * node to the address pointed by DST in the DST_NODE memory node
- */    
+ */
 int _starpu_mpi_copy_mpi_to_ram_sync(void *src, unsigned src_node, void *dst, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size)
 {
         struct _starpu_mp_node *mp_node = _starpu_mpi_src_get_mp_node_from_memory_node(src_node);
         return _starpu_src_common_copy_sink_to_host_sync(mp_node, src, dst, size);
-}   
+}
 
 int _starpu_mpi_copy_sink_to_sink_sync(void *src, unsigned src_node, void *dst, unsigned dst_node, size_t size)
 {
@@ -273,10 +273,10 @@ void *_starpu_mpi_src_worker(void *arg)
 
                 _starpu_driver_start(baseworker, _STARPU_FUT_MPI_KEY, 0);
 
-#ifdef STARPU_USE_FXT             
+#ifdef STARPU_USE_FXT
                 for (i = 1; i < worker_set->nworkers; i++)
                         _starpu_worker_start(&worker_set->workers[i], _STARPU_FUT_MPI_KEY, 0);
-#endif          
+#endif
 
                 // Current task for a thread managing a worker set has no sense.
                 _starpu_set_current_task(NULL);
@@ -284,8 +284,8 @@ void *_starpu_mpi_src_worker(void *arg)
                 for (i = 0; i < config->topology.nmpicores[devid]; i++)
                 {
                         struct _starpu_worker *worker = &config->workers[baseworkerid+i];
-                        snprintf(worker->name, sizeof(worker->name), "MPI_MS %d core %u", devid, i);
-                        snprintf(worker->short_name, sizeof(worker->short_name), "MPI_MS %d.%u", devid, i);
+                        snprintf(worker->name, sizeof(worker->name), "MPI_MS %u core %u", devid, i);
+                        snprintf(worker->short_name, sizeof(worker->short_name), "MPI_MS %u.%u", devid, i);
                 }
 
 #ifndef STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD
@@ -297,7 +297,7 @@ void *_starpu_mpi_src_worker(void *arg)
 #else
                 {
                         char thread_name[16];
-                        snprintf(thread_name, sizeof(thread_name), "MPI_MS %d", devid);
+                        snprintf(thread_name, sizeof(thread_name), "MPI_MS %u", devid);
                         starpu_pthread_setname(thread_name);
                 }
 #endif

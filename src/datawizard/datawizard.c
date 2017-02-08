@@ -69,6 +69,10 @@ int __starpu_datawizard_progress(unsigned may_alloc, unsigned push_requests)
         int current_worker_id = starpu_worker_get_id();
         unsigned memnode;
 
+	if (current_worker_id < 0)
+		/* Call from main application, only make RAM requests progress */
+		return ___starpu_datawizard_progress(STARPU_MAIN_RAM, may_alloc, push_requests);
+
         int ret = 0;
 
         for (memnode = 0; memnode < STARPU_MAXNODES; memnode++)

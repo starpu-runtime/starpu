@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2016  Université de Bordeaux
+ * Copyright (C) 2010-2017  Université de Bordeaux
  * Copyright (C) 2010-2017  CNRS
  * Copyright (C) 2011, 2016  INRIA
  * Copyright (C) 2016  Uppsala University
@@ -59,6 +59,7 @@ static struct starpu_sched_policy *predefined_policies[] =
 	&_starpu_sched_modular_random_prio_prefetching_policy,
 	&_starpu_sched_modular_ws_policy,
 	&_starpu_sched_modular_heft_policy,
+	&_starpu_sched_modular_heft_prio_policy,
 	&_starpu_sched_modular_heft2_policy,
 	&_starpu_sched_eager_policy,
 	&_starpu_sched_prio_policy,
@@ -571,8 +572,14 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 				while(workers->has_next(workers, &it))
 				{
 					unsigned workerid = workers->get_next(workers, &it);
-					struct starpu_task *alias = starpu_task_dup(task);
-					alias->destroy = 1;
+					struct starpu_task *alias;
+					if (job->task_size > 1)
+					{
+						alias = starpu_task_dup(task);
+						alias->destroy = 1;
+					}
+					else
+						alias = task;
 					ret |= _starpu_push_task_on_specific_worker(alias, workerid);
 				}
 			}

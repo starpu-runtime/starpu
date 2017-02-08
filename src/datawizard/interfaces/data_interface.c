@@ -694,8 +694,6 @@ static void _starpu_data_unregister_fetch_data_callback(void *_arg)
 static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned coherent, unsigned nowait)
 {
 	STARPU_ASSERT(handle);
-	/* Prevent any further unregistration */
-	handle->magic = 0;
 	STARPU_ASSERT_MSG(handle->nchildren == 0, "data %p needs to be unpartitioned before unregistration", handle);
 	STARPU_ASSERT_MSG(handle->nplans == 0, "data %p needs its partition plans to be cleaned before unregistration", handle);
 	STARPU_ASSERT_MSG(handle->partitioned == 0, "data %p needs its partitioned plans to be unpartitioned before unregistration", handle);
@@ -807,6 +805,9 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 			func(buffers, NULL);
 		}
 	}
+
+	/* Prevent any further unregistration */
+	handle->magic = 0;
 
 	_starpu_spin_lock(&handle->header_lock);
 	if (!coherent)

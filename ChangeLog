@@ -1,8 +1,8 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2009-2017  Université de Bordeaux
-# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
-# Copyright (C) 2014, 2016 INRIA
+# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
+# Copyright (C) 2014, 2016, 2017  INRIA
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -23,6 +23,8 @@ New features:
   * Support priorities for data transfers.
   * Add support for Ayudame version 2.x debugging library.
   * Add support for multiple linear regression performance models
+  * Add MPI Master-Slave support to use the cores of remote nodes. Use the
+    --enable-mpi-master-slave option to activate it.
 
 Small features:
   * Scheduling contexts may now be associated a user data pointer at creation
@@ -30,9 +32,15 @@ Small features:
   * Add STARPU_SIMGRID_TASK_SUBMIT_COST to simulate the cost of task submission
     in simgrid mode. This provides more accurate simgrid predictions, especially
     for the beginning of the execution.
+  * New configure option --enable-mpi-pedantic-isend (disabled by
+    default) to acquire data in STARPU_RW (instead of STARPU_R) before
+    performing MPI_Isend call
 
 Changes:
   * Vastly improve simgrid simulation time.
+
+Small changes:
+  * Use asynchronous transfers for task data fetches with were not prefetched.
 
 StarPU 1.2.1 (svn revision xxx)
 ==============================================
@@ -46,6 +54,7 @@ New features:
     execution of just one MPI node.
   * Add STARPU_PERF_MODEL_HOMOGENEOUS_CUDA/OPENCL/MIC/SCC to share performance
     models between devices, making calibration much faster.
+  * Add modular-heft-prio scheduler.
 
 StarPU 1.2.0 (svn revision 18521)
 ==============================================
