@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012-2015  Université de Bordeaux
+ * Copyright (C) 2010, 2012-2015, 2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2013, 2015  CNRS
  * Copyright (C) 2016  INRIA
  *
@@ -86,8 +86,7 @@ union _starpu_async_channel_event
 	struct
 	{
 		unsigned finished;
-		starpu_pthread_mutex_t mutex;
-		starpu_pthread_cond_t cond;
+		starpu_pthread_queue_t *queue;
 	};
 #endif
 #ifdef STARPU_USE_CUDA
