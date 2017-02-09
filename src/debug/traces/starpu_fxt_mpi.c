@@ -229,11 +229,11 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, unsigned n)
 	{
 #ifdef STARPU_HAVE_POTI
 		snprintf(mpi_container, sizeof(mpi_container), "%u_mpict", node);
-		poti_SetVariable(0., mpi_container, "bwi", 0.);
-		poti_SetVariable(0., mpi_container, "bwo", 0.);
+		poti_SetVariable(0., mpi_container, "bwi_mpi", 0.);
+		poti_SetVariable(0., mpi_container, "bwo_mpi", 0.);
 #else
-		fprintf(out_paje_file, "13	%.9f	%u_mpict	bwi	%f\n", 0., node, 0.);
-		fprintf(out_paje_file, "13	%.9f	%u_mpict	bwo	%f\n", 0., node, 0.);
+		fprintf(out_paje_file, "13	%.9f	%u_mpict	bwi_mpi	%f\n", 0., node, 0.);
+		fprintf(out_paje_file, "13	%.9f	%u_mpict	bwo_mpi	%f\n", 0., node, 0.);
 #endif
 	}
 
@@ -272,12 +272,12 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, unsigned n)
 			current_in_bandwidth[match->dst] -= match->bandwidth;
 #ifdef STARPU_HAVE_POTI
 			snprintf(mpi_container, sizeof(mpi_container), "%d_mpict", match->src);
-			poti_SetVariable(match->date, mpi_container, "bwo", current_out_bandwidth[match->src]);
+			poti_SetVariable(match->date, mpi_container, "bwo_mpi", current_out_bandwidth[match->src]);
 			snprintf(mpi_container, sizeof(mpi_container), "%d_mpict", match->dst);
-			poti_SetVariable(match->date, mpi_container, "bwi", current_in_bandwidth[match->dst]);
+			poti_SetVariable(match->date, mpi_container, "bwi_mpi", current_in_bandwidth[match->dst]);
 #else
-			fprintf(out_paje_file, "13	%.9f	%d_mpict	bwo	%f\n", match->date, match->src, current_out_bandwidth[match->src]);
-			fprintf(out_paje_file, "13	%.9f	%d_mpict	bwi	%f\n", match->date, match->dst, current_in_bandwidth[match->dst]);
+			fprintf(out_paje_file, "13	%.9f	%d_mpict	bwo_mpi	%f\n", match->date, match->src, current_out_bandwidth[match->src]);
+			fprintf(out_paje_file, "13	%.9f	%d_mpict	bwi_mpi	%f\n", match->date, match->dst, current_in_bandwidth[match->dst]);
 #endif
 			continue;
 		}
@@ -324,15 +324,15 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, unsigned n)
 			snprintf(paje_key, STARPU_POTI_STR_LEN, "mpicom_%lu", id);
 			snprintf(mpi_container, sizeof(mpi_container), "%d_mpict", src);
 			poti_StartLink(start_date, "MPICt", "MPIL", mpi_container, paje_value, paje_key);
-			poti_SetVariable(start_date, mpi_container, "bwo", current_out_bandwidth[src]);
+			poti_SetVariable(start_date, mpi_container, "bwo_mpi", current_out_bandwidth[src]);
 			snprintf(mpi_container, sizeof(mpi_container), "%d_mpict", dst);
 			poti_EndLink(end_date, "MPICt", "MPIL", mpi_container, paje_value, paje_key);
-			poti_SetVariable(start_date, mpi_container, "bwo", current_in_bandwidth[dst]);
+			poti_SetVariable(start_date, mpi_container, "bwo_mpi", current_in_bandwidth[dst]);
 #else
 			fprintf(out_paje_file, "18	%.9f	MPIL	MPIroot	%lu	%d_mpict	mpicom_%lu\n", start_date, (unsigned long)size, src, id);
 			fprintf(out_paje_file, "19	%.9f	MPIL	MPIroot	%lu	%d_mpict	mpicom_%lu\n", end_date, (unsigned long)size, dst, id);
-			fprintf(out_paje_file, "13	%.9f	%d_mpict	bwo	%f\n", start_date, src, current_out_bandwidth[src]);
-			fprintf(out_paje_file, "13	%.9f	%d_mpict	bwi	%f\n", start_date, dst, current_in_bandwidth[dst]);
+			fprintf(out_paje_file, "13	%.9f	%d_mpict	bwo_mpi	%f\n", start_date, src, current_out_bandwidth[src]);
+			fprintf(out_paje_file, "13	%.9f	%d_mpict	bwi_mpi	%f\n", start_date, dst, current_in_bandwidth[dst]);
 #endif
 		}
 		else
