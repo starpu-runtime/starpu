@@ -260,6 +260,16 @@ int main(int argc, char *argv[])
 	if (timeout <= 0)
 		timeout = DEFAULT_TIMEOUT;
 
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+	/* compare values between the 2 values of timeout */
+	if (getenv("MPIEXEC_TIMEOUT"))
+	{
+		int mpiexec_timeout = strtol(getenv("MPIEXEC_TIMEOUT"), NULL, 10);	
+		if (mpiexec_timeout != timeout)
+			fprintf(stderr, "[warning] MPIEXEC_TIMEOUT and STARPU_TIMEOUT_ENV values are different (%d and %d). The behavior may be different than expected !\n", mpiexec_timeout, timeout);
+	}
+#endif
+
 	if (strstr(test_name, "tasks_size_overhead_scheds.sh"))
 		/* This extensively tests various schedulers, let it run longer */
 		timeout *= 10;
