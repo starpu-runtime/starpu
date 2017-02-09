@@ -177,7 +177,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 	/* Types for the Worker of the Memory Node */
 	poti_DefineEventType("user_event", "T", "user event type");
 	poti_DefineEventType("thread_event", "T", "thread event type");
-	poti_DefineVariableType("gf", "T", "GFlops", "0 0 0");
+	poti_DefineVariableType("gf", "W", "GFlops", "0 0 0");
 	poti_DefineStateType("S", "T", "Thread State");
 	poti_DefineEntityValue("I", "S", "Idle", ".9 .1 0");
 	poti_DefineEntityValue("In", "S", "Initializing", "0.0 .7 1.0");
@@ -305,7 +305,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 4       use     Mm       \"Used (MB)\"                        \n\
 4       bwi     Mm       \"Bandwidth In (MB/s)\"                        \n\
 4       bwo     Mm       \"Bandwidth Out (MB/s)\"                        \n\
-4       gf      T       \"GFlops\"                        \n\
+4       gf      W       \"GFlops\"                        \n\
 6       I       S       Idle         \".9 .1 .0\"		\n\
 6       In       S      Initializing       \"0.0 .7 1.0\"            \n\
 6       D       S      Deinitializing       \"0.0 .1 .7\"            \n\
