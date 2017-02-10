@@ -906,10 +906,10 @@ static void _starpu_terminate_workers(struct _starpu_machine_config *pconfig)
 	int status = 0;
 	unsigned workerid;
 
+	starpu_wake_all_blocked_workers();
+
 	for (workerid = 0; workerid < pconfig->topology.nworkers; workerid++)
 	{
-		starpu_wake_all_blocked_workers();
-
 		_STARPU_DEBUG("wait for worker %u\n", workerid);
 
 		struct _starpu_worker_set *set = pconfig->workers[workerid].set;
