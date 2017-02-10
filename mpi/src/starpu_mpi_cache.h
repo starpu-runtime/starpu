@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2011, 2012, 2013, 2014, 2015, 2016  CNRS
  * Copyright (C) 2011-2014  Université de Bordeaux
  * Copyright (C) 2014 INRIA
  *
@@ -29,7 +29,7 @@ extern "C" {
 
 extern int _starpu_cache_enabled;
 void _starpu_mpi_cache_init(MPI_Comm comm);
-void _starpu_mpi_cache_free();
+void _starpu_mpi_cache_shutdown();
 
 /*
  * If the data is already available in the cache, return a pointer to the data

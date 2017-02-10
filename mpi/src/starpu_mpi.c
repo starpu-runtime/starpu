@@ -207,7 +207,7 @@ static void _starpu_mpi_submit_ready_request(void *arg)
 		 * before the next submission of the envelope-catching request. */
 		if (req->is_internal_req)
 		{
-			_starpu_mpi_handle_allocate_datatype(req->data_handle, req);
+			_starpu_mpi_datatype_allocate(req->data_handle, req);
 			if (req->registered_datatype == 1)
 			{
 				req->count = 1;
@@ -276,7 +276,7 @@ static void _starpu_mpi_submit_ready_request(void *arg)
 				if (sync_req)
 				{
 					req->sync = 1;
-					_starpu_mpi_handle_allocate_datatype(req->data_handle, req);
+					_starpu_mpi_datatype_allocate(req->data_handle, req);
 					if (req->registered_datatype == 1)
 					{
 						req->count = 1;
@@ -463,7 +463,7 @@ static void _starpu_mpi_isend_data_func(struct _starpu_mpi_req *req)
 
 static void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req)
 {
-	_starpu_mpi_handle_allocate_datatype(req->data_handle, req);
+	_starpu_mpi_datatype_allocate(req->data_handle, req);
 
 	_STARPU_MPI_CALLOC(req->envelope, 1,sizeof(struct _starpu_mpi_envelope));
 	req->envelope->mode = _STARPU_MPI_ENVELOPE_DATA;
@@ -1061,7 +1061,7 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
 			}
 			else
 			{
-				_starpu_mpi_handle_free_datatype(req->data_handle, &req->datatype);
+				_starpu_mpi_datatype_free(req->data_handle, &req->datatype);
 			}
 		}
 	}
@@ -1251,7 +1251,7 @@ static void _starpu_mpi_receive_early_data(struct _starpu_mpi_envelope *envelope
 
 	starpu_data_handle_t data_handle = NULL;
 	STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
-	data_handle = _starpu_mpi_data_get_data_handle_from_tag(envelope->data_tag);
+	data_handle = _starpu_mpi_tag_get_data_handle_from_tag(envelope->data_tag);
 	STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 
 	if (data_handle && starpu_data_get_interface_id(data_handle) < STARPU_MAX_INTERFACE_ID)
@@ -1508,7 +1508,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 						_STARPU_MPI_DEBUG(2000, "Request sync %d\n", envelope->sync);
 
 						early_request->sync = envelope->sync;
-						_starpu_mpi_handle_allocate_datatype(early_request->data_handle, early_request);
+						_starpu_mpi_datatype_allocate(early_request->data_handle, early_request);
 						if (early_request->registered_datatype == 1)
 						{
 							early_request->count = 1;
@@ -1583,10 +1583,10 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 
 	STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
 
-	_starpu_mpi_sync_data_free();
-	_starpu_mpi_early_data_free();
-	_starpu_mpi_early_request_free();
-	_starpu_mpi_datatype_free();
+	_starpu_mpi_sync_data_shutdown();
+	_starpu_mpi_early_data_shutdown();
+	_starpu_mpi_early_request_shutdown();
+	_starpu_mpi_datatype_shutdown();
 	free(argc_argv);
 
 	return NULL;
@@ -1699,7 +1699,7 @@ void _starpu_mpi_progress_shutdown(int *value)
 
 void _starpu_mpi_clear_cache(starpu_data_handle_t data_handle)
 {
-	_starpu_mpi_data_release_tag(data_handle);
+	_starpu_mpi_tag_data_release(data_handle);
 	struct _starpu_mpi_node_tag *mpi_data = data_handle->mpi_data;
 	_starpu_mpi_cache_flush(mpi_data->comm, data_handle);
 	free(data_handle->mpi_data);
@@ -1719,7 +1719,7 @@ void starpu_mpi_data_register_comm(starpu_data_handle_t data_handle, int tag, in
 		mpi_data->rank = -1;
 		mpi_data->comm = MPI_COMM_WORLD;
 		data_handle->mpi_data = mpi_data;
-		_starpu_mpi_data_register_tag(data_handle, tag);
+		_starpu_mpi_tag_data_register(data_handle, tag);
 		_starpu_data_set_unregister_hook(data_handle, _starpu_mpi_clear_cache);
 	}
 

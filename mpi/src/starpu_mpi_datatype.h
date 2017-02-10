@@ -26,10 +26,10 @@ extern "C" {
 #endif
 
 void _starpu_mpi_datatype_init(void);
-void _starpu_mpi_datatype_free(void);
+void _starpu_mpi_datatype_shutdown(void);
 
-void _starpu_mpi_handle_allocate_datatype(starpu_data_handle_t data_handle, struct _starpu_mpi_req *req);
-void _starpu_mpi_handle_free_datatype(starpu_data_handle_t data_handle, MPI_Datatype *datatype);
+void _starpu_mpi_datatype_allocate(starpu_data_handle_t data_handle, struct _starpu_mpi_req *req);
+void _starpu_mpi_datatype_free(starpu_data_handle_t data_handle, MPI_Datatype *datatype);
 
 #ifdef __cplusplus
 }

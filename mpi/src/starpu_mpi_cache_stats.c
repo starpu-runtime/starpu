@@ -41,7 +41,7 @@ void _starpu_mpi_cache_stats_init(MPI_Comm comm)
 	_STARPU_MPI_CALLOC(comm_cache_amount, world_size, sizeof(size_t));
 }
 
-void _starpu_mpi_cache_stats_free()
+void _starpu_mpi_cache_stats_shutdown()
 {
 	if (stats_enabled == 0) return;
 	free(comm_cache_amount);
