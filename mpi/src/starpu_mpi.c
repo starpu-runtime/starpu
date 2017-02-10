@@ -376,6 +376,7 @@ int _starpu_mpi_simgrid_mpi_test(unsigned *done, int *flag)
 	}
 	return MPI_SUCCESS;
 }
+
 static void _starpu_mpi_simgrid_wait_req_func(void* arg)
 {
 	struct _starpu_simgrid_mpi_req *sim_req = arg;
@@ -398,6 +399,7 @@ static void _starpu_mpi_simgrid_wait_req_func(void* arg)
 		STARPU_PTHREAD_COND_SIGNAL(&wait_counter_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&wait_counter_mutex);
 }
+
 void _starpu_mpi_simgrid_wait_req(MPI_Request *request, MPI_Status *status, starpu_pthread_queue_t *queue, unsigned *done)
 {
 	struct _starpu_simgrid_mpi_req *sim_req;
@@ -1370,16 +1372,9 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 		/* shall we block ? */
 		unsigned block = _starpu_mpi_req_list_empty(ready_requests) && _starpu_mpi_early_request_count() == 0 && _starpu_mpi_sync_data_count() == 0;
 
-#ifndef STARPU_MPI_ACTIVITY
-		STARPU_PTHREAD_MUTEX_LOCK(&detached_requests_mutex);
-		block = block && _starpu_mpi_req_list_empty(detached_requests);
-		STARPU_PTHREAD_MUTEX_UNLOCK(&detached_requests_mutex);
-#endif /* STARPU_MPI_ACTIVITY */
-
 		if (block)
 		{
 			_STARPU_MPI_DEBUG(3, "NO MORE REQUESTS TO HANDLE\n");
-
 			_STARPU_MPI_TRACE_SLEEP_BEGIN();
 
 			if (barrier_running)
@@ -1668,7 +1663,6 @@ void _starpu_mpi_progress_shutdown(int *value)
         STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
 
 #ifdef STARPU_SIMGRID
-	(void) value;
 	/* FIXME: should rather properly wait for _starpu_mpi_progress_thread_func to finish */
 	(void) value;
 	MSG_process_sleep(1);
