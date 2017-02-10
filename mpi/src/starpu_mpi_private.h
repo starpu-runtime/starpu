@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2012-2017  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -21,15 +21,15 @@
 #include <starpu.h>
 #include <common/config.h>
 #include <common/uthash.h>
-#include "starpu_mpi.h"
-#include "starpu_mpi_fxt.h"
+#include <starpu_mpi.h>
+#include <starpu_mpi_fxt.h>
 #include <common/list.h>
 #include <core/simgrid.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-	
+
 #ifdef STARPU_SIMGRID
 starpu_pthread_wait_t wait;
 starpu_pthread_queue_t dontsleep;
@@ -45,7 +45,7 @@ struct _starpu_simgrid_mpi_req
 int _starpu_mpi_simgrid_mpi_test(unsigned *done, int *flag);
 void _starpu_mpi_simgrid_wait_req(MPI_Request *request, 	MPI_Status *status, starpu_pthread_queue_t *queue, unsigned *done);
 #endif
-	
+
 extern int _starpu_debug_rank;
 char *_starpu_mpi_get_mpi_error_code(int code);
 extern int _starpu_mpi_comm;
@@ -58,6 +58,10 @@ void _starpu_mpi_set_debug_level_max(int level);
 #endif
 extern int _starpu_mpi_fake_world_size;
 extern int _starpu_mpi_fake_world_rank;
+#ifdef STARPU_SIMGRID
+extern int _simgrid_mpi_world_size;
+extern int _simgrid_mpi_world_rank;
+#endif
 
 #ifdef STARPU_NO_ASSERT
 #  define STARPU_MPI_ASSERT_MSG(x, msg, ...)	do { if (0) { (void) (x); }} while(0)
@@ -247,7 +251,7 @@ LIST_TYPE(_starpu_mpi_req,
 	starpu_pthread_queue_t queue;
 	unsigned done;
 #endif
-	  
+
 );
 
 struct _starpu_mpi_argc_argv
@@ -260,6 +264,11 @@ struct _starpu_mpi_argc_argv
 	char **fargv;	// Fortran argv
 };
 
+void _starpu_mpi_progress_shutdown(int *value);
+int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv);
+#ifdef STARPU_SIMGRID
+void _starpu_mpi_wait_for_initialization();
+#endif
 
 #ifdef __cplusplus
 }
