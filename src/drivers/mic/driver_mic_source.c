@@ -85,7 +85,7 @@ struct _starpu_mp_node *_starpu_mic_src_get_actual_thread_mp_node()
 	return mic_nodes[devid];
 }
 
-const struct _starpu_mp_node *_starpu_mic_src_get_mp_node_from_memory_node(int memory_node)
+struct _starpu_mp_node *_starpu_mic_src_get_mp_node_from_memory_node(int memory_node)
 {
 	int devid = _starpu_memory_node_get_devid(memory_node);
 	STARPU_ASSERT_MSG(devid >= 0 && devid < STARPU_MAXMICDEVS, "bogus devid %d for memory node %d\n", devid, memory_node);
@@ -405,7 +405,7 @@ void _starpu_mic_free_memory(void *addr, size_t size, unsigned memory_node)
  */
 int _starpu_mic_copy_ram_to_mic(void *src, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst, unsigned dst_node, size_t size)
 {
-	const struct _starpu_mp_node *mp_node = _starpu_mic_src_get_mp_node_from_memory_node(dst_node);
+	struct _starpu_mp_node *mp_node = _starpu_mic_src_get_mp_node_from_memory_node(dst_node);
 
 	return _starpu_src_common_copy_host_to_sink_sync(mp_node, src, dst, size);
 }
@@ -415,7 +415,7 @@ int _starpu_mic_copy_ram_to_mic(void *src, unsigned src_node STARPU_ATTRIBUTE_UN
  */
 int _starpu_mic_copy_mic_to_ram(void *src, unsigned src_node, void *dst, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size)
 {
-	const struct _starpu_mp_node *mp_node = _starpu_mic_src_get_mp_node_from_memory_node(src_node);
+	struct _starpu_mp_node *mp_node = _starpu_mic_src_get_mp_node_from_memory_node(src_node);
 
 	return _starpu_src_common_copy_sink_to_host_sync(mp_node, src, dst, size);
 }

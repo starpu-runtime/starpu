@@ -43,7 +43,7 @@ struct _starpu_mic_async_event *event;
 	_starpu_mic_src_report_scif_error(__starpu_func__, __FILE__, __LINE__, status)
 
 struct _starpu_mp_node *_starpu_mic_src_get_actual_thread_mp_node();
-const struct _starpu_mp_node *_starpu_mic_src_get_mp_node_from_memory_node(int memory_node);
+struct _starpu_mp_node *_starpu_mic_src_get_mp_node_from_memory_node(int memory_node);
 
 void(* _starpu_mic_src_get_kernel_from_job(const struct _starpu_mp_node *node STARPU_ATTRIBUTE_UNUSED, struct _starpu_job *j))(void);
 int _starpu_mic_src_register_kernel(starpu_mic_func_symbol_t *symbol, const char *func_name);
