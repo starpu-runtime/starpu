@@ -31,7 +31,7 @@ void _starpu_mic_common_report_scif_error(const char *func, const char *file, co
  * care about it.
  */
 
-void _starpu_mic_common_send(const struct _starpu_mp_node *node, void *msg, int len, void * event)
+void _starpu_mic_common_send(const struct _starpu_mp_node *node, void *msg, int len)
 {
   if ((scif_send(node->mp_connection.mic_endpoint, msg, len, SCIF_SEND_BLOCK)) < 0)
 		STARPU_MP_COMMON_REPORT_ERROR(node, errno);
@@ -56,7 +56,7 @@ int _starpu_mic_common_recv_is_ready(const struct _starpu_mp_node *mp_node)
  * care about it.
  */
 
-void _starpu_mic_common_recv(const struct _starpu_mp_node *node, void *msg, int len, void * event)
+void _starpu_mic_common_recv(const struct _starpu_mp_node *node, void *msg, int len)
 {
 	if ((scif_recv(node->mp_connection.mic_endpoint, msg, len, SCIF_RECV_BLOCK)) < 0)
 		STARPU_MP_COMMON_REPORT_ERROR(node, errno);
