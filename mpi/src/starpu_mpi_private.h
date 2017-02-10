@@ -58,10 +58,6 @@ void _starpu_mpi_set_debug_level_max(int level);
 #endif
 extern int _starpu_mpi_fake_world_size;
 extern int _starpu_mpi_fake_world_rank;
-#ifdef STARPU_SIMGRID
-extern int _simgrid_mpi_world_size;
-extern int _simgrid_mpi_world_rank;
-#endif
 
 #ifdef STARPU_NO_ASSERT
 #  define STARPU_MPI_ASSERT_MSG(x, msg, ...)	do { if (0) { (void) (x); }} while(0)
@@ -262,6 +258,8 @@ struct _starpu_mpi_argc_argv
 	MPI_Comm comm;
 	int fargc;	// Fortran argc
 	char **fargv;	// Fortran argv
+	int rank;
+	int world_size;
 };
 
 void _starpu_mpi_progress_shutdown(int *value);

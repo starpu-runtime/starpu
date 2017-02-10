@@ -75,9 +75,6 @@ static starpu_pthread_t progress_thread;
 static int running = 0;
 
 #ifdef STARPU_SIMGRID
-int _simgrid_mpi_world_size;
-int _simgrid_mpi_world_rank;
-
 static int wait_counter;
 static starpu_pthread_cond_t wait_counter_cond;
 static starpu_pthread_mutex_t wait_counter_mutex;
@@ -1302,7 +1299,6 @@ static void _starpu_mpi_receive_early_data(struct _starpu_mpi_envelope *envelope
 static void *_starpu_mpi_progress_thread_func(void *arg)
 {
 	struct _starpu_mpi_argc_argv *argc_argv = (struct _starpu_mpi_argc_argv *) arg;
-	int rank, worldsize;
 
 	starpu_pthread_setname("MPI");
 
@@ -1310,13 +1306,6 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	_starpu_mpi_do_initialize(argc_argv);
 #endif
 
-	MPI_Comm_rank(argc_argv->comm, &rank);
-	MPI_Comm_size(argc_argv->comm, &worldsize);
-	MPI_Comm_set_errhandler(argc_argv->comm, MPI_ERRORS_RETURN);
-#ifdef STARPU_SIMGRID
-	_simgrid_mpi_world_size = worldsize;
-	_simgrid_mpi_world_rank = rank;
-#endif
 	_starpu_mpi_fake_world_size = starpu_get_env_number("STARPU_MPI_FAKE_SIZE");
 	_starpu_mpi_fake_world_rank = starpu_get_env_number("STARPU_MPI_FAKE_RANK");
 
@@ -1333,18 +1322,15 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	smpi_process_set_user_data(calloc(MAX_TSD + 1, sizeof(void*)));
 #endif
 #endif
+
 #ifdef STARPU_USE_FXT
-	/* Wait for FxT initialization before emitting FxT probes */
-	STARPU_PTHREAD_MUTEX_LOCK(&_starpu_fxt_started_mutex);
-	while (!_starpu_fxt_started)
-		STARPU_PTHREAD_COND_WAIT(&_starpu_fxt_started_cond, &_starpu_fxt_started_mutex);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_fxt_started_mutex);
+	_starpu_fxt_wait_initialisation();
 #endif //STARPU_USE_FXT
 
 	{
-		_STARPU_MPI_TRACE_START(rank, worldsize);
+		_STARPU_MPI_TRACE_START(argc_argv->rank, argc_argv->world_size);
 #ifdef STARPU_USE_FXT
-		starpu_profiling_set_id(rank);
+		starpu_profiling_set_id(argc_argv->rank);
 #endif //STARPU_USE_FXT
 	}
 
@@ -1675,6 +1661,7 @@ void _starpu_mpi_progress_shutdown(int *value)
         STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
         running = 0;
         STARPU_PTHREAD_COND_BROADCAST(&progress_cond);
+
 #ifdef STARPU_SIMGRID
 	starpu_pthread_queue_signal(&dontsleep);
 #endif
@@ -1683,6 +1670,7 @@ void _starpu_mpi_progress_shutdown(int *value)
 #ifdef STARPU_SIMGRID
 	(void) value;
 	/* FIXME: should rather properly wait for _starpu_mpi_progress_thread_func to finish */
+	(void) value;
 	MSG_process_sleep(1);
 #else
 	starpu_pthread_join(progress_thread, (void *)value);

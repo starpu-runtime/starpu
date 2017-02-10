@@ -37,6 +37,11 @@
 #include <core/simgrid.h>
 #include <core/task.h>
 
+#ifdef STARPU_SIMGRID
+static int _mpi_world_size;
+static int _mpi_world_rank;
+#endif
+
 static void _starpu_mpi_print_thread_level_support(int thread_level, char *msg)
 {
 	switch (thread_level)
@@ -77,6 +82,15 @@ void _starpu_mpi_do_initialize(struct _starpu_mpi_argc_argv *argc_argv)
 		MPI_Query_thread(&provided);
 		_starpu_mpi_print_thread_level_support(provided, " has been initialized with");
 	}
+
+	MPI_Comm_rank(argc_argv->comm, &argc_argv->rank);
+	MPI_Comm_size(argc_argv->comm, &argc_argv->world_size);
+	MPI_Comm_set_errhandler(argc_argv->comm, MPI_ERRORS_RETURN);
+
+#ifdef STARPU_SIMGRID
+	_mpi_world_size = argc_argv->world_size;
+	_mpi_world_rank = argc_argv->rank;
+#endif
 }
 
 static
@@ -134,8 +148,8 @@ int starpu_mpi_initialize(void)
 int starpu_mpi_initialize_extended(int *rank, int *world_size)
 {
 #ifdef STARPU_SIMGRID
-	*world_size = _simgrid_mpi_world_size;
-	*rank = _simgrid_mpi_world_rank;
+	*world_size = _mpi_world_size;
+	*rank = _mpi_world_rank;
 	return 0;
 #else
 	int ret;
@@ -183,7 +197,7 @@ int starpu_mpi_comm_size(MPI_Comm comm, int *size)
 	}
 #ifdef STARPU_SIMGRID
 	STARPU_MPI_ASSERT_MSG(comm == MPI_COMM_WORLD, "StarPU-SMPI only works with MPI_COMM_WORLD for now");
-	*size = _simgrid_mpi_world_size;
+	*size = _mpi_world_size;
 	return 0;
 #else
 	return MPI_Comm_size(comm, size);
@@ -199,7 +213,7 @@ int starpu_mpi_comm_rank(MPI_Comm comm, int *rank)
 	}
 #ifdef STARPU_SIMGRID
 	STARPU_MPI_ASSERT_MSG(comm == MPI_COMM_WORLD, "StarPU-SMPI only works with MPI_COMM_WORLD for now");
-	*rank = _simgrid_mpi_world_rank;
+	*rank = _mpi_world_rank;
 	return 0;
 #else
 	return MPI_Comm_rank(comm, rank);
