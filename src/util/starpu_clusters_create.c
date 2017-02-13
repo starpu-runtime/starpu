@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2015-2016  Université de Bordeaux
  * Copyright (C) 2015  INRIA
- * Copyright (C) 2015, 2016  CNRS
+ * Copyright (C) 2015, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -47,6 +47,7 @@ starpu_binding_function _starpu_cluster_type_get_func(starpu_cluster_types type)
 
 void starpu_openmp_prologue(void* arg)
 {
+	(void) arg;
 	int workerid = starpu_worker_get_id_check();
 
 	if (starpu_worker_get_type(workerid) == STARPU_CPU_WORKER)

@@ -35,6 +35,7 @@ TaskManager::TaskManager()
     Q_ASSERT_X(instanciated == false, "TaskManager's' constructor",
                "Singleton pattern violated - "
                "TaskManager instanciated more than once");
+    (void) instanciated;
 
     qDebug() << "TaskManager : initializing";
 

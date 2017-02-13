@@ -334,6 +334,7 @@ void MainWindow::openSession()
     Q_ASSERT_X(ok == true,
                "MainWindow::openSession()",
                "Couldn't connect to the tasks database !");
+    (void) ok;
 
     // Init time references
     _lockedTime = 0;
@@ -440,8 +441,9 @@ void MainWindow::sessionMainWindowSetupLoaded(MainWindowSetup mainWindowSetup)
 void MainWindow::sessionParametersDockSetupLoaded(
         ParametersDockSetup parametersDockSetup)
 {
-    qDebug() << "MainWindow : "
-            "restoring parameters dock setup from another session";
+	(void) parametersDockSetup;
+	qDebug() << "MainWindow : "
+		"restoring parameters dock setup from another session";
 }
 
 void MainWindow::sessionWidgetWindowsSetupLoaded(
@@ -1362,8 +1364,9 @@ void MainWindow::updateTaskPrev(int taskId, int deviceId, qlonglong timestamp,
                                 qlonglong timestampStart,
                                 qlonglong timestampEnd)
 {
-    _taskManager->addTaskPrev(taskId, deviceId, timestampStart - _preGoTime,
-                              timestampEnd - _preGoTime);
+	(void) timestamp;
+	_taskManager->addTaskPrev(taskId, deviceId, timestampStart - _preGoTime,
+				  timestampEnd - _preGoTime);
 }
 
 void MainWindow::updateTaskStart(int taskId, int deviceId, qlonglong timestamp)

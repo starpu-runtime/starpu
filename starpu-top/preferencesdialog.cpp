@@ -151,7 +151,7 @@ void PreferencesDialog::displayWidgetPreferences()
         QList < DataWidgetType > dataWidgetPossibilities
                 = _dataWidgetPossibilities->value(dataType).values();
 
-        int currentDataWidgetIndex;
+        int currentDataWidgetIndex=-1;
         for (int j = 0; j < dataWidgetPossibilities.count(); j++)
         {
             DataWidgetType widget = dataWidgetPossibilities.at(j);
@@ -207,8 +207,8 @@ void PreferencesDialog::displayWidgetPreferences()
         QList < InteractiveWidgetType > interactiveWidgetPossibilities
                 = _interactiveWidgetPossibilities->value(paramType).values();
 
-        int currentInteractiveWidgetIndex;
-        for (int j = 0; j < interactiveWidgetPossibilities.count(); j++)
+        int currentInteractiveWidgetIndex=-1;
+	for (int j = 0; j < interactiveWidgetPossibilities.count(); j++)
         {
             InteractiveWidgetType widget = interactiveWidgetPossibilities.at(j);
             if (widget == paramDescription->widget)

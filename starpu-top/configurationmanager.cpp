@@ -34,6 +34,7 @@ ConfigurationManager::ConfigurationManager()
     Q_ASSERT_X(instanciated == false, "ConfigurationManager's' constructor",
                "Singleton pattern violated - "
                "ConfigurationManager instanciated more than once");
+    (void) instanciated;
 
     qDebug() << "ConfigurationManager : initializing";
 

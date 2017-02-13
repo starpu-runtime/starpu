@@ -1,7 +1,7 @@
 /*
 = StarPU-Top for StarPU =
 
-Copyright (C) 2011 
+Copyright (C) 2011
 William Braik
 Yann Courtois
 Jean-Marie Couteyen
@@ -37,6 +37,7 @@ CommunicationManager::CommunicationManager(QObject *parent) :
     Q_ASSERT_X(instanciated == false, "CommunicationManager's' constructor",
                "Singleton pattern violated - "
                "CommunicationManager instanciated more than once");
+    (void) instanciated;
 
     qDebug() << "CommunicationManager : initializing";
 
@@ -665,34 +666,26 @@ void CommunicationManager::parseInitDevMessage(QString messageString)
         Q_ASSERT_X(ok == true, "CommunicationManager::parseInitDevMessage()",
                    "Bogus message received in INIT DEV");
 
-        starpu_top_device_type deviceType;
+        starpu_top_device_type deviceType = SERVERDEVICE_INVALID;
 
-        Q_ASSERT_X(
-                deviceTypeString.compare(
-                        _inMessageStrings.key(COM_MSG_IN_DEV_CPU)) == 0
-                || deviceTypeString.compare(
-                        _inMessageStrings.key(COM_MSG_IN_DEV_CUDA))
-                == 0 || deviceTypeString.compare(
-                        _inMessageStrings.key(COM_MSG_IN_DEV_OPENCL)) == 0
-		,
-                "CommunicationManager::parseInitDevMessage()",
-                "Bogus message received in INIT DEV");
-
-        if (deviceTypeString.compare(_inMessageStrings.key(COM_MSG_IN_DEV_CPU))
-            == 0)
-            {
+        if (deviceTypeString.compare(_inMessageStrings.key(COM_MSG_IN_DEV_CPU)) == 0)
+	{
             deviceType = SERVERDEVICE_CPU;
         }
-        else if (deviceTypeString.compare(
-                _inMessageStrings.key(COM_MSG_IN_DEV_CUDA)) == 0)
+        else if (deviceTypeString.compare(_inMessageStrings.key(COM_MSG_IN_DEV_CUDA)) == 0)
         {
             deviceType = SERVERDEVICE_CUDA;
         }
-        else if (deviceTypeString.compare(
-                _inMessageStrings.key(COM_MSG_IN_DEV_OPENCL)) == 0)
+        else if (deviceTypeString.compare(_inMessageStrings.key(COM_MSG_IN_DEV_OPENCL)) == 0)
         {
             deviceType = SERVERDEVICE_OPENCL;
         }
+	else
+	{
+	    Q_ASSERT_X(false,
+		       "CommunicationManager::parseInitDevMessage()",
+		       "Bogus message received in INIT DEV");
+	}
 
         starpu_top_device device;
         device.id = deviceId;
@@ -1456,7 +1449,7 @@ DataDescription *CommunicationManager::dataDescriptionFromId(int dataId) const
     return 0;
 }
 
-ParamDescription 
+ParamDescription
         *CommunicationManager::paramDescriptionFromId(int paramId) const
 {
     for (int i = 0; i < _paramDescriptions->count(); i++)

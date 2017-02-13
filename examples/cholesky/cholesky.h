@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2017  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -50,7 +50,7 @@
 					| ((unsigned long long)(i)<<16) 			\
 					| (unsigned long long)(j))))
 
-#define BLOCKSIZE	(size/nblocks)
+#define BLOCKSIZE	(size_p/nblocks_p)
 
 #define BLAS3_FLOP(n1,n2,n3)    \
         (2*((uint64_t)n1)*((uint64_t)n2)*((uint64_t)n3))
@@ -113,11 +113,12 @@
 
 /* End of magma code */
 
-static unsigned size;
-static unsigned nblocks;
-static unsigned nbigblocks;
+static unsigned size_p;
+static unsigned nblocks_p;
+static unsigned nbigblocks_p;
 
-static inline void init_sizes(void) {
+static inline void init_sizes(void)
+{
 	int power = starpu_cpu_worker_get_count() + 32 * starpu_cuda_worker_get_count();
 	int power_cbrt = cbrt(power);
 #ifndef STARPU_LONG_CHECK
@@ -128,33 +129,33 @@ static inline void init_sizes(void) {
 		power_cbrt = 1;
 
 #ifdef STARPU_QUICK_CHECK
-	if (!size)
-		size = 320*2*power_cbrt;
-	if (!nblocks)
-		nblocks = 2*power_cbrt;
-	if (!nbigblocks)
-		nbigblocks = power_cbrt;
+	if (!size_p)
+		size_p = 320*2*power_cbrt;
+	if (!nblocks_p)
+		nblocks_p = 2*power_cbrt;
+	if (!nbigblocks_p)
+		nbigblocks_p = power_cbrt;
 #else
-	if (!size)
-		size = 960*8*power_cbrt;
-	if (!nblocks)
-		nblocks = 8*power_cbrt;
-	if (!nbigblocks)
-		nbigblocks = 4*power_cbrt;
+	if (!size_p)
+		size_p = 960*8*power_cbrt;
+	if (!nblocks_p)
+		nblocks_p = 8*power_cbrt;
+	if (!nbigblocks_p)
+		nbigblocks_p = 4*power_cbrt;
 #endif
 }
 
-static unsigned pinned = 1;
-static unsigned noprio = 0;
-static unsigned check = 0;
-static unsigned bound = 0;
-static unsigned bound_deps = 0;
-static unsigned bound_lp = 0;
-static unsigned bound_mps = 0;
-static unsigned with_ctxs = 0;
-static unsigned with_noctxs = 0;
-static unsigned chole1 = 0;
-static unsigned chole2 = 0;
+static unsigned pinned_p = 1;
+static unsigned noprio_p = 0;
+static unsigned check_p = 0;
+static unsigned bound_p = 0;
+static unsigned bound_deps_p = 0;
+static unsigned bound_lp_p = 0;
+static unsigned bound_mps_p = 0;
+static unsigned with_ctxs_p = 0;
+static unsigned with_noctxs_p = 0;
+static unsigned chole1_p = 0;
+static unsigned chole2_p = 0;
 
 struct starpu_perfmodel chol_model_11;
 struct starpu_perfmodel chol_model_21;
@@ -182,57 +183,57 @@ double cuda_chol_task_21_cost(struct starpu_task *task, struct starpu_perfmodel_
 double cuda_chol_task_22_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
 #endif
 
-void initialize_chol_model(struct starpu_perfmodel* model, char* symbol, 
-		double (*cpu_cost_function)(struct starpu_task *, struct starpu_perfmodel_arch*, unsigned), 
-		double (*cuda_cost_function)(struct starpu_task *, struct starpu_perfmodel_arch*, unsigned));
+void initialize_chol_model(struct starpu_perfmodel* model, char* symbol,
+			   double (*cpu_cost_function)(struct starpu_task *, struct starpu_perfmodel_arch*, unsigned),
+			   double (*cuda_cost_function)(struct starpu_task *, struct starpu_perfmodel_arch*, unsigned));
 
 static void STARPU_ATTRIBUTE_UNUSED parse_args(int argc, char **argv)
 {
 	int i;
 	for (i = 1; i < argc; i++)
 	{
-		if (strcmp(argv[i], "-with_ctxs") == 0) 
+		if (strcmp(argv[i], "-with_ctxs") == 0)
 		{
-			with_ctxs = 1;
+			with_ctxs_p = 1;
 			break;
 		}
-		else if (strcmp(argv[i], "-with_noctxs") == 0) 
+		else if (strcmp(argv[i], "-with_noctxs") == 0)
 		{
-			with_noctxs = 1;
+			with_noctxs_p = 1;
 			break;
 		}
-		else if (strcmp(argv[i], "-chole1") == 0) 
+		else if (strcmp(argv[i], "-chole1") == 0)
 		{
-			chole1 = 1;
+			chole1_p = 1;
 			break;
 		}
-		else if (strcmp(argv[i], "-chole2") == 0) 
+		else if (strcmp(argv[i], "-chole2") == 0)
 		{
-			chole2 = 1;
+			chole2_p = 1;
 			break;
 		}
 		else if (strcmp(argv[i], "-size") == 0)
 		{
 		        char *argptr;
-			size = strtol(argv[++i], &argptr, 10);
+			size_p = strtol(argv[++i], &argptr, 10);
 		}
 		else if (strcmp(argv[i], "-nblocks") == 0)
 		{
 		        char *argptr;
-			nblocks = strtol(argv[++i], &argptr, 10);
+			nblocks_p = strtol(argv[++i], &argptr, 10);
 		}
 		else if (strcmp(argv[i], "-nbigblocks") == 0)
 		{
 		        char *argptr;
-			nbigblocks = strtol(argv[++i], &argptr, 10);
+			nbigblocks_p = strtol(argv[++i], &argptr, 10);
 		}
 		else if (strcmp(argv[i], "-no-pin") == 0)
 		{
-			pinned = 0;
+			pinned_p = 0;
 		}
 		else if (strcmp(argv[i], "-no-prio") == 0)
 		{
-			noprio = 1;
+			noprio_p = 1;
 		}
 		else if (strcmp(argv[i], "-commute") == 0)
 		{
@@ -240,29 +241,29 @@ static void STARPU_ATTRIBUTE_UNUSED parse_args(int argc, char **argv)
 		}
 		else if (strcmp(argv[i], "-bound") == 0)
 		{
-			bound = 1;
+			bound_p = 1;
 		}
 		else if (strcmp(argv[i], "-bound-lp") == 0)
 		{
-			bound_lp = 1;
+			bound_lp_p = 1;
 		}
 		else if (strcmp(argv[i], "-bound-mps") == 0)
 		{
-			bound_mps = 1;
+			bound_mps_p = 1;
 		}
 		else if (strcmp(argv[i], "-bound-deps") == 0)
 		{
-			bound_deps = 1;
+			bound_deps_p = 1;
 		}
 		else if (strcmp(argv[i], "-check") == 0)
 		{
-			check = 1;
+			check_p = 1;
 		}
 		else
 		/* if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i],"--help") == 0) */
 		{
 			fprintf(stderr,"usage : %s [-size size] [-nblocks nblocks] [-no-pin] [-no-prio] [-bound] [-bound-deps] [-bound-lp] [-check]\n", argv[0]);
-			fprintf(stderr,"Currently selected: %ux%u and %ux%u blocks\n", size, size, nblocks, nblocks);
+			fprintf(stderr,"Currently selected: %ux%u and %ux%u blocks\n", size_p, size_p, nblocks_p, nblocks_p);
 			exit(0);
 		}
 	}

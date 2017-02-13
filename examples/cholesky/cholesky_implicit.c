@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009-2016  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012, 2013, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -47,10 +47,10 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 	unsigned long n = starpu_matrix_get_nx(dataA);
 	unsigned long nn = n/nblocks;
 
-	int prio_level = noprio?STARPU_DEFAULT_PRIO:STARPU_MAX_PRIO;
+	int prio_level = noprio_p?STARPU_DEFAULT_PRIO:STARPU_MAX_PRIO;
 
-	if (bound || bound_lp || bound_mps)
-		starpu_bound_start(bound_deps, 0);
+	if (bound_p || bound_lp_p || bound_mps_p)
+		starpu_bound_start(bound_deps_p, 0);
 	starpu_fxt_start_profiling();
 
 	start = starpu_timing_now();
@@ -118,34 +118,34 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 	end = starpu_timing_now();
 
 	starpu_fxt_stop_profiling();
-	if (bound || bound_lp || bound_mps)
+	if (bound_p || bound_lp_p || bound_mps_p)
 		starpu_bound_stop();
 
 	double timing = end - start;
 
 	double flop = FLOPS_SPOTRF(n);
 
-	if(with_ctxs || with_noctxs || chole1 || chole2)
+	if(with_ctxs_p || with_noctxs_p || chole1_p || chole2_p)
 		update_sched_ctx_timing_results((flop/timing/1000.0f), (timing/1000000.0f));
 	else
 	{
 		PRINTF("# size\tms\tGFlops");
-		if (bound)
+		if (bound_p)
 			PRINTF("\tTms\tTGFlops");
 		PRINTF("\n");
 
 		PRINTF("%lu\t%.0f\t%.1f", n, timing/1000, (flop/timing/1000.0f));
-		if (bound_lp)
+		if (bound_lp_p)
 		{
 			FILE *f = fopen("cholesky.lp", "w");
 			starpu_bound_print_lp(f);
 		}
-		if (bound_mps)
+		if (bound_mps_p)
 		{
 			FILE *f = fopen("cholesky.mps", "w");
 			starpu_bound_print_mps(f);
 		}
-		if (bound)
+		if (bound_p)
 		{
 			double res;
 			starpu_bound_compute(&res, NULL, 0);
@@ -246,7 +246,7 @@ static void execute_cholesky(unsigned size, unsigned nblocks)
 	}
 #endif
 
-	if (check)
+	if (check_p)
 	{
 		FPRINTF(stderr, "compute explicit LLt ...\n");
 		for (j = 0; j < size; j++)
@@ -327,7 +327,7 @@ int main(int argc, char **argv)
 
 	parse_args(argc, argv);
 
-	if(with_ctxs || with_noctxs || chole1 || chole2)
+	if(with_ctxs_p || with_noctxs_p || chole1_p || chole2_p)
 		parse_args_ctx(argc, argv);
 
 #ifdef STARPU_USE_CUDA
@@ -342,19 +342,19 @@ int main(int argc, char **argv)
 
 	starpu_cublas_init();
 
-	if(with_ctxs)
+	if(with_ctxs_p)
 	{
 		construct_contexts(execute_cholesky);
 		start_2benchs(execute_cholesky);
 	}
-	else if(with_noctxs)
+	else if(with_noctxs_p)
 		start_2benchs(execute_cholesky);
-	else if(chole1)
+	else if(chole1_p)
 		start_1stbench(execute_cholesky);
-	else if(chole2)
+	else if(chole2_p)
 		start_2ndbench(execute_cholesky);
 	else
-		execute_cholesky(size, nblocks);
+		execute_cholesky(size_p, nblocks_p);
 
 	starpu_cublas_shutdown();
 	starpu_shutdown();

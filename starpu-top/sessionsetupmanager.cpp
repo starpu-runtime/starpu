@@ -41,6 +41,7 @@ SessionSetupManager::SessionSetupManager(MainWindow *mainWindow)
     Q_ASSERT_X(instanciated == false, "SessionSetupManager's' constructor",
                "Singleton pattern violated - "
                "SessionSetupManager instanciated more than once");
+    (void) instanciated;
 
     qDebug() << "SessionSetupManager : initializing";
 
