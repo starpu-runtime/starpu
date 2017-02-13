@@ -2548,7 +2548,7 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 		{
 			char new_scheduler_container_alias[STARPU_POTI_STR_LEN], new_scheduler_container_name[STARPU_POTI_STR_LEN];
 			scheduler_container_alias(new_scheduler_container_alias, STARPU_POTI_STR_LEN, prefix);
-			snprintf(new_scheduler_container_name, STARPU_POTI_STR_LEN, "scheduler %s", prefix);
+			snprintf(new_scheduler_container_name, STARPU_POTI_STR_LEN, "%sscheduler", prefix);
 			poti_CreateContainer(0.0, new_scheduler_container_alias, "Sc", new_program_container_alias, new_scheduler_container_name);
 			poti_SetVariable(0.0, new_scheduler_container_alias, "nsubmitted", 0.0);
 			poti_SetVariable(0.0, new_scheduler_container_alias, "nready", 0.0);
@@ -2558,7 +2558,7 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 		/* create a variable with the number of tasks */
 		if (!options->no_counter)
 		{
-			fprintf(out_paje_file, "7	%.9f	%ssched	Sc	%sp	scheduler\n", 0.0, prefix, prefix);
+			fprintf(out_paje_file, "7	%.9f	%ssched	Sc	%sp	%sscheduler\n", 0.0, prefix, prefix, prefix);
 			fprintf(out_paje_file, "13	0.0	%ssched	nsubmitted	0.0\n", prefix);
 			fprintf(out_paje_file, "13	0.0	%ssched	nready	0.0\n", prefix);
 		}
