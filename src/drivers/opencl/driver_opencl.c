@@ -57,8 +57,6 @@ static cl_event task_events[STARPU_MAXOPENCLDEVS][STARPU_MAX_PIPELINE];
 #endif
 #ifdef STARPU_SIMGRID
 static unsigned task_finished[STARPU_MAXOPENCLDEVS][STARPU_MAX_PIPELINE];
-static starpu_pthread_mutex_t task_mutex[STARPU_MAXOPENCLDEVS][STARPU_MAX_PIPELINE];
-static starpu_pthread_cond_t task_cond[STARPU_MAXOPENCLDEVS][STARPU_MAX_PIPELINE];
 #endif /* STARPU_SIMGRID */
 
 void
@@ -153,11 +151,7 @@ int _starpu_opencl_init_context(int devid)
 #ifdef STARPU_SIMGRID
 	int j;
 	for (j = 0; j < STARPU_MAX_PIPELINE; j++)
-	{
 		task_finished[devid][j] = 0;
-		STARPU_PTHREAD_MUTEX_INIT(&task_mutex[devid][j], NULL);
-		STARPU_PTHREAD_COND_INIT(&task_cond[devid][j], NULL);
-	}
 #else /* !STARPU_SIMGRID */
 	cl_int err;
 	cl_uint uint;
@@ -206,11 +200,7 @@ int _starpu_opencl_deinit_context(int devid)
 #ifdef STARPU_SIMGRID
 	int j;
 	for (j = 0; j < STARPU_MAX_PIPELINE; j++)
-	{
 		task_finished[devid][j] = 0;
-		STARPU_PTHREAD_MUTEX_DESTROY(&task_mutex[devid][j]);
-		STARPU_PTHREAD_COND_DESTROY(&task_cond[devid][j]);
-	}
 #else /* !STARPU_SIMGRID */
         cl_int err;
 
@@ -978,9 +968,7 @@ static int _starpu_opencl_start_job(struct _starpu_job *j, struct _starpu_worker
 		}
 		if (simulate)
 			_starpu_simgrid_submit_job(worker->workerid, j, &worker->perf_arch, length,
-						   async ? &task_finished[worker->devid][pipeline_idx] : NULL,
-						   async ? &task_mutex[worker->devid][pipeline_idx] : NULL,
-						   async ? &task_cond[worker->devid][pipeline_idx] : NULL);
+						   async ? &task_finished[worker->devid][pipeline_idx] : NULL);
 #else
 		func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
 #endif

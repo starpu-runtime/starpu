@@ -30,6 +30,7 @@
 #include <starpu_mpi_select_node.h>
 #include <starpu_mpi_tag.h>
 #include <starpu_mpi_comm.h>
+#include <starpu_mpi_init.h>
 #include <common/config.h>
 #include <common/thread.h>
 #include <datawizard/interfaces/data_interface.h>
@@ -64,19 +65,16 @@ static struct _starpu_mpi_req_list *detached_requests;
 static starpu_pthread_mutex_t detached_requests_mutex;
 
 /* Condition to wake up progression thread */
-static starpu_pthread_cond_t cond_progression;
+static starpu_pthread_cond_t progress_cond;
 /* Condition to wake up waiting for all current MPI requests to finish */
-static starpu_pthread_cond_t cond_finished;
-static starpu_pthread_mutex_t mutex;
+static starpu_pthread_cond_t barrier_cond;
+static starpu_pthread_mutex_t progress_mutex;
 #ifndef STARPU_SIMGRID
 static starpu_pthread_t progress_thread;
 #endif
 static int running = 0;
 
 #ifdef STARPU_SIMGRID
-static int _mpi_world_size;
-static int _mpi_world_rank;
-
 static int wait_counter;
 static starpu_pthread_cond_t wait_counter_cond;
 static starpu_pthread_mutex_t wait_counter_mutex;
@@ -194,7 +192,7 @@ static void _starpu_mpi_submit_ready_request(void *arg)
 
 	_STARPU_MPI_DEBUG(3, "new req %p srcdst %d tag %d and type %s %d\n", req, req->node_tag.rank, req->node_tag.data_tag, _starpu_mpi_request_type(req->request_type), req->is_internal_req);
 
-	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 
 	if (req->request_type == RECV_REQ)
 	{
@@ -206,7 +204,7 @@ static void _starpu_mpi_submit_ready_request(void *arg)
 		 * before the next submission of the envelope-catching request. */
 		if (req->is_internal_req)
 		{
-			_starpu_mpi_handle_allocate_datatype(req->data_handle, req);
+			_starpu_mpi_datatype_allocate(req->data_handle, req);
 			if (req->registered_datatype == 1)
 			{
 				req->count = 1;
@@ -224,12 +222,12 @@ static void _starpu_mpi_submit_ready_request(void *arg)
 			_starpu_mpi_req_list_push_front(ready_requests, req);
 
 			/* inform the starpu mpi thread that the request has been pushed in the ready_requests list */
-			STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+			STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
 			STARPU_PTHREAD_MUTEX_LOCK(&req->posted_mutex);
 			req->posted = 1;
 			STARPU_PTHREAD_COND_BROADCAST(&req->posted_cond);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&req->posted_mutex);
-			STARPU_PTHREAD_MUTEX_LOCK(&mutex);
+			STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 		}
 		else
 		{
@@ -242,12 +240,12 @@ static void _starpu_mpi_submit_ready_request(void *arg)
 			 * will be called to bring the data back to the original data handle associated to the request.*/
 			if (early_data_handle)
 			{
-				STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+				STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
 				STARPU_PTHREAD_MUTEX_LOCK(&(early_data_handle->req_mutex));
 				while (!(early_data_handle->req_ready))
 					STARPU_PTHREAD_COND_WAIT(&(early_data_handle->req_cond), &(early_data_handle->req_mutex));
 				STARPU_PTHREAD_MUTEX_UNLOCK(&(early_data_handle->req_mutex));
-				STARPU_PTHREAD_MUTEX_LOCK(&mutex);
+				STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 
 				_STARPU_MPI_DEBUG(3, "The RECV request %p with tag %d has already been received, copying previously received data into handle's pointer..\n", req, req->node_tag.data_tag);
 				STARPU_ASSERT(req->data_handle != early_data_handle->handle);
@@ -263,9 +261,9 @@ static void _starpu_mpi_submit_ready_request(void *arg)
 				cb_args->req = req;
 
 				_STARPU_MPI_DEBUG(3, "Calling data_acquire_cb on starpu_mpi_copy_cb..\n");
-				STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+				STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
 				starpu_data_acquire_cb(early_data_handle->handle,STARPU_R,_starpu_mpi_early_data_cb,(void*) cb_args);
-				STARPU_PTHREAD_MUTEX_LOCK(&mutex);
+				STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 			}
 			/* Case: no matching data has been received. Store the receive request as an early_request. */
 			else
@@ -275,7 +273,7 @@ static void _starpu_mpi_submit_ready_request(void *arg)
 				if (sync_req)
 				{
 					req->sync = 1;
-					_starpu_mpi_handle_allocate_datatype(req->data_handle, req);
+					_starpu_mpi_datatype_allocate(req->data_handle, req);
 					if (req->registered_datatype == 1)
 					{
 						req->count = 1;
@@ -307,11 +305,11 @@ static void _starpu_mpi_submit_ready_request(void *arg)
 	}
 
 	newer_requests = 1;
-	STARPU_PTHREAD_COND_BROADCAST(&cond_progression);
+	STARPU_PTHREAD_COND_BROADCAST(&progress_cond);
 #ifdef STARPU_SIMGRID
 	starpu_pthread_queue_signal(&dontsleep);
 #endif
-	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
 	_STARPU_MPI_LOG_OUT();
 }
 
@@ -378,6 +376,7 @@ int _starpu_mpi_simgrid_mpi_test(unsigned *done, int *flag)
 	}
 	return MPI_SUCCESS;
 }
+
 static void _starpu_mpi_simgrid_wait_req_func(void* arg)
 {
 	struct _starpu_simgrid_mpi_req *sim_req = arg;
@@ -400,6 +399,7 @@ static void _starpu_mpi_simgrid_wait_req_func(void* arg)
 		STARPU_PTHREAD_COND_SIGNAL(&wait_counter_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&wait_counter_mutex);
 }
+
 void _starpu_mpi_simgrid_wait_req(MPI_Request *request, MPI_Status *status, starpu_pthread_queue_t *queue, unsigned *done)
 {
 	struct _starpu_simgrid_mpi_req *sim_req;
@@ -462,7 +462,7 @@ static void _starpu_mpi_isend_data_func(struct _starpu_mpi_req *req)
 
 static void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req)
 {
-	_starpu_mpi_handle_allocate_datatype(req->data_handle, req);
+	_starpu_mpi_datatype_allocate(req->data_handle, req);
 
 	_STARPU_MPI_CALLOC(req->envelope, 1,sizeof(struct _starpu_mpi_envelope));
 	req->envelope->mode = _STARPU_MPI_ENVELOPE_DATA;
@@ -879,11 +879,9 @@ int starpu_mpi_test(starpu_mpi_req *public_req, int *flag, MPI_Status *status)
 	if (submitted)
 	{
 		struct _starpu_mpi_req *testing_req;
-		_starpu_mpi_request_init(&testing_req);
 
 		/* Initialize the request structure */
-		STARPU_PTHREAD_MUTEX_INIT(&(testing_req->req_mutex), NULL);
-		STARPU_PTHREAD_COND_INIT(&(testing_req->req_cond), NULL);
+		_starpu_mpi_request_init(&testing_req);
 		testing_req->flag = flag;
 		testing_req->status = status;
 		testing_req->other_request = req;
@@ -949,35 +947,33 @@ int _starpu_mpi_barrier(MPI_Comm comm)
 
 	int ret = posted_requests;
 	struct _starpu_mpi_req *barrier_req;
-	_starpu_mpi_request_init(&barrier_req);
 
 	/* First wait for *both* all tasks and MPI requests to finish, in case
 	 * some tasks generate MPI requests, MPI requests generate tasks, etc.
 	 */
-	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 	STARPU_MPI_ASSERT_MSG(!barrier_running, "Concurrent starpu_mpi_barrier is not implemented, even on different communicators");
 	barrier_running = 1;
 	do
 	{
 		while (posted_requests)
 			/* Wait for all current MPI requests to finish */
-			STARPU_PTHREAD_COND_WAIT(&cond_finished, &mutex);
+			STARPU_PTHREAD_COND_WAIT(&barrier_cond, &progress_mutex);
 		/* No current request, clear flag */
 		newer_requests = 0;
-		STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
 		/* Now wait for all tasks */
 		starpu_task_wait_for_all();
-		STARPU_PTHREAD_MUTEX_LOCK(&mutex);
+		STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 		/* Check newer_requests again, in case some MPI requests
 		 * triggered by tasks completed and triggered tasks between
 		 * wait_for_all finished and we take the lock */
 	} while (posted_requests || newer_requests);
 	barrier_running = 0;
-	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
 
 	/* Initialize the request structure */
-	STARPU_PTHREAD_MUTEX_INIT(&(barrier_req->req_mutex), NULL);
-	STARPU_PTHREAD_COND_INIT(&(barrier_req->req_cond), NULL);
+	_starpu_mpi_request_init(&barrier_req);
 	barrier_req->func = _starpu_mpi_barrier_func;
 	barrier_req->request_type = BARRIER_REQ;
 	barrier_req->node_tag.comm = comm;
@@ -1064,7 +1060,7 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
 			}
 			else
 			{
-				_starpu_mpi_handle_free_datatype(req->data_handle, &req->datatype);
+				_starpu_mpi_datatype_free(req->data_handle, &req->datatype);
 			}
 		}
 	}
@@ -1157,28 +1153,6 @@ static void _starpu_mpi_early_data_cb(void* arg)
 	args = NULL;
 }
 
-#ifdef STARPU_MPI_ACTIVITY
-static unsigned _starpu_mpi_progression_hook_func(void *arg STARPU_ATTRIBUTE_UNUSED)
-{
-	unsigned may_block = 1;
-
-	STARPU_PTHREAD_MUTEX_LOCK(&detached_requests_mutex);
-	if (!_starpu_mpi_req_list_empty(detached_requests))
-	{
-		STARPU_PTHREAD_MUTEX_UNLOCK(&detached_requests_mutex);
-		STARPU_PTHREAD_MUTEX_LOCK(&mutex);
-		STARPU_PTHREAD_COND_SIGNAL(&cond_progression);
-		STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
-		may_block = 0;
-	}
-	else
-		STARPU_PTHREAD_MUTEX_UNLOCK(&detached_requests_mutex);
-
-
-	return may_block;
-}
-#endif /* STARPU_MPI_ACTIVITY */
-
 static void _starpu_mpi_test_detached_requests(void)
 {
 	//_STARPU_MPI_LOG_IN();
@@ -1210,28 +1184,14 @@ static void _starpu_mpi_test_detached_requests(void)
 		     	struct _starpu_mpi_req *next_req;
 			next_req = _starpu_mpi_req_list_next(req);
 
-			if (req->request_type == RECV_REQ)
-			{
-				_STARPU_MPI_TRACE_IRECV_COMPLETE_BEGIN(req->node_tag.rank, req->node_tag.data_tag);
-			}
-			else if (req->request_type == SEND_REQ)
-			{
-				_STARPU_MPI_TRACE_ISEND_COMPLETE_BEGIN(req->node_tag.rank, req->node_tag.data_tag, 0);
-			}
+			_STARPU_MPI_TRACE_COMPLETE_BEGIN(req->request_type, req->node_tag.rank, req->node_tag.data_tag);
 
 			STARPU_PTHREAD_MUTEX_LOCK(&detached_requests_mutex);
 			_starpu_mpi_req_list_erase(detached_requests, req);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&detached_requests_mutex);
 			_starpu_mpi_handle_request_termination(req);
 
-			if (req->request_type == RECV_REQ)
-			{
-				_STARPU_MPI_TRACE_IRECV_COMPLETE_END(req->node_tag.rank, req->node_tag.data_tag);
-			}
-			else if (req->request_type == SEND_REQ)
-			{
-				_STARPU_MPI_TRACE_ISEND_COMPLETE_END(req->node_tag.rank, req->node_tag.data_tag, 0);
-			}
+			_STARPU_MPI_TRACE_COMPLETE_END(req->request_type, req->node_tag.rank, req->node_tag.data_tag);
 
 			if (req->is_internal_req == 0)
 			{
@@ -1260,9 +1220,9 @@ static void _starpu_mpi_handle_detached_request(struct _starpu_mpi_req *req)
 
 		starpu_wake_all_blocked_workers();
 
-		STARPU_PTHREAD_MUTEX_LOCK(&mutex);
-		STARPU_PTHREAD_COND_SIGNAL(&cond_progression);
-		STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+		STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
+		STARPU_PTHREAD_COND_SIGNAL(&progress_cond);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
 	}
 }
 
@@ -1280,28 +1240,6 @@ static void _starpu_mpi_handle_ready_request(struct _starpu_mpi_req *req)
 	_STARPU_MPI_LOG_OUT();
 }
 
-static void _starpu_mpi_print_thread_level_support(int thread_level, char *msg)
-{
-	switch (thread_level)
-	{
-	case MPI_THREAD_SERIALIZED:
-	{
-		_STARPU_DISP("MPI%s MPI_THREAD_SERIALIZED; Multiple threads may make MPI calls, but only one at a time.\n", msg);
-		break;
-	}
-	case MPI_THREAD_FUNNELED:
-	{
-		_STARPU_DISP("MPI%s MPI_THREAD_FUNNELED; The application can safely make calls to StarPU-MPI functions, but should not call directly MPI communication functions.\n", msg);
-		break;
-	}
-	case MPI_THREAD_SINGLE:
-	{
-		_STARPU_DISP("MPI%s MPI_THREAD_SINGLE; MPI does not have multi-thread support, this might cause problems. The application can make calls to StarPU-MPI functions, but not call directly MPI Communication functions.\n", msg);
-		break;
-	}
-	}
-}
-
 static void _starpu_mpi_receive_early_data(struct _starpu_mpi_envelope *envelope, MPI_Status status, MPI_Comm comm)
 {
 	_STARPU_MPI_DEBUG(20, "Request with tag %d and source %d not found, creating a early_data_handle to receive incoming data..\n", envelope->data_tag, status.MPI_SOURCE);
@@ -1311,9 +1249,9 @@ static void _starpu_mpi_receive_early_data(struct _starpu_mpi_envelope *envelope
 	_starpu_mpi_early_data_add(early_data_handle);
 
 	starpu_data_handle_t data_handle = NULL;
-	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
-	data_handle = _starpu_mpi_data_get_data_handle_from_tag(envelope->data_tag);
-	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
+	data_handle = _starpu_mpi_tag_get_data_handle_from_tag(envelope->data_tag);
+	STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 
 	if (data_handle && starpu_data_get_interface_id(data_handle) < STARPU_MAX_INTERFACE_ID)
 	{
@@ -1336,18 +1274,18 @@ static void _starpu_mpi_receive_early_data(struct _starpu_mpi_envelope *envelope
 
 	_STARPU_MPI_DEBUG(20, "Posting internal detached irecv on early_data_handle with tag %d from comm %ld src %d ..\n",
 			  early_data_handle->node_tag.data_tag, (long int)comm, status.MPI_SOURCE);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
 	early_data_handle->req = _starpu_mpi_irecv_common(early_data_handle->handle, status.MPI_SOURCE,
 							  early_data_handle->node_tag.data_tag, comm, 1, 0,
 							  NULL, NULL, 1, 1, envelope->size);
-	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 
 	// We wait until the request is pushed in the
 	// ready_request list, that ensures that the next loop
 	// will call _starpu_mpi_handle_ready_request
 	// on the request and post the corresponding mpi_irecv,
 	// otherwise, it may lead to read data as envelop
-	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
 	STARPU_PTHREAD_MUTEX_LOCK(&(early_data_handle->req->posted_mutex));
 	while (!(early_data_handle->req->posted))
 		STARPU_PTHREAD_COND_WAIT(&(early_data_handle->req->posted_cond), &(early_data_handle->req->posted_mutex));
@@ -1357,33 +1295,12 @@ static void _starpu_mpi_receive_early_data(struct _starpu_mpi_envelope *envelope
 	early_data_handle->req_ready = 1;
 	STARPU_PTHREAD_COND_BROADCAST(&early_data_handle->req_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&early_data_handle->req_mutex);
-	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
-}
-
-static void _starpu_mpi_do_initialize(struct _starpu_mpi_argc_argv *argc_argv)
-{
-	if (argc_argv->initialize_mpi)
-	{
-		int thread_support;
-		_STARPU_DEBUG("Calling MPI_Init_thread\n");
-		if (MPI_Init_thread(argc_argv->argc, argc_argv->argv, MPI_THREAD_SERIALIZED, &thread_support) != MPI_SUCCESS)
-		{
-			_STARPU_ERROR("MPI_Init_thread failed\n");
-		}
-		_starpu_mpi_print_thread_level_support(thread_support, "_Init_thread level =");
-	}
-	else
-	{
-		int provided;
-		MPI_Query_thread(&provided);
-		_starpu_mpi_print_thread_level_support(provided, " has been initialized with");
-	}
+	STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 }
 
 static void *_starpu_mpi_progress_thread_func(void *arg)
 {
 	struct _starpu_mpi_argc_argv *argc_argv = (struct _starpu_mpi_argc_argv *) arg;
-	int rank, worldsize;
 
 	starpu_pthread_setname("MPI");
 
@@ -1391,13 +1308,6 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	_starpu_mpi_do_initialize(argc_argv);
 #endif
 
-	MPI_Comm_rank(argc_argv->comm, &rank);
-	MPI_Comm_size(argc_argv->comm, &worldsize);
-	MPI_Comm_set_errhandler(argc_argv->comm, MPI_ERRORS_RETURN);
-#ifdef STARPU_SIMGRID
-	_mpi_world_size = worldsize;
-	_mpi_world_rank = rank;
-#endif
 	_starpu_mpi_fake_world_size = starpu_get_env_number("STARPU_MPI_FAKE_SIZE");
 	_starpu_mpi_fake_world_rank = starpu_get_env_number("STARPU_MPI_FAKE_RANK");
 
@@ -1414,18 +1324,15 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	smpi_process_set_user_data(calloc(MAX_TSD + 1, sizeof(void*)));
 #endif
 #endif
+
 #ifdef STARPU_USE_FXT
-	/* Wait for FxT initialization before emitting FxT probes */
-	STARPU_PTHREAD_MUTEX_LOCK(&_starpu_fxt_started_mutex);
-	while (!_starpu_fxt_started)
-		STARPU_PTHREAD_COND_WAIT(&_starpu_fxt_started_cond, &_starpu_fxt_started_mutex);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_fxt_started_mutex);
+	_starpu_fxt_wait_initialisation();
 #endif //STARPU_USE_FXT
 
 	{
-		_STARPU_MPI_TRACE_START(rank, worldsize);
+		_STARPU_MPI_TRACE_START(argc_argv->rank, argc_argv->world_size);
 #ifdef STARPU_USE_FXT
-		starpu_profiling_set_id(rank);
+		starpu_profiling_set_id(argc_argv->rank);
 #endif //STARPU_USE_FXT
 	}
 
@@ -1442,10 +1349,10 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	_starpu_mpi_datatype_init();
 
 	/* notify the main thread that the progression thread is ready */
-	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 	running = 1;
-	STARPU_PTHREAD_COND_SIGNAL(&cond_progression);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+	STARPU_PTHREAD_COND_SIGNAL(&progress_cond);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
 
 #ifdef STARPU_SIMGRID
 	starpu_pthread_wait_init(&wait);
@@ -1453,7 +1360,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	starpu_pthread_queue_register(&wait, &dontsleep);
 #endif
 
-	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 
  	int envelope_request_submitted = 0;
 
@@ -1463,24 +1370,17 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 		starpu_pthread_wait_reset(&wait);
 #endif
 		/* shall we block ? */
-		unsigned block = _starpu_mpi_req_list_empty(ready_requests) && _starpu_mpi_early_request_count() == 0 && _starpu_mpi_sync_data_count() == 0;
-
-#ifndef STARPU_MPI_ACTIVITY
-		STARPU_PTHREAD_MUTEX_LOCK(&detached_requests_mutex);
-		block = block && _starpu_mpi_req_list_empty(detached_requests);
-		STARPU_PTHREAD_MUTEX_UNLOCK(&detached_requests_mutex);
-#endif /* STARPU_MPI_ACTIVITY */
+		unsigned block = _starpu_mpi_req_list_empty(ready_requests) && _starpu_mpi_early_request_count() == 0 && _starpu_mpi_sync_data_count() == 0 && _starpu_mpi_req_list_empty(detached_requests);
 
 		if (block)
 		{
 			_STARPU_MPI_DEBUG(3, "NO MORE REQUESTS TO HANDLE\n");
-
 			_STARPU_MPI_TRACE_SLEEP_BEGIN();
 
 			if (barrier_running)
 				/* Tell mpi_barrier */
-				STARPU_PTHREAD_COND_SIGNAL(&cond_finished);
-			STARPU_PTHREAD_COND_WAIT(&cond_progression, &mutex);
+				STARPU_PTHREAD_COND_SIGNAL(&barrier_cond);
+			STARPU_PTHREAD_COND_WAIT(&progress_cond, &progress_mutex);
 
 			_STARPU_MPI_TRACE_SLEEP_END();
 		}
@@ -1495,9 +1395,9 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 			 * (on a sync_data_with_mem call), we want to let the
 			 * application submit requests in the meantime, so we
 			 * release the lock. */
-			STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+			STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
 			_starpu_mpi_handle_ready_request(req);
-			STARPU_PTHREAD_MUTEX_LOCK(&mutex);
+			STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 		}
 
 		/* If there is no currently submitted envelope_request submitted to
@@ -1510,9 +1410,9 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 		}
 
 		/* test whether there are some terminated "detached request" */
-		STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
 		_starpu_mpi_test_detached_requests();
-		STARPU_PTHREAD_MUTEX_LOCK(&mutex);
+		STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 
 		if (envelope_request_submitted == 1)
 		{
@@ -1532,9 +1432,9 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 					struct _starpu_mpi_req *_sync_req = _starpu_mpi_sync_data_find(envelope->data_tag, envelope_status.MPI_SOURCE, envelope_comm);
 					_STARPU_MPI_DEBUG(20, "Sending data with tag %d to node %d\n", _sync_req->node_tag.data_tag, envelope_status.MPI_SOURCE);
 					STARPU_MPI_ASSERT_MSG(envelope->data_tag == _sync_req->node_tag.data_tag, "Tag mismatch (envelope %d != req %d)\n", envelope->data_tag, _sync_req->node_tag.data_tag);
-					STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+					STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
 					_starpu_mpi_isend_data_func(_sync_req);
-					STARPU_PTHREAD_MUTEX_LOCK(&mutex);
+					STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 				}
 				else
 				{
@@ -1589,7 +1489,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 						_STARPU_MPI_DEBUG(2000, "Request sync %d\n", envelope->sync);
 
 						early_request->sync = envelope->sync;
-						_starpu_mpi_handle_allocate_datatype(early_request->data_handle, early_request);
+						_starpu_mpi_datatype_allocate(early_request->data_handle, early_request);
 						if (early_request->registered_datatype == 1)
 						{
 							early_request->count = 1;
@@ -1609,9 +1509,9 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 						 * (on a sync_data_with_mem call), we want to let the
 						 * application submit requests in the meantime, so we
 						 * release the lock. */
-						STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+						STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
 						_starpu_mpi_handle_ready_request(early_request);
-						STARPU_PTHREAD_MUTEX_LOCK(&mutex);
+						STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 					}
 				}
 				envelope_request_submitted = 0;
@@ -1622,9 +1522,9 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 			}
 		}
 #ifdef STARPU_SIMGRID
-		STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
 		starpu_pthread_wait_wait(&wait);
-		STARPU_PTHREAD_MUTEX_LOCK(&mutex);
+		STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 #endif
 	}
 
@@ -1662,26 +1562,16 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 		MPI_Finalize();
 	}
 
-	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
 
-	_starpu_mpi_sync_data_free();
-	_starpu_mpi_early_data_free();
-	_starpu_mpi_early_request_free();
-	_starpu_mpi_datatype_free();
+	_starpu_mpi_sync_data_shutdown();
+	_starpu_mpi_early_data_shutdown();
+	_starpu_mpi_early_request_shutdown();
+	_starpu_mpi_datatype_shutdown();
 	free(argc_argv);
 
 	return NULL;
 }
-
-/********************************************************/
-/*                                                      */
-/*  (De)Initialization methods                          */
-/*                                                      */
-/********************************************************/
-
-#ifdef STARPU_MPI_ACTIVITY
-static int hookid = - 1;
-#endif /* STARPU_MPI_ACTIVITY */
 
 static void _starpu_mpi_add_sync_point_in_fxt(void)
 {
@@ -1717,165 +1607,81 @@ static void _starpu_mpi_add_sync_point_in_fxt(void)
 #endif
 }
 
-static
-int _starpu_mpi_initialize(int *argc, char ***argv, int initialize_mpi, MPI_Comm comm)
+int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv)
 {
-	struct _starpu_mpi_argc_argv *argc_argv;
-	_STARPU_MALLOC(argc_argv, sizeof(struct _starpu_mpi_argc_argv));
-	argc_argv->initialize_mpi = initialize_mpi;
-	argc_argv->argc = argc;
-	argc_argv->argv = argv;
-	argc_argv->comm = comm;
+        STARPU_PTHREAD_MUTEX_INIT(&progress_mutex, NULL);
+        STARPU_PTHREAD_COND_INIT(&progress_cond, NULL);
+        STARPU_PTHREAD_COND_INIT(&barrier_cond, NULL);
+        ready_requests = _starpu_mpi_req_list_new();
 
-#ifdef STARPU_SIMGRID
-	/* Call MPI_Init_thread as early as possible, to initialize simgrid
-	 * before working with mutexes etc. */
-	_starpu_mpi_do_initialize(argc_argv);
-#endif
+        STARPU_PTHREAD_MUTEX_INIT(&detached_requests_mutex, NULL);
+        detached_requests = _starpu_mpi_req_list_new();
 
-	STARPU_PTHREAD_MUTEX_INIT(&mutex, NULL);
-	STARPU_PTHREAD_COND_INIT(&cond_progression, NULL);
-	STARPU_PTHREAD_COND_INIT(&cond_finished, NULL);
-	ready_requests = _starpu_mpi_req_list_new();
-
-	STARPU_PTHREAD_MUTEX_INIT(&detached_requests_mutex, NULL);
-	detached_requests = _starpu_mpi_req_list_new();
-
-	STARPU_PTHREAD_MUTEX_INIT(&mutex_posted_requests, NULL);
-	_starpu_mpi_comm = starpu_getenv("STARPU_MPI_COMM") != NULL;
+        STARPU_PTHREAD_MUTEX_INIT(&mutex_posted_requests, NULL);
+        _starpu_mpi_comm = starpu_getenv("STARPU_MPI_COMM") != NULL;
 
 #ifdef STARPU_SIMGRID
 	STARPU_PTHREAD_MUTEX_INIT(&wait_counter_mutex, NULL);
 	STARPU_PTHREAD_COND_INIT(&wait_counter_cond, NULL);
 #endif
 
-#ifdef STARPU_MPI_ACTIVITY
-	hookid = starpu_progression_hook_register(_starpu_mpi_progression_hook_func, NULL);
-	STARPU_MPI_ASSERT_MSG(hookid >= 0, "starpu_progression_hook_register failed");
-#endif /* STARPU_MPI_ACTIVITY */
-
 #ifdef STARPU_SIMGRID
-	_starpu_mpi_progress_thread_func(argc_argv);
-	return 0;
+        _starpu_mpi_progress_thread_func(argc_argv);
+        return 0;
 #else
-	STARPU_PTHREAD_CREATE(&progress_thread, NULL, _starpu_mpi_progress_thread_func, argc_argv);
+        STARPU_PTHREAD_CREATE(&progress_thread, NULL, _starpu_mpi_progress_thread_func, argc_argv);
 
-	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
-	while (!running)
-		STARPU_PTHREAD_COND_WAIT(&cond_progression, &mutex);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+        STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
+        while (!running)
+                STARPU_PTHREAD_COND_WAIT(&progress_cond, &progress_mutex);
+        STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
 
-	return 0;
+        return 0;
 #endif
 }
 
 #ifdef STARPU_SIMGRID
-/* This is called before application's main, to initialize SMPI before we can
- * create MSG processes to run application's main */
-int _starpu_mpi_simgrid_init(int argc, char *argv[])
+void _starpu_mpi_wait_for_initialization()
 {
-	return _starpu_mpi_initialize(&argc, &argv, 1, MPI_COMM_WORLD);
-}
-#endif
-
-int starpu_mpi_init_comm(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv STARPU_ATTRIBUTE_UNUSED, int initialize_mpi STARPU_ATTRIBUTE_UNUSED, MPI_Comm comm STARPU_ATTRIBUTE_UNUSED)
-{
-#ifdef STARPU_SIMGRID
 	/* Wait for MPI initialization to finish */
-	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 	while (!running)
-		STARPU_PTHREAD_COND_WAIT(&cond_progression, &mutex);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
-
-	return 0;
-#else
-	return _starpu_mpi_initialize(argc, argv, initialize_mpi, comm);
-#endif
+		STARPU_PTHREAD_COND_WAIT(&progress_cond, &progress_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
 }
-
-int starpu_mpi_init(int *argc, char ***argv, int initialize_mpi)
-{
-	return starpu_mpi_init_comm(argc, argv, initialize_mpi, MPI_COMM_WORLD);
-}
-
-int starpu_mpi_initialize(void)
-{
-#ifdef STARPU_SIMGRID
-	return 0;
-#else
-	return _starpu_mpi_initialize(NULL, NULL, 0, MPI_COMM_WORLD);
 #endif
-}
 
-int starpu_mpi_initialize_extended(int *rank, int *world_size)
+void _starpu_mpi_progress_shutdown(int *value)
 {
-#ifdef STARPU_SIMGRID
-	*world_size = _mpi_world_size;
-	*rank = _mpi_world_rank;
-	return 0;
-#else
-	int ret;
+        STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
+        running = 0;
+        STARPU_PTHREAD_COND_BROADCAST(&progress_cond);
 
-	ret = _starpu_mpi_initialize(NULL, NULL, 1, MPI_COMM_WORLD);
-	if (ret == 0)
-	{
-		_STARPU_DEBUG("Calling MPI_Comm_rank\n");
-		MPI_Comm_rank(MPI_COMM_WORLD, rank);
-		MPI_Comm_size(MPI_COMM_WORLD, world_size);
-	}
-	return ret;
-#endif
-}
-
-int starpu_mpi_shutdown(void)
-{
-#ifndef STARPU_SIMGRID
-	void *value;
-#endif
-	int rank, world_size;
-
-	/* We need to get the rank before calling MPI_Finalize to pass to _starpu_mpi_comm_amounts_display() */
-	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
-	starpu_mpi_comm_size(MPI_COMM_WORLD, &world_size);
-
-	/* kill the progression thread */
-	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
-	running = 0;
-	STARPU_PTHREAD_COND_BROADCAST(&cond_progression);
 #ifdef STARPU_SIMGRID
 	starpu_pthread_queue_signal(&dontsleep);
 #endif
-	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+        STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
 
-#ifndef STARPU_SIMGRID
-	starpu_pthread_join(progress_thread, &value);
-#else
+#ifdef STARPU_SIMGRID
 	/* FIXME: should rather properly wait for _starpu_mpi_progress_thread_func to finish */
+	(void) value;
 	MSG_process_sleep(1);
+#else
+	starpu_pthread_join(progress_thread, (void *)value);
 #endif
 
-#ifdef STARPU_MPI_ACTIVITY
-	starpu_progression_hook_deregister(hookid);
-#endif /* STARPU_MPI_ACTIVITY */
+        /* free the request queues */
+        _starpu_mpi_req_list_delete(detached_requests);
+        _starpu_mpi_req_list_delete(ready_requests);
 
-	_STARPU_MPI_TRACE_STOP(rank, world_size);
-
-	/* free the request queues */
-	_starpu_mpi_req_list_delete(detached_requests);
-	_starpu_mpi_req_list_delete(ready_requests);
-
-	_starpu_mpi_comm_amounts_display(stderr, rank);
-	_starpu_mpi_comm_amounts_free();
-	_starpu_mpi_cache_free(world_size);
-	_starpu_mpi_tag_free();
-	_starpu_mpi_comm_free();
-
-	return 0;
+        STARPU_PTHREAD_MUTEX_DESTROY(&mutex_posted_requests);
+        STARPU_PTHREAD_MUTEX_DESTROY(&progress_mutex);
+        STARPU_PTHREAD_COND_DESTROY(&barrier_cond);
 }
 
 void _starpu_mpi_clear_cache(starpu_data_handle_t data_handle)
 {
-	_starpu_mpi_data_release_tag(data_handle);
+	_starpu_mpi_tag_data_release(data_handle);
 	struct _starpu_mpi_node_tag *mpi_data = data_handle->mpi_data;
 	_starpu_mpi_cache_flush(mpi_data->comm, data_handle);
 	free(data_handle->mpi_data);
@@ -1895,7 +1701,7 @@ void starpu_mpi_data_register_comm(starpu_data_handle_t data_handle, int tag, in
 		mpi_data->rank = -1;
 		mpi_data->comm = MPI_COMM_WORLD;
 		data_handle->mpi_data = mpi_data;
-		_starpu_mpi_data_register_tag(data_handle, tag);
+		_starpu_mpi_tag_data_register(data_handle, tag);
 		_starpu_data_set_unregister_hook(data_handle, _starpu_mpi_clear_cache);
 	}
 
@@ -2031,52 +1837,6 @@ void starpu_mpi_data_migrate(MPI_Comm comm, starpu_data_handle_t data, int new_r
 	/* TODO: Ideally we'd transmit the knowledge of who owns it */
 	starpu_mpi_cache_flush(comm, data);
 	return;
-}
-
-int starpu_mpi_comm_size(MPI_Comm comm, int *size)
-{
-	if (_starpu_mpi_fake_world_size != -1)
-	{
-		*size = _starpu_mpi_fake_world_size;
-		return 0;
-	}
-#ifdef STARPU_SIMGRID
-	STARPU_MPI_ASSERT_MSG(comm == MPI_COMM_WORLD, "StarPU-SMPI only works with MPI_COMM_WORLD for now");
-	*size = _mpi_world_size;
-	return 0;
-#else
-	return MPI_Comm_size(comm, size);
-#endif
-}
-
-int starpu_mpi_comm_rank(MPI_Comm comm, int *rank)
-{
-	if (_starpu_mpi_fake_world_rank != -1)
-	{
-		*rank = _starpu_mpi_fake_world_rank;
-		return 0;
-	}
-#ifdef STARPU_SIMGRID
-	STARPU_MPI_ASSERT_MSG(comm == MPI_COMM_WORLD, "StarPU-SMPI only works with MPI_COMM_WORLD for now");
-	*rank = _mpi_world_rank;
-	return 0;
-#else
-	return MPI_Comm_rank(comm, rank);
-#endif
-}
-
-int starpu_mpi_world_size(void)
-{
-	int size;
-	starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
-	return size;
-}
-
-int starpu_mpi_world_rank(void)
-{
-	int rank;
-	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
-	return rank;
 }
 
 int starpu_mpi_wait_for_all(MPI_Comm comm)

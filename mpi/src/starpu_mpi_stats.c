@@ -42,7 +42,7 @@ void _starpu_mpi_comm_amounts_init(MPI_Comm comm)
 	_STARPU_MPI_CALLOC(comm_amount, world_size, sizeof(size_t));
 }
 
-void _starpu_mpi_comm_amounts_free()
+void _starpu_mpi_comm_amounts_shutdown()
 {
 	if (stats_enabled == 0) return;
 	free(comm_amount);

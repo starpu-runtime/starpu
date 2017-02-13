@@ -1994,7 +1994,7 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 
                                 _starpu_worker_drives_memory_node(&workerarg->set->workers[0], STARPU_MAIN_RAM);
 				if (memory_node != STARPU_MAIN_RAM)
-					_starpu_worker_drives_memory_node(workerarg->workerid, memory_node);
+					_starpu_worker_drives_memory_node(&workerarg->set->workers[0], memory_node);
 				break;
 #endif /* STARPU_USE_MIC */
 

@@ -1192,7 +1192,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 
 #ifdef STARPU_SIMGRID
 	/* This initializes the simgrid thread library, thus needs to be early */
-	_starpu_simgrid_init(argc, argv);
+	_starpu_simgrid_init_early(argc, argv);
 #endif
 
 	STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
@@ -1414,6 +1414,9 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 	_starpu_cuda_init();
 #endif
+#ifdef STARPU_SIMGRID
+	_starpu_simgrid_init();
+#endif
 	/* Launch "basic" workers (ie. non-combined workers) */
 	if (!is_a_sink)
 		_starpu_launch_drivers(&_starpu_config);
@@ -1460,10 +1463,10 @@ static void _starpu_terminate_workers(struct _starpu_machine_config *pconfig)
 	unsigned workerid;
 	unsigned n;
 
+	starpu_wake_all_blocked_workers();
+
 	for (workerid = 0; workerid < pconfig->topology.nworkers; workerid++)
 	{
-		starpu_wake_all_blocked_workers();
-
 		_STARPU_DEBUG("wait for worker %u\n", workerid);
 
 		struct _starpu_worker_set *set = pconfig->workers[workerid].set;
@@ -1475,14 +1478,10 @@ static void _starpu_terminate_workers(struct _starpu_machine_config *pconfig)
 		{
 			if (set->started)
 			{
-#ifdef STARPU_SIMGRID
-				status = starpu_pthread_join(set->worker_thread, NULL);
-#else
+#ifndef STARPU_SIMGRID
 				if (!pthread_equal(pthread_self(), set->worker_thread))
-				{
-					status = starpu_pthread_join(set->worker_thread, NULL);
-				}
 #endif
+					status = starpu_pthread_join(set->worker_thread, NULL);
 				if (status)
 				{
 #ifdef STARPU_VERBOSE
@@ -1497,12 +1496,10 @@ static void _starpu_terminate_workers(struct _starpu_machine_config *pconfig)
 			if (!worker->run_by_starpu)
 				goto out;
 
-#ifdef STARPU_SIMGRID
-			status = starpu_pthread_join(worker->worker_thread, NULL);
-#else
+#ifndef STARPU_SIMGRID
 			if (!pthread_equal(pthread_self(), worker->worker_thread))
-				status = starpu_pthread_join(worker->worker_thread, NULL);
 #endif
+				status = starpu_pthread_join(worker->worker_thread, NULL);
 			if (status)
 			{
 #ifdef STARPU_VERBOSE

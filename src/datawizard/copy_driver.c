@@ -803,10 +803,7 @@ int starpu_interface_copy(uintptr_t src, size_t src_offset, unsigned src_node, u
 void _starpu_driver_wait_request_completion(struct _starpu_async_channel *async_channel)
 {
 #ifdef STARPU_SIMGRID
-	STARPU_PTHREAD_MUTEX_LOCK(&async_channel->event.mutex);
-	while (!async_channel->event.finished)
-		STARPU_PTHREAD_COND_WAIT(&async_channel->event.cond, &async_channel->event.mutex);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&async_channel->event.mutex);
+	_starpu_simgrid_wait_transfer_event(&async_channel->event);
 #else /* !SIMGRID */
 	enum starpu_node_kind kind = async_channel->type;
 #ifdef STARPU_USE_CUDA
@@ -867,11 +864,7 @@ void _starpu_driver_wait_request_completion(struct _starpu_async_channel *async_
 unsigned _starpu_driver_test_request_completion(struct _starpu_async_channel *async_channel)
 {
 #ifdef STARPU_SIMGRID
-	unsigned ret;
-	STARPU_PTHREAD_MUTEX_LOCK(&async_channel->event.mutex);
-	ret = async_channel->event.finished;
-	STARPU_PTHREAD_MUTEX_UNLOCK(&async_channel->event.mutex);
-	return ret;
+	return _starpu_simgrid_test_transfer_event(&async_channel->event);
 #else /* !SIMGRID */
 	enum starpu_node_kind kind = async_channel->type;
 	unsigned success = 0;

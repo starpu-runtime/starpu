@@ -850,12 +850,12 @@ static void handle_new_mem_node(struct fxt_ev_64 *ev, struct starpu_fxt_options 
 		{
 #ifdef STARPU_HAVE_POTI
 			poti_SetVariable(get_event_time_stamp(ev, options), new_memmanager_container_alias, "use", 0.0);
-			poti_SetVariable(get_event_time_stamp(ev, options), new_memmanager_container_alias, "bwi", 0.0);
-			poti_SetVariable(get_event_time_stamp(ev, options), new_memmanager_container_alias, "bwo", 0.0);
+			poti_SetVariable(get_event_time_stamp(ev, options), new_memmanager_container_alias, "bwi_mm", 0.0);
+			poti_SetVariable(get_event_time_stamp(ev, options), new_memmanager_container_alias, "bwo_mm", 0.0);
 #else
 			fprintf(out_paje_file, "13	%.9f	%smm%"PRIu64"	use	0.0\n", get_event_time_stamp(ev, options), prefix, ev->param[0]);
-			fprintf(out_paje_file, "13	%.9f	%smm%"PRIu64"	bwi	0.0\n", get_event_time_stamp(ev, options), prefix, ev->param[0]);
-			fprintf(out_paje_file, "13	%.9f	%smm%"PRIu64"	bwo	0.0\n", get_event_time_stamp(ev, options), prefix, ev->param[0]);
+			fprintf(out_paje_file, "13	%.9f	%smm%"PRIu64"	bwi_mm	0.0\n", get_event_time_stamp(ev, options), prefix, ev->param[0]);
+			fprintf(out_paje_file, "13	%.9f	%smm%"PRIu64"	bwo_mm	0.0\n", get_event_time_stamp(ev, options), prefix, ev->param[0]);
 #endif
 		}
 	}
@@ -2488,9 +2488,9 @@ void _starpu_fxt_display_bandwidth(struct starpu_fxt_options *options)
 #ifdef STARPU_HAVE_POTI
 			char src_memnode_container[STARPU_POTI_STR_LEN];
 			memmanager_container_alias(src_memnode_container, STARPU_POTI_STR_LEN, prefix, itor->src_node);
-			poti_SetVariable(itor->comm_start, src_memnode_container, "bwo", current_bandwidth_out_per_node[itor->src_node]);
+			poti_SetVariable(itor->comm_start, src_memnode_container, "bwo_mm", current_bandwidth_out_per_node[itor->src_node]);
 #else
-			fprintf(out_paje_file, "13	%.9f	%smm%u	bwo	%f\n",
+			fprintf(out_paje_file, "13	%.9f	%smm%u	bwo_mm	%f\n",
 				itor->comm_start, prefix, itor->src_node, current_bandwidth_out_per_node[itor->src_node]);
 #endif
 		}
@@ -2501,9 +2501,9 @@ void _starpu_fxt_display_bandwidth(struct starpu_fxt_options *options)
 #ifdef STARPU_HAVE_POTI
 			char dst_memnode_container[STARPU_POTI_STR_LEN];
 			memmanager_container_alias(dst_memnode_container, STARPU_POTI_STR_LEN, prefix, itor->dst_node);
-			poti_SetVariable(itor->comm_start, dst_memnode_container, "bwi", current_bandwidth_in_per_node[itor->dst_node]);
+			poti_SetVariable(itor->comm_start, dst_memnode_container, "bwi_mm", current_bandwidth_in_per_node[itor->dst_node]);
 #else
-			fprintf(out_paje_file, "13	%.9f	%smm%u	bwi	%f\n",
+			fprintf(out_paje_file, "13	%.9f	%smm%u	bwi_mm	%f\n",
 				itor->comm_start, prefix, itor->dst_node, current_bandwidth_in_per_node[itor->dst_node]);
 #endif
 		}

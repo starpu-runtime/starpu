@@ -252,7 +252,7 @@ static void update_data_ranks()
 
 			for (j = 0; j < ndata_to_update; j++)
 			{
-				starpu_data_handle_t handle = _starpu_mpi_data_get_data_handle_from_tag((data_movements_get_tags_table(data_movements_handles[i]))[j]);
+				starpu_data_handle_t handle = _starpu_mpi_tag_get_data_handle_from_tag((data_movements_get_tags_table(data_movements_handles[i]))[j]);
 				STARPU_ASSERT(handle);
 				int dst_rank = (data_movements_get_ranks_table(data_movements_handles[i]))[j];
 
@@ -517,7 +517,7 @@ static void move_back_data()
 
 			for (j = 0; j < ndata_to_update; j++)
 			{
-				starpu_data_handle_t handle = _starpu_mpi_data_get_data_handle_from_tag((data_movements_get_tags_table(data_movements_handles[i]))[j]);
+				starpu_data_handle_t handle = _starpu_mpi_tag_get_data_handle_from_tag((data_movements_get_tags_table(data_movements_handles[i]))[j]);
 				STARPU_ASSERT(handle);
 
 				int dst_rank = (data_movements_get_ranks_table(data_movements_handles[i]))[j];

@@ -111,7 +111,17 @@ LOADER_BIN		=	$(top_builddir)/tests/loader-cross.sh
 endif
 
 if STARPU_USE_MPI_MASTER_SLAVE
-MPI 			= $(MPIEXEC) $(MPIEXEC_ARGS) -np 4
+if STARPU_QUICK_CHECK
+export MPIEXEC_TIMEOUT=60
+else 
+if STARPU_LONG_CHECK
+export MPIEXEC_TIMEOUT=1800
+else
+export MPIEXEC_TIMEOUT=300
+endif
+endif
+
+MPI 			= $(MPIEXEC)  $(MPIEXEC_ARGS) -np 4
 LOADER_BIN2		= $(MPI) $(LOADER_BIN)
 else
 LOADER_BIN2		= $(LOADER_BIN)

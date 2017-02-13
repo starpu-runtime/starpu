@@ -334,13 +334,6 @@ fi
 
 AC_SUBST(CC_OR_MPICC, $cc_or_mpicc)
 
-AC_ARG_ENABLE(mpi-progression-hook, [AS_HELP_STRING([--enable-mpi-progression-hook],
-				   [Enable StarPU MPI activity polling method])],
-				   enable_mpi_progression_hook=$enableval, enable_mpi_progression_hook=no)
-if  test x$enable_mpi_progression_hook = xyes; then
-	AC_DEFINE(STARPU_MPI_ACTIVITY, [1], [enable StarPU MPI activity polling method])
-fi
-
 AC_ARG_ENABLE(mpi-pedantic-isend, [AS_HELP_STRING([--enable-mpi-pedantic-isend],
 				   [Enable StarPU MPI pedantic isend])],
 				   enable_mpi_pedantic_isend=$enableval, enable_mpi_pedantic_isend=no)

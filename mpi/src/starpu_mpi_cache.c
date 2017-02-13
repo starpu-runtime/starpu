@@ -55,7 +55,7 @@ int starpu_mpi_cache_set(int enabled)
 		{
 			// We need to clean the cache
 			starpu_mpi_cache_flush_all_data(_starpu_cache_comm);
-			_starpu_mpi_cache_free(_starpu_cache_comm_size);
+			_starpu_mpi_cache_shutdown(_starpu_cache_comm_size);
 		}
 		_starpu_cache_enabled = 0;
 	}
@@ -129,7 +129,7 @@ void _starpu_mpi_cache_empty_tables(int world_size)
 	}
 }
 
-void _starpu_mpi_cache_free()
+void _starpu_mpi_cache_shutdown()
 {
 	int i;
 
@@ -147,7 +147,7 @@ void _starpu_mpi_cache_free()
 	free(_cache_sent_mutex);
 	free(_cache_received_mutex);
 
-	_starpu_mpi_cache_stats_free();
+	_starpu_mpi_cache_stats_shutdown();
 }
 
 void _starpu_mpi_cache_sent_data_clear(MPI_Comm comm, starpu_data_handle_t data)

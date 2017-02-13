@@ -40,7 +40,7 @@ void _starpu_mpi_early_request_init()
 	STARPU_PTHREAD_MUTEX_INIT(&_starpu_mpi_early_request_mutex, NULL);
 }
 
-void _starpu_mpi_early_request_free()
+void _starpu_mpi_early_request_shutdown()
 {
 	struct _starpu_mpi_early_request_hashlist *entry, *tmp;
 	HASH_ITER(hh, _starpu_mpi_early_request_hash, entry, tmp)

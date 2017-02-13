@@ -343,14 +343,6 @@ Use the compiler <c>mpicc</c> at <c>path</c>, for StarPU-MPI.
 (\ref MPISupport).
 </dd>
 
-<dt>--enable-mpi-progression-hook</dt>
-<dd>
-\anchor enable-mpi-progression-hook
-\addindex __configure__--enable-mpi-progression-hook
-Enable the activity polling method for StarPU-MPI. This is however experimental,
-do not enable it unless you know what you are doing.
-</dd>
-
 <dt>--enable-mpi-pedantic-isend</dt>
 <dd>
 \anchor enable-mpi-pedantic-isend

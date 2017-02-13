@@ -42,8 +42,22 @@ extern int _starpu_mpi_simgrid_init(int argc, char *argv[]);
 
 static int simgrid_started;
 
+static int runners_running;
 starpu_pthread_queue_t _starpu_simgrid_transfer_queue[STARPU_MAXNODES];
+static struct transfer_runner {
+	struct transfer *first_transfer, *last_transfer;
+	msg_sem_t sem;
+	msg_process_t runner;
+} transfer_runner[STARPU_MAXNODES][STARPU_MAXNODES];
+static int transfer_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED);
+
 starpu_pthread_queue_t _starpu_simgrid_task_queue[STARPU_NMAXWORKERS];
+static struct worker_runner {
+	struct task *first_task, *last_task;
+	msg_sem_t sem;
+	msg_process_t runner;
+} worker_runner[STARPU_NMAXWORKERS];
+static int task_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED);
 
 /* In case the MPI application didn't use smpicc to build the file containing
  * main(), try to cope by calling starpu_main */
@@ -272,7 +286,7 @@ static void maestro(void *data STARPU_ATTRIBUTE_UNUSED)
 	MSG_main();
 }
 
-void _starpu_simgrid_init(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv STARPU_ATTRIBUTE_UNUSED)
+void _starpu_simgrid_init_early(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef HAVE_MSG_PROCESS_ATTACH
 	if (!simgrid_started && !(smpi_main && smpi_simulated_main_ != _starpu_smpi_simulated_main_))
@@ -292,7 +306,6 @@ void _starpu_simgrid_init(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv STARPU
 	}
 #endif
 
-	unsigned i;
 	if (!simgrid_started && !starpu_main && !(smpi_main && smpi_simulated_main_ != _starpu_smpi_simulated_main_))
 	{
 		_STARPU_ERROR("In simgrid mode, the file containing the main() function of this application needs to be compiled with starpu.h or starpu_simgrid_wrap.h included, to properly rename it into starpu_main\n");
@@ -304,14 +317,67 @@ void _starpu_simgrid_init(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv STARPU
 #endif
 		MSG_process_set_data(MSG_process_self(), calloc(MAX_TSD, sizeof(void*)));
 	}
+	unsigned i;
 	for (i = 0; i < STARPU_MAXNODES; i++)
 		starpu_pthread_queue_init(&_starpu_simgrid_transfer_queue[i]);
 	for (i = 0; i < STARPU_NMAXWORKERS; i++)
 		starpu_pthread_queue_init(&_starpu_simgrid_task_queue[i]);
 }
 
+void _starpu_simgrid_init(void)
+{
+	unsigned i;
+	runners_running = 1;
+	for (i = 0; i < starpu_worker_get_count(); i++)
+	{
+		char s[32];
+		snprintf(s, sizeof(s), "worker %u runner", i);
+		void **tsd = calloc(MAX_TSD+1, sizeof(void*));
+		worker_runner[i].sem = MSG_sem_init(0);
+		tsd[0] = (void*)(uintptr_t) i;
+		worker_runner[i].runner = MSG_process_create_with_arguments(s, task_execute, tsd, _starpu_simgrid_get_host_by_worker(_starpu_get_worker_struct(i)), 0, NULL);
+	}
+}
+
 void _starpu_simgrid_deinit(void)
 {
+	unsigned i, j;
+	runners_running = 0;
+	for (i = 0; i < STARPU_MAXNODES; i++)
+	{
+		for (j = 0; j < STARPU_MAXNODES; j++)
+		{
+			struct transfer_runner *t = &transfer_runner[i][j];
+			if (t->runner)
+			{
+				MSG_sem_release(t->sem);
+#if SIMGRID_VERSION_MAJOR > 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR >= 14)
+				MSG_process_join(t->runner, 1000000);
+#else
+				MSG_process_sleep(1);
+#endif
+				STARPU_ASSERT(t->first_transfer == NULL);
+				STARPU_ASSERT(t->last_transfer == NULL);
+				MSG_sem_destroy(t->sem);
+			}
+		}
+		/* FIXME: queue not empty at this point, needs proper unregistration */
+		/* starpu_pthread_queue_destroy(&_starpu_simgrid_transfer_queue[i]); */
+	}
+	for (i = 0; i < starpu_worker_get_count(); i++)
+	{
+		struct worker_runner *w = &worker_runner[i];
+		MSG_sem_release(w->sem);
+#if SIMGRID_VERSION_MAJOR > 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR >= 14)
+		MSG_process_join(w->runner, 1000000);
+#else
+		MSG_process_sleep(1);
+#endif
+		STARPU_ASSERT(w->first_task == NULL);
+		STARPU_ASSERT(w->last_task == NULL);
+		MSG_sem_destroy(w->sem);
+		starpu_pthread_queue_destroy(&_starpu_simgrid_task_queue[i]);
+	}
 #ifdef HAVE_MSG_PROCESS_ATTACH
 	if (simgrid_started == 2)
 	{
@@ -329,18 +395,13 @@ void _starpu_simgrid_deinit(void)
 struct task
 {
 	msg_task_t task;
-	int workerid;
 
 	/* communication termination signalization */
 	unsigned *finished;
-	starpu_pthread_mutex_t *mutex;
-	starpu_pthread_cond_t *cond;
 
-	/* Task which waits for this task */
+	/* Next task on this worker */
 	struct task *next;
 };
-
-static struct task *last_task[STARPU_NMAXWORKERS];
 
 /* Actually execute the task.  */
 static int task_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED)
@@ -348,49 +409,62 @@ static int task_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_AT
 	/* FIXME: Ugly work-around for bug in simgrid: the MPI context is not properly set at MSG process startup */
 	MSG_process_sleep(0.000001);
 
-	struct task *task = starpu_pthread_getspecific(0);
-	_STARPU_DEBUG("task %p started\n", task);
-	MSG_task_execute(task->task);
-	MSG_task_destroy(task->task);
-	_STARPU_DEBUG("task %p finished\n", task);
-	STARPU_PTHREAD_MUTEX_LOCK(task->mutex);
-	*task->finished = 1;
-	STARPU_PTHREAD_COND_BROADCAST(task->cond);
-	STARPU_PTHREAD_MUTEX_UNLOCK(task->mutex);
+	unsigned workerid = (uintptr_t) starpu_pthread_getspecific(0);
+	struct worker_runner *w = &worker_runner[workerid];
 
-	/* The worker which started this task may be sleeping out of tasks, wake it  */
-	starpu_wake_worker(task->workerid);
+	_STARPU_DEBUG("worker runner %u started\n", workerid);
+	while (1) {
+		struct task *task;
 
-	if (last_task[task->workerid] == task)
-		last_task[task->workerid] = NULL;
-	if (task->next)
-	{
-		void **tsd = calloc(MAX_TSD+1, sizeof(void*));
-		tsd[0] = task->next;
-		MSG_process_create_with_arguments("task", task_execute, tsd, MSG_host_self(), 0, NULL);
+		MSG_sem_acquire(w->sem);
+		if (!runners_running)
+			break;
+
+		task = w->first_task;
+		w->first_task = task->next;
+		if (w->last_task == task)
+			w->last_task = NULL;
+
+		_STARPU_DEBUG("task %p started\n", task);
+		MSG_task_execute(task->task);
+		MSG_task_destroy(task->task);
+		_STARPU_DEBUG("task %p finished\n", task);
+
+		*task->finished = 1;
+		/* The worker which started this task may be sleeping out of tasks, wake it  */
+		starpu_wake_worker(workerid);
+
+		free(task);
 	}
-	/* Task is freed with process context */
+	_STARPU_DEBUG("worker %u stopped\n", workerid);
 	return 0;
 }
 
 /* Wait for completion of all asynchronous tasks for this worker */
 void _starpu_simgrid_wait_tasks(int workerid)
 {
-	struct task *task = last_task[workerid];
+	struct task *task = worker_runner[workerid].last_task;
 	if (!task)
 		return;
 
 	unsigned *finished = task->finished;
-	starpu_pthread_mutex_t *mutex = task->mutex;
-	starpu_pthread_cond_t *cond = task->cond;
-	STARPU_PTHREAD_MUTEX_LOCK(mutex);
-	while (!*finished)
-		STARPU_PTHREAD_COND_WAIT(cond, mutex);
-	STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
+	starpu_pthread_wait_t wait;
+	starpu_pthread_wait_init(&wait);
+	starpu_pthread_queue_register(&wait, &_starpu_simgrid_task_queue[workerid]);
+
+	while(1)
+	{
+		starpu_pthread_wait_reset(&wait);
+		if (*finished)
+			break;
+		starpu_pthread_wait_wait(&wait);
+	}
+	starpu_pthread_queue_unregister(&wait, &_starpu_simgrid_task_queue[workerid]);
+	starpu_pthread_wait_destroy(&wait);
 }
 
 /* Task execution submitted by StarPU */
-void _starpu_simgrid_submit_job(int workerid, struct _starpu_job *j, struct starpu_perfmodel_arch* perf_arch, double length, unsigned *finished, starpu_pthread_mutex_t *mutex, starpu_pthread_cond_t *cond)
+void _starpu_simgrid_submit_job(int workerid, struct _starpu_job *j, struct starpu_perfmodel_arch* perf_arch, double length, unsigned *finished)
 {
 	struct starpu_task *starpu_task = j->task;
 	msg_task_t simgrid_task;
@@ -428,31 +502,28 @@ void _starpu_simgrid_submit_job(int workerid, struct _starpu_job *j, struct star
 	{
 		/* Asynchronous execution */
 		struct task *task;
+		struct worker_runner *w = &worker_runner[workerid];
 		_STARPU_MALLOC(task, sizeof(*task));
 		task->task = simgrid_task;
-		task->workerid = workerid;
 		task->finished = finished;
 		*finished = 0;
-		task->mutex = mutex;
-		task->cond = cond;
 		task->next = NULL;
 		/* Sleep 10µs for the GPU task queueing */
 		if (_starpu_simgrid_queue_malloc_cost())
 			MSG_process_sleep(0.000010);
-		if (last_task[workerid])
+		if (w->last_task)
 		{
-			/* Make this task depend on the previous */
-			last_task[workerid]->next = task;
-			last_task[workerid] = task;
+			/* Already running a task, queue */
+			w->last_task->next = task;
+			w->last_task = task;
 		}
 		else
 		{
-			void **tsd;
-			last_task[workerid] = task;
-			tsd = calloc(MAX_TSD+1, sizeof(void*));
-			tsd[0] = task;
-			MSG_process_create_with_arguments("task", task_execute, tsd, MSG_host_self(), 0, NULL);
+			STARPU_ASSERT(!w->first_task);
+			w->first_task = task;
+			w->last_task = task;
 		}
+		MSG_sem_release(w->sem);
 	}
 }
 
@@ -469,8 +540,6 @@ LIST_TYPE(transfer,
 
 	/* communication termination signalization */
 	unsigned *finished;
-	starpu_pthread_mutex_t *mutex;
-	starpu_pthread_cond_t *cond;
 
 	/* transfers which wait for this transfer */
 	struct transfer **wake;
@@ -478,6 +547,9 @@ LIST_TYPE(transfer,
 
 	/* Number of transfers that this transfer waits for */
 	unsigned nwait;
+
+	/* Next transfer on this stream */
+	struct transfer *next;
 )
 
 struct transfer_list pending;
@@ -533,47 +605,97 @@ static int transfers_are_sequential(struct transfer *new_transfer, struct transf
 	return 0;
 }
 
+static void transfer_queue(struct transfer *transfer)
+{
+	unsigned src = transfer->src_node;
+	unsigned dst = transfer->dst_node;
+	struct transfer_runner *t = &transfer_runner[src][dst];
+
+	if (!t->runner)
+	{
+		/* No runner yet, start it */
+		static starpu_pthread_mutex_t mutex; /* process_create may yield */
+		STARPU_PTHREAD_MUTEX_LOCK(&mutex);
+		if (!t->runner)
+		{
+			char s[64];
+			snprintf(s, sizeof(s), "transfer %u-%u runner", src, dst);
+			void **tsd = calloc(MAX_TSD+1, sizeof(void*));
+			tsd[0] = (void*)(uintptr_t)((src<<16) + dst);
+			t->runner = MSG_process_create_with_arguments(s, transfer_execute, tsd, _starpu_simgrid_get_memnode_host(src), 0, NULL);
+			t->sem = MSG_sem_init(0);
+		}
+		STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+	}
+
+	if (t->last_transfer)
+	{
+		/* Already running a transfer, queue */
+		t->last_transfer->next = transfer;
+		t->last_transfer = transfer;
+	}
+	else
+	{
+		STARPU_ASSERT(!t->first_transfer);
+		t->first_transfer = transfer;
+		t->last_transfer = transfer;
+	}
+	MSG_sem_release(t->sem);
+}
+
 /* Actually execute the transfer, and then start transfers waiting for this one.  */
 static int transfer_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED)
 {
 	/* FIXME: Ugly work-around for bug in simgrid: the MPI context is not properly set at MSG process startup */
 	MSG_process_sleep(0.000001);
 
-	struct transfer *transfer = starpu_pthread_getspecific(0);
-	unsigned i;
-	_STARPU_DEBUG("transfer %p started\n", transfer);
-	MSG_task_execute(transfer->task);
-	MSG_task_destroy(transfer->task);
-	_STARPU_DEBUG("transfer %p finished\n", transfer);
-	STARPU_PTHREAD_MUTEX_LOCK(transfer->mutex);
-	*transfer->finished = 1;
-	STARPU_PTHREAD_COND_BROADCAST(transfer->cond);
-	STARPU_PTHREAD_MUTEX_UNLOCK(transfer->mutex);
+	unsigned src_dst = (uintptr_t) starpu_pthread_getspecific(0);
+	unsigned src = src_dst >> 16;
+	unsigned dst = src_dst & 0xffff;
+	struct transfer_runner *t = &transfer_runner[src][dst];
 
-	/* The workers which started this request may be sleeping out of tasks, wake it  */
-	_starpu_wake_all_blocked_workers_on_node(transfer->run_node);
+	_STARPU_DEBUG("transfer runner %u-%u started\n", src, dst);
+	while (1) {
+		struct transfer *transfer;
 
-	/* Wake transfers waiting for my termination */
-	/* Note: due to possible preemption inside process_create, the array
-	 * may grow while doing this */
-	for (i = 0; i < transfer->nwake; i++)
-	{
-		struct transfer *wake = transfer->wake[i];
-		STARPU_ASSERT(wake->nwait > 0);
-		wake->nwait--;
-		if (!wake->nwait)
+		MSG_sem_acquire(t->sem);
+		if (!runners_running)
+			break;
+		transfer = t->first_transfer;
+		t->first_transfer = transfer->next;
+		if (t->last_transfer == transfer)
+			t->last_transfer = NULL;
+
+		_STARPU_DEBUG("transfer %p started\n", transfer);
+		MSG_task_execute(transfer->task);
+		MSG_task_destroy(transfer->task);
+		_STARPU_DEBUG("transfer %p finished\n", transfer);
+
+		*transfer->finished = 1;
+		transfer_list_erase(&pending, transfer);
+
+		/* The workers which started this request may be sleeping out of tasks, wake it  */
+		_starpu_wake_all_blocked_workers_on_node(transfer->run_node);
+
+		unsigned i;
+		/* Wake transfers waiting for my termination */
+		/* Note: due to possible preemption inside process_create, the array
+		 * may grow while doing this */
+		for (i = 0; i < transfer->nwake; i++)
 		{
-			void **tsd;
-			_STARPU_DEBUG("triggering transfer %p\n", wake);
-			tsd = calloc(MAX_TSD+1, sizeof(void*));
-			tsd[0] = wake;
-			MSG_process_create_with_arguments("transfer task", transfer_execute, tsd, _starpu_simgrid_get_host_by_name("MAIN"), 0, NULL);
+			struct transfer *wake = transfer->wake[i];
+			STARPU_ASSERT(wake->nwait > 0);
+			wake->nwait--;
+			if (!wake->nwait)
+			{
+				_STARPU_DEBUG("triggering transfer %p\n", wake);
+				transfer_queue(wake);
+			}
 		}
+		free(transfer->wake);
+		free(transfer);
 	}
 
-	free(transfer->wake);
-	transfer_list_erase(&pending, transfer);
-	/* transfer is freed with process context */
 	return 0;
 }
 
@@ -604,12 +726,33 @@ static void transfer_submit(struct transfer *transfer)
 
 	if (!transfer->nwait)
 	{
-		void **tsd;
 		_STARPU_DEBUG("transfer %p waits for nobody, starting\n", transfer);
-		tsd = calloc(MAX_TSD+1, sizeof(void*));
-		tsd[0] = transfer;
-		MSG_process_create_with_arguments("transfer task", transfer_execute, tsd, _starpu_simgrid_get_host_by_name("MAIN"), 0, NULL);
+		transfer_queue(transfer);
 	}
+}
+
+int _starpu_simgrid_wait_transfer_event(union _starpu_async_channel_event *event)
+{
+	/* this is not associated to a request so it's synchronous */
+	starpu_pthread_wait_t wait;
+	starpu_pthread_wait_init(&wait);
+	starpu_pthread_queue_register(&wait, event->queue);
+
+	while(1)
+	{
+		starpu_pthread_wait_reset(&wait);
+		if (event->finished)
+			break;
+		starpu_pthread_wait_wait(&wait);
+	}
+	starpu_pthread_queue_unregister(&wait, event->queue);
+	starpu_pthread_wait_destroy(&wait);
+	return 0;
+}
+
+int _starpu_simgrid_test_transfer_event(union _starpu_async_channel_event *event)
+{
+	return event->finished;
 }
 
 /* Data transfer issued by StarPU */
@@ -623,9 +766,7 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 	msg_host_t *hosts;
 	double *computation;
 	double *communication;
-	starpu_pthread_mutex_t mutex;
-	starpu_pthread_cond_t cond;
-	unsigned finished;
+	union _starpu_async_channel_event *event, myevent;
 
 	_STARPU_CALLOC(hosts, 2, sizeof(*hosts));
 	_STARPU_CALLOC(computation, 2, sizeof(*computation));
@@ -648,24 +789,17 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 	transfer->run_node = _starpu_memory_node_get_local_key();
 
 	if (req)
-	{
-		transfer->finished = &req->async_channel.event.finished;
-		transfer->mutex = &req->async_channel.event.mutex;
-		transfer->cond = &req->async_channel.event.cond;
-	}
+		event = &req->async_channel.event;
 	else
-	{
-		transfer->finished = &finished;
-		transfer->mutex = &mutex;
-		transfer->cond = &cond;
-	}
+		event = &myevent;
+	event->finished = 0;
+	transfer->finished = &event->finished;
+	event->queue = &_starpu_simgrid_transfer_queue[transfer->run_node];
 
-	*transfer->finished = 0;
-	STARPU_PTHREAD_MUTEX_INIT(transfer->mutex, NULL);
-	STARPU_PTHREAD_COND_INIT(transfer->cond, NULL);
 	transfer->wake = NULL;
 	transfer->nwake = 0;
 	transfer->nwait = 0;
+	transfer->next = NULL;
 
 	if (req)
 		_STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
@@ -685,10 +819,7 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 	else
 	{
 		/* this is not associated to a request so it's synchronous */
-		STARPU_PTHREAD_MUTEX_LOCK(&mutex);
-		while (!finished)
-			STARPU_PTHREAD_COND_WAIT(&cond, &mutex);
-		STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+		_starpu_simgrid_wait_transfer_event(event);
 		return 0;
 	}
 }
