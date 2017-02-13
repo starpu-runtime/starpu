@@ -56,6 +56,10 @@ New features:
     models between devices, making calibration much faster.
   * Add modular-heft-prio scheduler.
 
+Changes:
+  * Fix performance regression of lws for small tasks.
+
+
 StarPU 1.2.0 (svn revision 18521)
 ==============================================
 
