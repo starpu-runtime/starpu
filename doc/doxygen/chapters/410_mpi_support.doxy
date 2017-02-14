@@ -572,6 +572,9 @@ add fine-graph starpu_mpi_cache_flush() calls during the algorithm; the effect
 for the data deallocation will be the same, but it will additionally release some
 pressure from the StarPU-MPI cache hash table during task submission.
 
+One can determine whether a piece of is cached with starpu_mpi_cached_receive()
+and starpu_mpi_cached_send().
+
 The whole caching behavior can be disabled thanks to the \ref STARPU_MPI_CACHE
 environment variable. The variable \ref STARPU_MPI_CACHE_STATS can be set to <c>1</c>
 to enable the runtime to display messages when data are added or removed

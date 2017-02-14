@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011, 2012, 2013, 2014, 2015, 2016  CNRS
- * Copyright (C) 2011-2014  Université de Bordeaux
+ * Copyright (C) 2011-2014, 2017  Université de Bordeaux
  * Copyright (C) 2014 INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -44,6 +44,7 @@ void _starpu_mpi_cache_received_data_clear(starpu_data_handle_t data);
  * If the data is NOT available in the cache, add it to the cache and return NULL
  */
 void *_starpu_mpi_cache_sent_data_set(starpu_data_handle_t data, int dest);
+void *_starpu_mpi_cache_sent_data_get(starpu_data_handle_t data, int dest);
 void _starpu_mpi_cache_sent_data_clear(MPI_Comm comm, starpu_data_handle_t data);
 
 void _starpu_mpi_cache_flush(MPI_Comm comm, starpu_data_handle_t data_handle);

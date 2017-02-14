@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
- * Copyright (C) 2011-2016  Université de Bordeaux
+ * Copyright (C) 2011-2017  Université de Bordeaux
  * Copyright (C) 2014 INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -319,6 +319,13 @@ void *_starpu_mpi_cache_received_data_get(starpu_data_handle_t data, int mpi_ran
 	return already_received;
 }
 
+int starpu_mpi_cached_receive(starpu_data_handle_t data_handle)
+{
+	int owner = starpu_mpi_data_get_rank(data_handle);
+	void *already_received = _starpu_mpi_cache_received_data_get(data_handle, owner);
+	return already_received != NULL;
+}
+
 void *_starpu_mpi_cache_sent_data_set(starpu_data_handle_t data, int dest)
 {
 	struct _starpu_data_entry *already_sent;
@@ -344,3 +351,24 @@ void *_starpu_mpi_cache_sent_data_set(starpu_data_handle_t data, int dest)
 	STARPU_PTHREAD_MUTEX_UNLOCK(&_cache_sent_mutex[dest]);
 	return already_sent;
 }
+
+void *_starpu_mpi_cache_sent_data_get(starpu_data_handle_t data, int dest)
+{
+	struct _starpu_data_entry *already_sent;
+
+	if (_starpu_cache_enabled == 0) return NULL;
+
+	STARPU_MPI_ASSERT_MSG(dest < _starpu_cache_comm_size, "Node %d invalid. Max node is %d\n", dest, _starpu_cache_comm_size);
+
+	STARPU_PTHREAD_MUTEX_LOCK(&_cache_sent_mutex[dest]);
+	HASH_FIND_PTR(_cache_sent_data[dest], &data, already_sent);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&_cache_sent_mutex[dest]);
+	return already_sent;
+}
+
+int starpu_mpi_cached_send(starpu_data_handle_t data_handle, int dest)
+{
+	void *already_sent = _starpu_mpi_cache_sent_data_get(data_handle, dest);
+	return already_sent != NULL;
+}
+
