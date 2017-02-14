@@ -236,14 +236,15 @@ If \p enabled is 1, enable the communication cache. Otherwise, clean the cache i
 \fn void starpu_mpi_cache_flush(MPI_Comm comm, starpu_data_handle_t data_handle)
 \ingroup API_MPI_Support
 Clear the send and receive communication cache for the data
-\p data_handle and invalidate the value. The function has to be called synchronously by all the
-MPI nodes. The function does nothing if the cache mechanism is
+\p data_handle and invalidate the value. The function has to be called at the
+same point of task graph submission by all the MPI nodes on which the handle was
+registered. The function does nothing if the cache mechanism is
 disabled (see \ref STARPU_MPI_CACHE).
 
 \fn void starpu_mpi_cache_flush_all_data(MPI_Comm comm)
 \ingroup API_MPI_Support
 Clear the send and receive communication cache for all data and invalidate their values. The
-function has to be called synchronously by all the MPI nodes. The
+function has to be called at the same point of task graph submission by all the MPI nodes. The
 function does nothing if the cache mechanism is disabled (see
 \ref STARPU_MPI_CACHE).
 
