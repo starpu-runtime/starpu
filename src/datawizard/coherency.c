@@ -1048,6 +1048,8 @@ int _starpu_fetch_task_input(struct starpu_task *task, struct _starpu_job *j, in
 		struct _starpu_data_replicate *local_replicate;
 
 		local_replicate = get_replicate(handle, mode, workerid, node);
+		if (local_replicate->mc)
+			local_replicate->mc->diduse = 1;
 
 		_STARPU_TASK_SET_INTERFACE(task , local_replicate->data_interface, index);
 

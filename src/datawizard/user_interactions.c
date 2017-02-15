@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2016  Université de Bordeaux
+ * Copyright (C) 2009-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -81,6 +81,11 @@ static void _starpu_data_acquire_fetch_data_callback(void *arg)
 		_starpu_add_post_sync_tasks(wrapper->post_sync_task, handle);
 
 	wrapper->callback(wrapper->callback_arg);
+
+	struct _starpu_data_replicate *replicate =
+		wrapper->node >= 0 ? &handle->per_node[wrapper->node] : NULL;
+	if (replicate && replicate->mc)
+		replicate->mc->diduse = 1;
 
 	free(wrapper);
 }
@@ -216,6 +221,8 @@ static inline void _starpu_data_acquire_continuation(void *arg)
 
 	ret = _starpu_fetch_data_on_node(handle, wrapper->node, replicate, wrapper->mode, 0, 0, 0, NULL, NULL, 0, "_starpu_data_acquire_continuation");
 	STARPU_ASSERT(!ret);
+	if (replicate && replicate->mc)
+		replicate->mc->diduse = 1;
 
 	/* continuation of starpu_data_acquire */
 	STARPU_PTHREAD_MUTEX_LOCK(&wrapper->lock);
@@ -302,6 +309,8 @@ int starpu_data_acquire_on_node(starpu_data_handle_t handle, int node, enum star
 		/* no one has locked this data yet, so we proceed immediately */
 		int ret = _starpu_fetch_data_on_node(handle, node, replicate, mode, 0, 0, 0, NULL, NULL, 0, "starpu_data_acquire_on_node");
 		STARPU_ASSERT(!ret);
+		if (replicate && replicate->mc)
+			replicate->mc->diduse = 1;
 	}
 	else
 	{
