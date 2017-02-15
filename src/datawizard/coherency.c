@@ -331,6 +331,11 @@ static int determine_request_path(starpu_data_handle_t handle,
 {
 	if (src_node == dst_node || !(mode & STARPU_R))
 	{
+		if (starpu_node_get_kind(dst_node) == STARPU_DISK_RAM)
+			handling_nodes[0] = src_node;
+		else
+			handling_nodes[0] = dst_node;
+
 		if (write_invalidation)
 			/* The invalidation request will be enough */
 			return 0;
@@ -338,11 +343,7 @@ static int determine_request_path(starpu_data_handle_t handle,
 		/* The destination node should only allocate the data, no transfer is required */
 		STARPU_ASSERT(max_len >= 1);
 		src_nodes[0] = STARPU_MAIN_RAM; // ignored
-		if (starpu_node_get_kind(dst_node) == STARPU_DISK_RAM)
-			dst_nodes[0] = src_node;
-		else
-			dst_nodes[0] = dst_node;
-		handling_nodes[0] = dst_node;
+		dst_nodes[0] = dst_node;
 		return 1;
 	}
 
