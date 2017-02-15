@@ -981,7 +981,8 @@ void _starpu_simgrid_xbt_thread_create(const char *name, void_f_pvoid_t code, vo
 #else
 	smx_process_t process;
 #endif
-	thread_data_t *res = malloc(sizeof(thread_data_t));
+	thread_data_t *res;
+	_STARPU_MALLOC(res, sizeof(thread_data_t));
 	res->userparam = param;
 	res->code = code;
 	res->father_data = SIMIX_process_self_get_data(SIMIX_process_self());
