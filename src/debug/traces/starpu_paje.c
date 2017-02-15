@@ -267,6 +267,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 	/* Types for the Scheduler */
 	poti_DefineVariableType("nsubmitted", "Sc", "Number of Submitted Uncompleted Tasks", "0 0 0");
 	poti_DefineVariableType("nready", "Sc", "Number of Ready Tasks", "0 0 0");
+	poti_DefineVariableType("gft", "Sc", "Total GFlops", "0 0 0");
 
 	/* Link types */
 	poti_DefineLinkType("MPIL", "P", "MPICt", "MPICt", "MPI communications");
@@ -304,6 +305,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 3       MS       Mm       \"Memory Node State\"                        \n\
 4       nsubmitted    Sc       \"Number of Submitted Uncompleted Tasks\"                        \n\
 4       nready    Sc       \"Number of Ready Tasks\"                        \n\
+4       gft    Sc       \"Total GFlops\"                        \n\
 4       use     Mm       \"Used (MB)\"                        \n\
 4       bwi_mm     Mm       \"Bandwidth In (MB/s)\"                        \n\
 4       bwo_mm     Mm       \"Bandwidth Out (MB/s)\"                        \n\

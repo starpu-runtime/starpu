@@ -319,6 +319,7 @@ LIST_TYPE(_starpu_symbol_name,
 
 static struct _starpu_symbol_name_list symbol_list;
 
+/* List of on-going communications */
 LIST_TYPE(_starpu_communication,
 	unsigned comid;
 	double comm_start;
@@ -331,6 +332,17 @@ LIST_TYPE(_starpu_communication,
 static struct _starpu_communication_list communication_list;
 static float current_bandwidth_in_per_node[STARPU_MAXNODES] = {0.0};
 static float current_bandwidth_out_per_node[STARPU_MAXNODES] = {0.0};
+
+/* List of on-going computations */
+LIST_TYPE(_starpu_computation,
+	double comp_start;
+	double gflops;
+	struct _starpu_computation *peer;
+)
+
+static struct _starpu_computation_list computation_list;
+static struct _starpu_computation *ongoing_computation[STARPU_NMAXWORKERS];
+static double current_computation = 0.0;
 
 /*
  * Generic tools
@@ -1229,6 +1241,11 @@ static void handle_start_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_op
 		recfmt_worker_set_state(start_codelet_time, ev->param[2], name, "Task");
 #endif /* STARPU_ENABLE_PAJE_CODELET_DETAILS */
 
+	struct _starpu_computation *comp = _starpu_computation_new();
+	comp->comp_start = start_codelet_time;
+	comp->peer = NULL;
+	ongoing_computation[worker] = comp;
+	_starpu_computation_list_push_back(&computation_list, comp);
 }
 
 static void handle_model_name(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -1368,6 +1385,15 @@ static void handle_end_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 	fprintf(out_paje_file, "13	%.9f	%sw%d	gf	%f\n",
 			end_codelet_time, prefix, worker, 0.);
 #endif
+
+	struct _starpu_computation *comp = _starpu_computation_new();
+	comp->comp_start = end_codelet_time;
+	comp->gflops = -gflops;
+	comp->peer = ongoing_computation[worker];
+	ongoing_computation[worker] = NULL;
+	comp->peer->gflops = +gflops;
+	comp->peer->peer = comp;
+	_starpu_computation_list_push_back(&computation_list, comp);
 
 	if (distrib_time)
 	     fprintf(distrib_time, "%s\t%s%d\t%ld\t%"PRIx32"\t%.9f\n", _starpu_last_codelet_symbol[worker],
@@ -2519,6 +2545,36 @@ void _starpu_fxt_process_bandwidth(struct starpu_fxt_options *options)
 }
 
 static
+void _starpu_fxt_process_computations(struct starpu_fxt_options *options)
+{
+	char *prefix = options->file_prefix;
+
+	/* Loop through completed computations */
+	struct _starpu_computation*itor;
+	while (!_starpu_computation_list_empty(&computation_list)
+			&& _starpu_computation_list_begin(&computation_list)->peer)
+	{
+		/* This computation is complete */
+		itor = _starpu_computation_list_pop_front(&computation_list);
+
+		current_computation += itor->gflops;
+		if (out_paje_file)
+		{
+#ifdef STARPU_HAVE_POTI
+			char container[STARPU_POTI_STR_LEN];
+
+			scheduler_container_alias(container, STARPU_POTI_STR_LEN, prefix);
+			poti_SetVariable(itor->comp_start, container, "gft", (double)current_computation);
+#else
+			fprintf(out_paje_file, "13	%.9f	%ssched	gft	%f\n", itor->comp_start, prefix, (float)current_computation);
+#endif
+		}
+
+		_starpu_computation_delete(itor);
+	}
+}
+
+static
 void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *options)
 {
 	/* Open the trace file */
@@ -3101,6 +3157,7 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 				break;
 		}
 		_starpu_fxt_process_bandwidth(options);
+		_starpu_fxt_process_computations(options);
 	}
 
 	/* Close the trace file */
@@ -3272,6 +3329,7 @@ void _starpu_fxt_paje_file_init(struct starpu_fxt_options *options)
 	/* create lists for symbols (kernel states) and communications */
 	_starpu_symbol_name_list_init(&symbol_list);
 	_starpu_communication_list_init(&communication_list);
+	_starpu_computation_list_init(&computation_list);
 }
 
 static
