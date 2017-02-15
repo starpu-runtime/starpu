@@ -331,7 +331,7 @@ static int determine_request_path(starpu_data_handle_t handle,
 {
 	if (src_node == dst_node || !(mode & STARPU_R))
 	{
-		if (starpu_node_get_kind(dst_node) == STARPU_DISK_RAM)
+		if (dst_node == -1 || starpu_node_get_kind(dst_node) == STARPU_DISK_RAM)
 			handling_nodes[0] = src_node;
 		else
 			handling_nodes[0] = dst_node;
