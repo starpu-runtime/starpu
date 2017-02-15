@@ -718,7 +718,7 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 	/* we only submit the first request, the remaining will be
 	 * automatically submitted afterward */
 	if (!reused_requests[0])
-		_starpu_post_data_request(requests[0], handling_nodes[0]);
+		_starpu_post_data_request(requests[0]);
 
 	return requests[nhops - 1];
 }

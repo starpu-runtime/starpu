@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2016  Université de Bordeaux
+ * Copyright (C) 2009-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
  * Copyright (C) 2016  INRIA
  *
@@ -287,8 +287,9 @@ int _starpu_wait_data_request_completion(struct _starpu_data_request *r, unsigne
 }
 
 /* this is non blocking */
-void _starpu_post_data_request(struct _starpu_data_request *r, unsigned handling_node)
+void _starpu_post_data_request(struct _starpu_data_request *r)
 {
+	unsigned handling_node = r->handling_node;
 	/* We don't have a worker for disk nodes, these should have been posted to a main RAM node */
 	STARPU_ASSERT(starpu_node_get_kind(handling_node) != STARPU_DISK_RAM);
 	STARPU_ASSERT(handling_node == STARPU_MAIN_RAM || _starpu_memory_node_get_nworkers(handling_node));
@@ -396,7 +397,7 @@ static void starpu_handle_data_request_completion(struct _starpu_data_request *r
 		struct _starpu_data_request *next_req = r->next_req[chained_req];
 		STARPU_ASSERT(next_req->ndeps > 0);
 		next_req->ndeps--;
-		_starpu_post_data_request(next_req, next_req->handling_node);
+		_starpu_post_data_request(next_req);
 	}
 
 	r->completed = 1;

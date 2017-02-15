@@ -39,7 +39,7 @@ int starpu_data_request_allocation(starpu_data_handle_t handle, unsigned node)
 	/* we do not increase the refcnt associated to the request since we are
 	 * not waiting for its termination */
 
-	_starpu_post_data_request(r, node);
+	_starpu_post_data_request(r);
 
 	_starpu_spin_unlock(&handle->header_lock);
 

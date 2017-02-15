@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2010, 2013-2016  Université de Bordeaux
+ * Copyright (C) 2009-2010, 2013-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2013  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -120,7 +120,7 @@ LIST_TYPE(_starpu_data_requester,
 
 void _starpu_init_data_request_lists(void);
 void _starpu_deinit_data_request_lists(void);
-void _starpu_post_data_request(struct _starpu_data_request *r, unsigned handling_node);
+void _starpu_post_data_request(struct _starpu_data_request *r);
 /* returns 0 if we have pushed all requests, -EBUSY or -ENOMEM otherwise */
 int _starpu_handle_node_data_requests(unsigned src_node, unsigned may_alloc, unsigned *pushed);
 int _starpu_handle_node_prefetch_requests(unsigned src_node, unsigned may_alloc, unsigned *pushed);
