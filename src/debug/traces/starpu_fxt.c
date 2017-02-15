@@ -325,9 +325,12 @@ LIST_TYPE(_starpu_communication,
 	double bandwidth;
 	unsigned src_node;
 	unsigned dst_node;
+	struct _starpu_communication *peer;
 )
 
 static struct _starpu_communication_list communication_list;
+static float current_bandwidth_in_per_node[STARPU_MAXNODES] = {0.0};
+static float current_bandwidth_out_per_node[STARPU_MAXNODES] = {0.0};
 
 /*
  * Generic tools
@@ -1741,6 +1744,8 @@ static void handle_start_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 		com->src_node = src;
 		com->dst_node = dst;
 
+		com->peer = NULL;
+
 		_starpu_communication_list_push_back(&communication_list, com);
 	}
 
@@ -1830,6 +1835,8 @@ static void handle_end_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 
 				com->src_node = itor->src_node;
 				com->dst_node = itor->dst_node;
+				com->peer = itor;
+				itor->peer = com;
 
 				_starpu_communication_list_push_back(&communication_list, com);
 
@@ -2470,18 +2477,18 @@ static void handle_thread_event(struct fxt_ev_64 *ev, struct starpu_fxt_options 
 }
 
 static
-void _starpu_fxt_display_bandwidth(struct starpu_fxt_options *options)
+void _starpu_fxt_process_bandwidth(struct starpu_fxt_options *options)
 {
-	float current_bandwidth_in_per_node[STARPU_MAXNODES] = {0.0};
-	float current_bandwidth_out_per_node[STARPU_MAXNODES] = {0.0};
-
 	char *prefix = options->file_prefix;
 
+	/* Loop through completed communications */
 	struct _starpu_communication*itor;
-	for (itor = _starpu_communication_list_begin(&communication_list);
-		itor != _starpu_communication_list_end(&communication_list);
-		itor = _starpu_communication_list_next(itor))
+	while (!_starpu_communication_list_empty(&communication_list)
+			&& _starpu_communication_list_begin(&communication_list)->peer)
 	{
+		/* This communication is complete */
+		itor = _starpu_communication_list_pop_front(&communication_list);
+
 		current_bandwidth_out_per_node[itor->src_node] +=  itor->bandwidth;
 		if (out_paje_file)
 		{
@@ -2507,6 +2514,7 @@ void _starpu_fxt_display_bandwidth(struct starpu_fxt_options *options)
 				itor->comm_start, prefix, itor->dst_node, current_bandwidth_in_per_node[itor->dst_node]);
 #endif
 		}
+		_starpu_communication_delete(itor);
 	}
 }
 
@@ -3092,6 +3100,7 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 #endif
 				break;
 		}
+		_starpu_fxt_process_bandwidth(options);
 	}
 
 	/* Close the trace file */
@@ -3438,8 +3447,6 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 		if (display_mpi)
 			_starpu_fxt_display_mpi_transfers(options, rank_k, out_paje_file);
 	}
-
-	_starpu_fxt_display_bandwidth(options);
 
 	/* close the different files */
 	_starpu_fxt_paje_file_close();
