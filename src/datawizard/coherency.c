@@ -338,7 +338,10 @@ static int determine_request_path(starpu_data_handle_t handle,
 		/* The destination node should only allocate the data, no transfer is required */
 		STARPU_ASSERT(max_len >= 1);
 		src_nodes[0] = STARPU_MAIN_RAM; // ignored
-		dst_nodes[0] = dst_node;
+		if (starpu_node_get_kind(dst_node) == STARPU_DISK_RAM)
+			dst_nodes[0] = src_node;
+		else
+			dst_nodes[0] = dst_node;
 		handling_nodes[0] = dst_node;
 		return 1;
 	}
