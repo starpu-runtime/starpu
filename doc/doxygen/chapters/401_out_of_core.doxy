@@ -45,7 +45,7 @@ This can also be achieved by just setting environment variables:
 \verbatim
 export STARPU_DISK_SWAP=/tmp
 export STARPU_DISK_SWAP_BACKEND=unistd
-export STARPU_DISK_SWAP_SIZE=$((200*1024*1024))
+export STARPU_DISK_SWAP_SIZE=200
 \endverbatim
 
 When the register function is called, StarPU will benchmark the disk. This can
