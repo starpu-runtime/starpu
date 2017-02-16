@@ -101,6 +101,10 @@ method of the disk operations. This returns an opaque object pointer.
 \ingroup API_Out_Of_Core
 Close an existing data opened with starpu_disk_open.
 
+\var starpu_disk_swap_node
+\ingrop API_Out_Of_Core
+This contains the node number of the disk swap, if set up through the
+STARPU_DISK_SWAP variable.
 
 \var starpu_disk_stdio_ops
 \ingroup API_Out_Of_Core
