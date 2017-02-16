@@ -864,13 +864,13 @@ static void handle_new_mem_node(struct fxt_ev_64 *ev, struct starpu_fxt_options 
 		if (!options->no_bus)
 		{
 #ifdef STARPU_HAVE_POTI
-			poti_SetVariable(get_event_time_stamp(ev, options), new_memmanager_container_alias, "use", 0.0);
-			poti_SetVariable(get_event_time_stamp(ev, options), new_memmanager_container_alias, "bwi_mm", 0.0);
-			poti_SetVariable(get_event_time_stamp(ev, options), new_memmanager_container_alias, "bwo_mm", 0.0);
+			poti_SetVariable(0.0, new_memmanager_container_alias, "use", 0.0);
+			poti_SetVariable(0.0, new_memmanager_container_alias, "bwi_mm", 0.0);
+			poti_SetVariable(0.0, new_memmanager_container_alias, "bwo_mm", 0.0);
 #else
-			fprintf(out_paje_file, "13	%.9f	%smm%"PRIu64"	use	0.0\n", get_event_time_stamp(ev, options), prefix, ev->param[0]);
-			fprintf(out_paje_file, "13	%.9f	%smm%"PRIu64"	bwi_mm	0.0\n", get_event_time_stamp(ev, options), prefix, ev->param[0]);
-			fprintf(out_paje_file, "13	%.9f	%smm%"PRIu64"	bwo_mm	0.0\n", get_event_time_stamp(ev, options), prefix, ev->param[0]);
+			fprintf(out_paje_file, "13	%.9f	%smm%"PRIu64"	use	0.0\n", 0.0, prefix, ev->param[0]);
+			fprintf(out_paje_file, "13	%.9f	%smm%"PRIu64"	bwi_mm	0.0\n", 0.0, prefix, ev->param[0]);
+			fprintf(out_paje_file, "13	%.9f	%smm%"PRIu64"	bwo_mm	0.0\n", 0.0, prefix, ev->param[0]);
 #endif
 		}
 	}
@@ -969,7 +969,7 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 		if (new_thread)
 			poti_CreateContainer(get_event_time_stamp(ev, options), new_thread_container_alias, "T", memnode_container, new_thread_container_name);
 		poti_CreateContainer(get_event_time_stamp(ev, options), new_worker_container_alias, "W", new_thread_container_alias, new_worker_container_name);
-		poti_SetVariable(get_event_time_stamp(ev, options), new_worker_container_alias, "gf", 0.0);
+		poti_SetVariable(0.0, new_worker_container_alias, "gf", 0.0);
 #else
 		if (new_thread)
 			fprintf(out_paje_file, "7	%.9f	%st%lu	T	%smn%d	%s%d\n",
@@ -977,7 +977,7 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 		fprintf(out_paje_file, "7	%.9f	%sw%d	W	%st%lu	%s%s%d\n",
 			get_event_time_stamp(ev, options), prefix, workerid, prefix, threadid, prefix, kindstr, devid);
 		fprintf(out_paje_file, "13	%.9f	%sw%d	gf	0.0\n",
-			get_event_time_stamp(ev, options), prefix, workerid);
+			0.0, prefix, workerid);
 #endif
 	}
 
@@ -2616,6 +2616,7 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 			poti_CreateContainer(0.0, new_scheduler_container_alias, "Sc", new_program_container_alias, new_scheduler_container_name);
 			poti_SetVariable(0.0, new_scheduler_container_alias, "nsubmitted", 0.0);
 			poti_SetVariable(0.0, new_scheduler_container_alias, "nready", 0.0);
+			poti_SetVariable(0.0, new_scheduler_container_alias, "gft", 0.0);
 		}
 #else
 		fprintf(out_paje_file, "7	0.0	%sp	P	MPIroot	%sprogram \n", prefix, prefix);
@@ -2625,6 +2626,7 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 			fprintf(out_paje_file, "7	%.9f	%ssched	Sc	%sp	%sscheduler\n", 0.0, prefix, prefix, prefix);
 			fprintf(out_paje_file, "13	0.0	%ssched	nsubmitted	0.0\n", prefix);
 			fprintf(out_paje_file, "13	0.0	%ssched	nready	0.0\n", prefix);
+			fprintf(out_paje_file, "13	0.0	%ssched	gft	0.0\n", prefix);
 		}
 #endif
 	}
