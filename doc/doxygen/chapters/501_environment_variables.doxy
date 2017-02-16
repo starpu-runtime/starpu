@@ -873,7 +873,7 @@ read/write with O_DIRECT), and leveldb (i.e. using a leveldb database).
 <dd>
 \anchor STARPU_DISK_SWAP_SIZE
 \addindex __env__STARPU_DISK_SWAP_SIZE
-This specifies then size to be used by StarPU to push data when the main
+This specifies then maximum size in MiB to be used by StarPU to push data when the main
 memory is getting full. The default is unlimited.
 </dd>
 
