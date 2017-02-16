@@ -54,6 +54,8 @@ static struct disk_register **disk_register_list = NULL;
 static int disk_number = -1;
 static int size_register_list = 2;
 
+int starpu_disk_swap_node = -1;
+
 int starpu_disk_register(struct starpu_disk_ops *func, void *parameter, starpu_ssize_t size)
 {
 	STARPU_ASSERT_MSG(size < 0 || size >= SIZE_DISK_MIN,"Minimum disk size is %u Bytes ! (Here %u) \n", (int) SIZE_DISK_MIN, (int) size);
@@ -339,7 +341,6 @@ void _starpu_swap_init(void)
 	char *path;
 	starpu_ssize_t size;
 	struct starpu_disk_ops *ops;
-	int dd;
 
 	path = starpu_getenv("STARPU_DISK_SWAP");
 	if (!path)
@@ -389,8 +390,8 @@ void _starpu_swap_init(void)
 
 	size = starpu_get_env_number_default("STARPU_DISK_SWAP_SIZE", -1);
 
-	dd = starpu_disk_register(ops, path, ((size_t) size) << 20);
-	if (dd < 0)
+	starpu_disk_swap_node = starpu_disk_register(ops, path, ((size_t) size) << 20);
+	if (starpu_disk_swap_node < 0)
 	{
 		_STARPU_DISP("Warning: could not enable disk swap %s on %s with size %ld, could not enable disk swap", backend, path, (long) size);
 		return;
