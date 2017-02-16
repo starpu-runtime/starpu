@@ -58,7 +58,7 @@ int starpu_disk_register(struct starpu_disk_ops *func, void *parameter, starpu_s
 {
 	STARPU_ASSERT_MSG(size < 0 || size >= SIZE_DISK_MIN,"Minimum disk size is %u Bytes ! (Here %u) \n", (int) SIZE_DISK_MIN, (int) size);
 	/* register disk */
-	unsigned memory_node = _starpu_memory_node_register(STARPU_DISK_RAM, 0);
+	unsigned disk_memnode = _starpu_memory_node_register(STARPU_DISK_RAM, 0);
 
         /* Connect the disk memory node to all numa memory nodes */
         int nb_numa_nodes = _starpu_get_nb_numa_nodes();
@@ -66,23 +66,23 @@ int starpu_disk_register(struct starpu_disk_ops *func, void *parameter, starpu_s
         for (numa_node = 0; numa_node < nb_numa_nodes; numa_node++)
         {
                 int numa_memnode = _starpu_numalogid_to_memnode(numa_node);
-                _starpu_register_bus(STARPU_MAIN_RAM, numa_memnode);
-                _starpu_register_bus(numa_memnode, STARPU_MAIN_RAM);
+                _starpu_register_bus(disk_memnode, numa_memnode);
+                _starpu_register_bus(numa_memnode, disk_memnode);
         }
 
 	/* connect disk */
 	void *base = func->plug(parameter, size);
 
 	/* remember it */
-	add_disk_in_list(memory_node,func,base);
+	add_disk_in_list(disk_memnode,func,base);
 
-	int ret = func->bandwidth(memory_node);
+	int ret = func->bandwidth(disk_memnode);
 	/* have a problem with the disk */
 	if (ret == 0)
 		return -ENOENT;
 	if (size >= 0)
-		_starpu_memory_manager_set_global_memory_size(memory_node, size);
-	return memory_node;
+		_starpu_memory_manager_set_global_memory_size(disk_memnode, size);
+	return disk_memnode;
 }
 
 void _starpu_disk_unregister(void)
