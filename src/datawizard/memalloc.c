@@ -1133,7 +1133,6 @@ void starpu_memchunk_tidy(unsigned node)
 	}
 
 	_STARPU_TRACE_START_MEMRECLAIM(node,2);
-	_STARPU_TRACE_START_MEMRECLAIM(node,2);
 	free_potentially_in_use_mc(node, 0, amount);
 	_STARPU_TRACE_END_MEMRECLAIM(node,2);
 out:
