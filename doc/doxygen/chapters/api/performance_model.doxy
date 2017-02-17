@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  * Copyright (C) 2011, 2012, 2016 INRIA
  * See the file version.doxy for copying conditions.
  */
@@ -11,6 +11,8 @@
 \enum starpu_perfmodel_type
 \ingroup API_Performance_Model
 TODO
+\var starpu_perfmodel_type::STARPU_PERFMODEL_INVALID
+todo
 \var starpu_perfmodel_type::STARPU_PER_ARCH
 \ingroup API_Performance_Model
 Application-provided per-arch cost model function
@@ -81,29 +83,33 @@ is the symbol name for the performance model, which will be used as
 file name to store the model. It must be set otherwise the model will
 be ignored.
 \var double (*starpu_perfmodel::cost_function)(struct starpu_task *, unsigned nimpl)
-Used by ::STARPU_COMMON: takes a task and implementation number, and
+Used by ::STARPU_COMMON takes a task and implementation number, and
 must return a task duration estimation in micro-seconds.
 \var double (*starpu_perfmodel::arch_cost_function)(struct starpu_task *, struct starpu_perfmodel_arch* arch, unsigned nimpl)
-Used by ::STARPU_COMMON: takes a task, an arch and implementation number, and
+Used by ::STARPU_COMMON takes a task, an arch and implementation number, and
 must return a task duration estimation in micro-seconds on that arch.
 \var size_t (*starpu_perfmodel::size_base)(struct starpu_task *, unsigned nimpl)
 Used by ::STARPU_HISTORY_BASED, ::STARPU_REGRESSION_BASED and
-::STARPU_NL_REGRESSION_BASED. If not NULL, takes a task and
+::STARPU_NL_REGRESSION_BASED. If not <c>NULL</c>, takes a task and
 implementation number, and returns the size to be used as index to distinguish
 histories and as a base for regressions.
 \var uint32_t (*starpu_perfmodel::footprint)(struct starpu_task *)
-Used by ::STARPU_HISTORY_BASED. If not NULL, takes a task and returns the
+Used by ::STARPU_HISTORY_BASED. If not <c>NULL</c>, takes a task and returns the
 footprint to be used as index to distinguish histories. The default is to use
-the starpu_task_data_footprint function.
+the starpu_task_data_footprint() function.
 \var unsigned starpu_perfmodel::is_loaded
 \private
 Whether the performance model is already loaded from the disk.
 \var unsigned starpu_perfmodel::benchmarking
 \private
+todo
 \var unsigned starpu_perfmodel::is_init
 todo
 \var starpu_perfmodel_state_t starpu_perfmodel::state
 \private
+todo
+\var void (*starpu_perfmodel::parameters)(struct starpu_task * task, double *parameters);
+todo
 \var const char ** starpu_perfmodel::parameters_names
 \private
 Names of parameters used for multiple linear regression models (M, N, K)
@@ -217,7 +223,7 @@ todo
 \ingroup API_Performance_Model
 this function frees internal memory used for sampling directory
 management. It should only be called by an application which is not
-calling starpu_shutdown as this function already calls it. See for
+calling starpu_shutdown() as this function already calls it. See for
 example <c>tools/starpu_perfmodel_display.c</c>.
 
 \fn int starpu_perfmodel_load_file(const char *filename, struct starpu_perfmodel *model)
@@ -308,6 +314,6 @@ Return the estimated time to transfer a given size between two memory nodes.
 
 \fn double starpu_perfmodel_history_based_expected_perf(struct starpu_perfmodel *model, struct starpu_perfmodel_arch* arch, uint32_t footprint)
 \ingroup API_Performance_Model
-Return the estimated time of a task whose model is named \p and whose footprint is \p footprint
+Return the estimated time of a task with the given model and the given footprint.
 
 */

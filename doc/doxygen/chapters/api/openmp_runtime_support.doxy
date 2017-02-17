@@ -341,12 +341,12 @@ clause without code outlining.
 \fn void starpu_omp_single_copyprivate_inline_end(void)
 \ingroup API_OpenMP_Runtime_Support
 This function completes the execution of a single section and returns the
-broadcasted copyprivate pointer for tasks that lost the election and NULL for
+broadcasted copyprivate pointer for tasks that lost the election and <c>NULL</c> for
 the task that won the election. This function can be used to implement
 <c>\#pragma omp single</c> with a copyprivate clause without code outlining.
 
 \return the copyprivate pointer for tasks that lost the election and therefore did not execute the code of the single section.
-\return NULL for the task that won the election and executed the code of the single section.
+\return <c>NULL</c> for the task that won the election and executed the code of the single section.
 
 \sa starpu_omp_single_copyprivate_inline
 \sa starpu_omp_single_copyprivate_inline_begin

@@ -1,12 +1,16 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016, 2017  CNRS
  * Copyright (C) 2011, 2012 INRIA
  * See the file version.doxy for copying conditions.
  */
 
 /*! \defgroup API_Standard_Memory_Library Standard Memory Library
+
+\def starpu_ssize_t
+\ingroup API_Standard_Memory_Library
+todo
 
 \def starpu_data_malloc_pinned_if_possible
 \ingroup API_Standard_Memory_Library
@@ -36,13 +40,13 @@ starpu_free_flags() with the same flag.
 
 \def STARPU_MALLOC_NORECLAIM
 \ingroup API_Standard_Memory_Library
-Value passed to the function starpu_malloc_flags() along STARPU_MALLOC_COUNT
+Value passed to the function starpu_malloc_flags() along ::STARPU_MALLOC_COUNT
 to indicate that while the memory allocation should be kept in the limits
-defined for STARPU_MALLOC_COUNT, no reclaiming should be performed by
-starpu_malloc_flags itself, thus potentially overflowing the
+defined for ::STARPU_MALLOC_COUNT, no reclaiming should be performed by
+starpu_malloc_flags() itself, thus potentially overflowing the
 memory node a bit. StarPU will reclaim memory after next task termination,
-according to the STARPU_MINIMUM_AVAILABLE_MEM and STARPU_TARGET_AVAILABLE_MEM
-environment variables. If STARPU_MEMORY_WAIT is set, no overflowing will happen,
+according to \ref STARPU_MINIMUM_AVAILABLE_MEM and \ref STARPU_TARGET_AVAILABLE_MEM
+environment variables. If ::STARPU_MEMORY_WAIT is set, no overflowing will happen,
 starpu_malloc_flags() will wait for other eviction mechanisms to release enough memory.
 
 \def STARPU_MALLOC_SIMULATION_FOLDED
@@ -62,7 +66,7 @@ by the given flag.
 \fn void starpu_malloc_set_align(size_t align)
 \ingroup API_Standard_Memory_Library
 This function sets an alignment constraints for starpu_malloc()
-allocations. align must be a power of two. This is for instance called
+allocations. \p align must be a power of two. This is for instance called
 automatically by the OpenCL driver to specify its own alignment
 constraints.
 
@@ -126,9 +130,9 @@ If a memory limit is defined on the given node (see Section
 allocate memory, but only accounts for it. This can be useful when the
 application allocates data another way, but want StarPU to be aware of the
 allocation size e.g. for memory reclaiming.
-By default, the function returns -ENOMEM if there is not enough room on
-the given node. \p flags can be either STARPU_MEMORY_WAIT or
-STARPU_MEMORY_OVERFLOW to change this.
+By default, the function returns <c>-ENOMEM</c> if there is not enough room on
+the given node. \p flags can be either ::STARPU_MEMORY_WAIT or
+::STARPU_MEMORY_OVERFLOW to change this.
 
 \fn void starpu_memory_deallocate(unsigned node, size_t size)
 \ingroup API_Standard_Memory_Library
@@ -148,7 +152,7 @@ bytes to become available on \p node. Of course, since another thread may be
 allocating memory concurrently, this does not necessarily mean that this amount
 will be actually available, just that it was reached. To atomically wait for
 some amount of memory and reserve it, starpu_memory_allocate() should be used
-with the STARPU_MEMORY_WAIT flag.
+with the ::STARPU_MEMORY_WAIT flag.
 
 \def STARPU_MEMORY_WAIT
 \ingroup API_Standard_Memory_Library

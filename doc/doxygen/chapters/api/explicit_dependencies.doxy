@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2017  CNRS
  * Copyright (C) 2011, 2012 INRIA
  * See the file version.doxy for copying conditions.
  */
@@ -26,7 +26,7 @@ redundancy in the task dependencies.
 \ingroup API_Explicit_Dependencies
 Fills \p task_array with the list of tasks which are direct children of \p task.
 \p ndeps is the size of \p task_array.  This function returns the number of
-direct children. \p task_array can be set to NULL if \p ndeps is 0, which allows
+direct children. \p task_array can be set to <c>NULL</c> if \p ndeps is 0, which allows
 to compute the number of children before allocating an array to store them.
 This function can only be called if \p task has not completed yet, otherwise
 the results are undefined. The result may also be outdated if some additional
@@ -60,7 +60,7 @@ submitted to StarPU with starpu_task_submit().
 
 <b>WARNING! Use with caution</b>. Because of the variable arity of
 starpu_tag_declare_deps(), note that the last arguments must be of
-type starpu_tag_t : constant values typically need to be explicitly
+type ::starpu_tag_t : constant values typically need to be explicitly
 casted. Otherwise, due to integer sizes and argument passing on the
 stack, the C compiler might consider the tag <c>0x200000003</c>
 instead of <c>0x2</c> and <c>0x3</c> when calling
@@ -75,7 +75,7 @@ starpu_tag_declare_deps((starpu_tag_t)0x1, 2, (starpu_tag_t)0x32, (starpu_tag_t)
 \fn void starpu_tag_declare_deps_array(starpu_tag_t id, unsigned ndeps, starpu_tag_t *array)
 \ingroup API_Explicit_Dependencies
 This function is similar to starpu_tag_declare_deps(), except
-that its does not take a variable number of arguments but an array of
+that its does not take a variable number of arguments but an \p array of
 tags of size \p ndeps.
 
 \code{.c}

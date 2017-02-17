@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016, 2017  CNRS
  * Copyright (C) 2011, 2012 INRIA
  * See the file version.doxy for copying conditions.
  */
@@ -62,7 +62,7 @@ For each task not going through the scheduler (because starpu_task::execute_on_a
 \var struct starpu_task *(*starpu_sched_policy::pop_task)(unsigned sched_ctx_id)
         Get a task from the scheduler. The mutex associated to the
 	worker is already taken when this method is called. If this
-	method is defined as NULL, the worker will only execute tasks
+	method is defined as <c>NULL</c>, the worker will only execute tasks
 	from its local queue. In this case, the push_task method
 	should use the starpu_push_local_task method to assign tasks
 	to the different workers.
@@ -93,7 +93,7 @@ For each task not going through the scheduler (because starpu_task::execute_on_a
 
 \fn struct starpu_sched_policy **starpu_sched_get_predefined_policies()
 \ingroup API_Scheduling_Policy
-Return an NULL-terminated array of all the predefined scheduling
+Return an <c>NULL</c>-terminated array of all the predefined scheduling
 policies.
 
 \fn void starpu_worker_get_sched_condition(int workerid, starpu_pthread_mutex_t **sched_mutex, starpu_pthread_cond_t **sched_cond)
@@ -166,7 +166,7 @@ which implementation numbers can be used.
 Schedulers need to call it before assigning a task to a worker,
 otherwise the task may fail to execute.
 This should be preferred rather than calling starpu_worker_can_execute_task for
-each and every implementation. It can also be used with impl_mask == NULL to
+each and every implementation. It can also be used with <c>impl_mask == NULL</c> to
 check for at least one implementation without determining which.
 
 \fn int starpu_worker_can_execute_task_first_impl(unsigned workerid, struct starpu_task *task, unsigned *nimpl)
@@ -176,7 +176,7 @@ the first implementation which can be used.
 Schedulers need to call it before assigning a task to a worker,
 otherwise the task may fail to execute.
 This should be preferred rather than calling starpu_worker_can_execute_task for
-each and every implementation. It can also be used with impl_mask == NULL to
+each and every implementation. It can also be used with <c>impl_mask == NULL</c> to
 check for at least one implementation without determining which.
 
 \fn uint32_t starpu_task_footprint(struct starpu_perfmodel *model, struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl)

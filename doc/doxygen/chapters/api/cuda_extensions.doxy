@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2017  CNRS
  * Copyright (C) 2011, 2012 INRIA
  * See the file version.doxy for copying conditions.
  */
@@ -19,7 +19,6 @@ CUDA as shown in \ref FullSourceCodeVectorScal.
 This macro defines the maximum number of CUDA devices that are
 supported by StarPU.
 
-
 \fn cudaStream_t starpu_cuda_get_local_stream(void)
 \ingroup API_CUDA_Extensions
 This function gets the current worker’s CUDA stream. StarPU
@@ -28,7 +27,7 @@ function is only provided for convenience so that programmers can
 easily use asynchronous operations within codelets without having to
 create a stream by hand. Note that the application is not forced to
 use the stream provided by starpu_cuda_get_local_stream() and may also
-create its own streams. Synchronizing with cudaThreadSynchronize() is
+create its own streams. Synchronizing with <c>cudaThreadSynchronize()</c> is
 allowed, but will reduce the likelihood of having all transfers
 overlapped.
 
@@ -57,7 +56,7 @@ copy was successful, or fails otherwise.
 
 \fn void starpu_cuda_set_device(unsigned devid)
 \ingroup API_CUDA_Extensions
-Calls cudaSetDevice(devid) or cudaGLSetGLDevice(devid),
+Calls <c>cudaSetDevice(\p devid)</c> or <c>cudaGLSetGLDevice(\p devid)</c>,
 according to whether \p devid is among the field
 starpu_conf::cuda_opengl_interoperability.
 

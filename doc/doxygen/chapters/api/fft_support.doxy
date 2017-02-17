@@ -1,16 +1,24 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2017  CNRS
  * Copyright (C) 2011, 2012 INRIA
  * See the file version.doxy for copying conditions.
  */
 
 /*! \defgroup API_FFT_Support FFT Support
 
+\def STARPUFFT_FORWARD
+\ingroup API_FFT_Support
+todo
+
+\def STARPUFFT_INVERSE
+\ingroup API_FFT_Support
+todo
+
 \fn void * starpufft_malloc(size_t n)
 \ingroup API_FFT_Support
-Allocates memory for \p n bytes. This is preferred over malloc(),
+Allocates memory for \p n bytes. This is preferred over \c malloc(),
 since it allocates pinned memory, which allows overlapped transfers.
 
 \fn void * starpufft_free(void *p)

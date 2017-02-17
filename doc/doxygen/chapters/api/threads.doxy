@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016, 2017  CNRS
  * Copyright (C) 2011, 2012 INRIA
  * See the file version.doxy for copying conditions.
  */
@@ -178,7 +178,7 @@ It does not do anything when the simulated performance mode is enabled
 \ingroup API_Threads
 This function initializes the mutex object pointed to by \p mutex
 according to the mutex attributes specified in \p mutexattr.  If \p
-mutexattr is NULL, default attributes are used instead.
+mutexattr is <c>NULL</c>, default attributes are used instead.
 
 \fn int starpu_pthread_mutex_destroy(starpu_pthread_mutex_t *mutex)
 \ingroup API_Threads
@@ -211,7 +211,7 @@ This function behaves identically to starpu_pthread_mutex_lock(),
 except that it does not block the calling thread if the mutex is
 already locked by another thread (or by the calling thread in the case
 of a ``fast''  mutex). Instead, the function returns immediately with
-the error code EBUSY.
+the error code \c EBUSY.
 
 This function also produces trace when the configure option
 \ref enable-fxt-lock "--enable-fxt-lock" is enabled.
@@ -244,7 +244,7 @@ location pointed to by \p key.
 \fn int starpu_pthread_key_delete(starpu_pthread_key_t key)
 \ingroup API_Threads
 This function deallocates a TSD key. It does not check whether
-non-NULL values are associated with that key in the currently
+non-<c>NULL</c> values are associated with that key in the currently
 executing threads, nor call the destructor function associated with
 the key.
 
@@ -256,7 +256,7 @@ thread, storing the given \p pointer instead.
 \fn void *starpu_pthread_getspecific(starpu_pthread_key_t key)
 \ingroup API_Threads
 This function returns the value associated with \p key on success, and
-NULL on error.
+<c>NULL</c> on error.
 
 \typedef STARPU_PTHREAD_COND_INITIALIZER
 \ingroup API_Threads
@@ -266,7 +266,7 @@ This macro initializes the condition variable given in parameter.
 \ingroup API_Threads
 This function initializes the condition variable \p cond, using the
 condition attributes specified in \p cond_attr, or default attributes
-if \p cond_attr is NULL.
+if \p cond_attr is <c>NULL</c>.
 
 \fn int starpu_pthread_cond_signal(starpu_pthread_cond_t *cond)
 \ingroup API_Threads
@@ -278,7 +278,7 @@ one is restarted, but it not specified which.
 \fn int starpu_pthread_cond_broadcast(starpu_pthread_cond_t *cond)
 \ingroup API_Threads
 This function restarts all the threads that are waiting on the
-condition variable \p cond. Nothing happens if no threads are waiting on cond.
+condition variable \p cond. Nothing happens if no threads are waiting on \p cond.
 
 \fn int starpu_pthread_cond_wait(starpu_pthread_cond_t *cond, starpu_pthread_mutex_t *mutex)
 \ingroup API_Threads
