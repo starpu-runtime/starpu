@@ -542,9 +542,13 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 			/* choose the best target */
 			target = choose_target(handle, node);
 
-			/* TODO: only transfer if !reuse */
-
-			if (target != -1)
+			if (target != -1 &&
+				/* Only reuse memchunks which are easy to throw
+				 * away (which is likely thanks to periodic tidying).
+				 * If there are none, we prefer to let generic eviction
+				 * perhaps find other kinds of memchunks which will be
+				 * earlier in LRU, and easier to throw away. */
+				(!replicate || handle->per_node[node].state != STARPU_OWNER))
 			{
 				int res;
 				/* Should have been avoided in our caller */
@@ -805,7 +809,7 @@ restart:
 }
 
 /*
- * Free the memory chuncks that are explicitely tagged to be freed.
+ * Free the memory chunks that are explicitely tagged to be freed.
  */
 static size_t flush_memchunk_cache(unsigned node, size_t reclaim)
 {
