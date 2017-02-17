@@ -80,12 +80,12 @@ static void _starpu_data_acquire_fetch_data_callback(void *arg)
 	if (wrapper->post_sync_task)
 		_starpu_add_post_sync_tasks(wrapper->post_sync_task, handle);
 
-	wrapper->callback(wrapper->callback_arg);
-
 	struct _starpu_data_replicate *replicate =
 		wrapper->node >= 0 ? &handle->per_node[wrapper->node] : NULL;
 	if (replicate && replicate->mc)
 		replicate->mc->diduse = 1;
+
+	wrapper->callback(wrapper->callback_arg);
 
 	free(wrapper);
 }
