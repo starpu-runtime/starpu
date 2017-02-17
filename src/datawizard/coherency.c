@@ -331,6 +331,11 @@ static int determine_request_path(starpu_data_handle_t handle,
 {
 	if (src_node == dst_node || !(mode & STARPU_R))
 	{
+		if (dst_node == -1 || starpu_node_get_kind(dst_node) == STARPU_DISK_RAM)
+			handling_nodes[0] = src_node;
+		else
+			handling_nodes[0] = dst_node;
+
 		if (write_invalidation)
 			/* The invalidation request will be enough */
 			return 0;
@@ -339,7 +344,6 @@ static int determine_request_path(starpu_data_handle_t handle,
 		STARPU_ASSERT(max_len >= 1);
 		src_nodes[0] = STARPU_MAIN_RAM; // ignored
 		dst_nodes[0] = dst_node;
-		handling_nodes[0] = dst_node;
 		return 1;
 	}
 
@@ -715,7 +719,7 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 	/* we only submit the first request, the remaining will be
 	 * automatically submitted afterward */
 	if (!reused_requests[0])
-		_starpu_post_data_request(requests[0], handling_nodes[0]);
+		_starpu_post_data_request(requests[0]);
 
 	return requests[nhops - 1];
 }
@@ -1049,6 +1053,8 @@ int _starpu_fetch_task_input(struct starpu_task *task, struct _starpu_job *j, in
 		struct _starpu_data_replicate *local_replicate;
 
 		local_replicate = get_replicate(handle, mode, workerid, node);
+		if (local_replicate->mc)
+			local_replicate->mc->diduse = 1;
 
 		_STARPU_TASK_SET_INTERFACE(task , local_replicate->data_interface, index);
 

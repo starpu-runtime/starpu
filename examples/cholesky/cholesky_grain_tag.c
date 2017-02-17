@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009-2016  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -296,7 +296,7 @@ static void initialize_system(int argc, char **argv, float **A, unsigned pinned)
 
 	if (pinned)
 		flags |= STARPU_MALLOC_PINNED;
-	starpu_malloc_flags((void **)A, size*size*sizeof(float), flags);
+	starpu_malloc_flags((void **)A, size_p*size_p*sizeof(float), flags);
 }
 
 int cholesky_grain(float *matA, unsigned size, unsigned ld, unsigned nblocks, unsigned nbigblocks, unsigned pinned)
@@ -343,16 +343,16 @@ int main(int argc, char **argv)
      	int ret;
 
 	float *mat = NULL;
-	initialize_system(argc, argv, &mat, pinned);
+	initialize_system(argc, argv, &mat, pinned_p);
 
 #ifndef STARPU_SIMGRID
 	unsigned i,j;
-	for (i = 0; i < size; i++)
+	for (i = 0; i < size_p; i++)
 	{
-		for (j = 0; j < size; j++)
+		for (j = 0; j < size_p; j++)
 		{
-			mat[j +i*size] = (1.0f/(1.0f+i+j)) + ((i == j)?1.0f*size:0.0f);
-			/* mat[j +i*size] = ((i == j)?1.0f*size:0.0f); */
+			mat[j +i*size_p] = (1.0f/(1.0f+i+j)) + ((i == j)?1.0f*size_p:0.0f);
+			/* mat[j +i*size_p] = ((i == j)?1.0f*size_p:0.0f); */
 		}
 	}
 #endif
@@ -361,13 +361,13 @@ int main(int argc, char **argv)
 #ifdef CHECK_OUTPUT
 	FPRINTF(stdout, "Input :\n");
 
-	for (j = 0; j < size; j++)
+	for (j = 0; j < size_p; j++)
 	{
-		for (i = 0; i < size; i++)
+		for (i = 0; i < size_p; i++)
 		{
 			if (i <= j)
 			{
-				FPRINTF(stdout, "%2.2f\t", mat[j +i*size]);
+				FPRINTF(stdout, "%2.2f\t", mat[j +i*size_p]);
 			}
 			else
 			{
@@ -378,43 +378,43 @@ int main(int argc, char **argv)
 	}
 #endif
 
-	ret = cholesky_grain(mat, size, size, nblocks, nbigblocks, pinned);
+	ret = cholesky_grain(mat, size_p, size_p, nblocks_p, nbigblocks_p, pinned_p);
 
 #ifdef CHECK_OUTPUT
 	FPRINTF(stdout, "Results :\n");
 
-	for (j = 0; j < size; j++)
+	for (j = 0; j < size_p; j++)
 	{
-		for (i = 0; i < size; i++)
+		for (i = 0; i < size_p; i++)
 		{
 			if (i <= j)
 			{
-				FPRINTF(stdout, "%2.2f\t", mat[j +i*size]);
+				FPRINTF(stdout, "%2.2f\t", mat[j +i*size_p]);
 			}
 			else
 			{
 				FPRINTF(stdout, ".\t");
-				mat[j+i*size] = 0.0f; /* debug */
+				mat[j+i*size_p] = 0.0f; /* debug */
 			}
 		}
 		FPRINTF(stdout, "\n");
 	}
 
 	FPRINTF(stderr, "compute explicit LLt ...\n");
-	float *test_mat = malloc(size*size*sizeof(float));
+	float *test_mat = malloc(size_p*size_p*sizeof(float));
 	STARPU_ASSERT(test_mat);
 
-	STARPU_SSYRK("L", "N", size, size, 1.0f,
-				mat, size, 0.0f, test_mat, size);
+	STARPU_SSYRK("L", "N", size_p, size_p, 1.0f,
+		     mat, size_p, 0.0f, test_mat, size_p);
 
 	FPRINTF(stderr, "comparing results ...\n");
-	for (j = 0; j < size; j++)
+	for (j = 0; j < size_p; j++)
 	{
-		for (i = 0; i < size; i++)
+		for (i = 0; i < size_p; i++)
 		{
 			if (i <= j)
 			{
-                                FPRINTF(stdout, "%2.2f\t", test_mat[j +i*size]);
+                                FPRINTF(stdout, "%2.2f\t", test_mat[j +i*size_p]);
 			}
 			else
 			{
@@ -426,6 +426,6 @@ int main(int argc, char **argv)
 	free(test_mat);
 #endif
 
-	shutdown_system(&mat, size, pinned);
+	shutdown_system(&mat, size_p, pinned_p);
 	return ret;
 }

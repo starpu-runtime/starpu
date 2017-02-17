@@ -1,21 +1,12 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016, 2017  CNRS
  * Copyright (C) 2011, 2012, 2017  INRIA
  * See the file version.doxy for copying conditions.
  */
 
 /*! \defgroup API_Initialization_and_Termination Initialization and Termination
-
-\struct starpu_driver
-structure for a driver
-\ingroup API_Initialization_and_Termination
-\var enum starpu_worker_archtype starpu_driver::type
-The type of the driver. Only ::STARPU_CPU_WORKER,
-::STARPU_CUDA_WORKER and ::STARPU_OPENCL_WORKER are currently supported.
-\var union starpu_driver::id
-The identifier of the driver.
 
 \struct starpu_conf
 \ingroup API_Initialization_and_Termination
@@ -27,12 +18,18 @@ The environment variables overwrite the equivalent parameters.
 \var int starpu_conf::magic
 \private
 Will be initialized by starpu_conf_init(). Should not be set by hand.
+
 \var const char*starpu_conf::sched_policy_name
 This is the name of the scheduling policy. This can also be specified
-with the environment variable \ref STARPU_SCHED. (default = NULL).
+with the environment variable \ref STARPU_SCHED. (default = <c>NULL</c>).
+
 \var struct starpu_sched_policy *starpu_conf::sched_policy
 This is the definition of the scheduling policy. This field is ignored
-if starpu_conf::sched_policy_name is set. (default = NULL)
+if starpu_conf::sched_policy_name is set. (default = <c>NULL</c>)
+
+\var void (*starpu_conf::sched_policy_init)(unsigned)
+todo
+
 \var int starpu_conf::ncpus
 This is the number of CPU cores that StarPU can use. This can also be
 specified with the environment variable \ref STARPU_NCPU . (default = -1)
@@ -78,7 +75,7 @@ This can also be specified with the environment variable
 \var unsigned starpu_conf::workers_cuda_gpuid[STARPU_NMAXWORKERS]
 If the starpu_conf::use_explicit_workers_cuda_gpuid flag is set, this
 array contains the logical identifiers of the CUDA devices (as used by
-cudaGetDevice()).
+\c cudaGetDevice()).
 \var unsigned starpu_conf::use_explicit_workers_opencl_gpuid
 If this flag is set, the OpenCL workers will be attached to the OpenCL
 devices specified in the starpu_conf::workers_opencl_gpuid array.
@@ -146,9 +143,9 @@ variable \ref STARPU_SINGLE_COMBINED_WORKER.
 
 \var char *starpu_conf::mic_sink_program_path
 Path to the kernel to execute on the MIC device, compiled for MIC
-architecture. When set to NULL, StarPU automatically looks next to the
+architecture. When set to <c>NULL</c>, StarPU automatically looks next to the
 host program location.
-(default = NULL)
+(default = <c>NULL</c>)
 
 \var int starpu_conf::disable_asynchronous_copy
 This flag should be set to 1 to disable
@@ -200,16 +197,16 @@ configure script the option \ref disable-asynchronous-mpi-master-slave-copy "--d
 Enable CUDA/OpenGL interoperation on these CUDA
 devices. This can be set to an array of CUDA device
 identifiers for which cudaGLSetGLDevice() should be called
-instead of cudaSetDevice(). Its size is specified by the
+instead of \c cudaSetDevice(). Its size is specified by the
 starpu_conf::n_cuda_opengl_interoperability field below
-(default = NULL)
+(default = <c>NULL</c>)
 \var unsigned starpu_conf::n_cuda_opengl_interoperability
 todo
 
 \var struct starpu_driver *starpu_conf::not_launched_drivers
 Array of drivers that should not be launched by
 StarPU. The application will run in one of its own
-threads. (default = NULL)
+threads. (default = <c>NULL</c>)
 \var unsigned starpu_conf::n_not_launched_drivers
 The number of StarPU drivers that should not be
 launched by StarPU. (default = 0)
@@ -220,14 +217,19 @@ automatically be flushed when it fills in, but it may still
 be interesting to specify a bigger value to avoid any
 flushing (which would disturb the trace).
 
+\var starpu_conf::global_sched_ctx_min_priority
+todo
+\var starpu_conf::global_sched_ctx_max_priority
+todo
+
 \fn int starpu_init(struct starpu_conf *conf)
 \ingroup API_Initialization_and_Termination
 This is StarPU initialization method, which must be called prior to
 any other StarPU call. It is possible to specify StarPU’s
 configuration (e.g. scheduling policy, number of cores, ...) by
-passing a non-null argument. Default configuration is used if the
-passed argument is NULL. Upon successful completion, this function
-returns 0. Otherwise, -ENODEV indicates that no worker was available
+passing a non-<c>NULL</c> argument. Default configuration is used if the
+passed argument is <c>NULL</c>. Upon successful completion, this function
+returns 0. Otherwise, <c>-ENODEV</c> indicates that no worker was available
 (so that StarPU was not initialized).
 
 \fn int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
@@ -246,8 +248,8 @@ specified through environment variables, starpu_conf_init() initializes
 the fields of the structure according to the environment variables.
 For instance if \ref STARPU_CALIBRATE is set, its value is put in the
 field starpu_conf::calibrate of the structure passed as argument. Upon successful
-completion, this function returns 0. Otherwise, -EINVAL indicates that
-the argument was NULL.
+completion, this function returns 0. Otherwise, <c>-EINVAL</c> indicates that
+the argument was <c>NULL</c>.
 
 \fn void starpu_shutdown(void)
 \ingroup API_Initialization_and_Termination

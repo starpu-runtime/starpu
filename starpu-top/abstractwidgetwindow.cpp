@@ -87,8 +87,9 @@ void AbstractWidgetWindow::mouseMoveEvent(QMouseEvent *event)
 
 void AbstractWidgetWindow::resizeEvent(QResizeEvent *event)
 {
-    _sizeGrip->move(width()-32,height()-32);
-    _sizeGrip->resize(32,32);
+	(void) event;
+	_sizeGrip->move(width()-32,height()-32);
+	_sizeGrip->resize(32,32);
 }
 
 /* -------------------------------------------------------------------------- */

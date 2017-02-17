@@ -43,6 +43,7 @@ CommunicationThread::CommunicationThread(
     Q_ASSERT_X(instanciated == false, "CommunicationThread's' constructor",
                "Singleton pattern violated - "
                "CommunicationThread instanciated more than once");
+    (void) instanciated;
 
     _mainWindow = mainWindow;
     _configurationManager = configurationManager;

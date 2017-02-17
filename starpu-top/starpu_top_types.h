@@ -116,7 +116,8 @@ enum starpu_top_device_type
 {
     SERVERDEVICE_CPU = 0,
     SERVERDEVICE_CUDA = 1,
-    SERVERDEVICE_OPENCL = 2
+    SERVERDEVICE_OPENCL = 2,
+    SERVERDEVICE_INVALID = 3,
 };
 
 // Server devices

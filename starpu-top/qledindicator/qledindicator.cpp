@@ -36,6 +36,7 @@ QLedIndicator::QLedIndicator(QWidget *parent) :
 
 void QLedIndicator::paintEvent(QPaintEvent *event)
 {
+	(void) event;
 	qreal realSize = qMin(width() / 1.3, height() / 1.3);
 
 	QRadialGradient gradient;

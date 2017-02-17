@@ -1,12 +1,16 @@
 /*
  * This file is part of the StarPU Handbook.
- * Copyright (C) 2014  CNRS
+ * Copyright (C) 2014, 2017  CNRS
  * See the file version.doxy for copying conditions.
  */
 
 /*! \defgroup API_Bitmap  Bitmap
 
 \brief This section describes the bitmap facilities provided by StarPU.
+
+\struct starpu_bitmap
+\ingroup API_Bitmap
+todo
 
 \fn struct starpu_bitmap *starpu_bitmap_create(void)
 \ingroup API_Bitmap
@@ -26,7 +30,7 @@ unset bit \p e in \p b
 
 \fn void starpu_bitmap_unset_all(struct starpu_bitmap *b)
 \ingroup API_Bitmap
-unset all bits in \b b
+unset all bits in \p b
 
 \fn int starpu_bitmap_get(struct starpu_bitmap *b, int e)
 \ingroup API_Bitmap
@@ -34,15 +38,15 @@ return true iff bit \p e is set in \p b
 
 \fn void starpu_bitmap_unset_and(struct starpu_bitmap *a, struct starpu_bitmap *b, struct starpu_bitmap *c)
 \ingroup API_Bitmap
-Basically compute starpu_bitmap_unset_all(a) ; a = b & c;
+Basically compute starpu_bitmap_unset_all(\p a) ; \p a = \p b & \p c;
 
 \fn void starpu_bitmap_or(struct starpu_bitmap *a, struct starpu_bitmap *b)
 \ingroup API_Bitmap
-Basically compute a |= b
+Basically compute \p a |= \p b
 
 \fn int starpu_bitmap_and_get(struct starpu_bitmap *b1, struct starpu_bitmap *b2, int e)
 \ingroup API_Bitmap
-return 1 iff e set in b1 AND e set in b2
+return 1 iff \p e is set in \p b1 AND \p e is set in \p b2
 
 \fn int starpu_bitmap_cardinal(struct starpu_bitmap *b)
 \ingroup API_Bitmap
@@ -50,7 +54,7 @@ return the number of set bits in \p b
 
 \fn int starpu_bitmap_first(struct starpu_bitmap *b)
 \ingroup API_Bitmap
-return the index of first set bit of \p b, -1 if none
+return the index of the first set bit of \p b, -1 if none
 
 \fn int starpu_bitmap_last(struct starpu_bitmap *b)
 \ingroup API_Bitmap

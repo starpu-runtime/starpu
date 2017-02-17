@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -54,7 +54,7 @@ static struct starpu_task * create_task_11(unsigned k, unsigned nblocks)
 /*	FPRINTF(stdout, "task 11 k = %d TAG = %llx\n", k, (TAG11(k))); */
 
 	struct starpu_task *task = create_task(TAG11(k));
-	
+
 	task->cl = &cl11;
 
 	/* which sub-data is manipulated ? */
@@ -81,7 +81,7 @@ static int create_task_21(unsigned k, unsigned j)
 
 	struct starpu_task *task = create_task(TAG21(k, j));
 
-	task->cl = &cl21;	
+	task->cl = &cl21;
 
 	/* which sub-data is manipulated ? */
 	task->handles[0] = A_state[k][k];
@@ -149,7 +149,7 @@ static int create_task_22(unsigned k, unsigned i, unsigned j)
 }
 
 /*
- *	code to bootstrap the factorization 
+ *	code to bootstrap the factorization
  *	and construct the DAG
  */
 
@@ -165,9 +165,9 @@ static int cholesky_no_stride(void)
 	/* create all the DAG nodes */
 	unsigned i,j,k;
 
-	for (k = 0; k < nblocks; k++)
+	for (k = 0; k < nblocks_p; k++)
 	{
-		struct starpu_task *task = create_task_11(k, nblocks);
+		struct starpu_task *task = create_task_11(k, nblocks_p);
 		/* we defer the launch of the first task */
 		if (k == 0)
 		{
@@ -178,13 +178,13 @@ static int cholesky_no_stride(void)
 			ret = starpu_task_submit(task);
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		}
-		
-		for (j = k+1; j<nblocks; j++)
+
+		for (j = k+1; j<nblocks_p; j++)
 		{
 			ret = create_task_21(k, j);
 			if (ret == -ENODEV) return 77;
 
-			for (i = k+1; i<nblocks; i++)
+			for (i = k+1; i<nblocks_p; i++)
 			{
 				if (i <= j)
 				{
@@ -202,15 +202,15 @@ static int cholesky_no_stride(void)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 	/* stall the application until the end of computations */
-	starpu_tag_wait(TAG11(nblocks-1));
+	starpu_tag_wait(TAG11(nblocks_p-1));
 
 	end = starpu_timing_now();
 
 	double timing = end - start;
 
-	double flop = (1.0f*size*size*size)/3.0f;
+	double flop = (1.0f*size_p*size_p*size_p)/3.0f;
 	PRINTF("# size\tms\tGFlops\n");
-	PRINTF("%u\t%.0f\t%.1f\n", size, timing/1000, (flop/timing/1000.0f));
+	PRINTF("%u\t%.0f\t%.1f\n", size_p, timing/1000, (flop/timing/1000.0f));
 
 	return 0;
 }
@@ -232,9 +232,9 @@ int main(int argc, char **argv)
 	init_sizes();
 
 	parse_args(argc, argv);
-	assert(nblocks <= NMAXBLOCKS);
+	assert(nblocks_p <= NMAXBLOCKS);
 
-	FPRINTF(stderr, "BLOCK SIZE = %u\n", size / nblocks);
+	FPRINTF(stderr, "BLOCK SIZE = %u\n", size_p / nblocks_p);
 
 #ifdef STARPU_USE_CUDA
 	initialize_chol_model(&chol_model_11,"chol_model_11",cpu_chol_task_11_cost,cuda_chol_task_11_cost);
@@ -251,8 +251,8 @@ int main(int argc, char **argv)
 
 	starpu_cublas_init();
 
-	for (y = 0; y < nblocks; y++)
-	for (x = 0; x < nblocks; x++)
+	for (y = 0; y < nblocks_p; y++)
+	for (x = 0; x < nblocks_p; x++)
 	{
 		if (x <= y)
 		{
@@ -264,10 +264,10 @@ int main(int argc, char **argv)
 #ifndef STARPU_SIMGRID
 	/* create a simple definite positive symetric matrix example
 	 *
-	 *	Hilbert matrix : h(i,j) = 1/(i+j+1) ( + n In to make is stable ) 
+	 *	Hilbert matrix : h(i,j) = 1/(i+j+1) ( + n In to make is stable )
 	 * */
-	for (y = 0; y < nblocks; y++)
-	for (x = 0; x < nblocks; x++)
+	for (y = 0; y < nblocks_p; y++)
+	for (x = 0; x < nblocks_p; x++)
 	if (x <= y)
 	{
 		unsigned i, j;
@@ -279,25 +279,25 @@ int main(int argc, char **argv)
 
 			/* make it a little more numerically stable ... ;) */
 			if ((x == y) && (i == j))
-				A[y][x][i*BLOCKSIZE + j] += (float)(2*size);
+				A[y][x][i*BLOCKSIZE + j] += (float)(2*size_p);
 		}
 	}
 #endif
 
-	for (y = 0; y < nblocks; y++)
-	for (x = 0; x < nblocks; x++)
+	for (y = 0; y < nblocks_p; y++)
+	for (x = 0; x < nblocks_p; x++)
 	{
 		if (x <= y)
 		{
-			starpu_matrix_data_register(&A_state[y][x], STARPU_MAIN_RAM, (uintptr_t)A[y][x], 
-				BLOCKSIZE, BLOCKSIZE, BLOCKSIZE, sizeof(float));
+			starpu_matrix_data_register(&A_state[y][x], STARPU_MAIN_RAM, (uintptr_t)A[y][x],
+						    BLOCKSIZE, BLOCKSIZE, BLOCKSIZE, sizeof(float));
 		}
 	}
 
 	ret = cholesky_no_stride();
 
-	for (y = 0; y < nblocks; y++)
-	for (x = 0; x < nblocks; x++)
+	for (y = 0; y < nblocks_p; y++)
+	for (x = 0; x < nblocks_p; x++)
 	{
 		if (x <= y)
 		{
@@ -311,5 +311,3 @@ int main(int argc, char **argv)
 	starpu_shutdown();
 	return ret;
 }
-
-

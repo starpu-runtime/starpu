@@ -1,36 +1,46 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2017  CNRS
  * Copyright (C) 2011, 2012 INRIA
  * See the file version.doxy for copying conditions.
  */
 
 /*! \defgroup API_Running_Drivers Running Drivers
 
+\struct starpu_driver
+structure for a driver
+\ingroup API_Running_Drivers
+\var enum starpu_worker_archtype starpu_driver::type
+The type of the driver. Only ::STARPU_CPU_WORKER,
+::STARPU_CUDA_WORKER and ::STARPU_OPENCL_WORKER are currently supported.
+\var union starpu_driver::id
+The identifier of the driver.
+
 \fn int starpu_driver_run(struct starpu_driver *d)
 \ingroup API_Running_Drivers
 Initialize the given driver, run it until it receives a request to
 terminate, deinitialize it and return 0 on success. It returns
-<c>-EINVAL</c> if <c>d->type</c> is not a valid StarPU device type
-(::STARPU_CPU_WORKER, ::STARPU_CUDA_WORKER or ::STARPU_OPENCL_WORKER). This
-is the same as using the following functions: calling
+<c>-EINVAL</c> if starpu_driver::type is not a valid StarPU device type
+(::STARPU_CPU_WORKER, ::STARPU_CUDA_WORKER or ::STARPU_OPENCL_WORKER).
+
+This is the same as using the following functions: calling
 starpu_driver_init(), then calling starpu_driver_run_once() in a loop,
 and eventually starpu_driver_deinit().
 
 \fn int starpu_driver_init(struct starpu_driver *d)
 \ingroup API_Running_Drivers
 Initialize the given driver. Returns 0 on success, <c>-EINVAL</c> if
-<c>d->type</c> is not a valid ::starpu_worker_archtype.
+starpu_driver::type is not a valid ::starpu_worker_archtype.
 
 \fn int starpu_driver_run_once(struct starpu_driver *d)
 \ingroup API_Running_Drivers
-Run the driver once, then returns 0 on success, <c>-EINVAL</c> if <c>d->type</c> is not a valid ::starpu_worker_archtype.
+Run the driver once, then returns 0 on success, <c>-EINVAL</c> if starpu_driver::type is not a valid ::starpu_worker_archtype.
 
 \fn int starpu_driver_deinit(struct starpu_driver *d)
 \ingroup API_Running_Drivers
 Deinitialize the given driver. Returns 0 on success, <c>-EINVAL</c> if
-<c>d->type</c> is not a valid ::starpu_worker_archtype.
+starpu_driver::type is not a valid ::starpu_worker_archtype.
 
 \fn void starpu_drivers_request_termination(void)
 \ingroup API_Running_Drivers

@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2017  CNRS
  * Copyright (C) 2011, 2012 INRIA
  * See the file version.doxy for copying conditions.
  */
@@ -32,6 +32,6 @@ and return the index in the array through \p symbol.
 \ingroup API_SCC_Extensions
 If success, return the pointer to the function defined by \p symbol on
 the device linked to the called device. This can for instance be used
-in a starpu_scc_func_t implementation.
+in a starpu_scc_func_symbol_t implementation.
 
 */

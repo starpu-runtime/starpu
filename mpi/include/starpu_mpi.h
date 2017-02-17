@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012, 2014-2016  Université de Bordeaux
+ * Copyright (C) 2009-2012, 2014-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  * Copyright (C) 2016  Inria
  *
@@ -74,6 +74,9 @@ void starpu_mpi_comm_amounts_retrieve(size_t *comm_amounts);
 
 void starpu_mpi_cache_flush(MPI_Comm comm, starpu_data_handle_t data_handle);
 void starpu_mpi_cache_flush_all_data(MPI_Comm comm);
+
+int starpu_mpi_cached_receive(starpu_data_handle_t data_handle);
+int starpu_mpi_cached_send(starpu_data_handle_t data_handle, int dest);
 
 int starpu_mpi_comm_size(MPI_Comm comm, int *size);
 int starpu_mpi_comm_rank(MPI_Comm comm, int *rank);

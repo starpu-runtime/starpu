@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2017  CNRS
  * Copyright (C) 2011, 2012 INRIA
  * See the file version.doxy for copying conditions.
  */
@@ -79,8 +79,8 @@ start recording it again, etc.
 
 \fn void starpu_fxt_autostart_profiling(int autostart)
 \ingroup API_FxT_Support
-Determines whether profiling should be started by starpu_init, or only when
-starpu_fxt_start_profiling is called. \e autostart should be 1 to do so, or 0 to
+Determines whether profiling should be started by starpu_init(), or only when
+starpu_fxt_start_profiling() is called. \p autostart should be 1 to do so, or 0 to
 prevent it.
 
 \fn void starpu_fxt_write_data_trace(char *filename_in)

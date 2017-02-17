@@ -33,8 +33,14 @@ void _starpu_mpi_sink_init(struct _starpu_mp_node *node)
 
 void _starpu_mpi_sink_deinit(struct _starpu_mp_node *node)
 {
+	int i;
+	node->is_running = 0;
+	for(i=0; i<node->nb_cores; i++)
+	{
+		sem_post(&node->sem_run_table[i]);
+		starpu_pthread_join(((starpu_pthread_t *)node->thread_table)[i],NULL);
+	}
         free(node->thread_table);
-        //TODO
 }
 
 void (*_starpu_mpi_sink_lookup (const struct _starpu_mp_node * node STARPU_ATTRIBUTE_UNUSED, char* func_name))(void)

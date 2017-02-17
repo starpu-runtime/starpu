@@ -38,6 +38,7 @@ WidgetWindowsManager::WidgetWindowsManager(MainWindow *mainWindow,
     Q_ASSERT_X(instanciated == false, "WidgetWindowsManager's' constructor",
                "Singleton pattern violated - "
                "WidgetWindowsManager instanciated more than once");
+    (void) instanciated;
 
     qDebug() << "WindowsWidgetManager : initializing";
 

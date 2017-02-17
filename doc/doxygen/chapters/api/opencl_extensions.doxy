@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016, 2017  CNRS
  * Copyright (C) 2011, 2012 INRIA
  * See the file version.doxy for copying conditions.
  */
@@ -165,7 +165,7 @@ Release the given \p kernel, to be called after kernel execution.
 \ingroup API_OpenCL_Extensions
 This function allows to collect statistics on a kernel execution.
 After termination of the kernels, the OpenCL codelet should call this
-function to pass it the even returned by clEnqueueNDRangeKernel, to
+function to pass it the even returned by \c clEnqueueNDRangeKernel(), to
 let StarPU collect statistics about the kernel execution (used cycles,
 consumed energy).
 
@@ -208,7 +208,7 @@ file and line number.
 \fn cl_int starpu_opencl_allocate_memory(int devid, cl_mem *addr, size_t size, cl_mem_flags flags)
 \ingroup API_OpenCL_Extensions
 Allocate \p size bytes of memory, stored in \p addr. \p flags must be a valid
-combination of cl_mem_flags values.
+combination of \c cl_mem_flags values.
 
 \fn cl_int starpu_opencl_copy_ram_to_opencl(void *ptr, unsigned src_node, cl_mem buffer, unsigned dst_node, size_t size, size_t offset, cl_event *event, int *ret)
 \ingroup API_OpenCL_Extensions

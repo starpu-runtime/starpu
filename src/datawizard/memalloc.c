@@ -1468,7 +1468,6 @@ void _starpu_memchunk_recently_used(struct _starpu_mem_chunk *mc, unsigned node)
 		/* user-allocated memory */
 		return;
 	_starpu_spin_lock(&mc_lock[node]);
-	mc->diduse = 1;
 	MC_LIST_ERASE(node, mc);
 	MC_LIST_PUSH_BACK(node, mc);
 	_starpu_spin_unlock(&mc_lock[node]);

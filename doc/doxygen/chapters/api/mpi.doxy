@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  * Copyright (C) 2011, 2012, 2017  INRIA
  * See the file version.doxy for copying conditions.
  */
@@ -27,13 +27,13 @@ starpu_init() must be called before starpu_mpi_init_comm().
 
 \fn int starpu_mpi_init(int *argc, char ***argv, int initialize_mpi)
 \ingroup API_MPI_Support
-Call starpu_mpi_init_comm() with the MPI communicator MPI_COMM_WORLD.
+Call starpu_mpi_init_comm() with the MPI communicator \c MPI_COMM_WORLD.
 
 \fn int starpu_mpi_initialize(void)
 \deprecated
 \ingroup API_MPI_Support
 This function has been made deprecated. One should use instead the
-function starpu_mpi_init(). This function does not call MPI_Init(), it
+function starpu_mpi_init(). This function does not call \c MPI_Init(), it
 should be called beforehand.
 
 \fn int starpu_mpi_initialize_extended(int *rank, int *world_size)
@@ -47,7 +47,7 @@ calling <c>MPI_Init_Thread(argc, argv, MPI_THREAD_SERIALIZED,
 \fn int starpu_mpi_shutdown(void)
 \ingroup API_MPI_Support
 Cleans the starpumpi library. This must be called between calling
-starpu_mpi functions and starpu_shutdown(). MPI_Finalize() will be
+starpu_mpi functions and starpu_shutdown(). \c MPI_Finalize() will be
 called if StarPU-MPI has been initialized by starpu_mpi_init().
 
 \fn void starpu_mpi_comm_amounts_retrieve(size_t *comm_amounts)
@@ -67,11 +67,11 @@ Return in \p rank the rank of the calling process in the communicator \p comm
 
 \fn int starpu_mpi_world_rank(void)
 \ingroup API_MPI_Support
-Return the rank of the calling process in the communicator MPI_COMM_WORLD
+Return the rank of the calling process in the communicator \c MPI_COMM_WORLD
 
 \fn int starpu_mpi_world_size(void)
 \ingroup API_MPI_Support
-Return the size of the communicator MPI_COMM_WORLD
+Return the size of the communicator \c MPI_COMM_WORLD
 
 @name Communication
 \anchor MPIPtpCommunication
@@ -236,16 +236,27 @@ If \p enabled is 1, enable the communication cache. Otherwise, clean the cache i
 \fn void starpu_mpi_cache_flush(MPI_Comm comm, starpu_data_handle_t data_handle)
 \ingroup API_MPI_Support
 Clear the send and receive communication cache for the data
-\p data_handle and invalidate the value. The function has to be called synchronously by all the
-MPI nodes. The function does nothing if the cache mechanism is
+\p data_handle and invalidate the value. The function has to be called at the
+same point of task graph submission by all the MPI nodes on which the handle was
+registered. The function does nothing if the cache mechanism is
 disabled (see \ref STARPU_MPI_CACHE).
 
 \fn void starpu_mpi_cache_flush_all_data(MPI_Comm comm)
 \ingroup API_MPI_Support
 Clear the send and receive communication cache for all data and invalidate their values. The
-function has to be called synchronously by all the MPI nodes. The
+function has to be called at the same point of task graph submission by all the MPI nodes. The
 function does nothing if the cache mechanism is disabled (see
 \ref STARPU_MPI_CACHE).
+
+\fn int starpu_mpi_cached_receive(starpu_data_handle_t data_handle);
+\ingroup API_MPI_Support
+Test whether \p data_handle is cached for reception, i.e. the value was
+previously received from the owner node, and not flushed since then.
+
+\fn int starpu_mpi_cached_send(starpu_data_handle_t data_handle, int dest);
+\ingroup API_MPI_Support
+Test whether \p data_handle is cached for emission to node \p dest , i.e. the
+value was previously sent to \p dest, and not flushed since then.
 
 @name MPI Insert Task
 \anchor MPIInsertTask
@@ -258,7 +269,7 @@ It also automatically clears the MPI communication cache when unregistering the 
 
 \def starpu_mpi_data_register(data_handle, tag, rank)
 \ingroup API_MPI_Support
-Register to MPI a StarPU data handle with the given tag, rank and the MPI communicator MPI_COMM_WORLD.
+Register to MPI a StarPU data handle with the given tag, rank and the MPI communicator \c MPI_COMM_WORLD.
 It also automatically clears the MPI communication cache when unregistering the data.
 
 \fn void starpu_mpi_data_set_tag(starpu_data_handle_t handle, int tag)
@@ -268,7 +279,7 @@ It also automatically clears the MPI communication cache when unregistering the 
 
 \def starpu_data_set_tag
 \ingroup API_MPI_Support
-Symbol kept for backward compatibility. Calling function starpu_mpi_data_set_tag
+Symbol kept for backward compatibility. Calling function starpu_mpi_data_set_tag()
 
 \fn void starpu_mpi_data_set_rank_comm(starpu_data_handle_t handle, int rank, MPI_Comm comm)
 \ingroup API_MPI_Support
@@ -277,33 +288,33 @@ It also automatically clears the MPI communication cache when unregistering the 
 
 \def starpu_mpi_data_set_rank
 \ingroup API_MPI_Support
-Register to MPI a StarPU data handle with the given rank and the MPI communicator MPI_COMM_WORLD. No tag will be defined.
+Register to MPI a StarPU data handle with the given rank and the MPI communicator \c MPI_COMM_WORLD. No tag will be defined.
 It also automatically clears the MPI communication cache when unregistering the data.
-Symbol kept for backward compatibility. Calling function starpu_mpi_data_set_rank
+Symbol kept for backward compatibility. Calling function starpu_mpi_data_set_rank()
 
 \def starpu_data_set_rank
 \ingroup API_MPI_Support
-Register to MPI a StarPU data handle with the given rank and the MPI communicator MPI_COMM_WORLD. No tag will be defined.
+Register to MPI a StarPU data handle with the given rank and the MPI communicator \c MPI_COMM_WORLD. No tag will be defined.
 It also automatically clears the MPI communication cache when unregistering the data.
-Symbol kept for backward compatibility. Calling function starpu_mpi_data_set_rank
+Symbol kept for backward compatibility. Calling function starpu_mpi_data_set_rank()
 
 \fn int starpu_mpi_data_get_rank(starpu_data_handle_t handle)
 \ingroup API_MPI_Support
 Return the rank of the given data.
 
-\def starpu_data_get_rank(starpu_data_handle_t handle)
+\def starpu_data_get_rank
 \ingroup API_MPI_Support
 Return the rank of the given data.
-Symbol kept for backward compatibility. Calling function starpu_mpi_data_get_rank
+Symbol kept for backward compatibility. Calling function starpu_mpi_data_get_rank()
 
 \fn int starpu_mpi_data_get_tag(starpu_data_handle_t handle)
 \ingroup API_MPI_Support
 Return the tag of the given data.
 
-\def starpu_data_get_tag(starpu_data_handle_t handle)
+\def starpu_data_get_tag
 \ingroup API_MPI_Support
 Return the tag of the given data.
-Symbol kept for backward compatibility. Calling function starpu_mpi_data_get_tag
+Symbol kept for backward compatibility. Calling function starpu_mpi_data_get_tag()
 
 \fn void starpu_mpi_data_migrate(MPI_Comm comm, starpu_data_handle_t handle, int new_rank)
 \ingroup API_MPI_Support
@@ -383,7 +394,7 @@ Create a task corresponding to codelet with the following arguments.
 The argument list must be zero-terminated. The function performs the
 first two steps of the function starpu_mpi_task_insert(). Only the MPI
 node selected in the first step of the algorithm will return a valid
-task structure which can then be submitted, others will return NULL. The function
+task structure which can then be submitted, others will return <c>NULL</c>. The function
 starpu_mpi_task_post_build() MUST be called after that on all nodes, and after the submission of
 the task on the node which creates it, with the SAME list of arguments.
 
@@ -410,6 +421,14 @@ the argument \p arg.
 \anchor MPINodeSelectionPolicy
 \ingroup API_MPI_Support
 
+\def STARPU_MPI_NODE_SELECTION_CURRENT_POLICY
+\ingroup API_MPI_Support
+todo
+
+\def STARPU_MPI_NODE_SELECTION_MOST_R_DATA
+\ingroup API_MPI_Support
+todo
+
 \fn int starpu_mpi_node_selection_get_current_policy()
 \ingroup API_MPI_Support
 Return the current policy used to select the node which will execute the codelet
@@ -417,8 +436,8 @@ Return the current policy used to select the node which will execute the codelet
 \fn int starpu_mpi_node_selection_set_current_policy(int policy)
 \ingroup API_MPI_Support
 Set the current policy used to select the node which will
-execute the codelet. The policy STARPU_MPI_NODE_SELECTION_MOST_R_DATA selects the
-node having the most data in R mode so as to minimize the amount of
+execute the codelet. The policy ::STARPU_MPI_NODE_SELECTION_MOST_R_DATA selects the
+node having the most data in ::STARPU_R mode so as to minimize the amount of
 data to be transfered.
 
 \fn int starpu_mpi_node_selection_register_policy(starpu_mpi_select_node_policy_func_t policy_func)

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2011, 2014-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -27,7 +27,7 @@
 #ifdef STARPU_HAVE_X11
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
-int use_x11 = 1;
+int use_x11_p = 1;
 #endif
 
 #ifdef STARPU_HAVE_HELGRIND_H
@@ -40,22 +40,22 @@ int use_x11 = 1;
 #define ANNOTATE_HAPPENS_AFTER(obj) ((void)0)
 #endif
 
-int demo = 0;
-static double demozoom = 0.05;
+int demo_p = 0;
+static double demozoom_p = 0.05;
 
 /* NB: The X11 code is inspired from the http://locklessinc.com/articles/mandelbrot/ article */
 
-static int nblocks = 20;
-static int height = 400;
-static int width = 640;
-static int maxIt = 20000; /* max number of iteration in the Mandelbrot function */
-static int niter = -1; /* number of loops in case we don't use X11, -1 means infinite */
-static int use_spmd = 0;
+static int nblocks_p = 20;
+static int height_p = 400;
+static int width_p = 640;
+static int maxIt_p = 20000; /* max number of iteration in the Mandelbrot function */
+static int niter_p = -1; /* number of loops in case we don't use X11, -1 means infinite */
+static int use_spmd_p = 0;
 
-static double leftX = -0.745;
-static double rightX = -0.74375;
-static double topY = .15;
-static double bottomY = .14875;
+static double leftX_p = -0.745;
+static double rightX_p = -0.74375;
+static double topY_p = .15;
+static double bottomY_p = .14875;
 
 /*
  *	X11 window management
@@ -63,130 +63,130 @@ static double bottomY = .14875;
 
 #ifdef STARPU_HAVE_X11
 /* X11 data */
-static Display *dpy;
-static Window win;
-static XImage *bitmap;
-static GC gc;
-static KeySym Left=-1, Right, Down, Up, Alt ;
+static Display *dpy_p;
+static Window win_p;
+static XImage *bitmap_p;
+static GC gc_p;
+static KeySym Left_p=-1, Right_p, Down_p, Up_p, Alt_p;
 
 static void exit_x11(void)
 {
-	XDestroyImage(bitmap);
-	XDestroyWindow(dpy, win);
-	XCloseDisplay(dpy);
+	XDestroyImage(bitmap_p);
+	XDestroyWindow(dpy_p, win_p);
+	XCloseDisplay(dpy_p);
 }
 
 static void init_x11(int width, int height, unsigned *buffer)
 {
 	/* Attempt to open the display */
-	dpy = XOpenDisplay(NULL);
+	dpy_p = XOpenDisplay(NULL);
 
 	/* Failure */
-	if (!dpy)
+	if (!dpy_p)
 		exit(0);
 
-	unsigned long white = WhitePixel(dpy,DefaultScreen(dpy));
-	unsigned long black = BlackPixel(dpy,DefaultScreen(dpy));
+	unsigned long white = WhitePixel(dpy_p, DefaultScreen(dpy_p));
+	unsigned long black = BlackPixel(dpy_p, DefaultScreen(dpy_p));
 
-	win = XCreateSimpleWindow(dpy, DefaultRootWindow(dpy), 0, 0,
-					width, height, 0, black, white);
+	win_p = XCreateSimpleWindow(dpy_p, DefaultRootWindow(dpy_p), 0, 0,
+				    width, height, 0, black, white);
 
 	/* We want to be notified when the window appears */
-	XSelectInput(dpy, win, StructureNotifyMask);
+	XSelectInput(dpy_p, win_p, StructureNotifyMask);
 
 	/* Make it appear */
-	XMapWindow(dpy, win);
+	XMapWindow(dpy_p, win_p);
 
 	XTextProperty tp;
 	char name[128] = "Mandelbrot - StarPU";
 	char *n = name;
 	Status st = XStringListToTextProperty(&n, 1, &tp);
 	if (st)
-		XSetWMName(dpy, win, &tp);
+		XSetWMName(dpy_p, win_p, &tp);
 
 	/* Wait for the MapNotify event */
-	XFlush(dpy);
+	XFlush(dpy_p);
 
-	int depth = DefaultDepth(dpy, DefaultScreen(dpy));
-	Visual *visual = DefaultVisual(dpy, DefaultScreen(dpy));
+	int depth = DefaultDepth(dpy_p, DefaultScreen(dpy_p));
+	Visual *visual = DefaultVisual(dpy_p, DefaultScreen(dpy_p));
 
 	/* Make bitmap */
-	bitmap = XCreateImage(dpy, visual, depth,
-		ZPixmap, 0, (char *)buffer,
-		width, height, 32, 0);
+	bitmap_p = XCreateImage(dpy_p, visual, depth,
+				ZPixmap, 0, (char *)buffer,
+				width, height, 32, 0);
 
 	/* Init GC */
-	gc = XCreateGC(dpy, win, 0, NULL);
-	XSetForeground(dpy, gc, black);
+	gc_p = XCreateGC(dpy_p, win_p, 0, NULL);
+	XSetForeground(dpy_p, gc_p, black);
 
-	XSelectInput(dpy, win, ExposureMask | KeyPressMask | StructureNotifyMask);
+	XSelectInput(dpy_p, win_p, ExposureMask | KeyPressMask | StructureNotifyMask);
 
 	Atom wmDeleteMessage;
-	wmDeleteMessage = XInternAtom(dpy, "WM_DELETE_WINDOW", False);
-	XSetWMProtocols(dpy, win, &wmDeleteMessage, 1);
+	wmDeleteMessage = XInternAtom(dpy_p, "WM_DELETE_WINDOW", False);
+	XSetWMProtocols(dpy_p, win_p, &wmDeleteMessage, 1);
 
-        Left = XStringToKeysym ("Left");
-        Right = XStringToKeysym ("Right");
-        Up = XStringToKeysym ("Up");
-        Down = XStringToKeysym ("Down");
-        Alt = XStringToKeysym ("Alt");
+        Left_p = XStringToKeysym ("Left");
+        Right_p = XStringToKeysym ("Right");
+        Up_p = XStringToKeysym ("Up");
+        Down_p = XStringToKeysym ("Down");
+        Alt_p = XStringToKeysym ("Alt");
 }
 
 static int handle_events(void)
 {
 	XEvent event;
 
-	XNextEvent(dpy, &event);
+	XNextEvent(dpy_p, &event);
 	if (event.type == KeyPress)
 	{
 		KeySym key;
 		char text[255];
 
 		XLookupString(&event.xkey,text,255,&key,0);
-		if (key == Left)
+		if (key == Left_p)
 		{
-			double widthX = rightX - leftX;
-			leftX -= 0.25*widthX;
-			rightX -= 0.25*widthX;
+			double widthX = rightX_p - leftX_p;
+			leftX_p -= 0.25*widthX;
+			rightX_p -= 0.25*widthX;
 		}
-		else if (key == Right)
+		else if (key == Right_p)
 		{
-			double widthX = rightX - leftX;
-			leftX += 0.25*widthX;
-			rightX += 0.25*widthX;
+			double widthX = rightX_p - leftX_p;
+			leftX_p += 0.25*widthX;
+			rightX_p += 0.25*widthX;
 		}
-		else if (key == Up)
+		else if (key == Up_p)
 		{
-			double heightY = topY - bottomY;
-			topY += 0.25*heightY;
-			bottomY += 0.25*heightY;
+			double heightY = topY_p - bottomY_p;
+			topY_p += 0.25*heightY;
+			bottomY_p += 0.25*heightY;
 		}
-		else if (key == Down)
+		else if (key == Down_p)
 		{
-			double heightY = topY - bottomY;
-			topY -= 0.25*heightY;
-			bottomY -= 0.25*heightY;
+			double heightY = topY_p - bottomY_p;
+			topY_p -= 0.25*heightY;
+			bottomY_p -= 0.25*heightY;
 		}
 		else
 		{
-			double widthX = rightX - leftX;
-			double heightY = topY - bottomY;
+			double widthX = rightX_p - leftX_p;
+			double heightY = topY_p - bottomY_p;
 
 			if (text[0] == '-')
 			{
 				/* Zoom out */
-				leftX -= 0.125*widthX;
-				rightX += 0.125*widthX;
-				topY += 0.125*heightY;
-				bottomY -= 0.125*heightY;
+				leftX_p -= 0.125*widthX;
+				rightX_p += 0.125*widthX;
+				topY_p += 0.125*heightY;
+				bottomY_p -= 0.125*heightY;
 			}
 			else if (text[0] == '+')
 			{
 				/* Zoom in */
-				leftX += 0.125*widthX;
-				rightX -= 0.125*widthX;
-				topY -= 0.125*heightY;
-				bottomY += 0.125*heightY;
+				leftX_p += 0.125*widthX;
+				rightX_p -= 0.125*widthX;
+				topY_p -= 0.125*heightY;
+				bottomY_p += 0.125*heightY;
 			}
 		}
 
@@ -265,18 +265,18 @@ static void compute_block_opencl(void *descr[], void *cl_arg)
 	if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
 	clSetKernelArg(kernel, 0, sizeof(data), &data);
-	clSetKernelArg(kernel, 1, sizeof(leftX), &leftX);
-	clSetKernelArg(kernel, 2, sizeof(topY), &topY);
+	clSetKernelArg(kernel, 1, sizeof(leftX_p), &leftX_p);
+	clSetKernelArg(kernel, 2, sizeof(topY_p), &topY_p);
 	clSetKernelArg(kernel, 3, sizeof(stepX), &stepX);
 	clSetKernelArg(kernel, 4, sizeof(stepY), &stepY);
-	clSetKernelArg(kernel, 5, sizeof(maxIt), &maxIt);
+	clSetKernelArg(kernel, 5, sizeof(maxIt_p), &maxIt_p);
 	clSetKernelArg(kernel, 6, sizeof(iby), &iby);
 	clSetKernelArg(kernel, 7, sizeof(block_size), &block_size);
-	clSetKernelArg(kernel, 8, sizeof(width), &width);
+	clSetKernelArg(kernel, 8, sizeof(width_p), &width_p);
 
 	unsigned dim = 16;
 	size_t local[2] = {dim, 1};
-	size_t global[2] = {width, block_size};
+	size_t global[2] = {width_p, block_size};
 	err = clEnqueueNDRangeKernel(queue, kernel, 2, NULL, global, local, 0, NULL, NULL);
 	if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 	starpu_opencl_release_kernel(kernel);
@@ -303,15 +303,15 @@ static void compute_block(void *descr[], void *cl_arg)
 		int ix, iy;
 
 		iy = iby*block_size + local_iy;
-		for (ix = 0; ix < width; ix++)
+		for (ix = 0; ix < width_p; ix++)
 		{
-			double cx = leftX + ix * stepX;
-			double cy = topY - iy * stepY;
+			double cx = leftX_p + ix * stepX;
+			double cy = topY_p - iy * stepY;
 			/* Z = X+I*Y */
 			double x = 0;
 			double y = 0;
 			int it;
-			for (it = 0; it < maxIt; it++)
+			for (it = 0; it < maxIt_p; it++)
 			{
 				double x2 = x*x;
 				double y2 = y*y;
@@ -328,7 +328,7 @@ static void compute_block(void *descr[], void *cl_arg)
 			}
 
 			unsigned int v = STARPU_MIN((1024*((float)(it)/(2000))), 256);
-			data[ix + local_iy*width] = (v<<16|(255-v)<<8);
+			data[ix + local_iy*width_p] = (v<<16|(255-v)<<8);
 		}
 	}
 }
@@ -358,15 +358,15 @@ static void compute_block_spmd(void *descr[], void *cl_arg)
 
 		iy = iby*block_size + local_iy;
 
-		for (ix = 0; ix < width; ix++)
+		for (ix = 0; ix < width_p; ix++)
 		{
-			double cx = leftX + ix * stepX;
-			double cy = topY - iy * stepY;
+			double cx = leftX_p + ix * stepX;
+			double cy = topY_p - iy * stepY;
 			/* Z = X+I*Y */
 			double x = 0;
 			double y = 0;
 			int it;
-			for (it = 0; it < maxIt; it++)
+			for (it = 0; it < maxIt_p; it++)
 			{
 				double x2 = x*x;
 				double y2 = y*y;
@@ -383,7 +383,7 @@ static void compute_block_spmd(void *descr[], void *cl_arg)
 			}
 
 			unsigned int v = STARPU_MIN((1024*((float)(it)/(2000))), 256);
-			data[ix + local_iy*width] = (v<<16|(255-v)<<8);
+			data[ix + local_iy*width_p] = (v<<16|(255-v)<<8);
 		}
 	}
 }
@@ -427,59 +427,60 @@ static void parse_args(int argc, char **argv)
 		if (strcmp(argv[i], "-width") == 0)
 		{
 			char *argptr;
-			width = strtol(argv[++i], &argptr, 10);
+			width_p = strtol(argv[++i], &argptr, 10);
 		}
 
 		if (strcmp(argv[i], "-height") == 0)
 		{
 			char *argptr;
-			height = strtol(argv[++i], &argptr, 10);
+			height_p = strtol(argv[++i], &argptr, 10);
 		}
 
 		if (strcmp(argv[i], "-nblocks") == 0)
 		{
 			char *argptr;
-			nblocks = strtol(argv[++i], &argptr, 10);
+			nblocks_p = strtol(argv[++i], &argptr, 10);
 		}
 
 		if (strcmp(argv[i], "-niter") == 0)
 		{
 			char *argptr;
-			niter = strtol(argv[++i], &argptr, 10);
+			niter_p = strtol(argv[++i], &argptr, 10);
 		}
 
 		if (strcmp(argv[i], "-pos") == 0)
 		{
-			int ret = sscanf(argv[++i], "%lf:%lf:%lf:%lf", &leftX, &rightX, &bottomY, &topY);
+			int ret = sscanf(argv[++i], "%lf:%lf:%lf:%lf", &leftX_p, &rightX_p,
+					 &bottomY_p, &topY_p);
 			assert(ret == 4);
 		}
 
 		if (strcmp(argv[i], "-demo") == 0)
 		{
-			demo = 1;
-			leftX = -50.22749575062760;
-			rightX = 48.73874621262927;
-			topY = -49.35016705749115;
-			bottomY = 49.64891691946615;
+			demo_p = 1;
+			leftX_p = -50.22749575062760;
+			rightX_p = 48.73874621262927;
+			topY_p = -49.35016705749115;
+			bottomY_p = 49.64891691946615;
 
 		}
 
 		if (strcmp(argv[i], "-demozoom") == 0)
 		{
 			char *argptr;
-			demozoom = strtof(argv[++i], &argptr);
+			demozoom_p = strtof(argv[++i], &argptr);
 		}
 
 		if (strcmp(argv[i], "-no-x11") == 0)
 		{
 #ifdef STARPU_HAVE_X11
-			use_x11 = 0;
+			use_x11_p = 0;
 #endif
 		}
 
 		if (strcmp(argv[i], "-spmd") == 0)
 		{
-			use_spmd = 1;
+			use_spmd_p = 1;
 		}
 	}
 }
@@ -495,35 +496,35 @@ int main(int argc, char **argv)
 	starpu_conf_init(&conf);
 	conf.ncuda = 0;
 
-	if (use_spmd)
+	if (use_spmd_p)
 		conf.sched_policy_name = "peager";
 
 	ret = starpu_init(&conf);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	unsigned *buffer;
-	starpu_malloc((void **)&buffer, height*width*sizeof(unsigned));
+	starpu_malloc((void **)&buffer, height_p*width_p*sizeof(unsigned));
 
 #ifdef STARPU_HAVE_X11
-	if (use_x11)
-		init_x11(width, height, buffer);
+	if (use_x11_p)
+		init_x11(width_p, height_p, buffer);
 #endif
 
-	int block_size = height/nblocks;
-	STARPU_ASSERT((height % nblocks) == 0);
+	int block_size = height_p/nblocks_p;
+	STARPU_ASSERT((height_p % nblocks_p) == 0);
 
 #ifdef STARPU_USE_OPENCL
 	starpu_opencl_load_opencl_from_string(mandelbrot_opencl_src, &opencl_programs, NULL);
 #endif
 
-	starpu_data_handle_t block_handles[nblocks];
+	starpu_data_handle_t block_handles[nblocks_p];
 
 	int iby;
-	for (iby = 0; iby < nblocks; iby++)
+	for (iby = 0; iby < nblocks_p; iby++)
 	{
-		unsigned *data = &buffer[iby*block_size*width];
+		unsigned *data = &buffer[iby*block_size*width_p];
 		starpu_vector_data_register(&block_handles[iby], STARPU_MAIN_RAM,
-                        (uintptr_t)data, block_size*width, sizeof(unsigned));
+					    (uintptr_t)data, block_size*width_p, sizeof(unsigned));
 	}
 
 	unsigned iter = 0;
@@ -532,66 +533,66 @@ int main(int argc, char **argv)
 
 	start = starpu_timing_now();
 
-	while (niter-- != 0)
+	while (niter_p-- != 0)
 	{
-		double stepX = (rightX - leftX)/width;
-		double stepY = (topY - bottomY)/height;
+		double stepX = (rightX_p - leftX_p)/width_p;
+		double stepY = (topY_p - bottomY_p)/height_p;
 
 		/* In case we have a SPMD task, each worker will grab tasks in
 		 * a greedy and select which piece of image to compute by
 		 * incrementing a counter shared by all the workers within the
 		 * parallel task. */
-		int per_block_cnt[nblocks];
+		int per_block_cnt[nblocks_p];
 
-		for (iby = 0; iby < nblocks; iby++)
+		for (iby = 0; iby < nblocks_p; iby++)
 		{
 			per_block_cnt[iby] = 0;
 			int *pcnt = &per_block_cnt[iby];
 
-			ret = starpu_task_insert(use_spmd?&spmd_mandelbrot_cl:&mandelbrot_cl,
+			ret = starpu_task_insert(use_spmd_p?&spmd_mandelbrot_cl:&mandelbrot_cl,
 						 STARPU_VALUE, &iby, sizeof(iby),
 						 STARPU_VALUE, &block_size, sizeof(block_size),
 						 STARPU_VALUE, &stepX, sizeof(stepX),
 						 STARPU_VALUE, &stepY, sizeof(stepY),
 						 STARPU_W, block_handles[iby],
 						 STARPU_VALUE, &pcnt, sizeof(int *),
-						 STARPU_TAG_ONLY, ((starpu_tag_t)niter)*nblocks + iby,
+						 STARPU_TAG_ONLY, ((starpu_tag_t)niter_p)*nblocks_p + iby,
 						 0);
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 		}
 
-		for (iby = 0; iby < nblocks; iby++)
+		for (iby = 0; iby < nblocks_p; iby++)
 		{
 #ifdef STARPU_HAVE_X11
-			if (use_x11)
+			if (use_x11_p)
 			{
 				starpu_data_acquire(block_handles[iby], STARPU_R);
-				XPutImage(dpy, win, gc, bitmap,
-					0, iby*block_size,
-					0, iby*block_size,
-					width, block_size);
+				XPutImage(dpy_p, win_p, gc_p, bitmap_p,
+					  0, iby*block_size,
+					  0, iby*block_size,
+					  width_p, block_size);
 				starpu_data_release(block_handles[iby]);
 			}
 #endif
 		}
 
 
-		if (demo)
+		if (demo_p)
 		{
 			/* Zoom in */
-			double zoom_factor = demozoom;
-			double widthX = rightX - leftX;
-			double heightY = topY - bottomY;
+			double zoom_factor = demozoom_p;
+			double widthX = rightX_p - leftX_p;
+			double heightY = topY_p - bottomY_p;
 
 			iter++;
 
 			/* If the window is too small, we reset the demo and display some statistics */
 			if ((fabs(widthX) < 1e-12) || (fabs(heightY) < 1e-12))
 			{
-				leftX = -50.22749575062760;
-				rightX = 48.73874621262927;
-				topY = -49.35016705749115;
-				bottomY = 49.64891691946615;
+				leftX_p = -50.22749575062760;
+				rightX_p = 48.73874621262927;
+				topY_p = -49.35016705749115;
+				bottomY_p = 49.64891691946615;
 
 				end = starpu_timing_now();
 				double timing = end - start;
@@ -605,25 +606,25 @@ int main(int argc, char **argv)
 			}
 			else
 			{
-				leftX += (zoom_factor/2)*widthX;
-				rightX -= (zoom_factor/2)*widthX;
-				topY -= (zoom_factor/2)*heightY;
-				bottomY += (zoom_factor/2)*heightY;
+				leftX_p += (zoom_factor/2)*widthX;
+				rightX_p -= (zoom_factor/2)*widthX;
+				topY_p -= (zoom_factor/2)*heightY;
+				bottomY_p += (zoom_factor/2)*heightY;
 			}
 
 		}
 #ifdef STARPU_HAVE_X11
-		else if (use_x11 && handle_events())
+		else if (use_x11_p && handle_events())
 			break;
 #endif
 	}
 
 #ifdef STARPU_HAVE_X11
-	if (use_x11)
+	if (use_x11_p)
 		exit_x11();
 #endif
 
-	for (iby = 0; iby < nblocks; iby++)
+	for (iby = 0; iby < nblocks_p; iby++)
 		starpu_data_unregister(block_handles[iby]);
 
 /*	starpu_data_free_pinned_if_possible(buffer); */

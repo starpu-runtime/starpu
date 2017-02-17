@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016, 2017  CNRS
  * Copyright (C) 2011, 2012, 2017  INRIA
  * See the file version.doxy for copying conditions.
  */
@@ -13,47 +13,63 @@ Per-interface data transfer methods.
 \ingroup API_Data_Interfaces
 \var void (*starpu_data_interface_ops::register_data_handle)(starpu_data_handle_t handle, unsigned home_node, void *data_interface)
 Register an existing interface into a data handle.
+
 \var starpu_ssize_t (*starpu_data_interface_ops::allocate_data_on_node)(void *data_interface, unsigned node)
 Allocate data for the interface on a given node.
+
 \var void (*starpu_data_interface_ops::free_data_on_node)(void *data_interface, unsigned node)
 Free data of the interface on a given node.
+
 \var const struct starpu_data_copy_methods *starpu_data_interface_ops::copy_methods
 ram/cuda/opencl synchronous and asynchronous transfer methods.
+
 \var void *(*starpu_data_interface_ops::handle_to_pointer)(starpu_data_handle_t handle, unsigned node)
 Return the current pointer (if any) for the handle on the given node.
+
 \var size_t (*starpu_data_interface_ops::get_size)(starpu_data_handle_t handle)
 Return an estimation of the size of data, for performance models.
+
 \var uint32_t (*starpu_data_interface_ops::footprint)(starpu_data_handle_t handle)
 Return a 32bit footprint which characterizes the data size.
+
 \var int (*starpu_data_interface_ops::compare)(void *data_interface_a, void *data_interface_b)
 Compare the data size of two interfaces.
+
 \var void (*starpu_data_interface_ops::display)(starpu_data_handle_t handle, FILE *f)
 Dump the sizes of a handle to a file.
+
 \var starpu_ssize_t (*starpu_data_interface_ops::describe)(void *data_interface, char *buf, size_t size)
 Describe the data into a string.
+
 \var enum starpu_data_interface_id starpu_data_interface_ops::interfaceid
 An identifier that is unique to each interface.
+
 \var size_t starpu_data_interface_ops::interface_size
 The size of the interface data descriptor.
+
 \var char starpu_data_interface_ops::is_multiformat
 todo
+
 \var char starpu_data_interface_ops::dontcache
 If set to non-zero, StarPU will never try to reuse an allocated buffer for a
 different handle. This can be notably useful for application-defined interfaces
 which have a dynamic size, and for which it thus does not make sense to reuse
 the buffer since will probably not have the proper size.
+
 \var struct starpu_multiformat_data_interface_ops* (*starpu_data_interface_ops::get_mf_ops)(void *data_interface)
 todo
+
 \var int (*starpu_data_interface_ops::pack_data)(starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count)
 Pack the data handle into a contiguous buffer at the address allocated with
-starpu_malloc_flags(ptr, size, 0) (and thus returned in ptr) and
-set the size of the newly created buffer in count. If ptr is NULL, the
+<c>starpu_malloc_flags(ptr, size, 0)</c> (and thus returned in \p ptr) and
+set the size of the newly created buffer in \p count. If \p ptr is <c>NULL</c>, the
 function should not copy the data in the buffer but just set count to
 the size of the buffer which would have been allocated. The special
 value -1 indicates the size is yet unknown.
+
 \var int (*starpu_data_interface_ops::unpack_data) (starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
-Unpack the data handle from the contiguous buffer at the address ptr
-of size count
+Unpack the data handle from the contiguous buffer at the address \p ptr
+of size \p count
 
 \struct starpu_data_copy_methods
 Defines the per-interface methods. If the any_to_any method is
@@ -91,22 +107,27 @@ node. Return 0 on success.
 Define how to copy data from the \p src_interface interface on the
 \p src_node CUDA node to the \p dst_interface interface on the \p dst_node
 CPU node. Return 0 on success.
+
 \var int (*starpu_data_copy_methods::cuda_to_cuda)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
 Define how to copy data from the \p src_interface interface on the
 \p src_node CUDA node to the \p dst_interface interface on the \p dst_node CUDA
 node. Return 0 on success.
+
 \var int (*starpu_data_copy_methods::cuda_to_opencl)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
 Define how to copy data from the \p src_interface interface on the
 \p src_node CUDA node to the \p dst_interface interface on the \p dst_node
 OpenCL node. Return 0 on success.
+
 \var int (*starpu_data_copy_methods::opencl_to_ram)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
 Define how to copy data from the \p src_interface interface on the
 \p src_node OpenCL node to the \p dst_interface interface on the \p dst_node
 CPU node. Return 0 on success.
+
 \var int (*starpu_data_copy_methods::opencl_to_cuda)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
 Define how to copy data from the \p src_interface interface on the
 \p src_node OpenCL node to the \p dst_interface interface on the \p dst_node
 CUDA node. Return 0 on success.
+
 \var int (*starpu_data_copy_methods::opencl_to_opencl)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
 Define how to copy data from the \p src_interface interface on the
 \p src_node OpenCL node to the \p dst_interface interface on the \p dst_node
@@ -121,29 +142,33 @@ node. Return 0 on success.
 Define how to copy data from the \p src_interface interface on the
 \p src_node node to the \p dst_interface interface on the \p dst_node node.
 Must return 0 if the transfer was actually completed completely
-synchronously, or -EAGAIN if at least some transfers are still ongoing
+synchronously, or <c>-EAGAIN</c> if at least some transfers are still ongoing
 and should be awaited for by the core.
+
 \var int (*starpu_data_copy_methods::scc_sink_to_src)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
 Define how to copy data from the \p src_interface interface on the
 \p src_node node to the \p dst_interface interface on the \p dst_node node.
 Must return 0 if the transfer was actually completed completely
-synchronously, or -EAGAIN if at least some transfers are still ongoing
+synchronously, or <c>-EAGAIN</c> if at least some transfers are still ongoing
 and should be awaited for by the core.
+
 \var int (*starpu_data_copy_methods::scc_sink_to_sink)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
 Define how to copy data from the \p src_interface interface on the
 \p src_node node to the \p dst_interface interface on the \p dst_node node.
 Must return 0 if the transfer was actually completed completely
-synchronously, or -EAGAIN if at least some transfers are still ongoing
+synchronously, or <c>-EAGAIN</c> if at least some transfers are still ongoing
 and should be awaited for by the core.
 
 \var int (*starpu_data_copy_methods::ram_to_mpi_ms)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
 Define how to copy data from the \p src_interface interface on the
 \p src_node CPU node to the \p dst_interface interface on the \p dst_node MPI Slave
 node. Return 0 on success.
+
 \var int (*starpu_data_copy_methods::mpi_ms_to_ram)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
 Define how to copy data from the \p src_interface interface on the
 \p src_node MPI Slave node to the \p dst_interface interface on the \p dst_node CPU
 node. Return 0 on success.
+
 \var int (*starpu_data_copy_methods::mpi_ms_to_mpi_ms)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
 Define how to copy data from the \p src_interface interface on the
 \p src_node MPI Slave node to the \p dst_interface interface on the \p dst_node
@@ -153,43 +178,47 @@ MPI Slave node. Return 0 on success.
 Define how to copy data from the \p src_interface interface on the
 \p src_node CPU node to the \p dst_interface interface on the \p dst_node CUDA
 node, using the given stream. Must return 0 if the transfer was
-actually completed completely synchronously, or -EAGAIN if at least
+actually completed completely synchronously, or <c>-EAGAIN</c> if at least
 some transfers are still ongoing and should be awaited for by the core.
+
 \var int (*starpu_data_copy_methods::cuda_to_ram_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cudaStream_t stream)
 Define how to copy data from the \p src_interface interface on the
 \p src_node CUDA node to the \p dst_interface interface on the \p dst_node CPU
 node, using the given stream. Must return 0 if the transfer was
-actually completed completely synchronously, or -EAGAIN if at least
+actually completed completely synchronously, or <c>-EAGAIN</c> if at least
 some transfers are still ongoing and should be awaited for by the core.
+
 \var int (*starpu_data_copy_methods::cuda_to_cuda_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cudaStream_t stream)
 Define how to copy data from the \p src_interface interface on the
 \p src_node CUDA node to the \p dst_interface interface on the \p dst_node CUDA
 node, using the given stream. Must return 0 if the transfer was
-actually completed completely synchronously, or -EAGAIN if at least
+actually completed completely synchronously, or <c>-EAGAIN</c> if at least
 some transfers are still ongoing and should be awaited for by the core.
 
 \var int (*starpu_data_copy_methods::ram_to_opencl_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cl_event *event)
 Define how to copy data from the \p src_interface interface on the
 \p src_node CPU node to the \p dst_interface interface on the \p dst_node
-OpenCL node, by recording in event, a pointer to a cl_event, the event
+OpenCL node, by recording in \p event, a pointer to a <c>cl_event</c>, the event
 of the last submitted transfer. Must return 0 if the transfer was
-actually completed completely synchronously, or -EAGAIN if at least
+actually completed completely synchronously, or <c>-EAGAIN</c> if at least
 some transfers are still ongoing and should be awaited for by the
 core.
+
 \var int (*starpu_data_copy_methods::opencl_to_ram_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cl_event *event)
 Define how to copy data from the \p src_interface interface on the
 \p src_node OpenCL node to the \p dst_interface interface on the \p dst_node
-CPU node, by recording in event, a pointer to a cl_event, the event of
+CPU node, by recording in \p event, a pointer to a <c>cl_event</c>, the event of
 the last submitted transfer. Must return 0 if the transfer was
-actually completed completely synchronously, or -EAGAIN if at least
+actually completed completely synchronously, or <c>-EAGAIN</c> if at least
 some transfers are still ongoing and should be awaited for by the
 core.
+
 \var int (*starpu_data_copy_methods::opencl_to_opencl_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cl_event *event)
 Define how to copy data from the \p src_interface interface on the
 \p src_node OpenCL node to the \p dst_interface interface on the \p dst_node
-OpenCL node, by recording in event, a pointer to a cl_event, the event
+OpenCL node, by recording in \p event, a pointer to a <c>cl_event</c>, the event
 of the last submitted transfer. Must return 0 if the transfer was
-actually completed completely synchronously, or -EAGAIN if at least
+actually completed completely synchronously, or <c>-EAGAIN</c> if at least
 some transfers are still ongoing and should be awaited for by the
 core.
 
@@ -197,32 +226,35 @@ core.
 Define how to copy data from the \p src_interface interface on the
 \p src_node CPU node to the \p dst_interface interface on the \p dst_node MPI Slave
 node, with the given even. Must return 0 if the transfer was
-actually completed completely synchronously, or -EAGAIN if at least
+actually completed completely synchronously, or <c>-EAGAIN</c> if at least
 some transfers are still ongoing and should be awaited for by the core.
+
 \var int (*starpu_data_copy_methods::mpi_ms_to_ram_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void * event)
 Define how to copy data from the \p src_interface interface on the
 \p src_node MPI Slave node to the \p dst_interface interface on the \p dst_node CPU
 node, with the given event. Must return 0 if the transfer was
-actually completed completely synchronously, or -EAGAIN if at least
+actually completed completely synchronously, or <c>-EAGAIN</c> if at least
 some transfers are still ongoing and should be awaited for by the core.
+
 \var int (*starpu_data_copy_methods::mpi_ms_to_mpi_ms_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void * event)
 Define how to copy data from the \p src_interface interface on the
 \p src_node MPI Slave node to the \p dst_interface interface on the \p dst_node MPI Slave 
 node, using the given stream. Must return 0 if the transfer was
-actually completed completely synchronously, or -EAGAIN if at least
+actually completed completely synchronously, or <c>-EAGAIN</c> if at least
 some transfers are still ongoing and should be awaited for by the core.
 
 \var int (*starpu_data_copy_methods::ram_to_mic_async)(void *src_intreface, unsigned src_node, void *dst_interface, unsigned dst_node)
 Define how to copy data from the \p src_interface interface on the
 \p src_node CPU node to the \p dst_interface interface on the \p dst_node
 MIC node. Must return 0 if the transfer was actually completed
-completely synchronously, or -EAGAIN if at least some transfers are
+completely synchronously, or <c>-EAGAIN</c> if at least some transfers are
 still ongoing and should be awaited for by the core.
+
 \var int (*starpu_data_copy_methods::mic_to_ram_async)(void *src_intreface, unsigned src_node, void *dst_interface, unsigned dst_node)
 Define how to copy data from the \p src_interface interface on the
 \p src_node MIC node to the \p dst_interface interface on the \p dst_node
 CPU node. Must return 0 if the transfer was actually completed
-completely synchronously, or -EAGAIN if at least some transfers are
+completely synchronously, or <c>-EAGAIN</c> if at least some transfers are
 still ongoing and should be awaited for by the core.
 
 \var int (*starpu_data_copy_methods::any_to_any)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data)
@@ -230,8 +262,8 @@ Define how to copy data from the \p src_interface interface on the
 \p src_node node to the \p dst_interface interface on the \p dst_node node.
 This is meant to be implemented through the starpu_interface_copy()
 helper, to which async_data should be passed as such, and will be used
-to manage asynchronicity. This must return -EAGAIN if any of the
-starpu_interface_copy() calls has returned -EAGAIN (i.e. at least some
+to manage asynchronicity. This must return <c>-EAGAIN</c> if any of the
+starpu_interface_copy() calls has returned <c>-EAGAIN</c> (i.e. at least some
 transfer is still ongoing), and return 0 otherwise.
 
 \enum starpu_data_interface_id
@@ -284,7 +316,7 @@ typically a scalar, and initialize \p handle to represent this data item.
 
 Here an example of how to use the function.
 \code{.c}
-float var;
+float var = 42.0;
 starpu_data_handle_t var_handle;
 starpu_variable_data_register(&var_handle, STARPU_MAIN_RAM, (uintptr_t)&var, sizeof(var));
 \endcode
@@ -384,7 +416,7 @@ Return the interface associated with \p handle on \p memory_node.
 \ingroup API_Data_Interfaces
 
 Each data interface is provided with a set of field access functions.
-The ones using a void * parameter aimed to be used in codelet
+The ones using a <c>void *</c> parameter aimed to be used in codelet
 implementations (see for example the code in
 \ref VectorScalingUsingStarPUAPI).
 
@@ -414,7 +446,7 @@ Execute the packing operation of the interface of the data
 registered at \p handle (see starpu_data_interface_ops). This
 packing operation must allocate a buffer large enough at \p ptr and copy
 into the newly allocated buffer the data associated to \p handle. \p count
-will be set to the size of the allocated buffer. If \p ptr is NULL, the
+will be set to the size of the allocated buffer. If \p ptr is <c>NULL</c>, the
 function should not copy the data in the buffer but just set \p count to
 the size of the buffer which would have been allocated. The special
 value -1 indicates the size is yet unknown.
@@ -794,7 +826,7 @@ Return the number of rows in a block.
 
 \fn uint32_t starpu_bcsr_get_c(starpu_data_handle_t handle)
 \ingroup API_Data_Interfaces
-Return the numberof columns in a block.
+Return the number of columns in a block.
 
 \fn size_t starpu_bcsr_get_elemsize(starpu_data_handle_t handle)
 \ingroup API_Data_Interfaces
@@ -1051,34 +1083,34 @@ Applications can provide their own interface as shown in
 \ingroup API_Data_Interfaces
 Allocate \p size bytes on node \p dst_node with the given allocation \p flags. This returns 0 if
 allocation failed, the allocation method should then return <c>-ENOMEM</c> as
-allocated size. Deallocation must be done with starpu_free_on_node.
+allocated size. Deallocation must be done with starpu_free_on_node().
 
 \fn void starpu_free_on_node_flags(unsigned dst_node, uintptr_t addr, size_t size, int flags)
 \ingroup API_Data_Interfaces
 Free \p addr of \p size bytes on node \p dst_node which was previously allocated
-with starpu_malloc_on_node with the given allocation \p flags.
+with starpu_malloc_on_node() with the given allocation \p flags.
 
 \fn uintptr_t starpu_malloc_on_node(unsigned dst_node, size_t size)
 \ingroup API_Data_Interfaces
 Allocate \p size bytes on node \p dst_node with the default allocation flags. This returns 0 if
 allocation failed, the allocation method should then return <c>-ENOMEM</c> as
-allocated size. Deallocation must be done with starpu_free_on_node.
+allocated size. Deallocation must be done with starpu_free_on_node().
 
 \fn void starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size)
 \ingroup API_Data_Interfaces
 Free \p addr of \p size bytes on node \p dst_node which was previously allocated
-with starpu_malloc_on_node.
+with starpu_malloc_on_node().
 
 \fn void starpu_malloc_on_node_set_default_flags(unsigned node, int flags)
 \ingroup API_Data_Interfaces
 Define the defaultflags for allocations performed by starpu_malloc_on_node() and
-starpu_free_on_node(). The default is STARPU_MALLOC_PINNED | STARPU_MALLOC_COUNT.
+starpu_free_on_node(). The default is \ref STARPU_MALLOC_PINNED | \ref STARPU_MALLOC_COUNT.
 
 \fn int starpu_interface_copy(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, void *async_data)
 \ingroup API_Data_Interfaces
 Copy \p size bytes from byte offset \p src_offset of \p src on \p src_node
 to byte offset \p dst_offset of \p dst on \p dst_node. This is to be used in
-the any_to_any() copy method, which is provided with the async_data to
+the starpu_data_copy_methods::any_to_any copy method, which is provided with \p async_data to
 be passed to starpu_interface_copy(). this returns <c>-EAGAIN</c> if the
 transfer is still ongoing, or 0 if the transfer is already completed.
 

@@ -129,6 +129,7 @@ int load_data_wakeup_cond(starpu_data_handle_t handle)
 
 static void load_data_register_data_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface)
 {
+	(void) home_node;
 	struct load_data_interface *ld_interface = (struct load_data_interface *) data_interface;
 
 	unsigned node;

@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2017  CNRS
  * Copyright (C) 2011, 2012 INRIA
  * See the file version.doxy for copying conditions.
  */
@@ -13,7 +13,7 @@ to have a code which can be compiled with any C compiler.
 
 \def STARPU_GNUC_PREREQ
 \ingroup API_Toolbox
-Return true (non-zero) if GCC version MAJ.MIN or later is being used (macro taken from glibc.)
+Return true (non-zero) if GCC version \p maj.\p min or later is being used (macro taken from glibc.)
 
 \def STARPU_UNLIKELY
 \ingroup API_Toolbox

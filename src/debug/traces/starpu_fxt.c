@@ -319,15 +319,30 @@ LIST_TYPE(_starpu_symbol_name,
 
 static struct _starpu_symbol_name_list symbol_list;
 
+/* List of on-going communications */
 LIST_TYPE(_starpu_communication,
 	unsigned comid;
 	double comm_start;
 	double bandwidth;
 	unsigned src_node;
 	unsigned dst_node;
+	struct _starpu_communication *peer;
 )
 
 static struct _starpu_communication_list communication_list;
+static float current_bandwidth_in_per_node[STARPU_MAXNODES] = {0.0};
+static float current_bandwidth_out_per_node[STARPU_MAXNODES] = {0.0};
+
+/* List of on-going computations */
+LIST_TYPE(_starpu_computation,
+	double comp_start;
+	double gflops;
+	struct _starpu_computation *peer;
+)
+
+static struct _starpu_computation_list computation_list;
+static struct _starpu_computation *ongoing_computation[STARPU_NMAXWORKERS];
+static double current_computation = 0.0;
 
 /*
  * Generic tools
@@ -849,13 +864,13 @@ static void handle_new_mem_node(struct fxt_ev_64 *ev, struct starpu_fxt_options 
 		if (!options->no_bus)
 		{
 #ifdef STARPU_HAVE_POTI
-			poti_SetVariable(get_event_time_stamp(ev, options), new_memmanager_container_alias, "use", 0.0);
-			poti_SetVariable(get_event_time_stamp(ev, options), new_memmanager_container_alias, "bwi_mm", 0.0);
-			poti_SetVariable(get_event_time_stamp(ev, options), new_memmanager_container_alias, "bwo_mm", 0.0);
+			poti_SetVariable(0.0, new_memmanager_container_alias, "use", 0.0);
+			poti_SetVariable(0.0, new_memmanager_container_alias, "bwi_mm", 0.0);
+			poti_SetVariable(0.0, new_memmanager_container_alias, "bwo_mm", 0.0);
 #else
-			fprintf(out_paje_file, "13	%.9f	%smm%"PRIu64"	use	0.0\n", get_event_time_stamp(ev, options), prefix, ev->param[0]);
-			fprintf(out_paje_file, "13	%.9f	%smm%"PRIu64"	bwi_mm	0.0\n", get_event_time_stamp(ev, options), prefix, ev->param[0]);
-			fprintf(out_paje_file, "13	%.9f	%smm%"PRIu64"	bwo_mm	0.0\n", get_event_time_stamp(ev, options), prefix, ev->param[0]);
+			fprintf(out_paje_file, "13	%.9f	%smm%"PRIu64"	use	0.0\n", 0.0, prefix, ev->param[0]);
+			fprintf(out_paje_file, "13	%.9f	%smm%"PRIu64"	bwi_mm	0.0\n", 0.0, prefix, ev->param[0]);
+			fprintf(out_paje_file, "13	%.9f	%smm%"PRIu64"	bwo_mm	0.0\n", 0.0, prefix, ev->param[0]);
 #endif
 		}
 	}
@@ -954,7 +969,7 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 		if (new_thread)
 			poti_CreateContainer(get_event_time_stamp(ev, options), new_thread_container_alias, "T", memnode_container, new_thread_container_name);
 		poti_CreateContainer(get_event_time_stamp(ev, options), new_worker_container_alias, "W", new_thread_container_alias, new_worker_container_name);
-		poti_SetVariable(get_event_time_stamp(ev, options), new_worker_container_alias, "gf", 0.0);
+		poti_SetVariable(0.0, new_worker_container_alias, "gf", 0.0);
 #else
 		if (new_thread)
 			fprintf(out_paje_file, "7	%.9f	%st%lu	T	%smn%d	%s%d\n",
@@ -962,7 +977,7 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 		fprintf(out_paje_file, "7	%.9f	%sw%d	W	%st%lu	%s%s%d\n",
 			get_event_time_stamp(ev, options), prefix, workerid, prefix, threadid, prefix, kindstr, devid);
 		fprintf(out_paje_file, "13	%.9f	%sw%d	gf	0.0\n",
-			get_event_time_stamp(ev, options), prefix, workerid);
+			0.0, prefix, workerid);
 #endif
 	}
 
@@ -1226,6 +1241,11 @@ static void handle_start_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_op
 		recfmt_worker_set_state(start_codelet_time, ev->param[2], name, "Task");
 #endif /* STARPU_ENABLE_PAJE_CODELET_DETAILS */
 
+	struct _starpu_computation *comp = _starpu_computation_new();
+	comp->comp_start = start_codelet_time;
+	comp->peer = NULL;
+	ongoing_computation[worker] = comp;
+	_starpu_computation_list_push_back(&computation_list, comp);
 }
 
 static void handle_model_name(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -1365,6 +1385,15 @@ static void handle_end_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 	fprintf(out_paje_file, "13	%.9f	%sw%d	gf	%f\n",
 			end_codelet_time, prefix, worker, 0.);
 #endif
+
+	struct _starpu_computation *comp = _starpu_computation_new();
+	comp->comp_start = end_codelet_time;
+	comp->gflops = -gflops;
+	comp->peer = ongoing_computation[worker];
+	ongoing_computation[worker] = NULL;
+	comp->peer->gflops = +gflops;
+	comp->peer->peer = comp;
+	_starpu_computation_list_push_back(&computation_list, comp);
 
 	if (distrib_time)
 	     fprintf(distrib_time, "%s\t%s%d\t%ld\t%"PRIx32"\t%.9f\n", _starpu_last_codelet_symbol[worker],
@@ -1741,6 +1770,8 @@ static void handle_start_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 		com->src_node = src;
 		com->dst_node = dst;
 
+		com->peer = NULL;
+
 		_starpu_communication_list_push_back(&communication_list, com);
 	}
 
@@ -1830,6 +1861,8 @@ static void handle_end_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 
 				com->src_node = itor->src_node;
 				com->dst_node = itor->dst_node;
+				com->peer = itor;
+				itor->peer = com;
 
 				_starpu_communication_list_push_back(&communication_list, com);
 
@@ -2470,18 +2503,18 @@ static void handle_thread_event(struct fxt_ev_64 *ev, struct starpu_fxt_options 
 }
 
 static
-void _starpu_fxt_display_bandwidth(struct starpu_fxt_options *options)
+void _starpu_fxt_process_bandwidth(struct starpu_fxt_options *options)
 {
-	float current_bandwidth_in_per_node[STARPU_MAXNODES] = {0.0};
-	float current_bandwidth_out_per_node[STARPU_MAXNODES] = {0.0};
-
 	char *prefix = options->file_prefix;
 
+	/* Loop through completed communications */
 	struct _starpu_communication*itor;
-	for (itor = _starpu_communication_list_begin(&communication_list);
-		itor != _starpu_communication_list_end(&communication_list);
-		itor = _starpu_communication_list_next(itor))
+	while (!_starpu_communication_list_empty(&communication_list)
+			&& _starpu_communication_list_begin(&communication_list)->peer)
 	{
+		/* This communication is complete */
+		itor = _starpu_communication_list_pop_front(&communication_list);
+
 		current_bandwidth_out_per_node[itor->src_node] +=  itor->bandwidth;
 		if (out_paje_file)
 		{
@@ -2507,6 +2540,37 @@ void _starpu_fxt_display_bandwidth(struct starpu_fxt_options *options)
 				itor->comm_start, prefix, itor->dst_node, current_bandwidth_in_per_node[itor->dst_node]);
 #endif
 		}
+		_starpu_communication_delete(itor);
+	}
+}
+
+static
+void _starpu_fxt_process_computations(struct starpu_fxt_options *options)
+{
+	char *prefix = options->file_prefix;
+
+	/* Loop through completed computations */
+	struct _starpu_computation*itor;
+	while (!_starpu_computation_list_empty(&computation_list)
+			&& _starpu_computation_list_begin(&computation_list)->peer)
+	{
+		/* This computation is complete */
+		itor = _starpu_computation_list_pop_front(&computation_list);
+
+		current_computation += itor->gflops;
+		if (out_paje_file)
+		{
+#ifdef STARPU_HAVE_POTI
+			char container[STARPU_POTI_STR_LEN];
+
+			scheduler_container_alias(container, STARPU_POTI_STR_LEN, prefix);
+			poti_SetVariable(itor->comp_start, container, "gft", (double)current_computation);
+#else
+			fprintf(out_paje_file, "13	%.9f	%ssched	gft	%f\n", itor->comp_start, prefix, (float)current_computation);
+#endif
+		}
+
+		_starpu_computation_delete(itor);
 	}
 }
 
@@ -2548,19 +2612,21 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 		{
 			char new_scheduler_container_alias[STARPU_POTI_STR_LEN], new_scheduler_container_name[STARPU_POTI_STR_LEN];
 			scheduler_container_alias(new_scheduler_container_alias, STARPU_POTI_STR_LEN, prefix);
-			snprintf(new_scheduler_container_name, STARPU_POTI_STR_LEN, "scheduler %s", prefix);
+			snprintf(new_scheduler_container_name, STARPU_POTI_STR_LEN, "%sscheduler", prefix);
 			poti_CreateContainer(0.0, new_scheduler_container_alias, "Sc", new_program_container_alias, new_scheduler_container_name);
 			poti_SetVariable(0.0, new_scheduler_container_alias, "nsubmitted", 0.0);
 			poti_SetVariable(0.0, new_scheduler_container_alias, "nready", 0.0);
+			poti_SetVariable(0.0, new_scheduler_container_alias, "gft", 0.0);
 		}
 #else
 		fprintf(out_paje_file, "7	0.0	%sp	P	MPIroot	%sprogram \n", prefix, prefix);
 		/* create a variable with the number of tasks */
 		if (!options->no_counter)
 		{
-			fprintf(out_paje_file, "7	%.9f	%ssched	Sc	%sp	scheduler\n", 0.0, prefix, prefix);
+			fprintf(out_paje_file, "7	%.9f	%ssched	Sc	%sp	%sscheduler\n", 0.0, prefix, prefix, prefix);
 			fprintf(out_paje_file, "13	0.0	%ssched	nsubmitted	0.0\n", prefix);
 			fprintf(out_paje_file, "13	0.0	%ssched	nready	0.0\n", prefix);
+			fprintf(out_paje_file, "13	0.0	%ssched	gft	0.0\n", prefix);
 		}
 #endif
 	}
@@ -3092,6 +3158,8 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 #endif
 				break;
 		}
+		_starpu_fxt_process_bandwidth(options);
+		_starpu_fxt_process_computations(options);
 	}
 
 	/* Close the trace file */
@@ -3263,6 +3331,7 @@ void _starpu_fxt_paje_file_init(struct starpu_fxt_options *options)
 	/* create lists for symbols (kernel states) and communications */
 	_starpu_symbol_name_list_init(&symbol_list);
 	_starpu_communication_list_init(&communication_list);
+	_starpu_computation_list_init(&computation_list);
 }
 
 static
@@ -3438,8 +3507,6 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 		if (display_mpi)
 			_starpu_fxt_display_mpi_transfers(options, rank_k, out_paje_file);
 	}
-
-	_starpu_fxt_display_bandwidth(options);
 
 	/* close the different files */
 	_starpu_fxt_paje_file_close();

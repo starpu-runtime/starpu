@@ -118,6 +118,8 @@ void GanttWidget::defaultScreen(QPainter *painter)
 // Called each time the window is resized
 void GanttWidget::resizeGL(int width, int height)
 {
+    (void) width;
+    (void) height;
     update();
 }
 

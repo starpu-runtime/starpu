@@ -345,9 +345,9 @@ static void update_func_opencl(void *descr[], void *arg)
  */
 void update_func_cpu(void *descr[], void *arg)
 {
-    unsigned z;
-    starpu_codelet_unpack_args(arg, &z);
-	struct block_description *block = get_block_description(z);
+	unsigned zz;
+	starpu_codelet_unpack_args(arg, &zz);
+	struct block_description *block = get_block_description(zz);
 
 	int workerid = starpu_worker_get_id_check();
 	DEBUG( "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");

@@ -31,9 +31,9 @@ flags for starpu_sched_component::properties
 This structure represent a scheduler module.  A scheduler is a
 tree-like structure of them, some parts of scheduler can be shared by
 several contexes to perform some local optimisations, so, for all
-components, a list of parent is defined indexed by sched_ctx_id. They
+components, a list of parent is defined by \c sched_ctx_id. They
 embed there specialised method in a pseudo object-style, so calls are
-like component->push_task(component,task)
+like <c>component->push_task(component,task)</c>
 
 \var struct starpu_sched_tree *starpu_sched_component::tree
      The tree containing the component
@@ -42,7 +42,7 @@ like component->push_task(component,task)
 \var starpu_sched_component::workers_in_ctx
      this member contain the subset of starpu_sched_component::workers that is currently available in the context
      The push method should take this member into account.
-     this member is set with :
+     this member is set with :	
      component->workers UNION tree->workers UNION
      component->child[i]->workers_in_ctx iff exist x such as component->children[i]->parents[x] == component
 \var void *starpu_sched_component::data
@@ -183,7 +183,7 @@ The actual scheduler
 \fn void starpu_sched_component_destroy(struct starpu_sched_component *component)
 \ingroup API_Modularized_Scheduler
 	 free data allocated by starpu_sched_component_create and call component->deinit_data(component)
-	 set to null the member starpu_sched_component::fathers[sched_ctx_id] of all child if its equal to \p component
+	 set to <c>NULL</c> the member starpu_sched_component::fathers[sched_ctx_id] of all child if its equal to \p component
 
 \fn void starpu_sched_component_destroy_rec(struct starpu_sched_component *component)
 \ingroup API_Modularized_Scheduler
@@ -195,9 +195,9 @@ The actual scheduler
 
 \fn int starpu_sched_component_execute_preds(struct starpu_sched_component *component, struct starpu_task *task, double *length)
 \ingroup API_Modularized_Scheduler
-	 return a non null value if \p component can execute \p task.
+	 return a non <c>NULL</c> value if \p component can execute \p task.
 	 write the execution prediction length for the best implementation of the best worker available and write this at \p length address.
-	 this result is more relevant if starpu_sched_component::is_homogeneous is non null.
+	 this result is more relevant if starpu_sched_component::is_homogeneous is non <c>NULL</c>.
 	 if a worker need to be calibrated for an implementation, nan is set to \p length.
 
 \fn double starpu_sched_component_transfer_length(struct starpu_sched_component *component, struct starpu_task *task)
@@ -431,11 +431,11 @@ todo
 
 \struct starpu_sched_component_specs
 \ingroup API_Modularized_Scheduler
-	 Define how build a scheduler according to topology. Each level (except for hwloc_machine_composed_sched_component) can be NULL, then
+	 Define how build a scheduler according to topology. Each level (except for hwloc_machine_composed_sched_component) can be <c>NULL</c>, then
 	 the level is just skipped. Bugs everywhere, do not rely on.
 \var struct starpu_sched_component_composed_recipe *starpu_sched_specs::hwloc_machine_composed_sched_component
      the composed component to put on the top of the scheduler
-     this member must not be NULL as it is the root of the topology
+     this member must not be <c>NULL</c> as it is the root of the topology
 \var struct starpu_sched_component_composed_recipe *starpu_sched_specs::hwloc_component_composed_sched_component
      the composed component to put for each memory component
 \var struct starpu_sched_component_composed_recipe *starpu_sched_specs::hwloc_socket_composed_sched_component
@@ -444,7 +444,7 @@ todo
      the composed component to put for each cache
 \var struct starpu_sched_component_composed_recipe *(*starpu_sched_specs::worker_composed_sched_component)(enum starpu_worker_archtype archtype)
      a function that return a starpu_sched_component_composed_recipe to put on top of a worker of type \p archtype.
-     NULL is a valid return value, then no component will be added on top
+     <c>NULL</c> is a valid return value, then no component will be added on top
 \var starpu_sched_specs::mix_heterogeneous_workers
      this flag is a dirty hack because of the poor expressivity of this interface. As example, if you want to build
      a heft component with a fifo component per numa component, and you also have GPUs, if this flag is set, GPUs will share those fifos.

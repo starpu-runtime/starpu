@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2017  CNRS
  * Copyright (C) 2011, 2012 INRIA
  * See the file version.doxy for copying conditions.
  */
@@ -96,7 +96,7 @@ todo
 \var void *starpu_top_param::value
 todo
 \var char **starpu_top_param::enum_values
-only for enum type can be NULL
+only for enum type can be <c>NULL</c>
 \var int starpu_top_param::nb_values
 todo
 \var void (*starpu_top_param::callback)(struct starpu_top_param*)
@@ -117,50 +117,50 @@ todo
 
 \fn struct starpu_top_data *starpu_top_add_data_boolean(const char *data_name, int active)
 \ingroup API_StarPUTop_Interface
-This fonction register a data named data_name of type boolean.
-If \p active=0, the value will NOT be displayed to user by default.
+This function registers a data named \p data_name of type boolean.
+If \p active is 0, the value will NOT be displayed to user by default.
 Any other value will make the value displayed by default.
 
 \fn struct starpu_top_data *starpu_top_add_data_integer(const char *data_name, int minimum_value, int maximum_value, int active)
 \ingroup API_StarPUTop_Interface
-This fonction register a data named \p data_name of type integer. The
-minimum and maximum value will be usefull to define the scale in UI.
-If \p active=0, the value will NOT be displayed to user by default.
+This function registers a data named \p data_name of type integer. The
+minimum and maximum value will be used to define the scale in the UI.
+If \p active is 0, the value will NOT be displayed to user by default.
 Any other value will make the value displayed by default.
 
 \fn struct starpu_top_data *starpu_top_add_data_float(const char *data_name, double minimum_value, double maximum_value, int active)
 \ingroup API_StarPUTop_Interface
-This fonction register a data named data_name of type float. The
-minimum and maximum value will be usefull to define the scale in UI.
-If \p active=0, the value will NOT be displayed to user by default.
+This function registers a data named \p data_name of type float. The
+minimum and maximum value will be used to define the scale in the UI.
+If \p active is 0, the value will NOT be displayed to user by default.
 Any other value will make the value displayed by default.
 
 \fn struct starpu_top_param *starpu_top_register_parameter_boolean(const char *param_name, int *parameter_field, void (*callback)(struct starpu_top_param*))
 \ingroup API_StarPUTop_Interface
-This fonction register a parameter named \p parameter_name, of type
-boolean. The \p callback fonction will be called when the parameter is
-modified by UI, and can be null.
+This function registers a parameter named \p parameter_name, of type
+boolean. The \p callback function will be called when the parameter is
+modified by the UI, and can be <c>NULL</c>.
 
 \fn struct starpu_top_param *starpu_top_register_parameter_float(const char *param_name, double *parameter_field, double minimum_value, double maximum_value, void (*callback)(struct starpu_top_param*))
 \ingroup API_StarPUTop_Interface
-his fonction register a parameter named \p param_name, of type
-integer. Minimum and maximum value will be used to prevent user seting
-incorrect value. The \p callback fonction will be called when the
-parameter is modified by UI, and can be null.
+This function registers a parameter named \p param_name, of type
+integer. Minimum and maximum value will be used to prevent users from setting
+incorrect value. The \p callback function will be called when the
+parameter is modified by the UI, and can be <c>NULL</c>.
 
 \fn struct starpu_top_param *starpu_top_register_parameter_integer(const char *param_name, int *parameter_field, int minimum_value, int maximum_value, void (*callback)(struct starpu_top_param*))
 \ingroup API_StarPUTop_Interface
-This fonction register a parameter named \p param_name, of type float.
-Minimum and maximum value will be used to prevent user seting
-incorrect value. The \p callback fonction will be called when the
-parameter is modified by UI, and can be null.
+This function registers a parameter named \p param_name, of type float.
+Minimum and maximum value will be used to prevent users from setting
+incorrect value. The \p callback function will be called when the
+parameter is modified by UI, and can be <c>NULL</c>.
 
 \fn struct starpu_top_param *starpu_top_register_parameter_enum(const char *param_name, int *parameter_field, char **values, int nb_values, void (*callback)(struct starpu_top_param*))
 \ingroup API_StarPUTop_Interface
-This fonction register a parameter named \p param_name, of type enum.
-Minimum and maximum value will be used to prevent user seting
-incorrect value. The \p callback fonction will be called when the
-parameter is modified by UI, and can be null.
+This function registers a parameter named \p param_name, of type enum.
+Minimum and maximum value will be used to prevent users from setting
+incorrect value. The \p callback function will be called when the
+parameter is modified by the UI, and can be <c>NULL</c>.
 
 @name Initialisation
 \ingroup API_StarPUTop_Interface
@@ -178,37 +178,33 @@ GO message.
 \fn void starpu_top_update_parameter(const struct starpu_top_param *param)
 \ingroup API_StarPUTop_Interface
 This function should be called after every modification of a parameter
-from something other than starpu_top. This fonction notice UI that the
+from something other than starpu_top. This function notices the UI that the
 configuration changed.
 
 \fn void starpu_top_update_data_boolean(const struct starpu_top_data *data, int value)
 \ingroup API_StarPUTop_Interface
-This function updates the value of the starpu_top_data on UI.
+This function updates the value of the starpu_top_data in the UI.
 
 \fn void starpu_top_update_data_integer(const struct starpu_top_data *data, int value)
 \ingroup API_StarPUTop_Interface
-This function updates the value of the starpu_top_data on UI.
+This function updates the value of the starpu_top_data in the UI.
 
 \fn void starpu_top_update_data_float(const struct starpu_top_data *data, double value)
 \ingroup API_StarPUTop_Interface
-This function updates the value of the starpu_top_data on UI.
+This function updates the value of the starpu_top_data in the UI.
 
 \fn void starpu_top_task_prevision(struct starpu_task *task, int devid, unsigned long long start, unsigned long long end)
 \ingroup API_StarPUTop_Interface
-This function notifies UI than the task have been planed to run from start to end, on computation-core.
+This function notifies the UI that \p task is planned to run from \p start to \p end, on computation-core.
 
 \fn void starpu_top_debug_log(const char *message)
 \ingroup API_StarPUTop_Interface
-This function is useful in debug mode. The starpu developper doesn't
-need to check if the debug mode is active. This is checked by
-starpu_top itsefl. It just send a message to display by UI.
+When running in debug mode, the function sends \p message to be displayed by the UI.
 
 \fn void starpu_top_debug_lock(const char *message)
 \ingroup API_StarPUTop_Interface
-This function is useful in debug mode. The starpu developper doesn't
-need to check if the debug mode is active. This is checked by
-starpu_top itsefl. It send a message and wait for a continue message
-from UI to return. The lock (wich create a stop-point) should be
+When running in debug mode, the functions sends a message and waits for a continue message
+from the UI to return. The lock (which creates a stop-point) should be
 called only by the main thread. Calling it from more than one thread
 is not supported.
 

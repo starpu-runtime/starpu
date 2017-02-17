@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009-2015  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -607,8 +607,8 @@ void dw_callback_codelet_update_u12_21(void *argcb)
 		unsigned nblocks = args->nblocks;
 
 		/* the number of tasks to be done */
-		unsigned *remaining = malloc(sizeof(unsigned));
-		*remaining = (nblocks - 1 - i)*(nblocks - 1 - i);
+		unsigned *remaining_tasks = malloc(sizeof(unsigned));
+		*remaining_tasks = (nblocks - 1 - i)*(nblocks - 1 - i);
 
 		unsigned slicey, slicex;
 		for (slicey = i+1; slicey < nblocks; slicey++)
@@ -632,7 +632,7 @@ void dw_callback_codelet_update_u12_21(void *argcb)
 				u22a->j = slicey;
 				u22a->dataA = args->dataA;
 				u22a->nblocks = nblocks;
-				u22a->remaining = remaining;
+				u22a->remaining = remaining_tasks;
 
 				task22->handles[0] = starpu_data_get_sub_data(args->dataA, 2, u22a->i, u22a->k);
 				task22->handles[1] = starpu_data_get_sub_data(args->dataA, 2, u22a->k, u22a->j);
@@ -644,7 +644,7 @@ void dw_callback_codelet_update_u12_21(void *argcb)
 			}
 		}
 
-		free(remaining);
+		free(remaining_tasks);
 	}
 }
 
