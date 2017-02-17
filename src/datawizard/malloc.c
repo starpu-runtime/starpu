@@ -28,7 +28,7 @@
 #include <datawizard/malloc.h>
 #include <core/simgrid.h>
 
-#if 1 //def STARPU_SIMGRID
+#ifdef STARPU_SIMGRID
 #include <sys/mman.h>
 #include <fcntl.h>
 #endif
@@ -46,7 +46,7 @@ static int disable_pinning;
 static int malloc_on_node_default_flags[STARPU_MAXNODES];
 
 /* This file is used for implementing "folded" allocation */
-#if 1 //def STARPU_SIMGRID
+#ifdef STARPU_SIMGRID
 static int bogusfile = -1;
 static unsigned long _starpu_malloc_simulation_fold;
 #endif
@@ -221,7 +221,7 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 #endif /* STARPU_SIMGRID */
 	}
 
-#if 1 //def STARPU_SIMGRID
+#ifdef STARPU_SIMGRID
 	if (flags & STARPU_MALLOC_SIMULATION_FOLDED)
 	{
 		/* Use "folded" allocation: the same file is mapped several
@@ -311,7 +311,7 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 				ret = -ENOMEM;
 		}
 
-#if  1 //defined(STARPU_SIMGRID) || defined(STARPU_USE_CUDA)
+#if defined(STARPU_SIMGRID) || defined(STARPU_USE_CUDA)
 end:
 #endif
 	if (ret == 0)
@@ -370,7 +370,7 @@ static struct starpu_codelet free_pinned_cl =
 
 int starpu_free_flags(void *A, size_t dim, int flags)
 {
-#if 0 //ndef STARPU_SIMGRID
+#ifndef STARPU_SIMGRID
 	if (flags & STARPU_MALLOC_PINNED && disable_pinning <= 0 && STARPU_RUNNING_ON_VALGRIND == 0)
 	{
 		if (_starpu_can_submit_cuda_task())
@@ -437,7 +437,7 @@ int starpu_free_flags(void *A, size_t dim, int flags)
 	}
 #endif /* STARPU_SIMGRID */
 
-#if 1 //def STARPU_SIMGRID
+#ifdef STARPU_SIMGRID
 	if (flags & STARPU_MALLOC_SIMULATION_FOLDED)
 	{
 		munmap(A, dim);
@@ -805,7 +805,7 @@ _starpu_malloc_init(unsigned dst_node)
 	STARPU_PTHREAD_MUTEX_INIT(&chunk_mutex[dst_node], NULL);
 	disable_pinning = starpu_get_env_number("STARPU_DISABLE_PINNING");
 	malloc_on_node_default_flags[dst_node] = STARPU_MALLOC_PINNED | STARPU_MALLOC_COUNT;
-#if 1 //def STARPU_SIMGRID
+#ifdef STARPU_SIMGRID
 	/* Reasonably "costless" */
 	_starpu_malloc_simulation_fold = starpu_get_env_number_default("STARPU_MALLOC_SIMULATION_FOLD", 1) << 20;
 #endif
