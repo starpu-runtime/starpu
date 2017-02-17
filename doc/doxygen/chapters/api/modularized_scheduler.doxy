@@ -13,18 +13,16 @@
 \ingroup API_Modularized_Scheduler
 flags for starpu_sched_component::properties
 \var starpu_sched_component_properties::STARPU_SCHED_COMPONENT_HOMOGENEOUS
-\ingroup API_Modularized_Scheduler
      indicate that all workers have the same starpu_worker_archtype
 \var starpu_sched_component_properties::STARPU_SCHED_COMPONENT_SINGLE_MEMORY_NODE
-\ingroup API_Modularized_Scheduler
      indicate that all workers have the same memory component
 
 \def STARPU_SCHED_COMPONENT_IS_HOMOGENEOUS
 \ingroup API_Modularized_Scheduler
-     indicate if component is homogeneous
+indicate if component is homogeneous
 \def STARPU_SCHED_COMPONENT_IS_SINGLE_MEMORY_NODE
 \ingroup API_Modularized_Scheduler
-     indicate if all workers have the same memory component
+indicate if all workers have the same memory component
 
 \struct starpu_sched_component
 \ingroup API_Modularized_Scheduler
@@ -42,7 +40,7 @@ like <c>component->push_task(component,task)</c>
 \var starpu_sched_component::workers_in_ctx
      this member contain the subset of starpu_sched_component::workers that is currently available in the context
      The push method should take this member into account.
-     this member is set with :	
+     this member is set with :
      component->workers UNION tree->workers UNION
      component->child[i]->workers_in_ctx iff exist x such as component->children[i]->parents[x] == component
 \var void *starpu_sched_component::data

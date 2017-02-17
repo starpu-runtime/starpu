@@ -30,55 +30,48 @@ concurrent data accesses, see \ref ConcurrentDataAccess for the details.
 \ingroup API_Data_Management
 This datatype describes a data access mode.
 \var starpu_data_access_mode::STARPU_NONE
-\ingroup API_Data_Management
-TODO
+    TODO
 \var starpu_data_access_mode::STARPU_R
-\ingroup API_Data_Management
-read-only mode.
+    read-only mode.
 \var starpu_data_access_mode::STARPU_W
-\ingroup API_Data_Management
-write-only mode.
+    write-only mode.
 \var starpu_data_access_mode::STARPU_RW
-\ingroup API_Data_Management
-read-write mode. This is equivalent to ::STARPU_R|::STARPU_W
+    read-write mode. This is equivalent to ::STARPU_R|::STARPU_W
 \var starpu_data_access_mode::STARPU_SCRATCH
-\ingroup API_Data_Management
-A temporary buffer is allocated for the task, but StarPU does not
-enforce data consistency---i.e. each device has its own buffer,
-independently from each other (even for CPUs), and no data transfer is
-ever performed. This is useful for temporary variables to avoid
-allocating/freeing buffers inside each task. Currently, no behavior is
-defined concerning the relation with the ::STARPU_R and ::STARPU_W modes
-and the value provided at registration --- i.e., the value of the
-scratch buffer is undefined at entry of the codelet function.  It is
-being considered for future extensions at least to define the initial
-value.  For now, data to be used in ::STARPU_SCRATCH mode should be
-registered with node <c>-1</c> and a <c>NULL</c> pointer, since the
-value of the provided buffer is simply ignored for now.
+    A temporary buffer is allocated for the task, but StarPU does not
+    enforce data consistency---i.e. each device has its own buffer,
+    independently from each other (even for CPUs), and no data
+    transfer is ever performed. This is useful for temporary variables
+    to avoid allocating/freeing buffers inside each task. Currently,
+    no behavior is defined concerning the relation with the ::STARPU_R
+    and ::STARPU_W modes and the value provided at registration ---
+    i.e., the value of the scratch buffer is undefined at entry of the
+    codelet function.  It is being considered for future extensions at
+    least to define the initial value.  For now, data to be used in
+    ::STARPU_SCRATCH mode should be registered with node -1 and
+    a <c>NULL</c> pointer, since the value of the provided buffer is
+    simply ignored for now.
 \var starpu_data_access_mode::STARPU_REDUX
-\ingroup API_Data_Management
-todo
+    todo
 \var starpu_data_access_mode::STARPU_COMMUTE
-\ingroup API_Data_Management
-In addition to that, ::STARPU_COMMUTE can be passed along ::STARPU_W
-or ::STARPU_RW to express that StarPU can let tasks commute, which is
-useful e.g. when bringing a contribution into some data, which can be
-done in any order (but still require sequential consistency against
-reads or non-commutative writes).
+    ::STARPU_COMMUTE can be passed along
+    ::STARPU_W or ::STARPU_RW to express that StarPU can let tasks
+    commute, which is useful e.g. when bringing a contribution into
+    some data, which can be done in any order (but still require
+    sequential consistency against reads or non-commutative writes).
 \var starpu_data_access_mode::STARPU_SSEND
-\ingroup API_Data_Management
-used in starpu_mpi_insert_task() to specify the data has to be sent
-using a synchronous and non-blocking mode (see starpu_mpi_issend())
+    used in starpu_mpi_insert_task() to specify the data has to be
+    sent using a synchronous and non-blocking mode (see
+    starpu_mpi_issend())
 \var starpu_data_access_mode::STARPU_LOCALITY
-\ingroup API_Data_Management
-used to tell the scheduler which data is the most important for the task, and
-should thus be used to try to group tasks on the same core or cache, etc. For
-now only the ws and lws schedulers take this flag into account, and only when
-rebuild with USE_LOCALITY flag defined in the
-src/sched_policies/work_stealing_policy.c source code.
+    used to tell the scheduler which data is the most important for
+    the task, and should thus be used to try to group tasks on the
+    same core or cache, etc. For now only the ws and lws schedulers
+    take this flag into account, and only when rebuild with
+    USE_LOCALITY flag defined in the
+    src/sched_policies/work_stealing_policy.c source code.
 \var starpu_data_access_mode::STARPU_ACCESS_MODE_MAX
-\ingroup API_Data_Management
-todo
+    todo
 
 @name Basic Data Management API
 \ingroup API_Data_Management
@@ -141,7 +134,7 @@ same interface as the handle \p handlesrc.
 
 \fn void starpu_data_unregister(starpu_data_handle_t handle)
 \ingroup API_Data_Management
-This function unregisters a data handle from StarPU. If the
+Unregister a data \p handle from StarPU. If the
 data was automatically allocated by StarPU because the home node was
 -1, all automatically allocated buffers are freed. Otherwise, a valid
 copy of the data is put back into the home node in the buffer that was
@@ -158,61 +151,61 @@ buffer that was initially registered.
 
 \fn void starpu_data_unregister_submit(starpu_data_handle_t handle)
 \ingroup API_Data_Management
-Destroy the data handle once it is not needed anymore by any
+Destroy the data \p handle once it is not needed anymore by any
 submitted task. No coherency is assumed.
 
 \fn void starpu_data_invalidate(starpu_data_handle_t handle)
 \ingroup API_Data_Management
-Destroy all replicates of the data handle immediately. After
-data invalidation, the first access to the handle must be performed in
-write-only mode. Accessing an invalidated data in read-mode results in
-undefined behaviour.
+Destroy all replicates of the data \p handle immediately. After
+data invalidation, the first access to \p handle must be performed in
+::STARPU_W mode. Accessing an invalidated data in ::STARPU_R mode
+results in undefined behaviour.
 
 \fn void starpu_data_invalidate_submit(starpu_data_handle_t handle)
 \ingroup API_Data_Management
-Submits invalidation of the data handle after completion of
+Submit invalidation of the data \p handle after completion of
 previously submitted tasks.
 
 \fn void starpu_data_set_wt_mask(starpu_data_handle_t handle, uint32_t wt_mask)
 \ingroup API_Data_Management
-This function sets the write-through mask of a given data (and
+Set the write-through mask of the data \p handle (and
 its children), i.e. a bitmask of nodes where the data should be always
 replicated after modification. It also prevents the data from being
 evicted from these nodes when memory gets scarse. When the data is
-modified, it is automatically transfered into those memory node. For
+modified, it is automatically transfered into those memory nodes. For
 instance a <c>1<<0</c> write-through mask means that the CUDA workers
 will commit their changes in main memory (node 0).
 
 \fn int starpu_data_fetch_on_node(starpu_data_handle_t handle, unsigned node, unsigned async)
 \ingroup API_Data_Management
-Issue a fetch request for a given data to a given node, i.e.
+Issue a fetch request for the data \p handle to \p node, i.e.
 requests that the data be replicated to the given node as soon as possible, so that it is
-available there for tasks. If the \p async parameter is 0, the call will
+available there for tasks. If \p async is 0, the call will
 block until the transfer is achieved, else the call will return immediately,
 after having just queued the request. In the latter case, the request will
 asynchronously wait for the completion of any task writing on the data.
 
 \fn int starpu_data_prefetch_on_node(starpu_data_handle_t handle, unsigned node, unsigned async)
 \ingroup API_Data_Management
-Issue a prefetch request for a given data to a given node, i.e.
-requests that the data be replicated to the given node when there is room for it, so that it is
-available there for tasks. If the \p async parameter is 0, the call will
+Issue a prefetch request for the data \p handle to \p node, i.e.
+requests that the data be replicated to \p node when there is room for it, so that it is
+available there for tasks. If \p async is 0, the call will
 block until the transfer is achieved, else the call will return immediately,
 after having just queued the request. In the latter case, the request will
 asynchronously wait for the completion of any task writing on the data.
 
 \fn int starpu_data_idle_prefetch_on_node(starpu_data_handle_t handle, unsigned node, unsigned async)
 \ingroup API_Data_Management
-Issue an idle prefetch request for a given data to a given node, i.e.
-requests that the data be replicated to the given node, so that it is
-available there for tasks, but only when the bus is really idle. If the \p async parameter is 0, the call will
+Issue an idle prefetch request for the data \p handle to \p node, i.e.
+requests that the data be replicated to \p node, so that it is
+available there for tasks, but only when the bus is really idle. If \p async is 0, the call will
 block until the transfer is achieved, else the call will return immediately,
 after having just queued the request. In the latter case, the request will
 asynchronously wait for the completion of any task writing on the data.
 
 \fn void starpu_data_wont_use(starpu_data_handle_t handle)
 \ingroup API_Data_Management
-Advise StarPU that this handle will not be used in the close future, and is
+Advise StarPU that \p handle will not be used in the close future, and is
 thus a good candidate for eviction from GPUs. StarPU will thus write its value
 back to its home node when the bus is idle, and select this data in priority
 for eviction when memory gets low.
@@ -224,7 +217,7 @@ Return the handle corresponding to the data pointed to by the \p ptr host pointe
 \fn int starpu_data_request_allocation(starpu_data_handle_t handle, unsigned node)
 \ingroup API_Data_Management
 Explicitly ask StarPU to allocate room for a piece of data on
-the specified memory node.
+the specified memory \p node.
 
 \fn void starpu_data_query_status(starpu_data_handle_t handle, int memory_node, int *is_allocated, int *is_valid, int *is_requested)
 \ingroup API_Data_Management
@@ -232,13 +225,12 @@ Query the status of \p handle on the specified \p memory_node.
 
 \fn void starpu_data_advise_as_important(starpu_data_handle_t handle, unsigned is_important)
 \ingroup API_Data_Management
-This function allows to specify that a piece of data can be
-discarded without impacting the application.
+Specify that the data \p handle can be discarded without impacting the application.
 
 \fn void starpu_data_set_reduction_methods(starpu_data_handle_t handle, struct starpu_codelet *redux_cl, struct starpu_codelet *init_cl)
 \ingroup API_Data_Management
-This sets the codelets to be used for \p handle when it is
-accessed in the mode ::STARPU_REDUX. Per-worker buffers will be initialized with
+Set the codelets to be used for \p handle when it is accessed in the
+mode ::STARPU_REDUX. Per-worker buffers will be initialized with
 the codelet \p init_cl, and reduction between per-worker buffers will be
 done with the codelet \p redux_cl.
 
@@ -248,14 +240,14 @@ todo
 
 \fn void starpu_data_set_user_data(starpu_data_handle_t handle, void* user_data)
 \ingroup API_Data_Management
-This sets the "user_data" field for the \p handle to \p user_data . It can
-then be retrieved with starpu_data_get_user_data. \p user_data can be any
+Sset the field \c user_data for the \p handle to \p user_data . It can
+then be retrieved with starpu_data_get_user_data(). \p user_data can be any
 application-defined value, for instance a pointer to an object-oriented
 container for the data.
 
 \fn void *starpu_data_get_user_data(starpu_data_handle_t handle)
 \ingroup API_Data_Management
-This retrieves the "user_data" field previously set for the \p handle .
+This retrieves the field \c user_data previously set for the \p handle.
 
 @name Access registered data from the application
 \ingroup API_Data_Management
@@ -264,10 +256,10 @@ This retrieves the "user_data" field previously set for the \p handle .
 \ingroup API_Data_Management
 The application must call this function prior to accessing
 registered data from main memory outside tasks. StarPU ensures that
-the application will get an up-to-date copy of the data in main memory
+the application will get an up-to-date copy of \p handle in main memory
 located where the data was originally registered, and that all
 concurrent accesses (e.g. from tasks) will be consistent with the
-access mode specified in the mode argument. starpu_data_release() must
+access mode specified with \p mode. starpu_data_release() must
 be called once the application does not need to access the piece of
 data anymore. Note that implicit data dependencies are also enforced
 by starpu_data_acquire(), i.e. starpu_data_acquire() will wait for all
@@ -281,9 +273,9 @@ successful completion, this function returns 0.
 \fn int starpu_data_acquire_cb(starpu_data_handle_t handle, enum starpu_data_access_mode mode, void (*callback)(void *), void *arg)
 \ingroup API_Data_Management
 Asynchronous equivalent of starpu_data_acquire(). When the data
-specified in \p handle is available in the appropriate access
-mode, the \p callback function is executed. The application may access
-the requested data during the execution of this \p callback. The \p callback
+specified in \p handle is available in the access \p mode, the \p
+callback function is executed. The application may access
+the requested data during the execution of \p callback. The \p callback
 function must call starpu_data_release() once the application does not
 need to access the piece of data anymore. Note that implicit data
 dependencies are also enforced by starpu_data_acquire_cb() in case they
@@ -294,8 +286,8 @@ completion, this function returns 0.
 \fn int starpu_data_acquire_cb_sequential_consistency(starpu_data_handle_t handle, enum starpu_data_access_mode mode, void (*callback)(void *), void *arg, int sequential_consistency)
 \ingroup API_Data_Management
 Equivalent of starpu_data_acquire_cb() with the possibility of enabling or disabling data dependencies.
-When the data specified in \p handle is available in the appropriate access
-mode, the \p callback function is executed. The application may access
+When the data specified in \p handle is available in the access
+\p mode, the \p callback function is executed. The application may access
 the requested data during the execution of this \p callback. The \p callback
 function must call starpu_data_release() once the application does not
 need to access the piece of data anymore. Note that implicit data
@@ -320,16 +312,16 @@ This is mostly useful inside starpu only.
 This is the same as starpu_data_acquire(), except that the data
 will be available on the given memory node instead of main
 memory.
-::STARPU_ACQUIRE_NO_NODE and ::STARPU_ACQUIRE_NO_NODE_LOCK_ALL can be used instead of an
-explicit node number.
+::STARPU_ACQUIRE_NO_NODE and ::STARPU_ACQUIRE_NO_NODE_LOCK_ALL can be
+used instead of an explicit node number.
 
 \fn int starpu_data_acquire_on_node_cb(starpu_data_handle_t handle, int node, enum starpu_data_access_mode mode, void (*callback)(void *), void *arg)
 \ingroup API_Data_Management
 This is the same as starpu_data_acquire_cb(), except that the
 data will be available on the given memory node instead of main
 memory.
-::STARPU_ACQUIRE_NO_NODE and ::STARPU_ACQUIRE_NO_NODE_LOCK_ALL can be used instead of an
-explicit node number.
+::STARPU_ACQUIRE_NO_NODE and ::STARPU_ACQUIRE_NO_NODE_LOCK_ALL can be
+used instead of an explicit node number.
 
 \fn int starpu_data_acquire_on_node_cb_sequential_consistency(starpu_data_handle_t handle, int node, enum starpu_data_access_mode mode, void (*callback)(void *), void *arg, int sequential_consistency)
 \ingroup API_Data_Management
@@ -350,7 +342,7 @@ called from task callbacks.
 
 \fn void starpu_data_release(starpu_data_handle_t handle)
 \ingroup API_Data_Management
-This function releases the piece of data acquired by the
+Release the piece of data acquired by the
 application either by starpu_data_acquire() or by
 starpu_data_acquire_cb().
 
@@ -358,19 +350,20 @@ starpu_data_acquire_cb().
 \ingroup API_Data_Management
 This is the same as starpu_data_release(), except that the data
 will be available on the given memory \p node instead of main memory.
-The \p node parameter must be exactly the same as the corresponding starpu_data_acquire_on_node* call.
+The \p node parameter must be exactly the same as the corresponding \c
+starpu_data_acquire_on_node* call.
 
 \fn starpu_arbiter_t starpu_arbiter_create(void)
 \ingroup API_Data_Management
-This creates a data access arbiter, see \ref ConcurrentDataAccess for the details
+Create a data access arbiter, see \ref ConcurrentDataAccess for the details
 
 \fn void starpu_data_assign_arbiter(starpu_data_handle_t handle, starpu_arbiter_t arbiter)
 \ingroup API_Data_Management
-This makes accesses to \p handle managed by \p arbiter
+Make access to \p handle managed by \p arbiter
 
 \fn void starpu_arbiter_destroy(starpu_arbiter_t arbiter)
 \ingroup API_Data_Management
-This destroys the \p arbiter . This must only be called after all data assigned
-to it have been unregistered.
+Destroy the \p arbiter . This must only be called after all data
+assigned to it have been unregistered.
 
 */

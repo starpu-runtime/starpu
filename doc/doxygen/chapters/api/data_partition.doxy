@@ -13,31 +13,32 @@ The filter structure describes a data partitioning operation, to be
 given to the starpu_data_partition() function.
 \ingroup API_Data_Partition
 \var void (*starpu_data_filter::filter_func)(void *father_interface, void *child_interface, struct starpu_data_filter *, unsigned id, unsigned nparts)
-This function fills the \p child_interface structure with interface
-information for the \p id -th child of the parent \p father_interface (among
-\p nparts).
+    Fill the \p child_interface structure with interface information
+    for the \p id -th child of the parent \p father_interface (among
+    \p nparts).
 \var unsigned starpu_data_filter::nchildren
-This is the number of parts to partition the data into.
+    Number of parts to partition the data into.
 \var unsigned (*starpu_data_filter::get_nchildren)(struct starpu_data_filter *, starpu_data_handle_t initial_handle)
-This returns the number of children. This can be used instead of
-starpu_data_filter::nchildren when the number of children depends on the actual data (e.g.
-the number of blocks in a sparse matrix).
+    Return the number of children. This can be used instead of
+    starpu_data_filter::nchildren when the number of children depends
+    on the actual data (e.g. the number of blocks in a sparse matrix).
 \var struct starpu_data_interface_ops *(*starpu_data_filter::get_child_ops)(struct starpu_data_filter *, unsigned id)
-In case the resulting children use a different data interface, this
-function returns which interface is used by child number \p id.
+    In case the resulting children use a different data interface,
+    this function returns which interface is used by child number \p
+    id.
 \var unsigned starpu_data_filter::filter_arg
-Allow to define an additional parameter for the filter function.
+    Allow to define an additional parameter for the filter function.
 \var void *starpu_data_filter::filter_arg_ptr
-Allow to define an additional pointer parameter for the filter
-function, such as the sizes of the different parts.
+    Allow to define an additional pointer parameter for the filter
+    function, such as the sizes of the different parts.
 
 @name Basic API
 \ingroup API_Data_Partition
 
 \fn void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_data_filter *f)
 \ingroup API_Data_Partition
-This requests partitioning one StarPU data \p initial_handle into
-several subdata according to the filter \p f.
+Request the partitioning of \p initial_handle into several subdata
+according to the filter \p f.
 
 Here an example of how to use the function.
 \code{.c}
@@ -50,10 +51,11 @@ starpu_data_partition(A_handle, &f);
 
 \fn void starpu_data_unpartition(starpu_data_handle_t root_data, unsigned gathering_node)
 \ingroup API_Data_Partition
-This unapplies one filter, thus unpartitioning the data. The
-pieces of data are collected back into one big piece in the
-\p gathering_node (usually ::STARPU_MAIN_RAM). Tasks working on the partitioned data must
-be already finished when calling starpu_data_unpartition().
+Unapply the filter which has been applied to \p root_data, thus
+unpartitioning the data. The pieces of data are collected back into
+one big piece in the \p gathering_node (usually ::STARPU_MAIN_RAM).
+Tasks working on the partitioned data must be already finished when
+calling starpu_data_unpartition().
 
 Here an example of how to use the function.
 \code{.c}
@@ -62,7 +64,7 @@ starpu_data_unpartition(A_handle, STARPU_MAIN_RAM);
 
 \fn int starpu_data_get_nb_children(starpu_data_handle_t handle)
 \ingroup API_Data_Partition
-This function returns the number of children.
+Return the number of children \p handle has been partitioned into.
 
 \fn starpu_data_handle_t starpu_data_get_child(starpu_data_handle_t handle, unsigned i)
 \ingroup API_Data_Partition
@@ -91,13 +93,13 @@ va_list for the parameter list.
 
 \fn void starpu_data_map_filters(starpu_data_handle_t root_data, unsigned nfilters, ...)
 \ingroup API_Data_Partition
-Applies \p nfilters filters to the handle designated by
+Apply \p nfilters filters to the handle designated by
 \p root_handle recursively. \p nfilters pointers to variables of the type
 starpu_data_filter should be given.
 
 \fn void starpu_data_vmap_filters(starpu_data_handle_t root_data, unsigned nfilters, va_list pa)
 \ingroup API_Data_Partition
-Applies \p nfilters filters to the handle designated by
+Apply \p nfilters filters to the handle designated by
 \p root_handle recursively. It uses a va_list of pointers to variables of
 the type starpu_data_filter.
 
@@ -106,11 +108,12 @@ the type starpu_data_filter.
 
 \fn void starpu_data_partition_plan(starpu_data_handle_t initial_handle, struct starpu_data_filter *f, starpu_data_handle_t *children)
 \ingroup API_Data_Partition
-This plans for partitioning one StarPU data handle \p initial_handle into
-several subdata according to the filter \p f. The handles are returned into
-the \p children array, which has to be the same size as the number of parts
-described in \p f. These handles are not immediately usable,
-starpu_data_partition_submit() has to be called to submit the actual partitioning.
+Plan to partition \p initial_handle into several subdata according to
+the filter \p f.
+The handles are returned into the \p children array, which has to be
+the same size as the number of parts described in \p f. These handles
+are not immediately usable, starpu_data_partition_submit() has to be
+called to submit the actual partitioning.
 
 Here is an example of how to use the function:
 
@@ -125,8 +128,7 @@ starpu_data_partition_plan(A_handle, &f, children);
 
 \fn void starpu_data_partition_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children)
 \ingroup API_Data_Partition
-
-This submits the actual partitioning of \p initial_handle into the \p nparts
+Submit the actual partitioning of \p initial_handle into the \p nparts
 \p children handles. This call is asynchronous, it only submits that the
 partitioning should be done, so that the \p children handles can now be used to
 submit tasks, and \p initial_handle can not be used to submit tasks any more (to
@@ -140,7 +142,6 @@ starpu_data_partition_submit(A_handle, nslicesx, children);
 
 \fn void starpu_data_partition_readonly_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children)
 \ingroup API_Data_Partition
-
 This is the same as starpu_data_partition_submit(), but it does not invalidate \p
 initial_handle. This allows to continue using it, but the application has to be
 careful not to write to \p initial_handle or \p children handles, only read from
@@ -158,7 +159,6 @@ submitted.
 
 \fn void starpu_data_partition_readwrite_upgrade_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children)
 \ingroup API_Data_Partition
-
 This assumes that a partitioning of \p initial_handle has already been submited
 in readonly mode through starpu_data_partition_readonly_submit(), and will upgrade
 that partitioning into read-write mode for the \p children, by invalidating \p
@@ -166,7 +166,6 @@ initial_handle, and adding the necessary dependencies.
 
 \fn void starpu_data_unpartition_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int gathering_node)
 \ingroup API_Data_Partition
-
 This assumes that \p initial_handle is partitioned into \p children, and submits
 an unpartitionning of it, i.e. submitting a gathering of the pieces on the
 requested \p gathering_node memory node, and submitting an invalidation of the
@@ -177,7 +176,6 @@ should be used to gather the pieces.
 
 \fn void starpu_data_unpartition_readonly_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int gathering_node)
 \ingroup API_Data_Partition
-
 This assumes that \p initial_handle is partitioned into \p children, and submits
 just a readonly unpartitionning of it, i.e. submitting a gathering of the pieces
 on the requested \p gathering_node memory node. It does not invalidate the
@@ -189,7 +187,6 @@ should be used to gather the pieces.
 
 \fn void starpu_data_partition_clean(starpu_data_handle_t root_data, unsigned nparts, starpu_data_handle_t *children)
 \ingroup API_Data_Partition
-
 This should be used to clear the partition planning established between \p
 root_data and \p children with starpu_data_partition_plan(). This will notably
 submit an unregister all the \p children, which can thus not be used any more
@@ -246,13 +243,13 @@ functions for matrix data. Examples on how to use them are shown in
 
 \fn void starpu_matrix_filter_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts)
 \ingroup API_Data_Partition
-This partitions a dense Matrix along the x dimension, thus
+Partition a dense Matrix along the x dimension, thus
 getting (x/\p nparts ,y) matrices. If \p nparts does not divide x, the
 last submatrix contains the remainder.
 
 \fn void starpu_matrix_filter_block_shadow(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts)
 \ingroup API_Data_Partition
-This partitions a dense Matrix along the x dimension, with a
+Partition a dense Matrix along the x dimension, with a
 shadow border <c>filter_arg_ptr</c>, thus getting ((x-2*shadow)/\p
 nparts +2*shadow,y) matrices. If \p nparts does not divide x-2*shadow,
 the last submatrix contains the remainder.
@@ -264,13 +261,13 @@ examples/filters/shadow2d.c
 
 \fn void starpu_matrix_filter_vertical_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts)
 \ingroup API_Data_Partition
-This partitions a dense Matrix along the y dimension, thus
+Partition a dense Matrix along the y dimension, thus
 getting (x,y/\p nparts) matrices. If \p nparts does not divide y, the
 last submatrix contains the remainder.
 
 \fn void starpu_matrix_filter_vertical_block_shadow(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts)
 \ingroup API_Data_Partition
-This partitions a dense Matrix along the y dimension, with a
+Partition a dense Matrix along the y dimension, with a
 shadow border <c>filter_arg_ptr</c>, thus getting
 (x,(y-2*shadow)/\p nparts +2*shadow) matrices. If \p nparts does not
 divide y-2*shadow, the last submatrix contains the remainder.
@@ -290,13 +287,13 @@ examples/filters/shadow3d.c
 
 \fn void starpu_block_filter_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts)
 \ingroup API_Data_Partition
-This partitions a block along the X dimension, thus getting
+Partition a block along the X dimension, thus getting
 (x/\p nparts ,y,z) 3D matrices. If \p nparts does not divide x, the last
 submatrix contains the remainder.
 
 \fn void starpu_block_filter_block_shadow(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts)
 \ingroup API_Data_Partition
-This partitions a block along the X dimension, with a
+Partition a block along the X dimension, with a
 shadow border <c>filter_arg_ptr</c>, thus getting
 ((x-2*shadow)/\p nparts +2*shadow,y,z) blocks. If \p nparts does not
 divide x, the last submatrix contains the remainder.
@@ -307,13 +304,13 @@ enforced for the shadowed parts.
 
 \fn void starpu_block_filter_vertical_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts)
 \ingroup API_Data_Partition
-This partitions a block along the Y dimension, thus getting
+Partition a block along the Y dimension, thus getting
 (x,y/\p nparts ,z) blocks. If \p nparts does not divide y, the last
 submatrix contains the remainder.
 
 \fn void starpu_block_filter_vertical_block_shadow(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts)
 \ingroup API_Data_Partition
-This partitions a block along the Y dimension, with a
+Partition a block along the Y dimension, with a
 shadow border <c>filter_arg_ptr</c>, thus getting
 (x,(y-2*shadow)/\p nparts +2*shadow,z) 3D matrices. If \p nparts does not
 divide y, the last submatrix contains the remainder.
@@ -324,13 +321,13 @@ enforced for the shadowed parts.
 
 \fn void starpu_block_filter_depth_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts)
 \ingroup API_Data_Partition
-This partitions a block along the Z dimension, thus getting
+Partition a block along the Z dimension, thus getting
 (x,y,z/\p nparts) blocks. If \p nparts does not divide z, the last
 submatrix contains the remainder.
 
 \fn void starpu_block_filter_depth_block_shadow(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts)
 \ingroup API_Data_Partition
-This partitions a block along the Z dimension, with a
+Partition a block along the Z dimension, with a
 shadow border <c>filter_arg_ptr</c>, thus getting
 (x,y,(z-2*shadow)/\p nparts +2*shadow) blocks. If \p nparts does not
 divide z, the last submatrix contains the remainder.
@@ -349,11 +346,10 @@ functions for BCSR data. Examples on how to use them are shown in
 
 \fn void starpu_bcsr_filter_canonical_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts)
 \ingroup API_Data_Partition
-This partitions a block-sparse matrix into dense matrices.
+Partition a block-sparse matrix into dense matrices.
 
 \fn void starpu_csr_filter_vertical_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts)
 \ingroup API_Data_Partition
-This partitions a block-sparse matrix into vertical
-block-sparse matrices.
+Partition a block-sparse matrix into vertical block-sparse matrices.
 
 */

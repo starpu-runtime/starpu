@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016, 2017  CNRS
  * Copyright (C) 2011, 2012 INRIA
  * Copyright (C) 2016 Uppsala University
  * See the file version.doxy for copying conditions.
@@ -22,17 +22,17 @@ Performance counters used by the starpu to indicate the
 hypervisor how the application and the resources are executing.
 \ingroup API_Scheduling_Contexts
 \var void (*starpu_sched_ctx_performance_counters::notify_idle_cycle)(unsigned sched_ctx_id, int worker, double idle_time)
-        Informs the hypervisor for how long a worker has been idle in the specified context
+        Inform the hypervisor for how long a worker has been idle in the specified context
 \var void (*starpu_sched_ctx_performance_counters::notify_pushed_task)(unsigned sched_ctx_id, int worker)
-        Notifies the hypervisor that a task has been scheduled on the queue of the worker corresponding to the specified context
+        Notify the hypervisor that a task has been scheduled on the queue of the worker corresponding to the specified context
 \var void (*starpu_sched_ctx_performance_counters::notify_poped_task)(unsigned sched_ctx_id, int worker)
-        Informs the hypervisor that a task executing a specified number of instructions has been poped from the worker
+        Inform the hypervisor that a task executing a specified number of instructions has been poped from the worker
 \var void (*starpu_sched_ctx_performance_counters::notify_post_exec_task)(struct starpu_task *task, size_t data_size, uint32_t footprint, int hypervisor_tag, double flops)
-        Notifies the hypervisor that a task has just been executed
+        Notify the hypervisor that a task has just been executed
 \var void (*starpu_sched_ctx_performance_counters::notify_submitted_job)(struct starpu_task *task, uint32_t footprint, size_t data_size)
-        Notifies the hypervisor that a task has just been submitted
+        Notify the hypervisor that a task has just been submitted
 \var void (*starpu_sched_ctx_performance_counters::notify_delete_context)(unsigned sched_ctx)
-        Notifies the hypervisor that the context was deleted
+        Notify the hypervisor that the context was deleted
 
 
 @name Scheduling Contexts Basic API
@@ -45,7 +45,7 @@ modified at configure by using the option \ref enable-max-sched-ctxs "--enable-m
 
 \fn unsigned starpu_sched_ctx_create(int *workerids_ctx, int nworkers_ctx, const char *sched_ctx_name, ...)
 \ingroup API_Scheduling_Contexts
-This function creates a scheduling context with the given parameters
+Create a scheduling context with the given parameters
 (see below) and assigns the workers in \p workerids_ctx to execute the
 tasks submitted to it. The return value represents the identifier of
 the context that has just been created. It will be further used to
@@ -79,47 +79,47 @@ to a custom user data structure, to be retrieved by \ref starpu_sched_ctx_get_us
 
 \def STARPU_SCHED_CTX_POLICY_NAME
 \ingroup API_Scheduling_Contexts
-This macro is used when calling starpu_sched_ctx_create() to specify a
+Used when calling starpu_sched_ctx_create() to specify a
 name for a scheduling policy
 
 \def STARPU_SCHED_CTX_POLICY_STRUCT
 \ingroup API_Scheduling_Contexts
-This macro is used when calling starpu_sched_ctx_create() to specify a
+Used when calling starpu_sched_ctx_create() to specify a
 pointer to a scheduling policy
 
 \def STARPU_SCHED_CTX_POLICY_MIN_PRIO
 \ingroup API_Scheduling_Contexts
-This macro is used when calling starpu_sched_ctx_create() to specify a
+Used when calling starpu_sched_ctx_create() to specify a
 minimum scheduler priority value.
 
 \def STARPU_SCHED_CTX_POLICY_MAX_PRIO
 \ingroup API_Scheduling_Contexts
-This macro is used when calling starpu_sched_ctx_create() to specify a
+Used when calling starpu_sched_ctx_create() to specify a
 maximum scheduler priority value.
 
 \def STARPU_SCHED_CTX_AWAKE_WORKERS
 \ingroup API_Scheduling_Contexts
-This macro is used when calling starpu_sched_ctx_create() to specify a
+Used when calling starpu_sched_ctx_create() to specify a
 pointer to a scheduling policy
 
 \def STARPU_SCHED_CTX_POLICY_INIT
 \ingroup API_Scheduling_Contexts
-This macro is used when calling starpu_sched_ctx_create() to specify a
+Used when calling starpu_sched_ctx_create() to specify a
 function pointer allowing to initialize the scheduling policy.
 
 \def STARPU_SCHED_CTX_USER_DATA
 \ingroup API_Scheduling_Contexts
-This macro is used when calling starpu_sched_ctx_create() to specify a
+Used when calling starpu_sched_ctx_create() to specify a
 pointer to some user data related to the context being created.
 
 \def STARPU_SCHED_CTX_SUB_CTXS
 \ingroup API_Scheduling_Contexts
-This macro is used when calling starpu_sched_ctx_create() to specify 
+Used when calling starpu_sched_ctx_create() to specify
 a list of sub contextes of the current context.
 
 \def STARPU_SCHED_CTX_CUDA_NSMS
 \ingroup API_Scheduling_Contexts
-This macro is used when calling starpu_sched_ctx_create() in order
+Used when calling starpu_sched_ctx_create() in order
 to create a context on the NVIDIA GPU to specify the number of SMs
 the context should have
 
@@ -129,24 +129,24 @@ Create a context indicating an approximate interval of resources
 
 \fn void starpu_sched_ctx_register_close_callback(unsigned sched_ctx_id, void (*close_callback)(unsigned sched_ctx_id, void* args), void *args)
 \ingroup API_Scheduling_Contexts
-Execute the callback whenever the last task of the context finished executing, it is called with the pramaters: sched_ctx and any other paramter needed
-by the application (packed in a void*)
+Execute the callback whenever the last task of the context finished executing, it is called with the parameters \p sched_ctx and any other parameter needed
+by the application (packed in \p args)
 
 \fn void starpu_sched_ctx_add_workers(int *workerids_ctx, int nworkers_ctx, unsigned sched_ctx_id)
 \ingroup API_Scheduling_Contexts
-This function adds dynamically the workers in \p workerids_ctx to the
+Add dynamically the workers in \p workerids_ctx to the
 context \p sched_ctx_id. The last argument cannot be greater than
 \ref STARPU_NMAX_SCHED_CTXS.
 
 \fn void starpu_sched_ctx_remove_workers(int *workerids_ctx, int nworkers_ctx, unsigned sched_ctx_id)
 \ingroup API_Scheduling_Contexts
-This function removes the workers in \p workerids_ctx from the context
+Remove the workers in \p workerids_ctx from the context
 \p sched_ctx_id. The last argument cannot be greater than
 STARPU_NMAX_SCHED_CTXS.
 
 \fn void starpu_sched_ctx_display_workers(unsigned sched_ctx_id, FILE *f)
 \ingroup API_Scheduling_Contexts
-This function prints on the file \p f the worker names belonging to the context \p sched_ctx_id
+Print on the file \p f the worker names belonging to the context \p sched_ctx_id
 
 \fn void starpu_sched_ctx_delete(unsigned sched_ctx_id)
 \ingroup API_Scheduling_Contexts
@@ -181,13 +181,13 @@ possible.
 
 \fn unsigned starpu_sched_ctx_get_workers_list(unsigned sched_ctx_id, int **workerids)
 \ingroup API_Scheduling_Contexts
-Returns the list of workers in the array \p workerids, the returned value is the 
+Return the list of workers in the array \p workerids, the returned value is the
 number of workers. The user should free the \p workerids table after finishing
 using it (it is allocated inside the function with the proper size)
 
 \fn unsigned starpu_sched_ctx_get_workers_list_raw(unsigned sched_ctx_id, int **workerids)
 \ingroup API_Scheduling_Contexts
-Returns the list of workers in the array \p workerids, the returned value is the 
+Return the list of workers in the array \p workerids, the returned value is the
 number of workers. This list is provided in raw order, i.e. not sorted by tree or list order,
 and the user should not free the \p workerids table.
 This function is thus much less costly than starpu_sched_ctx_get_workers_list.
@@ -200,7 +200,7 @@ blocked)
 
 \fn unsigned starpu_sched_ctx_get_nshared_workers(unsigned sched_ctx_id, unsigned sched_ctx_id2)
 \ingroup API_Scheduling_Contexts
-    Return the number of workers shared by two contexts.
+Return the number of workers shared by two contexts.
 
 \fn unsigned starpu_sched_ctx_contains_worker(int workerid, unsigned sched_ctx_id)
 \ingroup API_Scheduling_Contexts
@@ -234,7 +234,7 @@ statically allocate tasks with a default priority.
 
 \fn int starpu_sched_ctx_set_min_priority(unsigned sched_ctx_id, int min_prio)
 \ingroup API_Scheduling_Contexts
-Defines the minimum task priority level supported by the scheduling
+Define the minimum task priority level supported by the scheduling
 policy of the given scheduler context. The default minimum priority
 level is the same as the default priority level which is 0 by
 convention. The application may access that value by calling the function
@@ -244,7 +244,7 @@ should not be used directly from the application.
 
 \fn int starpu_sched_ctx_set_max_priority(unsigned sched_ctx_id, int max_prio)
 \ingroup API_Scheduling_Contexts
-Defines the maximum priority level supported by the scheduling policy
+Define the maximum priority level supported by the scheduling policy
 of the given scheduler context. The default maximum priority level is
 1. The application may access that value by calling the
 starpu_sched_ctx_get_max_priority function. This function should only
@@ -253,12 +253,12 @@ should not be used directly from the application.
 
 \fn int starpu_sched_ctx_get_min_priority(unsigned sched_ctx_id)
 \ingroup API_Scheduling_Contexts
-Returns the current minimum priority level supported by the scheduling
+Return the current minimum priority level supported by the scheduling
 policy of the given scheduler context.
 
 \fn int starpu_sched_ctx_get_max_priority(unsigned sched_ctx_id)
 \ingroup API_Scheduling_Contexts
-Returns the current maximum priority level supported by the scheduling
+Return the current maximum priority level supported by the scheduling
 policy of the given scheduler context.
 
 \fn int starpu_sched_ctx_min_priority_is_set(unsigned sched_ctx_id)
@@ -294,7 +294,7 @@ Return the worker collection managed by the indicated context
 
 \fn void starpu_sched_ctx_set_perf_counters(unsigned sched_ctx_id, void *perf_counters)
 \ingroup API_Scheduling_Contexts
-Indicates to starpu the pointer to the performance counter
+Indicate to starpu the pointer to the performance counter
 
 \fn void starpu_sched_ctx_call_pushed_task_cb(int workerid, unsigned sched_ctx_id)
 \ingroup API_Scheduling_Contexts
@@ -316,12 +316,12 @@ additional condition variables) the context
 
 \fn void *starpu_sched_ctx_get_policy_data(unsigned sched_ctx_id)
 \ingroup API_Scheduling_Contexts
-Return the scheduling policy data (private information of the scheduler) of the contexts previously 
+Return the scheduling policy data (private information of the scheduler) of the contexts previously
 assigned to.
 
 \fn void *starpu_sched_ctx_exec_parallel_code(void* (*func)(void*), void *param, unsigned sched_ctx_id)
 \ingroup API_Scheduling_Contexts
-execute any parallel code on the workers of the sched_ctx (workers are blocked)
+Execute any parallel code on the workers of the sched_ctx (workers are blocked)
 
 \fn int starpu_sched_ctx_get_nready_tasks(unsigned sched_ctx_id)
 \ingroup API_Scheduling_Contexts

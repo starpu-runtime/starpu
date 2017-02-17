@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2017  CNRS
  * Copyright (C) 2011, 2012 INRIA
  * See the file version.doxy for copying conditions.
  */
@@ -36,12 +36,19 @@ The different fields are:
 todo
 \ingroup API_Multiformat_Data_Interface
 \var enum starpu_data_interface_id starpu_multiformat_interface::id
+    todo
 \var void *starpu_multiformat_interface::cpu_ptr
+    todo
 \var void *starpu_multiformat_interface::cuda_ptr
+    todo
 \var void *starpu_multiformat_interface::opencl_ptr
+    todo
 \var void *starpu_multiformat_interface::mic_ptr
+    todo
 \var uint32_t starpu_multiformat_interface::nx
+    todo
 \var struct starpu_multiformat_data_interface_ops *starpu_multiformat_interface::ops
+    todo
 
 \fn void starpu_multiformat_data_register(starpu_data_handle_t *handle, int home_node, void *ptr, uint32_t nobjects, struct starpu_multiformat_data_interface_ops *format_ops)
 \ingroup API_Multiformat_Data_Interface
@@ -54,22 +61,22 @@ describes the format.
 
 \def STARPU_MULTIFORMAT_GET_CPU_PTR(interface)
 \ingroup API_Multiformat_Data_Interface
-returns the local pointer to the data with CPU format.
+Return the local pointer to the data with CPU format.
 
 \def STARPU_MULTIFORMAT_GET_CUDA_PTR(interface)
 \ingroup API_Multiformat_Data_Interface
-returns the local pointer to the data with CUDA format.
+Return the local pointer to the data with CUDA format.
 
 \def STARPU_MULTIFORMAT_GET_OPENCL_PTR(interface)
 \ingroup API_Multiformat_Data_Interface
-returns the local pointer to the data with OpenCL format.
+Return the local pointer to the data with OpenCL format.
 
 \def STARPU_MULTIFORMAT_GET_MIC_PTR(interface)
 \ingroup API_Multiformat_Data_Interface
-returns the local pointer to the data with MIC format.
+Return the local pointer to the data with MIC format.
 
 \def STARPU_MULTIFORMAT_GET_NX(interface)
 \ingroup API_Multiformat_Data_Interface
-returns the number of elements in the data.
+Return the number of elements in the data.
 
 */

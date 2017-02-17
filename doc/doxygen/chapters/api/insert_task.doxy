@@ -10,12 +10,12 @@
 
 \fn int starpu_insert_task(struct starpu_codelet *cl, ...)
 \ingroup API_Insert_Task
-This function does the same as the function starpu_task_insert(). It has been kept to avoid breaking old codes.
+Similar to starpu_task_insert(). Kept to avoid breaking old codes.
 
 \fn int starpu_task_insert(struct starpu_codelet *cl, ...)
 \ingroup API_Insert_Task
 Create and submit a task corresponding to \p cl with the
-following arguments. The argument list must be zero-terminated.
+following given arguments. The argument list must be zero-terminated.
 
 The arguments following the codelet can be of the following types:
 <ul>
@@ -47,13 +47,13 @@ implementation to retrieve them.
 
 \def STARPU_VALUE
 \ingroup API_Insert_Task
-this macro is used when calling starpu_task_insert(), and must
+Used when calling starpu_task_insert(), must
 be followed by a pointer to a constant value and the size of the
 constant
 
 \def STARPU_CL_ARGS
 \ingroup API_Insert_Task
-this macro is used when calling starpu_task_insert(), and must
+Used when calling starpu_task_insert(), must
 be followed by a memory buffer containing the arguments to be given to
 the task, and by the size of the arguments. The memory buffer should
 be the result of a previous call to starpu_codelet_pack_args(), and will be
@@ -61,12 +61,12 @@ freed (i.e. starpu_task::cl_arg_free will be set to 1)
 
 \def STARPU_CALLBACK
 \ingroup API_Insert_Task
-this macro is used when calling starpu_task_insert(), and must
+Used when calling starpu_task_insert(), must
 be followed by a pointer to a callback function
 
 \def STARPU_CALLBACK_WITH_ARG
 \ingroup API_Insert_Task
-this macro is used when calling starpu_task_insert(), and must
+Used when calling starpu_task_insert(), must
 be followed by two pointers: one to a callback function, and the other
 to be given as an argument to the callback function; this is
 equivalent to using both ::STARPU_CALLBACK and
@@ -74,13 +74,13 @@ equivalent to using both ::STARPU_CALLBACK and
 
 \def STARPU_CALLBACK_ARG
 \ingroup API_Insert_Task
-this macro is used when calling starpu_task_insert(), and must
+Used when calling starpu_task_insert(), must
 be followed by a pointer to be given as an argument to the callback
 function
 
 \def STARPU_PRIORITY
 \ingroup API_Insert_Task
-this macro is used when calling starpu_task_insert(), and must
+Used when calling starpu_task_insert(), must
 be followed by a integer defining a priority level
 
 \def STARPU_DATA_ARRAY
@@ -93,42 +93,42 @@ TODO
 
 \def STARPU_EXECUTE_ON_WORKER
 \ingroup API_Insert_Task
-this macro is used when calling starpu_task_insert(), and must be
+Used when calling starpu_task_insert(), must be
 followed by an integer value specifying the worker on which to execute
 the task (as specified by starpu_task::execute_on_a_specific_worker)
 
 \def STARPU_WORKER_ORDER
 \ingroup API_Insert_Task
-this macro is used when calling starpu_task_insert(), and must be
+used when calling starpu_task_insert(), must be
 followed by an integer value specifying the worker order in which to execute
 the tasks (as specified by starpu_task::workerorder)
 
 \def STARPU_TAG
 \ingroup API_Insert_Task
-this macro is used when calling starpu_task_insert(), and must be followed by a tag.
+Used when calling starpu_task_insert(), must be followed by a tag.
 
 \def STARPU_TAG_ONLY
 \ingroup API_Insert_Task
-this macro is used when calling starpu_task_insert(), and must be followed by a tag.
-It sets starpu_task::tag_id, but leaves starpu_task::use_tag as 0.
+Used when calling starpu_task_insert(), must be followed by a tag
+stored in starpu_task::tag_id. Leave starpu_task::use_tag as 0.
 
 \def STARPU_NAME
 \ingroup API_Insert_Task
-this macro is used when calling starpu_task_insert(), and must be followed by a char *.
-It sets starpu_task::name to it.
+Used when calling starpu_task_insert(), must be followed by a char *
+stored in starpu_task::name.
 
 \def STARPU_FLOPS
 \ingroup API_Insert_Task
-this macro is used when calling starpu_task_insert(), and must
+Used when calling starpu_task_insert(), must
 be followed by an amount of floating point operations, as a double.
 Users <b>MUST</b> explicitly cast into double, otherwise parameter
 passing will not work.
 
 \def STARPU_SCHED_CTX
 \ingroup API_Insert_Task
-this macro is used when calling starpu_task_insert(), and must
-be followed by the id of the scheduling context to which we want to
-submit the task.
+Used when calling starpu_task_insert(), must
+be followed by the id of the scheduling context to which to submit the
+task to.
 
 \fn void starpu_codelet_pack_args(void **arg_buffer, size_t *arg_buffer_size, ...)
 \ingroup API_Insert_Task
@@ -146,7 +146,7 @@ parameters.
 \fn void starpu_codelet_unpack_args_and_copyleft(void *cl_arg, void *buffer, size_t buffer_size, ...)
 \ingroup API_Insert_Task
 Similar to starpu_codelet_unpack_args(), but if any parameter is
-0, copy the part of cl_arg that has not been read in buffer which
+0, copy the part of \p cl_arg that has not been read in \p buffer which
 can then be used in a later call to one of the unpack functions.
 
 \fn struct starpu_task *starpu_task_build(struct starpu_codelet *cl, ...)

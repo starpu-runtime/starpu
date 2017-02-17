@@ -20,16 +20,17 @@ the handle has been copied, and it is given the pointer \p callback_arg as argum
 
 \fn void starpu_execute_on_each_worker(void (*func)(void *), void *arg, uint32_t where)
 \ingroup API_Miscellaneous_Helpers
-This function executes the given function on a subset of workers. When
+Execute the given function \p func on a subset of workers. When
 calling this method, the offloaded function \p func is executed by
-every StarPU worker that may execute the function. The argument \p arg
+every StarPU worker that are eligible to execute the function.
+The argument \p arg
 is passed to the offloaded function. The argument \p where specifies
 on which types of processing units the function should be executed.
 Similarly to the field starpu_codelet::where, it is possible to
 specify that the function should be executed on every CUDA device and
 every CPU by passing ::STARPU_CPU|::STARPU_CUDA. This function blocks
-until the function has been executed on every appropriate processing
-units, so that it may not be called from a callback function for
+until \p func has been executed on every appropriate processing
+units, and thus may not be called from a callback function for
 instance.
 
 \fn void starpu_execute_on_each_worker_ex(void (*func)(void *), void *arg, uint32_t where, const char *name)

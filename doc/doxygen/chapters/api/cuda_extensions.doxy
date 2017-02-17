@@ -21,7 +21,7 @@ supported by StarPU.
 
 \fn cudaStream_t starpu_cuda_get_local_stream(void)
 \ingroup API_CUDA_Extensions
-This function gets the current worker’s CUDA stream. StarPU
+Return the current worker’s CUDA stream. StarPU
 provides a stream for every CUDA device controlled by StarPU. This
 function is only provided for convenience so that programmers can
 easily use asynchronous operations within codelets without having to
@@ -33,8 +33,7 @@ overlapped.
 
 \fn const struct cudaDeviceProp *starpu_cuda_get_device_properties(unsigned workerid)
 \ingroup API_CUDA_Extensions
-This function returns a pointer to device properties for worker
-\p workerid (assumed to be a CUDA worker).
+Return a pointer to device properties for worker \p workerid (assumed to be a CUDA worker).
 
 \fn void starpu_cuda_report_error(const char *func, const char *file, int line, cudaError_t status)
 \ingroup API_CUDA_Extensions
@@ -48,8 +47,8 @@ Calls starpu_cuda_report_error(), passing the current function, file and line po
 \ingroup API_CUDA_Extensions
 Copy \p ssize bytes from the pointer \p src_ptr on \p src_node
 to the pointer \p dst_ptr on \p dst_node. The function first tries to
-copy the data asynchronous (unless stream is <c>NULL</c>). If the
-asynchronous copy fails or if stream is <c>NULL</c>, it copies the
+copy the data asynchronous (unless \p stream is <c>NULL</c>). If the
+asynchronous copy fails or if \p stream is <c>NULL</c>, it copies the
 data synchronously. The function returns <c>-EAGAIN</c> if the
 asynchronous launch was successfull. It returns 0 if the synchronous
 copy was successful, or fails otherwise.

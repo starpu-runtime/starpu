@@ -13,13 +13,12 @@
 
 \def STARPU_USE_MPI
 \ingroup API_MPI_Support
-This macro is defined when StarPU has been installed with MPI
-support. It should be used in your code to detect the availability of
-MPI.
+Defined when StarPU has been installed with MPI support. It should be
+used in your code to detect the availability of MPI.
 
 \fn int starpu_mpi_init_comm(int *argc, char ***argv, int initialize_mpi, MPI_Comm comm)
 \ingroup API_MPI_Support
-Initializes the starpumpi library with the given communicator.
+Initialize the starpumpi library with the given communicator \p comm.
 \p initialize_mpi indicates if MPI should be initialized or not by StarPU.
 If the value is not 0, MPI will be initialized by calling
 <c>MPI_Init_Thread(argc, argv, MPI_THREAD_SERIALIZED, ...)</c>.
@@ -46,8 +45,8 @@ calling <c>MPI_Init_Thread(argc, argv, MPI_THREAD_SERIALIZED,
 
 \fn int starpu_mpi_shutdown(void)
 \ingroup API_MPI_Support
-Cleans the starpumpi library. This must be called between calling
-starpu_mpi functions and starpu_shutdown(). \c MPI_Finalize() will be
+Clean the starpumpi library. This must be called between calling
+\c starpu_mpi functions and starpu_shutdown(). \c MPI_Finalize() will be
 called if StarPU-MPI has been initialized by starpu_mpi_init().
 
 \fn void starpu_mpi_comm_amounts_retrieve(size_t *comm_amounts)
@@ -79,33 +78,33 @@ Return the size of the communicator \c MPI_COMM_WORLD
 
 \fn int starpu_mpi_send(starpu_data_handle_t data_handle, int dest, int mpi_tag, MPI_Comm comm)
 \ingroup API_MPI_Support
-Performs a standard-mode, blocking send of \p data_handle to the node
+Perform a standard-mode, blocking send of \p data_handle to the node
 \p dest using the message tag \p mpi_tag within the communicator \p
 comm.
 
 \fn int starpu_mpi_recv(starpu_data_handle_t data_handle, int source, int mpi_tag, MPI_Comm comm, MPI_Status *status)
 \ingroup API_MPI_Support
-Performs a standard-mode, blocking receive in \p data_handle from the
+Perform a standard-mode, blocking receive in \p data_handle from the
 node \p source using the message tag \p mpi_tag within the
 communicator \p comm.
 
 \fn int starpu_mpi_isend(starpu_data_handle_t data_handle, starpu_mpi_req *req, int dest, int mpi_tag, MPI_Comm comm)
 \ingroup API_MPI_Support
-Posts a standard-mode, non blocking send of \p data_handle to the node
+Post a standard-mode, non blocking send of \p data_handle to the node
 \p dest using the message tag \p mpi_tag within the communicator \p
 comm. After the call, the pointer to the request \p req can be used to
 test or to wait for the completion of the communication.
 
 \fn int starpu_mpi_irecv(starpu_data_handle_t data_handle, starpu_mpi_req *req, int source, int mpi_tag, MPI_Comm comm)
 \ingroup API_MPI_Support
-Posts a nonblocking receive in \p data_handle from the node \p source
+Post a nonblocking receive in \p data_handle from the node \p source
 using the message tag \p mpi_tag within the communicator \p comm.
 After the call, the pointer to the request \p req can be used to test
 or to wait for the completion of the communication.
 
 \fn int starpu_mpi_isend_detached(starpu_data_handle_t data_handle, int dest, int mpi_tag, MPI_Comm comm, void (*callback)(void *), void *arg)
 \ingroup API_MPI_Support
-Posts a standard-mode, non blocking send of \p data_handle to the node
+Post a standard-mode, non blocking send of \p data_handle to the node
 \p dest using the message tag \p mpi_tag within the communicator \p
 comm. On completion, the \p callback function is called with the
 argument \p arg.
@@ -116,7 +115,7 @@ of the request.
 
 \fn int starpu_mpi_irecv_detached(starpu_data_handle_t data_handle, int source, int mpi_tag, MPI_Comm comm, void (*callback)(void *), void *arg)
 \ingroup API_MPI_Support
-Posts a nonblocking receive in \p data_handle from the node \p source
+Post a nonblocking receive in \p data_handle from the node \p source
 using the message tag \p mpi_tag within the communicator \p comm. On
 completion, the \p callback function is called with the argument \p
 arg.
@@ -127,7 +126,7 @@ of the request.
 
 \fn int starpu_mpi_irecv_detached_sequential_consistency(starpu_data_handle_t data_handle, int source, int mpi_tag, MPI_Comm comm, void (*callback)(void *), void *arg, int sequential_consistency)
 \ingroup API_MPI_Support
-Posts a nonblocking receive in \p data_handle from the node \p source
+Post a nonblocking receive in \p data_handle from the node \p source
 using the message tag \p mpi_tag within the communicator \p comm. On
 completion, the \p callback function is called with the argument \p
 arg.
@@ -143,13 +142,13 @@ of the request.
 
 \fn int starpu_mpi_issend(starpu_data_handle_t data_handle, starpu_mpi_req *req, int dest, int mpi_tag, MPI_Comm comm)
 \ingroup API_MPI_Support
-Performs a synchronous-mode, non-blocking send of \p data_handle to the node
+Perform a synchronous-mode, non-blocking send of \p data_handle to the node
 \p dest using the message tag \p mpi_tag within the communicator \p
 comm.
 
 \fn int starpu_mpi_issend_detached(starpu_data_handle_t data_handle, int dest, int mpi_tag, MPI_Comm comm, void (*callback)(void *), void *arg)
 \ingroup API_MPI_Support
-Performs a synchronous-mode, non-blocking send of \p data_handle to the node
+Perform a synchronous-mode, non-blocking send of \p data_handle to the node
 \p dest using the message tag \p mpi_tag within the communicator \p
 comm. On completion, the \p callback function is called with the argument \p
 arg.
@@ -160,7 +159,7 @@ of the request.
 
 \fn int starpu_mpi_wait(starpu_mpi_req *req, MPI_Status *status)
 \ingroup API_MPI_Support
-Returns when the operation identified by request \p req is complete.
+Return when the operation identified by request \p req is complete.
 
 \fn int starpu_mpi_test(starpu_mpi_req *req, int *flag, MPI_Status *status)
 \ingroup API_MPI_Support
@@ -170,7 +169,7 @@ operation.
 
 \fn int starpu_mpi_barrier(MPI_Comm comm)
 \ingroup API_MPI_Support
-Blocks the caller until all group members of the communicator \p comm
+Block the caller until all group members of the communicator \p comm
 have called it.
 
 \fn int starpu_mpi_wait_for_all(MPI_Comm comm)
@@ -179,19 +178,19 @@ Wait until all StarPU tasks and communications for the given communicator are co
 
 \fn int starpu_mpi_isend_detached_unlock_tag(starpu_data_handle_t data_handle, int dest, int mpi_tag, MPI_Comm comm, starpu_tag_t tag)
 \ingroup API_MPI_Support
-Posts a standard-mode, non blocking send of \p data_handle to the node
+Post a standard-mode, non blocking send of \p data_handle to the node
 \p dest using the message tag \p mpi_tag within the communicator \p
 comm. On completion, \p tag is unlocked.
 
 \fn int starpu_mpi_irecv_detached_unlock_tag(starpu_data_handle_t data_handle, int source, int mpi_tag, MPI_Comm comm, starpu_tag_t tag)
 \ingroup API_MPI_Support
-Posts a nonblocking receive in \p data_handle from the node \p source
+Post a nonblocking receive in \p data_handle from the node \p source
 using the message tag \p mpi_tag within the communicator \p comm. On
 completion, \p tag is unlocked.
 
 \fn int starpu_mpi_isend_array_detached_unlock_tag(unsigned array_size, starpu_data_handle_t *data_handle, int *dest, int *mpi_tag, MPI_Comm *comm, starpu_tag_t tag)
 \ingroup API_MPI_Support
-Posts \p array_size standard-mode, non blocking send. Each post sends
+Post \p array_size standard-mode, non blocking send. Each post sends
 the n-th data of the array \p data_handle to the n-th node of the
 array \p dest using the n-th message tag of the array \p mpi_tag
 within the n-th communicator of the array \p comm. On completion of
@@ -199,7 +198,7 @@ the all the requests, \p tag is unlocked.
 
 \fn int starpu_mpi_irecv_array_detached_unlock_tag(unsigned array_size, starpu_data_handle_t *data_handle, int *source, int *mpi_tag, MPI_Comm *comm, starpu_tag_t tag)
 \ingroup API_MPI_Support
-Posts \p array_size nonblocking receive. Each post receives in the n-th
+Post \p array_size nonblocking receive. Each post receives in the n-th
 data of the array \p data_handle from the n-th node of the array \p
 source using the n-th message tag of the array \p mpi_tag within the
 n-th communicator of the array \p comm. On completion of the all the
@@ -327,25 +326,25 @@ flushes the cache for this data to avoid incoherencies.
 
 \def STARPU_EXECUTE_ON_NODE
 \ingroup API_MPI_Support
-this macro is used when calling starpu_mpi_task_insert(), and must be
+Used when calling starpu_mpi_task_insert(), must be
 followed by a integer value which specified the node on which to
 execute the codelet.
 
 \def STARPU_EXECUTE_ON_DATA
 \ingroup API_MPI_Support
-this macro is used when calling starpu_mpi_task_insert(), and must be
+Used when calling starpu_mpi_task_insert(), must be
 followed by a data handle to specify that the node owning the given
 data will execute the codelet.
 
 \def STARPU_NODE_SELECTION_POLICY
 \ingroup API_MPI_Support
-this macro is used when calling starpu_mpi_task_insert(), and must be
+Used when calling starpu_mpi_task_insert(), must be
 followed by a identifier to a node selection policy. This is needed when several
 nodes own data in ::STARPU_W mode.
 
 \fn int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 \ingroup API_MPI_Support
-This function does the same as the function starpu_mpi_task_insert(). It has been kept to avoid breaking old codes.
+Call starpu_mpi_task_insert(). Symbol kept for backward compatibility.
 
 \fn int starpu_mpi_task_insert(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 \ingroup API_MPI_Support
@@ -390,7 +389,7 @@ has been modified. The cache can be disabled (see \ref STARPU_MPI_CACHE).
 
 \fn struct starpu_task *starpu_mpi_task_build(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 \ingroup API_MPI_Support
-Create a task corresponding to codelet with the following arguments.
+Create a task corresponding to \p codelet with the following given arguments.
 The argument list must be zero-terminated. The function performs the
 first two steps of the function starpu_mpi_task_insert(). Only the MPI
 node selected in the first step of the algorithm will return a valid
@@ -400,9 +399,9 @@ the task on the node which creates it, with the SAME list of arguments.
 
 \fn int starpu_mpi_task_post_build(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 \ingroup API_MPI_Support
-This function MUST be called after a call to starpu_mpi_task_build(),
-with the SAME list of arguments. It performs the fourth -- last -- step of the algorithm described in
-starpu_mpi_task_insert().
+MUST be called after a call to starpu_mpi_task_build(),
+with the SAME list of arguments. Perform the fourth -- last -- step of
+the algorithm described in starpu_mpi_task_insert().
 
 \fn void starpu_mpi_get_data_on_node(MPI_Comm comm, starpu_data_handle_t data_handle, int node)
 \ingroup API_MPI_Support
@@ -442,7 +441,7 @@ data to be transfered.
 
 \fn int starpu_mpi_node_selection_register_policy(starpu_mpi_select_node_policy_func_t policy_func)
 \ingroup API_MPI_Support
-Register a new policy which can then be used when there is several nodes owning data in W mode.
+Register a new policy which can then be used when there is several nodes owning data in ::STARPU_W mode.
 Here an example of function defining a node selection policy.
 The codelet will be executed on the node owing the first data with a size bigger than 1M, or on the node
 0 if no data fits the given size.
@@ -479,7 +478,7 @@ Unregister a previously registered policy.
 
 \fn void starpu_mpi_redux_data(MPI_Comm comm, starpu_data_handle_t data_handle)
 \ingroup API_MPI_Support
-Perform a reduction on the given data. All nodes send the data to its
+Perform a reduction on the given data \p handle. All nodes send the data to its
 owner node which will perform a reduction.
 
 \fn int starpu_mpi_scatter_detached(starpu_data_handle_t *data_handles, int count, int root, MPI_Comm comm, void (*scallback)(void *), void *sarg, void (*rcallback)(void *), void *rarg)
@@ -509,7 +508,7 @@ function is called with the argument \p sarg on any other process.
 
 \def STARPU_USE_MPI_MASTER_SLAVE
 \ingroup API_MPI_Support
-This macro is defined when StarPU has been installed with MPI Master Slave
+Defined when StarPU has been installed with MPI Master Slave
 support. It should be used in your code to detect the availability of
 MPI Master Slave.
 

@@ -18,7 +18,7 @@ create a empty starpu_bitmap
 
 \fn void starpu_bitmap_destroy(struct starpu_bitmap *b)
 \ingroup API_Bitmap
-free a starpu_bitmap
+free \b
 
 \fn void starpu_bitmap_set(struct starpu_bitmap *b, int e)
 \ingroup API_Bitmap
@@ -38,7 +38,7 @@ return true iff bit \p e is set in \p b
 
 \fn void starpu_bitmap_unset_and(struct starpu_bitmap *a, struct starpu_bitmap *b, struct starpu_bitmap *c)
 \ingroup API_Bitmap
-Basically compute starpu_bitmap_unset_all(\p a) ; \p a = \p b & \p c;
+Basically compute \c starpu_bitmap_unset_all(\p a) ; \p a = \p b & \p c;
 
 \fn void starpu_bitmap_or(struct starpu_bitmap *a, struct starpu_bitmap *b)
 \ingroup API_Bitmap
