@@ -812,7 +812,7 @@ cache in main memory
 \addindex __env__STARPU_MINIMUM_AVAILABLE_MEM
 This specifies the minimum percentage of memory that should be available in GPUs
 (or in main memory, when using out of core), below which a reclaiming pass is
-performed. The default is 5%.
+performed. The default is 0%.
 </dd>
 
 <dt>STARPU_TARGET_AVAILABLE_MEM</dt>
@@ -821,7 +821,7 @@ performed. The default is 5%.
 \addindex __env__STARPU_TARGET_AVAILABLE_MEM
 This specifies the target percentage of memory that should be reached in
 GPUs (or in main memory, when using out of core), when performing a periodic
-reclaiming pass. The default is 10%.
+reclaiming pass. The default is 0%.
 </dd>
 
 <dt>STARPU_MINIMUM_CLEAN_BUFFERS</dt>

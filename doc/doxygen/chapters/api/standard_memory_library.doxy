@@ -45,7 +45,8 @@ to indicate that while the memory allocation should be kept in the limits
 defined for ::STARPU_MALLOC_COUNT, no reclaiming should be performed by
 starpu_malloc_flags() itself, thus potentially overflowing the
 memory node a bit. StarPU will reclaim memory after next task termination,
-according to \ref STARPU_MINIMUM_AVAILABLE_MEM and \ref STARPU_TARGET_AVAILABLE_MEM
+according to the \ref STARPU_MINIMUM_AVAILABLE_MEM, \ref STARPU_TARGET_AVAILABLE_MEM,
+\ref STARPU_MINIMUM_CLEAN_BUFFERS, and \ref STARPU_TARGET_CLEAN_BUFFERS
 environment variables. If ::STARPU_MEMORY_WAIT is set, no overflowing will happen,
 starpu_malloc_flags() will wait for other eviction mechanisms to release enough memory.
 
