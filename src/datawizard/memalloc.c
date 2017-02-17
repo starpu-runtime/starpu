@@ -833,8 +833,7 @@ static size_t flush_memchunk_cache(unsigned node, size_t reclaim)
 /*
  * Try to free the buffers currently in use on the memory node. If the force
  * flag is set, the memory is freed regardless of coherency concerns (this
- * should only be used at the termination of StarPU for instance). The
- * mc_lock[node] should be taken prior to calling this function.
+ * should only be used at the termination of StarPU for instance).
  */
 static size_t free_potentially_in_use_mc(unsigned node, unsigned force, size_t reclaim)
 {
