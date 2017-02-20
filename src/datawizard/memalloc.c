@@ -524,8 +524,9 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 
 		_starpu_spin_unlock(&handle->header_lock);
 	}
+	else if (!(replicate && handle->per_node[node].state == STARPU_OWNER) &&
 	/* try to lock all the subtree */
-	else if (lock_all_subtree(handle))
+	         lock_all_subtree(handle))
 	{
 		/* check if they are all "free" */
 		if (may_free_subtree(handle, node))
@@ -548,7 +549,7 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 				 * If there are none, we prefer to let generic eviction
 				 * perhaps find other kinds of memchunks which will be
 				 * earlier in LRU, and easier to throw away. */
-				(!replicate || handle->per_node[node].state != STARPU_OWNER))
+				!(replicate && handle->per_node[node].state == STARPU_OWNER))
 			{
 				int res;
 				/* Should have been avoided in our caller */
