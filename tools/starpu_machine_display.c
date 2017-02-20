@@ -166,6 +166,14 @@ int main(int argc, char **argv)
 	unsigned nmiccores = starpu_mic_worker_get_count();
 #endif
 
+#ifdef STARPU_USE_SCC
+	unsigned scc = starpu_scc_worker_get_count();
+#endif
+
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+	unsigned mpi_ms = starpu_mpi_ms_worker_get_count();
+#endif
+
 	fprintf(stdout, "StarPU has found :\n");
 
 	fprintf(stdout, "\t%u CPU threads\n", ncpu);
@@ -180,6 +188,16 @@ int main(int argc, char **argv)
 #ifdef STARPU_USE_MIC
 	fprintf(stdout, "\t%u MIC cores (from %u devices)\n", nmiccores, nmicdevs);
 	display_worker_names(STARPU_MIC_WORKER);
+#endif
+
+#ifdef STARPU_USE_SCC
+	fprintf(stdout, "\t%u SCC cores\n", scc);
+	display_worker_names(STARPU_SCC_WORKER);
+#endif
+
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+	fprintf(stdout, "\t%u MPI Master workers\n", mpi_ms);
+	display_worker_names(STARPU_MPI_MS_WORKER);
 #endif
 
 	display_all_combined_workers();
