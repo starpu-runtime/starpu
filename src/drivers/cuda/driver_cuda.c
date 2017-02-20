@@ -353,8 +353,11 @@ unsigned _starpu_get_cuda_device_count(void)
 
 void _starpu_init_cuda(void)
 {
-	ncudagpus = _starpu_get_cuda_device_count();
-	STARPU_ASSERT(ncudagpus <= STARPU_MAXCUDADEVS);
+	if (ncudagpus < 0)
+	{
+		ncudagpus = _starpu_get_cuda_device_count();
+		STARPU_ASSERT(ncudagpus <= STARPU_MAXCUDADEVS);
+	}
 }
 
 static int execute_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *args)
