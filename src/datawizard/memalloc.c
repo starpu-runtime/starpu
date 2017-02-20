@@ -619,7 +619,6 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 	return freed;
 }
 
-#ifdef STARPU_USE_ALLOCATION_CACHE
 static int _starpu_data_interface_compare(void *data_interface_a, struct starpu_data_interface_ops *ops_a,
                                           void *data_interface_b, struct starpu_data_interface_ops *ops_b)
 {
@@ -631,6 +630,7 @@ static int _starpu_data_interface_compare(void *data_interface_a, struct starpu_
 	return ret;
 }
 
+#ifdef STARPU_USE_ALLOCATION_CACHE
 /* This function must be called with mc_lock[node] taken */
 static struct _starpu_mem_chunk *_starpu_memchunk_cache_lookup_locked(unsigned node, starpu_data_handle_t handle, uint32_t footprint)
 {
