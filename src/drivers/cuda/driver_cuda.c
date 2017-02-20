@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2015  Université de Bordeaux
+ * Copyright (C) 2009-2015, 2017  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
@@ -47,7 +47,7 @@
 #endif
 
 /* the number of CUDA devices */
-static int ncudagpus;
+static int ncudagpus = -1;
 
 static size_t global_mem[STARPU_NMAXWORKERS];
 #ifdef STARPU_USE_CUDA
