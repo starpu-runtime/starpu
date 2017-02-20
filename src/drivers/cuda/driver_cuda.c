@@ -47,7 +47,7 @@
 #endif
 
 /* the number of CUDA devices */
-static unsigned ncudagpus;
+static int ncudagpus = -1;
 
 static size_t global_mem[STARPU_MAXCUDADEVS];
 #ifdef STARPU_USE_CUDA
