@@ -281,10 +281,12 @@ int main(int argc, char **argv)
 	return main_ret;
 }
 
+#ifdef HAVE_MSG_PROCESS_ATTACH
 static void maestro(void *data STARPU_ATTRIBUTE_UNUSED)
 {
 	MSG_main();
 }
+#endif
 
 void _starpu_simgrid_init_early(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv STARPU_ATTRIBUTE_UNUSED)
 {
@@ -979,7 +981,7 @@ void _starpu_simgrid_xbt_thread_create(const char *name, void_f_pvoid_t code, vo
 #ifdef HAVE_SMX_ACTOR_T
 	smx_actor_t process STARPU_ATTRIBUTE_UNUSED;
 #else
-	smx_process_t process;
+	smx_process_t process STARPU_ATTRIBUTE_UNUSED;
 #endif
 	thread_data_t *res;
 	_STARPU_MALLOC(res, sizeof(thread_data_t));
