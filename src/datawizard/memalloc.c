@@ -1307,10 +1307,10 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 
 	_starpu_data_allocation_inc_stats(dst_node);
 
-#ifdef STARPU_USE_ALLOCATION_CACHE
 	/* perhaps we can directly reuse a buffer in the free-list */
 	uint32_t footprint = _starpu_compute_data_footprint(handle);
 
+#ifdef STARPU_USE_ALLOCATION_CACHE
 	_STARPU_TRACE_START_ALLOC_REUSE(dst_node, data_size);
 	if (try_to_find_reusable_mc(dst_node, handle, replicate, footprint))
 	{
