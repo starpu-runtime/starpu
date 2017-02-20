@@ -999,7 +999,14 @@ void _starpu_simgrid_xbt_thread_create(const char *name, void_f_pvoid_t code, vo
 #else
 	                         SIMIX_host_self(),
 #endif
-				 -1.0, 0, NULL,
-	                         /*props */ NULL,0);
+#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 15)
+				 -1.0,
+#endif
+				 0, NULL,
+	                         /*props */ NULL
+#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 15)
+				 , 0
+#endif
+				 );
 }
 #endif
