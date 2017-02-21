@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2011, 2012, 2013, 2014, 2015, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -54,7 +54,7 @@ int main(int argc, char **argv)
 {
 	int ret, rank, size, err, node;
 	int x0=32;
-	long x1=23;
+	long long x1=23;
 	starpu_data_handle_t data_handlesx0;
 	starpu_data_handle_t data_handlesx1;
 
@@ -96,7 +96,12 @@ int main(int argc, char **argv)
 				     0);
 	assert(err == 0);
 
-	node = 1; // Node 1 has a long which is bigger than a int
+	// Node 1 has a long long data which has a bigger size than a
+	// int, so it is going to be selected by the node selection
+	// policy to execute the codelet
+	err = starpu_mpi_node_selection_set_current_policy(STARPU_MPI_NODE_SELECTION_MOST_R_DATA);
+	assert(err == 0);
+	node = 1;
 	err = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet,
 				     STARPU_VALUE, &node, sizeof(node),
 				     STARPU_RW, data_handlesx0, STARPU_RW, data_handlesx1,
