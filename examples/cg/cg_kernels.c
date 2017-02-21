@@ -81,6 +81,7 @@ static void accumulate_variable_cuda(void *descr[], void *cl_arg)
 	TYPE *v_dst = (TYPE *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	TYPE *v_src = (TYPE *)STARPU_VARIABLE_GET_PTR(descr[1]);
  
+	starpu_cublas_set_stream();
 	cublasaxpy(1, (TYPE)1.0, v_src, 1, v_dst, 1);
 }
 #endif
@@ -120,6 +121,7 @@ static void accumulate_vector_cuda(void *descr[], void *cl_arg)
 	TYPE *v_src = (TYPE *)STARPU_VECTOR_GET_PTR(descr[1]);
 	unsigned n = STARPU_VECTOR_GET_NX(descr[0]);
  
+	starpu_cublas_set_stream();
 	cublasaxpy(n, (TYPE)1.0, v_src, 1, v_dst, 1);
 }
 #endif
@@ -335,6 +337,7 @@ static void scal_kernel_cuda(void *descr[], void *cl_arg)
  
 	/* v1 = p1 v1 */
 	TYPE alpha = p1;
+	starpu_cublas_set_stream();
 	cublasscal(n, alpha, v1, 1);
 }
 #endif
@@ -389,6 +392,7 @@ static void gemv_kernel_cuda(void *descr[], void *cl_arg)
 	starpu_codelet_unpack_args(cl_arg, &beta, &alpha);
 
 	/* Compute v1 = alpha M v2 + beta v1 */
+	starpu_cublas_set_stream();
 	cublasgemv('N', nx, ny, alpha, M, ld, v2, 1, beta, v1, 1);
 }
 #endif
@@ -504,6 +508,7 @@ static void scal_axpy_kernel_cuda(void *descr[], void *cl_arg)
 	 *	v1 = p1 v1
 	 *	v1 = v1 + p2 v2
 	 */
+	starpu_cublas_set_stream();
 	cublasscal(n, p1, v1, 1);
 	cublasaxpy(n, p2, v2, 1, v1, 1);
 }
@@ -584,6 +589,7 @@ static void axpy_kernel_cuda(void *descr[], void *cl_arg)
  
 	/* Compute v1 = v1 + p1 * v2.
 	 */
+	starpu_cublas_set_stream();
 	cublasaxpy(n, p1, v2, 1, v1, 1);
 }
 #endif

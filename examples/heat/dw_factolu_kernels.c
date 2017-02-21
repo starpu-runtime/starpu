@@ -134,6 +134,7 @@ static inline void dw_common_cpu_codelet_update_u22(void *descr[], int s, STARPU
 
 #ifdef STARPU_USE_CUDA
 		case 1:
+			starpu_cublas_set_stream();
 			cublasSgemm('n', 'n', dx, dy, dz, -1.0f, left, ld21,
 					right, ld12, 1.0f, center, ld22);
 			status = cublasGetError();
@@ -197,6 +198,7 @@ static inline void dw_common_codelet_update_u12(void *descr[], int s, STARPU_ATT
 			break;
 #ifdef STARPU_USE_CUDA
 		case 1:
+			starpu_cublas_set_stream();
 			cublasStrsm('L', 'L', 'N', 'N', ny12, nx12,
 					1.0f, sub11, ld11, sub12, ld12);
 			status = cublasGetError();
@@ -258,6 +260,7 @@ static inline void dw_common_codelet_update_u21(void *descr[], int s, STARPU_ATT
 			break;
 #ifdef STARPU_USE_CUDA
 		case 1:
+			starpu_cublas_set_stream();
 			cublasStrsm('R', 'U', 'N', 'U', ny21, nx21, 1.0f, sub11, ld11, sub21, ld21);
 			status = cublasGetError();
 			if (status != CUBLAS_STATUS_SUCCESS)
@@ -338,6 +341,7 @@ static inline void dw_common_codelet_update_u11(void *descr[], int s, STARPU_ATT
 			break;
 #ifdef STARPU_USE_CUDA
 		case 1:
+			starpu_cublas_set_stream();
 			for (z = 0; z < nx; z++)
 			{
 				float pivot;

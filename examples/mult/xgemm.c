@@ -161,6 +161,7 @@ static void cublas_mult(void *descr[], STARPU_ATTRIBUTE_UNUSED void *arg)
 	unsigned ldB = STARPU_MATRIX_GET_LD(descr[1]);
 	unsigned ldC = STARPU_MATRIX_GET_LD(descr[2]);
 
+	starpu_cublas_set_stream();
 	CUBLAS_GEMM('n', 'n', nxC, nyC, nyA, (TYPE)1.0, subA, ldA, subB, ldB,
 				     (TYPE)0.0, subC, ldC);
 }

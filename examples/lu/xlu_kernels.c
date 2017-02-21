@@ -65,6 +65,7 @@ static inline void STARPU_LU(common_u22)(void *descr[],
 #ifdef STARPU_USE_CUDA
 		case 1:
 		{
+			starpu_cublas_set_stream();
 			CUBLAS_GEMM('n', 'n', dx, dy, dz,
 				*(CUBLAS_TYPE*)&m1, (CUBLAS_TYPE *)right, ld21, (CUBLAS_TYPE *)left, ld12,
 				*(CUBLAS_TYPE*)&p1, (CUBLAS_TYPE *)center, ld22);
@@ -185,6 +186,7 @@ static inline void STARPU_LU(common_u12)(void *descr[],
 			break;
 #ifdef STARPU_USE_CUDA
 		case 1:
+			starpu_cublas_set_stream();
 			CUBLAS_TRSM('L', 'L', 'N', 'N', ny12, nx12,
 					*(CUBLAS_TYPE*)&p1, (CUBLAS_TYPE*)sub11, ld11, (CUBLAS_TYPE*)sub12, ld12);
 
@@ -271,6 +273,7 @@ static inline void STARPU_LU(common_u21)(void *descr[],
 			break;
 #ifdef STARPU_USE_CUDA
 		case 1:
+			starpu_cublas_set_stream();
 			CUBLAS_TRSM('R', 'U', 'N', 'U', ny21, nx21,
 					*(CUBLAS_TYPE*)&p1, (CUBLAS_TYPE*)sub11, ld11, (CUBLAS_TYPE*)sub21, ld21);
 
@@ -366,6 +369,7 @@ static inline void STARPU_LU(common_u11)(void *descr[],
 			break;
 #ifdef STARPU_USE_CUDA
 		case 1:
+			starpu_cublas_set_stream();
 			for (z = 0; z < nx; z++)
 			{
 				TYPE pivot;
@@ -496,6 +500,7 @@ static inline void STARPU_LU(common_u11_pivot)(void *descr[],
 			break;
 #ifdef STARPU_USE_CUDA
 		case 1:
+			starpu_cublas_set_stream();
 			for (z = 0; z < nx; z++)
 			{
 				TYPE pivot;
@@ -614,6 +619,7 @@ static inline void STARPU_LU(common_pivot)(void *descr[],
 			break;
 #ifdef STARPU_USE_CUDA
 		case 1:
+			starpu_cublas_set_stream();
 			for (row = 0; row < nx; row++)
 			{
 				unsigned rowpiv = ipiv[row+first] - first;

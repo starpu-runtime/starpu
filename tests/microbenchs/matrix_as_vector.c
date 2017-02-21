@@ -55,6 +55,7 @@ void vector_cuda_func(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
 	float *matrix = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
 	int nx = STARPU_VECTOR_GET_NX(descr[0]);
 
+	starpu_cublas_set_stream();
 	float sum = cublasSasum(nx, matrix, 1);
 	sum /= nx;
 

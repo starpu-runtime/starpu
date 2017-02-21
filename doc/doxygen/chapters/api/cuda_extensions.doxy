@@ -67,6 +67,14 @@ starpu_cublas_init() will initialize CUBLAS on every CUDA device
 controlled by StarPU. This call blocks until CUBLAS has been properly
 initialized on every device.
 
+\fn void starpu_cublas_set_stream(void)
+\ingroup API_CUDA_Extensions
+This function sets the proper cublas stream. This must be called from the CUDA
+codelet before calling cublas kernels, so that they are queued on the proper
+CUDA stream. When using one thread per CUDA worker, this function does not
+do anything since the cublas stream does not change, and is set once by
+starpu_cublas_init().
+
 \fn void starpu_cublas_shutdown(void)
 \ingroup API_CUDA_Extensions
 This function synchronously deinitializes the CUBLAS library on

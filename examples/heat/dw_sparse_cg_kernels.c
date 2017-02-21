@@ -146,6 +146,7 @@ void cublas_codelet_func_3(void *descr[], void *arg)
 	vec = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
 	size = STARPU_VECTOR_GET_NX(descr[0]);
 
+	starpu_cublas_set_stream();
 	dot = cublasSdot (size, vec, 1, vec, 1);
 
 	pb->delta_new = dot;
@@ -238,6 +239,7 @@ void cublas_codelet_func_5(void *descr[], void *arg)
 	STARPU_ASSERT(STARPU_VECTOR_GET_NX(descr[0]) == STARPU_VECTOR_GET_NX(descr[1]));
 	size = STARPU_VECTOR_GET_NX(descr[0]);
 
+	starpu_cublas_set_stream();
 	dot = cublasSdot (size, vecd, 1, vecq, 1);
 
 	pb->alpha = pb->delta_new / dot;
@@ -281,6 +283,7 @@ void cublas_codelet_func_6(void *descr[], void *arg)
 
 	size = STARPU_VECTOR_GET_NX(descr[0]);
 
+	starpu_cublas_set_stream();
 	cublasSaxpy (size, pb->alpha, vecd, 1, vecx, 1);
 }
 #endif
@@ -320,6 +323,7 @@ void cublas_codelet_func_7(void *descr[], void *arg)
 
 	size = STARPU_VECTOR_GET_NX(descr[0]);
 
+	starpu_cublas_set_stream();
 	cublasSaxpy (size, -pb->alpha, vecq, 1, vecr, 1);
 }
 #endif
@@ -363,6 +367,7 @@ void cublas_codelet_func_8(void *descr[], void *arg)
 	vecr = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
 	size = STARPU_VECTOR_GET_NX(descr[0]);
 
+	starpu_cublas_set_stream();
 	dot = cublasSdot (size, vecr, 1, vecr, 1);
 
 	pb->delta_old = pb->delta_new;
@@ -411,6 +416,7 @@ void cublas_codelet_func_9(void *descr[], void *arg)
 
 	size = STARPU_VECTOR_GET_NX(descr[0]);
 
+	starpu_cublas_set_stream();
 	/* d = beta d */
 	cublasSscal(size, pb->beta, vecd, 1);
 

@@ -74,6 +74,7 @@ void axpy_gpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *arg)
 	TYPE *block_x = (TYPE *)STARPU_VECTOR_GET_PTR(descr[0]);
 	TYPE *block_y = (TYPE *)STARPU_VECTOR_GET_PTR(descr[1]);
 
+	starpu_cublas_set_stream();
 	CUBLASAXPY((int)n, alpha, block_x, 1, block_y, 1);
 }
 #endif

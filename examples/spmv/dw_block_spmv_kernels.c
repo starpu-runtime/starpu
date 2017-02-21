@@ -43,6 +43,7 @@ static inline void common_block_spmv(void *descr[], int s, STARPU_ATTRIBUTE_UNUS
 			break;
 #ifdef STARPU_USE_CUDA
 		case 1:
+			starpu_cublas_set_stream();
 			cublasSgemv ('t', dx, dy, 1.0f, block, ld, in, 1, 1.0f, out, 1);
 			break;
 #endif

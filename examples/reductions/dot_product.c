@@ -256,6 +256,8 @@ void dot_cuda_func(void *descr[], void *cl_arg)
 	cudaMemcpyAsync(&current_dot, dot, sizeof(DOT_TYPE), cudaMemcpyDeviceToHost, starpu_cuda_get_local_stream());
 	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 
+	if (cublas_version >= 7050)
+		starpu_cublas_set_stream();
 	local_dot = (DOT_TYPE)cublasSdot(n, local_x, 1, local_y, 1);
 
 	/* FPRINTF(stderr, "current_dot %f local dot %f -> %f\n", current_dot, local_dot, current_dot + local_dot); */

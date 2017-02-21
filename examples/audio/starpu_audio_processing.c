@@ -198,6 +198,7 @@ static void band_filter_kernel_gpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *
 
 	localout = plans[workerid].localout;
 
+	starpu_cublas_set_stream();
 	/* FFT */
 	cures = cufftExecR2C(plans[workerid].plan, localA, localout);
 	STARPU_ASSERT(cures == CUFFT_SUCCESS);

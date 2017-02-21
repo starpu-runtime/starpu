@@ -73,3 +73,13 @@ void starpu_cublas_shutdown(void)
 	starpu_execute_on_each_worker(shutdown_cublas_func, NULL, STARPU_CUDA);
 #endif
 }
+
+void starpu_cublas_set_stream(void)
+{
+#ifdef STARPU_USE_CUDA
+	if (
+		(!_starpu_get_machine_config()->topology.cuda_th_per_stream &&
+		 _starpu_get_machine_config()->topology.nworkerpercuda > 1))
+		cublasSetKernelStream(starpu_cuda_get_local_stream());
+#endif
+}

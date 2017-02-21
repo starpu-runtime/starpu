@@ -24,6 +24,7 @@ extern "C"
 #endif
 
 void starpu_cublas_init(void);
+void starpu_cublas_set_stream(void);
 void starpu_cublas_shutdown(void);
 
 #ifdef __cplusplus

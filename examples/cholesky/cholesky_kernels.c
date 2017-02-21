@@ -80,6 +80,8 @@ static inline void chol_common_cpu_codelet_update_u22(void *descr[], int s, STAR
 #ifdef STARPU_USE_CUDA
 #ifdef STARPU_HAVE_MAGMA
 		cublasSetKernelStream(starpu_cuda_get_local_stream());
+#else
+		starpu_cublas_set_stream();
 #endif
 		cublasSgemm('n', 't', dy, dx, dz, 
 				-1.0f, left, ld21, right, ld12, 
@@ -129,6 +131,8 @@ static inline void chol_common_codelet_update_u21(void *descr[], int s, STARPU_A
 		case 1:
 #ifdef STARPU_HAVE_MAGMA
 			cublasSetKernelStream(starpu_cuda_get_local_stream());
+#else
+			starpu_cublas_set_stream();
 #endif
 			cublasStrsm('R', 'L', 'T', 'N', nx21, ny21, 1.0f, sub11, ld11, sub21, ld21);
 			break;
@@ -205,6 +209,8 @@ static inline void chol_common_codelet_update_u11(void *descr[], int s, STARPU_A
 #if (MAGMA_VERSION_MAJOR > 1) || (MAGMA_VERSION_MAJOR == 1 && MAGMA_VERSION_MINOR >= 4)
 			cublasSetKernelStream(starpu_cuda_get_local_stream());
 			magmablasSetKernelStream(starpu_cuda_get_local_stream());
+#else
+			starpu_cublas_set_stream();
 #endif
 			ret = magma_spotrf_gpu(MagmaLower, nx, sub11, ld, &info);
 			if (ret != MAGMA_SUCCESS)

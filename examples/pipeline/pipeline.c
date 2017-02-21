@@ -101,6 +101,7 @@ void pipeline_cublas_axpy(void *descr[], void *arg)
 	float *y = (float *) STARPU_VECTOR_GET_PTR(descr[1]);
 	int n = STARPU_VECTOR_GET_NX(descr[0]);
 
+	starpu_cublas_set_stream();
 	cublasSaxpy(n, 1., x, 1, y, 1);
 	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
@@ -143,6 +144,7 @@ void pipeline_cublas_sum(void *descr[], void *arg)
 	int n = STARPU_VECTOR_GET_NX(descr[0]);
 	float y;
 
+	starpu_cublas_set_stream();
 	y = cublasSasum(n, x, 1);
 
 	cudaStreamSynchronize(starpu_cuda_get_local_stream());
