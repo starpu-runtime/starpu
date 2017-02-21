@@ -444,6 +444,7 @@ unsigned _starpu_get_cuda_device_count(void)
 	return (unsigned)cnt;
 }
 
+/* This is run from initialize to determine the number of CUDA devices */
 void _starpu_init_cuda(void)
 {
 	if (ncudagpus < 0)
@@ -606,7 +607,7 @@ static void execute_job_on_cuda(struct starpu_task *task, struct _starpu_worker 
 	}
 }
 
-/* XXX Should this be merged with _starpu_init_cuda ? */
+/* This is run from the driver to initialize the driver CUDA context */
 int _starpu_cuda_driver_init(struct _starpu_worker_set *worker_set)
 {
 	struct _starpu_worker *worker0 = &worker_set->workers[0];
