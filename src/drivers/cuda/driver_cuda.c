@@ -727,6 +727,7 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 #ifdef STARPU_SIMGRID
 	starpu_pthread_wait_reset(&worker0->wait);
 #endif
+	_starpu_set_local_worker_key(worker0);
 
 	/* First poll for completed jobs */
 	idle_tasks = 0;
