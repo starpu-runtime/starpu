@@ -58,7 +58,7 @@ which will be concurrently running on the devices. The default value is 1.
 \addindex __env__STARPU_CUDA_THREAD_PER_WORKER
 Specify if the cuda driver should provide a thread per stream or a single thread 
 dealing with all the streams. 0 if one thread per stream, 1 otherwise. The default 
-value is 1.
+value is 0.
 </dd>
 
 <dt>STARPU_CUDA_PIPELINE</dt>
