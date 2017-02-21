@@ -18,32 +18,52 @@
 #include <starpu.h>
 #include <starpu_cuda.h>
 #include <common/config.h>
+#include <core/workers.h>
 
 #ifdef STARPU_USE_CUDA
 #include <cublas.h>
 
+static int cublas_initialized[STARPU_NMAXWORKERS];
+
+static unsigned get_idx(void) {
+	unsigned workerid = starpu_worker_get_id_check();
+	unsigned th_per_stream = _starpu_get_machine_config()->topology.cuda_th_per_stream;
+
+	if (th_per_stream)
+		return workerid;
+	else
+		return starpu_worker_get_devid(workerid);
+}
+
 static void init_cublas_func(void *args STARPU_ATTRIBUTE_UNUSED)
 {
-	cublasStatus cublasst = cublasInit();
-	if (STARPU_UNLIKELY(cublasst))
-		STARPU_CUBLAS_REPORT_ERROR(cublasst);
+	unsigned idx = get_idx();
+	if (STARPU_ATOMIC_ADD(&cublas_initialized[idx], 1) == 1)
+	{
+		cublasStatus cublasst = cublasInit();
+		if (STARPU_UNLIKELY(cublasst))
+			STARPU_CUBLAS_REPORT_ERROR(cublasst);
+	}
+}
 
+static void set_cublas_stream_func(void *args STARPU_ATTRIBUTE_UNUSED)
+{
 	cublasSetKernelStream(starpu_cuda_get_local_stream());
 }
 
 static void shutdown_cublas_func(void *args STARPU_ATTRIBUTE_UNUSED)
 {
-	cublasShutdown();
+	unsigned idx = get_idx();
+	if (STARPU_ATOMIC_ADD(&cublas_initialized[idx], -1) == 0)
+		cublasShutdown();
 }
 #endif
 
-#ifdef STARPU_DEVEL
-#warning FIXME should actually be done once per driver thread only, otherwise shutdown crashes
-#endif
 void starpu_cublas_init(void)
 {
 #ifdef STARPU_USE_CUDA
 	starpu_execute_on_each_worker(init_cublas_func, NULL, STARPU_CUDA);
+	starpu_execute_on_each_worker(set_cublas_stream_func, NULL, STARPU_CUDA);
 #endif
 }
 

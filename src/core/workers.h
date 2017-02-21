@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2016  Université de Bordeaux
+ * Copyright (C) 2009-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016, 2017  CNRS
  * Copyright (C) 2011, 2016  INRIA
  * Copyright (C) 2016  Uppsala University
@@ -243,6 +243,7 @@ struct _starpu_machine_topology
 	/* Actual number of CUDA GPUs used by StarPU. */
 	unsigned ncudagpus;
 	unsigned nworkerpercuda;
+	unsigned cuda_th_per_stream;
 
 	/* Actual number of OpenCL workers used by StarPU. */
 	unsigned nopenclgpus;

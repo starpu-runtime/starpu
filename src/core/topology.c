@@ -1220,7 +1220,7 @@ _starpu_init_machine_config(struct _starpu_machine_config *config, int no_mp_con
 	_starpu_initialize_workers_cuda_gpuid(config);
 
 	/* allow having one worker per stream */
-	unsigned th_per_stream = starpu_get_env_number_default("STARPU_CUDA_THREAD_PER_WORKER", 0);
+	topology->cuda_th_per_stream = starpu_get_env_number_default("STARPU_CUDA_THREAD_PER_WORKER", 0);
 
 	unsigned cudagpu;
 	for (cudagpu = 0; cudagpu < topology->ncudagpus; cudagpu++)
@@ -1233,7 +1233,7 @@ _starpu_init_machine_config(struct _starpu_machine_config *config, int no_mp_con
 		for (i = 0; i < nworker_per_cuda; i++)
 		{
 			int worker_idx = worker_idx0 + i;
-			if(th_per_stream)
+			if(topology->cuda_th_per_stream)
 			{
 				/* Just one worker in the set */
 				config->workers[worker_idx].set = (struct _starpu_worker_set *)calloc(1, sizeof(struct _starpu_worker_set));
@@ -1454,7 +1454,7 @@ _starpu_init_machine_config(struct _starpu_machine_config *config, int no_mp_con
 #endif /* STARPU_USE_MPI_MASTER_SLAVE */
 			unsigned cuda_busy_cpus = 0;
 #if defined(STARPU_USE_CUDA)
-			cuda_busy_cpus = th_per_stream ? (nworker_per_cuda * topology->ncudagpus) : 
+			cuda_busy_cpus = topology->cuda_th_per_stream ? (nworker_per_cuda * topology->ncudagpus) : 
 				topology->ncudagpus;
 #endif
 			unsigned already_busy_cpus = mpi_ms_busy_cpus + mic_busy_cpus 
@@ -1731,7 +1731,6 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 	unsigned cuda_init[STARPU_MAXCUDADEVS] = { };
 	unsigned cuda_memory_nodes[STARPU_MAXCUDADEVS];
 	unsigned cuda_bindid[STARPU_MAXCUDADEVS];
-	unsigned th_per_stream = starpu_get_env_number_default("STARPU_CUDA_THREAD_PER_WORKER", 0);
 #endif
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 	unsigned opencl_init[STARPU_MAXOPENCLDEVS] = { };
@@ -1814,7 +1813,7 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 				if (cuda_init[devid])
 				{
 					memory_node = cuda_memory_nodes[devid];
-					if (th_per_stream == 0)
+					if (config->topology.cuda_th_per_stream == 0)
 						workerarg->bindid = cuda_bindid[devid];
 					else
 						workerarg->bindid = _starpu_get_next_bindid(config, preferred_binding, npreferred);
