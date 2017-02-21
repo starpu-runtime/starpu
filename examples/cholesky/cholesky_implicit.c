@@ -47,6 +47,8 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 	unsigned long n = starpu_matrix_get_nx(dataA);
 	unsigned long nn = n/nblocks;
 
+	unsigned unbound_prio = STARPU_MAX_PRIO == INT_MAX && STARPU_MIN_PRIO == INT_MIN;
+
 	if (bound_p || bound_lp_p || bound_mps_p)
 		starpu_bound_start(bound_deps_p, 0);
 	starpu_fxt_start_profiling();
@@ -60,7 +62,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
                 starpu_data_handle_t sdatakk = starpu_data_get_sub_data(dataA, 2, k, k);
 
                 ret = starpu_task_insert(&cl11,
-					 STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : 2*nblocks - 2*k,
+					 STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : unbound_prio ? 2*nblocks - 2*k : STARPU_MAX_PRIO,
 					 STARPU_RW, sdatakk,
 					 STARPU_CALLBACK, (k == 3*nblocks/4)?callback_turn_spmd_on:NULL,
 					 STARPU_FLOPS, (double) FLOPS_SPOTRF(nn),
@@ -74,7 +76,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
                         starpu_data_handle_t sdatakj = starpu_data_get_sub_data(dataA, 2, k, j);
 
                         ret = starpu_task_insert(&cl21,
-						 STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : 2*nblocks - 2*k - j,
+						 STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : unbound_prio ? 2*nblocks - 2*k - j : (j == k+1)?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
 						 STARPU_R, sdatakk,
 						 STARPU_RW, sdatakj,
 						 STARPU_FLOPS, (double) FLOPS_STRSM(nn, nn),
@@ -96,7 +98,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 					starpu_data_handle_t sdataij = starpu_data_get_sub_data(dataA, 2, i, j);
 
 					ret = starpu_task_insert(&cl22,
-								 STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : 2*nblocks - 2*k - j - i,
+								 STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : unbound_prio ? 2*nblocks - 2*k - j - i : ((i == k+1) && (j == k+1))?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
 								 STARPU_R, sdataki,
 								 STARPU_R, sdatakj,
 								 cl22.modes[2], sdataij,
