@@ -1439,19 +1439,19 @@ _starpu_init_machine_config(struct _starpu_machine_config *config, int no_mp_con
 			for (j = 0; j < STARPU_MAXMICDEVS; j++)
 				mic_busy_cpus += (topology->nmiccores[j] ? 1 : 0);
 
-            unsigned mpi_ms_busy_cpus = 0;
+			unsigned mpi_ms_busy_cpus = 0;
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 #ifdef STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD
-            for (j = 0; j < STARPU_MAXMPIDEVS; j++)
-                    mpi_ms_busy_cpus += (topology->nmpicores[j] ? 1 : 0);
+			for (j = 0; j < STARPU_MAXMPIDEVS; j++)
+				mpi_ms_busy_cpus += (topology->nmpicores[j] ? 1 : 0);
 #else
-            mpi_ms_busy_cpus = 1; /* we launch one thread to control all slaves */
+			mpi_ms_busy_cpus = 1; /* we launch one thread to control all slaves */
 #endif
 #endif /* STARPU_USE_MPI_MASTER_SLAVE */
-	    unsigned cuda_busy_cpus = 0;
+			unsigned cuda_busy_cpus = 0;
 #if defined(STARPU_USE_CUDA)
-	    cuda_busy_cpus = th_per_stream ? (nworker_per_cuda * topology->ncudagpus) : 
-		    topology->ncudagpus;
+			cuda_busy_cpus = th_per_stream ? (nworker_per_cuda * topology->ncudagpus) : 
+				topology->ncudagpus;
 #endif
 			unsigned already_busy_cpus = mpi_ms_busy_cpus + mic_busy_cpus 
 				+ cuda_busy_cpus
