@@ -885,6 +885,7 @@ _starpu_init_mic_config (struct _starpu_machine_config *config,
 	/* _starpu_initialize_workers_mic_deviceid (config); */
 
 	mic_worker_set[mic_idx].workers = &config->workers[topology->nworkers];
+	mic_worker_set[mic_idx].nworkers = topology->nmiccores[mic_idx];
 	unsigned miccore_id;
 	for (miccore_id = 0; miccore_id < topology->nmiccores[mic_idx]; miccore_id++)
 	{
@@ -948,6 +949,7 @@ _starpu_init_mpi_config (struct _starpu_machine_config *config,
                         mpi_idx, topology->nmpicores[mpi_idx], topology->nworkers, STARPU_NMAXWORKERS);
 
         mpi_worker_set[mpi_idx].workers = &config->workers[topology->nworkers];
+        mpi_worker_set[mpi_idx].nworkers = topology->nmpicores[mpi_idx];
         unsigned mpicore_id;
         for (mpicore_id = 0; mpicore_id < topology->nmpicores[mpi_idx]; mpicore_id++)
         {
@@ -1226,6 +1228,7 @@ _starpu_init_machine_config(struct _starpu_machine_config *config, int no_mp_con
 		int devid = _starpu_get_next_cuda_gpuid(config);
 		int worker_idx0 = topology->nworkers + cudagpu * nworker_per_cuda;
 		cuda_worker_set[devid].workers = &config->workers[worker_idx0];
+		cuda_worker_set[devid].nworkers = nworker_per_cuda;
 
 		for (i = 0; i < nworker_per_cuda; i++)
 		{
@@ -1235,6 +1238,7 @@ _starpu_init_machine_config(struct _starpu_machine_config *config, int no_mp_con
 				/* Just one worker in the set */
 				config->workers[worker_idx].set = (struct _starpu_worker_set *)calloc(1, sizeof(struct _starpu_worker_set));
 				config->workers[worker_idx].set->workers = &config->workers[worker_idx];
+				config->workers[worker_idx].set->nworkers = 1;
 			}
 			else
 				config->workers[worker_idx].set = &cuda_worker_set[devid];
@@ -1727,9 +1731,7 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 	unsigned cuda_init[STARPU_MAXCUDADEVS] = { };
 	unsigned cuda_memory_nodes[STARPU_MAXCUDADEVS];
 	unsigned cuda_bindid[STARPU_MAXCUDADEVS];
-#  ifndef STARPU_SIMGRID
 	unsigned th_per_stream = starpu_get_env_number_default("STARPU_CUDA_THREAD_PER_WORKER", 0);
-#  endif
 #endif
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 	unsigned opencl_init[STARPU_MAXOPENCLDEVS] = { };
@@ -1812,12 +1814,10 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 				if (cuda_init[devid])
 				{
 					memory_node = cuda_memory_nodes[devid];
-#ifndef STARPU_SIMGRID
 					if (th_per_stream == 0)
 						workerarg->bindid = cuda_bindid[devid];
 					else
 						workerarg->bindid = _starpu_get_next_bindid(config, preferred_binding, npreferred);
-#endif /* SIMGRID */
 				}
 				else
 				{

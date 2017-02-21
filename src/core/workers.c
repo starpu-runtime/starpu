@@ -651,10 +651,6 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 #endif
 	STARPU_AYU_INIT();
 
-#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
-	unsigned th_per_stream = starpu_get_env_number_default("STARPU_CUDA_THREAD_PER_WORKER", 0);
-#endif
-
 	for (worker = 0; worker < nworkers; worker++)
 	{
 		struct _starpu_worker *workerarg = &pconfig->workers[worker];
@@ -709,20 +705,6 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 					/* We are not the first worker of the
 					 * set, don't start a thread for it. */
 					break;
-
-				if(th_per_stream == 0)
-				{
-					worker_set->nworkers = starpu_get_env_number_default("STARPU_NWORKER_PER_CUDA", 1);
-#ifndef STARPU_NON_BLOCKING_DRIVERS
-					if (worker_set->nworkers > 1)
-					{
-						_STARPU_DISP("Warning: reducing STARPU_NWORKER_PER_CUDA to 1 because blocking drivers are enabled\n");
-						worker_set->nworkers = 1;
-					}
-#endif
-				}
-				else
-					worker_set->nworkers = 1;
 
 				worker_set->set_is_initialized = 0;
 
@@ -781,8 +763,6 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				if (worker_set->workers != workerarg)
 					break;
 
-				worker_set->nworkers = pconfig->topology.nmiccores[devid];
-
 				worker_set->set_is_initialized = 0;
 
 				STARPU_PTHREAD_CREATE_ON(
@@ -836,8 +816,6 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				 * workers of this device. (by using a worker set). */
 				if (worker_set->workers != workerarg)
 					break;
-
-				worker_set->nworkers = pconfig->topology.nmpicores[devid];
 
 				worker_set->set_is_initialized = 0;
 
