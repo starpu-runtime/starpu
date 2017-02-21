@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <strings.h>
+#include <limits.h>
 
 #define _STARPU_INITIAL_PLACES_LIST_SIZE      4
 #define _STARPU_INITIAL_PLACE_ITEMS_LIST_SIZE 4
