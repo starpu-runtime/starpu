@@ -110,8 +110,8 @@ void _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum 
 		if (do_execute && mpi_rank != me)
 		{
 			/* The node is going to execute the codelet, but it does not own the data, it needs to receive the data from the owner node */
-			void *already_received = _starpu_mpi_cache_received_data_set(data, mpi_rank);
-			if (already_received == NULL)
+			int already_received = _starpu_mpi_cache_received_data_set(data);
+			if (already_received == 0)
 			{
 				_STARPU_MPI_DEBUG(1, "Receiving data %p from %d\n", data, mpi_rank);
 				starpu_mpi_irecv_detached(data, mpi_rank, data_tag, comm, NULL, NULL);
@@ -122,8 +122,8 @@ void _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum 
 		if (!do_execute && mpi_rank == me)
 		{
 			/* The node owns the data, but another node is going to execute the codelet, the node needs to send the data to the executee node. */
-			void *already_sent = _starpu_mpi_cache_sent_data_set(data, xrank);
-			if (already_sent == NULL)
+			int already_sent = _starpu_mpi_cache_sent_data_set(data, xrank);
+			if (already_sent == 0)
 			{
 				_STARPU_MPI_DEBUG(1, "Sending data %p to %d\n", data, xrank);
 				_SEND_DATA(data, mode, xrank, data_tag, comm, NULL, NULL);
@@ -165,14 +165,14 @@ void _starpu_mpi_exchange_data_after_execution(starpu_data_handle_t data, enum s
 }
 
 static
-void _starpu_mpi_clear_data_after_execution(starpu_data_handle_t data, enum starpu_data_access_mode mode, int me, int do_execute, MPI_Comm comm)
+void _starpu_mpi_clear_data_after_execution(starpu_data_handle_t data, enum starpu_data_access_mode mode, int me, int do_execute)
 {
 	if (_starpu_cache_enabled)
 	{
 		if (mode & STARPU_W || mode & STARPU_REDUX)
 		{
 			/* The data has been modified, it MUST be removed from the cache */
-			_starpu_mpi_cache_sent_data_clear(comm, data);
+			_starpu_mpi_cache_sent_data_clear(data);
 			_starpu_mpi_cache_received_data_clear(data);
 		}
 	}
@@ -503,7 +503,7 @@ int _starpu_mpi_task_postbuild_v(MPI_Comm comm, int xrank, int do_execute, struc
 	for(i=0 ; i<nb_data ; i++)
 	{
 		_starpu_mpi_exchange_data_after_execution(descrs[i].handle, descrs[i].mode, me, xrank, do_execute, comm);
-		_starpu_mpi_clear_data_after_execution(descrs[i].handle, descrs[i].mode, me, do_execute, comm);
+		_starpu_mpi_clear_data_after_execution(descrs[i].handle, descrs[i].mode, me, do_execute);
 	}
 
 	free(descrs);

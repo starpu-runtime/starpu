@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+ * Copyright (C) 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  * Copyright (C) 2011-2015  Université de Bordeaux
  * Copyright (C) 2014 INRIA
  *
@@ -102,7 +102,7 @@ int _starpu_mpi_tag_data_release(starpu_data_handle_t handle)
 		struct handle_tag_entry *tag_entry;
 
 		_starpu_spin_lock(&registered_tag_handles_lock);
-		HASH_FIND_INT(registered_tag_handles, &(((struct _starpu_mpi_node_tag *)(handle->mpi_data))->data_tag), tag_entry);
+		HASH_FIND_INT(registered_tag_handles, &(((struct _starpu_mpi_data *)(handle->mpi_data))->node_tag.data_tag), tag_entry);
 		STARPU_ASSERT_MSG((tag_entry != NULL),"Data handle %p with tag %d isn't in the hashmap !",handle,tag);
 
 		HASH_DEL(registered_tag_handles, tag_entry);
