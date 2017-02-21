@@ -1764,7 +1764,7 @@ int starpu_worker_get_count_by_type(enum starpu_worker_archtype type)
 			return _starpu_config.topology.ncpus;
 
 		case STARPU_CUDA_WORKER:
-			return _starpu_config.topology.ncudagpus;
+			return _starpu_config.topology.ncudagpus * _starpu_config.topology.nworkerpercuda;
 
 		case STARPU_OPENCL_WORKER:
 			return _starpu_config.topology.nopenclgpus;
@@ -1780,7 +1780,7 @@ int starpu_worker_get_count_by_type(enum starpu_worker_archtype type)
 
                 case STARPU_ANY_WORKER:
                         return _starpu_config.topology.ncpus+
-                                _starpu_config.topology.ncudagpus+
+				_starpu_config.topology.ncudagpus * _starpu_config.topology.nworkerpercuda+
                                 _starpu_config.topology.nopenclgpus+
                                 _starpu_config.topology.nmicdevices+
                                 _starpu_config.topology.nsccdevices+
@@ -1802,7 +1802,7 @@ unsigned starpu_cpu_worker_get_count(void)
 
 unsigned starpu_cuda_worker_get_count(void)
 {
-	return _starpu_config.topology.ncudagpus;
+	return _starpu_config.topology.ncudagpus * _starpu_config.topology.nworkerpercuda;
 }
 
 unsigned starpu_opencl_worker_get_count(void)

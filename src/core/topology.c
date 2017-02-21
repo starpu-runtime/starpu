@@ -1212,6 +1212,7 @@ _starpu_init_machine_config(struct _starpu_machine_config *config, int no_mp_con
 
 	/* Now we know how many CUDA devices will be used */
 	topology->ncudagpus = ncuda;
+	topology->nworkerpercuda = nworker_per_cuda;
 	STARPU_ASSERT(topology->ncudagpus <= STARPU_MAXCUDADEVS);
 
 	_starpu_initialize_workers_cuda_gpuid(config);

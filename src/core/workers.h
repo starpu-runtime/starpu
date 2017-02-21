@@ -240,8 +240,9 @@ struct _starpu_machine_topology
 	/* Actual number of CPU workers used by StarPU. */
 	unsigned ncpus;
 
-	/* Actual number of CUDA workers used by StarPU. */
+	/* Actual number of CUDA GPUs used by StarPU. */
 	unsigned ncudagpus;
+	unsigned nworkerpercuda;
 
 	/* Actual number of OpenCL workers used by StarPU. */
 	unsigned nopenclgpus;
