@@ -79,13 +79,13 @@ test_cpu(void)
 	if (ret == -EINVAL)
 		return 1;
 
-
 	struct starpu_driver d =
 	{
 		.type = STARPU_CPU_WORKER,
 		.id.cpu_id = 0
 	};
 
+	conf.ncpus = 1;
 	conf.not_launched_drivers = &d;
 	conf.n_not_launched_drivers = 1;
 
@@ -137,13 +137,13 @@ test_cuda(void)
 	if (ret == -EINVAL)
 		return 1;
 
-
 	struct starpu_driver d =
 	{
 		.type = STARPU_CUDA_WORKER,
 		.id.cuda_id = 0
 	};
 
+	conf.ncpus = 0;
 	conf.ncuda = 1;
 	conf.nopencl = 0;
 	conf.not_launched_drivers = &d;
@@ -229,6 +229,7 @@ test_opencl(void)
 		.id.opencl_id = device_id
 	};
 
+	conf.ncpus = 0;
 	conf.ncuda = 0;
 	conf.nopencl = 1;
 	conf.not_launched_drivers = &d;
