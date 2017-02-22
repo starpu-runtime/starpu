@@ -36,6 +36,7 @@ static void usage()
         fprintf(stderr, "   -c                  use a different colour for every type of task\n");
         fprintf(stderr, "   -no-counter         set the FxT no counter option\n");
         fprintf(stderr, "   -no-bus             set the FxT no bus option\n");
+	fprintf(stderr, "   -no-smooth          avoid smoothing values for gflops etc.\n");
 	fprintf(stderr, "   -h, --help          display this help and exit\n");
 	fprintf(stderr, "   -v, --version       output version information and exit\n\n");
         fprintf(stderr, "Report bugs to <"PACKAGE_BUGREPORT">.");
@@ -86,6 +87,13 @@ static int parse_args(int argc, char **argv)
 		if (strcmp(argv[i], "-no-bus") == 0)
 		{
 			options.no_bus = 1;
+			reading_input_filenames = 0;
+			continue;
+		}
+
+		if (strcmp(argv[i], "-no-smooth") == 0)
+		{
+			options.no_smooth = 1;
 			reading_input_filenames = 0;
 			continue;
 		}
