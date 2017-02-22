@@ -714,7 +714,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 
 
 				STARPU_PTHREAD_CREATE_ON(
-					workerarg->name,
+					conf->topology.cuda_th_per_dev ? "CUDA" : workerarg->name,
 					&worker_set->worker_thread,
 					NULL,
 					_starpu_cuda_worker,
