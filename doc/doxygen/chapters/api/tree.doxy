@@ -1,6 +1,6 @@
 /*
  * This file is part of the StarPU Handbook.
- * Copyright (C) 2014, 2016  CNRS
+ * Copyright (C) 2014, 2016, 2017  CNRS
  * See the file version.doxy for copying conditions.
  */
 
@@ -11,17 +11,17 @@
 \struct starpu_tree
 \ingroup API_Tree
 \var struct starpu_tree **starpu_tree::nodes
-todo
+    todo
 \var struct starpu_tree *starpu_tree::father
-todo
+    todo
 \var int starpu_tree::arity
-todo
+    todo
 \var int starpu_tree::id
-todo
+    todo
 \var int starpu_tree::level
-todo
+    todo
 \var int starpu_tree::is_pu
-todo
+    todo
 
 \fn void starpu_tree_reset_visited(struct starpu_tree *tree, char *visited)
 \ingroup API_Tree
