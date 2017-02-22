@@ -580,6 +580,28 @@ static void memnode_set_state(double time, const char *prefix, unsigned int memn
 #endif
 }
 
+static void memnode_push_state(double time, const char *prefix, unsigned int memnodeid, const char *name)
+{
+#ifdef STARPU_HAVE_POTI
+	char container[STARPU_POTI_STR_LEN];
+	memmanager_container_alias(container, STARPU_POTI_STR_LEN, prefix, memnodeid);
+	poti_PushState(time, container, "MS", name);
+#else
+	fprintf(out_paje_file, "11	%.9f	%smm%u	MS	%s\n", time, prefix, memnodeid, name);
+#endif
+}
+
+static void memnode_pop_state(double time, const char *prefix, unsigned int memnodeid)
+{
+#ifdef STARPU_HAVE_POTI
+	char container[STARPU_POTI_STR_LEN];
+	memmanager_container_alias(container, STARPU_POTI_STR_LEN, prefix, memnodeid);
+	poti_PopState(time, container, "MS");
+#else
+	fprintf(out_paje_file, "12	%.9f	%smm%u	MS\n", time, prefix, memnodeid);
+#endif
+}
+
 static void worker_set_state(double time, const char *prefix, long unsigned int workerid, const char *name)
 {
 	if (fut_keymask == FUT_KEYMASK0)
@@ -1790,7 +1812,7 @@ static void handle_start_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 		if (out_paje_file)
 		{
 			double time = get_event_time_stamp(ev, options);
-			memnode_set_state(time, prefix, dst, "Co");
+			memnode_push_state(time, prefix, dst, "Co");
 #ifdef STARPU_HAVE_POTI
 			char paje_value[STARPU_POTI_STR_LEN], paje_key[STARPU_POTI_STR_LEN], src_memnode_container[STARPU_POTI_STR_LEN];
 			char program_container[STARPU_POTI_STR_LEN];
@@ -1866,7 +1888,7 @@ static void handle_end_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 		if (out_paje_file)
 		{
 			double time = get_event_time_stamp(ev, options);
-			memnode_set_state(time, prefix, dst, "No");
+			memnode_pop_state(time, prefix, dst);
 #ifdef STARPU_HAVE_POTI
 			char paje_value[STARPU_POTI_STR_LEN], paje_key[STARPU_POTI_STR_LEN];
 			char dst_memnode_container[STARPU_POTI_STR_LEN], program_container[STARPU_POTI_STR_LEN];
@@ -1922,7 +1944,7 @@ static void handle_start_driver_copy_async(struct fxt_ev_64 *ev, struct starpu_f
 
 	if (!options->no_bus)
 		if (out_paje_file)
-			memnode_set_state(get_event_time_stamp(ev, options), prefix, dst, "CoA");
+			memnode_push_state(get_event_time_stamp(ev, options), prefix, dst, "CoA");
 
 }
 
@@ -1934,7 +1956,7 @@ static void handle_end_driver_copy_async(struct fxt_ev_64 *ev, struct starpu_fxt
 
 	if (!options->no_bus)
 		if (out_paje_file)
-			memnode_set_state(get_event_time_stamp(ev, options), prefix, dst, "Co");
+			memnode_pop_state(get_event_time_stamp(ev, options), prefix, dst);
 }
 
 static void handle_memnode_event(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *eventstr)
@@ -1943,6 +1965,22 @@ static void handle_memnode_event(struct fxt_ev_64 *ev, struct starpu_fxt_options
 
 	if (out_paje_file)
 		memnode_set_state(get_event_time_stamp(ev, options), options->file_prefix, memnode, eventstr);
+}
+
+static void handle_push_memnode_event(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *eventstr)
+{
+	unsigned memnode = ev->param[0];
+
+	if (out_paje_file)
+		memnode_push_state(get_event_time_stamp(ev, options), options->file_prefix, memnode, eventstr);
+}
+
+static void handle_pop_memnode_event(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	unsigned memnode = ev->param[0];
+
+	if (out_paje_file)
+		memnode_pop_state(get_event_time_stamp(ev, options), options->file_prefix, memnode);
 }
 
 static void handle_used_mem(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -2929,16 +2967,16 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 
 			case _STARPU_FUT_START_ALLOC:
 				if (!options->no_bus)
-					handle_memnode_event(&ev, options, "A");
+					handle_push_memnode_event(&ev, options, "A");
 				break;
 			case _STARPU_FUT_START_ALLOC_REUSE:
 				if (!options->no_bus)
-					handle_memnode_event(&ev, options, "Ar");
+					handle_push_memnode_event(&ev, options, "Ar");
 				break;
 			case _STARPU_FUT_END_ALLOC:
 			case _STARPU_FUT_END_ALLOC_REUSE:
 				if (!options->no_bus)
-				handle_memnode_event(&ev, options, "No");
+					handle_pop_memnode_event(&ev, options);
 				break;
 			case _STARPU_FUT_START_FREE:
 				if (!options->no_bus)
