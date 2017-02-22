@@ -167,6 +167,16 @@ cudaStream_t starpu_cuda_get_local_in_transfer_stream()
 	return stream;
 }
 
+cudaStream_t starpu_cuda_get_in_transfer_stream(unsigned dst_node)
+{
+	int dst_devid = _starpu_memory_node_get_devid(dst_node);
+	cudaStream_t stream;
+
+	stream = in_transfer_streams[dst_devid];
+	STARPU_ASSERT(stream);
+	return stream;
+}
+
 cudaStream_t starpu_cuda_get_local_out_transfer_stream()
 {
 	int worker = starpu_worker_get_id_check();
@@ -178,20 +188,23 @@ cudaStream_t starpu_cuda_get_local_out_transfer_stream()
 	return stream;
 }
 
+cudaStream_t starpu_cuda_get_out_transfer_stream(unsigned src_node)
+{
+	int src_devid = _starpu_memory_node_get_devid(src_node);
+	cudaStream_t stream;
+
+	stream = out_transfer_streams[src_devid];
+	STARPU_ASSERT(stream);
+	return stream;
+}
+
 cudaStream_t starpu_cuda_get_peer_transfer_stream(unsigned src_node, unsigned dst_node)
 {
-	int worker = starpu_worker_get_id_check();
-	int devid = starpu_worker_get_devid(worker);
 	int src_devid = _starpu_memory_node_get_devid(src_node);
 	int dst_devid = _starpu_memory_node_get_devid(dst_node);
 	cudaStream_t stream;
 
-	STARPU_ASSERT(devid == src_devid || devid == dst_devid);
-
-	if (devid == dst_devid)
-		stream = in_peer_transfer_streams[src_devid][dst_devid];
-	else
-		stream = out_peer_transfer_streams[src_devid][dst_devid];
+	stream = in_peer_transfer_streams[src_devid][dst_devid];
 	STARPU_ASSERT(stream);
 	return stream;
 }
