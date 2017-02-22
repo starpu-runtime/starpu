@@ -347,7 +347,7 @@ static void init_device_context(unsigned devid, unsigned memnode)
 	if (STARPU_UNLIKELY(cures))
 		STARPU_CUDA_REPORT_ERROR(cures);
 
-	unsigned i;
+	int i;
 	for (i = 0; i < ncudagpus; i++)
 	{
 		cures = starpu_cudaStreamCreate(&in_peer_transfer_streams[i][devid]);
@@ -394,7 +394,7 @@ static void init_worker_context(unsigned workerid)
 #ifndef STARPU_SIMGRID
 static void deinit_device_context(unsigned devid)
 {
-	unsigned i;
+	int i;
 
 	cudaStreamDestroy(in_transfer_streams[devid]);
 	cudaStreamDestroy(out_transfer_streams[devid]);
