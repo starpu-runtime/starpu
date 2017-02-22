@@ -66,6 +66,10 @@ void _starpu_redux_init_data_replicate(starpu_data_handle_t handle, struct _star
 			break;
 		case STARPU_CUDA_WORKER:
 			init_func = _starpu_task_get_cuda_nth_implementation(init_cl, 0);
+#if defined(HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
+			/* We make sure we do manipulate the proper device */
+			starpu_cuda_set_device(starpu_worker_get_devid(workerid));
+#endif
 			break;
 		case STARPU_OPENCL_WORKER:
 			init_func = _starpu_task_get_opencl_nth_implementation(init_cl, 0);
