@@ -207,6 +207,7 @@ STARPU_EXAMPLES +=				\
 if !STARPU_SIMGRID
 STARPU_EXAMPLES +=				\
 	basic_examples/hello_world		\
+	basic_examples/topology			\
 	basic_examples/vector_scal		\
 	basic_examples/mult			\
 	basic_examples/block			\

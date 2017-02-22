@@ -35,6 +35,8 @@ Small features:
   * New configure option --enable-mpi-pedantic-isend (disabled by
     default) to acquire data in STARPU_RW (instead of STARPU_R) before
     performing MPI_Isend call
+  * New function starpu_worker_display_names to display the names of
+    all the workers of a specified type.
 
 Changes:
   * Vastly improve simgrid simulation time.

@@ -233,6 +233,11 @@ ensuring that \p dst is a valid pointer to a buffer of \p maxlen bytes
 at least. Calling this function on an invalid identifier results in an
 unspecified behaviour.
 
+\fn void starpu_worker_display_names(FILE *output, enum starpu_worker_archtype type)
+\ingroup API_Workers_Properties
+Display on \output the list (if any) of all the workers of the given
+\p type.
+
 \fn unsigned starpu_worker_get_memory_node(unsigned workerid)
 \ingroup API_Workers_Properties
 Return the identifier of the memory node associated to the worker

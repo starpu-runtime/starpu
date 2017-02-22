@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2013, 2016  Université de Bordeaux
- * Copyright (C) 2010-2014  CNRS
+ * Copyright (C) 2010-2014, 2017  CNRS
  * Copyright (C) 2016, 2017  INRIA
  * Copyright (C) 2016  Uppsala University
  *
@@ -116,6 +116,8 @@ int starpu_worker_get_by_type(enum starpu_worker_archtype type, int num);
 int starpu_worker_get_by_devid(enum starpu_worker_archtype type, int devid);
 
 void starpu_worker_get_name(int id, char *dst, size_t maxlen);
+
+void starpu_worker_display_names(FILE *output, enum starpu_worker_archtype type);
 
 int starpu_worker_get_devid(int id);
 
