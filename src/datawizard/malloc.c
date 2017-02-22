@@ -529,12 +529,12 @@ _starpu_malloc_on_node(unsigned dst_node, size_t size, int flags)
 			STARPU_ASSERT(last[dst_node] >= addr);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&cuda_alloc_mutex);
 #else
-			struct _starpu_worker *worker = _starpu_get_local_worker_key();
 			unsigned devid = _starpu_memory_node_get_devid(dst_node);
-			if (!worker || worker->arch != STARPU_CUDA_WORKER || worker->devid != devid)
 #if defined(HAVE_CUDA_MEMCPY_PEER)
-				starpu_cuda_set_device(devid);
+			starpu_cuda_set_device(devid);
 #else
+			struct _starpu_worker *worker = _starpu_get_local_worker_key();
+			if (!worker || worker->arch != STARPU_CUDA_WORKER || worker->devid != devid)
 				STARPU_ASSERT_MSG(0, "CUDA peer access is not available with this version of CUDA");
 #endif
 			status = cudaMalloc((void **)&addr, size);
