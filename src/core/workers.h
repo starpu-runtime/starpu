@@ -244,6 +244,7 @@ struct _starpu_machine_topology
 	unsigned ncudagpus;
 	unsigned nworkerpercuda;
 	unsigned cuda_th_per_stream;
+	unsigned cuda_th_per_dev;
 
 	/* Actual number of OpenCL workers used by StarPU. */
 	unsigned nopenclgpus;

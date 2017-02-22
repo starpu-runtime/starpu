@@ -27,12 +27,16 @@ static int cublas_initialized[STARPU_NMAXWORKERS];
 
 static unsigned get_idx(void) {
 	unsigned workerid = starpu_worker_get_id_check();
+	unsigned th_per_dev = _starpu_get_machine_config()->topology.cuda_th_per_dev;
 	unsigned th_per_stream = _starpu_get_machine_config()->topology.cuda_th_per_stream;
 
-	if (th_per_stream)
+	if (th_per_dev)
+		return starpu_worker_get_devid(workerid);
+	else if (th_per_stream)
 		return workerid;
 	else
-		return starpu_worker_get_devid(workerid);
+		/* same thread for all devices */
+		return 0;
 }
 
 static void init_cublas_func(void *args STARPU_ATTRIBUTE_UNUSED)
@@ -76,10 +80,8 @@ void starpu_cublas_shutdown(void)
 
 void starpu_cublas_set_stream(void)
 {
-#ifdef STARPU_USE_CUDA
-	if (
+	if (!_starpu_get_machine_config()->topology.cuda_th_per_dev ||
 		(!_starpu_get_machine_config()->topology.cuda_th_per_stream &&
 		 _starpu_get_machine_config()->topology.nworkerpercuda > 1))
 		cublasSetKernelStream(starpu_cuda_get_local_stream());
-#endif
 }
