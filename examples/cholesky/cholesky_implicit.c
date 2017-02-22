@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2016  Université de Bordeaux
+ * Copyright (C) 2009-2017  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012, 2013, 2016, 2017  CNRS
  *
@@ -139,11 +139,13 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 		{
 			FILE *f = fopen("cholesky.lp", "w");
 			starpu_bound_print_lp(f);
+			fclose(f);
 		}
 		if (bound_mps_p)
 		{
 			FILE *f = fopen("cholesky.mps", "w");
 			starpu_bound_print_mps(f);
+			fclose(f);
 		}
 		if (bound_p)
 		{
