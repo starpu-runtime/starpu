@@ -173,6 +173,7 @@ static int _starpu_src_common_handle_async(struct _starpu_mp_node *node,
 /* Handle all message which have been stored in the message_queue */
 static void _starpu_src_common_handle_stored_async(struct _starpu_mp_node *node)
 {
+	int stopped_progress = 0;
 	STARPU_PTHREAD_MUTEX_LOCK(&node->message_queue_mutex);
 	/* while the list is not empty */
 	while(!mp_message_list_empty(&node->message_queue))
@@ -180,6 +181,8 @@ static void _starpu_src_common_handle_stored_async(struct _starpu_mp_node *node)
 		/* We pop a message and handle it */
 		struct mp_message * message = mp_message_list_pop_back(&node->message_queue);
                 /* Release mutex during handle */
+		stopped_progress = 1;
+		_STARPU_TRACE_END_PROGRESS(memnode);
                 STARPU_PTHREAD_MUTEX_UNLOCK(&node->message_queue_mutex);
 		_starpu_src_common_handle_async(node, message->buffer,
 				message->size, message->type, 1);
@@ -189,6 +192,8 @@ static void _starpu_src_common_handle_stored_async(struct _starpu_mp_node *node)
                 STARPU_PTHREAD_MUTEX_LOCK(&node->message_queue_mutex);
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&node->message_queue_mutex);
+	if (stopped_progress)
+		_STARPU_TRACE_START_PROGRESS(memnode);
 }
 
 /* Store a message if is asynchronous
@@ -951,6 +956,7 @@ static void _starpu_src_common_worker_internal_work(struct _starpu_worker_set * 
 		{
 			struct _starpu_job * j = _starpu_get_job_associated_to_task(task);
 
+			_STARPU_TRACE_END_PROGRESS(memnode);
 			_starpu_set_local_worker_key(&worker_set->workers[i]);
 			_starpu_release_fetch_task_input_async(j, &worker_set->workers[i]);
 
@@ -973,25 +979,29 @@ static void _starpu_src_common_worker_internal_work(struct _starpu_worker_set * 
 
 			/* Reset it */
 			worker_set->workers[i].task_transferring = NULL;
+			_STARPU_TRACE_START_PROGRESS(memnode);
 		}
 	}
 
-        _STARPU_TRACE_START_PROGRESS(memnode);
         res |= __starpu_datawizard_progress(1, 1);
-        _STARPU_TRACE_END_PROGRESS(memnode);
 
         /* Handle message which have been store */
         _starpu_src_common_handle_stored_async(mp_node);
 
         STARPU_PTHREAD_MUTEX_LOCK(&mp_node->connection_mutex);
 
+	unsigned stopped_progress = 0;
         /* poll the device for completed jobs.*/
         while(mp_node->mp_recv_is_ready(mp_node))
         {
+		stopped_progress = 1;
+		_STARPU_TRACE_END_PROGRESS(memnode);
                 _starpu_src_common_recv_async(mp_node);
                 /* Mutex is unlock in _starpu_src_common_recv_async */
                 STARPU_PTHREAD_MUTEX_LOCK(&mp_node->connection_mutex);
         }
+	if (stopped_progress)
+		_STARPU_TRACE_START_PROGRESS(memnode);
 
         STARPU_PTHREAD_MUTEX_UNLOCK(&mp_node->connection_mutex);
 
@@ -1011,9 +1021,11 @@ static void _starpu_src_common_worker_internal_work(struct _starpu_worker_set * 
 		{
 			if(tasks[i] != NULL)
 			{
+				_STARPU_TRACE_END_PROGRESS(memnode);
 				_starpu_set_local_worker_key(&worker_set->workers[i]);
 				int ret = _starpu_fetch_task_input(tasks[i], _starpu_get_job_associated_to_task(tasks[i]), 1);
 				STARPU_ASSERT(!ret);
+				_STARPU_TRACE_START_PROGRESS(memnode);
 			}
 		}
 
@@ -1055,6 +1067,7 @@ void _starpu_src_common_workers_set(struct _starpu_worker_set * worker_set,
                 _starpu_src_common_send_workers(mp_node[device], baseworkerid, worker_set[device].nworkers);
         }
 
+        _STARPU_TRACE_START_PROGRESS(memnode);
         /*main loop*/
         while (_starpu_machine_is_running())
         {
@@ -1065,6 +1078,7 @@ void _starpu_src_common_workers_set(struct _starpu_worker_set * worker_set,
                 }
         }
         free(tasks);
+        _STARPU_TRACE_END_PROGRESS(memnode);
 
         for (device = 0; device < ndevices; device++)
                 _starpu_handle_all_pending_node_data_requests(memnode[device]);
@@ -1090,12 +1104,14 @@ void _starpu_src_common_worker(struct _starpu_worker_set * worker_set,
 
         _starpu_src_common_send_workers(mp_node, baseworkerid, worker_set->nworkers);
 
+        _STARPU_TRACE_START_PROGRESS(memnode);
         /*main loop*/
         while (_starpu_machine_is_running())
         {
                 _starpu_src_common_worker_internal_work(worker_set, mp_node, tasks, memnode);
         }
         free(tasks);
+        _STARPU_TRACE_END_PROGRESS(memnode);
 
         _starpu_handle_all_pending_node_data_requests(memnode);
 

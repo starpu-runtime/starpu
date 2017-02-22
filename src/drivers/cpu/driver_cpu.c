@@ -326,18 +326,20 @@ int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
 	pending_task = cpu_worker->task_transferring;
 	if (pending_task != NULL && cpu_worker->nb_buffers_transferred == cpu_worker->nb_buffers_totransfer)
 	{
+		int ret;
+		_STARPU_TRACE_END_PROGRESS(memnode);
 		j = _starpu_get_job_associated_to_task(pending_task);
 
 		_starpu_release_fetch_task_input_async(j, cpu_worker);
 		/* Reset it */
 		cpu_worker->task_transferring = NULL;
 
-		return _starpu_cpu_driver_execute_task(cpu_worker, pending_task, j);
+		ret = _starpu_cpu_driver_execute_task(cpu_worker, pending_task, j);
+		_STARPU_TRACE_START_PROGRESS(memnode);
+		return ret;
 	}
 
-	_STARPU_TRACE_START_PROGRESS(memnode);
 	res = __starpu_datawizard_progress(1, 1);
-	_STARPU_TRACE_END_PROGRESS(memnode);
 
 	if (!pending_task)
 		task = _starpu_get_worker_task(cpu_worker, workerid, memnode);
@@ -364,6 +366,7 @@ int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
 		return 0;
 	}
 
+	_STARPU_TRACE_END_PROGRESS(memnode);
 	/* Get the rank in case it is a parallel task */
 	if (j->task_size > 1)
 	{
@@ -382,8 +385,12 @@ int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
 		res = _starpu_fetch_task_input(task, j, 1);
 		STARPU_ASSERT(res == 0);
 	}
-	else
-		return _starpu_cpu_driver_execute_task(cpu_worker, task, j);
+	else {
+		int ret = _starpu_cpu_driver_execute_task(cpu_worker, task, j);
+		_STARPU_TRACE_END_PROGRESS(memnode);
+		return ret;
+	}
+	_STARPU_TRACE_END_PROGRESS(memnode);
 	return 0;
 }
 
@@ -411,11 +418,13 @@ _starpu_cpu_worker(void *arg)
 	struct _starpu_worker *args = arg;
 
 	_starpu_cpu_driver_init(args);
+	_STARPU_TRACE_END_PROGRESS(args->memory_node);
 	while (_starpu_machine_is_running())
 	{
 		_starpu_may_pause();
 		_starpu_cpu_driver_run_once(args);
 	}
+	_STARPU_TRACE_START_PROGRESS(args->memory_node);
 	_starpu_cpu_driver_deinit(args);
 
 	return NULL;

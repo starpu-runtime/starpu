@@ -737,7 +737,6 @@ int _starpu_cuda_driver_init(struct _starpu_worker_set *worker_set)
 int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 {
 	struct _starpu_worker *worker0 = &worker_set->workers[0];
-	unsigned memnode = worker0->memory_node;
 	struct starpu_task *tasks[worker_set->nworkers], *task;
 	struct _starpu_job *j;
 	int i, res;
@@ -756,6 +755,7 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 	{
 		struct _starpu_worker *worker = &worker_set->workers[i];
 		int workerid = worker->workerid;
+		unsigned memnode = worker->memory_node;
 
 		if (!worker->ntasks)
 			idle_tasks++;
@@ -874,7 +874,7 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 	res |= __starpu_datawizard_progress(1, 1);
 
 	/* And pull tasks */
-	res |= _starpu_get_multi_worker_task(worker_set->workers, tasks, worker_set->nworkers, memnode);
+	res |= _starpu_get_multi_worker_task(worker_set->workers, tasks, worker_set->nworkers, worker0->memory_node);
 
 #ifdef STARPU_SIMGRID
 	if (!res)
@@ -887,6 +887,7 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 	for (i = 0; i < (int) worker_set->nworkers; i++)
 	{
 		struct _starpu_worker *worker = &worker_set->workers[i];
+		unsigned memnode STARPU_ATTRIBUTE_UNUSED = worker->memory_node;
 
 		task = tasks[i];
 		if (!task)
@@ -974,17 +975,20 @@ int _starpu_cuda_driver_deinit(struct _starpu_worker_set *worker_set)
 
 void *_starpu_cuda_worker(void *_arg)
 {
-	struct _starpu_worker_set* worker = _arg;
+	struct _starpu_worker_set* worker_set = _arg;
+	unsigned i;
 
-	_starpu_cuda_driver_init(worker);
-	_STARPU_TRACE_START_PROGRESS(memnode);
+	_starpu_cuda_driver_init(worker_set);
+	for (i = 0; i < worker_set->nworkers; i++)
+		_STARPU_TRACE_START_PROGRESS(worker_set->workers[i].memory_node);
 	while (_starpu_machine_is_running())
 	{
 		_starpu_may_pause();
-		_starpu_cuda_driver_run_once(worker);
+		_starpu_cuda_driver_run_once(worker_set);
 	}
-	_STARPU_TRACE_END_PROGRESS(memnode);
-	_starpu_cuda_driver_deinit(worker);
+	for (i = 0; i < worker_set->nworkers; i++)
+		_STARPU_TRACE_END_PROGRESS(worker_set->workers[i].memory_node);
+	_starpu_cuda_driver_deinit(worker_set);
 
 	return NULL;
 }
