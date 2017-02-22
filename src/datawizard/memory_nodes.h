@@ -74,23 +74,13 @@ extern struct _starpu_memory_node_descr _starpu_descr;
 
 void _starpu_memory_nodes_init(void);
 void _starpu_memory_nodes_deinit(void);
-extern starpu_pthread_key_t _starpu_memory_node_key STARPU_ATTRIBUTE_INTERNAL;
-static inline void _starpu_memory_node_set_local_key(unsigned *node)
-{
-	STARPU_PTHREAD_SETSPECIFIC(_starpu_memory_node_key, node);
-}
 
 static inline unsigned _starpu_memory_node_get_local_key(void)
 {
-	unsigned *memory_node;
-	memory_node = (unsigned *) STARPU_PTHREAD_GETSPECIFIC(_starpu_memory_node_key);
-
-	/* in case this is called by the programmer, we assume the RAM node
-	   is the appropriate memory node ... XXX */
-	if (STARPU_UNLIKELY(!memory_node))
+	struct _starpu_worker *worker = _starpu_get_local_worker_key();
+	if (!worker)
 		return STARPU_MAIN_RAM;
-
-	return *memory_node;
+	return worker->memory_node;
 }
 
 static inline void _starpu_memory_node_add_nworkers(unsigned node)

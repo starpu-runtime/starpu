@@ -612,8 +612,6 @@ void _starpu_driver_start(struct _starpu_worker *worker, unsigned fut_key, unsig
 	_starpu_fxt_register_thread(worker->bindid);
 	_starpu_worker_start(worker, fut_key, sync);
 #endif
-	_starpu_memory_node_set_local_key(&worker->memory_node);
-
 	_starpu_set_local_worker_key(worker);
 
 	STARPU_PTHREAD_MUTEX_LOCK(&worker->mutex);

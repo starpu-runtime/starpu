@@ -34,7 +34,6 @@ struct starpu_save_thread_env
         struct starpu_task * current_task;
         struct _starpu_worker * current_worker;
         struct _starpu_worker_set * current_worker_set;
-        unsigned * current_mem_node;
 #ifdef STARPU_OPENMP
         struct starpu_omp_thread * current_omp_thread;
         struct starpu_omp_task * current_omp_task;
@@ -874,7 +873,6 @@ void _starpu_src_common_init_switch_env(unsigned this)
         save_thread_env[this].current_task = starpu_task_get_current();
         save_thread_env[this].current_worker = STARPU_PTHREAD_GETSPECIFIC(_starpu_worker_key);
         save_thread_env[this].current_worker_set = STARPU_PTHREAD_GETSPECIFIC(_starpu_worker_set_key);
-        save_thread_env[this].current_mem_node = STARPU_PTHREAD_GETSPECIFIC(_starpu_memory_node_key);
 #ifdef STARPU_OPENMP
         save_thread_env[this].current_omp_thread = STARPU_PTHREAD_GETSPECIFIC(omp_thread_key);
         save_thread_env[this].current_omp_task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
@@ -886,7 +884,6 @@ static void _starpu_src_common_switch_env(unsigned old, unsigned new)
         save_thread_env[old].current_task = starpu_task_get_current();
         save_thread_env[old].current_worker = STARPU_PTHREAD_GETSPECIFIC(_starpu_worker_key);
         save_thread_env[old].current_worker_set = STARPU_PTHREAD_GETSPECIFIC(_starpu_worker_set_key);
-        save_thread_env[old].current_mem_node = STARPU_PTHREAD_GETSPECIFIC(_starpu_memory_node_key);
 #ifdef STARPU_OPENMP
         save_thread_env[old].current_omp_thread = STARPU_PTHREAD_GETSPECIFIC(omp_thread_key);
         save_thread_env[old].current_omp_task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
@@ -896,7 +893,6 @@ static void _starpu_src_common_switch_env(unsigned old, unsigned new)
         _starpu_set_current_task(save_thread_env[new].current_task);
         STARPU_PTHREAD_SETSPECIFIC(_starpu_worker_key, save_thread_env[new].current_worker);
         STARPU_PTHREAD_SETSPECIFIC(_starpu_worker_set_key, save_thread_env[new].current_worker_set);
-        STARPU_PTHREAD_SETSPECIFIC(_starpu_memory_node_key, save_thread_env[new].current_mem_node);
 #ifdef STARPU_OPENMP
         STARPU_PTHREAD_SETSPECIFIC(omp_thread_key, save_thread_env[new].current_omp_thread);
         STARPU_PTHREAD_SETSPECIFIC(omp_task_key, save_thread_env[new].current_omp_task); 
