@@ -119,9 +119,9 @@ static unsigned _starpu_attempt_to_submit_data_request(unsigned request_from_cod
 		return _starpu_attempt_to_submit_arbitered_data_request(request_from_codelet, handle, mode, callback, argcb, j, buffer_index);
 
 	/* Do not care about some flags */
-	mode &= STARPU_COMMUTE;
-	mode &= STARPU_SSEND;
-	mode &= STARPU_LOCALITY;
+	mode &= ~STARPU_COMMUTE;
+	mode &= ~STARPU_SSEND;
+	mode &= ~STARPU_LOCALITY;
 	if (mode == STARPU_RW)
 		mode = STARPU_W;
 
