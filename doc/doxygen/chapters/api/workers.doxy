@@ -235,7 +235,7 @@ unspecified behaviour.
 
 \fn void starpu_worker_display_names(FILE *output, enum starpu_worker_archtype type)
 \ingroup API_Workers_Properties
-Display on \output the list (if any) of all the workers of the given
+Display on \p output the list (if any) of all the workers of the given
 \p type.
 
 \fn unsigned starpu_worker_get_memory_node(unsigned workerid)
