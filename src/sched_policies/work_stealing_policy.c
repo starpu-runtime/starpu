@@ -26,6 +26,7 @@
 #include <starpu_scheduler.h>
 #include <core/sched_policy.h>
 #include <core/debug.h>
+#include <core/task.h>
 
 /* Experimental (dead) code which needs to be tested, fixed... */
 /* #define USE_OVERLOAD */

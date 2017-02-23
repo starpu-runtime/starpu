@@ -18,6 +18,7 @@
 #include <starpu_sched_component.h>
 #include <core/workers.h>
 #include <core/sched_policy.h>
+#include <core/task.h>
 
 static double compute_relative_speedup(struct starpu_sched_component * component)
 {

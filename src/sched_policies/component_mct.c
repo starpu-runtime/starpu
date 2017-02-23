@@ -22,11 +22,12 @@
 #include "helper_mct.h"
 #include <float.h>
 #include <core/sched_policy.h>
+#include <core/task.h>
 
 static int mct_push_task(struct starpu_sched_component * component, struct starpu_task * task)
 {
 	STARPU_ASSERT(component && task && starpu_sched_component_is_mct(component));
-	struct _starpu_mct_data * d = component->data;	
+	struct _starpu_mct_data * d = component->data;
 	struct starpu_sched_component * best_component = NULL;
 
 	/* Estimated task duration for each child */

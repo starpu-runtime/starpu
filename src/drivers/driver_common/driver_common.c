@@ -29,7 +29,7 @@
 #include <core/sched_policy.h>
 #include <top/starpu_top_core.h>
 #include <core/debug.h>
-
+#include <core/task.h>
 
 #define BACKOFF_MAX 32  /* TODO : use parameter to define them */
 #define BACKOFF_MIN 1
