@@ -896,7 +896,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 		struct _starpu_worker *workerarg = &pconfig->workers[worker];
 
 		_STARPU_DEBUG("waiting for worker %u initialization\n", worker);
-#ifndef(STARPU_SIMGRID)
+#ifndef STARPU_SIMGRID
 		if (!workerarg->run_by_starpu)
 			break;
 #endif
