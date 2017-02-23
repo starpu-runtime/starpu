@@ -81,10 +81,10 @@
 #define _STARPU_FUT_USER_DEFINED_START	0x5120
 #define _STARPU_FUT_USER_DEFINED_END	0x5121
 
-#define	_STARPU_FUT_NEW_MEM_NODE		0x5122
+#define	_STARPU_FUT_NEW_MEM_NODE	0x5122
 
 #define	_STARPU_FUT_START_CALLBACK	0x5123
-#define	_STARPU_FUT_END_CALLBACK		0x5124
+#define	_STARPU_FUT_END_CALLBACK	0x5124
 
 #define	_STARPU_FUT_TASK_DONE		0x5125
 #define	_STARPU_FUT_TAG_DONE		0x5126
@@ -115,43 +115,43 @@
 
 #define _STARPU_FUT_TASK_WAIT_FOR_ALL	0x513b
 
-#define _STARPU_FUT_EVENT	0x513c
+#define _STARPU_FUT_EVENT		0x513c
 #define _STARPU_FUT_THREAD_EVENT	0x513d
 
 #define	_STARPU_FUT_CODELET_DETAILS	0x513e
 #define	_STARPU_FUT_CODELET_DATA	0x513f
 
-#define _STARPU_FUT_LOCKING_MUTEX	0x5140	
-#define _STARPU_FUT_MUTEX_LOCKED	0x5141	
+#define _STARPU_FUT_LOCKING_MUTEX	0x5140
+#define _STARPU_FUT_MUTEX_LOCKED	0x5141
 
-#define _STARPU_FUT_UNLOCKING_MUTEX		0x5142	
-#define _STARPU_FUT_MUTEX_UNLOCKED		0x5143	
+#define _STARPU_FUT_UNLOCKING_MUTEX	0x5142
+#define _STARPU_FUT_MUTEX_UNLOCKED	0x5143
 
-#define _STARPU_FUT_TRYLOCK_MUTEX		0x5144	
+#define _STARPU_FUT_TRYLOCK_MUTEX	0x5144
 
-#define _STARPU_FUT_RDLOCKING_RWLOCK	0x5145	
-#define _STARPU_FUT_RWLOCK_RDLOCKED		0x5146	
+#define _STARPU_FUT_RDLOCKING_RWLOCK	0x5145
+#define _STARPU_FUT_RWLOCK_RDLOCKED	0x5146
 
-#define _STARPU_FUT_WRLOCKING_RWLOCK	0x5147	
-#define _STARPU_FUT_RWLOCK_WRLOCKED		0x5148	
+#define _STARPU_FUT_WRLOCKING_RWLOCK	0x5147
+#define _STARPU_FUT_RWLOCK_WRLOCKED	0x5148
 
-#define _STARPU_FUT_UNLOCKING_RWLOCK	0x5149	
-#define _STARPU_FUT_RWLOCK_UNLOCKED		0x514a	
+#define _STARPU_FUT_UNLOCKING_RWLOCK	0x5149
+#define _STARPU_FUT_RWLOCK_UNLOCKED	0x514a
 
-#define _STARPU_FUT_LOCKING_SPINLOCK	0x514b	
-#define _STARPU_FUT_SPINLOCK_LOCKED		0x514c	
+#define _STARPU_FUT_LOCKING_SPINLOCK	0x514b
+#define _STARPU_FUT_SPINLOCK_LOCKED	0x514c
 
-#define _STARPU_FUT_UNLOCKING_SPINLOCK		0x514d	
-#define _STARPU_FUT_SPINLOCK_UNLOCKED		0x514e	
+#define _STARPU_FUT_UNLOCKING_SPINLOCK	0x514d
+#define _STARPU_FUT_SPINLOCK_UNLOCKED	0x514e
 
-#define _STARPU_FUT_TRYLOCK_SPINLOCK		0x514f	
+#define _STARPU_FUT_TRYLOCK_SPINLOCK	0x514f
 
-#define _STARPU_FUT_COND_WAIT_BEGIN		0x5150
-#define _STARPU_FUT_COND_WAIT_END		0x5151
+#define _STARPU_FUT_COND_WAIT_BEGIN	0x5150
+#define _STARPU_FUT_COND_WAIT_END	0x5151
 
-#define _STARPU_FUT_MEMORY_FULL			0x5152
+#define _STARPU_FUT_MEMORY_FULL		0x5152
 
-#define _STARPU_FUT_DATA_LOAD 0x5153
+#define _STARPU_FUT_DATA_LOAD 		0x5153
 
 #define _STARPU_FUT_START_UNPARTITION_ON_TID 0x5154
 #define _STARPU_FUT_END_UNPARTITION_ON_TID 0x5155
@@ -166,7 +166,7 @@
 #define _STARPU_FUT_SCHED_COMPONENT_POP_PRIO 	0x515b
 
 #define	_STARPU_FUT_START_WRITEBACK_ASYNC	0x515c
-#define	_STARPU_FUT_END_WRITEBACK_ASYNC	0x515d
+#define	_STARPU_FUT_END_WRITEBACK_ASYNC		0x515d
 
 #define	_STARPU_FUT_HYPERVISOR_BEGIN    0x5160
 #define	_STARPU_FUT_HYPERVISOR_END	0x5161
@@ -194,7 +194,7 @@
 #define _STARPU_FUT_TASK_BUILD_END	0x5171
 
 #define _STARPU_FUT_TASK_MPI_DECODE_START	0x5172
-#define _STARPU_FUT_TASK_MPI_DECODE_END	0x5173
+#define _STARPU_FUT_TASK_MPI_DECODE_END		0x5173
 
 #define _STARPU_FUT_TASK_MPI_PRE_START	0x5174
 #define _STARPU_FUT_TASK_MPI_PRE_END	0x5175
@@ -208,8 +208,8 @@
 #define _STARPU_FUT_TASK_WAIT_FOR_ALL_START	0x517a
 #define _STARPU_FUT_TASK_WAIT_FOR_ALL_END	0x517b
 
-#define _STARPU_FUT_HANDLE_DATA_REGISTER 0x517c
-#define _STARPU_FUT_DATA_INVALIDATE 0x517d
+#define _STARPU_FUT_HANDLE_DATA_REGISTER	0x517c
+#define _STARPU_FUT_DATA_INVALIDATE		0x517d
 
 #define _STARPU_FUT_START_FETCH_INPUT	0x517e
 #define _STARPU_FUT_END_FETCH_INPUT	0x517f
@@ -688,43 +688,43 @@ do {										\
 
 #define _STARPU_TRACE_START_ALLOC(memnode, size)		\
 	FUT_DO_PROBE3(_STARPU_FUT_START_ALLOC, memnode, _starpu_gettid(), size);
-	
+
 #define _STARPU_TRACE_END_ALLOC(memnode)		\
 	FUT_DO_PROBE2(_STARPU_FUT_END_ALLOC, memnode, _starpu_gettid());
 
 #define _STARPU_TRACE_START_ALLOC_REUSE(memnode, size)		\
 	FUT_DO_PROBE3(_STARPU_FUT_START_ALLOC_REUSE, memnode, _starpu_gettid(), size);
-	
+
 #define _STARPU_TRACE_END_ALLOC_REUSE(memnode)		\
 	FUT_DO_PROBE2(_STARPU_FUT_END_ALLOC_REUSE, memnode, _starpu_gettid());
-	
+
 #define _STARPU_TRACE_START_FREE(memnode, size)		\
 	FUT_DO_PROBE3(_STARPU_FUT_START_FREE, memnode, _starpu_gettid(), size);
-	
+
 #define _STARPU_TRACE_END_FREE(memnode)		\
 	FUT_DO_PROBE2(_STARPU_FUT_END_FREE, memnode, _starpu_gettid());
 
 #define _STARPU_TRACE_START_WRITEBACK(memnode)		\
 	FUT_DO_PROBE2(_STARPU_FUT_START_WRITEBACK, memnode, _starpu_gettid());
-	
+
 #define _STARPU_TRACE_END_WRITEBACK(memnode)		\
 	FUT_DO_PROBE2(_STARPU_FUT_END_WRITEBACK, memnode, _starpu_gettid());
 
 #define _STARPU_TRACE_USED_MEM(memnode,used)		\
 	FUT_DO_PROBE3(_STARPU_FUT_USED_MEM, memnode, used, _starpu_gettid());
-	
+
 #define _STARPU_TRACE_START_MEMRECLAIM(memnode,is_prefetch)		\
 	FUT_DO_PROBE3(_STARPU_FUT_START_MEMRECLAIM, memnode, is_prefetch, _starpu_gettid());
-	
+
 #define _STARPU_TRACE_END_MEMRECLAIM(memnode, is_prefetch)		\
 	FUT_DO_PROBE3(_STARPU_FUT_END_MEMRECLAIM, memnode, is_prefetch, _starpu_gettid());
-	
+
 #define _STARPU_TRACE_START_WRITEBACK_ASYNC(memnode)		\
 	FUT_DO_PROBE2(_STARPU_FUT_START_WRITEBACK_ASYNC, memnode, _starpu_gettid());
-	
+
 #define _STARPU_TRACE_END_WRITEBACK_ASYNC(memnode)		\
 	FUT_DO_PROBE2(_STARPU_FUT_END_WRITEBACK_ASYNC, memnode, _starpu_gettid());
-	
+
 /* We skip these events becasue they are called so often that they cause FxT to
  * fail and make the overall trace unreadable anyway. */
 #define _STARPU_TRACE_START_PROGRESS(memnode)		\
@@ -732,7 +732,7 @@ do {										\
 
 #define _STARPU_TRACE_END_PROGRESS(memnode)		\
 	FUT_DO_PROBE2(_STARPU_FUT_END_PROGRESS_ON_TID, memnode, _starpu_gettid());
-	
+
 #define _STARPU_TRACE_USER_EVENT(code)			\
 	FUT_DO_PROBE2(_STARPU_FUT_USER_EVENT, code, _starpu_gettid());
 
@@ -754,7 +754,7 @@ do {										\
 #define _STARPU_TRACE_HYPERVISOR_END() \
 	FUT_DO_PROBE1(_STARPU_FUT_HYPERVISOR_END, _starpu_gettid());
 
-#ifdef STARPU_FXT_LOCK_TRACES 
+#ifdef STARPU_FXT_LOCK_TRACES
 
 #define _STARPU_TRACE_LOCKING_MUTEX()	do { \
 	const char *file; \
@@ -892,24 +892,24 @@ do {										\
 
 #define _STARPU_TRACE_LOCKING_MUTEX()			do {} while(0)
 #define _STARPU_TRACE_MUTEX_LOCKED()			do {} while(0)
-#define _STARPU_TRACE_UNLOCKING_MUTEX()		do {} while(0)
-#define _STARPU_TRACE_MUTEX_UNLOCKED()		do {} while(0)
+#define _STARPU_TRACE_UNLOCKING_MUTEX()			do {} while(0)
+#define _STARPU_TRACE_MUTEX_UNLOCKED()			do {} while(0)
 #define _STARPU_TRACE_TRYLOCK_MUTEX()			do {} while(0)
 #define _STARPU_TRACE_RDLOCKING_RWLOCK()		do {} while(0)
-#define _STARPU_TRACE_RWLOCK_RDLOCKED()		do {} while(0)
+#define _STARPU_TRACE_RWLOCK_RDLOCKED()			do {} while(0)
 #define _STARPU_TRACE_WRLOCKING_RWLOCK()		do {} while(0)
-#define _STARPU_TRACE_RWLOCK_WRLOCKED()		do {} while(0)
+#define _STARPU_TRACE_RWLOCK_WRLOCKED()			do {} while(0)
 #define _STARPU_TRACE_UNLOCKING_RWLOCK()		do {} while(0)
-#define _STARPU_TRACE_RWLOCK_UNLOCKED()		do {} while(0)
-#define _STARPU_TRACE_LOCKING_SPINLOCK(file, line)		do {} while(0)
-#define _STARPU_TRACE_SPINLOCK_LOCKED(file, line)		do {} while(0)
-#define _STARPU_TRACE_UNLOCKING_SPINLOCK(file, line)	do {} while(0)
-#define _STARPU_TRACE_SPINLOCK_UNLOCKED(file, line)		do {} while(0)
-#define _STARPU_TRACE_TRYLOCK_SPINLOCK(file, line)		do {} while(0)
-#define _STARPU_TRACE_COND_WAIT_BEGIN()		do {} while(0)
+#define _STARPU_TRACE_RWLOCK_UNLOCKED()			do {} while(0)
+#define _STARPU_TRACE_LOCKING_SPINLOCK(file, line)	do {(void) file; (void)line;} while(0)
+#define _STARPU_TRACE_SPINLOCK_LOCKED(file, line)	do {(void) file; (void)line;} while(0)
+#define _STARPU_TRACE_UNLOCKING_SPINLOCK(file, line)	do {(void) file; (void)line;} while(0)
+#define _STARPU_TRACE_SPINLOCK_UNLOCKED(file, line)	do {(void) file; (void)line} while(0)
+#define _STARPU_TRACE_TRYLOCK_SPINLOCK(file, line)	do {(void) file; (void)line} while(0)
+#define _STARPU_TRACE_COND_WAIT_BEGIN()			do {} while(0)
 #define _STARPU_TRACE_COND_WAIT_END()			do {} while(0)
 #define _STARPU_TRACE_BARRIER_WAIT_BEGIN()		do {} while(0)
-#define _STARPU_TRACE_BARRIER_WAIT_END()			do {} while(0)
+#define _STARPU_TRACE_BARRIER_WAIT_END()		do {} while(0)
 
 #endif // STARPU_FXT_LOCK_TRACES
 
@@ -921,7 +921,7 @@ do {										\
 
 #define _STARPU_TRACE_START_UNPARTITION(handle, memnode)		\
 	FUT_DO_PROBE3(_STARPU_FUT_START_UNPARTITION_ON_TID, memnode, _starpu_gettid(), handle);
-	
+
 #define _STARPU_TRACE_END_UNPARTITION(handle, memnode)		\
 	FUT_DO_PROBE3(_STARPU_FUT_END_UNPARTITION_ON_TID, memnode, _starpu_gettid(), handle);
 
@@ -950,49 +950,49 @@ do {										\
 #define _STARPU_TRACE_DATA_INVALIDATE(handle, node)		\
 	FUT_DO_PROBE2(_STARPU_FUT_DATA_INVALIDATE, handle, node)
 #else
-#define _STARPU_TRACE_DATA_INVALIDATE(handle, node)	do {} while (0)
+#define _STARPU_TRACE_DATA_INVALIDATE(handle, node)	do {(void) handle; (void) node;} while (0)
 #endif
 
 #else // !STARPU_USE_FXT
 
 /* Dummy macros in case FxT is disabled */
-#define _STARPU_TRACE_NEW_MEM_NODE(nodeid)	do {} while(0)
-#define _STARPU_TRACE_WORKER_INIT_START(a,b,c,d,e,f)	do {} while(0)
-#define _STARPU_TRACE_WORKER_INIT_END(workerid)	do {} while(0)
-#define _STARPU_TRACE_START_CODELET_BODY(job, nimpl, perf_arch, workerid)	do {} while(0)
-#define _STARPU_TRACE_END_CODELET_BODY(job, nimpl, perf_arch, workerid)	do {} while(0)
-#define _STARPU_TRACE_START_EXECUTING()	do {} while(0)
-#define _STARPU_TRACE_END_EXECUTING()	do {} while(0)
-#define _STARPU_TRACE_START_CALLBACK(job)	do {} while(0)
-#define _STARPU_TRACE_END_CALLBACK(job)		do {} while(0)
-#define _STARPU_TRACE_JOB_PUSH(task, prio)	do {} while(0)
-#define _STARPU_TRACE_JOB_POP(task, prio)	do {} while(0)
-#define _STARPU_TRACE_UPDATE_TASK_CNT(counter)	do {} while(0)
-#define _STARPU_TRACE_START_FETCH_INPUT(job)	do {} while(0)
-#define _STARPU_TRACE_END_FETCH_INPUT(job)	do {} while(0)
-#define _STARPU_TRACE_START_PUSH_OUTPUT(job)	do {} while(0)
-#define _STARPU_TRACE_END_PUSH_OUTPUT(job)	do {} while(0)
-#define _STARPU_TRACE_TAG(tag, job)	do {} while(0)
-#define _STARPU_TRACE_TAG_DEPS(a, b)	do {} while(0)
-#define _STARPU_TRACE_TASK_DEPS(a, b)		do {} while(0)
-#define _STARPU_TRACE_GHOST_TASK_DEPS(a, b)	do {} while(0)
-#define _STARPU_TRACE_TASK_DONE(a)		do {} while(0)
-#define _STARPU_TRACE_TAG_DONE(a)		do {} while(0)
-#define _STARPU_TRACE_DATA_COPY(a, b, c)		do {} while(0)
-#define _STARPU_TRACE_START_DRIVER_COPY(a,b,c,d,e,f)	do {} while(0)
-#define _STARPU_TRACE_END_DRIVER_COPY(a,b,c,d,e)	do {} while(0)
-#define _STARPU_TRACE_START_DRIVER_COPY_ASYNC(a,b)	do {} while(0)
-#define _STARPU_TRACE_END_DRIVER_COPY_ASYNC(a,b)	do {} while(0)
-#define _STARPU_TRACE_WORK_STEALING(a, b)	do {} while(0)
-#define _STARPU_TRACE_WORKER_DEINIT_START	do {} while(0)
-#define _STARPU_TRACE_WORKER_DEINIT_END(a)	do {} while(0)
+#define _STARPU_TRACE_NEW_MEM_NODE(nodeid)		do {(void)(nodeid);} while(0)
+#define _STARPU_TRACE_WORKER_INIT_START(a,b,c,d,e,f)	do {(void)(a); (void)(b); (void)(c); (void)(d); (void)(e); (void)(f);} while(0)
+#define _STARPU_TRACE_WORKER_INIT_END(workerid)		do {(void)(workerid);} while(0)
+#define _STARPU_TRACE_START_CODELET_BODY(job, nimpl, perf_arch, workerid) 	do {(void)(job); (void)(nimpl); (void)(perf_arch); (void)(workerid);} while(0)
+#define _STARPU_TRACE_END_CODELET_BODY(job, nimpl, perf_arch, workerid)		do {(void)(job); (void)(nimpl); (void)(perf_arch); (void)(workerid);} while(0)
+#define _STARPU_TRACE_START_EXECUTING()		do {} while(0)
+#define _STARPU_TRACE_END_EXECUTING()		do {} while(0)
+#define _STARPU_TRACE_START_CALLBACK(job)	do {(void)(job);} while(0)
+#define _STARPU_TRACE_END_CALLBACK(job)		do {(void)(job);} while(0)
+#define _STARPU_TRACE_JOB_PUSH(task, prio)	do {(void)(task); (void)(prio);} while(0)
+#define _STARPU_TRACE_JOB_POP(task, prio)	do {(void)(task); (void)(prio);} while(0)
+#define _STARPU_TRACE_UPDATE_TASK_CNT(counter)	do {(void)(counter);} while(0)
+#define _STARPU_TRACE_START_FETCH_INPUT(job)	do {(void)(job);} while(0)
+#define _STARPU_TRACE_END_FETCH_INPUT(job)	do {(void)(job);} while(0)
+#define _STARPU_TRACE_START_PUSH_OUTPUT(job)	do {(void)(job);} while(0)
+#define _STARPU_TRACE_END_PUSH_OUTPUT(job)	do {(void)(job);} while(0)
+#define _STARPU_TRACE_TAG(tag, job)		do {(void)(tag); (void)(job);} while(0)
+#define _STARPU_TRACE_TAG_DEPS(a, b)		do {(void)(a); (void)(b);} while(0)
+#define _STARPU_TRACE_TASK_DEPS(a, b)		do {(void)(a); (void)(b);} while(0)
+#define _STARPU_TRACE_GHOST_TASK_DEPS(a, b)	do {(void)(a); (void)(b);} while(0)
+#define _STARPU_TRACE_TASK_DONE(a)		do {(void)(a);} while(0)
+#define _STARPU_TRACE_TAG_DONE(a)		do {(void)(a);} while(0)
+#define _STARPU_TRACE_DATA_COPY(a, b, c)		do {(void)(a); (void)(b); (void)(c);} while(0)
+#define _STARPU_TRACE_START_DRIVER_COPY(a,b,c,d,e,f)	do {(void)(a); (void)(b); (void)(c); (void)(d); (void)(e); (void)(f);} while(0)
+#define _STARPU_TRACE_END_DRIVER_COPY(a,b,c,d,e)	do {(void)(a); (void)(b); (void)(c); (void)(d); (void)(e);} while(0)
+#define _STARPU_TRACE_START_DRIVER_COPY_ASYNC(a,b)	do {(void)(a); (void)(b);} while(0)
+#define _STARPU_TRACE_END_DRIVER_COPY_ASYNC(a,b)	do {(void)(a); (void)(b);} while(0)
+#define _STARPU_TRACE_WORK_STEALING(a, b)		do {(void)(a); (void)(b);} while(0)
+#define _STARPU_TRACE_WORKER_DEINIT_START		do {} while(0)
+#define _STARPU_TRACE_WORKER_DEINIT_END(a)		do {(void)(a);} while(0)
 #define _STARPU_TRACE_WORKER_SCHEDULING_START		do {} while(0)
 #define _STARPU_TRACE_WORKER_SCHEDULING_END		do {} while(0)
 #define _STARPU_TRACE_WORKER_SCHEDULING_PUSH		do {} while(0)
 #define _STARPU_TRACE_WORKER_SCHEDULING_POP		do {} while(0)
 #define _STARPU_TRACE_WORKER_SLEEP_START		do {} while(0)
-#define _STARPU_TRACE_WORKER_SLEEP_END		do {} while(0)
-#define _STARPU_TRACE_TASK_SUBMIT(job)		do {} while(0)
+#define _STARPU_TRACE_WORKER_SLEEP_END			do {} while(0)
+#define _STARPU_TRACE_TASK_SUBMIT(job)			do {(void)(job);} while(0)
 #define _STARPU_TRACE_TASK_SUBMIT_START()		do {} while(0)
 #define _STARPU_TRACE_TASK_SUBMIT_END()			do {} while(0)
 #define _STARPU_TRACE_TASK_BUILD_START()		do {} while(0)
@@ -1003,68 +1003,68 @@ do {										\
 #define _STARPU_TRACE_TASK_MPI_PRE_END()		do {} while(0)
 #define _STARPU_TRACE_TASK_MPI_POST_START()		do {} while(0)
 #define _STARPU_TRACE_TASK_MPI_POST_END()		do {} while(0)
-#define _STARPU_TRACE_TASK_WAIT_START(job)		do {} while(0)
+#define _STARPU_TRACE_TASK_WAIT_START(job)		do {(void)(job);} while(0)
 #define _STARPU_TRACE_TASK_WAIT_END()			do {} while(0)
 #define _STARPU_TRACE_TASK_WAIT_FOR_ALL_START()		do {} while(0)
 #define _STARPU_TRACE_TASK_WAIT_FOR_ALL_END()		do {} while(0)
-#define _STARPU_TRACE_USER_DEFINED_START		do {} while(0)
-#define _STARPU_TRACE_USER_DEFINED_END		do {} while(0)
-#define _STARPU_TRACE_START_ALLOC(memnode, size)	do {} while(0)
-#define _STARPU_TRACE_END_ALLOC(memnode)		do {} while(0)
-#define _STARPU_TRACE_START_ALLOC_REUSE(a, size)	do {} while(0)
-#define _STARPU_TRACE_END_ALLOC_REUSE(a)		do {} while(0)
-#define _STARPU_TRACE_START_FREE(memnode, size)	do {} while(0)
-#define _STARPU_TRACE_END_FREE(memnode)		do {} while(0)
-#define _STARPU_TRACE_START_WRITEBACK(memnode)	do {} while(0)
-#define _STARPU_TRACE_END_WRITEBACK(memnode)		do {} while(0)
-#define _STARPU_TRACE_USED_MEM(memnode,used)		do {} while (0)
-#define _STARPU_TRACE_START_MEMRECLAIM(memnode,is_prefetch)	do {} while(0)
-#define _STARPU_TRACE_END_MEMRECLAIM(memnode,is_prefetch)	do {} while(0)
-#define _STARPU_TRACE_START_WRITEBACK_ASYNC(memnode)	do {} while(0)
-#define _STARPU_TRACE_END_WRITEBACK_ASYNC(memnode)	do {} while(0)
-#define _STARPU_TRACE_START_PROGRESS(memnode)	do {} while(0)
-#define _STARPU_TRACE_END_PROGRESS(memnode)	do {} while(0)
-#define _STARPU_TRACE_USER_EVENT(code)		do {} while(0)
-#define _STARPU_TRACE_SET_PROFILING(status)	do {} while(0)
-#define _STARPU_TRACE_TASK_WAIT_FOR_ALL		do {} while(0)
-#define _STARPU_TRACE_EVENT(S)		do {} while(0)
-#define _STARPU_TRACE_THREAD_EVENT(S)		do {} while(0)
+#define _STARPU_TRACE_USER_DEFINED_START()		do {} while(0)
+#define _STARPU_TRACE_USER_DEFINED_END()		do {} while(0)
+#define _STARPU_TRACE_START_ALLOC(memnode, size)	do {(void)(memnode); (void)(size);} while(0)
+#define _STARPU_TRACE_END_ALLOC(memnode)		do {(void)(memnode);} while(0)
+#define _STARPU_TRACE_START_ALLOC_REUSE(a, size)	do {(void)(a); (void)(size);} while(0)
+#define _STARPU_TRACE_END_ALLOC_REUSE(a)		do {(void)(a);} while(0)
+#define _STARPU_TRACE_START_FREE(memnode, size)		do {(void)(memnode); (void)(size);} while(0)
+#define _STARPU_TRACE_END_FREE(memnode)			do {(void)(memnode);} while(0)
+#define _STARPU_TRACE_START_WRITEBACK(memnode)		do {(void)(memnode);} while(0)
+#define _STARPU_TRACE_END_WRITEBACK(memnode)		do {(void)(memnode);} while(0)
+#define _STARPU_TRACE_USED_MEM(memnode,used)		do {(void)(memnode); (void)(used);} while (0)
+#define _STARPU_TRACE_START_MEMRECLAIM(memnode,is_prefetch)	do {(void)(memnode); (void)(is_prefetch);} while(0)
+#define _STARPU_TRACE_END_MEMRECLAIM(memnode,is_prefetch)	do {(void)(memnode); (void)(is_prefetch);} while(0)
+#define _STARPU_TRACE_START_WRITEBACK_ASYNC(memnode)	do {(void)(memnode);} while(0)
+#define _STARPU_TRACE_END_WRITEBACK_ASYNC(memnode)	do {(void)(memnode);} while(0)
+#define _STARPU_TRACE_START_PROGRESS(memnode)		do {(void)( memnode);} while(0)
+#define _STARPU_TRACE_END_PROGRESS(memnode)		do {(void)( memnode);} while(0)
+#define _STARPU_TRACE_USER_EVENT(code)			do {(void)(code);} while(0)
+#define _STARPU_TRACE_SET_PROFILING(status)		do {(void)(status);} while(0)
+#define _STARPU_TRACE_TASK_WAIT_FOR_ALL()		do {} while(0)
+#define _STARPU_TRACE_EVENT(S)				do {(void)(S);} while(0)
+#define _STARPU_TRACE_THREAD_EVENT(S)			do {(void)(S);} while(0)
 #define _STARPU_TRACE_LOCKING_MUTEX()			do {} while(0)
 #define _STARPU_TRACE_MUTEX_LOCKED()			do {} while(0)
-#define _STARPU_TRACE_UNLOCKING_MUTEX()		do {} while(0)
-#define _STARPU_TRACE_MUTEX_UNLOCKED()		do {} while(0)
+#define _STARPU_TRACE_UNLOCKING_MUTEX()			do {} while(0)
+#define _STARPU_TRACE_MUTEX_UNLOCKED()			do {} while(0)
 #define _STARPU_TRACE_TRYLOCK_MUTEX()			do {} while(0)
 #define _STARPU_TRACE_RDLOCKING_RWLOCK()		do {} while(0)
-#define _STARPU_TRACE_RWLOCK_RDLOCKED()		do {} while(0)
+#define _STARPU_TRACE_RWLOCK_RDLOCKED()			do {} while(0)
 #define _STARPU_TRACE_WRLOCKING_RWLOCK()		do {} while(0)
-#define _STARPU_TRACE_RWLOCK_WRLOCKED()		do {} while(0)
+#define _STARPU_TRACE_RWLOCK_WRLOCKED()			do {} while(0)
 #define _STARPU_TRACE_UNLOCKING_RWLOCK()		do {} while(0)
-#define _STARPU_TRACE_RWLOCK_UNLOCKED()		do {} while(0)
-#define _STARPU_TRACE_LOCKING_SPINLOCK(file, line)		do {} while(0)
-#define _STARPU_TRACE_SPINLOCK_LOCKED(file, line)		do {} while(0)
-#define _STARPU_TRACE_UNLOCKING_SPINLOCK(file, line)	do {} while(0)
-#define _STARPU_TRACE_SPINLOCK_UNLOCKED(file, line)		do {} while(0)
-#define _STARPU_TRACE_TRYLOCK_SPINLOCK(file, line)		do {} while(0)
-#define _STARPU_TRACE_COND_WAIT_BEGIN()		do {} while(0)
+#define _STARPU_TRACE_RWLOCK_UNLOCKED()			do {} while(0)
+#define _STARPU_TRACE_LOCKING_SPINLOCK(file, line)	do {(void)(file); (void)(line);} while(0)
+#define _STARPU_TRACE_SPINLOCK_LOCKED(file, line)	do {(void)(file); (void)(line);} while(0)
+#define _STARPU_TRACE_UNLOCKING_SPINLOCK(file, line)	do {(void)(file); (void)(line);} while(0)
+#define _STARPU_TRACE_SPINLOCK_UNLOCKED(file, line)	do {(void)(file); (void)(line);} while(0)
+#define _STARPU_TRACE_TRYLOCK_SPINLOCK(file, line)	do {(void)(file); (void)(line);} while(0)
+#define _STARPU_TRACE_COND_WAIT_BEGIN()			do {} while(0)
 #define _STARPU_TRACE_COND_WAIT_END()			do {} while(0)
 #define _STARPU_TRACE_BARRIER_WAIT_BEGIN()		do {} while(0)
-#define _STARPU_TRACE_BARRIER_WAIT_END()			do {} while(0)
-#define _STARPU_TRACE_MEMORY_FULL(size)				do {} while(0)
-#define _STARPU_TRACE_DATA_LOAD(workerid,size)		do {} while(0)
-#define _STARPU_TRACE_START_UNPARTITION(handle, memnode)	do {} while(0)
-#define _STARPU_TRACE_END_UNPARTITION(handle, memnode)		do {} while(0)
-#define _STARPU_TRACE_SCHED_COMPONENT_PUSH_PRIO(workerid, ntasks, exp_len)	do {} while(0)
-#define _STARPU_TRACE_SCHED_COMPONENT_POP_PRIO(workerid, ntasks, exp_len)	do {} while(0)
-#define _STARPU_TRACE_HYPERVISOR_BEGIN()        do {} while(0)
+#define _STARPU_TRACE_BARRIER_WAIT_END()		do {} while(0)
+#define _STARPU_TRACE_MEMORY_FULL(size)			do {(void)(size);} while(0)
+#define _STARPU_TRACE_DATA_LOAD(workerid,size)		do {(void)(workerid); (void)(size);} while(0)
+#define _STARPU_TRACE_START_UNPARTITION(handle, memnode) 	do {(void)(handle); (void)(memnode);} while(0)
+#define _STARPU_TRACE_END_UNPARTITION(handle, memnode)		do {(void)(handle); (void)(memnode);} while(0)
+#define _STARPU_TRACE_SCHED_COMPONENT_PUSH_PRIO(workerid, ntasks, exp_len)	do {(void)(workerid); (void)(ntasks); (void)(exp_len);} while(0)
+#define _STARPU_TRACE_SCHED_COMPONENT_POP_PRIO(workerid, ntasks, exp_len)	do {(void)(workerid); (void)(ntasks); (void)(exp_len);} while(0)
+#define _STARPU_TRACE_HYPERVISOR_BEGIN()        	do {} while(0)
 #define _STARPU_TRACE_HYPERVISOR_END()                  do {} while(0)
-#define _STARPU_TRACE_SCHED_COMPONENT_NEW(component)	do {} while (0)
-#define _STARPU_TRACE_SCHED_COMPONENT_CONNECT(parent, child)	do {} while (0)
-#define _STARPU_TRACE_SCHED_COMPONENT_PUSH(from, to, task)	do {} while (0)
-#define _STARPU_TRACE_SCHED_COMPONENT_PULL(from, to, task)	do {} while (0)
-#define _STARPU_TRACE_HANDLE_DATA_REGISTER(handle)	do {} while (0)
-#define _STARPU_TRACE_DATA_INVALIDATE(handle, node)	do {} while (0)
-#define _STARPU_TRACE_WORKER_START_FETCH_INPUT(job, id)	do {} while(0)
-#define _STARPU_TRACE_WORKER_END_FETCH_INPUT(job, id)	do {} while(0)
+#define _STARPU_TRACE_SCHED_COMPONENT_NEW(component)	do {(void)(component);} while (0)
+#define _STARPU_TRACE_SCHED_COMPONENT_CONNECT(parent, child)	do {(void)(parent); (void)(child);} while (0)
+#define _STARPU_TRACE_SCHED_COMPONENT_PUSH(from, to, task)	do {(void)(from); (void)(to); (void)(task);} while (0)
+#define _STARPU_TRACE_SCHED_COMPONENT_PULL(from, to, task)	do {(void)(from); (void)(to); (void)(task);} while (0)
+#define _STARPU_TRACE_HANDLE_DATA_REGISTER(handle)	do {(void)(handle);} while (0)
+#define _STARPU_TRACE_DATA_INVALIDATE(handle, node)	do {(void)(handle); (void)(node);} while (0)
+#define _STARPU_TRACE_WORKER_START_FETCH_INPUT(job, id)	do {(void)(job); (void)(id);} while(0)
+#define _STARPU_TRACE_WORKER_END_FETCH_INPUT(job, id)	do {(void)(job); (void)(id);} while(0)
 
 #endif // STARPU_USE_FXT
 
