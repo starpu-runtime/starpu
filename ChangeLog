@@ -39,6 +39,7 @@ Small features:
     performing MPI_Isend call
   * New function starpu_worker_display_names to display the names of
     all the workers of a specified type.
+  * Arbiters now support concurrent read access.
 
 Changes:
   * Vastly improve simgrid simulation time.
