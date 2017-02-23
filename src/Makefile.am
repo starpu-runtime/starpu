@@ -81,6 +81,7 @@ noinst_HEADERS = 						\
 	core/perfmodel/multiple_regression.h			\
 	core/jobs.h						\
 	core/task.h						\
+	core/drivers.h						\
 	core/workers.h						\
 	core/topology.h						\
 	core/debug.h						\
