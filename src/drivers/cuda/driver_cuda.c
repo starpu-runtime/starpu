@@ -33,6 +33,7 @@
 #include <datawizard/memory_manager.h>
 #include <datawizard/memory_nodes.h>
 #include <datawizard/malloc.h>
+#include <core/task.h>
 
 #ifdef STARPU_SIMGRID
 #include <core/simgrid.h>
@@ -940,12 +941,12 @@ int _starpu_cuda_driver_deinit(struct _starpu_worker_set *worker_set)
                 {
 			/* I'm last, deinitialize device */
 			_starpu_handle_all_pending_node_data_requests(memnode);
-			
+
 			/* In case there remains some memory that was automatically
 			 * allocated by StarPU, we release it now. Note that data
 			 * coherency is not maintained anymore at that point ! */
 			_starpu_free_all_automatically_allocated_buffers(memnode);
-			
+
 			_starpu_malloc_shutdown(memnode);
 
 #ifndef STARPU_SIMGRID
@@ -1112,3 +1113,31 @@ int _starpu_run_cuda(struct _starpu_worker_set *workerarg)
 
 	return 0;
 }
+
+int _starpu_cuda_driver_init_from_worker(struct _starpu_worker *worker)
+{
+	return _starpu_cuda_driver_init(worker->set);
+}
+
+int _starpu_cuda_run_from_worker(struct _starpu_worker *worker)
+{
+	return _starpu_run_cuda(worker->set);
+}
+
+int _starpu_cuda_driver_run_once_from_worker(struct _starpu_worker *worker)
+{
+	return _starpu_cuda_driver_run_once(worker->set);
+}
+
+int _starpu_cuda_driver_deinit_from_worker(struct _starpu_worker *worker)
+{
+	return _starpu_cuda_driver_deinit(worker->set);
+}
+
+struct _starpu_driver_ops _starpu_driver_cuda_ops =
+{
+	.init = _starpu_cuda_driver_init_from_worker,
+	.run = _starpu_cuda_run_from_worker,
+	.run_once = _starpu_cuda_driver_run_once_from_worker,
+	.deinit = _starpu_cuda_driver_deinit_from_worker
+};

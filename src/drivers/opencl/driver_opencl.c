@@ -31,6 +31,7 @@
 #include <datawizard/memory_manager.h>
 #include <datawizard/memory_nodes.h>
 #include <datawizard/malloc.h>
+#include <core/task.h>
 
 #ifdef STARPU_SIMGRID
 #include <core/simgrid.h>
@@ -1083,4 +1084,13 @@ int _starpu_run_opencl(struct _starpu_worker *workerarg)
 
 	return 0;
 }
+
+struct _starpu_driver_ops _starpu_driver_opencl_ops =
+{
+	.init = _starpu_opencl_driver_init,
+	.run = _starpu_run_opencl,
+	.run_once = _starpu_opencl_driver_run_once,
+	.deinit = _starpu_opencl_driver_deinit
+};
+
 #endif /* STARPU_USE_OPENCL */

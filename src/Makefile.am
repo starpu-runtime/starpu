@@ -171,6 +171,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	core/task.c						\
 	core/task_bundle.c					\
 	core/tree.c						\
+	core/drivers.c						\
 	core/workers.c						\
 	core/combined_workers.c					\
 	core/topology.c						\

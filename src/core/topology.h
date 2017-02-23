@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2010, 2012, 2014-2016  Université de Bordeaux
- * Copyright (C) 2010, 2015  CNRS
+ * Copyright (C) 2010, 2015, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -66,6 +66,6 @@ struct _starpu_combined_worker;
 /* Bind the current thread on the set of CPUs for the given combined worker. */
 void _starpu_bind_thread_on_cpus(struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED, struct _starpu_combined_worker *combined_worker);
 
-void *_starpu_get_worker_from_driver(struct starpu_driver *d);
+struct _starpu_worker *_starpu_get_worker_from_driver(struct starpu_driver *d);
 
 #endif // __TOPOLOGY_H__

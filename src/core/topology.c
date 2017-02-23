@@ -87,8 +87,7 @@ static struct _starpu_worker_set mic_worker_set[STARPU_MAXMICDEVS];
 struct _starpu_worker_set mpi_worker_set[STARPU_MAXMPIDEVS];
 #endif
 
-void *
-_starpu_get_worker_from_driver(struct starpu_driver *d)
+struct _starpu_worker *_starpu_get_worker_from_driver(struct starpu_driver *d)
 {
 	unsigned nworkers = starpu_worker_get_count();
 	unsigned workerid;
@@ -121,7 +120,7 @@ _starpu_get_worker_from_driver(struct starpu_driver *d)
 			case STARPU_CUDA_WORKER:
 			{
 				if (worker->devid == d->id.cuda_id)
-					return worker->set;
+					return worker;
 				break;
 
 			}

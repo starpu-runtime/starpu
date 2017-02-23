@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2017  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010-2016  CNRS
+ * Copyright (C) 2010-2017  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2014  INRIA
  *
@@ -27,11 +27,13 @@
 #include <common/utils.h>
 #include <core/debug.h>
 #include <core/workers.h>
-#include "driver_cpu.h"
+#include <core/drivers.h>
+#include <drivers/cpu/driver_cpu.h>
 #include <core/sched_policy.h>
 #include <datawizard/memory_manager.h>
 #include <datawizard/malloc.h>
 #include <core/simgrid.h>
+#include <core/task.h>
 
 #ifdef STARPU_HAVE_HWLOC
 #include <hwloc.h>
@@ -412,8 +414,7 @@ int _starpu_cpu_driver_deinit(struct _starpu_worker *cpu_worker)
 	return 0;
 }
 
-void *
-_starpu_cpu_worker(void *arg)
+void *_starpu_cpu_worker(void *arg)
 {
 	struct _starpu_worker *worker = arg;
 
@@ -430,7 +431,7 @@ _starpu_cpu_worker(void *arg)
 	return NULL;
 }
 
-int _starpu_run_cpu(struct _starpu_worker *worker)
+int _starpu_cpu_driver_run(struct _starpu_worker *worker)
 {
 	worker->set = NULL;
 	worker->worker_is_initialized = 0;
@@ -438,3 +439,11 @@ int _starpu_run_cpu(struct _starpu_worker *worker)
 
 	return 0;
 }
+
+struct _starpu_driver_ops _starpu_driver_cpu_ops =
+{
+	.init = _starpu_cpu_driver_init,
+	.run = _starpu_cpu_driver_run,
+	.run_once = _starpu_cpu_driver_run_once,
+	.deinit = _starpu_cpu_driver_deinit
+};

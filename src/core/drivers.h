@@ -1,7 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2014  Université de Bordeaux
- * Copyright (C) 2010, 2012, 2013, 2017  CNRS
+ * Copyright (C) 2009-2016  Université de Bordeaux
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016, 2017  CNRS
+ * Copyright (C) 2011, 2016  INRIA
+ * Copyright (C) 2016  Uppsala University
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,16 +17,15 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#ifndef __DRIVER_CPU_H__
-#define __DRIVER_CPU_H__
+#ifndef __DRIVERS_H__
+#define __DRIVERS_H__
 
-#include <common/config.h>
+struct _starpu_driver_ops
+{
+	int (*init)(struct _starpu_worker *worker);
+	int (*run)(struct _starpu_worker *worker);
+	int (*run_once)(struct _starpu_worker *worker);
+	int (*deinit)(struct _starpu_worker *worker);
+};
 
-#ifdef STARPU_USE_CPU
-
-extern struct _starpu_driver_ops _starpu_driver_cpu_ops;
-void *_starpu_cpu_worker(void *);
-
-#endif /* !STARPU_USE_CPU */
-
-#endif //  __DRIVER_CPU_H__
+#endif // __DRIVERS_H__

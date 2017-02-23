@@ -552,6 +552,7 @@ static void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu
 	/* name initialized by driver */
 	/* short_name initialized by driver */
 	workerarg->run_by_starpu = 1;
+	workerarg->driver_ops = NULL;
 
 	workerarg->sched_ctx_list = NULL;
 	workerarg->tmp_sched_ctx = -1;
@@ -666,6 +667,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 #if defined(STARPU_USE_CPU) || defined(STARPU_SIMGRID)
 			case STARPU_CPU_WORKER:
 				driver.id.cpu_id = devid;
+				workerarg->driver_ops = &_starpu_driver_cpu_ops;
 				if (_starpu_may_launch_driver(&pconfig->conf, &driver))
 				{
 					STARPU_PTHREAD_CREATE_ON(
@@ -696,6 +698,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 			case STARPU_CUDA_WORKER:
 				driver.id.cuda_id = devid;
+				workerarg->driver_ops = &_starpu_driver_cuda_ops;
 
 				if (worker_set->workers != workerarg)
 					/* We are not the first worker of the
@@ -730,6 +733,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 			case STARPU_OPENCL_WORKER:
 #ifndef STARPU_SIMGRID
 				starpu_opencl_get_device(devid, &driver.id.opencl_id);
+				workerarg->driver_ops = &_starpu_driver_opencl_ops;
 				if (!_starpu_may_launch_driver(&pconfig->conf, &driver))
 				{
 					workerarg->run_by_starpu = 0;
@@ -2146,117 +2150,6 @@ int starpu_worker_get_nids_ctx_free_by_type(enum starpu_worker_archtype type, in
 	}
 
 	return cnt;
-}
-
-
-int
-starpu_driver_run(struct starpu_driver *d)
-{
-	if (!d)
-	{
-		_STARPU_DEBUG("Invalid argument\n");
-		return -EINVAL;
-	}
-
-	void *worker = _starpu_get_worker_from_driver(d);
-
-	switch (d->type)
-	{
-#ifdef STARPU_USE_CPU
-	case STARPU_CPU_WORKER:
-		return _starpu_run_cpu(worker);
-#endif
-#ifdef STARPU_USE_CUDA
-	case STARPU_CUDA_WORKER:
-		return _starpu_run_cuda(worker);
-#endif
-#ifdef STARPU_USE_OPENCL
-	case STARPU_OPENCL_WORKER:
-		return _starpu_run_opencl(worker);
-#endif
-	default:
-		(void) worker;
-		_STARPU_DEBUG("Invalid device type\n");
-		return -EINVAL;
-	}
-}
-
-int
-starpu_driver_init(struct starpu_driver *d)
-{
-	STARPU_ASSERT(d);
-	void *worker = _starpu_get_worker_from_driver(d);
-
-	switch (d->type)
-	{
-#ifdef STARPU_USE_CPU
-	case STARPU_CPU_WORKER:
-		return _starpu_cpu_driver_init(worker);
-#endif
-#ifdef STARPU_USE_CUDA
-	case STARPU_CUDA_WORKER:
-		return _starpu_cuda_driver_init(worker);
-#endif
-#ifdef STARPU_USE_OPENCL
-	case STARPU_OPENCL_WORKER:
-		return _starpu_opencl_driver_init(worker);
-#endif
-	default:
-		(void) worker;
-		return -EINVAL;
-	}
-}
-
-int
-starpu_driver_run_once(struct starpu_driver *d)
-{
-	STARPU_ASSERT(d);
-	void *worker = _starpu_get_worker_from_driver(d);
-
-	switch (d->type)
-	{
-#ifdef STARPU_USE_CPU
-	case STARPU_CPU_WORKER:
-		return _starpu_cpu_driver_run_once(worker);
-#endif
-#ifdef STARPU_USE_CUDA
-	case STARPU_CUDA_WORKER:
-		return _starpu_cuda_driver_run_once(worker);
-#endif
-#ifdef STARPU_USE_OPENCL
-	case STARPU_OPENCL_WORKER:
-		return _starpu_opencl_driver_run_once(worker);
-#endif
-	default:
-		(void) worker;
-		return -EINVAL;
-	}
-}
-
-int
-starpu_driver_deinit(struct starpu_driver *d)
-{
-	STARPU_ASSERT(d);
-	void *worker = _starpu_get_worker_from_driver(d);
-
-	switch (d->type)
-	{
-#ifdef STARPU_USE_CPU
-	case STARPU_CPU_WORKER:
-		return _starpu_cpu_driver_deinit(worker);
-#endif
-#ifdef STARPU_USE_CUDA
-	case STARPU_CUDA_WORKER:
-		return _starpu_cuda_driver_deinit(worker);
-#endif
-#ifdef STARPU_USE_OPENCL
-	case STARPU_OPENCL_WORKER:
-		return _starpu_opencl_driver_deinit(worker);
-#endif
-	default:
-		(void) worker;
-		return -EINVAL;
-	}
 }
 
 void starpu_get_version(int *major, int *minor, int *release)

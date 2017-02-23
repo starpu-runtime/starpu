@@ -36,6 +36,7 @@
 #include <hwloc.h>
 #endif
 
+#include <core/drivers.h>
 #include <drivers/cuda/driver_cuda.h>
 #include <drivers/opencl/driver_opencl.h>
 
@@ -103,6 +104,7 @@ LIST_TYPE(_starpu_worker,
 	char name[64];
 	char short_name[10];
 	unsigned run_by_starpu; /* Is this run by StarPU or directly by the application ? */
+	struct _starpu_driver_ops *driver_ops;
 
 	struct _starpu_sched_ctx_list *sched_ctx_list;
 	int tmp_sched_ctx;
