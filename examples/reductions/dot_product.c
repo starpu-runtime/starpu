@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2015  Université de Bordeaux
  * Copyright (C) 2012 INRIA
- * Copyright (C) 2016  CNRS
+ * Copyright (C) 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -448,10 +448,13 @@ int main(int argc, char **argv)
 	if (fabs(reference_dot - _dot) < reference_dot * 1e-6)
 		return EXIT_SUCCESS;
 	else
+	{
+		FPRINTF(stderr, "ERROR: fabs(%e - %e) >= %e * 1e-6\n", reference_dot, _dot, reference_dot);
 		return EXIT_FAILURE;
+	}
 
 enodev:
-	fprintf(stderr, "WARNING: No one can execute this task\n");
+	FPRINTF(stderr, "WARNING: No one can execute this task\n");
 	/* yes, we do not perform the computation but we did detect that no one
  	 * could perform the kernel, so this is not an error from StarPU */
 	return 77;
