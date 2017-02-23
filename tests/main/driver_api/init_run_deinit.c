@@ -18,6 +18,14 @@
 
 #include "../../helper.h"
 
+#if !defined(STARPU_HAVE_UNSETENV)
+#warning unsetenv is not defined. Skipping test
+int main(int argc, char **argv)
+{
+	return STARPU_TEST_SKIPPED;
+}
+#else
+
 #define NTASKS 8
 
 #if defined(STARPU_USE_CPU) || defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
@@ -66,8 +74,7 @@ deinit_driver(struct starpu_driver *d)
 #endif /* STARPU_USE_CPU || STARPU_USE_CUDA || STARPU_USE_OPENCL */
 
 #ifdef STARPU_USE_CPU
-static int
-test_cpu(void)
+static int test_cpu(void)
 {
 	int var = 0, ret, ncpu;
 	struct starpu_conf conf;
@@ -124,8 +131,7 @@ test_cpu(void)
 #endif /* STARPU_USE_CPU */
 
 #ifdef STARPU_USE_CUDA
-static int
-test_cuda(void)
+static int test_cuda(void)
 {
 	int var = 0, ret, ncuda;
 	struct starpu_conf conf;
@@ -184,8 +190,7 @@ test_cuda(void)
 #endif /* STARPU_USE_CUDA */
 
 #ifdef STARPU_USE_OPENCL
-static int
-test_opencl(void)
+static int test_opencl(void)
 {
         cl_int err;
         cl_platform_id platform;
@@ -245,6 +250,8 @@ test_opencl(void)
 		return STARPU_TEST_SKIPPED;
 	}
 
+	starpu_topology_print(stdout);
+
 	init_driver(&d);
 	int i;
 	for (i = 0; i < NTASKS; i++)
@@ -274,6 +281,11 @@ main(void)
 {
 	int ret = STARPU_TEST_SKIPPED;
 
+	// Ignore environment variables as we want to force the exact number of workers
+	unsetenv("STARPU_NCUDA");
+	unsetenv("STARPU_NOPENCL");
+	unsetenv("STARPU_NCPUS");
+
 #ifdef STARPU_USE_CPU
 	ret = test_cpu();
 	if (ret == 1)
@@ -292,3 +304,4 @@ main(void)
 
 	return ret;
 }
+#endif
