@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016  Université de Bordeaux
+ * Copyright (C) 2016-2017  Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -172,7 +172,11 @@ void _starpu_graph_add_job_dep(struct _starpu_job *job, struct _starpu_job *prev
 	struct _starpu_graph_node *node = job->graph_node;
 	struct _starpu_graph_node *prev_node = prev_job->graph_node;
 	if (!node || !prev_node)
+	{
+		/* Already gone */
+		_starpu_graph_wrunlock();
 		return;
+	}
 
 	if (_starpu_graph_node_multilist_queued_bottom(prev_node))
 		/* Previous node is not at bottom any more */
