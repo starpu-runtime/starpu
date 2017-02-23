@@ -256,8 +256,6 @@ static int test_opencl(void)
 		return STARPU_TEST_SKIPPED;
 	}
 
-	starpu_topology_print(stdout);
-
 	init_driver(&d);
 	int i;
 	for (i = 0; i < NTASKS; i++)
