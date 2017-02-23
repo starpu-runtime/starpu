@@ -86,6 +86,8 @@ test_cpu(void)
 	};
 
 	conf.ncpus = 1;
+	conf.ncuda = 0;
+	conf.nopencl = 0;
 	conf.not_launched_drivers = &d;
 	conf.n_not_launched_drivers = 1;
 
@@ -273,8 +275,7 @@ test_opencl(void)
 }
 #endif /* STARPU_USE_OPENCL */
 
-int
-main(void)
+int main(void)
 {
 	int ret = STARPU_TEST_SKIPPED;
 

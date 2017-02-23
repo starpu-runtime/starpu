@@ -21,7 +21,7 @@
 
 /*
  * Users can directly control drivers by using the starpu_driver* functions.
- * 
+ *
  * This test makes sure that the starpu_driver_run function works for CPU, CUDA
  * and OpenCL drivers, and that the starpu_drivers_request_termination function
  * correctly shuts down all drivers.
@@ -33,8 +33,7 @@
  */
 
 #if defined(STARPU_USE_CPU) || defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
-static void
-dummy(void *buffers[], void *args)
+static void dummy(void *buffers[], void *args)
 {
 	(void) buffers;
 	(*(int *)args)++;
@@ -49,8 +48,7 @@ static struct starpu_codelet cl =
 	.nbuffers     = 0
 };
 
-static void *
-run_driver(void *arg)
+static void *run_driver(void *arg)
 {
 	struct starpu_driver *d = (struct starpu_driver *) arg;
 	int ret = starpu_driver_run(d);
@@ -60,8 +58,7 @@ run_driver(void *arg)
 #endif /* STARPU_USE_CPU || STARPU_USE_CUDA || STARPU_USE_OPENCL */
 
 #ifdef STARPU_USE_CPU
-static int
-test_cpu(void)
+static int test_cpu(void)
 {
 	int ret, var = 0;
 	static starpu_pthread_t driver_thread;
@@ -76,6 +73,8 @@ test_cpu(void)
 	conf.n_not_launched_drivers = 1;
 	conf.not_launched_drivers = &d;
 	conf.ncpus = 1;
+	conf.ncuda = 0;
+	conf.nopencl = 0;
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV || starpu_cpu_worker_get_count() == 0)
 	{
@@ -120,8 +119,7 @@ out2:
 #endif /* STARPU_USE_CPU */
 
 #ifdef STARPU_USE_CUDA
-static int
-test_cuda(void)
+static int test_cuda(void)
 {
 	int ret, var = 0;
 	static starpu_pthread_t driver_thread;
@@ -135,7 +133,9 @@ test_cuda(void)
 	starpu_conf_init(&conf);
 	conf.n_not_launched_drivers = 1;
 	conf.not_launched_drivers = &d;
+	conf.ncpus = 0;
 	conf.ncuda = 1;
+	conf.nopencl = 0;
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV || starpu_cuda_worker_get_count() == 0)
 	{
@@ -176,8 +176,7 @@ out:
 #endif /* STARPU_USE_CUDA */
 
 #ifdef STARPU_USE_OPENCL
-static int
-test_opencl(void)
+static int test_opencl(void)
 {
 	int ret, var = 0;
 	static starpu_pthread_t driver_thread;
@@ -216,6 +215,7 @@ test_opencl(void)
 	starpu_conf_init(&conf);
 	conf.n_not_launched_drivers = 1;
 	conf.not_launched_drivers = &d;
+	conf.ncpus = 1;
 	conf.ncuda = 0;
 	conf.nopencl = 1;
 	ret = starpu_init(&conf);
@@ -257,8 +257,7 @@ out:
 }
 #endif /* STARPU_USE_OPENCL */
 
-int
-main(void)
+int main(void)
 {
 	int ret = STARPU_TEST_SKIPPED;
 #ifdef STARPU_USE_CPU
