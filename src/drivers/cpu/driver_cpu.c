@@ -415,17 +415,17 @@ int _starpu_cpu_driver_deinit(struct _starpu_worker *cpu_worker)
 void *
 _starpu_cpu_worker(void *arg)
 {
-	struct _starpu_worker *args = arg;
+	struct _starpu_worker *worker = arg;
 
-	_starpu_cpu_driver_init(args);
-	_STARPU_TRACE_END_PROGRESS(args->memory_node);
+	_starpu_cpu_driver_init(worker);
+	_STARPU_TRACE_END_PROGRESS(worker->memory_node);
 	while (_starpu_machine_is_running())
 	{
 		_starpu_may_pause();
-		_starpu_cpu_driver_run_once(args);
+		_starpu_cpu_driver_run_once(worker);
 	}
-	_STARPU_TRACE_START_PROGRESS(args->memory_node);
-	_starpu_cpu_driver_deinit(args);
+	_STARPU_TRACE_START_PROGRESS(worker->memory_node);
+	_starpu_cpu_driver_deinit(worker);
 
 	return NULL;
 }
