@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2013 Corentin Salingue
- * Copyright (C) 2015, 2016 CNRS
+ * Copyright (C) 2015, 2016, 2017 CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -26,6 +26,14 @@
 #include <math.h>
 #include <common/config.h>
 #include "../helper.h"
+
+#if !defined(STARPU_HAVE_UNSETENV)
+#warning unsetenv is not defined. Skipping test
+int main(int argc, char **argv)
+{
+	return STARPU_TEST_SKIPPED;
+}
+#else
 
 /*
  * Try to write into disk memory
@@ -67,6 +75,12 @@ int dotest(struct starpu_disk_ops *ops, char *base)
 	int *A, *C;
 
 	/* Initialize StarPU without GPU devices to make sure the memory of the GPU devices will not be used */
+	// Ignore environment variables as we want to force the exact number of workers
+	unsetenv("STARPU_NCUDA");
+	unsetenv("STARPU_NOPENCL");
+	unsetenv("STARPU_NMIC");
+	unsetenv("STARPU_NSCC");
+
 	struct starpu_conf conf;
 	int ret = starpu_conf_init(&conf);
 	if (ret == -EINVAL)
@@ -274,3 +288,4 @@ int main(void)
 	rmdir(s);
 	return ret;
 }
+#endif
