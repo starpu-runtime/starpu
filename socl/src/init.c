@@ -30,6 +30,8 @@ void socl_init_starpu(void) {
   pthread_mutex_lock(&_socl_mutex);
   if( ! _starpu_init ){
     starpu_conf_init(&conf);
+    unsetenv("STARPU_NCPU");
+    unsetenv("STARPU_NCUDA");
     conf.ncuda = 0;
     conf.ncpus = 0;
 
