@@ -21,7 +21,7 @@
 
 static int stats_enabled=0;
 
-void _starpu_mpi_cache_stats_init(MPI_Comm comm)
+void _starpu_mpi_cache_stats_init()
 {
 	stats_enabled = starpu_get_env_number("STARPU_MPI_CACHE_STATS");
 	if (stats_enabled == -1)

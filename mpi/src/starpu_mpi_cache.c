@@ -77,7 +77,7 @@ void _starpu_mpi_cache_init(MPI_Comm comm)
 
 	_starpu_cache_comm = comm;
 	starpu_mpi_comm_size(comm, &_starpu_cache_comm_size);
-	_starpu_mpi_cache_stats_init(comm);
+	_starpu_mpi_cache_stats_init();
 	STARPU_PTHREAD_MUTEX_INIT(&_cache_mutex, NULL);
 }
 
@@ -104,7 +104,7 @@ void _starpu_mpi_cache_data_clear(starpu_data_handle_t data_handle)
 	int i;
 	struct _starpu_mpi_data *mpi_data = data_handle->mpi_data;
 
-	if (_starpu_cache_enabled == 0) return 0;
+	if (_starpu_cache_enabled == 0) return;
 
 	_starpu_mpi_cache_flush(data_handle);
 	for(i=0 ; i<_starpu_cache_comm_size ; i++)
@@ -120,7 +120,7 @@ void _starpu_mpi_cache_data_init(starpu_data_handle_t data_handle)
 	int i;
 	struct _starpu_mpi_data *mpi_data = data_handle->mpi_data;
 
-	if (_starpu_cache_enabled == 0) return 0;
+	if (_starpu_cache_enabled == 0) return;
 
 	STARPU_PTHREAD_MUTEX_INIT(&mpi_data->cache_received_mutex, NULL);
 	mpi_data->cache_received = 0;
@@ -137,7 +137,7 @@ static void _starpu_mpi_cache_data_add(starpu_data_handle_t data_handle)
 {
 	struct _starpu_data_entry *entry;
 
-	if (_starpu_cache_enabled == 0) return 0;
+	if (_starpu_cache_enabled == 0) return;
 
 	STARPU_PTHREAD_MUTEX_LOCK(&_cache_mutex);
 	HASH_FIND_PTR(_cache_data, &data_handle, entry);
@@ -154,7 +154,7 @@ static void _starpu_mpi_cache_data_remove(starpu_data_handle_t data_handle)
 {
 	struct _starpu_data_entry *entry;
 
-	if (_starpu_cache_enabled == 0) return 0;
+	if (_starpu_cache_enabled == 0) return;
 
 	STARPU_PTHREAD_MUTEX_LOCK(&_cache_mutex);
 	HASH_FIND_PTR(_cache_data, &data_handle, entry);
@@ -174,7 +174,7 @@ void _starpu_mpi_cache_received_data_clear(starpu_data_handle_t data_handle)
 	int mpi_rank = starpu_mpi_data_get_rank(data_handle);
 	struct _starpu_mpi_data *mpi_data = data_handle->mpi_data;
 
-	if (_starpu_cache_enabled == 0) return 0;
+	if (_starpu_cache_enabled == 0) return;
 
 	STARPU_ASSERT(mpi_data->magic == 42);
 	STARPU_MPI_ASSERT_MSG(mpi_rank < _starpu_cache_comm_size, "Node %d invalid. Max node is %d\n", mpi_rank, _starpu_cache_comm_size);
@@ -249,7 +249,7 @@ void _starpu_mpi_cache_sent_data_clear(starpu_data_handle_t data_handle)
 	int n, size;
 	struct _starpu_mpi_data *mpi_data = data_handle->mpi_data;
 
-	if (_starpu_cache_enabled == 0) return 0;
+	if (_starpu_cache_enabled == 0) return;
 
 	starpu_mpi_comm_size(mpi_data->node_tag.comm, &size);
 	for(n=0 ; n<size ; n++)
@@ -354,7 +354,7 @@ static void _starpu_mpi_cache_flush_and_invalidate(MPI_Comm comm, starpu_data_ha
 
 void starpu_mpi_cache_flush(MPI_Comm comm, starpu_data_handle_t data_handle)
 {
-	if (_starpu_cache_enabled == 0) return 0;
+	if (_starpu_cache_enabled == 0) return;
 
 	_starpu_mpi_cache_flush_and_invalidate(comm, data_handle);
 	_starpu_mpi_cache_data_remove(data_handle);
