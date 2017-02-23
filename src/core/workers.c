@@ -469,8 +469,7 @@ static void _starpu_init_worker_queue(struct _starpu_worker *workerarg)
 static unsigned _starpu_may_launch_driver(struct starpu_conf *conf,
 					  struct starpu_driver *d)
 {
-	if (conf->n_not_launched_drivers == 0 ||
-	    conf->not_launched_drivers == NULL)
+	if (conf->n_not_launched_drivers == 0 || conf->not_launched_drivers == NULL)
 		return 1;
 
 	/* Is <d> in conf->not_launched_drivers ? */
@@ -893,7 +892,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 		struct _starpu_worker *workerarg = &pconfig->workers[worker];
 
 		_STARPU_DEBUG("waiting for worker %u initialization\n", worker);
-#if defined(STARPU_USE_CPU) || !defined(STARPU_SIMGRID)
+#ifndef(STARPU_SIMGRID)
 		if (!workerarg->run_by_starpu)
 			break;
 #endif
@@ -1666,7 +1665,7 @@ void starpu_shutdown(void)
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
     if (_starpu_mpi_common_is_mp_initialized())
         _starpu_mpi_common_mp_deinit();
-#endif 
+#endif
 	_starpu_print_idle_time();
 	_STARPU_DEBUG("Shutdown finished\n");
 
