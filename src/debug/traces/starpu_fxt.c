@@ -2154,7 +2154,7 @@ void handle_update_task_cnt(struct fxt_ev_64 *ev, struct starpu_fxt_options *opt
 		fprintf(activity_file, "cnt_submitted\t%.9f\t%d\n", current_timestamp, nsubmitted);
 }
 
-static void handle_tag(struct fxt_ev_64 *ev)
+static void handle_tag(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	uint64_t tag;
 	unsigned long job;
@@ -2162,10 +2162,10 @@ static void handle_tag(struct fxt_ev_64 *ev)
 	tag = ev->param[0];
 	job = ev->param[1];
 
-	_starpu_fxt_dag_add_tag(tag, job);
+	_starpu_fxt_dag_add_tag(options->file_prefix, tag, job);
 }
 
-static void handle_tag_deps(struct fxt_ev_64 *ev)
+static void handle_tag_deps(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	uint64_t child;
 	uint64_t father;
@@ -2173,7 +2173,7 @@ static void handle_tag_deps(struct fxt_ev_64 *ev)
 	child = ev->param[0];
 	father = ev->param[1];
 
-	_starpu_fxt_dag_add_tag_deps(child, father);
+	_starpu_fxt_dag_add_tag_deps(options->file_prefix, child, father);
 }
 
 static void handle_task_deps(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -2203,7 +2203,7 @@ static void handle_task_deps(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 	task->dependencies[task->ndeps++] = dep_prev;
 
 	/* There is a dependency between both job id : dep_prev -> dep_succ */
-	_starpu_fxt_dag_add_task_deps(dep_prev, dep_succ);
+	_starpu_fxt_dag_add_task_deps(options->file_prefix, dep_prev, dep_succ);
 }
 
 static void handle_task_submit(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -2247,7 +2247,7 @@ static void handle_task_done(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 		task_dump(job_id, options->file_rank);
 
 	if (!exclude_from_dag)
-		_starpu_fxt_dag_set_task_done(job_id, name, colour);
+		_starpu_fxt_dag_set_task_done(options->file_prefix, job_id, name, colour);
 }
 
 static void handle_tag_done(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -2276,7 +2276,7 @@ static void handle_tag_done(struct fxt_ev_64 *ev, struct starpu_fxt_options *opt
 		colour= (worker < 0)?"white":get_worker_color(worker);
 	}
 
-	_starpu_fxt_dag_set_tag_done(tag_id, colour);
+	_starpu_fxt_dag_set_tag_done(options->file_prefix, tag_id, colour);
 }
 
 static void handle_mpi_barrier(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -2853,11 +2853,11 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 				break;
 
 			case _STARPU_FUT_TAG:
-				handle_tag(&ev);
+				handle_tag(&ev, options);
 				break;
 
 			case _STARPU_FUT_TAG_DEPS:
-				handle_tag_deps(&ev);
+				handle_tag_deps(&ev, options);
 				break;
 
 			case _STARPU_FUT_TASK_DEPS:
