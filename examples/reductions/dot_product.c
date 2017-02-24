@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2015  Université de Bordeaux
+ * Copyright (C) 2010-2015, 2017  Université de Bordeaux
  * Copyright (C) 2012 INRIA
  * Copyright (C) 2016, 2017  CNRS
  *
@@ -358,10 +358,15 @@ int main(int argc, char **argv)
 #endif
 
 #ifdef STARPU_USE_CUDA
-	/* cublasSdot has synchronization issues when using a non-blocking stream */
+	/* cublasSdot has synchronization issues when using a non-blocking stream (Nvidia bugid 1669886) */
 	cublasGetVersion(&cublas_version);
 	if (cublas_version >= 7050)
 		starpu_cublas_init();
+	if (starpu_get_env_number_default("STARPU_NWORKER_PER_CUDA", 1) > 1
+	 && starpu_get_env_number_default("STARPU_CUDA_THREAD_PER_WORKER", 0) == 1)
+		/* Disable the sdot cublas kernel, it is bogus with concurrent
+		 * multistream execution (Nvidia bugid 1881192) */
+		dot_codelet.cuda_funcs[0] = NULL;
 #endif
 
 	unsigned long nelems = _nblocks*_entries_per_block;
