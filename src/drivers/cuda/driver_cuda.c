@@ -382,7 +382,7 @@ static void init_device_context(unsigned devid, unsigned memnode)
 	_starpu_memory_manager_set_global_memory_size(memnode, _starpu_cuda_get_global_mem_size(devid));
 }
 
-static void init_worker_context(unsigned workerid, unsigned devid)
+static void init_worker_context(unsigned workerid, unsigned devid STARPU_ATTRIBUTE_UNUSED)
 {
 	int j;
 #ifdef STARPU_SIMGRID
@@ -423,7 +423,7 @@ static void deinit_device_context(unsigned devid)
 }
 #endif /* !STARPU_SIMGRID */
 
-static void deinit_worker_context(unsigned workerid, unsigned devid)
+static void deinit_worker_context(unsigned workerid, unsigned devid STARPU_ATTRIBUTE_UNUSED)
 {
 	unsigned j;
 #ifdef STARPU_SIMGRID
@@ -653,8 +653,10 @@ int _starpu_cuda_driver_init(struct _starpu_worker_set *worker_set)
 			/* Already initialized */
 			continue;
 		}
+#ifndef STARPU_SIMGRID
 		if (worker->config->topology.nworkerpercuda > 1 && props[devid].concurrentKernels == 0)
 			_STARPU_DISP("Warning: STARPU_NWORKER_PER_CUDA is %u, but CUDA device %u does not support concurrent kernel execution!\n", worker_set->nworkers, devid);
+#endif /* !STARPU_SIMGRID */
 		lastdevid = devid;
 		init_device_context(devid, memnode);
 
