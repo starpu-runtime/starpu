@@ -913,7 +913,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 		}
 		else
 #endif
-		if (workerarg->arch != STARPU_CUDA_WORKER)
+		if (workerarg->arch != STARPU_CUDA_WORKER && workerarg->arch != STARPU_MPI_MS_WORKER && workerarg->arch != STARPU_MIC_WORKER)
 		{
 			STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
 			while (!workerarg->worker_is_initialized)
