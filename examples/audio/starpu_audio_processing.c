@@ -32,6 +32,7 @@
 #include <fftw3.h>
 #ifdef STARPU_USE_CUDA
 #include <cufft.h>
+#include <starpu_cublas_v2.h>
 #endif
 
 /* #define SAVE_RAW	1 */
@@ -215,7 +216,10 @@ static void band_filter_kernel_gpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *
 	STARPU_ASSERT(cures == CUFFT_SUCCESS);
 
 	/* FFTW does not normalize its output ! */
-	cublasSscal (nsamples, 1.0f/nsamples, localA, 1);
+	float scal = 1.0f/nsamples;
+	cublasStatus_t status = cublasSscal (starpu_cublas_local_handle(), nsamples, &scal, localA, 1);
+	if (status != CUBLAS_STATUS_SUCCESS)
+		STARPU_CUBLAS_REPORT_ERROR(status);
 }
 #endif
 

@@ -21,7 +21,6 @@
 
 #ifdef STARPU_USE_CUDA
 #include <cuda.h>
-#include <cublas.h>
 #endif
 
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)

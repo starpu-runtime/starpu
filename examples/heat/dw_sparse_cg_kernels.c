@@ -17,6 +17,10 @@
 
 #include "dw_sparse_cg.h"
 
+#ifdef STARPU_USE_CUDA
+#include <starpu_cublas_v2.h>
+#endif
+
 /*
  *	Algorithm :
  *		
@@ -146,7 +150,10 @@ void cublas_codelet_func_3(void *descr[], void *arg)
 	vec = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
 	size = STARPU_VECTOR_GET_NX(descr[0]);
 
-	dot = cublasSdot (size, vec, 1, vec, 1);
+	cublasStatus_t status = cublasSdot (starpu_cublas_get_local_handle(), size, vec, 1, vec, 1, &dot);
+	if (status != CUBLAS_STATUS_SUCCESS)
+		STARPU_CUBLAS_REPORT_ERROR(status);
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 
 	pb->delta_new = dot;
 	pb->delta_0 = dot;
@@ -238,7 +245,10 @@ void cublas_codelet_func_5(void *descr[], void *arg)
 	STARPU_ASSERT(STARPU_VECTOR_GET_NX(descr[0]) == STARPU_VECTOR_GET_NX(descr[1]));
 	size = STARPU_VECTOR_GET_NX(descr[0]);
 
-	dot = cublasSdot (size, vecd, 1, vecq, 1);
+	cublasStatus_t status = cublasSdot (starpu_cublas_get_local_handle(), size, vecd, 1, vecq, 1, &dot);
+	if (status != CUBLAS_STATUS_SUCCESS)
+		STARPU_CUBLAS_REPORT_ERROR(status);
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 
 	pb->alpha = pb->delta_new / dot;
 }
@@ -281,7 +291,9 @@ void cublas_codelet_func_6(void *descr[], void *arg)
 
 	size = STARPU_VECTOR_GET_NX(descr[0]);
 
-	cublasSaxpy (size, pb->alpha, vecd, 1, vecx, 1);
+	cublasStatus_t status = cublasSaxpy (starpu_cublas_get_local_handle(), size, &pb->alpha, vecd, 1, vecx, 1);
+	if (status != CUBLAS_STATUS_SUCCESS)
+		STARPU_CUBLAS_REPORT_ERROR(status);
 }
 #endif
 
@@ -320,7 +332,11 @@ void cublas_codelet_func_7(void *descr[], void *arg)
 
 	size = STARPU_VECTOR_GET_NX(descr[0]);
 
-	cublasSaxpy (size, -pb->alpha, vecq, 1, vecr, 1);
+	float scal = -pb->alpha;
+
+	cublasStatus_t status = cublasSaxpy (starpu_cublas_get_local_handle(), size, &scal, vecq, 1, vecr, 1);
+	if (status != CUBLAS_STATUS_SUCCESS)
+		STARPU_CUBLAS_REPORT_ERROR(status);
 }
 #endif
 
@@ -363,7 +379,8 @@ void cublas_codelet_func_8(void *descr[], void *arg)
 	vecr = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
 	size = STARPU_VECTOR_GET_NX(descr[0]);
 
-	dot = cublasSdot (size, vecr, 1, vecr, 1);
+	cublasStatus_t status = cublasSdot (starpu_cublas_get_local_handle(), size, vecr, 1, vecr, 1, &dot);
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 
 	pb->delta_old = pb->delta_new;
 	pb->delta_new = dot;
@@ -412,9 +429,15 @@ void cublas_codelet_func_9(void *descr[], void *arg)
 	size = STARPU_VECTOR_GET_NX(descr[0]);
 
 	/* d = beta d */
-	cublasSscal(size, pb->beta, vecd, 1);
+	cublasStatus_t status;
+	status = cublasSscal(starpu_cublas_get_local_handle(), size, &pb->beta, vecd, 1);
+	if (status != CUBLAS_STATUS_SUCCESS)
+		STARPU_CUBLAS_REPORT_ERROR(status);
 
 	/* d = r + d */
-	cublasSaxpy (size, 1.0f, vecr, 1, vecd, 1);
+	float scal = 1.0f;
+	status = cublasSaxpy (starpu_cublas_get_local_handle(), size, &scal, vecr, 1, vecd, 1);
+	if (status != CUBLAS_STATUS_SUCCESS)
+		STARPU_CUBLAS_REPORT_ERROR(status);
 }
 #endif

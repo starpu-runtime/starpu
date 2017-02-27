@@ -88,6 +88,7 @@ versinclude_HEADERS = 				\
 	include/starpu_rand.h			\
 	include/starpu_disk.h			\
 	include/starpu_cublas.h			\
+	include/starpu_cublas_v2.h		\
 	include/starpu_driver.h			\
 	include/starpu_stdlib.h			\
 	include/starpu_thread.h			\

@@ -167,6 +167,7 @@ struct starpu_codelet cl =
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {cublas_block_spmv},
 #endif
+	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.nbuffers = 3,
 	.modes = {STARPU_R, STARPU_R, STARPU_RW}
 };
@@ -320,6 +321,7 @@ int main(STARPU_ATTRIBUTE_UNUSED int argc,
 	if (ret == -ENODEV)
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+	starpu_cublas_init();
 
 	sem_init(&sem, 0, 0U);
 

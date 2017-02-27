@@ -29,10 +29,6 @@
 
 #include <starpu.h>
 
-#ifdef STARPU_USE_CUDA
-#include <cublas.h>
-#endif
-
 #include "../common/blas.h"
 
 #define MAXITER	100000

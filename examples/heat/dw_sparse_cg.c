@@ -241,6 +241,7 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 	struct starpu_task *task6 = create_task(maskiter | 6UL);
 #ifdef STARPU_USE_CUDA
 	task6->cl->cuda_funcs[0] = cublas_codelet_func_6;
+	task6->cl->cuda_flags[0] = STARPU_CUDA_ASYNC;
 #endif
 	task6->cl->cpu_funcs[0] = cpu_codelet_func_6;
 	task6->cl->cpu_funcs_name[0] = "cpu_codelet_func_6";
@@ -259,6 +260,7 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 	struct starpu_task *task7 = create_task(maskiter | 7UL);
 #ifdef STARPU_USE_CUDA
 	task7->cl->cuda_funcs[0] = cublas_codelet_func_7;
+	task7->cl->cuda_flags[0] = STARPU_CUDA_ASYNC;
 #endif
 	task7->cl->cpu_funcs[0] = cpu_codelet_func_7;
 	task7->cl->cpu_funcs_name[0] = "cpu_codelet_func_7";
@@ -292,6 +294,7 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 	struct starpu_task *task9 = create_task(maskiter | 9UL);
 #ifdef STARPU_USE_CUDA
 	task9->cl->cuda_funcs[0] = cublas_codelet_func_9;
+	task9->cl->cuda_flags[0] = STARPU_CUDA_ASYNC;
 #endif
 	task9->cl->cpu_funcs[0] = cpu_codelet_func_9;
 	task9->cl->cpu_funcs_name[0] = "cpu_codelet_func_9";
