@@ -35,7 +35,7 @@
 #include <common/blas.h>
 
 #ifdef STARPU_USE_CUDA
-#include <cublas.h>
+#include <starpu_cublas_v2.h>
 #endif
 
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
@@ -100,10 +100,9 @@ void pipeline_cublas_axpy(void *descr[], void *arg)
 	float *x = (float *) STARPU_VECTOR_GET_PTR(descr[0]);
 	float *y = (float *) STARPU_VECTOR_GET_PTR(descr[1]);
 	int n = STARPU_VECTOR_GET_NX(descr[0]);
+	float alpha = 1.;
 
-	starpu_cublas_set_stream();
-	cublasSaxpy(n, 1., x, 1, y, 1);
-	cudaStreamSynchronize(starpu_cuda_get_local_stream());
+	cublasSaxpy(starpu_cublas_get_local_handle(), n, &alpha, x, 1, y, 1);
 }
 #endif
 
@@ -119,6 +118,7 @@ static struct starpu_codelet pipeline_codelet_axpy =
 	.cpu_funcs_name = {"pipeline_cpu_axpy"},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {pipeline_cublas_axpy},
+	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_RW},
@@ -144,10 +144,8 @@ void pipeline_cublas_sum(void *descr[], void *arg)
 	int n = STARPU_VECTOR_GET_NX(descr[0]);
 	float y;
 
-	starpu_cublas_set_stream();
-	y = cublasSasum(n, x, 1);
+	cublasSasum(starpu_cublas_get_local_handle(), n, x, 1, &y);
 
-	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 	FPRINTF(stderr,"CUBLAS finished with %f\n", y);
 }
 #endif
@@ -164,6 +162,7 @@ static struct starpu_codelet pipeline_codelet_sum =
 	.cpu_funcs_name = {"pipeline_cpu_sum"},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {pipeline_cublas_sum},
+	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 	.nbuffers = 1,
 	.modes = {STARPU_R},

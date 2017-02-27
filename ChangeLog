@@ -60,6 +60,7 @@ New features:
   * Add STARPU_PERF_MODEL_HOMOGENEOUS_CUDA/OPENCL/MIC/SCC to share performance
     models between devices, making calibration much faster.
   * Add modular-heft-prio scheduler.
+  * Add starpu_cublas_get_local_handle helper.
 
 Changes:
   * Fix performance regression of lws for small tasks.

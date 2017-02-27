@@ -18,7 +18,7 @@
 #include "../helper.h"
 
 #ifdef STARPU_USE_CUDA
-#  include <cublas.h>
+#  include <starpu_cublas_v2.h>
 #endif
 
 /*
@@ -55,8 +55,9 @@ void vector_cuda_func(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
 	float *matrix = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
 	int nx = STARPU_VECTOR_GET_NX(descr[0]);
 
-	starpu_cublas_set_stream();
-	float sum = cublasSasum(nx, matrix, 1);
+	float sum;
+	cublasSasum(starpu_cublas_get_local_handle(), nx, matrix, 1, &sum);
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 	sum /= nx;
 
 	cudaMemcpyAsync(matrix, &sum, sizeof(matrix[0]), cudaMemcpyHostToDevice, starpu_cuda_get_local_stream());
@@ -87,7 +88,9 @@ void matrix_cuda_func(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
 	int nx = STARPU_MATRIX_GET_NX(descr[0]);
 	int ny = STARPU_MATRIX_GET_NY(descr[0]);
 
-	float sum = cublasSasum(nx*ny, matrix, 1);
+	float sum;
+	cublasSasum(starpu_cublas_get_local_handle(), nx*ny, matrix, 1, &sum);
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 	sum /= nx*ny;
 
 	cudaMemcpyAsync(matrix, &sum, sizeof(matrix[0]), cudaMemcpyHostToDevice, starpu_cuda_get_local_stream());
@@ -218,12 +221,7 @@ int main(int argc, char **argv)
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-#ifdef STARPU_USE_CUDA
-	/* cublasSasum has synchronization issues when using a non-blocking stream */
-	cublasGetVersion(&cublas_version);
-	if (cublas_version >= 7050)
-		starpu_cublas_init();
-#endif
+	starpu_cublas_init();
 
 	devices = starpu_cpu_worker_get_count();
 	if (devices)
@@ -246,11 +244,8 @@ int main(int argc, char **argv)
 
 error:
 	if (ret == -ENODEV) ret=STARPU_TEST_SKIPPED;
-#ifdef STARPU_USE_CUDA
-	if (cublas_version >= 7050)
-		starpu_cublas_shutdown();
-#endif
 
+	starpu_cublas_shutdown();
 	starpu_shutdown();
 	STARPU_RETURN(ret);
 }

@@ -22,8 +22,11 @@
 
 #ifdef STARPU_USE_CUDA
 #include <cublas.h>
+#include <starpu_cublas_v2.h>
 
 static int cublas_initialized[STARPU_NMAXWORKERS];
+static cublasHandle_t cublas_handles[STARPU_NMAXWORKERS];
+static cublasHandle_t main_handle;
 static starpu_pthread_mutex_t mutex;
 
 static unsigned get_idx(void) {
@@ -51,6 +54,9 @@ static void init_cublas_func(void *args STARPU_ATTRIBUTE_UNUSED)
 			STARPU_CUBLAS_REPORT_ERROR(cublasst);
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+
+	cublasCreate(&cublas_handles[starpu_worker_get_id_check()]);
+	cublasSetStream(cublas_handles[starpu_worker_get_id_check()], starpu_cuda_get_local_stream());
 }
 
 static void set_cublas_stream_func(void *args STARPU_ATTRIBUTE_UNUSED)
@@ -65,6 +71,8 @@ static void shutdown_cublas_func(void *args STARPU_ATTRIBUTE_UNUSED)
 	if (!--cublas_initialized[idx])
 		cublasShutdown();
 	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+
+	cublasDestroy(cublas_handles[starpu_worker_get_id_check()]);
 }
 #endif
 
@@ -73,6 +81,8 @@ void starpu_cublas_init(void)
 #ifdef STARPU_USE_CUDA
 	starpu_execute_on_each_worker(init_cublas_func, NULL, STARPU_CUDA);
 	starpu_execute_on_each_worker(set_cublas_stream_func, NULL, STARPU_CUDA);
+
+	cublasCreate(&main_handle);
 #endif
 }
 
@@ -80,6 +90,8 @@ void starpu_cublas_shutdown(void)
 {
 #ifdef STARPU_USE_CUDA
 	starpu_execute_on_each_worker(shutdown_cublas_func, NULL, STARPU_CUDA);
+
+	cublasDestroy(main_handle);
 #endif
 }
 
@@ -91,4 +103,13 @@ void starpu_cublas_set_stream(void)
 		 _starpu_get_machine_config()->topology.nworkerpercuda > 1))
 		cublasSetKernelStream(starpu_cuda_get_local_stream());
 #endif
+}
+
+cublasHandle_t starpu_cublas_get_local_handle(void)
+{
+	int workerid = starpu_worker_get_id();
+	if (workerid >= 0)
+		return cublas_handles[workerid];
+	else
+		return main_handle;
 }

@@ -36,7 +36,10 @@
 
 #ifdef STARPU_USE_CUDA
 #include <cuda.h>
-#include <cublas.h>
+#include <starpu_cublas_v2.h>
+static const TYPE p1 = 1.0;
+static const TYPE m1 = -1.0;
+static const TYPE v0 = 0.0;
 #endif
 
 static unsigned niter = 10;
@@ -161,9 +164,13 @@ static void cublas_mult(void *descr[], STARPU_ATTRIBUTE_UNUSED void *arg)
 	unsigned ldB = STARPU_MATRIX_GET_LD(descr[1]);
 	unsigned ldC = STARPU_MATRIX_GET_LD(descr[2]);
 
-	starpu_cublas_set_stream();
-	CUBLAS_GEMM('n', 'n', nxC, nyC, nyA, (TYPE)1.0, subA, ldA, subB, ldB,
-				     (TYPE)0.0, subC, ldC);
+	cublasStatus_t status = CUBLAS_GEMM(starpu_cublas_get_local_handle(),
+			CUBLAS_OP_N, CUBLAS_OP_N,
+			nxC, nyC, nyA,
+			&p1, subA, ldA, subB, ldB,
+			&v0, subC, ldC);
+	if (status != CUBLAS_STATUS_SUCCESS)
+		STARPU_CUBLAS_REPORT_ERROR(status);
 }
 #endif
 

@@ -20,6 +20,13 @@
  */
 #include "dw_factolu.h"
 
+#ifdef STARPU_USE_CUDA
+#include <cublas.h>
+#include <starpu_cublas_v2.h>
+static const float p1 =  1.0;
+static const float m1 = -1.0;
+#endif
+
 unsigned count_11_per_worker[STARPU_NMAXWORKERS] = {0};
 unsigned count_12_per_worker[STARPU_NMAXWORKERS] = {0};
 unsigned count_21_per_worker[STARPU_NMAXWORKERS] = {0};
@@ -134,10 +141,10 @@ static inline void dw_common_cpu_codelet_update_u22(void *descr[], int s, STARPU
 
 #ifdef STARPU_USE_CUDA
 		case 1:
-			starpu_cublas_set_stream();
-			cublasSgemm('n', 'n', dx, dy, dz, -1.0f, left, ld21,
-					right, ld12, 1.0f, center, ld22);
-			status = cublasGetError();
+			status = cublasSgemm(starpu_cublas_get_local_handle(),
+					CUBLAS_OP_N, CUBLAS_OP_N,
+					dx, dy, dz, &m1, left, ld21,
+					right, ld12, &p1, center, ld22);
 			if (status != CUBLAS_STATUS_SUCCESS)
 				STARPU_CUBLAS_REPORT_ERROR(status);
 
@@ -198,10 +205,10 @@ static inline void dw_common_codelet_update_u12(void *descr[], int s, STARPU_ATT
 			break;
 #ifdef STARPU_USE_CUDA
 		case 1:
-			starpu_cublas_set_stream();
-			cublasStrsm('L', 'L', 'N', 'N', ny12, nx12,
-					1.0f, sub11, ld11, sub12, ld12);
-			status = cublasGetError();
+			status = cublasStrsm(starpu_cublas_get_local_handle(),
+					CUBLAS_SIDE_LEFT, CUBLAS_FILL_MODE_LOWER, CUBLAS_OP_N, CUBLAS_DIAG_NON_UNIT,
+					ny12, nx12,
+					&p1, sub11, ld11, sub12, ld12);
 			if (status != CUBLAS_STATUS_SUCCESS)
 				STARPU_CUBLAS_REPORT_ERROR(status);
 
@@ -260,9 +267,9 @@ static inline void dw_common_codelet_update_u21(void *descr[], int s, STARPU_ATT
 			break;
 #ifdef STARPU_USE_CUDA
 		case 1:
-			starpu_cublas_set_stream();
-			cublasStrsm('R', 'U', 'N', 'U', ny21, nx21, 1.0f, sub11, ld11, sub21, ld21);
-			status = cublasGetError();
+			status = cublasStrsm(starpu_cublas_get_local_handle(),
+					CUBLAS_SIDE_RIGHT, CUBLAS_FILL_MODE_UPPER, CUBLAS_OP_N, CUBLAS_DIAG_UNIT,
+					ny21, nx21, &p1, sub11, ld11, sub21, ld21);
 			if (status != CUBLAS_STATUS_SUCCESS)
 				STARPU_CUBLAS_REPORT_ERROR(status);
 
@@ -322,6 +329,12 @@ static inline void dw_common_codelet_update_u11(void *descr[], int s, STARPU_ATT
 
 	unsigned long z;
 
+#ifdef STARPU_USE_CUDA
+	cudaStream_t stream;
+	cublasHandle_t handle;
+	cublasStatus_t status;
+#endif
+
 	switch (s)
 	{
 		case 0:
@@ -341,24 +354,28 @@ static inline void dw_common_codelet_update_u11(void *descr[], int s, STARPU_ATT
 			break;
 #ifdef STARPU_USE_CUDA
 		case 1:
-			starpu_cublas_set_stream();
+			stream = starpu_cuda_get_local_stream();
+			handle = starpu_cublas_get_local_handle();
 			for (z = 0; z < nx; z++)
 			{
 				float pivot;
-				cudaMemcpyAsync(&pivot, &sub11[z+z*ld], sizeof(float), cudaMemcpyDeviceToHost, starpu_cuda_get_local_stream());
-				cudaStreamSynchronize(starpu_cuda_get_local_stream());
+				cudaMemcpyAsync(&pivot, &sub11[z+z*ld], sizeof(float), cudaMemcpyDeviceToHost, stream);
+				cudaStreamSynchronize(stream);
 
 				STARPU_ASSERT(pivot != 0.0f);
+				float scal = 1.0f/pivot;
 
-				cublasSscal(nx - z - 1, 1.0f/pivot, &sub11[z+(z+1)*ld], ld);
+				status = cublasSscal(starpu_cublas_get_local_handle(),
+						nx - z - 1, &scal, &sub11[z+(z+1)*ld], ld);
 
-				cublasSger(nx - z - 1, nx - z - 1, -1.0f,
+				status = cublasSger(starpu_cublas_get_local_handle(),
+						nx - z - 1, nx - z - 1, &m1,
 								&sub11[z+(z+1)*ld], ld,
 								&sub11[(z+1)+z*ld], 1,
 								&sub11[(z+1) + (z+1)*ld],ld);
 			}
 
-			cudaStreamSynchronize(starpu_cuda_get_local_stream());
+			cudaStreamSynchronize(stream);
 
 			break;
 #endif

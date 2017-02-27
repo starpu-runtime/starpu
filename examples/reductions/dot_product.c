@@ -29,7 +29,7 @@
 
 #ifdef STARPU_USE_CUDA
 #include <cuda.h>
-#include <cublas.h>
+#include <starpu_cublas_v2.h>
 #endif
 
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
@@ -245,7 +245,7 @@ void dot_cpu_func(void *descr[], void *cl_arg)
 void dot_cuda_func(void *descr[], void *cl_arg)
 {
 	DOT_TYPE current_dot;
-	DOT_TYPE local_dot;
+	float local_dot;
 
 	float *local_x = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
 	float *local_y = (float *)STARPU_VECTOR_GET_PTR(descr[1]);
@@ -256,9 +256,10 @@ void dot_cuda_func(void *descr[], void *cl_arg)
 	cudaMemcpyAsync(&current_dot, dot, sizeof(DOT_TYPE), cudaMemcpyDeviceToHost, starpu_cuda_get_local_stream());
 	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 
-	if (cublas_version >= 7050)
-		starpu_cublas_set_stream();
-	local_dot = (DOT_TYPE)cublasSdot(n, local_x, 1, local_y, 1);
+	cublasStatus_t status = cublasSdot(starpu_cublas_get_local_handle(), n, local_x, 1, local_y, 1, &local_dot);
+	if (status != CUBLAS_STATUS_SUCCESS)
+		STARPU_CUBLAS_REPORT_ERROR(status);
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 
 	/* FPRINTF(stderr, "current_dot %f local dot %f -> %f\n", current_dot, local_dot, current_dot + local_dot); */
 	current_dot += local_dot;
@@ -358,14 +359,15 @@ int main(int argc, char **argv)
 #endif
 
 #ifdef STARPU_USE_CUDA
-	/* cublasSdot has synchronization issues when using a non-blocking stream (Nvidia bugid 1669886) */
-	cublasGetVersion(&cublas_version);
+	cublasHandle_t handle;
+	cublasCreate(&handle);
+	cublasGetVersion(handle, &cublas_version);
+	cublasDestroy(handle);
 	if (cublas_version >= 7050)
 		starpu_cublas_init();
-	if (starpu_get_env_number_default("STARPU_NWORKER_PER_CUDA", 1) > 1
-	 && starpu_get_env_number_default("STARPU_CUDA_THREAD_PER_WORKER", 0) == 1)
-		/* Disable the sdot cublas kernel, it is bogus with concurrent
-		 * multistream execution (Nvidia bugid 1881192) */
+	else
+		/* Disable the sdot cublas kernel, it is bogus with a
+		 * non-blocking stream (Nvidia bugid 1669886) */
 		dot_codelet.cuda_funcs[0] = NULL;
 #endif
 

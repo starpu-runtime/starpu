@@ -22,6 +22,12 @@
 #include <math.h>
 #include <limits.h>
 
+#ifdef STARPU_USE_CUDA
+#include <starpu_cublas_v2.h>
+static const TYPE p1 = 1.0;
+static const TYPE m1 = -1.0;
+#endif
+
 #if 0
 static void print_vector_from_descr(unsigned nx, TYPE *v)
 {
@@ -81,8 +87,9 @@ static void accumulate_variable_cuda(void *descr[], void *cl_arg)
 	TYPE *v_dst = (TYPE *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	TYPE *v_src = (TYPE *)STARPU_VARIABLE_GET_PTR(descr[1]);
  
-	starpu_cublas_set_stream();
-	cublasaxpy(1, (TYPE)1.0, v_src, 1, v_dst, 1);
+	cublasStatus_t status = cublasaxpy(starpu_cublas_get_local_handle(), 1, &p1, v_src, 1, v_dst, 1);
+	if (status != CUBLAS_STATUS_SUCCESS)
+		STARPU_CUBLAS_REPORT_ERROR(status);
 }
 #endif
 
@@ -120,9 +127,10 @@ static void accumulate_vector_cuda(void *descr[], void *cl_arg)
 	TYPE *v_dst = (TYPE *)STARPU_VECTOR_GET_PTR(descr[0]);
 	TYPE *v_src = (TYPE *)STARPU_VECTOR_GET_PTR(descr[1]);
 	unsigned n = STARPU_VECTOR_GET_NX(descr[0]);
- 
-	starpu_cublas_set_stream();
-	cublasaxpy(n, (TYPE)1.0, v_src, 1, v_dst, 1);
+
+	cublasStatus_t status = cublasaxpy(starpu_cublas_get_local_handle(), n, &p1, v_src, 1, v_dst, 1);
+	if (status != CUBLAS_STATUS_SUCCESS)
+		STARPU_CUBLAS_REPORT_ERROR(status);
 }
 #endif
 
@@ -249,10 +257,26 @@ static void dot_kernel_cuda(void *descr[], void *cl_arg)
 
 	unsigned n = STARPU_VECTOR_GET_NX(descr[1]);
 
-	/* Contrary to cublasSdot, this function puts its result directly in
-	 * device memory, so that we don't have to transfer that value back and
-	 * forth. */
-	dot_host(v1, v2, n, dot);
+	int version;
+	cublasGetVersion(starpu_cublas_get_local_handle(), &version);
+
+	/* FIXME: check in Nvidia bug #1882017 when this gets fixed */
+	if (version < 99999)
+	{
+		/* This function puts its result directly in device memory, so
+		 * that we don't have to transfer that value back and forth. */
+		dot_host(v1, v2, n, dot);
+	}
+	else
+	{
+		/* Should be able to put result in GPU, but does not yet, see
+		 * Nvidia bug #1882017 */
+		cublasStatus_t status = cublasdot(starpu_cublas_get_local_handle(),
+			n, v1, 1, v2, 1, dot);
+		if (status != CUBLAS_STATUS_SUCCESS)
+			STARPU_CUBLAS_REPORT_ERROR(status);
+		cudaStreamSynchronize(starpu_cuda_get_local_stream());
+	}
 }
 #endif
 
@@ -337,8 +361,9 @@ static void scal_kernel_cuda(void *descr[], void *cl_arg)
  
 	/* v1 = p1 v1 */
 	TYPE alpha = p1;
-	starpu_cublas_set_stream();
-	cublasscal(n, alpha, v1, 1);
+	cublasStatus_t status = cublasscal(starpu_cublas_get_local_handle(), n, &alpha, v1, 1);
+	if (status != CUBLAS_STATUS_SUCCESS)
+		STARPU_CUBLAS_REPORT_ERROR(status);
 }
 #endif
 
@@ -392,8 +417,10 @@ static void gemv_kernel_cuda(void *descr[], void *cl_arg)
 	starpu_codelet_unpack_args(cl_arg, &beta, &alpha);
 
 	/* Compute v1 = alpha M v2 + beta v1 */
-	starpu_cublas_set_stream();
-	cublasgemv('N', nx, ny, alpha, M, ld, v2, 1, beta, v1, 1);
+	cublasStatus_t status = cublasgemv(starpu_cublas_get_local_handle(),
+			CUBLAS_OP_N, nx, ny, &alpha, M, ld, v2, 1, &beta, v1, 1);
+	if (status != CUBLAS_STATUS_SUCCESS)
+		STARPU_CUBLAS_REPORT_ERROR(status);
 }
 #endif
 
@@ -508,9 +535,13 @@ static void scal_axpy_kernel_cuda(void *descr[], void *cl_arg)
 	 *	v1 = p1 v1
 	 *	v1 = v1 + p2 v2
 	 */
-	starpu_cublas_set_stream();
-	cublasscal(n, p1, v1, 1);
-	cublasaxpy(n, p2, v2, 1, v1, 1);
+	cublasStatus_t status;
+	status = cublasscal(starpu_cublas_get_local_handle(), n, &p1, v1, 1);
+	if (status != CUBLAS_STATUS_SUCCESS)
+		STARPU_CUBLAS_REPORT_ERROR(status);
+	status = cublasaxpy(starpu_cublas_get_local_handle(), n, &p2, v2, 1, v1, 1);
+	if (status != CUBLAS_STATUS_SUCCESS)
+		STARPU_CUBLAS_REPORT_ERROR(status);
 }
 #endif
 
@@ -589,8 +620,10 @@ static void axpy_kernel_cuda(void *descr[], void *cl_arg)
  
 	/* Compute v1 = v1 + p1 * v2.
 	 */
-	starpu_cublas_set_stream();
-	cublasaxpy(n, p1, v2, 1, v1, 1);
+	cublasStatus_t status = cublasaxpy(starpu_cublas_get_local_handle(),
+			n, &p1, v2, 1, v1, 1);
+	if (status != CUBLAS_STATUS_SUCCESS)
+		STARPU_CUBLAS_REPORT_ERROR(status);
 }
 #endif
 

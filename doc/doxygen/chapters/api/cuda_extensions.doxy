@@ -69,10 +69,16 @@ initialized on every device.
 
 \fn void starpu_cublas_set_stream(void)
 \ingroup API_CUDA_Extensions
-This function sets the proper cublas stream. This must be called from the CUDA
-codelet before calling cublas kernels, so that they are queued on the proper
+This function sets the proper CUBLAS stream for CUBLAS v1. This must be called from the CUDA
+codelet before calling CUBLAS v1 kernels, so that they are queued on the proper
 CUDA stream. When using one thread per CUDA worker, this function does not
-do anything since the cublas stream does not change, and is set once by
+do anything since the CUBLAS stream does not change, and is set once by
+starpu_cublas_init().
+
+\fn cublasHandle_t starpu_cublas_get_local_handle(void)
+\ingroup API_CUDA_Extensions
+This function returns the CUBLAS v2 handle to be used to queue CUBLAS v2
+kernels. It is properly initialized and configured for multistream by
 starpu_cublas_init().
 
 \fn void starpu_cublas_shutdown(void)

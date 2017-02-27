@@ -25,14 +25,23 @@
 #include <starpu.h>
 #include "cholesky.h"
 #include "../common/blas.h"
-#if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_MAGMA)
+#if defined(STARPU_USE_CUDA)
+#include <cublas.h>
+#include <starpu_cublas_v2.h>
+#if defined(STARPU_HAVE_MAGMA)
 #include "magma.h"
 #include "magma_lapack.h"
+#endif
 #endif
 
 /*
  *   U22 
  */
+
+#if defined(STARPU_USE_CUDA)
+static const float p1 =  1.0;
+static const float m1 = -1.0;
+#endif
 
 static inline void chol_common_cpu_codelet_update_u22(void *descr[], int s, STARPU_ATTRIBUTE_UNUSED void *_args)
 {
@@ -78,14 +87,12 @@ static inline void chol_common_cpu_codelet_update_u22(void *descr[], int s, STAR
 	{
 		/* CUDA kernel */
 #ifdef STARPU_USE_CUDA
-#ifdef STARPU_HAVE_MAGMA
-		cublasSetKernelStream(starpu_cuda_get_local_stream());
-#else
-		starpu_cublas_set_stream();
-#endif
-		cublasSgemm('n', 't', dy, dx, dz, 
-				-1.0f, left, ld21, right, ld12, 
-				 1.0f, center, ld22);
+		cublasStatus_t status = cublasSgemm(starpu_cublas_get_local_handle(),
+				CUBLAS_OP_N, CUBLAS_OP_T, dy, dx, dz, 
+				&m1, left, ld21, right, ld12, 
+				&p1, center, ld22);
+		if (status != CUBLAS_STATUS_SUCCESS)
+			STARPU_CUBLAS_REPORT_ERROR(status);
 #endif
 
 	}
@@ -122,6 +129,10 @@ static inline void chol_common_codelet_update_u21(void *descr[], int s, STARPU_A
 	unsigned nx21 = STARPU_MATRIX_GET_NY(descr[1]);
 	unsigned ny21 = STARPU_MATRIX_GET_NX(descr[1]);
 
+#ifdef STARPU_USE_CUDA
+	cublasStatus status;
+#endif
+
 	switch (s)
 	{
 		case 0:
@@ -129,12 +140,11 @@ static inline void chol_common_codelet_update_u21(void *descr[], int s, STARPU_A
 			break;
 #ifdef STARPU_USE_CUDA
 		case 1:
-#ifdef STARPU_HAVE_MAGMA
-			cublasSetKernelStream(starpu_cuda_get_local_stream());
-#else
-			starpu_cublas_set_stream();
-#endif
-			cublasStrsm('R', 'L', 'T', 'N', nx21, ny21, 1.0f, sub11, ld11, sub21, ld21);
+			status = cublasStrsm(starpu_cublas_get_local_handle(),
+					CUBLAS_SIDE_RIGHT, CUBLAS_FILL_MODE_LOWER, CUBLAS_OP_T, CUBLAS_DIAG_NON_UNIT,
+					nx21, ny21, &p1, sub11, ld11, sub21, ld21);
+			if (status != CUBLAS_STATUS_SUCCESS)
+				STARPU_CUBLAS_REPORT_ERROR(status);
 			break;
 #endif
 		default:
@@ -206,9 +216,10 @@ static inline void chol_common_codelet_update_u11(void *descr[], int s, STARPU_A
 			{
 			int ret;
 			int info;
+			cudaStream_t stream = starpu_cuda_get_local_stream();
 #if (MAGMA_VERSION_MAJOR > 1) || (MAGMA_VERSION_MAJOR == 1 && MAGMA_VERSION_MINOR >= 4)
-			cublasSetKernelStream(starpu_cuda_get_local_stream());
-			magmablasSetKernelStream(starpu_cuda_get_local_stream());
+			cublasSetKernelStream(stream);
+			magmablasSetKernelStream(stream);
 #else
 			starpu_cublas_set_stream();
 #endif
@@ -219,7 +230,7 @@ static inline void chol_common_codelet_update_u11(void *descr[], int s, STARPU_A
 				STARPU_ABORT();
 			}
 #if (MAGMA_VERSION_MAJOR > 1) || (MAGMA_VERSION_MAJOR == 1 && MAGMA_VERSION_MINOR >= 4)
-			cudaError_t cures = cudaStreamSynchronize(starpu_cuda_get_local_stream());
+			cudaError_t cures = cudaStreamSynchronize(stream);
 #else
 			cudaError_t cures = cudaThreadSynchronize();
 #endif
@@ -229,29 +240,36 @@ static inline void chol_common_codelet_update_u11(void *descr[], int s, STARPU_A
 			{
 
 			float *lambda11;
+			cublasStatus_t status;
+			cudaStream_t stream = starpu_cuda_get_local_stream();
+			cublasHandle_t handle = starpu_cublas_get_local_handle();
 			cudaHostAlloc((void **)&lambda11, sizeof(float), 0);
 
 			for (z = 0; z < nx; z++)
 			{
 				
-				cudaMemcpyAsync(lambda11, &sub11[z+z*ld], sizeof(float), cudaMemcpyDeviceToHost, starpu_cuda_get_local_stream());
-				cudaStreamSynchronize(starpu_cuda_get_local_stream());
+				cudaMemcpyAsync(lambda11, &sub11[z+z*ld], sizeof(float), cudaMemcpyDeviceToHost, stream);
+				cudaStreamSynchronize(stream);
 
 				STARPU_ASSERT(*lambda11 != 0.0f);
 				
 				*lambda11 = sqrt(*lambda11);
 
 /*				cublasSetVector(1, sizeof(float), lambda11, sizeof(float), &sub11[z+z*ld], sizeof(float)); */
-				cudaMemcpyAsync(&sub11[z+z*ld], lambda11, sizeof(float), cudaMemcpyHostToDevice, starpu_cuda_get_local_stream());
+				cudaMemcpyAsync(&sub11[z+z*ld], lambda11, sizeof(float), cudaMemcpyHostToDevice, stream);
+				float scal = 1.0f/(*lambda11);
 
-				cublasSscal(nx - z - 1, 1.0f/(*lambda11), &sub11[(z+1)+z*ld], 1);
+				status = cublasSscal(handle,
+						nx - z - 1, &scal, &sub11[(z+1)+z*ld], 1);
 
-				cublasSsyr('U', nx - z - 1, -1.0f,
+				status = cublasSsyr(handle,
+							CUBLAS_FILL_MODE_UPPER,
+							nx - z - 1, &m1,
 							&sub11[(z+1)+z*ld], 1,
 							&sub11[(z+1)+(z+1)*ld], ld);
 			}
 
-			cudaStreamSynchronize(starpu_cuda_get_local_stream());
+			cudaStreamSynchronize(stream);
 			cudaFreeHost(lambda11);
 			}
 #endif

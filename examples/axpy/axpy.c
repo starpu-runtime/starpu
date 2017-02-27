@@ -30,7 +30,7 @@
 #include <common/blas.h>
 
 #ifdef STARPU_USE_CUDA
-#include <cublas.h>
+#include <starpu_cublas_v2.h>
 #endif
 
 #include "axpy.h"
@@ -74,8 +74,9 @@ void axpy_gpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *arg)
 	TYPE *block_x = (TYPE *)STARPU_VECTOR_GET_PTR(descr[0]);
 	TYPE *block_y = (TYPE *)STARPU_VECTOR_GET_PTR(descr[1]);
 
-	starpu_cublas_set_stream();
-	CUBLASAXPY((int)n, alpha, block_x, 1, block_y, 1);
+	cublasStatus_t status = CUBLASAXPY(starpu_cublas_get_local_handle(), (int)n, &alpha, block_x, 1, block_y, 1);
+	if (status != CUBLAS_STATUS_SUCCESS)
+		STARPU_CUBLAS_REPORT_ERROR(status);
 }
 #endif
 
