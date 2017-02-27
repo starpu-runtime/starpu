@@ -21,6 +21,8 @@ int main(int argc, char **argv)
 {
 	int ret;
 
+	disable_coredump();
+
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 	ret = starpu_mpi_init(&argc, &argv, 1);
