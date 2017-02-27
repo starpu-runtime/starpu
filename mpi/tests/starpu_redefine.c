@@ -15,11 +15,14 @@
  */
 
 #include <starpu_mpi.h>
+#include "helper.h"
 
 int main(int argc, char **argv)
 {
 	int ret;
 	starpu_data_handle_t handle;
+
+	disable_coredump();
 
 	MPI_Init(&argc, &argv);
 	ret = starpu_init(NULL);

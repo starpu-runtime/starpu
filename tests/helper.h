@@ -18,6 +18,9 @@
 #define _TESTS_HELPER_H
 #include <errno.h>
 #include <common/utils.h>
+#ifdef HAVE_GETRLIMIT
+#include <sys/resource.h>
+#endif
 
 #ifdef STARPU_HAVE_VALGRIND_H
 #include <valgrind/valgrind.h>
@@ -102,5 +105,12 @@ static int _starpu_valgrind_print_once STARPU_ATTRIBUTE_UNUSED = 0;
 #ifndef ANNOTATE_HAPPENS_AFTER
 #define ANNOTATE_HAPPENS_AFTER(obj) ((void)0)
 #endif
+
+static inline void disable_coredump(void) {
+#ifdef HAVE_GETRLIMIT
+	struct rlimit rlim = { .rlim_cur = 0, .rlim_max = 0 };
+	setrlimit(RLIMIT_CORE, &rlim);
+#endif
+}
 
 #endif /* _TESTS_HELPER_H */
