@@ -965,6 +965,7 @@ _starpu_init_mpi_config (struct _starpu_machine_config *config,
                 config->workers[worker_idx].worker_mask = STARPU_MPI_MS;
                 config->worker_mask |= STARPU_MPI_MS;
         }
+	mpi_ms_nodes[mpi_idx]->baseworkerid = topology->nworkers;
 
         topology->nworkers += topology->nmpicores[mpi_idx];
 }
