@@ -108,7 +108,7 @@ static int _starpu_valgrind_print_once STARPU_ATTRIBUTE_UNUSED = 0;
 
 static inline void disable_coredump(void) {
 #ifdef HAVE_GETRLIMIT
-	struct rlimit rlim = { .rlim_cur = 0, .rlim_max = 0 };
+	struct rlimit rlim = { 0, 0 };
 	setrlimit(RLIMIT_CORE, &rlim);
 #endif
 }
