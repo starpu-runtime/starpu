@@ -105,6 +105,7 @@ void starpu_cublas_set_stream(void)
 #endif
 }
 
+#ifdef STARPU_USE_CUDA
 cublasHandle_t starpu_cublas_get_local_handle(void)
 {
 	int workerid = starpu_worker_get_id();
@@ -113,3 +114,4 @@ cublasHandle_t starpu_cublas_get_local_handle(void)
 	else
 		return main_handle;
 }
+#endif
