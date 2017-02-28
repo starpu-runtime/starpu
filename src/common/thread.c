@@ -829,11 +829,19 @@ void _starpu_pthread_spin_do_unlock(starpu_pthread_spinlock_t *lock)
 	 */
 	lock->taken = 0;
 	STARPU_SYNCHRONIZE();
-	if (syscall(SYS_futex, &lock->taken, _starpu_futex_wake, 1, NULL, NULL, 0))
-		if (errno == ENOSYS)
+	if (syscall(SYS_futex, &lock->taken, _starpu_futex_wake, 1, NULL, NULL, 0) == -1)
+		switch (errno)
 		{
-			_starpu_futex_wake = FUTEX_WAKE;
-			syscall(SYS_futex, &lock->taken, _starpu_futex_wake, 1, NULL, NULL, 0);
+			case ENOSYS:
+				_starpu_futex_wake = FUTEX_WAKE;
+				if (syscall(SYS_futex, &lock->taken, _starpu_futex_wake, 1, NULL, NULL, 0) == -1)
+					STARPU_ASSERT_MSG(0, "futex(wake) returned %d!", errno);
+				break;
+			case 0:
+				break;
+			default:
+				STARPU_ASSERT_MSG(0, "futex returned %d!", errno);
+				break;
 		}
 }
 
