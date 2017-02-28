@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012, 2013, 2014  CNRS
- * Copyright (C) 2012, 2014, 2016  Université de Bordeaux
+ * Copyright (C) 2012, 2014, 2016-2017  Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -102,7 +102,9 @@ void pipeline_cublas_axpy(void *descr[], void *arg)
 	int n = STARPU_VECTOR_GET_NX(descr[0]);
 	float alpha = 1.;
 
-	cublasSaxpy(starpu_cublas_get_local_handle(), n, &alpha, x, 1, y, 1);
+	cublasStatus_t status = cublasSaxpy(starpu_cublas_get_local_handle(), n, &alpha, x, 1, y, 1);
+	if (status != CUBLAS_STATUS_SUCCESS)
+		STARPU_CUBLAS_REPORT_ERROR(status);
 }
 #endif
 
@@ -144,7 +146,9 @@ void pipeline_cublas_sum(void *descr[], void *arg)
 	int n = STARPU_VECTOR_GET_NX(descr[0]);
 	float y;
 
-	cublasSasum(starpu_cublas_get_local_handle(), n, x, 1, &y);
+	cublasStatus_t status = cublasSasum(starpu_cublas_get_local_handle(), n, x, 1, &y);
+	if (status != CUBLAS_STATUS_SUCCESS)
+		STARPU_CUBLAS_REPORT_ERROR(status);
 
 	FPRINTF(stderr,"CUBLAS finished with %f\n", y);
 }
