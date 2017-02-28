@@ -82,7 +82,8 @@ void starpu_cublas_init(void)
 	starpu_execute_on_each_worker(init_cublas_func, NULL, STARPU_CUDA);
 	starpu_execute_on_each_worker(set_cublas_stream_func, NULL, STARPU_CUDA);
 
-	cublasCreate(&main_handle);
+	if (cublasCreate(&main_handle) != CUBLAS_STATUS_SUCCESS)
+		main_handle = NULL;
 #endif
 }
 
@@ -91,7 +92,8 @@ void starpu_cublas_shutdown(void)
 #ifdef STARPU_USE_CUDA
 	starpu_execute_on_each_worker(shutdown_cublas_func, NULL, STARPU_CUDA);
 
-	cublasDestroy(main_handle);
+	if (main_handle)
+		cublasDestroy(main_handle);
 #endif
 }
 
