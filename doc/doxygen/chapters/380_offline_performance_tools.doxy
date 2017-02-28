@@ -122,10 +122,6 @@ $ vite paje.trace
 
 To get names of tasks instead of "unknown", fill the optional
 starpu_codelet::name, or use a performance model for them.
-Details of the codelet execution can be obtained by passing
-\ref enable-paje-codelet-details "--enable-paje-codelet-details" when
-configuring StarPU and using a recent enough version of ViTE (at least
-r1430).
 
 In the MPI execution case, \ref STARPU_GENERATE_TRACE will not work as expected
 (each node will try to generate paje.trace, thus mixing outputs...), you have to
@@ -140,10 +136,8 @@ By default, all tasks are displayed using a green color. To display tasks with
 varying colors, pass option <c>-c</c> to <c>starpu_fxt_tool</c>.
 
 To identify tasks precisely, the application can set the starpu_task::tag_id field of the
-task (or use \ref STARPU_TAG_ONLY when using starpu_task_insert()), and with a recent
-enough version of ViTE (>= r1430) and the
-\ref enable-paje-codelet-details "--enable-paje-codelet-details"
-StarPU configure option, the value of the tag will show up in the trace.
+task (or use \ref STARPU_TAG_ONLY when using starpu_task_insert()), and
+the value of the tag will show up in the trace.
 
 It can also set the starpu_task::name field of the task (or use \ref STARPU_NAME)
 when using starpu_task_insert()), to replace in traces the name of the codelet

@@ -130,7 +130,6 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 	fprintf(file, "%%	EndContainer	string\n");
 	fprintf(file, "%%	Key	string\n");
 	fprintf(file, "%%EndEventDef\n");
-#ifdef STARPU_ENABLE_PAJE_CODELET_DETAILS
 	fprintf(file, "%%EventDef PajeSetState 20\n");
 	fprintf(file, "%%	Time	date\n");
 	fprintf(file, "%%	Container	string\n");
@@ -146,7 +145,6 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 	fprintf(file, "%%	Y	string\n");
 	fprintf(file, "%%	Z	string\n");
 	fprintf(file, "%%EndEventDef\n");
-#endif
 #endif
 
 #ifdef STARPU_HAVE_POTI
