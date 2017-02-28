@@ -337,8 +337,8 @@ LIST_TYPE(_starpu_communication,
 )
 
 static struct _starpu_communication_list communication_list;
-static float current_bandwidth_in_per_node[STARPU_MAXNODES] = {0.0};
-static float current_bandwidth_out_per_node[STARPU_MAXNODES] = {0.0};
+static double current_bandwidth_in_per_node[STARPU_MAXNODES] = {0.0};
+static double current_bandwidth_out_per_node[STARPU_MAXNODES] = {0.0};
 
 /* List of on-going computations */
 LIST_TYPE(_starpu_computation,
