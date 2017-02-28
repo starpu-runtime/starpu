@@ -76,6 +76,9 @@
 
 #define _STARPU_FUT_MODEL_NAME		0x511c
 
+#define _STARPU_FUT_DATA_NAME		0x511d
+#define _STARPU_FUT_DATA_COORDINATES	0x511e
+
 #define _STARPU_FUT_USER_DEFINED_START	0x5120
 #define _STARPU_FUT_USER_DEFINED_END	0x5121
 
@@ -574,6 +577,18 @@ do {										\
 	}									\
 } while(0);
 
+#define _STARPU_TRACE_DATA_NAME(handle, name) \
+	FUT_DO_PROBE1STR(_STARPU_FUT_DATA_NAME, handle, name)
+
+#define _STARPU_TRACE_DATA_COORDINATES(handle, dim, v) \
+	switch (dim) { \
+	case 1: FUT_DO_PROBE3(_STARPU_FUT_DATA_COORDINATES, handle, dim, v[0]); break; \
+	case 2: FUT_DO_PROBE4(_STARPU_FUT_DATA_COORDINATES, handle, dim, v[0], v[1]); break; \
+	case 3: FUT_DO_PROBE5(_STARPU_FUT_DATA_COORDINATES, handle, dim, v[0], v[1], v[2]); break; \
+	case 4: FUT_DO_PROBE6(_STARPU_FUT_DATA_COORDINATES, handle, dim, v[0], v[1], v[2], v[3]); break; \
+	case 5: FUT_DO_PROBE7(_STARPU_FUT_DATA_COORDINATES, handle, dim, v[0], v[1], v[2], v[3], v[4]); break; \
+	}
+
 #define _STARPU_TRACE_DATA_COPY(src_node, dst_node, size)	\
 	FUT_DO_PROBE3(_STARPU_FUT_DATA_COPY, src_node, dst_node, size)
 
@@ -961,6 +976,8 @@ do {										\
 #define _STARPU_TRACE_GHOST_TASK_DEPS(a, b)	do {} while(0)
 #define _STARPU_TRACE_TASK_DONE(a)		do {} while(0)
 #define _STARPU_TRACE_TAG_DONE(a)		do {} while(0)
+#define _STARPU_TRACE_DATA_NAME(a, b)		do {} while(0)
+#define _STARPU_TRACE_DATA_COORDINATES(a, b, c)		do {} while(0)
 #define _STARPU_TRACE_DATA_COPY(a, b, c)		do {} while(0)
 #define _STARPU_TRACE_START_DRIVER_COPY(a,b,c,d,e,f)	do {} while(0)
 #define _STARPU_TRACE_END_DRIVER_COPY(a,b,c,d,e)	do {} while(0)
