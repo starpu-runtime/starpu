@@ -778,7 +778,6 @@ static void thread_pop_state(double time, const char *prefix, long unsigned int 
 #endif
 }
 
-#ifdef STARPU_ENABLE_PAJE_CODELET_DETAILS
 static void worker_set_detailed_state(double time, const char *prefix, long unsigned int workerid, const char *name, unsigned long size, const char *parameters, unsigned long footprint, unsigned long long tag, unsigned long job_id, double gflop, unsigned X, unsigned Y, unsigned Z)
 {
 #ifdef STARPU_HAVE_POTI
@@ -790,7 +789,6 @@ static void worker_set_detailed_state(double time, const char *prefix, long unsi
 	fprintf(out_paje_file, "20	%.9f	%sw%lu	WS	%s	%lu	%s	%08lx	%016llx	%lu	%f	%u	%u	%u\n", time, prefix, workerid, name, size, parameters, footprint, tag, job_id, gflop, X, Y, Z);
 #endif
 }
-#endif
 
 static void mpicommthread_set_state(double time, const char *prefix, const char *name)
 {
@@ -1306,7 +1304,6 @@ static void handle_start_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_op
 	task->name = strdup(name);
 	task->node = node;
 
-#ifndef STARPU_ENABLE_PAJE_CODELET_DETAILS
 	if (out_paje_file)
 	{
 		char *prefix = options->file_prefix;
@@ -1328,7 +1325,6 @@ static void handle_start_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_op
 	}
 	if (trace_file)
 		recfmt_worker_set_state(start_codelet_time, ev->param[2], name, "Task");
-#endif /* STARPU_ENABLE_PAJE_CODELET_DETAILS */
 
 	struct _starpu_computation *comp = ongoing_computation[worker];
 	if (!comp)
@@ -1442,7 +1438,6 @@ static void handle_codelet_details(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 	if (out_paje_file)
 	{
 
-#ifdef STARPU_ENABLE_PAJE_CODELET_DETAILS
 		char *prefix = options->file_prefix;
 		unsigned sched_ctx = ev->param[0];
 
@@ -1459,7 +1454,6 @@ static void handle_codelet_details(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 			fprintf(out_paje_file, "20	%.9f	%sw%d	Ctx%u	%s	%ld	%s	%08lx	%016lx	%lu\n", last_codelet_start[worker], prefix, worker, sched_ctx, _starpu_last_codelet_symbol[worker], ev->param[1], parameters,  ev->param[2], ev->param[4], job_id);
 #endif
 		}
-#endif /* STARPU_ENABLE_PAJE_CODELET_DETAILS */
 	}
 }
 

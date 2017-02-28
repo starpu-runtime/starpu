@@ -1899,12 +1899,6 @@ if test x$use_fxt = xyes; then
 		FXT_LIBS="$(pkg-config --variable=libdir fxt)/libfxt.a -Wl,--as-needed $(pkg-config --libs --static fxt) -Wl,--no-as-needed"
 	fi
 
-        AC_ARG_ENABLE(paje-codelet-details, [AS_HELP_STRING([--enable-paje-codelet-details],
-			[enable details about codelets in the paje trace])],
-			enable_paje_codelet_details=$enableval, enable_paje_codelet_details=no)
-        if  test x$enable_paje_codelet_details = xyes; then
-        	AC_DEFINE(STARPU_ENABLE_PAJE_CODELET_DETAILS, [1], [enable details about codelets in the paje trace])
-        fi
 	##########################################
 	# Poti is a library to generate paje trace files
 	##########################################

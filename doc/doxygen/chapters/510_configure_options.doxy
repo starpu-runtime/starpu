@@ -436,14 +436,6 @@ Enable performance debugging through gprof.
 Enable performance model debugging.
 </dd>
 
-<dt>--enable-paje-codelet-details</dt>
-<dd>
-\anchor enable-paje-codelet-details
-\addindex __configure__--enable-paje-codelet-details
-Enable details about codelets in the paje trace. This requires a recent enough
-version of ViTE (at least r1430).
-</dd>
-
 <dt>--enable-fxt-lock</dt>
 <dd>
 \anchor enable-fxt-lock
