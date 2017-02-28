@@ -161,6 +161,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 static int cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 {
 	starpu_data_handle_t dataA;
+	unsigned x, y;
 
 	/* monitor and partition the A matrix into blocks :
 	 * one block is now determined by 2 unsigned (i,j) */
@@ -179,6 +180,13 @@ static int cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 	};
 
 	starpu_data_map_filters(dataA, 2, &f, &f2);
+
+	for (x = 0; x < nblocks; x++)
+		for (y = 0; y < nblocks; y++)
+		{
+			starpu_data_handle_t data = starpu_data_get_sub_data(dataA, 2, x, y);
+			starpu_data_set_coordinates(data, 2, x, y);
+		}
 
 	int ret = _cholesky(dataA, nblocks);
 

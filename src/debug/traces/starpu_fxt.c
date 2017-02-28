@@ -78,9 +78,10 @@ static FILE *distrib_time;
 static FILE *activity_file;
 static FILE *anim_file;
 static FILE *tasks_file;
+static FILE *data_file;
 static FILE *trace_file;
 
-struct data_info {
+struct data_parameter_info {
 	unsigned long handle;
 	unsigned long size;
 	int mode;
@@ -104,7 +105,7 @@ struct task_info {
 	unsigned int ndeps;
 	unsigned long *dependencies;
 	unsigned long ndata;
-	struct data_info *data;
+	struct data_parameter_info *data;
 	int mpi_rank;
 };
 
@@ -214,6 +215,58 @@ static void task_dump(unsigned long job_id, int mpi_rank)
 out:
 	HASH_DEL(tasks_info, task);
 	free(task);
+}
+
+struct data_info {
+	UT_hash_handle hh;
+	unsigned long handle;
+	char *name;
+	unsigned dimensions;
+	unsigned long *dims;
+	int mpi_rank;
+};
+
+struct data_info *data_info;
+
+static struct data_info *get_data(unsigned long handle, int mpi_rank)
+{
+	struct data_info *data;
+
+	HASH_FIND(hh, data_info, &handle, sizeof(handle), data);
+	if (!data)
+	{
+		_STARPU_MALLOC(data, sizeof(*data));
+		data->handle = handle;
+		data->name = NULL;
+		data->dimensions = 0;
+		data->dims = NULL;
+		data->mpi_rank = mpi_rank;
+		HASH_ADD(hh, data_info, handle, sizeof(handle), data);
+	} else
+		STARPU_ASSERT(data->mpi_rank == mpi_rank);
+
+	return data;
+}
+
+static void data_dump(struct data_info *data)
+{
+	fprintf(data_file, "Handle: %lx\n", data->handle);
+	if (data->name)
+	{
+		fprintf(data_file, "Name: %s\n", data->name);
+		free(data->name);
+	}
+	if (data->dimensions)
+	{
+		unsigned i;
+		fprintf(data_file, "Coordinates:");
+		for (i = 0; i < data->dimensions; i++)
+			fprintf(data_file, " %lu", data->dims[i]);
+		fprintf(data_file, "\n");
+	}
+	fprintf(data_file, "\n");
+	HASH_DEL(data_info, data);
+	free(data);
 }
 
 static void set_next_other_worker_color(int workerid)
@@ -726,7 +779,7 @@ static void thread_pop_state(double time, const char *prefix, long unsigned int 
 }
 
 #ifdef STARPU_ENABLE_PAJE_CODELET_DETAILS
-static void worker_set_detailed_state(double time, const char *prefix, long unsigned int workerid, const char *name, unsigned long size, const char *parameters, unsigned long footprint, unsigned long long tag, unsigned long job_id)
+static void worker_set_detailed_state(double time, const char *prefix, long unsigned int workerid, const char *name, unsigned long size, const char *parameters, unsigned long footprint, unsigned long long tag, unsigned long job_id, double gflop, unsigned X, unsigned Y, unsigned Z)
 {
 #ifdef STARPU_HAVE_POTI
 	char container[STARPU_POTI_STR_LEN];
@@ -734,7 +787,7 @@ static void worker_set_detailed_state(double time, const char *prefix, long unsi
 	/* TODO: set detailed state */
 	poti_SetState(time, container, "WS", name);
 #else
-	fprintf(out_paje_file, "20	%.9f	%sw%lu	WS	%s	%lu	%s	%08lx	%016llx	%lu\n", time, prefix, workerid, name, size, parameters, footprint, tag, job_id);
+	fprintf(out_paje_file, "20	%.9f	%sw%lu	WS	%s	%lu	%s	%08lx	%016llx	%lu	%f	%u	%u	%u\n", time, prefix, workerid, name, size, parameters, footprint, tag, job_id, gflop, X, Y, Z);
 #endif
 }
 #endif
@@ -1370,6 +1423,22 @@ static void handle_codelet_details(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 	task->kflops = ev->param[3];
 	task->tag = ev->param[4];
 
+	unsigned i, X = 0, Y = 0, Z = 0;
+	for (i = 0; i < task->ndata; i++)
+	{
+		if (task->data[i].mode & STARPU_W)
+		{
+			struct data_info *data = get_data(task->data[i].handle, options->file_rank);
+			if (data->dimensions >= 1)
+				X = data->dims[0];
+			if (data->dimensions >= 2)
+				Y = data->dims[1];
+			if (data->dimensions >= 3)
+				Z = data->dims[2];
+			break;
+		}
+	}
+
 	if (out_paje_file)
 	{
 
@@ -1377,7 +1446,7 @@ static void handle_codelet_details(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 		char *prefix = options->file_prefix;
 		unsigned sched_ctx = ev->param[0];
 
-		worker_set_detailed_state(last_codelet_start[worker], prefix, worker, _starpu_last_codelet_symbol[worker], ev->param[1], parameters, ev->param[2], ev->param[4], job_id);
+		worker_set_detailed_state(last_codelet_start[worker], prefix, worker, _starpu_last_codelet_symbol[worker], ev->param[1], parameters, ev->param[2], ev->param[4], job_id, ((double) task->kflops) / 1000000, X, Y, Z);
 		if (sched_ctx != 0)
 		{
 #ifdef STARPU_HAVE_POTI
@@ -1783,6 +1852,28 @@ static void handle_data_invalidate(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 
 static void handle_data_copy(void)
 {
+}
+
+static void handle_data_name(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	unsigned long handle = ev->param[0];
+	char *name = get_fxt_string(ev, 1);
+	struct data_info *data = get_data(handle, options->file_rank);
+
+	data->name = strdup(name);
+}
+
+static void handle_data_coordinates(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	unsigned long handle = ev->param[0];
+	unsigned dimensions = ev->param[1];
+	struct data_info *data = get_data(handle, options->file_rank);
+	unsigned i;
+
+	data->dimensions = dimensions;
+	data->dims = malloc(dimensions * sizeof(data->dims));
+	for (i = 0; i < dimensions; i++)
+		data->dims[i] = ev->param[i+2];
 }
 
 static const char *copy_link_type(unsigned prefetch)
@@ -2933,6 +3024,14 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 			case _STARPU_FUT_DATA_LOAD:
 			     	break;
 
+			case _STARPU_FUT_DATA_NAME:
+				handle_data_name(&ev, options);
+				break;
+
+			case _STARPU_FUT_DATA_COORDINATES:
+				handle_data_coordinates(&ev, options);
+				break;
+
 			case _STARPU_FUT_START_DRIVER_COPY:
 				if (!options->no_bus)
 					handle_start_driver_copy(&ev, options);
@@ -3275,6 +3374,16 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 #endif
 	}
 
+	if (data_file)
+	{
+		/* TODO: move to handle_data_unregister */
+		struct data_info *data, *tmp;
+		HASH_ITER(hh, data_info, data, tmp)
+		{
+			data_dump(data);
+		}
+	}
+
 	/* Close the trace file */
 	if (close(fd_in))
 	{
@@ -3294,6 +3403,7 @@ void starpu_fxt_options_init(struct starpu_fxt_options *options)
 	options->out_paje_path = "paje.trace";
 	options->dag_path = "dag.dot";
 	options->tasks_path = "tasks.rec";
+	options->data_path = "data.rec";
 	options->anim_path = "trace.html";
 	options->states_path = "trace.rec";
 	options->distrib_time_path = "distrib.data";
@@ -3361,6 +3471,15 @@ void _starpu_fxt_tasks_file_init(struct starpu_fxt_options *options)
 }
 
 static
+void _starpu_fxt_data_file_init(struct starpu_fxt_options *options)
+{
+	if (options->data_path)
+		data_file = fopen(options->data_path, "w+");
+	else
+		data_file = NULL;
+}
+
+static
 void _starpu_fxt_write_trace_header(FILE *f)
 {
 	fprintf(f, "#\n");
@@ -3409,6 +3528,13 @@ void _starpu_fxt_tasks_file_close(void)
 {
 	if (tasks_file)
 		fclose(tasks_file);
+}
+
+static
+void _starpu_fxt_data_file_close(void)
+{
+	if (data_file)
+		fclose(data_file);
 }
 
 static
@@ -3499,6 +3625,7 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 	_starpu_fxt_activity_file_init(options);
 	_starpu_fxt_anim_file_init(options);
 	_starpu_fxt_tasks_file_init(options);
+	_starpu_fxt_data_file_init(options);
 	_starpu_fxt_trace_file_init(options);
 
 	_starpu_fxt_paje_file_init(options);
@@ -3628,6 +3755,7 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 	_starpu_fxt_distrib_file_close(options);
 	_starpu_fxt_anim_file_close();
 	_starpu_fxt_tasks_file_close();
+	_starpu_fxt_data_file_close();
 	_starpu_fxt_trace_file_close();
 
 	_starpu_fxt_dag_terminate();

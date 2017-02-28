@@ -149,6 +149,10 @@ It can also set the starpu_task::name field of the task (or use \ref STARPU_NAME
 when using starpu_task_insert()), to replace in traces the name of the codelet
 with an arbitrarily chosen name.
 
+Coordinates can also be given to data with the starpu_data_set_coordinates() or
+starpu_data_set_coordinates_array() function. In the trace, tasks will then be
+assigned the coordinates of the first data they write to.
+
 Traces can also be inspected by hand by using the tool <c>fxt_print</c>, for instance:
 
 \verbatim

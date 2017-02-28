@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2016  Université de Bordeaux
+ * Copyright (C) 2010-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
  * Copyright (C) 2016  Inria
  *
@@ -52,6 +52,10 @@ struct starpu_data_descr
 };
 
 struct starpu_data_interface_ops;
+
+void starpu_data_set_name(starpu_data_handle_t handle, const char *name);
+void starpu_data_set_coordinates_array(starpu_data_handle_t handle, int dimensions, int dims[]);
+void starpu_data_set_coordinates(starpu_data_handle_t handle, unsigned dimensions, ...);
 
 void starpu_data_unregister(starpu_data_handle_t handle);
 void starpu_data_unregister_no_coherency(starpu_data_handle_t handle);

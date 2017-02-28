@@ -61,6 +61,8 @@ New features:
     models between devices, making calibration much faster.
   * Add modular-heft-prio scheduler.
   * Add starpu_cublas_get_local_handle helper.
+  * Add starpu_data_set_name, starpu_data_set_coordinates_array, and
+    starpu_data_set_coordinates to describe data.
 
 Changes:
   * Fix performance regression of lws for small tasks.
