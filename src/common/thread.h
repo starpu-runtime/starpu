@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012-2014, 2016  Université de Bordeaux
+ * Copyright (C) 2010, 2012-2014, 2016-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -116,6 +116,7 @@ static inline int _starpu_pthread_spin_unlock(starpu_pthread_spinlock_t *lock)
 	lock->taken = 0;
 #elif defined(STARPU_LINUX_SYS) && defined(STARPU_HAVE_XCHG)
 	STARPU_ASSERT(lock->taken != 0);
+	STARPU_SYNCHRONIZE();
 	unsigned next = STARPU_ATOMIC_ADD(&lock->taken, -1);
 	if (STARPU_LIKELY(next == 0))
 		/* Nobody to wake, we are done */
