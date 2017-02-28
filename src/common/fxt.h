@@ -994,6 +994,7 @@ do {										\
 #define _STARPU_TRACE_TASK_DONE(a)		do {(void)(a);} while(0)
 #define _STARPU_TRACE_TAG_DONE(a)		do {(void)(a);} while(0)
 #define _STARPU_TRACE_DATA_NAME(a, b)		do ((void)(a); (void)(b);} while(0)
+#define _STARPU_TRACE_DATA_COORDINATES(a, b, c)	do ((void)(a); (void)(b); (void)(c)} while(0)
 #define _STARPU_TRACE_DATA_COPY(a, b, c)		do {(void)(a); (void)(b); (void)(c);} while(0)
 #define _STARPU_TRACE_START_DRIVER_COPY(a,b,c,d,e,f)	do {(void)(a); (void)(b); (void)(c); (void)(d); (void)(e); (void)(f);} while(0)
 #define _STARPU_TRACE_END_DRIVER_COPY(a,b,c,d,e)	do {(void)(a); (void)(b); (void)(c); (void)(d); (void)(e);} while(0)
