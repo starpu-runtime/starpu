@@ -281,10 +281,12 @@ int main(int argc, char **argv)
 	return main_ret;
 }
 
+#ifdef HAVE_MSG_PROCESS_ATTACH
 static void maestro(void *data STARPU_ATTRIBUTE_UNUSED)
 {
 	MSG_main();
 }
+#endif
 
 void _starpu_simgrid_init_early(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv STARPU_ATTRIBUTE_UNUSED)
 {
@@ -876,7 +878,12 @@ void _starpu_simgrid_count_ngpus(void)
 		{
 			int busid;
 			msg_host_t srchost, dsthost;
+#ifdef HAVE_SG_HOST_ROUTE
+			xbt_dynar_t route_dynar = xbt_dynar_new(sizeof(SD_link_t), NULL);
+			SD_link_t *route;
+#else
 			const SD_link_t *route;
+#endif
 			int i, routesize;
 			int through;
 			unsigned src2;
@@ -891,8 +898,14 @@ void _starpu_simgrid_count_ngpus(void)
 
 			srchost = _starpu_simgrid_get_memnode_host(src);
 			dsthost = _starpu_simgrid_get_memnode_host(dst);
+#ifdef HAVE_SG_HOST_ROUTE
+			sg_host_route(srchost, dsthost, route_dynar);
+			routesize = xbt_dynar_length(route_dynar);
+			route = xbt_dynar_to_array(route_dynar);
+#else
 			routesize = SD_route_get_size(srchost, dsthost);
 			route = SD_route_get_list(srchost, dsthost);
+#endif
 
 			/* If it goes through "Host", do not care, there is no
 			 * direct transfer support */
@@ -932,8 +945,17 @@ void _starpu_simgrid_count_ngpus(void)
 				if (starpu_bus_get_id(src2, STARPU_MAIN_RAM) == -1)
 					continue;
 				msg_host_t srchost2 = _starpu_simgrid_get_memnode_host(src2);
-				int routesize2 = SD_route_get_size(srchost2, ramhost);
+				int routesize2;
+#ifdef HAVE_SG_HOST_ROUTE
+				xbt_dynar_t route_dynar2 = xbt_dynar_new(sizeof(SD_link_t), NULL);
+				SD_link_t *route2;
+				sg_host_route(srchost2, ramhost, route_dynar2);
+				routesize2 = xbt_dynar_length(route_dynar2);
+				route2 = xbt_dynar_to_array(route_dynar2);
+#else
 				const SD_link_t *route2 = SD_route_get_list(srchost2, ramhost);
+				routesize2 = SD_route_get_size(srchost2, ramhost);
+#endif
 
 				for (i = 0; i < routesize2; i++)
 					if (!strcmp(name, sg_link_name(route2[i])))
@@ -942,9 +964,15 @@ void _starpu_simgrid_count_ngpus(void)
 						ngpus++;
 						break;
 					}
+#ifdef HAVE_SG_HOST_ROUTE
+				free(route2);
+#endif
 			}
 			_STARPU_DEBUG("%d->%d through %s, %u GPUs\n", src, dst, name, ngpus);
 			starpu_bus_set_ngpus(busid, ngpus);
+#ifdef HAVE_SG_HOST_ROUTE
+			free(route);
+#endif
 		}
 #endif
 }
@@ -980,7 +1008,7 @@ void _starpu_simgrid_xbt_thread_create(const char *name, void_f_pvoid_t code, vo
 #ifdef HAVE_SMX_ACTOR_T
 	smx_actor_t process STARPU_ATTRIBUTE_UNUSED;
 #else
-	smx_process_t process;
+	smx_process_t process STARPU_ATTRIBUTE_UNUSED;
 #endif
 	thread_data_t *res;
 	_STARPU_MALLOC(res, sizeof(thread_data_t));
@@ -1000,7 +1028,14 @@ void _starpu_simgrid_xbt_thread_create(const char *name, void_f_pvoid_t code, vo
 #else
 	                         SIMIX_host_self(),
 #endif
-				 -1.0, 0, NULL,
-	                         /*props */ NULL,0);
+#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 15)
+				 -1.0,
+#endif
+				 0, NULL,
+	                         /*props */ NULL
+#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 15)
+				 , 0
+#endif
+				 );
 }
 #endif

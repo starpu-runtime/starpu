@@ -81,6 +81,7 @@ noinst_HEADERS = 						\
 	core/perfmodel/multiple_regression.h			\
 	core/jobs.h						\
 	core/task.h						\
+	core/drivers.h						\
 	core/workers.h						\
 	core/topology.h						\
 	core/debug.h						\
@@ -171,6 +172,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	core/task.c						\
 	core/task_bundle.c					\
 	core/tree.c						\
+	core/drivers.c						\
 	core/workers.c						\
 	core/combined_workers.c					\
 	core/topology.c						\

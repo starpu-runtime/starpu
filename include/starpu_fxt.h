@@ -43,6 +43,7 @@ struct starpu_fxt_options
 	unsigned no_counter;
 	unsigned no_bus;
 	unsigned ninputfiles;
+	unsigned no_smooth;
 	char *filenames[STARPU_FXT_MAX_FILES];
 	char *out_paje_path;
 	char *distrib_time_path;

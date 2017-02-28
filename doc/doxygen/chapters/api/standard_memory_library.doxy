@@ -45,7 +45,8 @@ to indicate that while the memory allocation should be kept in the limits
 defined for ::STARPU_MALLOC_COUNT, no reclaiming should be performed by
 starpu_malloc_flags() itself, thus potentially overflowing the
 memory node a bit. StarPU will reclaim memory after next task termination,
-according to \ref STARPU_MINIMUM_AVAILABLE_MEM and \ref STARPU_TARGET_AVAILABLE_MEM
+according to the \ref STARPU_MINIMUM_AVAILABLE_MEM, \ref STARPU_TARGET_AVAILABLE_MEM,
+\ref STARPU_MINIMUM_CLEAN_BUFFERS, and \ref STARPU_TARGET_CLEAN_BUFFERS
 environment variables. If ::STARPU_MEMORY_WAIT is set, no overflowing will happen,
 starpu_malloc_flags() will wait for other eviction mechanisms to release enough memory.
 
@@ -60,20 +61,20 @@ and write to normally, but get bogus values.
 
 \fn int starpu_malloc_flags(void **A, size_t dim, int flags)
 \ingroup API_Standard_Memory_Library
-Performs a memory allocation based on the constraints defined
+Perform a memory allocation based on the constraints defined
 by the given flag.
 
 \fn void starpu_malloc_set_align(size_t align)
 \ingroup API_Standard_Memory_Library
-This function sets an alignment constraints for starpu_malloc()
+Set an alignment constraints for starpu_malloc()
 allocations. \p align must be a power of two. This is for instance called
 automatically by the OpenCL driver to specify its own alignment
 constraints.
 
 \fn int starpu_malloc(void **A, size_t dim)
 \ingroup API_Standard_Memory_Library
-This function allocates data of the given size \p dim in main memory, and
-returns the pointer to the allocated data through \p A.
+Allocate data of the given size \p dim in main memory, and
+return the pointer to the allocated data through \p A.
 It will also try to pin it in CUDA or OpenCL, so that data transfers
 from this buffer can be asynchronous, and thus permit data transfer
 and computation overlapping. The allocated buffer must be freed thanks
@@ -81,24 +82,23 @@ to the starpu_free() function.
 
 \fn int starpu_free(void *A)
 \ingroup API_Standard_Memory_Library
-This function frees memory which has previously been allocated
-with starpu_malloc().
+Free memory which has previously been allocated with starpu_malloc().
 
 \fn int starpu_free_flags(void *A, size_t dim, int flags)
 \ingroup API_Standard_Memory_Library
-This function frees memory by specifying its size. The given
+Free memory by specifying its size. The given
 flags should be consistent with the ones given to starpu_malloc_flags()
 when allocating the memory.
 
 \fn int starpu_memory_pin(void *addr, size_t size)
 \ingroup API_Standard_Memory_Library
-This function pins the given memory area, so that CPU-GPU transfers can be done
+Pin the given memory area, so that CPU-GPU transfers can be done
 asynchronously with DMAs. The memory must be unpinned with
 starpu_memory_unpin() before being freed. Returns 0 on success, -1 on error.
 
 \fn int starpu_memory_unpin(void *addr, size_t size)
 \ingroup API_Standard_Memory_Library
-This function unpins the given memory area previously pinned with
+Unpin the given memory area previously pinned with
 starpu_memory_pin(). Returns 0 on success, -1 on error.
 
 \fn ssize_t starpu_memory_get_total(unsigned node)
@@ -109,7 +109,7 @@ on the node. Otherwise return -1.
 
 \fn ssize_t starpu_memory_get_total_all_nodes()
 \ingroup API_Standard_Memory_Library
-return the amount of total memory on all memory nodes for whose a memory limit
+Return the amount of total memory on all memory nodes for whose a memory limit
 is defined (see Section \ref HowToLimitMemoryPerNode).
 
 \fn ssize_t starpu_memory_get_available(unsigned node)
@@ -120,7 +120,7 @@ on the node. Otherwise return -1.
 
 \fn ssize_t starpu_memory_get_available_all_nodes()
 \ingroup API_Standard_Memory_Library
-return the amount of available memory on all memory nodes for whose a memory limit
+Return the amount of available memory on all memory nodes for whose a memory limit
 is defined (see Section \ref HowToLimitMemoryPerNode).
 
 \fn int starpu_memory_allocate(unsigned node, size_t size, int flags)

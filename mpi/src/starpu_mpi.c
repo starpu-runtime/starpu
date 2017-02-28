@@ -1679,40 +1679,41 @@ void _starpu_mpi_progress_shutdown(int *value)
         STARPU_PTHREAD_COND_DESTROY(&barrier_cond);
 }
 
-void _starpu_mpi_clear_cache(starpu_data_handle_t data_handle)
+void _starpu_mpi_data_clear(starpu_data_handle_t data_handle)
 {
 	_starpu_mpi_tag_data_release(data_handle);
-	struct _starpu_mpi_node_tag *mpi_data = data_handle->mpi_data;
-	_starpu_mpi_cache_flush(mpi_data->comm, data_handle);
+	_starpu_mpi_cache_data_clear(data_handle);
 	free(data_handle->mpi_data);
 }
 
 void starpu_mpi_data_register_comm(starpu_data_handle_t data_handle, int tag, int rank, MPI_Comm comm)
 {
-	struct _starpu_mpi_node_tag *mpi_data;
+	struct _starpu_mpi_data *mpi_data;
 	if (data_handle->mpi_data)
 	{
 		mpi_data = data_handle->mpi_data;
 	}
 	else
 	{
-		_STARPU_CALLOC(mpi_data, 1, sizeof(struct _starpu_mpi_node_tag));
-		mpi_data->data_tag = -1;
-		mpi_data->rank = -1;
-		mpi_data->comm = MPI_COMM_WORLD;
+		_STARPU_CALLOC(mpi_data, 1, sizeof(struct _starpu_mpi_data));
+		mpi_data->magic = 42;
+		mpi_data->node_tag.data_tag = -1;
+		mpi_data->node_tag.rank = -1;
+		mpi_data->node_tag.comm = MPI_COMM_WORLD;
 		data_handle->mpi_data = mpi_data;
+		_starpu_mpi_cache_data_init(data_handle);
 		_starpu_mpi_tag_data_register(data_handle, tag);
-		_starpu_data_set_unregister_hook(data_handle, _starpu_mpi_clear_cache);
+		_starpu_data_set_unregister_hook(data_handle, _starpu_mpi_data_clear);
 	}
 
 	if (tag != -1)
 	{
-		mpi_data->data_tag = tag;
+		mpi_data->node_tag.data_tag = tag;
 	}
 	if (rank != -1)
 	{
-		mpi_data->rank = rank;
-		mpi_data->comm = comm;
+		mpi_data->node_tag.rank = rank;
+		mpi_data->node_tag.comm = comm;
 		_starpu_mpi_comm_register(comm);
 	}
 }
@@ -1730,13 +1731,13 @@ void starpu_mpi_data_set_tag(starpu_data_handle_t handle, int tag)
 int starpu_mpi_data_get_rank(starpu_data_handle_t data)
 {
 	STARPU_ASSERT_MSG(data->mpi_data, "starpu_mpi_data_register MUST be called for data %p\n", data);
-	return ((struct _starpu_mpi_node_tag *)(data->mpi_data))->rank;
+	return ((struct _starpu_mpi_data *)(data->mpi_data))->node_tag.rank;
 }
 
 int starpu_mpi_data_get_tag(starpu_data_handle_t data)
 {
 	STARPU_ASSERT_MSG(data->mpi_data, "starpu_mpi_data_register MUST be called for data %p\n", data);
-	return ((struct _starpu_mpi_node_tag *)(data->mpi_data))->data_tag;
+	return ((struct _starpu_mpi_data *)(data->mpi_data))->node_tag.data_tag;
 }
 
 void starpu_mpi_get_data_on_node_detached(MPI_Comm comm, starpu_data_handle_t data_handle, int node, void (*callback)(void*), void *arg)
@@ -1760,8 +1761,8 @@ void starpu_mpi_get_data_on_node_detached(MPI_Comm comm, starpu_data_handle_t da
 	if (me == node)
 	{
 		_STARPU_MPI_DEBUG(1, "Migrating data %p from %d to %d\n", data_handle, rank, node);
-		void *already_received = _starpu_mpi_cache_received_data_set(data_handle, rank);
-		if (already_received == NULL)
+		int already_received = _starpu_mpi_cache_received_data_set(data_handle);
+		if (already_received == 0)
 		{
 			_STARPU_MPI_DEBUG(1, "Receiving data %p from %d\n", data_handle, rank);
 			starpu_mpi_irecv_detached(data_handle, rank, tag, comm, callback, arg);
@@ -1770,8 +1771,8 @@ void starpu_mpi_get_data_on_node_detached(MPI_Comm comm, starpu_data_handle_t da
 	else if (me == rank)
 	{
 		_STARPU_MPI_DEBUG(1, "Migrating data %p from %d to %d\n", data_handle, rank, node);
-		void *already_sent = _starpu_mpi_cache_sent_data_set(data_handle, node);
-		if (already_sent == NULL)
+		int already_sent = _starpu_mpi_cache_sent_data_set(data_handle, node);
+		if (already_sent == 0)
 		{
 			_STARPU_MPI_DEBUG(1, "Sending data %p to %d\n", data_handle, node);
 			starpu_mpi_isend_detached(data_handle, node, tag, comm, NULL, NULL);
@@ -1801,8 +1802,8 @@ void starpu_mpi_get_data_on_node(MPI_Comm comm, starpu_data_handle_t data_handle
 	{
 		MPI_Status status;
 		_STARPU_MPI_DEBUG(1, "Migrating data %p from %d to %d\n", data_handle, rank, node);
-		void *already_received = _starpu_mpi_cache_received_data_set(data_handle, rank);
-		if (already_received == NULL)
+		int already_received = _starpu_mpi_cache_received_data_set(data_handle);
+		if (already_received == 0)
 		{
 			_STARPU_MPI_DEBUG(1, "Receiving data %p from %d\n", data_handle, rank);
 			starpu_mpi_recv(data_handle, rank, tag, comm, &status);
@@ -1811,8 +1812,8 @@ void starpu_mpi_get_data_on_node(MPI_Comm comm, starpu_data_handle_t data_handle
 	else if (me == rank)
 	{
 		_STARPU_MPI_DEBUG(1, "Migrating data %p from %d to %d\n", data_handle, rank, node);
-		void *already_sent = _starpu_mpi_cache_sent_data_set(data_handle, node);
-		if (already_sent == NULL)
+		int already_sent = _starpu_mpi_cache_sent_data_set(data_handle, node);
+		if (already_sent == 0)
 		{
 			_STARPU_MPI_DEBUG(1, "Sending data %p to %d\n", data_handle, node);
 			starpu_mpi_send(data_handle, node, tag, comm);

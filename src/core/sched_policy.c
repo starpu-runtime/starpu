@@ -24,6 +24,7 @@
 #include <profiling/profiling.h>
 #include <common/barrier.h>
 #include <core/debug.h>
+#include <core/task.h>
 
 static int use_prefetch = 0;
 static double idle[STARPU_NMAXWORKERS];

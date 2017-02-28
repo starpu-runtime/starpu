@@ -24,7 +24,7 @@ redundancy in the task dependencies.
 
 \fn int starpu_task_get_task_succs(struct starpu_task *task, unsigned ndeps, struct starpu_task *task_array[])
 \ingroup API_Explicit_Dependencies
-Fills \p task_array with the list of tasks which are direct children of \p task.
+Fill \p task_array with the list of tasks which are direct children of \p task.
 \p ndeps is the size of \p task_array.  This function returns the number of
 direct children. \p task_array can be set to <c>NULL</c> if \p ndeps is 0, which allows
 to compute the number of children before allocating an array to store them.
@@ -34,13 +34,13 @@ dependency has been added in the meanwhile.
 
 \fn int starpu_task_get_task_scheduled_succs(struct starpu_task *task, unsigned ndeps, struct starpu_task *task_array[])
 \ingroup API_Explicit_Dependencies
-This behaves like starpu_task_get_task_succs(), except that it only reports
+Behave like starpu_task_get_task_succs(), except that it only reports
 tasks which will go through the scheduler, thus avoiding tasks with not codelet,
 or with explicit placement.
 
 \typedef starpu_tag_t
 \ingroup API_Explicit_Dependencies
-This type defines a task logical identifer. It is possible to
+Define a task logical identifer. It is possible to
 associate a task with a unique <em>tag</em> chosen by the application,
 and to express dependencies between tasks by the means of those tags.
 To do so, fill the field starpu_task::tag_id with a tag number (can be
@@ -74,7 +74,7 @@ starpu_tag_declare_deps((starpu_tag_t)0x1, 2, (starpu_tag_t)0x32, (starpu_tag_t)
 
 \fn void starpu_tag_declare_deps_array(starpu_tag_t id, unsigned ndeps, starpu_tag_t *array)
 \ingroup API_Explicit_Dependencies
-This function is similar to starpu_tag_declare_deps(), except
+Similar to starpu_tag_declare_deps(), except
 that its does not take a variable number of arguments but an \p array of
 tags of size \p ndeps.
 
@@ -86,7 +86,7 @@ starpu_tag_declare_deps_array((starpu_tag_t)0x1, 2, tag_array);
 
 \fn int starpu_tag_wait(starpu_tag_t id)
 \ingroup API_Explicit_Dependencies
-This function blocks until the task associated to tag \p id has
+Block until the task associated to tag \p id has
 been executed. This is a blocking call which must therefore not be
 called within tasks or callbacks, but only from the application
 directly. It is possible to synchronize with the same tag multiple
@@ -97,27 +97,26 @@ starpu_task::destroy was enabled).
 
 \fn int starpu_tag_wait_array(unsigned ntags, starpu_tag_t *id)
 \ingroup API_Explicit_Dependencies
-This function is similar to starpu_tag_wait() except that it
+Similar to starpu_tag_wait() except that it
 blocks until all the \p ntags tags contained in the array \p id are
 terminated.
 
 \fn void starpu_tag_restart(starpu_tag_t id)
 \ingroup API_Explicit_Dependencies
-This function can be used to clear the <em>already
-notified</em> status of a tag which is not associated with a task.
+Clear the <em>already notified</em> status of a tag which is not associated with a task.
 Before that, calling starpu_tag_notify_from_apps() again will not
 notify the successors. After that, the next call to
 starpu_tag_notify_from_apps() will notify the successors.
 
 \fn void starpu_tag_remove(starpu_tag_t id)
 \ingroup API_Explicit_Dependencies
-This function releases the resources associated to tag \p id.
+Release the resources associated to tag \p id.
 It can be called once the corresponding task has been executed and
 when there is no other tag that depend on this tag anymore.
 
 \fn void starpu_tag_notify_from_apps(starpu_tag_t id)
 \ingroup API_Explicit_Dependencies
-This function explicitly unlocks tag \p id. It may be useful in
+Explicitly unlock tag \p id. It may be useful in
 the case of applications which execute part of their computation
 outside StarPU tasks (e.g. third-party libraries). It is also provided
 as a convenient tool for the programmer, for instance to entirely

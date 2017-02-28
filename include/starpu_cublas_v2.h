@@ -15,20 +15,20 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#ifndef __STARPU_CUBLAS_H__
-#define __STARPU_CUBLAS_H__
+#ifndef __STARPU_CUBLAS_V2_H__
+#define __STARPU_CUBLAS_V2_H__
+
+#include <cublas_v2.h>
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-void starpu_cublas_init(void);
-void starpu_cublas_set_stream(void);
-void starpu_cublas_shutdown(void);
+cublasHandle_t starpu_cublas_get_local_handle(void);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __STARPU_CUBLAS_H__ */
+#endif /* __STARPU_CUBLAS_V2_H__ */

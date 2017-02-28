@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2017  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010-2016  CNRS
+ * Copyright (C) 2010-2017  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2014  INRIA
  *
@@ -27,11 +27,13 @@
 #include <common/utils.h>
 #include <core/debug.h>
 #include <core/workers.h>
-#include "driver_cpu.h"
+#include <core/drivers.h>
+#include <drivers/cpu/driver_cpu.h>
 #include <core/sched_policy.h>
 #include <datawizard/memory_manager.h>
 #include <datawizard/malloc.h>
 #include <core/simgrid.h>
+#include <core/task.h>
 
 #ifdef STARPU_HAVE_HWLOC
 #include <hwloc.h>
@@ -327,18 +329,20 @@ int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
 	pending_task = cpu_worker->task_transferring;
 	if (pending_task != NULL && cpu_worker->nb_buffers_transferred == cpu_worker->nb_buffers_totransfer)
 	{
+		int ret;
+		_STARPU_TRACE_END_PROGRESS(memnode);
 		j = _starpu_get_job_associated_to_task(pending_task);
 
 		_starpu_release_fetch_task_input_async(j, cpu_worker);
 		/* Reset it */
 		cpu_worker->task_transferring = NULL;
 
-		return _starpu_cpu_driver_execute_task(cpu_worker, pending_task, j);
+		ret = _starpu_cpu_driver_execute_task(cpu_worker, pending_task, j);
+		_STARPU_TRACE_START_PROGRESS(memnode);
+		return ret;
 	}
 
-	_STARPU_TRACE_START_PROGRESS(memnode);
 	res = __starpu_datawizard_progress(1, 1);
-	_STARPU_TRACE_END_PROGRESS(memnode);
 
 	if (!pending_task)
 		task = _starpu_get_worker_task(cpu_worker, workerid, memnode);
@@ -365,6 +369,7 @@ int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
 		return 0;
 	}
 
+	_STARPU_TRACE_END_PROGRESS(memnode);
 	/* Get the rank in case it is a parallel task */
 	if (j->task_size > 1)
 	{
@@ -383,8 +388,12 @@ int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
 		res = _starpu_fetch_task_input(task, j, 1);
 		STARPU_ASSERT(res == 0);
 	}
-	else
-		return _starpu_cpu_driver_execute_task(cpu_worker, task, j);
+	else {
+		int ret = _starpu_cpu_driver_execute_task(cpu_worker, task, j);
+		_STARPU_TRACE_END_PROGRESS(memnode);
+		return ret;
+	}
+	_STARPU_TRACE_END_PROGRESS(memnode);
 	return 0;
 }
 
@@ -406,23 +415,24 @@ int _starpu_cpu_driver_deinit(struct _starpu_worker *cpu_worker)
 	return 0;
 }
 
-void *
-_starpu_cpu_worker(void *arg)
+void *_starpu_cpu_worker(void *arg)
 {
-	struct _starpu_worker *args = arg;
+	struct _starpu_worker *worker = arg;
 
-	_starpu_cpu_driver_init(args);
+	_starpu_cpu_driver_init(worker);
+	_STARPU_TRACE_END_PROGRESS(worker->memory_node);
 	while (_starpu_machine_is_running())
 	{
 		_starpu_may_pause();
-		_starpu_cpu_driver_run_once(args);
+		_starpu_cpu_driver_run_once(worker);
 	}
-	_starpu_cpu_driver_deinit(args);
+	_STARPU_TRACE_START_PROGRESS(worker->memory_node);
+	_starpu_cpu_driver_deinit(worker);
 
 	return NULL;
 }
 
-int _starpu_run_cpu(struct _starpu_worker *worker)
+int _starpu_cpu_driver_run(struct _starpu_worker *worker)
 {
 	worker->set = NULL;
 	worker->worker_is_initialized = 0;
@@ -430,3 +440,11 @@ int _starpu_run_cpu(struct _starpu_worker *worker)
 
 	return 0;
 }
+
+struct _starpu_driver_ops _starpu_driver_cpu_ops =
+{
+	.init = _starpu_cpu_driver_init,
+	.run = _starpu_cpu_driver_run,
+	.run_once = _starpu_cpu_driver_run_once,
+	.deinit = _starpu_cpu_driver_deinit
+};

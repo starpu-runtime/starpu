@@ -28,15 +28,12 @@
 char _starpu_worker_drives_memory[STARPU_NMAXWORKERS][STARPU_MAXNODES];
 
 struct _starpu_memory_node_descr _starpu_descr;
-starpu_pthread_key_t _starpu_memory_node_key STARPU_ATTRIBUTE_INTERNAL;
 
 void _starpu_memory_nodes_init(void)
 {
 	/* there is no node yet, subsequent nodes will be
 	 * added using _starpu_memory_node_register */
 	_starpu_descr.nnodes = 0;
-
-	STARPU_PTHREAD_KEY_CREATE(&_starpu_memory_node_key, NULL);
 
 	unsigned i;
 	for (i = 0; i < STARPU_MAXNODES; i++)
@@ -59,7 +56,6 @@ void _starpu_memory_nodes_deinit(void)
 	_starpu_deinit_mem_chunk_lists();
 
 	STARPU_PTHREAD_RWLOCK_DESTROY(&_starpu_descr.conditions_rwlock);
-	STARPU_PTHREAD_KEY_DELETE(_starpu_memory_node_key);
 }
 
 #undef starpu_node_get_kind

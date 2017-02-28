@@ -37,6 +37,7 @@
 #include <starpu_parameters.h>
 #include <common/uthash.h>
 #include <limits.h>
+#include <core/task.h>
 
 #ifdef STARPU_HAVE_WINDOWS
 #include <windows.h>

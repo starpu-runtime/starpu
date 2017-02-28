@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015, 2016  CNRS
+ * Copyright (C) 2015, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -48,7 +48,7 @@ int main(int argc, char **argv)
 	int ret;
 	unsigned *val;
 	starpu_data_handle_t data;
-	void *ptr = NULL;
+	int in_cache;
 	int cache;
 
 	ret = starpu_init(NULL);
@@ -73,28 +73,28 @@ int main(int argc, char **argv)
 	ret = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet_r, STARPU_R, data, STARPU_EXECUTE_ON_NODE, 1, 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_task_insert");
 
-	ptr = _starpu_mpi_cache_received_data_get(data, 0);
+	in_cache = _starpu_mpi_cache_received_data_get(data);
 	if (rank == 1)
 	{
-		STARPU_ASSERT_MSG(ptr != NULL, "Data should be in cache\n");
+		STARPU_ASSERT_MSG(in_cache == 1, "Data should be in cache\n");
 	}
 
 	// We clean the cache
 	starpu_mpi_cache_set(0);
 
 	// We check the data is no longer in the cache
-	ptr = _starpu_mpi_cache_received_data_get(data, 0);
+	in_cache = _starpu_mpi_cache_received_data_get(data);
 	if (rank == 1)
 	{
-		STARPU_ASSERT_MSG(ptr == NULL, "Data should NOT be in cache\n");
+		STARPU_ASSERT_MSG(in_cache == 0, "Data should NOT be in cache\n");
 	}
 
 	ret = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet_r, STARPU_R, data, STARPU_EXECUTE_ON_NODE, 1, 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_task_insert");
-	ptr = _starpu_mpi_cache_received_data_get(data, 0);
+	in_cache = _starpu_mpi_cache_received_data_get(data);
 	if (rank == 1)
 	{
-		STARPU_ASSERT_MSG(ptr == NULL, "Data should NOT be in cache\n");
+		STARPU_ASSERT_MSG(in_cache == 0, "Data should NOT be in cache\n");
 	}
 
 	FPRINTF(stderr, "Waiting ...\n");

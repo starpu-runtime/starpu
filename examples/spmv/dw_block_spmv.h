@@ -28,10 +28,6 @@
 
 #include <starpu.h>
 
-#ifdef STARPU_USE_CUDA
-#include <cublas.h>
-#endif
-
 void cpu_block_spmv(void *descr[], void *_args);
 
 #ifdef STARPU_USE_CUDA

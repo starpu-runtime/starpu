@@ -27,8 +27,9 @@
 #include <datawizard/memory_nodes.h>
 #include <datawizard/malloc.h>
 #include <core/simgrid.h>
+#include <core/task.h>
 
-#if 1 //def STARPU_SIMGRID
+#ifdef STARPU_SIMGRID
 #include <sys/mman.h>
 #include <fcntl.h>
 #endif
@@ -46,7 +47,7 @@ static int disable_pinning;
 static int malloc_on_node_default_flags[STARPU_MAXNODES];
 
 /* This file is used for implementing "folded" allocation */
-#if 1 //def STARPU_SIMGRID
+#ifdef STARPU_SIMGRID
 static int bogusfile = -1;
 static unsigned long _starpu_malloc_simulation_fold;
 #endif
@@ -227,7 +228,7 @@ int _starpu_malloc_flags_on_node(unsigned dst_node, void **A, size_t dim, int fl
 #endif /* STARPU_SIMGRID */
 	}
 
-#if 1 //def STARPU_SIMGRID
+#ifdef STARPU_SIMGRID
 	if (flags & STARPU_MALLOC_SIMULATION_FOLDED)
 	{
 		/* Use "folded" allocation: the same file is mapped several
@@ -328,7 +329,7 @@ int _starpu_malloc_flags_on_node(unsigned dst_node, void **A, size_t dim, int fl
 				ret = -ENOMEM;
 		}
 
-#if  1 //defined(STARPU_SIMGRID) || defined(STARPU_USE_CUDA)
+#if defined(STARPU_SIMGRID) || defined(STARPU_USE_CUDA)
 end:
 #endif
 	if (ret == 0)
@@ -459,7 +460,7 @@ int _starpu_free_flags_on_node(unsigned dst_node, void *A, size_t dim, int flags
 	}
 #endif /* STARPU_SIMGRID */
 
-#if 1 //def STARPU_SIMGRID
+#ifdef STARPU_SIMGRID
 	if (flags & STARPU_MALLOC_SIMULATION_FOLDED)
 	{
 		munmap(A, dim);
@@ -558,12 +559,12 @@ _starpu_malloc_on_node(unsigned dst_node, size_t size, int flags)
 			STARPU_ASSERT(last[dst_node] >= addr);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&cuda_alloc_mutex);
 #else
-			struct _starpu_worker *worker = _starpu_get_local_worker_key();
 			unsigned devid = _starpu_memory_node_get_devid(dst_node);
-			if (!worker || worker->arch != STARPU_CUDA_WORKER || worker->devid != devid)
 #if defined(HAVE_CUDA_MEMCPY_PEER)
-				starpu_cuda_set_device(devid);
+			starpu_cuda_set_device(devid);
 #else
+			struct _starpu_worker *worker = _starpu_get_local_worker_key();
+			if (!worker || worker->arch != STARPU_CUDA_WORKER || worker->devid != devid)
 				STARPU_ASSERT_MSG(0, "CUDA peer access is not available with this version of CUDA");
 #endif
 			status = cudaMalloc((void **)&addr, size);
@@ -674,12 +675,12 @@ _starpu_free_on_node_flags(unsigned dst_node, uintptr_t addr, size_t size, int f
 			STARPU_PTHREAD_MUTEX_UNLOCK(&cuda_alloc_mutex);
 #else
 			cudaError_t err;
-			struct _starpu_worker *worker = _starpu_get_local_worker_key();
 			unsigned devid = _starpu_memory_node_get_devid(dst_node);
-			if (!worker || worker->arch != STARPU_CUDA_WORKER || worker->devid != devid)
 #if defined(HAVE_CUDA_MEMCPY_PEER)
-				starpu_cuda_set_device(devid);
+			starpu_cuda_set_device(devid);
 #else
+			struct _starpu_worker *worker = _starpu_get_local_worker_key();
+			if (!worker || worker->arch != STARPU_CUDA_WORKER || worker->devid != devid)
 				STARPU_ASSERT_MSG(0, "CUDA peer access is not available with this version of CUDA");
 #endif
 			err = cudaFree((void*)addr);
@@ -834,7 +835,7 @@ _starpu_malloc_init(unsigned dst_node)
 	STARPU_PTHREAD_MUTEX_INIT(&chunk_mutex[dst_node], NULL);
 	disable_pinning = starpu_get_env_number("STARPU_DISABLE_PINNING");
 	malloc_on_node_default_flags[dst_node] = STARPU_MALLOC_PINNED | STARPU_MALLOC_COUNT;
-#if 1 //def STARPU_SIMGRID
+#ifdef STARPU_SIMGRID
 	/* Reasonably "costless" */
 	_starpu_malloc_simulation_fold = starpu_get_env_number_default("STARPU_MALLOC_SIMULATION_FOLD", 1) << 20;
 #endif

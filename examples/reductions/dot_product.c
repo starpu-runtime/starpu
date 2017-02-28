@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2015  Université de Bordeaux
+ * Copyright (C) 2010-2015, 2017  Université de Bordeaux
  * Copyright (C) 2012 INRIA
- * Copyright (C) 2016  CNRS
+ * Copyright (C) 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -29,7 +29,7 @@
 
 #ifdef STARPU_USE_CUDA
 #include <cuda.h>
-#include <cublas.h>
+#include <starpu_cublas_v2.h>
 #endif
 
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
@@ -245,7 +245,7 @@ void dot_cpu_func(void *descr[], void *cl_arg)
 void dot_cuda_func(void *descr[], void *cl_arg)
 {
 	DOT_TYPE current_dot;
-	DOT_TYPE local_dot;
+	float local_dot;
 
 	float *local_x = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
 	float *local_y = (float *)STARPU_VECTOR_GET_PTR(descr[1]);
@@ -256,7 +256,10 @@ void dot_cuda_func(void *descr[], void *cl_arg)
 	cudaMemcpyAsync(&current_dot, dot, sizeof(DOT_TYPE), cudaMemcpyDeviceToHost, starpu_cuda_get_local_stream());
 	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 
-	local_dot = (DOT_TYPE)cublasSdot(n, local_x, 1, local_y, 1);
+	cublasStatus_t status = cublasSdot(starpu_cublas_get_local_handle(), n, local_x, 1, local_y, 1, &local_dot);
+	if (status != CUBLAS_STATUS_SUCCESS)
+		STARPU_CUBLAS_REPORT_ERROR(status);
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 
 	/* FPRINTF(stderr, "current_dot %f local dot %f -> %f\n", current_dot, local_dot, current_dot + local_dot); */
 	current_dot += local_dot;
@@ -356,10 +359,16 @@ int main(int argc, char **argv)
 #endif
 
 #ifdef STARPU_USE_CUDA
-	/* cublasSdot has synchronization issues when using a non-blocking stream */
-	cublasGetVersion(&cublas_version);
+	cublasHandle_t handle;
+	cublasCreate(&handle);
+	cublasGetVersion(handle, &cublas_version);
+	cublasDestroy(handle);
 	if (cublas_version >= 7050)
 		starpu_cublas_init();
+	else
+		/* Disable the sdot cublas kernel, it is bogus with a
+		 * non-blocking stream (Nvidia bugid 1669886) */
+		dot_codelet.cuda_funcs[0] = NULL;
 #endif
 
 	unsigned long nelems = _nblocks*_entries_per_block;
@@ -446,10 +455,13 @@ int main(int argc, char **argv)
 	if (fabs(reference_dot - _dot) < reference_dot * 1e-6)
 		return EXIT_SUCCESS;
 	else
+	{
+		FPRINTF(stderr, "ERROR: fabs(%e - %e) >= %e * 1e-6\n", reference_dot, _dot, reference_dot);
 		return EXIT_FAILURE;
+	}
 
 enodev:
-	fprintf(stderr, "WARNING: No one can execute this task\n");
+	FPRINTF(stderr, "WARNING: No one can execute this task\n");
 	/* yes, we do not perform the computation but we did detect that no one
  	 * could perform the kernel, so this is not an error from StarPU */
 	return 77;

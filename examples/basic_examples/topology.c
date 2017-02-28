@@ -1,7 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  CNRS
+ * Copyright (C) 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,20 +14,21 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#ifndef __STARPU_CUBLAS_H__
-#define __STARPU_CUBLAS_H__
+#include <stdio.h>
+#include <stdint.h>
+#include <starpu.h>
 
-#ifdef __cplusplus
-extern "C"
+#define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
+
+int main(int argc, char **argv)
 {
-#endif
+	int ret = starpu_init(NULL);
+	if (ret == -ENODEV) return 77;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-void starpu_cublas_init(void);
-void starpu_cublas_set_stream(void);
-void starpu_cublas_shutdown(void);
+	starpu_worker_display_names(stdout, STARPU_CPU_WORKER);
+	starpu_topology_print(stdout);
 
-#ifdef __cplusplus
+	starpu_shutdown();
+	return 0;
 }
-#endif
-
-#endif /* __STARPU_CUBLAS_H__ */

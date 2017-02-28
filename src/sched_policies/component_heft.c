@@ -27,6 +27,7 @@
 #include "helper_mct.h"
 #include <float.h>
 #include <core/sched_policy.h>
+#include <core/task.h>
 
 #define NTASKS 5
 

@@ -186,6 +186,16 @@ struct _starpu_mpi_node_tag
 	int data_tag;
 };
 
+struct _starpu_mpi_data
+{
+	int magic;
+	struct _starpu_mpi_node_tag node_tag;
+	starpu_pthread_mutex_t *cache_sent_mutex;
+	int *cache_sent;
+	starpu_pthread_mutex_t cache_received_mutex;
+	int cache_received;
+};
+
 LIST_TYPE(_starpu_mpi_req,
 	/* description of the data at StarPU level */
 	starpu_data_handle_t data_handle;

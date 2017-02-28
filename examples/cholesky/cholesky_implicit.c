@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2016  Université de Bordeaux
+ * Copyright (C) 2009-2017  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012, 2013, 2016, 2017  CNRS
  *
@@ -47,7 +47,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 	unsigned long n = starpu_matrix_get_nx(dataA);
 	unsigned long nn = n/nblocks;
 
-	int prio_level = noprio_p?STARPU_DEFAULT_PRIO:STARPU_MAX_PRIO;
+	unsigned unbound_prio = STARPU_MAX_PRIO == INT_MAX && STARPU_MIN_PRIO == INT_MIN;
 
 	if (bound_p || bound_lp_p || bound_mps_p)
 		starpu_bound_start(bound_deps_p, 0);
@@ -62,7 +62,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
                 starpu_data_handle_t sdatakk = starpu_data_get_sub_data(dataA, 2, k, k);
 
                 ret = starpu_task_insert(&cl11,
-					 STARPU_PRIORITY, prio_level,
+					 STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : unbound_prio ? 2*nblocks - 2*k : STARPU_MAX_PRIO,
 					 STARPU_RW, sdatakk,
 					 STARPU_CALLBACK, (k == 3*nblocks/4)?callback_turn_spmd_on:NULL,
 					 STARPU_FLOPS, (double) FLOPS_SPOTRF(nn),
@@ -76,7 +76,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
                         starpu_data_handle_t sdatakj = starpu_data_get_sub_data(dataA, 2, k, j);
 
                         ret = starpu_task_insert(&cl21,
-						 STARPU_PRIORITY, (j == k+1)?prio_level:STARPU_DEFAULT_PRIO,
+						 STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : unbound_prio ? 2*nblocks - 2*k - j : (j == k+1)?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
 						 STARPU_R, sdatakk,
 						 STARPU_RW, sdatakj,
 						 STARPU_FLOPS, (double) FLOPS_STRSM(nn, nn),
@@ -98,7 +98,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 					starpu_data_handle_t sdataij = starpu_data_get_sub_data(dataA, 2, i, j);
 
 					ret = starpu_task_insert(&cl22,
-								 STARPU_PRIORITY, ((i == k+1) && (j == k+1))?prio_level:STARPU_DEFAULT_PRIO,
+								 STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : unbound_prio ? 2*nblocks - 2*k - j - i : ((i == k+1) && (j == k+1))?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
 								 STARPU_R, sdataki,
 								 STARPU_R, sdatakj,
 								 cl22.modes[2], sdataij,
@@ -139,11 +139,13 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 		{
 			FILE *f = fopen("cholesky.lp", "w");
 			starpu_bound_print_lp(f);
+			fclose(f);
 		}
 		if (bound_mps_p)
 		{
 			FILE *f = fopen("cholesky.mps", "w");
 			starpu_bound_print_mps(f);
+			fclose(f);
 		}
 		if (bound_p)
 		{
@@ -291,10 +293,10 @@ static void execute_cholesky(unsigned size, unsigned nblocks)
 				if (i <= j)
 				{
 	                                float orig = (1.0f/(1.0f+i+j)) + ((i == j)?1.0f*size:0.0f);
-	                                float err = fabsf(test_mat[j +i*size] - orig);
+	                                float err = fabsf(test_mat[j +i*size] - orig) / orig;
 	                                if (err > 0.00001)
 					{
-	                                        FPRINTF(stderr, "Error[%u, %u] --> %2.2f != %2.2f (err %2.2f)\n", i, j, test_mat[j +i*size], orig, err);
+	                                        FPRINTF(stderr, "Error[%u, %u] --> %2.6f != %2.6f (err %2.6f)\n", i, j, test_mat[j +i*size], orig, err);
 	                                        assert(0);
 	                                }
 	                        }

@@ -9,288 +9,303 @@
 /*! \defgroup API_Data_Interfaces Data Interfaces
 
 \struct starpu_data_interface_ops
-Per-interface data transfer methods.
 \ingroup API_Data_Interfaces
+Per-interface data transfer methods.
 \var void (*starpu_data_interface_ops::register_data_handle)(starpu_data_handle_t handle, unsigned home_node, void *data_interface)
-Register an existing interface into a data handle.
+    Register an existing interface into a data handle.
 
 \var starpu_ssize_t (*starpu_data_interface_ops::allocate_data_on_node)(void *data_interface, unsigned node)
-Allocate data for the interface on a given node.
+    Allocate data for the interface on a given node.
 
 \var void (*starpu_data_interface_ops::free_data_on_node)(void *data_interface, unsigned node)
-Free data of the interface on a given node.
+    Free data of the interface on a given node.
 
 \var const struct starpu_data_copy_methods *starpu_data_interface_ops::copy_methods
-ram/cuda/opencl synchronous and asynchronous transfer methods.
+    ram/cuda/opencl synchronous and asynchronous transfer methods.
 
 \var void *(*starpu_data_interface_ops::handle_to_pointer)(starpu_data_handle_t handle, unsigned node)
-Return the current pointer (if any) for the handle on the given node.
+    Return the current pointer (if any) for the handle on the given node.
 
 \var size_t (*starpu_data_interface_ops::get_size)(starpu_data_handle_t handle)
-Return an estimation of the size of data, for performance models.
+    Return an estimation of the size of data, for performance models.
 
 \var uint32_t (*starpu_data_interface_ops::footprint)(starpu_data_handle_t handle)
-Return a 32bit footprint which characterizes the data size.
+    Return a 32bit footprint which characterizes the data size.
 
 \var int (*starpu_data_interface_ops::compare)(void *data_interface_a, void *data_interface_b)
-Compare the data size of two interfaces.
+    Compare the data size of two interfaces.
 
 \var void (*starpu_data_interface_ops::display)(starpu_data_handle_t handle, FILE *f)
-Dump the sizes of a handle to a file.
+    Dump the sizes of a handle to a file.
 
 \var starpu_ssize_t (*starpu_data_interface_ops::describe)(void *data_interface, char *buf, size_t size)
-Describe the data into a string.
+    Describe the data into a string.
 
 \var enum starpu_data_interface_id starpu_data_interface_ops::interfaceid
-An identifier that is unique to each interface.
+    An identifier that is unique to each interface.
 
 \var size_t starpu_data_interface_ops::interface_size
-The size of the interface data descriptor.
+    The size of the interface data descriptor.
 
 \var char starpu_data_interface_ops::is_multiformat
-todo
+    todo
 
 \var char starpu_data_interface_ops::dontcache
-If set to non-zero, StarPU will never try to reuse an allocated buffer for a
-different handle. This can be notably useful for application-defined interfaces
-which have a dynamic size, and for which it thus does not make sense to reuse
-the buffer since will probably not have the proper size.
+    If set to non-zero, StarPU will never try to reuse an allocated
+    buffer for a  different handle. This can be notably useful for
+    application-defined interfaces which have a dynamic size, and for
+    which it thus does not make sense to reuse the buffer since will
+    probably not have the proper size.
 
 \var struct starpu_multiformat_data_interface_ops* (*starpu_data_interface_ops::get_mf_ops)(void *data_interface)
-todo
+    todo
 
 \var int (*starpu_data_interface_ops::pack_data)(starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count)
-Pack the data handle into a contiguous buffer at the address allocated with
-<c>starpu_malloc_flags(ptr, size, 0)</c> (and thus returned in \p ptr) and
-set the size of the newly created buffer in \p count. If \p ptr is <c>NULL</c>, the
-function should not copy the data in the buffer but just set count to
-the size of the buffer which would have been allocated. The special
-value -1 indicates the size is yet unknown.
+    Pack the data handle into a contiguous buffer at the address
+    allocated with <c>starpu_malloc_flags(ptr, size, 0)</c> (and thus
+    returned in \p ptr) and set the size of the newly created buffer
+    in \p count. If \p ptr is <c>NULL</c>, the function should not
+    copy the data in the buffer but just set count to the size of the
+    buffer which would have been allocated. The special value -1
+    indicates the size is yet unknown.
 
 \var int (*starpu_data_interface_ops::unpack_data) (starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
-Unpack the data handle from the contiguous buffer at the address \p ptr
-of size \p count
+    Unpack the data handle from the contiguous buffer at the address
+    \p ptr of size \p count
 
 \struct starpu_data_copy_methods
-Defines the per-interface methods. If the any_to_any method is
-provided, it will be used by default if no more specific method is
-provided. It can still be useful to provide more specific method in
-case of e.g. available particular CUDA or OpenCL support.
 \ingroup API_Data_Interfaces
+Defines the per-interface methods. If the
+starpu_data_copy_methods::any_to_any method is provided, it will be
+used by default if no specific method is provided. It can still be
+useful to provide more specific method in case of e.g. available
+particular CUDA or OpenCL support.
 \var int (*starpu_data_copy_methods::can_copy)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, unsigned handling_node)
-If defined, allows the interface to declare whether it supports transferring
-from \p src_interface on node \p src_node to \p dst_interface on node \p
-dst_node, run from node \p handling_node. If not defined, it is assumed that the
-interface supports all transfers.
+    If defined, allows the interface to declare whether it supports
+    transferring from \p src_interface on node \p src_node to \p
+    dst_interface on node \p dst_node, run from node \p handling_node.
+    If not defined, it is assumed that the interface supports all
+    transfers.
 
 \var int (*starpu_data_copy_methods::ram_to_ram)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
-Define how to copy data from the \p src_interface interface on the \p
-src_node CPU node to the \p dst_interface interface on the \p dst_node
-CPU  node. Return 0 on success.
+    Define how to copy data from the \p src_interface interface on the
+    \p src_node CPU node to the \p dst_interface interface on the \p
+    dst_node CPU node. Return 0 on success.
 
 \var int (*starpu_data_copy_methods::ram_to_cuda)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
-Define how to copy data from the \p src_interface interface on the
-\p src_node CPU node to the \p dst_interface interface on the \p dst_node CUDA
-node. Return 0 on success.
+    Define how to copy data from the \p src_interface interface on the
+    \p src_node CPU node to the \p dst_interface interface on the \p
+    dst_node CUDA node. Return 0 on success.
 
 \var int (*starpu_data_copy_methods::ram_to_opencl)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
-Define how to copy data from the \p src_interface interface on the
-\p src_node CPU node to the \p dst_interface interface on the \p dst_node
-OpenCL node. Return 0 on success.
+    Define how to copy data from the \p src_interface interface on the
+    \p src_node CPU node to the \p dst_interface interface on the \p
+    dst_node OpenCL node. Return 0 on success.
 
 \var int (*starpu_data_copy_methods::ram_to_mic)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
-Define how to copy data from the \p src_interface interface on the
-\p src_node CPU node to the \p dst_interface interface on the \p dst_node MIC
-node. Return 0 on success.
+    Define how to copy data from the \p src_interface interface on the
+    \p src_node CPU node to the \p dst_interface interface on the \p
+    dst_node MIC node. Return 0 on success.
 
 \var int (*starpu_data_copy_methods::cuda_to_ram)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
-Define how to copy data from the \p src_interface interface on the
-\p src_node CUDA node to the \p dst_interface interface on the \p dst_node
-CPU node. Return 0 on success.
+    Define how to copy data from the \p src_interface interface on the
+    \p src_node CUDA node to the \p dst_interface interface on the \p
+    dst_node CPU node. Return 0 on success.
 
 \var int (*starpu_data_copy_methods::cuda_to_cuda)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
-Define how to copy data from the \p src_interface interface on the
-\p src_node CUDA node to the \p dst_interface interface on the \p dst_node CUDA
-node. Return 0 on success.
+    Define how to copy data from the \p src_interface interface on the
+    \p src_node CUDA node to the \p dst_interface interface on the \p
+    dst_node CUDA node. Return 0 on success.
 
 \var int (*starpu_data_copy_methods::cuda_to_opencl)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
-Define how to copy data from the \p src_interface interface on the
-\p src_node CUDA node to the \p dst_interface interface on the \p dst_node
-OpenCL node. Return 0 on success.
+    Define how to copy data from the \p src_interface interface on the
+    \p src_node CUDA node to the \p dst_interface interface on the \p
+    dst_node OpenCL node. Return 0 on success.
 
 \var int (*starpu_data_copy_methods::opencl_to_ram)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
-Define how to copy data from the \p src_interface interface on the
-\p src_node OpenCL node to the \p dst_interface interface on the \p dst_node
-CPU node. Return 0 on success.
+    Define how to copy data from the \p src_interface interface on the
+    \p src_node OpenCL node to the \p dst_interface interface on the
+    \p dst_node CPU node. Return 0 on success.
 
 \var int (*starpu_data_copy_methods::opencl_to_cuda)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
-Define how to copy data from the \p src_interface interface on the
-\p src_node OpenCL node to the \p dst_interface interface on the \p dst_node
-CUDA node. Return 0 on success.
+    Define how to copy data from the \p src_interface interface on the
+    \p src_node OpenCL node to the \p dst_interface interface on the
+    \p dst_node CUDA node. Return 0 on success.
 
 \var int (*starpu_data_copy_methods::opencl_to_opencl)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
-Define how to copy data from the \p src_interface interface on the
-\p src_node OpenCL node to the \p dst_interface interface on the \p dst_node
-OpenCL node. Return 0 on success.
+    Define how to copy data from the \p src_interface interface on the
+    \p src_node OpenCL node to the \p dst_interface interface on the
+    \p dst_node OpenCL node. Return 0 on success.
 
 \var int (*starpu_data_copy_methods::mic_to_ram)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
-Define how to copy data from the \p src_interface interface on the
-\p src_node MIC node to the \p dst_interface interface on the \p dst_node CPU
-node. Return 0 on success.
+    Define how to copy data from the \p src_interface interface on the
+    \p src_node MIC node to the \p dst_interface interface on the \p
+    dst_node CPU node. Return 0 on success.
 
 \var int (*starpu_data_copy_methods::scc_src_to_sink)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
-Define how to copy data from the \p src_interface interface on the
-\p src_node node to the \p dst_interface interface on the \p dst_node node.
-Must return 0 if the transfer was actually completed completely
-synchronously, or <c>-EAGAIN</c> if at least some transfers are still ongoing
-and should be awaited for by the core.
+    Define how to copy data from the \p src_interface interface on the
+    \p src_node node to the \p dst_interface interface on the \p
+    dst_node node. Must return 0 if the transfer was actually
+    completed completely synchronously, or <c>-EAGAIN</c> if at least
+    some transfers are still ongoing and should be awaited for by the
+    core.
 
 \var int (*starpu_data_copy_methods::scc_sink_to_src)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
-Define how to copy data from the \p src_interface interface on the
-\p src_node node to the \p dst_interface interface on the \p dst_node node.
-Must return 0 if the transfer was actually completed completely
-synchronously, or <c>-EAGAIN</c> if at least some transfers are still ongoing
-and should be awaited for by the core.
+    Define how to copy data from the \p src_interface interface on the
+    \p src_node node to the \p dst_interface interface on the \p
+    dst_node node. Must return 0 if the transfer was actually
+    completed completely synchronously, or <c>-EAGAIN</c> if at least
+    some transfers are still ongoing and should be awaited for by the core.
 
 \var int (*starpu_data_copy_methods::scc_sink_to_sink)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
-Define how to copy data from the \p src_interface interface on the
-\p src_node node to the \p dst_interface interface on the \p dst_node node.
-Must return 0 if the transfer was actually completed completely
-synchronously, or <c>-EAGAIN</c> if at least some transfers are still ongoing
-and should be awaited for by the core.
+    Define how to copy data from the \p src_interface interface on the
+    \p src_node node to the \p dst_interface interface on the \p
+    dst_node node. Must return 0 if the transfer was actually
+    completed completely synchronously, or <c>-EAGAIN</c> if at least
+    some transfers are still ongoing and should be awaited for by the
+    core.
 
 \var int (*starpu_data_copy_methods::ram_to_mpi_ms)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
-Define how to copy data from the \p src_interface interface on the
-\p src_node CPU node to the \p dst_interface interface on the \p dst_node MPI Slave
-node. Return 0 on success.
+    Define how to copy data from the \p src_interface interface on the
+    \p src_node CPU node to the \p dst_interface interface on the \p
+    dst_node MPI Slave node. Return 0 on success.
 
 \var int (*starpu_data_copy_methods::mpi_ms_to_ram)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
-Define how to copy data from the \p src_interface interface on the
-\p src_node MPI Slave node to the \p dst_interface interface on the \p dst_node CPU
-node. Return 0 on success.
+    Define how to copy data from the \p src_interface interface on the
+    \p src_node MPI Slave node to the \p dst_interface interface on
+    the \p dst_node CPU node. Return 0 on success.
 
 \var int (*starpu_data_copy_methods::mpi_ms_to_mpi_ms)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
-Define how to copy data from the \p src_interface interface on the
-\p src_node MPI Slave node to the \p dst_interface interface on the \p dst_node
-MPI Slave node. Return 0 on success.
+    Define how to copy data from the \p src_interface interface on the
+    \p src_node MPI Slave node to the \p dst_interface interface on
+    the \p dst_node MPI Slave node. Return 0 on success.
 
 \var int (*starpu_data_copy_methods::ram_to_cuda_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cudaStream_t stream)
-Define how to copy data from the \p src_interface interface on the
-\p src_node CPU node to the \p dst_interface interface on the \p dst_node CUDA
-node, using the given stream. Must return 0 if the transfer was
-actually completed completely synchronously, or <c>-EAGAIN</c> if at least
-some transfers are still ongoing and should be awaited for by the core.
+    Define how to copy data from the \p src_interface interface on the
+    \p src_node CPU node to the \p dst_interface interface on the \p
+    dst_node CUDA node, using the given stream. Must return 0 if the
+    transfer was actually completed completely synchronously, or
+    <c>-EAGAIN</c> if at least some transfers are still ongoing and
+    should be awaited for by the core.
 
 \var int (*starpu_data_copy_methods::cuda_to_ram_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cudaStream_t stream)
-Define how to copy data from the \p src_interface interface on the
-\p src_node CUDA node to the \p dst_interface interface on the \p dst_node CPU
-node, using the given stream. Must return 0 if the transfer was
-actually completed completely synchronously, or <c>-EAGAIN</c> if at least
-some transfers are still ongoing and should be awaited for by the core.
+    Define how to copy data from the \p src_interface interface on the
+    \p src_node CUDA node to the \p dst_interface interface on the \p
+    dst_node CPU node, using the given stream. Must return 0 if the
+    transfer was actually completed completely synchronously, or
+    <c>-EAGAIN</c> if at least some transfers are still ongoing and
+    should be awaited for by the core.
 
 \var int (*starpu_data_copy_methods::cuda_to_cuda_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cudaStream_t stream)
-Define how to copy data from the \p src_interface interface on the
-\p src_node CUDA node to the \p dst_interface interface on the \p dst_node CUDA
-node, using the given stream. Must return 0 if the transfer was
-actually completed completely synchronously, or <c>-EAGAIN</c> if at least
-some transfers are still ongoing and should be awaited for by the core.
+    Define how to copy data from the \p src_interface interface on the
+    \p src_node CUDA node to the \p dst_interface interface on the \p
+    dst_node CUDA node, using the given stream. Must return 0 if the
+    transfer was actually completed completely synchronously, or
+    <c>-EAGAIN</c> if at least some transfers are still ongoing and
+    should be awaited for by the core.
 
 \var int (*starpu_data_copy_methods::ram_to_opencl_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cl_event *event)
-Define how to copy data from the \p src_interface interface on the
-\p src_node CPU node to the \p dst_interface interface on the \p dst_node
-OpenCL node, by recording in \p event, a pointer to a <c>cl_event</c>, the event
-of the last submitted transfer. Must return 0 if the transfer was
-actually completed completely synchronously, or <c>-EAGAIN</c> if at least
-some transfers are still ongoing and should be awaited for by the
-core.
+    Define how to copy data from the \p src_interface interface on the
+    \p src_node CPU node to the \p dst_interface interface on the \p
+    dst_node OpenCL node, by recording in \p event, a pointer to a
+    <c>cl_event</c>, the event of the last submitted transfer. Must
+    return 0 if the transfer was actually completed completely
+    synchronously, or <c>-EAGAIN</c> if at least some transfers are
+    still ongoing and should be awaited for by the core.
 
 \var int (*starpu_data_copy_methods::opencl_to_ram_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cl_event *event)
-Define how to copy data from the \p src_interface interface on the
-\p src_node OpenCL node to the \p dst_interface interface on the \p dst_node
-CPU node, by recording in \p event, a pointer to a <c>cl_event</c>, the event of
-the last submitted transfer. Must return 0 if the transfer was
-actually completed completely synchronously, or <c>-EAGAIN</c> if at least
-some transfers are still ongoing and should be awaited for by the
-core.
+    Define how to copy data from the \p src_interface interface on the
+    \p src_node OpenCL node to the \p dst_interface interface on the
+    \p dst_node CPU node, by recording in \p event, a pointer to a
+    <c>cl_event</c>, the event of the last submitted transfer. Must
+    return 0 if the transfer was actually completed completely
+    synchronously, or <c>-EAGAIN</c> if at least some transfers are
+    still ongoing and should be awaited for by the core.
 
 \var int (*starpu_data_copy_methods::opencl_to_opencl_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cl_event *event)
-Define how to copy data from the \p src_interface interface on the
-\p src_node OpenCL node to the \p dst_interface interface on the \p dst_node
-OpenCL node, by recording in \p event, a pointer to a <c>cl_event</c>, the event
-of the last submitted transfer. Must return 0 if the transfer was
-actually completed completely synchronously, or <c>-EAGAIN</c> if at least
-some transfers are still ongoing and should be awaited for by the
-core.
+    Define how to copy data from the \p src_interface interface on the
+    \p src_node OpenCL node to the \p dst_interface interface on the
+    \p dst_node OpenCL node, by recording in \p event, a pointer to a
+    <c>cl_event</c>, the event of the last submitted transfer. Must
+    return 0 if the transfer was actually completed completely
+    synchronously, or <c>-EAGAIN</c> if at least some transfers are
+    still ongoing and should be awaited for by the core.
 
 \var int (*starpu_data_copy_methods::ram_to_mpi_ms_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void * event)
-Define how to copy data from the \p src_interface interface on the
-\p src_node CPU node to the \p dst_interface interface on the \p dst_node MPI Slave
-node, with the given even. Must return 0 if the transfer was
-actually completed completely synchronously, or <c>-EAGAIN</c> if at least
-some transfers are still ongoing and should be awaited for by the core.
+    Define how to copy data from the \p src_interface interface on the
+    \p src_node CPU node to the \p dst_interface interface on the \p
+    dst_node MPI Slave node, with the given even. Must return 0 if the
+    transfer was actually completed completely synchronously, or
+    <c>-EAGAIN</c> if at least some transfers are still ongoing and
+    should be awaited for by the core.
 
 \var int (*starpu_data_copy_methods::mpi_ms_to_ram_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void * event)
-Define how to copy data from the \p src_interface interface on the
-\p src_node MPI Slave node to the \p dst_interface interface on the \p dst_node CPU
-node, with the given event. Must return 0 if the transfer was
-actually completed completely synchronously, or <c>-EAGAIN</c> if at least
-some transfers are still ongoing and should be awaited for by the core.
+    Define how to copy data from the \p src_interface interface on the
+    \p src_node MPI Slave node to the \p dst_interface interface on
+    the \p dst_node CPU node, with the given event. Must return 0 if
+    the transfer was actually completed completely synchronously, or
+    <c>-EAGAIN</c> if at least some transfers are still ongoing and
+    should be awaited for by the core.
 
 \var int (*starpu_data_copy_methods::mpi_ms_to_mpi_ms_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void * event)
-Define how to copy data from the \p src_interface interface on the
-\p src_node MPI Slave node to the \p dst_interface interface on the \p dst_node MPI Slave 
-node, using the given stream. Must return 0 if the transfer was
-actually completed completely synchronously, or <c>-EAGAIN</c> if at least
-some transfers are still ongoing and should be awaited for by the core.
+    Define how to copy data from the \p src_interface interface on the
+    \p src_node MPI Slave node to the \p dst_interface interface on
+    the \p dst_node MPI Slave node, using the given stream. Must
+    return 0 if the transfer was actually completed completely
+    synchronously, or <c>-EAGAIN</c> if at least some transfers are
+    still ongoing and should be awaited for by the core.
 
 \var int (*starpu_data_copy_methods::ram_to_mic_async)(void *src_intreface, unsigned src_node, void *dst_interface, unsigned dst_node)
-Define how to copy data from the \p src_interface interface on the
-\p src_node CPU node to the \p dst_interface interface on the \p dst_node
-MIC node. Must return 0 if the transfer was actually completed
-completely synchronously, or <c>-EAGAIN</c> if at least some transfers are
-still ongoing and should be awaited for by the core.
+    Define how to copy data from the \p src_interface interface on the
+    \p src_node CPU node to the \p dst_interface interface on the \p
+    dst_node MIC node. Must return 0 if the transfer was actually
+    completed completely synchronously, or <c>-EAGAIN</c> if at least
+    some transfers are still ongoing and should be awaited for by the
+    core.
 
 \var int (*starpu_data_copy_methods::mic_to_ram_async)(void *src_intreface, unsigned src_node, void *dst_interface, unsigned dst_node)
-Define how to copy data from the \p src_interface interface on the
-\p src_node MIC node to the \p dst_interface interface on the \p dst_node
-CPU node. Must return 0 if the transfer was actually completed
-completely synchronously, or <c>-EAGAIN</c> if at least some transfers are
-still ongoing and should be awaited for by the core.
+    Define how to copy data from the \p src_interface interface on the
+    \p src_node MIC node to the \p dst_interface interface on the \p
+    dst_node CPU node. Must return 0 if the transfer was actually
+    completed completely synchronously, or <c>-EAGAIN</c> if at least
+    some transfers are still ongoing and should be awaited for by the
+    core.
 
 \var int (*starpu_data_copy_methods::any_to_any)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data)
-Define how to copy data from the \p src_interface interface on the
-\p src_node node to the \p dst_interface interface on the \p dst_node node.
-This is meant to be implemented through the starpu_interface_copy()
-helper, to which async_data should be passed as such, and will be used
-to manage asynchronicity. This must return <c>-EAGAIN</c> if any of the
-starpu_interface_copy() calls has returned <c>-EAGAIN</c> (i.e. at least some
-transfer is still ongoing), and return 0 otherwise.
+    Define how to copy data from the \p src_interface interface on the
+    \p src_node node to the \p dst_interface interface on the \p
+    dst_node node. This is meant to be implemented through the
+    starpu_interface_copy() helper, to which async_data should be
+    passed as such, and will be used to manage asynchronicity. This
+    must return <c>-EAGAIN</c> if any of the starpu_interface_copy()
+    calls has returned <c>-EAGAIN</c> (i.e. at least some transfer is
+    still ongoing), and return 0 otherwise.
 
 \enum starpu_data_interface_id
 \ingroup API_Data_Interfaces
 Identifier for all predefined StarPU data interfaces
 \var starpu_data_interface_id::STARPU_UNKNOWN_INTERFACE_ID
-Unknown interface
+    Unknown interface
 \var starpu_data_interface_id::STARPU_MATRIX_INTERFACE_ID
-Identifier for the matrix data interface
+    Identifier for the matrix data interface
 \var starpu_data_interface_id::STARPU_BLOCK_INTERFACE_ID
-Identifier for block data interface
+    Identifier for block data interface
 \var starpu_data_interface_id::STARPU_VECTOR_INTERFACE_ID
-Identifier for the vector data interface
+    Identifier for the vector data interface
 \var starpu_data_interface_id::STARPU_CSR_INTERFACE_ID
-Identifier for the csr data interface
+    Identifier for the csr data interface
 \var starpu_data_interface_id::STARPU_BCSR_INTERFACE_ID
-Identifier for the bcsr data interface
+    Identifier for the bcsr data interface
 \var starpu_data_interface_id::STARPU_VARIABLE_INTERFACE_ID
-Identifier for the variable data interface
+    Identifier for the variable data interface
 \var starpu_data_interface_id::STARPU_VOID_INTERFACE_ID
-Identifier for the void data interface
+    Identifier for the void data interface
 \var starpu_data_interface_id::STARPU_MULTIFORMAT_INTERFACE_ID
-Identifier for the multiformat data interface
+    Identifier for the multiformat data interface
 \var starpu_data_interface_id::STARPU_COO_INTERFACE_ID
-Identifier for the coo data interface
+    Identifier for the coo data interface
 \var starpu_data_interface_id::STARPU_MAX_INTERFACE_ID
-Maximum number of data interfaces
+    Maximum number of data interfaces
 
 @name Registering Data
 \ingroup API_Data_Interfaces
@@ -306,8 +321,8 @@ Register a void interface. There is no data really associated
 to that interface, but it may be used as a synchronization mechanism.
 It also permits to express an abstract piece of data that is managed
 by the application internally: this makes it possible to forbid the
-concurrent execution of different tasks accessing the same <c>void</c> data
-in read-write concurrently. 
+concurrent execution of different tasks accessing the same <c>void</c>
+data in read-write concurrently.
 
 \fn void starpu_variable_data_register(starpu_data_handle_t *handle, int home_node, uintptr_t ptr, size_t size)
 \ingroup API_Data_Interfaces
@@ -329,7 +344,7 @@ buffer located at \p ptr, or device handle \p dev_handle and offset \p offset
 
 \fn void starpu_vector_data_register(starpu_data_handle_t *handle, int home_node, uintptr_t ptr, uint32_t nx, size_t elemsize)
 \ingroup API_Data_Interfaces
-Register the \p nx elemsize-byte elements pointed to by \p ptr and initialize \p handle to represent it.
+Register the \p nx \p elemsize-byte elements pointed to by \p ptr and initialize \p handle to represent it.
 
 Here an example of how to use the function.
 \code{.c}
@@ -395,7 +410,7 @@ Blocks have size \p r * \p c. \p nrow is the number of rows (in terms of
 blocks), \p colind[i] is the block-column index for block i in \p nzval,
 \p rowptr[i] is the block-index (in \p nzval) of the first block of row i.
 \p firstentry is the index of the first entry of the given arrays
-(usually 0 or 1). 
+(usually 0 or 1).
 
 \fn void starpu_csr_data_register(starpu_data_handle_t *handle, int home_node, uint32_t nnz, uint32_t nrow, uintptr_t nzval, uint32_t *colind, uint32_t *rowptr, uint32_t firstentry, size_t elemsize)
 \ingroup API_Data_Interfaces
@@ -429,7 +444,7 @@ if handle’s interface does not support this operation or data for this
 \fn void *starpu_data_get_local_ptr(starpu_data_handle_t handle)
 \ingroup API_Data_Interfaces
 Return the local pointer associated with \p handle or <c>NULL</c> if
-\p handle’s interface does not have data allocated locally 
+\p handle’s interface does not have any data allocated locally.
 
 \fn enum starpu_data_interface_id starpu_data_get_interface_id(starpu_data_handle_t handle)
 \ingroup API_Data_Interfaces
@@ -463,18 +478,18 @@ after calling the data unpacking operation.
 \ingroup API_Data_Interfaces
 
 \struct starpu_variable_interface
-Variable interface for a single data (not a vector, a matrix, a list, ...)
 \ingroup API_Data_Interfaces
+Variable interface for a single data (not a vector, a matrix, a list, ...)
 \var enum starpu_data_interface_id starpu_variable_interface::id
-Identifier of the interface
+    Identifier of the interface
 \var uintptr_t starpu_variable_interface::ptr
-local pointer of the variable
+    local pointer of the variable
 \var uintptr_t starpu_variable_interface::dev_handle
-device handle of the variable.
+    device handle of the variable.
 \var size_t starpu_variable_interface::offset
-offset in the variable
+    offset in the variable
 \var size_t starpu_variable_interface::elemsize
-size of the variable
+    size of the variable
 
 \fn size_t starpu_variable_get_elemsize(starpu_data_handle_t handle)
 \ingroup API_Data_Interfaces
@@ -495,7 +510,7 @@ Return the size of the variable designated by \p interface.
 \def STARPU_VARIABLE_GET_DEV_HANDLE(interface)
 \ingroup API_Data_Interfaces
 Return a device handle for the variable designated by
-\p interface, to be used on OpenCL. The offset documented below has to be
+\p interface, to be used with OpenCL. The offset documented below has to be
 used in addition to this.
 
 \def STARPU_VARIABLE_GET_OFFSET(interface)
@@ -510,19 +525,19 @@ be used with the device handle.
 Vector interface
 \ingroup API_Data_Interfaces
 \var enum starpu_data_interface_id starpu_vector_interface::id
-Identifier of the interface
+    Identifier of the interface
 \var uintptr_t starpu_vector_interface::ptr
-local pointer of the vector
+    local pointer of the vector
 \var uintptr_t starpu_vector_interface::dev_handle
-device handle of the vector.
+    device handle of the vector.
 \var size_t starpu_vector_interface::offset
-offset in the vector
+    offset in the vector
 \var uint32_t starpu_vector_interface::nx
-number of elements on the x-axis of the vector
+    number of elements on the x-axis of the vector
 \var size_t starpu_vector_interface::elemsize
-size of the elements of the vector
+    size of the elements of the vector
 \var uint32_t starpu_vector_interface::slice_base
-vector slice base, used by the StarPU OpenMP runtime support
+    vector slice base, used by the StarPU OpenMP runtime support
 
 \fn uint32_t starpu_vector_get_nx(starpu_data_handle_t handle)
 \ingroup API_Data_Interfaces
@@ -545,7 +560,7 @@ be used instead.
 \def STARPU_VECTOR_GET_DEV_HANDLE(interface)
 \ingroup API_Data_Interfaces
 Return a device handle for the array designated by \p interface,
-to be used on OpenCL. the offset documented below has to be used in
+to be used with OpenCL. the offset documented below has to be used in
 addition to this.
 
 \def STARPU_VECTOR_GET_OFFSET(interface)
@@ -577,22 +592,22 @@ Return the OpenMP slice base annotation of each element of the array designated 
 Matrix interface for dense matrices
 \ingroup API_Data_Interfaces
 \var enum starpu_data_interface_id starpu_matrix_interface::id
-Identifier of the interface
+    Identifier of the interface
 \var uintptr_t starpu_matrix_interface::ptr
-local pointer of the matrix
+    local pointer of the matrix
 \var uintptr_t starpu_matrix_interface::dev_handle
-device handle of the matrix.
+    device handle of the matrix.
 \var size_t starpu_matrix_interface::offset
-offset in the matrix
+    offset in the matrix
 \var uint32_t starpu_matrix_interface::nx
-number of elements on the x-axis of the matrix
+    number of elements on the x-axis of the matrix
 \var uint32_t starpu_matrix_interface::ny
-number of elements on the y-axis of the matrix
+    number of elements on the y-axis of the matrix
 \var uint32_t starpu_matrix_interface::ld
-number of elements between each row of the matrix. Maybe be equal to
-starpu_matrix_interface::nx when there is no padding.
+    number of elements between each row of the matrix. Maybe be equal
+    to starpu_matrix_interface::nx when there is no padding.
 \var size_t starpu_matrix_interface::elemsize
-size of the elements of the matrix
+    size of the elements of the matrix
 
 \fn uint32_t starpu_matrix_get_nx(starpu_data_handle_t handle)
 \ingroup API_Data_Interfaces
@@ -627,7 +642,7 @@ and offset need to be used instead.
 \def STARPU_MATRIX_GET_DEV_HANDLE(interface)
 \ingroup API_Data_Interfaces
 Return a device handle for the matrix designated by \p interface,
-to be used on OpenCL. The offset documented below has to be used in
+to be used with OpenCL. The offset documented below has to be used in
 addition to this.
 
 \def STARPU_MATRIX_GET_OFFSET(interface)
@@ -662,25 +677,25 @@ designated by \p interface.
 Block interface for 3D dense blocks
 \ingroup API_Data_Interfaces
 \var enum starpu_data_interface_id starpu_block_interface::id
-identifier of the interface
+    identifier of the interface
 \var uintptr_t starpu_block_interface::ptr
-local pointer of the block
+    local pointer of the block
 \var uintptr_t starpu_block_interface::dev_handle
-device handle of the block.
+    device handle of the block.
 \var size_t starpu_block_interface::offset
-offset in the block.
+    offset in the block.
 \var uint32_t starpu_block_interface::nx
-number of elements on the x-axis of the block.
+    number of elements on the x-axis of the block.
 \var uint32_t starpu_block_interface::ny
-number of elements on the y-axis of the block.
+    number of elements on the y-axis of the block.
 \var uint32_t starpu_block_interface::nz
-number of elements on the z-axis of the block.
+    number of elements on the z-axis of the block.
 \var uint32_t starpu_block_interface::ldy
-number of elements between two lines
+    number of elements between two lines
 \var uint32_t starpu_block_interface::ldz
-number of elements between two planes
+    number of elements between two planes
 \var size_t starpu_block_interface::elemsize
-size of the elements of the block.
+    size of the elements of the block.
 
 \fn uint32_t starpu_block_get_nx(starpu_data_handle_t handle)
 \ingroup API_Data_Interfaces
@@ -770,25 +785,25 @@ BCSR interface for sparse matrices (blocked compressed sparse
 row representation)
 \ingroup API_Data_Interfaces
 \var enum starpu_data_interface_id starpu_bcsr_interface::id
-Identifier of the interface
+    Identifier of the interface
 \var uint32_t starpu_bcsr_interface::nnz
-number of non-zero BLOCKS
+    number of non-zero BLOCKS
 \var uint32_t starpu_bcsr_interface::nrow
-number of rows (in terms of BLOCKS)
+    number of rows (in terms of BLOCKS)
 \var uintptr_t starpu_bcsr_interface::nzval
-non-zero values
+    non-zero values
 \var uint32_t *starpu_bcsr_interface::colind
-position of non-zero entried on the row
+    position of non-zero entried on the row
 \var uint32_t *starpu_bcsr_interface::rowptr
-index (in nzval) of the first entry of the row
+    index (in nzval) of the first entry of the row
 \var starpu_bcsr_interface::firstentry
-k for k-based indexing (0 or 1 usually). Also useful when partitionning the matrix.
+    k for k-based indexing (0 or 1 usually). Also useful when partitionning the matrix.
 \var uint32_t starpu_bcsr_interface::r
-size of the blocks
+    size of the blocks
 \var uint32_t starpu_bcsr_interface::c
-size of the blocks
+    size of the blocks
 \var size_t starpu_bcsr_interface::elemsize;
-size of the elements of the matrix
+    size of the elements of the matrix
 
 \fn uint32_t starpu_bcsr_get_nnz(starpu_data_handle_t handle)
 \ingroup API_Data_Interfaces
@@ -883,21 +898,21 @@ matrix designated by \p interface, to be used with the device handles.
 CSR interface for sparse matrices (compressed sparse row representation)
 \ingroup API_Data_Interfaces
 \var enum starpu_data_interface_id starpu_csr_interface::id
-Identifier of the interface
+    Identifier of the interface
 \var uint32_t starpu_csr_interface::nnz
-number of non-zero entries
+    number of non-zero entries
 \var uint32_t starpu_csr_interface::nrow
-number of rows
+    number of rows
 \var uintptr_t starpu_csr_interface::nzval
-non-zero values
+    non-zero values
 \var uint32_t *starpu_csr_interface::colind
-position of non-zero entries on the row
+    position of non-zero entries on the row
 \var uint32_t *starpu_csr_interface::rowptr
-index (in nzval) of the first entry of the row
+    index (in nzval) of the first entry of the row
 \var uint32_t starpu_csr_interface::firstentry
-k for k-based indexing (0 or 1 usually). also useful when partitionning the matrix.
+    k for k-based indexing (0 or 1 usually). also useful when partitionning the matrix.
 \var size_t starpu_csr_interface::elemsize
-size of the elements of the matrix
+    size of the elements of the matrix
 
 \fn uint32_t starpu_csr_get_nnz(starpu_data_handle_t handle)
 \ingroup API_Data_Interfaces
@@ -999,21 +1014,21 @@ designated by \p interface.
 COO Matrices
 \ingroup API_Data_Interfaces
 \var enum starpu_data_interface_id starpu_coo_interface::id
-identifier of the interface
+    identifier of the interface
 \var uint32_t  *starpu_coo_interface::columns
-column array of the matrix
+    column array of the matrix
 \var uint32_t  *starpu_coo_interface::rows
-row array of the matrix
+    row array of the matrix
 \var uintptr_t starpu_coo_interface::values
-values of the matrix
+    values of the matrix
 \var uint32_t  starpu_coo_interface::nx
-number of elements on the x-axis of the matrix
+    number of elements on the x-axis of the matrix
 \var uint32_t  starpu_coo_interface::ny
-number of elements on the y-axis of the matrix
+    number of elements on the y-axis of the matrix
 \var uint32_t  starpu_coo_interface::n_values
-number of values registered in the matrix
+    number of values registered in the matrix
 \var size_t starpu_coo_interface::elemsize
-size of the elements of the matrix
+    size of the elements of the matrix
 
 \def STARPU_COO_GET_COLUMNS(interface)
 \ingroup API_Data_Interfaces
@@ -1023,7 +1038,7 @@ by \p interface.
 \def STARPU_COO_GET_COLUMNS_DEV_HANDLE(interface)
 \ingroup API_Data_Interfaces
 Return a device handle for the column array of the matrix
-designated by \p interface, to be used on OpenCL. The offset documented
+designated by \p interface, to be used with OpenCL. The offset documented
 below has to be used in addition to this.
 
 \def STARPU_COO_GET_ROWS(interface)
@@ -1103,7 +1118,7 @@ with starpu_malloc_on_node().
 
 \fn void starpu_malloc_on_node_set_default_flags(unsigned node, int flags)
 \ingroup API_Data_Interfaces
-Define the defaultflags for allocations performed by starpu_malloc_on_node() and
+Define the default flags for allocations performed by starpu_malloc_on_node() and
 starpu_free_on_node(). The default is \ref STARPU_MALLOC_PINNED | \ref STARPU_MALLOC_COUNT.
 
 \fn int starpu_interface_copy(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, void *async_data)
@@ -1141,4 +1156,3 @@ Return the next available id for a newly created data interface
 (\ref DefiningANewDataInterface).
 
 */
-

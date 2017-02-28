@@ -37,25 +37,6 @@ static void usage()
 	fprintf(stderr, "Report bugs to <" PACKAGE_BUGREPORT ">.\n");
 }
 
-static void display_worker_names(enum starpu_worker_archtype type)
-{
-	int nworkers = starpu_worker_get_count_by_type(type);
-	if (!nworkers)
-		return;
-	STARPU_ASSERT(nworkers>0);
-
-	int ids[nworkers];
-	starpu_worker_get_ids_by_type(type, ids, nworkers);
-
-	int i;
-	for (i = 0; i < nworkers; i++)
-	{
-		char name[256];
-		starpu_worker_get_name(ids[i], name, 256);
-		fprintf(stdout, "\t\t%s\n", name);
-	}
-}
-
 static void display_combined_worker(unsigned workerid)
 {
 	int worker_size;
@@ -157,29 +138,19 @@ int main(int argc, char **argv)
 		return 0;
 	}
 
-	unsigned ncpu = starpu_cpu_worker_get_count();
-	unsigned ncuda = starpu_cuda_worker_get_count();
-	unsigned nopencl = starpu_opencl_worker_get_count();
-
-#ifdef STARPU_USE_MIC
-	unsigned nmicdevs = starpu_mic_device_get_count();
-	unsigned nmiccores = starpu_mic_worker_get_count();
-#endif
-
 	fprintf(stdout, "StarPU has found :\n");
 
-	fprintf(stdout, "\t%u CPU threads\n", ncpu);
-	display_worker_names(STARPU_CPU_WORKER);
-
-	fprintf(stdout, "\t%u CUDA devices\n", ncuda);
-	display_worker_names(STARPU_CUDA_WORKER);
-
-	fprintf(stdout, "\t%u OpenCL devices\n", nopencl);
-	display_worker_names(STARPU_OPENCL_WORKER);
-
+	starpu_worker_display_names(stdout, STARPU_CPU_WORKER);
+	starpu_worker_display_names(stdout, STARPU_CUDA_WORKER);
+	starpu_worker_display_names(stdout, STARPU_OPENCL_WORKER);
 #ifdef STARPU_USE_MIC
-	fprintf(stdout, "\t%u MIC cores (from %u devices)\n", nmiccores, nmicdevs);
-	display_worker_names(STARPU_MIC_WORKER);
+	starpu_worker_display_names(stdout, STARPU_MIC_WORKER);
+#endif
+#ifdef STARPU_USE_SCC
+	starpu_worker_display_names(stdout, STARPU_SCC_WORKER);
+#endif
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+	starpu_worker_display_names(stdout, STARPU_MPI_MS_WORKER);
 #endif
 
 	display_all_combined_workers();

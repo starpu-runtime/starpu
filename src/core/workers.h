@@ -36,6 +36,7 @@
 #include <hwloc.h>
 #endif
 
+#include <core/drivers.h>
 #include <drivers/cuda/driver_cuda.h>
 #include <drivers/opencl/driver_opencl.h>
 
@@ -104,6 +105,7 @@ LIST_TYPE(_starpu_worker,
 	char name[64];
 	char short_name[10];
 	unsigned run_by_starpu; /* Is this run by StarPU or directly by the application ? */
+	struct _starpu_driver_ops *driver_ops;
 
 	struct _starpu_sched_ctx_list *sched_ctx_list;
 	int tmp_sched_ctx;
@@ -241,8 +243,11 @@ struct _starpu_machine_topology
 	/* Actual number of CPU workers used by StarPU. */
 	unsigned ncpus;
 
-	/* Actual number of CUDA workers used by StarPU. */
+	/* Actual number of CUDA GPUs used by StarPU. */
 	unsigned ncudagpus;
+	unsigned nworkerpercuda;
+	int cuda_th_per_stream;
+	int cuda_th_per_dev;
 
 	/* Actual number of OpenCL workers used by StarPU. */
 	unsigned nopenclgpus;

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2015  Université de Bordeaux
+ * Copyright (C) 2010-2015, 2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  CNRS
  * Copyright (C) 2015  Inria
  *
@@ -118,6 +118,10 @@ static unsigned _starpu_attempt_to_submit_data_request(unsigned request_from_cod
 	if (handle->arbiter)
 		return _starpu_attempt_to_submit_arbitered_data_request(request_from_codelet, handle, mode, callback, argcb, j, buffer_index);
 
+	/* Do not care about some flags */
+	mode &= ~STARPU_COMMUTE;
+	mode &= ~STARPU_SSEND;
+	mode &= ~STARPU_LOCALITY;
 	if (mode == STARPU_RW)
 		mode = STARPU_W;
 

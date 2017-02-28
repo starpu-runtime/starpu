@@ -26,10 +26,6 @@
 
 #include <common/blas.h>
 
-#ifdef STARPU_USE_CUDA
-#include <cublas.h>
-#endif
-
 
 #define N	512*512
 #define NITER   100

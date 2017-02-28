@@ -99,6 +99,7 @@ static struct starpu_codelet cl12 =
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {dw_cublas_codelet_update_u12},
 #endif
+	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.nbuffers = 2,
 	.model = &model_12
 };
@@ -144,6 +145,7 @@ static struct starpu_codelet cl21 =
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {dw_cublas_codelet_update_u21},
 #endif
+	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.nbuffers = 2,
 	.model = &model_21
 };
@@ -186,6 +188,7 @@ static struct starpu_codelet cl22 =
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {dw_cublas_codelet_update_u22},
 #endif
+	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.nbuffers = 3,
 	.model = &model_22
 };

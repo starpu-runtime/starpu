@@ -25,6 +25,8 @@ New features:
   * Add support for multiple linear regression performance models
   * Add MPI Master-Slave support to use the cores of remote nodes. Use the
     --enable-mpi-master-slave option to activate it.
+  * Add STARPU_CUDA_THREAD_PER_DEV environment variable to support driving all
+    GPUs from only one thread when almost all kernels are asynchronous.
 
 Small features:
   * Scheduling contexts may now be associated a user data pointer at creation
@@ -35,6 +37,9 @@ Small features:
   * New configure option --enable-mpi-pedantic-isend (disabled by
     default) to acquire data in STARPU_RW (instead of STARPU_R) before
     performing MPI_Isend call
+  * New function starpu_worker_display_names to display the names of
+    all the workers of a specified type.
+  * Arbiters now support concurrent read access.
 
 Changes:
   * Vastly improve simgrid simulation time.
@@ -55,6 +60,7 @@ New features:
   * Add STARPU_PERF_MODEL_HOMOGENEOUS_CUDA/OPENCL/MIC/SCC to share performance
     models between devices, making calibration much faster.
   * Add modular-heft-prio scheduler.
+  * Add starpu_cublas_get_local_handle helper.
 
 Changes:
   * Fix performance regression of lws for small tasks.

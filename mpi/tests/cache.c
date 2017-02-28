@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015, 2016  CNRS
+ * Copyright (C) 2015, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -60,23 +60,23 @@ struct starpu_codelet mycodelet_rw =
 
 void test(struct starpu_codelet *codelet, enum starpu_data_access_mode mode, starpu_data_handle_t data, int rank, int in_cache)
 {
-	void *ptr;
+	int cache;
 	int ret;
 
 	ret = starpu_mpi_task_insert(MPI_COMM_WORLD, codelet, mode, data, STARPU_EXECUTE_ON_NODE, 1, 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_task_insert");
 
-	ptr = _starpu_mpi_cache_received_data_get(data, 0);
+	cache = _starpu_mpi_cache_received_data_get(data);
 
 	if (rank == 1)
 	{
 	     if (in_cache)
 	     {
-		     STARPU_ASSERT_MSG(ptr != NULL, "Data should be in cache\n");
+		     STARPU_ASSERT_MSG(cache == 1, "Data should be in cache\n");
 	     }
 	     else
 	     {
-		     STARPU_ASSERT_MSG(ptr == NULL, "Data should NOT be in cache\n");
+		     STARPU_ASSERT_MSG(cache == 0, "Data should NOT be in cache\n");
 	     }
 	}
 }

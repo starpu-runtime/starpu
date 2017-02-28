@@ -52,13 +52,23 @@ Specify the number of workers per CUDA device, and thus the number of kernels
 which will be concurrently running on the devices. The default value is 1.
 </dd>
 
-<dt>STARPU_NWORKER_PER_CUDA</dt>
+<dt>STARPU_CUDA_THREAD_PER_WORKER</dt>
 <dd>
 \anchor STARPU_CUDA_THREAD_PER_WORKER
 \addindex __env__STARPU_CUDA_THREAD_PER_WORKER
 Specify if the cuda driver should provide a thread per stream or a single thread 
 dealing with all the streams. 0 if one thread per stream, 1 otherwise. The default 
-value is 1.
+value is 0. Setting it to 1 is contradictory with setting STARPU_CUDA_THREAD_PER_DEV to 1.
+</dd>
+
+<dt>STARPU_CUDA_THREAD_PER_DEV</dt>
+<dd>
+\anchor STARPU_CUDA_THREAD_PER_DEV
+\addindex __env__STARPU_CUDA_THREAD_PER_DEV
+Specify if the cuda driver should provide a thread per device or a single thread 
+dealing with all the devices. 0 if one thread per device, 1 otherwise. The default 
+value is 1, unless STARPU_CUDA_THREAD_PER_WORKER is set to 1. Setting it to 1 is
+contradictory with setting STARPU_CUDA_THREAD_PER_WORKER to 1.
 </dd>
 
 <dt>STARPU_CUDA_PIPELINE</dt>
@@ -820,7 +830,7 @@ available to the application on the NUMA node with the OS identifier <c>devid</c
 \addindex __env__STARPU_MINIMUM_AVAILABLE_MEM
 This specifies the minimum percentage of memory that should be available in GPUs
 (or in main memory, when using out of core), below which a reclaiming pass is
-performed. The default is 5%.
+performed. The default is 0%.
 </dd>
 
 <dt>STARPU_TARGET_AVAILABLE_MEM</dt>
@@ -829,7 +839,7 @@ performed. The default is 5%.
 \addindex __env__STARPU_TARGET_AVAILABLE_MEM
 This specifies the target percentage of memory that should be reached in
 GPUs (or in main memory, when using out of core), when performing a periodic
-reclaiming pass. The default is 10%.
+reclaiming pass. The default is 0%.
 </dd>
 
 <dt>STARPU_MINIMUM_CLEAN_BUFFERS</dt>

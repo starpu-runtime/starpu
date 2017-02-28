@@ -223,7 +223,7 @@ int _starpu_wait_data_request_completion(struct _starpu_data_request *r, unsigne
 	/* We need to get woken both when requests finish on our node, and on
 	 * the target node of the request we are waiting for */
 	starpu_pthread_queue_register(&wait, &_starpu_simgrid_transfer_queue[local_node]);
-	starpu_pthread_queue_register(&wait, &_starpu_simgrid_transfer_queue[r->dst_replicate->memory_node]);
+	starpu_pthread_queue_register(&wait, &_starpu_simgrid_transfer_queue[(unsigned) r->dst_replicate->memory_node]);
 #endif
 
 	do
@@ -262,7 +262,7 @@ int _starpu_wait_data_request_completion(struct _starpu_data_request *r, unsigne
 
 #ifdef STARPU_SIMGRID
 	starpu_pthread_queue_unregister(&wait, &_starpu_simgrid_transfer_queue[local_node]);
-	starpu_pthread_queue_unregister(&wait, &_starpu_simgrid_transfer_queue[r->dst_replicate->memory_node]);
+	starpu_pthread_queue_unregister(&wait, &_starpu_simgrid_transfer_queue[(unsigned) r->dst_replicate->memory_node]);
 	starpu_pthread_wait_destroy(&wait);
 #endif
 

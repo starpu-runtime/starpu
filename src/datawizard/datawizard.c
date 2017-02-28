@@ -66,13 +66,18 @@ int ___starpu_datawizard_progress(unsigned memory_node, unsigned may_alloc, unsi
 
 int __starpu_datawizard_progress(unsigned may_alloc, unsigned push_requests)
 {
-        int current_worker_id = starpu_worker_get_id();
+	struct _starpu_worker *worker = _starpu_get_local_worker_key();
         unsigned memnode;
 
-	if (current_worker_id < 0)
+	if (!worker)
 		/* Call from main application, only make RAM requests progress */
 		return ___starpu_datawizard_progress(STARPU_MAIN_RAM, may_alloc, push_requests);
+	if (worker->set)
+		/* Runing one of the workers of a worker set. The reference for
+		 * driving memory is its worker 0 (see registrations in topology.c) */
+		worker = &worker->set->workers[0];
 
+	unsigned current_worker_id = worker->workerid;
         int ret = 0;
 
         for (memnode = 0; memnode < STARPU_MAXNODES; memnode++)

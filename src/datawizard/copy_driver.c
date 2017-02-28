@@ -168,9 +168,8 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 		unsigned devid;
 		if ((src_kind == STARPU_CUDA_RAM) && (dst_kind == STARPU_CUDA_RAM))
 		{
-			/* GPU-GPU transfer, issue it from the device we are supposed to drive */
-			int worker = starpu_worker_get_id_check();
-			devid = starpu_worker_get_devid(worker);
+			/* GPU-GPU transfer, issue it from the destination */
+			devid = _starpu_memory_node_get_devid(dst_node);
 		}
 		else
 		{
@@ -212,7 +211,7 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 			cures = cudaEventCreateWithFlags(&req->async_channel.event.cuda_event, cudaEventDisableTiming);
 			if (STARPU_UNLIKELY(cures != cudaSuccess)) STARPU_CUDA_REPORT_ERROR(cures);
 
-			stream = starpu_cuda_get_local_out_transfer_stream();
+			stream = starpu_cuda_get_out_transfer_stream(src_node);
 			if (copy_methods->cuda_to_ram_async)
 				ret = copy_methods->cuda_to_ram_async(src_interface, src_node, dst_interface, dst_node, stream);
 			else
@@ -248,7 +247,7 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 			if (STARPU_UNLIKELY(cures != cudaSuccess))
 				STARPU_CUDA_REPORT_ERROR(cures);
 
-			stream = starpu_cuda_get_local_in_transfer_stream();
+			stream = starpu_cuda_get_in_transfer_stream(dst_node);
 			if (copy_methods->ram_to_cuda_async)
 				ret = copy_methods->ram_to_cuda_async(src_interface, src_node, dst_interface, dst_node, stream);
 			else
@@ -665,7 +664,7 @@ int starpu_interface_copy(uintptr_t src, size_t src_offset, unsigned src_node, u
 				(void*) (src + src_offset), src_node,
 				(void*) (dst + dst_offset), dst_node,
 				size,
-				async_channel?starpu_cuda_get_local_out_transfer_stream():NULL,
+				async_channel?starpu_cuda_get_out_transfer_stream(src_node):NULL,
 				cudaMemcpyDeviceToHost);
 
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_CUDA_RAM):
@@ -673,7 +672,7 @@ int starpu_interface_copy(uintptr_t src, size_t src_offset, unsigned src_node, u
 				(void*) (src + src_offset), src_node,
 				(void*) (dst + dst_offset), dst_node,
 				size,
-				async_channel?starpu_cuda_get_local_in_transfer_stream():NULL,
+				async_channel?starpu_cuda_get_in_transfer_stream(dst_node):NULL,
 				cudaMemcpyHostToDevice);
 
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CUDA_RAM,STARPU_CUDA_RAM):

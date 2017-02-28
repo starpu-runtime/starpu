@@ -10,12 +10,12 @@
 
 \def STARPU_USE_SCC
 \ingroup API_SCC_Extensions
-This macro is defined when StarPU has been installed with SCC support.
+Defined when StarPU has been installed with SCC support.
 It should be used in your code to detect the availability of SCC.
 
 \def STARPU_MAXSCCDEVS
 \ingroup API_SCC_Extensions
-This macro defines the maximum number of SCC devices that are
+Define the maximum number of SCC devices that are
 supported by StarPU.
 
 \typedef starpu_scc_func_symbol_t

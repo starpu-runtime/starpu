@@ -21,6 +21,11 @@
 #include <math.h>
 #include <complex.h>
 
+#ifdef STARPU_USE_CUDA
+#include <cublas.h>
+#include <starpu_cublas_v2.h>
+#endif
+
 #define str(s) #s
 #define xstr(s)        str(s)
 #define STARPU_LU_STR(name)  xstr(STARPU_LU(name))
@@ -65,11 +70,11 @@ static inline void STARPU_LU(common_u22)(void *descr[],
 #ifdef STARPU_USE_CUDA
 		case 1:
 		{
-			CUBLAS_GEMM('n', 'n', dx, dy, dz,
-				*(CUBLAS_TYPE*)&m1, (CUBLAS_TYPE *)right, ld21, (CUBLAS_TYPE *)left, ld12,
-				*(CUBLAS_TYPE*)&p1, (CUBLAS_TYPE *)center, ld22);
+			status = CUBLAS_GEMM(starpu_cublas_get_local_handle(),
+				CUBLAS_OP_N, CUBLAS_OP_N, dx, dy, dz,
+				(CUBLAS_TYPE *)&m1, (CUBLAS_TYPE *)right, ld21, (CUBLAS_TYPE *)left, ld12,
+				(CUBLAS_TYPE *)&p1, (CUBLAS_TYPE *)center, ld22);
 
-			status = cublasGetError();
 			if (STARPU_UNLIKELY(status != CUBLAS_STATUS_SUCCESS))
 				STARPU_CUBLAS_REPORT_ERROR(status);
 
@@ -185,10 +190,11 @@ static inline void STARPU_LU(common_u12)(void *descr[],
 			break;
 #ifdef STARPU_USE_CUDA
 		case 1:
-			CUBLAS_TRSM('L', 'L', 'N', 'N', ny12, nx12,
-					*(CUBLAS_TYPE*)&p1, (CUBLAS_TYPE*)sub11, ld11, (CUBLAS_TYPE*)sub12, ld12);
+			status = CUBLAS_TRSM(starpu_cublas_get_local_handle(),
+					CUBLAS_SIDE_LEFT, CUBLAS_FILL_MODE_LOWER, CUBLAS_OP_N, CUBLAS_DIAG_NON_UNIT,
+					ny12, nx12,
+					(CUBLAS_TYPE*)&p1, (CUBLAS_TYPE*)sub11, ld11, (CUBLAS_TYPE*)sub12, ld12);
 
-			status = cublasGetError();
 			if (STARPU_UNLIKELY(status != CUBLAS_STATUS_SUCCESS))
 				STARPU_CUBLAS_REPORT_ERROR(status);
 
@@ -271,10 +277,11 @@ static inline void STARPU_LU(common_u21)(void *descr[],
 			break;
 #ifdef STARPU_USE_CUDA
 		case 1:
-			CUBLAS_TRSM('R', 'U', 'N', 'U', ny21, nx21,
-					*(CUBLAS_TYPE*)&p1, (CUBLAS_TYPE*)sub11, ld11, (CUBLAS_TYPE*)sub21, ld21);
+			status = CUBLAS_TRSM(starpu_cublas_get_local_handle(),
+					CUBLAS_SIDE_RIGHT, CUBLAS_FILL_MODE_UPPER, CUBLAS_OP_N, CUBLAS_DIAG_UNIT,
+					ny21, nx21,
+					(CUBLAS_TYPE*)&p1, (CUBLAS_TYPE*)sub11, ld11, (CUBLAS_TYPE*)sub21, ld21);
 
-			status = cublasGetError();
 			if (status != CUBLAS_STATUS_SUCCESS)
 				STARPU_CUBLAS_REPORT_ERROR(status);
 
@@ -342,6 +349,12 @@ static inline void STARPU_LU(common_u11)(void *descr[],
 
 	unsigned long z;
 
+#ifdef STARPU_USE_CUDA
+	cublasStatus status;
+	cublasHandle_t handle;
+	cudaStream_t stream;
+#endif
+
 	switch (s)
 	{
 		case 0:
@@ -366,12 +379,14 @@ static inline void STARPU_LU(common_u11)(void *descr[],
 			break;
 #ifdef STARPU_USE_CUDA
 		case 1:
+			handle = starpu_cublas_get_local_handle();
+			stream = starpu_cuda_get_local_stream();
 			for (z = 0; z < nx; z++)
 			{
 				TYPE pivot;
 				TYPE inv_pivot;
-				cudaMemcpyAsync(&pivot, &sub11[z+z*ld], sizeof(TYPE), cudaMemcpyDeviceToHost, starpu_cuda_get_local_stream());
-				cudaStreamSynchronize(starpu_cuda_get_local_stream());
+				cudaMemcpyAsync(&pivot, &sub11[z+z*ld], sizeof(TYPE), cudaMemcpyDeviceToHost, stream);
+				cudaStreamSynchronize(stream);
 
 #ifdef COMPLEX_LU
 				STARPU_ASSERT(fpclassify(creal(pivot)) != FP_ZERO);
@@ -381,15 +396,23 @@ static inline void STARPU_LU(common_u11)(void *descr[],
 #endif
 				
 				inv_pivot = 1.0/pivot;
-				CUBLAS_SCAL(nx - z - 1, *(CUBLAS_TYPE*)&inv_pivot, (CUBLAS_TYPE*)&sub11[z+(z+1)*ld], ld);
+				status = CUBLAS_SCAL(handle,
+						nx - z - 1,
+						(CUBLAS_TYPE*)&inv_pivot, (CUBLAS_TYPE*)&sub11[z+(z+1)*ld], ld);
+				if (status != CUBLAS_STATUS_SUCCESS)
+					STARPU_CUBLAS_REPORT_ERROR(status);
 				
-				CUBLAS_GER(nx - z - 1, nx - z - 1, *(CUBLAS_TYPE*)&m1,
+				status = CUBLAS_GER(handle,
+						nx - z - 1, nx - z - 1,
+						(CUBLAS_TYPE*)&m1,
 						(CUBLAS_TYPE*)&sub11[(z+1)+z*ld], 1,
 						(CUBLAS_TYPE*)&sub11[z+(z+1)*ld], ld,
 						(CUBLAS_TYPE*)&sub11[(z+1) + (z+1)*ld],ld);
+				if (status != CUBLAS_STATUS_SUCCESS)
+					STARPU_CUBLAS_REPORT_ERROR(status);
 			}
 			
-			cudaStreamSynchronize(starpu_cuda_get_local_stream());
+			cudaStreamSynchronize(stream);
 
 			break;
 #endif
@@ -458,6 +481,12 @@ static inline void STARPU_LU(common_u11_pivot)(void *descr[],
 	unsigned *ipiv = piv->piv;
 	unsigned first = piv->first;
 
+#ifdef STARPU_USE_CUDA
+	cublasStatus status;
+	cublasHandle_t handle;
+	cudaStream_t stream;
+#endif
+
 	switch (s)
 	{
 		case 0:
@@ -496,43 +525,63 @@ static inline void STARPU_LU(common_u11_pivot)(void *descr[],
 			break;
 #ifdef STARPU_USE_CUDA
 		case 1:
+			handle = starpu_cublas_get_local_handle();
+			stream = starpu_cuda_get_local_stream();
 			for (z = 0; z < nx; z++)
 			{
 				TYPE pivot;
 				TYPE inv_pivot;
-				cudaMemcpyAsync(&pivot, &sub11[z+z*ld], sizeof(TYPE), cudaMemcpyDeviceToHost, starpu_cuda_get_local_stream());
-				cudaStreamSynchronize(starpu_cuda_get_local_stream());
+				cudaMemcpyAsync(&pivot, &sub11[z+z*ld], sizeof(TYPE), cudaMemcpyDeviceToHost, stream);
+				cudaStreamSynchronize(stream);
 
 				if (fabs((double)(pivot)) < PIVOT_THRESHHOLD)
 				{
 					/* find the pivot */
-					int piv_ind = CUBLAS_IAMAX(nx - z, (CUBLAS_TYPE*)&sub11[z*(ld+1)], ld) - 1;
+					int piv_ind;
+					status = CUBLAS_IAMAX(handle,
+						nx - z, (CUBLAS_TYPE*)&sub11[z*(ld+1)], ld, &piv_ind);
+					piv_ind -= 1;
+					if (status != CUBLAS_STATUS_SUCCESS)
+						STARPU_CUBLAS_REPORT_ERROR(status);
 	
 					ipiv[z + first] = piv_ind + z + first;
 
 					/* swap if needed */
 					if (piv_ind != 0)
 					{
-						CUBLAS_SWAP(nx, (CUBLAS_TYPE*)&sub11[z*ld], 1, (CUBLAS_TYPE*)&sub11[(z+piv_ind)*ld], 1);
+						status = CUBLAS_SWAP(handle,
+							nx,
+							(CUBLAS_TYPE*)&sub11[z*ld], 1,
+							(CUBLAS_TYPE*)&sub11[(z+piv_ind)*ld], 1);
+						if (status != CUBLAS_STATUS_SUCCESS)
+							STARPU_CUBLAS_REPORT_ERROR(status);
 					}
 
-					cudaMemcpyAsync(&pivot, &sub11[z+z*ld], sizeof(TYPE), cudaMemcpyDeviceToHost, starpu_cuda_get_local_stream());
-					cudaStreamSynchronize(starpu_cuda_get_local_stream());
+					cudaMemcpyAsync(&pivot, &sub11[z+z*ld], sizeof(TYPE), cudaMemcpyDeviceToHost, stream);
+					cudaStreamSynchronize(stream);
 				}
 
 				STARPU_ASSERT(pivot != 0.0);
 				
 				inv_pivot = 1.0/pivot;
-				CUBLAS_SCAL(nx - z - 1, *(CUBLAS_TYPE*)&inv_pivot, (CUBLAS_TYPE*)&sub11[z+(z+1)*ld], ld);
+				status = CUBLAS_SCAL(handle,
+						nx - z - 1,
+						(CUBLAS_TYPE*)&inv_pivot,
+						(CUBLAS_TYPE*)&sub11[z+(z+1)*ld], ld);
+				if (status != CUBLAS_STATUS_SUCCESS)
+					STARPU_CUBLAS_REPORT_ERROR(status);
 				
-				CUBLAS_GER(nx - z - 1, nx - z - 1, *(CUBLAS_TYPE*)&m1,
+				status = CUBLAS_GER(handle,
+						nx - z - 1, nx - z - 1,
+						(CUBLAS_TYPE*)&m1,
 						(CUBLAS_TYPE*)&sub11[(z+1)+z*ld], 1,
 						(CUBLAS_TYPE*)&sub11[z+(z+1)*ld], ld,
 						(CUBLAS_TYPE*)&sub11[(z+1) + (z+1)*ld],ld);
-				
+				if (status != CUBLAS_STATUS_SUCCESS)
+						STARPU_CUBLAS_REPORT_ERROR(status);
 			}
 
-			cudaStreamSynchronize(starpu_cuda_get_local_stream());
+			cudaStreamSynchronize(stream);
 
 			break;
 #endif
@@ -600,6 +649,11 @@ static inline void STARPU_LU(common_pivot)(void *descr[],
 	unsigned *ipiv = piv->piv;
 	unsigned first = piv->first;
 
+#ifdef STARPU_USE_CUDA
+	cublasStatus status;
+	cublasHandle_t handle;
+#endif
+
 	switch (s)
 	{
 		case 0:
@@ -614,12 +668,18 @@ static inline void STARPU_LU(common_pivot)(void *descr[],
 			break;
 #ifdef STARPU_USE_CUDA
 		case 1:
+			handle = starpu_cublas_get_local_handle();
 			for (row = 0; row < nx; row++)
 			{
 				unsigned rowpiv = ipiv[row+first] - first;
 				if (rowpiv != row)
 				{
-					CUBLAS_SWAP(nx, (CUBLAS_TYPE*)&matrix[row*ld], 1, (CUBLAS_TYPE*)&matrix[rowpiv*ld], 1);
+					status = CUBLAS_SWAP(handle,
+							nx,
+							(CUBLAS_TYPE*)&matrix[row*ld], 1,
+							(CUBLAS_TYPE*)&matrix[rowpiv*ld], 1);
+					if (status != CUBLAS_STATUS_SUCCESS)
+						STARPU_CUBLAS_REPORT_ERROR(status);
 				}
 			}
 

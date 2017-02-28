@@ -12,47 +12,58 @@
 todo
 \ingroup API_FxT_Support
 \var char starpu_fxt_codelet_event::symbol[256]
-name of the codelet
+    name of the codelet
 \var int starpu_fxt_codelet_event::workerid
+    todo
 \var char starpu_fxt_codelet_event::perfmodel_archname[256]
+    todo
 \var uint32_t starpu_fxt_codelet_event::hash
+    todo
 \var size_t starpu_fxt_codelet_event::size
+    todo
 \var float starpu_fxt_codelet_event::time
+    todo
 
 \struct starpu_fxt_options
 todo
 \ingroup API_FxT_Support
 \var unsigned starpu_fxt_options::per_task_colour
+    todo
 \var unsigned starpu_fxt_options::no_counter
+    todo
 \var starpu_unsigned fxt_options::no_bus
+    todo
 \var unsigned starpu_fxt_options::ninputfiles
+    todo
 \var char *starpu_fxt_options::filenames[STARPU_FXT_MAX_FILES]
+    todo
 \var char *starpu_fxt_options::out_paje_path
+    todo
 \var char *starpu_fxt_options::distrib_time_path
+    todo
 \var char *starpu_fxt_options::activity_path
+    todo
 \var char *starpu_fxt_options::dag_path
-
+    todo
 \var char *starpu_fxt_options::file_prefix
-In case we are going to gather multiple traces (e.g in the case of MPI
-processes), we may need to prefix the name of the containers.
+    In case we are going to gather multiple traces (e.g in the case of
+    MPI processes), we may need to prefix the name of the containers.
 \var uint64_t starpu_fxt_options::file_offset
-In case we are going to gather multiple traces (e.g in the case of MPI
-processes), we may need to prefix the name of the containers.
+    In case we are going to gather multiple traces (e.g in the case of
+    MPI processes), we may need to prefix the name of the containers.
 \var int starpu_fxt_options::file_rank
-In case we are going to gather multiple traces (e.g in the case of MPI
-processes), we may need to prefix the name of the containers.
-
+    In case we are going to gather multiple traces (e.g in the case of
+    MPI processes), we may need to prefix the name of the containers.
 \var char starpu_fxt_options::worker_names[STARPU_NMAXWORKERS][256]
-Output parameters
+    Output parameters
 \var struct starpu_perfmodel_arch starpu_fxt_options::worker_archtypes[STARPU_NMAXWORKERS]
-Output parameters
+    Output parameters
 \var int starpu_fxt_options::nworkers
-Output parameters
-
+    Output parameters
 \var struct starpu_fxt_codelet_event **starpu_fxt_options::dumped_codelets
-In case we want to dump the list of codelets to an external tool
+    In case we want to dump the list of codelets to an external tool
 \var long starpu_fxt_options::dumped_codelets_count
-In case we want to dump the list of codelets to an external tool
+    In case we want to dump the list of codelets to an external tool
 
 \fn void starpu_fxt_options_init(struct starpu_fxt_options *options)
 \ingroup API_FxT_Support
@@ -79,7 +90,7 @@ start recording it again, etc.
 
 \fn void starpu_fxt_autostart_profiling(int autostart)
 \ingroup API_FxT_Support
-Determines whether profiling should be started by starpu_init(), or only when
+Determine whether profiling should be started by starpu_init(), or only when
 starpu_fxt_start_profiling() is called. \p autostart should be 1 to do so, or 0 to
 prevent it.
 

@@ -18,7 +18,7 @@ todo
 
 \fn void * starpufft_malloc(size_t n)
 \ingroup API_FFT_Support
-Allocates memory for \p n bytes. This is preferred over \c malloc(),
+Allocate memory for \p n bytes. This is preferred over \c malloc(),
 since it allocates pinned memory, which allows overlapped transfers.
 
 \fn void * starpufft_free(void *p)
@@ -27,12 +27,12 @@ Release memory previously allocated.
 
 \fn struct starpufft_plan * starpufft_plan_dft_1d(int n, int sign, unsigned flags)
 \ingroup API_FFT_Support
-Initializes a plan for 1D FFT of size \p n. \p sign can be STARPUFFT_FORWARD
+Initialize a plan for 1D FFT of size \p n. \p sign can be STARPUFFT_FORWARD
 or STARPUFFT_INVERSE. \p flags must be 0.
 
 \fn struct starpufft_plan * starpufft_plan_dft_2d(int n, int m, int sign, unsigned flags)
 \ingroup API_FFT_Support
-Initializes a plan for 2D FFT of size (\p n, \p m). \p sign can be
+Initialize a plan for 2D FFT of size (\p n, \p m). \p sign can be
 STARPUFFT_FORWARD or STARPUFFT_INVERSE. flags must be \p 0.
 
 \fn struct starpu_task * starpufft_start(starpufft_plan p, void *in, void *out)
@@ -60,11 +60,11 @@ the expected types). This submits and waits for the task.
 
 \fn void starpufft_cleanup(starpufft_plan p)
 \ingroup API_FFT_Support
-Releases data for plan \p p, in the starpufft_start() case.
+Release data for plan \p p, in the starpufft_start() case.
 
 \fn void starpufft_destroy_plan(starpufft_plan p)
 \ingroup API_FFT_Support
-Destroys plan \p p, i.e. release all CPU (fftw) and GPU (cufft)
+Destroy plan \p p, i.e. release all CPU (fftw) and GPU (cufft)
 resources.
 
 */

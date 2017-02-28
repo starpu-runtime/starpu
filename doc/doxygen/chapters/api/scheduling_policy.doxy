@@ -20,7 +20,7 @@ configure by using the option \ref enable-maximplementations "--enable-maximplem
 
 \struct starpu_sched_policy
 \ingroup API_Scheduling_Policy
-This structure contains all the methods that implement a
+Contain all the methods that implement a
 scheduling policy. An application may specify which scheduling
 strategy in the field starpu_conf::sched_policy passed to the function
 starpu_init().
@@ -30,9 +30,9 @@ For each task going through the scheduler, the following methods get called in t
 <ul>
 <li>starpu_sched_policy::submit_hook when the task is submitted</li>
 <li>starpu_sched_policy::push_task when the task becomes ready. The scheduler is here <b>given</b> the task</li>
-<li>starpu_sched_policy::pop_task when a worker is idle. The scheduler here <b>gives</b> back the task to the core</li>
+<li>starpu_sched_policy::pop_task when the worker is idle. The scheduler here <b>gives</b> back the task to the core</li>
 <li>starpu_sched_policy::pre_exec_hook right before the worker actually starts the task computation (after transferring any missing data).</li>
-<li>starpu_sched_policy::post_exec_hook right after the worker actually completed the task computation.</li>
+<li>starpu_sched_policy::post_exec_hook right after the worker actually completes the task computation.</li>
 </ul>
 
 For each task not going through the scheduler (because starpu_task::execute_on_a_specific_worker was set), these get called:
@@ -41,7 +41,7 @@ For each task not going through the scheduler (because starpu_task::execute_on_a
 <li>starpu_sched_policy::submit_hook when the task is submitted</li>
 <li>starpu_sched_policy::push_task_notify when the task becomes ready. This is just a notification, the scheduler does not have to do anything about the task.</li>
 <li>starpu_sched_policy::pre_exec_hook right before the worker actually starts the task computation (after transferring any missing data).</li>
-<li>starpu_sched_policy::post_exec_hook right after the worker actually completed the task computation.</li>
+<li>starpu_sched_policy::post_exec_hook right after the worker actually completes the task computation.</li>
 </ul>
 
 
@@ -110,7 +110,7 @@ block and wake up all workers.
 \fn int starpu_sched_set_min_priority(int min_prio)
 \ingroup API_Scheduling_Policy
 TODO: check if this is correct
-Defines the minimum task priority level supported by the scheduling
+Define the minimum task priority level supported by the scheduling
 policy. The default minimum priority level is the same as the default
 priority level which is 0 by convention. The application may access
 that value by calling the function starpu_sched_get_min_priority().
@@ -121,7 +121,7 @@ application.
 \fn int starpu_sched_set_max_priority(int max_prio)
 \ingroup API_Scheduling_Policy
 TODO: check if this is correct
-Defines the maximum priority level supported by the scheduling policy.
+Define the maximum priority level supported by the scheduling policy.
 The default maximum priority level is 1. The application may access
 that value by calling the function starpu_sched_get_max_priority().
 This function should only be called from the initialization method of
@@ -131,13 +131,13 @@ application.
 \fn int starpu_sched_get_min_priority(void)
 \ingroup API_Scheduling_Policy
 TODO: check if this is correct
-Returns the current minimum priority level supported by the scheduling
+Return the current minimum priority level supported by the scheduling
 policy
 
 \fn int starpu_sched_get_max_priority(void)
 \ingroup API_Scheduling_Policy
 TODO: check if this is correct
-Returns the current maximum priority level supported by the scheduling
+Return the current maximum priority level supported by the scheduling
 policy
 
 \fn int starpu_push_local_task(int workerid, struct starpu_task *task, int back)
@@ -150,7 +150,7 @@ Setting \p back to 0 therefore ensures a FIFO ordering.
 
 \fn int starpu_push_task_end(struct starpu_task *task)
 \ingroup API_Scheduling_Policy
-This function must be called by a scheduler to notify that the given
+Must be called by a scheduler to notify that the given
 task has just been pushed.
 
 \fn int starpu_worker_can_execute_task(unsigned workerid, struct starpu_task *task, unsigned nimpl)
@@ -181,24 +181,24 @@ check for at least one implementation without determining which.
 
 \fn uint32_t starpu_task_footprint(struct starpu_perfmodel *model, struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl)
 \ingroup API_Scheduling_Policy
-Returns the footprint for a given task, taking into account user-provided
+Return the footprint for a given task, taking into account user-provided
 perfmodel footprint or size_base functions.
 
 \fn uint32_t starpu_task_data_footprint(struct starpu_task *task)
 \ingroup API_Scheduling_Policy
-Returns the raw footprint for the data of a given task (without taking into account user-provided functions).
+Return the raw footprint for the data of a given task (without taking into account user-provided functions).
 
 \fn double starpu_task_expected_length(struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl)
 \ingroup API_Scheduling_Policy
-Returns expected task duration in micro-seconds.
+Return expected task duration in micro-seconds.
 
 \fn double starpu_worker_get_relative_speedup(struct starpu_perfmodel_arch *perf_arch)
 \ingroup API_Scheduling_Policy
-Returns an estimated speedup factor relative to CPU speed
+Return an estimated speedup factor relative to CPU speed
 
 \fn double starpu_task_expected_data_transfer_time(unsigned memory_node, struct starpu_task *task)
 \ingroup API_Scheduling_Policy
-Returns expected data transfer time in micro-seconds.
+Return expected data transfer time in micro-seconds.
 
 \fn double starpu_data_expected_transfer_time(starpu_data_handle_t handle, unsigned memory_node, enum starpu_data_access_mode mode)
 \ingroup API_Scheduling_Policy
@@ -206,11 +206,11 @@ Predict the transfer time (in micro-seconds) to move \p handle to a memory node
 
 \fn double starpu_task_expected_energy(struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl)
 \ingroup API_Scheduling_Policy
-Returns expected energy consumption in J
+Return expected energy consumption in J
 
 \fn double starpu_task_expected_conversion_time(struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl)
 \ingroup API_Scheduling_Policy
-Returns expected conversion time in ms (multiformat interface only)
+Return expected conversion time in ms (multiformat interface only)
 
 \fn int starpu_get_prefetch_flag(void)
 \ingroup API_Scheduling_Policy

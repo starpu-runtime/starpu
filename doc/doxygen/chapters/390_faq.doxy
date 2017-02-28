@@ -235,11 +235,18 @@ a task is finished, to feed the GPU with another task (StarPU actually submits
 a couple of tasks in advance so as to pipeline this, but filling the pipeline
 still has to be happening often enough), and thus it has to dedicate threads for
 this, and this is a very CPU-consuming duty. StarPU thus dedicates one CPU core
-for driving each GPU.
+for driving each GPU by default.
 
 Such dedication is also useful when a codelet is hybrid, i.e. while kernels are
 running on the GPU, the codelet can run some computation, which thus be run by
 the CPU core instead of driving the GPU.
+
+One can choose to dedicate only one thread for all the CUDA devices by setting
+the STARPU_CUDA_THREAD_PER_DEV environment variable to 1. The application
+however should use STARPU_CUDA_ASYNC on its CUDA codelets (asynchronous
+execution), otherwise the execution of a synchronous CUDA codelet will
+monopolize the thread, and other CUDA devices will thus starve while it is
+executing.
 
 \section CUDADrivers StarPU does not see my CUDA device
 

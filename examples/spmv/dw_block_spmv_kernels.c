@@ -24,6 +24,12 @@
  *   U22 
  */
 
+#ifdef STARPU_USE_CUDA
+#include <starpu_cublas_v2.h>
+static const float p1 =  1.0;
+static const float m1 = -1.0;
+#endif
+
 static inline void common_block_spmv(void *descr[], int s, STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	/* printf("22\n"); */
@@ -43,7 +49,10 @@ static inline void common_block_spmv(void *descr[], int s, STARPU_ATTRIBUTE_UNUS
 			break;
 #ifdef STARPU_USE_CUDA
 		case 1:
-			cublasSgemv ('t', dx, dy, 1.0f, block, ld, in, 1, 1.0f, out, 1);
+			cublasStatus_t status = cublasSgemv (starpu_cublas_get_local_handle(),
+					CUBLAS_OP_T, dx, dy, &p1, block, ld, in, 1, &p1, out, 1);
+			if (status != CUBLAS_STATUS_SUCCESS)
+				STARPU_CUBLAS_REPORT_ERROR(status);
 			break;
 #endif
 		default:

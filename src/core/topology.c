@@ -97,8 +97,7 @@ static struct _starpu_worker_set mic_worker_set[STARPU_MAXMICDEVS];
 struct _starpu_worker_set mpi_worker_set[STARPU_MAXMPIDEVS];
 #endif
 
-void *
-_starpu_get_worker_from_driver(struct starpu_driver *d)
+struct _starpu_worker *_starpu_get_worker_from_driver(struct starpu_driver *d)
 {
 	unsigned nworkers = starpu_worker_get_count();
 	unsigned workerid;
@@ -131,7 +130,7 @@ _starpu_get_worker_from_driver(struct starpu_driver *d)
 			case STARPU_CUDA_WORKER:
 			{
 				if (worker->devid == d->id.cuda_id)
-					return worker->set;
+					return worker;
 				break;
 
 			}
@@ -907,6 +906,7 @@ _starpu_init_mic_config (struct _starpu_machine_config *config,
 	/* _starpu_initialize_workers_mic_deviceid (config); */
 
 	mic_worker_set[mic_idx].workers = &config->workers[topology->nworkers];
+	mic_worker_set[mic_idx].nworkers = topology->nmiccores[mic_idx];
 	unsigned miccore_id;
 	for (miccore_id = 0; miccore_id < topology->nmiccores[mic_idx]; miccore_id++)
 	{
@@ -970,6 +970,7 @@ _starpu_init_mpi_config (struct _starpu_machine_config *config,
                         mpi_idx, topology->nmpicores[mpi_idx], topology->nworkers, STARPU_NMAXWORKERS);
 
         mpi_worker_set[mpi_idx].workers = &config->workers[topology->nworkers];
+        mpi_worker_set[mpi_idx].nworkers = topology->nmpicores[mpi_idx];
         unsigned mpicore_id;
         for (mpicore_id = 0; mpicore_id < topology->nmpicores[mpi_idx]; mpicore_id++)
         {
@@ -986,6 +987,7 @@ _starpu_init_mpi_config (struct _starpu_machine_config *config,
                 config->workers[worker_idx].worker_mask = STARPU_MPI_MS;
                 config->worker_mask |= STARPU_MPI_MS;
         }
+	mpi_ms_nodes[mpi_idx]->baseworkerid = topology->nworkers;
 
         topology->nworkers += topology->nmpicores[mpi_idx];
 }
@@ -1234,31 +1236,68 @@ _starpu_init_machine_config(struct _starpu_machine_config *config, int no_mp_con
 
 	/* Now we know how many CUDA devices will be used */
 	topology->ncudagpus = ncuda;
+	topology->nworkerpercuda = nworker_per_cuda;
 	STARPU_ASSERT(topology->ncudagpus <= STARPU_MAXCUDADEVS);
 
 	_starpu_initialize_workers_cuda_gpuid(config);
 
 	/* allow having one worker per stream */
-	unsigned th_per_stream = starpu_get_env_number_default("STARPU_CUDA_THREAD_PER_WORKER", 0);
+	topology->cuda_th_per_stream = starpu_get_env_number_default("STARPU_CUDA_THREAD_PER_WORKER", -1);
+	topology->cuda_th_per_dev = starpu_get_env_number_default("STARPU_CUDA_THREAD_PER_DEV", -1);
+
+	/* per device by default */
+	if (topology->cuda_th_per_dev == -1)
+	{
+		if (topology->cuda_th_per_stream == 1)
+			topology->cuda_th_per_dev = 0;
+		else
+			topology->cuda_th_per_dev = 1;
+	}
+	/* Not per stream by default */
+	if (topology->cuda_th_per_stream == -1)
+	{
+		topology->cuda_th_per_stream = 0;
+	}
+
+	STARPU_ASSERT_MSG(topology->cuda_th_per_dev != 1 || topology->cuda_th_per_stream != 1, "It does not make sense to set both STARPU_CUDA_THREAD_PER_WORKER and STARPU_CUDA_THREAD_PER_DEV to 1, please choose either per worker or per device or none");
+
+	if (!topology->cuda_th_per_dev)
+	{
+		cuda_worker_set[0].workers = &config->workers[topology->nworkers];
+		cuda_worker_set[0].nworkers = topology->ncudagpus * nworker_per_cuda;
+	}
 
 	unsigned cudagpu;
 	for (cudagpu = 0; cudagpu < topology->ncudagpus; cudagpu++)
 	{
 		int devid = _starpu_get_next_cuda_gpuid(config);
 		int worker_idx0 = topology->nworkers + cudagpu * nworker_per_cuda;
-		cuda_worker_set[devid].workers = &config->workers[worker_idx0];
+		struct _starpu_worker_set *worker_set;
+
+		if (topology->cuda_th_per_dev)
+		{
+			worker_set = &cuda_worker_set[devid];
+			worker_set->workers = &config->workers[worker_idx0];
+			worker_set->nworkers = nworker_per_cuda;
+		}
+		else
+		{
+			/* Same worker set for all devices */
+			worker_set = &cuda_worker_set[0];
+		}
 
 		for (i = 0; i < nworker_per_cuda; i++)
 		{
 			int worker_idx = worker_idx0 + i;
-			if(th_per_stream)
+			if(topology->cuda_th_per_stream)
 			{
 				/* Just one worker in the set */
 				config->workers[worker_idx].set = (struct _starpu_worker_set *)calloc(1, sizeof(struct _starpu_worker_set));
 				config->workers[worker_idx].set->workers = &config->workers[worker_idx];
+				config->workers[worker_idx].set->nworkers = 1;
 			}
 			else
-				config->workers[worker_idx].set = &cuda_worker_set[devid];
+				config->workers[worker_idx].set = worker_set;
 
 			config->workers[worker_idx].arch = STARPU_CUDA_WORKER;
 			_STARPU_MALLOC(config->workers[worker_idx].perf_arch.devices, sizeof(struct starpu_perfmodel_device));
@@ -1460,19 +1499,23 @@ _starpu_init_machine_config(struct _starpu_machine_config *config, int no_mp_con
 			for (j = 0; j < STARPU_MAXMICDEVS; j++)
 				mic_busy_cpus += (topology->nmiccores[j] ? 1 : 0);
 
-            unsigned mpi_ms_busy_cpus = 0;
+			unsigned mpi_ms_busy_cpus = 0;
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 #ifdef STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD
-            for (j = 0; j < STARPU_MAXMPIDEVS; j++)
-                    mpi_ms_busy_cpus += (topology->nmpicores[j] ? 1 : 0);
+			for (j = 0; j < STARPU_MAXMPIDEVS; j++)
+				mpi_ms_busy_cpus += (topology->nmpicores[j] ? 1 : 0);
 #else
-            mpi_ms_busy_cpus = 1; /* we launch one thread to control all slaves */
+			mpi_ms_busy_cpus = 1; /* we launch one thread to control all slaves */
 #endif
 #endif /* STARPU_USE_MPI_MASTER_SLAVE */
-	    unsigned cuda_busy_cpus = 0;
-#if defined(STARPU_USE_CUDA)
-	    cuda_busy_cpus = th_per_stream ? (nworker_per_cuda * topology->ncudagpus) : 
-		    topology->ncudagpus;
+			unsigned cuda_busy_cpus = 0;
+#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
+			cuda_busy_cpus =
+				topology->cuda_th_per_dev == 0 && topology->cuda_th_per_stream == 0 ?
+					(topology->ncudagpus ? 1 : 0) :
+				topology->cuda_th_per_stream ?
+					(nworker_per_cuda * topology->ncudagpus) :
+					topology->ncudagpus;
 #endif
 			unsigned already_busy_cpus = mpi_ms_busy_cpus + mic_busy_cpus 
 				+ cuda_busy_cpus
@@ -1755,7 +1798,7 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 	unsigned cuda_init[STARPU_MAXCUDADEVS] = { };
 	unsigned cuda_memory_nodes[STARPU_MAXCUDADEVS];
 	unsigned cuda_bindid[STARPU_MAXCUDADEVS];
-	unsigned th_per_stream = starpu_get_env_number_default("STARPU_CUDA_THREAD_PER_WORKER", 0);
+	int cuda_globalbindid = -1;
 #endif
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 	unsigned opencl_init[STARPU_MAXOPENCLDEVS] = { };
@@ -1846,17 +1889,22 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 				if (cuda_init[devid])
 				{
 					memory_node = cuda_memory_nodes[devid];
-#ifndef STARPU_SIMGRID
-					if (th_per_stream == 0)
+					if (config->topology.cuda_th_per_stream == 0)
 						workerarg->bindid = cuda_bindid[devid];
 					else
 						workerarg->bindid = _starpu_get_next_bindid(config, preferred_binding, npreferred);
-#endif /* SIMGRID */
 				}
 				else
 				{
 					cuda_init[devid] = 1;
-					workerarg->bindid = cuda_bindid[devid] = _starpu_get_next_bindid(config, preferred_binding, npreferred);
+					if (config->topology.cuda_th_per_dev == 0 && config->topology.cuda_th_per_stream == 0)
+					{
+						if (cuda_globalbindid == -1)
+							cuda_globalbindid = _starpu_get_next_bindid(config, preferred_binding, npreferred);
+						workerarg->bindid = cuda_bindid[devid] = cuda_globalbindid;
+					}
+					else
+						workerarg->bindid = cuda_bindid[devid] = _starpu_get_next_bindid(config, preferred_binding, npreferred);
 					memory_node = cuda_memory_nodes[devid] = _starpu_memory_node_register(STARPU_CUDA_RAM, devid);
 
 					/* TODO: NUMA nodes */

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2013  INRIA
- * Copyright (C) 2013, 2016  CNRS
+ * Copyright (C) 2013, 2016, 2017  CNRS
  * Copyright (C) 2013  Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -23,6 +23,7 @@
 #include <starpu.h>
 #include <core/workers.h>
 #include <core/sched_policy.h>
+#include <core/task.h>
 
 #include "prio_deque.h"
 

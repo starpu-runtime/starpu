@@ -19,6 +19,7 @@
 #include <core/sched_ctx.h>
 #include <common/utils.h>
 #include <stdarg.h>
+#include <core/task.h>
 
 starpu_pthread_rwlock_t changing_ctx_mutex[STARPU_NMAX_SCHED_CTXS];
 
