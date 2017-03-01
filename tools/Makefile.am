@@ -137,16 +137,20 @@ EXTRA_DIST =				\
 	dev/rename.sed			\
 	dev/rename.sh			\
 	perfmodels/README		\
+	valgrind/fxt.suppr		\
 	valgrind/hwloc.suppr		\
 	valgrind/libc.suppr		\
 	valgrind/libgomp.suppr		\
 	valgrind/libnuma.suppr		\
+	valgrind/madmpi.suppr		\
 	valgrind/opencl.suppr		\
 	valgrind/openmpi.suppr		\
+	valgrind/padico.suppr		\
 	valgrind/pthread.suppr		\
 	valgrind/starpu.suppr		\
 	valgrind/valgrind.suppr		\
 	valgrind/valgrind.sh		\
+	valgrind/helgrind.sh		\
 	tsan/starpu.suppr		\
 	lsan/libc.suppr			\
 	lsan/openmpi.suppr		\
