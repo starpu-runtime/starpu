@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2013-2016  Université de Bordeaux
+ * Copyright (C) 2010, 2013-2017  Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -247,7 +247,7 @@ void assign_blocks_to_mpi_nodes(int world_size)
 
 static size_t allocated = 0;
 
-static void allocate_block_on_node(starpu_data_handle_t *handleptr, TYPE **ptr, unsigned nx, unsigned ny, unsigned nz)
+static void allocate_block_on_node(starpu_data_handle_t *handleptr, unsigned bz, TYPE **ptr, unsigned nx, unsigned ny, unsigned nz)
 {
 	int ret;
 	size_t block_size = nx*ny*nz*sizeof(TYPE);
@@ -270,6 +270,8 @@ static void allocate_block_on_node(starpu_data_handle_t *handleptr, TYPE **ptr, 
 
 	/* Register it to StarPU */
 	starpu_block_data_register(handleptr, STARPU_MAIN_RAM, (uintptr_t)*ptr, nx, nx*ny, nx, ny, nz, sizeof(TYPE));
+
+	starpu_data_set_coordinates(*handleptr, 1, bz);
 }
 
 static void free_block_on_node(starpu_data_handle_t handleptr, unsigned nx, unsigned ny, unsigned nz)
@@ -299,21 +301,21 @@ void allocate_memory_on_node(int rank)
 		if (node == rank)
 		{
 			/* Main blocks */
-			allocate_block_on_node(&block->layers_handle[0], &block->layers[0],
+			allocate_block_on_node(&block->layers_handle[0], bz, &block->layers[0],
 					       (sizex + 2*K), (sizey + 2*K), (size_bz + 2*K));
-			allocate_block_on_node(&block->layers_handle[1], &block->layers[1],
+			allocate_block_on_node(&block->layers_handle[1], bz, &block->layers[1],
 					       (sizex + 2*K), (sizey + 2*K), (size_bz + 2*K));
 
 			/* Boundary blocks : Top */
-			allocate_block_on_node(&block->boundaries_handle[T][0], &block->boundaries[T][0],
+			allocate_block_on_node(&block->boundaries_handle[T][0], bz, &block->boundaries[T][0],
 					       (sizex + 2*K), (sizey + 2*K), K);
-			allocate_block_on_node(&block->boundaries_handle[T][1], &block->boundaries[T][1],
+			allocate_block_on_node(&block->boundaries_handle[T][1], bz, &block->boundaries[T][1],
 					       (sizex + 2*K), (sizey + 2*K), K);
 
 			/* Boundary blocks : Bottom */
-			allocate_block_on_node(&block->boundaries_handle[B][0], &block->boundaries[B][0],
+			allocate_block_on_node(&block->boundaries_handle[B][0], bz, &block->boundaries[B][0],
 					       (sizex + 2*K), (sizey + 2*K), K);
-			allocate_block_on_node(&block->boundaries_handle[B][1], &block->boundaries[B][1],
+			allocate_block_on_node(&block->boundaries_handle[B][1], bz, &block->boundaries[B][1],
 					       (sizex + 2*K), (sizey + 2*K), K);
 		}
 		/* Register void blocks to StarPU, that StarPU-MPI will request to
