@@ -138,13 +138,16 @@ struct starpu_task
 
 	int nbuffers;
 
-	starpu_data_handle_t handles[STARPU_NMAXBUFS];
-	void *interfaces[STARPU_NMAXBUFS];
-	enum starpu_data_access_mode modes[STARPU_NMAXBUFS];
-
+        /* We keep these before the static arrays, so we can detect dyn_handles
+	 * being NULL while nbuffers being bigger that STARPU_NMAXBUFS
+	 * (otherwise the overflow would put a non-NULL) */
 	starpu_data_handle_t *dyn_handles;
 	void **dyn_interfaces;
 	enum starpu_data_access_mode *dyn_modes;
+
+	starpu_data_handle_t handles[STARPU_NMAXBUFS];
+	void *interfaces[STARPU_NMAXBUFS];
+	enum starpu_data_access_mode modes[STARPU_NMAXBUFS];
 
 	void *cl_arg;
 	size_t cl_arg_size;
