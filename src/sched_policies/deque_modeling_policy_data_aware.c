@@ -903,21 +903,30 @@ static void dmda_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nwo
 	unsigned i;
 	for (i = 0; i < nworkers; i++)
 	{
+		struct _starpu_fifo_taskq *q;
 		workerid = workerids[i];
+		int workerid = workerids[i];
 		/* if the worker has alreadry belonged to this context
 		   the queue and the synchronization variables have been already initialized */
-		if(dt->queue_array[workerid] == NULL)
-			dt->queue_array[workerid] = _starpu_create_fifo();
+		q = dt->queue_array[workerid];
+		if(q == NULL)
+		{
+			q = dt->queue_array[workerid] = _starpu_create_fifo();
+			/* These are only stats, they can be read with races */
+			STARPU_HG_DISABLE_CHECKING(q->exp_start);
+			STARPU_HG_DISABLE_CHECKING(q->exp_len);
+			STARPU_HG_DISABLE_CHECKING(q->exp_end);
+		}
 
 		if(dt->num_priorities != -1)
 		{
-			dt->queue_array[workerid]->exp_len_per_priority = (double*)malloc(dt->num_priorities*sizeof(double));
-			dt->queue_array[workerid]->ntasks_per_priority = (unsigned*)malloc(dt->num_priorities*sizeof(unsigned));
+			q->exp_len_per_priority = (double*)malloc(dt->num_priorities*sizeof(double));
+			q->ntasks_per_priority = (unsigned*)malloc(dt->num_priorities*sizeof(unsigned));
 			int j;
 			for(j = 0; j < dt->num_priorities; j++)
 			{
-				dt->queue_array[workerid]->exp_len_per_priority[j] = 0.0;
-				dt->queue_array[workerid]->ntasks_per_priority[j] = 0;
+				q->exp_len_per_priority[j] = 0.0;
+				q->ntasks_per_priority[j] = 0;
 			}
 		}
 	}
