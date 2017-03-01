@@ -157,6 +157,7 @@ enodev:
 
 	starpu_shutdown();
 	free(data_handles);
+	free(codelet.dyn_modes);
 
 	if (ret == -ENODEV)
 	{
