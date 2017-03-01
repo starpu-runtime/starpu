@@ -597,7 +597,7 @@ do {										\
 } while(0);
 
 #define _STARPU_TRACE_DATA_NAME(handle, name) \
-	FUT_DO_PROBE1STR(_STARPU_FUT_DATA_NAME, handle, name)
+	_STARPU_FUT_DO_PROBE1STR(_STARPU_FUT_DATA_NAME, handle, name)
 
 #define _STARPU_TRACE_DATA_COORDINATES(handle, dim, v) \
 	switch (dim) { \
