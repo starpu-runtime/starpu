@@ -406,7 +406,9 @@ static void create_task_12_real(unsigned k, unsigned j)
 {
 	struct starpu_task *task = create_task(TAG12(k, j));
 	
+#ifdef STARPU_DEVEL
 #warning temporary fix :/
+#endif
 //	task->cl = &STARPU_PLU(cl12);
 	task->cl = &STARPU_PLU(cl21);
 
@@ -578,7 +580,9 @@ static void create_task_21_real(unsigned k, unsigned i)
 {
 	struct starpu_task *task = create_task(TAG21(k, i));
 
+#ifdef STARPU_DEVEL
 #warning temporary fix 
+#endif
 //	task->cl = &STARPU_PLU(cl21);
 	task->cl = &STARPU_PLU(cl12);
 
@@ -722,7 +726,9 @@ static void create_task_22_real(unsigned k, unsigned i, unsigned j)
 
 
 
+#ifdef STARPU_DEVEL
 #warning temporary fix :/
+#endif
 	//task->handles[0] = block21;
 	task->handles[0] = block12;
 
