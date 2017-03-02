@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010-2011, 2014-2015  Université de Bordeaux
+ * Copyright (C) 2009, 2010-2011, 2014-2015, 2017  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012  CNRS
  *
@@ -184,6 +184,7 @@ static int dw_codelet_facto_v3(starpu_data_handle_t dataA, unsigned nblocks)
 
 	for (k = 0; k < nblocks; k++)
 	{
+		starpu_set_iteration(k);
 		struct starpu_task *task = create_task_11(dataA, k);
 
 		/* we defer the launch of the first task */
