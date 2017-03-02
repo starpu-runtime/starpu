@@ -621,13 +621,14 @@ static int parse_model_file(FILE *f, const char *path, struct starpu_perfmodel *
 
         /* First check that it's not empty (very common corruption result, for
          * which there is no solution) */
-	int pos = fseek(f, 0, SEEK_END);
+	fseek(f, 0, SEEK_END);
+	long pos = ftell(f);
 	if (pos == 0)
 	{
 		_STARPU_DISP("Performance model file %s is empty, ignoring it\n", path);
 		return 1;
 	}
-	fseek(f, 0, SEEK_SET);
+	rewind(f);
 
 	/* Parsing performance model version */
 	_starpu_drop_comments(f);
