@@ -144,6 +144,7 @@ static void register_matrices()
 		 * Note: StarPU-MPI is an autonomous layer built on top of StarPU, hence the two separate
 		 * registration steps.
 		 */
+		starpu_data_set_coordinates(A_h[b_row], 2, 0, b_row);
 		starpu_mpi_data_register(A_h[b_row], tag++, 0);
 	}
 
@@ -152,6 +153,7 @@ static void register_matrices()
 				mr,
 				(comm_rank == 0)?(uintptr_t)(B+b_col*BS):0, N, BS, N,
 				sizeof(double));
+		starpu_data_set_coordinates(B_h[b_col], 2, b_col, 0);
 		starpu_mpi_data_register(B_h[b_col], tag++, 0);
 	}
 
@@ -161,6 +163,7 @@ static void register_matrices()
 					mr,
 					(comm_rank == 0)?(uintptr_t)(C+b_row*BS*N+b_col*BS):0, N, BS, BS,
 					sizeof(double));
+			starpu_data_set_coordinates(C_h[b_row*NB+b_col], 2, b_col, b_row);
 			starpu_mpi_data_register(C_h[b_row*NB+b_col], tag++, 0);
 		}
 	}
