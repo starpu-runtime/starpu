@@ -144,7 +144,7 @@ int check_size(int nx, struct starpu_codelet *vector_codelet, struct starpu_code
 	matrix_timing = end - start;
 	matrix_timing /= maxloops;
 
-	if (fabs(mean - matrix[0]) > 0.00001)
+	if (fabs(mean - matrix[0]) < 0.00001)
 	{
 		fprintf(stderr, "%d\t%f\t%f\n", nx, vector_timing, matrix_timing);
 
