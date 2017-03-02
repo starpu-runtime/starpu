@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2016  Université de Bordeaux
+ * Copyright (C) 2010-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2016, 2017  CNRS
  * Copyright (C) 2011, 2012, 2016  INRIA
  *
@@ -590,6 +590,18 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 
 	/* Done with stealing, resynchronize with core */
 	STARPU_PTHREAD_MUTEX_LOCK_SCHED(sched_mutex);
+
+#ifndef STARPU_NON_BLOCKING_DRIVERS
+        /* While stealing, perhaps somebody actually give us a task, don't miss
+         * the opportunity to take it before going to sleep. */
+	if (!task) {
+		STARPU_PTHREAD_MUTEX_LOCK(&ws->per_worker[workerid].worker_mutex);
+		task = ws_pick_task(ws, workerid, workerid);
+		if (task)
+			locality_popped_task(ws, task, workerid, sched_ctx_id);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&ws->per_worker[workerid].worker_mutex);
+	}
+#endif
 
 	if (task)
 	{
