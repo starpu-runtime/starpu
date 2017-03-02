@@ -144,7 +144,7 @@ int check_size(int nx, struct starpu_codelet *vector_codelet, struct starpu_code
 	matrix_timing = end - start;
 	matrix_timing /= maxloops;
 
-	if (mean == matrix[0])
+	if (fabs(mean - matrix[0]) > 0.00001)
 	{
 		fprintf(stderr, "%d\t%f\t%f\n", nx, vector_timing, matrix_timing);
 
@@ -166,10 +166,12 @@ int check_size(int nx, struct starpu_codelet *vector_codelet, struct starpu_code
 	}
 	else
 	{
-		FPRINTF(stderr, "Incorrect result nx=%7d --> mean=%7f != %7f\n", nx, matrix[0], mean);
+		fprintf(stderr, "# Incorrect result nx=%7d --> mean=%7f != %7f\n", nx, matrix[0], mean);
 		ret = EXIT_FAILURE;
 	}
 end:
+	if (ret == -ENODEV)
+		fprintf(stderr, "# Uh, ENODEV?!");
 	starpu_free(matrix);
 	return ret;
 }
