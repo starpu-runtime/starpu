@@ -235,6 +235,7 @@ struct data_info {
 	unsigned dimensions;
 	unsigned long *dims;
 	int mpi_rank;
+	int mpi_owner;
 };
 
 struct data_info *data_info;
@@ -252,6 +253,7 @@ static struct data_info *get_data(unsigned long handle, int mpi_rank)
 		data->dimensions = 0;
 		data->dims = NULL;
 		data->mpi_rank = mpi_rank;
+		data->mpi_owner = mpi_rank;
 		HASH_ADD(hh, data_info, handle, sizeof(handle), data);
 	} else
 		STARPU_ASSERT(data->mpi_rank == mpi_rank);
@@ -262,6 +264,7 @@ static struct data_info *get_data(unsigned long handle, int mpi_rank)
 static void data_dump(struct data_info *data)
 {
 	fprintf(data_file, "Handle: %lx\n", data->handle);
+	fprintf(data_file, "MPIRank: %d\n", data->mpi_rank);
 	if (data->name)
 	{
 		fprintf(data_file, "Name: %s\n", data->name);
@@ -275,6 +278,7 @@ static void data_dump(struct data_info *data)
 			fprintf(data_file, " %lu", data->dims[i]);
 		fprintf(data_file, "\n");
 	}
+	fprintf(data_file, "MPIOwner: %d\n", data->mpi_owner);
 	fprintf(data_file, "\n");
 	HASH_DEL(data_info, data);
 	free(data);
@@ -1881,6 +1885,15 @@ static void handle_data_coordinates(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 		data->dims[i] = ev->param[i+2];
 }
 
+static void handle_mpi_data_set_rank(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	unsigned long handle = ev->param[0];
+	unsigned long rank = ev->param[1];
+	struct data_info *data = get_data(handle, options->file_rank);
+
+	data->mpi_owner = rank;
+}
+
 static const char *copy_link_type(unsigned prefetch)
 {
 	switch (prefetch)
@@ -3232,6 +3245,10 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 
 			case _STARPU_MPI_FUT_UWAIT_END:
 				handle_mpi_uwait_end(&ev, options);
+				break;
+
+			case _STARPU_MPI_FUT_DATA_SET_RANK:
+				handle_mpi_data_set_rank(&ev, options);
 				break;
 
 			case _STARPU_FUT_SET_PROFILING:

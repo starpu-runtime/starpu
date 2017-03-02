@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux
+ * Copyright (C) 2010, 2017  Université de Bordeaux
  * Copyright (C) 2010, 2012, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -45,6 +45,7 @@ extern "C" {
 #define _STARPU_MPI_FUT_UTESTING_END			0x5217
 #define _STARPU_MPI_FUT_UWAIT_BEGIN			0x5218
 #define _STARPU_MPI_FUT_UWAIT_END			0x5219
+#define _STARPU_MPI_FUT_DATA_SET_RANK			0x521a
 
 #ifdef STARPU_USE_FXT
 #define _STARPU_MPI_TRACE_START(rank, worldsize)	\
@@ -89,6 +90,8 @@ extern "C" {
 	FUT_DO_PROBE3(_STARPU_MPI_FUT_UWAIT_BEGIN, (src), (mpi_tag),  _starpu_gettid());
 #define _STARPU_MPI_TRACE_UWAIT_END(src, mpi_tag)	\
 	FUT_DO_PROBE3(_STARPU_MPI_FUT_UWAIT_END, (src), (mpi_tag), _starpu_gettid());
+#define _STARPU_MPI_TRACE_DATA_SET_RANK(handle, rank)	\
+	FUT_DO_PROBE3(_STARPU_MPI_FUT_DATA_SET_RANK, (handle), (rank), _starpu_gettid());
 #define TRACE
 #else
 #define _STARPU_MPI_TRACE_START(a, b)				do {} while(0);
@@ -112,6 +115,7 @@ extern "C" {
 #define _STARPU_MPI_TRACE_UTESTING_END(a, b)			do {} while(0);
 #define _STARPU_MPI_TRACE_UWAIT_BEGIN(a, b)			do {} while(0);
 #define _STARPU_MPI_TRACE_UWAIT_END(a, b)			do {} while(0);
+#define _STARPU_MPI_TRACE_DATA_SET_RANK(a, b)			do {} while(0);
 #endif
 
 #ifdef __cplusplus
