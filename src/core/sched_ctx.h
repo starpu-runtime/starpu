@@ -70,7 +70,7 @@ struct _starpu_sched_ctx
 	double ready_flops;
 
 	/* Iteration number, as advertised by application */
-	unsigned long iteration, subiteration;
+	long iteration, subiteration;
 
 	/* cond to block push when there are no workers in the ctx */
 	starpu_pthread_cond_t no_workers_cond;
