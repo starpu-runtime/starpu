@@ -543,7 +543,7 @@ int main(int argc, char **argv)
 		 * parallel task. */
 		int per_block_cnt[nblocks];
 
-		starpu_set_iteration(niter_p);
+		starpu_set_iteration(niter);
 
 		for (iby = 0; iby < nblocks; iby++)
 		{
