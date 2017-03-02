@@ -67,34 +67,34 @@ void _starpu_fxt_dag_terminate(void)
 void _starpu_fxt_dag_add_tag(const char *prefix, uint64_t tag, unsigned long job_id)
 {
 	if (out_file)
-		fprintf(out_file, "\t \"%stag_%llx\"->\"%stask_%lu\"->\"%stag_%llx\" [style=dashed]\n",
+		fprintf(out_file, "\t \"tag_%s%llx\"->\"task_%s%lu\"->\"tag_%s%llx\" [style=dashed]\n",
 			prefix, (unsigned long long)tag, prefix, (unsigned long)job_id, prefix, (unsigned long long) tag);
 }
 
 void _starpu_fxt_dag_add_tag_deps(const char *prefix, uint64_t child, uint64_t father)
 {
 	if (out_file)
-		fprintf(out_file, "\t \"%stag_%llx\"->\"%stag_%llx\"\n",
+		fprintf(out_file, "\t \"tag_%s%llx\"->\"tag_%s%llx\"\n",
 			prefix, (unsigned long long)father, prefix, (unsigned long long)child);
 }
 
 void _starpu_fxt_dag_add_task_deps(const char *prefix, unsigned long dep_prev, unsigned long dep_succ)
 {
 	if (out_file)
-		fprintf(out_file, "\t \"%stask_%lu\"->\"%stask_%lu\"\n", prefix, dep_prev, prefix, dep_succ);
+		fprintf(out_file, "\t \"task_%s%lu\"->\"task_%s%lu\"\n", prefix, dep_prev, prefix, dep_succ);
 }
 
 void _starpu_fxt_dag_set_tag_done(const char *prefix, uint64_t tag, const char *color)
 {
 	if (out_file)
-		fprintf(out_file, "\t \"%stag_%llx\" [ style=filled, fillcolor=\"%s\"]\n",
+		fprintf(out_file, "\t \"tag_%s%llx\" [ style=filled, fillcolor=\"%s\"]\n",
 			prefix, (unsigned long long)tag, color);
 }
 
 void _starpu_fxt_dag_set_task_done(const char *prefix, unsigned long job_id, const char *label, const char *color)
 {
 	if (out_file)
-		fprintf(out_file, "\t \"%stask_%lu\" [ style=filled, label=\"%s\", fillcolor=\"%s\"]\n", prefix, job_id, label, color);
+		fprintf(out_file, "\t \"task_%s%lu\" [ style=filled, label=\"%s\", fillcolor=\"%s\"]\n", prefix, job_id, label, color);
 }
 
 void _starpu_fxt_dag_add_sync_point(void)
