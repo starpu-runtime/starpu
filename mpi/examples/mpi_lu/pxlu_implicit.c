@@ -56,7 +56,9 @@ static void create_task_11(unsigned k)
 
 static void create_task_12(unsigned k, unsigned j)
 {
+#ifdef STARPU_DEVEL
 #warning temporary fix 
+#endif
 	starpu_mpi_task_insert(MPI_COMM_WORLD,
 			       //&STARPU_PLU(cl12),
 			       &STARPU_PLU(cl21),
@@ -76,7 +78,9 @@ static void create_task_12(unsigned k, unsigned j)
 
 static void create_task_21(unsigned k, unsigned i)
 {
+#ifdef STARPU_DEVEL
 #warning temporary fix 
+#endif
 	starpu_mpi_task_insert(MPI_COMM_WORLD,
 			       //&STARPU_PLU(cl21),
 			       &STARPU_PLU(cl12),
