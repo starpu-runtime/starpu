@@ -992,7 +992,7 @@ do {										\
 #define _STARPU_TRACE_WORKER_SCHEDULING_POP		do {} while(0)
 #define _STARPU_TRACE_WORKER_SLEEP_START		do {} while(0)
 #define _STARPU_TRACE_WORKER_SLEEP_END		do {} while(0)
-#define _STARPU_TRACE_TASK_SUBMIT(job)		do {} while(0)
+#define _STARPU_TRACE_TASK_SUBMIT(job, a, b)		do {} while(0)
 #define _STARPU_TRACE_TASK_SUBMIT_START()		do {} while(0)
 #define _STARPU_TRACE_TASK_SUBMIT_END()			do {} while(0)
 #define _STARPU_TRACE_TASK_BUILD_START()		do {} while(0)
