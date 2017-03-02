@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2013, 2016  Université de Bordeaux
+ * Copyright (C) 2011, 2013, 2016-2017  Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -20,7 +20,6 @@
 
 void _starpu_profiling_bus_helper_display_summary(FILE *stream)
 {
-	const char *stats;
 	int long long sum_transferred = 0;
 
 	fprintf(stream, "\nData transfer statistics:\n");
