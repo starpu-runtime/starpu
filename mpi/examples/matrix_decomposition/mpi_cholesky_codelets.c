@@ -89,7 +89,9 @@ void dw_cholesky(float ***matA, unsigned ld, int rank, int nodes, double *timing
 				starpu_matrix_data_register(&data_handles[x][y], STARPU_MAIN_RAM, (uintptr_t)matA[x][y],
 						ld, size/nblocks, size/nblocks, sizeof(float));
 			}
+#ifdef STARPU_DEVEL
 #warning TODO: make better test to only register what is needed
+#endif
 			else
 			{
 				/* I don't own that index, but will need it for my computations */
