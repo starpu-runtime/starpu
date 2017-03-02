@@ -712,6 +712,10 @@ define starpu-print-registered-models
     end
 end
 
+define starpu-sched-data
+    print _starpu_config.sched_ctxs[$arg0]->policy_data
+end
+
 define starpu-mpi-print-request
     set $request = (struct _starpu_mpi_req *)$arg0
     set $request_type = "unknown_type"
@@ -851,6 +855,7 @@ starpu-print-archs                 prints all known arch combinations
 starpu-print-arch                  prints a given arch combination
 starpu-print-registered-models     prints all registered performance models
 starpu-print-model                 prints a given performance model
+starpu-sched-data                  prints the data of the given scheduler
 starpu-mpi-print-ready-requests    prints all MPI ready requests
 starpu-mpi-print-detached-requests prints all MPI detached requests
 starpu-mpi-print-early-data        prints all MPI early received data
