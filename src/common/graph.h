@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016  Université de Bordeaux
+ * Copyright (C) 2016-2017  Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -41,6 +41,7 @@ struct _starpu_graph_node {
 
 	/* set of incoming dependencies */
 	struct _starpu_graph_node **incoming;	/* May contain NULLs for terminated jobs */
+	unsigned *incoming_slot;	/* Index within corresponding outgoing array */
 	unsigned n_incoming;		/* Number of slots used */
 	unsigned alloc_incoming;	/* Size of incoming */
 	/* set of outgoing dependencies */
