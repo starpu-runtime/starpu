@@ -625,7 +625,7 @@ static int parse_model_file(FILE *f, const char *path, struct starpu_perfmodel *
 	if (pos == 0)
 	{
 		_STARPU_DISP("Performance model file %s is empty, ignoring it\n", path);
-		return 0;
+		return 1;
 	}
 	fseek(f, 0, SEEK_SET);
 
@@ -655,7 +655,7 @@ static int parse_model_file(FILE *f, const char *path, struct starpu_perfmodel *
 	for(comb = 0; comb < ncombs; comb++)
 		parse_comb(f, path, model, scan_history, comb);
 
-	return 1;
+	return 0;
 }
 
 #ifndef STARPU_SIMGRID
