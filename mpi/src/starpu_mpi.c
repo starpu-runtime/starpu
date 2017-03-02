@@ -1780,6 +1780,7 @@ void starpu_mpi_data_register_comm(starpu_data_handle_t data_handle, int tag, in
 	}
 	if (rank != -1)
 	{
+		_STARPU_MPI_TRACE_DATA_SET_RANK(data_handle, rank);
 		mpi_data->rank = rank;
 		mpi_data->comm = comm;
 		_starpu_mpi_comm_register(comm);
