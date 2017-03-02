@@ -355,12 +355,22 @@ static void parse_archtype(FILE *f, const char *path, struct starpu_perfmodel *m
 
 }
 
-static void parse_model_file(FILE *f, const char *path, struct starpu_perfmodel *model, unsigned scan_history)
+static int parse_model_file(FILE *f, const char *path, struct starpu_perfmodel *model, unsigned scan_history)
 {
 	int ret, version;
 	unsigned arch, archmax;
 
 	_STARPU_DEBUG("Start parsing\n");
+
+        /* First check that it's not empty (very common corruption result, for
+         * which there is no solution) */
+	int pos = fseek(f, 0, SEEK_END);
+	if (pos == 0)
+	{
+		_STARPU_DISP("Performance model file %s is empty, ignoring it\n", path);
+		return 1;
+	}
+	fseek(f, 0, SEEK_SET);
 
 	/* Parsing performance model version */
 	_starpu_drop_comments(f);
@@ -386,6 +396,8 @@ static void parse_model_file(FILE *f, const char *path, struct starpu_perfmodel 
 	arch = STARPU_OPENCL_DEFAULT;
 	archmax = STARPU_OPENCL_DEFAULT + STARPU_MAXOPENCLDEVS; 
 	parse_archtype(f, path, model, scan_history, &arch, archmax);
+
+	return 0;
 }
 
 static void dump_per_arch_model_file(FILE *f, struct starpu_perfmodel *model, unsigned arch, unsigned nimpl)
@@ -1015,7 +1027,7 @@ int starpu_perfmodel_load_symbol(const char *symbol, struct starpu_perfmodel *mo
 	//	_STARPU_DEBUG("get_model_path -> %s\n", path);
 
 	/* does it exist ? */
-	int res;
+	int res, ret;
 	res = access(path, F_OK);
 	if (res)
 	{
@@ -1024,7 +1036,6 @@ int starpu_perfmodel_load_symbol(const char *symbol, struct starpu_perfmodel *mo
 		{
 			char *symbol2 = strdup(symbol);
 			symbol2[dot-symbol] = '\0';
-			int ret;
 			_STARPU_DISP("note: loading history from %s instead of %s\n", symbol2, symbol);
 			ret = starpu_perfmodel_load_symbol(symbol2,model);
 			free(symbol2);
@@ -1038,13 +1049,13 @@ int starpu_perfmodel_load_symbol(const char *symbol, struct starpu_perfmodel *mo
 	STARPU_ASSERT(f);
 
 	_starpu_frdlock(f);
-	parse_model_file(f, path, model, 1);
+	ret = parse_model_file(f, path, model, 1);
 	_starpu_frdunlock(f);
 
 	res = fclose(f);
 	STARPU_ASSERT(res == 0);
 
-	return 0;
+	return ret;
 }
 
 int starpu_perfmodel_unload_model(struct starpu_perfmodel *model)
