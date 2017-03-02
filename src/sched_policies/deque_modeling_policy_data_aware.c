@@ -899,12 +899,10 @@ static void dmda_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nwo
 {
 	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
-	int workerid;
 	unsigned i;
 	for (i = 0; i < nworkers; i++)
 	{
 		struct _starpu_fifo_taskq *q;
-		workerid = workerids[i];
 		int workerid = workerids[i];
 		/* if the worker has alreadry belonged to this context
 		   the queue and the synchronization variables have been already initialized */
