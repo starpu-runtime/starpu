@@ -627,6 +627,7 @@ static int parse_model_file(FILE *f, const char *path, struct starpu_perfmodel *
 		_STARPU_DISP("Performance model file %s is empty, ignoring it\n", path);
 		return 0;
 	}
+	fseek(f, 0, SEEK_SET);
 
 	/* Parsing performance model version */
 	_starpu_drop_comments(f);
