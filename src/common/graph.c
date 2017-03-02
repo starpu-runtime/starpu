@@ -186,9 +186,10 @@ void _starpu_graph_add_job_dep(struct _starpu_job *job, struct _starpu_job *prev
 		/* Next node is not at top any more */
 		_starpu_graph_node_multilist_erase_top(&top, node);
 
-	rank_incoming = add_node(prev_node, &node->incoming, &node->n_incoming, &node->alloc_incoming, NULL);
+	rank_incoming = add_node(prev_node, &node->incoming, &node->n_incoming, &node->alloc_incoming, &node->incoming_slot);
 	rank_outgoing = add_node(node, &prev_node->outgoing, &prev_node->n_outgoing, &prev_node->alloc_outgoing, &prev_node->outgoing_slot);
 	prev_node->outgoing_slot[rank_outgoing] = rank_incoming;
+	node->incoming_slot[rank_incoming] = rank_outgoing;
 
 	_starpu_graph_wrunlock();
 }
@@ -206,11 +207,21 @@ void _starpu_graph_drop_node(struct _starpu_graph_node *node)
 	if (_starpu_graph_node_multilist_queued_all(node))
 		_starpu_graph_node_multilist_erase_all(&all, node);
 
-	/* Drop ourself from the incoming part of the outgoing nodes */
+	/* Drop ourself from the incoming part of the outgoing nodes.  */
 	for (i = 0; i < node->n_outgoing; i++)
 	{
 		struct _starpu_graph_node *next = node->outgoing[i];
-		next->incoming[node->outgoing_slot[i]] = NULL;
+		if (next)
+			next->incoming[node->outgoing_slot[i]] = NULL;
+	}
+
+	/* Drop ourself from the outgoing part of the incoming nodes,
+	 * in case we happen to get dropped before it.  */
+	for (i = 0; i < node->n_incoming; i++)
+	{
+		struct _starpu_graph_node *prev = node->incoming[i];
+		if (prev)
+			prev->outgoing[node->incoming_slot[i]] = NULL;
 	}
 
 	node->n_outgoing = 0;
@@ -222,6 +233,8 @@ void _starpu_graph_drop_node(struct _starpu_graph_node *node)
 	node->n_incoming = 0;
 	free(node->incoming);
 	node->incoming = NULL;
+	free(node->incoming_slot);
+	node->incoming_slot = NULL;
 	node->alloc_incoming = 0;
 	free(node);
 }
