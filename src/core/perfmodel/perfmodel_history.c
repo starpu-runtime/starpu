@@ -615,9 +615,18 @@ static void parse_comb(FILE *f, const char *path, struct starpu_perfmodel *model
 	parse_arch(f, path, model, scan_history, id_comb);
 }
 
-static void parse_model_file(FILE *f, const char *path, struct starpu_perfmodel *model, unsigned scan_history)
+static int parse_model_file(FILE *f, const char *path, struct starpu_perfmodel *model, unsigned scan_history)
 {
 	int ret, version=0;
+
+        /* First check that it's not empty (very common corruption result, for
+         * which there is no solution) */
+	int pos = fseek(f, 0, SEEK_END);
+	if (pos == 0)
+	{
+		_STARPU_DISP("Performance model file %s is empty, ignoring it\n", path);
+		return 0;
+	}
 
 	/* Parsing performance model version */
 	_starpu_drop_comments(f);
@@ -644,6 +653,8 @@ static void parse_model_file(FILE *f, const char *path, struct starpu_perfmodel 
 	int comb;
 	for(comb = 0; comb < ncombs; comb++)
 		parse_comb(f, path, model, scan_history, comb);
+
+	return 1;
 }
 
 #ifndef STARPU_SIMGRID
@@ -1158,7 +1169,7 @@ int starpu_perfmodel_load_symbol(const char *symbol, struct starpu_perfmodel *mo
 
 int starpu_perfmodel_load_file(const char *filename, struct starpu_perfmodel *model)
 {
-	int res;
+	int res, ret = 0;
 	FILE *f = fopen(filename, "r");
 	int locked;
 
@@ -1167,14 +1178,14 @@ int starpu_perfmodel_load_file(const char *filename, struct starpu_perfmodel *mo
 	starpu_perfmodel_init(model);
 
 	locked = _starpu_frdlock(f) == 0;
-	parse_model_file(f, filename, model, 1);
+	ret = parse_model_file(f, filename, model, 1);
 	if (locked)
 		_starpu_frdunlock(f);
 
 	res = fclose(f);
 	STARPU_ASSERT(res == 0);
 
-	return 0;
+	return ret;
 }
 
 int starpu_perfmodel_unload_model(struct starpu_perfmodel *model)
