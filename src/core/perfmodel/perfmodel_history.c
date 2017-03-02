@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2016  Université de Bordeaux
+ * Copyright (C) 2009-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
@@ -159,7 +159,7 @@ static void dump_reg_model(FILE *f, struct starpu_perfmodel *model, unsigned arc
 	fprintf(f, "\n");
 }
 
-static void scan_reg_model(FILE *f, struct starpu_perfmodel_regression_model *reg_model)
+static void scan_reg_model(FILE *f, const char *path, struct starpu_perfmodel_regression_model *reg_model)
 {
 	int res;
 
@@ -170,13 +170,13 @@ static void scan_reg_model(FILE *f, struct starpu_perfmodel_regression_model *re
 	_starpu_drop_comments(f);
 
 	res = fscanf(f, "%le\t%le\t%le\t%le\t", &reg_model->sumlnx, &reg_model->sumlnx2, &reg_model->sumlny, &reg_model->sumlnxlny);
-	STARPU_ASSERT_MSG(res == 4, "Incorrect performance model file");
+	STARPU_ASSERT_MSG(res == 4, "Incorrect performance model file %s", path);
 	res = _starpu_read_double(f, "%le", &reg_model->alpha);
-	STARPU_ASSERT_MSG(res == 1, "Incorrect performance model file");
+	STARPU_ASSERT_MSG(res == 1, "Incorrect performance model file %s", path);
 	res = _starpu_read_double(f, "\t%le", &reg_model->beta);
-	STARPU_ASSERT_MSG(res == 1, "Incorrect performance model file");
+	STARPU_ASSERT_MSG(res == 1, "Incorrect performance model file %s", path);
 	res = fscanf(f, "\t%u\t%lu\t%lu\n", &reg_model->nsample, &reg_model->minx, &reg_model->maxx);
-	STARPU_ASSERT_MSG(res == 3, "Incorrect performance model file");
+	STARPU_ASSERT_MSG(res == 3, "Incorrect performance model file %s", path);
 
 	/* If any of the parameters describing the linear regression model is NaN, the model is invalid */
 	unsigned invalid = (isnan(reg_model->alpha)||isnan(reg_model->beta));
@@ -189,13 +189,13 @@ static void scan_reg_model(FILE *f, struct starpu_perfmodel_regression_model *re
 	_starpu_drop_comments(f);
 
 	res = _starpu_read_double(f, "%le", &reg_model->a);
-	STARPU_ASSERT_MSG(res == 1, "Incorrect performance model file");
+	STARPU_ASSERT_MSG(res == 1, "Incorrect performance model file %s", path);
 	res = _starpu_read_double(f, "\t%le", &reg_model->b);
-	STARPU_ASSERT_MSG(res == 1, "Incorrect performance model file");
+	STARPU_ASSERT_MSG(res == 1, "Incorrect performance model file %s", path);
 	res = _starpu_read_double(f, "%le", &reg_model->c);
-	STARPU_ASSERT_MSG(res == 1, "Incorrect performance model file");
+	STARPU_ASSERT_MSG(res == 1, "Incorrect performance model file %s", path);
 	res = fscanf(f, "\n");
-	STARPU_ASSERT_MSG(res == 0, "Incorrect performance model file");
+	STARPU_ASSERT_MSG(res == 0, "Incorrect performance model file %s", path);
 
 	/* If any of the parameters describing the non-linear regression model is NaN, the model is invalid */
 	unsigned nl_invalid = (isnan(reg_model->a)||isnan(reg_model->b)||isnan(reg_model->c));
@@ -207,7 +207,7 @@ static void dump_history_entry(FILE *f, struct starpu_perfmodel_history_entry *e
 	fprintf(f, "%08x\t%-15lu\t%-15e\t%-15e\t%-15e\t%-15e\t%-15e\t%u\n", entry->footprint, (unsigned long) entry->size, entry->flops, entry->mean, entry->deviation, entry->sum, entry->sum2, entry->nsample);
 }
 
-static void scan_history_entry(FILE *f, struct starpu_perfmodel_history_entry *entry)
+static void scan_history_entry(FILE *f, const char *path, struct starpu_perfmodel_history_entry *entry)
 {
 	int res;
 
@@ -238,7 +238,7 @@ static void scan_history_entry(FILE *f, struct starpu_perfmodel_history_entry *e
 		flops = 0.;
 		/* Read the values from the file */
 		res = sscanf(line, "%x\t%lu\t%le\t%le\t%le\t%le\t%u", &footprint, &size, &mean, &deviation, &sum, &sum2, &nsample);
-		STARPU_ASSERT_MSG(res == 7, "Incorrect performance model file");
+		STARPU_ASSERT_MSG(res == 7, "Incorrect performance model file %s", path);
 	}
 
 	if (entry)
@@ -254,18 +254,18 @@ static void scan_history_entry(FILE *f, struct starpu_perfmodel_history_entry *e
 	}
 }
 
-static void parse_per_arch_model_file(FILE *f, struct starpu_perfmodel_per_arch *per_arch_model, unsigned scan_history)
+static void parse_per_arch_model_file(FILE *f, const char *path, struct starpu_perfmodel_per_arch *per_arch_model, unsigned scan_history)
 {
 	unsigned nentries;
 
 	_starpu_drop_comments(f);
 
 	int res = fscanf(f, "%u\n", &nentries);
-	STARPU_ASSERT_MSG(res == 1, "Incorrect performance model file");
+	STARPU_ASSERT_MSG(res == 1, "Incorrect performance model file %s", path);
 
 	_STARPU_DEBUG("nentries:%u\n", nentries);
 	
-	scan_reg_model(f, &per_arch_model->regression);
+	scan_reg_model(f, path, &per_arch_model->regression);
 
 	/* parse cpu entries */
 	unsigned i;
@@ -284,7 +284,7 @@ static void parse_per_arch_model_file(FILE *f, struct starpu_perfmodel_per_arch 
 			STARPU_HG_DISABLE_CHECKING(entry->mean);
 		}
 
-		scan_history_entry(f, entry);
+		scan_history_entry(f, path, entry);
 
 		/* insert the entry in the hashtable and the list structures  */
 		/* TODO: Insert it at the end of the list, to avoid reversing
@@ -294,7 +294,7 @@ static void parse_per_arch_model_file(FILE *f, struct starpu_perfmodel_per_arch 
 	}
 }
 
-static void parse_arch(FILE *f, struct starpu_perfmodel *model, unsigned scan_history, unsigned* arch, unsigned archmax)
+static void parse_arch(FILE *f, const char *path, struct starpu_perfmodel *model, unsigned scan_history, unsigned* arch, unsigned archmax)
 {
 	struct starpu_perfmodel_per_arch dummy;
 	unsigned nimpls, implmax, impl, i, ret;
@@ -303,27 +303,27 @@ static void parse_arch(FILE *f, struct starpu_perfmodel *model, unsigned scan_hi
 	/* Parsing number of implementation */
 	_starpu_drop_comments(f);
 	ret = fscanf(f, "%u\n", &nimpls);
-	STARPU_ASSERT_MSG(ret == 1, "Incorrect performance model file");
+	STARPU_ASSERT_MSG(ret == 1, "Incorrect performance model file %s", path);
 
 	/* Parsing each implementation */
 	implmax = STARPU_MIN(nimpls, STARPU_MAXIMPLEMENTATIONS);
 	for (impl = 0; impl < implmax; impl++)
 	{
 		if(*arch < archmax)
-			parse_per_arch_model_file(f, &model->per_arch[*arch][impl], scan_history);
+			parse_per_arch_model_file(f, path, &model->per_arch[*arch][impl], scan_history);
 		else
-			parse_per_arch_model_file(f, &dummy, 0);
+			parse_per_arch_model_file(f, path, &dummy, 0);
 
 	}
 	/* if the number of implementation is greater than STARPU_MAXIMPLEMENTATIONS
 	 * we skip the last implementation */
 	if (impl < nimpls)
 		for (i = impl; impl < nimpls; i++)
-			parse_per_arch_model_file(f, &dummy, 0);
+			parse_per_arch_model_file(f, path, &dummy, 0);
 
 }
 
-static void parse_device(FILE *f, struct starpu_perfmodel *model, unsigned scan_history, unsigned * arch, unsigned archmax)
+static void parse_device(FILE *f, const char *path, struct starpu_perfmodel *model, unsigned scan_history, unsigned * arch, unsigned archmax)
 {
 	unsigned maxncore, ncore, ret;
 
@@ -335,27 +335,27 @@ static void parse_device(FILE *f, struct starpu_perfmodel *model, unsigned scan_
 	/* Parsing each arch */
 	for(ncore=0; ncore < maxncore; ncore++)
 	{
-		parse_arch(f,model,scan_history,arch,archmax);
+		parse_arch(f,path,model,scan_history,arch,archmax);
 		(*arch)++;
 	}
 }
 
-static void parse_archtype(FILE *f, struct starpu_perfmodel *model, unsigned scan_history, unsigned * arch, unsigned archmax)
+static void parse_archtype(FILE *f, const char *path, struct starpu_perfmodel *model, unsigned scan_history, unsigned * arch, unsigned archmax)
 {
 	unsigned ndevice, devid, ret;
 
 	/* Parsing number of device for this archtype */
 	_starpu_drop_comments(f);
 	ret = fscanf(f, "%u\n", &ndevice);
-	STARPU_ASSERT_MSG(ret == 1, "Incorrect performance model file");
+	STARPU_ASSERT_MSG(ret == 1, "Incorrect performance model file %s", path);
 
 	/* Parsing each device for this archtype*/
 	for(devid=0; devid < ndevice; devid++)
-		parse_device(f,model,scan_history,arch,archmax);
+		parse_device(f,path,model,scan_history,arch,archmax);
 
 }
 
-static void parse_model_file(FILE *f, struct starpu_perfmodel *model, unsigned scan_history)
+static void parse_model_file(FILE *f, const char *path, struct starpu_perfmodel *model, unsigned scan_history)
 {
 	int ret, version;
 	unsigned arch, archmax;
@@ -365,27 +365,27 @@ static void parse_model_file(FILE *f, struct starpu_perfmodel *model, unsigned s
 	/* Parsing performance model version */
 	_starpu_drop_comments(f);
 	ret = fscanf(f, "%d\n", &version);
-	STARPU_ASSERT_MSG(version == _STARPU_PERFMODEL_VERSION, "Incorrect performance model file with a model version %d not being the current model version (%d)\n",
+	STARPU_ASSERT_MSG(version == _STARPU_PERFMODEL_VERSION, "Incorrect performance model file %s with a model version %d not being the current model version (%d)\n", path,
 			  version, _STARPU_PERFMODEL_VERSION);
-	STARPU_ASSERT_MSG(ret == 1, "Incorrect performance model file");
+	STARPU_ASSERT_MSG(ret == 1, "Incorrect performance model file %s", path);
 
 	/* Parsing each kind of archtype */
 
 	/* Parsing CPU */
 	arch = STARPU_CPU_DEFAULT;
 	archmax = STARPU_CPU_DEFAULT + STARPU_MAXCPUS;
-	parse_archtype(f, model, scan_history, &arch, archmax);
+	parse_archtype(f, path, model, scan_history, &arch, archmax);
 
 
 	/* Parsing CUDA */
 	arch = STARPU_CUDA_DEFAULT;
 	archmax = STARPU_CUDA_DEFAULT + STARPU_MAXCUDADEVS; 
-	parse_archtype(f, model, scan_history, &arch, archmax);
+	parse_archtype(f, path, model, scan_history, &arch, archmax);
 
 	/* Parsing OpenCL */
 	arch = STARPU_OPENCL_DEFAULT;
 	archmax = STARPU_OPENCL_DEFAULT + STARPU_MAXOPENCLDEVS; 
-	parse_archtype(f, model, scan_history, &arch, archmax);
+	parse_archtype(f, path, model, scan_history, &arch, archmax);
 }
 
 static void dump_per_arch_model_file(FILE *f, struct starpu_perfmodel *model, unsigned arch, unsigned nimpl)
@@ -943,7 +943,7 @@ void _starpu_load_history_based_model(struct starpu_perfmodel *model, unsigned s
 			STARPU_ASSERT(f);
 
 			_starpu_frdlock(f);
-			parse_model_file(f, model, scan_history);
+			parse_model_file(f, path, model, scan_history);
 			_starpu_frdunlock(f);
 
 			fclose(f);
@@ -1038,7 +1038,7 @@ int starpu_perfmodel_load_symbol(const char *symbol, struct starpu_perfmodel *mo
 	STARPU_ASSERT(f);
 
 	_starpu_frdlock(f);
-	parse_model_file(f, model, 1);
+	parse_model_file(f, path, model, 1);
 	_starpu_frdunlock(f);
 
 	res = fclose(f);
