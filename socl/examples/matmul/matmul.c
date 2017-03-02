@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010,2011, 2015 University of Bordeaux
+ * Copyright (C) 2010,2011, 2015, 2017 University of Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -192,6 +192,10 @@ int shrCompareL2fe( const float* reference, const float* data, const unsigned in
 
 
 int main(int argc, const char** argv) {
+	if (getenv("STARPU_GLOBAL_ARBITER"))
+		/* matmul needs fine-grain R concurrency, not implemented yet in starpu 1.2 */
+		exit(77);
+
 	cl_uint platform_count;
 	cl_platform_id platforms[5];
 
