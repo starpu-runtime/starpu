@@ -650,8 +650,8 @@ do {										\
 #define _STARPU_TRACE_WORKER_SLEEP_END	\
 	FUT_DO_PROBE1(_STARPU_FUT_WORKER_SLEEP_END, _starpu_gettid());
 
-#define _STARPU_TRACE_TASK_SUBMIT(job)	\
-	FUT_DO_PROBE2(_STARPU_FUT_TASK_SUBMIT, (job)->job_id, _starpu_gettid());
+#define _STARPU_TRACE_TASK_SUBMIT(job, iter, subiter)	\
+	FUT_DO_PROBE4(_STARPU_FUT_TASK_SUBMIT, (job)->job_id, iter, subiter, _starpu_gettid());
 
 #define _STARPU_TRACE_TASK_SUBMIT_START()	\
 	FUT_DO_PROBE1(_STARPU_FUT_TASK_SUBMIT_START, _starpu_gettid());
@@ -1009,7 +1009,7 @@ do {										\
 #define _STARPU_TRACE_WORKER_SCHEDULING_POP		do {} while(0)
 #define _STARPU_TRACE_WORKER_SLEEP_START		do {} while(0)
 #define _STARPU_TRACE_WORKER_SLEEP_END			do {} while(0)
-#define _STARPU_TRACE_TASK_SUBMIT(job)			do {(void)(job);} while(0)
+#define _STARPU_TRACE_TASK_SUBMIT(job, a, b)			do {(void)(job); (void)(a);(void)(b);} while(0)
 #define _STARPU_TRACE_TASK_SUBMIT_START()		do {} while(0)
 #define _STARPU_TRACE_TASK_SUBMIT_END()			do {} while(0)
 #define _STARPU_TRACE_TASK_BUILD_START()		do {} while(0)

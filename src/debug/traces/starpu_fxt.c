@@ -101,6 +101,8 @@ struct task_info {
 	double end_time;
 	unsigned long footprint;
 	unsigned long kflops;
+	long iteration;
+	long subiteration;
 	char *parameters;
 	unsigned int ndeps;
 	unsigned long *dependencies;
@@ -131,6 +133,8 @@ static struct task_info *get_task(unsigned long job_id, int mpi_rank)
 		task->end_time = 0.;
 		task->footprint = 0;
 		task->kflops = 0.;
+		task->iteration = -1;
+		task->subiteration = -1;
 		task->parameters = NULL;
 		task->ndeps = 0;
 		task->dependencies = NULL;
@@ -187,6 +191,10 @@ static void task_dump(unsigned long job_id, int mpi_rank)
 	fprintf(tasks_file, "Footprint: %lx\n", task->footprint);
 	if (task->kflops != 0)
 		fprintf(tasks_file, "GFlop: %f\n", ((double) task->kflops) / 1000000);
+	if (task->iteration != -1)
+		fprintf(tasks_file, "Iteration: %ld\n", task->iteration);
+	if (task->subiteration != -1)
+		fprintf(tasks_file, "Subiteration: %ld\n", task->subiteration);
 	if (task->parameters)
 	{
 		fprintf(tasks_file, "Parameters: %s\n", task->parameters);
@@ -781,7 +789,7 @@ static void thread_pop_state(double time, const char *prefix, long unsigned int 
 #endif
 }
 
-static void worker_set_detailed_state(double time, const char *prefix, long unsigned int workerid, const char *name, unsigned long size, const char *parameters, unsigned long footprint, unsigned long long tag, unsigned long job_id, double gflop, unsigned X, unsigned Y, unsigned Z)
+static void worker_set_detailed_state(double time, const char *prefix, long unsigned int workerid, const char *name, unsigned long size, const char *parameters, unsigned long footprint, unsigned long long tag, unsigned long job_id, double gflop, unsigned X, unsigned Y, unsigned Z, long iteration, long subiteration)
 {
 #ifdef STARPU_HAVE_POTI
 	char container[STARPU_POTI_STR_LEN];
@@ -789,7 +797,7 @@ static void worker_set_detailed_state(double time, const char *prefix, long unsi
 	/* TODO: set detailed state */
 	poti_SetState(time, container, "WS", name);
 #else
-	fprintf(out_paje_file, "20	%.9f	%sw%lu	WS	%s	%lu	%s	%08lx	%016llx	%lu	%f	%u	%u	%u\n", time, prefix, workerid, name, size, parameters, footprint, tag, job_id, gflop, X, Y, Z);
+	fprintf(out_paje_file, "20	%.9f	%sw%lu	WS	%s	%lu	%s	%08lx	%016llx	%lu	%f	%u	%u	%u	%ld	%ld\n", time, prefix, workerid, name, size, parameters, footprint, tag, job_id, gflop, X, Y, Z, iteration, subiteration);
 #endif
 }
 
@@ -1444,7 +1452,7 @@ static void handle_codelet_details(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 		char *prefix = options->file_prefix;
 		unsigned sched_ctx = ev->param[0];
 
-		worker_set_detailed_state(last_codelet_start[worker], prefix, worker, _starpu_last_codelet_symbol[worker], ev->param[1], parameters, ev->param[2], ev->param[4], job_id, ((double) task->kflops) / 1000000, X, Y, Z);
+		worker_set_detailed_state(last_codelet_start[worker], prefix, worker, _starpu_last_codelet_symbol[worker], ev->param[1], parameters, ev->param[2], ev->param[4], job_id, ((double) task->kflops) / 1000000, X, Y, Z, task->iteration, task->subiteration);
 		if (sched_ctx != 0)
 		{
 #ifdef STARPU_HAVE_POTI
@@ -2296,10 +2304,14 @@ static void handle_task_deps(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 
 static void handle_task_submit(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
-	unsigned long job_id;
-	job_id = ev->param[0];
+	unsigned long job_id = ev->param[0];
+	unsigned long iteration = ev->param[1];
+	unsigned long subiteration = ev->param[2];
 
-	get_task(job_id, options->file_rank)->submit_time = get_event_time_stamp(ev, options);
+	struct task_info *task = get_task(job_id, options->file_rank);
+	task->submit_time = get_event_time_stamp(ev, options);
+	task->iteration = iteration;
+	task->subiteration = subiteration;
 }
 
 static void handle_task_done(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)

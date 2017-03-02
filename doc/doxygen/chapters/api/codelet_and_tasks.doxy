@@ -951,6 +951,18 @@ codelet implementation to be executed when executing \p task.
 Return the codelet implementation to be executed
 when executing \p task.
 
+\fn void starpu_set_iteration(unsigned long iteration)
+\ingroup API_Codelet_And_Tasks
+Sets the iteration number for all the tasks to be submitted after this
+call. This is typically called at the beginning of the main task submission
+loop. This number will then show up in tracing tools.
+
+\fn void starpu_set_subiteration(unsigned long subiteration)
+\ingroup API_Codelet_And_Tasks
+Sets the subiteration number for all the tasks to be submitted after this
+call. This is typically called at the beginning of the second-nested task
+submission loop. This number will then show up in tracing tools.
+
 \fn void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t *deps, void (*callback)(void *), void *callback_arg)
 \ingroup API_Codelet_And_Tasks
 Create (and submit) an empty task that unlocks a tag once all its dependencies are fulfilled.

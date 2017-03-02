@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012, 2014-2015  Université de Bordeaux
+ * Copyright (C) 2009-2012, 2014-2015, 2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -247,6 +247,7 @@ static int dw_codelet_facto_pivot(starpu_data_handle_t *dataAp,
 
 	for (k = 0; k < nblocks; k++)
 	{
+		starpu_set_iteration(k);
 		struct starpu_task *task = create_task_11_pivot(dataAp, nblocks, k, piv_description, get_block);
 
 		/* we defer the launch of the first task */

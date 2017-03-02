@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011, 2014-2015  Université de Bordeaux
+ * Copyright (C) 2010, 2011, 2014-2015, 2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -543,6 +543,8 @@ int main(int argc, char **argv)
 		 * incrementing a counter shared by all the workers within the
 		 * parallel task. */
 		int per_block_cnt[nblocks_p];
+
+		starpu_set_iteration(niter_p);
 
 		for (iby = 0; iby < nblocks_p; iby++)
 		{

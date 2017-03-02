@@ -167,6 +167,7 @@ static int cholesky_no_stride(void)
 
 	for (k = 0; k < nblocks_p; k++)
 	{
+		starpu_set_iteration(k);
 		struct starpu_task *task = create_task_11(k, nblocks_p);
 		/* we defer the launch of the first task */
 		if (k == 0)

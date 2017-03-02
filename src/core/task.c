@@ -651,7 +651,9 @@ int starpu_task_submit(struct starpu_task *task)
 	}
 
 	if (!j->internal && !continuation)
-		_STARPU_TRACE_TASK_SUBMIT(j);
+		_STARPU_TRACE_TASK_SUBMIT(j,
+			_starpu_get_sched_ctx_struct(task->sched_ctx)->iteration,
+			_starpu_get_sched_ctx_struct(task->sched_ctx)->subiteration);
 
 	/* If this is a continuation, we don't modify the implicit data dependencies detected earlier. */
 	if (task->cl && !continuation)
@@ -987,6 +989,16 @@ int starpu_task_wait_for_no_ready(void)
 	}
 
 	return 0;
+}
+
+void starpu_set_iteration(unsigned long iteration)
+{
+	_starpu_get_sched_ctx_struct(_starpu_sched_ctx_get_current_context())->iteration = iteration;
+}
+
+void starpu_set_subiteration(unsigned long subiteration)
+{
+	_starpu_get_sched_ctx_struct(_starpu_sched_ctx_get_current_context())->subiteration = subiteration;
 }
 
 void starpu_do_schedule(void)
