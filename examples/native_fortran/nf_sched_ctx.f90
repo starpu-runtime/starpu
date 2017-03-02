@@ -96,6 +96,7 @@ program nf_sched_ctx
                 procs2(i) = procs(nprocs1+i)
                 write(*,*) i, procs2(i)
         end do
+        deallocate(procs)
 
         ! create sched context 1 with default policy, by giving a NULL policy name
         ctx1 = fstarpu_sched_ctx_create(procs1, nprocs1,  &
