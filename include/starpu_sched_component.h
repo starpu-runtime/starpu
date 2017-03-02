@@ -80,7 +80,6 @@ struct starpu_sched_tree
 	struct starpu_sched_component *root;
 	struct starpu_bitmap *workers;
 	unsigned sched_ctx_id;
-	struct starpu_sched_component *worker_components[STARPU_NMAXWORKERS];
 	starpu_pthread_mutex_t lock;
 };
 
