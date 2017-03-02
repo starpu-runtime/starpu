@@ -130,6 +130,7 @@ static struct task_info *get_task(unsigned long job_id, int mpi_rank)
 		task->start_time = 0.;
 		task->end_time = 0.;
 		task->footprint = 0;
+		task->kflops = 0.;
 		task->parameters = NULL;
 		task->ndeps = 0;
 		task->dependencies = NULL;
@@ -184,6 +185,8 @@ static void task_dump(unsigned long job_id, int mpi_rank)
 	if (task->end_time != 0.)
 		fprintf(tasks_file, "EndTime: %f\n", task->end_time);
 	fprintf(tasks_file, "Footprint: %lx\n", task->footprint);
+	if (task->kflops != 0)
+		fprintf(tasks_file, "GFlop: %f\n", ((double) task->kflops) / 1000000);
 	if (task->parameters)
 	{
 		fprintf(tasks_file, "Parameters: %s\n", task->parameters);
