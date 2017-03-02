@@ -170,6 +170,8 @@ int check_size(int nx, struct starpu_codelet *vector_codelet, struct starpu_code
 		ret = EXIT_FAILURE;
 	}
 end:
+	if (ret == -ENODEV)
+		FPRINTF(stderr, "Uh, ENODEV?!");
 	starpu_free(matrix);
 	return ret;
 }
