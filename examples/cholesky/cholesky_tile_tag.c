@@ -291,7 +291,7 @@ int main(int argc, char **argv)
 		{
 			starpu_matrix_data_register(&A_state[y][x], STARPU_MAIN_RAM, (uintptr_t)A[y][x],
 						    BLOCKSIZE, BLOCKSIZE, BLOCKSIZE, sizeof(float));
-			starpu_data_set_coordinates(A_state[y][x], x, y);
+			starpu_data_set_coordinates(A_state[y][x], 2, x, y);
 		}
 	}
 
