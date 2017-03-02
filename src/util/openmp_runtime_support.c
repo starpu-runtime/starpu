@@ -1051,7 +1051,7 @@ void starpu_omp_parallel_region(const struct starpu_omp_parallel_region_attr *at
 	new_region->icvs.run_sched_var = generating_region->icvs.run_sched_var;
 	new_region->icvs.run_sched_chunk_var = generating_region->icvs.run_sched_chunk_var;
 	new_region->icvs.default_device_var = generating_region->icvs.default_device_var;
-	_STARPU_CALLOC(new_region->implicit_task_array, nb_threads, sizeof(*new_region->implicit_task_array));
+	new_region->implicit_task_array = calloc(nb_threads, sizeof(*new_region->implicit_task_array));
 
 	int i;
 	for (i = 0; i < nb_threads; i++)
