@@ -237,12 +237,14 @@ int main(int argc, char **argv)
 		ret = check_size_on_device(STARPU_CUDA, "STARPU_CUDA");
 		if (ret) goto error;
 	}
+#if 0
 	devices = starpu_opencl_worker_get_count();
 	if (devices)
 	{
 		ret = check_size_on_device(STARPU_OPENCL, "STARPU_OPENCL");
 		if (ret) goto error;
 	}
+#endif
 
 error:
 	if (ret == -ENODEV) ret=STARPU_TEST_SKIPPED;
