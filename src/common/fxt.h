@@ -462,6 +462,72 @@ do {									\
 } while (0)
 #endif
 
+#ifndef FUT_RAW_ALWAYS_PROBE3
+#define FUT_RAW_ALWAYS_PROBE3(CODE,P1,P2,P3) do {	\
+		unsigned long *__args __attribute__((unused))=	\
+			fut_getstampedbuffer(CODE,		\
+					     FUT_SIZE(3)); \
+		*(__args++)=(unsigned long)(P1);*(__args++)=(unsigned long)(P2);*(__args++)=(unsigned long)(P3);				\
+		fut_commitstampedbuffer(FUT_SIZE(3)); \
+	} while (0)
+#endif
+#define FUT_DO_ALWAYS_PROBE3(CODE,P1,P2,P3) do { \
+        FUT_RAW_ALWAYS_PROBE3(FUT_CODE(CODE, 3),P1,P2,P3); \
+} while (0)
+
+#ifndef FUT_RAW_ALWAYS_PROBE4
+#define FUT_RAW_ALWAYS_PROBE4(CODE,P1,P2,P3,P4) do {	\
+		unsigned long *__args __attribute__((unused))=	\
+			fut_getstampedbuffer(CODE,		\
+					     FUT_SIZE(4)); \
+		*(__args++)=(unsigned long)(P1);*(__args++)=(unsigned long)(P2);*(__args++)=(unsigned long)(P3);*(__args++)=(unsigned long)(P4);				\
+		fut_commitstampedbuffer(FUT_SIZE(4)); \
+	} while (0)
+#endif
+#define FUT_DO_ALWAYS_PROBE4(CODE,P1,P2,P3,P4) do { \
+        FUT_RAW_ALWAYS_PROBE4(FUT_CODE(CODE, 4),P1,P2,P3,P4); \
+} while (0)
+
+#ifndef FUT_RAW_ALWAYS_PROBE5
+#define FUT_RAW_ALWAYS_PROBE5(CODE,P1,P2,P3,P4,P5) do {	\
+		unsigned long *__args __attribute__((unused))=	\
+			fut_getstampedbuffer(CODE,		\
+					     FUT_SIZE(5)); \
+		*(__args++)=(unsigned long)(P1);*(__args++)=(unsigned long)(P2);*(__args++)=(unsigned long)(P3);*(__args++)=(unsigned long)(P4);*(__args++)=(unsigned long)(P5);				\
+		fut_commitstampedbuffer(FUT_SIZE(5)); \
+	} while (0)
+#endif
+#define FUT_DO_ALWAYS_PROBE5(CODE,P1,P2,P3,P4,P5) do { \
+        FUT_RAW_ALWAYS_PROBE5(FUT_CODE(CODE, 5),P1,P2,P3,P4,P5); \
+} while (0)
+
+#ifndef FUT_RAW_ALWAYS_PROBE6
+#define FUT_RAW_ALWAYS_PROBE6(CODE,P1,P2,P3,P4,P5,P6) do {	\
+		unsigned long *__args __attribute__((unused))=	\
+			fut_getstampedbuffer(CODE,		\
+					     FUT_SIZE(6)); \
+		*(__args++)=(unsigned long)(P1);*(__args++)=(unsigned long)(P2);*(__args++)=(unsigned long)(P3);*(__args++)=(unsigned long)(P4);*(__args++)=(unsigned long)(P5);*(__args++)=(unsigned long)(P6);				\
+		fut_commitstampedbuffer(FUT_SIZE(6)); \
+	} while (0)
+#endif
+#define FUT_DO_ALWAYS_PROBE6(CODE,P1,P2,P3,P4,P5,P6) do { \
+        FUT_RAW_ALWAYS_PROBE6(FUT_CODE(CODE, 6),P1,P2,P3,P4,P5,P6); \
+} while (0)
+
+#ifndef FUT_RAW_ALWAYS_PROBE7
+#define FUT_RAW_ALWAYS_PROBE7(CODE,P1,P2,P3,P4,P5,P6,P7) do {	\
+		unsigned long *__args __attribute__((unused))=	\
+			fut_getstampedbuffer(CODE,		\
+					     FUT_SIZE(7)); \
+		*(__args++)=(unsigned long)(P1);*(__args++)=(unsigned long)(P2);*(__args++)=(unsigned long)(P3);*(__args++)=(unsigned long)(P4);*(__args++)=(unsigned long)(P5);*(__args++)=(unsigned long)(P6);*(__args++)=(unsigned long)(P7);				\
+		fut_commitstampedbuffer(FUT_SIZE(7)); \
+	} while (0)
+#endif
+#define FUT_DO_ALWAYS_PROBE7(CODE,P1,P2,P3,P4,P5,P6,P7) do { \
+        FUT_RAW_ALWAYS_PROBE7(FUT_CODE(CODE, 7),P1,P2,P3,P4,P5,P6,P7); \
+} while (0)
+
+
 
 /* workerkind = _STARPU_FUT_CPU_KEY for instance */
 #define _STARPU_TRACE_NEW_MEM_NODE(nodeid)			\
@@ -601,11 +667,11 @@ do {										\
 
 #define _STARPU_TRACE_DATA_COORDINATES(handle, dim, v) \
 	switch (dim) { \
-	case 1: FUT_DO_PROBE3(_STARPU_FUT_DATA_COORDINATES, handle, dim, v[0]); break; \
-	case 2: FUT_DO_PROBE4(_STARPU_FUT_DATA_COORDINATES, handle, dim, v[0], v[1]); break; \
-	case 3: FUT_DO_PROBE5(_STARPU_FUT_DATA_COORDINATES, handle, dim, v[0], v[1], v[2]); break; \
-	case 4: FUT_DO_PROBE6(_STARPU_FUT_DATA_COORDINATES, handle, dim, v[0], v[1], v[2], v[3]); break; \
-	case 5: FUT_DO_PROBE7(_STARPU_FUT_DATA_COORDINATES, handle, dim, v[0], v[1], v[2], v[3], v[4]); break; \
+	case 1: FUT_DO_ALWAYS_PROBE3(_STARPU_FUT_DATA_COORDINATES, handle, dim, v[0]); break; \
+	case 2: FUT_DO_ALWAYS_PROBE4(_STARPU_FUT_DATA_COORDINATES, handle, dim, v[0], v[1]); break; \
+	case 3: FUT_DO_ALWAYS_PROBE5(_STARPU_FUT_DATA_COORDINATES, handle, dim, v[0], v[1], v[2]); break; \
+	case 4: FUT_DO_ALWAYS_PROBE6(_STARPU_FUT_DATA_COORDINATES, handle, dim, v[0], v[1], v[2], v[3]); break; \
+	default: FUT_DO_ALWAYS_PROBE7(_STARPU_FUT_DATA_COORDINATES, handle, dim, v[0], v[1], v[2], v[3], v[4]); break; \
 	}
 
 #define _STARPU_TRACE_DATA_COPY(src_node, dst_node, size)	\
