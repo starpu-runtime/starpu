@@ -716,7 +716,10 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 			continue;
 		}
 
-		task = worker->current_tasks[worker->first_task];
+		if (worker->pipeline_length)
+			task = worker->current_tasks[worker->first_task];
+		else
+			task = worker->current_task;
 
 		/* On-going asynchronous task, check for its termination first */
 #ifdef STARPU_SIMGRID
