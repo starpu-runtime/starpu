@@ -173,6 +173,7 @@ end:
 	if (ret == -ENODEV)
 		fprintf(stderr, "# Uh, ENODEV?!");
 	starpu_free(matrix);
+	starpu_task_wait_for_all();
 	return ret;
 }
 
