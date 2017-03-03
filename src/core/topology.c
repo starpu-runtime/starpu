@@ -66,7 +66,7 @@ static unsigned numa_numaphysid[STARPU_MAXNODES]; /* indexed by starpu memory no
 #ifdef STARPU_USE_NUMA
 static int _starpu_worker_numa_node(unsigned workerid);
 #else
-#define _starpu_worker_numa_node(workerid) 0
+#define _starpu_worker_numa_node(workerid) STARPU_MAIN_RAM
 #endif
 static int _starpu_numa_logid_get_physid(unsigned logid);
 
