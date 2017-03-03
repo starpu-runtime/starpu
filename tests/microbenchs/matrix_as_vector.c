@@ -56,7 +56,9 @@ void vector_cuda_func(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
 	int nx = STARPU_VECTOR_GET_NX(descr[0]);
 
 	float sum;
-	cublasSasum(starpu_cublas_get_local_handle(), nx, matrix, 1, &sum);
+	cublasStatus_t status = cublasSasum(starpu_cublas_get_local_handle(), nx, matrix, 1, &sum);
+	if (status != CUBLAS_STATUS_SUCCESS)
+		STARPU_CUBLAS_REPORT_ERROR(status);
 	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 	sum /= nx;
 
@@ -89,7 +91,9 @@ void matrix_cuda_func(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
 	int ny = STARPU_MATRIX_GET_NY(descr[0]);
 
 	float sum;
-	cublasSasum(starpu_cublas_get_local_handle(), nx*ny, matrix, 1, &sum);
+	cublasStatus_t status = cublasSasum(starpu_cublas_get_local_handle(), nx*ny, matrix, 1, &sum);
+	if (status != CUBLAS_STATUS_SUCCESS)
+		STARPU_CUBLAS_REPORT_ERROR(status);
 	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 	sum /= nx*ny;
 
