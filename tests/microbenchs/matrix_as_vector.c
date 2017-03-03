@@ -228,7 +228,6 @@ int main(int argc, char **argv)
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-	starpu_cublas_init();
 
 	devices = starpu_cpu_worker_get_count();
 	if (devices)
@@ -236,12 +235,21 @@ int main(int argc, char **argv)
 		ret = check_size_on_device(STARPU_CPU, "STARPU_CPU");
 		if (ret) goto error;
 	}
+
+#ifdef STARPU_USE_CUDA
+	cublasHandle_t handle;
+	cublasCreate(&handle);
+	cublasGetVersion(handle, &cublas_version);
+	cublasDestroy(handle);
+
 	devices = starpu_cuda_worker_get_count();
-	if (devices)
+	if (devices && cublas_version >= 7050)
 	{
+		starpu_cublas_init();
 		ret = check_size_on_device(STARPU_CUDA, "STARPU_CUDA");
 		if (ret) goto error;
 	}
+#endif
 #if 0
 	devices = starpu_opencl_worker_get_count();
 	if (devices)
