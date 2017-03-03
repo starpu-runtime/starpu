@@ -468,6 +468,7 @@ struct _starpu_sched_ctx* _starpu_create_sched_ctx(struct starpu_sched_policy *p
 	STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx_manag);
 
 	int nworkers = config->topology.nworkers;
+	unsigned i;
 
 	STARPU_ASSERT(nworkers_ctx <= nworkers);
 
@@ -501,8 +502,9 @@ struct _starpu_sched_ctx* _starpu_create_sched_ctx(struct starpu_sched_policy *p
 	_starpu_barrier_counter_init(&sched_ctx->ready_tasks_barrier, 0);
 
 	sched_ctx->ready_flops = 0.0;
-	sched_ctx->iteration = -1;
-	sched_ctx->subiteration = -1;
+	for (i = 0; i < sizeof(sched_ctx->iterations)/sizeof(sched_ctx->iterations[0]); i++)
+		sched_ctx->iterations[i] = -1;
+	sched_ctx->iteration_level = 0;
 	sched_ctx->main_master = -1;
 	sched_ctx->perf_arch.devices = NULL;
 	sched_ctx->perf_arch.ndevices = 0;

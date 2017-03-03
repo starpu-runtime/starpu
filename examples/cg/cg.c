@@ -308,7 +308,7 @@ static int cg(void)
 		double delta_old;
 		double alpha, beta;
 
-		starpu_set_iteration(i);
+		starpu_iteration_push(i);
 
 		/* q <- A d */
 		gemv_kernel(q_handle, A_handle, d_handle, 0.0, 1.0, nblocks, use_reduction);
@@ -358,6 +358,7 @@ static int cg(void)
 			FPRINTF(stderr, "iter %d DELTA %e - %e\n", i, delta_new, error);
 		}
 
+		starpu_iteration_pop();
 		i++;
 	}
 

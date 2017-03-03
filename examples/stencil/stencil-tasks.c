@@ -296,7 +296,7 @@ void create_tasks(int rank)
 
 	for (iter = 0; iter <= niter; iter++)
 	{
-	     starpu_set_iteration(iter);
+	     starpu_iteration_push(iter);
 	     for (bz = 0; bz < nbz; bz++)
 	     {
 		  if ((iter > 0) && (get_block_mpi_node(bz) == rank))
@@ -314,6 +314,7 @@ void create_tasks(int rank)
 				     create_task_save(iter, bz, -1, rank);
 		     }
 	     }
+	     starpu_iteration_pop();
 	}
 }
 

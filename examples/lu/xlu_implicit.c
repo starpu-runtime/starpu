@@ -127,7 +127,7 @@ static int dw_codelet_facto_v3(starpu_data_handle_t dataA, unsigned nblocks)
 	{
 		int ret;
 
-		starpu_set_iteration(k);
+		starpu_iteration_push(k);
 
 		ret = create_task_11(dataA, k);
 		if (ret == -ENODEV) return ret;
@@ -152,6 +152,7 @@ static int dw_codelet_facto_v3(starpu_data_handle_t dataA, unsigned nblocks)
 		    starpu_data_wont_use(starpu_data_get_sub_data(dataA, 2, k, i));
 		    starpu_data_wont_use(starpu_data_get_sub_data(dataA, 2, i, k));
 		}
+		starpu_iteration_pop();
 	}
 
 	/* stall the application until the end of computations */

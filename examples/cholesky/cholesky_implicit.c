@@ -59,7 +59,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 	for (k = 0; k < nblocks; k++)
 	{
 		int ret;
-		starpu_set_iteration(k);
+		starpu_iteration_push(k);
                 starpu_data_handle_t sdatakk = starpu_data_get_sub_data(dataA, 2, k, k);
 
                 ret = starpu_task_insert(&cl11,
@@ -112,6 +112,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 			}
 			starpu_data_wont_use(sdatakj);
 		}
+		starpu_iteration_pop();
 	}
 
 	starpu_task_wait_for_all();

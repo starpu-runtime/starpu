@@ -101,8 +101,7 @@ struct task_info {
 	double end_time;
 	unsigned long footprint;
 	unsigned long kflops;
-	long iteration;
-	long subiteration;
+	long iterations[2];
 	char *parameters;
 	unsigned int ndeps;
 	unsigned long *dependencies;
@@ -116,6 +115,7 @@ struct task_info *tasks_info;
 static struct task_info *get_task(unsigned long job_id, int mpi_rank)
 {
 	struct task_info *task;
+	unsigned i;
 
 	HASH_FIND(hh, tasks_info, &job_id, sizeof(job_id), task);
 	if (!task)
@@ -133,8 +133,8 @@ static struct task_info *get_task(unsigned long job_id, int mpi_rank)
 		task->end_time = 0.;
 		task->footprint = 0;
 		task->kflops = 0.;
-		task->iteration = -1;
-		task->subiteration = -1;
+		for (i = 0; i < sizeof(task->iterations)/sizeof(task->iterations[0]); i++)
+			task->iterations[i] = -1;
 		task->parameters = NULL;
 		task->ndeps = 0;
 		task->dependencies = NULL;
@@ -191,10 +191,12 @@ static void task_dump(unsigned long job_id, int mpi_rank)
 	fprintf(tasks_file, "Footprint: %lx\n", task->footprint);
 	if (task->kflops != 0)
 		fprintf(tasks_file, "GFlop: %f\n", ((double) task->kflops) / 1000000);
-	if (task->iteration != -1)
-		fprintf(tasks_file, "Iteration: %ld\n", task->iteration);
-	if (task->subiteration != -1)
-		fprintf(tasks_file, "Subiteration: %ld\n", task->subiteration);
+	if (task->iterations[0] != -1) {
+		fprintf(tasks_file, "Iteration:");
+		for (i = 0; i < sizeof(task->iterations)/sizeof(task->iterations[0]); i++)
+			fprintf(tasks_file, " %ld", task->iterations[i]);
+		fprintf(tasks_file, "\n");
+	}
 	if (task->parameters)
 	{
 		fprintf(tasks_file, "Parameters: %s\n", task->parameters);
@@ -1456,7 +1458,7 @@ static void handle_codelet_details(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 		char *prefix = options->file_prefix;
 		unsigned sched_ctx = ev->param[0];
 
-		worker_set_detailed_state(last_codelet_start[worker], prefix, worker, _starpu_last_codelet_symbol[worker], ev->param[1], parameters, ev->param[2], ev->param[4], job_id, ((double) task->kflops) / 1000000, X, Y, Z, task->iteration, task->subiteration);
+		worker_set_detailed_state(last_codelet_start[worker], prefix, worker, _starpu_last_codelet_symbol[worker], ev->param[1], parameters, ev->param[2], ev->param[4], job_id, ((double) task->kflops) / 1000000, X, Y, Z, task->iterations[0], task->iterations[1]);
 		if (sched_ctx != 0)
 		{
 #ifdef STARPU_HAVE_POTI
@@ -2323,8 +2325,8 @@ static void handle_task_submit(struct fxt_ev_64 *ev, struct starpu_fxt_options *
 
 	struct task_info *task = get_task(job_id, options->file_rank);
 	task->submit_time = get_event_time_stamp(ev, options);
-	task->iteration = iteration;
-	task->subiteration = subiteration;
+	task->iterations[0] = iteration;
+	task->iterations[1] = subiteration;
 }
 
 static void handle_task_done(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)

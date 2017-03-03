@@ -317,8 +317,8 @@ int starpu_task_wait_for_no_ready(void);
 int starpu_task_nready(void);
 int starpu_task_nsubmitted(void);
 
-void starpu_set_iteration(unsigned long iteration);
-void starpu_set_subiteration(unsigned long subiteration);
+void starpu_iteration_push(unsigned long iteration);
+void starpu_iteration_pop(void);
 
 void starpu_do_schedule(void);
 

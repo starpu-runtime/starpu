@@ -247,7 +247,7 @@ static int dw_codelet_facto_pivot(starpu_data_handle_t *dataAp,
 
 	for (k = 0; k < nblocks; k++)
 	{
-		starpu_set_iteration(k);
+		starpu_iteration_push(k);
 		struct starpu_task *task = create_task_11_pivot(dataAp, nblocks, k, piv_description, get_block);
 
 		/* we defer the launch of the first task */
@@ -287,6 +287,7 @@ static int dw_codelet_facto_pivot(starpu_data_handle_t *dataAp,
 			     if (ret == -ENODEV) return ret;
 			}
 		}
+		starpu_iteration_pop();
 	}
 
 	/* we wait the last task (TAG11(nblocks - 1)) and all the pivot tasks */

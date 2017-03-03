@@ -62,9 +62,8 @@ New features:
   * Add modular-heft-prio scheduler.
   * Add starpu_cublas_get_local_handle helper.
   * Add starpu_data_set_name, starpu_data_set_coordinates_array, and
-    starpu_data_set_coordinates to describe data, and starpu_set_iteration and
-    starpu_set_subiteration to describe tasks, for better offline traces
-    analysis.
+    starpu_data_set_coordinates to describe data, and starpu_iteration_push and
+    starpu_iteration_pop to describe tasks, for better offline traces analysis.
 
 Changes:
   * Fix performance regression of lws for small tasks.

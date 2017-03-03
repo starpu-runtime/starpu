@@ -184,7 +184,7 @@ static int dw_codelet_facto_v3(starpu_data_handle_t dataA, unsigned nblocks)
 
 	for (k = 0; k < nblocks; k++)
 	{
-		starpu_set_iteration(k);
+		starpu_iteration_push(k);
 		struct starpu_task *task = create_task_11(dataA, k);
 
 		/* we defer the launch of the first task */
@@ -215,6 +215,7 @@ static int dw_codelet_facto_v3(starpu_data_handle_t dataA, unsigned nblocks)
 			     if (ret == -ENODEV) return ret;
 			}
 		}
+		starpu_iteration_pop();
 	}
 
 	/* schedule the codelet */

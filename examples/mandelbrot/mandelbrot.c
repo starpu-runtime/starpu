@@ -544,7 +544,7 @@ int main(int argc, char **argv)
 		 * parallel task. */
 		int per_block_cnt[nblocks_p];
 
-		starpu_set_iteration(niter_p);
+		starpu_iteration_push(niter_p);
 
 		for (iby = 0; iby < nblocks_p; iby++)
 		{
@@ -579,6 +579,7 @@ int main(int argc, char **argv)
 		}
 
 
+		starpu_iteration_pop();
 		if (demo_p)
 		{
 			/* Zoom in */

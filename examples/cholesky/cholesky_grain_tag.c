@@ -190,7 +190,7 @@ static int cholesky_grain_rec(float *matA, unsigned size, unsigned ld, unsigned 
 
 	for (k = 0; k < nbigblocks; k++)
 	{
-		starpu_set_iteration(k);
+		starpu_iteration_push(k);
 		struct starpu_task *task = create_task_11(dataA, k, reclevel);
 		/* we defer the launch of the first task */
 		if (k == 0)
@@ -218,6 +218,7 @@ static int cholesky_grain_rec(float *matA, unsigned size, unsigned ld, unsigned 
 				}
 			}
 		}
+		starpu_iteration_pop();
 	}
 
 	/* schedule the codelet */
