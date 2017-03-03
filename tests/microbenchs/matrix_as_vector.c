@@ -42,7 +42,7 @@ void vector_cpu_func(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
 	int i;
 	float sum=0;
 
-	for(i=0 ; i<nx ; i++) sum+=i;
+	for(i=0 ; i<nx ; i++) sum+=matrix[i];
 	matrix[0] = sum/nx;
 }
 
@@ -74,7 +74,7 @@ void matrix_cpu_func(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
 	int i;
 	float sum=0;
 
-	for(i=0 ; i<nx*ny ; i++) sum+=i;
+	for(i=0 ; i<nx*ny ; i++) sum+=matrix[i];
 	matrix[0] = sum / (nx*ny);
 }
 

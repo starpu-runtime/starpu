@@ -445,6 +445,7 @@ static void simple_worker_can_pull(struct starpu_sched_component * worker_compon
 	}
 	if(_starpu_sched_component_worker_is_sleeping_status(worker_component))
 	{
+		/* FIXME Ça n'a pas l'air de fonctionner */
 		starpu_pthread_mutex_t *sched_mutex;
 		starpu_pthread_cond_t *sched_cond;
 		starpu_worker_get_sched_condition(w->workerid, &sched_mutex, &sched_cond);
@@ -513,6 +514,7 @@ static struct starpu_task * simple_worker_pull_task(struct starpu_sched_componen
 	}
 	while((!task) && _starpu_sched_component_worker_is_changed_status(component));
 	_starpu_sched_component_worker_set_sleep_status(component);
+	/* Remplacer par le sched condition */
 	_starpu_sched_component_unlock_worker(component->tree->sched_ctx_id, workerid);
 	if(!task)
 		return NULL;
