@@ -248,6 +248,7 @@ int main(int argc, char **argv)
 		starpu_cublas_init();
 		ret = check_size_on_device(STARPU_CUDA, "STARPU_CUDA");
 		if (ret) goto error;
+		starpu_cublas_shutdown();
 	}
 #endif
 #if 0
@@ -262,7 +263,6 @@ int main(int argc, char **argv)
 error:
 	if (ret == -ENODEV) ret=STARPU_TEST_SKIPPED;
 
-	starpu_cublas_shutdown();
 	starpu_shutdown();
 	STARPU_RETURN(ret);
 }
