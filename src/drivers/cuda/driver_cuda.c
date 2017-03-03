@@ -801,7 +801,10 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 			/* No queued task */
 			continue;
 
-		task = worker->current_tasks[worker->first_task];
+		if (worker->pipeline_length)
+			task = worker->current_tasks[worker->first_task];
+		else
+			task = worker->current_task;
 		if (task == worker->task_transferring)
 			/* Next task is still pending transfer */
 			continue;
