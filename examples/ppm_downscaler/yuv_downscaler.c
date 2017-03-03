@@ -218,7 +218,7 @@ int main(int argc, char **argv)
 	/* do the computation */
 	for (frame = 0; frame < nframes; frame++)
 	{
-		starpu_set_iteration(frame);
+		starpu_iteration_push(frame);
 		unsigned blocky;
 		for (blocky = 0; blocky < nblocks_y; blocky++)
 		{
@@ -266,6 +266,7 @@ int main(int argc, char **argv)
 			ret = starpu_task_submit(task);
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		}
+		starpu_iteration_pop();
 	}
 
 	/* make sure all output buffers are sync'ed */

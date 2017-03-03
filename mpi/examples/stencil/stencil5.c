@@ -175,7 +175,7 @@ int main(int argc, char **argv)
 	/* First computation with initial distribution */
 	for(loop=0 ; loop<niter; loop++)
 	{
-		starpu_set_iteration(loop);
+		starpu_iteration_push(loop);
 
 		for (x = 1; x < X-1; x++)
 		{
@@ -187,6 +187,7 @@ int main(int argc, char **argv)
 						       0);
 			}
 		}
+		starpu_iteration_pop();
 	}
 	FPRINTF(stderr, "Waiting ...\n");
 	starpu_task_wait_for_all();
@@ -216,7 +217,7 @@ int main(int argc, char **argv)
 	/* Second computation with new distribution */
 	for(loop=0 ; loop<niter; loop++)
 	{
-		starpu_set_iteration(niter + loop);
+		starpu_iteration_push(niter + loop);
 
 		for (x = 1; x < X-1; x++)
 		{
@@ -228,6 +229,7 @@ int main(int argc, char **argv)
 						       0);
 			}
 		}
+		starpu_iteration_pop();
 	}
 	FPRINTF(stderr, "Waiting ...\n");
 	starpu_task_wait_for_all();

@@ -112,7 +112,7 @@ void dw_cholesky(float ***matA, unsigned ld, int rank, int nodes, double *timing
 
 	for (k = 0; k < nblocks; k++)
 	{
-		starpu_set_iteration(k);
+		starpu_iteration_push(k);
 
 		int prio = STARPU_DEFAULT_PRIO;
 		if (!noprio) prio = STARPU_MAX_PRIO;
@@ -155,6 +155,7 @@ void dw_cholesky(float ***matA, unsigned ld, int rank, int nodes, double *timing
 			if (my_distrib(k, j, nodes) == rank)
 				starpu_data_wont_use(data_handles[k][j]);
 		}
+		starpu_iteration_pop();
 	}
 
 	starpu_task_wait_for_all();

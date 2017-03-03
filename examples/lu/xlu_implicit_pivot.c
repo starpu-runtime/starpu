@@ -173,7 +173,7 @@ static int dw_codelet_facto_pivot(starpu_data_handle_t *dataAp,
 	{
 		int ret;
 
-		starpu_set_iteration(k);
+		starpu_iteration_push(k);
 
 		ret = create_task_11_pivot(dataAp, nblocks, k, piv_description, get_block);
 		if (ret == -ENODEV) return ret;
@@ -207,6 +207,7 @@ static int dw_codelet_facto_pivot(starpu_data_handle_t *dataAp,
 		    starpu_data_wont_use(get_block(dataAp, nblocks, k, i));
 		    starpu_data_wont_use(get_block(dataAp, nblocks, i, k));
 		}
+		starpu_iteration_pop();
 	}
 
 	/* stall the application until the end of computations */

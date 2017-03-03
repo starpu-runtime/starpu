@@ -839,7 +839,7 @@ double STARPU_PLU(plu_main)(unsigned _nblocks, int _rank, int _world_size)
 
 	for (k = 0; k < nblocks; k++)
 	{
-		starpu_set_iteration(k);
+		starpu_iteration_push(k);
 
 		create_task_11(k);
 
@@ -856,6 +856,7 @@ double STARPU_PLU(plu_main)(unsigned _nblocks, int _rank, int _world_size)
 				create_task_22(k, i, j);
 			}
 		}
+		starpu_iteration_pop();
 	}
 
 	int barrier_ret = starpu_mpi_barrier(MPI_COMM_WORLD);

@@ -135,7 +135,7 @@ double STARPU_PLU(plu_main)(unsigned _nblocks, int _rank, int _world_size)
 
 	for (k = 0; k < nblocks; k++)
 	{
-		starpu_set_iteration(k);
+		starpu_iteration_push(k);
 
 		create_task_11(k);
 
@@ -166,6 +166,7 @@ double STARPU_PLU(plu_main)(unsigned _nblocks, int _rank, int _world_size)
 			if (get_block_rank(i, k) == _rank)
 				starpu_data_wont_use(STARPU_PLU(get_block_handle)(i,k));
 		}
+		starpu_iteration_pop();
 	}
 
 	starpu_task_wait_for_all();

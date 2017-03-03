@@ -330,7 +330,7 @@ int main(int argc, char **argv)
 		int iter;
 		for (iter = 0; iter < who_runs_what_len; iter++)
 		{
-			starpu_set_iteration(iter);
+			starpu_iteration_push(iter);
 			unsigned last, bz;
 			last = 1;
 			for (bz = 0; bz < nbz; bz++)
@@ -351,6 +351,7 @@ int main(int argc, char **argv)
 			}
 			FPRINTF(stderr, "\n");
 
+			starpu_iteration_pop();
 			if (last)
 				break;
 		}
