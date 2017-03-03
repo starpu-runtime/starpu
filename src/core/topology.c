@@ -1783,14 +1783,10 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 	/* Each device is initialized,
 	 * giving it a memory node and a core bind id.
 	 */
-	nb_numa_nodes = 1;
+	nb_numa_nodes = 0;
 	unsigned n;
 	unsigned numa_init[STARPU_MAXNUMANODES];
-	numa_init[0] = 1 ;
-	numa_memory_nodes[0] = ram_memory_node ;
-	numa_numalogid[ram_memory_node] = 0;
-	numa_numaphysid[ram_memory_node] = 0;
-	for (n=1; n<STARPU_MAXNUMANODES; n++)
+	for (n=0; n<STARPU_MAXNUMANODES; n++)
 	{
 		numa_init[n] = 0;
 	}	
