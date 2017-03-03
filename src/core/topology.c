@@ -1795,7 +1795,7 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 
 	for (n=1; n<STARPU_MAXNUMANODES; n++)
 	{
-		numa_init[n] = 1;
+		numa_init[n] = 0;
 	}	
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 	unsigned cuda_init[STARPU_MAXCUDADEVS] = { };
