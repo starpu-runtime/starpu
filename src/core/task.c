@@ -1002,7 +1002,7 @@ void starpu_iteration_push(unsigned long iteration)
 void starpu_iteration_pop(void)
 {
 	struct _starpu_sched_ctx *ctx = _starpu_get_sched_ctx_struct(_starpu_sched_ctx_get_current_context());
-	STARPU_ASSERT_MSG(ctx->iteration_level > 0, "calls to starpu_iteration_pop must match starpu_iteration_push calls")
+	STARPU_ASSERT_MSG(ctx->iteration_level > 0, "calls to starpu_iteration_pop must match starpu_iteration_push calls");
 	unsigned level = ctx->iteration_level--;
 	if (level < sizeof(ctx->iterations)/sizeof(ctx->iterations[0]))
 		ctx->iterations[level] = -1;
