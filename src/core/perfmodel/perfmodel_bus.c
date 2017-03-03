@@ -1713,7 +1713,6 @@ static int mpi_check_recalibrate(int my_recalibrate)
                 if (mpi_recalibrate[i])
                 {
                         return 1;
-                        break;
                 }
         }
         return 0;
