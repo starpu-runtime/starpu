@@ -79,6 +79,7 @@ int main(int argc, char **argv)
 #else
 	nprocs1 = 1;
 	procs1 = (int*)malloc(nprocs1*sizeof(int));
+	procs1[0] = 0;
 #endif
 
 	unsigned sched_ctx1 = starpu_sched_ctx_create(procs1, nprocs1, "ctx1", STARPU_SCHED_CTX_POLICY_NAME, "dmda", 0);
