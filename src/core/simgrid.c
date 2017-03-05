@@ -30,7 +30,9 @@
 #endif
 
 #ifdef STARPU_SIMGRID
+#ifdef HAVE_GETRLIMIT
 #include <sys/resource.h>
+#endif
 #include <simgrid/simix.h>
 
 #pragma weak starpu_main
@@ -218,9 +220,11 @@ static void start_simgrid(int *argc, char **argv)
 #endif
 	/* Simgrid uses tiny stacks by default.  This comes unexpected to our users.  */
 	unsigned stack_size = 8192;
+#ifdef HAVE_GETRLIMIT
 	struct rlimit rlim;
 	if (getrlimit(RLIMIT_STACK, &rlim) == 0 && rlim.rlim_cur != 0 && rlim.rlim_cur != RLIM_INFINITY)
 		stack_size = rlim.rlim_cur / 1024;
+#endif
 
 #if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 13)
 	extern xbt_cfg_t _sg_cfg_set;
