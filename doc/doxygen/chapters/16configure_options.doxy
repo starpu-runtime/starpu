@@ -106,8 +106,9 @@ machine which does not have the tools <c>doxygen</c> and <c>latex</c>
 
 Additionally, the script <c>configure</c> recognize many variables, which
 can be listed by typing <c>./configure --help</c>. For example,
-<c>./configure NVCCFLAGS="-arch sm_13"</c> adds a flag for the compilation of
-CUDA kernels.
+<c>./configure NVCCFLAGS="-arch sm_20"</c> adds a flag for the compilation of
+CUDA kernels, and <c>NVCC_CC=gcc-5</c> allows to change the C++ compiler
+used by nvcc.
 
 
 \section ConfiguringWorkers Configuring Workers
