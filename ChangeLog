@@ -47,6 +47,11 @@ Changes:
 Small changes:
   * Use asynchronous transfers for task data fetches with were not prefetched.
 
+StarPU 1.2.2 (svn revision xxx)
+==============================================
+
+New features:
+
 StarPU 1.2.1 (svn revision 20299)
 ==============================================
 
