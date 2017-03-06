@@ -31,9 +31,10 @@ New features:
 Small features:
   * Scheduling contexts may now be associated a user data pointer at creation
     time, that can later be recalled through starpu_sched_ctx_get_user_data().
-  * Add STARPU_SIMGRID_TASK_SUBMIT_COST to simulate the cost of task submission
-    in simgrid mode. This provides more accurate simgrid predictions, especially
-    for the beginning of the execution.
+  * Add STARPU_SIMGRID_TASK_SUBMIT_COST and STARPU_SIMGRID_FETCHING_INPUT_COST
+    to simulate the cost of task submission and data fetching in simgrid mode.
+    This provides more accurate simgrid predictions, especially for the
+    beginning of the execution and regarding data transfers.
   * New configure option --enable-mpi-pedantic-isend (disabled by
     default) to acquire data in STARPU_RW (instead of STARPU_R) before
     performing MPI_Isend call

@@ -629,6 +629,15 @@ account in simgrid mode. This provides more accurate simgrid predictions,
 especially for the beginning of the execution.
 </dd>
 
+<dt>STARPU_SIMGRID_FETCHING_INPUT_COST</dt>
+<dd>
+\anchor STARPU_SIMGRID_FETCHING_INPUT_COST
+\addindex __env__STARPU_SIMGRID_FETCHING_INPUT_COST
+When set to 1 (which is the default), fetching input costs are taken into
+account in simgrid mode. This provides more accurate simgrid predictions,
+especially regarding data transfers.
+</dd>
+
 </dl>
 
 \section MiscellaneousAndDebug Miscellaneous And Debug

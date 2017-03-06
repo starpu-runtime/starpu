@@ -1012,6 +1012,10 @@ int _starpu_fetch_task_input(struct starpu_task *task, struct _starpu_job *j, in
 		{
 			ret = _starpu_fetch_data_on_node(handle, node, local_replicate, mode, 0, 0, 1,
 					_starpu_fetch_task_input_cb, worker, 0, "_starpu_src_common_worker_internal_work");
+#ifdef STARPU_SIMGRID
+			if (_starpu_simgrid_fetching_input_cost())
+				MSG_process_sleep(0.000001);
+#endif
 			if (STARPU_UNLIKELY(ret))
 			{
 				/* Ooops, not enough memory, make worker wait for these for now, and the synchronous call will finish by forcing eviction*/
@@ -1022,6 +1026,10 @@ int _starpu_fetch_task_input(struct starpu_task *task, struct _starpu_job *j, in
 		else
 		{
 			ret = fetch_data(handle, node, local_replicate, mode, 0);
+#ifdef STARPU_SIMGRID
+			if (_starpu_simgrid_fetching_input_cost())
+				MSG_process_sleep(0.000001);
+#endif
 			if (STARPU_UNLIKELY(ret))
 				goto enomem;
 		}
