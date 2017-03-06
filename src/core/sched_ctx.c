@@ -475,7 +475,7 @@ struct _starpu_sched_ctx* _starpu_create_sched_ctx(struct starpu_sched_policy *p
 	STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx_manag);
 
 	int nworkers = config->topology.nworkers;
-	unsigned i;
+	int i;
 
 	STARPU_ASSERT(nworkers_ctx <= nworkers);
 
@@ -501,7 +501,7 @@ struct _starpu_sched_ctx* _starpu_create_sched_ctx(struct starpu_sched_policy *p
 	_starpu_barrier_counter_init(&sched_ctx->ready_tasks_barrier, 0);
 
 	sched_ctx->ready_flops = 0.0;
-	for (i = 0; i < sizeof(sched_ctx->iterations)/sizeof(sched_ctx->iterations[0]); i++)
+	for (i = 0; i < (int) (sizeof(sched_ctx->iterations)/sizeof(sched_ctx->iterations[0])); i++)
 		sched_ctx->iterations[i] = -1;
 	sched_ctx->iteration_level = 0;
 	sched_ctx->main_master = -1;
@@ -539,7 +539,6 @@ struct _starpu_sched_ctx* _starpu_create_sched_ctx(struct starpu_sched_policy *p
 
 	if(is_initial_sched)
 	{
-		int i;
 		/*initialize the mutexes for all contexts */
 		for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
 		  {
@@ -559,7 +558,6 @@ struct _starpu_sched_ctx* _starpu_create_sched_ctx(struct starpu_sched_policy *p
 	   because they haven't been launched yet */
 	if(is_initial_sched)
 	{
-		int i;
 		for(i = 0; i < nworkers; i++)
 		{
 			struct _starpu_worker *worker = _starpu_get_worker_struct(i);
