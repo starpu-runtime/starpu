@@ -364,8 +364,6 @@ int starpu_data_acquire_on_node_try(starpu_data_handle_t handle, int node, enum 
 		/* no one has locked this data yet, so we proceed immediately */
 		ret = _starpu_fetch_data_on_node(handle, node, replicate, mode, 0, 0, 0, NULL, NULL);
 		STARPU_ASSERT(!ret);
-		if (replicate && replicate->mc)
-			replicate->mc->diduse = 1;
 	}
 	else
 	{
