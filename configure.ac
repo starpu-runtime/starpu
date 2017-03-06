@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2009-2016  Université de Bordeaux
-# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
 # Copyright (C) 2011  Télécom-SudParis
 # Copyright (C) 2011, 2012, 2014-2016  INRIA
 #
@@ -16,7 +16,7 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
-AC_INIT([StarPU], [1.2.0], [starpu-devel@lists.gforge.inria.fr], [starpu], [http://runtime.bordeaux.inria.fr/StarPU/])
+AC_INIT([StarPU], [1.2.1], [starpu-devel@lists.gforge.inria.fr], [starpu], [http://runtime.bordeaux.inria.fr/StarPU/])
 AC_CONFIG_SRCDIR(include/starpu.h)
 AC_CONFIG_AUX_DIR([build-aux])
 
