@@ -38,6 +38,9 @@
 #include <core/simgrid.h>
 #include <core/task.h>
 
+/* Number of ready requests to process before polling for completed requests */
+#define NREADY_PROCESS
+
 static void _starpu_mpi_add_sync_point_in_fxt(void);
 static void _starpu_mpi_submit_ready_request(void *arg);
 static void _starpu_mpi_handle_ready_request(struct _starpu_mpi_req *req);
@@ -1386,9 +1389,15 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 		}
 
 		/* get one request */
+		int n = 0;
 		while (!_starpu_mpi_req_list_empty(ready_requests))
 		{
 			struct _starpu_mpi_req *req;
+
+			if (n++ == NREADY_PROCESS)
+				/* Already spent some time on submitting ready requests, poll before processing more ready requests */
+				break;
+
 			req = _starpu_mpi_req_list_pop_back(ready_requests);
 
 			/* handling a request is likely to block for a while
