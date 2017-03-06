@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux
+ * Copyright (C) 2010, 2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -94,7 +94,7 @@ int main(int argc, char **argv)
 	for(i=0; i<ntasks; i++)
 	{
 		/* synchronize data in RAM */
-                ret = starpu_data_acquire(token_handle, STARPU_R);
+                ret = starpu_data_acquire(token_handle, STARPU_RW);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_acquire");
 
                 token ++;
