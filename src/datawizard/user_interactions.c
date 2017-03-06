@@ -242,14 +242,14 @@ int starpu_data_acquire_on_node(starpu_data_handle_t handle, int node, enum star
 	STARPU_ASSERT_MSG(_starpu_worker_may_perform_blocking_calls(), "Acquiring a data synchronously is not possible from a codelet or from a task callback, use starpu_data_acquire_cb instead.");
 
 	if (_starpu_data_is_multiformat_handle(handle) &&
-	    _starpu_handle_needs_conversion_task(handle, 0))
+	    _starpu_handle_needs_conversion_task(handle, node))
 	{
-		struct starpu_task *task = _starpu_create_conversion_task(handle, 0);
+		struct starpu_task *task = _starpu_create_conversion_task(handle, node);
 		int ret;
 		_starpu_spin_lock(&handle->header_lock);
 		handle->refcnt--;
 		handle->busy_count--;
-		handle->mf_node = 0;
+		handle->mf_node = node;
 		_starpu_spin_unlock(&handle->header_lock);
 		task->synchronous = 1;
 		ret = _starpu_task_submit_internally(task);
