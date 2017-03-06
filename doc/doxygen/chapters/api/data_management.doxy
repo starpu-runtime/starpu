@@ -151,7 +151,7 @@ buffer that was initially registered.
 
 \fn void starpu_data_unregister_submit(starpu_data_handle_t handle)
 \ingroup API_Data_Management
-Destroy the data \p handle once it is not needed anymore by any
+Destroy the data \p handle once it is no longer needed by any
 submitted task. No coherency is assumed.
 
 \fn void starpu_data_invalidate(starpu_data_handle_t handle)
@@ -276,8 +276,8 @@ the application will get an up-to-date copy of \p handle in main memory
 located where the data was originally registered, and that all
 concurrent accesses (e.g. from tasks) will be consistent with the
 access mode specified with \p mode. starpu_data_release() must
-be called once the application does not need to access the piece of
-data anymore. Note that implicit data dependencies are also enforced
+be called once the application no longer needs to access the piece of
+data. Note that implicit data dependencies are also enforced
 by starpu_data_acquire(), i.e. starpu_data_acquire() will wait for all
 tasks scheduled to work on the data, unless they have been disabled
 explictly by calling starpu_data_set_default_sequential_consistency_flag() or
@@ -292,8 +292,8 @@ Asynchronous equivalent of starpu_data_acquire(). When the data
 specified in \p handle is available in the access \p mode, the \p
 callback function is executed. The application may access
 the requested data during the execution of \p callback. The \p callback
-function must call starpu_data_release() once the application does not
-need to access the piece of data anymore. Note that implicit data
+function must call starpu_data_release() once the application no longer
+needs to access the piece of data. Note that implicit data
 dependencies are also enforced by starpu_data_acquire_cb() in case they
 are not disabled. Contrary to starpu_data_acquire(), this function is
 non-blocking and may be called from task callbacks. Upon successful
@@ -305,8 +305,8 @@ Equivalent of starpu_data_acquire_cb() with the possibility of enabling or disab
 When the data specified in \p handle is available in the access
 \p mode, the \p callback function is executed. The application may access
 the requested data during the execution of this \p callback. The \p callback
-function must call starpu_data_release() once the application does not
-need to access the piece of data anymore. Note that implicit data
+function must call starpu_data_release() once the application no longer
+needs to access the piece of data. Note that implicit data
 dependencies are also enforced by starpu_data_acquire_cb_sequential_consistency() in case they
 are not disabled specifically for the given \p handle or by the parameter \p sequential_consistency.
 Similarly to starpu_data_acquire_cb(), this function is
@@ -317,11 +317,11 @@ completion, this function returns 0.
 \ingroup API_Data_Management
 The application can call this function instead of starpu_data_acquire() so as to
 acquire the data like starpu_data_acquire(), but only if all
-previously-submitted tasks have completed, in why case starpu_data_acquire_try
+previously-submitted tasks have completed, in which case starpu_data_acquire_try()
 returns 0. StarPU will have ensured that the application will get an up-to-date
 copy of \p handle in main memory located where the data was originally
-registered. starpu_data_release() must be called once the application does not
-need to access the piece of data anymore.
+registered. starpu_data_release() must be called once the application no longer
+needs to access the piece of data.
 
 If not all previously-submitted tasks have completed, starpu_data_acquire_try
 returns -EAGAIN, and starpu_data_release() must not be called.
