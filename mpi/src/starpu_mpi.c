@@ -39,7 +39,7 @@
 #include <core/task.h>
 
 /* Number of ready requests to process before polling for completed requests */
-#define NREADY_PROCESS
+#define NREADY_PROCESS 10
 
 static void _starpu_mpi_add_sync_point_in_fxt(void);
 static void _starpu_mpi_submit_ready_request(void *arg);
