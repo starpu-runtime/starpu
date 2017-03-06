@@ -403,6 +403,7 @@ LIST_TYPE(_starpu_communication,
 	double bandwidth;
 	unsigned src_node;
 	unsigned dst_node;
+	const char *type;
 	struct _starpu_communication *peer;
 )
 
@@ -1944,7 +1945,7 @@ static void handle_start_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 
 		com->src_node = src;
 		com->dst_node = dst;
-
+		com->type = link_type;
 		com->peer = NULL;
 
 		_starpu_communication_list_push_back(&communication_list, com);
@@ -1996,23 +1997,6 @@ static void handle_end_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 
 	if (!options->no_bus)
 	{
-		if (out_paje_file)
-		{
-			double time = get_event_time_stamp(ev, options);
-			memnode_pop_state(time, prefix, dst);
-#ifdef STARPU_HAVE_POTI
-			char paje_value[STARPU_POTI_STR_LEN], paje_key[STARPU_POTI_STR_LEN];
-			char dst_memnode_container[STARPU_POTI_STR_LEN], program_container[STARPU_POTI_STR_LEN];
-			snprintf(paje_value, STARPU_POTI_STR_LEN, "%u", size);
-			snprintf(paje_key, STARPU_POTI_STR_LEN, "com_%u", comid);
-			program_container_alias(program_container, STARPU_POTI_STR_LEN, prefix);
-			memmanager_container_alias(dst_memnode_container, STARPU_POTI_STR_LEN, prefix, dst);
-			poti_EndLink(time, program_container, link_type, dst_memnode_container, paje_value, paje_key);
-#else
-			fprintf(out_paje_file, "19	%.9f	%s	%sp	%u	%smm%u	com_%u\n", time, link_type, prefix, size, prefix, dst, comid);
-#endif
-		}
-
 		/* look for a data transfer to match */
 #ifdef STARPU_DEVEL
 #warning FIXME: use hash table instead
@@ -2036,6 +2020,8 @@ static void handle_end_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 
 				com->src_node = itor->src_node;
 				com->dst_node = itor->dst_node;
+				com->type = itor->type;
+				link_type = itor->type;
 				com->peer = itor;
 				itor->peer = com;
 
@@ -2043,6 +2029,23 @@ static void handle_end_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 
 				break;
 			}
+		}
+
+		if (out_paje_file)
+		{
+			double time = get_event_time_stamp(ev, options);
+			memnode_pop_state(time, prefix, dst);
+#ifdef STARPU_HAVE_POTI
+			char paje_value[STARPU_POTI_STR_LEN], paje_key[STARPU_POTI_STR_LEN];
+			char dst_memnode_container[STARPU_POTI_STR_LEN], program_container[STARPU_POTI_STR_LEN];
+			snprintf(paje_value, STARPU_POTI_STR_LEN, "%u", size);
+			snprintf(paje_key, STARPU_POTI_STR_LEN, "com_%u", comid);
+			program_container_alias(program_container, STARPU_POTI_STR_LEN, prefix);
+			memmanager_container_alias(dst_memnode_container, STARPU_POTI_STR_LEN, prefix, dst);
+			poti_EndLink(time, program_container, link_type, dst_memnode_container, paje_value, paje_key);
+#else
+			fprintf(out_paje_file, "19	%.9f	%s	%sp	%u	%smm%u	com_%u\n", time, link_type, prefix, size, prefix, dst, comid);
+#endif
 		}
 	}
 }
