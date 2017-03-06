@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2016  Université de Bordeaux
+ * Copyright (C) 2010-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2013, 2015, 2016  CNRS
  * Copyright (C) 2016  Inria
  *
@@ -331,6 +331,28 @@ struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_
 	}
         _STARPU_LOG_OUT();
 	return task;
+}
+
+int _starpu_test_implicit_data_deps_with_handle(starpu_data_handle_t handle, enum starpu_data_access_mode mode)
+{
+	/* Do not care about some flags */
+	mode &= ~ STARPU_SSEND;
+	mode &= ~ STARPU_LOCALITY;
+
+	STARPU_ASSERT(!(mode & STARPU_SCRATCH));
+
+	if (handle->sequential_consistency)
+	{
+		if (handle->last_sync_task)
+			return -EAGAIN;
+		if (handle->last_submitted_accessors.next != &handle->last_submitted_accessors)
+			return -EAGAIN;
+
+		if (mode & STARPU_W || mode == STARPU_REDUX)
+			handle->initialized = 1;
+		handle->last_submitted_mode = mode;
+	}
+	return 0;
 }
 
 /* Create the implicit dependencies for a newly submitted task */

@@ -216,6 +216,7 @@ myPROGRAMS +=				\
 	datawizard/acquire_cb_insert		\
 	datawizard/acquire_release		\
 	datawizard/acquire_release2		\
+	datawizard/acquire_try			\
 	datawizard/cache			\
 	datawizard/commute			\
 	datawizard/commute2			\

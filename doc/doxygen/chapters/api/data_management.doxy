@@ -313,6 +313,19 @@ Similarly to starpu_data_acquire_cb(), this function is
 non-blocking and may be called from task callbacks. Upon successful
 completion, this function returns 0.
 
+\fn int starpu_data_acquire_try(starpu_data_handle_t handle, enum starpu_data_access_mode mode)
+\ingroup API_Data_Management
+The application can call this function instead of starpu_data_acquire() so as to
+acquire the data like starpu_data_acquire(), but only if all
+previously-submitted tasks have completed, in why case starpu_data_acquire_try
+returns 0. StarPU will have ensured that the application will get an up-to-date
+copy of \p handle in main memory located where the data was originally
+registered. starpu_data_release() must be called once the application does not
+need to access the piece of data anymore.
+
+If not all previously-submitted tasks have completed, starpu_data_acquire_try
+returns -EAGAIN, and starpu_data_release() must not be called.
+
 \def STARPU_ACQUIRE_NO_NODE
 \ingroup API_Data_Management
 This macro can be used to acquire data, but not require it to be available on a given node, only enforce R/W dependencies.
@@ -342,6 +355,14 @@ used instead of an explicit node number.
 \fn int starpu_data_acquire_on_node_cb_sequential_consistency(starpu_data_handle_t handle, int node, enum starpu_data_access_mode mode, void (*callback)(void *), void *arg, int sequential_consistency)
 \ingroup API_Data_Management
 This is the same as starpu_data_acquire_cb_sequential_consistency(), except that the
+data will be available on the given memory node instead of main
+memory.
+::STARPU_ACQUIRE_NO_NODE and ::STARPU_ACQUIRE_NO_NODE_LOCK_ALL can be used instead of an
+explicit node number.
+
+\fn int starpu_data_acquire_on_node_try(starpu_data_handle_t handle, int node, enum starpu_data_access_mode mode)
+\ingroup API_Data_Management
+This is the same as starpu_data_acquire_try(), except that the
 data will be available on the given memory node instead of main
 memory.
 ::STARPU_ACQUIRE_NO_NODE and ::STARPU_ACQUIRE_NO_NODE_LOCK_ALL can be used instead of an

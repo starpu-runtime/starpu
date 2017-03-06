@@ -338,6 +338,63 @@ int starpu_data_acquire(starpu_data_handle_t handle, enum starpu_data_access_mod
 	return starpu_data_acquire_on_node(handle, STARPU_MAIN_RAM, mode);
 }
 
+int starpu_data_acquire_on_node_try(starpu_data_handle_t handle, int node, enum starpu_data_access_mode mode)
+{
+	STARPU_ASSERT(handle);
+	STARPU_ASSERT_MSG(handle->nchildren == 0, "Acquiring a partitioned data is not possible");
+	/* it is forbidden to call this function from a callback or a codelet */
+	STARPU_ASSERT_MSG(_starpu_worker_may_perform_blocking_calls(), "Acquiring a data synchronously is not possible from a codelet or from a task callback, use starpu_data_acquire_cb instead.");
+
+	int ret;
+	STARPU_ASSERT_MSG(!_starpu_data_is_multiformat_handle(handle), "not supported yet");
+	STARPU_PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
+	ret = _starpu_test_implicit_data_deps_with_handle(handle, mode);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
+	if (ret)
+		return ret;
+
+	struct user_interaction_wrapper wrapper =
+	{
+		.handle = handle,
+		.mode = mode,
+		.node = node,
+		.finished = 0
+	};
+
+	STARPU_PTHREAD_COND_INIT(&wrapper.cond, NULL);
+	STARPU_PTHREAD_MUTEX_INIT(&wrapper.lock, NULL);
+
+	/* we try to get the data, if we do not succeed immediately, we set a
+ 	* callback function that will be executed automatically when the data is
+ 	* available again, otherwise we fetch the data directly */
+	if (!_starpu_attempt_to_submit_data_request_from_apps(handle, mode, _starpu_data_acquire_continuation, &wrapper))
+	{
+		struct _starpu_data_replicate *replicate =
+			node >= 0 ? &handle->per_node[node] : NULL;
+		/* no one has locked this data yet, so we proceed immediately */
+		ret = _starpu_fetch_data_on_node(handle, node, replicate, mode, 0, 0, 0, NULL, NULL, 0, "starpu_data_acquire_on_node");
+		STARPU_ASSERT(!ret);
+		if (replicate && replicate->mc)
+			replicate->mc->diduse = 1;
+	}
+	else
+	{
+		STARPU_PTHREAD_MUTEX_LOCK(&wrapper.lock);
+		while (!wrapper.finished)
+			STARPU_PTHREAD_COND_WAIT(&wrapper.cond, &wrapper.lock);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&wrapper.lock);
+	}
+	STARPU_PTHREAD_COND_DESTROY(&wrapper.cond);
+	STARPU_PTHREAD_MUTEX_DESTROY(&wrapper.lock);
+
+	return 0;
+}
+
+int starpu_data_acquire_try(starpu_data_handle_t handle, enum starpu_data_access_mode mode)
+{
+	return starpu_data_acquire_on_node_try(handle, STARPU_MAIN_RAM, mode);
+}
+
 /* This function must be called after starpu_data_acquire so that the
  * application release the data */
 void starpu_data_release_on_node(starpu_data_handle_t handle, int node)
