@@ -566,10 +566,10 @@ void _starpu_notify_arbitered_dependencies(starpu_data_handle_t handle)
 			r_mode = _starpu_arbiter_filter_modes(r_mode);
 
 			_starpu_spin_lock(&handle->header_lock);
+			handle->busy_count++;
 			if (((handle->refcnt == 0) || (!(r_mode == STARPU_W) && (handle->current_mode == r_mode))))
 			{
 				handle->refcnt++;
-				handle->busy_count++;
 				handle->current_mode = r_mode;
 				put_in_list = 0;
 			}
