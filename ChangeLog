@@ -47,8 +47,9 @@ Changes:
 Small changes:
   * Use asynchronous transfers for task data fetches with were not prefetched.
 
-StarPU 1.2.1 (svn revision xxx)
+StarPU 1.2.1 (svn revision 20299)
 ==============================================
+
 New features:
   * Add starpu_fxt_trace_user_event_string.
   * Add starpu_tasks_rec_complete tool to add estimation times in tasks.rec
@@ -64,10 +65,24 @@ New features:
   * Add starpu_data_set_name, starpu_data_set_coordinates_array, and
     starpu_data_set_coordinates to describe data, and starpu_iteration_push and
     starpu_iteration_pop to describe tasks, for better offline traces analysis.
+  * New function starpu_bus_print_filenames() to display filenames
+    storing bandwidth/affinity/latency information, available through
+    tools/starpu_machine_display -i
+  * Add support for Ayudame version 2.x debugging library.
+  * Add starpu_sched_ctx_get_workers_list_raw, much less costly than
+    starpu_sched_ctx_get_workers_list
+  * Add starpu_task_get_name and use it to warn about dmda etc. using
+    a dumb policy when calibration is not finished
+  * MPI: Add functions to test for cached values
 
 Changes:
   * Fix performance regression of lws for small tasks.
+  * Improve native Fortran support for StarPU
 
+Small changes:
+  * Fix type of data home node to allow users to pass -1 to define
+    temporary data
+  * Fix compatibility with simgrid 3.14
 
 StarPU 1.2.0 (svn revision 18521)
 ==============================================
