@@ -76,7 +76,8 @@ int increment_token(void)
 static
 void callback(void *arg STARPU_ATTRIBUTE_UNUSED)
 {
-        starpu_data_release(token_handle);
+	token++;
+	starpu_data_release(token_handle);
 }
 
 #ifdef STARPU_USE_OPENCL
@@ -126,7 +127,7 @@ int main(int argc, char **argv)
 	starpu_shutdown();
 
         FPRINTF(stderr, "Token: %u\n", token);
-	if (token == ntasks * 2)
+	if (token == ntasks * 3)
 		ret = EXIT_SUCCESS;
 	else
 		ret = EXIT_FAILURE;
