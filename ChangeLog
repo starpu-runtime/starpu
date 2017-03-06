@@ -52,6 +52,7 @@ StarPU 1.2.2 (svn revision xxx)
 
 New features:
   * Add starpu_data_acquire_try and starpu_data_acquire_on_node_try.
+  * Add NVCC_CC environment variable.
 
 StarPU 1.2.1 (svn revision 20299)
 ==============================================
