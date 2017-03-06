@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2012, 2014-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -35,7 +35,7 @@
 #endif
 
 /*
- *   U22 
+ *   U22
  */
 
 #if defined(STARPU_USE_CUDA)
@@ -65,7 +65,7 @@ static inline void chol_common_cpu_codelet_update_u22(void *descr[], int s, STAR
 		if (worker_size == 1)
 		{
 			/* Sequential CPU kernel */
-			STARPU_SGEMM("N", "T", dy, dx, dz, -1.0f, left, ld21, 
+			STARPU_SGEMM("N", "T", dy, dx, dz, -1.0f, left, ld21,
 				right, ld12, 1.0f, center, ld22);
 		}
 		else
@@ -75,11 +75,11 @@ static inline void chol_common_cpu_codelet_update_u22(void *descr[], int s, STAR
 
 			unsigned block_size = (dx + worker_size - 1)/worker_size;
 			unsigned new_dx = STARPU_MIN(dx, block_size*(rank+1)) - block_size*rank;
-			
+
 			float *new_left = &left[block_size*rank];
 			float *new_center = &center[block_size*rank];
 
-			STARPU_SGEMM("N", "T", dy, new_dx, dz, -1.0f, new_left, ld21, 
+			STARPU_SGEMM("N", "T", dy, new_dx, dz, -1.0f, new_left, ld21,
 				right, ld12, 1.0f, new_center, ld22);
 		}
 	}
@@ -88,8 +88,8 @@ static inline void chol_common_cpu_codelet_update_u22(void *descr[], int s, STAR
 		/* CUDA kernel */
 #ifdef STARPU_USE_CUDA
 		cublasStatus_t status = cublasSgemm(starpu_cublas_get_local_handle(),
-				CUBLAS_OP_N, CUBLAS_OP_T, dy, dx, dz, 
-				&m1, left, ld21, right, ld12, 
+				CUBLAS_OP_N, CUBLAS_OP_T, dy, dx, dz,
+				&m1, left, ld21, right, ld12,
 				&p1, center, ld22);
 		if (status != CUBLAS_STATUS_SUCCESS)
 			STARPU_CUBLAS_REPORT_ERROR(status);
@@ -110,7 +110,7 @@ void chol_cublas_codelet_update_u22(void *descr[], void *_args)
 }
 #endif /* STARPU_USE_CUDA */
 
-/* 
+/*
  * U21
  */
 
@@ -163,18 +163,18 @@ void chol_cublas_codelet_update_u21(void *descr[], void *_args)
 {
 	chol_common_codelet_update_u21(descr, 1, _args);
 }
-#endif 
+#endif
 
 /*
  *	U11
  */
 
-static inline void chol_common_codelet_update_u11(void *descr[], int s, STARPU_ATTRIBUTE_UNUSED void *_args) 
+static inline void chol_common_codelet_update_u11(void *descr[], int s, STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 /*	printf("11\n"); */
 	float *sub11;
 
-	sub11 = (float *)STARPU_MATRIX_GET_PTR(descr[0]); 
+	sub11 = (float *)STARPU_MATRIX_GET_PTR(descr[0]);
 
 	unsigned nx = STARPU_MATRIX_GET_NY(descr[0]);
 	unsigned ld = STARPU_MATRIX_GET_LD(descr[0]);
@@ -201,10 +201,10 @@ static inline void chol_common_codelet_update_u11(void *descr[], int s, STARPU_A
 				sub11[z+z*ld] = lambda11;
 
 				STARPU_ASSERT(lambda11 != 0.0f);
-		
+
 				STARPU_SSCAL(nx - z - 1, 1.0f/lambda11, &sub11[(z+1)+z*ld], 1);
-		
-				STARPU_SSYR("L", nx - z - 1, -1.0f, 
+
+				STARPU_SSYR("L", nx - z - 1, -1.0f,
 							&sub11[(z+1)+z*ld], 1,
 							&sub11[(z+1)+(z+1)*ld], ld);
 			}
@@ -247,12 +247,11 @@ static inline void chol_common_codelet_update_u11(void *descr[], int s, STARPU_A
 
 			for (z = 0; z < nx; z++)
 			{
-				
 				cudaMemcpyAsync(lambda11, &sub11[z+z*ld], sizeof(float), cudaMemcpyDeviceToHost, stream);
 				cudaStreamSynchronize(stream);
 
 				STARPU_ASSERT(*lambda11 != 0.0f);
-				
+
 				*lambda11 = sqrt(*lambda11);
 
 /*				cublasSetVector(1, sizeof(float), lambda11, sizeof(float), &sub11[z+z*ld], sizeof(float)); */
@@ -260,13 +259,17 @@ static inline void chol_common_codelet_update_u11(void *descr[], int s, STARPU_A
 				float scal = 1.0f/(*lambda11);
 
 				status = cublasSscal(handle,
-						nx - z - 1, &scal, &sub11[(z+1)+z*ld], 1);
+						     nx - z - 1, &scal, &sub11[(z+1)+z*ld], 1);
+				if (status != CUBLAS_STATUS_SUCCESS)
+					STARPU_CUBLAS_REPORT_ERROR(status);
 
 				status = cublasSsyr(handle,
-							CUBLAS_FILL_MODE_UPPER,
-							nx - z - 1, &m1,
-							&sub11[(z+1)+z*ld], 1,
-							&sub11[(z+1)+(z+1)*ld], ld);
+						    CUBLAS_FILL_MODE_UPPER,
+						    nx - z - 1, &m1,
+						    &sub11[(z+1)+z*ld], 1,
+						    &sub11[(z+1)+(z+1)*ld], ld);
+				if (status != CUBLAS_STATUS_SUCCESS)
+					STARPU_CUBLAS_REPORT_ERROR(status);
 			}
 
 			cudaStreamSynchronize(stream);
