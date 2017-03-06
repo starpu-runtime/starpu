@@ -462,6 +462,19 @@ do {									\
 } while (0)
 #endif
 
+#ifndef FUT_RAW_ALWAYS_PROBE2
+#define FUT_RAW_ALWAYS_PROBE2(CODE,P1,P2) do {	\
+		unsigned long *__args __attribute__((unused))=	\
+			fut_getstampedbuffer(CODE,		\
+					     FUT_SIZE(2)); \
+		*(__args++)=(unsigned long)(P1);*(__args++)=(unsigned long)(P2); \
+		fut_commitstampedbuffer(FUT_SIZE(2)); \
+	} while (0)
+#endif
+#define FUT_DO_ALWAYS_PROBE2(CODE,P1,P2) do { \
+        FUT_RAW_ALWAYS_PROBE2(FUT_CODE(CODE, 2),P1,P2); \
+} while (0)
+
 #ifndef FUT_RAW_ALWAYS_PROBE3
 #define FUT_RAW_ALWAYS_PROBE3(CODE,P1,P2,P3) do {	\
 		unsigned long *__args __attribute__((unused))=	\
@@ -531,7 +544,7 @@ do {									\
 
 /* workerkind = _STARPU_FUT_CPU_KEY for instance */
 #define _STARPU_TRACE_NEW_MEM_NODE(nodeid)			\
-	FUT_DO_PROBE2(_STARPU_FUT_NEW_MEM_NODE, nodeid, _starpu_gettid());
+	FUT_DO_ALWAYS_PROBE2(_STARPU_FUT_NEW_MEM_NODE, nodeid, _starpu_gettid());
 
 #define _STARPU_TRACE_WORKER_INIT_START(workerkind, workerid, devid, memnode, bindid, sync)	\
 	FUT_DO_PROBE7(_STARPU_FUT_WORKER_INIT_START, workerkind, workerid, devid, memnode, bindid, sync, _starpu_gettid());
