@@ -2545,6 +2545,7 @@ static void _starpu_sched_ctx_put_new_master(unsigned sched_ctx_id)
 			break;
 		}
 	}
+	STARPU_ASSERT(i<nworkers);
 }
 
 struct starpu_perfmodel_arch * _starpu_sched_ctx_get_perf_archtype(unsigned sched_ctx_id)
