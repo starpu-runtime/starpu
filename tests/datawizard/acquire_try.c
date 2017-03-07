@@ -65,6 +65,7 @@ int main(int argc, char **argv)
 	ret = starpu_data_acquire_try(token_handle, STARPU_R);
 	STARPU_ASSERT(ret != 0);
 
+	starpu_do_schedule();
 	while ((ret = starpu_data_acquire_try(token_handle, STARPU_R)) != 0)
 	{
 		starpu_sleep(0.001);
