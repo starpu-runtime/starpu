@@ -540,6 +540,7 @@ double sc_hypervisor_get_nready_flops_of_all_sons_of_sched_ctx(unsigned sched_ct
 		ready_flops += sc_hypervisor_get_nready_flops_of_all_sons_of_sched_ctx(sched_ctxs[s]);
 		//ready_flops += starpu_get_nready_flops_of_sched_ctx(sched_ctxs[s]);
 
+	free(sched_ctxs);
 	return ready_flops;
 }
 static void _decrement_elapsed_flops_per_worker(unsigned sched_ctx, int worker, double flops)
@@ -966,6 +967,7 @@ void _update_max_diff_hierarchically(unsigned father, double diff)
 #endif
 			_update_max_diff_hierarchically(sched_ctxs_child[s], current_diff);
 		}
+		free(sched_ctxs_child);
 	}
 	return;
 }
@@ -1132,6 +1134,7 @@ void sc_hypervisor_update_resize_interval(unsigned *sched_ctxs, int nsched_ctxs,
 #endif
 				_update_max_diff_hierarchically(max_nflops_sched_ctx, diff);
 			}
+			free(sched_ctxs2);
 		}
 	}
 
