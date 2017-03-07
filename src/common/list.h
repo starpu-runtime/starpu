@@ -167,16 +167,16 @@
   /** @internal */static inline void ENAME##_list_push_list_back(struct ENAME##_list *l1, struct ENAME##_list *l2) \
     { if(l1->_head == NULL) { l1->_head = l2->_head; l1->_tail = l2->_tail; } \
       else if (l2->_head != NULL) { l1->_tail->_next = l2->_head; l2->_head->_prev = l1->_tail; l1->_tail = l2->_tail; } } \
-  /** @internal */static inline struct ENAME *ENAME##_list_front(struct ENAME##_list *l) \
+  /** @internal */static inline struct ENAME *ENAME##_list_front(const struct ENAME##_list *l) \
     { return l->_head; } \
-  /** @internal */static inline struct ENAME *ENAME##_list_back(struct ENAME##_list *l) \
+  /** @internal */static inline struct ENAME *ENAME##_list_back(const struct ENAME##_list *l) \
     { return l->_tail; } \
   /** @internal */static inline void ENAME##_list_init(struct ENAME##_list *l) \
     { l->_head=NULL; l->_tail=l->_head; } \
   /** @internal */static inline struct ENAME##_list *ENAME##_list_new(void) \
     { struct ENAME##_list *l; l=(struct ENAME##_list *)malloc(sizeof(struct ENAME##_list)); \
       ENAME##_list_init(l); return l; } \
-  /** @internal */static inline int ENAME##_list_empty(struct ENAME##_list *l) \
+  /** @internal */static inline int ENAME##_list_empty(const struct ENAME##_list *l) \
     { return (l->_head == NULL); } \
   /** @internal */static inline void ENAME##_list_delete(struct ENAME##_list *l) \
     { free(l); } \
@@ -189,11 +189,11 @@
   /** @internal */static inline struct ENAME *ENAME##_list_pop_back(struct ENAME##_list *l) \
     { struct ENAME *e = ENAME##_list_back(l); \
       ENAME##_list_erase(l, e); return e; } \
-  /** @internal */static inline struct ENAME *ENAME##_list_begin(struct ENAME##_list *l) \
+  /** @internal */static inline struct ENAME *ENAME##_list_begin(const struct ENAME##_list *l) \
     { return l->_head; } \
-  /** @internal */static inline struct ENAME *ENAME##_list_end(struct ENAME##_list *l STARPU_ATTRIBUTE_UNUSED) \
+  /** @internal */static inline struct ENAME *ENAME##_list_end(const struct ENAME##_list *l STARPU_ATTRIBUTE_UNUSED) \
     { return NULL; } \
-  /** @internal */static inline struct ENAME *ENAME##_list_next(struct ENAME *i) \
+  /** @internal */static inline struct ENAME *ENAME##_list_next(const struct ENAME *i) \
     { return i->_next; } \
   /** @internal */static inline struct ENAME *ENAME##_list_last(const struct ENAME##_list *l) \
     { return l->_tail; } \
@@ -201,9 +201,9 @@
     { return NULL; } \
   /** @internal */static inline struct ENAME *ENAME##_list_prev(const struct ENAME *i) \
     { return i->_prev; } \
-  /** @internal */static inline int ENAME##_list_size(struct ENAME##_list *l) \
+  /** @internal */static inline int ENAME##_list_size(const struct ENAME##_list *l) \
     { struct ENAME *i=l->_head; int k=0; while(i!=NULL){k++;i=i->_next;} return k; } \
-  /** @internal */static inline int ENAME##_list_check(struct ENAME##_list *l) \
+  /** @internal */static inline int ENAME##_list_check(const struct ENAME##_list *l) \
     { struct ENAME *i=l->_head; while(i) \
     { if ((i->_next == NULL) && i != l->_tail) return 0; \
       if (i->_next == i) return 0; \
