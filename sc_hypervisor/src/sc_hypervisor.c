@@ -776,7 +776,6 @@ static unsigned _ack_resize_completed(unsigned sched_ctx, int worker)
 					{
 						only_remove = 1;
 						_reset_resize_sample_info(sched_ctx, STARPU_NMAX_SCHED_CTXS);
-						STARPU_PTHREAD_MUTEX_UNLOCK(&sc_w->mutex);
 						break;
 					}
 			}
