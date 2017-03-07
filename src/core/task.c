@@ -378,7 +378,8 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 	if (!cl)
 		return;
 
-	int is_where_unset = cl->where == 0;
+	uint32_t where = cl->where;
+	int is_where_unset = where == 0;
 	unsigned i, some_impl;
 
 	/* Check deprecated and unset fields (where, <device>_func,
@@ -408,7 +409,7 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 	}
 	if (some_impl && is_where_unset)
 	{
-		cl->where |= STARPU_CPU;
+		where |= STARPU_CPU;
 	}
 
 	/* CUDA */
@@ -435,7 +436,7 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 	}
 	if (some_impl && is_where_unset)
 	{
-		cl->where |= STARPU_CUDA;
+		where |= STARPU_CUDA;
 	}
 
 	/* OpenCL */
@@ -462,7 +463,7 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 	}
 	if (some_impl && is_where_unset)
 	{
-		cl->where |= STARPU_OPENCL;
+		where |= STARPU_OPENCL;
 	}
 
 	some_impl = 0;
@@ -474,7 +475,7 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 		}
 	if (some_impl && is_where_unset)
 	{
-		cl->where |= STARPU_MIC;
+		where |= STARPU_MIC;
 	}
 
 	some_impl = 0;
@@ -486,7 +487,7 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 		}
 	if (some_impl && is_where_unset)
 	{
-		cl->where |= STARPU_SCC;
+		where |= STARPU_SCC;
 	}
 
 	some_impl = 0;
@@ -498,8 +499,9 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 		}
 	if (some_impl && is_where_unset)
 	{
-		cl->where |= STARPU_MIC|STARPU_SCC;
+		where |= STARPU_MIC|STARPU_SCC;
 	}
+	cl->where = where;
 }
 
 void _starpu_task_check_deprecated_fields(struct starpu_task *task STARPU_ATTRIBUTE_UNUSED)
