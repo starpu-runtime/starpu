@@ -812,11 +812,6 @@ cg_cg_SOURCES =					\
 	cg/cg_kernels.c				\
 	common/blas.c
 
-if STARPU_USE_CUDA
-cg_cg_SOURCES +=				\
-	cg/cg_dot_kernel.cu
-endif
-
 cg_cg_LDADD =					\
 	$(STARPU_BLAS_LDFLAGS)
 
