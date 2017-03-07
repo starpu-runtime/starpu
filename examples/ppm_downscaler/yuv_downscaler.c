@@ -43,8 +43,8 @@ void parse_args(int argc, char **argv)
 {
 	if (argc == 3)
 	{
-		strncpy(filename_in, argv[1], 1024);
-		strncpy(filename_out, argv[2], 1024);
+		strncpy(filename_in, argv[1], 1023);
+		strncpy(filename_out, argv[2], 1023);
 	}
 	else
 	{
