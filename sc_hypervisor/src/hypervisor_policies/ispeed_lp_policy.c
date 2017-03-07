@@ -177,6 +177,7 @@ static void _try_resizing(unsigned *sched_ctxs, int nsched_ctxs , int *workers, 
 		
 		sc_hypervisor_lp_redistribute_resources_in_ctxs(ns, ntypes_of_workers, nworkers_per_ctx_rounded, nworkers_per_ctx, curr_sched_ctxs, tw);
 	}
+	free(tw);
 	for(i = 0; i < ns; i++)
 		free(flops_on_w[i]);
 	free(flops_on_w);
