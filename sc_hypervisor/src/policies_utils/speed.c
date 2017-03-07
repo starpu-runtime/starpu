@@ -300,7 +300,10 @@ void sc_hypervisor_check_if_consider_max(struct types_of_workers *tw)
 	{
 		avg_speed_per_tw[w] = sc_hypervisor_get_avg_speed(sc_hypervisor_get_arch_for_index(w, tw));
 		if(avg_speed_per_tw[w] == -1.0)
+		{
+			free(sched_ctxs);
 			return;
+		}
 	}
 
 	int s;
