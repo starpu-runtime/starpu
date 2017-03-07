@@ -173,8 +173,9 @@ extern void zero_vector(TYPE *x, unsigned nelems);
 static void bzero_variable_cuda(void *descr[], void *cl_arg)
 {
 	TYPE *v = (TYPE *)STARPU_VARIABLE_GET_PTR(descr[0]);
+	size_t size = STARPU_VARIABLE_GET_ELEMSIZE(descr[0]);
 
-	zero_vector(v, 1);
+	cudaMemsetAsync(v, 0, size, starpu_cuda_get_local_stream());
 }
 #endif
 
@@ -209,8 +210,9 @@ static void bzero_vector_cuda(void *descr[], void *cl_arg)
 {
 	TYPE *v = (TYPE *)STARPU_VECTOR_GET_PTR(descr[0]);
 	unsigned n = STARPU_VECTOR_GET_NX(descr[0]);
- 
-	zero_vector(v, n);
+	size_t elemsize = STARPU_VECTOR_GET_ELEMSIZE(descr[0]);
+
+	cudaMemsetAsync(v, 0, n * elemsize, starpu_cuda_get_local_stream());
 }
 #endif
 
@@ -247,8 +249,6 @@ struct starpu_codelet bzero_vector_cl =
  */
 
 #ifdef STARPU_USE_CUDA
-extern void dot_host(TYPE *x, TYPE *y, unsigned nelems, TYPE *dot);
-
 static void dot_kernel_cuda(void *descr[], void *cl_arg)
 {
 	TYPE *dot = (TYPE *)STARPU_VARIABLE_GET_PTR(descr[0]); 
@@ -257,26 +257,13 @@ static void dot_kernel_cuda(void *descr[], void *cl_arg)
 
 	unsigned n = STARPU_VECTOR_GET_NX(descr[1]);
 
-	int version;
-	cublasGetVersion(starpu_cublas_get_local_handle(), &version);
-
-	/* FIXME: check in Nvidia bug #1882017 when this gets fixed */
-	if (version < 99999)
-	{
-		/* This function puts its result directly in device memory, so
-		 * that we don't have to transfer that value back and forth. */
-		dot_host(v1, v2, n, dot);
-	}
-	else
-	{
-		/* Should be able to put result in GPU, but does not yet, see
-		 * Nvidia bug #1882017 */
-		cublasStatus_t status = cublasdot(starpu_cublas_get_local_handle(),
-			n, v1, 1, v2, 1, dot);
-		if (status != CUBLAS_STATUS_SUCCESS)
-			STARPU_CUBLAS_REPORT_ERROR(status);
-		cudaStreamSynchronize(starpu_cuda_get_local_stream());
-	}
+	cublasHandle_t handle = starpu_cublas_get_local_handle();
+	cublasSetPointerMode(handle, CUBLAS_POINTER_MODE_DEVICE);
+	cublasStatus_t status = cublasdot(handle,
+		n, v1, 1, v2, 1, dot);
+	if (status != CUBLAS_STATUS_SUCCESS)
+		STARPU_CUBLAS_REPORT_ERROR(status);
+	cublasSetPointerMode(handle, CUBLAS_POINTER_MODE_HOST);
 }
 #endif
 
@@ -310,6 +297,7 @@ static struct starpu_codelet dot_kernel_cl =
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {dot_kernel_cuda},
 #endif
+	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.nbuffers = 3,
 	.model = &dot_kernel_model
 };
