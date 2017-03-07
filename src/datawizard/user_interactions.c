@@ -278,7 +278,7 @@ int starpu_data_acquire_on_node(starpu_data_handle_t handle, int node, enum star
 	/* unless asynchronous, it is forbidden to call this function from a callback or a codelet */
 	STARPU_ASSERT_MSG(_starpu_worker_may_perform_blocking_calls(), "Acquiring a data synchronously is not possible from a codelet or from a task callback, use starpu_data_acquire_cb instead.");
 
-	if (_starpu_data_is_multiformat_handle(handle) &&
+	if (node >= 0 && _starpu_data_is_multiformat_handle(handle) &&
 	    _starpu_handle_needs_conversion_task(handle, node))
 	{
 		struct starpu_task *task = _starpu_create_conversion_task(handle, node);
