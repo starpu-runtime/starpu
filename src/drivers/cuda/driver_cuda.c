@@ -516,7 +516,7 @@ static int start_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *worke
 #ifdef STARPU_SIMGRID
 		int async = task->cl->cuda_flags[j->nimpl] & STARPU_CUDA_ASYNC;
 		unsigned workerid = worker->workerid;
-		if (cl->flags & STARPU_CODELET_SIMGRID_EXECUTE & !async)
+		if (cl->flags & STARPU_CODELET_SIMGRID_EXECUTE && !async)
 			func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
 		else
 			_starpu_simgrid_submit_job(workerid, j, &worker->perf_arch, NAN,

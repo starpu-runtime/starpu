@@ -941,7 +941,7 @@ static int _starpu_opencl_start_job(struct _starpu_job *j, struct _starpu_worker
 		double length = NAN;
 		int async = task->cl->opencl_flags[j->nimpl] & STARPU_OPENCL_ASYNC;
 		int simulate = 1;
-		if (cl->flags & STARPU_CODELET_SIMGRID_EXECUTE & !async)
+		if (cl->flags & STARPU_CODELET_SIMGRID_EXECUTE && !async)
 		{
 			/* Actually execute function */
 			simulate = 0;
