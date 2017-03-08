@@ -1870,7 +1870,7 @@ static void _starpu_init_numa_node(struct _starpu_machine_config *config)
 #else /* defined(STARPU_USE_NUMA) && defined(STARPU_HAVE_HWLOC) */
 
 		/* In this case, nnuma has only one node */
-		int memnode = starpu_memory_node_register(STARPU_CPU_RAM, 0);
+		int memnode = _starpu_memory_node_register(STARPU_CPU_RAM, 0);
 		STARPU_ASSERT_MSG(memnode == STARPU_MAIN_RAM, "Wrong Memory Node : %d (expected %d) \n", memnode, STARPU_MAIN_RAM);
 
 		numa_memory_nodes[memnode] = -1;
