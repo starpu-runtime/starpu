@@ -158,7 +158,6 @@ static void _starpu_mpi_request_destroy(struct _starpu_mpi_req *req)
 	free(req->datatype_name);
 	req->datatype_name = NULL;
 	free(req);
-	req = NULL;
 }
 
  /********************************************************/
