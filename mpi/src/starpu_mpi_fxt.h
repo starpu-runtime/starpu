@@ -46,6 +46,8 @@ extern "C" {
 #define _STARPU_MPI_FUT_UWAIT_BEGIN			0x5218
 #define _STARPU_MPI_FUT_UWAIT_END			0x5219
 #define _STARPU_MPI_FUT_DATA_SET_RANK			0x521a
+#define _STARPU_MPI_FUT_IRECV_TERMINATED		0x521b
+#define _STARPU_MPI_FUT_ISEND_TERMINATED		0x521c
 
 #ifdef STARPU_USE_FXT
 #define _STARPU_MPI_TRACE_START(rank, worldsize)	\
@@ -70,6 +72,9 @@ extern "C" {
 	FUT_DO_PROBE3(_STARPU_MPI_FUT_IRECV_COMPLETE_BEGIN, (src), (mpi_tag), _starpu_gettid());
 #define _STARPU_MPI_TRACE_IRECV_COMPLETE_END(src, mpi_tag)	\
 	FUT_DO_PROBE3(_STARPU_MPI_FUT_IRECV_COMPLETE_END, (src), (mpi_tag), _starpu_gettid());
+#define _STARPU_MPI_TRACE_TERMINATED(req, rank, mpi_tag)		\
+	if ((req)->request_type == RECV_REQ) FUT_DO_PROBE3(_STARPU_MPI_FUT_IRECV_TERMINATED, (rank), (mpi_tag), _starpu_gettid()); else \
+	if ((req)->request_type == SEND_REQ) FUT_DO_PROBE3(_STARPU_MPI_FUT_ISEND_TERMINATED, (rank), (mpi_tag), _starpu_gettid());
 #define _STARPU_MPI_TRACE_SLEEP_BEGIN()	\
 	FUT_DO_PROBE1(_STARPU_MPI_FUT_SLEEP_BEGIN, _starpu_gettid());
 #define _STARPU_MPI_TRACE_SLEEP_END()	\
@@ -98,6 +103,7 @@ extern "C" {
 #define _STARPU_MPI_TRACE_IRECV_SUBMIT_BEGIN(a, b)		do {} while(0);
 #define _STARPU_MPI_TRACE_IRECV_SUBMIT_END(a, b)		do {} while(0);
 #define _STARPU_MPI_TRACE_ISEND_COMPLETE_BEGIN(a, b, c)		do {} while(0);
+#define _STARPU_MPI_TRACE_TERMINATED(a, b, c)			do {} while(0);
 #define _STARPU_MPI_TRACE_ISEND_COMPLETE_END(a, b, c)		do {} while(0);
 #define _STARPU_MPI_TRACE_IRECV_COMPLETE_BEGIN(a, b)		do {} while(0);
 #define _STARPU_MPI_TRACE_IRECV_COMPLETE_END(a, b)		do {} while(0);
