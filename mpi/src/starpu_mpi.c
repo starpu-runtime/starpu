@@ -1065,6 +1065,7 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
 				_starpu_mpi_datatype_free(req->data_handle, &req->datatype);
 			}
 		}
+		_STARPU_MPI_TRACE_TERMINATED(req, req->node_tag.rank, req->node_tag.data_tag);
 	}
 
 	if (req->data_handle)

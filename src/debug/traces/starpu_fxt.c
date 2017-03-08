@@ -2540,14 +2540,29 @@ static void handle_mpi_isend_complete_end(struct fxt_ev_64 *ev, struct starpu_fx
 
 static void handle_mpi_irecv_complete_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
-	int src = ev->param[0];
-	int mpi_tag = ev->param[1];
 	double date = get_event_time_stamp(ev, options);
 
 	if (out_paje_file)
 		mpicommthread_set_state(date, options->file_prefix, "RvC");
 	if (trace_file)
 		recfmt_mpicommthread_set_state(date, "RvC");
+}
+
+static void handle_mpi_irecv_complete_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	double date = get_event_time_stamp(ev, options);
+
+	if (out_paje_file)
+		mpicommthread_set_state(date, options->file_prefix, "P");
+	if (trace_file)
+		recfmt_mpicommthread_set_state(date, "P");
+}
+
+static void handle_mpi_irecv_terminated(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	int src = ev->param[0];
+	int mpi_tag = ev->param[1];
+	double date = get_event_time_stamp(ev, options);
 
 	if (options->file_rank < 0)
 	{
@@ -2559,16 +2574,6 @@ static void handle_mpi_irecv_complete_begin(struct fxt_ev_64 *ev, struct starpu_
 	}
 	else
 		_starpu_fxt_mpi_add_recv_transfer(src, options->file_rank, mpi_tag, date);
-}
-
-static void handle_mpi_irecv_complete_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
-{
-	double date = get_event_time_stamp(ev, options);
-
-	if (out_paje_file)
-		mpicommthread_set_state(date, options->file_prefix, "P");
-	if (trace_file)
-		recfmt_mpicommthread_set_state(date, "P");
 }
 
 static void handle_mpi_sleep_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -3218,6 +3223,13 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 
 			case _STARPU_MPI_FUT_IRECV_COMPLETE_END:
 				handle_mpi_irecv_complete_end(&ev, options);
+				break;
+
+			case _STARPU_MPI_FUT_ISEND_TERMINATED:
+				break;
+
+			case _STARPU_MPI_FUT_IRECV_TERMINATED:
+				handle_mpi_irecv_terminated(&ev, options);
 				break;
 
 			case _STARPU_MPI_FUT_SLEEP_BEGIN:
