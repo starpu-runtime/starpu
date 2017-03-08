@@ -484,11 +484,11 @@ void _starpu_mpi_common_measure_bandwidth_latency(double bandwidth_dtod[STARPU_M
         {
                 for(receiver = 0; receiver < nb_proc; receiver++) 
                 {
-                        MPI_Barrier(MPI_COMM_WORLD);
-
                         //Node can't be a sender and a receiver
                         if(sender == receiver)
                                 continue;
+
+                        MPI_Barrier(MPI_COMM_WORLD);
 
                         if(id_proc == sender)
                         {
