@@ -169,7 +169,6 @@ static void _starpu_mpi_request_destroy(struct _starpu_mpi_req *req)
 	starpu_pthread_queue_destroy(&req->queue);
 #endif
 	free(req);
-	req = NULL;
 }
 
  /********************************************************/
