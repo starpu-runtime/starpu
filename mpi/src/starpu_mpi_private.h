@@ -250,6 +250,9 @@ LIST_TYPE(_starpu_mpi_req,
 
 	int sequential_consistency;
 
+	long pre_sync_jobid;
+	long post_sync_jobid;
+
      	UT_hash_handle hh;
 
 #ifdef STARPU_SIMGRID

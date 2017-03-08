@@ -173,9 +173,10 @@ static void starpu_data_acquire_cb_pre_sync_callback(void *arg)
 }
 
 /* The data must be released by calling starpu_data_release later on */
-int starpu_data_acquire_on_node_cb_sequential_consistency(starpu_data_handle_t handle, int node,
+int starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_data_handle_t handle, int node,
 							  enum starpu_data_access_mode mode, void (*callback)(void *), void *arg,
-							  int sequential_consistency)
+							  int sequential_consistency,
+							  long *pre_sync_jobid, long *post_sync_jobid)
 {
 	STARPU_ASSERT(handle);
 	STARPU_ASSERT_MSG(handle->nchildren == 0, "Acquiring a partitioned data (%p) is not possible", handle);
@@ -202,10 +203,14 @@ int starpu_data_acquire_on_node_cb_sequential_consistency(starpu_data_handle_t h
 		wrapper->pre_sync_task->detach = 1;
 		wrapper->pre_sync_task->callback_func = starpu_data_acquire_cb_pre_sync_callback;
 		wrapper->pre_sync_task->callback_arg = wrapper;
+		if (pre_sync_jobid)
+			*pre_sync_jobid = _starpu_get_job_associated_to_task(wrapper->pre_sync_task)->job_id;
 
 		wrapper->post_sync_task = starpu_task_create();
 		wrapper->post_sync_task->name = "_starpu_data_acquire_cb_post";
 		wrapper->post_sync_task->detach = 1;
+		if (post_sync_jobid)
+			*post_sync_jobid = _starpu_get_job_associated_to_task(wrapper->post_sync_task)->job_id;
 
 		new_task = _starpu_detect_implicit_data_deps_with_handle(wrapper->pre_sync_task, wrapper->post_sync_task, &_starpu_get_job_associated_to_task(wrapper->post_sync_task)->implicit_dep_slot, handle, mode);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
@@ -222,6 +227,10 @@ int starpu_data_acquire_on_node_cb_sequential_consistency(starpu_data_handle_t h
 	}
 	else
 	{
+		if (pre_sync_jobid)
+			*pre_sync_jobid = -1;
+		if (post_sync_jobid)
+			*post_sync_jobid = -1;
 		STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
 
 		starpu_data_acquire_cb_pre_sync_callback(wrapper);
@@ -229,6 +238,13 @@ int starpu_data_acquire_on_node_cb_sequential_consistency(starpu_data_handle_t h
 
         _STARPU_LOG_OUT();
 	return 0;
+}
+
+int starpu_data_acquire_on_node_cb_sequential_consistency(starpu_data_handle_t handle, int node,
+							  enum starpu_data_access_mode mode, void (*callback)(void *), void *arg,
+							  int sequential_consistency)
+{
+	return starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(handle, node, mode, callback, arg, sequential_consistency, NULL, NULL);
 }
 
 

@@ -2479,6 +2479,7 @@ static void handle_mpi_isend_submit_end(struct fxt_ev_64 *ev, struct starpu_fxt_
 	int dest = ev->param[0];
 	int mpi_tag = ev->param[1];
 	size_t size = ev->param[2];
+	long jobid = ev->param[3];
 	double date = get_event_time_stamp(ev, options);
 
 	if (out_paje_file)
@@ -2495,7 +2496,7 @@ static void handle_mpi_isend_submit_end(struct fxt_ev_64 *ev, struct starpu_fxt_
 		}
 	}
 	else
-		_starpu_fxt_mpi_add_send_transfer(options->file_rank, dest, mpi_tag, size, date);
+		_starpu_fxt_mpi_add_send_transfer(options->file_rank, dest, mpi_tag, size, date, jobid);
 }
 
 static void handle_mpi_irecv_submit_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -2562,6 +2563,7 @@ static void handle_mpi_irecv_terminated(struct fxt_ev_64 *ev, struct starpu_fxt_
 {
 	int src = ev->param[0];
 	int mpi_tag = ev->param[1];
+	long jobid = ev->param[2];
 	double date = get_event_time_stamp(ev, options);
 
 	if (options->file_rank < 0)
@@ -2573,7 +2575,7 @@ static void handle_mpi_irecv_terminated(struct fxt_ev_64 *ev, struct starpu_fxt_
 		}
 	}
 	else
-		_starpu_fxt_mpi_add_recv_transfer(src, options->file_rank, mpi_tag, date);
+		_starpu_fxt_mpi_add_recv_transfer(src, options->file_rank, mpi_tag, date, jobid);
 }
 
 static void handle_mpi_sleep_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)

@@ -148,6 +148,8 @@ static void _starpu_mpi_request_init(struct _starpu_mpi_req **req)
 	(*req)->early_data_handle = NULL;
 	(*req)->envelope = NULL;
 	(*req)->sequential_consistency = 1;
+	(*req)->pre_sync_jobid = -1;
+	(*req)->post_sync_jobid = -1;
 
 #ifdef STARPU_SIMGRID
 	starpu_pthread_queue_init(&((*req)->queue));
@@ -333,7 +335,8 @@ static struct _starpu_mpi_req *_starpu_mpi_isend_irecv_common(starpu_data_handle
 
 	if (_starpu_mpi_fake_world_size != -1)
 	{
-		starpu_data_acquire_cb_sequential_consistency(data_handle, mode, nop_acquire_cb, data_handle, sequential_consistency);
+		/* Don't actually do the communication */
+		starpu_data_acquire_on_node_cb_sequential_consistency(data_handle, STARPU_MAIN_RAM, mode, nop_acquire_cb, data_handle, sequential_consistency);
 		return NULL;
 	}
 
@@ -361,7 +364,7 @@ static struct _starpu_mpi_req *_starpu_mpi_isend_irecv_common(starpu_data_handle
 	/* Asynchronously request StarPU to fetch the data in main memory: when
 	 * it is available in main memory, _starpu_mpi_submit_ready_request(req) is called and
 	 * the request is actually submitted */
-	starpu_data_acquire_cb_sequential_consistency(data_handle, mode, _starpu_mpi_submit_ready_request, (void *)req, sequential_consistency);
+	starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(data_handle, STARPU_MAIN_RAM, mode, _starpu_mpi_submit_ready_request, (void *)req, sequential_consistency, &req->pre_sync_jobid, &req->post_sync_jobid);
 
 	_STARPU_MPI_LOG_OUT();
 	return req;
@@ -449,7 +452,7 @@ static void _starpu_mpi_isend_data_func(struct _starpu_mpi_req *req)
 	_starpu_mpi_simgrid_wait_req(&req->data_request, &req->status_store, &req->queue, &req->done);
 #endif
 
-	_STARPU_MPI_TRACE_ISEND_SUBMIT_END(req->node_tag.rank, req->node_tag.data_tag, starpu_data_get_size(req->data_handle));
+	_STARPU_MPI_TRACE_ISEND_SUBMIT_END(req->node_tag.rank, req->node_tag.data_tag, starpu_data_get_size(req->data_handle), req->pre_sync_jobid);
 
 	/* somebody is perhaps waiting for the MPI request to be posted */
 	STARPU_PTHREAD_MUTEX_LOCK(&req->req_mutex);

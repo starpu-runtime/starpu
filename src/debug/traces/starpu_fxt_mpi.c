@@ -35,6 +35,7 @@ LIST_TYPE(mpi_transfer,
 	int mpi_tag;
 	size_t size;
 	float date;
+	long jobid;
 	double bandwidth;
 );
 
@@ -120,7 +121,7 @@ unsigned mpi_recvs_used[MAX_MPI_NODES] = {0};
 unsigned mpi_recvs_matched[MAX_MPI_NODES][MAX_MPI_NODES] = { {0} };
 unsigned mpi_sends_matched[MAX_MPI_NODES][MAX_MPI_NODES] = { {0} };
 
-void _starpu_fxt_mpi_add_send_transfer(int src, int dst STARPU_ATTRIBUTE_UNUSED, int mpi_tag, size_t size, float date)
+void _starpu_fxt_mpi_add_send_transfer(int src, int dst STARPU_ATTRIBUTE_UNUSED, int mpi_tag, size_t size, float date, long jobid)
 {
 	STARPU_ASSERT(src >= 0);
 	if (src >= MAX_MPI_NODES)
@@ -147,9 +148,10 @@ void _starpu_fxt_mpi_add_send_transfer(int src, int dst STARPU_ATTRIBUTE_UNUSED,
 	mpi_sends[src][slot].mpi_tag = mpi_tag;
 	mpi_sends[src][slot].size = size;
 	mpi_sends[src][slot].date = date;
+	mpi_sends[src][slot].jobid = jobid;
 }
 
-void _starpu_fxt_mpi_add_recv_transfer(int src STARPU_ATTRIBUTE_UNUSED, int dst, int mpi_tag, float date)
+void _starpu_fxt_mpi_add_recv_transfer(int src STARPU_ATTRIBUTE_UNUSED, int dst, int mpi_tag, float date, long jobid)
 {
 	if (dst >= MAX_MPI_NODES)
 		return;
@@ -174,6 +176,7 @@ void _starpu_fxt_mpi_add_recv_transfer(int src STARPU_ATTRIBUTE_UNUSED, int dst,
 	mpi_recvs[dst][slot].dst = dst;
 	mpi_recvs[dst][slot].mpi_tag = mpi_tag;
 	mpi_recvs[dst][slot].date = date;
+	mpi_recvs[dst][slot].jobid = jobid;
 }
 
 static
@@ -318,6 +321,10 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, unsigned n)
 			}
 
 			unsigned long id = mpi_com_id++;
+			if (cur->jobid != -1)
+				_starpu_fxt_dag_add_send(src, cur->jobid, mpi_tag, id);
+			if (match->jobid != -1)
+				_starpu_fxt_dag_add_receive(dst, match->jobid, mpi_tag, id);
 #ifdef STARPU_HAVE_POTI
 			char paje_value[STARPU_POTI_STR_LEN], paje_key[STARPU_POTI_STR_LEN];
 			snprintf(paje_value, STARPU_POTI_STR_LEN, "%lu", (long unsigned) size);

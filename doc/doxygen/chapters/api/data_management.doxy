@@ -360,6 +360,14 @@ memory.
 ::STARPU_ACQUIRE_NO_NODE and ::STARPU_ACQUIRE_NO_NODE_LOCK_ALL can be used instead of an
 explicit node number.
 
+\fn int starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_data_handle_t handle, int node, enum starpu_data_access_mode mode, void (*callback)(void *), void *arg, int sequential_consistency, long *pre_sync_jobid, long *post_sync_jobid)
+\ingroup API_Data_Management
+This is the same as starpu_data_acquire_on_node_cb_sequential_consistency(),
+except that the \e pre_sync_jobid and \e post_sync_jobid parameters can be used
+to retrieve the jobid of the synchronization tasks. \e pre_sync_jobid happens
+just before the acquisition, and \e post_sync_jobid happens just after the
+release.
+
 \fn int starpu_data_acquire_on_node_try(starpu_data_handle_t handle, int node, enum starpu_data_access_mode mode)
 \ingroup API_Data_Management
 This is the same as starpu_data_acquire_try(), except that the
