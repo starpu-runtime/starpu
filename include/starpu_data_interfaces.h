@@ -121,6 +121,9 @@ struct starpu_data_interface_ops
 								unsigned home_node, void *data_interface);
 	starpu_ssize_t	 (*allocate_data_on_node)	(void *data_interface, unsigned node);
 	void 		 (*free_data_on_node)		(void *data_interface, unsigned node);
+	int		 (*map_data)			(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+	int		 (*unmap_data)			(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+	int		 (*update_map)			(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 	const struct starpu_data_copy_methods *copy_methods;
 	void * 		 (*handle_to_pointer)		(starpu_data_handle_t handle, unsigned node);
 	size_t 		 (*get_size)			(starpu_data_handle_t handle);
