@@ -492,6 +492,7 @@ void _starpu_submit_job_enforce_arbitered_deps(struct _starpu_job *j, unsigned b
 
 			_starpu_spin_lock(&cancel_handle->header_lock);
 			/* reset the counter because finally we do not take the data */
+			STARPU_ASSERT(cancel_handle->refcnt >= 1);
 			cancel_handle->refcnt--;
 			STARPU_ASSERT(cancel_handle->busy_count > 0);
 			cancel_handle->busy_count--;
@@ -694,7 +695,7 @@ void _starpu_notify_arbitered_dependencies(starpu_data_handle_t handle)
 				if (cancel_handle->arbiter != arbiter)
 					break;
 				_starpu_spin_lock(&cancel_handle->header_lock);
-				STARPU_ASSERT(cancel_handle->refcnt == 1);
+				STARPU_ASSERT(cancel_handle->refcnt >= 1);
 				cancel_handle->refcnt--;
 				STARPU_ASSERT(cancel_handle->busy_count > 0);
 				cancel_handle->busy_count--;
