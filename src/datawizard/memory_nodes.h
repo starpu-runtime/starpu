@@ -68,6 +68,7 @@ struct _starpu_memory_node_descr
 	unsigned total_condition_count;
 	unsigned condition_count[STARPU_MAXNODES];
 
+	unsigned mapped[STARPU_MAXNODES];
 };
 
 extern struct _starpu_memory_node_descr _starpu_descr;
@@ -107,6 +108,8 @@ static inline msg_host_t _starpu_simgrid_memory_node_get_host(unsigned node)
 	return _starpu_descr.host[node];
 }
 #endif
+void _starpu_memory_node_set_mapped(unsigned node);
+unsigned _starpu_memory_node_get_mapped(unsigned node);
 unsigned _starpu_memory_node_register(enum starpu_node_kind kind, int devid);
 //void _starpu_memory_node_attach_queue(struct starpu_jobq_s *q, unsigned nodeid);
 void _starpu_memory_node_register_condition(starpu_pthread_cond_t *cond, starpu_pthread_mutex_t *mutex, unsigned memory_node);

@@ -72,6 +72,16 @@ struct _starpu_data_replicate
 	 * */
 	unsigned automatically_allocated:1;
 
+	/* is the data just a mapping of a replicate on another memory node */
+	unsigned mapped:1;
+
+	/* is the write side enabled on the mapping?
+	 * This is important for drivers which may actually make a copy instead
+	 * of a map.
+	 */
+	/* Only meaningful when mapped == 1 */
+	unsigned map_write:1;
+
 	/* To help the scheduling policies to make some decision, we
 	   may keep a track of the tasks that are likely to request
 	   this data on the current node.

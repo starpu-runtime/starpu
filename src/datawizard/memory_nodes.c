@@ -176,6 +176,21 @@ void _starpu_memory_node_register_condition(starpu_pthread_cond_t *cond, starpu_
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&_starpu_descr.conditions_rwlock);
 }
 
+void _starpu_memory_node_set_mapped(unsigned node)
+{
+	if (starpu_map_disabled() == 0)
+		_starpu_descr.mapped[node] = 1;
+#ifdef STARPU_VERBOSE
+	else
+		_STARPU_DISP("Warning: set_mapped requested on node %u, while map support is disabled\n", node);
+#endif
+}
+
+unsigned _starpu_memory_node_get_mapped(unsigned node)
+{
+	return _starpu_descr.mapped[node];
+}
+
 #undef starpu_worker_get_memory_node
 unsigned starpu_worker_get_memory_node(unsigned workerid)
 {
