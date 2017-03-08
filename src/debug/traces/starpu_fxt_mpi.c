@@ -35,6 +35,7 @@ struct mpi_transfer
 	int mpi_tag;
 	size_t size;
 	float date;
+	long jobid;
 };
 
 /* Returns 0 if a barrier is found, -1 otherwise. In case of success, offset is
@@ -118,7 +119,7 @@ unsigned mpi_recvs_used[MAX_MPI_NODES] = {0};
  * transfer, thus avoiding a quadratic complexity. */
 unsigned mpi_recvs_matched[MAX_MPI_NODES][MAX_MPI_NODES] = { {0} };
 
-void _starpu_fxt_mpi_add_send_transfer(int src, int dst STARPU_ATTRIBUTE_UNUSED, int mpi_tag, size_t size, float date)
+void _starpu_fxt_mpi_add_send_transfer(int src, int dst STARPU_ATTRIBUTE_UNUSED, int mpi_tag, size_t size, float date, long jobid)
 {
 	if (src >= MAX_MPI_NODES)
 		return;
@@ -143,9 +144,10 @@ void _starpu_fxt_mpi_add_send_transfer(int src, int dst STARPU_ATTRIBUTE_UNUSED,
 	mpi_sends[src][slot].mpi_tag = mpi_tag;
 	mpi_sends[src][slot].size = size;
 	mpi_sends[src][slot].date = date;
+	mpi_sends[src][slot].jobid = jobid;
 }
 
-void _starpu_fxt_mpi_add_recv_transfer(int src STARPU_ATTRIBUTE_UNUSED, int dst, int mpi_tag, float date)
+void _starpu_fxt_mpi_add_recv_transfer(int src STARPU_ATTRIBUTE_UNUSED, int dst, int mpi_tag, float date, long jobid)
 {
 	if (dst >= MAX_MPI_NODES)
 		return;
@@ -169,6 +171,7 @@ void _starpu_fxt_mpi_add_recv_transfer(int src STARPU_ATTRIBUTE_UNUSED, int dst,
 	mpi_recvs[dst][slot].other_rank = dst;
 	mpi_recvs[dst][slot].mpi_tag = mpi_tag;
 	mpi_recvs[dst][slot].date = date;
+	mpi_recvs[dst][slot].jobid = jobid;
 }
 
 static
@@ -230,6 +233,12 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, int src)
 			float end_date = match->date;
 
 			unsigned long id = mpi_com_id++;
+
+			if (mpi_sends[src][slot].jobid != -1)
+				_starpu_fxt_dag_add_send(src, mpi_sends[src][slot].jobid, mpi_tag, id);
+			if (match->jobid != -1)
+				_starpu_fxt_dag_add_receive(dst, match->jobid, mpi_tag, id);
+
 			/* TODO replace 0 by a MPI program ? */
 			if (out_paje_file)
 			{
