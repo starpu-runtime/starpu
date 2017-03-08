@@ -59,26 +59,8 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 
 	struct starpu_task *task = j->task;
 	struct starpu_codelet *cl = task->cl;
-#ifdef STARPU_OPENMP
-	/* At this point, j->continuation as been cleared as the task is being
-	 * woken up, thus we use j->discontinuous instead for the check */
-	const unsigned continuation_wake_up = j->discontinuous;
-#else
-	const unsigned continuation_wake_up = 0;
-#endif
 
 	STARPU_ASSERT(cl);
-
-	if (rank == 0 && !continuation_wake_up)
-	{
-		int ret = _starpu_fetch_task_input(task, j, 0);
-		if (ret != 0)
-		{
-			/* there was not enough memory so the codelet cannot be executed right now ... */
-			/* push the codelet back and try another one ... */
-			return -EAGAIN;
-		}
-	}
 
 	if (is_parallel_task)
 	{
@@ -332,7 +314,7 @@ int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
 		_STARPU_TRACE_END_PROGRESS(memnode);
 		j = _starpu_get_job_associated_to_task(pending_task);
 
-		_starpu_release_fetch_task_input_async(j, cpu_worker);
+		_starpu_fetch_task_input_tail(pending_task, j, cpu_worker);
 		/* Reset it */
 		cpu_worker->task_transferring = NULL;
 
@@ -382,7 +364,14 @@ int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
 	}
 	cpu_worker->current_rank = rank;
 
-	if (rank == 0)
+#ifdef STARPU_OPENMP
+	/* At this point, j->continuation as been cleared as the task is being
+	 * woken up, thus we use j->discontinuous instead for the check */
+	const unsigned continuation_wake_up = j->discontinuous;
+#else
+	const unsigned continuation_wake_up = 0;
+#endif
+	if (rank == 0 && !continuation_wake_up)
 	{
 		res = _starpu_fetch_task_input(task, j, 1);
 		STARPU_ASSERT(res == 0);

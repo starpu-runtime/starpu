@@ -497,17 +497,6 @@ static int _starpu_src_common_execute(struct _starpu_job *j,
 	int profiling = starpu_profiling_status_get();
 
 	STARPU_ASSERT(task);
-	if (worker->current_rank == 0)
-	{
-		int ret = _starpu_fetch_task_input(task, j, 0);
-		if (ret != 0)
-		{
-			/* there was not enough memory, so the input of
-			 * the codelet cannot be fetched ... put the
-			 * codelet back, and try it later */
-			return -EAGAIN;
-		}
-	}
 
 	void (*kernel)(void)  = node->get_kernel_from_job(node,j);
 
@@ -964,7 +953,7 @@ static void _starpu_src_common_worker_internal_work(struct _starpu_worker_set * 
 
 			_STARPU_TRACE_END_PROGRESS(memnode);
 			_starpu_set_local_worker_key(&worker_set->workers[i]);
-			_starpu_release_fetch_task_input_async(j, &worker_set->workers[i]);
+			_starpu_fetch_task_input_tail(task, j, &worker_set->workers[i]);
 
 			/* Execute the task */
 			res =  _starpu_src_common_execute(j, &worker_set->workers[i], mp_node);

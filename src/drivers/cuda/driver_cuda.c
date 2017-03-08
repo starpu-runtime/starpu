@@ -473,8 +473,6 @@ void _starpu_init_cuda(void)
 
 static int start_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *worker, unsigned char pipeline_idx STARPU_ATTRIBUTE_UNUSED)
 {
-	int ret;
-
 	STARPU_ASSERT(j);
 	struct starpu_task *task = j->task;
 
@@ -486,15 +484,6 @@ static int start_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *worke
 
 	_starpu_set_local_worker_key(worker);
 	_starpu_set_current_task(task);
-
-	ret = _starpu_fetch_task_input(task, j, 0);
-	if (ret < 0)
-	{
-		/* there was not enough memory, so the input of
-		 * the codelet cannot be fetched ... put the
-		 * codelet back, and try it later */
-		return -EAGAIN;
-	}
 
 	if (worker->ntasks == 1)
 	{
@@ -777,7 +766,7 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 			j = _starpu_get_job_associated_to_task(task);
 
 			_starpu_set_local_worker_key(worker);
-			_starpu_release_fetch_task_input_async(j, worker);
+			_starpu_fetch_task_input_tail(task, j, worker);
 			/* Reset it */
 			worker->task_transferring = NULL;
 
