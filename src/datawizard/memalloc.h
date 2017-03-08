@@ -90,5 +90,7 @@ void _starpu_memchunk_dirty(struct _starpu_mem_chunk *mc, unsigned node);
 void _starpu_display_memory_stats_by_node(int node);
 size_t _starpu_memory_reclaim_generic(unsigned node, unsigned force, size_t reclaim);
 int _starpu_is_reclaiming(unsigned node);
+unsigned starpu_data_test_if_allocated_on_node(starpu_data_handle_t handle, unsigned memory_node);
+unsigned starpu_data_test_if_mapped_on_node(starpu_data_handle_t handle, unsigned memory_node);
 
 #endif
