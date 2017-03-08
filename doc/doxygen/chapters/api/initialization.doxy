@@ -198,6 +198,10 @@ The environment variables overwrite the equivalent parameters.
     the option
     \ref disable-asynchronous-mpi-master-slave-copy "--disable-asynchronous-mpi-master-slave-copy".
     (default = 0).
+\var int starpu_conf::disable_map
+    This flag should be set to 1 to disable memory mapping support
+    between memory nodes. This can also be specified with
+    the environment variable \ref STARPU_DISABLE_MAP.
 
 \var unsigned *starpu_conf::cuda_opengl_interoperability
     Enable CUDA/OpenGL interoperation on these CUDA devices. This can
@@ -300,6 +304,10 @@ devices are disabled.
 \ingroup API_Initialization_and_Termination
 Return 1 if asynchronous data transfers between CPU and MPI Slave
 devices are disabled.
+
+\fn int starpu_map_disabled(void)
+\ingroup API_Initialization_and_Termination
+Return 1 if memory mapping support between memory nodes is disabled.
 
 \fn void starpu_topology_print(FILE *f)
 \ingroup API_Initialization_and_Termination

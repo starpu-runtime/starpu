@@ -349,6 +349,14 @@ Disable asynchronous copies between CPU and MIC devices.
 Disable asynchronous copies between CPU and MPI Slave devices.
 </dd>
 
+<dt>STARPU_DISABLE_MAP</dt>
+<dd>
+\anchor STARPU_DISABLE_MAP
+\addindex __env__STARPU_DISABLE_MAP
+Disable (1) or Enable (0) support for memory mapping between memory nodes.  The
+default is Enabled.
+</dd>
+
 <dt>STARPU_ENABLE_CUDA_GPU_GPU_DIRECT</dt>
 <dd>
 \anchor STARPU_ENABLE_CUDA_GPU_GPU_DIRECT

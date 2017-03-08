@@ -123,6 +123,9 @@ struct starpu_conf
 	int disable_asynchronous_mic_copy;
 	int disable_asynchronous_mpi_ms_copy;
 
+	/* this flag is set when support for memory mapping between memory nodes is disabled */
+	int disable_map;
+
 	unsigned *cuda_opengl_interoperability;
 	unsigned n_cuda_opengl_interoperability;
 
@@ -152,6 +155,8 @@ int starpu_asynchronous_cuda_copy_disabled(void);
 int starpu_asynchronous_opencl_copy_disabled(void);
 int starpu_asynchronous_mic_copy_disabled(void);
 int starpu_asynchronous_mpi_ms_copy_disabled(void);
+
+int starpu_map_disabled(void);
 
 void starpu_display_stats();
 
