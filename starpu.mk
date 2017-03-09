@@ -13,6 +13,22 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
+
+if STARPU_USE_MPI_MASTER_SLAVE
+if STARPU_QUICK_CHECK
+export MPIEXEC_TIMEOUT=60
+else 
+if STARPU_LONG_CHECK
+export MPIEXEC_TIMEOUT=1800
+else
+export MPIEXEC_TIMEOUT=300
+endif
+endif
+
+MPI_LAUNCHER 			= $(MPIEXEC)  $(MPIEXEC_ARGS) -np 4
+MPI_RUN_ARGS			= STARPU_WORKERS_NOBIND=1 STARPU_NCPU=4
+endif
+
 showcheck:
 	-cat $(TEST_LOGS) /dev/null
 	@! grep -q "ERROR: AddressSanitizer: " $(TEST_LOGS) /dev/null

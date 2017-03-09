@@ -179,17 +179,16 @@ LOADER_BIN		=	$(top_builddir)/examples/loader-cross.sh
 endif
 
 if STARPU_USE_MPI_MASTER_SLAVE
-MPI 			= $(MPIEXEC) $(MPIEXEC_ARGS) -np 4
-LOADER_BIN2		= $(MPI) $(LOADER_BIN)
+LOADER_BIN2		= $(MPI_LAUNCHER) $(LOADER_BIN)
 else
 LOADER_BIN2		= $(LOADER_BIN)
 endif
 
 if STARPU_HAVE_AM111
-TESTS_ENVIRONMENT	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
+TESTS_ENVIRONMENT	=	$(MPI_RUN_ARGS) top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
 LOG_COMPILER		=	$(LOADER_BIN2)
 else
-TESTS_ENVIRONMENT	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(LOADER_BIN2)
+TESTS_ENVIRONMENT	=	$(MPI_RUN_ARGS) top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(LOADER_BIN2)
 endif
 
 endif
