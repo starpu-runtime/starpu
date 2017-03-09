@@ -156,7 +156,6 @@ myPROGRAMS +=				\
 	microbenchs/display_structures_size	\
 	microbenchs/local_pingpong		\
 	sched_ctx/sched_ctx_list		\
-	sched_ctx/sched_ctx_hierarchy		\
 	perfmodels/value_nan
 
 if !STARPU_SIMGRID
@@ -330,7 +329,8 @@ myPROGRAMS +=				\
 	sched_policies/execute_all_tasks        \
 	sched_policies/prio        		\
 	sched_policies/simple_deps              \
-	sched_policies/simple_cpu_gpu_sched
+	sched_policies/simple_cpu_gpu_sched	\
+	sched_ctx/sched_ctx_hierarchy
 endif
 
 MICROBENCHS = \
