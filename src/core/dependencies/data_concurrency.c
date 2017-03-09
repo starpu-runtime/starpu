@@ -373,13 +373,11 @@ int _starpu_notify_data_dependencies(starpu_data_handle_t handle)
 
 	if (handle->arbiter)
 	{
-		unsigned refcnt = handle->refcnt;
 		STARPU_ASSERT(_starpu_data_requester_list_empty(&handle->req_list));
 		STARPU_ASSERT(_starpu_data_requester_list_empty(&handle->reduction_req_list));
 		_starpu_spin_unlock(&handle->header_lock);
 		/* _starpu_notify_arbitered_dependencies will handle its own locking */
-		if (!refcnt)
-			_starpu_notify_arbitered_dependencies(handle);
+		_starpu_notify_arbitered_dependencies(handle);
 		/* We have already unlocked */
 		return 1;
 	}
