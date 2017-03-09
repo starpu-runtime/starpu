@@ -943,6 +943,10 @@ static void _starpu_fetch_task_input_cb(void *arg)
    /* increase the number of buffer received */
    STARPU_WMB();
    (void)STARPU_ATOMIC_ADD(&worker->nb_buffers_transferred, 1);
+
+#ifdef STARPU_SIMGRID
+   starpu_pthread_queue_broadcast(&_starpu_simgrid_transfer_queue[worker->memory_node]);
+#endif
 }
 
 
