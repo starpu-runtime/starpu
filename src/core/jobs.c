@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2016  Université de Bordeaux
+ * Copyright (C) 2009-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2011, 2014, 2016  INRIA
@@ -272,6 +272,11 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 		0
 #endif
 		;
+	/* Read cl fields before releasing dependencies, for the case of a
+	 * switch_cl which is freed by data_unregister happening as soon as
+	 * the dependencies are released.
+	 */
+	unsigned nowhere = !task->cl || task->cl->where == STARPU_NOWHERE;
 
 #ifdef STARPU_DEBUG
 	STARPU_PTHREAD_MUTEX_LOCK(&all_jobs_list_mutex);
@@ -408,7 +413,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	 * scheduler to process it : the task structure doesn't contain any valuable
 	 * data as it's not linked to an actual worker */
 	/* control task should not execute post_exec_hook */
-	if(j->task_size == 1 && task->cl != NULL && task->cl->where != STARPU_NOWHERE && !j->internal
+	if(j->task_size == 1 && !nowhere && !j->internal
 #ifdef STARPU_OPENMP
 	/* If this is a continuation, we do not execute the post_exec_hook. The
 	 * post_exec_hook will be run only when the continued task fully
