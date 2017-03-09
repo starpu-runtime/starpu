@@ -73,6 +73,8 @@ void dw_cholesky(float ***matA, unsigned ld, int rank, int nodes, double *timing
 	starpu_data_handle_t **data_handles;
 	unsigned x,y,i,j,k;
 
+	unsigned unbound_prio = STARPU_MAX_PRIO == INT_MAX && STARPU_MIN_PRIO == INT_MIN;
+
 	/* create all the DAG nodes */
 
 	data_handles = malloc(nblocks*sizeof(starpu_data_handle_t *));
@@ -114,20 +116,15 @@ void dw_cholesky(float ***matA, unsigned ld, int rank, int nodes, double *timing
 	{
 		starpu_iteration_push(k);
 
-		int prio = STARPU_DEFAULT_PRIO;
-		if (!noprio) prio = STARPU_MAX_PRIO;
-
 		starpu_mpi_task_insert(MPI_COMM_WORLD, &cl11,
-				       STARPU_PRIORITY, prio,
+				       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k) : STARPU_MAX_PRIO,
 				       STARPU_RW, data_handles[k][k],
 				       0);
 
 		for (j = k+1; j<nblocks; j++)
 		{
-			prio = STARPU_DEFAULT_PRIO;
-			if (!noprio&& (j == k+1)) prio = STARPU_MAX_PRIO;
 			starpu_mpi_task_insert(MPI_COMM_WORLD, &cl21,
-					       STARPU_PRIORITY, prio,
+					       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - j) : (j == k+1)?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
 					       STARPU_R, data_handles[k][k],
 					       STARPU_RW, data_handles[k][j],
 					       0);
@@ -140,10 +137,8 @@ void dw_cholesky(float ***matA, unsigned ld, int rank, int nodes, double *timing
 			{
 				if (i <= j)
 				{
-					prio = STARPU_DEFAULT_PRIO;
-					if (!noprio && (i == k + 1) && (j == k +1) ) prio = STARPU_MAX_PRIO;
 					starpu_mpi_task_insert(MPI_COMM_WORLD, &cl22,
-							       STARPU_PRIORITY, prio,
+							       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - j - i) : ((i == k+1) && (j == k+1))?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
 							       STARPU_R, data_handles[k][i],
 							       STARPU_R, data_handles[k][j],
 							       STARPU_RW | STARPU_COMMUTE, data_handles[i][j],
