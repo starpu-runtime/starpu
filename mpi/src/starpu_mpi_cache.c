@@ -369,7 +369,9 @@ void starpu_mpi_cache_flush_all_data(MPI_Comm comm)
 	STARPU_PTHREAD_MUTEX_LOCK(&_cache_mutex);
 	HASH_ITER(hh, _cache_data, entry, tmp)
 	{
+		STARPU_PTHREAD_MUTEX_UNLOCK(&_cache_mutex);
 		_starpu_mpi_cache_flush_and_invalidate(comm, entry->data_handle);
+		STARPU_PTHREAD_MUTEX_LOCK(&_cache_mutex);
 		HASH_DEL(_cache_data, entry);
 		free(entry);
 	}
