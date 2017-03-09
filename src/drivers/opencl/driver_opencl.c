@@ -691,6 +691,7 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 		_STARPU_TRACE_END_PROGRESS(memnode);
 		j = _starpu_get_job_associated_to_task(task);
 
+		_starpu_set_local_worker_key(worker);
 		_starpu_fetch_task_input_tail(task, j, worker);
 		/* Reset it */
 		worker->task_transferring = NULL;
