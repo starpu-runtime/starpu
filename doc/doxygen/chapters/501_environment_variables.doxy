@@ -670,7 +670,7 @@ This specifies the main directory in which StarPU stores its
 performance model files. The default is <c>$STARPU_HOME/.starpu/sampling</c>.
 </dd>
 
-<dt>STARPU_PERF_MODEL_HOMEGENEOUS_CUDA</dt>
+<dt>STARPU_PERF_MODEL_HOMOGENEOUS_CUDA</dt>
 <dd>
 \anchor STARPU_PERF_MODEL_HOMOGENEOUS_CUDA
 \addindex __env__STARPU_PERF_MODEL_HOMOGENEOUS_CUDA
@@ -680,7 +680,7 @@ calibration to be much faster, since measurements only have to be once for all
 CUDA GPUs.
 </dd>
 
-<dt>STARPU_PERF_MODEL_HOMEGENEOUS_OPENCL</dt>
+<dt>STARPU_PERF_MODEL_HOMOGENEOUS_OPENCL</dt>
 <dd>
 \anchor STARPU_PERF_MODEL_HOMOGENEOUS_OPENCL
 \addindex __env__STARPU_PERF_MODEL_HOMOGENEOUS_OPENCL
@@ -690,7 +690,7 @@ calibration to be much faster, since measurements only have to be once for all
 OPENCL GPUs.
 </dd>
 
-<dt>STARPU_PERF_MODEL_HOMEGENEOUS_MIC</dt>
+<dt>STARPU_PERF_MODEL_HOMOGENEOUS_MIC</dt>
 <dd>
 \anchor STARPU_PERF_MODEL_HOMOGENEOUS_MIC
 \addindex __env__STARPU_PERF_MODEL_HOMOGENEOUS_MIC
@@ -710,7 +710,7 @@ calibration to be much faster, since measurements only have to be once for all
 MPI Slaves.
 </dd>
 
-<dt>STARPU_PERF_MODEL_HOMEGENEOUS_SCC</dt>
+<dt>STARPU_PERF_MODEL_HOMOGENEOUS_SCC</dt>
 <dd>
 \anchor STARPU_PERF_MODEL_HOMOGENEOUS_SCC
 \addindex __env__STARPU_PERF_MODEL_HOMOGENEOUS_SCC
