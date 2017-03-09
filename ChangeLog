@@ -14,9 +14,13 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
-StarPU 1.1.7 (svn revision xxx)
+StarPU 1.1.7 (svn revision 20398)
 ==============================================
 The scheduling context release
+
+Small changes:
+  * Fix type of data home node to allow users to pass -1 to define
+    temporary data
 
 StarPU 1.1.6 (svn revision 18542)
 ==============================================
