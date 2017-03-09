@@ -67,6 +67,7 @@ static void _try_resizing(unsigned *sched_ctxs, int nsched_ctxs, int *workers, i
 #ifdef STARPU_SC_HYPERVISOR_DEBUG
 	printf("*****finished resize \n");
 #endif
+	free(tw);
 	return;
 }
 
