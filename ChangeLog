@@ -35,6 +35,8 @@ Small features:
     to simulate the cost of task submission and data fetching in simgrid mode.
     This provides more accurate simgrid predictions, especially for the
     beginning of the execution and regarding data transfers.
+  * STARPU_SIMGRID_SCHED_COST to take into account the time to perform scheduling
+    when running in SimGrid mode.
   * New configure option --enable-mpi-pedantic-isend (disabled by
     default) to acquire data in STARPU_RW (instead of STARPU_R) before
     performing MPI_Isend call
