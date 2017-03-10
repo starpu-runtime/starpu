@@ -18,6 +18,7 @@
 #include "mpi_cholesky.h"
 #include <common/blas.h>
 #include <sys/time.h>
+#include <limits.h>
 
 /*
  *	Create the codelets
