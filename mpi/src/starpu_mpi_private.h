@@ -190,9 +190,7 @@ struct _starpu_mpi_data
 {
 	int magic;
 	struct _starpu_mpi_node_tag node_tag;
-	starpu_pthread_mutex_t *cache_sent_mutex;
 	int *cache_sent;
-	starpu_pthread_mutex_t cache_received_mutex;
 	int cache_received;
 };
 
