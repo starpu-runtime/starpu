@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2017  CNRS
  * Copyright (C) 2013 Corentin Salingue
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -391,8 +391,7 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_opencl(int dev, i
 	_starpu_bind_thread_on_cpu(config, cpu, STARPU_NOWORKERID);
         /* Allocate a buffer on the host */
 	unsigned char *h_buffer;
-        h_buffer = (unsigned char *)malloc(size);
-	STARPU_ASSERT(h_buffer);
+        _STARPU_MALLOC(h_buffer, size);
 
 	/* hack to avoid third party libs to rebind threads */
 	_starpu_bind_thread_on_cpu(config, cpu, STARPU_NOWORKERID);
@@ -535,20 +534,11 @@ static void measure_bandwidth_between_cpus_and_dev(int dev, struct dev_timing *d
 
 	if (!no_node_obj_was_found)
 	{
-		is_available_per_numa_node = (unsigned *)malloc(nnuma_nodes * sizeof(unsigned));
-		STARPU_ASSERT(is_available_per_numa_node);
-
-		dev_timing_htod_per_numa_node = (double *)malloc(nnuma_nodes * sizeof(double));
-		STARPU_ASSERT(dev_timing_htod_per_numa_node);
-		dev_latency_htod_per_numa_node = (double *)malloc(nnuma_nodes * sizeof(double));
-		STARPU_ASSERT(dev_latency_htod_per_numa_node);
-
-		dev_timing_dtoh_per_numa_node = (double *)malloc(nnuma_nodes * sizeof(double));
-		STARPU_ASSERT(dev_timing_dtoh_per_numa_node);
-		dev_latency_dtoh_per_numa_node = (double *)malloc(nnuma_nodes * sizeof(double));
-		STARPU_ASSERT(dev_latency_dtoh_per_numa_node);
-
-		memset(is_available_per_numa_node, 0, nnuma_nodes*sizeof(unsigned));
+		_STARPU_CALLOC(is_available_per_numa_node, nnuma_nodes, sizeof(unsigned));
+		_STARPU_MALLOC(dev_timing_htod_per_numa_node, nnuma_nodes * sizeof(double));
+		_STARPU_MALLOC(dev_latency_htod_per_numa_node, nnuma_nodes * sizeof(double));
+		_STARPU_MALLOC(dev_timing_dtoh_per_numa_node, nnuma_nodes * sizeof(double));
+		_STARPU_MALLOC(dev_latency_dtoh_per_numa_node, nnuma_nodes * sizeof(double));
 	}
 #endif
 
@@ -1751,7 +1741,8 @@ static void allocate_userdata(hwloc_obj_t obj)
 	if (obj->userdata)
 		return;
 
-	data = obj->userdata = malloc(sizeof(*data));
+	_STARPU_MALLOC(obj->userdata, sizeof(*data));
+	data = obj->userdata;
 	data->bw_up = 0.0;
 	data->bw_down = 0.0;
 	data->bw = 0.0;

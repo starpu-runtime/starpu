@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2017  CNRS
  * Copyright (C) 2011  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -57,12 +57,12 @@ static struct _starpu_priority_taskq *_starpu_create_priority_taskq(int min_prio
 {
 	struct _starpu_priority_taskq *central_queue;
 
-	central_queue = (struct _starpu_priority_taskq *) malloc(sizeof(struct _starpu_priority_taskq));
+	_STARPU_MALLOC(central_queue, sizeof(struct _starpu_priority_taskq));
 	central_queue->min_prio = min_prio;
 	central_queue->max_prio = max_prio;
 	central_queue->total_ntasks = 0;
-	central_queue->taskq = malloc((max_prio-min_prio+1) * sizeof(struct starpu_task_list));
-	central_queue->ntasks = malloc((max_prio-min_prio+1) * sizeof(unsigned));
+	_STARPU_MALLOC(central_queue->taskq, (max_prio-min_prio+1) * sizeof(struct starpu_task_list));
+	_STARPU_MALLOC(central_queue->ntasks, (max_prio-min_prio+1) * sizeof(unsigned));
 
 	int prio;
 	for (prio = 0; prio < (max_prio-min_prio+1); prio++)
@@ -95,7 +95,8 @@ static void initialize_eager_center_priority_policy(unsigned sched_ctx_id)
 	else
 		starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
 
-	struct _starpu_eager_central_prio_data *data = (struct _starpu_eager_central_prio_data*)malloc(sizeof(struct _starpu_eager_central_prio_data));
+	struct _starpu_eager_central_prio_data *data;
+	_STARPU_MALLOC(data, sizeof(struct _starpu_eager_central_prio_data));
 
 	/* In this policy, we support more than two levels of priority. */
 

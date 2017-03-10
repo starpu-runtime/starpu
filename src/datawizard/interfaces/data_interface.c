@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2017  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  * Copyright (C) 2014, 2016  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -150,8 +150,7 @@ void _starpu_data_register_ram_pointer(starpu_data_handle_t handle, void *ptr)
 {
 	struct handle_entry *entry, *old_entry;
 
-	entry = (struct handle_entry *) malloc(sizeof(*entry));
-	STARPU_ASSERT(entry != NULL);
+	_STARPU_MALLOC(entry, sizeof(*entry));
 
 	entry->pointer = ptr;
 	entry->handle = handle;
@@ -380,7 +379,7 @@ _starpu_data_initialize_per_worker(starpu_data_handle_t handle)
 
 	_starpu_spin_checklocked(&handle->header_lock);
 
-	handle->per_worker = calloc(nworkers, sizeof(*handle->per_worker));
+	_STARPU_CALLOC(handle->per_worker, nworkers, sizeof(*handle->per_worker));
 
 	size_t interfacesize = handle->ops->interface_size;
 
@@ -406,8 +405,7 @@ _starpu_data_initialize_per_worker(starpu_data_handle_t handle)
 		replicate->initialized = 0;
 		replicate->memory_node = starpu_worker_get_memory_node(worker);
 
-		replicate->data_interface = calloc(1, interfacesize);
-		STARPU_ASSERT(replicate->data_interface);
+		_STARPU_CALLOC(replicate->data_interface, 1, interfacesize);
 		/* duplicate  the content of the interface on node 0 */
 		memcpy(replicate->data_interface, handle->per_node[STARPU_MAIN_RAM].data_interface, interfacesize);
 	}
@@ -450,8 +448,7 @@ int _starpu_data_handle_init(starpu_data_handle_t handle, struct starpu_data_int
 
 		replicate->handle = handle;
 
-		replicate->data_interface = calloc(1, interfacesize);
-		STARPU_ASSERT(replicate->data_interface);
+		_STARPU_CALLOC(replicate->data_interface, 1, interfacesize);
 	}
 
 	return 0;
@@ -460,8 +457,8 @@ int _starpu_data_handle_init(starpu_data_handle_t handle, struct starpu_data_int
 static
 starpu_data_handle_t _starpu_data_handle_allocate(struct starpu_data_interface_ops *interface_ops, unsigned int mf_node)
 {
-	starpu_data_handle_t handle = (starpu_data_handle_t) calloc(1, sizeof(struct _starpu_data_state));
-	STARPU_ASSERT(handle);
+	starpu_data_handle_t handle;
+	_STARPU_CALLOC(handle, 1, sizeof(struct _starpu_data_state));
 	_starpu_data_handle_init(handle, interface_ops, mf_node);
 	return handle;
 }

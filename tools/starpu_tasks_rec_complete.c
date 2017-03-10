@@ -22,6 +22,7 @@
 #include <errno.h>
 #include <string.h>
 #include <common/uthash.h>
+#include <common/utils.h>
 #include <starpu.h>
 
 #define PROGNAME "starpu_tasks_rec_complete"
@@ -119,7 +120,7 @@ int main(int argc, char *argv[]) {
 					HASH_FIND_STR(models, model_name, model);
 					if (model == NULL)
 					{
-						model = malloc(sizeof(*model));
+						_STARPU_MALLOC(model, sizeof(*model));
 						model->name = model_name;
 						memset(&model->model, 0, sizeof(model->model));
 						model->model.type = STARPU_PERFMODEL_INVALID;

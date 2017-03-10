@@ -45,5 +45,5 @@ do
 	    fi
 	done
     done
-done
+done | sort | uniq
 

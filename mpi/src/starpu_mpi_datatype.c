@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2011, 2015-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -213,9 +213,9 @@ static void _starpu_mpi_handle_free_complex_datatype(MPI_Datatype *datatype)
 	MPI_Type_get_envelope(*datatype, &num_ints, &num_adds, &num_datatypes, &combiner);
 	if (combiner != MPI_COMBINER_NAMED)
 	{
-		array_of_ints = (int *) malloc(num_ints * sizeof(int));
-		array_of_adds = (MPI_Aint *) malloc(num_adds * sizeof(MPI_Aint));
-		array_of_datatypes = (MPI_Datatype *) malloc(num_datatypes * sizeof(MPI_Datatype));
+		_STARPU_MPI_MALLOC(array_of_ints, num_ints * sizeof(int));
+		_STARPU_MPI_MALLOC(array_of_adds, num_adds * sizeof(MPI_Aint));
+		_STARPU_MPI_MALLOC(array_of_datatypes, num_datatypes * sizeof(MPI_Datatype));
 		MPI_Type_get_contents(*datatype, num_ints, num_adds, num_datatypes, array_of_ints, array_of_adds, array_of_datatypes);
 		for(i=0 ; i<num_datatypes ; i++)
 		{
@@ -282,7 +282,7 @@ int starpu_mpi_datatype_register(starpu_data_handle_t handle, starpu_mpi_datatyp
 	}
 	else
 	{
-		table = malloc(sizeof(struct _starpu_mpi_datatype_funcs));
+		_STARPU_MPI_MALLOC(table, sizeof(struct _starpu_mpi_datatype_funcs));
 		table->id = id;
 		table->allocate_datatype_func = allocate_datatype_func;
 		table->free_datatype_func = free_datatype_func;

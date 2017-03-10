@@ -222,7 +222,8 @@ static struct starpu_omp_thread *get_local_thread(void)
 
 static struct starpu_omp_critical *create_omp_critical_struct(void)
 {
-	struct starpu_omp_critical *critical = malloc(sizeof(*critical));
+	struct starpu_omp_critical *critical;
+	_STARPU_MALLOC(critical, sizeof(*critical));
 	memset(critical, 0, sizeof(*critical));
 	_starpu_spin_init(&critical->lock);
 	return critical;
@@ -239,9 +240,8 @@ static void destroy_omp_critical_struct(struct starpu_omp_critical *critical)
 
 static struct starpu_omp_device *create_omp_device_struct(void)
 {
-	struct starpu_omp_device *device = malloc(sizeof(*device));
-	if (device == NULL)
-		_STARPU_ERROR("memory allocation failed");
+	struct starpu_omp_device *device;
+	_STARPU_MALLOC(device, sizeof(*device));
 	memset(device, 0, sizeof(*device));
 	_starpu_spin_init(&device->atomic_lock);
 	return device;
@@ -273,10 +273,8 @@ static struct starpu_omp_device *get_caller_device(void)
 
 static struct starpu_omp_region *create_omp_region_struct(struct starpu_omp_region *parent_region, struct starpu_omp_device *owner_device)
 {
-	struct starpu_omp_region *region = malloc(sizeof(*region));
-	if (region == NULL)
-		_STARPU_ERROR("memory allocation failed");
-
+	struct starpu_omp_region *region;
+	_STARPU_MALLOC(region, sizeof(*region));
 	memset(region, 0, sizeof(*region));
 	region->parent_region = parent_region;
 	region->owner_device = owner_device;
@@ -429,9 +427,7 @@ static void starpu_omp_implicit_task_exec(void *buffers[], void *cl_arg)
 		task->starpu_cl_arg = cl_arg;
 		STARPU_ASSERT(task->stack == NULL);
 		STARPU_ASSERT(task->stacksize > 0);
-		task->stack = malloc(task->stacksize);
-		if (task->stack == NULL)
-			_STARPU_ERROR("memory allocation failed");
+		_STARPU_MALLOC(task->stack, task->stacksize);
 		getcontext(&task->ctx);
 		/*
 		 * we do not use uc_link, starpu_omp_task_entry will handle
@@ -601,9 +597,7 @@ static void starpu_omp_explicit_task_exec(void *buffers[], void *cl_arg)
 		task->starpu_cl_arg = cl_arg;
 		STARPU_ASSERT(task->stack == NULL);
 		STARPU_ASSERT(task->stacksize > 0);
-		task->stack = malloc(task->stacksize);
-		if (task->stack == NULL)
-			_STARPU_ERROR("memory allocation failed");
+		_STARPU_MALLOC(task->stack, task->stacksize);
 		getcontext(&task->ctx);
 		/*
 		 * we do not use uc_link, starpu_omp_task_entry will handle
@@ -695,9 +689,8 @@ static void omp_initial_thread_setup(void)
 	initial_thread->current_task = initial_task;
 	/* .owner_region already set in create_omp_thread_struct */
 	/* .initial_thread_stack */
-	initial_thread->initial_thread_stack = malloc(_STARPU_INITIAL_THREAD_STACKSIZE);
-	if (initial_thread->initial_thread_stack == NULL)
-		_STARPU_ERROR("memory allocation failed");
+	_STARPU_MALLOC(initial_thread->initial_thread_stack, _STARPU_INITIAL_THREAD_STACKSIZE);
+
 	/* .ctx */
 	getcontext(&initial_thread->ctx);
 	/*
@@ -727,9 +720,8 @@ static void omp_initial_thread_setup(void)
 	STARPU_PTHREAD_SETSPECIFIC(omp_task_key, initial_task);
 
 	_global_state.nb_starpu_cpu_workers = starpu_worker_get_count_by_type(STARPU_CPU_WORKER);
-	_global_state.starpu_cpu_worker_ids = malloc(_global_state.nb_starpu_cpu_workers * sizeof(int));
-	if (_global_state.starpu_cpu_worker_ids == NULL)
-		_STARPU_ERROR("memory allocation failed");
+	_STARPU_MALLOC(_global_state.starpu_cpu_worker_ids, _global_state.nb_starpu_cpu_workers * sizeof(int));
+
 	ret = starpu_worker_get_ids_by_type(STARPU_CPU_WORKER, _global_state.starpu_cpu_worker_ids, _global_state.nb_starpu_cpu_workers);
 	STARPU_ASSERT(ret == _global_state.nb_starpu_cpu_workers);
 	initial_thread->worker = _starpu_get_worker_struct(_global_state.starpu_cpu_worker_ids[0]);
@@ -797,7 +789,7 @@ static void omp_initial_region_setup(void)
 	_global_state.initial_region->icvs.nest_var = _starpu_omp_initial_icv_values->nest_var;
 	if (_starpu_omp_initial_icv_values->nthreads_var[1] != 0)
 	{
-		_global_state.initial_region->icvs.nthreads_var = malloc((1+max_active_levels-_global_state.initial_region->level) * sizeof(*_global_state.initial_region->icvs.nthreads_var));
+		_STARPU_MALLOC(_global_state.initial_region->icvs.nthreads_var, (1+max_active_levels-_global_state.initial_region->level) * sizeof(*_global_state.initial_region->icvs.nthreads_var));
 		int i,j;
 		for (i = _global_state.initial_region->level, j = 0; i < max_active_levels; i++, j++)
 		{
@@ -807,14 +799,14 @@ static void omp_initial_region_setup(void)
 	}
 	else
 	{
-		_global_state.initial_region->icvs.nthreads_var = malloc(2 * sizeof(*_global_state.initial_region->icvs.nthreads_var));
+		_STARPU_MALLOC(_global_state.initial_region->icvs.nthreads_var, 2 * sizeof(*_global_state.initial_region->icvs.nthreads_var));
 		_global_state.initial_region->icvs.nthreads_var[0] = _starpu_omp_initial_icv_values->nthreads_var[0];
 		_global_state.initial_region->icvs.nthreads_var[1] = 0;
 	}
 
 	if (_starpu_omp_initial_icv_values->bind_var[1] != starpu_omp_proc_bind_undefined)
 	{
-		_global_state.initial_region->icvs.bind_var = malloc((1+max_active_levels-_global_state.initial_region->level) * sizeof(*_global_state.initial_region->icvs.bind_var));
+		_STARPU_MALLOC(_global_state.initial_region->icvs.bind_var, (1+max_active_levels-_global_state.initial_region->level) * sizeof(*_global_state.initial_region->icvs.bind_var));
 		int i,j;
 		for (i = _global_state.initial_region->level, j = 0; i < max_active_levels; i++, j++)
 		{
@@ -824,7 +816,7 @@ static void omp_initial_region_setup(void)
 	}
 	else
 	{
-		_global_state.initial_region->icvs.bind_var = malloc(2 * sizeof(*_global_state.initial_region->icvs.bind_var));
+		_STARPU_MALLOC(_global_state.initial_region->icvs.bind_var, 2 * sizeof(*_global_state.initial_region->icvs.bind_var));
 		_global_state.initial_region->icvs.bind_var[0] = _starpu_omp_initial_icv_values->bind_var[0];
 		_global_state.initial_region->icvs.bind_var[1] = starpu_omp_proc_bind_undefined;
 	}
@@ -1005,7 +997,7 @@ void starpu_omp_parallel_region(const struct starpu_omp_parallel_region_attr *at
 	{
 		if (generating_region->icvs.nthreads_var[1] != 0)
 		{
-			new_region->icvs.nthreads_var = malloc((1+max_active_levels-new_region->level) * sizeof(*new_region->icvs.nthreads_var));
+			_STARPU_MALLOC(new_region->icvs.nthreads_var, (1+max_active_levels-new_region->level) * sizeof(*new_region->icvs.nthreads_var));
 			int i,j;
 			for (i = new_region->level, j = 0; i < max_active_levels; i++, j++)
 			{
@@ -1015,14 +1007,14 @@ void starpu_omp_parallel_region(const struct starpu_omp_parallel_region_attr *at
 		}
 		else
 		{
-			new_region->icvs.nthreads_var = malloc(2 * sizeof(*new_region->icvs.nthreads_var));
+			_STARPU_MALLOC(new_region->icvs.nthreads_var, 2 * sizeof(*new_region->icvs.nthreads_var));
 			new_region->icvs.nthreads_var[0] = generating_region->icvs.nthreads_var[0];
 			new_region->icvs.nthreads_var[1] = 0;
 		}
 
 		if (generating_region->icvs.bind_var[1] != starpu_omp_proc_bind_undefined)
 		{
-			new_region->icvs.bind_var = malloc((1+max_active_levels-new_region->level) * sizeof(*new_region->icvs.bind_var));
+			_STARPU_MALLOC(new_region->icvs.bind_var, (1+max_active_levels-new_region->level) * sizeof(*new_region->icvs.bind_var));
 			int i,j;
 			for (i = new_region->level, j = 0; i < max_active_levels; i++, j++)
 			{
@@ -1032,17 +1024,17 @@ void starpu_omp_parallel_region(const struct starpu_omp_parallel_region_attr *at
 		}
 		else
 		{
-			new_region->icvs.bind_var = malloc(2 * sizeof(*new_region->icvs.bind_var));
+			_STARPU_MALLOC(new_region->icvs.bind_var, 2 * sizeof(*new_region->icvs.bind_var));
 			new_region->icvs.bind_var[0] = generating_region->icvs.bind_var[0];
 			new_region->icvs.bind_var[1] = starpu_omp_proc_bind_undefined;
 		}
 	}
 	else
 	{
-		new_region->icvs.nthreads_var = malloc(sizeof(*new_region->icvs.nthreads_var));
+		_STARPU_MALLOC(new_region->icvs.nthreads_var, sizeof(*new_region->icvs.nthreads_var));
 		new_region->icvs.nthreads_var[0] = generating_region->icvs.nthreads_var[0];
 
-		new_region->icvs.bind_var = malloc(sizeof(*new_region->icvs.bind_var));
+		_STARPU_MALLOC(new_region->icvs.bind_var, (sizeof(*new_region->icvs.bind_var));
 		new_region->icvs.bind_var[0] = generating_region->icvs.bind_var[0];
 	}
 	new_region->icvs.thread_limit_var = generating_region->icvs.thread_limit_var;
@@ -1051,7 +1043,7 @@ void starpu_omp_parallel_region(const struct starpu_omp_parallel_region_attr *at
 	new_region->icvs.run_sched_var = generating_region->icvs.run_sched_var;
 	new_region->icvs.run_sched_chunk_var = generating_region->icvs.run_sched_chunk_var;
 	new_region->icvs.default_device_var = generating_region->icvs.default_device_var;
-	new_region->implicit_task_array = calloc(nb_threads, sizeof(*new_region->implicit_task_array));
+	_STARPU_CALLOC(new_region->implicit_task_array, nb_threads, sizeof(*new_region->implicit_task_array));
 
 	int i;
 	for (i = 0; i < nb_threads; i++)
@@ -1732,9 +1724,9 @@ void starpu_omp_taskgroup(void (*f)(void *arg), void *arg)
 void starpu_omp_taskgroup_inline_begin(void)
 {
 	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
-	struct starpu_omp_task_group *p_task_group = malloc(sizeof(*p_task_group));
-	if (p_task_group == NULL)
-		_STARPU_ERROR("memory allocation failed\n");
+	struct starpu_omp_task_group *p_task_group;
+
+	_STARPU_MALLOC(p_task_group, sizeof(*p_task_group));
 	p_task_group->p_previous_task_group = task->task_group;
 	p_task_group->descendent_task_count = 0;
 	p_task_group->leader_task = task;
@@ -1917,9 +1909,7 @@ static inline struct starpu_omp_loop *_starpu_omp_for_loop_begin(struct starpu_o
 	loop = _starpu_omp_for_get_loop(parallel_region, task);
 	if (!loop)
 	{
-		loop = malloc(sizeof(*loop));
-		if (loop == NULL)
-			_STARPU_ERROR("memory allocation failed\n");
+		_STARPU_MALLOC(loop, sizeof(*loop));
 		loop->id = task->loop_id;
 		loop->next_iteration = 0;
 		loop->nb_completed_threads = 0;
@@ -2112,9 +2102,7 @@ static inline struct starpu_omp_sections *_starpu_omp_sections_begin(struct star
 	sections = _starpu_omp_get_sections(parallel_region, task);
 	if (!sections)
 	{
-		sections = malloc(sizeof(*sections));
-		if (sections == NULL)
-			_STARPU_ERROR("memory allocation failed\n");
+		_STARPU_MALLOC(sections, sizeof(*sections));
 		sections->id = task->sections_id;
 		sections->next_section_num = 0;
 		sections->nb_completed_threads = 0;
@@ -2207,8 +2195,7 @@ void starpu_omp_sections_combined(unsigned long long nb_sections, void (*section
 static void _starpu_omp_lock_init(void **_internal)
 {
 	struct _starpu_omp_lock_internal * _lock;
-	_lock = malloc(sizeof(*_lock));
-	STARPU_ASSERT(_lock != NULL);
+	_STARPU_MALLOC(_lock, sizeof(*_lock));
 	memset(_lock, 0, sizeof(*_lock));
 	_starpu_spin_init(&_lock->lock);
 	condition_init(&_lock->cond);
@@ -2265,8 +2252,7 @@ static int _starpu_omp_lock_test(void **_internal)
 static void _starpu_omp_nest_lock_init(void **_internal)
 {
 	struct _starpu_omp_nest_lock_internal * _nest_lock;
-	_nest_lock = malloc(sizeof(*_nest_lock));
-	STARPU_ASSERT(_nest_lock != NULL);
+	_STARPU_MALLOC(_nest_lock, sizeof(*_nest_lock));
 	memset(_nest_lock, 0, sizeof(*_nest_lock));
 	_starpu_spin_init(&_nest_lock->lock);
 	condition_init(&_nest_lock->cond);

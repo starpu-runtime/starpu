@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2013-2014, 2016  Université de Bordeaux
- * Copyright (C) 2012-2013, 2016  CNRS
+ * Copyright (C) 2012-2013, 2016, 2017  CNRS
  * Copyright (C) 2011-2013  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -181,8 +181,11 @@ static void _init_workers(int *workerids)
 
 static void list_init(struct starpu_worker_collection *workers)
 {
-	int *workerids = (int*)malloc((STARPU_NMAXWORKERS+STARPU_NMAX_COMBINEDWORKERS) * sizeof(int));
-	int *masters = (int*)malloc((STARPU_NMAXWORKERS+STARPU_NMAX_COMBINEDWORKERS) * sizeof(int));
+	int *workerids;
+	int *masters;
+
+	_STARPU_MALLOC(workerids, (STARPU_NMAXWORKERS+STARPU_NMAX_COMBINEDWORKERS) * sizeof(int));
+	_STARPU_MALLOC(masters, (STARPU_NMAXWORKERS+STARPU_NMAX_COMBINEDWORKERS) * sizeof(int));
 	_init_workers(workerids);
 	_init_workers(masters);
 

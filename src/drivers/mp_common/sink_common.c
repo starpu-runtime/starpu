@@ -375,7 +375,7 @@ static void _starpu_sink_common_pre_execution_message(struct _starpu_mp_node *no
 	/* Init message to tell the sink that the execution has begun */
 	struct mp_message * message = mp_message_new();
 	message->type = STARPU_PRE_EXECUTION;
-	message->buffer = malloc(sizeof(int));
+	_STARPU_MALLOC(message->buffer, sizeof(int));
 	*(int *) message->buffer = task->combined_workerid;
 	message->size = sizeof(int);
 
@@ -392,7 +392,7 @@ static void _starpu_sink_common_execution_completed_message(struct _starpu_mp_no
 	/* Init message to tell the sink that the execution is completed */
 	struct mp_message * message = mp_message_new();
 	message->type = STARPU_EXECUTION_COMPLETED;
-	message->buffer = malloc(sizeof(int));
+	_STARPU_MALLOC(message->buffer, sizeof(int));
 	*(int*) message->buffer = task->coreid;
 	message->size = sizeof(int);
 
@@ -405,7 +405,8 @@ static void _starpu_sink_common_execution_completed_message(struct _starpu_mp_no
 static void _starpu_sink_common_bind_to_combined_worker(struct _starpu_mp_node *node, int coreid, struct _starpu_combined_worker * combined_worker)
 {
 	int i;
-	int * bind_set = malloc(sizeof(int)*combined_worker->worker_size);
+	int * bind_set;
+	_STARPU_MALLOC(bind_set, sizeof(int)*combined_worker->worker_size);
 	for(i=0;i<combined_worker->worker_size;i++)
 		bind_set[i] = combined_worker->combined_workerid[i] - node->baseworkerid;
 	node->bind_thread(node, coreid, bind_set, combined_worker->worker_size);
@@ -567,7 +568,8 @@ void _starpu_sink_common_execute(struct _starpu_mp_node *node,
 	unsigned i;
 
 	uintptr_t arg_ptr = (uintptr_t) arg;
-	struct mp_task *task = malloc(sizeof(struct mp_task));
+	struct mp_task *task;
+	_STARPU_MALLOC(task, sizeof(struct mp_task));
 
 	task->kernel = *(void(**)(void **, void *)) arg_ptr;
 	arg_ptr += sizeof(task->kernel);
@@ -598,28 +600,26 @@ void _starpu_sink_common_execute(struct _starpu_mp_node *node,
 	 * interfaces, thus we expect the same size anyway */
 	for (i = 0; i < task->nb_interfaces; i++)
 	{
-		union _starpu_interface * interface = malloc(sizeof(union _starpu_interface));
-		memcpy(interface, (void*) arg_ptr,
-				sizeof(union _starpu_interface));
+		union _starpu_interface * interface;
+		_STARPU_MALLOC(interface, sizeof(union _starpu_interface));
+		memcpy(interface, (void*) arg_ptr, sizeof(union _starpu_interface));
 		task->interfaces[i] = interface;
 		arg_ptr += sizeof(union _starpu_interface);
 	}
 
 	/* Was cl_arg sent ? */
 	if (arg_size > arg_ptr - (uintptr_t) arg)
-    {
-        /* Copy cl_arg to prevent overwriting by an other task */
-        unsigned cl_arg_size = arg_size - (arg_ptr - (uintptr_t) arg);
-        _STARPU_MALLOC(task->cl_arg, cl_arg_size);
-        memcpy(task->cl_arg, (void *) arg_ptr, cl_arg_size);
-    }
+	{
+		/* Copy cl_arg to prevent overwriting by an other task */
+		unsigned cl_arg_size = arg_size - (arg_ptr - (uintptr_t) arg);
+		_STARPU_MALLOC(task->cl_arg, cl_arg_size);
+		memcpy(task->cl_arg, (void *) arg_ptr, cl_arg_size);
+	}
 	else
 		task->cl_arg = NULL;
 
-
 	//_STARPU_DEBUG("telling host that we have submitted the task %p.\n", task->kernel);
-	_starpu_mp_common_send_command(node, STARPU_EXECUTION_SUBMITTED,
-			NULL, 0);
+	_starpu_mp_common_send_command(node, STARPU_EXECUTION_SUBMITTED, NULL, 0);
 
 	//_STARPU_DEBUG("executing the task %p\n", task->kernel);
 	_starpu_sink_common_execute_thread(node, task);

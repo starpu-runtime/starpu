@@ -111,7 +111,7 @@ static struct task_info *get_task(unsigned long job_id, int mpi_rank)
 	HASH_FIND(hh, tasks_info, &job_id, sizeof(job_id), task);
 	if (!task)
 	{
-		task = malloc(sizeof(*task));
+		_STARPU_MALLOC(task, sizeof(*task));
 		task->model_name = NULL;
 		task->name = NULL;
 		task->exclude_from_dag = 0;
@@ -240,7 +240,7 @@ static struct data_info *get_data(unsigned long handle, int mpi_rank)
 	HASH_FIND(hh, data_info, &handle, sizeof(handle), data);
 	if (!data)
 	{
-		data = malloc(sizeof(*data));
+		_STARPU_MALLOC(data, sizeof(*data));
 		data->handle = handle;
 		data->name = NULL;
 		data->dimensions = 0;
@@ -478,7 +478,7 @@ static int register_thread(unsigned long tid, int workerid, int sync)
 	if (entry)
 		return 0;
 
-	entry = malloc(sizeof(*entry));
+	_STARPU_MALLOC(entry, sizeof(*entry));
 	entry->tid = tid;
 	entry->workerid = workerid;
 	entry->sync = sync;
@@ -830,7 +830,7 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 	char *kindstr = "";
 	struct starpu_perfmodel_arch arch;
 	arch.ndevices = 1;
-	arch.devices = (struct starpu_perfmodel_device *)malloc(sizeof(struct starpu_perfmodel_device));
+	_STARPU_MALLOC(arch.devices, sizeof(struct starpu_perfmodel_device));
 
 	switch (ev->param[0])
 	{
@@ -989,7 +989,7 @@ static void create_paje_state_if_not_found(char *name, struct starpu_fxt_options
 
 	/* it's the first time ... */
 	struct _starpu_symbol_name *entry = _starpu_symbol_name_new();
-	entry->name = malloc(strlen(name) + 1);
+	_STARPU_MALLOC(entry->name, strlen(name) + 1);
 	strcpy(entry->name, name);
 
 	_starpu_symbol_name_list_push_front(&symbol_list, entry);
@@ -1191,7 +1191,7 @@ static void handle_codelet_data_handle(struct fxt_ev_64 *ev, struct starpu_fxt_o
 		}
 	}
 	if (alloc)
-		task->data = realloc(task->data, sizeof(*task->data) * alloc);
+		_STARPU_REALLOC(task->data, sizeof(*task->data) * alloc);
 	task->data[task->ndata].handle = ev->param[1];
 	task->data[task->ndata].size = ev->param[2];
 	task->data[task->ndata].mode = ev->param[3];
@@ -1318,7 +1318,7 @@ static void handle_end_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 	if (options->dumped_codelets)
 	{
 		dumped_codelets_count++;
-		dumped_codelets = realloc(dumped_codelets, dumped_codelets_count*sizeof(struct starpu_fxt_codelet_event));
+		_STARPU_REALLOC(dumped_codelets, dumped_codelets_count*sizeof(struct starpu_fxt_codelet_event));
 
 		snprintf(dumped_codelets[dumped_codelets_count - 1].symbol, sizeof(dumped_codelets[dumped_codelets_count - 1].symbol)-1, "%s", _starpu_last_codelet_symbol[worker]);
 		dumped_codelets[dumped_codelets_count - 1].symbol[sizeof(dumped_codelets[dumped_codelets_count - 1].symbol)-1] = 0;
@@ -1599,7 +1599,7 @@ static void handle_data_coordinates(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 	unsigned i;
 
 	data->dimensions = dimensions;
-	data->dims = malloc(dimensions * sizeof(*data->dims));
+	_STARPU_MALLOC(data->dims, dimensions * sizeof(*data->dims));
 	for (i = 0; i < dimensions; i++)
 		data->dims[i] = ev->param[i+2];
 }
@@ -2006,7 +2006,7 @@ static void handle_task_deps(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 		}
 	}
 	if (alloc)
-		task->dependencies = realloc(task->dependencies, sizeof(*task->dependencies) * alloc);
+		_STARPU_REALLOC(task->dependencies, sizeof(*task->dependencies) * alloc);
 	task->dependencies[task->ndeps++] = dep_prev;
 
 	/* There is a dependency between both job id : dep_prev -> dep_succ */
@@ -3410,7 +3410,7 @@ static void write_task(struct parse_task pt)
 	//fprintf(stderr, "%p %p %s\n", kernel, kernels, codelet_name);
 	if(kernel == NULL)
 	{
-		kernel = malloc(sizeof(*kernel));
+		_STARPU_MALLOC(kernel, sizeof(*kernel));
 		kernel->name = strdup(codelet_name);
 		//fprintf(stderr, "%s\n", kernel->name);
 		kernel->file = fopen(codelet_name, "w+");

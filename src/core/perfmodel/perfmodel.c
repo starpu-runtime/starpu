@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -448,10 +448,10 @@ static char *_perf_model_dir_debug = NULL;
 
 void _starpu_set_perf_model_dirs()
 {
-	_perf_model_dir = malloc(_PERF_MODEL_DIR_MAXLEN);
-	_perf_model_dir_codelet = malloc(_PERF_MODEL_DIR_MAXLEN);
-	_perf_model_dir_bus = malloc(_PERF_MODEL_DIR_MAXLEN);
-	_perf_model_dir_debug = malloc(_PERF_MODEL_DIR_MAXLEN);
+	_STARPU_MALLOC(_perf_model_dir, _PERF_MODEL_DIR_MAXLEN);
+	_STARPU_MALLOC(_perf_model_dir_codelet, _PERF_MODEL_DIR_MAXLEN);
+	_STARPU_MALLOC(_perf_model_dir_bus, _PERF_MODEL_DIR_MAXLEN);
+	_STARPU_MALLOC(_perf_model_dir_debug, _PERF_MODEL_DIR_MAXLEN);
 
 #ifdef STARPU_PERF_MODEL_DIR
 	/* use the directory specified at configure time */

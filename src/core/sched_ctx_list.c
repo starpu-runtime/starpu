@@ -30,7 +30,8 @@ void _starpu_sched_ctx_list_add(struct _starpu_sched_ctx_list **list, unsigned s
 		(*list)->sched_ctx = sched_ctx;
 	else
 	{
-		struct _starpu_sched_ctx_list *l = (struct _starpu_sched_ctx_list*)malloc(sizeof(struct _starpu_sched_ctx_list));
+		struct _starpu_sched_ctx_list *l;
+		_STARPU_MALLOC(l, sizeof(struct _starpu_sched_ctx_list));
 		l->sched_ctx = sched_ctx;
 		l->priority = 1;
 		l->next = *list;
@@ -53,7 +54,7 @@ void _starpu_sched_ctx_list_remove(struct _starpu_sched_ctx_list **list, unsigne
 		next = l->next;
 	free(l);
 	l = NULL;
-	
+
 	if(next)
 	{
 		if(prev)
@@ -84,5 +85,5 @@ void _starpu_sched_ctx_list_delete(struct _starpu_sched_ctx_list **list)
 		if(next)
 			*list = next;
 	}
-		
+
 }

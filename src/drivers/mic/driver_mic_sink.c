@@ -54,7 +54,7 @@ void _starpu_mic_sink_init(struct _starpu_mp_node *node)
 									 STARPU_MIC_SOURCE_DT_PORT_NUMBER);
 	
 	node->nb_cores = COISysGetHardwareThreadCount() - COISysGetHardwareThreadCount() / COISysGetCoreCount();
-	node->thread_table = malloc(sizeof(starpu_pthread_t)*node->nb_cores);
+	_STARPU_MALLOC(node->thread_table, sizeof(starpu_pthread_t)*node->nb_cores);
 
 #ifdef STARPU_DEVEL
 #warning rather use hwloc
@@ -69,7 +69,7 @@ void _starpu_mic_sink_init(struct _starpu_mp_node *node)
 #error need to check the numbering
 #endif
 
-	//node->sink_sink_dt_connections = malloc(node->nb_mp_sinks * sizeof(union _starpu_mp_connection));
+	//_STARPU_MALLOC(node->sink_sink_dt_connections, node->nb_mp_sinks * sizeof(union _starpu_mp_connection));
 
 	//for (i = 0; i < (unsigned int)node->devid; ++i)
 	//	_starpu_mic_common_connect(&node->sink_sink_dt_connections[i].mic_endpoint,
@@ -108,7 +108,7 @@ void _starpu_mic_sink_launch_workers(struct _starpu_mp_node *node)
 		STARPU_ASSERT(ret == 0);
 
 		/*prepare the argument for the thread*/
-		arg= malloc(sizeof(struct arg_sink_thread));
+		_STARPU_MALLOC(arg, sizeof(struct arg_sink_thread));
 		arg->coreid = i;
 		arg->node = node;
 		

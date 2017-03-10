@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2010, 2012-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -72,7 +72,7 @@ struct malloc_pinned_codelet_struct
 //static void malloc_pinned_opencl_codelet(void *buffers[] STARPU_ATTRIBUTE_UNUSED, void *arg)
 //{
 //	struct malloc_pinned_codelet_struct *s = arg;
-//        //        *(s->ptr) = malloc(s->dim);
+//        //        _STARPU_MALLOC(*(s->ptr), s->dim);
 //        starpu_opencl_allocate_memory(devid, (void **)(s->ptr), s->dim, CL_MEM_READ_WRITE|CL_MEM_ALLOC_HOST_PTR);
 //}
 //#endif
@@ -256,7 +256,7 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 				}
 				unlink(name);
 				free(name);
-				dumb = calloc(1,_starpu_malloc_simulation_fold);
+				_STARPU_CALLOC(dumb, 1,_starpu_malloc_simulation_fold);
 				write(bogusfile, dumb, _starpu_malloc_simulation_fold);
 				free(dumb);
 			}

@@ -120,7 +120,8 @@ static void initialize_peager_policy(unsigned sched_ctx_id)
 {
 	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
 
-	struct _starpu_peager_data *data = (struct _starpu_peager_data*)malloc(sizeof(struct _starpu_peager_data));
+	struct _starpu_peager_data *data;
+	_STARPU_MALLOC(data, sizeof(struct _starpu_peager_data));
 	/* masters pick tasks from that queue */
 	data->fifo = _starpu_create_fifo();
 

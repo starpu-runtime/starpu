@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2017  Université de Bordeaux
- * Copyright (C) 2010-2013  CNRS
+ * Copyright (C) 2010-2013, 2017  CNRS
  * Copyright (C) 2011  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -60,7 +60,8 @@ static void initialize_graph_test_policy(unsigned sched_ctx_id)
 	else
 		starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
 
-	struct _starpu_graph_test_policy_data *data = (struct _starpu_graph_test_policy_data*)malloc(sizeof(struct _starpu_graph_test_policy_data));
+	struct _starpu_graph_test_policy_data *data;
+	_STARPU_MALLOC(data, sizeof(struct _starpu_graph_test_policy_data));
 
 	/* there is only a single queue in that trivial design */
 	data->fifo =  _starpu_create_fifo();

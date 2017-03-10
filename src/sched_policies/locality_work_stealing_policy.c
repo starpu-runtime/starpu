@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2017  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  * Copyright (C) 2011, 2012  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -276,7 +276,7 @@ static void locality_pushed_task(struct starpu_task *task, int workerid, unsigne
 			HASH_FIND_PTR(data->queued_tasks_per_data, &handle, entry);
 			if (STARPU_LIKELY(!entry))
 			{
-				entry = malloc(sizeof(*entry));
+				_STARPU_MALLOC(entry, sizeof(*entry));
 				entry->data = handle;
 				entry->task = task;
 				HASH_ADD_PTR(data->queued_tasks_per_data, data, entry);
@@ -573,13 +573,12 @@ static void lws_add_workers(unsigned sched_ctx_id, int *workerids,unsigned nwork
 	struct starpu_tree *tree = (struct starpu_tree*)workers->collection_private;
 	for (i = 0; i < nworkers; i++)
 	{
-		workerid = workerids[i];
-		ws->per_worker[workerid].proxlist = (int*)malloc(nworkers*sizeof(int));
 		int bindid;
-
 		struct starpu_tree *neighbour = NULL;
 		struct starpu_sched_ctx_iterator it;
 
+		workerid = workerids[i];
+		_STARPU_MALLOC(ws->per_worker[workerid].proxlist, nworkers*sizeof(int));
 		workers->init_iterator(workers, &it);
 
 		bindid   = starpu_worker_get_bindid(workerid);
@@ -635,7 +634,8 @@ static void lws_initialize_policy(unsigned sched_ctx_id)
 	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
 #endif
 
-	struct _starpu_lws_data *ws = (struct _starpu_lws_data*)malloc(sizeof(struct _starpu_lws_data));
+	struct _starpu_lws_data *ws;
+	_STARPU_MALLOC(ws, sizeof(struct _starpu_lws_data));
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)ws);
 
 	ws->last_pop_worker = 0;
@@ -645,7 +645,7 @@ static void lws_initialize_policy(unsigned sched_ctx_id)
 
 	/* unsigned nw = starpu_sched_ctx_get_nworkers(sched_ctx_id); */
 	unsigned nw = starpu_worker_get_count();
-	ws->per_worker = calloc(nw, sizeof(struct _starpu_lws_data_per_worker));
+	_STARPU_CALLOC(ws->per_worker, nw, sizeof(struct _starpu_lws_data_per_worker));
 
 }
 

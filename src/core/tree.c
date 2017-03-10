@@ -36,7 +36,7 @@ void starpu_tree_reset_visited(struct starpu_tree *tree, char *visited)
 
 void starpu_tree_prepare_children(unsigned arity, struct starpu_tree *father)
 {
-	father->nodes = (struct starpu_tree*)malloc(arity*sizeof(struct starpu_tree));
+	_STARPU_MALLOC(father->nodes, arity*sizeof(struct starpu_tree));
 	father->arity = arity;
 }
 
@@ -45,7 +45,7 @@ void starpu_tree_insert(struct starpu_tree *tree, int id, int level, int is_pu, 
 	tree->level = level;
 	tree->arity = arity;
 	tree->nodes = NULL;
-	tree->id = is_pu ? id : level; 
+	tree->id = is_pu ? id : level;
 	tree->is_pu = is_pu;
 	tree->father = father;
 }
@@ -104,7 +104,7 @@ static struct starpu_tree* _get_down_to_leaves(struct starpu_tree *node, char *v
 struct starpu_tree* starpu_tree_get_neighbour(struct starpu_tree *tree, struct starpu_tree *node, char *visited, char *present)
 {
 	struct starpu_tree *father = node == NULL ? tree : node->father;
-	
+
 	int st, n;
 
 	for(st = 0; st < father->arity; st++)
@@ -143,7 +143,7 @@ struct starpu_tree* starpu_tree_get_neighbour(struct starpu_tree *tree, struct s
 
 	if(tree == father)
 		return NULL;
-	
+
 	return starpu_tree_get_neighbour(tree, father, visited, present);
 }
 

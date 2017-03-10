@@ -133,7 +133,8 @@ static struct starpu_sched_component * _worker_components[STARPU_NMAX_SCHED_CTXS
 
 static struct _starpu_worker_task_list * _starpu_worker_task_list_create(void)
 {
-	struct _starpu_worker_task_list * l = malloc(sizeof(*l));
+	struct _starpu_worker_task_list *l;
+	_STARPU_MALLOC(l, sizeof(*l));
 	memset(l, 0, sizeof(*l));
 	l->exp_len = l->pipeline_len = 0.0;
 	l->exp_start = l->exp_end = starpu_timing_now();
@@ -143,7 +144,8 @@ static struct _starpu_worker_task_list * _starpu_worker_task_list_create(void)
 
 static struct _starpu_task_grid * _starpu_task_grid_create(void)
 {
-	struct _starpu_task_grid * t = malloc(sizeof(*t));
+	struct _starpu_task_grid *t;
+	_STARPU_MALLOC(t, sizeof(*t));
 	memset(t, 0, sizeof(*t));
 	return t;
 }
@@ -596,7 +598,8 @@ static struct starpu_sched_component * starpu_sched_component_worker_create(stru
 	char name[32];
 	snprintf(name, sizeof(name), "worker %d", workerid);
 	struct starpu_sched_component * component = starpu_sched_component_create(tree, name);
-	struct _starpu_worker_component_data * data = malloc(sizeof(*data));
+	struct _starpu_worker_component_data *data;
+	_STARPU_MALLOC(data, sizeof(*data));
 	memset(data, 0, sizeof(*data));
 
 	data->worker = worker;
@@ -779,7 +782,8 @@ static struct starpu_sched_component  * starpu_sched_component_combined_worker_c
 	if(combined_worker == NULL)
 		return NULL;
 	struct starpu_sched_component * component = starpu_sched_component_create(tree, "combined_worker");
-	struct _starpu_worker_component_data * data = malloc(sizeof(*data));
+	struct _starpu_worker_component_data *data;
+	_STARPU_MALLOC(data, sizeof(*data));
 	memset(data, 0, sizeof(*data));
 	data->combined_worker = combined_worker;
 	data->status = COMPONENT_STATUS_SLEEPING;

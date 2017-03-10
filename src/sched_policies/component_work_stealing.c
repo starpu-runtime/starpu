@@ -287,16 +287,18 @@ void _ws_add_child(struct starpu_sched_component * component, struct starpu_sche
 	if(wsd->size < component->nchildren)
 	{
 		STARPU_ASSERT(wsd->size == component->nchildren - 1);
-		wsd->fifos = realloc(wsd->fifos, component->nchildren * sizeof(*wsd->fifos));
-		wsd->mutexes = realloc(wsd->mutexes, component->nchildren * sizeof(*wsd->mutexes));
+		_STARPU_REALLOC(wsd->fifos, component->nchildren * sizeof(*wsd->fifos));
+		_STARPU_REALLOC(wsd->mutexes, component->nchildren * sizeof(*wsd->mutexes));
 		wsd->size = component->nchildren;
 	}
 
-	struct _starpu_prio_deque * fifo = malloc(sizeof(*fifo));
+	struct _starpu_prio_deque *fifo;
+	_STARPU_MALLOC(fifo, sizeof(*fifo));
 	_starpu_prio_deque_init(fifo);
 	wsd->fifos[component->nchildren - 1] = fifo;
 
-	starpu_pthread_mutex_t * mutex = malloc(sizeof(*mutex));
+	starpu_pthread_mutex_t *mutex;
+	_STARPU_MALLOC(mutex, sizeof(*mutex));
 	STARPU_PTHREAD_MUTEX_INIT(mutex,NULL);
 	wsd->mutexes[component->nchildren - 1] = mutex;
 }
@@ -346,7 +348,8 @@ int starpu_sched_component_is_work_stealing(struct starpu_sched_component * comp
 struct starpu_sched_component * starpu_sched_component_work_stealing_create(struct starpu_sched_tree *tree, void * arg STARPU_ATTRIBUTE_UNUSED)
 {
 	struct starpu_sched_component * component = starpu_sched_component_create(tree, "work_stealing");
-	struct _starpu_work_stealing_data * wsd = malloc(sizeof(*wsd));
+	struct _starpu_work_stealing_data *wsd;
+	_STARPU_MALLOC(wsd, sizeof(*wsd));
 	memset(wsd, 0, sizeof(*wsd));
 	component->pull_task = pull_task;
 	component->push_task = push_task;
