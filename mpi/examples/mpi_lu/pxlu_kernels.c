@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2012  Université de Bordeaux
- * Copyright (C) 2010, 2012  CNRS
+ * Copyright (C) 2010, 2012, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -45,7 +45,7 @@ static inline void STARPU_PLU(common_u22)(void *descr[],
 
 	int rank;
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
-	fprintf(stderr, "KERNEL 22 %d - k = %d i = %d j = %d\n", rank, info->k, info->i, info->j);
+	fprintf(stderr, "KERNEL 22 %d - k = %u i = %u j = %u\n", rank, info->k, info->i, info->j);
 #endif
 
 #ifdef STARPU_USE_CUDA
@@ -80,7 +80,7 @@ static inline void STARPU_PLU(common_u22)(void *descr[],
 			break;
 	}
 #ifdef VERBOSE_KERNELS
-	fprintf(stderr, "KERNEL 22 %d - k = %d i = %d j = %d done\n", rank, info->k, info->i, info->j);
+	fprintf(stderr, "KERNEL 22 %d - k = %u i = %u j = %u done\n", rank, info->k, info->i, info->j);
 #endif
 }
 
@@ -144,8 +144,8 @@ static inline void STARPU_PLU(common_u12)(void *descr[],
 	int rank;
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 #warning fixed debugging according to other tweak
-	//fprintf(stderr, "KERNEL 12 %d - k = %d i %d\n", rank, info->k, info->i);
-	fprintf(stderr, "KERNEL 21 %d - k = %d i %d\n", rank, info->k, info->j);
+	//fprintf(stderr, "KERNEL 12 %d - k = %u i %u\n", rank, info->k, info->i);
+	fprintf(stderr, "KERNEL 21 %d - k = %u i %u\n", rank, info->k, info->j);
 
 	//fprintf(stderr, "INPUT 12 U11\n");
 	fprintf(stderr, "INPUT 21 U11\n");
@@ -252,8 +252,8 @@ static inline void STARPU_PLU(common_u21)(void *descr[],
 	int rank;
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 #warning fixed debugging according to other tweak
-	//fprintf(stderr, "KERNEL 21 %d (k = %d, i = %d)\n", rank, info->k, info->i);
-	fprintf(stderr, "KERNEL 12 %d (k = %d, j = %d)\n", rank, info->k, info->j);
+	//fprintf(stderr, "KERNEL 21 %d (k = %u, i = %u)\n", rank, info->k, info->i);
+	fprintf(stderr, "KERNEL 12 %d (k = %u, j = %u)\n", rank, info->k, info->j);
 
 	//fprintf(stderr, "INPUT 21 U11\n");
 	fprintf(stderr, "INPUT 12 U11\n");
@@ -357,7 +357,7 @@ static inline void STARPU_PLU(common_u11)(void *descr[],
 
 	int rank;
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
-	fprintf(stderr, "KERNEL 11 %d - k = %d\n", rank, info->k);
+	fprintf(stderr, "KERNEL 11 %d - k = %u\n", rank, info->k);
 #endif
 
 	switch (s) {
@@ -403,7 +403,7 @@ static inline void STARPU_PLU(common_u11)(void *descr[],
 			break;
 	}
 #ifdef VERBOSE_KERNELS
-	fprintf(stderr, "KERNEL 11 %d - k = %d\n", rank, info->k);
+	fprintf(stderr, "KERNEL 11 %d - k = %u\n", rank, info->k);
 #endif
 }
 
