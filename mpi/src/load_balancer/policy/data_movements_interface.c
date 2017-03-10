@@ -17,6 +17,7 @@
 
 #include <starpu.h>
 #include <stdlib.h>
+#include <starpu_mpi_private.h>
 
 #include "data_movements_interface.h"
 

@@ -20,7 +20,7 @@
 #include <common/uthash.h>
 #include <common/utils.h>
 #include <math.h>
-
+#include <starpu_mpi_private.h>
 #include "load_balancer_policy.h"
 #include "data_movements_interface.h"
 #include "load_data_interface.h"
@@ -463,19 +463,19 @@ static int init_heat(struct starpu_mpi_lb_conf *itf)
 	 * step. */
 
 	/* Local load data */
-	_STARPU_MPI_CALLOC(load_data_handle, sizeof(starpu_data_handle_t));
+	_STARPU_MPI_CALLOC(load_data_handle, 1, sizeof(starpu_data_handle_t));
 	load_data_data_register(load_data_handle, STARPU_MAIN_RAM, sleep_task_threshold, wakeup_ratio);
 
 	/* Copy of the local load data to enable parallel update of the load data
 	 * with communications to neighbor nodes */
-	_STARPU_MPI_CALLOC(load_data_handle_cpy, sizeof(starpu_data_handle_t));
+	_STARPU_MPI_CALLOC(load_data_handle_cpy, 1, sizeof(starpu_data_handle_t));
 	void *local_interface = starpu_data_get_interface_on_node(*load_data_handle, STARPU_MAIN_RAM);
 	struct starpu_data_interface_ops *itf_load_data = starpu_data_get_interface_ops(*load_data_handle);
 	starpu_data_register(load_data_handle_cpy, STARPU_MAIN_RAM, local_interface, itf_load_data);
 	starpu_mpi_data_register(*load_data_handle_cpy, TAG_LOAD(my_rank), my_rank);
 
 	/* Remote load data */
-	_STARPU_MPI_CALLOC(neighbor_load_data_handles, nneighbors*sizeof(starpu_data_handle_t));
+	_STARPU_MPI_CALLOC(neighbor_load_data_handles, nneighbors, sizeof(starpu_data_handle_t));
 	for (i = 0; i < nneighbors; i++)
 	{
 		load_data_data_register(&neighbor_load_data_handles[i], STARPU_MAIN_RAM, sleep_task_threshold, wakeup_ratio);
