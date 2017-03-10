@@ -1883,7 +1883,7 @@ static void handle_data_coordinates(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 	unsigned i;
 
 	data->dimensions = dimensions;
-	data->dims = malloc(dimensions * sizeof(*data->dims));
+	_STARPU_MALLOC(data->dims, dimensions * sizeof(*data->dims));
 	for (i = 0; i < dimensions; i++)
 		data->dims[i] = ev->param[i+2];
 }

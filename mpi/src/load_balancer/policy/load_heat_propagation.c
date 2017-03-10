@@ -259,7 +259,8 @@ static void update_data_ranks()
 				/* Save the fact that the data has been moved out of this node */
 				if (i == my_rank)
 				{
-					struct moved_data_entry *md = (struct moved_data_entry *)malloc(sizeof(struct moved_data_entry));
+					struct moved_data_entry *md;
+					_STARPU_MPI_MALLOC(md, sizeof(struct moved_data_entry));
 					md->handle = handle;
 					HASH_ADD_PTR(mdh, handle, md);
 				}
@@ -416,7 +417,7 @@ static int init_heat(struct starpu_mpi_lb_conf *itf)
 		return 1;
 	}
 
-	user_itf = malloc(sizeof(struct starpu_mpi_lb_conf));
+	_STARPU_MPI_MALLOC(user_itf, sizeof(struct starpu_mpi_lb_conf));
 	memcpy(user_itf, itf, sizeof(struct starpu_mpi_lb_conf));;
 
 	/* Get the neighbors of the local MPI node */
@@ -462,22 +463,19 @@ static int init_heat(struct starpu_mpi_lb_conf *itf)
 	 * step. */
 
 	/* Local load data */
-	load_data_handle = malloc(sizeof(starpu_data_handle_t));
-	memset(load_data_handle, 0, sizeof(starpu_data_handle_t));
+	_STARPU_MPI_CALLOC(load_data_handle, sizeof(starpu_data_handle_t));
 	load_data_data_register(load_data_handle, STARPU_MAIN_RAM, sleep_task_threshold, wakeup_ratio);
 
 	/* Copy of the local load data to enable parallel update of the load data
 	 * with communications to neighbor nodes */
-	load_data_handle_cpy = malloc(sizeof(starpu_data_handle_t));
-	memset(load_data_handle_cpy, 0, sizeof(starpu_data_handle_t));
+	_STARPU_MPI_CALLOC(load_data_handle_cpy, sizeof(starpu_data_handle_t));
 	void *local_interface = starpu_data_get_interface_on_node(*load_data_handle, STARPU_MAIN_RAM);
 	struct starpu_data_interface_ops *itf_load_data = starpu_data_get_interface_ops(*load_data_handle);
 	starpu_data_register(load_data_handle_cpy, STARPU_MAIN_RAM, local_interface, itf_load_data);
 	starpu_mpi_data_register(*load_data_handle_cpy, TAG_LOAD(my_rank), my_rank);
 
 	/* Remote load data */
-	neighbor_load_data_handles = malloc(nneighbors*sizeof(starpu_data_handle_t));
-	memset(neighbor_load_data_handles, 0, nneighbors*sizeof(starpu_data_handle_t));
+	_STARPU_MPI_CALLOC(neighbor_load_data_handles, nneighbors*sizeof(starpu_data_handle_t));
 	for (i = 0; i < nneighbors; i++)
 	{
 		load_data_data_register(&neighbor_load_data_handles[i], STARPU_MAIN_RAM, sleep_task_threshold, wakeup_ratio);
@@ -485,7 +483,7 @@ static int init_heat(struct starpu_mpi_lb_conf *itf)
 	}
 
 	/* Data movements handles */
-	data_movements_handles = malloc(world_size*sizeof(starpu_data_handle_t));
+	_STARPU_MPI_MALLOC(data_movements_handles, world_size*sizeof(starpu_data_handle_t));
 	for (i = 0; i < world_size; i++)
 	{
 		data_movements_data_register(&data_movements_handles[i], STARPU_MAIN_RAM, NULL, NULL, 0);

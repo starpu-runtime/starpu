@@ -516,7 +516,7 @@ _starpu_allocate_topology_userdata(hwloc_obj_t obj)
 {
 	unsigned i;
 
-	obj->userdata = calloc(1, sizeof(struct _starpu_hwloc_userdata));
+	_STARPU_CALLOC(obj->userdata,  1, sizeof(struct _starpu_hwloc_userdata));
 	for (i = 0; i < obj->arity; i++)
 		_starpu_allocate_topology_userdata(obj->children[i]);
 }
@@ -1270,7 +1270,7 @@ _starpu_init_machine_config(struct _starpu_machine_config *config, int no_mp_con
 			if(topology->cuda_th_per_stream)
 			{
 				/* Just one worker in the set */
-				config->workers[worker_idx].set = (struct _starpu_worker_set *)calloc(1, sizeof(struct _starpu_worker_set));
+				_STARPU_CALLOC(config->workers[worker_idx].set, 1, sizeof(struct _starpu_worker_set));
 				config->workers[worker_idx].set->workers = &config->workers[worker_idx];
 				config->workers[worker_idx].set->nworkers = 1;
 			}

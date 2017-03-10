@@ -69,7 +69,7 @@ void _starpu_mic_sink_init(struct _starpu_mp_node *node)
 #error need to check the numbering
 #endif
 
-	//node->sink_sink_dt_connections = malloc(node->nb_mp_sinks * sizeof(union _starpu_mp_connection));
+	//_STARPU_MALLOC(node->sink_sink_dt_connections, node->nb_mp_sinks * sizeof(union _starpu_mp_connection));
 
 	//for (i = 0; i < (unsigned int)node->devid; ++i)
 	//	_starpu_mic_common_connect(&node->sink_sink_dt_connections[i].mic_endpoint,
