@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2015  Mathieu Lirzin <mthl@openmailbox.org>
- * Copyright (C) 2016  Inria
+ * Copyright (C) 2016, 2017  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -27,6 +27,7 @@
  * and receive informations with devices */
 extern struct _starpu_mp_node *mpi_ms_nodes[STARPU_MAXMPIDEVS];
 struct _starpu_mp_node *_starpu_mpi_src_get_mp_node_from_memory_node(int memory_node);
+struct _starpu_mp_node *_starpu_mpi_ms_src_get_actual_thread_mp_node();
 
 unsigned _starpu_mpi_src_get_device_count();
 void *_starpu_mpi_src_worker(void *arg);
@@ -45,6 +46,8 @@ int _starpu_mpi_copy_mpi_to_ram_async(void *src, unsigned src_node, void *dst, u
 int _starpu_mpi_copy_ram_to_mpi_async(void *src, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst, unsigned dst_node, size_t size, void * event);
 int _starpu_mpi_copy_sink_to_sink_async(void *src, unsigned src_node, void *dst, unsigned dst_node, size_t size, void * event);
 
+
+starpu_mpi_ms_kernel_t _starpu_mpi_ms_src_get_kernel_from_codelet(struct starpu_codelet *cl, unsigned nimpl);
 void(* _starpu_mpi_ms_src_get_kernel_from_job(const struct _starpu_mp_node *node STARPU_ATTRIBUTE_UNUSED, struct _starpu_job *j))(void);
 
 #endif /* STARPU_USE_MPI_MASTER_SLAVE */

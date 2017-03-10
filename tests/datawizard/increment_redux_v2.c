@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2016  Université de Bordeaux
+ * Copyright (C) 2017  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -231,18 +232,12 @@ struct starpu_codelet increment_cl_redux =
 int main(int argc, char **argv)
 {
 	int ret;
-	struct starpu_conf conf;
-
-	starpu_conf_init(&conf);
-
-	/* MPI Master-Slave doesn't support Redux */
-	conf.nmpi_ms = 0;
 
 	/* Not supported yet */
 	if (starpu_get_env_number_default("STARPU_GLOBAL_ARBITER", 0) > 0)
 		return STARPU_TEST_SKIPPED;
 
-	ret = starpu_initialize(&conf, &argc, &argv);
+	ret = starpu_initialize(NULL, &argc, &argv);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
