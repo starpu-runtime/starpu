@@ -24,6 +24,15 @@
 #include <core/sched_ctx.h>
 #include <starpu_scheduler.h>
 
+#include <core/simgrid.h>
+
+#define _STARPU_SCHED_BEGIN \
+	_STARPU_TRACE_WORKER_SCHEDULING_PUSH;	\
+	_SIMGRID_TIMER_BEGIN
+#define _STARPU_SCHED_END \
+	_STARPU_TRACE_WORKER_SCHEDULING_POP;	\
+	_SIMGRID_TIMER_END
+
 void _starpu_sched_init(void);
 
 struct starpu_machine_config;

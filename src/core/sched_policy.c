@@ -222,9 +222,9 @@ void _starpu_init_sched_policy(struct _starpu_machine_config *config, struct _st
 	starpu_sched_ctx_create_worker_collection(sched_ctx->id,
 						  sched_ctx->sched_policy->worker_type);
 
-	_STARPU_TRACE_WORKER_SCHEDULING_PUSH;
+	_STARPU_SCHED_BEGIN;
 	sched_ctx->sched_policy->init_sched(sched_ctx->id);
-	_STARPU_TRACE_WORKER_SCHEDULING_POP;
+	_STARPU_SCHED_END;
 }
 
 void _starpu_deinit_sched_policy(struct _starpu_sched_ctx *sched_ctx)
@@ -232,9 +232,9 @@ void _starpu_deinit_sched_policy(struct _starpu_sched_ctx *sched_ctx)
 	struct starpu_sched_policy *policy = sched_ctx->sched_policy;
 	if (policy->deinit_sched)
 	{
-		_STARPU_TRACE_WORKER_SCHEDULING_PUSH;
+		_STARPU_SCHED_BEGIN;
 		policy->deinit_sched(sched_ctx->id);
-		_STARPU_TRACE_WORKER_SCHEDULING_POP;
+		_STARPU_SCHED_END;
 	}
 	starpu_sched_ctx_delete_worker_collection(sched_ctx->id);
 }
@@ -246,9 +246,9 @@ void _starpu_sched_task_submit(struct starpu_task *task)
 		return;
 	if (!sched_ctx->sched_policy->submit_hook)
 		return;
-	_STARPU_TRACE_WORKER_SCHEDULING_PUSH;
+	_STARPU_SCHED_BEGIN;
 	sched_ctx->sched_policy->submit_hook(task);
-	_STARPU_TRACE_WORKER_SCHEDULING_POP;
+	_STARPU_SCHED_END;
 }
 
 void _starpu_sched_do_schedule(unsigned sched_ctx_id)
@@ -258,9 +258,9 @@ void _starpu_sched_do_schedule(unsigned sched_ctx_id)
 		return;
 	if (!sched_ctx->sched_policy->do_schedule)
 		return;
-	_STARPU_TRACE_WORKER_SCHEDULING_PUSH;
+	_STARPU_SCHED_BEGIN;
 	sched_ctx->sched_policy->do_schedule(sched_ctx_id);
-	_STARPU_TRACE_WORKER_SCHEDULING_POP;
+	_STARPU_SCHED_END;
 }
 
 static void _starpu_push_task_on_specific_worker_notify_sched(struct starpu_task *task, struct _starpu_worker *worker, int workerid, int perf_workerid)
@@ -275,9 +275,9 @@ static void _starpu_push_task_on_specific_worker_notify_sched(struct starpu_task
 		struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(e->sched_ctx);
 		if (sched_ctx->sched_policy != NULL && sched_ctx->sched_policy->push_task_notify)
 		{
-			_STARPU_TRACE_WORKER_SCHEDULING_PUSH;
+			_STARPU_SCHED_BEGIN;
 			sched_ctx->sched_policy->push_task_notify(task, workerid, perf_workerid, sched_ctx->id);
-			_STARPU_TRACE_WORKER_SCHEDULING_POP;
+			_STARPU_SCHED_END;
 		}
 	}
 }
@@ -597,9 +597,9 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 			else
 			{
 				_STARPU_TASK_BREAK_ON(task, push);
-				_STARPU_TRACE_WORKER_SCHEDULING_PUSH;
+				_STARPU_SCHED_BEGIN;
 				ret = sched_ctx->sched_policy->push_task(task);
-				_STARPU_TRACE_WORKER_SCHEDULING_POP;
+				_STARPU_SCHED_END;
 			}
 			STARPU_PTHREAD_RWLOCK_UNLOCK(changing_ctx_mutex);
 		}
@@ -1016,9 +1016,9 @@ struct starpu_task *_starpu_pop_every_task(struct _starpu_sched_ctx *sched_ctx)
 		/* TODO set profiling info */
 		if(sched_ctx->sched_policy->pop_every_task)
 		{
-			_STARPU_TRACE_WORKER_SCHEDULING_PUSH;
+			_STARPU_SCHED_BEGIN;
 			task = sched_ctx->sched_policy->pop_every_task(sched_ctx->id);
-			_STARPU_TRACE_WORKER_SCHEDULING_POP;
+			_STARPU_SCHED_END;
 		}
 	}
 	return task;
@@ -1030,9 +1030,9 @@ void _starpu_sched_pre_exec_hook(struct starpu_task *task)
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	if (sched_ctx->sched_policy && sched_ctx->sched_policy->pre_exec_hook)
 	{
-		_STARPU_TRACE_WORKER_SCHEDULING_PUSH;
+		_STARPU_SCHED_BEGIN;
 		sched_ctx->sched_policy->pre_exec_hook(task, sched_ctx_id);
-		_STARPU_TRACE_WORKER_SCHEDULING_POP;
+		_STARPU_SCHED_END;
 	}
 
 	if(!sched_ctx->sched_policy)
@@ -1052,9 +1052,9 @@ void _starpu_sched_pre_exec_hook(struct starpu_task *task)
 			    other_sched_ctx->sched_policy != NULL && 
 			    other_sched_ctx->sched_policy->pre_exec_hook)
 			{
-				_STARPU_TRACE_WORKER_SCHEDULING_PUSH;
+				_STARPU_SCHED_BEGIN;
 				other_sched_ctx->sched_policy->pre_exec_hook(task, other_sched_ctx->id);
-				_STARPU_TRACE_WORKER_SCHEDULING_POP;
+				_STARPU_SCHED_END;
 			}
 		}
 	}
@@ -1067,9 +1067,9 @@ void _starpu_sched_post_exec_hook(struct starpu_task *task)
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	if (sched_ctx->sched_policy && sched_ctx->sched_policy->post_exec_hook)
 	{
-		_STARPU_TRACE_WORKER_SCHEDULING_PUSH;
+		_STARPU_SCHED_BEGIN;
 		sched_ctx->sched_policy->post_exec_hook(task, sched_ctx_id);
-		_STARPU_TRACE_WORKER_SCHEDULING_POP;
+		_STARPU_SCHED_END;
 	}
 	if(!sched_ctx->sched_policy)
 	{
@@ -1088,9 +1088,9 @@ void _starpu_sched_post_exec_hook(struct starpu_task *task)
 			    other_sched_ctx->sched_policy != NULL && 
 			    other_sched_ctx->sched_policy->post_exec_hook)
 			{
-				_STARPU_TRACE_WORKER_SCHEDULING_PUSH;
+				_STARPU_SCHED_BEGIN;
 				other_sched_ctx->sched_policy->post_exec_hook(task, other_sched_ctx->id);
-				_STARPU_TRACE_WORKER_SCHEDULING_POP;
+				_STARPU_SCHED_END;
 			}
 		}
 	}

@@ -74,9 +74,9 @@ void _starpu_worker_gets_out_of_ctx(unsigned sched_ctx_id, struct _starpu_worker
 		/* struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id); */
 		/* if(sched_ctx && sched_ctx->sched_policy && sched_ctx->sched_policy->remove_workers) */
 		/* { */
-		/* 	_STARPU_TRACE_WORKER_SCHEDULING_PUSH; */
+		/* 	_STARPU_SCHED_BEGIN; */
 		/* 	sched_ctx->sched_policy->remove_workers(sched_ctx_id, &worker->workerid, 1); */
-		/* 	_STARPU_TRACE_WORKER_SCHEDULING_POP; */
+		/* 	_STARPU_SCHED_END; */
 		/* } */
 		if (!_starpu_sched_ctx_list_remove(&worker->sched_ctx_list, sched_ctx_id))
 			worker->nsched_ctxs--;
@@ -310,7 +310,7 @@ static void _starpu_add_workers_to_sched_ctx(struct _starpu_sched_ctx *sched_ctx
 
 	if(sched_ctx->sched_policy && sched_ctx->sched_policy->add_workers)
 	{
-		_STARPU_TRACE_WORKER_SCHEDULING_PUSH;
+		_STARPU_SCHED_BEGIN;
 		if(added_workers)
 		{
 			if(*n_added_workers > 0)
@@ -320,7 +320,7 @@ static void _starpu_add_workers_to_sched_ctx(struct _starpu_sched_ctx *sched_ctx
 		{
 			sched_ctx->sched_policy->add_workers(sched_ctx->id, workers_to_add, nworkers_to_add);
 		}
-		_STARPU_TRACE_WORKER_SCHEDULING_POP;
+		_STARPU_SCHED_END;
 	}
 	return;
 }
@@ -407,9 +407,9 @@ static void _starpu_sched_ctx_free_scheduling_data(struct _starpu_sched_ctx *sch
 
 		if(nworkers_ctx > 0)
 		{
-			_STARPU_TRACE_WORKER_SCHEDULING_PUSH;
+			_STARPU_SCHED_BEGIN;
 			sched_ctx->sched_policy->remove_workers(sched_ctx->id, workerids, nworkers_ctx);
-			_STARPU_TRACE_WORKER_SCHEDULING_POP;
+			_STARPU_SCHED_END;
 		}
 
 		free(workerids);
