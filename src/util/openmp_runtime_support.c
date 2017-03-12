@@ -1034,7 +1034,7 @@ void starpu_omp_parallel_region(const struct starpu_omp_parallel_region_attr *at
 		_STARPU_MALLOC(new_region->icvs.nthreads_var, sizeof(*new_region->icvs.nthreads_var));
 		new_region->icvs.nthreads_var[0] = generating_region->icvs.nthreads_var[0];
 
-		_STARPU_MALLOC(new_region->icvs.bind_var, (sizeof(*new_region->icvs.bind_var));
+		_STARPU_MALLOC(new_region->icvs.bind_var, sizeof(*new_region->icvs.bind_var));
 		new_region->icvs.bind_var[0] = generating_region->icvs.bind_var[0];
 	}
 	new_region->icvs.thread_limit_var = generating_region->icvs.thread_limit_var;
