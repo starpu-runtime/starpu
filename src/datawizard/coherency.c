@@ -1,5 +1,5 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures. *
- * Copyright (C) 2009-2016  Université de Bordeaux
+ * Copyright (C) 2009-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  * Copyright (C) 2014  INRIA
  *
@@ -321,7 +321,7 @@ static int link_supports_direct_transfers(starpu_data_handle_t handle, unsigned 
  * and the max_len is the maximum number of hops (ie. the size of the
  * src_nodes, dst_nodes and handling_nodes arrays. */
 static int determine_request_path(starpu_data_handle_t handle,
-				  unsigned src_node, unsigned dst_node,
+				  int src_node, int dst_node,
 				  enum starpu_data_access_mode mode, int max_len,
 				  unsigned *src_nodes, unsigned *dst_nodes,
 				  unsigned *handling_nodes, unsigned write_invalidation)
@@ -592,7 +592,7 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 	unsigned src_nodes[MAX_REQUESTS], dst_nodes[MAX_REQUESTS], handling_nodes[MAX_REQUESTS];
 	/* keep one slot for the last W request, if any */
 	int write_invalidation = (mode & STARPU_W) && nwait && !is_prefetch;
-	int nhops = determine_request_path(handle, src_node, requesting_node, mode, MAX_REQUESTS,
+	int hops = determine_request_path(handle, src_node, requesting_node, mode, MAX_REQUESTS,
 					   src_nodes, dst_nodes, handling_nodes, write_invalidation);
 
 	STARPU_ASSERT(nhops >= 0 && nhops <= MAX_REQUESTS-1);
