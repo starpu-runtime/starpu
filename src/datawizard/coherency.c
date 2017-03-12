@@ -592,7 +592,7 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 	unsigned src_nodes[MAX_REQUESTS], dst_nodes[MAX_REQUESTS], handling_nodes[MAX_REQUESTS];
 	/* keep one slot for the last W request, if any */
 	int write_invalidation = (mode & STARPU_W) && nwait && !is_prefetch;
-	int hops = determine_request_path(handle, src_node, requesting_node, mode, MAX_REQUESTS,
+	int nhops = determine_request_path(handle, src_node, requesting_node, mode, MAX_REQUESTS,
 					   src_nodes, dst_nodes, handling_nodes, write_invalidation);
 
 	STARPU_ASSERT(nhops >= 0 && nhops <= MAX_REQUESTS-1);
