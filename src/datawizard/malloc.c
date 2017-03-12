@@ -138,19 +138,18 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 			starpu_memory_allocate(STARPU_MAIN_RAM, dim, flags | STARPU_MEMORY_OVERFLOW);
 	}
 
-	struct _starpu_machine_config *config = _starpu_get_machine_config();
-	if (flags & STARPU_MALLOC_PINNED && disable_pinning <= 0 && STARPU_RUNNING_ON_VALGRIND == 0 && config->conf.ncuda > 0)
+	if (flags & STARPU_MALLOC_PINNED && disable_pinning <= 0 && STARPU_RUNNING_ON_VALGRIND == 0)
 	{
+		if (_starpu_can_submit_cuda_task())
+		{
 #ifdef STARPU_SIMGRID
 		/* FIXME: CUDA seems to be taking 650µs every 1MiB.
 		 * Ideally we would simulate this batching in 1MiB requests
 		 * instead of computing an average value.
 		 */
-		if (_starpu_simgrid_cuda_malloc_cost())
-			MSG_process_sleep((float) dim * 0.000650 / 1048576.);
+			if (_starpu_simgrid_cuda_malloc_cost())
+				MSG_process_sleep((float) dim * 0.000650 / 1048576.);
 #else /* STARPU_SIMGRID */
-		if (_starpu_can_submit_cuda_task())
-		{
 #ifdef STARPU_USE_CUDA
 #ifdef HAVE_CUDA_MEMCPY_PEER
 			cudaError_t cures;
@@ -371,11 +370,13 @@ static struct starpu_codelet free_pinned_cl =
 
 int starpu_free_flags(void *A, size_t dim, int flags)
 {
-#ifndef STARPU_SIMGRID
 	if (flags & STARPU_MALLOC_PINNED && disable_pinning <= 0 && STARPU_RUNNING_ON_VALGRIND == 0)
 	{
 		if (_starpu_can_submit_cuda_task())
 		{
+#ifdef STARPU_SIMGRID
+			/* TODO: simulate CUDA barrier */
+#else /* !STARPU_SIMGRID */
 #ifdef STARPU_USE_CUDA
 #ifndef HAVE_CUDA_MEMCPY_PEER
 			if (!_starpu_is_initialized())
@@ -412,6 +413,7 @@ int starpu_free_flags(void *A, size_t dim, int flags)
 			}
 #endif /* HAVE_CUDA_MEMCPY_PEER */
 #endif /* STARPU_USE_CUDA */
+#endif /* STARPU_SIMGRID */
 		}
 //	else if (_starpu_can_submit_opencl_task())
 //	{
@@ -436,7 +438,6 @@ int starpu_free_flags(void *A, size_t dim, int flags)
 //	}
 //#endif
 	}
-#endif /* STARPU_SIMGRID */
 
 #ifdef STARPU_SIMGRID
 	if (flags & STARPU_MALLOC_SIMULATION_FOLDED)
