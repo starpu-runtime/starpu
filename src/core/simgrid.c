@@ -252,7 +252,9 @@ int main(int argc, char **argv)
 	int i;
 	for (i = 0; i < argc; i++)
 		argv_cpy[i] = strdup(argv[i]);
-	MSG_process_create_with_arguments("main", &do_starpu_main, calloc(MAX_TSD+1, sizeof(void*)), MSG_get_host_by_name("MAIN"), argc, argv_cpy);
+	void **tsd;
+	_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));
+	MSG_process_create_with_arguments("main", &do_starpu_main, tsd, MSG_get_host_by_name("MAIN"), argc, argv_cpy);
 
 	/* And run maestro in main thread */
 	MSG_main();
@@ -279,7 +281,9 @@ void _starpu_simgrid_init(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv STARPU
 		/* Initialize simgrid */
 		start_simgrid(argc, *argv);
 		/* And attach the main thread to the main simgrid process */
-		MSG_process_attach("main", calloc(MAX_TSD, sizeof(void*)), MSG_get_host_by_name("MAIN"), NULL);
+		void **tsd;
+		_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));
+		MSG_process_attach("main", tsd, MSG_get_host_by_name("MAIN"), NULL);
 		simgrid_started = 2;
 	}
 #endif
@@ -294,7 +298,9 @@ void _starpu_simgrid_init(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv STARPU
 #ifdef __PIC__
 		_STARPU_ERROR("Simgrid currently does not support privatization for dynamically-linked libraries in SMPI. Please reconfigure and build StarPU with --disable-shared");
 #endif
-		MSG_process_set_data(MSG_process_self(), calloc(MAX_TSD, sizeof(void*)));
+		void **tsd;
+		_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));
+		MSG_process_set_data(MSG_process_self(), tsd);
 	}
 }
 
