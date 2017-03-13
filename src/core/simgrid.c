@@ -248,7 +248,7 @@ int main(int argc, char **argv)
 
 	/* Create a simgrid process for main */
 	char **argv_cpy;
-	argv_cpy = malloc(argc * sizeof(char*));
+	_STARPU_MALLOC(argv_cpy, argc * sizeof(char*));
 	int i;
 	for (i = 0; i < argc; i++)
 		argv_cpy[i] = strdup(argv[i]);
@@ -356,7 +356,8 @@ static int task_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_AT
 		last_task[task->workerid] = NULL;
 	if (task->next)
 	{
-		void **tsd = calloc(MAX_TSD+1, sizeof(void*));
+		void **tsd;
+		_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));
 		tsd[0] = task->next;
 		MSG_process_create_with_arguments("task", task_execute, tsd, MSG_host_self(), 0, NULL);
 	}
@@ -418,7 +419,8 @@ void _starpu_simgrid_submit_job(int workerid, struct _starpu_job *j, struct star
 	else
 	{
 		/* Asynchronous execution */
-		struct task *task = malloc(sizeof(*task));
+		struct task *task;
+		_STARPU_MALLOC(task, sizeof(*task));
 		task->task = simgrid_task;
 		task->workerid = workerid;
 		task->finished = finished;
@@ -439,7 +441,7 @@ void _starpu_simgrid_submit_job(int workerid, struct _starpu_job *j, struct star
 		{
 			void **tsd;
 			last_task[workerid] = task;
-			tsd = calloc(MAX_TSD+1, sizeof(void*));
+			_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));
 			tsd[0] = task;
 			MSG_process_create_with_arguments("task", task_execute, tsd, MSG_host_self(), 0, NULL);
 		}
@@ -552,7 +554,7 @@ static int transfer_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARP
 		{
 			void **tsd;
 			_STARPU_DEBUG("triggering transfer %p\n", wake);
-			tsd = calloc(MAX_TSD+1, sizeof(void*));
+			_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));
 			tsd[0] = wake;
 			MSG_process_create_with_arguments("transfer task", transfer_execute, tsd, _starpu_simgrid_get_host_by_name("MAIN"), 0, NULL);
 		}
@@ -581,7 +583,7 @@ static void transfer_submit(struct transfer *transfer)
 			/* Make new wait for the old */
 			transfer->nwait++;
 			/* Make old wake the new */
-			old->wake = realloc(old->wake, (old->nwake + 1) * sizeof(old->wake));
+			_STARPU_REALLOC(old->wake, (old->nwake + 1) * sizeof(old->wake));
 			old->wake[old->nwake] = transfer;
 			old->nwake++;
 		}
@@ -593,7 +595,7 @@ static void transfer_submit(struct transfer *transfer)
 	{
 		void **tsd;
 		_STARPU_DEBUG("transfer %p waits for nobody, starting\n", transfer);
-		tsd = calloc(MAX_TSD+1, sizeof(void*));
+		_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));
 		tsd[0] = transfer;
 		MSG_process_create_with_arguments("transfer task", transfer_execute, tsd, _starpu_simgrid_get_host_by_name("MAIN"), 0, NULL);
 	}
@@ -606,12 +608,16 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 	if (!size)
 		return 0;
 	msg_task_t task;
-	msg_host_t *hosts = calloc(2, sizeof(*hosts));
-	double *computation = calloc(2, sizeof(*computation));
-	double *communication = calloc(4, sizeof(*communication));
+	msg_host_t *hosts;
+	double *computation;
+	double *communication;
 	starpu_pthread_mutex_t mutex;
 	starpu_pthread_cond_t cond;
 	unsigned finished;
+
+	_STARPU_CALLOC(hosts, 2, sizeof(*hosts));
+	_STARPU_CALLOC(computation, 2, sizeof(*computation));
+	_STARPU_CALLOC(communication, 4, sizeof(*communication));
 
 	hosts[0] = _starpu_simgrid_memory_node_get_host(src_node);
 	hosts[1] = _starpu_simgrid_memory_node_get_host(dst_node);
