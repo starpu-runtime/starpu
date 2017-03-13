@@ -145,6 +145,7 @@ EXTRA_DIST =				\
 	valgrind/madmpi.suppr		\
 	valgrind/opencl.suppr		\
 	valgrind/openmpi.suppr		\
+	valgrind/openmp.suppr		\
 	valgrind/padico.suppr		\
 	valgrind/pthread.suppr		\
 	valgrind/starpu.suppr		\
