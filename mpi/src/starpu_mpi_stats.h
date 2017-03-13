@@ -22,7 +22,8 @@
 #include <mpi.h>
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
 void _starpu_mpi_comm_amounts_init(MPI_Comm comm);

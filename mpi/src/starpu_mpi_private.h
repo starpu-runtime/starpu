@@ -26,7 +26,8 @@
 #include <common/list.h>
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
 extern int _starpu_debug_rank;

@@ -24,7 +24,8 @@
 #include <mpi.h>
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
 extern int _starpu_cache_enabled;

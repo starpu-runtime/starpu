@@ -72,7 +72,8 @@
 
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
 /* Declared with `C' linkage in <gcc-plugin.h>.  */
