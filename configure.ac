@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2016  Université de Bordeaux
+# Copyright (C) 2009-2017  Université de Bordeaux
 # Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
 # Copyright (C) 2011  Télécom-SudParis
 # Copyright (C) 2011, 2012, 2014-2016  INRIA
@@ -211,7 +211,9 @@ then
     INCLUDE_PTHREAD_H='#include <pthread.h>'
 fi
 
-AC_CHECK_TYPE([struct timespec], 
+AC_CHECK_HEADERS([unistd.h], [AC_DEFINE([STARPU_HAVE_UNISTD_H], [1], [Define to 1 if you have the <unistd.h> header file.])])
+
+AC_CHECK_TYPE([struct timespec],
 	       AC_DEFINE(STARPU_HAVE_STRUCT_TIMESPEC,[1],[struct timespec is defined]),
 	       [], [
 #include <sys/types.h>
@@ -222,8 +224,6 @@ AC_CHECK_TYPE([struct timespec],
 #include <time.h>
 $INCLUDE_PTHREAD_H
 ])
-
-AC_CHECK_HEADERS([unistd.h], [AC_DEFINE([STARPU_HAVE_UNISTD_H], [1], [Define to 1 if you have the <unistd.h> header file.])])
 
 if test x"$enable_native_winthreads" = xyes
 then
