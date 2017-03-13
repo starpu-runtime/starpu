@@ -73,7 +73,7 @@ struct malloc_pinned_codelet_struct
 //static void malloc_pinned_opencl_codelet(void *buffers[] STARPU_ATTRIBUTE_UNUSED, void *arg)
 //{
 //	struct malloc_pinned_codelet_struct *s = arg;
-//        //        *(s->ptr) = malloc(s->dim);
+//        //        _STARPU_MALLOC(*(s->ptr), s->dim);
 //        starpu_opencl_allocate_memory(devid, (void **)(s->ptr), s->dim, CL_MEM_READ_WRITE|CL_MEM_ALLOC_HOST_PTR);
 //}
 //#endif

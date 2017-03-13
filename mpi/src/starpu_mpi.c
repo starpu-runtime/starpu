@@ -1327,7 +1327,9 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	MSG_process_create_with_arguments("main", smpi_simulated_main_, NULL, _starpu_simgrid_get_host_by_name("MAIN"), *(argc_argv->argc), argv_cpy);
 	/* And set TSD for us */
 #ifdef HAVE_SMPI_PROCESS_SET_USER_DATA
-	smpi_process_set_user_data(calloc(MAX_TSD + 1, sizeof(void*)));
+	void **tsd;
+	_STARPU_CALLOC(tsd, MAX_TSD + 1, sizeof(void*));
+	smpi_process_set_user_data(tsd);
 #endif
 #endif
 

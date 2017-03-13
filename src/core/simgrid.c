@@ -278,7 +278,9 @@ int main(int argc, char **argv)
 	int i;
 	for (i = 0; i < argc; i++)
 		argv_cpy[i] = strdup(argv[i]);
-	MSG_process_create_with_arguments("main", &do_starpu_main, calloc(MAX_TSD+1, sizeof(void*)), MSG_get_host_by_name("MAIN"), argc, argv_cpy);
+	void **tsd;
+	_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));
+	MSG_process_create_with_arguments("main", &do_starpu_main, tsd, MSG_get_host_by_name("MAIN"), argc, argv_cpy);
 
 	/* And run maestro in main thread */
 	MSG_main();
@@ -310,7 +312,9 @@ void _starpu_simgrid_init_early(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv 
 		/* Initialize simgrid */
 		start_simgrid(argc, *argv);
 		/* And attach the main thread to the main simgrid process */
-		MSG_process_attach("main", calloc(MAX_TSD, sizeof(void*)), MSG_get_host_by_name("MAIN"), NULL);
+		void **tsd;
+		_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));
+		MSG_process_attach("main", tsd, MSG_get_host_by_name("MAIN"), NULL);
 		simgrid_started = 2;
 	}
 #endif
@@ -324,7 +328,9 @@ void _starpu_simgrid_init_early(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv 
 #ifndef STARPU_STATIC_ONLY
 		_STARPU_ERROR("Simgrid currently does not support privatization for dynamically-linked libraries in SMPI. Please reconfigure and build StarPU with --disable-shared");
 #endif
-		MSG_process_set_data(MSG_process_self(), calloc(MAX_TSD, sizeof(void*)));
+		void **tsd;
+		_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));
+		MSG_process_set_data(MSG_process_self(), tsd);
 	}
 	unsigned i;
 	for (i = 0; i < STARPU_MAXNODES; i++)
@@ -341,7 +347,8 @@ void _starpu_simgrid_init(void)
 	{
 		char s[32];
 		snprintf(s, sizeof(s), "worker %u runner", i);
-		void **tsd = calloc(MAX_TSD+1, sizeof(void*));
+		void **tsd;
+		_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));
 		worker_runner[i].sem = MSG_sem_init(0);
 		tsd[0] = (void*)(uintptr_t) i;
 		worker_runner[i].runner = MSG_process_create_with_arguments(s, task_execute, tsd, _starpu_simgrid_get_host_by_worker(_starpu_get_worker_struct(i)), 0, NULL);
@@ -629,7 +636,8 @@ static void transfer_queue(struct transfer *transfer)
 		{
 			char s[64];
 			snprintf(s, sizeof(s), "transfer %u-%u runner", src, dst);
-			void **tsd = calloc(MAX_TSD+1, sizeof(void*));
+			void **tsd;
+			_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));
 			tsd[0] = (void*)(uintptr_t)((src<<16) + dst);
 			t->runner = MSG_process_create_with_arguments(s, transfer_execute, tsd, _starpu_simgrid_get_memnode_host(src), 0, NULL);
 			t->sem = MSG_sem_init(0);
