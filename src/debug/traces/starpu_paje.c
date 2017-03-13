@@ -274,7 +274,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 	poti_DefineVariableType("gft", "Sc", "Total GFlops", "0 0 0");
 
 	/* Link types */
-	poti_DefineLinkType("MPIL", "P", "MPICt", "MPICt", "MPI communications");
+	poti_DefineLinkType("MPIL", "MPIP", "MPICt", "MPICt", "MPI communications");
 	poti_DefineLinkType("F", "P", "Mm", "Mm", "Intra-node data Fetch");
 	poti_DefineLinkType("PF", "P", "Mm", "Mm", "Intra-node data PreFetch");
 	poti_DefineLinkType("IF", "P", "Mm", "Mm", "Intra-node data IdleFetch");
@@ -398,7 +398,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 6       Co       MS     DriverCopy         \".3 .5 .1\"		\n\
 6       CoA      MS     DriverCopyAsync         \".1 .3 .1\"		\n\
 6       No       MS     Nothing         \".0 .0 .0\"		\n\
-5       MPIL     P	MPICt	MPICt   MPIL			\n\
+5       MPIL     MPIP	MPICt	MPICt   MPIL			\n\
 5       F       P	Mm	Mm      F\n\
 5       PF      P	Mm	Mm      PF\n\
 5       IF      P	Mm	Mm      IF\n\
