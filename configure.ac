@@ -603,6 +603,8 @@ then
     INCLUDE_PTHREAD_H='#include <pthread.h>'
 fi
 
+AC_CHECK_HEADERS([unistd.h], [AC_DEFINE([STARPU_HAVE_UNISTD_H], [1], [Define to 1 if you have the <unistd.h> header file.])])
+
 AC_CHECK_TYPE([struct timespec],
 	       AC_DEFINE(STARPU_HAVE_STRUCT_TIMESPEC,[1],[struct timespec is defined]),
 	       [], [
@@ -614,8 +616,6 @@ AC_CHECK_TYPE([struct timespec],
 #include <time.h>
 $INCLUDE_PTHREAD_H
 ])
-
-AC_CHECK_HEADERS([unistd.h], [AC_DEFINE([STARPU_HAVE_UNISTD_H], [1], [Define to 1 if you have the <unistd.h> header file.])])
 
 if test x"$enable_native_winthreads" = xyes
 then
