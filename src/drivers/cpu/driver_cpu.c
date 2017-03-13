@@ -376,7 +376,8 @@ int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
 		res = _starpu_fetch_task_input(task, j, 1);
 		STARPU_ASSERT(res == 0);
 	}
-	else {
+	else
+	{
 		int ret = _starpu_cpu_driver_execute_task(cpu_worker, task, j);
 		_STARPU_TRACE_END_PROGRESS(memnode);
 		return ret;

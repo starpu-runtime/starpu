@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2017  Université de Bordeaux
- * Copyright (C) 2010-2013, 2016  CNRS
+ * Copyright (C) 2010-2013, 2016, 2017  CNRS
  * Copyright (C) 2011  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -173,7 +173,8 @@ static void do_schedule_graph_test_policy(unsigned sched_ctx_id)
 	_starpu_graph_foreach(set_priority, data);
 
 	/* Now that we have priorities, move tasks from bag to priority queue */
-	while(!_starpu_fifo_empty(data->fifo)) {
+	while(!_starpu_fifo_empty(data->fifo))
+	{
 		struct starpu_task *task = _starpu_fifo_pop_task(data->fifo, -1);
 		struct _starpu_prio_deque *prio = select_prio(sched_ctx_id, data, task);
 		_starpu_prio_deque_push_back_task(prio, task);

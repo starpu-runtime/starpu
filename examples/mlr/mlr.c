@@ -33,7 +33,7 @@
    where M, N, K are the parameters of the task, exponents are coming
    from model->combinations[..][..]  and finally a, b, c are
    coefficients which mostly depend on the machine speed.
-   
+
    These coefficients are going to be automatically computed using
    least square method.
 
@@ -65,7 +65,7 @@ void cpu_func(void *buffers[], void *cl_arg)
 			     	  &m,
      			     	  &n,
      			     	  &k);
-	
+
 	for(i=0; i < (long) (m*m*n); i++)
 		sum+=i;
 
@@ -85,7 +85,8 @@ void cpu_func(void *buffers[], void *cl_arg)
 
 static const char * parameters_names[]	= {	"M",	"N",	"K", };
 
-static struct starpu_perfmodel cl_model_init = {
+static struct starpu_perfmodel cl_model_init =
+{
 	.type = STARPU_MULTIPLE_REGRESSION_BASED,
 	.symbol = "mlr_init",
 	.parameters = cl_params,
@@ -104,7 +105,8 @@ static unsigned combi2 [3]		= {	0,	3,	1 };
 
 static unsigned *combinations[] = { combi1, combi2 };
 
-static struct starpu_perfmodel cl_model_final = {
+static struct starpu_perfmodel cl_model_final =
+{
 	.type = STARPU_MULTIPLE_REGRESSION_BASED,
 	.symbol = "mlr_final",
 	.parameters = cl_params,
@@ -117,14 +119,16 @@ static struct starpu_perfmodel cl_model_final = {
 /* End of the part specific to multiple linear regression perfmodels */
 /* ############################################ */
 
-static struct starpu_codelet cl_init = {
+static struct starpu_codelet cl_init =
+{
 	.cpu_funcs = { cpu_func },
 	.cpu_funcs_name = { "cpu_func" },
 	.nbuffers = 0,
 	.model = &cl_model_init,
 };
 
-static struct starpu_codelet cl_final = {
+static struct starpu_codelet cl_final =
+{
 	.cpu_funcs = { cpu_func },
 	.cpu_funcs_name = { "cpu_func" },
 	.nbuffers = 0,
@@ -140,7 +144,7 @@ int main(int argc, char **argv)
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV)
 		return 77;
-	
+
 	sum=0;
 	int m,n,k;
 
@@ -150,7 +154,7 @@ int main(int argc, char **argv)
 		m = (int) ((rand() % 10)+1);
 		n = (int) ((rand() % 10)+1);
 		k = (int) ((rand() % 10)+1);
-		
+
 		for(j=0; j < 42; j++)
 		{
 			starpu_insert_task(&cl_init,
@@ -165,7 +169,7 @@ int main(int argc, char **argv)
 				   0);
 		}
 	}
-			  
+
 	starpu_shutdown();
 
 	return 0;

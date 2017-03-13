@@ -201,7 +201,8 @@ void _starpu_update_data_state(starpu_data_handle_t handle,
 			_starpu_memchunk_dirty(requesting_replicate->mc, requesting_replicate->memory_node);
 	}
 	else
-	{ /* read only */
+	{
+		/* read only */
 		if (requesting_replicate->state != STARPU_OWNER)
 		{
 			/* there was at least another copy of the data */

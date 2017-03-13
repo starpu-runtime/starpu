@@ -255,7 +255,8 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, unsigned n)
 			start_date = mpi_transfer_list_front(&pending_receives)->date;
 
 		src = MAX_MPI_NODES;
-		for (node = 0; node < n; node++) {
+		for (node = 0; node < n; node++)
+		{
 			if (slot[node] < mpi_sends_used[node] && mpi_sends[node][slot[node]].date < start_date)
 			{
 				/* next send for node is earlier than others */

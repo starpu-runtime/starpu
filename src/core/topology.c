@@ -1372,7 +1372,8 @@ _starpu_init_machine_config(struct _starpu_machine_config *config, int no_mp_con
 		int worker_idx = topology->nworkers + openclgpu;
 		int devid = _starpu_get_next_opencl_gpuid(config);
 		if (devid == -1)
-		{ // There is no more devices left
+		{
+			// There is no more devices left
 			topology->nopenclgpus = openclgpu;
 			break;
 		}

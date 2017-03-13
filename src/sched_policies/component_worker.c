@@ -220,7 +220,8 @@ static void _starpu_worker_task_list_destroy(struct _starpu_worker_task_list * l
 		/* There can be empty task grids, when we picked the last task after the front task grid */
 		struct _starpu_task_grid *t = l->first, *nextt;
 
-		while(t) {
+		while(t)
+		{
 			STARPU_ASSERT(!t->task);
 			nextt = t->up;
 			_starpu_task_grid_destroy(t);

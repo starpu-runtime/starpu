@@ -386,7 +386,8 @@ void _starpu_graph_compute_descendants(void)
 
 		descendants = 0;
 		/* While we have descendants, count their descendants */
-		while (current_n) {
+		while (current_n)
+		{
 			/* Next set is initially empty */
 			next_n = 0;
 

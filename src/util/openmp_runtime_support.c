@@ -1561,7 +1561,8 @@ void starpu_omp_task_region(const struct starpu_omp_task_region_attr *attr)
 	}
 	if (is_merged || is_included)
 	{
-		if (is_included) {
+		if (is_included)
+		{
 			/* TODO: backup current ICVs and setup new ICVs for the included task */
 		}
 		int i;
@@ -1586,7 +1587,8 @@ void starpu_omp_task_region(const struct starpu_omp_task_region_attr *attr)
 		{
 			free(attr->cl_arg);
 		}
-		if (is_included) {
+		if (is_included)
+		{
 			/* TODO: restore backuped ICVs */
 		}
 	}

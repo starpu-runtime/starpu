@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2011, 2013-2014, 2017  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -53,26 +53,32 @@ int get_block_rank(unsigned i, unsigned j);
 static void parse_args(int argc, char **argv)
 {
 	int i;
-	for (i = 1; i < argc; i++) {
-		if (strcmp(argv[i], "-size") == 0) {
+	for (i = 1; i < argc; i++)
+	{
+		if (strcmp(argv[i], "-size") == 0)
+		{
 			char *argptr;
 			size = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-nblocks") == 0) {
+		if (strcmp(argv[i], "-nblocks") == 0)
+		{
 			char *argptr;
 			nblocks = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-check") == 0) {
+		if (strcmp(argv[i], "-check") == 0)
+		{
 			check = 1;
 		}
 
-		if (strcmp(argv[i], "-display") == 0) {
+		if (strcmp(argv[i], "-display") == 0)
+		{
 			display = 1;
 		}
 
-		if (strcmp(argv[i], "-numa") == 0) {
+		if (strcmp(argv[i], "-numa") == 0)
+		{
 #ifdef STARPU_HAVE_LIBNUMA
 			numa = 1;
 #else
@@ -80,20 +86,25 @@ static void parse_args(int argc, char **argv)
 #endif
 		}
 
-		if (strcmp(argv[i], "-p") == 0) {
+		if (strcmp(argv[i], "-p") == 0)
+		{
 			char *argptr;
 			p = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-q") == 0) {
+		if (strcmp(argv[i], "-q") == 0)
+		{
 			char *argptr;
 			q = strtol(argv[++i], &argptr, 10);
 		}
 
 		if (strcmp(argv[i], "-path") == 0)
+		{
 			path = argv[++i];
+		}
 
-		if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "-help") == 0 || strcmp(argv[i], "--help") == 0) {
+		if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "-help") == 0 || strcmp(argv[i], "--help") == 0)
+		{
 			fprintf(stderr,"usage: %s [-size n] [-nblocks b] [-check] [-display] [-numa] [-p p] [-q q] [-path PATH]\n", argv[0]);
 			fprintf(stderr,"\np * q must be equal to the number of MPI nodes\n");
 			exit(0);
@@ -147,15 +158,18 @@ static void create_matrix()
 			}
 			snprintf(filename, filename_length, "%s/%u,%u", path, i, j);
 			fd = open(filename, O_WRONLY|O_CREAT|O_TRUNC, 0777);
-			if (fd < 0) {
+			if (fd < 0)
+			{
 				perror("open");
 				exit(1);
 			}
-			if (write(fd, blockptr, blocksize) != (starpu_ssize_t) blocksize) {
+			if (write(fd, blockptr, blocksize) != (starpu_ssize_t) blocksize)
+			{
 				fprintf(stderr,"short write");
 				exit(1);
 			}
-			if (close(fd) < 0) {
+			if (close(fd) < 0)
+			{
 				perror("close");
 				exit(1);
 			}
@@ -193,7 +207,8 @@ static void init_matrix(int rank)
 				snprintf(filename, sizeof(filename), "%u,%u", i, j);
 				/* Register it to StarPU */
 				disk_obj = starpu_disk_open(disk_node, filename, blocksize);
-				if (!disk_obj) {
+				if (!disk_obj)
+				{
 					fprintf(stderr,"could not open %s\n", filename);
 					exit(1);
 				}
@@ -201,7 +216,8 @@ static void init_matrix(int rank)
 					(uintptr_t) disk_obj, size/nblocks,
 					size/nblocks, size/nblocks, sizeof(TYPE));
 			}
-			else {
+			else
+			{
 				starpu_matrix_data_register(handleptr, -1,
 					0, size/nblocks,
 					size/nblocks, size/nblocks, sizeof(TYPE));
@@ -244,7 +260,8 @@ int main(int argc, char **argv)
 	parse_args(argc, argv);
 
 	ret = mkdir(path, 0777);
-	if (ret != 0 && errno != EEXIST) {
+	if (ret != 0 && errno != EEXIST)
+	{
 		fprintf(stderr,"%s does not exist\n", path);
 		exit(1);
 	}

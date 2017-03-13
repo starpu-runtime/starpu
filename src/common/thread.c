@@ -119,7 +119,8 @@ int starpu_pthread_mutex_lock(starpu_pthread_mutex_t *mutex)
 
 	/* Note: this is actually safe, because simgrid only preempts within
 	 * simgrid functions */
-	if (!*mutex) {
+	if (!*mutex)
+	{
 		/* Here we may get preempted */
 		xbt_mutex_t new_mutex = xbt_mutex_init();
 		if (!*mutex)
@@ -195,11 +196,13 @@ int starpu_pthread_key_create(starpu_pthread_key_t *key, void (*destr_function) 
 
 	/* Note: no synchronization here, we are actually monothreaded anyway. */
 	for (i = 0; i < MAX_TSD; i++)
+	{
 		if (!used_key[i])
 		{
 			used_key[i] = 1;
 			break;
 		}
+	}
 	STARPU_ASSERT(i < MAX_TSD);
 	/* key 0 is for process pointer argument */
 	*key = i+1;
@@ -251,7 +254,8 @@ static void _starpu_pthread_cond_auto_init(starpu_pthread_cond_t *cond)
 {
 	/* Note: this is actually safe, because simgrid only preempts within
 	 * simgrid functions */
-	if (!*cond) {
+	if (!*cond)
+	{
 		/* Here we may get preempted */
 		xbt_cond_t new_cond = xbt_cond_init();
 		if (!*cond)
@@ -529,7 +533,8 @@ int starpu_pthread_barrier_init(starpu_pthread_barrier_t *restrict barrier, cons
 int starpu_pthread_barrier_destroy(starpu_pthread_barrier_t *barrier)
 {
 	starpu_pthread_mutex_lock(&barrier->mutex);
-	while (barrier->busy) {
+	while (barrier->busy)
+	{
 		starpu_pthread_cond_wait(&barrier->cond_destroy, &barrier->mutex);
 	}
 	starpu_pthread_mutex_unlock(&barrier->mutex);

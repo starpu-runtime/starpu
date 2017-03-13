@@ -626,7 +626,8 @@ _FSTARPU_DATA_FILTER_ALLOCATOR(block_filter_vertical_block_shadow);
 
 #undef _FSTARPU_DATA_FILTER_ALLOCATOR
 
-void fstarpu_data_filter_free(struct starpu_data_filter *filter) {
+void fstarpu_data_filter_free(struct starpu_data_filter *filter)
+{
 	memset(filter, 0, sizeof(*filter));
 	free(filter);
 }

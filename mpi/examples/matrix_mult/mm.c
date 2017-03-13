@@ -93,7 +93,8 @@ static void disp_matrix(double *m)
 }
 #endif
 
-static void check_result(void) {
+static void check_result(void)
+{
 	int row,col;
 	for (row = 0; row < N; row++)
 	{
@@ -131,7 +132,8 @@ static void register_matrices()
 
 	int b_row,b_col;
 
-	for (b_row = 0; b_row < NB; b_row++) {
+	for (b_row = 0; b_row < NB; b_row++)
+	{
 		/* Register a block to StarPU */
 		starpu_matrix_data_register(&A_h[b_row],
 				mr,
@@ -148,7 +150,8 @@ static void register_matrices()
 		starpu_mpi_data_register(A_h[b_row], tag++, 0);
 	}
 
-	for (b_col = 0; b_col < NB; b_col++) {
+	for (b_col = 0; b_col < NB; b_col++)
+	{
 		starpu_matrix_data_register(&B_h[b_col],
 				mr,
 				(comm_rank == 0)?(uintptr_t)(B+b_col*BS):0, N, BS, N,
@@ -157,8 +160,10 @@ static void register_matrices()
 		starpu_mpi_data_register(B_h[b_col], tag++, 0);
 	}
 
-	for (b_row = 0; b_row < NB; b_row++) {
-		for (b_col = 0; b_col < NB; b_col++) {
+	for (b_row = 0; b_row < NB; b_row++)
+	{
+		for (b_col = 0; b_col < NB; b_col++)
+		{
 			starpu_matrix_data_register(&C_h[b_row*NB+b_col],
 					mr,
 					(comm_rank == 0)?(uintptr_t)(C+b_row*BS*N+b_col*BS):0, N, BS, BS,
@@ -194,8 +199,10 @@ static void distribute_matrix_C(void)
 static void undistribute_matrix_C(void)
 {
 	int b_row,b_col;
-	for (b_row = 0; b_row < NB; b_row++) {
-		for (b_col = 0; b_col < NB; b_col++) {
+	for (b_row = 0; b_row < NB; b_row++)
+	{
+		for (b_col = 0; b_col < NB; b_col++)
+		{
 			starpu_data_handle_t h = C_h[b_row*NB+b_col]; 
 			starpu_mpi_data_migrate(MPI_COMM_WORLD, h, 0);
 		}
@@ -207,16 +214,20 @@ static void unregister_matrices()
 {
 	int b_row,b_col;
 
-	for (b_row = 0; b_row < NB; b_row++) {
+	for (b_row = 0; b_row < NB; b_row++)
+	{
 		starpu_data_unregister(A_h[b_row]);
 	}
 
-	for (b_col = 0; b_col < NB; b_col++) {
+	for (b_col = 0; b_col < NB; b_col++)
+	{
 		starpu_data_unregister(B_h[b_col]);
 	}
 
-	for (b_row = 0; b_row < NB; b_row++) {
-		for (b_col = 0; b_col < NB; b_col++) {
+	for (b_row = 0; b_row < NB; b_row++)
+	{
+		for (b_col = 0; b_col < NB; b_col++)
+		{
 			starpu_data_unregister(C_h[b_row*NB+b_col]);
 		}
 	}
@@ -252,9 +263,12 @@ static void cpu_mult(void *handles[], STARPU_ATTRIBUTE_UNUSED void *arg)
 	assert(n_col_A == n_row_B);
 
 	unsigned i,j,k;
-	for (k = 0; k < n_row_C; k++) {
-		for (j = 0; j < n_col_C; j++) {
-			for (i = 0; i < n_col_A; i++) {
+	for (k = 0; k < n_row_C; k++)
+	{
+		for (j = 0; j < n_col_C; j++)
+		{
+			for (i = 0; i < n_col_A; i++)
+			{
 				block_C[k*ld_C+j] += block_A[k*ld_A+i] * block_B[i*ld_B+j]; 
 			}
 
@@ -296,16 +310,20 @@ int main(int argc, char *argv[])
 	}
 
 	/* Parse the matrix size and block size optional args */
-	if (argc > 1) {
+	if (argc > 1)
+	{
 		N = atoi(argv[1]);
-		if (N < 1) {
+		if (N < 1)
+		{
 			fprintf(stderr, "invalid matrix size\n");
 			exit(1);
 		}
-		if (argc > 2) {
+		if (argc > 2)
+		{
 			BS = atoi(argv[2]);
 		}
-		if (BS < 1 || N % BS != 0) {
+		if (BS < 1 || N % BS != 0)
+		{
 			fprintf(stderr, "invalid block size\n");
 			exit(1);
 		}
@@ -356,7 +374,8 @@ int main(int argc, char *argv[])
 	undistribute_matrix_C();
 	unregister_matrices();
 
-	if (comm_rank == 0) {
+	if (comm_rank == 0)
+	{
 #if VERBOSE
 		disp_matrix(C);
 #endif

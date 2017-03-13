@@ -46,7 +46,8 @@ static int simgrid_started;
 
 static int runners_running;
 starpu_pthread_queue_t _starpu_simgrid_transfer_queue[STARPU_MAXNODES];
-static struct transfer_runner {
+static struct transfer_runner
+{
 	struct transfer *first_transfer, *last_transfer;
 	msg_sem_t sem;
 	msg_process_t runner;
@@ -54,7 +55,8 @@ static struct transfer_runner {
 static int transfer_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED);
 
 starpu_pthread_queue_t _starpu_simgrid_task_queue[STARPU_NMAXWORKERS];
-static struct worker_runner {
+static struct worker_runner
+{
 	struct task *first_task, *last_task;
 	msg_sem_t sem;
 	msg_process_t runner;
@@ -429,7 +431,8 @@ static int task_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_AT
 	struct worker_runner *w = &worker_runner[workerid];
 
 	_STARPU_DEBUG("worker runner %u started\n", workerid);
-	while (1) {
+	while (1)
+	{
 		struct task *task;
 
 		MSG_sem_acquire(w->sem);
@@ -672,7 +675,8 @@ static int transfer_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARP
 	struct transfer_runner *t = &transfer_runner[src][dst];
 
 	_STARPU_DEBUG("transfer runner %u-%u started\n", src, dst);
-	while (1) {
+	while (1)
+	{
 		struct transfer *transfer;
 
 		MSG_sem_acquire(t->sem);
@@ -991,7 +995,8 @@ void _starpu_simgrid_count_ngpus(void)
 #endif
 }
 
-typedef struct{
+typedef struct
+{
 	void_f_pvoid_t code;
 	void *userparam;
 	void *father_data;
