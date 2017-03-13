@@ -72,13 +72,15 @@ static FILE *anim_file;
 static FILE *tasks_file;
 static FILE *data_file;
 
-struct data_parameter_info {
+struct data_parameter_info
+{
 	unsigned long handle;
 	unsigned long size;
 	int mode;
 };
 
-struct task_info {
+struct task_info
+{
 	UT_hash_handle hh;
 	char *model_name;
 	char *name;
@@ -133,7 +135,8 @@ static struct task_info *get_task(unsigned long job_id, int mpi_rank)
 		task->data = NULL;
 		task->mpi_rank = mpi_rank;
 		HASH_ADD(hh, tasks_info, job_id, sizeof(task->job_id), task);
-	} else
+	}
+	else
 		STARPU_ASSERT(task->mpi_rank == mpi_rank);
 
 	return task;
@@ -182,7 +185,8 @@ static void task_dump(unsigned long job_id, int mpi_rank)
 	fprintf(tasks_file, "Footprint: %lx\n", task->footprint);
 	if (task->kflops != 0)
 		fprintf(tasks_file, "GFlop: %f\n", ((double) task->kflops) / 1000000);
-	if (task->iterations[0] != -1) {
+	if (task->iterations[0] != -1)
+	{
 		fprintf(tasks_file, "Iteration:");
 		for (i = 0; i < sizeof(task->iterations)/sizeof(task->iterations[0]); i++)
 			fprintf(tasks_file, " %ld", task->iterations[i]);
@@ -221,7 +225,8 @@ out:
 	free(task);
 }
 
-struct data_info {
+struct data_info
+{
 	UT_hash_handle hh;
 	unsigned long handle;
 	char *name;
@@ -248,7 +253,8 @@ static struct data_info *get_data(unsigned long handle, int mpi_rank)
 		data->mpi_rank = mpi_rank;
 		data->mpi_owner = mpi_rank;
 		HASH_ADD(hh, data_info, handle, sizeof(handle), data);
-	} else
+	}
+	else
 		STARPU_ASSERT(data->mpi_rank == mpi_rank);
 
 	return data;
