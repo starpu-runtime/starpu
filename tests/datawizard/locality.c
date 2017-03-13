@@ -145,7 +145,8 @@ int main(int argc, char *argv[])
 
 	printf("domain piece that each worker has computed, over time\n");
 	loop = 0;
-	do {
+	do
+	{
 		finished = 1;
 		for (i = 0; i < starpu_worker_get_count(); i++)
 		{
@@ -159,7 +160,8 @@ int main(int argc, char *argv[])
 		}
 		loop++;
 		printf("\n");
-	} while (!finished && loop < 100);
+	}
+	while (!finished && loop < 100);
 
 	starpu_shutdown();
 	return EXIT_SUCCESS;

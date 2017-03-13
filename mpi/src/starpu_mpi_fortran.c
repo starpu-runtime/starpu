@@ -27,9 +27,12 @@ struct _starpu_mpi_argc_argv *fstarpu_mpi_argcv_alloc(int argc, int initialize_m
 	struct _starpu_mpi_argc_argv *argcv;
 	_STARPU_MPI_CALLOC(argcv, 1,sizeof(*argcv));
 	argcv->initialize_mpi = initialize_mpi;
-	if (comm_present) {
+	if (comm_present)
+	{
 		argcv->comm = MPI_Comm_f2c(comm);
-	} else {
+	}
+	else
+	{
 		argcv->comm = MPI_COMM_WORLD;
 	}
 	argcv->fargc = argc;

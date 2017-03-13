@@ -227,7 +227,8 @@ void _starpu_top_shutdown(void)
 {
 	{
 		struct starpu_top_data * cur = starpu_top_first_data, * next;
-		while (cur) {
+		while (cur)
+		{
 			next = cur->next;
 			free(cur);
 			cur = next;
@@ -237,7 +238,8 @@ void _starpu_top_shutdown(void)
 
 	{
 		struct starpu_top_param * cur = starpu_top_first_param, *next;
-		while (cur) {
+		while (cur)
+		{
 			next = cur->next;
 			free(cur);
 			cur = next;

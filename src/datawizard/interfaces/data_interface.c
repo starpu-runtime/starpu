@@ -176,12 +176,15 @@ void _starpu_data_register_ram_pointer(starpu_data_handle_t handle, void *ptr)
 	{
 		_starpu_spin_lock(&registered_handles_lock);
 		HASH_FIND_PTR(registered_handles, &ptr, old_entry);
-		if (old_entry) {
+		if (old_entry)
+		{
 			/* Already registered this pointer, avoid undefined
 			 * behavior of duplicate in hash table */
 			_starpu_spin_unlock(&registered_handles_lock);
 			free(entry);
-		} else {
+		}
+		else
+		{
 			nregistered++;
 			if (nregistered > maxnregistered)
 				maxnregistered = nregistered;

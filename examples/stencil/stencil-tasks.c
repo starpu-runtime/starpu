@@ -151,7 +151,8 @@ void create_task_save(unsigned iter, unsigned z, int dir, int local_rank)
 
 	}
 	else
-	{	/* node_z != local_rank, this MPI node doesn't have the saved data */
+	{
+		/* node_z != local_rank, this MPI node doesn't have the saved data */
 		if (node_z_and_d == local_rank)
 		{
 			create_task_save_mpi_recv(iter, z, dir, local_rank);

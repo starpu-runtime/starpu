@@ -58,7 +58,8 @@ static unsigned nblocks = 0;
 static int rank = -1;
 static int world_size = -1;
 
-struct callback_arg {
+struct callback_arg
+{
 	unsigned i, j, k;
 };
 
@@ -104,7 +105,8 @@ static void send_data_to_mask(starpu_data_handle_t handle, int *rank_mask, int m
 	int r;
 	for (r = 0; r < world_size; r++)
 	{
-		if (rank_mask[r]) {
+		if (rank_mask[r])
+		{
 			rank_array[cnt] = r;
 
 			comm_array[cnt] = MPI_COMM_WORLD;
@@ -120,7 +122,8 @@ static void send_data_to_mask(starpu_data_handle_t handle, int *rank_mask, int m
 		 * once */
 		starpu_tag_notify_from_apps(tag);
 	}
-	else {
+	else
+	{
 		starpu_mpi_isend_array_detached_unlock_tag(cnt, handle_array,
 				rank_array, mpi_tag_array, comm_array, tag);
 	}
@@ -129,7 +132,8 @@ static void send_data_to_mask(starpu_data_handle_t handle, int *rank_mask, int m
 /* Initiate a receive request once all dependencies are fulfilled and unlock
  * tag 'unlocked_tag' once it's done. */
 
-struct recv_when_done_callback_arg {
+struct recv_when_done_callback_arg
+{
 	int source;
 	int mpi_tag;
 	starpu_data_handle_t handle;
@@ -280,10 +284,12 @@ static void create_task_11_real(unsigned k)
 		task->priority = STARPU_MAX_PRIO;
 
 	/* enforce dependencies ... */
-	if (k > 0) {
+	if (k > 0)
+	{
 		starpu_tag_declare_deps(TAG11(k), 1, TAG22(k-1, k, k));
 	}
-	else {
+	else
+	{
 		starpu_tag_declare_deps(TAG11(k), 1, STARPU_TAG_INIT);
 	}
 
@@ -300,7 +306,8 @@ static void create_task_11(unsigned k)
 #endif
 		create_task_11_real(k);
 	}
-	else {
+	else
+	{
 		/* We don't handle the task, but perhaps we have to generate MPI transfers. */
 		int rank_mask[world_size];
 		find_nodes_using_11(k, rank_mask);
@@ -312,7 +319,8 @@ static void create_task_11(unsigned k)
 #endif
 			create_task_11_recv(k);
 		}
-		else {
+		else
+		{
 #ifdef VERBOSE_INIT
 			fprintf(stderr, "Node %d needs not 11(%u)\n", rank, k);
 #endif
@@ -450,15 +458,18 @@ static void create_task_12_real(unsigned k, unsigned j)
 	task->callback_func = callback_task_12_real;
 	task->callback_arg = arg;
 
-	if (!no_prio && (j == k+1)) {
+	if (!no_prio && (j == k+1))
+	{
 		task->priority = STARPU_MAX_PRIO;
 	}
 
 	/* enforce dependencies ... */
-	if (k > 0) {
+	if (k > 0)
+	{
 		starpu_tag_declare_deps(TAG12(k, j), 2, tag_11_dep, TAG22(k-1, k, j));
 	}
-	else {
+	else
+	{
 		starpu_tag_declare_deps(TAG12(k, j), 1, tag_11_dep);
 	}
 
@@ -475,7 +486,8 @@ static void create_task_12(unsigned k, unsigned j)
 #endif
 		create_task_12_real(k, j);
 	}
-	else {
+	else
+	{
 		/* We don't handle the task, but perhaps we have to generate MPI transfers. */
 		int rank_mask[world_size];
 		find_nodes_using_12(k, j, rank_mask);
@@ -487,7 +499,8 @@ static void create_task_12(unsigned k, unsigned j)
 #endif
 			create_task_12_recv(k, j);
 		}
-		else {
+		else
+		{
 #ifdef VERBOSE_INIT
 			fprintf(stderr, "Node %d needs not 12(k=%u, i=%u)\n", rank, k, j);
 #endif
@@ -622,15 +635,18 @@ static void create_task_21_real(unsigned k, unsigned i)
 	task->callback_func = callback_task_21_real;
 	task->callback_arg = arg;
 
-	if (!no_prio && (i == k+1)) {
+	if (!no_prio && (i == k+1))
+	{
 		task->priority = STARPU_MAX_PRIO;
 	}
 
 	/* enforce dependencies ... */
-	if (k > 0) {
+	if (k > 0)
+	{
 		starpu_tag_declare_deps(TAG21(k, i), 2, tag_11_dep, TAG22(k-1, i, k));
 	}
-	else {
+	else
+	{
 		starpu_tag_declare_deps(TAG21(k, i), 1, tag_11_dep);
 	}
 
@@ -647,7 +663,8 @@ static void create_task_21(unsigned k, unsigned i)
 #endif
 		create_task_21_real(k, i);
 	}
-	else {
+	else
+	{
 		/* We don't handle the task, but perhaps we have to generate MPI transfers. */
 		int rank_mask[world_size];
 		find_nodes_using_21(k, i, rank_mask);
@@ -659,7 +676,8 @@ static void create_task_21(unsigned k, unsigned i)
 #endif
 			create_task_21_recv(k, i);
 		}
-		else {
+		else
+		{
 #ifdef VERBOSE_INIT
 			fprintf(stderr, "Node %d needs not 21(k=%u, i=%u)\n", rank, k,i);
 #endif
@@ -742,15 +760,18 @@ static void create_task_22_real(unsigned k, unsigned i, unsigned j)
 	STARPU_ASSERT(task->handles[1] != STARPU_POISON_PTR);
 	STARPU_ASSERT(task->handles[2] != STARPU_POISON_PTR);
 
-	if (!no_prio && (i == k + 1) && (j == k +1) ) {
+	if (!no_prio && (i == k + 1) && (j == k +1) )
+	{
 		task->priority = STARPU_MAX_PRIO;
 	}
 
 	/* enforce dependencies ... */
-	if (k > 0) {
+	if (k > 0)
+	{
 		starpu_tag_declare_deps(TAG22(k, i, j), 3, TAG22(k-1, i, j), tag_12_dep, tag_21_dep);
 	}
-	else {
+	else
+	{
 		starpu_tag_declare_deps(TAG22(k, i, j), 2, tag_12_dep, tag_21_dep);
 	}
 
@@ -765,7 +786,8 @@ static void create_task_22(unsigned k, unsigned i, unsigned j)
 	//	fprintf(stderr, "CREATE real task 22(k = %d, i = %d, j = %d) on node %d\n", k, i, j, rank);
 		create_task_22_real(k, i, j);
 	}
-//	else {
+//	else
+//	{
 //		fprintf(stderr, "Node %d needs not 22(k=%d, i=%d, j = %d)\n", rank, k,i,j);
 //	}
 }

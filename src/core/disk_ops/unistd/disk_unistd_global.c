@@ -56,7 +56,8 @@
 static unsigned starpu_unistd_opened_files;
 
 #ifdef HAVE_AIO_H
-struct starpu_unistd_aiocb {
+struct starpu_unistd_aiocb
+{
 	struct aiocb aiocb;
 	struct starpu_unistd_global_obj *obj;
 };

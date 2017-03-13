@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2011, 2013, 2015, 2017  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -70,26 +70,32 @@ static TYPE **(tmp_21_block[2]);
 static void parse_args(int rank, int argc, char **argv)
 {
 	int i;
-	for (i = 1; i < argc; i++) {
-		if (strcmp(argv[i], "-size") == 0) {
+	for (i = 1; i < argc; i++)
+	{
+		if (strcmp(argv[i], "-size") == 0)
+		{
 			char *argptr;
 			size = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-nblocks") == 0) {
+		if (strcmp(argv[i], "-nblocks") == 0)
+		{
 			char *argptr;
 			nblocks = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-check") == 0) {
+		if (strcmp(argv[i], "-check") == 0)
+		{
 			check = 1;
 		}
 
-		if (strcmp(argv[i], "-display") == 0) {
+		if (strcmp(argv[i], "-display") == 0)
+		{
 			display = 1;
 		}
 
-		if (strcmp(argv[i], "-numa") == 0) {
+		if (strcmp(argv[i], "-numa") == 0)
+		{
 #ifdef STARPU_HAVE_LIBNUMA
 			numa = 1;
 #else
@@ -98,17 +104,20 @@ static void parse_args(int rank, int argc, char **argv)
 #endif
 		}
 
-		if (strcmp(argv[i], "-p") == 0) {
+		if (strcmp(argv[i], "-p") == 0)
+		{
 			char *argptr;
 			p = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-q") == 0) {
+		if (strcmp(argv[i], "-q") == 0)
+		{
 			char *argptr;
 			q = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "-help") == 0 || strcmp(argv[i], "--help") == 0) {
+		if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "-help") == 0 || strcmp(argv[i], "--help") == 0)
+		{
 			fprintf(stderr,"usage: %s [-size n] [-nblocks b] [-check] [-display] [-numa] [-p p] [-q q]\n", argv[0]);
 			fprintf(stderr,"\np * q must be equal to the number of MPI nodes\n");
 			exit(0);
@@ -251,7 +260,8 @@ static void init_matrix(int rank)
 					size/nblocks, size/nblocks, sizeof(TYPE));
 				starpu_data_set_coordinates(*handleptr, 2, j, i);
 			}
-			else {
+			else
+			{
 				*blockptr = STARPU_POISON_PTR;
 				*handleptr = STARPU_POISON_PTR;
 			}
@@ -297,7 +307,8 @@ static void init_matrix(int rank)
 
 	allocated_memory_extra += 2*nblocks*(sizeof(starpu_data_handle_t) + sizeof(TYPE *));
 #else
-	for (i = 0; i < 2; i++) {
+	for (i = 0; i < 2; i++)
+	{
 		tmp_12_block_handles[i] = calloc(nblocks, sizeof(starpu_data_handle_t));
 		tmp_21_block_handles[i] = calloc(nblocks, sizeof(starpu_data_handle_t));
 		tmp_12_block[i] = calloc(nblocks, sizeof(TYPE *));
@@ -332,7 +343,8 @@ static void init_matrix(int rank)
 				size/nblocks, size/nblocks, size/nblocks, sizeof(TYPE));
 		}
 #else
-	for (i = 0; i < 2; i++) {
+	for (i = 0; i < 2; i++)
+	{
 		if (tmp_12_block_is_needed(rank, nblocks, k))
 		{
 			starpu_malloc((void **)&tmp_12_block[i][k], blocksize);
@@ -411,7 +423,8 @@ int main(int argc, char **argv)
 	 *	Initialization
 	 */
 	int thread_support;
-	if (MPI_Init_thread(&argc, &argv, MPI_THREAD_SERIALIZED, &thread_support) != MPI_SUCCESS) {
+	if (MPI_Init_thread(&argc, &argv, MPI_THREAD_SERIALIZED, &thread_support) != MPI_SUCCESS)
+	{
 		fprintf(stderr,"MPI_Init_thread failed\n");
 		exit(1);
 	}

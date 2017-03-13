@@ -216,12 +216,14 @@ static void initialize_duration(struct bound_task *task)
 	task->duration[STARPU_SCC_WORKER] = initialize_arch_duration(conf->topology.nsccdevices,NULL); 
 }
 
-static struct starpu_perfmodel_device device = {
+static struct starpu_perfmodel_device device =
+{
 	.type = STARPU_CPU_WORKER,
 	.devid = 0,
 	.ncores = 1,
 };
-static struct starpu_perfmodel_arch dumb_arch = {
+static struct starpu_perfmodel_arch dumb_arch =
+{
 	.ndevices = 1,
 	.devices = &device,
 };
