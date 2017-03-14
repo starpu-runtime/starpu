@@ -631,8 +631,6 @@ int starpu_task_submit(struct starpu_task *task)
 #endif
 		;
 
-	_STARPU_TRACE_TASK_SUBMIT_START();
-
 	if (!j->internal)
 	{
 		int nsubmitted_tasks = starpu_task_nsubmitted();
@@ -644,6 +642,7 @@ int starpu_task_submit(struct starpu_task *task)
 		}
 	}
 
+	_STARPU_TRACE_TASK_SUBMIT_START();
 
 	ret = _starpu_task_submit_head(task);
 	if (ret)
