@@ -2805,15 +2805,20 @@ if test "$enable_build_doc" = "yes" ; then
    if test "$epstopdfcommand" = "" ; then
 	enable_build_doc="no"
    fi
-   if test -f "$srcdir/doc/doxygen/starpu.pdf"
-   then
-	enable_build_doc="no"
-   fi
+fi
+available_doc="no"
+if test -f "$srcdir/doc/doxygen/starpu.pdf"
+then
+   enable_build_doc="no"
+   available_doc="yes"
 fi
 AC_MSG_CHECKING(whether documentation should be compiled)
 AC_MSG_RESULT($enable_build_doc)
+AC_MSG_CHECKING(whether documentation is available)
+AC_MSG_RESULT($available_doc)
 
 AM_CONDITIONAL(BUILD_DOC, [test x$enable_build_doc != xno])
+AM_CONDITIONAL(AVAILABLE_DOC, [test x$available_doc != xno])
 
 ###############################################################################
 #                                                                             #
