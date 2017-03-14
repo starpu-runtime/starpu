@@ -176,7 +176,7 @@ end
 
 define starpu-print-tag
   set language c
-  set $tag_struct = (struct _starpu_tag *)gettag_struct($arg0)
+  set $tag_struct = (struct _starpu_tag *)_gettag_struct($arg0)
   if $tag_struct->state == STARPU_INVALID_STATE
      set $status="STARPU_INVALID_STATE"
   end
