@@ -142,9 +142,8 @@ static struct task_info *get_task(unsigned long job_id, int mpi_rank)
 	return task;
 }
 
-static void task_dump(unsigned long job_id, int mpi_rank)
+static void task_dump(struct task_info *task)
 {
-	struct task_info *task = get_task(job_id, mpi_rank);
 	unsigned i;
 
 	if (task->exclude_from_dag)
@@ -2063,7 +2062,6 @@ static void handle_task_done(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 
 	unsigned exclude_from_dag = ev->param[2];
 	get_task(job_id, options->file_rank)->exclude_from_dag = exclude_from_dag;
-	task_dump(job_id, options->file_rank);
 
 	if (!exclude_from_dag)
 		_starpu_fxt_dag_set_task_done(options->file_prefix, job_id, name, colour);
@@ -3047,6 +3045,14 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 		HASH_ITER(hh, data_info, data, tmp)
 		{
 			data_dump(data);
+		}
+	}
+
+	{
+		struct task_info *task, *tmp;
+		HASH_ITER(hh, tasks_info, task, tmp)
+		{
+			task_dump(task);
 		}
 	}
 
