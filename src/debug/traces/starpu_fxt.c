@@ -198,7 +198,11 @@ static void task_dump(unsigned long job_id, int mpi_rank)
 	{
 		fprintf(tasks_file, "Iteration:");
 		for (i = 0; i < sizeof(task->iterations)/sizeof(task->iterations[0]); i++)
+		{
+			if (task->iterations[i] == -1)
+				break;
 			fprintf(tasks_file, " %ld", task->iterations[i]);
+		}
 		fprintf(tasks_file, "\n");
 	}
 	if (task->parameters)
