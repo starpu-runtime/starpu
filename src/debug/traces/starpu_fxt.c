@@ -2653,6 +2653,10 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 				handle_task_submit_event(&ev, options, ev.param[0], "Su");
 				break;
 
+			case _STARPU_FUT_TASK_THROTTLE_START:
+				handle_task_submit_event(&ev, options, ev.param[0], "Th");
+				break;
+
 			case _STARPU_FUT_TASK_MPI_DECODE_START:
 				handle_task_submit_event(&ev, options, ev.param[0], "MD");
 				break;
@@ -2675,6 +2679,7 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 
 			case _STARPU_FUT_TASK_BUILD_END:
 			case _STARPU_FUT_TASK_SUBMIT_END:
+			case _STARPU_FUT_TASK_THROTTLE_END:
 			case _STARPU_FUT_TASK_MPI_DECODE_END:
 			case _STARPU_FUT_TASK_MPI_PRE_END:
 			case _STARPU_FUT_TASK_MPI_POST_END:
