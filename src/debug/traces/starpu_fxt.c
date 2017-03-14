@@ -2370,7 +2370,10 @@ static void handle_task_done(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 	}
 
 	unsigned exclude_from_dag = ev->param[2];
-	get_task(job_id, options->file_rank)->exclude_from_dag = exclude_from_dag;
+	struct task_info *task = get_task(job_id, options->file_rank);
+	task->exclude_from_dag = exclude_from_dag;
+	if (tasks_file)
+		task_dump(task);
 
 	if (!exclude_from_dag)
 		_starpu_fxt_dag_set_task_done(options->file_prefix, job_id, name, colour);
