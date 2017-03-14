@@ -189,7 +189,7 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 			goto end;
 #endif /* HAVE_CUDA_MEMCPY_PEER */
 #endif /* STARPU_USE_CUDA */
-		}
+//		}
 //		else if (_starpu_can_submit_opencl_task())
 //		{
 //#ifdef STARPU_USE_OPENCL
@@ -217,8 +217,8 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 //			STARPU_ASSERT(push_res != -ENODEV);
 //			goto end;
 //#endif /* STARPU_USE_OPENCL */
-//		}
 #endif /* STARPU_SIMGRID */
+		}
 	}
 
 #ifdef STARPU_SIMGRID
