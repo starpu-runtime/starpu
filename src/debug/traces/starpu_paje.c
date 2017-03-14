@@ -198,6 +198,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 	poti_DefineEntityValue("H", "S", "Hypervisor", ".5 .18 .0");
 	poti_DefineEntityValue("Bu", "S", "Building task", ".5 .18 .0");
 	poti_DefineEntityValue("Su", "S", "Submiting task", ".3 .09 .0");
+	poti_DefineEntityValue("Th", "S", "Throttling task submission", ".8 .6 .6");
 	poti_DefineEntityValue("MD", "S", "Decoding task for MPI", ".5 .18 .2");
 	poti_DefineEntityValue("MPr", "S", "Preparing task for MPI", ".4 .14 .2");
 	poti_DefineEntityValue("MPo", "S", "Post-processing task for MPI", ".3 .09 .2");
@@ -217,6 +218,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 	poti_DefineEntityValue("H", "WS", "Hypervisor", ".5 .18 .0");
 	poti_DefineEntityValue("Bu", "WS", "Building task", ".5 .18 .0");
 	poti_DefineEntityValue("Su", "WS", "Submiting task", ".3 .09 .0");
+	poti_DefineEntityValue("Th", "WS", "Throttling task submission", ".8 .6 .6");
 
 	/* Types for the MPI Communication Thread of the Memory Node */
 	poti_DefineEventType("MPIev", "MPICt", "MPI event type");
@@ -233,6 +235,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 	poti_DefineEntityValue("RvC", "CtS", "ReceiveCompleted", "0.5 1.0 1.0");
 	poti_DefineEntityValue("Bu", "CtS", "Building task", ".5 .18 .0");
 	poti_DefineEntityValue("Su", "CtS", "Submiting task", ".3 .09 .0");
+	poti_DefineEntityValue("Th", "CtS", "Throttling task submission", ".8 .6 .6");
 
 	/* Type for other threads */
 	poti_DefineEventType("user_user_event", "UT", "user event type");
@@ -240,6 +243,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 	poti_DefineStateType("US", "UT", "User Thread State");
 	poti_DefineEntityValue("Bu", "US", "Building task", ".5 .18 .0");
 	poti_DefineEntityValue("Su", "US", "Submiting task", ".3 .09 .0");
+	poti_DefineEntityValue("Th", "US", "Throttling task submission", ".8 .6 .6");
 	poti_DefineEntityValue("MD", "US", "Decoding task for MPI", ".5 .18 .2");
 	poti_DefineEntityValue("MPr", "US", "Preparing task for MPI", ".4 .14 .2");
 	poti_DefineEntityValue("MPo", "US", "Post-processing task for MPI", ".3 .09 .2");
@@ -331,6 +335,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 6       H       S       Hypervisor      \".5 .18 .0\"		\n\
 6       Bu      S       \"Building task\"   \".5 .18 .0\"		\n\
 6       Su      S       \"Submitting task\" \".3 .09 .0\"		\n\
+6       Th      S       \"Throttling task submission\" \".8 .6 .6\"		\n\
 6       MD      S       \"Decoding task for MPI\" \".5 .18 .2\"		\n\
 6       MPr     S       \"Preparing task for MPI\" \".4 .14 .2\"		\n\
 6       MPo     S       \"Post-processing task for MPI\" \".3 .09 .2\"		\n\
@@ -350,9 +355,11 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 6       H       WS       Hypervisor      \".5 .18 .0\"		\n\
 6       Bu      WS       \"Building task\"   \".5 .18 .0\"		\n\
 6       Su      WS       \"Submitting task\" \".3 .09 .0\"		\n\
+6       Th      WS       \"Throttling task submission\" \".8 .6 .6\"		\n\
 3       US       UT       \"User Thread State\"                        \n\
 6       Bu      US      \"Building task\"   \".5 .18 .0\"		\n\
 6       Su      US      \"Submitting task\" \".3 .09 .0\"		\n\
+6       Th      US      \"Throttling task submission\" \".8 .6 .6\"		\n\
 6       MD      US      \"Decoding task for MPI\" \".5 .18 .2\"		\n\
 6       MPr     US      \"Preparing task for MPI\" \".4 .14 .2\"		\n\
 6       MPo     US      \"Post-processing task for MPI\" \".3 .09 .2\"		\n\
@@ -371,6 +378,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 6       RvC       CtS      ReceiveCompleted  \"0.5 1.0 1.0\"	\n\
 6       Bu      CtS      \"Building task\"   \".5 .18 .0\"		\n\
 6       Su      CtS      \"Submitting task\" \".3 .09 .0\"		\n\
+6       Th      CtS      \"Throttling task submission\" \".8 .6 .6\"		\n\
 ");
 	for (i=1; i<STARPU_NMAX_SCHED_CTXS; i++)
 		fprintf(file, "\

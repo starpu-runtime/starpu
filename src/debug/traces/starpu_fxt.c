@@ -468,6 +468,7 @@ static struct
 	{ "Sl",	 "Sleeping",			 WORKER_STATE | THREAD_STATE | COMM_THREAD_STATE },
 	{ "Bu",	 "Building task",		 THREAD_STATE | COMM_THREAD_STATE | USER_THREAD_STATE },
 	{ "Su",  "Submitting task",		 THREAD_STATE | COMM_THREAD_STATE | USER_THREAD_STATE },
+	{ "Th",  "Throttling task submission",	 THREAD_STATE | COMM_THREAD_STATE | USER_THREAD_STATE },
 	{ "MD",  "Decoding task for MPI",	 THREAD_STATE | USER_THREAD_STATE },
 	{ "MPr", "Preparing task for MPI",	 THREAD_STATE | USER_THREAD_STATE },
 	{ "MPo", "Post-processing task for MPI", THREAD_STATE | USER_THREAD_STATE },
@@ -3012,6 +3013,10 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 				handle_task_submit_event(&ev, options, ev.param[0], "Su");
 				break;
 
+			case _STARPU_FUT_TASK_THROTTLE_START:
+				handle_task_submit_event(&ev, options, ev.param[0], "Th");
+				break;
+
 			case _STARPU_FUT_TASK_MPI_DECODE_START:
 				handle_task_submit_event(&ev, options, ev.param[0], "MD");
 				break;
@@ -3034,6 +3039,7 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 
 			case _STARPU_FUT_TASK_BUILD_END:
 			case _STARPU_FUT_TASK_SUBMIT_END:
+			case _STARPU_FUT_TASK_THROTTLE_END:
 			case _STARPU_FUT_TASK_MPI_DECODE_END:
 			case _STARPU_FUT_TASK_MPI_PRE_END:
 			case _STARPU_FUT_TASK_MPI_POST_END:

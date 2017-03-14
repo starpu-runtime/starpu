@@ -638,7 +638,9 @@ int starpu_task_submit(struct starpu_task *task)
 			&& limit_min_submitted_tasks >= 0 && limit_min_submitted_tasks < nsubmitted_tasks)
 		{
 			starpu_do_schedule();
+			_STARPU_TRACE_TASK_THROTTLE_START();
 			starpu_task_wait_for_n_submitted(limit_min_submitted_tasks);
+			_STARPU_TRACE_TASK_THROTTLE_END();
 		}
 	}
 
