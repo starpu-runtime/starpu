@@ -1013,10 +1013,10 @@ static int _starpu_simgrid_xbt_thread_create_wrapper(int argc STARPU_ATTRIBUTE_U
 	smx_process_t
 #endif
 	self = SIMIX_process_self();
-#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 14)
-	thread_data_t *t = SIMIX_process_self_get_data();
-#else
+#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 13)
 	thread_data_t *t = SIMIX_process_self_get_data(self);
+#else
+	thread_data_t *t = SIMIX_process_self_get_data();
 #endif
 	simcall_process_set_data(self, t->father_data);
 	t->code(t->userparam);
@@ -1037,10 +1037,10 @@ void _starpu_simgrid_xbt_thread_create(const char *name, void_f_pvoid_t code, vo
 	_STARPU_MALLOC(res, sizeof(thread_data_t));
 	res->userparam = param;
 	res->code = code;
-#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 14)
-	res->father_data = SIMIX_process_self_get_data();
-#else
+#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 13)
 	res->father_data = SIMIX_process_self_get_data(SIMIX_process_self());
+#else
+	res->father_data = SIMIX_process_self_get_data();
 #endif
 
 #if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 12)
