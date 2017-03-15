@@ -130,7 +130,9 @@ int main(int argc, char **argv)
     int rank, size;
 
     starpu_init(NULL);
-    starpu_mpi_initialize_extended(&rank, &size);
+    starpu_mpi_init(&argc, &argv, 1);
+    starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
+    starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
 
     starpu_vector_data_register(&token_handle, STARPU_MAIN_RAM, (uintptr_t)&token, 1, sizeof(unsigned));
 
@@ -140,7 +142,8 @@ int main(int argc, char **argv)
     unsigned last_loop = nloops - 1;
     unsigned last_rank = size - 1;
 
-    for (loop = 0; loop < nloops; loop++) {
+    for (loop = 0; loop < nloops; loop++)
+    {
         int tag = loop*size + rank;
 
         if (loop == 0 && rank == 0)
@@ -187,6 +190,17 @@ We have here replaced <c>MPI_Recv()</c> and <c>MPI_Send()</c> with starpu_mpi_ir
 and starpu_mpi_isend_detached(), which just submit the communication to be
 performed. The only remaining synchronization with starpu_data_acquire() is at
 the beginning and the end.
+
+\section MPIInitialization How to Initialize StarPU-MPI
+
+As seen in the previous example, one has to call starpu_mpi_init() to
+initialize StarPU-MPI. The third parameter of the function indicates
+if MPI should be initialized by StarPU or if the application will do
+it itself. If the application initializes MPI itself, it must call
+<c>MPI_Init_thread()</c> with <c>MPI_THREAD_SERIALIZED</c> or
+<c>MPI_THREAD_MULTIPLE</c>, since StarPU-MPI uses a separate thread to
+perform the communications. <c>MPI_THREAD_MULTIPLE</c> is necessary if
+the application also performs some MPI communications.
 
 \section PointToPointCommunication Point To Point Communication
 
