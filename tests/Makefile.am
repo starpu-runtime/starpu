@@ -364,7 +364,9 @@ examplebin_SCRIPTS = \
 	microbenchs/tasks_size_overhead.gp \
 	microbenchs/tasks_size_overhead.sh
 if !STARPU_SIMGRID
+if !STARPU_USE_MPI_MASTER_SLAVE
 TESTS += microbenchs/tasks_size_overhead_scheds.sh
+endif
 endif
 
 if STARPU_HAVE_WINDOWS
