@@ -100,7 +100,6 @@ void _starpu_mpi_cache_init(MPI_Comm comm)
 static
 void _starpu_mpi_cache_empty_tables(int world_size)
 {
-	int i;
 
 	if (_starpu_cache_enabled == 0) return;
 
