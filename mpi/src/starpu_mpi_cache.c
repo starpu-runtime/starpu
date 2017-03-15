@@ -103,7 +103,6 @@ void _starpu_mpi_cache_shutdown()
 
 void _starpu_mpi_cache_data_clear(starpu_data_handle_t data_handle)
 {
-	int i;
 	struct _starpu_mpi_data *mpi_data = data_handle->mpi_data;
 
 	if (_starpu_cache_enabled == 0) return;
