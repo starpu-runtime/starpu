@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015  CNRS
+ * Copyright (C) 2015, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -48,8 +48,17 @@ int main(int argc, char **argv)
 	int ret;
 	starpu_data_handle_t data[3];
 	int value = 90;
+	int thread_support;
+	if (MPI_Init_thread(&argc, &argv, MPI_THREAD_SERIALIZED, &thread_support) != MPI_SUCCESS)
+	{
+		fprintf(stderr,"MPI_Init_thread failed\n");
+		exit(1);
+	}
+	if (thread_support == MPI_THREAD_FUNNELED)
+		fprintf(stderr,"Warning: MPI only has funneled thread support, not serialized, hoping this will work\n");
+	if (thread_support < MPI_THREAD_FUNNELED)
+		fprintf(stderr,"Warning: MPI does not have thread support!\n");
 
-        MPI_Init(&argc, &argv);
         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
         MPI_Comm_size(MPI_COMM_WORLD, &size);
 
