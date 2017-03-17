@@ -645,6 +645,8 @@ _starpu_free_on_node_flags(unsigned dst_node, uintptr_t addr, size_t size, int f
 			if (_starpu_simgrid_cuda_malloc_cost())
 				MSG_process_sleep(0.000750);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&cuda_alloc_mutex);
+			/* CUDA also synchronizes roughly everything on cudaFree */
+			_starpu_simgrid_sync_gpus();
 #else
 			cudaError_t err;
 			unsigned devid = _starpu_memory_node_get_devid(dst_node);

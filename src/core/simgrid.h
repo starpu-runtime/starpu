@@ -47,6 +47,7 @@ void _starpu_simgrid_submit_job(int workerid, struct _starpu_job *job, struct st
 int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, struct _starpu_data_request *req);
 int _starpu_simgrid_wait_transfer_event(union _starpu_async_channel_event *event);
 int _starpu_simgrid_test_transfer_event(union _starpu_async_channel_event *event);
+void _starpu_simgrid_sync_gpus(void);
 /* Return the number of hosts prefixed by PREFIX */
 int _starpu_simgrid_get_nbhosts(const char *prefix);
 unsigned long long _starpu_simgrid_get_memsize(const char *prefix, unsigned devid);

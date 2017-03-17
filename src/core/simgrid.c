@@ -687,10 +687,13 @@ static int transfer_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARP
 		if (t->last_transfer == transfer)
 			t->last_transfer = NULL;
 
-		_STARPU_DEBUG("transfer %p started\n", transfer);
-		MSG_task_execute(transfer->task);
-		MSG_task_destroy(transfer->task);
-		_STARPU_DEBUG("transfer %p finished\n", transfer);
+		if (transfer->task)
+		{
+			_STARPU_DEBUG("transfer %p started\n", transfer);
+			MSG_task_execute(transfer->task);
+			MSG_task_destroy(transfer->task);
+			_STARPU_DEBUG("transfer %p finished\n", transfer);
+		}
 
 		*transfer->finished = 1;
 		transfer_list_erase(&pending, transfer);
@@ -776,6 +779,60 @@ int _starpu_simgrid_test_transfer_event(union _starpu_async_channel_event *event
 	return event->finished;
 }
 
+/* Wait for completion of all transfers */
+static void _starpu_simgrid_wait_transfers(void)
+{
+	unsigned finished = 0;
+	struct transfer *sync = transfer_new();
+	struct transfer *cur;
+
+	sync->task = NULL;
+	sync->finished = &finished;
+
+	sync->src_node = STARPU_MAIN_RAM;
+	sync->dst_node = STARPU_MAIN_RAM;
+	sync->run_node = STARPU_MAIN_RAM;
+
+	sync->wake = NULL;
+	sync->nwake = 0;
+	sync->nwait = 0;
+	sync->next = NULL;
+
+	for (cur  = transfer_list_begin(&pending);
+	     cur != transfer_list_end(&pending);
+	     cur  = transfer_list_next(cur))
+	{
+		sync->nwait++;
+		_STARPU_REALLOC(cur->wake, (cur->nwake + 1) * sizeof(cur->wake));
+		cur->wake[cur->nwake] = sync;
+		cur->nwake++;
+	}
+
+	if (sync->nwait == 0)
+	{
+		/* No transfer to wait for */
+		free(sync);
+		return;
+	}
+
+	/* Push synchronization pseudo-transfer */
+	transfer_list_push_front(&pending, sync);
+
+	/* And wait for it */
+	starpu_pthread_wait_t wait;
+	starpu_pthread_wait_init(&wait);
+	starpu_pthread_queue_register(&wait, &_starpu_simgrid_transfer_queue[STARPU_MAIN_RAM]);
+	while(1)
+	{
+		starpu_pthread_wait_reset(&wait);
+		if (finished)
+			break;
+		starpu_pthread_wait_wait(&wait);
+	}
+	starpu_pthread_queue_unregister(&wait, &_starpu_simgrid_transfer_queue[STARPU_MAIN_RAM]);
+	starpu_pthread_wait_destroy(&wait);
+}
+
 /* Data transfer issued by StarPU */
 int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, struct _starpu_data_request *req)
 {
@@ -843,6 +900,12 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 		_starpu_simgrid_wait_transfer_event(event);
 		return 0;
 	}
+}
+
+/* Sync all GPUs (used on CUDA Free, typically) */
+void _starpu_simgrid_sync_gpus(void)
+{
+	_starpu_simgrid_wait_transfers();
 }
 
 int
