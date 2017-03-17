@@ -125,6 +125,26 @@ static void _starpu_update_workers_without_ctx(int *workerids, int nworkers, int
 	return;
 }
 
+static void _starpu_update_locked_workers_without_ctx(int *workerids, int nworkers, int sched_ctx_id, unsigned now)
+{
+	int i;
+	struct _starpu_worker *worker = NULL;
+
+	for(i = 0; i < nworkers; i++)
+	{
+		worker = _starpu_get_worker_struct(workerids[i]);
+		if(now)
+		{
+			_starpu_worker_gets_out_of_ctx(sched_ctx_id, worker);
+		}
+		else
+		{
+			worker->removed_from_ctx[sched_ctx_id] = 1;
+		}
+	}
+	return;
+}
+
 void starpu_sched_ctx_stop_task_submission()
 {
 	_starpu_exclude_task_from_dag(&stop_submission_task);
@@ -1110,6 +1130,8 @@ void starpu_sched_ctx_delete(unsigned sched_ctx_id)
 
 	int *workerids;
 	unsigned nworkers_ctx = starpu_sched_ctx_get_workers_list(sched_ctx->id, &workerids);
+	int backup_workerids[nworkers_ctx];
+	memcpy(backup_workerids, workerids, nworkers_ctx*sizeof(backup_workerids[0]));
 
 	/*if both of them have all the ressources is pointless*/
 	/*trying to transfer ressources from one ctx to the other*/
@@ -1130,9 +1152,35 @@ void starpu_sched_ctx_delete(unsigned sched_ctx_id)
 			_starpu_sched_ctx_wake_up_workers(sched_ctx_id, 0);
 		/*if btw the mutex release & the mutex lock the context has changed take care to free all
 		  scheduling data before deleting the context */
-		_starpu_update_workers_without_ctx(workerids, nworkers_ctx, sched_ctx_id, 1);
+
+		/* announce upcoming context changes, then wait for transient unlocked operations to
+		 * complete before altering the sched_ctx under sched_mutex protection */
+		unsigned i;
+		for (i=0; i<nworkers_ctx; i++)
+		{
+			struct _starpu_worker *worker = _starpu_get_worker_struct(backup_workerids[i]);
+			STARPU_PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
+			if (worker->state_pop_pending)
+			{
+				worker->state_changing_ctx_waiting = 1;
+				do
+				{
+					STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
+				}
+				while (worker->state_pop_pending);
+				worker->state_changing_ctx_waiting = 0;
+			}
+		}
+
+		_starpu_update_locked_workers_without_ctx(workerids, nworkers_ctx, sched_ctx_id, 1);
 		_starpu_sched_ctx_free_scheduling_data(sched_ctx);
 		_starpu_delete_sched_ctx(sched_ctx);
+
+		for (i=0; i<nworkers_ctx; i++)
+		{
+			struct _starpu_worker *worker = _starpu_get_worker_struct(backup_workerids[i]);
+			STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
+		}
 	}
 
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&changing_ctx_mutex[sched_ctx_id]);
