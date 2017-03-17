@@ -172,6 +172,8 @@ struct starpu_sched_component_perfmodel_select_data
 struct starpu_sched_component *starpu_sched_component_perfmodel_select_create(struct starpu_sched_tree *tree, struct starpu_sched_component_perfmodel_select_data *perfmodel_select_data) STARPU_ATTRIBUTE_MALLOC;
 int starpu_sched_component_is_perfmodel_select(struct starpu_sched_component *component);
 
+void starpu_initialize_prio_center_policy(unsigned sched_ctx_id);
+
 struct starpu_sched_component_composed_recipe;
 struct starpu_sched_component_composed_recipe *starpu_sched_component_composed_recipe_create(void) STARPU_ATTRIBUTE_MALLOC;
 struct starpu_sched_component_composed_recipe *starpu_sched_component_composed_recipe_create_singleton(struct starpu_sched_component *(*create_component)(struct starpu_sched_tree *tree, void *arg), void *arg) STARPU_ATTRIBUTE_MALLOC;
