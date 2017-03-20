@@ -1563,7 +1563,7 @@ static void handle_data_register(struct fxt_ev_64 *ev, struct starpu_fxt_options
 	unsigned long handle = ev->param[0];
 	char *prefix = options->file_prefix;
 
-	if (out_paje_file)
+	if (out_paje_file && !options->no_events)
 	{
 #ifdef STARPU_HAVE_POTI
 		char paje_value[STARPU_POTI_STR_LEN], container[STARPU_POTI_STR_LEN];
@@ -2850,7 +2850,8 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 				handle_used_mem(&ev, options);
 
 			case _STARPU_FUT_USER_EVENT:
-				handle_user_event(&ev, options);
+				if (!options->no_events)
+					handle_user_event(&ev, options);
 				break;
 
 			case _STARPU_MPI_FUT_START:
@@ -2949,11 +2950,13 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 				break;
 
 			case _STARPU_FUT_EVENT:
-				handle_event(&ev, options);
+				if (!options->no_events)
+					handle_event(&ev, options);
 				break;
 
 			case _STARPU_FUT_THREAD_EVENT:
-				handle_thread_event(&ev, options);
+				if (!options->no_events)
+					handle_thread_event(&ev, options);
 				break;
 
 			case _STARPU_FUT_LOCKING_MUTEX:
@@ -3091,6 +3094,7 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 void starpu_fxt_options_init(struct starpu_fxt_options *options)
 {
 	options->per_task_colour = 0;
+	options->no_events = 0;
 	options->no_counter = 0;
 	options->no_bus = 0;
 	options->no_flops = 0;
