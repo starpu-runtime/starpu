@@ -34,6 +34,7 @@ static void usage()
 	fprintf(stderr, "                       times for MPI execution case\n");
         fprintf(stderr, "   -o <output file>    specify the output file\n");
         fprintf(stderr, "   -c                  use a different colour for every type of task\n");
+	fprintf(stderr, "   -no-events          do not show events\n");
 	fprintf(stderr, "   -no-counter         do not show scheduler counters\n");
 	fprintf(stderr, "   -no-bus             do not show PCI bus transfers\n");
 	fprintf(stderr, "   -no-flops           do not show flops\n");
@@ -75,6 +76,13 @@ static int parse_args(int argc, char **argv)
 		{
 			options.filenames[options.ninputfiles++] = argv[++i];
 			reading_input_filenames = 1;
+			continue;
+		}
+
+		if (strcmp(argv[i], "-no-events") == 0)
+		{
+			options.no_events = 1;
+			reading_input_filenames = 0;
 			continue;
 		}
 
