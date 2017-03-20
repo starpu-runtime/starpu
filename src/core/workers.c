@@ -576,7 +576,7 @@ static void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu
 	workerarg->reverse_phase[0] = 0;
 	workerarg->reverse_phase[1] = 0;
 	workerarg->pop_ctx_priority = 1;
-	workerarg->sched_mutex_locked = 0;
+	workerarg->sched_mutex_depth = 0;
 	workerarg->blocked = 0;
 	workerarg->is_slave_somewhere = 0;
 
@@ -2159,33 +2159,6 @@ void starpu_get_version(int *major, int *minor, int *release)
 	*major = STARPU_MAJOR_VERSION;
 	*minor = STARPU_MINOR_VERSION;
 	*release = STARPU_RELEASE_VERSION;
-}
-
-void _starpu_unlock_mutex_if_prev_locked()
-{
-	int workerid = starpu_worker_get_id();
-	if(workerid != -1)
-	{
-		struct _starpu_worker *w = _starpu_get_worker_struct(workerid);
-		if(w->sched_mutex_locked)
-		{
-			STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&w->sched_mutex);
-			_starpu_worker_set_flag_sched_mutex_locked(workerid, 1);
-		}
-	}
-	return;
-}
-
-void _starpu_relock_mutex_if_prev_locked()
-{
-	int workerid = starpu_worker_get_id();
-	if(workerid != -1)
-	{
-		struct _starpu_worker *w = _starpu_get_worker_struct(workerid);
-		if(w->sched_mutex_locked)
-			STARPU_PTHREAD_MUTEX_LOCK_SCHED(&w->sched_mutex);
-	}
-	return;
 }
 
 unsigned starpu_worker_get_sched_ctx_list(int workerid, unsigned **sched_ctxs)

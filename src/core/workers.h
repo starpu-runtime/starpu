@@ -137,8 +137,8 @@ LIST_TYPE(_starpu_worker,
 	/* indicate which priority of ctx is currently active: the values are 0 or 1*/
 	unsigned pop_ctx_priority;
 
-	/* flag to know if sched_mutex is locked or not */
-	unsigned sched_mutex_locked;
+	/* sched mutex local worker locking depth */
+	unsigned sched_mutex_depth;
 
 	/* bool to indicate if the worker is blocked in a ctx */
 	unsigned blocked;
@@ -557,18 +557,6 @@ int starpu_worker_get_nids_by_type(enum starpu_worker_archtype type, int *worker
 /* returns workers not belonging to any context, be careful no mutex is used, 
    the list might not be updated */
 int starpu_worker_get_nids_ctx_free_by_type(enum starpu_worker_archtype type, int *workerids, int maxsize);
-
-/* if the current worker has the lock release it */
-void _starpu_unlock_mutex_if_prev_locked();
-
-/* if we prev released the lock relock it */
-void _starpu_relock_mutex_if_prev_locked();
-
-static inline void _starpu_worker_set_flag_sched_mutex_locked(int workerid, unsigned flag)
-{
-	struct _starpu_worker *w = _starpu_get_worker_struct(workerid);
-	w->sched_mutex_locked = flag;
-}
 
 static inline unsigned _starpu_worker_mutex_is_sched_mutex(int workerid, starpu_pthread_mutex_t *mutex)
 {
