@@ -47,7 +47,7 @@ static void _starpu_sched_ctx_update_parallel_workers_without(unsigned sched_ctx
 
 static void set_priority_on_locked_workers(int *workers, int nworkers, unsigned sched_ctx_id, unsigned priority);
 static void set_priority_hierarchically_on_locked_workers(int* workers_to_add, unsigned nworkers_to_add, unsigned sched_ctx, unsigned priority);
-
+static void fetch_tasks_from_empty_ctx_list(struct _starpu_sched_ctx *sched_ctx);
 static void add_locked_workers(int *workers_to_add, int nworkers_to_add, unsigned sched_ctx_id);
 
 static void lock_workers_for_changing_ctx(const unsigned nworkers, const int * const workerids)
@@ -1230,45 +1230,27 @@ static void _starpu_check_workers(int *workerids, int nworkers)
 	}
 }
 
-void _starpu_fetch_tasks_from_empty_ctx_list(struct _starpu_sched_ctx *sched_ctx)
+static void fetch_tasks_from_empty_ctx_list(struct _starpu_sched_ctx *sched_ctx)
 {
-	unsigned unlocked = 0;
 	STARPU_PTHREAD_MUTEX_LOCK(&sched_ctx->empty_ctx_mutex);
-
-	if(starpu_task_list_empty(&sched_ctx->empty_ctx_tasks))
-	{
-		STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->empty_ctx_mutex);
-		return;
-	}
-	else
-                /* you're not suppose to get here if you deleted the context
-		   so no point in having the mutex locked */
-		STARPU_PTHREAD_RWLOCK_UNLOCK(&changing_ctx_mutex[sched_ctx->id]);
-
 	while(!starpu_task_list_empty(&sched_ctx->empty_ctx_tasks))
 	{
-		if(unlocked)
-			STARPU_PTHREAD_MUTEX_LOCK(&sched_ctx->empty_ctx_mutex);
 		struct starpu_task *old_task = starpu_task_list_pop_back(&sched_ctx->empty_ctx_tasks);
-		unlocked = 1;
-		STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->empty_ctx_mutex);
-
 		if(old_task == &stop_submission_task)
 			break;
+
+		/* if no workers are able to execute the task, it will be put
+		 * in the empty_ctx_tasks list forever again */
+		unsigned nworkers = _starpu_nworkers_able_to_execute_task(old_task, sched_ctx);
+		STARPU_ASSERT(nworkers > 0);
 
 		int ret =  _starpu_push_task_to_workers(old_task);
 		/* if we should stop poping from empty ctx tasks */
 		if(ret == -EAGAIN) break;
 	}
-	if(!unlocked)
-		STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->empty_ctx_mutex);
-
-
-	/* leave the mutex as it was to avoid pbs in the caller function */
-	STARPU_PTHREAD_RWLOCK_RDLOCK(&changing_ctx_mutex[sched_ctx->id]);
-	return;
-
+	STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->empty_ctx_mutex);
 }
+
 unsigned _starpu_can_push_task(struct _starpu_sched_ctx *sched_ctx, struct starpu_task *task)
 {
 	if(sched_ctx->sched_policy && sched_ctx->sched_policy->simulate_push_task)
@@ -1383,11 +1365,7 @@ static void add_locked_workers(int *workers_to_add, int nworkers_to_add, unsigne
 		}
 		set_priority_on_locked_workers(workers_to_add, nworkers_to_add, sched_ctx_id, 1);
 		set_priority_hierarchically_on_locked_workers(workers_to_add, nworkers_to_add, sched_ctx_id, 0);
-	}
-
-	if(sched_ctx->id != STARPU_NMAX_SCHED_CTXS)
-	{
-		_starpu_fetch_tasks_from_empty_ctx_list(sched_ctx);
+		fetch_tasks_from_empty_ctx_list(sched_ctx);
 	}
 }
 
