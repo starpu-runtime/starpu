@@ -1405,7 +1405,7 @@ int _starpu_nworkers_able_to_execute_task(struct starpu_task *task, struct _star
 {
 	unsigned nworkers = 0;
 
-	STARPU_PTHREAD_RWLOCK_WRLOCK(&ctx_mutex[sched_ctx->id]);
+	STARPU_PTHREAD_RWLOCK_RDLOCK(&ctx_mutex[sched_ctx->id]);
 	struct starpu_worker_collection *workers = sched_ctx->workers;
 
 	struct starpu_sched_ctx_iterator it;
