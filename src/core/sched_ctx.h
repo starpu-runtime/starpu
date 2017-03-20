@@ -73,12 +73,6 @@ struct _starpu_sched_ctx
 	long iterations[2];
 	int iteration_level;
 
-	/* cond to block push when there are no workers in the ctx */
-	starpu_pthread_cond_t no_workers_cond;
-
-	/* mutex to block push when there are no workers in the ctx */
-	starpu_pthread_mutex_t no_workers_mutex;
-
 	/*ready tasks that couldn't be pushed because the ctx has no workers*/
 	struct starpu_task_list empty_ctx_tasks;
 
