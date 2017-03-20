@@ -420,7 +420,11 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 		task = NULL;
 	/*else try to pop a task*/
 	else
+	{
+		_starpu_worker_enter_transient_sched_op(worker);
 		task = _starpu_pop_task(worker);
+		_starpu_worker_leave_transient_sched_op(worker);
+	}
 
 #if !defined(STARPU_SIMGRID)
 	if (task == NULL && !executing)
@@ -515,7 +519,9 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 #endif
 			_starpu_worker_set_status_scheduling(workers[i].workerid);
 			_starpu_set_local_worker_key(&workers[i]);
+			_starpu_worker_enter_transient_sched_op(&workers[i]);
 			tasks[i] = _starpu_pop_task(&workers[i]);
+			_starpu_worker_leave_transient_sched_op(&workers[i]);
 			if(tasks[i] != NULL)
 			{
 				_starpu_worker_set_status_scheduling_done(workers[i].workerid);

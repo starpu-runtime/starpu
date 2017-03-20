@@ -82,7 +82,7 @@ LIST_TYPE(_starpu_worker,
 	unsigned memory_node; /* which memory node is the worker associated with ? */
 	starpu_pthread_cond_t sched_cond; /* condition variable used when the worker waits for tasks. */
         starpu_pthread_mutex_t sched_mutex; /* mutex protecting sched_cond */
-	int state_pop_pending:1; /* a task pop is ongoing even though sched_mutex may temporarily be unlocked */
+	int state_sched_op_pending:1; /* a task pop is ongoing even though sched_mutex may temporarily be unlocked */
 	int state_changing_ctx_waiting:1; /* a thread is waiting for transient operations such as pop to complete before acquiring sched_mutex and modifying the worker ctx*/
 	struct starpu_task_list local_tasks; /* this queue contains tasks that have been explicitely submitted to that queue */
 	struct starpu_task **local_ordered_tasks; /* this queue contains tasks that have been explicitely submitted to that queue with an explicit order */
@@ -621,5 +621,27 @@ static inline unsigned __starpu_worker_get_id_check(const char *f, int l)
 void _starpu_worker_set_stream_ctx(unsigned workerid, struct _starpu_sched_ctx *sched_ctx);
 
 struct _starpu_sched_ctx* _starpu_worker_get_ctx_stream(unsigned stream_workerid);
+
+/* Must be called with worker's sched_mutex held.
+ * Mark the beginning of a scheduling operation during which the sched_mutex
+ * lock may be temporarily released, but the scheduling context of the worker
+ * should not be modified */
+static inline void _starpu_worker_enter_transient_sched_op(struct _starpu_worker * const worker)
+{
+	worker->state_sched_op_pending = 1;
+}
+
+/* Must be called with worker's sched_mutex held.
+ * Mark the end of a scheduling operation, and notify potential waiters that
+ * scheduling context changes can safely be performed again.
+ */
+static inline void  _starpu_worker_leave_transient_sched_op(struct _starpu_worker * const worker)
+{
+	worker->state_sched_op_pending = 0;
+	if (worker->state_changing_ctx_waiting)
+		/* cond_broadcast is required over cond_signal since
+		 * the condition is share for multiple purpose */
+		STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
+}
 
 #endif // __WORKERS_H__

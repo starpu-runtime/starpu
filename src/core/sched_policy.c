@@ -850,7 +850,6 @@ pick:
 			{
 				if (sched_ctx->sched_policy && sched_ctx->sched_policy->pop_task)
 				{
-					worker->state_pop_pending = 1;
 					/* Note: we do not push the scheduling state here, because
 					 * otherwise when a worker is idle, we'd keep
 					 * pushing/popping a scheduling state here, while what we
@@ -859,11 +858,6 @@ pick:
 					if (task)
 						_STARPU_TASK_BREAK_ON(task, pop);
 					_starpu_pop_task_end(task);
-					worker->state_pop_pending = 0;
-					if (worker->state_changing_ctx_waiting)
-						/* cond_broadcast is required over cond_signal since
-						 * the condition is share for multiple purpose */
-						STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
 				}
 			}
 
