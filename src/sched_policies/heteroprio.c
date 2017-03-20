@@ -513,7 +513,7 @@ static struct starpu_task *pop_task_heteroprio_policy(unsigned sched_ctx_id)
 				struct starpu_task* task = _starpu_fifo_pop_local_task(bucket->tasks_queue);
 				STARPU_ASSERT(starpu_worker_can_execute_task(workerid, task, 0));
 				/* Save the task */
-				STARPU_AYU_ADDTOTASKQUEUE(_starpu_get_job_associated_to_task(task)->job_id, workerid);
+				STARPU_AYU_ADDTOTASKQUEUE(starpu_task_get_job_id(task), workerid);
 				_starpu_fifo_push_task(worker->tasks_queue, task);
 
 				/* Update general counter */

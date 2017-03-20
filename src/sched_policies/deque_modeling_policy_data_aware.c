@@ -425,7 +425,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 		starpu_prefetch_task_input_on_node(task, memory_node);
 	}
 
-	STARPU_AYU_ADDTOTASKQUEUE(_starpu_get_job_associated_to_task(task)->job_id, best_workerid);
+	STARPU_AYU_ADDTOTASKQUEUE(starpu_task_get_job_id(task), best_workerid);
 	unsigned stream_ctx_id = starpu_worker_get_sched_ctx_id_stream(best_workerid);
 	if(stream_ctx_id != STARPU_NMAX_SCHED_CTXS)
 	{
