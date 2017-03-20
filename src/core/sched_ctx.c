@@ -1160,16 +1160,7 @@ void starpu_sched_ctx_delete(unsigned sched_ctx_id)
 		{
 			struct _starpu_worker *worker = _starpu_get_worker_struct(backup_workerids[i]);
 			STARPU_PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
-			if (worker->state_sched_op_pending)
-			{
-				worker->state_changing_ctx_waiting = 1;
-				do
-				{
-					STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
-				}
-				while (worker->state_sched_op_pending);
-				worker->state_changing_ctx_waiting = 0;
-			}
+			_starpu_worker_wait_for_transient_sched_op_completion(worker);
 		}
 
 		_starpu_update_locked_workers_without_ctx(workerids, nworkers_ctx, sched_ctx_id, 1);

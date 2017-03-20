@@ -644,4 +644,21 @@ static inline void  _starpu_worker_leave_transient_sched_op(struct _starpu_worke
 		STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
 }
 
+/* Must be called with worker's sched_mutex held.
+ * Passively wait until state_sched_op_pending is cleared.
+ */
+static inline void _starpu_worker_wait_for_transient_sched_op_completion(struct _starpu_worker * const worker)
+{
+	if (worker->state_sched_op_pending)
+	{
+		worker->state_changing_ctx_waiting = 1;
+		do
+		{
+			STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
+		}
+		while (worker->state_sched_op_pending);
+		worker->state_changing_ctx_waiting = 0;
+	}
+}
+
 #endif // __WORKERS_H__
