@@ -1572,7 +1572,7 @@ unsigned _starpu_increment_nready_tasks_of_sched_ctx(unsigned sched_ctx_id, doub
 	if(!sched_ctx->is_initial_sched)
 	{
 		starpu_pthread_rwlock_t *ctx_mutex = _starpu_sched_ctx_get_mutex(sched_ctx->id);
-		STARPU_PTHREAD_RWLOCK_RDLOCK(ctx_mutex);
+		STARPU_PTHREAD_RWLOCK_WRLOCK(ctx_mutex);
 	}
 
 	_starpu_barrier_counter_increment(&sched_ctx->ready_tasks_barrier, ready_flops);
@@ -1599,7 +1599,7 @@ void _starpu_decrement_nready_tasks_of_sched_ctx(unsigned sched_ctx_id, double r
 	if(!sched_ctx->is_initial_sched)
 	{
 		starpu_pthread_rwlock_t *ctx_mutex = _starpu_sched_ctx_get_mutex(sched_ctx->id);
-		STARPU_PTHREAD_RWLOCK_RDLOCK(ctx_mutex);
+		STARPU_PTHREAD_RWLOCK_WRLOCK(ctx_mutex);
 	}
 
 	_starpu_barrier_counter_decrement_until_empty_counter(&sched_ctx->ready_tasks_barrier, ready_flops);
@@ -2288,7 +2288,7 @@ void starpu_sched_ctx_list_task_counters_increment_all(struct starpu_task *task,
 
 		workers->init_iterator_for_parallel_tasks(workers, &it, task);
 		starpu_pthread_rwlock_t *ctx_mutex = _starpu_sched_ctx_get_mutex(sched_ctx->id);
-		STARPU_PTHREAD_RWLOCK_RDLOCK(ctx_mutex);
+		STARPU_PTHREAD_RWLOCK_WRLOCK(ctx_mutex);
 		while(workers->has_next(workers, &it))
 		{
 			int worker = workers->get_next(workers, &it);
@@ -2315,7 +2315,7 @@ void starpu_sched_ctx_list_task_counters_decrement_all(struct starpu_task *task,
 		struct starpu_sched_ctx_iterator it;
 		workers->init_iterator_for_parallel_tasks(workers, &it, task);
 		starpu_pthread_rwlock_t *ctx_mutex = _starpu_sched_ctx_get_mutex(sched_ctx->id);
-		STARPU_PTHREAD_RWLOCK_RDLOCK(ctx_mutex);
+		STARPU_PTHREAD_RWLOCK_WRLOCK(ctx_mutex);
 		while(workers->has_next(workers, &it))
 		{
 			int worker = workers->get_next(workers, &it);
@@ -2352,7 +2352,7 @@ void starpu_sched_ctx_list_task_counters_reset_all(struct starpu_task *task, uns
 		struct starpu_sched_ctx_iterator it;
 		workers->init_iterator_for_parallel_tasks(workers, &it, task);
 		starpu_pthread_rwlock_t *ctx_mutex = _starpu_sched_ctx_get_mutex(sched_ctx->id);
-		STARPU_PTHREAD_RWLOCK_RDLOCK(ctx_mutex);
+		STARPU_PTHREAD_RWLOCK_WRLOCK(ctx_mutex);
 		while(workers->has_next(workers, &it))
 		{
 			int worker = workers->get_next(workers, &it);
