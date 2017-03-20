@@ -649,7 +649,7 @@ int ws_push_task(struct starpu_task *task)
 
 	record_data_locality(task, workerid);
 
-	STARPU_AYU_ADDTOTASKQUEUE(_starpu_get_job_associated_to_task(task)->job_id, workerid);
+	STARPU_AYU_ADDTOTASKQUEUE(starpu_task_get_job_id(task), workerid);
 	STARPU_PTHREAD_MUTEX_LOCK(&ws->per_worker[workerid].worker_mutex);
 	_STARPU_TASK_BREAK_ON(task, sched);
 	_starpu_fifo_push_task(ws->per_worker[workerid].queue_array, task);
