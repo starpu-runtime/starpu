@@ -135,6 +135,10 @@ $ starpu_fxt_tool -i /tmp/prof_file_something1 -i /tmp/prof_file_something2
 By default, all tasks are displayed using a green color. To display tasks with
 varying colors, pass option <c>-c</c> to <c>starpu_fxt_tool</c>.
 
+By default, the trace contains all informations. To reduce the trace size,
+various <c>-no-foo</c> options can be passed to <c>starpu_fxt_tool</c>, see
+<c>starpu_fxt_tool --help</c> .
+
 To identify tasks precisely, the application can set the starpu_task::tag_id field of the
 task (or use \ref STARPU_TAG_ONLY when using starpu_task_insert()), and
 the value of the tag will show up in the trace.

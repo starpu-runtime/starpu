@@ -1085,15 +1085,17 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 		if (new_thread)
 			poti_CreateContainer(get_event_time_stamp(ev, options), new_thread_container_alias, "T", memnode_container, new_thread_container_name);
 		poti_CreateContainer(get_event_time_stamp(ev, options), new_worker_container_alias, "W", new_thread_container_alias, new_worker_container_name);
-		poti_SetVariable(0.0, new_worker_container_alias, "gf", 0.0);
+		if (!options->no_flops)
+			poti_SetVariable(0.0, new_worker_container_alias, "gf", 0.0);
 #else
 		if (new_thread)
 			fprintf(out_paje_file, "7	%.9f	%st%lu	T	%smn%d	%s%d\n",
 				get_event_time_stamp(ev, options), prefix, threadid, prefix, nodeid, prefix, bindid);
 		fprintf(out_paje_file, "7	%.9f	%sw%d	W	%st%lu	%s%s%d\n",
 			get_event_time_stamp(ev, options), prefix, workerid, prefix, threadid, prefix, kindstr, devid);
-		fprintf(out_paje_file, "13	%.9f	%sw%d	gf	0.0\n",
-			0.0, prefix, workerid);
+		if (!options->no_flops)
+			fprintf(out_paje_file, "13	%.9f	%sw%d	gf	0.0\n",
+				0.0, prefix, workerid);
 #endif
 	}
 
@@ -1363,16 +1365,20 @@ static void handle_start_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_op
 		comp = ongoing_computation[worker] = _starpu_computation_new();
 		comp->peer = NULL;
 		comp->comp_start = start_codelet_time;
-		_starpu_computation_list_push_back(&computation_list, comp);
+		if (!options->no_flops)
+			_starpu_computation_list_push_back(&computation_list, comp);
 	}
 	else if (options->no_smooth ||
 			(start_codelet_time - last_codelet_end[worker]) >=
 			IDLE_FACTOR * (last_codelet_end[worker] - last_start_codelet_time))
 	{
 		/* Long idle period, move previously-allocated comp to now */
-		_starpu_computation_list_erase(&computation_list, comp);
 		comp->comp_start = start_codelet_time;
-		_starpu_computation_list_push_back(&computation_list, comp);
+		if (!options->no_flops)
+		{
+			_starpu_computation_list_erase(&computation_list, comp);
+			_starpu_computation_list_push_back(&computation_list, comp);
+		}
 	}
 }
 
@@ -1519,37 +1525,46 @@ static void handle_end_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 	double gflops_start = peer->comp_start;
 	double codelet_length;
 	double gflops;
+	struct _starpu_computation *comp;
 
 	codelet_length = end_codelet_time - gflops_start;
 	gflops = (((double)task->kflops) / 1000000) / (codelet_length / 1000);
 
+	if (options->no_flops)
+	{
+		_starpu_computation_delete(peer);
+	}
+	else
+	{
 #ifdef STARPU_HAVE_POTI
-	char container[STARPU_POTI_STR_LEN];
-	worker_container_alias(container, STARPU_POTI_STR_LEN, prefix, worker);
-	if (gflops_start != last_end_codelet_time)
-		poti_SetVariable(last_end_codelet_time, container, "gf", 0.);
-	poti_SetVariable(gflops_start, container, "gf", gflops);
+		char container[STARPU_POTI_STR_LEN];
+		worker_container_alias(container, STARPU_POTI_STR_LEN, prefix, worker);
+		if (gflops_start != last_end_codelet_time)
+			poti_SetVariable(last_end_codelet_time, container, "gf", 0.);
+		poti_SetVariable(gflops_start, container, "gf", gflops);
 #else
-	if (gflops_start != last_end_codelet_time)
+		if (gflops_start != last_end_codelet_time)
+			fprintf(out_paje_file, "13	%.9f	%sw%d	gf	%f\n",
+					last_end_codelet_time, prefix, worker, 0.);
 		fprintf(out_paje_file, "13	%.9f	%sw%d	gf	%f\n",
-				last_end_codelet_time, prefix, worker, 0.);
-	fprintf(out_paje_file, "13	%.9f	%sw%d	gf	%f\n",
-			gflops_start, prefix, worker, gflops);
+				gflops_start, prefix, worker, gflops);
 #endif
 
-	struct _starpu_computation *comp = _starpu_computation_new();
-	comp->comp_start = end_codelet_time;
-	comp->gflops = -gflops;
-	peer->gflops = +gflops;
-	comp->peer = peer;
-	peer->peer = comp;
-	_starpu_computation_list_push_back(&computation_list, comp);
+		comp = _starpu_computation_new();
+		comp->comp_start = end_codelet_time;
+		comp->gflops = -gflops;
+		peer->gflops = +gflops;
+		comp->peer = peer;
+		peer->peer = comp;
+		_starpu_computation_list_push_back(&computation_list, comp);
+	}
 
 	/* Prepare comp for next codelet */
 	comp = _starpu_computation_new();
 	comp->comp_start = end_codelet_time;
 	comp->peer = NULL;
-	_starpu_computation_list_push_back(&computation_list, comp);
+	if (!options->no_flops)
+		_starpu_computation_list_push_back(&computation_list, comp);
 	ongoing_computation[worker] = comp;
 
 	if (distrib_time)
@@ -2837,6 +2852,9 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 			poti_CreateContainer(0.0, new_scheduler_container_alias, "Sc", new_program_container_alias, new_scheduler_container_name);
 			poti_SetVariable(0.0, new_scheduler_container_alias, "nsubmitted", 0.0);
 			poti_SetVariable(0.0, new_scheduler_container_alias, "nready", 0.0);
+		}
+		if (!option->no_flops)
+		{
 			poti_SetVariable(0.0, new_scheduler_container_alias, "gft", 0.0);
 		}
 #else
@@ -2847,6 +2865,9 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 			fprintf(out_paje_file, "7	%.9f	%ssched	Sc	%sp	%sscheduler\n", 0.0, prefix, prefix, prefix);
 			fprintf(out_paje_file, "13	0.0	%ssched	nsubmitted	0.0\n", prefix);
 			fprintf(out_paje_file, "13	0.0	%ssched	nready	0.0\n", prefix);
+		}
+		if (!options->no_flops)
+		{
 			fprintf(out_paje_file, "13	0.0	%ssched	gft	0.0\n", prefix);
 		}
 #endif
@@ -3404,10 +3425,11 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 				break;
 		}
 		_starpu_fxt_process_bandwidth(options);
-		_starpu_fxt_process_computations(options);
+		if (!options->no_flops)
+			_starpu_fxt_process_computations(options);
 	}
 
-	if (out_paje_file)
+	if (out_paje_file && !options->no_flops)
 	{
 		unsigned i;
 		for (i = 0; i < STARPU_NMAXWORKERS; i++)
@@ -3468,6 +3490,7 @@ void starpu_fxt_options_init(struct starpu_fxt_options *options)
 	options->per_task_colour = 0;
 	options->no_counter = 0;
 	options->no_bus = 0;
+	options->no_flops = 0;
 	options->no_smooth = 0;
 	options->ninputfiles = 0;
 	options->out_paje_path = "paje.trace";
@@ -3641,7 +3664,8 @@ void _starpu_fxt_paje_file_init(struct starpu_fxt_options *options)
 	/* create lists for symbols (kernel states) and communications */
 	_starpu_symbol_name_list_init(&symbol_list);
 	_starpu_communication_list_init(&communication_list);
-	_starpu_computation_list_init(&computation_list);
+	if (!options->no_flops)
+		_starpu_computation_list_init(&computation_list);
 }
 
 static

@@ -42,6 +42,7 @@ struct starpu_fxt_options
 	unsigned per_task_colour;
 	unsigned no_counter;
 	unsigned no_bus;
+	unsigned no_flops;
 	unsigned ninputfiles;
 	unsigned no_smooth;
 	char *filenames[STARPU_FXT_MAX_FILES];
