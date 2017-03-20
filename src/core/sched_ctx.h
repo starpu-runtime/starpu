@@ -85,9 +85,6 @@ struct _starpu_sched_ctx
 	/*ready tasks that couldn't be pushed because the the window of tasks was already full*/
 	struct starpu_task_list waiting_tasks;
 
-	/* mutext protecting waiting_tasks list */
-	starpu_pthread_mutex_t waiting_tasks_mutex;
-
 	/* min CPUs to execute*/
 	int min_ncpus;
 

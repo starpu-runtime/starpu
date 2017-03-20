@@ -527,7 +527,6 @@ struct _starpu_sched_ctx* _starpu_create_sched_ctx(struct starpu_sched_policy *p
 
 	starpu_task_list_init(&sched_ctx->empty_ctx_tasks);
 
-	STARPU_PTHREAD_MUTEX_INIT(&sched_ctx->waiting_tasks_mutex, NULL);
 	starpu_task_list_init(&sched_ctx->waiting_tasks);
 
 	if (policy)
@@ -1117,7 +1116,6 @@ static void _starpu_delete_sched_ctx(struct _starpu_sched_ctx *sched_ctx)
 		sched_ctx->perf_arch.devices = NULL;
 	}
 
-	STARPU_PTHREAD_MUTEX_DESTROY(&sched_ctx->waiting_tasks_mutex);
 	sched_ctx->id = STARPU_NMAX_SCHED_CTXS;
 #ifdef STARPU_HAVE_HWLOC
 	hwloc_bitmap_free(sched_ctx->hwloc_workers_set);
@@ -1572,7 +1570,10 @@ unsigned _starpu_increment_nready_tasks_of_sched_ctx(unsigned sched_ctx_id, doub
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 
 	if(!sched_ctx->is_initial_sched)
-		STARPU_PTHREAD_MUTEX_LOCK(&sched_ctx->waiting_tasks_mutex);
+	{
+		starpu_pthread_rwlock_t *changing_ctx_mutex = _starpu_sched_ctx_get_changing_ctx_mutex(sched_ctx->id);
+		STARPU_PTHREAD_RWLOCK_RDLOCK(changing_ctx_mutex);
+	}
 
 	_starpu_barrier_counter_increment(&sched_ctx->ready_tasks_barrier, ready_flops);
 
@@ -1585,7 +1586,8 @@ unsigned _starpu_increment_nready_tasks_of_sched_ctx(unsigned sched_ctx_id, doub
 			ret = 0;
 		}
 
-		STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->waiting_tasks_mutex);
+		starpu_pthread_rwlock_t *changing_ctx_mutex = _starpu_sched_ctx_get_changing_ctx_mutex(sched_ctx->id);
+		STARPU_PTHREAD_RWLOCK_UNLOCK(changing_ctx_mutex);
 	}
 	return ret;
 }
@@ -1595,7 +1597,10 @@ void _starpu_decrement_nready_tasks_of_sched_ctx(unsigned sched_ctx_id, double r
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 
 	if(!sched_ctx->is_initial_sched)
-		STARPU_PTHREAD_MUTEX_LOCK(&sched_ctx->waiting_tasks_mutex);
+	{
+		starpu_pthread_rwlock_t *changing_ctx_mutex = _starpu_sched_ctx_get_changing_ctx_mutex(sched_ctx->id);
+		STARPU_PTHREAD_RWLOCK_RDLOCK(changing_ctx_mutex);
+	}
 
 	_starpu_barrier_counter_decrement_until_empty_counter(&sched_ctx->ready_tasks_barrier, ready_flops);
 
@@ -1603,7 +1608,8 @@ void _starpu_decrement_nready_tasks_of_sched_ctx(unsigned sched_ctx_id, double r
 	if(!sched_ctx->is_initial_sched)
 	{
 		_starpu_fetch_task_from_waiting_list(sched_ctx);
-		STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->waiting_tasks_mutex);
+		starpu_pthread_rwlock_t *changing_ctx_mutex = _starpu_sched_ctx_get_changing_ctx_mutex(sched_ctx->id);
+		STARPU_PTHREAD_RWLOCK_UNLOCK(changing_ctx_mutex);
 	}
 
 }
