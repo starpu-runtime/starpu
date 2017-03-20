@@ -1226,6 +1226,11 @@ unsigned starpu_task_get_implementation(struct starpu_task *task)
 	return _starpu_get_job_associated_to_task(task)->nimpl;
 }
 
+unsigned long starpu_task_get_job_id(struct starpu_task *task)
+{
+	return _starpu_get_job_associated_to_task(task)->job_id;
+}
+
 static starpu_pthread_t watchdog_thread;
 
 /* Check from times to times that StarPU does finish some tasks */
