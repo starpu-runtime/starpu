@@ -243,6 +243,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 	poti_DefineStateType("US", "UT", "User Thread State");
 	poti_DefineEntityValue("Bu", "US", "Building task", ".5 .18 .0");
 	poti_DefineEntityValue("Su", "US", "Submiting task", ".3 .09 .0");
+	poti_DefineEntityValue("C", "US", "Callback", ".0 .3 .8");
 	poti_DefineEntityValue("Th", "US", "Throttling task submission", ".8 .6 .6");
 	poti_DefineEntityValue("MD", "US", "Decoding task for MPI", ".5 .18 .2");
 	poti_DefineEntityValue("MPr", "US", "Preparing task for MPI", ".4 .14 .2");
@@ -359,6 +360,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 3       US       UT       \"User Thread State\"                        \n\
 6       Bu      US      \"Building task\"   \".5 .18 .0\"		\n\
 6       Su      US      \"Submitting task\" \".3 .09 .0\"		\n\
+6       C       US      \"Callback\" \".0 .3 .8\"		\n\
 6       Th      US      \"Throttling task submission\" \".8 .6 .6\"		\n\
 6       MD      US      \"Decoding task for MPI\" \".5 .18 .2\"		\n\
 6       MPr     US      \"Preparing task for MPI\" \".4 .14 .2\"		\n\
