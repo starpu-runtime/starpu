@@ -431,9 +431,10 @@ int _starpu_repush_task(struct _starpu_job *j)
 
 		if(nworkers == 0)
 		{
-			STARPU_PTHREAD_MUTEX_LOCK(&sched_ctx->empty_ctx_mutex);
+			starpu_pthread_rwlock_t *changing_ctx_mutex = _starpu_sched_ctx_get_changing_ctx_mutex(sched_ctx->id);
+			STARPU_PTHREAD_RWLOCK_RDLOCK(changing_ctx_mutex);
 			starpu_task_list_push_front(&sched_ctx->empty_ctx_tasks, task);
-			STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->empty_ctx_mutex);
+			STARPU_PTHREAD_RWLOCK_UNLOCK(changing_ctx_mutex);
 #ifdef STARPU_USE_SC_HYPERVISOR
 			if(sched_ctx->id != 0 && sched_ctx->perf_counters != NULL
 			   && sched_ctx->perf_counters->notify_empty_ctx)
@@ -497,9 +498,10 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 
 		if (nworkers == 0)
 		{
-			STARPU_PTHREAD_MUTEX_LOCK(&sched_ctx->empty_ctx_mutex);
+			starpu_pthread_rwlock_t *changing_ctx_mutex = _starpu_sched_ctx_get_changing_ctx_mutex(sched_ctx->id);
+			STARPU_PTHREAD_RWLOCK_RDLOCK(changing_ctx_mutex);
 			starpu_task_list_push_back(&sched_ctx->empty_ctx_tasks, task);
-			STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->empty_ctx_mutex);
+			STARPU_PTHREAD_RWLOCK_UNLOCK(changing_ctx_mutex);
 #ifdef STARPU_USE_SC_HYPERVISOR
 			if(sched_ctx->id != 0 && sched_ctx->perf_counters != NULL
 			   && sched_ctx->perf_counters->notify_empty_ctx)

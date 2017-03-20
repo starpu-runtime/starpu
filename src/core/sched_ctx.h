@@ -82,9 +82,6 @@ struct _starpu_sched_ctx
 	/*ready tasks that couldn't be pushed because the ctx has no workers*/
 	struct starpu_task_list empty_ctx_tasks;
 
-	/* mutext protecting empty_ctx_tasks list */
-	starpu_pthread_mutex_t empty_ctx_mutex;
-
 	/*ready tasks that couldn't be pushed because the the window of tasks was already full*/
 	struct starpu_task_list waiting_tasks;
 

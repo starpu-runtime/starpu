@@ -525,7 +525,6 @@ struct _starpu_sched_ctx* _starpu_create_sched_ctx(struct starpu_sched_policy *p
 
 	STARPU_ASSERT(nworkers_ctx <= nworkers);
 
-	STARPU_PTHREAD_MUTEX_INIT(&sched_ctx->empty_ctx_mutex, NULL);
 	starpu_task_list_init(&sched_ctx->empty_ctx_tasks);
 
 	STARPU_PTHREAD_MUTEX_INIT(&sched_ctx->waiting_tasks_mutex, NULL);
@@ -1118,7 +1117,6 @@ static void _starpu_delete_sched_ctx(struct _starpu_sched_ctx *sched_ctx)
 		sched_ctx->perf_arch.devices = NULL;
 	}
 
-	STARPU_PTHREAD_MUTEX_DESTROY(&sched_ctx->empty_ctx_mutex);
 	STARPU_PTHREAD_MUTEX_DESTROY(&sched_ctx->waiting_tasks_mutex);
 	sched_ctx->id = STARPU_NMAX_SCHED_CTXS;
 #ifdef STARPU_HAVE_HWLOC
@@ -1227,9 +1225,9 @@ static void _starpu_check_workers(int *workerids, int nworkers)
 	}
 }
 
+/* changing_ctx_mutex must be held when calling this function */
 static void fetch_tasks_from_empty_ctx_list(struct _starpu_sched_ctx *sched_ctx)
 {
-	STARPU_PTHREAD_MUTEX_LOCK(&sched_ctx->empty_ctx_mutex);
 	while(!starpu_task_list_empty(&sched_ctx->empty_ctx_tasks))
 	{
 		struct starpu_task *old_task = starpu_task_list_pop_back(&sched_ctx->empty_ctx_tasks);
@@ -1245,7 +1243,6 @@ static void fetch_tasks_from_empty_ctx_list(struct _starpu_sched_ctx *sched_ctx)
 		/* if we should stop poping from empty ctx tasks */
 		if(ret == -EAGAIN) break;
 	}
-	STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->empty_ctx_mutex);
 }
 
 unsigned _starpu_can_push_task(struct _starpu_sched_ctx *sched_ctx, struct starpu_task *task)
