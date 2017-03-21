@@ -322,21 +322,23 @@ static void _starpu_add_workers_to_new_sched_ctx(struct _starpu_sched_ctx *sched
 	for(i = 0; i < nworkers; i++)
 	{
 		int workerid = workerids[i];
-		int _workerid = workers->add(workers, workerid);
-		STARPU_ASSERT(_workerid >= 0);
-		(void)_workerid;
+		{
+			int _workerid = workers->add(workers, workerid);
+			STARPU_ASSERT(_workerid >= 0);
+			(void)_workerid;
+		}
 		struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 		worker->tmp_sched_ctx = (int)sched_ctx->id;
 	}
 
-	lock_workers_for_changing_ctx(nworkers, _workerids);
-	_do_starpu_add_workers_to_sched_ctx(sched_ctx, _workerids, nworkers);
-	unlock_workers_for_changing_ctx(nworkers, _workerids);
+	lock_workers_for_changing_ctx(nworkers, workerids);
+	_do_starpu_add_workers_to_sched_ctx(sched_ctx, workerids, nworkers);
+	unlock_workers_for_changing_ctx(nworkers, workerids);
 
 	if(sched_ctx->sched_policy && sched_ctx->sched_policy->add_workers)
 	{
 		_STARPU_SCHED_BEGIN;
-		sched_ctx->sched_policy->add_workers(sched_ctx->id, _workerids, nworkers);
+		sched_ctx->sched_policy->add_workers(sched_ctx->id, workerids, nworkers);
 		_STARPU_SCHED_END;
 	}
 }
