@@ -2262,13 +2262,14 @@ void starpu_sched_ctx_list_task_counters_reset(unsigned sched_ctx_id, int worker
 		_starpu_sched_ctx_list_pop_all_event(worker->sched_ctx_list, sched_ctx_id);
 }
 
+/* sched_ctx must be write locked when calling this function */
 void starpu_sched_ctx_list_task_counters_increment_all(struct starpu_task *task, unsigned sched_ctx_id)
 {
 	/* Note that with 1 ctx we will default to the global context,
 	   hence our counters are useless */
 	if (_starpu_get_nsched_ctxs() > 1)
 	{
-		_starpu_sched_ctx_lock_write(sched_ctx_id);
+		STARPU_SCHED_CTX_CHECK_LOCK(sched_ctx_id);
 		struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 		struct starpu_sched_ctx_iterator it;
 
@@ -2278,7 +2279,6 @@ void starpu_sched_ctx_list_task_counters_increment_all(struct starpu_task *task,
 			int worker = workers->get_next(workers, &it);
 			starpu_sched_ctx_list_task_counters_increment(sched_ctx_id, worker);
 		}
-		_starpu_sched_ctx_unlock_write(sched_ctx_id);
 	}
 }
 
