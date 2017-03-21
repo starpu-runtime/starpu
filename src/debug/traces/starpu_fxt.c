@@ -2844,12 +2844,15 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 		program_container_alias(new_program_container_alias, STARPU_POTI_STR_LEN, prefix);
 		snprintf(new_program_container_name, STARPU_POTI_STR_LEN, "program %s", prefix);
 		poti_CreateContainer (0, new_program_container_alias, "P", "MPIroot", new_program_container_name);
+		char new_scheduler_container_alias[STARPU_POTI_STR_LEN], new_scheduler_container_name[STARPU_POTI_STR_LEN];
+		scheduler_container_alias(new_scheduler_container_alias, STARPU_POTI_STR_LEN, prefix);
+		snprintf(new_scheduler_container_name, STARPU_POTI_STR_LEN, "%sscheduler", prefix);
+		if (!options->no_counter || !options->no_flops)
+		{
+			poti_CreateContainer(0.0, new_scheduler_container_alias, "Sc", new_program_container_alias, new_scheduler_container_name);
+		}
 		if (!options->no_counter)
 		{
-			char new_scheduler_container_alias[STARPU_POTI_STR_LEN], new_scheduler_container_name[STARPU_POTI_STR_LEN];
-			scheduler_container_alias(new_scheduler_container_alias, STARPU_POTI_STR_LEN, prefix);
-			snprintf(new_scheduler_container_name, STARPU_POTI_STR_LEN, "%sscheduler", prefix);
-			poti_CreateContainer(0.0, new_scheduler_container_alias, "Sc", new_program_container_alias, new_scheduler_container_name);
 			poti_SetVariable(0.0, new_scheduler_container_alias, "nsubmitted", 0.0);
 			poti_SetVariable(0.0, new_scheduler_container_alias, "nready", 0.0);
 		}
@@ -2859,10 +2862,13 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 		}
 #else
 		fprintf(out_paje_file, "7	0.0	%sp	P	MPIroot	%sprogram \n", prefix, prefix);
-		/* create a variable with the number of tasks */
-		if (!options->no_counter)
+		if (!options->no_counter || !options->no_flops)
 		{
 			fprintf(out_paje_file, "7	%.9f	%ssched	Sc	%sp	%sscheduler\n", 0.0, prefix, prefix, prefix);
+		}
+		if (!options->no_counter)
+		{
+		/* create a variable with the number of tasks */
 			fprintf(out_paje_file, "13	0.0	%ssched	nsubmitted	0.0\n", prefix);
 			fprintf(out_paje_file, "13	0.0	%ssched	nready	0.0\n", prefix);
 		}
