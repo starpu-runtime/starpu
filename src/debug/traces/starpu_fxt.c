@@ -2856,7 +2856,7 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 			poti_SetVariable(0.0, new_scheduler_container_alias, "nsubmitted", 0.0);
 			poti_SetVariable(0.0, new_scheduler_container_alias, "nready", 0.0);
 		}
-		if (!option->no_flops)
+		if (!options->no_flops)
 		{
 			poti_SetVariable(0.0, new_scheduler_container_alias, "gft", 0.0);
 		}
