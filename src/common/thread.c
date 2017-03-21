@@ -19,6 +19,8 @@
 #include <core/simgrid.h>
 #include <core/workers.h>
 
+#include <limits.h>
+
 #ifdef STARPU_SIMGRID
 #ifdef STARPU_HAVE_XBT_SYNCHRO_H
 #include <xbt/synchro.h>
