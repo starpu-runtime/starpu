@@ -431,10 +431,9 @@ int _starpu_repush_task(struct _starpu_job *j)
 
 		if(nworkers == 0)
 		{
-			starpu_pthread_rwlock_t *ctx_mutex = _starpu_sched_ctx_get_mutex(sched_ctx->id);
-			STARPU_PTHREAD_RWLOCK_WRLOCK(ctx_mutex);
+			_starpu_sched_ctx_lock_write(sched_ctx->id);
 			starpu_task_list_push_front(&sched_ctx->empty_ctx_tasks, task);
-			STARPU_PTHREAD_RWLOCK_UNLOCK(ctx_mutex);
+			_starpu_sched_ctx_unlock_write(sched_ctx->id);
 #ifdef STARPU_USE_SC_HYPERVISOR
 			if(sched_ctx->id != 0 && sched_ctx->perf_counters != NULL
 			   && sched_ctx->perf_counters->notify_empty_ctx)
@@ -498,10 +497,9 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 
 		if (nworkers == 0)
 		{
-			starpu_pthread_rwlock_t *ctx_mutex = _starpu_sched_ctx_get_mutex(sched_ctx->id);
-			STARPU_PTHREAD_RWLOCK_WRLOCK(ctx_mutex);
+			_starpu_sched_ctx_lock_write(sched_ctx->id);
 			starpu_task_list_push_back(&sched_ctx->empty_ctx_tasks, task);
-			STARPU_PTHREAD_RWLOCK_UNLOCK(ctx_mutex);
+			_starpu_sched_ctx_unlock_write(sched_ctx->id);
 #ifdef STARPU_USE_SC_HYPERVISOR
 			if(sched_ctx->id != 0 && sched_ctx->perf_counters != NULL
 			   && sched_ctx->perf_counters->notify_empty_ctx)
@@ -591,8 +589,7 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 		{
 			STARPU_ASSERT(sched_ctx->sched_policy->push_task);
 			/* check out if there are any workers in the context */
-			starpu_pthread_rwlock_t *ctx_mutex = _starpu_sched_ctx_get_mutex(sched_ctx->id);
-			STARPU_PTHREAD_RWLOCK_WRLOCK(ctx_mutex);
+			_starpu_sched_ctx_lock_write(sched_ctx->id);
 			nworkers = starpu_sched_ctx_get_nworkers(sched_ctx->id);
 			if (nworkers == 0)
 				ret = -1;
@@ -603,7 +600,7 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 				ret = sched_ctx->sched_policy->push_task(task);
 				_STARPU_SCHED_END;
 			}
-			STARPU_PTHREAD_RWLOCK_UNLOCK(ctx_mutex);
+			_starpu_sched_ctx_unlock_write(sched_ctx->id);
 		}
 
 		if(ret == -1)
