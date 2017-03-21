@@ -197,83 +197,34 @@ void starpu_sched_ctx_worker_shares_tasks_lists(int workerid, int sched_ctx_id)
 	worker->shares_tasks_lists[sched_ctx_id] = 1;
 }
 
-static void _starpu_add_workers_to_sched_ctx(struct _starpu_sched_ctx *sched_ctx, int *workerids, int nworkers,
-					     int *added_workers, int *n_added_workers)
+static void _do_starpu_add_workers_to_sched_ctx(struct _starpu_sched_ctx *sched_ctx, int *workerids, int nworkers)
 {
-	struct starpu_worker_collection *workers = sched_ctx->workers;
-	struct _starpu_machine_config *config = _starpu_get_machine_config();
-
-	int nworkers_to_add = nworkers == -1 ? (int)config->topology.nworkers : nworkers;
-	if (!nworkers_to_add)
-		return;
-	int workers_to_add[nworkers_to_add];
-
-	struct starpu_perfmodel_device devices[nworkers_to_add];
 	int ndevices = 0;
-	struct _starpu_worker *str_worker = NULL;
-	int worker;
+	struct starpu_perfmodel_device devices[nworkers];
 	int i = 0;
-	for(i = 0; i < nworkers_to_add; i++)
+	for(i = 0; i < nworkers; i++)
 	{
-		/* added_workers is NULL for the call of this func at the creation of the context*/
-		/* if the function is called at the creation of the context it's no need to do this verif */
-		if(added_workers)
-		{
-			worker = workers->add(workers, (workerids == NULL ? i : workerids[i]));
-			if(worker >= 0)
-				added_workers[(*n_added_workers)++] = worker;
-			else
-			{
-				struct _starpu_worker *worker_str = _starpu_get_worker_struct(workerids[i]);
-				worker_str->removed_from_ctx[sched_ctx->id] = 0;
-			}
-		}
-		else
-		{
-			worker = (workerids == NULL ? i : workerids[i]);
-			workers->add(workers, worker);
-			workers_to_add[i] = worker;
-			str_worker = _starpu_get_worker_struct(worker);
-			str_worker->tmp_sched_ctx = (int)sched_ctx->id;
-		}
-	}
-
-	int *wa;
-	int na;
-	if(added_workers)
-	{
-		na = *n_added_workers;
-		wa = added_workers;
-	}
-	else
-	{
-		na = nworkers_to_add;
-		wa = workers_to_add;
-	}
-
-	for(i = 0; i < na; i++)
-	{
-		worker = wa[i];
-		str_worker = _starpu_get_worker_struct(worker);
+		int workerid = workerids[i];
+		struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 		int dev1, dev2;
 		unsigned found = 0;
-		for(dev1 = 0; dev1 < str_worker->perf_arch.ndevices; dev1++)
+		for(dev1 = 0; dev1 < worker->perf_arch.ndevices; dev1++)
 		{
 			for(dev2 = 0; dev2 < ndevices; dev2++)
 			{
-				if(devices[dev2].type == str_worker->perf_arch.devices[dev1].type &&
-				   devices[dev2].devid == str_worker->perf_arch.devices[dev1].devid)
+				if(devices[dev2].type == worker->perf_arch.devices[dev1].type &&
+				   devices[dev2].devid == worker->perf_arch.devices[dev1].devid)
 				{
-					devices[dev2].ncores += str_worker->perf_arch.devices[dev1].ncores;
+					devices[dev2].ncores += worker->perf_arch.devices[dev1].ncores;
 					found = 1;
 					break;
 				}
 			}
 			if(!found)
 			{
-				devices[ndevices].type = str_worker->perf_arch.devices[dev1].type;
-				devices[ndevices].devid = str_worker->perf_arch.devices[dev1].devid;
-				devices[ndevices].ncores = str_worker->perf_arch.devices[dev1].ncores;
+				devices[ndevices].type = worker->perf_arch.devices[dev1].type;
+				devices[ndevices].devid = worker->perf_arch.devices[dev1].devid;
+				devices[ndevices].ncores = worker->perf_arch.devices[dev1].ncores;
 				ndevices++;
 			}
 			else
@@ -350,21 +301,76 @@ static void _starpu_add_workers_to_sched_ctx(struct _starpu_sched_ctx *sched_ctx
 
 	_starpu_sched_ctx_update_parallel_workers_with(sched_ctx->id);
 
+}
+
+static void _starpu_add_workers_to_new_sched_ctx(struct _starpu_sched_ctx *sched_ctx, int *workerids, int nworkers)
+{
+	struct starpu_worker_collection *workers = sched_ctx->workers;
+	struct _starpu_machine_config *config = _starpu_get_machine_config();
+	if (nworkers == -1)
+		nworkers = config->topology.nworkers;
+	if (!nworkers)
+		return;
+	int _workerids[nworkers];
+	int i;
+	if (workerids == NULL)
+	{
+		for(i = 0; i < nworkers; i++)
+			_workerids[i] = i;
+		workerids = _workerids;
+	}
+	for(i = 0; i < nworkers; i++)
+	{
+		int workerid = workerids[i];
+		int _workerid = workers->add(workers, workerid);
+		STARPU_ASSERT(_workerid >= 0);
+		(void)_workerid;
+		struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
+		worker->tmp_sched_ctx = (int)sched_ctx->id;
+	}
+
+	lock_workers_for_changing_ctx(nworkers, _workerids);
+	_do_starpu_add_workers_to_sched_ctx(sched_ctx, _workerids, nworkers);
+	unlock_workers_for_changing_ctx(nworkers, _workerids);
+
 	if(sched_ctx->sched_policy && sched_ctx->sched_policy->add_workers)
 	{
 		_STARPU_SCHED_BEGIN;
-		if(added_workers)
-		{
-			if(*n_added_workers > 0)
-				sched_ctx->sched_policy->add_workers(sched_ctx->id, added_workers, *n_added_workers);
-		}
-		else
-		{
-			sched_ctx->sched_policy->add_workers(sched_ctx->id, workers_to_add, nworkers_to_add);
-		}
+		sched_ctx->sched_policy->add_workers(sched_ctx->id, _workerids, nworkers);
 		_STARPU_SCHED_END;
 	}
-	return;
+}
+
+
+static void _starpu_add_workers_to_existing_sched_ctx(struct _starpu_sched_ctx *sched_ctx, int *workerids, int nworkers,
+					     int *added_workers, int *n_added_workers)
+{
+	STARPU_ASSERT(added_workers != NULL);
+	STARPU_ASSERT(nworkers >= 0);
+	if (!nworkers)
+		return;
+
+	struct starpu_worker_collection *workers = sched_ctx->workers;
+	int i = 0;
+	for(i = 0; i < nworkers; i++)
+	{
+		int workerid = workers->add(workers, workerids[i]);
+		if(workerid >= 0)
+			added_workers[(*n_added_workers)++] = workerid;
+		else
+		{
+			struct _starpu_worker *worker = _starpu_get_worker_struct(workerids[i]);
+			worker->removed_from_ctx[sched_ctx->id] = 0;
+		}
+	}
+	_do_starpu_add_workers_to_sched_ctx(sched_ctx, workerids, nworkers);
+	if(sched_ctx->sched_policy && sched_ctx->sched_policy->add_workers)
+	{
+		_STARPU_SCHED_BEGIN;
+			if(*n_added_workers > 0)
+				sched_ctx->sched_policy->add_workers(sched_ctx->id, added_workers, *n_added_workers);
+		_STARPU_SCHED_END;
+	}
 }
 
 static void _starpu_remove_workers_from_sched_ctx(struct _starpu_sched_ctx *sched_ctx, int *workerids,
@@ -605,7 +611,7 @@ struct _starpu_sched_ctx* _starpu_create_sched_ctx(struct starpu_sched_policy *p
 		sched_ctx->nsub_ctxs = nsub_ctxs;
 	}
 	
-	_starpu_add_workers_to_sched_ctx(sched_ctx, workerids, nworkers_ctx, NULL, NULL);
+	_starpu_add_workers_to_new_sched_ctx(sched_ctx, workerids, nworkers_ctx);
 
 #ifdef STARPU_HAVE_HWLOC
 	/* build hwloc tree of the context */
@@ -1336,7 +1342,7 @@ static void add_locked_workers(int *workers_to_add, int nworkers_to_add, unsigne
 		int added_workers[nworkers_to_add];
 		int n_added_workers = 0;
 
-		_starpu_add_workers_to_sched_ctx(sched_ctx, workers_to_add, nworkers_to_add, added_workers, &n_added_workers);
+		_starpu_add_workers_to_existing_sched_ctx(sched_ctx, workers_to_add, nworkers_to_add, added_workers, &n_added_workers);
 
 		if(n_added_workers > 0)
 		{
