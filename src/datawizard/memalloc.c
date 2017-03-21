@@ -1316,6 +1316,7 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 	if (try_to_find_reusable_mc(dst_node, handle, replicate, footprint))
 	{
 		_starpu_allocation_cache_hit(dst_node);
+		_STARPU_TRACE_END_ALLOC_REUSE(dst_node);
 		return data_size;
 	}
 	_STARPU_TRACE_END_ALLOC_REUSE(dst_node);
