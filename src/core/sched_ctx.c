@@ -2425,13 +2425,12 @@ static void _starpu_sched_ctx_wake_up_workers(unsigned sched_ctx_id, unsigned al
 			 && sched_ctx->parallel_sect[workerid] && (workerid != master || all))
 		{
 			struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
+			if (!workers_locked)
+				STARPU_PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
 			if((current_worker_id == -1 || workerid != current_worker_id) && worker->state_blocked)
 			{
-				if (!workers_locked)
-					STARPU_PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
 				if (worker->state_wait_ack__blocked)
 				{
-					STARPU_ASSERT(worker->state_blocked == 1);
 					worker->state_wait_ack__blocked = 0;
 					/* broadcast is required because sched_cond is shared for multiple purpose */
 					STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
@@ -2442,12 +2441,11 @@ static void _starpu_sched_ctx_wake_up_workers(unsigned sched_ctx_id, unsigned al
 					STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
 				}
 				while (worker->state_wait_handshake__blocked);
-				worker->state_wait_handshake__blocked = 0;
-				if (!workers_locked)
-					STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
 			}
 			else
 				sched_ctx->parallel_sect[workerid] = 0;
+			if (!workers_locked)
+				STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
 		}
 	}
 
