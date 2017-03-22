@@ -197,7 +197,7 @@ void starpu_sched_ctx_worker_shares_tasks_lists(int workerid, int sched_ctx_id)
 	worker->shares_tasks_lists[sched_ctx_id] = 1;
 }
 
-static void _do_starpu_add_workers_to_sched_ctx(struct _starpu_sched_ctx *sched_ctx, int *workerids, int nworkers)
+static void _do_add_locked_workers(struct _starpu_sched_ctx *sched_ctx, int *workerids, int nworkers)
 {
 	int ndevices = 0;
 	struct starpu_perfmodel_device devices[nworkers];
@@ -332,47 +332,13 @@ static void _starpu_add_workers_to_new_sched_ctx(struct _starpu_sched_ctx *sched
 	}
 
 	lock_workers_for_changing_ctx(nworkers, workerids);
-	_do_starpu_add_workers_to_sched_ctx(sched_ctx, workerids, nworkers);
+	_do_add_locked_workers(sched_ctx, workerids, nworkers);
 	unlock_workers_for_changing_ctx(nworkers, workerids);
 
 	if(sched_ctx->sched_policy && sched_ctx->sched_policy->add_workers)
 	{
 		_STARPU_SCHED_BEGIN;
 		sched_ctx->sched_policy->add_workers(sched_ctx->id, workerids, nworkers);
-		_STARPU_SCHED_END;
-	}
-}
-
-
-static void _starpu_add_workers_to_existing_sched_ctx(struct _starpu_sched_ctx *sched_ctx, int *workerids, int nworkers,
-					     int *added_workers, int *n_added_workers)
-{
-	STARPU_ASSERT(added_workers != NULL);
-	STARPU_ASSERT(nworkers >= 0);
-	if (!nworkers)
-		return;
-
-	struct starpu_worker_collection *workers = sched_ctx->workers;
-	int i = 0;
-	for(i = 0; i < nworkers; i++)
-	{
-		int workerid = workers->add(workers, workerids[i]);
-		if(workerid >= 0)
-			added_workers[(*n_added_workers)++] = workerid;
-		else
-		{
-			struct _starpu_worker *worker = _starpu_get_worker_struct(workerids[i]);
-			worker->removed_from_ctx[sched_ctx->id] = 0;
-		}
-	}
-	lock_workers_for_changing_ctx(nworkers, workerids);
-	_do_starpu_add_workers_to_sched_ctx(sched_ctx, workerids, nworkers);
-	unlock_workers_for_changing_ctx(nworkers, workerids);
-	if(sched_ctx->sched_policy && sched_ctx->sched_policy->add_workers)
-	{
-		_STARPU_SCHED_BEGIN;
-			if(*n_added_workers > 0)
-				sched_ctx->sched_policy->add_workers(sched_ctx->id, added_workers, *n_added_workers);
 		_STARPU_SCHED_END;
 	}
 }
@@ -1333,25 +1299,48 @@ static void set_priority_hierarchically_on_locked_workers(int* workers_to_add, u
 	return;
 }
 
-static void add_locked_workers(int *workers_to_add, int nworkers_to_add, unsigned sched_ctx_id)
+static void add_locked_workers(int *workerids, int nworkers, unsigned sched_ctx_id)
 {
+	if (!nworkers)
+		return;
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	/* if the context has not already been deleted */
-	if(sched_ctx->id != STARPU_NMAX_SCHED_CTXS)
+	if(sched_ctx->id == STARPU_NMAX_SCHED_CTXS)
+		return;
+	int added_workers[nworkers];
+	int n_added_workers = 0;
 	{
-		int added_workers[nworkers_to_add];
-		int n_added_workers = 0;
-
-		_starpu_add_workers_to_existing_sched_ctx(sched_ctx, workers_to_add, nworkers_to_add, added_workers, &n_added_workers);
-
-		if(n_added_workers > 0)
+		struct starpu_worker_collection *workers = sched_ctx->workers;
+		int i = 0;
+		for(i = 0; i < nworkers; i++)
 		{
-			_starpu_update_locked_workers_with_ctx(added_workers, n_added_workers, sched_ctx->id);
+			int workerid = workers->add(workers, workerids[i]);
+			if(workerid >= 0)
+			{
+				added_workers[n_added_workers] = workerid;
+				n_added_workers++;
+			}
+			else
+			{
+				struct _starpu_worker *worker = _starpu_get_worker_struct(workerids[i]);
+				worker->removed_from_ctx[sched_ctx->id] = 0;
+			}
 		}
-		set_priority_on_locked_workers(workers_to_add, nworkers_to_add, sched_ctx_id, 1);
-		set_priority_hierarchically_on_locked_workers(workers_to_add, nworkers_to_add, sched_ctx_id, 0);
-		fetch_tasks_from_empty_ctx_list(sched_ctx);
 	}
+	_do_add_locked_workers(sched_ctx, workerids, nworkers);
+	if(n_added_workers > 0)
+	{
+		if(sched_ctx->sched_policy && sched_ctx->sched_policy->add_workers)
+		{
+			_STARPU_SCHED_BEGIN;
+			sched_ctx->sched_policy->add_workers(sched_ctx->id, added_workers, n_added_workers);
+			_STARPU_SCHED_END;
+		}
+		_starpu_update_locked_workers_with_ctx(added_workers, n_added_workers, sched_ctx->id);
+	}
+	set_priority_on_locked_workers(workerids, nworkers, sched_ctx_id, 1);
+	set_priority_hierarchically_on_locked_workers(workerids, nworkers, sched_ctx_id, 0);
+	fetch_tasks_from_empty_ctx_list(sched_ctx);
 }
 
 void starpu_sched_ctx_add_workers(int *workers_to_add, int nworkers_to_add, unsigned sched_ctx_id)
