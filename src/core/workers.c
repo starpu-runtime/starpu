@@ -583,6 +583,7 @@ static void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu
 	workerarg->state_changing_ctx_waiting = 0;
 	workerarg->state_busy_in_parallel = 0;
 	workerarg->state_wait_ack__busy_in_parallel = 0;
+	workerarg->state_wait_handshake__busy_in_parallel = 0;
 	workerarg->state_blocked_in_ctx = 0;
 
 	/* cpu_set/hwloc_cpu_set initialized in topology.c */

@@ -86,6 +86,7 @@ LIST_TYPE(_starpu_worker,
 	int state_changing_ctx_waiting:1; /* a thread is waiting for transient operations such as pop to complete before acquiring sched_mutex and modifying the worker ctx*/
 	int state_busy_in_parallel:1;
 	int state_wait_ack__busy_in_parallel:1;
+	int state_wait_handshake__busy_in_parallel:1;
 	int state_blocked_in_ctx:1; /* worker is blocked in a ctx */
 	struct starpu_task_list local_tasks; /* this queue contains tasks that have been explicitely submitted to that queue */
 	struct starpu_task **local_ordered_tasks; /* this queue contains tasks that have been explicitely submitted to that queue with an explicit order */
