@@ -1172,6 +1172,8 @@ static void _starpu_mpi_test_detached_requests(void)
 	{
 		STARPU_PTHREAD_MUTEX_UNLOCK(&detached_requests_mutex);
 
+		STARPU_MPI_ASSERT_MSG(req->data_request != MPI_REQUEST_NULL, "Cannot test completion of the request MPI_REQUEST_NULL");
+
 		//_STARPU_MPI_DEBUG(3, "Test detached request %p - mpitag %d - TYPE %s %d\n", &req->data_request, req->node_tag.data_tag, _starpu_mpi_request_type(req->request_type), req->node_tag.rank);
 #ifdef STARPU_SIMGRID
 		req->ret = _starpu_mpi_simgrid_mpi_test(&req->done, &flag);
