@@ -2242,14 +2242,14 @@ void starpu_sched_ctx_list_task_counters_reset(unsigned sched_ctx_id, int worker
 		_starpu_sched_ctx_list_pop_all_event(worker->sched_ctx_list, sched_ctx_id);
 }
 
-/* sched_ctx must be write locked when calling this function */
 void starpu_sched_ctx_list_task_counters_increment_all(struct starpu_task *task, unsigned sched_ctx_id)
 {
+	/* TODO: add proper, but light-enough locking to sched_ctx counters */
+
 	/* Note that with 1 ctx we will default to the global context,
 	   hence our counters are useless */
 	if (_starpu_get_nsched_ctxs() > 1)
 	{
-		STARPU_SCHED_CTX_CHECK_LOCK(sched_ctx_id);
 		struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 		struct starpu_sched_ctx_iterator it;
 
@@ -2274,7 +2274,6 @@ void starpu_sched_ctx_list_task_counters_decrement_all(struct starpu_task *task,
 			STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&curr_worker_str->sched_mutex);
 		}
 
-		_starpu_sched_ctx_lock_write(sched_ctx_id);
 		struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 		struct starpu_sched_ctx_iterator it;
 		workers->init_iterator_for_parallel_tasks(workers, &it, task);
@@ -2290,7 +2289,6 @@ void starpu_sched_ctx_list_task_counters_decrement_all(struct starpu_task *task,
 				STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker_str->sched_mutex);
 			}
 		}
-		_starpu_sched_ctx_unlock_write(sched_ctx_id);
 
 		if(curr_workerid != -1)
 			STARPU_PTHREAD_MUTEX_LOCK_SCHED(&curr_worker_str->sched_mutex);

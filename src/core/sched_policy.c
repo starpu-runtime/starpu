@@ -589,7 +589,6 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 		{
 			STARPU_ASSERT(sched_ctx->sched_policy->push_task);
 			/* check out if there are any workers in the context */
-			_starpu_sched_ctx_lock_write(sched_ctx->id);
 			nworkers = starpu_sched_ctx_get_nworkers(sched_ctx->id);
 			if (nworkers == 0)
 				ret = -1;
@@ -600,7 +599,6 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 				ret = sched_ctx->sched_policy->push_task(task);
 				_STARPU_SCHED_END;
 			}
-			_starpu_sched_ctx_unlock_write(sched_ctx->id);
 		}
 
 		if(ret == -1)
