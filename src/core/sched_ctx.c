@@ -2334,7 +2334,7 @@ void starpu_sched_ctx_list_task_counters_reset_all(struct starpu_task *task, uns
 	}
 }
 
-static unsigned _worker_sleeping_in_other_ctx(unsigned sched_ctx_id, int workerid)
+static unsigned _worker_blocked_in_other_ctx(unsigned sched_ctx_id, int workerid)
 {
 	int s;
 	for(s = 0; s < STARPU_NMAX_SCHED_CTXS; s++)
@@ -2373,7 +2373,7 @@ static void _starpu_sched_ctx_put_workers_to_sleep(unsigned sched_ctx_id, unsign
 	int master, temp_master = 0;
 	struct starpu_worker_collection *workers = sched_ctx->workers;
 	struct starpu_sched_ctx_iterator it;
-	unsigned sleeping[workers->nworkers];
+	unsigned blocked[workers->nworkers];
 	int workers_count = 0;
 
 	/* temporarily put a master if needed */
@@ -2388,7 +2388,7 @@ static void _starpu_sched_ctx_put_workers_to_sleep(unsigned sched_ctx_id, unsign
 	while(workers->has_next(workers, &it))
 	{
 		int workerid = workers->get_next(workers, &it);
-		sleeping[workers_count] = _worker_sleeping_in_other_ctx(sched_ctx_id, workerid);
+		blocked[workers_count] = _worker_blocked_in_other_ctx(sched_ctx_id, workerid);
 
 		if(starpu_worker_get_type(workerid) == STARPU_CPU_WORKER
 				&& !sched_ctx->parallel_sect[workerid] && (workerid != master || all))
@@ -2409,7 +2409,7 @@ static void _starpu_sched_ctx_put_workers_to_sleep(unsigned sched_ctx_id, unsign
 		if(starpu_worker_get_type(workerid) == STARPU_CPU_WORKER
 				&& (workerid != master || all)
 				&& (current_worker_id == -1 || workerid != current_worker_id)
-				&& !sleeping[workers_count])
+				&& !blocked[workers_count])
 		{
 			/* TODO: replace fall_asleep_sem by a condition, in order to be able to avoid unlocking sched_mutex */
 			struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
