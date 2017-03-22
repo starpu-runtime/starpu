@@ -39,6 +39,10 @@ if USE_MPI
 SUBDIRS += mpi
 endif
 
+if USE_NMAD
+SUBDIRS += nmad
+endif
+
 if BUILD_EXAMPLES
 SUBDIRS += examples
 endif
