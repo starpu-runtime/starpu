@@ -367,21 +367,19 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 					/* we need it until here bc of the list of ctxs of the workers
 					   that can change in another thread */
 					needed = 0;
-					worker->state_blocked_in_ctx = 1;
+					worker->state_blocked = 1;
+					worker->state_wait_ack__blocked = 1;
 					STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
-					worker->state_busy_in_parallel = 1;
-					worker->state_wait_ack__busy_in_parallel = 1;
 					do
 					{
 						STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
 					}
-					while (worker->state_wait_ack__busy_in_parallel);
-					worker->state_busy_in_parallel = 0;
-					worker->state_blocked_in_ctx = 0;
+					while (worker->state_wait_ack__blocked);
+					worker->state_blocked = 0;
 					sched_ctx->parallel_sect[workerid] = 0;
-					if (worker->state_wait_handshake__busy_in_parallel)
+					if (worker->state_wait_handshake__blocked)
 					{
-						worker->state_wait_handshake__busy_in_parallel = 0;
+						worker->state_wait_handshake__blocked = 0;
 						STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
 					}
 				}
@@ -396,21 +394,19 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 			if(sched_ctx->parallel_sect[workerid])
 			{
 //				needed = 0;
-				worker->state_blocked_in_ctx = 1;
+				worker->state_blocked = 1;
+				worker->state_wait_ack__blocked = 1;
 				STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
-				worker->state_busy_in_parallel = 1;
-				worker->state_wait_ack__busy_in_parallel = 1;
 				do
 				{
 					STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
 				}
-				while (worker->state_wait_ack__busy_in_parallel);
-				worker->state_busy_in_parallel = 0;
-				worker->state_blocked_in_ctx = 0;
+				while (worker->state_wait_ack__blocked);
+				worker->state_blocked = 0;
 				sched_ctx->parallel_sect[workerid] = 0;
-				if (worker->state_wait_handshake__busy_in_parallel)
+				if (worker->state_wait_handshake__blocked)
 				{
-					worker->state_wait_handshake__busy_in_parallel = 0;
+					worker->state_wait_handshake__blocked = 0;
 					STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
 				}
 			}

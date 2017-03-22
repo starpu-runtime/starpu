@@ -1116,7 +1116,7 @@ void starpu_sched_ctx_delete(unsigned sched_ctx_id)
 		for(w = 0; w < nworkers_ctx; w++)
 		{
 			struct _starpu_worker *worker = _starpu_get_worker_struct(backup_workerids[w]);
-			while (worker->state_busy_in_parallel)
+			while (worker->state_blocked)
 			{
 				STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
 			}
@@ -2392,9 +2392,8 @@ static void _starpu_sched_ctx_put_workers_to_sleep(unsigned sched_ctx_id, unsign
 				&& (current_worker_id == -1 || workerid != current_worker_id)
 				&& !blocked[workers_count])
 		{
-			/* TODO: replace fall_asleep_sem by a condition, in order to be able to avoid unlocking sched_mutex */
 			struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
-			while (!worker->state_blocked_in_ctx)
+			while (!worker->state_blocked)
 				STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
 		}
 		workers_count++;
@@ -2428,29 +2427,24 @@ static void _starpu_sched_ctx_wake_up_workers(unsigned sched_ctx_id, unsigned al
 			 && sched_ctx->parallel_sect[workerid] && (workerid != master || all))
 		{
 			struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
-			if((current_worker_id == -1 || workerid != current_worker_id) && worker->state_blocked_in_ctx)
+			if((current_worker_id == -1 || workerid != current_worker_id) && worker->state_blocked)
 			{
-				/* TODO: this section seems suspicious since
-				 * busy_in_parallel state may change after
-				 * unlock and before sem_wait, sem should be
-				 * reimplemented using sched_mutex + a
-				 * condition */
 				if (!workers_locked)
 					STARPU_PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
-				if (worker->state_wait_ack__busy_in_parallel)
+				if (worker->state_wait_ack__blocked)
 				{
-					STARPU_ASSERT(worker->state_busy_in_parallel == 1);
-					worker->state_wait_ack__busy_in_parallel = 0;
+					STARPU_ASSERT(worker->state_blocked == 1);
+					worker->state_wait_ack__blocked = 0;
 					/* broadcast is required because sched_cond is shared for multiple purpose */
 					STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
 				}
-				worker->state_wait_handshake__busy_in_parallel = 1;
+				worker->state_wait_handshake__blocked = 1;
 				do
 				{
 					STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
 				}
-				while (worker->state_wait_handshake__busy_in_parallel);
-				worker->state_wait_handshake__busy_in_parallel = 0;
+				while (worker->state_wait_handshake__blocked);
+				worker->state_wait_handshake__blocked = 0;
 				if (!workers_locked)
 					STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
 			}

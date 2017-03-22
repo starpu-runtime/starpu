@@ -581,10 +581,9 @@ static void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu
 
 	workerarg->state_sched_op_pending = 0;
 	workerarg->state_changing_ctx_waiting = 0;
-	workerarg->state_busy_in_parallel = 0;
-	workerarg->state_wait_ack__busy_in_parallel = 0;
-	workerarg->state_wait_handshake__busy_in_parallel = 0;
-	workerarg->state_blocked_in_ctx = 0;
+	workerarg->state_blocked = 0;
+	workerarg->state_wait_ack__blocked = 0;
+	workerarg->state_wait_handshake__blocked = 0;
 
 	/* cpu_set/hwloc_cpu_set initialized in topology.c */
 }
@@ -1693,7 +1692,7 @@ unsigned starpu_worker_get_count(void)
 
 unsigned starpu_worker_is_blocked(int workerid)
 {
-	return _starpu_config.workers[workerid].state_blocked_in_ctx;
+	return (unsigned)_starpu_config.workers[workerid].state_blocked;
 }
 
 unsigned starpu_worker_is_slave_somewhere(int workerid)
