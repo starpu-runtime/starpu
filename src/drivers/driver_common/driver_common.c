@@ -406,6 +406,7 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 				}
 				while (worker->state_wait_ack__busy_in_parallel);
 				worker->state_busy_in_parallel = 0;
+				worker->state_blocked_in_ctx = 0;
 				sched_ctx->parallel_sect[workerid] = 0;
 				if (worker->state_wait_handshake__busy_in_parallel)
 				{
