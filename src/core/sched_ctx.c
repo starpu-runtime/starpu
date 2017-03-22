@@ -586,7 +586,6 @@ struct _starpu_sched_ctx* _starpu_create_sched_ctx(struct starpu_sched_policy *p
 
 		STARPU_PTHREAD_COND_INIT(&sched_ctx->parallel_sect_cond[w], NULL);
 		STARPU_PTHREAD_COND_INIT(&sched_ctx->parallel_sect_cond_busy[w], NULL);
-		sched_ctx->busy[w] = 0;
 
 		sched_ctx->parallel_sect[w] = 0;
 		sched_ctx->sleeping[w] = 0;
@@ -1157,9 +1156,9 @@ void starpu_sched_ctx_delete(unsigned sched_ctx_id)
 		int w;
 		for(w = 0; w < nworkers_ctx; w++)
 		{
-			while (sched_ctx->busy[w])
+			struct _starpu_worker *worker = _starpu_get_worker_struct(backup_workerids[w]);
+			while (worker->state_busy_in_parallel)
 			{
-				struct _starpu_worker *worker = _starpu_get_worker_struct(backup_workerids[w]);
 				STARPU_PTHREAD_COND_WAIT(&sched_ctx->parallel_sect_cond_busy[w], &worker->sched_mutex);
 			}
 		}

@@ -130,7 +130,6 @@ struct _starpu_sched_ctx
 	/* conditions variables used when parallel sections are executed in contexts */
 	starpu_pthread_cond_t parallel_sect_cond[STARPU_NMAXWORKERS];
 	starpu_pthread_cond_t parallel_sect_cond_busy[STARPU_NMAXWORKERS];
-	int busy[STARPU_NMAXWORKERS];
 
 	/* boolean indicating that workers should block in order to allow
 	   parallel sections to be executed on their allocated resources */
