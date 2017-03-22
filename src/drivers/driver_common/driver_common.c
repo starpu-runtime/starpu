@@ -376,7 +376,7 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 					}
 					while (worker->state_wait_ack__busy_in_parallel);
 					worker->state_busy_in_parallel = 0;
-					STARPU_PTHREAD_COND_SIGNAL(&sched_ctx->parallel_sect_cond_busy[workerid]);
+					STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
 					_starpu_sched_ctx_signal_worker_woke_up(sched_ctx->id, workerid);
 					sched_ctx->parallel_sect[workerid] = 0;
 				}
@@ -400,7 +400,7 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 				}
 				while (worker->state_wait_ack__busy_in_parallel);
 				worker->state_busy_in_parallel = 0;
-				STARPU_PTHREAD_COND_SIGNAL(&sched_ctx->parallel_sect_cond_busy[workerid]);
+				STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
 				_starpu_sched_ctx_signal_worker_woke_up(sched_ctx->id, workerid);
 				sched_ctx->parallel_sect[workerid] = 0;
 			}
