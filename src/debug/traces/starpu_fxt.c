@@ -2698,9 +2698,8 @@ static void handle_task_wait_for_all(void)
 	_starpu_fxt_dag_add_sync_point();
 }
 
-static void handle_event(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_string_event(struct fxt_ev_64 *ev, const char *event, struct starpu_fxt_options *options)
 {
-	char *event = get_fxt_string(ev, 0);
 	/* Add an event in the trace */
 	if (out_paje_file)
 	{
@@ -2715,6 +2714,12 @@ static void handle_event(struct fxt_ev_64 *ev, struct starpu_fxt_options *option
 
 	if (trace_file)
 		recfmt_dump_state(get_event_time_stamp(ev, options), "ProgEvent", -1, 0, event, "Program");
+}
+
+static void handle_event(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	char *event = get_fxt_string(ev, 0);
+	handle_string_event(ev, event, options);
 }
 
 static void handle_thread_event(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -3416,6 +3421,13 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 
 			case FUT_KEYCHANGE_CODE:
 				fut_keymask = ev.param[0];
+				break;
+
+			case FUT_START_FLUSH_CODE:
+				handle_string_event(&ev, "fxt_start_flush", options);
+				break;
+			case FUT_STOP_FLUSH_CODE:
+				handle_string_event(&ev, "fxt_stop_flush", options);
 				break;
 
 			/* We can safely ignore FUT internal events */
