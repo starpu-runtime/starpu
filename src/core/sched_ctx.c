@@ -550,7 +550,6 @@ struct _starpu_sched_ctx* _starpu_create_sched_ctx(struct starpu_sched_policy *p
 		sem_init(&sched_ctx->fall_asleep_sem[w], 0, 0);
 		sem_init(&sched_ctx->wake_up_sem[w], 0, 0);
 
-		STARPU_PTHREAD_COND_INIT(&sched_ctx->parallel_sect_cond[w], NULL);
 		STARPU_PTHREAD_COND_INIT(&sched_ctx->parallel_sect_cond_busy[w], NULL);
 
 		sched_ctx->parallel_sect[w] = 0;
@@ -2459,10 +2458,21 @@ static void _starpu_sched_ctx_wake_up_workers(unsigned sched_ctx_id, unsigned al
 		{
 			if((current_worker_id == -1 || workerid != current_worker_id) && sched_ctx->sleeping[workerid])
 			{
+				/* TODO: this section seems suspicious since
+				 * busy_in_parallel state may change after
+				 * unlock and before sem_wait, sem should be
+				 * reimplemented using sched_mutex + a
+				 * condition */
 				struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 				if (!workers_locked)
 					STARPU_PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
-				STARPU_PTHREAD_COND_SIGNAL(&sched_ctx->parallel_sect_cond[workerid]);
+				if (worker->state_wait_ack__busy_in_parallel)
+				{
+					STARPU_ASSERT(worker->state_busy_in_parallel == 1);
+					worker->state_wait_ack__busy_in_parallel = 0;
+				}
+				/* broadcast is required because sched_cond is shared for multiple purpose */
+				STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
 				if (!workers_locked)
 					STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
 				sem_wait(&sched_ctx->wake_up_sem[master]);
