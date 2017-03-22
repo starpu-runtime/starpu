@@ -131,10 +131,6 @@ struct _starpu_sched_ctx
 	   parallel sections to be executed on their allocated resources */
 	unsigned parallel_sect[STARPU_NMAXWORKERS];
 
-	/* semaphore that block appl thread until starpu threads are
-	   all blocked and ready to exec the parallel code */
-	sem_t fall_asleep_sem[STARPU_NMAXWORKERS];
-
 	/* ctx nesting the current ctx */
 	unsigned nesting_sched_ctx;
 
@@ -219,12 +215,6 @@ unsigned _starpu_worker_belongs_to_a_sched_ctx(int workerid, unsigned sched_ctx_
 /* indicates wheather this worker should go to sleep or not 
    (if it is the last one awake in a context he should better keep awake) */
 unsigned _starpu_sched_ctx_last_worker_awake(struct _starpu_worker *worker);
-
-/* let the appl know that the worker blocked to execute parallel code */
-void _starpu_sched_ctx_signal_worker_blocked(unsigned sched_ctx_id, int workerid);
-
-/* let the appl know that the worker woke up */
-void _starpu_sched_ctx_signal_worker_woke_up(unsigned sched_ctx_id, int workerid);
 
 /* If starpu_sched_ctx_set_context() has been called, returns the context
  * id set by its last call, or the id of the initial context */

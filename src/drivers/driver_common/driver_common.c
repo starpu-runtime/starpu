@@ -367,7 +367,8 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 					/* we need it until here bc of the list of ctxs of the workers
 					   that can change in another thread */
 					needed = 0;
-					_starpu_sched_ctx_signal_worker_blocked(sched_ctx->id, workerid);
+					worker->state_blocked_in_ctx = 1;
+					STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
 					worker->state_busy_in_parallel = 1;
 					worker->state_wait_ack__busy_in_parallel = 1;
 					do
@@ -395,7 +396,8 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 			if(sched_ctx->parallel_sect[workerid])
 			{
 //				needed = 0;
-				_starpu_sched_ctx_signal_worker_blocked(sched_ctx->id, workerid);
+				worker->state_blocked_in_ctx = 1;
+				STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
 				worker->state_busy_in_parallel = 1;
 				worker->state_wait_ack__busy_in_parallel = 1;
 				do

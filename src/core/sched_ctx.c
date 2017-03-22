@@ -547,7 +547,6 @@ struct _starpu_sched_ctx* _starpu_create_sched_ctx(struct starpu_sched_policy *p
 	int w;
 	for(w = 0; w < nworkers; w++)
 	{
-		sem_init(&sched_ctx->fall_asleep_sem[w], 0, 0);
 		sched_ctx->parallel_sect[w] = 0;
 	}
 
@@ -2348,14 +2347,6 @@ static unsigned _worker_blocked_in_other_ctx(unsigned sched_ctx_id, int workerid
 
 }
 
-void _starpu_sched_ctx_signal_worker_blocked(unsigned sched_ctx_id, int workerid)
-{
-	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
-	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
-	worker->state_blocked_in_ctx = 1;
-	sem_post(&sched_ctx->fall_asleep_sem[sched_ctx->main_master]);
-}
-
 static void _starpu_sched_ctx_put_workers_to_sleep(unsigned sched_ctx_id, unsigned all)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
@@ -2403,9 +2394,8 @@ static void _starpu_sched_ctx_put_workers_to_sleep(unsigned sched_ctx_id, unsign
 		{
 			/* TODO: replace fall_asleep_sem by a condition, in order to be able to avoid unlocking sched_mutex */
 			struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
-			STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
-			sem_wait(&sched_ctx->fall_asleep_sem[master]);
-			STARPU_PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
+			while (!worker->state_blocked_in_ctx)
+				STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
 		}
 		workers_count++;
 	}
