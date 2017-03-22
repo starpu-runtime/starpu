@@ -1289,20 +1289,27 @@ static void _starpu_mpi_receive_early_data(struct _starpu_mpi_envelope *envelope
 	STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 
 	// We wait until the request is pushed in the
-	// ready_request list, that ensures that the next loop
-	// will call _starpu_mpi_handle_ready_request
-	// on the request and post the corresponding mpi_irecv,
-	// otherwise, it may lead to read data as envelop
+	// ready_request list
 	STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
 	STARPU_PTHREAD_MUTEX_LOCK(&(early_data_handle->req->posted_mutex));
 	while (!(early_data_handle->req->posted))
 		STARPU_PTHREAD_COND_WAIT(&(early_data_handle->req->posted_cond), &(early_data_handle->req->posted_mutex));
 	STARPU_PTHREAD_MUTEX_UNLOCK(&(early_data_handle->req->posted_mutex));
 
+#ifdef STARPU_DEVEL
+#warning check if req_ready is still necessary
+#endif
 	STARPU_PTHREAD_MUTEX_LOCK(&early_data_handle->req_mutex);
 	early_data_handle->req_ready = 1;
 	STARPU_PTHREAD_COND_BROADCAST(&early_data_handle->req_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&early_data_handle->req_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
+
+	// Handle the request immediatly to make sure the mpi_irecv is
+	// posted before receiving an other envelope
+	STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
+	_starpu_mpi_req_list_erase(ready_requests, early_data_handle->req);
+	_starpu_mpi_handle_ready_request(early_data_handle->req);
 	STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 }
 
