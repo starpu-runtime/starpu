@@ -551,7 +551,6 @@ struct _starpu_sched_ctx* _starpu_create_sched_ctx(struct starpu_sched_policy *p
 		sem_init(&sched_ctx->wake_up_sem[w], 0, 0);
 
 		sched_ctx->parallel_sect[w] = 0;
-		sched_ctx->sleeping[w] = 0;
 	}
 
 	sched_ctx->parallel_view = 0;
@@ -2353,24 +2352,18 @@ static unsigned _worker_sleeping_in_other_ctx(unsigned sched_ctx_id, int workeri
 
 void _starpu_sched_ctx_signal_worker_blocked(unsigned sched_ctx_id, int workerid)
 {
-	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
-	worker->blocked = 1;
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
-	sched_ctx->sleeping[workerid] = 1;
+	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
+	worker->state_blocked_in_ctx = 1;
 	sem_post(&sched_ctx->fall_asleep_sem[sched_ctx->main_master]);
-
-	return;
 }
 
 void _starpu_sched_ctx_signal_worker_woke_up(unsigned sched_ctx_id, int workerid)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
-	sem_post(&sched_ctx->wake_up_sem[sched_ctx->main_master]);
-	sched_ctx->sleeping[workerid] = 0;
 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
-	worker->blocked = 0;
-
-	return;
+	sem_post(&sched_ctx->wake_up_sem[sched_ctx->main_master]);
+	worker->state_blocked_in_ctx = 0;
 }
 
 static void _starpu_sched_ctx_put_workers_to_sleep(unsigned sched_ctx_id, unsigned all)
@@ -2454,14 +2447,14 @@ static void _starpu_sched_ctx_wake_up_workers(unsigned sched_ctx_id, unsigned al
 		if(starpu_worker_get_type(workerid) == STARPU_CPU_WORKER
 			 && sched_ctx->parallel_sect[workerid] && (workerid != master || all))
 		{
-			if((current_worker_id == -1 || workerid != current_worker_id) && sched_ctx->sleeping[workerid])
+			struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
+			if((current_worker_id == -1 || workerid != current_worker_id) && worker->state_blocked_in_ctx)
 			{
 				/* TODO: this section seems suspicious since
 				 * busy_in_parallel state may change after
 				 * unlock and before sem_wait, sem should be
 				 * reimplemented using sched_mutex + a
 				 * condition */
-				struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 				if (!workers_locked)
 					STARPU_PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
 				if (worker->state_wait_ack__busy_in_parallel)

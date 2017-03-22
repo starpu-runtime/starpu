@@ -139,9 +139,6 @@ struct _starpu_sched_ctx
 	   all woke up and ready continue appl */
 	sem_t wake_up_sem[STARPU_NMAXWORKERS];
 
-	/* bool indicating if the workers is sleeping in this ctx */
-	unsigned sleeping[STARPU_NMAXWORKERS];
-
 	/* ctx nesting the current ctx */
 	unsigned nesting_sched_ctx;
 
