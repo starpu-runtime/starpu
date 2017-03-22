@@ -837,13 +837,23 @@ _starpu_topology_get_nhwpu (struct _starpu_machine_config *config)
 
 unsigned _starpu_topology_get_nnumanodes(struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED)
 {
+#if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
+        _starpu_opencl_init();
+#endif
+#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
+        _starpu_init_cuda();
+#endif
+        _starpu_init_topology(config);
+
 #if defined(STARPU_USE_NUMA) && defined(STARPU_HAVE_HWLOC)
 	struct _starpu_machine_topology *topology = &config->topology ;
         int nnumanodes = hwloc_get_nbobjs_by_type(topology->hwtopology, HWLOC_OBJ_NODE) ;
-	return nnumanodes > 0 ? nnumanodes : 1 ;
+	int res = nnumanodes > 0 ? nnumanodes : 1 ;
 #else /* STARPU_USE_NUMA */
-	return 1 ;
+	int res = 1 ;
 #endif /* STARPU_USE_NUMA */
+	STARPU_ASSERT_MSG(res <= STARPU_MAXNUMANODES, "Number of NUMA nodes discovered is higher than maximum accepted ! Use configure option --enable-maxnumanodes=xxx to increase the maximum value of supported NUMA nodes.\n");
+	return res;
 }
 
 int _starpu_numa_logid_to_id(unsigned logid)
@@ -855,6 +865,11 @@ int _starpu_numa_logid_to_id(unsigned logid)
 	return -1;
 }
 
+unsigned _starpu_numa_id_to_logid(unsigned id)
+{
+	STARPU_ASSERT(id >= 0 && id < STARPU_MAXNUMANODES);
+	return numa_memory_nodes[id];
+}
 
 #ifdef STARPU_HAVE_HWLOC
 void _starpu_topology_filter(hwloc_topology_t topology)
@@ -1809,7 +1824,7 @@ static void _starpu_init_numa_node(struct _starpu_machine_config *config)
 			/* Convert logical id to StarPU id to check if this NUMA node is already saved or not */
 			int numa_starpu_id = _starpu_numa_logid_to_id(numa_logical_id);
 
-			if (numa_starpu_id == -1 && nb_numa_nodes == (STARPU_MAXNUMANODES-1))
+			if (numa_starpu_id == -1 && nb_numa_nodes == STARPU_MAXNUMANODES)
 			{
 				_STARPU_MSG("Warning: %u NUMA nodes available. Only %u enabled. Use configure option --enable-maxnumanodes=xxx to update the maximum value of supported NUMA nodes.\n", _starpu_topology_get_nnumanodes(config), STARPU_MAXNUMANODES);
 				/* Don't create a new NUMA node */

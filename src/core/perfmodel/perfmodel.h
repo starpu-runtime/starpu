@@ -112,6 +112,10 @@ struct starpu_perfmodel_arch * _starpu_arch_comb_get(int comb);
 
 void _starpu_perfmodel_realloc(struct starpu_perfmodel *model, int nb);
 
+#if defined(STARPU_HAVE_HWLOC)
+hwloc_topology_t _starpu_perfmodel_get_hwtopology();
+#endif
+
 #ifdef __cplusplus
 }
 #endif

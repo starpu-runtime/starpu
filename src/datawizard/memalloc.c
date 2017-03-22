@@ -1650,11 +1650,10 @@ choose_target(starpu_data_handle_t handle, unsigned node)
 			unsigned nb_numa_nodes = _starpu_get_nb_numa_nodes();
 			for (i=0; i<nb_numa_nodes; i++)
 			{
-				unsigned id = _starpu_numalogid_to_memnode(i);
-				if (handle->per_node[id].allocated || 
-				    _starpu_memory_manager_test_allocate_size(id, size_handle) == 1)
+				if (handle->per_node[i].allocated || 
+				    _starpu_memory_manager_test_allocate_size(i, size_handle) == 1)
 				{
-					target = id;
+					target = i;
 					break;
 				}
 			}
@@ -1683,11 +1682,10 @@ choose_target(starpu_data_handle_t handle, unsigned node)
 			unsigned nb_numa_nodes = _starpu_get_nb_numa_nodes();
 			for (i=0; i<nb_numa_nodes; i++)
 			{
-				unsigned id = _starpu_numalogid_to_memnode(i);
-				if (handle->per_node[id].allocated || 
-				    _starpu_memory_manager_test_allocate_size(id, size_handle) == 1)
+				if (handle->per_node[i].allocated || 
+				    _starpu_memory_manager_test_allocate_size(i, size_handle) == 1)
 				{
-					target = id;
+					target = i;
 					break;
 				}
 			}

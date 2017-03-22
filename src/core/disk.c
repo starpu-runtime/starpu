@@ -67,9 +67,8 @@ int starpu_disk_register(struct starpu_disk_ops *func, void *parameter, starpu_s
         int numa_node;
         for (numa_node = 0; numa_node < nb_numa_nodes; numa_node++)
         {
-                int numa_memnode = _starpu_numalogid_to_memnode(numa_node);
-                _starpu_register_bus(disk_memnode, numa_memnode);
-                _starpu_register_bus(numa_memnode, disk_memnode);
+                _starpu_register_bus(disk_memnode, numa_node);
+                _starpu_register_bus(numa_node, disk_memnode);
         }
 
 	/* connect disk */
