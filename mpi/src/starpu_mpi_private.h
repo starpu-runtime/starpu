@@ -49,7 +49,7 @@ void _starpu_mpi_simgrid_wait_req(MPI_Request *request, 	MPI_Status *status, sta
 
 extern int _starpu_debug_rank;
 char *_starpu_mpi_get_mpi_error_code(int code);
-extern int _starpu_mpi_comm;
+extern int _starpu_mpi_comm_debug;
 
 #ifdef STARPU_VERBOSE
 extern int _starpu_debug_level_min;
@@ -94,24 +94,24 @@ int _starpu_debug_rank;
 #define _STARPU_MPI_REALLOC(ptr, size) do { ptr = realloc(ptr, size); STARPU_MPI_ASSERT_MSG(ptr != NULL, "Cannot reallocate %ld bytes\n", (long) size); } while (0)
 
 #ifdef STARPU_VERBOSE
-#  define _STARPU_MPI_COMM_DEBUG(count, datatype, node, tag, utag, comm, way) \
-	do \
-	{ \
-	     	if (_starpu_mpi_comm)	\
-	     	{ \
-     			int __size; \
-			char _comm_name[128]; \
-			int _comm_name_len; \
-			int _rank; \
+#  define _STARPU_MPI_COMM_DEBUG(ptr, count, datatype, node, tag, utag, comm, way) \
+	do								\
+	{							\
+	     	if (_starpu_mpi_comm_debug)			\
+		{					\
+     			int __size;			\
+			char _comm_name[128];		\
+			int _comm_name_len;		\
+			int _rank;			    \
 			starpu_mpi_comm_rank(comm, &_rank); \
-			MPI_Type_size(datatype, &__size); \
+			MPI_Type_size(datatype, &__size);		\
 			MPI_Comm_get_name(comm, _comm_name, &_comm_name_len); \
-			fprintf(stderr, "[%d][starpu_mpi] %s %d:%d(%d):%s %12s %ld     [%s:%d]\n", _rank, way, node, tag, utag, _comm_name, " ", count*__size, __starpu_func__ , __LINE__); \
-			fflush(stderr); \
-		} \
+			fprintf(stderr, "[%d][starpu_mpi] :%d:%s:%d:%d:%d:%s:%p:%ld:%d:%s:%d\n", _rank, _rank, way, node, tag, utag, _comm_name, ptr, count, __size, __starpu_func__ , __LINE__); \
+			fflush(stderr);					\
+		}							\
 	} while(0);
-#  define _STARPU_MPI_COMM_TO_DEBUG(count, datatype, dest, tag, utag, comm) 		_STARPU_MPI_COMM_DEBUG(count, datatype, dest, tag, utag, comm, "-->")
-#  define _STARPU_MPI_COMM_FROM_DEBUG(count, datatype, source, tag, utag, comm) 	_STARPU_MPI_COMM_DEBUG(count, datatype, source, tag, utag, comm, "<--")
+#  define _STARPU_MPI_COMM_TO_DEBUG(ptr, count, datatype, dest, tag, utag, comm) 	    _STARPU_MPI_COMM_DEBUG(ptr, count, datatype, dest, tag, utag, comm, "-->")
+#  define _STARPU_MPI_COMM_FROM_DEBUG(ptr, count, datatype, source, tag, utag, comm)  _STARPU_MPI_COMM_DEBUG(ptr, count, datatype, source, tag, utag, comm, "<--")
 #  define _STARPU_MPI_DEBUG(level, fmt, ...) \
 	do \
 	{								\
@@ -123,9 +123,9 @@ int _starpu_debug_rank;
 		}			\
 	} while(0);
 #else
-#  define _STARPU_MPI_COMM_DEBUG(count, datatype, node, tag, utag, comm, way)		do { } while(0)
-#  define _STARPU_MPI_COMM_TO_DEBUG(count, datatype, dest, tag, comm, utag)		do { } while(0)
-#  define _STARPU_MPI_COMM_FROM_DEBUG(count, datatype, source, tag, comm, utag)	do { } while(0)
+#  define _STARPU_MPI_COMM_DEBUG(ptr, count, datatype, node, tag, utag, comm, way)  do { } while(0)
+#  define _STARPU_MPI_COMM_TO_DEBUG(ptr, count, datatype, dest, tag, utag, comm)     do { } while(0)
+#  define _STARPU_MPI_COMM_FROM_DEBUG(ptr, count, datatype, source, tag, utag, comm) do { } while(0)
 #  define _STARPU_MPI_DEBUG(level, fmt, ...)		do { } while(0)
 #endif
 

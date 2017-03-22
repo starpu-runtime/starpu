@@ -58,6 +58,10 @@ New features:
   * Add NVCC_CC environment variable.
   * Add -no-foo options to starpu_fxt_tool to make traces lighter
 
+Small changes:
+  * Output generated through STARPU_MPI_COMM has been modified to
+    allow easier automated checking
+
 StarPU 1.2.1 (svn revision 20299)
 ==============================================
 
