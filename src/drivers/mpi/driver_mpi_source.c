@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2015  Mathieu Lirzin <mthl@openmailbox.org>
- * Copyright (C) 2016  Inria
+ * Copyright (C) 2016, 2017  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -48,6 +48,17 @@ struct _starpu_mpi_ms_kernel
 /* Array of structures containing all the informations useful to send
  * and receive informations with devices */
 struct _starpu_mp_node *mpi_ms_nodes[STARPU_MAXMPIDEVS];
+
+struct _starpu_mp_node *_starpu_mpi_ms_src_get_actual_thread_mp_node()
+{
+	struct _starpu_worker *actual_worker = _starpu_get_local_worker_key();
+	STARPU_ASSERT(actual_worker);
+
+	int devid = actual_worker->devid;
+	STARPU_ASSERT(devid >= 0 && devid < STARPU_MAXMPIDEVS);
+
+	return mpi_ms_nodes[devid];
+}
 
 void _starpu_mpi_source_init(struct _starpu_mp_node *node)
 {
@@ -196,6 +207,39 @@ starpu_mpi_ms_kernel_t _starpu_mpi_ms_src_get_kernel(starpu_mpi_ms_func_symbol_t
         }
 
         return kernel->func[devid];
+}
+
+starpu_mpi_ms_kernel_t _starpu_mpi_ms_src_get_kernel_from_codelet(struct starpu_codelet *cl, unsigned nimpl)
+{
+	starpu_mpi_ms_kernel_t kernel = NULL;
+
+	starpu_mpi_ms_func_t func = _starpu_task_get_mpi_ms_nth_implementation(cl, nimpl);
+	if (func)
+	{
+		/* We execute the function contained in the codelet, it must return a
+		 * pointer to the function to execute on the device, either specified
+		 * directly by the user or by a call to starpu_mic_get_func().
+		 */
+		kernel = func();
+	}
+	else
+	{
+		/* If user dont define any starpu_mic_fun_t in cl->mic_func we try to use
+		 * cpu_func_name.
+		 */
+		const char *func_name = _starpu_task_get_cpu_name_nth_implementation(cl, nimpl);
+		if (func_name)
+		{
+			starpu_mpi_ms_func_symbol_t symbol;
+
+			_starpu_mpi_ms_src_register_kernel(&symbol, func_name);
+
+			kernel = _starpu_mpi_ms_src_get_kernel(symbol);
+		}
+	}
+	STARPU_ASSERT_MSG(kernel, "when STARPU_MPI_MS is defined in 'where', mpi_ms_funcs or cpu_funcs_name has to be defined and the function be non-static");
+
+	return kernel;
 }
 
 void(* _starpu_mpi_ms_src_get_kernel_from_job(const struct _starpu_mp_node *node STARPU_ATTRIBUTE_UNUSED, struct _starpu_job *j))(void)

@@ -1898,15 +1898,14 @@ static int mpi_check_recalibrate(int my_recalibrate)
 
 	MPI_Allgather(&my_recalibrate, 1, MPI_INT, mpi_recalibrate, 1, MPI_INT, MPI_COMM_WORLD);
 
-	for (i = 0; i < nb_mpi; i++)
-	{
-		if (mpi_recalibrate[i])
-		{
-			return 1;
-			break;
-		}
-	}
-	return 0;
+        for (i = 0; i < nb_mpi; i++)
+        {
+                if (mpi_recalibrate[i])
+                {
+                        return 1;
+                }
+        }
+        return 0;
 }
 #endif
 

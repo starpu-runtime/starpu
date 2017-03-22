@@ -122,8 +122,6 @@ The actual scheduler
 	this lock is used to protect the scheduler, it is taken in
 	read mode pushing a task and in write mode for adding or
 	removing workers
-\var struct starpu_sched_component *starpu_sched_tree::worker_components[STARPU_NMAXWORKERS]
-     	worker components
 
 @name Scheduling Tree API
 \ingroup API_Modularized_Scheduler

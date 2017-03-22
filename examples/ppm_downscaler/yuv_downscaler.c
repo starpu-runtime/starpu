@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011, 2013-2015  Université de Bordeaux
+ * Copyright (C) 2010-2011, 2013-2015, 2017  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012, 2013, 2016  CNRS
  *
@@ -43,8 +43,8 @@ void parse_args(int argc, char **argv)
 {
 	if (argc == 3)
 	{
-		strncpy(filename_in, argv[1], 1024);
-		strncpy(filename_out, argv[2], 1024);
+		strncpy(filename_in, argv[1], 1023);
+		strncpy(filename_out, argv[2], 1023);
 	}
 	else
 	{
@@ -218,6 +218,7 @@ int main(int argc, char **argv)
 	/* do the computation */
 	for (frame = 0; frame < nframes; frame++)
 	{
+		starpu_iteration_push(frame);
 		unsigned blocky;
 		for (blocky = 0; blocky < nblocks_y; blocky++)
 		{
@@ -265,6 +266,7 @@ int main(int argc, char **argv)
 			ret = starpu_task_submit(task);
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		}
+		starpu_iteration_pop();
 	}
 
 	/* make sure all output buffers are sync'ed */

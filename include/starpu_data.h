@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2016  Université de Bordeaux
+ * Copyright (C) 2010-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
  * Copyright (C) 2016  Inria
  *
@@ -53,6 +53,10 @@ struct starpu_data_descr
 
 struct starpu_data_interface_ops;
 
+void starpu_data_set_name(starpu_data_handle_t handle, const char *name);
+void starpu_data_set_coordinates_array(starpu_data_handle_t handle, int dimensions, int dims[]);
+void starpu_data_set_coordinates(starpu_data_handle_t handle, unsigned dimensions, ...);
+
 void starpu_data_unregister(starpu_data_handle_t handle);
 void starpu_data_unregister_no_coherency(starpu_data_handle_t handle);
 void starpu_data_unregister_submit(starpu_data_handle_t handle);
@@ -69,6 +73,10 @@ int starpu_data_acquire_cb(starpu_data_handle_t handle, enum starpu_data_access_
 int starpu_data_acquire_on_node_cb(starpu_data_handle_t handle, int node, enum starpu_data_access_mode mode, void (*callback)(void *), void *arg);
 int starpu_data_acquire_cb_sequential_consistency(starpu_data_handle_t handle, enum starpu_data_access_mode mode, void (*callback)(void *), void *arg, int sequential_consistency);
 int starpu_data_acquire_on_node_cb_sequential_consistency(starpu_data_handle_t handle, int node, enum starpu_data_access_mode mode, void (*callback)(void *), void *arg, int sequential_consistency);
+int starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_data_handle_t handle, int node, enum starpu_data_access_mode mode, void (*callback)(void *), void *arg, int sequential_consistency, long *pre_sync_jobid, long *post_sync_jobid);
+
+int starpu_data_acquire_try(starpu_data_handle_t handle, enum starpu_data_access_mode mode);
+int starpu_data_acquire_on_node_try(starpu_data_handle_t handle, int node, enum starpu_data_access_mode mode);
 
 #ifdef __GCC__
 #  define STARPU_DATA_ACQUIRE_CB(handle, mode, code) do \

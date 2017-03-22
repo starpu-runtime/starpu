@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012, 2016  INRIA
+ * Copyright (C) 2012, 2016, 2017  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -109,6 +109,7 @@ static int _starpu_src_common_process_completed_job(struct _starpu_mp_node *node
 	_starpu_set_local_worker_key(old_worker);
 
 	worker->current_task = NULL;
+
 	return 0;
 }
 
@@ -146,6 +147,9 @@ static int _starpu_src_common_handle_async(struct _starpu_mp_node *node,
                 case STARPU_MP_COMMAND_EXECUTION_COMPLETED:
                         worker_set = _starpu_get_worker_struct(starpu_worker_get_id())->set;
                         _starpu_src_common_process_completed_job(node, worker_set, arg, arg_size, stored);
+                        break;
+                case STARPU_MP_COMMAND_EXECUTION_DETACHED_COMPLETED:
+			_STARPU_ERROR("Detached execution completed should not arrive here... \n"); 
                         break;
                 case STARPU_MP_COMMAND_PRE_EXECUTION:
                         _starpu_src_common_pre_exec(node, arg,arg_size, stored);
@@ -211,6 +215,7 @@ int _starpu_src_common_store_message(struct _starpu_mp_node *node,
 	switch(answer)
 	{
 		case STARPU_MP_COMMAND_EXECUTION_COMPLETED:
+		case STARPU_MP_COMMAND_EXECUTION_DETACHED_COMPLETED:
 		case STARPU_MP_COMMAND_PRE_EXECUTION:
 		{
 			message = mp_message_new();
@@ -284,7 +289,7 @@ static void _starpu_src_common_recv_async(struct _starpu_mp_node * node)
 	{
 		answer = _starpu_mp_common_recv_command (node, arg, arg_size);
 
-		if(answer == STARPU_MP_COMMAND_EXECUTION_COMPLETED)
+		if(answer == STARPU_MP_COMMAND_EXECUTION_DETACHED_COMPLETED)
 		{
 			int coreid;
 			STARPU_ASSERT(sizeof(coreid) == *arg_size);
@@ -393,14 +398,14 @@ int _starpu_src_common_execute_kernel(struct _starpu_mp_node *node,
 		starpu_data_handle_t *handles,
 		void **interfaces,
 		unsigned nb_interfaces,
-		void *cl_arg, size_t cl_arg_size)
+		void *cl_arg, size_t cl_arg_size, int detached)
 {
 	void *buffer, *arg =NULL;
 	uintptr_t buffer_ptr;
 	int buffer_size = 0, arg_size =0;
 	unsigned i;
 
-	buffer_size = sizeof(kernel) + sizeof(coreid) + sizeof(type)
+	buffer_size = sizeof(kernel) + sizeof(coreid) + sizeof(type) + sizeof(detached)
 		+ sizeof(nb_interfaces) + nb_interfaces * sizeof(union _starpu_interface) + sizeof(is_parallel_task);
 
 	/*if the task is parallel*/
@@ -444,6 +449,9 @@ int _starpu_src_common_execute_kernel(struct _starpu_mp_node *node,
 	*(unsigned *) buffer_ptr = nb_interfaces;
 	buffer_ptr += sizeof(nb_interfaces);
 
+	*(int *) buffer_ptr = detached;
+	buffer_ptr += sizeof(detached);
+
 	/* Message-passing execution is a particular case as the codelet is
 	 * executed on a sink with a different memory, whereas a codelet is
 	 * executed on the host part for the other accelerators.
@@ -466,17 +474,23 @@ int _starpu_src_common_execute_kernel(struct _starpu_mp_node *node,
 
         STARPU_PTHREAD_MUTEX_LOCK(&node->connection_mutex);
 
-	_starpu_mp_common_send_command(node, STARPU_MP_COMMAND_EXECUTE, buffer, buffer_size);
+	if (detached)
+		_starpu_mp_common_send_command(node, STARPU_MP_COMMAND_EXECUTE_DETACHED, buffer, buffer_size);
+	else
+		_starpu_mp_common_send_command(node, STARPU_MP_COMMAND_EXECUTE, buffer, buffer_size);
 
 	enum _starpu_mp_command answer = _starpu_src_common_wait_command_sync(node, &arg, &arg_size);
 
-        if (answer == STARPU_MP_COMMAND_ERROR_EXECUTE)
+        if (answer == STARPU_MP_COMMAND_ERROR_EXECUTE_DETACHED)
         {
                 STARPU_PTHREAD_MUTEX_UNLOCK(&node->connection_mutex);
                 return -EINVAL;
         }
 
-	STARPU_ASSERT(answer == STARPU_MP_COMMAND_EXECUTION_SUBMITTED);
+	if (detached)
+		STARPU_ASSERT(answer == STARPU_MP_COMMAND_EXECUTION_DETACHED_SUBMITTED);
+	else
+		STARPU_ASSERT(answer == STARPU_MP_COMMAND_EXECUTION_SUBMITTED);
 
         STARPU_PTHREAD_MUTEX_UNLOCK(&node->connection_mutex);
 
@@ -497,17 +511,6 @@ static int _starpu_src_common_execute(struct _starpu_job *j,
 	int profiling = starpu_profiling_status_get();
 
 	STARPU_ASSERT(task);
-	if (worker->current_rank == 0)
-	{
-		int ret = _starpu_fetch_task_input(task, j, 0);
-		if (ret != 0)
-		{
-			/* there was not enough memory, so the input of
-			 * the codelet cannot be fetched ... put the
-			 * codelet back, and try it later */
-			return -EAGAIN;
-		}
-	}
 
 	void (*kernel)(void)  = node->get_kernel_from_job(node,j);
 
@@ -519,7 +522,7 @@ static int _starpu_src_common_execute(struct _starpu_job *j,
 			(j->task_size > 1),
 			j->combined_workerid, STARPU_TASK_GET_HANDLES(task),
 			_STARPU_TASK_GET_INTERFACES(task), STARPU_TASK_GET_NBUFFERS(task),
-			task->cl_arg, task->cl_arg_size);
+			task->cl_arg, task->cl_arg_size, 0);
 
 
 	return 0;
@@ -963,7 +966,7 @@ static void _starpu_src_common_worker_internal_work(struct _starpu_worker_set * 
 
 			_STARPU_TRACE_END_PROGRESS(memnode);
 			_starpu_set_local_worker_key(&worker_set->workers[i]);
-			_starpu_release_fetch_task_input_async(j, &worker_set->workers[i]);
+			_starpu_fetch_task_input_tail(task, j, &worker_set->workers[i]);
 
 			/* Execute the task */
 			res =  _starpu_src_common_execute(j, &worker_set->workers[i], mp_node);

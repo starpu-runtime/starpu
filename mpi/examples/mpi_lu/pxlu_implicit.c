@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011, 2013-2015  Université de Bordeaux
- * Copyright (C) 2010, 2012, 2013  CNRS
+ * Copyright (C) 2010-2011, 2013-2015, 2017  Université de Bordeaux
+ * Copyright (C) 2010, 2012, 2013, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -29,7 +29,8 @@ static unsigned nblocks = 0;
 static int rank = -1;
 static int world_size = -1;
 
-struct callback_arg {
+struct callback_arg
+{
 	unsigned i, j, k;
 };
 
@@ -56,7 +57,9 @@ static void create_task_11(unsigned k)
 
 static void create_task_12(unsigned k, unsigned j)
 {
+#ifdef STARPU_DEVEL
 #warning temporary fix 
+#endif
 	starpu_mpi_task_insert(MPI_COMM_WORLD,
 			       //&STARPU_PLU(cl12),
 			       &STARPU_PLU(cl21),
@@ -76,7 +79,9 @@ static void create_task_12(unsigned k, unsigned j)
 
 static void create_task_21(unsigned k, unsigned i)
 {
+#ifdef STARPU_DEVEL
 #warning temporary fix 
+#endif
 	starpu_mpi_task_insert(MPI_COMM_WORLD,
 			       //&STARPU_PLU(cl21),
 			       &STARPU_PLU(cl12),
@@ -131,6 +136,8 @@ double STARPU_PLU(plu_main)(unsigned _nblocks, int _rank, int _world_size)
 
 	for (k = 0; k < nblocks; k++)
 	{
+		starpu_iteration_push(k);
+
 		create_task_11(k);
 
 		for (i = k+1; i<nblocks; i++)
@@ -160,6 +167,7 @@ double STARPU_PLU(plu_main)(unsigned _nblocks, int _rank, int _world_size)
 			if (get_block_rank(i, k) == _rank)
 				starpu_data_wont_use(STARPU_PLU(get_block_handle)(i,k));
 		}
+		starpu_iteration_pop();
 	}
 
 	starpu_task_wait_for_all();

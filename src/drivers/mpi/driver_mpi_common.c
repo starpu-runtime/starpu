@@ -100,15 +100,15 @@ int _starpu_mpi_common_mp_init()
 void _starpu_mpi_common_mp_deinit()
 {
         if (!extern_initialized)
-                MPI_Finalize();    
+                MPI_Finalize();
 }
 
 int _starpu_mpi_common_is_src_node()
-{   
+{
         int id_proc;
         MPI_Comm_rank(MPI_COMM_WORLD, &id_proc);
         return id_proc == src_node_id;
-} 
+}
 
 int _starpu_mpi_common_get_src_node()
 {
@@ -484,11 +484,11 @@ void _starpu_mpi_common_measure_bandwidth_latency(double timing_dtod[STARPU_MAXM
         {
                 for(receiver = 0; receiver < nb_proc; receiver++) 
                 {
-                        MPI_Barrier(MPI_COMM_WORLD);
-
                         //Node can't be a sender and a receiver
                         if(sender == receiver)
                                 continue;
+
+                        MPI_Barrier(MPI_COMM_WORLD);
 
                         if(id_proc == sender)
                         {

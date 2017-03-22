@@ -78,9 +78,6 @@ if STARPU_USE_CUDA
 if STARPU_COVERITY
 include $(top_srcdir)/starpu-mynvcc.mk
 else
-# TODO define NVCCFLAGS
-NVCC ?= nvcc
-
 NVCCFLAGS += -I$(top_srcdir)/include/ -I$(top_srcdir)/src -I$(top_builddir)/src -I$(top_builddir)/src/common -I$(top_builddir)/include $(HWLOC_CFLAGS) $(SIMGRID_CFLAGS)
 
 .cu.cubin:
@@ -111,27 +108,16 @@ LOADER_BIN		=	$(top_builddir)/tests/loader-cross.sh
 endif
 
 if STARPU_USE_MPI_MASTER_SLAVE
-if STARPU_QUICK_CHECK
-export MPIEXEC_TIMEOUT=60
-else 
-if STARPU_LONG_CHECK
-export MPIEXEC_TIMEOUT=1800
-else
-export MPIEXEC_TIMEOUT=300
-endif
-endif
-
-MPI 			= $(MPIEXEC)  $(MPIEXEC_ARGS) -np 4
-LOADER_BIN2		= $(MPI) $(LOADER_BIN)
+LOADER_BIN2		= $(MPI_LAUNCHER) $(LOADER_BIN)
 else
 LOADER_BIN2		= $(LOADER_BIN)
 endif
 
 if STARPU_HAVE_AM111
-TESTS_ENVIRONMENT   =   top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
+TESTS_ENVIRONMENT   =   $(MPI_RUN_ARGS) top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
 LOG_COMPILER        =   $(LOADER_BIN2)
 else
-TESTS_ENVIRONMENT   =   top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(LOADER_BIN2)
+TESTS_ENVIRONMENT   =   $(MPI_RUN_ARGS) top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(LOADER_BIN2)
 endif
 endif
 
@@ -170,7 +156,6 @@ myPROGRAMS +=				\
 	microbenchs/display_structures_size	\
 	microbenchs/local_pingpong		\
 	sched_ctx/sched_ctx_list		\
-	sched_ctx/sched_ctx_hierarchy		\
 	perfmodels/value_nan
 
 if !STARPU_SIMGRID
@@ -216,6 +201,7 @@ myPROGRAMS +=				\
 	datawizard/acquire_cb_insert		\
 	datawizard/acquire_release		\
 	datawizard/acquire_release2		\
+	datawizard/acquire_try			\
 	datawizard/cache			\
 	datawizard/commute			\
 	datawizard/commute2			\
@@ -343,7 +329,8 @@ myPROGRAMS +=				\
 	sched_policies/execute_all_tasks        \
 	sched_policies/prio        		\
 	sched_policies/simple_deps              \
-	sched_policies/simple_cpu_gpu_sched
+	sched_policies/simple_cpu_gpu_sched	\
+	sched_ctx/sched_ctx_hierarchy
 endif
 
 MICROBENCHS = \
@@ -377,7 +364,9 @@ examplebin_SCRIPTS = \
 	microbenchs/tasks_size_overhead.gp \
 	microbenchs/tasks_size_overhead.sh
 if !STARPU_SIMGRID
+if !STARPU_USE_MPI_MASTER_SLAVE
 TESTS += microbenchs/tasks_size_overhead_scheds.sh
+endif
 endif
 
 if STARPU_HAVE_WINDOWS

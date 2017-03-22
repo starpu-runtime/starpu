@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010-2012, 2014-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -366,13 +366,17 @@ static inline void dw_common_codelet_update_u11(void *descr[], int s, STARPU_ATT
 				float scal = 1.0f/pivot;
 
 				status = cublasSscal(starpu_cublas_get_local_handle(),
-						nx - z - 1, &scal, &sub11[z+(z+1)*ld], ld);
+						     nx - z - 1, &scal, &sub11[z+(z+1)*ld], ld);
+				if (status != CUBLAS_STATUS_SUCCESS)
+					STARPU_CUBLAS_REPORT_ERROR(status);
 
 				status = cublasSger(starpu_cublas_get_local_handle(),
-						nx - z - 1, nx - z - 1, &m1,
-								&sub11[z+(z+1)*ld], ld,
-								&sub11[(z+1)+z*ld], 1,
-								&sub11[(z+1) + (z+1)*ld],ld);
+						    nx - z - 1, nx - z - 1, &m1,
+						    &sub11[z+(z+1)*ld], ld,
+						    &sub11[(z+1)+z*ld], 1,
+						    &sub11[(z+1) + (z+1)*ld],ld);
+				if (status != CUBLAS_STATUS_SUCCESS)
+					STARPU_CUBLAS_REPORT_ERROR(status);
 			}
 
 			cudaStreamSynchronize(stream);

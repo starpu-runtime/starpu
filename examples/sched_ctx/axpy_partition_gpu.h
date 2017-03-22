@@ -22,7 +22,8 @@
 #pragma once
 
 
-__device__ static uint get_smid(void) {
+__device__ static uint get_smid(void)
+{
 #if defined(__CUDACC__)
   uint ret;
   asm("mov.u32 %0, %smid;" : "=r"(ret) );
@@ -50,7 +51,7 @@ __syncthreads();							\
 if(block_start > active_blocks)						\
   {									\
     return;								\
-  }									
+  }
 
 #define __P_LOOPXY							\
   dim3 blockid;								\

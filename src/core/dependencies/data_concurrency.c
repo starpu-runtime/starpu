@@ -362,6 +362,20 @@ static unsigned unlock_one_requester(struct _starpu_data_requester *r)
 int _starpu_notify_data_dependencies(starpu_data_handle_t handle)
 {
 	_starpu_spin_checklocked(&handle->header_lock);
+
+	if (handle->arbiter)
+	{
+		/* Keep our reference for now, _starpu_notify_arbitered_dependencies
+		 * will drop it when it needs to */
+		STARPU_ASSERT(_starpu_data_requester_list_empty(&handle->req_list));
+		STARPU_ASSERT(_starpu_data_requester_list_empty(&handle->reduction_req_list));
+		_starpu_spin_unlock(&handle->header_lock);
+		/* _starpu_notify_arbitered_dependencies will handle its own locking */
+		_starpu_notify_arbitered_dependencies(handle);
+		/* We have already unlocked */
+		return 1;
+	}
+
 	/* A data access has finished so we remove a reference. */
 	STARPU_ASSERT(handle->refcnt > 0);
 	handle->refcnt--;
@@ -371,18 +385,6 @@ int _starpu_notify_data_dependencies(starpu_data_handle_t handle)
 		/* Handle was destroyed, nothing left to do.  */
 		return 1;
 
-	if (handle->arbiter)
-	{
-		unsigned refcnt = handle->refcnt;
-		STARPU_ASSERT(_starpu_data_requester_list_empty(&handle->req_list));
-		STARPU_ASSERT(_starpu_data_requester_list_empty(&handle->reduction_req_list));
-		_starpu_spin_unlock(&handle->header_lock);
-		/* _starpu_notify_arbitered_dependencies will handle its own locking */
-		if (!refcnt)
-			_starpu_notify_arbitered_dependencies(handle);
-		/* We have already unlocked */
-		return 1;
-	}
 	STARPU_ASSERT(_starpu_data_requester_list_empty(&handle->arbitered_req_list));
 
 	/* In case there is a pending reduction, and that this is the last

@@ -326,7 +326,9 @@ static void read_a_places_list(const char *str, struct starpu_omp_place *places)
 		places->abstract_name = starpu_omp_place_undefined;
 		return;
 	}
-	enum { state_split,
+	enum
+	{
+		state_split,
 		state_read_brace_prefix,
 		state_read_opening_brace,
 		state_read_numeric_prefix,

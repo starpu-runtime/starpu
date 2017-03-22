@@ -42,7 +42,7 @@ void vector_cpu_func(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
 	int i;
 	float sum=0;
 
-	for(i=0 ; i<nx ; i++) sum+=i;
+	for(i=0 ; i<nx ; i++) sum+=matrix[i];
 	matrix[0] = sum/nx;
 }
 
@@ -56,7 +56,9 @@ void vector_cuda_func(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
 	int nx = STARPU_VECTOR_GET_NX(descr[0]);
 
 	float sum;
-	cublasSasum(starpu_cublas_get_local_handle(), nx, matrix, 1, &sum);
+	cublasStatus_t status = cublasSasum(starpu_cublas_get_local_handle(), nx, matrix, 1, &sum);
+	if (status != CUBLAS_STATUS_SUCCESS)
+		STARPU_CUBLAS_REPORT_ERROR(status);
 	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 	sum /= nx;
 
@@ -74,7 +76,7 @@ void matrix_cpu_func(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
 	int i;
 	float sum=0;
 
-	for(i=0 ; i<nx*ny ; i++) sum+=i;
+	for(i=0 ; i<nx*ny ; i++) sum+=matrix[i];
 	matrix[0] = sum / (nx*ny);
 }
 
@@ -89,7 +91,9 @@ void matrix_cuda_func(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
 	int ny = STARPU_MATRIX_GET_NY(descr[0]);
 
 	float sum;
-	cublasSasum(starpu_cublas_get_local_handle(), nx*ny, matrix, 1, &sum);
+	cublasStatus_t status = cublasSasum(starpu_cublas_get_local_handle(), nx*ny, matrix, 1, &sum);
+	if (status != CUBLAS_STATUS_SUCCESS)
+		STARPU_CUBLAS_REPORT_ERROR(status);
 	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 	sum /= nx*ny;
 
@@ -144,7 +148,7 @@ int check_size(int nx, struct starpu_codelet *vector_codelet, struct starpu_code
 	matrix_timing = end - start;
 	matrix_timing /= maxloops;
 
-	if (mean == matrix[0])
+	if (fabs(mean - matrix[0]) < 0.00001)
 	{
 		fprintf(stderr, "%d\t%f\t%f\n", nx, vector_timing, matrix_timing);
 
@@ -166,11 +170,14 @@ int check_size(int nx, struct starpu_codelet *vector_codelet, struct starpu_code
 	}
 	else
 	{
-		FPRINTF(stderr, "Incorrect result nx=%7d --> mean=%7f != %7f\n", nx, matrix[0], mean);
+		fprintf(stderr, "# Incorrect result nx=%7d --> mean=%7f != %7f\n", nx, matrix[0], mean);
 		ret = EXIT_FAILURE;
 	}
 end:
+	if (ret == -ENODEV)
+		fprintf(stderr, "# Uh, ENODEV?!");
 	starpu_free(matrix);
+	starpu_task_wait_for_all();
 	return ret;
 }
 
@@ -221,7 +228,6 @@ int main(int argc, char **argv)
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-	starpu_cublas_init();
 
 	devices = starpu_cpu_worker_get_count();
 	if (devices)
@@ -229,23 +235,34 @@ int main(int argc, char **argv)
 		ret = check_size_on_device(STARPU_CPU, "STARPU_CPU");
 		if (ret) goto error;
 	}
+
+#ifdef STARPU_USE_CUDA
+	cublasHandle_t handle;
+	cublasCreate(&handle);
+	cublasGetVersion(handle, &cublas_version);
+	cublasDestroy(handle);
+
 	devices = starpu_cuda_worker_get_count();
-	if (devices)
+	if (devices && cublas_version >= 7050)
 	{
+		starpu_cublas_init();
 		ret = check_size_on_device(STARPU_CUDA, "STARPU_CUDA");
 		if (ret) goto error;
+		starpu_cublas_shutdown();
 	}
+#endif
+#if 0
 	devices = starpu_opencl_worker_get_count();
 	if (devices)
 	{
 		ret = check_size_on_device(STARPU_OPENCL, "STARPU_OPENCL");
 		if (ret) goto error;
 	}
+#endif
 
 error:
 	if (ret == -ENODEV) ret=STARPU_TEST_SKIPPED;
 
-	starpu_cublas_shutdown();
 	starpu_shutdown();
 	STARPU_RETURN(ret);
 }

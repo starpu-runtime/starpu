@@ -120,7 +120,6 @@
 #define _STARPU_MALLOC(ptr, size) do { ptr = malloc(size); STARPU_ASSERT_MSG(ptr != NULL, "Cannot allocate %ld bytes\n", (long) size); } while (0)
 #define _STARPU_CALLOC(ptr, nmemb, size) do { ptr = calloc(nmemb, size); STARPU_ASSERT_MSG(ptr != NULL, "Cannot allocate %ld bytes\n", (long) (nmemb*size)); } while (0)
 #define _STARPU_REALLOC(ptr, size) do { ptr = realloc(ptr, size); STARPU_ASSERT_MSG(ptr != NULL, "Cannot reallocate %ld bytes\n", (long) size); } while (0)
-#define _STARPU_FREE(ptr) do { free(ptr); ptr = NULL; } while(0)
 
 #ifdef _MSC_VER
 #define _STARPU_IS_ZERO(a) (a == 0.0)

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2012, 2014, 2017  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -29,7 +29,8 @@ static cublasHandle_t cublas_handles[STARPU_NMAXWORKERS];
 static cublasHandle_t main_handle;
 static starpu_pthread_mutex_t mutex;
 
-static unsigned get_idx(void) {
+static unsigned get_idx(void)
+{
 	unsigned workerid = starpu_worker_get_id_check();
 	unsigned th_per_dev = _starpu_get_machine_config()->topology.cuda_th_per_dev;
 	unsigned th_per_stream = _starpu_get_machine_config()->topology.cuda_th_per_stream;
@@ -82,7 +83,8 @@ void starpu_cublas_init(void)
 	starpu_execute_on_each_worker(init_cublas_func, NULL, STARPU_CUDA);
 	starpu_execute_on_each_worker(set_cublas_stream_func, NULL, STARPU_CUDA);
 
-	cublasCreate(&main_handle);
+	if (cublasCreate(&main_handle) != CUBLAS_STATUS_SUCCESS)
+		main_handle = NULL;
 #endif
 }
 
@@ -91,7 +93,8 @@ void starpu_cublas_shutdown(void)
 #ifdef STARPU_USE_CUDA
 	starpu_execute_on_each_worker(shutdown_cublas_func, NULL, STARPU_CUDA);
 
-	cublasDestroy(main_handle);
+	if (main_handle)
+		cublasDestroy(main_handle);
 #endif
 }
 

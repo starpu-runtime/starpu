@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012, 2014-2016  Université de Bordeaux
+ * Copyright (C) 2010-2012, 2014-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016  CNRS
  * Copyright (C) 2012 INRIA
  *
@@ -168,6 +168,13 @@ void _starpu_notify_cg(struct _starpu_cg *cg)
 	if (remaining == 0)
 	{
 		ANNOTATE_HAPPENS_AFTER(&cg->remaining);
+		/* Note: This looks racy to helgrind when the tasks are not
+		 * autoregenerated, since they then unsubcribe from the
+		 * completion group in parallel, thus decreasing ntags. This is
+		 * however not a problem since it means we will not reuse this
+		 * cg, and remaining will not be used, so a bogus value won't
+		 * hurt.
+		 */
 		cg->remaining = cg->ntags;
 
 		/* the group is now completed */

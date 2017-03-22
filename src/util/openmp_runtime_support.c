@@ -318,7 +318,6 @@ static struct starpu_omp_region *create_omp_region_struct(struct starpu_omp_regi
 	region->parent_region = parent_region;
 	region->owner_device = owner_device;
 	starpu_omp_thread_list_init(&region->thread_list);
-	starpu_omp_task_list_init(&region->implicit_task_list);
 
 	_starpu_spin_init(&region->lock);
 	_starpu_spin_init(&region->registered_handles_lock);
@@ -330,7 +329,6 @@ static void destroy_omp_region_struct(struct starpu_omp_region *region)
 {
 	STARPU_ASSERT(region->nb_threads == 0);
 	STARPU_ASSERT(starpu_omp_thread_list_empty(&region->thread_list));
-	STARPU_ASSERT(starpu_omp_task_list_empty(&region->implicit_task_list));
 	STARPU_ASSERT(region->continuation_starpu_task == NULL);
 	_starpu_spin_destroy(&region->registered_handles_lock);
 	_starpu_spin_destroy(&region->lock);
@@ -875,15 +873,14 @@ static void omp_initial_region_setup(void)
 	_global_state.initial_region->icvs.run_sched_chunk_var = _starpu_omp_initial_icv_values->run_sched_chunk_var;
 	_global_state.initial_region->icvs.default_device_var = _starpu_omp_initial_icv_values->default_device_var;
 	_global_state.initial_region->icvs.max_task_priority_var = _starpu_omp_initial_icv_values->max_task_priority_var;
-	starpu_omp_task_list_push_back(&_global_state.initial_region->implicit_task_list,
-			_global_state.initial_task);
+	_global_state.initial_region->implicit_task_array = &_global_state.initial_task;
 }
 
 static void omp_initial_region_exit(void)
 {
 	omp_initial_thread_exit();
 	_global_state.initial_task->state = starpu_omp_task_state_terminated;
-	starpu_omp_task_list_pop_front(&_global_state.initial_region->implicit_task_list);
+	_global_state.initial_region->implicit_task_array = NULL;
 	_global_state.initial_region->master_thread = NULL;
 	free(_global_state.initial_region->icvs.nthreads_var);
 	free(_global_state.initial_region->icvs.bind_var);
@@ -996,6 +993,12 @@ void starpu_omp_shutdown(void)
 	STARPU_PTHREAD_KEY_DELETE(omp_thread_key);
 }
 
+static void implicit_task__destroy_callback(void *_task)
+{
+	struct starpu_omp_task *task = _task;
+	destroy_omp_task_struct(task);
+}
+
 void starpu_omp_parallel_region(const struct starpu_omp_parallel_region_attr *attr)
 {
 	struct starpu_omp_thread *master_thread = _starpu_omp_get_thread();
@@ -1088,6 +1091,7 @@ void starpu_omp_parallel_region(const struct starpu_omp_parallel_region_attr *at
 	new_region->icvs.run_sched_chunk_var = generating_region->icvs.run_sched_chunk_var;
 	new_region->icvs.default_device_var = generating_region->icvs.default_device_var;
 	new_region->icvs.max_task_priority_var = generating_region->icvs.max_task_priority_var;
+	_STARPU_CALLOC(new_region->implicit_task_array, nb_threads, sizeof(*new_region->implicit_task_array));
 
 	int i;
 	for (i = 0; i < nb_threads; i++)
@@ -1125,7 +1129,7 @@ void starpu_omp_parallel_region(const struct starpu_omp_parallel_region_attr *at
 		struct starpu_omp_task *new_task = create_omp_task_struct(task, new_thread, new_region, 1);
 		new_task->rank = new_region->nb_threads;
 		new_region->nb_threads++;
-		starpu_omp_task_list_push_back(&new_region->implicit_task_list, new_task);
+		new_region->implicit_task_array[i] = new_task;
 
 	}
 	STARPU_ASSERT(new_region->nb_threads == nb_threads);
@@ -1158,11 +1162,9 @@ void starpu_omp_parallel_region(const struct starpu_omp_parallel_region_attr *at
 	 * create the starpu tasks for the implicit omp tasks,
 	 * create explicit dependencies between these starpu tasks and the continuation starpu task
 	 */
-	struct starpu_omp_task * implicit_task;
-	for (implicit_task  = starpu_omp_task_list_begin(&new_region->implicit_task_list);
-			implicit_task != starpu_omp_task_list_end(&new_region->implicit_task_list);
-			implicit_task  = starpu_omp_task_list_next(implicit_task))
+	for (i = 0; i < nb_threads; i++) 
 	{
+		struct starpu_omp_task * implicit_task = new_region->implicit_task_array[i];
 		implicit_task->cl = attr->cl;
 		/*
 		 * save pointer to the regions user function from the parallel region codelet
@@ -1177,11 +1179,13 @@ void starpu_omp_parallel_region(const struct starpu_omp_parallel_region_attr *at
 		implicit_task->cl.cpu_funcs[0] = starpu_omp_implicit_task_exec;
 
 		implicit_task->starpu_task = starpu_task_create();
+		_starpu_task_set_omp_cleanup_callback(implicit_task->starpu_task, implicit_task__destroy_callback, implicit_task);
 		implicit_task->starpu_task->cl = &implicit_task->cl;
 		{
-			for (i = 0; i < implicit_task->cl.nbuffers; i++)
+			int j;
+			for (j = 0; j < implicit_task->cl.nbuffers; j++)
 			{
-				implicit_task->starpu_task->handles[i] = attr->handles[i];
+				implicit_task->starpu_task->handles[j] = attr->handles[j];
 			}
 		}
 		implicit_task->starpu_task->cl_arg = attr->cl_arg;
@@ -1198,10 +1202,9 @@ void starpu_omp_parallel_region(const struct starpu_omp_parallel_region_attr *at
 	/*
 	 * submit all the region implicit starpu tasks
 	 */
-	for (implicit_task  = starpu_omp_task_list_begin(&new_region->implicit_task_list);
-			implicit_task != starpu_omp_task_list_end(&new_region->implicit_task_list);
-			implicit_task  = starpu_omp_task_list_next(implicit_task))
+	for (i = 0; i < nb_threads; i++) 
 	{
+		struct starpu_omp_task * implicit_task = new_region->implicit_task_array[i];
 		ret = starpu_task_submit(implicit_task->starpu_task);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
@@ -1243,9 +1246,9 @@ void starpu_omp_parallel_region(const struct starpu_omp_parallel_region_attr *at
 			/* TODO: cleanup unused threads */
 		}
 		new_region->nb_threads--;
-		struct starpu_omp_task *implicit_task_p = starpu_omp_task_list_pop_front(&new_region->implicit_task_list);
-		destroy_omp_task_struct(implicit_task_p);
 	}
+	/* implicit tasks will be freed in implicit_task__destroy_callback() */
+	free(new_region->implicit_task_array);
 	STARPU_ASSERT(new_region->nb_threads == 0);
 	task->nested_region = NULL;
 	free(new_region->icvs.bind_var);
@@ -1256,11 +1259,10 @@ void starpu_omp_parallel_region(const struct starpu_omp_parallel_region_attr *at
 static void wake_up_barrier(struct starpu_omp_region *parallel_region)
 {
 	struct starpu_omp_task *task = _starpu_omp_get_task();
-	struct starpu_omp_task *implicit_task;
-	for (implicit_task  = starpu_omp_task_list_begin(&parallel_region->implicit_task_list);
-			implicit_task != starpu_omp_task_list_end(&parallel_region->implicit_task_list);
-			implicit_task  = starpu_omp_task_list_next(implicit_task))
+	int i;
+	for (i = 0; i < parallel_region->nb_threads; i++) 
 	{
+		struct starpu_omp_task * implicit_task = parallel_region->implicit_task_array[i];
 		if (implicit_task == task)
 			continue;
 		weak_task_lock(implicit_task);
@@ -1559,7 +1561,8 @@ void starpu_omp_task_region(const struct starpu_omp_task_region_attr *attr)
 	}
 	if (is_merged || is_included)
 	{
-		if (is_included) {
+		if (is_included)
+		{
 			/* TODO: backup current ICVs and setup new ICVs for the included task */
 		}
 		int i;
@@ -1584,7 +1587,8 @@ void starpu_omp_task_region(const struct starpu_omp_task_region_attr *attr)
 		{
 			free(attr->cl_arg);
 		}
-		if (is_included) {
+		if (is_included)
+		{
 			/* TODO: restore backuped ICVs */
 		}
 	}

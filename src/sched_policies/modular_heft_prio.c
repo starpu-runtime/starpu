@@ -33,6 +33,29 @@
 
 static void initialize_heft_prio_policy(unsigned sched_ctx_id)
 {
+	unsigned i, j, n, nnodes;
+
+	/* First count how many memory nodes really have workers */
+	n = starpu_memory_nodes_get_count();
+	nnodes = 0;
+	for(i = 0; i < n; i++)
+	{
+		for(j = 0; j < starpu_worker_get_count() + starpu_combined_worker_get_count(); j++)
+			if (starpu_worker_get_memory_node(j) == i)
+				break;
+		if (j >= starpu_worker_get_count() + starpu_combined_worker_get_count())
+			/* Don't create a component for this memory node with no worker */
+			continue;
+		nnodes++;
+	}
+
+	if (nnodes == 1)
+	{
+		/* Just one memory node, we don't actually need MCT etc., just
+		 * initialize a prio scheduler */
+		return starpu_initialize_prio_center_policy(sched_ctx_id);
+	}
+
 	/* The application may use any integer */
 	if (starpu_sched_ctx_min_priority_is_set(sched_ctx_id) == 0)
 		starpu_sched_ctx_set_min_priority(sched_ctx_id, INT_MIN);
@@ -95,8 +118,6 @@ static void initialize_heft_prio_policy(unsigned sched_ctx_id)
 			.ntasks_threshold = starpu_get_env_number_default("STARPU_NTASKS_THRESHOLD", _STARPU_SCHED_NTASKS_THRESHOLD_DEFAULT),
 			.exp_len_threshold = starpu_get_env_float_default("STARPU_EXP_LEN_THRESHOLD", _STARPU_SCHED_EXP_LEN_THRESHOLD_DEFAULT),
 		};
-
-	unsigned i, j, n;
 
 	n = starpu_memory_nodes_get_count();
 	STARPU_ASSERT(n >= 1);

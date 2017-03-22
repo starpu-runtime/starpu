@@ -31,9 +31,12 @@ New features:
 Small features:
   * Scheduling contexts may now be associated a user data pointer at creation
     time, that can later be recalled through starpu_sched_ctx_get_user_data().
-  * Add STARPU_SIMGRID_TASK_SUBMIT_COST to simulate the cost of task submission
-    in simgrid mode. This provides more accurate simgrid predictions, especially
-    for the beginning of the execution.
+  * Add STARPU_SIMGRID_TASK_SUBMIT_COST and STARPU_SIMGRID_FETCHING_INPUT_COST
+    to simulate the cost of task submission and data fetching in simgrid mode.
+    This provides more accurate simgrid predictions, especially for the
+    beginning of the execution and regarding data transfers.
+  * STARPU_SIMGRID_SCHED_COST to take into account the time to perform scheduling
+    when running in SimGrid mode.
   * New configure option --enable-mpi-pedantic-isend (disabled by
     default) to acquire data in STARPU_RW (instead of STARPU_R) before
     performing MPI_Isend call
@@ -47,8 +50,21 @@ Changes:
 Small changes:
   * Use asynchronous transfers for task data fetches with were not prefetched.
 
-StarPU 1.2.1 (svn revision xxx)
+StarPU 1.2.2 (svn revision xxx)
 ==============================================
+
+New features:
+  * Add starpu_data_acquire_try and starpu_data_acquire_on_node_try.
+  * Add NVCC_CC environment variable.
+  * Add -no-foo options to starpu_fxt_tool to make traces lighter
+
+Small changes:
+  * Output generated through STARPU_MPI_COMM has been modified to
+    allow easier automated checking
+
+StarPU 1.2.1 (svn revision 20299)
+==============================================
+
 New features:
   * Add starpu_fxt_trace_user_event_string.
   * Add starpu_tasks_rec_complete tool to add estimation times in tasks.rec
@@ -61,10 +77,27 @@ New features:
     models between devices, making calibration much faster.
   * Add modular-heft-prio scheduler.
   * Add starpu_cublas_get_local_handle helper.
+  * Add starpu_data_set_name, starpu_data_set_coordinates_array, and
+    starpu_data_set_coordinates to describe data, and starpu_iteration_push and
+    starpu_iteration_pop to describe tasks, for better offline traces analysis.
+  * New function starpu_bus_print_filenames() to display filenames
+    storing bandwidth/affinity/latency information, available through
+    tools/starpu_machine_display -i
+  * Add support for Ayudame version 2.x debugging library.
+  * Add starpu_sched_ctx_get_workers_list_raw, much less costly than
+    starpu_sched_ctx_get_workers_list
+  * Add starpu_task_get_name and use it to warn about dmda etc. using
+    a dumb policy when calibration is not finished
+  * MPI: Add functions to test for cached values
 
 Changes:
   * Fix performance regression of lws for small tasks.
+  * Improve native Fortran support for StarPU
 
+Small changes:
+  * Fix type of data home node to allow users to pass -1 to define
+    temporary data
+  * Fix compatibility with simgrid 3.14
 
 StarPU 1.2.0 (svn revision 18521)
 ==============================================

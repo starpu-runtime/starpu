@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010  Université de Bordeaux
- * Copyright (C) 2010  CNRS
+ * Copyright (C) 2010, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -23,7 +23,7 @@
 
 /*
  *	Algorithm :
- *		
+ *
  *		i = 0
  *		r = b - A x
  *			( d = A x ; r = r - d )
@@ -31,14 +31,14 @@
  *		delta_new = trans(r) r
  *		delta_0 = delta_new
  *
- * 		while (i < i_max && delta_new > eps^2 delta_0) 
+ * 		while (i < i_max && delta_new > eps^2 delta_0)
  * 		{
  *			q = A d
  *			alpha = delta_new / ( trans(d) q )
  *			x = x + alpha d
  *			if ( i is divisible by 50 )
  *				r = b - A x
- *			else 
+ *			else
  *				r = r - alpha q
  *			delta_old = delta_new
  *			delta_new = trans(r) r
@@ -125,7 +125,7 @@ void cpu_codelet_func_3(void *descr[], void *arg)
 	float dot;
 	float *vec;
 	int size;
-	
+
 	/* get the vector */
 	vec = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
 	size = (int)STARPU_VECTOR_GET_NX(descr[0]);
@@ -145,7 +145,7 @@ void cublas_codelet_func_3(void *descr[], void *arg)
 	float dot;
 	float *vec;
 	uint32_t size;
-	
+
 	/* get the vector */
 	vec = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
 	size = STARPU_VECTOR_GET_NX(descr[0]);
@@ -204,7 +204,7 @@ void cpu_codelet_func_4(void *descr[], STARPU_ATTRIBUTE_UNUSED void *arg)
 
 }
 
-/* 
+/*
  *	compute alpha = delta_new / ( trans(d) q )
  *
  * 		descr[0] = d, descr[1] = q
@@ -217,7 +217,7 @@ void cpu_codelet_func_5(void *descr[], void *arg)
 	struct cg_problem *pb = arg;
 	float *vecd, *vecq;
 	uint32_t size;
-	
+
 	/* get the vector */
 	vecd = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
 	vecq = (float *)STARPU_VECTOR_GET_PTR(descr[1]);
@@ -237,7 +237,7 @@ void cublas_codelet_func_5(void *descr[], void *arg)
 	struct cg_problem *pb = arg;
 	float *vecd, *vecq;
 	uint32_t size;
-	
+
 	/* get the vector */
 	vecd = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
 	vecq = (float *)STARPU_VECTOR_GET_PTR(descr[1]);
@@ -268,7 +268,7 @@ void cpu_codelet_func_6(void *descr[], void *arg)
 	struct cg_problem *pb = arg;
 	float *vecx, *vecd;
 	uint32_t size;
-	
+
 	/* get the vector */
 	vecx = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
 	vecd = (float *)STARPU_VECTOR_GET_PTR(descr[1]);
@@ -284,7 +284,7 @@ void cublas_codelet_func_6(void *descr[], void *arg)
 	struct cg_problem *pb = arg;
 	float *vecx, *vecd;
 	uint32_t size;
-	
+
 	/* get the vector */
 	vecx = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
 	vecd = (float *)STARPU_VECTOR_GET_PTR(descr[1]);
@@ -309,7 +309,7 @@ void cpu_codelet_func_7(void *descr[], void *arg)
 	struct cg_problem *pb = arg;
 	float *vecr, *vecq;
 	uint32_t size;
-	
+
 	/* get the vector */
 	vecr = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
 	vecq = (float *)STARPU_VECTOR_GET_PTR(descr[1]);
@@ -325,7 +325,7 @@ void cublas_codelet_func_7(void *descr[], void *arg)
 	struct cg_problem *pb = arg;
 	float *vecr, *vecq;
 	uint32_t size;
-	
+
 	/* get the vector */
 	vecr = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
 	vecq = (float *)STARPU_VECTOR_GET_PTR(descr[1]);
@@ -355,7 +355,7 @@ void cpu_codelet_func_8(void *descr[], void *arg)
 	struct cg_problem *pb = arg;
 	float *vecr;
 	uint32_t size;
-	
+
 	/* get the vector */
 	vecr = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
 	size = STARPU_VECTOR_GET_NX(descr[0]);
@@ -374,12 +374,13 @@ void cublas_codelet_func_8(void *descr[], void *arg)
 	struct cg_problem *pb = arg;
 	float *vecr;
 	uint32_t size;
-	
+
 	/* get the vector */
 	vecr = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
 	size = STARPU_VECTOR_GET_NX(descr[0]);
 
-	cublasStatus_t status = cublasSdot (starpu_cublas_get_local_handle(), size, vecr, 1, vecr, 1, &dot);
+	cublasStatus_t status = cublasSdot(starpu_cublas_get_local_handle(), size, vecr, 1, vecr, 1, &dot);
+	if (status != CUBLAS_STATUS_SUCCESS) STARPU_CUBLAS_REPORT_ERROR(status);
 	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 
 	pb->delta_old = pb->delta_new;
@@ -401,7 +402,7 @@ void cpu_codelet_func_9(void *descr[], void *arg)
 	struct cg_problem *pb = arg;
 	float *vecd, *vecr;
 	uint32_t size;
-	
+
 	/* get the vector */
 	vecd = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
 	vecr = (float *)STARPU_VECTOR_GET_PTR(descr[1]);
@@ -421,7 +422,7 @@ void cublas_codelet_func_9(void *descr[], void *arg)
 	struct cg_problem *pb = arg;
 	float *vecd, *vecr;
 	uint32_t size;
-	
+
 	/* get the vector */
 	vecd = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
 	vecr = (float *)STARPU_VECTOR_GET_PTR(descr[1]);

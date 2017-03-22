@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2012, 2013, 2016  CNRS
+ * Copyright (C) 2011, 2012, 2013, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -106,7 +106,8 @@ static int _starpu_valgrind_print_once STARPU_ATTRIBUTE_UNUSED = 0;
 #define ANNOTATE_HAPPENS_AFTER(obj) ((void)0)
 #endif
 
-static inline void disable_coredump(void) {
+static inline void disable_coredump(void)
+{
 #ifdef HAVE_GETRLIMIT
 	struct rlimit rlim = { 0, 0 };
 	setrlimit(RLIMIT_CORE, &rlim);

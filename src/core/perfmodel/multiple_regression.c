@@ -247,7 +247,7 @@ int dgels_multiple_reg_coeff(double *mpar, double *my, long nn, unsigned ncoeff,
    Validating the accuracy of the coefficients.
    For the the validation is extremely basic, but it should be improved.
  */
-void validate(double *coeff, unsigned ncoeff, const char *codelet_name)
+void starpu_validate_mlr(double *coeff, unsigned ncoeff, const char *codelet_name)
 {
 	unsigned i;
 	if (coeff[0] < 0)
@@ -317,7 +317,7 @@ int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, doubl
 			return 1;
 		}
 		/* Basic validation of the model accuracy */
-		validate(coeff, ncoeff, codelet_name);
+		starpu_validate_mlr(coeff, ncoeff, codelet_name);
 #else
 		_STARPU_DISP("Warning: StarPU was compiled with '--disable-mlr' option or on Windows machine, thus multiple linear regression model will not be computed.\n");
 		for(i=0; i<ncoeff; i++)

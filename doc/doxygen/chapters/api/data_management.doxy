@@ -155,7 +155,7 @@ buffer that was initially registered.
 
 \fn void starpu_data_unregister_submit(starpu_data_handle_t handle)
 \ingroup API_Data_Management
-Destroy the data \p handle once it is not needed anymore by any
+Destroy the data \p handle once it is no longer needed by any
 submitted task. No coherency is assumed.
 
 \fn void starpu_data_invalidate(starpu_data_handle_t handle)
@@ -179,6 +179,22 @@ evicted from these nodes when memory gets scarse. When the data is
 modified, it is automatically transfered into those memory nodes. For
 instance a <c>1<<0</c> write-through mask means that the CUDA workers
 will commit their changes in main memory (node 0).
+
+\fn void starpu_data_set_name(starpu_data_handle_t handle, const char *name)
+\ingroup API_Data_Management
+Set the name of the data, to be shown in various profiling tools.
+
+\fn void starpu_data_set_coordinates_array(starpu_data_handle_t handle, int dimensions, int dims[])
+\ingroup API_Data_Management
+Set the coordinates of the data, to be shown in various profiling tools.
+\p dimensions is the size of the \p dims array
+This can be for instance the tile coordinates within a big matrix.
+
+\fn void starpu_data_set_coordinates(starpu_data_handle_t handle, unsigned dimensions, ...)
+\ingroup API_Data_Management
+Set the coordinates of the data, to be shown in various profiling tools.
+\p dimensions is the number of subsequent \c int parameters.
+This can be for instance the tile coordinates within a big matrix.
 
 \fn int starpu_data_fetch_on_node(starpu_data_handle_t handle, unsigned node, unsigned async)
 \ingroup API_Data_Management
@@ -264,8 +280,8 @@ the application will get an up-to-date copy of \p handle in main memory
 located where the data was originally registered, and that all
 concurrent accesses (e.g. from tasks) will be consistent with the
 access mode specified with \p mode. starpu_data_release() must
-be called once the application does not need to access the piece of
-data anymore. Note that implicit data dependencies are also enforced
+be called once the application no longer needs to access the piece of
+data. Note that implicit data dependencies are also enforced
 by starpu_data_acquire(), i.e. starpu_data_acquire() will wait for all
 tasks scheduled to work on the data, unless they have been disabled
 explictly by calling starpu_data_set_default_sequential_consistency_flag() or
@@ -280,8 +296,8 @@ Asynchronous equivalent of starpu_data_acquire(). When the data
 specified in \p handle is available in the access \p mode, the \p
 callback function is executed. The application may access
 the requested data during the execution of \p callback. The \p callback
-function must call starpu_data_release() once the application does not
-need to access the piece of data anymore. Note that implicit data
+function must call starpu_data_release() once the application no longer
+needs to access the piece of data. Note that implicit data
 dependencies are also enforced by starpu_data_acquire_cb() in case they
 are not disabled. Contrary to starpu_data_acquire(), this function is
 non-blocking and may be called from task callbacks. Upon successful
@@ -293,13 +309,26 @@ Equivalent of starpu_data_acquire_cb() with the possibility of enabling or disab
 When the data specified in \p handle is available in the access
 \p mode, the \p callback function is executed. The application may access
 the requested data during the execution of this \p callback. The \p callback
-function must call starpu_data_release() once the application does not
-need to access the piece of data anymore. Note that implicit data
+function must call starpu_data_release() once the application no longer
+needs to access the piece of data. Note that implicit data
 dependencies are also enforced by starpu_data_acquire_cb_sequential_consistency() in case they
 are not disabled specifically for the given \p handle or by the parameter \p sequential_consistency.
 Similarly to starpu_data_acquire_cb(), this function is
 non-blocking and may be called from task callbacks. Upon successful
 completion, this function returns 0.
+
+\fn int starpu_data_acquire_try(starpu_data_handle_t handle, enum starpu_data_access_mode mode)
+\ingroup API_Data_Management
+The application can call this function instead of starpu_data_acquire() so as to
+acquire the data like starpu_data_acquire(), but only if all
+previously-submitted tasks have completed, in which case starpu_data_acquire_try()
+returns 0. StarPU will have ensured that the application will get an up-to-date
+copy of \p handle in main memory located where the data was originally
+registered. starpu_data_release() must be called once the application no longer
+needs to access the piece of data.
+
+If not all previously-submitted tasks have completed, starpu_data_acquire_try
+returns -EAGAIN, and starpu_data_release() must not be called.
 
 \def STARPU_ACQUIRE_NO_NODE
 \ingroup API_Data_Management
@@ -330,6 +359,22 @@ used instead of an explicit node number.
 \fn int starpu_data_acquire_on_node_cb_sequential_consistency(starpu_data_handle_t handle, int node, enum starpu_data_access_mode mode, void (*callback)(void *), void *arg, int sequential_consistency)
 \ingroup API_Data_Management
 This is the same as starpu_data_acquire_cb_sequential_consistency(), except that the
+data will be available on the given memory node instead of main
+memory.
+::STARPU_ACQUIRE_NO_NODE and ::STARPU_ACQUIRE_NO_NODE_LOCK_ALL can be used instead of an
+explicit node number.
+
+\fn int starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_data_handle_t handle, int node, enum starpu_data_access_mode mode, void (*callback)(void *), void *arg, int sequential_consistency, long *pre_sync_jobid, long *post_sync_jobid)
+\ingroup API_Data_Management
+This is the same as starpu_data_acquire_on_node_cb_sequential_consistency(),
+except that the \e pre_sync_jobid and \e post_sync_jobid parameters can be used
+to retrieve the jobid of the synchronization tasks. \e pre_sync_jobid happens
+just before the acquisition, and \e post_sync_jobid happens just after the
+release.
+
+\fn int starpu_data_acquire_on_node_try(starpu_data_handle_t handle, int node, enum starpu_data_access_mode mode)
+\ingroup API_Data_Management
+This is the same as starpu_data_acquire_try(), except that the
 data will be available on the given memory node instead of main
 memory.
 ::STARPU_ACQUIRE_NO_NODE and ::STARPU_ACQUIRE_NO_NODE_LOCK_ALL can be used instead of an

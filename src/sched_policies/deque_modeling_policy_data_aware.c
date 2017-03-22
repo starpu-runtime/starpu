@@ -425,7 +425,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 		starpu_prefetch_task_input_on_node(task, memory_node);
 	}
 
-	STARPU_AYU_ADDTOTASKQUEUE(_starpu_get_job_associated_to_task(task)->job_id, best_workerid);
+	STARPU_AYU_ADDTOTASKQUEUE(starpu_task_get_job_id(task), best_workerid);
 	unsigned stream_ctx_id = starpu_worker_get_sched_ctx_id_stream(best_workerid);
 	if(stream_ctx_id != STARPU_NMAX_SCHED_CTXS)
 	{
@@ -448,7 +448,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 
 
 #if !defined(STARPU_NON_BLOCKING_DRIVERS) || defined(STARPU_SIMGRID)
-		starpu_wakeup_worker_locked(best_workerid, sched_cond, sched_mutex);
+		starpu_wake_worker_locked(best_workerid);
 #endif
 		starpu_push_task_end(task);
 		STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(sched_mutex);
@@ -460,7 +460,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 		dt->queue_array[best_workerid]->ntasks++;
 		dt->queue_array[best_workerid]->nprocessed++;
 #if !defined(STARPU_NON_BLOCKING_DRIVERS) || defined(STARPU_SIMGRID)
-		starpu_wakeup_worker_locked(best_workerid, sched_cond, sched_mutex);
+		starpu_wake_worker_locked(best_workerid);
 #endif
 		starpu_push_task_end(task);
 		STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(sched_mutex);
@@ -561,12 +561,14 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio, unsigned sched
 				best_impl = nimpl;
 			}
 
-			if (isnan(local_length)) {
+			if (isnan(local_length))
+			{
 				/* we are calibrating, we want to speed-up calibration time
 				 * so we privilege non-calibrated tasks (but still
 				 * greedily distribute them to avoid dumb schedules) */
 				static int warned;
-				if (!warned) {
+				if (!warned)
+				{
 					warned = 1;
 					_STARPU_DISP("Warning: performance model for %s not finished calibrating on worker %u, using a dumb scheduling heuristic for now\n", starpu_task_get_name(task), worker);
 				}
@@ -982,21 +984,29 @@ static void dmda_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nwo
 	unsigned i;
 	for (i = 0; i < nworkers; i++)
 	{
+		struct _starpu_fifo_taskq *q;
 		int workerid = workerids[i];
 		/* if the worker has alreadry belonged to this context
 		   the queue and the synchronization variables have been already initialized */
-		if(dt->queue_array[workerid] == NULL)
-			dt->queue_array[workerid] = _starpu_create_fifo();
+		q = dt->queue_array[workerid];
+		if(q == NULL)
+		{
+			q = dt->queue_array[workerid] = _starpu_create_fifo();
+			/* These are only stats, they can be read with races */
+			STARPU_HG_DISABLE_CHECKING(q->exp_start);
+			STARPU_HG_DISABLE_CHECKING(q->exp_len);
+			STARPU_HG_DISABLE_CHECKING(q->exp_end);
+		}
 
 		if(dt->num_priorities != -1)
 		{
-			_STARPU_MALLOC(dt->queue_array[workerid]->exp_len_per_priority, dt->num_priorities*sizeof(double));
-			_STARPU_MALLOC(dt->queue_array[workerid]->ntasks_per_priority, dt->num_priorities*sizeof(unsigned));
+			_STARPU_MALLOC(q->exp_len_per_priority, dt->num_priorities*sizeof(double));
+			_STARPU_MALLOC(q->ntasks_per_priority, dt->num_priorities*sizeof(unsigned));
 			int j;
 			for(j = 0; j < dt->num_priorities; j++)
 			{
-				dt->queue_array[workerid]->exp_len_per_priority[j] = 0.0;
-				dt->queue_array[workerid]->ntasks_per_priority[j] = 0;
+				q->exp_len_per_priority[j] = 0.0;
+				q->ntasks_per_priority[j] = 0;
 			}
 		}
 	}

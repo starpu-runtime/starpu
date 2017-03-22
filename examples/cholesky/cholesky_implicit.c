@@ -59,10 +59,11 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 	for (k = 0; k < nblocks; k++)
 	{
 		int ret;
+		starpu_iteration_push(k);
                 starpu_data_handle_t sdatakk = starpu_data_get_sub_data(dataA, 2, k, k);
 
                 ret = starpu_task_insert(&cl11,
-					 STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : unbound_prio ? 2*nblocks - 2*k : STARPU_MAX_PRIO,
+					 STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k) : STARPU_MAX_PRIO,
 					 STARPU_RW, sdatakk,
 					 STARPU_CALLBACK, (k == 3*nblocks/4)?callback_turn_spmd_on:NULL,
 					 STARPU_FLOPS, (double) FLOPS_SPOTRF(nn),
@@ -76,7 +77,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
                         starpu_data_handle_t sdatakj = starpu_data_get_sub_data(dataA, 2, k, j);
 
                         ret = starpu_task_insert(&cl21,
-						 STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : unbound_prio ? 2*nblocks - 2*k - j : (j == k+1)?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
+						 STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - j) : (j == k+1)?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
 						 STARPU_R, sdatakk,
 						 STARPU_RW, sdatakj,
 						 STARPU_FLOPS, (double) FLOPS_STRSM(nn, nn),
@@ -98,7 +99,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 					starpu_data_handle_t sdataij = starpu_data_get_sub_data(dataA, 2, i, j);
 
 					ret = starpu_task_insert(&cl22,
-								 STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : unbound_prio ? 2*nblocks - 2*k - j - i : ((i == k+1) && (j == k+1))?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
+								 STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - j - i) : ((i == k+1) && (j == k+1))?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
 								 STARPU_R, sdataki,
 								 STARPU_R, sdatakj,
 								 cl22.modes[2], sdataij,
@@ -111,6 +112,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 			}
 			starpu_data_wont_use(sdatakj);
 		}
+		starpu_iteration_pop();
 	}
 
 	starpu_task_wait_for_all();
@@ -161,6 +163,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 static int cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 {
 	starpu_data_handle_t dataA;
+	unsigned x, y;
 
 	/* monitor and partition the A matrix into blocks :
 	 * one block is now determined by 2 unsigned (i,j) */
@@ -179,6 +182,13 @@ static int cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 	};
 
 	starpu_data_map_filters(dataA, 2, &f, &f2);
+
+	for (x = 0; x < nblocks; x++)
+		for (y = 0; y < nblocks; y++)
+		{
+			starpu_data_handle_t data = starpu_data_get_sub_data(dataA, 2, x, y);
+			starpu_data_set_coordinates(data, 2, x, y);
+		}
 
 	int ret = _cholesky(dataA, nblocks);
 

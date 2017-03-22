@@ -73,7 +73,7 @@ struct malloc_pinned_codelet_struct
 //static void malloc_pinned_opencl_codelet(void *buffers[] STARPU_ATTRIBUTE_UNUSED, void *arg)
 //{
 //	struct malloc_pinned_codelet_struct *s = arg;
-//        //        *(s->ptr) = malloc(s->dim);
+//        //        _STARPU_MALLOC(*(s->ptr), s->dim);
 //        starpu_opencl_allocate_memory(devid, (void **)(s->ptr), s->dim, CL_MEM_READ_WRITE|CL_MEM_ALLOC_HOST_PTR);
 //}
 //#endif
@@ -144,19 +144,18 @@ int _starpu_malloc_flags_on_node(unsigned dst_node, void **A, size_t dim, int fl
 			starpu_memory_allocate(dst_node, dim, flags | STARPU_MEMORY_OVERFLOW);
 	}
 
-	struct _starpu_machine_config *config = _starpu_get_machine_config();
-	if (flags & STARPU_MALLOC_PINNED && disable_pinning <= 0 && STARPU_RUNNING_ON_VALGRIND == 0 && config->conf.ncuda != 0)
+	if (flags & STARPU_MALLOC_PINNED && disable_pinning <= 0 && STARPU_RUNNING_ON_VALGRIND == 0)
 	{
+		if (_starpu_can_submit_cuda_task())
+		{
 #ifdef STARPU_SIMGRID
 		/* FIXME: CUDA seems to be taking 650µs every 1MiB.
 		 * Ideally we would simulate this batching in 1MiB requests
 		 * instead of computing an average value.
 		 */
-		if (_starpu_simgrid_cuda_malloc_cost())
-			MSG_process_sleep((float) dim * 0.000650 / 1048576.);
+			if (_starpu_simgrid_cuda_malloc_cost())
+				MSG_process_sleep((float) dim * 0.000650 / 1048576.);
 #else /* STARPU_SIMGRID */
-		if (_starpu_can_submit_cuda_task())
-		{
 #ifdef STARPU_USE_CUDA
 #ifdef HAVE_CUDA_MEMCPY_PEER
 			cudaError_t cures;
@@ -196,7 +195,7 @@ int _starpu_malloc_flags_on_node(unsigned dst_node, void **A, size_t dim, int fl
 			goto end;
 #endif /* HAVE_CUDA_MEMCPY_PEER */
 #endif /* STARPU_USE_CUDA */
-		}
+//		}
 //		else if (_starpu_can_submit_opencl_task())
 //		{
 //#ifdef STARPU_USE_OPENCL
@@ -224,8 +223,8 @@ int _starpu_malloc_flags_on_node(unsigned dst_node, void **A, size_t dim, int fl
 //			STARPU_ASSERT(push_res != -ENODEV);
 //			goto end;
 //#endif /* STARPU_USE_OPENCL */
-//		}
 #endif /* STARPU_SIMGRID */
+		}
 	}
 
 #ifdef STARPU_SIMGRID
@@ -295,6 +294,7 @@ int _starpu_malloc_flags_on_node(unsigned dst_node, void **A, size_t dim, int fl
 	else
 #ifdef STARPU_HAVE_HWLOC
 	if (_starpu_get_nb_numa_nodes() > 1) {
+		struct _starpu_machine_config *config = _starpu_get_machine_config();
 		hwloc_topology_t hwtopology = config->topology.hwtopology;
 		hwloc_obj_t numa_node_obj = hwloc_get_obj_by_type(hwtopology, HWLOC_OBJ_NODE, _starpu_numa_id_to_logid(dst_node));
 		hwloc_bitmap_t nodeset = numa_node_obj->nodeset;
@@ -398,6 +398,9 @@ int _starpu_free_flags_on_node(unsigned dst_node, void *A, size_t dim, int flags
 	{
 		if (_starpu_can_submit_cuda_task())
 		{
+#ifdef STARPU_SIMGRID
+			/* TODO: simulate CUDA barrier */
+#else /* !STARPU_SIMGRID */
 #ifdef STARPU_USE_CUDA
 #ifndef HAVE_CUDA_MEMCPY_PEER
 			if (!_starpu_is_initialized())
@@ -434,6 +437,7 @@ int _starpu_free_flags_on_node(unsigned dst_node, void *A, size_t dim, int flags
 			}
 #endif /* HAVE_CUDA_MEMCPY_PEER */
 #endif /* STARPU_USE_CUDA */
+#endif /* STARPU_SIMGRID */
 		}
 //	else if (_starpu_can_submit_opencl_task())
 //	{
@@ -458,7 +462,7 @@ int _starpu_free_flags_on_node(unsigned dst_node, void *A, size_t dim, int flags
 //	}
 //#endif
 	}
-#endif /* STARPU_SIMGRID */
+#endif /*SIMGRID*/
 
 #ifdef STARPU_SIMGRID
 	if (flags & STARPU_MALLOC_SIMULATION_FOLDED)
@@ -673,6 +677,8 @@ _starpu_free_on_node_flags(unsigned dst_node, uintptr_t addr, size_t size, int f
 			if (_starpu_simgrid_cuda_malloc_cost())
 				MSG_process_sleep(0.000750);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&cuda_alloc_mutex);
+			/* CUDA also synchronizes roughly everything on cudaFree */
+			_starpu_simgrid_sync_gpus();
 #else
 			cudaError_t err;
 			unsigned devid = _starpu_memory_node_get_devid(dst_node);

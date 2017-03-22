@@ -13,6 +13,12 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
+
+if STARPU_USE_MPI_MASTER_SLAVE
+MPI_LAUNCHER 			= $(MPIEXEC)  $(MPIEXEC_ARGS) -np 4
+MPI_RUN_ARGS			= STARPU_WORKERS_NOBIND=1 STARPU_NCPU=4
+endif
+
 showcheck:
 	-cat $(TEST_LOGS) /dev/null
 	@! grep -q "ERROR: AddressSanitizer: " $(TEST_LOGS) /dev/null

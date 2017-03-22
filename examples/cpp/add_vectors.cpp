@@ -61,8 +61,14 @@ int main(int argc, char **argv)
 	std::vector<char> vec_B(VEC_SIZE, 3); // all the vector is initialized to 3
 	std::vector<char> vec_C(VEC_SIZE, 0); // all the vector is initialized to 0
 
+	struct starpu_conf conf;
+	starpu_conf_init(&conf);
+	conf.nmic = 0;
+	conf.nscc = 0;
+	conf.nmpi_ms = 0;
+
 	// initialize StarPU with default configuration
-	int ret = starpu_init(NULL);
+	int ret = starpu_init(&conf);
 	if (ret == -ENODEV)
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");

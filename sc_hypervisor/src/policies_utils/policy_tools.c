@@ -530,6 +530,7 @@ unsigned sc_hypervisor_check_speed_gap_btw_ctxs(unsigned *sched_ctxs_in, int ns_
 			}
 			has_opt_v = 1;
 		}
+		free(tw);
 	}
 
 /* if we have an optimal speed for each type of worker compare the monitored one with the

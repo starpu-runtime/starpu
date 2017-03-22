@@ -492,7 +492,7 @@ void _starpu_submit_job_enforce_arbitered_deps(struct _starpu_job *j, unsigned b
 
 			_starpu_spin_lock(&cancel_handle->header_lock);
 			/* reset the counter because finally we do not take the data */
-			STARPU_ASSERT(cancel_handle->refcnt == 1);
+			STARPU_ASSERT(cancel_handle->refcnt >= 1);
 			cancel_handle->refcnt--;
 			STARPU_ASSERT(cancel_handle->busy_count > 0);
 			cancel_handle->busy_count--;
@@ -545,8 +545,30 @@ void _starpu_notify_arbitered_dependencies(starpu_data_handle_t handle)
 #ifndef LOCK_OR_DELEGATE
 		STARPU_PTHREAD_MUTEX_UNLOCK(&arbiter->mutex);
 #endif
+
+		/* No waiter, just remove our reference */
+		_starpu_spin_lock(&handle->header_lock);
+		STARPU_ASSERT(handle->refcnt > 0);
+		handle->refcnt--;
+		STARPU_ASSERT(handle->busy_count > 0);
+		handle->busy_count--;
+		if (_starpu_data_check_not_busy(handle))
+			/* Handle was even destroyed, don't unlock it.  */
+			return;
+		_starpu_spin_unlock(&handle->header_lock);
 		return;
 	}
+
+	/* There is a waiter, remove our reference */
+	_starpu_spin_lock(&handle->header_lock);
+	STARPU_ASSERT(handle->refcnt > 0);
+	handle->refcnt--;
+	STARPU_ASSERT(handle->busy_count > 0);
+	handle->busy_count--;
+	/* There should be at least one busy_count reference for the waiter
+	 * (thus we don't risk to see the handle disappear below) */
+	STARPU_ASSERT(handle->busy_count > 0);
+	_starpu_spin_unlock(&handle->header_lock);
 
 	/* Note: we may be putting back our own requests, so avoid looping by
 	 * extracting the list */
@@ -566,10 +588,10 @@ void _starpu_notify_arbitered_dependencies(starpu_data_handle_t handle)
 			r_mode = _starpu_arbiter_filter_modes(r_mode);
 
 			_starpu_spin_lock(&handle->header_lock);
+			handle->busy_count++;
 			if (((handle->refcnt == 0) || (!(r_mode == STARPU_W) && (handle->current_mode == r_mode))))
 			{
 				handle->refcnt++;
-				handle->busy_count++;
 				handle->current_mode = r_mode;
 				put_in_list = 0;
 			}
@@ -695,7 +717,7 @@ void _starpu_notify_arbitered_dependencies(starpu_data_handle_t handle)
 				if (cancel_handle->arbiter != arbiter)
 					break;
 				_starpu_spin_lock(&cancel_handle->header_lock);
-				STARPU_ASSERT(cancel_handle->refcnt == 1);
+				STARPU_ASSERT(cancel_handle->refcnt >= 1);
 				cancel_handle->refcnt--;
 				STARPU_ASSERT(cancel_handle->busy_count > 0);
 				cancel_handle->busy_count--;

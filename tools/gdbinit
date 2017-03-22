@@ -176,7 +176,7 @@ end
 
 define starpu-print-tag
   set language c
-  set $tag_struct = (struct _starpu_tag *)gettag_struct($arg0)
+  set $tag_struct = (struct _starpu_tag *)_gettag_struct($arg0)
   if $tag_struct->state == STARPU_INVALID_STATE
      set $status="STARPU_INVALID_STATE"
   end
@@ -712,6 +712,59 @@ define starpu-print-registered-models
     end
 end
 
+define starpu-sched-data
+    print _starpu_config.sched_ctxs[$arg0]->policy_data
+end
+
+define starpu-print-spaces
+    set $j = 0
+    while $j < $arg0
+      printf "  "
+      set $j = $j + 1
+    end
+end
+
+define starpu-sched-print-component
+    set $c = $arg1
+    starpu-print-spaces $arg0
+    printf "%s %s %s (struct starpu_sched_component *) %p\n", $c->name, $c->properties & STARPU_SCHED_COMPONENT_HOMOGENEOUS ? "homogeneous":"heterogeneous", $c->properties & STARPU_SCHED_COMPONENT_SINGLE_MEMORY_NODE ? "single-node" : "multi-node", $c
+    if $c->push_task == prio_push_task
+      set $q = &((struct _starpu_prio_data *) $c->data)->prio
+      starpu-print-spaces $arg0
+      printf "%d tasks start %f len %f end %f processed %d\n", $q->ntasks, $q->exp_start, $q->exp_end, $q->exp_len, $q->nprocessed
+    end
+    if $c->push_task == simple_worker_push_task
+      set $d = (struct _starpu_worker_component_data *) $c->data
+      set $l = $d->list
+      starpu-print-spaces $arg0
+      if $d->status == COMPONENT_STATUS_SLEEPING
+        printf "sleep "
+      end
+      if $d->status == COMPONENT_STATUS_RESET
+        printf "reset "
+      end
+      if $d->status == COMPONENT_STATUS_CHANGED
+        printf "chang "
+      end
+      printf "%d tasks pipeline %f start %f len %f end %f\n", $l->ntasks, $l->pipeline_len, $l->exp_start, $l->exp_len, $l->exp_end
+    end
+end
+
+define starpu-sched-print-recur-component
+    starpu-sched-print-component $arg0 $arg1
+    set $i[$arg0] = 0
+    while $i[$arg0] < $arg1->nchildren
+      starpu-sched-print-recur-component ($arg0+1) $arg1->children[$i[$arg0]]
+      set $i[$arg0] = $i[$arg0] + 1
+    end
+end
+
+define starpu-sched-print-modular
+    set $t = (struct starpu_sched_tree *) _starpu_config.sched_ctxs[$arg0]->policy_data
+    set $i = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0 }
+    starpu-sched-print-recur-component 0 $t->root
+end
+
 define starpu-mpi-print-request
     set $request = (struct _starpu_mpi_req *)$arg0
     set $request_type = "unknown_type"
@@ -851,6 +904,8 @@ starpu-print-archs                 prints all known arch combinations
 starpu-print-arch                  prints a given arch combination
 starpu-print-registered-models     prints all registered performance models
 starpu-print-model                 prints a given performance model
+starpu-sched-data                  prints the data of the given scheduler
+starpu-sched-print-modular         prints the hierarchy of modular scheduling components
 starpu-mpi-print-ready-requests    prints all MPI ready requests
 starpu-mpi-print-detached-requests prints all MPI detached requests
 starpu-mpi-print-early-data        prints all MPI early received data

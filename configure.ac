@@ -631,6 +631,8 @@ then
     INCLUDE_PTHREAD_H='#include <pthread.h>'
 fi
 
+AC_CHECK_HEADERS([unistd.h], [AC_DEFINE([STARPU_HAVE_UNISTD_H], [1], [Define to 1 if you have the <unistd.h> header file.])])
+
 AC_CHECK_TYPE([struct timespec],
 	       AC_DEFINE(STARPU_HAVE_STRUCT_TIMESPEC,[1],[struct timespec is defined]),
 	       [], [
@@ -642,8 +644,6 @@ AC_CHECK_TYPE([struct timespec],
 #include <time.h>
 $INCLUDE_PTHREAD_H
 ])
-
-AC_CHECK_HEADERS([unistd.h], [AC_DEFINE([STARPU_HAVE_UNISTD_H], [1], [Define to 1 if you have the <unistd.h> header file.])])
 
 if test x"$enable_native_winthreads" = xyes
 then
@@ -1033,13 +1033,8 @@ AC_DEFUN([STARPU_CHECK_CUDA],
 	    rm -f cuda_test*
 	fi
 
-	# nvcc is a wrapper around GCC, and calls it with the -dumpspecs
-	# option, which is GCC specific. If $CC does not support -dumpspecs, we
-	# should let nvcc choose another compiler (by default, gcc, if it is
-	# installed). If gcc is not installed, the build will probably fail.
-	$CC -dumpspecs >/dev/null 2>&1
-	if test $? -eq 0 -a x$starpu_windows != xyes; then
-	    NVCCFLAGS="${NVCCFLAGS} -ccbin \${CC}"
+	if test -n "$NVCC_CC"; then
+	    NVCCFLAGS="${NVCCFLAGS} -ccbin \${NVCC_CC}"
 	fi
 	if test "$__cuda_include_dir" != "no"; then
 	    STARPU_CUDA_CPPFLAGS="-I$__cuda_include_dir"
@@ -1127,7 +1122,6 @@ if test x$enable_cuda = xyes; then
 	#in case this is a 64bit setup, we tell nvcc to use a -m64 flag
 	if test x$SIZEOF_VOID_P = x8; then
 		NVCCFLAGS="${NVCCFLAGS} -m64"
-		AC_SUBST(NVCCFLAGS)
 	fi
 
 	AC_CHECK_HEADERS([cuda_gl_interop.h])
@@ -1197,6 +1191,7 @@ if test x$enable_cuda = xyes; then
 fi
 
 AC_ARG_VAR([NVCC], [CUDA compiler])
+AC_ARG_VAR([NVCC_CC], [C compiler for CUDA compiler])
 AC_ARG_VAR([NVCCFLAGS], [CUDA compiler flags])
 
 ###############################################################################
@@ -1927,12 +1922,6 @@ if test x$use_fxt = xyes; then
 		FXT_LIBS="$(pkg-config --variable=libdir fxt)/libfxt.a -Wl,--as-needed $(pkg-config --libs --static fxt) -Wl,--no-as-needed"
 	fi
 
-        AC_ARG_ENABLE(paje-codelet-details, [AS_HELP_STRING([--enable-paje-codelet-details],
-			[enable details about codelets in the paje trace])],
-			enable_paje_codelet_details=$enableval, enable_paje_codelet_details=no)
-        if  test x$enable_paje_codelet_details = xyes; then
-        	AC_DEFINE(STARPU_ENABLE_PAJE_CODELET_DETAILS, [1], [enable details about codelets in the paje trace])
-        fi
 	##########################################
 	# Poti is a library to generate paje trace files
 	##########################################

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2013, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2013, 2016, 2017  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -157,8 +157,9 @@ static void starpu_to_gordon_buffers(struct _starpu_job *j, struct gordon_ppu_jo
 static struct gordon_task_wrapper_s *starpu_to_gordon_job(struct _starpu_job *j)
 {
 	struct gordon_ppu_job_s *gordon_job = gordon_alloc_jobs(1, 0);
-	struct gordon_task_wrapper_s *task_wrapper =
-				malloc(sizeof(struct gordon_task_wrapper_s));
+	struct gordon_task_wrapper_s *task_wrapper;
+
+	_STARPU_MALLOC(task_wrapper, sizeof(struct gordon_task_wrapper_s));
 
 	task_wrapper->gordon_job = gordon_job;
 	task_wrapper->j = j;
@@ -301,7 +302,8 @@ int inject_task_list(struct _starpu_job_list *list, struct _starpu_worker *worke
 
 
 
-	struct gordon_task_wrapper_s *task_wrapper = malloc(sizeof(struct gordon_task_wrapper_s));
+	struct gordon_task_wrapper_s *task_wrapper;
+	_STARPU_MALLOC(task_wrapper, sizeof(struct gordon_task_wrapper_s));
 	gordon_job_t *gordon_jobs = gordon_alloc_jobs(nvalids, 0);
 
 	task_wrapper->gordon_job = gordon_jobs;

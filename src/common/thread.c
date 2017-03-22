@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2012-2017  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,6 +18,8 @@
 #include <starpu.h>
 #include <core/simgrid.h>
 #include <core/workers.h>
+
+#include <limits.h>
 
 #ifdef STARPU_SIMGRID
 #ifdef STARPU_HAVE_XBT_SYNCHRO_H
@@ -57,7 +59,9 @@ int starpu_pthread_create_on(char *name, starpu_pthread_t *thread, const starpu_
 	_args[2] = NULL;
 	if (!host)
 		host = MSG_get_host_by_name("MAIN");
-	*thread = MSG_process_create_with_arguments(name, _starpu_simgrid_thread_start, calloc(MAX_TSD+1, sizeof(void*)), host, 2, _args);
+	void *tsd;
+	_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));
+	*thread = MSG_process_create_with_arguments(name, _starpu_simgrid_thread_start, tsd, host, 2, _args);
 	return 0;
 }
 
@@ -117,7 +121,8 @@ int starpu_pthread_mutex_lock(starpu_pthread_mutex_t *mutex)
 
 	/* Note: this is actually safe, because simgrid only preempts within
 	 * simgrid functions */
-	if (!*mutex) {
+	if (!*mutex)
+	{
 		/* Here we may get preempted */
 		xbt_mutex_t new_mutex = xbt_mutex_init();
 		if (!*mutex)
@@ -193,11 +198,13 @@ int starpu_pthread_key_create(starpu_pthread_key_t *key, void (*destr_function) 
 
 	/* Note: no synchronization here, we are actually monothreaded anyway. */
 	for (i = 0; i < MAX_TSD; i++)
+	{
 		if (!used_key[i])
 		{
 			used_key[i] = 1;
 			break;
 		}
+	}
 	STARPU_ASSERT(i < MAX_TSD);
 	/* key 0 is for process pointer argument */
 	*key = i+1;
@@ -249,7 +256,8 @@ static void _starpu_pthread_cond_auto_init(starpu_pthread_cond_t *cond)
 {
 	/* Note: this is actually safe, because simgrid only preempts within
 	 * simgrid functions */
-	if (!*cond) {
+	if (!*cond)
+	{
 		/* Here we may get preempted */
 		xbt_cond_t new_cond = xbt_cond_init();
 		if (!*cond)
@@ -527,7 +535,8 @@ int starpu_pthread_barrier_init(starpu_pthread_barrier_t *restrict barrier, cons
 int starpu_pthread_barrier_destroy(starpu_pthread_barrier_t *barrier)
 {
 	starpu_pthread_mutex_lock(&barrier->mutex);
-	while (barrier->busy) {
+	while (barrier->busy)
+	{
 		starpu_pthread_cond_wait(&barrier->cond_destroy, &barrier->mutex);
 	}
 	starpu_pthread_mutex_unlock(&barrier->mutex);
@@ -694,34 +703,47 @@ int starpu_pthread_barrier_wait(starpu_pthread_barrier_t *barrier)
  * macros of course) which record when the mutex is held or not */
 int starpu_pthread_mutex_lock_sched(starpu_pthread_mutex_t *mutex)
 {
-	int p_ret = starpu_pthread_mutex_lock(mutex);
-	int workerid = starpu_worker_get_id();
-	if(workerid != -1 && _starpu_worker_mutex_is_sched_mutex(workerid, mutex))
-		_starpu_worker_set_flag_sched_mutex_locked(workerid, 1);
-	return p_ret;
+	const int workerid = starpu_worker_get_id();
+	struct _starpu_worker * const worker = (workerid != -1)?_starpu_get_worker_struct(workerid):NULL;
+	if(worker && mutex == &worker->sched_mutex)
+	{
+		STARPU_ASSERT(worker->sched_mutex_depth < UINT_MAX);
+		worker->sched_mutex_depth++;
+		if (worker->sched_mutex_depth > 1)
+			return 0;
+	}
+
+	return starpu_pthread_mutex_lock(mutex);
 }
 
 int starpu_pthread_mutex_unlock_sched(starpu_pthread_mutex_t *mutex)
 {
-	int workerid = starpu_worker_get_id();
-	if(workerid != -1 && _starpu_worker_mutex_is_sched_mutex(workerid, mutex))
-		_starpu_worker_set_flag_sched_mutex_locked(workerid, 0);
+	const int workerid = starpu_worker_get_id();
+	struct _starpu_worker * const worker = (workerid != -1)?_starpu_get_worker_struct(workerid):NULL;
+	if(worker && mutex == &worker->sched_mutex)
+	{
+		STARPU_ASSERT(worker->sched_mutex_depth > 0);
+		worker->sched_mutex_depth--;
+		if (worker->sched_mutex_depth > 0)
+			return 0;
+	}
 
 	return starpu_pthread_mutex_unlock(mutex);
 }
 
 int starpu_pthread_mutex_trylock_sched(starpu_pthread_mutex_t *mutex)
 {
-	int ret = starpu_pthread_mutex_trylock(mutex);
-
-	if (!ret)
+	const int workerid = starpu_worker_get_id();
+	struct _starpu_worker * const worker = (workerid != -1)?_starpu_get_worker_struct(workerid):NULL;
+	if(worker && mutex == &worker->sched_mutex)
 	{
-		int workerid = starpu_worker_get_id();
-		if(workerid != -1 && _starpu_worker_mutex_is_sched_mutex(workerid, mutex))
-			_starpu_worker_set_flag_sched_mutex_locked(workerid, 1);
+		STARPU_ASSERT(worker->sched_mutex_depth < UINT_MAX);
+		worker->sched_mutex_depth++;
+		if (worker->sched_mutex_depth > 1)
+			return 0;
 	}
 
-	return ret;
+	return starpu_pthread_mutex_trylock(mutex);
 }
 
 #ifdef STARPU_DEBUG

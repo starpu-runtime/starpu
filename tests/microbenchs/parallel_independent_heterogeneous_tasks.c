@@ -129,8 +129,9 @@ int main(int argc, char *argv[])
 
 	starpu_shutdown();
 
+	//test reussi ou test echoue
 	if (check && check_sup)
-	{ //test reussi ou test echoue
+	{
 		return EXIT_SUCCESS;
 	}
 	else

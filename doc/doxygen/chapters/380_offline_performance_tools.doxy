@@ -122,10 +122,6 @@ $ vite paje.trace
 
 To get names of tasks instead of "unknown", fill the optional
 starpu_codelet::name, or use a performance model for them.
-Details of the codelet execution can be obtained by passing
-\ref enable-paje-codelet-details "--enable-paje-codelet-details" when
-configuring StarPU and using a recent enough version of ViTE (at least
-r1430).
 
 In the MPI execution case, \ref STARPU_GENERATE_TRACE will not work as expected
 (each node will try to generate paje.trace, thus mixing outputs...), you have to
@@ -139,15 +135,26 @@ $ starpu_fxt_tool -i /tmp/prof_file_something1 -i /tmp/prof_file_something2
 By default, all tasks are displayed using a green color. To display tasks with
 varying colors, pass option <c>-c</c> to <c>starpu_fxt_tool</c>.
 
+By default, the trace contains all informations. To reduce the trace size,
+various <c>-no-foo</c> options can be passed to <c>starpu_fxt_tool</c>, see
+<c>starpu_fxt_tool --help</c> .
+
 To identify tasks precisely, the application can set the starpu_task::tag_id field of the
-task (or use \ref STARPU_TAG_ONLY when using starpu_task_insert()), and with a recent
-enough version of ViTE (>= r1430) and the
-\ref enable-paje-codelet-details "--enable-paje-codelet-details"
-StarPU configure option, the value of the tag will show up in the trace.
+task (or use \ref STARPU_TAG_ONLY when using starpu_task_insert()), and
+the value of the tag will show up in the trace.
 
 It can also set the starpu_task::name field of the task (or use \ref STARPU_NAME)
 when using starpu_task_insert()), to replace in traces the name of the codelet
 with an arbitrarily chosen name.
+
+It can also set the iteration number, by just calling starpu_iteration_push()
+at the beginning of submission loops and starpu_iteration_pop() at the end of
+submission loops. These iteration numbers will show up in traces for all tasks
+submitted from there.
+
+Coordinates can also be given to data with the starpu_data_set_coordinates() or
+starpu_data_set_coordinates_array() function. In the trace, tasks will then be
+assigned the coordinates of the first data they write to.
 
 Traces can also be inspected by hand by using the tool <c>fxt_print</c>, for instance:
 

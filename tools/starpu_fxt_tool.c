@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2014, 2016  Universite de Bordeaux
+ * Copyright (C) 2011-2014, 2016-2017  Universite de Bordeaux
  * Copyright (C) 2012-2015  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -34,8 +34,10 @@ static void usage()
 	fprintf(stderr, "                       times for MPI execution case\n");
         fprintf(stderr, "   -o <output file>    specify the output file\n");
         fprintf(stderr, "   -c                  use a different colour for every type of task\n");
-        fprintf(stderr, "   -no-counter         set the FxT no counter option\n");
-        fprintf(stderr, "   -no-bus             set the FxT no bus option\n");
+	fprintf(stderr, "   -no-events          do not show events\n");
+	fprintf(stderr, "   -no-counter         do not show scheduler counters\n");
+	fprintf(stderr, "   -no-bus             do not show PCI bus transfers\n");
+	fprintf(stderr, "   -no-flops           do not show flops\n");
 	fprintf(stderr, "   -no-smooth          avoid smoothing values for gflops etc.\n");
 	fprintf(stderr, "   -h, --help          display this help and exit\n");
 	fprintf(stderr, "   -v, --version       output version information and exit\n\n");
@@ -77,6 +79,13 @@ static int parse_args(int argc, char **argv)
 			continue;
 		}
 
+		if (strcmp(argv[i], "-no-events") == 0)
+		{
+			options.no_events = 1;
+			reading_input_filenames = 0;
+			continue;
+		}
+
 		if (strcmp(argv[i], "-no-counter") == 0)
 		{
 			options.no_counter = 1;
@@ -87,6 +96,13 @@ static int parse_args(int argc, char **argv)
 		if (strcmp(argv[i], "-no-bus") == 0)
 		{
 			options.no_bus = 1;
+			reading_input_filenames = 0;
+			continue;
+		}
+
+		if (strcmp(argv[i], "-no-flops") == 0)
+		{
+			options.no_flops = 1;
 			reading_input_filenames = 0;
 			continue;
 		}

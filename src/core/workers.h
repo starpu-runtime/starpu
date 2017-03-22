@@ -83,6 +83,11 @@ LIST_TYPE(_starpu_worker,
 	unsigned numa_memory_node; /* which numa memory node is the worker associated with? (logical index) */
 	starpu_pthread_cond_t sched_cond; /* condition variable used when the worker waits for tasks. */
         starpu_pthread_mutex_t sched_mutex; /* mutex protecting sched_cond */
+	int state_sched_op_pending:1; /* a task pop is ongoing even though sched_mutex may temporarily be unlocked */
+	int state_changing_ctx_waiting:1; /* a thread is waiting for transient operations such as pop to complete before acquiring sched_mutex and modifying the worker ctx*/
+	int state_blocked:1;
+	int state_wait_ack__blocked:1;
+	int state_wait_handshake__blocked:1;
 	struct starpu_task_list local_tasks; /* this queue contains tasks that have been explicitely submitted to that queue */
 	struct starpu_task **local_ordered_tasks; /* this queue contains tasks that have been explicitely submitted to that queue with an explicit order */
 	unsigned local_ordered_tasks_size; /* this records the size of local_ordered_tasks */
@@ -136,11 +141,8 @@ LIST_TYPE(_starpu_worker,
 	/* indicate which priority of ctx is currently active: the values are 0 or 1*/
 	unsigned pop_ctx_priority;
 
-	/* flag to know if sched_mutex is locked or not */
-	unsigned sched_mutex_locked;
-
-	/* bool to indicate if the worker is blocked in a ctx */
-	unsigned blocked;
+	/* sched mutex local worker locking depth */
+	unsigned sched_mutex_depth;
 
 	/* bool to indicate if the worker is slave in a ctx */
 	unsigned is_slave_somewhere;
@@ -507,7 +509,7 @@ static inline struct _starpu_worker *_starpu_get_worker_struct(unsigned id)
 	return &_starpu_config.workers[id];
 }
 
-/* Returns the starpu_sched_ctx structure that descriebes the state of the 
+/* Returns the starpu_sched_ctx structure that describes the state of the 
  * specified ctx */
 static inline struct _starpu_sched_ctx *_starpu_get_sched_ctx_struct(unsigned id)
 {
@@ -556,18 +558,6 @@ int starpu_worker_get_nids_by_type(enum starpu_worker_archtype type, int *worker
 /* returns workers not belonging to any context, be careful no mutex is used, 
    the list might not be updated */
 int starpu_worker_get_nids_ctx_free_by_type(enum starpu_worker_archtype type, int *workerids, int maxsize);
-
-/* if the current worker has the lock release it */
-void _starpu_unlock_mutex_if_prev_locked();
-
-/* if we prev released the lock relock it */
-void _starpu_relock_mutex_if_prev_locked();
-
-static inline void _starpu_worker_set_flag_sched_mutex_locked(int workerid, unsigned flag)
-{
-	struct _starpu_worker *w = _starpu_get_worker_struct(workerid);
-	w->sched_mutex_locked = flag;
-}
 
 static inline unsigned _starpu_worker_mutex_is_sched_mutex(int workerid, starpu_pthread_mutex_t *mutex)
 {
@@ -620,5 +610,44 @@ static inline unsigned __starpu_worker_get_id_check(const char *f, int l)
 void _starpu_worker_set_stream_ctx(unsigned workerid, struct _starpu_sched_ctx *sched_ctx);
 
 struct _starpu_sched_ctx* _starpu_worker_get_ctx_stream(unsigned stream_workerid);
+
+/* Must be called with worker's sched_mutex held.
+ * Mark the beginning of a scheduling operation during which the sched_mutex
+ * lock may be temporarily released, but the scheduling context of the worker
+ * should not be modified */
+static inline void _starpu_worker_enter_transient_sched_op(struct _starpu_worker * const worker)
+{
+	worker->state_sched_op_pending = 1;
+}
+
+/* Must be called with worker's sched_mutex held.
+ * Mark the end of a scheduling operation, and notify potential waiters that
+ * scheduling context changes can safely be performed again.
+ */
+static inline void  _starpu_worker_leave_transient_sched_op(struct _starpu_worker * const worker)
+{
+	worker->state_sched_op_pending = 0;
+	if (worker->state_changing_ctx_waiting)
+		/* cond_broadcast is required over cond_signal since
+		 * the condition is share for multiple purpose */
+		STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
+}
+
+/* Must be called with worker's sched_mutex held.
+ * Passively wait until state_sched_op_pending is cleared.
+ */
+static inline void _starpu_worker_wait_for_transient_sched_op_completion(struct _starpu_worker * const worker)
+{
+	if (worker->state_sched_op_pending)
+	{
+		worker->state_changing_ctx_waiting = 1;
+		do
+		{
+			STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
+		}
+		while (worker->state_sched_op_pending);
+		worker->state_changing_ctx_waiting = 0;
+	}
+}
 
 #endif // __WORKERS_H__

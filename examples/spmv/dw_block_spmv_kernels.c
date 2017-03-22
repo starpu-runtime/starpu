@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010-2011, 2015  Université de Bordeaux
- * Copyright (C) 2010, 2011  CNRS
+ * Copyright (C) 2009, 2010-2011, 2015, 2017  Université de Bordeaux
+ * Copyright (C) 2010, 2011, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -49,11 +49,13 @@ static inline void common_block_spmv(void *descr[], int s, STARPU_ATTRIBUTE_UNUS
 			break;
 #ifdef STARPU_USE_CUDA
 		case 1:
+		{
 			cublasStatus_t status = cublasSgemv (starpu_cublas_get_local_handle(),
 					CUBLAS_OP_T, dx, dy, &p1, block, ld, in, 1, &p1, out, 1);
 			if (status != CUBLAS_STATUS_SUCCESS)
 				STARPU_CUBLAS_REPORT_ERROR(status);
 			break;
+		}
 #endif
 		default:
 			STARPU_ABORT();

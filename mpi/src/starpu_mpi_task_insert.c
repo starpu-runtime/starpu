@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
- * Copyright (C) 2011-2016  Université de Bordeaux
+ * Copyright (C) 2011-2017  Université de Bordeaux
  * Copyright (C) 2014, 2016 Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -102,10 +102,6 @@ void _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum 
 		{
 			_STARPU_ERROR("StarPU needs to be told the MPI rank of this data, using starpu_mpi_data_register\n");
 		}
-		if (data_tag == -1)
-		{
-			_STARPU_ERROR("StarPU needs to be told the MPI tag of this data, using starpu_mpi_data_register\n");
-		}
 
 		if (do_execute && mpi_rank != me)
 		{
@@ -113,6 +109,8 @@ void _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum 
 			int already_received = _starpu_mpi_cache_received_data_set(data);
 			if (already_received == 0)
 			{
+				if (data_tag == -1)
+					_STARPU_ERROR("StarPU needs to be told the MPI tag of this data, using starpu_mpi_data_register\n");
 				_STARPU_MPI_DEBUG(1, "Receiving data %p from %d\n", data, mpi_rank);
 				starpu_mpi_irecv_detached(data, mpi_rank, data_tag, comm, NULL, NULL);
 			}
@@ -125,6 +123,8 @@ void _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum 
 			int already_sent = _starpu_mpi_cache_sent_data_set(data, xrank);
 			if (already_sent == 0)
 			{
+				if (data_tag == -1)
+					_STARPU_ERROR("StarPU needs to be told the MPI tag of this data, using starpu_mpi_data_register\n");
 				_STARPU_MPI_DEBUG(1, "Sending data %p to %d\n", data, xrank);
 				_SEND_DATA(data, mode, xrank, data_tag, comm, NULL, NULL);
 			}
@@ -144,20 +144,20 @@ void _starpu_mpi_exchange_data_after_execution(starpu_data_handle_t data, enum s
 		{
 			_STARPU_ERROR("StarPU needs to be told the MPI rank of this data, using starpu_mpi_data_register\n");
 		}
-		if(data_tag == -1)
-		{
-			_STARPU_ERROR("StarPU needs to be told the MPI tag of this data, using starpu_mpi_data_register\n");
-		}
 		if (mpi_rank == me)
 		{
 			if (xrank != -1 && me != xrank)
 			{
 				_STARPU_MPI_DEBUG(1, "Receive data %p back from the task %d which executed the codelet ...\n", data, xrank);
+				if(data_tag == -1)
+					_STARPU_ERROR("StarPU needs to be told the MPI tag of this data, using starpu_mpi_data_register\n");
 				starpu_mpi_irecv_detached(data, xrank, data_tag, comm, NULL, NULL);
 			}
 		}
 		else if (do_execute)
 		{
+			if(data_tag == -1)
+				_STARPU_ERROR("StarPU needs to be told the MPI tag of this data, using starpu_mpi_data_register\n");
 			_STARPU_MPI_DEBUG(1, "Send data %p back to its owner %d...\n", data, mpi_rank);
 			_SEND_DATA(data, mode, mpi_rank, data_tag, comm, NULL, NULL);
 		}

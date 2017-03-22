@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2015, 2017  INRIA
- * Copyright (C) 2016  CNRS
+ * Copyright (C) 2016, 2017  CNRS
  * Copyright (C) 2016  Uppsala University
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -454,7 +454,8 @@ static struct starpu_task *pop_task_heteroprio_policy(unsigned sched_ctx_id)
 	/* If no tasks available, no tasks in worker queue or some arch worker queue just return NULL */
 	if (!STARPU_RUNNING_ON_VALGRIND
 	    && (hp->total_tasks_in_buckets == 0 || hp->nb_remaining_tasks_per_arch_index[worker->arch_index] == 0)
-            && worker->tasks_queue->ntasks == 0 && hp->nb_prefetched_tasks_per_arch_index[worker->arch_index] == 0){
+            && worker->tasks_queue->ntasks == 0 && hp->nb_prefetched_tasks_per_arch_index[worker->arch_index] == 0)
+	{
 		return NULL;
 	}
 
@@ -512,7 +513,7 @@ static struct starpu_task *pop_task_heteroprio_policy(unsigned sched_ctx_id)
 				struct starpu_task* task = _starpu_fifo_pop_local_task(bucket->tasks_queue);
 				STARPU_ASSERT(starpu_worker_can_execute_task(workerid, task, 0));
 				/* Save the task */
-				STARPU_AYU_ADDTOTASKQUEUE(_starpu_get_job_associated_to_task(task)->job_id, workerid);
+				STARPU_AYU_ADDTOTASKQUEUE(starpu_task_get_job_id(task), workerid);
 				_starpu_fifo_push_task(worker->tasks_queue, task);
 
 				/* Update general counter */
@@ -566,7 +567,8 @@ static struct starpu_task *pop_task_heteroprio_policy(unsigned sched_ctx_id)
 		}
 
 		/* circular loop */
-		while (1) {
+		while (1)
+		{
 			if (!workers->has_next(workers, &it))
 			{
 				/* End of the list, restart from the beginning */
@@ -581,7 +583,8 @@ static struct starpu_task *pop_task_heteroprio_policy(unsigned sched_ctx_id)
 
 				/* If it is the same arch and there is a task to steal */
 				if(hp->workers_heteroprio[victim].arch_index == worker->arch_index
-				   && hp->workers_heteroprio[victim].tasks_queue->ntasks){
+				   && hp->workers_heteroprio[victim].tasks_queue->ntasks)
+				{
 					starpu_pthread_mutex_t *victim_sched_mutex;
 					starpu_pthread_cond_t *victim_sched_cond;
 					starpu_worker_get_sched_condition(victim, &victim_sched_mutex, &victim_sched_cond);

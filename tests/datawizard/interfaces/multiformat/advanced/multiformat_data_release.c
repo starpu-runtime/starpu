@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2011-2012  INRIA
  * Copyright (C) 2011, 2012, 2013  CNRS
+ * Copyright (C) 2017  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -151,7 +152,6 @@ main(int argc, char **argv)
 	conf.ncuda = 1;
 	conf.nopencl = 1;
 	conf.nmic = 1;
-	conf.nmpi_ms = 0;
 	memset(&global_stats, 0, sizeof(global_stats));
 	ret = starpu_initialize(&conf, &argc, &argv);
 	if (ret == -ENODEV || starpu_cpu_worker_get_count() == 0) return STARPU_TEST_SKIPPED;

@@ -78,6 +78,9 @@
 
 #define _STARPU_FUT_MODEL_NAME		0x511c
 
+#define _STARPU_FUT_DATA_NAME		0x511d
+#define _STARPU_FUT_DATA_COORDINATES	0x511e
+
 #define _STARPU_FUT_USER_DEFINED_START	0x5120
 #define _STARPU_FUT_USER_DEFINED_END	0x5121
 
@@ -213,6 +216,9 @@
 
 #define _STARPU_FUT_START_FETCH_INPUT	0x517e
 #define _STARPU_FUT_END_FETCH_INPUT	0x517f
+
+#define _STARPU_FUT_TASK_THROTTLE_START	0x5180
+#define _STARPU_FUT_TASK_THROTTLE_END	0x5181
 
 #ifdef STARPU_USE_FXT
 #include <fxt/fxt.h>
@@ -459,10 +465,89 @@ do {									\
 } while (0)
 #endif
 
+#ifndef FUT_RAW_ALWAYS_PROBE2
+#define FUT_RAW_ALWAYS_PROBE2(CODE,P1,P2) do {	\
+		unsigned long *__args __attribute__((unused))=	\
+			fut_getstampedbuffer(CODE,		\
+					     FUT_SIZE(2)); \
+		*(__args++)=(unsigned long)(P1);*(__args++)=(unsigned long)(P2); \
+		fut_commitstampedbuffer(FUT_SIZE(2)); \
+	} while (0)
+#endif
+#define FUT_DO_ALWAYS_PROBE2(CODE,P1,P2) do { \
+        FUT_RAW_ALWAYS_PROBE2(FUT_CODE(CODE, 2),P1,P2); \
+} while (0)
+
+#ifndef FUT_RAW_ALWAYS_PROBE3
+#define FUT_RAW_ALWAYS_PROBE3(CODE,P1,P2,P3) do {	\
+		unsigned long *__args __attribute__((unused))=	\
+			fut_getstampedbuffer(CODE,		\
+					     FUT_SIZE(3)); \
+		*(__args++)=(unsigned long)(P1);*(__args++)=(unsigned long)(P2);*(__args++)=(unsigned long)(P3);				\
+		fut_commitstampedbuffer(FUT_SIZE(3)); \
+	} while (0)
+#endif
+#define FUT_DO_ALWAYS_PROBE3(CODE,P1,P2,P3) do { \
+        FUT_RAW_ALWAYS_PROBE3(FUT_CODE(CODE, 3),P1,P2,P3); \
+} while (0)
+
+#ifndef FUT_RAW_ALWAYS_PROBE4
+#define FUT_RAW_ALWAYS_PROBE4(CODE,P1,P2,P3,P4) do {	\
+		unsigned long *__args __attribute__((unused))=	\
+			fut_getstampedbuffer(CODE,		\
+					     FUT_SIZE(4)); \
+		*(__args++)=(unsigned long)(P1);*(__args++)=(unsigned long)(P2);*(__args++)=(unsigned long)(P3);*(__args++)=(unsigned long)(P4);				\
+		fut_commitstampedbuffer(FUT_SIZE(4)); \
+	} while (0)
+#endif
+#define FUT_DO_ALWAYS_PROBE4(CODE,P1,P2,P3,P4) do { \
+        FUT_RAW_ALWAYS_PROBE4(FUT_CODE(CODE, 4),P1,P2,P3,P4); \
+} while (0)
+
+#ifndef FUT_RAW_ALWAYS_PROBE5
+#define FUT_RAW_ALWAYS_PROBE5(CODE,P1,P2,P3,P4,P5) do {	\
+		unsigned long *__args __attribute__((unused))=	\
+			fut_getstampedbuffer(CODE,		\
+					     FUT_SIZE(5)); \
+		*(__args++)=(unsigned long)(P1);*(__args++)=(unsigned long)(P2);*(__args++)=(unsigned long)(P3);*(__args++)=(unsigned long)(P4);*(__args++)=(unsigned long)(P5);				\
+		fut_commitstampedbuffer(FUT_SIZE(5)); \
+	} while (0)
+#endif
+#define FUT_DO_ALWAYS_PROBE5(CODE,P1,P2,P3,P4,P5) do { \
+        FUT_RAW_ALWAYS_PROBE5(FUT_CODE(CODE, 5),P1,P2,P3,P4,P5); \
+} while (0)
+
+#ifndef FUT_RAW_ALWAYS_PROBE6
+#define FUT_RAW_ALWAYS_PROBE6(CODE,P1,P2,P3,P4,P5,P6) do {	\
+		unsigned long *__args __attribute__((unused))=	\
+			fut_getstampedbuffer(CODE,		\
+					     FUT_SIZE(6)); \
+		*(__args++)=(unsigned long)(P1);*(__args++)=(unsigned long)(P2);*(__args++)=(unsigned long)(P3);*(__args++)=(unsigned long)(P4);*(__args++)=(unsigned long)(P5);*(__args++)=(unsigned long)(P6);				\
+		fut_commitstampedbuffer(FUT_SIZE(6)); \
+	} while (0)
+#endif
+#define FUT_DO_ALWAYS_PROBE6(CODE,P1,P2,P3,P4,P5,P6) do { \
+        FUT_RAW_ALWAYS_PROBE6(FUT_CODE(CODE, 6),P1,P2,P3,P4,P5,P6); \
+} while (0)
+
+#ifndef FUT_RAW_ALWAYS_PROBE7
+#define FUT_RAW_ALWAYS_PROBE7(CODE,P1,P2,P3,P4,P5,P6,P7) do {	\
+		unsigned long *__args __attribute__((unused))=	\
+			fut_getstampedbuffer(CODE,		\
+					     FUT_SIZE(7)); \
+		*(__args++)=(unsigned long)(P1);*(__args++)=(unsigned long)(P2);*(__args++)=(unsigned long)(P3);*(__args++)=(unsigned long)(P4);*(__args++)=(unsigned long)(P5);*(__args++)=(unsigned long)(P6);*(__args++)=(unsigned long)(P7);				\
+		fut_commitstampedbuffer(FUT_SIZE(7)); \
+	} while (0)
+#endif
+#define FUT_DO_ALWAYS_PROBE7(CODE,P1,P2,P3,P4,P5,P6,P7) do { \
+        FUT_RAW_ALWAYS_PROBE7(FUT_CODE(CODE, 7),P1,P2,P3,P4,P5,P6,P7); \
+} while (0)
+
+
 
 /* workerkind = _STARPU_FUT_CPU_KEY for instance */
 #define _STARPU_TRACE_NEW_MEM_NODE(nodeid)			\
-	FUT_DO_PROBE2(_STARPU_FUT_NEW_MEM_NODE, nodeid, _starpu_gettid());
+	FUT_DO_ALWAYS_PROBE2(_STARPU_FUT_NEW_MEM_NODE, nodeid, _starpu_gettid());
 
 #define _STARPU_TRACE_WORKER_INIT_START(workerkind, workerid, devid, memnode, bindid, sync)	\
 	FUT_DO_PROBE7(_STARPU_FUT_WORKER_INIT_START, workerkind, workerid, devid, memnode, bindid, sync, _starpu_gettid());
@@ -593,6 +678,18 @@ do {										\
 	}									\
 } while(0);
 
+#define _STARPU_TRACE_DATA_NAME(handle, name) \
+	_STARPU_FUT_DO_PROBE1STR(_STARPU_FUT_DATA_NAME, handle, name)
+
+#define _STARPU_TRACE_DATA_COORDINATES(handle, dim, v) \
+	switch (dim) { \
+	case 1: FUT_DO_ALWAYS_PROBE3(_STARPU_FUT_DATA_COORDINATES, handle, dim, v[0]); break; \
+	case 2: FUT_DO_ALWAYS_PROBE4(_STARPU_FUT_DATA_COORDINATES, handle, dim, v[0], v[1]); break; \
+	case 3: FUT_DO_ALWAYS_PROBE5(_STARPU_FUT_DATA_COORDINATES, handle, dim, v[0], v[1], v[2]); break; \
+	case 4: FUT_DO_ALWAYS_PROBE6(_STARPU_FUT_DATA_COORDINATES, handle, dim, v[0], v[1], v[2], v[3]); break; \
+	default: FUT_DO_ALWAYS_PROBE7(_STARPU_FUT_DATA_COORDINATES, handle, dim, v[0], v[1], v[2], v[3], v[4]); break; \
+	}
+
 #define _STARPU_TRACE_DATA_COPY(src_node, dst_node, size)	\
 	FUT_DO_PROBE3(_STARPU_FUT_DATA_COPY, src_node, dst_node, size)
 
@@ -635,14 +732,20 @@ do {										\
 #define _STARPU_TRACE_WORKER_SLEEP_END	\
 	FUT_DO_PROBE1(_STARPU_FUT_WORKER_SLEEP_END, _starpu_gettid());
 
-#define _STARPU_TRACE_TASK_SUBMIT(job)	\
-	FUT_DO_PROBE2(_STARPU_FUT_TASK_SUBMIT, (job)->job_id, _starpu_gettid());
+#define _STARPU_TRACE_TASK_SUBMIT(job, iter, subiter)	\
+	FUT_DO_PROBE4(_STARPU_FUT_TASK_SUBMIT, (job)->job_id, iter, subiter, _starpu_gettid());
 
 #define _STARPU_TRACE_TASK_SUBMIT_START()	\
 	FUT_DO_PROBE1(_STARPU_FUT_TASK_SUBMIT_START, _starpu_gettid());
 
 #define _STARPU_TRACE_TASK_SUBMIT_END()	\
 	FUT_DO_PROBE1(_STARPU_FUT_TASK_SUBMIT_END, _starpu_gettid());
+
+#define _STARPU_TRACE_TASK_THROTTLE_START()	\
+	FUT_DO_PROBE1(_STARPU_FUT_TASK_THROTTLE_START, _starpu_gettid());
+
+#define _STARPU_TRACE_TASK_THROTTLE_END()	\
+	FUT_DO_PROBE1(_STARPU_FUT_TASK_THROTTLE_END, _starpu_gettid());
 
 #define _STARPU_TRACE_TASK_BUILD_START()	\
 	FUT_DO_PROBE1(_STARPU_FUT_TASK_BUILD_START, _starpu_gettid());
@@ -978,6 +1081,8 @@ do {										\
 #define _STARPU_TRACE_GHOST_TASK_DEPS(a, b)	do {(void)(a); (void)(b);} while(0)
 #define _STARPU_TRACE_TASK_DONE(a)		do {(void)(a);} while(0)
 #define _STARPU_TRACE_TAG_DONE(a)		do {(void)(a);} while(0)
+#define _STARPU_TRACE_DATA_NAME(a, b)		do {(void)(a); (void)(b);} while(0)
+#define _STARPU_TRACE_DATA_COORDINATES(a, b, c)	do {(void)(a); (void)(b); (void)(c);} while(0)
 #define _STARPU_TRACE_DATA_COPY(a, b, c)		do {(void)(a); (void)(b); (void)(c);} while(0)
 #define _STARPU_TRACE_START_DRIVER_COPY(a,b,c,d,e,f)	do {(void)(a); (void)(b); (void)(c); (void)(d); (void)(e); (void)(f);} while(0)
 #define _STARPU_TRACE_END_DRIVER_COPY(a,b,c,d,e)	do {(void)(a); (void)(b); (void)(c); (void)(d); (void)(e);} while(0)
@@ -992,9 +1097,11 @@ do {										\
 #define _STARPU_TRACE_WORKER_SCHEDULING_POP		do {} while(0)
 #define _STARPU_TRACE_WORKER_SLEEP_START		do {} while(0)
 #define _STARPU_TRACE_WORKER_SLEEP_END			do {} while(0)
-#define _STARPU_TRACE_TASK_SUBMIT(job)			do {(void)(job);} while(0)
+#define _STARPU_TRACE_TASK_SUBMIT(job, a, b)			do {(void)(job); (void)(a);(void)(b);} while(0)
 #define _STARPU_TRACE_TASK_SUBMIT_START()		do {} while(0)
 #define _STARPU_TRACE_TASK_SUBMIT_END()			do {} while(0)
+#define _STARPU_TRACE_TASK_THROTTLE_START()		do {} while(0)
+#define _STARPU_TRACE_TASK_THROTTLE_END()		do {} while(0)
 #define _STARPU_TRACE_TASK_BUILD_START()		do {} while(0)
 #define _STARPU_TRACE_TASK_BUILD_END()			do {} while(0)
 #define _STARPU_TRACE_TASK_MPI_DECODE_START()		do {} while(0)

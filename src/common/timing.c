@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012, 2014-2016  Université de Bordeaux
+ * Copyright (C) 2009-2012, 2014-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -58,12 +58,18 @@ void _starpu_clock_gettime(struct timespec *ts)
 static struct timespec _starpu_reference_start_time_ts;
 
 /* Modern CPUs' clocks are usually not synchronized so we use a monotonic clock
- * to have consistent timing measurements. The CLOCK_MONOTONIC_RAW clock is not
- * subject to NTP adjustments, but is not available on all systems (in that
- * case we use the CLOCK_MONOTONIC clock instead). */
+ * to have consistent timing measurements.
+ */
 static void _starpu_clock_readtime(struct timespec *ts)
 {
-#ifdef CLOCK_MONOTONIC_RAW
+#if 0 /* def CLOCK_MONOTONIC_RAW */
+/* The CLOCK_MONOTONIC_RAW clock is not
+ * subject to NTP adjustments, but is not available on all systems (in that
+ * case we use the CLOCK_MONOTONIC clock instead). */
+
+/* In the distributed case, we *do* want NTP adjustments, to get
+ * somehow-coherent traces, so this is disabled */
+
 	static int raw_supported = 0;
 	switch (raw_supported)
 	{

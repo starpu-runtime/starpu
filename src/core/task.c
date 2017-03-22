@@ -385,7 +385,8 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 	if (!cl)
 		return;
 
-	int is_where_unset = cl->where == 0;
+	uint32_t where = cl->where;
+	int is_where_unset = where == 0;
 	unsigned i, some_impl;
 
 	/* Check deprecated and unset fields (where, <device>_func,
@@ -415,7 +416,7 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 	}
 	if (some_impl && is_where_unset)
 	{
-		cl->where |= STARPU_CPU;
+		where |= STARPU_CPU;
 	}
 
 	/* CUDA */
@@ -442,7 +443,7 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 	}
 	if (some_impl && is_where_unset)
 	{
-		cl->where |= STARPU_CUDA;
+		where |= STARPU_CUDA;
 	}
 
 	/* OpenCL */
@@ -469,7 +470,7 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 	}
 	if (some_impl && is_where_unset)
 	{
-		cl->where |= STARPU_OPENCL;
+		where |= STARPU_OPENCL;
 	}
 
 	some_impl = 0;
@@ -481,7 +482,7 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 		}
 	if (some_impl && is_where_unset)
 	{
-		cl->where |= STARPU_MIC;
+		where |= STARPU_MIC;
 	}
 
 	some_impl = 0;
@@ -493,7 +494,7 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 		}
 	if (some_impl && is_where_unset)
 	{
-		cl->where |= STARPU_MPI_MS;
+		where |= STARPU_MPI_MS;
 	}
 
 	some_impl = 0;
@@ -505,7 +506,7 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 		}
 	if (some_impl && is_where_unset)
 	{
-		cl->where |= STARPU_SCC;
+		where |= STARPU_SCC;
 	}
 
 	some_impl = 0;
@@ -517,8 +518,9 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 		}
 	if (some_impl && is_where_unset)
 	{
-		cl->where |= STARPU_MIC|STARPU_SCC|STARPU_MPI_MS;
+		where |= STARPU_MIC|STARPU_SCC|STARPU_MPI_MS;
 	}
+	cl->where = where;
 }
 
 void _starpu_task_check_deprecated_fields(struct starpu_task *task STARPU_ATTRIBUTE_UNUSED)
@@ -629,8 +631,6 @@ int starpu_task_submit(struct starpu_task *task)
 #endif
 		;
 
-	_STARPU_TRACE_TASK_SUBMIT_START();
-
 	if (!j->internal)
 	{
 		int nsubmitted_tasks = starpu_task_nsubmitted();
@@ -638,10 +638,13 @@ int starpu_task_submit(struct starpu_task *task)
 			&& limit_min_submitted_tasks >= 0 && limit_min_submitted_tasks < nsubmitted_tasks)
 		{
 			starpu_do_schedule();
+			_STARPU_TRACE_TASK_THROTTLE_START();
 			starpu_task_wait_for_n_submitted(limit_min_submitted_tasks);
+			_STARPU_TRACE_TASK_THROTTLE_END();
 		}
 	}
 
+	_STARPU_TRACE_TASK_SUBMIT_START();
 
 	ret = _starpu_task_submit_head(task);
 	if (ret)
@@ -651,7 +654,9 @@ int starpu_task_submit(struct starpu_task *task)
 	}
 
 	if (!j->internal && !continuation)
-		_STARPU_TRACE_TASK_SUBMIT(j);
+		_STARPU_TRACE_TASK_SUBMIT(j,
+			_starpu_get_sched_ctx_struct(task->sched_ctx)->iterations[0],
+			_starpu_get_sched_ctx_struct(task->sched_ctx)->iterations[1]);
 
 	/* If this is a continuation, we don't modify the implicit data dependencies detected earlier. */
 	if (task->cl && !continuation)
@@ -989,6 +994,23 @@ int starpu_task_wait_for_no_ready(void)
 	return 0;
 }
 
+void starpu_iteration_push(unsigned long iteration)
+{
+	struct _starpu_sched_ctx *ctx = _starpu_get_sched_ctx_struct(_starpu_sched_ctx_get_current_context());
+	unsigned level = ctx->iteration_level++;
+	if (level < sizeof(ctx->iterations)/sizeof(ctx->iterations[0]))
+		ctx->iterations[level] = iteration;
+}
+
+void starpu_iteration_pop(void)
+{
+	struct _starpu_sched_ctx *ctx = _starpu_get_sched_ctx_struct(_starpu_sched_ctx_get_current_context());
+	STARPU_ASSERT_MSG(ctx->iteration_level > 0, "calls to starpu_iteration_pop must match starpu_iteration_push calls");
+	unsigned level = ctx->iteration_level--;
+	if (level < sizeof(ctx->iterations)/sizeof(ctx->iterations[0]))
+		ctx->iterations[level] = -1;
+}
+
 void starpu_do_schedule(void)
 {
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
@@ -1171,6 +1193,7 @@ _starpu_handle_needs_conversion_task_for_arch(starpu_data_handle_t handle,
 		case STARPU_CUDA_RAM:    /* Fall through */
 		case STARPU_OPENCL_RAM:
 		case STARPU_MIC_RAM:
+		case STARPU_MPI_MS_RAM:
 		case STARPU_SCC_RAM:
 			switch(starpu_node_get_kind(handle->mf_node))
 			{
@@ -1201,6 +1224,11 @@ void starpu_task_set_implementation(struct starpu_task *task, unsigned impl)
 unsigned starpu_task_get_implementation(struct starpu_task *task)
 {
 	return _starpu_get_job_associated_to_task(task)->nimpl;
+}
+
+unsigned long starpu_task_get_job_id(struct starpu_task *task)
+{
+	return _starpu_get_job_associated_to_task(task)->job_id;
 }
 
 static starpu_pthread_t watchdog_thread;

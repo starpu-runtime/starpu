@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2010-2014, 2016  Université de Bordeaux
  * Copyright (C) 2011, 2012, 2013, 2016  CNRS
+ * Copyright (C) 2017  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -79,6 +80,11 @@ void _starpu_redux_init_data_replicate(starpu_data_handle_t handle, struct _star
 			init_func = _starpu_mic_src_get_kernel_from_codelet(init_cl, 0);
 			break;
 #endif
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+		case STARPU_MPI_MS_WORKER:
+			init_func = _starpu_mpi_ms_src_get_kernel_from_codelet(init_cl, 0); 
+			break;
+#endif
 			/* TODO: SCC */
 		default:
 			STARPU_ABORT();
@@ -87,24 +93,45 @@ void _starpu_redux_init_data_replicate(starpu_data_handle_t handle, struct _star
 
 	STARPU_ASSERT(init_func);
 
+	switch (starpu_worker_get_type(workerid))
+	{
 #ifdef STARPU_USE_MIC
-	if (starpu_worker_get_type(workerid) == STARPU_MIC_WORKER)
-	{
-		struct _starpu_mp_node *node = _starpu_mic_src_get_actual_thread_mp_node();
-		int devid = _starpu_get_worker_struct(workerid)->devid;
-		void * arg;
-		int arg_size;
-		_starpu_src_common_execute_kernel(node,
-						 (void(*)(void))init_func, devid,
-						 STARPU_SEQ, 0, 0, &handle, 
-						 &(replicate->data_interface), 1,
-						 NULL, 0);
-		_starpu_src_common_wait_completed_execution(node,devid,&arg,&arg_size);
-	}
-	else
+		case STARPU_MIC_WORKER:
+		{
+			struct _starpu_mp_node *node = _starpu_mic_src_get_actual_thread_mp_node();
+			int devid = _starpu_get_worker_struct(workerid)->devid;
+			void * arg;
+			int arg_size;
+			_starpu_src_common_execute_kernel(node,
+					(void(*)(void))init_func, devid,
+					STARPU_SEQ, 0, 0, &handle, 
+					&(replicate->data_interface), 1,
+					NULL, 0, 1);
+			_starpu_src_common_wait_completed_execution(node,devid,&arg,&arg_size);
+			break;
+		}
 #endif
-	{
-		init_func(&replicate->data_interface, NULL);
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+		case STARPU_MPI_MS_WORKER:
+		{
+			struct _starpu_mp_node *node = _starpu_mpi_ms_src_get_actual_thread_mp_node();
+			int devid = _starpu_get_worker_struct(workerid)->devid;
+			void * arg;
+			int arg_size;
+
+			_starpu_src_common_execute_kernel(node,
+					(void(*)(void))init_func, devid,
+					STARPU_SEQ, 0, 0, &handle, 
+					&(replicate->data_interface), 1,
+					NULL, 0 , 1);
+
+			_starpu_src_common_wait_completed_execution(node,devid,&arg,&arg_size);
+			break;
+		}
+#endif
+		default:
+			init_func(&replicate->data_interface, NULL);
+			break;
 	}
 
 	replicate->initialized = 1;

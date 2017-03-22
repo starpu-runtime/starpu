@@ -50,7 +50,7 @@ int main(int argc, char **argv)
 	itf.get_neighbors = get_neighbors;
 	itf.get_data_unit_to_migrate = get_data_unit_to_migrate;
 
-	MPI_Init(&argc, &argv);
+	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED);
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 	ret = starpu_mpi_init(NULL, NULL, 0);

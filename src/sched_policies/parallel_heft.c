@@ -375,9 +375,11 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 				nimpl_best = nimpl;
 			}
 
-			if (isnan(local_task_length[worker_ctx][nimpl])) {
+			if (isnan(local_task_length[worker_ctx][nimpl]))
+			{
 				static int warned;
-				if (!warned) {
+				if (!warned)
+				{
 					warned = 1;
 					_STARPU_DISP("Warning: performance model for %s not finished calibrating on %u, using a dumb scheduling heuristic for now\n", starpu_task_get_name(task), worker);
 				}
@@ -487,7 +489,7 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 	}
 
 	//_STARPU_DEBUG("Scheduler parallel heft: kernel (%u)\n", nimpl_best);
-	_starpu_get_job_associated_to_task(task)->nimpl = nimpl_best;
+	starpu_task_set_implementation(task, nimpl_best);
 	/* we should now have the best worker in variable "best" */
 	_STARPU_TASK_BREAK_ON(task, sched);
 	return push_task_on_best_worker(task, best, best_exp_end, prio, sched_ctx_id);

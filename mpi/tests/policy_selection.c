@@ -57,7 +57,7 @@ int main(int argc, char **argv)
 	struct starpu_task *task;
 	starpu_data_handle_t handles[3];
 
-	MPI_Init(&argc, &argv);
+	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED);
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
 

@@ -344,4 +344,12 @@ If that program does not find your device, the problem is not at the StarPU
 level, but the OpenCL drivers, check the documentation of your OpenCL
 implementation.
 
+\section IncorrectPerformanceModelFile I keep getting a "Incorrect performance model file" error
+
+The performance model file, used by StarPU to record the performance of
+codelets, seem to have been corrupted. Perhaps a previous run of StarPU stopped
+abruptly, and thus could not save it properly.  You can have a look at the file
+if you can fix it, but the simplest way is to just remove the file and run
+again, StarPU will just have to re-perform calibration for the corresponding codelet.
+
 */

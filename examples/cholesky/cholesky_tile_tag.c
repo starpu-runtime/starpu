@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2016  Université de Bordeaux
+ * Copyright (C) 2009-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -167,6 +167,7 @@ static int cholesky_no_stride(void)
 
 	for (k = 0; k < nblocks_p; k++)
 	{
+		starpu_iteration_push(k);
 		struct starpu_task *task = create_task_11(k, nblocks_p);
 		/* we defer the launch of the first task */
 		if (k == 0)
@@ -193,6 +194,7 @@ static int cholesky_no_stride(void)
 				}
 			}
 		}
+		starpu_iteration_pop();
 	}
 
 	/* schedule the codelet */
@@ -291,6 +293,7 @@ int main(int argc, char **argv)
 		{
 			starpu_matrix_data_register(&A_state[y][x], STARPU_MAIN_RAM, (uintptr_t)A[y][x],
 						    BLOCKSIZE, BLOCKSIZE, BLOCKSIZE, sizeof(float));
+			starpu_data_set_coordinates(A_state[y][x], 2, x, y);
 		}
 	}
 

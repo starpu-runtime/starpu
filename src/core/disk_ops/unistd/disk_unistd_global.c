@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2013 Corentin Salingue
- * Copyright (C) 2015, 2016 CNRS
+ * Copyright (C) 2015, 2016, 2017 CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -56,7 +56,8 @@
 static unsigned starpu_unistd_opened_files;
 
 #ifdef HAVE_AIO_H
-struct starpu_unistd_aiocb {
+struct starpu_unistd_aiocb
+{
 	struct aiocb aiocb;
 	struct starpu_unistd_global_obj *obj;
 };

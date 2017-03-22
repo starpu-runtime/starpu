@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2017  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  * Copyright (C) 2014, 2016  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -17,6 +17,7 @@
  */
 
 #include <stdint.h>
+#include <stdarg.h>
 
 #include <datawizard/datawizard.h>
 #include <datawizard/memory_nodes.h>
@@ -175,12 +176,15 @@ void _starpu_data_register_ram_pointer(starpu_data_handle_t handle, void *ptr)
 	{
 		_starpu_spin_lock(&registered_handles_lock);
 		HASH_FIND_PTR(registered_handles, &ptr, old_entry);
-		if (old_entry) {
+		if (old_entry)
+		{
 			/* Already registered this pointer, avoid undefined
 			 * behavior of duplicate in hash table */
 			_starpu_spin_unlock(&registered_handles_lock);
 			free(entry);
-		} else {
+		}
+		else
+		{
 			nregistered++;
 			if (nregistered > maxnregistered)
 				maxnregistered = nregistered;
@@ -1068,8 +1072,26 @@ size_t starpu_data_get_size(starpu_data_handle_t handle)
 	return handle->ops->get_size(handle);
 }
 
-int starpu_data_get_home_node(starpu_data_handle_t handle)
+void starpu_data_set_name(starpu_data_handle_t handle, const char *name)
 {
-	return handle->home_node;
+	_STARPU_TRACE_DATA_NAME(handle, name);
 }
 
+void starpu_data_set_coordinates_array(starpu_data_handle_t handle, int dimensions, int dims[])
+{
+	_STARPU_TRACE_DATA_COORDINATES(handle, dimensions, dims);
+}
+
+void starpu_data_set_coordinates(starpu_data_handle_t handle, unsigned dimensions, ...)
+{
+	int dims[dimensions];
+	unsigned i;
+	va_list varg_list;
+
+	va_start(varg_list, dimensions);
+	for (i = 0; i < dimensions; i++)
+		dims[i] = va_arg(varg_list, int);
+	va_end(varg_list);
+
+	starpu_data_set_coordinates_array(handle, dimensions, dims);
+}

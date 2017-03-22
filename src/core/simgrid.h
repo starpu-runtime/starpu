@@ -26,6 +26,7 @@
 #endif
 
 #include <datawizard/data_request.h>
+#include <xbt/xbt_os_time.h>
 
 struct _starpu_pthread_args
 {
@@ -46,6 +47,7 @@ void _starpu_simgrid_submit_job(int workerid, struct _starpu_job *job, struct st
 int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, struct _starpu_data_request *req);
 int _starpu_simgrid_wait_transfer_event(union _starpu_async_channel_event *event);
 int _starpu_simgrid_test_transfer_event(union _starpu_async_channel_event *event);
+void _starpu_simgrid_sync_gpus(void);
 /* Return the number of hosts prefixed by PREFIX */
 int _starpu_simgrid_get_nbhosts(const char *prefix);
 unsigned long long _starpu_simgrid_get_memsize(const char *prefix, unsigned devid);
@@ -66,6 +68,8 @@ starpu_pthread_queue_t _starpu_simgrid_task_queue[STARPU_NMAXWORKERS];
 #define _starpu_simgrid_cuda_malloc_cost() starpu_get_env_number_default("STARPU_SIMGRID_CUDA_MALLOC_COST", 1)
 #define _starpu_simgrid_queue_malloc_cost() starpu_get_env_number_default("STARPU_SIMGRID_QUEUE_MALLOC_COST", 1)
 #define _starpu_simgrid_task_submit_cost() starpu_get_env_number_default("STARPU_SIMGRID_TASK_SUBMIT_COST", 1)
+#define _starpu_simgrid_fetching_input_cost() starpu_get_env_number_default("STARPU_SIMGRID_FETCHING_INPUT_COST", 1)
+#define _starpu_simgrid_sched_cost() starpu_get_env_number_default("STARPU_SIMGRID_SCHED_COST", 1)
 
 /* Called at initialization to count how many GPUs are interfering with each
  * bus */
@@ -73,6 +77,25 @@ void _starpu_simgrid_count_ngpus(void);
 
 void _starpu_simgrid_xbt_thread_create(const char *name, void_f_pvoid_t code,
 				       void *param);
+
+#define _SIMGRID_TIMER_BEGIN		\
+	{		\
+		xbt_os_timer_t __timer = NULL;		\
+		if (_starpu_simgrid_sched_cost()) {		\
+		  __timer = xbt_os_timer_new();		\
+		  xbt_os_threadtimer_start(__timer);	\
+		}
+#define _SIMGRID_TIMER_END		\
+		if (__timer) {		\
+			xbt_os_threadtimer_stop(__timer);		\
+			MSG_process_sleep(xbt_os_timer_elapsed(__timer));\
+			xbt_os_timer_free(__timer);		\
+		}	\
+	}
+
+#else // !STARPU_SIMGRID
+#define _SIMGRID_TIMER_BEGIN {
+#define _SIMGRID_TIMER_END }
 #endif
 
 #endif // __SIMGRID_H__

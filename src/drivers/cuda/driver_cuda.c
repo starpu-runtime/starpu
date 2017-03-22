@@ -473,8 +473,6 @@ void _starpu_init_cuda(void)
 
 static int start_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *worker, unsigned char pipeline_idx STARPU_ATTRIBUTE_UNUSED)
 {
-	int ret;
-
 	STARPU_ASSERT(j);
 	struct starpu_task *task = j->task;
 
@@ -486,15 +484,6 @@ static int start_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *worke
 
 	_starpu_set_local_worker_key(worker);
 	_starpu_set_current_task(task);
-
-	ret = _starpu_fetch_task_input(task, j, 0);
-	if (ret < 0)
-	{
-		/* there was not enough memory, so the input of
-		 * the codelet cannot be fetched ... put the
-		 * codelet back, and try it later */
-		return -EAGAIN;
-	}
 
 	if (worker->ntasks == 1)
 	{
@@ -516,7 +505,7 @@ static int start_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *worke
 #ifdef STARPU_SIMGRID
 		int async = task->cl->cuda_flags[j->nimpl] & STARPU_CUDA_ASYNC;
 		unsigned workerid = worker->workerid;
-		if (cl->flags & STARPU_CODELET_SIMGRID_EXECUTE & !async)
+		if (cl->flags & STARPU_CODELET_SIMGRID_EXECUTE && !async)
 			func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
 		else
 			_starpu_simgrid_submit_job(workerid, j, &worker->perf_arch, NAN,
@@ -777,7 +766,7 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 			j = _starpu_get_job_associated_to_task(task);
 
 			_starpu_set_local_worker_key(worker);
-			_starpu_release_fetch_task_input_async(j, worker);
+			_starpu_fetch_task_input_tail(task, j, worker);
 			/* Reset it */
 			worker->task_transferring = NULL;
 
@@ -801,7 +790,10 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 			/* No queued task */
 			continue;
 
-		task = worker->current_tasks[worker->first_task];
+		if (worker->pipeline_length)
+			task = worker->current_tasks[worker->first_task];
+		else
+			task = worker->current_task;
 		if (task == worker->task_transferring)
 			/* Next task is still pending transfer */
 			continue;

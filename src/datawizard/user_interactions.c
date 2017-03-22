@@ -54,8 +54,9 @@ struct user_interaction_wrapper
 	starpu_pthread_cond_t cond;
 	starpu_pthread_mutex_t lock;
 	unsigned finished;
-	unsigned async;
+	unsigned detached;
 	unsigned prefetch;
+	unsigned async;
 	int prio;
 	void (*callback)(void *);
 	void (*callback_fetch_data)(void *); // called after fetch_data
@@ -64,10 +65,71 @@ struct user_interaction_wrapper
 	struct starpu_task *post_sync_task;
 };
 
+static inline void _starpu_data_acquire_wrapper_init(struct user_interaction_wrapper *wrapper, starpu_data_handle_t handle, int node, enum starpu_data_access_mode mode)
+{
+	memset(wrapper, 0, sizeof(*wrapper));
+	wrapper->handle = handle;
+	wrapper->node = node;
+	wrapper->mode = mode;
+	wrapper->finished = 0;
+	STARPU_PTHREAD_COND_INIT(&wrapper->cond, NULL);
+	STARPU_PTHREAD_MUTEX_INIT(&wrapper->lock, NULL);
+}
+
+/* Called to signal completion of asynchronous data acquisition */
+static inline void _starpu_data_acquire_wrapper_finished(struct user_interaction_wrapper *wrapper)
+{
+	STARPU_PTHREAD_MUTEX_LOCK(&wrapper->lock);
+	wrapper->finished = 1;
+	STARPU_PTHREAD_COND_SIGNAL(&wrapper->cond);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&wrapper->lock);
+}
+
+/* Called to wait for completion of asynchronous data acquisition */
+static inline void _starpu_data_acquire_wrapper_wait(struct user_interaction_wrapper *wrapper)
+{
+	STARPU_PTHREAD_MUTEX_LOCK(&wrapper->lock);
+	while (!wrapper->finished)
+		STARPU_PTHREAD_COND_WAIT(&wrapper->cond, &wrapper->lock);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&wrapper->lock);
+}
+
+static inline void _starpu_data_acquire_wrapper_fini(struct user_interaction_wrapper *wrapper)
+{
+	STARPU_PTHREAD_COND_DESTROY(&wrapper->cond);
+	STARPU_PTHREAD_MUTEX_DESTROY(&wrapper->lock);
+}
+
+/* Called when the fetch into target memory is done, we're done! */
+static inline void _starpu_data_acquire_fetch_done(struct user_interaction_wrapper *wrapper)
+{
+	if (wrapper->node >= 0)
+	{
+		struct _starpu_data_replicate *replicate = &wrapper->handle->per_node[wrapper->node];
+		if (replicate->mc)
+			replicate->mc->diduse = 1;
+	}
+}
+
+/* Called when the data acquisition is done, to launch the fetch into target memory */
+static inline void _starpu_data_acquire_launch_fetch(struct user_interaction_wrapper *wrapper, int async, void (*callback)(void *), void *callback_arg)
+{
+	int node = wrapper->node;
+	starpu_data_handle_t handle = wrapper->handle;
+	struct _starpu_data_replicate *replicate = node >= 0 ? &handle->per_node[node] : NULL;
+
+	int ret = _starpu_fetch_data_on_node(handle, node, replicate, wrapper->mode, wrapper->detached, wrapper->prefetch, async, callback, callback_arg, wrapper->prio, "_starpu_data_acquire_launch_fetch");
+	STARPU_ASSERT(!ret);
+}
+
+
+
 /*
  *	Non Blocking data request from application
  */
-/* put the current value of the data into RAM */
+
+
+/* Called when fetch is done, call the callback */
 static void _starpu_data_acquire_fetch_data_callback(void *arg)
 {
 	struct user_interaction_wrapper *wrapper = (struct user_interaction_wrapper *) arg;
@@ -80,33 +142,21 @@ static void _starpu_data_acquire_fetch_data_callback(void *arg)
 	if (wrapper->post_sync_task)
 		_starpu_add_post_sync_tasks(wrapper->post_sync_task, handle);
 
-	struct _starpu_data_replicate *replicate =
-		wrapper->node >= 0 ? &handle->per_node[wrapper->node] : NULL;
-	if (replicate && replicate->mc)
-		replicate->mc->diduse = 1;
+	_starpu_data_acquire_fetch_done(wrapper);
 
 	wrapper->callback(wrapper->callback_arg);
 
+	_starpu_data_acquire_wrapper_fini(wrapper);
 	free(wrapper);
 }
 
+/* Called when the data acquisition is done, launch the fetch into target memory */
 static void _starpu_data_acquire_continuation_non_blocking(void *arg)
 {
-	int ret;
-	struct user_interaction_wrapper *wrapper = (struct user_interaction_wrapper *) arg;
-
-	starpu_data_handle_t handle = wrapper->handle;
-
-	STARPU_ASSERT(handle);
-
-	struct _starpu_data_replicate *replicate =
-		wrapper->node >= 0 ? &handle->per_node[wrapper->node] : NULL;
-
-	ret = _starpu_fetch_data_on_node(handle, wrapper->node, replicate, wrapper->mode, 0, 0, 1,
-			_starpu_data_acquire_fetch_data_callback, wrapper, 0, "_starpu_data_acquire_continuation_non_blocking");
-	STARPU_ASSERT(!ret);
+	_starpu_data_acquire_launch_fetch(arg, 1, _starpu_data_acquire_fetch_data_callback, arg);
 }
 
+/* Called when the implicit data dependencies are done, launch the data acquisition */
 static void starpu_data_acquire_cb_pre_sync_callback(void *arg)
 {
 	struct user_interaction_wrapper *wrapper = (struct user_interaction_wrapper *) arg;
@@ -123,9 +173,10 @@ static void starpu_data_acquire_cb_pre_sync_callback(void *arg)
 }
 
 /* The data must be released by calling starpu_data_release later on */
-int starpu_data_acquire_on_node_cb_sequential_consistency(starpu_data_handle_t handle, int node,
+int starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_data_handle_t handle, int node,
 							  enum starpu_data_access_mode mode, void (*callback)(void *), void *arg,
-							  int sequential_consistency)
+							  int sequential_consistency,
+							  long *pre_sync_jobid, long *post_sync_jobid)
 {
 	STARPU_ASSERT(handle);
 	STARPU_ASSERT_MSG(handle->nchildren == 0, "Acquiring a partitioned data (%p) is not possible", handle);
@@ -134,14 +185,11 @@ int starpu_data_acquire_on_node_cb_sequential_consistency(starpu_data_handle_t h
 	struct user_interaction_wrapper *wrapper;
 	_STARPU_MALLOC(wrapper, sizeof(struct user_interaction_wrapper));
 
-	wrapper->handle = handle;
-	wrapper->node = node;
-	wrapper->mode = mode;
+	_starpu_data_acquire_wrapper_init(wrapper, handle, node, mode);
+	wrapper->async = 1;
+
 	wrapper->callback = callback;
 	wrapper->callback_arg = arg;
-	STARPU_PTHREAD_COND_INIT(&wrapper->cond, NULL);
-	STARPU_PTHREAD_MUTEX_INIT(&wrapper->lock, NULL);
-	wrapper->finished = 0;
 	wrapper->pre_sync_task = NULL;
 	wrapper->post_sync_task = NULL;
 
@@ -155,10 +203,14 @@ int starpu_data_acquire_on_node_cb_sequential_consistency(starpu_data_handle_t h
 		wrapper->pre_sync_task->detach = 1;
 		wrapper->pre_sync_task->callback_func = starpu_data_acquire_cb_pre_sync_callback;
 		wrapper->pre_sync_task->callback_arg = wrapper;
+		if (pre_sync_jobid)
+			*pre_sync_jobid = _starpu_get_job_associated_to_task(wrapper->pre_sync_task)->job_id;
 
 		wrapper->post_sync_task = starpu_task_create();
 		wrapper->post_sync_task->name = "_starpu_data_acquire_cb_post";
 		wrapper->post_sync_task->detach = 1;
+		if (post_sync_jobid)
+			*post_sync_jobid = _starpu_get_job_associated_to_task(wrapper->post_sync_task)->job_id;
 
 		new_task = _starpu_detect_implicit_data_deps_with_handle(wrapper->pre_sync_task, wrapper->post_sync_task, &_starpu_get_job_associated_to_task(wrapper->post_sync_task)->implicit_dep_slot, handle, mode);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
@@ -175,6 +227,10 @@ int starpu_data_acquire_on_node_cb_sequential_consistency(starpu_data_handle_t h
 	}
 	else
 	{
+		if (pre_sync_jobid)
+			*pre_sync_jobid = -1;
+		if (post_sync_jobid)
+			*post_sync_jobid = -1;
 		STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
 
 		starpu_data_acquire_cb_pre_sync_callback(wrapper);
@@ -182,6 +238,13 @@ int starpu_data_acquire_on_node_cb_sequential_consistency(starpu_data_handle_t h
 
         _STARPU_LOG_OUT();
 	return 0;
+}
+
+int starpu_data_acquire_on_node_cb_sequential_consistency(starpu_data_handle_t handle, int node,
+							  enum starpu_data_access_mode mode, void (*callback)(void *), void *arg,
+							  int sequential_consistency)
+{
+	return starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(handle, node, mode, callback, arg, sequential_consistency, NULL, NULL);
 }
 
 
@@ -209,32 +272,22 @@ int starpu_data_acquire_cb_sequential_consistency(starpu_data_handle_t handle,
 	return starpu_data_acquire_on_node_cb_sequential_consistency(handle, home_node, mode, callback, arg, sequential_consistency);
 }
 
+
 /*
- *	Block data request from application
+ *	Blockin data request from application
  */
+
+
 static inline void _starpu_data_acquire_continuation(void *arg)
 {
 	struct user_interaction_wrapper *wrapper = (struct user_interaction_wrapper *) arg;
 
 	starpu_data_handle_t handle = wrapper->handle;
-
 	STARPU_ASSERT(handle);
 
-	struct _starpu_data_replicate *replicate =
-		wrapper->node >= 0 ? &handle->per_node[wrapper->node] : NULL;
-
-	int ret;
-
-	ret = _starpu_fetch_data_on_node(handle, wrapper->node, replicate, wrapper->mode, 0, 0, 0, NULL, NULL, 0, "_starpu_data_acquire_continuation");
-	STARPU_ASSERT(!ret);
-	if (replicate && replicate->mc)
-		replicate->mc->diduse = 1;
-
-	/* continuation of starpu_data_acquire */
-	STARPU_PTHREAD_MUTEX_LOCK(&wrapper->lock);
-	wrapper->finished = 1;
-	STARPU_PTHREAD_COND_SIGNAL(&wrapper->cond);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&wrapper->lock);
+	_starpu_data_acquire_launch_fetch(wrapper, 0, NULL, NULL);
+	_starpu_data_acquire_fetch_done(wrapper);
+	_starpu_data_acquire_wrapper_finished(wrapper);
 }
 
 /* The data must be released by calling starpu_data_release later on */
@@ -247,31 +300,23 @@ int starpu_data_acquire_on_node(starpu_data_handle_t handle, int node, enum star
 	/* unless asynchronous, it is forbidden to call this function from a callback or a codelet */
 	STARPU_ASSERT_MSG(_starpu_worker_may_perform_blocking_calls(), "Acquiring a data synchronously is not possible from a codelet or from a task callback, use starpu_data_acquire_cb instead.");
 
-	if (_starpu_data_is_multiformat_handle(handle) &&
-	    _starpu_handle_needs_conversion_task(handle, 0))
+	if (node >= 0 && _starpu_data_is_multiformat_handle(handle) &&
+	    _starpu_handle_needs_conversion_task(handle, node))
 	{
-		struct starpu_task *task = _starpu_create_conversion_task(handle, 0);
+		struct starpu_task *task = _starpu_create_conversion_task(handle, node);
 		int ret;
 		_starpu_spin_lock(&handle->header_lock);
 		handle->refcnt--;
 		handle->busy_count--;
-		handle->mf_node = 0;
+		handle->mf_node = node;
 		_starpu_spin_unlock(&handle->header_lock);
 		task->synchronous = 1;
 		ret = _starpu_task_submit_internally(task);
 		STARPU_ASSERT(!ret);
 	}
 
-	struct user_interaction_wrapper wrapper =
-	{
-		.handle = handle,
-		.mode = mode,
-		.node = node,
-		.finished = 0
-	};
-
-	STARPU_PTHREAD_COND_INIT(&wrapper.cond, NULL);
-	STARPU_PTHREAD_MUTEX_INIT(&wrapper.lock, NULL);
+	struct user_interaction_wrapper wrapper;
+	_starpu_data_acquire_wrapper_init(&wrapper, handle, node, mode);
 
 //	_STARPU_DEBUG("TAKE sequential_consistency_mutex starpu_data_acquire\n");
 	STARPU_PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
@@ -310,23 +355,15 @@ int starpu_data_acquire_on_node(starpu_data_handle_t handle, int node, enum star
  	* available again, otherwise we fetch the data directly */
 	if (!_starpu_attempt_to_submit_data_request_from_apps(handle, mode, _starpu_data_acquire_continuation, &wrapper))
 	{
-		struct _starpu_data_replicate *replicate =
-			node >= 0 ? &handle->per_node[node] : NULL;
 		/* no one has locked this data yet, so we proceed immediately */
-		int ret = _starpu_fetch_data_on_node(handle, node, replicate, mode, 0, 0, 0, NULL, NULL, 0, "starpu_data_acquire_on_node");
-		STARPU_ASSERT(!ret);
-		if (replicate && replicate->mc)
-			replicate->mc->diduse = 1;
+		_starpu_data_acquire_launch_fetch(&wrapper, 0, NULL, NULL);
+		_starpu_data_acquire_fetch_done(&wrapper);
 	}
 	else
 	{
-		STARPU_PTHREAD_MUTEX_LOCK(&wrapper.lock);
-		while (!wrapper.finished)
-			STARPU_PTHREAD_COND_WAIT(&wrapper.cond, &wrapper.lock);
-		STARPU_PTHREAD_MUTEX_UNLOCK(&wrapper.lock);
+		_starpu_data_acquire_wrapper_wait(&wrapper);
 	}
-	STARPU_PTHREAD_COND_DESTROY(&wrapper.cond);
-	STARPU_PTHREAD_MUTEX_DESTROY(&wrapper.lock);
+	_starpu_data_acquire_wrapper_fini(&wrapper);
 
 	/* At that moment, the caller holds a reference to the piece of data.
 	 * We enqueue the "post" sync task in the list associated to the handle
@@ -345,6 +382,47 @@ int starpu_data_acquire(starpu_data_handle_t handle, enum starpu_data_access_mod
 	if (home_node < 0)
 		home_node = STARPU_MAIN_RAM;
 	return starpu_data_acquire_on_node(handle, home_node, mode);
+}
+
+int starpu_data_acquire_on_node_try(starpu_data_handle_t handle, int node, enum starpu_data_access_mode mode)
+{
+	STARPU_ASSERT(handle);
+	STARPU_ASSERT_MSG(handle->nchildren == 0, "Acquiring a partitioned data is not possible");
+	/* it is forbidden to call this function from a callback or a codelet */
+	STARPU_ASSERT_MSG(_starpu_worker_may_perform_blocking_calls(), "Acquiring a data synchronously is not possible from a codelet or from a task callback, use starpu_data_acquire_cb instead.");
+
+	int ret;
+	STARPU_ASSERT_MSG(!_starpu_data_is_multiformat_handle(handle), "not supported yet");
+	STARPU_PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
+	ret = _starpu_test_implicit_data_deps_with_handle(handle, mode);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
+	if (ret)
+		return ret;
+
+	struct user_interaction_wrapper wrapper;
+	_starpu_data_acquire_wrapper_init(&wrapper, handle, node, mode);
+
+	/* we try to get the data, if we do not succeed immediately, we set a
+ 	* callback function that will be executed automatically when the data is
+ 	* available again, otherwise we fetch the data directly */
+	if (!_starpu_attempt_to_submit_data_request_from_apps(handle, mode, _starpu_data_acquire_continuation, &wrapper))
+	{
+		/* no one has locked this data yet, so we proceed immediately */
+		_starpu_data_acquire_launch_fetch(&wrapper, 0, NULL, NULL);
+		_starpu_data_acquire_fetch_done(&wrapper);
+	}
+	else
+	{
+		_starpu_data_acquire_wrapper_wait(&wrapper);
+	}
+	_starpu_data_acquire_wrapper_fini(&wrapper);
+
+	return 0;
+}
+
+int starpu_data_acquire_try(starpu_data_handle_t handle, enum starpu_data_access_mode mode)
+{
+	return starpu_data_acquire_on_node_try(handle, STARPU_MAIN_RAM, mode);
 }
 
 /* This function must be called after starpu_data_acquire so that the
@@ -386,21 +464,13 @@ static void _prefetch_data_on_node(void *arg)
 {
 	struct user_interaction_wrapper *wrapper = (struct user_interaction_wrapper *) arg;
 	starpu_data_handle_t handle = wrapper->handle;
-        int ret;
 
-	struct _starpu_data_replicate *replicate = &handle->per_node[wrapper->node];
-	ret = _starpu_fetch_data_on_node(handle, wrapper->node, replicate, STARPU_R, wrapper->async, wrapper->prefetch, wrapper->async, NULL, NULL, wrapper->prio, "_prefetch_data_on_node");
-        STARPU_ASSERT(!ret);
+	_starpu_data_acquire_launch_fetch(wrapper, wrapper->async, NULL, NULL);
 
 	if (wrapper->async)
 		free(wrapper);
 	else
-	{
-		STARPU_PTHREAD_MUTEX_LOCK(&wrapper->lock);
-		wrapper->finished = 1;
-		STARPU_PTHREAD_COND_SIGNAL(&wrapper->cond);
-		STARPU_PTHREAD_MUTEX_UNLOCK(&wrapper->lock);
-	}
+		_starpu_data_acquire_wrapper_finished(wrapper);
 
 	_starpu_spin_lock(&handle->header_lock);
 	if (!_starpu_notify_data_dependencies(handle))
@@ -418,25 +488,21 @@ int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle_t handle, unsigne
 	struct user_interaction_wrapper *wrapper;
 	_STARPU_MALLOC(wrapper, sizeof(*wrapper));
 
-	wrapper->handle = handle;
-	wrapper->node = node;
-	wrapper->async = async;
+	_starpu_data_acquire_wrapper_init(wrapper, handle, node, STARPU_R);
+
+	wrapper->detached = async;
 	wrapper->prefetch = prefetch;
+	wrapper->async = async;
 	wrapper->prio = prio;
-	STARPU_PTHREAD_COND_INIT(&wrapper->cond, NULL);
-	STARPU_PTHREAD_MUTEX_INIT(&wrapper->lock, NULL);
-	wrapper->finished = 0;
 
 	if (!_starpu_attempt_to_submit_data_request_from_apps(handle, mode, _prefetch_data_on_node, wrapper))
 	{
 		/* we can immediately proceed */
 		struct _starpu_data_replicate *replicate = &handle->per_node[node];
+		_starpu_data_acquire_launch_fetch(wrapper, async, NULL, NULL);
 
-		STARPU_PTHREAD_COND_DESTROY(&wrapper->cond);
-		STARPU_PTHREAD_MUTEX_DESTROY(&wrapper->lock);
+		_starpu_data_acquire_wrapper_fini(wrapper);
 		free(wrapper);
-
-		_starpu_fetch_data_on_node(handle, node, replicate, mode, async, prefetch, async, NULL, NULL, prio, "_starpu_prefetch_data_on_node_with_mode");
 
 		/* remove the "lock"/reference */
 
@@ -459,12 +525,8 @@ int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle_t handle, unsigne
 	}
 	else if (!async)
 	{
-		STARPU_PTHREAD_MUTEX_LOCK(&wrapper->lock);
-		while (!wrapper->finished)
-			STARPU_PTHREAD_COND_WAIT(&wrapper->cond, &wrapper->lock);
-		STARPU_PTHREAD_MUTEX_UNLOCK(&wrapper->lock);
-		STARPU_PTHREAD_COND_DESTROY(&wrapper->cond);
-		STARPU_PTHREAD_MUTEX_DESTROY(&wrapper->lock);
+		_starpu_data_acquire_wrapper_wait(wrapper);
+		_starpu_data_acquire_wrapper_fini(wrapper);
 		free(wrapper);
 	}
 

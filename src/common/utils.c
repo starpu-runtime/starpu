@@ -289,7 +289,8 @@ static int _starpu_warn_nolock(int err)
 		)
 	{
 		static int warn;
-		if (!warn) {
+		if (!warn)
+		{
 			warn = 1;
 			_STARPU_DISP("warning: Couldn't lock performance file, StarPU home (%s, coming from $HOME or $STARPU_HOME) is probably on some network filesystem like NFS which does not support locking.\n", _starpu_get_home_path());
 		}

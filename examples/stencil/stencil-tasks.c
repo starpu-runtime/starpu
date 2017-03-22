@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2013-2015  Université de Bordeaux
+ * Copyright (C) 2010, 2013-2015, 2017  Université de Bordeaux
  * Copyright (C) 2012, 2013, 2015, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -151,7 +151,8 @@ void create_task_save(unsigned iter, unsigned z, int dir, int local_rank)
 
 	}
 	else
-	{	/* node_z != local_rank, this MPI node doesn't have the saved data */
+	{
+		/* node_z != local_rank, this MPI node doesn't have the saved data */
 		if (node_z_and_d == local_rank)
 		{
 			create_task_save_mpi_recv(iter, z, dir, local_rank);
@@ -296,6 +297,7 @@ void create_tasks(int rank)
 
 	for (iter = 0; iter <= niter; iter++)
 	{
+	     starpu_iteration_push(iter);
 	     for (bz = 0; bz < nbz; bz++)
 	     {
 		  if ((iter > 0) && (get_block_mpi_node(bz) == rank))
@@ -313,6 +315,7 @@ void create_tasks(int rank)
 				     create_task_save(iter, bz, -1, rank);
 		     }
 	     }
+	     starpu_iteration_pop();
 	}
 }
 

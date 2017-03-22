@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012, 2014-2015  Université de Bordeaux
+ * Copyright (C) 2010-2012, 2014-2015, 2017  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012, 2016  CNRS
  *
@@ -173,6 +173,8 @@ static int dw_codelet_facto_pivot(starpu_data_handle_t *dataAp,
 	{
 		int ret;
 
+		starpu_iteration_push(k);
+
 		ret = create_task_11_pivot(dataAp, nblocks, k, piv_description, get_block);
 		if (ret == -ENODEV) return ret;
 
@@ -205,6 +207,7 @@ static int dw_codelet_facto_pivot(starpu_data_handle_t *dataAp,
 		    starpu_data_wont_use(get_block(dataAp, nblocks, k, i));
 		    starpu_data_wont_use(get_block(dataAp, nblocks, i, k));
 		}
+		starpu_iteration_pop();
 	}
 
 	/* stall the application until the end of computations */

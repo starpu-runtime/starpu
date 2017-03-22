@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012, 2016  INRIA
+ * Copyright (C) 2012, 2016, 2017  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -370,6 +370,7 @@ void _starpu_sink_common_worker(void)
 				case STARPU_MP_COMMAND_EXIT:
 					exit_starpu = 1;
 					break;
+				case STARPU_MP_COMMAND_EXECUTE_DETACHED:
 				case STARPU_MP_COMMAND_EXECUTE:
 					node->execute(node, arg, arg_size);
 					break;
@@ -552,7 +553,10 @@ static void _starpu_sink_common_execution_completed_message(struct _starpu_mp_no
 {
 	/* Init message to tell the sink that the execution is completed */
 	struct mp_message * message = mp_message_new();
-	message->type = STARPU_MP_COMMAND_EXECUTION_COMPLETED;
+	if (task->detached)
+		message->type = STARPU_MP_COMMAND_EXECUTION_DETACHED_COMPLETED;
+	else
+		message->type = STARPU_MP_COMMAND_EXECUTION_COMPLETED;
 	_STARPU_MALLOC(message->buffer, sizeof(int));
 	*(int*) message->buffer = task->coreid;
 	message->size = sizeof(int);
@@ -590,10 +594,14 @@ static int _starpu_sink_common_get_current_rank(int workerid, struct _starpu_com
 
 /* Execute the task
  */
-static void _starpu_sink_common_execute_kernel(struct _starpu_mp_node *node, int coreid, struct _starpu_worker * worker)
+static void _starpu_sink_common_execute_kernel(struct _starpu_mp_node *node, int coreid, struct _starpu_worker * worker, int detached)
 {
 	struct _starpu_combined_worker * combined_worker = NULL;
-	struct mp_task* task = node->run_table[coreid];
+	struct mp_task* task;
+	if (detached)
+		task = node->run_table_detached[coreid];
+	else
+		task = node->run_table[coreid];
 
 
 	/* If it's a parallel task */
@@ -659,7 +667,10 @@ static void _starpu_sink_common_execute_kernel(struct _starpu_mp_node *node, int
 		}
 	}
 
-	node->run_table[coreid] = NULL;
+	if (detached)
+		node->run_table_detached[coreid] = NULL;
+	else
+		node->run_table[coreid] = NULL;
 
 	/* tell the sink that the execution is completed */
 	_starpu_sink_common_execution_completed_message(node,task);
@@ -698,8 +709,10 @@ void* _starpu_sink_thread(void * thread_arg)
 	{
 		/*Wait there is a task available */
 		sem_wait(&node->sem_run_table[coreid]);
-		if(node->run_table[coreid] != NULL)
-			_starpu_sink_common_execute_kernel(node,coreid,worker);
+		if (node->run_table_detached[coreid] != NULL)
+			_starpu_sink_common_execute_kernel(node, coreid, worker, 1);
+		if (node->run_table[coreid] != NULL)
+			_starpu_sink_common_execute_kernel(node, coreid, worker, 0);
 
 	}
 	starpu_pthread_exit(NULL);
@@ -710,8 +723,12 @@ void* _starpu_sink_thread(void * thread_arg)
 */
 static void _starpu_sink_common_execute_thread(struct _starpu_mp_node *node, struct mp_task *task)
 {
+	int detached = task->detached;
 	/* Add the task to the specific thread */
-	node->run_table[task->coreid] = task;
+	if (detached)
+		node->run_table_detached[task->coreid] = task;
+	else
+		node->run_table[task->coreid] = task;
 	/* Unlock the mutex to wake up the thread which will execute the task */
 	sem_post(&node->sem_run_table[task->coreid]);
 }
@@ -757,6 +774,9 @@ void _starpu_sink_common_execute(struct _starpu_mp_node *node,
 	task->nb_interfaces = *(unsigned *) arg_ptr;
 	arg_ptr += sizeof(task->nb_interfaces);
 
+	task->detached = *(int *) arg_ptr;
+	arg_ptr += sizeof(task->detached);
+
 	_STARPU_MALLOC(task->interfaces, task->nb_interfaces * sizeof(*task->interfaces));
 
 	/* The function needs an array pointing to each interface it needs
@@ -785,8 +805,12 @@ void _starpu_sink_common_execute(struct _starpu_mp_node *node,
 
 
 	//_STARPU_DEBUG("telling host that we have submitted the task %p.\n", task->kernel);
-	_starpu_mp_common_send_command(node, STARPU_MP_COMMAND_EXECUTION_SUBMITTED,
-			NULL, 0);
+	if (task->detached)
+		_starpu_mp_common_send_command(node, STARPU_MP_COMMAND_EXECUTION_DETACHED_SUBMITTED,
+				NULL, 0);
+	else
+		_starpu_mp_common_send_command(node, STARPU_MP_COMMAND_EXECUTION_SUBMITTED,
+				NULL, 0);
 
 	//_STARPU_DEBUG("executing the task %p\n", task->kernel);
 	_starpu_sink_common_execute_thread(node, task);
