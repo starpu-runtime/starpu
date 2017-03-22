@@ -1112,15 +1112,6 @@ void starpu_sched_ctx_delete(unsigned sched_ctx_id)
 		/* announce upcoming context changes, then wait for transient unlocked operations to
 		 * complete before altering the sched_ctx under sched_mutex protection */
 		_starpu_update_locked_workers_without_ctx(workerids, nworkers_ctx, sched_ctx_id, 1);
-		int w;
-		for(w = 0; w < nworkers_ctx; w++)
-		{
-			struct _starpu_worker *worker = _starpu_get_worker_struct(backup_workerids[w]);
-			while (worker->state_blocked)
-			{
-				STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
-			}
-		}
 		_starpu_sched_ctx_free_scheduling_data(sched_ctx);
 		_starpu_delete_sched_ctx(sched_ctx);
 	}
@@ -2432,15 +2423,15 @@ static void _starpu_sched_ctx_wake_up_workers(unsigned sched_ctx_id, unsigned al
 				if (worker->state_wait_ack__blocked)
 				{
 					worker->state_wait_ack__blocked = 0;
+					worker->state_wait_handshake__blocked = 1;
 					/* broadcast is required because sched_cond is shared for multiple purpose */
 					STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
+					do
+					{
+						STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
+					}
+					while (worker->state_wait_handshake__blocked);
 				}
-				worker->state_wait_handshake__blocked = 1;
-				do
-				{
-					STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
-				}
-				while (worker->state_wait_handshake__blocked);
 			}
 			else
 				sched_ctx->parallel_sect[workerid] = 0;
