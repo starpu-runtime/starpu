@@ -340,6 +340,7 @@ static void _starpu_exponential_backoff(struct _starpu_worker *worker)
 struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int workerid, unsigned memnode STARPU_ATTRIBUTE_UNUSED)
 {
 	STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
+	_starpu_worker_enter_transient_sched_op(worker);
 	struct starpu_task *task;
 	unsigned needed = 1;
 	unsigned executing STARPU_ATTRIBUTE_UNUSED = 0;
@@ -374,10 +375,10 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 					{
 						STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
 					}
-					while (worker->state_wait_ack__blocked);
+					while (worker->state_wait_ack__blocked && !worker->state_changing_ctx_waiting);
 					worker->state_blocked = 0;
 					sched_ctx->parallel_sect[workerid] = 0;
-					if (worker->state_wait_handshake__blocked)
+					if (worker->state_wait_handshake__blocked && !worker->state_changing_ctx_waiting)
 					{
 						worker->state_wait_handshake__blocked = 0;
 						STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
@@ -401,17 +402,18 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 				{
 					STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
 				}
-				while (worker->state_wait_ack__blocked);
+				while (worker->state_wait_ack__blocked && !worker->state_changing_ctx_waiting);
 				worker->state_blocked = 0;
 				sched_ctx->parallel_sect[workerid] = 0;
-				if (worker->state_wait_handshake__blocked)
+				if (worker->state_wait_handshake__blocked && !worker->state_changing_ctx_waiting)
 				{
 					worker->state_wait_handshake__blocked = 0;
 					STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
 				}
 			}
 		}
-
+		if (worker->state_changing_ctx_waiting)
+			break;
 		needed = !needed;
 	}
 
@@ -429,9 +431,7 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 	/*else try to pop a task*/
 	else
 	{
-		_starpu_worker_enter_transient_sched_op(worker);
 		task = _starpu_pop_task(worker);
-		_starpu_worker_leave_transient_sched_op(worker);
 	}
 
 #if !defined(STARPU_SIMGRID)
@@ -449,6 +449,7 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 		if (_starpu_worker_can_block(memnode, worker)
 			&& !_starpu_sched_ctx_last_worker_awake(worker))
 		{
+			_starpu_worker_leave_transient_sched_op(worker);
 			do
 			{
 				STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
@@ -458,6 +459,7 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 		}
 		else
 		{
+			_starpu_worker_leave_transient_sched_op(worker);
 			STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 			if (_starpu_machine_is_running())
 				_starpu_exponential_backoff(worker);
@@ -478,6 +480,7 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 	}
 	worker->spinning_backoff = BACKOFF_MIN;
 
+	_starpu_worker_leave_transient_sched_op(worker);
 	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 
 

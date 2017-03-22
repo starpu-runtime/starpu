@@ -581,6 +581,7 @@ static void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu
 
 	workerarg->state_sched_op_pending = 0;
 	workerarg->state_changing_ctx_waiting = 0;
+	workerarg->state_changing_ctx_notice = 0;
 	workerarg->state_blocked = 0;
 	workerarg->state_wait_ack__blocked = 0;
 	workerarg->state_wait_handshake__blocked = 0;

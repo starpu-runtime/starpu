@@ -84,6 +84,7 @@ LIST_TYPE(_starpu_worker,
         starpu_pthread_mutex_t sched_mutex; /* mutex protecting sched_cond */
 	int state_sched_op_pending:1; /* a task pop is ongoing even though sched_mutex may temporarily be unlocked */
 	int state_changing_ctx_waiting:1; /* a thread is waiting for transient operations such as pop to complete before acquiring sched_mutex and modifying the worker ctx*/
+	int state_changing_ctx_notice:1; /* the worker ctx is about to change or being changed, wait for flag to be cleared before starting new transient scheduling operations */
 	int state_blocked:1;
 	int state_wait_ack__blocked:1;
 	int state_wait_handshake__blocked:1;
@@ -616,6 +617,8 @@ struct _starpu_sched_ctx* _starpu_worker_get_ctx_stream(unsigned stream_workerid
  * should not be modified */
 static inline void _starpu_worker_enter_transient_sched_op(struct _starpu_worker * const worker)
 {
+	while (worker->state_changing_ctx_notice)
+		STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
 	worker->state_sched_op_pending = 1;
 }
 
@@ -633,6 +636,24 @@ static inline void  _starpu_worker_leave_transient_sched_op(struct _starpu_worke
 }
 
 /* Must be called with worker's sched_mutex held.
+ */
+static inline void _starpu_worker_set_changing_ctx_notice(struct _starpu_worker * const worker)
+{
+	/* another ctx change might be under way, wait for the way to be cleared */
+	while (worker->state_changing_ctx_notice)
+		STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
+	worker->state_changing_ctx_notice = 1;
+}
+
+/* Must be called with worker's sched_mutex held.
+ */
+static inline void _starpu_worker_clear_changing_ctx_notice(struct _starpu_worker * const worker)
+{
+	worker->state_changing_ctx_notice = 0;
+	STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
+}
+
+/* Must be called with worker's sched_mutex held.
  * Passively wait until state_sched_op_pending is cleared.
  */
 static inline void _starpu_worker_wait_for_transient_sched_op_completion(struct _starpu_worker * const worker)
@@ -640,6 +661,7 @@ static inline void _starpu_worker_wait_for_transient_sched_op_completion(struct 
 	if (worker->state_sched_op_pending)
 	{
 		worker->state_changing_ctx_waiting = 1;
+		STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
 		do
 		{
 			STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
