@@ -381,6 +381,8 @@ if STARPU_SIMGRID
 TESTS += $(MICROBENCHS:=.sh)
 endif
 
+TESTS += datawizard/locality.sh
+
 #######################
 # Source files        #
 #######################
