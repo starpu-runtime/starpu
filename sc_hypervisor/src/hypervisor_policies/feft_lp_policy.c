@@ -27,7 +27,7 @@ static void _try_resizing(unsigned *sched_ctxs, int nsched_ctxs, int *workers, i
 	/* for vite */
 	int ns = sched_ctxs == NULL ? sc_hypervisor_get_nsched_ctxs() : nsched_ctxs;
 #ifdef STARPU_SC_HYPERVISOR_DEBUG
-	printf("resize_no = %u %d ctxs\n", resize_no, ns);
+	printf("resize_no = %lu %d ctxs\n", resize_no, ns);
 #endif
 	if(ns <= 0) return;
 
