@@ -429,6 +429,7 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 #ifndef STARPU_NON_BLOCKING_DRIVERS
 	/* This assumes only 1 worker */
 	STARPU_ASSERT_MSG(nworkers == 1, "Multiple workers is not yet possible in blocking drivers mode\n");
+	_starpu_set_local_worker_key(&workers[0]);
 	STARPU_PTHREAD_MUTEX_LOCK_SCHED(&workers[0].sched_mutex);
 	_starpu_worker_enter_sched_op(&workers[0]);
 #endif
@@ -455,15 +456,14 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 		else
 		{
 #ifdef STARPU_NON_BLOCKING_DRIVERS
+			_starpu_set_local_worker_key(&workers[i]);
 			STARPU_PTHREAD_MUTEX_LOCK_SCHED(&workers[i].sched_mutex);
 #endif
 			_starpu_worker_set_status_scheduling(workers[i].workerid);
 #ifdef STARPU_NON_BLOCKING_DRIVERS
 			_starpu_worker_enter_sched_op(&workers[i]);
 #endif
-			_starpu_set_local_worker_key(&workers[i]);
 			tasks[i] = _starpu_pop_task(&workers[i]);
-
 			if(tasks[i] != NULL)
 			{
 				_starpu_worker_set_status_scheduling_done(workers[i].workerid);
