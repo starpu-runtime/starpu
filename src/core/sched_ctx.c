@@ -55,8 +55,7 @@ static void notify_workers_about_changing_ctx_pending(const unsigned nworkers, c
 	{
 		struct _starpu_worker *worker = _starpu_get_worker_struct(workerids[i]);
 		STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
-		_starpu_worker_set_changing_ctx_notice(worker);
-		_starpu_worker_wait_for_transient_sched_op_completion(worker);
+		_starpu_worker_enter_changing_ctx_op(worker);
 		STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 	}
 }
@@ -68,7 +67,7 @@ static void notify_workers_about_changing_ctx_done(const unsigned nworkers, cons
 	{
 		struct _starpu_worker *worker = _starpu_get_worker_struct(workerids[i]);
 		STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
-		_starpu_worker_clear_changing_ctx_notice(worker);
+		_starpu_worker_leave_changing_ctx_op(worker);
 		STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 	}
 }
@@ -1108,7 +1107,7 @@ void starpu_sched_ctx_delete(unsigned sched_ctx_id)
 		/*if btw the mutex release & the mutex lock the context has changed take care to free all
 		  scheduling data before deleting the context */
 
-		/* announce upcoming context changes, then wait for transient unlocked operations to
+		/* announce upcoming context changes, then wait for sched_op operations to
 		 * complete before altering the sched_ctx under sched_mutex protection */
 		_starpu_update_notified_workers_without_ctx(workerids, nworkers_ctx, sched_ctx_id, 1);
 		_starpu_sched_ctx_free_scheduling_data(sched_ctx);
