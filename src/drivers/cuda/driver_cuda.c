@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2015  Université de Bordeaux
+ * Copyright (C) 2009-2015, 2017  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016, 2017  CNRS
  * Copyright (C) 2011  Télécom-SudParis
@@ -708,7 +708,6 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 	{
 		struct _starpu_worker *worker = &worker_set->workers[i];
 		int workerid = worker->workerid;
-		unsigned memnode = worker->memory_node;
 
 		if (!worker->ntasks)
 		{
@@ -801,7 +800,6 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 	for (i = 0; i < (int) worker_set->nworkers; i++)
 	{
 		struct _starpu_worker *worker = &worker_set->workers[i];
-		unsigned memnode STARPU_ATTRIBUTE_UNUSED = worker->memory_node;
 
 		task = tasks[i];
 		if (!task)
