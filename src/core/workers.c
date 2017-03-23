@@ -310,12 +310,12 @@ static inline int _starpu_can_use_nth_implementation(enum starpu_worker_archtype
 	return 0;
 }
 
+/* must be called with sched_mutex locked to protect state_blocked */
 int starpu_worker_can_execute_task(unsigned workerid, struct starpu_task *task, unsigned nimpl)
 {
-	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
-
+	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 	/* if the worker is blocked in a parallel ctx don't submit tasks on it */
-	if(sched_ctx->parallel_sect[workerid] ) return 0;
+	if(worker->state_blocked) return 0;
 
 	/* TODO: check that the task operand sizes will fit on that device */
 	return (task->cl->where & _starpu_config.workers[workerid].worker_mask) &&
@@ -323,12 +323,12 @@ int starpu_worker_can_execute_task(unsigned workerid, struct starpu_task *task, 
 		(!task->cl->can_execute || task->cl->can_execute(workerid, task, nimpl));
 }
 
+/* must be called with sched_mutex locked to protect state_blocked */
 int starpu_worker_can_execute_task_impl(unsigned workerid, struct starpu_task *task, unsigned *impl_mask)
 {
-	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
-
+	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 	/* if the worker is blocked in a parallel ctx don't submit tasks on it */
-	if(sched_ctx->parallel_sect[workerid]) return 0;
+	if(worker->state_blocked) return 0;
 
 	unsigned mask;
 	int i;
@@ -366,13 +366,15 @@ int starpu_worker_can_execute_task_impl(unsigned workerid, struct starpu_task *t
 	return mask != 0;
 }
 
+/* must be called with sched_mutex locked to protect state_blocked */
 int starpu_worker_can_execute_task_first_impl(unsigned workerid, struct starpu_task *task, unsigned *nimpl)
 {
-	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
+	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
+	/* if the worker is blocked in a parallel ctx don't submit tasks on it */
+	if(worker->state_blocked) return 0;
 	int i;
 	enum starpu_worker_archtype arch;
 	struct starpu_codelet *cl;
-	if(sched_ctx->parallel_sect[workerid]) return 0;
 	/* TODO: check that the task operand sizes will fit on that device */
 	cl = task->cl;
 	if (!(cl->where & _starpu_config.workers[workerid].worker_mask)) return 0;
@@ -583,8 +585,11 @@ static void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu
 	workerarg->state_changing_ctx_waiting = 0;
 	workerarg->state_changing_ctx_notice = 0;
 	workerarg->state_blocked = 0;
-	workerarg->state_wait_ack__blocked = 0;
-	workerarg->state_wait_handshake__blocked = 0;
+	workerarg->state_block_req = 0;
+	workerarg->state_block_ack = 0;
+	workerarg->state_unblock_req = 0;
+	workerarg->state_unblock_ack = 0;
+	workerarg->block_ref_count = 0;
 
 	/* cpu_set/hwloc_cpu_set initialized in topology.c */
 }

@@ -127,10 +127,6 @@ struct _starpu_sched_ctx
 	   if not master is -1 */
 	int main_master;
 
-	/* boolean indicating that workers should block in order to allow
-	   parallel sections to be executed on their allocated resources */
-	unsigned parallel_sect[STARPU_NMAXWORKERS];
-
 	/* ctx nesting the current ctx */
 	unsigned nesting_sched_ctx;
 

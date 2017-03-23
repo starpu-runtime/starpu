@@ -86,8 +86,11 @@ LIST_TYPE(_starpu_worker,
 	int state_changing_ctx_waiting:1; /* a thread is waiting for transient operations such as pop to complete before acquiring sched_mutex and modifying the worker ctx*/
 	int state_changing_ctx_notice:1; /* the worker ctx is about to change or being changed, wait for flag to be cleared before starting new transient scheduling operations */
 	int state_blocked:1;
-	int state_wait_ack__blocked:1;
-	int state_wait_handshake__blocked:1;
+	int state_block_req:1;
+	int state_block_ack:1;
+	int state_unblock_req:1;
+	int state_unblock_ack:1;
+	unsigned block_ref_count;
 	struct starpu_task_list local_tasks; /* this queue contains tasks that have been explicitely submitted to that queue */
 	struct starpu_task **local_ordered_tasks; /* this queue contains tasks that have been explicitely submitted to that queue with an explicit order */
 	unsigned local_ordered_tasks_size; /* this records the size of local_ordered_tasks */
@@ -611,14 +614,47 @@ void _starpu_worker_set_stream_ctx(unsigned workerid, struct _starpu_sched_ctx *
 
 struct _starpu_sched_ctx* _starpu_worker_get_ctx_stream(unsigned stream_workerid);
 
+static inline void _starpu_worker_process_block_requests(struct _starpu_worker * const worker)
+{
+	while (worker->state_block_req)
+	{
+		STARPU_ASSERT(!worker->state_blocked);
+		STARPU_ASSERT(!worker->state_block_ack);
+		STARPU_ASSERT(!worker->state_unblock_req);
+		STARPU_ASSERT(!worker->state_unblock_ack);
+		STARPU_ASSERT(worker->block_ref_count > 0);
+		
+		worker->state_blocked = 1;
+		worker->state_block_ack = 1;
+		STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
+
+		while (!worker->state_unblock_req)
+			STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
+
+		STARPU_ASSERT(worker->state_blocked);
+		STARPU_ASSERT(!worker->state_block_req);
+		STARPU_ASSERT(!worker->state_block_ack);
+		STARPU_ASSERT(!worker->state_unblock_ack);
+		STARPU_ASSERT(worker->block_ref_count > 0);
+
+		worker->state_blocked = 0;
+		worker->state_unblock_ack = 1;
+		STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
+	}
+}
+
 /* Must be called with worker's sched_mutex held.
  * Mark the beginning of a scheduling operation during which the sched_mutex
  * lock may be temporarily released, but the scheduling context of the worker
  * should not be modified */
 static inline void _starpu_worker_enter_transient_sched_op(struct _starpu_worker * const worker)
 {
+	_starpu_worker_process_block_requests(worker);
 	while (worker->state_changing_ctx_notice)
+	{
 		STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
+		_starpu_worker_process_block_requests(worker);
+	}
 	worker->state_sched_op_pending = 1;
 }
 

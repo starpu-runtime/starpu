@@ -340,83 +340,12 @@ static void _starpu_exponential_backoff(struct _starpu_worker *worker)
 struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int workerid, unsigned memnode STARPU_ATTRIBUTE_UNUSED)
 {
 	STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
-	_starpu_worker_enter_transient_sched_op(worker);
 	struct starpu_task *task;
 	unsigned needed = 1;
 	unsigned executing STARPU_ATTRIBUTE_UNUSED = 0;
 
 	_starpu_worker_set_status_scheduling(workerid);
-	while(needed)
-	{
-		struct _starpu_sched_ctx *sched_ctx = NULL;
-		struct _starpu_sched_ctx_elt *e = NULL;
-		struct _starpu_sched_ctx_list_iterator list_it;
-
-		_starpu_sched_ctx_list_iterator_init(worker->sched_ctx_list, &list_it);
-		while (_starpu_sched_ctx_list_iterator_has_next(&list_it))
-		{
-			e = _starpu_sched_ctx_list_iterator_get_next(&list_it);
-			sched_ctx = _starpu_get_sched_ctx_struct(e->sched_ctx);
-			if(sched_ctx && sched_ctx->id > 0 && sched_ctx->id < STARPU_NMAX_SCHED_CTXS)
-			{
-				if(!sched_ctx->sched_policy)
-					worker->is_slave_somewhere = sched_ctx->main_master != workerid;
-
-				if(sched_ctx->parallel_sect[workerid])
-				{
-					/* don't let the worker sleep with the sched_mutex taken */
-					/* we need it until here bc of the list of ctxs of the workers
-					   that can change in another thread */
-					needed = 0;
-					worker->state_blocked = 1;
-					worker->state_wait_ack__blocked = 1;
-					STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
-					do
-					{
-						STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
-					}
-					while (worker->state_wait_ack__blocked && !worker->state_changing_ctx_waiting);
-					worker->state_blocked = 0;
-					sched_ctx->parallel_sect[workerid] = 0;
-					if (worker->state_wait_handshake__blocked && !worker->state_changing_ctx_waiting)
-					{
-						worker->state_wait_handshake__blocked = 0;
-						STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
-					}
-				}
-			}
-			if(!needed)
-				break;
-		}
-		/* don't worry if the value is not correct (no lock) it will do it next time */
-		if(worker->tmp_sched_ctx != -1)
-		{
-			sched_ctx = _starpu_get_sched_ctx_struct(worker->tmp_sched_ctx);
-			if(sched_ctx->parallel_sect[workerid])
-			{
-//				needed = 0;
-				worker->state_blocked = 1;
-				worker->state_wait_ack__blocked = 1;
-				STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
-				do
-				{
-					STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
-				}
-				while (worker->state_wait_ack__blocked && !worker->state_changing_ctx_waiting);
-				worker->state_blocked = 0;
-				sched_ctx->parallel_sect[workerid] = 0;
-				if (worker->state_wait_handshake__blocked && !worker->state_changing_ctx_waiting)
-				{
-					worker->state_wait_handshake__blocked = 0;
-					STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
-				}
-			}
-		}
-		if (worker->state_changing_ctx_waiting)
-			break;
-		needed = !needed;
-	}
-
+	_starpu_worker_enter_transient_sched_op(worker);
 	if ((worker->pipeline_length == 0 && worker->current_task)
 		|| (worker->pipeline_length != 0 && worker->ntasks))
 		/* This worker is executing something */
