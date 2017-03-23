@@ -275,6 +275,9 @@ STARPU_EXAMPLES +=				\
 	heat/heat				\
 	cg/cg					\
 	pipeline/pipeline
+
+TESTS += lu/lu.sh
+
 endif
 endif
 
