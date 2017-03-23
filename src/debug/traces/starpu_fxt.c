@@ -148,6 +148,8 @@ static void task_dump(struct task_info *task)
 
 	if (task->exclude_from_dag)
 		goto out;
+	if (!tasks_file)
+		goto out;
 
 	if (task->name)
 	{
@@ -265,6 +267,8 @@ static struct data_info *get_data(unsigned long handle, int mpi_rank)
 
 static void data_dump(struct data_info *data)
 {
+	if (!data_file)
+		goto out;
 	fprintf(data_file, "Handle: %lx\n", data->handle);
 	fprintf(data_file, "MPIRank: %d\n", data->mpi_rank);
 	if (data->name)
@@ -282,6 +286,7 @@ static void data_dump(struct data_info *data)
 	}
 	fprintf(data_file, "MPIOwner: %d\n", data->mpi_owner);
 	fprintf(data_file, "\n");
+out:
 	HASH_DEL(data_info, data);
 	free(data);
 }
@@ -2071,8 +2076,8 @@ static void handle_task_done(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 	unsigned exclude_from_dag = ev->param[2];
 	struct task_info *task = get_task(job_id, options->file_rank);
 	task->exclude_from_dag = exclude_from_dag;
-	if (tasks_file)
-		task_dump(task);
+
+	task_dump(task);
 
 	if (!exclude_from_dag)
 		_starpu_fxt_dag_set_task_done(options->file_prefix, job_id, name, colour);
@@ -3082,7 +3087,6 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 			_starpu_fxt_process_computations(options);
 	}
 
-	if (data_file)
 	{
 		/* TODO: move to handle_data_unregister */
 		struct data_info *data, *tmp;
