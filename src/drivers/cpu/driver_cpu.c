@@ -409,13 +409,13 @@ void *_starpu_cpu_worker(void *arg)
 	struct _starpu_worker *worker = arg;
 
 	_starpu_cpu_driver_init(worker);
-	_STARPU_TRACE_END_PROGRESS(worker->memory_node);
+	_STARPU_TRACE_START_PROGRESS(worker->memory_node);
 	while (_starpu_machine_is_running())
 	{
 		_starpu_may_pause();
 		_starpu_cpu_driver_run_once(worker);
 	}
-	_STARPU_TRACE_START_PROGRESS(worker->memory_node);
+	_STARPU_TRACE_END_PROGRESS(worker->memory_node);
 	_starpu_cpu_driver_deinit(worker);
 
 	return NULL;
