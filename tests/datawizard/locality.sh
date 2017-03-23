@@ -15,12 +15,18 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
+# Test generation of FxT traces
+
 set -e
 
 PREFIX=$(dirname $0)
 STARPU_FXT_PREFIX=$PREFIX/ $PREFIX/locality
 $PREFIX/../../tools/starpu_fxt_tool -i $PREFIX/prof_file_${USER}_0
-if type pj_dump > /dev/null
+
+# Check that they are approved by Grenoble :)
+
+if type pj_dump > /dev/null 2> /dev/null
 then
-	pj_dump paje.trace > /dev/null
+	$PREFIX/../../tools/starpu_paje_sort paje.trace
+	pj_dump paje.trace
 fi
