@@ -301,7 +301,9 @@ STARPU_EXAMPLES +=				\
 	cg/cg					\
 	pipeline/pipeline
 
-TESTS += lu/lu.sh
+TESTS += \
+	heat/heat.sh				\
+	lu/lu.sh
 
 endif
 endif
