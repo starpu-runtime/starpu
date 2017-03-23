@@ -107,8 +107,8 @@
 #define	_STARPU_FUT_START_DRIVER_COPY_ASYNC	0x5135
 #define	_STARPU_FUT_END_DRIVER_COPY_ASYNC	0x5136
 
-#define	_STARPU_FUT_START_PROGRESS	0x5137
-#define	_STARPU_FUT_END_PROGRESS		0x5138
+#define	_STARPU_FUT_START_PROGRESS_ON_TID	0x5137
+#define	_STARPU_FUT_END_PROGRESS_ON_TID		0x5138
 
 #define _STARPU_FUT_USER_EVENT		0x5139
 
@@ -812,12 +812,10 @@ do {										\
 /* We skip these events becasue they are called so often that they cause FxT to
  * fail and make the overall trace unreadable anyway. */
 #define _STARPU_TRACE_START_PROGRESS(memnode)		\
-	do {} while (0)
-//	FUT_DO_PROBE2(_STARPU_FUT_START_PROGRESS, memnode, _starpu_gettid());
+	FUT_DO_PROBE2(_STARPU_FUT_START_PROGRESS_ON_TID, memnode, _starpu_gettid());
 
 #define _STARPU_TRACE_END_PROGRESS(memnode)		\
-	do {} while (0)
-	//FUT_DO_PROBE2(_STARPU_FUT_END_PROGRESS, memnode, _starpu_gettid());
+	FUT_DO_PROBE2(_STARPU_FUT_END_PROGRESS_ON_TID, memnode, _starpu_gettid());
 	
 #define _STARPU_TRACE_USER_EVENT(code)			\
 	FUT_DO_PROBE2(_STARPU_FUT_USER_EVENT, code, _starpu_gettid());

@@ -1481,6 +1481,17 @@ static void handle_hypervisor_end(struct fxt_ev_64 *ev, struct starpu_fxt_option
 		user_thread_pop_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[1]);
 }
 
+static void handle_worker_status_on_tid(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *newstatus)
+{
+	int worker;
+	worker = find_worker_id(ev->param[1]);
+	if (worker < 0)
+		return;
+
+	if (out_paje_file)
+		thread_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[1], newstatus);
+}
+
 static void handle_worker_status(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *newstatus)
 {
 	int worker;
@@ -2622,14 +2633,17 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 			case _STARPU_FUT_START_PUSH_OUTPUT:
 				handle_worker_status(&ev, options, "Po");
 				break;
-			case _STARPU_FUT_START_PROGRESS:
-				handle_worker_status(&ev, options, "P");
+			case _STARPU_FUT_START_PROGRESS_ON_TID:
+				handle_worker_status_on_tid(&ev, options, "P");
 				break;
 			case _STARPU_FUT_START_UNPARTITION:
 				handle_worker_status(&ev, options, "U");
 				break;
+			case _STARPU_FUT_END_PROGRESS_ON_TID:
+				handle_worker_status_on_tid(&ev, options, "B");
+				break;
+
 			case _STARPU_FUT_END_FETCH_INPUT:
-			case _STARPU_FUT_END_PROGRESS:
 			case _STARPU_FUT_END_PUSH_OUTPUT:
 			case _STARPU_FUT_END_UNPARTITION:
 				handle_worker_status(&ev, options, "B");

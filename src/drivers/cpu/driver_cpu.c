@@ -235,11 +235,9 @@ int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
 	unsigned memnode = cpu_worker->memory_node;
 	int workerid = cpu_worker->workerid;
 
-	_STARPU_TRACE_START_PROGRESS(memnode);
 	_starpu_datawizard_progress(memnode, 1);
 	if (memnode != STARPU_MAIN_RAM)
 		_starpu_datawizard_progress(STARPU_MAIN_RAM, 1);
-	_STARPU_TRACE_END_PROGRESS(memnode);
 
 	struct _starpu_job *j;
 	struct starpu_task *task;
@@ -265,6 +263,7 @@ int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
 
 	struct starpu_perfmodel_arch* perf_arch;
 
+	_STARPU_TRACE_END_PROGRESS(memnode);
 	/* Get the rank in case it is a parallel task */
 	if (is_parallel_task)
 	{
@@ -312,6 +311,7 @@ int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
 		{
 		case -EAGAIN:
 			_starpu_push_task_to_workers(task);
+			_STARPU_TRACE_START_PROGRESS(memnode);
 			return 0;
 		default:
 			STARPU_ABORT();
@@ -329,6 +329,7 @@ int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
 
 	if (rank == 0)
 		_starpu_handle_job_termination(j);
+	_STARPU_TRACE_START_PROGRESS(memnode);
 	return 0;
 }
 
@@ -356,11 +357,13 @@ _starpu_cpu_worker(void *arg)
 	struct _starpu_worker *args = arg;
 
 	_starpu_cpu_driver_init(args);
+	_STARPU_TRACE_START_PROGRESS(args->memory_node);
 	while (_starpu_machine_is_running())
 	{
 		_starpu_may_pause();
 		_starpu_cpu_driver_run_once(args);
 	}
+	_STARPU_TRACE_END_PROGRESS(args->memory_node);
 	_starpu_cpu_driver_deinit(args);
 
 	return NULL;

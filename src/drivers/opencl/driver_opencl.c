@@ -703,7 +703,7 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 		task = worker->current_tasks[worker->first_task];
 
 #ifdef STARPU_SIMGRID
-		if (task_finished[worker->devid][worker->first_task])
+		if (!task_finished[worker->devid][worker->first_task])
 #else /* !STARPU_SIMGRID */
 		cl_int status;
 		err = clGetEventInfo(task_events[worker->devid][worker->first_task], CL_EVENT_COMMAND_EXECUTION_STATUS, sizeof(cl_int), &status, &size);
@@ -713,7 +713,6 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 		if (status != CL_COMPLETE)
 #endif /* !STARPU_SIMGRID */
 		{
-			_STARPU_TRACE_START_EXECUTING();
 			/* Not ready yet, no better thing to do than waiting */
 			__starpu_datawizard_progress(memnode, 1, 0);
 			__starpu_datawizard_progress(STARPU_MAIN_RAM, 1, 0);
@@ -721,6 +720,7 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 		}
 		else
 		{
+			_STARPU_TRACE_END_PROGRESS(memnode);
 #ifndef STARPU_SIMGRID
 			err = clReleaseEvent(task_events[worker->devid][worker->first_task]);
 			if (STARPU_UNLIKELY(err)) STARPU_OPENCL_REPORT_ERROR(err);
@@ -743,15 +743,13 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 				else
 				{
 					/* A synchronous task, we have finished flushing the pipeline, we can now at last execute it.  */
-					_STARPU_TRACE_END_PROGRESS(memnode);
 					_STARPU_TRACE_EVENT("sync_task");
 					_starpu_opencl_execute_job(task, worker);
 					_STARPU_TRACE_EVENT("end_sync_task");
-					_STARPU_TRACE_START_PROGRESS(memnode);
 					worker->pipeline_stuck = 0;
 				}
 			}
-			_STARPU_TRACE_END_EXECUTING();
+			_STARPU_TRACE_START_PROGRESS(memnode);
 		}
 	}
 
@@ -773,6 +771,7 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 		return 0;
 	}
 
+	_STARPU_TRACE_END_PROGRESS(memnode);
 	worker->current_tasks[(worker->first_task  + worker->ntasks)%STARPU_MAX_PIPELINE] = task;
 	worker->ntasks++;
 
@@ -785,7 +784,6 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 		return 0;
 	}
 
-	_STARPU_TRACE_END_PROGRESS(memnode);
 	_starpu_opencl_execute_job(task, worker);
 	_STARPU_TRACE_START_PROGRESS(memnode);
 
@@ -821,14 +819,14 @@ void *_starpu_opencl_worker(void *_arg)
 	struct _starpu_worker* worker = _arg;
 
 	_starpu_opencl_driver_init(worker);
-	_STARPU_TRACE_START_PROGRESS(memnode);
+	_STARPU_TRACE_START_PROGRESS(worker->memory_node);
 	while (_starpu_machine_is_running())
 	{
 		_starpu_may_pause();
 		_starpu_opencl_driver_run_once(worker);
 	}
 	_starpu_opencl_driver_deinit(worker);
-	_STARPU_TRACE_END_PROGRESS(memnode);
+	_STARPU_TRACE_END_PROGRESS(worker->memory_node);
 
 	return NULL;
 }
