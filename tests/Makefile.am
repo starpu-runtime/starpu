@@ -354,6 +354,8 @@ else
 check_PROGRAMS	=	$(LOADER) $(noinst_PROGRAMS)
 endif
 
+TESTS += datawizard/locality.sh
+
 #######################
 # Source files        #
 #######################
