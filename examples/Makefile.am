@@ -79,7 +79,8 @@ EXTRA_DIST = 					\
 	fortran/Makefile				\
 	sched_ctx/axpy_partition_gpu.h			\
 	sched_ctx/axpy_partition_gpu.cu			\
-	heat/heat.sh
+	heat/heat.sh					\
+	lu/lu.sh
 
 
 CLEANFILES = *.gcno *.gcda *.linkinfo *.mod starpu_idle_microsec.log
