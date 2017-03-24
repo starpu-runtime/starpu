@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2009-2017  Université de Bordeaux
-# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2017  CNRS
 # Copyright (C) 2011  Télécom-SudParis
 # Copyright (C) 2011-2012  INRIA
 # Copyright (C) 2015-2016  Inria
@@ -75,7 +75,8 @@ EXTRA_DIST = 					\
 	reductions/dot_product_opencl_kernels.cl	\
 	scheduler/schedulers.sh				\
 	scheduler/schedulers_context.sh			\
-	fortran/Makefile
+	fortran/Makefile				\
+	heat/heat.sh
 
 CLEANFILES = *.gcno *.gcda *.linkinfo *.mod starpu_idle_microsec.log
 
