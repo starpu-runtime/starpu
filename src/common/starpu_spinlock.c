@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2012-2014, 2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2013, 2014  CNRS
+ * Copyright (C) 2010, 2011, 2013, 2014, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -25,10 +25,9 @@
 int _starpu_spin_init(struct _starpu_spinlock *lock)
 {
 	starpu_pthread_mutexattr_t errcheck_attr;
-//	memcpy(&lock->errcheck_lock, PTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP, sizeof(PTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP));
 	int ret;
 	ret = starpu_pthread_mutexattr_init(&errcheck_attr);
-	STARPU_CHECK_RETURN_VALUE(ret, "pthread_mutexattr_init");
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_pthread_mutexattr_init");
 
 	ret = starpu_pthread_mutexattr_settype(&errcheck_attr, PTHREAD_MUTEX_ERRORCHECK);
 	STARPU_ASSERT(!ret);

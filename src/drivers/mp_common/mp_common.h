@@ -17,7 +17,6 @@
 #ifndef __MP_COMMON_H__
 #define __MP_COMMON_H__
 
-#include <pthread.h>
 #include <semaphore.h>
 
 #include <starpu.h>

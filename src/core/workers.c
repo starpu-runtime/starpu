@@ -1429,7 +1429,7 @@ static void _starpu_terminate_workers(struct _starpu_machine_config *pconfig)
 			if (set->started)
 			{
 #ifndef STARPU_SIMGRID
-				if (!pthread_equal(starpu_pthread_self(), set->worker_thread))
+				if (!starpu_pthread_equal(starpu_pthread_self(), set->worker_thread))
 #endif
 					status = starpu_pthread_join(set->worker_thread, NULL);
 				if (status)
@@ -1447,7 +1447,7 @@ static void _starpu_terminate_workers(struct _starpu_machine_config *pconfig)
 				goto out;
 
 #ifndef STARPU_SIMGRID
-			if (!pthread_equal(starpu_pthread_self(), worker->worker_thread))
+			if (!starpu_pthread_equal(starpu_pthread_self(), worker->worker_thread))
 #endif
 				status = starpu_pthread_join(worker->worker_thread, NULL);
 			if (status)
