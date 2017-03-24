@@ -76,7 +76,8 @@ EXTRA_DIST = 					\
 	scheduler/schedulers.sh				\
 	scheduler/schedulers_context.sh			\
 	fortran/Makefile				\
-	heat/heat.sh
+	heat/heat.sh					\
+	lu/lu.sh
 
 CLEANFILES = *.gcno *.gcda *.linkinfo *.mod starpu_idle_microsec.log
 
