@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2016  Université de Bordeaux
+ * Copyright (C) 2009-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2011, 2014, 2016  INRIA
@@ -88,7 +88,7 @@ struct _starpu_job* STARPU_ATTRIBUTE_MALLOC _starpu_job_create(struct starpu_tas
 
 #ifndef STARPU_USE_FXT
 	if (_starpu_bound_recording || _starpu_top_status_get() ||
-		_starpu_task_break_on_push != -1 || _starpu_task_break_on_pop != -1 || _starpu_task_break_on_sched != -1
+		_starpu_task_break_on_push != -1 || _starpu_task_break_on_sched != -1 || _starpu_task_break_on_pop != -1 || _starpu_task_break_on_exec != -1
 		|| STARPU_AYU_EVENT)
 #endif
 	{

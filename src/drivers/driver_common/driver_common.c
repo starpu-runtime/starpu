@@ -101,6 +101,7 @@ void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job 
 	}
 	else
 		_STARPU_TRACE_START_CODELET_BODY(j, j->nimpl, perf_arch, workerid);
+	_STARPU_TASK_BREAK_ON(task, exec);
 }
 
 void _starpu_driver_end_job(struct _starpu_worker *worker, struct _starpu_job *j, struct starpu_perfmodel_arch* perf_arch STARPU_ATTRIBUTE_UNUSED, struct timespec *codelet_end, int rank, int profiling)

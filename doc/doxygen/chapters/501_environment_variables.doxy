@@ -1014,6 +1014,15 @@ dog is reached, thus allowing to catch the situation in gdb, etc
 (see \ref DetectionStuckConditions)
 </dd>
 
+<dt>STARPU_TASK_BREAK_ON_PUSH</dt>
+<dd>
+\anchor STARPU_TASK_BREAK_ON_PUSH
+\addindex __env__STARPU_TASK_BREAK_ON_PUSH
+When this variable contains a job id, StarPU will raise SIGTRAP when the task
+with that job id is being pushed to the scheduler, which will be nicely catched by debuggers
+(see \ref DebuggingScheduling)
+</dd>
+
 <dt>STARPU_TASK_BREAK_ON_SCHED</dt>
 <dd>
 \anchor STARPU_TASK_BREAK_ON_SCHED
@@ -1025,21 +1034,21 @@ This only works for schedulers which have such a scheduling point defined
 (see \ref DebuggingScheduling)
 </dd>
 
-<dt>STARPU_TASK_BREAK_ON_PUSH</dt>
-<dd>
-\anchor STARPU_TASK_BREAK_ON_PUSH
-\addindex __env__STARPU_TASK_BREAK_ON_PUSH
-When this variable contains a job id, StarPU will raise SIGTRAP when the task
-with that job id is being pushed to the scheduler, which will be nicely catched by debuggers
-(see \ref DebuggingScheduling)
-</dd>
-
 <dt>STARPU_TASK_BREAK_ON_POP</dt>
 <dd>
 \anchor STARPU_TASK_BREAK_ON_POP
 \addindex __env__STARPU_TASK_BREAK_ON_POP
 When this variable contains a job id, StarPU will raise SIGTRAP when the task
 with that job id is being popped from the scheduler, which will be nicely catched by debuggers
+(see \ref DebuggingScheduling)
+</dd>
+
+<dt>STARPU_TASK_BREAK_ON_EXEC</dt>
+<dd>
+\anchor STARPU_TASK_BREAK_ON_EXEC
+\addindex __env__STARPU_TASK_BREAK_ON_EXEC
+When this variable contains a job id, StarPU will raise SIGTRAP when the task
+with that job id is being executed, which will be nicely catched by debuggers
 (see \ref DebuggingScheduling)
 </dd>
 

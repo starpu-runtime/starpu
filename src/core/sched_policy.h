@@ -103,8 +103,9 @@ extern struct starpu_sched_policy _starpu_sched_modular_heft2_policy;
 extern struct starpu_sched_policy _starpu_sched_graph_test_policy;
 
 extern long _starpu_task_break_on_push;
-extern long _starpu_task_break_on_pop;
 extern long _starpu_task_break_on_sched;
+extern long _starpu_task_break_on_pop;
+extern long _starpu_task_break_on_exec;
 
 #ifdef SIGTRAP
 #define _STARPU_TASK_BREAK_ON(task, what) do { \

@@ -31,15 +31,17 @@ static double idle[STARPU_NMAXWORKERS];
 static double idle_start[STARPU_NMAXWORKERS];
 
 long _starpu_task_break_on_push = -1;
-long _starpu_task_break_on_pop = -1;
 long _starpu_task_break_on_sched = -1;
+long _starpu_task_break_on_pop = -1;
+long _starpu_task_break_on_exec = -1;
 static const char *starpu_idle_file;
 
 void _starpu_sched_init(void)
 {
 	_starpu_task_break_on_push = starpu_get_env_number_default("STARPU_TASK_BREAK_ON_PUSH", -1);
-	_starpu_task_break_on_pop = starpu_get_env_number_default("STARPU_TASK_BREAK_ON_POP", -1);
 	_starpu_task_break_on_sched = starpu_get_env_number_default("STARPU_TASK_BREAK_ON_SCHED", -1);
+	_starpu_task_break_on_pop = starpu_get_env_number_default("STARPU_TASK_BREAK_ON_POP", -1);
+	_starpu_task_break_on_exec = starpu_get_env_number_default("STARPU_TASK_BREAK_ON_EXEC", -1);
 	starpu_idle_file = starpu_getenv("STARPU_IDLE_FILE");
 }
 
