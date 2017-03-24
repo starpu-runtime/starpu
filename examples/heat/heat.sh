@@ -21,22 +21,22 @@ set -e
 
 PREFIX=$(dirname $0)
 
-$PREFIX/head -shape 0
-$PREFIX/head -shape 1
-$PREFIX/head -shape 2
+$PREFIX/heat -shape 0
+$PREFIX/heat -shape 1
+$PREFIX/heat -shape 2
 
-$PREFIX/head -cg
+$PREFIX/heat -cg
 
 # TODO: FIXME
 
 # segfault
-#$PREFIX/head -v1
+#$PREFIX/heat -v1
 
 # (actually the default...)
-$PREFIX/head -v2
+$PREFIX/heat -v2
 
 # hang
-#$PREFIX/head -v3
+#$PREFIX/heat -v3
 
 # hang
-#$PREFIX/head -v4
+#$PREFIX/heat -v4
