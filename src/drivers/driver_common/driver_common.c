@@ -339,12 +339,12 @@ static void _starpu_exponential_backoff(struct _starpu_worker *worker)
 /* Workers may block when there is no work to do at all. */
 struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int workerid, unsigned memnode STARPU_ATTRIBUTE_UNUSED)
 {
-	STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
 	struct starpu_task *task;
 	unsigned executing STARPU_ATTRIBUTE_UNUSED = 0;
 
-	_starpu_worker_set_status_scheduling(workerid);
+	STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
 	_starpu_worker_enter_sched_op(worker);
+	_starpu_worker_set_status_scheduling(workerid);
 	if ((worker->pipeline_length == 0 && worker->current_task)
 		|| (worker->pipeline_length != 0 && worker->ntasks))
 		/* This worker is executing something */
@@ -377,12 +377,12 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 		if (_starpu_worker_can_block(memnode, worker)
 			&& !_starpu_sched_ctx_last_worker_awake(worker))
 		{
-			_starpu_worker_leave_sched_op(worker);
 			do
 			{
 				STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
 			}
 			while (worker->status == STATUS_SLEEPING);
+			_starpu_worker_leave_sched_op(worker);
 			STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 		}
 		else
@@ -458,11 +458,9 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 #ifdef STARPU_NON_BLOCKING_DRIVERS
 			_starpu_set_local_worker_key(&workers[i]);
 			STARPU_PTHREAD_MUTEX_LOCK_SCHED(&workers[i].sched_mutex);
-#endif
-			_starpu_worker_set_status_scheduling(workers[i].workerid);
-#ifdef STARPU_NON_BLOCKING_DRIVERS
 			_starpu_worker_enter_sched_op(&workers[i]);
 #endif
+			_starpu_worker_set_status_scheduling(workers[i].workerid);
 			tasks[i] = _starpu_pop_task(&workers[i]);
 			if(tasks[i] != NULL)
 			{
@@ -534,12 +532,12 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 		if (_starpu_worker_can_block(memnode, worker)
 				&& !_starpu_sched_ctx_last_worker_awake(worker))
 		{
-			_starpu_worker_leave_sched_op(worker);
 			do
 			{
 				STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
 			}
 			while (worker->status == STATUS_SLEEPING);
+			_starpu_worker_leave_sched_op(worker);
 			STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 		}
 		else
