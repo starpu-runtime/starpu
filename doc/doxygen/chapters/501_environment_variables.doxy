@@ -642,9 +642,10 @@ especially regarding data transfers.
 <dd>
 \anchor STARPU_SIMGRID_SCHED_COST
 \addindex __env__STARPU_SIMGRID_SCHED_COST
-When set to 1 (which is the default), scheduling costs are taken into
+When set to 1 (0 is the default), scheduling costs are taken into
 account in simgrid mode. This provides more accurate simgrid predictions,
-and allows studying scheduling overhead of the runtime system.
+and allows studying scheduling overhead of the runtime system. However,
+it also makes simulation non-deterministic.
 </dd>
 
 </dl>
