@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 #
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
@@ -20,6 +20,7 @@
 set -e
 
 PREFIX=$(dirname $0)
+test -x $PREFIX/../../tools/starpu_fxt_tool || exit 77
 STARPU_FXT_PREFIX=$PREFIX/ $PREFIX/locality
 $PREFIX/../../tools/starpu_fxt_tool -i $PREFIX/prof_file_${USER}_0
 
