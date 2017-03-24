@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2012, 2015  Université de Bordeaux
+ * Copyright (C) 2009, 2010, 2012, 2015, 2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -121,9 +121,9 @@ static void parse_args(int argc, char **argv)
 			STARPU_ASSERT((nthick - 2)*(ntheta - 2) == size);
 		}
 
-		if (strcmp(argv[i], "-h") == 0)
+		if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-help") == 0)
 		{
-			printf("usage : %s [-v1|-v2|-v3] [-pin] [-nthick number] [-ntheta number] [-shape [0|1|2]] [-cg] [-size number] [-no-prio]\n", argv[0]);
+			printf("usage : %s [-v1|-v2|-v3|-v4] [-pin] [-nthick number] [-ntheta number] [-shape [0|1|2]] [-cg] [-size number] [-no-prio]\n", argv[0]);
 		}
 	}
 }
