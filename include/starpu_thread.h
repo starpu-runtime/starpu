@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012-2016  Université de Bordeaux
+ * Copyright (C) 2010, 2012-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -53,7 +53,6 @@ typedef int starpu_pthread_attr_t;
 int starpu_pthread_equal(starpu_pthread_t t1, starpu_pthread_t t2);
 starpu_pthread_t starpu_pthread_self(void);
 int starpu_pthread_create_on(char *name, starpu_pthread_t *thread, const starpu_pthread_attr_t *attr, void *(*start_routine) (void *), void *arg, msg_host_t host);
-#define starpu_pthread_setname(name)
 int starpu_pthread_create(starpu_pthread_t *thread, const starpu_pthread_attr_t *attr, void *(*start_routine) (void *), void *arg);
 int starpu_pthread_join(starpu_pthread_t thread, void **retval);
 int starpu_pthread_exit(void *retval) STARPU_ATTRIBUTE_NORETURN;
@@ -70,6 +69,14 @@ typedef pthread_attr_t starpu_pthread_attr_t;
 #define starpu_pthread_self pthread_self
 #define starpu_pthread_create pthread_create
 #define starpu_pthread_create_on(name, thread, attr, routine, arg, where) starpu_pthread_create(thread, attr, routine, arg)
+#define starpu_pthread_join pthread_join
+#define starpu_pthread_exit pthread_exit
+#define starpu_pthread_attr_init pthread_attr_init
+#define starpu_pthread_attr_destroy pthread_attr_destroy
+#define starpu_pthread_attr_setdetachstate pthread_attr_setdetachstate
+
+#endif /* STARPU_SIMGRID, _MSC_VER */
+
 #ifdef STARPU_HAVE_PTHREAD_SETNAME_NP
 #ifdef STARPU_HAVE_DARWIN
 #define starpu_pthread_setname(name) pthread_setname_np(name)
@@ -79,13 +86,6 @@ typedef pthread_attr_t starpu_pthread_attr_t;
 #else
 #define starpu_pthread_setname(name)
 #endif
-#define starpu_pthread_join pthread_join
-#define starpu_pthread_exit pthread_exit
-#define starpu_pthread_attr_init pthread_attr_init
-#define starpu_pthread_attr_destroy pthread_attr_destroy
-#define starpu_pthread_attr_setdetachstate pthread_attr_setdetachstate
-
-#endif /* STARPU_SIMGRID, _MSC_VER */
 
 /*
  * Encapsulation of the pthread_mutex_* functions.
