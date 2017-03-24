@@ -79,7 +79,7 @@ EXTRA_DIST = 					\
 	heat/heat.sh					\
 	lu/lu.sh
 
-CLEANFILES = *.gcno *.gcda *.linkinfo *.mod starpu_idle_microsec.log
+CLEANFILES = *.gcno *.gcda *.linkinfo *.mod starpu_idle_microsec.log *.mps *.dot *.pl
 
 if STARPU_USE_CUDA
 
