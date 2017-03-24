@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2012-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -50,6 +50,7 @@ extern "C"
 typedef msg_process_t starpu_pthread_t;
 typedef int starpu_pthread_attr_t;
 
+starpu_pthread_t starpu_pthread_self(void);
 int starpu_pthread_create_on(char *name, starpu_pthread_t *thread, const starpu_pthread_attr_t *attr, void *(*start_routine) (void *), void *arg, msg_host_t host);
 #define starpu_pthread_setname(name)
 int starpu_pthread_create(starpu_pthread_t *thread, const starpu_pthread_attr_t *attr, void *(*start_routine) (void *), void *arg);
@@ -64,6 +65,7 @@ int starpu_pthread_attr_setdetachstate(starpu_pthread_attr_t *attr, int detachst
 typedef pthread_t starpu_pthread_t;
 typedef pthread_attr_t starpu_pthread_attr_t;
 
+#define starpu_pthread_self pthread_self
 #define starpu_pthread_create pthread_create
 #define starpu_pthread_create_on(name, thread, attr, routine, arg, where) starpu_pthread_create(thread, attr, routine, arg)
 #ifdef STARPU_HAVE_PTHREAD_SETNAME_NP
