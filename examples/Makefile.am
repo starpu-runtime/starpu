@@ -77,8 +77,9 @@ EXTRA_DIST = 					\
 	scheduler/schedulers.sh				\
 	scheduler/schedulers_context.sh			\
 	fortran/Makefile				\
-	sched_ctx/axpy_partition_gpu.h				\
-	sched_ctx/axpy_partition_gpu.cu
+	sched_ctx/axpy_partition_gpu.h			\
+	sched_ctx/axpy_partition_gpu.cu			\
+	heat/heat.sh
 
 
 CLEANFILES = *.gcno *.gcda *.linkinfo *.mod starpu_idle_microsec.log
