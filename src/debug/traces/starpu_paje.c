@@ -193,7 +193,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 	poti_DefineEntityValue("E", "S", "Executing", ".0 .6 .5");
 	poti_DefineEntityValue("Sc", "S", "Scheduling", ".7 .36 .0");
 	poti_DefineEntityValue("Sl", "S", "Sleeping", ".9 .1 .0");
-	poti_DefineEntityValue("P", "S", "Progressing", ".4 .1 .6");
+	poti_DefineEntityValue("P", "S", "Progressing", ".0 .0 .4");
 	poti_DefineEntityValue("U", "S", "Unpartitioning", ".0 .0 1.0");
 	poti_DefineEntityValue("H", "S", "Hypervisor", ".5 .18 .0");
 	poti_DefineEntityValue("Bu", "S", "Building task", ".5 .18 .0");
@@ -213,7 +213,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 	poti_DefineEntityValue("E", "WS", "Executing", ".0 .6 .5");
 	poti_DefineEntityValue("Sc", "WS", "Scheduling", ".7 .36 .0");
 	poti_DefineEntityValue("Sl", "WS", "Sleeping", ".9 .1 .0");
-	poti_DefineEntityValue("P", "WS", "Progressing", ".4 .1 .6");
+	poti_DefineEntityValue("P", "WS", "Progressing", ".0 .0 .4");
 	poti_DefineEntityValue("U", "WS", "Unpartitioning", ".0 .0 1.0");
 	poti_DefineEntityValue("H", "WS", "Hypervisor", ".5 .18 .0");
 	poti_DefineEntityValue("Bu", "WS", "Building task", ".5 .18 .0");
@@ -268,7 +268,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 		poti_DefineEntityValue("E", ctx, "Executing", ".0 .6 .5");
 		poti_DefineEntityValue("Sc", ctx, "Scheduling", ".7 .36 .0");
 		poti_DefineEntityValue("Sl", ctx, "Sleeping", ".9 .1 .0");
-		poti_DefineEntityValue("P", ctx, "Progressing", ".4 .1 .6");
+		poti_DefineEntityValue("P", ctx, "Progressing", ".0 .0 .4");
 		poti_DefineEntityValue("U", ctx, "Unpartitioning", ".0 .0 1.0");
 		poti_DefineEntityValue("H", ctx, "Hypervisor", ".5 .18 .0");
 	}
@@ -331,7 +331,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 6       E       S       Executing         \".0 .6 .5\"		\n\
 6       Sc       S      Scheduling         \".7 .36 .0\"		\n\
 6       Sl       S      Sleeping         \".9 .1 .0\"		\n\
-6       P       S       Progressing         \".4 .1 .6\"		\n\
+6       P       S       Progressing         \".0 .0 .4\"		\n\
 6       U       S       Unpartitioning      \".0 .0 1.0\"		\n\
 6       H       S       Hypervisor      \".5 .18 .0\"		\n\
 6       Bu      S       \"Building task\"   \".5 .18 .0\"		\n\
@@ -351,7 +351,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 6       E       WS       Executing         \".0 .6 .5\"		\n\
 6       Sc       WS      Scheduling         \".7 .36 .0\"		\n\
 6       Sl       WS      Sleeping         \".9 .1 .0\"		\n\
-6       P       WS       Progressing         \".4 .1 .6\"		\n\
+6       P       WS       Progressing         \".0 .0 .4\"		\n\
 6       U       WS       Unpartitioning      \".0 .0 1.0\"		\n\
 6       H       WS       Hypervisor      \".5 .18 .0\"		\n\
 6       Bu      WS       \"Building task\"   \".5 .18 .0\"		\n\
@@ -394,7 +394,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 6       E       Ctx%u       Executing         \".0 .6 .5\"		\n\
 6       Sc       Ctx%u      Scheduling         \".7 .36 .0\"		\n\
 6       Sl       Ctx%u      Sleeping         \".9 .1 .0\"		\n\
-6       P       Ctx%u       Progressing         \".4 .1 .6\"		\n\
+6       P       Ctx%u       Progressing         \".0 .0 .4\"		\n\
 6       U       Ctx%u       Unpartitioning         \".0 .0 1.0\"	\n\
 6       H       Ctx%u       Hypervisor         \".5 .18 .0\"		\n",
 		i, i, i, i, i, i, i, i, i, i, i, i, i);
