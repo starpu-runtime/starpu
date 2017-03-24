@@ -105,7 +105,9 @@ int main(int argc, char **argv)
 	int ncuda = 0;
 	int gpu_devid = -1;
 
+#ifdef STARPU_DEVEL
 #warning temporary fix: skip test as cuda computation fails
+#endif
  	return 77;
 
 #ifndef STARPU_HAVE_SETENV
