@@ -3275,7 +3275,7 @@ AC_MSG_NOTICE([
 
 	StarPU Extensions:
 	       StarPU MPI enabled:                            $build_mpi_lib
-         StarPU MPI(nmad) enabled:                      $build_nmad_lib
+	       StarPU MPI(nmad) enabled:                      $build_nmad_lib
 	       MPI test suite:                                $running_mpi_check
 	       Master-Slave MPI enabled:                      $use_mpi_master_slave
 	       FFT Support:                                   $fft_support
