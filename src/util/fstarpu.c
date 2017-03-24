@@ -85,6 +85,7 @@ static const intptr_t fstarpu_starpu_mic	= STARPU_MIC;
 static const intptr_t fstarpu_starpu_scc	= STARPU_SCC;
 
 static const intptr_t fstarpu_starpu_codelet_simgrid_execute	= STARPU_CODELET_SIMGRID_EXECUTE;
+static const intptr_t fstarpu_starpu_codelet_simgrid_execute_and_inject	= STARPU_CODELET_SIMGRID_EXECUTE_AND_INJECT;
 static const intptr_t fstarpu_starpu_cuda_async	= STARPU_CUDA_ASYNC;
 static const intptr_t fstarpu_starpu_opencl_async	= STARPU_OPENCL_ASYNC;
 
@@ -153,6 +154,7 @@ intptr_t fstarpu_get_constant(char *s)
 	else if (!strcmp(s, "FSTARPU_SCC"))	{ return fstarpu_starpu_scc; }
 
 	else if (!strcmp(s, "FSTARPU_CODELET_SIMGRID_EXECUTE"))	{ return fstarpu_starpu_codelet_simgrid_execute; }
+	else if (!strcmp(s, "FSTARPU_CODELET_SIMGRID_EXECUTE_AND_INJECT"))	{ return fstarpu_starpu_codelet_simgrid_execute_and_inject; }
 	else if (!strcmp(s, "FSTARPU_CUDA_ASYNC"))	{ return fstarpu_starpu_cuda_async; }
 	else if (!strcmp(s, "FSTARPU_OPENCL_ASYNC"))	{ return fstarpu_starpu_opencl_async; }
 
