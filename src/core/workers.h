@@ -90,18 +90,18 @@ LIST_TYPE(_starpu_worker,
 	int state_sched_op_pending:1; /* a task pop is ongoing even though sched_mutex may temporarily be unlocked */
 	int state_changing_ctx_waiting:1; /* a thread is waiting for operations such as pop to complete before acquiring sched_mutex and modifying the worker ctx*/
 	int state_changing_ctx_notice:1; /* the worker ctx is about to change or being changed, wait for flag to be cleared before starting new scheduling operations */
-	int state_blocked:1; /* worker is currently blocked */
-	int state_block_req:1; /* a request for state transition from unblocked to blocked is pending */
-	int state_block_ack:1; /* a block request has been honored */
-	int state_unblock_req:1; /* a request for state transition from blocked to unblocked is pending */
-	int state_unblock_ack:1; /* an unblock request has been honored */
+	int state_blocked_in_parallel:1; /* worker is currently blocked on a parallel section */
+	int state_block_in_parallel_req:1; /* a request for state transition from unblocked to blocked is pending */
+	int state_block_in_parallel_ack:1; /* a block request has been honored */
+	int state_unblock_in_parallel_req:1; /* a request for state transition from blocked to unblocked is pending */
+	int state_unblock_in_parallel_ack:1; /* an unblock request has been honored */
 	 /* cumulative blocking depth
 	  * - =0  worker unblocked
 	  * - >0  worker blocked
 	  * - transition from 0 to 1 triggers a block_req
 	  * - transition from 1 to 0 triggers a unblock_req
 	  */
-	unsigned block_ref_count;
+	unsigned block_in_parallel_ref_count;
 	struct starpu_task_list local_tasks; /* this queue contains tasks that have been explicitely submitted to that queue */
 	struct starpu_task **local_ordered_tasks; /* this queue contains tasks that have been explicitely submitted to that queue with an explicit order */
 	unsigned local_ordered_tasks_size; /* this records the size of local_ordered_tasks */
@@ -627,127 +627,127 @@ struct _starpu_sched_ctx* _starpu_worker_get_ctx_stream(unsigned stream_workerid
 
 /* Must be called with worker's sched_mutex held.
  */
-static inline void _starpu_worker_request_blocking(struct _starpu_worker * const worker)
+static inline void _starpu_worker_request_blocking_in_parallel(struct _starpu_worker * const worker)
 {
 	/* flush pending requests to start on a fresh transaction epoch */
-	while (worker->state_unblock_req)
+	while (worker->state_unblock_in_parallel_req)
 		STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
 
 	/* announce blocking intent */
-	STARPU_ASSERT(worker->block_ref_count < UINT_MAX);
-	worker->block_ref_count++;
+	STARPU_ASSERT(worker->block_in_parallel_ref_count < UINT_MAX);
+	worker->block_in_parallel_ref_count++;
 
-	if (worker->block_ref_count == 1)
+	if (worker->block_in_parallel_ref_count == 1)
 	{
-		/* only the transition from 0 to 1 triggers the block_req */
+		/* only the transition from 0 to 1 triggers the block_in_parallel_req */
 
-		STARPU_ASSERT(!worker->state_blocked);
-		STARPU_ASSERT(!worker->state_block_req);
-		STARPU_ASSERT(!worker->state_block_ack);
-		STARPU_ASSERT(!worker->state_unblock_req);
-		STARPU_ASSERT(!worker->state_unblock_ack);
+		STARPU_ASSERT(!worker->state_blocked_in_parallel);
+		STARPU_ASSERT(!worker->state_block_in_parallel_req);
+		STARPU_ASSERT(!worker->state_block_in_parallel_ack);
+		STARPU_ASSERT(!worker->state_unblock_in_parallel_req);
+		STARPU_ASSERT(!worker->state_unblock_in_parallel_ack);
 
-		/* trigger the block_req */
-		worker->state_block_req = 1;
+		/* trigger the block_in_parallel_req */
+		worker->state_block_in_parallel_req = 1;
 		STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
 
-		/* wait for block_req to be processed */
-		while (!worker->state_block_ack)
+		/* wait for block_in_parallel_req to be processed */
+		while (!worker->state_block_in_parallel_ack)
 			STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
 
-		STARPU_ASSERT(worker->block_ref_count >= 1);
-		STARPU_ASSERT(worker->state_block_req);
-		STARPU_ASSERT(worker->state_blocked);
+		STARPU_ASSERT(worker->block_in_parallel_ref_count >= 1);
+		STARPU_ASSERT(worker->state_block_in_parallel_req);
+		STARPU_ASSERT(worker->state_blocked_in_parallel);
 
-		/* reset block_req state flags */
-		worker->state_block_req = 0;
-		worker->state_block_ack = 0;
+		/* reset block_in_parallel_req state flags */
+		worker->state_block_in_parallel_req = 0;
+		worker->state_block_in_parallel_ack = 0;
 
-		/* broadcast block_req state flags reset */
+		/* broadcast block_in_parallel_req state flags reset */
 		STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
 	}
 }
 
 /* Must be called with worker's sched_mutex held.
  */
-static inline void _starpu_worker_request_unblocking(struct _starpu_worker * const worker)
+static inline void _starpu_worker_request_unblocking_in_parallel(struct _starpu_worker * const worker)
 {
 	/* flush pending requests to start on a fresh transaction epoch */
-	while (worker->state_block_req)
+	while (worker->state_block_in_parallel_req)
 		STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
 
 	/* unblocking may be requested unconditionnally
 	 * thus, check is unblocking is really needed */
-	if (worker->state_blocked)
+	if (worker->state_blocked_in_parallel)
 	{
-		if (worker->block_ref_count == 1)
+		if (worker->block_in_parallel_ref_count == 1)
 		{
-			/* only the transition from 1 to 0 triggers the unblock_req */
+			/* only the transition from 1 to 0 triggers the unblock_in_parallel_req */
 
-			STARPU_ASSERT(!worker->state_block_req);
-			STARPU_ASSERT(!worker->state_block_ack);
-			STARPU_ASSERT(!worker->state_unblock_req);
-			STARPU_ASSERT(!worker->state_unblock_ack);
+			STARPU_ASSERT(!worker->state_block_in_parallel_req);
+			STARPU_ASSERT(!worker->state_block_in_parallel_ack);
+			STARPU_ASSERT(!worker->state_unblock_in_parallel_req);
+			STARPU_ASSERT(!worker->state_unblock_in_parallel_ack);
 
-			/* trigger the unblock_req */
-			worker->state_unblock_req = 1;
+			/* trigger the unblock_in_parallel_req */
+			worker->state_unblock_in_parallel_req = 1;
 			STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
 
-			/* wait for the unblock_req to be processed */
-			while (!worker->state_unblock_ack)
+			/* wait for the unblock_in_parallel_req to be processed */
+			while (!worker->state_unblock_in_parallel_ack)
 				STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
 
-			STARPU_ASSERT(worker->state_unblock_req);
-			STARPU_ASSERT(!worker->state_blocked);
+			STARPU_ASSERT(worker->state_unblock_in_parallel_req);
+			STARPU_ASSERT(!worker->state_blocked_in_parallel);
 
-			/* reset unblock_req state flags */
-			worker->state_unblock_req = 0;
-			worker->state_unblock_ack = 0;
+			/* reset unblock_in_parallel_req state flags */
+			worker->state_unblock_in_parallel_req = 0;
+			worker->state_unblock_in_parallel_ack = 0;
 
-			/* broadcast unblock_req state flags reset */
+			/* broadcast unblock_in_parallel_req state flags reset */
 			STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
 		}
 
 		/* announce unblocking complete */
-		STARPU_ASSERT(worker->block_ref_count > 0);
-		worker->block_ref_count--;
+		STARPU_ASSERT(worker->block_in_parallel_ref_count > 0);
+		worker->block_in_parallel_ref_count--;
 	}
 }
 
 /* Must be called with worker's sched_mutex held.
  */
-static inline void _starpu_worker_process_block_requests(struct _starpu_worker * const worker)
+static inline void _starpu_worker_process_block_in_parallel_requests(struct _starpu_worker * const worker)
 {
-	while (worker->state_block_req)
+	while (worker->state_block_in_parallel_req)
 	{
-		STARPU_ASSERT(!worker->state_blocked);
-		STARPU_ASSERT(!worker->state_block_ack);
-		STARPU_ASSERT(!worker->state_unblock_req);
-		STARPU_ASSERT(!worker->state_unblock_ack);
-		STARPU_ASSERT(worker->block_ref_count > 0);
+		STARPU_ASSERT(!worker->state_blocked_in_parallel);
+		STARPU_ASSERT(!worker->state_block_in_parallel_ack);
+		STARPU_ASSERT(!worker->state_unblock_in_parallel_req);
+		STARPU_ASSERT(!worker->state_unblock_in_parallel_ack);
+		STARPU_ASSERT(worker->block_in_parallel_ref_count > 0);
 		
 		/* enter effective blocked state */
-		worker->state_blocked = 1;
+		worker->state_blocked_in_parallel = 1;
 
-		/* notify block_req processing */
-		worker->state_block_ack = 1;
+		/* notify block_in_parallel_req processing */
+		worker->state_block_in_parallel_ack = 1;
 		STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
 
 		/* block */
-		while (!worker->state_unblock_req)
+		while (!worker->state_unblock_in_parallel_req)
 			STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
 
-		STARPU_ASSERT(worker->state_blocked);
-		STARPU_ASSERT(!worker->state_block_req);
-		STARPU_ASSERT(!worker->state_block_ack);
-		STARPU_ASSERT(!worker->state_unblock_ack);
-		STARPU_ASSERT(worker->block_ref_count > 0);
+		STARPU_ASSERT(worker->state_blocked_in_parallel);
+		STARPU_ASSERT(!worker->state_block_in_parallel_req);
+		STARPU_ASSERT(!worker->state_block_in_parallel_ack);
+		STARPU_ASSERT(!worker->state_unblock_in_parallel_ack);
+		STARPU_ASSERT(worker->block_in_parallel_ref_count > 0);
 
 		/* leave effective blocked state */
-		worker->state_blocked = 0;
+		worker->state_blocked_in_parallel = 0;
 
-		/* notify unblock_req processing */
-		worker->state_unblock_ack = 1;
+		/* notify unblock_in_parallel_req processing */
+		worker->state_unblock_in_parallel_ack = 1;
 		STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
 	}
 }
@@ -759,14 +759,14 @@ static inline void _starpu_worker_process_block_requests(struct _starpu_worker *
 static inline void _starpu_worker_enter_sched_op(struct _starpu_worker * const worker)
 {
 	/* process pending block requests before entering a sched_op region */
-	_starpu_worker_process_block_requests(worker);
+	_starpu_worker_process_block_in_parallel_requests(worker);
 	while (worker->state_changing_ctx_notice)
 	{
 		STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
 
 		/* new block requests may have been triggered during the wait,
 		 * need to check again */
-		_starpu_worker_process_block_requests(worker);
+		_starpu_worker_process_block_in_parallel_requests(worker);
 	}
 
 	/* no block request and no ctx change ahead,

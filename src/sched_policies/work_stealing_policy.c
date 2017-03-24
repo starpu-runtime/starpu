@@ -135,7 +135,7 @@ static int select_victim_round_robin(struct _starpu_work_stealing_data *ws, unsi
 		ntasks = ws->per_worker[workerids[worker]].queue_array->ntasks;
 
 		if (ntasks && (ws->per_worker[workerids[worker]].busy
-					   || starpu_worker_is_blocked(workerids[worker])))
+					   || starpu_worker_is_blocked_in_parallel(workerids[worker])))
 			break;
 
 		worker = (worker + 1) % nworkers;
@@ -762,7 +762,7 @@ static int lws_select_victim(struct _starpu_work_stealing_data *ws, unsigned sch
 		int neighbor = ws->per_worker[workerid].proxlist[i];
 		int ntasks = ws->per_worker[neighbor].queue_array->ntasks;
 		if (ntasks && (ws->per_worker[neighbor].busy
-					   || starpu_worker_is_blocked(neighbor)))
+					   || starpu_worker_is_blocked_in_parallel(neighbor)))
 			return neighbor;
 	}
 	return -1;

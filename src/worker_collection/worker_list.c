@@ -284,7 +284,7 @@ static void list_init_iterator_for_parallel_tasks(struct starpu_worker_collectio
 	int nm = 0, nub = 0;
 	for(i = 0;  i < nworkers; i++)
 	{
-		if(!starpu_worker_is_blocked(workerids[i]))
+		if(!starpu_worker_is_blocked_in_parallel(workerids[i]))
 		{
 			((int*)workers->unblocked_workers)[nub++] = workerids[i];
 			if(!it->possibly_parallel) /* don't bother filling the table with masters we won't use it anyway */

@@ -38,8 +38,8 @@ static int occupied_sms = 0;
 static unsigned _starpu_get_first_free_sched_ctx(struct _starpu_machine_config *config);
 
 static void _starpu_sched_ctx_put_new_master(unsigned sched_ctx_id);
-static void _starpu_sched_ctx_block_workers(unsigned sched_ctx_id, unsigned all);
-static void _starpu_sched_ctx_unblock_workers(unsigned sched_ctx_id, unsigned all);
+static void _starpu_sched_ctx_block_workers_in_parallel(unsigned sched_ctx_id, unsigned all);
+static void _starpu_sched_ctx_unblock_workers_in_parallel(unsigned sched_ctx_id, unsigned all);
 static void _starpu_sched_ctx_update_parallel_workers_with(unsigned sched_ctx_id);
 static void _starpu_sched_ctx_update_parallel_workers_without(unsigned sched_ctx_id);
 
@@ -1103,7 +1103,7 @@ void starpu_sched_ctx_delete(unsigned sched_ctx_id)
 	if(!_starpu_wait_for_all_tasks_of_sched_ctx(sched_ctx_id))
 	{
 		if(!sched_ctx->sched_policy)
-			_starpu_sched_ctx_unblock_workers(sched_ctx_id, 0);
+			_starpu_sched_ctx_unblock_workers_in_parallel(sched_ctx_id, 0);
 		/*if btw the mutex release & the mutex lock the context has changed take care to free all
 		  scheduling data before deleting the context */
 
@@ -2318,7 +2318,7 @@ void starpu_sched_ctx_list_task_counters_reset_all(struct starpu_task *task, uns
 	}
 }
 
-static void _starpu_sched_ctx_block_workers(unsigned sched_ctx_id, unsigned all)
+static void _starpu_sched_ctx_block_workers_in_parallel(unsigned sched_ctx_id, unsigned all)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	int current_worker_id = starpu_worker_get_id();
@@ -2346,7 +2346,7 @@ static void _starpu_sched_ctx_block_workers(unsigned sched_ctx_id, unsigned all)
 		{
 			struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 			STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
-			_starpu_worker_request_blocking(worker);
+			_starpu_worker_request_blocking_in_parallel(worker);
 			STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 		}
 		workers_count++;
@@ -2356,7 +2356,7 @@ static void _starpu_sched_ctx_block_workers(unsigned sched_ctx_id, unsigned all)
 		sched_ctx->main_master = -1;
 }
 
-static void _starpu_sched_ctx_unblock_workers(unsigned sched_ctx_id, unsigned all)
+static void _starpu_sched_ctx_unblock_workers_in_parallel(unsigned sched_ctx_id, unsigned all)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	int current_worker_id = starpu_worker_get_id();
@@ -2383,7 +2383,7 @@ static void _starpu_sched_ctx_unblock_workers(unsigned sched_ctx_id, unsigned al
 			{
 				struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 				STARPU_PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
-				_starpu_worker_request_unblocking(worker);
+				_starpu_worker_request_unblocking_in_parallel(worker);
 				STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
 			}
 		}
@@ -2397,13 +2397,13 @@ static void _starpu_sched_ctx_unblock_workers(unsigned sched_ctx_id, unsigned al
 
 void* starpu_sched_ctx_exec_parallel_code(void* (*func)(void*), void* param, unsigned sched_ctx_id)
 {
-	_starpu_sched_ctx_block_workers(sched_ctx_id, 1);
+	_starpu_sched_ctx_block_workers_in_parallel(sched_ctx_id, 1);
 
 	/* execute parallel code */
 	void* ret = func(param);
 
 	/* wake up starpu workers */
-	_starpu_sched_ctx_unblock_workers(sched_ctx_id, 1);
+	_starpu_sched_ctx_unblock_workers_in_parallel(sched_ctx_id, 1);
 	return ret;
 }
 
@@ -2419,7 +2419,7 @@ static void _starpu_sched_ctx_update_parallel_workers_with(unsigned sched_ctx_id
 
 	if(!sched_ctx->awake_workers)
 	{
-		_starpu_sched_ctx_block_workers(sched_ctx_id, 0);
+		_starpu_sched_ctx_block_workers_in_parallel(sched_ctx_id, 0);
 	}
 }
 
@@ -2435,7 +2435,7 @@ static void _starpu_sched_ctx_update_parallel_workers_without(unsigned sched_ctx
 
 	if(!sched_ctx->awake_workers)
 	{
-		_starpu_sched_ctx_unblock_workers(sched_ctx_id, 0);
+		_starpu_sched_ctx_unblock_workers_in_parallel(sched_ctx_id, 0);
 	}
 }
 
