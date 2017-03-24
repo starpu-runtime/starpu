@@ -174,8 +174,8 @@ int main(int argc, char **argv)
 	int ncpus = starpu_cpu_worker_get_count();
 	int workers[ncpus+nstreams];
 	starpu_worker_get_ids_by_type(STARPU_CPU_WORKER, workers, ncpus);
-	
-	int sched_ctxs[nstreams];
+
+	unsigned sched_ctxs[nstreams];
 	int nsms[nstreams];
 	nsms[0] = 6;
 	nsms[1] = 7;
@@ -187,7 +187,7 @@ int main(int argc, char **argv)
 	}
 	unsigned sched_ctx1 = starpu_sched_ctx_create(workers, ncpus+nstreams, "ctx1", STARPU_SCHED_CTX_SUB_CTXS, sched_ctxs, nstreams, STARPU_SCHED_CTX_POLICY_NAME, "dmdas", 0);
 
-	FPRINTF(stderr, "parent ctx %d\n", sched_ctx1);
+	FPRINTF(stderr, "parent ctx %u\n", sched_ctx1);
 	starpu_sched_ctx_set_context(&sched_ctx1);
 
 #endif
