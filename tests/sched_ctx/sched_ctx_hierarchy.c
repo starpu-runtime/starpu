@@ -18,7 +18,11 @@
 #include <starpu.h>
 #include "../helper.h"
 
-struct starpu_codelet mycodelet_bis;
+void free_codelet(void *arg)
+{
+	free(arg);
+}
+
 void func_cpu_bis(void *descr[], void *_args)
 {
 	char msg;
@@ -26,6 +30,10 @@ void func_cpu_bis(void *descr[], void *_args)
 	int worker_id = starpu_worker_get_id_check();
 	int worker_id_expected;
 	int ntasks;
+
+	struct starpu_codelet *codelet = calloc(1,sizeof(*codelet));
+	codelet->cpu_funcs[0] = func_cpu_bis;
+	codelet->cpu_funcs_name[0] = "func_cpu_bis";
 
 	starpu_worker_get_name(worker_id, worker_name, 256);
 	starpu_codelet_unpack_args(_args, &msg, &ntasks, &worker_id_expected);
@@ -36,19 +44,14 @@ void func_cpu_bis(void *descr[], void *_args)
 	if (ntasks > 0)
 	{
 		int nntasks = ntasks - 1;
-		starpu_task_insert(&mycodelet_bis,
+		starpu_task_insert(codelet,
 				   STARPU_VALUE, &msg, sizeof(msg),
 				   STARPU_VALUE, &nntasks, sizeof(ntasks),
 				   STARPU_VALUE, &worker_id, sizeof(worker_id),
+				   STARPU_CALLBACK_WITH_ARG, free_codelet, codelet,
 				   0);
 	}
 }
-
-struct starpu_codelet mycodelet_bis =
-{
-	.cpu_funcs = {func_cpu_bis},
-	.cpu_funcs_name = {"func_cpu_bis"},
-};
 
 void func_cpu(void *descr[], void *_args)
 {
@@ -59,6 +62,9 @@ void func_cpu(void *descr[], void *_args)
 	int ntasks;
 	unsigned sched_ctx_id;
 	unsigned *sched_ctx_id_p;
+	struct starpu_codelet *codelet = calloc(1,sizeof(*codelet));
+	codelet->cpu_funcs[0] = func_cpu_bis;
+	codelet->cpu_funcs_name[0] = "func_cpu_bis";
 
 	starpu_worker_get_name(worker_id, worker_name, 256);
 	starpu_codelet_unpack_args(_args, &msg, &ntasks, &sched_ctx_id, &worker_id_expected, &sched_ctx_id_p);
@@ -72,10 +78,11 @@ void func_cpu(void *descr[], void *_args)
 	if (ntasks > 0)
 	{
 		int nntasks = ntasks - 1;
-		starpu_task_insert(&mycodelet_bis,
+		starpu_task_insert(codelet,
 				   STARPU_VALUE, &msg, sizeof(msg),
 				   STARPU_VALUE, &nntasks, sizeof(nntasks),
 				   STARPU_VALUE, &worker_id, sizeof(worker_id),
+				   STARPU_CALLBACK_WITH_ARG, free_codelet, codelet,
 				   0);
 	}
 }
