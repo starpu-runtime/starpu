@@ -78,10 +78,10 @@ void _starpu_simgrid_count_ngpus(void);
 void _starpu_simgrid_xbt_thread_create(const char *name, void_f_pvoid_t code,
 				       void *param);
 
-#define _SIMGRID_TIMER_BEGIN		\
+#define _SIMGRID_TIMER_BEGIN(cond)			\
 	{		\
 		xbt_os_timer_t __timer = NULL;		\
-		if (_starpu_simgrid_sched_cost()) {		\
+		if (cond) {		\
 		  __timer = xbt_os_timer_new();		\
 		  xbt_os_threadtimer_start(__timer);	\
 		}
@@ -94,7 +94,7 @@ void _starpu_simgrid_xbt_thread_create(const char *name, void_f_pvoid_t code,
 	}
 
 #else // !STARPU_SIMGRID
-#define _SIMGRID_TIMER_BEGIN {
+#define _SIMGRID_TIMER_BEGIN(cond) {
 #define _SIMGRID_TIMER_END }
 #endif
 
