@@ -155,7 +155,7 @@ int main(int argc, char **argv)
 	starpu_sched_ctx_add_workers(procs1, nprocs1, sched_ctx2);
 	starpu_sched_ctx_delete(sched_ctx1);
 	starpu_sched_ctx_delete(sched_ctx2);
-	printf("tasks executed %d out of %d\n", tasks_executed, ntasks/2);
+	printf("tasks executed %d out of %d\n", tasks_executed, ntasks+1);
 
 enodev:
 	starpu_shutdown();
