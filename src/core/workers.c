@@ -313,8 +313,8 @@ static inline int _starpu_can_use_nth_implementation(enum starpu_worker_archtype
 /* must be called with sched_mutex locked to protect state_blocked_in_parallel */
 int starpu_worker_can_execute_task(unsigned workerid, struct starpu_task *task, unsigned nimpl)
 {
-	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
-	if(worker->state_blocked_in_parallel) return 0;
+	if(starpu_worker_is_blocked_in_parallel(workerid))
+		return 0;
 
 	/* TODO: check that the task operand sizes will fit on that device */
 	return (task->cl->where & _starpu_config.workers[workerid].worker_mask) &&
@@ -325,8 +325,8 @@ int starpu_worker_can_execute_task(unsigned workerid, struct starpu_task *task, 
 /* must be called with sched_mutex locked to protect state_blocked_in_parallel */
 int starpu_worker_can_execute_task_impl(unsigned workerid, struct starpu_task *task, unsigned *impl_mask)
 {
-	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
-	if(worker->state_blocked_in_parallel) return 0;
+	if(starpu_worker_is_blocked_in_parallel(workerid))
+		return 0;
 
 	unsigned mask;
 	int i;
@@ -367,8 +367,8 @@ int starpu_worker_can_execute_task_impl(unsigned workerid, struct starpu_task *t
 /* must be called with sched_mutex locked to protect state_blocked */
 int starpu_worker_can_execute_task_first_impl(unsigned workerid, struct starpu_task *task, unsigned *nimpl)
 {
-	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
-	if(worker->state_blocked_in_parallel) return 0;
+	if(starpu_worker_is_blocked_in_parallel(workerid))
+		return 0;
 	int i;
 	enum starpu_worker_archtype arch;
 	struct starpu_codelet *cl;
@@ -578,6 +578,7 @@ static void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu
 	workerarg->sched_mutex_depth = 0;
 	workerarg->is_slave_somewhere = 0;
 
+	workerarg->state_safe_for_observation = 1;
 	workerarg->state_sched_op_pending = 0;
 	workerarg->state_changing_ctx_waiting = 0;
 	workerarg->state_changing_ctx_notice = 0;
@@ -1691,12 +1692,18 @@ unsigned starpu_worker_get_count(void)
 
 unsigned starpu_worker_is_blocked_in_parallel(int workerid)
 {
-	return (unsigned)_starpu_config.workers[workerid].state_blocked_in_parallel;
+	_starpu_worker_lock_for_observation(workerid);
+	unsigned ret = _starpu_config.workers[workerid].state_blocked_in_parallel;
+	_starpu_worker_unlock_for_observation(workerid);
+	return ret;
 }
 
 unsigned starpu_worker_is_slave_somewhere(int workerid)
 {
-	return _starpu_config.workers[workerid].is_slave_somewhere;
+	_starpu_worker_lock_for_observation(workerid);
+	unsigned ret = _starpu_config.workers[workerid].is_slave_somewhere;
+	_starpu_worker_unlock_for_observation(workerid);
+	return ret;
 }
 
 int starpu_worker_get_count_by_type(enum starpu_worker_archtype type)
@@ -2067,12 +2074,12 @@ static int starpu_wakeup_worker_locked(int workerid, starpu_pthread_cond_t *sche
 	return 0;
 }
 
-static int starpu_wakeup_worker(int workerid, starpu_pthread_cond_t *sched_cond, starpu_pthread_mutex_t *mutex)
+static int starpu_wakeup_worker(int workerid, starpu_pthread_cond_t *sched_cond, starpu_pthread_mutex_t *sched_mutex)
 {
 	int success;
-	STARPU_PTHREAD_MUTEX_LOCK_SCHED(mutex);
-	success = starpu_wakeup_worker_locked(workerid, sched_cond, mutex);
-	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(mutex);
+	STARPU_PTHREAD_MUTEX_LOCK_SCHED(sched_mutex);
+	success = starpu_wakeup_worker_locked(workerid, sched_cond, sched_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(sched_mutex);
 	return success;
 }
 

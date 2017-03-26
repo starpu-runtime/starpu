@@ -87,6 +87,7 @@ LIST_TYPE(_starpu_worker,
 	 * since the condition is shared for multiple purpose */
 	starpu_pthread_cond_t sched_cond;
         starpu_pthread_mutex_t sched_mutex; /* mutex protecting sched_cond */
+	int state_safe_for_observation:1; /* mark scheduling sections where other workers can safely access the worker state */
 	int state_sched_op_pending:1; /* a task pop is ongoing even though sched_mutex may temporarily be unlocked */
 	int state_changing_ctx_waiting:1; /* a thread is waiting for operations such as pop to complete before acquiring sched_mutex and modifying the worker ctx*/
 	int state_changing_ctx_notice:1; /* the worker ctx is about to change or being changed, wait for flag to be cleared before starting new scheduling operations */
@@ -771,6 +772,7 @@ static inline void _starpu_worker_enter_sched_op(struct _starpu_worker * const w
 
 	/* no block request and no ctx change ahead,
 	 * enter sched_op */
+	worker->state_safe_for_observation = 0;
 	worker->state_sched_op_pending = 1;
 }
 
@@ -780,6 +782,7 @@ static inline void _starpu_worker_enter_sched_op(struct _starpu_worker * const w
  */
 static inline void  _starpu_worker_leave_sched_op(struct _starpu_worker * const worker)
 {
+	worker->state_safe_for_observation = 1;
 	worker->state_sched_op_pending = 0;
 	if (worker->state_changing_ctx_waiting)
 		STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
@@ -825,6 +828,56 @@ static inline void _starpu_worker_leave_changing_ctx_op(struct _starpu_worker * 
 {
 	worker->state_changing_ctx_notice = 0;
 	STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
+}
+
+/* lock a worker for observing contents 
+ *
+ * notes:
+ * - if the observed worker is not in state_safe_for_observation, the function block until the state is reached */
+static inline void _starpu_worker_lock_for_observation(int workerid)
+{
+	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
+	STARPU_ASSERT(worker != NULL);
+	STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
+	if (workerid != starpu_worker_get_id())
+	{
+		while (!worker->state_safe_for_observation)
+		{
+			STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
+		}
+	}
+}
+
+static inline void _starpu_worker_unlock_for_observation(int workerid)
+{
+	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
+	STARPU_ASSERT(worker != NULL);
+	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
+}
+
+/* Temporarily allow other worker to access current worker state, when still scheduling,
+ * but the scheduling has not yet been made or is already done */
+static inline void _starpu_worker_enter_section_safe_for_observation(void)
+{
+	int workerid = starpu_worker_get_id();
+	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
+	STARPU_ASSERT(worker != NULL);
+	STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
+	STARPU_ASSERT(!worker->state_safe_for_observation);
+	worker->state_safe_for_observation = 1;
+	STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
+	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
+}
+
+static inline void _starpu_worker_leave_section_safe_for_observation(void)
+{
+	int workerid = starpu_worker_get_id();
+	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
+	STARPU_ASSERT(worker != NULL);
+	STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
+	STARPU_ASSERT(worker->state_safe_for_observation);
+	worker->state_safe_for_observation = 0;
+	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 }
 
 #endif // __WORKERS_H__

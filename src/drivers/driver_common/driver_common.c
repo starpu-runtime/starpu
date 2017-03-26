@@ -359,7 +359,9 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 	/*else try to pop a task*/
 	else
 	{
+		STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 		task = _starpu_pop_task(worker);
+		STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
 	}
 
 #if !defined(STARPU_SIMGRID)
@@ -373,6 +375,7 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 		 * executed, and thus hanging. */
 
 		_starpu_worker_set_status_sleeping(workerid);
+		STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
 
 		if (_starpu_worker_can_block(memnode, worker)
 			&& !_starpu_sched_ctx_last_worker_awake(worker))
@@ -406,6 +409,7 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 	{
 		_starpu_worker_set_status_sleeping(workerid);
 	}
+	STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
 	worker->spinning_backoff = BACKOFF_MIN;
 
 	_starpu_worker_leave_sched_op(worker);
@@ -461,11 +465,14 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 			_starpu_worker_enter_sched_op(&workers[i]);
 #endif
 			_starpu_worker_set_status_scheduling(workers[i].workerid);
+			STARPU_PTHREAD_MUTEX_LOCK_SCHED(&workers[i].sched_mutex);
 			tasks[i] = _starpu_pop_task(&workers[i]);
+			STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&workers[i].sched_mutex);
 			if(tasks[i] != NULL)
 			{
 				_starpu_worker_set_status_scheduling_done(workers[i].workerid);
 				_starpu_worker_set_status_wakeup(workers[i].workerid);
+				STARPU_PTHREAD_COND_BROADCAST(&workers[i].sched_cond);
 #ifdef STARPU_NON_BLOCKING_DRIVERS
 				_starpu_worker_leave_sched_op(&workers[i]);
 				STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&workers[i].sched_mutex);
@@ -505,6 +512,7 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 			else
 			{
 				_starpu_worker_set_status_sleeping(workers[i].workerid);
+				STARPU_PTHREAD_COND_BROADCAST(&workers[i].sched_cond);
 #ifdef STARPU_NON_BLOCKING_DRIVERS
 				_starpu_worker_leave_sched_op(&workers[i]);
 				STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&workers[i].sched_mutex);
@@ -528,6 +536,7 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 		 * driver may go block just after the scheduler got a new task to be
 		 * executed, and thus hanging. */
 		_starpu_worker_set_status_sleeping(workerid);
+		STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
 
 		if (_starpu_worker_can_block(memnode, worker)
 				&& !_starpu_sched_ctx_last_worker_awake(worker))
@@ -551,6 +560,7 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 	}
 
 	_starpu_worker_set_status_wakeup(workerid);
+	STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
 	worker->spinning_backoff = BACKOFF_MIN;
 #endif /* !STARPU_SIMGRID */
 
