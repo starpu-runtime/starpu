@@ -951,7 +951,7 @@ pick:
 	 * We do have a task that uses multiformat handles. Let's create the
 	 * required conversion tasks.
 	 */
-	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
+	_starpu_worker_enter_section_safe_for_observation();
 	unsigned i;
 	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
 	for (i = 0; i < nbuffers; i++)
@@ -975,7 +975,7 @@ pick:
 
 	task->mf_skip = 1;
 	starpu_task_list_push_back(&worker->local_tasks, task);
-	STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
+	_starpu_worker_leave_section_safe_for_observation();
 	goto pick;
 
 profiling:
