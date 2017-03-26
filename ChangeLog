@@ -273,6 +273,7 @@ Small features:
     allows to copy in a new buffer values which have not been unpacked by
     the current call
   * Add STARPU_CODELET_SIMGRID_EXECUTE flag.
+  * Add STARPU_CODELET_SIMGRID_EXECUTE_AND_INJECT flag.
   * Add STARPU_CL_ARGS flag to starpu_task_insert() and
     starpu_mpi_task_insert() functions call
 
