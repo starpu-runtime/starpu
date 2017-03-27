@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2011, 2015  Université de Bordeaux
+ * Copyright (C) 2009, 2010, 2011, 2015, 2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -186,6 +186,11 @@ void init_cg(struct cg_problem *problem)
 
 	/* launch the computation now */
 	ret = starpu_task_submit(task1);
+	if (STARPU_UNLIKELY(ret == -ENODEV))
+	{
+		FPRINTF(stderr, "No worker may execute this task\n");
+		exit(0);
+	}
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	ret = starpu_task_submit(task2);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");

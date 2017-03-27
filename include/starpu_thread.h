@@ -33,6 +33,7 @@
 #endif
 #elif !defined(_MSC_VER) || defined(BUILDING_STARPU)
 #include <pthread.h>
+#include <semaphore.h>
 #endif
 #include <stdint.h>
 
@@ -405,6 +406,32 @@ int starpu_pthread_queue_unregister(starpu_pthread_wait_t *w, starpu_pthread_que
 int starpu_pthread_wait_reset(starpu_pthread_wait_t *w);
 int starpu_pthread_wait_wait(starpu_pthread_wait_t *w);
 int starpu_pthread_wait_destroy(starpu_pthread_wait_t *w);
+#endif
+
+/*
+ * Encapsulation of the semaphore functions.
+ */
+
+#ifdef STARPU_SIMGRID
+
+typedef msg_sem_t starpu_sem_t;
+int starpu_sem_destroy(starpu_sem_t *);
+int starpu_sem_getvalue(starpu_sem_t *, int *);
+int starpu_sem_init(starpu_sem_t *, int, unsigned);
+int starpu_sem_post(starpu_sem_t *);
+int starpu_sem_trywait(starpu_sem_t *);
+int starpu_sem_wait(starpu_sem_t *);
+
+#elif !defined(_MSC_VER) || defined(BUILDING_STARPU) /* !STARPU_SIMGRID */
+
+typedef sem_t starpu_sem_t;
+#define starpu_sem_destroy sem_destroy
+#define starpu_sem_getvalue sem_getvalue
+#define starpu_sem_init sem_init
+#define starpu_sem_post sem_post
+int starpu_sem_trywait(starpu_sem_t *);
+int starpu_sem_wait(starpu_sem_t *);
+
 #endif
 
 #ifdef __cplusplus

@@ -19,6 +19,7 @@
 #include <core/simgrid.h>
 #include <core/workers.h>
 
+#include <errno.h>
 #include <limits.h>
 
 #ifdef STARPU_SIMGRID
@@ -529,7 +530,7 @@ int starpu_pthread_queue_destroy(starpu_pthread_queue_t *q)
 #endif /* STARPU_SIMGRID */
 
 #if (defined(STARPU_SIMGRID) && !defined(STARPU_SIMGRID_HAVE_XBT_BARRIER_INIT)) || (!defined(STARPU_SIMGRID) && !defined(STARPU_HAVE_PTHREAD_BARRIER))
-int starpu_pthread_barrier_init(starpu_pthread_barrier_t *restrict barrier, const starpu_pthread_barrierattr_t *restrict attr, unsigned count)
+int starpu_pthread_barrier_init(starpu_pthread_barrier_t *restrict barrier, const starpu_pthread_barrierattr_t *restrict attr STARPU_ATTRIBUTE_UNUSED, unsigned count)
 {
 	int ret = starpu_pthread_mutex_init(&barrier->mutex, NULL);
 	if (!ret)
@@ -850,3 +851,72 @@ void _starpu_pthread_spin_do_unlock(starpu_pthread_spinlock_t *lock)
 #endif
 
 #endif /* defined(STARPU_SIMGRID) || (defined(STARPU_LINUX_SYS) && defined(STARPU_HAVE_XCHG)) || !defined(STARPU_HAVE_PTHREAD_SPIN_LOCK) */
+
+#ifdef STARPU_SIMGRID
+
+int starpu_sem_destroy(starpu_sem_t *sem)
+{
+	MSG_sem_destroy(*sem);
+	return 0;
+}
+
+int starpu_sem_init(starpu_sem_t *sem, int pshared, unsigned value)
+{
+	STARPU_ASSERT_MSG(pshared == 0, "pshared semaphores not supported under simgrid");
+	*sem = MSG_sem_init(value);
+	return 0;
+}
+
+int starpu_sem_post(starpu_sem_t *sem)
+{
+	MSG_sem_release(*sem);
+	return 0;
+}
+
+int starpu_sem_wait(starpu_sem_t *sem)
+{
+	MSG_sem_acquire(*sem);
+	return 0;
+}
+
+int starpu_sem_trywait(starpu_sem_t *sem)
+{
+	if (MSG_sem_would_block(*sem))
+		return EAGAIN;
+	starpu_sem_wait(sem);
+	return 0;
+}
+
+int starpu_sem_getvalue(starpu_sem_t *sem, int *sval)
+{
+#if SIMGRID_VERSION_MAJOR > 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR > 13)
+	*sval = MSG_sem_get_capacity(*sem);
+	return 0;
+#else
+	(void) sem;
+	(void) sval;
+	STARPU_ABORT_MSG("sigmrid up to 3.13 did not have working MSG_sem_get_capacity");
+#endif
+}
+
+#elif !defined(_MSC_VER) || defined(BUILDING_STARPU) /* !STARPU_SIMGRID */
+
+int starpu_sem_wait(starpu_sem_t *sem)
+{
+	int ret;
+	while((ret = sem_wait(sem)) == -1 && errno == EINTR)
+		;
+
+	return ret;
+}
+
+int starpu_sem_trywait(starpu_sem_t *sem)
+{
+	int ret;
+	while((ret = sem_trywait(sem)) == -1 && errno == EINTR)
+		;
+	
+	return ret;
+}
+
+#endif
