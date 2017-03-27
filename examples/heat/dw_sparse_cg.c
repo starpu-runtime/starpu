@@ -449,4 +449,6 @@ void do_conjugate_gradient(float *nzvalA, float *vecb, float *vecx, uint32_t nnz
 	starpu_cublas_init();
 
 	conjugate_gradient(nzvalA, vecb, vecx, nnz, nrow, colind, rowptr);
+
+	starpu_shutdown();
 }
