@@ -1581,7 +1581,7 @@ module fstarpu_mod
                 end subroutine fstarpu_memchunk_tidy
 
                 ! == starpu_task_util.h ==
-                ! struct starpu_data_handle *fstarpu_data_handle_array_alloc(int nb);
+                ! starpu_data_handle_t *fstarpu_data_handle_array_alloc(int nb);
                 function fstarpu_data_handle_array_alloc (nb) bind(C)
                         use iso_c_binding, only: c_ptr, c_int
                         type(c_ptr) :: fstarpu_data_handle_array_alloc
