@@ -210,10 +210,10 @@ static void initialize_duration(struct bound_task *task)
 {
 	struct _starpu_machine_config *conf = _starpu_get_machine_config();
 	task->duration[STARPU_CPU_WORKER] = initialize_arch_duration(1,&conf->topology.ncpus); 
-	task->duration[STARPU_CUDA_WORKER] = initialize_arch_duration(conf->topology.ncudagpus,NULL); 
-	task->duration[STARPU_OPENCL_WORKER] = initialize_arch_duration(conf->topology.nopenclgpus,NULL); 
-	task->duration[STARPU_MIC_WORKER] = initialize_arch_duration(conf->topology.nmicdevices,conf->topology.nmiccores); 
-	task->duration[STARPU_SCC_WORKER] = initialize_arch_duration(conf->topology.nsccdevices,NULL); 
+	task->duration[STARPU_CUDA_WORKER] = initialize_arch_duration(conf->topology.nhwcudagpus,NULL); 
+	task->duration[STARPU_OPENCL_WORKER] = initialize_arch_duration(conf->topology.nhwopenclgpus,NULL); 
+	task->duration[STARPU_MIC_WORKER] = initialize_arch_duration(conf->topology.nhwmicdevices,conf->topology.nmiccores); 
+	task->duration[STARPU_SCC_WORKER] = initialize_arch_duration(conf->topology.nhwscc,NULL); 
 }
 
 static struct starpu_perfmodel_device device =
