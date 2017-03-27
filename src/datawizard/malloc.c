@@ -393,7 +393,6 @@ int starpu_free_flags(void *A, size_t dim, int flags)
 
 int _starpu_free_flags_on_node(unsigned dst_node, void *A, size_t dim, int flags)
 {
-#if 0 //ndef STARPU_SIMGRID
 	if (flags & STARPU_MALLOC_PINNED && disable_pinning <= 0 && STARPU_RUNNING_ON_VALGRIND == 0)
 	{
 		if (_starpu_can_submit_cuda_task())
@@ -462,7 +461,6 @@ int _starpu_free_flags_on_node(unsigned dst_node, void *A, size_t dim, int flags
 //	}
 //#endif
 	}
-#endif /*SIMGRID*/
 
 #ifdef STARPU_SIMGRID
 	if (flags & STARPU_MALLOC_SIMULATION_FOLDED)
