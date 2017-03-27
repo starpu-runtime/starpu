@@ -19,6 +19,7 @@
 #include <core/simgrid.h>
 #include <core/workers.h>
 
+#include <errno.h>
 #include <limits.h>
 
 #ifdef STARPU_SIMGRID
@@ -933,7 +934,7 @@ int starpu_sem_getvalue(starpu_sem_t *sem, int *sval)
 int starpu_sem_wait(starpu_sem_t *sem)
 {
 	int ret;
-	while((ret = sem_wait(sem)) == EINTR)
+	while((ret = sem_wait(sem)) == -1 && errno == EINTR)
 		;
 
 	return ret;
@@ -942,7 +943,7 @@ int starpu_sem_wait(starpu_sem_t *sem)
 int starpu_sem_trywait(starpu_sem_t *sem)
 {
 	int ret;
-	while((ret = sem_trywait(sem)) == EINTR)
+	while((ret = sem_trywait(sem)) == -1 && errno == EINTR)
 		;
 	
 	return ret;
