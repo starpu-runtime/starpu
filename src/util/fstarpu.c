@@ -544,7 +544,7 @@ void fstarpu_worker_get_type_as_string(intptr_t type, char *dst, size_t maxlen)
 	snprintf(dst, maxlen, "%s", str);
 }
 
-struct starpu_data_handle *fstarpu_data_handle_array_alloc(int nb)
+starpu_data_handle_t *fstarpu_data_handle_array_alloc(int nb)
 {
 	void *ptr;
 	_STARPU_CALLOC(ptr, (size_t)nb, sizeof(starpu_data_handle_t));
