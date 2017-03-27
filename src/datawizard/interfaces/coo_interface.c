@@ -184,7 +184,7 @@ coo_compare(void *a, void *b)
 static void
 display_coo_interface(starpu_data_handle_t handle, FILE *f)
 {
-	struct starpu_coo_interface *coo_interface =
+	struct starpu_coo_interface *coo_interface;
 	coo_interface = (struct starpu_coo_interface *)
 		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
