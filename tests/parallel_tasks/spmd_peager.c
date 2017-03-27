@@ -72,8 +72,6 @@ int main(int argc, char **argv)
         struct starpu_conf conf;
 	starpu_conf_init(&conf);
         conf.sched_policy_name = "peager";
-#warning "peager needs update with new synchro scheme"
-	return 77;
 
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
