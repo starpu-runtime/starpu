@@ -533,7 +533,7 @@ struct _starpu_sched_ctx* _starpu_create_sched_ctx(struct starpu_sched_policy *p
 	sched_ctx->sms_end_idx = STARPU_NMAXSMS;
 	sched_ctx->nsms = nsms;
 	sched_ctx->stream_worker = -1;
-	sched_ctx->lock_write_owner = 0;
+	memset(&sched_ctx->lock_write_owner, 0, sizeof(sched_ctx->lock_write_owner));
 	STARPU_PTHREAD_RWLOCK_INIT(&sched_ctx->rwlock, NULL);
 	if(nsms > 0)
 	{
