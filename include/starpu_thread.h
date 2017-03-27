@@ -33,6 +33,7 @@
 #endif
 #elif !defined(_MSC_VER) || defined(BUILDING_STARPU)
 #include <pthread.h>
+#include <semaphore.h>
 #endif
 #include <stdint.h>
 
