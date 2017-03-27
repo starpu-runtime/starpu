@@ -241,14 +241,14 @@ static inline struct _starpu_sched_ctx *_starpu_get_sched_ctx_struct(unsigned id
 static inline int _starpu_sched_ctx_check_write_locked(unsigned sched_ctx_id)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
-	return sched_ctx->lock_write_owner == starpu_pthread_self();
+	return starpu_pthread_equal(sched_ctx->lock_write_owner, starpu_pthread_self());
 }
 #define STARPU_SCHED_CTX_CHECK_LOCK(sched_ctx_id) STARPU_ASSERT(_starpu_sched_ctx_check_write_locked((sched_ctx_id)))
 
 static inline void _starpu_sched_ctx_lock_write(unsigned sched_ctx_id)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
-	STARPU_ASSERT(sched_ctx->lock_write_owner != starpu_pthread_self());
+	STARPU_ASSERT(!starpu_pthread_equal(sched_ctx->lock_write_owner, starpu_pthread_self()));
 	STARPU_PTHREAD_RWLOCK_WRLOCK(&sched_ctx->rwlock);
 	sched_ctx->lock_write_owner = starpu_pthread_self();
 }
@@ -256,7 +256,7 @@ static inline void _starpu_sched_ctx_lock_write(unsigned sched_ctx_id)
 static inline void _starpu_sched_ctx_unlock_write(unsigned sched_ctx_id)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
-	STARPU_ASSERT(sched_ctx->lock_write_owner == starpu_pthread_self());
+	STARPU_ASSERT(starpu_pthread_equal(sched_ctx->lock_write_owner, starpu_pthread_self()));
 	sched_ctx->lock_write_owner = 0;
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&sched_ctx->rwlock);
 }
@@ -264,14 +264,14 @@ static inline void _starpu_sched_ctx_unlock_write(unsigned sched_ctx_id)
 static inline void _starpu_sched_ctx_lock_read(unsigned sched_ctx_id)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
-	STARPU_ASSERT(sched_ctx->lock_write_owner != starpu_pthread_self());
+	STARPU_ASSERT(!starpu_pthread_equal(sched_ctx->lock_write_owner, starpu_pthread_self()));
 	STARPU_PTHREAD_RWLOCK_RDLOCK(&sched_ctx->rwlock);
 }
 
 static inline void _starpu_sched_ctx_unlock_read(unsigned sched_ctx_id)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
-	STARPU_ASSERT(sched_ctx->lock_write_owner != starpu_pthread_self());
+	STARPU_ASSERT(!starpu_pthread_equal(sched_ctx->lock_write_owner, starpu_pthread_self()));
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&sched_ctx->rwlock);
 }
 
