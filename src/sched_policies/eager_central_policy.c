@@ -225,15 +225,17 @@ static struct starpu_task *pop_task_eager_policy(unsigned sched_ctx_id)
 	leave_busy_state(data);
 	if(chosen_task)
 	{
-		starpu_sched_ctx_list_task_counters_decrement_all(chosen_task, sched_ctx_id);
+		_starpu_sched_ctx_lock_write(sched_ctx_id);
+		starpu_sched_ctx_list_task_counters_decrement_all_ctx_locked(chosen_task, sched_ctx_id);
 
 		unsigned child_sched_ctx = starpu_sched_ctx_worker_is_master_for_child_ctx(workerid, sched_ctx_id);
 		if(child_sched_ctx != STARPU_NMAX_SCHED_CTXS)
 		{
-			starpu_sched_ctx_move_task_to_ctx(chosen_task, child_sched_ctx, 0, 1);
-			starpu_sched_ctx_revert_task_counters(sched_ctx_id, chosen_task->flops);
+			starpu_sched_ctx_move_task_to_ctx_locked(chosen_task, child_sched_ctx, 1);
+			starpu_sched_ctx_revert_task_counters_ctx_locked(sched_ctx_id, chosen_task->flops);
 			chosen_task = NULL;
 		}
+		_starpu_sched_ctx_unlock_write(sched_ctx_id);
 	}
 	_starpu_worker_leave_section_safe_for_observation();
 

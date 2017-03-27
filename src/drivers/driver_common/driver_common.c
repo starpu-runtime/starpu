@@ -76,6 +76,7 @@ void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job 
 	struct _starpu_sched_ctx *sched_ctx = _starpu_sched_ctx_get_sched_ctx_for_worker_and_job(worker, j);
 	if(!sched_ctx)
 		sched_ctx = _starpu_get_sched_ctx_struct(j->task->sched_ctx);
+	_starpu_sched_ctx_lock_read(sched_ctx->id);
 	if(!sched_ctx->sched_policy)
 	{
 		if(!sched_ctx->awake_workers && sched_ctx->main_master == worker->workerid)
@@ -101,6 +102,7 @@ void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job 
 	}
 	else
 		_STARPU_TRACE_START_CODELET_BODY(j, j->nimpl, perf_arch, workerid);
+	_starpu_sched_ctx_unlock_read(sched_ctx->id);
 	_STARPU_TASK_BREAK_ON(task, exec);
 }
 
