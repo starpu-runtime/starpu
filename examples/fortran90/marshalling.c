@@ -159,6 +159,8 @@ int starpu_my_init_c()
 	struct starpu_conf conf;
 	starpu_conf_init(&conf);
 	conf.sched_policy_name = "dmda";
+#warning "dmda needs update with new synchro scheme"
+	exit(77);
 
 	ret = starpu_init(&conf);
 	/*     int ret = starpu_init(NULL); */

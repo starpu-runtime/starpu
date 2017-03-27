@@ -497,7 +497,11 @@ int main(int argc, char **argv)
 	conf.ncuda = 0;
 
 	if (use_spmd_p)
+	{
 		conf.sched_policy_name = "peager";
+#warning "peager needs update with new synchro scheme"
+		return 77;
+	}
 
 	ret = starpu_init(&conf);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
