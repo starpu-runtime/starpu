@@ -452,7 +452,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 
 
 #if !defined(STARPU_NON_BLOCKING_DRIVERS) || defined(STARPU_SIMGRID)
-		starpu_wake_worker_locked(best_workerid);
+		starpu_wakeup_worker_locked(best_workerid, sched_cond, sched_mutex);
 #endif
 		starpu_push_task_end(task);
 		STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(sched_mutex);
@@ -464,7 +464,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 		dt->queue_array[best_workerid]->ntasks++;
 		dt->queue_array[best_workerid]->nprocessed++;
 #if !defined(STARPU_NON_BLOCKING_DRIVERS) || defined(STARPU_SIMGRID)
-		starpu_wake_worker_locked(best_workerid);
+		starpu_wakeup_worker_locked(best_workerid, sched_cond, sched_mutex);
 #endif
 		starpu_push_task_end(task);
 		STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(sched_mutex);

@@ -62,8 +62,11 @@ unsigned long starpu_task_get_job_id(struct starpu_task *task);
 /* This function must be called to wake up a worker that is sleeping on the cond. 
  * It returns 0 whenever the worker is not in a sleeping state */
 int starpu_wake_worker(int workerid);
+int starpu_wakeup_worker(int workerid, starpu_pthread_cond_t *cond, starpu_pthread_mutex_t *mutex);
 /* This is a version of starpu_wake_worker which assumes that the sched mutex is locked */
 int starpu_wake_worker_locked(int workerid);
+/* This is a version of starpu_wakeup_worker which assumes that the sched mutex is locked */
+int starpu_wakeup_worker_locked(int workerid, starpu_pthread_cond_t *cond, starpu_pthread_mutex_t *mutex);
 
 int starpu_worker_can_execute_task(unsigned workerid, struct starpu_task *task, unsigned nimpl);
 int starpu_worker_can_execute_task_impl(unsigned workerid, struct starpu_task *task, unsigned *impl_mask);

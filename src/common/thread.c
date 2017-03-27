@@ -714,47 +714,34 @@ int starpu_pthread_barrier_wait(starpu_pthread_barrier_t *barrier)
  * macros of course) which record when the mutex is held or not */
 int starpu_pthread_mutex_lock_sched(starpu_pthread_mutex_t *mutex)
 {
-	const int workerid = starpu_worker_get_id();
-	struct _starpu_worker * const worker = (workerid != -1)?_starpu_get_worker_struct(workerid):NULL;
-	if(worker && mutex == &worker->sched_mutex)
-	{
-		STARPU_ASSERT(worker->sched_mutex_depth < UINT_MAX);
-		worker->sched_mutex_depth++;
-		if (worker->sched_mutex_depth > 1)
-			return 0;
-	}
-
-	return starpu_pthread_mutex_lock(mutex);
+	int p_ret = starpu_pthread_mutex_lock(mutex);
+	int workerid = starpu_worker_get_id();
+	if(workerid != -1 && _starpu_worker_mutex_is_sched_mutex(workerid, mutex))
+		_starpu_worker_set_flag_sched_mutex_locked(workerid, 1);
+	return p_ret;
 }
 
 int starpu_pthread_mutex_unlock_sched(starpu_pthread_mutex_t *mutex)
 {
-	const int workerid = starpu_worker_get_id();
-	struct _starpu_worker * const worker = (workerid != -1)?_starpu_get_worker_struct(workerid):NULL;
-	if(worker && mutex == &worker->sched_mutex)
-	{
-		STARPU_ASSERT(worker->sched_mutex_depth > 0);
-		worker->sched_mutex_depth--;
-		if (worker->sched_mutex_depth > 0)
-			return 0;
-	}
+	int workerid = starpu_worker_get_id();
+	if(workerid != -1 && _starpu_worker_mutex_is_sched_mutex(workerid, mutex))
+		_starpu_worker_set_flag_sched_mutex_locked(workerid, 0);
 
 	return starpu_pthread_mutex_unlock(mutex);
 }
 
 int starpu_pthread_mutex_trylock_sched(starpu_pthread_mutex_t *mutex)
 {
-	const int workerid = starpu_worker_get_id();
-	struct _starpu_worker * const worker = (workerid != -1)?_starpu_get_worker_struct(workerid):NULL;
-	if(worker && mutex == &worker->sched_mutex)
+	int ret = starpu_pthread_mutex_trylock(mutex);
+
+	if (!ret)
 	{
-		STARPU_ASSERT(worker->sched_mutex_depth < UINT_MAX);
-		worker->sched_mutex_depth++;
-		if (worker->sched_mutex_depth > 1)
-			return 0;
+		int workerid = starpu_worker_get_id();
+		if(workerid != -1 && _starpu_worker_mutex_is_sched_mutex(workerid, mutex))
+			_starpu_worker_set_flag_sched_mutex_locked(workerid, 1);
 	}
 
-	return starpu_pthread_mutex_trylock(mutex);
+	return ret;
 }
 
 #ifdef STARPU_DEBUG

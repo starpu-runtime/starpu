@@ -82,26 +82,8 @@ LIST_TYPE(_starpu_worker,
 	starpu_pthread_cond_t started_cond; /* indicate when the worker is ready */
 	starpu_pthread_cond_t ready_cond; /* indicate when the worker is ready */
 	unsigned memory_node; /* which memory node is the worker associated with ? */
-	/* condition variable used for passive waiting operations on worker
-	 * STARPU_PTHREAD_COND_BROADCAST must be used instead of STARPU_PTHREAD_COND_SIGNAL,
-	 * since the condition is shared for multiple purpose */
-	starpu_pthread_cond_t sched_cond;
+	starpu_pthread_cond_t sched_cond; /* condition variable used when the worker waits for tasks. */
         starpu_pthread_mutex_t sched_mutex; /* mutex protecting sched_cond */
-	int state_sched_op_pending:1; /* a task pop is ongoing even though sched_mutex may temporarily be unlocked */
-	int state_changing_ctx_waiting:1; /* a thread is waiting for operations such as pop to complete before acquiring sched_mutex and modifying the worker ctx*/
-	int state_changing_ctx_notice:1; /* the worker ctx is about to change or being changed, wait for flag to be cleared before starting new scheduling operations */
-	int state_blocked:1; /* worker is currently blocked */
-	int state_block_req:1; /* a request for state transition from unblocked to blocked is pending */
-	int state_block_ack:1; /* a block request has been honored */
-	int state_unblock_req:1; /* a request for state transition from blocked to unblocked is pending */
-	int state_unblock_ack:1; /* an unblock request has been honored */
-	 /* cumulative blocking depth
-	  * - =0  worker unblocked
-	  * - >0  worker blocked
-	  * - transition from 0 to 1 triggers a block_req
-	  * - transition from 1 to 0 triggers a unblock_req
-	  */
-	unsigned block_ref_count;
 	struct starpu_task_list local_tasks; /* this queue contains tasks that have been explicitely submitted to that queue */
 	struct starpu_task **local_ordered_tasks; /* this queue contains tasks that have been explicitely submitted to that queue with an explicit order */
 	unsigned local_ordered_tasks_size; /* this records the size of local_ordered_tasks */
@@ -155,8 +137,11 @@ LIST_TYPE(_starpu_worker,
 	/* indicate which priority of ctx is currently active: the values are 0 or 1*/
 	unsigned pop_ctx_priority;
 
-	/* sched mutex local worker locking depth */
-	unsigned sched_mutex_depth;
+	/* flag to know if sched_mutex is locked or not */
+	unsigned sched_mutex_locked;
+
+	/* bool to indicate if the worker is blocked in a ctx */
+	unsigned blocked;
 
 	/* bool to indicate if the worker is slave in a ctx */
 	unsigned is_slave_somewhere;
@@ -523,7 +508,7 @@ static inline struct _starpu_worker *_starpu_get_worker_struct(unsigned id)
 	return &_starpu_config.workers[id];
 }
 
-/* Returns the starpu_sched_ctx structure that describes the state of the 
+/* Returns the starpu_sched_ctx structure that descriebes the state of the 
  * specified ctx */
 static inline struct _starpu_sched_ctx *_starpu_get_sched_ctx_struct(unsigned id)
 {
@@ -572,6 +557,18 @@ int starpu_worker_get_nids_by_type(enum starpu_worker_archtype type, int *worker
 /* returns workers not belonging to any context, be careful no mutex is used, 
    the list might not be updated */
 int starpu_worker_get_nids_ctx_free_by_type(enum starpu_worker_archtype type, int *workerids, int maxsize);
+
+/* if the current worker has the lock release it */
+void _starpu_unlock_mutex_if_prev_locked();
+
+/* if we prev released the lock relock it */
+void _starpu_relock_mutex_if_prev_locked();
+
+static inline void _starpu_worker_set_flag_sched_mutex_locked(int workerid, unsigned flag)
+{
+	struct _starpu_worker *w = _starpu_get_worker_struct(workerid);
+	w->sched_mutex_locked = flag;
+}
 
 static inline unsigned _starpu_worker_mutex_is_sched_mutex(int workerid, starpu_pthread_mutex_t *mutex)
 {
@@ -624,207 +621,5 @@ static inline unsigned __starpu_worker_get_id_check(const char *f, int l)
 void _starpu_worker_set_stream_ctx(unsigned workerid, struct _starpu_sched_ctx *sched_ctx);
 
 struct _starpu_sched_ctx* _starpu_worker_get_ctx_stream(unsigned stream_workerid);
-
-/* Must be called with worker's sched_mutex held.
- */
-static inline void _starpu_worker_request_blocking(struct _starpu_worker * const worker)
-{
-	/* flush pending requests to start on a fresh transaction epoch */
-	while (worker->state_unblock_req)
-		STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
-
-	/* announce blocking intent */
-	STARPU_ASSERT(worker->block_ref_count < UINT_MAX);
-	worker->block_ref_count++;
-
-	if (worker->block_ref_count == 1)
-	{
-		/* only the transition from 0 to 1 triggers the block_req */
-
-		STARPU_ASSERT(!worker->state_blocked);
-		STARPU_ASSERT(!worker->state_block_req);
-		STARPU_ASSERT(!worker->state_block_ack);
-		STARPU_ASSERT(!worker->state_unblock_req);
-		STARPU_ASSERT(!worker->state_unblock_ack);
-
-		/* trigger the block_req */
-		worker->state_block_req = 1;
-		STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
-
-		/* wait for block_req to be processed */
-		while (!worker->state_block_ack)
-			STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
-
-		STARPU_ASSERT(worker->block_ref_count >= 1);
-		STARPU_ASSERT(worker->state_block_req);
-		STARPU_ASSERT(worker->state_blocked);
-
-		/* reset block_req state flags */
-		worker->state_block_req = 0;
-		worker->state_block_ack = 0;
-
-		/* broadcast block_req state flags reset */
-		STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
-	}
-}
-
-/* Must be called with worker's sched_mutex held.
- */
-static inline void _starpu_worker_request_unblocking(struct _starpu_worker * const worker)
-{
-	/* flush pending requests to start on a fresh transaction epoch */
-	while (worker->state_block_req)
-		STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
-
-	/* unblocking may be requested unconditionnally
-	 * thus, check is unblocking is really needed */
-	if (worker->state_blocked)
-	{
-		if (worker->block_ref_count == 1)
-		{
-			/* only the transition from 1 to 0 triggers the unblock_req */
-
-			STARPU_ASSERT(!worker->state_block_req);
-			STARPU_ASSERT(!worker->state_block_ack);
-			STARPU_ASSERT(!worker->state_unblock_req);
-			STARPU_ASSERT(!worker->state_unblock_ack);
-
-			/* trigger the unblock_req */
-			worker->state_unblock_req = 1;
-			STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
-
-			/* wait for the unblock_req to be processed */
-			while (!worker->state_unblock_ack)
-				STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
-
-			STARPU_ASSERT(worker->state_unblock_req);
-			STARPU_ASSERT(!worker->state_blocked);
-
-			/* reset unblock_req state flags */
-			worker->state_unblock_req = 0;
-			worker->state_unblock_ack = 0;
-
-			/* broadcast unblock_req state flags reset */
-			STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
-		}
-
-		/* announce unblocking complete */
-		STARPU_ASSERT(worker->block_ref_count > 0);
-		worker->block_ref_count--;
-	}
-}
-
-/* Must be called with worker's sched_mutex held.
- */
-static inline void _starpu_worker_process_block_requests(struct _starpu_worker * const worker)
-{
-	while (worker->state_block_req)
-	{
-		STARPU_ASSERT(!worker->state_blocked);
-		STARPU_ASSERT(!worker->state_block_ack);
-		STARPU_ASSERT(!worker->state_unblock_req);
-		STARPU_ASSERT(!worker->state_unblock_ack);
-		STARPU_ASSERT(worker->block_ref_count > 0);
-		
-		/* enter effective blocked state */
-		worker->state_blocked = 1;
-
-		/* notify block_req processing */
-		worker->state_block_ack = 1;
-		STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
-
-		/* block */
-		while (!worker->state_unblock_req)
-			STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
-
-		STARPU_ASSERT(worker->state_blocked);
-		STARPU_ASSERT(!worker->state_block_req);
-		STARPU_ASSERT(!worker->state_block_ack);
-		STARPU_ASSERT(!worker->state_unblock_ack);
-		STARPU_ASSERT(worker->block_ref_count > 0);
-
-		/* leave effective blocked state */
-		worker->state_blocked = 0;
-
-		/* notify unblock_req processing */
-		worker->state_unblock_ack = 1;
-		STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
-	}
-}
-
-/* Must be called with worker's sched_mutex held.
- * Mark the beginning of a scheduling operation during which the sched_mutex
- * lock may be temporarily released, but the scheduling context of the worker
- * should not be modified */
-static inline void _starpu_worker_enter_sched_op(struct _starpu_worker * const worker)
-{
-	/* process pending block requests before entering a sched_op region */
-	_starpu_worker_process_block_requests(worker);
-	while (worker->state_changing_ctx_notice)
-	{
-		STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
-
-		/* new block requests may have been triggered during the wait,
-		 * need to check again */
-		_starpu_worker_process_block_requests(worker);
-	}
-
-	/* no block request and no ctx change ahead,
-	 * enter sched_op */
-	worker->state_sched_op_pending = 1;
-}
-
-/* Must be called with worker's sched_mutex held.
- * Mark the end of a scheduling operation, and notify potential waiters that
- * scheduling context changes can safely be performed again.
- */
-static inline void  _starpu_worker_leave_sched_op(struct _starpu_worker * const worker)
-{
-	worker->state_sched_op_pending = 0;
-	if (worker->state_changing_ctx_waiting)
-		STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
-}
-
-/* Must be called with worker's sched_mutex held.
- */
-static inline void _starpu_worker_enter_changing_ctx_op(struct _starpu_worker * const worker)
-{
-	/* flush pending requests to start on a fresh transaction epoch */
-	while (worker->state_changing_ctx_notice)
-		STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
-
-	/* announce changing_ctx intent
-	 *
-	 * - an already started sched_op is allowed to complete
-	 * - no new sched_op may be started
-	 */
-	worker->state_changing_ctx_notice = 1;
-
-	/* allow for an already started sched_op to complete */
-	if (worker->state_sched_op_pending)
-	{
-		/* request sched_op to broadcast when way is cleared */
-		worker->state_changing_ctx_waiting = 1;
-
-		/* wait for sched_op completion */
-		STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
-		do
-		{
-			STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
-		}
-		while (worker->state_sched_op_pending);
-
-		/* reset flag so other sched_ops wont have to broadcast state */
-		worker->state_changing_ctx_waiting = 0;
-	}
-}
-
-/* Must be called with worker's sched_mutex held.
- */
-static inline void _starpu_worker_leave_changing_ctx_op(struct _starpu_worker * const worker)
-{
-	worker->state_changing_ctx_notice = 0;
-	STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
-}
 
 #endif // __WORKERS_H__
