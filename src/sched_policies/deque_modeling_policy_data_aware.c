@@ -190,6 +190,7 @@ static struct starpu_task *dmda_pop_ready_task(unsigned sched_ctx_id)
 
 	/* Take the opportunity to update start time */
 	fifo->exp_start = STARPU_MAX(starpu_timing_now(), fifo->exp_start);
+	fifo->exp_end = fifo->exp_start + fifo->exp_len;
 
 	task = _starpu_fifo_pop_first_ready_task(fifo, node, dt->num_priorities);
 	if (task)
@@ -220,6 +221,7 @@ static struct starpu_task *dmda_pop_task(unsigned sched_ctx_id)
 
 	/* Take the opportunity to update start time */
 	fifo->exp_start = STARPU_MAX(starpu_timing_now(), fifo->exp_start);
+	fifo->exp_end = fifo->exp_start + fifo->exp_len;
 
 	STARPU_ASSERT_MSG(fifo, "worker %d does not belong to ctx %d anymore.\n", workerid, sched_ctx_id);
 
@@ -252,6 +254,7 @@ static struct starpu_task *dmda_pop_every_task(unsigned sched_ctx_id)
 
 	/* Take the opportunity to update start time */
 	fifo->exp_start = STARPU_MAX(starpu_timing_now(), fifo->exp_start);
+	fifo->exp_end = fifo->exp_start + fifo->exp_len;
 
 	starpu_pthread_mutex_t *sched_mutex;
 	starpu_pthread_cond_t *sched_cond;
@@ -291,6 +294,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 
         /* Sometimes workers didn't take the tasks as early as we expected */
 	fifo->exp_start = isnan(fifo->exp_start) ? starpu_timing_now() : STARPU_MAX(fifo->exp_start, starpu_timing_now());
+	fifo->exp_end = fifo->exp_start + fifo->exp_len;
 	fifo->exp_end = fifo->exp_start + fifo->exp_len;
 
 	if ((starpu_timing_now() + predicted_transfer) < fifo->exp_end)
@@ -1051,6 +1055,7 @@ static void dmda_pre_exec_hook(struct starpu_task *task)
 
 	/* Take the opportunity to update start time */
 	fifo->exp_start = STARPU_MAX(starpu_timing_now(), fifo->exp_start);
+	fifo->exp_end = fifo->exp_start + fifo->exp_len;
 
 	if(!isnan(transfer_model))
 	{
