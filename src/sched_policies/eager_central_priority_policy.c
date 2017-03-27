@@ -48,29 +48,8 @@ struct _starpu_eager_central_prio_data
 {
 	struct _starpu_priority_taskq *taskq;
 	starpu_pthread_mutex_t policy_mutex;
-	starpu_pthread_cond_t policy_cond;
-	int state_busy:1;
 	struct starpu_bitmap *waiters;
 };
-
-static void enter_busy_state(struct _starpu_eager_central_prio_data *data)
-{
-	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
-	while (data->state_busy)
-	{
-		STARPU_PTHREAD_COND_WAIT(&data->policy_cond, &data->policy_mutex);
-	}
-	data->state_busy = 1;
-	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-}
-
-static void leave_busy_state(struct _starpu_eager_central_prio_data *data)
-{
-	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
-	data->state_busy = 0;
-	STARPU_PTHREAD_COND_SIGNAL(&data->policy_cond);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-}
 
 /*
  * Centralized queue with priorities
@@ -126,8 +105,6 @@ static void initialize_eager_center_priority_policy(unsigned sched_ctx_id)
 	STARPU_HG_DISABLE_CHECKING(data->taskq->total_ntasks);
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)data);
 	STARPU_PTHREAD_MUTEX_INIT(&data->policy_mutex, NULL);
-	STARPU_PTHREAD_COND_INIT(&data->policy_cond, NULL);
-	data->state_busy = 0;
 }
 
 static void deinitialize_eager_center_priority_policy(unsigned sched_ctx_id)
@@ -140,7 +117,6 @@ static void deinitialize_eager_center_priority_policy(unsigned sched_ctx_id)
 	starpu_bitmap_destroy(data->waiters);
 
 	STARPU_PTHREAD_MUTEX_DESTROY(&data->policy_mutex);
-	STARPU_PTHREAD_COND_DESTROY(&data->policy_cond);
 	free(data);
 }
 
@@ -150,7 +126,7 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 	struct _starpu_eager_central_prio_data *data = (struct _starpu_eager_central_prio_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	struct _starpu_priority_taskq *taskq = data->taskq;
 
-	enter_busy_state(data);
+	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 	unsigned priolevel = task->priority - starpu_sched_ctx_get_min_priority(sched_ctx_id);
 	STARPU_ASSERT_MSG(task->priority >= starpu_sched_ctx_get_min_priority(sched_ctx_id) &&
 			  task->priority <= starpu_sched_ctx_get_max_priority(sched_ctx_id), "task priority %d is not between minimum %d and maximum %d\n", task->priority, starpu_sched_ctx_get_min_priority(sched_ctx_id), starpu_sched_ctx_get_max_priority(sched_ctx_id));
@@ -193,7 +169,7 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 		}
 	}
 	/* Let the task free */
-	leave_busy_state(data);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 
 #if !defined(STARPU_NON_BLOCKING_DRIVERS) || defined(STARPU_SIMGRID)
 	/* Now that we have a list of potential workers, try to wake one */
@@ -225,7 +201,7 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 	struct _starpu_priority_taskq *taskq = data->taskq;
 
 	/* block until some event happens */
-	enter_busy_state(data);
+	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 	_starpu_worker_leave_section_safe_for_observation();
 
 	/* Here helgrind would shout that this is unprotected, this is just an
@@ -233,7 +209,7 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 	 * wake up. */
 	if (!STARPU_RUNNING_ON_VALGRIND && taskq->total_ntasks == 0)
 	{
-		leave_busy_state(data);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 		return NULL;
 	}
 
@@ -241,7 +217,7 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 	if (!STARPU_RUNNING_ON_VALGRIND && starpu_bitmap_get(data->waiters, workerid))
 		/* Nobody woke us, avoid bothering the mutex */
 	{
-		leave_busy_state(data);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 		return NULL;
 	}
 #endif
@@ -303,7 +279,7 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 		starpu_bitmap_set(data->waiters, workerid);
 
 	_starpu_worker_enter_section_safe_for_observation();
-	leave_busy_state(data);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 
 	if(chosen_task)
 	{
