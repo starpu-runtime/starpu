@@ -159,6 +159,8 @@ static inline void default_init_sched(unsigned sched_ctx_id)
 {
 	int min_prio = starpu_sched_ctx_get_min_priority(sched_ctx_id);
 	int max_prio = starpu_sched_ctx_get_max_priority(sched_ctx_id);
+	STARPU_ASSERT(min_prio >= 0);
+	STARPU_ASSERT(max_prio >= 0);
 	// By default each type of devices uses 1 bucket and no slow factor
 #ifdef STARPU_USE_CPU
 	starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_CPU_IDX, max_prio-min_prio+1);

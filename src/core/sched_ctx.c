@@ -512,10 +512,16 @@ struct _starpu_sched_ctx* _starpu_create_sched_ctx(struct starpu_sched_policy *p
 	sched_ctx->inheritor = STARPU_NMAX_SCHED_CTXS;
 	sched_ctx->finished_submit = 0;
 	sched_ctx->min_priority_is_set = min_prio_set;
-	if (sched_ctx->min_priority_is_set) sched_ctx->min_priority = min_prio;
-	sched_ctx->max_priority_is_set = max_prio_set;
-	if (sched_ctx->max_priority_is_set) sched_ctx->max_priority = max_prio;
+	if (sched_ctx->min_priority_is_set)
+		sched_ctx->min_priority = min_prio;
+	else
+		sched_ctx->min_priority = 0;
 
+	sched_ctx->max_priority_is_set = max_prio_set;
+	if (sched_ctx->max_priority_is_set)
+		sched_ctx->max_priority = max_prio;
+	else
+		sched_ctx->max_priority = 0;
 
 	_starpu_barrier_counter_init(&sched_ctx->tasks_barrier, 0);
 	_starpu_barrier_counter_init(&sched_ctx->ready_tasks_barrier, 0);
@@ -1052,6 +1058,8 @@ static void _starpu_delete_sched_ctx(struct _starpu_sched_ctx *sched_ctx)
 		sched_ctx->perf_arch.devices = NULL;
 	}
 
+	sched_ctx->min_priority_is_set = 0;
+	sched_ctx->max_priority_is_set = 0;
 	sched_ctx->id = STARPU_NMAX_SCHED_CTXS;
 #ifdef STARPU_HAVE_HWLOC
 	hwloc_bitmap_free(sched_ctx->hwloc_workers_set);
