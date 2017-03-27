@@ -278,8 +278,7 @@ void _starpu_bound_record(struct _starpu_job *j)
 	{
 		struct bound_task_pool *tp;
 
-		/* FIXME: bogus STARPU_CPU_WORKER parameter for arch pointer */
-		_starpu_compute_buffers_footprint(j->task->cl?j->task->cl->model:NULL, STARPU_CPU_WORKER, 0, j);
+		_starpu_compute_buffers_footprint(j->task->cl?j->task->cl->model:NULL, NULL, 0, j);
 
 		if (last && last->cl == j->task->cl && last->footprint == j->footprint)
 			tp = last;
