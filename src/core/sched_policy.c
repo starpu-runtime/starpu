@@ -72,7 +72,6 @@ static struct starpu_sched_policy *predefined_policies[] =
 	&_starpu_sched_dmda_sorted_decision_policy,
 	&_starpu_sched_parallel_heft_policy,
 	&_starpu_sched_heteroprio_policy,
-	&_starpu_sched_graph_test_policy,
 #else
 	&_starpu_sched_eager_policy,
 	&_starpu_sched_prio_policy,
@@ -80,6 +79,7 @@ static struct starpu_sched_policy *predefined_policies[] =
 	&_starpu_sched_peager_policy,
 	&_starpu_sched_ws_policy,
 	&_starpu_sched_lws_policy,
+	&_starpu_sched_graph_test_policy,
 #warning TODO: update sched policies with new synchro scheme
 #endif
 	NULL

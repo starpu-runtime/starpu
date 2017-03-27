@@ -200,7 +200,9 @@ static void do_schedule_graph_test_policy(unsigned sched_ctx_id)
 	{
 		/* Wake each worker */
 		unsigned worker = workers->get_next(workers, &it);
+		STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
 		starpu_wake_worker(worker);
+		STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 	}
 #endif
 }
@@ -277,8 +279,13 @@ static int push_task_graph_test_policy(struct starpu_task *task)
 	{
 		unsigned worker = workers->get_next(workers, &it);
 		if (dowake[worker])
-			if (starpu_wake_worker(worker))
+		{
+			STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
+			int ret = starpu_wake_worker(worker);
+			STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
+			if (ret)
 				break; // wake up a single worker
+		}
 	}
 #endif
 
@@ -313,7 +320,9 @@ static struct starpu_task *pop_task_graph_test_policy(unsigned sched_ctx_id)
 		return NULL;
 #endif
 
+	_starpu_worker_enter_section_safe_for_observation();
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
+	_starpu_worker_leave_section_safe_for_observation();
 	if (!data->computed)
 	{
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
