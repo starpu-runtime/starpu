@@ -468,9 +468,9 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 			_starpu_worker_enter_sched_op(&workers[i]);
 #endif
 			_starpu_worker_set_status_scheduling(workers[i].workerid);
-			STARPU_PTHREAD_MUTEX_LOCK_SCHED(&workers[i].sched_mutex);
-			tasks[i] = _starpu_pop_task(&workers[i]);
 			STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&workers[i].sched_mutex);
+			tasks[i] = _starpu_pop_task(&workers[i]);
+			STARPU_PTHREAD_MUTEX_LOCK_SCHED(&workers[i].sched_mutex);
 			if(tasks[i] != NULL)
 			{
 				_starpu_worker_set_status_scheduling_done(workers[i].workerid);
