@@ -834,7 +834,33 @@ static inline void _starpu_worker_leave_changing_ctx_op(struct _starpu_worker * 
  *
  * notes:
  * - if the observed worker is not in state_safe_for_observation, the function block until the state is reached */
-static inline void _starpu_worker_lock_for_observation(int workerid)
+static inline void _starpu_worker_lock_for_observation_relax(int workerid)
+{
+	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
+	int cur_workerid = starpu_worker_get_id();
+	STARPU_ASSERT(worker != NULL);
+	STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
+	if (workerid != cur_workerid)
+	{
+		struct _starpu_worker *cur_worker = cur_workerid<starpu_worker_get_count()?_starpu_get_worker_struct(cur_workerid):NULL;
+		int relax_own_observation_state = (cur_worker != NULL) && (cur_worker->state_safe_for_observation == 0);
+		if (relax_own_observation_state && !worker->state_safe_for_observation)
+		{
+			cur_worker->state_safe_for_observation = 1;
+			STARPU_PTHREAD_COND_BROADCAST(&cur_worker->sched_cond);
+		}
+		while (!worker->state_safe_for_observation)
+		{
+			STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
+		}
+		if (relax_own_observation_state)
+		{
+			cur_worker->state_safe_for_observation = 0;
+		}
+	}
+}
+
+static inline void _starpu_worker_lock_for_observation_no_relax(int workerid)
 {
 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 	STARPU_ASSERT(worker != NULL);
@@ -846,6 +872,22 @@ static inline void _starpu_worker_lock_for_observation(int workerid)
 			STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
 		}
 	}
+}
+
+static inline int _starpu_worker_trylock_for_observation(int workerid)
+{
+	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
+	int cur_workerid = starpu_worker_get_id();
+	STARPU_ASSERT(worker != NULL);
+	int ret = STARPU_PTHREAD_MUTEX_TRYLOCK_SCHED(&worker->sched_mutex);
+	if (ret)
+		return ret;
+	if (workerid != cur_workerid) {
+		ret = !worker->state_safe_for_observation;
+		if (ret)
+			STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
+	}
+	return ret;
 }
 
 static inline void _starpu_worker_unlock_for_observation(int workerid)
