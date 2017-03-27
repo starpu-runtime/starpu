@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2012, 2016  Université de Bordeaux
-# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  Centre National de la Recherche Scientifique
+# Copyright (C) 2009-2012, 2015-2016  Université de Bordeaux
+# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -28,17 +28,18 @@ LOADER_BIN		=	$(abs_top_builddir)/nmad/tests/$(LOADER)
 loader_SOURCES		=	../../tests/loader.c
 endif
 
+# we always test on 4 processes, the execution time is not that bigger
 if STARPU_QUICK_CHECK
-MPI			=	$(MPIEXEC) -np 2
+MPI			=	$(MPIEXEC) $(MPIEXEC_ARGS) -np 4
 else
-MPI			=	$(MPIEXEC) -np 4
+MPI			=	$(MPIEXEC) $(MPIEXEC_ARGS) -np 4
 endif
 
 if STARPU_HAVE_AM111
-TESTS_ENVIRONMENT	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
+TESTS_ENVIRONMENT	=	STARPU_WORKERS_NOBIND=1 STARPU_NCPU=4 top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
 LOG_COMPILER	 	=	$(MPI) $(LOADER_BIN)
 else
-TESTS_ENVIRONMENT 	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(MPI) $(LOADER_BIN)
+TESTS_ENVIRONMENT 	=	STARPU_WORKERS_NOBIND=1 STARPU_NCPU=4 top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(MPI) $(LOADER_BIN)
 endif
 
 if !STARPU_SIMGRID
@@ -51,16 +52,20 @@ check_PROGRAMS = $(LOADER) $(starpu_mpi_TESTS)
 
 BUILT_SOURCES =
 
-CLEANFILES = *.gcno *.gcda *.linkinfo
+CLEANFILES = *.gcno *.gcda *.linkinfo starpu_idle_microsec.log
 
 EXTRA_DIST = 					\
-	user_defined_datatype_value.h
+	user_defined_datatype_value.h		\
+	helper.h
 
-examplebindir = $(libdir)/starpu/examples/mpi
+examplebindir = $(libdir)/starpu/examples/nmad
 
 examplebin_PROGRAMS =
 
 if STARPU_USE_CUDA
+if STARPU_COVERITY
+include $(top_srcdir)/starpu-mynvcc.mk
+else
 NVCCFLAGS += --compiler-options -fno-strict-aliasing  -I$(top_srcdir)/include/ -I$(top_builddir)/include/ $(HWLOC_CFLAGS)
 
 .cu.cubin:
@@ -70,21 +75,26 @@ NVCCFLAGS += --compiler-options -fno-strict-aliasing  -I$(top_srcdir)/include/ -
 .cu.o:
 	$(NVCC) $< -c -o $@ $(NVCCFLAGS)
 endif
+endif
 
 AM_CFLAGS = -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(FXT_CFLAGS) $(MAGMA_CFLAGS) $(HWLOC_CFLAGS) $(GLOBAL_AM_CFLAGS) -Wno-unused
 LIBS = $(top_builddir)/src/@LIBSTARPU_LINK@ @LIBS@ $(FXT_LIBS) $(MAGMA_LIBS)
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_builddir)/include -I$(top_srcdir)/nmad/include -I$(top_srcdir)/nmad/src -I$(top_srcdir)/src -I$(top_builddir)/src -I$(top_srcdir)/examples/
-AM_LDFLAGS = $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(FXT_LDFLAGS)
+AM_LDFLAGS = $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(FXT_LDFLAGS) $(STARPU_COI_LDFLAGS) $(STARPU_SCIF_LDFLAGS)
 
 ########################
 # Unit testcases       #
 ########################
 
+if BUILD_TESTS
 starpu_mpi_TESTS =				\
 	datatypes				\
 	pingpong				\
 	mpi_test				\
 	mpi_isend				\
+	mpi_earlyrecv				\
+	mpi_earlyrecv2				\
+	mpi_earlyrecv2_sync			\
 	mpi_irecv				\
 	mpi_isend_detached			\
 	mpi_irecv_detached			\
@@ -99,10 +109,10 @@ starpu_mpi_TESTS =				\
 	block_interface_pinned			\
 	cache					\
 	cache_disable				\
+	callback				\
 	matrix					\
 	matrix2					\
 	insert_task				\
-	insert_task_cache			\
 	insert_task_compute			\
 	insert_task_sent_cache			\
 	insert_task_recv_cache			\
@@ -110,18 +120,34 @@ starpu_mpi_TESTS =				\
 	insert_task_owner			\
 	insert_task_owner2			\
 	insert_task_owner_data			\
+	insert_task_node_choice			\
 	insert_task_count			\
+	insert_task_dyn_handles			\
 	multiple_send				\
 	mpi_scatter_gather			\
 	mpi_reduction				\
 	user_defined_datatype			\
-	comm
+	tags_checking				\
+	sync					\
+	gather					\
+	gather2					\
+	policy_register				\
+	policy_register_many			\
+	policy_register_toomany			\
+	policy_unregister			\
+	policy_selection			\
+	policy_selection2			\
+	early_request				\
+	starpu_redefine
 
 noinst_PROGRAMS =				\
 	datatypes				\
 	pingpong				\
 	mpi_test				\
 	mpi_isend				\
+	mpi_earlyrecv				\
+	mpi_earlyrecv2				\
+	mpi_earlyrecv2_sync			\
 	mpi_irecv				\
 	mpi_isend_detached			\
 	mpi_irecv_detached			\
@@ -136,10 +162,10 @@ noinst_PROGRAMS =				\
 	block_interface_pinned			\
 	cache					\
 	cache_disable				\
+	callback				\
 	matrix					\
 	matrix2					\
 	insert_task				\
-	insert_task_cache			\
 	insert_task_compute			\
 	insert_task_sent_cache			\
 	insert_task_recv_cache			\
@@ -147,14 +173,39 @@ noinst_PROGRAMS =				\
 	insert_task_owner			\
 	insert_task_owner2			\
 	insert_task_owner_data			\
+	insert_task_node_choice			\
 	insert_task_count			\
+	insert_task_dyn_handles			\
 	multiple_send				\
 	mpi_scatter_gather			\
 	mpi_reduction				\
 	user_defined_datatype			\
-	comm
+	tags_checking				\
+	sync					\
+	gather					\
+	gather2					\
+	policy_register				\
+	policy_register_many			\
+	policy_register_toomany			\
+	policy_unregister			\
+	policy_selection			\
+	policy_selection2			\
+	early_request				\
+	starpu_redefine
+
+
+XFAIL_TESTS=					\
+	policy_register_toomany			\
+	policy_unregister			\
+	starpu_redefine
 
 mpi_isend_LDADD =					\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
+mpi_earlyrecv_LDADD =					\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
+mpi_earlyrecv2_LDADD =					\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
+mpi_earlyrecv2_sync_LDADD =					\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 mpi_irecv_LDADD =					\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
@@ -190,13 +241,13 @@ cache_LDADD =					\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 cache_disable_LDADD =					\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
+callback_LDADD =				\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 matrix_LDADD =					\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 matrix2_LDADD =					\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 insert_task_LDADD =				\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-insert_task_cache_LDADD =				\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 insert_task_compute_LDADD =				\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
@@ -212,7 +263,11 @@ insert_task_owner2_LDADD =			\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 insert_task_owner_data_LDADD =			\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
+insert_task_node_choice_LDADD =			\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 insert_task_count_LDADD =				\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
+insert_task_dyn_handles_LDADD =				\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 multiple_send_LDADD =				\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
@@ -222,7 +277,29 @@ mpi_reduction_LDADD =			\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 user_defined_datatype_LDADD =			\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-comm_LDADD =			\
+tags_checking_LDADD =			\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
+sync_LDADD =			\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
+gather_LDADD =			\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
+gather2_LDADD =			\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
+policy_register_LDADD =			\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
+policy_register_many_LDADD =			\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
+policy_register_toomany_LDADD =			\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
+policy_unregister_LDADD =			\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
+policy_selection_LDADD =			\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
+policy_selection2_LDADD =			\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
+early_request_LDADD =					\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
+starpu_redefine_LDADD =					\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 
 ring_SOURCES = ring.c
@@ -242,5 +319,10 @@ endif
 mpi_reduction_SOURCES = mpi_reduction.c
 mpi_reduction_SOURCES += mpi_reduction_kernels.c
 user_defined_datatype_SOURCES = user_defined_datatype.c
-user_defined_datatype_SOURCES += $(top_srcdir)/examples/interface/complex_interface.c
+user_defined_datatype_SOURCES += ../../examples/interface/complex_interface.c
 
+mpi_earlyrecv2_SOURCES = mpi_earlyrecv2.c
+mpi_earlyrecv2_SOURCES += ../../examples/interface/complex_interface.c
+mpi_earlyrecv2_sync_SOURCES = mpi_earlyrecv2_sync.c
+mpi_earlyrecv2_sync_SOURCES += ../../examples/interface/complex_interface.c
+endif

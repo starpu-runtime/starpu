@@ -1030,7 +1030,7 @@ int _starpu_mpi_initialize(int *argc, char ***argv, int initialize_mpi)
 	_starpu_mpi_comm_amounts_init(MPI_COMM_WORLD);
 	_starpu_mpi_cache_init(MPI_COMM_WORLD);	
 	_starpu_mpi_select_node_init();
-
+	_starpu_mpi_datatype_init();
 	return 0;
 }
 
@@ -1088,7 +1088,7 @@ int starpu_mpi_shutdown(void)
 	_starpu_mpi_comm_amounts_display(rank);
 	_starpu_mpi_comm_amounts_free();
 	_starpu_mpi_cache_free(world_size);
-
+	_starpu_mpi_datatype_shutdown();
 	return 0;
 }
 
@@ -1191,8 +1191,8 @@ void starpu_mpi_get_data_on_node_detached(MPI_Comm comm, starpu_data_handle_t da
 	if (me == node)
 	{
 		_STARPU_MPI_DEBUG(1, "Migrating data %p from %d to %d\n", data_handle, rank, node);
-		int already_received = _starpu_mpi_cache_received_data_set(data_handle);
-		if (already_received == 0)
+		void* already_received = _starpu_mpi_cache_received_data_set(data_handle);
+		if (already_received == NULL)
 		{
 			_STARPU_MPI_DEBUG(1, "Receiving data %p from %d\n", data_handle, rank);
 			starpu_mpi_irecv_detached(data_handle, rank, tag, comm, callback, arg);
@@ -1201,8 +1201,8 @@ void starpu_mpi_get_data_on_node_detached(MPI_Comm comm, starpu_data_handle_t da
 	else if (me == rank)
 	{
 		_STARPU_MPI_DEBUG(1, "Migrating data %p from %d to %d\n", data_handle, rank, node);
-		int already_sent = _starpu_mpi_cache_sent_data_set(data_handle, node);
-		if (already_sent == 0)
+		void* already_sent = _starpu_mpi_cache_sent_data_set(data_handle, node);
+		if (already_sent == NULL)
 		{
 			_STARPU_MPI_DEBUG(1, "Sending data %p to %d\n", data_handle, node);
 			starpu_mpi_isend_detached(data_handle, node, tag, comm, NULL, NULL);
@@ -1233,8 +1233,8 @@ void starpu_mpi_get_data_on_node(MPI_Comm comm, starpu_data_handle_t data_handle
 	{
 		MPI_Status status;
 		_STARPU_MPI_DEBUG(1, "Migrating data %p from %d to %d\n", data_handle, rank, node);
-		int already_received = _starpu_mpi_cache_received_data_set(data_handle);
-		if (already_received == 0)
+		void* already_received = _starpu_mpi_cache_received_data_set(data_handle);
+		if (already_received == NULL)
 		{
 			_STARPU_MPI_DEBUG(1, "Receiving data %p from %d\n", data_handle, rank);
 			starpu_mpi_recv(data_handle, rank, tag, comm, &status);
@@ -1243,8 +1243,8 @@ void starpu_mpi_get_data_on_node(MPI_Comm comm, starpu_data_handle_t data_handle
 	else if (me == rank)
 	{
 		_STARPU_MPI_DEBUG(1, "Migrating data %p from %d to %d\n", data_handle, rank, node);
-		int already_sent = _starpu_mpi_cache_sent_data_set(data_handle, node);
-		if (already_sent == 0)
+		void* already_sent = _starpu_mpi_cache_sent_data_set(data_handle, node);
+		if (already_sent == NULL)
 		{
 			_STARPU_MPI_DEBUG(1, "Sending data %p to %d\n", data_handle, node);
 			starpu_mpi_send(data_handle, node, tag, comm);

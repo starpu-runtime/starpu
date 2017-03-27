@@ -16,9 +16,34 @@
  */
 
 #include <starpu_mpi_datatype.h>
+#include <common/uthash.h>
+#include <datawizard/coherency.h>
+#include <starpu_mpi_private.h>
 
 typedef void (*handle_to_datatype_func)(starpu_data_handle_t, MPI_Datatype *);
 typedef void (*handle_free_datatype_func)(MPI_Datatype *);
+
+struct _starpu_mpi_datatype_funcs
+{
+	enum starpu_data_interface_id id;
+	starpu_mpi_datatype_allocate_func_t allocate_datatype_func;
+	starpu_mpi_datatype_free_func_t free_datatype_func;
+	UT_hash_handle hh;
+};
+
+static starpu_pthread_mutex_t _starpu_mpi_datatype_funcs_table_mutex;
+static struct _starpu_mpi_datatype_funcs *_starpu_mpi_datatype_funcs_table = NULL;
+
+void _starpu_mpi_datatype_init(void)
+{
+	STARPU_PTHREAD_MUTEX_INIT(&_starpu_mpi_datatype_funcs_table_mutex, NULL);
+}
+
+void _starpu_mpi_datatype_shutdown(void)
+{
+	STARPU_PTHREAD_MUTEX_DESTROY(&_starpu_mpi_datatype_funcs_table_mutex);
+}
+
 
 /*
  * 	Matrix
@@ -148,9 +173,22 @@ void _starpu_mpi_handle_allocate_datatype(starpu_data_handle_t data_handle, MPI_
 	}
 	else
 	{
-		/* The datatype is not predefined by StarPU */
-		*datatype = MPI_BYTE;
-		*user_datatype = 1;
+		struct _starpu_mpi_datatype_funcs *table;
+		STARPU_PTHREAD_MUTEX_LOCK(&_starpu_mpi_datatype_funcs_table_mutex);
+		HASH_FIND_INT(_starpu_mpi_datatype_funcs_table, &id, table);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_mpi_datatype_funcs_table_mutex);
+		if (table)
+		{
+			STARPU_ASSERT_MSG(table->allocate_datatype_func, "Handle To Datatype Function not defined for StarPU data interface %d", id);
+			table->allocate_datatype_func(data_handle, datatype);
+			*user_datatype = 0;
+		}
+		else
+		{
+			/* The datatype is not predefined by StarPU */
+			*datatype = MPI_BYTE;
+			*user_datatype = 1;
+		}
 	}
 }
 
@@ -206,6 +244,19 @@ void _starpu_mpi_handle_free_datatype(starpu_data_handle_t data_handle, MPI_Data
 		STARPU_ASSERT_MSG(func, "Handle free datatype function not defined for StarPU data interface %d", id);
 		func(datatype);
 	}
+	else
+	{
+		struct _starpu_mpi_datatype_funcs *table;
+		STARPU_PTHREAD_MUTEX_LOCK(&_starpu_mpi_datatype_funcs_table_mutex);
+		HASH_FIND_INT(_starpu_mpi_datatype_funcs_table, &id, table);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_mpi_datatype_funcs_table_mutex);
+		if (table)
+		{
+			STARPU_ASSERT_MSG(table->free_datatype_func, "Free Datatype Function not defined for StarPU data interface %d", id);
+			table->free_datatype_func(datatype);
+		}
+
+	}
 	/* else the datatype is not predefined by StarPU */
 }
 
@@ -242,4 +293,49 @@ char *_starpu_mpi_datatype(MPI_Datatype datatype)
      if (datatype == MPI_INTEGER4) return "MPI_INTEGER4";
      if (datatype == MPI_PACKED) return "MPI_PACKED";
      return "User defined MPI Datatype";
+}
+
+int starpu_mpi_datatype_register(starpu_data_handle_t handle, starpu_mpi_datatype_allocate_func_t allocate_datatype_func, starpu_mpi_datatype_free_func_t free_datatype_func)
+{
+	enum starpu_data_interface_id id = starpu_data_get_interface_id(handle);
+	struct _starpu_mpi_datatype_funcs *table;
+
+	STARPU_ASSERT_MSG(id >= STARPU_MAX_INTERFACE_ID, "Cannot redefine the MPI datatype for a predefined StarPU datatype");
+
+	STARPU_PTHREAD_MUTEX_LOCK(&_starpu_mpi_datatype_funcs_table_mutex);
+	HASH_FIND_INT(_starpu_mpi_datatype_funcs_table, &id, table);
+	if (table)
+	{
+		table->allocate_datatype_func = allocate_datatype_func;
+		table->free_datatype_func = free_datatype_func;
+	}
+	else
+	{
+		_STARPU_MPI_MALLOC(table, sizeof(struct _starpu_mpi_datatype_funcs));
+		table->id = id;
+		table->allocate_datatype_func = allocate_datatype_func;
+		table->free_datatype_func = free_datatype_func;
+		HASH_ADD_INT(_starpu_mpi_datatype_funcs_table, id, table);
+	}
+	STARPU_ASSERT_MSG(handle->ops->handle_to_pointer, "The data interface must define the operation 'handle_to_pointer'\n");
+	STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_mpi_datatype_funcs_table_mutex);
+	return 0;
+}
+
+int starpu_mpi_datatype_unregister(starpu_data_handle_t handle)
+{
+	enum starpu_data_interface_id id = starpu_data_get_interface_id(handle);
+	struct _starpu_mpi_datatype_funcs *table;
+
+	STARPU_ASSERT_MSG(id >= STARPU_MAX_INTERFACE_ID, "Cannot redefine the MPI datatype for a predefined StarPU datatype");
+
+	STARPU_PTHREAD_MUTEX_LOCK(&_starpu_mpi_datatype_funcs_table_mutex);
+	HASH_FIND_INT(_starpu_mpi_datatype_funcs_table, &id, table);
+	if (table)
+	{
+		HASH_DEL(_starpu_mpi_datatype_funcs_table, table);
+		free(table);
+	}
+	STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_mpi_datatype_funcs_table_mutex);
+	return 0;
 }

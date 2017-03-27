@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2012, 2015  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012, 2013, 2014, 2015, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -24,51 +24,68 @@ void func_cpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 	int rank;
 
 	starpu_codelet_unpack_args(_args, &node);
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	FPRINTF(stderr, "Expected node: %d - Actual node: %d\n", node, rank);
+	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
+	FPRINTF_MPI(stderr, "Expected node: %d - Actual node: %d\n", node, rank);
 
 	assert(node == rank);
 }
+
+/* Dummy cost function for simgrid */
+static double cost_function(struct starpu_task *task STARPU_ATTRIBUTE_UNUSED, unsigned nimpl STARPU_ATTRIBUTE_UNUSED)
+{
+	return 0.000001;
+}
+static struct starpu_perfmodel dumb_model =
+{
+	.type		= STARPU_COMMON,
+	.cost_function	= cost_function
+};
 
 struct starpu_codelet mycodelet_r_w =
 {
 	.cpu_funcs = {func_cpu},
 	.nbuffers = 2,
-	.modes = {STARPU_R, STARPU_W}
+	.modes = {STARPU_R, STARPU_W},
+	.model = &dumb_model
 };
 
 struct starpu_codelet mycodelet_rw_r =
 {
 	.cpu_funcs = {func_cpu},
 	.nbuffers = 2,
-	.modes = {STARPU_RW, STARPU_R}
+	.modes = {STARPU_RW, STARPU_R},
+	.model = &dumb_model
 };
 
 struct starpu_codelet mycodelet_rw_rw =
 {
 	.cpu_funcs = {func_cpu},
 	.nbuffers = 2,
-	.modes = {STARPU_RW, STARPU_RW}
+	.modes = {STARPU_RW, STARPU_RW},
+	.model = &dumb_model
 };
 
 struct starpu_codelet mycodelet_w_r =
 {
 	.cpu_funcs = {func_cpu},
 	.nbuffers = 2,
-	.modes = {STARPU_W, STARPU_R}
+	.modes = {STARPU_W, STARPU_R},
+	.model = &dumb_model
 };
 
 struct starpu_codelet mycodelet_r_r =
 {
 	.cpu_funcs = {func_cpu},
 	.nbuffers = 2,
-	.modes = {STARPU_R, STARPU_R}
+	.modes = {STARPU_R, STARPU_R},
+	.model = &dumb_model
 };
 
 int main(int argc, char **argv)
 {
 	int ret, rank, size, err, node;
-	int x0=32, x1=23;
+	long x0=32;
+	int x1=23;
 	starpu_data_handle_t data_handlesx0;
 	starpu_data_handle_t data_handlesx1;
 
@@ -76,60 +93,71 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 	ret = starpu_mpi_init(&argc, &argv, 1);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	MPI_Comm_size(MPI_COMM_WORLD, &size);
+	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
+	starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
+
+	if (starpu_cpu_worker_get_count() == 0)
+	{
+		if (rank == 0)
+			FPRINTF(stderr, "We need at least 1 CPU worker.\n");
+		starpu_mpi_shutdown();
+		starpu_shutdown();
+		return STARPU_TEST_SKIPPED;
+	}
 
 	if (rank != 0 && rank != 1) goto end;
 
 	if (rank == 0)
 	{
-		starpu_variable_data_register(&data_handlesx0, 0, (uintptr_t)&x0, sizeof(x0));
-		starpu_variable_data_register(&data_handlesx1, -1, (uintptr_t)NULL, sizeof(int));
+		starpu_variable_data_register(&data_handlesx0, STARPU_MAIN_RAM, (uintptr_t)&x0, sizeof(x0));
+		starpu_mpi_data_register(data_handlesx0, 0, rank);
+		starpu_variable_data_register(&data_handlesx1, -1, (uintptr_t)NULL, sizeof(x1));
+		starpu_mpi_data_register(data_handlesx1, 1, 1);
 	}
 	else if (rank == 1)
 	{
-		starpu_variable_data_register(&data_handlesx1, 0, (uintptr_t)&x1, sizeof(x1));
-		starpu_variable_data_register(&data_handlesx0, -1, (uintptr_t)NULL, sizeof(int));
+		starpu_variable_data_register(&data_handlesx1, STARPU_MAIN_RAM, (uintptr_t)&x1, sizeof(x1));
+		starpu_mpi_data_register(data_handlesx1, 1, rank);
+		starpu_variable_data_register(&data_handlesx0, -1, (uintptr_t)NULL, sizeof(x0));
+		starpu_mpi_data_register(data_handlesx0, 0, 0);
 	}
-	starpu_mpi_data_register(data_handlesx0, 0, 0);
-	starpu_mpi_data_register(data_handlesx1, 1, 1);
 
 	node = starpu_mpi_data_get_rank(data_handlesx1);
-	err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet_r_w,
+	err = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet_r_w,
 				     STARPU_VALUE, &node, sizeof(node),
 				     STARPU_R, data_handlesx0, STARPU_W, data_handlesx1,
 				     0);
 	assert(err == 0);
 
 	node = starpu_mpi_data_get_rank(data_handlesx0);
-	err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet_rw_r,
+	err = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet_rw_r,
 				     STARPU_VALUE, &node, sizeof(node),
 				     STARPU_RW, data_handlesx0, STARPU_R, data_handlesx1,
 				     0);
 	assert(err == 0);
 
-	err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet_rw_rw,
+	err = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet_rw_rw,
 				     STARPU_VALUE, &node, sizeof(node),
 				     STARPU_RW, data_handlesx0, STARPU_RW, data_handlesx1,
 				     0);
-	assert(err == -EINVAL);
+	assert(err == 0);
 
 	node = 1;
-	err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet_rw_rw,
+	err = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet_rw_rw,
 				     STARPU_VALUE, &node, sizeof(node),
 				     STARPU_RW, data_handlesx0, STARPU_RW, data_handlesx1, STARPU_EXECUTE_ON_NODE, node,
 				     0);
 	assert(err == 0);
 
 	node = 0;
-	err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet_rw_rw,
+	err = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet_rw_rw,
 				     STARPU_VALUE, &node, sizeof(node),
 				     STARPU_RW, data_handlesx0, STARPU_RW, data_handlesx1, STARPU_EXECUTE_ON_NODE, node,
 				     0);
 	assert(err == 0);
 
 	node = 0;
-	err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet_r_r,
+	err = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet_r_r,
 				     STARPU_VALUE, &node, sizeof(node),
 				     STARPU_R, data_handlesx0, STARPU_R, data_handlesx1, STARPU_EXECUTE_ON_NODE, node,
 				     0);
@@ -139,7 +167,7 @@ int main(int argc, char **argv)
 	   going to overwrite the node even though the data model clearly specifies
 	   which node is going to execute the codelet */
 	node = 0;
-	err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet_r_w,
+	err = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet_r_w,
 				     STARPU_VALUE, &node, sizeof(node),
 				     STARPU_R, data_handlesx0, STARPU_W, data_handlesx1, STARPU_EXECUTE_ON_NODE, node,
 				     0);
@@ -149,13 +177,13 @@ int main(int argc, char **argv)
 	   going to overwrite the node even though the data model clearly specifies
 	   which node is going to execute the codelet */
 	node = 0;
-	err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet_w_r,
+	err = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet_w_r,
 				     STARPU_VALUE, &node, sizeof(node),
 				     STARPU_W, data_handlesx0, STARPU_R, data_handlesx1, STARPU_EXECUTE_ON_NODE, node,
 				     0);
 	assert(err == 0);
 
-	fprintf(stderr, "Waiting ...\n");
+	FPRINTF_MPI(stderr, "Waiting ...\n");
 	starpu_task_wait_for_all();
 	starpu_data_unregister(data_handlesx0);
 	starpu_data_unregister(data_handlesx1);

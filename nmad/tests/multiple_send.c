@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012, 2013  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -30,8 +30,8 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 	ret = starpu_mpi_init(&argc, &argv, 1);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	MPI_Comm_size(MPI_COMM_WORLD, &size);
+	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
+	starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
 
 	if (size < 2)
 	{
@@ -43,10 +43,10 @@ int main(int argc, char **argv)
 		return STARPU_TEST_SKIPPED;
 	}
 
-	starpu_variable_data_register(&send_handle[0], 0, (uintptr_t)&send[0], sizeof(unsigned));
-	starpu_variable_data_register(&send_handle[1], 0, (uintptr_t)&send[1], sizeof(unsigned));
-	starpu_variable_data_register(&recv_handle[0], 0, (uintptr_t)&recv[0], sizeof(unsigned));
-	starpu_variable_data_register(&recv_handle[1], 0, (uintptr_t)&recv[1], sizeof(unsigned));
+	starpu_variable_data_register(&send_handle[0], STARPU_MAIN_RAM, (uintptr_t)&send[0], sizeof(unsigned));
+	starpu_variable_data_register(&send_handle[1], STARPU_MAIN_RAM, (uintptr_t)&send[1], sizeof(unsigned));
+	starpu_variable_data_register(&recv_handle[0], STARPU_MAIN_RAM, (uintptr_t)&recv[0], sizeof(unsigned));
+	starpu_variable_data_register(&recv_handle[1], STARPU_MAIN_RAM, (uintptr_t)&recv[1], sizeof(unsigned));
 
 	if (rank == 0)
 	{

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2012, 2015  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012, 2013, 2014, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -27,11 +27,23 @@ void func_cpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 	*x1 *= *x1;
 }
 
+/* Dummy cost function for simgrid */
+static double cost_function(struct starpu_task *task STARPU_ATTRIBUTE_UNUSED, unsigned nimpl STARPU_ATTRIBUTE_UNUSED)
+{
+	return 0.000001;
+}
+static struct starpu_perfmodel dumb_model =
+{
+	.type		= STARPU_COMMON,
+	.cost_function	= cost_function
+};
+
 struct starpu_codelet mycodelet =
 {
 	.cpu_funcs = {func_cpu},
 	.nbuffers = 2,
-	.modes = {STARPU_RW, STARPU_RW}
+	.modes = {STARPU_RW, STARPU_RW},
+	.model = &dumb_model
 };
 
 int main(int argc, char **argv)
@@ -46,20 +58,29 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 	ret = starpu_mpi_init(&argc, &argv, 1);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	MPI_Comm_size(MPI_COMM_WORLD, &size);
+	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
+	starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
+
+	if (starpu_cpu_worker_get_count() == 0)
+	{
+		if (rank == 0)
+			FPRINTF(stderr, "We need at least 1 CPU worker.\n");
+		starpu_mpi_shutdown();
+		starpu_shutdown();
+		return STARPU_TEST_SKIPPED;
+	}
 
 	if (rank == 0)
 	{
 		x[0] = 11;
-		starpu_variable_data_register(&data_handles[0], 0, (uintptr_t)&x[0], sizeof(x[0]));
+		starpu_variable_data_register(&data_handles[0], STARPU_MAIN_RAM, (uintptr_t)&x[0], sizeof(x[0]));
 		starpu_variable_data_register(&data_handles[1], -1, (uintptr_t)NULL, sizeof(x[1]));
 	}
 	else if (rank == 1)
 	{
 		x[1] = 12;
 		starpu_variable_data_register(&data_handles[0], -1, (uintptr_t)NULL, sizeof(x[0]));
-		starpu_variable_data_register(&data_handles[1], 0, (uintptr_t)&x[1], sizeof(x[1]));
+		starpu_variable_data_register(&data_handles[1], STARPU_MAIN_RAM, (uintptr_t)&x[1], sizeof(x[1]));
 	}
 	else
 	{
@@ -70,7 +91,7 @@ int main(int argc, char **argv)
 	starpu_mpi_data_register(data_handles[0], 0, 0);
 	starpu_mpi_data_register(data_handles[1], 1, 1);
 
-	err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet,
+	err = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet,
 				     STARPU_RW, data_handles[0], STARPU_RW, data_handles[1],
 				     STARPU_EXECUTE_ON_DATA, data_handles[1],
 				     0);
@@ -84,7 +105,8 @@ int main(int argc, char **argv)
 		{
 			starpu_data_acquire(data_handles[i], STARPU_R);
 			values[i] = *((int *)starpu_data_get_local_ptr(data_handles[i]));
-			starpu_data_release(data_handles[i]);		}
+			starpu_data_release(data_handles[i]);
+		}
 	}
 	ret = 0;
 	if (rank == 0)

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013, 2014, 2015  Centre National de la Recherche Scientifique
+ * Copyright (C) 2013, 2014, 2015, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -25,21 +25,34 @@ void func_cpu(void *descr[], void *_args)
 
 	starpu_codelet_unpack_args(_args, &rank);
 
-	FPRINTF(stdout, "[%d] VALUES: %u %u\n", rank, *x, *y);
+	FPRINTF(stdout, "[%d] VALUES: %d %d\n", rank, *x, *y);
 	*x = *x * *y;
 }
+
+/* Dummy cost function for simgrid */
+static double cost_function(struct starpu_task *task STARPU_ATTRIBUTE_UNUSED, unsigned nimpl STARPU_ATTRIBUTE_UNUSED)
+{
+	return 0.000001;
+}
+static struct starpu_perfmodel dumb_model =
+{
+	.type		= STARPU_COMMON,
+	.cost_function	= cost_function
+};
 
 struct starpu_codelet mycodelet =
 {
 	.cpu_funcs = {func_cpu},
 	.nbuffers = 2,
-	.modes = {STARPU_RW, STARPU_R}
+	.modes = {STARPU_RW, STARPU_R},
+	.model = &dumb_model
 };
 
-int test(int rank, int node, int *before, int *after, int data_array)
+int test(int rank, int node, int *before, int *after, int task_insert, int data_array)
 {
 	int ok, ret, i, x[2];
 	starpu_data_handle_t data_handles[2];
+	struct starpu_data_descr descrs[2];
 
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
@@ -50,10 +63,11 @@ int test(int rank, int node, int *before, int *after, int data_array)
 	{
 		// If there is no cpu to execute the codelet, mpi will block trying to do the post-execution communication
 		ret = -ENODEV;
+		FPRINTF_MPI(stderr, "No CPU is available\n");
 		goto nodata;
 	}
 
-	FPRINTF_MPI(stderr, "Testing with data_array=%d and node=%d\n", data_array, node);
+	FPRINTF_MPI(stderr, "Testing with node=%d - task_insert=%d - data_array=%d - \n", node, task_insert, data_array);
 
 	for(i=0 ; i<2 ; i++)
 	{
@@ -69,36 +83,122 @@ int test(int rank, int node, int *before, int *after, int data_array)
 		else
 			starpu_variable_data_register(&data_handles[i], -1, (uintptr_t)NULL, sizeof(int));
 		starpu_mpi_data_register(data_handles[i], i, i);
+		descrs[i].handle = data_handles[i];
 	}
+	descrs[0].mode = STARPU_RW;
+	descrs[1].mode = STARPU_R;
 
-	switch(data_array)
+	switch(task_insert)
 	{
 		case 0:
 		{
-			ret = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet,
-						     STARPU_RW, data_handles[0], STARPU_R, data_handles[1],
-						     STARPU_VALUE, &rank, sizeof(rank),
-						     STARPU_EXECUTE_ON_NODE, node, 0);
+			struct starpu_task *task = NULL;
+			switch(data_array)
+			{
+				case 0:
+				{
+					task = starpu_mpi_task_build(MPI_COMM_WORLD, &mycodelet,
+								     STARPU_RW, data_handles[0], STARPU_R, data_handles[1],
+								     STARPU_VALUE, &rank, sizeof(rank),
+								     STARPU_EXECUTE_ON_NODE, node, 0);
+					break;
+				}
+				case 1:
+				{
+					task = starpu_mpi_task_build(MPI_COMM_WORLD, &mycodelet,
+								     STARPU_DATA_ARRAY, data_handles, 2,
+								     STARPU_VALUE, &rank, sizeof(rank),
+								     STARPU_EXECUTE_ON_NODE, node, 0);
+					break;
+				}
+				case 2:
+				{
+					task = starpu_mpi_task_build(MPI_COMM_WORLD, &mycodelet,
+								     STARPU_DATA_MODE_ARRAY, descrs, 2,
+								     STARPU_VALUE, &rank, sizeof(rank),
+								     STARPU_EXECUTE_ON_NODE, node, 0);
+					break;
+				}
+			}
+
+			if (task)
+			{
+				ret = starpu_task_submit(task);
+				if (ret == -ENODEV) goto enodev;
+				STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+			}
+
+			switch(data_array)
+			{
+				case 0:
+				{
+					starpu_mpi_task_post_build(MPI_COMM_WORLD, &mycodelet,
+								   STARPU_RW, data_handles[0], STARPU_R, data_handles[1],
+								   STARPU_EXECUTE_ON_NODE, node, 0);
+					break;
+				}
+				case 1:
+				{
+					starpu_mpi_task_post_build(MPI_COMM_WORLD, &mycodelet,
+								   STARPU_DATA_ARRAY, data_handles, 2,
+								   STARPU_EXECUTE_ON_NODE, node, 0);
+					break;
+				}
+				case 2:
+				{
+					starpu_mpi_task_post_build(MPI_COMM_WORLD, &mycodelet,
+								   STARPU_DATA_MODE_ARRAY, descrs, 2,
+								   STARPU_EXECUTE_ON_NODE, node, 0);
+					break;
+				}
+			}
+
 			break;
 		}
 		case 1:
 		{
-			ret = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet,
-						     STARPU_DATA_ARRAY, data_handles, 2,
-						     STARPU_VALUE, &rank, sizeof(rank),
-						     STARPU_EXECUTE_ON_NODE, node, 0);
+			switch(data_array)
+			{
+				case 0:
+				{
+					ret = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet,
+								     STARPU_RW, data_handles[0], STARPU_R, data_handles[1],
+								     STARPU_VALUE, &rank, sizeof(rank),
+								     STARPU_EXECUTE_ON_NODE, node, 0);
+					break;
+				}
+				case 1:
+				{
+					ret = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet,
+								     STARPU_DATA_ARRAY, data_handles, 2,
+								     STARPU_VALUE, &rank, sizeof(rank),
+								     STARPU_EXECUTE_ON_NODE, node, 0);
+					break;
+				}
+				case 2:
+				{
+					ret = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet,
+								     STARPU_DATA_MODE_ARRAY, descrs, 2,
+								     STARPU_VALUE, &rank, sizeof(rank),
+								     STARPU_EXECUTE_ON_NODE, node, 0);
+					break;
+				}
+			}
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_task_insert");
 			break;
 		}
 	}
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_task_insert");
+
 	starpu_task_wait_for_all();
 
+enodev:
 	for(i=0; i<2; i++)
 	{
 		starpu_data_unregister(data_handles[i]);
 	}
 
 	ok = 1;
+#ifndef STARPU_SIMGRID
 	if (rank <= 1)
 	{
 		for(i=0; i<2; i++)
@@ -108,8 +208,10 @@ int test(int rank, int node, int *before, int *after, int data_array)
 		}
 		FPRINTF_MPI(stderr, "result is %s\n", ok?"CORRECT":"NOT CORRECT");
 	}
+#endif
 
 nodata:
+	MPI_Barrier(MPI_COMM_WORLD);
 	starpu_mpi_shutdown();
 	starpu_shutdown();
 
@@ -119,24 +221,27 @@ nodata:
 int main(int argc, char **argv)
 {
 	int rank;
-	int ret;
+	int global_ret, ret;
 	int before[4] = {10, 20, 11, 22};
 	int after_node[2][4] = {{220, 20, 11, 22}, {220, 20, 11, 22}};
 	int node, insert_task, data_array;
 
-	MPI_Init(&argc, &argv);
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED);
+	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 
+	global_ret = 0;
 	for(node=0 ; node<=1 ; node++)
 	{
-		for(data_array=0 ; data_array<=1 ; data_array++)
+		for(insert_task=0 ; insert_task<=1 ; insert_task++)
 		{
-			ret = test(rank, node, before, after_node[node], data_array);
-			if (ret == -ENODEV || ret) goto end;
+			for(data_array=0 ; data_array<=2 ; data_array++)
+			{
+				ret = test(rank, node, before, after_node[node], insert_task, data_array);
+				if (ret == -ENODEV || ret) global_ret = ret;
+			}
 		}
 	}
 
-end:
 	MPI_Finalize();
-	return ret==-ENODEV?STARPU_TEST_SKIPPED:ret;
+	return global_ret==-ENODEV?STARPU_TEST_SKIPPED:global_ret;
 }

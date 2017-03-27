@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015  Centre National de la Recherche Scientifique
+ * Copyright (C) 2015, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -28,11 +28,23 @@ void func_cpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 	*Y = *Y + *A * *X;
 }
 
+/* Dummy cost function for simgrid */
+static double cost_function(struct starpu_task *task STARPU_ATTRIBUTE_UNUSED, unsigned nimpl STARPU_ATTRIBUTE_UNUSED)
+{
+	return 0.000001;
+}
+static struct starpu_perfmodel dumb_model =
+{
+	.type		= STARPU_COMMON,
+	.cost_function	= cost_function
+};
+
 struct starpu_codelet mycodelet =
 {
 	.cpu_funcs = {func_cpu},
 	.nbuffers = 3,
-	.modes = {STARPU_R, STARPU_R, STARPU_RW}
+	.modes = {STARPU_R, STARPU_R, STARPU_RW},
+	.model = &dumb_model
 };
 
 #define N 4
@@ -52,7 +64,16 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 	ret = starpu_mpi_init(&argc, &argv, 1);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
+
+	if (starpu_cpu_worker_get_count() == 0)
+	{
+		if (rank == 0)
+			FPRINTF(stderr, "We need at least 1 CPU worker.\n");
+		starpu_mpi_shutdown();
+		starpu_shutdown();
+		return STARPU_TEST_SKIPPED;
+	}
 
 	for(n = 0; n < N; n++)
 	{
@@ -77,29 +98,29 @@ int main(int argc, char **argv)
 	for(n = 0; n < N; n++)
 	{
 		if (rank == n%2)
-			starpu_variable_data_register(&data_A[n], 0, (uintptr_t)&A[n], sizeof(unsigned));
+			starpu_variable_data_register(&data_A[n], STARPU_MAIN_RAM, (uintptr_t)&A[n], sizeof(unsigned));
 		else
 			starpu_variable_data_register(&data_A[n], -1, (uintptr_t)NULL, sizeof(unsigned));
-		starpu_mpi_data_register_comm(data_A[n], n+100, n%2, MPI_COMM_WORLD);
+		starpu_mpi_data_register(data_A[n], n+100, n%2);
 		FPRINTF_MPI(stderr, "Registering A[%d] to %p with tag %d and node %d\n", n, data_A[n], n+100, n%2);
 
 		if (rank == n%2)
-			starpu_variable_data_register(&data_X[n], 0, (uintptr_t)&X[n], sizeof(unsigned));
+			starpu_variable_data_register(&data_X[n], STARPU_MAIN_RAM, (uintptr_t)&X[n], sizeof(unsigned));
 		else
 			starpu_variable_data_register(&data_X[n], -1, (uintptr_t)NULL, sizeof(unsigned));
-		starpu_mpi_data_register_comm(data_X[n], n+200, n%2, MPI_COMM_WORLD);
+		starpu_mpi_data_register(data_X[n], n+200, n%2);
 		FPRINTF_MPI(stderr, "Registering X[%d] to %p with tag %d and node %d\n", n, data_X[n], n+200, n%2);
 	}
 	if (rank == 0)
-		starpu_variable_data_register(&data_Y, 0, (uintptr_t)&Y, sizeof(unsigned));
+		starpu_variable_data_register(&data_Y, STARPU_MAIN_RAM, (uintptr_t)&Y, sizeof(unsigned));
 	else
 		starpu_variable_data_register(&data_Y, -1, (uintptr_t)NULL, sizeof(unsigned));
-	starpu_mpi_data_register_comm(data_Y, 10, 0, MPI_COMM_WORLD);
+	starpu_mpi_data_register(data_Y, 10, 0);
 	FPRINTF_MPI(stderr, "Registering Y to %p with tag %d and node %d\n", data_Y, 10, 0);
 
 	for(n = 0; n < N; n++)
 	{
-		ret = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet,
+		ret = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet,
 					     STARPU_R, data_A[n],
 					     STARPU_R, data_X[n],
 					     STARPU_RW, data_Y,
@@ -123,10 +144,12 @@ int main(int argc, char **argv)
 
 	FPRINTF(stdout, "[%d] Y=%u\n", rank, Y);
 
+#ifndef STARPU_SIMGRID
 	if (rank == 0)
 	{
 		STARPU_ASSERT_MSG(Y==300, "Error when calculating Y=%u\n", Y);
 	}
+#endif
 
 	return 0;
 }

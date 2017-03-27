@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015  Centre National de la Recherche Scientifique
+ * Copyright (C) 2015, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -23,46 +23,60 @@ void func_cpu(STARPU_ATTRIBUTE_UNUSED void *descr[], STARPU_ATTRIBUTE_UNUSED voi
 {
 }
 
+/* Dummy cost function for simgrid */
+static double cost_function(struct starpu_task *task STARPU_ATTRIBUTE_UNUSED, unsigned nimpl STARPU_ATTRIBUTE_UNUSED)
+{
+	return 0.000001;
+}
+static struct starpu_perfmodel dumb_model =
+{
+	.type          = STARPU_COMMON,
+	.cost_function = cost_function
+};
+
 struct starpu_codelet mycodelet_r =
 {
 	.cpu_funcs = {func_cpu},
 	.nbuffers = 1,
-	.modes = {STARPU_R}
+	.modes = {STARPU_R},
+	.model = &dumb_model
 };
 
 struct starpu_codelet mycodelet_w =
 {
 	.cpu_funcs = {func_cpu},
 	.nbuffers = 1,
-	.modes = {STARPU_W}
+	.modes = {STARPU_W},
+	.model = &dumb_model
 };
 
 struct starpu_codelet mycodelet_rw =
 {
 	.cpu_funcs = {func_cpu},
 	.nbuffers = 1,
-	.modes = {STARPU_RW}
+	.modes = {STARPU_RW},
+	.model = &dumb_model
 };
 
 void test(struct starpu_codelet *codelet, enum starpu_data_access_mode mode, starpu_data_handle_t data, int rank, int in_cache)
 {
-	void *ptr;
+	void* cache;
 	int ret;
 
-	ret = starpu_mpi_insert_task(MPI_COMM_WORLD, codelet, mode, data, STARPU_EXECUTE_ON_NODE, 1, 0);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_insert_task");
+	ret = starpu_mpi_task_insert(MPI_COMM_WORLD, codelet, mode, data, STARPU_EXECUTE_ON_NODE, 1, 0);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_task_insert");
 
-	ptr = _starpu_mpi_cache_received_data_get(data);
+	cache = _starpu_mpi_cache_received_data_get(data);
 
 	if (rank == 1)
 	{
 	     if (in_cache)
 	     {
-		     STARPU_ASSERT_MSG(ptr != NULL, "Data should be in cache\n");
+		     STARPU_ASSERT_MSG(cache != NULL, "Data should be in cache\n");
 	     }
 	     else
 	     {
-		     STARPU_ASSERT_MSG(ptr == NULL, "Data should NOT be in cache\n");
+		     STARPU_ASSERT_MSG(cache == NULL, "Data should NOT be in cache\n");
 	     }
 	}
 }
@@ -71,19 +85,19 @@ int main(int argc, char **argv)
 {
 	int rank, n;
 	int ret;
-	unsigned val;
+	unsigned val = 42;
 	starpu_data_handle_t data;
 
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 	ret = starpu_mpi_init(&argc, &argv, 1);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 
 	if (starpu_mpi_cache_is_enabled() == 0) goto skip;
 
 	if (rank == 0)
-		starpu_variable_data_register(&data, 0, (uintptr_t)&val, sizeof(unsigned));
+		starpu_variable_data_register(&data, STARPU_MAIN_RAM, (uintptr_t)&val, sizeof(unsigned));
 	else
 		starpu_variable_data_register(&data, -1, (uintptr_t)NULL, sizeof(unsigned));
 	starpu_mpi_data_register(data, 42, 0);

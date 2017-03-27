@@ -1,7 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2014-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016, 2017  CNRS
+ * Copyright (C) 2013, 2015, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,20 +17,11 @@
 #include <starpu_mpi.h>
 #include "helper.h"
 
-#ifdef STARPU_QUICK_CHECK
-#  define NITER	16
-#else
-#  define NITER	2048
-#endif
-
-#define SIZE	16
-
-float *tab;
-starpu_data_handle_t tab_handle;
-
 int main(int argc, char **argv)
 {
 	int ret, rank, size;
+	starpu_data_handle_t handle;
+	int var;
 
 	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED);
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
@@ -42,42 +32,40 @@ int main(int argc, char **argv)
 	ret = starpu_mpi_init(NULL, NULL, 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
 
-	if (size%2 != 0)
+	if (size<3)
 	{
-		if (rank == 0)
-			FPRINTF(stderr, "We need a even number of processes.\n");
-
+		FPRINTF(stderr, "We need more than 2 processes.\n");
 		starpu_mpi_shutdown();
 		starpu_shutdown();
 		MPI_Finalize();
 		return STARPU_TEST_SKIPPED;
 	}
 
-	tab = calloc(SIZE, sizeof(float));
-
-	starpu_vector_data_register(&tab_handle, STARPU_MAIN_RAM, (uintptr_t)tab, SIZE, sizeof(float));
-
-	int nloops = NITER;
-	int loop;
-	int other_rank = rank%2 == 0 ? rank+1 : rank-1;
-
-	for (loop = 0; loop < nloops; loop++)
+	if (rank == 0)
 	{
-		if ((loop % 2) == (rank%2))
-		{
-			//FPRINTF_MPI(stderr, "Sending to %d\n", other_rank);
-			starpu_mpi_send(tab_handle, other_rank, loop, MPI_COMM_WORLD);
-		}
-		else
+		int n;
+		for(n=1 ; n<size ; n++)
 		{
 			MPI_Status status;
-			//FPRINTF_MPI(stderr, "Receiving from %d\n", other_rank);
-			starpu_mpi_recv(tab_handle, other_rank, loop, MPI_COMM_WORLD, &status);
+
+			FPRINTF_MPI(stderr, "receiving from node %d\n", n);
+			starpu_variable_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)&var, sizeof(var));
+			starpu_mpi_recv(handle, n, 42, MPI_COMM_WORLD, &status);
+			starpu_data_acquire(handle, STARPU_R);
+			STARPU_ASSERT_MSG(var == n, "Received incorrect value <%d> from node <%d>\n", var, n);
+			FPRINTF_MPI(stderr, "received <%d> from node %d\n", var, n);
+			starpu_data_release(handle);
+			starpu_data_unregister(handle);
 		}
 	}
-
-	starpu_data_unregister(tab_handle);
-	free(tab);
+	else
+	{
+		FPRINTF_MPI(stderr, "sending to node %d\n", 0);
+		var = rank;
+		starpu_variable_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)&var, sizeof(var));
+		starpu_mpi_send(handle, 0, 42, MPI_COMM_WORLD);
+		starpu_data_unregister(handle);
+	}
 
 	starpu_mpi_shutdown();
 	starpu_shutdown();

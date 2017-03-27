@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013, 2015  Centre National de la Recherche Scientifique
+ * Copyright (C) 2013, 2014  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -26,7 +26,7 @@ struct starpu_value_interface
 int *starpu_value_get(starpu_data_handle_t handle)
 {
 	struct starpu_value_interface *value_interface =
-		(struct starpu_value_interface *) starpu_data_get_interface_on_node(handle, 0);
+		(struct starpu_value_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 	return value_interface->value;
 }
 
@@ -40,7 +40,10 @@ static void value_register_data_handle(starpu_data_handle_t handle, unsigned hom
 		struct starpu_value_interface *local_interface = (struct starpu_value_interface *)
 			starpu_data_get_interface_on_node(handle, node);
 
-		local_interface->value = value_interface->value;
+		if (node == home_node)
+			local_interface->value = value_interface->value;
+		else
+			local_interface->value = 0;
 	}
 }
 

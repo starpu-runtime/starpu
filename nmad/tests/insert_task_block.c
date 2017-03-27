@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2012, 2015  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012, 2013, 2014  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -44,10 +44,26 @@ void func_cpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 	}
 }
 
+#ifdef STARPU_SIMGRID
+/* Dummy cost function for simgrid */
+static double cost_function(struct starpu_task *task STARPU_ATTRIBUTE_UNUSED, unsigned nimpl STARPU_ATTRIBUTE_UNUSED)
+{
+	return 0.000001;
+}
+static struct starpu_perfmodel dumb_model =
+{
+	.type		= STARPU_COMMON,
+	.cost_function	= cost_function
+};
+#endif
+
 struct starpu_codelet mycodelet =
 {
 	.cpu_funcs = {func_cpu},
 	.nbuffers = 1,
+#ifdef STARPU_SIMGRID
+	.model = &dumb_model,
+#endif
 	.modes = {STARPU_RW}
 };
 
@@ -57,7 +73,7 @@ struct starpu_codelet mycodelet =
 /* Returns the MPI node number where data indexes index is */
 int my_distrib(int x, int y, int nb_nodes)
 {
-	return x % nb_nodes;
+	return (x + y) % nb_nodes;
 }
 
 
@@ -72,8 +88,8 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 	ret = starpu_mpi_init(&argc, &argv, 1);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_initialize_extended");
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	MPI_Comm_size(MPI_COMM_WORLD, &size);
+	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
+	starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
 
 	for(x = 0; x < SIZE; x++)
 	{
@@ -103,7 +119,7 @@ int main(int argc, char **argv)
 			if (mpi_rank == rank)
 			{
 				//FPRINTF(stderr, "[%d] Owning data[%d][%d]\n", rank, x, y);
-				starpu_matrix_data_register(&data_handles[x][y], 0, (uintptr_t)&(matrix[((SIZE/BLOCKS)*x) + ((SIZE/BLOCKS)*y) * SIZE]),
+				starpu_matrix_data_register(&data_handles[x][y], STARPU_MAIN_RAM, (uintptr_t)&(matrix[((SIZE/BLOCKS)*x) + ((SIZE/BLOCKS)*y) * SIZE]),
 							    SIZE, SIZE/BLOCKS, SIZE/BLOCKS, sizeof(unsigned));
 			}
 			else
@@ -124,10 +140,10 @@ int main(int argc, char **argv)
 	{
 		for (y = 0; y < BLOCKS; y++)
 		{
-			ret = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet,
+			ret = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet,
 						     STARPU_RW, data_handles[x][y],
 						     0);
-			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_insert_task");
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_task_insert");
 		}
 	}
 

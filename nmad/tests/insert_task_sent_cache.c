@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2012, 2013, 2015  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -32,11 +32,23 @@ void func_cpu(STARPU_ATTRIBUTE_UNUSED void *descr[], STARPU_ATTRIBUTE_UNUSED voi
 {
 }
 
+/* Dummy cost function for simgrid */
+static double cost_function(struct starpu_task *task STARPU_ATTRIBUTE_UNUSED, unsigned nimpl STARPU_ATTRIBUTE_UNUSED)
+{
+	return 0.000001;
+}
+static struct starpu_perfmodel dumb_model =
+{
+	.type		= STARPU_COMMON,
+	.cost_function	= cost_function
+};
+
 struct starpu_codelet mycodelet =
 {
 	.cpu_funcs = {func_cpu},
 	.nbuffers = 2,
-	.modes = {STARPU_RW, STARPU_R}
+	.modes = {STARPU_RW, STARPU_R},
+	.model = &dumb_model
 };
 
 #define N     1000
@@ -47,11 +59,11 @@ int my_distrib(int x)
 	return x;
 }
 
-void test_cache(int rank, int size, char *enabled, size_t *comm_amount)
+void test_cache(int rank, char *enabled, size_t *comm_amount)
 {
 	int i;
 	int ret;
-	unsigned v[2][N];
+	unsigned *v[2];
 	starpu_data_handle_t data_handles[2];
 
 	setenv("STARPU_MPI_CACHE", enabled, 1);
@@ -63,11 +75,21 @@ void test_cache(int rank, int size, char *enabled, size_t *comm_amount)
 
 	for(i = 0; i < 2; i++)
 	{
+		int j;
+		v[i] = malloc(N * sizeof(unsigned));
+		for(j=0 ; j<N ; j++)
+		{
+			v[i][j] = 12;
+		}
+	}
+
+	for(i = 0; i < 2; i++)
+	{
 		int mpi_rank = my_distrib(i);
 		if (mpi_rank == rank)
 		{
 			//FPRINTF(stderr, "[%d] Owning data[%d][%d]\n", rank, x, y);
-			starpu_vector_data_register(&data_handles[i], 0, (uintptr_t)&(v[i]), N, sizeof(unsigned));
+			starpu_vector_data_register(&data_handles[i], STARPU_MAIN_RAM, (uintptr_t)v[i], N, sizeof(unsigned));
 		}
 		else
 		{
@@ -80,14 +102,14 @@ void test_cache(int rank, int size, char *enabled, size_t *comm_amount)
 
 	for(i = 0; i < 5; i++)
 	{
-		ret = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handles[0], STARPU_R, data_handles[1], 0);
-		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_insert_task");
+		ret = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handles[0], STARPU_R, data_handles[1], 0);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_task_insert");
 	}
 
 	for(i = 0; i < 5; i++)
 	{
-		ret = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handles[1], STARPU_R, data_handles[0], 0);
-		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_insert_task");
+		ret = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handles[1], STARPU_R, data_handles[0], 0);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_task_insert");
 	}
 
 	for(i = 0; i < 5; i++)
@@ -97,8 +119,8 @@ void test_cache(int rank, int size, char *enabled, size_t *comm_amount)
 
 	for(i = 0; i < 5; i++)
 	{
-		ret = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handles[1], STARPU_R, data_handles[0], 0);
-		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_insert_task");
+		ret = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handles[1], STARPU_R, data_handles[0], 0);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_task_insert");
 	}
 
 	starpu_task_wait_for_all();
@@ -106,6 +128,7 @@ void test_cache(int rank, int size, char *enabled, size_t *comm_amount)
 	for(i = 0; i < 2; i++)
 	{
 		starpu_data_unregister(data_handles[i]);
+		free(v[i]);
 	}
 
 	starpu_mpi_comm_amounts_retrieve(comm_amount);
@@ -120,17 +143,17 @@ int main(int argc, char **argv)
 	size_t *comm_amount_with_cache;
 	size_t *comm_amount_without_cache;
 
-	MPI_Init(&argc, &argv);
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	MPI_Comm_size(MPI_COMM_WORLD, &size);
+	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED);
+	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
+	starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
 
 	setenv("STARPU_COMM_STATS", "1", 1);
 
 	comm_amount_with_cache = malloc(size * sizeof(size_t));
 	comm_amount_without_cache = malloc(size * sizeof(size_t));
 
-	test_cache(rank, size, "0", comm_amount_with_cache);
-	test_cache(rank, size, "1", comm_amount_without_cache);
+	test_cache(rank, "0", comm_amount_with_cache);
+	test_cache(rank, "1", comm_amount_without_cache);
 
 	if (rank == 0 || rank == 1)
 	{
@@ -139,7 +162,9 @@ int main(int argc, char **argv)
 		FPRINTF_MPI(stderr, "Communication cache mechanism is %sworking\n", result?"":"NOT ");
 	}
 	else
+	{
 		result = 1;
+	}
 
 	free(comm_amount_without_cache);
 	free(comm_amount_with_cache);

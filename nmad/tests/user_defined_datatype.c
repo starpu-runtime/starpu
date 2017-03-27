@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012, 2013, 2015  Centre National de la Recherche Scientifique
+ * Copyright (C) 2012, 2013, 2014, 2015  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -69,8 +69,8 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 	ret = starpu_mpi_init(&argc, &argv, 1);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	MPI_Comm_size(MPI_COMM_WORLD, &nodes);
+	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
+	starpu_mpi_comm_size(MPI_COMM_WORLD, &nodes);
 
 	if (nodes < 2)
 	{
@@ -100,7 +100,7 @@ int main(int argc, char **argv)
 			float foo_compare=42.0;
 			int value_compare=36;
 
-			FPRINTF_MPI(stderr, "Testing with function %p\n", f);
+			FPRINTF_MPI(stderr, "\nTesting with function %p\n", f);
 
 			if (rank == 0)
 			{
@@ -128,9 +128,9 @@ int main(int argc, char **argv)
 			}
 			for(i=0 ; i<ELEMENTS ; i++)
 			{
-				starpu_complex_data_register(&handle_complex[i], 0, real[i], imaginary[i], 2);
-				starpu_value_data_register(&handle_values[i], 0, &values[i]);
-				starpu_variable_data_register(&handle_vars[i], 0, (uintptr_t)&foo[i], sizeof(float));
+				starpu_complex_data_register(&handle_complex[i], STARPU_MAIN_RAM, real[i], imaginary[i], 2);
+				starpu_value_data_register(&handle_values[i], STARPU_MAIN_RAM, &values[i]);
+				starpu_variable_data_register(&handle_vars[i], STARPU_MAIN_RAM, (uintptr_t)&foo[i], sizeof(float));
 			}
 
 			f(handle_vars, ELEMENTS, rank, ELEMENTS);
@@ -151,7 +151,6 @@ int main(int argc, char **argv)
 				for(i=0 ; i<ELEMENTS ; i++)
 				{
 					int j;
-
 					compare = (foo[i] == foo_compare);
 					FPRINTF_MPI(stderr, "%s. foo[%d] = %f %s %f\n", compare==0?"ERROR":"SUCCESS", i, foo[i], compare==0?"!=":"==", foo_compare);
 

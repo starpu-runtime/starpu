@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2013, 2015, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -26,20 +26,22 @@ void callback(void *arg)
 
 	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	*received = *received + 1;
-	fprintf(stderr, "received = %d\n", *received);
+	FPRINTF_MPI(stderr, "received = %u\n", *received);
 	STARPU_PTHREAD_COND_SIGNAL(&cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 }
 
 int main(int argc, char **argv)
 {
-	int ret, rank, size;
+	int ret, rank, size, sum;
 	int value=0;
 	starpu_data_handle_t *handles;
 
-	MPI_Init(&argc, &argv);
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	MPI_Comm_size(MPI_COMM_WORLD, &size);
+	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED);
+	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
+	starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
+
+	sum = ((size-1) * (size) / 2);
 
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
@@ -48,7 +50,7 @@ int main(int argc, char **argv)
 
 	if (rank == 0)
 	{
-		int src, sum;
+		int src;
 		int received = 1;
 
 		handles = malloc(size * sizeof(starpu_data_handle_t));
@@ -56,7 +58,7 @@ int main(int argc, char **argv)
 		for(src=1 ; src<size ; src++)
 		{
 			starpu_variable_data_register(&handles[src], -1, (uintptr_t)NULL, sizeof(int));
-			starpu_mpi_irecv_detached(handles[src], src, 12, MPI_COMM_WORLD, callback, &received);
+			starpu_mpi_irecv_detached(handles[src], src, 12+src, MPI_COMM_WORLD, callback, &received);
 		}
 
 		STARPU_PTHREAD_MUTEX_LOCK(&mutex);
@@ -70,16 +72,25 @@ int main(int argc, char **argv)
 			value += *((int *)ptr);
 			starpu_data_unregister(handles[src]);
 		}
-		sum = ((size-1) * (size) / 2);
-		STARPU_ASSERT_MSG(sum == value, "Sum of first %d integers is %d, not %d\n", size-1, sum, value);
+
+		for(src=1 ; src<size ; src++)
+		{
+			starpu_variable_data_register(&handles[src], STARPU_MAIN_RAM, (uintptr_t)&sum, sizeof(int));
+			starpu_mpi_send(handles[src], src, 12+src, MPI_COMM_WORLD);
+			starpu_data_unregister(handles[src]);
+		}
 	}
 	else
 	{
 		value = rank;
 		handles = malloc(sizeof(starpu_data_handle_t));
-		starpu_variable_data_register(&handles[0], 0, (uintptr_t)&value, sizeof(int));
-		starpu_mpi_send(handles[0], 0, 12, MPI_COMM_WORLD);
+		starpu_variable_data_register(&handles[0], STARPU_MAIN_RAM, (uintptr_t)&value, sizeof(int));
+		starpu_mpi_send(handles[0], 0, 12+rank, MPI_COMM_WORLD);
 		starpu_data_unregister_submit(handles[0]);
+
+		starpu_variable_data_register(&handles[0], STARPU_MAIN_RAM, (uintptr_t)&value, sizeof(int));
+		starpu_mpi_recv(handles[0], 0, 12+rank, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		starpu_data_unregister(handles[0]);
 	}
 
 	starpu_task_wait_for_all();
@@ -89,6 +100,8 @@ int main(int argc, char **argv)
 	starpu_shutdown();
 
 	MPI_Finalize();
+
+	STARPU_ASSERT_MSG(sum == value, "Sum of first %d integers is %d, not %d\n", size-1, sum, value);
 
 	return 0;
 }

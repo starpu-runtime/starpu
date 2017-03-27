@@ -1,7 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux
- * Copyright (C) 2010, 2012  CNRS
+ * Copyright (C) 2015  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,18 +14,24 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <starpu.h>
+#include <starpu_mpi.h>
+#include "helper.h"
 
-static __global__ void cuda_incrementer(unsigned *token)
+int main(int argc, char **argv)
 {
-	(*token)++;
-}
+	int ret;
 
-extern "C" void increment_cuda(void *descr[], void *_args)
-{
-	(void) _args;
-	unsigned *tokenptr = (unsigned *)STARPU_VECTOR_GET_PTR(descr[0]);
+	disable_coredump();
 
-	cuda_incrementer<<<1,1, 0, starpu_cuda_get_local_stream()>>>(tokenptr);
-	cudaStreamSynchronize(starpu_cuda_get_local_stream());
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+	ret = starpu_mpi_init(&argc, &argv, 1);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
+
+	starpu_mpi_node_selection_unregister_policy(STARPU_MPI_NODE_SELECTION_MOST_R_DATA);
+
+	starpu_mpi_shutdown();
+	starpu_shutdown();
+
+	return 0;
 }

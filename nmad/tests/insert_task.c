@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2012, 2015  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012, 2013, 2014  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -27,11 +27,23 @@ void func_cpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 	*x = (*x + *y) / 2;
 }
 
+/* Dummy cost function for simgrid */
+static double cost_function(struct starpu_task *task STARPU_ATTRIBUTE_UNUSED, unsigned nimpl STARPU_ATTRIBUTE_UNUSED)
+{
+	return 0.000001;
+}
+static struct starpu_perfmodel dumb_model =
+{
+	.type		= STARPU_COMMON,
+	.cost_function	= cost_function
+};
+
 struct starpu_codelet mycodelet =
 {
 	.cpu_funcs = {func_cpu},
 	.nbuffers = 2,
-	.modes = {STARPU_RW, STARPU_R}
+	.modes = {STARPU_RW, STARPU_R},
+	.model = &dumb_model
 };
 
 #define X     4
@@ -40,7 +52,7 @@ struct starpu_codelet mycodelet =
 /* Returns the MPI node number where data indexes index is */
 int my_distrib(int x, int y, int nb_nodes)
 {
-	return x % nb_nodes;
+	return (x + y) % nb_nodes;
 }
 
 
@@ -55,8 +67,8 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 	ret = starpu_mpi_init(&argc, &argv, 1);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	MPI_Comm_size(MPI_COMM_WORLD, &size);
+	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
+	starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
 
 	for(x = 0; x < X; x++)
 	{
@@ -86,7 +98,7 @@ int main(int argc, char **argv)
 			if (mpi_rank == rank)
 			{
 				//FPRINTF(stderr, "[%d] Owning data[%d][%d]\n", rank, x, y);
-				starpu_variable_data_register(&data_handles[x][y], 0, (uintptr_t)&(matrix[x][y]), sizeof(unsigned));
+				starpu_variable_data_register(&data_handles[x][y], STARPU_MAIN_RAM, (uintptr_t)&(matrix[x][y]), sizeof(unsigned));
 			}
 			else
 			{
@@ -101,14 +113,14 @@ int main(int argc, char **argv)
 		}
 	}
 
-	ret = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handles[1][1], STARPU_R, data_handles[0][1], 0);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_insert_task");
-	ret = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handles[3][1], STARPU_R, data_handles[0][1], 0);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_insert_task");
-	ret = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handles[0][1], STARPU_R, data_handles[0][0], 0);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_insert_task");
-	ret = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handles[3][1], STARPU_R, data_handles[0][1], 0);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_insert_task");
+	ret = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handles[1][1], STARPU_R, data_handles[0][1], 0);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_task_insert");
+	ret = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handles[3][1], STARPU_R, data_handles[0][1], 0);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_task_insert");
+	ret = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handles[0][1], STARPU_R, data_handles[0][0], 0);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_task_insert");
+	ret = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handles[3][1], STARPU_R, data_handles[0][1], 0);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_task_insert");
 
 	FPRINTF(stderr, "Waiting ...\n");
 	starpu_task_wait_for_all();

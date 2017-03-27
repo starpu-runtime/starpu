@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2014  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2014  Centre National de la Recherche Scientifique
+ * Copyright (C) 2009, 2010, 2014-2015  Université de Bordeaux
+ * Copyright (C) 2010, 2011, 2012, 2014, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -28,23 +28,25 @@ int main(int argc, char **argv)
 {
 	int ret, rank, size;
 
-	MPI_Init(&argc, &argv);
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	MPI_Comm_size(MPI_COMM_WORLD, &size);
+	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED);
+	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
+	starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
+
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+	ret = starpu_mpi_init(NULL, NULL, 0);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
 
 	if (size < 2)
 	{
 		if (rank == 0)
 			FPRINTF(stderr, "We need at least 2 processes.\n");
 
+		starpu_mpi_shutdown();
+		starpu_shutdown();
 		MPI_Finalize();
 		return STARPU_TEST_SKIPPED;
 	}
-
-	ret = starpu_init(NULL);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-	ret = starpu_mpi_init(NULL, NULL, 0);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
 
 	/* Node 0 will allocate a big block and only register an inner part of
 	 * it as the block data, Node 1 will allocate a block of small size and
@@ -68,7 +70,7 @@ int main(int argc, char **argv)
 			block[i + j*BIGSIZE + k*BIGSIZE*BIGSIZE] = 1.0f;
 		}
 
-		starpu_block_data_register(&block_handle, 0,
+		starpu_block_data_register(&block_handle, STARPU_MAIN_RAM,
 			(uintptr_t)block, BIGSIZE, BIGSIZE*BIGSIZE,
 			SIZE, SIZE, SIZE, sizeof(float));
 	}
@@ -77,7 +79,7 @@ int main(int argc, char **argv)
 		block = calloc(SIZE*SIZE*SIZE, sizeof(float));
 		assert(block);
 
-		starpu_block_data_register(&block_handle, 0,
+		starpu_block_data_register(&block_handle, STARPU_MAIN_RAM,
 			(uintptr_t)block, SIZE, SIZE*SIZE,
 			SIZE, SIZE, SIZE, sizeof(float));
 	}

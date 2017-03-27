@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2012, 2013, 2015  Centre National de la Recherche Scientifique
+ * Copyright (C) 2012, 2015                    Université Bordeaux
+ * Copyright (C) 2011, 2012, 2013, 2014, 2015, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -25,50 +26,68 @@ void func_cpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 	int *x2 = (int *)STARPU_VARIABLE_GET_PTR(descr[2]);
 	int *y = (int *)STARPU_VARIABLE_GET_PTR(descr[3]);
 
-	//FPRINTF(stderr, "-------> CODELET VALUES: %d %d %d %d\n", *x0, *x1, *x2, *y);
-	//*x2 = 45;
-	//*y = 144;
-
-	FPRINTF(stderr, "-------> CODELET VALUES: %d %d (x2) %d\n", *x0, *x1, *y);
+	FPRINTF(stderr, "-------> CODELET VALUES: %d %d nan %d\n", *x0, *x1, *y);
+	*x2 = *y;
 	*y = (*x0 + *x1) * 100;
 	*x1 = 12;
-	*x2 = 24;
-	*x0 = 36;
 	FPRINTF(stderr, "-------> CODELET VALUES: %d %d %d %d\n", *x0, *x1, *x2, *y);
 }
+
+/* Dummy cost function for simgrid */
+static double cost_function(struct starpu_task *task STARPU_ATTRIBUTE_UNUSED, unsigned nimpl STARPU_ATTRIBUTE_UNUSED)
+{
+	return 0.000001;
+}
+static struct starpu_perfmodel dumb_model =
+{
+	.type		= STARPU_COMMON,
+	.cost_function	= cost_function
+};
 
 struct starpu_codelet mycodelet =
 {
 	.cpu_funcs = {func_cpu},
 	.nbuffers = 4,
-	.modes = {STARPU_R, STARPU_RW, STARPU_W, STARPU_W}
+	.modes = {STARPU_R, STARPU_RW, STARPU_W, STARPU_W},
+	.model = &dumb_model
 };
 
 int main(int argc, char **argv)
 {
 	int rank, size, err;
 	int x[3], y=0;
-	int i, ret;
+	int oldx[3];
+	int i, ret=0;
 	starpu_data_handle_t data_handles[4];
 
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 	ret = starpu_mpi_init(&argc, &argv, 1);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	MPI_Comm_size(MPI_COMM_WORLD, &size);
+	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
+	starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
+
+	if (starpu_cpu_worker_get_count() == 0)
+	{
+		if (rank == 0)
+			FPRINTF(stderr, "We need at least 1 CPU worker.\n");
+		starpu_mpi_shutdown();
+		starpu_shutdown();
+		return STARPU_TEST_SKIPPED;
+	}
 
 	if (rank == 0)
 	{
 		for(i=0 ; i<3 ; i++)
 		{
 			x[i] = 10*(i+1);
-			starpu_variable_data_register(&data_handles[i], 0, (uintptr_t)&x[i], sizeof(x[i]));
+			oldx[i] = 10*(i+1);
+			starpu_variable_data_register(&data_handles[i], STARPU_MAIN_RAM, (uintptr_t)&x[i], sizeof(x[i]));
 		}
 		y = -1;
 		starpu_variable_data_register(&data_handles[3], -1, (uintptr_t)NULL, sizeof(int));
 	}
-	else if (rank == 1)
+	else
 	{
 		for(i=0 ; i<3 ; i++)
 		{
@@ -76,27 +95,22 @@ int main(int argc, char **argv)
 			starpu_variable_data_register(&data_handles[i], -1, (uintptr_t)NULL, sizeof(int));
 		}
 		y=200;
-		starpu_variable_data_register(&data_handles[3], 0, (uintptr_t)&y, sizeof(int));
+		starpu_variable_data_register(&data_handles[3], STARPU_MAIN_RAM, (uintptr_t)&y, sizeof(int));
 	}
-	else
-	{
-		for(i=0 ; i<4 ; i++)
-			starpu_variable_data_register(&data_handles[i], -1, (uintptr_t)NULL, sizeof(int));
-	}
-	FPRINTF(stderr, "[%d][init] VALUES: %d %d %d %d\n", rank, x[0], x[1], x[2], y);
-
 	for(i=0 ; i<3 ; i++)
 	{
 		starpu_mpi_data_register(data_handles[i], i, 0);
 	}
 	starpu_mpi_data_register(data_handles[3], 3, 1);
 
-	err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet,
+	FPRINTF(stderr, "[%d][init] VALUES: %d %d %d %d\n", rank, x[0], x[1], x[2], y);
+
+	err = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet,
 				     STARPU_R, data_handles[0], STARPU_RW, data_handles[1],
 				     STARPU_W, data_handles[2],
 				     STARPU_W, data_handles[3],
 				     STARPU_EXECUTE_ON_NODE, 1, 0);
-	STARPU_CHECK_RETURN_VALUE(err, "starpu_mpi_insert_task");
+	STARPU_CHECK_RETURN_VALUE(err, "starpu_mpi_task_insert");
 	starpu_task_wait_for_all();
 
 	int *values = malloc(4 * sizeof(int));
@@ -114,6 +128,16 @@ int main(int argc, char **argv)
 	if (rank == 0)
 	{
 		FPRINTF(stderr, "[%d][local ptr] VALUES: %d %d %d %d\n", rank, values[0], values[1], values[2], values[3]);
+		if (values[0] != oldx[0] || values[1] != 12 || values[2] != 200 || values[3] != ((oldx[0] + oldx[1]) * 100))
+		{
+			FPRINTF(stderr, "[%d][error] values[0] %d != x[0] %d && values[1] %d != 12 && values[2] %d != 200 && values[3] %d != ((x[0] %d + x[1] %d) * 100)\n",
+				rank, values[0], oldx[0], values[1], values[2], values[3], oldx[0], oldx[1]);
+			ret = 1;
+		}
+		else
+		{
+			FPRINTF(stderr, "[%d] correct computation\n", rank);
+		}
 	}
         FPRINTF(stderr, "[%d][end] VALUES: %d %d %d %d\n", rank, x[0], x[1], x[2], y);
 
@@ -121,6 +145,6 @@ int main(int argc, char **argv)
 	starpu_mpi_shutdown();
 	starpu_shutdown();
 
-	return 0;
+	return (rank == 0) ? ret : 0;
 }
 
