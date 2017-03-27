@@ -89,7 +89,6 @@
 } while (0)
 
 #define STARPU_PTHREAD_MUTEX_LOCK_SCHED(mutex) do {			      \
-	if (0) fprintf(stderr, "%p: %s (%s:%d) LOCK_SCHED(%p)\n", (void*)pthread_self(), __func__, __FILE__, __LINE__, mutex); \
 	int p_ret = starpu_pthread_mutex_lock_sched(mutex);		      \
 	if (STARPU_UNLIKELY(p_ret)) {                                          \
 		fprintf(stderr,                                                \
@@ -116,7 +115,6 @@ int _starpu_pthread_mutex_trylock(starpu_pthread_mutex_t *mutex, char *file, int
 }
 
 #define STARPU_PTHREAD_MUTEX_TRYLOCK_SCHED(mutex) \
-	if (0) fprintf(stderr, "%p: %s (%s:%d) TRYLOCK_SCHED(%p)\n", (void*)pthread_self(), __func__, __FILE__, __LINE__, mutex); \
 	_starpu_pthread_mutex_trylock_sched(mutex, __FILE__, __LINE__)
 static STARPU_INLINE
 int _starpu_pthread_mutex_trylock_sched(starpu_pthread_mutex_t *mutex, char *file, int line)
@@ -143,7 +141,6 @@ int _starpu_pthread_mutex_trylock_sched(starpu_pthread_mutex_t *mutex, char *fil
 } while (0)
 
 #define STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(mutex) do {                          \
-	if (0) fprintf(stderr, "%p: %s (%s:%d) UNLOCK_SCHED(%p)\n", (void*)pthread_self(), __func__, __FILE__, __LINE__, mutex); \
 	int p_ret = starpu_pthread_mutex_unlock_sched(mutex);                  \
 	if (STARPU_UNLIKELY(p_ret)) {                                          \
 		fprintf(stderr,                                                \
