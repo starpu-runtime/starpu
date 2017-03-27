@@ -271,10 +271,10 @@ int main(int argc, char **argv)
 	TYPE *a_r = NULL;
 //	STARPU_PLU(display_data_content)(a_r, size);
 
-	TYPE *x, *y;
-
 	if (check)
 	{
+		TYPE *x, *y;
+
 		x = calloc(size, sizeof(TYPE));
 		STARPU_ASSERT(x);
 
@@ -294,6 +294,9 @@ int main(int argc, char **argv)
 			STARPU_PLU(display_data_content)(a_r, size);
 
 //		STARPU_PLU(compute_ax)(size, x, y, nblocks, rank);
+
+		free(x);
+		free(y);
 	}
 
 	double timing = STARPU_PLU(plu_main)(nblocks, rank, world_size);

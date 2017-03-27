@@ -41,7 +41,7 @@ struct starpu_codelet mycodelet =
 
 int main(int argc, char **argv)
 {
-	int size, n, x=789;
+	int size, x=789;
 	int color;
 	MPI_Comm newcomm;
 	int rank, newrank;
