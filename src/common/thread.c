@@ -529,7 +529,7 @@ int starpu_pthread_queue_destroy(starpu_pthread_queue_t *q)
 #endif /* STARPU_SIMGRID */
 
 #if (defined(STARPU_SIMGRID) && !defined(STARPU_SIMGRID_HAVE_XBT_BARRIER_INIT)) || (!defined(STARPU_SIMGRID) && !defined(STARPU_HAVE_PTHREAD_BARRIER))
-int starpu_pthread_barrier_init(starpu_pthread_barrier_t *restrict barrier, const starpu_pthread_barrierattr_t *restrict attr, unsigned count)
+int starpu_pthread_barrier_init(starpu_pthread_barrier_t *restrict barrier, const starpu_pthread_barrierattr_t *restrict attr STARPU_ATTRIBUTE_UNUSED, unsigned count)
 {
 	int ret = starpu_pthread_mutex_init(&barrier->mutex, NULL);
 	if (!ret)
