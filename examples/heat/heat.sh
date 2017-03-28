@@ -23,7 +23,8 @@ PREFIX=$(dirname $0)
 
 $PREFIX/heat -shape 0
 $PREFIX/heat -shape 1
-$PREFIX/heat -shape 2
+# sometimes lead to pivot being 0
+#$PREFIX/heat -shape 2
 
 $PREFIX/heat -cg
 
