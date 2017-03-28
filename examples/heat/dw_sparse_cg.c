@@ -25,11 +25,7 @@
 
 static struct starpu_task *create_task(starpu_tag_t id)
 {
-	struct starpu_codelet *cl = calloc(1,sizeof(struct starpu_codelet));
-
 	struct starpu_task *task = starpu_task_create();
-		task->cl = cl;
-		task->cl_arg = NULL;
 		task->use_tag = 1;
 		task->tag_id = id;
 
@@ -131,6 +127,30 @@ void init_problem(void)
  *	cg initialization phase
  */
 
+static struct starpu_codelet cl1 = {
+	.cpu_funcs = { cpu_codelet_func_1 },
+	.cpu_funcs_name = { "cpu_codelet_func_1" },
+	.nbuffers = 4,
+	.modes = { STARPU_R, STARPU_R, STARPU_W, STARPU_R },
+};
+
+static struct starpu_codelet cl2 = {
+	.cpu_funcs = { cpu_codelet_func_2 },
+	.cpu_funcs_name = { "cpu_codelet_func_2" },
+	.nbuffers = 2,
+	.modes = { STARPU_W, STARPU_R },
+};
+
+static struct starpu_codelet cl3 = {
+	.cpu_funcs = { cpu_codelet_func_3 },
+	.cpu_funcs_name = { "cpu_codelet_func_3" },
+#ifdef STARPU_USE_CUDA
+	.cuda_funcs = { cublas_codelet_func_3 },
+#endif
+	.nbuffers = 1,
+	.modes = { STARPU_R },
+};
+
 void init_cg(struct cg_problem *problem)
 {
 	int ret;
@@ -139,14 +159,7 @@ void init_cg(struct cg_problem *problem)
 
 	/* r = b  - A x */
 	struct starpu_task *task1 = create_task(1UL);
-	task1->cl->cpu_funcs[0] = cpu_codelet_func_1;
-	task1->cl->cpu_funcs_name[0] = "cpu_codelet_func_1";
-	task1->cl->nbuffers = 4;
-	task1->cl->modes[0] = STARPU_R;
-	task1->cl->modes[1] = STARPU_R;
-	task1->cl->modes[2] = STARPU_W;
-	task1->cl->modes[3] = STARPU_R;
-
+	task1->cl = &cl1;
 	task1->handles[0] = problem->ds_matrixA;
 	task1->handles[1] = problem->ds_vecx;
 	task1->handles[2] = problem->ds_vecr;
@@ -154,12 +167,7 @@ void init_cg(struct cg_problem *problem)
 
 	/* d = r */
 	struct starpu_task *task2 = create_task(2UL);
-	task2->cl->cpu_funcs[0] = cpu_codelet_func_2;
-	task2->cl->cpu_funcs_name[0] = "cpu_codelet_func_2";
-	task2->cl->nbuffers = 2;
-	task2->cl->modes[0] = STARPU_W;
-	task2->cl->modes[1] = STARPU_R;
-
+	task2->cl = &cl2;
 	task2->handles[0] = problem->ds_vecd;
 	task2->handles[1] = problem->ds_vecr;
 
@@ -167,15 +175,9 @@ void init_cg(struct cg_problem *problem)
 
 	/* delta_new = trans(r) r */
 	struct starpu_task *task3 = create_task(3UL);
-#ifdef STARPU_USE_CUDA
-	task3->cl->cuda_funcs[0] = cublas_codelet_func_3;
-#endif
-	task3->cl->cpu_funcs[0] = cpu_codelet_func_3;
-	task3->cl->cpu_funcs_name[0] = "cpu_codelet_func_3";
+	task3->cl = &cl3;
 	task3->cl_arg = problem;
 	task3->cl_arg_size = sizeof(*problem);
-	task3->cl->nbuffers = 1;
-	task3->cl->modes[0] = STARPU_R;
 	task3->handles[0] = problem->ds_vecr;
 
 	task3->callback_func = iteration_cg;
@@ -203,6 +205,66 @@ void init_cg(struct cg_problem *problem)
  *		the codelet code launcher is its own callback !
  */
 
+static struct starpu_codelet cl4 = {
+	.cpu_funcs = { cpu_codelet_func_4 },
+	.cpu_funcs_name = { "cpu_codelet_func_4" },
+	.nbuffers = 3,
+	.modes = { STARPU_R, STARPU_R, STARPU_W },
+};
+
+static struct starpu_codelet cl5 = {
+	.cpu_funcs = { cpu_codelet_func_5 },
+	.cpu_funcs_name = { "cpu_codelet_func_5" },
+#ifdef STARPU_USE_CUDA
+	.cuda_funcs = { cublas_codelet_func_5 },
+#endif
+	.nbuffers = 2,
+	.modes = { STARPU_R, STARPU_R },
+};
+
+static struct starpu_codelet cl6 = {
+	.cpu_funcs = { cpu_codelet_func_6 },
+	.cpu_funcs_name = { "cpu_codelet_func_6" },
+#ifdef STARPU_USE_CUDA
+	.cuda_funcs = { cublas_codelet_func_6 },
+	.cuda_flags = { STARPU_CUDA_ASYNC },
+#endif
+	.nbuffers = 2,
+	.modes = { STARPU_RW, STARPU_R },
+};
+
+static struct starpu_codelet cl7 = {
+	.cpu_funcs = { cpu_codelet_func_7 },
+	.cpu_funcs_name = { "cpu_codelet_func_7" },
+#ifdef STARPU_USE_CUDA
+	.cuda_funcs = { cublas_codelet_func_7 },
+	.cuda_flags = { STARPU_CUDA_ASYNC },
+#endif
+	.nbuffers = 2,
+	.modes = { STARPU_RW, STARPU_R },
+};
+
+static struct starpu_codelet cl8 = {
+	.cpu_funcs = { cpu_codelet_func_8 },
+	.cpu_funcs_name = { "cpu_codelet_func_8" },
+#ifdef STARPU_USE_CUDA
+	.cuda_funcs = { cublas_codelet_func_8 },
+#endif
+	.nbuffers = 1,
+	.modes = { STARPU_R },
+};
+
+static struct starpu_codelet cl9 = {
+	.cpu_funcs = { cpu_codelet_func_9 },
+	.cpu_funcs_name = { "cpu_codelet_func_9" },
+#ifdef STARPU_USE_CUDA
+	.cuda_funcs = { cublas_codelet_func_9 },
+	.cuda_flags = { STARPU_CUDA_ASYNC },
+#endif
+	.nbuffers = 2,
+	.modes = { STARPU_RW, STARPU_R },
+};
+
 void launch_new_cg_iteration(struct cg_problem *problem)
 {
 	int ret;
@@ -213,30 +275,16 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 
 	/* q = A d */
 	struct starpu_task *task4 = create_task(maskiter | 4UL);
-	task4->cl->cpu_funcs[0] = cpu_codelet_func_4;
-	task4->cl->cpu_funcs_name[0] = "cpu_codelet_func_4";
-	task4->cl->nbuffers = 3;
-	task4->cl->modes[0] = STARPU_R;
-	task4->cl->modes[1] = STARPU_R;
-	task4->cl->modes[2] = STARPU_W;
-
+	task4->cl = &cl4;
 	task4->handles[0] = problem->ds_matrixA;
 	task4->handles[1] = problem->ds_vecd;
 	task4->handles[2] = problem->ds_vecq;
 
 	/* alpha = delta_new / ( trans(d) q )*/
 	struct starpu_task *task5 = create_task(maskiter | 5UL);
-#ifdef STARPU_USE_CUDA
-	task5->cl->cuda_funcs[0] = cublas_codelet_func_5;
-#endif
-	task5->cl->cpu_funcs[0] = cpu_codelet_func_5;
-	task5->cl->cpu_funcs_name[0] = "cpu_codelet_func_5";
+	task5->cl = &cl5;
 	task5->cl_arg = problem;
 	task5->cl_arg_size = sizeof(*problem);
-	task5->cl->nbuffers = 2;
-	task5->cl->modes[0] = STARPU_R;
-	task5->cl->modes[1] = STARPU_R;
-
 	task5->handles[0] = problem->ds_vecd;
 	task5->handles[1] = problem->ds_vecq;
 
@@ -244,18 +292,9 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 
 	/* x = x + alpha d */
 	struct starpu_task *task6 = create_task(maskiter | 6UL);
-#ifdef STARPU_USE_CUDA
-	task6->cl->cuda_funcs[0] = cublas_codelet_func_6;
-	task6->cl->cuda_flags[0] = STARPU_CUDA_ASYNC;
-#endif
-	task6->cl->cpu_funcs[0] = cpu_codelet_func_6;
-	task6->cl->cpu_funcs_name[0] = "cpu_codelet_func_6";
+	task6->cl = &cl6;
 	task6->cl_arg = problem;
 	task6->cl_arg_size = sizeof(*problem);
-	task6->cl->nbuffers = 2;
-	task6->cl->modes[0] = STARPU_RW;
-	task6->cl->modes[1] = STARPU_R;
-
 	task6->handles[0] = problem->ds_vecx;
 	task6->handles[1] = problem->ds_vecd;
 
@@ -263,18 +302,9 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 
 	/* r = r - alpha q */
 	struct starpu_task *task7 = create_task(maskiter | 7UL);
-#ifdef STARPU_USE_CUDA
-	task7->cl->cuda_funcs[0] = cublas_codelet_func_7;
-	task7->cl->cuda_flags[0] = STARPU_CUDA_ASYNC;
-#endif
-	task7->cl->cpu_funcs[0] = cpu_codelet_func_7;
-	task7->cl->cpu_funcs_name[0] = "cpu_codelet_func_7";
+	task7->cl = &cl7;
 	task7->cl_arg = problem;
 	task7->cl_arg_size = sizeof(*problem);
-	task7->cl->nbuffers = 2;
-	task7->cl->modes[0] = STARPU_RW;
-	task7->cl->modes[1] = STARPU_R;
-
 	task7->handles[0] = problem->ds_vecr;
 	task7->handles[1] = problem->ds_vecq;
 
@@ -282,33 +312,18 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 
 	/* update delta_* and compute beta */
 	struct starpu_task *task8 = create_task(maskiter | 8UL);
-#ifdef STARPU_USE_CUDA
-	task8->cl->cuda_funcs[0] = cublas_codelet_func_8;
-#endif
-	task8->cl->cpu_funcs[0] = cpu_codelet_func_8;
-	task8->cl->cpu_funcs_name[0] = "cpu_codelet_func_8";
+	task8->cl = &cl8;
 	task8->cl_arg = problem;
 	task8->cl_arg_size = sizeof(*problem);
-	task8->cl->nbuffers = 1;
-	task8->cl->modes[0] = STARPU_R;
 	task8->handles[0] = problem->ds_vecr;
 
 	starpu_tag_declare_deps((starpu_tag_t)(maskiter | 8UL), 1, (starpu_tag_t)(maskiter | 7UL));
 
 	/* d = r + beta d */
 	struct starpu_task *task9 = create_task(maskiter | 9UL);
-#ifdef STARPU_USE_CUDA
-	task9->cl->cuda_funcs[0] = cublas_codelet_func_9;
-	task9->cl->cuda_flags[0] = STARPU_CUDA_ASYNC;
-#endif
-	task9->cl->cpu_funcs[0] = cpu_codelet_func_9;
-	task9->cl->cpu_funcs_name[0] = "cpu_codelet_func_9";
+	task9->cl = &cl9;
 	task9->cl_arg = problem;
 	task9->cl_arg_size = sizeof(*problem);
-	task9->cl->nbuffers = 2;
-	task9->cl->modes[0] = STARPU_RW;
-	task9->cl->modes[1] = STARPU_R;
-
 	task9->handles[0] = problem->ds_vecd;
 	task9->handles[1] = problem->ds_vecr;
 
