@@ -69,8 +69,6 @@ int main(int argc, char **argv)
 	ret = starpu_conf_init(&conf);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_conf_init");
 	conf.sched_policy_name = "pheft";
-#warning "pheft needs update with new synchro scheme"
-	return 77;
 	conf.calibrate = 1;
 
 	ret = starpu_init(&conf);

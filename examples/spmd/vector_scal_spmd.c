@@ -112,8 +112,6 @@ int main(int argc, char **argv)
 	starpu_conf_init(&conf);
 	conf.single_combined_worker = 1;
 	conf.sched_policy_name = "pheft";
-#warning "pheft needs update with new synchro scheme"
-	return 77;
 
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV) return 77;

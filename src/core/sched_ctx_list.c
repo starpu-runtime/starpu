@@ -253,7 +253,8 @@ void _starpu_sched_ctx_list_remove_elt(struct _starpu_sched_ctx_list **list,
 		if (parent->prev == NULL)
 		{
 			*list = parent->next;
-			parent->next->prev = NULL;
+			if (parent->next != NULL)
+				parent->next->prev = NULL;
 		}
 		else
 		{
