@@ -922,6 +922,16 @@ static inline void _starpu_worker_leave_section_safe_for_observation(void)
 	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 }
 
+static inline int _starpu_worker_get_observation_safe_state(void)
+{
+	int workerid = starpu_worker_get_id();
+	if (workerid < 0)
+		return 1;
+	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
+	STARPU_ASSERT(worker != NULL);
+	return worker->state_safe_for_observation;
+}
+
 static inline void _starpu_worker_lock_self(void)
 {
 	int workerid = starpu_worker_get_id_check();
