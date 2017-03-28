@@ -582,6 +582,7 @@ static void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu
 	workerarg->state_sched_op_pending = 0;
 	workerarg->state_changing_ctx_waiting = 0;
 	workerarg->state_changing_ctx_notice = 0;
+	workerarg->state_blocked_in_parallel_observed = 0;
 	workerarg->state_blocked_in_parallel = 0;
 	workerarg->state_block_in_parallel_req = 0;
 	workerarg->state_block_in_parallel_ack = 0;
@@ -1692,9 +1693,34 @@ unsigned starpu_worker_get_count(void)
 
 unsigned starpu_worker_is_blocked_in_parallel(int workerid)
 {
-	_starpu_worker_lock_for_observation_no_relax(workerid);
+	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
+	STARPU_ASSERT(worker != NULL);
+	STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
+	int cur_workerid = starpu_worker_get_id();
+	if (workerid != cur_workerid)
+	{
+		struct _starpu_worker *cur_worker = cur_workerid<starpu_worker_get_count()?_starpu_get_worker_struct(cur_workerid):NULL;
+		int relax_own_observation_state = (cur_worker != NULL) && (cur_worker->state_safe_for_observation == 0);
+		if (relax_own_observation_state && !worker->state_safe_for_observation)
+		{
+			cur_worker->state_safe_for_observation = 1;
+			STARPU_PTHREAD_COND_BROADCAST(&cur_worker->sched_cond);
+		}
+		while (!worker->state_safe_for_observation
+				|| worker->state_block_in_parallel_req
+				|| worker->state_unblock_in_parallel_req
+				|| worker->state_changing_ctx_notice)
+		{
+			STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
+		}
+		if (relax_own_observation_state)
+		{
+			cur_worker->state_safe_for_observation = 0;
+		}
+	}
 	unsigned ret = _starpu_config.workers[workerid].state_blocked_in_parallel;
-	_starpu_worker_unlock_for_observation(workerid);
+	worker->state_blocked_in_parallel_observed = 1;
+	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 	return ret;
 }
 
