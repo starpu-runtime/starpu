@@ -2394,6 +2394,9 @@ static void _starpu_sched_ctx_put_workers_to_sleep(unsigned sched_ctx_id, unsign
             {
                 STARPU_PTHREAD_MUTEX_LOCK(&sched_ctx->parallel_sect_mutex[workerid]);
                 sched_ctx->parallel_sect[workerid] = 1;
+#ifdef STARPU_SIMGRID
+                starpu_wake_worker(workerid);
+#endif
                 STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->parallel_sect_mutex[workerid]);
             }
         }
