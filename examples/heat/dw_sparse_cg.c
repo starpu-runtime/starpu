@@ -432,6 +432,10 @@ void conjugate_gradient(float *nzvalA, float *vecb, float *vecx, uint32_t nnz,
 	starpu_data_unregister(ds_vecr);
 	starpu_data_unregister(ds_vecd);
 	starpu_data_unregister(ds_vecq);
+
+	free(ptr_vecr);
+	free(ptr_vecd);
+	free(ptr_vecq);
 }
 
 
