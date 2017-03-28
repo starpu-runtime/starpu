@@ -376,7 +376,7 @@ void starpu_sched_tree_add_workers(unsigned sched_ctx_id, int *workerids, unsign
 	struct starpu_sched_tree * t = starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
 	STARPU_PTHREAD_MUTEX_LOCK(&t->lock);
-	_starpu_sched_component_lock_all_workers(sched_ctx_id);
+	_starpu_sched_component_lock_all_workers();
 
 	unsigned i;
 	for(i = 0; i < nworkers; i++)
@@ -384,7 +384,7 @@ void starpu_sched_tree_add_workers(unsigned sched_ctx_id, int *workerids, unsign
 
 	starpu_sched_tree_update_workers_in_ctx(t);
 
-	_starpu_sched_component_unlock_all_workers(sched_ctx_id);
+	_starpu_sched_component_unlock_all_workers();
 	STARPU_PTHREAD_MUTEX_UNLOCK(&t->lock);
 }
 
@@ -395,7 +395,7 @@ void starpu_sched_tree_remove_workers(unsigned sched_ctx_id, int *workerids, uns
 	struct starpu_sched_tree * t = starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
 	STARPU_PTHREAD_MUTEX_LOCK(&t->lock);
-	_starpu_sched_component_lock_all_workers(sched_ctx_id);
+	_starpu_sched_component_lock_all_workers();
 
 	unsigned i;
 	for(i = 0; i < nworkers; i++)
@@ -403,7 +403,7 @@ void starpu_sched_tree_remove_workers(unsigned sched_ctx_id, int *workerids, uns
 
 	starpu_sched_tree_update_workers_in_ctx(t);
 
-	_starpu_sched_component_unlock_all_workers(sched_ctx_id);
+	_starpu_sched_component_unlock_all_workers();
 	STARPU_PTHREAD_MUTEX_UNLOCK(&t->lock);
 }
 

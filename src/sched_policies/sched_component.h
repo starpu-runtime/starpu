@@ -21,10 +21,8 @@
 
 
 /* lock and unlock drivers for modifying schedulers */
-void _starpu_sched_component_lock_all_workers(unsigned sched_ctx_id);
-void _starpu_sched_component_unlock_all_workers(unsigned sched_ctx_id);
-void _starpu_sched_component_lock_worker(unsigned sched_ctx_id, int workerid);
-void _starpu_sched_component_unlock_worker(unsigned sched_ctx_id, int workerid);
+void _starpu_sched_component_lock_all_workers(void);
+void _starpu_sched_component_unlock_all_workers(void);
 
 void _starpu_sched_component_workers_destroy(void);
 
@@ -32,9 +30,5 @@ struct _starpu_worker * _starpu_sched_component_worker_get_worker(struct starpu_
 struct _starpu_combined_worker * _starpu_sched_component_combined_worker_get_combined_worker(struct starpu_sched_component * worker_component);
 
 struct starpu_bitmap * _starpu_get_worker_mask(unsigned sched_ctx_id);
-
-
-void _starpu_sched_component_lock_scheduling(void);
-void _starpu_sched_component_unlock_scheduling(void);
 
 #endif
