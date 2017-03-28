@@ -531,8 +531,8 @@ struct _starpu_sched_ctx* _starpu_create_sched_ctx(struct starpu_sched_policy *p
 	int w;
 	for(w = 0; w < nworkers; w++)
 	{
-		sem_init(&sched_ctx->fall_asleep_sem[w], 0, 0);
-		sem_init(&sched_ctx->wake_up_sem[w], 0, 0);
+		starpu_sem_init(&sched_ctx->fall_asleep_sem[w], 0, 0);
+		starpu_sem_init(&sched_ctx->wake_up_sem[w], 0, 0);
 
 		STARPU_PTHREAD_COND_INIT(&sched_ctx->parallel_sect_cond[w], NULL);
 		STARPU_PTHREAD_MUTEX_INIT(&sched_ctx->parallel_sect_mutex[w], NULL);
@@ -2347,7 +2347,7 @@ void _starpu_sched_ctx_signal_worker_blocked(unsigned sched_ctx_id, int workerid
 	worker->blocked = 1;
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	sched_ctx->sleeping[workerid] = 1;
-	sem_post(&sched_ctx->fall_asleep_sem[sched_ctx->main_master]);
+	starpu_sem_post(&sched_ctx->fall_asleep_sem[sched_ctx->main_master]);
 
 	return;
 }
@@ -2355,7 +2355,7 @@ void _starpu_sched_ctx_signal_worker_blocked(unsigned sched_ctx_id, int workerid
 void _starpu_sched_ctx_signal_worker_woke_up(unsigned sched_ctx_id, int workerid)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
-	sem_post(&sched_ctx->wake_up_sem[sched_ctx->main_master]);
+	starpu_sem_post(&sched_ctx->wake_up_sem[sched_ctx->main_master]);
 	sched_ctx->sleeping[workerid] = 0;
 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 	worker->blocked = 0;
@@ -2410,7 +2410,7 @@ static void _starpu_sched_ctx_put_workers_to_sleep(unsigned sched_ctx_id, unsign
                && (current_worker_id == -1 || workerid != current_worker_id)
                && !sleeping[workers_count])
             {
-                    sem_wait(&sched_ctx->fall_asleep_sem[master]);
+                    starpu_sem_wait(&sched_ctx->fall_asleep_sem[master]);
             }
 						workers_count++;
     }
@@ -2449,7 +2449,7 @@ static void _starpu_sched_ctx_wake_up_workers(unsigned sched_ctx_id, unsigned al
 				STARPU_PTHREAD_MUTEX_LOCK(&sched_ctx->parallel_sect_mutex[workerid]);
 				STARPU_PTHREAD_COND_SIGNAL(&sched_ctx->parallel_sect_cond[workerid]);
 				STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->parallel_sect_mutex[workerid]);
-				sem_wait(&sched_ctx->wake_up_sem[master]);
+				starpu_sem_wait(&sched_ctx->wake_up_sem[master]);
 			}
 			else
 				sched_ctx->parallel_sect[workerid] = 0;
