@@ -344,6 +344,7 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 {
 	struct starpu_task *task;
 	unsigned executing STARPU_ATTRIBUTE_UNUSED = 0;
+	unsigned keep_awake = 0;
 
 	STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
 	_starpu_worker_enter_sched_op(worker);
@@ -365,10 +366,15 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 		STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 		task = _starpu_pop_task(worker);
 		STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
+		if (worker->state_keep_awake)
+		{
+			keep_awake = worker->state_keep_awake;
+			worker->state_keep_awake = 0;
+		}
 	}
 
 #if !defined(STARPU_SIMGRID)
-	if (task == NULL && !executing)
+	if (task == NULL && !executing && !keep_awake)
 	{
 		/* Didn't get a task to run and none are running, go to sleep */
 
@@ -442,6 +448,7 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 #endif
 	for (i = 0; i < nworkers; i++)
 	{
+		unsigned keep_awake = 0;
 		if ((workers[i].pipeline_length == 0 && workers[i].current_task)
 			|| (workers[i].pipeline_length != 0 && workers[i].ntasks))
 			/* At least this worker is executing something */
@@ -471,7 +478,12 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 			STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&workers[i].sched_mutex);
 			tasks[i] = _starpu_pop_task(&workers[i]);
 			STARPU_PTHREAD_MUTEX_LOCK_SCHED(&workers[i].sched_mutex);
-			if(tasks[i] != NULL)
+			if (workers[i].state_keep_awake)
+			{
+				keep_awake = workers[i].state_keep_awake;
+				workers[i].state_keep_awake = 0;
+			}
+			if(tasks[i] != NULL || keep_awake)
 			{
 				_starpu_worker_set_status_scheduling_done(workers[i].workerid);
 				_starpu_worker_set_status_wakeup(workers[i].workerid);
@@ -482,6 +494,9 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 #endif
 
 				count ++;
+				if (tasks[i] == NULL)
+					/* no task, but keep_awake */
+					continue;
 				j = _starpu_get_job_associated_to_task(tasks[i]);
 				is_parallel_task = (j->task_size > 1);
 				if (workers[i].pipeline_length)

@@ -554,6 +554,7 @@ static void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu
 	workerarg->worker_is_running = 0;
 	workerarg->worker_is_initialized = 0;
 	workerarg->status = STATUS_INITIALIZING;
+	workerarg->state_keep_awake = 0;
 	/* name initialized by driver */
 	/* short_name initialized by driver */
 	workerarg->run_by_starpu = 1;
@@ -2110,7 +2111,12 @@ static int starpu_wakeup_worker_locked(int workerid, starpu_pthread_cond_t *sche
 #ifdef STARPU_SIMGRID
 	starpu_pthread_queue_broadcast(&_starpu_simgrid_task_queue[workerid]);
 #endif
-	if (_starpu_config.workers[workerid].status == STATUS_SLEEPING)
+	if (_starpu_config.workers[workerid].status == STATUS_SCHEDULING)
+	{
+		_starpu_config.workers[workerid].state_keep_awake = 1;
+		return 1;
+	}
+	else if (_starpu_config.workers[workerid].status == STATUS_SLEEPING)
 	{
 		_starpu_config.workers[workerid].status = STATUS_WAKING_UP;
 		/* cond_broadcast is required over cond_signal since

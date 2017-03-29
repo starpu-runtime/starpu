@@ -535,16 +535,16 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 
 	if (task)
 	{
-		_starpu_worker_relax_on();
-		_starpu_sched_ctx_lock_write(sched_ctx_id);
 		/* there was a local task */
 		ws->per_worker[workerid].busy = 1;
+		_starpu_worker_relax_on();
+		_starpu_sched_ctx_lock_write(sched_ctx_id);
 		starpu_sched_ctx_list_task_counters_decrement(sched_ctx_id, workerid);
 		unsigned child_sched_ctx = starpu_sched_ctx_worker_is_master_for_child_ctx(workerid, sched_ctx_id);
 		if(child_sched_ctx != STARPU_NMAX_SCHED_CTXS)
 		{
-			starpu_sched_ctx_move_task_to_ctx(task, child_sched_ctx, 1, 1);
-			starpu_sched_ctx_revert_task_counters(sched_ctx_id, task->flops);
+			starpu_sched_ctx_move_task_to_ctx_locked(task, child_sched_ctx, 1);
+			starpu_sched_ctx_revert_task_counters_ctx_locked(sched_ctx_id, task->flops);
 			task = NULL;
 		}
 		_starpu_sched_ctx_unlock_write(sched_ctx_id);
@@ -587,30 +587,35 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 #ifndef STARPU_NON_BLOCKING_DRIVERS
         /* While stealing, perhaps somebody actually give us a task, don't miss
          * the opportunity to take it before going to sleep. */
-	if (!task)
 	{
-		task = ws_pick_task(ws, workerid, workerid);
-		if (task)
-			locality_popped_task(ws, task, workerid, sched_ctx_id);
+		struct _starpu_worker *worker = _starpu_get_worker_struct(starpu_worker_get_id());
+		if (!task && worker->keep_awake)
+		{
+			/* keep_awake notice taken into account here, clear flag */
+			worker->keep_awake = 0;
+			task = ws_pick_task(ws, workerid, workerid);
+			if (task)
+				locality_popped_task(ws, task, workerid, sched_ctx_id);
+		}
 	}
 #endif
 
-	_starpu_worker_relax_on();
 	if (task)
 	{
+		_starpu_worker_relax_on();
 		_starpu_sched_ctx_lock_write(sched_ctx_id);
 		unsigned child_sched_ctx = starpu_sched_ctx_worker_is_master_for_child_ctx(workerid, sched_ctx_id);
 		if(child_sched_ctx != STARPU_NMAX_SCHED_CTXS)
 		{
-			starpu_sched_ctx_move_task_to_ctx(task, child_sched_ctx, 1, 1);
-			starpu_sched_ctx_revert_task_counters(sched_ctx_id, task->flops);
+			starpu_sched_ctx_move_task_to_ctx_locked(task, child_sched_ctx, 1);
+			starpu_sched_ctx_revert_task_counters_ctx_locked(sched_ctx_id, task->flops);
 			_starpu_sched_ctx_unlock_write(sched_ctx_id);
 			_starpu_worker_relax_off();
 			return NULL;
 		}
 		_starpu_sched_ctx_unlock_write(sched_ctx_id);
+		_starpu_worker_relax_off();
 	}
-	_starpu_worker_relax_off();
 	ws->per_worker[workerid].busy = !!task;
 	return task;
 }
