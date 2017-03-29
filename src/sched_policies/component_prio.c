@@ -17,6 +17,7 @@
 #include <starpu_sched_component.h>
 #include <starpu_scheduler.h>
 #include <common/fxt.h>
+#include <core/workers.h>
 
 #include "prio_deque.h"
 #include "sched_component.h"
@@ -79,11 +80,16 @@ static double prio_estimated_load(struct starpu_sched_component * component)
 	starpu_pthread_mutex_t * mutex = &data->mutex;
 	double relative_speedup = 0.0;
 	double load = starpu_sched_component_estimated_load(component);
+	const int relaxed_state = _starpu_worker_get_observation_safe_state();
 	if(STARPU_SCHED_COMPONENT_IS_HOMOGENEOUS(component))
 	{
 		int first_worker = starpu_bitmap_first(component->workers_in_ctx);
 		relative_speedup = starpu_worker_get_relative_speedup(starpu_worker_get_perf_archtype(first_worker, component->tree->sched_ctx_id));
+		if (!relaxed_state)
+			_starpu_worker_enter_section_safe_for_observation();
 		STARPU_PTHREAD_MUTEX_LOCK(mutex);
+		if (!relaxed_state)
+			_starpu_worker_leave_section_safe_for_observation();
 		load += prio->ntasks / relative_speedup;
 		STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
 		return load;
@@ -97,7 +103,11 @@ static double prio_estimated_load(struct starpu_sched_component * component)
 			relative_speedup += starpu_worker_get_relative_speedup(starpu_worker_get_perf_archtype(i, component->tree->sched_ctx_id));
 		relative_speedup /= starpu_bitmap_cardinal(component->workers_in_ctx);
 		STARPU_ASSERT(!_STARPU_IS_ZERO(relative_speedup));
+		if (!relaxed_state)
+			_starpu_worker_enter_section_safe_for_observation();
 		STARPU_PTHREAD_MUTEX_LOCK(mutex);
+		if (!relaxed_state)
+			_starpu_worker_leave_section_safe_for_observation();
 		load += prio->ntasks / relative_speedup;
 		STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
 	}
@@ -112,8 +122,12 @@ static int prio_push_local_task(struct starpu_sched_component * component, struc
 	struct _starpu_prio_deque * prio = &data->prio;
 	starpu_pthread_mutex_t * mutex = &data->mutex;
 	int ret;
-	
+	const int relaxed_state = _starpu_worker_get_observation_safe_state();
+	if (!relaxed_state)
+		_starpu_worker_enter_section_safe_for_observation();
 	STARPU_PTHREAD_MUTEX_LOCK(mutex);
+	if (!relaxed_state)
+		_starpu_worker_leave_section_safe_for_observation();
 	double exp_len;
 	if(!isnan(task->predicted))
 		exp_len = prio->exp_len + task->predicted;
@@ -172,7 +186,9 @@ static struct starpu_task * prio_pull_task(struct starpu_sched_component * compo
 	struct _starpu_prio_data * data = component->data;
 	struct _starpu_prio_deque * prio = &data->prio;
 	starpu_pthread_mutex_t * mutex = &data->mutex;
+	_starpu_worker_enter_section_safe_for_observation();
 	STARPU_PTHREAD_MUTEX_LOCK(mutex);
+	_starpu_worker_leave_section_safe_for_observation();
 	struct starpu_task * task = _starpu_prio_deque_pop_task(prio);
 	if(task)
 	{

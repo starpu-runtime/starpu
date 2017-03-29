@@ -53,12 +53,6 @@ int starpu_get_prefetch_flag(void)
 static struct starpu_sched_policy *predefined_policies[] =
 {
 #if 0
-	&_starpu_sched_modular_prio_policy,
-	&_starpu_sched_modular_prio_prefetching_policy,
-	&_starpu_sched_modular_random_policy,
-	&_starpu_sched_modular_random_prio_policy,
-	&_starpu_sched_modular_random_prefetching_policy,
-	&_starpu_sched_modular_random_prio_prefetching_policy,
 	&_starpu_sched_modular_ws_policy,
 	&_starpu_sched_modular_heft_policy,
 	&_starpu_sched_modular_heft_prio_policy,
@@ -66,6 +60,12 @@ static struct starpu_sched_policy *predefined_policies[] =
 #else
 	&_starpu_sched_modular_eager_policy,
 	&_starpu_sched_modular_eager_prefetching_policy,
+	&_starpu_sched_modular_prio_policy,
+	&_starpu_sched_modular_prio_prefetching_policy,
+	&_starpu_sched_modular_random_policy,
+	&_starpu_sched_modular_random_prio_policy,
+	&_starpu_sched_modular_random_prefetching_policy,
+	&_starpu_sched_modular_random_prio_prefetching_policy,
 	&_starpu_sched_eager_policy,
 	&_starpu_sched_prio_policy,
 	&_starpu_sched_random_policy,
