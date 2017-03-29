@@ -281,9 +281,9 @@ static int push_task_graph_test_policy(struct starpu_task *task)
 		unsigned worker = workers->get_next(workers, &it);
 		if (dowake[worker])
 		{
-			STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
+			_starpu_worker_lock(worker);
 			int ret = starpu_wake_worker(worker);
-			STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
+			_starpu_worker_unlock(worker);
 			if (ret)
 				break; // wake up a single worker
 		}
