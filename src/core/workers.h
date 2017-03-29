@@ -757,6 +757,9 @@ static inline void _starpu_worker_process_block_in_parallel_requests(struct _sta
  * should not be modified */
 static inline void _starpu_worker_enter_sched_op(struct _starpu_worker * const worker)
 {
+	/* if someone observed the worker state since the last call, postpone block request
+	 * processing for one sched_op turn more, because the observer will not have seen
+	 * new block requests between its observation and now */
 	if (!worker->state_blocked_in_parallel_observed)
 	{
 		/* process pending block requests before entering a sched_op region */
