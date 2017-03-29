@@ -313,6 +313,7 @@ static inline int _starpu_can_use_nth_implementation(enum starpu_worker_archtype
 /* must be called with sched_mutex locked to protect state_blocked_in_parallel */
 int starpu_worker_can_execute_task(unsigned workerid, struct starpu_task *task, unsigned nimpl)
 {
+	/* if the worker is blocked in a parallel ctx don't submit tasks on it */
 	if(starpu_worker_is_blocked_in_parallel(workerid))
 		return 0;
 
@@ -325,6 +326,7 @@ int starpu_worker_can_execute_task(unsigned workerid, struct starpu_task *task, 
 /* must be called with sched_mutex locked to protect state_blocked_in_parallel */
 int starpu_worker_can_execute_task_impl(unsigned workerid, struct starpu_task *task, unsigned *impl_mask)
 {
+	/* if the worker is blocked in a parallel ctx don't submit tasks on it */
 	if(starpu_worker_is_blocked_in_parallel(workerid))
 		return 0;
 
@@ -367,6 +369,7 @@ int starpu_worker_can_execute_task_impl(unsigned workerid, struct starpu_task *t
 /* must be called with sched_mutex locked to protect state_blocked */
 int starpu_worker_can_execute_task_first_impl(unsigned workerid, struct starpu_task *task, unsigned *nimpl)
 {
+	/* if the worker is blocked in a parallel ctx don't submit tasks on it */
 	if(starpu_worker_is_blocked_in_parallel(workerid))
 		return 0;
 	int i;
