@@ -303,10 +303,12 @@ STARPU_EXAMPLES +=				\
 	cg/cg					\
 	pipeline/pipeline
 
+if !STARPU_USE_MPI_MASTER_SLAVE
 TESTS += \
 	heat/heat.sh				\
 	lu/lu.sh
 
+endif
 endif
 endif
 
