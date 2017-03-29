@@ -2308,7 +2308,7 @@ void starpu_sched_ctx_list_task_counters_decrement_all_ctx_locked(struct starpu_
 			struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 			if (worker->nsched_ctxs > 1)
 			{
-				_starpu_worker_lock_for_observation_no_relax(workerid);
+				_starpu_worker_lock_for_observation_relax(workerid);
 				starpu_sched_ctx_list_task_counters_decrement(sched_ctx_id, workerid);
 				_starpu_worker_unlock_for_observation(workerid);
 			}
@@ -2330,7 +2330,7 @@ void starpu_sched_ctx_list_task_counters_decrement_all(struct starpu_task *task,
 			struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 			if (worker->nsched_ctxs > 1)
 			{
-				_starpu_worker_lock_for_observation_no_relax(workerid);
+				_starpu_worker_lock_for_observation_relax(workerid);
 				starpu_sched_ctx_list_task_counters_decrement(sched_ctx_id, workerid);
 				_starpu_worker_unlock_for_observation(workerid);
 			}
@@ -2353,7 +2353,7 @@ void starpu_sched_ctx_list_task_counters_reset_all(struct starpu_task *task, uns
 			struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 			if (worker->nsched_ctxs > 1)
 			{
-				_starpu_worker_lock_for_observation_no_relax(workerid);
+				_starpu_worker_lock_for_observation_relax(workerid);
 				starpu_sched_ctx_list_task_counters_reset(sched_ctx_id, workerid);
 				_starpu_worker_unlock_for_observation(workerid);
 			}

@@ -865,20 +865,6 @@ static inline void _starpu_worker_lock_for_observation_relax(int workerid)
 	}
 }
 
-static inline void _starpu_worker_lock_for_observation_no_relax(int workerid)
-{
-	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
-	STARPU_ASSERT(worker != NULL);
-	STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
-	if (workerid != starpu_worker_get_id())
-	{
-		while (!worker->state_safe_for_observation)
-		{
-			STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
-		}
-	}
-}
-
 static inline int _starpu_worker_trylock_for_observation(int workerid)
 {
 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);

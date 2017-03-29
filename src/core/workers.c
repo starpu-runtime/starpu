@@ -1726,7 +1726,7 @@ unsigned starpu_worker_is_blocked_in_parallel(int workerid)
 
 unsigned starpu_worker_is_slave_somewhere(int workerid)
 {
-	_starpu_worker_lock_for_observation_no_relax(workerid);
+	_starpu_worker_lock_for_observation_relax(workerid);
 	unsigned ret = _starpu_config.workers[workerid].is_slave_somewhere;
 	_starpu_worker_unlock_for_observation(workerid);
 	return ret;
