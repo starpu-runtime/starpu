@@ -157,9 +157,6 @@ LIST_TYPE(_starpu_worker,
 	/* indicate which priority of ctx is currently active: the values are 0 or 1*/
 	unsigned pop_ctx_priority;
 
-	/* sched mutex local worker locking depth */
-	unsigned sched_mutex_depth;
-
 	/* bool to indicate if the worker is slave in a ctx */
 	unsigned is_slave_somewhere;
 

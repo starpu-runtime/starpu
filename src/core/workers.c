@@ -581,7 +581,6 @@ static void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu
 	workerarg->reverse_phase[0] = 0;
 	workerarg->reverse_phase[1] = 0;
 	workerarg->pop_ctx_priority = 1;
-	workerarg->sched_mutex_depth = 0;
 	workerarg->is_slave_somewhere = 0;
 
 	workerarg->state_safe_for_observation = 1;
