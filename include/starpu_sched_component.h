@@ -196,6 +196,20 @@ struct starpu_sched_component_specs
 struct starpu_sched_tree *starpu_sched_component_make_scheduler(unsigned sched_ctx_id, struct starpu_sched_component_specs s);
 #endif /* STARPU_HAVE_HWLOC */
 
+#define STARPU_COMPONENT_MUTEX_LOCK(m) \
+do \
+{ \
+	const int _relaxed_state = _starpu_worker_get_observation_safe_state(); \
+	if (!_relaxed_state) \
+		_starpu_worker_enter_section_safe_for_observation(); \
+	STARPU_PTHREAD_MUTEX_LOCK((m)); \
+	if (!_relaxed_state) \
+		_starpu_worker_leave_section_safe_for_observation(); \
+} \
+while(0)
+
+#define STARPU_COMPONENT_MUTEX_UNLOCK(m) STARPU_PTHREAD_MUTEX_UNLOCK((m))
+
 #ifdef __cplusplus
 }
 #endif

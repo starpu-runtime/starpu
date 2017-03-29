@@ -61,18 +61,13 @@ static double fifo_estimated_load(struct starpu_sched_component * component)
 	starpu_pthread_mutex_t * mutex = &data->mutex;
 	double relative_speedup = 0.0;
 	double load = starpu_sched_component_estimated_load(component);
-	const int relaxed_state = _starpu_worker_get_observation_safe_state();
 	if(STARPU_SCHED_COMPONENT_IS_HOMOGENEOUS(component))
 	{
 		int first_worker = starpu_bitmap_first(component->workers_in_ctx);
 		relative_speedup = starpu_worker_get_relative_speedup(starpu_worker_get_perf_archtype(first_worker, component->tree->sched_ctx_id));
-		if (!relaxed_state)
-			_starpu_worker_enter_section_safe_for_observation();
-		STARPU_PTHREAD_MUTEX_LOCK(mutex);
-		if (!relaxed_state)
-			_starpu_worker_leave_section_safe_for_observation();
+		STARPU_COMPONENT_MUTEX_LOCK(mutex);
 		load += fifo->ntasks / relative_speedup;
-		STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
+		STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
 		return load;
 	}
 	else
@@ -84,13 +79,9 @@ static double fifo_estimated_load(struct starpu_sched_component * component)
 			relative_speedup += starpu_worker_get_relative_speedup(starpu_worker_get_perf_archtype(i, component->tree->sched_ctx_id));
 		relative_speedup /= starpu_bitmap_cardinal(component->workers_in_ctx);
 		STARPU_ASSERT(!_STARPU_IS_ZERO(relative_speedup));
-		if (!relaxed_state)
-			_starpu_worker_enter_section_safe_for_observation();
-		STARPU_PTHREAD_MUTEX_LOCK(mutex);
-		if (!relaxed_state)
-			_starpu_worker_leave_section_safe_for_observation();
+		STARPU_COMPONENT_MUTEX_LOCK(mutex);
 		load += fifo->ntasks / relative_speedup;
-		STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
+		STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
 	}
 	return load;
 }
@@ -103,12 +94,7 @@ static int fifo_push_local_task(struct starpu_sched_component * component, struc
 	struct _starpu_fifo_taskq * fifo = data->fifo;
 	starpu_pthread_mutex_t * mutex = &data->mutex;
 	int ret = 0;
-	const int relaxed_state = _starpu_worker_get_observation_safe_state();
-	if (!relaxed_state)
-		_starpu_worker_enter_section_safe_for_observation();
-	STARPU_PTHREAD_MUTEX_LOCK(mutex);
-	if (!relaxed_state)
-		_starpu_worker_leave_section_safe_for_observation();
+	STARPU_COMPONENT_MUTEX_LOCK(mutex);
 	double exp_len;
 	if(!isnan(task->predicted))
 		exp_len = fifo->exp_len + task->predicted;
@@ -126,7 +112,7 @@ static int fifo_push_local_task(struct starpu_sched_component * component, struc
 		}
 		STARPU_ASSERT(!is_pushback);
 		ret = 1;
-		STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
+		STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
 	}
 	else
 	{
@@ -149,7 +135,7 @@ static int fifo_push_local_task(struct starpu_sched_component * component, struc
 
 		if(!is_pushback)
 			component->can_pull(component);
-		STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
+		STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
 	}
 
 	return ret;
@@ -166,9 +152,7 @@ static struct starpu_task * fifo_pull_task(struct starpu_sched_component * compo
 	struct _starpu_fifo_data * data = component->data;
 	struct _starpu_fifo_taskq * fifo = data->fifo;
 	starpu_pthread_mutex_t * mutex = &data->mutex;
-	_starpu_worker_enter_section_safe_for_observation();
-	STARPU_PTHREAD_MUTEX_LOCK(mutex);
-	_starpu_worker_leave_section_safe_for_observation();
+	STARPU_COMPONENT_MUTEX_LOCK(mutex);
 	struct starpu_task * task = _starpu_fifo_pop_task(fifo, starpu_worker_get_id_check());
 	if(task)
 	{
@@ -184,7 +168,7 @@ static struct starpu_task * fifo_pull_task(struct starpu_sched_component * compo
 	STARPU_ASSERT(!isnan(fifo->exp_end));
 	STARPU_ASSERT(!isnan(fifo->exp_len));
 	STARPU_ASSERT(!isnan(fifo->exp_start));
-	STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
+	STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
 
 	// When a pop is called, a can_push is called for pushing tasks onto
 	// the empty place of the queue left by the popped task.
