@@ -52,11 +52,6 @@ int starpu_get_prefetch_flag(void)
 
 static struct starpu_sched_policy *predefined_policies[] =
 {
-#if 0
-	&_starpu_sched_modular_heft_policy,
-	&_starpu_sched_modular_heft_prio_policy,
-	&_starpu_sched_modular_heft2_policy,
-#else
 	&_starpu_sched_modular_eager_policy,
 	&_starpu_sched_modular_eager_prefetching_policy,
 	&_starpu_sched_modular_prio_policy,
@@ -66,6 +61,9 @@ static struct starpu_sched_policy *predefined_policies[] =
 	&_starpu_sched_modular_random_prefetching_policy,
 	&_starpu_sched_modular_random_prio_prefetching_policy,
 	&_starpu_sched_modular_ws_policy,
+	&_starpu_sched_modular_heft_policy,
+	&_starpu_sched_modular_heft_prio_policy,
+	&_starpu_sched_modular_heft2_policy,
 	&_starpu_sched_eager_policy,
 	&_starpu_sched_prio_policy,
 	&_starpu_sched_random_policy,
@@ -80,8 +78,6 @@ static struct starpu_sched_policy *predefined_policies[] =
 	&_starpu_sched_dmda_sorted_policy,
 	&_starpu_sched_dmda_sorted_decision_policy,
 	&_starpu_sched_graph_test_policy,
-#warning TODO: update sched policies with new synchro scheme
-#endif
 	NULL
 };
 
