@@ -405,7 +405,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 	}
 	fifo->exp_end = fifo->exp_start + fifo->exp_len;
 
-	_starpu_worker_unlock_for_observation(best_workerid);
+	_starpu_worker_unlock(best_workerid);
 
 	task->predicted = predicted;
 	task->predicted_transfer = predicted_transfer;
@@ -448,7 +448,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 		starpu_wake_worker_locked(best_workerid);
 #endif
 		starpu_push_task_end(task);
-		_starpu_worker_unlock_for_observation(best_workerid);
+		_starpu_worker_unlock(best_workerid);
 	}
 	else
 	{
@@ -460,7 +460,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 		starpu_wake_worker_locked(best_workerid);
 #endif
 		starpu_push_task_end(task);
-		_starpu_worker_unlock_for_observation(best_workerid);
+		_starpu_worker_unlock(best_workerid);
 	}
 
 	starpu_sched_ctx_list_task_counters_increment(sched_ctx_id, best_workerid);
@@ -688,7 +688,7 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 				{
 					_starpu_worker_lock(workerid);
 					prev_exp_len = _starpu_fifo_get_exp_len_prev_task_list(fifo, task, workerid, nimpl, &fifo_ntasks);
-					_starpu_worker_unlock_for_observation(workerid);
+					_starpu_worker_unlock(workerid);
 				}
 			}
 
@@ -1193,7 +1193,7 @@ static void dmda_push_task_notify(struct starpu_task *task, int workerid, int pe
 
 	fifo->ntasks++;
 
-	_starpu_worker_unlock_for_observation(workerid);
+	_starpu_worker_unlock(workerid);
 }
 
 static void dmda_post_exec_hook(struct starpu_task * task, unsigned sched_ctx_id)

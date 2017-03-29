@@ -881,7 +881,7 @@ static inline int _starpu_worker_trylock(int workerid)
 	return ret;
 }
 
-static inline void _starpu_worker_unlock_for_observation(int workerid)
+static inline void _starpu_worker_unlock(int workerid)
 {
 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 	STARPU_ASSERT(worker != NULL);

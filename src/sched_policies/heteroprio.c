@@ -593,10 +593,10 @@ static struct starpu_task *pop_task_heteroprio_policy(unsigned sched_ctx_id)
 						/* we steal a task update global counter */
 						hp->nb_prefetched_tasks_per_arch_index[hp->workers_heteroprio[victim].arch_index] -= 1;
 
-						_starpu_worker_unlock_for_observation(victim);
+						_starpu_worker_unlock(victim);
 						goto done;
 					}
-					_starpu_worker_unlock_for_observation(victim);
+					_starpu_worker_unlock(victim);
 				}
 			}
 		}

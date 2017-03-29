@@ -450,7 +450,7 @@ static void simple_worker_can_pull(struct starpu_sched_component * worker_compon
 		_starpu_sched_component_worker_set_changed_status(worker_component);
 	if(workerid != _starpu_worker_get_id() && _starpu_sched_component_worker_is_sleeping_status(worker_component))
 		starpu_wake_worker_locked(workerid);
-	_starpu_worker_unlock_for_observation(workerid);
+	_starpu_worker_unlock(workerid);
 }
 
 static int simple_worker_push_task(struct starpu_sched_component * component, struct starpu_task *task)
@@ -665,7 +665,7 @@ static void combined_worker_can_pull(struct starpu_sched_component * component)
 		}
 		if(_starpu_sched_component_worker_is_reset_status(component))
 			_starpu_sched_component_worker_set_changed_status(component);
-		_starpu_worker_unlock_for_observation(workerid);
+		_starpu_worker_unlock(workerid);
 	}
 }
 
@@ -821,7 +821,7 @@ void _starpu_sched_component_unlock_all_workers(void)
 {
 	unsigned i;
 	for(i = 0; i < starpu_worker_get_count(); i++)
-		_starpu_worker_unlock_for_observation(i);
+		_starpu_worker_unlock(i);
 }
 
 void _starpu_sched_component_workers_destroy(void)

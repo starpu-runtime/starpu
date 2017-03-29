@@ -758,7 +758,7 @@ int _starpu_push_local_task(struct _starpu_worker *worker, struct starpu_task *t
 
 	starpu_wake_worker_locked(worker->workerid);
 	starpu_push_task_end(task);
-	_starpu_worker_unlock_for_observation(worker->workerid);
+	_starpu_worker_unlock(worker->workerid);
 
 	return 0;
 }

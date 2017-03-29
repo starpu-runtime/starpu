@@ -267,7 +267,7 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 #else
 				_starpu_worker_lock_for_observation(worker);
 				starpu_wake_worker_locked(worker);
-				_starpu_worker_unlock_for_observation(worker);
+				_starpu_worker_unlock(worker);
 #endif
 			}
 		}
