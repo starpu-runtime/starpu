@@ -297,8 +297,6 @@ void allocate_memory_on_node(int rank)
 
 		int node = block->mpi_node;
 
-		unsigned size_bz = block_sizes_z[bz];
-
 		/* Main blocks */
 		if (node == rank)
 		{
@@ -389,8 +387,8 @@ void check(int rank)
 		/* Main blocks */
 		if (node == rank)
 		{
-			unsigned size_bz = block_sizes_z[bz];
 #ifdef LIFE
+			unsigned size_bz = block_sizes_z[bz];
 			unsigned x, y, z;
 			unsigned sum = 0;
 			for (x = 0; x < sizex; x++)
