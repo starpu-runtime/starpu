@@ -467,9 +467,9 @@ static struct starpu_task *pop_task_heteroprio_policy(unsigned sched_ctx_id)
 		return NULL;
 	}
 #endif
-	_starpu_worker_enter_section_safe_for_observation();
+	_starpu_worker_relax_on();
 	STARPU_PTHREAD_MUTEX_LOCK(&hp->policy_mutex);
-	_starpu_worker_leave_section_safe_for_observation();
+	_starpu_worker_relax_off();
 
 	/* keep track of the new added task to perfom real prefetch on node */
 	unsigned nb_added_tasks = 0;
@@ -612,7 +612,7 @@ done:		;
 
 	if(task)
 	{
-		_starpu_worker_enter_section_safe_for_observation();
+		_starpu_worker_relax_on();
 		_starpu_sched_ctx_lock_write(sched_ctx_id);
 		unsigned child_sched_ctx = starpu_sched_ctx_worker_is_master_for_child_ctx(workerid, sched_ctx_id);
 		if(child_sched_ctx != STARPU_NMAX_SCHED_CTXS)
@@ -622,7 +622,7 @@ done:		;
 			task = NULL;
 		}
 		_starpu_sched_ctx_unlock_write(sched_ctx_id);
-		_starpu_worker_leave_section_safe_for_observation();
+		_starpu_worker_relax_off();
 		return task;
 	}
 

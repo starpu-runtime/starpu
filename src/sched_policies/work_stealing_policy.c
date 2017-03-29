@@ -535,7 +535,7 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 
 	if (task)
 	{
-		_starpu_worker_enter_section_safe_for_observation();
+		_starpu_worker_relax_on();
 		_starpu_sched_ctx_lock_write(sched_ctx_id);
 		/* there was a local task */
 		ws->per_worker[workerid].busy = 1;
@@ -548,16 +548,16 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 			task = NULL;
 		}
 		_starpu_sched_ctx_unlock_write(sched_ctx_id);
-		_starpu_worker_leave_section_safe_for_observation();
+		_starpu_worker_relax_off();
 		return task;
 	}
 
 	/* While stealing, relieve mutex used to synchronize with pushers */
-	_starpu_worker_enter_section_safe_for_observation();
+	_starpu_worker_relax_on();
 
 	/* we need to steal someone's job */
 	int victim = ws->select_victim(ws, sched_ctx_id, workerid);
-	_starpu_worker_leave_section_safe_for_observation();
+	_starpu_worker_relax_off();
 	if (victim == -1)
 	{
 		return NULL;
@@ -595,7 +595,7 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 	}
 #endif
 
-	_starpu_worker_enter_section_safe_for_observation();
+	_starpu_worker_relax_on();
 	if (task)
 	{
 		_starpu_sched_ctx_lock_write(sched_ctx_id);
@@ -605,12 +605,12 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 			starpu_sched_ctx_move_task_to_ctx(task, child_sched_ctx, 1, 1);
 			starpu_sched_ctx_revert_task_counters(sched_ctx_id, task->flops);
 			_starpu_sched_ctx_unlock_write(sched_ctx_id);
-			_starpu_worker_leave_section_safe_for_observation();
+			_starpu_worker_relax_off();
 			return NULL;
 		}
 		_starpu_sched_ctx_unlock_write(sched_ctx_id);
 	}
-	_starpu_worker_leave_section_safe_for_observation();
+	_starpu_worker_relax_off();
 	ws->per_worker[workerid].busy = !!task;
 	return task;
 }

@@ -179,7 +179,7 @@ static int push_task_peager_policy(struct starpu_task *task)
 
 static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 {
-	_starpu_worker_enter_section_safe_for_observation();
+	_starpu_worker_relax_on();
 	struct _starpu_peager_data *data = (struct _starpu_peager_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
 	int workerid = starpu_worker_get_id_check();
@@ -189,7 +189,7 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 	{
 		struct starpu_task *task = NULL;
 		STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
-		_starpu_worker_leave_section_safe_for_observation();
+		_starpu_worker_relax_off();
 		task = _starpu_fifo_pop_task(data->fifo, workerid);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 
@@ -206,7 +206,7 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 	{
 		/* The worker is a master */
 		STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
-		_starpu_worker_leave_section_safe_for_observation();
+		_starpu_worker_relax_off();
 		task = _starpu_fifo_pop_task(data->fifo, workerid);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 
@@ -285,7 +285,7 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 	{
 		/* The worker is a slave */
 		STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
-		_starpu_worker_leave_section_safe_for_observation();
+		_starpu_worker_relax_off();
 		task = _starpu_fifo_pop_task(data->local_fifo[workerid], workerid);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 	}

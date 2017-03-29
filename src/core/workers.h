@@ -904,7 +904,7 @@ static inline void _starpu_worker_unlock_for_observation(int workerid)
 
 /* Temporarily allow other worker to access current worker state, when still scheduling,
  * but the scheduling has not yet been made or is already done */
-static inline void _starpu_worker_enter_section_safe_for_observation(void)
+static inline void _starpu_worker_relax_on(void)
 {
 	int workerid = starpu_worker_get_id_check();
 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
@@ -916,7 +916,7 @@ static inline void _starpu_worker_enter_section_safe_for_observation(void)
 	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 }
 
-static inline void _starpu_worker_leave_section_safe_for_observation(void)
+static inline void _starpu_worker_relax_off(void)
 {
 	int workerid = starpu_worker_get_id_check();
 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
@@ -927,7 +927,7 @@ static inline void _starpu_worker_leave_section_safe_for_observation(void)
 	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 }
 
-static inline int _starpu_worker_get_observation_safe_state(void)
+static inline int _starpu_worker_get_relax_state(void)
 {
 	int workerid = starpu_worker_get_id();
 	if (workerid < 0)

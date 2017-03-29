@@ -191,7 +191,7 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 
 static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 {
-	_starpu_worker_enter_section_safe_for_observation();
+	_starpu_worker_relax_on();
 	struct starpu_task *chosen_task = NULL, *task, *nexttask;
 	unsigned workerid = starpu_worker_get_id_check();
 	int skipped = 0;
@@ -202,7 +202,7 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 
 	/* block until some event happens */
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
-	_starpu_worker_leave_section_safe_for_observation();
+	_starpu_worker_relax_off();
 
 	/* Here helgrind would shout that this is unprotected, this is just an
 	 * integer access, and we hold the sched mutex, so we can not miss any
@@ -278,7 +278,7 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 		/* Tell pushers that we are waiting for tasks for us */
 		starpu_bitmap_set(data->waiters, workerid);
 
-	_starpu_worker_enter_section_safe_for_observation();
+	_starpu_worker_relax_on();
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 
 	if(chosen_task)
@@ -295,7 +295,7 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 		}
 		_starpu_sched_ctx_unlock_write(sched_ctx_id);
 	}
-	_starpu_worker_leave_section_safe_for_observation();
+	_starpu_worker_relax_off();
 
 	return chosen_task;
 }
