@@ -399,6 +399,7 @@ int STARPU_LU(lu_decomposition_pivot)(TYPE *matA, unsigned *ipiv, unsigned size,
 
 	/* gather all the data */
 	starpu_data_unpartition(dataA, STARPU_MAIN_RAM);
+	starpu_data_unregister(dataA);
 	free(piv_description);
 
 	return ret;

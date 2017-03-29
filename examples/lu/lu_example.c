@@ -422,12 +422,14 @@ int main(int argc, char **argv)
 		if (pivot)
 		{
 			pivot_saved_matrix(ipiv);
-			free(ipiv);
 		}
 
 		check_result();
 	}
 #endif
+
+	if (pivot)
+		free(ipiv);
 
 	starpu_free_flags(A, (size_t)size*size*sizeof(TYPE), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
 

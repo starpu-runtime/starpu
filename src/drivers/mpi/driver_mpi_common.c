@@ -80,7 +80,10 @@ int _starpu_mpi_common_mp_init()
 #endif
 
                 int thread_support;
-                STARPU_ASSERT(MPI_Init_thread(_starpu_get_argc(), _starpu_get_argv(), required, &thread_support) == MPI_SUCCESS);
+                if (MPI_Init_thread(_starpu_get_argc(), _starpu_get_argv(), required, &thread_support) != MPI_SUCCESS)
+		{
+			STARPU_ABORT_MSG("Cannot Initialize MPI !");
+		}
 
                 if (thread_support != required)
                 {

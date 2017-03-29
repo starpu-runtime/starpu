@@ -73,6 +73,9 @@ int starpu_pthread_create_on(char *name, starpu_pthread_t *thread, const starpu_
 	void *tsd;
 	_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));
 	*thread = MSG_process_create_with_arguments(name, _starpu_simgrid_thread_start, tsd, host, 2, _args);
+#if SIMGRID_VERSION_MAJOR > 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR >= 15)
+	MSG_process_ref(*thread);
+#endif
 	return 0;
 }
 
@@ -85,6 +88,9 @@ int starpu_pthread_join(starpu_pthread_t thread STARPU_ATTRIBUTE_UNUSED, void **
 {
 #if SIMGRID_VERSION_MAJOR > 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR >= 14)
 	MSG_process_join(thread, 1000000);
+#if SIMGRID_VERSION_MAJOR > 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR >= 15)
+	MSG_process_unref(thread);
+#endif
 #else
 	MSG_process_sleep(1);
 #endif

@@ -751,6 +751,10 @@ int main(int argc, char **argv)
 			result[TRANSLATE(i)] = Bformer[TRANSLATE(i)];
 		}
 
+		free(nzval);
+		free(colind);
+		free(rowptr);
+		free(B);
 	}
 	else
 	{
