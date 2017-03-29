@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010,2011 University of Bordeaux
- * Copyright (C) 2016  CNRS
+ * Copyright (C) 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -141,7 +141,7 @@ soclCreateProgramWithSource(cl_context      context,
       *errcode_ret = CL_SUCCESS;
       for (i=0; i<socl_device_count; i++) {
          if (data->errcodes[i] != CL_SUCCESS) {
-            DEBUG_MSG("Worker [%d] failed\n", i);
+            DEBUG_MSG("Worker [%u] failed\n", i);
             DEBUG_CL("clCreateProgramWithSource", data->errcodes[i]);
             *errcode_ret = data->errcodes[i];
             break;
