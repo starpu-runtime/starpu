@@ -1611,7 +1611,7 @@ void starpu_sched_ctx_display_workers(unsigned sched_ctx_id, FILE *f)
 	unsigned i;
 
 	nworkers = starpu_sched_ctx_get_workers_list(sched_ctx_id, &workerids);
-	fprintf(f, "[sched_ctx %d]: %d worker%s\n", sched_ctx_id, nworkers, nworkers>1?"s":"");
+	fprintf(f, "[sched_ctx %u]: %u worker%s\n", sched_ctx_id, nworkers, nworkers>1?"s":"");
 	for (i = 0; i < nworkers; i++)
 	{
 		char name[256];
@@ -1994,14 +1994,13 @@ void starpu_sched_ctx_bind_current_thread_to_cpuid(unsigned cpuid STARPU_ATTRIBU
 #ifdef STARPU_SIMGRID
 	return;
 #else
-	struct _starpu_machine_config *config = _starpu_get_machine_config();
-
 	/* FIXME: why not factorize with _starpu_bind_thread_on_cpu? */
 
 	if (nobind > 0)
 		return;
 
 #ifdef STARPU_HAVE_HWLOC
+	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	const struct hwloc_topology_support *support = hwloc_topology_get_support (config->topology.hwtopology);
 	if (support->cpubind->set_thisthread_cpubind)
 	{

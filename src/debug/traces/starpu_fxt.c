@@ -1154,7 +1154,7 @@ static void handle_start_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_op
 #ifdef STARPU_HAVE_POTI
 			char container[STARPU_POTI_STR_LEN];
 			char ctx[6];
-			snprintf(ctx, sizeof(ctx), "Ctx%d", sched_ctx);
+			snprintf(ctx, sizeof(ctx), "Ctx%u", sched_ctx);
 			worker_container_alias(container, STARPU_POTI_STR_LEN, prefix, ev->param[2]);
 			poti_SetState(start_codelet_time, container, ctx, name);
 #else
@@ -1272,11 +1272,11 @@ static void handle_codelet_details(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 #ifdef STARPU_HAVE_POTI
 			char container[STARPU_POTI_STR_LEN];
 			char ctx[6];
-			snprintf(ctx, sizeof(ctx), "Ctx%d", sched_ctx);
+			snprintf(ctx, sizeof(ctx), "Ctx%u", sched_ctx);
 			worker_container_alias(container, STARPU_POTI_STR_LEN, prefix, worker);
 			poti_SetState(last_codelet_start[worker], container, ctx, _starpu_last_codelet_symbol[worker]);
 #else
-			fprintf(out_paje_file, "20	%.9f	%sw%d	Ctx%u	%s	%ld	%s	%08lx	%016lx	%ld\n", last_codelet_start[worker], prefix, worker, sched_ctx, _starpu_last_codelet_symbol[worker], ev->param[1], parameters,  ev->param[2], ev->param[4], job_id);
+			fprintf(out_paje_file, "20	%.9f	%sw%d	Ctx%u	%s	%lu	%s	%08lx	%016lx	%ld\n", last_codelet_start[worker], prefix, worker, sched_ctx, _starpu_last_codelet_symbol[worker], ev->param[1], parameters,  ev->param[2], ev->param[4], job_id);
 #endif
 		}
 	}

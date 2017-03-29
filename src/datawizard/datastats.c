@@ -64,7 +64,7 @@ void _starpu_display_msi_stats(FILE *stream)
 	{
 		if (hit_cnt[node]+miss_cnt[node])
 		{
-			fprintf(stream, "memory node %d\n", node);
+			fprintf(stream, "memory node %u\n", node);
 			fprintf(stream, "\thit : %u (%2.2f \%%)\n", hit_cnt[node], (100.0f*hit_cnt[node])/(hit_cnt[node]+miss_cnt[node]));
 			fprintf(stream, "\tmiss : %u (%2.2f \%%)\n", miss_cnt[node], (100.0f*miss_cnt[node])/(hit_cnt[node]+miss_cnt[node]));
 		}
@@ -106,13 +106,13 @@ void _starpu_display_alloc_cache_stats(FILE *stream)
 	{
 		if (alloc_cnt[node])
 		{
-			fprintf(stream, "memory node %d\n", node);
+			fprintf(stream, "memory node %u\n", node);
 			fprintf(stream, "\ttotal alloc : %u\n", alloc_cnt[node]);
 			fprintf(stream, "\tcached alloc: %u (%2.2f \%%)\n",
 				alloc_cache_hit_cnt[node], (100.0f*alloc_cache_hit_cnt[node])/(alloc_cnt[node]));
 		}
 		else
-			fprintf(stream, "No allocation on node %d\n", node);
+			fprintf(stream, "No allocation on node %u\n", node);
 	}
 	fprintf(stream, "#---------------------\n");
 #endif
@@ -157,7 +157,7 @@ void _starpu_display_comm_amounts(FILE *stream)
 		for (src = dst + 1; src < STARPU_MAXNODES; src++)
 		{
 			if (comm_amount[src][dst])
-				fprintf(stream, "\t%d <-> %d\t%f MB\n\t\t%d -> %d\t%f MB\n\t\t%d -> %d\t%f MB\n",
+				fprintf(stream, "\t%u <-> %u\t%f MB\n\t\t%u -> %u\t%f MB\n\t\t%u -> %u\t%f MB\n",
 					src, dst, ((float)comm_amount[src][dst] + (float)comm_amount[dst][src])/(1024*1024),
 					src, dst, ((float)comm_amount[src][dst])/(1024*1024),
 					dst, src, ((float)comm_amount[dst][src])/(1024*1024));

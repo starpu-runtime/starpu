@@ -619,7 +619,7 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel *model)
 	fprintf(f, "####################\n");
 	fprintf(f, "# COMBs\n");
 	fprintf(f, "# number of combinations\n");
-	fprintf(f, "%u\n", ncombs);
+	fprintf(f, "%d\n", ncombs);
 
 	int i, impl, dev;
 	for(i = 0; i < ncombs; i++)
@@ -629,7 +629,7 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel *model)
 		fprintf(f, "####################\n");
 		fprintf(f, "# COMB_%d\n", comb);
 		fprintf(f, "# number of types devices\n");
-		fprintf(f, "%u\n", ndevices);
+		fprintf(f, "%d\n", ndevices);
 
 		for(dev = 0; dev < ndevices; dev++)
 		{
@@ -652,7 +652,7 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel *model)
 		int nimpls = model->state->nimpls[comb];
 		fprintf(f, "##########\n");
 		fprintf(f, "# number of implementations\n");
-		fprintf(f, "%u\n", nimpls);
+		fprintf(f, "%d\n", nimpls);
 		for (impl = 0; impl < nimpls; impl++)
 		{
 			dump_per_arch_model_file(f, model, comb, impl);

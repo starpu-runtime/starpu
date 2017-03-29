@@ -223,7 +223,7 @@ static struct starpu_task *dmda_pop_task(unsigned sched_ctx_id)
 	fifo->exp_start = STARPU_MAX(starpu_timing_now(), fifo->exp_start);
 	fifo->exp_end = fifo->exp_start + fifo->exp_len;
 
-	STARPU_ASSERT_MSG(fifo, "worker %d does not belong to ctx %d anymore.\n", workerid, sched_ctx_id);
+	STARPU_ASSERT_MSG(fifo, "worker %u does not belong to ctx %u anymore.\n", workerid, sched_ctx_id);
 
 	task = _starpu_fifo_pop_local_task(fifo);
 	if (task)
@@ -596,7 +596,7 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 				/* no one on that queue may execute this task */
 				continue;
 			}
-			STARPU_ASSERT_MSG(fifo != NULL, "worker %d ctx %d\n", worker, sched_ctx_id);
+			STARPU_ASSERT_MSG(fifo != NULL, "worker %u ctx %u\n", worker, sched_ctx_id);
 
 			int fifo_ntasks = fifo->ntasks;
 			double prev_exp_len = fifo->exp_len;
