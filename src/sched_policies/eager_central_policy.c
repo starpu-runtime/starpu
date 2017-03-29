@@ -150,21 +150,15 @@ static struct starpu_task *pop_every_task_eager_policy(unsigned sched_ctx_id)
 
 static struct starpu_task *pop_task_eager_policy(unsigned sched_ctx_id)
 {
-	_starpu_worker_relax_on();
 	struct starpu_task *chosen_task = NULL;
 	unsigned workerid = starpu_worker_get_id_check();
 	struct _starpu_eager_center_policy_data *data = (struct _starpu_eager_center_policy_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-
-	/* block until some event happens */
-	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
-	_starpu_worker_relax_off();
 
 	/* Here helgrind would shout that this is unprotected, this is just an
 	 * integer access, and we hold the sched mutex, so we can not miss any
 	 * wake up. */
 	if (!STARPU_RUNNING_ON_VALGRIND && _starpu_fifo_empty(data->fifo))
 	{
-		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 		return NULL;
 	}
 
@@ -172,10 +166,13 @@ static struct starpu_task *pop_task_eager_policy(unsigned sched_ctx_id)
 	if (!STARPU_RUNNING_ON_VALGRIND && starpu_bitmap_get(data->waiters, workerid))
 		/* Nobody woke us, avoid bothering the mutex */
 	{
-		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 		return NULL;
 	}
 #endif
+	/* block until some event happens */
+	_starpu_worker_relax_on();
+	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
+	_starpu_worker_relax_off();
 
 	chosen_task = _starpu_fifo_pop_task(data->fifo, workerid);
 	if (!chosen_task)
