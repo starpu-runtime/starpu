@@ -583,7 +583,7 @@ static struct starpu_task *pop_task_heteroprio_policy(unsigned sched_ctx_id)
 				   && hp->workers_heteroprio[victim].tasks_queue->ntasks)
 				{
 					/* ensure the worker is not currently prefetching its data */
-					_starpu_worker_lock_for_observation_relax(victim);
+					_starpu_worker_lock(victim);
 
 					if(hp->workers_heteroprio[victim].arch_index == worker->arch_index
 					   && hp->workers_heteroprio[victim].tasks_queue->ntasks)

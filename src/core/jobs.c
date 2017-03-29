@@ -714,7 +714,7 @@ int _starpu_push_local_task(struct _starpu_worker *worker, struct starpu_task *t
 	if (STARPU_UNLIKELY(!(worker->worker_mask & task->cl->where)))
 		return -ENODEV;
 
-	_starpu_worker_lock_for_observation_relax(worker->workerid);
+	_starpu_worker_lock(worker->workerid);
 
 	if (task->execute_on_a_specific_worker && task->workerorder)
 	{

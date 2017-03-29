@@ -839,7 +839,7 @@ static inline void _starpu_worker_leave_changing_ctx_op(struct _starpu_worker * 
  *
  * notes:
  * - if the observed worker is not in state_safe_for_observation, the function block until the state is reached */
-static inline void _starpu_worker_lock_for_observation_relax(int workerid)
+static inline void _starpu_worker_lock(int workerid)
 {
 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 	STARPU_ASSERT(worker != NULL);
@@ -865,7 +865,7 @@ static inline void _starpu_worker_lock_for_observation_relax(int workerid)
 	}
 }
 
-static inline int _starpu_worker_trylock_for_observation(int workerid)
+static inline int _starpu_worker_trylock(int workerid)
 {
 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 	STARPU_ASSERT(worker != NULL);

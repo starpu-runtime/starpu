@@ -445,7 +445,7 @@ static void simple_worker_can_pull(struct starpu_sched_component * worker_compon
 {
 	struct _starpu_worker * worker = _starpu_sched_component_worker_get_worker(worker_component);
 	int workerid = worker->workerid;
-	_starpu_worker_lock_for_observation_relax(workerid);
+	_starpu_worker_lock(workerid);
 	if(_starpu_sched_component_worker_is_reset_status(worker_component))
 		_starpu_sched_component_worker_set_changed_status(worker_component);
 	if(workerid != _starpu_worker_get_id() && _starpu_sched_component_worker_is_sleeping_status(worker_component))
@@ -658,7 +658,7 @@ static void combined_worker_can_pull(struct starpu_sched_component * component)
 		if((unsigned) i == workerid)
 			continue;
 		int workerid = data->combined_worker->combined_workerid[i];
-		_starpu_worker_lock_for_observation_relax(workerid);
+		_starpu_worker_lock(workerid);
 		if(_starpu_sched_component_worker_is_sleeping_status(component))
 		{
 			starpu_wake_worker_locked(workerid);
@@ -815,7 +815,7 @@ void _starpu_sched_component_lock_all_workers(void)
 {
 	unsigned i;
 	for(i = 0; i < starpu_worker_get_count(); i++)
-		_starpu_worker_lock_for_observation_relax(i);
+		_starpu_worker_lock(i);
 }
 void _starpu_sched_component_unlock_all_workers(void)
 {

@@ -359,7 +359,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 	starpu_sched_ctx_call_pushed_task_cb(best_workerid, sched_ctx_id);
 #endif //STARPU_USE_SC_HYPERVISOR
 
-	_starpu_worker_lock_for_observation_relax(best_workerid);
+	_starpu_worker_lock(best_workerid);
 
         /* Sometimes workers didn't take the tasks as early as we expected */
 	fifo->exp_start = isnan(fifo->exp_start) ? starpu_timing_now() + fifo->pipeline_len : STARPU_MAX(fifo->exp_start, starpu_timing_now());
@@ -433,7 +433,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 	int ret = 0;
 	if (prio)
 	{
-		_starpu_worker_lock_for_observation_relax(best_workerid);
+		_starpu_worker_lock(best_workerid);
 		ret =_starpu_fifo_push_sorted_task(dt->queue_array[best_workerid], task);
 		if(dt->num_priorities != -1)
 		{
@@ -452,7 +452,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 	}
 	else
 	{
-		_starpu_worker_lock_for_observation_relax(best_workerid);
+		_starpu_worker_lock(best_workerid);
 		starpu_task_list_push_back (&dt->queue_array[best_workerid]->taskq, task);
 		dt->queue_array[best_workerid]->ntasks++;
 		dt->queue_array[best_workerid]->nprocessed++;
@@ -686,7 +686,7 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 				}
 				else
 				{
-					_starpu_worker_lock_for_observation_relax(workerid);
+					_starpu_worker_lock(workerid);
 					prev_exp_len = _starpu_fifo_get_exp_len_prev_task_list(fifo, task, workerid, nimpl, &fifo_ntasks);
 					_starpu_worker_unlock_for_observation(workerid);
 				}
@@ -1135,7 +1135,7 @@ static void dmda_push_task_notify(struct starpu_task *task, int workerid, int pe
 	double predicted_transfer = starpu_task_expected_data_transfer_time(memory_node, task);
 
 	/* Update the predictions */
-	_starpu_worker_lock_for_observation_relax(workerid);
+	_starpu_worker_lock(workerid);
 	/* Sometimes workers didn't take the tasks as early as we expected */
 	fifo->exp_start = isnan(fifo->exp_start) ? starpu_timing_now() + fifo->pipeline_len : STARPU_MAX(fifo->exp_start, starpu_timing_now());
 	fifo->exp_end = fifo->exp_start + fifo->exp_len;

@@ -563,7 +563,7 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 		return NULL;
 	}
 
-	if (_starpu_worker_trylock_for_observation(victim))
+	if (_starpu_worker_trylock(victim))
 	{
 		/* victim is busy, don't bother it, come back later */
 		return NULL;
@@ -636,7 +636,7 @@ int ws_push_task(struct starpu_task *task)
 	if (workerid == -1 || !starpu_sched_ctx_contains_worker(workerid, sched_ctx_id) ||
 			!starpu_worker_can_execute_task_first_impl(workerid, task, NULL))
 		workerid = select_worker(ws, task, sched_ctx_id);
-	_starpu_worker_lock_for_observation_relax(workerid);
+	_starpu_worker_lock(workerid);
 	STARPU_AYU_ADDTOTASKQUEUE(starpu_task_get_job_id(task), workerid);
 	_STARPU_TASK_BREAK_ON(task, sched);
 	record_data_locality(task, workerid);

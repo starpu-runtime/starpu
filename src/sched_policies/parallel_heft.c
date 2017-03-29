@@ -116,7 +116,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 
 	if (!starpu_worker_is_combined_worker(best_workerid))
 	{
-		_starpu_worker_lock_for_observation_relax(best_workerid);
+		_starpu_worker_lock(best_workerid);
 		task->predicted = exp_end_predicted - worker_exp_end[best_workerid];
 		/* TODO */
 		task->predicted_transfer = 0;
@@ -162,7 +162,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 			/* TODO */
 			alias->predicted_transfer = 0;
 			alias->destroy = 1;
-			_starpu_worker_lock_for_observation_relax(local_combined_workerid);
+			_starpu_worker_lock(local_combined_workerid);
 			worker_exp_len[local_combined_workerid] += alias->predicted;
 			worker_exp_end[local_combined_workerid] = exp_end_predicted;
 			worker_exp_start[local_combined_workerid] = exp_end_predicted - worker_exp_len[local_combined_workerid];
@@ -312,7 +312,7 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 		if(!starpu_worker_is_combined_worker(workerid))
 		{
 			/* Sometimes workers didn't take the tasks as early as we expected */
-			_starpu_worker_lock_for_observation_relax(workerid);
+			_starpu_worker_lock(workerid);
 			worker_exp_start[workerid] = STARPU_MAX(worker_exp_start[workerid], starpu_timing_now());
 			worker_exp_end[workerid] = worker_exp_start[workerid] + worker_exp_len[workerid];
 			if (worker_exp_end[workerid] > max_exp_end)
