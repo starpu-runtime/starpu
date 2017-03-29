@@ -110,9 +110,6 @@ int main(int argc, char** argv)
 	assert(ret == 0);
 
 	conf.sched_policy_name = "heteroprio";
-#warning "heteroprio needs update with new synchro scheme"
-	return 77;
-
 	conf.sched_policy_init = &initSchedulerCallback;
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV)
