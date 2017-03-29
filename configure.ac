@@ -348,9 +348,10 @@ else
     build_mpi_master_slave=no
 fi
 
-#Warn users that they cannot use both at the same time
+#users cannot use both at the same time
 if test x$build_mpi_master_slave = xyes -a x$enable_mpi = xyes; then
-    AC_MSG_WARN(StarPU-MPI and MPI Master-Slave cannot be used at the same time !)
+    AC_MSG_WARN(StarPU-MPI and MPI Master-Slave cannot be used at the same time ! Disabling StarPU-MPI...)
+	enable_mpi=no
 fi
 
 if test x$build_mpi_master_slave = xyes; then
