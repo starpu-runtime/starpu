@@ -201,9 +201,9 @@ static void do_schedule_graph_test_policy(unsigned sched_ctx_id)
 	{
 		/* Wake each worker */
 		unsigned worker = workers->get_next(workers, &it);
-		STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
-		starpu_wake_worker(worker);
-		STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
+		_starpu_worker_lock(worker);
+		starpu_wake_worker_locked(worker);
+		_starpu_worker_unlock(worker);
 	}
 #endif
 }
