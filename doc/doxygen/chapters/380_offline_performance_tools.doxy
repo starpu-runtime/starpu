@@ -129,7 +129,7 @@ collect the trace files from the MPI nodes, and
 specify them all on the command <c>starpu_fxt_tool</c>, for instance:
 
 \verbatim
-$ starpu_fxt_tool -i /tmp/prof_file_something1 -i /tmp/prof_file_something2
+$ starpu_fxt_tool -i /tmp/prof_file_something*
 \endverbatim
 
 By default, all tasks are displayed using a green color. To display tasks with
