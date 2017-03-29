@@ -314,6 +314,9 @@ static inline int _starpu_can_use_nth_implementation(enum starpu_worker_archtype
 int starpu_worker_can_execute_task(unsigned workerid, struct starpu_task *task, unsigned nimpl)
 {
 	/* if the worker is blocked in a parallel ctx don't submit tasks on it */
+#ifdef STARPU_DEVEL
+#warning FIXME: this is very expensive, while can_execute is supposed to be not very costly so schedulers can call it a lot
+#endif
 	if(starpu_worker_is_blocked_in_parallel(workerid))
 		return 0;
 
