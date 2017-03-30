@@ -1706,7 +1706,7 @@ unsigned starpu_worker_is_blocked_in_parallel(int workerid)
 	STARPU_ASSERT(worker != NULL);
 	STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
 	int cur_workerid = starpu_worker_get_id();
-	if (workerid != cur_workerid)
+	if (workerid != cur_workerid && worker->status != STATUS_SLEEPING)
 	{
 		/* in order to observe the 'blocked' state of a worker from
 		 * another worker, we must avoid race conditions between
@@ -1730,9 +1730,10 @@ unsigned starpu_worker_is_blocked_in_parallel(int workerid)
 		 * and also waits for any pending blocking state change
 		 * requests to be processed, in order to not obtain an
 		 * ephemeral information */
-		while (!worker->state_safe_for_observation
-				|| worker->state_block_in_parallel_req
-				|| worker->state_unblock_in_parallel_req)
+		while (worker->status != STATUS_SLEEPING &&
+				(!worker->state_safe_for_observation
+				 || worker->state_block_in_parallel_req
+				 || worker->state_unblock_in_parallel_req))
 		{
 			STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
 		}
@@ -1746,7 +1747,9 @@ unsigned starpu_worker_is_blocked_in_parallel(int workerid)
 	 * to avoid changing the observed worker state - on which the observer
 	 * made a scheduling decision - after the fact. */
 	worker->state_blocked_in_parallel_observed = 1;
-	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex); return ret; }
+	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
+	return ret;
+}
 
 unsigned starpu_worker_is_slave_somewhere(int workerid)
 {
