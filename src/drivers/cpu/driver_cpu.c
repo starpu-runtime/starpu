@@ -210,9 +210,12 @@ int _starpu_cpu_driver_init(struct _starpu_worker *cpu_worker)
 
 	_STARPU_TRACE_WORKER_INIT_END(cpu_worker->workerid);
 
+	STARPU_PTHREAD_MUTEX_LOCK_SCHED(&cpu_worker->sched_mutex);
+	cpu_worker->status = STATUS_UNKNOWN;
+	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&cpu_worker->sched_mutex);
+
 	/* tell the main thread that we are ready */
 	STARPU_PTHREAD_MUTEX_LOCK(&cpu_worker->mutex);
-	cpu_worker->status = STATUS_UNKNOWN;
 	cpu_worker->worker_is_initialized = 1;
 	STARPU_PTHREAD_COND_SIGNAL(&cpu_worker->ready_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&cpu_worker->mutex);

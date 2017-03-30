@@ -41,34 +41,40 @@
 void _starpu_wake_all_blocked_workers_on_node(unsigned nodeid)
 {
 	/* wake up all workers on that memory node */
-	unsigned cond_id;
-
 	struct _starpu_memory_node_descr * const descr = _starpu_memory_node_get_description();
-
-	starpu_pthread_mutex_t *mymutex = NULL;
-	starpu_pthread_cond_t *mycond = NULL;
-	const int myworkerid = starpu_worker_get_id();
-	if (myworkerid >= 0)
-		starpu_worker_get_sched_condition(myworkerid, &mymutex, &mycond);
+	const int cur_workerid = starpu_worker_get_id();
+	struct _starpu_worker *cur_worker = cur_workerid>=0?_starpu_get_worker_struct(cur_workerid):NULL;
 
 	STARPU_PTHREAD_RWLOCK_RDLOCK(&descr->conditions_rwlock);
 
 	unsigned nconds = descr->condition_count[nodeid];
+	unsigned cond_id;
 	for (cond_id = 0; cond_id < nconds; cond_id++)
 	{
-		struct _starpu_cond_and_mutex *condition;
-		condition  = &descr->conditions_attached_to_node[nodeid][cond_id];
+		struct _starpu_cond_and_worker *condition;
+		condition = &descr->conditions_attached_to_node[nodeid][cond_id];
 
-		if (condition->mutex == mymutex)
+		if (condition->worker == cur_worker)
 			/* No need to wake myself, and I might be called from
 			 * the scheduler with mutex locked, through
 			 * starpu_prefetch_task_input_on_node */
 			continue;
 
 		/* wake anybody waiting on that condition */
-		STARPU_PTHREAD_MUTEX_LOCK_SCHED(condition->mutex);
+		STARPU_PTHREAD_MUTEX_LOCK_SCHED(&condition->worker->sched_mutex);
+		if (condition->cond == &condition->worker->sched_cond)
+		{
+			if (condition->worker->status == STATUS_SCHEDULING)
+			{
+				condition->worker->state_keep_awake = 1;
+			}
+			else if (condition->worker->status == STATUS_SLEEPING)
+			{
+				condition->worker->status = STATUS_WAKING_UP;
+			} 
+		} 
 		STARPU_PTHREAD_COND_BROADCAST(condition->cond);
-		STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(condition->mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&condition->worker->sched_mutex);
 	}
 
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&descr->conditions_rwlock);
@@ -81,34 +87,40 @@ void _starpu_wake_all_blocked_workers_on_node(unsigned nodeid)
 void starpu_wake_all_blocked_workers(void)
 {
 	/* workers may be blocked on the various queues' conditions */
-	unsigned cond_id;
-
 	struct _starpu_memory_node_descr * const descr = _starpu_memory_node_get_description();
-
-	starpu_pthread_mutex_t *mymutex = NULL;
-	starpu_pthread_cond_t *mycond = NULL;
-	const int myworkerid = starpu_worker_get_id();
-	if (myworkerid >= 0)
-		starpu_worker_get_sched_condition(myworkerid, &mymutex, &mycond);
+	const int cur_workerid = starpu_worker_get_id();
+	struct _starpu_worker *cur_worker = cur_workerid>=0?_starpu_get_worker_struct(cur_workerid):NULL;
 
 	STARPU_PTHREAD_RWLOCK_RDLOCK(&descr->conditions_rwlock);
 
 	unsigned nconds = descr->total_condition_count;
+	unsigned cond_id;
 	for (cond_id = 0; cond_id < nconds; cond_id++)
 	{
-		struct _starpu_cond_and_mutex *condition;
-		condition  = &descr->conditions_all[cond_id];
+		struct _starpu_cond_and_worker *condition;
+		condition = &descr->conditions_all[cond_id];
 
-		if (condition->mutex == mymutex)
+		if (condition->worker == cur_worker)
 			/* No need to wake myself, and I might be called from
 			 * the scheduler with mutex locked, through
 			 * starpu_prefetch_task_input_on_node */
 			continue;
 
 		/* wake anybody waiting on that condition */
-		STARPU_PTHREAD_MUTEX_LOCK_SCHED(condition->mutex);
+		STARPU_PTHREAD_MUTEX_LOCK_SCHED(&condition->worker->sched_mutex);
+		if (condition->cond == &condition->worker->sched_cond)
+		{
+			if (condition->worker->status == STATUS_SCHEDULING)
+			{
+				condition->worker->state_keep_awake = 1;
+			}
+			else if (condition->worker->status == STATUS_SLEEPING)
+			{
+				condition->worker->status = STATUS_WAKING_UP;
+			} 
+		} 
 		STARPU_PTHREAD_COND_BROADCAST(condition->cond);
-		STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(condition->mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&condition->worker->sched_mutex);
 	}
 
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&descr->conditions_rwlock);

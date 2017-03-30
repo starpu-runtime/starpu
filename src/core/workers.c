@@ -457,14 +457,17 @@ int starpu_combined_worker_can_execute_task(unsigned workerid, struct starpu_tas
  * Runtime initialization methods
  */
 
-static void _starpu_init_worker_queue(struct _starpu_worker *workerarg)
+static void _starpu_init_worker_queue(struct _starpu_worker *worker)
 {
-	starpu_pthread_cond_t *cond = &workerarg->sched_cond;
-	starpu_pthread_mutex_t *mutex = &workerarg->sched_mutex;
+#if 0
+	starpu_pthread_cond_t *cond = &worker->sched_cond;
+	starpu_pthread_mutex_t *mutex = &worker->sched_mutex;
+	unsigned memory_node = worker->memory_node;
+#else
+#warning TODO remove
+#endif
 
-	unsigned memory_node = workerarg->memory_node;
-
-	_starpu_memory_node_register_condition(cond, mutex, memory_node);
+	_starpu_memory_node_register_condition(worker, &worker->sched_cond, worker->memory_node);
 }
 
 /*

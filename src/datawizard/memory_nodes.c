@@ -130,7 +130,7 @@ unsigned _starpu_memory_node_register(enum starpu_node_kind kind, int devid)
 /* TODO move in a more appropriate file  !! */
 /* Register a condition variable associated to worker which is associated to a
  * memory node itself. */
-void _starpu_memory_node_register_condition(starpu_pthread_cond_t *cond, starpu_pthread_mutex_t *mutex, unsigned nodeid)
+void _starpu_memory_node_register_condition(struct _starpu_worker *worker, starpu_pthread_cond_t *cond, unsigned nodeid)
 {
 	unsigned cond_id;
 	unsigned nconds_total, nconds;
@@ -143,7 +143,7 @@ void _starpu_memory_node_register_condition(starpu_pthread_cond_t *cond, starpu_
 	{
 		if (_starpu_descr.conditions_attached_to_node[nodeid][cond_id].cond == cond)
 		{
-			STARPU_ASSERT(_starpu_descr.conditions_attached_to_node[nodeid][cond_id].mutex == mutex);
+			STARPU_ASSERT(_starpu_descr.conditions_attached_to_node[nodeid][cond_id].worker == worker);
 
 			/* the condition is already in the list */
 			STARPU_PTHREAD_RWLOCK_UNLOCK(&_starpu_descr.conditions_rwlock);
@@ -153,7 +153,7 @@ void _starpu_memory_node_register_condition(starpu_pthread_cond_t *cond, starpu_
 
 	/* it was not found locally */
 	_starpu_descr.conditions_attached_to_node[nodeid][cond_id].cond = cond;
-	_starpu_descr.conditions_attached_to_node[nodeid][cond_id].mutex = mutex;
+	_starpu_descr.conditions_attached_to_node[nodeid][cond_id].worker = worker;
 	_starpu_descr.condition_count[nodeid]++;
 
 	/* do we have to add it in the global list as well ? */
@@ -170,7 +170,7 @@ void _starpu_memory_node_register_condition(starpu_pthread_cond_t *cond, starpu_
 
 	/* it was not in the global list either */
 	_starpu_descr.conditions_all[nconds_total].cond = cond;
-	_starpu_descr.conditions_all[nconds_total].mutex = mutex;
+	_starpu_descr.conditions_all[nconds_total].worker = worker;
 	_starpu_descr.total_condition_count++;
 
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&_starpu_descr.conditions_rwlock);
