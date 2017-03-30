@@ -539,6 +539,7 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 		ws->per_worker[workerid].busy = 1;
 		_starpu_worker_relax_on();
 		_starpu_sched_ctx_lock_write(sched_ctx_id);
+		_starpu_worker_relax_off();
 		starpu_sched_ctx_list_task_counters_decrement(sched_ctx_id, workerid);
 		unsigned child_sched_ctx = starpu_sched_ctx_worker_is_master_for_child_ctx(workerid, sched_ctx_id);
 		if(child_sched_ctx != STARPU_NMAX_SCHED_CTXS)
@@ -548,14 +549,11 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 			task = NULL;
 		}
 		_starpu_sched_ctx_unlock_write(sched_ctx_id);
-		_starpu_worker_relax_off();
 		return task;
 	}
 
-	/* While stealing, relieve mutex used to synchronize with pushers */
-	_starpu_worker_relax_on();
-
 	/* we need to steal someone's job */
+	_starpu_worker_relax_on();
 	int victim = ws->select_victim(ws, sched_ctx_id, workerid);
 	_starpu_worker_relax_off();
 	if (victim == -1)
@@ -604,6 +602,7 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 	{
 		_starpu_worker_relax_on();
 		_starpu_sched_ctx_lock_write(sched_ctx_id);
+		_starpu_worker_relax_off();
 		unsigned child_sched_ctx = starpu_sched_ctx_worker_is_master_for_child_ctx(workerid, sched_ctx_id);
 		if(child_sched_ctx != STARPU_NMAX_SCHED_CTXS)
 		{
@@ -614,7 +613,6 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 			return NULL;
 		}
 		_starpu_sched_ctx_unlock_write(sched_ctx_id);
-		_starpu_worker_relax_off();
 	}
 	ws->per_worker[workerid].busy = !!task;
 	return task;

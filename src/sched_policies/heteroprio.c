@@ -614,6 +614,7 @@ done:		;
 	{
 		_starpu_worker_relax_on();
 		_starpu_sched_ctx_lock_write(sched_ctx_id);
+		_starpu_worker_relax_off();
 		unsigned child_sched_ctx = starpu_sched_ctx_worker_is_master_for_child_ctx(workerid, sched_ctx_id);
 		if(child_sched_ctx != STARPU_NMAX_SCHED_CTXS)
 		{
@@ -622,7 +623,6 @@ done:		;
 			task = NULL;
 		}
 		_starpu_sched_ctx_unlock_write(sched_ctx_id);
-		_starpu_worker_relax_off();
 		return task;
 	}
 

@@ -179,11 +179,12 @@ static struct starpu_task *pop_task_eager_policy(unsigned sched_ctx_id)
 		/* Tell pushers that we are waiting for tasks for us */
 		starpu_bitmap_set(data->waiters, workerid);
 
-	_starpu_worker_relax_on();
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 	if(chosen_task)
 	{
+		_starpu_worker_relax_on();
 		_starpu_sched_ctx_lock_write(sched_ctx_id);
+		_starpu_worker_relax_off();
 		starpu_sched_ctx_list_task_counters_decrement_all_ctx_locked(chosen_task, sched_ctx_id);
 
 		unsigned child_sched_ctx = starpu_sched_ctx_worker_is_master_for_child_ctx(workerid, sched_ctx_id);
@@ -195,7 +196,6 @@ static struct starpu_task *pop_task_eager_policy(unsigned sched_ctx_id)
 		}
 		_starpu_sched_ctx_unlock_write(sched_ctx_id);
 	}
-	_starpu_worker_relax_off();
 
 	return chosen_task;
 }
