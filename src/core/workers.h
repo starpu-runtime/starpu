@@ -940,4 +940,12 @@ static inline void _starpu_worker_unlock_self(void)
 	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 }
 
+static inline int _starpu_wake_worker_relax(int workerid)
+{
+	_starpu_worker_lock(workerid);
+	int ret = starpu_wake_worker_locked(workerid);
+	_starpu_worker_unlock(workerid);
+	return ret;
+}
+
 #endif // __WORKERS_H__

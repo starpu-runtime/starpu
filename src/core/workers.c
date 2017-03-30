@@ -2126,7 +2126,7 @@ static int starpu_wakeup_worker_locked(int workerid, starpu_pthread_cond_t *sche
 	return 0;
 }
 
-static int starpu_wakeup_worker(int workerid, starpu_pthread_cond_t *sched_cond, starpu_pthread_mutex_t *sched_mutex)
+static int starpu_wakeup_worker_no_relax(int workerid, starpu_pthread_cond_t *sched_cond, starpu_pthread_mutex_t *sched_mutex)
 {
 	int success;
 	STARPU_PTHREAD_MUTEX_LOCK_SCHED(sched_mutex);
@@ -2143,12 +2143,12 @@ int starpu_wake_worker_locked(int workerid)
 	return starpu_wakeup_worker_locked(workerid, sched_cond, sched_mutex);
 }
 
-int starpu_wake_worker(int workerid)
+int starpu_wake_worker_no_relax(int workerid)
 {
 	starpu_pthread_mutex_t *sched_mutex;
 	starpu_pthread_cond_t *sched_cond;
 	starpu_worker_get_sched_condition(workerid, &sched_mutex, &sched_cond);
-	return starpu_wakeup_worker(workerid, sched_cond, sched_mutex);
+	return starpu_wakeup_worker_no_relax(workerid, sched_cond, sched_mutex);
 }
 
 int starpu_worker_get_nids_by_type(enum starpu_worker_archtype type, int *workerids, int maxsize)

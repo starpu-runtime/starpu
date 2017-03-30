@@ -438,7 +438,7 @@ static int push_task_heteroprio_policy(struct starpu_task *task)
 	{
 		unsigned worker = workers->get_next(workers, &it);
 		if (dowake[worker])
-			if (starpu_wake_worker(worker))
+			if (_starpu_wake_worker_relax(worker))
 				break; // wake up a single worker
 	}
 #endif

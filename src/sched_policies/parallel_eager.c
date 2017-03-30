@@ -170,7 +170,7 @@ static int push_task_peager_policy(struct starpu_task *task)
 		    starpu_worker_get_type(worker) != STARPU_MIC_WORKER &&
 		    starpu_worker_get_type(worker) != STARPU_CPU_WORKER)
 			|| (master == worker))
-			starpu_wake_worker(worker);
+			_starpu_wake_worker_relax(worker);
 	}
 #endif
 
