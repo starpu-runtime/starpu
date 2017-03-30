@@ -777,7 +777,9 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 			if (unknown)
 				continue;
 
-			exp_end[worker_ctx][nimpl] = exp_start + prev_exp_len + local_task_length[worker_ctx][nimpl];
+			double task_starting_time = STARPU_MAX(exp_start + prev_exp_len, starpu_timing_now() + local_data_penalty[worker_ctx][nimpl]); 
+
+			exp_end[worker_ctx][nimpl] = task_starting_time + local_task_length[worker_ctx][nimpl];
 
 			if (exp_end[worker_ctx][nimpl] < best_exp_end)
 			{
