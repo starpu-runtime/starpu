@@ -777,10 +777,14 @@ static void lws_add_workers(unsigned sched_ctx_id, int *workerids,
 	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 	struct starpu_tree *tree = (struct starpu_tree*)workers->collection_private;
 	unsigned i;
+
+	/* get the complete list of workers (not just the added one) and rebuild the proxlists */
+	nworkers = starpu_sched_ctx_get_workers_list_raw(sched_ctx_id, &workerids);
 	for (i = 0; i < nworkers; i++)
 	{
 		int workerid = workerids[i];
-		_STARPU_MALLOC(ws->per_worker[workerid].proxlist, STARPU_NMAXWORKERS*sizeof(int));
+		if (ws->per_worker[workerid].proxlist == NULL)
+			_STARPU_MALLOC(ws->per_worker[workerid].proxlist, STARPU_NMAXWORKERS*sizeof(int));
 		int bindid;
 
 		struct starpu_sched_ctx_iterator it;
