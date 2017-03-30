@@ -1729,8 +1729,7 @@ unsigned starpu_worker_is_blocked_in_parallel(int workerid)
 		 * ephemeral information */
 		while (!worker->state_safe_for_observation
 				|| worker->state_block_in_parallel_req
-				|| worker->state_unblock_in_parallel_req
-				|| worker->state_changing_ctx_notice)
+				|| worker->state_unblock_in_parallel_req)
 		{
 			STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
 		}
