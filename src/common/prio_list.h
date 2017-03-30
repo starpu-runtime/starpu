@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015-2016  Université de Bordeaux
+ * Copyright (C) 2015-2017  Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -252,9 +252,31 @@
 	static inline void ENAME##_prio_list_deinit(struct ENAME##_prio_list *priolist) \
 	{ (void) (priolist); /* ENAME##_list_deinit(&(priolist)->list); */ } \
 	static inline void ENAME##_prio_list_push_back(struct ENAME##_prio_list *priolist, struct ENAME *e) \
-	{ ENAME##_list_push_back(&(priolist)->list, (e)); } \
+	{ \
+		struct ENAME *cur; \
+		for (cur  = ENAME##_list_begin(&(priolist)->list); \
+		     cur != ENAME##_list_end(&(priolist)->list); \
+		     cur  = ENAME##_list_next(cur)) \
+			if ((e)->PRIOFIELD > cur->PRIOFIELD) \
+				break; \
+		if (cur == ENAME##_list_end(&(priolist)->list)) \
+			ENAME##_list_push_back(&(priolist)->list, (e)); \
+		else \
+			ENAME##_list_insert_before(&(priolist)->list, (e), cur); \
+	} \
 	static inline void ENAME##_prio_list_push_front(struct ENAME##_prio_list *priolist, struct ENAME *e) \
-	{ ENAME##_list_push_front(&(priolist)->list, (e)); } \
+	{ \
+		struct ENAME *cur; \
+		for (cur  = ENAME##_list_begin(&(priolist)->list); \
+		     cur != ENAME##_list_end(&(priolist)->list); \
+		     cur  = ENAME##_list_next(cur)) \
+			if ((e)->PRIOFIELD >= cur->PRIOFIELD) \
+				break; \
+		if (cur == ENAME##_list_end(&(priolist)->list)) \
+			ENAME##_list_push_back(&(priolist)->list, (e)); \
+		else \
+			ENAME##_list_insert_before(&(priolist)->list, (e), cur); \
+	} \
 	static inline int ENAME##_prio_list_empty(const struct ENAME##_prio_list *priolist) \
 	{ return ENAME##_list_empty(&(priolist)->list); } \
 	static inline void ENAME##_prio_list_erase(struct ENAME##_prio_list *priolist, struct ENAME *e) \
