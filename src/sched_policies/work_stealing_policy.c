@@ -587,10 +587,10 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
          * the opportunity to take it before going to sleep. */
 	{
 		struct _starpu_worker *worker = _starpu_get_worker_struct(starpu_worker_get_id());
-		if (!task && worker->keep_awake)
+		if (!task && worker->state_keep_awake)
 		{
 			/* keep_awake notice taken into account here, clear flag */
-			worker->keep_awake = 0;
+			worker->state_keep_awake = 0;
 			task = ws_pick_task(ws, workerid, workerid);
 			if (task)
 				locality_popped_task(ws, task, workerid, sched_ctx_id);
@@ -657,7 +657,7 @@ int ws_push_task(struct starpu_task *task)
 
 	workers->init_iterator(workers, &it);
 	while(workers->has_next(workers, &it))
-		starpu_wake_worker(workers->get_next(workers, &it));
+		_starpu_wake_worker_relax(workers->get_next(workers, &it));
 #endif
 	return 0;
 }
