@@ -790,8 +790,6 @@ static inline void  _starpu_worker_leave_sched_op(struct _starpu_worker * const 
 {
 	worker->state_safe_for_observation = 1;
 	worker->state_sched_op_pending = 0;
-	if (!worker->state_blocked_in_parallel_observed && worker->state_changing_ctx_waiting)
-		STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
 }
 
 /* Must be called with worker's sched_mutex held.

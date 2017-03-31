@@ -383,7 +383,7 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 		 * driver may go block just after the scheduler got a new task to be
 		 * executed, and thus hanging. */
 		_starpu_worker_set_status_sleeping(workerid);
-		worker->state_safe_for_observation = 1;
+		_starpu_worker_leave_sched_op(worker);
 		STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
 
 		if (_starpu_worker_can_block(memnode, worker)
@@ -394,12 +394,10 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 				STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
 			}
 			while (worker->status == STATUS_SLEEPING);
-			_starpu_worker_leave_sched_op(worker);
 			STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 		}
 		else
 		{
-			_starpu_worker_leave_sched_op(worker);
 			STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 			if (_starpu_machine_is_running())
 				_starpu_exponential_backoff(worker);
@@ -418,10 +416,10 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 	{
 		_starpu_worker_set_status_sleeping(workerid);
 	}
-	STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
 	worker->spinning_backoff = BACKOFF_MIN;
 
 	_starpu_worker_leave_sched_op(worker);
+	STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 
 
@@ -530,9 +528,11 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 			else
 			{
 				_starpu_worker_set_status_sleeping(workers[i].workerid);
-				STARPU_PTHREAD_COND_BROADCAST(&workers[i].sched_cond);
 #ifdef STARPU_NON_BLOCKING_DRIVERS
 				_starpu_worker_leave_sched_op(&workers[i]);
+#endif
+				STARPU_PTHREAD_COND_BROADCAST(&workers[i].sched_cond);
+#ifdef STARPU_NON_BLOCKING_DRIVERS
 				STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&workers[i].sched_mutex);
 #endif
 			}
@@ -554,8 +554,7 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 		 * driver may go block just after the scheduler got a new task to be
 		 * executed, and thus hanging. */
 		_starpu_worker_set_status_sleeping(workerid);
-		worker->state_safe_for_observation = 1;
-		STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
+		_starpu_worker_leave_sched_op(worker);
 
 		if (_starpu_worker_can_block(memnode, worker)
 				&& !_starpu_sched_ctx_last_worker_awake(worker))
@@ -565,12 +564,10 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 				STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
 			}
 			while (worker->status == STATUS_SLEEPING);
-			_starpu_worker_leave_sched_op(worker);
 			STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 		}
 		else
 		{
-			_starpu_worker_leave_sched_op(worker);
 			STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 			if (_starpu_machine_is_running())
 				_starpu_exponential_backoff(worker);
@@ -579,7 +576,6 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 	}
 
 	_starpu_worker_set_status_wakeup(workerid);
-	STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
 	worker->spinning_backoff = BACKOFF_MIN;
 #endif /* !STARPU_SIMGRID */
 
