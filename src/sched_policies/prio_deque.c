@@ -31,7 +31,10 @@ static inline int pred_can_execute(struct starpu_task * t, void * pworkerid)
 	int i;
 	for(i = 0; i < STARPU_MAXIMPLEMENTATIONS; i++)
 		if(starpu_worker_can_execute_task(*(int*)pworkerid, t,i))
+		{
+			starpu_task_set_implementation(t, i);
 			return 1;
+		}
 	return 0;
 }
 
