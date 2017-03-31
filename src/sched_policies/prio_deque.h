@@ -16,7 +16,7 @@
 #ifndef __PRIO_DEQUE_H__
 #define __PRIO_DEQUE_H__
 #include <starpu.h>
-#include <starpu_task_list.h>
+#include <core/task.h>
 
 
 struct _starpu_prio_list

@@ -132,25 +132,25 @@ static inline int pred_can_execute(struct starpu_task * t, void * pworkerid)
 /* From the front of the list for the highest priority */
 struct starpu_task * _starpu_prio_deque_pop_task(struct _starpu_prio_deque * pdeque)
 {
-	REMOVE_TASK(pdeque, head, prev, pred_true, STARPU_POISON_PTR);
+	REMOVE_TASK(pdeque, _head, prev, pred_true, STARPU_POISON_PTR);
 }
 struct starpu_task * _starpu_prio_deque_pop_task_for_worker(struct _starpu_prio_deque * pdeque, int workerid)
 {
 	STARPU_ASSERT(pdeque);
 	STARPU_ASSERT(workerid >= 0 && (unsigned) workerid < starpu_worker_get_count());
-	REMOVE_TASK(pdeque, head, prev, pred_can_execute, &workerid);
+	REMOVE_TASK(pdeque, _head, prev, pred_can_execute, &workerid);
 }
 
 /* From the back of the list for the highest priority */
 struct starpu_task * _starpu_prio_deque_deque_task(struct _starpu_prio_deque * pdeque)
 {
 	STARPU_ASSERT(pdeque);
-	REMOVE_TASK(pdeque, tail, next, pred_true, STARPU_POISON_PTR);
+	REMOVE_TASK(pdeque, _tail, next, pred_true, STARPU_POISON_PTR);
 }
 
 struct starpu_task * _starpu_prio_deque_deque_task_for_worker(struct _starpu_prio_deque * pdeque, int workerid)
 {
 	STARPU_ASSERT(pdeque);
 	STARPU_ASSERT(workerid >= 0 && (unsigned) workerid < starpu_worker_get_count());
-	REMOVE_TASK(pdeque, tail, next, pred_can_execute, &workerid);
+	REMOVE_TASK(pdeque, _tail, next, pred_can_execute, &workerid);
 }

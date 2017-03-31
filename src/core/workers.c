@@ -34,7 +34,6 @@
 #include <core/task.h>
 #include <datawizard/malloc.h>
 #include <profiling/profiling.h>
-#include <starpu_task_list.h>
 #include <sched_policies/sched_component.h>
 #include <datawizard/memory_nodes.h>
 #include <top/starpu_top_core.h>
