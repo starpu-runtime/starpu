@@ -44,6 +44,18 @@
  * void FOO_prio_list_push_prio_list_back(struct FOO_prio_list*, struct FOO_prio_list*)
  *   * Test whether element is part of the list
  * void FOO_prio_list_ismember(struct FOO_prio_list*, struct FOO*)
+ *   * Returns the first element of the list
+ * struct FOO*	FOO_prio_list_begin(struct FOO_prio_list*);
+ *   * Returns the value to test at the end of the list
+ * struct FOO*	FOO_prio_list_end(struct FOO_prio_list*);
+ *   * Returns the next element of the list
+ * struct FOO*	FOO_prio_list_next(struct FOO_prio_list*, struct FOO*)
+ *   * Returns the last element of the list
+ * struct FOO*	FOO_prio_list_last(struct FOO_prio_list*);
+ *   * Returns the value to test at the beginning of the list
+ * struct FOO*	FOO_prio_list_alpha(struct FOO_prio_list*);
+ *   * Retuns the previous element of the list
+ * struct FOO*	FOO_prio_list_prev(struct FOO_prio_list*, struct FOO*)
  *
  * PRIO_LIST_TYPE assumes that LIST_TYPE has already been called to create the
  * final structure.
@@ -302,7 +314,51 @@
 			return ENAME##_list_ismember(&stage->list, e); \
 		} \
 		return 0; \
-	}
+	} \
+	static inline struct ENAME *ENAME##_prio_list_begin(struct ENAME##_prio_list *priolist) \
+	{ \
+		struct starpu_rbtree_node *node; \
+		struct ENAME##_prio_list_stage *stage; \
+		if (!ENAME##_prio_list_get_first_nonempty_stage(priolist, &node, &stage)) \
+			return NULL; \
+		return ENAME##_list_begin(&stage->list); \
+	} \
+	static inline struct ENAME *ENAME##_prio_list_end(struct ENAME##_prio_list *priolist STARPU_ATTRIBUTE_UNUSED) \
+	{ return NULL; } \
+	static inline struct ENAME *ENAME##_prio_list_next(struct ENAME##_prio_list *priolist, const struct ENAME *i) \
+	{ \
+		struct ENAME *next = ENAME##_list_next(i); \
+		if (next != ENAME##_list_end(NULL)) \
+			return next; \
+		struct starpu_rbtree_node *node = starpu_rbtree_lookup(&priolist->tree, i->PRIOFIELD, ENAME##_prio_list_cmp_fn); \
+		struct ENAME##_prio_list_stage *stage; \
+		node = starpu_rbtree_next(node); \
+		if (!ENAME##_prio_list_get_next_nonempty_stage(priolist, node, &node, &stage)) \
+			return NULL; \
+		return ENAME##_list_begin(&stage->list); \
+	} \
+	static inline struct ENAME *ENAME##_prio_list_last(struct ENAME##_prio_list *priolist) \
+	{ \
+		struct starpu_rbtree_node *node; \
+		struct ENAME##_prio_list_stage *stage; \
+		if (!ENAME##_prio_list_get_last_nonempty_stage(priolist, &node, &stage)) \
+			return NULL; \
+		return ENAME##_list_last(&stage->list); \
+	} \
+	static inline struct ENAME *ENAME##_prio_list_alpha(struct ENAME##_prio_list *priolist STARPU_ATTRIBUTE_UNUSED) \
+	{ return NULL; } \
+	static inline struct ENAME *ENAME##_prio_list_prev(struct ENAME##_prio_list *priolist, const struct ENAME *i) \
+	{ \
+		struct ENAME *next = ENAME##_list_prev(i); \
+		if (next != ENAME##_list_alpha(NULL)) \
+			return next; \
+		struct starpu_rbtree_node *node = starpu_rbtree_lookup(&priolist->tree, i->PRIOFIELD, ENAME##_prio_list_cmp_fn); \
+		struct ENAME##_prio_list_stage *stage; \
+		node = starpu_rbtree_prev(node); \
+		if (!ENAME##_prio_list_get_prev_nonempty_stage(priolist, node, &node, &stage)) \
+			return NULL; \
+		return ENAME##_list_last(&stage->list); \
+	} \
 
 #else
 
