@@ -185,9 +185,12 @@ unsigned starpu_worker_get_memory_node(unsigned workerid)
 /* same utility as _starpu_memory_node_add_nworkers */
 void _starpu_worker_drives_memory_node(struct _starpu_worker *worker, unsigned memnode)
 {
-	_starpu_worker_drives_memory[worker->workerid][memnode] = 1;
+	if (! _starpu_worker_drives_memory[worker->workerid][memnode])
+	{
+		_starpu_worker_drives_memory[worker->workerid][memnode] = 1;
 #ifdef STARPU_SIMGRID
-	starpu_pthread_queue_register(&worker->wait, &_starpu_simgrid_transfer_queue[memnode]);
+		starpu_pthread_queue_register(&worker->wait, &_starpu_simgrid_transfer_queue[memnode]);
 #endif
+	}
 }
 
