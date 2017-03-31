@@ -46,9 +46,11 @@ static inline int pred_can_execute(struct starpu_task * t, void * pworkerid)
 		     t  = starpu_task_prio_list_next(&pdeque->list, t))		\
 		{								\
 			if (predicate(t, parg))					\
+			{							\
 				starpu_task_prio_list_erase(&pdeque->list, t);	\
 				pdeque->ntasks--;				\
 				return t;					\
+			}							\
 		}								\
 		return NULL;							\
 	}
