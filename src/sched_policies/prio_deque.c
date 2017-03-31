@@ -51,6 +51,9 @@ static inline int pred_can_execute(struct starpu_task * t, void * pworkerid)
 				pdeque->ntasks--;				\
 				return t;					\
 			}							\
+			else							\
+				if (skipped)					\
+					*skipped = 1;				\
 		}								\
 		return NULL;							\
 	}
@@ -58,7 +61,7 @@ static inline int pred_can_execute(struct starpu_task * t, void * pworkerid)
 /* deque a task of the higher priority available */
 
 /* From the front of the list for the highest priority */
-struct starpu_task * _starpu_prio_deque_pop_task_for_worker(struct _starpu_prio_deque * pdeque, int workerid)
+struct starpu_task * _starpu_prio_deque_pop_task_for_worker(struct _starpu_prio_deque * pdeque, int workerid, int *skipped)
 {
 	STARPU_ASSERT(pdeque);
 	STARPU_ASSERT(workerid >= 0 && (unsigned) workerid < starpu_worker_get_count());
@@ -66,7 +69,7 @@ struct starpu_task * _starpu_prio_deque_pop_task_for_worker(struct _starpu_prio_
 }
 
 /* From the back of the list for the highest priority */
-struct starpu_task * _starpu_prio_deque_deque_task_for_worker(struct _starpu_prio_deque * pdeque, int workerid)
+struct starpu_task * _starpu_prio_deque_deque_task_for_worker(struct _starpu_prio_deque * pdeque, int workerid, int *skipped)
 {
 	STARPU_ASSERT(pdeque);
 	STARPU_ASSERT(workerid >= 0 && (unsigned) workerid < starpu_worker_get_count());

@@ -320,7 +320,7 @@ static struct starpu_task *pop_task_graph_test_policy(unsigned sched_ctx_id)
 		return NULL;
 	}
 
-	chosen_task = _starpu_prio_deque_pop_task_for_worker(prio, workerid);
+	chosen_task = _starpu_prio_deque_pop_task_for_worker(prio, workerid, NULL);
 	if (!chosen_task)
 		/* Tell pushers that we are waiting for tasks for us */
 		starpu_bitmap_set(data->waiters, workerid);

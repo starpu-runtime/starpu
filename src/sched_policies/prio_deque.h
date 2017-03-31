@@ -75,7 +75,7 @@ static inline struct starpu_task * _starpu_prio_deque_pop_task(struct _starpu_pr
 
 /* return a task that can be executed by workerid
  */
-struct starpu_task * _starpu_prio_deque_pop_task_for_worker(struct _starpu_prio_deque *, int workerid);
+struct starpu_task * _starpu_prio_deque_pop_task_for_worker(struct _starpu_prio_deque *, int workerid, int *skipped);
 
 /* deque a task of the higher priority available */
 static inline struct starpu_task * _starpu_prio_deque_deque_task(struct _starpu_prio_deque *pdeque)
@@ -88,6 +88,6 @@ static inline struct starpu_task * _starpu_prio_deque_deque_task(struct _starpu_
 
 /* return a task that can be executed by workerid
  */
-struct starpu_task * _starpu_prio_deque_deque_task_for_worker(struct _starpu_prio_deque *, int workerid);
+struct starpu_task * _starpu_prio_deque_deque_task_for_worker(struct _starpu_prio_deque *, int workerid, int *skipped);
 
 #endif /* __PRIO_DEQUE_H__ */
