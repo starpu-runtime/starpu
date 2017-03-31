@@ -302,9 +302,7 @@ static void _starpu_worker_set_status_scheduling_done(int workerid)
 
 static void _starpu_worker_set_status_sleeping(int workerid)
 {
-	if ( _starpu_worker_get_status(workerid) == STATUS_WAKING_UP)
-		_starpu_worker_set_status(workerid, STATUS_SLEEPING);
-	else if (_starpu_worker_get_status(workerid) != STATUS_SLEEPING)
+	if (_starpu_worker_get_status(workerid) != STATUS_SLEEPING)
 	{
 		_STARPU_TRACE_WORKER_SLEEP_START;
 		_starpu_worker_restart_sleeping(workerid);
@@ -315,7 +313,7 @@ static void _starpu_worker_set_status_sleeping(int workerid)
 
 static void _starpu_worker_set_status_wakeup(int workerid)
 {
-	if (_starpu_worker_get_status(workerid) == STATUS_SLEEPING || _starpu_worker_get_status(workerid) == STATUS_WAKING_UP)
+	if (_starpu_worker_get_status(workerid) == STATUS_SLEEPING)
 	{
 		_STARPU_TRACE_WORKER_SLEEP_END;
 		_starpu_worker_stop_sleeping(workerid);
