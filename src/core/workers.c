@@ -459,14 +459,6 @@ int starpu_combined_worker_can_execute_task(unsigned workerid, struct starpu_tas
 
 static void _starpu_init_worker_queue(struct _starpu_worker *worker)
 {
-#if 0
-	starpu_pthread_cond_t *cond = &worker->sched_cond;
-	starpu_pthread_mutex_t *mutex = &worker->sched_mutex;
-	unsigned memory_node = worker->memory_node;
-#else
-#warning TODO remove
-#endif
-
 	_starpu_memory_node_register_condition(worker, &worker->sched_cond, worker->memory_node);
 }
 
