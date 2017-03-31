@@ -64,14 +64,7 @@ void _starpu_wake_all_blocked_workers_on_node(unsigned nodeid)
 		STARPU_PTHREAD_MUTEX_LOCK_SCHED(&condition->worker->sched_mutex);
 		if (condition->cond == &condition->worker->sched_cond)
 		{
-			if (condition->worker->status == STATUS_SCHEDULING)
-			{
-				condition->worker->state_keep_awake = 1;
-			}
-			else if (condition->worker->status == STATUS_SLEEPING)
-			{
-				condition->worker->status = STATUS_WAKING_UP;
-			} 
+			condition->worker->state_keep_awake = 1;
 		} 
 		STARPU_PTHREAD_COND_BROADCAST(condition->cond);
 		STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&condition->worker->sched_mutex);
@@ -110,15 +103,8 @@ void starpu_wake_all_blocked_workers(void)
 		STARPU_PTHREAD_MUTEX_LOCK_SCHED(&condition->worker->sched_mutex);
 		if (condition->cond == &condition->worker->sched_cond)
 		{
-			if (condition->worker->status == STATUS_SCHEDULING)
-			{
-				condition->worker->state_keep_awake = 1;
-			}
-			else if (condition->worker->status == STATUS_SLEEPING)
-			{
-				condition->worker->status = STATUS_WAKING_UP;
-			} 
-		} 
+			condition->worker->state_keep_awake = 1;
+		}
 		STARPU_PTHREAD_COND_BROADCAST(condition->cond);
 		STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&condition->worker->sched_mutex);
 	}

@@ -2114,7 +2114,7 @@ static int starpu_wakeup_worker_locked(int workerid, starpu_pthread_cond_t *sche
 	}
 	else if (_starpu_config.workers[workerid].status == STATUS_SLEEPING)
 	{
-		_starpu_config.workers[workerid].status = STATUS_WAKING_UP;
+		_starpu_config.workers[workerid].state_keep_awake = 1;
 		/* cond_broadcast is required over cond_signal since
 		 * the condition is share for multiple purpose */
 		STARPU_PTHREAD_COND_BROADCAST(sched_cond);
