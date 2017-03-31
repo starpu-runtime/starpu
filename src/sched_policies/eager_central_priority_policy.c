@@ -308,7 +308,7 @@ static void eager_center_priority_add_workers(unsigned sched_ctx_id, int *worker
 		int workerid = workerids[i];
 		int curr_workerid = _starpu_worker_get_id();
 		if(workerid != curr_workerid)
-			starpu_wake_worker_locked(workerid);
+			starpu_wake_worker(workerid);
 
                 starpu_sched_ctx_worker_shares_tasks_lists(workerid, sched_ctx_id);
         }

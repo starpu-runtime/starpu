@@ -19,6 +19,7 @@
 #include <core/simgrid.h>
 #include <core/workers.h>
 
+#include <errno.h>
 #include <limits.h>
 
 #ifdef STARPU_SIMGRID
@@ -50,6 +51,16 @@ static int _starpu_futex_wake = FUTEX_WAKE;
 
 extern int _starpu_simgrid_thread_start(int argc, char *argv[]);
 
+int starpu_pthread_equal(starpu_pthread_t t1, starpu_pthread_t t2)
+{
+	return t1 == t2;
+}
+
+starpu_pthread_t starpu_pthread_self(void)
+{
+	return MSG_process_self();
+}
+
 int starpu_pthread_create_on(char *name, starpu_pthread_t *thread, const starpu_pthread_attr_t *attr STARPU_ATTRIBUTE_UNUSED, void *(*start_routine) (void *), void *arg, msg_host_t host)
 {
 	char **_args;
@@ -62,6 +73,9 @@ int starpu_pthread_create_on(char *name, starpu_pthread_t *thread, const starpu_
 	void *tsd;
 	_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));
 	*thread = MSG_process_create_with_arguments(name, _starpu_simgrid_thread_start, tsd, host, 2, _args);
+#if SIMGRID_VERSION_MAJOR > 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR >= 15)
+	MSG_process_ref(*thread);
+#endif
 	return 0;
 }
 
@@ -74,6 +88,9 @@ int starpu_pthread_join(starpu_pthread_t thread STARPU_ATTRIBUTE_UNUSED, void **
 {
 #if SIMGRID_VERSION_MAJOR > 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR >= 14)
 	MSG_process_join(thread, 1000000);
+#if SIMGRID_VERSION_MAJOR > 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR >= 15)
+	MSG_process_unref(thread);
+#endif
 #else
 	MSG_process_sleep(1);
 #endif
@@ -519,7 +536,7 @@ int starpu_pthread_queue_destroy(starpu_pthread_queue_t *q)
 #endif /* STARPU_SIMGRID */
 
 #if (defined(STARPU_SIMGRID) && !defined(STARPU_SIMGRID_HAVE_XBT_BARRIER_INIT)) || (!defined(STARPU_SIMGRID) && !defined(STARPU_HAVE_PTHREAD_BARRIER))
-int starpu_pthread_barrier_init(starpu_pthread_barrier_t *restrict barrier, const starpu_pthread_barrierattr_t *restrict attr, unsigned count)
+int starpu_pthread_barrier_init(starpu_pthread_barrier_t *restrict barrier, const starpu_pthread_barrierattr_t *restrict attr STARPU_ATTRIBUTE_UNUSED, unsigned count)
 {
 	int ret = starpu_pthread_mutex_init(&barrier->mutex, NULL);
 	if (!ret)
@@ -703,47 +720,34 @@ int starpu_pthread_barrier_wait(starpu_pthread_barrier_t *barrier)
  * macros of course) which record when the mutex is held or not */
 int starpu_pthread_mutex_lock_sched(starpu_pthread_mutex_t *mutex)
 {
-	const int workerid = starpu_worker_get_id();
-	struct _starpu_worker * const worker = (workerid != -1)?_starpu_get_worker_struct(workerid):NULL;
-	if(worker && mutex == &worker->sched_mutex)
-	{
-		STARPU_ASSERT(worker->sched_mutex_depth < UINT_MAX);
-		worker->sched_mutex_depth++;
-		if (worker->sched_mutex_depth > 1)
-			return 0;
-	}
-
-	return starpu_pthread_mutex_lock(mutex);
+	int p_ret = starpu_pthread_mutex_lock(mutex);
+	int workerid = starpu_worker_get_id();
+	if(workerid != -1 && _starpu_worker_mutex_is_sched_mutex(workerid, mutex))
+		_starpu_worker_set_flag_sched_mutex_locked(workerid, 1);
+	return p_ret;
 }
 
 int starpu_pthread_mutex_unlock_sched(starpu_pthread_mutex_t *mutex)
 {
-	const int workerid = starpu_worker_get_id();
-	struct _starpu_worker * const worker = (workerid != -1)?_starpu_get_worker_struct(workerid):NULL;
-	if(worker && mutex == &worker->sched_mutex)
-	{
-		STARPU_ASSERT(worker->sched_mutex_depth > 0);
-		worker->sched_mutex_depth--;
-		if (worker->sched_mutex_depth > 0)
-			return 0;
-	}
+	int workerid = starpu_worker_get_id();
+	if(workerid != -1 && _starpu_worker_mutex_is_sched_mutex(workerid, mutex))
+		_starpu_worker_set_flag_sched_mutex_locked(workerid, 0);
 
 	return starpu_pthread_mutex_unlock(mutex);
 }
 
 int starpu_pthread_mutex_trylock_sched(starpu_pthread_mutex_t *mutex)
 {
-	const int workerid = starpu_worker_get_id();
-	struct _starpu_worker * const worker = (workerid != -1)?_starpu_get_worker_struct(workerid):NULL;
-	if(worker && mutex == &worker->sched_mutex)
+	int ret = starpu_pthread_mutex_trylock(mutex);
+
+	if (!ret)
 	{
-		STARPU_ASSERT(worker->sched_mutex_depth < UINT_MAX);
-		worker->sched_mutex_depth++;
-		if (worker->sched_mutex_depth > 1)
-			return 0;
+		int workerid = starpu_worker_get_id();
+		if(workerid != -1 && _starpu_worker_mutex_is_sched_mutex(workerid, mutex))
+			_starpu_worker_set_flag_sched_mutex_locked(workerid, 1);
 	}
 
-	return starpu_pthread_mutex_trylock(mutex);
+	return ret;
 }
 
 #ifdef STARPU_DEBUG
@@ -870,3 +874,72 @@ void _starpu_pthread_spin_do_unlock(starpu_pthread_spinlock_t *lock)
 #endif
 
 #endif /* defined(STARPU_SIMGRID) || (defined(STARPU_LINUX_SYS) && defined(STARPU_HAVE_XCHG)) || !defined(STARPU_HAVE_PTHREAD_SPIN_LOCK) */
+
+#ifdef STARPU_SIMGRID
+
+int starpu_sem_destroy(starpu_sem_t *sem)
+{
+	MSG_sem_destroy(*sem);
+	return 0;
+}
+
+int starpu_sem_init(starpu_sem_t *sem, int pshared, unsigned value)
+{
+	STARPU_ASSERT_MSG(pshared == 0, "pshared semaphores not supported under simgrid");
+	*sem = MSG_sem_init(value);
+	return 0;
+}
+
+int starpu_sem_post(starpu_sem_t *sem)
+{
+	MSG_sem_release(*sem);
+	return 0;
+}
+
+int starpu_sem_wait(starpu_sem_t *sem)
+{
+	MSG_sem_acquire(*sem);
+	return 0;
+}
+
+int starpu_sem_trywait(starpu_sem_t *sem)
+{
+	if (MSG_sem_would_block(*sem))
+		return EAGAIN;
+	starpu_sem_wait(sem);
+	return 0;
+}
+
+int starpu_sem_getvalue(starpu_sem_t *sem, int *sval)
+{
+#if SIMGRID_VERSION_MAJOR > 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR > 13)
+	*sval = MSG_sem_get_capacity(*sem);
+	return 0;
+#else
+	(void) sem;
+	(void) sval;
+	STARPU_ABORT_MSG("sigmrid up to 3.13 did not have working MSG_sem_get_capacity");
+#endif
+}
+
+#elif !defined(_MSC_VER) || defined(BUILDING_STARPU) /* !STARPU_SIMGRID */
+
+int starpu_sem_wait(starpu_sem_t *sem)
+{
+	int ret;
+	while((ret = sem_wait(sem)) == -1 && errno == EINTR)
+		;
+
+	return ret;
+}
+
+int starpu_sem_trywait(starpu_sem_t *sem)
+{
+	int ret;
+	while((ret = sem_trywait(sem)) == -1 && errno == EINTR)
+		;
+	
+	return ret;
+}
+
+#endif

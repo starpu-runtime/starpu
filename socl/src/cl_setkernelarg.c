@@ -68,7 +68,7 @@ soclSetKernelArg(cl_kernel  kernel,
    kernel->arg_type[arg_index] = Null;
    kernel->arg_size[arg_index] = arg_size;
 
-   DEBUG_MSG("[Kernel %d] Set argument %d: argsize %ld argvalue %p\n", kernel->id, arg_index, arg_size, arg_value);
+   DEBUG_MSG("[Kernel %d] Set argument %d: argsize %ld argvalue %p\n", kernel->id, arg_index, (long)arg_size, arg_value);
 
    /* Argument is not Null */
    if (arg_value != NULL) {

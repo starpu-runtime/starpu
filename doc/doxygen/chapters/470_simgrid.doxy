@@ -9,8 +9,8 @@
 /*! \page SimGridSupport SimGrid Support
 
 StarPU can use Simgrid in order to simulate execution on an arbitrary
-platform. This was tested with simgrid 3.11, 3.12, 3.13, 3.14, and 3.14.159, other versions may have
-compatibility issues.
+platform. This was tested with simgrid from 3.11 to 3.15,
+other versions may have compatibility issues.
 
 \section Preparing Preparing Your Application For Simulation
 
@@ -36,7 +36,8 @@ To be able to run the application with e.g. CUDA simulation on a system which
 does not have CUDA installed, one can fill the cuda_funcs with (void*)1, to
 express that there is a CUDA implementation, even if one does not actually
 provide it. StarPU will not actually run it in Simgrid mode anyway by default
-(unless the ::STARPU_CODELET_SIMGRID_EXECUTE flag is set in the codelet)
+(unless the ::STARPU_CODELET_SIMGRID_EXECUTE or ::STARPU_CODELET_SIMGRID_EXECUTE_AND_INJECT
+flags are set in the codelet)
 
 \snippet simgrid.c To be included. You should update doxygen if you see this text.
 

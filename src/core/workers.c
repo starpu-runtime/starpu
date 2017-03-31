@@ -576,14 +576,9 @@ static void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu
 	workerarg->reverse_phase[0] = 0;
 	workerarg->reverse_phase[1] = 0;
 	workerarg->pop_ctx_priority = 1;
-	workerarg->sched_mutex_depth = 0;
+	workerarg->sched_mutex_locked = 0;
+	workerarg->blocked = 0;
 	workerarg->is_slave_somewhere = 0;
-
-	workerarg->state_sched_op_pending = 0;
-	workerarg->state_changing_ctx_waiting = 0;
-	workerarg->state_blocked = 0;
-	workerarg->state_wait_ack__blocked = 0;
-	workerarg->state_wait_handshake__blocked = 0;
 
 	/* cpu_set/hwloc_cpu_set initialized in topology.c */
 }
@@ -1417,14 +1412,12 @@ static void _starpu_terminate_workers(struct _starpu_machine_config *pconfig)
 		struct _starpu_worker *worker = &pconfig->workers[workerid];
 
 		/* in case StarPU termination code is called from a callback,
- 		 * we have to check if pthread_self() is the worker itself */
+ 		 * we have to check if starpu_pthread_self() is the worker itself */
 		if (set && set->nworkers > 0)
 		{
 			if (set->started)
 			{
-#ifndef STARPU_SIMGRID
-				if (!pthread_equal(pthread_self(), set->worker_thread))
-#endif
+				if (!starpu_pthread_equal(starpu_pthread_self(), set->worker_thread))
 					status = starpu_pthread_join(set->worker_thread, NULL);
 				if (status)
 				{
@@ -1440,9 +1433,7 @@ static void _starpu_terminate_workers(struct _starpu_machine_config *pconfig)
 			if (!worker->run_by_starpu)
 				goto out;
 
-#ifndef STARPU_SIMGRID
-			if (!pthread_equal(pthread_self(), worker->worker_thread))
-#endif
+			if (!starpu_pthread_equal(starpu_pthread_self(), worker->worker_thread))
 				status = starpu_pthread_join(worker->worker_thread, NULL);
 			if (status)
 			{
@@ -1697,7 +1688,7 @@ unsigned starpu_worker_get_count(void)
 
 unsigned starpu_worker_is_blocked(int workerid)
 {
-	return (unsigned)_starpu_config.workers[workerid].state_blocked;
+	return _starpu_config.workers[workerid].blocked;
 }
 
 unsigned starpu_worker_is_slave_somewhere(int workerid)
@@ -2057,7 +2048,7 @@ void starpu_worker_get_sched_condition(int workerid, starpu_pthread_mutex_t **sc
 	*sched_mutex = &_starpu_config.workers[workerid].sched_mutex;
 }
 
-static int starpu_wakeup_worker_locked(int workerid, starpu_pthread_cond_t *sched_cond, starpu_pthread_mutex_t *mutex STARPU_ATTRIBUTE_UNUSED)
+int starpu_wakeup_worker_locked(int workerid, starpu_pthread_cond_t *cond, starpu_pthread_mutex_t *mutex STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_SIMGRID
 	starpu_pthread_queue_broadcast(&_starpu_simgrid_task_queue[workerid]);
@@ -2065,19 +2056,17 @@ static int starpu_wakeup_worker_locked(int workerid, starpu_pthread_cond_t *sche
 	if (_starpu_config.workers[workerid].status == STATUS_SLEEPING)
 	{
 		_starpu_config.workers[workerid].status = STATUS_WAKING_UP;
-		/* cond_broadcast is required over cond_signal since
-		 * the condition is share for multiple purpose */
-		STARPU_PTHREAD_COND_BROADCAST(sched_cond);
+		STARPU_PTHREAD_COND_SIGNAL(cond);
 		return 1;
 	}
 	return 0;
 }
 
-static int starpu_wakeup_worker(int workerid, starpu_pthread_cond_t *sched_cond, starpu_pthread_mutex_t *mutex)
+int starpu_wakeup_worker(int workerid, starpu_pthread_cond_t *cond, starpu_pthread_mutex_t *mutex)
 {
 	int success;
 	STARPU_PTHREAD_MUTEX_LOCK_SCHED(mutex);
-	success = starpu_wakeup_worker_locked(workerid, sched_cond, mutex);
+	success = starpu_wakeup_worker_locked(workerid, cond, mutex);
 	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(mutex);
 	return success;
 }
@@ -2169,6 +2158,33 @@ void starpu_get_version(int *major, int *minor, int *release)
 	*major = STARPU_MAJOR_VERSION;
 	*minor = STARPU_MINOR_VERSION;
 	*release = STARPU_RELEASE_VERSION;
+}
+
+void _starpu_unlock_mutex_if_prev_locked()
+{
+	int workerid = starpu_worker_get_id();
+	if(workerid != -1)
+	{
+		struct _starpu_worker *w = _starpu_get_worker_struct(workerid);
+		if(w->sched_mutex_locked)
+		{
+			STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&w->sched_mutex);
+			_starpu_worker_set_flag_sched_mutex_locked(workerid, 1);
+		}
+	}
+	return;
+}
+
+void _starpu_relock_mutex_if_prev_locked()
+{
+	int workerid = starpu_worker_get_id();
+	if(workerid != -1)
+	{
+		struct _starpu_worker *w = _starpu_get_worker_struct(workerid);
+		if(w->sched_mutex_locked)
+			STARPU_PTHREAD_MUTEX_LOCK_SCHED(&w->sched_mutex);
+	}
+	return;
 }
 
 unsigned starpu_worker_get_sched_ctx_list(int workerid, unsigned **sched_ctxs)

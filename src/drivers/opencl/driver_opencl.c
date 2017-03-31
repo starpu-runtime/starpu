@@ -954,6 +954,14 @@ static int _starpu_opencl_start_job(struct _starpu_job *j, struct _starpu_worker
 			simulate = 1;
 		#endif
 		}
+		else if (cl->flags & STARPU_CODELET_SIMGRID_EXECUTE_AND_INJECT && !async)
+			{
+				_SIMGRID_TIMER_BEGIN(1);
+				func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
+				_SIMGRID_TIMER_END;
+				simulate=0;
+			}
+
 		if (simulate)
 			_starpu_simgrid_submit_job(worker->workerid, j, &worker->perf_arch, length,
 						   async ? &task_finished[worker->devid][pipeline_idx] : NULL);

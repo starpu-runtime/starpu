@@ -89,6 +89,12 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 #ifdef STARPU_SIMGRID
 			if (cl->flags & STARPU_CODELET_SIMGRID_EXECUTE)
 				func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
+			else if (cl->flags & STARPU_CODELET_SIMGRID_EXECUTE_AND_INJECT)
+			{
+				_SIMGRID_TIMER_BEGIN(1);
+				func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
+				_SIMGRID_TIMER_END;
+			}
 			else
 				_starpu_simgrid_submit_job(cpu_args->workerid, j, perf_arch, NAN, NULL);
 #else
@@ -410,13 +416,13 @@ void *_starpu_cpu_worker(void *arg)
 	struct _starpu_worker *worker = arg;
 
 	_starpu_cpu_driver_init(worker);
-	_STARPU_TRACE_END_PROGRESS(worker->memory_node);
+	_STARPU_TRACE_START_PROGRESS(worker->memory_node);
 	while (_starpu_machine_is_running())
 	{
 		_starpu_may_pause();
 		_starpu_cpu_driver_run_once(worker);
 	}
-	_STARPU_TRACE_START_PROGRESS(worker->memory_node);
+	_STARPU_TRACE_END_PROGRESS(worker->memory_node);
 	_starpu_cpu_driver_deinit(worker);
 
 	return NULL;

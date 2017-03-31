@@ -73,11 +73,26 @@ struct _starpu_sched_ctx
 	long iterations[2];
 	int iteration_level;
 
+	/* cond to block push when there are no workers in the ctx */
+	starpu_pthread_cond_t no_workers_cond;
+
+	/* mutex to block push when there are no workers in the ctx */
+	starpu_pthread_mutex_t no_workers_mutex;
+
 	/*ready tasks that couldn't be pushed because the ctx has no workers*/
 	struct starpu_task_list empty_ctx_tasks;
 
+	/* mutext protecting empty_ctx_tasks list */
+	starpu_pthread_mutex_t empty_ctx_mutex;
+
 	/*ready tasks that couldn't be pushed because the the window of tasks was already full*/
 	struct starpu_task_list waiting_tasks;
+
+	/* mutext protecting waiting_tasks list */
+	starpu_pthread_mutex_t waiting_tasks_mutex;
+
+	/* mutext protecting write to all worker's sched_ctx_list structure for this sched_ctx */
+	starpu_pthread_mutex_t sched_ctx_list_mutex;
 
 	/* min CPUs to execute*/
 	int min_ncpus;
@@ -127,9 +142,26 @@ struct _starpu_sched_ctx
 	   if not master is -1 */
 	int main_master;
 
+	/* conditions variables used when parallel sections are executed in contexts */
+	starpu_pthread_cond_t parallel_sect_cond[STARPU_NMAXWORKERS];
+	starpu_pthread_mutex_t parallel_sect_mutex[STARPU_NMAXWORKERS];
+	starpu_pthread_cond_t parallel_sect_cond_busy[STARPU_NMAXWORKERS];
+	int busy[STARPU_NMAXWORKERS];
+
 	/* boolean indicating that workers should block in order to allow
 	   parallel sections to be executed on their allocated resources */
 	unsigned parallel_sect[STARPU_NMAXWORKERS];
+
+	/* semaphore that block appl thread until starpu threads are
+	   all blocked and ready to exec the parallel code */
+	starpu_sem_t fall_asleep_sem[STARPU_NMAXWORKERS];
+
+	/* semaphore that block appl thread until starpu threads are 
+	   all woke up and ready continue appl */
+	starpu_sem_t wake_up_sem[STARPU_NMAXWORKERS];
+
+	/* bool indicating if the workers is sleeping in this ctx */
+	unsigned sleeping[STARPU_NMAXWORKERS];
 
 	/* ctx nesting the current ctx */
 	unsigned nesting_sched_ctx;
@@ -158,9 +190,6 @@ struct _starpu_sched_ctx
 	int sms_end_idx;
 
 	int stream_worker;
-
-	starpu_pthread_rwlock_t rwlock;
-	starpu_pthread_t lock_write_owner;
 };
 
 struct _starpu_machine_config;
@@ -212,9 +241,18 @@ void _starpu_worker_gets_out_of_ctx(unsigned sched_ctx_id, struct _starpu_worker
 /* Check if the worker belongs to another sched_ctx */
 unsigned _starpu_worker_belongs_to_a_sched_ctx(int workerid, unsigned sched_ctx_id);
 
+/* mutex synchronising several simultaneous modifications of a context */
+starpu_pthread_rwlock_t* _starpu_sched_ctx_get_changing_ctx_mutex(unsigned sched_ctx_id);
+
 /* indicates wheather this worker should go to sleep or not 
    (if it is the last one awake in a context he should better keep awake) */
 unsigned _starpu_sched_ctx_last_worker_awake(struct _starpu_worker *worker);
+
+/* let the appl know that the worker blocked to execute parallel code */
+void _starpu_sched_ctx_signal_worker_blocked(unsigned sched_ctx_id, int workerid);
+
+/* let the appl know that the worker woke up */
+void _starpu_sched_ctx_signal_worker_woke_up(unsigned sched_ctx_id, int workerid);
 
 /* If starpu_sched_ctx_set_context() has been called, returns the context
  * id set by its last call, or the id of the initial context */
@@ -239,44 +277,5 @@ struct _starpu_sched_ctx *__starpu_sched_ctx_get_sched_ctx_for_worker_and_job(st
 
 #define _starpu_sched_ctx_get_sched_ctx_for_worker_and_job(w,j) \
 	(_starpu_get_nsched_ctxs() <= 1 ? _starpu_get_sched_ctx_struct(0) : __starpu_sched_ctx_get_sched_ctx_for_worker_and_job((w),(j)))
-
-static inline struct _starpu_sched_ctx *_starpu_get_sched_ctx_struct(unsigned id);
-
-static inline int _starpu_sched_ctx_check_write_locked(unsigned sched_ctx_id)
-{
-	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
-	return sched_ctx->lock_write_owner == pthread_self();
-}
-#define STARPU_SCHED_CTX_CHECK_LOCK(sched_ctx_id) STARPU_ASSERT(_starpu_sched_ctx_check_write_locked((sched_ctx_id)))
-
-static inline void _starpu_sched_ctx_lock_write(unsigned sched_ctx_id)
-{
-	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
-	STARPU_ASSERT(sched_ctx->lock_write_owner != pthread_self());
-	STARPU_PTHREAD_RWLOCK_WRLOCK(&sched_ctx->rwlock);
-	sched_ctx->lock_write_owner = pthread_self();
-}
-
-static inline void _starpu_sched_ctx_unlock_write(unsigned sched_ctx_id)
-{
-	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
-	STARPU_ASSERT(sched_ctx->lock_write_owner == pthread_self());
-	sched_ctx->lock_write_owner = 0;
-	STARPU_PTHREAD_RWLOCK_UNLOCK(&sched_ctx->rwlock);
-}
-
-static inline void _starpu_sched_ctx_lock_read(unsigned sched_ctx_id)
-{
-	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
-	STARPU_ASSERT(sched_ctx->lock_write_owner != pthread_self());
-	STARPU_PTHREAD_RWLOCK_RDLOCK(&sched_ctx->rwlock);
-}
-
-static inline void _starpu_sched_ctx_unlock_read(unsigned sched_ctx_id)
-{
-	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
-	STARPU_ASSERT(sched_ctx->lock_write_owner != pthread_self());
-	STARPU_PTHREAD_RWLOCK_UNLOCK(&sched_ctx->rwlock);
-}
 
 #endif // __SCHED_CONTEXT_H__

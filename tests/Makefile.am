@@ -34,6 +34,7 @@ AM_LDFLAGS = @STARPU_EXPORT_DYNAMIC@ $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFL
 
 EXTRA_DIST =					\
 	helper.h				\
+	datawizard/locality.sh			\
 	datawizard/scal.h			\
 	datawizard/mpi_like.h			\
 	microbenchs/tasks_size_overhead.sh	\
@@ -380,6 +381,8 @@ noinst_PROGRAMS += $(MICROBENCHS)
 if STARPU_SIMGRID
 TESTS += $(MICROBENCHS:=.sh)
 endif
+
+TESTS += datawizard/locality.sh
 
 #######################
 # Source files        #

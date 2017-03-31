@@ -24,7 +24,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
-#include <pthread.h>
 #ifdef STARPU_HAVE_SCHED_YIELD
 #include <sched.h>
 #endif
@@ -97,9 +96,9 @@
 #endif
 
 #ifdef STARPU_EXTRA_VERBOSE
-#  define _STARPU_LOG_IN()             do { if (!_starpu_silent) {fprintf(stderr, STARPU_DEBUG_PREFIX"[%ld][%s:%s@%d] -->\n", pthread_self(), __starpu_func__,__FILE__,  __LINE__); }} while(0)
-#  define _STARPU_LOG_OUT()            do { if (!_starpu_silent) {fprintf(stderr, STARPU_DEBUG_PREFIX"[%ld][%s:%s@%d] <--\n", pthread_self(), __starpu_func__, __FILE__,  __LINE__); }} while(0)
-#  define _STARPU_LOG_OUT_TAG(outtag)  do { if (!_starpu_silent) {fprintf(stderr, STARPU_DEBUG_PREFIX"[%ld][%s:%s@%d] <-- (%s)\n", pthread_self(), __starpu_func__, __FILE__, __LINE__, outtag); }} while(0)
+#  define _STARPU_LOG_IN()             do { if (!_starpu_silent) {fprintf(stderr, STARPU_DEBUG_PREFIX"[%ld][%s:%s@%d] -->\n", starpu_pthread_self(), __starpu_func__,__FILE__,  __LINE__); }} while(0)
+#  define _STARPU_LOG_OUT()            do { if (!_starpu_silent) {fprintf(stderr, STARPU_DEBUG_PREFIX"[%ld][%s:%s@%d] <--\n", starpu_pthread_self(), __starpu_func__, __FILE__,  __LINE__); }} while(0)
+#  define _STARPU_LOG_OUT_TAG(outtag)  do { if (!_starpu_silent) {fprintf(stderr, STARPU_DEBUG_PREFIX"[%ld][%s:%s@%d] <-- (%s)\n", starpu_pthread_self(), __starpu_func__, __FILE__, __LINE__, outtag); }} while(0)
 #else
 #  define _STARPU_LOG_IN()
 #  define _STARPU_LOG_OUT()

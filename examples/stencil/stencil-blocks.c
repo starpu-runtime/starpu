@@ -297,11 +297,10 @@ void allocate_memory_on_node(int rank)
 
 		int node = block->mpi_node;
 
-		unsigned size_bz = block_sizes_z[bz];
-
 		/* Main blocks */
 		if (node == rank)
 		{
+			unsigned size_bz = block_sizes_z[bz];
 			allocate_block_on_node(&block->layers_handle[0], bz, &block->layers[0],
 						(sizex + 2*K), (sizey + 2*K), (size_bz + 2*K));
 #ifndef STARPU_SIMGRID
@@ -389,8 +388,8 @@ void check(int rank)
 		/* Main blocks */
 		if (node == rank)
 		{
-			unsigned size_bz = block_sizes_z[bz];
 #ifdef LIFE
+			unsigned size_bz = block_sizes_z[bz];
 			unsigned x, y, z;
 			unsigned sum = 0;
 			for (x = 0; x < sizex; x++)

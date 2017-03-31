@@ -251,6 +251,7 @@ static struct starpu_task *dmda_pop_ready_task(unsigned sched_ctx_id)
 
 	/* Take the opportunity to update start time */
 	fifo->exp_start = STARPU_MAX(starpu_timing_now(), fifo->exp_start);
+	fifo->exp_end = fifo->exp_start + fifo->exp_len;
 
 	task = _starpu_fifo_pop_first_ready_task(fifo, node, dt->num_priorities);
 	if (task)
@@ -285,6 +286,7 @@ static struct starpu_task *dmda_pop_task(unsigned sched_ctx_id)
 
 	/* Take the opportunity to update start time */
 	fifo->exp_start = STARPU_MAX(starpu_timing_now(), fifo->exp_start);
+	fifo->exp_end = fifo->exp_start + fifo->exp_len;
 
 	STARPU_ASSERT_MSG(fifo, "worker %u does not belong to ctx %u anymore.\n", workerid, sched_ctx_id);
 
@@ -321,6 +323,7 @@ static struct starpu_task *dmda_pop_every_task(unsigned sched_ctx_id)
 
 	/* Take the opportunity to update start time */
 	fifo->exp_start = STARPU_MAX(starpu_timing_now(), fifo->exp_start);
+	fifo->exp_end = fifo->exp_start + fifo->exp_len;
 
 	starpu_pthread_mutex_t *sched_mutex;
 	starpu_pthread_cond_t *sched_cond;
@@ -367,6 +370,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 
         /* Sometimes workers didn't take the tasks as early as we expected */
 	fifo->exp_start = isnan(fifo->exp_start) ? starpu_timing_now() + fifo->pipeline_len : STARPU_MAX(fifo->exp_start, starpu_timing_now());
+	fifo->exp_end = fifo->exp_start + fifo->exp_len;
 
 	if ((starpu_timing_now() + predicted_transfer) < fifo->exp_end)
 	{
@@ -448,7 +452,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 
 
 #if !defined(STARPU_NON_BLOCKING_DRIVERS) || defined(STARPU_SIMGRID)
-		starpu_wake_worker_locked(best_workerid);
+		starpu_wakeup_worker_locked(best_workerid, sched_cond, sched_mutex);
 #endif
 		starpu_push_task_end(task);
 		STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(sched_mutex);
@@ -460,7 +464,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 		dt->queue_array[best_workerid]->ntasks++;
 		dt->queue_array[best_workerid]->nprocessed++;
 #if !defined(STARPU_NON_BLOCKING_DRIVERS) || defined(STARPU_SIMGRID)
-		starpu_wake_worker_locked(best_workerid);
+		starpu_wakeup_worker_locked(best_workerid, sched_cond, sched_mutex);
 #endif
 		starpu_push_task_end(task);
 		STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(sched_mutex);
@@ -773,7 +777,9 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 			if (unknown)
 				continue;
 
-			exp_end[worker_ctx][nimpl] = exp_start + prev_exp_len + local_task_length[worker_ctx][nimpl];
+			double task_starting_time = STARPU_MAX(exp_start + prev_exp_len, starpu_timing_now() + local_data_penalty[worker_ctx][nimpl]); 
+
+			exp_end[worker_ctx][nimpl] = task_starting_time + local_task_length[worker_ctx][nimpl];
 
 			if (exp_end[worker_ctx][nimpl] < best_exp_end)
 			{
@@ -1126,6 +1132,7 @@ static void dmda_pre_exec_hook(struct starpu_task *task, unsigned sched_ctx_id)
 
 	/* Take the opportunity to update start time */
 	fifo->exp_start = STARPU_MAX(starpu_timing_now() + fifo->pipeline_len, fifo->exp_start);
+	fifo->exp_end = fifo->exp_start + fifo->exp_len;
 
 	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(sched_mutex);
 }

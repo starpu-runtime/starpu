@@ -503,8 +503,11 @@ static void simple_worker_can_pull(struct starpu_sched_component * worker_compon
 	}
 	if(_starpu_sched_component_worker_is_sleeping_status(worker_component))
 	{
+		starpu_pthread_mutex_t *sched_mutex;
+		starpu_pthread_cond_t *sched_cond;
+		starpu_worker_get_sched_condition(w->workerid, &sched_mutex, &sched_cond);
 		_starpu_sched_component_unlock_worker(worker_component->tree->sched_ctx_id, w->workerid);
-		starpu_wake_worker(w->workerid);
+		starpu_wakeup_worker(w->workerid, sched_cond, sched_mutex);
 	}
 	else
 		_starpu_sched_component_unlock_worker(worker_component->tree->sched_ctx_id, w->workerid);
@@ -723,7 +726,10 @@ static void combined_worker_can_pull(struct starpu_sched_component * component)
 		_starpu_sched_component_lock_worker(component->tree->sched_ctx_id, worker);
 		if(_starpu_sched_component_worker_is_sleeping_status(component))
 		{
-			starpu_wake_worker(worker);
+			starpu_pthread_mutex_t *sched_mutex;
+			starpu_pthread_cond_t *sched_cond;
+			starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
+			starpu_wakeup_worker(worker, sched_cond, sched_mutex);
 		}
 		if(_starpu_sched_component_worker_is_reset_status(component))
 			_starpu_sched_component_worker_set_changed_status(component);

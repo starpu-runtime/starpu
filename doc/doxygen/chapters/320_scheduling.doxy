@@ -285,8 +285,9 @@ be used to get information about how well the execution proceeded, and thus the
 overall quality of the execution.
 
 Precise debugging can also be performed by using the
-\ref STARPU_TASK_BREAK_ON_SCHED, \ref STARPU_TASK_BREAK_ON_PUSH, and
-\ref STARPU_TASK_BREAK_ON_POP environment variables. By setting the job_id of a task
+\ref STARPU_TASK_BREAK_ON_PUSH, \ref STARPU_TASK_BREAK_ON_SCHED,
+\ref STARPU_TASK_BREAK_ON_POP, and \ref STARPU_TASK_BREAK_ON_EXEC environment variables.
+By setting the job_id of a task
 in these environment variables, StarPU will raise <c>SIGTRAP</c> when the task is being
 scheduled, pushed, or popped by the scheduler. That means that when one notices
 that a task is being scheduled in a seemingly odd way, one can just reexecute

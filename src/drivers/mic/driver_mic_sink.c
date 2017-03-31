@@ -39,7 +39,7 @@ void _starpu_mic_sink_init(struct _starpu_mp_node *node)
 	cpu_set_t cpuset;
 	/* We reserve one core for the communications */
 	/*Bind on the first core*/
-	self = pthread_self();
+	self = starpu_pthread_self();
 	CPU_ZERO(&cpuset);
 	CPU_SET(0,&cpuset);
 	pthread_setaffinity_np(self,sizeof(cpu_set_t),&cpuset);

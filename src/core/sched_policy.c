@@ -31,15 +31,17 @@ static double idle[STARPU_NMAXWORKERS];
 static double idle_start[STARPU_NMAXWORKERS];
 
 long _starpu_task_break_on_push = -1;
-long _starpu_task_break_on_pop = -1;
 long _starpu_task_break_on_sched = -1;
+long _starpu_task_break_on_pop = -1;
+long _starpu_task_break_on_exec = -1;
 static const char *starpu_idle_file;
 
 void _starpu_sched_init(void)
 {
 	_starpu_task_break_on_push = starpu_get_env_number_default("STARPU_TASK_BREAK_ON_PUSH", -1);
-	_starpu_task_break_on_pop = starpu_get_env_number_default("STARPU_TASK_BREAK_ON_POP", -1);
 	_starpu_task_break_on_sched = starpu_get_env_number_default("STARPU_TASK_BREAK_ON_SCHED", -1);
+	_starpu_task_break_on_pop = starpu_get_env_number_default("STARPU_TASK_BREAK_ON_POP", -1);
+	_starpu_task_break_on_exec = starpu_get_env_number_default("STARPU_TASK_BREAK_ON_EXEC", -1);
 	starpu_idle_file = starpu_getenv("STARPU_IDLE_FILE");
 }
 
@@ -431,9 +433,9 @@ int _starpu_repush_task(struct _starpu_job *j)
 
 		if(nworkers == 0)
 		{
-			_starpu_sched_ctx_lock_write(sched_ctx->id);
+			STARPU_PTHREAD_MUTEX_LOCK(&sched_ctx->empty_ctx_mutex);
 			starpu_task_list_push_front(&sched_ctx->empty_ctx_tasks, task);
-			_starpu_sched_ctx_unlock_write(sched_ctx->id);
+			STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->empty_ctx_mutex);
 #ifdef STARPU_USE_SC_HYPERVISOR
 			if(sched_ctx->id != 0 && sched_ctx->perf_counters != NULL
 			   && sched_ctx->perf_counters->notify_empty_ctx)
@@ -497,9 +499,9 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 
 		if (nworkers == 0)
 		{
-			_starpu_sched_ctx_lock_write(sched_ctx->id);
+			STARPU_PTHREAD_MUTEX_LOCK(&sched_ctx->empty_ctx_mutex);
 			starpu_task_list_push_back(&sched_ctx->empty_ctx_tasks, task);
-			_starpu_sched_ctx_unlock_write(sched_ctx->id);
+			STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->empty_ctx_mutex);
 #ifdef STARPU_USE_SC_HYPERVISOR
 			if(sched_ctx->id != 0 && sched_ctx->perf_counters != NULL
 			   && sched_ctx->perf_counters->notify_empty_ctx)
@@ -589,6 +591,8 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 		{
 			STARPU_ASSERT(sched_ctx->sched_policy->push_task);
 			/* check out if there are any workers in the context */
+			starpu_pthread_rwlock_t *changing_ctx_mutex = _starpu_sched_ctx_get_changing_ctx_mutex(sched_ctx->id);
+			STARPU_PTHREAD_RWLOCK_RDLOCK(changing_ctx_mutex);
 			nworkers = starpu_sched_ctx_get_nworkers(sched_ctx->id);
 			if (nworkers == 0)
 				ret = -1;
@@ -599,6 +603,7 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 				ret = sched_ctx->sched_policy->push_task(task);
 				_STARPU_SCHED_END;
 			}
+			STARPU_PTHREAD_RWLOCK_UNLOCK(changing_ctx_mutex);
 		}
 
 		if(ret == -1)

@@ -15,7 +15,6 @@
  */
 
 #include <stdlib.h>
-#include <pthread.h>
 
 #include <datawizard/interfaces/data_interface.h>
 #include <drivers/mp_common/mp_common.h>
@@ -400,7 +399,7 @@ void _starpu_mp_common_send_command(const struct _starpu_mp_node *node,
 {
 	STARPU_ASSERT_MSG(arg_size <= BUFFER_SIZE, "Too much data (%d) for the static MIC buffer (%d), increase BUFFER_SIZE perhaps?", arg_size, BUFFER_SIZE);
 
-        //printf("SEND CMD : %d - arg_size %d by %lu \n", command, arg_size, pthread_self());
+        //printf("SEND CMD : %d - arg_size %d by %lu \n", command, arg_size, starpu_pthread_self());
 
 	/* MIC and MPI sizes are given through a int */
 	int command_size = sizeof(enum _starpu_mp_command);
@@ -436,7 +435,7 @@ enum _starpu_mp_command _starpu_mp_common_recv_command(const struct _starpu_mp_n
 	command = *((enum _starpu_mp_command *) node->buffer);
 	*arg_size = *((int *) ((uintptr_t)node->buffer + command_size));
 
-        //printf("RECV command : %d - arg_size %d by %lu \n", command, *arg_size, pthread_self());
+        //printf("RECV command : %d - arg_size %d by %lu \n", command, *arg_size, starpu_pthread_self());
 
 	/* If there is no argument (ie. arg_size == 0),
 	 * let's return the command right now */

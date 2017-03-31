@@ -348,9 +348,10 @@ else
     build_mpi_master_slave=no
 fi
 
-#Warn users that they cannot use both at the same time
+#users cannot use both at the same time
 if test x$build_mpi_master_slave = xyes -a x$enable_mpi = xyes; then
-    AC_MSG_WARN(StarPU-MPI and MPI Master-Slave cannot be used at the same time !)
+    AC_MSG_WARN(StarPU-MPI and MPI Master-Slave cannot be used at the same time ! Disabling StarPU-MPI...)
+	enable_mpi=no
 fi
 
 if test x$build_mpi_master_slave = xyes; then
@@ -3117,6 +3118,12 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   test -e tests/microbenchs/parallel_independent_heterogeneous_tasks.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/parallel_independent_heterogeneous_tasks.sh tests/microbenchs/
   test -e tests/microbenchs/parallel_independent_homogeneous_tasks_data.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/parallel_independent_homogeneous_tasks_data.sh tests/microbenchs/
   test -e tests/microbenchs/parallel_independent_homogeneous_tasks.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/parallel_independent_homogeneous_tasks.sh tests/microbenchs/
+  mkdir -p tests/datawizard
+  test -e tests/datawizard/locality.sh || ln -sf $ac_abs_top_srcdir/tests/datawizard/locality.sh tests/datawizard/
+  mkdir -p examples/heat
+  test -e examples/heat/heat.sh || ln -sf $ac_abs_top_srcdir/examples/heat/heat.sh examples/heat/
+  mkdir -p examples/lu
+  test -e examples/lu/lu.sh || ln -sf $ac_abs_top_srcdir/examples/lu/lu.sh examples/lu/
 ])
 
 # Create links to ICD files in build/socl/vendors directory. SOCL will use this

@@ -265,7 +265,7 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 				_starpu_fifo_push_task(data->local_fifo[local_worker], alias);
 
 #if !defined(STARPU_NON_BLOCKING_DRIVERS) || defined(STARPU_SIMGRID)
-				starpu_wake_worker_locked(local_worker);
+				starpu_wakeup_worker_locked(local_worker, sched_cond, sched_mutex);
 #endif
 				STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(sched_mutex);
 
