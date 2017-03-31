@@ -96,6 +96,68 @@ static struct _starpu_worker_set mic_worker_set[STARPU_MAXMICDEVS];
 struct _starpu_worker_set mpi_worker_set[STARPU_MAXMPIDEVS];
 #endif
 
+int _starpu_get_nb_numa_nodes(void)
+{
+	return nb_numa_nodes;
+}
+
+#if defined(STARPU_USE_NUMA) && defined(STARPU_HAVE_HWLOC)
+static int numa_get_logical_id(hwloc_obj_t obj)
+{
+	STARPU_ASSERT(obj);
+	while (obj->type != HWLOC_OBJ_NODE)
+	{
+		obj = obj->parent;
+
+		/* If we don't find a "node" obj before the root, this means
+		 * hwloc does not know whether there are numa nodes or not, so
+		 * we should not use a per-node sampling in that case. */
+		if (!obj)
+			return -1;
+	}
+	return obj->logical_index;
+}
+#endif
+
+static int _starpu_worker_numa_node(unsigned workerid)
+{
+#if defined(STARPU_USE_NUMA) && defined(STARPU_HAVE_HWLOC)
+	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
+	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config() ;
+	struct _starpu_machine_topology *topology = &config->topology ;
+
+	hwloc_obj_t obj;
+	switch(worker->arch) 	
+	{
+		case STARPU_CPU_WORKER:
+			obj = hwloc_get_obj_by_type(topology->hwtopology, HWLOC_OBJ_PU, worker->bindid) ;
+			break;
+		default:
+			STARPU_ABORT();
+	}
+
+	return numa_get_logical_id(obj);
+		
+#else 
+	(void) workerid; /* unused */
+	return -1;
+#endif 
+}
+
+static int _starpu_numa_get_logical_id_from_pu(int pu)
+{
+#if defined(STARPU_USE_NUMA) && defined(STARPU_HAVE_HWLOC)
+	struct _starpu_machine_config *config = _starpu_get_machine_config();
+	struct _starpu_machine_topology *topology = &config->topology;
+
+	hwloc_obj_t obj = hwloc_get_obj_by_type(topology->hwtopology, HWLOC_OBJ_PU, pu);
+	return numa_get_logical_id(obj);
+#else
+	return -1;
+#endif
+}
+
+
 struct _starpu_worker *_starpu_get_worker_from_driver(struct starpu_driver *d)
 {
 	unsigned nworkers = starpu_worker_get_count();
@@ -2525,82 +2587,49 @@ starpu_topology_print (FILE *output)
 	unsigned nworkers = starpu_worker_get_count();
 	unsigned ncombinedworkers = topology->ncombinedworkers;
 	unsigned nthreads_per_core = topology->nhwpus / topology->nhwcpus;
+	unsigned numa;
 
-	/* TODO: show NUMA nodes */
-	for (pu = 0; pu < topology->nhwpus; pu++)
+	for (numa = 0; numa < nb_numa_nodes; numa++)
 	{
-		if ((pu % nthreads_per_core) == 0)
-			fprintf(output, "core %u", pu / nthreads_per_core);
-		fprintf(output, "\tPU %u\t", pu);
-		for (worker = 0;
-		     worker < nworkers + ncombinedworkers;
-		     worker++)
+		fprintf(output, "------\tNUMA %d\t------\n", numa);
+		for (pu = 0; pu < topology->nhwpus; pu++)
 		{
-			if (worker < nworkers)
+			if (_starpu_numa_id_to_logid(numa) == _starpu_numa_get_logical_id_from_pu(pu))
 			{
-				struct _starpu_worker *workerarg = &config->workers[worker];
+				if ((pu % nthreads_per_core) == 0)
+					fprintf(output, "core %u", pu / nthreads_per_core);
+				fprintf(output, "\tPU %u\t", pu);
+				for (worker = 0;
+				     worker < nworkers + ncombinedworkers;
+				     worker++)
+				{
+					if (worker < nworkers)
+					{
+						struct _starpu_worker *workerarg = &config->workers[worker];
 
-				if (workerarg->bindid == (int) pu)
-				{
-					char name[256];
-					starpu_worker_get_name (worker, name,
-								sizeof(name));
-					fprintf(output, "%s\t", name);
+						if (workerarg->bindid == (int) pu)
+						{
+							char name[256];
+							starpu_worker_get_name (worker, name,
+										sizeof(name));
+							fprintf(output, "%s\t", name);
+						}
+					}
+					else
+					{
+						int worker_size, i;
+						int *combined_workerid;
+						starpu_combined_worker_get_description(worker, &worker_size, &combined_workerid);
+						for (i = 0; i < worker_size; i++)
+						{
+							if (topology->workers_bindid[combined_workerid[i]] == pu)
+								fprintf(output, "comb %u\t", worker-nworkers);
+						}
+					}
 				}
-			}
-			else
-			{
-				int worker_size, i;
-				int *combined_workerid;
-				starpu_combined_worker_get_description(worker, &worker_size, &combined_workerid);
-				for (i = 0; i < worker_size; i++)
-				{
-					if (topology->workers_bindid[combined_workerid[i]] == pu)
-						fprintf(output, "comb %u\t", worker-nworkers);
-				}
+				fprintf(output, "\n");
 			}
 		}
-		fprintf(output, "\n");
 	}
-}
-
-int _starpu_get_nb_numa_nodes(void)
-{
-	return nb_numa_nodes;
-}
-
-static int _starpu_worker_numa_node(unsigned workerid)
-{
-#if defined(STARPU_USE_NUMA) && defined(STARPU_HAVE_HWLOC)
-	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
-	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config() ;
-	struct _starpu_machine_topology *topology = &config->topology ;
-
-	hwloc_obj_t obj;
-	switch(worker->arch) 	
-	{
-		case STARPU_CPU_WORKER:
-			obj = hwloc_get_obj_by_type(topology->hwtopology, HWLOC_OBJ_PU, worker->bindid) ;
-			break;
-		default:
-			STARPU_ABORT();
-	}
-		
-	STARPU_ASSERT(obj) ;
-	while (obj->type != HWLOC_OBJ_NODE)
-	{
-		obj = obj->parent;
-
-		/* If we don't find a "node" obj before the root, this means
-		 * hwloc does not know whether there are numa nodes or not, so
-		 * we should not use a per-node sampling in that case. */
-		if (!obj)
-			return -1;
-	}
-	return obj->logical_index;
-#else 
-	(void) workerid; /* unused */
-	return -1;
-#endif 
 }
 
