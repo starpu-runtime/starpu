@@ -19,44 +19,73 @@
 #include <core/task.h>
 
 
-struct _starpu_prio_list
-{
-	int prio;
-	struct starpu_task_list list;
-};
-
 struct _starpu_prio_deque
 {
-	struct _starpu_prio_list * array;
+	struct starpu_task_prio_list list;
 	int size_array;
 	unsigned ntasks;
 	unsigned nprocessed;
 	double exp_start, exp_end, exp_len;
 };
 
-void _starpu_prio_deque_init(struct _starpu_prio_deque *);
-void _starpu_prio_deque_destroy(struct _starpu_prio_deque *);
+static inline void _starpu_prio_deque_init(struct _starpu_prio_deque *pdeque)
+{
+	memset(pdeque,0,sizeof(*pdeque));
+	starpu_task_prio_list_init(&pdeque->list);
+}
+
+static inline void _starpu_prio_deque_destroy(struct _starpu_prio_deque *pdeque)
+{
+	starpu_task_prio_list_deinit(&pdeque->list);
+}
 
 /* return 0 iff the struct _starpu_prio_deque is not empty */
-int _starpu_prio_deque_is_empty(struct _starpu_prio_deque *);
+static int _starpu_prio_deque_is_empty(struct _starpu_prio_deque *pdeque)
+{
+	return pdeque->ntasks == 0;
+}
 
-/* push a task in O(nb priorities) */
-int _starpu_prio_deque_push_task(struct _starpu_prio_deque *, struct starpu_task *);
+/* push a task in O(lg(nb priorities)) */
+static inline int _starpu_prio_deque_push_task(struct _starpu_prio_deque *pdeque, struct starpu_task *task)
+{
+	starpu_task_prio_list_push_front(&pdeque->list, task);
+	pdeque->ntasks++;
+	return 0;
+}
+static inline int _starpu_prio_deque_push_back_task(struct _starpu_prio_deque *pdeque, struct starpu_task *task)
+{
+	starpu_task_prio_list_push_back(&pdeque->list, task);
+	pdeque->ntasks++;
+	return 0;
+}
 int _starpu_prio_deque_push_back_task(struct _starpu_prio_deque *, struct starpu_task *);
 
 
 /* all _starpu_prio_deque_pop/deque_task function return a task or a NULL pointer if none are available
- * in O(nb priorities)
+ * in O(lg(nb priorities))
  */
 
-struct starpu_task * _starpu_prio_deque_pop_task(struct _starpu_prio_deque *);
+static inline struct starpu_task * _starpu_prio_deque_pop_task(struct _starpu_prio_deque *pdeque)
+{
+	struct starpu_task *task = starpu_task_prio_list_pop_front(&pdeque->list);
+	if (task)
+		pdeque->ntasks--;
+	return task;
+}
 
 /* return a task that can be executed by workerid
  */
 struct starpu_task * _starpu_prio_deque_pop_task_for_worker(struct _starpu_prio_deque *, int workerid);
 
 /* deque a task of the higher priority available */
-struct starpu_task * _starpu_prio_deque_deque_task(struct _starpu_prio_deque *);
+static inline struct starpu_task * _starpu_prio_deque_deque_task(struct _starpu_prio_deque *pdeque)
+{
+	struct starpu_task *task = starpu_task_prio_list_pop_back(&pdeque->list);
+	if (task)
+		pdeque->ntasks--;
+	return task;
+}
+
 /* return a task that can be executed by workerid
  */
 struct starpu_task * _starpu_prio_deque_deque_task_for_worker(struct _starpu_prio_deque *, int workerid);
