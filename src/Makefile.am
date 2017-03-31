@@ -395,7 +395,7 @@ dist-hook:
 	failed=0 ; \
 	for i in $$( grep "static inline" $$(find $(srcdir) -name \*.h) | sed -e 's/.*static inline //g' | grep -v ENAME | sed -e 's/[^(]* \(\|\*\)\([^ (]*\)(.*/\2/' | grep -v _starpu_spin_init) ; do \
 		for j in .libs/*.o ; do \
-			nm $$j | grep "U $$i" && { echo $$j ; failed=1 ; } ; \
+			nm $$j | grep "U $$i$$" && { echo $$j ; failed=1 ; } ; \
 		done ; \
 	done ; \
 	[ $$failed == 0 ]
