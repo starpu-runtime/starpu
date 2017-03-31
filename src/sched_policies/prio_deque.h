@@ -40,7 +40,7 @@ static inline void _starpu_prio_deque_destroy(struct _starpu_prio_deque *pdeque)
 }
 
 /* return 0 iff the struct _starpu_prio_deque is not empty */
-static int _starpu_prio_deque_is_empty(struct _starpu_prio_deque *pdeque)
+static inline int _starpu_prio_deque_is_empty(struct _starpu_prio_deque *pdeque)
 {
 	return pdeque->ntasks == 0;
 }
