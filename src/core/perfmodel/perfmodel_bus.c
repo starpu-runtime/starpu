@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2009-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
+ * Copyright (C) 2017  Inria
  * Copyright (C) 2013 Corentin Salingue
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -2939,8 +2940,6 @@ double starpu_transfer_predict(unsigned src_node, unsigned dst_node, size_t size
 
 	return latency + (size/bandwidth)*2*ngpus;
 }
-
-/* TODO: NUMA nodes */
 
 /* calculate save bandwidth and latency */
 /* bandwidth in MB/s - latency in µs */
