@@ -164,17 +164,14 @@
 			priolist->empty = ENAME##_prio_list_empty_slow(priolist); \
 		} \
 	} \
-	static inline struct ENAME *ENAME##_prio_list_pop_front(struct ENAME##_prio_list *priolist) \
+	static inline int ENAME##_prio_list_get_next_nonempty_stage(struct ENAME##_prio_list *priolist, struct starpu_rbtree_node *node, struct starpu_rbtree_node **pnode, struct ENAME##_prio_list_stage **pstage) \
 	{ \
-		struct starpu_rbtree_node *node; \
 		struct ENAME##_prio_list_stage *stage; \
-		struct ENAME *ret; \
-		node = starpu_rbtree_first(&priolist->tree); \
 		while(1) { \
 			struct starpu_rbtree_node *next; \
 			if (!node) \
 				/* Tree is empty */ \
-				return NULL; \
+				return 0; \
 			stage = ENAME##_node_to_list_stage(node); \
 			if (!ENAME##_list_empty(&stage->list)) \
 				break; \
@@ -188,7 +185,72 @@
 			} \
 			node = next; \
 		} \
+		*pnode = node; \
+		*pstage = stage; \
+		return 1; \
+	} \
+	static inline int ENAME##_prio_list_get_first_nonempty_stage(struct ENAME##_prio_list *priolist, struct starpu_rbtree_node **pnode, struct ENAME##_prio_list_stage **pstage) \
+	{ \
+		struct starpu_rbtree_node *node = starpu_rbtree_first(&priolist->tree); \
+		return ENAME##_prio_list_get_next_nonempty_stage(priolist, node, pnode, pstage); \
+	} \
+	static inline struct ENAME *ENAME##_prio_list_pop_front(struct ENAME##_prio_list *priolist) \
+	{ \
+		struct starpu_rbtree_node *node; \
+		struct ENAME##_prio_list_stage *stage; \
+		struct ENAME *ret; \
+		if (!ENAME##_prio_list_get_first_nonempty_stage(priolist, &node, &stage)) \
+			return NULL; \
 		ret = ENAME##_list_pop_front(&stage->list); \
+		if (ENAME##_list_empty(&stage->list)) { \
+			if (stage->prio != 0) \
+			{ \
+				/* stage got empty, remove it */ \
+				starpu_rbtree_remove(&priolist->tree, node); \
+				free(stage); \
+			} \
+			priolist->empty = ENAME##_prio_list_empty_slow(priolist); \
+		} \
+		return ret; \
+	} \
+	static inline int ENAME##_prio_list_get_prev_nonempty_stage(struct ENAME##_prio_list *priolist, struct starpu_rbtree_node *node, struct starpu_rbtree_node **pnode, struct ENAME##_prio_list_stage **pstage) \
+	{ \
+		struct ENAME##_prio_list_stage *stage; \
+		while(1) { \
+			struct starpu_rbtree_node *prev; \
+			if (!node) \
+				/* Tree is empty */ \
+				return 0; \
+			stage = ENAME##_node_to_list_stage(node); \
+			if (!ENAME##_list_empty(&stage->list)) \
+				break; \
+			/* Empty list, skip to prev tree entry */ \
+			prev = starpu_rbtree_prev(node); \
+			/* drop it if not 0-prio */ \
+			if (stage->prio != 0) \
+			{ \
+				starpu_rbtree_remove(&priolist->tree, node); \
+				free(stage); \
+			} \
+			node = prev; \
+		} \
+		*pnode = node; \
+		*pstage = stage; \
+		return 1; \
+	} \
+	static inline int ENAME##_prio_list_get_last_nonempty_stage(struct ENAME##_prio_list *priolist, struct starpu_rbtree_node **pnode, struct ENAME##_prio_list_stage **pstage) \
+	{ \
+		struct starpu_rbtree_node *node = starpu_rbtree_last(&priolist->tree); \
+		return ENAME##_prio_list_get_prev_nonempty_stage(priolist, node, pnode, pstage); \
+	} \
+	static inline struct ENAME *ENAME##_prio_list_pop_back(struct ENAME##_prio_list *priolist) \
+	{ \
+		struct starpu_rbtree_node *node; \
+		struct ENAME##_prio_list_stage *stage; \
+		struct ENAME *ret; \
+		if (!ENAME##_prio_list_get_last_nonempty_stage(priolist, &node, &stage)) \
+			return NULL; \
+		ret = ENAME##_list_pop_back(&stage->list); \
 		if (ENAME##_list_empty(&stage->list)) { \
 			if (stage->prio != 0) \
 			{ \
