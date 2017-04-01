@@ -47,8 +47,10 @@ struct _starpu_work_stealing_data
 static struct starpu_task *  steal_task_round_robin(struct starpu_sched_component *component, int workerid)
 {
 	struct _starpu_work_stealing_data *wsd = component->data;
+	STARPU_HG_DISABLE_CHECKING(wsd->last_pop_child);
 	unsigned i = wsd->last_pop_child;
-	wsd->last_pop_child = (wsd->last_pop_child + 1) % component->nchildren;
+	wsd->last_pop_child = (i + 1) % component->nchildren;
+	STARPU_HG_ENABLE_CHECKING(wsd->last_pop_child);
 	/* If the worker's queue have no suitable tasks, let's try
 	 * the next ones */
 	struct starpu_task * task = NULL;
