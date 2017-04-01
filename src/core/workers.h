@@ -758,9 +758,6 @@ static inline void _starpu_worker_process_block_in_parallel_requests(struct _sta
  * should not be modified */
 static inline void _starpu_worker_enter_sched_op(struct _starpu_worker * const worker)
 {
-	/* if someone observed the worker state since the last call, postpone block request
-	 * processing for one sched_op turn more, because the observer will not have seen
-	 * new block requests between its observation and now */
 	if (!worker->state_blocked_in_parallel_observed)
 	{
 		/* process pending block requests before entering a sched_op region */
@@ -772,6 +769,19 @@ static inline void _starpu_worker_enter_sched_op(struct _starpu_worker * const w
 			/* new block requests may have been triggered during the wait,
 			 * need to check again */
 			_starpu_worker_process_block_in_parallel_requests(worker);
+		}
+	}
+	else
+	{
+		/* if someone observed the worker state since the last call, postpone block request
+		 * processing for one sched_op turn more, because the observer will not have seen
+		 * new block requests between its observation and now.
+		 *
+		 * however, the worker still has to wait for context change operations to complete
+		 * before entering sched_op again*/
+		while (worker->state_changing_ctx_notice)
+		{
+			STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
 		}
 	}
 
