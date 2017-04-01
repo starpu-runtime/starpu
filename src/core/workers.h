@@ -587,6 +587,8 @@ static inline int _starpu_worker_get_nsched_ctxs(int workerid)
 /* Get the total number of sched_ctxs created till now */
 static inline unsigned _starpu_get_nsched_ctxs(void)
 {
+	/* topology.nsched_ctxs may be increased asynchronously in sched_ctx_create */
+	STARPU_RMB();
 	return _starpu_config.topology.nsched_ctxs;
 }
 

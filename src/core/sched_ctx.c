@@ -497,9 +497,6 @@ struct _starpu_sched_ctx* _starpu_create_sched_ctx(struct starpu_sched_policy *p
 	struct _starpu_sched_ctx *sched_ctx = &config->sched_ctxs[id];
 	sched_ctx->id = id;
 
-	config->topology.nsched_ctxs++;
-	STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx_manag);
-
 	int nworkers = config->topology.nworkers;
 	int i;
 
@@ -604,6 +601,9 @@ struct _starpu_sched_ctx* _starpu_create_sched_ctx(struct starpu_sched_policy *p
 				worker->nsched_ctxs++;
 		}
 	}
+
+	(void)STARPU_ATOMIC_ADD(&config->topology.nsched_ctxs,1);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx_manag);
 
 	return sched_ctx;
 }
