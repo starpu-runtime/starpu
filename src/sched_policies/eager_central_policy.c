@@ -75,7 +75,9 @@ static int push_task_eager_policy(struct starpu_task *task)
 	unsigned sched_ctx_id = task->sched_ctx;
 	struct _starpu_eager_center_policy_data *data = (struct _starpu_eager_center_policy_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
+	_starpu_worker_relax_on();
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
+	_starpu_worker_relax_off();
 	starpu_task_list_push_back(&data->fifo->taskq,task);
 	data->fifo->ntasks++;
 	data->fifo->nprocessed++;

@@ -924,6 +924,8 @@ static inline void _starpu_worker_relax_on(void)
 		return;
 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 	STARPU_ASSERT(worker != NULL);
+	if (!worker->state_sched_op_pending)
+		return;
 	STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
 	STARPU_ASSERT(!worker->state_safe_for_observation);
 	worker->state_safe_for_observation = 1;
@@ -938,6 +940,8 @@ static inline void _starpu_worker_relax_off(void)
 		return;
 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 	STARPU_ASSERT(worker != NULL);
+	if (!worker->state_sched_op_pending)
+		return;
 	STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
 	STARPU_ASSERT(worker->state_safe_for_observation);
 	worker->state_safe_for_observation = 0;
