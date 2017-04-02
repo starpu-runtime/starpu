@@ -159,6 +159,16 @@ struct _starpu_sched_ctx
 	starpu_pthread_t lock_write_owner;
 };
 
+/* per-worker list of deferred ctx_change ops */
+LIST_TYPE(_starpu_ctx_change,
+	int sched_ctx_id;
+	int op;
+	int nworkers_to_notify;
+	int *workerids_to_notify;
+	int nworkers_to_change;
+	int *workerids_to_change;
+);
+
 struct _starpu_machine_config;
 
 /* init sched_ctx_id of all contextes*/

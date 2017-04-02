@@ -64,6 +64,8 @@
 
 enum initialization { UNINITIALIZED = 0, CHANGING, INITIALIZED };
 
+struct _starpu_ctx_change_list;
+
 /* This is initialized from in _starpu_worker_init */
 LIST_TYPE(_starpu_worker,
 	struct _starpu_machine_config *config;
@@ -104,6 +106,7 @@ LIST_TYPE(_starpu_worker,
 	  * - transition from 1 to 0 triggers a unblock_req
 	  */
 	unsigned block_in_parallel_ref_count;
+	struct _starpu_ctx_change_list ctx_change_list;
 	struct starpu_task_list local_tasks; /* this queue contains tasks that have been explicitely submitted to that queue */
 	struct starpu_task **local_ordered_tasks; /* this queue contains tasks that have been explicitely submitted to that queue with an explicit order */
 	unsigned local_ordered_tasks_size; /* this records the size of local_ordered_tasks */
@@ -798,10 +801,22 @@ static inline void _starpu_worker_enter_sched_op(struct _starpu_worker * const w
  * Mark the end of a scheduling operation, and notify potential waiters that
  * scheduling context changes can safely be performed again.
  */
+void _starpu_worker_apply_deferred_ctx_changes(void);
 static inline void  _starpu_worker_leave_sched_op(struct _starpu_worker * const worker)
 {
 	worker->state_safe_for_observation = 1;
 	worker->state_sched_op_pending = 0;
+	_starpu_worker_apply_deferred_ctx_changes();
+}
+
+static inline int _starpu_worker_sched_op_pending(void)
+{
+	int workerid = starpu_worker_get_id();
+	if (workerid == -1)
+		return 0;
+	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
+	STARPU_ASSERT(worker != NULL);
+	return worker->state_sched_op_pending;
 }
 
 /* Must be called with worker's sched_mutex held.
