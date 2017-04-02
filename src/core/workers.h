@@ -918,7 +918,9 @@ static inline void _starpu_worker_unlock(int workerid)
  * but the scheduling has not yet been made or is already done */
 static inline void _starpu_worker_relax_on(void)
 {
-	int workerid = starpu_worker_get_id_check();
+	int workerid = starpu_worker_get_id();
+	if (workerid == -1)
+		return;
 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 	STARPU_ASSERT(worker != NULL);
 	STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
@@ -930,7 +932,9 @@ static inline void _starpu_worker_relax_on(void)
 
 static inline void _starpu_worker_relax_off(void)
 {
-	int workerid = starpu_worker_get_id_check();
+	int workerid = starpu_worker_get_id();
+	if (workerid == -1)
+		return;
 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 	STARPU_ASSERT(worker != NULL);
 	STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
