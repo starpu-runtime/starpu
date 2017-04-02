@@ -230,6 +230,8 @@ void _starpu_sched_ctx_post_exec_task_cb(int workerid, struct starpu_task *task,
 
 #endif //STARPU_USE_SC_HYPERVISOR
 
+void starpu_sched_ctx_add_combined_workers(int *combined_workers_to_add, unsigned n_combined_workers_to_add, unsigned sched_ctx_id);
+
 /* if the worker is the master of a parallel context, and the job is meant to be executed on this parallel context, return a pointer to the context */
 struct _starpu_sched_ctx *__starpu_sched_ctx_get_sched_ctx_for_worker_and_job(struct _starpu_worker *worker, struct _starpu_job *j);
 

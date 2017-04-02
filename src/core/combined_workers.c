@@ -160,7 +160,7 @@ int starpu_combined_worker_assign_workerid(int nworkers, int workerid_array[])
 #endif
 	}
 
-	starpu_sched_ctx_add_workers(&combined_worker_id, 1, STARPU_GLOBAL_SCHED_CTX);
+	starpu_sched_ctx_add_combined_workers(&combined_worker_id, 1, STARPU_GLOBAL_SCHED_CTX);
 
 	return new_workerid;
 }

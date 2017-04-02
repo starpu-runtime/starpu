@@ -348,14 +348,13 @@ static void _starpu_add_workers_to_new_sched_ctx(struct _starpu_sched_ctx *sched
 
 	notify_workers_about_changing_ctx_pending(nworkers, workerids);
 	_do_add_notified_workers(sched_ctx, workerids, nworkers);
-	notify_workers_about_changing_ctx_done(nworkers, workerids);
-
 	if(sched_ctx->sched_policy && sched_ctx->sched_policy->add_workers)
 	{
 		_STARPU_SCHED_BEGIN;
 		sched_ctx->sched_policy->add_workers(sched_ctx->id, workerids, nworkers);
 		_STARPU_SCHED_END;
 	}
+	notify_workers_about_changing_ctx_done(nworkers, workerids);
 }
 
 static void _starpu_remove_workers_from_sched_ctx(struct _starpu_sched_ctx *sched_ctx, int *workerids,
@@ -1384,6 +1383,13 @@ void starpu_sched_ctx_add_workers(int *workers_to_add, unsigned nworkers_to_add,
 	_starpu_sched_ctx_lock_write(sched_ctx_id);
 	add_notified_workers(workers_to_add, nworkers_to_add, sched_ctx_id);
 	notify_workers_about_changing_ctx_done(cumulated_nworkers, cumulated_workerids);
+	_starpu_sched_ctx_unlock_write(sched_ctx_id);
+}
+
+void starpu_sched_ctx_add_combined_workers(int *combined_workers_to_add, unsigned n_combined_workers_to_add, unsigned sched_ctx_id)
+{
+	_starpu_sched_ctx_lock_write(sched_ctx_id);
+	add_notified_workers(combined_workers_to_add, n_combined_workers_to_add, sched_ctx_id);
 	_starpu_sched_ctx_unlock_write(sched_ctx_id);
 }
 
