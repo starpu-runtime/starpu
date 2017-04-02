@@ -806,6 +806,7 @@ static inline void  _starpu_worker_leave_sched_op(struct _starpu_worker * const 
 {
 	worker->state_safe_for_observation = 1;
 	worker->state_sched_op_pending = 0;
+	STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
 	_starpu_worker_apply_deferred_ctx_changes();
 }
 

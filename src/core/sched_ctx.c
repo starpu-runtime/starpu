@@ -2720,7 +2720,6 @@ void _starpu_worker_apply_deferred_ctx_changes(void)
 	{
 		struct _starpu_ctx_change *chg = _starpu_ctx_change_list_pop_front(l);
 		STARPU_ASSERT(chg->workerids_to_change != NULL);
-		_starpu_sched_ctx_lock_write(chg->sched_ctx_id);
 
 		if (chg->nworkers_to_notify)
 		{
@@ -2732,6 +2731,7 @@ void _starpu_worker_apply_deferred_ctx_changes(void)
 			STARPU_ASSERT(chg->workerids_to_notify == NULL);
 			notify_workers_about_changing_ctx_pending(chg->nworkers_to_change, chg->workerids_to_change);
 		}
+		_starpu_sched_ctx_lock_write(chg->sched_ctx_id);
 		switch (chg->op)
 		{
 			case ctx_change_add:
@@ -2742,6 +2742,20 @@ void _starpu_worker_apply_deferred_ctx_changes(void)
 			case ctx_change_remove:
 			{
 				remove_notified_workers(chg->workerids_to_change, chg->nworkers_to_change, chg->sched_ctx_id);
+				{
+					int i;
+					for (i = 0; i < chg->nworkers_to_change; i++)
+					{
+						struct _starpu_worker *w =
+							_starpu_get_worker_struct(chg->workerids_to_change[i]);
+						if(w->removed_from_ctx[chg->sched_ctx_id] == 1
+								&& w->shares_tasks_lists[chg->sched_ctx_id] == 1)
+						{
+							_starpu_worker_gets_out_of_ctx(chg->sched_ctx_id, w);
+							w->removed_from_ctx[chg->sched_ctx_id] = 0;
+						}
+					}
+				}
 			}
 			break;
 			default:

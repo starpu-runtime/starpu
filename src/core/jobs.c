@@ -262,6 +262,18 @@ void _starpu_handle_job_submission(struct _starpu_job *j)
 
 void _starpu_handle_job_termination(struct _starpu_job *j)
 {
+	struct _starpu_worker *worker = _starpu_get_local_worker_key();
+	int need_leave_sched_op = 0;
+	if (worker)
+	{
+		STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
+		if (!worker->state_sched_op_pending)
+		{
+			_starpu_worker_enter_sched_op(worker);
+			need_leave_sched_op = 1;
+		}
+		STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
+	}
 	struct starpu_task *task = j->task;
 	unsigned sched_ctx = task->sched_ctx;
 	double flops = task->flops;
@@ -508,13 +520,17 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 		}
 	}
 
-	_starpu_decrement_nready_tasks_of_sched_ctx(sched_ctx, flops);
-	_starpu_decrement_nsubmitted_tasks_of_sched_ctx(sched_ctx);
-	struct _starpu_worker *worker;
-	worker = _starpu_get_local_worker_key();
 	if (worker)
 	{
+		_starpu_worker_relax_on();
+		_starpu_sched_ctx_lock_write(sched_ctx);
+		_starpu_worker_relax_off();
+		starpu_sched_ctx_revert_task_counters_ctx_locked(sched_ctx, flops);
+		_starpu_sched_ctx_unlock_write(sched_ctx);
+
 		STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
+		if (need_leave_sched_op)
+			_starpu_worker_leave_sched_op(worker);
 
 		if(worker->removed_from_ctx[sched_ctx] == 1 && worker->shares_tasks_lists[sched_ctx] == 1)
 		{
@@ -522,6 +538,10 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 			worker->removed_from_ctx[sched_ctx] = 0;
 		}
 		STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
+	}
+	else
+	{
+		starpu_sched_ctx_revert_task_counters(sched_ctx, flops);
 	}
 }
 
