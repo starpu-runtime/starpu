@@ -775,6 +775,7 @@ static inline void __starpu_worker_enter_sched_op(struct _starpu_worker * const 
 static inline void _starpu_worker_enter_sched_op(struct _starpu_worker * const worker)
 #endif
 {
+	STARPU_ASSERT(!worker->state_sched_op_pending);
 	if (!worker->state_blocked_in_parallel_observed)
 	{
 		/* process pending block requests before entering a sched_op region */
@@ -828,6 +829,7 @@ static inline void __starpu_worker_leave_sched_op(struct _starpu_worker * const 
 static inline void _starpu_worker_leave_sched_op(struct _starpu_worker * const worker)
 #endif
 {
+	STARPU_ASSERT(worker->state_sched_op_pending);
 	worker->state_safe_for_observation = 1;
 #ifdef STARPU_SPINLOCK_CHECK
 	worker->relax_off_file = file;

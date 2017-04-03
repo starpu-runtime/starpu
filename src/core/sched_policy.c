@@ -596,10 +596,23 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 				ret = -1;
 			else
 			{
+				struct _starpu_worker *worker = _starpu_get_local_worker_key();
+				if (worker)
+				{
+					STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
+					_starpu_worker_enter_sched_op(worker);
+					STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
+				}
 				_STARPU_TASK_BREAK_ON(task, push);
 				_STARPU_SCHED_BEGIN;
 				ret = sched_ctx->sched_policy->push_task(task);
 				_STARPU_SCHED_END;
+				if (worker)
+				{
+					STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
+					_starpu_worker_leave_sched_op(worker);
+					STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
+				}
 			}
 		}
 
