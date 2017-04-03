@@ -98,7 +98,9 @@ static void _starpu_tag_free(void *_tag)
 
 	if (tag)
 	{
+		_starpu_worker_relax_on();
 		_starpu_spin_lock(&tag->lock);
+		_starpu_worker_relax_off();
 
 		unsigned nsuccs = tag->tag_successors.nsuccs;
 		unsigned succ;
@@ -141,7 +143,9 @@ void starpu_tag_remove(starpu_tag_t id)
 
 	STARPU_ASSERT(!STARPU_AYU_EVENT || id < STARPU_AYUDAME_OFFSET);
 	STARPU_AYU_REMOVETASK(id + STARPU_AYUDAME_OFFSET);
+	_starpu_worker_relax_on();
 	STARPU_PTHREAD_RWLOCK_WRLOCK(&tag_global_rwlock);
+	_starpu_worker_relax_off();
 
 	HASH_FIND_UINT64_T(tag_htbl, &id, entry);
 	if (entry) HASH_DEL(tag_htbl, entry);
@@ -157,7 +161,9 @@ void starpu_tag_remove(starpu_tag_t id)
 
 void _starpu_tag_clear(void)
 {
+	_starpu_worker_relax_on();
 	STARPU_PTHREAD_RWLOCK_WRLOCK(&tag_global_rwlock);
+	_starpu_worker_relax_off();
 
 	/* XXX: _starpu_tag_free takes the tag spinlocks while we are keeping
 	 * the global rwlock. This contradicts the lock order of
@@ -206,7 +212,9 @@ static struct _starpu_tag *_gettag_struct(starpu_tag_t id)
 static struct _starpu_tag *gettag_struct(starpu_tag_t id)
 {
 	struct _starpu_tag *tag;
+	_starpu_worker_relax_on();
 	STARPU_PTHREAD_RWLOCK_WRLOCK(&tag_global_rwlock);
+	_starpu_worker_relax_off();
 	tag = _gettag_struct(id);
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&tag_global_rwlock);
 	return tag;
@@ -227,10 +235,14 @@ void _starpu_tag_set_ready(struct _starpu_tag *tag)
 	_starpu_spin_unlock(&tag->lock);
 
 	/* enforce data dependencies */
+	_starpu_worker_relax_on();
 	STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
+	_starpu_worker_relax_off();
 	_starpu_enforce_deps_starting_from_task(j);
 
+	_starpu_worker_relax_on();
 	_starpu_spin_lock(&tag->lock);
+	_starpu_worker_relax_off();
 	STARPU_ASSERT(!STARPU_AYU_EVENT || tag->id < STARPU_AYUDAME_OFFSET);
 	STARPU_AYU_PRERUNTASK(tag->id + STARPU_AYUDAME_OFFSET, -1);
 	STARPU_AYU_POSTRUNTASK(tag->id + STARPU_AYUDAME_OFFSET);
@@ -252,7 +264,9 @@ static void _starpu_tag_add_succ(struct _starpu_tag *tag, struct _starpu_cg *cg)
 
 void _starpu_notify_tag_dependencies(struct _starpu_tag *tag)
 {
+	_starpu_worker_relax_on();
 	_starpu_spin_lock(&tag->lock);
+	_starpu_worker_relax_off();
 
 	if (tag->state == STARPU_DONE)
 	{
@@ -272,7 +286,9 @@ void starpu_tag_restart(starpu_tag_t id)
 {
 	struct _starpu_tag *tag = gettag_struct(id);
 
+	_starpu_worker_relax_on();
 	_starpu_spin_lock(&tag->lock);
+	_starpu_worker_relax_off();
 	STARPU_ASSERT_MSG(tag->state == STARPU_DONE || tag->state == STARPU_INVALID_STATE || tag->state == STARPU_ASSOCIATED || tag->state == STARPU_BLOCKED, "Only completed tags can be restarted (%llu was %d)", (unsigned long long) id, tag->state);
 	tag->state = STARPU_BLOCKED;
 	_starpu_spin_unlock(&tag->lock);
@@ -292,7 +308,9 @@ void _starpu_tag_declare(starpu_tag_t id, struct _starpu_job *job)
 
 	struct _starpu_tag *tag= gettag_struct(id);
 
+	_starpu_worker_relax_on();
 	_starpu_spin_lock(&tag->lock);
+	_starpu_worker_relax_off();
 
 	/* Note: a tag can be shared by several tasks, when it is used to
 	 * detect when either of them are finished. We however don't allow
@@ -328,7 +346,9 @@ void starpu_tag_declare_deps_array(starpu_tag_t id, unsigned ndeps, starpu_tag_t
 	/* create the associated completion group */
 	struct _starpu_tag *tag_child = gettag_struct(id);
 
+	_starpu_worker_relax_on();
 	_starpu_spin_lock(&tag_child->lock);
+	_starpu_worker_relax_off();
 	struct _starpu_cg *cg = create_cg_tag(ndeps, tag_child);
 	_starpu_spin_unlock(&tag_child->lock);
 
@@ -342,8 +362,10 @@ void starpu_tag_declare_deps_array(starpu_tag_t id, unsigned ndeps, starpu_tag_t
 		_starpu_bound_tag_dep(id, dep_id);
 		struct _starpu_tag *tag_dep = gettag_struct(dep_id);
 		STARPU_ASSERT(tag_dep != tag_child);
+		_starpu_worker_relax_on();
 		_starpu_spin_lock(&tag_dep->lock);
 		_starpu_spin_lock(&tag_child->lock);
+		_starpu_worker_relax_off();
 		_starpu_tag_add_succ(tag_dep, cg);
 		STARPU_ASSERT(!STARPU_AYU_EVENT || dep_id < STARPU_AYUDAME_OFFSET);
 		STARPU_ASSERT(!STARPU_AYU_EVENT || id < STARPU_AYUDAME_OFFSET);
@@ -363,7 +385,9 @@ void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...)
 	/* create the associated completion group */
 	struct _starpu_tag *tag_child = gettag_struct(id);
 
+	_starpu_worker_relax_on();
 	_starpu_spin_lock(&tag_child->lock);
+	_starpu_worker_relax_off();
 	struct _starpu_cg *cg = create_cg_tag(ndeps, tag_child);
 	_starpu_spin_unlock(&tag_child->lock);
 
@@ -380,8 +404,10 @@ void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...)
 		_starpu_bound_tag_dep(id, dep_id);
 		struct _starpu_tag *tag_dep = gettag_struct(dep_id);
 		STARPU_ASSERT(tag_dep != tag_child);
+		_starpu_worker_relax_on();
 		_starpu_spin_lock(&tag_dep->lock);
 		_starpu_spin_lock(&tag_child->lock);
+		_starpu_worker_relax_off();
 		_starpu_tag_add_succ(tag_dep, cg);
 		STARPU_ASSERT(!STARPU_AYU_EVENT || dep_id < STARPU_AYUDAME_OFFSET);
 		STARPU_ASSERT(!STARPU_AYU_EVENT || id < STARPU_AYUDAME_OFFSET);
@@ -406,6 +432,7 @@ int starpu_tag_wait_array(unsigned ntags, starpu_tag_t *id)
 	STARPU_ASSERT_MSG(_starpu_worker_may_perform_blocking_calls(), "starpu_tag_wait must not be called from a task or callback");
 
 	starpu_do_schedule();
+	_starpu_worker_relax_on();
 	STARPU_PTHREAD_RWLOCK_WRLOCK(&tag_global_rwlock);
 	/* only wait the tags that are not done yet */
 	for (i = 0, current = 0; i < ntags; i++)
@@ -426,6 +453,7 @@ int starpu_tag_wait_array(unsigned ntags, starpu_tag_t *id)
 		}
 	}
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&tag_global_rwlock);
+	_starpu_worker_relax_off();
 
 	if (current == 0)
 	{
@@ -443,12 +471,14 @@ int starpu_tag_wait_array(unsigned ntags, starpu_tag_t *id)
 		_starpu_spin_unlock(&tag_array[i]->lock);
 	}
 
+	_starpu_worker_relax_on();
 	STARPU_PTHREAD_MUTEX_LOCK(&cg->succ.succ_apps.cg_mutex);
 
 	while (!cg->succ.succ_apps.completed)
 		STARPU_PTHREAD_COND_WAIT(&cg->succ.succ_apps.cg_cond, &cg->succ.succ_apps.cg_mutex);
 
 	STARPU_PTHREAD_MUTEX_UNLOCK(&cg->succ.succ_apps.cg_mutex);
+	_starpu_worker_relax_off();
 
 	STARPU_PTHREAD_MUTEX_DESTROY(&cg->succ.succ_apps.cg_mutex);
 	STARPU_PTHREAD_COND_DESTROY(&cg->succ.succ_apps.cg_cond);
@@ -469,7 +499,9 @@ struct starpu_task *starpu_tag_get_task(starpu_tag_t id)
 	struct _starpu_tag_table *entry;
 	struct _starpu_tag *tag;
 
+	_starpu_worker_relax_on();
 	STARPU_PTHREAD_RWLOCK_WRLOCK(&tag_global_rwlock);
+	_starpu_worker_relax_off();
 	HASH_FIND_UINT64_T(tag_htbl, &id, entry);
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&tag_global_rwlock);
 
