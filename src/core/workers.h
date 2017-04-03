@@ -90,6 +90,14 @@ LIST_TYPE(_starpu_worker,
 	starpu_pthread_cond_t sched_cond;
         starpu_pthread_mutex_t sched_mutex; /* mutex protecting sched_cond */
 	unsigned state_safe_for_observation; /* mark scheduling sections where other workers can safely access the worker state */
+#ifdef STARPU_SPINLOCK_CHECK
+	const char *relax_on_file;
+	int relax_on_line;
+	const char *relax_on_func;
+	const char *relax_off_file;
+	int relax_off_line;
+	const char *relax_off_func;
+#endif
 	unsigned state_sched_op_pending; /* a task pop is ongoing even though sched_mutex may temporarily be unlocked */
 	unsigned state_changing_ctx_waiting; /* a thread is waiting for operations such as pop to complete before acquiring sched_mutex and modifying the worker ctx*/
 	unsigned state_changing_ctx_notice; /* the worker ctx is about to change or being changed, wait for flag to be cleared before starting new scheduling operations */
@@ -761,7 +769,11 @@ static inline void _starpu_worker_process_block_in_parallel_requests(struct _sta
  * Mark the beginning of a scheduling operation during which the sched_mutex
  * lock may be temporarily released, but the scheduling context of the worker
  * should not be modified */
+#ifdef STARPU_SPINLOCK_CHECK
+static inline void __starpu_worker_enter_sched_op(struct _starpu_worker * const worker, const char*file, int line, const char* func)
+#else
 static inline void _starpu_worker_enter_sched_op(struct _starpu_worker * const worker)
+#endif
 {
 	if (!worker->state_blocked_in_parallel_observed)
 	{
@@ -795,20 +807,40 @@ static inline void _starpu_worker_enter_sched_op(struct _starpu_worker * const w
 	worker->state_sched_op_pending = 1;
 	worker->state_blocked_in_parallel_observed = 0;
 	worker->state_safe_for_observation = 0;
+#ifdef STARPU_SPINLOCK_CHECK
+	worker->relax_on_file = file;
+	worker->relax_on_line = line;
+	worker->relax_on_func = func;
+#endif
 }
+#ifdef STARPU_SPINLOCK_CHECK
+#define _starpu_worker_enter_sched_op(worker) __starpu_worker_enter_sched_op((worker), __FILE__, __LINE__, __starpu_func__)
+#endif
 
 /* Must be called with worker's sched_mutex held.
  * Mark the end of a scheduling operation, and notify potential waiters that
  * scheduling context changes can safely be performed again.
  */
 void _starpu_worker_apply_deferred_ctx_changes(void);
-static inline void  _starpu_worker_leave_sched_op(struct _starpu_worker * const worker)
+#ifdef STARPU_SPINLOCK_CHECK
+static inline void __starpu_worker_leave_sched_op(struct _starpu_worker * const worker, const char*file, int line, const char* func)
+#else
+static inline void _starpu_worker_leave_sched_op(struct _starpu_worker * const worker)
+#endif
 {
 	worker->state_safe_for_observation = 1;
+#ifdef STARPU_SPINLOCK_CHECK
+	worker->relax_off_file = file;
+	worker->relax_off_line = line;
+	worker->relax_off_func = func;
+#endif
 	worker->state_sched_op_pending = 0;
 	STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
 	_starpu_worker_apply_deferred_ctx_changes();
 }
+#ifdef STARPU_SPINLOCK_CHECK
+#define _starpu_worker_leave_sched_op(worker) __starpu_worker_leave_sched_op((worker), __FILE__, __LINE__, __starpu_func__)
+#endif
 
 static inline int _starpu_worker_sched_op_pending(void)
 {
@@ -917,7 +949,11 @@ static inline void _starpu_worker_unlock(int workerid)
 
 /* Temporarily allow other worker to access current worker state, when still scheduling,
  * but the scheduling has not yet been made or is already done */
+#ifdef STARPU_SPINLOCK_CHECK
+static inline void __starpu_worker_relax_on(const char*file, int line, const char* func)
+#else
 static inline void _starpu_worker_relax_on(void)
+#endif
 {
 	int workerid = starpu_worker_get_id();
 	if (workerid == -1)
@@ -927,13 +963,29 @@ static inline void _starpu_worker_relax_on(void)
 	if (!worker->state_sched_op_pending)
 		return;
 	STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
+#ifdef STARPU_SPINLOCK_CHECK
+	STARPU_ASSERT_MSG(!worker->state_safe_for_observation, "relax last turn on in %s (%s:%d)\n", worker->relax_on_func, worker->relax_on_file, worker->relax_on_line);
+#else
 	STARPU_ASSERT(!worker->state_safe_for_observation);
+#endif
 	worker->state_safe_for_observation = 1;
+#ifdef STARPU_SPINLOCK_CHECK
+	worker->relax_on_file = file;
+	worker->relax_on_line = line;
+	worker->relax_on_func = func;
+#endif
 	STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 }
+#ifdef STARPU_SPINLOCK_CHECK
+#define _starpu_worker_relax_on() __starpu_worker_relax_on(__FILE__, __LINE__, __starpu_func__)
+#endif
 
+#ifdef STARPU_SPINLOCK_CHECK
+static inline void __starpu_worker_relax_off(const char*file, int line, const char* func)
+#else
 static inline void _starpu_worker_relax_off(void)
+#endif
 {
 	int workerid = starpu_worker_get_id();
 	if (workerid == -1)
@@ -943,10 +995,22 @@ static inline void _starpu_worker_relax_off(void)
 	if (!worker->state_sched_op_pending)
 		return;
 	STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
+#ifdef STARPU_SPINLOCK_CHECK
+	STARPU_ASSERT_MSG(worker->state_safe_for_observation, "relax last turn off in %s (%s:%d)\n", worker->relax_on_func, worker->relax_on_file, worker->relax_on_line);
+#else
 	STARPU_ASSERT(worker->state_safe_for_observation);
+#endif
 	worker->state_safe_for_observation = 0;
+#ifdef STARPU_SPINLOCK_CHECK
+	worker->relax_off_file = file;
+	worker->relax_off_line = line;
+	worker->relax_off_func = func;
+#endif
 	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 }
+#ifdef STARPU_SPINLOCK_CHECK
+#define _starpu_worker_relax_off() __starpu_worker_relax_off(__FILE__, __LINE__, __starpu_func__)
+#endif
 
 static inline int _starpu_worker_get_relax_state(void)
 {

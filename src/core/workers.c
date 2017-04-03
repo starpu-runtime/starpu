@@ -581,6 +581,14 @@ static void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu
 	workerarg->is_slave_somewhere = 0;
 
 	workerarg->state_safe_for_observation = 1;
+#ifdef STARPU_SPINLOCK_CHECK
+	workerarg->relax_on_file = __FILE__;
+	workerarg->relax_on_line = __LINE__;
+	workerarg->relax_on_func = __starpu_func__;
+	workerarg->relax_off_file = NULL;
+	workerarg->relax_off_line = 0;
+	workerarg->relax_off_func = NULL;
+#endif
 	workerarg->state_sched_op_pending = 0;
 	workerarg->state_changing_ctx_waiting = 0;
 	workerarg->state_changing_ctx_notice = 0;
