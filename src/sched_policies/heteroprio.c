@@ -370,7 +370,9 @@ static int push_task_heteroprio_policy(struct starpu_task *task)
 	struct _starpu_heteroprio_data *hp = (struct _starpu_heteroprio_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
 	/* One worker at a time use heteroprio */
+	_starpu_worker_relax_on();
 	STARPU_PTHREAD_MUTEX_LOCK(&hp->policy_mutex);
+	_starpu_worker_relax_off();
 
 	/* Retrieve the correct bucket */
 	STARPU_ASSERT(task->priority < STARPU_HETEROPRIO_MAX_PRIO);
@@ -618,8 +620,8 @@ done:		;
 		unsigned child_sched_ctx = starpu_sched_ctx_worker_is_master_for_child_ctx(workerid, sched_ctx_id);
 		if(child_sched_ctx != STARPU_NMAX_SCHED_CTXS)
 		{
-			starpu_sched_ctx_move_task_to_ctx(task, child_sched_ctx, 1, 1);
-			starpu_sched_ctx_revert_task_counters(sched_ctx_id, task->flops);
+			starpu_sched_ctx_move_task_to_ctx_locked(task, child_sched_ctx, 1);
+			starpu_sched_ctx_revert_task_counters_ctx_locked(sched_ctx_id, task->flops);
 			task = NULL;
 		}
 		_starpu_sched_ctx_unlock_write(sched_ctx_id);

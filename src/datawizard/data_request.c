@@ -173,7 +173,9 @@ struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t ha
 	r->callbacks = NULL;
 	r->com_id = 0;
 
+	_starpu_worker_relax_on();
 	_starpu_spin_lock(&r->lock);
+	_starpu_worker_relax_off();
 
 	/* Take a reference on the target for the request to be able to write it */
 	if (dst_replicate)
@@ -239,7 +241,9 @@ int _starpu_wait_data_request_completion(struct _starpu_data_request *r, unsigne
 			completed = r->completed;
 		if (completed)
 		{
+			_starpu_worker_relax_on();
 			_starpu_spin_lock(&r->lock);
+			_starpu_worker_relax_off();
 			if (r->completed)
 				break;
 			_starpu_spin_unlock(&r->lock);
@@ -307,7 +311,9 @@ void _starpu_post_data_request(struct _starpu_data_request *r)
 	}
 
 	/* insert the request in the proper list */
+	_starpu_worker_relax_on();
 	STARPU_PTHREAD_MUTEX_LOCK(&data_requests_list_mutex[handling_node]);
+	_starpu_worker_relax_off();
 	if (r->prefetch == 2)
 		_starpu_data_request_prio_list_push_back(&idle_requests[handling_node], r);
 	else if (r->prefetch)
@@ -477,8 +483,10 @@ static int starpu_handle_data_request(struct _starpu_data_request *r, unsigned m
 	/* Have to wait for the handle, whatever it takes, in simgrid,
 	 * since we can not afford going to sleep, since nobody would wake us
 	 * up. */
+	_starpu_worker_relax_on();
 	_starpu_spin_lock(&handle->header_lock);
 	_starpu_spin_lock(&r->lock);
+	_starpu_worker_relax_off();
 #endif
 
 	struct _starpu_data_replicate *src_replicate = r->src_replicate;
@@ -521,7 +529,9 @@ static int starpu_handle_data_request(struct _starpu_data_request *r, unsigned m
 		 * requests in the meantime. */
 		_starpu_spin_unlock(&handle->header_lock);
 
+		_starpu_worker_relax_on();
 		STARPU_PTHREAD_MUTEX_LOCK(&data_requests_pending_list_mutex[r->handling_node]);
+		_starpu_worker_relax_off();
 		_starpu_data_request_prio_list_push_back(&data_requests_pending[r->handling_node], r);
 		data_requests_npending[r->handling_node]++;
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data_requests_pending_list_mutex[r->handling_node]);
@@ -530,7 +540,9 @@ static int starpu_handle_data_request(struct _starpu_data_request *r, unsigned m
 	}
 
 	/* the request has been handled */
+	_starpu_worker_relax_on();
 	_starpu_spin_lock(&r->lock);
+	_starpu_worker_relax_off();
 	starpu_handle_data_request_completion(r);
 
 	return 0;
@@ -563,7 +575,9 @@ static int __starpu_handle_node_data_requests(struct _starpu_data_request_prio_l
 		return -EBUSY;
 	}
 #else
+	_starpu_worker_relax_on();
 	STARPU_PTHREAD_MUTEX_LOCK(&data_requests_list_mutex[src_node]);
+	_starpu_worker_relax_off();
 #endif
 
 	if (_starpu_data_request_prio_list_empty(&reqlist[src_node]))
@@ -628,7 +642,9 @@ static int __starpu_handle_node_data_requests(struct _starpu_data_request_prio_l
 
 	if (i <= prefetch)
 	{
+		_starpu_worker_relax_on();
 		STARPU_PTHREAD_MUTEX_LOCK(&data_requests_list_mutex[src_node]);
+		_starpu_worker_relax_off();
 		if (!(_starpu_data_request_prio_list_empty(&new_data_requests[0])))
 		{
 			_starpu_data_request_prio_list_push_prio_list_back(&new_data_requests[0], &data_requests[src_node]);
@@ -709,8 +725,12 @@ static int _handle_pending_node_data_requests(unsigned src_node, unsigned force)
 	}
 	else
 #endif
+	{
 		/* We really want to handle requests */
+		_starpu_worker_relax_on();
 		STARPU_PTHREAD_MUTEX_LOCK(&data_requests_pending_list_mutex[src_node]);
+		_starpu_worker_relax_off();
+	}
 
 	if (_starpu_data_request_prio_list_empty(&data_requests_pending[src_node]))
 	{
@@ -743,7 +763,11 @@ static int _handle_pending_node_data_requests(unsigned src_node, unsigned force)
 			/* Or when running in simgrid, in which case we can not
 			 * afford going to sleep, since nobody would wake us
 			 * up. */
+		{
+			_starpu_worker_relax_on();
 			_starpu_spin_lock(&handle->header_lock);
+			_starpu_worker_relax_off();
+		}
 #ifndef STARPU_SIMGRID
 		else
 			if (_starpu_spin_trylock(&handle->header_lock))
@@ -756,7 +780,9 @@ static int _handle_pending_node_data_requests(unsigned src_node, unsigned force)
 #endif
 
 		/* This shouldn't be too hard to acquire */
+		_starpu_worker_relax_on();
 		_starpu_spin_lock(&r->lock);
+		_starpu_worker_relax_off();
 
 		/* wait until the transfer is terminated */
 		if (force)
@@ -784,7 +810,9 @@ static int _handle_pending_node_data_requests(unsigned src_node, unsigned force)
 			}
 		}
 	}
+	_starpu_worker_relax_on();
 	STARPU_PTHREAD_MUTEX_LOCK(&data_requests_pending_list_mutex[src_node]);
+	_starpu_worker_relax_off();
 	data_requests_npending[src_node] -= taken - kept;
 	if (kept)
 		_starpu_data_request_prio_list_push_prio_list_back(&data_requests_pending[src_node], &new_data_requests_pending);
@@ -810,12 +838,16 @@ int _starpu_check_that_no_data_request_exists(unsigned node)
 	int no_request;
 	int no_pending;
 
+	_starpu_worker_relax_on();
 	STARPU_PTHREAD_MUTEX_LOCK(&data_requests_list_mutex[node]);
+	_starpu_worker_relax_off();
 	no_request = _starpu_data_request_prio_list_empty(&data_requests[node])
 	          && _starpu_data_request_prio_list_empty(&prefetch_requests[node])
 		  && _starpu_data_request_prio_list_empty(&idle_requests[node]);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data_requests_list_mutex[node]);
+	_starpu_worker_relax_on();
 	STARPU_PTHREAD_MUTEX_LOCK(&data_requests_pending_list_mutex[node]);
+	_starpu_worker_relax_off();
 	no_pending = !data_requests_npending[node];
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data_requests_pending_list_mutex[node]);
 
@@ -844,7 +876,9 @@ void _starpu_update_prefetch_status(struct _starpu_data_request *r, unsigned pre
 			_starpu_update_prefetch_status(next_req, prefetch);
 	}
 
+	_starpu_worker_relax_on();
 	STARPU_PTHREAD_MUTEX_LOCK(&data_requests_list_mutex[r->handling_node]);
+	_starpu_worker_relax_off();
 
 	/* The request can be in a different list (handling request or the temp list)
 	 * we have to check that it is really in the prefetch list. */
