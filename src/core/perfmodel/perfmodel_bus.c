@@ -668,7 +668,12 @@ static void measure_bandwidth_latency_between_numa(int numa_src, int numa_dst)
 
 	hwloc_free(hwtopology, h_buffer, SIZE);
 	hwloc_free(hwtopology, d_buffer, SIZE);
+#else
+	/* Cannot make a real calibration */
+	numa_timing[numa_src][numa_dst] = 0.01;
+	numa_latency[numa_src][numa_dst] = 0;
 #endif
+
 }
 
 static void benchmark_all_gpu_devices(void)
@@ -1220,12 +1225,13 @@ static double search_bus_best_latency(int src, char * type, int htod)
 				actual = opencldev_timing_per_numa[src*STARPU_MAXNUMANODES+numa].latency_dtoh;
 		}
 #endif
-
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 		if (!check || actual < best)
 		{
 			best = actual;
 			check = 1;
 		}
+#endif
 	}
 	return best;
 }
@@ -1556,11 +1562,13 @@ static double search_bus_best_timing(int src, char * type, int htod)
 				actual = opencldev_timing_per_numa[src*STARPU_MAXNUMANODES+numa].timing_dtoh;
 		}
 #endif
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
                 if (!check || actual < best)
                 {
                         best = actual;
                         check = 1;
                 }
+#endif
         }
         return best;
 }

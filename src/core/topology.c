@@ -935,7 +935,7 @@ int _starpu_numa_logid_to_id(unsigned logid)
 
 unsigned _starpu_numa_id_to_logid(unsigned id)
 {
-	STARPU_ASSERT(id >= 0 && id < STARPU_MAXNUMANODES);
+	STARPU_ASSERT(id < STARPU_MAXNUMANODES);
 	return numa_memory_nodes[id];
 }
 
