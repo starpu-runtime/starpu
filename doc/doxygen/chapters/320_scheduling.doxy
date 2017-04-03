@@ -95,6 +95,11 @@ except that it sorts tasks by priority order, which allows to become even closer
 to HEFT by respecting priorities after having made the scheduling decision (but
 it still schedules tasks in the order they become available).
 
+The <b>dmdasd</b> (deque model data aware sorted decision) scheduler is similar
+to dmdas, except that when scheduling a task, it takes into account its priority
+when computing the minimum completion time, since this task may get executed
+before others, and thus the latter should be ignored.
+
 The <b>heft</b> (heterogeneous earliest finish time) scheduler is a deprecated
 alias for <b>dmda</b>.
 
