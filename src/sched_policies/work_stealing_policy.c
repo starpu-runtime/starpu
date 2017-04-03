@@ -609,7 +609,6 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 			starpu_sched_ctx_move_task_to_ctx_locked(task, child_sched_ctx, 1);
 			starpu_sched_ctx_revert_task_counters_ctx_locked(sched_ctx_id, task->flops);
 			_starpu_sched_ctx_unlock_write(sched_ctx_id);
-			_starpu_worker_relax_off();
 			return NULL;
 		}
 		_starpu_sched_ctx_unlock_write(sched_ctx_id);
