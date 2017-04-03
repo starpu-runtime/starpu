@@ -1202,7 +1202,7 @@ static double search_bus_best_latency(int src, char * type, int htod)
 {
 	/* Search the best latency for this node */
 	double best = 0.0;
-	double actual;
+	double actual = 0.0;
 	unsigned check = 0;
 	unsigned numa;
 	for (numa = 0; numa < nnumas; numa++)
@@ -1539,7 +1539,7 @@ static double search_bus_best_timing(int src, char * type, int htod)
 {
         /* Search the best latency for this node */
         double best = 0.0;
-        double actual; 
+        double actual = 0.0; 
         unsigned check = 0;
         unsigned numa; 
         for (numa = 0; numa < nnumas; numa++)
