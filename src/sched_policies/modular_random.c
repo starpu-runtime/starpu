@@ -33,7 +33,7 @@ static void initialize_random_fifo_center_policy(unsigned sched_ctx_id)
 
 	unsigned i;
 	for(i = 0; i < starpu_worker_get_count() + starpu_combined_worker_get_count(); i++)
-		starpu_sched_component_connect(random_component, starpu_sched_component_worker_get(sched_ctx_id, i));
+		starpu_sched_component_connect(random_component, starpu_sched_component_worker_new(sched_ctx_id, i));
 
 	starpu_sched_tree_update_workers(t);
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)t);
@@ -76,7 +76,7 @@ static void initialize_random_prio_center_policy(unsigned sched_ctx_id)
 
 	unsigned i;
 	for(i = 0; i < starpu_worker_get_count() + starpu_combined_worker_get_count(); i++)
-		starpu_sched_component_connect(random_component, starpu_sched_component_worker_get(sched_ctx_id, i));
+		starpu_sched_component_connect(random_component, starpu_sched_component_worker_new(sched_ctx_id, i));
 
 	starpu_sched_tree_update_workers(t);
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)t);

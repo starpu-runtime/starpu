@@ -883,16 +883,24 @@ struct starpu_sched_component * starpu_sched_component_worker_get(unsigned sched
 {
 	STARPU_ASSERT(workerid >= 0 && workerid < STARPU_NMAXWORKERS);
 	/* we may need to take a mutex here */
-	if(_worker_components[sched_ctx][workerid])
-		return _worker_components[sched_ctx][workerid];
-	else
-	{
-		struct starpu_sched_component * component;
-		if(workerid < (int) starpu_worker_get_count())
-			component = starpu_sched_component_worker_create(starpu_sched_tree_get(sched_ctx), workerid);
-		else
-			component = starpu_sched_component_combined_worker_create(starpu_sched_tree_get(sched_ctx), workerid);
-		_worker_components[sched_ctx][workerid] = component;
-		return component;
-	}
+	STARPU_ASSERT(_worker_components[sched_ctx][workerid]);
+	return _worker_components[sched_ctx][workerid];
 }
+
+struct starpu_sched_component * starpu_sched_component_worker_new(unsigned sched_ctx, int workerid)
+{
+	STARPU_ASSERT(workerid >= 0 && workerid < STARPU_NMAXWORKERS);
+	/* we may need to take a mutex here */
+	STARPU_ASSERT(!_worker_components[sched_ctx][workerid]);
+	struct starpu_sched_component * component;
+	if(workerid < (int) starpu_worker_get_count())
+		component = starpu_sched_component_worker_create(starpu_sched_tree_get(sched_ctx), workerid);
+	else
+		component = starpu_sched_component_combined_worker_create(starpu_sched_tree_get(sched_ctx), workerid);
+	_worker_components[sched_ctx][workerid] = component;
+	return component;
+}
+
+
+
+
