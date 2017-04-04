@@ -325,7 +325,7 @@ end:
 #endif
 	if (ret == 0)
 	{
-		STARPU_ASSERT_MSG(*A, "Failed to allocated memory of size %ld b\n", (unsigned long)dim);
+		STARPU_ASSERT_MSG(*A, "Failed to allocated memory of size %lu b\n", (unsigned long)dim);
 	}
 	else if (flags & STARPU_MALLOC_COUNT)
 	{
