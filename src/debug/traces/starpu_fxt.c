@@ -400,7 +400,6 @@ static char last_codelet_parameter_description[STARPU_NMAXWORKERS][MAX_PARAMETER
 static double last_activity_flush_timestamp[STARPU_NMAXWORKERS];
 static double accumulated_sleep_time[STARPU_NMAXWORKERS];
 static double accumulated_exec_time[STARPU_NMAXWORKERS];
-static double reclaiming[STARPU_MAXNODES];
 
 static unsigned steal_number = 0;
 
@@ -3167,67 +3166,35 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 				break;
 			case _STARPU_FUT_START_FREE:
 				if (!options->no_bus)
-				{
-					handle_memnode_event(&ev, options, "F");
-				}
+					handle_push_memnode_event(&ev, options, "F");
 				break;
 			case _STARPU_FUT_END_FREE:
 				if (!options->no_bus)
-				{
-					unsigned memnode = ev.param[0];
-					if (reclaiming[memnode])
-						handle_memnode_event(&ev, options, "R");
-					else
-						handle_memnode_event(&ev, options, "No");
-				}
+					handle_pop_memnode_event(&ev, options);
 				break;
 			case _STARPU_FUT_START_WRITEBACK:
 				if (!options->no_bus)
-				{
-					handle_memnode_event(&ev, options, "W");
-				}
+					handle_push_memnode_event(&ev, options, "W");
 				break;
 			case _STARPU_FUT_END_WRITEBACK:
 				if (!options->no_bus)
-				{
-					unsigned memnode = ev.param[0];
-					if (reclaiming[memnode])
-						handle_memnode_event(&ev, options, "R");
-					else
-						handle_memnode_event(&ev, options, "No");
-				}
+					handle_pop_memnode_event(&ev, options);
 				break;
 			case _STARPU_FUT_START_WRITEBACK_ASYNC:
 				if (!options->no_bus)
-				{
-					handle_memnode_event(&ev, options, "Wa");
-				}
+					handle_push_memnode_event(&ev, options, "Wa");
 				break;
 			case _STARPU_FUT_END_WRITEBACK_ASYNC:
 				if (!options->no_bus)
-				{
-					unsigned memnode = ev.param[0];
-					if (reclaiming[memnode])
-						handle_memnode_event(&ev, options, "R");
-					else
-						handle_memnode_event(&ev, options, "No");
-				}
+					handle_pop_memnode_event(&ev, options);
 				break;
 			case _STARPU_FUT_START_MEMRECLAIM:
 				if (!options->no_bus)
-				{
-					unsigned memnode = ev.param[0];
-					reclaiming[memnode] = 1;
-					handle_memnode_event(&ev, options, "R");
-				}
+					handle_push_memnode_event(&ev, options, "R");
 				break;
 			case _STARPU_FUT_END_MEMRECLAIM:
 				if (!options->no_bus)
-				{
-					unsigned memnode = ev.param[0];
-					reclaiming[memnode] = 0;
-					handle_memnode_event(&ev, options, "No");
-				}
+					handle_pop_memnode_event(&ev, options);
 				break;
 			case _STARPU_FUT_USED_MEM:
 				handle_used_mem(&ev, options);
