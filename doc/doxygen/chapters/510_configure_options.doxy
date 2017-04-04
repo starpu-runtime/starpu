@@ -553,6 +553,13 @@ that the MKL website
 provides a script to determine the linking flags.
 </dd>
 
+<dt>--disable-glpk</dt>
+<dd>
+\anchor disable-glpk
+\addindex __configure__--disable-glpk
+Disable the use of libglpk for computing area bounds.
+</dd>
+
 <dt>--disable-build-tests</dt>
 <dd>
 \anchor disable-build-tests

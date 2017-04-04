@@ -1944,8 +1944,13 @@ if test x$enable_memory_stats = xyes; then
         AC_DEFINE(STARPU_MEMORY_STATS, [1], [enable memory stats])
 fi
 
-AC_CHECK_HEADERS([glpk.h], [AC_DEFINE([STARPU_HAVE_GLPK_H], [1], [Define to 1 if you have the <glpk.h> header file.])])
-STARPU_HAVE_LIBRARY(GLPK, [glpk])
+AC_ARG_ENABLE(glpk, [AS_HELP_STRING([--disable-glpk],
+			     [disable using glpk for bound computation])],
+			     enable_glpk=$enableval, enable_glpk=yes)
+if test x$enable_glpk = xyes; then
+	AC_CHECK_HEADERS([glpk.h], [AC_DEFINE([STARPU_HAVE_GLPK_H], [1], [Define to 1 if you have the <glpk.h> header file.])])
+	STARPU_HAVE_LIBRARY(GLPK, [glpk])
+fi
 
 AC_ARG_WITH(ayudame1-include-dir,
 	[AS_HELP_STRING([--with-ayudame1-include-dir=<path>],
