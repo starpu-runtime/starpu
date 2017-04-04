@@ -1124,8 +1124,12 @@ void starpu_sched_ctx_delete(unsigned sched_ctx_id)
 		add_notified_workers(workerids, nworkers_ctx, inheritor_sched_ctx_id);
 		starpu_sched_ctx_set_priority_on_level(workerids, nworkers_ctx, inheritor_sched_ctx_id, 1);
 	}
-
-	if(!_starpu_wait_for_all_tasks_of_sched_ctx(sched_ctx_id))
+	notify_workers_about_changing_ctx_done(nworkers_ctx, backup_workerids);
+	_starpu_sched_ctx_unlock_write(sched_ctx_id);
+	int wait_status = _starpu_wait_for_all_tasks_of_sched_ctx(sched_ctx_id);
+	_starpu_sched_ctx_lock_write(sched_ctx_id);
+	notify_workers_about_changing_ctx_pending(nworkers_ctx, backup_workerids);
+	if(!wait_status)
 	{
 		if(!sched_ctx->sched_policy)
 			_starpu_sched_ctx_unblock_workers_in_parallel(sched_ctx_id, 0);
