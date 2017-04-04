@@ -544,14 +544,14 @@ An intermediate solution is to define a codelet with its
 starpu_codelet::where field set to \ref STARPU_NOWHERE, for instance:
 
 \code{.c}
-struct starpu_codelet {
+struct starpu_codelet cl = {
 	.where = STARPU_NOWHERE,
 	.nbuffers = 1,
 	.modes = { STARPU_R },
 }
 
 task = starpu_task_create();
-task->cl = starpu_codelet;
+task->cl = &cl;
 task->handles[0] = handle;
 starpu_task_submit(task);
 \endcode
