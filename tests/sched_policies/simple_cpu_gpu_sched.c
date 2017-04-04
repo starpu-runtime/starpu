@@ -57,7 +57,7 @@ cpu_task_gpu(struct starpu_task *task,
 	(void) arch;
 	(void) nimpl;
 
-	return 1000.0;
+	return 10000000.0;
 }
 
 static double
@@ -69,7 +69,7 @@ gpu_task_cpu(struct starpu_task *task,
 	(void) arch;
 	(void) nimpl;
 
-	return 1000.0;
+	return 10000000.0;
 }
 
 static double
