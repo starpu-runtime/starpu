@@ -70,8 +70,8 @@ For each task not going through the scheduler (because starpu_task::execute_on_a
         when doing work stealing), but it must acquire it again before taking
         the decision whether to return a task or NULL, so the atomicity of
         deciding to return NULL and making the worker actually sleep is
-        preserved. Otherwise the worker might start sleeping while a task has
-        just been pushed for it.
+        preserved. Otherwise in simgrid or blocking driver mode the worker might start
+        sleeping while a task has just been pushed for it.
 
         If this method is defined as <c>NULL</c>, the worker will only execute
         tasks from its local queue. In this case, the push_task method should
@@ -119,7 +119,8 @@ block and wake up all workers.
 
 \fn int starpu_wake_worker(int workerid)
 \ingroup API_Scheduling_Policy
-This should be called by push functions to wake the potential workers that are
+In simgrid or blocking driver mode, 
+this should be called by push functions to wake the potential workers that are
 supposed to pick up the tasks which just have been pushed, otherwise they may
 remain sleeping.
 
