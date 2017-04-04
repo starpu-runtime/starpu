@@ -401,10 +401,24 @@
 	{ ENAME##_list_erase(&(priolist)->list, (e)); } \
 	static inline struct ENAME *ENAME##_prio_list_pop_front(struct ENAME##_prio_list *priolist) \
 	{ return ENAME##_list_pop_front(&(priolist)->list); } \
+	static inline struct ENAME *ENAME##_prio_list_pop_back(struct ENAME##_prio_list *priolist) \
+	{ return ENAME##_list_pop_back(&(priolist)->list); } \
 	static inline void ENAME##_prio_list_push_prio_list_back(struct ENAME##_prio_list *priolist, struct ENAME##_prio_list *priolist_toadd) \
 	{ ENAME##_list_push_list_back(&(priolist)->list, &(priolist_toadd)->list); } \
 	static inline int ENAME##_prio_list_ismember(const struct ENAME##_prio_list *priolist, const struct ENAME *e) \
 	{ return ENAME##_list_ismember(&(priolist)->list, (e)); } \
+	static inline struct ENAME *ENAME##_prio_list_begin(struct ENAME##_prio_list *priolist) \
+	{ return ENAME##_list_begin(&(priolist)->list); } \
+	static inline struct ENAME *ENAME##_prio_list_end(struct ENAME##_prio_list *priolist) \
+	{ return ENAME##_list_end(&(priolist)->list); } \
+	static inline struct ENAME *ENAME##_prio_list_next(struct ENAME##_prio_list *priolist STARPU_ATTRIBUTE_UNUSED, const struct ENAME *i) \
+	{ return ENAME##_list_next(i); } \
+	static inline struct ENAME *ENAME##_prio_list_last(struct ENAME##_prio_list *priolist) \
+	{ return ENAME##_list_last(&(priolist)->list); } \
+	static inline struct ENAME *ENAME##_prio_list_alpha(struct ENAME##_prio_list *priolist) \
+	{ return ENAME##_list_alpha(&(priolist)->list); } \
+	static inline struct ENAME *ENAME##_prio_list_prev(struct ENAME##_prio_list *priolist STARPU_ATTRIBUTE_UNUSED, const struct ENAME *i) \
+	{ return ENAME##_list_prev(i); } \
 
 #endif
 
