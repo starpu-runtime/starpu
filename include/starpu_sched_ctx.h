@@ -134,6 +134,7 @@ void starpu_sched_ctx_list_task_counters_decrement(unsigned sched_ctx_id, int wo
 void starpu_sched_ctx_list_task_counters_reset(unsigned sched_ctx_id, int workerid);
 
 void starpu_sched_ctx_list_task_counters_increment_all(struct starpu_task *task, unsigned sched_ctx_id);
+void starpu_sched_ctx_list_task_counters_increment_all_ctx_locked(struct starpu_task *task, unsigned sched_ctx_id);
 
 void starpu_sched_ctx_list_task_counters_decrement_all(struct starpu_task *task, unsigned sched_ctx_id);
 void starpu_sched_ctx_list_task_counters_decrement_all_ctx_locked(struct starpu_task *task, unsigned sched_ctx_id);
