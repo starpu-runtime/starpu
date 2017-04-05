@@ -271,8 +271,6 @@ void _starpu_sched_component_update_workers(struct starpu_sched_component * comp
 void _starpu_sched_component_update_workers_in_ctx(struct starpu_sched_component * component, unsigned sched_ctx_id)
 {
 	STARPU_ASSERT(component);
-	if(starpu_sched_component_is_worker(component))
-		return;
 	struct starpu_bitmap * workers_in_ctx = _starpu_get_worker_mask(sched_ctx_id);
 	starpu_bitmap_unset_and(component->workers_in_ctx,component->workers, workers_in_ctx);
 	int i,j;
