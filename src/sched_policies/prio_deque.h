@@ -67,9 +67,11 @@ int _starpu_prio_deque_push_back_task(struct _starpu_prio_deque *, struct starpu
 
 static inline struct starpu_task * _starpu_prio_deque_pop_task(struct _starpu_prio_deque *pdeque)
 {
-	struct starpu_task *task = starpu_task_prio_list_pop_front(&pdeque->list);
-	if (task)
-		pdeque->ntasks--;
+	struct starpu_task *task;
+	if (starpu_task_prio_list_empty(&pdeque->list))
+		return NULL;
+	task = starpu_task_prio_list_pop_front(&pdeque->list);
+	pdeque->ntasks--;
 	return task;
 }
 
@@ -80,9 +82,11 @@ struct starpu_task * _starpu_prio_deque_pop_task_for_worker(struct _starpu_prio_
 /* deque a task of the higher priority available */
 static inline struct starpu_task * _starpu_prio_deque_deque_task(struct _starpu_prio_deque *pdeque)
 {
-	struct starpu_task *task = starpu_task_prio_list_pop_back(&pdeque->list);
-	if (task)
-		pdeque->ntasks--;
+	struct starpu_task *task;
+	if (starpu_task_prio_list_empty(&pdeque->list))
+		return NULL;
+	task = starpu_task_prio_list_pop_back(&pdeque->list);
+	pdeque->ntasks--;
 	return task;
 }
 
