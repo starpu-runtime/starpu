@@ -594,7 +594,8 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 #ifndef STARPU_NON_BLOCKING_DRIVERS
         /* While stealing, perhaps somebody actually give us a task, don't miss
          * the opportunity to take it before going to sleep. */
-	if (!task) {
+	if (!task)
+	{
 		STARPU_PTHREAD_MUTEX_LOCK(&ws->per_worker[workerid].worker_mutex);
 		task = ws_pick_task(ws, workerid, workerid);
 		if (task)
@@ -643,7 +644,7 @@ int ws_push_task(struct starpu_task *task)
 	starpu_pthread_cond_t *sched_cond;
 	starpu_worker_get_sched_condition(workerid, &sched_mutex, &sched_cond);
 	STARPU_PTHREAD_MUTEX_LOCK_SCHED(sched_mutex);
-	STARPU_AYU_ADDTOTASKQUEUE(_starpu_get_job_associated_to_task(task)->job_id, workerid);
+	STARPU_AYU_ADDTOTASKQUEUE(starpu_task_get_job_id(task), workerid);
 	STARPU_PTHREAD_MUTEX_LOCK(&ws->per_worker[workerid].worker_mutex);
 	_STARPU_TASK_BREAK_ON(task, sched);
 	record_data_locality(task, workerid);

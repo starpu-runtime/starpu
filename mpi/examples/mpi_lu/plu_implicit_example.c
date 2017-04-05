@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2011, 2013, 2017  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -51,26 +51,32 @@ int get_block_rank(unsigned i, unsigned j);
 static void parse_args(int argc, char **argv)
 {
 	int i;
-	for (i = 1; i < argc; i++) {
-		if (strcmp(argv[i], "-size") == 0) {
+	for (i = 1; i < argc; i++)
+	{
+		if (strcmp(argv[i], "-size") == 0)
+		{
 			char *argptr;
 			size = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-nblocks") == 0) {
+		if (strcmp(argv[i], "-nblocks") == 0)
+		{
 			char *argptr;
 			nblocks = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-check") == 0) {
+		if (strcmp(argv[i], "-check") == 0)
+		{
 			check = 1;
 		}
 
-		if (strcmp(argv[i], "-display") == 0) {
+		if (strcmp(argv[i], "-display") == 0)
+		{
 			display = 1;
 		}
 
-		if (strcmp(argv[i], "-numa") == 0) {
+		if (strcmp(argv[i], "-numa") == 0)
+		{
 #ifdef STARPU_HAVE_LIBNUMA
 			numa = 1;
 #else
@@ -78,17 +84,20 @@ static void parse_args(int argc, char **argv)
 #endif
 		}
 
-		if (strcmp(argv[i], "-p") == 0) {
+		if (strcmp(argv[i], "-p") == 0)
+		{
 			char *argptr;
 			p = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-q") == 0) {
+		if (strcmp(argv[i], "-q") == 0)
+		{
 			char *argptr;
 			q = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "-help") == 0 || strcmp(argv[i], "--help") == 0) {
+		if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "-help") == 0 || strcmp(argv[i], "--help") == 0)
+		{
 			fprintf(stderr,"usage: %s [-size n] [-nblocks b] [-check] [-display] [-numa] [-p p] [-q q]\n", argv[0]);
 			fprintf(stderr,"\np * q must be equal to the number of MPI nodes\n");
 			exit(0);
@@ -168,7 +177,8 @@ static void init_matrix(int rank)
 					(uintptr_t)*blockptr, size/nblocks,
 					size/nblocks, size/nblocks, sizeof(TYPE));
 			}
-			else {
+			else
+			{
 				starpu_matrix_data_register(handleptr, -1,
 					0, size/nblocks,
 					size/nblocks, size/nblocks, sizeof(TYPE));

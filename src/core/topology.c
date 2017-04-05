@@ -516,7 +516,7 @@ _starpu_allocate_topology_userdata(hwloc_obj_t obj)
 {
 	unsigned i;
 
-	obj->userdata = calloc(1, sizeof(struct _starpu_hwloc_userdata));
+	_STARPU_CALLOC(obj->userdata,  1, sizeof(struct _starpu_hwloc_userdata));
 	for (i = 0; i < obj->arity; i++)
 		_starpu_allocate_topology_userdata(obj->children[i]);
 }
@@ -1270,7 +1270,7 @@ _starpu_init_machine_config(struct _starpu_machine_config *config, int no_mp_con
 			if(topology->cuda_th_per_stream)
 			{
 				/* Just one worker in the set */
-				config->workers[worker_idx].set = (struct _starpu_worker_set *)calloc(1, sizeof(struct _starpu_worker_set));
+				_STARPU_CALLOC(config->workers[worker_idx].set, 1, sizeof(struct _starpu_worker_set));
 				config->workers[worker_idx].set->workers = &config->workers[worker_idx];
 				config->workers[worker_idx].set->nworkers = 1;
 			}
@@ -1372,7 +1372,8 @@ _starpu_init_machine_config(struct _starpu_machine_config *config, int no_mp_con
 		int worker_idx = topology->nworkers + openclgpu;
 		int devid = _starpu_get_next_opencl_gpuid(config);
 		if (devid == -1)
-		{ // There is no more devices left
+		{
+			// There is no more devices left
 			topology->nopenclgpus = openclgpu;
 			break;
 		}
@@ -1672,7 +1673,7 @@ _starpu_bind_thread_on_cpu (
 	CPU_ZERO(&aff_mask);
 	CPU_SET(cpuid, &aff_mask);
 
-	starpu_pthread_t self = pthread_self();
+	starpu_pthread_t self = starpu_pthread_self();
 
 	ret = pthread_setaffinity_np(self, sizeof(aff_mask), &aff_mask);
 	if (ret)
@@ -1835,8 +1836,7 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 				_starpu_memory_node_add_nworkers(memory_node);
 
                                 _starpu_worker_drives_memory_node(workerarg, STARPU_MAIN_RAM);
-				if (memory_node != STARPU_MAIN_RAM)
-					_starpu_worker_drives_memory_node(workerarg, memory_node);
+				_starpu_worker_drives_memory_node(workerarg, memory_node);
 				break;
 			}
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
@@ -1874,7 +1874,7 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 					_starpu_cuda_bus_ids[devid+1][0] = _starpu_register_bus(memory_node, STARPU_MAIN_RAM);
 #ifdef STARPU_SIMGRID
 					const char* cuda_memcpy_peer;
-					snprintf(name, sizeof(name), "CUDA%d", devid);
+					snprintf(name, sizeof(name), "CUDA%u", devid);
 					host = _starpu_simgrid_get_host_by_name(name);
 					STARPU_ASSERT(host);
 					_starpu_simgrid_memory_node_set_host(memory_node, host);
@@ -1930,8 +1930,7 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 				_starpu_memory_node_add_nworkers(memory_node);
 
                                 _starpu_worker_drives_memory_node(&workerarg->set->workers[0], STARPU_MAIN_RAM);
-				if (memory_node != STARPU_MAIN_RAM)
-					_starpu_worker_drives_memory_node(&workerarg->set->workers[0], memory_node);
+				_starpu_worker_drives_memory_node(&workerarg->set->workers[0], memory_node);
 				break;
 #endif
 
@@ -1960,7 +1959,7 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 					_starpu_register_bus(STARPU_MAIN_RAM, memory_node);
 					_starpu_register_bus(memory_node, STARPU_MAIN_RAM);
 #ifdef STARPU_SIMGRID
-					snprintf(name, sizeof(name), "OpenCL%d", devid);
+					snprintf(name, sizeof(name), "OpenCL%u", devid);
 					host = _starpu_simgrid_get_host_by_name(name);
 					STARPU_ASSERT(host);
 					_starpu_simgrid_memory_node_set_host(memory_node, host);
@@ -1969,8 +1968,7 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 				_starpu_memory_node_add_nworkers(memory_node);
 
                                 _starpu_worker_drives_memory_node(workerarg, STARPU_MAIN_RAM);
-				if (memory_node != STARPU_MAIN_RAM)
-					_starpu_worker_drives_memory_node(workerarg, memory_node);
+				_starpu_worker_drives_memory_node(workerarg, memory_node);
 				break;
 #endif
 
@@ -2000,8 +1998,7 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 				_starpu_memory_node_add_nworkers(memory_node);
 
                                 _starpu_worker_drives_memory_node(&workerarg->set->workers[0], STARPU_MAIN_RAM);
-				if (memory_node != STARPU_MAIN_RAM)
-					_starpu_worker_drives_memory_node(&workerarg->set->workers[0], memory_node);
+				_starpu_worker_drives_memory_node(&workerarg->set->workers[0], memory_node);
 				break;
 #endif /* STARPU_USE_MIC */
 
@@ -2016,8 +2013,7 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 				_starpu_memory_node_add_nworkers(memory_node);
 
                                 _starpu_worker_drives_memory_node(workerarg, STARPU_MAIN_RAM);
-				if (memory_node != STARPU_MAIN_RAM)
-					_starpu_worker_drives_memory_node(workerarg, memory_node);
+				_starpu_worker_drives_memory_node(workerarg, memory_node);
 			}
 				break;
 #endif /* STARPU_USE_SCC */
@@ -2039,8 +2035,7 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 
 				}
                                 _starpu_worker_drives_memory_node(&workerarg->set->workers[0], STARPU_MAIN_RAM);
-				if (memory_node != STARPU_MAIN_RAM)
-					_starpu_worker_drives_memory_node(&workerarg->set->workers[0], memory_node);
+				_starpu_worker_drives_memory_node(&workerarg->set->workers[0], memory_node);
 #ifndef STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD
                                 /* MPI driver thread can manage all slave memories if we disable the MPI multiple thread */
                                 unsigned findworker;

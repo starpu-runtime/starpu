@@ -34,7 +34,6 @@
 #include <core/task.h>
 #include <datawizard/malloc.h>
 #include <profiling/profiling.h>
-#include <starpu_task_list.h>
 #include <sched_policies/sched_component.h>
 #include <datawizard/memory_nodes.h>
 #include <top/starpu_top_core.h>
@@ -1417,14 +1416,12 @@ static void _starpu_terminate_workers(struct _starpu_machine_config *pconfig)
 		struct _starpu_worker *worker = &pconfig->workers[workerid];
 
 		/* in case StarPU termination code is called from a callback,
- 		 * we have to check if pthread_self() is the worker itself */
+ 		 * we have to check if starpu_pthread_self() is the worker itself */
 		if (set && set->nworkers > 0)
 		{
 			if (set->started)
 			{
-#ifndef STARPU_SIMGRID
-				if (!pthread_equal(pthread_self(), set->worker_thread))
-#endif
+				if (!starpu_pthread_equal(starpu_pthread_self(), set->worker_thread))
 					status = starpu_pthread_join(set->worker_thread, NULL);
 				if (status)
 				{
@@ -1440,9 +1437,7 @@ static void _starpu_terminate_workers(struct _starpu_machine_config *pconfig)
 			if (!worker->run_by_starpu)
 				goto out;
 
-#ifndef STARPU_SIMGRID
-			if (!pthread_equal(pthread_self(), worker->worker_thread))
-#endif
+			if (!starpu_pthread_equal(starpu_pthread_self(), worker->worker_thread))
 				status = starpu_pthread_join(worker->worker_thread, NULL);
 			if (status)
 			{

@@ -201,7 +201,8 @@ void _starpu_update_data_state(starpu_data_handle_t handle,
 			_starpu_memchunk_dirty(requesting_replicate->mc, requesting_replicate->memory_node);
 	}
 	else
-	{ /* read only */
+	{
+		/* read only */
 		if (requesting_replicate->state != STARPU_OWNER)
 		{
 			/* there was at least another copy of the data */
@@ -943,20 +944,24 @@ static void _starpu_fetch_task_input_cb(void *arg)
    /* increase the number of buffer received */
    STARPU_WMB();
    (void)STARPU_ATOMIC_ADD(&worker->nb_buffers_transferred, 1);
+
+#ifdef STARPU_SIMGRID
+   starpu_pthread_queue_broadcast(&_starpu_simgrid_transfer_queue[worker->memory_node]);
+#endif
 }
 
 
 /* Synchronously or asynchronously fetch data for a given task (if it's not there already) 
  * Returns the number of data acquired here.  */
 
-/* The synchronous version of _starpu_fetch_task_input must be called before
+/* _starpu_fetch_task_input must be called before
  * executing the task. __starpu_push_task_output but be called after the
  * execution of the task. */
-/* To improve overlapping, the driver can, before calling the synchronous
- * version of _starpu_fetch_task_input, call _starpu_fetch_task_input with
+
+/* The driver can either just call _starpu_fetch_task_input with async==0,
+ * or to improve overlapping, it can call _starpu_fetch_task_input with
  * async==1, then wait for transfers to complete, then call
- * _starpu_release_fetch_task_input_async to release them before calling the
- * synchronous version of _starpu_fetch_task_input. */
+ * _starpu_fetch_task_input_tail to complete the fetch.  */
 int _starpu_fetch_task_input(struct starpu_task *task, struct _starpu_job *j, int async)
 {
 	struct _starpu_worker *worker = _starpu_get_local_worker_key();
@@ -979,9 +984,8 @@ int _starpu_fetch_task_input(struct starpu_task *task, struct _starpu_job *j, in
 	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
 	unsigned nacquires;
 
-	unsigned local_memory_node = _starpu_memory_node_get_local_key();
+	unsigned local_memory_node = worker->memory_node;
 
-	unsigned long total_size = 0;
 	unsigned index;
 
 	nacquires = 0;
@@ -1034,9 +1038,6 @@ int _starpu_fetch_task_input(struct starpu_task *task, struct _starpu_job *j, in
 				goto enomem;
 		}
 
-#ifdef STARPU_USE_FXT
-		total_size += _starpu_data_get_size(handle);
-#endif
 		nacquires++;
 	}
 	if (async)
@@ -1045,33 +1046,7 @@ int _starpu_fetch_task_input(struct starpu_task *task, struct _starpu_job *j, in
 		return 0;
 	}
 
-	_STARPU_TRACE_DATA_LOAD(workerid,total_size);
-	/* Now that we have taken the data locks in locking order, fill the codelet interfaces in function order.  */
-	for (index = 0; index < nbuffers; index++)
-	{
-		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, index);
-		enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(task, index);
-		int node = descrs[index].node;
-		if (node == -1)
-			node = local_memory_node;
-
-		struct _starpu_data_replicate *local_replicate;
-
-		local_replicate = get_replicate(handle, mode, workerid, node);
-		if (local_replicate->mc)
-			local_replicate->mc->diduse = 1;
-
-		_STARPU_TASK_SET_INTERFACE(task , local_replicate->data_interface, index);
-
-		/* If the replicate was not initialized yet, we have to do it now */
-		if (!(mode & STARPU_SCRATCH) && !local_replicate->initialized)
-			_starpu_redux_init_data_replicate(handle, local_replicate, workerid);
-	}
-
-	if (profiling && task->profiling_info)
-		_starpu_clock_gettime(&task->profiling_info->acquire_data_end_time);
-
-	_STARPU_TRACE_END_FETCH_INPUT(NULL);
+	_starpu_fetch_task_input_tail(task, j, worker);
 
 	return 0;
 
@@ -1105,54 +1080,51 @@ enomem:
 	return -1;
 }
 
-/* This is to be called after having called _starpu_fetch_task_input with async=1 and getting the cb called as many times as there are buffers.  */
-int _starpu_release_fetch_task_input_async(struct _starpu_job *j, struct _starpu_worker *worker)
+/* Now that we have taken the data locks in locking order, fill the codelet interfaces in function order.  */
+void _starpu_fetch_task_input_tail(struct starpu_task *task, struct _starpu_job *j, struct _starpu_worker *worker)
 {
-	unsigned workerid = worker->workerid;
-	unsigned nbtransfers = worker->nb_buffers_totransfer;
-	STARPU_RMB();
-	if (worker->ntasks <= 1)
-		_STARPU_TRACE_WORKER_END_FETCH_INPUT(NULL, workerid);
-	struct starpu_task *task = j->task;
+	int workerid = worker->workerid;
+
+	int profiling = starpu_profiling_status_get();
 
 	struct _starpu_data_descr *descrs = _STARPU_JOB_GET_ORDERED_BUFFERS(j);
 	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
-	unsigned local_memory_node = _starpu_memory_node_get_local_key();
-	unsigned index;
-	unsigned nreleases;
 
-	nreleases = 0;
+	unsigned local_memory_node = worker->memory_node;
+
+	unsigned index;
+	unsigned long total_size = 0;
+
 	for (index = 0; index < nbuffers; index++)
 	{
-		if (nreleases == nbtransfers)
-			/* That was a partial fetch */
-			break;
-		starpu_data_handle_t handle = descrs[index].handle;
-		enum starpu_data_access_mode mode = descrs[index].mode;
+		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, index);
+		enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(task, index);
 		int node = descrs[index].node;
 		if (node == -1)
 			node = local_memory_node;
 
 		struct _starpu_data_replicate *local_replicate;
 
-		if (index && descrs[index-1].handle == descrs[index].handle)
-			/* We have already took this data, skip it. This
-			 * depends on ordering putting writes before reads, see
-			 * _starpu_compar_handles */
-			continue;
-
 		local_replicate = get_replicate(handle, mode, workerid, node);
+		if (local_replicate->mc)
+			local_replicate->mc->diduse = 1;
 
-		/* Release our refcnt */
-		_starpu_spin_lock(&handle->header_lock);
-		local_replicate->refcnt--;
-		STARPU_ASSERT(local_replicate->refcnt >= 0);
-		STARPU_ASSERT(handle->busy_count > 0);
-		handle->busy_count--;
-		if (!_starpu_data_check_not_busy(handle))
-			_starpu_spin_unlock(&handle->header_lock);
+		_STARPU_TASK_SET_INTERFACE(task , local_replicate->data_interface, index);
+
+		/* If the replicate was not initialized yet, we have to do it now */
+		if (!(mode & STARPU_SCRATCH) && !local_replicate->initialized)
+			_starpu_redux_init_data_replicate(handle, local_replicate, workerid);
+
+#ifdef STARPU_USE_FXT
+		total_size += _starpu_data_get_size(handle);
+#endif
 	}
-	return 0;
+	_STARPU_TRACE_DATA_LOAD(workerid,total_size);
+
+	if (profiling && task->profiling_info)
+		_starpu_clock_gettime(&task->profiling_info->acquire_data_end_time);
+
+	_STARPU_TRACE_END_FETCH_INPUT(NULL);
 }
 
 /* Release task data dependencies */

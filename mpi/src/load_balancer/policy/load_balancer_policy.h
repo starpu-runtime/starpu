@@ -21,7 +21,8 @@
 #include <starpu_mpi_lb.h>
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
 /* A load balancer consists in a collection of operations on a data

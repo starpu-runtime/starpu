@@ -646,6 +646,16 @@ account in simgrid mode. This provides more accurate simgrid predictions,
 especially regarding data transfers.
 </dd>
 
+<dt>STARPU_SIMGRID_SCHED_COST</dt>
+<dd>
+\anchor STARPU_SIMGRID_SCHED_COST
+\addindex __env__STARPU_SIMGRID_SCHED_COST
+When set to 1 (0 is the default), scheduling costs are taken into
+account in simgrid mode. This provides more accurate simgrid predictions,
+and allows studying scheduling overhead of the runtime system. However,
+it also makes simulation non-deterministic.
+</dd>
+
 </dl>
 
 \section MiscellaneousAndDebug Miscellaneous And Debug
@@ -678,7 +688,7 @@ This specifies the main directory in which StarPU stores its
 performance model files. The default is <c>$STARPU_HOME/.starpu/sampling</c>.
 </dd>
 
-<dt>STARPU_PERF_MODEL_HOMEGENEOUS_CUDA</dt>
+<dt>STARPU_PERF_MODEL_HOMOGENEOUS_CUDA</dt>
 <dd>
 \anchor STARPU_PERF_MODEL_HOMOGENEOUS_CUDA
 \addindex __env__STARPU_PERF_MODEL_HOMOGENEOUS_CUDA
@@ -688,7 +698,7 @@ calibration to be much faster, since measurements only have to be once for all
 CUDA GPUs.
 </dd>
 
-<dt>STARPU_PERF_MODEL_HOMEGENEOUS_OPENCL</dt>
+<dt>STARPU_PERF_MODEL_HOMOGENEOUS_OPENCL</dt>
 <dd>
 \anchor STARPU_PERF_MODEL_HOMOGENEOUS_OPENCL
 \addindex __env__STARPU_PERF_MODEL_HOMOGENEOUS_OPENCL
@@ -698,7 +708,7 @@ calibration to be much faster, since measurements only have to be once for all
 OPENCL GPUs.
 </dd>
 
-<dt>STARPU_PERF_MODEL_HOMEGENEOUS_MIC</dt>
+<dt>STARPU_PERF_MODEL_HOMOGENEOUS_MIC</dt>
 <dd>
 \anchor STARPU_PERF_MODEL_HOMOGENEOUS_MIC
 \addindex __env__STARPU_PERF_MODEL_HOMOGENEOUS_MIC
@@ -718,7 +728,7 @@ calibration to be much faster, since measurements only have to be once for all
 MPI Slaves.
 </dd>
 
-<dt>STARPU_PERF_MODEL_HOMEGENEOUS_SCC</dt>
+<dt>STARPU_PERF_MODEL_HOMOGENEOUS_SCC</dt>
 <dd>
 \anchor STARPU_PERF_MODEL_HOMOGENEOUS_SCC
 \addindex __env__STARPU_PERF_MODEL_HOMOGENEOUS_SCC
@@ -1012,6 +1022,15 @@ dog is reached, thus allowing to catch the situation in gdb, etc
 (see \ref DetectionStuckConditions)
 </dd>
 
+<dt>STARPU_TASK_BREAK_ON_PUSH</dt>
+<dd>
+\anchor STARPU_TASK_BREAK_ON_PUSH
+\addindex __env__STARPU_TASK_BREAK_ON_PUSH
+When this variable contains a job id, StarPU will raise SIGTRAP when the task
+with that job id is being pushed to the scheduler, which will be nicely catched by debuggers
+(see \ref DebuggingScheduling)
+</dd>
+
 <dt>STARPU_TASK_BREAK_ON_SCHED</dt>
 <dd>
 \anchor STARPU_TASK_BREAK_ON_SCHED
@@ -1023,21 +1042,21 @@ This only works for schedulers which have such a scheduling point defined
 (see \ref DebuggingScheduling)
 </dd>
 
-<dt>STARPU_TASK_BREAK_ON_PUSH</dt>
-<dd>
-\anchor STARPU_TASK_BREAK_ON_PUSH
-\addindex __env__STARPU_TASK_BREAK_ON_PUSH
-When this variable contains a job id, StarPU will raise SIGTRAP when the task
-with that job id is being pushed to the scheduler, which will be nicely catched by debuggers
-(see \ref DebuggingScheduling)
-</dd>
-
 <dt>STARPU_TASK_BREAK_ON_POP</dt>
 <dd>
 \anchor STARPU_TASK_BREAK_ON_POP
 \addindex __env__STARPU_TASK_BREAK_ON_POP
 When this variable contains a job id, StarPU will raise SIGTRAP when the task
 with that job id is being popped from the scheduler, which will be nicely catched by debuggers
+(see \ref DebuggingScheduling)
+</dd>
+
+<dt>STARPU_TASK_BREAK_ON_EXEC</dt>
+<dd>
+\anchor STARPU_TASK_BREAK_ON_EXEC
+\addindex __env__STARPU_TASK_BREAK_ON_EXEC
+When this variable contains a job id, StarPU will raise SIGTRAP when the task
+with that job id is being executed, which will be nicely catched by debuggers
 (see \ref DebuggingScheduling)
 </dd>
 

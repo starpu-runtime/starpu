@@ -24,7 +24,8 @@ static double convert_to_byte_units(float d, unsigned max_unit, unsigned *unit)
 	const double divisor = 1024;
 
 	*unit = 0;
-	while (d > divisor && *unit < max_unit) {
+	while (d > divisor && *unit < max_unit)
+	{
 		d /= divisor;
 		(*unit)++;
 	}
@@ -59,6 +60,7 @@ void _starpu_profiling_bus_helper_display_summary(FILE *stream)
 
 		unsigned unit = 0;
 		double d = convert_to_byte_units(transferred, max_unit, &unit);
+		double avg = (transfer_cnt != 0) ? (d / transfer_cnt) : 0;
 
 		_starpu_memory_node_get_name(src, src_name, sizeof(src_name));
 		_starpu_memory_node_get_name(dst, dst_name, sizeof(dst_name));
@@ -66,7 +68,7 @@ void _starpu_profiling_bus_helper_display_summary(FILE *stream)
 		fprintf(stream, "\t%s -> %s", src_name, dst_name);
 		fprintf(stream, "\t%.2lf %s", d, byte_units[unit]);
 		fprintf(stream, "\t%.2lf %s/s", d / elapsed_time, byte_units[unit]);
-		fprintf(stream, "\t(transfers : %lld - avg %.2lf %s)\n", transfer_cnt, d / transfer_cnt, byte_units[unit]);
+		fprintf(stream, "\t(transfers : %lld - avg %.2lf %s)\n", transfer_cnt, avg, byte_units[unit]);
 
 		sum_transferred += transferred;
 	}

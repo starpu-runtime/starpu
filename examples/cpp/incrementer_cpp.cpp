@@ -51,7 +51,13 @@ int main(int argc, char **argv)
 	unsigned i;
 	unsigned niter = 50;
 
-	ret = starpu_init(NULL);
+	struct starpu_conf conf;
+	starpu_conf_init(&conf);
+	conf.nmic = 0;
+	conf.nscc = 0;
+	conf.nmpi_ms = 0;
+
+	ret = starpu_init(&conf);
 	if (ret == -ENODEV) return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 

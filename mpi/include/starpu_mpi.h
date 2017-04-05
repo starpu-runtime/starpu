@@ -26,7 +26,8 @@
 #include <mpi.h>
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
 typedef void *starpu_mpi_req;

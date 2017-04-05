@@ -46,7 +46,8 @@ static int simgrid_started;
 
 static int runners_running;
 starpu_pthread_queue_t _starpu_simgrid_transfer_queue[STARPU_MAXNODES];
-static struct transfer_runner {
+static struct transfer_runner
+{
 	struct transfer *first_transfer, *last_transfer;
 	msg_sem_t sem;
 	msg_process_t runner;
@@ -54,7 +55,8 @@ static struct transfer_runner {
 static int transfer_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED);
 
 starpu_pthread_queue_t _starpu_simgrid_task_queue[STARPU_NMAXWORKERS];
-static struct worker_runner {
+static struct worker_runner
+{
 	struct task *first_task, *last_task;
 	msg_sem_t sem;
 	msg_process_t runner;
@@ -278,7 +280,9 @@ int main(int argc, char **argv)
 	int i;
 	for (i = 0; i < argc; i++)
 		argv_cpy[i] = strdup(argv[i]);
-	MSG_process_create_with_arguments("main", &do_starpu_main, calloc(MAX_TSD+1, sizeof(void*)), MSG_get_host_by_name("MAIN"), argc, argv_cpy);
+	void **tsd;
+	_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));
+	MSG_process_create_with_arguments("main", &do_starpu_main, tsd, MSG_get_host_by_name("MAIN"), argc, argv_cpy);
 
 	/* And run maestro in main thread */
 	MSG_main();
@@ -298,7 +302,10 @@ void _starpu_simgrid_init_early(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv 
 	if (!simgrid_started && !(smpi_main && smpi_simulated_main_ != _starpu_smpi_simulated_main_))
 	{
 		_STARPU_DISP("Warning: In simgrid mode, the file containing the main() function of this application should to be compiled with starpu.h or starpu_simgrid_wrap.h included, to properly rename it into starpu_main to avoid having to use --cfg=contexts/factory:thread which reduces performance\n");
-#if SIMGRID_VERSION_MAJOR > 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR >= 14)
+#if SIMGRID_VERSION_MAJOR > 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR >= 14) /* Only recent versions of simgrid support setting xbt_cfg_set_string before starting simgrid */
+		/* "Cannot create_maestro with this ContextFactory.
+		 * Try using --cfg=contexts/factory:thread instead."
+		 * See https://github.com/simgrid/simgrid/issues/141 */
 		xbt_cfg_set_string("contexts/factory", "thread");
 #endif
 		/* We didn't catch application's main. */
@@ -307,7 +314,9 @@ void _starpu_simgrid_init_early(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv 
 		/* Initialize simgrid */
 		start_simgrid(argc, *argv);
 		/* And attach the main thread to the main simgrid process */
-		MSG_process_attach("main", calloc(MAX_TSD, sizeof(void*)), MSG_get_host_by_name("MAIN"), NULL);
+		void **tsd;
+		_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));
+		MSG_process_attach("main", tsd, MSG_get_host_by_name("MAIN"), NULL);
 		simgrid_started = 2;
 	}
 #endif
@@ -321,7 +330,9 @@ void _starpu_simgrid_init_early(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv 
 #ifndef STARPU_STATIC_ONLY
 		_STARPU_ERROR("Simgrid currently does not support privatization for dynamically-linked libraries in SMPI. Please reconfigure and build StarPU with --disable-shared");
 #endif
-		MSG_process_set_data(MSG_process_self(), calloc(MAX_TSD, sizeof(void*)));
+		void **tsd;
+		_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));
+		MSG_process_set_data(MSG_process_self(), tsd);
 	}
 	unsigned i;
 	for (i = 0; i < STARPU_MAXNODES; i++)
@@ -338,7 +349,8 @@ void _starpu_simgrid_init(void)
 	{
 		char s[32];
 		snprintf(s, sizeof(s), "worker %u runner", i);
-		void **tsd = calloc(MAX_TSD+1, sizeof(void*));
+		void **tsd;
+		_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));
 		worker_runner[i].sem = MSG_sem_init(0);
 		tsd[0] = (void*)(uintptr_t) i;
 		worker_runner[i].runner = MSG_process_create_with_arguments(s, task_execute, tsd, _starpu_simgrid_get_host_by_worker(_starpu_get_worker_struct(i)), 0, NULL);
@@ -419,7 +431,8 @@ static int task_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_AT
 	struct worker_runner *w = &worker_runner[workerid];
 
 	_STARPU_DEBUG("worker runner %u started\n", workerid);
-	while (1) {
+	while (1)
+	{
 		struct task *task;
 
 		MSG_sem_acquire(w->sem);
@@ -626,7 +639,8 @@ static void transfer_queue(struct transfer *transfer)
 		{
 			char s[64];
 			snprintf(s, sizeof(s), "transfer %u-%u runner", src, dst);
-			void **tsd = calloc(MAX_TSD+1, sizeof(void*));
+			void **tsd;
+			_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));
 			tsd[0] = (void*)(uintptr_t)((src<<16) + dst);
 			t->runner = MSG_process_create_with_arguments(s, transfer_execute, tsd, _starpu_simgrid_get_memnode_host(src), 0, NULL);
 			t->sem = MSG_sem_init(0);
@@ -661,7 +675,8 @@ static int transfer_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARP
 	struct transfer_runner *t = &transfer_runner[src][dst];
 
 	_STARPU_DEBUG("transfer runner %u-%u started\n", src, dst);
-	while (1) {
+	while (1)
+	{
 		struct transfer *transfer;
 
 		MSG_sem_acquire(t->sem);
@@ -672,10 +687,13 @@ static int transfer_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARP
 		if (t->last_transfer == transfer)
 			t->last_transfer = NULL;
 
-		_STARPU_DEBUG("transfer %p started\n", transfer);
-		MSG_task_execute(transfer->task);
-		MSG_task_destroy(transfer->task);
-		_STARPU_DEBUG("transfer %p finished\n", transfer);
+		if (transfer->task)
+		{
+			_STARPU_DEBUG("transfer %p started\n", transfer);
+			MSG_task_execute(transfer->task);
+			MSG_task_destroy(transfer->task);
+			_STARPU_DEBUG("transfer %p finished\n", transfer);
+		}
 
 		*transfer->finished = 1;
 		transfer_list_erase(&pending, transfer);
@@ -761,6 +779,60 @@ int _starpu_simgrid_test_transfer_event(union _starpu_async_channel_event *event
 	return event->finished;
 }
 
+/* Wait for completion of all transfers */
+static void _starpu_simgrid_wait_transfers(void)
+{
+	unsigned finished = 0;
+	struct transfer *sync = transfer_new();
+	struct transfer *cur;
+
+	sync->task = NULL;
+	sync->finished = &finished;
+
+	sync->src_node = STARPU_MAIN_RAM;
+	sync->dst_node = STARPU_MAIN_RAM;
+	sync->run_node = STARPU_MAIN_RAM;
+
+	sync->wake = NULL;
+	sync->nwake = 0;
+	sync->nwait = 0;
+	sync->next = NULL;
+
+	for (cur  = transfer_list_begin(&pending);
+	     cur != transfer_list_end(&pending);
+	     cur  = transfer_list_next(cur))
+	{
+		sync->nwait++;
+		_STARPU_REALLOC(cur->wake, (cur->nwake + 1) * sizeof(cur->wake));
+		cur->wake[cur->nwake] = sync;
+		cur->nwake++;
+	}
+
+	if (sync->nwait == 0)
+	{
+		/* No transfer to wait for */
+		free(sync);
+		return;
+	}
+
+	/* Push synchronization pseudo-transfer */
+	transfer_list_push_front(&pending, sync);
+
+	/* And wait for it */
+	starpu_pthread_wait_t wait;
+	starpu_pthread_wait_init(&wait);
+	starpu_pthread_queue_register(&wait, &_starpu_simgrid_transfer_queue[STARPU_MAIN_RAM]);
+	while(1)
+	{
+		starpu_pthread_wait_reset(&wait);
+		if (finished)
+			break;
+		starpu_pthread_wait_wait(&wait);
+	}
+	starpu_pthread_queue_unregister(&wait, &_starpu_simgrid_transfer_queue[STARPU_MAIN_RAM]);
+	starpu_pthread_wait_destroy(&wait);
+}
+
 /* Data transfer issued by StarPU */
 int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, struct _starpu_data_request *req)
 {
@@ -828,6 +900,12 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 		_starpu_simgrid_wait_transfer_event(event);
 		return 0;
 	}
+}
+
+/* Sync all GPUs (used on CUDA Free, typically) */
+void _starpu_simgrid_sync_gpus(void)
+{
+	_starpu_simgrid_wait_transfers();
 }
 
 int
@@ -980,7 +1058,8 @@ void _starpu_simgrid_count_ngpus(void)
 #endif
 }
 
-typedef struct{
+typedef struct
+{
 	void_f_pvoid_t code;
 	void *userparam;
 	void *father_data;
@@ -997,7 +1076,11 @@ static int _starpu_simgrid_xbt_thread_create_wrapper(int argc STARPU_ATTRIBUTE_U
 	smx_process_t
 #endif
 	self = SIMIX_process_self();
+#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 13)
 	thread_data_t *t = SIMIX_process_self_get_data(self);
+#else
+	thread_data_t *t = SIMIX_process_self_get_data();
+#endif
 	simcall_process_set_data(self, t->father_data);
 	t->code(t->userparam);
 	simcall_process_set_data(self, NULL);
@@ -1017,7 +1100,11 @@ void _starpu_simgrid_xbt_thread_create(const char *name, void_f_pvoid_t code, vo
 	_STARPU_MALLOC(res, sizeof(thread_data_t));
 	res->userparam = param;
 	res->code = code;
+#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 13)
 	res->father_data = SIMIX_process_self_get_data(SIMIX_process_self());
+#else
+	res->father_data = SIMIX_process_self_get_data();
+#endif
 
 #if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 12)
 	simcall_process_create(&process,

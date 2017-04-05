@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012, 2016  INRIA
+ * Copyright (C) 2012, 2016, 2017  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,7 +17,6 @@
 #ifndef __MP_COMMON_H__
 #define __MP_COMMON_H__
 
-#include <pthread.h>
 #include <semaphore.h>
 
 #include <starpu.h>
@@ -45,7 +44,9 @@ enum _starpu_mp_command
 {
 	STARPU_MP_COMMAND_EXIT,
 	STARPU_MP_COMMAND_EXECUTE,
+	STARPU_MP_COMMAND_EXECUTE_DETACHED,
 	STARPU_MP_COMMAND_ERROR_EXECUTE,
+	STARPU_MP_COMMAND_ERROR_EXECUTE_DETACHED,
 	STARPU_MP_COMMAND_LOOKUP,
 	STARPU_MP_COMMAND_ANSWER_LOOKUP,
 	STARPU_MP_COMMAND_ERROR_LOOKUP,
@@ -73,6 +74,8 @@ enum _starpu_mp_command
 	STARPU_MP_COMMAND_ANSWER_SINK_NBCORES,
 	STARPU_MP_COMMAND_EXECUTION_SUBMITTED,
 	STARPU_MP_COMMAND_EXECUTION_COMPLETED,
+	STARPU_MP_COMMAND_EXECUTION_DETACHED_SUBMITTED,
+	STARPU_MP_COMMAND_EXECUTION_DETACHED_COMPLETED,
 	STARPU_MP_COMMAND_PRE_EXECUTION,
 	STARPU_MP_COMMAND_SYNC_WORKERS,
 };
@@ -142,6 +145,7 @@ struct mp_task
 	enum starpu_codelet_type type;
 	int is_parallel_task;
 	int combined_workerid;
+	int detached;
  	struct mp_barrier* mp_barrier;
 };
 
@@ -229,6 +233,7 @@ struct _starpu_mp_node
 
         /*table where worker comme pick task*/
         struct mp_task ** run_table;
+        struct mp_task ** run_table_detached;
         sem_t * sem_run_table;
 
         /* Node general functions */

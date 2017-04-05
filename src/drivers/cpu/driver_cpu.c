@@ -59,26 +59,8 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 
 	struct starpu_task *task = j->task;
 	struct starpu_codelet *cl = task->cl;
-#ifdef STARPU_OPENMP
-	/* At this point, j->continuation as been cleared as the task is being
-	 * woken up, thus we use j->discontinuous instead for the check */
-	const unsigned continuation_wake_up = j->discontinuous;
-#else
-	const unsigned continuation_wake_up = 0;
-#endif
 
 	STARPU_ASSERT(cl);
-
-	if (rank == 0 && !continuation_wake_up)
-	{
-		int ret = _starpu_fetch_task_input(task, j, 0);
-		if (ret != 0)
-		{
-			/* there was not enough memory so the codelet cannot be executed right now ... */
-			/* push the codelet back and try another one ... */
-			return -EAGAIN;
-		}
-	}
 
 	if (is_parallel_task)
 	{
@@ -107,6 +89,12 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 #ifdef STARPU_SIMGRID
 			if (cl->flags & STARPU_CODELET_SIMGRID_EXECUTE)
 				func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
+			else if (cl->flags & STARPU_CODELET_SIMGRID_EXECUTE_AND_INJECT)
+			{
+				_SIMGRID_TIMER_BEGIN(1);
+				func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
+				_SIMGRID_TIMER_END;
+			}
 			else
 				_starpu_simgrid_submit_job(cpu_args->workerid, j, perf_arch, NAN, NULL);
 #else
@@ -332,7 +320,7 @@ int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
 		_STARPU_TRACE_END_PROGRESS(memnode);
 		j = _starpu_get_job_associated_to_task(pending_task);
 
-		_starpu_release_fetch_task_input_async(j, cpu_worker);
+		_starpu_fetch_task_input_tail(pending_task, j, cpu_worker);
 		/* Reset it */
 		cpu_worker->task_transferring = NULL;
 
@@ -382,12 +370,20 @@ int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
 	}
 	cpu_worker->current_rank = rank;
 
-	if (rank == 0)
+#ifdef STARPU_OPENMP
+	/* At this point, j->continuation as been cleared as the task is being
+	 * woken up, thus we use j->discontinuous instead for the check */
+	const unsigned continuation_wake_up = j->discontinuous;
+#else
+	const unsigned continuation_wake_up = 0;
+#endif
+	if (rank == 0 && !continuation_wake_up)
 	{
 		res = _starpu_fetch_task_input(task, j, 1);
 		STARPU_ASSERT(res == 0);
 	}
-	else {
+	else
+	{
 		int ret = _starpu_cpu_driver_execute_task(cpu_worker, task, j);
 		_STARPU_TRACE_END_PROGRESS(memnode);
 		return ret;
@@ -419,13 +415,13 @@ void *_starpu_cpu_worker(void *arg)
 	struct _starpu_worker *worker = arg;
 
 	_starpu_cpu_driver_init(worker);
-	_STARPU_TRACE_END_PROGRESS(worker->memory_node);
+	_STARPU_TRACE_START_PROGRESS(worker->memory_node);
 	while (_starpu_machine_is_running())
 	{
 		_starpu_may_pause();
 		_starpu_cpu_driver_run_once(worker);
 	}
-	_STARPU_TRACE_START_PROGRESS(worker->memory_node);
+	_STARPU_TRACE_END_PROGRESS(worker->memory_node);
 	_starpu_cpu_driver_deinit(worker);
 
 	return NULL;

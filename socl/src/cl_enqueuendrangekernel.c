@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010,2011, 2016-2017 University of Bordeaux
- * Copyright (C) 2016  CNRS
+ * Copyright (C) 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -71,13 +71,13 @@ void soclEnqueueNDRangeKernel_task(void *descr[], void *args) {
    if (err != CL_SUCCESS) {
 	   ERROR_MSG("Worker[%d] Unable to Enqueue kernel (error %d)\n", wid, err);
 	   DEBUG_CL("clEnqueueNDRangeKernel", err);
-	   DEBUG_MSG("Workdim %d, global_work_offset %p, global_work_size %p, local_work_size %p\n",
+	   DEBUG_MSG("Workdim %u, global_work_offset %p, global_work_size %p, local_work_size %p\n",
 			   cmd->work_dim, cmd->global_work_offset, cmd->global_work_size, cmd->local_work_size);
-	   DEBUG_MSG("Global work size: %ld %ld %ld\n", cmd->global_work_size[0],
-			   (cmd->work_dim > 1 ? cmd->global_work_size[1] : 1), (cmd->work_dim > 2 ? cmd->global_work_size[2] : 1)); 
+	   DEBUG_MSG("Global work size: %ld %ld %ld\n", (long)cmd->global_work_size[0],
+		     (long)(cmd->work_dim > 1 ? cmd->global_work_size[1] : 1), (long)(cmd->work_dim > 2 ? cmd->global_work_size[2] : 1)); 
 	   if (cmd->local_work_size != NULL)
-		   DEBUG_MSG("Local work size: %ld %ld %ld\n", cmd->local_work_size[0],
-				   (cmd->work_dim > 1 ? cmd->local_work_size[1] : 1), (cmd->work_dim > 2 ? cmd->local_work_size[2] : 1)); 
+		   DEBUG_MSG("Local work size: %ld %ld %ld\n", (long)cmd->local_work_size[0],
+			     (long)(cmd->work_dim > 1 ? cmd->local_work_size[1] : 1), (long)(cmd->work_dim > 2 ? cmd->local_work_size[2] : 1)); 
    }
    else {
       /* Waiting for kernel to terminate */

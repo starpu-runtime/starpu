@@ -13,13 +13,10 @@
 //
 // See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
-memleakOnRealloc
 knownConditionTrueFalse
 variableScope
-unusedStructMember
 ConfigurationNotChecked
 
-*:tools/dev/*
 *:starpufft/*
 *:min-dgels/*
 *:starpu-top/*
@@ -44,7 +41,8 @@ redundantAssignment:tests/main/driver_api/init_run_deinit.c
 redundantAssignment:tests/main/driver_api/run_driver.c
 
 uselessAssignmentPtrArg:mpi/src/starpu_mpi.c:171
-unreadVariable:mpi/src/starpu_mpi.c:950
+unreadVariable:mpi/src/starpu_mpi.c:953
+unusedVariable:mpi/src/starpu_mpi.c:954
 redundantAssignment:src/core/workers.c
 
 invalidPointerCast:src/core/perfmodel/perfmodel_nan.c:74
@@ -57,7 +55,7 @@ unusedStructMember:src/core/perfmodel/perfmodel_bus.c:65
 unusedStructMember:src/core/perfmodel/perfmodel_bus.c:66
 unusedStructMember:src/core/simgrid.c:225
 unusedStructMember:src/core/simgrid.c:226
-wrongPrintfScanfArgNum:src/core/simgrid.c:862
+wrongPrintfScanfArgNum:src/core/simgrid.c:883
 duplicateExpression:src/util/starpu_task_insert.c:52
 
 // TODO: this could be an error?

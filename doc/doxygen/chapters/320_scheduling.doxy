@@ -95,6 +95,11 @@ except that it sorts tasks by priority order, which allows to become even closer
 to HEFT by respecting priorities after having made the scheduling decision (but
 it still schedules tasks in the order they become available).
 
+The <b>dmdasd</b> (deque model data aware sorted decision) scheduler is similar
+to dmdas, except that when scheduling a task, it takes into account its priority
+when computing the minimum completion time, since this task may get executed
+before others, and thus the latter should be ignored.
+
 The <b>heft</b> (heterogeneous earliest finish time) scheduler is a deprecated
 alias for <b>dmda</b>.
 
@@ -285,8 +290,9 @@ be used to get information about how well the execution proceeded, and thus the
 overall quality of the execution.
 
 Precise debugging can also be performed by using the
-\ref STARPU_TASK_BREAK_ON_SCHED, \ref STARPU_TASK_BREAK_ON_PUSH, and
-\ref STARPU_TASK_BREAK_ON_POP environment variables. By setting the job_id of a task
+\ref STARPU_TASK_BREAK_ON_PUSH, \ref STARPU_TASK_BREAK_ON_SCHED,
+\ref STARPU_TASK_BREAK_ON_POP, and \ref STARPU_TASK_BREAK_ON_EXEC environment variables.
+By setting the job_id of a task
 in these environment variables, StarPU will raise <c>SIGTRAP</c> when the task is being
 scheduled, pushed, or popped by the scheduler. That means that when one notices
 that a task is being scheduled in a seemingly odd way, one can just reexecute

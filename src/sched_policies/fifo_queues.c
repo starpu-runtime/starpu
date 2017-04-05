@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2016  Université de Bordeaux
+ * Copyright (C) 2010-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2013, 2016  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2016  Uppsala University
@@ -79,16 +79,16 @@ _starpu_fifo_get_exp_len_prev_task_list(struct _starpu_fifo_taskq *fifo_queue, s
 	struct starpu_perfmodel_arch* perf_arch = starpu_worker_get_perf_archtype(workerid, task->sched_ctx);
 	double exp_len = 0.0;
 	
-	if (list->head != NULL)
+	if (list->_head != NULL)
 	{
-		struct starpu_task *current = list->head;
+		struct starpu_task *current = list->_head;
 		struct starpu_task *prev = NULL;
 
-		if (list->head->priority == task->priority &&
-		    list->head->priority == list->tail->priority)
+		if (list->_head->priority == task->priority &&
+		    list->_head->priority == list->_tail->priority)
 		{
 			/* They all have the same priority, the task's place is at the end */
-			prev = list->tail;
+			prev = list->_tail;
 			current = NULL;
 		}
 		else
@@ -107,7 +107,7 @@ _starpu_fifo_get_exp_len_prev_task_list(struct _starpu_fifo_taskq *fifo_queue, s
 			{
 				/* the task's place is between prev and current */
 				struct starpu_task *it;
-				for(it = list->head; it != current; it = it->next)
+				for(it = list->_head; it != current; it = it->next)
 				{
 					exp_len += starpu_task_expected_length(it, perf_arch, nimpl);
 					(*fifo_ntasks) ++;
@@ -115,7 +115,7 @@ _starpu_fifo_get_exp_len_prev_task_list(struct _starpu_fifo_taskq *fifo_queue, s
 			}
 			else
 			{
-				/* the task's place is at the tail of the list */
+				/* the task's place is at the _tail of the list */
 				exp_len = fifo_queue->exp_len;
 				*fifo_ntasks = fifo_queue->ntasks;
 			}
@@ -131,25 +131,25 @@ _starpu_fifo_push_sorted_task(struct _starpu_fifo_taskq *fifo_queue, struct star
 {
 	struct starpu_task_list *list = &fifo_queue->taskq;
 
-	if (list->head == NULL)
+	if (list->_head == NULL)
 	{
-		list->head = task;
-		list->tail = task;
+		list->_head = task;
+		list->_tail = task;
 		task->prev = NULL;
 		task->next = NULL;
 	}
-	else if (list->head->priority == task->priority &&
-		 list->head->priority == list->tail->priority)
+	else if (list->_head->priority == task->priority &&
+		 list->_head->priority == list->_tail->priority)
 	{
 		/* They all have the same priority, just put at the end */
-		list->tail->next = task;
+		list->_tail->next = task;
 		task->next = NULL;
-		task->prev = list->tail;
-		list->tail = task;
+		task->prev = list->_tail;
+		list->_tail = task;
 	}
 	else
 	{
-		struct starpu_task *current = list->head;
+		struct starpu_task *current = list->_head;
 		struct starpu_task *prev = NULL;
 
 		while (current)
@@ -164,10 +164,10 @@ _starpu_fifo_push_sorted_task(struct _starpu_fifo_taskq *fifo_queue, struct star
 		if (prev == NULL)
 		{
 			/* Insert at the front of the list */
-			list->head->prev = task;
+			list->_head->prev = task;
 			task->prev = NULL;
-			task->next = list->head;
-			list->head = task;
+			task->next = list->_head;
+			list->_head = task;
 		}
 		else
 		{
@@ -181,11 +181,11 @@ _starpu_fifo_push_sorted_task(struct _starpu_fifo_taskq *fifo_queue, struct star
 			}
 			else
 			{
-				/* Insert at the tail of the list */
-				list->tail->next = task;
+				/* Insert at the _tail of the list */
+				list->_tail->next = task;
 				task->next = NULL;
-				task->prev = list->tail;
-				list->tail = task;
+				task->prev = list->_tail;
+				list->_tail = task;
 			}
 		}
 	}

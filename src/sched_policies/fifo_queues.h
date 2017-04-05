@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013, 2016  Université de Bordeaux
+ * Copyright (C) 2010-2013, 2016-2017  Université de Bordeaux
  * Copyright (C) 2016  Uppsala University
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -21,6 +21,7 @@
 #define __FIFO_QUEUES_H__
 
 #include <starpu.h>
+#include <core/task.h>
 
 struct _starpu_fifo_taskq
 {

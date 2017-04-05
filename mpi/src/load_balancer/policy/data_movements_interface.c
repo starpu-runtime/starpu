@@ -17,6 +17,7 @@
 
 #include <starpu.h>
 #include <stdlib.h>
+#include <starpu_mpi_private.h>
 
 #include "data_movements_interface.h"
 
@@ -91,8 +92,8 @@ int data_movements_reallocate_tables(starpu_data_handle_t handle, int size)
 
 	if (dm_interface->size)
 	{
-		dm_interface->tags = malloc(size*sizeof(int));
-		dm_interface->ranks = malloc(size*sizeof(int));
+		_STARPU_MPI_MALLOC(dm_interface->tags, size*sizeof(int));
+		_STARPU_MPI_MALLOC(dm_interface->ranks, size*sizeof(int));
 	}
 
 	return 0 ;

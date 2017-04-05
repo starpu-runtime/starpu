@@ -57,7 +57,7 @@ static struct starpu_task *  steal_task_round_robin(struct starpu_sched_componen
 		struct _starpu_prio_deque * fifo = wsd->fifos[i];
 
 		STARPU_PTHREAD_MUTEX_LOCK(wsd->mutexes[i]);
-		task = _starpu_prio_deque_deque_task_for_worker(fifo, workerid);
+		task = _starpu_prio_deque_deque_task_for_worker(fifo, workerid, NULL);
 		if(task && !isnan(task->predicted))
 		{
 			fifo->exp_len -= task->predicted;

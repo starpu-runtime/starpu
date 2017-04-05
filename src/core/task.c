@@ -631,8 +631,6 @@ int starpu_task_submit(struct starpu_task *task)
 #endif
 		;
 
-	_STARPU_TRACE_TASK_SUBMIT_START();
-
 	if (!j->internal)
 	{
 		int nsubmitted_tasks = starpu_task_nsubmitted();
@@ -640,10 +638,13 @@ int starpu_task_submit(struct starpu_task *task)
 			&& limit_min_submitted_tasks >= 0 && limit_min_submitted_tasks < nsubmitted_tasks)
 		{
 			starpu_do_schedule();
+			_STARPU_TRACE_TASK_THROTTLE_START();
 			starpu_task_wait_for_n_submitted(limit_min_submitted_tasks);
+			_STARPU_TRACE_TASK_THROTTLE_END();
 		}
 	}
 
+	_STARPU_TRACE_TASK_SUBMIT_START();
 
 	ret = _starpu_task_submit_head(task);
 	if (ret)
@@ -1192,6 +1193,7 @@ _starpu_handle_needs_conversion_task_for_arch(starpu_data_handle_t handle,
 		case STARPU_CUDA_RAM:    /* Fall through */
 		case STARPU_OPENCL_RAM:
 		case STARPU_MIC_RAM:
+		case STARPU_MPI_MS_RAM:
 		case STARPU_SCC_RAM:
 			switch(starpu_node_get_kind(handle->mf_node))
 			{
@@ -1222,6 +1224,11 @@ void starpu_task_set_implementation(struct starpu_task *task, unsigned impl)
 unsigned starpu_task_get_implementation(struct starpu_task *task)
 {
 	return _starpu_get_job_associated_to_task(task)->nimpl;
+}
+
+unsigned long starpu_task_get_job_id(struct starpu_task *task)
+{
+	return _starpu_get_job_associated_to_task(task)->job_id;
 }
 
 static starpu_pthread_t watchdog_thread;

@@ -274,7 +274,13 @@ main(void)
 #ifdef STARPU_USE_CPU
 	int ret;
 
-	ret = starpu_init(NULL);
+	struct starpu_conf conf;
+	starpu_conf_init(&conf);
+
+	/* this example doesn't support MPI Master-Slave */
+	conf.nmpi_ms = 0;
+
+	ret = starpu_init(&conf);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	ncpu = starpu_cpu_worker_get_count();

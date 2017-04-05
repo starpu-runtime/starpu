@@ -348,9 +348,10 @@ else
     build_mpi_master_slave=no
 fi
 
-#Warn users that they cannot use both at the same time
+#users cannot use both at the same time
 if test x$build_mpi_master_slave = xyes -a x$enable_mpi = xyes; then
-    AC_MSG_WARN(StarPU-MPI and MPI Master-Slave cannot be used at the same time !)
+    AC_MSG_WARN(StarPU-MPI and MPI Master-Slave cannot be used at the same time ! Disabling StarPU-MPI...)
+	enable_mpi=no
 fi
 
 if test x$build_mpi_master_slave = xyes; then
@@ -603,6 +604,8 @@ then
     INCLUDE_PTHREAD_H='#include <pthread.h>'
 fi
 
+AC_CHECK_HEADERS([unistd.h], [AC_DEFINE([STARPU_HAVE_UNISTD_H], [1], [Define to 1 if you have the <unistd.h> header file.])])
+
 AC_CHECK_TYPE([struct timespec],
 	       AC_DEFINE(STARPU_HAVE_STRUCT_TIMESPEC,[1],[struct timespec is defined]),
 	       [], [
@@ -614,8 +617,6 @@ AC_CHECK_TYPE([struct timespec],
 #include <time.h>
 $INCLUDE_PTHREAD_H
 ])
-
-AC_CHECK_HEADERS([unistd.h], [AC_DEFINE([STARPU_HAVE_UNISTD_H], [1], [Define to 1 if you have the <unistd.h> header file.])])
 
 if test x"$enable_native_winthreads" = xyes
 then
@@ -1943,8 +1944,13 @@ if test x$enable_memory_stats = xyes; then
         AC_DEFINE(STARPU_MEMORY_STATS, [1], [enable memory stats])
 fi
 
-AC_CHECK_HEADERS([glpk.h], [AC_DEFINE([STARPU_HAVE_GLPK_H], [1], [Define to 1 if you have the <glpk.h> header file.])])
-STARPU_HAVE_LIBRARY(GLPK, [glpk])
+AC_ARG_ENABLE(glpk, [AS_HELP_STRING([--disable-glpk],
+			     [disable using glpk for bound computation])],
+			     enable_glpk=$enableval, enable_glpk=yes)
+if test x$enable_glpk = xyes; then
+	AC_CHECK_HEADERS([glpk.h], [AC_DEFINE([STARPU_HAVE_GLPK_H], [1], [Define to 1 if you have the <glpk.h> header file.])])
+	STARPU_HAVE_LIBRARY(GLPK, [glpk])
+fi
 
 AC_ARG_WITH(ayudame1-include-dir,
 	[AS_HELP_STRING([--with-ayudame1-include-dir=<path>],
@@ -3089,6 +3095,12 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   test -e tests/microbenchs/parallel_independent_heterogeneous_tasks.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/parallel_independent_heterogeneous_tasks.sh tests/microbenchs/
   test -e tests/microbenchs/parallel_independent_homogeneous_tasks_data.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/parallel_independent_homogeneous_tasks_data.sh tests/microbenchs/
   test -e tests/microbenchs/parallel_independent_homogeneous_tasks.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/parallel_independent_homogeneous_tasks.sh tests/microbenchs/
+  mkdir -p tests/datawizard
+  test -e tests/datawizard/locality.sh || ln -sf $ac_abs_top_srcdir/tests/datawizard/locality.sh tests/datawizard/
+  mkdir -p examples/heat
+  test -e examples/heat/heat.sh || ln -sf $ac_abs_top_srcdir/examples/heat/heat.sh examples/heat/
+  mkdir -p examples/lu
+  test -e examples/lu/lu.sh || ln -sf $ac_abs_top_srcdir/examples/lu/lu.sh examples/lu/
 ])
 
 # Create links to ICD files in build/socl/vendors directory. SOCL will use this

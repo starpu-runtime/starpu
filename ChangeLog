@@ -35,6 +35,8 @@ Small features:
     to simulate the cost of task submission and data fetching in simgrid mode.
     This provides more accurate simgrid predictions, especially for the
     beginning of the execution and regarding data transfers.
+  * STARPU_SIMGRID_SCHED_COST to take into account the time to perform scheduling
+    when running in SimGrid mode.
   * New configure option --enable-mpi-pedantic-isend (disabled by
     default) to acquire data in STARPU_RW (instead of STARPU_R) before
     performing MPI_Isend call
@@ -54,6 +56,11 @@ StarPU 1.2.2 (svn revision xxx)
 New features:
   * Add starpu_data_acquire_try and starpu_data_acquire_on_node_try.
   * Add NVCC_CC environment variable.
+  * Add -no-foo options to starpu_fxt_tool to make traces lighter
+
+Small changes:
+  * Output generated through STARPU_MPI_COMM has been modified to
+    allow easier automated checking
 
 StarPU 1.2.1 (svn revision 20299)
 ==============================================
@@ -266,6 +273,7 @@ Small features:
     allows to copy in a new buffer values which have not been unpacked by
     the current call
   * Add STARPU_CODELET_SIMGRID_EXECUTE flag.
+  * Add STARPU_CODELET_SIMGRID_EXECUTE_AND_INJECT flag.
   * Add STARPU_CL_ARGS flag to starpu_task_insert() and
     starpu_mpi_task_insert() functions call
 

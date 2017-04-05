@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2017  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  * Copyright (C) 2014, 2016  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -176,12 +176,15 @@ void _starpu_data_register_ram_pointer(starpu_data_handle_t handle, void *ptr)
 	{
 		_starpu_spin_lock(&registered_handles_lock);
 		HASH_FIND_PTR(registered_handles, &ptr, old_entry);
-		if (old_entry) {
+		if (old_entry)
+		{
 			/* Already registered this pointer, avoid undefined
 			 * behavior of duplicate in hash table */
 			_starpu_spin_unlock(&registered_handles_lock);
 			free(entry);
-		} else {
+		}
+		else
+		{
 			nregistered++;
 			if (nregistered > maxnregistered)
 				maxnregistered = nregistered;
@@ -356,6 +359,8 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 			replicate->allocated = 0;
 			replicate->initialized = 0;
 		}
+
+		replicate->mapped = 0;
 	}
 
 	handle->per_worker = NULL;
@@ -404,6 +409,7 @@ _starpu_data_initialize_per_worker(starpu_data_handle_t handle)
 		replicate->relaxed_coherency = 1;
 		replicate->initialized = 0;
 		replicate->memory_node = starpu_worker_get_memory_node(worker);
+		replicate->mapped = 0;
 
 		_STARPU_CALLOC(replicate->data_interface, 1, interfacesize);
 		/* duplicate  the content of the interface on node 0 */

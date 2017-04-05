@@ -168,8 +168,9 @@ int main(int argc, char *argv[])
 	for (j = 0; j < nb_tasks; j++)
 		free(vector[j]);
 
+	//test reussi ou test echoue
 	if (check && check_sup)
-	{ //test reussi ou test echoue
+	{
 		return EXIT_SUCCESS;
 	}
 	else

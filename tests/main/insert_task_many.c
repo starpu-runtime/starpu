@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2012, 2013, 2014  CNRS
+ * Copyright (C) 2011, 2012, 2013, 2014, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -60,7 +60,8 @@ struct starpu_codelet codelet_toomany =
 	/* starpu_task_get_current() doesn't work on MIC */
 	/* .cpu_funcs_name = {"func_cpu"}, */
 	.nbuffers = NPARAMS,
-	.modes = {
+	.modes =
+	{
 		STARPU_R,
 		STARPU_R,
 		STARPU_RW|STARPU_COMMUTE,

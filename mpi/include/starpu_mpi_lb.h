@@ -19,7 +19,8 @@
 #define __STARPU_MPI_LOAD_BALANCER_H__
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
 struct starpu_mpi_lb_conf

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2014, 2016  Universite de Bordeaux
- * Copyright (C) 2012-2015  CNRS
+ * Copyright (C) 2012-2015, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -22,6 +22,7 @@
 #include <errno.h>
 #include <string.h>
 #include <common/uthash.h>
+#include <common/utils.h>
 #include <starpu.h>
 
 #define PROGNAME "starpu_tasks_rec_complete"
@@ -31,13 +32,15 @@
  * additional information, notably estimated termination times.
  */
 
-static struct model {
+static struct model
+{
 	UT_hash_handle hh;
 	char *name;
 	struct starpu_perfmodel model;
 } *models;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
 	FILE *input;
 	FILE *output;
 	char s[1024], *c;
@@ -47,7 +50,8 @@ int main(int argc, char *argv[]) {
 	struct model *model, *tmp;
 	int ret;
 
-	if (argc >= 2) {
+	if (argc >= 2)
+	{
 		if (!strcmp(argv[1], "-h") ||
 		    !strcmp(argv[1], "--help"))
 		{
@@ -119,7 +123,7 @@ int main(int argc, char *argv[]) {
 					HASH_FIND_STR(models, model_name, model);
 					if (model == NULL)
 					{
-						model = malloc(sizeof(*model));
+						_STARPU_MALLOC(model, sizeof(*model));
 						model->name = model_name;
 						memset(&model->model, 0, sizeof(model->model));
 						model->model.type = STARPU_PERFMODEL_INVALID;

@@ -24,7 +24,8 @@
  * codelet function, which is invalid. This test is thus expected to fail.
  */
 
-#ifdef STARPU_NO_ASSERT
+/* mpirun may not exit if it fails, skip the test for master-slave */
+#if defined(STARPU_NO_ASSERT) || defined(STARPU_USE_MPI_MASTER_SLAVE)
 int main(int argc, char **argv)
 {
 	return STARPU_TEST_SKIPPED;

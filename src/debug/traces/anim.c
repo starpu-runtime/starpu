@@ -22,7 +22,8 @@
 #include "starpu_fxt.h"
 
 #ifdef STARPU_USE_FXT
-static struct component {
+static struct component
+{
 	UT_hash_handle hh;
 	char *name;
 	int workerid;

@@ -217,6 +217,9 @@
 #define _STARPU_FUT_START_FETCH_INPUT	0x517e
 #define _STARPU_FUT_END_FETCH_INPUT	0x517f
 
+#define _STARPU_FUT_TASK_THROTTLE_START	0x5180
+#define _STARPU_FUT_TASK_THROTTLE_END	0x5181
+
 #ifdef STARPU_USE_FXT
 #include <fxt/fxt.h>
 #include <fxt/fut.h>
@@ -738,6 +741,12 @@ do {										\
 #define _STARPU_TRACE_TASK_SUBMIT_END()	\
 	FUT_DO_PROBE1(_STARPU_FUT_TASK_SUBMIT_END, _starpu_gettid());
 
+#define _STARPU_TRACE_TASK_THROTTLE_START()	\
+	FUT_DO_PROBE1(_STARPU_FUT_TASK_THROTTLE_START, _starpu_gettid());
+
+#define _STARPU_TRACE_TASK_THROTTLE_END()	\
+	FUT_DO_PROBE1(_STARPU_FUT_TASK_THROTTLE_END, _starpu_gettid());
+
 #define _STARPU_TRACE_TASK_BUILD_START()	\
 	FUT_DO_PROBE1(_STARPU_FUT_TASK_BUILD_START, _starpu_gettid());
 
@@ -1091,6 +1100,8 @@ do {										\
 #define _STARPU_TRACE_TASK_SUBMIT(job, a, b)			do {(void)(job); (void)(a);(void)(b);} while(0)
 #define _STARPU_TRACE_TASK_SUBMIT_START()		do {} while(0)
 #define _STARPU_TRACE_TASK_SUBMIT_END()			do {} while(0)
+#define _STARPU_TRACE_TASK_THROTTLE_START()		do {} while(0)
+#define _STARPU_TRACE_TASK_THROTTLE_END()		do {} while(0)
 #define _STARPU_TRACE_TASK_BUILD_START()		do {} while(0)
 #define _STARPU_TRACE_TASK_BUILD_END()			do {} while(0)
 #define _STARPU_TRACE_TASK_MPI_DECODE_START()		do {} while(0)

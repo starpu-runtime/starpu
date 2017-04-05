@@ -24,6 +24,15 @@
 #include <core/sched_ctx.h>
 #include <starpu_scheduler.h>
 
+#include <core/simgrid.h>
+
+#define _STARPU_SCHED_BEGIN \
+	_STARPU_TRACE_WORKER_SCHEDULING_PUSH;	\
+	_SIMGRID_TIMER_BEGIN(_starpu_simgrid_sched_cost())
+#define _STARPU_SCHED_END \
+	_SIMGRID_TIMER_END;			\
+	_STARPU_TRACE_WORKER_SCHEDULING_POP
+
 void _starpu_sched_init(void);
 
 struct starpu_machine_config;
@@ -94,8 +103,9 @@ extern struct starpu_sched_policy _starpu_sched_modular_heft2_policy;
 extern struct starpu_sched_policy _starpu_sched_graph_test_policy;
 
 extern long _starpu_task_break_on_push;
-extern long _starpu_task_break_on_pop;
 extern long _starpu_task_break_on_sched;
+extern long _starpu_task_break_on_pop;
+extern long _starpu_task_break_on_exec;
 
 #ifdef SIGTRAP
 #define _STARPU_TASK_BREAK_ON(task, what) do { \

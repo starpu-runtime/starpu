@@ -80,7 +80,10 @@ int _starpu_mpi_common_mp_init()
 #endif
 
                 int thread_support;
-                STARPU_ASSERT(MPI_Init_thread(_starpu_get_argc(), _starpu_get_argv(), required, &thread_support) == MPI_SUCCESS);
+                if (MPI_Init_thread(_starpu_get_argc(), _starpu_get_argv(), required, &thread_support) != MPI_SUCCESS)
+		{
+			STARPU_ABORT_MSG("Cannot Initialize MPI !");
+		}
 
                 if (thread_support != required)
                 {
@@ -100,15 +103,15 @@ int _starpu_mpi_common_mp_init()
 void _starpu_mpi_common_mp_deinit()
 {
         if (!extern_initialized)
-                MPI_Finalize();    
+                MPI_Finalize();
 }
 
 int _starpu_mpi_common_is_src_node()
-{   
+{
         int id_proc;
         MPI_Comm_rank(MPI_COMM_WORLD, &id_proc);
         return id_proc == src_node_id;
-} 
+}
 
 int _starpu_mpi_common_get_src_node()
 {
@@ -484,11 +487,11 @@ void _starpu_mpi_common_measure_bandwidth_latency(double bandwidth_dtod[STARPU_M
         {
                 for(receiver = 0; receiver < nb_proc; receiver++) 
                 {
-                        MPI_Barrier(MPI_COMM_WORLD);
-
                         //Node can't be a sender and a receiver
                         if(sender == receiver)
                                 continue;
+
+                        MPI_Barrier(MPI_COMM_WORLD);
 
                         if(id_proc == sender)
                         {
@@ -502,7 +505,7 @@ void _starpu_mpi_common_measure_bandwidth_latency(double bandwidth_dtod[STARPU_M
                                         STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "Bandwidth of MPI Master/Slave cannot be measured !");
                                 }
                                 end = starpu_timing_now();
-                                bandwidth_dtod[sender][receiver] = (NITER*1000000)/(end - start);
+                                bandwidth_dtod[sender][receiver] = (NITER*SIZE_BANDWIDTH)/(end - start);
 
                                 /* measure latency sender to receiver */
                                 start = starpu_timing_now();

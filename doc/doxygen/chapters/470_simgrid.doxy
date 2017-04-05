@@ -9,8 +9,8 @@
 /*! \page SimGridSupport SimGrid Support
 
 StarPU can use Simgrid in order to simulate execution on an arbitrary
-platform. This was tested with simgrid 3.11, 3.12 and 3.13, other versions may have
-compatibility issues.
+platform. This was tested with simgrid from 3.11 to 3.15,
+other versions may have compatibility issues.
 
 \section Preparing Preparing Your Application For Simulation
 
@@ -36,7 +36,10 @@ To be able to run the application with e.g. CUDA simulation on a system which
 does not have CUDA installed, one can fill the cuda_funcs with (void*)1, to
 express that there is a CUDA implementation, even if one does not actually
 provide it. StarPU will not actually run it in Simgrid mode anyway by default
-(unless the ::STARPU_CODELET_SIMGRID_EXECUTE flag is set in the codelet)
+(unless the ::STARPU_CODELET_SIMGRID_EXECUTE or ::STARPU_CODELET_SIMGRID_EXECUTE_AND_INJECT
+flags are set in the codelet)
+
+\snippet simgrid.c To be included. You should update doxygen if you see this text.
 
 \section Calibration Calibration
 
@@ -141,8 +144,8 @@ be extended as well), change the available GPU memory size, PCI memory bandwidth
 The simulation can be tweaked, to be able to tune it between a very accurate
 simulation and a very simple simulation (which is thus close to scheduling
 theory results), see the \ref STARPU_SIMGRID_CUDA_MALLOC_COST,
-\ref STARPU_SIMGRID_CUDA_QUEUE_COST, \ref STARPU_SIMGRID_TASK_SUBMIT_COST
-and \ref STARPU_SIMGRID_FETCHING_INPUT_COST environment variables.
+\ref STARPU_SIMGRID_CUDA_QUEUE_COST, \ref STARPU_SIMGRID_TASK_SUBMIT_COST,
+\ref STARPU_SIMGRID_FETCHING_INPUT_COST and STARPU_SIMGRID_SCHED_COST environment variables.
 
 \section SimulationMPIApplications MPI Applications
 
@@ -165,8 +168,6 @@ from being able to inspect stacks of all threads.  To be able to fully debug an
 application running with simgrid, pass the <c>--cfg=contexts/factory:thread</c>
 option to the application, to make simgrid use system threads, which gdb will be
 able to manipulate as usual.
-
-\snippet simgrid.c To be included. You should update doxygen if you see this text.
 
 \section SimulationMemoryUsage Memory Usage
 

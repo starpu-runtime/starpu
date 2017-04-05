@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012, 2016  INRIA
+ * Copyright (C) 2012, 2016, 2017  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,7 +15,6 @@
  */
 
 #include <stdlib.h>
-#include <pthread.h>
 
 #include <datawizard/interfaces/data_interface.h>
 #include <drivers/mp_common/mp_common.h>
@@ -40,8 +39,12 @@ const char *_starpu_mp_common_command_to_string(const int command)
 			return "EXIT";
 		case STARPU_MP_COMMAND_EXECUTE:
 			return "EXECUTE";
+		case STARPU_MP_COMMAND_EXECUTE_DETACHED:
+			return "EXECUTE_DETACHED";
 		case STARPU_MP_COMMAND_ERROR_EXECUTE:
 			return "ERROR_EXECUTE";
+		case STARPU_MP_COMMAND_ERROR_EXECUTE_DETACHED:
+			return "ERROR_EXECUTE_DETACHED";
 		case STARPU_MP_COMMAND_LOOKUP:
 			return "LOOKUP";
 		case STARPU_MP_COMMAND_ANSWER_LOOKUP:
@@ -56,6 +59,7 @@ const char *_starpu_mp_common_command_to_string(const int command)
 			return "ERROR_ALLOCATE";
 		case STARPU_MP_COMMAND_FREE:
 			return "FREE";
+		/* Synchronous send */
 		case STARPU_MP_COMMAND_RECV_FROM_HOST:
 			return "RECV_FROM_HOST";
 		case STARPU_MP_COMMAND_SEND_TO_HOST:
@@ -64,6 +68,24 @@ const char *_starpu_mp_common_command_to_string(const int command)
 			return "RECV_FROM_SINK";
 		case STARPU_MP_COMMAND_SEND_TO_SINK:
 			return "SEND_TO_SINK";
+		/* Asynchronous send */
+		case STARPU_MP_COMMAND_RECV_FROM_HOST_ASYNC:
+			return "RECV_FROM_HOST_ASYNC";
+		case STARPU_MP_COMMAND_RECV_FROM_HOST_ASYNC_COMPLETED:
+			return "RECV_FROM_HOST_ASYNC_COMPLETED";
+		case STARPU_MP_COMMAND_SEND_TO_HOST_ASYNC:
+			return "SEND_TO_HOST_ASYNC";
+		case STARPU_MP_COMMAND_SEND_TO_HOST_ASYNC_COMPLETED:
+			return "SEND_TO_HOST_ASYNC_COMPLETED";
+		case STARPU_MP_COMMAND_RECV_FROM_SINK_ASYNC:
+			return "RECV_FROM_SINK_ASYNC";
+		case STARPU_MP_COMMAND_RECV_FROM_SINK_ASYNC_COMPLETED:
+			return "RECV_FROM_SINK_ASYNC_COMPLETED";
+		case STARPU_MP_COMMAND_SEND_TO_SINK_ASYNC:
+			return "SEND_TO_SINK_ASYNC";
+		case STARPU_MP_COMMAND_SEND_TO_SINK_ASYNC_COMPLETED:
+			return "SEND_TO_SINK_ASYNC_COMPLETED";
+
 		case STARPU_MP_COMMAND_TRANSFER_COMPLETE:
 			return "TRANSFER_COMPLETE";
 		case STARPU_MP_COMMAND_SINK_NBCORES:
@@ -74,6 +96,10 @@ const char *_starpu_mp_common_command_to_string(const int command)
 			return "EXECUTION_SUBMITTED";
 		case STARPU_MP_COMMAND_EXECUTION_COMPLETED:
 			return "EXECUTION_COMPLETED";
+		case STARPU_MP_COMMAND_EXECUTION_DETACHED_SUBMITTED:
+			return "EXECUTION_SUBMITTED_DETACHED";
+		case STARPU_MP_COMMAND_EXECUTION_DETACHED_COMPLETED:
+			return "EXECUTION_DETACHED_COMPLETED";
 		case STARPU_MP_COMMAND_PRE_EXECUTION:
 			return "PRE_EXECUTION";
 		case STARPU_MP_COMMAND_SYNC_WORKERS:
@@ -317,11 +343,13 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
 		int i;
 		node->is_running = 1;
 		_STARPU_MALLOC(node->run_table, sizeof(struct mp_task *)*node->nb_cores);
+		_STARPU_MALLOC(node->run_table_detached, sizeof(struct mp_task *)*node->nb_cores);
 		_STARPU_MALLOC(node->sem_run_table, sizeof(sem_t)*node->nb_cores);
 
 		for(i=0; i<node->nb_cores; i++)
 		{
 			node->run_table[i] = NULL;
+			node->run_table_detached[i] = NULL;
 			sem_init(&node->sem_run_table[i],0,0);
 		}
 		mp_barrier_list_init(&node->barrier_list);
@@ -352,6 +380,7 @@ void _starpu_mp_common_node_destroy(struct _starpu_mp_node *node)
 		}
 
 		free(node->run_table);
+		free(node->run_table_detached);
 		free(node->sem_run_table);
 
 		STARPU_PTHREAD_MUTEX_DESTROY(&node->barrier_mutex);
@@ -370,7 +399,7 @@ void _starpu_mp_common_send_command(const struct _starpu_mp_node *node,
 {
 	STARPU_ASSERT_MSG(arg_size <= BUFFER_SIZE, "Too much data (%d) for the static MIC buffer (%d), increase BUFFER_SIZE perhaps?", arg_size, BUFFER_SIZE);
 
-        //printf("SEND CMD : %d - arg_size %d by %lu \n", command, arg_size, pthread_self());
+        //printf("SEND CMD : %d - arg_size %d by %lu \n", command, arg_size, starpu_pthread_self());
 
 	/* MIC and MPI sizes are given through a int */
 	int command_size = sizeof(enum _starpu_mp_command);
@@ -406,7 +435,7 @@ enum _starpu_mp_command _starpu_mp_common_recv_command(const struct _starpu_mp_n
 	command = *((enum _starpu_mp_command *) node->buffer);
 	*arg_size = *((int *) ((uintptr_t)node->buffer + command_size));
 
-        //printf("RECV command : %d - arg_size %d by %lu \n", command, *arg_size, pthread_self());
+        //printf("RECV command : %d - arg_size %d by %lu \n", command, *arg_size, starpu_pthread_self());
 
 	/* If there is no argument (ie. arg_size == 0),
 	 * let's return the command right now */

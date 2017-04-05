@@ -72,7 +72,7 @@ long _starpu_gettid(void)
 #elif defined(_WIN32) && !defined(__CYGWIN__)
 	return (long) GetCurrentThreadId();
 #else
-	return (long) pthread_self();
+	return (long) starpu_pthread_self();
 #endif
 #endif
 }

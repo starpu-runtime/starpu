@@ -85,6 +85,7 @@ static const intptr_t fstarpu_starpu_mic	= STARPU_MIC;
 static const intptr_t fstarpu_starpu_scc	= STARPU_SCC;
 
 static const intptr_t fstarpu_starpu_codelet_simgrid_execute	= STARPU_CODELET_SIMGRID_EXECUTE;
+static const intptr_t fstarpu_starpu_codelet_simgrid_execute_and_inject	= STARPU_CODELET_SIMGRID_EXECUTE_AND_INJECT;
 static const intptr_t fstarpu_starpu_cuda_async	= STARPU_CUDA_ASYNC;
 static const intptr_t fstarpu_starpu_opencl_async	= STARPU_OPENCL_ASYNC;
 
@@ -153,6 +154,7 @@ intptr_t fstarpu_get_constant(char *s)
 	else if (!strcmp(s, "FSTARPU_SCC"))	{ return fstarpu_starpu_scc; }
 
 	else if (!strcmp(s, "FSTARPU_CODELET_SIMGRID_EXECUTE"))	{ return fstarpu_starpu_codelet_simgrid_execute; }
+	else if (!strcmp(s, "FSTARPU_CODELET_SIMGRID_EXECUTE_AND_INJECT"))	{ return fstarpu_starpu_codelet_simgrid_execute_and_inject; }
 	else if (!strcmp(s, "FSTARPU_CUDA_ASYNC"))	{ return fstarpu_starpu_cuda_async; }
 	else if (!strcmp(s, "FSTARPU_OPENCL_ASYNC"))	{ return fstarpu_starpu_opencl_async; }
 
@@ -503,7 +505,6 @@ void fstarpu_unpack_arg(char *cl_arg, void ***_buffer_list)
 		memcpy(argptr, cl_arg+current_arg_offset, arg_size);
 		current_arg_offset += arg_size;
 	}
-	free(cl_arg);
 }
 
 void fstarpu_sched_ctx_display_workers(int ctx)
@@ -542,7 +543,7 @@ void fstarpu_worker_get_type_as_string(intptr_t type, char *dst, size_t maxlen)
 	snprintf(dst, maxlen, "%s", str);
 }
 
-struct starpu_data_handle *fstarpu_data_handle_array_alloc(int nb)
+starpu_data_handle_t *fstarpu_data_handle_array_alloc(int nb)
 {
 	void *ptr;
 	_STARPU_CALLOC(ptr, (size_t)nb, sizeof(starpu_data_handle_t));
@@ -626,7 +627,8 @@ _FSTARPU_DATA_FILTER_ALLOCATOR(block_filter_vertical_block_shadow);
 
 #undef _FSTARPU_DATA_FILTER_ALLOCATOR
 
-void fstarpu_data_filter_free(struct starpu_data_filter *filter) {
+void fstarpu_data_filter_free(struct starpu_data_filter *filter)
+{
 	memset(filter, 0, sizeof(*filter));
 	free(filter);
 }

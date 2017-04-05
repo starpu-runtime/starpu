@@ -17,7 +17,7 @@
 #include <starpu_sched_component.h>
 #include <starpu_scheduler.h>
 
-static void initialize_prio_center_policy(unsigned sched_ctx_id)
+void starpu_initialize_prio_center_policy(unsigned sched_ctx_id)
 {
 	struct starpu_sched_tree *t;
 	struct starpu_sched_component * eager_component;
@@ -44,7 +44,7 @@ static void deinitialize_prio_center_policy(unsigned sched_ctx_id)
 
 struct starpu_sched_policy _starpu_sched_modular_prio_policy =
 {
-	.init_sched = initialize_prio_center_policy,
+	.init_sched = starpu_initialize_prio_center_policy,
 	.deinit_sched = deinitialize_prio_center_policy,
 	.add_workers = starpu_sched_tree_add_workers,
 	.remove_workers = starpu_sched_tree_remove_workers,

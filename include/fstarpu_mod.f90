@@ -82,6 +82,7 @@ module fstarpu_mod
         type(c_ptr), bind(C) :: FSTARPU_SCC
 
         type(c_ptr), bind(C) :: FSTARPU_CODELET_SIMGRID_EXECUTE
+        type(c_ptr), bind(C) :: FSTARPU_CODELET_SIMGRID_EXECUTE_AND_INJECT
         type(c_ptr), bind(C) :: FSTARPU_CUDA_ASYNC
         type(c_ptr), bind(C) :: FSTARPU_OPENCL_ASYNC
 
@@ -1580,7 +1581,7 @@ module fstarpu_mod
                 end subroutine fstarpu_memchunk_tidy
 
                 ! == starpu_task_util.h ==
-                ! struct starpu_data_handle *fstarpu_data_handle_array_alloc(int nb);
+                ! starpu_data_handle_t *fstarpu_data_handle_array_alloc(int nb);
                 function fstarpu_data_handle_array_alloc (nb) bind(C)
                         use iso_c_binding, only: c_ptr, c_int
                         type(c_ptr) :: fstarpu_data_handle_array_alloc
@@ -2331,7 +2332,9 @@ module fstarpu_mod
                             fstarpu_get_constant(C_CHAR_"FSTARPU_SCC"//C_NULL_CHAR)
 
                         FSTARPU_CODELET_SIMGRID_EXECUTE = &
-                            fstarpu_get_constant(C_CHAR_"FSTARPU_CODELET_SIMGRID_EXECUTE"//C_NULL_CHAR)
+                             fstarpu_get_constant(C_CHAR_"FSTARPU_CODELET_SIMGRID_EXECUTE"//C_NULL_CHAR)
+                        FSTARPU_CODELET_SIMGRID_EXECUTE_AND_INJECT = &
+                             fstarpu_get_constant(C_CHAR_"FSTARPU_CODELET_SIMGRID_EXECUTE_AND_INJECT"//C_NULL_CHAR)
                         FSTARPU_CUDA_ASYNC = &
                             fstarpu_get_constant(C_CHAR_"FSTARPU_CUDA_ASYNC"//C_NULL_CHAR)
                         FSTARPU_OPENCL_ASYNC = &

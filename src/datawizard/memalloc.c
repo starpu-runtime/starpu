@@ -1232,7 +1232,7 @@ void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, struct _star
 
 	/* Also keep the interface parameters and pointers, for later reuse
 	 * while detached, or freed */
-	mc->chunk_interface = malloc(mc->size_interface);
+	_STARPU_MALLOC(mc->chunk_interface, mc->size_interface);
 	memcpy(mc->chunk_interface, replicate->data_interface, mc->size_interface);
 
 	/* This memchunk doesn't have to do with the data any more. */
@@ -1280,7 +1280,7 @@ void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, struct _star
 		HASH_FIND(hh, mc_cache[node], &footprint, sizeof(footprint), entry);
 		if (!entry)
 		{
-			entry = malloc(sizeof(*entry));
+			_STARPU_MALLOC(entry, sizeof(*entry));
 			_starpu_mem_chunk_list_init(&entry->list);
 			entry->footprint = footprint;
 			HASH_ADD(hh, mc_cache[node], footprint, sizeof(entry->footprint), entry);
@@ -1325,6 +1325,7 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 	if (try_to_find_reusable_mc(dst_node, handle, replicate, footprint))
 	{
 		_starpu_allocation_cache_hit(dst_node);
+		_STARPU_TRACE_END_ALLOC_REUSE(dst_node);
 		return data_size;
 	}
 	_STARPU_TRACE_END_ALLOC_REUSE(dst_node);

@@ -237,18 +237,21 @@ int main(int argc, char **argv)
 	}
 
 #ifdef STARPU_USE_CUDA
-	cublasHandle_t handle;
-	cublasCreate(&handle);
-	cublasGetVersion(handle, &cublas_version);
-	cublasDestroy(handle);
-
 	devices = starpu_cuda_worker_get_count();
-	if (devices && cublas_version >= 7050)
+	if (devices)
 	{
-		starpu_cublas_init();
-		ret = check_size_on_device(STARPU_CUDA, "STARPU_CUDA");
-		if (ret) goto error;
-		starpu_cublas_shutdown();
+		cublasHandle_t handle;
+		cublasCreate(&handle);
+		cublasGetVersion(handle, &cublas_version);
+		cublasDestroy(handle);
+
+		if (cublas_version >= 7050)
+		{
+			starpu_cublas_init();
+			ret = check_size_on_device(STARPU_CUDA, "STARPU_CUDA");
+			if (ret) goto error;
+			starpu_cublas_shutdown();
+		}
 	}
 #endif
 #if 0

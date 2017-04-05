@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2012-2017  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,6 +18,9 @@
 #include <starpu.h>
 #include <core/simgrid.h>
 #include <core/workers.h>
+
+#include <errno.h>
+#include <limits.h>
 
 #ifdef STARPU_SIMGRID
 #ifdef STARPU_HAVE_XBT_SYNCHRO_H
@@ -48,6 +51,16 @@ static int _starpu_futex_wake = FUTEX_WAKE;
 
 extern int _starpu_simgrid_thread_start(int argc, char *argv[]);
 
+int starpu_pthread_equal(starpu_pthread_t t1, starpu_pthread_t t2)
+{
+	return t1 == t2;
+}
+
+starpu_pthread_t starpu_pthread_self(void)
+{
+	return MSG_process_self();
+}
+
 int starpu_pthread_create_on(char *name, starpu_pthread_t *thread, const starpu_pthread_attr_t *attr STARPU_ATTRIBUTE_UNUSED, void *(*start_routine) (void *), void *arg, msg_host_t host)
 {
 	char **_args;
@@ -57,7 +70,12 @@ int starpu_pthread_create_on(char *name, starpu_pthread_t *thread, const starpu_
 	_args[2] = NULL;
 	if (!host)
 		host = MSG_get_host_by_name("MAIN");
-	*thread = MSG_process_create_with_arguments(name, _starpu_simgrid_thread_start, calloc(MAX_TSD+1, sizeof(void*)), host, 2, _args);
+	void *tsd;
+	_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));
+	*thread = MSG_process_create_with_arguments(name, _starpu_simgrid_thread_start, tsd, host, 2, _args);
+#if SIMGRID_VERSION_MAJOR > 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR >= 15)
+	MSG_process_ref(*thread);
+#endif
 	return 0;
 }
 
@@ -70,6 +88,9 @@ int starpu_pthread_join(starpu_pthread_t thread STARPU_ATTRIBUTE_UNUSED, void **
 {
 #if SIMGRID_VERSION_MAJOR > 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR >= 14)
 	MSG_process_join(thread, 1000000);
+#if SIMGRID_VERSION_MAJOR > 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR >= 15)
+	MSG_process_unref(thread);
+#endif
 #else
 	MSG_process_sleep(1);
 #endif
@@ -117,7 +138,8 @@ int starpu_pthread_mutex_lock(starpu_pthread_mutex_t *mutex)
 
 	/* Note: this is actually safe, because simgrid only preempts within
 	 * simgrid functions */
-	if (!*mutex) {
+	if (!*mutex)
+	{
 		/* Here we may get preempted */
 		xbt_mutex_t new_mutex = xbt_mutex_init();
 		if (!*mutex)
@@ -193,11 +215,13 @@ int starpu_pthread_key_create(starpu_pthread_key_t *key, void (*destr_function) 
 
 	/* Note: no synchronization here, we are actually monothreaded anyway. */
 	for (i = 0; i < MAX_TSD; i++)
+	{
 		if (!used_key[i])
 		{
 			used_key[i] = 1;
 			break;
 		}
+	}
 	STARPU_ASSERT(i < MAX_TSD);
 	/* key 0 is for process pointer argument */
 	*key = i+1;
@@ -249,7 +273,8 @@ static void _starpu_pthread_cond_auto_init(starpu_pthread_cond_t *cond)
 {
 	/* Note: this is actually safe, because simgrid only preempts within
 	 * simgrid functions */
-	if (!*cond) {
+	if (!*cond)
+	{
 		/* Here we may get preempted */
 		xbt_cond_t new_cond = xbt_cond_init();
 		if (!*cond)
@@ -511,7 +536,7 @@ int starpu_pthread_queue_destroy(starpu_pthread_queue_t *q)
 #endif /* STARPU_SIMGRID */
 
 #if (defined(STARPU_SIMGRID) && !defined(STARPU_SIMGRID_HAVE_XBT_BARRIER_INIT)) || (!defined(STARPU_SIMGRID) && !defined(STARPU_HAVE_PTHREAD_BARRIER))
-int starpu_pthread_barrier_init(starpu_pthread_barrier_t *restrict barrier, const starpu_pthread_barrierattr_t *restrict attr, unsigned count)
+int starpu_pthread_barrier_init(starpu_pthread_barrier_t *restrict barrier, const starpu_pthread_barrierattr_t *restrict attr STARPU_ATTRIBUTE_UNUSED, unsigned count)
 {
 	int ret = starpu_pthread_mutex_init(&barrier->mutex, NULL);
 	if (!ret)
@@ -527,7 +552,8 @@ int starpu_pthread_barrier_init(starpu_pthread_barrier_t *restrict barrier, cons
 int starpu_pthread_barrier_destroy(starpu_pthread_barrier_t *barrier)
 {
 	starpu_pthread_mutex_lock(&barrier->mutex);
-	while (barrier->busy) {
+	while (barrier->busy)
+	{
 		starpu_pthread_cond_wait(&barrier->cond_destroy, &barrier->mutex);
 	}
 	starpu_pthread_mutex_unlock(&barrier->mutex);
@@ -848,3 +874,72 @@ void _starpu_pthread_spin_do_unlock(starpu_pthread_spinlock_t *lock)
 #endif
 
 #endif /* defined(STARPU_SIMGRID) || (defined(STARPU_LINUX_SYS) && defined(STARPU_HAVE_XCHG)) || !defined(STARPU_HAVE_PTHREAD_SPIN_LOCK) */
+
+#ifdef STARPU_SIMGRID
+
+int starpu_sem_destroy(starpu_sem_t *sem)
+{
+	MSG_sem_destroy(*sem);
+	return 0;
+}
+
+int starpu_sem_init(starpu_sem_t *sem, int pshared, unsigned value)
+{
+	STARPU_ASSERT_MSG(pshared == 0, "pshared semaphores not supported under simgrid");
+	*sem = MSG_sem_init(value);
+	return 0;
+}
+
+int starpu_sem_post(starpu_sem_t *sem)
+{
+	MSG_sem_release(*sem);
+	return 0;
+}
+
+int starpu_sem_wait(starpu_sem_t *sem)
+{
+	MSG_sem_acquire(*sem);
+	return 0;
+}
+
+int starpu_sem_trywait(starpu_sem_t *sem)
+{
+	if (MSG_sem_would_block(*sem))
+		return EAGAIN;
+	starpu_sem_wait(sem);
+	return 0;
+}
+
+int starpu_sem_getvalue(starpu_sem_t *sem, int *sval)
+{
+#if SIMGRID_VERSION_MAJOR > 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR > 13)
+	*sval = MSG_sem_get_capacity(*sem);
+	return 0;
+#else
+	(void) sem;
+	(void) sval;
+	STARPU_ABORT_MSG("sigmrid up to 3.13 did not have working MSG_sem_get_capacity");
+#endif
+}
+
+#elif !defined(_MSC_VER) || defined(BUILDING_STARPU) /* !STARPU_SIMGRID */
+
+int starpu_sem_wait(starpu_sem_t *sem)
+{
+	int ret;
+	while((ret = sem_wait(sem)) == -1 && errno == EINTR)
+		;
+
+	return ret;
+}
+
+int starpu_sem_trywait(starpu_sem_t *sem)
+{
+	int ret;
+	while((ret = sem_trywait(sem)) == -1 && errno == EINTR)
+		;
+	
+	return ret;
+}
+
+#endif

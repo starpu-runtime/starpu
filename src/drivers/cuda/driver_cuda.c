@@ -473,8 +473,6 @@ void _starpu_init_cuda(void)
 
 static int start_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *worker, unsigned char pipeline_idx STARPU_ATTRIBUTE_UNUSED)
 {
-	int ret;
-
 	STARPU_ASSERT(j);
 	struct starpu_task *task = j->task;
 
@@ -486,15 +484,6 @@ static int start_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *worke
 
 	_starpu_set_local_worker_key(worker);
 	_starpu_set_current_task(task);
-
-	ret = _starpu_fetch_task_input(task, j, 0);
-	if (ret < 0)
-	{
-		/* there was not enough memory, so the input of
-		 * the codelet cannot be fetched ... put the
-		 * codelet back, and try it later */
-		return -EAGAIN;
-	}
 
 	if (worker->ntasks == 1)
 	{
@@ -516,8 +505,14 @@ static int start_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *worke
 #ifdef STARPU_SIMGRID
 		int async = task->cl->cuda_flags[j->nimpl] & STARPU_CUDA_ASYNC;
 		unsigned workerid = worker->workerid;
-		if (cl->flags & STARPU_CODELET_SIMGRID_EXECUTE & !async)
+		if (cl->flags & STARPU_CODELET_SIMGRID_EXECUTE && !async)
 			func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
+		else if (cl->flags & STARPU_CODELET_SIMGRID_EXECUTE_AND_INJECT && !async)
+			{
+				_SIMGRID_TIMER_BEGIN(1);
+				func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
+				_SIMGRID_TIMER_END;
+			}
 		else
 			_starpu_simgrid_submit_job(workerid, j, &worker->perf_arch, NAN,
 				async ? &task_finished[workerid][pipeline_idx] : NULL);
@@ -774,10 +769,11 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 		task = worker->task_transferring;
 		if (task && worker->nb_buffers_transferred == worker->nb_buffers_totransfer)
 		{
+			_STARPU_TRACE_END_PROGRESS(memnode);
 			j = _starpu_get_job_associated_to_task(task);
 
 			_starpu_set_local_worker_key(worker);
-			_starpu_release_fetch_task_input_async(j, worker);
+			_starpu_fetch_task_input_tail(task, j, worker);
 			/* Reset it */
 			worker->task_transferring = NULL;
 
@@ -790,10 +786,9 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 			}
 			else
 			{
-				_STARPU_TRACE_END_PROGRESS(memnode);
 				execute_job_on_cuda(task, worker);
-				_STARPU_TRACE_START_PROGRESS(memnode);
 			}
+			_STARPU_TRACE_START_PROGRESS(memnode);
 		}
 
 		/* Then test for termination of queued tasks */
@@ -822,6 +817,7 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 		else
 #endif /* !STARPU_SIMGRID */
 		{
+			_STARPU_TRACE_END_PROGRESS(memnode);
 			/* Asynchronous task completed! */
 			_starpu_set_local_worker_key(worker);
 			finish_job_on_cuda(_starpu_get_job_associated_to_task(task), worker);
@@ -842,11 +838,9 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 					 * flushing the pipeline, we can now at
 					 * last execute it.  */
 
-					_STARPU_TRACE_END_PROGRESS(memnode);
 					_STARPU_TRACE_EVENT("sync_task");
 					execute_job_on_cuda(task, worker);
 					_STARPU_TRACE_EVENT("end_sync_task");
-					_STARPU_TRACE_START_PROGRESS(memnode);
 					worker->pipeline_stuck = 0;
 				}
 			}
@@ -859,6 +853,7 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 				/* Everybody busy */
 				_STARPU_TRACE_END_EXECUTING()
 #endif
+			_STARPU_TRACE_START_PROGRESS(memnode);
 		}
 
 		if (!worker->pipeline_length || worker->ntasks < worker->pipeline_length)

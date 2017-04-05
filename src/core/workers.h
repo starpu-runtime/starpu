@@ -20,6 +20,8 @@
 #ifndef __WORKERS_H__
 #define __WORKERS_H__
 
+#include <limits.h>
+
 #include <starpu.h>
 #include <common/config.h>
 #include <common/timing.h>
