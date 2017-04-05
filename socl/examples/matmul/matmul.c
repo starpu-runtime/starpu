@@ -13,6 +13,14 @@
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
+#ifndef STARPU_NON_BLOCKING_DRIVERS
+int main(int argc, const char** argv) {
+	(void) argv;
+	(void) argv;
+	/* testcase does not seem to support blocking drivers */
+	return 77;
+}
+#else
 
 #ifdef __APPLE_CC__
 #include <OpenCL/opencl.h>
@@ -512,3 +520,4 @@ void computeReference(TYPE* C, const TYPE* A, const TYPE* B, unsigned int hA, un
 			C[i * wB + j] = (TYPE)sum;
 		}
 }
+#endif /* STARPU_NON_BLOCKING_DRIVERS */
