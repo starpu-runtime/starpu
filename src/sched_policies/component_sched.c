@@ -273,17 +273,11 @@ void _starpu_sched_component_update_workers_in_ctx(struct starpu_sched_component
 	STARPU_ASSERT(component);
 	struct starpu_bitmap * workers_in_ctx = _starpu_get_worker_mask(sched_ctx_id);
 	starpu_bitmap_unset_and(component->workers_in_ctx,component->workers, workers_in_ctx);
-	int i,j;
+	int i;
 	for(i = 0; i < component->nchildren; i++)
 	{
 		struct starpu_sched_component * child = component->children[i];
 		_starpu_sched_component_update_workers_in_ctx(child, sched_ctx_id);
-		for(j = 0; j < STARPU_NMAX_SCHED_CTXS; j++)
-			if(child->parents[j] == component)
-			{
-				starpu_bitmap_or(component->workers_in_ctx, child->workers_in_ctx);
-				break;
-			}
 	}
 	set_properties(component);
 	component->notify_change_workers(component);
