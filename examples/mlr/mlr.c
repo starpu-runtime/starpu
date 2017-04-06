@@ -51,7 +51,6 @@ static void cl_params(struct starpu_task *task, double *parameters)
 {
 	int m, n, k;
 	int* vector_mn;
-	starpu_data_handle_t vector_mn_handle;
 
 	vector_mn = (int*)STARPU_VECTOR_GET_PTR(task->interfaces[0]);
 	m = vector_mn[0];
@@ -160,7 +159,7 @@ int main(int argc, char **argv)
 
 	sum=0;
 	int m,n,k;
-	int* vector_mn = malloc( 2 * sizeof(int) );
+	int* vector_mn = calloc( 2, sizeof(int) );
 	starpu_data_handle_t vector_mn_handle;
 
 	starpu_vector_data_register( &vector_mn_handle,
