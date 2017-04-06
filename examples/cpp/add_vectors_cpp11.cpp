@@ -29,7 +29,6 @@
 #endif
 
 #include <starpu.h>
-#include "../helper.h"
 #if !defined(STARPU_HAVE_CXX11) || defined(STARPU_USE_NUMA)
 int main(int argc, char **argv)
 {
