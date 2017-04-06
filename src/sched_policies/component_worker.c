@@ -146,13 +146,6 @@ static void _starpu_worker_task_list_finished(struct _starpu_worker_task_list *l
 }
 
 
-enum _starpu_worker_component_status
-{
-	COMPONENT_STATUS_SLEEPING,
-	COMPONENT_STATUS_RESET,
-	COMPONENT_STATUS_CHANGED
-};
-
 struct _starpu_worker_component_data
 {
 	union
@@ -161,7 +154,6 @@ struct _starpu_worker_component_data
 		struct _starpu_combined_worker * combined_worker;
 	};
 	struct _starpu_worker_task_list * list;
-	enum _starpu_worker_component_status status;
 };
 
 /* this array store worker components */
@@ -374,44 +366,6 @@ struct _starpu_combined_worker * _starpu_sched_component_combined_worker_get_com
 
 
 
-static void _starpu_sched_component_worker_set_sleep_status(struct starpu_sched_component * worker_component)
-{
-	STARPU_ASSERT(starpu_sched_component_is_worker(worker_component));
-	struct _starpu_worker_component_data * data = worker_component->data;
-	data->status = COMPONENT_STATUS_SLEEPING;
-}
-static void _starpu_sched_component_worker_set_changed_status(struct starpu_sched_component * worker_component)
-{
-	STARPU_ASSERT(starpu_sched_component_is_worker(worker_component));
-	struct _starpu_worker_component_data * data = worker_component->data;
-	data->status = COMPONENT_STATUS_CHANGED;
-}
-static void _starpu_sched_component_worker_reset_status(struct starpu_sched_component * worker_component)
-{
-	STARPU_ASSERT(starpu_sched_component_is_worker(worker_component));
-	struct _starpu_worker_component_data * data = worker_component->data;
-	data->status = COMPONENT_STATUS_RESET;
-}
-
-static int _starpu_sched_component_worker_is_reset_status(struct starpu_sched_component * worker_component)
-{
-	STARPU_ASSERT(starpu_sched_component_is_worker(worker_component));
-	struct _starpu_worker_component_data * data = worker_component->data;
-	return (data->status == COMPONENT_STATUS_RESET);
-}
-static int _starpu_sched_component_worker_is_changed_status(struct starpu_sched_component * worker_component)
-{
-	STARPU_ASSERT(starpu_sched_component_is_worker(worker_component));
-	struct _starpu_worker_component_data * data = worker_component->data;
-	return (data->status == COMPONENT_STATUS_CHANGED);
-}
-static int _starpu_sched_component_worker_is_sleeping_status(struct starpu_sched_component * worker_component)
-{
-	STARPU_ASSERT(starpu_sched_component_is_worker(worker_component));
-	struct _starpu_worker_component_data * data = worker_component->data;
-	return (data->status == COMPONENT_STATUS_SLEEPING);
-}
-
 #ifndef STARPU_NO_ASSERT
 static int _worker_consistant(struct starpu_sched_component * component)
 {
@@ -445,12 +399,7 @@ static void simple_worker_can_pull(struct starpu_sched_component * worker_compon
 {
 	struct _starpu_worker * worker = _starpu_sched_component_worker_get_worker(worker_component);
 	int workerid = worker->workerid;
-	_starpu_worker_lock(workerid);
-	if(_starpu_sched_component_worker_is_reset_status(worker_component))
-		_starpu_sched_component_worker_set_changed_status(worker_component);
-	if(workerid != _starpu_worker_get_id() && _starpu_sched_component_worker_is_sleeping_status(worker_component))
-		starpu_wake_worker_locked(workerid);
-	_starpu_worker_unlock(workerid);
+	_starpu_wake_worker_relax(workerid);
 }
 
 static int simple_worker_push_task(struct starpu_sched_component * component, struct starpu_task *task)
@@ -481,25 +430,27 @@ static int simple_worker_push_task(struct starpu_sched_component * component, st
 static struct starpu_task * simple_worker_pull_task(struct starpu_sched_component *component)
 {
 	unsigned workerid = starpu_worker_get_id_check();
+	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 	struct _starpu_worker_component_data * data = component->data;
 	struct _starpu_worker_task_list * list = data->list;
-	STARPU_COMPONENT_MUTEX_LOCK(&list->mutex);
-	/* Take the opportunity to update start time */
-	data->list->exp_start = STARPU_MAX(starpu_timing_now(), data->list->exp_start);
-	data->list->exp_end = data->list->exp_start + data->list->exp_len;
-	struct starpu_task * task =  _starpu_worker_task_list_pop(list);
-	if(task)
-	{
-		_starpu_worker_task_list_transfer_started(list, task);
-		STARPU_COMPONENT_MUTEX_UNLOCK(&list->mutex);
-		starpu_push_task_end(task);
-		goto ret;
-	}
-	STARPU_COMPONENT_MUTEX_UNLOCK(&list->mutex);
+	struct starpu_task * task;
 	int i;
 	do
 	{
-		_starpu_sched_component_worker_reset_status(component);
+		STARPU_COMPONENT_MUTEX_LOCK(&list->mutex);
+		worker->state_keep_awake = 0;
+		/* Take the opportunity to update start time */
+		data->list->exp_start = STARPU_MAX(starpu_timing_now(), data->list->exp_start);
+		data->list->exp_end = data->list->exp_start + data->list->exp_len;
+		task =  _starpu_worker_task_list_pop(list);
+		if(task)
+		{
+			_starpu_worker_task_list_transfer_started(list, task);
+			STARPU_COMPONENT_MUTEX_UNLOCK(&list->mutex);
+			starpu_push_task_end(task);
+			goto ret;
+		}
+		STARPU_COMPONENT_MUTEX_UNLOCK(&list->mutex);
 		for(i=0; i < component->nparents; i++)
 		{
 			if(component->parents[i] == NULL)
@@ -512,8 +463,7 @@ static struct starpu_task * simple_worker_pull_task(struct starpu_sched_componen
 			}
 		}
 	}
-	while((!task) && _starpu_sched_component_worker_is_changed_status(component));
-	_starpu_sched_component_worker_set_sleep_status(component);
+	while((!task) && worker->state_keep_awake);
 	if(!task)
 		goto ret;
 	if(task->cl->type == STARPU_SPMD)
@@ -611,7 +561,6 @@ static struct starpu_sched_component * starpu_sched_component_worker_create(stru
 	memset(data, 0, sizeof(*data));
 
 	data->worker = worker;
-	data->status = COMPONENT_STATUS_SLEEPING;
 	data->list = _starpu_worker_task_list_create();
 	component->data = data;
 
@@ -657,15 +606,7 @@ static void combined_worker_can_pull(struct starpu_sched_component * component)
 	{
 		if((unsigned) i == workerid)
 			continue;
-		int workerid = data->combined_worker->combined_workerid[i];
-		_starpu_worker_lock(workerid);
-		if(_starpu_sched_component_worker_is_sleeping_status(component))
-		{
-			starpu_wake_worker_locked(workerid);
-		}
-		if(_starpu_sched_component_worker_is_reset_status(component))
-			_starpu_sched_component_worker_set_changed_status(component);
-		_starpu_worker_unlock(workerid);
+		_starpu_wake_worker_relax(workerid);
 	}
 }
 
@@ -780,7 +721,6 @@ static struct starpu_sched_component  * starpu_sched_component_combined_worker_c
 	_STARPU_MALLOC(data, sizeof(*data));
 	memset(data, 0, sizeof(*data));
 	data->combined_worker = combined_worker;
-	data->status = COMPONENT_STATUS_SLEEPING;
 
 	component->data = data;
 	component->push_task = combined_worker_push_task;
