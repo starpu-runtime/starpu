@@ -45,6 +45,7 @@ endif
 
 EXTRA_DIST = 					\
 	README.txt				\
+	helper.h				\
 	axpy/axpy.h				\
 	axpy/axpy_opencl_kernel.cl		\
 	basic_examples/vector_scal_opencl_kernel.cl \
