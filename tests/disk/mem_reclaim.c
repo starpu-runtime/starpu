@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2013 Corentin Salingue
- * Copyright (C) 2015, 2016 CNRS
+ * Copyright (C) 2015, 2016, 2017 CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -230,7 +230,9 @@ int main(void)
 	ret = merge_result(ret, dotest(&starpu_disk_unistd_o_direct_ops, s, starpu_vector_data_register, "unistd_direct with read/write vector ops"));
 	ret = merge_result(ret, dotest(&starpu_disk_unistd_o_direct_ops, s, starpu_my_vector_data_register, "unistd_direct with pack/unpack vector ops"));
 #endif
-	rmdir(s);
+
+	ret = rmdir(s);
+	STARPU_CHECK_RETURN_VALUE(ret, "rmdir '%s'\n", s);
 	return ret;
 }
 #endif
