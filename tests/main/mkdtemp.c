@@ -18,6 +18,7 @@
 #include <common/config.h>
 #include <common/utils.h>
 #include "../helper.h"
+#include <unistd.h>
 
 int do_test(char *(*func)(char *tmpl))
 {

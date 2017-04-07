@@ -183,7 +183,7 @@ char *_starpu_mkdtemp(char *tmpl)
 #if defined(HAVE_MKDTEMP)
 	return mkdtemp(tmpl);
 #else
-	return _starpu_mkdtemp_internal(tmp);
+	return _starpu_mkdtemp_internal(tmpl);
 #endif
 }
 
