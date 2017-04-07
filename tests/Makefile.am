@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2009-2017  Université de Bordeaux
-# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
 # Copyright (C) 2010, 2011, 2012  INRIA
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -124,6 +124,7 @@ XFAIL_TESTS	=				\
 noinst_PROGRAMS =
 
 noinst_PROGRAMS +=				\
+	main/mkdtemp				\
 	main/restart				\
 	main/execute_schedule			\
 	main/insert_task_pack			\
