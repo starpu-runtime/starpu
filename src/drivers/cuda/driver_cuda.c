@@ -901,7 +901,14 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 		{
 			/* this is neither a cuda or a cublas task */
 			worker->ntasks--;
-			_starpu_push_task_to_workers(task);
+			_starpu_set_current_task(NULL);
+			if (worker->pipeline_length)
+				worker->current_tasks[worker->first_task] = NULL;
+			else
+				worker->current_task = NULL;
+			worker->first_task = (worker->first_task + 1) % STARPU_MAX_PIPELINE;
+			int res = _starpu_push_task_to_workers(task);
+			STARPU_ASSERT_MSG(res == 0, "_starpu_push_task_to_workers() unexpectedly returned = %d\n", res);
 			continue;
 		}
 
