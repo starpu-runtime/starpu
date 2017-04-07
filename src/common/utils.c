@@ -167,7 +167,7 @@ char *_starpu_mkdtemp_internal(char *tmpl)
 		if (i == len)
 		{
 			_STARPU_MSG("Error making StarPU temporary directory\n");
-			STARPU_ABORT();
+			return NULL;
 		}
 		tmpl[i] ++;
 		ret = stat(tmpl, &sb);
