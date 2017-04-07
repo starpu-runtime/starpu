@@ -39,13 +39,6 @@
 #define VALGRIND_MAKE_MEM_DEFINED(addr, size) (void)0
 #endif
 
-#ifdef STARPU_HAVE_WINDOWS
-#  include <io.h>
-#  if defined(_WIN32) && !defined(__CYGWIN__)
-#    define mkdir(path, mode) mkdir(path)
-#  endif
-#endif
-
 #ifdef STARPU_QUICK_CHECK
 #  define NDATA 4
 #  define NITER 16
