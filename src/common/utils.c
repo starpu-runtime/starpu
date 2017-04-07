@@ -147,35 +147,36 @@ char *_starpu_mkdtemp_internal(char *tmpl)
 {
 	int len = (int)strlen(tmpl);
 	int i;
+	int count = 1;
 	int ret;
-	struct stat sb;
 
 	// Initialize template
 	for(i=len-6 ; i<len ; i++)
 	{
 		STARPU_ASSERT_MSG(tmpl[i] == 'X', "Template must terminate by XXXXXX\n");
-		tmpl[i] = 'a';
+		tmpl[i] = (char) (97 + starpu_lrand48() % 25);
 	}
 
-	// Find directory which does not exist by looping over all 6 last characters
-	i=len-6;
-	ret = stat(tmpl, &sb);
-	while (ret == 0 && S_ISDIR(sb.st_mode))
+	// Try to create directory
+	ret = mkdir(tmpl, 0777);
+	while ((ret == -1) && (errno == EEXIST))
 	{
-		if (tmpl[i] == 'z')
-			i++;
-		if (i == len)
+		// Generate a new name
+		for(i=len-6 ; i<len ; i++)
 		{
+			tmpl[i] = (char) (97 + starpu_lrand48() % 25);
+		}
+		count ++;
+		if (count == 1000)
+		{
+			// We consider that after 1000 tries, we will not be able to create a directory
 			_STARPU_MSG("Error making StarPU temporary directory\n");
 			return NULL;
-		}
-		tmpl[i] ++;
-		ret = stat(tmpl, &sb);
-	}
 
-	// Create directory
-	ret = _starpu_mkpath(tmpl, 0777);
-	return ret == 0 ? tmpl : NULL;
+		}
+		ret = mkdir(tmpl, 0777);
+	}
+	return tmpl;
 }
 
 char *_starpu_mkdtemp(char *tmpl)
