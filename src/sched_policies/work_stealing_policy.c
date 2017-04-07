@@ -589,11 +589,13 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 		struct _starpu_worker *worker = _starpu_get_worker_struct(starpu_worker_get_id());
 		if (!task && worker->state_keep_awake)
 		{
-			/* keep_awake notice taken into account here, clear flag */
-			worker->state_keep_awake = 0;
 			task = ws_pick_task(ws, workerid, workerid);
 			if (task)
+			{
+				/* keep_awake notice taken into account here, clear flag */
+				worker->state_keep_awake = 0;
 				locality_popped_task(ws, task, workerid, sched_ctx_id);
+			}
 		}
 	}
 #endif

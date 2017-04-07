@@ -435,10 +435,12 @@ static struct starpu_task * simple_worker_pull_task(struct starpu_sched_componen
 	struct _starpu_worker_task_list * list = data->list;
 	struct starpu_task * task;
 	int i;
+	int n_tries = 0;
 	do
 	{
+		/* do not reset state_keep_awake here has it may hide tasks in worker->local_tasks */
+		n_tries++;
 		STARPU_COMPONENT_MUTEX_LOCK(&list->mutex);
-		worker->state_keep_awake = 0;
 		/* Take the opportunity to update start time */
 		data->list->exp_start = STARPU_MAX(starpu_timing_now(), data->list->exp_start);
 		data->list->exp_end = data->list->exp_start + data->list->exp_len;
@@ -463,7 +465,7 @@ static struct starpu_task * simple_worker_pull_task(struct starpu_sched_componen
 			}
 		}
 	}
-	while((!task) && worker->state_keep_awake);
+	while((!task) && worker->state_keep_awake && n_tries < 2);
 	if(!task)
 		goto ret;
 	if(task->cl->type == STARPU_SPMD)
