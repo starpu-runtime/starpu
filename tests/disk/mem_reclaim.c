@@ -210,11 +210,17 @@ static int merge_result(int old, int new)
 int main(void)
 {
 	int ret = 0;
+	int ret2;
 	char s[128];
+	char *ptr;
 
-	snprintf(s, sizeof(s), "/tmp/%s-disk-%d", getenv("USER"), getpid());
-	ret = mkdir(s, 0777);
-	STARPU_CHECK_RETURN_VALUE(ret, "mkdir '%s'\n", s);
+	snprintf(s, sizeof(s), "/tmp/%s-disk-XXXXXX", getenv("USER"));
+	ptr = _starpu_mkdtemp(s);
+	if (!ptr)
+	{
+		FPRINTF(stderr, "Cannot make directory '%s'\n", s);
+		return STARPU_TEST_SKIPPED;
+	}
 
 	setenv("STARPU_LIMIT_CPU_MEM", MEMSIZE_STR, 1);
 
@@ -231,8 +237,9 @@ int main(void)
 	ret = merge_result(ret, dotest(&starpu_disk_unistd_o_direct_ops, s, starpu_my_vector_data_register, "unistd_direct with pack/unpack vector ops"));
 #endif
 
-	ret = rmdir(s);
-	STARPU_CHECK_RETURN_VALUE(ret, "rmdir '%s'\n", s);
+	ret2 = rmdir(s);
+	STARPU_CHECK_RETURN_VALUE(ret2, "rmdir '%s'\n", s);
+
 	return ret;
 }
 #endif
