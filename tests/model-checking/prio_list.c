@@ -10,11 +10,8 @@
 #include <simgrid/modelchecker.h>
 #include <xbt/synchro.h>
 
-#define N 2
-#define M 2
-
-/* avoid diverging, for now */
-#define lrand48() 42
+#define N 2 /* number of threads */
+#define M 3 /* number of elements */
 
 xbt_mutex_t mutex;
 
@@ -84,24 +81,13 @@ int worker(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSE
 
 int master(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED)
 {
-	msg_process_t process[N];
 	unsigned i;
 
 	mutex = xbt_mutex_init();
 	foo_prio_list_init(&mylist);
 
 	for (i = 0; i < N; i++)
-	{
-		process[i] = MSG_process_create("test", worker, NULL, MSG_host_self());
-		MSG_process_ref(process[i]);
-	}
-	for (i = 0; i < N; i++)
-	{
-		MSG_process_join(process[i], 1000000);
-		MSG_process_unref(process[i]);
-	}
-
-	xbt_mutex_destroy(mutex);
+		MSG_process_create("test", worker, NULL, MSG_host_self());
 
 	return 0;
 }
@@ -114,7 +100,7 @@ int main(int argc, char *argv[]) {
 	srand48(0);
 	MSG_init(&argc, argv);
 	xbt_cfg_set_int("contexts/stack-size", 128);
-	xbt_cfg_set_boolean("model-check/sparse-checkpoint", "true");
+	//xbt_cfg_set_boolean("model-check/sparse-checkpoint", "true");
 	MSG_create_environment(argv[1]);
 	MSG_process_create("master", master, NULL, MSG_get_host_by_name(argv[2]));
 	MSG_main();
