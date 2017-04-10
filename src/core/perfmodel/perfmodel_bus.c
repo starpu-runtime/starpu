@@ -110,7 +110,7 @@ static uint64_t opencl_size[STARPU_MAXCUDADEVS];
 #ifdef STARPU_USE_OPENCL
 /* preference order of cores (logical indexes) */
 static int opencl_affinity_matrix[STARPU_MAXOPENCLDEVS][STARPU_MAXNUMANODES];
-static struct dev_timing opencldev_timing_per_numa[STARPU_MAXOPENCLDEVS*STARPU_MAXNODES];
+static struct dev_timing opencldev_timing_per_numa[STARPU_MAXOPENCLDEVS*STARPU_MAXNUMANODES];
 #endif
 
 #ifdef STARPU_USE_MIC
@@ -940,7 +940,7 @@ static void write_bus_affinity_file_content(void)
 #ifdef STARPU_USE_OPENCL
 	{
 		/* Use an other array to sort bandwidth */
-		struct dev_timing opencldev_timing_per_numa_sorted[STARPU_MAXOPENCLDEVS*STARPU_MAXNODES];
+		struct dev_timing opencldev_timing_per_numa_sorted[STARPU_MAXOPENCLDEVS*STARPU_MAXNUMANODES];
 		memcpy(opencldev_timing_per_numa_sorted, opencldev_timing_per_numa, STARPU_MAXOPENCLDEVS*STARPU_MAXNUMANODES*sizeof(struct dev_timing));
 
 		for (gpu = 0; gpu < nopencl; gpu++)
