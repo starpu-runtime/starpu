@@ -51,7 +51,6 @@ int worker(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSE
 
 	for (i = 0; i < M; i++) {
 		elem = malloc(sizeof(*elem));
-		MSG_process_sleep(1);
 		elem->prio = lrand48()%10;
 		elem->back = lrand48()%2;
 		xbt_mutex_acquire(mutex);
