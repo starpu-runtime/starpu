@@ -41,13 +41,6 @@ int main(int argc, char **argv)
  * Here we force using the pack/unpack mechanism
  */
 
-#ifdef STARPU_HAVE_WINDOWS
-#  include <io.h>
-#  if defined(_WIN32) && !defined(__CYGWIN__)
-#    define mkdir(path, mode) mkdir(path)
-#  endif
-#endif
-
 #define NX (1024)
 
 const struct starpu_data_copy_methods my_vector_copy_data_methods_s;
@@ -274,11 +267,13 @@ static int merge_result(int old, int new)
 int main(void)
 {
 	int ret = 0;
+	int ret2;
 	char s[128];
+	char *ptr;
 
-	snprintf(s, sizeof(s), "/tmp/%s-disk-%d", getenv("USER"), getpid());
-	ret = mkdir(s, 0777);
-	if (ret)
+	snprintf(s, sizeof(s), "/tmp/%s-disk-XXXXXX", getenv("USER"));
+	ptr = _starpu_mkdtemp(s);
+	if (!ptr)
 	{
 		FPRINTF(stderr, "Cannot make directory <%s>\n", s);
 		return STARPU_TEST_SKIPPED;
@@ -289,7 +284,9 @@ int main(void)
 #ifdef STARPU_LINUX_SYS
 	ret = merge_result(ret, dotest(&starpu_disk_unistd_o_direct_ops, s));
 #endif
-	rmdir(s);
+
+	ret2 = rmdir(s);
+	STARPU_CHECK_RETURN_VALUE(ret2, "rmdir '%s'\n", s);
 	return ret;
 }
 #endif

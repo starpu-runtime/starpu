@@ -26,8 +26,7 @@ ConfigurationNotChecked
 *:sc_hypervisor/*
 
 varFuncNullUB:examples/sched_ctx/two_cpu_contexts.c:76
-negativeIndex:examples/stencil/stencil-tasks.c:200
-negativeIndex:examples/stencil/stencil-tasks.c:203
+negativeIndex:examples/stencil/stencil-tasks.c
 constStatement:examples/stencil/*
 
 unreadVariable:tests/openmp/*
@@ -55,7 +54,7 @@ unusedStructMember:src/core/perfmodel/perfmodel_bus.c:65
 unusedStructMember:src/core/perfmodel/perfmodel_bus.c:66
 unusedStructMember:src/core/simgrid.c:225
 unusedStructMember:src/core/simgrid.c:226
-wrongPrintfScanfArgNum:src/core/simgrid.c:883
+wrongPrintfScanfArgNum:src/core/simgrid.c:946
 duplicateExpression:src/util/starpu_task_insert.c:52
 
 // TODO: this could be an error?
@@ -63,7 +62,7 @@ redundantCopy:src/core/disk_ops/disk_leveldb.cpp:194
 
 nullPointerRedundantCheck:src/common/rbtree.c
 unreadVariable:src/datawizard/interfaces/*
-unreadVariable:src/drivers/driver_common/driver_common.c:492
+unreadVariable:src/drivers/driver_common/driver_common.c:493
 clarifyCondition:src/drivers/opencl/driver_opencl.c:945
 unreadVariable:src/drivers/opencl/driver_opencl.c:767
 clarifyCondition:src/drivers/cuda/driver_cuda.c:498

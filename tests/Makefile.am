@@ -133,7 +133,8 @@ XFAIL_TESTS	=				\
 
 myPROGRAMS =
 
-myPROGRAMS +=				\
+myPROGRAMS +=					\
+	main/mkdtemp				\
 	main/restart				\
 	main/execute_schedule			\
 	main/insert_task_pack			\

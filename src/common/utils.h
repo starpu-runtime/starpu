@@ -126,6 +126,8 @@
 #define _STARPU_IS_ZERO(a) (fpclassify(a) == FP_ZERO)
 #endif
 
+char *_starpu_mkdtemp_internal(char *tmpl);
+char *_starpu_mkdtemp(char *tmpl);
 int _starpu_mkpath(const char *s, mode_t mode);
 void _starpu_mkpath_and_check(const char *s, mode_t mode);
 char *_starpu_mktemp(const char *directory, int flags, int *fd);

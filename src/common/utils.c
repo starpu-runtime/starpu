@@ -143,6 +143,51 @@ void _starpu_mkpath_and_check(const char *path, mode_t mode)
 	}
 }
 
+char *_starpu_mkdtemp_internal(char *tmpl)
+{
+	int len = (int)strlen(tmpl);
+	int i;
+	int count = 1;
+	int ret;
+
+	// Initialize template
+	for(i=len-6 ; i<len ; i++)
+	{
+		STARPU_ASSERT_MSG(tmpl[i] == 'X', "Template must terminate by XXXXXX\n");
+		tmpl[i] = (char) (97 + starpu_lrand48() % 25);
+	}
+
+	// Try to create directory
+	ret = mkdir(tmpl, 0777);
+	while ((ret == -1) && (errno == EEXIST))
+	{
+		// Generate a new name
+		for(i=len-6 ; i<len ; i++)
+		{
+			tmpl[i] = (char) (97 + starpu_lrand48() % 25);
+		}
+		count ++;
+		if (count == 1000)
+		{
+			// We consider that after 1000 tries, we will not be able to create a directory
+			_STARPU_MSG("Error making StarPU temporary directory\n");
+			return NULL;
+
+		}
+		ret = mkdir(tmpl, 0777);
+	}
+	return tmpl;
+}
+
+char *_starpu_mkdtemp(char *tmpl)
+{
+#if defined(HAVE_MKDTEMP)
+	return mkdtemp(tmpl);
+#else
+	return _starpu_mkdtemp_internal(tmpl);
+#endif
+}
+
 char *_starpu_mktemp(const char *directory, int flags, int *fd)
 {
 	/* create template for mkstemp */
