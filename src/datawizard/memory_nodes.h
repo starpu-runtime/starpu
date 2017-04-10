@@ -126,6 +126,9 @@ static inline struct _starpu_memory_node_descr *_starpu_memory_node_get_descript
 	return &_starpu_descr;
 }
 
+#define _starpu_node_needs_map_update(node) \
+	(starpu_node_get_kind(node) == STARPU_OPENCL_RAM)
+
 static inline enum starpu_node_kind _starpu_node_get_kind(unsigned node)
 {
 	return _starpu_descr.nodes[node];

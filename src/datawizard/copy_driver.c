@@ -577,6 +577,28 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 #endif /* !SIMGRID */
 }
 
+static int update_map_generic(starpu_data_handle_t handle,
+				    struct _starpu_data_replicate *src_replicate,
+				    struct _starpu_data_replicate *dst_replicate,
+				    struct _starpu_data_request *req STARPU_ATTRIBUTE_UNUSED)
+{
+	unsigned src_node = src_replicate->memory_node;
+	unsigned dst_node = dst_replicate->memory_node;
+
+	STARPU_ASSERT(src_replicate->refcnt);
+	STARPU_ASSERT(dst_replicate->refcnt);
+
+	STARPU_ASSERT((src_replicate->mapped && dst_replicate->allocated)
+			||(src_replicate->allocated && dst_replicate->mapped));
+
+	void *src_interface = src_replicate->data_interface;
+	void *dst_interface = dst_replicate->data_interface;
+
+	handle->ops->update_map(src_interface, src_node, dst_interface, dst_node);
+
+	return 0;
+}
+
 int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT _starpu_driver_copy_data_1_to_1(starpu_data_handle_t handle,
 									struct _starpu_data_replicate *src_replicate,
 									struct _starpu_data_replicate *dst_replicate,
@@ -587,15 +609,46 @@ int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT _starpu_driver_copy_data_1_to_1(starpu_d
 {
 	if (!donotread)
 	{
-		STARPU_ASSERT(src_replicate->allocated);
+		STARPU_ASSERT(src_replicate->allocated || src_replicate->mapped);
 		STARPU_ASSERT(src_replicate->refcnt);
 	}
 
 	unsigned src_node = src_replicate->memory_node;
 	unsigned dst_node = dst_replicate->memory_node;
 
+	if (!dst_replicate->allocated && !dst_replicate->mapped
+			&& handle->ops->map_data
+			&& (_starpu_memory_node_get_mapped(dst_replicate->memory_node) /* || handle wants it */))
+	{
+		/* Memory node which can just map the main memory, try to map.  */
+		STARPU_ASSERT(starpu_node_get_kind(src_replicate->memory_node) == STARPU_CPU_RAM);
+		if (!handle->ops->map_data(
+				src_replicate->data_interface, src_replicate->memory_node,
+				dst_replicate->data_interface, dst_replicate->memory_node))
+		{
+			dst_replicate->mapped = 1;
+
+			if (_starpu_node_needs_map_update(dst_node))
+			{
+				switch (starpu_node_get_kind(dst_node))
+				{
+					case STARPU_OPENCL_RAM:
+					/* OpenCL mappings write access defaults to the device */
+						dst_replicate->map_write = 1;
+						break;
+					case STARPU_CUDA_RAM:
+					case STARPU_CPU_RAM:
+					default:
+						/* Should not happen */
+						STARPU_ABORT();
+						break;
+				}
+			}
+		}
+	}
+
 	/* first make sure the destination has an allocated buffer */
-	if (!dst_replicate->allocated)
+	if (!dst_replicate->allocated && !dst_replicate->mapped)
 	{
 		if (!may_alloc || _starpu_is_reclaiming(dst_node))
 			/* We're not supposed to allocate there at the moment */
@@ -606,12 +659,47 @@ int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT _starpu_driver_copy_data_1_to_1(starpu_d
 			return -ENOMEM;
 	}
 
-	STARPU_ASSERT(dst_replicate->allocated);
+	STARPU_ASSERT(dst_replicate->allocated || dst_replicate->mapped);
 	STARPU_ASSERT(dst_replicate->refcnt);
+
+	/* In the case of a mapped data, we are here requested either
+	 * - because the destination will write to it, and thus needs write
+	 *   access.
+	 * - because the source was modified, and the destination needs to get
+	 *   updated.
+	 * All in all, any data change will actually trigger both.
+	 */
+	if (dst_replicate->mapped)
+	{
+		STARPU_ASSERT(src_replicate->memory_node == 0);
+		if (_starpu_node_needs_map_update(dst_node))
+		{
+			/* We need to flush from RAM to the device */
+			if (!dst_replicate->map_write)
+			{
+				update_map_generic(handle, src_replicate, dst_replicate, req);
+				dst_replicate->map_write = 1;
+			}
+		}
+	}
+
+	else if (src_replicate->mapped)
+	{
+		STARPU_ASSERT(dst_replicate->memory_node == 0);
+		if (_starpu_node_needs_map_update(src_node))
+		{
+			/* We need to flush from the device to the RAM */
+			if (src_replicate->map_write)
+			{
+				update_map_generic(handle, src_replicate, dst_replicate, req);
+				src_replicate->map_write = 0;
+			}
+		}
+	}
 
 	/* if there is no need to actually read the data,
 	 * we do not perform any transfer */
-	if (!donotread)
+	else if (!donotread)
 	{
 		unsigned long STARPU_ATTRIBUTE_UNUSED com_id = 0;
 		size_t size = _starpu_data_get_size(handle);
@@ -797,6 +885,106 @@ int starpu_interface_copy(uintptr_t src, size_t src_offset, unsigned src_node, u
 		return -1;
 	}
 	return 0;
+}
+
+uintptr_t starpu_interface_map(uintptr_t src, size_t src_offset, unsigned src_node, unsigned dst_node, size_t size, int *ret)
+{
+	enum starpu_node_kind src_kind = starpu_node_get_kind(src_node);
+	enum starpu_node_kind dst_kind = starpu_node_get_kind(dst_node);
+
+	switch (_STARPU_MEMORY_NODE_TUPLE(src_kind,dst_kind))
+	{
+	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_CPU_RAM):
+		return src + src_offset;
+#ifdef STARPU_USE_CUDA
+	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_CUDA_RAM):
+		return _starpu_cuda_map_ram(
+				(void*) src + src_offset, src_node,
+				dst_node,
+				size, ret);
+#endif
+#ifdef STARPU_USE_OPENCL
+	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_OPENCL_RAM):
+		return _starpu_opencl_map_ram(
+				src, src_offset, src_node,
+				dst_node,
+				size, ret);
+#endif
+	default:
+		STARPU_ABORT();
+		return -1;
+	}
+	*ret = -EIO;
+	return 0;
+}
+
+int starpu_interface_unmap(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, unsigned dst_node, size_t size)
+{
+	enum starpu_node_kind src_kind = starpu_node_get_kind(src_node);
+	enum starpu_node_kind dst_kind = starpu_node_get_kind(dst_node);
+
+	switch (_STARPU_MEMORY_NODE_TUPLE(src_kind,dst_kind))
+	{
+	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_CPU_RAM):
+		return 0;
+#ifdef STARPU_USE_CUDA
+	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_CUDA_RAM):
+		return _starpu_cuda_unmap_ram(
+				(void*) src + src_offset, src_node,
+				(void*) dst, dst_node,
+				size);
+#endif
+#ifdef STARPU_USE_OPENCL
+	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_OPENCL_RAM):
+		return _starpu_opencl_unmap_ram(
+				src, src_offset, src_node,
+				dst, dst_node,
+				size);
+#endif
+	default:
+		STARPU_ABORT();
+		return -1;
+	}
+	return -EIO;
+}
+
+int starpu_interface_update_map(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size)
+{
+	enum starpu_node_kind src_kind = starpu_node_get_kind(src_node);
+	enum starpu_node_kind dst_kind = starpu_node_get_kind(dst_node);
+
+	switch (_STARPU_MEMORY_NODE_TUPLE(src_kind,dst_kind))
+	{
+	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_CPU_RAM):
+		/* Memory mappings are cache-coherent */
+		/* FIXME: not on SCC */
+		return 0;
+
+#ifdef STARPU_USE_CUDA
+	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_CUDA_RAM):
+	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CUDA_RAM,STARPU_CPU_RAM):
+		/* CUDA mappings are coherent */
+		return 0;
+#endif
+#ifdef STARPU_USE_OPENCL
+	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_OPENCL_RAM):
+		STARPU_ASSERT(dst_offset == 0);
+		return _starpu_opencl_update_opencl_map(
+				src, src_offset, src_node,
+				dst, dst_node,
+				size);
+	case _STARPU_MEMORY_NODE_TUPLE(STARPU_OPENCL_RAM,STARPU_CPU_RAM):
+		STARPU_ASSERT(src_offset == 0);
+		return _starpu_opencl_update_cpu_map(
+				src, src_node,
+				dst, src_offset, dst_node,
+				size);
+#endif
+	default:
+		STARPU_ABORT();
+		return -1;
+	}
+	return -EIO;
 }
 
 void _starpu_driver_wait_request_completion(struct _starpu_async_channel *async_channel)

@@ -654,7 +654,7 @@ void starpu_data_query_status(starpu_data_handle_t handle, int memory_node, int 
 //	_starpu_spin_lock(&handle->header_lock);
 
 	if (is_allocated)
-		*is_allocated = handle->per_node[memory_node].allocated;
+		*is_allocated = handle->per_node[memory_node].allocated || handle->per_node[memory_node].mapped;
 
 	if (is_valid)
 		*is_valid = (handle->per_node[memory_node].state != STARPU_INVALID);
