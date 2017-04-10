@@ -1315,6 +1315,22 @@ unsigned _starpu_is_data_present_or_requested(starpu_data_handle_t handle, unsig
 	return ret;
 }
 
+/* Unmap the data from this node, e.g. before partitioning or unregistering */
+void _starpu_data_unmap(starpu_data_handle_t handle, unsigned node)
+{
+	struct _starpu_data_request *r;
+	STARPU_ASSERT(handle);
+
+	_starpu_spin_lock(&handle->header_lock);
+	r = _starpu_create_data_request(handle, &handle->per_node[0], &handle->per_node[node], node, STARPU_UNMAP, 0, 0, 0, 0, __func__);
+
+	/* we do not increase the refcnt associated to the request since we are
+	 * not waiting for its termination */
+	_starpu_post_data_request(r);
+	_starpu_spin_unlock(&handle->header_lock);
+	_starpu_wait_data_request_completion(r, 1);
+}
+
 void _starpu_data_set_unregister_hook(starpu_data_handle_t handle, _starpu_data_handle_unregister_hook func)
 {
 	handle->unregister_hook = func;
