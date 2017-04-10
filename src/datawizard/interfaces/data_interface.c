@@ -821,6 +821,12 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 	handle->busy_waiting = 1;
 	_starpu_spin_unlock(&handle->header_lock);
 
+	/* Request unmapping of any mapped data */
+	unsigned node;
+	for (node = 0; node < STARPU_MAXNODES; node++)
+		if (handle->per_node[node].mapped)
+			_starpu_data_unmap(handle, node);
+
 retry_busy:
 	/* Wait for all requests to finish (notably WT requests) */
 	STARPU_PTHREAD_MUTEX_LOCK(&handle->busy_mutex);
@@ -852,7 +858,6 @@ retry_busy:
 	_starpu_data_unregister_ram_pointer(handle);
 
 	/* Destroy the data now */
-	unsigned node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
 		struct _starpu_data_replicate *local = &handle->per_node[node];
