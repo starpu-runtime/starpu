@@ -174,6 +174,13 @@ void _starpu_update_data_state(starpu_data_handle_t handle,
 			       struct _starpu_data_replicate *requesting_replicate,
 			       enum starpu_data_access_mode mode)
 {
+	if (mode == STARPU_UNMAP)
+	{
+		/* Unmap request, invalidate */
+		requesting_replicate->state = STARPU_INVALID;
+		return;
+	}
+
 	/* There is nothing to do for relaxed coherency modes (scratch or
 	 * reductions) */
 	if (!(mode & STARPU_RW))
