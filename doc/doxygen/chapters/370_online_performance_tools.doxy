@@ -198,7 +198,8 @@ starpu_top_register_parameter_float("alpha", &alpha, 0, 10, modif_hook);
 <c>modif_hook</c> is a function which will be called when the parameter is being modified, it can for instance print the new value:
 
 \code{.c}
-void modif_hook(struct starpu_top_param *d) {
+void modif_hook(struct starpu_top_param *d)
+{
     fprintf(stderr,"%s has been modified: %f\n", d->name, alpha);
 }
 \endcode
@@ -341,12 +342,14 @@ be constructed dynamically at execution time, as long as this is done before
 submitting any task using it.
 
 \code{.c}
-static struct starpu_perfmodel mult_perf_model = {
+static struct starpu_perfmodel mult_perf_model =
+{
     .type = STARPU_HISTORY_BASED,
     .symbol = "mult_perf_model"
 };
 
-struct starpu_codelet cl = {
+struct starpu_codelet cl =
+{
     .cpu_funcs = { cpu_mult },
     .cpu_funcs_name = { "cpu_mult" },
     .nbuffers = 3,

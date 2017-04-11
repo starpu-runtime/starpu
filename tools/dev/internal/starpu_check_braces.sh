@@ -21,7 +21,7 @@ SHOW=less
 DIRS="tools src tests examples mpi"
 for d in ${1:-$DIRS}
 do
-    for ext in c h cl cu
+    for ext in c h cl cu doxy
     do
 	grep -rsn "{" $d |grep ".${ext}:" | grep -v "}" | grep -v ".${ext}:[0-9]*:[[:space:]]*{$" > /tmp/braces
 	if test -s /tmp/braces

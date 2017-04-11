@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  * Copyright (C) 2011, 2012 INRIA
  * See the file version.doxy for copying conditions.
  */
@@ -140,7 +140,8 @@ to retrieve the sub-handles to be passed as tasks parameters.
 
 \code{.c}
 /* Submit a task on each sub-vector */
-for (i=0; i<starpu_data_get_nb_children(handle); i++) {
+for (i=0; i<starpu_data_get_nb_children(handle); i++)
+{
     /* Get subdata number i (there is only 1 dimension) */
     starpu_data_handle_t sub_handle = starpu_data_get_sub_data(handle, 1, i);
     struct starpu_task *task = starpu_task_create();
@@ -404,7 +405,8 @@ into data <c>res</c>, then uses it for other computation, before looping again
 with a new reduction:
 
 \code{.c}
-for (i = 0; i < 100; i++) {
+for (i = 0; i < 100; i++)
+{
     starpu_mpi_task_insert(MPI_COMM_WORLD, &init_res, STARPU_W, res, 0);
     starpu_mpi_task_insert(MPI_COMM_WORLD, &work, STARPU_RW, A,
                STARPU_R, B, STARPU_REDUX, res, 0);
