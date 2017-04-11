@@ -580,7 +580,7 @@ static void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu
 	workerarg->pop_ctx_priority = 1;
 	workerarg->is_slave_somewhere = 0;
 
-	workerarg->state_safe_for_observation = 1;
+	workerarg->state_relax_refcnt = 1;
 #ifdef STARPU_SPINLOCK_CHECK
 	workerarg->relax_on_file = __FILE__;
 	workerarg->relax_on_line = __LINE__;
@@ -1718,8 +1718,8 @@ unsigned starpu_worker_is_blocked_in_parallel(int workerid)
 		 * purpose of this 'if' block. */
 		cur_worker = cur_workerid<starpu_worker_get_count()?_starpu_get_worker_struct(cur_workerid):NULL;
 
-		relax_own_observation_state = (cur_worker != NULL) && (cur_worker->state_safe_for_observation == 0);
-		if (relax_own_observation_state && !worker->state_safe_for_observation)
+		relax_own_observation_state = (cur_worker != NULL) && (cur_worker->state_relax_refcnt == 0);
+		if (relax_own_observation_state && !worker->state_relax_refcnt)
 		{
 			/* moreover, when a worker (cur_worker != NULL)
 			 * observes another worker, we need to take special
@@ -1730,7 +1730,7 @@ unsigned starpu_worker_is_blocked_in_parallel(int workerid)
 			STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 
 			STARPU_PTHREAD_MUTEX_LOCK_SCHED(&cur_worker->sched_mutex);
-			cur_worker->state_safe_for_observation = 1;
+			cur_worker->state_relax_refcnt = 1;
 			STARPU_PTHREAD_COND_BROADCAST(&cur_worker->sched_cond);
 			STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&cur_worker->sched_mutex);
 
@@ -1740,7 +1740,7 @@ unsigned starpu_worker_is_blocked_in_parallel(int workerid)
 		 * and also waits for any pending blocking state change
 		 * requests to be processed, in order to not obtain an
 		 * ephemeral information */
-		while (!worker->state_safe_for_observation
+		while (!worker->state_relax_refcnt
 				|| worker->state_block_in_parallel_req
 				|| worker->state_unblock_in_parallel_req)
 		{
@@ -1756,7 +1756,7 @@ unsigned starpu_worker_is_blocked_in_parallel(int workerid)
 	if (relax_own_observation_state)
 	{
 		STARPU_PTHREAD_MUTEX_LOCK_SCHED(&cur_worker->sched_mutex);
-		cur_worker->state_safe_for_observation = 0;
+		cur_worker->state_relax_refcnt = 0;
 		STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&cur_worker->sched_mutex);
 	}
 	return ret;
