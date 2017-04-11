@@ -1704,9 +1704,11 @@ unsigned starpu_worker_get_count(void)
 
 unsigned starpu_worker_is_blocked_in_parallel(int workerid)
 {
+	int relax_own_observation_state = 0;
 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 	STARPU_ASSERT(worker != NULL);
 	STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
+	struct _starpu_worker *cur_worker = NULL;
 	int cur_workerid = starpu_worker_get_id();
 	if (workerid != cur_workerid)
 	{
@@ -1714,9 +1716,9 @@ unsigned starpu_worker_is_blocked_in_parallel(int workerid)
 		 * another worker, we must avoid race conditions between
 		 * 'blocked' state changes and state observations. This is the
 		 * purpose of this 'if' block. */
-		struct _starpu_worker *cur_worker = cur_workerid<starpu_worker_get_count()?_starpu_get_worker_struct(cur_workerid):NULL;
+		cur_worker = cur_workerid<starpu_worker_get_count()?_starpu_get_worker_struct(cur_workerid):NULL;
 
-		int relax_own_observation_state = (cur_worker != NULL) && (cur_worker->state_safe_for_observation == 0);
+		relax_own_observation_state = (cur_worker != NULL) && (cur_worker->state_safe_for_observation == 0);
 		if (relax_own_observation_state && !worker->state_safe_for_observation)
 		{
 			/* moreover, when a worker (cur_worker != NULL)
@@ -1744,12 +1746,6 @@ unsigned starpu_worker_is_blocked_in_parallel(int workerid)
 		{
 			STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
 		}
-		if (relax_own_observation_state)
-		{
-			STARPU_PTHREAD_MUTEX_LOCK_SCHED(&cur_worker->sched_mutex);
-			cur_worker->state_safe_for_observation = 0;
-			STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&cur_worker->sched_mutex);
-		}
 	}
 	unsigned ret = _starpu_config.workers[workerid].state_blocked_in_parallel;
 	/* once a worker state has been observed, the worker is 'tainted' for the next one full sched_op,
@@ -1757,6 +1753,12 @@ unsigned starpu_worker_is_blocked_in_parallel(int workerid)
 	 * made a scheduling decision - after the fact. */
 	worker->state_blocked_in_parallel_observed = 1;
 	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
+	if (relax_own_observation_state)
+	{
+		STARPU_PTHREAD_MUTEX_LOCK_SCHED(&cur_worker->sched_mutex);
+		cur_worker->state_safe_for_observation = 0;
+		STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&cur_worker->sched_mutex);
+	}
 	return ret;
 }
 
