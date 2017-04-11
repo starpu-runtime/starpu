@@ -19,9 +19,12 @@ CFLAGS=-Wall -Wextra -g $(STARPU)/src/common/rbtree.c
 LDFLAGS=-lsimgrid
 
 MC_FLAGS=--cfg=model-check/reduction:none
-#MC_FLAGS+=--cfg=contexts/factory:ucontext
-#MC_FLAGS+=--cfg=model-check/sparse-checkpoint:yes
-#MC_FLAGS+=--cfg=model-check/visited:1000
+
+ifeq (1,1)
+MC_FLAGS+=--cfg=contexts/factory:ucontext
+MC_FLAGS+=--cfg=model-check/sparse-checkpoint:yes
+MC_FLAGS+=--cfg=model-check/visited:1000
+endif
 
 test: prio_list
 	simgrid-mc ./prio_list platform.xml MAIN $(MC_FLAGS)
