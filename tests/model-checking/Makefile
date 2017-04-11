@@ -20,7 +20,7 @@ LDFLAGS=-lsimgrid
 
 MC_FLAGS=--cfg=model-check/reduction:none
 
-ifeq (1,1)
+ifeq (1,0)
 MC_FLAGS+=--cfg=contexts/factory:ucontext
 MC_FLAGS+=--cfg=model-check/sparse-checkpoint:yes
 MC_FLAGS+=--cfg=model-check/visited:1000
