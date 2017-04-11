@@ -113,9 +113,7 @@ starpu_mpi_TESTS +=				\
 	insert_task_owner2			\
 	insert_task_owner_data			\
 	insert_task_node_choice			\
-	matrix					\
-	mpi_scatter_gather			\
-	ring_async_implicit
+	matrix
 
 if !STARPU_SIMGRID
 starpu_mpi_TESTS +=				\
@@ -135,6 +133,7 @@ starpu_mpi_TESTS +=				\
 	ring_sync				\
 	ring_sync_detached			\
 	ring_async				\
+	ring_async_implicit			\
 	block_interface				\
 	block_interface_pinned			\
 	matrix2					\
@@ -144,6 +143,7 @@ starpu_mpi_TESTS +=				\
 	insert_task_count			\
 	insert_task_dyn_handles			\
 	multiple_send				\
+	mpi_scatter_gather			\
 	mpi_reduction				\
 	user_defined_datatype			\
 	tags_checking				\
