@@ -1746,7 +1746,9 @@ unsigned starpu_worker_is_blocked_in_parallel(int workerid)
 		}
 		if (relax_own_observation_state)
 		{
+			STARPU_PTHREAD_MUTEX_LOCK_SCHED(&cur_worker->sched_mutex);
 			cur_worker->state_safe_for_observation = 0;
+			STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&cur_worker->sched_mutex);
 		}
 	}
 	unsigned ret = _starpu_config.workers[workerid].state_blocked_in_parallel;
