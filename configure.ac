@@ -488,6 +488,9 @@ if test ! -x $mpiexec_path; then
 fi
 
 AM_CONDITIONAL(STARPU_MPI_CHECK, test x$running_mpi_check = xyes)
+if test x$running_mpi_check = xyes -a x$enable_simgrid = xyes -a x$enable_shared = xyes ; then
+    AC_MSG_ERROR([MPI with simgrid can not work with shared libraries, use --disable-shared to fix this])
+fi
 if test x$use_mpi = xyes ; then
     AC_MSG_CHECKING(whether MPI tests should be run)
     AC_MSG_RESULT($running_mpi_check)
