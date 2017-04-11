@@ -29,7 +29,7 @@
 #include <xbt/synchro.h>
 
 #define N 2 /* number of threads */
-#define M 3 /* number of elements */
+#define M 4 /* number of elements */
 
 xbt_mutex_t mutex;
 
