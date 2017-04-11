@@ -178,9 +178,20 @@ static struct starpu_task * prio_pull_task(struct starpu_sched_component * compo
 	{
 		if(!isnan(task->predicted))
 		{
-			prio->exp_start = starpu_timing_now() + task->predicted;
-			prio->exp_len -= task->predicted;
+			const double exp_len = prio->exp_len - task->predicted;
+			const double now = starpu_timing_now();
+			prio->exp_start = now + task->predicted;
+			if (exp_len >= 0.0)
+			{
+				prio->exp_len = exp_len;
+			}
+			else
+			{
+				/* exp_len can become negative due to rounding errors */
+				prio->exp_len = starpu_timing_now()-now;
+			}
 		}
+		STARPU_ASSERT_MSG(prio->exp_len>=0, "prio->exp_len=%lf\n",prio->exp_len);
 		prio->exp_end = prio->exp_start + prio->exp_len;
 		if(prio->ntasks == 0)
 			prio->exp_len = 0.0;
