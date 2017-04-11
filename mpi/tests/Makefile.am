@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2012, 2015-2016  Université de Bordeaux
+# Copyright (C) 2009-2012, 2015-2017  Université de Bordeaux
 # Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -16,6 +16,15 @@
 
 include $(top_srcdir)/starpu.mk
 
+if STARPU_SIMGRID
+STARPU_PERF_MODEL_DIR=$(abs_top_srcdir)/tools/perfmodels/sampling
+STARPU_HOSTNAME=mirage
+MALLOC_PERTURB_=0
+export STARPU_PERF_MODEL_DIR
+export STARPU_HOSTNAME
+export MALLOC_PERTURB_
+endif
+
 CC=$(MPICC)
 CCLD=$(MPICC)
 
@@ -23,16 +32,22 @@ if STARPU_HAVE_WINDOWS
 LOADER_BIN		=
 else
 loader_CPPFLAGS 	= 	$(AM_CFLAGS) $(AM_CPPFLAGS) -I$(top_builddir)/src/
+if !STARPU_SIMGRID
 LOADER			=	loader
 LOADER_BIN		=	$(abs_top_builddir)/mpi/tests/$(LOADER)
+endif
 loader_SOURCES		=	../../tests/loader.c
 endif
 
+if STARPU_SIMGRID
+MPI			=	$(abs_top_builddir)/tools/starpu_smpirun -np 4 -platform $(abs_top_srcdir)/tools/perfmodels/cluster.xml -hostfile $(abs_top_srcdir)/tools/perfmodels/hostfile
+else
 # we always test on 4 processes, the execution time is not that bigger
 if STARPU_QUICK_CHECK
 MPI			=	$(MPIEXEC) $(MPIEXEC_ARGS) -np 4
 else
 MPI			=	$(MPIEXEC) $(MPIEXEC_ARGS) -np 4
+endif
 endif
 
 if STARPU_HAVE_AM111
@@ -42,10 +57,8 @@ else
 TESTS_ENVIRONMENT 	=	STARPU_WORKERS_NOBIND=1 STARPU_NCPU=4 top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(MPI) $(LOADER_BIN)
 endif
 
-if !STARPU_SIMGRID
 if STARPU_MPI_CHECK
 TESTS			=	$(starpu_mpi_TESTS)
-endif
 endif
 
 check_PROGRAMS = $(LOADER) $(starpu_mpi_TESTS)
@@ -87,7 +100,25 @@ AM_LDFLAGS = $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(FXT_LDFLAGS) $(ST
 ########################
 
 if BUILD_TESTS
-starpu_mpi_TESTS =				\
+
+starpu_mpi_TESTS =				
+
+starpu_mpi_TESTS +=				\
+	cache					\
+	cache_disable				\
+	callback				\
+	insert_task				\
+	insert_task_block			\
+	insert_task_owner			\
+	insert_task_owner2			\
+	insert_task_owner_data			\
+	insert_task_node_choice			\
+	matrix					\
+	mpi_scatter_gather			\
+	ring_async_implicit
+
+if !STARPU_SIMGRID
+starpu_mpi_TESTS +=				\
 	datatypes				\
 	pingpong				\
 	mpi_test				\
@@ -104,27 +135,15 @@ starpu_mpi_TESTS =				\
 	ring_sync				\
 	ring_sync_detached			\
 	ring_async				\
-	ring_async_implicit			\
 	block_interface				\
 	block_interface_pinned			\
-	cache					\
-	cache_disable				\
-	callback				\
-	matrix					\
 	matrix2					\
-	insert_task				\
 	insert_task_compute			\
 	insert_task_sent_cache			\
 	insert_task_recv_cache			\
-	insert_task_block			\
-	insert_task_owner			\
-	insert_task_owner2			\
-	insert_task_owner_data			\
-	insert_task_node_choice			\
 	insert_task_count			\
 	insert_task_dyn_handles			\
 	multiple_send				\
-	mpi_scatter_gather			\
 	mpi_reduction				\
 	user_defined_datatype			\
 	tags_checking				\
@@ -140,6 +159,7 @@ starpu_mpi_TESTS =				\
 	early_request				\
 	starpu_redefine				\
 	load_balancer
+endif
 
 noinst_PROGRAMS =				\
 	datatypes				\
