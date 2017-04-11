@@ -1,3 +1,19 @@
+/* StarPU --- Runtime system for heterogeneous multicore architectures.
+ *
+ * Copyright (C) 2017  Université de Bordeaux
+ *
+ * StarPU is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or (at
+ * your option) any later version.
+ *
+ * StarPU is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU Lesser General Public License in COPYING.LGPL for more details.
+ */
+
 #define _STARPU_MALLOC(p, s) do {p = malloc(s);} while (0)
 #define STARPU_ATTRIBUTE_UNUSED __attribute((__unused__))
 
@@ -49,7 +65,8 @@ int worker(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSE
 	unsigned i, n;
 	struct foo *elem;
 
-	for (i = 0; i < M; i++) {
+	for (i = 0; i < M; i++)
+	{
 		elem = malloc(sizeof(*elem));
 		elem->prio = lrand48()%10;
 		elem->back = lrand48()%2;
@@ -62,7 +79,8 @@ int worker(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSE
 		xbt_mutex_release(mutex);
 	}
 
-	for (i = 0; i < M; i++) {
+	for (i = 0; i < M; i++)
+	{
 		n = lrand48()%(M-i);
 
 		xbt_mutex_acquire(mutex);
@@ -91,8 +109,10 @@ int master(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSE
 	return 0;
 }
 
-int main(int argc, char *argv[]) {
-	if (argc < 3) {
+int main(int argc, char *argv[])
+{
+	if (argc < 3)
+	{
 		fprintf(stderr,"usage: %s platform.xml host\n", argv[0]);
 		exit(EXIT_FAILURE);
 	}
