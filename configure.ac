@@ -1137,6 +1137,10 @@ AC_SUBST(SIMGRID_LIBS)
 AC_MSG_CHECKING(whether SimGrid is enabled)
 AC_MSG_RESULT($enable_simgrid)
 
+if test x$running_mpi_check = xyes -a x$enable_simgrid = xyes -a x$enable_shared = xyes ; then
+    AC_MSG_ERROR([MPI with simgrid can not work with shared libraries, use --disable-shared to fix this])
+fi
+
 AC_MSG_CHECKING(whether blocking drivers should be enabled)
 AC_ARG_ENABLE(blocking-drivers, [AS_HELP_STRING([--enable-blocking-drivers], [enable blocking drivers])],
 				enable_blocking=$enableval, enable_blocking=$enable_simgrid)
