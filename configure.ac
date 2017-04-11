@@ -198,6 +198,7 @@ if test x$enable_simgrid = xyes ; then
 			  CXXFLAGS="-std=c++11 $CXXFLAGS"
 			  NVCCFLAGS="-std=c++11 $NVCCFLAGS")
 	AC_LANG_POP([C++])
+	AC_PATH_PROG([SIMGRID_MC], [simgrid-mc])
 fi
 AM_CONDITIONAL(STARPU_SIMGRID, test x$enable_simgrid = xyes)
 AC_SUBST(SIMGRID_CFLAGS)
@@ -3075,6 +3076,7 @@ AC_SUBST(STARPU_EXPORTED_LIBS)
 AC_CONFIG_COMMANDS([executable-scripts], [
   chmod +x tests/regression/regression.sh
   chmod +x tests/loader-cross.sh
+  chmod +x tests/model-checking/prio_list.sh
   chmod +x examples/loader-cross.sh
   chmod +x examples/stencil/loader-cross.sh
   chmod +x gcc-plugin/tests/run-test
@@ -3179,6 +3181,7 @@ AC_OUTPUT([
 	examples/stencil/Makefile
 	tests/Makefile
 	tests/loader-cross.sh
+	tests/model-checking/prio_list.sh
 	examples/loader-cross.sh
 	examples/stencil/loader-cross.sh
 	mpi/Makefile

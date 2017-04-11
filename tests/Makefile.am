@@ -28,7 +28,7 @@ endif
 
 AM_CFLAGS = $(HWLOC_CFLAGS) $(FXT_CFLAGS) -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(STARPU_COI_CPPFLAGS) $(STARPU_SCIF_CPPFLAGS) $(GLOBAL_AM_CFLAGS) -Wno-unused
 AM_CXXFLAGS = $(HWLOC_CFLAGS) $(FXT_CFLAGS) -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(STARPU_COI_CPPFLAGS) $(STARPU_SCIF_CPPFLAGS) $(GLOBAL_AM_CXXFLAGS) -Wno-unused
-LIBS = $(top_builddir)/src/@LIBSTARPU_LINK@ $(HWLOC_LIBS) @LIBS@ $(FXT_LIBS)
+LDADD = $(top_builddir)/src/@LIBSTARPU_LINK@ $(HWLOC_LIBS) $(FXT_LIBS)
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_builddir)/src -I$(top_srcdir)/src/
 AM_LDFLAGS = @STARPU_EXPORT_DYNAMIC@ $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(STARPU_COI_LDFLAGS) $(STARPU_SCIF_LDFLAGS) $(FXT_LDFLAGS)
 
@@ -381,6 +381,16 @@ noinst_PROGRAMS += $(MICROBENCHS)
 
 if STARPU_SIMGRID
 TESTS += $(MICROBENCHS:=.sh)
+endif
+
+if STARPU_SIMGRID
+model_checking_prio_list_LDADD = 
+model_checking_prio_list_LDFLAGS = 
+model_checking_prio_list_SOURCES = model-checking/prio_list.c ../src/common/rbtree.c
+noinst_PROGRAMS += model-checking/prio_list
+if !STARPU_QUICK_CHECK
+TESTS += model-checking/prio_list.sh
+endif
 endif
 
 TESTS += datawizard/locality.sh

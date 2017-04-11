@@ -1,0 +1,36 @@
+#!/bin/bash -x
+#
+# StarPU --- Runtime system for heterogeneous multicore architectures.
+#
+# Copyright (C) 2017  Université de Bordeaux
+#
+# StarPU is free software; you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation; either version 2.1 of the License, or (at
+# your option) any later version.
+#
+# StarPU is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
+# See the GNU Lesser General Public License in COPYING.LGPL for more details.
+
+# Test prio_lists with simgrid model checker
+
+SIMGRID_MC=@SIMGRID_MC@
+abs_top_srcdir=@abs_top_srcdir@
+abs_builddir=@abs_builddir@
+
+set -e
+
+[ -x "$SIMGRID_MC" ] || exit 77
+
+MC_FLAGS=--cfg=model-check/reduction:none
+
+# makes it much longer actually
+#MC_FLAGS+=--cfg=contexts/factory:ucontext
+#MC_FLAGS+=--cfg=model-check/sparse-checkpoint:yes
+#MC_FLAGS+=--cfg=model-check/visited:1000
+
+PREFIX=$(dirname $0)
+$SIMGRID_MC $abs_builddir/prio_list $abs_top_srcdir/tests/model-checking/platform.xml MAIN $MC_FLAGS
