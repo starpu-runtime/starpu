@@ -85,7 +85,7 @@ struct _starpu_mct_data *starpu_mct_init_parameters(struct starpu_sched_componen
 static double compute_expected_time(double now, double predicted_end, double predicted_length, double *predicted_transfer)
 {
 	STARPU_ASSERT(!isnan(now + predicted_end + predicted_length + *predicted_transfer));
-	STARPU_ASSERT(now >= 0.0 && predicted_end >= 0.0 && predicted_length >= 0.0 && *predicted_transfer >= 0.0);
+	STARPU_ASSERT_MSG(now >= 0.0 && predicted_end >= 0.0 && predicted_length >= 0.0 && *predicted_transfer >= 0.0, "now=%lf, predicted_end=%lf, predicted_length=%lf, *predicted_transfer=%lf\n", now, predicted_end, predicted_length, *predicted_transfer);
 
 	/* TODO: actually schedule transfers */
 	if (now + *predicted_transfer < predicted_end)
