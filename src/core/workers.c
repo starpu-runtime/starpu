@@ -1725,8 +1725,14 @@ unsigned starpu_worker_is_blocked_in_parallel(int workerid)
 			 * must enter the relaxed state (if not relaxed
 			 * already) before doing the observation in mutual
 			 * exclusion */
+			STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
+
+			STARPU_PTHREAD_MUTEX_LOCK_SCHED(&cur_worker->sched_mutex);
 			cur_worker->state_safe_for_observation = 1;
 			STARPU_PTHREAD_COND_BROADCAST(&cur_worker->sched_cond);
+			STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&cur_worker->sched_mutex);
+
+			STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
 		}
 		/* the observer waits for a safe window to observe the state,
 		 * and also waits for any pending blocking state change

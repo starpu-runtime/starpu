@@ -912,8 +912,14 @@ static inline void _starpu_worker_lock(int workerid)
 		int relax_own_observation_state = (cur_worker != NULL) && (cur_worker->state_safe_for_observation == 0);
 		if (relax_own_observation_state && !worker->state_safe_for_observation)
 		{
+			STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
+
+			STARPU_PTHREAD_MUTEX_LOCK_SCHED(&cur_worker->sched_mutex);
 			cur_worker->state_safe_for_observation = 1;
 			STARPU_PTHREAD_COND_BROADCAST(&cur_worker->sched_cond);
+			STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&cur_worker->sched_mutex);
+
+			STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
 		}
 		while (!worker->state_safe_for_observation)
 		{
