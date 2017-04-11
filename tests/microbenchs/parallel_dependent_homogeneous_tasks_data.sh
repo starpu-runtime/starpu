@@ -18,6 +18,6 @@
 
 source $(dirname $0)/microbench.sh
 
-XSUCCESS="modular-heft modular-heft-prio modular-heft2 lws dmda dmdar dmdas dmdasd pheft"
+XSUCCESS="lws dmda dmdar dmdas dmdasd pheft"
 
 test_scheds parallel_dependent_homogeneous_tasks_data
