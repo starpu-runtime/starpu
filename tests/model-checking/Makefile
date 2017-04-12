@@ -26,6 +26,16 @@ MC_FLAGS+=--cfg=model-check/sparse-checkpoint:yes
 MC_FLAGS+=--cfg=model-check/visited:1000
 endif
 
+# To record the failing trace
+ifeq (1,0)
+MC_FLAGS+=--cfg=model-check/record:1
+# And replay it without simgrid-mc
+#MC_FLAGS+=--cfg=model-check/reply:'1;3;4'
+endif
+
+# To see which simix calls are made
+#MC_FLAGS+=--log=simix_popping.thres:debug
+
 test: prio_list
 	simgrid-mc ./prio_list platform.xml MAIN $(MC_FLAGS)
 
