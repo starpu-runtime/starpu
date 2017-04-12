@@ -87,6 +87,7 @@ AC_OPENMP
 if test x$enable_perf_debug = xyes; then
     enable_shared=no
 fi
+default_enable_mpi_check=maybe
 
 ###############################################################################
 #                                                                             #
@@ -184,6 +185,10 @@ if test x$enable_simgrid = xyes ; then
 	AC_DEFINE(STARPU_SIMGRID, [1], [Define this to enable simgrid execution])
 	# We won't bind or detect anything
 	with_hwloc=no
+
+        # disable mpi checks by default, they require static linking, we don't
+        # want that by default
+	default_enable_mpi_check=no
 
 	# Simgrid 3.12 & 3.13 need -std=c++11 to be able to build anything in C++...
 	AC_LANG_PUSH([C++])
@@ -456,7 +461,8 @@ AM_CONDITIONAL([STARPU_CROSS_COMPILING], [test "x$cross_compiling" = "xyes"])
 ###############################################################################
 
 # If the user specifically asks for it, or if we are in a developer checkout, we enable mpi check
-AC_ARG_ENABLE(mpi-check, AC_HELP_STRING([--enable-mpi-check], [Enable execution of MPI testcases]))
+AC_ARG_ENABLE(mpi-check, AC_HELP_STRING([--enable-mpi-check], [Enable execution of MPI testcases]),
+	      [enable_mpi_check=$enableval], [enable_mpi_check=$default_enable_mpi_check])
 running_mpi_check=no
 if test $svndir = 1 -o -d "$srcdir/.git" ; then
     running_mpi_check=yes
