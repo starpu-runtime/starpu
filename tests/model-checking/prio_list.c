@@ -133,6 +133,9 @@ int worker(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[])
 			check_list_prio(&mylist[l]);
 			xbt_mutex_release(mutex[l]);
 		}
+
+		/* horrible way to wait for list getting empty */
+		MSG_process_sleep(1000);
 	}
 
 	return 0;
