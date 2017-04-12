@@ -15,7 +15,7 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
-# Test prio_lists with simgrid model checker
+# Test a model-checking program with simgrid model checker
 
 SIMGRID_MC=@SIMGRID_MC@
 abs_top_srcdir=@abs_top_srcdir@
@@ -32,5 +32,6 @@ MC_FLAGS=--cfg=model-check/reduction:none
 #MC_FLAGS+=--cfg=model-check/sparse-checkpoint:yes
 #MC_FLAGS+=--cfg=model-check/visited:1000
 
-PREFIX=$(dirname $0)
-$SIMGRID_MC $abs_builddir/prio_list $abs_top_srcdir/tests/model-checking/platform.xml MAIN $MC_FLAGS
+test() {
+	$SIMGRID_MC $abs_builddir/$1 $abs_top_srcdir/tests/model-checking/platform.xml MAIN $MC_FLAGS
+}

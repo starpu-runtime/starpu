@@ -60,7 +60,8 @@ EXTRA_DIST =					\
 	datawizard/interfaces/block/block_opencl_kernel.cl \
 	perfmodels/opencl_memset_kernel.cl \
 	$(MICROBENCHS:=.sh) \
-	microbenchs/microbench.sh
+	microbenchs/microbench.sh \
+	model-checking/starpu-mc.sh.in
 
 CLEANFILES = 					\
 	*.gcno *.gcda *.linkinfo core starpu_idle_microsec.log *.mod *.png *.output
