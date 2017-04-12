@@ -3089,7 +3089,7 @@ AC_SUBST(STARPU_EXPORTED_LIBS)
 AC_CONFIG_COMMANDS([executable-scripts], [
   chmod +x tests/regression/regression.sh
   chmod +x tests/loader-cross.sh
-  chmod +x tests/model-checking/prio_list.sh
+  chmod +x tests/model-checking/starpu-mc.sh
   chmod +x examples/loader-cross.sh
   chmod +x examples/stencil/loader-cross.sh
   chmod +x gcc-plugin/tests/run-test
@@ -3116,6 +3116,8 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   test -e tests/microbenchs/parallel_independent_homogeneous_tasks.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/parallel_independent_homogeneous_tasks.sh tests/microbenchs/
   mkdir -p tests/datawizard
   test -e tests/datawizard/locality.sh || ln -sf $ac_abs_top_srcdir/tests/datawizard/locality.sh tests/datawizard/
+  mkdir -p tests/model-checking
+  test -e tests/model-checking/prio_list.sh || ln -sf $ac_abs_top_srcdir/tests/model-checking/prio_list.sh tests/model-checking/
   mkdir -p examples/heat
   test -e examples/heat/heat.sh || ln -sf $ac_abs_top_srcdir/examples/heat/heat.sh examples/heat/
   mkdir -p examples/lu
@@ -3194,7 +3196,7 @@ AC_OUTPUT([
 	examples/stencil/Makefile
 	tests/Makefile
 	tests/loader-cross.sh
-	tests/model-checking/prio_list.sh
+	tests/model-checking/starpu-mc.sh
 	examples/loader-cross.sh
 	examples/stencil/loader-cross.sh
 	mpi/Makefile
