@@ -43,19 +43,22 @@
 #include <xbt/synchro_core.h>
 #endif
 
-#ifndef L
-#define L 1 /* number of lists */
+#ifndef NLISTS
+#define NLISTS 1
 #endif
-#ifndef N
-#define N 2 /* number of threads */
+#ifndef NITERS
+#define NITERS 1
 #endif
-#ifndef M
-#define M 4 /* number of elements */
+#ifndef NTHREADS
+#define NTHREADS 2
+#endif
+#ifndef NELEMENTS
+#define NELEMENTS 4
 #endif
 
 // MC_ignore
 
-xbt_mutex_t mutex[L];
+xbt_mutex_t mutex[NLISTS];
 
 
 LIST_TYPE(foo,
@@ -64,7 +67,7 @@ LIST_TYPE(foo,
 	 );
 PRIO_LIST_TYPE(foo, prio);
 
-struct foo_prio_list mylist[L];
+struct foo_prio_list mylist[NLISTS];
 
 void check_list_prio(struct foo_prio_list *list)
 {
@@ -89,44 +92,47 @@ void check_list_prio(struct foo_prio_list *list)
 int worker(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[])
 {
 	unsigned myrank = atoi(argv[0]);
-	unsigned i, n, l;
+	unsigned i, n, l, iter;
 	struct foo *elem;
 	struct drand48_data buffer;
 	long res;
 
 	srand48_r(myrank, &buffer);
 
-	l = myrank%L;
+	l = myrank%NLISTS;
 
-	for (i = 0; i < M; i++)
+	for (iter = 0; iter < NITERS; iter++)
 	{
-		elem = malloc(sizeof(*elem));
-		lrand48_r(&buffer, &res);
-		elem->prio = res%10;
-		lrand48_r(&buffer, &res);
-		elem->back = res%2;
-		xbt_mutex_acquire(mutex[l]);
-		if (elem->back)
-			foo_prio_list_push_back(&mylist[l], elem);
-		else
-			foo_prio_list_push_front(&mylist[l], elem);
-		check_list_prio(&mylist[l]);
-		xbt_mutex_release(mutex[l]);
-	}
+		for (i = 0; i < NELEMENTS; i++)
+		{
+			elem = malloc(sizeof(*elem));
+			lrand48_r(&buffer, &res);
+			elem->prio = res%10;
+			lrand48_r(&buffer, &res);
+			elem->back = res%2;
+			xbt_mutex_acquire(mutex[l]);
+			if (elem->back)
+				foo_prio_list_push_back(&mylist[l], elem);
+			else
+				foo_prio_list_push_front(&mylist[l], elem);
+			check_list_prio(&mylist[l]);
+			xbt_mutex_release(mutex[l]);
+		}
 
-	for (i = 0; i < M; i++)
-	{
-		lrand48_r(&buffer, &res);
-		n = res%(M-i);
+		for (i = 0; i < NELEMENTS; i++)
+		{
+			lrand48_r(&buffer, &res);
+			n = res%(NELEMENTS-i);
 
-		xbt_mutex_acquire(mutex[l]);
-		for (elem  = foo_prio_list_begin(&mylist[l]);
-		     n--;
-		     elem  = foo_prio_list_next(&mylist[l], elem))
-			;
-		foo_prio_list_erase(&mylist[l], elem);
-		check_list_prio(&mylist[l]);
-		xbt_mutex_release(mutex[l]);
+			xbt_mutex_acquire(mutex[l]);
+			for (elem  = foo_prio_list_begin(&mylist[l]);
+			     n--;
+			     elem  = foo_prio_list_next(&mylist[l], elem))
+				;
+			foo_prio_list_erase(&mylist[l], elem);
+			check_list_prio(&mylist[l]);
+			xbt_mutex_release(mutex[l]);
+		}
 	}
 
 	return 0;
@@ -136,13 +142,13 @@ int master(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSE
 {
 	unsigned i, l;
 
-	for (l = 0; l < L; l++)
+	for (l = 0; l < NLISTS; l++)
 	{
 		mutex[l] = xbt_mutex_init();
 		foo_prio_list_init(&mylist[l]);
 	}
 
-	for (i = 0; i < N; i++)
+	for (i = 0; i < NTHREADS; i++)
 	{
 		char *s;
 		asprintf(&s, "%d\n", i);
