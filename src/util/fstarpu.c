@@ -480,9 +480,8 @@ void fstarpu_data_acquire(starpu_data_handle_t handle, intptr_t mode)
 	starpu_data_acquire(handle, (int)mode);
 }
 
-void fstarpu_unpack_arg(char *cl_arg, void ***_buffer_list)
+void fstarpu_unpack_arg(char *cl_arg, void **buffer_list)
 {
-	void **buffer_list = *_buffer_list;
 	size_t current_arg_offset = 0;
 	int nargs, arg;
 
