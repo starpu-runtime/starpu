@@ -645,6 +645,14 @@ allows to specify the location to the SimGrid lib directory.
 Use the smpirun at <c>path</c>
 </dd>
 
+<dt>--enable-simgrid-mc</dt>
+<dd>
+\anchor enable-simgrid-mc
+\addindex __configure__--enable-simgrid-mc
+Enable the Model Checker in simulation of execution in simgrid, to allow
+exploring various execution paths.
+</dd>
+
 <dt>--enable-calibration-heuristic</dt>
 <dd>
 \anchor enable-calibration-heuristic

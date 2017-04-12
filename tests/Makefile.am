@@ -383,7 +383,13 @@ if STARPU_SIMGRID
 TESTS += $(MICROBENCHS:=.sh)
 endif
 
-if STARPU_SIMGRID
+TESTS += datawizard/locality.sh
+
+################################
+# Simgrid Model Checking tests #
+################################
+
+if STARPU_SIMGRID_MC
 model_checking_prio_list_LDADD = 
 model_checking_prio_list_LDFLAGS = 
 model_checking_prio_list_SOURCES = model-checking/prio_list.c ../src/common/rbtree.c
@@ -392,8 +398,6 @@ if !STARPU_QUICK_CHECK
 TESTS += model-checking/prio_list.sh
 endif
 endif
-
-TESTS += datawizard/locality.sh
 
 #######################
 # Source files        #

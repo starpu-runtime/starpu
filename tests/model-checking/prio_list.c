@@ -31,6 +31,8 @@
 #define N 2 /* number of threads */
 #define M 4 /* number of elements */
 
+// MC_ignore
+
 xbt_mutex_t mutex;
 
 

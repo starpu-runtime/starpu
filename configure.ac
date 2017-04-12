@@ -198,8 +198,15 @@ if test x$enable_simgrid = xyes ; then
 			  CXXFLAGS="-std=c++11 $CXXFLAGS"
 			  NVCCFLAGS="-std=c++11 $NVCCFLAGS")
 	AC_LANG_POP([C++])
-	AC_PATH_PROG([SIMGRID_MC], [simgrid-mc])
+	AC_ARG_ENABLE(simgrid-mc, [AS_HELP_STRING([--enable-simgrid-mc],
+				[Enable using Model Checker of simgrid])],
+				enable_simgrid_mc=$enableval, enable_simgrid_mc=no)
+	if test x$enable_simgrid_mc = xyes ; then
+		AC_DEFINE(STARPU_SIMGRID_MC, [1], [Define this to enable Model Checker in simgrid execution])
+		AC_PATH_PROG([SIMGRID_MC], [simgrid-mc], [$simgrid_dir/bin:$PATH])
+	fi
 fi
+AM_CONDITIONAL(STARPU_SIMGRID_MC, test x$enable_simgrid_mc = xyes)
 AM_CONDITIONAL(STARPU_SIMGRID, test x$enable_simgrid = xyes)
 AC_SUBST(SIMGRID_CFLAGS)
 AC_SUBST(SIMGRID_LIBS)
