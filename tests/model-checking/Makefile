@@ -15,7 +15,7 @@
 
 STARPU=../../
 CPPFLAGS=-I$(STARPU)/src
-CFLAGS=-Wall -Wextra -g $(STARPU)/src/common/rbtree.c
+CFLAGS=-Wall -Wextra -g $(STARPU)/src/common/rbtree.c -DNOCONFIG
 LDFLAGS=-lsimgrid
 
 MC_FLAGS=--cfg=model-check/reduction:none
@@ -41,6 +41,8 @@ test: prio_list
 
 debug: prio_list
 	simgrid-mc ./prio_list platform.xml MAIN --log=mc_safety.thres:debug $(MC_FLAGS)
+
+all: prio_list prio_list2
 
 clean:
 	rm -f prio_list

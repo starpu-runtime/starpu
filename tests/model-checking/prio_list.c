@@ -17,7 +17,7 @@
 #define _STARPU_MALLOC(p, s) do {p = malloc(s);} while (0)
 #define STARPU_ATTRIBUTE_UNUSED __attribute((__unused__))
 
-#ifdef BUILDING_STARPU
+#ifndef NOCONFIG
 #include <config.h>
 #else
 #define _GNU_SOURCE
@@ -43,9 +43,15 @@
 #include <xbt/synchro_core.h>
 #endif
 
+#ifndef L
 #define L 1 /* number of lists */
+#endif
+#ifndef N
 #define N 2 /* number of threads */
+#endif
+#ifndef M
 #define M 4 /* number of elements */
+#endif
 
 // MC_ignore
 
