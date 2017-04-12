@@ -17,7 +17,14 @@
 #define _STARPU_MALLOC(p, s) do {p = malloc(s);} while (0)
 #define STARPU_ATTRIBUTE_UNUSED __attribute((__unused__))
 
+#ifdef BUILDING_STARPU
 #include <config.h>
+#else
+#define _GNU_SOURCE
+// Assuming recent simgrid
+#define STARPU_HAVE_SIMGRID_MSG_H
+#define STARPU_HAVE_XBT_SYNCHRO_H
+#endif
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -36,12 +43,13 @@
 #include <xbt/synchro_core.h>
 #endif
 
+#define L 1 /* number of lists */
 #define N 2 /* number of threads */
 #define M 4 /* number of elements */
 
 // MC_ignore
 
-xbt_mutex_t mutex;
+xbt_mutex_t mutex[L];
 
 
 LIST_TYPE(foo,
@@ -50,7 +58,7 @@ LIST_TYPE(foo,
 	 );
 PRIO_LIST_TYPE(foo, prio);
 
-struct foo_prio_list mylist;
+struct foo_prio_list mylist[L];
 
 void check_list_prio(struct foo_prio_list *list)
 {
@@ -72,14 +80,17 @@ void check_list_prio(struct foo_prio_list *list)
 	}
 }
 
-int worker(int argc, char *argv[])
+int worker(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[])
 {
-	unsigned i, n;
+	unsigned myrank = atoi(argv[0]);
+	unsigned i, n, l;
 	struct foo *elem;
 	struct drand48_data buffer;
 	long res;
 
-	srand48_r(atoi(argv[0]), &buffer);
+	srand48_r(myrank, &buffer);
+
+	l = myrank%L;
 
 	for (i = 0; i < M; i++)
 	{
@@ -88,13 +99,13 @@ int worker(int argc, char *argv[])
 		elem->prio = res%10;
 		lrand48_r(&buffer, &res);
 		elem->back = res%2;
-		xbt_mutex_acquire(mutex);
+		xbt_mutex_acquire(mutex[l]);
 		if (elem->back)
-			foo_prio_list_push_back(&mylist, elem);
+			foo_prio_list_push_back(&mylist[l], elem);
 		else
-			foo_prio_list_push_front(&mylist, elem);
-		check_list_prio(&mylist);
-		xbt_mutex_release(mutex);
+			foo_prio_list_push_front(&mylist[l], elem);
+		check_list_prio(&mylist[l]);
+		xbt_mutex_release(mutex[l]);
 	}
 
 	for (i = 0; i < M; i++)
@@ -102,14 +113,14 @@ int worker(int argc, char *argv[])
 		lrand48_r(&buffer, &res);
 		n = res%(M-i);
 
-		xbt_mutex_acquire(mutex);
-		for (elem  = foo_prio_list_begin(&mylist);
+		xbt_mutex_acquire(mutex[l]);
+		for (elem  = foo_prio_list_begin(&mylist[l]);
 		     n--;
-		     elem  = foo_prio_list_next(&mylist, elem))
+		     elem  = foo_prio_list_next(&mylist[l], elem))
 			;
-		foo_prio_list_erase(&mylist, elem);
-		check_list_prio(&mylist);
-		xbt_mutex_release(mutex);
+		foo_prio_list_erase(&mylist[l], elem);
+		check_list_prio(&mylist[l]);
+		xbt_mutex_release(mutex[l]);
 	}
 
 	return 0;
@@ -117,10 +128,13 @@ int worker(int argc, char *argv[])
 
 int master(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED)
 {
-	unsigned i;
+	unsigned i, l;
 
-	mutex = xbt_mutex_init();
-	foo_prio_list_init(&mylist);
+	for (l = 0; l < L; l++)
+	{
+		mutex[l] = xbt_mutex_init();
+		foo_prio_list_init(&mylist[l]);
+	}
 
 	for (i = 0; i < N; i++)
 	{
