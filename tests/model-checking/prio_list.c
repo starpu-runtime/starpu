@@ -17,16 +17,24 @@
 #define _STARPU_MALLOC(p, s) do {p = malloc(s);} while (0)
 #define STARPU_ATTRIBUTE_UNUSED __attribute((__unused__))
 
-#define _GNU_SOURCE
+#include <config.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <limits.h>
 #include <common/list.h>
 #include <common/prio_list.h>
+#ifdef STARPU_HAVE_SIMGRID_MSG_H
 #include <simgrid/msg.h>
+#else
+#include <msg/msg.h>
+#endif
 #include <simgrid/modelchecker.h>
+#ifdef STARPU_HAVE_XBT_SYNCHRO_H
 #include <xbt/synchro.h>
+#else
+#include <xbt/synchro_core.h>
+#endif
 
 #define N 2 /* number of threads */
 #define M 4 /* number of elements */
@@ -136,7 +144,12 @@ int main(int argc, char *argv[])
 	}
 	srand48(0);
 	MSG_init(&argc, argv);
+#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 13)
+	extern xbt_cfg_t _sg_cfg_set;
+	xbt_cfg_set_int(_sg_cfg_set, "contexts/stack-size", 128);
+#else
 	xbt_cfg_set_int("contexts/stack-size", 128);
+#endif
 	MSG_create_environment(argv[1]);
 	MSG_process_create("master", master, NULL, MSG_get_host_by_name(argv[2]));
 	MSG_main();
