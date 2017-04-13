@@ -2601,7 +2601,7 @@ starpu_topology_print (FILE *output)
 
 	for (numa = 0; numa < nb_numa_nodes; numa++)
 	{
-		fprintf(output, "------\tNUMA %d\t------\n", numa);
+		fprintf(output, "------\tNUMA %u\t------\n", numa);
 		for (pu = 0; pu < topology->nhwpus; pu++)
 		{
 			if (_starpu_numa_id_to_logid(numa) == _starpu_numa_get_logical_id_from_pu(pu))
