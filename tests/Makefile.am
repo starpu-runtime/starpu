@@ -28,7 +28,7 @@ endif
 
 AM_CFLAGS = $(HWLOC_CFLAGS) $(FXT_CFLAGS) -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(STARPU_COI_CPPFLAGS) $(STARPU_SCIF_CPPFLAGS) $(GLOBAL_AM_CFLAGS) -Wno-unused
 AM_CXXFLAGS = $(HWLOC_CFLAGS) $(FXT_CFLAGS) -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(STARPU_COI_CPPFLAGS) $(STARPU_SCIF_CPPFLAGS) $(GLOBAL_AM_CXXFLAGS) -Wno-unused
-LIBS = $(top_builddir)/src/@LIBSTARPU_LINK@ $(HWLOC_LIBS) @LIBS@ $(FXT_LIBS)
+LDADD = $(top_builddir)/src/@LIBSTARPU_LINK@ $(HWLOC_LIBS) $(FXT_LIBS)
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_builddir)/src -I$(top_srcdir)/src/
 AM_LDFLAGS = @STARPU_EXPORT_DYNAMIC@ $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(STARPU_COI_LDFLAGS) $(STARPU_SCIF_LDFLAGS) $(FXT_LDFLAGS)
 
@@ -60,7 +60,8 @@ EXTRA_DIST =					\
 	datawizard/interfaces/block/block_opencl_kernel.cl \
 	perfmodels/opencl_memset_kernel.cl \
 	$(MICROBENCHS:=.sh) \
-	microbenchs/microbench.sh
+	microbenchs/microbench.sh \
+	model-checking/starpu-mc.sh.in
 
 CLEANFILES = 					\
 	*.gcno *.gcda *.linkinfo core starpu_idle_microsec.log *.mod *.png *.output
@@ -133,7 +134,8 @@ XFAIL_TESTS	=				\
 
 myPROGRAMS =
 
-myPROGRAMS +=				\
+myPROGRAMS +=					\
+	main/mkdtemp				\
 	main/restart				\
 	main/execute_schedule			\
 	main/insert_task_pack			\
@@ -383,6 +385,20 @@ TESTS += $(MICROBENCHS:=.sh)
 endif
 
 TESTS += datawizard/locality.sh
+
+################################
+# Simgrid Model Checking tests #
+################################
+
+if STARPU_SIMGRID_MC
+model_checking_prio_list_LDADD = 
+model_checking_prio_list_LDFLAGS = 
+model_checking_prio_list_SOURCES = model-checking/prio_list.c ../src/common/rbtree.c
+noinst_PROGRAMS += model-checking/prio_list
+if !STARPU_QUICK_CHECK
+TESTS += model-checking/prio_list.sh
+endif
+endif
 
 #######################
 # Source files        #

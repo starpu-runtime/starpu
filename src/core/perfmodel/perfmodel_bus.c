@@ -724,26 +724,29 @@ static void benchmark_all_gpu_devices(void)
 	ncuda = _starpu_get_cuda_device_count();
 	for (i = 0; i < ncuda; i++)
 	{
-		_STARPU_DISP("CUDA %d...\n", i);
+		_STARPU_DISP("CUDA %u...\n", i);
 		/* measure bandwidth between Host and Device i */
 		measure_bandwidth_between_host_and_dev(i, cudadev_timing_per_numa, "CUDA");
 	}
 #ifdef HAVE_CUDA_MEMCPY_PEER
 	for (i = 0; i < ncuda; i++)
+	{
+		unsigned j;
 		for (j = 0; j < ncuda; j++)
 			if (i != j)
 			{
-				_STARPU_DISP("CUDA %d -> %d...\n", i, j);
+				_STARPU_DISP("CUDA %u -> %u...\n", i, j);
 				/* measure bandwidth between Host and Device i */
 				measure_bandwidth_between_dev_and_dev_cuda(i, j);
 			}
+	}
 #endif
 #endif
 #ifdef STARPU_USE_OPENCL
 	nopencl = _starpu_opencl_get_device_count();
 	for (i = 0; i < nopencl; i++)
 	{
-		_STARPU_DISP("OpenCL %d...\n", i);
+		_STARPU_DISP("OpenCL %u...\n", i);
 		/* measure bandwith between Host and Device i */
 		measure_bandwidth_between_host_and_dev(i, opencldev_timing_per_numa, "OpenCL");
 	}
@@ -2685,13 +2688,13 @@ static void write_bus_platform_file_content(int version)
 	{
 		unsigned j;
 		char i_name[16];
-		snprintf(i_name, sizeof(i_name), "CUDA%d", i);
+		snprintf(i_name, sizeof(i_name), "CUDA%u", i);
 		for (j = 0; j < ncuda; j++)
 		{
 			char j_name[16];
 			if (j == i)
 				continue;
-			snprintf(j_name, sizeof(j_name), "CUDA%d", j);
+			snprintf(j_name, sizeof(j_name), "CUDA%u", j);
 			fprintf(f, "   <link id=\"%s-%s\" bandwidth=\"%f%s\" latency=\"%f%s\"/>\n",
 					i_name, j_name,
 					1000000. / cudadev_timing_dtod[i][j], Bps,
@@ -2737,20 +2740,20 @@ static void write_bus_platform_file_content(int version)
 				if (i != j)
 				{
 					fprintf(f, "   <route src=\"CUDA%u\" dst=\"CUDA%u\" symmetrical=\"NO\">\n", i, j);
-					fprintf(f, "    <link_ctn id=\"CUDA%d-CUDA%d\"/>\n", i, j);
+					fprintf(f, "    <link_ctn id=\"CUDA%u-CUDA%u\"/>\n", i, j);
 					emit_platform_path_up(f,
 							hwloc_cuda_get_device_osdev_by_index(topology, i),
 							hwloc_cuda_get_device_osdev_by_index(topology, j));
 					fprintf(f, "   </route>\n");
 				}
 
-			fprintf(f, "   <route src=\"CUDA%d\" dst=\"RAM\" symmetrical=\"NO\">\n", i);
-			fprintf(f, "    <link_ctn id=\"CUDA%d-RAM\"/>\n", i);
+			fprintf(f, "   <route src=\"CUDA%u\" dst=\"RAM\" symmetrical=\"NO\">\n", i);
+			fprintf(f, "    <link_ctn id=\"CUDA%u-RAM\"/>\n", i);
 			emit_platform_forward_path(f, hwloc_cuda_get_device_osdev_by_index(topology, i));
 			fprintf(f, "   </route>\n");
 
-			fprintf(f, "   <route src=\"RAM\" dst=\"CUDA%d\" symmetrical=\"NO\">\n", i);
-			fprintf(f, "    <link_ctn id=\"RAM-CUDA%d\"/>\n", i);
+			fprintf(f, "   <route src=\"RAM\" dst=\"CUDA%u\" symmetrical=\"NO\">\n", i);
+			fprintf(f, "    <link_ctn id=\"RAM-CUDA%u\"/>\n", i);
 			emit_platform_backward_path(f, hwloc_cuda_get_device_osdev_by_index(topology, i));
 			fprintf(f, "   </route>\n");
 		}
@@ -2775,15 +2778,15 @@ flat_cuda:
 #ifdef HAVE_CUDA_MEMCPY_PEER
 		for (i = 0; i < ncuda; i++)
 		{
-			unsigned j;
-			char i_name[16];
-			snprintf(i_name, sizeof(i_name), "CUDA%d", i);
+                        unsigned j;
+                        char i_name[16];
+                        snprintf(i_name, sizeof(i_name), "CUDA%u", i);
 			for (j = 0; j < ncuda; j++)
 			{
 				char j_name[16];
 				if (j == i)
 					continue;
-				snprintf(j_name, sizeof(j_name), "CUDA%d", j);
+                                snprintf(j_name, sizeof(j_name), "CUDA%u", j);
 				fprintf(f, "   <route src=\"%s\" dst=\"%s\" symmetrical=\"NO\"><link_ctn id=\"%s-%s\"/><link_ctn id=\"Host\"/></route>\n", i_name, j_name, i_name, j_name);
 			}
 		}

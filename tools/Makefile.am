@@ -137,6 +137,8 @@ EXTRA_DIST =				\
 	dev/rename.sed			\
 	dev/rename.sh			\
 	perfmodels/README		\
+	perfmodels/cluster.xml		\
+	perfmodels/hostfile		\
 	perfmodels/sampling/codelets/tmp/mlr_init.out	 \
 	valgrind/fxt.suppr		\
 	valgrind/hwloc.suppr		\

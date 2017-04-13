@@ -389,6 +389,11 @@ static void parse_args(int argc, char **argv)
 	        if (strcmp(argv[i], "-maxiter") == 0)
 		{
 			i_max = atoi(argv[++i]);
+			if (i_max <= 0)
+			{
+				FPRINTF(stderr, "the number of iterations must be positive, not %d\n", i_max);
+				exit(EXIT_FAILURE);
+			}
 			continue;
 		}
 

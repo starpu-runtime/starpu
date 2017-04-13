@@ -649,13 +649,13 @@ int _starpu_cuda_driver_init(struct _starpu_worker_set *worker_set)
 			/* Already initialized */
 			continue;
 		}
+		lastdevid = devid;
+		init_device_context(devid, memnode);
+
 #ifndef STARPU_SIMGRID
 		if (worker->config->topology.nworkerpercuda > 1 && props[devid].concurrentKernels == 0)
 			_STARPU_DISP("Warning: STARPU_NWORKER_PER_CUDA is %u, but CUDA device %u does not support concurrent kernel execution!\n", worker_set->nworkers, devid);
 #endif /* !STARPU_SIMGRID */
-		lastdevid = devid;
-		init_device_context(devid, memnode);
-
 	}
 
 	/* one more time to avoid hacks from third party lib :) */

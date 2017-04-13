@@ -561,6 +561,13 @@ that the MKL website
 provides a script to determine the linking flags.
 </dd>
 
+<dt>--disable-glpk</dt>
+<dd>
+\anchor disable-glpk
+\addindex __configure__--disable-glpk
+Disable the use of libglpk for computing area bounds.
+</dd>
+
 <dt>--disable-build-tests</dt>
 <dd>
 \anchor disable-build-tests
@@ -644,6 +651,14 @@ allows to specify the location to the SimGrid lib directory.
 \anchor with-smpirun
 \addindex __configure__--with-smpirun
 Use the smpirun at <c>path</c>
+</dd>
+
+<dt>--enable-simgrid-mc</dt>
+<dd>
+\anchor enable-simgrid-mc
+\addindex __configure__--enable-simgrid-mc
+Enable the Model Checker in simulation of execution in simgrid, to allow
+exploring various execution paths.
 </dd>
 
 <dt>--enable-calibration-heuristic</dt>

@@ -122,6 +122,7 @@ int starpu_mct_compute_expected_times(struct starpu_sched_component *component, 
 		double *min_exp_end_with_task, double *max_exp_end_with_task, int *suitable_components)
 {
 	int nsuitable_components = 0;
+	double now = starpu_timing_now();
 
 	int i;
 	for(i = 0; i < component->nchildren; i++)
@@ -136,7 +137,6 @@ int starpu_mct_compute_expected_times(struct starpu_sched_component *component, 
 
 			/* Estimated availability of worker */
 			double estimated_end = c->estimated_end(c);
-			double now = starpu_timing_now();
 			if (estimated_end < now)
 				estimated_end = now;
 			estimated_transfer_length[i] = starpu_sched_component_transfer_length(c, task);

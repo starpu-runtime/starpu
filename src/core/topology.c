@@ -2217,7 +2217,7 @@ _starpu_init_workers_binding_and_memory (struct _starpu_machine_config *config, 
 					}
 #ifdef STARPU_SIMGRID
 					const char* cuda_memcpy_peer;
-					snprintf(name, sizeof(name), "CUDA%d", devid);
+					snprintf(name, sizeof(name), "CUDA%u", devid);
 					host = _starpu_simgrid_get_host_by_name(name);
 					STARPU_ASSERT(host);
 					_starpu_simgrid_memory_node_set_host(memory_node, host);
@@ -2312,7 +2312,7 @@ _starpu_init_workers_binding_and_memory (struct _starpu_machine_config *config, 
 						_starpu_register_bus(memory_node, numa);
 					}
 #ifdef STARPU_SIMGRID
-					snprintf(name, sizeof(name), "OpenCL%d", devid);
+					snprintf(name, sizeof(name), "OpenCL%u", devid);
 					host = _starpu_simgrid_get_host_by_name(name);
 					STARPU_ASSERT(host);
 					_starpu_simgrid_memory_node_set_host(memory_node, host);

@@ -26,6 +26,7 @@
 #include <common/barrier_counter.h>
 #include <profiling/profiling.h>
 #include <semaphore.h>
+#include <core/task.h>
 #include "sched_ctx_list.h"
 
 #ifdef STARPU_HAVE_HWLOC

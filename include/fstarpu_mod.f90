@@ -1647,17 +1647,17 @@ module fstarpu_mod
 
                 subroutine fstarpu_task_insert(arglist) bind(C)
                         use iso_c_binding, only: c_ptr
-                        type(c_ptr), dimension(:), intent(in) :: arglist
+                        type(c_ptr), dimension(*), intent(in) :: arglist
                 end subroutine fstarpu_task_insert
                 subroutine fstarpu_insert_task(arglist) bind(C,name="fstarpu_task_insert")
                         use iso_c_binding, only: c_ptr
-                        type(c_ptr), dimension(:), intent(in) :: arglist
+                        type(c_ptr), dimension(*), intent(in) :: arglist
                 end subroutine fstarpu_insert_task
 
                 subroutine fstarpu_unpack_arg(cl_arg,bufferlist) bind(C)
                         use iso_c_binding, only: c_ptr
                         type(c_ptr), value, intent(in) :: cl_arg
-                        type(c_ptr), dimension(:), intent(in) :: bufferlist
+                        type(c_ptr), dimension(*), intent(in) :: bufferlist
                 end subroutine fstarpu_unpack_arg
 
                 ! == starpu_sched_ctx.h ==
@@ -1669,7 +1669,7 @@ module fstarpu_mod
                         integer(c_int), intent(in) :: workers_array(*)
                         integer(c_int), value, intent(in) :: nworkers
                         character(c_char), intent(in) :: ctx_name
-                        type(c_ptr), dimension(:), intent(in) :: arglist
+                        type(c_ptr), dimension(*), intent(in) :: arglist
                 end function fstarpu_sched_ctx_create
 
                 ! unsigned starpu_sched_ctx_create_inside_interval(const char *policy_name, const char *sched_ctx_name, int min_ncpus, int max_ncpus, int min_ngpus, int max_ngpus, unsigned allow_overlap);

@@ -42,7 +42,8 @@ according to the filter \p f.
 
 Here an example of how to use the function.
 \code{.c}
-struct starpu_data_filter f = {
+struct starpu_data_filter f =
+{
         .filter_func = starpu_matrix_filter_block,
         .nchildren = nslicesx
 };
@@ -119,7 +120,8 @@ Here is an example of how to use the function:
 
 \code{.c}
 starpu_data_handle_t children[nslicesx];
-struct starpu_data_filter f = {
+struct starpu_data_filter f =
+{
         .filter_func = starpu_matrix_filter_block,
         .nchildren = nslicesx
 };

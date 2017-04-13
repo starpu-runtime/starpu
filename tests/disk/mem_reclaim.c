@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2013 Corentin Salingue
- * Copyright (C) 2015, 2016 CNRS
+ * Copyright (C) 2015, 2016, 2017 CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -37,13 +37,6 @@
 #include <valgrind/memcheck.h>
 #else
 #define VALGRIND_MAKE_MEM_DEFINED(addr, size) (void)0
-#endif
-
-#ifdef STARPU_HAVE_WINDOWS
-#  include <io.h>
-#  if defined(_WIN32) && !defined(__CYGWIN__)
-#    define mkdir(path, mode) mkdir(path)
-#  endif
 #endif
 
 #ifdef STARPU_QUICK_CHECK
@@ -219,11 +212,17 @@ static int merge_result(int old, int new)
 int main(void)
 {
 	int ret = 0;
+	int ret2;
 	char s[128];
+	char *ptr;
 
-	snprintf(s, sizeof(s), "/tmp/%s-disk-%d", getenv("USER"), getpid());
-	ret = mkdir(s, 0777);
-	STARPU_CHECK_RETURN_VALUE(ret, "mkdir '%s'\n", s);
+	snprintf(s, sizeof(s), "/tmp/%s-disk-XXXXXX", getenv("USER"));
+	ptr = _starpu_mkdtemp(s);
+	if (!ptr)
+	{
+		FPRINTF(stderr, "Cannot make directory '%s'\n", s);
+		return STARPU_TEST_SKIPPED;
+	}
 
 	setenv("STARPU_LIMIT_CPU_MEM", MEMSIZE_STR, 1);
 
@@ -240,7 +239,10 @@ int main(void)
 	ret = merge_result(ret, dotest(&starpu_disk_unistd_o_direct_ops, s, starpu_vector_data_register, "unistd_direct with read/write vector ops"));
 	ret = merge_result(ret, dotest(&starpu_disk_unistd_o_direct_ops, s, starpu_my_vector_data_register, "unistd_direct with pack/unpack vector ops"));
 #endif
-	rmdir(s);
+
+	ret2 = rmdir(s);
+	STARPU_CHECK_RETURN_VALUE(ret2, "rmdir '%s'\n", s);
+
 	return ret;
 }
 #endif
