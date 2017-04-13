@@ -2046,7 +2046,7 @@ static void _starpu_init_numa_node(struct _starpu_machine_config *config)
 #endif
 
 	/* In case, we do not find any NUMA, we take all of them */
-	_STARPU_DISP("No NUMA nodes found when checking workers. Take all NUMA nodes available... \n");
+	_STARPU_DISP("No NUMA nodes found when checking GPUs devices. Take all NUMA nodes available... \n");
 
 	unsigned nnuma = _starpu_topology_get_nnumanodes(config);
 	if (nnuma > STARPU_MAXNUMANODES)
@@ -2091,6 +2091,8 @@ static void _starpu_init_numa_node(struct _starpu_machine_config *config)
 
 #endif /* defined(STARPU_USE_NUMA) && defined(STARPU_HAVE_HWLOC) */
 	}	
+	
+	STARPU_ASSERT_MSG(nb_numa_nodes > 0, "No NUMA node found... We need at least one memory node !\n");	
 }
 
 static void _starpu_init_numa_bus()
