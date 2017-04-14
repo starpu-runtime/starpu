@@ -15,19 +15,21 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#ifndef __STARPU_CUBLAS_V2_H__
-#define __STARPU_CUBLAS_V2_H__
+#ifndef __STARPU_CUSPARSE_H__
+#define __STARPU_CUSPARSE_H__
 
 #if defined STARPU_USE_CUDA && !defined STARPU_DONT_INCLUDE_CUDA_HEADERS
 
-#include <cublas_v2.h>
+#include <cusparse.h>
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-cublasHandle_t starpu_cublas_get_local_handle(void);
+void starpu_cusparse_init(void);
+cusparseHandle_t starpu_cusparse_get_local_handle(void);
+void starpu_cusparse_shutdown(void);
 
 #ifdef __cplusplus
 }
@@ -35,4 +37,4 @@ cublasHandle_t starpu_cublas_get_local_handle(void);
 
 #endif
 
-#endif /* __STARPU_CUBLAS_V2_H__ */
+#endif /* __STARPU_CUSPARSE_H__ */
