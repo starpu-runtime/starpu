@@ -142,6 +142,16 @@ static int prio_push_local_task(struct starpu_sched_component * component, struc
 			starpu_sched_component_prefetch_on_node(component, task);
 			STARPU_TRACE_SCHED_COMPONENT_PUSH_PRIO(component, prio->ntasks, exp_len);
 		}
+		
+		if(!isnan(task->predicted_transfer)) {
+			double end = prio_estimated_end(component); 
+			double tfer_end = starpu_timing_now() + task->predicted_transfer; 
+			if(tfer_end < end) 
+				task->predicted_transfer = 0.0; 
+			else 
+				task->predicted_transfer = tfer_end - end; 
+			exp_len += task->predicted_transfer; 
+		}
 
 		if(!isnan(task->predicted))
 		{
@@ -181,6 +191,11 @@ static struct starpu_task * prio_pull_task(struct starpu_sched_component * compo
 			prio->exp_start = starpu_timing_now() + task->predicted;
 			prio->exp_len -= task->predicted;
 		}
+		if(!isnan(task->predicted_transfer)){
+			prio->exp_start += task->predicted_transfer; 
+			prio->exp_len -= task->predicted_transfer; 
+		}
+
 		prio->exp_end = prio->exp_start + prio->exp_len;
 		if(prio->ntasks == 0)
 			prio->exp_len = 0.0;
