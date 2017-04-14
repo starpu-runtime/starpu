@@ -133,6 +133,7 @@ int starpu_mct_compute_expected_times(struct starpu_sched_component *component, 
 				/* The perfmodel had been purged since the task was pushed
 				 * onto the mct component. */
 				continue;
+			STARPU_ASSERT_MSG(estimated_lengths[i]>=0, "component=%p, child[%d]=%p, estimated_lengths[%d]=%lf\n", component, i, c, i, estimated_lengths[i]);
 
 			/* Estimated availability of worker */
 			double estimated_end = c->estimated_end(c);

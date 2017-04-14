@@ -55,7 +55,11 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 {
 	int is_parallel_task = (j->task_size > 1);
 	int profiling = starpu_profiling_status_get();
-	struct timespec codelet_start, codelet_end;
+	/* start/end timestamp are only conditionnally measured in
+	 * _starpu_driver_start_job/_end_job, thus make sure that they are
+	 * always initialized */
+	struct timespec codelet_start = {0,0};
+	struct timespec codelet_end = {0,0};
 
 	struct starpu_task *task = j->task;
 	struct starpu_codelet *cl = task->cl;

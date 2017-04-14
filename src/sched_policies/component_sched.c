@@ -73,6 +73,7 @@ int starpu_sched_component_execute_preds(struct starpu_sched_component * compone
 				{
 					continue;
 				}
+				STARPU_ASSERT_MSG(d >= 0, "workerid=%d, nimpl=%d, bundle=%p, d=%lf\n", workerid, nimpl, bundle, d);
 				if(d < len)
 				{
 					len = d;

@@ -195,6 +195,7 @@ void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_wo
 
 		starpu_timespec_sub(codelet_end, codelet_start, &measured_ts);
 		measured = starpu_timing_timespec_to_us(&measured_ts);
+		STARPU_ASSERT_MSG(measured >= 0, "measured=%lf\n", measured);
 
 		if (profiling && profiling_info)
 		{
