@@ -838,7 +838,7 @@ static void check_model(struct starpu_perfmodel *model)
 
 			STARPU_ASSERT(arch_combs[comb]->devices[dev].devid >= 0);
 
-			STARPU_ASSERT(arch_combs[comb]->devices[dev].ncores >= 1);
+			STARPU_ASSERT(arch_combs[comb]->devices[dev].ncores >= 0);
 		}
 
 		int nimpls = model->state->nimpls[comb];
