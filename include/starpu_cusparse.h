@@ -18,23 +18,21 @@
 #ifndef __STARPU_CUSPARSE_H__
 #define __STARPU_CUSPARSE_H__
 
-#if defined STARPU_USE_CUDA && !defined STARPU_DONT_INCLUDE_CUDA_HEADERS
-
-#include <cusparse.h>
-
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
 void starpu_cusparse_init(void);
-cusparseHandle_t starpu_cusparse_get_local_handle(void);
 void starpu_cusparse_shutdown(void);
+
+#if defined STARPU_USE_CUDA && !defined STARPU_DONT_INCLUDE_CUDA_HEADERS
+#include <cusparse.h>
+cusparseHandle_t starpu_cusparse_get_local_handle(void);
+#endif
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif
 
 #endif /* __STARPU_CUSPARSE_H__ */
