@@ -797,7 +797,7 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 	if (!_STARPU_OPENCL_MAY_PERFORM(j))
 	{
 		/* this is not a OpenCL task */
-		_starpu_push_task_to_workers(task);
+		_starpu_worker_refuse_task(worker, task);
 		return 0;
 	}
 

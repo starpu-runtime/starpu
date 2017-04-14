@@ -2313,3 +2313,35 @@ void starpu_worker_display_names(FILE *output, enum starpu_worker_archtype type)
 		}
 	}
 }
+
+void _starpu_worker_refuse_task(struct _starpu_worker *worker, struct starpu_task *task)
+{
+	if (worker->pipeline_length || worker->arch == STARPU_OPENCL_WORKER)
+	{
+		int j;
+		for (j = 0; j < worker->ntasks; j++)
+		{
+			const int j_mod = (j+worker->first_task)%STARPU_MAX_PIPELINE;
+			if (task == worker->current_tasks[j_mod])
+			{
+				worker->current_tasks[j_mod] = NULL;
+				if (j == 0)
+				{
+					worker->first_task = (worker->first_task + 1) % STARPU_MAX_PIPELINE;
+					worker->current_task = NULL;
+					_starpu_set_current_task(NULL);
+				}
+				break;
+			}
+		}
+		STARPU_ASSERT(j<worker->ntasks);
+	}
+	else
+	{
+		worker->current_task = NULL;
+		_starpu_set_current_task(NULL);
+	}
+	worker->ntasks--;
+	int res = _starpu_push_task_to_workers(task);
+	STARPU_ASSERT_MSG(res == 0, "_starpu_push_task_to_workers() unexpectedly returned = %d\n", res);
+}

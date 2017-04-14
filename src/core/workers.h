@@ -1053,4 +1053,5 @@ static inline int _starpu_wake_worker_relax(int workerid)
 	return ret;
 }
 
+void _starpu_worker_refuse_task(struct _starpu_worker *worker, struct starpu_task *task);
 #endif // __WORKERS_H__

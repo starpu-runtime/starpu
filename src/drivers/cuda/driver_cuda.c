@@ -900,6 +900,8 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 		if (!_STARPU_CUDA_MAY_PERFORM(j))
 		{
 			/* this is neither a cuda or a cublas task */
+			_starpu_worker_refuse_task(worker, task);
+#if 0
 			if (worker->pipeline_length)
 			{
 				int j;
@@ -927,6 +929,7 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 			worker->ntasks--;
 			int res = _starpu_push_task_to_workers(task);
 			STARPU_ASSERT_MSG(res == 0, "_starpu_push_task_to_workers() unexpectedly returned = %d\n", res);
+#endif
 			continue;
 		}
 
