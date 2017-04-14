@@ -300,7 +300,6 @@ int _starpu_malloc_flags_on_node(unsigned dst_node, void **A, size_t dim, int fl
 		_starpu_scc_allocate_shared_memory(A, dim);
 #endif
 	}
-	else
 #ifdef STARPU_HAVE_HWLOC
 	if (_starpu_get_nb_numa_nodes() > 1) {
 		struct _starpu_machine_config *config = _starpu_get_machine_config();
@@ -313,6 +312,7 @@ int _starpu_malloc_flags_on_node(unsigned dst_node, void **A, size_t dim, int fl
 			ret = -ENOMEM;
 	}
 #endif /* STARPU_HAVE_HWLOC */
+	else
 #ifdef STARPU_HAVE_POSIX_MEMALIGN
 	if (_malloc_align != sizeof(void*))
 	{
