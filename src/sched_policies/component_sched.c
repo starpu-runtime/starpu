@@ -587,6 +587,32 @@ static void starpu_sched_component_can_pull(struct starpu_sched_component * comp
 		component->children[i]->can_pull(component->children[i]);
 }
 
+
+/* Alternative can_pull which says that this component does not want
+   to pull but prefers that you push. It can be used by decision
+   components, in which decisions are usually taken in their push()
+   functions */
+void starpu_sched_component_send_can_push_to_parents(struct starpu_sched_component * component)
+{
+	STARPU_ASSERT(component);
+	STARPU_ASSERT(!starpu_sched_component_is_worker(component));
+	
+	int i,ret;
+	for(i=0; i < component->nparents; i++)
+	{
+		if(component->parents[i] == NULL)
+			continue;
+		else
+		{
+			ret = component->parents[i]->can_push(component->parents[i]);
+			if(ret)
+				break;
+		}
+	}
+	
+}
+
+
 double starpu_sched_component_estimated_load(struct starpu_sched_component * component)
 {
 	double sum = 0.0;

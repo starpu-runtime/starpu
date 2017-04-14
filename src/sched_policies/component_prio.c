@@ -209,18 +209,8 @@ static struct starpu_task * prio_pull_task(struct starpu_sched_component * compo
 
 	// When a pop is called, a can_push is called for pushing tasks onto
 	// the empty place of the queue left by the popped task.
-	int i,ret;
-	for(i=0; i < component->nparents; i++)
-	{
-		if(component->parents[i] == NULL)
-			continue;
-		else
-		{
-			ret = component->parents[i]->can_push(component->parents[i]);
-			if(ret)
-				break;
-		}
-	}
+
+	starpu_sched_component_send_can_push_to_parents(component); 
 	
 	if(task)
 		return task;

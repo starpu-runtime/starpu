@@ -93,6 +93,7 @@ int starpu_sched_component_push_task(struct starpu_sched_component *from, struct
 struct starpu_task *starpu_sched_tree_pop_task(unsigned sched_ctx);
 struct starpu_task *starpu_sched_component_pull_task(struct starpu_sched_component *from, struct starpu_sched_component *to);
 struct starpu_task* starpu_sched_component_pump_downstream(struct starpu_sched_component *component, int* success);
+void starpu_sched_component_send_can_push_to_parents(struct starpu_sched_component * component);
 
 void starpu_sched_tree_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers);
 void starpu_sched_tree_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers);
