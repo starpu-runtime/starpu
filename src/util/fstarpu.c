@@ -480,9 +480,8 @@ void fstarpu_data_acquire(starpu_data_handle_t handle, intptr_t mode)
 	starpu_data_acquire(handle, (int)mode);
 }
 
-void fstarpu_unpack_arg(char *cl_arg, void ***_buffer_list)
+void fstarpu_unpack_arg(char *cl_arg, void **buffer_list)
 {
-	void **buffer_list = *_buffer_list;
 	size_t current_arg_offset = 0;
 	int nargs, arg;
 
@@ -505,7 +504,6 @@ void fstarpu_unpack_arg(char *cl_arg, void ***_buffer_list)
 		memcpy(argptr, cl_arg+current_arg_offset, arg_size);
 		current_arg_offset += arg_size;
 	}
-	free(cl_arg);
 }
 
 void fstarpu_sched_ctx_display_workers(int ctx)

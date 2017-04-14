@@ -30,7 +30,8 @@ starpu_data_handle_t handle;
  */
 #ifdef STARPU_USE_OPENCL
 void cpu_to_opencl_opencl_func(void *buffers[], void *args);
-struct starpu_codelet cpu_to_opencl_cl = {
+struct starpu_codelet cpu_to_opencl_cl =
+{
     .where = STARPU_OPENCL,
     .opencl_funcs = { cpu_to_opencl_opencl_func },
     .nbuffers = 1,
@@ -38,7 +39,8 @@ struct starpu_codelet cpu_to_opencl_cl = {
 };
 
 void opencl_to_cpu_func(void *buffers[], void *args);
-struct starpu_codelet opencl_to_cpu_cl = {
+struct starpu_codelet opencl_to_cpu_cl =
+{
     .where = STARPU_CPU,
     .cpu_funcs = { opencl_to_cpu_func },
     .cpu_funcs_name = { "opencl_to_cpu_func" },
@@ -47,7 +49,8 @@ struct starpu_codelet opencl_to_cpu_cl = {
 };
 #endif
 
-struct starpu_multiformat_data_interface_ops format_ops = {
+struct starpu_multiformat_data_interface_ops format_ops =
+{
 #ifdef STARPU_USE_OPENCL
     .opencl_elemsize = 2 * sizeof(float),
     .cpu_to_opencl_cl = &cpu_to_opencl_cl,

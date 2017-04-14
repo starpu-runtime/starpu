@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010-2011, 2013-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016, 2017  CNRS
  * Copyright (C) 2012 INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -32,7 +32,7 @@
 #if !defined(STARPU_HAVE_CXX11)
 int main(int argc, char **argv)
 {
-	return STARPU_TEST_SKIPPED;
+	return 77;
 }
 #else
 void cpu_kernel_add_vectors(void *buffers[], void *cl_arg)

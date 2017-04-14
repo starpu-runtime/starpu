@@ -132,8 +132,6 @@
 #define LIST_TYPE(ENAME, DECL) \
   LIST_CREATE_TYPE(ENAME, DECL)
 
-/**@hideinitializer
- * The effective type declaration for lists */
 #define LIST_CREATE_TYPE(ENAME, DECL) \
   /** from automatic type: struct ENAME */ \
   struct ENAME \
@@ -142,6 +140,11 @@
     struct ENAME *_next; /**< @internal next cell */ \
     DECL \
   }; \
+  LIST_CREATE_TYPE_NOSTRUCT(ENAME, _prev, _next)
+
+/**@hideinitializer
+ * The effective type declaration for lists */
+#define LIST_CREATE_TYPE_NOSTRUCT(ENAME, _prev, _next) \
   /** @internal */ \
   struct ENAME##_list \
   { \

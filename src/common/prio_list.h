@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015-2016  Université de Bordeaux
+ * Copyright (C) 2015-2017  Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -44,6 +44,18 @@
  * void FOO_prio_list_push_prio_list_back(struct FOO_prio_list*, struct FOO_prio_list*)
  *   * Test whether element is part of the list
  * void FOO_prio_list_ismember(struct FOO_prio_list*, struct FOO*)
+ *   * Returns the first element of the list
+ * struct FOO*	FOO_prio_list_begin(struct FOO_prio_list*);
+ *   * Returns the value to test at the end of the list
+ * struct FOO*	FOO_prio_list_end(struct FOO_prio_list*);
+ *   * Returns the next element of the list
+ * struct FOO*	FOO_prio_list_next(struct FOO_prio_list*, struct FOO*)
+ *   * Returns the last element of the list
+ * struct FOO*	FOO_prio_list_last(struct FOO_prio_list*);
+ *   * Returns the value to test at the beginning of the list
+ * struct FOO*	FOO_prio_list_alpha(struct FOO_prio_list*);
+ *   * Retuns the previous element of the list
+ * struct FOO*	FOO_prio_list_prev(struct FOO_prio_list*, struct FOO*)
  *
  * PRIO_LIST_TYPE assumes that LIST_TYPE has already been called to create the
  * final structure.
@@ -101,7 +113,7 @@
 	{ \
 		/* Sort by decreasing order */ \
 		const struct ENAME##_prio_list_stage *e2 = ENAME##_node_to_list_stage_const(node); \
-		return (e2->PRIOFIELD - prio); \
+		return (e2->prio - prio); \
 	} \
 	static inline struct ENAME##_prio_list_stage *ENAME##_prio_list_add(struct ENAME##_prio_list *priolist, int prio) \
 	{ \
@@ -164,17 +176,14 @@
 			priolist->empty = ENAME##_prio_list_empty_slow(priolist); \
 		} \
 	} \
-	static inline struct ENAME *ENAME##_prio_list_pop_front(struct ENAME##_prio_list *priolist) \
+	static inline int ENAME##_prio_list_get_next_nonempty_stage(struct ENAME##_prio_list *priolist, struct starpu_rbtree_node *node, struct starpu_rbtree_node **pnode, struct ENAME##_prio_list_stage **pstage) \
 	{ \
-		struct starpu_rbtree_node *node; \
 		struct ENAME##_prio_list_stage *stage; \
-		struct ENAME *ret; \
-		node = starpu_rbtree_first(&priolist->tree); \
 		while(1) { \
 			struct starpu_rbtree_node *next; \
 			if (!node) \
 				/* Tree is empty */ \
-				return NULL; \
+				return 0; \
 			stage = ENAME##_node_to_list_stage(node); \
 			if (!ENAME##_list_empty(&stage->list)) \
 				break; \
@@ -188,7 +197,72 @@
 			} \
 			node = next; \
 		} \
+		*pnode = node; \
+		*pstage = stage; \
+		return 1; \
+	} \
+	static inline int ENAME##_prio_list_get_first_nonempty_stage(struct ENAME##_prio_list *priolist, struct starpu_rbtree_node **pnode, struct ENAME##_prio_list_stage **pstage) \
+	{ \
+		struct starpu_rbtree_node *node = starpu_rbtree_first(&priolist->tree); \
+		return ENAME##_prio_list_get_next_nonempty_stage(priolist, node, pnode, pstage); \
+	} \
+	static inline struct ENAME *ENAME##_prio_list_pop_front(struct ENAME##_prio_list *priolist) \
+	{ \
+		struct starpu_rbtree_node *node; \
+		struct ENAME##_prio_list_stage *stage; \
+		struct ENAME *ret; \
+		if (!ENAME##_prio_list_get_first_nonempty_stage(priolist, &node, &stage)) \
+			return NULL; \
 		ret = ENAME##_list_pop_front(&stage->list); \
+		if (ENAME##_list_empty(&stage->list)) { \
+			if (stage->prio != 0) \
+			{ \
+				/* stage got empty, remove it */ \
+				starpu_rbtree_remove(&priolist->tree, node); \
+				free(stage); \
+			} \
+			priolist->empty = ENAME##_prio_list_empty_slow(priolist); \
+		} \
+		return ret; \
+	} \
+	static inline int ENAME##_prio_list_get_prev_nonempty_stage(struct ENAME##_prio_list *priolist, struct starpu_rbtree_node *node, struct starpu_rbtree_node **pnode, struct ENAME##_prio_list_stage **pstage) \
+	{ \
+		struct ENAME##_prio_list_stage *stage; \
+		while(1) { \
+			struct starpu_rbtree_node *prev; \
+			if (!node) \
+				/* Tree is empty */ \
+				return 0; \
+			stage = ENAME##_node_to_list_stage(node); \
+			if (!ENAME##_list_empty(&stage->list)) \
+				break; \
+			/* Empty list, skip to prev tree entry */ \
+			prev = starpu_rbtree_prev(node); \
+			/* drop it if not 0-prio */ \
+			if (stage->prio != 0) \
+			{ \
+				starpu_rbtree_remove(&priolist->tree, node); \
+				free(stage); \
+			} \
+			node = prev; \
+		} \
+		*pnode = node; \
+		*pstage = stage; \
+		return 1; \
+	} \
+	static inline int ENAME##_prio_list_get_last_nonempty_stage(struct ENAME##_prio_list *priolist, struct starpu_rbtree_node **pnode, struct ENAME##_prio_list_stage **pstage) \
+	{ \
+		struct starpu_rbtree_node *node = starpu_rbtree_last(&priolist->tree); \
+		return ENAME##_prio_list_get_prev_nonempty_stage(priolist, node, pnode, pstage); \
+	} \
+	static inline struct ENAME *ENAME##_prio_list_pop_back(struct ENAME##_prio_list *priolist) \
+	{ \
+		struct starpu_rbtree_node *node; \
+		struct ENAME##_prio_list_stage *stage; \
+		struct ENAME *ret; \
+		if (!ENAME##_prio_list_get_last_nonempty_stage(priolist, &node, &stage)) \
+			return NULL; \
+		ret = ENAME##_list_pop_back(&stage->list); \
 		if (ENAME##_list_empty(&stage->list)) { \
 			if (stage->prio != 0) \
 			{ \
@@ -240,7 +314,51 @@
 			return ENAME##_list_ismember(&stage->list, e); \
 		} \
 		return 0; \
-	}
+	} \
+	static inline struct ENAME *ENAME##_prio_list_begin(struct ENAME##_prio_list *priolist) \
+	{ \
+		struct starpu_rbtree_node *node; \
+		struct ENAME##_prio_list_stage *stage; \
+		if (!ENAME##_prio_list_get_first_nonempty_stage(priolist, &node, &stage)) \
+			return NULL; \
+		return ENAME##_list_begin(&stage->list); \
+	} \
+	static inline struct ENAME *ENAME##_prio_list_end(struct ENAME##_prio_list *priolist STARPU_ATTRIBUTE_UNUSED) \
+	{ return NULL; } \
+	static inline struct ENAME *ENAME##_prio_list_next(struct ENAME##_prio_list *priolist, const struct ENAME *i) \
+	{ \
+		struct ENAME *next = ENAME##_list_next(i); \
+		if (next != ENAME##_list_end(NULL)) \
+			return next; \
+		struct starpu_rbtree_node *node = starpu_rbtree_lookup(&priolist->tree, i->PRIOFIELD, ENAME##_prio_list_cmp_fn); \
+		struct ENAME##_prio_list_stage *stage; \
+		node = starpu_rbtree_next(node); \
+		if (!ENAME##_prio_list_get_next_nonempty_stage(priolist, node, &node, &stage)) \
+			return NULL; \
+		return ENAME##_list_begin(&stage->list); \
+	} \
+	static inline struct ENAME *ENAME##_prio_list_last(struct ENAME##_prio_list *priolist) \
+	{ \
+		struct starpu_rbtree_node *node; \
+		struct ENAME##_prio_list_stage *stage; \
+		if (!ENAME##_prio_list_get_last_nonempty_stage(priolist, &node, &stage)) \
+			return NULL; \
+		return ENAME##_list_last(&stage->list); \
+	} \
+	static inline struct ENAME *ENAME##_prio_list_alpha(struct ENAME##_prio_list *priolist STARPU_ATTRIBUTE_UNUSED) \
+	{ return NULL; } \
+	static inline struct ENAME *ENAME##_prio_list_prev(struct ENAME##_prio_list *priolist, const struct ENAME *i) \
+	{ \
+		struct ENAME *next = ENAME##_list_prev(i); \
+		if (next != ENAME##_list_alpha(NULL)) \
+			return next; \
+		struct starpu_rbtree_node *node = starpu_rbtree_lookup(&priolist->tree, i->PRIOFIELD, ENAME##_prio_list_cmp_fn); \
+		struct ENAME##_prio_list_stage *stage; \
+		node = starpu_rbtree_prev(node); \
+		if (!ENAME##_prio_list_get_prev_nonempty_stage(priolist, node, &node, &stage)) \
+			return NULL; \
+		return ENAME##_list_last(&stage->list); \
+	} \
 
 #else
 
@@ -252,19 +370,55 @@
 	static inline void ENAME##_prio_list_deinit(struct ENAME##_prio_list *priolist) \
 	{ (void) (priolist); /* ENAME##_list_deinit(&(priolist)->list); */ } \
 	static inline void ENAME##_prio_list_push_back(struct ENAME##_prio_list *priolist, struct ENAME *e) \
-	{ ENAME##_list_push_back(&(priolist)->list, (e)); } \
+	{ \
+		struct ENAME *cur; \
+		for (cur  = ENAME##_list_begin(&(priolist)->list); \
+		     cur != ENAME##_list_end(&(priolist)->list); \
+		     cur  = ENAME##_list_next(cur)) \
+			if ((e)->PRIOFIELD > cur->PRIOFIELD) \
+				break; \
+		if (cur == ENAME##_list_end(&(priolist)->list)) \
+			ENAME##_list_push_back(&(priolist)->list, (e)); \
+		else \
+			ENAME##_list_insert_before(&(priolist)->list, (e), cur); \
+	} \
 	static inline void ENAME##_prio_list_push_front(struct ENAME##_prio_list *priolist, struct ENAME *e) \
-	{ ENAME##_list_push_front(&(priolist)->list, (e)); } \
+	{ \
+		struct ENAME *cur; \
+		for (cur  = ENAME##_list_begin(&(priolist)->list); \
+		     cur != ENAME##_list_end(&(priolist)->list); \
+		     cur  = ENAME##_list_next(cur)) \
+			if ((e)->PRIOFIELD >= cur->PRIOFIELD) \
+				break; \
+		if (cur == ENAME##_list_end(&(priolist)->list)) \
+			ENAME##_list_push_back(&(priolist)->list, (e)); \
+		else \
+			ENAME##_list_insert_before(&(priolist)->list, (e), cur); \
+	} \
 	static inline int ENAME##_prio_list_empty(const struct ENAME##_prio_list *priolist) \
 	{ return ENAME##_list_empty(&(priolist)->list); } \
 	static inline void ENAME##_prio_list_erase(struct ENAME##_prio_list *priolist, struct ENAME *e) \
 	{ ENAME##_list_erase(&(priolist)->list, (e)); } \
 	static inline struct ENAME *ENAME##_prio_list_pop_front(struct ENAME##_prio_list *priolist) \
 	{ return ENAME##_list_pop_front(&(priolist)->list); } \
+	static inline struct ENAME *ENAME##_prio_list_pop_back(struct ENAME##_prio_list *priolist) \
+	{ return ENAME##_list_pop_back(&(priolist)->list); } \
 	static inline void ENAME##_prio_list_push_prio_list_back(struct ENAME##_prio_list *priolist, struct ENAME##_prio_list *priolist_toadd) \
 	{ ENAME##_list_push_list_back(&(priolist)->list, &(priolist_toadd)->list); } \
 	static inline int ENAME##_prio_list_ismember(const struct ENAME##_prio_list *priolist, const struct ENAME *e) \
 	{ return ENAME##_list_ismember(&(priolist)->list, (e)); } \
+	static inline struct ENAME *ENAME##_prio_list_begin(struct ENAME##_prio_list *priolist) \
+	{ return ENAME##_list_begin(&(priolist)->list); } \
+	static inline struct ENAME *ENAME##_prio_list_end(struct ENAME##_prio_list *priolist) \
+	{ return ENAME##_list_end(&(priolist)->list); } \
+	static inline struct ENAME *ENAME##_prio_list_next(struct ENAME##_prio_list *priolist STARPU_ATTRIBUTE_UNUSED, const struct ENAME *i) \
+	{ return ENAME##_list_next(i); } \
+	static inline struct ENAME *ENAME##_prio_list_last(struct ENAME##_prio_list *priolist) \
+	{ return ENAME##_list_last(&(priolist)->list); } \
+	static inline struct ENAME *ENAME##_prio_list_alpha(struct ENAME##_prio_list *priolist) \
+	{ return ENAME##_list_alpha(&(priolist)->list); } \
+	static inline struct ENAME *ENAME##_prio_list_prev(struct ENAME##_prio_list *priolist STARPU_ATTRIBUTE_UNUSED, const struct ENAME *i) \
+	{ return ENAME##_list_prev(i); } \
 
 #endif
 

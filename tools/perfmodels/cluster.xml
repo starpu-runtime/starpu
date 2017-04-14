@@ -1,0 +1,11 @@
+<?xml version='1.0'?>
+<!DOCTYPE platform SYSTEM 'http://simgrid.gforge.inria.fr/simgrid/simgrid.dtd'>
+<platform version="4">
+<AS  id="AS0"  routing="Vivaldi">	 
+  <cluster id="plafrim"
+           prefix="mirage0"    suffix=".plafrim.cluster"
+           radical="1-9"    speed="1Gf" 
+	   bw="4GBps"       lat="1us"
+           bb_bw="288GBps"  bb_lat="1us"/>
+</AS>
+</platform>

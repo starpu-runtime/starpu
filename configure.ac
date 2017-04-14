@@ -87,6 +87,7 @@ AC_OPENMP
 if test x$enable_perf_debug = xyes; then
     enable_shared=no
 fi
+default_enable_mpi_check=maybe
 
 ###############################################################################
 #                                                                             #
@@ -185,6 +186,10 @@ if test x$enable_simgrid = xyes ; then
 	# We won't bind or detect anything
 	with_hwloc=no
 
+        # disable mpi checks by default, they require static linking, we don't
+        # want that by default
+	default_enable_mpi_check=no
+
 	# Simgrid 3.12 & 3.13 need -std=c++11 to be able to build anything in C++...
 	AC_LANG_PUSH([C++])
 	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
@@ -198,7 +203,15 @@ if test x$enable_simgrid = xyes ; then
 			  CXXFLAGS="-std=c++11 $CXXFLAGS"
 			  NVCCFLAGS="-std=c++11 $NVCCFLAGS")
 	AC_LANG_POP([C++])
+	AC_ARG_ENABLE(simgrid-mc, [AS_HELP_STRING([--enable-simgrid-mc],
+				[Enable using Model Checker of simgrid])],
+				enable_simgrid_mc=$enableval, enable_simgrid_mc=no)
+	if test x$enable_simgrid_mc = xyes ; then
+		AC_DEFINE(STARPU_SIMGRID_MC, [1], [Define this to enable Model Checker in simgrid execution])
+		AC_PATH_PROG([SIMGRID_MC], [simgrid-mc], [no], [$simgrid_dir/bin:$PATH])
+	fi
 fi
+AM_CONDITIONAL(STARPU_SIMGRID_MC, test x$enable_simgrid_mc = xyes)
 AM_CONDITIONAL(STARPU_SIMGRID, test x$enable_simgrid = xyes)
 AC_SUBST(SIMGRID_CFLAGS)
 AC_SUBST(SIMGRID_LIBS)
@@ -448,7 +461,8 @@ AM_CONDITIONAL([STARPU_CROSS_COMPILING], [test "x$cross_compiling" = "xyes"])
 ###############################################################################
 
 # If the user specifically asks for it, or if we are in a developer checkout, we enable mpi check
-AC_ARG_ENABLE(mpi-check, AC_HELP_STRING([--enable-mpi-check], [Enable execution of MPI testcases]))
+AC_ARG_ENABLE(mpi-check, AC_HELP_STRING([--enable-mpi-check], [Enable execution of MPI testcases]),
+	      [enable_mpi_check=$enableval], [enable_mpi_check=$default_enable_mpi_check])
 running_mpi_check=no
 if test $svndir = 1 -o -d "$srcdir/.git" ; then
     running_mpi_check=yes
@@ -488,6 +502,9 @@ if test ! -x $mpiexec_path; then
 fi
 
 AM_CONDITIONAL(STARPU_MPI_CHECK, test x$running_mpi_check = xyes)
+if test x$running_mpi_check = xyes -a x$enable_simgrid = xyes -a x$enable_shared = xyes ; then
+    AC_MSG_ERROR([MPI with simgrid can not work with shared libraries, use --disable-shared to fix this])
+fi
 if test x$use_mpi = xyes ; then
     AC_MSG_CHECKING(whether MPI tests should be run)
     AC_MSG_RESULT($running_mpi_check)
@@ -737,6 +754,7 @@ AC_CHECK_HEADERS([aio.h])
 AC_CHECK_LIB([rt], [aio_read])
 
 AC_CHECK_FUNCS([mkostemp])
+AC_CHECK_FUNCS([mkdtemp])
 
 AC_CHECK_FUNCS([pread pwrite])
 
@@ -1944,8 +1962,13 @@ if test x$enable_memory_stats = xyes; then
         AC_DEFINE(STARPU_MEMORY_STATS, [1], [enable memory stats])
 fi
 
-AC_CHECK_HEADERS([glpk.h], [AC_DEFINE([STARPU_HAVE_GLPK_H], [1], [Define to 1 if you have the <glpk.h> header file.])])
-STARPU_HAVE_LIBRARY(GLPK, [glpk])
+AC_ARG_ENABLE(glpk, [AS_HELP_STRING([--disable-glpk],
+			     [disable using glpk for bound computation])],
+			     enable_glpk=$enableval, enable_glpk=yes)
+if test x$enable_glpk = xyes; then
+	AC_CHECK_HEADERS([glpk.h], [AC_DEFINE([STARPU_HAVE_GLPK_H], [1], [Define to 1 if you have the <glpk.h> header file.])])
+	STARPU_HAVE_LIBRARY(GLPK, [glpk])
+fi
 
 AC_ARG_WITH(ayudame1-include-dir,
 	[AS_HELP_STRING([--with-ayudame1-include-dir=<path>],
@@ -3066,6 +3089,7 @@ AC_SUBST(STARPU_EXPORTED_LIBS)
 AC_CONFIG_COMMANDS([executable-scripts], [
   chmod +x tests/regression/regression.sh
   chmod +x tests/loader-cross.sh
+  chmod +x tests/model-checking/starpu-mc.sh
   chmod +x examples/loader-cross.sh
   chmod +x examples/stencil/loader-cross.sh
   chmod +x gcc-plugin/tests/run-test
@@ -3092,6 +3116,8 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   test -e tests/microbenchs/parallel_independent_homogeneous_tasks.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/parallel_independent_homogeneous_tasks.sh tests/microbenchs/
   mkdir -p tests/datawizard
   test -e tests/datawizard/locality.sh || ln -sf $ac_abs_top_srcdir/tests/datawizard/locality.sh tests/datawizard/
+  mkdir -p tests/model-checking
+  test -e tests/model-checking/prio_list.sh || ln -sf $ac_abs_top_srcdir/tests/model-checking/prio_list.sh tests/model-checking/
   mkdir -p examples/heat
   test -e examples/heat/heat.sh || ln -sf $ac_abs_top_srcdir/examples/heat/heat.sh examples/heat/
   mkdir -p examples/lu
@@ -3170,6 +3196,7 @@ AC_OUTPUT([
 	examples/stencil/Makefile
 	tests/Makefile
 	tests/loader-cross.sh
+	tests/model-checking/starpu-mc.sh
 	examples/loader-cross.sh
 	examples/stencil/loader-cross.sh
 	mpi/Makefile

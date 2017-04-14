@@ -251,6 +251,10 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 			{
 				char *path = starpu_getenv("TMPDIR");
 				if (!path)
+					path = starpu_getenv("TEMP");
+				if (!path)
+					path = starpu_getenv("TMP");
+				if (!path)
 					path = "/tmp";
 				/* Create bogus file if not done already */
 				char *name = _starpu_mktemp(path, O_RDWR | O_BINARY, &bogusfile);
@@ -325,7 +329,7 @@ end:
 #endif
 	if (ret == 0)
 	{
-		STARPU_ASSERT_MSG(*A, "Failed to allocated memory of size %ld b\n", (unsigned long)dim);
+		STARPU_ASSERT_MSG(*A, "Failed to allocated memory of size %lu b\n", (unsigned long)dim);
 	}
 	else if (flags & STARPU_MALLOC_COUNT)
 	{

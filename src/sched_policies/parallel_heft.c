@@ -302,6 +302,8 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 	int unknown = 0;
 	struct starpu_sched_ctx_iterator it;
 
+	double now = starpu_timing_now();
+
 	memset(skip_worker, 0, nworkers_ctx*STARPU_MAXIMPLEMENTATIONS*sizeof(int));
 
 	workers->init_iterator(workers, &it);
@@ -313,7 +315,7 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 		{
 			/* Sometimes workers didn't take the tasks as early as we expected */
 			_starpu_worker_lock(workerid);
-			worker_exp_start[workerid] = STARPU_MAX(worker_exp_start[workerid], starpu_timing_now());
+			worker_exp_start[workerid] = STARPU_MAX(worker_exp_start[workerid], now);
 			worker_exp_end[workerid] = worker_exp_start[workerid] + worker_exp_len[workerid];
 			if (worker_exp_end[workerid] > max_exp_end)
 				max_exp_end = worker_exp_end[workerid];
@@ -500,6 +502,7 @@ static int parallel_heft_push_task(struct starpu_task *task)
 static void parallel_heft_add_workers(__attribute__((unused)) unsigned sched_ctx_id, int *workerids, unsigned nworkers)
 {
 	unsigned i;
+	double now = starpu_timing_now();
 	for (i = 0; i < nworkers; i++)
 	{
 		int workerid = workerids[i];
@@ -507,7 +510,7 @@ static void parallel_heft_add_workers(__attribute__((unused)) unsigned sched_ctx
 		/* init these structures only once for each worker */
 		if(!workerarg->has_prev_init)
 		{
-			worker_exp_start[workerid] = starpu_timing_now();
+			worker_exp_start[workerid] = now;
 			worker_exp_len[workerid] = 0.0;
 			worker_exp_end[workerid] = worker_exp_start[workerid];
 			ntasks[workerid] = 0;

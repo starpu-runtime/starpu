@@ -60,12 +60,23 @@ For each task not going through the scheduler (because starpu_task::execute_on_a
 	of the scheduler coherent even when StarPU bypasses the
 	scheduling strategy.
 \var struct starpu_task *(*starpu_sched_policy::pop_task)(unsigned sched_ctx_id)
-        Get a task from the scheduler. The mutex associated to the
-	worker is already taken when this method is called. If this
-	method is defined as <c>NULL</c>, the worker will only execute tasks
-	from its local queue. In this case, the push_task method
-	should use the starpu_push_local_task method to assign tasks
-	to the different workers.
+        Get a task from the scheduler.
+        If this method returns NULL, the worker will start sleeping. If later on
+        some task are pushed for this worker, starpu_wake_worker() must be
+        called to wake the worker so it can call the pop_task() method again.
+	
+        The mutex associated to the worker is already taken when this method
+        is called. This method may release it (e.g. for scalability reasons
+        when doing work stealing), but it must acquire it again before taking
+        the decision whether to return a task or NULL, so the atomicity of
+        deciding to return NULL and making the worker actually sleep is
+        preserved. Otherwise in simgrid or blocking driver mode the worker might start
+        sleeping while a task has just been pushed for it.
+
+        If this method is defined as <c>NULL</c>, the worker will only execute
+        tasks from its local queue. In this case, the push_task method should
+        use the starpu_push_local_task method to assign tasks to the different
+        workers.
 \var struct starpu_task *(*starpu_sched_policy::pop_every_task)(unsigned sched_ctx_id)
         Remove all available tasks from the scheduler (tasks are
 	chained by the means of the field starpu_task::prev and
@@ -105,6 +116,13 @@ condition variable (and the associated mutex) should be used to block
 condition variable. For instance, in the case of a scheduling strategy
 with a single task queue, the same condition variable would be used to
 block and wake up all workers.
+
+\fn int starpu_wake_worker(int workerid)
+\ingroup API_Scheduling_Policy
+In simgrid or blocking driver mode, 
+this should be called by push functions to wake the potential workers that are
+supposed to pick up the tasks which just have been pushed, otherwise they may
+remain sleeping.
 
 \fn void starpu_worker_get_job_id(struct starpu_task *task)
 \ingroup API_Scheduling_Policy
