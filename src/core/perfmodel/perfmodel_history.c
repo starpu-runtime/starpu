@@ -480,12 +480,12 @@ static void scan_reg_model(FILE *f, const char *path, struct starpu_perfmodel_re
 #ifndef STARPU_SIMGRID
 static void check_history_entry(struct starpu_perfmodel_history_entry *entry)
 {
-	STARPU_ASSERT(entry->deviation >= 0);
-	STARPU_ASSERT(entry->sum >= 0);
-	STARPU_ASSERT(entry->sum2 >= 0);
-	STARPU_ASSERT(entry->mean >= 0);
-	STARPU_ASSERT(entry->flops >= 0);
-	STARPU_ASSERT(entry->duration >= 0);
+	STARPU_ASSERT_MSG(entry->deviation >= 0, "entry=%p, entry->deviation=%lf\n", entry, entry->deviation);
+	STARPU_ASSERT_MSG(entry->sum >= 0, "entry=%p, entry->sum=%lf\n", entry, entry->sum);
+	STARPU_ASSERT_MSG(entry->sum2 >= 0, "entry=%p, entry->sum2=%lf\n", entry, entry->sum2);
+	STARPU_ASSERT_MSG(entry->mean >= 0, "entry=%p, entry->mean=%lf\n", entry, entry->mean);
+	STARPU_ASSERT_MSG(isnan(entry->flops)||entry->flops >= 0, "entry=%p, entry->flops=%lf\n", entry, entry->flops);
+	STARPU_ASSERT_MSG(entry->duration >= 0, "entry=%p, entry->duration=%lf\n", entry, entry->duration);
 }
 static void dump_history_entry(FILE *f, struct starpu_perfmodel_history_entry *entry)
 {
@@ -1738,7 +1738,7 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 
 					unsigned n = entry->nsample;
 					entry->mean = entry->sum / n;
-					entry->deviation = sqrt((entry->sum2 - (entry->sum*entry->sum)/n)/n);
+					entry->deviation = sqrt((fabs(entry->sum2 - (entry->sum*entry->sum))/n)/n);
 				}
 
 				if (j->task->flops != 0.)
