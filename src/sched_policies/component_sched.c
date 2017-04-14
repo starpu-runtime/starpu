@@ -262,8 +262,8 @@ void _starpu_sched_component_update_workers(struct starpu_sched_component * comp
 	{
 		_starpu_sched_component_update_workers(component->children[i]);
 		starpu_bitmap_or(component->workers, component->children[i]->workers);
-		component->notify_change_workers(component);
 	}
+	component->notify_change_workers(component);
 }
 
 /* recursively set the component->workers_in_ctx in component's subtree
@@ -280,12 +280,7 @@ void _starpu_sched_component_update_workers_in_ctx(struct starpu_sched_component
 	{
 		struct starpu_sched_component * child = component->children[i];
 		_starpu_sched_component_update_workers_in_ctx(child, sched_ctx_id);
-		for(j = 0; j < STARPU_NMAX_SCHED_CTXS; j++)
-			if(child->parents[j] == component)
-			{
-				starpu_bitmap_or(component->workers_in_ctx, child->workers_in_ctx);
-				break;
-			}
+		starpu_bitmap_or(component->workers_in_ctx, child->workers_in_ctx);
 	}
 	set_properties(component);
 	component->notify_change_workers(component);
