@@ -78,6 +78,21 @@ able to submit and complete data transfers while kernels are executing, instead 
 kernel submission. The kernel just has to make sure that StarPU can use the
 local stream to synchronize with the kernel startup and completion.
 
+If the kernel uses its own non-default stream, one can synchronize that stream
+with the StarPU-provided stream this way:
+
+\code{.c}
+cudaEvent_t event;
+call_kernel_with_its_own_stream()
+cudaEventCreateWithFlags(&event, cudaEventDisableTiming);
+cudaEventRecord(event, get_kernel_stream());
+cudaStreamWaitEvent(starpu_cuda_get_local_stream(), event, 0);
+cudaEventDestroy(event);
+\endcode
+
+That code makes the StarPU-provided stream wait for a new event, which will be
+triggered by the completion of the kernel.
+
 Using the flag ::STARPU_CUDA_ASYNC also permits to enable concurrent kernel
 execution, on cards which support it (Kepler and later, notably). This is
 enabled by setting the environment variable \ref STARPU_NWORKER_PER_CUDA to the
