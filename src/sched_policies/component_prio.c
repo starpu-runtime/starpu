@@ -162,9 +162,9 @@ static int prio_push_local_task(struct starpu_sched_component * component, struc
 		STARPU_ASSERT(!isnan(prio->exp_len));
 		STARPU_ASSERT(!isnan(prio->exp_start));
 		
+		STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
 		if(!is_pushback)
 			component->can_pull(component);
-		STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
 	}
 
 	return ret;
