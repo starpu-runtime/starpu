@@ -168,6 +168,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	common/thread.c						\
 	common/rbtree.c						\
 	common/graph.c						\
+	common/inlines.c					\
 	core/jobs.c						\
 	core/task.c						\
 	core/task_bundle.c					\
