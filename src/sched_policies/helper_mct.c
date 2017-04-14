@@ -119,9 +119,8 @@ double starpu_mct_compute_fitness(struct _starpu_mct_data * d, double exp_end, d
 		+ d->_gamma * d->idle_power * (exp_end - max_exp_end);
 }
 
-int starpu_mct_compute_expected_times(struct starpu_sched_component *component, struct starpu_task *task,
-		double *estimated_lengths, double *estimated_transfer_length, double *estimated_ends_with_task,
-		double *min_exp_end_with_task, double *max_exp_end_with_task, int *suitable_components)
+int starpu_mct_compute_execution_times(struct starpu_sched_component *component, struct starpu_task *task,
+				       double *estimated_lengths, double *estimated_transfer_length, int *suitable_components) 
 {
 	int nsuitable_components = 0;
 	double now = starpu_timing_now();
@@ -136,22 +135,34 @@ int starpu_mct_compute_expected_times(struct starpu_sched_component *component, 
 				/* The perfmodel had been purged since the task was pushed
 				 * onto the mct component. */
 				continue;
-
-			/* Estimated availability of worker */
-			double estimated_end = c->estimated_end(c);
-			if (estimated_end < now)
-				estimated_end = now;
 			estimated_transfer_length[i] = starpu_sched_component_transfer_length(c, task);
-			estimated_ends_with_task[i] = compute_expected_time(now,
-									    estimated_end,
-									    estimated_lengths[i],
-									    estimated_transfer_length[i]);
-			if(estimated_ends_with_task[i] < *min_exp_end_with_task)
-				*min_exp_end_with_task = estimated_ends_with_task[i];
-			if(estimated_ends_with_task[i] > *max_exp_end_with_task)
-				*max_exp_end_with_task = estimated_ends_with_task[i];
 			suitable_components[nsuitable_components++] = i;
 		}
 	}
 	return nsuitable_components;
+}
+
+void starpu_mct_compute_expected_times(struct starpu_sched_component *component, struct starpu_task *task,
+		double *estimated_lengths, double *estimated_transfer_length, double *estimated_ends_with_task,
+				       double *min_exp_end_with_task, double *max_exp_end_with_task, int *suitable_components, int nsuitable_components)
+{
+	int i;
+	double now = starpu_timing_now();
+	for(i = 0; i < nsuitable_components; i++)
+	{
+		int icomponent = suitable_components[i];
+		struct starpu_sched_component * c = component->children[icomponent];
+		/* Estimated availability of worker */
+		double estimated_end = c->estimated_end(c);
+		if (estimated_end < now)
+			estimated_end = now;
+		estimated_ends_with_task[icomponent] = compute_expected_time(now,
+								    estimated_end,
+								    estimated_lengths[icomponent],
+								    estimated_transfer_length[icomponent]);
+		if(estimated_ends_with_task[icomponent] < *min_exp_end_with_task)
+			*min_exp_end_with_task = estimated_ends_with_task[icomponent];
+		if(estimated_ends_with_task[icomponent] > *max_exp_end_with_task)
+			*max_exp_end_with_task = estimated_ends_with_task[icomponent];
+	}
 }
