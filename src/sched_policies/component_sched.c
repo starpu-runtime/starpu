@@ -369,6 +369,35 @@ struct starpu_task * starpu_sched_component_pull_task(struct starpu_sched_compon
 	return task;
 }
 
+
+/* Pump mechanic to get the task flow rolling. Takes tasks from component and send them to the child.
+   To be used by components with only one child */
+struct starpu_task* starpu_sched_component_pump_downstream(struct starpu_sched_component *component, int* success) 
+{
+	int ret = 0;
+	
+	STARPU_ASSERT(component->nchildren == 1);
+	struct starpu_sched_component * child = component->children[0];
+	struct starpu_task * task;
+
+	while (1)
+	{
+		task = starpu_sched_component_pull_task(component,component);
+		if (!task)
+			break;
+		ret = starpu_sched_component_push_task(component,child,task);	
+		if (ret)
+			break;
+		if(success) 
+			* success = 1; 
+	}
+	if(task && ret)
+		return task;
+
+	return NULL;
+	
+}
+
 void starpu_sched_tree_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
 {
 	STARPU_ASSERT(sched_ctx_id < STARPU_NMAX_SCHED_CTXS);
