@@ -56,7 +56,8 @@ the field starpu_task::dyn_handles when defining a task and the field
 starpu_codelet::dyn_modes when defining the corresponding codelet.
 
 \code{.c}
-enum starpu_data_access_mode modes[STARPU_NMAXBUFS+1] = {
+enum starpu_data_access_mode modes[STARPU_NMAXBUFS+1] =
+{
 	STARPU_R, STARPU_R, ...
 };
 
@@ -132,7 +133,8 @@ void scal_sse_func(void *buffers[], void *cl_arg)
 \endcode
 
 \code{.c}
-struct starpu_codelet cl = {
+struct starpu_codelet cl =
+{
     .cpu_funcs = { scal_cpu_func, scal_sse_func },
     .cpu_funcs_name = { "scal_cpu_func", "scal_sse_func" },
     .nbuffers = 1,
@@ -167,7 +169,8 @@ static int can_execute(unsigned workerid, struct starpu_task *task, unsigned nim
   return 0;
 }
 
-struct starpu_codelet cl = {
+struct starpu_codelet cl =
+{
     .can_execute = can_execute,
     .cpu_funcs = { cpu_func },
     .cpu_funcs_name = { "cpu_func" },
@@ -212,7 +215,8 @@ static int can_execute(unsigned workerid, struct starpu_task *task, unsigned nim
   return 0;
 }
 
-struct starpu_codelet cl = {
+struct starpu_codelet cl =
+{
     .can_execute = can_execute,
     .cpu_funcs = { cpu_func },
     .cpu_funcs_name = { "cpu_func" },
@@ -247,7 +251,8 @@ static int can_execute(unsigned workerid, struct starpu_task *task, unsigned nim
   }
 }
 
-struct starpu_codelet cl = {
+struct starpu_codelet cl =
+{
     .can_execute = can_execute,
     .cpu_funcs = { cpu_func },
     .cpu_funcs_name = { "cpu_func" },
@@ -280,7 +285,8 @@ void func_cpu(void *descr[], void *_args)
         *x1 = *x1 * ffactor;
 }
 
-struct starpu_codelet mycodelet = {
+struct starpu_codelet mycodelet =
+{
         .cpu_funcs = { func_cpu },
         .cpu_funcs_name = { "func_cpu" },
         .nbuffers = 2,
@@ -544,7 +550,8 @@ An intermediate solution is to define a codelet with its
 starpu_codelet::where field set to \ref STARPU_NOWHERE, for instance:
 
 \code{.c}
-struct starpu_codelet cl = {
+struct starpu_codelet cl =
+{
 	.where = STARPU_NOWHERE,
 	.nbuffers = 1,
 	.modes = { STARPU_R },

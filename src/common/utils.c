@@ -464,6 +464,10 @@ char *_starpu_get_home_path(void)
 		static int warn;
 		path = starpu_getenv("TMPDIR");
 		if (!path)
+			path = starpu_getenv("TEMP");
+		if (!path)
+			path = starpu_getenv("TMP");
+		if (!path)
 			path = "/tmp";
 		if (!warn)
 		{

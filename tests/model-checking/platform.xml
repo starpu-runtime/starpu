@@ -1,0 +1,18 @@
+<?xml version='1.0'?>
+<!DOCTYPE platform SYSTEM 'http://simgrid.gforge.inria.fr/simgrid/simgrid.dtd'>
+ <platform version="4">
+ <config id="General">
+   <prop id="network/TCP-gamma" value="-1"></prop>
+   <prop id="network/latency-factor" value="1"></prop>
+   <prop id="network/bandwidth-factor" value="1"></prop>
+ </config>
+ <AS  id="AS0"  routing="Full">
+   <host id="MAIN" speed="1f"/>
+   <host id="CPU0" speed="2000000000f"/>
+   <host id="CPU1" speed="2000000000f"/>
+
+   <host id="RAM" speed="1f"/>
+
+   <link id="Host" bandwidth="0.000000Bps" latency="0.000000s"/>
+ </AS>
+ </platform>

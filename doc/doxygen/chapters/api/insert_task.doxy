@@ -6,7 +6,7 @@
  * See the file version.doxy for copying conditions.
  */
 
-/*! \defgroup API_Insert_Task Insert_Task
+/*! \defgroup API_Insert_Task Task Insert Utility
 
 \fn int starpu_insert_task(struct starpu_codelet *cl, ...)
 \ingroup API_Insert_Task
