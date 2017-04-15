@@ -795,6 +795,12 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 
 	worker->current_tasks[(worker->first_task  + worker->ntasks)%STARPU_MAX_PIPELINE] = task;
 	worker->ntasks++;
+	if (worker->pipeline_length == 0)
+	/* _starpu_get_worker_task checks .current_task field if pipeline_length == 0
+	 *
+	 * TODO: update driver to not use current_tasks[] when pipeline_length == 0,
+	 * as for cuda driver */
+		worker->current_task = task;
 
 	/* can OpenCL do that task ? */
 	if (!_STARPU_OPENCL_MAY_PERFORM(j))
