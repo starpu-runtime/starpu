@@ -203,9 +203,16 @@ static struct starpu_task * prio_pull_task(struct starpu_sched_component * compo
 		}
 		STARPU_ASSERT_MSG(prio->exp_len>=0, "prio->exp_len=%lf\n",prio->exp_len);
 		if(!isnan(task->predicted_transfer)){
-			prio->exp_start += task->predicted_transfer; 
-			prio->exp_len -= task->predicted_transfer; 
-			STARPU_ASSERT_MSG(prio->exp_len>=0, "prio->exp_len=%lf\n",prio->exp_len);
+			if (prio->exp_len > task->predicted_transfer)
+			{
+				prio->exp_start += task->predicted_transfer;
+				prio->exp_len -= task->predicted_transfer;
+			}
+			else
+			{
+				prio->exp_start += prio->exp_len;
+				prio->exp_len = 0;
+			}
 		}
 
 		prio->exp_end = prio->exp_start + prio->exp_len;
