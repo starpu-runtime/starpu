@@ -793,6 +793,9 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 
 	j = _starpu_get_job_associated_to_task(task);
 
+	worker->current_tasks[(worker->first_task  + worker->ntasks)%STARPU_MAX_PIPELINE] = task;
+	worker->ntasks++;
+
 	/* can OpenCL do that task ? */
 	if (!_STARPU_OPENCL_MAY_PERFORM(j))
 	{
@@ -802,8 +805,6 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 	}
 
 	_STARPU_TRACE_END_PROGRESS(memnode);
-	worker->current_tasks[(worker->first_task  + worker->ntasks)%STARPU_MAX_PIPELINE] = task;
-	worker->ntasks++;
 
 	/* Fetch data asynchronously */
 	res = _starpu_fetch_task_input(task, j, 1);
