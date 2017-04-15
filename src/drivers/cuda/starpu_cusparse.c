@@ -30,7 +30,11 @@ static cusparseHandle_t main_handle;
 static void init_cusparse_func(void *args STARPU_ATTRIBUTE_UNUSED)
 {
 	cusparseCreate(&cusparse_handles[starpu_worker_get_id_check()]);
+#if HAVE_DECL_CUSPARSESETSTREAM
 	cusparseSetStream(cusparse_handles[starpu_worker_get_id_check()], starpu_cuda_get_local_stream());
+#else
+	cusparseSetKernelStream(cusparse_handles[starpu_worker_get_id_check()], starpu_cuda_get_local_stream());
+#endif
 }
 
 static void shutdown_cusparse_func(void *args STARPU_ATTRIBUTE_UNUSED)
