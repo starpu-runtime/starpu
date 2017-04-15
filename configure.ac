@@ -1116,6 +1116,9 @@ if test x$enable_cuda = xyes; then
 	fi
 
 	AC_CHECK_HEADERS([cuda_gl_interop.h])
+
+	AC_CHECK_LIB([cusparse], [cusparseCreate])
+	AC_CHECK_DECLS([cusparseSetStream], [], [], [[#include <cusparse.h>]])
 fi
 
 dnl Hey dude, are you around?

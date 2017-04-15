@@ -20,12 +20,17 @@ struct _starpu_mct_data
 	double beta;
 	double _gamma;
 	double idle_power;
+	starpu_pthread_mutex_t scheduling_mutex; 
 };
 
 struct _starpu_mct_data *starpu_mct_init_parameters(struct starpu_sched_component_mct_data *params);
 
-int starpu_mct_compute_expected_times(struct starpu_sched_component *component, struct starpu_task *task,
+int starpu_mct_compute_execution_times(struct starpu_sched_component *component, struct starpu_task *task,
+				       double *estimated_lengths, double *estimated_transfer_length, int *suitable_components);
+
+
+void starpu_mct_compute_expected_times(struct starpu_sched_component *component, struct starpu_task *task,
 		double *estimated_lengths, double *estimated_transfer_length, double *estimated_ends_with_task,
-		double *min_exp_end_with_task, double *max_exp_end_with_task, int *suitable_components);
+				       double *min_exp_end_with_task, double *max_exp_end_with_task, int *suitable_components, int nsuitable_components);
 
 double starpu_mct_compute_fitness(struct _starpu_mct_data * d, double exp_end, double min_exp_end, double max_exp_end, double transfer_len, double local_energy);

@@ -139,7 +139,6 @@ int _starpu_task_wait_for_all_in_ctx_and_return_nb_waited_tasks(unsigned sched_c
 #ifdef BUILDING_STARPU
 LIST_CREATE_TYPE_NOSTRUCT(starpu_task, prev, next);
 PRIO_LIST_CREATE_TYPE(starpu_task, priority);
-#define __STARPU_TASK_LIST_H__
 #endif
 
 #endif // __CORE_TASK_H__

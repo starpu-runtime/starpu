@@ -90,12 +90,17 @@ static int heft_progress_one(struct starpu_sched_component *component)
 			min_exp_end_with_task[n] = DBL_MAX;
 			max_exp_end_with_task[n] = 0.0;
 
-			nsuitable_components[n] = starpu_mct_compute_expected_times(component, tasks[n],
+			nsuitable_components[n] = starpu_mct_compute_execution_times(component, tasks[n],
+					estimated_lengths + offset,
+					estimated_transfer_length + offset,
+					suitable_components + offset);
+
+			starpu_mct_compute_expected_times(component, tasks[n],
 					estimated_lengths + offset,
 					estimated_transfer_length + offset,
 					estimated_ends_with_task + offset,
 					&min_exp_end_with_task[n], &max_exp_end_with_task[n],
-					suitable_components + offset);
+							  suitable_components + offset, nsuitable_components[n]);
 		}
 
 		int best_task = 0;

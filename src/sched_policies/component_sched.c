@@ -263,8 +263,8 @@ void _starpu_sched_component_update_workers(struct starpu_sched_component * comp
 	{
 		_starpu_sched_component_update_workers(component->children[i]);
 		starpu_bitmap_or(component->workers, component->children[i]->workers);
-		component->notify_change_workers(component);
 	}
+	component->notify_change_workers(component);
 }
 
 /* recursively set the component->workers_in_ctx in component's subtree
@@ -283,6 +283,7 @@ void _starpu_sched_component_update_workers_in_ctx(struct starpu_sched_component
 	{
 		struct starpu_sched_component * child = component->children[i];
 		_starpu_sched_component_update_workers_in_ctx(child, sched_ctx_id);
+		starpu_bitmap_or(component->workers_in_ctx, child->workers_in_ctx);
 	}
 	set_properties(component);
 	component->notify_change_workers(component);
@@ -364,6 +365,35 @@ struct starpu_task * starpu_sched_component_pull_task(struct starpu_sched_compon
 	if (task)
 		_STARPU_TRACE_SCHED_COMPONENT_PULL(from, to, task);
 	return task;
+}
+
+
+/* Pump mechanic to get the task flow rolling. Takes tasks from component and send them to the child.
+   To be used by components with only one child */
+struct starpu_task* starpu_sched_component_pump_downstream(struct starpu_sched_component *component, int* success) 
+{
+	int ret = 0;
+	
+	STARPU_ASSERT(component->nchildren == 1);
+	struct starpu_sched_component * child = component->children[0];
+	struct starpu_task * task;
+
+	while (1)
+	{
+		task = starpu_sched_component_pull_task(component,component);
+		if (!task)
+			break;
+		ret = starpu_sched_component_push_task(component,child,task);	
+		if (ret)
+			break;
+		if(success) 
+			* success = 1; 
+	}
+	if(task && ret)
+		return task;
+
+	return NULL;
+	
 }
 
 void starpu_sched_tree_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
@@ -554,6 +584,32 @@ static void starpu_sched_component_can_pull(struct starpu_sched_component * comp
 	for(i = 0; i < component->nchildren; i++)
 		component->children[i]->can_pull(component->children[i]);
 }
+
+
+/* Alternative can_pull which says that this component does not want
+   to pull but prefers that you push. It can be used by decision
+   components, in which decisions are usually taken in their push()
+   functions */
+void starpu_sched_component_send_can_push_to_parents(struct starpu_sched_component * component)
+{
+	STARPU_ASSERT(component);
+	STARPU_ASSERT(!starpu_sched_component_is_worker(component));
+	
+	int i,ret;
+	for(i=0; i < component->nparents; i++)
+	{
+		if(component->parents[i] == NULL)
+			continue;
+		else
+		{
+			ret = component->parents[i]->can_push(component->parents[i]);
+			if(ret)
+				break;
+		}
+	}
+	
+}
+
 
 double starpu_sched_component_estimated_load(struct starpu_sched_component * component)
 {

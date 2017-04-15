@@ -168,6 +168,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	common/thread.c						\
 	common/rbtree.c						\
 	common/graph.c						\
+	common/inlines.c					\
 	core/jobs.c						\
 	core/task.c						\
 	core/task_bundle.c					\
@@ -317,6 +318,7 @@ endif
 endif
 
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/cuda/starpu_cublas.c
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/cuda/starpu_cusparse.c
 
 if STARPU_USE_OPENCL
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/opencl/driver_opencl.c

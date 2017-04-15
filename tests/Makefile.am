@@ -154,6 +154,7 @@ myPROGRAMS +=					\
 	errorcheck/starpu_init_noworker		\
 	errorcheck/invalid_tasks		\
 	helper/cublas_init			\
+	helper/cusparse_init			\
 	helper/pinned_memory			\
 	helper/execute_on_all			\
 	microbenchs/display_structures_size	\
