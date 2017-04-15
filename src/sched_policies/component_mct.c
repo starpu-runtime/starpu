@@ -66,7 +66,7 @@ static int mct_push_task(struct starpu_sched_component * component, struct starp
 
 	/* Entering critical section to make sure no two workers
 	   make scheduling decisions at the same time */
-	STARPU_PTHREAD_MUTEX_LOCK(&d->scheduling_mutex); 
+	STARPU_COMPONENT_MUTEX_LOCK(&d->scheduling_mutex); 
 
 
 	starpu_mct_compute_expected_times(component, task, estimated_lengths, estimated_transfer_length, 
@@ -99,7 +99,7 @@ static int mct_push_task(struct starpu_sched_component * component, struct starp
 	 * We should send a push_fail message to its parent so that it will
 	 * be able to reschedule the task properly. */
 	if(best_icomponent == -1) {
-		STARPU_PTHREAD_MUTEX_UNLOCK(&d->scheduling_mutex); 
+		STARPU_COMPONENT_MUTEX_UNLOCK(&d->scheduling_mutex); 
 		return 1;
 	}
 
@@ -111,7 +111,7 @@ static int mct_push_task(struct starpu_sched_component * component, struct starp
 	if(starpu_sched_component_is_worker(best_component))
 	{
 		best_component->can_pull(best_component);
-		STARPU_PTHREAD_MUTEX_UNLOCK(&d->scheduling_mutex); 
+		STARPU_COMPONENT_MUTEX_UNLOCK(&d->scheduling_mutex); 
 		
 		return 1;
 	}
@@ -121,7 +121,7 @@ static int mct_push_task(struct starpu_sched_component * component, struct starp
 	
 	/* I can now exit the critical section: Pushing the task below ensures that its execution 
 	   time will be taken into account for subsequent scheduling decisions */
-	STARPU_PTHREAD_MUTEX_UNLOCK(&d->scheduling_mutex); 
+	STARPU_COMPONENT_MUTEX_UNLOCK(&d->scheduling_mutex); 
 
 	return ret;
 }
