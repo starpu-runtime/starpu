@@ -171,7 +171,7 @@ static unsigned select_worker_round_robin(struct _starpu_work_stealing_data *ws,
 	worker = ws->last_push_worker;
 	do
 		worker = (worker + 1) % nworkers;
-	while (!starpu_worker_can_execute_task_first_impl(workerids[worker], task, NULL));
+	while (ws->per_worker[worker].queue_array && !starpu_worker_can_execute_task_first_impl(workerids[worker], task, NULL));
 
 	ws->last_push_worker = worker;
 
@@ -214,7 +214,7 @@ static unsigned select_worker_locality(struct _starpu_work_stealing_data *ws, st
 		while(workers->has_next(workers, &it))
 		{
 			int workerid = workers->get_next(workers, &it);
-			if (ndata[workerid] > best_ndata && ws->per_worker[workerid].busy)
+			if (ndata[workerid] > best_ndata && ws->per_worker[worker].queue_array && ws->per_worker[workerid].busy)
 			{
 				best_worker = workerid;
 				best_ndata = ndata[workerid];
@@ -434,7 +434,7 @@ static int select_victim_overload(struct _starpu_work_stealing_data *ws, unsigne
                 unsigned worker = workers->get_next(workers, &it);
 		float worker_ratio = overload_metric(ws, sched_ctx_id, worker);
 
-		if (worker_ratio > best_ratio && ws->per_worker[worker].busy)
+		if (worker_ratio > best_ratio && ws->per_worker[worker].queue_array && ws->per_worker[worker].busy)
 		{
 			best_worker = worker;
 			best_ratio = worker_ratio;
@@ -471,7 +471,7 @@ static unsigned select_worker_overload(struct _starpu_work_stealing_data *ws, st
 		unsigned worker = workers->get_next(workers, &it);
 		float worker_ratio = overload_metric(ws, sched_ctx_id, worker);
 
-		if (worker_ratio < best_ratio && starpu_worker_can_execute_task_first_impl(worker, task, NULL))
+		if (worker_ratio < best_ratio && ws->per_worker[worker].queue_array && starpu_worker_can_execute_task_first_impl(worker, task, NULL))
 		{
 			best_worker = worker;
 			best_ratio = worker_ratio;
@@ -644,6 +644,7 @@ int ws_push_task(struct starpu_task *task)
 	STARPU_AYU_ADDTOTASKQUEUE(starpu_task_get_job_id(task), workerid);
 	_STARPU_TASK_BREAK_ON(task, sched);
 	record_data_locality(task, workerid);
+	STARPU_ASSERT_MSG(ws->per_worker[workerid].queue_array, "workerid=%d, ws=%p\n", workerid, ws);
 	_starpu_fifo_push_task(ws->per_worker[workerid].queue_array, task);
 	locality_pushed_task(ws, task, workerid, sched_ctx_id);
 
