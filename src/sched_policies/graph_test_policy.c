@@ -124,8 +124,19 @@ static struct _starpu_prio_deque *select_prio(unsigned sched_ctx_id, struct _sta
 			length = 0.;
 		if (length == 0.)
 		{
-			_STARPU_DISP("Warning: graph_test needs performance models for all tasks, including %s\n",
-					starpu_task_get_name(task));
+			if (!task->cl || task->cl->model == NULL)
+			{
+				static unsigned _warned;
+				if (STARPU_ATOMIC_ADD(&_warned, 1) == 1)
+				{
+					_STARPU_DISP("Warning: graph_test needs performance models for all tasks, including %s\n",
+							starpu_task_get_name(task));
+				}
+				else
+				{
+					(void)STARPU_ATOMIC_ADD(&_warned, -1);
+				}
+			}
 			power = 0.;
 		}
 		else
