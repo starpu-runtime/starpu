@@ -658,7 +658,7 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 
 	struct starpu_sched_ctx_iterator it;
 	workers->init_iterator_for_parallel_tasks(workers, &it, task);
-	while(workers->has_next(workers, &it))
+	while(worker_ctx<nworkers && workers->has_next(workers, &it))
 	{
 		unsigned nimpl;
 		unsigned impl_mask;
@@ -858,7 +858,7 @@ static double _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned 
 		unsigned worker_ctx = 0;
 		struct starpu_sched_ctx_iterator it;
 		workers->init_iterator_for_parallel_tasks(workers, &it, task);
-		while(workers->has_next(workers, &it))
+		while(worker_ctx < nworkers_ctx && workers->has_next(workers, &it))
 		{
 			unsigned worker = workers->get_next(workers, &it);
 			unsigned nimpl;
