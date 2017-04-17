@@ -185,8 +185,15 @@ static void do_schedule_graph_test_policy(unsigned sched_ctx_id)
 		_starpu_graph_compute_descendants();
 	else
 		_starpu_graph_compute_depths();
-	data->computed = 1;
-	_starpu_graph_foreach(set_priority, data);
+	if (data->computed == 0)
+	{
+		data->computed = 1;
+
+		/* FIXME: if data->computed already == 1, some tasks may already have been pushed to priority stage '0' in
+		 * push_task_graph_test_policy, then if we change the priority here, the stage lookup to remove the task
+		 * will get the wrong stage */
+		_starpu_graph_foreach(set_priority, data);
+	}
 
 	/* Now that we have priorities, move tasks from bag to priority queue */
 	while(!_starpu_fifo_empty(data->fifo))
