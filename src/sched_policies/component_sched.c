@@ -283,7 +283,6 @@ void _starpu_sched_component_update_workers_in_ctx(struct starpu_sched_component
 	{
 		struct starpu_sched_component * child = component->children[i];
 		_starpu_sched_component_update_workers_in_ctx(child, sched_ctx_id);
-		starpu_bitmap_or(component->workers_in_ctx, child->workers_in_ctx);
 	}
 	set_properties(component);
 	component->notify_change_workers(component);
