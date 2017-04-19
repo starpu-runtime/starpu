@@ -1541,7 +1541,7 @@ void _starpu_init_all_sched_ctxs(struct _starpu_machine_config *config)
 	nobind = starpu_get_env_number("STARPU_WORKERS_NOBIND");
 
 	unsigned i;
-	for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
+	for(i = 0; i <= STARPU_NMAX_SCHED_CTXS; i++)
 		config->sched_ctxs[i].id = STARPU_NMAX_SCHED_CTXS;
 
 	return;

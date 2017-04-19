@@ -160,6 +160,7 @@ myPROGRAMS +=					\
 	microbenchs/display_structures_size	\
 	microbenchs/local_pingpong		\
 	sched_ctx/sched_ctx_list		\
+	sched_ctx/sched_ctx_policy_data		\
 	perfmodels/value_nan
 
 if !STARPU_SIMGRID
@@ -601,6 +602,9 @@ endif
 
 sched_ctx_sched_ctx_list_SOURCES =	\
 	sched_ctx/sched_ctx_list.c
+
+sched_ctx_sched_ctx_policy_data_SOURCES =	\
+	sched_ctx/sched_ctx_policy_data.c
 
 sched_ctx_sched_ctx_hierarchy_SOURCES =	\
 	sched_ctx/sched_ctx_hierarchy.c

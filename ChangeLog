@@ -49,6 +49,8 @@ Changes:
 
 Small changes:
   * Use asynchronous transfers for task data fetches with were not prefetched.
+  * Allow to call starpu_sched_ctx_set_policy_data on the main
+    scheduler context
 
 StarPU 1.2.2 (svn revision xxx)
 ==============================================
