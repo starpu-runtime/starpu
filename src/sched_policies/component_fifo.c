@@ -152,13 +152,14 @@ static struct starpu_task * fifo_pull_task(struct starpu_sched_component * compo
 	struct _starpu_fifo_data * data = component->data;
 	struct _starpu_fifo_taskq * fifo = data->fifo;
 	starpu_pthread_mutex_t * mutex = &data->mutex;
+	const double now = starpu_timing_now();
 	STARPU_COMPONENT_MUTEX_LOCK(mutex);
 	struct starpu_task * task = _starpu_fifo_pop_task(fifo, starpu_worker_get_id_check());
 	if(task)
 	{
 		if(!isnan(task->predicted))
 		{
-			fifo->exp_start = starpu_timing_now() + task->predicted;
+			fifo->exp_start = now + task->predicted;
 			fifo->exp_len -= task->predicted;
 		}
 		fifo->exp_end = fifo->exp_start + fifo->exp_len;

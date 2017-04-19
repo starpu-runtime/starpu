@@ -1118,6 +1118,7 @@ static void dmda_pre_exec_hook(struct starpu_task *task, unsigned sched_ctx_id)
 	unsigned workerid = starpu_worker_get_id_check();
 	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	struct _starpu_fifo_taskq *fifo = dt->queue_array[workerid];
+	const double now = starpu_timing_now();
 
 	/* Once the task is executing, we can update the predicted amount
 	 * of work. */
@@ -1126,7 +1127,7 @@ static void dmda_pre_exec_hook(struct starpu_task *task, unsigned sched_ctx_id)
 	_starpu_fifo_task_started(fifo, task, dt->num_priorities);
 
 	/* Take the opportunity to update start time */
-	fifo->exp_start = STARPU_MAX(starpu_timing_now() + fifo->pipeline_len, fifo->exp_start);
+	fifo->exp_start = STARPU_MAX(now + fifo->pipeline_len, fifo->exp_start);
 	fifo->exp_end = fifo->exp_start + fifo->exp_len;
 
 	_starpu_worker_unlock_self();

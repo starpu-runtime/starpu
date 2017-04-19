@@ -81,6 +81,7 @@ static void parallel_heft_pre_exec_hook(struct starpu_task *task, unsigned sched
 	unsigned workerid = starpu_worker_get_id_check();
 	double model = task->predicted;
 	double transfer_model = task->predicted_transfer;
+	const double now = starpu_timing_now();
 
 	if (isnan(model))
 		model = 0.0;
@@ -92,7 +93,7 @@ static void parallel_heft_pre_exec_hook(struct starpu_task *task, unsigned sched
 	 * of work. */
 	_starpu_worker_lock_self();
 	worker_exp_len[workerid] -= model + transfer_model;
-	worker_exp_start[workerid] = starpu_timing_now() + model;
+	worker_exp_start[workerid] = now + model;
 	worker_exp_end[workerid] = worker_exp_start[workerid] + worker_exp_len[workerid];
 	ntasks[workerid]--;
 	_starpu_worker_unlock_self();

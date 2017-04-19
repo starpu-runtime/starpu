@@ -225,11 +225,12 @@ static inline void _starpu_worker_task_list_add(struct _starpu_worker_task_list 
 	double predicted = task->predicted;
 	double predicted_transfer = task->predicted_transfer;
 	double end = l->exp_end;
+	const double now = starpu_timing_now();
 
 	/* Sometimes workers didn't take the tasks as early as we expected */
-	l->exp_start = STARPU_MAX(l->exp_start, starpu_timing_now());
+	l->exp_start = STARPU_MAX(l->exp_start, now);
 
-	if (starpu_timing_now() + predicted_transfer < end)
+	if (now + predicted_transfer < end)
 	{
 		/* We may hope that the transfer will be finished by
 		 * the start of the task. */
@@ -239,7 +240,7 @@ static inline void _starpu_worker_task_list_add(struct _starpu_worker_task_list 
 	{
 		/* The transfer will not be finished by then, take the
 		 * remainder into account */
-		predicted_transfer = (starpu_timing_now() + predicted_transfer) - end;
+		predicted_transfer = (now + predicted_transfer) - end;
 	}
 
 	if(!isnan(predicted_transfer))
@@ -438,11 +439,12 @@ static struct starpu_task * simple_worker_pull_task(struct starpu_sched_componen
 	int n_tries = 0;
 	do
 	{
+		const double now = starpu_timing_now();
 		/* do not reset state_keep_awake here has it may hide tasks in worker->local_tasks */
 		n_tries++;
 		STARPU_COMPONENT_MUTEX_LOCK(&list->mutex);
 		/* Take the opportunity to update start time */
-		data->list->exp_start = STARPU_MAX(starpu_timing_now(), data->list->exp_start);
+		data->list->exp_start = STARPU_MAX(now, data->list->exp_start);
 		data->list->exp_end = data->list->exp_start + data->list->exp_len;
 		task =  _starpu_worker_task_list_pop(list);
 		if(task)
@@ -787,10 +789,11 @@ int starpu_sched_component_worker_get_workerid(struct starpu_sched_component * w
 void starpu_sched_component_worker_pre_exec_hook(struct starpu_task * task, unsigned sched_ctx_id STARPU_ATTRIBUTE_UNUSED)
 {
 	struct _starpu_worker_task_list * list = _worker_get_list(sched_ctx_id);
+	const double now = starpu_timing_now();
 	STARPU_COMPONENT_MUTEX_LOCK(&list->mutex);
 	_starpu_worker_task_list_started(list, task);
 	/* Take the opportunity to update start time */
-	list->exp_start = STARPU_MAX(starpu_timing_now() + list->pipeline_len, list->exp_start);
+	list->exp_start = STARPU_MAX(now + list->pipeline_len, list->exp_start);
 	STARPU_COMPONENT_MUTEX_UNLOCK(&list->mutex);
 }
 

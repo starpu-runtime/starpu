@@ -113,6 +113,7 @@ static int prio_push_local_task(struct starpu_sched_component * component, struc
 	struct _starpu_prio_deque * prio = &data->prio;
 	starpu_pthread_mutex_t * mutex = &data->mutex;
 	int ret;
+	const double now = starpu_timing_now();
 	STARPU_COMPONENT_MUTEX_LOCK(mutex);
 	double exp_len;
 	if(!isnan(task->predicted))
@@ -145,7 +146,7 @@ static int prio_push_local_task(struct starpu_sched_component * component, struc
 		
 		if(!isnan(task->predicted_transfer)) {
 			double end = prio_estimated_end(component); 
-			double tfer_end = starpu_timing_now() + task->predicted_transfer; 
+			double tfer_end = now + task->predicted_transfer; 
 			if(tfer_end < end) 
 				task->predicted_transfer = 0.0; 
 			else 
@@ -182,6 +183,7 @@ static struct starpu_task * prio_pull_task(struct starpu_sched_component * compo
 	struct _starpu_prio_data * data = component->data;
 	struct _starpu_prio_deque * prio = &data->prio;
 	starpu_pthread_mutex_t * mutex = &data->mutex;
+	const double now = starpu_timing_now();
 	STARPU_COMPONENT_MUTEX_LOCK(mutex);
 	struct starpu_task * task = _starpu_prio_deque_pop_task(prio);
 	if(task)
@@ -189,7 +191,6 @@ static struct starpu_task * prio_pull_task(struct starpu_sched_component * compo
 		if(!isnan(task->predicted))
 		{
 			const double exp_len = prio->exp_len - task->predicted;
-			const double now = starpu_timing_now();
 			prio->exp_start = now + task->predicted;
 			if (exp_len >= 0.0)
 			{
@@ -198,7 +199,7 @@ static struct starpu_task * prio_pull_task(struct starpu_sched_component * compo
 			else
 			{
 				/* exp_len can become negative due to rounding errors */
-				prio->exp_len = starpu_timing_now()-now;
+				prio->exp_len = 0.0;
 			}
 		}
 		STARPU_ASSERT_MSG(prio->exp_len>=0, "prio->exp_len=%lf\n",prio->exp_len);
