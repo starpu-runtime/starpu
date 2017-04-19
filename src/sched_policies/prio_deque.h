@@ -50,6 +50,11 @@ static inline int _starpu_prio_deque_is_empty(struct _starpu_prio_deque *pdeque)
 	return pdeque->ntasks == 0;
 }
 
+static inline void _starpu_prio_deque_erase(struct _starpu_prio_deque *pdeque, struct starpu_task *task)
+{
+	starpu_task_prio_list_erase(&pdeque->list, task);
+}
+
 /* push a task in O(lg(nb priorities)) */
 static inline int _starpu_prio_deque_push_task(struct _starpu_prio_deque *pdeque, struct starpu_task *task)
 {
