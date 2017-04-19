@@ -254,4 +254,127 @@ on which device the memory needs to be allocated.
 \ingroup API_Workers_Properties
 Return worker \p type as a string.
 
+\fn void _starpu_worker_request_blocking_in_parallel(struct _starpu_worker * const worker)
+\ingroup API_Workers_Properties
+Send a request to \p worker to block, before a parallel task is about
+to begin. The sched mutex of \p worker must be held before calling
+this function.
+
+\fn void _starpu_worker_request_unblocking_in_parallel(struct _starpu_worker * const worker)
+\ingroup API_Workers_Properties
+Send a request to \p worker to unblock, after a parallel task is
+complete. The sched mutex of \p worker must be held before calling
+this function.
+
+\fn void _starpu_worker_process_block_in_parallel_requests(struct _starpu_worker * const worker)
+\ingroup API_Workers_Properties
+Called by the \p worker to process incoming requests to block or
+unblock on parallel task boundaries. The sched mutex of \p worker must
+be held before calling this function.
+
+\fn void _starpu_worker_enter_sched_op(struct _starpu_worker * const worker)
+\ingroup API_Workers_Properties
+Mark the beginning of a scheduling operation by \p worker. No worker
+blocking operations on parallel tasks and no scheduling context change
+operations must be performed on contexts containing \p worker, on
+contexts about to add \p worker and on contexts about to remove \p
+worker, while the scheduling operation is in process. The sched mutex
+of \p worker may only be acquired permanently by another thread when
+no scheduling operation is in process, or when a scheduling operation
+is in process _and_ <c>worker->state_relax_refcnt!=0</>. If a
+scheduling operation is in process _and_
+<c>worker->state_relax_refcnt==0</c>, a thread other than \p worker
+must wait on condition <c>worker->sched_cond</> for
+<c>worker->state_relax_refcnt!=0</> to become true, before acquiring
+\p worker sched mutex permanently. The sched mutex of \p worker must
+be held before calling this function.
+
+\fn void _starpu_worker_leave_sched_op(struct _starpu_worker * const worker)
+\ingroup API_Workers_Properties
+Mark the end of a scheduling operation by \p worker. The sched mutex
+of \p worker must be held before calling this function.
+
+\fn int _starpu_worker_sched_op_pending(void)
+\ingroup API_Workers_Properties
+Return \c !0 if current worker has a scheduling operation in progress,
+and \c 0 otherwise.
+
+\fn void _starpu_worker_enter_changing_ctx_op(struct _starpu_worker * const worker)
+\ingroup API_Workers_Properties
+Must be called before altering a context related to worker \p worker
+whether about adding \p worker to a context, removing it from a
+context or modifying the set of workers of a context of which \p
+worker is a member, to mark the beginning of a context change
+operation. The sched mutex of \p worker must be held before calling
+this function.
+
+\fn void _starpu_worker_leave_changing_ctx_op(struct _starpu_worker * const worker)
+\ingroup API_Workers_Properties
+Mark the end of a context change operation. The sched mutex of \p
+worker must be held before calling this function.
+
+\fn void _starpu_worker_relax_on(void)
+\ingroup API_Workers_Properties
+Allow other threads and workers to temporarily observe the current
+worker state, even though it is performing a scheduling operation.
+Must be called by a worker before performing a potentially blocking
+call such as acquiring a mutex other than its own sched_mutex. This
+function increases \c state_relax_refcnt from the current worker. No
+more than <c>UINT_MAX-1</c> nested relax_on calls should performed on
+the same worker. This function is automatically called by \ref
+_starpu_worker_lock to relax the caller worker state while attempting
+to lock the targer worker.
+
+\fn void _starpu_worker_relax_on(void)
+\ingroup API_Workers_Properties
+Must be called after a potentially blocking call is complete, to
+restore the relax state in place before the corresponding relax_on.
+Decreases \c state_relax_refcnt. Calls to \ref _starpu_worker_relax_on
+and \c _starpu_worker_relax_off must be well parenthesized. This
+function is automatically called by \ref _starpu_worker_unlock after the 
+target worker has been unlocked.
+
+\fn int _starpu_worker_get_relax_state(void)
+\ingroup API_Workers_Properties
+Returns \c !0 if the current worker \c state_relax_refcnt!=0 and \c 0
+otherwise.
+
+\fn void _starpu_worker_lock(int workerid)
+\ingroup API_Workers_Properties
+Acquire the sched mutex of \p workerid. If the caller is a worker,
+distinct from \p workerid, the caller worker automatically enter relax
+state while acquiring the target worker lock.
+
+\fn int _starpu_worker_trylock(int workerid)
+\ingroup API_Workers_Properties
+Attempt to acquire the sched mutex of \p workerid. Returns \c 0 if
+successful, \c !0 if \p workerid sched mutex is held or the
+corresponding worker is not in relaxed stated.
+If the caller is a worker, distinct from \p workerid, the caller
+worker automatically enter relax state if successfully acquiring the target
+worker lock.
+
+\fn void _starpu_worker_unlock(int workerid)
+\ingroup API_Workers_Properties
+Release the previously acquired sched mutex of \p workerid. Restore
+the relaxed state of the caller worker if needed.
+
+\fn void _starpu_worker_lock_self(void)
+\ingroup API_Workers_Properties
+Acquire the current worker sched mutex.
+
+\fn void _starpu_worker_unlock_self(void)
+\ingroup API_Workers_Properties
+Release the current worker sched mutex.
+
+\fn int _starpu_wake_worker_relax(int workerid)
+\ingroup API_Workers_Properties
+Wake up \p workerid while temporarily entering the current worker
+relaxed state if needed during the waiting process.
+
+\fn void _starpu_worker_refuse_task(struct _starpu_worker *worker, struct starpu_task *task)
+\ingroup API_Workers_Properties
+Allow a worker pulling a task it cannot execute to properly refuse it
+and send it back to the scheduler.
+
 */
