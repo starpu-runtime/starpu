@@ -54,6 +54,12 @@ static void set_priority_hierarchically_on_notified_workers(int* workers_to_add,
 static void fetch_tasks_from_empty_ctx_list(struct _starpu_sched_ctx *sched_ctx);
 static void add_notified_workers(int *workers_to_add, int nworkers_to_add, unsigned sched_ctx_id);
 
+/* notify workers that a ctx change operation is about to proceed. 
+ *
+ * Once this function returns, the notified workers must not start a new
+ * scheduling operation until they are notified that the ctx change op is
+ * done.
+ */
 static void notify_workers_about_changing_ctx_pending(const unsigned nworkers, const int * const workerids)
 {
 	STARPU_ASSERT(!_starpu_worker_sched_op_pending());
@@ -72,6 +78,10 @@ static void notify_workers_about_changing_ctx_pending(const unsigned nworkers, c
 	}
 }
 
+/* notify workers that a ctx change operation is complete.
+ *
+ * Once this function returns, the workers may proceed with scheduling operations again.
+ */
 static void notify_workers_about_changing_ctx_done(const unsigned nworkers, const int * const workerids)
 {
 	STARPU_ASSERT(!_starpu_worker_sched_op_pending());
@@ -1353,6 +1363,11 @@ static void add_notified_workers(int *workerids, int nworkers, unsigned sched_ct
 	fetch_tasks_from_empty_ctx_list(sched_ctx);
 }
 
+/* Queue a new ctx change operation in the list of deferred ctx changes of the current worker.
+ *
+ * The set of workers to notify should contain all workers directly or
+ * indirectly affected by the change. In particular, all workers of
+ * sched_ctx_id should be notified even if they are not part of the change */
 static void _defer_ctx_change(int sched_ctx_id, enum _starpu_ctx_change_op op, int nworkers_to_notify, int *workerids_to_notify, int nworkers_to_change, int *workerids_to_change)
 {
 	STARPU_ASSERT(_starpu_worker_sched_op_pending());

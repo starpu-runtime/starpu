@@ -114,6 +114,12 @@ LIST_TYPE(_starpu_worker,
 	  * - transition from 1 to 0 triggers a unblock_req
 	  */
 	unsigned block_in_parallel_ref_count;
+	/* list of deferred context changes
+	 *
+	 * when the current thread is a worker, _and_ this worker is in a
+	 * scheduling operation, new ctx changes are queued to this list for
+	 * subsequent processing once worker completes the ongoing scheduling
+	 * operation */
 	struct _starpu_ctx_change_list ctx_change_list;
 	struct starpu_task_list local_tasks; /* this queue contains tasks that have been explicitely submitted to that queue */
 	struct starpu_task **local_ordered_tasks; /* this queue contains tasks that have been explicitely submitted to that queue with an explicit order */

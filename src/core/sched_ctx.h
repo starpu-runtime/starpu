@@ -296,4 +296,7 @@ static inline void _starpu_sched_ctx_unlock_read(unsigned sched_ctx_id)
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&sched_ctx->rwlock);
 }
 
+/* Go through the list of deferred ctx changes of the current worker and apply
+ * any ctx change operation found until the list is empty */
+void _starpu_worker_apply_deferred_ctx_changes(void);
 #endif // __SCHED_CONTEXT_H__
