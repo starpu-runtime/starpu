@@ -68,7 +68,7 @@ STARPU_TASK_LIST_INLINE
 struct starpu_task *starpu_task_list_begin(const struct starpu_task_list *list);
 
 STARPU_TASK_LIST_INLINE
-struct starpu_task *starpu_task_list_end(struct starpu_task_list *list STARPU_ATTRIBUTE_UNUSED);
+struct starpu_task *starpu_task_list_end(const struct starpu_task_list *list STARPU_ATTRIBUTE_UNUSED);
 
 STARPU_TASK_LIST_INLINE
 struct starpu_task *starpu_task_list_next(const struct starpu_task *task);
