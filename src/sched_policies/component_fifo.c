@@ -133,9 +133,9 @@ static int fifo_push_local_task(struct starpu_sched_component * component, struc
 		STARPU_ASSERT(!isnan(fifo->exp_len));
 		STARPU_ASSERT(!isnan(fifo->exp_start));
 
+		STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
 		if(!is_pushback)
 			component->can_pull(component);
-		STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
 	}
 
 	return ret;
