@@ -1001,9 +1001,9 @@ static inline int _starpu_worker_trylock(int workerid)
 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 	STARPU_ASSERT(worker != NULL);
 	int ret = STARPU_PTHREAD_MUTEX_TRYLOCK_SCHED(&worker->sched_mutex);
+	int cur_workerid = starpu_worker_get_id();
 	if (!ret)
 	{
-		int cur_workerid = starpu_worker_get_id();
 		if (workerid != cur_workerid) {
 			ret = !worker->state_relax_refcnt;
 			if (ret)
