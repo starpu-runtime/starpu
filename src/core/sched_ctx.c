@@ -2782,7 +2782,7 @@ void _starpu_worker_apply_deferred_ctx_changes(void)
 			}
 			break;
 			default:
-			STARPU_ASSERT_MSG(0, "invalid ctx changeg opcode\n");
+			STARPU_ASSERT_MSG(0, "invalid ctx change opcode\n");
 		}
 		if (chg->nworkers_to_notify)
 		{
