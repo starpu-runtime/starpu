@@ -251,7 +251,10 @@ static int prio_can_push(struct starpu_sched_component * component)
 	task = starpu_sched_component_pump_downstream(component, &res); 
 
 	if(task)
-		STARPU_ASSERT(!prio_push_local_task(component,task,1));
+	{
+		int ret = prio_push_local_task(component,task,1);
+		STARPU_ASSERT(!ret);
+	}
 
 	return res;
 }
