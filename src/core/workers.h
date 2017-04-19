@@ -1010,7 +1010,7 @@ static inline int _starpu_worker_trylock(int workerid)
 				STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 		}
 	}
-	if (!ret)
+	if (!ret && workerid != cur_workerid)
 	{
 		_starpu_worker_relax_on();
 	}
