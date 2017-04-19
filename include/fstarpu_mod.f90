@@ -44,6 +44,7 @@ module fstarpu_mod
         type(c_ptr), bind(C) :: FSTARPU_EXECUTE_ON_DATA
         type(c_ptr), bind(C) :: FSTARPU_EXECUTE_ON_WORKER
         type(c_ptr), bind(C) :: FSTARPU_WORKER_ORDER
+        type(c_ptr), bind(C) :: FSTARPU_EXECUTE_WHERE
         type(c_ptr), bind(C) :: FSTARPU_HYPERVISOR_TAG
         type(c_ptr), bind(C) :: FSTARPU_POSSIBLY_PARALLEL
         type(c_ptr), bind(C) :: FSTARPU_FLOPS
@@ -2280,6 +2281,7 @@ module fstarpu_mod
                         FSTARPU_EXECUTE_ON_DATA = fstarpu_get_constant(C_CHAR_"FSTARPU_EXECUTE_ON_DATA"//C_NULL_CHAR)
                         FSTARPU_EXECUTE_ON_WORKER       = fstarpu_get_constant(C_CHAR_"FSTARPU_EXECUTE_ON_WORKER"//C_NULL_CHAR)
                         FSTARPU_WORKER_ORDER    = fstarpu_get_constant(C_CHAR_"FSTARPU_WORKER_ORDER"//C_NULL_CHAR)
+                        FSTARPU_EXECUTE_WHERE       = fstarpu_get_constant(C_CHAR_"FSTARPU_EXECUTE_WHERE"//C_NULL_CHAR)
                         FSTARPU_HYPERVISOR_TAG  = fstarpu_get_constant(C_CHAR_"FSTARPU_HYPERVISOR_TAG"//C_NULL_CHAR)
                         FSTARPU_POSSIBLY_PARALLEL       = fstarpu_get_constant(C_CHAR_"FSTARPU_POSSIBLY_PARALLEL"//C_NULL_CHAR)
                         FSTARPU_FLOPS   = fstarpu_get_constant(C_CHAR_"FSTARPU_FLOPS"//C_NULL_CHAR)

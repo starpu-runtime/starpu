@@ -45,6 +45,7 @@ static const intptr_t fstarpu_prologue_callback_pop_arg	= STARPU_PROLOGUE_CALLBA
 static const intptr_t fstarpu_priority	= STARPU_PRIORITY;
 static const intptr_t fstarpu_execute_on_node	= STARPU_EXECUTE_ON_NODE;
 static const intptr_t fstarpu_execute_on_data	= STARPU_EXECUTE_ON_DATA;
+static const intptr_t fstarpu_execute_where	= STARPU_EXECUTE_WHERE;
 static const intptr_t fstarpu_execute_on_worker	= STARPU_EXECUTE_ON_WORKER;
 static const intptr_t fstarpu_worker_order	= STARPU_WORKER_ORDER;
 static const intptr_t fstarpu_hypervisor_tag	= STARPU_HYPERVISOR_TAG;
@@ -115,6 +116,7 @@ intptr_t fstarpu_get_constant(char *s)
 	else if	(!strcmp(s, "FSTARPU_PRIORITY"))	{ return fstarpu_priority; }
 	else if	(!strcmp(s, "FSTARPU_EXECUTE_ON_NODE"))	{ return fstarpu_execute_on_node; }
 	else if	(!strcmp(s, "FSTARPU_EXECUTE_ON_DATA"))	{ return fstarpu_execute_on_data; }
+	else if	(!strcmp(s, "FSTARPU_EXECUTE_WHERE"))	{ return fstarpu_execute_where; }
 	else if	(!strcmp(s, "FSTARPU_EXECUTE_ON_WORKER"))	{ return fstarpu_execute_on_worker; }
 	else if	(!strcmp(s, "FSTARPU_WORKER_ORDER"))	{ return fstarpu_worker_order; }
 	else if	(!strcmp(s, "FSTARPU_HYPERVISOR_TAG"))	{ return fstarpu_hypervisor_tag; }

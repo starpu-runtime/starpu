@@ -425,7 +425,7 @@ int _starpu_repush_task(struct _starpu_job *j)
 	task->status = STARPU_TASK_READY;
 	STARPU_AYU_ADDTOTASKQUEUE(j->job_id, -1);
 	/* if the context does not have any workers save the tasks in a temp list */
-	if ((task->cl != NULL && task->cl->where != STARPU_NOWHERE) && (!sched_ctx->is_initial_sched))
+	if ((task->cl != NULL && task->where != STARPU_NOWHERE) && (!sched_ctx->is_initial_sched))
 	{
 		/*if there are workers in the ctx that are not able to execute tasks
 		  we consider the ctx empty */

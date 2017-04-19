@@ -43,6 +43,9 @@ Small features:
   * New function starpu_worker_display_names to display the names of
     all the workers of a specified type.
   * Arbiters now support concurrent read access.
+  * Add a field starpu_task::where similar to starpu_codelet::where
+    which allows to restrict where to execute a task. Also add
+    STARPU_TASK_WHERE to be used when calling starpu_task_insert().
 
 Changes:
   * Vastly improve simgrid simulation time.

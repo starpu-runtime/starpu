@@ -173,7 +173,7 @@ static uint32_t _starpu_worker_exists_and_can_execute(struct starpu_task *task,
 uint32_t _starpu_worker_exists(struct starpu_task *task)
 {
 	_starpu_codelet_check_deprecated_fields(task->cl);
-	if (task->cl->where == STARPU_NOWHERE)
+	if (task->where == STARPU_NOWHERE)
 		return 1;
 
 	/* if the task belongs to the init context we can
@@ -182,7 +182,7 @@ uint32_t _starpu_worker_exists(struct starpu_task *task)
 	   and verify if it exists a worker able to exec the task */
 	if(task->sched_ctx == 0)
 	{
-		if (!(task->cl->where & _starpu_config.worker_mask))
+		if (!(task->where & _starpu_config.worker_mask))
 			return 0;
 
 		if (!task->cl->can_execute)
@@ -190,32 +190,32 @@ uint32_t _starpu_worker_exists(struct starpu_task *task)
 	}
 
 #if defined(STARPU_USE_CPU) || defined(STARPU_SIMGRID)
-	if ((task->cl->where & STARPU_CPU) &&
+	if ((task->where & STARPU_CPU) &&
 	    _starpu_worker_exists_and_can_execute(task, STARPU_CPU_WORKER))
 		return 1;
 #endif
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
-	if ((task->cl->where & STARPU_CUDA) &&
+	if ((task->where & STARPU_CUDA) &&
 	    _starpu_worker_exists_and_can_execute(task, STARPU_CUDA_WORKER))
 		return 1;
 #endif
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
-	if ((task->cl->where & STARPU_OPENCL) &&
+	if ((task->where & STARPU_OPENCL) &&
 	    _starpu_worker_exists_and_can_execute(task, STARPU_OPENCL_WORKER))
 		return 1;
 #endif
 #ifdef STARPU_USE_MIC
-	if ((task->cl->where & STARPU_MIC) &&
+	if ((task->where & STARPU_MIC) &&
 	    _starpu_worker_exists_and_can_execute(task, STARPU_MIC_WORKER))
 		return 1;
 #endif
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
-	if ((task->cl->where & STARPU_MPI_MS) &&
+	if ((task->where & STARPU_MPI_MS) &&
 	    _starpu_worker_exists_and_can_execute(task, STARPU_MPI_MS_WORKER))
 		return 1;
 #endif
 #ifdef STARPU_USE_SCC
-	if ((task->cl->where & STARPU_SCC) &&
+	if ((task->where & STARPU_SCC) &&
 	    _starpu_worker_exists_and_can_execute(task, STARPU_SCC_WORKER))
 		return 1;
 #endif
@@ -320,7 +320,7 @@ int starpu_worker_can_execute_task(unsigned workerid, struct starpu_task *task, 
 		return 0;
 
 	/* TODO: check that the task operand sizes will fit on that device */
-	return (task->cl->where & _starpu_config.workers[workerid].worker_mask) &&
+	return (task->where & _starpu_config.workers[workerid].worker_mask) &&
 		_starpu_can_use_nth_implementation(_starpu_config.workers[workerid].arch, task->cl, nimpl) &&
 		(!task->cl->can_execute || task->cl->can_execute(workerid, task, nimpl));
 }
@@ -338,7 +338,7 @@ int starpu_worker_can_execute_task_impl(unsigned workerid, struct starpu_task *t
 	struct starpu_codelet *cl;
 	/* TODO: check that the task operand sizes will fit on that device */
 	cl = task->cl;
-	if (!(cl->where & _starpu_config.workers[workerid].worker_mask)) return 0;
+	if (!(task->where & _starpu_config.workers[workerid].worker_mask)) return 0;
 
 	mask = 0;
 	arch = _starpu_config.workers[workerid].arch;
@@ -379,7 +379,7 @@ int starpu_worker_can_execute_task_first_impl(unsigned workerid, struct starpu_t
 	struct starpu_codelet *cl;
 	/* TODO: check that the task operand sizes will fit on that device */
 	cl = task->cl;
-	if (!(cl->where & _starpu_config.workers[workerid].worker_mask)) return 0;
+	if (!(task->where & _starpu_config.workers[workerid].worker_mask)) return 0;
 
 	arch = _starpu_config.workers[workerid].arch;
 	if (!task->cl->can_execute)
@@ -418,7 +418,7 @@ int starpu_combined_worker_can_execute_task(unsigned workerid, struct starpu_tas
 	/* Is this a parallel worker ? */
 	if (workerid < nworkers)
 	{
-		return !!((task->cl->where & _starpu_config.workers[workerid].worker_mask) &&
+		return !!((task->where & _starpu_config.workers[workerid].worker_mask) &&
 				_starpu_can_use_nth_implementation(_starpu_config.workers[workerid].arch, task->cl, nimpl) &&
 				(!task->cl->can_execute || task->cl->can_execute(workerid, task, nimpl)));
 	}

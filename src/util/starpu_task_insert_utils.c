@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011, 2013-2016   Université Bordeaux
- * Copyright (C) 2011-2016         CNRS
+ * Copyright (C) 2011-2017         CNRS
  * Copyright (C) 2011, 2014        INRIA
  * Copyright (C) 2016 Inria
  *
@@ -119,9 +119,13 @@ int _starpu_codelet_pack_args(void **arg_buffer, size_t *arg_buffer_size, va_lis
 		{
 			(void)va_arg(varg_list, starpu_data_handle_t);
 		}
+		else if (arg_type==STARPU_EXECUTE_WHERE)
+		{
+			(void)va_arg(varg_list, uint32_t);
+		}
 		else if (arg_type==STARPU_EXECUTE_ON_WORKER)
 		{
-			va_arg(varg_list, int);
+			(void)va_arg(varg_list, int);
 		}
 		else if (arg_type==STARPU_WORKER_ORDER)
 		{
@@ -382,6 +386,11 @@ int _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task **t
 		{
 			(void)va_arg(varg_list, starpu_data_handle_t);
 		}
+		else if (arg_type==STARPU_EXECUTE_WHERE)
+		{
+			(*task)->where = va_arg(varg_list, uint32_t);
+			fprintf(stderr, "where %d (cpu %d)\n", (*task)->where, STARPU_CPU);
+		}
 		else if (arg_type==STARPU_EXECUTE_ON_WORKER)
 		{
 			int worker = va_arg(varg_list, int);
@@ -591,6 +600,17 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task **
 		{
 			arg_i++;
 			(void)arglist[arg_i];
+		}
+		else if (arg_type == STARPU_EXECUTE_WHERE)
+		{
+			assert(0);
+			arg_i++;
+			int worker = *(int *)arglist[arg_i];
+			if (worker != -1)
+			{
+				(*task)->workerid = worker;
+				(*task)->execute_on_a_specific_worker = 1;
+			}
 		}
 		else if (arg_type == STARPU_EXECUTE_ON_WORKER)
 		{

@@ -386,6 +386,12 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
                 {
                         (void)va_arg(varg_list_copy, void *);
 		}
+		else if (arg_type==STARPU_EXECUTE_WHERE)
+		{
+			// the flag is decoded and set later when
+			// calling function _starpu_task_insert_create()
+			(void)va_arg(varg_list_copy, uint32_t);
+		}
 		else if (arg_type==STARPU_EXECUTE_ON_WORKER)
 		{
 			// the flag is decoded and set later when

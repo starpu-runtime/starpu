@@ -175,6 +175,7 @@ myPROGRAMS +=				\
 	main/insert_task_dyn_handles		\
 	main/insert_task_array			\
 	main/insert_task_many			\
+	main/insert_task_where			\
 	main/multithreaded			\
 	main/starpu_task_bundle			\
 	main/starpu_task_wait_for_all		\
@@ -571,6 +572,13 @@ datawizard_test_arbiter_SOURCES =	\
 	datawizard/test_arbiter.cpp
 
 main_deprecated_func_CFLAGS = $(AM_CFLAGS) -Wno-deprecated-declarations
+
+main_insert_task_where_SOURCES =		\
+	main/insert_task_where.c
+if STARPU_USE_CUDA
+main_insert_task_where_SOURCES +=		\
+	main/increment.cu
+endif
 
 main_subgraph_repeat_SOURCES =		\
 	main/subgraph_repeat.c

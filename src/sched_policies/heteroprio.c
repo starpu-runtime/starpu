@@ -44,7 +44,7 @@
  * All the tasks stored in the fifo should be computable by the arch
  * in valid_archs.
  * For example if valid_archs = (STARPU_CPU|STARPU_CUDA)
- * Then task->task->cl->where should be at least (STARPU_CPU|STARPU_CUDA)
+ * Then task->task->where should be at least (STARPU_CPU|STARPU_CUDA)
  */
 struct _heteroprio_bucket
 {
@@ -379,7 +379,7 @@ static int push_task_heteroprio_policy(struct starpu_task *task)
 	struct _heteroprio_bucket* bucket = &hp->buckets[task->priority];
 	/* Ensure that any worker that check that list can compute the task */
 	STARPU_ASSERT_MSG(bucket->valid_archs, "The bucket %d does not have any archs\n", task->priority);
-	STARPU_ASSERT(((bucket->valid_archs ^ task->cl->where) & bucket->valid_archs) == 0);
+	STARPU_ASSERT(((bucket->valid_archs ^ task->where) & bucket->valid_archs) == 0);
 
 	/* save the task */
 	_starpu_fifo_push_back_task(bucket->tasks_queue,task);
@@ -388,7 +388,7 @@ static int push_task_heteroprio_policy(struct starpu_task *task)
 	unsigned arch_index;
 	for(arch_index = 0; arch_index < STARPU_NB_TYPES; ++arch_index)
 	{
-		/* We test the archs on the bucket and not on task->cl->where since it is restrictive */
+		/* We test the archs on the bucket and not on task->where since it is restrictive */
 		if(bucket->valid_archs & starpu_heteroprio_types_to_arch[arch_index])
 			hp->nb_remaining_tasks_per_arch_index[arch_index] += 1;
 	}
@@ -521,7 +521,7 @@ static struct starpu_task *pop_task_heteroprio_policy(unsigned sched_ctx_id)
 
 				for(arch_index = 0; arch_index < STARPU_NB_TYPES; ++arch_index)
 				{
-					/* We test the archs on the bucket and not on task->cl->where since it is restrictive */
+					/* We test the archs on the bucket and not on task->where since it is restrictive */
 					if(bucket->valid_archs & starpu_heteroprio_types_to_arch[arch_index])
 					{
 						hp->nb_remaining_tasks_per_arch_index[arch_index] -= 1;

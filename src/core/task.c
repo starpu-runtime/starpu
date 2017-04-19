@@ -81,6 +81,7 @@ void starpu_task_init(struct starpu_task *task)
 	memset(task, 0, sizeof(struct starpu_task));
 
 	task->sequential_consistency = 1;
+	task->where = -1;
 
 	/* Now we can initialise fields which recquire custom value */
 #if STARPU_DEFAULT_PRIO != 0
@@ -554,6 +555,8 @@ static int _starpu_task_submit_head(struct starpu_task *task)
 
 	_starpu_task_check_deprecated_fields(task);
 	_starpu_codelet_check_deprecated_fields(task->cl);
+	if (task->where== -1 && task->cl)
+		task->where = task->cl->where;
 
 	if (task->cl)
 	{
