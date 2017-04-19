@@ -140,7 +140,7 @@ static void initialize_heft_prio_policy(unsigned sched_ctx_id)
 
 	for(i = 0; i < starpu_worker_get_count() + starpu_combined_worker_get_count(); i++)
 	{
-		struct starpu_sched_component * worker_component = starpu_sched_component_worker_get(sched_ctx_id, i);
+		struct starpu_sched_component * worker_component = starpu_sched_component_worker_new(sched_ctx_id, i);
 		struct starpu_sched_component * impl_component = starpu_sched_component_best_implementation_create(t, NULL);
 
 		starpu_sched_component_connect(eagers[starpu_worker_get_memory_node(i)], impl_component);

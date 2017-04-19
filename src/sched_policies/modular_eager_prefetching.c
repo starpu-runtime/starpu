@@ -43,7 +43,7 @@ static void initialize_eager_prefetching_center_policy(unsigned sched_ctx_id)
 	unsigned i;
 	for(i = 0; i < starpu_worker_get_count() + starpu_combined_worker_get_count(); i++)
 	{
-		struct starpu_sched_component * worker_component = starpu_sched_component_worker_get(sched_ctx_id, i);
+		struct starpu_sched_component * worker_component = starpu_sched_component_worker_new(sched_ctx_id, i);
 		struct starpu_sched_component * fifo_component = starpu_sched_component_fifo_create(t, &fifo_data);
 
 		starpu_sched_component_connect(fifo_component, worker_component);

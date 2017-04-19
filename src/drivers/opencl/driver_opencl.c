@@ -793,17 +793,24 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 
 	j = _starpu_get_job_associated_to_task(task);
 
+	worker->current_tasks[(worker->first_task  + worker->ntasks)%STARPU_MAX_PIPELINE] = task;
+	worker->ntasks++;
+	if (worker->pipeline_length == 0)
+	/* _starpu_get_worker_task checks .current_task field if pipeline_length == 0
+	 *
+	 * TODO: update driver to not use current_tasks[] when pipeline_length == 0,
+	 * as for cuda driver */
+		worker->current_task = task;
+
 	/* can OpenCL do that task ? */
 	if (!_STARPU_OPENCL_MAY_PERFORM(j))
 	{
 		/* this is not a OpenCL task */
-		_starpu_push_task_to_workers(task);
+		_starpu_worker_refuse_task(worker, task);
 		return 0;
 	}
 
 	_STARPU_TRACE_END_PROGRESS(memnode);
-	worker->current_tasks[(worker->first_task  + worker->ntasks)%STARPU_MAX_PIPELINE] = task;
-	worker->ntasks++;
 
 	/* Fetch data asynchronously */
 	res = _starpu_fetch_task_input(task, j, 1);

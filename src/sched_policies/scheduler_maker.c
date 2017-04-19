@@ -257,7 +257,7 @@ struct starpu_sched_tree * starpu_sched_component_make_scheduler(unsigned sched_
 	for(i = 0; i < starpu_worker_get_count(); i++)
 	{
 		struct _starpu_worker *worker = _starpu_get_worker_struct(i);
-		struct starpu_sched_component *worker_component = starpu_sched_component_worker_get(sched_ctx_id, i);
+		struct starpu_sched_component *worker_component = starpu_sched_component_worker_new(sched_ctx_id, i);
 		STARPU_ASSERT(worker);
 		set_worker_leaf(tree->root,worker_component, sched_ctx_id, specs);
 	}

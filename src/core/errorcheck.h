@@ -37,9 +37,7 @@ enum _starpu_worker_status
 	/* while executing the scheduler code */
 	STATUS_SCHEDULING,
 	/* while sleeping because there is nothing to do */
-	STATUS_SLEEPING,
-	/* while a sleeping worker is about to wake up (to avoid waking twice for the same worker) */
-	STATUS_WAKING_UP
+	STATUS_SLEEPING
 };
 
 struct _starpu_worker;

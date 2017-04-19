@@ -720,34 +720,17 @@ int starpu_pthread_barrier_wait(starpu_pthread_barrier_t *barrier)
  * macros of course) which record when the mutex is held or not */
 int starpu_pthread_mutex_lock_sched(starpu_pthread_mutex_t *mutex)
 {
-	int p_ret = starpu_pthread_mutex_lock(mutex);
-	int workerid = starpu_worker_get_id();
-	if(workerid != -1 && _starpu_worker_mutex_is_sched_mutex(workerid, mutex))
-		_starpu_worker_set_flag_sched_mutex_locked(workerid, 1);
-	return p_ret;
+	return starpu_pthread_mutex_lock(mutex);
 }
 
 int starpu_pthread_mutex_unlock_sched(starpu_pthread_mutex_t *mutex)
 {
-	int workerid = starpu_worker_get_id();
-	if(workerid != -1 && _starpu_worker_mutex_is_sched_mutex(workerid, mutex))
-		_starpu_worker_set_flag_sched_mutex_locked(workerid, 0);
-
 	return starpu_pthread_mutex_unlock(mutex);
 }
 
 int starpu_pthread_mutex_trylock_sched(starpu_pthread_mutex_t *mutex)
 {
-	int ret = starpu_pthread_mutex_trylock(mutex);
-
-	if (!ret)
-	{
-		int workerid = starpu_worker_get_id();
-		if(workerid != -1 && _starpu_worker_mutex_is_sched_mutex(workerid, mutex))
-			_starpu_worker_set_flag_sched_mutex_locked(workerid, 1);
-	}
-
-	return ret;
+	return starpu_pthread_mutex_trylock(mutex);
 }
 
 #ifdef STARPU_DEBUG

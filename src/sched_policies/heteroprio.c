@@ -159,6 +159,8 @@ static inline void default_init_sched(unsigned sched_ctx_id)
 {
 	int min_prio = starpu_sched_ctx_get_min_priority(sched_ctx_id);
 	int max_prio = starpu_sched_ctx_get_max_priority(sched_ctx_id);
+	STARPU_ASSERT(min_prio >= 0);
+	STARPU_ASSERT(max_prio >= 0);
 	// By default each type of devices uses 1 bucket and no slow factor
 #ifdef STARPU_USE_CPU
 	starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_CPU_IDX, max_prio-min_prio+1);
@@ -368,7 +370,9 @@ static int push_task_heteroprio_policy(struct starpu_task *task)
 	struct _starpu_heteroprio_data *hp = (struct _starpu_heteroprio_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
 	/* One worker at a time use heteroprio */
+	_starpu_worker_relax_on();
 	STARPU_PTHREAD_MUTEX_LOCK(&hp->policy_mutex);
+	_starpu_worker_relax_off();
 
 	/* Retrieve the correct bucket */
 	STARPU_ASSERT(task->priority < STARPU_HETEROPRIO_MAX_PRIO);
@@ -436,7 +440,7 @@ static int push_task_heteroprio_policy(struct starpu_task *task)
 	{
 		unsigned worker = workers->get_next(workers, &it);
 		if (dowake[worker])
-			if (starpu_wake_worker(worker))
+			if (_starpu_wake_worker_relax(worker))
 				break; // wake up a single worker
 	}
 #endif
@@ -465,14 +469,9 @@ static struct starpu_task *pop_task_heteroprio_policy(unsigned sched_ctx_id)
 		return NULL;
 	}
 #endif
-	starpu_pthread_mutex_t *worker_sched_mutex;
-	starpu_pthread_cond_t *worker_sched_cond;
-	starpu_worker_get_sched_condition(workerid, &worker_sched_mutex, &worker_sched_cond);
-
-	/* Note: Releasing this mutex before taking the victim mutex, to avoid interlock*/
-	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(worker_sched_mutex);
-
+	_starpu_worker_relax_on();
 	STARPU_PTHREAD_MUTEX_LOCK(&hp->policy_mutex);
+	_starpu_worker_relax_off();
 
 	/* keep track of the new added task to perfom real prefetch on node */
 	unsigned nb_added_tasks = 0;
@@ -585,12 +584,8 @@ static struct starpu_task *pop_task_heteroprio_policy(unsigned sched_ctx_id)
 				if(hp->workers_heteroprio[victim].arch_index == worker->arch_index
 				   && hp->workers_heteroprio[victim].tasks_queue->ntasks)
 				{
-					starpu_pthread_mutex_t *victim_sched_mutex;
-					starpu_pthread_cond_t *victim_sched_cond;
-					starpu_worker_get_sched_condition(victim, &victim_sched_mutex, &victim_sched_cond);
-
 					/* ensure the worker is not currently prefetching its data */
-					STARPU_PTHREAD_MUTEX_LOCK_SCHED(victim_sched_mutex);
+					_starpu_worker_lock(victim);
 
 					if(hp->workers_heteroprio[victim].arch_index == worker->arch_index
 					   && hp->workers_heteroprio[victim].tasks_queue->ntasks)
@@ -600,10 +595,10 @@ static struct starpu_task *pop_task_heteroprio_policy(unsigned sched_ctx_id)
 						/* we steal a task update global counter */
 						hp->nb_prefetched_tasks_per_arch_index[hp->workers_heteroprio[victim].arch_index] -= 1;
 
-						STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(victim_sched_mutex);
+						_starpu_worker_unlock(victim);
 						goto done;
 					}
-					STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(victim_sched_mutex);
+					_starpu_worker_unlock(victim);
 				}
 			}
 		}
@@ -617,16 +612,20 @@ done:		;
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&hp->policy_mutex);
 
-	STARPU_PTHREAD_MUTEX_LOCK_SCHED(worker_sched_mutex);
 	if(task)
 	{
+		_starpu_worker_relax_on();
+		_starpu_sched_ctx_lock_write(sched_ctx_id);
+		_starpu_worker_relax_off();
 		unsigned child_sched_ctx = starpu_sched_ctx_worker_is_master_for_child_ctx(workerid, sched_ctx_id);
 		if(child_sched_ctx != STARPU_NMAX_SCHED_CTXS)
 		{
-			starpu_sched_ctx_move_task_to_ctx(task, child_sched_ctx, 1, 1);
-			starpu_sched_ctx_revert_task_counters(sched_ctx_id, task->flops);
-			return NULL;
+			starpu_sched_ctx_move_task_to_ctx_locked(task, child_sched_ctx, 1);
+			starpu_sched_ctx_revert_task_counters_ctx_locked(sched_ctx_id, task->flops);
+			task = NULL;
 		}
+		_starpu_sched_ctx_unlock_write(sched_ctx_id);
+		return task;
 	}
 
 	/* if we have task (task) me way have some in the queue (worker->tasks_queue_size) that was freshly addeed (nb_added_tasks) */

@@ -110,6 +110,7 @@ void starpu_sched_component_prefetch_on_node(struct starpu_sched_component *comp
 void starpu_sched_component_connect(struct starpu_sched_component *parent, struct starpu_sched_component *child);
 
 struct starpu_sched_component *starpu_sched_component_worker_get(unsigned sched_ctx, int workerid);
+struct starpu_sched_component *starpu_sched_component_worker_new(unsigned sched_ctx, int workerid);
 int starpu_sched_component_worker_get_workerid(struct starpu_sched_component *worker_component);
 int starpu_sched_component_is_worker(struct starpu_sched_component *component);
 int starpu_sched_component_is_simple_worker(struct starpu_sched_component *component);
@@ -198,6 +199,20 @@ struct starpu_sched_component_specs
 
 struct starpu_sched_tree *starpu_sched_component_make_scheduler(unsigned sched_ctx_id, struct starpu_sched_component_specs s);
 #endif /* STARPU_HAVE_HWLOC */
+
+#define STARPU_COMPONENT_MUTEX_LOCK(m) \
+do \
+{ \
+	const int _relaxed_state = _starpu_worker_get_relax_state(); \
+	if (!_relaxed_state) \
+		_starpu_worker_relax_on(); \
+	STARPU_PTHREAD_MUTEX_LOCK((m)); \
+	if (!_relaxed_state) \
+		_starpu_worker_relax_off(); \
+} \
+while(0)
+
+#define STARPU_COMPONENT_MUTEX_UNLOCK(m) STARPU_PTHREAD_MUTEX_UNLOCK((m))
 
 #ifdef __cplusplus
 }

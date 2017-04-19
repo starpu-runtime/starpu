@@ -85,7 +85,7 @@ struct _starpu_mct_data *starpu_mct_init_parameters(struct starpu_sched_componen
 static double compute_expected_time(double now, double predicted_end, double predicted_length, double predicted_transfer)
 {
 	STARPU_ASSERT(!isnan(now + predicted_end + predicted_length + predicted_transfer));
-	STARPU_ASSERT(now >= 0.0 && predicted_end >= 0.0 && predicted_length >= 0.0 && predicted_transfer >= 0.0);
+	STARPU_ASSERT_MSG(now >= 0.0 && predicted_end >= 0.0 && predicted_length >= 0.0 && predicted_transfer >= 0.0, "now=%lf, predicted_end=%lf, predicted_length=%lf, predicted_transfer=%lf\n", now, predicted_end, predicted_length, predicted_transfer);
 
 	/* TODO: actually schedule transfers */
 	/* Compute the transfer time which will not be overlapped */
@@ -123,7 +123,6 @@ int starpu_mct_compute_execution_times(struct starpu_sched_component *component,
 				       double *estimated_lengths, double *estimated_transfer_length, int *suitable_components) 
 {
 	int nsuitable_components = 0;
-	double now = starpu_timing_now();
 
 	int i;
 	for(i = 0; i < component->nchildren; i++)
@@ -135,6 +134,8 @@ int starpu_mct_compute_execution_times(struct starpu_sched_component *component,
 				/* The perfmodel had been purged since the task was pushed
 				 * onto the mct component. */
 				continue;
+			STARPU_ASSERT_MSG(estimated_lengths[i]>=0, "component=%p, child[%d]=%p, estimated_lengths[%d]=%lf\n", component, i, c, i, estimated_lengths[i]);
+
 			estimated_transfer_length[i] = starpu_sched_component_transfer_length(c, task);
 			suitable_components[nsuitable_components++] = i;
 		}

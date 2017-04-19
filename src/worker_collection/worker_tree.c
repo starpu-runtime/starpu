@@ -333,10 +333,10 @@ static void tree_init_iterator_for_parallel_tasks(struct starpu_worker_collectio
 	int nworkers = starpu_worker_get_count();
 	for(i = 0; i < nworkers; i++)
 	{
-		workers->is_unblocked[i] = (workers->present[i] && !starpu_worker_is_blocked(i));
+		workers->is_unblocked[i] = (workers->present[i] && !starpu_worker_is_blocked_in_parallel(i));
 		if(!it->possibly_parallel) /* don't bother filling the table with masters we won't use it anyway */
 			continue;
-		workers->is_master[i] = (workers->present[i] && !starpu_worker_is_blocked(i) && !starpu_worker_is_slave_somewhere(i));
+		workers->is_master[i] = (workers->present[i] && !starpu_worker_is_blocked_in_parallel(i) && !starpu_worker_is_slave_somewhere(i));
 	}
 }
 

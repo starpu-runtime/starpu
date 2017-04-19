@@ -17,6 +17,7 @@
 #include <starpu_sched_component.h>
 #include <starpu_scheduler.h>
 #include <common/fxt.h>
+#include <core/workers.h>
 
 #include "prio_deque.h"
 #include "sched_component.h"
@@ -83,9 +84,9 @@ static double prio_estimated_load(struct starpu_sched_component * component)
 	{
 		int first_worker = starpu_bitmap_first(component->workers_in_ctx);
 		relative_speedup = starpu_worker_get_relative_speedup(starpu_worker_get_perf_archtype(first_worker, component->tree->sched_ctx_id));
-		STARPU_PTHREAD_MUTEX_LOCK(mutex);
+		STARPU_COMPONENT_MUTEX_LOCK(mutex);
 		load += prio->ntasks / relative_speedup;
-		STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
+		STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
 		return load;
 	}
 	else
@@ -97,9 +98,9 @@ static double prio_estimated_load(struct starpu_sched_component * component)
 			relative_speedup += starpu_worker_get_relative_speedup(starpu_worker_get_perf_archtype(i, component->tree->sched_ctx_id));
 		relative_speedup /= starpu_bitmap_cardinal(component->workers_in_ctx);
 		STARPU_ASSERT(!_STARPU_IS_ZERO(relative_speedup));
-		STARPU_PTHREAD_MUTEX_LOCK(mutex);
+		STARPU_COMPONENT_MUTEX_LOCK(mutex);
 		load += prio->ntasks / relative_speedup;
-		STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
+		STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
 	}
 	return load;
 }
@@ -112,8 +113,7 @@ static int prio_push_local_task(struct starpu_sched_component * component, struc
 	struct _starpu_prio_deque * prio = &data->prio;
 	starpu_pthread_mutex_t * mutex = &data->mutex;
 	int ret;
-	
-	STARPU_PTHREAD_MUTEX_LOCK(mutex);
+	STARPU_COMPONENT_MUTEX_LOCK(mutex);
 	double exp_len;
 	if(!isnan(task->predicted))
 		exp_len = prio->exp_len + task->predicted;
@@ -130,7 +130,7 @@ static int prio_push_local_task(struct starpu_sched_component * component, struc
 			warned = 1;
 		}
 		ret = 1;
-		STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
+		STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
 	}
 	else
 	{
@@ -162,7 +162,7 @@ static int prio_push_local_task(struct starpu_sched_component * component, struc
 		STARPU_ASSERT(!isnan(prio->exp_len));
 		STARPU_ASSERT(!isnan(prio->exp_start));
 		
-		STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
+		STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
 		if(!is_pushback)
 			component->can_pull(component);
 	}
@@ -182,18 +182,37 @@ static struct starpu_task * prio_pull_task(struct starpu_sched_component * compo
 	struct _starpu_prio_data * data = component->data;
 	struct _starpu_prio_deque * prio = &data->prio;
 	starpu_pthread_mutex_t * mutex = &data->mutex;
-	STARPU_PTHREAD_MUTEX_LOCK(mutex);
+	STARPU_COMPONENT_MUTEX_LOCK(mutex);
 	struct starpu_task * task = _starpu_prio_deque_pop_task(prio);
 	if(task)
 	{
 		if(!isnan(task->predicted))
 		{
-			prio->exp_start = starpu_timing_now() + task->predicted;
-			prio->exp_len -= task->predicted;
+			const double exp_len = prio->exp_len - task->predicted;
+			const double now = starpu_timing_now();
+			prio->exp_start = now + task->predicted;
+			if (exp_len >= 0.0)
+			{
+				prio->exp_len = exp_len;
+			}
+			else
+			{
+				/* exp_len can become negative due to rounding errors */
+				prio->exp_len = starpu_timing_now()-now;
+			}
 		}
+		STARPU_ASSERT_MSG(prio->exp_len>=0, "prio->exp_len=%lf\n",prio->exp_len);
 		if(!isnan(task->predicted_transfer)){
-			prio->exp_start += task->predicted_transfer; 
-			prio->exp_len -= task->predicted_transfer; 
+			if (prio->exp_len > task->predicted_transfer)
+			{
+				prio->exp_start += task->predicted_transfer;
+				prio->exp_len -= task->predicted_transfer;
+			}
+			else
+			{
+				prio->exp_start += prio->exp_len;
+				prio->exp_len = 0;
+			}
 		}
 
 		prio->exp_end = prio->exp_start + prio->exp_len;
@@ -205,7 +224,7 @@ static struct starpu_task * prio_pull_task(struct starpu_sched_component * compo
 	STARPU_ASSERT(!isnan(prio->exp_end));
 	STARPU_ASSERT(!isnan(prio->exp_len));
 	STARPU_ASSERT(!isnan(prio->exp_start));
-	STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
+	STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
 
 	// When a pop is called, a can_push is called for pushing tasks onto
 	// the empty place of the queue left by the popped task.

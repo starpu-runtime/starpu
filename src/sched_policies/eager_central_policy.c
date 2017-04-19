@@ -75,7 +75,9 @@ static int push_task_eager_policy(struct starpu_task *task)
 	unsigned sched_ctx_id = task->sched_ctx;
 	struct _starpu_eager_center_policy_data *data = (struct _starpu_eager_center_policy_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
+	_starpu_worker_relax_on();
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
+	_starpu_worker_relax_off();
 	starpu_task_list_push_back(&data->fifo->taskq,task);
 	data->fifo->ntasks++;
 	data->fifo->nprocessed++;
@@ -125,12 +127,19 @@ static int push_task_eager_policy(struct starpu_task *task)
 	{
 		unsigned worker = workers->get_next(workers, &it);
 		if (dowake[worker])
-			if (starpu_wake_worker(worker))
+			if (_starpu_wake_worker_relax(worker))
 				break; // wake up a single worker
 	}
 #endif
 
-	starpu_sched_ctx_list_task_counters_increment_all(task, sched_ctx_id);
+	if (_starpu_get_nsched_ctxs() > 1)
+	{
+		_starpu_worker_relax_on();
+		_starpu_sched_ctx_lock_write(sched_ctx_id);
+		_starpu_worker_relax_off();
+		starpu_sched_ctx_list_task_counters_increment_all_ctx_locked(task, sched_ctx_id);
+		_starpu_sched_ctx_unlock_write(sched_ctx_id);
+	}
 
 	return 0;
 }
@@ -154,20 +163,25 @@ static struct starpu_task *pop_task_eager_policy(unsigned sched_ctx_id)
 	unsigned workerid = starpu_worker_get_id_check();
 	struct _starpu_eager_center_policy_data *data = (struct _starpu_eager_center_policy_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
-	/* block until some event happens */
 	/* Here helgrind would shout that this is unprotected, this is just an
 	 * integer access, and we hold the sched mutex, so we can not miss any
 	 * wake up. */
 	if (!STARPU_RUNNING_ON_VALGRIND && _starpu_fifo_empty(data->fifo))
+	{
 		return NULL;
+	}
 
 #ifdef STARPU_NON_BLOCKING_DRIVERS
 	if (!STARPU_RUNNING_ON_VALGRIND && starpu_bitmap_get(data->waiters, workerid))
 		/* Nobody woke us, avoid bothering the mutex */
+	{
 		return NULL;
+	}
 #endif
-
+	/* block until some event happens */
+	_starpu_worker_relax_on();
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
+	_starpu_worker_relax_off();
 
 	chosen_task = _starpu_fifo_pop_task(data->fifo, workerid);
 	if (!chosen_task)
@@ -175,20 +189,22 @@ static struct starpu_task *pop_task_eager_policy(unsigned sched_ctx_id)
 		starpu_bitmap_set(data->waiters, workerid);
 
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-
 	if(chosen_task)
 	{
-		starpu_sched_ctx_list_task_counters_decrement_all(chosen_task, sched_ctx_id);
+		_starpu_worker_relax_on();
+		_starpu_sched_ctx_lock_write(sched_ctx_id);
+		_starpu_worker_relax_off();
+		starpu_sched_ctx_list_task_counters_decrement_all_ctx_locked(chosen_task, sched_ctx_id);
 
 		unsigned child_sched_ctx = starpu_sched_ctx_worker_is_master_for_child_ctx(workerid, sched_ctx_id);
 		if(child_sched_ctx != STARPU_NMAX_SCHED_CTXS)
 		{
-			starpu_sched_ctx_move_task_to_ctx(chosen_task, child_sched_ctx, 1, 1);
-			starpu_sched_ctx_revert_task_counters(sched_ctx_id, chosen_task->flops);
-			return NULL;
+			starpu_sched_ctx_move_task_to_ctx_locked(chosen_task, child_sched_ctx, 1);
+			starpu_sched_ctx_revert_task_counters_ctx_locked(sched_ctx_id, chosen_task->flops);
+			chosen_task = NULL;
 		}
+		_starpu_sched_ctx_unlock_write(sched_ctx_id);
 	}
-
 
 	return chosen_task;
 }
@@ -201,7 +217,7 @@ static void eager_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nw
 		int workerid = workerids[i];
 		int curr_workerid = _starpu_worker_get_id();
 		if(workerid != curr_workerid)
-			starpu_wake_worker(workerid);
+			starpu_wake_worker_locked(workerid);
 
 		starpu_sched_ctx_worker_shares_tasks_lists(workerid, sched_ctx_id);
 	}

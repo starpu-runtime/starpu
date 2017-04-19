@@ -25,17 +25,25 @@
 #endif
 
 int tasks_executed = 0;
-starpu_pthread_mutex_t mut;
+int ctx1_tasks_executed = 0;
+int ctx2_tasks_executed = 0;
 
 static void sched_ctx_cpu_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE_UNUSED)
 {
-	STARPU_PTHREAD_MUTEX_LOCK(&mut);
-	tasks_executed++;
-	STARPU_PTHREAD_MUTEX_UNLOCK(&mut);
+	(void)STARPU_ATOMIC_ADD(&tasks_executed,1);
+	(void)STARPU_ATOMIC_ADD(&ctx1_tasks_executed,1);
 }
 
-static void sched_ctx_cuda_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE_UNUSED)
+static void sched_ctx2_cpu_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE_UNUSED)
 {
+	(void)STARPU_ATOMIC_ADD(&tasks_executed,1);
+	(void)STARPU_ATOMIC_ADD(&ctx2_tasks_executed,1);
+}
+
+static void sched_ctx2_cuda_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE_UNUSED)
+{
+	(void)STARPU_ATOMIC_ADD(&tasks_executed,1);
+	(void)STARPU_ATOMIC_ADD(&ctx2_tasks_executed,1);
 }
 
 static struct starpu_codelet sched_ctx_codelet1 =
@@ -48,8 +56,8 @@ static struct starpu_codelet sched_ctx_codelet1 =
 
 static struct starpu_codelet sched_ctx_codelet2 =
 {
-	.cpu_funcs = {sched_ctx_cpu_func},
-	.cuda_funcs = {sched_ctx_cuda_func},
+	.cpu_funcs = {sched_ctx2_cpu_func},
+	.cuda_funcs = {sched_ctx2_cuda_func},
 	.model = NULL,
 	.nbuffers = 0,
 	.name = "sched_ctx"
@@ -70,8 +78,6 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV)
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-
-	STARPU_PTHREAD_MUTEX_INIT(&mut, NULL);
 
 #ifdef STARPU_USE_CPU
 	nprocs1 = starpu_cpu_worker_get_count();
@@ -155,7 +161,9 @@ int main(int argc, char **argv)
 	starpu_sched_ctx_add_workers(procs1, nprocs1, sched_ctx2);
 	starpu_sched_ctx_delete(sched_ctx1);
 	starpu_sched_ctx_delete(sched_ctx2);
-	printf("tasks executed %d out of %d\n", tasks_executed, ntasks/2);
+	printf("tasks executed %d out of %d\n", tasks_executed, ntasks+1);
+	printf("tasks executed on ctx1: %d\n", ctx1_tasks_executed);
+	printf("tasks executed on ctx2: %d\n", ctx2_tasks_executed);
 
 enodev:
 	starpu_shutdown();

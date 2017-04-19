@@ -265,7 +265,6 @@ int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, doubl
 
 	/* Computing number of rows */
 	long n=find_long_list_size(ptr);
-	STARPU_ASSERT(n);
 
         /* Reading old calibrations if necessary */
 	FILE *f=NULL;

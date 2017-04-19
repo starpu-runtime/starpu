@@ -497,7 +497,9 @@ int main(int argc, char **argv)
 	conf.ncuda = 0;
 
 	if (use_spmd_p)
+	{
 		conf.sched_policy_name = "peager";
+	}
 
 	ret = starpu_init(&conf);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");

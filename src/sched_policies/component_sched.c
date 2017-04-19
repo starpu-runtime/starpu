@@ -73,6 +73,7 @@ int starpu_sched_component_execute_preds(struct starpu_sched_component * compone
 				{
 					continue;
 				}
+				STARPU_ASSERT_MSG(d >= 0, "workerid=%d, nimpl=%d, bundle=%p, d=%lf\n", workerid, nimpl, bundle, d);
 				if(d < len)
 				{
 					len = d;
@@ -271,16 +272,17 @@ void _starpu_sched_component_update_workers(struct starpu_sched_component * comp
 void _starpu_sched_component_update_workers_in_ctx(struct starpu_sched_component * component, unsigned sched_ctx_id)
 {
 	STARPU_ASSERT(component);
+	/* worker components are shared among sched_ctxs, thus we do not apply the sched_ctx worker mask to them.
+	 * per-ctx filtering is performed higher in the tree */
 	if(starpu_sched_component_is_worker(component))
 		return;
 	struct starpu_bitmap * workers_in_ctx = _starpu_get_worker_mask(sched_ctx_id);
 	starpu_bitmap_unset_and(component->workers_in_ctx,component->workers, workers_in_ctx);
-	int i,j;
+	int i;
 	for(i = 0; i < component->nchildren; i++)
 	{
 		struct starpu_sched_component * child = component->children[i];
 		_starpu_sched_component_update_workers_in_ctx(child, sched_ctx_id);
-		starpu_bitmap_or(component->workers_in_ctx, child->workers_in_ctx);
 	}
 	set_properties(component);
 	component->notify_change_workers(component);
@@ -399,8 +401,8 @@ void starpu_sched_tree_add_workers(unsigned sched_ctx_id, int *workerids, unsign
 	STARPU_ASSERT(workerids);
 	struct starpu_sched_tree * t = starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
-	STARPU_PTHREAD_MUTEX_LOCK(&t->lock);
-	_starpu_sched_component_lock_all_workers(sched_ctx_id);
+	STARPU_COMPONENT_MUTEX_LOCK(&t->lock);
+	_starpu_sched_component_lock_all_workers();
 
 	unsigned i;
 	for(i = 0; i < nworkers; i++)
@@ -408,8 +410,8 @@ void starpu_sched_tree_add_workers(unsigned sched_ctx_id, int *workerids, unsign
 
 	starpu_sched_tree_update_workers_in_ctx(t);
 
-	_starpu_sched_component_unlock_all_workers(sched_ctx_id);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&t->lock);
+	_starpu_sched_component_unlock_all_workers();
+	STARPU_COMPONENT_MUTEX_UNLOCK(&t->lock);
 }
 
 void starpu_sched_tree_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
@@ -418,8 +420,8 @@ void starpu_sched_tree_remove_workers(unsigned sched_ctx_id, int *workerids, uns
 	STARPU_ASSERT(workerids);
 	struct starpu_sched_tree * t = starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
-	STARPU_PTHREAD_MUTEX_LOCK(&t->lock);
-	_starpu_sched_component_lock_all_workers(sched_ctx_id);
+	STARPU_COMPONENT_MUTEX_LOCK(&t->lock);
+	_starpu_sched_component_lock_all_workers();
 
 	unsigned i;
 	for(i = 0; i < nworkers; i++)
@@ -427,8 +429,8 @@ void starpu_sched_tree_remove_workers(unsigned sched_ctx_id, int *workerids, uns
 
 	starpu_sched_tree_update_workers_in_ctx(t);
 
-	_starpu_sched_component_unlock_all_workers(sched_ctx_id);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&t->lock);
+	_starpu_sched_component_unlock_all_workers();
+	STARPU_COMPONENT_MUTEX_UNLOCK(&t->lock);
 }
 
 static struct starpu_sched_tree *trees[STARPU_NMAX_SCHED_CTXS];

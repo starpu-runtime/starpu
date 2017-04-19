@@ -43,9 +43,9 @@ unsigned starpu_sched_ctx_create_inside_interval(const char *policy_name, const 
 
 void starpu_sched_ctx_register_close_callback(unsigned sched_ctx_id, void (*close_callback)(unsigned sched_ctx_id, void* args), void *args);
 
-void starpu_sched_ctx_add_workers(int *workerids_ctx, int nworkers_ctx, unsigned sched_ctx_id);
+void starpu_sched_ctx_add_workers(int *workerids_ctx, unsigned nworkers_ctx, unsigned sched_ctx_id);
 
-void starpu_sched_ctx_remove_workers(int *workerids_ctx, int nworkers_ctx, unsigned sched_ctx_id);
+void starpu_sched_ctx_remove_workers(int *workerids_ctx, unsigned nworkers_ctx, unsigned sched_ctx_id);
 
 void starpu_sched_ctx_display_workers(unsigned sched_ctx_id, FILE *f);
 
@@ -134,8 +134,10 @@ void starpu_sched_ctx_list_task_counters_decrement(unsigned sched_ctx_id, int wo
 void starpu_sched_ctx_list_task_counters_reset(unsigned sched_ctx_id, int workerid);
 
 void starpu_sched_ctx_list_task_counters_increment_all(struct starpu_task *task, unsigned sched_ctx_id);
+void starpu_sched_ctx_list_task_counters_increment_all_ctx_locked(struct starpu_task *task, unsigned sched_ctx_id);
 
 void starpu_sched_ctx_list_task_counters_decrement_all(struct starpu_task *task, unsigned sched_ctx_id);
+void starpu_sched_ctx_list_task_counters_decrement_all_ctx_locked(struct starpu_task *task, unsigned sched_ctx_id);
 
 void starpu_sched_ctx_list_task_counters_reset_all(struct starpu_task *task, unsigned sched_ctx_id);
 
@@ -161,8 +163,10 @@ unsigned starpu_sched_ctx_worker_is_master_for_child_ctx(int workerid, unsigned 
 unsigned starpu_sched_ctx_master_get_context(int masterid);
 
 void starpu_sched_ctx_revert_task_counters(unsigned sched_ctx_id, double flops);
+void starpu_sched_ctx_revert_task_counters_ctx_locked(unsigned sched_ctx_id, double flops);
 
 void starpu_sched_ctx_move_task_to_ctx(struct starpu_task *task, unsigned sched_ctx, unsigned manage_mutex, unsigned with_repush);
+void starpu_sched_ctx_move_task_to_ctx_locked(struct starpu_task *task, unsigned sched_ctx, unsigned with_repush);
 
 int starpu_sched_ctx_get_worker_rank(unsigned sched_ctx_id);
 

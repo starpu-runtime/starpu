@@ -433,9 +433,9 @@ int _starpu_repush_task(struct _starpu_job *j)
 
 		if(nworkers == 0)
 		{
-			STARPU_PTHREAD_MUTEX_LOCK(&sched_ctx->empty_ctx_mutex);
+			_starpu_sched_ctx_lock_write(sched_ctx->id);
 			starpu_task_list_push_front(&sched_ctx->empty_ctx_tasks, task);
-			STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->empty_ctx_mutex);
+			_starpu_sched_ctx_unlock_write(sched_ctx->id);
 #ifdef STARPU_USE_SC_HYPERVISOR
 			if(sched_ctx->id != 0 && sched_ctx->perf_counters != NULL
 			   && sched_ctx->perf_counters->notify_empty_ctx)
@@ -499,9 +499,9 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 
 		if (nworkers == 0)
 		{
-			STARPU_PTHREAD_MUTEX_LOCK(&sched_ctx->empty_ctx_mutex);
+			_starpu_sched_ctx_lock_write(sched_ctx->id);
 			starpu_task_list_push_back(&sched_ctx->empty_ctx_tasks, task);
-			STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->empty_ctx_mutex);
+			_starpu_sched_ctx_unlock_write(sched_ctx->id);
 #ifdef STARPU_USE_SC_HYPERVISOR
 			if(sched_ctx->id != 0 && sched_ctx->perf_counters != NULL
 			   && sched_ctx->perf_counters->notify_empty_ctx)
@@ -591,19 +591,29 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 		{
 			STARPU_ASSERT(sched_ctx->sched_policy->push_task);
 			/* check out if there are any workers in the context */
-			starpu_pthread_rwlock_t *changing_ctx_mutex = _starpu_sched_ctx_get_changing_ctx_mutex(sched_ctx->id);
-			STARPU_PTHREAD_RWLOCK_RDLOCK(changing_ctx_mutex);
 			nworkers = starpu_sched_ctx_get_nworkers(sched_ctx->id);
 			if (nworkers == 0)
 				ret = -1;
 			else
 			{
+				struct _starpu_worker *worker = _starpu_get_local_worker_key();
+				if (worker)
+				{
+					STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
+					_starpu_worker_enter_sched_op(worker);
+					STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
+				}
 				_STARPU_TASK_BREAK_ON(task, push);
 				_STARPU_SCHED_BEGIN;
 				ret = sched_ctx->sched_policy->push_task(task);
 				_STARPU_SCHED_END;
+				if (worker)
+				{
+					STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
+					_starpu_worker_leave_sched_op(worker);
+					STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
+				}
 			}
-			STARPU_PTHREAD_RWLOCK_UNLOCK(changing_ctx_mutex);
 		}
 
 		if(ret == -1)
@@ -954,7 +964,6 @@ pick:
 	 * We do have a task that uses multiformat handles. Let's create the
 	 * required conversion tasks.
 	 */
-	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 	unsigned i;
 	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
 	for (i = 0; i < nbuffers; i++)
@@ -978,7 +987,6 @@ pick:
 
 	task->mf_skip = 1;
 	starpu_task_list_push_back(&worker->local_tasks, task);
-	STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
 	goto pick;
 
 profiling:
