@@ -37,7 +37,7 @@
  *   * Test that the priority list is empty
  * void FOO_prio_list_empty(struct FOO_prio_list*)
  *   * Erase element from the priority list
- * void FOO_prio_list_empty(struct FOO_prio_list*, struct FOO*)
+ * void FOO_prio_list_erase(struct FOO_prio_list*, struct FOO*)
  *   * Return and erase the first element of the priority list
  * void FOO_prio_list_pop_front(struct FOO_prio_list*)
  *   * Catenate second priority list at ends of the first priority list
