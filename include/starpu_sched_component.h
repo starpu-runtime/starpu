@@ -63,6 +63,8 @@ struct starpu_sched_component
 	int (*can_push)(struct starpu_sched_component *from, struct starpu_sched_component *to);
 	int (*can_pull)(struct starpu_sched_component *component);
 
+	int (*notify)(struct starpu_sched_component* component, int message_ID, void* arg);
+
 	double (*estimated_load)(struct starpu_sched_component *component);
 	double (*estimated_end)(struct starpu_sched_component *component);
 
