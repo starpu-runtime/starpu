@@ -132,13 +132,13 @@ Create a context indicating an approximate interval of resources
 Execute the callback whenever the last task of the context finished executing, it is called with the parameters \p sched_ctx and any other parameter needed
 by the application (packed in \p args)
 
-\fn void starpu_sched_ctx_add_workers(int *workerids_ctx, int nworkers_ctx, unsigned sched_ctx_id)
+\fn void starpu_sched_ctx_add_workers(int *workerids_ctx, unsigned nworkers_ctx, unsigned sched_ctx_id)
 \ingroup API_Scheduling_Contexts
 Add dynamically the workers in \p workerids_ctx to the
 context \p sched_ctx_id. The last argument cannot be greater than
 \ref STARPU_NMAX_SCHED_CTXS.
 
-\fn void starpu_sched_ctx_remove_workers(int *workerids_ctx, int nworkers_ctx, unsigned sched_ctx_id)
+\fn void starpu_sched_ctx_remove_workers(int *workerids_ctx, unsigned nworkers_ctx, unsigned sched_ctx_id)
 \ingroup API_Scheduling_Contexts
 Remove the workers in \p workerids_ctx from the context
 \p sched_ctx_id. The last argument cannot be greater than
