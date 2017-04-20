@@ -644,7 +644,10 @@ void _starpu_worker_set_stream_ctx(unsigned workerid, struct _starpu_sched_ctx *
 
 struct _starpu_sched_ctx* _starpu_worker_get_ctx_stream(unsigned stream_workerid);
 
-/* Must be called with worker's sched_mutex held.
+/* Send a request to the worker to block, before a parallel task is about to
+ * begin.
+ *
+ * Must be called with worker's sched_mutex held.
  */
 static inline void _starpu_worker_request_blocking_in_parallel(struct _starpu_worker * const worker)
 {
@@ -687,7 +690,9 @@ static inline void _starpu_worker_request_blocking_in_parallel(struct _starpu_wo
 	}
 }
 
-/* Must be called with worker's sched_mutex held.
+/* Send a request to the worker to unblock, after a parallel task is complete.
+ *
+ * Must be called with worker's sched_mutex held.
  */
 static inline void _starpu_worker_request_unblocking_in_parallel(struct _starpu_worker * const worker)
 {
@@ -733,7 +738,10 @@ static inline void _starpu_worker_request_unblocking_in_parallel(struct _starpu_
 	}
 }
 
-/* Must be called with worker's sched_mutex held.
+/* Called by the the worker to process incoming requests to block or unblock on
+ * parallel task boundaries.
+ *
+ * Must be called with worker's sched_mutex held.
  */
 static inline void _starpu_worker_process_block_in_parallel_requests(struct _starpu_worker * const worker)
 {
@@ -771,10 +779,22 @@ static inline void _starpu_worker_process_block_in_parallel_requests(struct _sta
 	}
 }
 
-/* Must be called with worker's sched_mutex held.
- * Mark the beginning of a scheduling operation during which the sched_mutex
- * lock may be temporarily released, but the scheduling context of the worker
- * should not be modified */
+/* Mark the beginning of a scheduling operation by the worker. No worker
+ * blocking operations on parallel tasks and no scheduling context change
+ * operations must be performed on contexts containing the worker, on
+ * contexts about to add the worker and on contexts about to remove the
+ * worker, while the scheduling operation is in process. The sched mutex
+ * of the worker may only be acquired permanently by another thread when
+ * no scheduling operation is in process, or when a scheduling operation
+ * is in process _and_ worker->state_relax_refcnt!=0. If a
+ * scheduling operation is in process _and_
+ * worker->state_relax_refcnt==0, a thread other than the worker
+ * must wait on condition worker->sched_cond for
+ * worker->state_relax_refcnt!=0 to become true, before acquiring
+ * the worker sched mutex permanently.
+ *
+ * Must be called with worker's sched_mutex held.
+ */
 #ifdef STARPU_SPINLOCK_CHECK
 static inline void __starpu_worker_enter_sched_op(struct _starpu_worker * const worker, const char*file, int line, const char* func)
 #else
@@ -824,9 +844,9 @@ static inline void _starpu_worker_enter_sched_op(struct _starpu_worker * const w
 #define _starpu_worker_enter_sched_op(worker) __starpu_worker_enter_sched_op((worker), __FILE__, __LINE__, __starpu_func__)
 #endif
 
-/* Must be called with worker's sched_mutex held.
- * Mark the end of a scheduling operation, and notify potential waiters that
- * scheduling context changes can safely be performed again.
+/* Mark the end of a scheduling operation by the worker.
+ *
+ * Must be called with worker's sched_mutex held.
  */
 void _starpu_worker_apply_deferred_ctx_changes(void);
 #ifdef STARPU_SPINLOCK_CHECK
@@ -860,7 +880,14 @@ static inline int _starpu_worker_sched_op_pending(void)
 	return worker->state_sched_op_pending;
 }
 
-/* Must be called with worker's sched_mutex held.
+/* Must be called before altering a context related to the worker
+ * whether about adding the worker to a context, removing it from a
+ * context or modifying the set of workers of a context of which the
+ * worker is a member, to mark the beginning of a context change
+ * operation. The sched mutex of the worker must be held before calling
+ * this function.
+ *
+ * Must be called with worker's sched_mutex held.
  */
 static inline void _starpu_worker_enter_changing_ctx_op(struct _starpu_worker * const worker)
 {
@@ -894,7 +921,9 @@ static inline void _starpu_worker_enter_changing_ctx_op(struct _starpu_worker * 
 	}
 }
 
-/* Must be called with worker's sched_mutex held.
+/* Mark the end of a context change operation.
+ *
+ * Must be called with worker's sched_mutex held.
  */
 static inline void _starpu_worker_leave_changing_ctx_op(struct _starpu_worker * const worker)
 {
@@ -1059,5 +1088,8 @@ static inline int _starpu_wake_worker_relax(int workerid)
 	return ret;
 }
 
+/* Allow a worker pulling a task it cannot execute to properly refuse it and
+ * send it back to the scheduler.
+ */
 void _starpu_worker_refuse_task(struct _starpu_worker *worker, struct starpu_task *task);
 #endif // __WORKERS_H__
