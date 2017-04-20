@@ -24,9 +24,9 @@ int main(int argc, char **argv)
 	int ret;
 	starpu_data_handle_t data[2];
 
-	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED);
-        starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
-        starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
+	MPI_INIT_THREAD_real(&argc, &argv, MPI_THREAD_SERIALIZED);
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+        MPI_Comm_size(MPI_COMM_WORLD, &size);
 
         if (size % 2)
         {

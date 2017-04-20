@@ -46,14 +46,15 @@ int main(int argc, char **argv)
 {
 	int ret;
 	struct starpu_mpi_lb_conf itf;
+	int mpi_init;
 
 	itf.get_neighbors = get_neighbors;
 	itf.get_data_unit_to_migrate = get_data_unit_to_migrate;
 
-	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED);
+	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED, &mpi_init);
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-	ret = starpu_mpi_init(NULL, NULL, 0);
+	ret = starpu_mpi_init(NULL, NULL, mpi_init);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
 
 	unsetenv("STARPU_MPI_LB");

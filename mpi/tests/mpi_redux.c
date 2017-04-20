@@ -36,17 +36,19 @@ int main(int argc, char **argv)
 	int ret, rank, size, sum;
 	int value=0;
 	starpu_data_handle_t *handles;
+	int mpi_init;
 
-	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED);
+	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED, &mpi_init);
+
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+	ret = starpu_mpi_init(NULL, NULL, mpi_init);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
+
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
 
 	sum = ((size-1) * (size) / 2);
-
-	ret = starpu_init(NULL);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-	ret = starpu_mpi_init(NULL, NULL, 0);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
 
 	if (rank == 0)
 	{
