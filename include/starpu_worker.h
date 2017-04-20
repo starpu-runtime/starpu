@@ -140,6 +140,27 @@ int starpu_worker_get_devids(enum starpu_worker_archtype type, int *devids, int 
 int starpu_worker_get_stream_workerids(unsigned devid, int *workerids, enum starpu_worker_archtype type);
 
 unsigned starpu_worker_get_sched_ctx_id_stream(unsigned stream_workerid);
+
+int starpu_worker_sched_op_pending(void);
+
+void starpu_worker_relax_on(void);
+
+void starpu_worker_relax_off(void);
+
+int starpu_worker_get_relax_state(void);
+
+void starpu_worker_lock(int workerid);
+
+int starpu_worker_trylock(int workerid);
+
+void starpu_worker_unlock(int workerid);
+
+void starpu_worker_lock_self(void);
+
+void starpu_worker_unlock_self(void);
+
+int starpu_wake_worker_relax(int workerid);
+
 #ifdef __cplusplus
 }
 #endif

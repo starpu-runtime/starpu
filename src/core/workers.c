@@ -2345,3 +2345,53 @@ void _starpu_worker_refuse_task(struct _starpu_worker *worker, struct starpu_tas
 	int res = _starpu_push_task_to_workers(task);
 	STARPU_ASSERT_MSG(res == 0, "_starpu_push_task_to_workers() unexpectedly returned = %d\n", res);
 }
+
+int starpu_worker_sched_op_pending(void)
+{
+	return _starpu_worker_sched_op_pending();
+}
+
+void starpu_worker_relax_on(void)
+{
+	_starpu_worker_relax_on();
+}
+
+void starpu_worker_relax_off(void)
+{
+	starpu_worker_relax_off();
+}
+
+int starpu_worker_get_relax_state(void)
+{
+	return _starpu_worker_get_relax_state();
+}
+
+void starpu_worker_lock(int workerid)
+{
+	_starpu_worker_lock(workerid);
+}
+
+int starpu_worker_trylock(int workerid)
+{
+	return _starpu_worker_trylock(workerid);
+}
+
+void starpu_worker_unlock(int workerid)
+{
+	_starpu_worker_unlock(workerid);
+}
+
+void starpu_worker_lock_self(void)
+{
+	_starpu_worker_lock_self();
+}
+
+void starpu_worker_unlock_self(void)
+{
+	_starpu_worker_unlock_self();
+}
+
+int starpu_wake_worker_relax(int workerid)
+{
+	return _starpu_wake_worker_relax(workerid);
+}

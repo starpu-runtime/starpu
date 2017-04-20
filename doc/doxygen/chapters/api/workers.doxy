@@ -254,12 +254,12 @@ on which device the memory needs to be allocated.
 \ingroup API_Workers_Properties
 Return worker \p type as a string.
 
-\fn int _starpu_worker_sched_op_pending(void)
+\fn int starpu_worker_sched_op_pending(void)
 \ingroup API_Workers_Properties
 Return \c !0 if current worker has a scheduling operation in progress,
 and \c 0 otherwise.
 
-\fn void _starpu_worker_relax_on(void)
+\fn void starpu_worker_relax_on(void)
 \ingroup API_Workers_Properties
 Allow other threads and workers to temporarily observe the current
 worker state, even though it is performing a scheduling operation.
@@ -268,30 +268,30 @@ call such as acquiring a mutex other than its own sched_mutex. This
 function increases \c state_relax_refcnt from the current worker. No
 more than <c>UINT_MAX-1</c> nested relax_on calls should performed on
 the same worker. This function is automatically called by \ref
-_starpu_worker_lock to relax the caller worker state while attempting
+starpu_worker_lock to relax the caller worker state while attempting
 to lock the targer worker.
 
-\fn void _starpu_worker_relax_off(void)
+\fn void starpu_worker_relax_off(void)
 \ingroup API_Workers_Properties
 Must be called after a potentially blocking call is complete, to
 restore the relax state in place before the corresponding relax_on.
-Decreases \c state_relax_refcnt. Calls to \ref _starpu_worker_relax_on
-and \c _starpu_worker_relax_off must be well parenthesized. This
-function is automatically called by \ref _starpu_worker_unlock after the 
+Decreases \c state_relax_refcnt. Calls to \ref starpu_worker_relax_on
+and \c starpu_worker_relax_off must be well parenthesized. This
+function is automatically called by \ref starpu_worker_unlock after the 
 target worker has been unlocked.
 
-\fn int _starpu_worker_get_relax_state(void)
+\fn int starpu_worker_get_relax_state(void)
 \ingroup API_Workers_Properties
 Returns \c !0 if the current worker \c state_relax_refcnt!=0 and \c 0
 otherwise.
 
-\fn void _starpu_worker_lock(int workerid)
+\fn void starpu_worker_lock(int workerid)
 \ingroup API_Workers_Properties
 Acquire the sched mutex of \p workerid. If the caller is a worker,
 distinct from \p workerid, the caller worker automatically enter relax
 state while acquiring the target worker lock.
 
-\fn int _starpu_worker_trylock(int workerid)
+\fn int starpu_worker_trylock(int workerid)
 \ingroup API_Workers_Properties
 Attempt to acquire the sched mutex of \p workerid. Returns \c 0 if
 successful, \c !0 if \p workerid sched mutex is held or the
@@ -300,22 +300,24 @@ If the caller is a worker, distinct from \p workerid, the caller
 worker automatically enter relax state if successfully acquiring the target
 worker lock.
 
-\fn void _starpu_worker_unlock(int workerid)
+\fn void starpu_worker_unlock(int workerid)
 \ingroup API_Workers_Properties
 Release the previously acquired sched mutex of \p workerid. Restore
 the relaxed state of the caller worker if needed.
 
-\fn void _starpu_worker_lock_self(void)
+\fn void starpu_worker_lock_self(void)
 \ingroup API_Workers_Properties
 Acquire the current worker sched mutex.
 
-\fn void _starpu_worker_unlock_self(void)
+\fn void starpu_worker_unlock_self(void)
 \ingroup API_Workers_Properties
 Release the current worker sched mutex.
 
-\fn int _starpu_wake_worker_relax(int workerid)
+\fn int starpu_wake_worker_relax(int workerid)
 \ingroup API_Workers_Properties
-Wake up \p workerid while temporarily entering the current worker
-relaxed state if needed during the waiting process.
+Wake up \p workerid while temporarily entering the current worker relaxed state
+if needed during the waiting process. Returns 1 if \p workerid has been woken
+up or its state_keep_awake flag has been set to 1, and 0 otherwise (if \p
+workerid was not in the STATE_SLEEPING or in the STATE_SCHEDULING).
 
 */
