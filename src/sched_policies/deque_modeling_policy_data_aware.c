@@ -341,6 +341,9 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 				    double predicted, double predicted_transfer,
 				    int prio, unsigned sched_ctx_id)
 {
+	_starpu_worker_relax_on();
+	_starpu_sched_ctx_lock_write(sched_ctx_id);
+	_starpu_worker_relax_off();
 	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	/* make sure someone could execute that task ! */
 	STARPU_ASSERT(best_workerid != -1);
@@ -348,18 +351,16 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 
         if(child_sched_ctx != STARPU_NMAX_SCHED_CTXS)
         {
-                starpu_sched_ctx_move_task_to_ctx(task, child_sched_ctx, 0, 1);
-		starpu_sched_ctx_revert_task_counters(sched_ctx_id, task->flops);
+                starpu_sched_ctx_move_task_to_ctx_locked(task, child_sched_ctx, 1);
+		starpu_sched_ctx_revert_task_counters_ctx_locked(sched_ctx_id, task->flops);
+		_starpu_sched_ctx_unlock_write(sched_ctx_id);
                 return 0;
         }
 
+	_starpu_sched_ctx_unlock_write(sched_ctx_id);
 	struct _starpu_fifo_taskq *fifo = dt->queue_array[best_workerid];
 
 	double now = starpu_timing_now();
-
-	starpu_pthread_mutex_t *sched_mutex;
-	starpu_pthread_cond_t *sched_cond;
-	starpu_worker_get_sched_condition(best_workerid, &sched_mutex, &sched_cond);
 
 #ifdef STARPU_USE_SC_HYPERVISOR
 	starpu_sched_ctx_call_pushed_task_cb(best_workerid, sched_ctx_id);
@@ -432,8 +433,12 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 	unsigned stream_ctx_id = starpu_worker_get_sched_ctx_id_stream(best_workerid);
 	if(stream_ctx_id != STARPU_NMAX_SCHED_CTXS)
 	{
-		starpu_sched_ctx_move_task_to_ctx(task, stream_ctx_id, 0, 0);
-		starpu_sched_ctx_revert_task_counters(sched_ctx_id, task->flops);
+		_starpu_worker_relax_on();
+		_starpu_sched_ctx_lock_write(sched_ctx_id);
+		_starpu_worker_relax_off();
+		starpu_sched_ctx_move_task_to_ctx_locked(task, stream_ctx_id, 0);
+		starpu_sched_ctx_revert_task_counters_ctx_locked(sched_ctx_id, task->flops);
+		_starpu_sched_ctx_unlock_write(sched_ctx_id);
 	}
 
 	int ret = 0;
