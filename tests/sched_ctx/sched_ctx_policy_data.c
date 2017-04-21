@@ -33,7 +33,13 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	nprocs = starpu_worker_get_count();
+	nprocs = starpu_cpu_worker_get_count();
+	if (nprocs == 0)
+	{
+		starpu_shutdown();
+		return STARPU_TEST_SKIPPED;
+	}
+
 	procs = (int*)malloc(nprocs*sizeof(int));
 	starpu_worker_get_ids_by_type(STARPU_ANY_WORKER, procs, nprocs);
 
