@@ -1073,6 +1073,7 @@ void _starpu_sched_pre_exec_hook(struct starpu_task *task)
 
 void _starpu_sched_post_exec_hook(struct starpu_task *task)
 {
+	STARPU_ASSERT(task->cl != NULL);
 	unsigned sched_ctx_id = starpu_sched_ctx_get_ctx_for_task(task);
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	if (sched_ctx->sched_policy && sched_ctx->sched_policy->post_exec_hook)
