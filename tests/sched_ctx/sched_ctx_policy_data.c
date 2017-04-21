@@ -41,7 +41,7 @@ int main(int argc, char **argv)
 	}
 
 	procs = (int*)malloc(nprocs*sizeof(int));
-	starpu_worker_get_ids_by_type(STARPU_ANY_WORKER, procs, nprocs);
+	starpu_worker_get_ids_by_type(STARPU_CPU_WORKER, procs, nprocs);
 
 	sched_ctx = starpu_sched_ctx_create(procs, nprocs, "my_context", 0);
 	ptr = starpu_sched_ctx_get_policy_data(sched_ctx);
