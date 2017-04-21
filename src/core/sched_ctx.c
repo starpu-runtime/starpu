@@ -2521,7 +2521,7 @@ static void _starpu_sched_ctx_put_new_master(unsigned sched_ctx_id)
 			break;
 		}
 	}
-	STARPU_ASSERT(i<nworkers);
+	STARPU_ASSERT_MSG(i<nworkers, "StarPU did not find a a CPU worker to be set as the master");
 }
 
 struct starpu_perfmodel_arch * _starpu_sched_ctx_get_perf_archtype(unsigned sched_ctx_id)
