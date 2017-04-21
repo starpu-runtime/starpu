@@ -2023,26 +2023,6 @@ module fstarpu_mod
                         integer(c_int), value, intent(in) :: sched_ctx_id
                 end subroutine fstarpu_sched_ctx_list_task_counters_reset_all
 
-                ! void starpu_sched_ctx_set_priority(int *workers, int nworkers, unsigned sched_ctx_id, unsigned priority);
-                subroutine fstarpu_sched_ctx_set_priority (workers, nworkers,  sched_ctx_id, priority) &
-                                bind(c,name="starpu_sched_ctx_set_priority")
-                        use iso_c_binding, only: c_int
-                        integer(c_int), intent(in) :: workers(*)
-                        integer(c_int), value, intent(in) :: nworkers
-                        integer(c_int), value, intent(in) :: sched_ctx_id
-                        integer(c_int), value, intent(in) :: priority
-                end subroutine fstarpu_sched_ctx_set_priority
-
-                ! void starpu_sched_ctx_set_priority_on_level(int* workers_to_add, unsigned nworkers_to_add, unsigned sched_ctx, unsigned priority);
-                subroutine fstarpu_sched_ctx_set_priority_on_level ( workers_to_add, nworkers_to_add, sched_ctx, priority) &
-                                bind(c,name="starpu_sched_ctx_set_priority_on_level")
-                        use iso_c_binding, only: c_int
-                        integer(c_int), intent(in) :: workers_to_add(*)
-                        integer(c_int), value, intent(in) :: nworkers_to_add
-                        integer(c_int), value, intent(in) :: sched_ctx
-                        integer(c_int), value, intent(in) :: priority
-                end subroutine fstarpu_sched_ctx_set_priority_on_level
-
                 ! unsigned starpu_sched_ctx_get_priority(int worker, unsigned sched_ctx_id);
                 function fstarpu_sched_ctx_get_priority (worker, sched_ctx_id) &
                                 bind(c,name="starpu_sched_ctx_get_priority")
