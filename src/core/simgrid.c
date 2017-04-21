@@ -451,7 +451,7 @@ static int task_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_AT
 
 		*task->finished = 1;
 		/* The worker which started this task may be sleeping out of tasks, wake it  */
-		starpu_wake_worker(workerid);
+		_starpu_wake_worker_relax(workerid);
 
 		free(task);
 	}

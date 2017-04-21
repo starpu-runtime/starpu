@@ -343,7 +343,9 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 {
 	struct starpu_task *task;
 	unsigned executing STARPU_ATTRIBUTE_UNUSED = 0;
+#if !defined(STARPU_SIMGRID)
 	unsigned keep_awake = 0;
+#endif
 
 	STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
 	_starpu_worker_enter_sched_op(worker);
@@ -365,11 +367,13 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 		STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 		task = _starpu_pop_task(worker);
 		STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
+#if !defined(STARPU_SIMGRID)
 		if (worker->state_keep_awake)
 		{
 			keep_awake = worker->state_keep_awake;
 			worker->state_keep_awake = 0;
 		}
+#endif
 	}
 
 #if !defined(STARPU_SIMGRID)
