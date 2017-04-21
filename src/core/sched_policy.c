@@ -455,7 +455,7 @@ int _starpu_repush_task(struct _starpu_job *j)
 	/* in case there is no codelet associated to the task (that's a control
 	 * task), we directly execute its callback and enforce the
 	 * corresponding dependencies */
-	if (task->cl == NULL || task->cl->where == STARPU_NOWHERE)
+	if (task->cl == NULL || task->where == STARPU_NOWHERE)
 	{
 		if (task->prologue_callback_pop_func)
 			task->prologue_callback_pop_func(task->prologue_callback_pop_arg);
@@ -536,15 +536,15 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 		 * prefetch before the scheduling decision. */
 		if (starpu_get_prefetch_flag())
 		{
-			if (task->cl->where == STARPU_CPU && config->cpus_nodeid >= 0)
+			if (task->where == STARPU_CPU && config->cpus_nodeid >= 0)
 				starpu_prefetch_task_input_on_node(task, config->cpus_nodeid);
-			else if (task->cl->where == STARPU_CUDA && config->cuda_nodeid >= 0)
+			else if (task->where == STARPU_CUDA && config->cuda_nodeid >= 0)
 				starpu_prefetch_task_input_on_node(task, config->cuda_nodeid);
-			else if (task->cl->where == STARPU_OPENCL && config->opencl_nodeid >= 0)
+			else if (task->where == STARPU_OPENCL && config->opencl_nodeid >= 0)
 				starpu_prefetch_task_input_on_node(task, config->opencl_nodeid);
-			else if (task->cl->where == STARPU_MIC && config->mic_nodeid >= 0)
+			else if (task->where == STARPU_MIC && config->mic_nodeid >= 0)
 				starpu_prefetch_task_input_on_node(task, config->mic_nodeid);
-			else if (task->cl->where == STARPU_SCC && config->scc_nodeid >= 0)
+			else if (task->where == STARPU_SCC && config->scc_nodeid >= 0)
 				starpu_prefetch_task_input_on_node(task, config->scc_nodeid);
 		}
 
