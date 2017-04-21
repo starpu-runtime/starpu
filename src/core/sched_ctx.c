@@ -1236,7 +1236,7 @@ void starpu_sched_ctx_add_workers(int *workers_to_add, unsigned nworkers_to_add,
 		unsigned i;
 		for (i=0; i<nworkers_to_add; i++)
 		{
-			unsigned workerid = workers_to_add[i];
+			int workerid = workers_to_add[i];
 			unsigned duplicate = 0;
 			unsigned j;
 			for (j = 0; j < cumulated_nworkers; j++)
