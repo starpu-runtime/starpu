@@ -622,10 +622,10 @@ done:		;
 		{
 			starpu_sched_ctx_move_task_to_ctx_locked(task, child_sched_ctx, 1);
 			starpu_sched_ctx_revert_task_counters_ctx_locked(sched_ctx_id, task->flops);
-			task = NULL;
+			_starpu_sched_ctx_unlock_write(sched_ctx_id);
+			return NULL;
 		}
 		_starpu_sched_ctx_unlock_write(sched_ctx_id);
-		return task;
 	}
 
 	/* if we have task (task) me way have some in the queue (worker->tasks_queue_size) that was freshly addeed (nb_added_tasks) */
