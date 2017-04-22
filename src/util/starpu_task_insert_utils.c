@@ -389,7 +389,7 @@ int _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task **t
 		else if (arg_type==STARPU_EXECUTE_WHERE)
 		{
 			(*task)->where = va_arg(varg_list, uint32_t);
-			fprintf(stderr, "where %d (cpu %d)\n", (*task)->where, STARPU_CPU);
+			fprintf(stderr, "where %d (cpu %llu)\n", (*task)->where, STARPU_CPU);
 		}
 		else if (arg_type==STARPU_EXECUTE_ON_WORKER)
 		{
