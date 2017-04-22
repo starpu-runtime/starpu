@@ -32,10 +32,6 @@ void func_cpu_bis(void *descr[], void *_args)
 	int worker_id_expected;
 	int ntasks;
 
-	struct starpu_codelet *codelet = calloc(1,sizeof(*codelet));
-	codelet->cpu_funcs[0] = func_cpu_bis;
-	codelet->cpu_funcs_name[0] = "func_cpu_bis";
-
 	starpu_worker_get_name(worker_id, worker_name, 256);
 	starpu_codelet_unpack_args(_args, &msg, &ntasks, &worker_id_expected);
 
@@ -44,6 +40,9 @@ void func_cpu_bis(void *descr[], void *_args)
 	FPRINTF(stderr, "[msg '%c'] [worker id %d] [worker name %s] [tasks %d]\n", msg, worker_id, worker_name, ntasks);
 	if (ntasks > 0)
 	{
+		struct starpu_codelet *codelet = calloc(1,sizeof(*codelet));
+		codelet->cpu_funcs[0] = func_cpu_bis;
+		codelet->cpu_funcs_name[0] = "func_cpu_bis";
 		int nntasks = ntasks - 1;
 		starpu_task_insert(codelet,
 				   STARPU_VALUE, &msg, sizeof(msg),
@@ -63,9 +62,6 @@ void func_cpu(void *descr[], void *_args)
 	int ntasks;
 	unsigned sched_ctx_id;
 	unsigned *sched_ctx_id_p;
-	struct starpu_codelet *codelet = calloc(1,sizeof(*codelet));
-	codelet->cpu_funcs[0] = func_cpu_bis;
-	codelet->cpu_funcs_name[0] = "func_cpu_bis";
 
 	starpu_worker_get_name(worker_id, worker_name, 256);
 	starpu_codelet_unpack_args(_args, &msg, &ntasks, &sched_ctx_id, &worker_id_expected, &sched_ctx_id_p);
@@ -78,6 +74,9 @@ void func_cpu(void *descr[], void *_args)
 	FPRINTF(stderr, "[msg '%c'] [worker id %d] [worker name %s] [sched_ctx_id %u] [tasks %d] [buffer %p]\n", msg, worker_id, worker_name, sched_ctx_id, ntasks, sched_ctx_id_p);
 	if (ntasks > 0)
 	{
+		struct starpu_codelet *codelet = calloc(1,sizeof(*codelet));
+		codelet->cpu_funcs[0] = func_cpu_bis;
+		codelet->cpu_funcs_name[0] = "func_cpu_bis";
 		int nntasks = ntasks - 1;
 		starpu_task_insert(codelet,
 				   STARPU_VALUE, &msg, sizeof(msg),
