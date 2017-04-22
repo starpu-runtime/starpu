@@ -244,11 +244,8 @@ static void insert_history_entry(struct starpu_perfmodel_history_entry *entry, s
 #ifndef STARPU_SIMGRID
 static void check_reg_model(struct starpu_perfmodel *model, int comb, int impl)
 {
-	struct starpu_perfmodel_per_arch *per_arch_model;
-
-	per_arch_model = &model->state->per_arch[comb][impl];
-	struct starpu_perfmodel_regression_model *reg_model;
-	reg_model = &per_arch_model->regression;
+	struct starpu_perfmodel_per_arch *per_arch_model = &model->state->per_arch[comb][impl];
+	struct starpu_perfmodel_regression_model *reg_model = &per_arch_model->regression;
 
 	/*
 	 * Linear Regression model
@@ -275,7 +272,6 @@ static void check_reg_model(struct starpu_perfmodel *model, int comb, int impl)
 	 * reg_model->minx
 	 * reg_model->maxx
 	 */
-	STARPU_ASSERT(reg_model->nsample >= 0);
 	(void)alpha;
 	(void)beta;
 
