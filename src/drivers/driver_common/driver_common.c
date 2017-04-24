@@ -342,7 +342,6 @@ static void _starpu_exponential_backoff(struct _starpu_worker *worker)
 struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int workerid, unsigned memnode STARPU_ATTRIBUTE_UNUSED)
 {
 	struct starpu_task *task;
-	unsigned executing STARPU_ATTRIBUTE_UNUSED = 0;
 #if !defined(STARPU_SIMGRID)
 	unsigned keep_awake = 0;
 #endif
@@ -350,10 +349,12 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 	STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
 	_starpu_worker_enter_sched_op(worker);
 	_starpu_worker_set_status_scheduling(workerid);
+#if !defined(STARPU_SIMGRID)
 	if ((worker->pipeline_length == 0 && worker->current_task)
 		|| (worker->pipeline_length != 0 && worker->ntasks))
 		/* This worker is executing something */
-		executing = 1;
+		keep_awake = 1;
+#endif
 
 	/*if the worker is already executing a task then */
 	if (worker->pipeline_length && (worker->ntasks == worker->pipeline_length || worker->pipeline_stuck))
@@ -370,14 +371,14 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 #if !defined(STARPU_SIMGRID)
 		if (worker->state_keep_awake)
 		{
-			keep_awake = worker->state_keep_awake;
+			keep_awake = 1;
 			worker->state_keep_awake = 0;
 		}
 #endif
 	}
 
 #if !defined(STARPU_SIMGRID)
-	if (task == NULL && !executing && !keep_awake)
+	if (task == NULL && !keep_awake)
 	{
 		/* Didn't get a task to run and none are running, go to sleep */
 
@@ -442,7 +443,9 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 	struct _starpu_job * j;
 	int is_parallel_task;
 	struct _starpu_combined_worker *combined_worker;
-	int executing STARPU_ATTRIBUTE_UNUSED = 0;
+#if !defined(STARPU_NON_BLOCKING_DRIVERS) && !defined(STARPU_SIMGRID)
+	int executing = 0;
+#endif
 	/*for each worker*/
 #ifndef STARPU_NON_BLOCKING_DRIVERS
 	/* This assumes only 1 worker */
@@ -454,10 +457,12 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 	for (i = 0; i < nworkers; i++)
 	{
 		unsigned keep_awake = 0;
+#if !defined(STARPU_NON_BLOCKING_DRIVERS) && !defined(STARPU_SIMGRID)
 		if ((workers[i].pipeline_length == 0 && workers[i].current_task)
 			|| (workers[i].pipeline_length != 0 && workers[i].ntasks))
 			/* At least this worker is executing something */
 			executing = 1;
+#endif
 		/*if the worker is already executing a task then */
 		if((workers[i].pipeline_length == 0 && workers[i].current_task)
 			|| (workers[i].pipeline_length != 0 &&
