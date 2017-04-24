@@ -57,6 +57,7 @@ int main(int argc, char **argv)
 	int mpi_init;
 
 	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED, &mpi_init);
+	(void)mpi_init;
 
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
