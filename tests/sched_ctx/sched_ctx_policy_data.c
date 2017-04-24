@@ -49,7 +49,7 @@ int main(int argc, char **argv)
 
 	starpu_sched_ctx_set_policy_data(sched_ctx, procs);
 	ptr = starpu_sched_ctx_get_policy_data(sched_ctx);
-	FPRINTF(stderr, "sched_ctx %d : data %p (procs %p)\n", sched_ctx, ptr, procs);
+	FPRINTF(stderr, "sched_ctx %u : data %p (procs %p)\n", sched_ctx, ptr, procs);
 	STARPU_ASSERT_MSG(ptr == procs, "The policy data for the sched ctx is incorrect\n");
 
 	main_sched_ctx = starpu_sched_ctx_get_context();
@@ -58,7 +58,7 @@ int main(int argc, char **argv)
 
 	starpu_sched_ctx_set_policy_data(main_sched_ctx, procs);
 	main_ptr = starpu_sched_ctx_get_policy_data(sched_ctx);
-	FPRINTF(stderr, "sched_ctx %d : data %p (procs %p)\n", main_sched_ctx, main_ptr, procs);
+	FPRINTF(stderr, "sched_ctx %u : data %p (procs %p)\n", main_sched_ctx, main_ptr, procs);
 	STARPU_ASSERT_MSG(main_ptr == procs, "The policy data for the sched ctx is incorrect\n");
 
 	starpu_sched_ctx_delete(sched_ctx);
