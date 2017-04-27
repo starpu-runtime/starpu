@@ -86,3 +86,7 @@ deadlock:starpu_pthread_mutex_lock_sched
 deadlock:_starpu_sched_component_lock_worker
 deadlock:_starpu_sched_component_worker_lock_scheduling
 deadlock:simple_worker_pull_task
+
+# the assert on lock_write_owner to check for recursive write lock is inherently racy, but fine
+# for the intended purpose
+race:^_starpu_sched_ctx_lock_write$
