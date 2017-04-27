@@ -82,6 +82,15 @@ static int push_task_eager_policy(struct starpu_task *task)
 	data->fifo->ntasks++;
 	data->fifo->nprocessed++;
 
+	if (_starpu_get_nsched_ctxs() > 1)
+	{
+		_starpu_worker_relax_on();
+		_starpu_sched_ctx_lock_write(sched_ctx_id);
+		_starpu_worker_relax_off();
+		starpu_sched_ctx_list_task_counters_increment_all_ctx_locked(task, sched_ctx_id);
+		_starpu_sched_ctx_unlock_write(sched_ctx_id);
+	}
+
 	starpu_push_task_end(task);
 
 	/*if there are no tasks block */
@@ -131,15 +140,6 @@ static int push_task_eager_policy(struct starpu_task *task)
 				break; // wake up a single worker
 	}
 #endif
-
-	if (_starpu_get_nsched_ctxs() > 1)
-	{
-		_starpu_worker_relax_on();
-		_starpu_sched_ctx_lock_write(sched_ctx_id);
-		_starpu_worker_relax_off();
-		starpu_sched_ctx_list_task_counters_increment_all_ctx_locked(task, sched_ctx_id);
-		_starpu_sched_ctx_unlock_write(sched_ctx_id);
-	}
 
 	return 0;
 }
