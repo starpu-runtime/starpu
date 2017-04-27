@@ -1358,6 +1358,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	STARPU_PTHREAD_KEY_CREATE(&_starpu_worker_key, NULL);
 	STARPU_PTHREAD_KEY_CREATE(&_starpu_worker_set_key, NULL);
 	_starpu_keys_initialized = 1;
+	STARPU_WMB();
 
 	_starpu_build_tree();
 
