@@ -90,3 +90,10 @@ deadlock:simple_worker_pull_task
 # the assert on lock_write_owner to check for recursive write lock is inherently racy, but fine
 # for the intended purpose
 race:^_starpu_sched_ctx_lock_write$
+race:^_starpu_sched_ctx_lock_read$
+
+# only protected by memory barrier
+race:^_starpu_keys_initialized$
+
+# disable race detection on cg->ntags, see comment in code
+race:^_starpu_notify_cg$
