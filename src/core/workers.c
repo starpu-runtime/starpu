@@ -660,7 +660,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				if (_starpu_may_launch_driver(&pconfig->conf, &driver))
 				{
 					STARPU_PTHREAD_CREATE_ON(
-						workerarg->name,
+						"CPU",
 						&workerarg->worker_thread,
 						NULL,
 						_starpu_cpu_worker,
@@ -716,7 +716,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				}
 
 				STARPU_PTHREAD_CREATE_ON(
-					workerarg->name,
+					"CUDA",
 					&worker_set->worker_thread,
 					NULL,
 					_starpu_cuda_worker,
@@ -741,7 +741,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				}
 #endif
 				STARPU_PTHREAD_CREATE_ON(
-					workerarg->name,
+					"OpenCL",
 					&workerarg->worker_thread,
 					NULL,
 					_starpu_opencl_worker,
@@ -774,7 +774,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				mic_worker_set[devid].set_is_initialized = 0;
 
 				STARPU_PTHREAD_CREATE_ON(
-						workerarg->name,
+						"MIC",
 						&mic_worker_set[devid].worker_thread,
 						NULL,
 						_starpu_mic_src_worker,
@@ -802,7 +802,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 			case STARPU_SCC_WORKER:
 				workerarg->worker_is_initialized = 0;
 				STARPU_PTHREAD_CREATE_ON(
-						workerarg->name,
+						"SCC",
 						&workerarg->worker_thread,
 						NULL,
 						_starpu_scc_src_worker,
