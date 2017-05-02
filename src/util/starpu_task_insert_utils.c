@@ -504,6 +504,7 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task **
 
 	(*task)->cl = cl;
 	(*task)->name = NULL;
+	(*task)->cl_arg_free = 1;
 	while (arglist[arg_i] != NULL)
 	{
 		const int arg_type = (int)(intptr_t)arglist[arg_i];
