@@ -107,17 +107,29 @@ starpu_mpi_TESTS +=				\
 	cache					\
 	cache_disable				\
 	callback				\
+	early_request				\
 	insert_task				\
 	insert_task_block			\
+	insert_task_dyn_handles			\
+	insert_task_node_choice			\
 	insert_task_owner			\
 	insert_task_owner2			\
 	insert_task_owner_data			\
-	insert_task_node_choice			\
-	matrix
+	matrix					\
+	matrix2					\
+	mpi_detached_tag			\
+	mpi_irecv_detached			\
+	mpi_isend_detached			\
+	mpi_reduction				\
+	mpi_scatter_gather			\
+	policy_register				\
+	policy_register_many			\
+	policy_selection			\
+	policy_selection2			\
+	ring_async_implicit
 
 if !STARPU_SIMGRID
 starpu_mpi_TESTS +=				\
-	datatypes				\
 	pingpong				\
 	mpi_test				\
 	mpi_isend				\
@@ -125,15 +137,11 @@ starpu_mpi_TESTS +=				\
 	mpi_earlyrecv2				\
 	mpi_earlyrecv2_sync			\
 	mpi_irecv				\
-	mpi_isend_detached			\
-	mpi_irecv_detached			\
-	mpi_detached_tag			\
 	mpi_redux				\
 	ring					\
 	ring_sync				\
 	ring_sync_detached			\
 	ring_async				\
-	ring_async_implicit			\
 	block_interface				\
 	block_interface_pinned			\
 	matrix2					\
@@ -141,24 +149,19 @@ starpu_mpi_TESTS +=				\
 	insert_task_sent_cache			\
 	insert_task_recv_cache			\
 	insert_task_count			\
-	insert_task_dyn_handles			\
 	multiple_send				\
-	mpi_scatter_gather			\
-	mpi_reduction				\
 	user_defined_datatype			\
 	tags_checking				\
 	sync					\
 	gather					\
 	gather2					\
-	policy_register				\
-	policy_register_many			\
+	load_balancer
+
+# Expected to fail
+starpu_mpi_TESTS +=				\
 	policy_register_toomany			\
 	policy_unregister			\
-	policy_selection			\
-	policy_selection2			\
-	early_request				\
-	starpu_redefine				\
-	load_balancer
+	starpu_redefine
 endif
 
 noinst_PROGRAMS =				\

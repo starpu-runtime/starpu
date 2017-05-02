@@ -101,7 +101,8 @@ int main(int argc, char **argv)
 	starpu_mpi_shutdown();
 	starpu_shutdown();
 
-	MPI_Finalize();
+	if (!mpi_init)
+		MPI_Finalize();
 
 	STARPU_ASSERT_MSG(sum == value, "Sum of first %d integers is %d, not %d\n", size-1, sum, value);
 

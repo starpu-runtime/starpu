@@ -209,7 +209,8 @@ int main(int argc, char * argv[])
 			FPRINTF(stderr, "We need at least 1 CPU worker.\n");
 		starpu_mpi_shutdown();
 		starpu_shutdown();
-		MPI_Finalize();
+		if (!mpi_init)
+			MPI_Finalize();
 		return STARPU_TEST_SKIPPED;
 	}
 
@@ -248,7 +249,8 @@ int main(int argc, char * argv[])
 	starpu_mpi_shutdown();
 	starpu_shutdown();
 
-	MPI_Finalize();
+	if (!mpi_init)
+		MPI_Finalize();
 	FPRINTF(stderr, "No assert until end\n");
 	return 0;
 }

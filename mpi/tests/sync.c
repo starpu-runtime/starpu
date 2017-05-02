@@ -23,15 +23,17 @@ int main(int argc, char **argv)
 	int rank, other_rank;
 	int ret;
 	starpu_data_handle_t data[2];
+	int mpi_init;
 
-	MPI_INIT_THREAD_real(&argc, &argv, MPI_THREAD_SERIALIZED);
+	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED, &mpi_init);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
         MPI_Comm_size(MPI_COMM_WORLD, &size);
 
         if (size % 2)
         {
 		FPRINTF(stderr, "We need a even number of processes.\n");
-                MPI_Finalize();
+		if (!mpi_init)
+			MPI_Finalize();
                 return STARPU_TEST_SKIPPED;
         }
 
@@ -92,6 +94,7 @@ int main(int argc, char **argv)
 
 	starpu_mpi_shutdown();
 	starpu_shutdown();
-        MPI_Finalize();
+	if (!mpi_init)
+		MPI_Finalize();
 	return 0;
 }

@@ -351,7 +351,8 @@ int main(int argc, char **argv)
 
 		starpu_mpi_shutdown();
 		starpu_shutdown();
-		MPI_Finalize();
+		if (!mpi_init)
+			MPI_Finalize();
 		return STARPU_TEST_SKIPPED;
 	}
 
@@ -364,7 +365,8 @@ int main(int argc, char **argv)
 	starpu_mpi_shutdown();
 	starpu_shutdown();
 
-	MPI_Finalize();
+	if (!mpi_init)
+		MPI_Finalize();
 
 	return rank == 0 ? error : 0;
 }

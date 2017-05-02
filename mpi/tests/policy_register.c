@@ -88,7 +88,8 @@ int main(int argc, char **argv)
 
 		starpu_mpi_shutdown();
 		starpu_shutdown();
-		MPI_Finalize();
+		if (!mpi_init)
+			MPI_Finalize();
 		return STARPU_TEST_SKIPPED;
 	}
 
@@ -142,7 +143,8 @@ int main(int argc, char **argv)
 	starpu_data_unregister(handles[1]);
 	starpu_mpi_shutdown();
 	starpu_shutdown();
-	MPI_Finalize();
+	if (!mpi_init)
+		MPI_Finalize();
 
 	return 0;
 }

@@ -39,7 +39,8 @@ int main(int argc, char **argv)
 		FPRINTF(stderr, "We need more than 2 processes.\n");
 		starpu_mpi_shutdown();
 		starpu_shutdown();
-		MPI_Finalize();
+		if (!mpi_init)
+			MPI_Finalize();
 		return STARPU_TEST_SKIPPED;
 	}
 
@@ -71,7 +72,8 @@ int main(int argc, char **argv)
 
 	starpu_mpi_shutdown();
 	starpu_shutdown();
-	MPI_Finalize();
+	if (!mpi_init)
+		MPI_Finalize();
 
 	return 0;
 }

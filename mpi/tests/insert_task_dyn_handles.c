@@ -144,6 +144,7 @@ enodev:
 	}
 	else if (rank == 0)
 	{
+#ifndef STARPU_SIMGRID
 		for(i=0 ; i<STARPU_NMAXBUFS-1 ; i++)
 		{
 			if (x[i] != nloops * FFACTOR * 2)
@@ -164,6 +165,7 @@ enodev:
 		{
 			FPRINTF_MPI(stderr, "[end of loop] all values are correct\n");
 		}
+#endif
 		free(x);
 	}
 	else
@@ -175,6 +177,7 @@ enodev:
 
 	starpu_mpi_shutdown();
 	starpu_shutdown();
-	MPI_Finalize();
+	if (!mpi_init)
+		MPI_Finalize();
 	return ret;
 }

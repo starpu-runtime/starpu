@@ -78,7 +78,8 @@ int main(int argc, char **argv)
 		}
 		starpu_mpi_shutdown();
 		starpu_shutdown();
-		MPI_Finalize();
+		if (!mpi_init)
+			MPI_Finalize();
 		return STARPU_TEST_SKIPPED;
 	}
 
@@ -100,11 +101,13 @@ int main(int argc, char **argv)
 	for(i=0 ; i<2 ; i++) starpu_data_acquire(handles[i], STARPU_R);
 	FPRINTF_MPI(stderr, "data[%d,%d,%d] = %d,%d,%d\n", 0, 1, 2, data[0], data[1], data[2]);
 	for(i=0 ; i<2 ; i++) starpu_data_release(handles[i]);
+#ifndef STARPU_SIMGRID
 	if (rank == 2)
 	{
 		STARPU_ASSERT_MSG(data[0] == 2*data[2] && data[1] == 2*data[2], "Computation incorrect. data[%d] (%d) != 2*data[%d] (%d) && data[%d] (%d) != 2*data[%d] (%d)\n",
 				  0, data[0], 2, data[2], 1, data[1], 2, data[2]);
 	}
+#endif
 
 	for(i=0 ; i<2 ; i++) starpu_data_acquire(handles[i], STARPU_W);
 	for(i=0 ; i<2 ; i++) data[i] = 12;
@@ -118,17 +121,20 @@ int main(int argc, char **argv)
 	for(i=0 ; i<2 ; i++) starpu_data_acquire(handles[i], STARPU_R);
 	FPRINTF_MPI(stderr, "data[%d,%d,%d] = %d,%d,%d\n", 0, 1, 2, data[0], data[1], data[2]);
 	for(i=0 ; i<2 ; i++) starpu_data_release(handles[i]);
+#ifndef STARPU_SIMGRID
 	if (rank == 1)
 	{
 		STARPU_ASSERT_MSG(data[0] == 2*data[2] && data[1] == 2*data[2], "Computation incorrect. data[%d] (%d) != 2*data[%d] (%d) && data[%d] (%d) != 2*data[%d] (%d)\n",
 				  0, data[0], 2, data[2], 1, data[1], 2, data[2]);
 	}
+#endif
 
 	for(i=0 ; i<3 ; i++) starpu_data_unregister(handles[i]);
 
 	starpu_mpi_shutdown();
 	starpu_shutdown();
-	MPI_Finalize();
+	if (!mpi_init)
+		MPI_Finalize();
 
 	return 0;
 }
