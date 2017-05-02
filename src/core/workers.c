@@ -690,7 +690,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				if (_starpu_may_launch_driver(&pconfig->conf, &driver))
 				{
 					STARPU_PTHREAD_CREATE_ON(
-						workerarg->name,
+						"CPU",
 						&workerarg->worker_thread,
 						NULL,
 						_starpu_cpu_worker,
@@ -734,7 +734,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 
 
 				STARPU_PTHREAD_CREATE_ON(
-					pconfig->topology.cuda_th_per_dev ? "CUDA" : workerarg->name,
+					"CUDA",
 					&worker_set->worker_thread,
 					NULL,
 					_starpu_cuda_worker,
@@ -760,7 +760,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				}
 #endif
 				STARPU_PTHREAD_CREATE_ON(
-					workerarg->name,
+					"OpenCL",
 					&workerarg->worker_thread,
 					NULL,
 					_starpu_opencl_worker,
@@ -785,7 +785,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				worker_set->set_is_initialized = 0;
 
 				STARPU_PTHREAD_CREATE_ON(
-						workerarg->name,
+						"MIC",
 						&worker_set->worker_thread,
 						NULL,
 						_starpu_mic_src_worker,
@@ -813,7 +813,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 			case STARPU_SCC_WORKER:
 				workerarg->worker_is_initialized = 0;
 				STARPU_PTHREAD_CREATE_ON(
-						workerarg->name,
+						"SCC",
 						&workerarg->worker_thread,
 						NULL,
 						_starpu_scc_src_worker,
@@ -845,7 +845,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
                  * we launch one thread for all devices
                  */
 				STARPU_PTHREAD_CREATE_ON(
-						workerarg->name,
+						"MPI MS",
 						&worker_set->worker_thread,
 						NULL,
 						_starpu_mpi_src_worker,
@@ -882,7 +882,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
                 struct _starpu_worker_set * worker_set_zero = &mpi_worker_set[0];
                 struct _starpu_worker * worker_zero = &worker_set_zero->workers[0];
                 STARPU_PTHREAD_CREATE_ON(
-                                worker_zero->name,
+                                "zero",
                                 &worker_set_zero->worker_thread,
                                 NULL,
                                 _starpu_mpi_src_worker,
