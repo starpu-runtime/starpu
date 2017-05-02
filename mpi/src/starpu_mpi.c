@@ -94,10 +94,9 @@ static int posted_requests = 0, newer_requests, barrier_running = 0;
 #pragma weak smpi_simulated_main_
 extern int smpi_simulated_main_(int argc, char *argv[]);
 
-#ifdef HAVE_SMPI_PROCESS_SET_USER_DATA
+#pragma weak smpi_process_set_user_data
 #if !HAVE_DECL_SMPI_PROCESS_SET_USER_DATA
 extern void smpi_process_set_user_data(void *);
-#endif
 #endif
 
 static void _starpu_mpi_request_init(struct _starpu_mpi_req **req)
@@ -1334,11 +1333,14 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 		argv_cpy[i] = strdup((*(argc_argv->argv))[i]);
 	MSG_process_create_with_arguments("main", smpi_simulated_main_, NULL, _starpu_simgrid_get_host_by_name("MAIN"), *(argc_argv->argc), argv_cpy);
 	/* And set TSD for us */
-#ifdef HAVE_SMPI_PROCESS_SET_USER_DATA
 	void **tsd;
 	_STARPU_CALLOC(tsd, MAX_TSD + 1, sizeof(void*));
+	if (!smpi_process_set_user_data)
+	{
+		fprintf(stderr,"Your version of simgrid does not provide smpi_process_set_user_data, we can not continue without it\n");
+		exit(1);
+	}
 	smpi_process_set_user_data(tsd);
-#endif
 #endif
 
 #ifdef STARPU_USE_FXT
