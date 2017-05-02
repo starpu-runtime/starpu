@@ -260,12 +260,21 @@ int do_starpu_main(int argc, char *argv[])
 	return main_ret;
 }
 
+/* We need it only when using smpi */
+#pragma weak smpi_process_get_user_data
+extern void *smpi_process_get_user_data();
+
 #undef main
 #pragma weak main
 int main(int argc, char **argv)
 {
 	if (_starpu_simgrid_running_smpi())
 	{
+		if (!smpi_process_get_user_data)
+		{
+			fprintf(stderr,"Your version of simgrid does not provide smpi_process_get_user_data, we can not continue without it\n");
+			exit(1);
+		}
 		/* Oops, we are running SMPI, let it start Simgrid, and we'll
 		 * take back hand in _starpu_simgrid_init from starpu_init() */
 		return smpi_main(_starpu_mpi_simgrid_init, argc, argv);
