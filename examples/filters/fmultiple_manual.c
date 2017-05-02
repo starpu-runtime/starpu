@@ -130,6 +130,11 @@ int main(int argc, char **argv)
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
+	/* force to execute task on the home_node, here it is STARPU_MAIN_RAM */
+	cl_switch.specific_nodes = 1;
+	for (i = 0; i < STARPU_NMAXBUFS; i++)
+		cl_switch.nodes[i] = STARPU_MAIN_RAM;
+
 	/* Declare the whole matrix to StarPU */
 	starpu_matrix_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)matrix, NX, NX, NY, sizeof(matrix[0][0]));
 
