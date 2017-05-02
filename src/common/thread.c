@@ -235,15 +235,20 @@ int starpu_pthread_key_delete(starpu_pthread_key_t key)
 	return 0;
 }
 
+/* We need it only when using smpi */
+#pragma weak smpi_process_get_user_data
+
 int starpu_pthread_setspecific(starpu_pthread_key_t key, const void *pointer)
 {
 	void **array;
-#ifdef STARPU_SIMGRID_HAVE_SIMIX_PROCESS_GET_CODE
-	if ((SIMIX_process_get_code() == _starpu_mpi_simgrid_init) || (!strcmp(SIMIX_process_self_get_name(),"wait for mpi transfer")))
+	const char *process_name = SIMIX_process_self_get_name();
+	char *end;
+	/* Test whether it is an MPI rank */
+	strtol(process_name, &end, 10);
+	if (!*end || !strcmp(process_name, "wait for mpi transfer"))
 		/* Special-case the SMPI process */
 		array = smpi_process_get_user_data();
 	else
-#endif
 		array = MSG_process_get_data(MSG_process_self());
 	array[key] = (void*) pointer;
 	return 0;
@@ -252,12 +257,14 @@ int starpu_pthread_setspecific(starpu_pthread_key_t key, const void *pointer)
 void* starpu_pthread_getspecific(starpu_pthread_key_t key)
 {
 	void **array;
-#ifdef STARPU_SIMGRID_HAVE_SIMIX_PROCESS_GET_CODE
-	if ((SIMIX_process_get_code() == _starpu_mpi_simgrid_init) || (!strcmp(SIMIX_process_self_get_name(),"wait for mpi transfer")))
-		/* Special-case the SMPI process */
+	const char *process_name = SIMIX_process_self_get_name();
+	char *end;
+	/* Test whether it is an MPI rank */
+	strtol(process_name, &end, 10);
+	if (!*end || !strcmp(process_name, "wait for mpi transfer"))
+		/* Special-case the SMPI processes */
 		array = smpi_process_get_user_data();
 	else
-#endif
 		array = MSG_process_get_data(MSG_process_self());
 	if (!array)
 		return NULL;
