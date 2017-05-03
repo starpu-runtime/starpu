@@ -217,10 +217,6 @@ static void start_simgrid(int *argc, char **argv)
 	simgrid_started = 1;
 
 	MSG_init(argc, argv);
-#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 9)
-	/* Versions earlier than 3.9 didn't support our communication tasks */
-	MSG_config("workstation/model", "ptask_L07");
-#endif
 	/* Simgrid uses tiny stacks by default.  This comes unexpected to our users.  */
 	unsigned stack_size = 8192;
 #ifdef HAVE_GETRLIMIT
