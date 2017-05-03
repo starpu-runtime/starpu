@@ -136,7 +136,6 @@ myPROGRAMS =
 
 myPROGRAMS +=					\
 	main/mkdtemp				\
-	main/restart				\
 	main/execute_schedule			\
 	main/insert_task_pack			\
 	main/insert_task_nullcodelet		\
@@ -185,6 +184,7 @@ myPROGRAMS +=				\
 	main/static_restartable_tag		\
 	main/regenerate				\
 	main/regenerate_pipeline		\
+	main/restart				\
 	main/wait_all_regenerable_tasks		\
 	main/subgraph_repeat			\
 	main/subgraph_repeat_tag		\
