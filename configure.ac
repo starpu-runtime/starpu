@@ -2591,6 +2591,16 @@ if test "x$enable_socl" = "xyes" -a "$have_valid_opencl" = "no" ; then
     AC_MSG_ERROR([SOCL cannot be enabled without OpenCL])
 fi
 
+# MPI Master Slave and SOCL are not compatible
+if test "x$use_mpi_master_slave" = "xyes" ; then
+   if test "x$enable_socl" = "xyes" ; then
+      AC_MSG_ERROR([MPI Master-Slave and SOCL can not be used at the same time !])
+   fi
+   if test "x$enable_socl" = "xmaybe" ; then
+     enable_socl=no 
+   fi
+fi
+
 # now we enable SOCL if and only if a proper setup is available
 if test "x$enable_socl" = "xyes" -o "x$enable_socl" = "xmaybe" ; then
    build_socl=$have_valid_opencl
