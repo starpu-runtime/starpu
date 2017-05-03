@@ -1023,9 +1023,19 @@ void _starpu_simgrid_count_ngpus(void)
 			ngpus = 0;
 			for (src2 = 1; src2 < STARPU_MAXNODES; src2++)
 			{
-				/* TODO: NUMA nodes */
-				if (starpu_bus_get_id(src2, STARPU_MAIN_RAM) == -1)
+				int numa;
+				int nnumas = _starpu_get_nb_numa_nodes();
+				int found = 0;
+				for (numa = 0; numa < nnumas; numa++)
+					if (starpu_bus_get_id(src2, numa) != -1)
+					{
+						found = 1;
+						break;
+					}
+					
+				if (!found)
 					continue;
+
 				msg_host_t srchost2 = _starpu_simgrid_get_memnode_host(src2);
 				int routesize2;
 #ifdef HAVE_SG_HOST_ROUTE
