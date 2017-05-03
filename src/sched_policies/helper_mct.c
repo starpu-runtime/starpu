@@ -143,7 +143,7 @@ int starpu_mct_compute_execution_times(struct starpu_sched_component *component,
 	return nsuitable_components;
 }
 
-void starpu_mct_compute_expected_times(struct starpu_sched_component *component, struct starpu_task *task,
+void starpu_mct_compute_expected_times(struct starpu_sched_component *component, struct starpu_task *task STARPU_ATTRIBUTE_UNUSED,
 		double *estimated_lengths, double *estimated_transfer_length, double *estimated_ends_with_task,
 				       double *min_exp_end_with_task, double *max_exp_end_with_task, int *suitable_components, int nsuitable_components)
 {
