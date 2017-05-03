@@ -241,6 +241,7 @@ int starpu_pthread_key_delete(starpu_pthread_key_t key)
 int starpu_pthread_setspecific(starpu_pthread_key_t key, const void *pointer)
 {
 	void **array;
+#ifdef HAVE_SMPI_PROCESS_SET_USER_DATA
 	const char *process_name = SIMIX_process_self_get_name();
 	char *end;
 	/* Test whether it is an MPI rank */
@@ -249,6 +250,7 @@ int starpu_pthread_setspecific(starpu_pthread_key_t key, const void *pointer)
 		/* Special-case the SMPI process */
 		array = smpi_process_get_user_data();
 	else
+#endif
 		array = MSG_process_get_data(MSG_process_self());
 	array[key] = (void*) pointer;
 	return 0;
@@ -257,6 +259,7 @@ int starpu_pthread_setspecific(starpu_pthread_key_t key, const void *pointer)
 void* starpu_pthread_getspecific(starpu_pthread_key_t key)
 {
 	void **array;
+#ifdef HAVE_SMPI_PROCESS_SET_USER_DATA
 	const char *process_name = SIMIX_process_self_get_name();
 	char *end;
 	/* Test whether it is an MPI rank */
@@ -265,6 +268,7 @@ void* starpu_pthread_getspecific(starpu_pthread_key_t key)
 		/* Special-case the SMPI processes */
 		array = smpi_process_get_user_data();
 	else
+#endif
 		array = MSG_process_get_data(MSG_process_self());
 	if (!array)
 		return NULL;
