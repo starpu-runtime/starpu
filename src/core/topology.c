@@ -2231,8 +2231,32 @@ starpu_topology_print (FILE *output)
 	unsigned ncombinedworkers = topology->ncombinedworkers;
 	unsigned nthreads_per_core = topology->nhwpus / topology->nhwcpus;
 
+#ifdef STARPU_HAVE_HWLOC
+	hwloc_topology_t topo = topology->hwtopology;
+	hwloc_obj_t pu_obj;
+	hwloc_obj_t last_numa_obj = NULL, numa_obj;
+	hwloc_obj_t last_package_obj = NULL, package_obj;
+#endif
+
 	for (pu = 0; pu < topology->nhwpus; pu++)
 	{
+#ifdef STARPU_HAVE_HWLOC
+		pu_obj = hwloc_get_obj_by_type(topo, HWLOC_OBJ_PU, pu);
+		numa_obj = hwloc_get_ancestor_obj_by_type(topo, HWLOC_OBJ_NUMANODE, pu_obj);
+		if (numa_obj != last_numa_obj)
+		{
+			fprintf(output, "numa %u", numa_obj->logical_index);
+			last_numa_obj = numa_obj;
+		}
+		fprintf(output, "\t");
+		package_obj = hwloc_get_ancestor_obj_by_type(topo, HWLOC_OBJ_PACKAGE, pu_obj);
+		if (package_obj != last_package_obj)
+		{
+			fprintf(output, "pack %u", package_obj->logical_index);
+			last_package_obj = package_obj;
+		}
+		fprintf(output, "\t");
+#endif
 		if ((pu % nthreads_per_core) == 0)
 			fprintf(output, "core %u", pu / nthreads_per_core);
 		fprintf(output, "\tPU %u\t", pu);
