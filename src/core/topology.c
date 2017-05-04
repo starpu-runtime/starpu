@@ -1534,6 +1534,7 @@ _starpu_init_machine_config(struct _starpu_machine_config *config, int no_mp_con
 	STARPU_ASSERT(topology->ncpus + topology->nworkers <= STARPU_NMAXWORKERS);
 
 	unsigned cpu;
+	unsigned homogeneous = starpu_get_env_number_default("STARPU_PERF_MODEL_HOMOGENEOUS_CPU", 1);
 	for (cpu = 0; cpu < topology->ncpus; cpu++)
 	{
 		int worker_idx = topology->nworkers + cpu;
@@ -1541,7 +1542,7 @@ _starpu_init_machine_config(struct _starpu_machine_config *config, int no_mp_con
 		_STARPU_MALLOC(config->workers[worker_idx].perf_arch.devices,  sizeof(struct starpu_perfmodel_device));
 		config->workers[worker_idx].perf_arch.ndevices = 1;
 		config->workers[worker_idx].perf_arch.devices[0].type = STARPU_CPU_WORKER;
-		config->workers[worker_idx].perf_arch.devices[0].devid = 0;
+		config->workers[worker_idx].perf_arch.devices[0].devid = homogeneous ? 0 : cpu;
 		config->workers[worker_idx].perf_arch.devices[0].ncores = 1;
 		config->workers[worker_idx].subworkerid = 0;
 		config->workers[worker_idx].devid = cpu;

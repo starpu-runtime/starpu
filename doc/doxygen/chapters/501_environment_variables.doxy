@@ -680,6 +680,16 @@ This specifies the main directory in which StarPU stores its
 performance model files. The default is <c>$STARPU_HOME/.starpu/sampling</c>.
 </dd>
 
+<dt>STARPU_PERF_MODEL_HOMOGENEOUS_CPU</dt>
+<dd>
+\anchor STARPU_PERF_MODEL_HOMOGENEOUS_CPU
+\addindex __env__STARPU_PERF_MODEL_HOMOGENEOUS_CPU
+When this is set to 0, StarPU will assume that CPU devices do not have the same
+performance, and thus use different performance models for them, thus making
+kernel calibration much longer, since measurements have to be made for each CPU
+core.
+</dd>
+
 <dt>STARPU_PERF_MODEL_HOMOGENEOUS_CUDA</dt>
 <dd>
 \anchor STARPU_PERF_MODEL_HOMOGENEOUS_CUDA
