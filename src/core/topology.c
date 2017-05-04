@@ -2243,14 +2243,14 @@ starpu_topology_print (FILE *output)
 	{
 #ifdef STARPU_HAVE_HWLOC
 		pu_obj = hwloc_get_obj_by_type(topo, HWLOC_OBJ_PU, pu);
-		numa_obj = hwloc_get_ancestor_obj_by_type(topo, HWLOC_OBJ_NUMANODE, pu_obj);
+		numa_obj = hwloc_get_ancestor_obj_by_type(topo, HWLOC_OBJ_NODE, pu_obj);
 		if (numa_obj != last_numa_obj)
 		{
 			fprintf(output, "numa %u", numa_obj->logical_index);
 			last_numa_obj = numa_obj;
 		}
 		fprintf(output, "\t");
-		package_obj = hwloc_get_ancestor_obj_by_type(topo, HWLOC_OBJ_PACKAGE, pu_obj);
+		package_obj = hwloc_get_ancestor_obj_by_type(topo, HWLOC_OBJ_SOCKET, pu_obj);
 		if (package_obj != last_package_obj)
 		{
 			fprintf(output, "pack %u", package_obj->logical_index);
