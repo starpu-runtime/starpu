@@ -1902,7 +1902,8 @@ static void _starpu_init_numa_node(struct _starpu_machine_config *config)
 
 			if (numa_starpu_id == -1)
 			{
-				int memnode = _starpu_memory_node_register(STARPU_CPU_RAM, numa_logical_id);
+				int devid = numa_logical_id == -1 ? 0 : numa_logical_id;
+				int memnode = _starpu_memory_node_register(STARPU_CPU_RAM, devid);
 				STARPU_ASSERT_MSG(memnode < STARPU_MAXNUMANODES, "Wrong Memory Node : %d (only %d available)", memnode, STARPU_MAXNUMANODES);
 				numa_memory_nodes[memnode] = numa_logical_id;
 				nb_numa_nodes++;
