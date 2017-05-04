@@ -749,6 +749,9 @@ _starpu_initialize_workers_bindid (struct _starpu_machine_config *config)
 
 	for (i = 0; i < STARPU_MAXCPUS;i++)
 		cpu_worker[i] = STARPU_NOWORKERID;
+
+	/* no binding yet */
+	memset(&config->currently_bound, 0, sizeof(config->currently_bound));
 }
 
 /* This function gets the identifier of the next core on which to bind a
@@ -764,44 +767,56 @@ _starpu_get_next_bindid (struct _starpu_machine_config *config,
 	unsigned found = 0;
 	int current_preferred;
 	int nhyperthreads = topology->nhwpus / topology->nhwcpus;
+	unsigned i;
 
 	/* loop over the preference list */
 	for (current_preferred = 0;
 	     current_preferred < npreferred;
 	     current_preferred++)
 	{
-		if (found)
-			break;
-
 		/* Try to get this core */
 		unsigned requested_core = preferred_binding[current_preferred];
+		unsigned requested_bindid = requested_core * nhyperthreads;
 
 		/* can we bind the worker on the preferred core ? */
 		unsigned ind;
 		/* Look at the remaining cores to be bound to */
-		for (ind = config->current_bindid;
+		for (ind = 0;
 		     ind < topology->nhwpus / nhyperthreads;
 		     ind++)
 		{
-			if (topology->workers_bindid[ind] == requested_core * nhyperthreads)
+			if (topology->workers_bindid[ind] == requested_bindid && !config->currently_bound[ind])
 			{
-				/* the cpu is available, we use it ! In order
-				 * to make sure that it will not be used again
-				 * later on, we exchange it with the next bindid we were supposed to use */
-				topology->workers_bindid[ind] =
-					topology->workers_bindid[config->current_bindid];
-				topology->workers_bindid[config->current_bindid] = requested_core * nhyperthreads;
-
-				found = 1;
-
-				break;
+				/* the cpu is available, we use it ! */
+				config->currently_bound[ind] = 1;
+				return requested_bindid;
 			}
 		}
+		if (found)
+			break;
 	}
 
-	unsigned i = ((config->current_bindid++) % STARPU_NMAXWORKERS);
+	for (i = config->current_bindid; i < topology->nhwpus / nhyperthreads; i++)
+	{
+		if (config->currently_bound[i])
+			/* Not available (probably used for driving a GPU), skip it */
+			continue;
 
-	return (int)topology->workers_bindid[i];
+		/* Found a cpu ready for use, use it! */
+		int bindid = topology->workers_bindid[i];
+		config->currently_bound[i] = 1;
+		i++;
+		if (i == topology->nhwpus / nhyperthreads)
+		{
+			/* Finished binding on all cpus, restart from start in
+			 * case the user really wants overloading */
+			memset(&config->currently_bound, 0, sizeof(config->currently_bound));
+			i = 0;
+		}
+		config->current_bindid = i;
+		return bindid;
+	}
+	STARPU_ASSERT(0);
 }
 
 unsigned
