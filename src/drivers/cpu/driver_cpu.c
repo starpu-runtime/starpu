@@ -4,7 +4,7 @@
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010-2017  CNRS
  * Copyright (C) 2011  Télécom-SudParis
- * Copyright (C) 2014  INRIA
+ * Copyright (C) 2014, 2017  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -55,7 +55,11 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 {
 	int is_parallel_task = (j->task_size > 1);
 	int profiling = starpu_profiling_status_get();
-	struct timespec codelet_start, codelet_end;
+	/* start/end timestamp are only conditionnally measured in
+	 * _starpu_driver_start_job/_end_job, thus make sure that they are
+	 * always initialized */
+	struct timespec codelet_start = {0,0};
+	struct timespec codelet_end = {0,0};
 
 	struct starpu_task *task = j->task;
 	struct starpu_codelet *cl = task->cl;
@@ -211,9 +215,12 @@ int _starpu_cpu_driver_init(struct _starpu_worker *cpu_worker)
 
 	_STARPU_TRACE_WORKER_INIT_END(cpu_worker->workerid);
 
+	STARPU_PTHREAD_MUTEX_LOCK_SCHED(&cpu_worker->sched_mutex);
+	cpu_worker->status = STATUS_UNKNOWN;
+	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&cpu_worker->sched_mutex);
+
 	/* tell the main thread that we are ready */
 	STARPU_PTHREAD_MUTEX_LOCK(&cpu_worker->mutex);
-	cpu_worker->status = STATUS_UNKNOWN;
 	cpu_worker->worker_is_initialized = 1;
 	STARPU_PTHREAD_COND_SIGNAL(&cpu_worker->ready_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&cpu_worker->mutex);

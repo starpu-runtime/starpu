@@ -22,6 +22,21 @@
 
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 
+/* Dumb performance model for simgrid */
+static double complex_cost_function(struct starpu_task *task, unsigned nimpl)
+{
+	(void) task;
+	(void) nimpl;
+	return 0.000001;
+}
+
+static struct starpu_perfmodel complex_model =
+{
+	.type = STARPU_COMMON,
+	.cost_function = complex_cost_function,
+	.symbol = "complex"
+};
+
 void compare_complex_codelet(void *descr[], void *_args)
 {
 	int nx1 = STARPU_COMPLEX_GET_NX(descr[0]);
@@ -57,7 +72,8 @@ struct starpu_codelet cl_compare =
 	/* .cpu_funcs_name = {"compare_complex_codelet"}, */
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_R},
-	.name = "cl_compare"
+	.name = "cl_compare",
+	.model = &complex_model
 };
 
 void display_complex_codelet(void *descr[], void *_args)
@@ -83,7 +99,8 @@ struct starpu_codelet cl_display =
 	.cpu_funcs_name = {"display_complex_codelet"},
 	.nbuffers = 1,
 	.modes = {STARPU_R},
-	.name = "cl_display"
+	.name = "cl_display",
+	.model = &complex_model
 };
 
 #endif /* __COMPLEX_CODELET_H */

@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010,2011, 2015, 2017 University of Bordeaux
+ * Copyright (C) 2017 Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -13,6 +14,14 @@
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
+#ifndef STARPU_NON_BLOCKING_DRIVERS
+int main(int argc, const char** argv) {
+	(void) argv;
+	(void) argv;
+	/* testcase does not seem to support blocking drivers */
+	return 77;
+}
+#else
 
 #ifdef __APPLE_CC__
 #include <OpenCL/opencl.h>
@@ -512,3 +521,4 @@ void computeReference(TYPE* C, const TYPE* A, const TYPE* B, unsigned int hA, un
 			C[i * wB + j] = (TYPE)sum;
 		}
 }
+#endif /* STARPU_NON_BLOCKING_DRIVERS */

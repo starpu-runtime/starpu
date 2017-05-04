@@ -257,6 +257,10 @@ int _starpu_malloc_flags_on_node(unsigned dst_node, void **A, size_t dim, int fl
 			{
 				char *path = starpu_getenv("TMPDIR");
 				if (!path)
+					path = starpu_getenv("TEMP");
+				if (!path)
+					path = starpu_getenv("TMP");
+				if (!path)
 					path = "/tmp";
 				/* Create bogus file if not done already */
 				char *name = _starpu_mktemp(path, O_RDWR | O_BINARY, &bogusfile);

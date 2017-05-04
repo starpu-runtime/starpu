@@ -125,6 +125,11 @@ int main(int argc, char *argv[])
 	double timing;
 	size_t bytes;
 #endif
+	struct starpu_conf conf;
+	starpu_conf_init(&conf);
+	/* FIXME: the testcase needs to be updated to properly support cuFFT */
+	conf.ncuda = 0;
+	ret = starpu_init(&conf);
 
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV) return 77;

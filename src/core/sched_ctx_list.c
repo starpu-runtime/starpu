@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2013  INRIA
+ * Copyright (C) 2011, 2013, 2017  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -253,7 +253,8 @@ void _starpu_sched_ctx_list_remove_elt(struct _starpu_sched_ctx_list **list,
 		if (parent->prev == NULL)
 		{
 			*list = parent->next;
-			parent->next->prev = NULL;
+			if (parent->next != NULL)
+				parent->next->prev = NULL;
 		}
 		else
 		{

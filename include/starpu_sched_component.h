@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2013  Simon Archipoff
  * Copyright (C) 2014  CNRS
+ * Copyright (C) 2017  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -92,6 +93,9 @@ int starpu_sched_tree_push_task(struct starpu_task *task);
 int starpu_sched_component_push_task(struct starpu_sched_component *from, struct starpu_sched_component *to, struct starpu_task *task);
 struct starpu_task *starpu_sched_tree_pop_task(unsigned sched_ctx);
 struct starpu_task *starpu_sched_component_pull_task(struct starpu_sched_component *from, struct starpu_sched_component *to);
+struct starpu_task* starpu_sched_component_pump_downstream(struct starpu_sched_component *component, int* success);
+void starpu_sched_component_send_can_push_to_parents(struct starpu_sched_component * component);
+
 void starpu_sched_tree_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers);
 void starpu_sched_tree_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers);
 
@@ -107,6 +111,7 @@ void starpu_sched_component_prefetch_on_node(struct starpu_sched_component *comp
 void starpu_sched_component_connect(struct starpu_sched_component *parent, struct starpu_sched_component *child);
 
 struct starpu_sched_component *starpu_sched_component_worker_get(unsigned sched_ctx, int workerid);
+struct starpu_sched_component *starpu_sched_component_worker_new(unsigned sched_ctx, int workerid);
 int starpu_sched_component_worker_get_workerid(struct starpu_sched_component *worker_component);
 int starpu_sched_component_is_worker(struct starpu_sched_component *component);
 int starpu_sched_component_is_simple_worker(struct starpu_sched_component *component);
@@ -195,6 +200,20 @@ struct starpu_sched_component_specs
 
 struct starpu_sched_tree *starpu_sched_component_make_scheduler(unsigned sched_ctx_id, struct starpu_sched_component_specs s);
 #endif /* STARPU_HAVE_HWLOC */
+
+#define STARPU_COMPONENT_MUTEX_LOCK(m) \
+do \
+{ \
+	const int _relaxed_state = _starpu_worker_get_relax_state(); \
+	if (!_relaxed_state) \
+		_starpu_worker_relax_on(); \
+	STARPU_PTHREAD_MUTEX_LOCK((m)); \
+	if (!_relaxed_state) \
+		_starpu_worker_relax_off(); \
+} \
+while(0)
+
+#define STARPU_COMPONENT_MUTEX_UNLOCK(m) STARPU_PTHREAD_MUTEX_UNLOCK((m))
 
 #ifdef __cplusplus
 }

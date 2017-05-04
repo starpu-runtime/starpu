@@ -136,6 +136,7 @@ struct starpu_task
 	const char *name;
 
 	struct starpu_codelet *cl;
+	int32_t where;
 
 	int nbuffers;
 

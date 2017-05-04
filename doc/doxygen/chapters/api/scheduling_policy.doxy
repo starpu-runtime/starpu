@@ -124,12 +124,6 @@ this should be called by push functions to wake the potential workers that are
 supposed to pick up the tasks which just have been pushed, otherwise they may
 remain sleeping.
 
-\fn void starpu_worker_get_job_id(struct starpu_task *task)
-\ingroup API_Scheduling_Policy
-Return the job id of the given task, i.e. a number that uniquely identifies this
-task for the local MPI node, and can be found in the various offline execution
-traces reports.
-
 \fn int starpu_sched_set_min_priority(int min_prio)
 \ingroup API_Scheduling_Policy
 TODO: check if this is correct

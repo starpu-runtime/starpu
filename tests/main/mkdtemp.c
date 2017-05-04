@@ -23,10 +23,19 @@
 int do_test(char *(*func)(char *tmpl))
 {
 	int ret;
-	char dirname[128] = "/tmp/abcdef_XXXXXX";
+	char *path;
+	char dirname[128];
 	char *ptr;
 	struct stat sb;
 
+	path = starpu_getenv("TMPDIR");
+	if (!path)
+		path = starpu_getenv("TEMP");
+	if (!path)
+		path = starpu_getenv("TMP");
+	if (!path)
+		path = "/tmp";
+	snprintf(dirname, 128, "%s/abcdef_XXXXXX", path);
 	ptr = func(dirname);
 	FPRINTF(stderr, "Directory '%s' (res '%s')\n", dirname, ptr);
 

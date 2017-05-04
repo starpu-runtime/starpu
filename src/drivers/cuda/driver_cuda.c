@@ -901,8 +901,36 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 		if (!_STARPU_CUDA_MAY_PERFORM(j))
 		{
 			/* this is neither a cuda or a cublas task */
+			_starpu_worker_refuse_task(worker, task);
+#if 0
+			if (worker->pipeline_length)
+			{
+				int j;
+				for (j = 0; j < worker->ntasks; j++)
+				{
+					const int j_mod = (j+worker->first_task)%STARPU_MAX_PIPELINE;
+					if (task == worker->current_tasks[j_mod])
+					{
+						worker->current_tasks[j_mod] = NULL;
+						if (j == 0)
+						{
+							worker->first_task = (worker->first_task + 1) % STARPU_MAX_PIPELINE;
+							_starpu_set_current_task(NULL);
+						}
+						break;
+					}
+				}
+				STARPU_ASSERT(j<worker->ntasks);
+			}
+			else
+			{
+				worker->current_task = NULL;
+				_starpu_set_current_task(NULL);
+			}
 			worker->ntasks--;
-			_starpu_push_task_to_workers(task);
+			int res = _starpu_push_task_to_workers(task);
+			STARPU_ASSERT_MSG(res == 0, "_starpu_push_task_to_workers() unexpectedly returned = %d\n", res);
+#endif
 			continue;
 		}
 

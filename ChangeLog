@@ -43,12 +43,17 @@ Small features:
   * New function starpu_worker_display_names to display the names of
     all the workers of a specified type.
   * Arbiters now support concurrent read access.
+  * Add a field starpu_task::where similar to starpu_codelet::where
+    which allows to restrict where to execute a task. Also add
+    STARPU_TASK_WHERE to be used when calling starpu_task_insert().
 
 Changes:
   * Vastly improve simgrid simulation time.
 
 Small changes:
   * Use asynchronous transfers for task data fetches with were not prefetched.
+  * Allow to call starpu_sched_ctx_set_policy_data on the main
+    scheduler context
 
 StarPU 1.2.2 (svn revision xxx)
 ==============================================
@@ -57,6 +62,9 @@ New features:
   * Add starpu_data_acquire_try and starpu_data_acquire_on_node_try.
   * Add NVCC_CC environment variable.
   * Add -no-foo options to starpu_fxt_tool to make traces lighter
+  * Add starpu_cusparse_init/shutdown/get_local_handle for proper CUDA
+    overlapping with cusparse.
+
 
 Small changes:
   * Output generated through STARPU_MPI_COMM has been modified to

@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2010, 2012-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
+ * Copyright (C) 2017  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -234,11 +235,21 @@ int starpu_pthread_key_delete(starpu_pthread_key_t key)
 	return 0;
 }
 
+/* We need it only when using smpi */
+#pragma weak smpi_process_get_user_data
+#if !HAVE_DECL_SMPI_PROCESS_SET_USER_DATA
+extern void *smpi_process_get_user_data();
+#endif
+
 int starpu_pthread_setspecific(starpu_pthread_key_t key, const void *pointer)
 {
 	void **array;
-#ifdef STARPU_SIMGRID_HAVE_SIMIX_PROCESS_GET_CODE
-	if ((SIMIX_process_get_code() == _starpu_mpi_simgrid_init) || (!strcmp(SIMIX_process_self_get_name(),"wait for mpi transfer")))
+#ifdef HAVE_SMPI_PROCESS_SET_USER_DATA
+	const char *process_name = SIMIX_process_self_get_name();
+	char *end;
+	/* Test whether it is an MPI rank */
+	strtol(process_name, &end, 10);
+	if (!*end || !strcmp(process_name, "wait for mpi transfer"))
 		/* Special-case the SMPI process */
 		array = smpi_process_get_user_data();
 	else
@@ -251,9 +262,13 @@ int starpu_pthread_setspecific(starpu_pthread_key_t key, const void *pointer)
 void* starpu_pthread_getspecific(starpu_pthread_key_t key)
 {
 	void **array;
-#ifdef STARPU_SIMGRID_HAVE_SIMIX_PROCESS_GET_CODE
-	if ((SIMIX_process_get_code() == _starpu_mpi_simgrid_init) || (!strcmp(SIMIX_process_self_get_name(),"wait for mpi transfer")))
-		/* Special-case the SMPI process */
+#ifdef HAVE_SMPI_PROCESS_SET_USER_DATA
+	const char *process_name = SIMIX_process_self_get_name();
+	char *end;
+	/* Test whether it is an MPI rank */
+	strtol(process_name, &end, 10);
+	if (!*end || !strcmp(process_name, "wait for mpi transfer"))
+		/* Special-case the SMPI processes */
 		array = smpi_process_get_user_data();
 	else
 #endif
@@ -720,34 +735,17 @@ int starpu_pthread_barrier_wait(starpu_pthread_barrier_t *barrier)
  * macros of course) which record when the mutex is held or not */
 int starpu_pthread_mutex_lock_sched(starpu_pthread_mutex_t *mutex)
 {
-	int p_ret = starpu_pthread_mutex_lock(mutex);
-	int workerid = starpu_worker_get_id();
-	if(workerid != -1 && _starpu_worker_mutex_is_sched_mutex(workerid, mutex))
-		_starpu_worker_set_flag_sched_mutex_locked(workerid, 1);
-	return p_ret;
+	return starpu_pthread_mutex_lock(mutex);
 }
 
 int starpu_pthread_mutex_unlock_sched(starpu_pthread_mutex_t *mutex)
 {
-	int workerid = starpu_worker_get_id();
-	if(workerid != -1 && _starpu_worker_mutex_is_sched_mutex(workerid, mutex))
-		_starpu_worker_set_flag_sched_mutex_locked(workerid, 0);
-
 	return starpu_pthread_mutex_unlock(mutex);
 }
 
 int starpu_pthread_mutex_trylock_sched(starpu_pthread_mutex_t *mutex)
 {
-	int ret = starpu_pthread_mutex_trylock(mutex);
-
-	if (!ret)
-	{
-		int workerid = starpu_worker_get_id();
-		if(workerid != -1 && _starpu_worker_mutex_is_sched_mutex(workerid, mutex))
-			_starpu_worker_set_flag_sched_mutex_locked(workerid, 1);
-	}
-
-	return ret;
+	return starpu_pthread_mutex_trylock(mutex);
 }
 
 #ifdef STARPU_DEBUG

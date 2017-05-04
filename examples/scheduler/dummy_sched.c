@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2016  Université de Bordeaux
+ * Copyright (C) 2010-2017  Université de Bordeaux
  * Copyright (C) 2010-2013, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -122,7 +122,9 @@ static struct starpu_task *pop_task_dummy(unsigned sched_ctx_id)
 		return NULL;
 #endif
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
-	struct starpu_task *task = starpu_task_list_pop_back(&data->sched_list);
+	struct starpu_task *task = NULL;
+	if (!starpu_task_list_empty(&data->sched_list))
+		task = starpu_task_list_pop_back(&data->sched_list);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 	return task;
 }

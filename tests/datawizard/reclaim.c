@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2012, 2015-2016  Université de Bordeaux
- * Copyright (C) 2012, 2016  CNRS
+ * Copyright (C) 2012, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -22,6 +22,14 @@
 #include <hwloc.h>
 #endif
 #include "../helper.h"
+
+#if !defined(STARPU_HAVE_SETENV)
+#warning setenv is not defined. Skipping test
+int main(int argc, char **argv)
+{
+	return STARPU_TEST_SKIPPED;
+}
+#else
 
 /*
  * Stress the memory allocation system and force StarPU to reclaim memory from
@@ -92,6 +100,8 @@ int main(int argc, char **argv)
 	if (total_size > 0)
 		mb = (int)((0.50 * total_size)/(BLOCK_SIZE));
 #endif
+
+	setenv("STARPU_LIMIT_OPENCL_MEM", "1000", 1);
 
 	/* An optional argument indicates the number of MB to allocate */
 	if (argc > 1)
@@ -166,3 +176,5 @@ enodev:
 	starpu_shutdown();
 	return STARPU_TEST_SKIPPED;
 }
+
+#endif

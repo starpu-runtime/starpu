@@ -191,15 +191,17 @@ int main(int argc, char * argv[])
 	/* Init */
 	int ret;
 	int mpi_rank, mpi_size;
+	int mpi_init;
 
-	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED);
-	starpu_mpi_comm_rank(MPI_COMM_WORLD, &mpi_rank);
-	starpu_mpi_comm_size(MPI_COMM_WORLD, &mpi_size);
+	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED, &mpi_init);
 
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-	ret = starpu_mpi_init(NULL, NULL, 0);
+	ret = starpu_mpi_init(NULL, NULL, mpi_init);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
+
+	starpu_mpi_comm_rank(MPI_COMM_WORLD, &mpi_rank);
+	starpu_mpi_comm_size(MPI_COMM_WORLD, &mpi_size);
 
 	if (starpu_cpu_worker_get_count() == 0)
 	{
@@ -207,7 +209,8 @@ int main(int argc, char * argv[])
 			FPRINTF(stderr, "We need at least 1 CPU worker.\n");
 		starpu_mpi_shutdown();
 		starpu_shutdown();
-		MPI_Finalize();
+		if (!mpi_init)
+			MPI_Finalize();
 		return STARPU_TEST_SKIPPED;
 	}
 
@@ -246,7 +249,8 @@ int main(int argc, char * argv[])
 	starpu_mpi_shutdown();
 	starpu_shutdown();
 
-	MPI_Finalize();
+	if (!mpi_init)
+		MPI_Finalize();
 	FPRINTF(stderr, "No assert until end\n");
 	return 0;
 }

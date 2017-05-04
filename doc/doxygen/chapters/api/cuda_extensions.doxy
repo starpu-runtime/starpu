@@ -95,4 +95,21 @@ Report a cublas error.
 Calls starpu_cublas_report_error(), passing the current
 function, file and line position.
 
+\fn void starpu_cusparse_init(void)
+\ingroup API_CUDA_Extensions
+Calling starpu_cusparse_init() will initialize CUSPARSE on every CUDA device
+controlled by StarPU. This call blocks until CUSPARSE has been properly
+initialized on every device.
+
+\fn cusparseHandle_t starpu_cusparse_get_local_handle(void)
+\ingroup API_CUDA_Extensions
+This function returns the CUSPARSE handle to be used to queue CUSPARSE
+kernels. It is properly initialized and configured for multistream by
+starpu_cusparse_init().
+
+\fn void starpu_cusparse_shutdown(void)
+\ingroup API_CUDA_Extensions
+This function synchronously deinitializes the CUSPARSE library on
+every CUDA device.
+
 */

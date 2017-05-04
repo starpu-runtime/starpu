@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2013-2015, 2017  Université de Bordeaux
- * Copyright (C) 2013  INRIA
+ * Copyright (C) 2013, 2017  INRIA
  * Copyright (C) 2013  Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -98,7 +98,7 @@ static void initialize_heft2_center_policy(unsigned sched_ctx_id)
 	unsigned i;
 	for(i = 0; i < starpu_worker_get_count() + starpu_combined_worker_get_count(); i++)
 	{
-		struct starpu_sched_component * worker_component = starpu_sched_component_worker_get(sched_ctx_id, i);
+		struct starpu_sched_component * worker_component = starpu_sched_component_worker_new(sched_ctx_id, i);
 		struct starpu_sched_component * prio_component = starpu_sched_component_prio_create(t, &prio_data);
 		struct starpu_sched_component * impl_component = starpu_sched_component_best_implementation_create(t, NULL);
 

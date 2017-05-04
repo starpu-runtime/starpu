@@ -241,6 +241,11 @@ int _fstarpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_no
 			arg_i++;
 			/* void* */
 		}
+		else if (arg_type==STARPU_EXECUTE_WHERE)
+		{
+			arg_i++;
+			/* int* */
+		}
 		else if (arg_type==STARPU_EXECUTE_ON_WORKER)
 		{
 			arg_i++;

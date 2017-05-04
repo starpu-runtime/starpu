@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2015  Université de Bordeaux
- * Copyright (C) 2010-2014, 2016  CNRS
+ * Copyright (C) 2010-2014, 2016, 2017  CNRS
  * Copyright (C) 2014       INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -34,7 +34,7 @@ void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t
 
 /* NOTE: when adding a value here, please make sure to update both
  * src/util/starpu_task_insert_utils.c (in two places) and
- * mpi/src/starpu_mpi_task_insert.c */
+ * mpi/src/starpu_mpi_task_insert.c and mpi/src/starpu_mpi_task_insert_fortran.c */
 #define STARPU_MODE_SHIFT	17
 #define STARPU_VALUE		 (1<<STARPU_MODE_SHIFT)
 #define STARPU_CALLBACK		 (2<<STARPU_MODE_SHIFT)
@@ -54,13 +54,14 @@ void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t
 #define STARPU_PROLOGUE_CALLBACK_POP   (16<<STARPU_MODE_SHIFT)
 #define STARPU_PROLOGUE_CALLBACK_POP_ARG (17<<STARPU_MODE_SHIFT)
 #define STARPU_EXECUTE_ON_WORKER (18<<STARPU_MODE_SHIFT)
-#define STARPU_TAG_ONLY          (19<<STARPU_MODE_SHIFT)
-#define STARPU_POSSIBLY_PARALLEL    (20<<STARPU_MODE_SHIFT)
-#define STARPU_WORKER_ORDER      (21<<STARPU_MODE_SHIFT)
-#define STARPU_NODE_SELECTION_POLICY (22<<STARPU_MODE_SHIFT)
-#define STARPU_NAME		 (23<<STARPU_MODE_SHIFT)
-#define STARPU_CL_ARGS		(24<<STARPU_MODE_SHIFT)
-#define STARPU_SHIFTED_MODE_MAX (25<<STARPU_MODE_SHIFT)
+#define STARPU_EXECUTE_WHERE     (19<<STARPU_MODE_SHIFT)
+#define STARPU_TAG_ONLY          (20<<STARPU_MODE_SHIFT)
+#define STARPU_POSSIBLY_PARALLEL    (21<<STARPU_MODE_SHIFT)
+#define STARPU_WORKER_ORDER      (22<<STARPU_MODE_SHIFT)
+#define STARPU_NODE_SELECTION_POLICY (23<<STARPU_MODE_SHIFT)
+#define STARPU_NAME		 (24<<STARPU_MODE_SHIFT)
+#define STARPU_CL_ARGS		(25<<STARPU_MODE_SHIFT)
+#define STARPU_SHIFTED_MODE_MAX (26<<STARPU_MODE_SHIFT)
 
 struct starpu_task *starpu_task_build(struct starpu_codelet *cl, ...);
 int starpu_task_insert(struct starpu_codelet *cl, ...);

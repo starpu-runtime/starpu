@@ -105,7 +105,7 @@ cl_int task_submit_ex(starpu_task task, cl_command cmd) {
   gc_entity_release(ev);
 
   /* Submit task */
-  int ret = (task->cl != NULL && task->cl->where == STARPU_OPENCL ?
+  int ret = (task->cl != NULL && task->where == STARPU_OPENCL ?
         starpu_task_submit_to_ctx(task, cmd->event->cq->context->sched_ctx) :
         starpu_task_submit(task));
 

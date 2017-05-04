@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013  INRIA
+ * Copyright (C) 2013, 2017  INRIA
  * Copyright (C) 2013  Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -65,9 +65,9 @@ static double fifo_estimated_load(struct starpu_sched_component * component)
 	{
 		int first_worker = starpu_bitmap_first(component->workers_in_ctx);
 		relative_speedup = starpu_worker_get_relative_speedup(starpu_worker_get_perf_archtype(first_worker, component->tree->sched_ctx_id));
-		STARPU_PTHREAD_MUTEX_LOCK(mutex);
+		STARPU_COMPONENT_MUTEX_LOCK(mutex);
 		load += fifo->ntasks / relative_speedup;
-		STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
+		STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
 		return load;
 	}
 	else
@@ -79,9 +79,9 @@ static double fifo_estimated_load(struct starpu_sched_component * component)
 			relative_speedup += starpu_worker_get_relative_speedup(starpu_worker_get_perf_archtype(i, component->tree->sched_ctx_id));
 		relative_speedup /= starpu_bitmap_cardinal(component->workers_in_ctx);
 		STARPU_ASSERT(!_STARPU_IS_ZERO(relative_speedup));
-		STARPU_PTHREAD_MUTEX_LOCK(mutex);
+		STARPU_COMPONENT_MUTEX_LOCK(mutex);
 		load += fifo->ntasks / relative_speedup;
-		STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
+		STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
 	}
 	return load;
 }
@@ -94,8 +94,7 @@ static int fifo_push_local_task(struct starpu_sched_component * component, struc
 	struct _starpu_fifo_taskq * fifo = data->fifo;
 	starpu_pthread_mutex_t * mutex = &data->mutex;
 	int ret = 0;
-
-	STARPU_PTHREAD_MUTEX_LOCK(mutex);
+	STARPU_COMPONENT_MUTEX_LOCK(mutex);
 	double exp_len;
 	if(!isnan(task->predicted))
 		exp_len = fifo->exp_len + task->predicted;
@@ -113,7 +112,7 @@ static int fifo_push_local_task(struct starpu_sched_component * component, struc
 		}
 		STARPU_ASSERT(!is_pushback);
 		ret = 1;
-		STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
+		STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
 	}
 	else
 	{
@@ -134,9 +133,9 @@ static int fifo_push_local_task(struct starpu_sched_component * component, struc
 		STARPU_ASSERT(!isnan(fifo->exp_len));
 		STARPU_ASSERT(!isnan(fifo->exp_start));
 
+		STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
 		if(!is_pushback)
 			component->can_pull(component);
-		STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
 	}
 
 	return ret;
@@ -153,13 +152,14 @@ static struct starpu_task * fifo_pull_task(struct starpu_sched_component * compo
 	struct _starpu_fifo_data * data = component->data;
 	struct _starpu_fifo_taskq * fifo = data->fifo;
 	starpu_pthread_mutex_t * mutex = &data->mutex;
-	STARPU_PTHREAD_MUTEX_LOCK(mutex);
+	const double now = starpu_timing_now();
+	STARPU_COMPONENT_MUTEX_LOCK(mutex);
 	struct starpu_task * task = _starpu_fifo_pop_task(fifo, starpu_worker_get_id_check());
 	if(task)
 	{
 		if(!isnan(task->predicted))
 		{
-			fifo->exp_start = starpu_timing_now() + task->predicted;
+			fifo->exp_start = now + task->predicted;
 			fifo->exp_len -= task->predicted;
 		}
 		fifo->exp_end = fifo->exp_start + fifo->exp_len;
@@ -169,22 +169,12 @@ static struct starpu_task * fifo_pull_task(struct starpu_sched_component * compo
 	STARPU_ASSERT(!isnan(fifo->exp_end));
 	STARPU_ASSERT(!isnan(fifo->exp_len));
 	STARPU_ASSERT(!isnan(fifo->exp_start));
-	STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
+	STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
 
 	// When a pop is called, a can_push is called for pushing tasks onto
 	// the empty place of the queue left by the popped task.
-	int i,ret;
-	for(i=0; i < component->nparents; i++)
-	{
-		if(component->parents[i] == NULL)
-			continue;
-		else
-		{
-			ret = component->parents[i]->can_push(component->parents[i]);
-			if(ret)
-				break;
-		}
-	}
+
+	starpu_sched_component_send_can_push_to_parents(component); 
 
 	if(task)
 		return task;
@@ -200,25 +190,16 @@ static struct starpu_task * fifo_pull_task(struct starpu_sched_component * compo
 static int fifo_can_push(struct starpu_sched_component * component)
 {
 	STARPU_ASSERT(component && starpu_sched_component_is_fifo(component));
-	int ret = 0;
 	int res = 0;
+	struct starpu_task * task;
 
-	STARPU_ASSERT(component->nchildren == 1);
-	struct starpu_sched_component * child = component->children[0];
-	struct starpu_task * task = NULL;
+	task = starpu_sched_component_pump_downstream(component, &res); 
 
-	while (1)
+	if(task)
 	{
-		task = starpu_sched_component_pull_task(component,component);
-		if (!task)
-			break;
-		ret = starpu_sched_component_push_task(component,child,task);
-		if (ret)
-			break;
-		res = 1;
+		int ret = fifo_push_local_task(component,task,1);
+		STARPU_ASSERT(!ret);
 	}
-	if(task && ret)
-		fifo_push_local_task(component,task,1);
 
 	return res;
 }

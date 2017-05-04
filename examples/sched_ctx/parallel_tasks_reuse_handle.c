@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015 INRIA
+ * Copyright (C) 2015, 2017 INRIA
  * Copyright (C) 2015, 2016 CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -17,6 +17,7 @@
 
 #include <starpu.h>
 #include <omp.h>
+#include <pthread.h>
 
 #ifdef STARPU_QUICK_CHECK
 #define NTASKS 64
@@ -28,6 +29,8 @@
 #define LOOPS  10
 #endif
 
+#define N_NESTED_CTXS 2
+
 struct context
 {
 	int ncpus;
@@ -38,6 +41,7 @@ struct context
 /* Helper for the task that will initiate everything */
 void parallel_task_prologue_init_once_and_for_all(void * sched_ctx_)
 {
+	fprintf(stderr, "%p: %s -->\n", (void*)pthread_self(), __func__);
 	int sched_ctx = *(int *)sched_ctx_;
 	int *cpuids = NULL;
 	int ncpuids = 0;
@@ -50,6 +54,7 @@ void parallel_task_prologue_init_once_and_for_all(void * sched_ctx_)
 
 	omp_set_num_threads(ncpuids);
 	free(cpuids);
+	fprintf(stderr, "%p: %s <--\n", (void*)pthread_self(), __func__);
 	return;
 }
 
@@ -101,25 +106,24 @@ void parallel_task_init()
 						  0);
 
 	/* Initialize nested contexts */
-	/* WARNING : the number of contexts must be a divisor of the number of available cpus*/
-
-	contexts = malloc(sizeof(struct context)*2);
-	int cpus_per_context = main_context.ncpus/2;
+	contexts = malloc(sizeof(struct context)*N_NESTED_CTXS);
+	int cpus_per_context = main_context.ncpus/N_NESTED_CTXS;
 	int i;
-	for(i = 0; i < 2; i++)
+	for(i = 0; i < N_NESTED_CTXS; i++)
 	{
-		fprintf(stderr, "ncpus %d for context %d \n",cpus_per_context, i);
 		contexts[i].ncpus = cpus_per_context;
+		if (i == N_NESTED_CTXS-1)
+			contexts[i].ncpus += main_context.ncpus%N_NESTED_CTXS;
 		contexts[i].cpus = main_context.cpus+i*cpus_per_context;
 	}
 
-	for(i = 0; i < 2; i++)
+	for(i = 0; i < N_NESTED_CTXS; i++)
 		contexts[i].id = starpu_sched_ctx_create(contexts[i].cpus,
 							 contexts[i].ncpus,"nested_ctx",
 							 STARPU_SCHED_CTX_NESTED,main_context.id,
 							 0);
 
-	for (i = 0; i < 2; i++)
+	for (i = 0; i < N_NESTED_CTXS; i++)
 	{
 		parallel_task_init_one_context(&contexts[i].id);
 	}
@@ -131,7 +135,7 @@ void parallel_task_init()
 void parallel_task_deinit()
 {
 	int i;
-	for (i=0; i<2;i++)
+	for (i=0; i<N_NESTED_CTXS;i++)
 		starpu_sched_ctx_delete(contexts[i].id);
 	free(contexts);
 	free(main_context.cpus);
@@ -174,7 +178,7 @@ int main(int argc, char **argv)
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	if (starpu_cpu_worker_get_count() < 2)
+	if (starpu_cpu_worker_get_count() < N_NESTED_CTXS)
 	{
 		starpu_shutdown();
 		return 77;

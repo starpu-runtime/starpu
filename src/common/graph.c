@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2016-2017  Université de Bordeaux
+ * Copyright (C) 2017  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -28,6 +29,7 @@
 #include <starpu.h>
 #include <core/jobs.h>
 #include <common/graph.h>
+#include <core/workers.h>
 
 /* Protects the whole task graph except the dropped list */
 static starpu_pthread_rwlock_t graph_lock;
@@ -60,7 +62,9 @@ void _starpu_graph_init(void)
 /* LockWR the graph lock */
 void _starpu_graph_wrlock(void)
 {
+	_starpu_worker_relax_on();
 	STARPU_PTHREAD_RWLOCK_WRLOCK(&graph_lock);
+	_starpu_worker_relax_off();
 }
 
 void _starpu_graph_drop_node(struct _starpu_graph_node *node);
@@ -94,14 +98,18 @@ void _starpu_graph_drop_dropped_nodes(void)
 /* UnlockWR the graph lock */
 void _starpu_graph_wrunlock(void)
 {
+	_starpu_worker_relax_on();
 	STARPU_PTHREAD_MUTEX_LOCK(&dropped_lock);
+	_starpu_worker_relax_off();
 	_starpu_graph_drop_dropped_nodes();
 }
 
 /* LockRD the graph lock */
 void _starpu_graph_rdlock(void)
 {
+	_starpu_worker_relax_on();
 	STARPU_PTHREAD_RWLOCK_RDLOCK(&graph_lock);
+	_starpu_worker_relax_off();
 }
 
 /* UnlockRD the graph lock */
@@ -247,12 +255,16 @@ void _starpu_graph_drop_job(struct _starpu_job *job)
 	if (!node)
 		return;
 
+	_starpu_worker_relax_on();
 	STARPU_PTHREAD_MUTEX_LOCK(&node->mutex);
+	_starpu_worker_relax_off();
 	/* Will not be able to use the job any more */
 	node->job = NULL;
 	STARPU_PTHREAD_MUTEX_UNLOCK(&node->mutex);
 
+	_starpu_worker_relax_on();
 	STARPU_PTHREAD_MUTEX_LOCK(&dropped_lock);
+	_starpu_worker_relax_off();
 	/* Queue for removal when lock becomes available */
 	_starpu_graph_node_multilist_push_back_dropped(&dropped, node);
 	if (STARPU_PTHREAD_RWLOCK_TRYWRLOCK(&graph_lock) == 0)

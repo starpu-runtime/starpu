@@ -25,6 +25,11 @@ struct _starpu_prio_deque
 	int size_array;
 	unsigned ntasks;
 	unsigned nprocessed;
+	// Assumptions: 
+	// exp_len is the sum of predicted_length + predicted_tansfer of all tasks in list
+	// exp_start is the time at which the first task of list can start
+	// exp_end = exp_start + exp_end
+	// Careful: those are NOT maintained by the prio_queue operations
 	double exp_start, exp_end, exp_len;
 };
 
@@ -43,6 +48,11 @@ static inline void _starpu_prio_deque_destroy(struct _starpu_prio_deque *pdeque)
 static inline int _starpu_prio_deque_is_empty(struct _starpu_prio_deque *pdeque)
 {
 	return pdeque->ntasks == 0;
+}
+
+static inline void _starpu_prio_deque_erase(struct _starpu_prio_deque *pdeque, struct starpu_task *task)
+{
+	starpu_task_prio_list_erase(&pdeque->list, task);
 }
 
 /* push a task in O(lg(nb priorities)) */

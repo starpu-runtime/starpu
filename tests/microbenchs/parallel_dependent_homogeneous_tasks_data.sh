@@ -18,6 +18,6 @@
 
 source $(dirname $0)/microbench.sh
 
-XSUCCESS="lws dmda dmdar dmdas dmdasd pheft"
+XSUCCESS="dmda dmdar dmdas dmdasd"
 
 test_scheds parallel_dependent_homogeneous_tasks_data

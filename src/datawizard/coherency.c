@@ -1175,7 +1175,7 @@ void __starpu_push_task_output(struct _starpu_job *j)
 		starpu_data_handle_t handle = descrs[index].handle;
 		enum starpu_data_access_mode mode = descrs[index].mode;
 		int node = descrs[index].node;
-		if (node == -1 && task->cl->where != STARPU_NOWHERE)
+		if (node == -1 && task->where != STARPU_NOWHERE)
 			node = local_memory_node;
 
 		struct _starpu_data_replicate *local_replicate = NULL;

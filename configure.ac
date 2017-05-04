@@ -3,7 +3,7 @@
 # Copyright (C) 2009-2017  Université de Bordeaux
 # Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
 # Copyright (C) 2011  Télécom-SudParis
-# Copyright (C) 2011, 2012, 2014-2016  INRIA
+# Copyright (C) 2011, 2012, 2014-2017  INRIA
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -475,30 +475,33 @@ if test x$enable_mpi_check = xno ; then
 fi
 
 
-# Check if mpiexec is available
-AC_ARG_WITH(mpiexec, [AS_HELP_STRING([--with-mpiexec[=<path to mpiexec>]],
-            [Path of mpiexec])],
-    [
-        if test x$withval = xyes; then
-            AC_MSG_ERROR(--with-mpiexec must be given a pathname)
-        else
-            mpiexec_path=$withval
-        fi
-    ],
-    [
-        # nothing was specified: look in the path
-        AC_PATH_PROG(mpiexec_path, mpiexec, [no], [$(dirname $mpicc_path):$PATH])
-    ])
-
-AC_MSG_CHECKING(whether mpiexec is available)
-AC_MSG_RESULT($mpiexec_path)
-
-# We test if MPIEXEC exists
-if test ! -x $mpiexec_path; then
-    #MPIEXEC does not exists or is not executable
-    AC_MSG_RESULT(The mpiexec script is not valid)
-        running_mpi_check=no
-        mpiexec_path=""
+if test x$enable_simgrid = xno ; then
+    # Check if mpiexec is available
+    AC_ARG_WITH(mpiexec, [AS_HELP_STRING([--with-mpiexec[=<path to mpiexec>]],
+                [Path of mpiexec])],
+        [
+            if test x$withval = xyes; then
+                AC_MSG_ERROR(--with-mpiexec must be given a pathname)
+            else
+                mpiexec_path=$withval
+            fi
+        ],
+        [
+            # nothing was specified: look in the path
+            AC_PATH_PROG(mpiexec_path, mpiexec, [no], [$(dirname $mpicc_path):$PATH])
+        ])
+    
+    AC_MSG_CHECKING(whether mpiexec is available)
+    AC_MSG_RESULT($mpiexec_path)
+    
+    # We test if MPIEXEC exists
+    if test ! -x $mpiexec_path; then
+        #MPIEXEC does not exists or is not executable
+        AC_MSG_RESULT(The mpiexec script is not valid)
+            running_mpi_check=no
+            mpiexec_path=""
+    fi
+    AC_SUBST(MPIEXEC,$mpiexec_path)
 fi
 
 AM_CONDITIONAL(STARPU_MPI_CHECK, test x$running_mpi_check = xyes)
@@ -508,7 +511,6 @@ fi
 if test x$use_mpi = xyes ; then
     AC_MSG_CHECKING(whether MPI tests should be run)
     AC_MSG_RESULT($running_mpi_check)
-    AC_SUBST(MPIEXEC,$mpiexec_path)
 fi
 
 #We can only build StarPU MPI Library if User wants it and MPI is available
@@ -1144,6 +1146,9 @@ if test x$enable_cuda = xyes; then
 	fi
 
 	AC_CHECK_HEADERS([cuda_gl_interop.h])
+
+	AC_CHECK_LIB([cusparse], [cusparseCreate])
+	AC_CHECK_DECLS([cusparseSetStream], [], [], [[#include <cusparse.h>]])
 fi
 
 dnl Hey dude, are you around?
@@ -2614,6 +2619,16 @@ AC_MSG_CHECKING(for SOCL)
 # in case SOCL was explicitely required, but is not available, this is an error
 if test "x$enable_socl" = "xyes" -a "$have_valid_opencl" = "no" ; then
     AC_MSG_ERROR([SOCL cannot be enabled without OpenCL])
+fi
+
+# MPI Master Slave and SOCL are not compatible
+if test "x$use_mpi_master_slave" = "xyes" ; then
+   if test "x$enable_socl" = "xyes" ; then
+      AC_MSG_ERROR([MPI Master-Slave and SOCL can not be used at the same time !])
+   fi
+   if test "x$enable_socl" = "xmaybe" ; then
+     enable_socl=no 
+   fi
 fi
 
 # now we enable SOCL if and only if a proper setup is available

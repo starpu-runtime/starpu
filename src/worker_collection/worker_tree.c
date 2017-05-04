@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2013, 2016  Université de Bordeaux
  * Copyright (C) 2012-2014, 2016, 2017  CNRS
- * Copyright (C) 2011-2013  INRIA
+ * Copyright (C) 2011-2013, 2017  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -333,10 +333,10 @@ static void tree_init_iterator_for_parallel_tasks(struct starpu_worker_collectio
 	int nworkers = starpu_worker_get_count();
 	for(i = 0; i < nworkers; i++)
 	{
-		workers->is_unblocked[i] = (workers->present[i] && !starpu_worker_is_blocked(i));
+		workers->is_unblocked[i] = (workers->present[i] && !starpu_worker_is_blocked_in_parallel(i));
 		if(!it->possibly_parallel) /* don't bother filling the table with masters we won't use it anyway */
 			continue;
-		workers->is_master[i] = (workers->present[i] && !starpu_worker_is_blocked(i) && !starpu_worker_is_slave_somewhere(i));
+		workers->is_master[i] = (workers->present[i] && !starpu_worker_is_blocked_in_parallel(i) && !starpu_worker_is_slave_somewhere(i));
 	}
 }
 

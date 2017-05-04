@@ -136,7 +136,6 @@ myPROGRAMS =
 
 myPROGRAMS +=					\
 	main/mkdtemp				\
-	main/restart				\
 	main/execute_schedule			\
 	main/insert_task_pack			\
 	main/insert_task_nullcodelet		\
@@ -154,11 +153,13 @@ myPROGRAMS +=					\
 	errorcheck/starpu_init_noworker		\
 	errorcheck/invalid_tasks		\
 	helper/cublas_init			\
+	helper/cusparse_init			\
 	helper/pinned_memory			\
 	helper/execute_on_all			\
 	microbenchs/display_structures_size	\
 	microbenchs/local_pingpong		\
 	sched_ctx/sched_ctx_list		\
+	sched_ctx/sched_ctx_policy_data		\
 	perfmodels/value_nan
 
 if !STARPU_SIMGRID
@@ -173,6 +174,7 @@ myPROGRAMS +=				\
 	main/insert_task_dyn_handles		\
 	main/insert_task_array			\
 	main/insert_task_many			\
+	main/insert_task_where			\
 	main/multithreaded			\
 	main/starpu_task_bundle			\
 	main/starpu_task_wait_for_all		\
@@ -182,6 +184,7 @@ myPROGRAMS +=				\
 	main/static_restartable_tag		\
 	main/regenerate				\
 	main/regenerate_pipeline		\
+	main/restart				\
 	main/wait_all_regenerable_tasks		\
 	main/subgraph_repeat			\
 	main/subgraph_repeat_tag		\
@@ -570,6 +573,13 @@ datawizard_test_arbiter_SOURCES =	\
 
 main_deprecated_func_CFLAGS = $(AM_CFLAGS) -Wno-deprecated-declarations
 
+main_insert_task_where_SOURCES =		\
+	main/insert_task_where.c
+if STARPU_USE_CUDA
+main_insert_task_where_SOURCES +=		\
+	main/increment.cu
+endif
+
 main_subgraph_repeat_SOURCES =		\
 	main/subgraph_repeat.c
 if STARPU_USE_CUDA
@@ -600,6 +610,9 @@ endif
 
 sched_ctx_sched_ctx_list_SOURCES =	\
 	sched_ctx/sched_ctx_list.c
+
+sched_ctx_sched_ctx_policy_data_SOURCES =	\
+	sched_ctx/sched_ctx_policy_data.c
 
 sched_ctx_sched_ctx_hierarchy_SOURCES =	\
 	sched_ctx/sched_ctx_hierarchy.c

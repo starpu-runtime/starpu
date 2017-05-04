@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011, 2013-2016  Université de Bordeaux
- * Copyright (C) 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+ * Copyright (C) 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -39,7 +39,7 @@ void _starpu_perfmodel_print_history_based(struct starpu_perfmodel_per_arch *per
 			if (!parameter)
 			{
 				/* There isn't a parameter that is explicitely requested, so we display all parameters */
-				printf("%08x\t%-15lu\t%-15e\t%-15e\t%-15e\t%u\n", entry->footprint,
+				fprintf(output, "%08x\t%-15lu\t%-15e\t%-15e\t%-15e\t%u\n", entry->footprint,
 					(unsigned long) entry->size, entry->flops, entry->mean, entry->deviation, entry->nsample);
 			}
 			else
@@ -47,12 +47,12 @@ void _starpu_perfmodel_print_history_based(struct starpu_perfmodel_per_arch *per
 				/* only display the parameter that was specifically requested */
 				if (strcmp(parameter, "mean") == 0)
 				{
-					printf("%-15e\n", entry->mean);
+					fprintf(output, "%-15e\n", entry->mean);
 				}
 
 				if (strcmp(parameter, "stddev") == 0)
 				{
-					printf("%-15e\n", entry->deviation);
+					fprintf(output, "%-15e\n", entry->deviation);
 					return;
 				}
 			}
@@ -113,7 +113,7 @@ void starpu_perfmodel_print(struct starpu_perfmodel *model, struct starpu_perfmo
 #if 0
 		char debugname[1024];
 		starpu_perfmodel_debugfilepath(model, arch, debugname, 1024, nimpl);
-		printf("\t debug file path : %s\n", debugname);
+		_STARPU_MSG("\t debug file path : %s\n", debugname);
 #endif
 	}
 	else
@@ -121,31 +121,31 @@ void starpu_perfmodel_print(struct starpu_perfmodel *model, struct starpu_perfmo
 		/* only display the parameter that was specifically requested */
 		if (strcmp(parameter, "a") == 0)
 		{
-			printf("%e\n", arch_model->regression.a);
+			fprintf(output, "%e\n", arch_model->regression.a);
 			return;
 		}
 
 		if (strcmp(parameter, "b") == 0)
 		{
-			printf("%e\n", arch_model->regression.b);
+			fprintf(output, "%e\n", arch_model->regression.b);
 			return;
 		}
 
 		if (strcmp(parameter, "c") == 0)
 		{
-			printf("%e\n", arch_model->regression.c);
+			fprintf(output, "%e\n", arch_model->regression.c);
 			return;
 		}
 
 		if (strcmp(parameter, "alpha") == 0)
 		{
-			printf("%e\n", arch_model->regression.alpha);
+			fprintf(output, "%e\n", arch_model->regression.alpha);
 			return;
 		}
 
 		if (strcmp(parameter, "beta") == 0)
 		{
-			printf("%e\n", arch_model->regression.beta);
+			fprintf(output, "%e\n", arch_model->regression.beta);
 			return;
 		}
 
@@ -153,7 +153,7 @@ void starpu_perfmodel_print(struct starpu_perfmodel *model, struct starpu_perfmo
 		{
 			char debugname[256];
 			starpu_perfmodel_debugfilepath(model, arch, debugname, 256, nimpl);
-			printf("%s\n", debugname);
+			fprintf(output, "%s\n", debugname);
 			return;
 		}
 
@@ -165,8 +165,7 @@ void starpu_perfmodel_print(struct starpu_perfmodel *model, struct starpu_perfmo
 
 		/* TODO display if it's valid ? */
 
-		fprintf(output, "Unknown parameter requested, aborting.\n");
-		exit(-1);
+		_STARPU_ERROR("Unknown parameter requested, aborting.\n");
 	}
 }
 
@@ -209,8 +208,7 @@ int starpu_perfmodel_print_all(struct starpu_perfmodel *model, char *arch, char 
 			/* For combined CPU workers */
 			if ((k < 1) || (k > STARPU_MAXCPUS))
 			{
-				fprintf(output, "Invalid CPU size\n");
-				exit(-1);
+				_STARPU_ERROR("Invalid CPU size\n");
 			}
 
 			int implid;
@@ -282,7 +280,7 @@ int starpu_perfmodel_print_all(struct starpu_perfmodel *model, char *arch, char 
 			return 0;
 		}
 
-		fprintf(output, "Unknown architecture requested\n");
+		_STARPU_MSG("Unknown architecture requested\n");
 		return -1;
 	}
 	return 0;

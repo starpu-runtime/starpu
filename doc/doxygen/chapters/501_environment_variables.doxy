@@ -831,7 +831,7 @@ that have a limited amount of memory.
 \anchor STARPU_LIMIT_CPU_MEM
 \addindex __env__STARPU_LIMIT_CPU_MEM
 This variable specifies the maximum number of megabytes that should be
-available to the application on each CPU device. Setting it enables allocation
+available to the application in the main CPU memory. Setting it enables allocation
 cache in main memory
 </dd>
 

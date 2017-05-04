@@ -1,9 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2017  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  * Copyright (C) 2011  Télécom-SudParis
- * Copyright (C) 2011, 2014, 2016  INRIA
+ * Copyright (C) 2011, 2014, 2016-2017  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -272,12 +272,6 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 		0
 #endif
 		;
-	/* Read cl fields before releasing dependencies, for the case of a
-	 * switch_cl which is freed by data_unregister happening as soon as
-	 * the dependencies are released.
-	 */
-	unsigned nowhere = !task->cl || task->cl->where == STARPU_NOWHERE;
-
 #ifdef STARPU_DEBUG
 	STARPU_PTHREAD_MUTEX_LOCK(&all_jobs_list_mutex);
 	_starpu_job_multilist_erase_all_submitted(&all_jobs_list, j);
@@ -345,6 +339,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	 * scheduler to process it : the task structure doesn't contain any valuable
 	 * data as it's not linked to an actual worker */
 	/* control task should not execute post_exec_hook */
+	unsigned nowhere = !task->cl || task->cl->where == STARPU_NOWHERE || task->where == STARPU_NOWHERE;
 	if(j->task_size == 1 && !nowhere && !j->internal
 #ifdef STARPU_OPENMP
 	/* If this is a continuation, we do not execute the post_exec_hook. The
@@ -711,10 +706,10 @@ int _starpu_push_local_task(struct _starpu_worker *worker, struct starpu_task *t
 {
 	/* Check that the worker is able to execute the task ! */
 	STARPU_ASSERT(task && task->cl);
-	if (STARPU_UNLIKELY(!(worker->worker_mask & task->cl->where)))
+	if (STARPU_UNLIKELY(!(worker->worker_mask & task->where)))
 		return -ENODEV;
 
-	STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
+	_starpu_worker_lock(worker->workerid);
 
 	if (task->execute_on_a_specific_worker && task->workerorder)
 	{
@@ -758,7 +753,7 @@ int _starpu_push_local_task(struct _starpu_worker *worker, struct starpu_task *t
 
 	starpu_wake_worker_locked(worker->workerid);
 	starpu_push_task_end(task);
-	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
+	_starpu_worker_unlock(worker->workerid);
 
 	return 0;
 }
