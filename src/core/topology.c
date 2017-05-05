@@ -945,9 +945,8 @@ _starpu_init_mpi_config (struct _starpu_machine_config *config,
                 if ((unsigned) nmpicores > topology->nhwmpicores[mpi_idx])
                 {
                         /* The user requires more MPI cores than there is available */
-                        fprintf(stderr,
-                                        "# Warning: %d MPI cores requested. Only %d available.\n",
-                                        nmpicores, topology->nhwmpicores[mpi_idx]);
+                        _STARPU_MSG("# Warning: %d MPI cores requested. Only %d available.\n",
+				    nmpicores, topology->nhwmpicores[mpi_idx]);
                         nmpicores = topology->nhwmpicores[mpi_idx];
                 }
         }

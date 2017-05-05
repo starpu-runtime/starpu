@@ -162,7 +162,7 @@ void _starpu_mpi_common_send(const struct _starpu_mp_node *node, void *msg, int 
         int id_proc;
         MPI_Comm_rank(MPI_COMM_WORLD, &id_proc);
 
-        //printf("envoi %d B to %d\n", len, node->mp_connection.mpi_remote_nodeid);
+        //_STARPU_MSG("envoi %d B to %d\n", len, node->mp_connection.mpi_remote_nodeid);
 
         if (event)
         {
@@ -177,7 +177,7 @@ void _starpu_mpi_common_send(const struct _starpu_mp_node *node, void *msg, int 
                 /* Initialize the list */
                 if (channel->event.mpi_ms_event.requests == NULL)
                 {
-                        channel->event.mpi_ms_event.requests = _starpu_mpi_ms_event_request_list_new();            
+                        channel->event.mpi_ms_event.requests = _starpu_mpi_ms_event_request_list_new();
                         _starpu_mpi_ms_event_request_list_init(channel->event.mpi_ms_event.requests);
                 }
 
@@ -189,7 +189,7 @@ void _starpu_mpi_common_send(const struct _starpu_mp_node *node, void *msg, int 
                 channel->starpu_mp_common_finished_sender++;
 
                 _starpu_mpi_ms_event_request_list_push_back(channel->event.mpi_ms_event.requests, req);
-        } 
+        }
         else
         {
                 /* Synchronous send */
@@ -212,7 +212,7 @@ void _starpu_mpi_common_recv(const struct _starpu_mp_node *node, void *msg, int 
         MPI_Status s;
         MPI_Comm_rank(MPI_COMM_WORLD, &id_proc);
 
-        //printf("recv %d B from %d in %p\n", len, node->mp_connection.mpi_remote_nodeid, msg);
+        //_STARPU_MSG("recv %d B from %d in %p\n", len, node->mp_connection.mpi_remote_nodeid, msg);
 
         if (event)
         {
@@ -227,7 +227,7 @@ void _starpu_mpi_common_recv(const struct _starpu_mp_node *node, void *msg, int 
                 /* Initialize the list */
                 if (channel->event.mpi_ms_event.requests == NULL)
                 {
-                        channel->event.mpi_ms_event.requests = _starpu_mpi_ms_event_request_list_new();            
+                        channel->event.mpi_ms_event.requests = _starpu_mpi_ms_event_request_list_new();
                         _starpu_mpi_ms_event_request_list_init(channel->event.mpi_ms_event.requests);
                 }
 
@@ -239,7 +239,7 @@ void _starpu_mpi_common_recv(const struct _starpu_mp_node *node, void *msg, int 
                 channel->starpu_mp_common_finished_sender++;
 
                 _starpu_mpi_ms_event_request_list_push_back(channel->event.mpi_ms_event.requests, req);
-        } 
+        }
         else
         {
                 /* Synchronous recv */
@@ -259,12 +259,12 @@ void _starpu_mpi_common_mp_recv(const struct _starpu_mp_node *node, void *msg, i
 
 /* SEND to any node */
 void _starpu_mpi_common_send_to_device(const struct _starpu_mp_node *node, int dst_devid, void *msg, int len, void * event)
-{   
+{
         int res;
         int id_proc;
         MPI_Comm_rank(MPI_COMM_WORLD, &id_proc);
 
-        //printf("S_to_D send %d bytes from %d from %p\n", len, dst_devid, msg);
+        //_STARPU_MSG("S_to_D send %d bytes from %d from %p\n", len, dst_devid, msg);
 
         if (event)
         {
@@ -279,7 +279,7 @@ void _starpu_mpi_common_send_to_device(const struct _starpu_mp_node *node, int d
                 /* Initialize the list */
                 if (channel->event.mpi_ms_event.requests == NULL)
                 {
-                        channel->event.mpi_ms_event.requests = _starpu_mpi_ms_event_request_list_new();            
+                        channel->event.mpi_ms_event.requests = _starpu_mpi_ms_event_request_list_new();
                         _starpu_mpi_ms_event_request_list_init(channel->event.mpi_ms_event.requests);
                 }
 
@@ -291,12 +291,12 @@ void _starpu_mpi_common_send_to_device(const struct _starpu_mp_node *node, int d
                 channel->starpu_mp_common_finished_sender++;
 
                 _starpu_mpi_ms_event_request_list_push_back(channel->event.mpi_ms_event.requests, req);
-        } 
+        }
         else
         {
                 /* Synchronous send */
                 res = MPI_Send(msg, len, MPI_BYTE, dst_devid, SYNC_TAG, MPI_COMM_WORLD);
-        }    
+        }
 
         STARPU_ASSERT_MSG(res == MPI_SUCCESS, "MPI Master/Slave cannot receive a msg with a size of %d Bytes !", len);
 }
@@ -308,7 +308,7 @@ void _starpu_mpi_common_recv_from_device(const struct _starpu_mp_node *node, int
         int id_proc;
         MPI_Comm_rank(MPI_COMM_WORLD, &id_proc);
 
-        //printf("R_to_D nop recv %d bytes from %d\n", len, src_devid);
+        //_STARPU_MSG("R_to_D nop recv %d bytes from %d\n", len, src_devid);
 
         if (event)
         {
@@ -323,7 +323,7 @@ void _starpu_mpi_common_recv_from_device(const struct _starpu_mp_node *node, int
                 /* Initialize the list */
                 if (channel->event.mpi_ms_event.requests == NULL)
                 {
-                        channel->event.mpi_ms_event.requests = _starpu_mpi_ms_event_request_list_new();            
+                        channel->event.mpi_ms_event.requests = _starpu_mpi_ms_event_request_list_new();
                         _starpu_mpi_ms_event_request_list_init(channel->event.mpi_ms_event.requests);
                 }
 
@@ -335,7 +335,7 @@ void _starpu_mpi_common_recv_from_device(const struct _starpu_mp_node *node, int
                 channel->starpu_mp_common_finished_sender++;
 
                 _starpu_mpi_ms_event_request_list_push_back(channel->event.mpi_ms_event.requests, req);
-        } 
+        }
         else
         {
                 /* Synchronous recv */
@@ -363,8 +363,7 @@ static void _starpu_mpi_common_polling_node(struct _starpu_mp_node * node)
                         answer = _starpu_mp_common_recv_command(node, &arg, &arg_size);
                         if(!_starpu_src_common_store_message(node,arg,arg_size,answer))
                         {
-                                printf("incorrect commande: unknown command or sync command");
-                                STARPU_ASSERT(0);
+                                _STARPU_ERROR("incorrect command: unknown command or sync command");
                         }
                 }
                 STARPU_PTHREAD_MUTEX_UNLOCK(&node->connection_mutex);
@@ -485,7 +484,7 @@ void _starpu_mpi_common_measure_bandwidth_latency(double bandwidth_dtod[STARPU_M
         unsigned sender, receiver;
         for(sender = 0; sender < nb_proc; sender++)
         {
-                for(receiver = 0; receiver < nb_proc; receiver++) 
+                for(receiver = 0; receiver < nb_proc; receiver++)
                 {
                         //Node can't be a sender and a receiver
                         if(sender == receiver)
@@ -501,7 +500,7 @@ void _starpu_mpi_common_measure_bandwidth_latency(double bandwidth_dtod[STARPU_M
                                 start = starpu_timing_now();
                                 for (iter = 0; iter < NITER; iter++)
                                 {
-                                        ret = MPI_Send(buf, SIZE_BANDWIDTH, MPI_BYTE, receiver, 42, MPI_COMM_WORLD); 
+                                        ret = MPI_Send(buf, SIZE_BANDWIDTH, MPI_BYTE, receiver, 42, MPI_COMM_WORLD);
                                         STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "Bandwidth of MPI Master/Slave cannot be measured !");
                                 }
                                 end = starpu_timing_now();
@@ -511,7 +510,7 @@ void _starpu_mpi_common_measure_bandwidth_latency(double bandwidth_dtod[STARPU_M
                                 start = starpu_timing_now();
                                 for (iter = 0; iter < NITER; iter++)
                                 {
-                                        ret = MPI_Send(buf, 1, MPI_BYTE, receiver, 42, MPI_COMM_WORLD); 
+                                        ret = MPI_Send(buf, 1, MPI_BYTE, receiver, 42, MPI_COMM_WORLD);
                                         STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "Latency of MPI Master/Slave cannot be measured !");
                                 }
                                 end = starpu_timing_now();

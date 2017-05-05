@@ -1097,13 +1097,13 @@ unsigned _starpu_can_push_task(struct _starpu_sched_ctx *sched_ctx, struct starp
 			expected_len = expected_end - hyp_actual_start_sample[sched_ctx->id] ;
 		else
 		{
-			printf("%d: sc start is 0.0\n", sched_ctx->id);
+			_STARPU_MSG("%d: sc start is 0.0\n", sched_ctx->id);
 			expected_len = expected_end - starpu_timing_now();
 		}
 		if(expected_len < 0.0)
-			printf("exp len negative %lf \n", expected_len);
+			_STARPU_MSG("exp len negative %lf \n", expected_len);
 		expected_len /= 1000000.0;
-//		printf("exp_end %lf start %lf expected_len %lf \n", expected_end, hyp_actual_start_sample[sched_ctx->id], expected_len);
+		//		_STARPU_MSG("exp_end %lf start %lf expected_len %lf \n", expected_end, hyp_actual_start_sample[sched_ctx->id], expected_len);
 		if(expected_len > (window_size + 0.2*window_size))
 			return 0;
 	}

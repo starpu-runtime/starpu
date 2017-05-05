@@ -425,7 +425,7 @@ void _starpu_sink_common_worker(void)
 					_starpu_sink_common_recv_workers(node, arg, arg_size);
 					break;
 				default:
-					printf("Oops, command %x unrecognized\n", command);
+					_STARPU_MSG("Oops, command %x unrecognized\n", command);
 			}
 		}
 
