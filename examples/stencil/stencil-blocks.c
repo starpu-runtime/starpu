@@ -350,8 +350,6 @@ void free_memory_on_node(int rank)
 
 		int node = block->mpi_node;
 
-		unsigned size_bz = block_sizes_z[bz];
-
 		/* Main blocks */
 		if (node == rank)
 		{
