@@ -792,8 +792,6 @@ _starpu_get_next_bindid (struct _starpu_machine_config *config,
 				return requested_bindid;
 			}
 		}
-		if (found)
-			break;
 	}
 
 	for (i = config->current_bindid; i < topology->nhwpus / nhyperthreads; i++)
