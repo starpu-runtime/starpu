@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2013-2017   Université Bordeaux
+ * Copyright (C) 2011, 2013-2016   Université Bordeaux
  * Copyright (C) 2011-2017         CNRS
  * Copyright (C) 2011, 2014        INRIA
  * Copyright (C) 2016-2017 Inria
@@ -121,7 +121,7 @@ int _starpu_codelet_pack_args(void **arg_buffer, size_t *arg_buffer_size, va_lis
 		}
 		else if (arg_type==STARPU_EXECUTE_WHERE)
 		{
-			(void)va_arg(varg_list, unsigned long long);
+			(void)va_arg(varg_list, uint32_t);
 		}
 		else if (arg_type==STARPU_EXECUTE_ON_WORKER)
 		{
@@ -388,7 +388,7 @@ int _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task **t
 		}
 		else if (arg_type==STARPU_EXECUTE_WHERE)
 		{
-			(*task)->where = va_arg(varg_list, unsigned long long);
+			(*task)->where = va_arg(varg_list, uint32_t);
 		}
 		else if (arg_type==STARPU_EXECUTE_ON_WORKER)
 		{
@@ -605,8 +605,12 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task **
 		{
 			assert(0);
 			arg_i++;
-			unsigned long long worker = *(unsigned long long *)arglist[arg_i];
-			(*task)->where = worker;
+			int worker = *(int *)arglist[arg_i];
+			if (worker != -1)
+			{
+				(*task)->workerid = worker;
+				(*task)->execute_on_a_specific_worker = 1;
+			}
 		}
 		else if (arg_type == STARPU_EXECUTE_ON_WORKER)
 		{

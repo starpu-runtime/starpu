@@ -390,7 +390,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 		{
 			// the flag is decoded and set later when
 			// calling function _starpu_task_insert_create()
-			(void)va_arg(varg_list_copy, unsigned long long);
+			(void)va_arg(varg_list_copy, uint32_t);
 		}
 		else if (arg_type==STARPU_EXECUTE_ON_WORKER)
 		{
