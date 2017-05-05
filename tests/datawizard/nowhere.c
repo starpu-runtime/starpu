@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2015-2016  Université de Bordeaux
+ * Copyright (C) 2017  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -25,13 +26,6 @@
  * Try the NOWHERE flag
  */
 
-#ifdef STARPU_USE_NUMA
-int main(int argc, char **argv)
-{
-	/* FIXME: assumes only one RAM node */
-	return STARPU_TEST_SKIPPED;
-}
-#else
 static int x, y;
 
 static void prod(void *descr[], void *_args STARPU_ATTRIBUTE_UNUSED)
@@ -91,6 +85,13 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
+	if (starpu_get_nb_numa_nodes() > 1)
+	{
+		/* FIXME: assumes only one RAM node */
+		starpu_shutdown();
+		return STARPU_TEST_SKIPPED;
+	}
+
 	starpu_variable_data_register(&handle_x, STARPU_MAIN_RAM, (uintptr_t)&x, sizeof(x));
 	starpu_variable_data_register(&handle_y, STARPU_MAIN_RAM, (uintptr_t)&y, sizeof(y));
 
@@ -138,4 +139,3 @@ enodev:
 	starpu_shutdown();
 	return STARPU_TEST_SKIPPED;
 }
-#endif

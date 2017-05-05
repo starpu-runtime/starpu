@@ -166,21 +166,26 @@ static size_t _starpu_cpu_get_global_mem_size(int nodeid STARPU_ATTRIBUTE_UNUSED
 
 #if defined(STARPU_HAVE_HWLOC)
 	struct _starpu_machine_topology *topology = &config->topology;
-#ifdef STARPU_USE_NUMA
-        int depth_node = hwloc_get_type_depth(topology->hwtopology, HWLOC_OBJ_NODE);
 
-	if (depth_node == HWLOC_TYPE_DEPTH_UNKNOWN)
-	     global_mem = hwloc_get_root_obj(topology->hwtopology)->memory.total_memory;
-	else {
-	     hwloc_obj_t obj = hwloc_get_obj_by_depth(topology->hwtopology, depth_node, nodeid);
-	     global_mem = obj->memory.local_memory;
-	     sprintf(name, "STARPU_LIMIT_CPU_NUMA_%d_MEM", obj->os_index);
-	     limit = starpu_get_env_number(name);
+	int nnumas = starpu_get_nb_numa_nodes();
+	if (nnumas > 1)
+	{
+		int depth_node = hwloc_get_type_depth(topology->hwtopology, HWLOC_OBJ_NODE);
+
+		if (depth_node == HWLOC_TYPE_DEPTH_UNKNOWN)
+		     global_mem = hwloc_get_root_obj(topology->hwtopology)->memory.total_memory;
+		else {
+		     hwloc_obj_t obj = hwloc_get_obj_by_depth(topology->hwtopology, depth_node, nodeid);
+		     global_mem = obj->memory.local_memory;
+		     sprintf(name, "STARPU_LIMIT_CPU_NUMA_%d_MEM", obj->os_index);
+		     limit = starpu_get_env_number(name);
+		}
 	}
-#else /* STARPU_USE_NUMA */
-	/* Do not limit ourself to a single NUMA node */
-	global_mem = hwloc_get_root_obj(topology->hwtopology)->memory.total_memory;
-#endif /* STARPU_USE_NUMA */
+	else
+	{
+		/* Do not limit ourself to a single NUMA node */
+		global_mem = hwloc_get_root_obj(topology->hwtopology)->memory.total_memory;
+	}
 
 #else /* STARPU_HAVE_HWLOC */
 #ifdef STARPU_DEVEL

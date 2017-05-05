@@ -65,9 +65,9 @@ static int nobind;
 /* For checking whether two workers share the same PU, indexed by PU number */
 static int cpu_worker[STARPU_MAXCPUS];
 static unsigned nb_numa_nodes = 0;
-static unsigned numa_memory_nodes[STARPU_MAXNUMANODES]; /* indexed by StarPU numa node to convert in hwloc logid */
+static int numa_memory_nodes[STARPU_MAXNUMANODES]; /* indexed by StarPU numa node to convert in hwloc logid */
 static unsigned numa_bus_id[STARPU_MAXNUMANODES*STARPU_MAXNUMANODES];
-static int _starpu_worker_numa_node(unsigned workerid);
+static int _starpu_get_numa_node_worker(unsigned workerid);
 
 #if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) || defined(STARPU_USE_SCC) || defined(STARPU_SIMGRID) || defined(STARPU_USE_MPI_MASTER_SLAVE)
 
@@ -96,12 +96,12 @@ static struct _starpu_worker_set mic_worker_set[STARPU_MAXMICDEVS];
 struct _starpu_worker_set mpi_worker_set[STARPU_MAXMPIDEVS];
 #endif
 
-int _starpu_get_nb_numa_nodes(void)
+int starpu_get_nb_numa_nodes(void)
 {
 	return nb_numa_nodes;
 }
 
-#if defined(STARPU_USE_NUMA) && defined(STARPU_HAVE_HWLOC)
+#if defined(STARPU_HAVE_HWLOC)
 static int numa_get_logical_id(hwloc_obj_t obj)
 {
 	STARPU_ASSERT(obj);
@@ -119,42 +119,52 @@ static int numa_get_logical_id(hwloc_obj_t obj)
 }
 #endif
 
-static int _starpu_worker_numa_node(unsigned workerid)
+static int _starpu_get_numa_node_worker(unsigned workerid)
 {
-#if defined(STARPU_USE_NUMA) && defined(STARPU_HAVE_HWLOC)
-	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
-	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config() ;
-	struct _starpu_machine_topology *topology = &config->topology ;
-
-	hwloc_obj_t obj;
-	switch(worker->arch) 	
+#if defined(STARPU_HAVE_HWLOC)
+	char * state;
+	if ((state = starpu_getenv("STARPU_USE_NUMA")) && atoi(state))
 	{
-		case STARPU_CPU_WORKER:
-			obj = hwloc_get_obj_by_type(topology->hwtopology, HWLOC_OBJ_PU, worker->bindid) ;
-			break;
-		default:
-			STARPU_ABORT();
-	}
+		struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
+		struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config() ;
+		struct _starpu_machine_topology *topology = &config->topology ;
 
-	return numa_get_logical_id(obj);
-		
-#else 
-	(void) workerid; /* unused */
-	return -1;
+		hwloc_obj_t obj;
+		switch(worker->arch) 	
+		{
+			case STARPU_CPU_WORKER:
+				obj = hwloc_get_obj_by_type(topology->hwtopology, HWLOC_OBJ_PU, worker->bindid) ;
+				break;
+			default:
+				STARPU_ABORT();
+		}
+
+		return numa_get_logical_id(obj);
+	}
+	else		
 #endif 
+	{
+		(void) workerid; /* unused */
+		return -1;
+	}
 }
 
 static int _starpu_numa_get_logical_id_from_pu(int pu)
 {
-#if defined(STARPU_USE_NUMA) && defined(STARPU_HAVE_HWLOC)
-	struct _starpu_machine_config *config = _starpu_get_machine_config();
-	struct _starpu_machine_topology *topology = &config->topology;
+#if defined(STARPU_HAVE_HWLOC)
+	if (nb_numa_nodes > 1)
+	{
+		struct _starpu_machine_config *config = _starpu_get_machine_config();
+		struct _starpu_machine_topology *topology = &config->topology;
 
-	hwloc_obj_t obj = hwloc_get_obj_by_type(topology->hwtopology, HWLOC_OBJ_PU, pu);
-	return numa_get_logical_id(obj);
-#else
-	return -1;
+		hwloc_obj_t obj = hwloc_get_obj_by_type(topology->hwtopology, HWLOC_OBJ_PU, pu);
+		return numa_get_logical_id(obj);
+	}
+	else
 #endif
+	{
+		return -1;
+	}
 }
 
 
@@ -913,18 +923,27 @@ unsigned _starpu_topology_get_nnumanodes(struct _starpu_machine_config *config S
 #endif
         _starpu_init_topology(config);
 
-#if defined(STARPU_USE_NUMA) && defined(STARPU_HAVE_HWLOC)
-	struct _starpu_machine_topology *topology = &config->topology ;
-        int nnumanodes = hwloc_get_nbobjs_by_type(topology->hwtopology, HWLOC_OBJ_NODE) ;
-	int res = nnumanodes > 0 ? nnumanodes : 1 ;
-#else /* STARPU_USE_NUMA */
-	int res = 1 ;
-#endif /* STARPU_USE_NUMA */
+	int res;
+#if defined(STARPU_HAVE_HWLOC)
+	char * state;
+	if ((state = starpu_getenv("STARPU_USE_NUMA")) && atoi(state))
+	{
+		struct _starpu_machine_topology *topology = &config->topology ;
+		int nnumanodes = hwloc_get_nbobjs_by_type(topology->hwtopology, HWLOC_OBJ_NODE) ;
+		res = nnumanodes > 0 ? nnumanodes : 1 ;
+	}
+	else
+#endif 
+	{	
+		res = 1;
+	}
+
 	STARPU_ASSERT_MSG(res <= STARPU_MAXNUMANODES, "Number of NUMA nodes discovered is higher than maximum accepted ! Use configure option --enable-maxnumanodes=xxx to increase the maximum value of supported NUMA nodes.\n");
 	return res;
 }
 
-int _starpu_numa_logid_to_id(unsigned logid)
+//TODO change this in an array
+int starpu_numa_hwloclogid_to_id(int logid)
 {
 	unsigned n;
 	for (n = 0; n < nb_numa_nodes; n++)
@@ -933,7 +952,7 @@ int _starpu_numa_logid_to_id(unsigned logid)
 	return -1;
 }
 
-unsigned _starpu_numa_id_to_logid(unsigned id)
+int starpu_numa_id_to_hwloclogid(unsigned id)
 {
 	STARPU_ASSERT(id < STARPU_MAXNUMANODES);
 	return numa_memory_nodes[id];
@@ -1888,10 +1907,10 @@ static void _starpu_init_numa_node(struct _starpu_machine_config *config)
 		struct _starpu_worker *workerarg = &config->workers[worker];
 		if (workerarg->arch == STARPU_CPU_WORKER)
 		{
-			int numa_logical_id = _starpu_worker_numa_node(worker);
+			int numa_logical_id = _starpu_get_numa_node_worker(worker);
 
 			/* Convert logical id to StarPU id to check if this NUMA node is already saved or not */
-			int numa_starpu_id = _starpu_numa_logid_to_id(numa_logical_id);
+			int numa_starpu_id = starpu_numa_hwloclogid_to_id(numa_logical_id);
 
 			if (numa_starpu_id == -1 && nb_numa_nodes == STARPU_MAXNUMANODES)
 			{
@@ -1925,120 +1944,124 @@ static void _starpu_init_numa_node(struct _starpu_machine_config *config)
 	_STARPU_DISP("No NUMA nodes found when checking CPU workers. Take NUMA nodes attached to CUDA and OpenCL devices... \n");
 #endif
 
-
-#if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_HWLOC)
-	for (i = 0; i < config->topology.ncudagpus; i++)
+	char * state;
+	if ((state = starpu_getenv("STARPU_USE_NUMA")) && atoi(state))
 	{
-		hwloc_obj_t obj = hwloc_cuda_get_device_osdev_by_index(config->topology.hwtopology, i);
-		
-		/* Hwloc cannot recognize some devices */
-		if (!obj)
-			continue;
-			
-		while (obj->type != HWLOC_OBJ_NODE)
+		/* NUMA mode activated */
+#if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_HWLOC)
+		for (i = 0; i < config->topology.ncudagpus; i++)
 		{
-			obj = obj->parent;
+			hwloc_obj_t obj = hwloc_cuda_get_device_osdev_by_index(config->topology.hwtopology, i);
 
-			/* If we don't find a "node" obj before the root, this means
-			 * hwloc does not know whether there are numa nodes or not, so
-			 * we should not use a per-node sampling in that case. */
+			/* Hwloc cannot recognize some devices */
 			if (!obj)
 				continue;
-		}
-		int numa_starpu_id = _starpu_numa_logid_to_id(obj->logical_index);
 
-		if (numa_starpu_id == -1 && nb_numa_nodes == STARPU_MAXNUMANODES)
-		{
-			_STARPU_MSG("Warning: %u NUMA nodes available. Only %u enabled. Use configure option --enable-maxnumanodes=xxx to update the maximum value of supported NUMA nodes.\n", _starpu_topology_get_nnumanodes(config), STARPU_MAXNUMANODES);
-			/* Don't create a new NUMA node */
-			numa_starpu_id = STARPU_MAIN_RAM;
-		}
-
-		if (numa_starpu_id == -1)
-		{
-			int memnode = _starpu_memory_node_register(STARPU_CPU_RAM, obj->logical_index);
-			STARPU_ASSERT_MSG(memnode < STARPU_MAXNUMANODES, "Wrong Memory Node : %d (only %d available)", memnode, STARPU_MAXNUMANODES);
-			numa_memory_nodes[memnode] = obj->logical_index;
-			nb_numa_nodes++;
-#ifdef STARPU_SIMGRID
-			snprintf(name, sizeof(name), "RAM%d", memnode);
-			host = _starpu_simgrid_get_host_by_name(name);
-			STARPU_ASSERT(host);
-			_starpu_simgrid_memory_node_set_host(memnode, host);
-#endif
-		}
-	}	
-#endif
-#if defined(STARPU_USE_OPENCL) && defined(STARPU_HAVE_HWLOC)
-	if (config->topology.nopenclgpus > 0)
-	{
-		cl_int err;
-		cl_platform_id platform_id[_STARPU_OPENCL_PLATFORM_MAX];
-		cl_uint nb_platforms;
-		unsigned platform;
-		unsigned nb_opencl_devices = 0, num = 0;
-
-		err = clGetPlatformIDs(_STARPU_OPENCL_PLATFORM_MAX, platform_id, &nb_platforms);
-		if (STARPU_UNLIKELY(err != CL_SUCCESS)) 
-			nb_platforms=0;
-
-		cl_device_type device_type = CL_DEVICE_TYPE_GPU|CL_DEVICE_TYPE_ACCELERATOR;
-		if (starpu_get_env_number("STARPU_OPENCL_ON_CPUS") > 0)
-			device_type |= CL_DEVICE_TYPE_CPU;
-		if (starpu_get_env_number("STARPU_OPENCL_ONLY_ON_CPUS") > 0)
-			device_type = CL_DEVICE_TYPE_CPU;
-
-		for (platform = 0; platform < nb_platforms ; platform++)
-		{
-			err = clGetDeviceIDs(platform_id[platform], device_type, 0, NULL, &num);
-			if (err != CL_SUCCESS)
-				num = 0;
-			nb_opencl_devices += num;
-
-			for (i = 0; i < num; i++)
+			while (obj->type != HWLOC_OBJ_NODE)
 			{
-				hwloc_obj_t obj = hwloc_opencl_get_device_osdev_by_index(config->topology.hwtopology, platform, i);
+				obj = obj->parent;
 
-				/* Hwloc cannot recognize some devices */
+				/* If we don't find a "node" obj before the root, this means
+				 * hwloc does not know whether there are numa nodes or not, so
+				 * we should not use a per-node sampling in that case. */
 				if (!obj)
 					continue;
+			}
+			int numa_starpu_id = starpu_numa_hwloclogid_to_id(obj->logical_index);
 
-				while (obj->type != HWLOC_OBJ_NODE)
+			if (numa_starpu_id == -1 && nb_numa_nodes == STARPU_MAXNUMANODES)
+			{
+				_STARPU_MSG("Warning: %u NUMA nodes available. Only %u enabled. Use configure option --enable-maxnumanodes=xxx to update the maximum value of supported NUMA nodes.\n", _starpu_topology_get_nnumanodes(config), STARPU_MAXNUMANODES);
+				/* Don't create a new NUMA node */
+				numa_starpu_id = STARPU_MAIN_RAM;
+			}
+
+			if (numa_starpu_id == -1)
+			{
+				int memnode = _starpu_memory_node_register(STARPU_CPU_RAM, obj->logical_index);
+				STARPU_ASSERT_MSG(memnode < STARPU_MAXNUMANODES, "Wrong Memory Node : %d (only %d available)", memnode, STARPU_MAXNUMANODES);
+				numa_memory_nodes[memnode] = obj->logical_index;
+				nb_numa_nodes++;
+#ifdef STARPU_SIMGRID
+				snprintf(name, sizeof(name), "RAM%d", memnode);
+				host = _starpu_simgrid_get_host_by_name(name);
+				STARPU_ASSERT(host);
+				_starpu_simgrid_memory_node_set_host(memnode, host);
+#endif
+			}
+		}	
+#endif
+#if defined(STARPU_USE_OPENCL) && defined(STARPU_HAVE_HWLOC)
+		if (config->topology.nopenclgpus > 0)
+		{
+			cl_int err;
+			cl_platform_id platform_id[_STARPU_OPENCL_PLATFORM_MAX];
+			cl_uint nb_platforms;
+			unsigned platform;
+			unsigned nb_opencl_devices = 0, num = 0;
+
+			err = clGetPlatformIDs(_STARPU_OPENCL_PLATFORM_MAX, platform_id, &nb_platforms);
+			if (STARPU_UNLIKELY(err != CL_SUCCESS)) 
+				nb_platforms=0;
+
+			cl_device_type device_type = CL_DEVICE_TYPE_GPU|CL_DEVICE_TYPE_ACCELERATOR;
+			if (starpu_get_env_number("STARPU_OPENCL_ON_CPUS") > 0)
+				device_type |= CL_DEVICE_TYPE_CPU;
+			if (starpu_get_env_number("STARPU_OPENCL_ONLY_ON_CPUS") > 0)
+				device_type = CL_DEVICE_TYPE_CPU;
+
+			for (platform = 0; platform < nb_platforms ; platform++)
+			{
+				err = clGetDeviceIDs(platform_id[platform], device_type, 0, NULL, &num);
+				if (err != CL_SUCCESS)
+					num = 0;
+				nb_opencl_devices += num;
+
+				for (i = 0; i < num; i++)
 				{
-					obj = obj->parent;
+					hwloc_obj_t obj = hwloc_opencl_get_device_osdev_by_index(config->topology.hwtopology, platform, i);
 
-					/* If we don't find a "node" obj before the root, this means
-					 * hwloc does not know whether there are numa nodes or not, so
-					 * we should not use a per-node sampling in that case. */
+					/* Hwloc cannot recognize some devices */
 					if (!obj)
 						continue;
-				}
-				int numa_starpu_id = _starpu_numa_logid_to_id(obj->logical_index);
 
-				if (numa_starpu_id == -1 && nb_numa_nodes == STARPU_MAXNUMANODES)
-				{
-					_STARPU_MSG("Warning: %u NUMA nodes available. Only %u enabled. Use configure option --enable-maxnumanodes=xxx to update the maximum value of supported NUMA nodes.\n", _starpu_topology_get_nnumanodes(config), STARPU_MAXNUMANODES);
-					/* Don't create a new NUMA node */
-					numa_starpu_id = STARPU_MAIN_RAM;
-				}
+					while (obj->type != HWLOC_OBJ_NODE)
+					{
+						obj = obj->parent;
 
-				if (numa_starpu_id == -1)
-				{
-					int memnode = _starpu_memory_node_register(STARPU_CPU_RAM, obj->logical_index);
-					STARPU_ASSERT_MSG(memnode < STARPU_MAXNUMANODES, "Wrong Memory Node : %d (only %d available)", memnode, STARPU_MAXNUMANODES);
-					numa_memory_nodes[memnode] = obj->logical_index;
-					nb_numa_nodes++;
+						/* If we don't find a "node" obj before the root, this means
+						 * hwloc does not know whether there are numa nodes or not, so
+						 * we should not use a per-node sampling in that case. */
+						if (!obj)
+							continue;
+					}
+					int numa_starpu_id = starpu_numa_hwloclogid_to_id(obj->logical_index);
+
+					if (numa_starpu_id == -1 && nb_numa_nodes == STARPU_MAXNUMANODES)
+					{
+						_STARPU_MSG("Warning: %u NUMA nodes available. Only %u enabled. Use configure option --enable-maxnumanodes=xxx to update the maximum value of supported NUMA nodes.\n", _starpu_topology_get_nnumanodes(config), STARPU_MAXNUMANODES);
+						/* Don't create a new NUMA node */
+						numa_starpu_id = STARPU_MAIN_RAM;
+					}
+
+					if (numa_starpu_id == -1)
+					{
+						int memnode = _starpu_memory_node_register(STARPU_CPU_RAM, obj->logical_index);
+						STARPU_ASSERT_MSG(memnode < STARPU_MAXNUMANODES, "Wrong Memory Node : %d (only %d available)", memnode, STARPU_MAXNUMANODES);
+						numa_memory_nodes[memnode] = obj->logical_index;
+						nb_numa_nodes++;
 #ifdef STARPU_SIMGRID
-					snprintf(name, sizeof(name), "RAM%d", memnode);
-					host = _starpu_simgrid_get_host_by_name(name);
-					STARPU_ASSERT(host);
-					_starpu_simgrid_memory_node_set_host(memnode, host);
+						snprintf(name, sizeof(name), "RAM%d", memnode);
+						host = _starpu_simgrid_get_host_by_name(name);
+						STARPU_ASSERT(host);
+						_starpu_simgrid_memory_node_set_host(memnode, host);
 #endif
-				}
-			}	
+					}
+				}	
+			}
 		}
-	}
 #endif
+	}
 	
 #if (defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)) && defined(STARPU_HAVE_HWLOC)
 	//Found NUMA nodes from CUDA nodes
@@ -2059,38 +2082,43 @@ static void _starpu_init_numa_node(struct _starpu_machine_config *config)
 	unsigned numa;
 	for (numa = 0; numa < nnuma; numa++)
 	{
-#if defined(STARPU_USE_NUMA) && defined(STARPU_HAVE_HWLOC)
-		hwloc_obj_t obj = hwloc_get_obj_by_type(config->topology.hwtopology, HWLOC_OBJ_NUMANODE, numa);
-		unsigned numa_logical_id = obj->logical_index;
+#if defined(STARPU_HAVE_HWLOC)
+		if (nnuma > 1)
+		{
+			hwloc_obj_t obj = hwloc_get_obj_by_type(config->topology.hwtopology, HWLOC_OBJ_NUMANODE, numa);
+			unsigned numa_logical_id = obj->logical_index;
 
-		int memnode = _starpu_memory_node_register(STARPU_CPU_RAM, 0);
-		STARPU_ASSERT_MSG(memnode < STARPU_MAXNUMANODES, "Wrong Memory Node : %d (only %d available) \n", memnode, STARPU_MAXNUMANODES);
+			int memnode = _starpu_memory_node_register(STARPU_CPU_RAM, 0);
+			STARPU_ASSERT_MSG(memnode < STARPU_MAXNUMANODES, "Wrong Memory Node : %d (only %d available) \n", memnode, STARPU_MAXNUMANODES);
 
-		numa_memory_nodes[memnode] = numa_logical_id;
-		nb_numa_nodes++;								
+			numa_memory_nodes[memnode] = numa_logical_id;
+			nb_numa_nodes++;								
 
 #ifdef STARPU_SIMGRID
-		snprintf(name, sizeof(name), "RAM%d", memnode);
-		host = _starpu_simgrid_get_host_by_name(name);
-		STARPU_ASSERT(host);
-		_starpu_simgrid_memory_node_set_host(memnode, host);
+			snprintf(name, sizeof(name), "RAM%d", memnode);
+			host = _starpu_simgrid_get_host_by_name(name);
+			STARPU_ASSERT(host);
+			_starpu_simgrid_memory_node_set_host(memnode, host);
 #endif
-#else /* defined(STARPU_USE_NUMA) && defined(STARPU_HAVE_HWLOC) */
+		}
+		else
+#endif /* defined(STARPU_HAVE_HWLOC) */
+		{
 
-		/* In this case, nnuma has only one node */
-		int memnode = _starpu_memory_node_register(STARPU_CPU_RAM, 0);
-		STARPU_ASSERT_MSG(memnode == STARPU_MAIN_RAM, "Wrong Memory Node : %d (expected %d) \n", memnode, STARPU_MAIN_RAM);
+			/* In this case, nnuma has only one node */
+			int memnode = _starpu_memory_node_register(STARPU_CPU_RAM, 0);
+			STARPU_ASSERT_MSG(memnode == STARPU_MAIN_RAM, "Wrong Memory Node : %d (expected %d) \n", memnode, STARPU_MAIN_RAM);
 
-		numa_memory_nodes[memnode] = -1;
-		nb_numa_nodes++;								
+			numa_memory_nodes[memnode] = -1;
+			nb_numa_nodes++;								
 #ifdef STARPU_SIMGRID
-		char name[16];
-		msg_host_t host = _starpu_simgrid_get_host_by_name("RAM");
-		STARPU_ASSERT(host);
-		_starpu_simgrid_memory_node_set_host(STARPU_MAIN_RAM, host);
+			char name[16];
+			msg_host_t host = _starpu_simgrid_get_host_by_name("RAM");
+			STARPU_ASSERT(host);
+			_starpu_simgrid_memory_node_set_host(STARPU_MAIN_RAM, host);
 #endif
+		}
 
-#endif /* defined(STARPU_USE_NUMA) && defined(STARPU_HAVE_HWLOC) */
 	}	
 	
 	STARPU_ASSERT_MSG(nb_numa_nodes > 0, "No NUMA node found... We need at least one memory node !\n");	
@@ -2168,8 +2196,8 @@ _starpu_init_workers_binding_and_memory (struct _starpu_machine_config *config, 
 		{
 			case STARPU_CPU_WORKER:
 			{
-				int numa_logical_id = _starpu_worker_numa_node(worker);
-				int numa_starpu_id =  _starpu_numa_logid_to_id(numa_logical_id);
+				int numa_logical_id = _starpu_get_numa_node_worker(worker);
+				int numa_starpu_id =  starpu_numa_hwloclogid_to_id(numa_logical_id);
 				if (numa_starpu_id >= STARPU_MAXNUMANODES)
 					numa_starpu_id = STARPU_MAIN_RAM;
 
@@ -2607,7 +2635,7 @@ starpu_topology_print (FILE *output)
 		fprintf(output, "------\tNUMA %u\t------\n", numa);
 		for (pu = 0; pu < topology->nhwpus; pu++)
 		{
-			if (_starpu_numa_id_to_logid(numa) == _starpu_numa_get_logical_id_from_pu(pu))
+			if (starpu_numa_id_to_hwloclogid(numa) == _starpu_numa_get_logical_id_from_pu(pu))
 			{
 				if ((pu % nthreads_per_core) == 0)
 					fprintf(output, "core %u", pu / nthreads_per_core);

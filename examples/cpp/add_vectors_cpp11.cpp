@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009, 2010-2011, 2013-2015  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016, 2017  CNRS
- * Copyright (C) 2012 INRIA
+ * Copyright (C) 2012, 2017  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -29,7 +29,7 @@
 #endif
 
 #include <starpu.h>
-#if !defined(STARPU_HAVE_CXX11) || defined(STARPU_USE_NUMA)
+#if !defined(STARPU_HAVE_CXX11)
 int main(int argc, char **argv)
 {
 	return 77;
@@ -77,6 +77,12 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV)
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+
+	if (starpu_get_nb_numa_nodes() > 1)
+	{
+		starpu_shutdown();
+		return 77;
+	}
 
 	// StarPU data registering
 	starpu_data_handle_t spu_vec_A;

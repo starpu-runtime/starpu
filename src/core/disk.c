@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2013  Corentin Salingue
  * Copyright (C) 2015, 2016  CNRS
+ * Copyright (C) 2017  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -63,7 +64,7 @@ int starpu_disk_register(struct starpu_disk_ops *func, void *parameter, starpu_s
 	unsigned disk_memnode = _starpu_memory_node_register(STARPU_DISK_RAM, 0);
 
         /* Connect the disk memory node to all numa memory nodes */
-        int nb_numa_nodes = _starpu_get_nb_numa_nodes();
+        int nb_numa_nodes = starpu_get_nb_numa_nodes();
         int numa_node;
         for (numa_node = 0; numa_node < nb_numa_nodes; numa_node++)
         {

@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012-2017  Université de Bordeaux
- * Copyright (C) 2016  	    Inria
- * Copyright (C) 2016, 2017  	    CNRS
+ * Copyright (C) 2016, 2017  Inria
+ * Copyright (C) 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -1043,7 +1043,7 @@ void _starpu_simgrid_count_ngpus(void)
 			for (src2 = 1; src2 < STARPU_MAXNODES; src2++)
 			{
 				int numa;
-				int nnumas = _starpu_get_nb_numa_nodes();
+				int nnumas = starpu_get_nb_numa_nodes();
 				int found = 0;
 				for (numa = 0; numa < nnumas; numa++)
 					if (starpu_bus_get_id(src2, numa) != -1)

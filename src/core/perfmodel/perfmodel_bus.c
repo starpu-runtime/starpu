@@ -175,14 +175,21 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_cuda(int dev, in
 
 	/* Allocate a buffer on the host */
 	unsigned char *h_buffer;
-#if defined(STARPU_HAVE_HWLOC) && defined(STARPU_USE_NUMA)
-	hwloc_obj_t obj = hwloc_get_obj_by_type(hwtopology, HWLOC_OBJ_NODE, numa);
-	h_buffer = hwloc_alloc_membind_nodeset(hwtopology, size, obj->nodeset, HWLOC_MEMBIND_BIND, 0);
-#else
-	/* we use STARPU_MAIN_RAM */
-	_STARPU_MALLOC(h_buffer, size);
+	
+#if defined(STARPU_HAVE_HWLOC)
+	if (nnumas > 1)
+	{
+		/* NUMA mode activated */
+		hwloc_obj_t obj = hwloc_get_obj_by_type(hwtopology, HWLOC_OBJ_NODE, numa);
+		h_buffer = hwloc_alloc_membind_nodeset(hwtopology, size, obj->nodeset, HWLOC_MEMBIND_BIND, 0);
+	}
+	else
 #endif
-	cudaHostRegister((void *)h_buffer, size, 0);
+	{
+		/* we use STARPU_MAIN_RAM */
+		_STARPU_MALLOC(h_buffer, size);
+		cudaHostRegister((void *)h_buffer, size, 0);
+	}
 
 	STARPU_ASSERT(cures == cudaSuccess);
 
@@ -252,11 +259,18 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_cuda(int dev, in
 
 	/* Free buffers */
 	cudaHostUnregister(h_buffer);
-#if defined(STARPU_HAVE_HWLOC) && defined(STARPU_USE_NUMA)
-	hwloc_free(hwtopology, h_buffer, size);
-#else
-	free(h_buffer);
+#if defined(STARPU_HAVE_HWLOC) 
+	if (nnumas > 1)
+	{
+		/* NUMA mode activated */
+		hwloc_free(hwtopology, h_buffer, size);
+	}
+	else
 #endif
+	{
+		free(h_buffer);
+	}
+
 	cudaFree(d_buffer);
 
 	cudaThreadExit();
@@ -421,13 +435,19 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_opencl(int dev, 
 	_starpu_bind_thread_on_cpu(config, cpu, STARPU_NOWORKERID);
 	/* Allocate a buffer on the host */
 	unsigned char *h_buffer;
-#if defined(STARPU_HAVE_HWLOC) && defined(STARPU_USE_NUMA)
-	hwloc_obj_t obj = hwloc_get_obj_by_type(hwtopology, HWLOC_OBJ_NODE, numa);
-	h_buffer = hwloc_alloc_membind_nodeset(hwtopology, size, obj->nodeset, HWLOC_MEMBIND_BIND, 0);
-#else
-	/* we use STARPU_MAIN_RAM */
-	_STARPU_MALLOC(h_buffer, size);
+#if defined(STARPU_HAVE_HWLOC)
+	if (nnumas > 1)
+	{
+		/* NUMA mode activated */
+		hwloc_obj_t obj = hwloc_get_obj_by_type(hwtopology, HWLOC_OBJ_NODE, numa);
+		h_buffer = hwloc_alloc_membind_nodeset(hwtopology, size, obj->nodeset, HWLOC_MEMBIND_BIND, 0);
+	}
+	else
 #endif
+	{
+		/* we use STARPU_MAIN_RAM */
+		_STARPU_MALLOC(h_buffer, size);
+	}
 
 	/* hack to avoid third party libs to rebind threads */
 	_starpu_bind_thread_on_cpu(config, cpu, STARPU_NOWORKERID);
@@ -501,11 +521,17 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_opencl(int dev, 
 	err = clReleaseMemObject(d_buffer);
 	if (STARPU_UNLIKELY(err != CL_SUCCESS))
 		STARPU_OPENCL_REPORT_ERROR(err);
-#if defined(STARPU_HAVE_HWLOC) && defined(STARPU_USE_NUMA)
-	hwloc_free(hwtopology, h_buffer, size);
-#else
-	free(h_buffer);
+#if defined(STARPU_HAVE_HWLOC)
+	if (nnumas > 1)
+	{
+		/* NUMA mode activated */
+		hwloc_free(hwtopology, h_buffer, size);
+	}
+	else
 #endif
+	{
+		free(h_buffer);
+	}
 
 	/* Uninitiliaze OpenCL context on the device */
 	if (not_initialized == 1)
@@ -632,48 +658,53 @@ static void measure_bandwidth_between_host_and_dev(int dev, struct dev_timing *d
 
 static void measure_bandwidth_latency_between_numa(int numa_src, int numa_dst)
 {
-#if defined(STARPU_HAVE_HWLOC) && defined(STARPU_USE_NUMA)
-	double start, end, timing;
-	unsigned iter;
-
-	unsigned char *h_buffer;	
-	hwloc_obj_t obj_src = hwloc_get_obj_by_type(hwtopology, HWLOC_OBJ_NODE, numa_src);
-	h_buffer = hwloc_alloc_membind_nodeset(hwtopology, SIZE, obj_src->nodeset, HWLOC_MEMBIND_BIND, 0);
-
-	unsigned char *d_buffer;	
-	hwloc_obj_t obj_dst = hwloc_get_obj_by_type(hwtopology, HWLOC_OBJ_NODE, numa_dst);
-	d_buffer = hwloc_alloc_membind_nodeset(hwtopology, SIZE, obj_dst->nodeset, HWLOC_MEMBIND_BIND, 0);
-
-	memset(h_buffer, 0, SIZE);
-
-	start = starpu_timing_now();
-	for (iter = 0; iter < NITER; iter++)
+#if defined(STARPU_HAVE_HWLOC)
+	if (nnumas > 1)
 	{
-		memcpy(d_buffer, h_buffer, SIZE);
-	}
-	end = starpu_timing_now();
-	timing = end - start;
-	
-	numa_timing[numa_src][numa_dst] = timing/NITER/SIZE;
+		/* NUMA mode activated */
+		double start, end, timing;
+		unsigned iter;
 
-	start = starpu_timing_now();
-	for (iter = 0; iter < NITER; iter++)
-	{
-		memcpy(d_buffer, h_buffer, 1);
-	}
-	end = starpu_timing_now();
-	timing = end - start;
-	
-	numa_latency[numa_src][numa_dst] = timing/NITER;
+		unsigned char *h_buffer;	
+		hwloc_obj_t obj_src = hwloc_get_obj_by_type(hwtopology, HWLOC_OBJ_NODE, numa_src);
+		h_buffer = hwloc_alloc_membind_nodeset(hwtopology, SIZE, obj_src->nodeset, HWLOC_MEMBIND_BIND, 0);
 
-	hwloc_free(hwtopology, h_buffer, SIZE);
-	hwloc_free(hwtopology, d_buffer, SIZE);
-#else
-	/* Cannot make a real calibration */
-	numa_timing[numa_src][numa_dst] = 0.01;
-	numa_latency[numa_src][numa_dst] = 0;
+		unsigned char *d_buffer;	
+		hwloc_obj_t obj_dst = hwloc_get_obj_by_type(hwtopology, HWLOC_OBJ_NODE, numa_dst);
+		d_buffer = hwloc_alloc_membind_nodeset(hwtopology, SIZE, obj_dst->nodeset, HWLOC_MEMBIND_BIND, 0);
+
+		memset(h_buffer, 0, SIZE);
+
+		start = starpu_timing_now();
+		for (iter = 0; iter < NITER; iter++)
+		{
+			memcpy(d_buffer, h_buffer, SIZE);
+		}
+		end = starpu_timing_now();
+		timing = end - start;
+
+		numa_timing[numa_src][numa_dst] = timing/NITER/SIZE;
+
+		start = starpu_timing_now();
+		for (iter = 0; iter < NITER; iter++)
+		{
+			memcpy(d_buffer, h_buffer, 1);
+		}
+		end = starpu_timing_now();
+		timing = end - start;
+
+		numa_latency[numa_src][numa_dst] = timing/NITER;
+
+		hwloc_free(hwtopology, h_buffer, SIZE);
+		hwloc_free(hwtopology, d_buffer, SIZE);
+	}
+	else
 #endif
-
+	{
+		/* Cannot make a real calibration */
+		numa_timing[numa_src][numa_dst] = 0.01;
+		numa_latency[numa_src][numa_dst] = 0;
+	}
 }
 
 static void benchmark_all_gpu_devices(void)

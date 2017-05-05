@@ -1598,7 +1598,7 @@ void starpu_shutdown(void)
 	_starpu_kill_all_workers(&_starpu_config);
 	
 	unsigned i;
-	unsigned nb_numa_nodes = _starpu_get_nb_numa_nodes();
+	unsigned nb_numa_nodes = starpu_get_nb_numa_nodes();
 	for (i=0; i<nb_numa_nodes; i++)
 	{
 		_starpu_free_all_automatically_allocated_buffers(i);

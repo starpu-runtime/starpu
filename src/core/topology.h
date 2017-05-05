@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2009-2010, 2012, 2014-2017  Université de Bordeaux
  * Copyright (C) 2010, 2015, 2017  CNRS
+ * Copyright (C) 2017  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -71,7 +72,7 @@ void _starpu_bind_thread_on_cpus(struct _starpu_machine_config *config STARPU_AT
 
 struct _starpu_worker *_starpu_get_worker_from_driver(struct starpu_driver *d);
 
-int _starpu_get_nb_numa_nodes(void);
-unsigned _starpu_numa_id_to_logid(unsigned id);
+int starpu_get_nb_numa_nodes(void);
+int starpu_numa_id_to_hwloclogid(unsigned id);
 	
 #endif // __TOPOLOGY_H__

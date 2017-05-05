@@ -576,17 +576,6 @@ AC_MSG_RESULT($nmaxnumanodes)
 AC_DEFINE_UNQUOTED(STARPU_MAXNUMANODES, [$nmaxnumanodes],
 		[maximum number of NUMA nodes])
 
-AC_ARG_ENABLE(numa, [AS_HELP_STRING([--enable-numa],
-	      [use NUMA node(s)])], [enable_numa=$enableval], [enable_numa=no])
-
-if test x$enable_numa = xyes ; then
-	AC_DEFINE(STARPU_USE_NUMA, [1], [NUMA memory nodes support is enabled])
-else
-	nmaxnumanodes=1
-fi
-
-AM_CONDITIONAL([STARPU_USE_NUMA], [test "x$enable_numa" = "xyes"])
-
 
 ###############################################################################
 

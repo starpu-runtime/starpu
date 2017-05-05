@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2009-2010, 2012-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
+ * Copyright (C) 2017  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -305,10 +306,10 @@ int _starpu_malloc_flags_on_node(unsigned dst_node, void **A, size_t dim, int fl
 #endif
 	}
 #ifdef STARPU_HAVE_HWLOC
-	if (_starpu_get_nb_numa_nodes() > 1) {
+	if (starpu_get_nb_numa_nodes() > 1) {
 		struct _starpu_machine_config *config = _starpu_get_machine_config();
 		hwloc_topology_t hwtopology = config->topology.hwtopology;
-		hwloc_obj_t numa_node_obj = hwloc_get_obj_by_type(hwtopology, HWLOC_OBJ_NODE, _starpu_numa_id_to_logid(dst_node));
+		hwloc_obj_t numa_node_obj = hwloc_get_obj_by_type(hwtopology, HWLOC_OBJ_NODE, starpu_numa_id_to_hwloclogid(dst_node));
 		hwloc_bitmap_t nodeset = numa_node_obj->nodeset;
 		*A = hwloc_alloc_membind_nodeset(hwtopology, dim, nodeset, HWLOC_MEMBIND_BIND | HWLOC_MEMBIND_NOCPUBIND, flags);
 		//fprintf(stderr, "Allocation %lu bytes on NUMA node %d [%p]\n", (unsigned long) dim, starpu_memnode_get_numaphysid(dst_node), *A);
@@ -494,7 +495,7 @@ int _starpu_free_flags_on_node(unsigned dst_node, void *A, size_t dim, int flags
 #endif
 	}
 #ifdef STARPU_HAVE_HWLOC
-	else if (_starpu_get_nb_numa_nodes() > 1) {
+	else if (starpu_get_nb_numa_nodes() > 1) {
 		struct _starpu_machine_config *config = _starpu_get_machine_config();
 		hwloc_topology_t hwtopology = config->topology.hwtopology;
 		hwloc_free(hwtopology, A, dim);

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures. *
  * Copyright (C) 2009-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
- * Copyright (C) 2014  INRIA
+ * Copyright (C) 2014, 2017  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -326,7 +326,7 @@ static unsigned chose_best_numa_between_src_and_dest(int src, int dst)
 	double timing_best;
 	int best_numa = -1;
 	unsigned numa;
-	const unsigned nb_numa_nodes = _starpu_get_nb_numa_nodes();
+	const unsigned nb_numa_nodes = starpu_get_nb_numa_nodes();
 	for(numa = 0; numa < nb_numa_nodes; numa++)
 	{
 		double actual = 1.0/starpu_transfer_bandwidth(src, numa) + 1.0/starpu_transfer_bandwidth(numa, dst);

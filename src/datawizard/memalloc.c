@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
- * Copyright (C) 2016  Inria
+ * Copyright (C) 2016, 2017  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -1620,7 +1620,7 @@ get_better_disk_can_accept_size(starpu_data_handle_t handle, unsigned node)
 			if (_starpu_get_disk_flag(i) != STARPU_DISK_NO_RECLAIM)
 			{
 				unsigned numa;
-				unsigned nnumas = _starpu_get_nb_numa_nodes();
+				unsigned nnumas = starpu_get_nb_numa_nodes();
 				for (numa = 0; numa < nnumas; numa++)
 				{
 					/* TODO : check if starpu_transfer_predict(node, i,...) is the same */
@@ -1651,7 +1651,7 @@ choose_target(starpu_data_handle_t handle, unsigned node)
 		if(starpu_node_get_kind(handle->home_node) == STARPU_DISK_RAM && (starpu_node_get_kind(node) != STARPU_CPU_RAM))
 		{
  	                unsigned i;
-			unsigned nb_numa_nodes = _starpu_get_nb_numa_nodes();
+			unsigned nb_numa_nodes = starpu_get_nb_numa_nodes();
 			for (i=0; i<nb_numa_nodes; i++)
 			{
 				if (handle->per_node[i].allocated || 
@@ -1683,7 +1683,7 @@ choose_target(starpu_data_handle_t handle, unsigned node)
 		/* node != 0 */
 		/* try to push data to RAM if we can before to push on disk*/
 			unsigned i;
-			unsigned nb_numa_nodes = _starpu_get_nb_numa_nodes();
+			unsigned nb_numa_nodes = starpu_get_nb_numa_nodes();
 			for (i=0; i<nb_numa_nodes; i++)
 			{
 				if (handle->per_node[i].allocated || 
