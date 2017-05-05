@@ -43,6 +43,7 @@ int __starpu_datawizard_progress(unsigned memory_node, unsigned may_alloc, unsig
 
 	if (ret || push_requests)
 	{
+		/* Some transfers have finished, or the driver requests to really push more */
 		unsigned pushed;
 		if (_starpu_handle_node_data_requests(memory_node, may_alloc, &pushed) == 0)
 		{
