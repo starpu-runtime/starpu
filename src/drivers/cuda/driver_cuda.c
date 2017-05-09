@@ -1112,6 +1112,28 @@ _starpu_cuda_map_ram(void *src_ptr STARPU_ATTRIBUTE_UNUSED, unsigned src_node ST
 		    size_t size STARPU_ATTRIBUTE_UNUSED, int *ret STARPU_ATTRIBUTE_UNUSED)
 {
 	/* TODO */
+	/*
+	 * Old interface:
+	 *
+	 * cudaHostAllocMapped and cudaHostGetDevicePointer
+	 * cudaSetDeviceFlags() must have been called with the cudaDeviceMapHost flag in order
+	 * for the cudaHostAllocMapped flag to have any effect.
+	 *
+	 *
+	 *
+	 * New interface: Unified Addressing
+	 *
+	 * Whether or not a device supports unified addressing may be queried
+	 * by calling cudaGetDeviceProperties() with the device property
+	 * cudaDeviceProp::unifiedAddressing.
+	 * Unified addressing is automatically enabled in 64-bit processes.
+	 *
+	 * Upon enabling direct access from a device that supports unified
+	 * addressing to another peer device that supports unified addressing
+	 * using cudaDeviceEnablePeerAccess() all memory allocated in the peer
+	 * device using cudaMalloc() and cudaMallocPitch() will immediately be
+	 * accessible by the current device.
+	 */
 	*ret = -EIO;
 	return 0;
 }
