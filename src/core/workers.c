@@ -1257,8 +1257,6 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	WSAStartup(MAKEWORD(1,0), &wsadata);
 #endif
 
-	srand(2008);
-
 	STARPU_AYU_PREINIT();
 	/* store the pointer to the user explicit configuration during the
 	 * initialization */
