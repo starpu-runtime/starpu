@@ -2649,6 +2649,13 @@ void *starpu_sched_ctx_get_user_data(unsigned sched_ctx_id)
 	return sched_ctx->user_data;
 }
 
+void starpu_sched_ctx_set_user_data(unsigned sched_ctx_id, void* user_data)
+{
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+	STARPU_ASSERT(sched_ctx != NULL);
+	sched_ctx->user_data = user_data;
+}
+
 void _starpu_worker_apply_deferred_ctx_changes(void)
 {
 	int workerid = starpu_worker_get_id_check();
