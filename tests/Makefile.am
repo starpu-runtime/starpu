@@ -396,10 +396,16 @@ TESTS += datawizard/locality.sh
 if STARPU_SIMGRID_MC
 model_checking_prio_list_LDADD = 
 model_checking_prio_list_LDFLAGS = 
-model_checking_prio_list_SOURCES = model-checking/prio_list.c ../src/common/rbtree.c
 noinst_PROGRAMS += model-checking/prio_list
 if !STARPU_QUICK_CHECK
 TESTS += model-checking/prio_list.sh
+endif
+
+model_checking_starpu_barrier_LDADD = 
+model_checking_starpu_barrier_LDFLAGS = 
+noinst_PROGRAMS += model-checking/starpu_barrier
+if !STARPU_QUICK_CHECK
+#TESTS += model-checking/barrier.sh
 endif
 endif
 

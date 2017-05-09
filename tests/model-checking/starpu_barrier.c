@@ -14,8 +14,20 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#define __COMMON_UTILS_H__
 #define _STARPU_MALLOC(p, s) do {p = malloc(s);} while (0)
-#define STARPU_ATTRIBUTE_UNUSED __attribute((__unused__))
+#define _STARPU_CALLOC(p, n, s) do {p = calloc(n, s);} while (0)
+#define _STARPU_REALLOC(p, s) do {p = realloc(p, s);} while (0)
+//#define STARPU_ATTRIBUTE_UNUSED __attribute((__unused__))
+
+#define STARPU_DEBUG_PREFIX "[starpu]"
+#ifdef STARPU_VERBOSE
+#  define _STARPU_DEBUG(fmt, ...) do { if (!_starpu_silent) {fprintf(stderr, STARPU_DEBUG_PREFIX"[%s] " fmt ,__starpu_func__ ,## __VA_ARGS__); fflush(stderr); }} while(0)
+#else
+#  define _STARPU_DEBUG(fmt, ...) do { } while (0)
+#endif
+
+#define STARPU_UYIELD() ((void)0)
 
 #ifndef NOCONFIG
 #include <config.h>
@@ -29,8 +41,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <limits.h>
-#include <common/list.h>
-#include <common/prio_list.h>
+#include <common/barrier.h>
 #ifdef STARPU_HAVE_SIMGRID_MSG_H
 #include <simgrid/msg.h>
 #else
@@ -43,101 +54,33 @@
 #include <xbt/synchro_core.h>
 #endif
 
-#include <common/rbtree.c>
+int
+_starpu_simgrid_thread_start(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED)
+{
+	return 0;
+}
 
-#ifndef NLISTS
-#define NLISTS 1
-#endif
-#ifndef NITERS
-#define NITERS 1
-#endif
+#include <common/barrier.c>
+#include <common/thread.c>
+
 #ifndef NTHREADS
 #define NTHREADS 2
 #endif
-#ifndef NELEMENTS
-#define NELEMENTS 4
+
+#ifndef NITERS
+#define NITERS 1
 #endif
 
-// MC_ignore
+struct _starpu_barrier barrier;
 
-xbt_mutex_t mutex[NLISTS];
-
-
-LIST_TYPE(foo,
-		unsigned prio;
-		unsigned back;	/* Push at back instead of front? */
-	 );
-PRIO_LIST_TYPE(foo, prio);
-
-struct foo_prio_list mylist[NLISTS];
-
-void check_list_prio(struct foo_prio_list *list)
+int worker(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED)
 {
-	struct foo *cur;
-	unsigned lastprio = UINT_MAX;
-	unsigned back = 0;
-	for (cur  = foo_prio_list_begin(list);
-	     cur != foo_prio_list_end(list);
-	     cur  = foo_prio_list_next(list, cur))
-	{
-		if (cur->prio == lastprio)
-                        /* For same prio, back elements should never get before
-                         * front elements */
-			MC_assert(!(back && !cur->back));
-		else
-			MC_assert(lastprio > cur->prio);
-		lastprio = cur->prio;
-		back = cur->back;
-	}
-}
-
-int worker(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[])
-{
-	unsigned myrank = atoi(argv[0]);
-	unsigned i, n, l, iter;
-	struct foo *elem;
-	struct drand48_data buffer;
-	long res;
-
-	srand48_r(myrank, &buffer);
-
-	l = myrank%NLISTS;
+	unsigned iter;
 
 	for (iter = 0; iter < NITERS; iter++)
 	{
-		for (i = 0; i < NELEMENTS; i++)
-		{
-			elem = malloc(sizeof(*elem));
-			lrand48_r(&buffer, &res);
-			elem->prio = res%10;
-			lrand48_r(&buffer, &res);
-			elem->back = res%2;
-			xbt_mutex_acquire(mutex[l]);
-			if (elem->back)
-				foo_prio_list_push_back(&mylist[l], elem);
-			else
-				foo_prio_list_push_front(&mylist[l], elem);
-			check_list_prio(&mylist[l]);
-			xbt_mutex_release(mutex[l]);
-		}
-
-		for (i = 0; i < NELEMENTS; i++)
-		{
-			lrand48_r(&buffer, &res);
-			n = res%(NELEMENTS-i);
-
-			xbt_mutex_acquire(mutex[l]);
-			for (elem  = foo_prio_list_begin(&mylist[l]);
-			     n--;
-			     elem  = foo_prio_list_next(&mylist[l], elem))
-				;
-			foo_prio_list_erase(&mylist[l], elem);
-			check_list_prio(&mylist[l]);
-			xbt_mutex_release(mutex[l]);
-		}
-
-		/* horrible way to wait for list getting empty */
-		MSG_process_sleep(1000);
+		MC_assert(barrier.count <= NTHREADS);
+		_starpu_barrier_wait(&barrier);
 	}
 
 	return 0;
@@ -145,13 +88,9 @@ int worker(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[])
 
 int master(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED)
 {
-	unsigned i, l;
+	unsigned i;
 
-	for (l = 0; l < NLISTS; l++)
-	{
-		mutex[l] = xbt_mutex_init();
-		foo_prio_list_init(&mylist[l]);
-	}
+	_starpu_barrier_init(&barrier, NTHREADS);
 
 	for (i = 0; i < NTHREADS; i++)
 	{
@@ -166,6 +105,7 @@ int master(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSE
 	return 0;
 }
 
+#undef main
 int main(int argc, char *argv[])
 {
 	if (argc < 3)
