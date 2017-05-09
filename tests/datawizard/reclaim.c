@@ -80,16 +80,12 @@ static struct starpu_codelet dummy_cl =
 };
 
 /* Number of chunks */
-static int mb = 16;
+static unsigned mb = 16;
 
 int main(int argc, char **argv)
 {
-	int i, ret;
-	int taskid;
-
-        ret = starpu_initialize(NULL, &argc, &argv);
-	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+	unsigned j, taskid;
+	int ret;
 
 #ifdef STARPU_HAVE_HWLOC
 	/* We allocate 50% of the memory */
@@ -102,6 +98,10 @@ int main(int argc, char **argv)
 #endif
 
 	setenv("STARPU_LIMIT_OPENCL_MEM", "1000", 1);
+
+        ret = starpu_initialize(NULL, &argc, &argv);
+	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	/* An optional argument indicates the number of MB to allocate */
 	if (argc > 1)
@@ -116,26 +116,28 @@ int main(int argc, char **argv)
 		mb = 1;
 #endif
 
-	FPRINTF(stderr, "Allocate %d buffers and create %u tasks\n", mb, ntasks);
+	FPRINTF(stderr, "Allocate %d buffers of size %d and create %u tasks\n", mb, BLOCK_SIZE, ntasks);
 
 	float **host_ptr_array;
 	starpu_data_handle_t *handle_array;
 
-	host_ptr_array = (float **) calloc(mb, sizeof(float *));
-	handle_array = (starpu_data_handle_t *) calloc(mb, sizeof(starpu_data_handle_t));
+	host_ptr_array = calloc(mb, sizeof(float *));
+	STARPU_ASSERT(host_ptr_array);
+	handle_array = calloc(mb, sizeof(starpu_data_handle_t));
+	STARPU_ASSERT(handle_array);
 
 	/* Register mb buffers of 1MB */
-	for (i = 0; i < mb; i++)
+	for (j = 0; j < mb; j++)
 	{
-		host_ptr_array[i] = (float *) malloc(BLOCK_SIZE);
-		if (host_ptr_array[i] == NULL)
+		host_ptr_array[j] = calloc(BLOCK_SIZE, 1);
+		if (host_ptr_array[j] == NULL)
 		{
-			mb = i;
+			mb = j;
 			FPRINTF(stderr, "Cannot allocate more than %d buffers\n", mb);
 			break;
 		}
-		starpu_variable_data_register(&handle_array[i], STARPU_MAIN_RAM, (uintptr_t)host_ptr_array[i], BLOCK_SIZE);
-		STARPU_ASSERT(handle_array[i]);
+		starpu_variable_data_register(&handle_array[j], STARPU_MAIN_RAM, (uintptr_t)host_ptr_array[j], BLOCK_SIZE);
+		STARPU_ASSERT(handle_array[j]);
 	}
 
 	for (taskid = 0; taskid < ntasks; taskid++)
@@ -156,10 +158,10 @@ int main(int argc, char **argv)
 	ret = starpu_task_wait_for_all();
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 
-	for (i = 0; i < mb; i++)
+	for (j = 0; j < mb; j++)
 	{
-		starpu_data_unregister(handle_array[i]);
-		free(host_ptr_array[i]);
+		starpu_data_unregister(handle_array[j]);
+		free(host_ptr_array[j]);
 	}
 
 	free(host_ptr_array);
