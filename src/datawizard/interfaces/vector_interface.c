@@ -29,6 +29,9 @@
 #include <drivers/scc/driver_scc_source.h>
 
 static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data);
+static int map_vector(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+static int unmap_vector(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+static int update_map(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 
 static const struct starpu_data_copy_methods vector_copy_data_methods_s =
 {
@@ -53,6 +56,9 @@ struct starpu_data_interface_ops starpu_interface_vector_ops =
 	.allocate_data_on_node = allocate_vector_buffer_on_node,
 	.handle_to_pointer = vector_handle_to_pointer,
 	.free_data_on_node = free_vector_buffer_on_node,
+	.map_data = map_vector,
+	.unmap_data = unmap_vector,
+	.update_map = update_map,
 	.copy_methods = &vector_copy_data_methods_s,
 	.get_size = vector_interface_get_size,
 	.footprint = footprint_vector_interface_crc32,
@@ -278,6 +284,46 @@ static void free_vector_buffer_on_node(void *data_interface, unsigned node)
 	size_t elemsize = vector_interface->elemsize;
 
 	starpu_free_on_node(node, vector_interface->dev_handle, nx*elemsize);
+}
+
+static int map_vector(void *src_interface, unsigned src_node,
+                      void *dst_interface, unsigned dst_node)
+{
+	struct starpu_vector_interface *src_vector = src_interface;
+	struct starpu_vector_interface *dst_vector = dst_interface;
+	int ret;
+	uintptr_t mapped;
+
+	mapped = starpu_interface_map(src_vector->dev_handle, src_vector->offset, src_node, dst_node, src_vector->nx*src_vector->elemsize, &ret);
+	if (mapped)
+	{
+		dst_vector->dev_handle = mapped;
+		if (starpu_node_get_kind(dst_node) != STARPU_OPENCL_RAM)
+			dst_vector->ptr = mapped;
+		return 0;
+	}
+	return ret;
+}
+
+static int unmap_vector(void *src_interface, unsigned src_node,
+                        void *dst_interface, unsigned dst_node)
+{
+	struct starpu_vector_interface *src_vector = src_interface;
+	struct starpu_vector_interface *dst_vector = dst_interface;
+
+	int ret = starpu_interface_unmap(src_vector->dev_handle, src_vector->offset, src_node, dst_vector->dev_handle, dst_node, src_vector->nx*src_vector->elemsize);
+	dst_vector->dev_handle = 0;
+
+	return ret;
+}
+
+static int update_map(void *src_interface, unsigned src_node,
+                      void *dst_interface, unsigned dst_node)
+{
+	struct starpu_vector_interface *src_vector = src_interface;
+	struct starpu_vector_interface *dst_vector = dst_interface;
+
+	return starpu_interface_update_map(src_vector->dev_handle, src_vector->offset, src_node, dst_vector->dev_handle, dst_vector->offset, dst_node, src_vector->nx*src_vector->elemsize);
 }
 
 static int copy_any_to_any(void *src_interface, unsigned src_node,
