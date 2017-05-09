@@ -17,7 +17,7 @@
 #ifndef __COMMON_BARRIER_H__
 #define __COMMON_BARRIER_H__
 
-#include <starpu.h>
+#include <starpu_thread.h>
 
 struct _starpu_barrier
 {
