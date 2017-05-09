@@ -18,7 +18,11 @@
 
 #include <starpu.h>
 #include <core/simgrid.h>
+#ifdef STARPU_DEBUG
 #include <core/workers.h>
+#endif
+#include <common/thread.h>
+#include <common/fxt.h>
 
 #include <errno.h>
 #include <limits.h>
