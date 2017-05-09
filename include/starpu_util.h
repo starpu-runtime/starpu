@@ -20,6 +20,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 #include <assert.h>
 
@@ -331,10 +332,6 @@ STARPU_ATOMIC_SOMETHINGL(or, old | value)
 }
 #endif
 
-/* Include this only here so that <starpu_data_interfaces.h> can use the
- * macros above.  */
-#include <starpu_task.h>
-
 #ifdef __cplusplus
 extern "C"
 {
@@ -415,8 +412,6 @@ void starpu_execute_on_each_worker(void (*func)(void *), void *arg, uint32_t whe
 void starpu_execute_on_each_worker_ex(void (*func)(void *), void *arg, uint32_t where, const char *name);
 
 void starpu_execute_on_specific_workers(void (*func)(void*), void *arg, unsigned num_workers, unsigned *workers, const char *name);
-
-int starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_handle, int asynchronous, void (*callback_func)(void*), void *callback_arg);
 
 double starpu_timing_now(void);
 
