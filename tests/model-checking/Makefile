@@ -51,4 +51,4 @@ debug-barrier: starpu_barrier
 all: prio_list prio_list2 starpu_barrier
 
 clean:
-	rm -f prio_list starpu_barrier
+	rm -f prio_list prio_list2 starpu_barrier
