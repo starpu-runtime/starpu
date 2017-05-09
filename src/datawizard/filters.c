@@ -161,6 +161,7 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 {
 	unsigned i;
 	unsigned node;
+	unsigned found = STARPU_MAXNODES;
 
 	/* first take care to properly lock the data header */
 	_starpu_spin_lock(&initial_handle->header_lock);
@@ -181,9 +182,14 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
 		if (initial_handle->per_node[node].state != STARPU_INVALID)
-			break;
+			found = node;
+		if (initial_handle->per_node[node].mapped)
+		{
+			_starpu_data_unmap(initial_handle, node);
+			STARPU_ASSERT(!initial_handle->per_node[node].mapped);
+		}
 	}
-	if (node == STARPU_MAXNODES)
+	if (found == STARPU_MAXNODES)
 	{
 		/* This is lazy allocation, allocate it now in main RAM, so as
 		 * to have somewhere to gather pieces later */
@@ -300,6 +306,7 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 			child_replicate->refcnt = 0;
 			child_replicate->memory_node = node;
 			child_replicate->relaxed_coherency = 0;
+			child_replicate->mapped = 0;
 			if (inherit_state)
 				child_replicate->initialized = initial_replicate->initialized;
 			else
@@ -477,6 +484,13 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 			if (local->mc && local->allocated && local->automatically_allocated)
 				/* free the child data copy in a lazy fashion */
 				_starpu_request_mem_chunk_removal(child_handle, local, node, sizes[child]);
+			if (local->mapped)
+			{
+				/* This was just a mapped bit, unmap it */
+				_starpu_data_unmap(child_handle, node);
+				/* and this node does not actually have all bits */
+				isvalid = 0;
+			}
 		}
 
 		local = &root_handle->per_node[node];
