@@ -72,7 +72,7 @@ void _starpu_bind_thread_on_cpus(struct _starpu_machine_config *config STARPU_AT
 
 struct _starpu_worker *_starpu_get_worker_from_driver(struct starpu_driver *d);
 
-int starpu_get_nb_numa_nodes(void);
-int starpu_numa_id_to_hwloclogid(unsigned id);
+int starpu_memory_nodes_get_numa_count(void);
+int starpu_memory_nodes_numa_id_to_hwloclogid(unsigned id);
 	
 #endif // __TOPOLOGY_H__

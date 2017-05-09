@@ -167,7 +167,7 @@ static size_t _starpu_cpu_get_global_mem_size(int nodeid STARPU_ATTRIBUTE_UNUSED
 #if defined(STARPU_HAVE_HWLOC)
 	struct _starpu_machine_topology *topology = &config->topology;
 
-	int nnumas = starpu_get_nb_numa_nodes();
+	int nnumas = starpu_memory_nodes_get_numa_count();
 	if (nnumas > 1)
 	{
 		int depth_node = hwloc_get_type_depth(topology->hwtopology, HWLOC_OBJ_NODE);

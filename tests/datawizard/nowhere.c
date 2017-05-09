@@ -85,7 +85,7 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	if (starpu_get_nb_numa_nodes() > 1)
+	if (starpu_memory_nodes_get_numa_count() > 1)
 	{
 		/* FIXME: assumes only one RAM node */
 		starpu_shutdown();

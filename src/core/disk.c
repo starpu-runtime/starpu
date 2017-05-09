@@ -64,7 +64,7 @@ int starpu_disk_register(struct starpu_disk_ops *func, void *parameter, starpu_s
 	unsigned disk_memnode = _starpu_memory_node_register(STARPU_DISK_RAM, 0);
 
         /* Connect the disk memory node to all numa memory nodes */
-        int nb_numa_nodes = starpu_get_nb_numa_nodes();
+        int nb_numa_nodes = starpu_memory_nodes_get_numa_count();
         int numa_node;
         for (numa_node = 0; numa_node < nb_numa_nodes; numa_node++)
         {

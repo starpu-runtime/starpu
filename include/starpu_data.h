@@ -132,9 +132,9 @@ enum starpu_node_kind
 
 unsigned starpu_worker_get_memory_node(unsigned workerid);
 unsigned starpu_memory_nodes_get_count(void);
-int starpu_get_nb_numa_nodes(void);
-int starpu_numa_hwloclogid_to_id(int logid);
-int starpu_numa_id_to_hwloclogid(unsigned id);
+int starpu_memory_nodes_get_numa_count(void);
+int starpu_memory_nodes_numa_id_to_devid(int osid);
+int starpu_memory_nodes_numa_devid_to_id(unsigned id);
 
 enum starpu_node_kind starpu_node_get_kind(unsigned node);
 

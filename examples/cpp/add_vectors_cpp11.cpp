@@ -78,7 +78,7 @@ int main(int argc, char **argv)
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	if (starpu_get_nb_numa_nodes() > 1)
+	if (starpu_memory_nodes_get_numa_count() > 1)
 	{
 		starpu_shutdown();
 		return 77;

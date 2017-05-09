@@ -1043,7 +1043,7 @@ void _starpu_simgrid_count_ngpus(void)
 			for (src2 = 1; src2 < STARPU_MAXNODES; src2++)
 			{
 				int numa;
-				int nnumas = starpu_get_nb_numa_nodes();
+				int nnumas = starpu_memory_nodes_get_numa_count();
 				int found = 0;
 				for (numa = 0; numa < nnumas; numa++)
 					if (starpu_bus_get_id(src2, numa) != -1)

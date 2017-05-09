@@ -250,14 +250,14 @@ Return the type of \p node as defined by
 this function should be used in the allocation function to determine
 on which device the memory needs to be allocated.
 
-\fn int starpu_numa_hwloclogid_to_id(int logid)
+\fn int starpu_memory_nodes_numa_id_to_devid(int osid)
 \ingroup API_Workers_Properties
 This function returns the identifier of the memory node associated to the NUMA
-node identified by \p logid by the HWLOC library.
+node identified by \p osid by the Operating System.
 
-\fn int starpu_numa_id_to_hwloclogid(unsigned id);
+\fn int starpu_memory_nodes_numa_devid_to_id(unsigned id);
 \ingroup API_Workers_Properties
-This function returns the HWLOC logical identifier of the memory node
+This function returns the Operating System identifier of the memory node
 whose StarPU identifier is \p id.
 
 \fn char *starpu_worker_get_type_as_string(enum starpu_worker_archtype type)

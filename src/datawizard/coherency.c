@@ -326,7 +326,7 @@ static unsigned chose_best_numa_between_src_and_dest(int src, int dst)
 	double timing_best;
 	int best_numa = -1;
 	unsigned numa;
-	const unsigned nb_numa_nodes = starpu_get_nb_numa_nodes();
+	const unsigned nb_numa_nodes = starpu_memory_nodes_get_numa_count();
 	for(numa = 0; numa < nb_numa_nodes; numa++)
 	{
 		double actual = 1.0/starpu_transfer_bandwidth(src, numa) + 1.0/starpu_transfer_bandwidth(numa, dst);

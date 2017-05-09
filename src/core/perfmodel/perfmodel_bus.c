@@ -143,6 +143,8 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_cuda(int dev, in
 	_starpu_bind_thread_on_cpu(config, cpu, STARPU_NOWORKERID);
 	size_t size = SIZE;
 
+	const unsigned nnuma_nodes = _starpu_topology_get_nnumanodes(config);
+
 	/* Initialize CUDA context on the device */
 	/* We do not need to enable OpenGL interoperability at this point,
 	 * since we cleanly shutdown CUDA before returning. */
@@ -177,7 +179,7 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_cuda(int dev, in
 	unsigned char *h_buffer;
 	
 #if defined(STARPU_HAVE_HWLOC)
-	if (nnumas > 1)
+	if (nnuma_nodes > 1)
 	{
 		/* NUMA mode activated */
 		hwloc_obj_t obj = hwloc_get_obj_by_type(hwtopology, HWLOC_OBJ_NODE, numa);
@@ -260,7 +262,7 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_cuda(int dev, in
 	/* Free buffers */
 	cudaHostUnregister(h_buffer);
 #if defined(STARPU_HAVE_HWLOC) 
-	if (nnumas > 1)
+	if (nnuma_nodes > 1)
 	{
 		/* NUMA mode activated */
 		hwloc_free(hwtopology, h_buffer, size);
@@ -394,6 +396,8 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_opencl(int dev, 
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	_starpu_bind_thread_on_cpu(config, cpu, STARPU_NOWORKERID);
 
+	const unsigned nnuma_nodes = _starpu_topology_get_nnumanodes(config);
+
 	/* Is the context already initialised ? */
 	starpu_opencl_get_context(dev, &context);
 	not_initialized = (context == NULL);
@@ -436,7 +440,7 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_opencl(int dev, 
 	/* Allocate a buffer on the host */
 	unsigned char *h_buffer;
 #if defined(STARPU_HAVE_HWLOC)
-	if (nnumas > 1)
+	if (nnuma_nodes > 1)
 	{
 		/* NUMA mode activated */
 		hwloc_obj_t obj = hwloc_get_obj_by_type(hwtopology, HWLOC_OBJ_NODE, numa);
@@ -522,7 +526,7 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_opencl(int dev, 
 	if (STARPU_UNLIKELY(err != CL_SUCCESS))
 		STARPU_OPENCL_REPORT_ERROR(err);
 #if defined(STARPU_HAVE_HWLOC)
-	if (nnumas > 1)
+	if (nnuma_nodes > 1)
 	{
 		/* NUMA mode activated */
 		hwloc_free(hwtopology, h_buffer, size);
