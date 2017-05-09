@@ -1106,6 +1106,25 @@ starpu_cuda_copy_async_sync(void *src_ptr, unsigned src_node,
 }
 #endif /* STARPU_USE_CUDA */
 
+uintptr_t
+_starpu_cuda_map_ram(void *src_ptr STARPU_ATTRIBUTE_UNUSED, unsigned src_node STARPU_ATTRIBUTE_UNUSED,
+		    unsigned dst_node STARPU_ATTRIBUTE_UNUSED,
+		    size_t size STARPU_ATTRIBUTE_UNUSED, int *ret STARPU_ATTRIBUTE_UNUSED)
+{
+	/* TODO */
+	*ret = -EIO;
+	return 0;
+}
+
+int
+_starpu_cuda_unmap_ram(void *src_ptr STARPU_ATTRIBUTE_UNUSED, unsigned src_node STARPU_ATTRIBUTE_UNUSED,
+		       void *dst_ptr STARPU_ATTRIBUTE_UNUSED, unsigned dst_node STARPU_ATTRIBUTE_UNUSED,
+		       size_t size STARPU_ATTRIBUTE_UNUSED)
+{
+	/* TODO */
+	return -EIO;
+}
+
 int _starpu_run_cuda(struct _starpu_worker_set *workerarg)
 {
 	/* Let's go ! */

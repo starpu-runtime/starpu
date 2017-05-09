@@ -1963,6 +1963,9 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 					host = _starpu_simgrid_get_host_by_name(name);
 					STARPU_ASSERT(host);
 					_starpu_simgrid_memory_node_set_host(memory_node, host);
+#else
+					if (_starpu_opencl_get_device_type(workerarg->devid) == CL_DEVICE_TYPE_CPU)
+						_starpu_memory_node_set_mapped(memory_node);
 #endif /* SIMGRID */
 				}
 				_starpu_memory_node_add_nworkers(memory_node);

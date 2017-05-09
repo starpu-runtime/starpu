@@ -48,6 +48,8 @@ static size_t global_mem[STARPU_MAXOPENCLDEVS];
 static cl_context contexts[STARPU_MAXOPENCLDEVS];
 static cl_device_id devices[STARPU_MAXOPENCLDEVS];
 static cl_command_queue queues[STARPU_MAXOPENCLDEVS];
+static cl_command_queue map_queues[STARPU_MAXOPENCLDEVS];
+static cl_device_type type[STARPU_MAXOPENCLDEVS];
 static cl_command_queue in_transfer_queues[STARPU_MAXOPENCLDEVS];
 static cl_command_queue out_transfer_queues[STARPU_MAXOPENCLDEVS];
 static cl_command_queue peer_transfer_queues[STARPU_MAXOPENCLDEVS];
@@ -191,6 +193,9 @@ int _starpu_opencl_init_context(int devid)
         alloc_queues[devid] = clCreateCommandQueue(contexts[devid], devices[devid], 0, &err);
         if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 
+	map_queues[devid] = clCreateCommandQueue(contexts[devid], devices[devid], 0, &err);
+	if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+
 	STARPU_PTHREAD_MUTEX_UNLOCK(&big_lock);
 #endif /* !STARPU_SIMGRID */
 	return 0;
@@ -232,6 +237,9 @@ int _starpu_opencl_deinit_context(int devid)
         err = clFinish(alloc_queues[devid]);
         if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
         err = clReleaseCommandQueue(alloc_queues[devid]);
+        if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+
+        err = clReleaseCommandQueue(map_queues[devid]);
         if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 
         err = clReleaseContext(contexts[devid]);
@@ -437,6 +445,100 @@ cl_int starpu_opencl_copy_async_sync(uintptr_t src, size_t src_offset, unsigned 
 	}
 }
 
+uintptr_t
+_starpu_opencl_map_ram(uintptr_t src, size_t src_offset, unsigned src_node STARPU_ATTRIBUTE_UNUSED,
+		      unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size, int *ret)
+{
+	cl_int err;
+	cl_mem memory;
+	struct _starpu_worker *worker = _starpu_get_local_worker_key();
+
+	*ret = -EIO;
+
+	if (starpu_node_get_kind(src_node) != STARPU_CPU_RAM)
+		return 0;
+
+	STARPU_ASSERT(dst_node == worker->memory_node);
+
+	memory = clCreateBuffer(contexts[worker->devid], CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR, size, (void*)src + src_offset, &err);
+	if (err == CL_OUT_OF_HOST_MEMORY) return 0;
+	if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+
+	return (uintptr_t)memory;
+}
+
+int
+_starpu_opencl_unmap_ram(uintptr_t src STARPU_ATTRIBUTE_UNUSED, size_t src_offset STARPU_ATTRIBUTE_UNUSED, unsigned src_node STARPU_ATTRIBUTE_UNUSED,
+		        uintptr_t dst, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size STARPU_ATTRIBUTE_UNUSED)
+{
+	cl_int err;
+	struct _starpu_worker *worker = _starpu_get_local_worker_key();
+
+	STARPU_ASSERT(dst_node == worker->memory_node);
+
+	err = clReleaseMemObject((cl_mem) dst);
+	if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+
+	return 0;
+}
+
+int
+_starpu_opencl_update_opencl_map(uintptr_t src, size_t src_offset, unsigned src_node STARPU_ATTRIBUTE_UNUSED,
+			      uintptr_t dst, unsigned dst_node STARPU_ATTRIBUTE_UNUSED,
+			      size_t size STARPU_ATTRIBUTE_UNUSED)
+{
+	cl_int err;
+	struct _starpu_worker *worker = _starpu_get_local_worker_key();
+
+	STARPU_ASSERT(dst_node == worker->memory_node);
+
+	cl_event ev;
+	err = clEnqueueUnmapMemObject(map_queues[worker->devid], (cl_mem) dst, (void*) src + src_offset, 0, NULL, &ev);
+
+	if (STARPU_UNLIKELY(err))
+		STARPU_OPENCL_REPORT_ERROR(err);
+
+	/* We want a synchronous update, let's synchronise the queue */
+	err = clWaitForEvents(1, &ev);
+	if (STARPU_UNLIKELY(err))
+		STARPU_OPENCL_REPORT_ERROR(err);
+	err = clReleaseEvent(ev);
+	if (STARPU_UNLIKELY(err))
+		STARPU_OPENCL_REPORT_ERROR(err);
+
+	return 0;
+}
+
+
+int
+_starpu_opencl_update_cpu_map(uintptr_t src, unsigned src_node STARPU_ATTRIBUTE_UNUSED,
+			      uintptr_t dst STARPU_ATTRIBUTE_UNUSED, size_t dst_offset STARPU_ATTRIBUTE_UNUSED, unsigned dst_node STARPU_ATTRIBUTE_UNUSED,
+			      size_t size)
+{
+	cl_int err;
+	struct _starpu_worker *worker = _starpu_get_local_worker_key();
+
+	STARPU_ASSERT(src_node == worker->memory_node);
+
+	cl_event ev;
+	void *ptr = clEnqueueMapBuffer(map_queues[worker->devid], (cl_mem) src, CL_FALSE, CL_MAP_READ | CL_MAP_WRITE, 0, size, 0, NULL, &ev, &err);
+
+	if (STARPU_UNLIKELY(!ptr))
+		STARPU_OPENCL_REPORT_ERROR(err);
+
+	/* We want a synchronous update, let's synchronise the queue */
+	err = clWaitForEvents(1, &ev);
+	if (STARPU_UNLIKELY(err))
+		STARPU_OPENCL_REPORT_ERROR(err);
+	err = clReleaseEvent(ev);
+	if (STARPU_UNLIKELY(err))
+		STARPU_OPENCL_REPORT_ERROR(err);
+
+	STARPU_ASSERT((uintptr_t) ptr == (dst + dst_offset));
+
+	return 0;
+}
+
 #if 0
 cl_int _starpu_opencl_copy_rect_opencl_to_ram(cl_mem buffer, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *ptr, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, const size_t buffer_origin[3], const size_t host_origin[3],
                                               const size_t region[3], size_t buffer_row_pitch, size_t buffer_slice_pitch,
@@ -592,6 +694,9 @@ void _starpu_opencl_init(void)
                         out_transfer_queues[i] = NULL;
                         peer_transfer_queues[i] = NULL;
                         alloc_queues[i] = NULL;
+			err = clGetDeviceInfo(devices[i], CL_DEVICE_TYPE, sizeof(type[i]), &type[i], NULL);
+			if (STARPU_UNLIKELY(err != CL_SUCCESS))
+				STARPU_OPENCL_REPORT_ERROR(err);
                 }
 #endif /* STARPU_USE_OPENCL */
 
@@ -887,17 +992,9 @@ unsigned _starpu_opencl_get_device_count(void)
 #ifdef STARPU_USE_OPENCL
 cl_device_type _starpu_opencl_get_device_type(int devid)
 {
-	int err;
-	cl_device_type type;
-
 	if (!init_done)
 		_starpu_opencl_init();
-
-	err = clGetDeviceInfo(devices[devid], CL_DEVICE_TYPE, sizeof(cl_device_type), &type, NULL);
-	if (STARPU_UNLIKELY(err != CL_SUCCESS))
-		STARPU_OPENCL_REPORT_ERROR(err);
-
-	return type;
+	return type[devid];
 }
 #endif /* STARPU_USE_OPENCL */
 
