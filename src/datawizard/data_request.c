@@ -302,7 +302,7 @@ void _starpu_post_data_request(struct _starpu_data_request *r)
 
 	if (r->mode & STARPU_R)
 	{
-		STARPU_ASSERT(r->src_replicate->allocated);
+		STARPU_ASSERT(r->src_replicate->allocated || r->src_replicate->mapped);
 		STARPU_ASSERT(r->src_replicate->refcnt);
 	}
 
@@ -487,23 +487,36 @@ static int starpu_handle_data_request(struct _starpu_data_request *r, unsigned m
 	enum starpu_data_access_mode r_mode = r->mode;
 
 	STARPU_ASSERT(!(r_mode & STARPU_R) || src_replicate);
-	STARPU_ASSERT(!(r_mode & STARPU_R) || src_replicate->allocated);
+	STARPU_ASSERT(!(r_mode & STARPU_R) || src_replicate->allocated || src_replicate->mapped);
 	STARPU_ASSERT(!(r_mode & STARPU_R) || src_replicate->refcnt);
 
 	_starpu_spin_unlock(&r->lock);
 
-	/* FIXME: the request may get upgraded from here to freeing it... */
-
-	/* perform the transfer */
-	/* the header of the data must be locked by the worker that submitted the request */
-
-
-	if (dst_replicate && dst_replicate->state == STARPU_INVALID)
-		r->retval = _starpu_driver_copy_data_1_to_1(handle, src_replicate,
-						    dst_replicate, !(r_mode & STARPU_R), r, may_alloc, prefetch);
-	else
-		/* Already valid actually, no need to transfer anything */
+	if (r_mode == STARPU_UNMAP)
+	{
+		/* Unmap request, simply do it */
+		STARPU_ASSERT(dst_replicate->mapped);
+		STARPU_ASSERT(handle->ops->unmap_data);
+		handle->ops->unmap_data(src_replicate->data_interface, src_replicate->memory_node,
+					dst_replicate->data_interface, dst_replicate->memory_node);
+		dst_replicate->mapped = 0;
 		r->retval = 0;
+	}
+	else
+	{
+		/* FIXME: the request may get upgraded from here to freeing it... */
+
+		/* perform the transfer */
+		/* the header of the data must be locked by the worker that submitted the request */
+
+
+		if (dst_replicate && dst_replicate->state == STARPU_INVALID)
+			r->retval = _starpu_driver_copy_data_1_to_1(handle, src_replicate,
+					dst_replicate, !(r_mode & STARPU_R), r, may_alloc, prefetch);
+		else
+			/* Already valid actually, no need to transfer anything */
+			r->retval = 0;
+	}
 
 	if (r->retval == -ENOMEM)
 	{

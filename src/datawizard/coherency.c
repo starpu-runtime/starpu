@@ -337,6 +337,27 @@ static int determine_request_path(starpu_data_handle_t handle,
 				  unsigned *src_nodes, unsigned *dst_nodes,
 				  unsigned *handling_nodes, unsigned write_invalidation)
 {
+	struct _starpu_data_replicate *src_replicate = &handle->per_node[src_node];
+	struct _starpu_data_replicate *dst_replicate = &handle->per_node[dst_node];
+
+	if (src_replicate->mapped || dst_replicate->mapped)
+	{
+		/* Mapped transfers always happen through node 0 */
+		STARPU_ASSERT(max_len >= 2);
+
+		/* Device -> RAM */
+		src_nodes[0] = src_node;
+		dst_nodes[0] = 0;
+		handling_nodes[0] = src_node;
+
+		/* RAM -> Device */
+		src_nodes[1] = 0;
+		dst_nodes[1] = dst_node;
+		handling_nodes[1] = dst_node;
+
+		return 2;
+	}
+
 	if (src_node == dst_node || !(mode & STARPU_R))
 	{
 		if (dst_node == -1 || starpu_node_get_kind(dst_node) == STARPU_DISK_RAM)
@@ -428,17 +449,25 @@ static struct _starpu_data_request *_starpu_search_existing_data_request(struct 
 {
 	struct _starpu_data_request *r;
 
+	/* Make sure we don't have anything else than R/W */
+	STARPU_ASSERT(mode != STARPU_UNMAP);
+
 	r = replicate->request[node];
 
 	if (r)
 	{
 		_starpu_spin_checklocked(&r->handle->header_lock);
 
+		/* Make sure we don't have anything else than R/W */
+		STARPU_ASSERT(r->mode == (r->mode & STARPU_RW));
+
 		_starpu_spin_lock(&r->lock);
 
                 /* perhaps we need to "upgrade" the request */
 		if (is_prefetch < r->prefetch)
 			_starpu_update_prefetch_status(r, is_prefetch);
+
+		/* TODO: abort on unmapping request */
 
 		if (mode & STARPU_R)
 		{
@@ -496,6 +525,8 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 
 	/* This function is called with handle's header lock taken */
 	_starpu_spin_checklocked(&handle->header_lock);
+
+	/* TODO: If writing copying to RAM, first update maps into RAM, even if RAM is already up to date.  */
 
 	int requesting_node = dst_replicate ? dst_replicate->memory_node : -1;
 	unsigned nwait = 0;
