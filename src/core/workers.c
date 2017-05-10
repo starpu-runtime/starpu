@@ -1110,11 +1110,11 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 #ifdef STARPU_USE_MP
 	_starpu_set_argc_argv(argc, argv);
 
-#	ifdef STARPU_USE_SCC
+#ifdef STARPU_USE_SCC
 	/* In SCC case we look at the rank to know if we are a sink */
 	if (_starpu_scc_common_mp_init() && !_starpu_scc_common_is_src_node())
 		setenv("STARPU_SINK", "STARPU_SCC", 1);
-#	endif
+#endif
 
 	/* If StarPU was configured to use MP sinks, we have to control the
 	 * kind on node we are running on : host or sink ? */
@@ -1262,6 +1262,10 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 		/* Let somebody else try to do it */
 		STARPU_PTHREAD_COND_SIGNAL(&init_cond);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&init_mutex);
+
+#ifdef STARPU_USE_FXT
+		_starpu_stop_fxt_profiling();
+#endif
 		return ret;
 	}
 
