@@ -33,7 +33,6 @@ int main(int argc, char **argv)
 	int rank, nodes, ret;
 	double timing, flops;
 	int correctness;
-
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 

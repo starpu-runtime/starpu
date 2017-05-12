@@ -411,6 +411,7 @@ AC_SUBST(CC_OR_MPICC, $cc_or_mpicc)
 if test x$use_mpi = xyes -a x$enable_nmad = xyes ; then
     build_nmad_lib=yes
     enable_mpi=no
+    PKG_CHECK_MODULES([NMAD],[nmad pioman tbx])
 else
     build_nmad_lib=no
 fi
@@ -420,6 +421,7 @@ AC_MSG_RESULT($build_nmad_lib)
 
 AC_SUBST(USE_NMAD, $build_nmad_lib)
 AM_CONDITIONAL(USE_NMAD, test x$build_nmad_lib = xyes)
+
 
 
 ###############################################################################

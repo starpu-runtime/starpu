@@ -23,6 +23,8 @@
 #include "starpu_mpi.h"
 #include "starpu_mpi_fxt.h"
 #include <common/list.h>
+#include <nm_mpi_private.h>
+#include <piom_lock.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -126,20 +128,22 @@ LIST_TYPE(_starpu_mpi_req,
 	int user_datatype;
 
 	/* who are we talking to ? */
-	int srcdst;
-	int mpi_tag;
+	nm_gate_t gate;
 	MPI_Comm comm;
+	int mpi_tag;
+	int srcdst;
+	nm_session_t session;
 
 	void (*func)(struct _starpu_mpi_req *);
 
 	MPI_Status *status;
-	MPI_Request request;
+	nm_sr_request_t request;
 	int *flag;
 	unsigned sync;
 
 	int ret;
 	starpu_pthread_mutex_t req_mutex;
-	starpu_pthread_cond_t req_cond;
+	piom_cond_t req_cond;
 
 	enum _starpu_mpi_request_type request_type; /* 0 send, 1 recv */
 
@@ -156,7 +160,9 @@ LIST_TYPE(_starpu_mpi_req,
 	void (*callback)(void *);
 
         /* in the case of user-defined datatypes, we need to send the size of the data */
-	MPI_Request size_req;
+	nm_sr_request_t size_req;
+
+	int waited;
 );
 
 struct _starpu_mpi_data
@@ -165,6 +171,14 @@ struct _starpu_mpi_data
 	int rank;
 	MPI_Comm comm;
 };
+
+#define _starpu_mpi_req_status(PUBLIC_REQ,STATUS) do {\
+  STATUS->MPI_SOURCE=PUBLIC_REQ->srcdst; /**< field name mandatory by spec */\
+  STATUS->MPI_TAG=PUBLIC_REQ->mpi_tag;    /**< field name mandatory by spec */\
+  STATUS->MPI_ERROR=PUBLIC_REQ->ret;  /**< field name mandatory by spec */\
+  STATUS->size=PUBLIC_REQ->count;       /**< size of data received */\
+  STATUS->cancelled=0;  /**< whether request was cancelled */\
+} while(0)
 
 #ifdef __cplusplus
 }

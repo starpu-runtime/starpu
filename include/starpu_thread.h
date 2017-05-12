@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
+ * Copyright (C) 2010, 2012-2017  Université de Bordeaux
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -33,6 +33,7 @@
 #endif
 #elif !defined(_MSC_VER) || defined(BUILDING_STARPU)
 #include <pthread.h>
+#include <semaphore.h>
 #endif
 #include <stdint.h>
 
@@ -50,8 +51,9 @@ extern "C"
 typedef msg_process_t starpu_pthread_t;
 typedef int starpu_pthread_attr_t;
 
+int starpu_pthread_equal(starpu_pthread_t t1, starpu_pthread_t t2);
+starpu_pthread_t starpu_pthread_self(void);
 int starpu_pthread_create_on(char *name, starpu_pthread_t *thread, const starpu_pthread_attr_t *attr, void *(*start_routine) (void *), void *arg, msg_host_t host);
-#define starpu_pthread_setname(name)
 int starpu_pthread_create(starpu_pthread_t *thread, const starpu_pthread_attr_t *attr, void *(*start_routine) (void *), void *arg);
 int starpu_pthread_join(starpu_pthread_t thread, void **retval);
 int starpu_pthread_exit(void *retval) STARPU_ATTRIBUTE_NORETURN;
@@ -64,8 +66,18 @@ int starpu_pthread_attr_setdetachstate(starpu_pthread_attr_t *attr, int detachst
 typedef pthread_t starpu_pthread_t;
 typedef pthread_attr_t starpu_pthread_attr_t;
 
+#define starpu_pthread_equal pthread_equal
+#define starpu_pthread_self pthread_self
 #define starpu_pthread_create pthread_create
 #define starpu_pthread_create_on(name, thread, attr, routine, arg, where) starpu_pthread_create(thread, attr, routine, arg)
+#define starpu_pthread_join pthread_join
+#define starpu_pthread_exit pthread_exit
+#define starpu_pthread_attr_init pthread_attr_init
+#define starpu_pthread_attr_destroy pthread_attr_destroy
+#define starpu_pthread_attr_setdetachstate pthread_attr_setdetachstate
+
+#endif /* STARPU_SIMGRID, _MSC_VER */
+
 #ifdef STARPU_HAVE_PTHREAD_SETNAME_NP
 #ifdef STARPU_HAVE_DARWIN
 #define starpu_pthread_setname(name) pthread_setname_np(name)
@@ -75,13 +87,6 @@ typedef pthread_attr_t starpu_pthread_attr_t;
 #else
 #define starpu_pthread_setname(name)
 #endif
-#define starpu_pthread_join pthread_join
-#define starpu_pthread_exit pthread_exit
-#define starpu_pthread_attr_init pthread_attr_init
-#define starpu_pthread_attr_destroy pthread_attr_destroy
-#define starpu_pthread_attr_setdetachstate pthread_attr_setdetachstate
-
-#endif /* STARPU_SIMGRID, _MSC_VER */
 
 /*
  * Encapsulation of the pthread_mutex_* functions.
@@ -401,6 +406,32 @@ int starpu_pthread_queue_unregister(starpu_pthread_wait_t *w, starpu_pthread_que
 int starpu_pthread_wait_reset(starpu_pthread_wait_t *w);
 int starpu_pthread_wait_wait(starpu_pthread_wait_t *w);
 int starpu_pthread_wait_destroy(starpu_pthread_wait_t *w);
+#endif
+
+/*
+ * Encapsulation of the semaphore functions.
+ */
+
+#ifdef STARPU_SIMGRID
+
+typedef msg_sem_t starpu_sem_t;
+int starpu_sem_destroy(starpu_sem_t *);
+int starpu_sem_getvalue(starpu_sem_t *, int *);
+int starpu_sem_init(starpu_sem_t *, int, unsigned);
+int starpu_sem_post(starpu_sem_t *);
+int starpu_sem_trywait(starpu_sem_t *);
+int starpu_sem_wait(starpu_sem_t *);
+
+#elif !defined(_MSC_VER) || defined(BUILDING_STARPU) /* !STARPU_SIMGRID */
+
+typedef sem_t starpu_sem_t;
+#define starpu_sem_destroy sem_destroy
+#define starpu_sem_getvalue sem_getvalue
+#define starpu_sem_init sem_init
+#define starpu_sem_post sem_post
+int starpu_sem_trywait(starpu_sem_t *);
+int starpu_sem_wait(starpu_sem_t *);
+
 #endif
 
 #ifdef __cplusplus
