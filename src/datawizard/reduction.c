@@ -51,6 +51,7 @@ void starpu_data_set_reduction_methods(starpu_data_handle_t handle,
 void _starpu_redux_init_data_replicate(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, int workerid)
 {
 	STARPU_ASSERT(replicate);
+	STARPU_ASSERT(!replicate->mapped); /* FIXME: reduction unsupported on mapped replicates for now */
 	STARPU_ASSERT(replicate->allocated);
 
 	struct starpu_codelet *init_cl = handle->init_cl;

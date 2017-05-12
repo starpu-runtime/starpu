@@ -49,8 +49,10 @@ cudaStream_t starpu_cuda_get_local_out_transfer_stream(void);
 cudaStream_t starpu_cuda_get_out_transfer_stream(unsigned src_node);
 cudaStream_t starpu_cuda_get_peer_transfer_stream(unsigned src_node, unsigned dst_node);
 
+#ifdef STARPU_USE_CUDA_MAP
 uintptr_t _starpu_cuda_map_ram(void *src_ptr, unsigned src_node, unsigned dst_node, size_t size, int *ret);
 int _starpu_cuda_unmap_ram(void *src_ptr, unsigned src_node, void *dst_ptr, unsigned dst_node, size_t size);
+#endif
 #endif
 
 #endif //  __DRIVER_CUDA_H__

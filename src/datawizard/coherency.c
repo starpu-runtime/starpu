@@ -99,6 +99,8 @@ int _starpu_select_src_node(starpu_data_handle_t handle, unsigned destination)
 
 	if (cost && src_node != -1)
 	{
+		STARPU_ASSERT(!handle->per_node[src_node].mapped); /* FIXME: unsupported for now */
+
 		/* Could estimate through cost, return that */
 		STARPU_ASSERT(handle->per_node[src_node].allocated);
 		STARPU_ASSERT(handle->per_node[src_node].initialized);

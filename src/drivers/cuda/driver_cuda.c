@@ -1104,8 +1104,8 @@ starpu_cuda_copy_async_sync(void *src_ptr, unsigned src_node,
 
 	return -EAGAIN;
 }
-#endif /* STARPU_USE_CUDA */
 
+#ifdef STARPU_USE_CUDA_MAP
 uintptr_t
 _starpu_cuda_map_ram(void *src_ptr STARPU_ATTRIBUTE_UNUSED, unsigned src_node STARPU_ATTRIBUTE_UNUSED,
 		    unsigned dst_node STARPU_ATTRIBUTE_UNUSED,
@@ -1134,8 +1134,83 @@ _starpu_cuda_map_ram(void *src_ptr STARPU_ATTRIBUTE_UNUSED, unsigned src_node ST
 	 * device using cudaMalloc() and cudaMallocPitch() will immediately be
 	 * accessible by the current device.
 	 */
+
 	*ret = -EIO;
-	return 0;
+
+	struct _starpu_worker *worker = _starpu_get_local_worker_key();
+	if (starpu_node_get_kind(src_node) != STARPU_CPU_RAM)
+		return 0;
+
+	/*
+	 * mapping relevant cudaDeviceProps fields:
+	 * - .canMapHostMemory: "Can map host memory with cudaHostAlloc/cudaHostGetDevicePointer"
+	 * - .unifiedAddressing: "Device shares a unified address space with the host"
+	 * - .managedMemory: "Device supports allocating memory that will be automatically managed by the Unified Memory system"
+	 * - .pageableMemoryAccess: "Device supports coherently accessing pageable memory without calling cudaHostRegister on it"
+	 * - .concurrentManagedAccess: "Device can coherently access managed memory concurrently with the CPU"
+	 */
+
+#ifdef STARPU_HAVE_CUDA_CANMAPHOST
+	const int cuda_canMapHostMemory = props[worker->devid].canMapHostMemory;
+#else
+	const int cuda_canMapHostMemory = 0;
+#endif
+
+#ifdef STARPU_HAVE_CUDA_UNIFIEDADDR
+	const int cuda_unifiedAddressing = props[worker->devid].unifiedAddressing;
+#else
+	const int cuda_unifiedAddressing = 0;
+#endif
+
+#ifdef STARPU_HAVE_CUDA_MNGMEM
+	const int cuda_managedMemory = props[worker->devid].managedMemory;
+	const int cuda_pageableMemoryAccess = props[worker->devid].pageableMemoryAccess;
+#else
+	const int cuda_managedMemory = 0;
+	const int cuda_pageableMemoryAccess = 0;
+#endif
+	uintptr_t dst_addr;
+	if (cuda_pageableMemoryAccess)
+	{
+		dst_addr = (uintptr_t)src_ptr;
+		*ret = 0;
+	}
+	else if (cuda_unifiedAddressing || cuda_managedMemory)
+	{
+		struct cudaPointerAttributes cuda_ptrattr;
+		cudaError_t cures;
+		cures = cudaPointerGetAttributes(&cuda_ptrattr, (void *)src_ptr);
+		if (STARPU_UNLIKELY(cures != cudaSuccess))
+		{
+			if (cures == cudaErrorInvalidValue)
+			{
+				/* pointer does not support mapping */
+				return (uintptr_t)NULL;
+			}
+
+			STARPU_CUDA_REPORT_ERROR(cures);
+		}
+		STARPU_ASSERT(cuda_ptrattr.memoryType == cudaMemoryTypeHost || cuda_ptrattr.isManaged);
+		dst_addr = (uintptr_t)cuda_ptrattr.devicePointer;
+		*ret = 0;
+	}
+	else if (cuda_canMapHostMemory)
+	{
+		cudaError_t cures;
+		void *pDevice;
+		cures = cudaHostGetDevicePointer(&pDevice, (void*)src_ptr, 0);
+		if (STARPU_UNLIKELY(cures != cudaSuccess))
+		{
+			STARPU_CUDA_REPORT_ERROR(cures);
+		}
+		dst_addr = (uintptr_t)pDevice;
+		*ret = 0;
+	}
+	else
+	{
+		dst_addr = (uintptr_t)NULL;
+	}
+	return dst_addr;
 }
 
 int
@@ -1143,9 +1218,15 @@ _starpu_cuda_unmap_ram(void *src_ptr STARPU_ATTRIBUTE_UNUSED, unsigned src_node 
 		       void *dst_ptr STARPU_ATTRIBUTE_UNUSED, unsigned dst_node STARPU_ATTRIBUTE_UNUSED,
 		       size_t size STARPU_ATTRIBUTE_UNUSED)
 {
+#if defined(STARPU_HAVE_CUDA_CANMAPHOST) || defined(STARPU_HAVE_CUDA_UNIFIEDADDR) || defined(STARPU_HAVE_CUDA_MNGMEM)
 	/* TODO */
+	return 0;
+#else
 	return -EIO;
+#endif
 }
+#endif /* STARPU_USE_CUDA_MAP */
+#endif /* STARPU_USE_CUDA */
 
 int _starpu_run_cuda(struct _starpu_worker_set *workerarg)
 {

@@ -637,6 +637,8 @@ int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT _starpu_driver_copy_data_1_to_1(starpu_d
 						dst_replicate->map_write = 1;
 						break;
 					case STARPU_CUDA_RAM:
+						dst_replicate->map_write = 0;
+						break;
 					case STARPU_CPU_RAM:
 					default:
 						/* Should not happen */
@@ -896,7 +898,7 @@ uintptr_t starpu_interface_map(uintptr_t src, size_t src_offset, unsigned src_no
 	{
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_CPU_RAM):
 		return src + src_offset;
-#ifdef STARPU_USE_CUDA
+#if defined(STARPU_USE_CUDA) && defined(STARPU_USE_CUDA_MAP)
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_CUDA_RAM):
 		return _starpu_cuda_map_ram(
 				(void*) src + src_offset, src_node,
@@ -927,7 +929,7 @@ int starpu_interface_unmap(uintptr_t src, size_t src_offset, unsigned src_node, 
 	{
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_CPU_RAM):
 		return 0;
-#ifdef STARPU_USE_CUDA
+#if defined(STARPU_USE_CUDA) && defined(STARPU_USE_CUDA_MAP)
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_CUDA_RAM):
 		return _starpu_cuda_unmap_ram(
 				(void*) src + src_offset, src_node,
@@ -960,10 +962,11 @@ int starpu_interface_update_map(uintptr_t src, size_t src_offset, unsigned src_n
 		/* FIXME: not on SCC */
 		return 0;
 
-#ifdef STARPU_USE_CUDA
+#if defined(STARPU_USE_CUDA) && defined(STARPU_USE_CUDA_MAP)
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_CUDA_RAM):
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CUDA_RAM,STARPU_CPU_RAM):
 		/* CUDA mappings are coherent */
+		/* FIXME: not necessarily, depends on board capabilities */
 		return 0;
 #endif
 #ifdef STARPU_USE_OPENCL

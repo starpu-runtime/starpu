@@ -1172,6 +1172,23 @@ if test x$have_cuda_memcpy_peer = xyes; then
     AC_DEFINE(HAVE_CUDA_MEMCPY_PEER,[1],[Peer transfers are supported in CUDA])
 fi
 
+AC_ARG_ENABLE(cuda_map, [AS_HELP_STRING([--disable-cuda-map], [do not allow CUDA memory mapping when available])],, [enable_cuda_map=yes])
+if test x$enable_cuda_map = xyes -a x$enable_cuda = xyes ; then
+    SAVED_LDFLAGS="${LDFLAGS}"
+    LDFLAGS="${LDFLAGS} ${STARPU_CUDA_LDFLAGS}"
+    AC_CHECK_MEMBER([struct cudaDeviceProp.canMapHostMemory],
+                    AC_DEFINE([STARPU_HAVE_CUDA_CANMAPHOST],[1],[Define to 1 if CUDA device properties include canMapHostMemory]),
+  , [[#include <cuda_runtime_api.h>]])
+    AC_CHECK_MEMBER([struct cudaDeviceProp.unifiedAddressing],
+                    AC_DEFINE([STARPU_HAVE_CUDA_UNIFIEDADDR],[1],[Define to 1 if CUDA device properties include unifiedAddressing]),
+  , [[#include <cuda_runtime_api.h>]])
+    AC_CHECK_MEMBER([struct cudaDeviceProp.managedMemory],
+                    AC_DEFINE([STARPU_HAVE_CUDA_MNGMEM],[1],[Define to 1 if CUDA device properties include managedMemory]),
+  , [[#include <cuda_runtime_api.h>]])
+    LDFLAGS="${SAVED_LDFLAGS}"
+    AC_DEFINE(STARPU_USE_CUDA_MAP,[1],[Define to 1 if CUDA Mapped host memory may be used])
+fi
+
 if test x$enable_cuda = xyes; then
     if test x$starpu_windows != xyes ; then
 	STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lstdc++"
@@ -3247,6 +3264,7 @@ AC_MSG_NOTICE([
 	Maximum number of task buffers:             $nmaxbuffers
 
 	GPU-GPU transfers: $have_cuda_memcpy_peer
+	CUDA Map:          $enable_cuda_map
 	Allocation cache:  $enable_allocation_cache
 
 	Magma enabled:     $have_magma

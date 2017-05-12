@@ -1860,6 +1860,7 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 				else
 				{
 					cuda_init[devid] = 1;
+
 					if (config->topology.cuda_th_per_dev == 0 && config->topology.cuda_th_per_stream == 0)
 					{
 						if (cuda_globalbindid == -1)
@@ -1869,6 +1870,11 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 					else
 						workerarg->bindid = cuda_bindid[devid] = _starpu_get_next_bindid(config, preferred_binding, npreferred);
 					memory_node = cuda_memory_nodes[devid] = _starpu_memory_node_register(STARPU_CUDA_RAM, devid);
+
+#ifdef STARPU_USE_CUDA_MAP
+					/* TODO: check node capabilities */
+					_starpu_memory_node_set_mapped(memory_node);
+#endif
 
 					_starpu_cuda_bus_ids[0][devid+1] = _starpu_register_bus(STARPU_MAIN_RAM, memory_node);
 					_starpu_cuda_bus_ids[devid+1][0] = _starpu_register_bus(memory_node, STARPU_MAIN_RAM);

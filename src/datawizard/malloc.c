@@ -86,9 +86,18 @@ struct malloc_pinned_codelet_struct
 static void malloc_pinned_cuda_codelet(void *buffers[] STARPU_ATTRIBUTE_UNUSED, void *arg)
 {
 	struct malloc_pinned_codelet_struct *s = arg;
-
 	cudaError_t cures;
-	cures = cudaHostAlloc((void **)(s->ptr), s->dim, cudaHostAllocPortable);
+#if defined(STARPU_USE_CUDA_MAP) && defined(STARPU_HAVE_CUDA_MNGMEM)
+	/* FIXME: check if devices actually support cudaMallocManaged or fallback to cudaHostAlloc() */
+	cures = cudaMallocManaged((void **)(s->ptr), s->dim, cudaMemAttachGlobal);
+#else
+#  if defined(STARPU_USE_CUDA_MAP) && defined(STARPU_HAVE_CUDA_CANMAPHOST)
+	const unsigned int flags = cudaHostAllocPortable|cudaHostAllocMapped;
+#  else
+	const unsigned int flags = cudaHostAllocPortable;
+#  endif
+	cures = cudaHostAlloc((void **)(s->ptr), s->dim, flags);
+#endif
 	if (STARPU_UNLIKELY(cures))
 		STARPU_CUDA_REPORT_ERROR(cures);
 }
@@ -157,7 +166,17 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 #ifdef STARPU_USE_CUDA
 #ifdef HAVE_CUDA_MEMCPY_PEER
 			cudaError_t cures;
-			cures = cudaHostAlloc(A, dim, cudaHostAllocPortable);
+#if defined(STARPU_USE_CUDA_MAP) && defined(STARPU_HAVE_CUDA_MNGMEM)
+			/* FIXME: check if devices actually support cudaMallocManaged or fallback to cudaHostAlloc() */
+			cures = cudaMallocManaged(A, dim, cudaMemAttachGlobal);
+#else
+#  if defined(STARPU_USE_CUDA_MAP) && defined(STARPU_HAVE_CUDA_CANMAPHOST)
+			const unsigned int flags = cudaHostAllocPortable|cudaHostAllocMapped;
+#  else
+			const unsigned int flags = cudaHostAllocPortable;
+#  endif
+			cures = cudaHostAlloc(A, dim, flags);
+#endif
 			if (STARPU_UNLIKELY(cures))
 			{
 				STARPU_CUDA_REPORT_ERROR(cures);
@@ -348,7 +367,11 @@ int starpu_malloc(void **A, size_t dim)
 static void free_pinned_cuda_codelet(void *buffers[] STARPU_ATTRIBUTE_UNUSED, void *arg)
 {
 	cudaError_t cures;
+#if defined(STARPU_USE_CUDA_MAP) && defined(STARPU_HAVE_CUDA_MNGMEM)
+	cures = cudaFree(arg);
+#else
 	cures = cudaFreeHost(arg);
+#endif
 	if (STARPU_UNLIKELY(cures))
 		STARPU_CUDA_REPORT_ERROR(cures);
 }
@@ -398,9 +421,14 @@ int starpu_free_flags(void *A, size_t dim, int flags)
 				/* This is especially useful when starpu_free is called from
 				 * the GCC-plugin. starpu_shutdown will probably have already
 				 * been called, so we will not be able to submit a task. */
-				cudaError_t err = cudaFreeHost(A);
-				if (STARPU_UNLIKELY(err))
-					STARPU_CUDA_REPORT_ERROR(err);
+				cudaError_t cures;
+#if defined(STARPU_USE_CUDA_MAP) && defined(STARPU_HAVE_CUDA_MNGMEM)
+				cures = cudaFree(A);
+#else
+				cures = cudaFreeHost(A);
+#endif
+				if (STARPU_UNLIKELY(cures))
+					STARPU_CUDA_REPORT_ERROR(cures);
 				goto out;
 #ifndef HAVE_CUDA_MEMCPY_PEER
 			}
