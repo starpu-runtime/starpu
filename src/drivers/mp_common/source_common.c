@@ -273,8 +273,7 @@ static void _starpu_src_common_recv_async(struct _starpu_mp_node * node)
 	answer = _starpu_mp_common_recv_command(node, &arg, &arg_size);
 	if(!_starpu_src_common_handle_async(node,arg,arg_size,answer, 0))
 	{
-		printf("incorrect commande: unknown command or sync command");
-		STARPU_ASSERT(0);
+		_STARPU_ERROR("incorrect command: unknown command or sync command");
 	}
 }
 

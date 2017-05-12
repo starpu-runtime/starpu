@@ -18,7 +18,6 @@
 #ifndef __COMMON_THREAD_H__
 #define __COMMON_THREAD_H__
 
-#include <starpu.h>
 #include <common/utils.h>
 
 #if defined(STARPU_LINUX_SYS) && defined(STARPU_HAVE_XCHG)

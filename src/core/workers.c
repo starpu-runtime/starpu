@@ -1171,13 +1171,13 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 #ifdef STARPU_USE_MP
 	_starpu_set_argc_argv(argc, argv);
 
-#	ifdef STARPU_USE_SCC
+#ifdef STARPU_USE_SCC
 	/* In SCC case we look at the rank to know if we are a sink */
 	if (_starpu_scc_common_mp_init() && !_starpu_scc_common_is_src_node())
 		setenv("STARPU_SINK", "STARPU_SCC", 1);
-#	endif
+#endif
 
-#       ifdef STARPU_USE_MPI_MASTER_SLAVE
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
         if (_starpu_mpi_common_mp_init() == -ENODEV)
         {
                 initialized = UNINITIALIZED;
@@ -1187,7 +1187,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
         /* In MPI case we look at the rank to know if we are a sink */
         if (!_starpu_mpi_common_is_src_node())
                 setenv("STARPU_SINK", "STARPU_MPI_MS", 1);
-#       endif
+# endif
 
 	/* If StarPU was configured to use MP sinks, we have to control the
 	 * kind on node we are running on : host or sink ? */
@@ -1257,8 +1257,6 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	WSAStartup(MAKEWORD(1,0), &wsadata);
 #endif
 
-	srand(2008);
-
 	STARPU_AYU_PREINIT();
 	/* store the pointer to the user explicit configuration during the
 	 * initialization */
@@ -1323,7 +1321,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	/* Depending on whether we are a MP sink or not, we must build the
 	 * topology with MP nodes or not. */
 	ret = _starpu_build_topology(&_starpu_config, is_a_sink);
-    /* sink doesn't exit even if no worker discorvered */
+	/* sink doesn't exit even if no worker discorvered */
 	if (ret && !is_a_sink)
 	{
 		starpu_perfmodel_free_sampling_directories();
@@ -1345,6 +1343,10 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 		/* Let somebody else try to do it */
 		STARPU_PTHREAD_COND_SIGNAL(&init_cond);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&init_mutex);
+
+#ifdef STARPU_USE_FXT
+		_starpu_stop_fxt_profiling();
+#endif
 		return ret;
 	}
 

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2012, 2014-2015  Université de Bordeaux
+ * Copyright (C) 2011-2012, 2014-2015, 2017  Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -157,7 +157,7 @@ int main(int argc, char **argv)
 
 	if (ret != -ENODEV)
 	{
-		fprintf(stdout, "\ntopology ...\n");
+		fprintf(stdout, "\ntopology ... (hwloc logical indexes)\n");
 		starpu_topology_print(stdout);
 
 		fprintf(stdout, "\nbandwidth and latency ...\n");

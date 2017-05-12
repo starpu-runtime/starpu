@@ -160,6 +160,8 @@ void starpu_memchunk_tidy(unsigned memory_node);
 void starpu_data_set_user_data(starpu_data_handle_t handle, void* user_data);
 void *starpu_data_get_user_data(starpu_data_handle_t handle);
 
+int starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_handle, int asynchronous, void (*callback_func)(void*), void *callback_arg);
+
 #ifdef __cplusplus
 }
 #endif

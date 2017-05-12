@@ -18,8 +18,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <starpu.h>
-
-#define _FSTARPU_ERROR(msg) do {fprintf(stderr, "fstarpu error: %s\n", (msg));abort();} while(0)
+#include <common/utils.h>
 
 typedef void (*_starpu_callback_func_t)(void *);
 
@@ -160,7 +159,7 @@ intptr_t fstarpu_get_constant(char *s)
 	else if (!strcmp(s, "FSTARPU_CUDA_ASYNC"))	{ return fstarpu_starpu_cuda_async; }
 	else if (!strcmp(s, "FSTARPU_OPENCL_ASYNC"))	{ return fstarpu_starpu_opencl_async; }
 
-	else { _FSTARPU_ERROR("unknown constant"); }
+	else { _STARPU_ERROR("unknown constant"); }
 }
 
 struct starpu_conf *fstarpu_conf_allocate(void)
@@ -270,7 +269,7 @@ void fstarpu_codelet_add_cpu_func(struct starpu_codelet *cl, void *f_ptr)
 			return;
 		}
 	}
-	_FSTARPU_ERROR("fstarpu: too many cpu functions in Fortran codelet");
+	_STARPU_ERROR("fstarpu: too many cpu functions in Fortran codelet");
 }
 
 void fstarpu_codelet_add_cuda_func(struct starpu_codelet *cl, void *f_ptr)
@@ -285,7 +284,7 @@ void fstarpu_codelet_add_cuda_func(struct starpu_codelet *cl, void *f_ptr)
 			return;
 		}
 	}
-	_FSTARPU_ERROR("fstarpu: too many cuda functions in Fortran codelet");
+	_STARPU_ERROR("fstarpu: too many cuda functions in Fortran codelet");
 }
 
 void fstarpu_codelet_add_cuda_flags(struct starpu_codelet *cl, intptr_t flags)
@@ -300,7 +299,7 @@ void fstarpu_codelet_add_cuda_flags(struct starpu_codelet *cl, intptr_t flags)
 			return;
 		}
 	}
-	_FSTARPU_ERROR("fstarpu: too many cuda flags in Fortran codelet");
+	_STARPU_ERROR("fstarpu: too many cuda flags in Fortran codelet");
 }
 
 void fstarpu_codelet_add_opencl_func(struct starpu_codelet *cl, void *f_ptr)
@@ -315,7 +314,7 @@ void fstarpu_codelet_add_opencl_func(struct starpu_codelet *cl, void *f_ptr)
 			return;
 		}
 	}
-	_FSTARPU_ERROR("fstarpu: too many opencl functions in Fortran codelet");
+	_STARPU_ERROR("fstarpu: too many opencl functions in Fortran codelet");
 }
 
 void fstarpu_codelet_add_opencl_flags(struct starpu_codelet *cl, intptr_t flags)
@@ -330,7 +329,7 @@ void fstarpu_codelet_add_opencl_flags(struct starpu_codelet *cl, intptr_t flags)
 			return;
 		}
 	}
-	_FSTARPU_ERROR("fstarpu: too many opencl flags in Fortran codelet");
+	_STARPU_ERROR("fstarpu: too many opencl flags in Fortran codelet");
 }
 
 void fstarpu_codelet_add_mic_func(struct starpu_codelet *cl, void *f_ptr)
@@ -345,7 +344,7 @@ void fstarpu_codelet_add_mic_func(struct starpu_codelet *cl, void *f_ptr)
 			return;
 		}
 	}
-	_FSTARPU_ERROR("fstarpu: too many mic functions in Fortran codelet");
+	_STARPU_ERROR("fstarpu: too many mic functions in Fortran codelet");
 }
 
 void fstarpu_codelet_add_scc_func(struct starpu_codelet *cl, void *f_ptr)
@@ -360,7 +359,7 @@ void fstarpu_codelet_add_scc_func(struct starpu_codelet *cl, void *f_ptr)
 			return;
 		}
 	}
-	_FSTARPU_ERROR("fstarpu: too many scc functions in Fortran codelet");
+	_STARPU_ERROR("fstarpu: too many scc functions in Fortran codelet");
 }
 
 void fstarpu_codelet_add_buffer(struct starpu_codelet *cl, intptr_t _mode)
@@ -370,7 +369,7 @@ void fstarpu_codelet_add_buffer(struct starpu_codelet *cl, intptr_t _mode)
 	const size_t max_modes = sizeof(cl->modes)/sizeof(cl->modes[0])-1;
 	if ((mode & (STARPU_ACCESS_MODE_MAX-1)) != mode)
 	{
-		_FSTARPU_ERROR("fstarpu: invalid data mode");
+		_STARPU_ERROR("fstarpu: invalid data mode");
 	}
 	if  (cl->nbuffers < (int) max_modes)
 	{
@@ -379,7 +378,7 @@ void fstarpu_codelet_add_buffer(struct starpu_codelet *cl, intptr_t _mode)
 	}
 	else
 	{
-		_FSTARPU_ERROR("fstarpu: too many buffers in Fortran codelet");
+		_STARPU_ERROR("fstarpu: too many buffers in Fortran codelet");
 	}
 }
 
@@ -396,7 +395,7 @@ void fstarpu_codelet_set_nbuffers(struct starpu_codelet *cl, int nbuffers)
 	}
 	else
 	{
-		_FSTARPU_ERROR("fstarpu: invalid nbuffers parameter");
+		_STARPU_ERROR("fstarpu: invalid nbuffers parameter");
 	}
 }
 

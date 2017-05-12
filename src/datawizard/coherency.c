@@ -376,7 +376,7 @@ static int determine_request_path(starpu_data_handle_t handle,
 
 	if (!link_is_valid)
 	{
-		int (*can_copy)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, unsigned handling_node) = handle->ops->copy_methods->can_copy;
+		int (*can_copy)(void *, unsigned, void *, unsigned, unsigned) = handle->ops->copy_methods->can_copy;
 		void *src_interface = handle->per_node[src_node].data_interface;
 		void *dst_interface = handle->per_node[dst_node].data_interface;
 

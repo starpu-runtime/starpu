@@ -25,7 +25,6 @@
 #include <msg/msg.h>
 #endif
 
-#include <datawizard/data_request.h>
 #include <xbt/xbt_os_time.h>
 
 struct _starpu_pthread_args
@@ -43,8 +42,11 @@ void _starpu_simgrid_init_early(int *argc, char ***argv);
 void _starpu_simgrid_init(void);
 void _starpu_simgrid_deinit(void);
 void _starpu_simgrid_wait_tasks(int workerid);
+struct _starpu_job;
 void _starpu_simgrid_submit_job(int workerid, struct _starpu_job *job, struct starpu_perfmodel_arch* perf_arch, double length, unsigned *finished);
+struct _starpu_data_request;
 int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, struct _starpu_data_request *req);
+union _starpu_async_channel_event;
 int _starpu_simgrid_wait_transfer_event(union _starpu_async_channel_event *event);
 int _starpu_simgrid_test_transfer_event(union _starpu_async_channel_event *event);
 void _starpu_simgrid_sync_gpus(void);

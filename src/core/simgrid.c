@@ -270,8 +270,7 @@ int main(int argc, char **argv)
 	{
 		if (!smpi_process_get_user_data)
 		{
-			fprintf(stderr,"Your version of simgrid does not provide smpi_process_get_user_data, we can not continue without it\n");
-			exit(1);
+			_STARPU_ERROR("Your version of simgrid does not provide smpi_process_get_user_data, we can not continue without it\n");
 		}
 
 #if SIMGRID_VERSION_MAJOR > 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR >= 16)

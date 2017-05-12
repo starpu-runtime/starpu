@@ -69,11 +69,18 @@ int main(int argc, char **argv)
 
 	starpu_shutdown();
 
-	if (ret1 != -ENODEV && x != 14) ret = 1;
-	if (ret2 != -ENODEV && y != 13) ret = 1;
-
-	FPRINTF(stderr, "Value x = %d (expected 14)\n", x);
-	FPRINTF(stderr, "Value y = %d (expected 13)\n", y);
+	if (ret1 != -ENODEV)
+	{
+		if (x != 14)
+			ret = 1;
+		FPRINTF(stderr, "Value x = %d (expected 14)\n", x);
+	}
+	if (ret2 != -ENODEV)
+	{
+		if (y != 13)
+			ret = 1;
+		FPRINTF(stderr, "Value y = %d (expected 13)\n", y);
+	}
 
 	STARPU_RETURN(ret);
 }

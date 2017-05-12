@@ -31,7 +31,7 @@ struct _starpu_top_message_queue* _starpu_top_message_add(struct _starpu_top_mes
 {
 	if( NULL == s )
 	{
-		printf("Queue not initialized\n");
+		_STARPU_MSG("Queue not initialized\n");
 		free(msg);
 		return s;
 	}
@@ -40,7 +40,7 @@ struct _starpu_top_message_queue* _starpu_top_message_add(struct _starpu_top_mes
 	STARPU_PTHREAD_MUTEX_LOCK(&(s->mutex));
 	if( NULL == p )
 	{
-		fprintf(stderr, "IN %s, %s: malloc() failed\n", __FILE__, "list_add");
+		_STARPU_MSG("IN %s, %s: malloc() failed\n", __FILE__, "list_add");
 		free(msg);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&(s->mutex));
 		return s;
@@ -51,7 +51,7 @@ struct _starpu_top_message_queue* _starpu_top_message_add(struct _starpu_top_mes
 
 	if( NULL == s->head && NULL == s->tail )
 	{
-		/* printf("Empty list, adding p->num: %d\n\n", p->num);  */
+		/* _STARPU_MSG("Empty list, adding p->num: %d\n\n", p->num);  */
 		sem_post(&(s->semaphore));
 		s->head = s->tail = p;
 		STARPU_PTHREAD_MUTEX_UNLOCK(&(s->mutex));
@@ -59,7 +59,7 @@ struct _starpu_top_message_queue* _starpu_top_message_add(struct _starpu_top_mes
 	}
 	else
 	{
-		/* printf("List not empty, adding element to tail\n"); */
+		/* _STARPU_MSG("List not empty, adding element to tail\n"); */
 		sem_post(&(s->semaphore));
 		s->tail->next = p;
 		s->tail = p;
@@ -73,7 +73,7 @@ char* _starpu_top_message_remove(struct _starpu_top_message_queue* s)
 {
 	if( NULL == s )
 	{
-		printf("List is null\n");
+		_STARPU_MSG("List is null\n");
 		return NULL;
 	}
 

@@ -358,8 +358,9 @@ struct _starpu_machine_config
 	int pu_depth;
 #endif
 
-	/* Where to bind workers ? */
+	/* Where to bind next worker ? */
 	int current_bindid;
+	char currently_bound[STARPU_NMAXWORKERS];
 
 	/* Which GPU(s) do we use for CUDA ? */
 	int current_cuda_gpuid;

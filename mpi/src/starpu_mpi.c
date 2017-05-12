@@ -1337,8 +1337,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	_STARPU_CALLOC(tsd, MAX_TSD + 1, sizeof(void*));
 	if (!smpi_process_set_user_data)
 	{
-		fprintf(stderr,"Your version of simgrid does not provide smpi_process_set_user_data, we can not continue without it\n");
-		exit(1);
+		_STARPU_ERROR("Your version of simgrid does not provide smpi_process_set_user_data, we can not continue without it\n");
 	}
 	smpi_process_set_user_data(tsd);
 #endif

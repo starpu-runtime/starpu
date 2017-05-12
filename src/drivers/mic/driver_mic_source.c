@@ -193,8 +193,7 @@ void _starpu_mic_src_report_coi_error(const char *func, const char *file,
 				      const int line, const COIRESULT status)
 {
 	const char *errormsg = COIResultGetName(status);
-	printf("SRC: oops in %s (%s:%d)... %d: %s \n", func, file, line, status, errormsg);
-	STARPU_ASSERT(0);
+	_STARPU_ERROR("SRC: oops in %s (%s:%d)... %d: %s \n", func, file, line, status, errormsg);
 }
 
 /* Report an error which occured when using a MIC device
@@ -205,8 +204,7 @@ void _starpu_mic_src_report_coi_error(const char *func, const char *file,
 void _starpu_mic_src_report_scif_error(const char *func, const char *file, const int line, const int status)
 {
 	const char *errormsg = strerror(status);
-	printf("SRC: oops in %s (%s:%d)... %d: %s \n", func, file, line, status, errormsg);
-	STARPU_ASSERT(0);
+	_STARPU_ERROR("SRC: oops in %s (%s:%d)... %d: %s \n", func, file, line, status, errormsg);
 }
 
 /* Return the number of MIC devices in the system.

@@ -1060,8 +1060,7 @@ void starpu_cublas_report_error(const char *func, const char *file, int line, in
 void starpu_cuda_report_error(const char *func, const char *file, int line, cudaError_t status)
 {
 	const char *errormsg = cudaGetErrorString(status);
-	printf("oops in %s (%s:%d)... %d: %s \n", func, file, line, status, errormsg);
-	STARPU_ABORT();
+	_STARPU_ERROR("oops in %s (%s:%d)... %d: %s \n", func, file, line, status, errormsg);
 }
 #endif /* STARPU_USE_CUDA */
 

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011, 2012, 2014, 2015, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2014, 2015, 2016, 2017  CNRS
  * Copyright (C) 2010-2016  Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -776,9 +776,7 @@ const char *starpu_opencl_error_string(cl_int status)
 
 void starpu_opencl_display_error(const char *func, const char *file, int line, const char* msg, cl_int status)
 {
-	printf("oops in %s (%s:%d) (%s) ... <%s> (%d) \n", func, file, line, msg,
-	       starpu_opencl_error_string (status), status);
-
+	_STARPU_MSG("oops in %s (%s:%d) (%s) ... <%s> (%d) \n", func, file, line, msg, starpu_opencl_error_string (status), status);
 }
 
 int starpu_opencl_set_kernel_args(cl_int *error, cl_kernel *kernel, ...)
