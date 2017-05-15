@@ -116,7 +116,7 @@ int main(int argc, char **argv)
 		mb = 1;
 #endif
 
-	FPRINTF(stderr, "Allocate %d buffers of size %d and create %u tasks\n", mb, BLOCK_SIZE, ntasks);
+	FPRINTF(stderr, "Allocate %u buffers of size %d and create %u tasks\n", mb, BLOCK_SIZE, ntasks);
 
 	float **host_ptr_array;
 	starpu_data_handle_t *handle_array;
@@ -133,7 +133,7 @@ int main(int argc, char **argv)
 		if (host_ptr_array[j] == NULL)
 		{
 			mb = j;
-			FPRINTF(stderr, "Cannot allocate more than %d buffers\n", mb);
+			FPRINTF(stderr, "Cannot allocate more than %u buffers\n", mb);
 			break;
 		}
 		starpu_variable_data_register(&handle_array[j], STARPU_MAIN_RAM, (uintptr_t)host_ptr_array[j], BLOCK_SIZE);
