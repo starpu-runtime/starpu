@@ -22,7 +22,7 @@ set -e
 
 PREFIX=$(dirname $0)
 test -x $PREFIX/../../tools/starpu_fxt_tool || exit 77
-STARPU_FXT_PREFIX=$PREFIX/ $PREFIX/locality
+STARPU_SCHED=modular-eager STARPU_FXT_PREFIX=$PREFIX/ $PREFIX/locality
 $PREFIX/../../tools/starpu_fxt_tool -i $PREFIX/prof_file_${USER}_0
 
 # Check that they are approved by Grenoble :)

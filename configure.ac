@@ -1481,7 +1481,14 @@ AC_ARG_WITH(host-param)
 AC_MSG_CHECKING(maximum number of MIC devices)
 AC_ARG_ENABLE(maxmicdev, [AS_HELP_STRING([--enable-maxmicdev=<number>],
 			[maximum number of MIC devices])],
-			nmaxmicdev=$enableval, nmaxmicdev=4)
+			nmaxmicdev=$enableval,
+            [
+             if test x$enable_mic = xyes; then
+                 nmaxmicdev=4
+             else
+                 nmaxmicdev=0
+             fi
+            ])
 AC_MSG_RESULT($nmaxmicdev)
 
 AC_DEFINE_UNQUOTED(STARPU_MAXMICDEVS, [$nmaxmicdev],
