@@ -141,7 +141,6 @@ void _starpu_sched_ctx_elt_remove(struct _starpu_sched_ctx_list *list,
 		list->head = elt->next;
 
 	free(elt);
-	elt = NULL;
 	return;
 }
 
