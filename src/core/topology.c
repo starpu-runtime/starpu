@@ -2711,7 +2711,6 @@ starpu_topology_print (FILE *output)
 	unsigned nworkers = starpu_worker_get_count();
 	unsigned ncombinedworkers = topology->ncombinedworkers;
 	unsigned nthreads_per_core = topology->nhwpus / topology->nhwcpus;
-	unsigned numa;
 
 #ifdef STARPU_HAVE_HWLOC
 	hwloc_topology_t topo = topology->hwtopology;
@@ -2746,42 +2745,31 @@ starpu_topology_print (FILE *output)
 		     worker < nworkers + ncombinedworkers;
 		     worker++)
 		{
-			if (starpu_memory_nodes_numa_id_to_hwloclogid(numa) == _starpu_numa_get_logical_id_from_pu(pu))
+			if (worker < nworkers)
 			{
-				if ((pu % nthreads_per_core) == 0)
-					fprintf(output, "core %u", pu / nthreads_per_core);
-				fprintf(output, "\tPU %u\t", pu);
-				for (worker = 0;
-				     worker < nworkers + ncombinedworkers;
-				     worker++)
-				{
-					if (worker < nworkers)
-					{
-						struct _starpu_worker *workerarg = &config->workers[worker];
+				struct _starpu_worker *workerarg = &config->workers[worker];
 
-						if (workerarg->bindid == (int) pu)
-						{
-							char name[256];
-							starpu_worker_get_name (worker, name,
-										sizeof(name));
-							fprintf(output, "%s\t", name);
-						}
-					}
-					else
-					{
-						int worker_size, i;
-						int *combined_workerid;
-						starpu_combined_worker_get_description(worker, &worker_size, &combined_workerid);
-						for (i = 0; i < worker_size; i++)
-						{
-							if (topology->workers_bindid[combined_workerid[i]] == pu)
-								fprintf(output, "comb %u\t", worker-nworkers);
-						}
-					}
+				if (workerarg->bindid == (int) pu)
+				{
+					char name[256];
+					starpu_worker_get_name (worker, name,
+								sizeof(name));
+					fprintf(output, "%s\t", name);
 				}
-				fprintf(output, "\n");
+			}
+			else
+			{
+				int worker_size, i;
+				int *combined_workerid;
+				starpu_combined_worker_get_description(worker, &worker_size, &combined_workerid);
+				for (i = 0; i < worker_size; i++)
+				{
+					if (topology->workers_bindid[combined_workerid[i]] == pu)
+						fprintf(output, "comb %u\t", worker-nworkers);
+				}
 			}
 		}
+		fprintf(output, "\n");
 	}
 }
 
