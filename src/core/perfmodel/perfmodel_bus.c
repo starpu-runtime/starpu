@@ -1816,7 +1816,7 @@ void starpu_bus_print_bandwidth(FILE *f)
 	for (src = 0; src < maxnode; src++)
 	{
 		if (src < nnumas)
-			fprintf(f, "RAM_%u\t", src);
+			fprintf(f, "NUMA_%u\t", src);
 		else if (src < nnumas + ncuda)
 			fprintf(f, "CUDA_%u\t", src-nnumas);
 		else if (src < nnumas + ncuda + nopencl)
