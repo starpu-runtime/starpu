@@ -3645,7 +3645,12 @@ void _starpu_fxt_paje_file_init(struct starpu_fxt_options *options)
 		}
 
 #ifdef STARPU_HAVE_POTI
-		poti_init (out_paje_file);
+		poti_init_custom (options->out_paje_path,
+				  false, //if false, allow extended events
+				  true,  //if true, an old header (pj_dump -n)
+				  false, //if false, the trace has no comments
+				  true,  //if true, events have aliases
+				  true); //if true, relative timestamps
 #endif
 		_starpu_fxt_write_paje_header(out_paje_file);
 	}
