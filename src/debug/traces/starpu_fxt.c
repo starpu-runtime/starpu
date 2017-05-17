@@ -611,7 +611,7 @@ static void register_user_thread(double timestamp, unsigned long tid, const char
 static void register_mpi_thread(unsigned long tid)
 {
 	int ret = register_thread(tid, -2, 0);
-	STARPU_ASSERT(ret == 1 || ret == 0);
+	STARPU_ASSERT(ret == 1);
 }
 
 static int find_worker_id(unsigned long tid)
