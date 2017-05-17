@@ -30,9 +30,9 @@ endif
 
 # we always test on 4 processes, the execution time is not that bigger
 if STARPU_QUICK_CHECK
-MPI			=	$(MPIEXEC) $(MPIEXEC_ARGS) -np 4
+MPI			=	$(MPIEXEC) $(MPIEXEC_ARGS) -np 4 --timeout 50
 else
-MPI			=	$(MPIEXEC) $(MPIEXEC_ARGS) -np 4
+MPI			=	$(MPIEXEC) $(MPIEXEC_ARGS) -np 4 --timeout 50
 endif
 
 if STARPU_HAVE_AM111

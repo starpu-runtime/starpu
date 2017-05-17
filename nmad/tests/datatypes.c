@@ -352,7 +352,7 @@ int main(int argc, char **argv)
 		MPI_Finalize();
 		return STARPU_TEST_SKIPPED;
 	}
-
+	
 	exchange_void(rank, &error);
 	exchange_variable(rank, &error);
 	exchange_vector(rank, &error);

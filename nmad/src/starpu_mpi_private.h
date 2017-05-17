@@ -142,7 +142,6 @@ LIST_TYPE(_starpu_mpi_req,
 	unsigned sync;
 
 	int ret;
-	starpu_pthread_mutex_t req_mutex;
 	piom_cond_t req_cond;
 
 	enum _starpu_mpi_request_type request_type; /* 0 send, 1 recv */
@@ -150,12 +149,8 @@ LIST_TYPE(_starpu_mpi_req,
 	unsigned submitted;
 	unsigned completed;
 
-	/* In the case of a Wait/Test request, we are going to post a request
-	 * to test the completion of another request */
-	struct _starpu_mpi_req *other_request;
 
 	/* in the case of detached requests */
-	unsigned detached;
 	void *callback_arg;
 	void (*callback)(void *);
 
