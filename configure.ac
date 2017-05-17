@@ -1930,6 +1930,10 @@ if test x$use_fxt = xyes; then
 	##########################################
 	PKG_CHECK_MODULES([POTI], [poti], [
 		AC_DEFINE(STARPU_HAVE_POTI, [1], [Define to 1 if you have libpoti])
+		save_LIBS="$LIBS"
+		LIBS="$LIBS $POTI_LIBS"
+		AC_CHECK_FUNCS([poti_init_custom])
+		LIBS="$save_LIBS"
 	], [:])
 	FXT_CFLAGS="$FXT_CFLAGS $POTI_CFLAGS"
 	FXT_LIBS="$FXT_LIBS $POTI_LIBS"

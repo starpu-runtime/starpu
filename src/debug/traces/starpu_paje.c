@@ -26,7 +26,11 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 {
 	unsigned i;
 #ifdef STARPU_HAVE_POTI
+#ifdef HAVE_POTI_INIT_CUSTOM
 	poti_header();     /* see poti_init_custom to customize the header */
+#else
+	poti_header(1,1);
+#endif
 #else
 	fprintf(file, "%%EventDef	PajeDefineContainerType	1\n");
 	fprintf(file, "%%	Alias	string\n");
