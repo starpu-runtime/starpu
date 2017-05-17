@@ -74,7 +74,7 @@ static void emit_empty_task(void)
 
 int main(int argc, char **argv)
 {
-	int i, ret;
+	int ret;
 	struct starpu_conf conf;
 	starpu_data_handle_t handle;
 	void *allocated;
