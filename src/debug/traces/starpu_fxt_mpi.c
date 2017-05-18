@@ -331,10 +331,10 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, unsigned n)
 			snprintf(paje_value, STARPU_POTI_STR_LEN, "%lu", (long unsigned) size);
 			snprintf(paje_key, STARPU_POTI_STR_LEN, "mpicom_%lu", id);
 			snprintf(mpi_container, sizeof(mpi_container), "%d_mpict", src);
-			poti_StartLink(start_date, "MPICt", "MPIL", mpi_container, paje_value, paje_key);
+			poti_StartLink(start_date, "MPIL", "MPICt", mpi_container, paje_value, paje_key);
 			poti_SetVariable(start_date, mpi_container, "bwo_mpi", current_out_bandwidth[src]);
 			snprintf(mpi_container, sizeof(mpi_container), "%d_mpict", dst);
-			poti_EndLink(end_date, "MPICt", "MPIL", mpi_container, paje_value, paje_key);
+			poti_EndLink(end_date, "MPIL", "MPICt", mpi_container, paje_value, paje_key);
 			poti_SetVariable(start_date, mpi_container, "bwo_mpi", current_in_bandwidth[dst]);
 #else
 			fprintf(out_paje_file, "18	%.9f	MPIL	MPIroot	%lu	%d_mpict	mpicom_%lu\n", start_date, (unsigned long)size, src, id);
