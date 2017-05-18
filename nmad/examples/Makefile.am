@@ -24,7 +24,7 @@ LOADER_BIN		=
 else
 loader_CPPFLAGS 	= 	$(AM_CFLAGS) $(AM_CPPFLAGS) -I$(top_builddir)/src/
 LOADER			=	loader
-LOADER_BIN		=	$(abs_top_builddir)/mpi/tests/$(LOADER)
+LOADER_BIN		=	$(abs_top_builddir)/nmad/tests/$(LOADER)
 loader_SOURCES		=	../../tests/loader.c
 endif
 
