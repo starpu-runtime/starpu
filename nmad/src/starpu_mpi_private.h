@@ -151,6 +151,7 @@ LIST_TYPE(_starpu_mpi_req,
 
 
 	/* in the case of detached requests */
+	unsigned detached;
 	void *callback_arg;
 	void (*callback)(void *);
 
