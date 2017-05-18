@@ -29,7 +29,7 @@ int main(int argc, char **argv)
 
 void get_neighbors(int **neighbor_ids, int *nneighbors)
 {
-	int ret, rank, size;
+	int rank, size;
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
 	*nneighbors = 1;

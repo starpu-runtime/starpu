@@ -129,14 +129,15 @@ int main(int argc, char **argv)
 	/* Register mb buffers of 1MB */
 	for (j = 0; j < mb; j++)
 	{
-		host_ptr_array[j] = calloc(BLOCK_SIZE, 1);
+		size_t size = random()%BLOCK_SIZE + 1;
+		host_ptr_array[j] = calloc(size, 1);
 		if (host_ptr_array[j] == NULL)
 		{
 			mb = j;
 			FPRINTF(stderr, "Cannot allocate more than %u buffers\n", mb);
 			break;
 		}
-		starpu_variable_data_register(&handle_array[j], STARPU_MAIN_RAM, (uintptr_t)host_ptr_array[j], BLOCK_SIZE);
+		starpu_variable_data_register(&handle_array[j], STARPU_MAIN_RAM, (uintptr_t)host_ptr_array[j], size);
 		STARPU_ASSERT(handle_array[j]);
 	}
 
@@ -155,12 +156,19 @@ int main(int argc, char **argv)
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
+	for (j = 0; j < mb; j++)
+	{
+		if ( j%20 == 0 )
+			starpu_data_unregister_submit(handle_array[j]);
+	}
+
 	ret = starpu_task_wait_for_all();
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 
 	for (j = 0; j < mb; j++)
 	{
-		starpu_data_unregister(handle_array[j]);
+		if ( j%20 != 0 )
+			starpu_data_unregister(handle_array[j]);
 		free(host_ptr_array[j]);
 	}
 

@@ -16,6 +16,7 @@
 
 #include <sys/mman.h>
 #include <fcntl.h>
+#include <stdint.h>
 
 #include <core/workers.h>
 
@@ -119,7 +120,7 @@ void _starpu_scc_common_unmap_shared_memory()
 /* To know if the pointer "ptr" points into the shared memory map */
 int _starpu_scc_common_is_in_shared_memory(void *ptr)
 {
-	return (void*)shm_addr <= ptr && ptr < (void*)shm_addr + SHMSIZE;
+	return (void*)shm_addr <= ptr && ptr < (void*)((uintptr_t)shm_addr + SHMSIZE);
 }
 
 int _starpu_scc_common_is_mp_initialized()

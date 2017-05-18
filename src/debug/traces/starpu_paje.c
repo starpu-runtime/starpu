@@ -26,7 +26,11 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 {
 	unsigned i;
 #ifdef STARPU_HAVE_POTI
-	poti_header(1, 1); /* 1 as parameter means basic, no extended events */
+#ifdef HAVE_POTI_INIT_CUSTOM
+	poti_header();     /* see poti_init_custom to customize the header */
+#else
+	poti_header(1,1);
+#endif
 #else
 	fprintf(file, "%%EventDef	PajeDefineContainerType	1\n");
 	fprintf(file, "%%	Alias	string\n");
@@ -135,8 +139,6 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 	fprintf(file, "%%	Container	string\n");
 	fprintf(file, "%%	Type	string\n");
 	fprintf(file, "%%	Value	string\n");
-#if 0
-	/* TODO: implement in worker_set_detailed_state() and handle_codelet_details() */
 	fprintf(file, "%%	Size	string\n");
 	fprintf(file, "%%	Params	string\n");
 	fprintf(file, "%%	Footprint	string\n");
@@ -148,7 +150,6 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 	fprintf(file, "%%	Z	string\n");
 	fprintf(file, "%%	Iteration	string\n");
 	fprintf(file, "%%	Subiteration	string\n");
-#endif
 	fprintf(file, "%%EndEventDef\n");
 #endif
 
@@ -282,11 +283,11 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 	poti_DefineVariableType("gft", "Sc", "Total GFlops", "0 0 0");
 
 	/* Link types */
-	poti_DefineLinkType("MPIL", "MPIP", "MPICt", "MPICt", "MPI communications");
+	poti_DefineLinkType("MPIL", "MPIP", "MPICt", "MPICt", "MPI communication");
 	poti_DefineLinkType("F", "P", "Mm", "Mm", "Intra-node data Fetch");
 	poti_DefineLinkType("PF", "P", "Mm", "Mm", "Intra-node data PreFetch");
 	poti_DefineLinkType("IF", "P", "Mm", "Mm", "Intra-node data IdleFetch");
-	poti_DefineLinkType("WSL", "P", "W", "W", "Work steals");
+	poti_DefineLinkType("WSL", "P", "W", "W", "Work steal");
 
 	/* Creating the MPI Program */
 	poti_CreateContainer(0, "MPIroot", "MPIP", "0", "root");
@@ -411,11 +412,11 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 6       Co       MS     DriverCopy         \".3 .5 .1\"		\n\
 6       CoA      MS     DriverCopyAsync         \".1 .3 .1\"		\n\
 6       No       MS     Nothing         \".0 .0 .0\"		\n\
-5       MPIL     MPIP	MPICt	MPICt   MPIL			\n\
-5       F       P	Mm	Mm      F\n\
-5       PF      P	Mm	Mm      PF\n\
-5       IF      P	Mm	Mm      IF\n\
-5       WSL     P	W	W       WSL\n");
+5       MPIL     MPIP	MPICt	MPICt   \"MPI communication\"\n\
+5       F       P	Mm	Mm      \"Intra-node data Fetch\"\n\
+5       PF      P	Mm	Mm      \"Intra-node data PreFetch\"\n\
+5       IF      P	Mm	Mm      \"Intra-node data IdleFetch\"\n\
+5       WSL     P	W	W       \"Work steal\"\n");
 
 	fprintf(file, "7      0.0 MPIroot      MPIP      0       root\n");
 #endif
