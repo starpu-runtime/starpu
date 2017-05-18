@@ -101,7 +101,7 @@ void _starpu_scc_sink_execute(const struct _starpu_mp_node *node, void *arg, int
 	local_arg = (void*) ((uintptr_t)local_arg + sizeof(void(*)(void**, void*)));
 
 	unsigned nb_interfaces = *(unsigned*)local_arg;
-	local_arg += (void*) ((uintptr_t)local_arg + sizeof(nb_interfaces));
+	local_arg = (void*) ((uintptr_t)local_arg + sizeof(nb_interfaces));
 
 	uintptr_t shm_addr = (uintptr_t)_starpu_scc_common_get_shared_memory_addr();
 
