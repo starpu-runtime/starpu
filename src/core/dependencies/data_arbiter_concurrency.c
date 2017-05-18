@@ -542,10 +542,6 @@ void _starpu_notify_arbitered_dependencies(starpu_data_handle_t handle)
 	/* Since the request has been posted the handle may have been proceed and released */
 	if (_starpu_data_requester_list_empty(&handle->arbitered_req_list))
 	{
-#ifndef LOCK_OR_DELEGATE
-		STARPU_PTHREAD_MUTEX_UNLOCK(&arbiter->mutex);
-#endif
-
 		/* No waiter, just remove our reference */
 		_starpu_spin_lock(&handle->header_lock);
 		STARPU_ASSERT(handle->refcnt > 0);
