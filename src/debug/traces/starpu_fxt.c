@@ -563,7 +563,7 @@ struct worker_entry
 
 static int register_thread(unsigned long tid, int workerid, int sync)
 {
-	struct worker_entry *entry;
+	struct worker_entry *entry = NULL;
 
 	HASH_FIND(hh, worker_ids, &tid, sizeof(tid), entry);
 
