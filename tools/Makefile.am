@@ -155,6 +155,7 @@ EXTRA_DIST =				\
 	dev/tsan/starpu.suppr		\
 	dev/lsan/libc.suppr		\
 	dev/lsan/openmpi.suppr		\
+	dev/sonarqube/sonar-scanner.sh	\
 	perfmodels/README		\
 	perfmodels/cluster.xml		\
 	perfmodels/hostfile		\
