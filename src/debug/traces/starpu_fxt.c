@@ -1030,6 +1030,17 @@ static void handle_new_mem_node(struct fxt_ev_64 *ev, struct starpu_fxt_options 
 	}
 }
 
+/*
+ * Function that creates a synthetic stream id based on the order they appear from the trace
+ */
+static int create_ordered_stream_id (int nodeid, int devid)
+{
+	static int stable[STARPU_MAXNODES][STARPU_MAXCUDADEVS];
+	STARPU_ASSERT(nodeid < STARPU_MAXNODES);
+	STARPU_ASSERT(devid < STARPU_MAXCUDADEVS);
+	return stable[nodeid][devid]++;
+}
+
 static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	/*
@@ -1120,7 +1131,14 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 		char new_thread_container_name[STARPU_POTI_STR_LEN];
 		snprintf(new_thread_container_name, STARPU_POTI_STR_LEN, "%s%d", prefix, bindid);
 		char new_worker_container_name[STARPU_POTI_STR_LEN];
-		snprintf(new_worker_container_name, STARPU_POTI_STR_LEN, "%s%s%d", prefix, kindstr, devid);
+		if (arch.devices[0].type == STARPU_CUDA_WORKER){
+		  // If CUDA, workers might be streams, so create an unique name for each of them
+		  int streamid = create_ordered_stream_id (nodeid, devid);
+		  snprintf(new_worker_container_name, STARPU_POTI_STR_LEN, "%s%s%d_%d", prefix, kindstr, devid, streamid);
+		}else{
+		  // If not CUDA, we suppose worker name is the prefix, the kindstr, and the devid
+		  snprintf(new_worker_container_name, STARPU_POTI_STR_LEN, "%s%s%d", prefix, kindstr, devid);
+		}
 		if (new_thread)
 			poti_CreateContainer(now, new_thread_container_alias, "T", memnode_container, new_thread_container_name);
 		poti_CreateContainer(now, new_worker_container_alias, "W", new_thread_container_alias, new_worker_container_name);
