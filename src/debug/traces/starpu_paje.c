@@ -202,7 +202,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 	poti_DefineEntityValue("No", "MS", "Nothing", ".0 .0 .0");
 
 	/* Types for the Worker of the Memory Node */
-	poti_DefineEventType("user_event", "T", "user event type");
+	poti_DefineEventType("user_event", "P", "user event type");
 	poti_DefineEventType("thread_event", "T", "thread event type");
 	poti_DefineVariableType("gf", "W", "GFlops", "0 0 0");
 	poti_DefineStateType("S", "T", "Thread State");
@@ -323,7 +323,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 1       Sc       P       \"Scheduler State\"                        \n\
 2       prog_event   P       \"program event type\"				\n\
 2       register     P       \"data registration\"				\n\
-2       user_event   T       \"user event type\"				\n\
+2       user_event   P       \"user event type\"				\n\
 2       thread_event   T       \"thread event type\"				\n\
 2       user_user_event   UT       \"user event type\"				\n\
 2       user_thread_event   UT       \"thread event type\"				\n\
