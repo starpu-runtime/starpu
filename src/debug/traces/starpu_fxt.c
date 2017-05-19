@@ -985,13 +985,13 @@ static void handle_new_mem_node(struct fxt_ev_64 *ev, struct starpu_fxt_options 
 		if (!options->no_bus)
 		{
 #ifdef STARPU_HAVE_POTI
-			poti_SetVariable(0.0, new_memmanager_container_alias, "use", 0.0);
-			poti_SetVariable(0.0, new_memmanager_container_alias, "bwi_mm", 0.0);
-			poti_SetVariable(0.0, new_memmanager_container_alias, "bwo_mm", 0.0);
+			poti_SetVariable(now, new_memmanager_container_alias, "use", 0.0);
+			poti_SetVariable(now, new_memmanager_container_alias, "bwi_mm", 0.0);
+			poti_SetVariable(now, new_memmanager_container_alias, "bwo_mm", 0.0);
 #else
-			fprintf(out_paje_file, "13	%.9f	%smm%"PRIu64"	use	0.0\n", 0.0, prefix, ev->param[0]);
-			fprintf(out_paje_file, "13	%.9f	%smm%"PRIu64"	bwi_mm	0.0\n", 0.0, prefix, ev->param[0]);
-			fprintf(out_paje_file, "13	%.9f	%smm%"PRIu64"	bwo_mm	0.0\n", 0.0, prefix, ev->param[0]);
+			fprintf(out_paje_file, "13	%.9f	%smm%"PRIu64"	use	0.0\n", now, prefix, ev->param[0]);
+			fprintf(out_paje_file, "13	%.9f	%smm%"PRIu64"	bwi_mm	0.0\n", now, prefix, ev->param[0]);
+			fprintf(out_paje_file, "13	%.9f	%smm%"PRIu64"	bwo_mm	0.0\n", now, prefix, ev->param[0]);
 #endif
 		}
 	}
