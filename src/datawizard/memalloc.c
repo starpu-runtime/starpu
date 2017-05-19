@@ -442,6 +442,8 @@ static void reuse_mem_chunk(unsigned node, struct _starpu_data_replicate *new_re
 	struct _starpu_data_replicate *old_replicate = mc->replicate;
 	if (old_replicate)
 	{
+		if (node == STARPU_MAIN_RAM)
+			_starpu_data_unregister_ram_pointer(old_replicate->handle);
 		old_replicate->allocated = 0;
 		old_replicate->automatically_allocated = 0;
 		old_replicate->initialized = 0;
