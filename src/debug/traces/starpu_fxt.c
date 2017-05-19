@@ -23,6 +23,9 @@
 #ifdef STARPU_HAVE_POTI
 #include <poti.h>
 #define STARPU_POTI_STR_LEN 200
+#ifdef HAVE_POTI_INIT_CUSTOM
+extern int extendedSetState;
+#endif
 #endif
 
 #ifdef STARPU_USE_FXT
@@ -817,8 +820,38 @@ static void worker_set_detailed_state(double time, const char *prefix, long unsi
 #ifdef STARPU_HAVE_POTI
 	char container[STARPU_POTI_STR_LEN];
 	worker_container_alias(container, STARPU_POTI_STR_LEN, prefix, workerid);
-	/* TODO: set detailed state */
-	poti_SetState(time, container, "WS", name);
+	char size_str[STARPU_POTI_STR_LEN];
+	char parameters_str[STARPU_POTI_STR_LEN];
+	char footprint_str[STARPU_POTI_STR_LEN];
+	char tag_str[STARPU_POTI_STR_LEN];
+	char jobid_str[STARPU_POTI_STR_LEN];
+	char gflop_str[STARPU_POTI_STR_LEN];
+	char X_str[STARPU_POTI_STR_LEN], Y_str[STARPU_POTI_STR_LEN], Z_str[STARPU_POTI_STR_LEN];
+	char iteration_str[STARPU_POTI_STR_LEN], subiteration_str[STARPU_POTI_STR_LEN];
+
+	snprintf(size_str, STARPU_POTI_STR_LEN, "%lu", size);
+	snprintf(parameters_str, STARPU_POTI_STR_LEN, "%s", parameters);
+	snprintf(footprint_str, STARPU_POTI_STR_LEN, "%08lx", footprint);
+	snprintf(tag_str, STARPU_POTI_STR_LEN, "%016llx", tag);
+	snprintf(jobid_str, STARPU_POTI_STR_LEN, "%s%lu", prefix, job_id);
+	snprintf(gflop_str, STARPU_POTI_STR_LEN, "%f", gflop);
+	snprintf(X_str, STARPU_POTI_STR_LEN, "%u", X);
+	snprintf(Y_str, STARPU_POTI_STR_LEN, "%u", Y);
+	snprintf(Z_str, STARPU_POTI_STR_LEN, "%u", Z);
+	snprintf(iteration_str, STARPU_POTI_STR_LEN, "%ld", iteration);
+	snprintf(subiteration_str, STARPU_POTI_STR_LEN, "%ld", subiteration);
+
+	poti_user_SetState(extendedSetState, time, container, "WS", name, 11, size_str,
+			   parameters_str,
+			   footprint_str,
+			   tag_str,
+			   jobid_str,
+			   gflop_str,
+			   X_str,
+			   Y_str,
+			   Z_str,
+			   iteration_str,
+			   subiteration_str);
 #else
 	fprintf(out_paje_file, "20	%.9f	%sw%lu	WS	%s	%lu	%s	%08lx	%016llx	%s%lu	%f	%u	%u	%u	%ld	%ld\n", time, prefix, workerid, name, size, parameters, footprint, tag, prefix, job_id, gflop, X, Y, Z, iteration, subiteration);
 #endif
