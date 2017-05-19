@@ -1073,6 +1073,7 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 		default:
 			STARPU_ABORT();
 	}
+	double now = get_event_time_stamp(ev, options);
 
 	if (out_paje_file)
 	{
@@ -1088,16 +1089,16 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 		char new_worker_container_name[STARPU_POTI_STR_LEN];
 		snprintf(new_worker_container_name, STARPU_POTI_STR_LEN, "%s%s%d", prefix, kindstr, devid);
 		if (new_thread)
-			poti_CreateContainer(get_event_time_stamp(ev, options), new_thread_container_alias, "T", memnode_container, new_thread_container_name);
-		poti_CreateContainer(get_event_time_stamp(ev, options), new_worker_container_alias, "W", new_thread_container_alias, new_worker_container_name);
+			poti_CreateContainer(now, new_thread_container_alias, "T", memnode_container, new_thread_container_name);
+		poti_CreateContainer(now, new_worker_container_alias, "W", new_thread_container_alias, new_worker_container_name);
 		if (!options->no_flops)
 			poti_SetVariable(0.0, new_worker_container_alias, "gf", 0.0);
 #else
 		if (new_thread)
 			fprintf(out_paje_file, "7	%.9f	%st%lu	T	%smn%d	%s%d\n",
-				get_event_time_stamp(ev, options), prefix, threadid, prefix, nodeid, prefix, bindid);
+				now, prefix, threadid, prefix, nodeid, prefix, bindid);
 		fprintf(out_paje_file, "7	%.9f	%sw%d	W	%st%lu	%s%s%d\n",
-			get_event_time_stamp(ev, options), prefix, workerid, prefix, threadid, prefix, kindstr, devid);
+			now, prefix, workerid, prefix, threadid, prefix, kindstr, devid);
 		if (!options->no_flops)
 			fprintf(out_paje_file, "13	%.9f	%sw%d	gf	0.0\n",
 				0.0, prefix, workerid);
@@ -1106,9 +1107,9 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 
 	/* start initialization */
 	if (out_paje_file)
-		thread_set_state(get_event_time_stamp(ev, options), prefix, threadid, "In");
+		thread_set_state(now, prefix, threadid, "In");
 	if (trace_file)
-		recfmt_thread_set_state(get_event_time_stamp(ev, options), threadid, "In", "Runtime");
+		recfmt_thread_set_state(now, threadid, "In", "Runtime");
 
 	if (activity_file)
 		fprintf(activity_file, "name\t%d\t%s %d\n", workerid, kindstr, devid);
