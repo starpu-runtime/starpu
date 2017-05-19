@@ -22,12 +22,31 @@
 
 #ifdef STARPU_USE_FXT
 
+#ifdef STARPU_HAVE_POTI
+#ifdef HAVE_POTI_INIT_CUSTOM
+int extendedSetState = -1;
+#endif
+#endif
+
 void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 {
 	unsigned i;
 #ifdef STARPU_HAVE_POTI
 #ifdef HAVE_POTI_INIT_CUSTOM
 	poti_header();     /* see poti_init_custom to customize the header */
+	extendedSetState = poti_header_DeclareEvent (PAJE_SetState,
+						     11,
+						     "Size string",
+						     "Params string",
+						     "Footprint string",
+						     "Tag string",
+						     "JobId string",
+						     "GFlop string",
+						     "X string",
+						     "Y string",
+						     "Z string",
+						     "Iteration string",
+						     "Subiteration string");
 #else
 	poti_header(1,1);
 #endif
