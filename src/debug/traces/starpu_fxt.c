@@ -26,6 +26,8 @@
 #ifdef HAVE_POTI_INIT_CUSTOM
 extern int extendedSetState;
 #endif
+#else
+#define STARPU_TRACE_STR_LEN 200
 #endif
 
 #ifdef STARPU_USE_FXT
@@ -1121,6 +1123,15 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 
 	if (out_paje_file)
 	{
+		char new_worker_container_name[STARPU_TRACE_STR_LEN];
+		if (arch.devices[0].type == STARPU_CUDA_WORKER){
+		  // If CUDA, workers might be streams, so create an unique name for each of them
+		  int streamid = create_ordered_stream_id (nodeid, devid);
+		  snprintf(new_worker_container_name, STARPU_TRACE_STR_LEN, "%s%s%d_%d", prefix, kindstr, devid, streamid);
+		}else{
+		  // If not CUDA, we suppose worker name is the prefix, the kindstr, and the devid
+		  snprintf(new_worker_container_name, STARPU_TRACE_STR_LEN, "%s%s%d", prefix, kindstr, devid);
+		}
 #ifdef STARPU_HAVE_POTI
 		char new_thread_container_alias[STARPU_POTI_STR_LEN];
 		thread_container_alias (new_thread_container_alias, STARPU_POTI_STR_LEN, prefix, threadid);
@@ -1130,15 +1141,6 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 		memnode_container_alias(memnode_container, STARPU_POTI_STR_LEN, prefix, nodeid);
 		char new_thread_container_name[STARPU_POTI_STR_LEN];
 		snprintf(new_thread_container_name, STARPU_POTI_STR_LEN, "%s%d", prefix, bindid);
-		char new_worker_container_name[STARPU_POTI_STR_LEN];
-		if (arch.devices[0].type == STARPU_CUDA_WORKER){
-		  // If CUDA, workers might be streams, so create an unique name for each of them
-		  int streamid = create_ordered_stream_id (nodeid, devid);
-		  snprintf(new_worker_container_name, STARPU_POTI_STR_LEN, "%s%s%d_%d", prefix, kindstr, devid, streamid);
-		}else{
-		  // If not CUDA, we suppose worker name is the prefix, the kindstr, and the devid
-		  snprintf(new_worker_container_name, STARPU_POTI_STR_LEN, "%s%s%d", prefix, kindstr, devid);
-		}
 		if (new_thread)
 			poti_CreateContainer(now, new_thread_container_alias, "T", memnode_container, new_thread_container_name);
 		poti_CreateContainer(now, new_worker_container_alias, "W", new_thread_container_alias, new_worker_container_name);
@@ -1148,8 +1150,8 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 		if (new_thread)
 			fprintf(out_paje_file, "7	%.9f	%st%lu	T	%smn%d	%s%d\n",
 				now, prefix, threadid, prefix, nodeid, prefix, bindid);
-		fprintf(out_paje_file, "7	%.9f	%sw%d	W	%st%lu	%s%s%d\n",
-			now, prefix, workerid, prefix, threadid, prefix, kindstr, devid);
+		fprintf(out_paje_file, "7	%.9f	%sw%d	W	%st%lu	%s\n",
+			now, prefix, workerid, prefix, threadid, new_worker_container_name);
 		if (!options->no_flops)
 			fprintf(out_paje_file, "13	%.9f	%sw%d	gf	0.0\n",
 				now, prefix, workerid);
