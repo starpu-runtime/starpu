@@ -1092,7 +1092,7 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 			poti_CreateContainer(now, new_thread_container_alias, "T", memnode_container, new_thread_container_name);
 		poti_CreateContainer(now, new_worker_container_alias, "W", new_thread_container_alias, new_worker_container_name);
 		if (!options->no_flops)
-			poti_SetVariable(0.0, new_worker_container_alias, "gf", 0.0);
+			poti_SetVariable(now, new_worker_container_alias, "gf", 0.0);
 #else
 		if (new_thread)
 			fprintf(out_paje_file, "7	%.9f	%st%lu	T	%smn%d	%s%d\n",
@@ -1101,7 +1101,7 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 			now, prefix, workerid, prefix, threadid, prefix, kindstr, devid);
 		if (!options->no_flops)
 			fprintf(out_paje_file, "13	%.9f	%sw%d	gf	0.0\n",
-				0.0, prefix, workerid);
+				now, prefix, workerid);
 #endif
 	}
 
