@@ -26,9 +26,8 @@
 #ifdef HAVE_POTI_INIT_CUSTOM
 extern int extendedSetState;
 #endif
-#else
-#define STARPU_TRACE_STR_LEN 200
 #endif
+#define STARPU_TRACE_STR_LEN 200
 
 #ifdef STARPU_USE_FXT
 #include "starpu_fxt.h"
