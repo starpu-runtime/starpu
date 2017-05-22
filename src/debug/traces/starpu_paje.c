@@ -299,7 +299,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 		char inctx[10];
 		snprintf(inctx, sizeof(inctx), "InCtx%u", i);
 		char *ctx = inctx+2;
-		poti_DefineStateType(ctx, "T", inctx);
+		poti_DefineStateType(ctx, "W", inctx);
 		poti_DefineEntityValue("I", ctx, "Idle", ".9 .1 .0");
 		poti_DefineEntityValue("In", ctx, "Initializing", "0.0 .7 1.0");
 		poti_DefineEntityValue("D", ctx, "Deinitializing", "0.0 .1 .7");
@@ -350,7 +350,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 3       S       T       \"Thread State\"                        \n\
 3       CtS     MPICt    \"Communication Thread State\"          \n");
 	for (i=1; i<STARPU_NMAX_SCHED_CTXS; i++)
-		fprintf(file, "3       Ctx%u      T     \"InCtx%u\"         		\n", i, i);
+		fprintf(file, "3       Ctx%u      W     \"InCtx%u\"         		\n", i, i);
 	fprintf(file, "\
 2       invalidate Mm \"data invalidation\"                            \n\
 3       MS       Mm       \"Memory Node State\"                        \n\
