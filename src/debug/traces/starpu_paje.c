@@ -25,6 +25,7 @@
 #ifdef STARPU_HAVE_POTI
 #ifdef HAVE_POTI_INIT_CUSTOM
 int extendedSetState = -1;
+int semiExtendedSetState = -1;
 #endif
 #endif
 
@@ -47,6 +48,13 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 						     "Z string",
 						     "Iteration string",
 						     "Subiteration string");
+	semiExtendedSetState = poti_header_DeclareEvent (PAJE_SetState,
+						     5,
+						     "Size string",
+						     "Params string",
+						     "Footprint string",
+						     "Tag string",
+						     "JobId string");
 #else
 	poti_header(1,1);
 #endif
