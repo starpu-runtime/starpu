@@ -595,6 +595,9 @@ static int register_worker_id(unsigned long nodeid, unsigned long tid, int worke
 }
 static int prefixTOnodeid (const char *prefix)
 {
+	//if we are a single-node trace, prefix is empty, so return 0
+	if (strcmp(prefix, "")==0) return 0;
+
 	char *str = malloc(sizeof(char)*strlen(prefix));
 	strncpy (str, prefix, strlen(prefix));
 	str[strlen(prefix)-1] = '\0';
