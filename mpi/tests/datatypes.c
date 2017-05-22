@@ -164,6 +164,7 @@ void send_recv_and_check(int rank, int node, starpu_data_handle_t handle_s, int 
 		ret = starpu_mpi_recv(handle_r, node, tag_r, MPI_COMM_WORLD, &status);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_recv");
 
+		assert(func);
 		func(handle_s, handle_r, error);
 	}
 	else if (rank == 1)
