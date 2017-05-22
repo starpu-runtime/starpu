@@ -228,6 +228,18 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, unsigned n)
 	char mpi_container[STARPU_POTI_STR_LEN];
 #endif
 
+	for (node = 0; node < n ; node++)
+	{
+#ifdef STARPU_HAVE_POTI
+		snprintf(mpi_container, sizeof(mpi_container), "%u_mpict", node);
+		poti_SetVariable(0., mpi_container, "bwi_mpi", 0.);
+		poti_SetVariable(0., mpi_container, "bwo_mpi", 0.);
+#else
+		fprintf(out_paje_file, "13	%.9f	%u_mpict	bwi_mpi	%f\n", 0., node, 0.);
+		fprintf(out_paje_file, "13	%.9f	%u_mpict	bwo_mpi	%f\n", 0., node, 0.);
+#endif
+	}
+
 	mpi_transfer_list_init(&pending_receives);
 
 	while (1)
