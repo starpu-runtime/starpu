@@ -25,6 +25,7 @@
 #define STARPU_POTI_STR_LEN 200
 #ifdef HAVE_POTI_INIT_CUSTOM
 extern int extendedSetState;
+extern int semiExtendedSetState;
 #endif
 #endif
 #define STARPU_TRACE_STR_LEN 200
@@ -1560,10 +1561,29 @@ static void handle_codelet_details(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 		{
 #ifdef STARPU_HAVE_POTI
 			char container[STARPU_POTI_STR_LEN];
-			char ctx[6];
-			snprintf(ctx, sizeof(ctx), "Ctx%u", sched_ctx);
+			char typectx[STARPU_POTI_STR_LEN];
+			snprintf(typectx, STARPU_POTI_STR_LEN, "Ctx%u", sched_ctx);
 			worker_container_alias(container, STARPU_POTI_STR_LEN, prefix, worker);
-			poti_SetState(last_codelet_start[worker], container, ctx, _starpu_last_codelet_symbol[worker]);
+			poti_SetState(last_codelet_start[worker], container, typectx, _starpu_last_codelet_symbol[worker]);
+			char name[STARPU_POTI_STR_LEN];
+			snprintf(name, STARPU_POTI_STR_LEN, "%s", _starpu_last_codelet_symbol[worker]);
+			char size_str[STARPU_POTI_STR_LEN];
+			char parameters_str[STARPU_POTI_STR_LEN];
+			char footprint_str[STARPU_POTI_STR_LEN];
+			char tag_str[STARPU_POTI_STR_LEN];
+			char jobid_str[STARPU_POTI_STR_LEN];
+
+			snprintf(size_str, STARPU_POTI_STR_LEN, "%ld", ev->param[1]);
+			snprintf(parameters_str, STARPU_POTI_STR_LEN, "%s", parameters);
+			snprintf(footprint_str, STARPU_POTI_STR_LEN, "%08lx", ev->param[2]);
+			snprintf(tag_str, STARPU_POTI_STR_LEN, "%016lx", ev->param[4]);
+			snprintf(jobid_str, STARPU_POTI_STR_LEN, "%s%lu", prefix, job_id);
+
+			poti_user_SetState(semiExtendedSetState, last_codelet_start[worker], container, typectx, name, 5, size_str,
+					   parameters_str,
+					   footprint_str,
+					   tag_str,
+					   jobid_str);
 #else
 			fprintf(out_paje_file, "21	%.9f	%sw%d	Ctx%u	%s	%ld	%s	%08lx	%016lx	%lu\n", last_codelet_start[worker], prefix, worker, sched_ctx, _starpu_last_codelet_symbol[worker], ev->param[1], parameters,  ev->param[2], ev->param[4], job_id);
 #endif
