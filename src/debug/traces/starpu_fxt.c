@@ -1585,7 +1585,7 @@ static void handle_codelet_details(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 					   tag_str,
 					   jobid_str);
 #else
-			fprintf(out_paje_file, "21	%.9f	%sw%d	Ctx%u	%s	%ld	%s	%08lx	%016lx	%lu\n", last_codelet_start[worker], prefix, worker, sched_ctx, _starpu_last_codelet_symbol[worker], ev->param[1], parameters,  ev->param[2], ev->param[4], job_id);
+			fprintf(out_paje_file, "21	%.9f	%sw%d	Ctx%u	%s	%ld	%s	%08lx	%016lx	%s%lu\n", last_codelet_start[worker], prefix, worker, sched_ctx, _starpu_last_codelet_symbol[worker], ev->param[1], parameters,  ev->param[2], ev->param[4], prefix, job_id);
 #endif
 		}
 	}
