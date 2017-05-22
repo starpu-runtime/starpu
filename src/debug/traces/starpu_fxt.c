@@ -1157,7 +1157,7 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 		char memnode_container[STARPU_POTI_STR_LEN];
 		memnode_container_alias(memnode_container, STARPU_POTI_STR_LEN, prefix, nodeid);
 		char new_thread_container_name[STARPU_POTI_STR_LEN];
-		snprintf(new_thread_container_name, STARPU_POTI_STR_LEN, "%s%d", prefix, bindid);
+		snprintf(new_thread_container_name, STARPU_POTI_STR_LEN, "%sT%d", prefix, bindid);
 		if (new_thread)
 			poti_CreateContainer(now, new_thread_container_alias, "T", memnode_container, new_thread_container_name);
 		poti_CreateContainer(now, new_worker_container_alias, "W", new_thread_container_alias, new_worker_container_name);
@@ -1165,7 +1165,7 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 			poti_SetVariable(now, new_worker_container_alias, "gf", 0.0);
 #else
 		if (new_thread)
-			fprintf(out_paje_file, "7	%.9f	%st%lu	T	%smn%d	%s%d\n",
+			fprintf(out_paje_file, "7	%.9f	%st%lu	T	%smn%d	%sT%d\n",
 				now, prefix, threadid, prefix, nodeid, prefix, bindid);
 		fprintf(out_paje_file, "7	%.9f	%sw%d	W	%st%lu	%s\n",
 			now, prefix, workerid, prefix, threadid, new_worker_container_name);
