@@ -2994,7 +2994,7 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 		fprintf(out_paje_file, "7	0.0	%sp	P	MPIroot	%sprogram \n", prefix, prefix);
 		if (!options->no_counter || !options->no_flops)
 		{
-			fprintf(out_paje_file, "7	%.9f	%ssched	Sc	%sp	%sscheduler\n", 0.0, prefix, prefix, prefix);
+			fprintf(out_paje_file, "7	0.0	%ssched	Sc	%sp	%sscheduler\n", prefix, prefix, prefix);
 		}
 		if (!options->no_counter)
 		{
