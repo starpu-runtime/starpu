@@ -62,6 +62,9 @@ void _starpu_fxt_display_mpi_transfers(struct starpu_fxt_options *options, int *
 
 void _starpu_fxt_write_paje_header(FILE *file);
 
+extern int _starpu_poti_extendedSetState;
+extern int _starpu_poti_semiExtendedSetState;
+
 /*
  * Animation
  */

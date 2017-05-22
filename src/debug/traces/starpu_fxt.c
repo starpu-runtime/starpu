@@ -23,10 +23,6 @@
 #ifdef STARPU_HAVE_POTI
 #include <poti.h>
 #define STARPU_POTI_STR_LEN 200
-#ifdef HAVE_POTI_INIT_CUSTOM
-extern int extendedSetState;
-extern int semiExtendedSetState;
-#endif
 #endif
 #define STARPU_TRACE_STR_LEN 200
 
@@ -861,7 +857,7 @@ static void worker_set_detailed_state(double time, const char *prefix, long unsi
 	snprintf(iteration_str, STARPU_POTI_STR_LEN, "%ld", iteration);
 	snprintf(subiteration_str, STARPU_POTI_STR_LEN, "%ld", subiteration);
 
-	poti_user_SetState(extendedSetState, time, container, "WS", name, 11, size_str,
+	poti_user_SetState(_starpu_poti_extendedSetState, time, container, "WS", name, 11, size_str,
 			   parameters_str,
 			   footprint_str,
 			   tag_str,
@@ -1579,7 +1575,7 @@ static void handle_codelet_details(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 			snprintf(tag_str, STARPU_POTI_STR_LEN, "%016lx", ev->param[4]);
 			snprintf(jobid_str, STARPU_POTI_STR_LEN, "%s%lu", prefix, job_id);
 
-			poti_user_SetState(semiExtendedSetState, last_codelet_start[worker], container, typectx, name, 5, size_str,
+			poti_user_SetState(_starpu_poti_semiExtendedSetState, last_codelet_start[worker], container, typectx, name, 5, size_str,
 					   parameters_str,
 					   footprint_str,
 					   tag_str,

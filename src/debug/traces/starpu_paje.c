@@ -24,8 +24,8 @@
 
 #ifdef STARPU_HAVE_POTI
 #ifdef HAVE_POTI_INIT_CUSTOM
-int extendedSetState = -1;
-int semiExtendedSetState = -1;
+int _starpu_poti_extendedSetState = -1;
+int _starpu_poti_semiExtendedSetState = -1;
 #endif
 #endif
 
@@ -35,7 +35,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 #ifdef STARPU_HAVE_POTI
 #ifdef HAVE_POTI_INIT_CUSTOM
 	poti_header();     /* see poti_init_custom to customize the header */
-	extendedSetState = poti_header_DeclareEvent (PAJE_SetState,
+	_starpu_poti_extendedSetState = poti_header_DeclareEvent (PAJE_SetState,
 						     11,
 						     "Size string",
 						     "Params string",
@@ -48,7 +48,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 						     "Z string",
 						     "Iteration string",
 						     "Subiteration string");
-	semiExtendedSetState = poti_header_DeclareEvent (PAJE_SetState,
+	_starpu_poti_semiExtendedSetState = poti_header_DeclareEvent (PAJE_SetState,
 						     5,
 						     "Size string",
 						     "Params string",
