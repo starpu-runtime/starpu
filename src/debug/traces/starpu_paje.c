@@ -170,6 +170,17 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 	fprintf(file, "%%	Iteration	string\n");
 	fprintf(file, "%%	Subiteration	string\n");
 	fprintf(file, "%%EndEventDef\n");
+	fprintf(file, "%%EventDef PajeSetState 21\n");
+	fprintf(file, "%%	Time	date\n");
+	fprintf(file, "%%	Container	string\n");
+	fprintf(file, "%%	Type	string\n");
+	fprintf(file, "%%	Value	string\n");
+	fprintf(file, "%%	Size	string\n");
+	fprintf(file, "%%	Params	string\n");
+	fprintf(file, "%%	Footprint	string\n");
+	fprintf(file, "%%	Tag	string\n");
+	fprintf(file, "%%	JobId	string\n");
+	fprintf(file, "%%EndEventDef\n");
 #endif
 
 #ifdef STARPU_HAVE_POTI
