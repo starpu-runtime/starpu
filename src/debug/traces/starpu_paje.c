@@ -456,7 +456,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 5       IF      P	Mm	Mm      \"Intra-node data IdleFetch\"\n\
 5       WSL     P	W	W       \"Work steal\"\n");
 
-	fprintf(file, "7      0.0 MPIroot      MPIP      0       root\n");
+	fprintf(file, "7	0.0 MPIroot      MPIP      0       root\n");
 #endif
 }
 
