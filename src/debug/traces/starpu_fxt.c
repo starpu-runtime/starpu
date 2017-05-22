@@ -1138,13 +1138,16 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 	if (out_paje_file)
 	{
 		char new_worker_container_name[STARPU_TRACE_STR_LEN];
-		if (arch.devices[0].type == STARPU_CUDA_WORKER){
-		  // If CUDA, workers might be streams, so create an unique name for each of them
-		  int streamid = create_ordered_stream_id (nodeid, devid);
-		  snprintf(new_worker_container_name, STARPU_TRACE_STR_LEN, "%s%s%d_%d", prefix, kindstr, devid, streamid);
-		}else{
-		  // If not CUDA, we suppose worker name is the prefix, the kindstr, and the devid
-		  snprintf(new_worker_container_name, STARPU_TRACE_STR_LEN, "%s%s%d", prefix, kindstr, devid);
+		if (arch.devices[0].type == STARPU_CUDA_WORKER)
+		{
+			// If CUDA, workers might be streams, so create an unique name for each of them
+			int streamid = create_ordered_stream_id (nodeid, devid);
+			snprintf(new_worker_container_name, STARPU_TRACE_STR_LEN, "%s%s%d_%d", prefix, kindstr, devid, streamid);
+		}
+		else
+		{
+			// If not CUDA, we suppose worker name is the prefix, the kindstr, and the devid
+			snprintf(new_worker_container_name, STARPU_TRACE_STR_LEN, "%s%s%d", prefix, kindstr, devid);
 		}
 #ifdef STARPU_HAVE_POTI
 		char new_thread_container_alias[STARPU_POTI_STR_LEN];
@@ -1546,7 +1549,6 @@ static void handle_codelet_details(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 
 	if (out_paje_file)
 	{
-
 		char *prefix = options->file_prefix;
 		unsigned sched_ctx = ev->param[0];
 
@@ -1612,17 +1614,21 @@ static void handle_end_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 #ifdef STARPU_HAVE_POTI
 		char container[STARPU_POTI_STR_LEN];
 		worker_container_alias(container, STARPU_POTI_STR_LEN, prefix, worker);
-		if (gflops_start != last_end_codelet_time){
-			if (last_end_codelet_time != 0){
+		if (gflops_start != last_end_codelet_time)
+		{
+			if (last_end_codelet_time != 0)
+			{
 				poti_SetVariable(last_end_codelet_time, container, "gf", 0.);
 			}
 		}
 		poti_SetVariable(gflops_start, container, "gf", gflops);
 #else
-		if (gflops_start != last_end_codelet_time){
-			if (last_end_codelet_time != 0){
+		if (gflops_start != last_end_codelet_time)
+		{
+			if (last_end_codelet_time != 0)
+			{
 				fprintf(out_paje_file, "13	%.9f	%sw%d	gf	%f\n",
-						last_end_codelet_time, prefix, worker, 0.);
+					last_end_codelet_time, prefix, worker, 0.);
 			}
 		}
 		fprintf(out_paje_file, "13	%.9f	%sw%d	gf	%f\n",
