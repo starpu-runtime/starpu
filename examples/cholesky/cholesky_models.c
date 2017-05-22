@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010-2011, 2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2017  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -51,7 +51,7 @@ double cpu_chol_task_11_cost(struct starpu_task *task, struct starpu_perfmodel_a
 	double cost = (((double)(n)*n*n)/1000.0f*0.894/0.79176);
 
 #ifdef STARPU_MODEL_DEBUG
-	FPRINTF(stdout, "cpu_chol_task_11_cost n %d cost %e\n", n, cost);
+	FPRINTF(stdout, "cpu_chol_task_11_cost n %u cost %e\n", n, cost);
 #endif
 
 	return PERTURBATE(cost);
@@ -66,7 +66,7 @@ double cuda_chol_task_11_cost(struct starpu_task *task, struct starpu_perfmodel_
 	double cost = (((double)(n)*n*n)/50.0f/10.75/5.088633/0.9883);
 
 #ifdef STARPU_MODEL_DEBUG
-	FPRINTF(stdout, "cuda_chol_task_11_cost n %d cost %e\n", n, cost);
+	FPRINTF(stdout, "cuda_chol_task_11_cost n %u cost %e\n", n, cost);
 #endif
 
 	return PERTURBATE(cost);
@@ -81,7 +81,7 @@ double cpu_chol_task_21_cost(struct starpu_task *task, struct starpu_perfmodel_a
 	double cost = (((double)(n)*n*n)/7706.674/0.95/0.9965);
 
 #ifdef STARPU_MODEL_DEBUG
-	FPRINTF(stdout, "cpu_chol_task_21_cost n %d cost %e\n", n, cost);
+	FPRINTF(stdout, "cpu_chol_task_21_cost n %u cost %e\n", n, cost);
 #endif
 
 	return PERTURBATE(cost);
@@ -96,7 +96,7 @@ double cuda_chol_task_21_cost(struct starpu_task *task, struct starpu_perfmodel_
 	double cost = (((double)(n)*n*n)/50.0f/10.75/87.29520);
 
 #ifdef STARPU_MODEL_DEBUG
-	FPRINTF(stdout, "cuda_chol_task_21_cost n %d cost %e\n", n, cost);
+	FPRINTF(stdout, "cuda_chol_task_21_cost n %u cost %e\n", n, cost);
 #endif
 
 	return PERTURBATE(cost);
@@ -111,7 +111,7 @@ double cpu_chol_task_22_cost(struct starpu_task *task, struct starpu_perfmodel_a
 	double cost = (((double)(n)*n*n)/50.0f/10.75/8.0760);
 
 #ifdef STARPU_MODEL_DEBUG
-	FPRINTF(stdout, "cpu_chol_task_22_cost n %d cost %e\n", n, cost);
+	FPRINTF(stdout, "cpu_chol_task_22_cost n %u cost %e\n", n, cost);
 #endif
 
 	return PERTURBATE(cost);
@@ -126,7 +126,7 @@ double cuda_chol_task_22_cost(struct starpu_task *task, struct starpu_perfmodel_
 	double cost = (((double)(n)*n*n)/50.0f/10.75/76.30666);
 
 #ifdef STARPU_MODEL_DEBUG
-	FPRINTF(stdout, "cuda_chol_task_22_cost n %d cost %e\n", n, cost);
+	FPRINTF(stdout, "cuda_chol_task_22_cost n %u cost %e\n", n, cost);
 #endif
 
 	return PERTURBATE(cost);

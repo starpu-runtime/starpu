@@ -153,7 +153,7 @@ int main(int argc, char **argv)
 	if (rank == 1)
 	{
 		result = (comm_amount_with_cache[0] == comm_amount_without_cache[0] * 2);
-		FPRINTF_MPI(stderr, "Communication cache mechanism is %sworking (with cache: %ld) (without cache: %ld)\n", result?"":"NOT ", comm_amount_with_cache[0], comm_amount_without_cache[0]);
+		FPRINTF_MPI(stderr, "Communication cache mechanism is %sworking (with cache: %ld) (without cache: %ld)\n", result?"":"NOT ", (long)comm_amount_with_cache[0], (long)comm_amount_without_cache[0]);
 	}
 	else
 	{
