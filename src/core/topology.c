@@ -764,7 +764,6 @@ _starpu_get_next_bindid (struct _starpu_machine_config *config,
 {
 	struct _starpu_machine_topology *topology = &config->topology;
 
-	unsigned found = 0;
 	int current_preferred;
 	int nhyperthreads = topology->nhwpus / topology->nhwcpus;
 	unsigned i;
