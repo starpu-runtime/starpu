@@ -1144,7 +1144,7 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 		if (arch.devices[0].type == STARPU_CUDA_WORKER)
 		{
 			// If CUDA, workers might be streams, so create an unique name for each of them
-			int streamid = create_ordered_stream_id (nodeid, devid);
+			int streamid = create_ordered_stream_id (prefixTOnodeid(prefix), devid);
 			snprintf(new_worker_container_name, STARPU_TRACE_STR_LEN, "%s%s%d_%d", prefix, kindstr, devid, streamid);
 		}
 		else
