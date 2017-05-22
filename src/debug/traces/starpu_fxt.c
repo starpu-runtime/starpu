@@ -1565,7 +1565,7 @@ static void handle_codelet_details(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 			worker_container_alias(container, STARPU_POTI_STR_LEN, prefix, worker);
 			poti_SetState(last_codelet_start[worker], container, ctx, _starpu_last_codelet_symbol[worker]);
 #else
-			fprintf(out_paje_file, "20	%.9f	%sw%d	Ctx%u	%s	%ld	%s	%08lx	%016lx	%lu\n", last_codelet_start[worker], prefix, worker, sched_ctx, _starpu_last_codelet_symbol[worker], ev->param[1], parameters,  ev->param[2], ev->param[4], job_id);
+			fprintf(out_paje_file, "21	%.9f	%sw%d	Ctx%u	%s	%ld	%s	%08lx	%016lx	%lu\n", last_codelet_start[worker], prefix, worker, sched_ctx, _starpu_last_codelet_symbol[worker], ev->param[1], parameters,  ev->param[2], ev->param[4], job_id);
 #endif
 		}
 	}
