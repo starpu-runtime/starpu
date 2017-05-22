@@ -56,7 +56,8 @@ The arguments following the name of the scheduling context can be of
 the following types:
 <ul>
 <li> ::STARPU_SCHED_CTX_POLICY_NAME, followed by the name of a
-predefined scheduling policy
+predefined scheduling policy. Use an empty string to create the
+context with the default scheduling policy.
 </li>
 <li> ::STARPU_SCHED_CTX_POLICY_STRUCT, followed by a pointer to a
 custom scheduling policy (struct starpu_sched_policy *)
