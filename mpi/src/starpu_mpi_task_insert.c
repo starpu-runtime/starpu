@@ -38,7 +38,7 @@
 
 int _starpu_mpi_find_executee_node(starpu_data_handle_t data, enum starpu_data_access_mode mode, int me, int *do_execute, int *inconsistent_execute, int *xrank)
 {
-	if (mode & STARPU_W)
+	if (mode & STARPU_W || mode & STARPU_REDUX)
 	{
 		if (!data)
 		{
