@@ -787,6 +787,18 @@ if test x$enable_libnuma = xyes; then
 	AC_DEFINE(STARPU_HAVE_LIBNUMA,[1],[libnuma is available])
 fi
 
+AC_MSG_CHECKING(whether statement expressions are available)
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+#define maxint(a,b) ({int _a = (a), _b = (b); _a > _b ? _a : _b; })
+]],
+		[[ int x=maxint(12,42); ]])],
+		[statement_expressions="yes"],
+		[statement_expressions="no"])
+AC_MSG_RESULT($statement_expressions)
+if test x$statement_expressions = xyes; then
+	AC_DEFINE(STARPU_HAVE_STATEMENT_EXPRESSIONS,[1],[statement expressions are available])
+fi
+
 ###############################################################################
 #									      #
 #				SCHED_CTX settings			      #
