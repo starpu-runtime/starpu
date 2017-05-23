@@ -412,7 +412,7 @@ void fstarpu_codelet_set_where(struct starpu_codelet *cl, intptr_t where)
 
 void * fstarpu_variable_get_ptr(void *buffers[], int i)
 {
-	return (void *)STARPU_VECTOR_GET_PTR(buffers[i]);
+	return (void *)STARPU_VARIABLE_GET_PTR(buffers[i]);
 }
 
 void * fstarpu_vector_get_ptr(void *buffers[], int i)
