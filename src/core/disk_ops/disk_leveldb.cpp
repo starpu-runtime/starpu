@@ -310,7 +310,7 @@ static int get_leveldb_bandwidth_between_disk_and_main_ram(unsigned node)
 	_starpu_disk_free(node, mem, SIZE_DISK_MIN);
 	free(buf);
 
-	_starpu_save_bandwidth_and_latency_disk((NITER/timing_slowness)*1000000, (NITER/timing_slowness)*1000000,
+	_starpu_save_bandwidth_and_latency_disk((NITER/timing_slowness)*SIZE_DISK_MIN, (NITER/timing_slowness)*SIZE_DISK_MIN,
 					       timing_latency/NITER, timing_latency/NITER, node);
 	return 1;
 }
