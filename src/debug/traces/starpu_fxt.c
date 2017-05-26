@@ -2582,8 +2582,14 @@ static void handle_mpi_start(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 		mpicommthread_container_alias(new_mpicommthread_container_alias, STARPU_POTI_STR_LEN, prefix);
 		snprintf(new_mpicommthread_container_alias, STARPU_POTI_STR_LEN, "%smpict", prefix);
 		poti_CreateContainer(date, new_mpicommthread_container_alias, "MPICt", program_container, new_mpicommthread_container_alias);
+		//set bandwidth variables to zero when they start
+		poti_SetVariable(date, new_mpicommthread_container_alias, "bwi_mpi", 0.);
+		poti_SetVariable(date, new_mpicommthread_container_alias, "bwo_mpi", 0.);
 #else
 		fprintf(out_paje_file, "7	%.9f	%smpict		MPICt	%sp	%smpict\n", date, prefix, prefix, prefix);
+		//set bandwidth variables to zero when they start
+		fprintf(out_paje_file, "13	%.9f	%smpict	bwi_mpi	0.0\n", date, prefix);
+		fprintf(out_paje_file, "13	%.9f	%smpict	bwo_mpi	0.0\n", date, prefix);
 #endif
 		mpicommthread_set_state(date, prefix, "Sl");
 	}
