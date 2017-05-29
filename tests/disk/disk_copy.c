@@ -36,7 +36,7 @@
 /* size of one vector */
 #ifdef STARPU_QUICK_CHECK
 #  define	RAM	"1"
-#  define	DISK	2
+#  define	DISK	64
 #  define	NX	(256*1024/sizeof(double))
 #else
 #  define	NX	(32*1048576/sizeof(double))
