@@ -60,7 +60,7 @@ int dotest(struct starpu_disk_ops *ops, char *base)
 	strcat(path_file_end, name_file_end);
 
 	/* register a disk */
-	int new_dd = starpu_disk_register(ops, (void *) base, 1024*1024*1);
+	int new_dd = starpu_disk_register(ops, (void *) base, STARPU_DISK_SIZE_MIN);
 	/* can't write on /tmp/ */
 	if (new_dd == -ENOENT) goto enoent;
 
