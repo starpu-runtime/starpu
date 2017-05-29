@@ -51,7 +51,7 @@ export STARPU_DISK_SWAP_SIZE=200
 When the register function is called, StarPU will benchmark the disk. This can
 take some time.
 
-<strong>Warning: the size thus has to be at least 1 MB!</strong> 
+<strong>Warning: the size thus has to be at least \ref STARPU_DISK_SIZE_MIN bytes ! </strong> 
 
 StarPU will automatically try to evict unused data to this new disk. One can
 also use the standard StarPU memory node API, see the \ref API_Standard_Memory_Library

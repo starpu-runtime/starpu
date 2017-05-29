@@ -67,6 +67,8 @@ void *starpu_disk_open(unsigned node, void *pos, size_t size);
 
 int starpu_disk_register(struct starpu_disk_ops *func, void *parameter, starpu_ssize_t size);
 
+#define STARPU_DISK_SIZE_MIN (64*1024*1024)
+
 extern int starpu_disk_swap_node;
 
 #endif /* __STARPU_DISK_H__ */
