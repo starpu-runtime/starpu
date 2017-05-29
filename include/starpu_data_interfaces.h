@@ -174,13 +174,14 @@ uintptr_t starpu_matrix_get_local_ptr(starpu_data_handle_t handle);
 size_t starpu_matrix_get_elemsize(starpu_data_handle_t handle);
 
 #if defined(STARPU_HAVE_STATEMENT_EXPRESSIONS) && defined(STARPU_DEBUG)
-#define STARPU_MATRIX_GET_PTR(interface)	({ assert((((struct starpu_matrix_interface *)(interface))->id) == STARPU_MATRIX_INTERFACE_ID) ; (((struct starpu_matrix_interface *)(interface))->ptr) ; })
-#define STARPU_MATRIX_GET_DEV_HANDLE(interface)	({ assert((((struct starpu_matrix_interface *)(interface))->id) == STARPU_MATRIX_INTERFACE_ID) ; (((struct starpu_matrix_interface *)(interface))->dev_handle) ; })
-#define STARPU_MATRIX_GET_OFFSET(interface)	({ assert((((struct starpu_matrix_interface *)(interface))->id) == STARPU_MATRIX_INTERFACE_ID) ; (((struct starpu_matrix_interface *)(interface))->offset) ; })
-#define STARPU_MATRIX_GET_NX(interface)	        ({ assert((((struct starpu_matrix_interface *)(interface))->id) == STARPU_MATRIX_INTERFACE_ID) ; (((struct starpu_matrix_interface *)(interface))->nx) ; })
-#define STARPU_MATRIX_GET_NY(interface)	        ({ assert((((struct starpu_matrix_interface *)(interface))->id) == STARPU_MATRIX_INTERFACE_ID) ; (((struct starpu_matrix_interface *)(interface))->ny) ; })
-#define STARPU_MATRIX_GET_LD(interface)	        ({ assert((((struct starpu_matrix_interface *)(interface))->id) == STARPU_MATRIX_INTERFACE_ID) ; (((struct starpu_matrix_interface *)(interface))->ld) ; })
-#define STARPU_MATRIX_GET_ELEMSIZE(interface)	({ assert((((struct starpu_matrix_interface *)(interface))->id) == STARPU_MATRIX_INTERFACE_ID) ; (((struct starpu_matrix_interface *)(interface))->elemsize) ; })
+#define STARPU_MATRIX_CHECK(interface)          STARPU_ASSERT_MSG((((struct starpu_matrix_interface *)(interface))->id) == STARPU_MATRIX_INTERFACE_ID, "Error. The given data is not a matrix.")
+#define STARPU_MATRIX_GET_PTR(interface)	({ STARPU_MATRIX_CHECK(interface); (((struct starpu_matrix_interface *)(interface))->ptr) ; })
+#define STARPU_MATRIX_GET_DEV_HANDLE(interface)	({ STARPU_MATRIX_CHECK(interface); (((struct starpu_matrix_interface *)(interface))->dev_handle) ; })
+#define STARPU_MATRIX_GET_OFFSET(interface)	({ STARPU_MATRIX_CHECK(interface); (((struct starpu_matrix_interface *)(interface))->offset) ; })
+#define STARPU_MATRIX_GET_NX(interface)	        ({ STARPU_MATRIX_CHECK(interface); (((struct starpu_matrix_interface *)(interface))->nx) ; })
+#define STARPU_MATRIX_GET_NY(interface)	        ({ STARPU_MATRIX_CHECK(interface); (((struct starpu_matrix_interface *)(interface))->ny) ; })
+#define STARPU_MATRIX_GET_LD(interface)	        ({ STARPU_MATRIX_CHECK(interface); (((struct starpu_matrix_interface *)(interface))->ld) ; })
+#define STARPU_MATRIX_GET_ELEMSIZE(interface)	({ STARPU_MATRIX_CHECK(interface); (((struct starpu_matrix_interface *)(interface))->elemsize) ; })
 #else
 #define STARPU_MATRIX_GET_PTR(interface)	(((struct starpu_matrix_interface *)(interface))->ptr)
 #define STARPU_MATRIX_GET_DEV_HANDLE(interface)	(((struct starpu_matrix_interface *)(interface))->dev_handle)
@@ -259,15 +260,16 @@ uintptr_t starpu_block_get_local_ptr(starpu_data_handle_t handle);
 size_t starpu_block_get_elemsize(starpu_data_handle_t handle);
 
 #if defined(STARPU_HAVE_STATEMENT_EXPRESSIONS) && defined(STARPU_DEBUG)
-#define STARPU_BLOCK_GET_PTR(interface)	        ({ assert((((struct starpu_block_interface *)(interface))->id) == STARPU_BLOCK_INTERFACE_ID) ; (((struct starpu_block_interface *)(interface))->ptr) ; })
-#define STARPU_BLOCK_GET_DEV_HANDLE(interface)	({ assert((((struct starpu_block_interface *)(interface))->id) == STARPU_BLOCK_INTERFACE_ID) ; (((struct starpu_block_interface *)(interface))->dev_handle) ; })
-#define STARPU_BLOCK_GET_OFFSET(interface)	({ assert((((struct starpu_block_interface *)(interface))->id) == STARPU_BLOCK_INTERFACE_ID) ; (((struct starpu_block_interface *)(interface))->offset) ; })
-#define STARPU_BLOCK_GET_NX(interface)	        ({ assert((((struct starpu_block_interface *)(interface))->id) == STARPU_BLOCK_INTERFACE_ID) ; (((struct starpu_block_interface *)(interface))->nx) ; })
-#define STARPU_BLOCK_GET_NY(interface)	        ({ assert((((struct starpu_block_interface *)(interface))->id) == STARPU_BLOCK_INTERFACE_ID) ; (((struct starpu_block_interface *)(interface))->ny) ; })
-#define STARPU_BLOCK_GET_NZ(interface)	        ({ assert((((struct starpu_block_interface *)(interface))->id) == STARPU_BLOCK_INTERFACE_ID) ; (((struct starpu_block_interface *)(interface))->nz) ; })
-#define STARPU_BLOCK_GET_LDY(interface)	        ({ assert((((struct starpu_block_interface *)(interface))->id) == STARPU_BLOCK_INTERFACE_ID) ; (((struct starpu_block_interface *)(interface))->ldy) ; })
-#define STARPU_BLOCK_GET_LDZ(interface)	        ({ assert((((struct starpu_block_interface *)(interface))->id) == STARPU_BLOCK_INTERFACE_ID) ; (((struct starpu_block_interface *)(interface))->ldz) ; })
-#define STARPU_BLOCK_GET_ELEMSIZE(interface)	({ assert((((struct starpu_block_interface *)(interface))->id) == STARPU_BLOCK_INTERFACE_ID) ; (((struct starpu_block_interface *)(interface))->elemsize) ; })
+#define STARPU_BLOCK_CHECK(interface)           STARPU_ASSERT_MSG((((struct starpu_block_interface *)(interface))->id) == STARPU_BLOCK_INTERFACE_ID, "Error. The given data is not a block.")
+#define STARPU_BLOCK_GET_PTR(interface)	        ({ STARPU_BLOCK_CHECK(interface); (((struct starpu_block_interface *)(interface))->ptr) ; })
+#define STARPU_BLOCK_GET_DEV_HANDLE(interface)	({ STARPU_BLOCK_CHECK(interface); (((struct starpu_block_interface *)(interface))->dev_handle) ; })
+#define STARPU_BLOCK_GET_OFFSET(interface)	({ STARPU_BLOCK_CHECK(interface); (((struct starpu_block_interface *)(interface))->offset) ; })
+#define STARPU_BLOCK_GET_NX(interface)	        ({ STARPU_BLOCK_CHECK(interface); (((struct starpu_block_interface *)(interface))->nx) ; })
+#define STARPU_BLOCK_GET_NY(interface)	        ({ STARPU_BLOCK_CHECK(interface); (((struct starpu_block_interface *)(interface))->ny) ; })
+#define STARPU_BLOCK_GET_NZ(interface)	        ({ STARPU_BLOCK_CHECK(interface); (((struct starpu_block_interface *)(interface))->nz) ; })
+#define STARPU_BLOCK_GET_LDY(interface)	        ({ STARPU_BLOCK_CHECK(interface); (((struct starpu_block_interface *)(interface))->ldy) ; })
+#define STARPU_BLOCK_GET_LDZ(interface)	        ({ STARPU_BLOCK_CHECK(interface); (((struct starpu_block_interface *)(interface))->ldz) ; })
+#define STARPU_BLOCK_GET_ELEMSIZE(interface)	({ STARPU_BLOCK_CHECK(interface); (((struct starpu_block_interface *)(interface))->elemsize) ; })
 #else
 #define STARPU_BLOCK_GET_PTR(interface)	        (((struct starpu_block_interface *)(interface))->ptr)
 #define STARPU_BLOCK_GET_DEV_HANDLE(interface)	(((struct starpu_block_interface *)(interface))->dev_handle)
@@ -302,12 +304,13 @@ size_t starpu_vector_get_elemsize(starpu_data_handle_t handle);
 uintptr_t starpu_vector_get_local_ptr(starpu_data_handle_t handle);
 
 #if defined(STARPU_HAVE_STATEMENT_EXPRESSIONS) && defined(STARPU_DEBUG)
-#define STARPU_VECTOR_GET_PTR(interface)	({ assert((((struct starpu_vector_interface *)(interface))->id) == STARPU_VECTOR_INTERFACE_ID) ; (((struct starpu_vector_interface *)(interface))->ptr); })
-#define STARPU_VECTOR_GET_DEV_HANDLE(interface)	({ assert((((struct starpu_vector_interface *)(interface))->id) == STARPU_VECTOR_INTERFACE_ID) ; (((struct starpu_vector_interface *)(interface))->dev_handle); })
-#define STARPU_VECTOR_GET_OFFSET(interface)	({ assert((((struct starpu_vector_interface *)(interface))->id) == STARPU_VECTOR_INTERFACE_ID) ; (((struct starpu_vector_interface *)(interface))->offset); })
-#define STARPU_VECTOR_GET_NX(interface)	        ({ assert((((struct starpu_vector_interface *)(interface))->id) == STARPU_VECTOR_INTERFACE_ID) ; (((struct starpu_vector_interface *)(interface))->nx); })
-#define STARPU_VECTOR_GET_ELEMSIZE(interface)	({ assert((((struct starpu_vector_interface *)(interface))->id) == STARPU_VECTOR_INTERFACE_ID) ; (((struct starpu_vector_interface *)(interface))->elemsize); })
-#define STARPU_VECTOR_GET_SLICE_BASE(interface)	({ assert((((struct starpu_vector_interface *)(interface))->id) == STARPU_VECTOR_INTERFACE_ID) ; (((struct starpu_vector_interface *)(interface))->slice_base); })
+#define STARPU_VECTOR_CHECK(interface)          STARPU_ASSERT_MSG((((struct starpu_vector_interface *)(interface))->id) == STARPU_VECTOR_INTERFACE_ID, "Error. The given data is not a vector.")
+#define STARPU_VECTOR_GET_PTR(interface)	({ STARPU_VECTOR_CHECK(interface); (((struct starpu_vector_interface *)(interface))->ptr); })
+#define STARPU_VECTOR_GET_DEV_HANDLE(interface)	({ STARPU_VECTOR_CHECK(interface); (((struct starpu_vector_interface *)(interface))->dev_handle); })
+#define STARPU_VECTOR_GET_OFFSET(interface)	({ STARPU_VECTOR_CHECK(interface); (((struct starpu_vector_interface *)(interface))->offset); })
+#define STARPU_VECTOR_GET_NX(interface)	        ({ STARPU_VECTOR_CHECK(interface); (((struct starpu_vector_interface *)(interface))->nx); })
+#define STARPU_VECTOR_GET_ELEMSIZE(interface)	({ STARPU_VECTOR_CHECK(interface); (((struct starpu_vector_interface *)(interface))->elemsize); })
+#define STARPU_VECTOR_GET_SLICE_BASE(interface)	({ STARPU_VECTOR_CHECK(interface); (((struct starpu_vector_interface *)(interface))->slice_base); })
 #else
 #define STARPU_VECTOR_GET_PTR(interface)	(((struct starpu_vector_interface *)(interface))->ptr)
 #define STARPU_VECTOR_GET_DEV_HANDLE(interface)	(((struct starpu_vector_interface *)(interface))->dev_handle)
@@ -335,10 +338,11 @@ size_t starpu_variable_get_elemsize(starpu_data_handle_t handle);
 uintptr_t starpu_variable_get_local_ptr(starpu_data_handle_t handle);
 
 #if defined(STARPU_HAVE_STATEMENT_EXPRESSIONS) && defined(STARPU_DEBUG)
-#define STARPU_VARIABLE_GET_PTR(interface)	  ({ assert((((struct starpu_variable_interface *)(interface))->id) == STARPU_VARIABLE_INTERFACE_ID) ; (((struct starpu_variable_interface *)(interface))->ptr) ; })
-#define STARPU_VARIABLE_GET_OFFSET(interface)	  ({ assert((((struct starpu_variable_interface *)(interface))->id) == STARPU_VARIABLE_INTERFACE_ID) ; (((struct starpu_variable_interface *)(interface))->offset) ; })
-#define STARPU_VARIABLE_GET_ELEMSIZE(interface)	  ({ assert((((struct starpu_variable_interface *)(interface))->id) == STARPU_VARIABLE_INTERFACE_ID) ; (((struct starpu_variable_interface *)(interface))->elemsize) ; })
-#define STARPU_VARIABLE_GET_DEV_HANDLE(interface) ({ assert((((struct starpu_variable_interface *)(interface))->id) == STARPU_VARIABLE_INTERFACE_ID) ; (((struct starpu_variable_interface *)(interface))->ptr) ; })
+#define STARPU_VARIABLE_CHECK(interface)          STARPU_ASSERT_MSG((((struct starpu_variable_interface *)(interface))->id) == STARPU_VARIABLE_INTERFACE_ID, "Error. The given data is not a variable.")
+#define STARPU_VARIABLE_GET_PTR(interface)	  ({ STARPU_VARIABLE_CHECK(interface); (((struct starpu_variable_interface *)(interface))->ptr) ; })
+#define STARPU_VARIABLE_GET_OFFSET(interface)	  ({ STARPU_VARIABLE_CHECK(interface); (((struct starpu_variable_interface *)(interface))->offset) ; })
+#define STARPU_VARIABLE_GET_ELEMSIZE(interface)	  ({ STARPU_VARIABLE_CHECK(interface); (((struct starpu_variable_interface *)(interface))->elemsize) ; })
+#define STARPU_VARIABLE_GET_DEV_HANDLE(interface) ({ STARPU_VARIABLE_CHECK(interface); (((struct starpu_variable_interface *)(interface))->ptr) ; })
 #else
 #define STARPU_VARIABLE_GET_PTR(interface)	  (((struct starpu_variable_interface *)(interface))->ptr)
 #define STARPU_VARIABLE_GET_OFFSET(interface)	  (((struct starpu_variable_interface *)(interface))->offset)
