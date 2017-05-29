@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2013 Corentin Salingue
- * Copyright (C) 2015, 2016 CNRS
+ * Copyright (C) 2015, 2016, 2017 CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -349,17 +349,17 @@ static int get_stdio_bandwidth_between_disk_and_main_ram(unsigned node)
 	char *buf;
 
 	srand(time(NULL));
-	starpu_malloc_flags((void **) &buf, SIZE_DISK_MIN, 0);
+	starpu_malloc_flags((void **) &buf, STARPU_DISK_SIZE_MIN, 0);
 	STARPU_ASSERT(buf != NULL);
 
 	/* allocate memory */
-	void *mem = _starpu_disk_alloc(node, SIZE_DISK_MIN);
+	void *mem = _starpu_disk_alloc(node, STARPU_DISK_SIZE_MIN);
 	/* fail to alloc */
 	if (mem == NULL)
 		return 0;
 	struct starpu_stdio_obj *tmp = (struct starpu_stdio_obj *) mem;
 
-	memset(buf, 0, SIZE_DISK_MIN);
+	memset(buf, 0, STARPU_DISK_SIZE_MIN);
 
 	/* Measure upload slowness */
 	start = starpu_timing_now();
@@ -367,7 +367,7 @@ static int get_stdio_bandwidth_between_disk_and_main_ram(unsigned node)
 	{
 		FILE *f = tmp->file;
 
-		_starpu_disk_write(STARPU_MAIN_RAM, node, mem, buf, 0, SIZE_DISK_MIN, NULL);
+		_starpu_disk_write(STARPU_MAIN_RAM, node, mem, buf, 0, STARPU_DISK_SIZE_MIN, NULL);
 
 		if (!f)
 			f = _starpu_stdio_reopen(tmp);
@@ -390,7 +390,7 @@ static int get_stdio_bandwidth_between_disk_and_main_ram(unsigned node)
 	timing_slowness = end - start;
 
 	/* free memory */
-	starpu_free_flags(buf, SIZE_DISK_MIN, 0);
+	starpu_free_flags(buf, STARPU_DISK_SIZE_MIN, 0);
 
 	starpu_malloc_flags((void**) &buf, sizeof(char), 0);
 	STARPU_ASSERT(buf != NULL);
@@ -403,7 +403,7 @@ static int get_stdio_bandwidth_between_disk_and_main_ram(unsigned node)
 	{
 		FILE *f = tmp->file;
 
-		_starpu_disk_write(STARPU_MAIN_RAM, node, mem, buf, rand() % (SIZE_DISK_MIN -1) , 1, NULL);
+		_starpu_disk_write(STARPU_MAIN_RAM, node, mem, buf, rand() % (STARPU_DISK_SIZE_MIN -1) , 1, NULL);
 
 		if (!f)
 			f = _starpu_stdio_reopen(tmp);
@@ -424,10 +424,10 @@ static int get_stdio_bandwidth_between_disk_and_main_ram(unsigned node)
 	end = starpu_timing_now();
 	timing_latency = end - start;
 
-	_starpu_disk_free(node, mem, SIZE_DISK_MIN);
+	_starpu_disk_free(node, mem, STARPU_DISK_SIZE_MIN);
 	starpu_free_flags(buf, sizeof(char), 0);
 
-	_starpu_save_bandwidth_and_latency_disk((NITER/timing_slowness)*SIZE_DISK_MIN, (NITER/timing_slowness)*SIZE_DISK_MIN,
+	_starpu_save_bandwidth_and_latency_disk((NITER/timing_slowness)*STARPU_DISK_SIZE_MIN, (NITER/timing_slowness)*STARPU_DISK_SIZE_MIN,
 					       timing_latency/NITER, timing_latency/NITER, node);
 	return 1;
 }
