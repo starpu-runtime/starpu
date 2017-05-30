@@ -344,6 +344,8 @@ MICROBENCHS = \
 	microbenchs/parallel_independent_heterogeneous_tasks    \
 	microbenchs/parallel_independent_homogeneous_tasks_data	\
 	microbenchs/parallel_independent_heterogeneous_tasks_data \
+	microbenchs/parallel_redux_homogeneous_tasks_data \
+	microbenchs/parallel_redux_heterogeneous_tasks_data \
 	microbenchs/parallel_dependent_homogeneous_tasks_data
 
 if STARPU_HAVE_FC
