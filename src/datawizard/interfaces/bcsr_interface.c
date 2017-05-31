@@ -40,13 +40,13 @@ static const struct starpu_data_copy_methods bcsr_copy_data_methods_s =
 };
 
 static void register_bcsr_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface);
+static void *bcsr_handle_to_pointer(starpu_data_handle_t data_handle, unsigned node);
 static starpu_ssize_t allocate_bcsr_buffer_on_node(void *data_interface, unsigned dst_node);
 static void free_bcsr_buffer_on_node(void *data_interface, unsigned node);
 static size_t bcsr_interface_get_size(starpu_data_handle_t handle);
 static int bcsr_compare(void *data_interface_a, void *data_interface_b);
 static uint32_t footprint_bcsr_interface_crc32(starpu_data_handle_t handle);
 static starpu_ssize_t describe(void *data_interface, char *buf, size_t size);
-
 
 struct starpu_data_interface_ops starpu_interface_bcsr_ops =
 {
@@ -59,8 +59,19 @@ struct starpu_data_interface_ops starpu_interface_bcsr_ops =
 	.interface_size = sizeof(struct starpu_bcsr_interface),
 	.footprint = footprint_bcsr_interface_crc32,
 	.compare = bcsr_compare,
-	.describe = describe
+	.describe = describe,
+	.handle_to_pointer = bcsr_handle_to_pointer
 };
+
+static void *bcsr_handle_to_pointer(starpu_data_handle_t data_handle, unsigned node)
+{
+	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(data_handle, node));
+
+	struct starpu_bcsr_interface *bcsr_interface = (struct starpu_bcsr_interface *)
+		starpu_data_get_interface_on_node(data_handle, node);
+
+	return (void*) bcsr_interface->nzval;
+}
 
 static void register_bcsr_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface)
 {
