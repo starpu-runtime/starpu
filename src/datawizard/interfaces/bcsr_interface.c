@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -158,6 +158,10 @@ uint32_t starpu_bcsr_get_nnz(starpu_data_handle_t handle)
 	struct starpu_bcsr_interface *data_interface = (struct starpu_bcsr_interface *)
 		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
+#ifdef STARPU_DEBUG
+	STARPU_ASSERT_MSG(data_interface->id == STARPU_BCSR_INTERFACE_ID, "Error. The given data is not a bcsr.");
+#endif
+
 	return data_interface->nnz;
 }
 
@@ -165,6 +169,10 @@ uint32_t starpu_bcsr_get_nrow(starpu_data_handle_t handle)
 {
 	struct starpu_bcsr_interface *data_interface = (struct starpu_bcsr_interface *)
 		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
+
+#ifdef STARPU_DEBUG
+	STARPU_ASSERT_MSG(data_interface->id == STARPU_BCSR_INTERFACE_ID, "Error. The given data is not a bcsr.");
+#endif
 
 	return data_interface->nrow;
 }
@@ -174,6 +182,10 @@ uint32_t starpu_bcsr_get_firstentry(starpu_data_handle_t handle)
 	struct starpu_bcsr_interface *data_interface = (struct starpu_bcsr_interface *)
 		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
+#ifdef STARPU_DEBUG
+	STARPU_ASSERT_MSG(data_interface->id == STARPU_BCSR_INTERFACE_ID, "Error. The given data is not a bcsr.");
+#endif
+
 	return data_interface->firstentry;
 }
 
@@ -181,6 +193,10 @@ uint32_t starpu_bcsr_get_r(starpu_data_handle_t handle)
 {
 	struct starpu_bcsr_interface *data_interface = (struct starpu_bcsr_interface *)
 		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
+
+#ifdef STARPU_DEBUG
+	STARPU_ASSERT_MSG(data_interface->id == STARPU_BCSR_INTERFACE_ID, "Error. The given data is not a bcsr.");
+#endif
 
 	return data_interface->r;
 }
@@ -190,6 +206,10 @@ uint32_t starpu_bcsr_get_c(starpu_data_handle_t handle)
 	struct starpu_bcsr_interface *data_interface = (struct starpu_bcsr_interface *)
 		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
+#ifdef STARPU_DEBUG
+	STARPU_ASSERT_MSG(data_interface->id == STARPU_BCSR_INTERFACE_ID, "Error. The given data is not a bcsr.");
+#endif
+
 	return data_interface->c;
 }
 
@@ -197,6 +217,10 @@ size_t starpu_bcsr_get_elemsize(starpu_data_handle_t handle)
 {
 	struct starpu_bcsr_interface *data_interface = (struct starpu_bcsr_interface *)
 		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
+
+#ifdef STARPU_DEBUG
+	STARPU_ASSERT_MSG(data_interface->id == STARPU_BCSR_INTERFACE_ID, "Error. The given data is not a bcsr.");
+#endif
 
 	return data_interface->elemsize;
 }
@@ -211,6 +235,10 @@ uintptr_t starpu_bcsr_get_local_nzval(starpu_data_handle_t handle)
 	struct starpu_bcsr_interface *data_interface = (struct starpu_bcsr_interface *)
 		starpu_data_get_interface_on_node(handle, node);
 
+#ifdef STARPU_DEBUG
+	STARPU_ASSERT_MSG(data_interface->id == STARPU_BCSR_INTERFACE_ID, "Error. The given data is not a bcsr.");
+#endif
+
 	return data_interface->nzval;
 }
 
@@ -219,6 +247,10 @@ uint32_t *starpu_bcsr_get_local_colind(starpu_data_handle_t handle)
 	/* XXX 0 */
 	struct starpu_bcsr_interface *data_interface = (struct starpu_bcsr_interface *)
 		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
+
+#ifdef STARPU_DEBUG
+	STARPU_ASSERT_MSG(data_interface->id == STARPU_BCSR_INTERFACE_ID, "Error. The given data is not a bcsr.");
+#endif
 
 	return data_interface->colind;
 }
@@ -229,9 +261,12 @@ uint32_t *starpu_bcsr_get_local_rowptr(starpu_data_handle_t handle)
 	struct starpu_bcsr_interface *data_interface = (struct starpu_bcsr_interface *)
 		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
+#ifdef STARPU_DEBUG
+	STARPU_ASSERT_MSG(data_interface->id == STARPU_BCSR_INTERFACE_ID, "Error. The given data is not a bcsr.");
+#endif
+
 	return data_interface->rowptr;
 }
-
 
 static size_t bcsr_interface_get_size(starpu_data_handle_t handle)
 {
