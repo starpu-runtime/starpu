@@ -152,6 +152,46 @@ void check_block(starpu_data_handle_t handle_s, starpu_data_handle_t handle_r, i
 	starpu_data_release(handle_r);
 }
 
+void check_bcsr(starpu_data_handle_t handle_s, starpu_data_handle_t handle_r, int *error)
+{
+	STARPU_ASSERT(starpu_bcsr_get_elemsize(handle_s) == starpu_bcsr_get_elemsize(handle_r));
+	STARPU_ASSERT(starpu_bcsr_get_nnz(handle_s) == starpu_bcsr_get_nnz(handle_r));
+	STARPU_ASSERT(starpu_bcsr_get_nrow(handle_s) == starpu_bcsr_get_nrow(handle_r));
+	STARPU_ASSERT(starpu_bcsr_get_firstentry(handle_s) == starpu_bcsr_get_firstentry(handle_r));
+	STARPU_ASSERT(starpu_bcsr_get_r(handle_s) == starpu_bcsr_get_r(handle_r));
+	STARPU_ASSERT(starpu_bcsr_get_c(handle_s) == starpu_bcsr_get_c(handle_r));
+	//	STARPU_ASSERT(starpu_bcsr_get_local_colind(handle_s) == starpu_bcsr_get_local_colind(handle_r));
+	//	STARPU_ASSERT(starpu_bcsr_get_local_rowptr(handle_s) == starpu_bcsr_get_local_rowptr(handle_r));
+
+	starpu_data_acquire(handle_s, STARPU_R);
+	starpu_data_acquire(handle_r, STARPU_R);
+
+	int *bcsr_s = (int *)starpu_bcsr_get_local_nzval(handle_s);
+	int *bcsr_r = (int *)starpu_bcsr_get_local_nzval(handle_r);
+
+	int r = starpu_bcsr_get_r(handle_s);
+	int c = starpu_bcsr_get_c(handle_s);
+	int nnz = starpu_bcsr_get_nnz(handle_s);
+
+	int x;
+
+	for(x=0 ; x<r*c*nnz ; x++)
+	{
+		if (bcsr_s[x] == bcsr_r[x])
+		{
+			FPRINTF_MPI(stderr, "Success with bcsr[%d] value: %d == %d\n", x, bcsr_s[x], bcsr_r[x]);
+		}
+		else
+		{
+			*error = 1;
+			FPRINTF_MPI(stderr, "Error with bcsr[%d] value: %d != %d\n", x, bcsr_s[x], bcsr_r[x]);
+		}
+	}
+
+	starpu_data_release(handle_s);
+	starpu_data_release(handle_r);
+}
+
 void send_recv_and_check(int rank, int node, starpu_data_handle_t handle_s, int tag_s, starpu_data_handle_t handle_r, int tag_r, int *error, check_func func)
 {
 	int ret;
@@ -329,6 +369,61 @@ void exchange_block(int rank, int *error)
 	}
 }
 
+void exchange_bcsr(int rank, int *error)
+{
+	/*
+	 * We use the following matrix:
+	 *
+	 *   +----------------+
+	 *   |  0   1   0   0 |
+	 *   |  2   3   0   0 |
+	 *   |  4   5   8   9 |
+	 *   |  6   7  10  11 |
+	 *   +----------------+
+	 *
+	 * nzval  = [0, 1, 2, 3] ++ [4, 5, 6, 7] ++ [8, 9, 10, 11]
+	 * colind = [0, 0, 1]
+	 * rowptr = [0, 1 ]
+	 * r = c = 2
+	 */
+
+	/* Size of the blocks */
+#define BCSR_R 2
+#define BCSR_C 2
+#define BCSR_NROW 2
+#define BCSR_NNZ_BLOCKS 3     /* out of 4 */
+#define BCSR_NZVAL_SIZE (BCSR_R*BCSR_C*BCSR_NNZ_BLOCKS)
+
+	uint32_t colind[BCSR_NNZ_BLOCKS] = {0, 0, 1};
+	uint32_t rowptr[BCSR_NROW] = {0, 1};
+
+	if (rank == 0)
+	{
+		starpu_data_handle_t bcsr_handle[2];
+		int nzval[BCSR_NZVAL_SIZE]  =
+		{
+			0, 1, 2, 3,    /* First block  */
+			4, 5, 6, 7,    /* Second block */
+			8, 9, 10, 11   /* Third block  */
+		};
+
+		starpu_bcsr_data_register(&bcsr_handle[0], STARPU_MAIN_RAM, BCSR_NNZ_BLOCKS, BCSR_NROW, (uintptr_t) nzval, colind, rowptr, 0, BCSR_R, BCSR_C, sizeof(nzval[0]));
+		starpu_bcsr_data_register(&bcsr_handle[1], -1, BCSR_NNZ_BLOCKS, BCSR_NROW, (uintptr_t) NULL, colind, rowptr, 0, BCSR_R, BCSR_C, sizeof(nzval[0]));
+
+		send_recv_and_check(rank, 1, bcsr_handle[0], 0x73, bcsr_handle[1], 0x8337, error, check_bcsr);
+
+		starpu_data_unregister(bcsr_handle[0]);
+		starpu_data_unregister(bcsr_handle[1]);
+	}
+	else if (rank == 1)
+	{
+		starpu_data_handle_t bcsr_handle;
+		starpu_bcsr_data_register(&bcsr_handle, -1, BCSR_NNZ_BLOCKS, BCSR_NROW, (uintptr_t) NULL, colind, rowptr, 0, BCSR_R, BCSR_C, sizeof(int));
+		send_recv_and_check(rank, 0, bcsr_handle, 0x73, NULL, 0x8337, NULL, NULL);
+		starpu_data_unregister(bcsr_handle);
+	}
+}
+
 int main(int argc, char **argv)
 {
 	int ret, rank, size;
@@ -362,6 +457,7 @@ int main(int argc, char **argv)
 	exchange_vector(rank, &error);
 	exchange_matrix(rank, &error);
 	exchange_block(rank, &error);
+	exchange_bcsr(rank, &error);
 
 	starpu_mpi_shutdown();
 	starpu_shutdown();

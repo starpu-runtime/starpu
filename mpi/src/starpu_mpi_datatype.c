@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2011, 2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -38,6 +38,26 @@ void _starpu_mpi_datatype_init(void)
 void _starpu_mpi_datatype_shutdown(void)
 {
 	STARPU_PTHREAD_MUTEX_DESTROY(&_starpu_mpi_datatype_funcs_table_mutex);
+}
+
+/*
+ * 	Bcsr
+ */
+
+static void handle_to_datatype_bcsr(starpu_data_handle_t data_handle, MPI_Datatype *datatype)
+{
+	int ret;
+
+	uint32_t r = starpu_bcsr_get_r(data_handle);
+	uint32_t c = starpu_bcsr_get_c(data_handle);
+	uint32_t nnz = starpu_bcsr_get_nnz(data_handle);
+	size_t elemsize = starpu_bcsr_get_elemsize(data_handle);
+
+	ret = MPI_Type_contiguous(r*c*nnz*elemsize, MPI_BYTE, datatype);
+	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_contiguous failed");
+
+	ret = MPI_Type_commit(datatype);
+	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_commit failed");
 }
 
 /*
@@ -149,7 +169,7 @@ static starpu_mpi_datatype_allocate_func_t handle_to_datatype_funcs[STARPU_MAX_I
 	[STARPU_BLOCK_INTERFACE_ID]	= handle_to_datatype_block,
 	[STARPU_VECTOR_INTERFACE_ID]	= handle_to_datatype_vector,
 	[STARPU_CSR_INTERFACE_ID]	= NULL,
-	[STARPU_BCSR_INTERFACE_ID]	= NULL,
+	[STARPU_BCSR_INTERFACE_ID]	= handle_to_datatype_bcsr,
 	[STARPU_VARIABLE_INTERFACE_ID]	= handle_to_datatype_variable,
 	[STARPU_VOID_INTERFACE_ID]	= handle_to_datatype_void,
 	[STARPU_MULTIFORMAT_INTERFACE_ID] = NULL,
@@ -237,7 +257,7 @@ static starpu_mpi_datatype_free_func_t handle_free_datatype_funcs[STARPU_MAX_INT
 	[STARPU_BLOCK_INTERFACE_ID]	= _starpu_mpi_handle_free_complex_datatype,
 	[STARPU_VECTOR_INTERFACE_ID]	= _starpu_mpi_handle_free_simple_datatype,
 	[STARPU_CSR_INTERFACE_ID]	= NULL,
-	[STARPU_BCSR_INTERFACE_ID]	= NULL,
+	[STARPU_BCSR_INTERFACE_ID]	= _starpu_mpi_handle_free_simple_datatype,
 	[STARPU_VARIABLE_INTERFACE_ID]	= _starpu_mpi_handle_free_simple_datatype,
 	[STARPU_VOID_INTERFACE_ID]      = _starpu_mpi_handle_free_simple_datatype,
 	[STARPU_MULTIFORMAT_INTERFACE_ID] = NULL,
