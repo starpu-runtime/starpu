@@ -179,7 +179,8 @@ int main(void)
 #endif
 
 	ret2 = rmdir(s);
-	STARPU_CHECK_RETURN_VALUE(ret2, "rmdir '%s'\n", s);
+	if (ret2 < 0)
+		STARPU_CHECK_RETURN_VALUE(-errno, "rmdir '%s'\n", s);
 	return ret;
 }
 #endif
