@@ -367,6 +367,8 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 	/* now the data is available ! */
 	_starpu_spin_unlock(&handle->header_lock);
 
+
+
 	ptr = starpu_data_handle_to_pointer(handle, STARPU_MAIN_RAM);
 	if (ptr != NULL)
 	{
@@ -471,7 +473,6 @@ void starpu_data_register(starpu_data_handle_t *handleptr, int home_node,
 			  struct starpu_data_interface_ops *ops)
 {
 	starpu_data_handle_t handle = _starpu_data_handle_allocate(ops, home_node);
-	_STARPU_TRACE_HANDLE_DATA_REGISTER(handle);
 
 	STARPU_ASSERT(handleptr);
 	*handleptr = handle;
@@ -481,6 +482,7 @@ void starpu_data_register(starpu_data_handle_t *handleptr, int home_node,
 	ops->register_data_handle(handle, home_node, data_interface);
 
 	_starpu_register_new_data(handle, home_node, 0);
+	_STARPU_TRACE_HANDLE_DATA_REGISTER(handle);
 }
 
 void starpu_data_register_same(starpu_data_handle_t *handledst, starpu_data_handle_t handlesrc)
