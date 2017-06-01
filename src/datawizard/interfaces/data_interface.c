@@ -892,6 +892,7 @@ retry_busy:
 		free(handle->switch_cl->dyn_nodes);
 		free(handle->switch_cl);
 	}
+	_STARPU_TRACE_HANDLE_DATA_UNREGISTER(handle);
 	free(handle);
 }
 

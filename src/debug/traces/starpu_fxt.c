@@ -1996,11 +1996,32 @@ static void handle_data_register(struct fxt_ev_64 *ev, struct starpu_fxt_options
 		char paje_value[STARPU_POTI_STR_LEN], container[STARPU_POTI_STR_LEN];
 		snprintf(paje_value, STARPU_POTI_STR_LEN, "%lx", handle);
 		program_container_alias (container, STARPU_POTI_STR_LEN, prefix);
-		poti_NewEvent(get_event_time_stamp(ev, options), container, "user_event", paje_value);
+		poti_NewEvent(get_event_time_stamp(ev, options), container, "register", paje_value);
 #else
 		fprintf(out_paje_file, "9	%.9f	register	%sp	%lx\n", get_event_time_stamp(ev, options), prefix, handle);
 #endif
 	}
+}
+
+static void handle_data_unregister(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	unsigned long handle = ev->param[0];
+	char *prefix = options->file_prefix;
+	struct data_info *data = get_data(handle, options->file_rank);
+
+	if (out_paje_file && !options->no_events)
+	{
+#ifdef STARPU_HAVE_POTI
+		char paje_value[STARPU_POTI_STR_LEN], container[STARPU_POTI_STR_LEN];
+		snprintf(paje_value, STARPU_POTI_STR_LEN, "%lx", handle);
+		program_container_alias (container, STARPU_POTI_STR_LEN, prefix);
+		poti_NewEvent(get_event_time_stamp(ev, options), container, "unregister", paje_value);
+#else
+		fprintf(out_paje_file, "9	%.9f	unregister	%sp	%lx\n", get_event_time_stamp(ev, options), prefix, handle);
+#endif
+	}
+
+	data_dump(data);
 }
 
 static void handle_data_invalidate(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -2015,7 +2036,7 @@ static void handle_data_invalidate(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 		char paje_value[STARPU_POTI_STR_LEN], memnode_container[STARPU_POTI_STR_LEN];
 		memmanager_container_alias(memnode_container, STARPU_POTI_STR_LEN, prefix, node);
 		snprintf(paje_value, STARPU_POTI_STR_LEN, "%lx", handle);
-		poti_NewEvent(get_event_time_stamp(ev, options), memnode_container, "user_event", paje_value);
+		poti_NewEvent(get_event_time_stamp(ev, options), memnode_container, "invalidate", paje_value);
 #else
 		fprintf(out_paje_file, "9	%.9f	invalidate	%smm%u	%lx\n", get_event_time_stamp(ev, options), prefix, node, handle);
 #endif
@@ -3240,6 +3261,10 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 				handle_data_register(&ev, options);
 				break;
 
+			case _STARPU_FUT_HANDLE_DATA_UNREGISTER:
+				handle_data_unregister(&ev, options);
+				break;
+
 			case _STARPU_FUT_DATA_INVALIDATE:
 				handle_data_invalidate(&ev, options);
 				break;
@@ -3593,7 +3618,6 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 	}
 
 	{
-		/* TODO: move to handle_data_unregister */
 		struct data_info *data, *tmp;
 		HASH_ITER(hh, data_info, data, tmp)
 		{
