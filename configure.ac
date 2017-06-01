@@ -753,7 +753,9 @@ fi
 AC_CHECK_FUNC([sched_yield], [AC_DEFINE([STARPU_HAVE_SCHED_YIELD], [1], [Define to 1 if the function sched_yield is available.])])
 
 AC_CHECK_HEADERS([aio.h])
+AC_CHECK_HEADERS([libaio.h])
 AC_CHECK_LIB([rt], [aio_read])
+AC_CHECK_LIB([aio], [io_setup])
 
 AC_CHECK_FUNCS([mkostemp])
 AC_CHECK_FUNCS([mkdtemp])
