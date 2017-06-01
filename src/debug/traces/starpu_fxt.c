@@ -245,6 +245,8 @@ struct data_info
 	UT_hash_handle hh;
 	unsigned long handle;
 	char *name;
+	size_t size;
+	char *description;
 	unsigned dimensions;
 	unsigned long *dims;
 	int mpi_rank;
@@ -263,6 +265,8 @@ static struct data_info *get_data(unsigned long handle, int mpi_rank)
 		_STARPU_MALLOC(data, sizeof(*data));
 		data->handle = handle;
 		data->name = NULL;
+		data->size = 0;
+		data->description = 0;
 		data->dimensions = 0;
 		data->dims = NULL;
 		data->mpi_rank = mpi_rank;
@@ -280,11 +284,18 @@ static void data_dump(struct data_info *data)
 	if (!data_file)
 		goto out;
 	fprintf(data_file, "Handle: %lx\n", data->handle);
-	fprintf(data_file, "MPIRank: %d\n", data->mpi_rank);
+	if (data->mpi_rank >= 0)
+		fprintf(data_file, "MPIRank: %d\n", data->mpi_rank);
 	if (data->name)
 	{
 		fprintf(data_file, "Name: %s\n", data->name);
 		free(data->name);
+	}
+	fprintf(data_file, "Size: %lu\n", (unsigned long) data->size);
+	if (data->description)
+	{
+		fprintf(data_file, "Description: %s\n", data->description);
+		free(data->description);
 	}
 	if (data->dimensions)
 	{
@@ -294,7 +305,8 @@ static void data_dump(struct data_info *data)
 			fprintf(data_file, " %lu", data->dims[i]);
 		fprintf(data_file, "\n");
 	}
-	fprintf(data_file, "MPIOwner: %d\n", data->mpi_owner);
+	if (data->mpi_owner >= 0)
+		fprintf(data_file, "MPIOwner: %d\n", data->mpi_owner);
 	fprintf(data_file, "\n");
 out:
 	HASH_DEL(data_info, data);
@@ -1971,6 +1983,12 @@ static void handle_data_register(struct fxt_ev_64 *ev, struct starpu_fxt_options
 {
 	unsigned long handle = ev->param[0];
 	char *prefix = options->file_prefix;
+	struct data_info *data = get_data(handle, options->file_rank);
+	char *description = get_fxt_string(ev, 2);
+
+	data->size = ev->param[1];
+	if (description[0])
+		data->description = strdup(description);
 
 	if (out_paje_file && !options->no_events)
 	{

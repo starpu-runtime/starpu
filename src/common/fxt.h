@@ -1046,8 +1046,16 @@ do {										\
 #define _STARPU_TRACE_SCHED_COMPONENT_PULL(from, to, task)		\
 	FUT_DO_PROBE5(_STARPU_FUT_SCHED_COMPONENT_PULL, _starpu_gettid(), from, to, task, (task)->priority);
 
-#define _STARPU_TRACE_HANDLE_DATA_REGISTER(handle)		\
-	FUT_DO_PROBE1(_STARPU_FUT_HANDLE_DATA_REGISTER, handle)
+#define _STARPU_TRACE_HANDLE_DATA_REGISTER(handle)	do {	\
+	const size_t __data_size = handle->ops->get_size(handle); \
+	char __buf[(FXT_MAX_PARAMS-2)*sizeof(long)]; \
+	void *__interface = handle->per_node[0].data_interface; \
+	if (handle->ops->describe) \
+		handle->ops->describe(__interface, __buf, sizeof(__buf)); \
+	else \
+		__buf[0] = 0; \
+	FUT_DO_PROBE2STR(_STARPU_FUT_HANDLE_DATA_REGISTER, handle, __data_size, __buf); \
+} while (0)
 
 #if 0
 #define _STARPU_TRACE_DATA_INVALIDATE(handle, node)		\
