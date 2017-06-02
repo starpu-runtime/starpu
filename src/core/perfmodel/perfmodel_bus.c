@@ -2520,7 +2520,7 @@ void _starpu_save_bandwidth_and_latency_disk(double bandwidth_write, double band
 	if (print_stats)
 	{
 		fprintf(stderr, "\n#---------------------\n");
-		fprintf(stderr, "Data transfer speed for %d:\n", node);
+		fprintf(stderr, "Data transfer speed for %u:\n", node);
 	}
 
 	/* save bandwith */
@@ -2546,7 +2546,7 @@ void _starpu_save_bandwidth_and_latency_disk(double bandwidth_write, double band
 					slowness_main_ram_between_node = 0;
 				
 				bandwidth_matrix[i][j] = 1/(slowness_disk_between_main_ram+slowness_main_ram_between_node);
-				
+
 				if (!isnan(bandwidth_matrix[i][j]) && print_stats)
 					fprintf(stderr,"%u -> %u: %.0f MB/s\n", i, j, bandwidth_matrix[i][j]);
 			}
@@ -2564,7 +2564,7 @@ void _starpu_save_bandwidth_and_latency_disk(double bandwidth_write, double band
 					slowness_main_ram_between_node = 0;
 
 				bandwidth_matrix[i][j] = 1/(slowness_disk_between_main_ram+slowness_main_ram_between_node);
-				
+
 				if (!isnan(bandwidth_matrix[i][j]) && print_stats)
 					fprintf(stderr,"%u -> %u: %.0f MB/s\n", i, j, bandwidth_matrix[i][j]);
 			}
@@ -2587,14 +2587,14 @@ void _starpu_save_bandwidth_and_latency_disk(double bandwidth_write, double band
 			else if (i == node) /* source == disk */
 			{
 				latency_matrix[i][j] = (latency_write+latency_matrix[STARPU_MAIN_RAM][j]);
-				
+
 				if (!isnan(latency_matrix[i][j]) && print_stats)
 					fprintf(stderr,"%u -> %u: %.0f µs\n", i, j, latency_matrix[i][j]);
 			}
 			else if (j == node) /* destination == disk */
 			{
 				latency_matrix[i][j] = (latency_read+latency_matrix[i][STARPU_MAIN_RAM]);
-				
+
 				if (!isnan(latency_matrix[i][j]) && print_stats)
 					fprintf(stderr,"%u -> %u: %.0f µs\n", i, j, latency_matrix[i][j]);
 			}
