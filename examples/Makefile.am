@@ -77,11 +77,13 @@ EXTRA_DIST = 					\
 	scheduler/schedulers.sh				\
 	scheduler/schedulers_context.sh			\
 	fortran/Makefile				\
-	sched_ctx/axpy_partition_gpu.h				\
-	sched_ctx/axpy_partition_gpu.cu
+	sched_ctx/axpy_partition_gpu.h			\
+	sched_ctx/axpy_partition_gpu.cu			\
+	heat/heat.sh					\
+	lu/lu.sh
 
 
-CLEANFILES = *.gcno *.gcda *.linkinfo *.mod starpu_idle_microsec.log
+CLEANFILES = *.gcno *.gcda *.linkinfo *.mod starpu_idle_microsec.log *.mps *.dot *.pl
 
 if STARPU_USE_CUDA
 
@@ -300,6 +302,13 @@ STARPU_EXAMPLES +=				\
 	heat/heat				\
 	cg/cg					\
 	pipeline/pipeline
+
+if !STARPU_USE_MPI_MASTER_SLAVE
+TESTS += \
+	heat/heat.sh				\
+	lu/lu.sh
+
+endif
 endif
 endif
 
@@ -335,12 +344,8 @@ STARPU_EXAMPLES +=				\
 	sched_ctx/sched_ctx_without_sched_policy\
 	sched_ctx/nested_sched_ctxs		\
 	sched_ctx/sched_ctx_without_sched_policy_awake\
-	sched_ctx/parallel_tasks_reuse_handle
-
-if STARPU_LONG_CHECK
-STARPU_EXAMPLES +=				\
+	sched_ctx/parallel_tasks_reuse_handle	\
 	sched_ctx/parallel_code
-endif
 
 if STARPU_HAVE_HWLOC
 if STARPU_HWLOC_HAVE_TOPOLOGY_DUP

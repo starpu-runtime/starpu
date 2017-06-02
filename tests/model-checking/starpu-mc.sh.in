@@ -1,8 +1,8 @@
-#!/bin/bash
-
+#!/bin/bash -x
+#
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2016, 2017 CNRS
+# Copyright (C) 2017  Université de Bordeaux
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -15,23 +15,23 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
-SHOW=cat
-SHOW=less
+# Test a model-checking program with simgrid model checker
 
-DIRS="tools src tests examples mpi"
-for d in ${1:-$DIRS}
-do
-    for ext in c h cl cu
-    do
-	grep -rsn "{" $d |grep ".${ext}:" | grep -v "}" | grep -v ".${ext}:[0-9]*:[[:space:]]*{$" > /tmp/braces
-	if test -s /tmp/braces
-	then
-	    $SHOW /tmp/braces
-	fi
-	grep -rsn "}" $d |grep ".${ext}:" | grep -v "{" | grep -v "};" | grep -v ".${ext}:[0-9]*:[[:space:]]*};*$" > /tmp/braces
-	if test -s /tmp/braces
-	then
-	    $SHOW /tmp/braces
-	fi
-    done
-done
+SIMGRID_MC=@SIMGRID_MC@
+abs_top_srcdir=@abs_top_srcdir@
+abs_builddir=@abs_builddir@
+
+set -e
+
+[ -x "$SIMGRID_MC" ] || exit 77
+
+MC_FLAGS=--cfg=model-check/reduction:none
+
+# makes it much longer actually
+#MC_FLAGS+=--cfg=contexts/factory:ucontext
+#MC_FLAGS+=--cfg=model-check/sparse-checkpoint:yes
+#MC_FLAGS+=--cfg=model-check/visited:1000
+
+test() {
+	$SIMGRID_MC $abs_builddir/$1 $abs_top_srcdir/tests/model-checking/platform.xml MAIN $MC_FLAGS
+}

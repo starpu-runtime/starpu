@@ -39,7 +39,7 @@ void _starpu_mic_sink_init(struct _starpu_mp_node *node)
 	cpu_set_t cpuset;
 	/* We reserve one core for the communications */
 	/*Bind on the first core*/
-	self = pthread_self();
+	self = starpu_pthread_self();
 	CPU_ZERO(&cpuset);
 	CPU_SET(0,&cpuset);
 	pthread_setaffinity_np(self,sizeof(cpu_set_t),&cpuset);
@@ -154,8 +154,7 @@ void _starpu_mic_sink_deinit(struct _starpu_mp_node *node)
 void _starpu_mic_sink_report_error(const char *func, const char *file, const int line, const int status)
 {
 	const char *errormsg = strerror(status);
-	printf("SINK: oops in %s (%s:%d)... %d: %s \n", func, file, line, status, errormsg);
-	STARPU_ASSERT(0);
+	_STARPU_ERROR("SINK: oops in %s (%s:%d)... %d: %s \n", func, file, line, status, errormsg);
 }
 
 /* Allocate memory on the MIC.

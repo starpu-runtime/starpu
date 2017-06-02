@@ -181,6 +181,7 @@ void _starpu_init_and_load_perfmodel(struct starpu_perfmodel *model)
 
 static double starpu_model_expected_perf(struct starpu_task *task, struct starpu_perfmodel *model, struct starpu_perfmodel_arch* arch,  unsigned nimpl)
 {
+	double exp_perf = 0.0;
 	if (model)
 	{
 		_starpu_init_and_load_perfmodel(model);
@@ -190,24 +191,36 @@ static double starpu_model_expected_perf(struct starpu_task *task, struct starpu
 		switch (model->type)
 		{
 			case STARPU_PER_ARCH:
-				return per_arch_task_expected_perf(model, arch, task, nimpl);
+				exp_perf = per_arch_task_expected_perf(model, arch, task, nimpl);
+				STARPU_ASSERT_MSG(isnan(exp_perf)||exp_perf>=0,"exp_perf=%lf\n",exp_perf);
+				break;
 			case STARPU_COMMON:
-				return common_task_expected_perf(model, arch, task, nimpl);
+				exp_perf = common_task_expected_perf(model, arch, task, nimpl);
+				STARPU_ASSERT_MSG(isnan(exp_perf)||exp_perf>=0,"exp_perf=%lf\n",exp_perf);
+				break;
 			case STARPU_HISTORY_BASED:
-				return _starpu_history_based_job_expected_perf(model, arch, j, nimpl);
+				exp_perf = _starpu_history_based_job_expected_perf(model, arch, j, nimpl);
+				STARPU_ASSERT_MSG(isnan(exp_perf)||exp_perf>=0,"exp_perf=%lf\n",exp_perf);
+				break;
 			case STARPU_REGRESSION_BASED:
-				return _starpu_regression_based_job_expected_perf(model, arch, j, nimpl);
+				exp_perf = _starpu_regression_based_job_expected_perf(model, arch, j, nimpl);
+				STARPU_ASSERT_MSG(isnan(exp_perf)||exp_perf>=0,"exp_perf=%lf\n",exp_perf);
+				break;
 			case STARPU_NL_REGRESSION_BASED:
-				return _starpu_non_linear_regression_based_job_expected_perf(model, arch, j,nimpl);
+				exp_perf = _starpu_non_linear_regression_based_job_expected_perf(model, arch, j,nimpl);
+				STARPU_ASSERT_MSG(isnan(exp_perf)||exp_perf>=0,"exp_perf=%lf\n",exp_perf);
+				break;
 			case STARPU_MULTIPLE_REGRESSION_BASED:
-				return _starpu_multiple_regression_based_job_expected_perf(model, arch, j, nimpl);
+				exp_perf = _starpu_multiple_regression_based_job_expected_perf(model, arch, j, nimpl);
+				STARPU_ASSERT_MSG(isnan(exp_perf)||exp_perf>=0,"exp_perf=%lf\n",exp_perf);
+				break;
 			default:
 				STARPU_ABORT();
 		}
 	}
 
 	/* no model was found */
-	return 0.0;
+	return exp_perf;
 }
 
 double starpu_task_expected_length(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)

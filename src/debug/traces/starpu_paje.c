@@ -22,11 +22,42 @@
 
 #ifdef STARPU_USE_FXT
 
+#ifdef STARPU_HAVE_POTI
+#ifdef HAVE_POTI_INIT_CUSTOM
+int _starpu_poti_extendedSetState = -1;
+int _starpu_poti_semiExtendedSetState = -1;
+#endif
+#endif
+
 void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 {
 	unsigned i;
 #ifdef STARPU_HAVE_POTI
-	poti_header(1, 1); /* 1 as parameter means basic, no extended events */
+#ifdef HAVE_POTI_INIT_CUSTOM
+	poti_header();     /* see poti_init_custom to customize the header */
+	_starpu_poti_extendedSetState = poti_header_DeclareEvent (PAJE_SetState,
+						     11,
+						     "Size string",
+						     "Params string",
+						     "Footprint string",
+						     "Tag string",
+						     "JobId string",
+						     "GFlop string",
+						     "X string",
+						     "Y string",
+						     "Z string",
+						     "Iteration string",
+						     "Subiteration string");
+	_starpu_poti_semiExtendedSetState = poti_header_DeclareEvent (PAJE_SetState,
+						     5,
+						     "Size string",
+						     "Params string",
+						     "Footprint string",
+						     "Tag string",
+						     "JobId string");
+#else
+	poti_header(1,1);
+#endif
 #else
 	fprintf(file, "%%EventDef	PajeDefineContainerType	1\n");
 	fprintf(file, "%%	Alias	string\n");
@@ -147,6 +178,17 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 	fprintf(file, "%%	Iteration	string\n");
 	fprintf(file, "%%	Subiteration	string\n");
 	fprintf(file, "%%EndEventDef\n");
+	fprintf(file, "%%EventDef PajeSetState 21\n");
+	fprintf(file, "%%	Time	date\n");
+	fprintf(file, "%%	Container	string\n");
+	fprintf(file, "%%	Type	string\n");
+	fprintf(file, "%%	Value	string\n");
+	fprintf(file, "%%	Size	string\n");
+	fprintf(file, "%%	Params	string\n");
+	fprintf(file, "%%	Footprint	string\n");
+	fprintf(file, "%%	Tag	string\n");
+	fprintf(file, "%%	JobId	string\n");
+	fprintf(file, "%%EndEventDef\n");
 #endif
 
 #ifdef STARPU_HAVE_POTI
@@ -179,7 +221,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 	poti_DefineEntityValue("No", "MS", "Nothing", ".0 .0 .0");
 
 	/* Types for the Worker of the Memory Node */
-	poti_DefineEventType("user_event", "T", "user event type");
+	poti_DefineEventType("user_event", "P", "user event type");
 	poti_DefineEventType("thread_event", "T", "thread event type");
 	poti_DefineVariableType("gf", "W", "GFlops", "0 0 0");
 	poti_DefineStateType("S", "T", "Thread State");
@@ -193,7 +235,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 	poti_DefineEntityValue("E", "S", "Executing", ".0 .6 .5");
 	poti_DefineEntityValue("Sc", "S", "Scheduling", ".7 .36 .0");
 	poti_DefineEntityValue("Sl", "S", "Sleeping", ".9 .1 .0");
-	poti_DefineEntityValue("P", "S", "Progressing", ".4 .1 .6");
+	poti_DefineEntityValue("P", "S", "Progressing", ".1 .3 .1");
 	poti_DefineEntityValue("U", "S", "Unpartitioning", ".0 .0 1.0");
 	poti_DefineEntityValue("H", "S", "Hypervisor", ".5 .18 .0");
 	poti_DefineEntityValue("Bu", "S", "Building task", ".5 .18 .0");
@@ -213,7 +255,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 	poti_DefineEntityValue("E", "WS", "Executing", ".0 .6 .5");
 	poti_DefineEntityValue("Sc", "WS", "Scheduling", ".7 .36 .0");
 	poti_DefineEntityValue("Sl", "WS", "Sleeping", ".9 .1 .0");
-	poti_DefineEntityValue("P", "WS", "Progressing", ".4 .1 .6");
+	poti_DefineEntityValue("P", "WS", "Progressing", ".1 .3 .1");
 	poti_DefineEntityValue("U", "WS", "Unpartitioning", ".0 .0 1.0");
 	poti_DefineEntityValue("H", "WS", "Hypervisor", ".5 .18 .0");
 	poti_DefineEntityValue("Bu", "WS", "Building task", ".5 .18 .0");
@@ -243,6 +285,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 	poti_DefineStateType("US", "UT", "User Thread State");
 	poti_DefineEntityValue("Bu", "US", "Building task", ".5 .18 .0");
 	poti_DefineEntityValue("Su", "US", "Submiting task", ".3 .09 .0");
+	poti_DefineEntityValue("C", "US", "Callback", ".0 .3 .8");
 	poti_DefineEntityValue("Th", "US", "Throttling task submission", ".8 .6 .6");
 	poti_DefineEntityValue("MD", "US", "Decoding task for MPI", ".5 .18 .2");
 	poti_DefineEntityValue("MPr", "US", "Preparing task for MPI", ".4 .14 .2");
@@ -256,7 +299,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 		char inctx[10];
 		snprintf(inctx, sizeof(inctx), "InCtx%u", i);
 		char *ctx = inctx+2;
-		poti_DefineStateType(ctx, "T", inctx);
+		poti_DefineStateType(ctx, "W", inctx);
 		poti_DefineEntityValue("I", ctx, "Idle", ".9 .1 .0");
 		poti_DefineEntityValue("In", ctx, "Initializing", "0.0 .7 1.0");
 		poti_DefineEntityValue("D", ctx, "Deinitializing", "0.0 .1 .7");
@@ -267,7 +310,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 		poti_DefineEntityValue("E", ctx, "Executing", ".0 .6 .5");
 		poti_DefineEntityValue("Sc", ctx, "Scheduling", ".7 .36 .0");
 		poti_DefineEntityValue("Sl", ctx, "Sleeping", ".9 .1 .0");
-		poti_DefineEntityValue("P", ctx, "Progressing", ".4 .1 .6");
+		poti_DefineEntityValue("P", ctx, "Progressing", ".1 .3 .1");
 		poti_DefineEntityValue("U", ctx, "Unpartitioning", ".0 .0 1.0");
 		poti_DefineEntityValue("H", ctx, "Hypervisor", ".5 .18 .0");
 	}
@@ -278,11 +321,11 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 	poti_DefineVariableType("gft", "Sc", "Total GFlops", "0 0 0");
 
 	/* Link types */
-	poti_DefineLinkType("MPIL", "MPIP", "MPICt", "MPICt", "MPI communications");
+	poti_DefineLinkType("MPIL", "MPIP", "MPICt", "MPICt", "MPI communication");
 	poti_DefineLinkType("F", "P", "Mm", "Mm", "Intra-node data Fetch");
 	poti_DefineLinkType("PF", "P", "Mm", "Mm", "Intra-node data PreFetch");
 	poti_DefineLinkType("IF", "P", "Mm", "Mm", "Intra-node data IdleFetch");
-	poti_DefineLinkType("WSL", "P", "W", "W", "Work steals");
+	poti_DefineLinkType("WSL", "P", "W", "W", "Work steal");
 
 	/* Creating the MPI Program */
 	poti_CreateContainer(0, "MPIroot", "MPIP", "0", "root");
@@ -299,7 +342,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 1       Sc       P       \"Scheduler State\"                        \n\
 2       prog_event   P       \"program event type\"				\n\
 2       register     P       \"data registration\"				\n\
-2       user_event   T       \"user event type\"				\n\
+2       user_event   P       \"user event type\"				\n\
 2       thread_event   T       \"thread event type\"				\n\
 2       user_user_event   UT       \"user event type\"				\n\
 2       user_thread_event   UT       \"thread event type\"				\n\
@@ -307,7 +350,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 3       S       T       \"Thread State\"                        \n\
 3       CtS     MPICt    \"Communication Thread State\"          \n");
 	for (i=1; i<STARPU_NMAX_SCHED_CTXS; i++)
-		fprintf(file, "3       Ctx%u      T     \"InCtx%u\"         		\n", i, i);
+		fprintf(file, "3       Ctx%u      W     \"InCtx%u\"         		\n", i, i);
 	fprintf(file, "\
 2       invalidate Mm \"data invalidation\"                            \n\
 3       MS       Mm       \"Memory Node State\"                        \n\
@@ -330,7 +373,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 6       E       S       Executing         \".0 .6 .5\"		\n\
 6       Sc       S      Scheduling         \".7 .36 .0\"		\n\
 6       Sl       S      Sleeping         \".9 .1 .0\"		\n\
-6       P       S       Progressing         \".4 .1 .6\"		\n\
+6       P       S       Progressing         \".1 .3 .1\"		\n\
 6       U       S       Unpartitioning      \".0 .0 1.0\"		\n\
 6       H       S       Hypervisor      \".5 .18 .0\"		\n\
 6       Bu      S       \"Building task\"   \".5 .18 .0\"		\n\
@@ -350,7 +393,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 6       E       WS       Executing         \".0 .6 .5\"		\n\
 6       Sc       WS      Scheduling         \".7 .36 .0\"		\n\
 6       Sl       WS      Sleeping         \".9 .1 .0\"		\n\
-6       P       WS       Progressing         \".4 .1 .6\"		\n\
+6       P       WS       Progressing         \".1 .3 .1\"		\n\
 6       U       WS       Unpartitioning      \".0 .0 1.0\"		\n\
 6       H       WS       Hypervisor      \".5 .18 .0\"		\n\
 6       Bu      WS       \"Building task\"   \".5 .18 .0\"		\n\
@@ -359,6 +402,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 3       US       UT       \"User Thread State\"                        \n\
 6       Bu      US      \"Building task\"   \".5 .18 .0\"		\n\
 6       Su      US      \"Submitting task\" \".3 .09 .0\"		\n\
+6       C       US      \"Callback\" \".0 .3 .8\"		\n\
 6       Th      US      \"Throttling task submission\" \".8 .6 .6\"		\n\
 6       MD      US      \"Decoding task for MPI\" \".5 .18 .2\"		\n\
 6       MPr     US      \"Preparing task for MPI\" \".4 .14 .2\"		\n\
@@ -392,7 +436,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 6       E       Ctx%u       Executing         \".0 .6 .5\"		\n\
 6       Sc       Ctx%u      Scheduling         \".7 .36 .0\"		\n\
 6       Sl       Ctx%u      Sleeping         \".9 .1 .0\"		\n\
-6       P       Ctx%u       Progressing         \".4 .1 .6\"		\n\
+6       P       Ctx%u       Progressing         \".1 .3 .1\"		\n\
 6       U       Ctx%u       Unpartitioning         \".0 .0 1.0\"	\n\
 6       H       Ctx%u       Hypervisor         \".5 .18 .0\"		\n",
 		i, i, i, i, i, i, i, i, i, i, i, i, i);
@@ -406,13 +450,13 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 6       Co       MS     DriverCopy         \".3 .5 .1\"		\n\
 6       CoA      MS     DriverCopyAsync         \".1 .3 .1\"		\n\
 6       No       MS     Nothing         \".0 .0 .0\"		\n\
-5       MPIL     MPIP	MPICt	MPICt   MPIL			\n\
-5       F       P	Mm	Mm      F\n\
-5       PF      P	Mm	Mm      PF\n\
-5       IF      P	Mm	Mm      IF\n\
-5       WSL     P	W	W       WSL\n");
+5       MPIL     MPIP	MPICt	MPICt   \"MPI communication\"\n\
+5       F       P	Mm	Mm      \"Intra-node data Fetch\"\n\
+5       PF      P	Mm	Mm      \"Intra-node data PreFetch\"\n\
+5       IF      P	Mm	Mm      \"Intra-node data IdleFetch\"\n\
+5       WSL     P	W	W       \"Work steal\"\n");
 
-	fprintf(file, "7      0.0 MPIroot      MPIP      0       root\n");
+	fprintf(file, "7	0.0 MPIroot      MPIP      0       root\n");
 #endif
 }
 

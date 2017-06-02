@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2014, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2014, 2016, 2017  CNRS
+ * Copyright (C) 2017  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -87,14 +88,13 @@ int starpu_combined_worker_assign_workerid(int nworkers, int workerid_array[])
 	new_workerid = basic_worker_count + combined_worker_id;
 	config->topology.ncombinedworkers++;
 
-#if 0
-	fprintf(stderr, "COMBINED WORKERS ");
-	for (i = 0; i < nworkers; i++)
-	{
-		fprintf(stderr, "%d ", workerid_array[i]);
-	}
-	fprintf(stderr, "into worker %d\n", new_workerid);
-#endif
+//	fprintf(stderr, "COMBINED WORKERS ");
+//	for (i = 0; i < nworkers; i++)
+//	{
+//		fprintf(stderr, "%d ", workerid_array[i]);
+//	}
+//	fprintf(stderr, "into worker %d\n", new_workerid);
+
 	for(i = 0; i < nworkers; i++)
 		_starpu_get_worker_struct(workerid_array[i])->combined_workerid = new_workerid;
 
@@ -160,7 +160,7 @@ int starpu_combined_worker_assign_workerid(int nworkers, int workerid_array[])
 #endif
 	}
 
-	starpu_sched_ctx_add_workers(&combined_worker_id, 1, STARPU_GLOBAL_SCHED_CTX);
+	starpu_sched_ctx_add_combined_workers(&combined_worker_id, 1, STARPU_GLOBAL_SCHED_CTX);
 
 	return new_workerid;
 }

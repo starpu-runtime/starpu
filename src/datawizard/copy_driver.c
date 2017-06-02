@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2013, 2016  CNRS
- * Copyright (C) 2016  INRIA
+ * Copyright (C) 2016-2017  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -41,34 +41,33 @@
 void _starpu_wake_all_blocked_workers_on_node(unsigned nodeid)
 {
 	/* wake up all workers on that memory node */
-	unsigned cond_id;
-
 	struct _starpu_memory_node_descr * const descr = _starpu_memory_node_get_description();
-
-	starpu_pthread_mutex_t *mymutex = NULL;
-	starpu_pthread_cond_t *mycond = NULL;
-	const int myworkerid = starpu_worker_get_id();
-	if (myworkerid >= 0)
-		starpu_worker_get_sched_condition(myworkerid, &mymutex, &mycond);
+	const int cur_workerid = starpu_worker_get_id();
+	struct _starpu_worker *cur_worker = cur_workerid>=0?_starpu_get_worker_struct(cur_workerid):NULL;
 
 	STARPU_PTHREAD_RWLOCK_RDLOCK(&descr->conditions_rwlock);
 
 	unsigned nconds = descr->condition_count[nodeid];
+	unsigned cond_id;
 	for (cond_id = 0; cond_id < nconds; cond_id++)
 	{
-		struct _starpu_cond_and_mutex *condition;
-		condition  = &descr->conditions_attached_to_node[nodeid][cond_id];
+		struct _starpu_cond_and_worker *condition;
+		condition = &descr->conditions_attached_to_node[nodeid][cond_id];
 
-		if (condition->mutex == mymutex)
+		if (condition->worker == cur_worker)
 			/* No need to wake myself, and I might be called from
 			 * the scheduler with mutex locked, through
 			 * starpu_prefetch_task_input_on_node */
 			continue;
 
 		/* wake anybody waiting on that condition */
-		STARPU_PTHREAD_MUTEX_LOCK_SCHED(condition->mutex);
+		STARPU_PTHREAD_MUTEX_LOCK_SCHED(&condition->worker->sched_mutex);
+		if (condition->cond == &condition->worker->sched_cond)
+		{
+			condition->worker->state_keep_awake = 1;
+		} 
 		STARPU_PTHREAD_COND_BROADCAST(condition->cond);
-		STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(condition->mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&condition->worker->sched_mutex);
 	}
 
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&descr->conditions_rwlock);
@@ -81,34 +80,33 @@ void _starpu_wake_all_blocked_workers_on_node(unsigned nodeid)
 void starpu_wake_all_blocked_workers(void)
 {
 	/* workers may be blocked on the various queues' conditions */
-	unsigned cond_id;
-
 	struct _starpu_memory_node_descr * const descr = _starpu_memory_node_get_description();
-
-	starpu_pthread_mutex_t *mymutex = NULL;
-	starpu_pthread_cond_t *mycond = NULL;
-	const int myworkerid = starpu_worker_get_id();
-	if (myworkerid >= 0)
-		starpu_worker_get_sched_condition(myworkerid, &mymutex, &mycond);
+	const int cur_workerid = starpu_worker_get_id();
+	struct _starpu_worker *cur_worker = cur_workerid>=0?_starpu_get_worker_struct(cur_workerid):NULL;
 
 	STARPU_PTHREAD_RWLOCK_RDLOCK(&descr->conditions_rwlock);
 
 	unsigned nconds = descr->total_condition_count;
+	unsigned cond_id;
 	for (cond_id = 0; cond_id < nconds; cond_id++)
 	{
-		struct _starpu_cond_and_mutex *condition;
-		condition  = &descr->conditions_all[cond_id];
+		struct _starpu_cond_and_worker *condition;
+		condition = &descr->conditions_all[cond_id];
 
-		if (condition->mutex == mymutex)
+		if (condition->worker == cur_worker)
 			/* No need to wake myself, and I might be called from
 			 * the scheduler with mutex locked, through
 			 * starpu_prefetch_task_input_on_node */
 			continue;
 
 		/* wake anybody waiting on that condition */
-		STARPU_PTHREAD_MUTEX_LOCK_SCHED(condition->mutex);
+		STARPU_PTHREAD_MUTEX_LOCK_SCHED(&condition->worker->sched_mutex);
+		if (condition->cond == &condition->worker->sched_cond)
+		{
+			condition->worker->state_keep_awake = 1;
+		}
 		STARPU_PTHREAD_COND_BROADCAST(condition->cond);
-		STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(condition->mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&condition->worker->sched_mutex);
 	}
 
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&descr->conditions_rwlock);
@@ -535,7 +533,7 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 			ret = _starpu_disk_full_write(src_node, dst_node, obj, ptr, size, req && !starpu_asynchronous_copy_disabled() ? &req->async_channel : NULL);
 			if (ret == 0)
 				/* write is already finished, ptr was allocated in pack_data */
-				free(ptr);
+				starpu_free_flags(ptr, size, 0);
 
 			/* For now, asynchronous is not supported */
 			STARPU_ASSERT(ret == 0);
@@ -556,7 +554,7 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 				/* read is already finished, we can already unpack */
 				handle->ops->unpack_data(handle, dst_node, ptr, size);
 				/* ptr is allocated in full_read */
-				free(ptr);
+				starpu_free_flags(ptr, size, 0);
 			}
 
 			/* For now, asynchronous is not supported */

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2012 University of Bordeaux
- * Copyright (C) 2012, 2014 CNRS
+ * Copyright (C) 2012, 2014, 2017 CNRS
  * Copyright (C) 2012 Vincent Danjean <Vincent.Danjean@ens-lyon.org>
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -108,7 +108,7 @@ void gc_stop(void) {
 
 int gc_entity_release_ex(entity e, const char * DEBUG_PARAM(caller)) {
 
-  DEBUG_MSG("[%s] Decrementing refcount of %s %p to ", caller, e->name, e);
+  DEBUG_MSG("[%s] Decrementing refcount of %s %p to ", caller, e->name, (void *)e);
 
   /* Decrement reference count */
   int refs = __sync_sub_and_fetch(&e->refs, 1);
@@ -120,7 +120,7 @@ int gc_entity_release_ex(entity e, const char * DEBUG_PARAM(caller)) {
   if (refs != 0)
     return 0;
 
-  DEBUG_MSG("[%s] Releasing %s %p\n", caller, e->name, e);
+  DEBUG_MSG("[%s] Releasing %s %p\n", caller, e->name, (void *)e);
 
   GC_LOCK;
 
@@ -209,7 +209,7 @@ void gc_print_remaining_entities(void) {
 
    entity e = entities;
    while (e != NULL) {
-      DEBUG_MSG("  - %s %p\n", e->name, e);
+      DEBUG_MSG("  - %s %p\n", e->name, (void *)e);
       e = e->next;
    }
 

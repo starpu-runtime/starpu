@@ -37,8 +37,10 @@
 
 #pragma weak starpu_main
 extern int starpu_main(int argc, char *argv[]);
+#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 16)
 #pragma weak smpi_main
 extern int smpi_main(int (*realmain) (int argc, char *argv[]), int argc, char *argv[]);
+#endif
 #pragma weak _starpu_mpi_simgrid_init
 extern int _starpu_mpi_simgrid_init(int argc, char *argv[]);
 
@@ -62,19 +64,6 @@ static struct worker_runner
 	msg_process_t runner;
 } worker_runner[STARPU_NMAXWORKERS];
 static int task_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED);
-
-/* In case the MPI application didn't use smpicc to build the file containing
- * main(), try to cope by calling starpu_main */
-int _starpu_smpi_simulated_main_(int argc, char *argv[])
-{
-	if (!starpu_main)
-	{
-		_STARPU_ERROR("In simgrid mode, the file containing the main() function of this application needs to be compiled with starpu.h or starpu_simgrid_wrap.h included, to properly rename it into starpu_main\n");
-	}
-
-	return starpu_main(argc, argv);
-}
-int smpi_simulated_main_(int argc, char *argv[]) __attribute__((weak, alias("_starpu_smpi_simulated_main_")));
 
 #ifdef HAVE_MSG_ENVIRONMENT_GET_ROUTING_ROOT
 #ifdef HAVE_MSG_GET_AS_BY_NAME
@@ -204,22 +193,30 @@ msg_host_t _starpu_simgrid_get_host_by_worker(struct _starpu_worker *worker)
 	return host;
 }
 
+/* Simgrid up to 3.15 would rename main into smpi_simulated_main_, and call that
+ * from SMPI initialization
+ * In case the MPI application didn't use smpicc to build the file containing
+ * main(), but included our #define main starpu_main, try to cope by calling
+ * starpu_main */
+int _starpu_smpi_simulated_main_(int argc, char *argv[])
+{
+	if (!starpu_main)
+	{
+		_STARPU_ERROR("In simgrid mode, the file containing the main() function of this application needs to be compiled with starpu.h or starpu_simgrid_wrap.h included, to properly rename it into starpu_main\n");
+	}
+
+	return starpu_main(argc, argv);
+}
+int smpi_simulated_main_(int argc, char *argv[]) __attribute__((weak, alias("_starpu_smpi_simulated_main_")));
+
+/* This is used to start a non-MPI simgrid environment */
 static void start_simgrid(int *argc, char **argv)
 {
 	char path[256];
 
 	simgrid_started = 1;
 
-	if (!starpu_main && !(smpi_main && smpi_simulated_main_ != _starpu_smpi_simulated_main_))
-	{
-		_STARPU_ERROR("In simgrid mode, the file containing the main() function of this application needs to be compiled with starpu.h or starpu_simgrid_wrap.h included, to properly rename it into starpu_main\n");
-	}
-
 	MSG_init(argc, argv);
-#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 9)
-	/* Versions earlier than 3.9 didn't support our communication tasks */
-	MSG_config("workstation/model", "ptask_L07");
-#endif
 	/* Simgrid uses tiny stacks by default.  This comes unexpected to our users.  */
 	unsigned stack_size = 8192;
 #ifdef HAVE_GETRLIMIT
@@ -260,15 +257,31 @@ int do_starpu_main(int argc, char *argv[])
 	return main_ret;
 }
 
+/* We need it only when using smpi */
+#pragma weak smpi_process_get_user_data
+extern void *smpi_process_get_user_data();
+
+/* This is hopefully called before the application and simgrid */
 #undef main
 #pragma weak main
 int main(int argc, char **argv)
 {
 	if (_starpu_simgrid_running_smpi())
 	{
-		/* Oops, we are running SMPI, let it start Simgrid, and we'll
+		if (!smpi_process_get_user_data)
+		{
+			_STARPU_ERROR("Your version of simgrid does not provide smpi_process_get_user_data, we can not continue without it\n");
+		}
+
+#if SIMGRID_VERSION_MAJOR > 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR >= 16)
+		/* Recent versions of simgrid dlopen() us, so we don't need to
+		 * do circumvolutions, just init MPI early and run the application's main */
+		return _starpu_mpi_simgrid_init(argc, argv);
+#else
+		/* Oops, we are running old SMPI, let it start Simgrid, and we'll
 		 * take back hand in _starpu_simgrid_init from starpu_init() */
 		return smpi_main(_starpu_mpi_simgrid_init, argc, argv);
+#endif
 	}
 
 	/* Managed to catch application's main, initialize simgrid first */
@@ -282,9 +295,10 @@ int main(int argc, char **argv)
 		argv_cpy[i] = strdup(argv[i]);
 	void **tsd;
 	_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));
+	/* Run the application in a separate thread */
 	MSG_process_create_with_arguments("main", &do_starpu_main, tsd, MSG_get_host_by_name("MAIN"), argc, argv_cpy);
 
-	/* And run maestro in main thread */
+	/* And run maestro in the main thread */
 	MSG_main();
 	return main_ret;
 }
@@ -296,16 +310,17 @@ static void maestro(void *data STARPU_ATTRIBUTE_UNUSED)
 }
 #endif
 
+/* This is called early from starpu_init, so thread functions etc. can work */
 void _starpu_simgrid_init_early(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef HAVE_MSG_PROCESS_ATTACH
-	if (!simgrid_started && !(smpi_main && smpi_simulated_main_ != _starpu_smpi_simulated_main_))
+	if (!simgrid_started && !_starpu_simgrid_running_smpi())
 	{
-		_STARPU_DISP("Warning: In simgrid mode, the file containing the main() function of this application should to be compiled with starpu.h or starpu_simgrid_wrap.h included, to properly rename it into starpu_main to avoid having to use --cfg=contexts/factory:thread which reduces performance\n");
-#if SIMGRID_VERSION_MAJOR > 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR >= 14) /* Only recent versions of simgrid support setting xbt_cfg_set_string before starting simgrid */
 		/* "Cannot create_maestro with this ContextFactory.
 		 * Try using --cfg=contexts/factory:thread instead."
 		 * See https://github.com/simgrid/simgrid/issues/141 */
+		_STARPU_DISP("Warning: In simgrid mode, the file containing the main() function of this application should to be compiled with starpu.h or starpu_simgrid_wrap.h included, to properly rename it into starpu_main to avoid having to use --cfg=contexts/factory:thread which reduces performance\n");
+#if SIMGRID_VERSION_MAJOR > 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR >= 14) /* Only recent versions of simgrid support setting xbt_cfg_set_string before starting simgrid */
 		xbt_cfg_set_string("contexts/factory", "thread");
 #endif
 		/* We didn't catch application's main. */
@@ -321,8 +336,10 @@ void _starpu_simgrid_init_early(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv 
 	}
 #endif
 
-	if (!simgrid_started && !starpu_main && !(smpi_main && smpi_simulated_main_ != _starpu_smpi_simulated_main_))
+	if (!simgrid_started && !starpu_main && !_starpu_simgrid_running_smpi())
 	{
+                /* Oops, we don't have MSG_process_attach and didn't catch the
+                 * 'main' symbol, there is no way for us */
 		_STARPU_ERROR("In simgrid mode, the file containing the main() function of this application needs to be compiled with starpu.h or starpu_simgrid_wrap.h included, to properly rename it into starpu_main\n");
 	}
 	if (_starpu_simgrid_running_smpi())
@@ -341,6 +358,7 @@ void _starpu_simgrid_init_early(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv 
 		starpu_pthread_queue_init(&_starpu_simgrid_task_queue[i]);
 }
 
+/* This is called late from starpu_init, to start task executors */
 void _starpu_simgrid_init(void)
 {
 	unsigned i;
@@ -451,7 +469,7 @@ static int task_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_AT
 
 		*task->finished = 1;
 		/* The worker which started this task may be sleeping out of tasks, wake it  */
-		starpu_wake_worker(workerid);
+		_starpu_wake_worker_relax(workerid);
 
 		free(task);
 	}
@@ -687,10 +705,13 @@ static int transfer_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARP
 		if (t->last_transfer == transfer)
 			t->last_transfer = NULL;
 
-		_STARPU_DEBUG("transfer %p started\n", transfer);
-		MSG_task_execute(transfer->task);
-		MSG_task_destroy(transfer->task);
-		_STARPU_DEBUG("transfer %p finished\n", transfer);
+		if (transfer->task)
+		{
+			_STARPU_DEBUG("transfer %p started\n", transfer);
+			MSG_task_execute(transfer->task);
+			MSG_task_destroy(transfer->task);
+			_STARPU_DEBUG("transfer %p finished\n", transfer);
+		}
 
 		*transfer->finished = 1;
 		transfer_list_erase(&pending, transfer);
@@ -776,6 +797,60 @@ int _starpu_simgrid_test_transfer_event(union _starpu_async_channel_event *event
 	return event->finished;
 }
 
+/* Wait for completion of all transfers */
+static void _starpu_simgrid_wait_transfers(void)
+{
+	unsigned finished = 0;
+	struct transfer *sync = transfer_new();
+	struct transfer *cur;
+
+	sync->task = NULL;
+	sync->finished = &finished;
+
+	sync->src_node = STARPU_MAIN_RAM;
+	sync->dst_node = STARPU_MAIN_RAM;
+	sync->run_node = STARPU_MAIN_RAM;
+
+	sync->wake = NULL;
+	sync->nwake = 0;
+	sync->nwait = 0;
+	sync->next = NULL;
+
+	for (cur  = transfer_list_begin(&pending);
+	     cur != transfer_list_end(&pending);
+	     cur  = transfer_list_next(cur))
+	{
+		sync->nwait++;
+		_STARPU_REALLOC(cur->wake, (cur->nwake + 1) * sizeof(cur->wake));
+		cur->wake[cur->nwake] = sync;
+		cur->nwake++;
+	}
+
+	if (sync->nwait == 0)
+	{
+		/* No transfer to wait for */
+		free(sync);
+		return;
+	}
+
+	/* Push synchronization pseudo-transfer */
+	transfer_list_push_front(&pending, sync);
+
+	/* And wait for it */
+	starpu_pthread_wait_t wait;
+	starpu_pthread_wait_init(&wait);
+	starpu_pthread_queue_register(&wait, &_starpu_simgrid_transfer_queue[STARPU_MAIN_RAM]);
+	while(1)
+	{
+		starpu_pthread_wait_reset(&wait);
+		if (finished)
+			break;
+		starpu_pthread_wait_wait(&wait);
+	}
+	starpu_pthread_queue_unregister(&wait, &_starpu_simgrid_transfer_queue[STARPU_MAIN_RAM]);
+	starpu_pthread_wait_destroy(&wait);
+}
+
 /* Data transfer issued by StarPU */
 int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, struct _starpu_data_request *req)
 {
@@ -843,6 +918,12 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 		_starpu_simgrid_wait_transfer_event(event);
 		return 0;
 	}
+}
+
+/* Sync all GPUs (used on CUDA Free, typically) */
+void _starpu_simgrid_sync_gpus(void)
+{
+	_starpu_simgrid_wait_transfers();
 }
 
 int

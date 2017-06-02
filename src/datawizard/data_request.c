@@ -31,6 +31,7 @@
 #define MAX_PENDING_REQUESTS_PER_NODE 20
 #define MAX_PENDING_PREFETCH_REQUESTS_PER_NODE 10
 #define MAX_PENDING_IDLE_REQUESTS_PER_NODE 1
+#define MAX_PUSH_TIME 1000 /* Maximum time in us that we can afford pushing requests before going back to the driver loop, e.g. for checking GPU task termination */
 
 /* requests that have not been treated at all */
 static struct _starpu_data_request_prio_list data_requests[STARPU_MAXNODES];
@@ -584,6 +585,7 @@ static int __starpu_handle_node_data_requests(struct _starpu_data_request_prio_l
 	for (i = 0; i <= prefetch; i++)
 		_starpu_data_request_prio_list_init(&new_data_requests[i]);
 
+	double start = starpu_timing_now();
 	/* for all entries of the list */
 	while (!_starpu_data_request_prio_list_empty(&local_list))
 	{
@@ -612,6 +614,12 @@ static int __starpu_handle_node_data_requests(struct _starpu_data_request_prio_l
 		}
 
 		(*pushed)++;
+		if (starpu_timing_now() - start >= MAX_PUSH_TIME)
+		{
+			/* We have spent a lot of time doing requests, skip pushing more for now */
+			ret = -EBUSY;
+			break;
+		}
 	}
 
 	/* Push back requests we didn't handle on the proper list */

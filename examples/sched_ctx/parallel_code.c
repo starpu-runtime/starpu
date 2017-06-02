@@ -16,6 +16,7 @@
  */
 
 #include <starpu.h>
+#ifdef STARPU_USE_CPU
 #include <omp.h>
 
 #ifdef STARPU_QUICK_CHECK
@@ -71,16 +72,10 @@ int main(int argc, char **argv)
 	int nprocs1;
 	int *procs1;
 
-#ifdef STARPU_USE_CPU
 	unsigned ncpus =  starpu_cpu_worker_get_count();
 	procs1 = (int*)malloc(ncpus*sizeof(int));
 	starpu_worker_get_ids_by_type(STARPU_CPU_WORKER, procs1, ncpus);
 	nprocs1 = ncpus;
-#else
-	nprocs1 = 1;
-	procs1 = (int*)malloc(nprocs1*sizeof(int));
-	procs1[0] = 0;
-#endif
 
 	unsigned sched_ctx1 = starpu_sched_ctx_create(procs1, nprocs1, "ctx1", STARPU_SCHED_CTX_POLICY_NAME, "dmda", 0);
 
@@ -100,3 +95,10 @@ int main(int argc, char **argv)
 
 	return 0;
 }
+#else /* STARPU_USE_CPU */
+int main(int argc, char **argv)
+{
+	/* starpu_sched_ctx_exec_parallel_code() requires a CPU worker has parallel region master */
+	return 77; /* STARPU_TEST_SKIPPED */
+}
+#endif /* STARPU_USE_CPU */

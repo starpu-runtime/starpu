@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009-2016  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -143,6 +143,10 @@ uint32_t starpu_csr_get_nnz(starpu_data_handle_t handle)
 	struct starpu_csr_interface *csr_interface = (struct starpu_csr_interface *)
 		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
+#ifdef STARPU_DEBUG
+	STARPU_ASSERT_MSG(csr_interface->id == STARPU_CSR_INTERFACE_ID, "Error. The given data is not a csr.");
+#endif
+
 	return csr_interface->nnz;
 }
 
@@ -150,6 +154,10 @@ uint32_t starpu_csr_get_nrow(starpu_data_handle_t handle)
 {
 	struct starpu_csr_interface *csr_interface = (struct starpu_csr_interface *)
 		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
+
+#ifdef STARPU_DEBUG
+	STARPU_ASSERT_MSG(csr_interface->id == STARPU_CSR_INTERFACE_ID, "Error. The given data is not a csr.");
+#endif
 
 	return csr_interface->nrow;
 }
@@ -159,6 +167,10 @@ uint32_t starpu_csr_get_firstentry(starpu_data_handle_t handle)
 	struct starpu_csr_interface *csr_interface = (struct starpu_csr_interface *)
 		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
+#ifdef STARPU_DEBUG
+	STARPU_ASSERT_MSG(csr_interface->id == STARPU_CSR_INTERFACE_ID, "Error. The given data is not a csr.");
+#endif
+
 	return csr_interface->firstentry;
 }
 
@@ -166,6 +178,10 @@ size_t starpu_csr_get_elemsize(starpu_data_handle_t handle)
 {
 	struct starpu_csr_interface *csr_interface = (struct starpu_csr_interface *)
 		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
+
+#ifdef STARPU_DEBUG
+	STARPU_ASSERT_MSG(csr_interface->id == STARPU_CSR_INTERFACE_ID, "Error. The given data is not a csr.");
+#endif
 
 	return csr_interface->elemsize;
 }
@@ -180,6 +196,10 @@ uintptr_t starpu_csr_get_local_nzval(starpu_data_handle_t handle)
 	struct starpu_csr_interface *csr_interface = (struct starpu_csr_interface *)
 		starpu_data_get_interface_on_node(handle, node);
 
+#ifdef STARPU_DEBUG
+	STARPU_ASSERT_MSG(csr_interface->id == STARPU_CSR_INTERFACE_ID, "Error. The given data is not a csr.");
+#endif
+
 	return csr_interface->nzval;
 }
 
@@ -193,6 +213,10 @@ uint32_t *starpu_csr_get_local_colind(starpu_data_handle_t handle)
 	struct starpu_csr_interface *csr_interface = (struct starpu_csr_interface *)
 		starpu_data_get_interface_on_node(handle, node);
 
+#ifdef STARPU_DEBUG
+	STARPU_ASSERT_MSG(csr_interface->id == STARPU_CSR_INTERFACE_ID, "Error. The given data is not a csr.");
+#endif
+
 	return csr_interface->colind;
 }
 
@@ -205,6 +229,10 @@ uint32_t *starpu_csr_get_local_rowptr(starpu_data_handle_t handle)
 
 	struct starpu_csr_interface *csr_interface = (struct starpu_csr_interface *)
 		starpu_data_get_interface_on_node(handle, node);
+
+#ifdef STARPU_DEBUG
+	STARPU_ASSERT_MSG(csr_interface->id == STARPU_CSR_INTERFACE_ID, "Error. The given data is not a csr.");
+#endif
 
 	return csr_interface->rowptr;
 }

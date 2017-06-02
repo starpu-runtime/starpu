@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2013  Corentin Salingue
- * Copyright (C) 2015, 2016  CNRS
+ * Copyright (C) 2015, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -58,7 +58,7 @@ int starpu_disk_swap_node = -1;
 
 int starpu_disk_register(struct starpu_disk_ops *func, void *parameter, starpu_ssize_t size)
 {
-	STARPU_ASSERT_MSG(size < 0 || size >= SIZE_DISK_MIN,"Minimum disk size is %u Bytes ! (Here %u) \n", (int) SIZE_DISK_MIN, (int) size);
+	STARPU_ASSERT_MSG(size < 0 || size >= STARPU_DISK_SIZE_MIN,"Minimum disk size is %u Bytes ! (Here %u) \n", (int) STARPU_DISK_SIZE_MIN, (int) size);
 	/* register disk */
 	unsigned memory_node = _starpu_memory_node_register(STARPU_DISK_RAM, 0);
 

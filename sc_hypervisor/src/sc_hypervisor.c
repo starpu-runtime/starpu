@@ -403,7 +403,6 @@ void sc_hypervisor_unregister_ctx(unsigned sched_ctx)
 	if(npus)
 	{
 		starpu_sched_ctx_set_priority(pus, npus, father, 1);
-		starpu_sched_ctx_set_priority_on_level(pus, npus, father, 1);
 		free(pus);
 	}
 

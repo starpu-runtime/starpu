@@ -56,33 +56,33 @@ essentially used for synchronization tasks.
 
 \def STARPU_CPU
 \ingroup API_Codelet_And_Tasks
-This macro is used when setting the field starpu_codelet::where
-to specify the codelet may be executed on a CPU processing unit.
+This macro is used when setting the field starpu_codelet::where (or starpu_task::where)
+to specify the codelet (or the task) may be executed on a CPU processing unit.
 
 \def STARPU_CUDA
 \ingroup API_Codelet_And_Tasks
-This macro is used when setting the field starpu_codelet::where
-to specify the codelet may be executed on a CUDA processing unit.
+This macro is used when setting the field starpu_codelet::where (or starpu_task::where)
+to specify the codelet (or the task) may be executed on a CUDA processing unit.
 
 \def STARPU_OPENCL
 \ingroup API_Codelet_And_Tasks
-This macro is used when setting the field starpu_codelet::where to
-specify the codelet may be executed on a OpenCL processing unit.
+This macro is used when setting the field starpu_codelet::where (or starpu_task::where) to
+specify the codelet (or the task) may be executed on a OpenCL processing unit.
 
 \def STARPU_MIC
 \ingroup API_Codelet_And_Tasks
-This macro is used when setting the field starpu_codelet::where to
-specify the codelet may be executed on a MIC processing unit.
+This macro is used when setting the field starpu_codelet::where (or starpu_task::where) to
+specify the codelet (or the task) may be executed on a MIC processing unit.
 
 \def STARPU_MPI_MS
 \ingroup API_Codelet_And_Tasks
-This macro is used when setting the field starpu_codelet::where to
-specify the codelet may be executed on a MPI Slave processing unit.
+This macro is used when setting the field starpu_codelet::where (or starpu_task::where) to
+specify the codelet (or the task) may be executed on a MPI Slave processing unit.
 
 \def STARPU_SCC
 \ingroup API_Codelet_And_Tasks
-This macro is used when setting the field starpu_codelet::where to
-specify the codelet may be executed on an SCC processing unit.
+This macro is used when setting the field starpu_codelet::where (or starpu_task::where) to
+specify the codelet (or the task) may be executed on an SCC processing unit.
 
 \def STARPU_MAIN_RAM
 \ingroup API_Codelet_And_Tasks
@@ -134,6 +134,11 @@ Value to be set in starpu_codelet::opencl_flags to allow asynchronous OpenCL ker
 \def STARPU_CODELET_SIMGRID_EXECUTE
 \ingroup API_Codelet_And_Tasks
 Value to be set in starpu_codelet::flags to execute the codelet functions even in simgrid mode.
+
+\def STARPU_CODELET_SIMGRID_EXECUTE_AND_INJECT
+\ingroup API_Codelet_And_Tasks
+Value to be set in starpu_codelet::flags to execute the codelet functions even in simgrid mode,
+and later inject the measured timing inside the simulation.
 
 \typedef starpu_cpu_func_t
 \ingroup API_Codelet_And_Tasks
@@ -437,6 +442,10 @@ the configuration of a task allocated with starpu_task_create().
     field starpu_task::handles to specify the data handles accessed by
     the task. The access modes are now defined in the field
     starpu_codelet::modes.
+
+\var uint32_t starpu_task::where
+    When set, specifies where the task is allowed to be executed.
+    When unset, it takes the value of starpu_codelet::where.
 
 \var int starpu_task::nbuffers
     Specifies the number of buffers. This is only used when

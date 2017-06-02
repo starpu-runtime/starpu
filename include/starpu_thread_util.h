@@ -19,6 +19,7 @@
 #define __STARPU_THREAD_UTIL_H__
 
 #include <starpu_util.h>
+#include <starpu_thread.h>
 #include <errno.h>
 
 #if !(defined(_MSC_VER) && !defined(BUILDING_STARPU))

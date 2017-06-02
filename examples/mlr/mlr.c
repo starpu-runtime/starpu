@@ -50,7 +50,14 @@ static long sum;
 static void cl_params(struct starpu_task *task, double *parameters)
 {
 	int m, n, k;
-	starpu_codelet_unpack_args(task->cl_arg, &m, &n, &k);
+	int* vector_mn;
+
+	vector_mn = (int*)STARPU_VECTOR_GET_PTR(task->interfaces[0]);
+	m = vector_mn[0];
+	n = vector_mn[1];
+
+	starpu_codelet_unpack_args(task->cl_arg, &k);
+
 	parameters[0] = m;
 	parameters[1] = n;
 	parameters[2] = k;
@@ -61,10 +68,13 @@ void cpu_func(void *buffers[], void *cl_arg)
 {
 	long i;
 	int m,n,k;
-	starpu_codelet_unpack_args(cl_arg,
-			     	  &m,
-     			     	  &n,
-     			     	  &k);
+	int* vector_mn;
+
+	vector_mn = (int*)STARPU_VECTOR_GET_PTR(buffers[0]);
+	m = vector_mn[0];
+	n = vector_mn[1];
+
+	starpu_codelet_unpack_args(cl_arg, &k);
 
 	for(i=0; i < (long) (m*m*n); i++)
 		sum+=i;
@@ -123,7 +133,8 @@ static struct starpu_codelet cl_init =
 {
 	.cpu_funcs = { cpu_func },
 	.cpu_funcs_name = { "cpu_func" },
-	.nbuffers = 0,
+	.nbuffers = 1,
+	.modes = {STARPU_R},
 	.model = &cl_model_init,
 };
 
@@ -131,7 +142,8 @@ static struct starpu_codelet cl_final =
 {
 	.cpu_funcs = { cpu_func },
 	.cpu_funcs_name = { "cpu_func" },
-	.nbuffers = 0,
+	.nbuffers = 1,
+	.modes = {STARPU_R},
 	.model = &cl_model_final,
 };
 
@@ -147,29 +159,42 @@ int main(int argc, char **argv)
 
 	sum=0;
 	int m,n,k;
+	int* vector_mn = calloc( 2, sizeof(int) );
+	starpu_data_handle_t vector_mn_handle;
 
-        /* Giving pseudo-random values to the M,N,K parameters and inserting tasks */
-	for(i=0; i < 42; i++)
+	starpu_vector_data_register( &vector_mn_handle,
+				     STARPU_MAIN_RAM,
+				     (uintptr_t)vector_mn, 2,
+				     sizeof(int) );
+
+	/* Giving pseudo-random values to the M,N,K parameters and inserting tasks */
+	for ( i = 0; i < 42; i++)
 	{
 		m = (int) ((rand() % 10)+1);
 		n = (int) ((rand() % 10)+1);
 		k = (int) ((rand() % 10)+1);
 
-		for(j=0; j < 42; j++)
+		/* To illustrate the usage, M and N are stored in a data handle */
+		starpu_data_acquire(vector_mn_handle, STARPU_W);
+		vector_mn[0] = m;
+		vector_mn[1] = n;
+		starpu_data_release(vector_mn_handle);
+
+		for ( j = 0; j < 42; j++)
 		{
-			starpu_insert_task(&cl_init,
-				   STARPU_VALUE, &m, sizeof(int),
-				   STARPU_VALUE, &n, sizeof(int),
-				   STARPU_VALUE, &k, sizeof(int),
-				   0);
-			starpu_insert_task(&cl_final,
-				   STARPU_VALUE, &m, sizeof(int),
-				   STARPU_VALUE, &n, sizeof(int),
-				   STARPU_VALUE, &k, sizeof(int),
-				   0);
+			starpu_insert_task( &cl_init,
+					    STARPU_R, vector_mn_handle,
+					    STARPU_VALUE, &k, sizeof(int),
+					    0 );
+			starpu_insert_task( &cl_final,
+					    STARPU_R, vector_mn_handle,
+					    STARPU_VALUE, &k, sizeof(int),
+					    0 );
 		}
 	}
 
+	starpu_data_unregister(vector_mn_handle);
+	free(vector_mn);
 	starpu_shutdown();
 
 	return 0;

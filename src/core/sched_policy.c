@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2017  Université de Bordeaux
  * Copyright (C) 2010-2017  CNRS
- * Copyright (C) 2011, 2016  INRIA
+ * Copyright (C) 2011, 2016-2017  INRIA
  * Copyright (C) 2016  Uppsala University
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -31,15 +31,17 @@ static double idle[STARPU_NMAXWORKERS];
 static double idle_start[STARPU_NMAXWORKERS];
 
 long _starpu_task_break_on_push = -1;
-long _starpu_task_break_on_pop = -1;
 long _starpu_task_break_on_sched = -1;
+long _starpu_task_break_on_pop = -1;
+long _starpu_task_break_on_exec = -1;
 static const char *starpu_idle_file;
 
 void _starpu_sched_init(void)
 {
 	_starpu_task_break_on_push = starpu_get_env_number_default("STARPU_TASK_BREAK_ON_PUSH", -1);
-	_starpu_task_break_on_pop = starpu_get_env_number_default("STARPU_TASK_BREAK_ON_POP", -1);
 	_starpu_task_break_on_sched = starpu_get_env_number_default("STARPU_TASK_BREAK_ON_SCHED", -1);
+	_starpu_task_break_on_pop = starpu_get_env_number_default("STARPU_TASK_BREAK_ON_POP", -1);
+	_starpu_task_break_on_exec = starpu_get_env_number_default("STARPU_TASK_BREAK_ON_EXEC", -1);
 	starpu_idle_file = starpu_getenv("STARPU_IDLE_FILE");
 }
 
@@ -423,7 +425,7 @@ int _starpu_repush_task(struct _starpu_job *j)
 	task->status = STARPU_TASK_READY;
 	STARPU_AYU_ADDTOTASKQUEUE(j->job_id, -1);
 	/* if the context does not have any workers save the tasks in a temp list */
-	if(!sched_ctx->is_initial_sched)
+	if ((task->cl != NULL && task->where != STARPU_NOWHERE) && (!sched_ctx->is_initial_sched))
 	{
 		/*if there are workers in the ctx that are not able to execute tasks
 		  we consider the ctx empty */
@@ -431,9 +433,9 @@ int _starpu_repush_task(struct _starpu_job *j)
 
 		if(nworkers == 0)
 		{
-			STARPU_PTHREAD_MUTEX_LOCK(&sched_ctx->empty_ctx_mutex);
+			_starpu_sched_ctx_lock_write(sched_ctx->id);
 			starpu_task_list_push_front(&sched_ctx->empty_ctx_tasks, task);
-			STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->empty_ctx_mutex);
+			_starpu_sched_ctx_unlock_write(sched_ctx->id);
 #ifdef STARPU_USE_SC_HYPERVISOR
 			if(sched_ctx->id != 0 && sched_ctx->perf_counters != NULL
 			   && sched_ctx->perf_counters->notify_empty_ctx)
@@ -453,7 +455,7 @@ int _starpu_repush_task(struct _starpu_job *j)
 	/* in case there is no codelet associated to the task (that's a control
 	 * task), we directly execute its callback and enforce the
 	 * corresponding dependencies */
-	if (task->cl == NULL || task->cl->where == STARPU_NOWHERE)
+	if (task->cl == NULL || task->where == STARPU_NOWHERE)
 	{
 		if (task->prologue_callback_pop_func)
 			task->prologue_callback_pop_func(task->prologue_callback_pop_arg);
@@ -497,9 +499,9 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 
 		if (nworkers == 0)
 		{
-			STARPU_PTHREAD_MUTEX_LOCK(&sched_ctx->empty_ctx_mutex);
+			_starpu_sched_ctx_lock_write(sched_ctx->id);
 			starpu_task_list_push_back(&sched_ctx->empty_ctx_tasks, task);
-			STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->empty_ctx_mutex);
+			_starpu_sched_ctx_unlock_write(sched_ctx->id);
 #ifdef STARPU_USE_SC_HYPERVISOR
 			if(sched_ctx->id != 0 && sched_ctx->perf_counters != NULL
 			   && sched_ctx->perf_counters->notify_empty_ctx)
@@ -534,15 +536,15 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 		 * prefetch before the scheduling decision. */
 		if (starpu_get_prefetch_flag())
 		{
-			if (task->cl->where == STARPU_CPU && config->cpus_nodeid >= 0)
+			if (task->where == STARPU_CPU && config->cpus_nodeid >= 0)
 				starpu_prefetch_task_input_on_node(task, config->cpus_nodeid);
-			else if (task->cl->where == STARPU_CUDA && config->cuda_nodeid >= 0)
+			else if (task->where == STARPU_CUDA && config->cuda_nodeid >= 0)
 				starpu_prefetch_task_input_on_node(task, config->cuda_nodeid);
-			else if (task->cl->where == STARPU_OPENCL && config->opencl_nodeid >= 0)
+			else if (task->where == STARPU_OPENCL && config->opencl_nodeid >= 0)
 				starpu_prefetch_task_input_on_node(task, config->opencl_nodeid);
-			else if (task->cl->where == STARPU_MIC && config->mic_nodeid >= 0)
+			else if (task->where == STARPU_MIC && config->mic_nodeid >= 0)
 				starpu_prefetch_task_input_on_node(task, config->mic_nodeid);
-			else if (task->cl->where == STARPU_SCC && config->scc_nodeid >= 0)
+			else if (task->where == STARPU_SCC && config->scc_nodeid >= 0)
 				starpu_prefetch_task_input_on_node(task, config->scc_nodeid);
 		}
 
@@ -589,19 +591,29 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 		{
 			STARPU_ASSERT(sched_ctx->sched_policy->push_task);
 			/* check out if there are any workers in the context */
-			starpu_pthread_rwlock_t *changing_ctx_mutex = _starpu_sched_ctx_get_changing_ctx_mutex(sched_ctx->id);
-			STARPU_PTHREAD_RWLOCK_RDLOCK(changing_ctx_mutex);
 			nworkers = starpu_sched_ctx_get_nworkers(sched_ctx->id);
 			if (nworkers == 0)
 				ret = -1;
 			else
 			{
+				struct _starpu_worker *worker = _starpu_get_local_worker_key();
+				if (worker)
+				{
+					STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
+					_starpu_worker_enter_sched_op(worker);
+					STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
+				}
 				_STARPU_TASK_BREAK_ON(task, push);
 				_STARPU_SCHED_BEGIN;
 				ret = sched_ctx->sched_policy->push_task(task);
 				_STARPU_SCHED_END;
+				if (worker)
+				{
+					STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
+					_starpu_worker_leave_sched_op(worker);
+					STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
+				}
 			}
-			STARPU_PTHREAD_RWLOCK_UNLOCK(changing_ctx_mutex);
 		}
 
 		if(ret == -1)
@@ -952,7 +964,6 @@ pick:
 	 * We do have a task that uses multiformat handles. Let's create the
 	 * required conversion tasks.
 	 */
-	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 	unsigned i;
 	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
 	for (i = 0; i < nbuffers; i++)
@@ -976,7 +987,6 @@ pick:
 
 	task->mf_skip = 1;
 	starpu_task_list_push_back(&worker->local_tasks, task);
-	STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
 	goto pick;
 
 profiling:
@@ -1063,6 +1073,7 @@ void _starpu_sched_pre_exec_hook(struct starpu_task *task)
 
 void _starpu_sched_post_exec_hook(struct starpu_task *task)
 {
+	STARPU_ASSERT(task->cl != NULL && task->cl->where != STARPU_NOWHERE);
 	unsigned sched_ctx_id = starpu_sched_ctx_get_ctx_for_task(task);
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	if (sched_ctx->sched_policy && sched_ctx->sched_policy->post_exec_hook)

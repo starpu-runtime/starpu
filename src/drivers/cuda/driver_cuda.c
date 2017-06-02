@@ -5,6 +5,7 @@
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016, 2017  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2016  Uppsala University
+ * Copyright (C) 2017  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -507,6 +508,12 @@ static int start_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *worke
 		unsigned workerid = worker->workerid;
 		if (cl->flags & STARPU_CODELET_SIMGRID_EXECUTE && !async)
 			func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
+		else if (cl->flags & STARPU_CODELET_SIMGRID_EXECUTE_AND_INJECT && !async)
+			{
+				_SIMGRID_TIMER_BEGIN(1);
+				func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
+				_SIMGRID_TIMER_END;
+			}
 		else
 			_starpu_simgrid_submit_job(workerid, j, &worker->perf_arch, NAN,
 				async ? &task_finished[workerid][pipeline_idx] : NULL);
@@ -642,13 +649,13 @@ int _starpu_cuda_driver_init(struct _starpu_worker_set *worker_set)
 			/* Already initialized */
 			continue;
 		}
+		lastdevid = devid;
+		init_device_context(devid, memnode);
+
 #ifndef STARPU_SIMGRID
 		if (worker->config->topology.nworkerpercuda > 1 && props[devid].concurrentKernels == 0)
 			_STARPU_DISP("Warning: STARPU_NWORKER_PER_CUDA is %u, but CUDA device %u does not support concurrent kernel execution!\n", worker_set->nworkers, devid);
 #endif /* !STARPU_SIMGRID */
-		lastdevid = devid;
-		init_device_context(devid, memnode);
-
 	}
 
 	/* one more time to avoid hacks from third party lib :) */
@@ -763,6 +770,7 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 		task = worker->task_transferring;
 		if (task && worker->nb_buffers_transferred == worker->nb_buffers_totransfer)
 		{
+			_STARPU_TRACE_END_PROGRESS(memnode);
 			j = _starpu_get_job_associated_to_task(task);
 
 			_starpu_set_local_worker_key(worker);
@@ -779,10 +787,9 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 			}
 			else
 			{
-				_STARPU_TRACE_END_PROGRESS(memnode);
 				execute_job_on_cuda(task, worker);
-				_STARPU_TRACE_START_PROGRESS(memnode);
 			}
+			_STARPU_TRACE_START_PROGRESS(memnode);
 		}
 
 		/* Then test for termination of queued tasks */
@@ -811,6 +818,7 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 		else
 #endif /* !STARPU_SIMGRID */
 		{
+			_STARPU_TRACE_END_PROGRESS(memnode);
 			/* Asynchronous task completed! */
 			_starpu_set_local_worker_key(worker);
 			finish_job_on_cuda(_starpu_get_job_associated_to_task(task), worker);
@@ -831,11 +839,9 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 					 * flushing the pipeline, we can now at
 					 * last execute it.  */
 
-					_STARPU_TRACE_END_PROGRESS(memnode);
 					_STARPU_TRACE_EVENT("sync_task");
 					execute_job_on_cuda(task, worker);
 					_STARPU_TRACE_EVENT("end_sync_task");
-					_STARPU_TRACE_START_PROGRESS(memnode);
 					worker->pipeline_stuck = 0;
 				}
 			}
@@ -848,6 +854,7 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 				/* Everybody busy */
 				_STARPU_TRACE_END_EXECUTING()
 #endif
+			_STARPU_TRACE_START_PROGRESS(memnode);
 		}
 
 		if (!worker->pipeline_length || worker->ntasks < worker->pipeline_length)
@@ -894,8 +901,36 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 		if (!_STARPU_CUDA_MAY_PERFORM(j))
 		{
 			/* this is neither a cuda or a cublas task */
+			_starpu_worker_refuse_task(worker, task);
+#if 0
+			if (worker->pipeline_length)
+			{
+				int j;
+				for (j = 0; j < worker->ntasks; j++)
+				{
+					const int j_mod = (j+worker->first_task)%STARPU_MAX_PIPELINE;
+					if (task == worker->current_tasks[j_mod])
+					{
+						worker->current_tasks[j_mod] = NULL;
+						if (j == 0)
+						{
+							worker->first_task = (worker->first_task + 1) % STARPU_MAX_PIPELINE;
+							_starpu_set_current_task(NULL);
+						}
+						break;
+					}
+				}
+				STARPU_ASSERT(j<worker->ntasks);
+			}
+			else
+			{
+				worker->current_task = NULL;
+				_starpu_set_current_task(NULL);
+			}
 			worker->ntasks--;
-			_starpu_push_task_to_workers(task);
+			int res = _starpu_push_task_to_workers(task);
+			STARPU_ASSERT_MSG(res == 0, "_starpu_push_task_to_workers() unexpectedly returned = %d\n", res);
+#endif
 			continue;
 		}
 
@@ -1025,8 +1060,7 @@ void starpu_cublas_report_error(const char *func, const char *file, int line, in
 void starpu_cuda_report_error(const char *func, const char *file, int line, cudaError_t status)
 {
 	const char *errormsg = cudaGetErrorString(status);
-	printf("oops in %s (%s:%d)... %d: %s \n", func, file, line, status, errormsg);
-	STARPU_ABORT();
+	_STARPU_ERROR("oops in %s (%s:%d)... %d: %s \n", func, file, line, status, errormsg);
 }
 #endif /* STARPU_USE_CUDA */
 

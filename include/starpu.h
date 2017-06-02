@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2014, 2016  Université de Bordeaux
+ * Copyright (C) 2009-2014, 2016-2017  Université de Bordeaux
  * Copyright (C) 2010-2015  CNRS
  * Copyright (C) 2014, 2016  INRIA
  *
@@ -30,6 +30,11 @@ typedef unsigned short uint16_t;
 typedef unsigned int uint32_t;
 typedef unsigned long long uint64_t;
 typedef UINT_PTR uintptr_t;
+typedef char int8_t;
+typedef short int16_t;
+typedef int int32_t;
+typedef long long int64_t;
+typedef INT_PTR intptr_t;
 #endif
 
 #include <starpu_config.h>
@@ -53,13 +58,16 @@ typedef UINT_PTR uintptr_t;
 #include <starpu_perfmodel.h>
 #include <starpu_worker.h>
 #include <starpu_task.h>
+#ifndef BUILDING_STARPU
 #include <starpu_task_list.h>
+#endif
 #include <starpu_task_util.h>
 #include <starpu_sched_ctx.h>
 #include <starpu_expert.h>
 #include <starpu_rand.h>
 #include <starpu_cuda.h>
 #include <starpu_cublas.h>
+#include <starpu_cusparse.h>
 #include <starpu_bound.h>
 #include <starpu_hash.h>
 #include <starpu_profiling.h>

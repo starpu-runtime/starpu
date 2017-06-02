@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2013-2017  Université de Bordeaux
- * Copyright (C) 2013  INRIA
+ * Copyright (C) 2013, 2017  INRIA
  * Copyright (C) 2013  Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -46,7 +46,7 @@ static int heft_progress_one(struct starpu_sched_component *component)
 	struct starpu_task * (tasks[NTASKS]);
 	unsigned ntasks;
 
-	STARPU_PTHREAD_MUTEX_LOCK(mutex);
+	STARPU_COMPONENT_MUTEX_LOCK(mutex);
 	/* Try to look at NTASKS from the queue */
 	for (ntasks = 0; ntasks < NTASKS; ntasks++)
 	{
@@ -54,7 +54,7 @@ static int heft_progress_one(struct starpu_sched_component *component)
 		if (!tasks[ntasks])
 			break;
 	}
-	STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
+	STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
 
 	if (!ntasks)
 	{
@@ -90,12 +90,17 @@ static int heft_progress_one(struct starpu_sched_component *component)
 			min_exp_end_with_task[n] = DBL_MAX;
 			max_exp_end_with_task[n] = 0.0;
 
-			nsuitable_components[n] = starpu_mct_compute_expected_times(component, tasks[n],
+			nsuitable_components[n] = starpu_mct_compute_execution_times(component, tasks[n],
+					estimated_lengths + offset,
+					estimated_transfer_length + offset,
+					suitable_components + offset);
+
+			starpu_mct_compute_expected_times(component, tasks[n],
 					estimated_lengths + offset,
 					estimated_transfer_length + offset,
 					estimated_ends_with_task + offset,
 					&min_exp_end_with_task[n], &max_exp_end_with_task[n],
-					suitable_components + offset);
+							  suitable_components + offset, nsuitable_components[n]);
 		}
 
 		int best_task = 0;
@@ -116,11 +121,11 @@ static int heft_progress_one(struct starpu_sched_component *component)
 		int best_icomponent = -1;
 
 		/* Push back the other tasks */
-		STARPU_PTHREAD_MUTEX_LOCK(mutex);
+		STARPU_COMPONENT_MUTEX_LOCK(mutex);
 		for (n = ntasks - 1; n < ntasks; n--)
 			if ((int) n != best_task)
 				_starpu_prio_deque_push_back_task(prio, tasks[n]);
-		STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
+		STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
 
 		/* And now find out which worker suits best for this task,
 		 * including data transfer */
@@ -161,9 +166,9 @@ static int heft_progress_one(struct starpu_sched_component *component)
 		if (ret)
 		{
 			/* Could not push to child actually, push that one back too */
-			STARPU_PTHREAD_MUTEX_LOCK(mutex);
+			STARPU_COMPONENT_MUTEX_LOCK(mutex);
 			_starpu_prio_deque_push_back_task(prio, tasks[best_task]);
-			STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
+			STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
 			return 1;
 		}
 		else
@@ -186,9 +191,9 @@ static int heft_push_task(struct starpu_sched_component * component, struct star
 	struct _starpu_prio_deque * prio = &data->prio;
 	starpu_pthread_mutex_t * mutex = &data->mutex;
 
-	STARPU_PTHREAD_MUTEX_LOCK(mutex);
+	STARPU_COMPONENT_MUTEX_LOCK(mutex);
 	_starpu_prio_deque_push_task(prio,task);
-	STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
+	STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
 
 	heft_progress(component);
 

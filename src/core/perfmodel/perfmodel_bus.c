@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2016  Université de Bordeaux
+ * Copyright (C) 2009-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  * Copyright (C) 2013 Corentin Salingue
  *
@@ -673,9 +673,6 @@ static void benchmark_all_gpu_devices(void)
 #if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) || defined(STARPU_USE_MIC) || defined(STARPU_USE_MPI_MASTER_SLAVE)
 	unsigned i;
 #endif
-#ifdef HAVE_CUDA_MEMCPY_PEER
-	unsigned j;
-#endif
 
 	_STARPU_DEBUG("Benchmarking the speed of the bus\n");
 
@@ -708,26 +705,29 @@ static void benchmark_all_gpu_devices(void)
 	ncuda = _starpu_get_cuda_device_count();
 	for (i = 0; i < ncuda; i++)
 	{
-		_STARPU_DISP("CUDA %d...\n", i);
+		_STARPU_DISP("CUDA %u...\n", i);
 		/* measure bandwidth between Host and Device i */
 		measure_bandwidth_between_host_and_dev(i, cudadev_timing_htod, cudadev_latency_htod, cudadev_timing_dtoh, cudadev_latency_dtoh, cudadev_timing_per_cpu, "CUDA");
 	}
 #ifdef HAVE_CUDA_MEMCPY_PEER
 	for (i = 0; i < ncuda; i++)
+	{
+		unsigned j;
 		for (j = 0; j < ncuda; j++)
 			if (i != j)
 			{
-				_STARPU_DISP("CUDA %d -> %d...\n", i, j);
+				_STARPU_DISP("CUDA %u -> %u...\n", i, j);
 				/* measure bandwidth between Host and Device i */
 				measure_bandwidth_between_dev_and_dev_cuda(i, j);
 			}
+	}
 #endif
 #endif
 #ifdef STARPU_USE_OPENCL
         nopencl = _starpu_opencl_get_device_count();
 	for (i = 0; i < nopencl; i++)
 	{
-		_STARPU_DISP("OpenCL %d...\n", i);
+		_STARPU_DISP("OpenCL %u...\n", i);
 		/* measure bandwith between Host and Device i */
 		measure_bandwidth_between_host_and_dev(i, opencldev_timing_htod, opencldev_latency_htod, opencldev_timing_dtoh, opencldev_latency_dtoh, opencldev_timing_per_cpu, "OpenCL");
 	}
@@ -2469,13 +2469,13 @@ static void write_bus_platform_file_content(int version)
 	{
 		unsigned j;
 		char i_name[16];
-		snprintf(i_name, sizeof(i_name), "CUDA%d", i);
+		snprintf(i_name, sizeof(i_name), "CUDA%u", i);
 		for (j = 0; j < ncuda; j++)
 		{
 			char j_name[16];
 			if (j == i)
 				continue;
-			snprintf(j_name, sizeof(j_name), "CUDA%d", j);
+			snprintf(j_name, sizeof(j_name), "CUDA%u", j);
 			fprintf(f, "   <link id=\"%s-%s\" bandwidth=\"%f%s\" latency=\"%f%s\"/>\n",
 				i_name, j_name,
 				1000000. / cudadev_timing_dtod[1+i][1+j], Bps,
@@ -2521,20 +2521,20 @@ static void write_bus_platform_file_content(int version)
 				if (i != j)
 				{
 					fprintf(f, "   <route src=\"CUDA%u\" dst=\"CUDA%u\" symmetrical=\"NO\">\n", i, j);
-					fprintf(f, "    <link_ctn id=\"CUDA%d-CUDA%d\"/>\n", i, j);
+					fprintf(f, "    <link_ctn id=\"CUDA%u-CUDA%u\"/>\n", i, j);
 					emit_platform_path_up(f,
 						hwloc_cuda_get_device_osdev_by_index(topology, i),
 						hwloc_cuda_get_device_osdev_by_index(topology, j));
 					fprintf(f, "   </route>\n");
 				}
 
-			fprintf(f, "   <route src=\"CUDA%d\" dst=\"RAM\" symmetrical=\"NO\">\n", i);
-			fprintf(f, "    <link_ctn id=\"CUDA%d-RAM\"/>\n", i);
+			fprintf(f, "   <route src=\"CUDA%u\" dst=\"RAM\" symmetrical=\"NO\">\n", i);
+			fprintf(f, "    <link_ctn id=\"CUDA%u-RAM\"/>\n", i);
 			emit_platform_forward_path(f, hwloc_cuda_get_device_osdev_by_index(topology, i));
 			fprintf(f, "   </route>\n");
 
-			fprintf(f, "   <route src=\"RAM\" dst=\"CUDA%d\" symmetrical=\"NO\">\n", i);
-			fprintf(f, "    <link_ctn id=\"RAM-CUDA%d\"/>\n", i);
+			fprintf(f, "   <route src=\"RAM\" dst=\"CUDA%u\" symmetrical=\"NO\">\n", i);
+			fprintf(f, "    <link_ctn id=\"RAM-CUDA%u\"/>\n", i);
 			emit_platform_backward_path(f, hwloc_cuda_get_device_osdev_by_index(topology, i));
 			fprintf(f, "   </route>\n");
 		}
@@ -2561,13 +2561,13 @@ flat_cuda:
 	{
 		unsigned j;
 		char i_name[16];
-		snprintf(i_name, sizeof(i_name), "CUDA%d", i);
+		snprintf(i_name, sizeof(i_name), "CUDA%u", i);
 		for (j = 0; j < ncuda; j++)
 		{
 			char j_name[16];
 			if (j == i)
 				continue;
-			snprintf(j_name, sizeof(j_name), "CUDA%d", j);
+			snprintf(j_name, sizeof(j_name), "CUDA%u", j);
 			fprintf(f, "   <route src=\"%s\" dst=\"%s\" symmetrical=\"NO\"><link_ctn id=\"%s-%s\"/><link_ctn id=\"Host\"/></route>\n", i_name, j_name, i_name, j_name);
 		}
 	}
@@ -2737,6 +2737,13 @@ void _starpu_save_bandwidth_and_latency_disk(double bandwidth_write, double band
 {
 	unsigned int i, j;
 	double slowness_disk_between_main_ram, slowness_main_ram_between_node;
+	int print_stats = starpu_get_env_number_default("STARPU_BUS_STATS", 0);
+
+	if (print_stats)
+	{
+		fprintf(stderr, "\n#---------------------\n");
+		fprintf(stderr, "Data transfer speed for %d:\n", node);
+	}
 
 	/* save bandwith */
 	for(i = 0; i < STARPU_MAXNODES; ++i)
@@ -2761,6 +2768,9 @@ void _starpu_save_bandwidth_and_latency_disk(double bandwidth_write, double band
 					slowness_main_ram_between_node = 0;
 
 				bandwidth_matrix[i][j] = 1/(slowness_disk_between_main_ram+slowness_main_ram_between_node);
+				
+				if (!isnan(bandwidth_matrix[i][j]) && print_stats)
+					fprintf(stderr,"%u -> %u: %.0f MB/s\n", i, j, bandwidth_matrix[i][j]);
 			}
 			else if (j == node) /* destination == disk */
 			{
@@ -2776,6 +2786,9 @@ void _starpu_save_bandwidth_and_latency_disk(double bandwidth_write, double band
 					slowness_main_ram_between_node = 0;
 
 				bandwidth_matrix[i][j] = 1/(slowness_disk_between_main_ram+slowness_main_ram_between_node);
+				
+				if (!isnan(bandwidth_matrix[i][j]) && print_stats)
+					fprintf(stderr,"%u -> %u: %.0f MB/s\n", i, j, bandwidth_matrix[i][j]);
 			}
 			else if (j > node || i > node) /* not affected by the node */
 			{
@@ -2796,10 +2809,16 @@ void _starpu_save_bandwidth_and_latency_disk(double bandwidth_write, double band
 			else if (i == node) /* source == disk */
 			{
 				latency_matrix[i][j] = (latency_write+latency_matrix[STARPU_MAIN_RAM][j]);
+				
+				if (!isnan(latency_matrix[i][j]) && print_stats)
+					fprintf(stderr,"%u -> %u: %.0f µs\n", i, j, latency_matrix[i][j]);
 			}
 			else if (j == node) /* destination == disk */
 			{
 				latency_matrix[i][j] = (latency_read+latency_matrix[i][STARPU_MAIN_RAM]);
+				
+				if (!isnan(latency_matrix[i][j]) && print_stats)
+					fprintf(stderr,"%u -> %u: %.0f µs\n", i, j, latency_matrix[i][j]);
 			}
 			else if (j > node || i > node) /* not affected by the node */
 			{
@@ -2807,4 +2826,7 @@ void _starpu_save_bandwidth_and_latency_disk(double bandwidth_write, double band
 			}
 		}
 	}
+
+	if (print_stats)
+		fprintf(stderr, "\n#---------------------\n");
 }

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2017  CNRS
  * Copyright (C) 2011, 2012  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -61,7 +61,7 @@ static int nzval[NZVAL_SIZE]  =
 };
 static int nzval2[NZVAL_SIZE];
 
-static uint32_t colind[NNZ_BLOCKS] = { 0, 0, 2 };
+static uint32_t colind[NNZ_BLOCKS] = { 0, 0, 1 };
 static uint32_t colind2[NNZ_BLOCKS];
 
 static uint32_t rowptr[2] = { 0, 1 };
@@ -97,7 +97,7 @@ register_data(void)
 	starpu_bcsr_data_register(&bcsr_handle,
 				  STARPU_MAIN_RAM,
 				  NNZ_BLOCKS,
-				  1, /* nrow */
+				  2, /* nrow */
 				  (uintptr_t) nzval,
 				  colind,
 				  rowptr,
@@ -109,7 +109,7 @@ register_data(void)
 	starpu_bcsr_data_register(&bcsr2_handle,
 				  STARPU_MAIN_RAM,
 				  NNZ_BLOCKS,
-				  1, /* nrow */
+				  2, /* nrow */
 				  (uintptr_t) nzval2,
 				  colind2,
 				  rowptr2,

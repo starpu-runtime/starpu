@@ -503,7 +503,7 @@ with the argument \p rarg on the process root, the \p scallback
 function is called with the argument \p sarg on any other process.
 
 @name MPI Master Slave
-\anchor MPIMasterSlave
+\anchor MPIMasterSlaveSupport
 \ingroup API_MPI_Support
 
 \def STARPU_USE_MPI_MASTER_SLAVE

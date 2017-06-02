@@ -37,11 +37,27 @@ void stencil5_cpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 //	fprintf(stdout, "VALUES: %2.2f %2.2f %2.2f %2.2f %2.2f\n", *xy, *xm1y, *xp1y, *xym1, *xyp1);
 }
 
+/* Dumb performance model for simgrid */
+static double stencil5_cost_function(struct starpu_task *task, unsigned nimpl)
+{
+	(void) task;
+	(void) nimpl;
+	return 0.000001;
+}
+
+static struct starpu_perfmodel stencil5_model =
+{
+	.type = STARPU_COMMON,
+	.cost_function = stencil5_cost_function,
+	.symbol = "stencil5"
+};
+
 struct starpu_codelet stencil5_cl =
 {
 	.cpu_funcs = {stencil5_cpu},
 	.nbuffers = 5,
-	.modes = {STARPU_RW, STARPU_R, STARPU_R, STARPU_R, STARPU_R}
+	.modes = {STARPU_RW, STARPU_R, STARPU_R, STARPU_R, STARPU_R},
+	.model = &stencil5_model
 };
 
 #ifdef STARPU_QUICK_CHECK

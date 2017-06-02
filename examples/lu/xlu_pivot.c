@@ -399,6 +399,7 @@ int STARPU_LU(lu_decomposition_pivot)(TYPE *matA, unsigned *ipiv, unsigned size,
 
 	/* gather all the data */
 	starpu_data_unpartition(dataA, STARPU_MAIN_RAM);
+	starpu_data_unregister(dataA);
 	free(piv_description);
 
 	return ret;
@@ -413,6 +414,10 @@ starpu_data_handle_t get_block_with_no_striding(starpu_data_handle_t *dataAp, un
 
 int STARPU_LU(lu_decomposition_pivot_no_stride)(TYPE **matA, unsigned *ipiv, unsigned size, unsigned ld, unsigned nblocks)
 {
+	if (starpu_mic_worker_get_count() || starpu_scc_worker_get_count() || starpu_mpi_ms_worker_get_count())
+		/* These won't work with pivoting: we pass a pointer in cl_args */
+		return -ENODEV;
+
 	starpu_data_handle_t *dataAp = malloc(nblocks*nblocks*sizeof(starpu_data_handle_t));
 
 	/* monitor and partition the A matrix into blocks :

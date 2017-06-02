@@ -126,14 +126,15 @@
  */
 
 
+#ifndef LIST_INLINE
+#define LIST_INLINE static inline
+#endif
 
 /**@hideinitializer
  * Generates a new type for list of elements */
 #define LIST_TYPE(ENAME, DECL) \
   LIST_CREATE_TYPE(ENAME, DECL)
 
-/**@hideinitializer
- * The effective type declaration for lists */
 #define LIST_CREATE_TYPE(ENAME, DECL) \
   /** from automatic type: struct ENAME */ \
   struct ENAME \
@@ -142,76 +143,82 @@
     struct ENAME *_next; /**< @internal next cell */ \
     DECL \
   }; \
+  LIST_CREATE_TYPE_NOSTRUCT(ENAME, _prev, _next)
+
+/**@hideinitializer
+ * The effective type declaration for lists */
+#define LIST_CREATE_TYPE_NOSTRUCT(ENAME, _prev, _next) \
   /** @internal */ \
+ /* NOTE: this must not be greater than the struct defined in include/starpu_task_list.h */ \
   struct ENAME##_list \
   { \
     struct ENAME *_head; /**< @internal head of the list */ \
     struct ENAME *_tail; /**< @internal tail of the list */ \
   }; \
-  /** @internal */static inline struct ENAME *ENAME##_new(void) \
+  /** @internal */LIST_INLINE struct ENAME *ENAME##_new(void) \
     { struct ENAME *e; _STARPU_MALLOC(e, sizeof(struct ENAME)); \
       e->_next = NULL; e->_prev = NULL; return e; } \
-  /** @internal */static inline void ENAME##_delete(struct ENAME *e) \
+  /** @internal */LIST_INLINE void ENAME##_delete(struct ENAME *e) \
     { free(e); } \
-  /** @internal */static inline void ENAME##_list_push_front(struct ENAME##_list *l, struct ENAME *e) \
+  /** @internal */LIST_INLINE void ENAME##_list_push_front(struct ENAME##_list *l, struct ENAME *e) \
     { if(l->_tail == NULL) l->_tail = e; else l->_head->_prev = e; \
       e->_prev = NULL; e->_next = l->_head; l->_head = e; } \
-  /** @internal */static inline void ENAME##_list_push_back(struct ENAME##_list *l, struct ENAME *e) \
+  /** @internal */LIST_INLINE void ENAME##_list_push_back(struct ENAME##_list *l, struct ENAME *e) \
     { if(l->_head == NULL) l->_head = e; else l->_tail->_next = e; \
       e->_next = NULL; e->_prev = l->_tail; l->_tail = e; } \
-  /** @internal */static inline void ENAME##_list_insert_before(struct ENAME##_list *l, struct ENAME *e, struct ENAME *o) \
+  /** @internal */LIST_INLINE void ENAME##_list_insert_before(struct ENAME##_list *l, struct ENAME *e, struct ENAME *o) \
     { struct ENAME *p = o->_prev; if (p) { p->_next = e; e->_prev = p; } else { l->_head = e; e->_prev = NULL; } \
       e->_next = o; o->_prev = e; } \
-  /** @internal */static inline void ENAME##_list_insert_after(struct ENAME##_list *l, struct ENAME *e, struct ENAME *o) \
+  /** @internal */LIST_INLINE void ENAME##_list_insert_after(struct ENAME##_list *l, struct ENAME *e, struct ENAME *o) \
     { struct ENAME *n = o->_next; if (n) { n->_prev = e; e->_next = n; } else { l->_tail = e; e->_next = NULL; } \
       e->_prev = o; o->_next = e; } \
-  /** @internal */static inline void ENAME##_list_push_list_front(struct ENAME##_list *l1, struct ENAME##_list *l2) \
+  /** @internal */LIST_INLINE void ENAME##_list_push_list_front(struct ENAME##_list *l1, struct ENAME##_list *l2) \
     { if (l2->_head == NULL) { l2->_head = l1->_head; l2->_tail = l1->_tail; } \
       else if (l1->_head != NULL) { l1->_tail->_next = l2->_head; l2->_head->_prev = l1->_tail; l2->_head = l1->_head; } } \
-  /** @internal */static inline void ENAME##_list_push_list_back(struct ENAME##_list *l1, struct ENAME##_list *l2) \
+  /** @internal */LIST_INLINE void ENAME##_list_push_list_back(struct ENAME##_list *l1, struct ENAME##_list *l2) \
     { if(l1->_head == NULL) { l1->_head = l2->_head; l1->_tail = l2->_tail; } \
       else if (l2->_head != NULL) { l1->_tail->_next = l2->_head; l2->_head->_prev = l1->_tail; l1->_tail = l2->_tail; } } \
-  /** @internal */static inline struct ENAME *ENAME##_list_front(const struct ENAME##_list *l) \
+  /** @internal */LIST_INLINE struct ENAME *ENAME##_list_front(const struct ENAME##_list *l) \
     { return l->_head; } \
-  /** @internal */static inline struct ENAME *ENAME##_list_back(const struct ENAME##_list *l) \
+  /** @internal */LIST_INLINE struct ENAME *ENAME##_list_back(const struct ENAME##_list *l) \
     { return l->_tail; } \
-  /** @internal */static inline void ENAME##_list_init(struct ENAME##_list *l) \
+  /** @internal */LIST_INLINE void ENAME##_list_init(struct ENAME##_list *l) \
     { l->_head=NULL; l->_tail=l->_head; } \
-  /** @internal */static inline struct ENAME##_list *ENAME##_list_new(void) \
+  /** @internal */LIST_INLINE struct ENAME##_list *ENAME##_list_new(void) \
     { struct ENAME##_list *l; _STARPU_MALLOC(l, sizeof(struct ENAME##_list)); \
       ENAME##_list_init(l); return l; } \
-  /** @internal */static inline int ENAME##_list_empty(const struct ENAME##_list *l) \
+  /** @internal */LIST_INLINE int ENAME##_list_empty(const struct ENAME##_list *l) \
     { return (l->_head == NULL); } \
-  /** @internal */static inline void ENAME##_list_delete(struct ENAME##_list *l) \
+  /** @internal */LIST_INLINE void ENAME##_list_delete(struct ENAME##_list *l) \
     { free(l); } \
-  /** @internal */static inline void ENAME##_list_erase(struct ENAME##_list *l, struct ENAME *c) \
+  /** @internal */LIST_INLINE void ENAME##_list_erase(struct ENAME##_list *l, struct ENAME *c) \
     { struct ENAME *p = c->_prev; if(p) p->_next = c->_next; else l->_head = c->_next; \
       if(c->_next) c->_next->_prev = p; else l->_tail = p; } \
-  /** @internal */static inline struct ENAME *ENAME##_list_pop_front(struct ENAME##_list *l) \
+  /** @internal */LIST_INLINE struct ENAME *ENAME##_list_pop_front(struct ENAME##_list *l) \
     { struct ENAME *e = ENAME##_list_front(l); \
       ENAME##_list_erase(l, e); return e; } \
-  /** @internal */static inline struct ENAME *ENAME##_list_pop_back(struct ENAME##_list *l) \
+  /** @internal */LIST_INLINE struct ENAME *ENAME##_list_pop_back(struct ENAME##_list *l) \
     { struct ENAME *e = ENAME##_list_back(l); \
       ENAME##_list_erase(l, e); return e; } \
-  /** @internal */static inline struct ENAME *ENAME##_list_begin(const struct ENAME##_list *l) \
+  /** @internal */LIST_INLINE struct ENAME *ENAME##_list_begin(const struct ENAME##_list *l) \
     { return l->_head; } \
-  /** @internal */static inline struct ENAME *ENAME##_list_end(const struct ENAME##_list *l STARPU_ATTRIBUTE_UNUSED) \
+  /** @internal */LIST_INLINE struct ENAME *ENAME##_list_end(const struct ENAME##_list *l STARPU_ATTRIBUTE_UNUSED) \
     { return NULL; } \
-  /** @internal */static inline struct ENAME *ENAME##_list_next(const struct ENAME *i) \
+  /** @internal */LIST_INLINE struct ENAME *ENAME##_list_next(const struct ENAME *i) \
     { return i->_next; } \
-  /** @internal */static inline struct ENAME *ENAME##_list_last(const struct ENAME##_list *l) \
+  /** @internal */LIST_INLINE struct ENAME *ENAME##_list_last(const struct ENAME##_list *l) \
     { return l->_tail; } \
-  /** @internal */static inline struct ENAME *ENAME##_list_alpha(const struct ENAME##_list *l STARPU_ATTRIBUTE_UNUSED) \
+  /** @internal */LIST_INLINE struct ENAME *ENAME##_list_alpha(const struct ENAME##_list *l STARPU_ATTRIBUTE_UNUSED) \
     { return NULL; } \
-  /** @internal */static inline struct ENAME *ENAME##_list_prev(const struct ENAME *i) \
+  /** @internal */LIST_INLINE struct ENAME *ENAME##_list_prev(const struct ENAME *i) \
     { return i->_prev; } \
-  /** @internal */static inline int ENAME##_list_ismember(const struct ENAME##_list *l, const struct ENAME *e) \
+  /** @internal */LIST_INLINE int ENAME##_list_ismember(const struct ENAME##_list *l, const struct ENAME *e) \
     { struct ENAME *i=l->_head; while(i!=NULL){ if (i == e) return 1; i=i->_next; } return 0; } \
-  /** @internal */static inline int ENAME##_list_member(const struct ENAME##_list *l, const struct ENAME *e) \
+  /** @internal */LIST_INLINE int ENAME##_list_member(const struct ENAME##_list *l, const struct ENAME *e) \
     { struct ENAME *i=l->_head; int k=0; while(i!=NULL){if (i == e) return k; k++; i=i->_next; } return -1; } \
-  /** @internal */static inline int ENAME##_list_size(const struct ENAME##_list *l) \
+  /** @internal */LIST_INLINE int ENAME##_list_size(const struct ENAME##_list *l) \
     { struct ENAME *i=l->_head; int k=0; while(i!=NULL){k++;i=i->_next;} return k; } \
-  /** @internal */static inline int ENAME##_list_check(const struct ENAME##_list *l) \
+  /** @internal */LIST_INLINE int ENAME##_list_check(const struct ENAME##_list *l) \
     { struct ENAME *i=l->_head; while(i) \
     { if ((i->_next == NULL) && i != l->_tail) return 0; \
       if (i->_next == i) return 0; \
@@ -244,18 +251,18 @@ struct ENAME##_multilist_##MEMBER { \
 /* Create the inlines */
 #define MULTILIST_CREATE_INLINES(TYPE, ENAME, MEMBER) \
 /* Cast from list element to real type.  */ \
-static inline TYPE *ENAME##_of_multilist_##MEMBER(struct ENAME##_multilist_##MEMBER *elt) { \
+LIST_INLINE TYPE *ENAME##_of_multilist_##MEMBER(struct ENAME##_multilist_##MEMBER *elt) { \
 	return ((TYPE *) ((uintptr_t) (elt) - ((uintptr_t) (&((TYPE *) 0)->MEMBER)))); \
 } \
 \
 /* Initialize a list head.  */ \
-static inline void ENAME##_multilist_init_##MEMBER(struct ENAME##_multilist_##MEMBER *head) { \
+LIST_INLINE void ENAME##_multilist_init_##MEMBER(struct ENAME##_multilist_##MEMBER *head) { \
 	head->next = head; \
 	head->prev = head; \
 } \
 \
 /* Push element to head of a list.  */ \
-static inline void ENAME##_multilist_push_front_##MEMBER(struct ENAME##_multilist_##MEMBER *head, TYPE *e) { \
+LIST_INLINE void ENAME##_multilist_push_front_##MEMBER(struct ENAME##_multilist_##MEMBER *head, TYPE *e) { \
 	STARPU_ASSERT_MULTILIST(e->MEMBER.prev == NULL); \
 	STARPU_ASSERT_MULTILIST(e->MEMBER.next == NULL); \
 	e->MEMBER.next = head->next; \
@@ -265,7 +272,7 @@ static inline void ENAME##_multilist_push_front_##MEMBER(struct ENAME##_multilis
 } \
 \
 /* Push element to tail of a list.  */ \
-static inline void ENAME##_multilist_push_back_##MEMBER(struct ENAME##_multilist_##MEMBER *head, TYPE *e) { \
+LIST_INLINE void ENAME##_multilist_push_back_##MEMBER(struct ENAME##_multilist_##MEMBER *head, TYPE *e) { \
 	STARPU_ASSERT_MULTILIST(e->MEMBER.prev == NULL); \
 	STARPU_ASSERT_MULTILIST(e->MEMBER.next == NULL); \
 	e->MEMBER.prev = head->prev; \
@@ -275,7 +282,7 @@ static inline void ENAME##_multilist_push_back_##MEMBER(struct ENAME##_multilist
 } \
 \
 /* Erase element from a list.  */ \
-static inline void ENAME##_multilist_erase_##MEMBER(struct ENAME##_multilist_##MEMBER *head STARPU_ATTRIBUTE_UNUSED, TYPE *e) { \
+LIST_INLINE void ENAME##_multilist_erase_##MEMBER(struct ENAME##_multilist_##MEMBER *head STARPU_ATTRIBUTE_UNUSED, TYPE *e) { \
 	STARPU_ASSERT_MULTILIST(e->MEMBER.next->prev == &e->MEMBER); \
 	e->MEMBER.next->prev = e->MEMBER.prev; \
 	STARPU_ASSERT_MULTILIST(e->MEMBER.prev->next == &e->MEMBER); \
@@ -285,30 +292,30 @@ static inline void ENAME##_multilist_erase_##MEMBER(struct ENAME##_multilist_##M
 } \
 \
 /* Test whether the element was queued on the list.  */ \
-static inline int ENAME##_multilist_queued_##MEMBER(TYPE *e) { \
+LIST_INLINE int ENAME##_multilist_queued_##MEMBER(TYPE *e) { \
 	return ((e)->MEMBER.next != NULL); \
 } \
 \
 /* Test whether the list is empty.  */ \
-static inline int ENAME##_multilist_empty_##MEMBER(struct ENAME##_multilist_##MEMBER *head) { \
+LIST_INLINE int ENAME##_multilist_empty_##MEMBER(struct ENAME##_multilist_##MEMBER *head) { \
 	return head->next == head; \
 } \
 \
 /* Return the first element of the list.  */ \
-static inline TYPE *ENAME##_multilist_begin_##MEMBER(struct ENAME##_multilist_##MEMBER *head) { \
+LIST_INLINE TYPE *ENAME##_multilist_begin_##MEMBER(struct ENAME##_multilist_##MEMBER *head) { \
 	return ENAME##_of_multilist_##MEMBER(head->next); \
 } \
 /* Return the value to be tested at the end of the list.  */ \
-static inline TYPE *ENAME##_multilist_end_##MEMBER(struct ENAME##_multilist_##MEMBER *head) { \
+LIST_INLINE TYPE *ENAME##_multilist_end_##MEMBER(struct ENAME##_multilist_##MEMBER *head) { \
 	return ENAME##_of_multilist_##MEMBER(head); \
 } \
 /* Return the next element of the list.  */ \
-static inline TYPE *ENAME##_multilist_next_##MEMBER(TYPE *e) { \
+LIST_INLINE TYPE *ENAME##_multilist_next_##MEMBER(TYPE *e) { \
 	return ENAME##_of_multilist_##MEMBER(e->MEMBER.next); \
 } \
 \
  /* Move a list from its head to another head.  */ \
-static inline void ENAME##_multilist_move_##MEMBER(struct ENAME##_multilist_##MEMBER *head, struct ENAME##_multilist_##MEMBER *newhead) { \
+LIST_INLINE void ENAME##_multilist_move_##MEMBER(struct ENAME##_multilist_##MEMBER *head, struct ENAME##_multilist_##MEMBER *newhead) { \
 	if (ENAME##_multilist_empty_##MEMBER(head)) \
 		ENAME##_multilist_init_##MEMBER(newhead); \
 	else { \

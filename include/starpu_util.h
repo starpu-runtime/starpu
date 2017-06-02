@@ -20,6 +20,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 #include <assert.h>
 
@@ -27,6 +28,10 @@
 
 #ifdef __GLIBC__
 #include <execinfo.h>
+#endif
+
+#ifdef STARPU_SIMGRID_MC
+#include <simgrid/modelchecker.h>
 #endif
 
 #ifdef __cplusplus
@@ -111,17 +116,23 @@ extern "C"
 #  define STARPU_DUMP_BACKTRACE() do { } while (0)
 #endif
 
+#ifdef STARPU_SIMGRID_MC
+#define STARPU_SIMGRID_ASSERT(x) MC_assert(!!(x))
+#else
+#define STARPU_SIMGRID_ASSERT(x)
+#endif
+
 #ifdef STARPU_NO_ASSERT
 #define STARPU_ASSERT(x)		do { if (0) { (void) (x); } } while(0)
 #define STARPU_ASSERT_ACCESSIBLE(x)	do { if (0) { (void) (x); } } while(0)
 #define STARPU_ASSERT_MSG(x, msg, ...)	do { if (0) { (void) (x); (void) msg; } } while(0)
 #else
 #  if defined(__CUDACC__) || defined(STARPU_HAVE_WINDOWS)
-#    define STARPU_ASSERT(x)		do { if (STARPU_UNLIKELY(!(x))) { STARPU_DUMP_BACKTRACE(); *(int*)NULL = 0; } } while(0)
-#    define STARPU_ASSERT_MSG(x, msg, ...)	do { if (STARPU_UNLIKELY(!(x))) { STARPU_DUMP_BACKTRACE(); fprintf(stderr, "\n[starpu][%s][assert failure] " msg "\n\n", __starpu_func__, ## __VA_ARGS__); *(int*)NULL = 0; }} while(0)
+#    define STARPU_ASSERT(x)		do { if (STARPU_UNLIKELY(!(x))) { STARPU_DUMP_BACKTRACE(); STARPU_SIMGRID_ASSERT(x); *(int*)NULL = 0; } } while(0)
+#    define STARPU_ASSERT_MSG(x, msg, ...)	do { if (STARPU_UNLIKELY(!(x))) { STARPU_DUMP_BACKTRACE(); fprintf(stderr, "\n[starpu][%s][assert failure] " msg "\n\n", __starpu_func__, ## __VA_ARGS__); STARPU_SIMGRID_ASSERT(x); *(int*)NULL = 0; }} while(0)
 #  else
-#    define STARPU_ASSERT(x)		do { if (STARPU_UNLIKELY(!(x))) { STARPU_DUMP_BACKTRACE(); assert(x); } } while (0)
-#    define STARPU_ASSERT_MSG(x, msg, ...)	do { if (STARPU_UNLIKELY(!(x))) { STARPU_DUMP_BACKTRACE(); fprintf(stderr, "\n[starpu][%s][assert failure] " msg "\n\n", __starpu_func__, ## __VA_ARGS__); assert(x); } } while(0)
+#    define STARPU_ASSERT(x)		do { if (STARPU_UNLIKELY(!(x))) { STARPU_DUMP_BACKTRACE(); STARPU_SIMGRID_ASSERT(x); assert(x); } } while (0)
+#    define STARPU_ASSERT_MSG(x, msg, ...)	do { if (STARPU_UNLIKELY(!(x))) { STARPU_DUMP_BACKTRACE(); fprintf(stderr, "\n[starpu][%s][assert failure] " msg "\n\n", __starpu_func__, ## __VA_ARGS__); STARPU_SIMGRID_ASSERT(x); assert(x); } } while(0)
 
 #  endif
 #  define STARPU_ASSERT_ACCESSIBLE(ptr)	do { \
@@ -321,10 +332,6 @@ STARPU_ATOMIC_SOMETHINGL(or, old | value)
 }
 #endif
 
-/* Include this only here so that <starpu_data_interfaces.h> can use the
- * macros above.  */
-#include <starpu_task.h>
-
 #ifdef __cplusplus
 extern "C"
 {
@@ -405,8 +412,6 @@ void starpu_execute_on_each_worker(void (*func)(void *), void *arg, uint32_t whe
 void starpu_execute_on_each_worker_ex(void (*func)(void *), void *arg, uint32_t where, const char *name);
 
 void starpu_execute_on_specific_workers(void (*func)(void*), void *arg, unsigned num_workers, unsigned *workers, const char *name);
-
-int starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_handle, int asynchronous, void (*callback_func)(void*), void *callback_arg);
 
 double starpu_timing_now(void);
 

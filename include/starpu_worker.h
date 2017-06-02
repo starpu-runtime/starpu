@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2013, 2016  Université de Bordeaux
+ * Copyright (C) 2009-2013, 2016-2017  Université de Bordeaux
  * Copyright (C) 2010-2014, 2017  CNRS
  * Copyright (C) 2016, 2017  INRIA
  * Copyright (C) 2016  Uppsala University
@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <starpu_config.h>
 #include <starpu_thread.h>
+#include <starpu_task.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -127,7 +128,7 @@ struct starpu_tree* starpu_workers_get_tree(void);
 
 unsigned starpu_worker_get_sched_ctx_list(int worker, unsigned **sched_ctx);
 
-unsigned starpu_worker_is_blocked(int workerid);
+unsigned starpu_worker_is_blocked_in_parallel(int workerid);
 
 unsigned starpu_worker_is_slave_somewhere(int workerid);
 
@@ -140,6 +141,27 @@ int starpu_worker_get_devids(enum starpu_worker_archtype type, int *devids, int 
 int starpu_worker_get_stream_workerids(unsigned devid, int *workerids, enum starpu_worker_archtype type);
 
 unsigned starpu_worker_get_sched_ctx_id_stream(unsigned stream_workerid);
+
+int starpu_worker_sched_op_pending(void);
+
+void starpu_worker_relax_on(void);
+
+void starpu_worker_relax_off(void);
+
+int starpu_worker_get_relax_state(void);
+
+void starpu_worker_lock(int workerid);
+
+int starpu_worker_trylock(int workerid);
+
+void starpu_worker_unlock(int workerid);
+
+void starpu_worker_lock_self(void);
+
+void starpu_worker_unlock_self(void);
+
+int starpu_wake_worker_relax(int workerid);
+
 #ifdef __cplusplus
 }
 #endif

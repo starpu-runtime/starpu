@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2013 Corentin Salingue
- * Copyright (C) 2015 CNRS
+ * Copyright (C) 2015, 2017 CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -30,20 +30,13 @@
  * progressing because there is not enough room for all of them.
  */
 
-#ifdef STARPU_HAVE_WINDOWS
-#  include <io.h>
-#  if defined(_WIN32) && !defined(__CYGWIN__)
-#    define mkdir(path, mode) mkdir(path)
-#  endif
-#endif
-
 /* RAM is not enough to hold 6 times NX
  * DISK is just enough to hold 6 times NX */
 
 /* size of one vector */
 #ifdef STARPU_QUICK_CHECK
 #  define	RAM	"1"
-#  define	DISK	2
+#  define	DISK	64
 #  define	NX	(256*1024/sizeof(double))
 #else
 #  define	NX	(32*1048576/sizeof(double))
@@ -167,11 +160,13 @@ static int merge_result(int old, int new)
 int main(void)
 {
 	int ret = 0;
+	int ret2;
 	char s[128];
+	char *ptr;
 
-	snprintf(s, sizeof(s), "/tmp/%s-disk-%d", getenv("USER"), getpid());
-	ret = mkdir(s, 0777);
-	if (ret)
+	snprintf(s, sizeof(s), "/tmp/%s-disk-XXXXXX", getenv("USER"));
+	ptr = _starpu_mkdtemp(s);
+	if (!ptr)
 	{
 		FPRINTF(stderr, "Cannot make directory <%s>\n", s);
 		return STARPU_TEST_SKIPPED;
@@ -182,7 +177,10 @@ int main(void)
 #ifdef STARPU_LINUX_SYS
 	ret = merge_result(ret, dotest(&starpu_disk_unistd_o_direct_ops, s));
 #endif
-	rmdir(s);
+
+	ret2 = rmdir(s);
+	if (ret2 < 0)
+		STARPU_CHECK_RETURN_VALUE(-errno, "rmdir '%s'\n", s);
 	return ret;
 }
 #endif

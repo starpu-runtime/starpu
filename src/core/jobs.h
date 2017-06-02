@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2013, 2014, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2013, 2014, 2015, 2017  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2014  INRIA
  *
@@ -51,11 +51,11 @@ struct _starpu_worker;
 /* codelet function */
 typedef void (*_starpu_cl_func_t)(void **, void *);
 
-#define _STARPU_CPU_MAY_PERFORM(j)	((j)->task->cl->where & STARPU_CPU)
-#define _STARPU_CUDA_MAY_PERFORM(j)      ((j)->task->cl->where & STARPU_CUDA)
-#define _STARPU_OPENCL_MAY_PERFORM(j)	((j)->task->cl->where & STARPU_OPENCL)
-#define _STARPU_MIC_MAY_PERFORM(j)	((j)->task->cl->where & STARPU_MIC)
-#define _STARPU_SCC_MAY_PERFORM(j)	((j)->task->cl->where & STARPU_SCC)
+#define _STARPU_CPU_MAY_PERFORM(j)	((j)->task->where & STARPU_CPU)
+#define _STARPU_CUDA_MAY_PERFORM(j)      ((j)->task->where & STARPU_CUDA)
+#define _STARPU_OPENCL_MAY_PERFORM(j)	((j)->task->where & STARPU_OPENCL)
+#define _STARPU_MIC_MAY_PERFORM(j)	((j)->task->where & STARPU_MIC)
+#define _STARPU_SCC_MAY_PERFORM(j)	((j)->task->where & STARPU_SCC)
 
 struct _starpu_data_descr
 {

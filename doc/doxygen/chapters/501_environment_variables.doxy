@@ -642,9 +642,10 @@ especially regarding data transfers.
 <dd>
 \anchor STARPU_SIMGRID_SCHED_COST
 \addindex __env__STARPU_SIMGRID_SCHED_COST
-When set to 1 (which is the default), scheduling costs are taken into
+When set to 1 (0 is the default), scheduling costs are taken into
 account in simgrid mode. This provides more accurate simgrid predictions,
-and allows studying scheduling overhead of the runtime system.
+and allows studying scheduling overhead of the runtime system. However,
+it also makes simulation non-deterministic.
 </dd>
 
 </dl>
@@ -677,6 +678,16 @@ This specifies the main directory in which StarPU is installed
 \addindex __env__STARPU_PERF_MODEL_DIR
 This specifies the main directory in which StarPU stores its
 performance model files. The default is <c>$STARPU_HOME/.starpu/sampling</c>.
+</dd>
+
+<dt>STARPU_PERF_MODEL_HOMOGENEOUS_CPU</dt>
+<dd>
+\anchor STARPU_PERF_MODEL_HOMOGENEOUS_CPU
+\addindex __env__STARPU_PERF_MODEL_HOMOGENEOUS_CPU
+When this is set to 0, StarPU will assume that CPU devices do not have the same
+performance, and thus use different performance models for them, thus making
+kernel calibration much longer, since measurements have to be made for each CPU
+core.
 </dd>
 
 <dt>STARPU_PERF_MODEL_HOMOGENEOUS_CUDA</dt>
@@ -830,7 +841,7 @@ that have a limited amount of memory.
 \anchor STARPU_LIMIT_CPU_MEM
 \addindex __env__STARPU_LIMIT_CPU_MEM
 This variable specifies the maximum number of megabytes that should be
-available to the application on each CPU device. Setting it enables allocation
+available to the application in the main CPU memory. Setting it enables allocation
 cache in main memory
 </dd>
 
@@ -1013,6 +1024,15 @@ dog is reached, thus allowing to catch the situation in gdb, etc
 (see \ref DetectionStuckConditions)
 </dd>
 
+<dt>STARPU_TASK_BREAK_ON_PUSH</dt>
+<dd>
+\anchor STARPU_TASK_BREAK_ON_PUSH
+\addindex __env__STARPU_TASK_BREAK_ON_PUSH
+When this variable contains a job id, StarPU will raise SIGTRAP when the task
+with that job id is being pushed to the scheduler, which will be nicely catched by debuggers
+(see \ref DebuggingScheduling)
+</dd>
+
 <dt>STARPU_TASK_BREAK_ON_SCHED</dt>
 <dd>
 \anchor STARPU_TASK_BREAK_ON_SCHED
@@ -1024,21 +1044,21 @@ This only works for schedulers which have such a scheduling point defined
 (see \ref DebuggingScheduling)
 </dd>
 
-<dt>STARPU_TASK_BREAK_ON_PUSH</dt>
-<dd>
-\anchor STARPU_TASK_BREAK_ON_PUSH
-\addindex __env__STARPU_TASK_BREAK_ON_PUSH
-When this variable contains a job id, StarPU will raise SIGTRAP when the task
-with that job id is being pushed to the scheduler, which will be nicely catched by debuggers
-(see \ref DebuggingScheduling)
-</dd>
-
 <dt>STARPU_TASK_BREAK_ON_POP</dt>
 <dd>
 \anchor STARPU_TASK_BREAK_ON_POP
 \addindex __env__STARPU_TASK_BREAK_ON_POP
 When this variable contains a job id, StarPU will raise SIGTRAP when the task
 with that job id is being popped from the scheduler, which will be nicely catched by debuggers
+(see \ref DebuggingScheduling)
+</dd>
+
+<dt>STARPU_TASK_BREAK_ON_EXEC</dt>
+<dd>
+\anchor STARPU_TASK_BREAK_ON_EXEC
+\addindex __env__STARPU_TASK_BREAK_ON_EXEC
+When this variable contains a job id, StarPU will raise SIGTRAP when the task
+with that job id is being executed, which will be nicely catched by debuggers
 (see \ref DebuggingScheduling)
 </dd>
 

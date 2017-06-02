@@ -1,6 +1,6 @@
 ! StarPU --- Runtime system for heterogeneous multicore architectures.
 !
-! Copyright (C) 2016  Inria
+! Copyright (C) 2016-2017  Inria
 !
 ! StarPU is free software; you can redistribute it and/or modify
 ! it under the terms of the GNU Lesser General Public License as published by
@@ -44,6 +44,7 @@ module fstarpu_mod
         type(c_ptr), bind(C) :: FSTARPU_EXECUTE_ON_DATA
         type(c_ptr), bind(C) :: FSTARPU_EXECUTE_ON_WORKER
         type(c_ptr), bind(C) :: FSTARPU_WORKER_ORDER
+        type(c_ptr), bind(C) :: FSTARPU_EXECUTE_WHERE
         type(c_ptr), bind(C) :: FSTARPU_HYPERVISOR_TAG
         type(c_ptr), bind(C) :: FSTARPU_POSSIBLY_PARALLEL
         type(c_ptr), bind(C) :: FSTARPU_FLOPS
@@ -82,6 +83,7 @@ module fstarpu_mod
         type(c_ptr), bind(C) :: FSTARPU_SCC
 
         type(c_ptr), bind(C) :: FSTARPU_CODELET_SIMGRID_EXECUTE
+        type(c_ptr), bind(C) :: FSTARPU_CODELET_SIMGRID_EXECUTE_AND_INJECT
         type(c_ptr), bind(C) :: FSTARPU_CUDA_ASYNC
         type(c_ptr), bind(C) :: FSTARPU_OPENCL_ASYNC
 
@@ -1580,7 +1582,7 @@ module fstarpu_mod
                 end subroutine fstarpu_memchunk_tidy
 
                 ! == starpu_task_util.h ==
-                ! struct starpu_data_handle *fstarpu_data_handle_array_alloc(int nb);
+                ! starpu_data_handle_t *fstarpu_data_handle_array_alloc(int nb);
                 function fstarpu_data_handle_array_alloc (nb) bind(C)
                         use iso_c_binding, only: c_ptr, c_int
                         type(c_ptr) :: fstarpu_data_handle_array_alloc
@@ -1646,17 +1648,17 @@ module fstarpu_mod
 
                 subroutine fstarpu_task_insert(arglist) bind(C)
                         use iso_c_binding, only: c_ptr
-                        type(c_ptr), dimension(:), intent(in) :: arglist
+                        type(c_ptr), dimension(*), intent(in) :: arglist
                 end subroutine fstarpu_task_insert
                 subroutine fstarpu_insert_task(arglist) bind(C,name="fstarpu_task_insert")
                         use iso_c_binding, only: c_ptr
-                        type(c_ptr), dimension(:), intent(in) :: arglist
+                        type(c_ptr), dimension(*), intent(in) :: arglist
                 end subroutine fstarpu_insert_task
 
                 subroutine fstarpu_unpack_arg(cl_arg,bufferlist) bind(C)
                         use iso_c_binding, only: c_ptr
                         type(c_ptr), value, intent(in) :: cl_arg
-                        type(c_ptr), dimension(:), intent(in) :: bufferlist
+                        type(c_ptr), dimension(*), intent(in) :: bufferlist
                 end subroutine fstarpu_unpack_arg
 
                 ! == starpu_sched_ctx.h ==
@@ -1668,7 +1670,7 @@ module fstarpu_mod
                         integer(c_int), intent(in) :: workers_array(*)
                         integer(c_int), value, intent(in) :: nworkers
                         character(c_char), intent(in) :: ctx_name
-                        type(c_ptr), dimension(:), intent(in) :: arglist
+                        type(c_ptr), dimension(*), intent(in) :: arglist
                 end function fstarpu_sched_ctx_create
 
                 ! unsigned starpu_sched_ctx_create_inside_interval(const char *policy_name, const char *sched_ctx_name, int min_ncpus, int max_ncpus, int min_ngpus, int max_ngpus, unsigned allow_overlap);
@@ -2021,26 +2023,6 @@ module fstarpu_mod
                         integer(c_int), value, intent(in) :: sched_ctx_id
                 end subroutine fstarpu_sched_ctx_list_task_counters_reset_all
 
-                ! void starpu_sched_ctx_set_priority(int *workers, int nworkers, unsigned sched_ctx_id, unsigned priority);
-                subroutine fstarpu_sched_ctx_set_priority (workers, nworkers,  sched_ctx_id, priority) &
-                                bind(c,name="starpu_sched_ctx_set_priority")
-                        use iso_c_binding, only: c_int
-                        integer(c_int), intent(in) :: workers(*)
-                        integer(c_int), value, intent(in) :: nworkers
-                        integer(c_int), value, intent(in) :: sched_ctx_id
-                        integer(c_int), value, intent(in) :: priority
-                end subroutine fstarpu_sched_ctx_set_priority
-
-                ! void starpu_sched_ctx_set_priority_on_level(int* workers_to_add, unsigned nworkers_to_add, unsigned sched_ctx, unsigned priority);
-                subroutine fstarpu_sched_ctx_set_priority_on_level ( workers_to_add, nworkers_to_add, sched_ctx, priority) &
-                                bind(c,name="starpu_sched_ctx_set_priority_on_level")
-                        use iso_c_binding, only: c_int
-                        integer(c_int), intent(in) :: workers_to_add(*)
-                        integer(c_int), value, intent(in) :: nworkers_to_add
-                        integer(c_int), value, intent(in) :: sched_ctx
-                        integer(c_int), value, intent(in) :: priority
-                end subroutine fstarpu_sched_ctx_set_priority_on_level
-
                 ! unsigned starpu_sched_ctx_get_priority(int worker, unsigned sched_ctx_id);
                 function fstarpu_sched_ctx_get_priority (worker, sched_ctx_id) &
                                 bind(c,name="starpu_sched_ctx_get_priority")
@@ -2279,6 +2261,7 @@ module fstarpu_mod
                         FSTARPU_EXECUTE_ON_DATA = fstarpu_get_constant(C_CHAR_"FSTARPU_EXECUTE_ON_DATA"//C_NULL_CHAR)
                         FSTARPU_EXECUTE_ON_WORKER       = fstarpu_get_constant(C_CHAR_"FSTARPU_EXECUTE_ON_WORKER"//C_NULL_CHAR)
                         FSTARPU_WORKER_ORDER    = fstarpu_get_constant(C_CHAR_"FSTARPU_WORKER_ORDER"//C_NULL_CHAR)
+                        FSTARPU_EXECUTE_WHERE       = fstarpu_get_constant(C_CHAR_"FSTARPU_EXECUTE_WHERE"//C_NULL_CHAR)
                         FSTARPU_HYPERVISOR_TAG  = fstarpu_get_constant(C_CHAR_"FSTARPU_HYPERVISOR_TAG"//C_NULL_CHAR)
                         FSTARPU_POSSIBLY_PARALLEL       = fstarpu_get_constant(C_CHAR_"FSTARPU_POSSIBLY_PARALLEL"//C_NULL_CHAR)
                         FSTARPU_FLOPS   = fstarpu_get_constant(C_CHAR_"FSTARPU_FLOPS"//C_NULL_CHAR)
@@ -2331,7 +2314,9 @@ module fstarpu_mod
                             fstarpu_get_constant(C_CHAR_"FSTARPU_SCC"//C_NULL_CHAR)
 
                         FSTARPU_CODELET_SIMGRID_EXECUTE = &
-                            fstarpu_get_constant(C_CHAR_"FSTARPU_CODELET_SIMGRID_EXECUTE"//C_NULL_CHAR)
+                             fstarpu_get_constant(C_CHAR_"FSTARPU_CODELET_SIMGRID_EXECUTE"//C_NULL_CHAR)
+                        FSTARPU_CODELET_SIMGRID_EXECUTE_AND_INJECT = &
+                             fstarpu_get_constant(C_CHAR_"FSTARPU_CODELET_SIMGRID_EXECUTE_AND_INJECT"//C_NULL_CHAR)
                         FSTARPU_CUDA_ASYNC = &
                             fstarpu_get_constant(C_CHAR_"FSTARPU_CUDA_ASYNC"//C_NULL_CHAR)
                         FSTARPU_OPENCL_ASYNC = &

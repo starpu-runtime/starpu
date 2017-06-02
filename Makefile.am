@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2016  Université de Bordeaux
+# Copyright (C) 2009-2017  Université de Bordeaux
 # Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016  CNRS
 # Copyright (C) 2014  INRIA
 # Copyright (C) 2016  Inria
@@ -103,6 +103,7 @@ versinclude_HEADERS = 				\
 	include/starpu_disk.h			\
 	include/starpu_cublas.h			\
 	include/starpu_cublas_v2.h		\
+	include/starpu_cusparse.h		\
 	include/starpu_driver.h			\
 	include/starpu_stdlib.h			\
 	include/starpu_thread.h			\

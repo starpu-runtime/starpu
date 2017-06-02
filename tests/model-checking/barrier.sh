@@ -1,6 +1,8 @@
+#!/bin/bash -x
+#
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2016       CNRS
+# Copyright (C) 2017  Université de Bordeaux
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -12,14 +14,6 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
-#
 
-{
-   valgrind_suppr1
-   Memcheck:Leak
-   match-leak-kinds: reachable
-   fun:malloc
-   fun:ensure_sReq_space
-   fun:add_shadow_Request
-   fun:PMPI_Irecv
-}
+source $(dirname $0)/starpu-mc.sh
+test starpu_barrier

@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2017  CNRS
+ * Copyright (C) 2017  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -205,6 +206,10 @@ static size_t vector_interface_get_size(starpu_data_handle_t handle)
 	struct starpu_vector_interface *vector_interface = (struct starpu_vector_interface *)
 		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
+#ifdef STARPU_DEBUG
+	STARPU_ASSERT_MSG(vector_interface->id == STARPU_VECTOR_INTERFACE_ID, "Error. The given data is not a vector.");
+#endif
+
 	size = vector_interface->nx*vector_interface->elemsize;
 
 	return size;
@@ -215,6 +220,10 @@ uint32_t starpu_vector_get_nx(starpu_data_handle_t handle)
 {
 	struct starpu_vector_interface *vector_interface = (struct starpu_vector_interface *)
 		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
+
+#ifdef STARPU_DEBUG
+	STARPU_ASSERT_MSG(vector_interface->id == STARPU_VECTOR_INTERFACE_ID, "Error. The given data is not a vector.");
+#endif
 
 	return vector_interface->nx;
 }
@@ -229,6 +238,10 @@ uintptr_t starpu_vector_get_local_ptr(starpu_data_handle_t handle)
 	struct starpu_vector_interface *vector_interface = (struct starpu_vector_interface *)
 		starpu_data_get_interface_on_node(handle, node);
 
+#ifdef STARPU_DEBUG
+	STARPU_ASSERT_MSG(vector_interface->id == STARPU_VECTOR_INTERFACE_ID, "Error. The given data is not a vector.");
+#endif
+
 	return vector_interface->ptr;
 }
 
@@ -236,6 +249,10 @@ size_t starpu_vector_get_elemsize(starpu_data_handle_t handle)
 {
 	struct starpu_vector_interface *vector_interface = (struct starpu_vector_interface *)
 		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
+
+#ifdef STARPU_DEBUG
+	STARPU_ASSERT_MSG(vector_interface->id == STARPU_VECTOR_INTERFACE_ID, "Error. The given data is not a vector.");
+#endif
 
 	return vector_interface->elemsize;
 }

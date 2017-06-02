@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2017  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2017  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2011, 2014, 2016  INRIA
  * Copyright (C) 2016  Uppsala University
@@ -46,6 +46,7 @@ extern "C"
 #define STARPU_MPI_MS	((1ULL)<<9)
 
 #define STARPU_CODELET_SIMGRID_EXECUTE	(1<<0)
+#define STARPU_CODELET_SIMGRID_EXECUTE_AND_INJECT	(1<<1)
 #define STARPU_CUDA_ASYNC	(1<<0)
 #define STARPU_OPENCL_ASYNC	(1<<0)
 
@@ -135,6 +136,7 @@ struct starpu_task
 	const char *name;
 
 	struct starpu_codelet *cl;
+	int32_t where;
 
 	int nbuffers;
 
@@ -180,12 +182,12 @@ struct starpu_task
 	unsigned destroy:1;
 	unsigned regenerate:1;
 
-	unsigned workerid;
-	unsigned workerorder;
-
 	unsigned scheduled:1;
 
 	unsigned int mf_skip:1;
+
+	unsigned workerid;
+	unsigned workerorder;
 
 	int priority;
 

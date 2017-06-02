@@ -1,9 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2013-2016   Université Bordeaux
- * Copyright (C) 2011-2016         CNRS
+ * Copyright (C) 2011, 2013-2017   Université Bordeaux
+ * Copyright (C) 2011-2017         CNRS
  * Copyright (C) 2011, 2014        INRIA
- * Copyright (C) 2016 Inria
+ * Copyright (C) 2016-2017 Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -119,9 +119,13 @@ int _starpu_codelet_pack_args(void **arg_buffer, size_t *arg_buffer_size, va_lis
 		{
 			(void)va_arg(varg_list, starpu_data_handle_t);
 		}
+		else if (arg_type==STARPU_EXECUTE_WHERE)
+		{
+			(void)va_arg(varg_list, unsigned long long);
+		}
 		else if (arg_type==STARPU_EXECUTE_ON_WORKER)
 		{
-			va_arg(varg_list, int);
+			(void)va_arg(varg_list, int);
 		}
 		else if (arg_type==STARPU_WORKER_ORDER)
 		{
@@ -382,6 +386,10 @@ int _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task **t
 		{
 			(void)va_arg(varg_list, starpu_data_handle_t);
 		}
+		else if (arg_type==STARPU_EXECUTE_WHERE)
+		{
+			(*task)->where = va_arg(varg_list, unsigned long long);
+		}
 		else if (arg_type==STARPU_EXECUTE_ON_WORKER)
 		{
 			int worker = va_arg(varg_list, int);
@@ -495,6 +503,7 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task **
 
 	(*task)->cl = cl;
 	(*task)->name = NULL;
+	(*task)->cl_arg_free = 1;
 	while (arglist[arg_i] != NULL)
 	{
 		const int arg_type = (int)(intptr_t)arglist[arg_i];
@@ -591,6 +600,13 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task **
 		{
 			arg_i++;
 			(void)arglist[arg_i];
+		}
+		else if (arg_type == STARPU_EXECUTE_WHERE)
+		{
+			assert(0);
+			arg_i++;
+			unsigned long long where = *(unsigned long long *)arglist[arg_i];
+			(*task)->where = where;
 		}
 		else if (arg_type == STARPU_EXECUTE_ON_WORKER)
 		{
@@ -697,9 +713,8 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task **
 }
 
 /* Fortran interface to task_insert */
-void fstarpu_task_insert(void ***_arglist)
+void fstarpu_task_insert(void **arglist)
 {
-	void **arglist = *_arglist;
 	struct starpu_codelet *cl = arglist[0];
 	if (cl == NULL)
 	{

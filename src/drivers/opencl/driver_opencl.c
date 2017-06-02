@@ -4,6 +4,7 @@
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  * Copyright (C) 2011  Télécom-SudParis
+ * Copyright (C) 2017  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -793,17 +794,24 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 
 	j = _starpu_get_job_associated_to_task(task);
 
+	worker->current_tasks[(worker->first_task  + worker->ntasks)%STARPU_MAX_PIPELINE] = task;
+	worker->ntasks++;
+	if (worker->pipeline_length == 0)
+	/* _starpu_get_worker_task checks .current_task field if pipeline_length == 0
+	 *
+	 * TODO: update driver to not use current_tasks[] when pipeline_length == 0,
+	 * as for cuda driver */
+		worker->current_task = task;
+
 	/* can OpenCL do that task ? */
 	if (!_STARPU_OPENCL_MAY_PERFORM(j))
 	{
 		/* this is not a OpenCL task */
-		_starpu_push_task_to_workers(task);
+		_starpu_worker_refuse_task(worker, task);
 		return 0;
 	}
 
 	_STARPU_TRACE_END_PROGRESS(memnode);
-	worker->current_tasks[(worker->first_task  + worker->ntasks)%STARPU_MAX_PIPELINE] = task;
-	worker->ntasks++;
 
 	/* Fetch data asynchronously */
 	res = _starpu_fetch_task_input(task, j, 1);
@@ -954,6 +962,14 @@ static int _starpu_opencl_start_job(struct _starpu_job *j, struct _starpu_worker
 			simulate = 1;
 		#endif
 		}
+		else if (cl->flags & STARPU_CODELET_SIMGRID_EXECUTE_AND_INJECT && !async)
+			{
+				_SIMGRID_TIMER_BEGIN(1);
+				func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
+				_SIMGRID_TIMER_END;
+				simulate=0;
+			}
+
 		if (simulate)
 			_starpu_simgrid_submit_job(worker->workerid, j, &worker->perf_arch, length,
 						   async ? &task_finished[worker->devid][pipeline_idx] : NULL);

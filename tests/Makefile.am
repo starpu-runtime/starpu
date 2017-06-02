@@ -28,12 +28,13 @@ endif
 
 AM_CFLAGS = $(HWLOC_CFLAGS) $(FXT_CFLAGS) -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(STARPU_COI_CPPFLAGS) $(STARPU_SCIF_CPPFLAGS) $(GLOBAL_AM_CFLAGS) -Wno-unused
 AM_CXXFLAGS = $(HWLOC_CFLAGS) $(FXT_CFLAGS) -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(STARPU_COI_CPPFLAGS) $(STARPU_SCIF_CPPFLAGS) $(GLOBAL_AM_CXXFLAGS) -Wno-unused
-LIBS = $(top_builddir)/src/@LIBSTARPU_LINK@ $(HWLOC_LIBS) @LIBS@ $(FXT_LIBS)
+LDADD = $(top_builddir)/src/@LIBSTARPU_LINK@ $(HWLOC_LIBS) $(FXT_LIBS)
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_builddir)/src -I$(top_srcdir)/src/
 AM_LDFLAGS = @STARPU_EXPORT_DYNAMIC@ $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(STARPU_COI_LDFLAGS) $(STARPU_SCIF_LDFLAGS) $(FXT_LDFLAGS)
 
 EXTRA_DIST =					\
 	helper.h				\
+	datawizard/locality.sh			\
 	datawizard/scal.h			\
 	datawizard/mpi_like.h			\
 	microbenchs/tasks_size_overhead.sh	\
@@ -59,7 +60,8 @@ EXTRA_DIST =					\
 	datawizard/interfaces/block/block_opencl_kernel.cl \
 	perfmodels/opencl_memset_kernel.cl \
 	$(MICROBENCHS:=.sh) \
-	microbenchs/microbench.sh
+	microbenchs/microbench.sh \
+	model-checking/starpu-mc.sh.in
 
 CLEANFILES = 					\
 	*.gcno *.gcda *.linkinfo core starpu_idle_microsec.log *.mod *.png *.output
@@ -132,8 +134,8 @@ XFAIL_TESTS	=				\
 
 myPROGRAMS =
 
-myPROGRAMS +=				\
-	main/restart				\
+myPROGRAMS +=					\
+	main/mkdtemp				\
 	main/execute_schedule			\
 	main/insert_task_pack			\
 	main/insert_task_nullcodelet		\
@@ -151,11 +153,13 @@ myPROGRAMS +=				\
 	errorcheck/starpu_init_noworker		\
 	errorcheck/invalid_tasks		\
 	helper/cublas_init			\
+	helper/cusparse_init			\
 	helper/pinned_memory			\
 	helper/execute_on_all			\
 	microbenchs/display_structures_size	\
 	microbenchs/local_pingpong		\
 	sched_ctx/sched_ctx_list		\
+	sched_ctx/sched_ctx_policy_data		\
 	perfmodels/value_nan
 
 if !STARPU_SIMGRID
@@ -170,6 +174,7 @@ myPROGRAMS +=				\
 	main/insert_task_dyn_handles		\
 	main/insert_task_array			\
 	main/insert_task_many			\
+	main/insert_task_where			\
 	main/multithreaded			\
 	main/starpu_task_bundle			\
 	main/starpu_task_wait_for_all		\
@@ -179,6 +184,7 @@ myPROGRAMS +=				\
 	main/static_restartable_tag		\
 	main/regenerate				\
 	main/regenerate_pipeline		\
+	main/restart				\
 	main/wait_all_regenerable_tasks		\
 	main/subgraph_repeat			\
 	main/subgraph_repeat_tag		\
@@ -338,6 +344,8 @@ MICROBENCHS = \
 	microbenchs/parallel_independent_heterogeneous_tasks    \
 	microbenchs/parallel_independent_homogeneous_tasks_data	\
 	microbenchs/parallel_independent_heterogeneous_tasks_data \
+	microbenchs/parallel_redux_homogeneous_tasks_data \
+	microbenchs/parallel_redux_heterogeneous_tasks_data \
 	microbenchs/parallel_dependent_homogeneous_tasks_data
 
 if STARPU_HAVE_FC
@@ -379,6 +387,28 @@ noinst_PROGRAMS += $(MICROBENCHS)
 
 if STARPU_SIMGRID
 TESTS += $(MICROBENCHS:=.sh)
+endif
+
+TESTS += datawizard/locality.sh
+
+################################
+# Simgrid Model Checking tests #
+################################
+
+if STARPU_SIMGRID_MC
+model_checking_prio_list_LDADD = 
+model_checking_prio_list_LDFLAGS = 
+noinst_PROGRAMS += model-checking/prio_list
+if !STARPU_QUICK_CHECK
+TESTS += model-checking/prio_list.sh
+endif
+
+model_checking_starpu_barrier_LDADD = 
+model_checking_starpu_barrier_LDFLAGS = 
+noinst_PROGRAMS += model-checking/starpu_barrier
+if !STARPU_QUICK_CHECK
+#TESTS += model-checking/barrier.sh
+endif
 endif
 
 #######################
@@ -551,6 +581,13 @@ datawizard_test_arbiter_SOURCES =	\
 
 main_deprecated_func_CFLAGS = $(AM_CFLAGS) -Wno-deprecated-declarations
 
+main_insert_task_where_SOURCES =		\
+	main/insert_task_where.c
+if STARPU_USE_CUDA
+main_insert_task_where_SOURCES +=		\
+	main/increment.cu
+endif
+
 main_subgraph_repeat_SOURCES =		\
 	main/subgraph_repeat.c
 if STARPU_USE_CUDA
@@ -581,6 +618,9 @@ endif
 
 sched_ctx_sched_ctx_list_SOURCES =	\
 	sched_ctx/sched_ctx_list.c
+
+sched_ctx_sched_ctx_policy_data_SOURCES =	\
+	sched_ctx/sched_ctx_policy_data.c
 
 sched_ctx_sched_ctx_hierarchy_SOURCES =	\
 	sched_ctx/sched_ctx_hierarchy.c

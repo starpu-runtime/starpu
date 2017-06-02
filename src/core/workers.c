@@ -34,7 +34,6 @@
 #include <core/task.h>
 #include <datawizard/malloc.h>
 #include <profiling/profiling.h>
-#include <starpu_task_list.h>
 #include <sched_policies/sched_component.h>
 #include <datawizard/memory_nodes.h>
 #include <top/starpu_top_core.h>
@@ -174,7 +173,7 @@ static uint32_t _starpu_worker_exists_and_can_execute(struct starpu_task *task,
 uint32_t _starpu_worker_exists(struct starpu_task *task)
 {
 	_starpu_codelet_check_deprecated_fields(task->cl);
-	if (task->cl->where == STARPU_NOWHERE)
+	if (task->where == STARPU_NOWHERE)
 		return 1;
 
 	/* if the task belongs to the init context we can
@@ -183,7 +182,7 @@ uint32_t _starpu_worker_exists(struct starpu_task *task)
 	   and verify if it exists a worker able to exec the task */
 	if(task->sched_ctx == 0)
 	{
-		if (!(task->cl->where & _starpu_config.worker_mask))
+		if (!(task->where & _starpu_config.worker_mask))
 			return 0;
 
 		if (!task->cl->can_execute)
@@ -191,32 +190,32 @@ uint32_t _starpu_worker_exists(struct starpu_task *task)
 	}
 
 #if defined(STARPU_USE_CPU) || defined(STARPU_SIMGRID)
-	if ((task->cl->where & STARPU_CPU) &&
+	if ((task->where & STARPU_CPU) &&
 	    _starpu_worker_exists_and_can_execute(task, STARPU_CPU_WORKER))
 		return 1;
 #endif
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
-	if ((task->cl->where & STARPU_CUDA) &&
+	if ((task->where & STARPU_CUDA) &&
 	    _starpu_worker_exists_and_can_execute(task, STARPU_CUDA_WORKER))
 		return 1;
 #endif
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
-	if ((task->cl->where & STARPU_OPENCL) &&
+	if ((task->where & STARPU_OPENCL) &&
 	    _starpu_worker_exists_and_can_execute(task, STARPU_OPENCL_WORKER))
 		return 1;
 #endif
 #ifdef STARPU_USE_MIC
-	if ((task->cl->where & STARPU_MIC) &&
+	if ((task->where & STARPU_MIC) &&
 	    _starpu_worker_exists_and_can_execute(task, STARPU_MIC_WORKER))
 		return 1;
 #endif
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
-	if ((task->cl->where & STARPU_MPI_MS) &&
+	if ((task->where & STARPU_MPI_MS) &&
 	    _starpu_worker_exists_and_can_execute(task, STARPU_MPI_MS_WORKER))
 		return 1;
 #endif
 #ifdef STARPU_USE_SCC
-	if ((task->cl->where & STARPU_SCC) &&
+	if ((task->where & STARPU_SCC) &&
 	    _starpu_worker_exists_and_can_execute(task, STARPU_SCC_WORKER))
 		return 1;
 #endif
@@ -310,25 +309,28 @@ static inline int _starpu_can_use_nth_implementation(enum starpu_worker_archtype
 	return 0;
 }
 
+/* must be called with sched_mutex locked to protect state_blocked_in_parallel */
 int starpu_worker_can_execute_task(unsigned workerid, struct starpu_task *task, unsigned nimpl)
 {
-	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
-
 	/* if the worker is blocked in a parallel ctx don't submit tasks on it */
-	if(sched_ctx->parallel_sect[workerid] ) return 0;
+#ifdef STARPU_DEVEL
+#warning FIXME: this is very expensive, while can_execute is supposed to be not very costly so schedulers can call it a lot
+#endif
+	if(starpu_worker_is_blocked_in_parallel(workerid))
+		return 0;
 
 	/* TODO: check that the task operand sizes will fit on that device */
-	return (task->cl->where & _starpu_config.workers[workerid].worker_mask) &&
+	return (task->where & _starpu_config.workers[workerid].worker_mask) &&
 		_starpu_can_use_nth_implementation(_starpu_config.workers[workerid].arch, task->cl, nimpl) &&
 		(!task->cl->can_execute || task->cl->can_execute(workerid, task, nimpl));
 }
 
+/* must be called with sched_mutex locked to protect state_blocked_in_parallel */
 int starpu_worker_can_execute_task_impl(unsigned workerid, struct starpu_task *task, unsigned *impl_mask)
 {
-	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
-
 	/* if the worker is blocked in a parallel ctx don't submit tasks on it */
-	if(sched_ctx->parallel_sect[workerid]) return 0;
+	if(starpu_worker_is_blocked_in_parallel(workerid))
+		return 0;
 
 	unsigned mask;
 	int i;
@@ -336,7 +338,7 @@ int starpu_worker_can_execute_task_impl(unsigned workerid, struct starpu_task *t
 	struct starpu_codelet *cl;
 	/* TODO: check that the task operand sizes will fit on that device */
 	cl = task->cl;
-	if (!(cl->where & _starpu_config.workers[workerid].worker_mask)) return 0;
+	if (!(task->where & _starpu_config.workers[workerid].worker_mask)) return 0;
 
 	mask = 0;
 	arch = _starpu_config.workers[workerid].arch;
@@ -366,16 +368,18 @@ int starpu_worker_can_execute_task_impl(unsigned workerid, struct starpu_task *t
 	return mask != 0;
 }
 
+/* must be called with sched_mutex locked to protect state_blocked */
 int starpu_worker_can_execute_task_first_impl(unsigned workerid, struct starpu_task *task, unsigned *nimpl)
 {
-	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
+	/* if the worker is blocked in a parallel ctx don't submit tasks on it */
+	if(starpu_worker_is_blocked_in_parallel(workerid))
+		return 0;
 	int i;
 	enum starpu_worker_archtype arch;
 	struct starpu_codelet *cl;
-	if(sched_ctx->parallel_sect[workerid]) return 0;
 	/* TODO: check that the task operand sizes will fit on that device */
 	cl = task->cl;
-	if (!(cl->where & _starpu_config.workers[workerid].worker_mask)) return 0;
+	if (!(task->where & _starpu_config.workers[workerid].worker_mask)) return 0;
 
 	arch = _starpu_config.workers[workerid].arch;
 	if (!task->cl->can_execute)
@@ -414,7 +418,7 @@ int starpu_combined_worker_can_execute_task(unsigned workerid, struct starpu_tas
 	/* Is this a parallel worker ? */
 	if (workerid < nworkers)
 	{
-		return !!((task->cl->where & _starpu_config.workers[workerid].worker_mask) &&
+		return !!((task->where & _starpu_config.workers[workerid].worker_mask) &&
 				_starpu_can_use_nth_implementation(_starpu_config.workers[workerid].arch, task->cl, nimpl) &&
 				(!task->cl->can_execute || task->cl->can_execute(workerid, task, nimpl)));
 	}
@@ -452,14 +456,9 @@ int starpu_combined_worker_can_execute_task(unsigned workerid, struct starpu_tas
  * Runtime initialization methods
  */
 
-static void _starpu_init_worker_queue(struct _starpu_worker *workerarg)
+static void _starpu_init_worker_queue(struct _starpu_worker *worker)
 {
-	starpu_pthread_cond_t *cond = &workerarg->sched_cond;
-	starpu_pthread_mutex_t *mutex = &workerarg->sched_mutex;
-
-	unsigned memory_node = workerarg->memory_node;
-
-	_starpu_memory_node_register_condition(cond, mutex, memory_node);
+	_starpu_memory_node_register_condition(worker, &worker->sched_cond, worker->memory_node);
 }
 
 /*
@@ -528,6 +527,7 @@ static void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu
 	STARPU_PTHREAD_COND_INIT(&workerarg->sched_cond, NULL);
 	STARPU_PTHREAD_MUTEX_INIT(&workerarg->sched_mutex, NULL);
 	starpu_task_list_init(&workerarg->local_tasks);
+	_starpu_ctx_change_list_init(&workerarg->ctx_change_list);
 	workerarg->local_ordered_tasks = NULL;
 	workerarg->local_ordered_tasks_size = 0;
 	workerarg->current_ordered_task = 0;
@@ -549,6 +549,7 @@ static void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu
 	workerarg->worker_is_running = 0;
 	workerarg->worker_is_initialized = 0;
 	workerarg->status = STATUS_INITIALIZING;
+	workerarg->state_keep_awake = 0;
 	/* name initialized by driver */
 	/* short_name initialized by driver */
 	workerarg->run_by_starpu = 1;
@@ -576,9 +577,27 @@ static void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu
 	workerarg->reverse_phase[0] = 0;
 	workerarg->reverse_phase[1] = 0;
 	workerarg->pop_ctx_priority = 1;
-	workerarg->sched_mutex_locked = 0;
-	workerarg->blocked = 0;
 	workerarg->is_slave_somewhere = 0;
+
+	workerarg->state_relax_refcnt = 1;
+#ifdef STARPU_SPINLOCK_CHECK
+	workerarg->relax_on_file = __FILE__;
+	workerarg->relax_on_line = __LINE__;
+	workerarg->relax_on_func = __starpu_func__;
+	workerarg->relax_off_file = NULL;
+	workerarg->relax_off_line = 0;
+	workerarg->relax_off_func = NULL;
+#endif
+	workerarg->state_sched_op_pending = 0;
+	workerarg->state_changing_ctx_waiting = 0;
+	workerarg->state_changing_ctx_notice = 0;
+	workerarg->state_blocked_in_parallel_observed = 0;
+	workerarg->state_blocked_in_parallel = 0;
+	workerarg->state_block_in_parallel_req = 0;
+	workerarg->state_block_in_parallel_ack = 0;
+	workerarg->state_unblock_in_parallel_req = 0;
+	workerarg->state_unblock_in_parallel_ack = 0;
+	workerarg->block_in_parallel_ref_count = 0;
 
 	/* cpu_set/hwloc_cpu_set initialized in topology.c */
 }
@@ -671,7 +690,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				if (_starpu_may_launch_driver(&pconfig->conf, &driver))
 				{
 					STARPU_PTHREAD_CREATE_ON(
-						workerarg->name,
+						"CPU",
 						&workerarg->worker_thread,
 						NULL,
 						_starpu_cpu_worker,
@@ -715,7 +734,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 
 
 				STARPU_PTHREAD_CREATE_ON(
-					pconfig->topology.cuda_th_per_dev ? "CUDA" : workerarg->name,
+					"CUDA",
 					&worker_set->worker_thread,
 					NULL,
 					_starpu_cuda_worker,
@@ -741,7 +760,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				}
 #endif
 				STARPU_PTHREAD_CREATE_ON(
-					workerarg->name,
+					"OpenCL",
 					&workerarg->worker_thread,
 					NULL,
 					_starpu_opencl_worker,
@@ -766,7 +785,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				worker_set->set_is_initialized = 0;
 
 				STARPU_PTHREAD_CREATE_ON(
-						workerarg->name,
+						"MIC",
 						&worker_set->worker_thread,
 						NULL,
 						_starpu_mic_src_worker,
@@ -794,7 +813,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 			case STARPU_SCC_WORKER:
 				workerarg->worker_is_initialized = 0;
 				STARPU_PTHREAD_CREATE_ON(
-						workerarg->name,
+						"SCC",
 						&workerarg->worker_thread,
 						NULL,
 						_starpu_scc_src_worker,
@@ -826,7 +845,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
                  * we launch one thread for all devices
                  */
 				STARPU_PTHREAD_CREATE_ON(
-						workerarg->name,
+						"MPI MS",
 						&worker_set->worker_thread,
 						NULL,
 						_starpu_mpi_src_worker,
@@ -863,7 +882,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
                 struct _starpu_worker_set * worker_set_zero = &mpi_worker_set[0];
                 struct _starpu_worker * worker_zero = &worker_set_zero->workers[0];
                 STARPU_PTHREAD_CREATE_ON(
-                                worker_zero->name,
+                                "zero",
                                 &worker_set_zero->worker_thread,
                                 NULL,
                                 _starpu_mpi_src_worker,
@@ -1152,13 +1171,13 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 #ifdef STARPU_USE_MP
 	_starpu_set_argc_argv(argc, argv);
 
-#	ifdef STARPU_USE_SCC
+#ifdef STARPU_USE_SCC
 	/* In SCC case we look at the rank to know if we are a sink */
 	if (_starpu_scc_common_mp_init() && !_starpu_scc_common_is_src_node())
 		setenv("STARPU_SINK", "STARPU_SCC", 1);
-#	endif
+#endif
 
-#       ifdef STARPU_USE_MPI_MASTER_SLAVE
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
         if (_starpu_mpi_common_mp_init() == -ENODEV)
         {
                 initialized = UNINITIALIZED;
@@ -1168,7 +1187,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
         /* In MPI case we look at the rank to know if we are a sink */
         if (!_starpu_mpi_common_is_src_node())
                 setenv("STARPU_SINK", "STARPU_MPI_MS", 1);
-#       endif
+# endif
 
 	/* If StarPU was configured to use MP sinks, we have to control the
 	 * kind on node we are running on : host or sink ? */
@@ -1238,8 +1257,6 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	WSAStartup(MAKEWORD(1,0), &wsadata);
 #endif
 
-	srand(2008);
-
 	STARPU_AYU_PREINIT();
 	/* store the pointer to the user explicit configuration during the
 	 * initialization */
@@ -1304,7 +1321,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	/* Depending on whether we are a MP sink or not, we must build the
 	 * topology with MP nodes or not. */
 	ret = _starpu_build_topology(&_starpu_config, is_a_sink);
-    /* sink doesn't exit even if no worker discorvered */
+	/* sink doesn't exit even if no worker discorvered */
 	if (ret && !is_a_sink)
 	{
 		starpu_perfmodel_free_sampling_directories();
@@ -1326,6 +1343,10 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 		/* Let somebody else try to do it */
 		STARPU_PTHREAD_COND_SIGNAL(&init_cond);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&init_mutex);
+
+#ifdef STARPU_USE_FXT
+		_starpu_stop_fxt_profiling();
+#endif
 		return ret;
 	}
 
@@ -1339,6 +1360,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	STARPU_PTHREAD_KEY_CREATE(&_starpu_worker_key, NULL);
 	STARPU_PTHREAD_KEY_CREATE(&_starpu_worker_set_key, NULL);
 	_starpu_keys_initialized = 1;
+	STARPU_WMB();
 
 	_starpu_build_tree();
 
@@ -1412,14 +1434,12 @@ static void _starpu_terminate_workers(struct _starpu_machine_config *pconfig)
 		struct _starpu_worker *worker = &pconfig->workers[workerid];
 
 		/* in case StarPU termination code is called from a callback,
- 		 * we have to check if pthread_self() is the worker itself */
+ 		 * we have to check if starpu_pthread_self() is the worker itself */
 		if (set && set->nworkers > 0)
 		{
 			if (set->started)
 			{
-#ifndef STARPU_SIMGRID
-				if (!pthread_equal(pthread_self(), set->worker_thread))
-#endif
+				if (!starpu_pthread_equal(starpu_pthread_self(), set->worker_thread))
 					status = starpu_pthread_join(set->worker_thread, NULL);
 				if (status)
 				{
@@ -1435,9 +1455,7 @@ static void _starpu_terminate_workers(struct _starpu_machine_config *pconfig)
 			if (!worker->run_by_starpu)
 				goto out;
 
-#ifndef STARPU_SIMGRID
-			if (!pthread_equal(pthread_self(), worker->worker_thread))
-#endif
+			if (!starpu_pthread_equal(starpu_pthread_self(), worker->worker_thread))
 				status = starpu_pthread_join(worker->worker_thread, NULL);
 			if (status)
 			{
@@ -1453,6 +1471,7 @@ out:
 			STARPU_ASSERT(worker->local_ordered_tasks[n] == NULL);
 		_starpu_sched_ctx_list_delete(&worker->sched_ctx_list);
 		free(worker->local_ordered_tasks);
+		STARPU_ASSERT(_starpu_ctx_change_list_empty(&worker->ctx_change_list));
 	}
 }
 
@@ -1685,14 +1704,72 @@ unsigned starpu_worker_get_count(void)
 	return _starpu_config.topology.nworkers;
 }
 
-unsigned starpu_worker_is_blocked(int workerid)
+unsigned starpu_worker_is_blocked_in_parallel(int workerid)
 {
-	return _starpu_config.workers[workerid].blocked;
+	int relax_own_observation_state = 0;
+	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
+	STARPU_ASSERT(worker != NULL);
+	STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
+	struct _starpu_worker *cur_worker = NULL;
+	int cur_workerid = starpu_worker_get_id();
+	if (workerid != cur_workerid)
+	{
+		/* in order to observe the 'blocked' state of a worker from
+		 * another worker, we must avoid race conditions between
+		 * 'blocked' state changes and state observations. This is the
+		 * purpose of this 'if' block. */
+		cur_worker = cur_workerid<starpu_worker_get_count()?_starpu_get_worker_struct(cur_workerid):NULL;
+
+		relax_own_observation_state = (cur_worker != NULL) && (cur_worker->state_relax_refcnt == 0);
+		if (relax_own_observation_state && !worker->state_relax_refcnt)
+		{
+			/* moreover, when a worker (cur_worker != NULL)
+			 * observes another worker, we need to take special
+			 * care to avoid live locks, thus the observing worker
+			 * must enter the relaxed state (if not relaxed
+			 * already) before doing the observation in mutual
+			 * exclusion */
+			STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
+
+			STARPU_PTHREAD_MUTEX_LOCK_SCHED(&cur_worker->sched_mutex);
+			cur_worker->state_relax_refcnt = 1;
+			STARPU_PTHREAD_COND_BROADCAST(&cur_worker->sched_cond);
+			STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&cur_worker->sched_mutex);
+
+			STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
+		}
+		/* the observer waits for a safe window to observe the state,
+		 * and also waits for any pending blocking state change
+		 * requests to be processed, in order to not obtain an
+		 * ephemeral information */
+		while (!worker->state_relax_refcnt
+				|| worker->state_block_in_parallel_req
+				|| worker->state_unblock_in_parallel_req)
+		{
+			STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
+		}
+	}
+	unsigned ret = _starpu_config.workers[workerid].state_blocked_in_parallel;
+	/* once a worker state has been observed, the worker is 'tainted' for the next one full sched_op,
+	 * to avoid changing the observed worker state - on which the observer
+	 * made a scheduling decision - after the fact. */
+	worker->state_blocked_in_parallel_observed = 1;
+	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
+	if (relax_own_observation_state)
+	{
+		STARPU_PTHREAD_MUTEX_LOCK_SCHED(&cur_worker->sched_mutex);
+		cur_worker->state_relax_refcnt = 0;
+		STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&cur_worker->sched_mutex);
+	}
+	return ret;
 }
 
 unsigned starpu_worker_is_slave_somewhere(int workerid)
 {
-	return _starpu_config.workers[workerid].is_slave_somewhere;
+	_starpu_worker_lock(workerid);
+	unsigned ret = _starpu_config.workers[workerid].is_slave_somewhere;
+	_starpu_worker_unlock(workerid);
+	return ret;
 }
 
 int starpu_worker_get_count_by_type(enum starpu_worker_archtype type)
@@ -2047,26 +2124,33 @@ void starpu_worker_get_sched_condition(int workerid, starpu_pthread_mutex_t **sc
 	*sched_mutex = &_starpu_config.workers[workerid].sched_mutex;
 }
 
-int starpu_wakeup_worker_locked(int workerid, starpu_pthread_cond_t *cond, starpu_pthread_mutex_t *mutex STARPU_ATTRIBUTE_UNUSED)
+static int starpu_wakeup_worker_locked(int workerid, starpu_pthread_cond_t *sched_cond, starpu_pthread_mutex_t *mutex STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_SIMGRID
 	starpu_pthread_queue_broadcast(&_starpu_simgrid_task_queue[workerid]);
 #endif
-	if (_starpu_config.workers[workerid].status == STATUS_SLEEPING)
+	if (_starpu_config.workers[workerid].status == STATUS_SCHEDULING)
 	{
-		_starpu_config.workers[workerid].status = STATUS_WAKING_UP;
-		STARPU_PTHREAD_COND_SIGNAL(cond);
+		_starpu_config.workers[workerid].state_keep_awake = 1;
+		return 1;
+	}
+	else if (_starpu_config.workers[workerid].status == STATUS_SLEEPING)
+	{
+		_starpu_config.workers[workerid].state_keep_awake = 1;
+		/* cond_broadcast is required over cond_signal since
+		 * the condition is share for multiple purpose */
+		STARPU_PTHREAD_COND_BROADCAST(sched_cond);
 		return 1;
 	}
 	return 0;
 }
 
-int starpu_wakeup_worker(int workerid, starpu_pthread_cond_t *cond, starpu_pthread_mutex_t *mutex)
+static int starpu_wakeup_worker_no_relax(int workerid, starpu_pthread_cond_t *sched_cond, starpu_pthread_mutex_t *sched_mutex)
 {
 	int success;
-	STARPU_PTHREAD_MUTEX_LOCK_SCHED(mutex);
-	success = starpu_wakeup_worker_locked(workerid, cond, mutex);
-	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(mutex);
+	STARPU_PTHREAD_MUTEX_LOCK_SCHED(sched_mutex);
+	success = starpu_wakeup_worker_locked(workerid, sched_cond, sched_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(sched_mutex);
 	return success;
 }
 
@@ -2078,12 +2162,12 @@ int starpu_wake_worker_locked(int workerid)
 	return starpu_wakeup_worker_locked(workerid, sched_cond, sched_mutex);
 }
 
-int starpu_wake_worker(int workerid)
+int starpu_wake_worker_no_relax(int workerid)
 {
 	starpu_pthread_mutex_t *sched_mutex;
 	starpu_pthread_cond_t *sched_cond;
 	starpu_worker_get_sched_condition(workerid, &sched_mutex, &sched_cond);
-	return starpu_wakeup_worker(workerid, sched_cond, sched_mutex);
+	return starpu_wakeup_worker_no_relax(workerid, sched_cond, sched_mutex);
 }
 
 int starpu_worker_get_nids_by_type(enum starpu_worker_archtype type, int *workerids, int maxsize)
@@ -2159,33 +2243,6 @@ void starpu_get_version(int *major, int *minor, int *release)
 	*release = STARPU_RELEASE_VERSION;
 }
 
-void _starpu_unlock_mutex_if_prev_locked()
-{
-	int workerid = starpu_worker_get_id();
-	if(workerid != -1)
-	{
-		struct _starpu_worker *w = _starpu_get_worker_struct(workerid);
-		if(w->sched_mutex_locked)
-		{
-			STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&w->sched_mutex);
-			_starpu_worker_set_flag_sched_mutex_locked(workerid, 1);
-		}
-	}
-	return;
-}
-
-void _starpu_relock_mutex_if_prev_locked()
-{
-	int workerid = starpu_worker_get_id();
-	if(workerid != -1)
-	{
-		struct _starpu_worker *w = _starpu_get_worker_struct(workerid);
-		if(w->sched_mutex_locked)
-			STARPU_PTHREAD_MUTEX_LOCK_SCHED(&w->sched_mutex);
-	}
-	return;
-}
-
 unsigned starpu_worker_get_sched_ctx_list(int workerid, unsigned **sched_ctxs)
 {
 	unsigned s = 0;
@@ -2258,4 +2315,86 @@ void starpu_worker_display_names(FILE *output, enum starpu_worker_archtype type)
 			fprintf(output, "\t%s\n", name);
 		}
 	}
+}
+
+void _starpu_worker_refuse_task(struct _starpu_worker *worker, struct starpu_task *task)
+{
+	if (worker->pipeline_length || worker->arch == STARPU_OPENCL_WORKER)
+	{
+		int j;
+		for (j = 0; j < worker->ntasks; j++)
+		{
+			const int j_mod = (j+worker->first_task)%STARPU_MAX_PIPELINE;
+			if (task == worker->current_tasks[j_mod])
+			{
+				worker->current_tasks[j_mod] = NULL;
+				if (j == 0)
+				{
+					worker->first_task = (worker->first_task + 1) % STARPU_MAX_PIPELINE;
+					worker->current_task = NULL;
+					_starpu_set_current_task(NULL);
+				}
+				break;
+			}
+		}
+		STARPU_ASSERT(j<worker->ntasks);
+	}
+	else
+	{
+		worker->current_task = NULL;
+		_starpu_set_current_task(NULL);
+	}
+	worker->ntasks--;
+	int res = _starpu_push_task_to_workers(task);
+	STARPU_ASSERT_MSG(res == 0, "_starpu_push_task_to_workers() unexpectedly returned = %d\n", res);
+}
+
+int starpu_worker_sched_op_pending(void)
+{
+	return _starpu_worker_sched_op_pending();
+}
+
+void starpu_worker_relax_on(void)
+{
+	_starpu_worker_relax_on();
+}
+
+void starpu_worker_relax_off(void)
+{
+	starpu_worker_relax_off();
+}
+
+int starpu_worker_get_relax_state(void)
+{
+	return _starpu_worker_get_relax_state();
+}
+
+void starpu_worker_lock(int workerid)
+{
+	_starpu_worker_lock(workerid);
+}
+
+int starpu_worker_trylock(int workerid)
+{
+	return _starpu_worker_trylock(workerid);
+}
+
+void starpu_worker_unlock(int workerid)
+{
+	_starpu_worker_unlock(workerid);
+}
+
+void starpu_worker_lock_self(void)
+{
+	_starpu_worker_lock_self();
+}
+
+void starpu_worker_unlock_self(void)
+{
+	_starpu_worker_unlock_self();
+}
+
+int starpu_wake_worker_relax(int workerid)
+{
+	return _starpu_wake_worker_relax(workerid);
 }

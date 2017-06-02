@@ -112,19 +112,23 @@ to be able to interact with other Scheduling Components.
 	Child Component. When the Push function returns, the task no longer
 	belongs to the calling Component. The Modularized Schedulers'
 	model relies on this function to perform prefetching.
+	See starpu_sched_component::push_task for more details
 
 	- Pull (Caller_Component, Parent_Component)  ->  Task \n
 	The calling Scheduling Component requests a task from
 	its Parent Component. When the Pull function ends, the returned
 	task belongs to the calling Component.
+	See starpu_sched_component::pull_task for more details
 
 	- Can_Push (Caller_Component, Parent_Component) \n
 	The calling Scheduling Component notifies its Parent Component that
 	it is ready to accept new tasks.
+	See starpu_sched_component::can_push for more details
 
 	- Can_Pull (Caller_Component, Child_Component) \n
 	The calling Scheduling Component notifies its Child Component
 	that it is ready to give new tasks.
+	See starpu_sched_component::can_pull for more details
 
 
 \section BuildAModularizedScheduler Building a Modularized Scheduler
@@ -225,7 +229,7 @@ static void initialize_eager_prefetching_center_policy(unsigned sched_ctx_id)
     /* Each Worker Component has a Flow-control Fifo Component as
      * father */
     struct starpu_sched_component * worker_component =
-	  starpu_sched_component_worker_get(i);
+	  starpu_sched_component_worker_new(i);
     struct starpu_sched_component * fifo_component =
 	  starpu_sched_component_fifo_create(&fifo_data);
     fifo_component->add_child

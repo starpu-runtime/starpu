@@ -88,6 +88,7 @@ struct starpu_sched_component * starpu_sched_component_perfmodel_select_create(s
 	data->perfmodel_component = params->perfmodel_component;
 
 	component->data = data;
+	component->can_pull = starpu_sched_component_send_can_push_to_parents; 
 	component->push_task = perfmodel_select_push_task;
 	component->deinit_data = perfmodel_select_component_deinit_data;
 	component->estimated_end = starpu_sched_component_estimated_end_min;

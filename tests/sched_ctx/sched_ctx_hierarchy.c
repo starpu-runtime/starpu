@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2017  CNRS
+ * Copyright (C) 2017  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,7 +19,11 @@
 #include <starpu.h>
 #include "../helper.h"
 
-struct starpu_codelet mycodelet_bis;
+void free_codelet(void *arg)
+{
+	free(arg);
+}
+
 void func_cpu_bis(void *descr[], void *_args)
 {
 	char msg;
@@ -35,20 +40,18 @@ void func_cpu_bis(void *descr[], void *_args)
 	FPRINTF(stderr, "[msg '%c'] [worker id %d] [worker name %s] [tasks %d]\n", msg, worker_id, worker_name, ntasks);
 	if (ntasks > 0)
 	{
+		struct starpu_codelet *codelet = calloc(1,sizeof(*codelet));
+		codelet->cpu_funcs[0] = func_cpu_bis;
+		codelet->cpu_funcs_name[0] = "func_cpu_bis";
 		int nntasks = ntasks - 1;
-		starpu_task_insert(&mycodelet_bis,
+		starpu_task_insert(codelet,
 				   STARPU_VALUE, &msg, sizeof(msg),
 				   STARPU_VALUE, &nntasks, sizeof(ntasks),
 				   STARPU_VALUE, &worker_id, sizeof(worker_id),
+				   STARPU_CALLBACK_WITH_ARG, free_codelet, codelet,
 				   0);
 	}
 }
-
-struct starpu_codelet mycodelet_bis =
-{
-	.cpu_funcs = {func_cpu_bis},
-	.cpu_funcs_name = {"func_cpu_bis"},
-};
 
 void func_cpu(void *descr[], void *_args)
 {
@@ -71,11 +74,15 @@ void func_cpu(void *descr[], void *_args)
 	FPRINTF(stderr, "[msg '%c'] [worker id %d] [worker name %s] [sched_ctx_id %u] [tasks %d] [buffer %p]\n", msg, worker_id, worker_name, sched_ctx_id, ntasks, sched_ctx_id_p);
 	if (ntasks > 0)
 	{
+		struct starpu_codelet *codelet = calloc(1,sizeof(*codelet));
+		codelet->cpu_funcs[0] = func_cpu_bis;
+		codelet->cpu_funcs_name[0] = "func_cpu_bis";
 		int nntasks = ntasks - 1;
-		starpu_task_insert(&mycodelet_bis,
+		starpu_task_insert(codelet,
 				   STARPU_VALUE, &msg, sizeof(msg),
 				   STARPU_VALUE, &nntasks, sizeof(nntasks),
 				   STARPU_VALUE, &worker_id, sizeof(worker_id),
+				   STARPU_CALLBACK_WITH_ARG, free_codelet, codelet,
 				   0);
 	}
 }

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2016  Université de Bordeaux
+ * Copyright (C) 2010-2017  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016, 2017  CNRS
  * Copyright (C) 2012, 2016  Inria
@@ -206,7 +206,6 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 		else
 			child = childrenp[i];
 		STARPU_ASSERT(child);
-		_STARPU_TRACE_HANDLE_DATA_REGISTER(child);
 
 		struct starpu_data_interface_ops *ops;
 
@@ -324,6 +323,8 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 		ptr = starpu_data_handle_to_pointer(child, STARPU_MAIN_RAM);
 		if (ptr != NULL)
 			_starpu_data_register_ram_pointer(child, ptr);
+
+		_STARPU_TRACE_HANDLE_DATA_REGISTER(child);
 	}
 	/* now let the header */
 	_starpu_spin_unlock(&initial_handle->header_lock);
@@ -522,6 +523,8 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 		STARPU_PTHREAD_MUTEX_DESTROY(&child_handle->busy_mutex);
 		STARPU_PTHREAD_COND_DESTROY(&child_handle->busy_cond);
 		STARPU_PTHREAD_MUTEX_DESTROY(&child_handle->sequential_consistency_mutex);
+
+		_STARPU_TRACE_HANDLE_DATA_UNREGISTER(child_handle);
 	}
 
 	/* there is no child anymore */

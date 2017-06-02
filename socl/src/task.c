@@ -77,7 +77,7 @@ void task_depends_on(starpu_task task, cl_uint num_events, cl_event *events) {
     DEBUG_MSG("Task %p depends on events:", task);
     for (i=0; i<num_events; i++) {
        tags[i] = events[i]->id;
-       DEBUG_MSG_NOHEAD(" %u", events[i]->id);
+       DEBUG_MSG_NOHEAD(" %d", events[i]->id);
     }
     DEBUG_MSG_NOHEAD("\n");
 
@@ -105,7 +105,7 @@ cl_int task_submit_ex(starpu_task task, cl_command cmd) {
   gc_entity_release(ev);
 
   /* Submit task */
-  int ret = (task->cl != NULL && task->cl->where == STARPU_OPENCL ?
+  int ret = (task->cl != NULL && task->where == STARPU_OPENCL ?
         starpu_task_submit_to_ctx(task, cmd->event->cq->context->sched_ctx) :
         starpu_task_submit(task));
 

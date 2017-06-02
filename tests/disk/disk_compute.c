@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2013 Corentin Salingue
- * Copyright (C) 2015, 2016 CNRS
+ * Copyright (C) 2015, 2016, 2017 CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -34,13 +34,6 @@
  * actually
  */
 
-#ifdef STARPU_HAVE_WINDOWS
-#  include <io.h>
-#  if defined(_WIN32) && !defined(__CYGWIN__)
-#    define mkdir(path, mode) mkdir(path)
-#  endif
-#endif
-
 #define NX (1024)
 
 int dotest(struct starpu_disk_ops *ops, char *base)
@@ -67,7 +60,7 @@ int dotest(struct starpu_disk_ops *ops, char *base)
 	strcat(path_file_end, name_file_end);
 
 	/* register a disk */
-	int new_dd = starpu_disk_register(ops, (void *) base, 1024*1024*1);
+	int new_dd = starpu_disk_register(ops, (void *) base, STARPU_DISK_SIZE_MIN);
 	/* can't write on /tmp/ */
 	if (new_dd == -ENOENT) goto enoent;
 
@@ -216,13 +209,15 @@ static int merge_result(int old, int new)
 int main(void)
 {
 	int ret = 0;
+	int ret2;
 	char s[128];
+	char *ptr;
 
-	snprintf(s, sizeof(s), "/tmp/%s-disk-%d", getenv("USER"), getpid());
-	ret = mkdir(s, 0777);
-	if (ret)
+	snprintf(s, sizeof(s), "/tmp/%s-disk-XXXXXX", getenv("USER"));
+	ptr = _starpu_mkdtemp(s);
+	if (!ptr)
 	{
-		FPRINTF(stderr, "Cannot make directory <%s>\n", s);
+		FPRINTF(stderr, "Cannot make directory '%s'\n", s);
 		return STARPU_TEST_SKIPPED;
 	}
 
@@ -238,6 +233,9 @@ int main(void)
 		ret = merge_result(ret, STARPU_TEST_SKIPPED);
 	}
 #endif
-	rmdir(s);
+
+	ret2 = rmdir(s);
+	if (ret2 < 0)
+		STARPU_CHECK_RETURN_VALUE(-errno, "rmdir '%s'\n", s);
 	return ret;
 }

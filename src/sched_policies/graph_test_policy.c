@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2017  Université de Bordeaux
  * Copyright (C) 2010-2013, 2016, 2017  CNRS
- * Copyright (C) 2011  INRIA
+ * Copyright (C) 2011, 2017  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -84,6 +84,7 @@ static void deinitialize_graph_test_policy(unsigned sched_ctx_id)
 	 _starpu_prio_deque_destroy(&data->prio_gpu);
 	starpu_bitmap_destroy(data->waiters);
 
+	_starpu_graph_record = 0;
 	STARPU_PTHREAD_MUTEX_DESTROY(&data->policy_mutex);
 	free(data);
 }
@@ -123,8 +124,19 @@ static struct _starpu_prio_deque *select_prio(unsigned sched_ctx_id, struct _sta
 			length = 0.;
 		if (length == 0.)
 		{
-			_STARPU_DISP("Warning: graph_test needs performance models for all tasks, including %s\n",
-					starpu_task_get_name(task));
+			if (!task->cl || task->cl->model == NULL)
+			{
+				static unsigned _warned;
+				if (STARPU_ATOMIC_ADD(&_warned, 1) == 1)
+				{
+					_STARPU_DISP("Warning: graph_test needs performance models for all tasks, including %s\n",
+							starpu_task_get_name(task));
+				}
+				else
+				{
+					(void)STARPU_ATOMIC_ADD(&_warned, -1);
+				}
+			}
 			power = 0.;
 		}
 		else
@@ -148,7 +160,9 @@ static struct _starpu_prio_deque *select_prio(unsigned sched_ctx_id, struct _sta
 static void set_priority(void *_data, struct _starpu_graph_node *node)
 {
 	struct _starpu_graph_test_policy_data *data = _data;
+	_starpu_worker_relax_on();
 	STARPU_PTHREAD_MUTEX_LOCK(&node->mutex);
+	_starpu_worker_relax_off();
 	struct _starpu_job *job = node->job;
 	if (job)
 	{
@@ -164,13 +178,22 @@ static void do_schedule_graph_test_policy(unsigned sched_ctx_id)
 {
 	struct _starpu_graph_test_policy_data *data = (struct _starpu_graph_test_policy_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
+	_starpu_worker_relax_on();
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
+	_starpu_worker_relax_off();
 	if (data->descendants)
 		_starpu_graph_compute_descendants();
 	else
 		_starpu_graph_compute_depths();
-	data->computed = 1;
-	_starpu_graph_foreach(set_priority, data);
+	if (data->computed == 0)
+	{
+		data->computed = 1;
+
+		/* FIXME: if data->computed already == 1, some tasks may already have been pushed to priority stage '0' in
+		 * push_task_graph_test_policy, then if we change the priority here, the stage lookup to remove the task
+		 * will get the wrong stage */
+		_starpu_graph_foreach(set_priority, data);
+	}
 
 	/* Now that we have priorities, move tasks from bag to priority queue */
 	while(!_starpu_fifo_empty(data->fifo))
@@ -200,7 +223,7 @@ static void do_schedule_graph_test_policy(unsigned sched_ctx_id)
 	{
 		/* Wake each worker */
 		unsigned worker = workers->get_next(workers, &it);
-		starpu_wake_worker(worker);
+		_starpu_wake_worker_relax(worker);
 	}
 #endif
 }
@@ -210,7 +233,9 @@ static int push_task_graph_test_policy(struct starpu_task *task)
 	unsigned sched_ctx_id = task->sched_ctx;
 	struct _starpu_graph_test_policy_data *data = (struct _starpu_graph_test_policy_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
+	_starpu_worker_relax_on();
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
+	_starpu_worker_relax_off();
 	if (!data->computed)
 	{
 		/* Priorities are not computed, leave the task in the bag for now */
@@ -277,8 +302,10 @@ static int push_task_graph_test_policy(struct starpu_task *task)
 	{
 		unsigned worker = workers->get_next(workers, &it);
 		if (dowake[worker])
-			if (starpu_wake_worker(worker))
+		{
+			if (_starpu_wake_worker_relax(worker))
 				break; // wake up a single worker
+		}
 	}
 #endif
 
@@ -313,14 +340,16 @@ static struct starpu_task *pop_task_graph_test_policy(unsigned sched_ctx_id)
 		return NULL;
 #endif
 
+	_starpu_worker_relax_on();
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
+	_starpu_worker_relax_off();
 	if (!data->computed)
 	{
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 		return NULL;
 	}
 
-	chosen_task = _starpu_prio_deque_pop_task_for_worker(prio, workerid);
+	chosen_task = _starpu_prio_deque_pop_task_for_worker(prio, workerid, NULL);
 	if (!chosen_task)
 		/* Tell pushers that we are waiting for tasks for us */
 		starpu_bitmap_set(data->waiters, workerid);

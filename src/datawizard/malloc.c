@@ -32,6 +32,7 @@
 #ifdef STARPU_SIMGRID
 #include <sys/mman.h>
 #include <fcntl.h>
+#include <smpi/smpi.h>
 #endif
 
 #ifndef O_BINARY
@@ -48,8 +49,11 @@ static int malloc_on_node_default_flags[STARPU_MAXNODES];
 
 /* This file is used for implementing "folded" allocation */
 #ifdef STARPU_SIMGRID
+#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 15)
+/* TODO: drop when simgrid 3.15 is reasonably largely used by people who need the feature */
 static int bogusfile = -1;
 static unsigned long _starpu_malloc_simulation_fold;
+#endif
 #endif
 
 void starpu_malloc_set_align(size_t align)
@@ -224,6 +228,10 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 #ifdef STARPU_SIMGRID
 	if (flags & STARPU_MALLOC_SIMULATION_FOLDED)
 	{
+#if SIMGRID_VERSION_MAJOR > 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR >= 15)
+		*A = SMPI_SHARED_MALLOC(dim);
+#else
+		/* TODO: drop when simgrid 3.15 is reasonably largely used by people who need the feature */
 		/* Use "folded" allocation: the same file is mapped several
 		 * times contiguously, to get a memory area one can read/write,
 		 * without consuming memory */
@@ -242,6 +250,10 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 			if (bogusfile == -1)
 			{
 				char *path = starpu_getenv("TMPDIR");
+				if (!path)
+					path = starpu_getenv("TEMP");
+				if (!path)
+					path = starpu_getenv("TMP");
 				if (!path)
 					path = "/tmp";
 				/* Create bogus file if not done already */
@@ -276,6 +288,7 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 			}
 			*A = buf;
 		}
+#endif
 	}
 	else
 #endif
@@ -316,7 +329,7 @@ end:
 #endif
 	if (ret == 0)
 	{
-		STARPU_ASSERT_MSG(*A, "Failed to allocated memory of size %ld b\n", (unsigned long)dim);
+		STARPU_ASSERT_MSG(*A, "Failed to allocated memory of size %lu b\n", (unsigned long)dim);
 	}
 	else if (flags & STARPU_MALLOC_COUNT)
 	{
@@ -442,7 +455,12 @@ int starpu_free_flags(void *A, size_t dim, int flags)
 #ifdef STARPU_SIMGRID
 	if (flags & STARPU_MALLOC_SIMULATION_FOLDED)
 	{
+#if SIMGRID_VERSION_MAJOR > 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR >= 15)
+		SMPI_SHARED_FREE(A);
+#else
+		/* TODO: drop when simgrid 3.15 is reasonably largely used by people who need the feature */
 		munmap(A, dim);
+#endif
 	}
 	else
 #endif
@@ -645,6 +663,8 @@ _starpu_free_on_node_flags(unsigned dst_node, uintptr_t addr, size_t size, int f
 			if (_starpu_simgrid_cuda_malloc_cost())
 				MSG_process_sleep(0.000750);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&cuda_alloc_mutex);
+			/* CUDA also synchronizes roughly everything on cudaFree */
+			_starpu_simgrid_sync_gpus();
 #else
 			cudaError_t err;
 			unsigned devid = _starpu_memory_node_get_devid(dst_node);
@@ -808,8 +828,10 @@ _starpu_malloc_init(unsigned dst_node)
 	disable_pinning = starpu_get_env_number("STARPU_DISABLE_PINNING");
 	malloc_on_node_default_flags[dst_node] = STARPU_MALLOC_PINNED | STARPU_MALLOC_COUNT;
 #ifdef STARPU_SIMGRID
+#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 15)
 	/* Reasonably "costless" */
 	_starpu_malloc_simulation_fold = starpu_get_env_number_default("STARPU_MALLOC_SIMULATION_FOLD", 1) << 20;
+#endif
 #endif
 }
 

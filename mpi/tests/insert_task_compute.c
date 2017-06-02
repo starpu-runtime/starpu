@@ -226,7 +226,7 @@ int main(int argc, char **argv)
 	int after_node[2][4] = {{220, 20, 11, 22}, {220, 20, 11, 22}};
 	int node, insert_task, data_array;
 
-	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED);
+	MPI_INIT_THREAD_real(&argc, &argv, MPI_THREAD_SERIALIZED);
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 
 	global_ret = 0;

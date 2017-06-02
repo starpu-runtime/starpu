@@ -3,7 +3,7 @@
  * Copyright (C) 2009-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  * Copyright (C) 2011  Télécom-SudParis
- * Copyright (C) 2011, 2014, 2016  INRIA
+ * Copyright (C) 2011, 2014, 2016-2017  INRIA
  * Copyright (C) 2016  Uppsala University
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -81,6 +81,7 @@ void starpu_task_init(struct starpu_task *task)
 	memset(task, 0, sizeof(struct starpu_task));
 
 	task->sequential_consistency = 1;
+	task->where = -1;
 
 	/* Now we can initialise fields which recquire custom value */
 #if STARPU_DEFAULT_PRIO != 0
@@ -554,6 +555,8 @@ static int _starpu_task_submit_head(struct starpu_task *task)
 
 	_starpu_task_check_deprecated_fields(task);
 	_starpu_codelet_check_deprecated_fields(task->cl);
+	if (task->where== -1 && task->cl)
+		task->where = task->cl->where;
 
 	if (task->cl)
 	{
@@ -801,6 +804,7 @@ int _starpu_task_submit_conversion_task(struct starpu_task *task,
 	struct _starpu_worker *worker;
 	worker = _starpu_get_worker_struct(workerid);
 	starpu_task_list_push_back(&worker->local_tasks, task);
+	starpu_wake_worker_locked(worker->workerid);
 
 	_starpu_profiling_set_task_push_end_time(task);
 
@@ -1224,6 +1228,11 @@ void starpu_task_set_implementation(struct starpu_task *task, unsigned impl)
 unsigned starpu_task_get_implementation(struct starpu_task *task)
 {
 	return _starpu_get_job_associated_to_task(task)->nimpl;
+}
+
+unsigned long starpu_task_get_job_id(struct starpu_task *task)
+{
+	return _starpu_get_job_associated_to_task(task)->job_id;
 }
 
 static starpu_pthread_t watchdog_thread;
