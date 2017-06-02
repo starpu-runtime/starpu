@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010, 2011, 2015-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2016, 2017  CNRS
  * Copyright (C) 2016-2017  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -33,11 +33,11 @@ static long count_file_lines(FILE *f)
 	while(!feof(f))
 	{
 		ch = fgetc(f);
-	    if(ch == '\n')
-	    {
-		  lines++;
+		if(ch == '\n')
+		{
+			lines++;
 		}
-    }
+	}
 	rewind(f);
 
 	return lines;
@@ -69,7 +69,7 @@ static void load_old_calibration(double *mx, double *my, unsigned nparameters, c
 	f = fopen(filepath, "a+");
 	STARPU_ASSERT_MSG(f, "Could not save performance model into the file %s\n", filepath);
 
-	line=fgets(buffer,sizeof(buffer),f);//skipping first line
+	fgets(buffer,sizeof(buffer),f);//skipping first line
 	while((line=fgets(buffer,sizeof(buffer),f))!=NULL)
 	{
 		record = strtok(line,",");
