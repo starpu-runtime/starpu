@@ -203,6 +203,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 	poti_DefineContainerType("Sc", "P", "Scheduler");
 	poti_DefineEventType("prog_event", "P", "program event type");
 	poti_DefineEventType("register", "P", "data registration");
+	poti_DefineEventType("unregister", "P", "data unregistration");
 
 	/* Types for the memory node */
 	poti_DefineEventType("invalidate", "Mm", "data invalidation");
@@ -342,6 +343,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 1       Sc       P       \"Scheduler State\"                        \n\
 2       prog_event   P       \"program event type\"				\n\
 2       register     P       \"data registration\"				\n\
+2       unregister     P       \"data unregistration\"				\n\
 2       user_event   P       \"user event type\"				\n\
 2       thread_event   T       \"thread event type\"				\n\
 2       user_user_event   UT       \"user event type\"				\n\
