@@ -239,11 +239,13 @@ void *starpu_unistd_global_async_read(void *base STARPU_ATTRIBUTE_UNUSED, void *
         struct iocb *iocb = &starpu_aiocb->iocb;
         starpu_aiocb->obj = obj;
         int fd = tmp->descriptor;
+	int ret;
 
         if (fd < 0)
                 fd = _starpu_unistd_reopen(obj);
 
-	io_setup(1, &starpu_aiocb->ctx);
+	ret = io_setup(1, &starpu_aiocb->ctx);
+	STARPU_ASSERT(ret == 0);
 	io_prep_pread(iocb, fd, buf, size, offset);
 	if (io_submit(starpu_aiocb->ctx, 1, &iocb) < 0)
 	{
@@ -353,11 +355,13 @@ void *starpu_unistd_global_async_write(void *base STARPU_ATTRIBUTE_UNUSED, void 
         struct iocb *iocb = &starpu_aiocb->iocb;
         starpu_aiocb->obj = obj;
         int fd = tmp->descriptor;
+	int ret;
 
         if (fd < 0)
                 fd = _starpu_unistd_reopen(obj);
 
-	io_setup(1, &starpu_aiocb->ctx);
+	ret = io_setup(1, &starpu_aiocb->ctx);
+	STARPU_ASSERT(ret == 0);
 	io_prep_pwrite(iocb, fd, buf, size, offset);
 	if (io_submit(starpu_aiocb->ctx, 1, &iocb) < 0)
         {
