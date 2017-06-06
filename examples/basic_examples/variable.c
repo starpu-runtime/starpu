@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2011, 2013, 2015-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -51,9 +51,6 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-#ifdef STARPU_QUICK_CHECK
-	niter /= 100;
-#endif
         if (argc == 2) niter = atoi(argv[1]);
         foo = 0.0f;
 
@@ -104,6 +101,7 @@ int main(int argc, char **argv)
 	starpu_data_unregister(float_array_handle);
 
 	FPRINTF(stderr, "variable -> %f\n", foo);
+	FPRINTF(stderr, "result is %scorrect\n", foo==niter?"":"IN");
 
 	starpu_shutdown();
 
