@@ -769,27 +769,38 @@ data transfers and supports data matrices which do not fit in memory (out-of-cor
 
 \section MPIMasterSlave MPI Master Slave Support
 
-StarPU includes an other way to execute the application across many nodes. The Master
-Slave support permits to use remote cores without thinking about data distribution. This
-support can be activated with the \ref enable-mpi-master-slave "--enable-mpi-master-slave". However, you should not activate
-both MPI support and MPI Master-Slave support.
+StarPU provides an other way to execute applications across many
+nodes. The Master Slave support permits to use remote cores without
+thinking about data distribution. This support can be activated with
+the configure option \ref enable-mpi-master-slave
+"--enable-mpi-master-slave". However, you should not activate both MPI
+support and MPI Master-Slave support.
 
 If a codelet contains a kernel for CPU devices, it is automatically eligible to be executed
-on a MPI Slave device. However, you can decide to execute the codelet on a MPI Slave by filling
-the \ref starpu_codelet::mpi_ms_funcs variable. The functions have to be globally-visible (i.e. not static ) for
-StarPU to be able to look them up, and <c>-rdynamic</c> must be passed to gcc (or <c>-export-dynamic</c> to ld)
-so that symbols of the main program are visible.
+on a MPI Slave device. Moreover, you can force the execution on a MPI Slave by setting
+the field \ref starpu_codelet::mpi_ms_funcs. Functions have to be
+globally-visible (i.e. not static) for StarPU to be able to look them
+up, and <c>-rdynamic</c> must be passed to gcc (or
+<c>-export-dynamic</c> to ld) so that symbols of the main program are
+visible.
 
-By default, one core is dedicated on the master to manage the entire set of slaves. If MPI
-has a good multiple threads support, you can use \ref with-mpi-master-slave-multiple-thread "--with-mpi-master-slave-multiple-thread"  to
-dedicate one core per slave.
+By default, one core is dedicated on the master node to manage the
+entire set of slaves. If the implementation of MPI you are using has a
+good multiple threads support, you can use the configure option
+\ref with-mpi-master-slave-multiple-thread "--with-mpi-master-slave-multiple-thread"
+to dedicate one core per slave.
 
-If you want to chose the number of cores on the slave device, use the \ref STARPU_NMPIMSTHREADS "STARPU_NMPIMSTHREADS=\<number\>"
-with <c>\<number\></c> is the number of cores wanted. The default value is all the slave's cores. To select
-the number of slaves nodes, change the <c>-n</c> parameter when executing the application with mpirun
-or mpiexec.
+Choosing the number of cores on each slave device is done by setting
+the environment variable \ref STARPU_NMPIMSTHREADS "STARPU_NMPIMSTHREADS=\<number\>"
+with <c>\<number\></c> being the requested number of cores. By default
+all the slave's cores are used.
 
-The node chosen by default is the with the MPI rank 0. To modify this, use the environment variable
-\ref STARPU_MPI_MASTER_NODE "STARPU_MPI_MASTER_NODE=\<number\>" with <c>\<number\></c> is the MPI rank wanted.
+Setting the number of slaves nodes is done by changing the <c>-n</c>
+parameter when executing the application with mpirun or mpiexec.
+
+The master node is by default the node with the MPI rank equal to 0.
+To select another node, use the environment variable \ref
+STARPU_MPI_MASTER_NODE "STARPU_MPI_MASTER_NODE=\<number\>" with
+<c>\<number\></c> being the requested MPI rank node.
 
 */
