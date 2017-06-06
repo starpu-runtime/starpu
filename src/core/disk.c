@@ -47,7 +47,7 @@ struct disk_register
 	int flag;
 };
 
-static void add_disk_in_list(unsigned node, struct starpu_disk_ops *func, void *base);
+static int add_disk_in_list(unsigned node, struct starpu_disk_ops *func, void *base);
 static int get_location_with_node(unsigned node);
 
 static struct disk_register **disk_register_list = NULL;
@@ -69,7 +69,15 @@ int starpu_disk_register(struct starpu_disk_ops *func, void *parameter, starpu_s
 	void *base = func->plug(parameter, size);
 
 	/* remember it */
-	add_disk_in_list(memory_node,func,base);
+	int n STARPU_ATTRIBUTE_UNUSED = add_disk_in_list(memory_node,func,base);
+
+#ifdef STARPU_SIMGRID
+	char name[16];
+	snprintf(name, sizeof(name), "DISK%d", n);
+	msg_host_t host = _starpu_simgrid_get_host_by_name(name);
+	STARPU_ASSERT(host);
+	_starpu_simgrid_memory_node_set_host(memory_node, host);
+#endif
 
 	int ret = func->bandwidth(memory_node);
 	/* have a problem with the disk */
@@ -273,8 +281,10 @@ void starpu_disk_free_request(struct _starpu_async_channel *async_channel)
 		disk_register_list[position]->functions->free_request(async_channel->event.disk_event.backend_event);
 }
 
-static void add_disk_in_list(unsigned node,  struct starpu_disk_ops *func, void *base)
+static int add_disk_in_list(unsigned node,  struct starpu_disk_ops *func, void *base)
 {
+	int n;
+
 	/* initialization */
 	if (disk_register_list == NULL)
 	{
@@ -293,7 +303,9 @@ static void add_disk_in_list(unsigned node,  struct starpu_disk_ops *func, void 
 	dr->base = base;
 	dr->flag = STARPU_DISK_ALL;
 	dr->functions = func;
-	disk_register_list[++disk_number] = dr;
+	n = ++disk_number;
+	disk_register_list[n] = dr;
+	return n;
 }
 
 static int get_location_with_node(unsigned node)
