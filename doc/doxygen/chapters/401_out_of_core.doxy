@@ -13,7 +13,7 @@ When using StarPU, one may need to store more data than what the main memory
 disk and to use it.
 
 The principle is that one first registers a disk location, seen by StarPU as
-a <c>void*</c>, which can be for instance a Unix path for the stdio or unistd case,
+a <c>void*</c>, which can be for instance a Unix path for the stdio, unistd or unistd_o_direct case,
 or a database file path for a leveldb case, etc. The disk backend opens this
 place with the plug method.
 
@@ -47,6 +47,8 @@ export STARPU_DISK_SWAP=/tmp
 export STARPU_DISK_SWAP_BACKEND=unistd
 export STARPU_DISK_SWAP_SIZE=200
 \endverbatim
+
+The backend can be set to stdio, unistd, unistd_o_direct, or leveldb.
 
 When the register function is called, StarPU will benchmark the disk. This can
 take some time.
