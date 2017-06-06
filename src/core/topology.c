@@ -2022,8 +2022,10 @@ static void _starpu_init_numa_node(struct _starpu_machine_config *config)
 		if (nb_numa_nodes != 0)
 			return;
 
+		_STARPU_DISP("No NUMA nodes found when checking CPU workers...\n");
+
 #if (defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)) && defined(STARPU_HAVE_HWLOC)
-		_STARPU_DISP("No NUMA nodes found when checking CPU workers. Take NUMA nodes attached to CUDA and OpenCL devices... \n");
+		_STARPU_DISP("Take NUMA nodes attached to CUDA and OpenCL devices...\n");
 #endif
 
 #if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_HWLOC)
@@ -2147,10 +2149,12 @@ static void _starpu_init_numa_node(struct _starpu_machine_config *config)
 	//Found NUMA nodes from CUDA nodes
 	if (nb_numa_nodes != 0)
 		return;
+
+	/* In case, we do not find any NUMA nodes when checking NUMA nodes attached to GPUs, we take all of them */
+	_STARPU_DISP("No NUMA nodes found when checking GPUs devices...\n");
 #endif
 
-	/* In case, we do not find any NUMA, we take all of them */
-	_STARPU_DISP("No NUMA nodes found when checking GPUs devices. Take all NUMA nodes available... \n");
+	_STARPU_DISP("Finally, take all NUMA nodes available... \n");
 
 	unsigned nnuma = _starpu_topology_get_nnumanodes(config);
 	if (nnuma > STARPU_MAXNUMANODES)
