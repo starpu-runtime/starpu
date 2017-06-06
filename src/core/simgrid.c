@@ -957,6 +957,9 @@ _starpu_simgrid_get_memnode_host(unsigned node)
 		case STARPU_OPENCL_RAM:
 			fmt = "OpenCL%u";
 			break;
+		case STARPU_DISK_RAM:
+			fmt = "DISK%u";
+			break;
 		default:
 			STARPU_ABORT();
 			break;
