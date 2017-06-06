@@ -48,9 +48,9 @@ static void _starpu_mpi_set_src_node_id()
                 else if (id_proc == DRIVER_MPI_MASTER_NODE_DEFAULT)
                 {
                         /* Only one node prints the error message. */
-                        _STARPU_DISP("The node you specify to be the master is "
-                                        "greater than the total number of nodes.\n"
-                                        "Taking node %d by default...\n", DRIVER_MPI_MASTER_NODE_DEFAULT);
+                        _STARPU_MSG("The node (%d) you specify to be the master is "
+				    "greater than the total number of nodes (%d). "
+				    "StarPU will use node %d.\n", node_id, nb_proc, DRIVER_MPI_MASTER_NODE_DEFAULT);
                 }
         }
 
@@ -481,7 +481,7 @@ void _starpu_mpi_common_measure_bandwidth_latency(double bandwidth_dtod[STARPU_M
         _STARPU_MALLOC(buf, SIZE_BANDWIDTH);
         memset(buf, 0, SIZE_BANDWIDTH);
 
-        unsigned sender, receiver;
+        int sender, receiver;
         for(sender = 0; sender < nb_proc; sender++)
         {
                 for(receiver = 0; receiver < nb_proc; receiver++)
