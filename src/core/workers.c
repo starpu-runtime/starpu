@@ -90,7 +90,7 @@ char ***_starpu_get_argv()
 	return my_argv;
 }
 
-int _starpu_is_initialized(void)
+int starpu_is_initialized(void)
 {
 	return initialized == INITIALIZED;
 }

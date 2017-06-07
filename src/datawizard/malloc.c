@@ -392,7 +392,7 @@ int starpu_free_flags(void *A, size_t dim, int flags)
 #else /* !STARPU_SIMGRID */
 #ifdef STARPU_USE_CUDA
 #ifndef HAVE_CUDA_MEMCPY_PEER
-			if (!_starpu_is_initialized())
+			if (!starpu_is_initialized())
 			{
 #endif
 				/* This is especially useful when starpu_free is called from
