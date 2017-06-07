@@ -34,6 +34,7 @@ AM_LDFLAGS = @STARPU_EXPORT_DYNAMIC@ $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFL
 EXTRA_DIST =					\
 	helper.h				\
 	datawizard/locality.sh			\
+	overlap/overlap.sh			\
 	datawizard/scal.h			\
 	datawizard/mpi_like.h			\
 	microbenchs/tasks_size_overhead.sh	\
@@ -147,6 +148,7 @@ noinst_PROGRAMS +=				\
 	helper/execute_on_all			\
 	microbenchs/display_structures_size	\
 	microbenchs/local_pingpong		\
+	overlap/overlap				\
 	perfmodels/value_nan
 
 if !STARPU_SIMGRID
@@ -301,7 +303,6 @@ noinst_PROGRAMS +=				\
 	openmp/taskgroup_02			\
 	openmp/array_slice_01			\
 	openmp/cuda_task_01			\
-	overlap/overlap				\
 	overlap/gpu_concurrency			\
 	parallel_tasks/explicit_combined_worker	\
 	parallel_tasks/parallel_kernels		\
@@ -357,7 +358,9 @@ else
 check_PROGRAMS	=	$(LOADER) $(noinst_PROGRAMS)
 endif
 
-TESTS += datawizard/locality.sh
+TESTS += \
+	datawizard/locality.sh \
+	overlap/overlap.sh
 
 #######################
 # Source files        #
