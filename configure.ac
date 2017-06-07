@@ -3166,6 +3166,7 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   mkdir -p examples/lu
   test -e examples/lu/lu.sh || ln -sf $ac_abs_top_srcdir/examples/lu/lu.sh examples/lu/
   test -e tools/starpu_paje_draw_histogram.R || ln -sf $ac_abs_top_srcdir/tools/starpu_paje_draw_histogram.R tools/starpu_paje_draw_histogram.R
+  test -e tools/starpu_paje_state_stats.R || ln -sf $ac_abs_top_srcdir/tools/starpu_paje_state_stats.R tools/starpu_paje_state_stats.R
 ])
 
 # Create links to ICD files in build/socl/vendors directory. SOCL will use this
