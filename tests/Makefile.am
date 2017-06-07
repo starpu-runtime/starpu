@@ -35,6 +35,7 @@ AM_LDFLAGS = @STARPU_EXPORT_DYNAMIC@ $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFL
 EXTRA_DIST =					\
 	helper.h				\
 	datawizard/locality.sh			\
+	overlap/overlap.sh			\
 	datawizard/scal.h			\
 	datawizard/mpi_like.h			\
 	microbenchs/tasks_size_overhead.sh	\
@@ -158,6 +159,7 @@ myPROGRAMS +=					\
 	helper/execute_on_all			\
 	microbenchs/display_structures_size	\
 	microbenchs/local_pingpong		\
+	overlap/overlap				\
 	sched_ctx/sched_ctx_list		\
 	sched_ctx/sched_ctx_policy_data		\
 	perfmodels/value_nan
@@ -261,6 +263,7 @@ myPROGRAMS +=				\
 	datawizard/gpu_register   		\
 	datawizard/gpu_ptr_register   		\
 	datawizard/variable_parameters		\
+	datawizard/variable_size		\
 	datawizard/wt_host			\
 	datawizard/wt_broadcast			\
 	datawizard/readonly			\
@@ -318,7 +321,6 @@ myPROGRAMS +=				\
 	openmp/taskgroup_02			\
 	openmp/array_slice_01			\
 	openmp/cuda_task_01			\
-	overlap/overlap				\
 	overlap/gpu_concurrency			\
 	parallel_tasks/explicit_combined_worker	\
 	parallel_tasks/parallel_kernels		\
@@ -389,7 +391,9 @@ if STARPU_SIMGRID
 TESTS += $(MICROBENCHS:=.sh)
 endif
 
-TESTS += datawizard/locality.sh
+TESTS += \
+	datawizard/locality.sh \
+	overlap/overlap.sh
 
 ################################
 # Simgrid Model Checking tests #

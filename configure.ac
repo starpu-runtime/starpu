@@ -3156,6 +3156,8 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   test -e tests/microbenchs/parallel_independent_homogeneous_tasks.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/parallel_independent_homogeneous_tasks.sh tests/microbenchs/
   mkdir -p tests/datawizard
   test -e tests/datawizard/locality.sh || ln -sf $ac_abs_top_srcdir/tests/datawizard/locality.sh tests/datawizard/
+  mkdir -p tests/overlap
+  test -e tests/overlap/overlap.sh || ln -sf $ac_abs_top_srcdir/tests/overlap/overlap.sh tests/overlap/
   mkdir -p tests/model-checking
   test -e tests/model-checking/prio_list.sh || ln -sf $ac_abs_top_srcdir/tests/model-checking/prio_list.sh tests/model-checking/
   test -e tests/model-checking/barrier.sh || ln -sf $ac_abs_top_srcdir/tests/model-checking/barrier.sh tests/model-checking/
