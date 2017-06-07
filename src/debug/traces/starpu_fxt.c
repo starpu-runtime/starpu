@@ -1642,29 +1642,32 @@ static void handle_end_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 	}
 	else
 	{
+		if (out_paje_file)
+		{
 #ifdef STARPU_HAVE_POTI
-		char container[STARPU_POTI_STR_LEN];
-		worker_container_alias(container, STARPU_POTI_STR_LEN, prefix, worker);
-		if (gflops_start != last_end_codelet_time)
-		{
-			if (last_end_codelet_time != 0)
+			char container[STARPU_POTI_STR_LEN];
+			worker_container_alias(container, STARPU_POTI_STR_LEN, prefix, worker);
+			if (gflops_start != last_end_codelet_time)
 			{
-				poti_SetVariable(last_end_codelet_time, container, "gf", 0.);
+				if (last_end_codelet_time != 0)
+				{
+					poti_SetVariable(last_end_codelet_time, container, "gf", 0.);
+				}
 			}
-		}
-		poti_SetVariable(gflops_start, container, "gf", gflops);
+			poti_SetVariable(gflops_start, container, "gf", gflops);
 #else
-		if (gflops_start != last_end_codelet_time)
-		{
-			if (last_end_codelet_time != 0)
+			if (gflops_start != last_end_codelet_time)
 			{
-				fprintf(out_paje_file, "13	%.9f	%sw%d	gf	%f\n",
-					last_end_codelet_time, prefix, worker, 0.);
+				if (last_end_codelet_time != 0)
+				{
+					fprintf(out_paje_file, "13	%.9f	%sw%d	gf	%f\n",
+						last_end_codelet_time, prefix, worker, 0.);
+				}
 			}
-		}
-		fprintf(out_paje_file, "13	%.9f	%sw%d	gf	%f\n",
-				gflops_start, prefix, worker, gflops);
+			fprintf(out_paje_file, "13	%.9f	%sw%d	gf	%f\n",
+					gflops_start, prefix, worker, gflops);
 #endif
+		}
 
 		comp = _starpu_computation_new();
 		comp->comp_start = end_codelet_time;
