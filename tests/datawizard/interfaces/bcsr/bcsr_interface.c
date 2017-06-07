@@ -42,6 +42,8 @@
 #define NNZ_BLOCKS     3   /* out of 4 */
 #define NZVAL_SIZE     (R*C*NNZ_BLOCKS)
 
+#define NROWS          2
+
 #ifdef STARPU_USE_CPU
 void test_bcsr_cpu_func(void *buffers[], void *args);
 #endif /* !STARPU_USE_CPU */
@@ -64,8 +66,8 @@ static int nzval2[NZVAL_SIZE];
 static uint32_t colind[NNZ_BLOCKS] = { 0, 0, 1 };
 static uint32_t colind2[NNZ_BLOCKS];
 
-static uint32_t rowptr[2] = { 0, 1 };
-static uint32_t rowptr2[2];
+static uint32_t rowptr[NROWS+1] = { 0, 1, NNZ_BLOCKS };
+static uint32_t rowptr2[NROWS+1] = { 0, 0, NNZ_BLOCKS };
 
 static starpu_data_handle_t bcsr_handle;
 static starpu_data_handle_t bcsr2_handle;
@@ -97,7 +99,7 @@ register_data(void)
 	starpu_bcsr_data_register(&bcsr_handle,
 				  STARPU_MAIN_RAM,
 				  NNZ_BLOCKS,
-				  2, /* nrow */
+				  NROWS,
 				  (uintptr_t) nzval,
 				  colind,
 				  rowptr,
@@ -109,7 +111,7 @@ register_data(void)
 	starpu_bcsr_data_register(&bcsr2_handle,
 				  STARPU_MAIN_RAM,
 				  NNZ_BLOCKS,
-				  2, /* nrow */
+				  NROWS,
 				  (uintptr_t) nzval2,
 				  colind2,
 				  rowptr2,
