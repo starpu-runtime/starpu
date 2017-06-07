@@ -251,7 +251,8 @@ STARPU_TOOLS	+=			\
 endif
 
 STARPU_TOOLS	+=			\
-	starpu_machine_display
+	starpu_machine_display		\
+	starpu_sched_display
 
 if !STARPU_HAVE_WINDOWS
 STARPU_TOOLS	+=			\

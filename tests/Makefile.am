@@ -263,6 +263,7 @@ myPROGRAMS +=				\
 	datawizard/gpu_register   		\
 	datawizard/gpu_ptr_register   		\
 	datawizard/variable_parameters		\
+	datawizard/variable_size		\
 	datawizard/wt_host			\
 	datawizard/wt_broadcast			\
 	datawizard/readonly			\

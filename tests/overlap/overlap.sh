@@ -21,6 +21,33 @@
 set -e
 
 PREFIX=$(dirname $0)
-test -x $PREFIX/../../tools/starpu_perfmodel_plot || exit 77
 STARPU_SCHED=dmdas STARPU_FXT_PREFIX=$PREFIX/ $PREFIX/overlap
-$PREFIX/../../tools/starpu_perfmodel_plot -s overlap_sleep_1024_24 -i $PREFIX/prof_file_${USER}_0
+[ ! -x $PREFIX/../../tools/starpu_perfmodel_display ] || $PREFIX/../../tools/starpu_perfmodel_display -s overlap_sleep_1024_24
+[ ! -x $PREFIX/../../tools/starpu_perfmodel_plot -o ! -f $PREFIX/prof_file_${USER}_0 ] || $PREFIX/../../tools/starpu_perfmodel_plot -s overlap_sleep_1024_24 -i $PREFIX/prof_file_${USER}_0
+if [ -x $PREFIX/../../tools/starpu_fxt_tool ];
+then
+	# Generate paje, dag, data, etc.
+	$PREFIX/../../tools/starpu_fxt_tool -i $PREFIX/prof_file_${USER}_0
+
+	$PREFIX/../../tools/starpu_paje_sort paje.trace
+
+	$PREFIX/../../tools/starpu_codelet_histo_profile distrib.data
+	[ -f distrib.data.overlap_sleep_1024_24.0.a3d3725e.1024.pdf ]
+
+	$PREFIX/../../tools/starpu_codelet_profile distrib.data overlap_sleep_1024_24
+	[ -f distrib.data.gp -a -f distrib.data.0 ]
+
+	$PREFIX/../../tools/starpu_fxt_data_trace $PREFIX/prof_file_${USER}_0 overlap_sleep_1024_24
+	[ -f data_trace.gp ]
+
+	$PREFIX/../../tools/starpu_fxt_stats -i $PREFIX/prof_file_${USER}_0
+	$PREFIX/../../tools/starpu_tasks_rec_complete tasks.rec tasks2.rec
+	python tools/starpu_trace_state_stats.py trace.rec
+	$PREFIX/../../tools/starpu_workers_activity activity.data
+	[ -f activity.eps ]
+
+	# needs some R packages
+	$PREFIX/../../tools/starpu_paje_draw_histogram paje.trace || true
+	$PREFIX/../../tools/starpu_paje_state_stats paje.trace || true
+	$PREFIX/../../tools/starpu_paje_summary paje.trace || true
+fi
