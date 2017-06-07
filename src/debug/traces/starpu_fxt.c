@@ -792,25 +792,31 @@ static void user_thread_set_state(double time, const char *prefix, long unsigned
 static void user_thread_push_state(double time, const char *prefix, long unsigned int threadid, const char *name)
 {
 	register_user_thread(time, threadid, prefix);
+	if (out_paje_file)
+	{
 #ifdef STARPU_HAVE_POTI
-	char container[STARPU_POTI_STR_LEN];
-	thread_container_alias(container, STARPU_POTI_STR_LEN, prefix, threadid);
-	poti_PushState(time, container, "US", name);
+		char container[STARPU_POTI_STR_LEN];
+		thread_container_alias(container, STARPU_POTI_STR_LEN, prefix, threadid);
+		poti_PushState(time, container, "US", name);
 #else
-	fprintf(out_paje_file, "11	%.9f	%st%lu	US	%s\n", time, prefix, threadid, name);
+		fprintf(out_paje_file, "11	%.9f	%st%lu	US	%s\n", time, prefix, threadid, name);
 #endif
+	}
 }
 
 static void user_thread_pop_state(double time, const char *prefix, long unsigned int threadid)
 {
 	register_user_thread(time, threadid, prefix);
+	if (out_paje_file)
+	{
 #ifdef STARPU_HAVE_POTI
-	char container[STARPU_POTI_STR_LEN];
-	thread_container_alias(container, STARPU_POTI_STR_LEN, prefix, threadid);
-	poti_PopState(time, container, "US");
+		char container[STARPU_POTI_STR_LEN];
+		thread_container_alias(container, STARPU_POTI_STR_LEN, prefix, threadid);
+		poti_PopState(time, container, "US");
 #else
-	fprintf(out_paje_file, "12	%.9f	%st%lu	US\n", time, prefix, threadid);
+		fprintf(out_paje_file, "12	%.9f	%st%lu	US\n", time, prefix, threadid);
 #endif
+	}
 }
 
 static void thread_push_state(double time, const char *prefix, long unsigned int threadid, const char *name)
