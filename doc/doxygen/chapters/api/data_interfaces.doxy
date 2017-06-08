@@ -400,17 +400,76 @@ Register into the \p handle that to store data on node \p node it should use the
 buffer located at \p ptr, or device handle \p dev_handle and offset \p offset
 (for OpenCL, notably), with \p ldy elements between rows and \p ldz elements between z planes.
 
-\fn void starpu_bcsr_data_register(starpu_data_handle_t *handle, int home_node, uint32_t nnz, uint32_t nrow, uintptr_t nzval, uint32_t *colind, uint32_t *rowptr, uint32_t firstentry, uint32_t r, uint32_t c, size_t elemsize)
+\fn void starpu_bcsr_data_register(starpu_data_handle_t *handle, int home_node, uint32_t nnz, uint32_t nrows, uintptr_t nzval, uint32_t *colind, uint32_t *rowptr, uint32_t firstentry, uint32_t r, uint32_t c, size_t elemsize)
 \ingroup API_Data_Interfaces
 This variant of starpu_data_register() uses the BCSR (Blocked
 Compressed Sparse Row Representation) sparse matrix interface.
 Register the sparse matrix made of \p nnz non-zero blocks of elements of
 size \p elemsize stored in \p nzval and initializes \p handle to represent it.
-Blocks have size \p r * \p c. \p nrow is the number of rows (in terms of
-blocks), \p colind[i] is the block-column index for block i in \p nzval,
-\p rowptr[i] is the block-index (in \p nzval) of the first block of row i.
+Blocks have size \p r * \p c. \p nrows is the number of rows (in terms of
+blocks), \p colind is an array of nnz elements, colind[i] is the block-column index for block i in \p nzval,
+\p rowptr is an array of nrows+1 elements, rowptr[i] is the block-index (in \p nzval) of the first block of row i. By convention, rowptr[nrows] is the number of blocks, this allows an easier access of the matrix's elements for the kernels.
 \p firstentry is the index of the first entry of the given arrays
 (usually 0 or 1).
+
+Here an example of how to use the function.
+\code{.c}
+/*
+ * We use the following matrix:
+ *
+ *   +----------------+
+ *   |  0   1   0   0 |
+ *   |  2   3   0   0 |
+ *   |  4   5   8   9 |
+ *   |  6   7  10  11 |
+ *   +----------------+
+ *
+ * nzval  = [0, 1, 2, 3] ++ [4, 5, 6, 7] ++ [8, 9, 10, 11]
+ * colind = [0, 0, 1]
+ * rowptr = [0, 1, 3]
+ * r = c = 2
+ */
+
+/* Size of the blocks */
+int R = 2;
+int C = 2;
+
+int NROWS = 2;
+int NNZ_BLOCKS = 3;    /* out of 4 */
+int NZVAL_SIZE = (R*C*NNZ_BLOCKS);
+
+int nzval[NZVAL_SIZE]  =
+{
+	0, 1, 2, 3,    /* First block  */
+	4, 5, 6, 7,    /* Second block */
+	8, 9, 10, 11   /* Third block  */
+};
+uint32_t colind[NNZ_BLOCKS] =
+{
+	0, /* block-column index for first block in nzval */
+	0, /* block-column index for second block in nzval */
+	1  /* block-column index for third block in nzval */
+};
+uint32_t rowptr[NROWS+1] =
+{
+	0, / * block-index in nzval of the first block of the first row. */
+	1, / * block-index in nzval of the first block of the second row. */
+	NNZ_BLOCKS /* number of blocks, to allow an easier element's access for the kernels */
+};
+
+starpu_data_handle_t bcsr_handle;
+starpu_bcsr_data_register(&bcsr_handle,
+			  STARPU_MAIN_RAM,
+			  NNZ_BLOCKS,
+			  NROWS,
+			  (uintptr_t) nzval,
+			  colind,
+			  rowptr,
+			  0, /* firstentry */
+			  R,
+			  C,
+			  sizeof(nzval[0]));
+\endcode
 
 \fn void starpu_csr_data_register(starpu_data_handle_t *handle, int home_node, uint32_t nnz, uint32_t nrow, uintptr_t nzval, uint32_t *colind, uint32_t *rowptr, uint32_t firstentry, size_t elemsize)
 \ingroup API_Data_Interfaces
@@ -793,16 +852,16 @@ row representation)
 \var uintptr_t starpu_bcsr_interface::nzval
     non-zero values
 \var uint32_t *starpu_bcsr_interface::colind
-    position of non-zero entried on the row
+    array of nnz elements, colind[i] is the block-column index for block i in nzval
 \var uint32_t *starpu_bcsr_interface::rowptr
-    index (in nzval) of the first entry of the row
+    array of nrows+1 elements, rowptr[i] is the block-index (in nzval) of the first block of row i. By convention, rowptr[nrows] is the number of blocks, this allows an easier access of the matrix's elements for the kernels.
 \var starpu_bcsr_interface::firstentry
     k for k-based indexing (0 or 1 usually). Also useful when partitionning the matrix.
 \var uint32_t starpu_bcsr_interface::r
-    size of the blocks
+    height of the blocks
 \var uint32_t starpu_bcsr_interface::c
-    size of the blocks
-\var size_t starpu_bcsr_interface::elemsize;
+    width of the blocks
+\var size_t starpu_bcsr_interface::elemsize
     size of the elements of the matrix
 
 \fn uint32_t starpu_bcsr_get_nnz(starpu_data_handle_t handle)
