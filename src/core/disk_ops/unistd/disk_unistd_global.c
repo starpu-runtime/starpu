@@ -61,6 +61,7 @@ struct starpu_unistd_aiocb
 	struct iocb iocb;
 	io_context_t ctx;
 	struct starpu_unistd_global_obj *obj;
+	size_t len;
 };
 #elif defined(HAVE_AIO_H)
 struct starpu_unistd_aiocb
@@ -246,6 +247,7 @@ void *starpu_unistd_global_async_read(void *base STARPU_ATTRIBUTE_UNUSED, void *
 
 	ret = io_setup(1, &starpu_aiocb->ctx);
 	STARPU_ASSERT(ret == 0);
+	starpu_aiocb->len = size;
 	io_prep_pread(iocb, fd, buf, size, offset);
 	if (io_submit(starpu_aiocb->ctx, 1, &iocb) < 0)
 	{
@@ -362,6 +364,7 @@ void *starpu_unistd_global_async_write(void *base STARPU_ATTRIBUTE_UNUSED, void 
 
 	ret = io_setup(1, &starpu_aiocb->ctx);
 	STARPU_ASSERT(ret == 0);
+	starpu_aiocb->len = size;
 	io_prep_pwrite(iocb, fd, buf, size, offset);
 	if (io_submit(starpu_aiocb->ctx, 1, &iocb) < 0)
         {
@@ -541,7 +544,7 @@ void starpu_unistd_global_wait_request(void *async_channel)
 	struct io_event event;
 
         int values = -1;
-        int ret, myerrno = EAGAIN;
+        int myerrno = EAGAIN;
         while(values <= 0 && (myerrno == EAGAIN || myerrno == EINTR))
         {
                 /* Wait the answer of the request timeout IS NULL */
@@ -550,8 +553,8 @@ void starpu_unistd_global_wait_request(void *async_channel)
 			myerrno = -values;
         }
 	STARPU_ASSERT(&starpu_aiocb->iocb == event.obj);
-	ret = event.res > 0;
-        STARPU_ASSERT_MSG(!ret, "aio_error returned %d", ret);
+        STARPU_ASSERT_MSG(!myerrno, "aio_error returned %d", myerrno);
+	STARPU_ASSERT(event.res == starpu_aiocb->len);
 }
 
 int starpu_unistd_global_test_request(void *async_channel)
@@ -569,6 +572,7 @@ int starpu_unistd_global_test_request(void *async_channel)
         if (ret == 1)
 	{
 		STARPU_ASSERT(&starpu_aiocb->iocb == event.obj);
+		STARPU_ASSERT(event.res == starpu_aiocb->len);
                 /* request is finished */
                 return 1;
 	}
