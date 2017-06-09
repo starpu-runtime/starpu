@@ -182,9 +182,17 @@ void _starpu_mpi_datatype_allocate(starpu_data_handle_t data_handle, struct _sta
 	if (id < STARPU_MAX_INTERFACE_ID)
 	{
 		starpu_mpi_datatype_allocate_func_t func = handle_to_datatype_funcs[id];
-		STARPU_ASSERT_MSG(func, "Handle To Datatype Function not defined for StarPU data interface %d", id);
-		func(data_handle, &req->datatype);
-		req->registered_datatype = 1;
+		if (func)
+		{
+			func(data_handle, &req->datatype);
+			req->registered_datatype = 1;
+		}
+		else
+		{
+			/* The datatype is predefined by StarPU but it will be send as a memory area */
+			req->datatype = MPI_BYTE;
+			req->registered_datatype = 0;
+		}
 	}
 	else
 	{
@@ -270,8 +278,8 @@ void _starpu_mpi_datatype_free(starpu_data_handle_t data_handle, MPI_Datatype *d
 	if (id < STARPU_MAX_INTERFACE_ID)
 	{
 		starpu_mpi_datatype_free_func_t func = handle_free_datatype_funcs[id];
-		STARPU_ASSERT_MSG(func, "Handle free datatype function not defined for StarPU data interface %d", id);
-		func(datatype);
+		if (func)
+			func(datatype);
 	}
 	else
 	{
