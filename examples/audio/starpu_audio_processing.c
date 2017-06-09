@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2012, 2014-2015  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012, 2013, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -238,7 +238,7 @@ static void band_filter_kernel_cpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *
 		plans[workerid].Acopy = malloc(nsamples*sizeof(float));
 
 		/* create plans, only "fftwf_execute" is thread safe in FFTW ... */
-		starpu_pthread_mutex_lock(&fftw_mutex);
+		STARPU_PTHREAD_MUTEX_LOCK(&fftw_mutex);
 		plans[workerid].plan_cpu = fftwf_plan_dft_r2c_1d(nsamples,
 					plans[workerid].Acopy,
 					plans[workerid].localout_cpu,
@@ -247,7 +247,7 @@ static void band_filter_kernel_cpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *
 					plans[workerid].localout_cpu,
 					plans[workerid].Acopy,
 					FFTW_ESTIMATE);
-		starpu_pthread_mutex_unlock(&fftw_mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&fftw_mutex);
 
 		plans[workerid].is_initialized = 1;
 	}

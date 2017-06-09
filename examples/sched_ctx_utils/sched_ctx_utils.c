@@ -100,14 +100,14 @@ void* start_bench(void *val)
 
 	if(p->ctx != 0)
 	{
-		starpu_pthread_mutex_lock(&mut);
+		STARPU_PTHREAD_MUTEX_LOCK(&mut);
 		if(first)
 		{
 			starpu_sched_ctx_delete(p->ctx);
 		}
 
 		first = 0;
-		starpu_pthread_mutex_unlock(&mut);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&mut);
 	}
 
 	rv[p->id].flops /= NSAMPLES;
