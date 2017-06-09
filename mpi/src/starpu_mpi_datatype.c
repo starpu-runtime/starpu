@@ -148,8 +148,8 @@ static starpu_mpi_datatype_allocate_func_t handle_to_datatype_funcs[STARPU_MAX_I
 	[STARPU_MATRIX_INTERFACE_ID]	= handle_to_datatype_matrix,
 	[STARPU_BLOCK_INTERFACE_ID]	= handle_to_datatype_block,
 	[STARPU_VECTOR_INTERFACE_ID]	= handle_to_datatype_vector,
-	[STARPU_CSR_INTERFACE_ID]	= NULL,
-	[STARPU_BCSR_INTERFACE_ID]	= NULL,
+	[STARPU_CSR_INTERFACE_ID]	= NULL, /* Sent through pack/unpack operations */
+	[STARPU_BCSR_INTERFACE_ID]	= NULL, /* Sent through pack/unpack operations */
 	[STARPU_VARIABLE_INTERFACE_ID]	= handle_to_datatype_variable,
 	[STARPU_VOID_INTERFACE_ID]	= handle_to_datatype_void,
 	[STARPU_MULTIFORMAT_INTERFACE_ID] = NULL,
@@ -169,7 +169,7 @@ void _starpu_mpi_datatype_allocate(starpu_data_handle_t data_handle, struct _sta
 		}
 		else
 		{
-			/* The datatype is predefined by StarPU but it will be send as a memory area */
+			/* The datatype is predefined by StarPU but it will be sent as a memory area */
 			req->datatype = MPI_BYTE;
 			req->registered_datatype = 0;
 		}
@@ -244,8 +244,8 @@ static starpu_mpi_datatype_free_func_t handle_free_datatype_funcs[STARPU_MAX_INT
 	[STARPU_MATRIX_INTERFACE_ID]	= _starpu_mpi_handle_free_simple_datatype,
 	[STARPU_BLOCK_INTERFACE_ID]	= _starpu_mpi_handle_free_complex_datatype,
 	[STARPU_VECTOR_INTERFACE_ID]	= _starpu_mpi_handle_free_simple_datatype,
-	[STARPU_CSR_INTERFACE_ID]	= NULL,
-	[STARPU_BCSR_INTERFACE_ID]	= NULL,
+	[STARPU_CSR_INTERFACE_ID]	= NULL,  /* Sent through pack/unpack operations */
+	[STARPU_BCSR_INTERFACE_ID]	= NULL,  /* Sent through pack/unpack operations */
 	[STARPU_VARIABLE_INTERFACE_ID]	= _starpu_mpi_handle_free_simple_datatype,
 	[STARPU_VOID_INTERFACE_ID]      = _starpu_mpi_handle_free_simple_datatype,
 	[STARPU_MULTIFORMAT_INTERFACE_ID] = NULL,
