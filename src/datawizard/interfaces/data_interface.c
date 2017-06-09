@@ -1045,13 +1045,13 @@ int starpu_data_interface_get_next_id(void)
 
 int starpu_data_pack(starpu_data_handle_t handle, void **ptr, starpu_ssize_t *count)
 {
-	STARPU_ASSERT(handle->ops->pack_data);
+	STARPU_ASSERT_MSG(handle->ops->pack_data, "The datatype interface %s (%d) does not have a pack operation", handle->ops->name, handle->ops->interfaceid);
 	return handle->ops->pack_data(handle, _starpu_memory_node_get_local_key(), ptr, count);
 }
 
 int starpu_data_unpack(starpu_data_handle_t handle, void *ptr, size_t count)
 {
-	STARPU_ASSERT(handle->ops->unpack_data);
+	STARPU_ASSERT_MSG(handle->ops->unpack_data, "The datatype interface %s (%d) does not have an unpack operation", handle->ops->name, handle->ops->interfaceid);
 	int ret;
 	ret = handle->ops->unpack_data(handle, _starpu_memory_node_get_local_key(), ptr, count);
 	starpu_free_flags(ptr, count, 0);
