@@ -462,7 +462,8 @@ void _starpu_mpi_common_wait_event(struct _starpu_async_channel * event)
 
 void _starpu_mpi_common_barrier(void)
 {
-        MPI_Barrier(MPI_COMM_WORLD);
+        int ret = MPI_Barrier(MPI_COMM_WORLD);
+	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Barrier failed");
 }
 
 /* Compute bandwidth and latency between source and sink nodes
@@ -490,7 +491,8 @@ void _starpu_mpi_common_measure_bandwidth_latency(double bandwidth_dtod[STARPU_M
                         if(sender == receiver)
                                 continue;
 
-                        MPI_Barrier(MPI_COMM_WORLD);
+                        ret = MPI_Barrier(MPI_COMM_WORLD);
+			STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Barrier failed");
 
                         if(id_proc == sender)
                         {
