@@ -62,7 +62,8 @@ struct starpu_data_interface_ops starpu_interface_variable_ops =
 	.display = display_variable_interface,
 	.pack_data = pack_variable_handle,
 	.unpack_data = unpack_variable_handle,
-	.describe = describe
+	.describe = describe,
+	.name = "STARPU_VARIABLE_INTERFACE"
 };
 
 static void *variable_handle_to_pointer(starpu_data_handle_t handle, unsigned node)

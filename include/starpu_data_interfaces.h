@@ -137,6 +137,8 @@ struct starpu_data_interface_ops
 
 	int (*pack_data) (starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count);
 	int (*unpack_data) (starpu_data_handle_t handle, unsigned node, void *ptr, size_t count);
+
+	char *name;
 };
 
 int starpu_data_interface_get_next_id(void);

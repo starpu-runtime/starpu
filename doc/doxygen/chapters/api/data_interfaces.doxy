@@ -44,6 +44,9 @@ Per-interface data transfer methods.
 \var enum starpu_data_interface_id starpu_data_interface_ops::interfaceid
     An identifier that is unique to each interface.
 
+\var enum starpu_data_interface_id starpu_data_interface_ops::name
+    Name of the interface
+
 \var size_t starpu_data_interface_ops::interface_size
     The size of the interface data descriptor.
 

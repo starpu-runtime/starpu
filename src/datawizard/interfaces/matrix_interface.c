@@ -110,7 +110,8 @@ struct starpu_data_interface_ops starpu_interface_matrix_ops =
 	.display = display_matrix_interface,
 	.pack_data = pack_matrix_handle,
 	.unpack_data = unpack_matrix_handle,
-	.describe = describe
+	.describe = describe,
+	.name = "STARPU_MATRIX_INTERFACE"
 };
 
 static void register_matrix_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface)

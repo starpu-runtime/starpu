@@ -63,7 +63,8 @@ struct starpu_data_interface_ops starpu_interface_vector_ops =
 	.display = display_vector_interface,
 	.pack_data = pack_vector_handle,
 	.unpack_data = unpack_vector_handle,
-	.describe = describe
+	.describe = describe,
+	.name = "STARPU_VECTOR_INTERFACE"
 };
 
 static void *vector_handle_to_pointer(starpu_data_handle_t handle, unsigned node)

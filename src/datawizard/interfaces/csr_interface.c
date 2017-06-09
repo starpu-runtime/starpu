@@ -57,7 +57,8 @@ struct starpu_data_interface_ops starpu_interface_csr_ops =
 	.interface_size = sizeof(struct starpu_csr_interface),
 	.footprint = footprint_csr_interface_crc32,
 	.compare = csr_compare,
-	.describe = describe
+	.describe = describe,
+	.name = "STARPU_CSR_INTERFACE"
 };
 
 static void register_csr_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface)
