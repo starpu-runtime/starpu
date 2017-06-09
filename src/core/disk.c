@@ -394,6 +394,16 @@ void _starpu_swap_init(void)
 		return;
 #endif
 	}
+        else if (!strcmp(backend, "hdf5"))
+        {
+#ifdef STARPU_HAVE_HDF5
+                _starpu_mkpath(path, S_IRWXU);
+                ops = &starpu_disk_hdf5_ops;
+#else
+		_STARPU_DISP("Warning: hdf5 support is not compiled in, could not enable disk swap");
+		return;
+#endif
+        }
 	else
 	{
 		_STARPU_DISP("Warning: unknown disk swap backend %s, could not enable disk swap", backend);

@@ -57,6 +57,7 @@ struct starpu_disk_ops
 
 /* Posix functions to use disk memory */
 extern struct starpu_disk_ops starpu_disk_stdio_ops;
+extern struct starpu_disk_ops starpu_disk_hdf5_ops;
 extern struct starpu_disk_ops starpu_disk_unistd_ops;
 extern struct starpu_disk_ops starpu_disk_unistd_o_direct_ops;
 extern struct starpu_disk_ops starpu_disk_leveldb_ops;

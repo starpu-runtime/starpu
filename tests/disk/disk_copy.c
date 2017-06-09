@@ -177,6 +177,9 @@ int main(void)
 #ifdef STARPU_LINUX_SYS
 	ret = merge_result(ret, dotest(&starpu_disk_unistd_o_direct_ops, s));
 #endif
+#ifdef STARPU_HAVE_HDF5
+	ret = merge_result(ret, dotest(&starpu_disk_hdf5_ops, s));
+#endif
 
 	ret2 = rmdir(s);
 	if (ret2 < 0)
