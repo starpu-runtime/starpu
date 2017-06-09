@@ -1942,15 +1942,19 @@ if test x$use_fxt = xyes; then
 	##########################################
 	# Poti is a library to generate paje trace files
 	##########################################
-	PKG_CHECK_MODULES([POTI], [poti], [
-		AC_DEFINE(STARPU_HAVE_POTI, [1], [Define to 1 if you have libpoti])
+	PKG_CHECK_MODULES([POTI], [poti], [have_valid_poti=yes], [have_valid_poti=no])
+	AC_ARG_ENABLE(poti, [AS_HELP_STRING([--enable-poti],
+				[Enable the use of the POTI library to generate Paje traces])],
+				enable_poti=$enableval, enable_poti=no)
+	if test x$enable_poti = xyes -a x$have_valid_poti = xyes ; then
+		AC_DEFINE(STARPU_HAVE_POTI, [1], [Define to 1 if you have libpoti and it is meant to be used])
 		save_LIBS="$LIBS"
 		LIBS="$LIBS $POTI_LIBS"
 		AC_CHECK_FUNCS([poti_init_custom])
 		LIBS="$save_LIBS"
-	], [:])
-	FXT_CFLAGS="$FXT_CFLAGS $POTI_CFLAGS"
-	FXT_LIBS="$FXT_LIBS $POTI_LIBS"
+		FXT_CFLAGS="$FXT_CFLAGS $POTI_CFLAGS"
+		FXT_LIBS="$FXT_LIBS $POTI_LIBS"
+	fi
 fi
 
 AC_MSG_CHECKING(whether additional locking systems FxT traces should be enabled)
@@ -2077,13 +2081,13 @@ if test x$maxnodes = x0 ; then
 		# we add nodes to use 3 memory disks
 		nodes=4
 		if test x$enable_cuda = xyes ; then
-			# we could have used nmaxcudadev + 1, but this would certainly give an
-			# odd number.
+			# we could have used nmaxcudadev + 1, but this would certainly give an
+			# odd number.
 			nodes=`expr $nodes + $nmaxcudadev`
 		fi
 		if test x$enable_opencl = xyes ; then
-			# we could have used nmaxcudadev + 1, but this would certainly give an
-			# odd number.
+			# we could have used nmaxcudadev + 1, but this would certainly give an
+			# odd number.
 			nodes=`expr $nodes + $nmaxopencldev`
 		fi
 		if test x$enable_mic = xyes ; then
