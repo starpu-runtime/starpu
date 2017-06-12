@@ -12,10 +12,24 @@
 The filter structure describes a data partitioning operation, to be
 given to the starpu_data_partition() function.
 \ingroup API_Data_Partition
-\var void (*starpu_data_filter::filter_func)(void *father_interface, void *child_interface, struct starpu_data_filter *, unsigned id, unsigned nparts)
+\var void (*starpu_data_filter::filter_func)(void *father_interface, void *child_interface, struct starpu_data_filter *filter, unsigned i, unsigned nparts)
     Fill the \p child_interface structure with interface information
-    for the \p id -th child of the parent \p father_interface (among
-    \p nparts).
+    for the \p i -th child of the parent \p father_interface (among
+    \p nparts). The \p filter structure is provided, allowing to inspect the
+    starpu_data_filter::filter_arg and starpu_data_filter::filter_arg_ptr
+    parameters.
+
+    The details of what needs to be filled in \p child_interface vary according
+    to the data interface, but generally speaking:
+    <ul>
+    <li> <c>id</c> is usually just copied over from the father, when the sub data has the same structure as the father, e.g. a subvector is a vector, a submatrix is a matrix, etc. This is however not the case for instance when dividing a BCSR matrix into its dense blocks, which then are matrices. </li>
+    <li> <c>nx</c>, <c>ny</c> and alike are usually divided by the number of subdata, depending how the subdivision is done (e.g. nx division vs ny division for vertical matrix division vs horizontal matrix division). </li>
+    <li> <c>ld</c> for matrix interfaces are usually just copied over: the leading dimension (ld) usually does not change. </li>
+    <li> <c>elemsize</c> is usually just copied over. </li>
+    <li> <c>ptr</c>, the pointer to the data, has to be computed according to \p i and the father's <c>ptr</c>, so as to point to the start of the sub data. This should however be done only if the father has <c>ptr</c> different from NULL: in the OpenCL case notably, the <c>dev_handle</c> and <c>offset</c> fields are used instead. </li>
+    <li> <c>dev_handle</c> should be just copied over from the parent. </li>
+    <li> <c>offset</c> has to be computed according to \p i and the father's <c>offset</c>, so as to provide the offset of the start of the sub data. This is notably used for the OpenCL case.
+    </ul>
 \var unsigned starpu_data_filter::nchildren
     Number of parts to partition the data into.
 \var unsigned (*starpu_data_filter::get_nchildren)(struct starpu_data_filter *, starpu_data_handle_t initial_handle)
@@ -27,9 +41,9 @@ given to the starpu_data_partition() function.
     this function returns which interface is used by child number \p
     id.
 \var unsigned starpu_data_filter::filter_arg
-    Allow to define an additional parameter for the filter function.
+    Additional parameter for the filter function
 \var void *starpu_data_filter::filter_arg_ptr
-    Allow to define an additional pointer parameter for the filter
+    Additional pointer parameter for the filter
     function, such as the sizes of the different parts.
 
 @name Basic API

@@ -14,14 +14,23 @@ Per-interface data transfer methods.
 \var void (*starpu_data_interface_ops::register_data_handle)(starpu_data_handle_t handle, unsigned home_node, void *data_interface)
     Register an existing interface into a data handle.
 
+    This iterates over all memory nodes to initialize all fields of the data
+    interface on each of them. Since data is not allocated yet except on the
+    home node, pointers should be left as NULL except on the \p home_node, for
+    which the pointers should be copied from the given \p data_interface, which
+    was filled with the application's pointers.
+
 \var starpu_ssize_t (*starpu_data_interface_ops::allocate_data_on_node)(void *data_interface, unsigned node)
-    Allocate data for the interface on a given node.
+    Allocate data for the interface on a given node. This should use
+    starpu_malloc_on_node to perform the allocation(s), and fill the pointers
+    in the data interface. It should return the size of the allocated memory, or
+    -ENOMEM if memory could not be allocated.
 
 \var void (*starpu_data_interface_ops::free_data_on_node)(void *data_interface, unsigned node)
     Free data of the interface on a given node.
 
 \var const struct starpu_data_copy_methods *starpu_data_interface_ops::copy_methods
-    ram/cuda/opencl synchronous and asynchronous transfer methods.
+    This provides a series of methods for performing ram/cuda/opencl synchronous and asynchronous transfers.
 
 \var void *(*starpu_data_interface_ops::handle_to_pointer)(starpu_data_handle_t handle, unsigned node)
     Return the current pointer (if any) for the handle on the given node.
@@ -30,21 +39,23 @@ Per-interface data transfer methods.
     Return an estimation of the size of data, for performance models.
 
 \var uint32_t (*starpu_data_interface_ops::footprint)(starpu_data_handle_t handle)
-    Return a 32bit footprint which characterizes the data size.
+    Return a 32bit footprint which characterizes the data size and layout (nx, ny, ld, elemsize, etc.)
 
 \var int (*starpu_data_interface_ops::compare)(void *data_interface_a, void *data_interface_b)
-    Compare the data size of two interfaces.
+    Compare the data size and layout of two interfaces (nx, ny, ld, elemsize,
+    etc.). It should return 1 if the two interfaces size and layout match, and 0
+    otherwise.
 
 \var void (*starpu_data_interface_ops::display)(starpu_data_handle_t handle, FILE *f)
     Dump the sizes of a handle to a file.
 
 \var starpu_ssize_t (*starpu_data_interface_ops::describe)(void *data_interface, char *buf, size_t size)
-    Describe the data into a string.
+    Describe the data into a string in a brief way, such as one letter to describe the type of data, and the data dimensions.
 
 \var enum starpu_data_interface_id starpu_data_interface_ops::interfaceid
     An identifier that is unique to each interface.
 
-\var enum starpu_data_interface_id starpu_data_interface_ops::name
+\var char *starpu_data_interface_ops::name
     Name of the interface
 
 \var size_t starpu_data_interface_ops::interface_size

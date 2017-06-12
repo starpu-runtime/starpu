@@ -245,6 +245,8 @@ back to its home node, and evict it from GPUs when room is needed.
 An existing piece of data can be partitioned in sub parts to be used by different tasks, for instance:
 
 \code{.c}
+#define NX 1048576
+#define PARTS 16
 int vector[NX];
 starpu_data_handle_t handle;
 
@@ -288,7 +290,7 @@ Partitioning can be applied several times, see
 Wherever the whole piece of data is already available, the partitioning will
 be done in-place, i.e. without allocating new buffers but just using pointers
 inside the existing copy. This is particularly important to be aware of when
-using OpenCL, where the kernel parameters are not pointers, but handles. The
+using OpenCL, where the kernel parameters are not pointers, but cl_mem handles. The
 kernel thus needs to be also passed the offset within the OpenCL buffer:
 
 \code{.c}
@@ -316,7 +318,10 @@ __kernel void opencl_kernel(__global int *vector, unsigned offset)
 
 StarPU provides various interfaces and filters for matrices, vectors, etc.,
 but applications can also write their own data interfaces and filters, see
-<c>examples/interface</c> and <c>examples/filters/custom_mf</c> for an example.
+<c>examples/interface</c> and <c>examples/filters/custom_mf</c> for an example,
+and see \ref DefiningANewDataInterface and \ref DefiningANewDataFilter
+for documentation.
+
 
 \section AsynchronousPartitioning Asynchronous Partitioning
 
@@ -431,6 +436,14 @@ starpu_data_invalidate_submit(handle);
 \endcode
 
 And now we can start using vertical slices, etc.
+
+\section DefiningANewDataFilter Defining A New Data Filter
+
+StarPU provides a series of predefined filters in API_Data_Partition, but
+additional filters can be defined by the application. The principle is that the
+filter function just fills the memory location of the i-th subpart of a data.
+Examples are provided in <c>src/datawizard/interfaces/*_filters.c</c>,
+and see \ref starpu_data_filter::filter_func for the details.
 
 \section DataReduction Data Reduction
 
@@ -760,7 +773,8 @@ Different operations need to be defined for a data interface through
 the type starpu_data_interface_ops. We only define here the basic
 operations needed to run simple applications. The source code for the
 different functions can be found in the file
-<c>examples/interface/complex_interface.c</c>.
+<c>examples/interface/complex_interface.c</c>, the details of the hooks to be
+provided are documented \ref starpu_data_interface_ops .
 
 \code{.c}
 static struct starpu_data_interface_ops interface_complex_ops =
