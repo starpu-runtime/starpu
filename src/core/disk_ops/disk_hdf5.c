@@ -29,8 +29,6 @@
 
 #define NITER	_starpu_calibration_minimum
 
-#define TEMP_HIERARCHY_DEPTH 2
-
 /* ------------------- use HDF5 to write on disk -------------------  */
 
 struct starpu_hdf5_base
@@ -51,8 +49,11 @@ struct starpu_hdf5_obj
 
 static hsize_t _starpu_get_size_obj(struct starpu_hdf5_obj * obj)
 {
+        herr_t status;
         hsize_t dims[1];
-        H5Sget_simple_extent_dims(obj->dataspace, dims, NULL);
+        status = H5Sget_simple_extent_dims(obj->dataspace, dims, NULL);
+        STARPU_ASSERT_MSG(status >= 0, "Can not get the size of this HDF5 dataset (%s)\n", obj->path);
+
         return dims[0];
 }
 
@@ -132,7 +133,7 @@ static void *starpu_hdf5_plug(void *parameter, starpu_ssize_t size STARPU_ATTRIB
         {
                 /* The file doesn't exist or the directory exists => create the datafile */
                 int id;
-                base->path = _starpu_mktemp_many(parameter, TEMP_HIERARCHY_DEPTH, O_RDWR | O_BINARY, &id);
+                base->path = _starpu_mktemp_many(parameter, 0, O_RDWR | O_BINARY, &id);
                 if (!base->path)
                 {
                         free(base);
@@ -178,9 +179,11 @@ static void *starpu_hdf5_plug(void *parameter, starpu_ssize_t size STARPU_ATTRIB
 static void starpu_hdf5_unplug(void *base)
 {
         struct starpu_hdf5_base * fileBase = (struct starpu_hdf5_base *) base;
+        herr_t status;
 
 	STARPU_PTHREAD_MUTEX_DESTROY(&fileBase->mutex);
-        H5Fclose(fileBase->fileID);
+        status = H5Fclose(fileBase->fileID);
+        STARPU_ASSERT_MSG(status >= 0, "Can not unplug this HDF5 disk (%s)\n", fileBase->path);
         if (fileBase->created)
         {
                 unlink(fileBase->path);        
@@ -228,14 +231,18 @@ static void starpu_hdf5_free(void *base, void *obj, size_t size STARPU_ATTRIBUTE
 {
         struct starpu_hdf5_base * fileBase = (struct starpu_hdf5_base *) base;
         struct starpu_hdf5_obj * dataObj = (struct starpu_hdf5_obj *) obj;
+        herr_t status;
 
         /* TODO delete dataset */
-        H5Dclose(dataObj->dataset);
-        H5Sclose(dataObj->dataspace);
+        status = H5Dclose(dataObj->dataset);
+        STARPU_ASSERT_MSG(status >= 0, "Can not free this HDF5 dataset (%s)\n", dataObj->path);
+        status = H5Sclose(dataObj->dataspace);
+        STARPU_ASSERT_MSG(status >= 0, "Can not free the HDF5 dataspace associed to this dataset (%s)\n", dataObj->path);
 
         /* remove the dataset link in the HDF5 
          * But it doesn't delete the space in the file */
-        H5Ldelete(fileBase->fileID, dataObj->path, H5P_DEFAULT);
+        status = H5Ldelete(fileBase->fileID, dataObj->path, H5P_DEFAULT);
+        STARPU_ASSERT_MSG(status >= 0, "Can not delete the link associed to this dataset (%s)\n", dataObj->path);
 
         free(dataObj->path);
         free(dataObj);
@@ -263,9 +270,12 @@ static void *starpu_hdf5_open(void *base, void *pos, size_t size)
 static void starpu_hdf5_close(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, size_t size STARPU_ATTRIBUTE_UNUSED)
 {
         struct starpu_hdf5_obj * dataObj = (struct starpu_hdf5_obj *) obj;
+        herr_t status;
 
-        H5Dclose(dataObj->dataset);
-        H5Sclose(dataObj->dataspace);
+        status = H5Dclose(dataObj->dataset);
+        STARPU_ASSERT_MSG(status >= 0, "Can not close this HDF5 dataset (%s)\n", dataObj->path);
+        status = H5Sclose(dataObj->dataspace);
+        STARPU_ASSERT_MSG(status >= 0, "Can not close the HDF5 dataspace associed to this dataset (%s)\n", dataObj->path);
 
         free(dataObj->path);
         free(dataObj);
@@ -274,13 +284,15 @@ static void starpu_hdf5_close(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, siz
 static int starpu_hdf5_full_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void **ptr, size_t *size)
 {
         struct starpu_hdf5_obj * dataObj = (struct starpu_hdf5_obj *) obj;
+        herr_t status;
 
         /* Get the size of the dataspace (only 1 dimension) */
         *size = _starpu_get_size_obj(dataObj);
 
         starpu_malloc_flags(ptr, *size, 0); 
 
-        H5Dread(dataObj->dataset, H5T_NATIVE_CHAR, H5S_ALL, H5S_ALL, H5P_DEFAULT, *ptr);
+        status = H5Dread(dataObj->dataset, H5T_NATIVE_CHAR, H5S_ALL, H5S_ALL, H5P_DEFAULT, *ptr);
+        STARPU_ASSERT_MSG(status >= 0, "Can not read data associed to this dataset (%s)\n", dataObj->path);
 
         return 0;
 }
@@ -288,9 +300,11 @@ static int starpu_hdf5_full_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, 
 static int starpu_hdf5_full_write(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *ptr, size_t size)
 {
         struct starpu_hdf5_obj * dataObj = (struct starpu_hdf5_obj *) obj;
+        herr_t status;
 
         /* Write ALL the dataspace */
-        H5Dwrite(dataObj->dataset, H5T_NATIVE_CHAR, H5S_ALL, H5S_ALL, H5P_DEFAULT, ptr);
+        status = H5Dwrite(dataObj->dataset, H5T_NATIVE_CHAR, H5S_ALL, H5S_ALL, H5P_DEFAULT, ptr);
+        STARPU_ASSERT_MSG(status >= 0, "Can not write data to this dataset (%s)\n", dataObj->path);
 
         return 0;
 }
@@ -298,29 +312,42 @@ static int starpu_hdf5_full_write(void *base STARPU_ATTRIBUTE_UNUSED, void *obj,
 static int starpu_hdf5_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size)
 {
         struct starpu_hdf5_obj * dataObj = (struct starpu_hdf5_obj *) obj;
+        herr_t status;
 
         /* duplicate the dataspace in the dataset */
         hsize_t sizeDataspace = _starpu_get_size_obj(dataObj);
         hsize_t dims_select[1];
         dims_select[0] = sizeDataspace;
         hid_t dataspace_select = H5Screate_simple(1, dims_select, NULL);
+        STARPU_ASSERT_MSG(dataspace_select >= 0, "Error when reading this HDF5 dataset (%s)\n", dataObj->path);
 
         /* Select what we want of the duplicated dataspace (it's called an hyperslab). This operation is done on place */
-        int offsets[1] = {offset};
-        int count[1] = {size};
+        hsize_t offsets[1] = {offset};
+        hsize_t count[1] = {size};
         /* stride and block size are NULL which is equivalent of a shift of 1 */
-        H5Sselect_hyperslab(dataspace_select, H5S_SELECT_SET, offsets, NULL, count, NULL);
+        status = H5Sselect_hyperslab(dataspace_select, H5S_SELECT_SET, offsets, NULL, count, NULL);
+        STARPU_ASSERT_MSG(status >= 0, "Error when reading this HDF5 dataset (%s)\n", dataObj->path);
 
         /* create the dataspace for the received data which describes ptr */
         hsize_t dims_receive[1];
         dims_receive[0] = size;
         hid_t dataspace_receive = H5Screate_simple(1, dims_receive, NULL);
+        STARPU_ASSERT_MSG(dataspace_receive >= 0, "Error when reading this HDF5 dataset (%s)\n", dataObj->path);
 
-        H5Dread(dataObj->dataset, H5T_NATIVE_CHAR, dataspace_select, dataspace_receive, H5P_DEFAULT, buf);
+        /* Receiver has to be an hyperslabs */
+        offsets[0] = 0;
+        count[0] = size;
+        status = H5Sselect_hyperslab(dataspace_receive, H5S_SELECT_SET, offsets, NULL, count, NULL);
+        STARPU_ASSERT_MSG(dataspace_receive >= 0, "Error when reading this HDF5 dataset (%s)\n", dataObj->path);
+
+        status = H5Dread(dataObj->dataset, H5T_NATIVE_CHAR, dataspace_receive, dataspace_select, H5P_DEFAULT, buf);
+        STARPU_ASSERT_MSG(status >= 0, "Error when reading this HDF5 dataset (%s)\n", dataObj->path);
 
         /* don't need these dataspaces */
-        H5Sclose(dataspace_select);
-        H5Sclose(dataspace_receive);
+        status = H5Sclose(dataspace_select);
+        STARPU_ASSERT_MSG(status >= 0, "Error when reading this HDF5 dataset (%s)\n", dataObj->path);
+        status = H5Sclose(dataspace_receive);
+        STARPU_ASSERT_MSG(status >= 0, "Error when reading this HDF5 dataset (%s)\n", dataObj->path);
 
         return 0;
 }
@@ -328,33 +355,42 @@ static int starpu_hdf5_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void 
 static int starpu_hdf5_write(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, const void *buf, off_t offset, size_t size)
 {
         struct starpu_hdf5_obj * dataObj = (struct starpu_hdf5_obj *) obj;
+        herr_t status;
 
         /* duplicate the dataspace in the dataset */
         hsize_t sizeDataspace = _starpu_get_size_obj(dataObj);
         hsize_t dims_select[1];
         dims_select[0] = sizeDataspace;
         hid_t dataspace_select = H5Screate_simple(1, dims_select, NULL);
+        STARPU_ASSERT_MSG(dataspace_select >= 0, "Error when writing this HDF5 dataset (%s)\n", dataObj->path);
 
         /* Select what we want of the duplicated dataspace (it's called an hyperslab). This operation is done on place */
         hsize_t offsets[1] = {offset};
         hsize_t count[1] = {size};
         /* stride and block size are NULL which is equivalent of a shift of 1 */
-        H5Sselect_hyperslab(dataspace_select, H5S_SELECT_SET, offsets, NULL, count, NULL);
+        status = H5Sselect_hyperslab(dataspace_select, H5S_SELECT_SET, offsets, NULL, count, NULL);
+        STARPU_ASSERT_MSG(status >= 0, "Error when writing this HDF5 dataset (%s)\n", dataObj->path);
 
         /* create the dataspace for the received data which describes ptr */
         hsize_t dims_send[1];
         dims_send[0] = size;
         hid_t dataspace_send = H5Screate_simple(1, dims_send, NULL);
+        STARPU_ASSERT_MSG(dataspace_send >= 0, "Error when writing this HDF5 dataset (%s)\n", dataObj->path);
 
+        /* Receiver has to be an hyperslabs */
         offsets[0] = 0;
         count[0] = size;
-        H5Sselect_hyperslab(dataspace_send, H5S_SELECT_SET, offsets, NULL, count, NULL);
+        status = H5Sselect_hyperslab(dataspace_send, H5S_SELECT_SET, offsets, NULL, count, NULL);
+        STARPU_ASSERT_MSG(dataspace_send >= 0, "Error when writing this HDF5 dataset (%s)\n", dataObj->path);
 
-        H5Dwrite(dataObj->dataset, H5T_NATIVE_CHAR, dataspace_send, dataspace_select, H5P_DEFAULT, buf);
+        status = H5Dwrite(dataObj->dataset, H5T_NATIVE_CHAR, dataspace_send, dataspace_select, H5P_DEFAULT, buf);
+        STARPU_ASSERT_MSG(status >= 0, "Error when writing this HDF5 dataset (%s)\n", dataObj->path);
 
         /* don't need these dataspaces */
-        H5Sclose(dataspace_select);
-        H5Sclose(dataspace_send);
+        status = H5Sclose(dataspace_select);
+        STARPU_ASSERT_MSG(status >= 0, "Error when writing this HDF5 dataset (%s)\n", dataObj->path);
+        status = H5Sclose(dataspace_send);
+        STARPU_ASSERT_MSG(status >= 0, "Error when writing this HDF5 dataset (%s)\n", dataObj->path);
 
         return 0;
 }
