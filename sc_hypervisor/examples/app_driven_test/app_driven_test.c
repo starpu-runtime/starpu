@@ -30,7 +30,7 @@ struct params
 };
 
 unsigned val[2];
-pthread_mutex_t mut[2];
+starpu_pthread_mutex_t mut[2];
 
 /* Every implementation of a codelet must have this prototype, the first                                                                                                                                             * argument (buffers) describes the buffers/streams that are managed by the
  * DSM; the second arguments references read-only data that is passed as an
@@ -44,9 +44,9 @@ void cpu_func(__attribute__((unused))void *buffers[], void *cl_arg)
 	int i;
 	for(i = 0; i < NINCR; i++)
 	{
-		pthread_mutex_lock(&mut[params->sched_ctx - 1]);
+		STARPU_PTHREAD_MUTEX_LOCK(&mut[params->sched_ctx - 1]);
 		val[params->sched_ctx - 1]++;
-		pthread_mutex_unlock(&mut[params->sched_ctx - 1]);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&mut[params->sched_ctx - 1]);
 	}
 	if(params->task_tag != 0)
 		FPRINTF(stdout, "Task with tag %d executed in ctx = %u %u counter_tests\n", params->task_tag, params->sched_ctx, val[params->sched_ctx - 1]);
@@ -153,15 +153,15 @@ int main()
 
 	val[0] = 0;
 	val[1] = 0;
-	pthread_mutex_init(&mut[0], NULL);
-	pthread_mutex_init(&mut[1], NULL);
+	STARPU_PTHREAD_MUTEX_INIT(&mut[0], NULL);
+	STARPU_PTHREAD_MUTEX_INIT(&mut[1], NULL);
 
 	/* we create two threads to simulate simultaneous submission of tasks */
-	starpu_pthread_create(&tid[0], NULL, submit_tasks_thread, (void*)&sched_ctx1);
-	starpu_pthread_create(&tid[1], NULL, submit_tasks_thread, (void*)&sched_ctx2);
+	STARPU_PTHREAD_CREATE(&tid[0], NULL, submit_tasks_thread, (void*)&sched_ctx1);
+	STARPU_PTHREAD_CREATE(&tid[1], NULL, submit_tasks_thread, (void*)&sched_ctx2);
 
-	starpu_pthread_join(tid[0], NULL);
-	starpu_pthread_join(tid[1], NULL);
+	STARPU_PTHREAD_JOIN(tid[0], NULL);
+	STARPU_PTHREAD_JOIN(tid[1], NULL);
 
 	/* free starpu and hypervisor data */
 	starpu_shutdown();

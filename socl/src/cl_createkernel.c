@@ -144,7 +144,7 @@ soclCreateKernel(cl_program    program,
    k->split_space = 0;
    k->split_data = NULL;
    k->split_perfs = NULL;
-   starpu_pthread_mutex_init(&k->split_lock, NULL);
+   STARPU_PTHREAD_MUTEX_INIT(&k->split_lock, NULL);
 
    #ifdef DEBUG
    static int id = 0;

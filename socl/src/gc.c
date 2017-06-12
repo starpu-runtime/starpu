@@ -81,7 +81,7 @@ static void * gc_thread_routine(void *UNUSED(arg)) {
     }
 
     /* Otherwise we sleep */
-    starpu_pthread_cond_wait(&gc_cond, &gc_mutex);
+    STARPU_PTHREAD_COND_WAIT(&gc_cond, &gc_mutex);
 
   } while (1);
 
@@ -92,7 +92,7 @@ static starpu_pthread_t gc_thread;
 
 /* Start garbage collection */
 void gc_start(void) {
-  starpu_pthread_create(&gc_thread, NULL, gc_thread_routine, NULL);
+  STARPU_PTHREAD_CREATE(&gc_thread, NULL, gc_thread_routine, NULL);
 }
 
 /* Stop garbage collection */
@@ -103,7 +103,7 @@ void gc_stop(void) {
 
   GC_UNLOCK;
 
-  starpu_pthread_join(gc_thread, NULL);
+  STARPU_PTHREAD_JOIN(gc_thread, NULL);
 }
 
 int gc_entity_release_ex(entity e, const char * DEBUG_PARAM(caller)) {

@@ -1312,5 +1312,5 @@ void _starpu_watchdog_shutdown(void)
 	if (!timeout_env)
 		return;
 
-	starpu_pthread_join(watchdog_thread, NULL);
+	STARPU_PTHREAD_JOIN(watchdog_thread, NULL);
 }

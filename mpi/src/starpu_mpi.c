@@ -1691,7 +1691,7 @@ void _starpu_mpi_progress_shutdown(int *value)
 	(void) value;
 	MSG_process_sleep(1);
 #else
-	starpu_pthread_join(progress_thread, (void *)value);
+	STARPU_PTHREAD_JOIN(progress_thread, (void *)value);
 #endif
 
         /* free the request queues */

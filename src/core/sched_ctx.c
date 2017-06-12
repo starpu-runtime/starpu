@@ -1583,12 +1583,12 @@ int _starpu_wait_for_no_ready_of_sched_ctx(unsigned sched_ctx_id)
 
 void starpu_sched_ctx_set_context(unsigned *sched_ctx)
 {
-	starpu_pthread_setspecific(sched_ctx_key, (void*)sched_ctx);
+	STARPU_PTHREAD_SETSPECIFIC(sched_ctx_key, (void*)sched_ctx);
 }
 
 unsigned starpu_sched_ctx_get_context()
 {
-	unsigned *sched_ctx = (unsigned*)starpu_pthread_getspecific(sched_ctx_key);
+	unsigned *sched_ctx = (unsigned*)STARPU_PTHREAD_GETSPECIFIC(sched_ctx_key);
 	if(sched_ctx == NULL)
 		return STARPU_NMAX_SCHED_CTXS;
 	STARPU_ASSERT(*sched_ctx < STARPU_NMAX_SCHED_CTXS);
