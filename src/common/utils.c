@@ -263,7 +263,7 @@ char *_starpu_mktemp_many(const char *directory, int depth, int flags, int *fd)
 		return NULL;
 	}
 
-	memcpy(path, directory, len);
+	memcpy(path, directory, len+1);
 	for (i = 0; i < depth; i++)
 	{
 		int r = starpu_lrand48();
