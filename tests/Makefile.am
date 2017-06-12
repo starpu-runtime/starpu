@@ -151,6 +151,7 @@ myPROGRAMS +=					\
 	datawizard/interfaces/copy_interfaces	\
 	datawizard/locality			\
 	datawizard/simgrid-locality		\
+	datawizard/variable_size		\
 	errorcheck/starpu_init_noworker		\
 	errorcheck/invalid_tasks		\
 	helper/cublas_init			\
