@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2013, 2016  Université de Bordeaux
+ * Copyright (C) 2009-2013, 2016-2017  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2016  CNRS
  *
@@ -131,6 +131,37 @@ void starpu_vector_filter_divide_in_2(void *father_interface, void *child_interf
 	}
 }
 
+
+void starpu_vector_filter_list_long(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, STARPU_ATTRIBUTE_UNUSED unsigned nchunks)
+{
+        struct starpu_vector_interface *vector_father = (struct starpu_vector_interface *) father_interface;
+        struct starpu_vector_interface *vector_child = (struct starpu_vector_interface *) child_interface;
+
+        long *length_tab = (long *) f->filter_arg_ptr;
+
+	size_t elemsize = vector_father->elemsize;
+
+	long chunk_size = length_tab[id];
+
+	STARPU_ASSERT_MSG(vector_father->id == STARPU_VECTOR_INTERFACE_ID, "%s can only be applied on a vector data", __func__);
+	vector_child->id = vector_father->id;
+	vector_child->nx = chunk_size;
+	vector_child->elemsize = elemsize;
+
+	if (vector_father->dev_handle)
+	{
+		/* compute the current position */
+		unsigned current_pos = 0;
+		unsigned i;
+		for (i = 0; i < id; i++)
+			current_pos += length_tab[i];
+
+		if (vector_father->ptr)
+			vector_child->ptr = vector_father->ptr + current_pos*elemsize;
+		vector_child->offset = vector_father->offset + current_pos*elemsize;
+		vector_child->dev_handle = vector_father->dev_handle;
+	}
+}
 
 void starpu_vector_filter_list(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, STARPU_ATTRIBUTE_UNUSED unsigned nchunks)
 {

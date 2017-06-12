@@ -220,6 +220,15 @@ of \p f must be the shadow size casted into \c void*.
 enforced for the shadowed parts. An usage example is available in
 examples/filters/shadow.c
 
+\fn void starpu_vector_filter_list_long(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts)
+\ingroup API_Data_Partition
+Return in \p child_interface the \p id th element of the vector
+represented by \p father_interface once partitioned into \p nparts chunks
+according to the <c>filter_arg_ptr</c> field of \p f. The
+<c>filter_arg_ptr</c> field must point to an array of \p nparts long
+elements, each of which specifies the number of elements in each chunk
+of the partition.
+
 \fn void starpu_vector_filter_list(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts)
 \ingroup API_Data_Partition
 Return in \p child_interface the \p id th element of the vector
