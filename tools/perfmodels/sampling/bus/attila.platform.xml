@@ -44,6 +44,8 @@
 
    <host id="RAM" power="1"/>
 
+   <host id="DISK0" speed="1f"/>
+
    <link id="Host" bandwidth="6526732233.112210" latency="0.000000"/>
 
    <link id="RAM-OpenCL0" bandwidth="4162285174.177163" latency="0.000010"/>
@@ -88,6 +90,9 @@
    <link id="PCI:0000:[84-84] through" bandwidth="10463943049.170151" latency="0.000000"/>
    <link id="PCI:0000:84:00.0 up" bandwidth="4519044753.742499" latency="0.000000"/>
    <link id="PCI:0000:84:00.0 down" bandwidth="5231971524.585075" latency="0.000000"/>
+
+   <link id="RAM-DISK0" bandwidth="400000000Bps" latency="0.002s"/>
+   <link id="DISK0-RAM" bandwidth="400000000Bps" latency="0.001s"/>
 
    <route src="CUDA0" dst="CUDA1" symmetrical="NO">
     <link_ctn id="CUDA0-CUDA1"/>
@@ -230,5 +235,15 @@
    <route src="OpenCL1" dst="RAM" symmetrical="NO"><link_ctn id="OpenCL1-RAM"/><link_ctn id="Host"/></route>
    <route src="RAM" dst="OpenCL2" symmetrical="NO"><link_ctn id="RAM-OpenCL2"/><link_ctn id="Host"/></route>
    <route src="OpenCL2" dst="RAM" symmetrical="NO"><link_ctn id="OpenCL2-RAM"/><link_ctn id="Host"/></route>
+
+   <route src="RAM" dst="DISK0" symmetrical="NO">
+	   <link_ctn id="Host"/>
+	   <link_ctn id="RAM-DISK0"/>
+   </route>
+
+   <route src="DISK0" dst="RAM" symmetrical="NO">
+	   <link_ctn id="DISK0-RAM"/>
+	   <link_ctn id="Host"/>
+   </route>
  </AS>
  </platform>
