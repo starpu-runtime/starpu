@@ -314,10 +314,19 @@ static int starpu_hdf5_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void 
         struct starpu_hdf5_obj * dataObj = (struct starpu_hdf5_obj *) obj;
         herr_t status;
 
-        /* duplicate the dataspace in the dataset */
         hsize_t sizeDataspace = _starpu_get_size_obj(dataObj);
-        hsize_t dims_select[1];
-        dims_select[0] = sizeDataspace;
+
+        /* Get official datatype */
+        hid_t datatype = H5Dget_type(dataObj->dataset);
+        hsize_t sizeDatatype = H5Tget_size(datatype);
+
+        /* count in element, not in byte */
+        sizeDataspace /= sizeDatatype;
+        offset /= sizeDatatype;
+        size /= sizeDatatype;
+
+        /* duplicate the dataspace in the dataset */
+        hsize_t dims_select[1] = {sizeDataspace};
         hid_t dataspace_select = H5Screate_simple(1, dims_select, NULL);
         STARPU_ASSERT_MSG(dataspace_select >= 0, "Error when reading this HDF5 dataset (%s)\n", dataObj->path);
 
@@ -329,8 +338,7 @@ static int starpu_hdf5_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void 
         STARPU_ASSERT_MSG(status >= 0, "Error when reading this HDF5 dataset (%s)\n", dataObj->path);
 
         /* create the dataspace for the received data which describes ptr */
-        hsize_t dims_receive[1];
-        dims_receive[0] = size;
+        hsize_t dims_receive[1] = {size};
         hid_t dataspace_receive = H5Screate_simple(1, dims_receive, NULL);
         STARPU_ASSERT_MSG(dataspace_receive >= 0, "Error when reading this HDF5 dataset (%s)\n", dataObj->path);
 
@@ -340,7 +348,7 @@ static int starpu_hdf5_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void 
         status = H5Sselect_hyperslab(dataspace_receive, H5S_SELECT_SET, offsets, NULL, count, NULL);
         STARPU_ASSERT_MSG(dataspace_receive >= 0, "Error when reading this HDF5 dataset (%s)\n", dataObj->path);
 
-        status = H5Dread(dataObj->dataset, H5T_NATIVE_CHAR, dataspace_receive, dataspace_select, H5P_DEFAULT, buf);
+        status = H5Dread(dataObj->dataset, datatype, dataspace_receive, dataspace_select, H5P_DEFAULT, buf);
         STARPU_ASSERT_MSG(status >= 0, "Error when reading this HDF5 dataset (%s)\n", dataObj->path);
 
         /* don't need these dataspaces */
@@ -357,10 +365,19 @@ static int starpu_hdf5_write(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, cons
         struct starpu_hdf5_obj * dataObj = (struct starpu_hdf5_obj *) obj;
         herr_t status;
 
-        /* duplicate the dataspace in the dataset */
         hsize_t sizeDataspace = _starpu_get_size_obj(dataObj);
-        hsize_t dims_select[1];
-        dims_select[0] = sizeDataspace;
+
+        /* Get official datatype */
+        hid_t datatype = H5Dget_type(dataObj->dataset);
+        hsize_t sizeDatatype = H5Tget_size(datatype);
+
+        /* count in element, not in byte */
+        sizeDataspace /= sizeDatatype;
+        offset /= sizeDatatype;
+        size /= sizeDatatype;
+
+        /* duplicate the dataspace in the dataset */
+        hsize_t dims_select[1] = {sizeDataspace};
         hid_t dataspace_select = H5Screate_simple(1, dims_select, NULL);
         STARPU_ASSERT_MSG(dataspace_select >= 0, "Error when writing this HDF5 dataset (%s)\n", dataObj->path);
 
@@ -383,7 +400,7 @@ static int starpu_hdf5_write(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, cons
         status = H5Sselect_hyperslab(dataspace_send, H5S_SELECT_SET, offsets, NULL, count, NULL);
         STARPU_ASSERT_MSG(dataspace_send >= 0, "Error when writing this HDF5 dataset (%s)\n", dataObj->path);
 
-        status = H5Dwrite(dataObj->dataset, H5T_NATIVE_CHAR, dataspace_send, dataspace_select, H5P_DEFAULT, buf);
+        status = H5Dwrite(dataObj->dataset, datatype, dataspace_send, dataspace_select, H5P_DEFAULT, buf);
         STARPU_ASSERT_MSG(status >= 0, "Error when writing this HDF5 dataset (%s)\n", dataObj->path);
 
         /* don't need these dataspaces */
