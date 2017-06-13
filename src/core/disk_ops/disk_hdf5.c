@@ -76,8 +76,7 @@ static struct starpu_hdf5_obj * _starpu_hdf5_data_alloc(struct starpu_hdf5_base 
 	_STARPU_MALLOC(obj, sizeof(*obj));
 
         /* create a dataspace with one dimension of size elements */
-        hsize_t dim[1];
-        dim[0] = size;
+        hsize_t dim[1] = {size};
         hid_t dataspace = H5Screate_simple(1, dim, NULL);
 
         if (dataspace < 0)
@@ -312,20 +311,16 @@ static int starpu_hdf5_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void 
         struct starpu_hdf5_obj * dataObj = (struct starpu_hdf5_obj *) obj;
         herr_t status;
 
-        hsize_t sizeDataspace = _starpu_get_size_obj(dataObj);
-
         /* Get official datatype */
         hid_t datatype = H5Dget_type(dataObj->dataset);
         hsize_t sizeDatatype = H5Tget_size(datatype);
 
         /* count in element, not in byte */
-        sizeDataspace /= sizeDatatype;
         offset /= sizeDatatype;
         size /= sizeDatatype;
 
         /* duplicate the dataspace in the dataset */
-        hsize_t dims_select[1] = {sizeDataspace};
-        hid_t dataspace_select = H5Screate_simple(1, dims_select, NULL);
+        hid_t dataspace_select = H5Dget_space(dataObj->dataset);
         STARPU_ASSERT_MSG(dataspace_select >= 0, "Error when reading this HDF5 dataset (%s)\n", dataObj->path);
 
         /* Select what we want of the duplicated dataspace (it's called an hyperslab). This operation is done on place */
@@ -363,20 +358,16 @@ static int starpu_hdf5_write(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, cons
         struct starpu_hdf5_obj * dataObj = (struct starpu_hdf5_obj *) obj;
         herr_t status;
 
-        hsize_t sizeDataspace = _starpu_get_size_obj(dataObj);
-
         /* Get official datatype */
         hid_t datatype = H5Dget_type(dataObj->dataset);
         hsize_t sizeDatatype = H5Tget_size(datatype);
 
         /* count in element, not in byte */
-        sizeDataspace /= sizeDatatype;
         offset /= sizeDatatype;
         size /= sizeDatatype;
 
         /* duplicate the dataspace in the dataset */
-        hsize_t dims_select[1] = {sizeDataspace};
-        hid_t dataspace_select = H5Screate_simple(1, dims_select, NULL);
+        hid_t dataspace_select = H5Dget_space(dataObj->dataset);
         STARPU_ASSERT_MSG(dataspace_select >= 0, "Error when writing this HDF5 dataset (%s)\n", dataObj->path);
 
         /* Select what we want of the duplicated dataspace (it's called an hyperslab). This operation is done on place */
@@ -387,8 +378,7 @@ static int starpu_hdf5_write(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, cons
         STARPU_ASSERT_MSG(status >= 0, "Error when writing this HDF5 dataset (%s)\n", dataObj->path);
 
         /* create the dataspace for the received data which describes ptr */
-        hsize_t dims_send[1];
-        dims_send[0] = size;
+        hsize_t dims_send[1] = {size};
         hid_t dataspace_send = H5Screate_simple(1, dims_send, NULL);
         STARPU_ASSERT_MSG(dataspace_send >= 0, "Error when writing this HDF5 dataset (%s)\n", dataObj->path);
 
