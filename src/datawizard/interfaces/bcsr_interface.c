@@ -47,6 +47,8 @@ static size_t bcsr_interface_get_size(starpu_data_handle_t handle);
 static int bcsr_compare(void *data_interface_a, void *data_interface_b);
 static uint32_t footprint_bcsr_interface_crc32(starpu_data_handle_t handle);
 static starpu_ssize_t describe(void *data_interface, char *buf, size_t size);
+static int pack_data(starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count);
+static int unpack_data(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count);
 
 struct starpu_data_interface_ops starpu_interface_bcsr_ops =
 {
@@ -60,7 +62,10 @@ struct starpu_data_interface_ops starpu_interface_bcsr_ops =
 	.footprint = footprint_bcsr_interface_crc32,
 	.compare = bcsr_compare,
 	.describe = describe,
-	.handle_to_pointer = bcsr_handle_to_pointer
+	.handle_to_pointer = bcsr_handle_to_pointer,
+	.name = "STARPU_BCSR_INTERFACE",
+	.pack_data = pack_data,
+	.unpack_data = unpack_data
 };
 
 static void *bcsr_handle_to_pointer(starpu_data_handle_t data_handle, unsigned node)
@@ -395,3 +400,45 @@ static starpu_ssize_t describe(void *data_interface, char *buf, size_t size)
 			(unsigned) bcsr->c,
 			(unsigned) bcsr->elemsize);
 }
+
+static int pack_data(starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count)
+{
+	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
+
+	struct starpu_bcsr_interface *bcsr = (struct starpu_bcsr_interface *) starpu_data_get_interface_on_node(handle, node);
+
+	*count = bcsr->nnz * sizeof(bcsr->colind[0]);
+	*count += (bcsr->nrow + 1) * sizeof(bcsr->rowptr[0]);
+	*count += bcsr->r * bcsr->c * bcsr->nnz * bcsr->elemsize;
+
+	if (ptr != NULL)
+	{
+		starpu_malloc_flags(ptr, *count, 0);
+		char *tmp = *ptr;
+		memcpy(tmp, (void*)bcsr->colind, bcsr->nnz * sizeof(bcsr->colind[0]));
+		tmp += bcsr->nnz * sizeof(bcsr->colind[0]);
+		memcpy(tmp, (void*)bcsr->rowptr, (bcsr->nrow + 1) * sizeof(bcsr->rowptr[0]));
+		tmp += (bcsr->nrow + 1) * sizeof(bcsr->rowptr[0]);
+		memcpy(tmp, (void*)bcsr->nzval, bcsr->r * bcsr->c * bcsr->nnz * bcsr->elemsize);
+	}
+
+	return 0;
+}
+
+static int unpack_data(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
+{
+	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
+
+	struct starpu_bcsr_interface *bcsr = (struct starpu_bcsr_interface *) starpu_data_get_interface_on_node(handle, node);
+
+	STARPU_ASSERT(count == (bcsr->nnz * sizeof(bcsr->colind[0]))+((bcsr->nrow + 1) * sizeof(bcsr->rowptr[0]))+(bcsr->r * bcsr->c * bcsr->nnz * bcsr->elemsize));
+
+	char *tmp = ptr;
+	memcpy((void*)bcsr->colind, tmp, bcsr->nnz * sizeof(bcsr->colind[0]));
+	tmp += bcsr->nnz * sizeof(bcsr->colind[0]);
+	memcpy((void*)bcsr->rowptr, tmp, (bcsr->nrow + 1) * sizeof(bcsr->rowptr[0]));
+	tmp += (bcsr->nrow + 1) * sizeof(bcsr->rowptr[0]);
+	memcpy((void*)bcsr->nzval, tmp, bcsr->r * bcsr->c * bcsr->nnz * bcsr->elemsize);
+	return 0;
+}
+
