@@ -43,18 +43,31 @@ struct starpu_hdf5_base
 struct starpu_hdf5_obj
 {
         hid_t dataset;          /* describe this object in HDF5 file */
-        hid_t dataspace;        /* describe the stored data in this object */
         char * path;            /* path where data are stored in HDF5 file */
 };
 
+/* returns the size in BYTES */
 static hsize_t _starpu_get_size_obj(struct starpu_hdf5_obj * obj)
 {
         herr_t status;
+
+        hid_t dataspace = H5Dget_space(obj->dataset);
+        STARPU_ASSERT_MSG(dataspace >= 0, "Can not get the size of this HDF5 dataset (%s)\n", obj->path);
+
         hsize_t dims[1];
-        status = H5Sget_simple_extent_dims(obj->dataspace, dims, NULL);
+        status = H5Sget_simple_extent_dims(dataspace, dims, NULL);
         STARPU_ASSERT_MSG(status >= 0, "Can not get the size of this HDF5 dataset (%s)\n", obj->path);
 
-        return dims[0];
+        hid_t datatype = H5Dget_type(obj->dataset);
+        STARPU_ASSERT_MSG(datatype >= 0, "Can not get the size of this HDF5 dataset (%s)\n", obj->path);
+
+        hsize_t sizeDatatype = H5Tget_size(datatype);
+        STARPU_ASSERT_MSG(sizeDatatype > 0, "Can not get the size of this HDF5 dataset (%s)\n", obj->path);
+
+        H5Sclose(dataspace);
+        H5Tclose(datatype);
+
+        return dims[0]*sizeDatatype;
 }
 
 static struct starpu_hdf5_obj * _starpu_hdf5_data_alloc(struct starpu_hdf5_base * fileBase,  char * name, size_t size)
@@ -65,9 +78,9 @@ static struct starpu_hdf5_obj * _starpu_hdf5_data_alloc(struct starpu_hdf5_base 
         /* create a dataspace with one dimension of size elements */
         hsize_t dim[1];
         dim[0] = size;
-        obj->dataspace = H5Screate_simple(1, dim, NULL);
+        hid_t dataspace = H5Screate_simple(1, dim, NULL);
 
-        if (obj->dataspace < 0)
+        if (dataspace < 0)
         {
                 free(obj);
                 return NULL;
@@ -76,16 +89,17 @@ static struct starpu_hdf5_obj * _starpu_hdf5_data_alloc(struct starpu_hdf5_base 
         /* create a dataset at location name, with data described by the dataspace.
          * Each element are like char in C (expected one byte) 
          */
-        obj->dataset = H5Dcreate2(fileBase->fileID, name, H5T_NATIVE_CHAR, obj->dataspace, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+        obj->dataset = H5Dcreate2(fileBase->fileID, name, H5T_NATIVE_CHAR, dataspace, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
         if (obj->dataset < 0)
         {
-                H5Sclose(obj->dataspace);
+                H5Sclose(dataspace);
                 free(obj);
                 return NULL;
         }
 
         obj->path = name;
+        H5Sclose(dataspace);
         
         return obj;
 }
@@ -95,17 +109,6 @@ static struct starpu_hdf5_obj * _starpu_hdf5_data_open(struct starpu_hdf5_base *
         struct starpu_hdf5_obj * obj;
 	_STARPU_MALLOC(obj, sizeof(*obj));
 
-        /* create a dataspace with one dimension of size elements */
-        hsize_t dim[1];
-        dim[0] = size;
-        obj->dataspace = H5Screate_simple(1, dim, NULL);
-
-        if (obj->dataspace < 0)
-        {
-                free(obj);
-                return NULL;
-        }
-
         /* create a dataset at location name, with data described by the dataspace.
          * Each element are like char in C (expected one byte) 
          */
@@ -113,7 +116,6 @@ static struct starpu_hdf5_obj * _starpu_hdf5_data_open(struct starpu_hdf5_base *
 
         if (obj->dataset < 0)
         {
-                H5Sclose(obj->dataspace);
                 free(obj);
                 return NULL;
         }
@@ -236,8 +238,6 @@ static void starpu_hdf5_free(void *base, void *obj, size_t size STARPU_ATTRIBUTE
         /* TODO delete dataset */
         status = H5Dclose(dataObj->dataset);
         STARPU_ASSERT_MSG(status >= 0, "Can not free this HDF5 dataset (%s)\n", dataObj->path);
-        status = H5Sclose(dataObj->dataspace);
-        STARPU_ASSERT_MSG(status >= 0, "Can not free the HDF5 dataspace associed to this dataset (%s)\n", dataObj->path);
 
         /* remove the dataset link in the HDF5 
          * But it doesn't delete the space in the file */
@@ -274,8 +274,6 @@ static void starpu_hdf5_close(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, siz
 
         status = H5Dclose(dataObj->dataset);
         STARPU_ASSERT_MSG(status >= 0, "Can not close this HDF5 dataset (%s)\n", dataObj->path);
-        status = H5Sclose(dataObj->dataspace);
-        STARPU_ASSERT_MSG(status >= 0, "Can not close the HDF5 dataspace associed to this dataset (%s)\n", dataObj->path);
 
         free(dataObj->path);
         free(dataObj);
