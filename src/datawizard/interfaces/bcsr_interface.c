@@ -407,8 +407,11 @@ static int pack_data(starpu_data_handle_t handle, unsigned node, void **ptr, sta
 
 	struct starpu_bcsr_interface *bcsr = (struct starpu_bcsr_interface *) starpu_data_get_interface_on_node(handle, node);
 
+	// We first pack colind
 	*count = bcsr->nnz * sizeof(bcsr->colind[0]);
+	// Then rowptr
 	*count += (bcsr->nrow + 1) * sizeof(bcsr->rowptr[0]);
+	// Then nnzval
 	*count += bcsr->r * bcsr->c * bcsr->nnz * bcsr->elemsize;
 
 	if (ptr != NULL)
