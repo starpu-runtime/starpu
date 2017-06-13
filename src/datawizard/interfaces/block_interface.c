@@ -95,7 +95,8 @@ struct starpu_data_interface_ops starpu_interface_block_ops =
 	.display = display_block_interface,
 	.pack_data = pack_block_handle,
 	.unpack_data = unpack_block_handle,
-	.describe = describe
+	.describe = describe,
+	.name = "STARPU_BLOCK_INTERFACE"
 };
 
 static void *block_handle_to_pointer(starpu_data_handle_t handle, unsigned node)
