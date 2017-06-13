@@ -31,7 +31,7 @@
  *
  * nzval  = [0, 1, 2, 3] ++ [4, 5, 6, 7] ++ [8, 9, 10, 11]
  * colind = [0, 0, 1]
- * rowptr = [0, 1 ]
+ * rowptr = [0, 1, 3 ]
  * r = c = 2
  */
 
@@ -57,7 +57,7 @@ extern void test_bcsr_opencl_func(void *buffers[], void *args);
 
 static int nzval[NZVAL_SIZE]  =
 {
-	0, 1, 2, 3,    /* Fisrt block  */
+	0, 1, 2, 3,    /* First block  */
 	4, 5, 6, 7,    /* Second block */
 	8, 9, 10, 11   /* Third block  */
 };
