@@ -217,7 +217,7 @@ static void band_filter_kernel_gpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *
 
 	/* FFTW does not normalize its output ! */
 	float scal = 1.0f/nsamples;
-	cublasStatus_t status = cublasSscal (starpu_cublas_local_handle(), nsamples, &scal, localA, 1);
+	cublasStatus_t status = cublasSscal (starpu_cublas_get_local_handle(), nsamples, &scal, localA, 1);
 	if (status != CUBLAS_STATUS_SUCCESS)
 		STARPU_CUBLAS_REPORT_ERROR(status);
 }
