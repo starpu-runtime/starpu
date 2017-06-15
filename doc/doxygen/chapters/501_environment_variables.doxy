@@ -905,7 +905,8 @@ full.
 This specifies then backend to be used by StarPU to push data when the main
 memory is getting full. The default is unistd (i.e. using read/write functions),
 other values are stdio (i.e. using fread/fwrite), unistd_o_direct (i.e. using
-read/write with O_DIRECT), and leveldb (i.e. using a leveldb database).
+read/write with O_DIRECT), leveldb (i.e. using a leveldb database), and hdf5 
+(i.e. using HDF5 library).
 </dd>
 
 <dt>STARPU_DISK_SWAP_SIZE</dt>
