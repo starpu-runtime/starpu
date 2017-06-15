@@ -29,6 +29,11 @@
 
 #define NITER	_starpu_calibration_minimum
 
+#ifndef H5_HAVE_THREADSAFE
+/* if thread safe mode not enabled, we can't open more than one file */
+static int nb_disk_open = 0;
+#endif
+
 /* ------------------- use HDF5 to write on disk -------------------  */
 
 struct starpu_hdf5_base
@@ -126,6 +131,12 @@ static struct starpu_hdf5_obj * _starpu_hdf5_data_open(struct starpu_hdf5_base *
 
 static void *starpu_hdf5_plug(void *parameter, starpu_ssize_t size STARPU_ATTRIBUTE_UNUSED)
 {
+#ifndef H5_HAVE_THREADSAFE
+        int nb_disk = STARPU_ATOMIC_ADD(&nb_disk_open, 1);
+        if (nb_disk != 1)
+                _STARPU_ERROR("HDF5 library is not compiled with --enable-threadsafe. You can't open more than one HDF5 file in the same time !\n");
+#endif
+
         struct starpu_hdf5_base * base;
         _STARPU_MALLOC(base, sizeof(struct starpu_hdf5_base));
 
@@ -179,6 +190,10 @@ static void *starpu_hdf5_plug(void *parameter, starpu_ssize_t size STARPU_ATTRIB
 /* free memory allocated for the base */
 static void starpu_hdf5_unplug(void *base)
 {
+#ifndef H5_HAVE_THREADSAFE
+        STARPU_ATOMIC_ADD(&nb_disk_open, -1);
+#endif
+
         struct starpu_hdf5_base * fileBase = (struct starpu_hdf5_base *) base;
         herr_t status;
 
@@ -281,7 +296,6 @@ static void starpu_hdf5_close(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, siz
 static int starpu_hdf5_full_read(void *base, void *obj, void **ptr, size_t *size)
 {
         struct starpu_hdf5_obj * dataObj = (struct starpu_hdf5_obj *) obj;
-        struct starpu_hdf5_base * fileBase = (struct starpu_hdf5_base *) base;
         herr_t status;
 
         /* Get the size of the dataspace (only 1 dimension) */
@@ -289,10 +303,15 @@ static int starpu_hdf5_full_read(void *base, void *obj, void **ptr, size_t *size
 
         starpu_malloc_flags(ptr, *size, 0); 
 
+#ifndef H5_HAVE_THREADSAFE
+        struct starpu_hdf5_base * fileBase = (struct starpu_hdf5_base *) base;
         STARPU_PTHREAD_MUTEX_LOCK(&fileBase->mutex);
+#endif
         status = H5Dread(dataObj->dataset, H5T_NATIVE_CHAR, H5S_ALL, H5S_ALL, H5P_DEFAULT, *ptr);
         STARPU_ASSERT_MSG(status >= 0, "Can not read data associed to this dataset (%s)\n", dataObj->path);
+#ifndef H5_HAVE_THREADSAFE
         STARPU_PTHREAD_MUTEX_UNLOCK(&fileBase->mutex);
+#endif
 
         return 0;
 }
@@ -300,13 +319,17 @@ static int starpu_hdf5_full_read(void *base, void *obj, void **ptr, size_t *size
 static int starpu_hdf5_full_write(void *base, void *obj, void *ptr, size_t size)
 {
         struct starpu_hdf5_obj * dataObj = (struct starpu_hdf5_obj *) obj;
-        struct starpu_hdf5_base * fileBase = (struct starpu_hdf5_base *) base;
         herr_t status;
 
         /* Write ALL the dataspace */
+#ifndef H5_HAVE_THREADSAFE
+        struct starpu_hdf5_base * fileBase = (struct starpu_hdf5_base *) base;
         STARPU_PTHREAD_MUTEX_LOCK(&fileBase->mutex);
+#endif
         status = H5Dwrite(dataObj->dataset, H5T_NATIVE_CHAR, H5S_ALL, H5S_ALL, H5P_DEFAULT, ptr);
+#ifndef H5_HAVE_THREADSAFE
         STARPU_PTHREAD_MUTEX_UNLOCK(&fileBase->mutex);
+#endif
         STARPU_ASSERT_MSG(status >= 0, "Can not write data to this dataset (%s)\n", dataObj->path);
 
         return 0;
@@ -315,7 +338,6 @@ static int starpu_hdf5_full_write(void *base, void *obj, void *ptr, size_t size)
 static int starpu_hdf5_read(void *base, void *obj, void *buf, off_t offset, size_t size)
 {
         struct starpu_hdf5_obj * dataObj = (struct starpu_hdf5_obj *) obj;
-        struct starpu_hdf5_base * fileBase = (struct starpu_hdf5_base *) base;
         herr_t status;
 
         /* Get official datatype */
@@ -348,10 +370,15 @@ static int starpu_hdf5_read(void *base, void *obj, void *buf, off_t offset, size
         status = H5Sselect_hyperslab(dataspace_receive, H5S_SELECT_SET, offsets, NULL, count, NULL);
         STARPU_ASSERT_MSG(dataspace_receive >= 0, "Error when reading this HDF5 dataset (%s)\n", dataObj->path);
 
+#ifndef H5_HAVE_THREADSAFE
+        struct starpu_hdf5_base * fileBase = (struct starpu_hdf5_base *) base;
         STARPU_PTHREAD_MUTEX_LOCK(&fileBase->mutex);
+#endif
         status = H5Dread(dataObj->dataset, datatype, dataspace_receive, dataspace_select, H5P_DEFAULT, buf);
         STARPU_ASSERT_MSG(status >= 0, "Error when reading this HDF5 dataset (%s)\n", dataObj->path);
+#ifndef H5_HAVE_THREADSAFE
         STARPU_PTHREAD_MUTEX_UNLOCK(&fileBase->mutex);
+#endif
 
         /* don't need these dataspaces */
         status = H5Sclose(dataspace_select);
@@ -365,7 +392,6 @@ static int starpu_hdf5_read(void *base, void *obj, void *buf, off_t offset, size
 static int starpu_hdf5_write(void *base, void *obj, const void *buf, off_t offset, size_t size)
 {
         struct starpu_hdf5_obj * dataObj = (struct starpu_hdf5_obj *) obj;
-        struct starpu_hdf5_base * fileBase = (struct starpu_hdf5_base *) base;
         herr_t status;
 
         /* Get official datatype */
@@ -398,10 +424,15 @@ static int starpu_hdf5_write(void *base, void *obj, const void *buf, off_t offse
         status = H5Sselect_hyperslab(dataspace_send, H5S_SELECT_SET, offsets, NULL, count, NULL);
         STARPU_ASSERT_MSG(dataspace_send >= 0, "Error when writing this HDF5 dataset (%s)\n", dataObj->path);
 
+#ifndef H5_HAVE_THREADSAFE
+        struct starpu_hdf5_base * fileBase = (struct starpu_hdf5_base *) base;
         STARPU_PTHREAD_MUTEX_LOCK(&fileBase->mutex);
+#endif
         status = H5Dwrite(dataObj->dataset, datatype, dataspace_send, dataspace_select, H5P_DEFAULT, buf);
         STARPU_ASSERT_MSG(status >= 0, "Error when writing this HDF5 dataset (%s)\n", dataObj->path);
+#ifndef H5_HAVE_THREADSAFE
         STARPU_PTHREAD_MUTEX_UNLOCK(&fileBase->mutex);
+#endif
 
         /* don't need these dataspaces */
         status = H5Sclose(dataspace_select);
