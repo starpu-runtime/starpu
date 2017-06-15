@@ -278,9 +278,10 @@ static void starpu_hdf5_close(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, siz
         free(dataObj);
 }
 
-static int starpu_hdf5_full_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void **ptr, size_t *size)
+static int starpu_hdf5_full_read(void *base, void *obj, void **ptr, size_t *size)
 {
         struct starpu_hdf5_obj * dataObj = (struct starpu_hdf5_obj *) obj;
+        struct starpu_hdf5_base * fileBase = (struct starpu_hdf5_base *) base;
         herr_t status;
 
         /* Get the size of the dataspace (only 1 dimension) */
@@ -288,27 +289,33 @@ static int starpu_hdf5_full_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, 
 
         starpu_malloc_flags(ptr, *size, 0); 
 
+        STARPU_PTHREAD_MUTEX_LOCK(&fileBase->mutex);
         status = H5Dread(dataObj->dataset, H5T_NATIVE_CHAR, H5S_ALL, H5S_ALL, H5P_DEFAULT, *ptr);
         STARPU_ASSERT_MSG(status >= 0, "Can not read data associed to this dataset (%s)\n", dataObj->path);
+        STARPU_PTHREAD_MUTEX_UNLOCK(&fileBase->mutex);
 
         return 0;
 }
 
-static int starpu_hdf5_full_write(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *ptr, size_t size)
+static int starpu_hdf5_full_write(void *base, void *obj, void *ptr, size_t size)
 {
         struct starpu_hdf5_obj * dataObj = (struct starpu_hdf5_obj *) obj;
+        struct starpu_hdf5_base * fileBase = (struct starpu_hdf5_base *) base;
         herr_t status;
 
         /* Write ALL the dataspace */
+        STARPU_PTHREAD_MUTEX_LOCK(&fileBase->mutex);
         status = H5Dwrite(dataObj->dataset, H5T_NATIVE_CHAR, H5S_ALL, H5S_ALL, H5P_DEFAULT, ptr);
+        STARPU_PTHREAD_MUTEX_UNLOCK(&fileBase->mutex);
         STARPU_ASSERT_MSG(status >= 0, "Can not write data to this dataset (%s)\n", dataObj->path);
 
         return 0;
 }
 
-static int starpu_hdf5_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size)
+static int starpu_hdf5_read(void *base, void *obj, void *buf, off_t offset, size_t size)
 {
         struct starpu_hdf5_obj * dataObj = (struct starpu_hdf5_obj *) obj;
+        struct starpu_hdf5_base * fileBase = (struct starpu_hdf5_base *) base;
         herr_t status;
 
         /* Get official datatype */
@@ -341,8 +348,10 @@ static int starpu_hdf5_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void 
         status = H5Sselect_hyperslab(dataspace_receive, H5S_SELECT_SET, offsets, NULL, count, NULL);
         STARPU_ASSERT_MSG(dataspace_receive >= 0, "Error when reading this HDF5 dataset (%s)\n", dataObj->path);
 
+        STARPU_PTHREAD_MUTEX_LOCK(&fileBase->mutex);
         status = H5Dread(dataObj->dataset, datatype, dataspace_receive, dataspace_select, H5P_DEFAULT, buf);
         STARPU_ASSERT_MSG(status >= 0, "Error when reading this HDF5 dataset (%s)\n", dataObj->path);
+        STARPU_PTHREAD_MUTEX_UNLOCK(&fileBase->mutex);
 
         /* don't need these dataspaces */
         status = H5Sclose(dataspace_select);
@@ -353,9 +362,10 @@ static int starpu_hdf5_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void 
         return 0;
 }
 
-static int starpu_hdf5_write(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, const void *buf, off_t offset, size_t size)
+static int starpu_hdf5_write(void *base, void *obj, const void *buf, off_t offset, size_t size)
 {
         struct starpu_hdf5_obj * dataObj = (struct starpu_hdf5_obj *) obj;
+        struct starpu_hdf5_base * fileBase = (struct starpu_hdf5_base *) base;
         herr_t status;
 
         /* Get official datatype */
@@ -388,8 +398,10 @@ static int starpu_hdf5_write(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, cons
         status = H5Sselect_hyperslab(dataspace_send, H5S_SELECT_SET, offsets, NULL, count, NULL);
         STARPU_ASSERT_MSG(dataspace_send >= 0, "Error when writing this HDF5 dataset (%s)\n", dataObj->path);
 
+        STARPU_PTHREAD_MUTEX_LOCK(&fileBase->mutex);
         status = H5Dwrite(dataObj->dataset, datatype, dataspace_send, dataspace_select, H5P_DEFAULT, buf);
         STARPU_ASSERT_MSG(status >= 0, "Error when writing this HDF5 dataset (%s)\n", dataObj->path);
+        STARPU_PTHREAD_MUTEX_UNLOCK(&fileBase->mutex);
 
         /* don't need these dataspaces */
         status = H5Sclose(dataspace_select);
