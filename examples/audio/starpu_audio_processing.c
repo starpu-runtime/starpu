@@ -341,6 +341,8 @@ static void init_problem(void)
 	/* read length of input WAV's data */
 	/* each element is 2 bytes long (16bits)*/
 	length_data = get_wav_data_bytes_length(infile)/2;
+	while (nsamples > length_data)
+		nsamples /= 2;
 
 	/* allocate a buffer to store the content of input file */
 	if (use_pin)
