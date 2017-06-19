@@ -34,6 +34,7 @@
 static int nb_disk_open = 0;
 #endif
 
+
 /* ------------------- use HDF5 to write on disk -------------------  */
 
 struct starpu_hdf5_base
@@ -50,6 +51,22 @@ struct starpu_hdf5_obj
         hid_t dataset;          /* describe this object in HDF5 file */
         char * path;            /* path where data are stored in HDF5 file */
 };
+
+static inline void _starpu_hdf5_protect_start(void * base)
+{
+#ifndef H5_HAVE_THREADSAFE
+        struct starpu_hdf5_base * fileBase = (struct starpu_hdf5_base *) base;
+        STARPU_PTHREAD_MUTEX_LOCK(&fileBase->mutex);
+#endif
+}
+
+static inline void _starpu_hdf5_protect_stop(void * base)
+{
+#ifndef H5_HAVE_THREADSAFE
+        struct starpu_hdf5_base * fileBase = (struct starpu_hdf5_base *) base;
+        STARPU_PTHREAD_MUTEX_UNLOCK(&fileBase->mutex);
+#endif
+}
 
 /* returns the size in BYTES */
 static hsize_t _starpu_get_size_obj(struct starpu_hdf5_obj * obj)
@@ -80,10 +97,7 @@ static struct starpu_hdf5_obj * _starpu_hdf5_data_alloc(struct starpu_hdf5_base 
         struct starpu_hdf5_obj * obj;
 	_STARPU_MALLOC(obj, sizeof(*obj));
 
-#ifndef H5_HAVE_THREADSAFE
-        struct starpu_hdf5_base * fileBase = (struct starpu_hdf5_base *) base;
-        STARPU_PTHREAD_MUTEX_LOCK(&fileBase->mutex);
-#endif
+        _starpu_hdf5_protect_start((void *) fileBase);
 
         /* create a dataspace with one dimension of size elements */
         hsize_t dim[1] = {size};
@@ -110,9 +124,7 @@ static struct starpu_hdf5_obj * _starpu_hdf5_data_alloc(struct starpu_hdf5_base 
 
         obj->path = name;
 
-#ifndef H5_HAVE_THREADSAFE
-        STARPU_PTHREAD_MUTEX_UNLOCK(&fileBase->mutex);
-#endif
+        _starpu_hdf5_protect_stop((void *) fileBase);
         
         return obj;
 }
@@ -122,18 +134,14 @@ static struct starpu_hdf5_obj * _starpu_hdf5_data_open(struct starpu_hdf5_base *
         struct starpu_hdf5_obj * obj;
 	_STARPU_MALLOC(obj, sizeof(*obj));
 
-#ifndef H5_HAVE_THREADSAFE
-        STARPU_PTHREAD_MUTEX_LOCK(&fileBase->mutex);
-#endif
+        _starpu_hdf5_protect_start((void *) fileBase);
 
         /* create a dataset at location name, with data described by the dataspace.
          * Each element are like char in C (expected one byte) 
          */
         obj->dataset = H5Dopen2(fileBase->fileID, name, H5P_DEFAULT);
 
-#ifndef H5_HAVE_THREADSAFE
-        STARPU_PTHREAD_MUTEX_UNLOCK(&fileBase->mutex);
-#endif
+        _starpu_hdf5_protect_stop((void *) fileBase);
 
         if (obj->dataset < 0)
         {
@@ -159,9 +167,7 @@ static void *starpu_hdf5_plug(void *parameter, starpu_ssize_t size STARPU_ATTRIB
 
 	STARPU_PTHREAD_MUTEX_INIT(&base->mutex, NULL);
 
-#ifndef H5_HAVE_THREADSAFE
-        STARPU_PTHREAD_MUTEX_LOCK(&fileBase->mutex);
-#endif
+        _starpu_hdf5_protect_start(base);
 
         struct stat buf;
         if (stat(parameter, &buf) != 0 || !S_ISREG(buf.st_mode))
@@ -204,9 +210,7 @@ static void *starpu_hdf5_plug(void *parameter, starpu_ssize_t size STARPU_ATTRIB
                 base->path = path;
         }
 
-#ifndef H5_HAVE_THREADSAFE
-        STARPU_PTHREAD_MUTEX_UNLOCK(&fileBase->mutex);
-#endif
+        _starpu_hdf5_protect_stop(base);
 
         base->next_dataset_id = 0;
 
@@ -223,16 +227,12 @@ static void starpu_hdf5_unplug(void *base)
         struct starpu_hdf5_base * fileBase = (struct starpu_hdf5_base *) base;
         herr_t status;
 
-#ifndef H5_HAVE_THREADSAFE
-        STARPU_PTHREAD_MUTEX_LOCK(&fileBase->mutex);
-#endif
+        _starpu_hdf5_protect_start(base);
 
 	STARPU_PTHREAD_MUTEX_DESTROY(&fileBase->mutex);
         status = H5Fclose(fileBase->fileID);
 
-#ifndef H5_HAVE_THREADSAFE
-        STARPU_PTHREAD_MUTEX_UNLOCK(&fileBase->mutex);
-#endif
+        _starpu_hdf5_protect_stop(base);
 
         STARPU_ASSERT_MSG(status >= 0, "Can not unplug this HDF5 disk (%s)\n", fileBase->path);
         if (fileBase->created)
@@ -284,10 +284,7 @@ static void starpu_hdf5_free(void *base, void *obj, size_t size STARPU_ATTRIBUTE
         struct starpu_hdf5_obj * dataObj = (struct starpu_hdf5_obj *) obj;
         herr_t status;
 
-#ifndef H5_HAVE_THREADSAFE
-        struct starpu_hdf5_base * fileBase = (struct starpu_hdf5_base *) base;
-        STARPU_PTHREAD_MUTEX_LOCK(&fileBase->mutex);
-#endif
+        _starpu_hdf5_protect_start(base);
 
         /* TODO delete dataset */
         status = H5Dclose(dataObj->dataset);
@@ -298,9 +295,7 @@ static void starpu_hdf5_free(void *base, void *obj, size_t size STARPU_ATTRIBUTE
         status = H5Ldelete(fileBase->fileID, dataObj->path, H5P_DEFAULT);
         STARPU_ASSERT_MSG(status >= 0, "Can not delete the link associed to this dataset (%s)\n", dataObj->path);
 
-#ifndef H5_HAVE_THREADSAFE
-        STARPU_PTHREAD_MUTEX_UNLOCK(&fileBase->mutex);
-#endif
+        _starpu_hdf5_protect_stop(base);
 
         free(dataObj->path);
         free(dataObj);
@@ -330,17 +325,12 @@ static void starpu_hdf5_close(void *base, void *obj, size_t size STARPU_ATTRIBUT
         struct starpu_hdf5_obj * dataObj = (struct starpu_hdf5_obj *) obj;
         herr_t status;
 
-#ifndef H5_HAVE_THREADSAFE
-        struct starpu_hdf5_base * fileBase = (struct starpu_hdf5_base *) base;
-        STARPU_PTHREAD_MUTEX_LOCK(&fileBase->mutex);
-#endif
+        _starpu_hdf5_protect_start(base);
 
         status = H5Dclose(dataObj->dataset);
         STARPU_ASSERT_MSG(status >= 0, "Can not close this HDF5 dataset (%s)\n", dataObj->path);
 
-#ifndef H5_HAVE_THREADSAFE
-        STARPU_PTHREAD_MUTEX_UNLOCK(&fileBase->mutex);
-#endif
+        _starpu_hdf5_protect_stop(base);
 
         free(dataObj->path);
         free(dataObj);
@@ -351,10 +341,7 @@ static int starpu_hdf5_full_read(void *base, void *obj, void **ptr, size_t *size
         struct starpu_hdf5_obj * dataObj = (struct starpu_hdf5_obj *) obj;
         herr_t status;
 
-#ifndef H5_HAVE_THREADSAFE
-        struct starpu_hdf5_base * fileBase = (struct starpu_hdf5_base *) base;
-        STARPU_PTHREAD_MUTEX_LOCK(&fileBase->mutex);
-#endif
+        _starpu_hdf5_protect_start(base);
 
         /* Get the size of the dataspace (only 1 dimension) */
         *size = _starpu_get_size_obj(dataObj);
@@ -363,9 +350,8 @@ static int starpu_hdf5_full_read(void *base, void *obj, void **ptr, size_t *size
 
         status = H5Dread(dataObj->dataset, H5T_NATIVE_CHAR, H5S_ALL, H5S_ALL, H5P_DEFAULT, *ptr);
         STARPU_ASSERT_MSG(status >= 0, "Can not read data associed to this dataset (%s)\n", dataObj->path);
-#ifndef H5_HAVE_THREADSAFE
-        STARPU_PTHREAD_MUTEX_UNLOCK(&fileBase->mutex);
-#endif
+
+        _starpu_hdf5_protect_stop(base);
 
         return 0;
 }
@@ -376,14 +362,9 @@ static int starpu_hdf5_full_write(void *base, void *obj, void *ptr, size_t size)
         herr_t status;
 
         /* Write ALL the dataspace */
-#ifndef H5_HAVE_THREADSAFE
-        struct starpu_hdf5_base * fileBase = (struct starpu_hdf5_base *) base;
-        STARPU_PTHREAD_MUTEX_LOCK(&fileBase->mutex);
-#endif
+        _starpu_hdf5_protect_start(base);
         status = H5Dwrite(dataObj->dataset, H5T_NATIVE_CHAR, H5S_ALL, H5S_ALL, H5P_DEFAULT, ptr);
-#ifndef H5_HAVE_THREADSAFE
-        STARPU_PTHREAD_MUTEX_UNLOCK(&fileBase->mutex);
-#endif
+        _starpu_hdf5_protect_stop(base);
         STARPU_ASSERT_MSG(status >= 0, "Can not write data to this dataset (%s)\n", dataObj->path);
 
         return 0;
@@ -394,10 +375,7 @@ static int starpu_hdf5_read(void *base, void *obj, void *buf, off_t offset, size
         struct starpu_hdf5_obj * dataObj = (struct starpu_hdf5_obj *) obj;
         herr_t status;
 
-#ifndef H5_HAVE_THREADSAFE
-        struct starpu_hdf5_base * fileBase = (struct starpu_hdf5_base *) base;
-        STARPU_PTHREAD_MUTEX_LOCK(&fileBase->mutex);
-#endif
+        _starpu_hdf5_protect_start(base);
 
         /* Get official datatype */
         hid_t datatype = H5Dget_type(dataObj->dataset);
@@ -438,9 +416,7 @@ static int starpu_hdf5_read(void *base, void *obj, void *buf, off_t offset, size
         status = H5Sclose(dataspace_receive);
         STARPU_ASSERT_MSG(status >= 0, "Error when reading this HDF5 dataset (%s)\n", dataObj->path);
 
-#ifndef H5_HAVE_THREADSAFE
-        STARPU_PTHREAD_MUTEX_UNLOCK(&fileBase->mutex);
-#endif
+        _starpu_hdf5_protect_stop(base);
 
         return 0;
 }
@@ -450,10 +426,7 @@ static int starpu_hdf5_write(void *base, void *obj, const void *buf, off_t offse
         struct starpu_hdf5_obj * dataObj = (struct starpu_hdf5_obj *) obj;
         herr_t status;
 
-#ifndef H5_HAVE_THREADSAFE
-        struct starpu_hdf5_base * fileBase = (struct starpu_hdf5_base *) base;
-        STARPU_PTHREAD_MUTEX_LOCK(&fileBase->mutex);
-#endif
+        _starpu_hdf5_protect_start(base);
 
         /* Get official datatype */
         hid_t datatype = H5Dget_type(dataObj->dataset);
@@ -494,9 +467,7 @@ static int starpu_hdf5_write(void *base, void *obj, const void *buf, off_t offse
         status = H5Sclose(dataspace_send);
         STARPU_ASSERT_MSG(status >= 0, "Error when writing this HDF5 dataset (%s)\n", dataObj->path);
 
-#ifndef H5_HAVE_THREADSAFE
-        STARPU_PTHREAD_MUTEX_UNLOCK(&fileBase->mutex);
-#endif
+        _starpu_hdf5_protect_stop(base);
 
         return 0;
 }
