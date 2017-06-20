@@ -84,6 +84,7 @@ dist_pkgdata_perfmodels_sampling_codelets_DATA = \
 	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_12.attila	\
 	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_21.attila	\
 	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_22.attila	\
+	perfmodels/sampling/codelets/44/overlap_sleep_1024_24.attila	\
 	perfmodels/sampling/codelets/44/chol_model_11.idgraf	\
 	perfmodels/sampling/codelets/44/chol_model_21.idgraf	\
 	perfmodels/sampling/codelets/44/chol_model_22.idgraf	\
@@ -116,6 +117,7 @@ dist_pkgdata_perfmodels_sampling_codelets_DATA = \
 	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_12.mirage	\
 	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_21.mirage	\
 	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_22.mirage	\
+	perfmodels/sampling/codelets/44/overlap_sleep_1024_24.mirage	\
 	perfmodels/sampling/codelets/44/chol_model_11.sirocco	\
 	perfmodels/sampling/codelets/44/chol_model_21.sirocco	\
 	perfmodels/sampling/codelets/44/chol_model_22.sirocco	\
@@ -131,7 +133,8 @@ dist_pkgdata_perfmodels_sampling_codelets_DATA = \
 	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_11.sirocco	\
 	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_12.sirocco	\
 	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_21.sirocco	\
-	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_22.sirocco
+	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_22.sirocco	\
+	perfmodels/sampling/codelets/44/overlap_sleep_1024_24.sirocco
 
 EXTRA_DIST =				\
 	dev/checker/rename.sed		\
