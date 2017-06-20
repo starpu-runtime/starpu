@@ -2398,3 +2398,11 @@ int starpu_wake_worker_relax(int workerid)
 {
 	return _starpu_wake_worker_relax(workerid);
 }
+
+#ifdef STARPU_HAVE_HWLOC
+hwloc_cpuset_t starpu_worker_get_hwloc_cpuset(int workerid)
+{
+	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
+	return hwloc_bitmap_dup(worker->hwloc_cpu_set);
+}
+#endif

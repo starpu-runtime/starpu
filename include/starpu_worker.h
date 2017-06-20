@@ -25,6 +25,10 @@
 #include <starpu_thread.h>
 #include <starpu_task.h>
 
+#ifdef STARPU_HAVE_HWLOC
+#include <hwloc.h>
+#endif
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -161,6 +165,10 @@ void starpu_worker_lock_self(void);
 void starpu_worker_unlock_self(void);
 
 int starpu_wake_worker_relax(int workerid);
+
+#ifdef STARPU_HAVE_HWLOC
+hwloc_cpuset_t starpu_worker_get_hwloc_cpuset(int workerid);
+#endif
 
 #ifdef __cplusplus
 }

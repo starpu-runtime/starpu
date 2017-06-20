@@ -207,6 +207,7 @@ myPROGRAMS +=				\
 	main/pause_resume			\
 	main/pack				\
 	main/get_children_tasks			\
+	main/hwloc_cpuset			\
 	datawizard/acquire_cb_insert		\
 	datawizard/acquire_release		\
 	datawizard/acquire_release2		\
