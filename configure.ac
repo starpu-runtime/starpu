@@ -3252,18 +3252,6 @@ AC_SUBST(SOCL_VENDORS)
 AC_CONFIG_FILES(tests/regression/regression.sh tests/regression/profiles tests/regression/profiles.build.only)
 AC_CONFIG_HEADER(src/common/config.h include/starpu_config.h gcc-plugin/include/starpu-gcc/config.h starpu-top/config.h)
 
-#AH_BOTTOM([
-##if defined(STARPU_DEVEL) && defined(BUILDING_STARPU)
-##  ifndef STARPU_CHECKED_UNISTD_H
-##    define STARPU_CHECKED_UNISTD_H
-##    ifdef _UNISTD_H
-##      define _UNISTD_H PLEASE_DONT_INCLUDE_IT
-##      error Please do not unconditionally include unistd.h, it is not available on Windows, include config.h and test for HAVE_UNISTD_H
-##    endif
-##  endif
-##endif
-#])
-
 SANITIZE=$(echo $CFLAGS | grep sanitize)
 AM_CONDITIONAL(STARPU_SANITIZE, test -n "$SANITIZE")
 
