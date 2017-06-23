@@ -118,14 +118,6 @@ static void _starpu_data_request_unlink(struct _starpu_data_request *r)
 
 static void _starpu_data_request_destroy(struct _starpu_data_request *r)
 {
-	switch (r->async_channel.type)
-	{
-		case STARPU_DISK_RAM:
-			starpu_disk_free_request(&r->async_channel);
-			break;
-		default:
-			break;
-	}
 	//fprintf(stderr, "DESTROY REQ %p (%d) refcnt %d\n", r, node, r->refcnt);
 	_starpu_data_request_delete(r);
 }
