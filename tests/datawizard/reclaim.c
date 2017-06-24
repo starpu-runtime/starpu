@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012, 2015-2016  Université de Bordeaux
+ * Copyright (C) 2010-2012, 2015-2017  Université de Bordeaux
  * Copyright (C) 2012, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -129,7 +129,7 @@ int main(int argc, char **argv)
 	/* Register mb buffers of 1MB */
 	for (j = 0; j < mb; j++)
 	{
-		size_t size = random()%BLOCK_SIZE + 1;
+		size_t size = starpu_lrand48()%BLOCK_SIZE + 1;
 		host_ptr_array[j] = calloc(size, 1);
 		if (host_ptr_array[j] == NULL)
 		{

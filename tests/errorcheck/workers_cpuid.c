@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012, 2015-2016  Université de Bordeaux
+ * Copyright (C) 2010-2012, 2015-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -142,7 +142,7 @@ static long * generate_arrangement(int arr_size, long *set, int set_size)
 	for (i=0; i<arr_size; i++)
 	{
 		/* Pick a random value in the set */
-		j = random() % (set_size - i);
+		j = starpu_lrand48() % (set_size - i);
 
 		/* Switch the value picked up with the beginning value of set */
 		tmp = set[i+j];
