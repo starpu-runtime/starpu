@@ -218,7 +218,7 @@ def calc_times(stats):
             ti += stat._duration_time
         else:
             print("WARNING: Unknown category '" + stat._category + "'!")
-    return (ti, tr, tt, ts)
+    return ti, tr, tt, ts
 
 def save_times(ti, tr, tt, ts):
     f = open("times.csv", "w+")
