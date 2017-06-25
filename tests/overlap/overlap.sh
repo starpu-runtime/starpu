@@ -31,9 +31,6 @@ then
 
 	$PREFIX/../../tools/starpu_paje_sort paje.trace
 
-	$PREFIX/../../tools/starpu_codelet_histo_profile distrib.data
-	[ -f distrib.data.overlap_sleep_1024_24.0.a3d3725e.1024.pdf ]
-
 	$PREFIX/../../tools/starpu_codelet_profile distrib.data overlap_sleep_1024_24
 	[ -f distrib.data.gp -a -f distrib.data.0 ]
 
@@ -50,4 +47,6 @@ then
 	$PREFIX/../../tools/starpu_paje_draw_histogram paje.trace || true
 	$PREFIX/../../tools/starpu_paje_state_stats paje.trace || true
 	$PREFIX/../../tools/starpu_paje_summary paje.trace || true
+	$PREFIX/../../tools/starpu_codelet_histo_profile distrib.data || true
+	[ -f distrib.data.overlap_sleep_1024_24.0.a3d3725e.1024.pdf ] || true
 fi
