@@ -266,7 +266,7 @@ def save_efficiencies(e, ep, er, et, es):
 def usage():
     print("USAGE:")
     print("starpu_trace_state_stats.py [ -te -s=<time> ] <trace.rec>")
-    print
+    print("")
     print("OPTIONS:")
     print(" -t or --time            Compute and dump times to times.csv")
     print
@@ -274,14 +274,14 @@ def usage():
     print
     print(" -s or --seq_task_time   Used to compute task efficiency between sequential and parallel times")
     print("                         (if not set, task efficiency will be 1.0)")
-    print
+    print("")
     print("EXAMPLES:")
     print("# Compute event statistics and report them to stdout:")
     print("python starpu_trace_state_stats.py trace.rec")
-    print
+    print("")
     print("# Compute event stats, times and efficiencies:")
     print("python starpu_trace_state_stats.py -te trace.rec")
-    print
+    print("")
     print("# Compute correct task efficiency with the sequential task time:")
     print("python starpu_trace_state_stats.py -s=60093.950614 trace.rec")
 
