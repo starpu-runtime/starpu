@@ -148,7 +148,7 @@ struct starpu_data_interface_ops *_starpu_data_interface_get_ops(unsigned interf
  * some handle, the new mapping shadows the previous one.   */
 void _starpu_data_register_ram_pointer(starpu_data_handle_t handle, void *ptr)
 {
-	struct handle_entry *entry, *old_entry;
+	struct handle_entry *entry;
 
 	_STARPU_MALLOC(entry, sizeof(*entry));
 
@@ -174,6 +174,8 @@ void _starpu_data_register_ram_pointer(starpu_data_handle_t handle, void *ptr)
 	else
 #endif
 	{
+		struct handle_entry *old_entry;
+
 		_starpu_spin_lock(&registered_handles_lock);
 		HASH_FIND_PTR(registered_handles, &ptr, old_entry);
 		if (old_entry)
