@@ -18,7 +18,7 @@
 
 #ifdef STARPU_USE_CUDA
 #ifndef _GNU_SOURCE
-#define _GNU_SOURCE
+#define _GNU_SOURCE 1
 #endif
 #include <sched.h>
 #endif

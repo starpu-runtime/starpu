@@ -21,7 +21,7 @@
 
 
 #ifndef _GNU_SOURCE
-#define _GNU_SOURCE  /* ou _BSD_SOURCE ou _SVID_SOURCE */
+#define _GNU_SOURCE  1 /* ou _BSD_SOURCE ou _SVID_SOURCE */
 #endif
 
 #include <string.h>
