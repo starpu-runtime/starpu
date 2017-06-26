@@ -241,11 +241,6 @@ static void start_simgrid(int *argc, char **argv)
 	MSG_create_environment(path);
 }
 
-struct main_args
-{
-	int argc;
-	char **argv;
-};
 static int main_ret;
 
 int do_starpu_main(int argc, char *argv[])
