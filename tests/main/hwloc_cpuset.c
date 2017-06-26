@@ -79,5 +79,7 @@ int main(int argc, char **argv)
 #else
 	status = STARPU_TEST_SKIPPED;
 #endif
+	starpu_shutdown();	
+
 	return status;
 }
