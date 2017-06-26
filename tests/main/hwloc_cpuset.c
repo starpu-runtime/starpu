@@ -27,7 +27,11 @@ int main(int argc, char **argv)
 {
 	int status = 0;
 #ifdef STARPU_HAVE_HWLOC
-	int ret = starpu_init(NULL);
+	struct starpu_conf conf;
+	starpu_conf_init(&conf);
+	conf.nmpi_ms = 0;
+	
+	int ret = starpu_init(&conf);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 	int nworkers = starpu_worker_get_count_by_type(STARPU_CPU_WORKER);
