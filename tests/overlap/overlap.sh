@@ -32,7 +32,7 @@ then
 	$PREFIX/../../tools/starpu_paje_sort paje.trace
 
 	$PREFIX/../../tools/starpu_codelet_profile distrib.data overlap_sleep_1024_24
-	[ -f distrib.data.gp -a -f distrib.data.0 ]
+	[ -f distrib.data.gp -a \( -f distrib.data.0 -o -f distrib.data.1 -o -f distrib.data.2 -o -f distrib.data.3 -o -f distrib.data.4 \) ]
 
 	$PREFIX/../../tools/starpu_fxt_data_trace $PREFIX/prof_file_${USER}_0 overlap_sleep_1024_24
 	[ -f data_trace.gp ]
