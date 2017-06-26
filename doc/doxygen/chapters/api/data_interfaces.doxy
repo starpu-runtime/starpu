@@ -414,15 +414,15 @@ Register into the \p handle that to store data on node \p node it should use the
 buffer located at \p ptr, or device handle \p dev_handle and offset \p offset
 (for OpenCL, notably), with \p ldy elements between rows and \p ldz elements between z planes.
 
-\fn void starpu_bcsr_data_register(starpu_data_handle_t *handle, int home_node, uint32_t nnz, uint32_t nrows, uintptr_t nzval, uint32_t *colind, uint32_t *rowptr, uint32_t firstentry, uint32_t r, uint32_t c, size_t elemsize)
+\fn void starpu_bcsr_data_register(starpu_data_handle_t *handle, int home_node, uint32_t nnz, uint32_t nrow, uintptr_t nzval, uint32_t *colind, uint32_t *rowptr, uint32_t firstentry, uint32_t r, uint32_t c, size_t elemsize)
 \ingroup API_Data_Interfaces
 This variant of starpu_data_register() uses the BCSR (Blocked
 Compressed Sparse Row Representation) sparse matrix interface.
 Register the sparse matrix made of \p nnz non-zero blocks of elements of
 size \p elemsize stored in \p nzval and initializes \p handle to represent it.
-Blocks have size \p r * \p c. \p nrows is the number of rows (in terms of
+Blocks have size \p r * \p c. \p nrow is the number of rows (in terms of
 blocks), \p colind is an array of nnz elements, colind[i] is the block-column index for block i in \p nzval,
-\p rowptr is an array of nrows+1 elements, rowptr[i] is the block-index (in \p nzval) of the first block of row i. By convention, rowptr[nrows] is the number of blocks, this allows an easier access of the matrix's elements for the kernels.
+\p rowptr is an array of nrow+1 elements, rowptr[i] is the block-index (in \p nzval) of the first block of row i. By convention, rowptr[nrow] is the number of blocks, this allows an easier access of the matrix's elements for the kernels.
 \p firstentry is the index of the first entry of the given arrays
 (usually 0 or 1).
 
@@ -868,7 +868,7 @@ row representation)
 \var uint32_t *starpu_bcsr_interface::colind
     array of nnz elements, colind[i] is the block-column index for block i in nzval
 \var uint32_t *starpu_bcsr_interface::rowptr
-    array of nrows+1 elements, rowptr[i] is the block-index (in nzval) of the first block of row i. By convention, rowptr[nrows] is the number of blocks, this allows an easier access of the matrix's elements for the kernels.
+    array of nrow+1 elements, rowptr[i] is the block-index (in nzval) of the first block of row i. By convention, rowptr[nrow] is the number of blocks, this allows an easier access of the matrix's elements for the kernels.
 \var starpu_bcsr_interface::firstentry
     k for k-based indexing (0 or 1 usually). Also useful when partitionning the matrix.
 \var uint32_t starpu_bcsr_interface::r
