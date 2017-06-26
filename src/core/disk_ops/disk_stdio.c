@@ -350,7 +350,7 @@ static void starpu_stdio_unplug(void *base)
 {
 	struct starpu_stdio_base * fileBase = (struct starpu_stdio_base *) base;
 	if (fileBase->created)
-		unlink(fileBase->path);
+		rmdir(fileBase->path);
 	free(fileBase->path);
 	free(fileBase);
 }
