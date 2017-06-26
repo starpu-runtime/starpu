@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009-2012, 2014-2015  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -176,7 +176,6 @@ void launch_spmv_codelets(void)
 {
 	struct starpu_task *task_tab;
 	uint8_t *is_entry_tab;
-	int ret;
 
 	/* we call one codelet per block */
 	unsigned nblocks = starpu_bcsr_get_nnz(sparse_matrix);
@@ -263,6 +262,7 @@ void launch_spmv_codelets(void)
 	unsigned task;
 	for (task = 0; task < totaltasks; task++)
 	{
+		int ret;
 		if (is_entry_tab[task])
 		{
 			nchains++;
