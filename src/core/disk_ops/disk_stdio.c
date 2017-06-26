@@ -55,6 +55,12 @@ struct starpu_stdio_obj
 	starpu_pthread_mutex_t mutex;
 };
 
+struct starpu_stdio_base
+{
+	char * path;
+	int created;
+};
+
 static struct starpu_stdio_obj *_starpu_stdio_init(int descriptor, char *path, size_t size)
 {
 	struct starpu_stdio_obj *obj;
@@ -127,9 +133,10 @@ static void _starpu_stdio_fini(struct starpu_stdio_obj *obj)
 static void *starpu_stdio_alloc(void *base, size_t size)
 {
 	struct starpu_stdio_obj *obj;
+	struct starpu_stdio_base * fileBase = (struct starpu_stdio_base *) base;
 
 	int id;
-	char *baseCpy = _starpu_mktemp_many(base, TEMP_HIERARCHY_DEPTH, O_RDWR | O_BINARY, &id);
+	char *baseCpy = _starpu_mktemp_many(fileBase->path, TEMP_HIERARCHY_DEPTH, O_RDWR | O_BINARY, &id);
 
 	/* fail */
 	if (!baseCpy)
@@ -171,11 +178,12 @@ static void starpu_stdio_free(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, siz
 /* open an existing memory on disk */
 static void *starpu_stdio_open(void *base, void *pos, size_t size)
 {
+	struct starpu_stdio_base * fileBase = (struct starpu_stdio_base *) base;
 	struct starpu_stdio_obj *obj;
 	/* create template */
 	char *baseCpy;
-	_STARPU_MALLOC(baseCpy, strlen(base)+1+strlen(pos)+1);
-	strcpy(baseCpy,(char *) base);
+	_STARPU_MALLOC(baseCpy, strlen(fileBase->path)+1+strlen(pos)+1);
+	strcpy(baseCpy,(char *) fileBase->path);
 	strcat(baseCpy,(char *) "/");
 	strcat(baseCpy,(char *) pos);
 
@@ -316,28 +324,35 @@ static int starpu_stdio_full_write(void *base STARPU_ATTRIBUTE_UNUSED, void *obj
 	return 0;
 }
 
-/* create a new copy of parameter == base */
 static void *starpu_stdio_plug(void *parameter, starpu_ssize_t size STARPU_ATTRIBUTE_UNUSED)
 {
-	char *tmp;
-	_STARPU_MALLOC(tmp, sizeof(char)*(strlen(parameter)+1));
-	strcpy(tmp,(char *) parameter);
+	struct starpu_stdio_base * base;
+	_STARPU_MALLOC(base, sizeof(*base));
+	base->created = 0;
+
+	_STARPU_MALLOC(base->path, sizeof(char)*(strlen(parameter)+1));
+	strcpy(base->path,(char *) parameter);
 
 	{
 		struct stat buf;
-		if (!(stat(tmp, &buf) == 0 && S_ISDIR(buf.st_mode)))
+		if (!(stat(base->path, &buf) == 0 && S_ISDIR(buf.st_mode)))
 		{
-			_STARPU_ERROR("Directory '%s' does not exist\n", tmp);
+			_starpu_mkpath(base->path, S_IRWXU);
+			base->created = 1;
 		}
 	}
 
-	return (void *) tmp;
+	return (void *) base;
 }
 
 /* free memory allocated for the base */
 static void starpu_stdio_unplug(void *base)
 {
-	free(base);
+	struct starpu_stdio_base * fileBase = (struct starpu_stdio_base *) base;
+	if (fileBase->created)
+		unlink(fileBase->path);
+	free(fileBase->path);
+	free(fileBase);
 }
 
 static int get_stdio_bandwidth_between_disk_and_main_ram(unsigned node)

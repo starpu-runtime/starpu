@@ -1383,7 +1383,8 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 		_starpu_launch_drivers(&_starpu_config);
 
 	/* Allocate swap, if any */
-	_starpu_swap_init();
+	if (!is_a_sink)
+		_starpu_swap_init();
 
 	_starpu_watchdog_init();
 
