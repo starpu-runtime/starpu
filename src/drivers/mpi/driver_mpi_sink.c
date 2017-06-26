@@ -52,7 +52,7 @@ void (*_starpu_mpi_sink_lookup (const struct _starpu_mp_node * node STARPU_ATTRI
 void _starpu_mpi_sink_launch_workers(struct _starpu_mp_node *node)
 {
         //TODO
-        int i, ret;
+        int i;
         struct arg_sink_thread * arg;
         cpu_set_t cpuset;
         starpu_pthread_attr_t attr;
@@ -60,6 +60,8 @@ void _starpu_mpi_sink_launch_workers(struct _starpu_mp_node *node)
 
         for(i=0; i < node->nb_cores; i++)
         {
+		int ret;
+
                 //init the set
                 CPU_ZERO(&cpuset);
                 CPU_SET(i,&cpuset);

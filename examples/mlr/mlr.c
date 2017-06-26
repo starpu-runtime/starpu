@@ -151,25 +151,28 @@ static struct starpu_codelet cl_final =
 int main(int argc, char **argv)
 {
 	/* Initialization */
-	unsigned i,j;
+	unsigned i;
 	int ret;
+
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV)
 		return 77;
 
 	sum=0;
-	int m,n,k;
-	int* vector_mn = calloc( 2, sizeof(int) );
+	int* vector_mn = calloc(2, sizeof(int));
 	starpu_data_handle_t vector_mn_handle;
 
-	starpu_vector_data_register( &vector_mn_handle,
-				     STARPU_MAIN_RAM,
-				     (uintptr_t)vector_mn, 2,
-				     sizeof(int) );
+	starpu_vector_data_register(&vector_mn_handle,
+				    STARPU_MAIN_RAM,
+				    (uintptr_t)vector_mn, 2,
+				    sizeof(int));
 
 	/* Giving pseudo-random values to the M,N,K parameters and inserting tasks */
-	for ( i = 0; i < 42; i++)
+	for (i = 0; i < 42; i++)
 	{
+		int j;
+		int m,n,k;
+
 		m = (int) ((rand() % 10)+1);
 		n = (int) ((rand() % 10)+1);
 		k = (int) ((rand() % 10)+1);
@@ -180,16 +183,16 @@ int main(int argc, char **argv)
 		vector_mn[1] = n;
 		starpu_data_release(vector_mn_handle);
 
-		for ( j = 0; j < 42; j++)
+		for (j = 0; j < 42; j++)
 		{
-			starpu_insert_task( &cl_init,
-					    STARPU_R, vector_mn_handle,
-					    STARPU_VALUE, &k, sizeof(int),
-					    0 );
-			starpu_insert_task( &cl_final,
-					    STARPU_R, vector_mn_handle,
-					    STARPU_VALUE, &k, sizeof(int),
-					    0 );
+			starpu_insert_task(&cl_init,
+					   STARPU_R, vector_mn_handle,
+					   STARPU_VALUE, &k, sizeof(int),
+					   0);
+			starpu_insert_task(&cl_final,
+					   STARPU_R, vector_mn_handle,
+					   STARPU_VALUE, &k, sizeof(int),
+					   0);
 		}
 	}
 

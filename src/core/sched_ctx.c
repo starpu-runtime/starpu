@@ -161,10 +161,10 @@ static void _starpu_update_workers_with_ctx(int *workerids, int nworkers, int sc
 static void _starpu_update_notified_workers_with_ctx(int *workerids, int nworkers, int sched_ctx_id)
 {
 	int i;
-	struct _starpu_worker *worker = NULL;
 
 	for(i = 0; i < nworkers; i++)
 	{
+		struct _starpu_worker *worker;
 		worker = _starpu_get_worker_struct(workerids[i]);
 		_starpu_worker_gets_into_ctx(sched_ctx_id, worker);
 	}
@@ -201,10 +201,10 @@ static void _starpu_update_workers_without_ctx(int *workerids, int nworkers, int
 static void _starpu_update_notified_workers_without_ctx(int *workerids, int nworkers, int sched_ctx_id, unsigned now)
 {
 	int i;
-	struct _starpu_worker *worker = NULL;
 
 	for(i = 0; i < nworkers; i++)
 	{
+		struct _starpu_worker *worker;
 		worker = _starpu_get_worker_struct(workerids[i]);
 		if(now)
 		{

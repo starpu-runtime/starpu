@@ -220,7 +220,6 @@ static unsigned long mpi_com_id = 0;
 static void display_all_transfers_from_trace(FILE *out_paje_file, unsigned n)
 {
 	unsigned slot[MAX_MPI_NODES] = { 0 }, node;
-	int src;
 	struct mpi_transfer_list pending_receives; /* Sorted list of matches which have not happened yet */
 	double current_out_bandwidth[MAX_MPI_NODES] = { 0. };
 	double current_in_bandwidth[MAX_MPI_NODES] = { 0. };
@@ -236,6 +235,7 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, unsigned n)
 	{
 		float start_date;
 		struct mpi_transfer *cur, *match;
+		int src;
 
 		/* Find out which event comes first: a pending receive, or a new send */
 

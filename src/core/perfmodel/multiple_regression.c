@@ -29,10 +29,10 @@ int dgels_(char *trans, integer *m, integer *n, integer *nrhs, doublereal *a, in
 
 static long count_file_lines(FILE *f)
 {
-	int ch, lines=0;
+	int lines=0;
 	while(!feof(f))
 	{
-		ch = fgetc(f);
+		int ch = fgetc(f);
 		if(ch == '\n')
 		{
 			lines++;
@@ -62,8 +62,8 @@ static void dump_multiple_regression_list(double *mpar, double *my, int start, u
 static void load_old_calibration(double *mx, double *my, unsigned nparameters, char *filepath)
 {
 	char buffer[1024];
-	char *record,*line;
-	int i=0,j=0;
+	char *line;
+	int i=0;
 
 	FILE *f=NULL;
 	f = fopen(filepath, "a+");
@@ -72,10 +72,10 @@ static void load_old_calibration(double *mx, double *my, unsigned nparameters, c
 	fgets(buffer,sizeof(buffer),f);//skipping first line
 	while((line=fgets(buffer,sizeof(buffer),f))!=NULL)
 	{
-		record = strtok(line,",");
+		char *record = strtok(line,",");
 		my[i] = atof(record);
 		record = strtok(NULL,",");
-		j=0;
+		int j=0;
 		while(record != NULL)
 		{
 			mx[i*nparameters+j] = atof(record) ;

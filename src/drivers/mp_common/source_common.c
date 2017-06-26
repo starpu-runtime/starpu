@@ -209,16 +209,15 @@ static void _starpu_src_common_handle_stored_async(struct _starpu_mp_node *node)
  * return 1 if the message has been stored
  * return 0 if the message is unknown or synchrone */
 int _starpu_src_common_store_message(struct _starpu_mp_node *node,
-		void * arg, int arg_size, enum _starpu_mp_command answer)
+				     void * arg, int arg_size, enum _starpu_mp_command answer)
 {
-	struct mp_message * message = NULL;
 	switch(answer)
 	{
 		case STARPU_MP_COMMAND_EXECUTION_COMPLETED:
 		case STARPU_MP_COMMAND_EXECUTION_DETACHED_COMPLETED:
 		case STARPU_MP_COMMAND_PRE_EXECUTION:
 		{
-			message = mp_message_new();
+			struct mp_message *message = mp_message_new();
 			message->type = answer;
 			_STARPU_MALLOC(message->buffer, arg_size);
 			memcpy(message->buffer, arg, arg_size);

@@ -95,8 +95,6 @@ int main(int argc, char **argv)
 	starpu_void_data_register(&handle2);
 	starpu_data_set_sequential_consistency_flag(handle2, 0);
 
-	struct starpu_task *taskA, *taskB, *taskC;
-
 #if 1
 	for (loop = 0; loop < nloops; loop++)
 	{
@@ -112,6 +110,7 @@ int main(int argc, char **argv)
 		int writeB, dataB;
 		int writeC, dataC;
 		starpu_data_handle_t handleA, handleB, handleC;
+		struct starpu_task *taskA, *taskB, *taskC;
 
 		handleA = handle1;
 		writeA = !!(loop & 8);

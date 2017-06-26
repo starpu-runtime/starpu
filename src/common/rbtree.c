@@ -145,8 +145,7 @@ static void starpu_rbtree_rotate(struct starpu_rbtree *tree, struct starpu_rbtre
 void starpu_rbtree_insert_rebalance(struct starpu_rbtree *tree, struct starpu_rbtree_node *parent,
                              int index, struct starpu_rbtree_node *node)
 {
-    struct starpu_rbtree_node *grand_parent, *uncle, *tmp;
-    int left, right;
+    struct starpu_rbtree_node *grand_parent, *tmp;
 
     assert(starpu_rbtree_check_alignment(parent));
     assert(starpu_rbtree_check_alignment(node));
@@ -162,7 +161,10 @@ void starpu_rbtree_insert_rebalance(struct starpu_rbtree *tree, struct starpu_rb
 
     for (;;)
     {
-        if (parent == NULL)
+	struct starpu_rbtree_node *uncle;
+	int left, right;
+
+	if (parent == NULL)
 	{
             starpu_rbtree_set_black(node);
             break;
@@ -414,11 +416,11 @@ struct starpu_rbtree_node * starpu_rbtree_walk(struct starpu_rbtree_node *node, 
     }
     else
     {
-        struct starpu_rbtree_node *parent;
-        int index;
-
         for (;;)
 	{
+            struct starpu_rbtree_node *parent;
+	    int index;
+
             parent = starpu_rbtree_parent(node);
 
             if (parent == NULL)
