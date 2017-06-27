@@ -154,6 +154,7 @@ EXTRA_DIST =				\
 	dev/valgrind/starpu.suppr	\
 	dev/valgrind/valgrind.suppr	\
 	dev/valgrind/valgrind.sh	\
+	dev/valgrind/valgrind_xml.sh	\
 	dev/valgrind/helgrind.sh	\
 	dev/tsan/starpu.suppr		\
 	dev/lsan/libc.suppr		\
