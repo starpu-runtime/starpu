@@ -49,6 +49,10 @@ extern "C"
 #define _STARPU_MPI_FUT_DATA_SET_RANK			0x521a
 #define _STARPU_MPI_FUT_IRECV_TERMINATED		0x521b
 #define _STARPU_MPI_FUT_ISEND_TERMINATED		0x521c
+#define _STARPU_MPI_FUT_TESTING_DETACHED_BEGIN		0x521d
+#define _STARPU_MPI_FUT_TESTING_DETACHED_END		0x521e
+#define _STARPU_MPI_FUT_TEST_BEGIN			0x521f
+#define _STARPU_MPI_FUT_TEST_END			0x5220
 
 #ifdef STARPU_USE_FXT
 #define _STARPU_MPI_TRACE_START(rank, worldsize)	\
@@ -98,6 +102,22 @@ extern "C"
 	FUT_DO_PROBE3(_STARPU_MPI_FUT_UWAIT_END, (src), (mpi_tag), _starpu_gettid());
 #define _STARPU_MPI_TRACE_DATA_SET_RANK(handle, rank)	\
 	FUT_DO_PROBE3(_STARPU_MPI_FUT_DATA_SET_RANK, (handle), (rank), _starpu_gettid());
+#if 0
+/* This is very expensive in the trace, only enable for debugging */
+#define _STARPU_MPI_TRACE_TESTING_DETACHED_BEGIN()	\
+	FUT_DO_PROBE1(_STARPU_MPI_FUT_TESTING_DETACHED_BEGIN, _starpu_gettid());
+#define _STARPU_MPI_TRACE_TESTING_DETACHED_END()	\
+	FUT_DO_PROBE1(_STARPU_MPI_FUT_TESTING_DETACHED_END, _starpu_gettid());
+#define _STARPU_MPI_TRACE_TEST_BEGIN(peer, mpi_tag)	\
+	FUT_DO_PROBE3(_STARPU_MPI_FUT_TEST_BEGIN, (peer), (mpi_tag), _starpu_gettid());
+#define _STARPU_MPI_TRACE_TEST_END(peer, mpi_tag)	\
+	FUT_DO_PROBE3(_STARPU_MPI_FUT_TEST_END, (peer), (mpi_tag), _starpu_gettid());
+#else
+#define _STARPU_MPI_TRACE_TESTING_DETACHED_BEGIN()		do {} while(0)
+#define _STARPU_MPI_TRACE_TESTING_DETACHED_END()		do {} while(0)
+#define _STARPU_MPI_TRACE_TEST_BEGIN(peer, mpi_tag)		do {} while(0)
+#define _STARPU_MPI_TRACE_TEST_END(peer, mpi_tag)		do {} while(0)
+#endif
 #define TRACE
 #else
 #define _STARPU_MPI_TRACE_START(a, b)				do {} while(0);
@@ -123,6 +143,10 @@ extern "C"
 #define _STARPU_MPI_TRACE_UWAIT_BEGIN(a, b)			do {} while(0);
 #define _STARPU_MPI_TRACE_UWAIT_END(a, b)			do {} while(0);
 #define _STARPU_MPI_TRACE_DATA_SET_RANK(a, b)			do {} while(0);
+#define _STARPU_MPI_TRACE_TESTING_DETACHED_BEGIN()		do {} while(0)
+#define _STARPU_MPI_TRACE_TESTING_DETACHED_END()		do {} while(0)
+#define _STARPU_MPI_TRACE_TEST_BEGIN(peer, mpi_tag)		do {} while(0)
+#define _STARPU_MPI_TRACE_TEST_END(peer, mpi_tag)		do {} while(0)
 #endif
 
 #ifdef __cplusplus
