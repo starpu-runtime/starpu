@@ -2868,6 +2868,46 @@ static void handle_mpi_uwait_end(struct fxt_ev_64 *ev, struct starpu_fxt_options
 		recfmt_mpicommthread_set_state(date, "P");
 }
 
+static void handle_mpi_testing_detached_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	double date = get_event_time_stamp(ev, options);
+
+	if (out_paje_file)
+		mpicommthread_push_state(date, options->file_prefix, "TD");
+	if (trace_file)
+		recfmt_mpicommthread_push_state(date, "TD");
+}
+
+static void handle_mpi_testing_detached_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	double date = get_event_time_stamp(ev, options);
+
+	if (out_paje_file)
+		mpicommthread_pop_state(date, options->file_prefix);
+	if (trace_file)
+		recfmt_mpicommthread_pop_state(date);
+}
+
+static void handle_mpi_test_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	double date = get_event_time_stamp(ev, options);
+
+	if (out_paje_file)
+		mpicommthread_push_state(date, options->file_prefix, "MT");
+	if (trace_file)
+		recfmt_mpicommthread_push_state(date, "MT");
+}
+
+static void handle_mpi_test_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	double date = get_event_time_stamp(ev, options);
+
+	if (out_paje_file)
+		mpicommthread_pop_state(date, options->file_prefix);
+	if (trace_file)
+		recfmt_mpicommthread_pop_state(date);
+}
+
 static void handle_set_profiling(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	int status = ev->param[0];
@@ -3473,6 +3513,22 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 
 			case _STARPU_MPI_FUT_DATA_SET_RANK:
 				handle_mpi_data_set_rank(&ev, options);
+				break;
+
+			case _STARPU_MPI_FUT_TESTING_DETACHED_BEGIN:
+				handle_mpi_testing_detached_begin(&ev, options);
+				break;
+
+			case _STARPU_MPI_FUT_TESTING_DETACHED_END:
+				handle_mpi_testing_detached_end(&ev, options);
+				break;
+
+			case _STARPU_MPI_FUT_TEST_BEGIN:
+				handle_mpi_test_begin(&ev, options);
+				break;
+
+			case _STARPU_MPI_FUT_TEST_END:
+				handle_mpi_test_end(&ev, options);
 				break;
 
 			case _STARPU_FUT_SET_PROFILING:
