@@ -79,6 +79,21 @@ static int _starpu_valgrind_print_once STARPU_ATTRIBUTE_UNUSED = 0;
 		}							\
 	} while(0)
 
+#  define STARPU_SKIP_IF_VALGRIND_RETURN_SKIP \
+	do \
+	{								\
+		if(STARPU_RUNNING_ON_VALGRIND)					\
+		{							\
+			STARPU_HG_DISABLE_CHECKING(_starpu_valgrind_print_once);	\
+			if (!_starpu_valgrind_print_once)		\
+			{						\
+				FPRINTF(stderr, "Running on valgrind, skipping the actual computations\n"); \
+				_starpu_valgrind_print_once = 1;	\
+			}						\
+			return STARPU_TEST_SKIPPED;			\
+		}							\
+	} while(0)
+
 #  define STARPU_RETURN(ret) \
 	do								\
 	{								\
@@ -94,6 +109,7 @@ static int _starpu_valgrind_print_once STARPU_ATTRIBUTE_UNUSED = 0;
 #  define STARPU_RETURN(ret) return ret
 #  define STARPU_SKIP_IF_VALGRIND
 #  define STARPU_SKIP_IF_VALGRIND_RETURN_ZERO
+#  define STARPU_SKIP_IF_VALGRIND_RETURN_SKIP
 #endif  /* defined(STARPU_HAVE_VALGRIND_H) && !defined(STARPU_VALGRIND_FULL) */
 
 #ifndef ANNOTATE_HAPPENS_BEFORE
