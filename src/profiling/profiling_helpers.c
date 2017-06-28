@@ -19,19 +19,6 @@
 #include <profiling/profiling.h>
 #include <datawizard/memory_nodes.h>
 
-static double convert_to_byte_units(float d, unsigned max_unit, unsigned *unit)
-{
-	const double divisor = 1024;
-
-	*unit = 0;
-	while (d > divisor && *unit < max_unit)
-	{
-		d /= divisor;
-		(*unit)++;
-	}
-	return d;
-}
-
 static double convert_to_GB(float d)
 {
 	const double divisor = 1024;
@@ -41,8 +28,6 @@ static double convert_to_GB(float d)
 void _starpu_profiling_bus_helper_display_summary(FILE *stream)
 {
 	int long long sum_transferred = 0;
-	const char *byte_units[] = { "B", "KB", "MB", "GB", "TB" };
-	unsigned max_unit = sizeof(byte_units) / sizeof(byte_units[0]);
 
 	fprintf(stream, "\n#---------------------\n");
 	fprintf(stream, "Data transfer stats:\n");
@@ -64,30 +49,22 @@ void _starpu_profiling_bus_helper_display_summary(FILE *stream)
 		int long long transfer_cnt =  bus_info.transfer_count;
 		double elapsed_time = starpu_timing_timespec_to_us(&bus_info.total_time) / 1e6;
 
-		/* Ne pas utiliser convert_to_byte_units */
-		/* Hardcorder les unités: unit=3 "GB" */
-		unsigned unit = 3;
 		double d = convert_to_GB(transferred);
-		/* double d = convert_to_byte_units(transferred, max_unit, &unit); */
 
 		_starpu_memory_node_get_name(src, src_name, sizeof(src_name));
 		_starpu_memory_node_get_name(dst, dst_name, sizeof(dst_name));
 
 		fprintf(stream, "\t%s -> %s", src_name, dst_name);
-		fprintf(stream, "\t%.4lf %s", d, byte_units[unit]);
-		fprintf(stream, "\t%.4lf %s/s", (d * 1024) / elapsed_time, byte_units[unit - 1]); /* MB/s */
-		fprintf(stream, "\t(transfers : %lld - avg %.4lf %s)\n", transfer_cnt, (d * 1024) / transfer_cnt, byte_units[unit - 1]); /* avg MB/s */
+		fprintf(stream, "\t%.4lf %s", d, "GB");
+		fprintf(stream, "\t%.4lf %s/s", (d * 1024) / elapsed_time, "MB");
+		fprintf(stream, "\t(transfers : %lld - avg %.4lf %s)\n", transfer_cnt, (d * 1024) / transfer_cnt, "MB");
 
 		sum_transferred += transferred;
 	}
 	
-	/* Ne pas utiliser convert_to_byte_units */
-	/* Hardcorder les unités: unit=3 "GB" */
-	unsigned unit = 3;
-	/* double d = convert_to_byte_units(sum_transferred, max_unit, &unit); */
 	double d = convert_to_GB(sum_transferred);
 
-	fprintf(stream, "Total transfers: %.4lf %s\n", d, byte_units[unit]);
+	fprintf(stream, "Total transfers: %.4lf %s\n", d, "GB");
 	fprintf(stream, "#---------------------\n");
 }
 
