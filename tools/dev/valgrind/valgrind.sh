@@ -20,7 +20,7 @@ DIRNAME=$(dirname $0)
 
 if test "$EXEC" == "valgrind"
 then
-    RUN="valgrind --track-origins=yes --show-reachable=yes --leak-check=full --errors-for-leak-kinds=all --show-leak-kinds=all"
+    RUN="valgrind --track-origins=yes --show-reachable=yes --leak-check=full --errors-for-leak-kinds=all --show-leak-kinds=all --error-exitcode=42"
 elif test "$EXEC" == "valgrind_xml"
 then
     mkdir -p ${DIRNAME}/../../../valgrind
