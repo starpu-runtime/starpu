@@ -16,13 +16,15 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
 EXEC=$(basename $0 .sh)
+DIRNAME=$(dirname $0)
+
 if test "$EXEC" == "valgrind"
 then
     RUN="valgrind --track-origins=yes --show-reachable=yes --leak-check=full --errors-for-leak-kinds=all --show-leak-kinds=all"
 elif test "$EXEC" == "valgrind_xml"
 then
-    mkdir -p valgrind
-    XML_FILE=$(mktemp -p valgrind starpu-valgrind_XXXXXXXXXX.xml)
+    mkdir -p ${DIRNAME}/../../../valgrind
+    XML_FILE=$(mktemp -p ${DIRNAME}/../../../valgrind starpu-valgrind_XXXXXXXXXX.xml)
     RUN="valgrind --track-origins=yes --show-reachable=yes --leak-check=full --errors-for-leak-kinds=all --show-leak-kinds=all --xml=yes --xml-file=${XML_FILE}"
 else
     RUN="valgrind --tool=$EXEC --error-exitcode=42"
