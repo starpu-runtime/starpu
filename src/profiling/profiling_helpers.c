@@ -24,7 +24,8 @@ static double convert_to_byte_units(float d, unsigned max_unit, unsigned *unit)
 	const double divisor = 1024;
 
 	*unit = 0;
-	while (d > divisor && *unit < max_unit) {
+	while (d > divisor && *unit < max_unit)
+	{
 		d /= divisor;
 		(*unit)++;
 	}
