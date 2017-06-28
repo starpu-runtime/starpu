@@ -44,7 +44,7 @@
 
    <host id="RAM" power="1"/>
 
-   <host id="DISK0" speed="1f"/>
+   <host id="DISK0" power="1"/>
 
    <link id="Host" bandwidth="6526732233.112210" latency="0.000000"/>
 
