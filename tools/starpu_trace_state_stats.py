@@ -269,9 +269,9 @@ def usage():
     print("")
     print("OPTIONS:")
     print(" -t or --time            Compute and dump times to times.csv")
-    print
+    print("")
     print(" -e or --efficiency      Compute and dump efficiencies to efficiencies.csv")
-    print
+    print("")
     print(" -s or --seq_task_time   Used to compute task efficiency between sequential and parallel times")
     print("                         (if not set, task efficiency will be 1.0)")
     print("")
