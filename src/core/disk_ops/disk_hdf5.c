@@ -559,6 +559,13 @@ static void starpu_hdf5_wait(void * event)
                 ;
 }
 
+static int starpu_hdf5_test(void * event)
+{
+        volatile int * finished = (int *) event;
+
+        return *finished == 1;
+}
+
 static int starpu_hdf5_full_read(void *base, void *obj, void **ptr, size_t *size)
 {
         struct starpu_hdf5_obj * dataObj = (struct starpu_hdf5_obj *) obj;
@@ -609,6 +616,33 @@ static int starpu_hdf5_write(void *base, void *obj, const void *buf, off_t offse
         starpu_hdf5_wait(&finished);
 
         return 0;
+}
+
+static void * starpu_hdf5_async_read(void *base, void *obj, void *buf, off_t offset, size_t size)
+{
+        int * finished;
+        _STARPU_MALLOC(finished, sizeof(*finished));
+        *finished = 0;
+
+        starpu_hdf5_send_work(base, obj, buf, offset, size, (void*) finished, READ);
+
+        return finished;
+}
+
+static void * starpu_hdf5_async_write(void *base, void *obj, void *buf, off_t offset, size_t size)
+{
+        int * finished;
+        _STARPU_MALLOC(finished, sizeof(*finished));
+        *finished = 0;
+
+        starpu_hdf5_send_work(base, obj, (void *) buf, offset, size, (void*) finished, WRITE);
+
+        return finished;
+}
+
+static void starpu_hdf5_free_request(void * event)
+{
+        free(event);
 }
 
 static int get_hdf5_bandwidth_between_disk_and_main_ram(unsigned node)
@@ -679,5 +713,11 @@ struct starpu_disk_ops starpu_disk_hdf5_ops =
 	.copy = NULL,
 	.bandwidth = get_hdf5_bandwidth_between_disk_and_main_ram,
 	.full_read = starpu_hdf5_full_read,
-	.full_write = starpu_hdf5_full_write
+	.full_write = starpu_hdf5_full_write,
+
+	.async_read = starpu_hdf5_async_read,
+	.async_write = starpu_hdf5_async_write,
+	.wait_request = starpu_hdf5_wait,
+	.test_request = starpu_hdf5_test,
+	.free_request = starpu_hdf5_free_request
 };
