@@ -378,6 +378,7 @@ if STARPU_CROSS_COMPILING
 else
 basic_examples_vector_scal_SOURCES +=		\
 	basic_examples/vector_scal_cpu_icc.icc
+basic_examples_vector_scal_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(ICC) -o $@
 endif
 endif
 
