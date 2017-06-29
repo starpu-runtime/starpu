@@ -329,10 +329,11 @@ basic_examples_vector_scal_SOURCES =		\
 	basic_examples/vector_scal.c		\
 	basic_examples/vector_scal_cpu.c
 
+basic_examples_vector_scal_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) $(basic_examples_vector_scal_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 if STARPU_HAVE_ICC
 basic_examples_vector_scal_SOURCES +=		\
 	basic_examples/vector_scal_cpu_icc.icc
-basic_examples_vector_scal_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(ICC) -o $@
+basic_examples_vector_scal_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(ICC) $(basic_examples_vector_scal_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 endif
 
 if STARPU_USE_CUDA
