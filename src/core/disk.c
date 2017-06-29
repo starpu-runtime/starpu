@@ -147,7 +147,7 @@ void _starpu_disk_free(unsigned node, void *obj, size_t size)
 /* src_node == disk node and dst_node == STARPU_MAIN_RAM */
 int _starpu_disk_read(unsigned src_node, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size, struct _starpu_async_channel *channel)
 {
-        void * event;
+        void *event = NULL;
 	int pos = get_location_with_node(src_node);
 
         if (channel != NULL)
