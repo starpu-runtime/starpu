@@ -302,7 +302,7 @@ static void create_task_11(unsigned k)
 	if (get_block_rank(k, k) == rank)
 	{
 #ifdef VERBOSE_INIT
-		fprintf(stderr, "CREATE real task 11(%u) (TAG11_SAVE(%u) = %lx) on node %d\n", k, k, TAG11_SAVE(k), rank);
+		fprintf(stderr, "CREATE real task 11(%u) (TAG11_SAVE(%u) = %lux) on node %d\n", k, k, TAG11_SAVE(k), rank);
 #endif
 		create_task_11_real(k);
 	}
