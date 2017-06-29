@@ -225,3 +225,27 @@
    fun:hwloc_look_pci.part.0
    fun:hwloc_topology_load
 }
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:memalign
+   fun:tls_get_addr_tail
+   obj:*
+   obj:*
+   obj:*
+   fun:hwloc_backends_notify_new_object
+   obj:/usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.3
+   fun:hwloc_insert_pci_device_list
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: indirect
+   fun:malloc
+   fun:strdup
+   obj:*
+   obj:*
+   obj:*
+   fun:hwloc_topology_load
+}
