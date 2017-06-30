@@ -29,5 +29,5 @@ then
 else
     RUN="valgrind --tool=$EXEC --error-exitcode=42"
 fi
-SUPPRESSIONS=$(for f in $(dirname $0)/*.suppr ; do echo "--suppressions=$f" ; done)
+SUPPRESSIONS=$(for f in $(dirname $0)/*.suppr /usr/share/hwloc/hwloc-valgrind.supp; do if test -f $f ; then echo "--suppressions=$f" ; fi ; done)
 $RUN --num-callers=42 --gen-suppressions=all $SUPPRESSIONS $*
