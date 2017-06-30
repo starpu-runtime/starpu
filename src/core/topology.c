@@ -1482,7 +1482,7 @@ _starpu_init_machine_config(struct _starpu_machine_config *config, int no_mp_con
 		if (ncpu == -1)
 		{
 			unsigned mic_busy_cpus = 0;
-			unsigned j = 0;
+			int j = 0;
 			for (j = 0; j < STARPU_MAXMICDEVS; j++)
 				mic_busy_cpus += (topology->nmiccores[j] ? 1 : 0);
 
