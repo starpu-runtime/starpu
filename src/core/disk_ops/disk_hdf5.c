@@ -233,7 +233,7 @@ static void * _starpu_hdf5_internal_thread(void * arg)
                         _starpu_hdf5_protect_stop(work->base);
 
                         /* Update event to tell it's finished */
-                        *((int *) work->event) = 1;
+                        starpu_sem_post((starpu_sem_t *) work->event);
 
                         free(work);
                 }
@@ -553,24 +553,24 @@ static void starpu_hdf5_close(void *base, void *obj, size_t size STARPU_ATTRIBUT
 
 static void starpu_hdf5_wait(void * event)
 {
-        volatile int * finished = (int *) event;
+        starpu_sem_t * finished = (starpu_sem_t *) event;
 
-        while (*finished == 0)
-                ;
+        starpu_sem_wait(finished);
 }
 
 static int starpu_hdf5_test(void * event)
 {
-        volatile int * finished = (int *) event;
+        starpu_sem_t * finished = (starpu_sem_t *) event;
 
-        return *finished == 1;
+        return starpu_sem_trywait(finished) == 0;
 }
 
 static int starpu_hdf5_full_read(void *base, void *obj, void **ptr, size_t *size)
 {
         struct starpu_hdf5_obj * dataObj = (struct starpu_hdf5_obj *) obj;
 
-        int finished = 0;
+        starpu_sem_t finished;
+        starpu_sem_init(&finished, 0, 0);
 
         _starpu_hdf5_protect_start(base);
         *size = _starpu_get_size_obj(dataObj);
@@ -581,48 +581,59 @@ static int starpu_hdf5_full_read(void *base, void *obj, void **ptr, size_t *size
         starpu_hdf5_send_work(base, obj, *ptr, 0, *size, (void*) &finished, FULL_READ);
         
         starpu_hdf5_wait(&finished);
+
+        starpu_sem_destroy(&finished);
         
         return 0;
 }
 
 static int starpu_hdf5_full_write(void *base, void *obj, void *ptr, size_t size)
 {
-        int finished = 0;
+        starpu_sem_t finished;
+        starpu_sem_init(&finished, 0, 0);
 
         starpu_hdf5_send_work(base, obj, ptr, 0, size, (void*) &finished, FULL_WRITE);
 
         starpu_hdf5_wait(&finished);
+
+        starpu_sem_destroy(&finished);
 
         return 0;
 }
 
 static int starpu_hdf5_read(void *base, void *obj, void *buf, off_t offset, size_t size)
 {
-        int finished = 0;
+        starpu_sem_t finished;
+        starpu_sem_init(&finished, 0, 0);
 
         starpu_hdf5_send_work(base, obj, buf, offset, size, (void*) &finished, READ);
 
         starpu_hdf5_wait(&finished);
+
+        starpu_sem_destroy(&finished);
 
         return 0;
 }
 
 static int starpu_hdf5_write(void *base, void *obj, const void *buf, off_t offset, size_t size)
 {
-        int finished = 0;
+        starpu_sem_t finished;
+        starpu_sem_init(&finished, 0, 0);
 
         starpu_hdf5_send_work(base, obj, (void *) buf, offset, size, (void*) &finished, WRITE);
 
         starpu_hdf5_wait(&finished);
+
+        starpu_sem_destroy(&finished);
 
         return 0;
 }
 
 static void * starpu_hdf5_async_read(void *base, void *obj, void *buf, off_t offset, size_t size)
 {
-        int * finished;
+        starpu_sem_t * finished;
         _STARPU_MALLOC(finished, sizeof(*finished));
-        *finished = 0;
+        starpu_sem_init(finished, 0, 0);
 
         starpu_hdf5_send_work(base, obj, buf, offset, size, (void*) finished, READ);
 
@@ -631,9 +642,9 @@ static void * starpu_hdf5_async_read(void *base, void *obj, void *buf, off_t off
 
 static void * starpu_hdf5_async_write(void *base, void *obj, void *buf, off_t offset, size_t size)
 {
-        int * finished;
+        starpu_sem_t * finished;
         _STARPU_MALLOC(finished, sizeof(*finished));
-        *finished = 0;
+        starpu_sem_init(finished, 0, 0);
 
         starpu_hdf5_send_work(base, obj, (void *) buf, offset, size, (void*) finished, WRITE);
 
@@ -642,6 +653,7 @@ static void * starpu_hdf5_async_write(void *base, void *obj, void *buf, off_t of
 
 static void starpu_hdf5_free_request(void * event)
 {
+        starpu_sem_destroy(event);
         free(event);
 }
 
