@@ -1027,21 +1027,16 @@ void _starpu_delete_all_sched_ctxs()
 	unsigned i;
 	for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
 	{
-		_starpu_sched_ctx_lock_write(i);
 		struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(i);
 		if(sched_ctx->id != STARPU_NMAX_SCHED_CTXS)
 		{
+			_starpu_sched_ctx_lock_write(i);
 			_starpu_sched_ctx_free_scheduling_data(sched_ctx);
 			_starpu_barrier_counter_destroy(&sched_ctx->tasks_barrier);
 			_starpu_barrier_counter_destroy(&sched_ctx->ready_tasks_barrier);
 			_starpu_sched_ctx_unlock_write(i);
 			STARPU_PTHREAD_RWLOCK_DESTROY(&sched_ctx->rwlock);
 			_starpu_delete_sched_ctx(sched_ctx);
-		}
-		else
-		{
-			_starpu_sched_ctx_unlock_write(i);
-			STARPU_PTHREAD_RWLOCK_DESTROY(&sched_ctx->rwlock);
 		}
 	}
 
