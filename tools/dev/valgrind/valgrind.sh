@@ -31,9 +31,4 @@ else
 fi
 SUPPRESSIONS=$(for f in $(dirname $0)/*.suppr /usr/share/hwloc/hwloc-valgrind.supp; do if test -f $f ; then echo "--suppressions=$f" ; fi ; done)
 
-if test "$EXEC" == "valgrind_xml"
-then
-    $RUN --num-callers=42 --gen-suppressions=all $SUPPRESSIONS $* || true
-else
-    $RUN --num-callers=42 --gen-suppressions=all $SUPPRESSIONS $*
-fi
+$RUN --num-callers=42 --gen-suppressions=all $SUPPRESSIONS $*
