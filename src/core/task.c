@@ -56,6 +56,8 @@ static int limit_min_submitted_tasks;
 static int limit_max_submitted_tasks;
 static int watchdog_crash;
 
+#define _STARPU_TASK_MAGIC 42
+
 /* Called once at starpu_init */
 void _starpu_task_init(void)
 {
@@ -98,7 +100,7 @@ void starpu_task_init(struct starpu_task *task)
 	task->predicted_transfer = NAN;
 	task->predicted_start = NAN;
 
-	task->magic = 42;
+	task->magic = _STARPU_TASK_MAGIC;
 	task->sched_ctx = STARPU_NMAX_SCHED_CTXS;
 
 	task->flops = 0.0;
@@ -566,7 +568,9 @@ static int _starpu_task_submit_head(struct starpu_task *task)
 
 		/* Check buffers */
 		if (task->dyn_handles == NULL)
-			STARPU_ASSERT_MSG(STARPU_TASK_GET_NBUFFERS(task) <= STARPU_NMAXBUFS, "Codelet %p has too many buffers (%d vs max %d). Either use --enable-maxbuffers configure option to increase the max, or use dyn_handles instead of handles.", task->cl, STARPU_TASK_GET_NBUFFERS(task), STARPU_NMAXBUFS);
+			STARPU_ASSERT_MSG(STARPU_TASK_GET_NBUFFERS(task) <= STARPU_NMAXBUFS,
+					  "Codelet %p has too many buffers (%d vs max %d). Either use --enable-maxbuffers configure option to increase the max, or use dyn_handles instead of handles.",
+					  task->cl, STARPU_TASK_GET_NBUFFERS(task), STARPU_NMAXBUFS);
 
 		if (task->dyn_handles)
 		{
@@ -577,7 +581,7 @@ static int _starpu_task_submit_head(struct starpu_task *task)
 		{
 			starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, i);
 			/* Make sure handles are valid */
-			STARPU_ASSERT_MSG(handle->magic == 42, "data %p is invalid (was it already unregistered?)", handle);
+			STARPU_ASSERT_MSG(handle->magic == _STARPU_TASK_MAGIC, "data %p is invalid (was it already unregistered?)", handle);
 			/* Make sure handles are not partitioned */
 			STARPU_ASSERT_MSG(handle->nchildren == 0, "only unpartitioned data (or the pieces of a partitioned data) can be used in a task");
 			/* Provide the home interface for now if any,
@@ -617,7 +621,7 @@ int starpu_task_submit(struct starpu_task *task)
 {
 	_STARPU_LOG_IN();
 	STARPU_ASSERT(task);
-	STARPU_ASSERT_MSG(task->magic == 42, "Tasks must be created with starpu_task_create, or initialized with starpu_task_init.");
+	STARPU_ASSERT_MSG(task->magic == _STARPU_TASK_MAGIC, "Tasks must be created with starpu_task_create, or initialized with starpu_task_init.");
 
 	int ret;
 	unsigned is_sync = task->synchronous;
@@ -817,6 +821,8 @@ void starpu_codelet_init(struct starpu_codelet *cl)
 	memset(cl, 0, sizeof(struct starpu_codelet));
 }
 
+#define _STARPU_CODELET_WORKER_NAME_LEN 32
+
 void starpu_codelet_display_stats(struct starpu_codelet *cl)
 {
 	unsigned worker;
@@ -834,8 +840,8 @@ void starpu_codelet_display_stats(struct starpu_codelet *cl)
 
 	for (worker = 0; worker < nworkers; worker++)
 	{
-		char name[32];
-		starpu_worker_get_name(worker, name, 32);
+		char name[_STARPU_CODELET_WORKER_NAME_LEN];
+		starpu_worker_get_name(worker, name, _STARPU_CODELET_WORKER_NAME_LEN);
 
 		fprintf(stderr, "\t%s -> %lu / %lu (%2.2f %%)\n", name, cl->per_worker_stats[worker], total, (100.0f*cl->per_worker_stats[worker])/total);
 	}
@@ -1276,7 +1282,8 @@ static void *watchdog_func(void *arg)
 		if (!config->watchdog_ok && last_nsubmitted
 				&& last_nsubmitted == starpu_task_nsubmitted())
 		{
-			_STARPU_MSG("The StarPU watchdog detected that no task finished for %fs (can be configured through STARPU_WATCHDOG_TIMEOUT)\n", timeout);
+			_STARPU_MSG("The StarPU watchdog detected that no task finished for %fs (can be configured through STARPU_WATCHDOG_TIMEOUT)\n",
+				    timeout);
 			if (watchdog_crash)
 			{
 				_STARPU_MSG("Crashing the process\n");

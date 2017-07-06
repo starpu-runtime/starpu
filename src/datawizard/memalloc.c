@@ -231,7 +231,8 @@ static unsigned may_free_subtree(starpu_data_handle_t handle, unsigned node)
 		unsigned res;
 		starpu_data_handle_t child_handle = starpu_data_get_child(handle, child);
 		res = may_free_subtree(child_handle, node);
-		if (!res) return 0;
+		if (!res)
+			return 0;
 	}
 
 	/* no problem was found */
@@ -608,8 +609,10 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 								freed = 1;
 							}
 							else
+							{
 								/* Free */
 								freed = do_free_mem_chunk(mc, node);
+							}
 						}
 					}
 				}
@@ -714,7 +717,7 @@ restart:
 		if (!mc->data->is_not_important)
 			/* Important data, skip */
 			continue;
-		if (mc->footprint != footprint || _starpu_data_interface_compare(data->per_node[node].data_interface, data->ops, mc->data->per_node[node].data_interface, mc->ops) != 1 )
+		if (mc->footprint != footprint || _starpu_data_interface_compare(data->per_node[node].data_interface, data->ops, mc->data->per_node[node].data_interface, mc->ops) != 1)
 			/* Not the right type of interface, skip */
 			continue;
 		if (next_mc)
