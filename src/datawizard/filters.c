@@ -197,6 +197,11 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 
 	_starpu_data_unregister_ram_pointer(initial_handle);
 
+	if (nparts && !inherit_state)
+	{
+		STARPU_ASSERT_MSG(childrenp, "Passing NULL pointer for parameter childrenp while parameter inherit_state is 0");
+	}
+
 	for (i = 0; i < nparts; i++)
 	{
 		starpu_data_handle_t child;

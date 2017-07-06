@@ -768,6 +768,11 @@ _starpu_get_next_bindid (struct _starpu_machine_config *config,
 	int nhyperthreads = topology->nhwpus / topology->nhwcpus;
 	unsigned i;
 
+	if (npreferred)
+	{
+		STARPU_ASSERT_MSG(preferred_binding, "Passing NULL pointer for parameter preferred_binding with a non-0 value of parameter npreferred");
+	}
+
 	/* loop over the preference list */
 	for (current_preferred = 0;
 	     current_preferred < npreferred;
