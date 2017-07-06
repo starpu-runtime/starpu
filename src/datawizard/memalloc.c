@@ -227,7 +227,8 @@ static unsigned may_free_subtree(starpu_data_handle_t handle, unsigned node)
 		unsigned res;
 		starpu_data_handle_t child_handle = starpu_data_get_child(handle, child);
 		res = may_free_subtree(child_handle, node);
-		if (!res) return 0;
+		if (!res)
+			return 0;
 	}
 
 	/* no problem was found */
@@ -536,8 +537,10 @@ static size_t try_to_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 						 */
 
 						if (handle->per_node[node].refcnt == 0)
+						{
 							/* And still nobody on it, now the actual buffer may be freed */
 							freed = do_free_mem_chunk(mc, node);
+						}
 					}
 				}
 			}
