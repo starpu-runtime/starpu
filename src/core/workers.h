@@ -398,7 +398,8 @@ struct _starpu_machine_config
 	struct _starpu_combined_worker combined_workers[STARPU_NMAX_COMBINEDWORKERS];
 
 	/* Translation table from bindid to worker IDs */
-	struct {
+	struct
+	{
 		int *workerids;
 		unsigned nworkers; /* size of workerids */
 	} *bindid_workers;
@@ -1038,7 +1039,8 @@ static inline int _starpu_worker_trylock(int workerid)
 	int cur_workerid = starpu_worker_get_id();
 	if (!ret)
 	{
-		if (workerid != cur_workerid) {
+		if (workerid != cur_workerid)
+		{
 			ret = !worker->state_relax_refcnt;
 			if (ret)
 				STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
