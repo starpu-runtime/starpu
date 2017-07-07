@@ -269,7 +269,7 @@ do {                                                                            
             }                                                                    \
             _count += _bkt_count;                                                \
             if ((head)->hh.tbl->buckets[_bkt_i].count !=  _bkt_count) {          \
-               HASH_OOPS("invalid bucket count %d, actual %d\n",                 \
+               HASH_OOPS("invalid bucket count %u, actual %u\n",                 \
                 (head)->hh.tbl->buckets[_bkt_i].count, _bkt_count);              \
             }                                                                    \
         }                                                                        \
@@ -292,7 +292,7 @@ do {                                                                            
                                   (head)->hh.tbl->hho) : NULL );                 \
         }                                                                        \
         if (_count != (head)->hh.tbl->num_items) {                               \
-            HASH_OOPS("invalid app item count %d, actual %d\n",                  \
+            HASH_OOPS("invalid app item count %u, actual %u\n",                  \
                 (head)->hh.tbl->num_items, _count );                             \
         }                                                                        \
     }                                                                            \
