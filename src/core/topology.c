@@ -777,7 +777,7 @@ _starpu_init_mic_config (struct _starpu_machine_config *config,
 		if ((unsigned) nmiccores > topology->nhwmiccores[mic_idx])
 		{
 			/* The user requires more MIC cores than there is available */
-			_STARPU_MSG("# Warning: %d MIC cores requested. Only %d available.\n", nmiccores, topology->nhwmiccores[mic_idx]);
+			_STARPU_MSG("# Warning: %d MIC cores requested. Only %u available.\n", nmiccores, topology->nhwmiccores[mic_idx]);
 			nmiccores = topology->nhwmiccores[mic_idx];
 		}
 	}
@@ -850,7 +850,7 @@ _starpu_init_mp_config (struct _starpu_machine_config *config,
 		if ((unsigned) reqmicdevices > nhwmicdevices)
 		{
 			/* The user requires more MIC devices than there is available */
-			_STARPU_MSG("# Warning: %d MIC devices requested. Only %d available.\n", reqmicdevices, nhwmicdevices);
+			_STARPU_MSG("# Warning: %d MIC devices requested. Only %u available.\n", reqmicdevices, nhwmicdevices);
 			reqmicdevices = nhwmicdevices;
 		}
 	}
