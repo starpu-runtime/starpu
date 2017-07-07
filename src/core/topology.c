@@ -885,7 +885,7 @@ _starpu_init_mic_config (struct _starpu_machine_config *config,
 		if ((unsigned) nmiccores > topology->nhwmiccores[mic_idx])
 		{
 			/* The user requires more MIC cores than there is available */
-			_STARPU_MSG("# Warning: %d MIC cores requested. Only %d available.\n", nmiccores, topology->nhwmiccores[mic_idx]);
+			_STARPU_MSG("# Warning: %d MIC cores requested. Only %u available.\n", nmiccores, topology->nhwmiccores[mic_idx]);
 			nmiccores = topology->nhwmiccores[mic_idx];
 		}
 	}
@@ -949,7 +949,7 @@ _starpu_init_mpi_config (struct _starpu_machine_config *config,
                 if ((unsigned) nmpicores > topology->nhwmpicores[mpi_idx])
                 {
                         /* The user requires more MPI cores than there is available */
-                        _STARPU_MSG("# Warning: %d MPI cores requested. Only %d available.\n",
+                        _STARPU_MSG("# Warning: %d MPI cores requested. Only %u available.\n",
 				    nmpicores, topology->nhwmpicores[mpi_idx]);
                         nmpicores = topology->nhwmpicores[mpi_idx];
                 }
@@ -1018,7 +1018,7 @@ _starpu_init_mp_config (struct _starpu_machine_config *config,
 			if ((unsigned) reqmicdevices > nhwmicdevices)
 			{
 				/* The user requires more MIC devices than there is available */
-				_STARPU_MSG("# Warning: %d MIC devices requested. Only %d available.\n", reqmicdevices, nhwmicdevices);
+				_STARPU_MSG("# Warning: %d MIC devices requested. Only %u available.\n", reqmicdevices, nhwmicdevices);
 				reqmicdevices = nhwmicdevices;
 			}
 		}
@@ -1054,7 +1054,7 @@ _starpu_init_mp_config (struct _starpu_machine_config *config,
 			if ((unsigned) reqmpidevices > nhwmpidevices)
 			{
 				/* The user requires more MPI devices than there is available */
-				_STARPU_MSG("# Warning: %d MPI Master-Slave devices requested. Only %d available.\n",
+				_STARPU_MSG("# Warning: %d MPI Master-Slave devices requested. Only %u available.\n",
 					    reqmpidevices, nhwmpidevices);
 				reqmpidevices = nhwmpidevices;
 			}
