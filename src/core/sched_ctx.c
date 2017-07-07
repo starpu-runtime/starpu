@@ -154,6 +154,9 @@ static void _starpu_add_workers_to_sched_ctx(struct _starpu_sched_ctx *sched_ctx
 		return;
 	int workers_to_add[nworkers_to_add];
 
+	STARPU_ASSERT_MSG((added_workers == NULL && n_added_workers == NULL) || (added_workers != NULL && n_added_workers != NULL),
+			  "Parameters added_workers and n_added_workers must be both NULL or non-NULL");
+
 	struct starpu_perfmodel_device devices[nworkers_to_add];
 	int ndevices = 0;
 	struct _starpu_worker *str_worker = NULL;
@@ -1102,7 +1105,7 @@ unsigned _starpu_can_push_task(struct _starpu_sched_ctx *sched_ctx, struct starp
 			expected_len = expected_end - hyp_actual_start_sample[sched_ctx->id] ;
 		else
 		{
-			printf("%d: sc start is 0.0\n", sched_ctx->id);
+			printf("%u: sc start is 0.0\n", sched_ctx->id);
 			expected_len = expected_end - starpu_timing_now();
 		}
 		if(expected_len < 0.0)
