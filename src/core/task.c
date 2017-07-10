@@ -181,7 +181,7 @@ void _starpu_task_destroy(struct starpu_task *task)
 	{
 		starpu_task_clean(task);
 		/* TODO handle the case of task with detach = 1 and destroy = 1 */
-		/* TODO handle the case of non terminated tasks -> return -EINVAL */
+		/* TODO handle the case of non terminated tasks -> assertion failure, it's too dangerous to be doing something like this */
 
 		/* Does user want StarPU release cl_arg ? */
 		if (task->cl_arg_free)
