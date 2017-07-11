@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2016  Université de Bordeaux
+ * Copyright (C) 2010-2017  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010-2014  CNRS
  * Copyright (C) 2011  Télécom-SudParis
@@ -54,7 +54,7 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 	int ret;
 	int is_parallel_task = (j->task_size > 1);
 	int profiling = starpu_profiling_status_get();
-	struct timespec codelet_start, codelet_end;
+	struct timespec codelet_end;
 
 	struct starpu_task *task = j->task;
 	struct starpu_codelet *cl = task->cl;
@@ -89,7 +89,7 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 	}
 
 	/* Give profiling variable */
-	_starpu_driver_start_job(cpu_args, j, perf_arch, &codelet_start, rank, profiling);
+	_starpu_driver_start_job(cpu_args, j, perf_arch, rank, profiling);
 
 	/* In case this is a Fork-join parallel task, the worker does not
 	 * execute the kernel at all. */
@@ -152,7 +152,7 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 	if (rank == 0)
 	{
 		_starpu_driver_update_job_feedback(j, cpu_args,
-				perf_arch, &codelet_start, &codelet_end, profiling);
+				perf_arch, &j->cl_start, &codelet_end, profiling);
 #ifdef STARPU_OPENMP
 		if (!j->continuation)
 #endif
