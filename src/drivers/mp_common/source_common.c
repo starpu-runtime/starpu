@@ -512,7 +512,7 @@ static int _starpu_src_common_execute(struct _starpu_job *j,
 
 	void (*kernel)(void)  = node->get_kernel_from_job(node,j);
 
-	_starpu_driver_start_job(worker, j, &worker->perf_arch, &j->cl_start, 0, profiling);
+	_starpu_driver_start_job(worker, j, &worker->perf_arch, 0, profiling);
 
 	//_STARPU_DEBUG("\nworkerid:%d, rank:%d, type:%d,	cb_workerid:%d, task_size:%d\n\n",worker->devid,worker->current_rank,task->cl->type,j->combined_workerid,j->task_size);
 

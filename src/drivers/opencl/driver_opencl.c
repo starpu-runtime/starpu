@@ -753,7 +753,7 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 				{
 					/* An asynchronous task, it was already queued,
 					 * it's now running, record its start time.  */
-					_starpu_driver_start_job(worker, j, &worker->perf_arch, &j->cl_start, 0, starpu_profiling_status_get());
+					_starpu_driver_start_job(worker, j, &worker->perf_arch, 0, starpu_profiling_status_get());
 				}
 				else
 				{
@@ -925,7 +925,7 @@ static int _starpu_opencl_start_job(struct _starpu_job *j, struct _starpu_worker
 	if (worker->ntasks == 1)
 	{
 		/* We are alone in the pipeline, the kernel will start now, record it */
-		_starpu_driver_start_job(worker, j, &worker->perf_arch, &j->cl_start, 0, profiling);
+		_starpu_driver_start_job(worker, j, &worker->perf_arch, 0, profiling);
 	}
 
 	starpu_opencl_func_t func = _starpu_task_get_opencl_nth_implementation(cl, j->nimpl);

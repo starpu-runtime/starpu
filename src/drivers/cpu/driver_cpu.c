@@ -55,10 +55,9 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 {
 	int is_parallel_task = (j->task_size > 1);
 	int profiling = starpu_profiling_status_get();
-	/* start/end timestamp are only conditionnally measured in
-	 * _starpu_driver_start_job/_end_job, thus make sure that they are
+	/* end timestamp is only conditionnally measured in
+	 * _starpu_driver_end_job, thus make sure that it is
 	 * always initialized */
-	struct timespec codelet_start = {0,0};
 	struct timespec codelet_end = {0,0};
 
 	struct starpu_task *task = j->task;
@@ -76,7 +75,7 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 	}
 
 	/* Give profiling variable */
-	_starpu_driver_start_job(cpu_args, j, perf_arch, &codelet_start, rank, profiling);
+	_starpu_driver_start_job(cpu_args, j, perf_arch, rank, profiling);
 
 	/* In case this is a Fork-join parallel task, the worker does not
 	 * execute the kernel at all. */
@@ -145,7 +144,7 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 	if (rank == 0)
 	{
 		_starpu_driver_update_job_feedback(j, cpu_args,
-				perf_arch, &codelet_start, &codelet_end, profiling);
+				perf_arch, &j->cl_start, &codelet_end, profiling);
 #ifdef STARPU_OPENMP
 		if (!j->continuation)
 #endif

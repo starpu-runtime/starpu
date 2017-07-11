@@ -489,7 +489,7 @@ static int start_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *worke
 	if (worker->ntasks == 1)
 	{
 		/* We are alone in the pipeline, the kernel will start now, record it */
-		_starpu_driver_start_job(worker, j, &worker->perf_arch, &j->cl_start, 0, profiling);
+		_starpu_driver_start_job(worker, j, &worker->perf_arch, 0, profiling);
 	}
 
 #if defined(HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
@@ -831,7 +831,7 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 				{
 					/* An asynchronous task, it was already
 					 * queued, it's now running, record its start time.  */
-					_starpu_driver_start_job(worker, j, &worker->perf_arch, &j->cl_start, 0, starpu_profiling_status_get());
+					_starpu_driver_start_job(worker, j, &worker->perf_arch, 0, starpu_profiling_status_get());
 				}
 				else
 				{

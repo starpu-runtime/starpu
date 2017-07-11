@@ -34,7 +34,7 @@
 #define BACKOFF_MAX 32  /* TODO : use parameter to define them */
 #define BACKOFF_MIN 1
 
-void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job *j, struct starpu_perfmodel_arch* perf_arch STARPU_ATTRIBUTE_UNUSED, struct timespec *codelet_start, int rank, int profiling)
+void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job *j, struct starpu_perfmodel_arch* perf_arch STARPU_ATTRIBUTE_UNUSED, int rank, int profiling)
 {
 	struct starpu_task *task = j->task;
 	struct starpu_codelet *cl = task->cl;
@@ -63,13 +63,13 @@ void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job 
 
 		if ((profiling && profiling_info) || calibrate_model || starpu_top)
 		{
-			_starpu_clock_gettime(codelet_start);
-			_starpu_worker_register_executing_start_date(workerid, codelet_start);
+			_starpu_clock_gettime(&j->cl_start);
+			_starpu_worker_register_executing_start_date(workerid, &j->cl_start);
 		}
 	}
 
 	if (starpu_top)
-		_starpu_top_task_started(task,workerid,codelet_start);
+		_starpu_top_task_started(task,workerid,&j->cl_start);
 
 
 	// Find out if the worker is the master of a parallel context
@@ -94,7 +94,7 @@ void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job 
 				{
 					new_rank++;
 					struct _starpu_worker *_worker = _starpu_get_worker_struct(_workerid);
-					_starpu_driver_start_job(_worker, j, &_worker->perf_arch, codelet_start, new_rank, profiling);
+					_starpu_driver_start_job(_worker, j, &_worker->perf_arch, new_rank, profiling);
 				}
 			}
 		}
