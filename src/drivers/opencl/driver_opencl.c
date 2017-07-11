@@ -983,7 +983,6 @@ static int _starpu_opencl_start_job(struct _starpu_job *j, struct _starpu_worker
 
 static void _starpu_opencl_stop_job(struct _starpu_job *j, struct _starpu_worker *worker)
 {
-	struct timespec codelet_end;
 	int profiling = starpu_profiling_status_get();
 
 	_starpu_set_current_task(NULL);
@@ -994,14 +993,14 @@ static void _starpu_opencl_stop_job(struct _starpu_job *j, struct _starpu_worker
 	worker->first_task = (worker->first_task + 1) % STARPU_MAX_PIPELINE;
 	worker->ntasks--;
 
-	_starpu_driver_end_job(worker, j, &worker->perf_arch, &codelet_end, 0, profiling);
+	_starpu_driver_end_job(worker, j, &worker->perf_arch, 0, profiling);
 
 	struct _starpu_sched_ctx *sched_ctx = _starpu_sched_ctx_get_sched_ctx_for_worker_and_job(worker, j);
 	STARPU_ASSERT_MSG(sched_ctx != NULL, "there should be a worker %d in the ctx of this job \n", worker->workerid);
 	if(!sched_ctx->sched_policy)
-		_starpu_driver_update_job_feedback(j, worker, &sched_ctx->perf_arch, &j->cl_start, &codelet_end, profiling);
+		_starpu_driver_update_job_feedback(j, worker, &sched_ctx->perf_arch, profiling);
 	else
-		_starpu_driver_update_job_feedback(j, worker, &worker->perf_arch, &j->cl_start, &codelet_end, profiling);
+		_starpu_driver_update_job_feedback(j, worker, &worker->perf_arch, profiling);
 
 	_starpu_push_task_output(j);
 

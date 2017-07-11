@@ -63,13 +63,13 @@ void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job 
 
 		if ((profiling && profiling_info) || calibrate_model || starpu_top)
 		{
-			_starpu_clock_gettime(&j->cl_start);
-			_starpu_worker_register_executing_start_date(workerid, &j->cl_start);
+			_starpu_clock_gettime(&worker->cl_start);
+			_starpu_worker_register_executing_start_date(workerid, &worker->cl_start);
 		}
 	}
 
 	if (starpu_top)
-		_starpu_top_task_started(task,workerid,&j->cl_start);
+		_starpu_top_task_started(task,workerid,&worker->cl_start);
 
 
 	// Find out if the worker is the master of a parallel context
@@ -106,7 +106,7 @@ void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job 
 	_STARPU_TASK_BREAK_ON(task, exec);
 }
 
-void _starpu_driver_end_job(struct _starpu_worker *worker, struct _starpu_job *j, struct starpu_perfmodel_arch* perf_arch STARPU_ATTRIBUTE_UNUSED, struct timespec *codelet_end, int rank, int profiling)
+void _starpu_driver_end_job(struct _starpu_worker *worker, struct _starpu_job *j, struct starpu_perfmodel_arch* perf_arch STARPU_ATTRIBUTE_UNUSED, int rank, int profiling)
 {
 	struct starpu_task *task = j->task;
 	struct starpu_codelet *cl = task->cl;
@@ -138,14 +138,14 @@ void _starpu_driver_end_job(struct _starpu_worker *worker, struct _starpu_job *j
 		struct starpu_profiling_task_info *profiling_info = task->profiling_info;
 		if ((profiling && profiling_info) || calibrate_model || starpu_top)
 		{
-			_starpu_clock_gettime(codelet_end);
+			_starpu_clock_gettime(&worker->cl_end);
 			_starpu_worker_register_executing_end(workerid);
 		}
 		STARPU_AYU_POSTRUNTASK(j->job_id);
 	}
 
 	if (starpu_top)
-		_starpu_top_task_ended(task,workerid,codelet_end);
+		_starpu_top_task_ended(task,workerid,&worker->cl_end);
 
 	_starpu_set_worker_status(worker, STATUS_UNKNOWN);
 
@@ -165,7 +165,7 @@ void _starpu_driver_end_job(struct _starpu_worker *worker, struct _starpu_job *j
 			{
 				new_rank++;
 				struct _starpu_worker *_worker = _starpu_get_worker_struct(_workerid);
-				_starpu_driver_end_job(_worker, j, &_worker->perf_arch, codelet_end, new_rank, profiling);
+				_starpu_driver_end_job(_worker, j, &_worker->perf_arch, new_rank, profiling);
 			}
 		}
 	}
@@ -173,7 +173,7 @@ void _starpu_driver_end_job(struct _starpu_worker *worker, struct _starpu_job *j
 
 void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_worker *worker,
 					struct starpu_perfmodel_arch* perf_arch,
-					struct timespec *codelet_start, struct timespec *codelet_end, int profiling)
+					int profiling)
 {
 	struct starpu_profiling_task_info *profiling_info = j->task->profiling_info;
 	struct timespec measured_ts;
@@ -193,14 +193,14 @@ void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_wo
 	{
 		double measured;
 
-		starpu_timespec_sub(codelet_end, codelet_start, &measured_ts);
+		starpu_timespec_sub(&worker->cl_end, &worker->cl_start, &measured_ts);
 		measured = starpu_timing_timespec_to_us(&measured_ts);
 		STARPU_ASSERT_MSG(measured >= 0, "measured=%lf\n", measured);
 
 		if (profiling && profiling_info)
 		{
-			memcpy(&profiling_info->start_time, codelet_start, sizeof(struct timespec));
-			memcpy(&profiling_info->end_time, codelet_end, sizeof(struct timespec));
+			memcpy(&profiling_info->start_time, &worker->cl_start, sizeof(struct timespec));
+			memcpy(&profiling_info->end_time, &worker->cl_end, sizeof(struct timespec));
 
 			profiling_info->workerid = workerid;
 

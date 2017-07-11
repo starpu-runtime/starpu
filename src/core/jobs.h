@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2016  Université de Bordeaux
+ * Copyright (C) 2009-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2013, 2014, 2015, 2017  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2014  INRIA
@@ -179,10 +179,6 @@ struct _starpu_job {
 	/* How many workers are currently running an alias of that job (for
 	 * parallel tasks only). */
 	int active_task_alias_count;
-
-	/* Used to record codelet start time instead of using a
-	 * local variable */
-	struct timespec cl_start;
 
 	struct bound_task *bound_task;
 

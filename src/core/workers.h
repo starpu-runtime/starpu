@@ -132,6 +132,8 @@ LIST_TYPE(_starpu_worker,
 	starpu_pthread_wait_t wait;
 #endif
 
+	struct timespec cl_start; /* Codelet start time of the task currently running */
+	struct timespec cl_end; /* Codelet end time of the last task running */
 	unsigned char first_task; /* Index of first task in the pipeline */
 	unsigned char ntasks; /* number of tasks in the pipeline */
 	unsigned char pipeline_length; /* number of tasks to be put in the pipeline */
