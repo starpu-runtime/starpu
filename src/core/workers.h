@@ -81,6 +81,8 @@ LIST_TYPE(_starpu_worker,
 	unsigned current_ordered_task_order; /* this records the order of the next ordered task to be executed */
 	struct starpu_task *current_task; /* task currently executed by this worker (non-pipelined version) */
 	struct starpu_task *current_tasks[STARPU_MAX_PIPELINE]; /* tasks currently executed by this worker (pipelined version) */
+	struct timespec cl_start; /* Codelet start time of the task currently running */
+	struct timespec cl_end; /* Codelet end time of the last task running */
 	unsigned char first_task; /* Index of first task in the pipeline */
 	unsigned char ntasks; /* number of tasks in the pipeline */
 	unsigned char pipeline_length; /* number of tasks to be put in the pipeline */

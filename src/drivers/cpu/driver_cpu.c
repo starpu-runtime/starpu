@@ -54,8 +54,6 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 	int ret;
 	int is_parallel_task = (j->task_size > 1);
 	int profiling = starpu_profiling_status_get();
-	struct timespec codelet_end;
-
 	struct starpu_task *task = j->task;
 	struct starpu_codelet *cl = task->cl;
 #ifdef STARPU_OPENMP
@@ -118,7 +116,7 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 			_starpu_bind_thread_on_cpu(cpu_args->config, cpu_args->bindid, cpu_args->workerid);
 	}
 
-	_starpu_driver_end_job(cpu_args, j, perf_arch, &codelet_end, rank, profiling);
+	_starpu_driver_end_job(cpu_args, j, perf_arch, rank, profiling);
 
 	if (is_parallel_task)
 	{
@@ -151,8 +149,7 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 
 	if (rank == 0)
 	{
-		_starpu_driver_update_job_feedback(j, cpu_args,
-				perf_arch, &j->cl_start, &codelet_end, profiling);
+		_starpu_driver_update_job_feedback(j, cpu_args, perf_arch, profiling);
 #ifdef STARPU_OPENMP
 		if (!j->continuation)
 #endif
