@@ -16,6 +16,7 @@
 
 #include <fcntl.h>
 #include <errno.h>
+#include <common/config.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
