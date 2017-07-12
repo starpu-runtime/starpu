@@ -16,6 +16,9 @@
 
 #include <fcntl.h>
 #include <errno.h>
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 #include <time.h>
 #include <hdf5.h>
 
