@@ -170,6 +170,7 @@ struct starpu_perfmodel_arch *starpu_worker_get_perf_archtype(int workerid, unsi
 int starpu_perfmodel_get_narch_combs();
 int starpu_perfmodel_arch_comb_add(int ndevices, struct starpu_perfmodel_device* devices);
 int starpu_perfmodel_arch_comb_get(int ndevices, struct starpu_perfmodel_device *devices);
+struct starpu_perfmodel_arch *starpu_perfmodel_arch_comb_fetch(int comb);
 
 struct starpu_perfmodel_per_arch *starpu_perfmodel_get_model_per_arch(struct starpu_perfmodel *model, struct starpu_perfmodel_arch *arch, unsigned impl);
 struct starpu_perfmodel_per_arch *starpu_perfmodel_get_model_per_devices(struct starpu_perfmodel *model, int impl, ...);

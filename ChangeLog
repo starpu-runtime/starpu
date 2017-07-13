@@ -80,6 +80,7 @@ Small features:
   * Add STARPU_PERF_MODEL_HOMOGENEOUS_CPU environment variable to
     allow having one perfmodel per CPU core
   * Add starpu_vector_filter_list_long filter.
+  * Add starpu_perfmodel_arch_comb_fetch function.
 
 Small changes:
   * Output generated through STARPU_MPI_COMM has been modified to

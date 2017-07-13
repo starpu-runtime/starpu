@@ -185,7 +185,7 @@ int starpu_perfmodel_get_narch_combs()
 	return current_arch_comb;
 }
 
-struct starpu_perfmodel_arch *_starpu_arch_comb_get(int comb)
+struct starpu_perfmodel_arch *starpu_perfmodel_arch_comb_fetch(int comb)
 {
 	return arch_combs[comb];
 }
@@ -1868,7 +1868,7 @@ int starpu_perfmodel_list_combs(FILE *output, struct starpu_perfmodel *model)
 		struct starpu_perfmodel_arch *arch;
 		int device;
 
-		arch = _starpu_arch_comb_get(model->state->combs[comb]);
+		arch = starpu_perfmodel_arch_comb_fetch(model->state->combs[comb]);
 		fprintf(output, "\tComb %d: %d device%s\n", model->state->combs[comb], arch->ndevices, arch->ndevices>1?"s":"");
 		for(device=0 ; device<arch->ndevices ; device++)
 		{
