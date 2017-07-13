@@ -249,6 +249,7 @@ struct data_info
 	char *description;
 	unsigned dimensions;
 	unsigned long *dims;
+	int home_node;
 	int mpi_rank;
 	int mpi_owner;
 };
@@ -269,6 +270,7 @@ static struct data_info *get_data(unsigned long handle, int mpi_rank)
 		data->description = 0;
 		data->dimensions = 0;
 		data->dims = NULL;
+		data->home_node = STARPU_MAIN_RAM;
 		data->mpi_rank = mpi_rank;
 		data->mpi_owner = mpi_rank;
 		HASH_ADD(hh, data_info, handle, sizeof(handle), data);
@@ -284,6 +286,7 @@ static void data_dump(struct data_info *data)
 	if (!data_file)
 		goto out;
 	fprintf(data_file, "Handle: %lx\n", data->handle);
+	fprintf(data_file, "HomeNode: %d\n", data->home_node);
 	if (data->mpi_rank >= 0)
 		fprintf(data_file, "MPIRank: %d\n", data->mpi_rank);
 	if (data->name)
@@ -2001,9 +2004,10 @@ static void handle_data_register(struct fxt_ev_64 *ev, struct starpu_fxt_options
 	unsigned long handle = ev->param[0];
 	char *prefix = options->file_prefix;
 	struct data_info *data = get_data(handle, options->file_rank);
-	char *description = get_fxt_string(ev, 2);
+	char *description = get_fxt_string(ev, 3);
 
 	data->size = ev->param[1];
+	data->home_node = ev->param[2];
 	if (description[0])
 		data->description = strdup(description);
 

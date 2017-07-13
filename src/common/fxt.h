@@ -1055,7 +1055,7 @@ do {										\
 		handle->ops->describe(__interface, __buf, sizeof(__buf)); \
 	else \
 		__buf[0] = 0; \
-	FUT_DO_PROBE2STR(_STARPU_FUT_HANDLE_DATA_REGISTER, handle, __data_size, __buf); \
+	FUT_DO_PROBE3STR(_STARPU_FUT_HANDLE_DATA_REGISTER, handle, __data_size, handle->home_node, __buf); \
 } while (0)
 
 #define _STARPU_TRACE_HANDLE_DATA_UNREGISTER(handle)	\
