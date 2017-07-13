@@ -718,7 +718,7 @@ static int parse_model_file(FILE *f, const char *path, struct starpu_perfmodel *
 		model->state->ncombs = ncombs;
 	}
 
-	if (ncombs >= model->state->ncombs_set)
+	if (ncombs > model->state->ncombs_set)
 	{
 		// The model has more combs than the original number of arch_combs, we need to reallocate
 		_starpu_perfmodel_realloc(model, ncombs);
