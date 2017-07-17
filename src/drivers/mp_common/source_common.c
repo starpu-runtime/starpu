@@ -52,7 +52,6 @@ static unsigned mp_node_memory_node(struct _starpu_mp_node *node)
 static int _starpu_src_common_finalize_job (struct _starpu_job *j, struct _starpu_worker *worker)
 {
 	int profiling = starpu_profiling_status_get();
-	struct timespec codelet_end;
 	_starpu_driver_end_job(worker, j, &worker->perf_arch, 0, profiling);
 
 	int count = worker->current_rank;
@@ -74,7 +73,6 @@ static int _starpu_src_common_finalize_job (struct _starpu_job *j, struct _starp
 	{
 
 		_starpu_driver_update_job_feedback(j, worker, &worker->perf_arch,
-				&codelet_end,
 				profiling);
 
 		_starpu_push_task_output (j);
