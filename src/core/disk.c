@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2013  Corentin Salingue
- * Copyright (C) 2015, 2016  CNRS
+ * Copyright (C) 2015, 2016, 2017  CNRS
  * Copyright (C) 2017  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -48,7 +48,7 @@ struct disk_register
 	int flag;
 };
 
-static void add_disk_in_list(unsigned node, struct starpu_disk_ops *func, void *base);
+static int add_disk_in_list(unsigned node, struct starpu_disk_ops *func, void *base);
 static int get_location_with_node(unsigned node);
 
 static struct disk_register **disk_register_list = NULL;
@@ -57,9 +57,26 @@ static int size_register_list = 2;
 
 int starpu_disk_swap_node = -1;
 
+static void add_async_event(struct _starpu_async_channel * channel, void * event)
+{
+        if (!event)
+                return; 
+
+        if (channel->event.disk_event.requests == NULL)
+        {
+                channel->event.disk_event.requests = _starpu_disk_backend_event_list_new();
+        }
+
+        struct _starpu_disk_backend_event * disk_event = _starpu_disk_backend_event_new();
+        disk_event->backend_event = event;
+
+        /* Store event at the end of the list */
+        _starpu_disk_backend_event_list_push_back(channel->event.disk_event.requests, disk_event);
+}
+
 int starpu_disk_register(struct starpu_disk_ops *func, void *parameter, starpu_ssize_t size)
 {
-	STARPU_ASSERT_MSG(size < 0 || size >= SIZE_DISK_MIN,"Minimum disk size is %u Bytes ! (Here %u) \n", (int) SIZE_DISK_MIN, (int) size);
+	STARPU_ASSERT_MSG(size < 0 || size >= STARPU_DISK_SIZE_MIN,"Minimum disk size is %u Bytes ! (Here %u) \n", (int) STARPU_DISK_SIZE_MIN, (int) size);
 	/* register disk */
 	unsigned disk_memnode = _starpu_memory_node_register(STARPU_DISK_RAM, 0);
 
@@ -76,7 +93,15 @@ int starpu_disk_register(struct starpu_disk_ops *func, void *parameter, starpu_s
 	void *base = func->plug(parameter, size);
 
 	/* remember it */
-	add_disk_in_list(disk_memnode,func,base);
+	int n STARPU_ATTRIBUTE_UNUSED = add_disk_in_list(disk_memnode, func, base);
+
+#ifdef STARPU_SIMGRID
+	char name[16];
+	snprintf(name, sizeof(name), "DISK%d", n);
+	msg_host_t host = _starpu_simgrid_get_host_by_name(name);
+	STARPU_ASSERT_MSG(host, "Could not find disk %s in platform file", name);
+	_starpu_simgrid_memory_node_set_host(memory_node, host);
+#endif
 
 	int ret = func->bandwidth(disk_memnode);
 	/* have a problem with the disk */
@@ -129,6 +154,7 @@ void _starpu_disk_free(unsigned node, void *obj, size_t size)
 /* src_node == disk node and dst_node == STARPU_MAIN_RAM */
 int _starpu_disk_read(unsigned src_node, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size, struct _starpu_async_channel *channel)
 {
+        void *event = NULL;
 	int pos = get_location_with_node(src_node);
 
         if (channel != NULL)
@@ -137,16 +163,17 @@ int _starpu_disk_read(unsigned src_node, unsigned dst_node STARPU_ATTRIBUTE_UNUS
 			channel = NULL;
 		else
 		{
-			channel->type = STARPU_DISK_RAM;
 			channel->event.disk_event.memory_node = src_node;
 
 			_STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
-			channel->event.disk_event.backend_event = disk_register_list[pos]->functions->async_read(disk_register_list[pos]->base, obj, buf, offset, size);
+			event = disk_register_list[pos]->functions->async_read(disk_register_list[pos]->base, obj, buf, offset, size);
 			_STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
+
+                        add_async_event(channel, event);
 		}
 	}
 	/* asynchronous request failed or synchronous request is asked */
-	if (channel == NULL || !channel->event.disk_event.backend_event)
+	if (channel == NULL || !event)
 	{
 		disk_register_list[pos]->functions->read(disk_register_list[pos]->base, obj, buf, offset, size);
 		return 0;
@@ -157,6 +184,7 @@ int _starpu_disk_read(unsigned src_node, unsigned dst_node STARPU_ATTRIBUTE_UNUS
 /* src_node == STARPU_MAIN_RAM and dst_node == disk node */
 int _starpu_disk_write(unsigned src_node STARPU_ATTRIBUTE_UNUSED, unsigned dst_node, void *obj, void *buf, off_t offset, size_t size, struct _starpu_async_channel *channel)
 {
+        void * event;
 	int pos = get_location_with_node(dst_node);
 
         if (channel != NULL)
@@ -165,16 +193,17 @@ int _starpu_disk_write(unsigned src_node STARPU_ATTRIBUTE_UNUSED, unsigned dst_n
 			channel = NULL;
 		else
                 {
-			channel->type = STARPU_DISK_RAM;
 			channel->event.disk_event.memory_node = dst_node;
 
 			_STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
-			channel->event.disk_event.backend_event = disk_register_list[pos]->functions->async_write(disk_register_list[pos]->base, obj, buf, offset, size);
+			event = disk_register_list[pos]->functions->async_write(disk_register_list[pos]->base, obj, buf, offset, size);
         		_STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
+
+                        add_async_event(channel, event);
 		}
         }
         /* asynchronous request failed or synchronous request is asked */
-	if (channel == NULL || !channel->event.disk_event.backend_event)
+	if (channel == NULL || !event)
         {
 		disk_register_list[pos]->functions->write(disk_register_list[pos]->base, obj, buf, offset, size);
         	return 0;
@@ -187,16 +216,20 @@ int _starpu_disk_copy(unsigned node_src, void *obj_src, off_t offset_src, unsign
 	int pos_src = get_location_with_node(node_src);
 	int pos_dst = get_location_with_node(node_dst);
 	/* both nodes have same copy function */
+        void * event;
 	channel->event.disk_event.memory_node = node_src;
-	channel->event.disk_event.backend_event = disk_register_list[pos_src]->functions->copy(disk_register_list[pos_src]->base, obj_src, offset_src,
+	event = disk_register_list[pos_src]->functions->copy(disk_register_list[pos_src]->base, obj_src, offset_src,
 											       disk_register_list[pos_dst]->base, obj_dst, offset_dst,
 											       size);
-	STARPU_ASSERT(channel->event.disk_event.backend_event);
+        add_async_event(channel, event);
+
+	STARPU_ASSERT(event);
 	return -EAGAIN;
 }
 
 int _starpu_disk_full_read(unsigned src_node, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, void *obj, void **ptr, size_t *size, struct _starpu_async_channel *channel)
 {
+        void * event;
 	int pos = get_location_with_node(src_node);
 
 	if (channel != NULL)
@@ -205,16 +238,17 @@ int _starpu_disk_full_read(unsigned src_node, unsigned dst_node STARPU_ATTRIBUTE
 			channel = NULL;
 		else
 		{
-			channel->type = STARPU_DISK_RAM;
 			channel->event.disk_event.memory_node = src_node;
 
 			_STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
-			channel->event.disk_event.backend_event = disk_register_list[pos]->functions->async_full_read(disk_register_list[pos]->base, obj, ptr, size);
+			event = disk_register_list[pos]->functions->async_full_read(disk_register_list[pos]->base, obj, ptr, size);
 			_STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
+
+                        add_async_event(channel, event);
 		}
 	}
 	/* asynchronous request failed or synchronous request is asked */
-	if (channel == NULL || !channel->event.disk_event.backend_event)
+	if (channel == NULL || !event)
 	{
 		disk_register_list[pos]->functions->full_read(disk_register_list[pos]->base, obj, ptr, size);
 		return 0;
@@ -224,6 +258,7 @@ int _starpu_disk_full_read(unsigned src_node, unsigned dst_node STARPU_ATTRIBUTE
 
 int _starpu_disk_full_write(unsigned src_node STARPU_ATTRIBUTE_UNUSED, unsigned dst_node, void *obj, void *ptr, size_t size, struct _starpu_async_channel *channel)
 {
+        void * event;
 	int pos = get_location_with_node(dst_node);
 
 	if (channel != NULL)
@@ -232,16 +267,17 @@ int _starpu_disk_full_write(unsigned src_node STARPU_ATTRIBUTE_UNUSED, unsigned 
 			channel = NULL;
 		else
 		{
-			channel->type = STARPU_DISK_RAM;
 			channel->event.disk_event.memory_node = dst_node;
 
 			_STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
-			channel->event.disk_event.backend_event = disk_register_list[pos]->functions->async_full_write(disk_register_list[pos]->base, obj, ptr, size);
+			event = disk_register_list[pos]->functions->async_full_write(disk_register_list[pos]->base, obj, ptr, size);
 			_STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
+
+                        add_async_event(channel, event);
 		}
 	}
 	/* asynchronous request failed or synchronous request is asked */
-	if (channel == NULL || !channel->event.disk_event.backend_event)
+	if (channel == NULL || !event)
 	{
 		disk_register_list[pos]->functions->full_write(disk_register_list[pos]->base, obj, ptr, size);
 		return 0;
@@ -264,24 +300,88 @@ void starpu_disk_close(unsigned node, void *obj, size_t size)
 void starpu_disk_wait_request(struct _starpu_async_channel *async_channel)
 {
 	int position = get_location_with_node(async_channel->event.disk_event.memory_node);
-	disk_register_list[position]->functions->wait_request(async_channel->event.disk_event.backend_event);
+
+        if (async_channel->event.disk_event.requests != NULL && !_starpu_disk_backend_event_list_empty(async_channel->event.disk_event.requests))
+        {
+                struct _starpu_disk_backend_event * event = _starpu_disk_backend_event_list_begin(async_channel->event.disk_event.requests);
+                struct _starpu_disk_backend_event * next;
+
+                /* Wait all events in the list and remove them */
+                while (event != _starpu_disk_backend_event_list_end(async_channel->event.disk_event.requests))
+                {
+                        next = _starpu_disk_backend_event_list_next(event);
+
+                        disk_register_list[position]->functions->wait_request(event->backend_event);
+
+                        disk_register_list[position]->functions->free_request(event->backend_event);
+
+                        _starpu_disk_backend_event_list_erase(async_channel->event.disk_event.requests, event);
+
+                        _starpu_disk_backend_event_delete(event);
+
+                        event = next;
+                }
+
+                /* Remove the list because it doesn't contain any event */
+                _starpu_disk_backend_event_list_delete(async_channel->event.disk_event.requests);
+                async_channel->event.disk_event.requests = NULL;
+        }
 }
 
 int starpu_disk_test_request(struct _starpu_async_channel *async_channel)
 {
 	int position = get_location_with_node(async_channel->event.disk_event.memory_node);
-	return disk_register_list[position]->functions->test_request(async_channel->event.disk_event.backend_event);
+
+        if (async_channel->event.disk_event.requests != NULL && !_starpu_disk_backend_event_list_empty(async_channel->event.disk_event.requests))
+        {
+                struct _starpu_disk_backend_event * event = _starpu_disk_backend_event_list_begin(async_channel->event.disk_event.requests);
+                struct _starpu_disk_backend_event * next;
+
+                /* Wait all events in the list and remove them */
+                while (event != _starpu_disk_backend_event_list_end(async_channel->event.disk_event.requests))
+                {
+                        next = _starpu_disk_backend_event_list_next(event);
+
+                        int res = disk_register_list[position]->functions->test_request(event->backend_event);
+
+                                if (res)
+                                {
+                                        disk_register_list[position]->functions->free_request(event->backend_event);
+
+                                        _starpu_disk_backend_event_list_erase(async_channel->event.disk_event.requests, event);
+
+                                        _starpu_disk_backend_event_delete(event);
+                                }
+
+                        event = next;
+                }
+
+                /* Remove the list because it doesn't contain any event */
+                if (_starpu_disk_backend_event_list_empty(async_channel->event.disk_event.requests))
+                {
+                        _starpu_disk_backend_event_list_delete(async_channel->event.disk_event.requests);
+                        async_channel->event.disk_event.requests = NULL;
+                }
+        }
+
+	return async_channel->event.disk_event.requests == NULL;
 }
 
 void starpu_disk_free_request(struct _starpu_async_channel *async_channel)
 {
-	int position = get_location_with_node(async_channel->event.disk_event.memory_node);
+/* It does not have any sense to use this function currently because requests are freed in test of wait functions */
+        STARPU_ABORT();
+
+/*	int position = get_location_with_node(async_channel->event.disk_event.memory_node);
 	if (async_channel->event.disk_event.backend_event)
 		disk_register_list[position]->functions->free_request(async_channel->event.disk_event.backend_event);
+*/
 }
 
-static void add_disk_in_list(unsigned node,  struct starpu_disk_ops *func, void *base)
+static int add_disk_in_list(unsigned node,  struct starpu_disk_ops *func, void *base)
 {
+	int n;
+
 	/* initialization */
 	if (disk_register_list == NULL)
 	{
@@ -300,7 +400,9 @@ static void add_disk_in_list(unsigned node,  struct starpu_disk_ops *func, void 
 	dr->base = base;
 	dr->flag = STARPU_DISK_ALL;
 	dr->functions = func;
-	disk_register_list[++disk_number] = dr;
+	n = ++disk_number;
+	disk_register_list[n] = dr;
+	return n;
 }
 
 static int get_location_with_node(unsigned node)
@@ -356,23 +458,19 @@ void _starpu_swap_init(void)
 	backend = starpu_getenv("STARPU_DISK_SWAP_BACKEND");
 	if (!backend)
 	{
-		_starpu_mkpath(path, S_IRWXU);
 		ops = &starpu_disk_unistd_ops;
 	}
 	else if (!strcmp(backend, "stdio"))
 	{
-		_starpu_mkpath(path, S_IRWXU);
 		ops = &starpu_disk_stdio_ops;
 	}
 	else if (!strcmp(backend, "unistd"))
 	{
-		_starpu_mkpath(path, S_IRWXU);
 		ops = &starpu_disk_unistd_ops;
 	}
 	else if (!strcmp(backend, "unistd_o_direct"))
 	{
 #ifdef STARPU_LINUX_SYS
-		_starpu_mkpath(path, S_IRWXU);
 		ops = &starpu_disk_unistd_o_direct_ops;
 #else
 		_STARPU_DISP("Warning: o_direct support is not compiled in, could not enable disk swap");
@@ -389,6 +487,15 @@ void _starpu_swap_init(void)
 		return;
 #endif
 	}
+        else if (!strcmp(backend, "hdf5"))
+        {
+#ifdef STARPU_HAVE_HDF5
+                ops = &starpu_disk_hdf5_ops;
+#else
+		_STARPU_DISP("Warning: hdf5 support is not compiled in, could not enable disk swap");
+		return;
+#endif
+        }
 	else
 	{
 		_STARPU_DISP("Warning: unknown disk swap backend %s, could not enable disk swap", backend);

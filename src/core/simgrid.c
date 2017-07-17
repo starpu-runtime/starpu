@@ -241,11 +241,6 @@ static void start_simgrid(int *argc, char **argv)
 	MSG_create_environment(path);
 }
 
-struct main_args
-{
-	int argc;
-	char **argv;
-};
 static int main_ret;
 
 int do_starpu_main(int argc, char *argv[])
@@ -445,7 +440,7 @@ static int task_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_AT
 	/* FIXME: Ugly work-around for bug in simgrid: the MPI context is not properly set at MSG process startup */
 	MSG_process_sleep(0.000001);
 
-	unsigned workerid = (uintptr_t) starpu_pthread_getspecific(0);
+	unsigned workerid = (uintptr_t) STARPU_PTHREAD_GETSPECIFIC(0);
 	struct worker_runner *w = &worker_runner[workerid];
 
 	_STARPU_DEBUG("worker runner %u started\n", workerid);
@@ -687,7 +682,7 @@ static int transfer_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARP
 	/* FIXME: Ugly work-around for bug in simgrid: the MPI context is not properly set at MSG process startup */
 	MSG_process_sleep(0.000001);
 
-	unsigned src_dst = (uintptr_t) starpu_pthread_getspecific(0);
+	unsigned src_dst = (uintptr_t) STARPU_PTHREAD_GETSPECIFIC(0);
 	unsigned src = src_dst >> 16;
 	unsigned dst = src_dst & 0xffff;
 	struct transfer_runner *t = &transfer_runner[src][dst];
@@ -956,6 +951,9 @@ _starpu_simgrid_get_memnode_host(unsigned node)
 			break;
 		case STARPU_OPENCL_RAM:
 			fmt = "OpenCL%u";
+			break;
+		case STARPU_DISK_RAM:
+			fmt = "DISK%u";
 			break;
 		default:
 			STARPU_ABORT();

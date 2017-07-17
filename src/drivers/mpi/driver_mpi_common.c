@@ -48,9 +48,9 @@ static void _starpu_mpi_set_src_node_id()
                 else if (id_proc == DRIVER_MPI_MASTER_NODE_DEFAULT)
                 {
                         /* Only one node prints the error message. */
-                        _STARPU_DISP("The node you specify to be the master is "
-                                        "greater than the total number of nodes.\n"
-                                        "Taking node %d by default...\n", DRIVER_MPI_MASTER_NODE_DEFAULT);
+                        _STARPU_MSG("The node (%d) you specify to be the master is "
+				    "greater than the total number of nodes (%d). "
+				    "StarPU will use node %d.\n", node_id, nb_proc, DRIVER_MPI_MASTER_NODE_DEFAULT);
                 }
         }
 
@@ -462,7 +462,8 @@ void _starpu_mpi_common_wait_event(struct _starpu_async_channel * event)
 
 void _starpu_mpi_common_barrier(void)
 {
-        MPI_Barrier(MPI_COMM_WORLD);
+        int ret = MPI_Barrier(MPI_COMM_WORLD);
+	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Barrier failed");
 }
 
 /* Compute bandwidth and latency between source and sink nodes
@@ -481,7 +482,7 @@ void _starpu_mpi_common_measure_bandwidth_latency(double timing_dtod[STARPU_MAXM
         _STARPU_MALLOC(buf, SIZE_BANDWIDTH);
         memset(buf, 0, SIZE_BANDWIDTH);
 
-        unsigned sender, receiver;
+        int sender, receiver;
         for(sender = 0; sender < nb_proc; sender++)
         {
                 for(receiver = 0; receiver < nb_proc; receiver++)
@@ -490,7 +491,8 @@ void _starpu_mpi_common_measure_bandwidth_latency(double timing_dtod[STARPU_MAXM
                         if(sender == receiver)
                                 continue;
 
-                        MPI_Barrier(MPI_COMM_WORLD);
+                        ret = MPI_Barrier(MPI_COMM_WORLD);
+			STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Barrier failed");
 
                         if(id_proc == sender)
                         {

@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2009-2017  Université de Bordeaux
-# Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016  CNRS
+# Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016, 2017  CNRS
 # Copyright (C) 2014  INRIA
 # Copyright (C) 2016  Inria
 #
@@ -136,6 +136,16 @@ if STARPU_DEVEL
 	@if grep -re '\<getenv\>' $$( find $(srcdir)/src $(srcdir)/mpi/src $(srcdir)/include -name \*.[ch] -a \! -name starpu_util.h -a \! -name utils.c -a \! -name simgrid.h) ; \
 	then \
 		echo "Please do not use getenv, use starpu_getenv instead, which catches unsafe uses"; \
+		false ; \
+	fi
+# we count the number of files which include unistd.h
+# we count the number of files which properly include unistd.h i.e by first detecting if it's available
+# and then we check both numbers are the same ...a
+	@UNISTD_ALL_LINES=$(shell grep -B1 -rs "^#include <unistd.h>" $(srcdir)/src/ $(srcdir)/include/ $(srcdir)/mpi/src $(srcdir)/mpi/include  |grep -v dolib|grep -v -e "--" | tr '\012' '@' | sed 's/unistd.h>@/unistd.h>\n/g' | wc -l) ;\
+	UNISTD_CORRECT_LINES=$(shell grep -B1 -rs "^#include <unistd.h>" $(srcdir)/src/ $(srcdir)/include/ $(srcdir)/mpi/src $(srcdir)/mpi/include  |grep -v dolib|grep -v -e "--" | tr '\012' '@' | sed 's/unistd.h>@/unistd.h>\n/g' | grep '#ifdef .*HAVE_UNISTD_H.*:#include <unistd.h>' | wc -l) ;\
+	if test $$UNISTD_ALL_LINES -ne $$UNISTD_CORRECT_LINES ; \
+	then \
+		echo "Please do not unconditionally include unistd.h, it is not available on Windows, include config.h and test for HAVE_UNISTD_H" ; \
 		false ; \
 	fi
 endif

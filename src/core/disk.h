@@ -18,8 +18,6 @@
 #ifndef __DISK_H__
 #define __DISK_H__
 
-#define SIZE_DISK_MIN (1024*1024)
-
 #define STARPU_DISK_ALL 1
 #define STARPU_DISK_NO_RECLAIM 2
 

@@ -54,6 +54,7 @@ Small changes:
   * Use asynchronous transfers for task data fetches with were not prefetched.
   * Allow to call starpu_sched_ctx_set_policy_data on the main
     scheduler context
+  * Fonction starpu_is_initialized() is moved to the public API.
 
 StarPU 1.2.2 (svn revision xxx)
 ==============================================
@@ -78,6 +79,8 @@ Small features:
   * MPI: Add mpi communications in dag.dot
   * Add STARPU_PERF_MODEL_HOMOGENEOUS_CPU environment variable to
     allow having one perfmodel per CPU core
+  * Add starpu_vector_filter_list_long filter.
+  * Add starpu_perfmodel_arch_comb_fetch function.
 
 Small changes:
   * Output generated through STARPU_MPI_COMM has been modified to

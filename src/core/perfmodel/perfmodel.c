@@ -482,7 +482,7 @@ void _starpu_set_perf_model_dirs()
 
 #ifdef STARPU_PERF_MODEL_DIR
 	/* use the directory specified at configure time */
-	snprintf(_perf_model_dir, _PERF_MODEL_DIR_MAXLEN, "%s", STARPU_PERF_MODEL_DIR);
+	snprintf(_perf_model_dir, _PERF_MODEL_DIR_MAXLEN, "%s", (char *)STARPU_PERF_MODEL_DIR);
 #else
 	snprintf(_perf_model_dir, _PERF_MODEL_DIR_MAXLEN, "%s/.starpu/sampling/", _starpu_get_home_path());
 #endif

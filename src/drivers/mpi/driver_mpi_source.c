@@ -136,7 +136,7 @@ int _starpu_mpi_copy_sink_to_sink_async(void *src, unsigned src_node, void *dst,
 }
 
 
-int _starpu_mpi_ms_src_register_kernel(starpu_mpi_ms_func_symbol_t *symbol, const char *func_name)
+int starpu_mpi_ms_register_kernel(starpu_mpi_ms_func_symbol_t *symbol, const char *func_name)
 {
         unsigned int func_name_size = (strlen(func_name) + 1) * sizeof(char);
 
@@ -185,7 +185,7 @@ int _starpu_mpi_ms_src_register_kernel(starpu_mpi_ms_func_symbol_t *symbol, cons
 }
 
 
-starpu_mpi_ms_kernel_t _starpu_mpi_ms_src_get_kernel(starpu_mpi_ms_func_symbol_t symbol)
+starpu_mpi_ms_kernel_t starpu_mpi_ms_get_kernel(starpu_mpi_ms_func_symbol_t symbol)
 {
         int workerid = starpu_worker_get_id();
 
@@ -232,9 +232,9 @@ starpu_mpi_ms_kernel_t _starpu_mpi_ms_src_get_kernel_from_codelet(struct starpu_
 		{
 			starpu_mpi_ms_func_symbol_t symbol;
 
-			_starpu_mpi_ms_src_register_kernel(&symbol, func_name);
+			starpu_mpi_ms_register_kernel(&symbol, func_name);
 
-			kernel = _starpu_mpi_ms_src_get_kernel(symbol);
+			kernel = starpu_mpi_ms_get_kernel(symbol);
 		}
 	}
 	STARPU_ASSERT_MSG(kernel, "when STARPU_MPI_MS is defined in 'where', mpi_ms_funcs or cpu_funcs_name has to be defined and the function be non-static");
@@ -265,9 +265,9 @@ void(* _starpu_mpi_ms_src_get_kernel_from_job(const struct _starpu_mp_node *node
                 {
                         starpu_mpi_ms_func_symbol_t symbol;
 
-                        _starpu_mpi_ms_src_register_kernel(&symbol, func_name);
+                        starpu_mpi_ms_register_kernel(&symbol, func_name);
 
-                        kernel = _starpu_mpi_ms_src_get_kernel(symbol);
+                        kernel = starpu_mpi_ms_get_kernel(symbol);
                 }
         }
         STARPU_ASSERT(kernel);

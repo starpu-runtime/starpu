@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2014, 2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -354,7 +354,7 @@ int main(int argc, char **argv)
 		problem_data[t].neighbour = &problem_data[(t+1)%nthreads];
 	}
 
-	starpu_pthread_create(&progress_thread, NULL, progress_func, NULL);
+	STARPU_PTHREAD_CREATE(&progress_thread, NULL, progress_func, NULL);
 
 	STARPU_PTHREAD_MUTEX_LOCK(&data_req_mutex);
 	while (!progress_thread_running)
@@ -363,14 +363,12 @@ int main(int argc, char **argv)
 
 	for (t = 0; t < nthreads; t++)
 	{
-		ret = starpu_pthread_create(&problem_data[t].thread, NULL, thread_func, &problem_data[t]);
-		STARPU_ASSERT(!ret);
+		STARPU_PTHREAD_CREATE(&problem_data[t].thread, NULL, thread_func, &problem_data[t]);
 	}
 
 	for (t = 0; t < nthreads; t++)
 	{
-		ret = starpu_pthread_join(problem_data[t].thread, &retval);
-		STARPU_ASSERT(!ret);
+		STARPU_PTHREAD_JOIN(problem_data[t].thread, &retval);
 		STARPU_ASSERT(retval == NULL);
 	}
 
@@ -379,8 +377,7 @@ int main(int argc, char **argv)
 	STARPU_PTHREAD_COND_SIGNAL(&data_req_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data_req_mutex);
 
-	ret = starpu_pthread_join(progress_thread, &retval);
-	STARPU_ASSERT(!ret);
+	STARPU_PTHREAD_JOIN(progress_thread, &retval);
 	STARPU_ASSERT(retval == NULL);
 
 	/* We check that the value in the "last" thread is valid */

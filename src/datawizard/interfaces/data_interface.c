@@ -148,7 +148,7 @@ struct starpu_data_interface_ops *_starpu_data_interface_get_ops(unsigned interf
  * some handle, the new mapping shadows the previous one.   */
 void _starpu_data_register_ram_pointer(starpu_data_handle_t handle, void *ptr)
 {
-	struct handle_entry *entry, *old_entry;
+	struct handle_entry *entry;
 
 	_STARPU_MALLOC(entry, sizeof(*entry));
 
@@ -174,6 +174,8 @@ void _starpu_data_register_ram_pointer(starpu_data_handle_t handle, void *ptr)
 	else
 #endif
 	{
+		struct handle_entry *old_entry;
+
 		_starpu_spin_lock(&registered_handles_lock);
 		HASH_FIND_PTR(registered_handles, &ptr, old_entry);
 		if (old_entry)
@@ -371,6 +373,7 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 	{
 		if (starpu_node_get_kind(node) != STARPU_CPU_RAM)
 			continue;
+
 		ptr = starpu_data_handle_to_pointer(handle, node);
 		if (ptr != NULL)
 			_starpu_data_register_ram_pointer(handle, ptr);
@@ -474,7 +477,6 @@ void starpu_data_register(starpu_data_handle_t *handleptr, int home_node,
 			  struct starpu_data_interface_ops *ops)
 {
 	starpu_data_handle_t handle = _starpu_data_handle_allocate(ops, home_node);
-	_STARPU_TRACE_HANDLE_DATA_REGISTER(handle);
 
 	STARPU_ASSERT(handleptr);
 	*handleptr = handle;
@@ -484,6 +486,7 @@ void starpu_data_register(starpu_data_handle_t *handleptr, int home_node,
 	ops->register_data_handle(handle, home_node, data_interface);
 
 	_starpu_register_new_data(handle, home_node, 0);
+	_STARPU_TRACE_HANDLE_DATA_REGISTER(handle);
 }
 
 void starpu_data_register_same(starpu_data_handle_t *handledst, starpu_data_handle_t handlesrc)
@@ -903,6 +906,7 @@ retry_busy:
 		free(handle->switch_cl->dyn_nodes);
 		free(handle->switch_cl);
 	}
+	_STARPU_TRACE_HANDLE_DATA_UNREGISTER(handle);
 	free(handle);
 }
 
@@ -1054,13 +1058,13 @@ int starpu_data_interface_get_next_id(void)
 
 int starpu_data_pack(starpu_data_handle_t handle, void **ptr, starpu_ssize_t *count)
 {
-	STARPU_ASSERT(handle->ops->pack_data);
+	STARPU_ASSERT_MSG(handle->ops->pack_data, "The datatype interface %s (%d) does not have a pack operation", handle->ops->name, handle->ops->interfaceid);
 	return handle->ops->pack_data(handle, _starpu_memory_node_get_local_key(), ptr, count);
 }
 
 int starpu_data_unpack(starpu_data_handle_t handle, void *ptr, size_t count)
 {
-	STARPU_ASSERT(handle->ops->unpack_data);
+	STARPU_ASSERT_MSG(handle->ops->unpack_data, "The datatype interface %s (%d) does not have an unpack operation", handle->ops->name, handle->ops->interfaceid);
 	int ret;
 	ret = handle->ops->unpack_data(handle, _starpu_memory_node_get_local_key(), ptr, count);
 	starpu_free_flags(ptr, count, 0);

@@ -7,6 +7,10 @@
 
 /*! \defgroup API_Out_Of_Core Out Of Core
 
+\def STARPU_DISK_SIZE_MIN
+\ingroup API_Out_Of_Core
+Minimum size of a registered disk. The size of a disk is the last parameter of the function starpu_disk_register().
+
 \struct starpu_disk_ops
 \ingroup API_Out_Of_Core
 This is a set of functions to manipulate datas on disk.
@@ -88,8 +92,7 @@ Register a disk memory node with a set of functions to manipulate datas. The \c
 plug member of \p func will be passed \p parameter, and return a \c base which will be passed to all \p func methods. <br />
 SUCCESS: return the disk node. <br />
 FAIL: return an error code. <br />
-The \p size must be at least 1 MB !
-\p size being negative means infinite size.
+\p size must be at least \ref STARPU_DISK_SIZE_MIN bytes ! \p size being negative means infinite size.
 
 \fn void *starpu_disk_open(unsigned node, void *pos, size_t size)
 \ingroup API_Out_Of_Core
@@ -128,5 +131,12 @@ Only available on Linux systems.
 This set uses the leveldb created by Google <br />
 More information at https://code.google.com/p/leveldb/ <br />
 It doesn't support asynchronous transfers.
+
+\var starpu_disk_hdf5_ops
+\ingroup API_Out_Of_Core
+This set uses the HDF5 library.<br />
+<strong>It doesn't support multiple opening from different processes. </strong> <br />
+You may only allow one process to write in the HDF5 file. <br />
+<strong>If HDF5 library is not compiled with --thread-safe you can't open more than one HDF5 file at the same time. </strong>
 
 */

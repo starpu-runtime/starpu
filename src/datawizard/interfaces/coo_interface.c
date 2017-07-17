@@ -215,7 +215,8 @@ struct starpu_data_interface_ops starpu_interface_coo_ops =
 	.interfaceid           = STARPU_COO_INTERFACE_ID,
 	.interface_size        = sizeof(struct starpu_coo_interface),
 	.display               = display_coo_interface,
-	.describe              = describe
+	.describe              = describe,
+	.name                  = "STARPU_COO_INTERFACE"
 };
 
 void

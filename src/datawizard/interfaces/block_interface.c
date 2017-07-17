@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2017  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -95,7 +95,8 @@ struct starpu_data_interface_ops starpu_interface_block_ops =
 	.display = display_block_interface,
 	.pack_data = pack_block_handle,
 	.unpack_data = unpack_block_handle,
-	.describe = describe
+	.describe = describe,
+	.name = "STARPU_BLOCK_INTERFACE"
 };
 
 static void *block_handle_to_pointer(starpu_data_handle_t handle, unsigned node)
@@ -289,6 +290,10 @@ static size_t block_interface_get_size(starpu_data_handle_t handle)
 
 	block_interface = (struct starpu_block_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
+#ifdef STARPU_DEBUG
+	STARPU_ASSERT_MSG(block_interface->id == STARPU_BLOCK_INTERFACE_ID, "Error. The given data is not a block.");
+#endif
+
 	size = block_interface->nx*block_interface->ny*block_interface->nz*block_interface->elemsize;
 
 	return size;
@@ -300,6 +305,10 @@ uint32_t starpu_block_get_nx(starpu_data_handle_t handle)
 	struct starpu_block_interface *block_interface = (struct starpu_block_interface *)
 		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
+#ifdef STARPU_DEBUG
+	STARPU_ASSERT_MSG(block_interface->id == STARPU_BLOCK_INTERFACE_ID, "Error. The given data is not a block.");
+#endif
+
 	return block_interface->nx;
 }
 
@@ -308,6 +317,10 @@ uint32_t starpu_block_get_ny(starpu_data_handle_t handle)
 	struct starpu_block_interface *block_interface = (struct starpu_block_interface *)
 		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
+#ifdef STARPU_DEBUG
+	STARPU_ASSERT_MSG(block_interface->id == STARPU_BLOCK_INTERFACE_ID, "Error. The given data is not a block.");
+#endif
+
 	return block_interface->ny;
 }
 
@@ -315,6 +328,10 @@ uint32_t starpu_block_get_nz(starpu_data_handle_t handle)
 {
 	struct starpu_block_interface *block_interface = (struct starpu_block_interface *)
 		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
+
+#ifdef STARPU_DEBUG
+	STARPU_ASSERT_MSG(block_interface->id == STARPU_BLOCK_INTERFACE_ID, "Error. The given data is not a block.");
+#endif
 
 	return block_interface->nz;
 }
@@ -329,6 +346,10 @@ uint32_t starpu_block_get_local_ldy(starpu_data_handle_t handle)
 	struct starpu_block_interface *block_interface = (struct starpu_block_interface *)
 		starpu_data_get_interface_on_node(handle, node);
 
+#ifdef STARPU_DEBUG
+	STARPU_ASSERT_MSG(block_interface->id == STARPU_BLOCK_INTERFACE_ID, "Error. The given data is not a block.");
+#endif
+
 	return block_interface->ldy;
 }
 
@@ -341,6 +362,10 @@ uint32_t starpu_block_get_local_ldz(starpu_data_handle_t handle)
 
 	struct starpu_block_interface *block_interface = (struct starpu_block_interface *)
 		starpu_data_get_interface_on_node(handle, node);
+
+#ifdef STARPU_DEBUG
+	STARPU_ASSERT_MSG(block_interface->id == STARPU_BLOCK_INTERFACE_ID, "Error. The given data is not a block.");
+#endif
 
 	return block_interface->ldz;
 }
@@ -355,6 +380,10 @@ uintptr_t starpu_block_get_local_ptr(starpu_data_handle_t handle)
 	struct starpu_block_interface *block_interface = (struct starpu_block_interface *)
 		starpu_data_get_interface_on_node(handle, node);
 
+#ifdef STARPU_DEBUG
+	STARPU_ASSERT_MSG(block_interface->id == STARPU_BLOCK_INTERFACE_ID, "Error. The given data is not a block.");
+#endif
+
 	return block_interface->ptr;
 }
 
@@ -362,6 +391,10 @@ size_t starpu_block_get_elemsize(starpu_data_handle_t handle)
 {
 	struct starpu_block_interface *block_interface = (struct starpu_block_interface *)
 		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
+
+#ifdef STARPU_DEBUG
+	STARPU_ASSERT_MSG(block_interface->id == STARPU_BLOCK_INTERFACE_ID, "Error. The given data is not a block.");
+#endif
 
 	return block_interface->elemsize;
 }

@@ -64,14 +64,12 @@ int main(int argc, char **argv)
 
 	for (i = 0; i < NUM_THREADS; ++i)
 	{
-		int ret = starpu_pthread_create(&threads[i], NULL, launch_starpu, NULL);
-		STARPU_ASSERT(ret == 0);
+		STARPU_PTHREAD_CREATE(&threads[i], NULL, launch_starpu, NULL);
 	}
 
 	for (i = 0; i < NUM_THREADS; ++i)
 	{
-		int ret = starpu_pthread_join(threads[i], NULL);
-		STARPU_ASSERT(ret == 0);
+		STARPU_PTHREAD_JOIN(threads[i], NULL);
 	}
 
 	end = starpu_timing_now();
@@ -84,14 +82,12 @@ int main(int argc, char **argv)
 
 	for (i = 0; i < NUM_THREADS; i++)
 	{
-		int ret = starpu_pthread_create(&threads[i], NULL, shutdown_starpu, NULL);
-		STARPU_ASSERT(ret == 0);
+		STARPU_PTHREAD_CREATE(&threads[i], NULL, shutdown_starpu, NULL);
 	}
 
 	for (i = 0; i < NUM_THREADS; i++)
 	{
-		int ret = starpu_pthread_join(threads[i], NULL);
-		STARPU_ASSERT(ret == 0);
+		STARPU_PTHREAD_JOIN(threads[i], NULL);
 	}
 
 	return EXIT_SUCCESS;

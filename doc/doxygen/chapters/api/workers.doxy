@@ -330,4 +330,11 @@ if needed during the waiting process. Returns 1 if \p workerid has been woken
 up or its state_keep_awake flag has been set to 1, and 0 otherwise (if \p
 workerid was not in the STATE_SLEEPING or in the STATE_SCHEDULING).
 
+\fn hwloc_cpuset_t starpu_worker_get_hwloc_cpuset(int workerid)
+\ingroup API_Workers_Properties
+If StarPU was compiled with hwloc support, returns a duplicate of the
+hwloc cpuset associated with the worker \p workerid. The returned cpuset is obtained
+from a \c hwloc_bitmap_dup() function call. It must be freed by the caller
+using \c hwloc_bitmap_free().
+
 */

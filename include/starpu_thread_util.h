@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2012-2014, 2016-2017  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -42,6 +42,16 @@
 	if (STARPU_UNLIKELY(p_ret != 0)) {					\
 		fprintf(stderr,							\
 			"%s:%d starpu_pthread_create: %s\n",			\
+			__FILE__, __LINE__, strerror(p_ret));			\
+		STARPU_ABORT();							\
+	}									\
+} while (0)
+
+#define STARPU_PTHREAD_JOIN(thread, retval) do {		    	\
+	int p_ret =  starpu_pthread_join((thread), (retval)); \
+	if (STARPU_UNLIKELY(p_ret != 0)) {					\
+		fprintf(stderr,							\
+			"%s:%d starpu_pthread_join: %s\n",			\
 			__FILE__, __LINE__, strerror(p_ret));			\
 		STARPU_ABORT();							\
 	}									\

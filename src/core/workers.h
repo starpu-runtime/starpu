@@ -133,6 +133,8 @@ LIST_TYPE(_starpu_worker,
 	starpu_pthread_wait_t wait;
 #endif
 
+	struct timespec cl_start; /* Codelet start time of the task currently running */
+	struct timespec cl_end; /* Codelet end time of the last task running */
 	unsigned char first_task; /* Index of first task in the pipeline */
 	unsigned char ntasks; /* number of tasks in the pipeline */
 	unsigned char pipeline_length; /* number of tasks to be put in the pipeline */
@@ -399,7 +401,8 @@ struct _starpu_machine_config
 	struct _starpu_combined_worker combined_workers[STARPU_NMAX_COMBINEDWORKERS];
 
 	/* Translation table from bindid to worker IDs */
-	struct {
+	struct
+	{
 		int *workerids;
 		unsigned nworkers; /* size of workerids */
 	} *bindid_workers;
@@ -551,8 +554,6 @@ static inline struct _starpu_sched_ctx *_starpu_get_sched_ctx_struct(unsigned id
 }
 
 struct _starpu_combined_worker *_starpu_get_combined_worker_struct(unsigned id);
-
-int _starpu_is_initialized(void);
 
 /* Returns the structure that describes the overall machine configuration (eg.
  * all workers and topology). */
@@ -1041,7 +1042,8 @@ static inline int _starpu_worker_trylock(int workerid)
 	int cur_workerid = starpu_worker_get_id();
 	if (!ret)
 	{
-		if (workerid != cur_workerid) {
+		if (workerid != cur_workerid)
+		{
 			ret = !worker->state_relax_refcnt;
 			if (ret)
 				STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);

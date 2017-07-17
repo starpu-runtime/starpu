@@ -35,6 +35,7 @@ AM_LDFLAGS = @STARPU_EXPORT_DYNAMIC@ $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFL
 EXTRA_DIST =					\
 	helper.h				\
 	datawizard/locality.sh			\
+	overlap/overlap.sh			\
 	datawizard/scal.h			\
 	datawizard/mpi_like.h			\
 	microbenchs/tasks_size_overhead.sh	\
@@ -150,6 +151,7 @@ myPROGRAMS +=					\
 	datawizard/interfaces/copy_interfaces	\
 	datawizard/locality			\
 	datawizard/simgrid-locality		\
+	datawizard/variable_size		\
 	errorcheck/starpu_init_noworker		\
 	errorcheck/invalid_tasks		\
 	helper/cublas_init			\
@@ -158,6 +160,7 @@ myPROGRAMS +=					\
 	helper/execute_on_all			\
 	microbenchs/display_structures_size	\
 	microbenchs/local_pingpong		\
+	overlap/overlap				\
 	sched_ctx/sched_ctx_list		\
 	sched_ctx/sched_ctx_policy_data		\
 	perfmodels/value_nan
@@ -204,6 +207,7 @@ myPROGRAMS +=				\
 	main/pause_resume			\
 	main/pack				\
 	main/get_children_tasks			\
+	main/hwloc_cpuset			\
 	datawizard/acquire_cb_insert		\
 	datawizard/acquire_release		\
 	datawizard/acquire_release2		\
@@ -318,7 +322,6 @@ myPROGRAMS +=				\
 	openmp/taskgroup_02			\
 	openmp/array_slice_01			\
 	openmp/cuda_task_01			\
-	overlap/overlap				\
 	overlap/gpu_concurrency			\
 	parallel_tasks/explicit_combined_worker	\
 	parallel_tasks/parallel_kernels		\
@@ -344,6 +347,8 @@ MICROBENCHS = \
 	microbenchs/parallel_independent_heterogeneous_tasks    \
 	microbenchs/parallel_independent_homogeneous_tasks_data	\
 	microbenchs/parallel_independent_heterogeneous_tasks_data \
+	microbenchs/parallel_redux_homogeneous_tasks_data \
+	microbenchs/parallel_redux_heterogeneous_tasks_data \
 	microbenchs/parallel_dependent_homogeneous_tasks_data
 
 if STARPU_HAVE_FC
@@ -387,7 +392,9 @@ if STARPU_SIMGRID
 TESTS += $(MICROBENCHS:=.sh)
 endif
 
-TESTS += datawizard/locality.sh
+TESTS += \
+	datawizard/locality.sh \
+	overlap/overlap.sh
 
 ################################
 # Simgrid Model Checking tests #

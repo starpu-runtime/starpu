@@ -771,11 +771,73 @@ AC_CHECK_FUNC([sched_yield], [AC_DEFINE([STARPU_HAVE_SCHED_YIELD], [1], [Define 
 
 AC_CHECK_HEADERS([aio.h])
 AC_CHECK_LIB([rt], [aio_read])
+#AC_CHECK_HEADERS([libaio.h])
+#AC_CHECK_LIB([aio], [io_setup])
 
 AC_CHECK_FUNCS([mkostemp])
 AC_CHECK_FUNCS([mkdtemp])
 
 AC_CHECK_FUNCS([pread pwrite])
+
+
+AC_ARG_WITH(hdf5-include-dir,
+	[AS_HELP_STRING([--with-hdf5-include-dir=<path>],
+	[specify where HDF5 headers are installed])],
+	[
+		hdf5_include_dir="$withval"
+	], [hdf5_include_dir=""])
+
+hdf5_inc_dir="/usr/include/hdf5 /usr/include/hdf5/serial ${hdf5_include_dir}"
+
+enable_include_hdf5=no
+for f in $hdf5_inc_dir; do
+        if test -n "$f" ; then
+                SAVED_CFLAGS="${CFLAGS}"
+                CFLAGS=-I${f}
+                AC_CHECK_HEADERS([hdf5.h])
+                if test "$ac_cv_header_hdf5_h" = "yes" ; then
+                        CFLAGS="-I${f} ${SAVED_CFLAGS}"
+                        enable_include_hdf5=yes
+                        break
+                else
+                        CFLAGS=${SAVED_CFLAGS}
+                fi
+                unset ac_cv_header_hdf5_h
+        fi
+done
+
+
+AC_ARG_WITH(hdf5-lib-dir,
+	[AS_HELP_STRING([--with-hdf5-lib-dir=<path>],
+	[specify where HDF5 libraries are installed])],
+	[
+		hdf5_libraries_dir="$withval"
+	], [hdf5_libraries_dir=""])
+
+hdf5_lib_dir="/usr/lib/x86_64-linux-gnu/hdf5 /usr/lib/x86_64-linux-gnu/hdf5/serial ${hdf5_libraries_dir}"
+
+enable_libraries_hdf5=no
+for f in $hdf5_lib_dir; do
+        if test -n "$f" ; then
+                SAVED_LDFLAGS="${LDFLAGS}"
+                LDFLAGS=-L${f}
+                STARPU_HAVE_LIBRARY(HDF5, [hdf5])
+                if test "$ac_cv_lib_hdf5_main" = "yes" ; then
+                        LDFLAGS="-L${f} ${SAVED_LDFLAGS} ${STARPU_HDF5_LDFLAGS}"
+                        enable_libraries_hdf5=yes
+                        break
+                else
+                        LDFLAGS=${SAVED_LDFLAGS}
+                fi
+                unset ac_cv_lib_hdf5_main
+        fi
+done
+
+if test  "x$enable_libraries_hdf5" = "xyes" -a "x$enable_include_hdf5" = "xyes"; then
+        AC_DEFINE([STARPU_HAVE_HDF5], [1], [Define to 1 if you have the <hdf5.h> header file.])
+fi
+AM_CONDITIONAL(STARPU_HAVE_HDF5, test  "x$enable_libraries_hdf5" = "xyes" -a "x$enable_include_hdf5" = "xyes")
+
 
 # This defines HAVE_SYNC_VAL_COMPARE_AND_SWAP
 STARPU_CHECK_SYNC_VAL_COMPARE_AND_SWAP
@@ -802,6 +864,18 @@ AC_MSG_CHECKING(whether libnuma is available)
 AC_MSG_RESULT($enable_libnuma)
 if test x$enable_libnuma = xyes; then
 	AC_DEFINE(STARPU_HAVE_LIBNUMA,[1],[libnuma is available])
+fi
+
+AC_MSG_CHECKING(whether statement expressions are available)
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+#define maxint(a,b) ({int _a = (a), _b = (b); _a > _b ? _a : _b; })
+]],
+		[[ int x=maxint(12,42); ]])],
+		[statement_expressions="yes"],
+		[statement_expressions="no"])
+AC_MSG_RESULT($statement_expressions)
+if test x$statement_expressions = xyes; then
+	AC_DEFINE(STARPU_HAVE_STATEMENT_EXPRESSIONS,[1],[statement expressions are available])
 fi
 
 ###############################################################################
@@ -1945,15 +2019,19 @@ if test x$use_fxt = xyes; then
 	##########################################
 	# Poti is a library to generate paje trace files
 	##########################################
-	PKG_CHECK_MODULES([POTI], [poti], [
-		AC_DEFINE(STARPU_HAVE_POTI, [1], [Define to 1 if you have libpoti])
+	PKG_CHECK_MODULES([POTI], [poti], [have_valid_poti=yes], [have_valid_poti=no])
+	AC_ARG_ENABLE(poti, [AS_HELP_STRING([--enable-poti],
+				[Enable the use of the POTI library to generate Paje traces])],
+				enable_poti=$enableval, enable_poti=no)
+	if test x$enable_poti = xyes -a x$have_valid_poti = xyes ; then
+		AC_DEFINE(STARPU_HAVE_POTI, [1], [Define to 1 if you have libpoti and it is meant to be used])
 		save_LIBS="$LIBS"
 		LIBS="$LIBS $POTI_LIBS"
 		AC_CHECK_FUNCS([poti_init_custom])
 		LIBS="$save_LIBS"
-	], [:])
-	FXT_CFLAGS="$FXT_CFLAGS $POTI_CFLAGS"
-	FXT_LIBS="$FXT_LIBS $POTI_LIBS"
+		FXT_CFLAGS="$FXT_CFLAGS $POTI_CFLAGS"
+		FXT_LIBS="$FXT_LIBS $POTI_LIBS"
+	fi
 fi
 
 AC_MSG_CHECKING(whether additional locking systems FxT traces should be enabled)
@@ -2080,13 +2158,13 @@ if test x$maxnodes = x0 ; then
 		# we add nodes to use 2 memory disks
 		nodes=`expr $nmaxnumanodes + 2`
 		if test x$enable_cuda = xyes ; then
-			# we could have used nmaxcudadev + 1, but this would certainly give an
-			# odd number.
+			# we could have used nmaxcudadev + 1, but this would certainly give an
+			# odd number.
 			nodes=`expr $nodes + $nmaxcudadev`
 		fi
 		if test x$enable_opencl = xyes ; then
-			# we could have used nmaxcudadev + 1, but this would certainly give an
-			# odd number.
+			# we could have used nmaxcudadev + 1, but this would certainly give an
+			# odd number.
 			nodes=`expr $nodes + $nmaxopencldev`
 		fi
 		if test x$enable_mic = xyes ; then
@@ -3159,6 +3237,8 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   test -e tests/microbenchs/parallel_independent_homogeneous_tasks.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/parallel_independent_homogeneous_tasks.sh tests/microbenchs/
   mkdir -p tests/datawizard
   test -e tests/datawizard/locality.sh || ln -sf $ac_abs_top_srcdir/tests/datawizard/locality.sh tests/datawizard/
+  mkdir -p tests/overlap
+  test -e tests/overlap/overlap.sh || ln -sf $ac_abs_top_srcdir/tests/overlap/overlap.sh tests/overlap/
   mkdir -p tests/model-checking
   test -e tests/model-checking/prio_list.sh || ln -sf $ac_abs_top_srcdir/tests/model-checking/prio_list.sh tests/model-checking/
   test -e tests/model-checking/barrier.sh || ln -sf $ac_abs_top_srcdir/tests/model-checking/barrier.sh tests/model-checking/
@@ -3166,6 +3246,10 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   test -e examples/heat/heat.sh || ln -sf $ac_abs_top_srcdir/examples/heat/heat.sh examples/heat/
   mkdir -p examples/lu
   test -e examples/lu/lu.sh || ln -sf $ac_abs_top_srcdir/examples/lu/lu.sh examples/lu/
+  test -e tools/starpu_paje_draw_histogram.R || ln -sf $ac_abs_top_srcdir/tools/starpu_paje_draw_histogram.R tools/starpu_paje_draw_histogram.R
+  test -e tools/starpu_paje_state_stats.R || ln -sf $ac_abs_top_srcdir/tools/starpu_paje_state_stats.R tools/starpu_paje_state_stats.R
+  test -e tools/starpu_trace_state_stats.py || ln -sf $ac_abs_top_srcdir/tools/starpu_trace_state_stats.py tools/starpu_trace_state_stats.py
+  chmod +x tools/starpu_trace_state_stats.py
 ])
 
 # Create links to ICD files in build/socl/vendors directory. SOCL will use this
@@ -3184,18 +3268,6 @@ AC_SUBST(SOCL_VENDORS)
 
 AC_CONFIG_FILES(tests/regression/regression.sh tests/regression/profiles tests/regression/profiles.build.only)
 AC_CONFIG_HEADER(src/common/config.h include/starpu_config.h gcc-plugin/include/starpu-gcc/config.h starpu-top/config.h)
-
-AH_BOTTOM([
-#if defined(STARPU_DEVEL) && defined(BUILDING_STARPU)
-#  ifndef STARPU_CHECKED_UNISTD_H
-#    define STARPU_CHECKED_UNISTD_H
-#    ifdef _UNISTD_H
-#      define _UNISTD_H PLEASE_DONT_INCLUDE_IT
-#      error Please do not unconditionally include unistd.h, it is not available on Windows, include config.h and test for HAVE_UNISTD_H
-#    endif
-#  endif
-#endif
-])
 
 SANITIZE=$(echo $CFLAGS | grep sanitize)
 AM_CONDITIONAL(STARPU_SANITIZE, test -n "$SANITIZE")

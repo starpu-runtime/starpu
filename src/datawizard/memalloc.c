@@ -232,7 +232,8 @@ static unsigned may_free_subtree(starpu_data_handle_t handle, unsigned node)
 		unsigned res;
 		starpu_data_handle_t child_handle = starpu_data_get_child(handle, child);
 		res = may_free_subtree(child_handle, node);
-		if (!res) return 0;
+		if (!res)
+			return 0;
 	}
 
 	/* no problem was found */
@@ -608,8 +609,10 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 								freed = 1;
 							}
 							else
+							{
 								/* Free */
 								freed = do_free_mem_chunk(mc, node);
+							}
 						}
 					}
 				}
@@ -714,7 +717,7 @@ restart:
 		if (!mc->data->is_not_important)
 			/* Important data, skip */
 			continue;
-		if (mc->footprint != footprint || _starpu_data_interface_compare(data->per_node[node].data_interface, data->ops, mc->data->per_node[node].data_interface, mc->ops) != 1 )
+		if (mc->footprint != footprint || _starpu_data_interface_compare(data->per_node[node].data_interface, data->ops, mc->data->per_node[node].data_interface, mc->ops) != 1)
 			/* Not the right type of interface, skip */
 			continue;
 		if (next_mc)
@@ -1153,7 +1156,7 @@ void starpu_memchunk_tidy(unsigned node)
 		{
 			char name[32];
 			_starpu_memory_node_get_name(node, name, sizeof(name));
-			_STARPU_DISP("Low memory left on node %s (%luMiB over %luMiB). Your application data set seems too huge to fit on the device, StarPU will cope by trying to purge %lu MiB out. This message will not be printed again for further purges. The thresholds can be tuned using the STARPU_MINIMUM_AVAILABLE_MEM and STARPU_TARGET_AVAILABLE_MEM environment variables.\n", name, (unsigned long) (available / 1048576), (unsigned long) (total / 1048576), (unsigned long) (amount / 1048576));
+			_STARPU_DISP("Low memory left on node %s (%ldMiB over %luMiB). Your application data set seems too huge to fit on the device, StarPU will cope by trying to purge %lu MiB out. This message will not be printed again for further purges. The thresholds can be tuned using the STARPU_MINIMUM_AVAILABLE_MEM and STARPU_TARGET_AVAILABLE_MEM environment variables.\n", name, (long) (available / 1048576), (unsigned long) (total / 1048576), (unsigned long) (amount / 1048576));
 		}
 	}
 

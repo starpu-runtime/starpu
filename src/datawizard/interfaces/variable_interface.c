@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2017  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -62,7 +62,8 @@ struct starpu_data_interface_ops starpu_interface_variable_ops =
 	.display = display_variable_interface,
 	.pack_data = pack_variable_handle,
 	.unpack_data = unpack_variable_handle,
-	.describe = describe
+	.describe = describe,
+	.name = "STARPU_VARIABLE_INTERFACE"
 };
 
 static void *variable_handle_to_pointer(starpu_data_handle_t handle, unsigned node)
@@ -195,6 +196,10 @@ static size_t variable_interface_get_size(starpu_data_handle_t handle)
 {
 	struct starpu_variable_interface *variable_interface = (struct starpu_variable_interface *)
 		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
+
+#ifdef STARPU_DEBUG
+	STARPU_ASSERT_MSG(variable_interface->id == STARPU_VARIABLE_INTERFACE_ID, "Error. The given data is not a variable.");
+#endif
 
 	return variable_interface->elemsize;
 }

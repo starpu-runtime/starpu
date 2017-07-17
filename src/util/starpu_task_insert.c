@@ -49,6 +49,7 @@ void _starpu_codelet_unpack_args_and_copyleft(char *cl_arg, void *_buffer, size_
 		// NULL was the initial end marker, we now use 0
 		// 0 and NULL should be the same value, but we
 		// keep both equalities for systems on which they could be different
+		// cppcheck-suppress duplicateExpression
 		if(argptr == 0 || argptr == NULL)
 			break;
 

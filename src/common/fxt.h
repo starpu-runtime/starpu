@@ -21,7 +21,7 @@
 
 
 #ifndef _GNU_SOURCE
-#define _GNU_SOURCE  /* ou _BSD_SOURCE ou _SVID_SOURCE */
+#define _GNU_SOURCE  1 /* ou _BSD_SOURCE ou _SVID_SOURCE */
 #endif
 
 #include <string.h>
@@ -80,6 +80,7 @@
 
 #define _STARPU_FUT_DATA_NAME		0x511d
 #define _STARPU_FUT_DATA_COORDINATES	0x511e
+#define _STARPU_FUT_HANDLE_DATA_UNREGISTER	0x511f
 
 #define _STARPU_FUT_USER_DEFINED_START	0x5120
 #define _STARPU_FUT_USER_DEFINED_END	0x5121
@@ -1046,8 +1047,19 @@ do {										\
 #define _STARPU_TRACE_SCHED_COMPONENT_PULL(from, to, task)		\
 	FUT_DO_PROBE5(_STARPU_FUT_SCHED_COMPONENT_PULL, _starpu_gettid(), from, to, task, (task)->priority);
 
-#define _STARPU_TRACE_HANDLE_DATA_REGISTER(handle)		\
-	FUT_DO_PROBE1(_STARPU_FUT_HANDLE_DATA_REGISTER, handle)
+#define _STARPU_TRACE_HANDLE_DATA_REGISTER(handle)	do {	\
+	const size_t __data_size = handle->ops->get_size(handle); \
+	char __buf[(FXT_MAX_PARAMS-2)*sizeof(long)]; \
+	void *__interface = handle->per_node[0].data_interface; \
+	if (handle->ops->describe) \
+		handle->ops->describe(__interface, __buf, sizeof(__buf)); \
+	else \
+		__buf[0] = 0; \
+	FUT_DO_PROBE3STR(_STARPU_FUT_HANDLE_DATA_REGISTER, handle, __data_size, handle->home_node, __buf); \
+} while (0)
+
+#define _STARPU_TRACE_HANDLE_DATA_UNREGISTER(handle)	\
+	FUT_DO_PROBE1(_STARPU_FUT_HANDLE_DATA_UNREGISTER, handle)
 
 #if 0
 #define _STARPU_TRACE_DATA_INVALIDATE(handle, node)		\
@@ -1169,6 +1181,7 @@ do {										\
 #define _STARPU_TRACE_SCHED_COMPONENT_PUSH(from, to, task)	do {(void)(from); (void)(to); (void)(task);} while (0)
 #define _STARPU_TRACE_SCHED_COMPONENT_PULL(from, to, task)	do {(void)(from); (void)(to); (void)(task);} while (0)
 #define _STARPU_TRACE_HANDLE_DATA_REGISTER(handle)	do {(void)(handle);} while (0)
+#define _STARPU_TRACE_HANDLE_DATA_UNREGISTER(handle)	do {(void)(handle);} while (0)
 #define _STARPU_TRACE_DATA_INVALIDATE(handle, node)	do {(void)(handle); (void)(node);} while (0)
 #define _STARPU_TRACE_WORKER_START_FETCH_INPUT(job, id)	do {(void)(job); (void)(id);} while(0)
 #define _STARPU_TRACE_WORKER_END_FETCH_INPUT(job, id)	do {(void)(job); (void)(id);} while(0)

@@ -66,10 +66,10 @@ static int mct_push_task(struct starpu_sched_component * component, struct starp
 
 	/* Entering critical section to make sure no two workers
 	   make scheduling decisions at the same time */
-	STARPU_COMPONENT_MUTEX_LOCK(&d->scheduling_mutex); 
+	STARPU_COMPONENT_MUTEX_LOCK(&d->scheduling_mutex);
 
 
-	starpu_mct_compute_expected_times(component, task, estimated_lengths, estimated_transfer_length, 
+	starpu_mct_compute_expected_times(component, task, estimated_lengths, estimated_transfer_length,
 					  estimated_ends_with_task, &min_exp_end_with_task, &max_exp_end_with_task, suitable_components, nsuitable_components);
 
 	double best_fitness = DBL_MAX;
@@ -98,8 +98,9 @@ static int mct_push_task(struct starpu_sched_component * component, struct starp
 	 * the task had been purged since it has been pushed on the mct component.
 	 * We should send a push_fail message to its parent so that it will
 	 * be able to reschedule the task properly. */
-	if(best_icomponent == -1) {
-		STARPU_COMPONENT_MUTEX_UNLOCK(&d->scheduling_mutex); 
+	if(best_icomponent == -1)
+	{
+		STARPU_COMPONENT_MUTEX_UNLOCK(&d->scheduling_mutex);
 		return 1;
 	}
 
@@ -111,17 +112,17 @@ static int mct_push_task(struct starpu_sched_component * component, struct starp
 	if(starpu_sched_component_is_worker(best_component))
 	{
 		best_component->can_pull(best_component);
-		STARPU_COMPONENT_MUTEX_UNLOCK(&d->scheduling_mutex); 
-		
+		STARPU_COMPONENT_MUTEX_UNLOCK(&d->scheduling_mutex);
+
 		return 1;
 	}
 
 	_STARPU_TASK_BREAK_ON(task, sched);
 	int ret = starpu_sched_component_push_task(component, best_component, task);
-	
-	/* I can now exit the critical section: Pushing the task below ensures that its execution 
+
+	/* I can now exit the critical section: Pushing the task below ensures that its execution
 	   time will be taken into account for subsequent scheduling decisions */
-	STARPU_COMPONENT_MUTEX_UNLOCK(&d->scheduling_mutex); 
+	STARPU_COMPONENT_MUTEX_UNLOCK(&d->scheduling_mutex);
 
 	return ret;
 }
@@ -130,7 +131,7 @@ static void mct_component_deinit_data(struct starpu_sched_component * component)
 {
 	STARPU_ASSERT(starpu_sched_component_is_mct(component));
 	struct _starpu_mct_data * d = component->data;
-	STARPU_PTHREAD_MUTEX_DESTROY(&d->scheduling_mutex); 
+	STARPU_PTHREAD_MUTEX_DESTROY(&d->scheduling_mutex);
 	free(d);
 }
 
@@ -145,7 +146,7 @@ struct starpu_sched_component * starpu_sched_component_mct_create(struct starpu_
 	struct _starpu_mct_data *data = starpu_mct_init_parameters(params);
 
 	component->data = data;
-	STARPU_PTHREAD_MUTEX_INIT(&data->scheduling_mutex, NULL); 
+	STARPU_PTHREAD_MUTEX_INIT(&data->scheduling_mutex, NULL);
 
 	component->push_task = mct_push_task;
 	component->deinit_data = mct_component_deinit_data;

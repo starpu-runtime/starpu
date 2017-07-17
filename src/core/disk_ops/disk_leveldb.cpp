@@ -270,11 +270,11 @@ static int get_leveldb_bandwidth_between_disk_and_main_ram(unsigned node)
 	double end;
 
 	srand(time (NULL));
-	char *buf = (char *)malloc(SIZE_DISK_MIN*sizeof(char));
+	char *buf = (char *)malloc(STARPU_DISK_SIZE_MIN*sizeof(char));
 	STARPU_ASSERT(buf);
 
 	/* allocate memory */
-	void *mem = _starpu_disk_alloc(node, SIZE_DISK_MIN);
+	void *mem = _starpu_disk_alloc(node, STARPU_DISK_SIZE_MIN);
 	/* fail to alloc */
 	if (mem == NULL)
 	{
@@ -286,7 +286,7 @@ static int get_leveldb_bandwidth_between_disk_and_main_ram(unsigned node)
 	start = starpu_timing_now();
 	for (iter = 0; iter < NITER; ++iter)
 	{
-		_starpu_disk_write(STARPU_MAIN_RAM, node, mem, buf, 0, SIZE_DISK_MIN, NULL);
+		_starpu_disk_write(STARPU_MAIN_RAM, node, mem, buf, 0, STARPU_DISK_SIZE_MIN, NULL);
 	}
 	end = starpu_timing_now();
 	timing_slowness = end - start;
@@ -302,15 +302,15 @@ static int get_leveldb_bandwidth_between_disk_and_main_ram(unsigned node)
 	start = starpu_timing_now();
 	for (iter = 0; iter < NITER; ++iter)
 	{
-		_starpu_disk_write(STARPU_MAIN_RAM, node, mem, buf, rand() % (SIZE_DISK_MIN -1) , 1, NULL);
+		_starpu_disk_write(STARPU_MAIN_RAM, node, mem, buf, rand() % (STARPU_DISK_SIZE_MIN -1) , 1, NULL);
 	}
 	end = starpu_timing_now();
 	timing_latency = end - start;
 
-	_starpu_disk_free(node, mem, SIZE_DISK_MIN);
+	_starpu_disk_free(node, mem, STARPU_DISK_SIZE_MIN);
 	free(buf);
 
-	_starpu_save_bandwidth_and_latency_disk((NITER/timing_slowness)*1000000, (NITER/timing_slowness)*1000000,
+	_starpu_save_bandwidth_and_latency_disk((NITER/timing_slowness)*STARPU_DISK_SIZE_MIN, (NITER/timing_slowness)*STARPU_DISK_SIZE_MIN,
 					       timing_latency/NITER, timing_latency/NITER, node);
 	return 1;
 }

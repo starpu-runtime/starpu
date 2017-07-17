@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2016  Université de Bordeaux
+ * Copyright (C) 2009-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  * Copyright (C) 2017  Inria
  * Copyright (C) 2013 Corentin Salingue
@@ -19,7 +19,7 @@
 
 #ifdef STARPU_USE_CUDA
 #ifndef _GNU_SOURCE
-#define _GNU_SOURCE
+#define _GNU_SOURCE 1
 #endif
 #include <sched.h>
 #endif
@@ -2993,6 +2993,13 @@ void _starpu_save_bandwidth_and_latency_disk(double bandwidth_write, double band
 {
 	unsigned int i, j;
 	double slowness_disk_between_main_ram, slowness_main_ram_between_node;
+	int print_stats = starpu_get_env_number_default("STARPU_BUS_STATS", 0);
+
+	if (print_stats)
+	{
+		fprintf(stderr, "\n#---------------------\n");
+		fprintf(stderr, "Data transfer speed for %u:\n", node);
+	}
 
 	/* save bandwith */
 	for(i = 0; i < STARPU_MAXNODES; ++i)
@@ -3017,6 +3024,9 @@ void _starpu_save_bandwidth_and_latency_disk(double bandwidth_write, double band
 					slowness_main_ram_between_node = 0;
 
 				bandwidth_matrix[i][j] = 1/(slowness_disk_between_main_ram+slowness_main_ram_between_node);
+
+				if (!isnan(bandwidth_matrix[i][j]) && print_stats)
+					fprintf(stderr,"%u -> %u: %.0f MB/s\n", i, j, bandwidth_matrix[i][j]);
 			}
 			else if (j == node) /* destination == disk */
 			{
@@ -3032,6 +3042,9 @@ void _starpu_save_bandwidth_and_latency_disk(double bandwidth_write, double band
 					slowness_main_ram_between_node = 0;
 
 				bandwidth_matrix[i][j] = 1/(slowness_disk_between_main_ram+slowness_main_ram_between_node);
+
+				if (!isnan(bandwidth_matrix[i][j]) && print_stats)
+					fprintf(stderr,"%u -> %u: %.0f MB/s\n", i, j, bandwidth_matrix[i][j]);
 			}
 			else if (j > node || i > node) /* not affected by the node */
 			{
@@ -3052,10 +3065,16 @@ void _starpu_save_bandwidth_and_latency_disk(double bandwidth_write, double band
 			else if (i == node) /* source == disk */
 			{
 				latency_matrix[i][j] = (latency_write+latency_matrix[STARPU_MAIN_RAM][j]);
+
+				if (!isnan(latency_matrix[i][j]) && print_stats)
+					fprintf(stderr,"%u -> %u: %.0f µs\n", i, j, latency_matrix[i][j]);
 			}
 			else if (j == node) /* destination == disk */
 			{
 				latency_matrix[i][j] = (latency_read+latency_matrix[i][STARPU_MAIN_RAM]);
+
+				if (!isnan(latency_matrix[i][j]) && print_stats)
+					fprintf(stderr,"%u -> %u: %.0f µs\n", i, j, latency_matrix[i][j]);
 			}
 			else if (j > node || i > node) /* not affected by the node */
 			{
@@ -3063,4 +3082,7 @@ void _starpu_save_bandwidth_and_latency_disk(double bandwidth_write, double band
 			}
 		}
 	}
+
+	if (print_stats)
+		fprintf(stderr, "\n#---------------------\n");
 }

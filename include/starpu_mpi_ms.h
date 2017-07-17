@@ -36,5 +36,5 @@ starpu_mpi_ms_kernel_t starpu_mpi_ms_get_kernel(starpu_mpi_ms_func_symbol_t symb
 }
 #endif
 
-#endif /* STARPU_USE_MIC */
-#endif /* __STARPU_MIC_H__ */
+#endif /* STARPU_USE_MPI_MASTER_SLAVE */
+#endif /* __STARPU_MPI_MS_H__ */

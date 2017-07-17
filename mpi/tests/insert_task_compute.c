@@ -53,6 +53,7 @@ int test(int rank, int node, int *before, int *after, int task_insert, int data_
 	int ok, ret, i, x[2];
 	starpu_data_handle_t data_handles[2];
 	struct starpu_data_descr descrs[2];
+	int barrier_ret;
 
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
@@ -211,7 +212,8 @@ enodev:
 #endif
 
 nodata:
-	MPI_Barrier(MPI_COMM_WORLD);
+	barrier_ret = MPI_Barrier(MPI_COMM_WORLD);
+	STARPU_ASSERT(barrier_ret == MPI_SUCCESS);
 	starpu_mpi_shutdown();
 	starpu_shutdown();
 

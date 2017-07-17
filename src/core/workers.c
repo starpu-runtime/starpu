@@ -90,7 +90,7 @@ char ***_starpu_get_argv()
 	return my_argv;
 }
 
-int _starpu_is_initialized(void)
+int starpu_is_initialized(void)
 {
 	return initialized == INITIALIZED;
 }
@@ -1383,7 +1383,8 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 		_starpu_launch_drivers(&_starpu_config);
 
 	/* Allocate swap, if any */
-	_starpu_swap_init();
+	if (!is_a_sink)
+		_starpu_swap_init();
 
 	_starpu_watchdog_init();
 
@@ -2403,3 +2404,11 @@ int starpu_wake_worker_relax(int workerid)
 {
 	return _starpu_wake_worker_relax(workerid);
 }
+
+#ifdef STARPU_HAVE_HWLOC
+hwloc_cpuset_t starpu_worker_get_hwloc_cpuset(int workerid)
+{
+	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
+	return hwloc_bitmap_dup(worker->hwloc_cpu_set);
+}
+#endif

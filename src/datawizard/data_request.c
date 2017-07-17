@@ -24,15 +24,6 @@
 #include <core/disk.h>
 #include <core/simgrid.h>
 
-/* TODO: This should be tuned according to driver capabilities
- * Data interfaces should also have to declare how many asynchronous requests
- * they have actually started (think of e.g. csr).
- */
-#define MAX_PENDING_REQUESTS_PER_NODE 20
-#define MAX_PENDING_PREFETCH_REQUESTS_PER_NODE 10
-#define MAX_PENDING_IDLE_REQUESTS_PER_NODE 1
-#define MAX_PUSH_TIME 1000 /* Maximum time in us that we can afford pushing requests before going back to the driver loop, e.g. for checking GPU task termination */
-
 /* requests that have not been treated at all */
 static struct _starpu_data_request_prio_list data_requests[STARPU_MAXNODES];
 static struct _starpu_data_request_prio_list prefetch_requests[STARPU_MAXNODES];
@@ -118,14 +109,6 @@ static void _starpu_data_request_unlink(struct _starpu_data_request *r)
 
 static void _starpu_data_request_destroy(struct _starpu_data_request *r)
 {
-	switch (r->async_channel.type)
-	{
-		case STARPU_DISK_RAM:
-			starpu_disk_free_request(&r->async_channel);
-			break;
-		default:
-			break;
-	}
 	//fprintf(stderr, "DESTROY REQ %p (%d) refcnt %d\n", r, node, r->refcnt);
 	_starpu_data_request_delete(r);
 }

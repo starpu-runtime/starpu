@@ -32,7 +32,9 @@
 #ifndef NOCONFIG
 #include <config.h>
 #else
-#define _GNU_SOURCE
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE 1
+#endif
 // Assuming recent simgrid
 #define STARPU_HAVE_SIMGRID_MSG_H
 #define STARPU_HAVE_XBT_SYNCHRO_H

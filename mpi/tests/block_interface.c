@@ -56,7 +56,7 @@ int main(int argc, char **argv)
 	 * their blocks. */
 
 	float *block = NULL;
-	starpu_data_handle_t block_handle;
+	starpu_data_handle_t block_handle = NULL;
 
 	if (rank == 0)
 	{

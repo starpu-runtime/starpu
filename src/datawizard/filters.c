@@ -201,6 +201,11 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 	for (node = 0; node < STARPU_MAXNODES; node++)
 		_starpu_data_unregister_ram_pointer(initial_handle, node);
 
+	if (nparts && !inherit_state)
+	{
+		STARPU_ASSERT_MSG(childrenp, "Passing NULL pointer for parameter childrenp while parameter inherit_state is 0");
+	}
+
 	for (i = 0; i < nparts; i++)
 	{
 		starpu_data_handle_t child;
@@ -210,7 +215,6 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 		else
 			child = childrenp[i];
 		STARPU_ASSERT(child);
-		_STARPU_TRACE_HANDLE_DATA_REGISTER(child);
 
 		struct starpu_data_interface_ops *ops;
 
@@ -332,6 +336,8 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 			if (ptr != NULL)
 				_starpu_data_register_ram_pointer(child, ptr);
 		}
+
+		_STARPU_TRACE_HANDLE_DATA_REGISTER(child);
 	}
 	/* now let the header */
 	_starpu_spin_unlock(&initial_handle->header_lock);
@@ -536,6 +542,8 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 		STARPU_PTHREAD_MUTEX_DESTROY(&child_handle->busy_mutex);
 		STARPU_PTHREAD_COND_DESTROY(&child_handle->busy_cond);
 		STARPU_PTHREAD_MUTEX_DESTROY(&child_handle->sequential_consistency_mutex);
+
+		_STARPU_TRACE_HANDLE_DATA_UNREGISTER(child_handle);
 	}
 
 	/* there is no child anymore */

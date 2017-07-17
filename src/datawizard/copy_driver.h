@@ -71,10 +71,15 @@ struct _starpu_mpi_ms_async_event
 };
 #endif
 
+LIST_TYPE(_starpu_disk_backend_event,
+	void *backend_event;
+);
+        
+
 struct _starpu_disk_async_event
 {
 	unsigned memory_node;
-	void *backend_event;
+        struct _starpu_disk_backend_event_list * requests;
 };
 
 /* this is a structure that can be queried to see whether an asynchronous

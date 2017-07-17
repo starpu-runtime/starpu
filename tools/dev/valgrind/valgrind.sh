@@ -16,11 +16,19 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
 EXEC=$(basename $0 .sh)
+DIRNAME=$(dirname $0)
+
 if test "$EXEC" == "valgrind"
 then
-    RUN="valgrind --track-origins=yes --show-reachable=yes --leak-check=full --errors-for-leak-kinds=all --show-leak-kinds=all"
+    RUN="valgrind --track-origins=yes --show-reachable=yes --leak-check=full --errors-for-leak-kinds=all --show-leak-kinds=all --error-exitcode=42"
+elif test "$EXEC" == "valgrind_xml"
+then
+    mkdir -p ${DIRNAME}/../../../valgrind
+    XML_FILE=$(mktemp -p ${DIRNAME}/../../../valgrind starpu-valgrind_XXXXXXXXXX.xml)
+    RUN="valgrind --track-origins=yes --show-reachable=yes --leak-check=full --errors-for-leak-kinds=all --show-leak-kinds=all --xml=yes --xml-file=${XML_FILE}"
 else
-    RUN="valgrind --tool=$EXEC"
+    RUN="valgrind --tool=$EXEC --error-exitcode=42"
 fi
-SUPPRESSIONS=$(for f in $(dirname $0)/*.suppr ; do echo "--suppressions=$f" ; done)
-$RUN --num-callers=42 --error-exitcode=42 --gen-suppressions=all $SUPPRESSIONS $*
+SUPPRESSIONS=$(for f in $(dirname $0)/*.suppr /usr/share/hwloc/hwloc-valgrind.supp; do if test -f $f ; then echo "--suppressions=$f" ; fi ; done)
+
+$RUN --num-callers=42 --gen-suppressions=all $SUPPRESSIONS $*

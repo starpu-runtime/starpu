@@ -160,7 +160,7 @@ soclEnqueueNDRangeKernel(cl_command_queue cq,
 		cl_event *       event) CL_API_SUFFIX__VERSION_1_1
 {
 
-   if (kernel->split_func != NULL && !starpu_pthread_mutex_trylock(&kernel->split_lock)) {
+   if (kernel->split_func != NULL && !STARPU_PTHREAD_MUTEX_TRYLOCK(&kernel->split_lock)) {
 
       cl_event beforeEvent, afterEvent, totalEvent;
 
@@ -200,7 +200,7 @@ soclEnqueueNDRangeKernel(cl_command_queue cq,
 
          kernel->split_perfs[iter] = end-start;
 
-         starpu_pthread_mutex_unlock(&kernel->split_lock);
+         STARPU_PTHREAD_MUTEX_UNLOCK(&kernel->split_lock);
 
          event_complete(totalEvent);
 
@@ -211,7 +211,7 @@ soclEnqueueNDRangeKernel(cl_command_queue cq,
 
          RETURN_EVENT(totalEvent,event);
       } else {
-         starpu_pthread_mutex_unlock(&kernel->split_lock);
+         STARPU_PTHREAD_MUTEX_UNLOCK(&kernel->split_lock);
          soclReleaseEvent(totalEvent);
       }
 

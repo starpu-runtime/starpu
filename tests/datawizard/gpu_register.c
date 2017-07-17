@@ -154,6 +154,7 @@ test_cuda(void)
 		starpu_free_on_node(starpu_worker_get_memory_node(chosen), (uintptr_t) foo_gpu, size * sizeof(*foo_gpu));
 		free(foo);
 		STARPU_CUDA_REPORT_ERROR(cures);
+		return 1;
 	}
 
 	ret = check_result(foo, size);

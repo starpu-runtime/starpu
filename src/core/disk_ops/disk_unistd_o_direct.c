@@ -78,7 +78,7 @@ static void *starpu_unistd_o_direct_plug(void *parameter, starpu_ssize_t size)
 	return starpu_unistd_global_plug (parameter, size);
 }
 
-#ifdef HAVE_AIO_H
+#if defined(HAVE_AIO_H) || defined(HAVE_LIBAIO_H)
 void *starpu_unistd_o_direct_global_async_read(void *base, void *obj, void *buf, off_t offset, size_t size)
 {
 	STARPU_ASSERT_MSG((size % getpagesize()) == 0, "The unistd_o_direct variant can only read a multiple of page size %lu Bytes (Here %lu). Use the non-o_direct unistd variant if your data is not a multiple of %lu",
@@ -112,7 +112,7 @@ struct starpu_disk_ops starpu_disk_unistd_o_direct_ops =
 	.unplug = starpu_unistd_global_unplug,
 	.copy = NULL,
 	.bandwidth = get_unistd_global_bandwidth_between_disk_and_main_ram,
-#ifdef HAVE_AIO_H
+#if defined(HAVE_AIO_H) || defined(HAVE_LIBAIO_H)
         .async_read = starpu_unistd_o_direct_global_async_read,
         .async_write = starpu_unistd_o_direct_global_async_write,
         .wait_request = starpu_unistd_global_wait_request,

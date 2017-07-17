@@ -1166,11 +1166,20 @@ static void _starpu_mpi_test_detached_requests(void)
 
 	STARPU_PTHREAD_MUTEX_LOCK(&detached_requests_mutex);
 
+	if (_starpu_mpi_req_list_empty(detached_requests))
+	{
+		STARPU_PTHREAD_MUTEX_UNLOCK(&detached_requests_mutex);
+		//_STARPU_MPI_LOG_OUT();
+		return;
+	}
+
+	_STARPU_MPI_TRACE_TESTING_DETACHED_BEGIN();
 	req = _starpu_mpi_req_list_begin(detached_requests);
 	while (req != _starpu_mpi_req_list_end(detached_requests))
 	{
 		STARPU_PTHREAD_MUTEX_UNLOCK(&detached_requests_mutex);
 
+		_STARPU_MPI_TRACE_TEST_BEGIN(req->node_tag.rank, req->node_tag.data_tag);
 		//_STARPU_MPI_DEBUG(3, "Test detached request %p - mpitag %d - TYPE %s %d\n", &req->data_request, req->node_tag.data_tag, _starpu_mpi_request_type(req->request_type), req->node_tag.rank);
 #ifdef STARPU_SIMGRID
 		req->ret = _starpu_mpi_simgrid_mpi_test(&req->done, &flag);
@@ -1180,6 +1189,7 @@ static void _starpu_mpi_test_detached_requests(void)
 #endif
 
 		STARPU_MPI_ASSERT_MSG(req->ret == MPI_SUCCESS, "MPI_Test returning %s", _starpu_mpi_get_mpi_error_code(req->ret));
+		_STARPU_MPI_TRACE_TEST_END(req->node_tag.rank, req->node_tag.data_tag);
 
 		if (!flag)
 		{
@@ -1209,6 +1219,7 @@ static void _starpu_mpi_test_detached_requests(void)
 
 		STARPU_PTHREAD_MUTEX_LOCK(&detached_requests_mutex);
 	}
+	_STARPU_MPI_TRACE_TESTING_DETACHED_END();
 
 	STARPU_PTHREAD_MUTEX_UNLOCK(&detached_requests_mutex);
 	//_STARPU_MPI_LOG_OUT();
@@ -1221,7 +1232,7 @@ static void _starpu_mpi_handle_detached_request(struct _starpu_mpi_req *req)
 		/* put the submitted request into the list of pending requests
 		 * so that it can be handled by the progression mechanisms */
 		STARPU_PTHREAD_MUTEX_LOCK(&detached_requests_mutex);
-		_starpu_mpi_req_list_push_front(detached_requests, req);
+		_starpu_mpi_req_list_push_back(detached_requests, req);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&detached_requests_mutex);
 
 		starpu_wake_all_blocked_workers();
@@ -1691,7 +1702,7 @@ void _starpu_mpi_progress_shutdown(int *value)
 	(void) value;
 	MSG_process_sleep(1);
 #else
-	starpu_pthread_join(progress_thread, (void *)value);
+	STARPU_PTHREAD_JOIN(progress_thread, (void *)value);
 #endif
 
         /* free the request queues */

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2014  Université de Bordeaux
- * Copyright (C) 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+ * Copyright (C) 2011-2014, 2017  Université de Bordeaux
+ * Copyright (C) 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -271,7 +271,7 @@ static void display_history_based_perf_models(FILE *gnuplot_file, struct starpu_
 	struct starpu_perfmodel_history_list *ptr;
 	char arch_name[32];
 	int col;
-	unsigned long last, minimum = 0;
+	unsigned long minimum = 0;
 
 	datafile = fopen(options->avg_file_name, "w");
 	col = 2;
@@ -285,7 +285,7 @@ static void display_history_based_perf_models(FILE *gnuplot_file, struct starpu_
 			struct starpu_perfmodel_arch *arch;
 			int impl;
 
-			arch = _starpu_arch_comb_get(comb);
+			arch = starpu_perfmodel_arch_comb_fetch(comb);
 			for(impl = 0; impl < model->state->nimpls[comb]; impl++)
 			{
 				struct starpu_perfmodel_per_arch *arch_model = &model->state->per_arch[comb][impl];
@@ -306,7 +306,7 @@ static void display_history_based_perf_models(FILE *gnuplot_file, struct starpu_
 	/* Dump entries in size order */
 	while (1)
 	{
-		last = minimum;
+		unsigned long last = minimum;
 
 		minimum = ULONG_MAX;
 		/* Get the next minimum */
@@ -382,7 +382,7 @@ static void display_all_perf_models(FILE *gnuplot_file, struct starpu_perfmodel 
 			struct starpu_perfmodel_arch *arch;
 			int impl;
 
-			arch = _starpu_arch_comb_get(comb);
+			arch = starpu_perfmodel_arch_comb_fetch(comb);
 			for(impl = 0; impl < model->state->nimpls[comb]; impl++)
 			{
 				struct starpu_perfmodel_per_arch *archmodel = &model->state->per_arch[comb][impl];

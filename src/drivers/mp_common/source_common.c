@@ -52,9 +52,7 @@ static unsigned mp_node_memory_node(struct _starpu_mp_node *node)
 static int _starpu_src_common_finalize_job (struct _starpu_job *j, struct _starpu_worker *worker)
 {
 	int profiling = starpu_profiling_status_get();
-	struct timespec codelet_end;
-	_starpu_driver_end_job(worker, j, &worker->perf_arch, &codelet_end, 0,
-			profiling);
+	_starpu_driver_end_job(worker, j, &worker->perf_arch, 0, profiling);
 
 	int count = worker->current_rank;
 
@@ -75,7 +73,6 @@ static int _starpu_src_common_finalize_job (struct _starpu_job *j, struct _starp
 	{
 
 		_starpu_driver_update_job_feedback(j, worker, &worker->perf_arch,
-				&j->cl_start, &codelet_end,
 				profiling);
 
 		_starpu_push_task_output (j);
@@ -209,16 +206,15 @@ static void _starpu_src_common_handle_stored_async(struct _starpu_mp_node *node)
  * return 1 if the message has been stored
  * return 0 if the message is unknown or synchrone */
 int _starpu_src_common_store_message(struct _starpu_mp_node *node,
-		void * arg, int arg_size, enum _starpu_mp_command answer)
+				     void * arg, int arg_size, enum _starpu_mp_command answer)
 {
-	struct mp_message * message = NULL;
 	switch(answer)
 	{
 		case STARPU_MP_COMMAND_EXECUTION_COMPLETED:
 		case STARPU_MP_COMMAND_EXECUTION_DETACHED_COMPLETED:
 		case STARPU_MP_COMMAND_PRE_EXECUTION:
 		{
-			message = mp_message_new();
+			struct mp_message *message = mp_message_new();
 			message->type = answer;
 			_STARPU_MALLOC(message->buffer, arg_size);
 			memcpy(message->buffer, arg, arg_size);
@@ -513,7 +509,7 @@ static int _starpu_src_common_execute(struct _starpu_job *j,
 
 	void (*kernel)(void)  = node->get_kernel_from_job(node,j);
 
-	_starpu_driver_start_job(worker, j, &worker->perf_arch, &j->cl_start, 0, profiling);
+	_starpu_driver_start_job(worker, j, &worker->perf_arch, 0, profiling);
 
 	//_STARPU_DEBUG("\nworkerid:%d, rank:%d, type:%d,	cb_workerid:%d, task_size:%d\n\n",worker->devid,worker->current_rank,task->cl->type,j->combined_workerid,j->task_size);
 

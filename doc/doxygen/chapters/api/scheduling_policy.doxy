@@ -117,12 +117,16 @@ condition variable. For instance, in the case of a scheduling strategy
 with a single task queue, the same condition variable would be used to
 block and wake up all workers.
 
-\fn int starpu_wake_worker(int workerid)
+\fn int starpu_wake_worker_no_relax(int workerid)
 \ingroup API_Scheduling_Policy
-In simgrid or blocking driver mode, 
-this should be called by push functions to wake the potential workers that are
-supposed to pick up the tasks which just have been pushed, otherwise they may
-remain sleeping.
+Must be called to wake up a worker that is sleeping on the cond.
+Return 0 whenever the worker is not in a sleeping state or has the
+state_keep_awake flag on.
+
+\fn int starpu_wake_worker_locked(int workerid)
+\ingroup API_Scheduling_Policy
+Version of starpu_wake_worker_no_relax() which assumes that the sched
+mutex is locked
 
 \fn int starpu_sched_set_min_priority(int min_prio)
 \ingroup API_Scheduling_Policy

@@ -45,7 +45,7 @@ static void command_release_callback(void *a) {
   cl_command_queue cq = cmd->event->cq;
   if (cq != NULL) {
     /* Lock command queue */
-    starpu_pthread_mutex_lock(&cq->mutex);
+    STARPU_PTHREAD_MUTEX_LOCK(&cq->mutex);
 
     /* Remove barrier if applicable */
     if (cq->barrier == cmd)
@@ -55,7 +55,7 @@ static void command_release_callback(void *a) {
     cq->commands = command_list_remove(cq->commands, cmd);
 
     /* Unlock command queue */
-    starpu_pthread_mutex_unlock(&cq->mutex);
+    STARPU_PTHREAD_MUTEX_UNLOCK(&cq->mutex);
   }
 
   // Events may survive to commands that created them

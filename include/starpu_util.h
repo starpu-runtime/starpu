@@ -159,13 +159,44 @@ extern "C"
 } while(0)
 
 #if defined(STARPU_HAVE_STRERROR_R)
+#if (! defined(__GLIBC__) || !__GLIBC__) || ((_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600) && (! defined(_GNU_SOURCE)))
+/* XSI-compliant version of strerror_r returns an int */
+#define starpu_strerror_r(errnum, buf, buflen) \
+	do \
+	{ \
+		int _ret = strerror_r((errnum), (buf), (buflen)); \
+		STARPU_ASSERT(_ret == 0); \
+	} \
+	while (0)
+#else
+/* GNU-specific version of strerror_r returns a char * */
+#define starpu_strerror_r(errnum, buf, buflen) \
+	do \
+	{ \
+		char * const _user_buf = (buf); \
+		const size_t _user_buflen = (buflen); \
+		/* the GNU-specific behaviour when 'buf' == NULL cannot be emulated with the XSI-compliant version */ \
+		STARPU_ASSERT((buf) != NULL); \
+		char * _tmp_buf = strerror_r((errnum), _user_buf, _user_buflen); \
+		if (_tmp_buf != _user_buf) \
+		{ \
+			if (_user_buflen > 0) \
+			{ \
+				strncpy(_user_buf, _tmp_buf, _user_buflen); \
+				_user_buf[_user_buflen-1] = '\0'; \
+			} \
+		} \
+	} \
+	while (0)
+#endif /* strerror_r ABI version */
+
 #  define STARPU_CHECK_RETURN_VALUE(err, message, ...) {if (STARPU_UNLIKELY(err != 0)) { \
-			char xmessage[256]; char *_strerror = strerror_r(-err, xmessage, 256); \
-			fprintf(stderr, "[starpu] Unexpected value: <%d:%s> returned for " message "\n", err, _strerror==NULL?"":xmessage, ## __VA_ARGS__); \
+			char xmessage[256]; starpu_strerror_r(-err, xmessage, 256); \
+			fprintf(stderr, "[starpu] Unexpected value: <%d:%s> returned for " message "\n", err, xmessage, ## __VA_ARGS__); \
 			STARPU_ABORT(); }}
 #  define STARPU_CHECK_RETURN_VALUE_IS(err, value, message, ...) {if (STARPU_UNLIKELY(err != value)) { \
-			char xmessage[256]; char *_strerror=strerror_r(-err, xmessage, 256); \
-			fprintf(stderr, "[starpu] Unexpected value: <%d!=%d:%s> returned for " message "\n", err, value, _strerror==NULL?"":xmessage, ## __VA_ARGS__); \
+			char xmessage[256]; starpu_strerror_r(-err, xmessage, 256); \
+			fprintf(stderr, "[starpu] Unexpected value: <%d!=%d:%s> returned for " message "\n", err, value, xmessage, ## __VA_ARGS__); \
 			STARPU_ABORT(); }}
 #else
 #  define STARPU_CHECK_RETURN_VALUE(err, message, ...) {if (STARPU_UNLIKELY(err != 0)) { \
