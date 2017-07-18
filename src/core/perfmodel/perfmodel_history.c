@@ -1383,7 +1383,7 @@ void starpu_perfmodel_get_arch_name(struct starpu_perfmodel_arch* arch, char *ar
 	strcpy(devices, "");
 	for(i=0 ; i<arch->ndevices ; i++)
 	{
-		written += snprintf(devices + written, sizeof(devices)-written, "%s%u%s", starpu_perfmodel_get_archtype_name(arch->devices[i].type), arch->devices[i].devid, i != arch->ndevices-1 ? "_":"");
+		written += snprintf(devices + written, sizeof(devices)-written, "%s%d%s", starpu_perfmodel_get_archtype_name(arch->devices[i].type), arch->devices[i].devid, i != arch->ndevices-1 ? "_":"");
 	}
 	snprintf(archname, maxlen, "%s_impl%u (Comb%d)", devices, impl, comb);
 }
@@ -1822,7 +1822,7 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 
 		STARPU_ASSERT(j->footprint_is_computed);
 
-		fprintf(f, "0x%x\t%lu\t%f\t%f\t%f\t%d\t\t", j->footprint, (unsigned long) _starpu_job_get_data_size(model, arch, impl, j), measured, task->predicted, task->predicted_transfer, cpuid);
+		fprintf(f, "0x%x\t%lu\t%f\t%f\t%f\t%u\t\t", j->footprint, (unsigned long) _starpu_job_get_data_size(model, arch, impl, j), measured, task->predicted, task->predicted_transfer, cpuid);
 		unsigned i;
 		unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
 

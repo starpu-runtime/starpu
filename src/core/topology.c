@@ -2077,7 +2077,7 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 
 		workerarg->memory_node = memory_node;
 
-		_STARPU_DEBUG("worker %d type %d devid %d bound to cpu %d, STARPU memory node %d\n", worker, workerarg->arch, devid, workerarg->bindid, memory_node);
+		_STARPU_DEBUG("worker %d type %d devid %u bound to cpu %d, STARPU memory node %u\n", worker, workerarg->arch, devid, workerarg->bindid, memory_node);
 
 #ifdef __GLIBC__
 		if (workerarg->bindid != -1)
