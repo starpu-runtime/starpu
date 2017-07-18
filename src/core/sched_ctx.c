@@ -584,7 +584,7 @@ struct _starpu_sched_ctx* _starpu_create_sched_ctx(struct starpu_sched_policy *p
 	sched_ctx->nsub_ctxs = 0;
 	sched_ctx->parallel_view = 0;
 
-  /*init the strategy structs and the worker_collection of the ressources of the context */
+	/*init the strategy structs and the worker_collection of the ressources of the context */
 	if(policy)
 	{
 		_starpu_init_sched_policy(config, sched_ctx, policy);
