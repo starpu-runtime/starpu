@@ -113,8 +113,5 @@ int _starpu_mpi_data_release_tag(starpu_data_handle_t handle)
 		free(tag_entry);
 	}
 
-	int *ptr = NULL;
-	*ptr = 0;
-
 	return 0;
 }
