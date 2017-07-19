@@ -38,6 +38,7 @@
 static int nb_disk_open = 0;
 #endif
 
+/* TODO: support disk-to-disk copy with HD5Ocopy */
 
 /* ------------------- use HDF5 to write on disk -------------------  */
 
