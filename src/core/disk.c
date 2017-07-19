@@ -58,7 +58,7 @@ int starpu_disk_swap_node = -1;
 
 int starpu_disk_register(struct starpu_disk_ops *func, void *parameter, starpu_ssize_t size)
 {
-	STARPU_ASSERT_MSG(size < 0 || size >= STARPU_DISK_SIZE_MIN,"Minimum disk size is %u Bytes ! (Here %u) \n", (int) STARPU_DISK_SIZE_MIN, (int) size);
+	STARPU_ASSERT_MSG(size < 0 || size >= STARPU_DISK_SIZE_MIN, "Minimum disk size is %d Bytes ! (Here %d) \n", (int) STARPU_DISK_SIZE_MIN, (int) size);
 	/* register disk */
 	unsigned memory_node = _starpu_memory_node_register(STARPU_DISK_RAM, 0);
 

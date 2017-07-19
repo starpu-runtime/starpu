@@ -139,7 +139,7 @@ starpu_data_handle_t fstarpu_data_get_sub_data(starpu_data_handle_t root_handle,
 		STARPU_ASSERT(next_child >= 0);
 
 		STARPU_ASSERT_MSG(current_handle->nchildren != 0, "Data %p has to be partitioned before accessing children", current_handle);
-		STARPU_ASSERT_MSG((unsigned) next_child < current_handle->nchildren, "Bogus child number %u, data %p only has %u children", next_child, current_handle, current_handle->nchildren);
+		STARPU_ASSERT_MSG((unsigned) next_child < current_handle->nchildren, "Bogus child number %d, data %p only has %u children", next_child, current_handle, current_handle->nchildren);
 
 		current_handle = &current_handle->children[next_child];
 	}
