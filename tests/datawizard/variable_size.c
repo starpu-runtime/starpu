@@ -152,6 +152,15 @@ static int variable_size_copy(void *src_interface, unsigned src_node, void *dst_
 {
 	struct variable_size_interface *src = src_interface;
 	struct variable_size_interface *dst = dst_interface;
+
+	if (src->size != dst->size)
+	{
+		/* size has been changed by the application in the meantime */
+		starpu_free_on_node(dst_node, dst->ptr, dst->size);
+		dst->ptr = starpu_malloc_on_node_flags(dst_node, src->size, STARPU_MALLOC_PINNED | STARPU_MALLOC_COUNT | STARPU_MEMORY_OVERFLOW);
+		dst->size = src->size;
+	}
+
 	return starpu_interface_copy(src->ptr, 0, src_node,
 				    dst->ptr, 0, dst_node,
 				    src->size, async_data);
