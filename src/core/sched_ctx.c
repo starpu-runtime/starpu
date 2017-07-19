@@ -1263,7 +1263,7 @@ int _starpu_nworkers_able_to_execute_task(struct starpu_task *task, struct _star
 	while(workers->has_next_master(workers, &it))
 	{
 		worker = workers->get_next_master(workers, &it);
-		STARPU_ASSERT_MSG(worker < STARPU_NMAXWORKERS, "worker id %d", worker);
+		STARPU_ASSERT_MSG(worker < STARPU_NMAXWORKERS, "worker id %u", worker);
 		if (starpu_worker_can_execute_task_first_impl(worker, task, NULL))
 			nworkers++;
 	}
