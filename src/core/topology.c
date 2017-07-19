@@ -892,7 +892,7 @@ _starpu_init_mic_config (struct _starpu_machine_config *config,
 
 	topology->nmiccores[mic_idx] = nmiccores;
 	STARPU_ASSERT_MSG(topology->nmiccores[mic_idx] + topology->nworkers <= STARPU_NMAXWORKERS,
-			  "topology->nmiccores[mic_idx(%d)] (%d) + topology->nworkers (%d) <= STARPU_NMAXWORKERS (%d)",
+			  "topology->nmiccores[mic_idx(%u)] (%u) + topology->nworkers (%u) <= STARPU_NMAXWORKERS (%d)",
 			  mic_idx, topology->nmiccores[mic_idx], topology->nworkers, STARPU_NMAXWORKERS);
 
 	/* _starpu_initialize_workers_mic_deviceid (config); */
@@ -957,7 +957,7 @@ _starpu_init_mpi_config (struct _starpu_machine_config *config,
 
         topology->nmpicores[mpi_idx] = nmpicores;
         STARPU_ASSERT_MSG(topology->nmpicores[mpi_idx] + topology->nworkers <= STARPU_NMAXWORKERS,
-                        "topology->nmpicores[mpi_idx(%d)] (%d) + topology->nworkers (%d) <= STARPU_NMAXWORKERS (%d)",
+                        "topology->nmpicores[mpi_idx(%u)] (%u) + topology->nworkers (%u) <= STARPU_NMAXWORKERS (%d)",
                         mpi_idx, topology->nmpicores[mpi_idx], topology->nworkers, STARPU_NMAXWORKERS);
 
         mpi_worker_set[mpi_idx].workers = &config->workers[topology->nworkers];
