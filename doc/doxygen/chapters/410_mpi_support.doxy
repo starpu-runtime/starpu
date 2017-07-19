@@ -543,9 +543,9 @@ time and only keep submission time, and we have asked StarPU to fake running on
 MPI node 2 out of 1024 nodes.
 
 To tune the placement of tasks among MPI nodes, one can use
-STARPU_EXECUTE_ON_NODE or STARPU_EXECUTE_ON_DATA to specify an explicit
+::STARPU_EXECUTE_ON_NODE or ::STARPU_EXECUTE_ON_DATA to specify an explicit
 node, or the node of a given data (e.g. one of the parameters), or use
-starpu_mpi_node_selection_register_policy and STARPU_NODE_SELECTION_POLICY
+starpu_mpi_node_selection_register_policy() and ::STARPU_NODE_SELECTION_POLICY
 to provide a dynamic policy.
 
 A function starpu_mpi_task_build() is also provided with the aim to
