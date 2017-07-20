@@ -2,7 +2,7 @@
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
- * Copyright (C) 2011, 2012 INRIA
+ * Copyright (C) 2011, 2012, 2017  INRIA
  * See the file version.doxy for copying conditions.
  */
 
@@ -103,6 +103,10 @@ function starpu_worker_get_memory_node(). When registering a piece of
 data to StarPU, the specified memory node indicates where the piece of
 data initially resides (we also call this memory node the home node of
 a piece of data).
+
+In the case of NUMA systems, functions starpu_memory_nodes_numa_devid_to_id()
+and starpu_memory_nodes_numa_id_to_devid() can be used to convert from NUMA node
+numbers as seen by the Operating System and NUMA node numbers as seen by StarPU.
 
 \fn void starpu_data_register(starpu_data_handle_t *handleptr, int home_node, void *data_interface, struct starpu_data_interface_ops *ops)
 \ingroup API_Data_Management

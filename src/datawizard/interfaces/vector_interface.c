@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2016  Université de Bordeaux
+ * Copyright (C) 2009-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2017  CNRS
  * Copyright (C) 2017  Inria
  *
@@ -122,7 +122,7 @@ void starpu_vector_data_register(starpu_data_handle_t *handleptr, int home_node,
                 .offset = 0
 	};
 #if (!defined(STARPU_SIMGRID) && !defined(STARPU_OPENMP))
-	if (home_node == STARPU_MAIN_RAM)
+	if (home_node >= 0 && starpu_node_get_kind(home_node) == STARPU_CPU_RAM)
 	{
 		STARPU_ASSERT_ACCESSIBLE(ptr);
 		STARPU_ASSERT_ACCESSIBLE(ptr + nx*elemsize - 1);

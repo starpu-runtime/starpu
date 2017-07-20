@@ -22,6 +22,7 @@
 #include <datawizard/memory_nodes.h>
 #include <core/workers.h>
 #include <core/progress_hook.h>
+#include <core/topology.h>
 #ifdef STARPU_SIMGRID
 #include <core/simgrid.h>
 #endif
@@ -71,8 +72,16 @@ int __starpu_datawizard_progress(unsigned may_alloc, unsigned push_requests)
         unsigned memnode;
 
 	if (!worker)
+	{
 		/* Call from main application, only make RAM requests progress */
-		return ___starpu_datawizard_progress(STARPU_MAIN_RAM, may_alloc, push_requests);
+		int ret = 0;
+		int nnumas = starpu_memory_nodes_get_numa_count();
+		int numa;
+		for (numa = 0; numa < nnumas; numa++)
+			ret |=  ___starpu_datawizard_progress(numa, may_alloc, push_requests);
+
+		return ret;
+	}
 	if (worker->set)
 		/* Runing one of the workers of a worker set. The reference for
 		 * driving memory is its worker 0 (see registrations in topology.c) */

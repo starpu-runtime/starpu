@@ -845,6 +845,14 @@ available to the application in the main CPU memory. Setting it enables allocati
 cache in main memory. Setting it to zero lets StarPU overflow memory.
 </dd>
 
+<dt>STARPU_LIMIT_CPU_NUMA_devid_MEM</dt>
+<dd>
+\anchor STARPU_LIMIT_CPU_NUMA_devid_MEM
+\addindex __env__STARPU_LIMIT_CPU_NUMA_devid_MEM
+This variable specifies the maximum number of megabytes that should be
+available to the application on the NUMA node with the OS identifier <c>devid</c>.
+</dd>
+
 <dt>STARPU_MINIMUM_AVAILABLE_MEM</dt>
 <dd>
 \anchor STARPU_MINIMUM_AVAILABLE_MEM
@@ -1108,6 +1116,19 @@ sum of all the workers' idle time.
 When set to a positive value, StarPU will create a arbiter, which
 implements an advanced but centralized management of concurrent data
 accesses (see \ref ConcurrentDataAccess).
+</dd>
+
+<dt>STARPU_USE_NUMA</dt>
+<dd>
+\anchor STARPU_USE_NUMA 
+\addindex __env__STARPU_USE_NUMA
+When defined, NUMA nodes are taking into account by StarPU. Otherwise, memory
+is considered as only one node. This is experimental for now.
+
+When enabled, STARPU_MAIN_MEMORY is a pointer to the NUMA node associated to the
+first CPU worker if it exists, the NUMA node associated to the first GPU discovered otherwise.
+If StarPU doesn't find any NUMA node after these step, STARPU_MAIN_MEMORY is the first NUMA node
+discovered by StarPU.
 </dd>
 
 </dl>

@@ -84,6 +84,7 @@ LIST_TYPE(_starpu_worker,
 	starpu_pthread_cond_t started_cond; /* indicate when the worker is ready */
 	starpu_pthread_cond_t ready_cond; /* indicate when the worker is ready */
 	unsigned memory_node; /* which memory node is the worker associated with ? */
+	unsigned numa_memory_node; /* which numa memory node is the worker associated with? (logical index) */
 	/* condition variable used for passive waiting operations on worker
 	 * STARPU_PTHREAD_COND_BROADCAST must be used instead of STARPU_PTHREAD_COND_SIGNAL,
 	 * since the condition is shared for multiple purpose */

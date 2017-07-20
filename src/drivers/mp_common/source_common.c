@@ -950,7 +950,6 @@ static void _starpu_src_common_worker_internal_work(struct _starpu_worker_set * 
         starpu_pthread_wait_reset(&worker_set->workers[0].wait);
 #endif
 
-
 	/* Test if async transfers are completed */
 	for (i = 0; i < worker_set->nworkers; i++)
 	{

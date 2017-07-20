@@ -130,6 +130,14 @@ Use at most <c>count</c> CPU cores.  This information is then
 available as the macro ::STARPU_MAXCPUS.
 </dd>
 
+<dt>--enable-maxnumanodes=<c>count</c></dt>
+<dd>
+\anchor enable-maxnumanodes
+\addindex __configure__--enable-maxnumanodes
+Use at most <c>count</c> NUMA nodes.  This information is then
+available as the macro ::STARPU_MAXNUMANODES.
+</dd>
+
 <dt>--disable-cpu</dt>
 <dd>
 \anchor disable-cpu

@@ -53,7 +53,7 @@
 static int ncudagpus = -1;
 
 static size_t global_mem[STARPU_MAXCUDADEVS];
-int _starpu_cuda_bus_ids[STARPU_MAXCUDADEVS+1][STARPU_MAXCUDADEVS+1];
+int _starpu_cuda_bus_ids[STARPU_MAXCUDADEVS+STARPU_MAXNUMANODES][STARPU_MAXCUDADEVS+STARPU_MAXNUMANODES];
 #ifdef STARPU_USE_CUDA
 static cudaStream_t streams[STARPU_NMAXWORKERS];
 static cudaStream_t out_transfer_streams[STARPU_MAXCUDADEVS];
@@ -163,7 +163,7 @@ cudaStream_t starpu_cuda_get_local_in_transfer_stream()
 	int worker = starpu_worker_get_id_check();
 	int devid = starpu_worker_get_devid(worker);
 	cudaStream_t stream;
-
+	
 	stream = in_transfer_streams[devid];
 	STARPU_ASSERT(stream);
 	return stream;
@@ -323,7 +323,7 @@ static void init_device_context(unsigned devid, unsigned memnode)
 					{
 						_STARPU_DEBUG("Enabled GPU-Direct %d -> %d\n", worker->devid, devid);
 						/* direct copies are made from the destination, see link_supports_direct_transfers */
-						starpu_bus_set_direct(_starpu_cuda_bus_ids[worker->devid][devid], 1);
+						starpu_bus_set_direct(_starpu_cuda_bus_ids[worker->devid+STARPU_MAXNUMANODES][devid+STARPU_MAXNUMANODES], 1);
 					}
 				}
 			}

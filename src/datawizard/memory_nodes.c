@@ -77,7 +77,7 @@ void _starpu_memory_node_get_name(unsigned node, char *name, int size)
 	switch (_starpu_descr.nodes[node])
 	{
 	case STARPU_CPU_RAM:
-		prefix = "RAM";
+		prefix = "NUMA";
 		break;
 	case STARPU_CUDA_RAM:
 		prefix = "CUDA";

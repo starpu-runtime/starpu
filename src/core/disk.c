@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2013  Corentin Salingue
  * Copyright (C) 2015, 2016, 2017  CNRS
+ * Copyright (C) 2017  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -77,16 +78,22 @@ int starpu_disk_register(struct starpu_disk_ops *func, void *parameter, starpu_s
 {
 	STARPU_ASSERT_MSG(size < 0 || size >= STARPU_DISK_SIZE_MIN, "Minimum disk size is %d Bytes ! (Here %d) \n", (int) STARPU_DISK_SIZE_MIN, (int) size);
 	/* register disk */
-	unsigned memory_node = _starpu_memory_node_register(STARPU_DISK_RAM, 0);
+	unsigned disk_memnode = _starpu_memory_node_register(STARPU_DISK_RAM, 0);
 
-	_starpu_register_bus(STARPU_MAIN_RAM, memory_node);
-	_starpu_register_bus(memory_node, STARPU_MAIN_RAM);
+        /* Connect the disk memory node to all numa memory nodes */
+        int nb_numa_nodes = starpu_memory_nodes_get_numa_count();
+        int numa_node;
+        for (numa_node = 0; numa_node < nb_numa_nodes; numa_node++)
+        {
+                _starpu_register_bus(disk_memnode, numa_node);
+                _starpu_register_bus(numa_node, disk_memnode);
+        }
 
 	/* connect disk */
 	void *base = func->plug(parameter, size);
 
 	/* remember it */
-	int n STARPU_ATTRIBUTE_UNUSED = add_disk_in_list(memory_node,func,base);
+	int n STARPU_ATTRIBUTE_UNUSED = add_disk_in_list(disk_memnode, func, base);
 
 #ifdef STARPU_SIMGRID
 	char name[16];
@@ -96,13 +103,13 @@ int starpu_disk_register(struct starpu_disk_ops *func, void *parameter, starpu_s
 	_starpu_simgrid_memory_node_set_host(memory_node, host);
 #endif
 
-	int ret = func->bandwidth(memory_node);
+	int ret = func->bandwidth(disk_memnode);
 	/* have a problem with the disk */
 	if (ret == 0)
 		return -ENOENT;
 	if (size >= 0)
-		_starpu_memory_manager_set_global_memory_size(memory_node, size);
-	return memory_node;
+		_starpu_memory_manager_set_global_memory_size(disk_memnode, size);
+	return disk_memnode;
 }
 
 void _starpu_disk_unregister(void)

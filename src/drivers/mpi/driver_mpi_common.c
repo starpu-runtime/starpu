@@ -469,7 +469,7 @@ void _starpu_mpi_common_barrier(void)
 /* Compute bandwidth and latency between source and sink nodes
  * Source node has to have the entire set of times at the end
  */
-void _starpu_mpi_common_measure_bandwidth_latency(double bandwidth_dtod[STARPU_MAXMPIDEVS][STARPU_MAXMPIDEVS], double latency_dtod[STARPU_MAXMPIDEVS][STARPU_MAXMPIDEVS])
+void _starpu_mpi_common_measure_bandwidth_latency(double timing_dtod[STARPU_MAXMPIDEVS][STARPU_MAXMPIDEVS], double latency_dtod[STARPU_MAXMPIDEVS][STARPU_MAXMPIDEVS])
 {
         int ret;
         unsigned iter;
@@ -506,7 +506,7 @@ void _starpu_mpi_common_measure_bandwidth_latency(double bandwidth_dtod[STARPU_M
                                         STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "Bandwidth of MPI Master/Slave cannot be measured !");
                                 }
                                 end = starpu_timing_now();
-                                bandwidth_dtod[sender][receiver] = (NITER*SIZE_BANDWIDTH)/(end - start);
+                                timing_dtod[sender][receiver] = (end - start)/NITER/SIZE_BANDWIDTH;
 
                                 /* measure latency sender to receiver */
                                 start = starpu_timing_now();
@@ -546,14 +546,14 @@ void _starpu_mpi_common_measure_bandwidth_latency(double bandwidth_dtod[STARPU_M
                 /* if we are the sender, we send the data */
                 if (sender == id_proc)
                 {
-                        MPI_Send(bandwidth_dtod[sender], STARPU_MAXMPIDEVS, MPI_DOUBLE, src_node_id, 42, MPI_COMM_WORLD);
+                        MPI_Send(timing_dtod[sender], STARPU_MAXMPIDEVS, MPI_DOUBLE, src_node_id, 42, MPI_COMM_WORLD);
                         MPI_Send(latency_dtod[sender], STARPU_MAXMPIDEVS, MPI_DOUBLE, src_node_id, 42, MPI_COMM_WORLD);
                 }
 
                 /* the master node receives the data */
                 if (src_node_id == id_proc)
                 {
-                        MPI_Recv(bandwidth_dtod[sender], STARPU_MAXMPIDEVS, MPI_DOUBLE, sender, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                        MPI_Recv(timing_dtod[sender], STARPU_MAXMPIDEVS, MPI_DOUBLE, sender, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
                         MPI_Recv(latency_dtod[sender], STARPU_MAXMPIDEVS, MPI_DOUBLE, sender, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
                 }
 

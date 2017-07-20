@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures. *
  * Copyright (C) 2009-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
- * Copyright (C) 2014  INRIA
+ * Copyright (C) 2014, 2017  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -320,6 +320,29 @@ static int link_supports_direct_transfers(starpu_data_handle_t handle, unsigned 
 	return 0;
 }
 
+/* Now, we use slowness/bandwidth to compare numa nodes, is it better to use latency ? */
+static unsigned chose_best_numa_between_src_and_dest(int src, int dst)
+{
+	double timing_best;
+	int best_numa = -1;
+	unsigned numa;
+	const unsigned nb_numa_nodes = starpu_memory_nodes_get_numa_count();
+	for(numa = 0; numa < nb_numa_nodes; numa++)
+	{
+		double actual = 1.0/starpu_transfer_bandwidth(src, numa) + 1.0/starpu_transfer_bandwidth(numa, dst);
+
+		/* Compare slowness : take the lowest */
+		if (best_numa < 0 || actual < timing_best)
+		{
+			best_numa = numa;
+			timing_best = actual;
+		}
+	}
+	STARPU_ASSERT(best_numa >= 0);
+	
+	return best_numa;
+}
+
 /* Determines the path of a request : each hop is defined by (src,dst) and the
  * node that handles the hop. The returned value indicates the number of hops,
  * and the max_len is the maximum number of hops (ie. the size of the
@@ -362,9 +385,11 @@ static int determine_request_path(starpu_data_handle_t handle,
 		STARPU_ASSERT(max_len >= 2);
 		STARPU_ASSERT(src_node >= 0);
 
+		unsigned numa = chose_best_numa_between_src_and_dest(src_node, dst_node);
+
 		/* GPU -> RAM */
 		src_nodes[0] = src_node;
-		dst_nodes[0] = STARPU_MAIN_RAM;
+		dst_nodes[0] = numa;
 
 		if (starpu_node_get_kind(src_node) == STARPU_DISK_RAM)
 			/* Disks don't have their own driver thread */
@@ -380,7 +405,7 @@ static int determine_request_path(starpu_data_handle_t handle,
 		}
 
 		/* RAM -> GPU */
-		src_nodes[1] = STARPU_MAIN_RAM;
+		src_nodes[1] = numa;
 		dst_nodes[1] = dst_node;
 
 		if (starpu_node_get_kind(dst_node) == STARPU_DISK_RAM)
@@ -573,7 +598,7 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 		/* if the data is in write only mode (and not SCRATCH or REDUX), there is no need for a source, data will be initialized by the task itself */
 		if (mode & STARPU_W)
 			dst_replicate->initialized = 1;
-		if (requesting_node == STARPU_MAIN_RAM && !nwait)
+		if (starpu_node_get_kind(requesting_node) == STARPU_CPU_RAM && !nwait)
 		{
 			/* And this is the main RAM, really no need for a
 			 * request, just allocate */

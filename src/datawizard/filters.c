@@ -188,14 +188,18 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 		/* This is lazy allocation, allocate it now in main RAM, so as
 		 * to have somewhere to gather pieces later */
 		/* FIXME: mark as unevictable! */
-		int ret = _starpu_allocate_memory_on_node(initial_handle, &initial_handle->per_node[STARPU_MAIN_RAM], 0);
+		int home_node = initial_handle->home_node;
+		if (home_node < 0 || (starpu_node_get_kind(home_node) != STARPU_CPU_RAM))
+			home_node = STARPU_MAIN_RAM;
+		int ret = _starpu_allocate_memory_on_node(initial_handle, &initial_handle->per_node[home_node], 0);
 #ifdef STARPU_DEVEL
 #warning we should reclaim memory if allocation failed
 #endif
 		STARPU_ASSERT(!ret);
 	}
 
-	_starpu_data_unregister_ram_pointer(initial_handle);
+	for (node = 0; node < STARPU_MAXNODES; node++)
+		_starpu_data_unregister_ram_pointer(initial_handle, node);
 
 	if (nparts && !inherit_state)
 	{
@@ -324,10 +328,14 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 		 * store it in the handle */
 		child->footprint = _starpu_compute_data_footprint(child);
 
-		void *ptr;
-		ptr = starpu_data_handle_to_pointer(child, STARPU_MAIN_RAM);
-		if (ptr != NULL)
-			_starpu_data_register_ram_pointer(child, ptr);
+		for (node = 0; node < STARPU_MAXNODES; node++)
+		{
+			if (starpu_node_get_kind(node) != STARPU_CPU_RAM)
+				continue;
+			void *ptr = starpu_data_handle_to_pointer(child, node);
+			if (ptr != NULL)
+				_starpu_data_register_ram_pointer(child, ptr);
+		}
 
 		_STARPU_TRACE_HANDLE_DATA_REGISTER(child);
 	}
@@ -428,7 +436,8 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 			child_handle->unregister_hook(child_handle);
 		}
 
-		_starpu_data_unregister_ram_pointer(child_handle);
+		for (node = 0; node < STARPU_MAXNODES; node++)
+			_starpu_data_unregister_ram_pointer(child_handle, node);
 
 		if (child_handle->per_worker)
 		{
@@ -444,9 +453,14 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 		_starpu_memory_stats_free(child_handle);
 	}
 
-	ptr = starpu_data_handle_to_pointer(root_handle, STARPU_MAIN_RAM);
-	if (ptr != NULL)
-		_starpu_data_register_ram_pointer(root_handle, ptr);
+	for (node = 0; node < STARPU_MAXNODES; node++)
+	{
+		if (starpu_node_get_kind(node) != STARPU_CPU_RAM)
+			continue;
+		ptr = starpu_data_handle_to_pointer(root_handle, node);
+		if (ptr != NULL)
+			_starpu_data_register_ram_pointer(root_handle, ptr);
+	}
 
 	/* the gathering_node should now have a valid copy of all the children.
 	 * For all nodes, if the node had all copies and none was locally

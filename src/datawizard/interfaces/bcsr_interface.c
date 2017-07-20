@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2016  Université de Bordeaux
+ * Copyright (C) 2009-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -130,7 +130,7 @@ void starpu_bcsr_data_register(starpu_data_handle_t *handleptr, int home_node,
 		.elemsize = elemsize
 	};
 #ifndef STARPU_SIMGRID
-	if (home_node == STARPU_MAIN_RAM)
+	if (home_node >= 0 && starpu_node_get_kind(home_node) == STARPU_CPU_RAM)
 	{
 		STARPU_ASSERT_ACCESSIBLE(nzval);
 		STARPU_ASSERT_ACCESSIBLE(nzval + nnz*elemsize*r*c - 1);
@@ -260,9 +260,13 @@ uintptr_t starpu_bcsr_get_local_nzval(starpu_data_handle_t handle)
 
 uint32_t *starpu_bcsr_get_local_colind(starpu_data_handle_t handle)
 {
+	int node = handle->home_node;
+	if (node < 0 || (starpu_node_get_kind(node) != STARPU_CPU_RAM))
+		node = STARPU_MAIN_RAM;
+
 	/* XXX 0 */
 	struct starpu_bcsr_interface *data_interface = (struct starpu_bcsr_interface *)
-		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
+		starpu_data_get_interface_on_node(handle, node);
 
 #ifdef STARPU_DEBUG
 	STARPU_ASSERT_MSG(data_interface->id == STARPU_BCSR_INTERFACE_ID, "Error. The given data is not a bcsr.");
@@ -273,9 +277,13 @@ uint32_t *starpu_bcsr_get_local_colind(starpu_data_handle_t handle)
 
 uint32_t *starpu_bcsr_get_local_rowptr(starpu_data_handle_t handle)
 {
+	int node = handle->home_node;
+	if (node < 0 || (starpu_node_get_kind(node) != STARPU_CPU_RAM))
+		node = STARPU_MAIN_RAM;
+
 	/* XXX 0 */
 	struct starpu_bcsr_interface *data_interface = (struct starpu_bcsr_interface *)
-		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
+		starpu_data_get_interface_on_node(handle, node);
 
 #ifdef STARPU_DEBUG
 	STARPU_ASSERT_MSG(data_interface->id == STARPU_BCSR_INTERFACE_ID, "Error. The given data is not a bcsr.");

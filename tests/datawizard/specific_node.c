@@ -34,10 +34,8 @@ starpu_data_handle_t data_handle;
 
 unsigned data;
 
-void specific_kernel(STARPU_ATTRIBUTE_UNUSED void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
+void specific_kernel(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
-	/* We do not protect this variable because it is only accessed when the
-	 * "data_handle" piece of data is accessed. */
 	unsigned *dataptr = (unsigned*) STARPU_VARIABLE_GET_PTR(descr[0]);
 
 	STARPU_ASSERT(dataptr == &data);
@@ -55,6 +53,12 @@ static struct starpu_codelet specific_cl =
 	.nodes = {STARPU_MAIN_RAM},
 };
 
+void cpu_codelet_unsigned_inc(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
+{
+	unsigned *dataptr = (unsigned*) STARPU_VARIABLE_GET_PTR(descr[0]);
+	(*dataptr)++;
+}
+
 #ifdef STARPU_USE_CUDA
 void cuda_codelet_unsigned_inc(void *descr[], STARPU_ATTRIBUTE_UNUSED void *cl_arg);
 #endif
@@ -64,7 +68,7 @@ void opencl_codelet_unsigned_inc(void *buffers[], void *args);
 
 static struct starpu_codelet cl =
 {
-	.cpu_funcs = {specific_kernel},
+	.cpu_funcs = {cpu_codelet_unsigned_inc},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {cuda_codelet_unsigned_inc},
 	.cuda_flags = {STARPU_CUDA_ASYNC},

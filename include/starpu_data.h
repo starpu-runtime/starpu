@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
- * Copyright (C) 2016  Inria
+ * Copyright (C) 2016, 2017  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -132,6 +132,10 @@ enum starpu_node_kind
 
 unsigned starpu_worker_get_memory_node(unsigned workerid);
 unsigned starpu_memory_nodes_get_count(void);
+int starpu_memory_nodes_get_numa_count(void);
+int starpu_memory_nodes_numa_id_to_devid(int osid);
+int starpu_memory_nodes_numa_devid_to_id(unsigned id);
+
 enum starpu_node_kind starpu_node_get_kind(unsigned node);
 
 void starpu_data_set_wt_mask(starpu_data_handle_t handle, uint32_t wt_mask);
