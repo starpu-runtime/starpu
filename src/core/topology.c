@@ -2171,8 +2171,6 @@ static void _starpu_init_numa_node(struct _starpu_machine_config *config)
 		nnuma = STARPU_MAXNUMANODES;
 	}
 
-printf("============================+> %d \n", HWLOC_OBJ_NUMANODE);
-
 	unsigned numa;
 	for (numa = 0; numa < nnuma; numa++)
 	{
