@@ -132,7 +132,7 @@ static void _starpu_cuda_limit_gpu_mem_if_needed(unsigned devid)
 	if (limit == -1)
 	{
 		char name[30];
-		sprintf(name, "STARPU_LIMIT_CUDA_%u_MEM", devid);
+		snprintf(name, sizeof(name), "STARPU_LIMIT_CUDA_%u_MEM", devid);
 		limit = starpu_get_env_number(name);
 	}
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)

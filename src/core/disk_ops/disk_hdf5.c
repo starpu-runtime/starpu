@@ -486,7 +486,7 @@ static void *starpu_hdf5_alloc(void *base, size_t size)
 
         /* Save the name of the dataset */
         STARPU_PTHREAD_MUTEX_LOCK(&fileBase->mutex);
-        sprintf(name_id, "%u", fileBase->next_dataset_id);
+        snprintf(name_id, sizeof(name_id), "%u", fileBase->next_dataset_id);
         fileBase->next_dataset_id++;
         STARPU_PTHREAD_MUTEX_UNLOCK(&fileBase->mutex);
 

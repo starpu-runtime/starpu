@@ -173,7 +173,7 @@ static size_t _starpu_cpu_get_global_mem_size(int nodeid STARPU_ATTRIBUTE_UNUSED
 		{
 			hwloc_obj_t obj = hwloc_get_obj_by_depth(topology->hwtopology, depth_node, nodeid);
 			global_mem = obj->memory.local_memory;
-			sprintf(name, "STARPU_LIMIT_CPU_NUMA_%d_MEM", obj->os_index);
+			snprintf(name, sizeof(name), "STARPU_LIMIT_CPU_NUMA_%d_MEM", obj->os_index);
 			limit = starpu_get_env_number(name);
 		}
 	}

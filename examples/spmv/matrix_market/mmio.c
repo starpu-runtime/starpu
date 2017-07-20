@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2013, 2014, 2016  CNRS
+ * Copyright (C) 2010, 2013, 2014, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -482,6 +482,6 @@ char  *mm_typecode_to_str(MM_typecode matcode)
 	else
 		return NULL;
 
-	sprintf(buffer,"%s %s %s %s", types[0], types[1], types[2], types[3]);
+	snprintf(buffer, sizeof(buffer), "%s %s %s %s", types[0], types[1], types[2], types[3]);
 	return mm_strdup(buffer);
 }
