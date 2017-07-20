@@ -111,7 +111,7 @@ static void _starpu_opencl_limit_gpu_mem_if_needed(unsigned devid)
 	to_waste = totalGlobalMem - global_mem[devid];
 #endif
 
-	_STARPU_DEBUG("OpenCL device %d: Wasting %ld MB / Limit %ld MB / Total %ld MB / Remains %ld MB\n",
+	_STARPU_DEBUG("OpenCL device %u: Wasting %ld MB / Limit %ld MB / Total %ld MB / Remains %ld MB\n",
 			devid, (long)to_waste/(1024*1024), (long) limit, (long)totalGlobalMem/(1024*1024),
 			(long)(totalGlobalMem - to_waste)/(1024*1024));
 

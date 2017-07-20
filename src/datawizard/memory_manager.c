@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2013, 2015, 2016  CNRS
+ * Copyright (C) 2012-2013, 2015, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -57,7 +57,7 @@ void _starpu_memory_manager_set_global_memory_size(unsigned node, size_t size)
 	if (!global_size[node])
 	{
 		global_size[node] = size;
-		_STARPU_DEBUG("Global size for node %d is %ld\n", node, (long)global_size[node]);
+		_STARPU_DEBUG("Global size for node %u is %ld\n", node, (long)global_size[node]);
 	}
 	else
 	{

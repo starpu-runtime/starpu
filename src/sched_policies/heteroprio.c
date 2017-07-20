@@ -128,7 +128,7 @@ inline void starpu_heteroprio_set_mapping(unsigned sched_ctx_id, enum starpu_het
 	hp->prio_mapping_per_arch_index[arch][source_prio] = dest_bucket_id;
 
 	hp->buckets[dest_bucket_id].valid_archs |= starpu_heteroprio_types_to_arch[arch];
-	_STARPU_DEBUG("Adding arch %d to bucket %d\n", arch, dest_bucket_id);
+	_STARPU_DEBUG("Adding arch %d to bucket %u\n", arch, dest_bucket_id);
 }
 
 /** Tell which arch is the faster for the tasks of a bucket (optional) */

@@ -575,7 +575,7 @@ struct _starpu_sched_ctx* _starpu_create_sched_ctx(struct starpu_sched_policy *p
 		sched_ctx->sms_start_idx = occupied_sms;
 		sched_ctx->sms_end_idx = occupied_sms+nsms;
 		occupied_sms += nsms;
-		_STARPU_DEBUG("ctx %d: stream worker %d nsms %d ocupied sms %d\n", sched_ctx->id, workerids[0], nsms, occupied_sms);
+		_STARPU_DEBUG("ctx %u: stream worker %d nsms %d ocupied sms %d\n", sched_ctx->id, workerids[0], nsms, occupied_sms);
 		STARPU_ASSERT_MSG(occupied_sms <= STARPU_NMAXSMS , "STARPU:requested more sms than available");
 		_starpu_worker_set_stream_ctx(workerids[0], sched_ctx);
 		sched_ctx->stream_worker = workerids[0];
@@ -584,7 +584,7 @@ struct _starpu_sched_ctx* _starpu_create_sched_ctx(struct starpu_sched_policy *p
 	sched_ctx->nsub_ctxs = 0;
 	sched_ctx->parallel_view = 0;
 
-  /*init the strategy structs and the worker_collection of the ressources of the context */
+	/*init the strategy structs and the worker_collection of the ressources of the context */
 	if(policy)
 	{
 		_starpu_init_sched_policy(config, sched_ctx, policy);
@@ -1092,7 +1092,7 @@ unsigned _starpu_can_push_task(struct _starpu_sched_ctx *sched_ctx, struct starp
 			expected_len = expected_end - hyp_actual_start_sample[sched_ctx->id] ;
 		else
 		{
-			_STARPU_MSG("%d: sc start is 0.0\n", sched_ctx->id);
+			_STARPU_MSG("%u: sc start is 0.0\n", sched_ctx->id);
 			expected_len = expected_end - starpu_timing_now();
 		}
 		if(expected_len < 0.0)
@@ -1355,7 +1355,7 @@ int _starpu_nworkers_able_to_execute_task(struct starpu_task *task, struct _star
 	while(workers->has_next(workers, &it))
 	{
 		unsigned worker = workers->get_next(workers, &it);
-		STARPU_ASSERT_MSG(worker < STARPU_NMAXWORKERS, "worker id %d", worker);
+		STARPU_ASSERT_MSG(worker < STARPU_NMAXWORKERS, "worker id %u", worker);
 		if (starpu_worker_can_execute_task_first_impl(worker, task, NULL))
 			nworkers++;
 	}

@@ -115,7 +115,7 @@ static void check(void *buffers[], void *args)
 	unsigned *val = (unsigned*) STARPU_VECTOR_GET_PTR(vector);
 	unsigned i;
 	starpu_codelet_unpack_args(args, &i);
-	STARPU_ASSERT_MSG(*val == values[i], "Incorrect value. Value %u should be %u (index %d)", *val, values[i], i);
+	STARPU_ASSERT_MSG(*val == values[i], "Incorrect value. Value %u should be %u (index %u)", *val, values[i], i);
 }
 
 static struct starpu_codelet zero_cl =

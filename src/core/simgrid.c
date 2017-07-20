@@ -110,7 +110,7 @@ int _starpu_simgrid_get_nbhosts(const char *prefix)
 	{
 		char name[32];
 		STARPU_ASSERT(starpu_mpi_world_rank);
-		snprintf(name, sizeof(name), STARPU_MPI_AS_PREFIX"%u", starpu_mpi_world_rank());
+		snprintf(name, sizeof(name), STARPU_MPI_AS_PREFIX"%d", starpu_mpi_world_rank());
 		hosts = MSG_environment_as_get_hosts(_starpu_simgrid_get_as_by_name(name));
 		snprintf(new_prefix, sizeof(new_prefix), "%s-%s", name, prefix);
 		prefix = new_prefix;
@@ -187,7 +187,7 @@ msg_host_t _starpu_simgrid_get_host_by_worker(struct _starpu_worker *worker)
 		default:
 			STARPU_ASSERT(0);
 	}
-	snprintf(name, sizeof(name), "%s%d", prefix, worker->devid);
+	snprintf(name, sizeof(name), "%s%u", prefix, worker->devid);
 	host =  _starpu_simgrid_get_host_by_name(name);
 	STARPU_ASSERT_MSG(host, "Could not find host %s!", name);
 	return host;

@@ -38,6 +38,7 @@
 static int nb_disk_open = 0;
 #endif
 
+/* TODO: support disk-to-disk copy with HD5Ocopy */
 
 /* ------------------- use HDF5 to write on disk -------------------  */
 
@@ -373,7 +374,10 @@ static void *starpu_hdf5_plug(void *parameter, starpu_ssize_t size STARPU_ATTRIB
 #ifndef H5_HAVE_THREADSAFE
         int nb_disk = STARPU_ATOMIC_ADD(&nb_disk_open, 1);
         if (nb_disk != 1)
-                _STARPU_ERROR("HDF5 library is not compiled with --enable-threadsafe. You can't open more than one HDF5 file in the same time !\n");
+	{
+                _STARPU_ERROR("HDF5 library is not compiled with --enable-threadsafe. You can't open more than one HDF5 file at the same time !\n");
+		return NULL;
+	}
 #endif
 
         struct starpu_hdf5_base * base;
@@ -392,6 +396,7 @@ static void *starpu_hdf5_plug(void *parameter, starpu_ssize_t size STARPU_ATTRIB
                 {
                         free(base);
                         _STARPU_ERROR("Can not create the HDF5 file (%s)", (char *) parameter);
+			return NULL;
                 }
 
                 /* just use _starpu_mktemp_many to create a file, close the file descriptor */
@@ -403,6 +408,7 @@ static void *starpu_hdf5_plug(void *parameter, starpu_ssize_t size STARPU_ATTRIB
                 {
                         free(base); 
                         _STARPU_ERROR("Can not create the HDF5 file (%s)", (char *) parameter);
+			return NULL;
                 }
                 base->created = 1;
         } 
@@ -416,8 +422,10 @@ static void *starpu_hdf5_plug(void *parameter, starpu_ssize_t size STARPU_ATTRIB
                 base->fileID = H5Fopen((char *)parameter, H5F_ACC_RDWR, H5P_DEFAULT);
                 if (base->fileID < 0) 
                 {
-                        free(base); 
+                        free(base);
+			free(path);
                         _STARPU_ERROR("Can not open the HDF5 file (%s)", (char *) parameter);
+			return NULL;
                 }
                 base->created = 0;
                 base->path = path;

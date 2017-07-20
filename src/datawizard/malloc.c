@@ -132,7 +132,7 @@ int _starpu_malloc_flags_on_node(unsigned dst_node, void **A, size_t dim, int fl
 			{
 				size_t freed;
 				size_t reclaim = 2 * dim;
-				_STARPU_DEBUG("There is not enough memory left, we are going to reclaim %ld\n", reclaim);
+				_STARPU_DEBUG("There is not enough memory left, we are going to reclaim %ld\n", (long)reclaim);
 				_STARPU_TRACE_START_MEMRECLAIM(dst_node,0);
 				freed = _starpu_memory_reclaim_generic(dst_node, 0, reclaim);
 				_STARPU_TRACE_END_MEMRECLAIM(dst_node,0);

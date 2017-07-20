@@ -277,7 +277,7 @@ int starpu_cluster_print(struct starpu_cluster_machine *clusters)
 	struct _starpu_cluster_group *group;
 	struct _starpu_cluster *cluster;
 
-	printf("Number of clusters created: %d\n", clusters->nclusters);
+	printf("Number of clusters created: %u\n", clusters->nclusters);
 	cnt=0;
 	for (group = _starpu_cluster_group_list_begin(clusters->groups);
 	     group != _starpu_cluster_group_list_end(clusters->groups);
