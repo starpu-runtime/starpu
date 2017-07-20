@@ -177,7 +177,7 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_cuda(int dev, in
 
 	/* Allocate a buffer on the host */
 	unsigned char *h_buffer;
-	
+
 #if defined(STARPU_HAVE_HWLOC)
 	if (nnuma_nodes > 1)
 	{
@@ -261,7 +261,7 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_cuda(int dev, in
 
 	/* Free buffers */
 	cudaHostUnregister(h_buffer);
-#if defined(STARPU_HAVE_HWLOC) 
+#if defined(STARPU_HAVE_HWLOC)
 	if (nnuma_nodes > 1)
 	{
 		/* NUMA mode activated */
@@ -669,11 +669,11 @@ static void measure_bandwidth_latency_between_numa(int numa_src, int numa_dst)
 		double start, end, timing;
 		unsigned iter;
 
-		unsigned char *h_buffer;	
+		unsigned char *h_buffer;
 		hwloc_obj_t obj_src = hwloc_get_obj_by_type(hwtopology, HWLOC_OBJ_NODE, numa_src);
 		h_buffer = hwloc_alloc_membind_nodeset(hwtopology, SIZE, obj_src->nodeset, HWLOC_MEMBIND_BIND, 0);
 
-		unsigned char *d_buffer;	
+		unsigned char *d_buffer;
 		hwloc_obj_t obj_dst = hwloc_get_obj_by_type(hwtopology, HWLOC_OBJ_NODE, numa_dst);
 		d_buffer = hwloc_alloc_membind_nodeset(hwtopology, SIZE, obj_dst->nodeset, HWLOC_MEMBIND_BIND, 0);
 
@@ -1038,7 +1038,7 @@ static int check_bus_affinity_file(void)
 
 	ret = fscanf(f, "# GPU\t");
 	STARPU_ASSERT(ret == 0);
-	
+
 	ret = fscanf(f, "NUMA%u\t", &dummy);
 
 	if (locked)
@@ -1255,7 +1255,7 @@ static double search_bus_best_latency(int src, char * type, int htod)
 		}
 #endif
 #ifdef STARPU_USE_OPENCL
-		if (strncmp(type, "OpenCL", 6) == 0)		
+		if (strncmp(type, "OpenCL", 6) == 0)
 		{
 			if (htod)
 				actual = opencldev_timing_per_numa[src*STARPU_MAXNUMANODES+numa].latency_htod;
@@ -1338,7 +1338,7 @@ static void write_bus_latency_file_content(void)
 			{
 				b_low = b_up = 0;
 
-				/* ---- Begin NUMA ---- */				
+				/* ---- Begin NUMA ---- */
 				b_up += nnumas;
 
 				if (src >= b_low && src < b_up && dst >= b_low && dst < b_up)
@@ -1347,7 +1347,7 @@ static void write_bus_latency_file_content(void)
 				/* copy interval to check numa index later */
 				unsigned numa_low = b_low;
 				unsigned numa_up = b_up;
-				
+
 				b_low += nnumas;
 				/* ---- End NUMA ---- */
 #ifdef STARPU_USE_CUDA
@@ -1390,7 +1390,7 @@ static void write_bus_latency_file_content(void)
 				b_up += nmic;
 				/* TODO Latency MIC */
 				b_low += nmic;
-#endif                                
+#endif
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 				b_up += nmpi_ms;
 				/* Modify MPI src and MPI dst if they contain the master node or not
@@ -1577,9 +1577,9 @@ static double search_bus_best_timing(int src, char * type, int htod)
 {
         /* Search the best latency for this node */
         double best = 0.0;
-        double actual = 0.0; 
+        double actual = 0.0;
         unsigned check = 0;
-        unsigned numa; 
+        unsigned numa;
         for (numa = 0; numa < nnumas; numa++)
         {
 #ifdef STARPU_USE_CUDA
@@ -1592,7 +1592,7 @@ static double search_bus_best_timing(int src, char * type, int htod)
 		}
 #endif
 #ifdef STARPU_USE_OPENCL
-		if (strncmp(type, "OpenCL", 6) == 0)		
+		if (strncmp(type, "OpenCL", 6) == 0)
 		{
 			if (htod)
 				actual = opencldev_timing_per_numa[src*STARPU_MAXNUMANODES+numa].timing_htod;
@@ -2852,7 +2852,7 @@ flat_cuda:
 	if (locked)
 		_starpu_fwrunlock(f);
 	fclose(f);
-	
+
 }
 
 static void generate_bus_platform_file(void)

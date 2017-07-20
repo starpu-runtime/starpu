@@ -252,12 +252,12 @@ on which device the memory needs to be allocated.
 
 \fn int starpu_memory_nodes_numa_id_to_devid(int osid)
 \ingroup API_Workers_Properties
-This function returns the identifier of the memory node associated to the NUMA
+Return the identifier of the memory node associated to the NUMA
 node identified by \p osid by the Operating System.
 
 \fn int starpu_memory_nodes_numa_devid_to_id(unsigned id);
 \ingroup API_Workers_Properties
-This function returns the Operating System identifier of the memory node
+Return the Operating System identifier of the memory node
 whose StarPU identifier is \p id.
 
 \fn char *starpu_worker_get_type_as_string(enum starpu_worker_archtype type)
@@ -287,7 +287,7 @@ Must be called after a potentially blocking call is complete, to
 restore the relax state in place before the corresponding relax_on.
 Decreases \c state_relax_refcnt. Calls to \ref starpu_worker_relax_on
 and \c starpu_worker_relax_off must be well parenthesized. This
-function is automatically called by \ref starpu_worker_unlock after the 
+function is automatically called by \ref starpu_worker_unlock after the
 target worker has been unlocked.
 
 \fn int starpu_worker_get_relax_state(void)

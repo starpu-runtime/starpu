@@ -163,7 +163,7 @@ cudaStream_t starpu_cuda_get_local_in_transfer_stream()
 	int worker = starpu_worker_get_id_check();
 	int devid = starpu_worker_get_devid(worker);
 	cudaStream_t stream;
-	
+
 	stream = in_transfer_streams[devid];
 	STARPU_ASSERT(stream);
 	return stream;
@@ -251,11 +251,13 @@ void starpu_cuda_set_device(unsigned devid STARPU_ATTRIBUTE_UNUSED)
 	}
 #else
 	for (i = 0; i < conf->n_cuda_opengl_interoperability; i++)
+	{
 		if (conf->cuda_opengl_interoperability[i] == devid)
 		{
 			cures = cudaGLSetGLDevice(devid);
 			goto done;
 		}
+	}
 #endif
 
 	cures = cudaSetDevice(devid);

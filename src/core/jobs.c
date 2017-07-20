@@ -184,7 +184,7 @@ void _starpu_wait_job(struct _starpu_job *j)
 	{
 		STARPU_PTHREAD_COND_WAIT(&j->sync_cond, &j->sync_mutex);
 	}
-	
+
 	STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
         _STARPU_LOG_OUT();
 }
@@ -368,7 +368,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	 * to tell them that we will not exist any more before notifying the
 	 * tasks waiting for us
 	 *
-	 * For continuations, implicit dependency handles are only released 
+	 * For continuations, implicit dependency handles are only released
 	 * when the task fully completes */
 	if (j->implicit_dep_handle && !continuation)
 	{
