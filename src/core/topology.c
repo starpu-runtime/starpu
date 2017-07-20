@@ -41,6 +41,10 @@
 #ifndef HWLOC_API_VERSION
 #define HWLOC_OBJ_PU HWLOC_OBJ_PROC
 #endif
+#if HWLOC_API_VERSION < 0x00010a00
+#define HWLOC_OBJ_NUMANODE HWLOC_OBJ_NODE
+#endif
+
 #endif
 
 #ifdef STARPU_HAVE_WINDOWS
@@ -2166,6 +2170,8 @@ static void _starpu_init_numa_node(struct _starpu_machine_config *config)
 		_STARPU_MSG("Warning: %u NUMA nodes available. Only %u enabled. Use configure option --enable-maxnumanodes=xxx to update the maximum value of supported NUMA nodes.\n", _starpu_topology_get_nnumanodes(config), STARPU_MAXNUMANODES);
 		nnuma = STARPU_MAXNUMANODES;
 	}
+
+printf("============================+> %d \n", HWLOC_OBJ_NUMANODE);
 
 	unsigned numa;
 	for (numa = 0; numa < nnuma; numa++)
