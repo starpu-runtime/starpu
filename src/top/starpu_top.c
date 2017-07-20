@@ -133,7 +133,7 @@ static void starpu_top_send_devices_info(void)
 		char dev_type[10];
 		char dev_name[64];
 		starpu_top_get_device_type(i,dev_type);
-		starpu_worker_get_name(i, dev_name,64);
+		starpu_worker_get_name(i, dev_name,sizeof(dev_name));
 		snprintf(message, 128, "%u;%s;%s\n", i, dev_type, dev_name);
 		_starpu_top_message_add(_starpu_top_mt,message);
 	}

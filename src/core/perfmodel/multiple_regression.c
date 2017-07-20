@@ -270,11 +270,11 @@ int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, doubl
 	FILE *f=NULL;
 
 	char directory[300];
-	snprintf(directory, 300, "%s/.starpu/sampling/codelets/tmp", _starpu_get_home_path());
+	snprintf(directory, sizeof(directory), "%s/.starpu/sampling/codelets/tmp", _starpu_get_home_path());
 	_starpu_mkpath_and_check(directory, S_IRWXU);
 
 	char filepath[300];
-	snprintf(filepath, 300, "%s/%s.out", directory,codelet_name);
+	snprintf(filepath, sizeof(filepath), "%s/%s.out", directory,codelet_name);
 
 	long old_lines=0;
 	int calibrate = _starpu_get_calibrate_flag();

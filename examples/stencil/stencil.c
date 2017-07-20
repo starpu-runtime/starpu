@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011, 2012, 2013, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2016, 2017  CNRS
  * Copyright (C) 2010-2012, 2014, 2017  Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -179,7 +179,7 @@ void f(unsigned task_per_worker[STARPU_NMAXWORKERS])
 	{
 		if (task_per_worker[worker])
 		{
-			char name[32];
+			char name[64];
 			starpu_worker_get_name(worker, name, sizeof(name));
 			FPRINTF(stderr,"\t%s -> %u (%2.2f%%)\n", name, task_per_worker[worker], (100.0*task_per_worker[worker])/total);
 		}

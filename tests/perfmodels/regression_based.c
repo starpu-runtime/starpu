@@ -132,7 +132,7 @@ static void show_task_perfs(int size, struct starpu_task *task)
 	unsigned workerid;
 	for (workerid = 0; workerid < starpu_worker_get_count(); workerid++)
 	{
-		char name[16];
+		char name[32];
 		starpu_worker_get_name(workerid, name, sizeof(name));
 
 		unsigned nimpl;

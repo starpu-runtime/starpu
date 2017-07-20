@@ -501,7 +501,7 @@ int main(int argc, char **argv)
 			{
 				starpu_fxt_generate_trace(&options.fxt_options);
 
-				snprintf(options.data_file_name, 256, "starpu_%s.data", options.symbol);
+				snprintf(options.data_file_name, sizeof(options.data_file_name), "starpu_%s.data", options.symbol);
 
 				FILE *data_file = fopen(options.data_file_name, "w+");
 				STARPU_ASSERT(data_file);
@@ -510,8 +510,8 @@ int main(int argc, char **argv)
 			}
 #endif
 
-			snprintf(gnuplot_file_name, 256, "starpu_%s.gp", options.symbol);
-			snprintf(options.avg_file_name, 256, "starpu_%s_avg.data", options.symbol);
+			snprintf(gnuplot_file_name, sizeof(gnuplot_file_name), "starpu_%s.gp", options.symbol);
+			snprintf(options.avg_file_name, sizeof(options.avg_file_name), "starpu_%s_avg.data", options.symbol);
 
 			FILE *gnuplot_file = fopen(gnuplot_file_name, "w+");
 			STARPU_ASSERT(gnuplot_file);
