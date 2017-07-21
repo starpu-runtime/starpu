@@ -1588,7 +1588,7 @@ static double search_bus_best_timing(int src, char * type, int htod)
                         if (htod)
                                 actual = cudadev_timing_per_numa[src*STARPU_MAXNUMANODES+numa].timing_htod;
                         else
-                                actual = opencldev_timing_per_numa[src*STARPU_MAXNUMANODES+numa].timing_dtoh;
+                                actual = cudadev_timing_per_numa[src*STARPU_MAXNUMANODES+numa].timing_dtoh;
 		}
 #endif
 #ifdef STARPU_USE_OPENCL
