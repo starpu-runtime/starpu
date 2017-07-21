@@ -1081,6 +1081,11 @@ void starpu_data_set_name(starpu_data_handle_t handle, const char *name)
 	_STARPU_TRACE_DATA_NAME(handle, name);
 }
 
+int starpu_data_get_home_node(starpu_data_handle_t handle)
+{
+	return handle->home_node;
+}
+
 void starpu_data_set_coordinates_array(starpu_data_handle_t handle, int dimensions, int dims[])
 {
 	_STARPU_TRACE_DATA_COORDINATES(handle, dimensions, dims);
