@@ -100,7 +100,7 @@ int starpu_disk_register(struct starpu_disk_ops *func, void *parameter, starpu_s
 	snprintf(name, sizeof(name), "DISK%d", n);
 	msg_host_t host = _starpu_simgrid_get_host_by_name(name);
 	STARPU_ASSERT_MSG(host, "Could not find disk %s in platform file", name);
-	_starpu_simgrid_memory_node_set_host(memory_node, host);
+	_starpu_simgrid_memory_node_set_host(disk_memnode, host);
 #endif
 
 	int ret = func->bandwidth(disk_memnode);

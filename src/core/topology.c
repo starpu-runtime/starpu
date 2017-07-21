@@ -1983,6 +1983,10 @@ static void _starpu_init_numa_node(struct _starpu_machine_config *config)
 		numa_memory_nodes_to_physicalid[i] = STARPU_NUMA_UNINITIALIZED;
 	}
 
+#ifdef STARPU_SIMGRID
+	char name[16];
+	msg_host_t host;
+#endif
 
 	char * state;
 	/* NUMA mode activated */
@@ -2207,7 +2211,6 @@ static void _starpu_init_numa_node(struct _starpu_machine_config *config)
 			numa_memory_nodes_to_physicalid[memnode] = STARPU_NUMA_MAIN_RAM;
 			nb_numa_nodes++;
 #ifdef STARPU_SIMGRID
-			char name[16];
 			msg_host_t host = _starpu_simgrid_get_host_by_name("RAM");
 			STARPU_ASSERT(host);
 			_starpu_simgrid_memory_node_set_host(STARPU_MAIN_RAM, host);
@@ -2343,8 +2346,9 @@ _starpu_init_workers_binding_and_memory (struct _starpu_machine_config *config, 
 					}
 #ifdef STARPU_SIMGRID
 					const char* cuda_memcpy_peer;
+					char name[16];
 					snprintf(name, sizeof(name), "CUDA%u", devid);
-					host = _starpu_simgrid_get_host_by_name(name);
+					msg_host_t host = _starpu_simgrid_get_host_by_name(name);
 					STARPU_ASSERT(host);
 					_starpu_simgrid_memory_node_set_host(memory_node, host);
 					cuda_memcpy_peer = MSG_host_get_property_value(host, "memcpy_peer");
@@ -2438,8 +2442,9 @@ _starpu_init_workers_binding_and_memory (struct _starpu_machine_config *config, 
 						_starpu_register_bus(memory_node, numa);
 					}
 #ifdef STARPU_SIMGRID
+					char name[16];
 					snprintf(name, sizeof(name), "OpenCL%u", devid);
-					host = _starpu_simgrid_get_host_by_name(name);
+					msg_host_t host = _starpu_simgrid_get_host_by_name(name);
 					STARPU_ASSERT(host);
 					_starpu_simgrid_memory_node_set_host(memory_node, host);
 #endif /* SIMGRID */
