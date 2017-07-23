@@ -2045,20 +2045,14 @@ static void _starpu_init_numa_node(struct _starpu_machine_config *config)
 		{
 			hwloc_obj_t obj = hwloc_cuda_get_device_osdev_by_index(config->topology.hwtopology, i);
 
+			/* If we don't find a "node" obj before the root, this means
+			 * hwloc does not know whether there are numa nodes or not, so
+			 * we should not use a per-node sampling in that case. */
+			while (!obj && obj->type != HWLOC_OBJ_NODE)
+				obj = obj->parent;
 			/* Hwloc cannot recognize some devices */
 			if (!obj)
 				continue;
-
-			while (obj->type != HWLOC_OBJ_NODE)
-			{
-				obj = obj->parent;
-
-				/* If we don't find a "node" obj before the root, this means
-				 * hwloc does not know whether there are numa nodes or not, so
-				 * we should not use a per-node sampling in that case. */
-				if (!obj)
-					continue;
-			}
 			int numa_starpu_id = starpu_memory_nodes_numa_hwloclogid_to_id(obj->logical_index);
 
 			/* This shouldn't happen */
@@ -2114,20 +2108,14 @@ static void _starpu_init_numa_node(struct _starpu_machine_config *config)
 				{
 					hwloc_obj_t obj = hwloc_opencl_get_device_osdev_by_index(config->topology.hwtopology, platform, i);
 
+					/* If we don't find a "node" obj before the root, this means
+					 * hwloc does not know whether there are numa nodes or not, so
+					 * we should not use a per-node sampling in that case. */
+					while (obj && obj->type != HWLOC_OBJ_NODE)
+						obj = obj->parent;
 					/* Hwloc cannot recognize some devices */
 					if (!obj)
 						continue;
-
-					while (obj->type != HWLOC_OBJ_NODE)
-					{
-						obj = obj->parent;
-
-						/* If we don't find a "node" obj before the root, this means
-						 * hwloc does not know whether there are numa nodes or not, so
-						 * we should not use a per-node sampling in that case. */
-						if (!obj)
-							continue;
-					}
 					int numa_starpu_id = starpu_memory_nodes_numa_hwloclogid_to_id(obj->logical_index);
 
 					/* This shouldn't happen */
@@ -2296,7 +2284,7 @@ _starpu_init_workers_binding_and_memory (struct _starpu_machine_config *config, 
 			{
 				int numa_logical_id = _starpu_get_logical_numa_node_worker(worker);
 				int numa_starpu_id =  starpu_memory_nodes_numa_hwloclogid_to_id(numa_logical_id);
-				if (numa_starpu_id >= STARPU_MAXNUMANODES)
+				if (numa_starpu_id < 0 || numa_starpu_id >= STARPU_MAXNUMANODES)
 					numa_starpu_id = STARPU_MAIN_RAM;
 
 				workerarg->numa_memory_node = memory_node = numa_starpu_id;
