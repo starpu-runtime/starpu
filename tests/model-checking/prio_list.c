@@ -15,6 +15,7 @@
  */
 
 #define _STARPU_MALLOC(p, s) do {p = malloc(s);} while (0)
+#define _STARPU_MALLOC_CAST(p, s, t) do {p = (t) malloc(s);} while (0)
 #define STARPU_ATTRIBUTE_UNUSED __attribute((__unused__))
 
 #ifndef NOCONFIG
