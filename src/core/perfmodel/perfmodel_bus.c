@@ -1235,7 +1235,7 @@ static int load_bus_latency_file_content(void)
 	return 1;
 }
 
-#ifndef STARPU_SIMGRID
+#if !defined(STARPU_SIMGRID) && defined(STARPU_USE_CUDA) && defined(STARPU_USE_OPENCL)
 static double search_bus_best_latency(int src, char * type, int htod)
 {
 	/* Search the best latency for this node */
@@ -1273,7 +1273,9 @@ static double search_bus_best_latency(int src, char * type, int htod)
 	}
 	return best;
 }
+#endif
 
+#if !defined(STARPU_SIMGRID) 
 static void write_bus_latency_file_content(void)
 {
 	unsigned src, dst, maxnode;
@@ -1345,8 +1347,10 @@ static void write_bus_latency_file_content(void)
 					latency += numa_latency[src-b_low][dst-b_low];
 
 				/* copy interval to check numa index later */
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 				unsigned numa_low = b_low;
 				unsigned numa_up = b_up;
+#endif
 
 				b_low += nnumas;
 				/* ---- End NUMA ---- */
@@ -1572,7 +1576,7 @@ static int load_bus_bandwidth_file_content(void)
 	return 1;
 }
 
-#ifndef STARPU_SIMGRID
+#if !defined(STARPU_SIMGRID) && defined(STARPU_USE_CUDA) && defined(STARPU_USE_OPENCL)
 static double search_bus_best_timing(int src, char * type, int htod)
 {
         /* Search the best latency for this node */
@@ -1610,7 +1614,9 @@ static double search_bus_best_timing(int src, char * type, int htod)
         }
         return best;
 }
+#endif
 
+#if !defined(STARPU_SIMGRID)
 static void write_bus_bandwidth_file_content(void)
 {
 	unsigned src, dst, maxnode;
@@ -1672,8 +1678,10 @@ static void write_bus_bandwidth_file_content(void)
                                         slowness += numa_timing[src-b_low][dst-b_low];
 
                                 /* copy interval to check numa index later */
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
                                 unsigned numa_low = b_low;
                                 unsigned numa_up = b_up;
+#endif
 
 				b_low += nnumas;
 				/* End NUMA */
