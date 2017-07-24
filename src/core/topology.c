@@ -2048,7 +2048,7 @@ static void _starpu_init_numa_node(struct _starpu_machine_config *config)
 			/* If we don't find a "node" obj before the root, this means
 			 * hwloc does not know whether there are numa nodes or not, so
 			 * we should not use a per-node sampling in that case. */
-			while (!obj && obj->type != HWLOC_OBJ_NODE)
+			while (obj && obj->type != HWLOC_OBJ_NODE)
 				obj = obj->parent;
 			/* Hwloc cannot recognize some devices */
 			if (!obj)
