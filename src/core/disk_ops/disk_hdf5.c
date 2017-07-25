@@ -73,7 +73,7 @@ struct starpu_hdf5_obj
         char * path;            /* path where data are stored in HDF5 file */
 };
 
-static inline void _starpu_hdf5_protect_start(void * base)
+static inline void _starpu_hdf5_protect_start(void * base STARPU_ATTRIBUTE_UNUSED)
 {
 #ifndef H5_HAVE_THREADSAFE
         struct starpu_hdf5_base * fileBase = (struct starpu_hdf5_base *) base;
@@ -81,7 +81,7 @@ static inline void _starpu_hdf5_protect_start(void * base)
 #endif
 }
 
-static inline void _starpu_hdf5_protect_stop(void * base)
+static inline void _starpu_hdf5_protect_stop(void * base STARPU_ATTRIBUTE_UNUSED)
 {
 #ifndef H5_HAVE_THREADSAFE
         struct starpu_hdf5_base * fileBase = (struct starpu_hdf5_base *) base;
@@ -344,7 +344,7 @@ static struct starpu_hdf5_obj * _starpu_hdf5_data_alloc(struct starpu_hdf5_base 
         return obj;
 }
 
-static struct starpu_hdf5_obj * _starpu_hdf5_data_open(struct starpu_hdf5_base * fileBase,  char * name, size_t size)
+static struct starpu_hdf5_obj * _starpu_hdf5_data_open(struct starpu_hdf5_base * fileBase,  char * name, size_t size STARPU_ATTRIBUTE_UNUSED)
 {
         struct starpu_hdf5_obj * obj;
 	_STARPU_MALLOC(obj, sizeof(*obj));
