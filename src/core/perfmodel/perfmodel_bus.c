@@ -1235,7 +1235,7 @@ static int load_bus_latency_file_content(void)
 	return 1;
 }
 
-#if !defined(STARPU_SIMGRID) && defined(STARPU_USE_CUDA) && defined(STARPU_USE_OPENCL)
+#if !defined(STARPU_SIMGRID) && (defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL))
 static double search_bus_best_latency(int src, char * type, int htod)
 {
 	/* Search the best latency for this node */
@@ -1576,7 +1576,7 @@ static int load_bus_bandwidth_file_content(void)
 	return 1;
 }
 
-#if !defined(STARPU_SIMGRID) && defined(STARPU_USE_CUDA) && defined(STARPU_USE_OPENCL)
+#if !defined(STARPU_SIMGRID) && (defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL))
 static double search_bus_best_timing(int src, char * type, int htod)
 {
         /* Search the best latency for this node */
