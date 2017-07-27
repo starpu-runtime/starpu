@@ -46,6 +46,10 @@
 #define HASH_ADD_UINT32_T(head,field,add) HASH_ADD(hh,head,field,sizeof(uint32_t),add)
 #define HASH_FIND_UINT32_T(head,find,out) HASH_FIND(hh,head,find,sizeof(uint32_t),out)
 
+#define STR_SHORT_LENGTH 32
+#define STR_LONG_LENGTH 256
+#define STR_VERY_LONG_LENGTH 1024
+
 static struct starpu_perfmodel_arch **arch_combs;
 static int current_arch_comb;
 static int nb_arch_combs;
@@ -505,7 +509,7 @@ static void scan_history_entry(FILE *f, const char *path, struct starpu_perfmode
 	double sum;
 	double sum2;
 
-	char line[256];
+	char line[STR_LONG_LENGTH];
 	char *ret;
 
 	ret = fgets(line, sizeof(line), f);
@@ -753,8 +757,8 @@ static void check_per_arch_model(struct starpu_perfmodel *model, int comb, unsig
 	}
 
 	/* header */
-	char archname[32];
-	starpu_perfmodel_get_arch_name(arch_combs[comb], archname,  32, impl);
+	char archname[STR_SHORT_LENGTH];
+	starpu_perfmodel_get_arch_name(arch_combs[comb], archname,  sizeof(archname), impl);
 	STARPU_ASSERT(strlen(archname)>0);
 	check_reg_model(model, comb, impl);
 
@@ -790,8 +794,8 @@ static void dump_per_arch_model_file(FILE *f, struct starpu_perfmodel *model, in
 	}
 
 	/* header */
-	char archname[32];
-	starpu_perfmodel_get_arch_name(arch_combs[comb], archname,  32, impl);
+	char archname[STR_SHORT_LENGTH];
+	starpu_perfmodel_get_arch_name(arch_combs[comb], archname,  sizeof(archname), impl);
 	fprintf(f, "#####\n");
 	fprintf(f, "# Model for %s\n", archname);
 	fprintf(f, "# number of entries\n%u\n", nentries);
@@ -1004,8 +1008,8 @@ static void save_history_based_model(struct starpu_perfmodel *model)
 	/* TODO checks */
 
 	/* filename = $STARPU_PERF_MODEL_DIR/codelets/symbol.hostname */
-	char path[256];
-	starpu_perfmodel_get_model_path(model->symbol, path, 256);
+	char path[STR_LONG_LENGTH];
+	starpu_perfmodel_get_model_path(model->symbol, path, sizeof(path));
 
 	_STARPU_DEBUG("Opening performance model file %s for model %s\n", path, model->symbol);
 
@@ -1195,11 +1199,11 @@ void _starpu_load_history_based_model(struct starpu_perfmodel *model, unsigned s
 
 	if(!model->is_loaded)
 	{
-		char path[256];
+		char path[STR_LONG_LENGTH];
 		// Check if a symbol is defined before trying to load the model from a file
 		STARPU_ASSERT_MSG(model->symbol, "history-based performance models must have a symbol");
 
-		starpu_perfmodel_get_model_path(model->symbol, path, 256);
+		starpu_perfmodel_get_model_path(model->symbol, path, sizeof(path));
 
 		_STARPU_DEBUG("Opening performance model file %s for model %s ...\n", path, model->symbol);
 
@@ -1284,8 +1288,8 @@ int starpu_perfmodel_load_symbol(const char *symbol, struct starpu_perfmodel *mo
 	model->symbol = strdup(symbol);
 
 	/* where is the file if it exists ? */
-	char path[256];
-	starpu_perfmodel_get_model_path(model->symbol, path, 256);
+	char path[STR_LONG_LENGTH];
+	starpu_perfmodel_get_model_path(model->symbol, path, sizeof(path));
 
 	//	_STARPU_DEBUG("get_model_path -> %s\n", path);
 
@@ -1378,7 +1382,7 @@ void starpu_perfmodel_get_arch_name(struct starpu_perfmodel_arch* arch, char *ar
 	int comb = _starpu_perfmodel_create_comb_if_needed(arch);
 
 	STARPU_ASSERT(comb != -1);
-	char devices[1024];
+	char devices[STR_VERY_LONG_LENGTH];
 	int written = 0;
 	strcpy(devices, "");
 	for(i=0 ; i<arch->ndevices ; i++)
@@ -1393,8 +1397,8 @@ void starpu_perfmodel_debugfilepath(struct starpu_perfmodel *model,
 {
 	int comb = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
 	STARPU_ASSERT(comb != -1);
-	char archname[32];
-	starpu_perfmodel_get_arch_name(arch, archname, 32, nimpl);
+	char archname[STR_SHORT_LENGTH];
+	starpu_perfmodel_get_arch_name(arch, archname, sizeof(archname), nimpl);
 
 	STARPU_ASSERT(path);
 
@@ -1426,7 +1430,7 @@ docal:
 	STARPU_HG_DISABLE_CHECKING(model->benchmarking);
 	if (isnan(exp) && !model->benchmarking)
 	{
-		char archname[32];
+		char archname[STR_SHORT_LENGTH];
 
 		starpu_perfmodel_get_arch_name(arch, archname, sizeof(archname), nimpl);
 		_STARPU_DISP("Warning: model %s is not calibrated enough for %s size %lu (only %u measurements from size %lu to %lu), forcing calibration for this run. Use the STARPU_CALIBRATE environment variable to control this.\n", model->symbol, archname, (unsigned long) size, regmodel?regmodel->nsample:0, regmodel?regmodel->minx:0, regmodel?regmodel->maxx:0);
@@ -1479,7 +1483,7 @@ docal:
 		STARPU_HG_DISABLE_CHECKING(model->benchmarking);
 		if (isnan(exp) && !model->benchmarking)
 		{
-			char archname[32];
+			char archname[STR_SHORT_LENGTH];
 
 			starpu_perfmodel_get_arch_name(arch, archname, sizeof(archname), nimpl);
 			_STARPU_DISP("Warning: model %s is not calibrated enough for %s size %lu (only %u measurements), forcing calibration for this run. Use the STARPU_CALIBRATE environment variable to control this.\n", model->symbol, archname, (unsigned long) size, entry && entry->history_entry ? entry->history_entry->nsample : 0);
@@ -1526,7 +1530,7 @@ docal:
 	STARPU_HG_DISABLE_CHECKING(model->benchmarking);
 	if (isnan(expected_duration) && !model->benchmarking)
 	{
-		char archname[32];
+		char archname[STR_SHORT_LENGTH];
 
 		starpu_perfmodel_get_arch_name(arch, archname, sizeof(archname), nimpl);
 		_STARPU_DISP("Warning: model %s is not calibrated enough for %s, forcing calibration for this run. Use the STARPU_CALIBRATE environment variable to control this.\n", model->symbol, archname);
@@ -1586,7 +1590,7 @@ docal:
 	STARPU_HG_DISABLE_CHECKING(model->benchmarking);
 	if (isnan(exp) && !model->benchmarking)
 	{
-		char archname[32];
+		char archname[STR_SHORT_LENGTH];
 
 		starpu_perfmodel_get_arch_name(arch, archname, sizeof(archname), nimpl);
 		_STARPU_DISP("Warning: model %s is not calibrated enough for %s size %ld (only %u measurements), forcing calibration for this run. Use the STARPU_CALIBRATE environment variable to control this.\n", model->symbol, archname, j->task?(long int)_starpu_job_get_data_size(model, arch, nimpl, j):-1, entry ? entry->nsample : 0);
@@ -1715,7 +1719,7 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 					/* More errors than measurements, we're most probably completely wrong, we flush out all the entries */
 					if (entry->nerror >= entry->nsample)
 					{
-						char archname[32];
+						char archname[STR_SHORT_LENGTH];
 						starpu_perfmodel_get_arch_name(arch, archname, sizeof(archname), impl);
 						_STARPU_DISP("Too big deviation for model %s on %s: %f vs average %f, %u such errors against %u samples (%+f%%), flushing the performance model. Use the STARPU_HISTORY_MAX_ERROR environement variable to control the threshold (currently %d%%)\n", model->symbol, archname, measured, entry->mean, entry->nerror, entry->nsample, measured * 100. / entry->mean - 100, historymaxerror);
 						entry->sum = 0.0;
@@ -1806,7 +1810,7 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 
 #ifdef STARPU_MODEL_DEBUG
 		struct starpu_task *task = j->task;
-		starpu_perfmodel_debugfilepath(model, arch_combs[comb], per_arch_model->debug_path, 256, impl);
+		starpu_perfmodel_debugfilepath(model, arch_combs[comb], per_arch_model->debug_path, STR_LONG_LENGTH, impl);
 		FILE *f = fopen(per_arch_model->debug_path, "a+");
 		int locked;
 		if (f == NULL)

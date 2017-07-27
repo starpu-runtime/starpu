@@ -55,6 +55,8 @@
 #define SIZE	(32*1024*1024*sizeof(char))
 #define NITER	32
 
+#define PATH_LENGTH 256
+
 #ifndef STARPU_SIMGRID
 static void _starpu_bus_force_sampling(void);
 #endif
@@ -854,7 +856,7 @@ static void load_bus_affinity_file_content(void)
 	FILE *f;
 	int locked;
 
-	char path[256];
+	char path[PATH_LENGTH];
 	get_affinity_path(path, sizeof(path));
 
 	_STARPU_DEBUG("loading affinities from %s\n", path);
@@ -929,7 +931,7 @@ static void write_bus_affinity_file_content(void)
 
 #if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 	FILE *f;
-	char path[256];
+	char path[PATH_LENGTH];
 	int locked;
 
 	get_affinity_path(path, sizeof(path));
@@ -1026,7 +1028,7 @@ static int check_bus_affinity_file(void)
 	int locked;
 	unsigned dummy;
 
-	char path[256];
+	char path[PATH_LENGTH];
 	get_affinity_path(path, sizeof(path));
 
 	_STARPU_DEBUG("loading affinities from %s\n", path);
@@ -1053,7 +1055,7 @@ static void load_bus_affinity_file(void)
 {
 	int exist, check = 1;
 
-	char path[256];
+	char path[PATH_LENGTH];
 	get_affinity_path(path, sizeof(path));
 
 	/* access return 0 if file exists */
@@ -1142,7 +1144,7 @@ static int load_bus_latency_file_content(void)
 	double latency;
 	int locked;
 
-	char path[256];
+	char path[PATH_LENGTH];
 	get_latency_path(path, sizeof(path));
 
 	_STARPU_DEBUG("loading latencies from %s\n", path);
@@ -1286,7 +1288,7 @@ static void write_bus_latency_file_content(void)
 
 	STARPU_ASSERT(was_benchmarked);
 
-	char path[256];
+	char path[PATH_LENGTH];
 	get_latency_path(path, sizeof(path));
 
 	_STARPU_DEBUG("writing latencies to %s\n", path);
@@ -1454,7 +1456,7 @@ static void load_bus_latency_file(void)
 {
 	int res;
 
-	char path[256];
+	char path[PATH_LENGTH];
 	get_latency_path(path, sizeof(path));
 
 	res = access(path, F_OK);
@@ -1483,7 +1485,7 @@ static int load_bus_bandwidth_file_content(void)
 	double bandwidth;
 	int locked;
 
-	char path[256];
+	char path[PATH_LENGTH];
 	get_bandwidth_path(path, sizeof(path));
 
 	_STARPU_DEBUG("loading bandwidth from %s\n", path);
@@ -1626,7 +1628,7 @@ static void write_bus_bandwidth_file_content(void)
 
 	STARPU_ASSERT(was_benchmarked);
 
-	char path[256];
+	char path[PATH_LENGTH];
 	get_bandwidth_path(path, sizeof(path));
 
 	_STARPU_DEBUG("writing bandwidth to %s\n", path);
@@ -1777,9 +1779,9 @@ static void write_bus_bandwidth_file_content(void)
 
 void starpu_bus_print_filenames(FILE *output)
 {
-	char bandwidth_path[256];
-	char affinity_path[256];
-	char latency_path[256];
+	char bandwidth_path[PATH_LENGTH];
+	char affinity_path[PATH_LENGTH];
+	char latency_path[PATH_LENGTH];
 
 	get_bandwidth_path(bandwidth_path, sizeof(bandwidth_path));
 	get_affinity_path(affinity_path, sizeof(affinity_path));
@@ -1923,7 +1925,7 @@ static void load_bus_bandwidth_file(void)
 {
 	int res;
 
-	char path[256];
+	char path[PATH_LENGTH];
 	get_bandwidth_path(path, sizeof(path));
 
 	res = access(path, F_OK);
@@ -1995,7 +1997,7 @@ static void compare_value_and_recalibrate(char * msg, unsigned val_file, unsigne
 static void check_bus_config_file(void)
 {
 	int res;
-	char path[256];
+	char path[PATH_LENGTH];
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	int recalibrate = 0;
 
@@ -2091,7 +2093,7 @@ static void check_bus_config_file(void)
 static void write_bus_config_file_content(void)
 {
 	FILE *f;
-	char path[256];
+	char path[PATH_LENGTH];
 	int locked;
 
 	STARPU_ASSERT(was_benchmarked);
@@ -2566,7 +2568,7 @@ static void clean_topology(hwloc_obj_t obj)
 static void write_bus_platform_file_content(int version)
 {
 	FILE *f;
-	char path[256];
+	char path[PATH_LENGTH];
 	unsigned i;
 	const char *speed, *flops, *Bps, *s;
 	char dash;
@@ -2882,7 +2884,7 @@ static void check_bus_platform_file(void)
 {
 	int res;
 
-	char path[256];
+	char path[PATH_LENGTH];
 	_starpu_simgrid_get_platform_path(4, path, sizeof(path));
 
 	res = access(path, F_OK);
