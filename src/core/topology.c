@@ -203,25 +203,6 @@ static int _starpu_get_physical_numa_node_worker(unsigned workerid)
 	}
 }
 
-static int _starpu_numa_get_logical_id_from_pu(int pu)
-{
-#if defined(STARPU_HAVE_HWLOC)
-	if (nb_numa_nodes > 1)
-	{
-		struct _starpu_machine_config *config = _starpu_get_machine_config();
-		struct _starpu_machine_topology *topology = &config->topology;
-
-		hwloc_obj_t obj = hwloc_get_obj_by_type(topology->hwtopology, HWLOC_OBJ_PU, pu);
-		return numa_get_logical_id(obj);
-	}
-	else
-#endif
-	{
-		return -1;
-	}
-}
-
-
 struct _starpu_worker *_starpu_get_worker_from_driver(struct starpu_driver *d)
 {
 	unsigned nworkers = starpu_worker_get_count();

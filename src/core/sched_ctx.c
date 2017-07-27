@@ -1305,7 +1305,7 @@ void starpu_sched_ctx_remove_workers(int *workers_to_remove, unsigned nworkers_t
 		unsigned i;
 		for (i=0; i<nworkers_to_remove; i++)
 		{
-			unsigned workerid = workers_to_remove[i];
+			int workerid = workers_to_remove[i];
 			unsigned duplicate = 0;
 			unsigned j;
 			for (j = 0; j < cumulated_nworkers; j++)
