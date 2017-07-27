@@ -65,13 +65,13 @@ void _starpu_memory_display_handle_stats(FILE *stream, starpu_data_handle_t hand
 		    +handle->memory_stats->invalidated[node]+handle->memory_stats->loaded_owner[node])
 		{
 			fprintf(stream, "Node #%u\n", node);
-			fprintf(stream, "\tDirect access : %d\n", handle->memory_stats->direct_access[node]);
+			fprintf(stream, "\tDirect access : %u\n", handle->memory_stats->direct_access[node]);
 			/* XXX Not Working yet. */
 			if (handle->memory_stats->shared_to_owner[node])
-				fprintf(stream, "\t\tShared to Owner : %d\n", handle->memory_stats->shared_to_owner[node]);
-			fprintf(stream, "\tLoaded (Owner) : %d\n", handle->memory_stats->loaded_owner[node]);
-			fprintf(stream, "\tLoaded (Shared) : %d\n", handle->memory_stats->loaded_shared[node]);
-			fprintf(stream, "\tInvalidated (was Owner) : %d\n\n", handle->memory_stats->invalidated[node]);
+				fprintf(stream, "\t\tShared to Owner : %u\n", handle->memory_stats->shared_to_owner[node]);
+			fprintf(stream, "\tLoaded (Owner) : %u\n", handle->memory_stats->loaded_owner[node]);
+			fprintf(stream, "\tLoaded (Shared) : %u\n", handle->memory_stats->loaded_shared[node]);
+			fprintf(stream, "\tInvalidated (was Owner) : %u\n\n", handle->memory_stats->invalidated[node]);
 		}
 	}
 }

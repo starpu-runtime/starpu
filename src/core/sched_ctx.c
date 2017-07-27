@@ -1105,7 +1105,7 @@ unsigned _starpu_can_push_task(struct _starpu_sched_ctx *sched_ctx, struct starp
 			expected_len = expected_end - hyp_actual_start_sample[sched_ctx->id] ;
 		else
 		{
-			printf("%u: sc start is 0.0\n", sched_ctx->id);
+			_STARPU_MSG("%u: sc start is 0.0\n", sched_ctx->id);
 			expected_len = expected_end - starpu_timing_now();
 		}
 		if(expected_len < 0.0)
