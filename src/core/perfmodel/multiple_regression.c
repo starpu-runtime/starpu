@@ -69,7 +69,8 @@ static void load_old_calibration(double *mx, double *my, unsigned nparameters, c
 	f = fopen(filepath, "a+");
 	STARPU_ASSERT_MSG(f, "Could not save performance model into the file %s\n", filepath);
 
-	fgets(buffer,sizeof(buffer),f);//skipping first line
+	line = fgets(buffer,sizeof(buffer),f);//skipping first line
+	STARPU_ASSERT(line);
 	while((line=fgets(buffer,sizeof(buffer),f))!=NULL)
 	{
 		char *record = strtok(line,",");
