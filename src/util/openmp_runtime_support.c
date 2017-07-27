@@ -1453,7 +1453,6 @@ void starpu_omp_critical_inline_end(const char *name)
 	{
 		_starpu_spin_lock(&_global_state.named_criticals_lock);
 		HASH_FIND_STR(_global_state.named_criticals, name, critical);
-		STARPU_ASSERT(critical != NULL);
 		_starpu_spin_unlock(&_global_state.named_criticals_lock);
 	}
 	else
@@ -1461,6 +1460,7 @@ void starpu_omp_critical_inline_end(const char *name)
 		critical = _global_state.default_critical;
 	}
 
+	STARPU_ASSERT(critical != NULL);
 	_starpu_spin_lock(&critical->lock);
 	STARPU_ASSERT(critical->state == 1);
 	critical->state = 0;
