@@ -523,16 +523,12 @@ static void read_a_places_list(const char *str, struct starpu_omp_place *places)
 						if (excluded_items_list_size == 0)
 						{
 							excluded_items_list_size = _STARPU_INITIAL_PLACE_ITEMS_LIST_SIZE;
-							excluded_items_list = malloc(excluded_items_list_size * sizeof(int));
-							if (excluded_items_list == NULL)
-								_STARPU_ERROR("memory allocation failed");
+							_STARPU_MALLOC(	excluded_items_list, excluded_items_list_size * sizeof(int));
 						}
 						else if (nb_excluded_items == excluded_items_list_size)
 						{
 							excluded_items_list_size *= 2;
-							excluded_items_list = realloc(excluded_items_list, excluded_items_list_size * sizeof(int));
-							if (excluded_items_list == NULL)
-								_STARPU_ERROR("memory allocation failed");
+							_STARPU_REALLOC(excluded_items_list, excluded_items_list_size * sizeof(int));
 						}
 						excluded_items_list[nb_excluded_items] = v;
 						nb_excluded_items++;
@@ -542,16 +538,12 @@ static void read_a_places_list(const char *str, struct starpu_omp_place *places)
 						if (included_items_list_size == 0)
 						{
 							included_items_list_size = _STARPU_INITIAL_PLACE_ITEMS_LIST_SIZE;
-							included_items_list = malloc(included_items_list_size * sizeof(int));
-							if (included_items_list == NULL)
-								_STARPU_ERROR("memory allocation failed");
+							_STARPU_MALLOC(included_items_list, included_items_list_size * sizeof(int));
 						}
 						else if (nb_included_items == included_items_list_size)
 						{
 							included_items_list_size *= 2;
-							included_items_list = realloc(included_items_list, included_items_list_size * sizeof(int));
-							if (included_items_list == NULL)
-								_STARPU_ERROR("memory allocation failed");
+							_STARPU_REALLOC(included_items_list, included_items_list_size * sizeof(int));
 						}
 						included_items_list[nb_included_items] = v;
 						nb_included_items++;
@@ -583,16 +575,12 @@ static void read_a_places_list(const char *str, struct starpu_omp_place *places)
 				if (places_list_size == 0)
 				{
 					places_list_size = _STARPU_INITIAL_PLACES_LIST_SIZE;
-					places_list = malloc(places_list_size * sizeof(*places_list));
-					if (places_list == NULL)
-						_STARPU_ERROR("memory allocation failed");
+					_STARPU_MALLOC(places_list, places_list_size * sizeof(*places_list));
 				}
 				else if (nb_places == places_list_size)
 				{
 					places_list_size *= 2;
-					places_list = realloc(places_list, places_list_size * sizeof(*places_list));
-					if (places_list == NULL)
-						_STARPU_ERROR("memory allocation failed");
+					_STARPU_REALLOC(places_list, places_list_size * sizeof(*places_list));
 				}
 				places_list[nb_places].excluded_place = exclude_place_flag;
 				places_list[nb_places].included_numeric_items = included_items_list;
@@ -686,10 +674,10 @@ static void read_omp_environment(void)
 
 	/* read OMP_PROC_BIND */
 	{
-		int *bind_list = malloc((1+max_levels) * sizeof(*bind_list));
-		if (bind_list == NULL)
-			_STARPU_ERROR("memory allocation failed\n");
+		int *bind_list;
 		int level;
+
+		_STARPU_MALLOC(bind_list, (1+max_levels) * sizeof(*bind_list));
 		for (level = 0;level < max_levels+1;level++)
 		{
 			/* TODO: check what should be used as default value */
@@ -705,10 +693,10 @@ static void read_omp_environment(void)
 
 	/* read OMP_NUM_THREADS */
 	{
-		int *num_threads_list = malloc((1+max_levels) * sizeof(*num_threads_list));
-		if (num_threads_list == NULL)
-			_STARPU_ERROR("memory allocation failed\n");
+		int *num_threads_list;
 		int level;
+
+		_STARPU_MALLOC(num_threads_list, (1+max_levels) * sizeof(*num_threads_list));
 		for (level = 0;level < max_levels+1;level++)
 		{
 			/* TODO: check what should be used as default value */
