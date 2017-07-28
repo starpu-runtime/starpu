@@ -183,9 +183,8 @@ static void *starpu_stdio_open(void *base, void *pos, size_t size)
 	/* create template */
 	char *baseCpy;
 	_STARPU_MALLOC(baseCpy, strlen(fileBase->path)+1+strlen(pos)+1);
-	strcpy(baseCpy,(char *) fileBase->path);
-	strcat(baseCpy,(char *) "/");
-	strcat(baseCpy,(char *) pos);
+
+	snprintf(baseCpy, strlen(fileBase->path)+1+strlen(pos)+1, "%s/%s", fileBase->path, (char *)pos);
 
 	int id = open(baseCpy, O_RDWR);
 	if (id < 0)
@@ -327,19 +326,17 @@ static int starpu_stdio_full_write(void *base STARPU_ATTRIBUTE_UNUSED, void *obj
 static void *starpu_stdio_plug(void *parameter, starpu_ssize_t size STARPU_ATTRIBUTE_UNUSED)
 {
 	struct starpu_stdio_base * base;
+	struct stat buf;
+
 	_STARPU_MALLOC(base, sizeof(*base));
 	base->created = 0;
+	base->path = strdup((char *) parameter);
+	STARPU_ASSERT(base->path);
 
-	_STARPU_MALLOC(base->path, sizeof(char)*(strlen(parameter)+1));
-	strcpy(base->path,(char *) parameter);
-
+	if (!(stat(base->path, &buf) == 0 && S_ISDIR(buf.st_mode)))
 	{
-		struct stat buf;
-		if (!(stat(base->path, &buf) == 0 && S_ISDIR(buf.st_mode)))
-		{
-			_starpu_mkpath(base->path, S_IRWXU);
-			base->created = 1;
-		}
+		_starpu_mkpath(base->path, S_IRWXU);
+		base->created = 1;
 	}
 
 	return (void *) base;

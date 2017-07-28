@@ -194,11 +194,8 @@ char *_starpu_mktemp(const char *directory, int flags, int *fd)
 	const char *tmp = "STARPU_XXXXXX";
 	char *baseCpy;
 	_STARPU_MALLOC(baseCpy, strlen(directory)+1+strlen(tmp)+1);
-	STARPU_ASSERT(baseCpy != NULL);
 
-	strcpy(baseCpy, directory);
-	strcat(baseCpy,"/");
-	strcat(baseCpy,tmp);
+	snprintf(baseCpy, strlen(directory)+1+strlen(tmp)+1, "%s/%s", directory, tmp);
 
 #if defined(STARPU_HAVE_WINDOWS)
 	_mktemp(baseCpy);

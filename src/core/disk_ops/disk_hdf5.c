@@ -445,9 +445,8 @@ static void *starpu_hdf5_plug(void *parameter, starpu_ssize_t size STARPU_ATTRIB
         else
         {
                 /* Well, open it ! */
-                char * path;
-                _STARPU_MALLOC(path, strlen((char *) parameter)+1);
-                strcpy(path, (char *) parameter);
+                char *path = strdup((char *)parameter);
+		STARPU_ASSERT(path);
 
                 fileBase->fileID = H5Fopen((char *)parameter, H5F_ACC_RDWR, H5P_DEFAULT);
                 if (fileBase->fileID < 0) 
@@ -545,9 +544,7 @@ static void *starpu_hdf5_alloc(void *base, size_t size)
 
         /* name in HDF5 is like a path */
         _STARPU_MALLOC(name, 1+strlen(prefix)+strlen(name_id)+1);
-        strcpy(name, "/");
-        strcat(name, prefix);
-        strcat(name, name_id);
+	snprintf(name, 1+strlen(prefix)+strlen(name_id)+1, "/%s%s", prefix, name_id);
 
         obj = _starpu_hdf5_data_alloc(fileBase, name, size);
 
@@ -585,10 +582,10 @@ static void *starpu_hdf5_open(void *base, void *pos, size_t size)
 {
         struct starpu_hdf5_base * fileBase = (struct starpu_hdf5_base *) base;
         struct starpu_hdf5_obj * obj;
-        char * name;
+        char *name;
 
-        _STARPU_MALLOC(name, strlen(pos)+1);
-        strcpy(name, (char *) pos);
+	name = strdup((char *)pos);
+	STARPU_ASSERT(name);
 
         obj = _starpu_hdf5_data_open(fileBase, name, size);
 

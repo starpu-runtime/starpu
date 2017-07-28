@@ -766,37 +766,35 @@ int _starpu_src_common_copy_sink_to_sink_async(struct _starpu_mp_node *src_node,
 /* 5 functions to determine the executable to run on the device (MIC, SCC,
  * MPI).
  */
-static void _starpu_src_common_cat_3(char *final, const char *first,
-		const char *second, const char *third)
+static void _starpu_src_common_cat_3(char *final, const size_t len, const char *first,
+				     const char *second, const char *third)
 {
-	strcpy(final, first);
-	strcat(final, second);
-	strcat(final, third);
+	snprintf(final, len, "%s%s%s", first, second, third);
 }
 
-static void _starpu_src_common_cat_2(char *final, const char *first, const char *second)
+static void _starpu_src_common_cat_2(char *final, const size_t len, const char *first, const char *second)
 {
-	_starpu_src_common_cat_3(final, first, second, "");
+	_starpu_src_common_cat_3(final, len, first, second, "");
 }
 
-static void _starpu_src_common_dir_cat(char *final, const char *dir, const char *file)
+static void _starpu_src_common_dir_cat(char *final, const size_t len, const char *dir, const char *file)
 {
 	if (file[0] == '/')
 		++file;
 
 	size_t size = strlen(dir);
 	if (dir[size - 1] == '/')
-		_starpu_src_common_cat_2(final, dir, file);
+		_starpu_src_common_cat_2(final, len, dir, file);
 	else
-		_starpu_src_common_cat_3(final, dir, "/", file);
+		_starpu_src_common_cat_3(final, len, dir, "/", file);
 }
 
-static int _starpu_src_common_test_suffixes(char *located_file_name, const char *base, const char **suffixes)
+static int _starpu_src_common_test_suffixes(char *located_file_name, const size_t len, const char *base, const char **suffixes)
 {
 	unsigned int i;
 	for (i = 0; suffixes[i] != NULL; ++i)
 	{
-		_starpu_src_common_cat_2(located_file_name, base, suffixes[i]);
+		_starpu_src_common_cat_2(located_file_name, len, base, suffixes[i]);
 		if (access(located_file_name, R_OK) == 0)
 			return 0;
 	}
@@ -804,21 +802,21 @@ static int _starpu_src_common_test_suffixes(char *located_file_name, const char 
 	return 1;
 }
 
-int _starpu_src_common_locate_file(char *located_file_name,
-		const char *env_file_name, const char *env_mic_path,
-		const char *config_file_name, const char *actual_file_name,
-		const char **suffixes)
+int _starpu_src_common_locate_file(char *located_file_name, size_t len,
+				   const char *env_file_name, const char *env_mic_path,
+				   const char *config_file_name, const char *actual_file_name,
+				   const char **suffixes)
 {
 	if (env_file_name != NULL)
 	{
 		if (access(env_file_name, R_OK) == 0)
 		{
-			strcpy(located_file_name, env_file_name);
+			strncpy(located_file_name, env_file_name, len);
 			return 0;
 		}
 		else if(env_mic_path != NULL)
 		{
-			_starpu_src_common_dir_cat(located_file_name, env_mic_path, env_file_name);
+			_starpu_src_common_dir_cat(located_file_name, len, env_mic_path, env_file_name);
 
 			return access(located_file_name, R_OK);
 		}
@@ -827,40 +825,40 @@ int _starpu_src_common_locate_file(char *located_file_name,
 	{
 		if (access(config_file_name, R_OK) == 0)
 		{
-			strcpy(located_file_name, config_file_name);
+			strncpy(located_file_name, config_file_name, len);
 			return 0;
 		}
 		else if (env_mic_path != NULL)
 		{
-			_starpu_src_common_dir_cat(located_file_name, env_mic_path, config_file_name);
+			_starpu_src_common_dir_cat(located_file_name, len, env_mic_path, config_file_name);
 
 			return access(located_file_name, R_OK);
 		}
 	}
 	else if (actual_file_name != NULL)
 	{
-		if (_starpu_src_common_test_suffixes(located_file_name, actual_file_name, suffixes) == 0)
+		if (_starpu_src_common_test_suffixes(located_file_name, len, actual_file_name, suffixes) == 0)
 			return 0;
 
 		if (env_mic_path != NULL)
 		{
 			char actual_cpy[1024];
-			strcpy(actual_cpy, actual_file_name);
+			strncpy(actual_cpy, actual_file_name, sizeof(actual_cpy));
 
 			char *last =  strrchr(actual_cpy, '/');
 			while (last != NULL)
 			{
 				char tmp[1024];
 
-				_starpu_src_common_dir_cat(tmp, env_mic_path, last);
+				_starpu_src_common_dir_cat(tmp, sizeof(tmp), env_mic_path, last);
 
 				if (access(tmp, R_OK) == 0)
 				{
-					strcpy(located_file_name, tmp);
+					strncpy(located_file_name, tmp, len);
 					return 0;
 				}
 
-				if (_starpu_src_common_test_suffixes(located_file_name, tmp, suffixes) == 0)
+				if (_starpu_src_common_test_suffixes(located_file_name, len, tmp, suffixes) == 0)
 					return 0;
 
 				*last = '\0';

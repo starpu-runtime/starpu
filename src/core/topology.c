@@ -584,6 +584,7 @@ _starpu_init_mic_node (struct _starpu_machine_config *config, int mic_idx,
 	/* Let's get the helper program to run on the MIC device */
 	int mic_file_found =
 	    _starpu_src_common_locate_file (mic_sink_program_path,
+					    sizeof(mic_sink_program_path),
 					    starpu_getenv("STARPU_MIC_SINK_PROGRAM_NAME"),
 					    starpu_getenv("STARPU_MIC_SINK_PROGRAM_PATH"),
 					    user_conf->mic_sink_program_path,

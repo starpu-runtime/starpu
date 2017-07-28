@@ -188,13 +188,12 @@ void starpu_unistd_global_free(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, si
 /* open an existing memory on disk */
 void *starpu_unistd_global_open(struct starpu_unistd_global_obj *obj, void *base, void *pos, size_t size)
 {
-	struct starpu_unistd_base * fileBase = (struct starpu_unistd_base *) base;
+	struct starpu_unistd_base *fileBase = (struct starpu_unistd_base *) base;
 	/* create template */
 	char *baseCpy;
 	_STARPU_MALLOC(baseCpy, strlen(fileBase->path)+1+strlen(pos)+1);
-	strcpy(baseCpy,(char *) fileBase->path);
-	strcat(baseCpy,(char *) "/");
-	strcat(baseCpy,(char *) pos);
+
+	snprintf(baseCpy, strlen(fileBase->path)+1+strlen(pos)+1, "%s/%s", fileBase->path, (char *)pos);
 
 	int id = open(baseCpy, obj->flags);
 	if (id < 0)
@@ -471,19 +470,17 @@ int starpu_unistd_global_full_write(void *base STARPU_ATTRIBUTE_UNUSED, void *ob
 void *starpu_unistd_global_plug(void *parameter, starpu_ssize_t size STARPU_ATTRIBUTE_UNUSED)
 {
 	struct starpu_unistd_base * base;
+	struct stat buf;
+
 	_STARPU_MALLOC(base, sizeof(*base));
 	base->created = 0;
+	base->path = strdup((char *) parameter);
+	STARPU_ASSERT(base->path);
 
-	_STARPU_MALLOC(base->path, sizeof(char)*(strlen(parameter)+1));
-	strcpy(base->path,(char *) parameter);
-
+	if (!(stat(base->path, &buf) == 0 && S_ISDIR(buf.st_mode)))
 	{
-		struct stat buf;
-		if (!(stat(base->path, &buf) == 0 && S_ISDIR(buf.st_mode)))
-		{
-			_starpu_mkpath(base->path, S_IRWXU);
-			base->created = 1;
-		}
+		_starpu_mkpath(base->path, S_IRWXU);
+		base->created = 1;
 	}
 
 #if defined(HAVE_LIBAIO_H)

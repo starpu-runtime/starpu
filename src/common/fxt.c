@@ -94,7 +94,7 @@ static void _starpu_profile_set_tracefile(void)
 	char suffix[128];
 	snprintf(suffix, sizeof(suffix), "prof_file_%s_%d", user, _starpu_id);
 
-	strcat(_STARPU_PROF_FILE_USER, suffix);
+	strncat(_STARPU_PROF_FILE_USER, suffix, sizeof(_STARPU_PROF_FILE_USER));
 }
 
 void starpu_profiling_set_id(int new_id)
