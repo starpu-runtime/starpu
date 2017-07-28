@@ -53,14 +53,14 @@ void _starpu_util_init(void)
 #include <direct.h>
 static char * dirname(char * path)
 {
-   char drive[_MAX_DRIVE];
-   char dir[_MAX_DIR];
-   /* Remove trailing slash */
-   while (strlen(path) > 0 && (*(path+strlen(path)-1) == '/' || *(path+strlen(path)-1) == '\\'))
-      *(path+strlen(path)-1) = '\0';
-   _splitpath(path, drive, dir, NULL, NULL);
-   _makepath(path, drive, dir, NULL, NULL);
-   return path;
+	char drive[_MAX_DRIVE];
+	char dir[_MAX_DIR];
+	/* Remove trailing slash */
+	while (strlen(path) > 0 && (*(path+strlen(path)-1) == '/' || *(path+strlen(path)-1) == '\\'))
+		*(path+strlen(path)-1) = '\0';
+	_splitpath(path, drive, dir, NULL, NULL);
+	_makepath(path, drive, dir, NULL, NULL);
+	return path;
 }
 #else
 #include <libgen.h>
@@ -150,11 +150,15 @@ char *_starpu_mkdtemp_internal(char *tmpl)
 	int count = 1;
 	int ret;
 
+	int first_letter = (int)'a';
+	int nb_letters = 25;
+	int len_template = 6;
+
 	// Initialize template
-	for(i=len-6 ; i<len ; i++)
+	for(i=len-len_template ; i<len ; i++)
 	{
 		STARPU_ASSERT_MSG(tmpl[i] == 'X', "Template must terminate by XXXXXX\n");
-		tmpl[i] = (char) (97 + starpu_lrand48() % 25);
+		tmpl[i] = (char) (first_letter + starpu_lrand48() % nb_letters);
 	}
 
 	// Try to create directory
@@ -162,9 +166,9 @@ char *_starpu_mkdtemp_internal(char *tmpl)
 	while ((ret == -1) && (errno == EEXIST))
 	{
 		// Generate a new name
-		for(i=len-6 ; i<len ; i++)
+		for(i=len-len_template ; i<len ; i++)
 		{
-			tmpl[i] = (char) (97 + starpu_lrand48() % 25);
+			tmpl[i] = (char) (first_letter + starpu_lrand48() % nb_letters);
 		}
 		count ++;
 		if (count == 1000)
