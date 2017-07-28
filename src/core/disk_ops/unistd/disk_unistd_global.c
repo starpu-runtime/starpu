@@ -614,9 +614,10 @@ void starpu_unistd_global_wait_request(void *async_channel)
                 {
                         //we may catch an other request...
                         STARPU_PTHREAD_MUTEX_LOCK(&starpu_aiocb->base->mutex);
+
                         struct starpu_unistd_aiocb_link *l = NULL;
-                        while (l == NULL)
-                                HASH_FIND_PTR(starpu_aiocb->base->hashtable, &event.obj, l);
+			HASH_FIND_PTR(starpu_aiocb->base->hashtable, &event.obj, l);
+			STARPU_ASSERT(l != NULL);
 
                         HASH_DEL(starpu_aiocb->base->hashtable, l);
                         STARPU_PTHREAD_MUTEX_UNLOCK(&starpu_aiocb->base->mutex);
@@ -645,9 +646,10 @@ int starpu_unistd_global_test_request(void *async_channel)
 	{
                 //we may catch an other request...
                 STARPU_PTHREAD_MUTEX_LOCK(&starpu_aiocb->base->mutex);
+
                 struct starpu_unistd_aiocb_link *l = NULL;
-                while (l == NULL)
-                        HASH_FIND_PTR(starpu_aiocb->base->hashtable, &event.obj, l);
+		HASH_FIND_PTR(starpu_aiocb->base->hashtable, &event.obj, l);
+		STARPU_ASSERT(l != NULL);
 
                 HASH_DEL(starpu_aiocb->base->hashtable, l);
                 STARPU_PTHREAD_MUTEX_UNLOCK(&starpu_aiocb->base->mutex);
