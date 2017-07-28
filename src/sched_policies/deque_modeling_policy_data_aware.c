@@ -672,6 +672,8 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 		struct starpu_perfmodel_arch* perf_arch = starpu_worker_get_perf_archtype(workerid, sched_ctx_id);
 		unsigned memory_node = starpu_worker_get_memory_node(workerid);
 
+		STARPU_ASSERT_MSG(fifo != NULL, "workerid %u ctx %u\n", workerid, sched_ctx_id);
+
 		/* Sometimes workers didn't take the tasks as early as we expected */
 		double exp_start = isnan(fifo->exp_start) ? now + fifo->pipeline_len : STARPU_MAX(fifo->exp_start, now);
 
@@ -685,7 +687,6 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 				/* no one on that queue may execute this task */
 				continue;
 			}
-			STARPU_ASSERT_MSG(fifo != NULL, "workerid %u ctx %u\n", workerid, sched_ctx_id);
 
 			int fifo_ntasks = fifo->ntasks;
 			double prev_exp_len = fifo->exp_len;
