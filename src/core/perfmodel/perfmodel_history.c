@@ -983,7 +983,7 @@ static void get_model_debug_path(struct starpu_perfmodel *model, const char *arc
 {
 	STARPU_ASSERT(path);
 
-	char hostname[65];
+	char hostname[STR_LONG_LENGTH];
 	_starpu_gethostname(hostname, sizeof(hostname));
 
 	snprintf(path, maxlen, "%s/%s.%s.%s.debug", _starpu_get_perf_model_dir_debug(), model->symbol, hostname, arch);
@@ -991,7 +991,7 @@ static void get_model_debug_path(struct starpu_perfmodel *model, const char *arc
 
 void starpu_perfmodel_get_model_path(const char *symbol, char *path, size_t maxlen)
 {
-	char hostname[65];
+	char hostname[STR_LONG_LENGTH];
 	_starpu_gethostname(hostname, sizeof(hostname));
 	const char *dot = strrchr(symbol, '.');
 
