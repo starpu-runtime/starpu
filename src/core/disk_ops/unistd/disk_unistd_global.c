@@ -170,9 +170,8 @@ void *starpu_unistd_global_open(struct starpu_unistd_global_obj *obj, void *base
 	/* create template */
 	char *baseCpy;
 	_STARPU_MALLOC(baseCpy, strlen(base)+1+strlen(pos)+1);
-	strcpy(baseCpy,(char *) base);
-	strcat(baseCpy,(char *) "/");
-	strcat(baseCpy,(char *) pos);
+
+	snprintf(baseCpy, strlen(base)+1+strlen(pos)+1, "%s/%s", base, (char *)pos);
 
 	int id = open(baseCpy, obj->flags);
 	if (id < 0)
@@ -432,9 +431,8 @@ int starpu_unistd_global_full_write(void *base STARPU_ATTRIBUTE_UNUSED, void *ob
 /* create a new copy of parameter == base */
 void *starpu_unistd_global_plug(void *parameter, starpu_ssize_t size STARPU_ATTRIBUTE_UNUSED)
 {
-	char *tmp;
-	_STARPU_MALLOC(tmp, sizeof(char)*(strlen(parameter)+1));
-	strcpy(tmp,(char *) parameter);
+	char *tmp = strdup((char*)parameter);
+	STARPU_ASSERT(tmp);
 
 	{
 		struct stat buf;

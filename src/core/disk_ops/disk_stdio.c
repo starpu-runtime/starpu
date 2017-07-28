@@ -175,9 +175,8 @@ static void *starpu_stdio_open(void *base, void *pos, size_t size)
 	/* create template */
 	char *baseCpy = malloc(strlen(base)+1+strlen(pos)+1);
 	STARPU_ASSERT(baseCpy != NULL);
-	strcpy(baseCpy,(char *) base);
-	strcat(baseCpy,(char *) "/");
-	strcat(baseCpy,(char *) pos);
+
+	snprintf(baseCpy, strlen(base)+1+strlen(pos)+1, "%s/%s", base, (char *)pos);
 
 	int id = open(baseCpy, O_RDWR);
 	if (id < 0)
@@ -319,9 +318,8 @@ static int starpu_stdio_full_write(void *base STARPU_ATTRIBUTE_UNUSED, void *obj
 /* create a new copy of parameter == base */
 static void *starpu_stdio_plug(void *parameter, starpu_ssize_t size STARPU_ATTRIBUTE_UNUSED)
 {
-	char *tmp = malloc(sizeof(char)*(strlen(parameter)+1));
-	STARPU_ASSERT(tmp != NULL);
-	strcpy(tmp,(char *) parameter);
+	char *tmp = strdup((char *) parameter);
+	STARPU_ASSERT(tmp);
 
 	{
 		struct stat buf;

@@ -66,7 +66,7 @@ int _starpu_src_common_copy_sink_to_host(const struct _starpu_mp_node *mp_node,
 int _starpu_src_common_copy_sink_to_sink(const struct _starpu_mp_node *src_node,
 					 const struct _starpu_mp_node *dst_node, void *src, void *dst, size_t size);
 
-int _starpu_src_common_locate_file(char *located_file_name,
+int _starpu_src_common_locate_file(char *located_file_name, size_t len,
 				   const char *env_file_name, const char *env_mic_path,
 				   const char *config_file_name, const char *actual_file_name,
 				   const char **suffixes);
