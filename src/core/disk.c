@@ -184,7 +184,7 @@ int _starpu_disk_read(unsigned src_node, unsigned dst_node STARPU_ATTRIBUTE_UNUS
 /* src_node == STARPU_MAIN_RAM and dst_node == disk node */
 int _starpu_disk_write(unsigned src_node STARPU_ATTRIBUTE_UNUSED, unsigned dst_node, void *obj, void *buf, off_t offset, size_t size, struct _starpu_async_channel *channel)
 {
-        void * event;
+        void *event = NULL;
 	int pos = get_location_with_node(dst_node);
 
         if (channel != NULL)
@@ -229,7 +229,7 @@ int _starpu_disk_copy(unsigned node_src, void *obj_src, off_t offset_src, unsign
 
 int _starpu_disk_full_read(unsigned src_node, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, void *obj, void **ptr, size_t *size, struct _starpu_async_channel *channel)
 {
-        void * event;
+        void *event = NULL;
 	int pos = get_location_with_node(src_node);
 
 	if (channel != NULL)
@@ -258,7 +258,7 @@ int _starpu_disk_full_read(unsigned src_node, unsigned dst_node STARPU_ATTRIBUTE
 
 int _starpu_disk_full_write(unsigned src_node STARPU_ATTRIBUTE_UNUSED, unsigned dst_node, void *obj, void *ptr, size_t size, struct _starpu_async_channel *channel)
 {
-        void * event;
+        void *event = NULL;
 	int pos = get_location_with_node(dst_node);
 
 	if (channel != NULL)
