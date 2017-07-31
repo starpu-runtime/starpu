@@ -300,7 +300,7 @@ int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, doubl
 	_STARPU_MALLOC(my, n*sizeof(double));
 
 	/* Loading old calibration */
-	if (calibrate==1)
+	if (calibrate==1 && old_lines > 0)
 		load_old_calibration(mpar, my, nparameters, filepath);
 
 	/* Filling X and Y matrices with measured values */
