@@ -85,8 +85,6 @@ static void _starpu_profile_set_tracefile(void)
 	if (!fxt_prefix)
 	     fxt_prefix = "/tmp/";
 
-	snprintf(_STARPU_PROF_FILE_USER, sizeof(_STARPU_PROF_FILE_USER), "%s", fxt_prefix);
-
 	user = starpu_getenv("USER");
 	if (!user)
 		user = "";
@@ -94,7 +92,7 @@ static void _starpu_profile_set_tracefile(void)
 	char suffix[128];
 	snprintf(suffix, sizeof(suffix), "prof_file_%s_%d", user, _starpu_id);
 
-	strncat(_STARPU_PROF_FILE_USER, suffix, sizeof(_STARPU_PROF_FILE_USER));
+	snprintf(_STARPU_PROF_FILE_USER, sizeof(_STARPU_PROF_FILE_USER), "%s%s", fxt_prefix, suffix);
 }
 
 void starpu_profiling_set_id(int new_id)
