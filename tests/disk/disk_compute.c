@@ -38,7 +38,7 @@
  * actually
  */
 
-#define NX (1024)
+#define NX (16*1024)
 
 int dotest(struct starpu_disk_ops *ops, char *base)
 {

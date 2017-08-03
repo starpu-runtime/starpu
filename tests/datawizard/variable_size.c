@@ -91,7 +91,7 @@ void variable_size_data_register(starpu_data_handle_t *handleptr, unsigned x, un
 	/* Simulate that tiles close to the diagonal are more dense */
 	interface.size = FULLSIZE * (starpu_lrand48() % 1024 + 1024) / 2048. * (N-sqrt(abs(x-y)*N)) / N;
 	/* Round to page size */
-	interface.size -= interface.size & (4096-1);
+	interface.size -= interface.size & (65536-1);
 
 	starpu_data_register(handleptr, -1, &interface, &starpu_interface_variable_size_ops);
 }
@@ -200,7 +200,7 @@ static void kernel(void *descr[], void *cl_arg)
 	/* Simulate that tiles close to the diagonal fill up faster */
 	size_t increase = (FULLSIZE - variable_interface->size) * (starpu_lrand48() % 1024 + 1024) / 2048. * INCREASE;
 	/* Round to page size */
-	increase -= increase & (4096-1);
+	increase -= increase & (65536-1);
 	variable_interface->ptr = starpu_malloc_on_node_flags(dst_node, variable_interface->size + increase, STARPU_MALLOC_PINNED | STARPU_MALLOC_COUNT | STARPU_MEMORY_OVERFLOW);
 	STARPU_ASSERT(variable_interface->ptr);
 	/* fprintf(stderr,"increase from %lu by %lu\n", variable_interface->size, increase); */

@@ -41,7 +41,7 @@ int main(int argc, char **argv)
  * Here we force using the pack/unpack mechanism
  */
 
-#define NX (1024)
+#define NX (16*1024)
 
 const struct starpu_data_copy_methods my_vector_copy_data_methods_s;
 struct starpu_data_interface_ops starpu_interface_my_vector_ops;
