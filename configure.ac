@@ -779,64 +779,69 @@ AC_CHECK_FUNCS([mkdtemp])
 
 AC_CHECK_FUNCS([pread pwrite])
 
+AC_ARG_ENABLE(hdf5, [AS_HELP_STRING([--disable-hdf5], [disable HDF5 support])],
+                    enable_hdf5=$enableval, enable_hdf5=maybe)
 
-AC_ARG_WITH(hdf5-include-dir,
-	[AS_HELP_STRING([--with-hdf5-include-dir=<path>],
-	[specify where HDF5 headers are installed])],
-	[
-		hdf5_include_dir="$withval"
-	], [hdf5_include_dir=""])
+if test "x$enable_hdf5" != xno
+then
+	AC_ARG_WITH(hdf5-include-dir,
+		[AS_HELP_STRING([--with-hdf5-include-dir=<path>],
+		[specify where HDF5 headers are installed])],
+		[
+			hdf5_include_dir="$withval"
+		], [hdf5_include_dir=""])
 
-hdf5_inc_dir="/usr/include/hdf5 /usr/include/hdf5/serial ${hdf5_include_dir}"
+	hdf5_inc_dir="/usr/include/hdf5 /usr/include/hdf5/serial ${hdf5_include_dir}"
 
-enable_include_hdf5=no
-for f in $hdf5_inc_dir; do
-        if test -n "$f" ; then
-                SAVED_CFLAGS="${CFLAGS}"
-                CFLAGS=-I${f}
-                AC_CHECK_HEADERS([hdf5.h])
-                if test "$ac_cv_header_hdf5_h" = "yes" ; then
-                        CFLAGS="-I${f} ${SAVED_CFLAGS}"
-                        enable_include_hdf5=yes
-                        break
-                else
-                        CFLAGS=${SAVED_CFLAGS}
-                fi
-                unset ac_cv_header_hdf5_h
-        fi
-done
+	enable_include_hdf5=no
+	for f in $hdf5_inc_dir; do
+		if test -n "$f" ; then
+			SAVED_CFLAGS="${CFLAGS}"
+			CFLAGS=-I${f}
+			AC_CHECK_HEADERS([hdf5.h])
+			if test "$ac_cv_header_hdf5_h" = "yes" ; then
+				CFLAGS="-I${f} ${SAVED_CFLAGS}"
+				enable_include_hdf5=yes
+				break
+			else
+				CFLAGS=${SAVED_CFLAGS}
+			fi
+			unset ac_cv_header_hdf5_h
+		fi
+	done
 
 
-AC_ARG_WITH(hdf5-lib-dir,
-	[AS_HELP_STRING([--with-hdf5-lib-dir=<path>],
-	[specify where HDF5 libraries are installed])],
-	[
-		hdf5_libraries_dir="$withval"
-	], [hdf5_libraries_dir=""])
+	AC_ARG_WITH(hdf5-lib-dir,
+		[AS_HELP_STRING([--with-hdf5-lib-dir=<path>],
+		[specify where HDF5 libraries are installed])],
+		[
+			hdf5_libraries_dir="$withval"
+		], [hdf5_libraries_dir=""])
 
-hdf5_lib_dir="/usr/lib/x86_64-linux-gnu/hdf5 /usr/lib/x86_64-linux-gnu/hdf5/serial ${hdf5_libraries_dir}"
+	hdf5_lib_dir="/usr/lib/x86_64-linux-gnu/hdf5 /usr/lib/x86_64-linux-gnu/hdf5/serial ${hdf5_libraries_dir}"
 
-enable_libraries_hdf5=no
-for f in $hdf5_lib_dir; do
-        if test -n "$f" ; then
-                SAVED_LDFLAGS="${LDFLAGS}"
-                LDFLAGS=-L${f}
-                STARPU_HAVE_LIBRARY(HDF5, [hdf5])
-                if test "$ac_cv_lib_hdf5_main" = "yes" ; then
-                        LDFLAGS="-L${f} ${SAVED_LDFLAGS} ${STARPU_HDF5_LDFLAGS}"
-                        enable_libraries_hdf5=yes
-                        break
-                else
-                        LDFLAGS=${SAVED_LDFLAGS}
-                fi
-                unset ac_cv_lib_hdf5_main
-        fi
-done
+	enable_libraries_hdf5=no
+	for f in $hdf5_lib_dir; do
+		if test -n "$f" ; then
+			SAVED_LDFLAGS="${LDFLAGS}"
+			LDFLAGS=-L${f}
+			STARPU_HAVE_LIBRARY(HDF5, [hdf5])
+			if test "$ac_cv_lib_hdf5_main" = "yes" ; then
+				LDFLAGS="-L${f} ${SAVED_LDFLAGS} ${STARPU_HDF5_LDFLAGS}"
+				enable_libraries_hdf5=yes
+				break
+			else
+				LDFLAGS=${SAVED_LDFLAGS}
+			fi
+			unset ac_cv_lib_hdf5_main
+		fi
+	done
+fi
 
-if test  "x$enable_libraries_hdf5" = "xyes" -a "x$enable_include_hdf5" = "xyes"; then
+if test  "x$enable_libraries_hdf5" = "xyes" -a "x$enable_include_hdf5" = "xyes" -a "x$enable_hdf5" != "xno"; then
         AC_DEFINE([STARPU_HAVE_HDF5], [1], [Define to 1 if you have the <hdf5.h> header file.])
 fi
-AM_CONDITIONAL(STARPU_HAVE_HDF5, test  "x$enable_libraries_hdf5" = "xyes" -a "x$enable_include_hdf5" = "xyes")
+AM_CONDITIONAL(STARPU_HAVE_HDF5, test  "x$enable_libraries_hdf5" = "xyes" -a "x$enable_include_hdf5" = "xyes" -a "x$enable_hdf5" != "xno")
 
 
 # This defines HAVE_SYNC_VAL_COMPARE_AND_SWAP
