@@ -361,6 +361,7 @@ int main(int argc, char **argv)
 			task->handles[2] = starpu_data_get_sub_data(C_handle, 2, x, y);
 
 			task->flops = 2ULL * (xdim/nslicesx) * (ydim/nslicesy) * zdim;
+			task->tag_id = iter * nslicesx * nslicesy + y * nslicesx + x;
 
 			ret = starpu_task_submit(task);
 			if (ret == -ENODEV)

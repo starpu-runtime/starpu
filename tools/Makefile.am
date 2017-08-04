@@ -217,7 +217,8 @@ if STARPU_USE_FXT
 bin_PROGRAMS += 			\
 	starpu_fxt_tool			\
 	starpu_fxt_stats		\
-	starpu_fxt_data_trace
+	starpu_fxt_data_trace		\
+	starpu_replay
 
 STARPU_TOOLS += 			\
 	starpu_fxt_tool			\

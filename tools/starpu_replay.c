@@ -24,8 +24,9 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <math.h>
-#include <../../src/common/uthash.h>
-#include <../../include/starpu_scheduler.h>
+
+#include <uthash.h>
+#include <starpu_scheduler.h>
 
 #define NMAX_DEPENDENCIES 16
 
@@ -44,6 +45,7 @@ static char *name = NULL;
 static char *model = NULL;
 static jobid_t jobid;
 static jobid_t *dependson;
+static unsigned int submitorder;
 static starpu_tag_t tag;
 static int workerid;
 static uint32_t footprint;
@@ -105,7 +107,7 @@ static struct perfmodel {
 /* Record a dependent task by its jobid and the jobids of its dependencies */
 
 typedef struct s_dep {
-	jobid_t jobid;
+	jobid_t job_id;
 	jobid_t deps_jobid[NMAX_DEPENDENCIES]; /* That array has to contain the jobids of the dependencies, notice that the number of dependcies is limited to 16, modify NMAX_DEPENDENCIES at your convenience */
 	size_t ndependson;
 } s_dep;
@@ -153,9 +155,9 @@ void dumb_kernel(void) {}
 
 /* [CODELET] Initialization of an unique codelet for all the tasks*/
 
-static int can_execute(unsigned workerid, struct starpu_task *task, unsigned nimpl)
+static int can_execute(unsigned worker_id, struct starpu_task *task, unsigned nimpl)
 {
-	struct starpu_perfmodel_arch * arch = starpu_worker_get_perf_archtype(workerid, STARPU_NMAX_SCHED_CTXS);
+	struct starpu_perfmodel_arch * arch = starpu_worker_get_perf_archtype(worker_id, STARPU_NMAX_SCHED_CTXS);
 	double expected_time = ((struct task_arg *) (task->cl_arg))->perf[(starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices))];
 	if (!(expected_time == 0 || isnan(expected_time)))
 	{
@@ -207,10 +209,10 @@ void array_init(unsigned long * arr, int size)
 
 
 /* Initializing s_dep structure */
-s_dep * s_dep_init(s_dep * sd, jobid_t jobid)
+s_dep * s_dep_init(s_dep * sd, jobid_t job_id)
 {
 	sd = malloc(sizeof(*sd));
-	sd->jobid = jobid;
+	sd->job_id = jobid;
 	array_init((unsigned long *) sd->deps_jobid, 16);
 	sd->ndependson = 0;
 
@@ -349,7 +351,7 @@ int submit_tasks(void)
 		struct task * currentTask;
 				
 		/* Looking for the task associate to the jobid of the jth element of jobidDeps */
-		HASH_FIND(hh, tasks, &jobidDeps[j]->jobid, sizeof(jobid), currentTask);
+		HASH_FIND(hh, tasks, &jobidDeps[j]->job_id, sizeof(jobid), currentTask);
 
 		if (jobidDeps[j]->ndependson > 0)
 		{
@@ -383,7 +385,7 @@ int submit_tasks(void)
 
 		//printf("name : %s \n", currentTask->task.name);
 				
-		printf("submitting task %s (%lu, %llu)\n", currentTask->task.name?currentTask->task.name:"anonymous", jobidDeps[j]->jobid, (unsigned long long) currentTask->task.tag_id /* tag*/);
+		printf("submitting task %s (%lu, %llu)\n", currentTask->task.name?currentTask->task.name:"anonymous", jobidDeps[j]->job_id, (unsigned long long) currentTask->task.tag_id /* tag*/);
 
 		if (ret_val != 0)
 			return -1;
@@ -620,6 +622,9 @@ int main(int argc, char **argv)
 		
 		else if (TEST("JobId"))
 			jobid = atol(s+7);
+
+		else if(TEST("SubmitOrder"))
+			submitorder = atoi(s+13);
 		
 		else if (TEST("DependsOn"))
 		{

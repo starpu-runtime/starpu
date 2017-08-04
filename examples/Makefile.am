@@ -203,8 +203,7 @@ STARPU_EXAMPLES =
 
 STARPU_EXAMPLES +=				\
 	sched_ctx/prio				\
-	worker_collections/worker_list_example	\
-	replay/replay
+	worker_collections/worker_list_example
 
 if !STARPU_SIMGRID
 STARPU_EXAMPLES +=				\
