@@ -189,6 +189,8 @@ struct starpu_task
 
 	unsigned workerid;
 	unsigned workerorder;
+	uint32_t *workerids;
+	unsigned workerids_len;
 
 	int priority;
 

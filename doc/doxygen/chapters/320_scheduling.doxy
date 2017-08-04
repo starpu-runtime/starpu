@@ -180,6 +180,16 @@ task->execute_on_a_specific_worker = 1;
 task->workerid = starpu_worker_get_by_type(STARPU_CUDA_WORKER, 0);
 \endcode
 
+One can also specify a set worker(s) which are allowed to take the task, as an
+array of bit, for instance to allow workers 2 and 42:
+
+\code{.c}
+task->workerids = calloc(2,sizeof(uint32_t));
+task->workerids[2/32] |= (1 << (2%32));
+task->workerids[42/32] |= (1 << (42%32));
+task->workerids_len = 1;
+\endcode
+
 One can also specify the order in which tasks must be executed by setting the
 starpu_task::workerorder field. If this field is set to a non-zero value, it
 provides the per-worker consecutive order in which tasks will be executed,

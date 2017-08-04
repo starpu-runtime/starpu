@@ -342,6 +342,12 @@ int starpu_worker_can_execute_task_impl(unsigned workerid, struct starpu_task *t
 	cl = task->cl;
 	if (!(task->where & _starpu_config.workers[workerid].worker_mask)) return 0;
 
+	if (task->workerids_len) {
+		size_t div = sizeof(*task->workerids) * 8;
+		if (workerid / div >= task->workerids_len || ! (task->workerids[workerid / div] & (1UL << workerid % div)))
+			return 0;
+	}
+
 	mask = 0;
 	arch = _starpu_config.workers[workerid].arch;
 	if (!task->cl->can_execute)

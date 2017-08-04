@@ -47,6 +47,7 @@ Small features:
     which allows to restrict where to execute a task. Also add
     STARPU_TASK_WHERE to be used when calling starpu_task_insert().
   * Add SubmitOrder trace field.
+  * Add workerids and workerids_len task fields.
 
 Changes:
   * Vastly improve simgrid simulation time.
