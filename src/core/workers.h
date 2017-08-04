@@ -436,6 +436,8 @@ struct _starpu_machine_config
 	starpu_pthread_mutex_t submitted_mutex;
 };
 
+extern int _starpu_worker_parallel_blocks;
+
 extern struct _starpu_machine_config _starpu_config STARPU_ATTRIBUTE_INTERNAL;
 extern int _starpu_keys_initialized STARPU_ATTRIBUTE_INTERNAL;
 extern starpu_pthread_key_t _starpu_worker_key STARPU_ATTRIBUTE_INTERNAL;
@@ -654,6 +656,7 @@ struct _starpu_sched_ctx* _starpu_worker_get_ctx_stream(unsigned stream_workerid
  */
 static inline void _starpu_worker_request_blocking_in_parallel(struct _starpu_worker * const worker)
 {
+	_starpu_worker_parallel_blocks = 1;
 	/* flush pending requests to start on a fresh transaction epoch */
 	while (worker->state_unblock_in_parallel_req)
 		STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);

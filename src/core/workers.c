@@ -67,6 +67,8 @@ struct _starpu_machine_config _starpu_config STARPU_ATTRIBUTE_INTERNAL;
 
 static int check_entire_platform;
 
+int _starpu_worker_parallel_blocks;
+
 /* Pointers to argc and argv
  */
 static int *my_argc = 0;
@@ -1148,6 +1150,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	/* This initializes _starpu_silent, thus needs to be early */
 	_starpu_util_init();
 
+	STARPU_HG_DISABLE_CHECKING(_starpu_worker_parallel_blocks);
 #ifdef STARPU_SIMGRID
 	/* This initializes the simgrid thread library, thus needs to be early */
 	_starpu_simgrid_init_early(argc, argv);
@@ -1712,6 +1715,8 @@ unsigned starpu_worker_get_count(void)
 
 unsigned starpu_worker_is_blocked_in_parallel(int workerid)
 {
+	if (!_starpu_worker_parallel_blocks)
+		return 0;
 	int relax_own_observation_state = 0;
 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 	STARPU_ASSERT(worker != NULL);
