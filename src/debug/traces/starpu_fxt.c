@@ -96,6 +96,7 @@ struct task_info
 	char *name;
 	int exclude_from_dag;
 	unsigned long job_id;
+	unsigned long submit_order;
 	uint64_t tag;
 	int workerid;
 	int node;
@@ -128,6 +129,7 @@ static struct task_info *get_task(unsigned long job_id, int mpi_rank)
 		task->name = NULL;
 		task->exclude_from_dag = 0;
 		task->job_id = job_id;
+		task->submit_order = 0;
 		task->tag = 0;
 		task->workerid = -1;
 		task->node = -1;
@@ -174,6 +176,8 @@ static void task_dump(struct task_info *task)
 		free(task->model_name);
 	}
 	fprintf(tasks_file, "JobId: %lu\n", task->job_id);
+	if (task->submit_order)
+		fprintf(tasks_file, "SubmitOrder: %lu\n", task->submit_order);
 	if (task->dependencies)
 	{
 		fprintf(tasks_file, "DependsOn:");
@@ -852,8 +856,9 @@ static void thread_pop_state(double time, const char *prefix, long unsigned int 
 #endif
 }
 
-static void worker_set_detailed_state(double time, const char *prefix, long unsigned int workerid, const char *name, unsigned long size, const char *parameters, unsigned long footprint, unsigned long long tag, unsigned long job_id, double gflop, unsigned X, unsigned Y, unsigned Z, long iteration, long subiteration)
+static void worker_set_detailed_state(double time, const char *prefix, long unsigned int workerid, const char *name, unsigned long size, const char *parameters, unsigned long footprint, unsigned long long tag, unsigned long job_id, double gflop, unsigned X, unsigned Y, unsigned Z, long iteration, long subiteration, struct starpu_fxt_options *options)
 {
+	struct task_info *task = get_task(job_id, options->file_rank);
 #ifdef STARPU_HAVE_POTI
 	char container[STARPU_POTI_STR_LEN];
 	worker_container_alias(container, STARPU_POTI_STR_LEN, prefix, workerid);
@@ -871,6 +876,7 @@ static void worker_set_detailed_state(double time, const char *prefix, long unsi
 	snprintf(footprint_str, sizeof(footprint_str), "%08lx", footprint);
 	snprintf(tag_str, sizeof(tag_str), "%016llx", tag);
 	snprintf(jobid_str, sizeof(jobid_str), "%s%lu", prefix, job_id);
+	snprintf(submitorder_str, sizeof(submitorder_str), "%s%lu", prefix, task->submit_order);
 	snprintf(gflop_str, sizeof(gflop_str), "%f", gflop);
 	snprintf(X_str, sizeof(X_str), "%u", X);
 	snprintf(Y_str, sizeof(Y_str), "%u", Y);
@@ -879,22 +885,23 @@ static void worker_set_detailed_state(double time, const char *prefix, long unsi
 	snprintf(subiteration_str, sizeof(subiteration_str), "%ld", subiteration);
 
 #ifdef HAVE_POTI_INIT_CUSTOM
-	poti_user_SetState(_starpu_poti_extendedSetState, time, container, "WS", name, 11, size_str,
+	poti_user_SetState(_starpu_poti_extendedSetState, time, container, "WS", name, 12, size_str,
 			   parameters_str,
 			   footprint_str,
 			   tag_str,
 			   jobid_str,
+			   submitorder_str,
 			   gflop_str,
 			   X_str,
 			   Y_str,
-			   Z_str,
+			   /* Z_str, */
 			   iteration_str,
 			   subiteration_str);
 #else
 	poti_SetState(time, container, "WS", name);
 #endif
 #else
-	fprintf(out_paje_file, "20	%.9f	%sw%lu	WS	%s	%lu	%s	%08lx	%016llx	%s%lu	%f	%u	%u	%u	%ld	%ld\n", time, prefix, workerid, name, size, parameters, footprint, tag, prefix, job_id, gflop, X, Y, Z, iteration, subiteration);
+	fprintf(out_paje_file, "20	%.9f	%sw%lu	WS	%s	%lu	%s	%08lx	%016llx	%s%lu	%s%lu	%f	%u	%u	"/*"%u	"*/"%ld	%ld\n", time, prefix, workerid, name, size, parameters, footprint, tag, prefix, job_id, prefix, task->submit_order, gflop, X, Y, /*Z,*/ iteration, subiteration);
 #endif
 }
 
@@ -1577,7 +1584,7 @@ static void handle_codelet_details(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 		char *prefix = options->file_prefix;
 		unsigned sched_ctx = ev->param[0];
 
-		worker_set_detailed_state(last_codelet_start[worker], prefix, worker, _starpu_last_codelet_symbol[worker], ev->param[1], parameters, ev->param[2], ev->param[4], job_id, ((double) task->kflops) / 1000000, X, Y, Z, task->iterations[0], task->iterations[1]);
+		worker_set_detailed_state(last_codelet_start[worker], prefix, worker, _starpu_last_codelet_symbol[worker], ev->param[1], parameters, ev->param[2], ev->param[4], job_id, ((double) task->kflops) / 1000000, X, Y, Z, task->iterations[0], task->iterations[1], options);
 		if (sched_ctx != 0)
 		{
 #ifdef STARPU_HAVE_POTI
@@ -1600,18 +1607,20 @@ static void handle_codelet_details(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 			snprintf(footprint_str, sizeof(footprint_str), "%08lx", ev->param[2]);
 			snprintf(tag_str, sizeof(tag_str), "%016lx", ev->param[4]);
 			snprintf(jobid_str, sizeof(jobid_str), "%s%lu", prefix, job_id);
+			snprintf(submitorder_str, sizeof(submitorder_str), "%s%lu", prefix, task->submit_order);
 
 #ifdef HAVE_POTI_INIT_CUSTOM
-			poti_user_SetState(_starpu_poti_semiExtendedSetState, last_codelet_start[worker], container, typectx, name, 5, size_str,
+			poti_user_SetState(_starpu_poti_semiExtendedSetState, last_codelet_start[worker], container, typectx, name, 6, size_str,
 					   parameters_str,
 					   footprint_str,
 					   tag_str,
-					   jobid_str);
+					   jobid_str,
+					   submitorder_str);
 #else
 			poti_SetState(last_codelet_start[worker], container, typectx, name);
 #endif
 #else
-			fprintf(out_paje_file, "21	%.9f	%sw%d	Ctx%u	%s	%ld	%s	%08lx	%016lx	%s%lu\n", last_codelet_start[worker], prefix, worker, sched_ctx, _starpu_last_codelet_symbol[worker], ev->param[1], parameters,  ev->param[2], ev->param[4], prefix, job_id);
+			fprintf(out_paje_file, "21	%.9f	%sw%d	Ctx%u	%s	%ld	%s	%08lx	%016lx	%s%lu	%s%lu\n", last_codelet_start[worker], prefix, worker, sched_ctx, _starpu_last_codelet_symbol[worker], ev->param[1], parameters,  ev->param[2], ev->param[4], prefix, job_id, prefix, task->submit_order);
 #endif
 		}
 	}
@@ -2530,9 +2539,11 @@ static void handle_task_submit(struct fxt_ev_64 *ev, struct starpu_fxt_options *
 	unsigned long job_id = ev->param[0];
 	unsigned long iteration = ev->param[1];
 	unsigned long subiteration = ev->param[2];
+	unsigned long submit_order = ev->param[3];
 
 	struct task_info *task = get_task(job_id, options->file_rank);
 	task->submit_time = get_event_time_stamp(ev, options);
+	task->submit_order = submit_order;
 	task->iterations[0] = iteration;
 	task->iterations[1] = subiteration;
 }

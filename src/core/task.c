@@ -661,9 +661,21 @@ int starpu_task_submit(struct starpu_task *task)
 	}
 
 	if (!j->internal && !continuation)
+	{
+#ifdef STARPU_USE_FXT
+		{
+			static unsigned long submit_order = 0;
+			if (task->submit_order == 0)
+			{
+				task->submit_order = STARPU_ATOMIC_ADDL(&submit_order, 1);
+				STARPU_ASSERT(task->submit_order != ULONG_MAX);
+			}
+		}
+#endif
 		_STARPU_TRACE_TASK_SUBMIT(j,
 			_starpu_get_sched_ctx_struct(task->sched_ctx)->iterations[0],
 			_starpu_get_sched_ctx_struct(task->sched_ctx)->iterations[1]);
+	}
 
 	/* If this is a continuation, we don't modify the implicit data dependencies detected earlier. */
 	if (task->cl && !continuation)

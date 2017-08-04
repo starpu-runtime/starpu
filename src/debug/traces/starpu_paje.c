@@ -42,19 +42,22 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 						     "Footprint string",
 						     "Tag string",
 						     "JobId string",
+						     "SubmitOrder string",
 						     "GFlop string",
 						     "X string",
 						     "Y string",
-						     "Z string",
+						     /* "Z string", */
 						     "Iteration string",
 						     "Subiteration string");
 	_starpu_poti_semiExtendedSetState = poti_header_DeclareEvent (PAJE_SetState,
-						     5,
+						     6,
 						     "Size string",
 						     "Params string",
 						     "Footprint string",
 						     "Tag string",
-						     "JobId string");
+						     "JobId string",
+						     "SubmitOrder string"
+						     );
 #else
 	poti_header(1,1);
 #endif
@@ -171,10 +174,11 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 	fprintf(file, "%%	Footprint	string\n");
 	fprintf(file, "%%	Tag	string\n");
 	fprintf(file, "%%	JobId	string\n");
+	fprintf(file, "%%	SubmitOrder	string\n");
 	fprintf(file, "%%	GFlop	string\n");
 	fprintf(file, "%%	X	string\n");
 	fprintf(file, "%%	Y	string\n");
-	fprintf(file, "%%	Z	string\n");
+	/* fprintf(file, "%%	Z	string\n"); */
 	fprintf(file, "%%	Iteration	string\n");
 	fprintf(file, "%%	Subiteration	string\n");
 	fprintf(file, "%%EndEventDef\n");
@@ -188,6 +192,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 	fprintf(file, "%%	Footprint	string\n");
 	fprintf(file, "%%	Tag	string\n");
 	fprintf(file, "%%	JobId	string\n");
+	fprintf(file, "%%	SubmitOrder	string\n");
 	fprintf(file, "%%EndEventDef\n");
 #endif
 

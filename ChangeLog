@@ -46,6 +46,7 @@ Small features:
   * Add a field starpu_task::where similar to starpu_codelet::where
     which allows to restrict where to execute a task. Also add
     STARPU_TASK_WHERE to be used when calling starpu_task_insert().
+  * Add SubmitOrder trace field.
 
 Changes:
   * Vastly improve simgrid simulation time.
