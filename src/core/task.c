@@ -660,7 +660,7 @@ int starpu_task_submit(struct starpu_task *task)
 		return ret;
 	}
 
-	if (!j->internal && !continuation)
+	if (!continuation)
 	{
 #ifdef STARPU_USE_FXT
 		{
