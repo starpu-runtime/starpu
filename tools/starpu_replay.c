@@ -65,7 +65,6 @@ starpu_data_handle_t * handles_ptr;
 enum starpu_data_access_mode * modes_ptr;
 size_t * sizes_set;
 
-static size_t sizes_set_size;
 static size_t dependson_size;
 static size_t ndependson;
 
@@ -117,7 +116,7 @@ typedef struct s_dep {
 
 s_dep ** jobidDeps;
 size_t jobidDeps_size;
-static int ntask = 0; /* This is the number of dependent task (le nombre de tâches dépendantes) */
+static size_t ntask = 0; /* This is the number of dependent task (le nombre de tâches dépendantes) */
 
 
 
@@ -198,8 +197,8 @@ static struct starpu_codelet cl = {
 /* Initializing an array with 0 */
 void array_init(unsigned long * arr, int size)
 {
-	int i = 0;
-	for (i ; i < size ; i++)
+	unsigned i;
+	for (i = 0 ; i < size ; i++)
 	{
 		arr[i] = 0;
 	}
@@ -225,7 +224,6 @@ s_dep * s_dep_init(s_dep * sd, jobid_t job_id)
 /* Remove s_dep structure */
 void s_dep_remove(s_dep * sd)
 {
-	int jid;
 	free(sd);
 }
 
@@ -235,9 +233,9 @@ void s_dep_remove(s_dep * sd)
 /* Array duplication */
 static void array_dup(unsigned long * in_arr, unsigned long * out_arr, int size)
 {
-	int i = 0;
+	int i;
 	
-	for (i ; i < size ; i++)
+	for (i = 0 ; i < size ; i++)
 	{
 		out_arr[i] = in_arr[i];
 	}
@@ -326,6 +324,7 @@ void reset(void) {
 	}
 	
 	jobid = 0;
+	submitorder = 0;
 	ndependson = 0;
 	tag = -1;
 	workerid = -1;
@@ -344,9 +343,9 @@ int submit_tasks(void)
 {
 	/* Add dependencies */
 
-	int j = 0;
+	int j;
 	
-	for(j ; j < ntask ; j++)
+	for(j = 0; j < ntask ; j++)
 	{
 		struct task * currentTask;
 				
@@ -486,12 +485,12 @@ int main(int argc, char **argv)
 			
 			if (name != NULL)
 				task->task.name = strdup(name);
+			task->task.submit_order = submitorder;
 
 			/* Check workerid */
 			if (workerid >= 0)
 			{
 				task->task.cl = &cl;
-
 				task->task.workerid = workerid;
 				
 				if (alloc_mode)
@@ -629,7 +628,6 @@ int main(int argc, char **argv)
 		else if (TEST("DependsOn"))
 		{
 			char *c = s + 11;
-			unsigned i = 0;
 
 			for (ndependson = 0; *c != '\n'; ndependson++)
 			{
@@ -658,10 +656,10 @@ int main(int argc, char **argv)
 			/* Parameters line format is PARAM1_PARAM2_(...)PARAMi_(...)PARAMn */
 
 			char * param_str = s + 12;
-			int i = 0;
+			unsigned i;
 			int count = 0;
 
-			for (i ; param_str[i] != '\n'; i++)
+			for (i = 0 ; param_str[i] != '\n'; i++)
 			{
 				if (param_str[i] == '_') /* Checking the number of '_' (underscore), assuming that the file is not corrupted */
 				{
