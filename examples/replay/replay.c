@@ -838,9 +838,9 @@ eof:
 	struct handle * handle,* handletmp;
 	HASH_ITER(hh, handles_hash, handle, handletmp)
 	{
-	starpu_data_unregister(handle->mem_ptr);
-	HASH_DEL(handles_hash, handle);
-	free(handle);
+		starpu_data_unregister(handle->mem_ptr);
+		HASH_DEL(handles_hash, handle);
+		free(handle);
         }
 		
 	starpu_shutdown();
@@ -848,20 +848,20 @@ eof:
 	struct perfmodel * model_s, * modeltmp;
 	HASH_ITER(hh, model_hash, model_s, modeltmp)
 	{
-	starpu_perfmodel_unload_model(&model_s->perfmodel);
-	HASH_DEL(model_hash, model_s);
-	free(model_s->model_name);
-	free(model_s);
+		starpu_perfmodel_unload_model(&model_s->perfmodel);
+		HASH_DEL(model_hash, model_s);
+		free(model_s->model_name);
+		free(model_s);
         }
 
 	struct task * task, *tasktmp;
 	HASH_ITER(hh, tasks, task, tasktmp)
 	{
-	free(task->task.cl_arg);
-	free((char*)task->task.name);
-	HASH_DEL(tasks, task);
-	starpu_task_clean(&task->task);
-	free(task);
+		free(task->task.cl_arg);
+		free((char*)task->task.name);
+		HASH_DEL(tasks, task);
+		starpu_task_clean(&task->task);
+		free(task);
         }
 
 	return 0;
