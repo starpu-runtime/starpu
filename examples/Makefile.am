@@ -203,7 +203,8 @@ STARPU_EXAMPLES =
 
 STARPU_EXAMPLES +=				\
 	sched_ctx/prio				\
-	worker_collections/worker_list_example
+	worker_collections/worker_list_example	\
+	replay/replay
 
 if !STARPU_SIMGRID
 STARPU_EXAMPLES +=				\
@@ -245,7 +246,7 @@ STARPU_EXAMPLES +=				\
 	sched_ctx/dummy_sched_with_ctx		\
 	worker_collections/worker_tree_example  \
 	reductions/dot_product			\
-	reductions/minmax_reduction		
+	reductions/minmax_reduction
 
 endif
 
