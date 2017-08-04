@@ -187,7 +187,7 @@ array of bit, for instance to allow workers 2 and 42:
 task->workerids = calloc(2,sizeof(uint32_t));
 task->workerids[2/32] |= (1 << (2%32));
 task->workerids[42/32] |= (1 << (42%32));
-task->workerids_len = 1;
+task->workerids_len = 2;
 \endcode
 
 One can also specify the order in which tasks must be executed by setting the
