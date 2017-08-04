@@ -25,7 +25,7 @@
 #include <stdio.h>
 #include <math.h>
 
-#include <uthash.h>
+#include <common/uthash.h>
 #include <starpu_scheduler.h>
 
 #define NMAX_DEPENDENCIES 16
