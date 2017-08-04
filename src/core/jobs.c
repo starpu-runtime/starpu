@@ -94,6 +94,7 @@ struct _starpu_job* STARPU_ATTRIBUTE_MALLOC _starpu_job_create(struct starpu_tas
 	{
 		job->job_id = STARPU_ATOMIC_ADDL(&job_cnt, 1);
 		STARPU_AYU_ADDTASK(job->job_id, task);
+		STARPU_ASSERT(job->job_id != ULONG_MAX);
 	}
 	if (max_memory_use)
 	{
