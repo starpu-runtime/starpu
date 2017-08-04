@@ -217,8 +217,7 @@ if STARPU_USE_FXT
 bin_PROGRAMS += 			\
 	starpu_fxt_tool			\
 	starpu_fxt_stats		\
-	starpu_fxt_data_trace		\
-	starpu_replay
+	starpu_fxt_data_trace
 
 STARPU_TOOLS += 			\
 	starpu_fxt_tool			\
@@ -245,7 +244,8 @@ bin_PROGRAMS += 			\
 	starpu_machine_display		\
 	starpu_sched_display		\
 	starpu_tasks_rec_complete	\
-	starpu_lp2paje
+	starpu_lp2paje			\
+	starpu_replay
 
 starpu_perfmodel_plot_CPPFLAGS = $(AM_CFLAGS) $(AM_CPPFLAGS) $(FXT_CFLAGS)
 
