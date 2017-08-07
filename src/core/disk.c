@@ -89,6 +89,28 @@ int starpu_disk_register(struct starpu_disk_ops *func, void *parameter, starpu_s
                 _starpu_register_bus(numa_node, disk_memnode);
         }
 
+	/* workers can manage disk memnode */
+	struct _starpu_machine_config *config = _starpu_get_machine_config();
+	int worker;
+	for (worker = 0; worker < starpu_worker_get_count(); worker++)
+	{
+		struct _starpu_worker *workerarg = &config->workers[worker];
+		_starpu_memory_node_add_nworkers(disk_memnode);
+		_starpu_worker_drives_memory_node(workerarg, disk_memnode);
+	}
+	
+	//Add bus for disk <-> disk copy
+	if (func->copy != NULL)
+	{
+		int disk;
+		for (disk = 0; disk < disk_number; disk++)
+			if (disk_register_list[disk]->functions->copy != NULL)
+			{
+				_starpu_register_bus(disk_memnode, disk);
+				_starpu_register_bus(disk, disk_memnode);
+			}
+	}
+
 	/* connect disk */
 	void *base = func->plug(parameter, size);
 
@@ -418,7 +440,7 @@ static int get_location_with_node(unsigned node)
 	return -1;
 }
 
-int _starpu_is_same_kind_disk(unsigned node1, unsigned node2)
+int _starpu_disk_can_copy(unsigned node1, unsigned node2)
 {
 	if (starpu_node_get_kind(node1) == STARPU_DISK_RAM && starpu_node_get_kind(node2) == STARPU_DISK_RAM)
 	{

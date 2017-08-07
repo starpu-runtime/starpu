@@ -274,8 +274,6 @@ int _starpu_wait_data_request_completion(struct _starpu_data_request *r, unsigne
 void _starpu_post_data_request(struct _starpu_data_request *r)
 {
 	unsigned handling_node = r->handling_node;
-	/* We don't have a worker for disk nodes, these should have been posted to a main RAM node */
-	STARPU_ASSERT(starpu_node_get_kind(handling_node) != STARPU_DISK_RAM);
 	STARPU_ASSERT(starpu_node_get_kind(handling_node) == STARPU_CPU_RAM || _starpu_memory_node_get_nworkers(handling_node));
 
 //	_STARPU_DEBUG("POST REQUEST\n");

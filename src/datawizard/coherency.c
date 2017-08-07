@@ -220,10 +220,6 @@ void _starpu_update_data_state(starpu_data_handle_t handle,
 
 static int worker_supports_direct_access(unsigned node, unsigned handling_node)
 {
-	/* only support disk <-> ram and disk <-> disk */
-	if (starpu_node_get_kind(node) == STARPU_DISK_RAM || starpu_node_get_kind(handling_node) == STARPU_DISK_RAM)
-		return 0;
-
 	if (node == handling_node)
 		return 1;
 
@@ -261,6 +257,12 @@ static int worker_supports_direct_access(unsigned node, unsigned handling_node)
 		case STARPU_MIC_RAM:
 			/* TODO: We don't handle direct MIC-MIC transfers yet */
 			return 0;
+		case STARPU_DISK_RAM:
+			/* Each worker can manage disks but disk <-> disk is not always allowed */
+			if (starpu_node_get_kind(handling_node) == STARPU_DISK_RAM && !(_starpu_disk_can_copy(node, handling_node)))
+				return 0;
+
+			return 1;
                 case STARPU_MPI_MS_RAM:
                 {
                         enum starpu_node_kind kind = starpu_node_get_kind(handling_node);
@@ -303,19 +305,6 @@ static int link_supports_direct_transfers(starpu_data_handle_t handle, unsigned 
 		*handling_node = src_node;
 		return 1;
 	}
-
-	/* Link between disk and ram */
-	if ((starpu_node_get_kind(src_node) == STARPU_DISK_RAM && starpu_node_get_kind(dst_node) == STARPU_CPU_RAM) ||
-	    (starpu_node_get_kind(src_node) == STARPU_CPU_RAM && starpu_node_get_kind(dst_node) == STARPU_DISK_RAM))
-	{
-		/* FIXME: not necessarily a worker :/ */
-		*handling_node = STARPU_MAIN_RAM;
-		return 1;
-	}
-
-	/* link between disk and disk, and they have the same kind */
-	if (_starpu_is_same_kind_disk(src_node, dst_node))
-		return 1;
 
 	return 0;
 }

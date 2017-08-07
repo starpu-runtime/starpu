@@ -49,7 +49,7 @@ int starpu_disk_test_request(struct _starpu_async_channel *async_channel);
 void starpu_disk_free_request(struct _starpu_async_channel *async_channel);
 
 /* interface to compare memory disk */
-int _starpu_is_same_kind_disk(unsigned node1, unsigned node2);
+int _starpu_disk_can_copy(unsigned node1, unsigned node2);
 
 /* change disk flag */
 
