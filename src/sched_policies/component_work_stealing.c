@@ -275,7 +275,6 @@ int starpu_sched_tree_work_stealing_push_task(struct starpu_task *task)
 				wsd->fifos[i]->exp_len += task->predicted;
 			STARPU_COMPONENT_MUTEX_UNLOCK(wsd->mutexes[i]);
 
-			//we need to wake all workers
 			component->can_pull(component);
 			return ret;
 		}

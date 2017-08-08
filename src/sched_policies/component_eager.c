@@ -46,8 +46,8 @@ static int eager_push_task(struct starpu_sched_component * component, struct sta
 						{
 							if(starpu_sched_component_is_worker(component->children[i]))
 							{
-								component->children[i]->can_pull(component->children[i]);
-								return 1;
+								if (component->children[i]->can_pull(component->children[i]))
+									return 1;
 							}
 							else
 							{

@@ -57,8 +57,8 @@ static int eager_calibration_push_task(struct starpu_sched_component * component
 							{
 								if(starpu_sched_component_is_worker(component->children[i]))
 								{
-									component->children[i]->can_pull(component->children[i]);
-									return 1;
+									if (component->children[i]->can_pull(component->children[i]))
+										return 1;
 								}
 								else
 									return starpu_sched_component_push_task(component,component->children[i],task);

@@ -575,13 +575,16 @@ static int starpu_sched_component_can_push(struct starpu_sched_component * compo
  * component. It is currenly called by components which holds a queue (like fifo and prio
  * components) to signify its childs that a task has been pushed on its local queue.
  */
-static void starpu_sched_component_can_pull(struct starpu_sched_component * component)
+static int starpu_sched_component_can_pull(struct starpu_sched_component * component)
 {
 	STARPU_ASSERT(component);
 	STARPU_ASSERT(!starpu_sched_component_is_worker(component));
 	int i;
-	for(i = 0; i < component->nchildren; i++)
-		component->children[i]->can_pull(component->children[i]);
+	for(i = 0; i < component->nchildren; i++) {
+		if (component->children[i]->can_pull(component->children[i]))
+			return 1;
+	}
+	return 0;
 }
 
 
@@ -589,12 +592,12 @@ static void starpu_sched_component_can_pull(struct starpu_sched_component * comp
    to pull but prefers that you push. It can be used by decision
    components, in which decisions are usually taken in their push()
    functions */
-void starpu_sched_component_send_can_push_to_parents(struct starpu_sched_component * component)
+int starpu_sched_component_send_can_push_to_parents(struct starpu_sched_component * component)
 {
 	STARPU_ASSERT(component);
 	STARPU_ASSERT(!starpu_sched_component_is_worker(component));
 	
-	int i,ret;
+	int i,ret = 0;
 	for(i=0; i < component->nparents; i++)
 	{
 		if(component->parents[i] == NULL)
@@ -606,7 +609,7 @@ void starpu_sched_component_send_can_push_to_parents(struct starpu_sched_compone
 				break;
 		}
 	}
-	
+	return ret != 0;
 }
 
 

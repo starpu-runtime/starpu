@@ -81,14 +81,17 @@ like <c>component->push_task(component,task)</c>
 \var int (*starpu_sched_component::can_push)(struct starpu_sched_component *component)
      This function is called by a component which implements a queue,
      allowing it to signify to its parents that an empty slot is
-     available in its queue. The basic implementation of this function
+     available in its queue. This should return 1 if some tasks could be pushed
+     The basic implementation of this function
      is a recursive call to its parents, the user has to specify a
      personally-made function to catch those calls.
-\var void (*starpu_sched_component::can_pull)(struct starpu_sched_component *component)
+\var int (*starpu_sched_component::can_pull)(struct starpu_sched_component *component)
      This function allow a component to wake up a worker. It is
      currently called by component which implements a queue, to
      signify to its children that a task have been pushed in its local
      queue, and is available to be popped by a worker, for example.
+     This should return 1 if some some container or worker could (or will) pull
+     some tasks.
      The basic implementation of this function is a recursive call to
      its children, until at least one worker have been woken up.
 
