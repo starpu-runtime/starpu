@@ -414,7 +414,7 @@ int main(int argc, char **argv)
 	jobidDeps_size = 512;
 
 	dependson =  malloc(dependson_size * sizeof (* dependson));
-	jobidDeps = malloc(jobidDeps_size * sizeof(** jobidDeps));
+	jobidDeps = malloc(jobidDeps_size * sizeof(* jobidDeps));
 
 	alloc_mode = 1;
 
