@@ -259,10 +259,15 @@ static int worker_supports_direct_access(unsigned node, unsigned handling_node)
 			return 0;
 		case STARPU_DISK_RAM:
 			/* Each worker can manage disks but disk <-> disk is not always allowed */
-			if (starpu_node_get_kind(handling_node) == STARPU_DISK_RAM && !(_starpu_disk_can_copy(node, handling_node)))
-				return 0;
-
-			return 1;
+			switch (starpu_node_get_kind(handling_node))
+			{
+				case STARPU_CPU_RAM:
+					return 1;
+				case STARPU_DISK_RAM:
+					return _starpu_disk_can_copy(node, handling_node);
+				default:
+					return 0;
+			}
                 case STARPU_MPI_MS_RAM:
                 {
                         enum starpu_node_kind kind = starpu_node_get_kind(handling_node);
