@@ -244,8 +244,12 @@ bin_PROGRAMS += 			\
 	starpu_machine_display		\
 	starpu_sched_display		\
 	starpu_tasks_rec_complete	\
-	starpu_lp2paje			\
+	starpu_lp2paje
+
+if STARPU_SIMGRID
+bin_PROGRAMS += 			\
 	starpu_replay
+endif
 
 starpu_perfmodel_plot_CPPFLAGS = $(AM_CFLAGS) $(AM_CPPFLAGS) $(FXT_CFLAGS)
 
