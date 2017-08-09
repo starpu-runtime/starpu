@@ -16,6 +16,7 @@
 #ifndef __PRIO_DEQUE_H__
 #define __PRIO_DEQUE_H__
 #include <starpu.h>
+#include <starpu_scheduler.h>
 #include <core/task.h>
 
 
@@ -83,6 +84,24 @@ static inline struct starpu_task * _starpu_prio_deque_pop_task(struct _starpu_pr
 	task = starpu_task_prio_list_pop_front(&pdeque->list);
 	pdeque->ntasks--;
 	return task;
+}
+
+static inline int _starpu_prio_deque_pop_this_task(struct _starpu_prio_deque *pdeque, int workerid, struct starpu_task *task)
+{
+	unsigned nimpl = 0;
+#ifdef STARPU_DEBUG
+	STARPU_ASSERT(&starpu_task_prio_list_ismember(&pdeque->list, task));
+#endif
+
+	if (workerid < 0 || starpu_worker_can_execute_task_first_impl(workerid, task, &nimpl))
+	{
+		starpu_task_set_implementation(task, nimpl);
+		starpu_task_prio_list_erase(&pdeque->list, task);
+		pdeque->ntasks--;
+		return 1;
+	}
+
+	return 0;
 }
 
 /* return a task that can be executed by workerid
