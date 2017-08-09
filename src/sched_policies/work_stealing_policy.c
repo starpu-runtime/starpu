@@ -327,13 +327,13 @@ static struct starpu_task *ws_pick_task(struct _starpu_work_stealing_data *ws, i
 	if (best_n > 0)
 	{
 		/* found an interesting task, try to pick it! */
-		if (_starpu_prio_deque_pop_this_task(data_source->queue, target, best_task))
+		if (_starpu_prio_deque_pop_this_task(&data_source->queue, target, best_task))
 			return best_task;
 	}
 
 	/* Didn't find an interesting task, or couldn't run it :( */
 	int skipped;
-	return _starpu_prio_deque_pop_task_for_worker(data_source->queue, target, &skipped);
+	return _starpu_prio_deque_pop_task_for_worker(&data_source->queue, target, &skipped);
 }
 
 /* Called when popping a task from a queue */
