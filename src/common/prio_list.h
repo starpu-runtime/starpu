@@ -40,6 +40,8 @@
  * void FOO_prio_list_erase(struct FOO_prio_list*, struct FOO*)
  *   * Return and erase the first element of the priority list
  * void FOO_prio_list_pop_front(struct FOO_prio_list*)
+ *   * Return and erase the last element of the priority list
+ * void FOO_prio_list_pop_back(struct FOO_prio_list*)
  *   * Catenate second priority list at ends of the first priority list
  * void FOO_prio_list_push_prio_list_back(struct FOO_prio_list*, struct FOO_prio_list*)
  *   * Test whether element is part of the list
