@@ -2289,6 +2289,8 @@ static void handle_end_driver_copy_async(struct fxt_ev_64 *ev, struct starpu_fxt
 			memnode_pop_state(get_event_time_stamp(ev, options), prefix, dst);
 }
 
+/* Currently unused */
+STARPU_ATTRIBUTE_UNUSED
 static void handle_memnode_event(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *eventstr)
 {
 	unsigned memnode = ev->param[0];
