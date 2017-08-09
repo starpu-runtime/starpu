@@ -97,6 +97,7 @@ struct task_info
 	int exclude_from_dag;
 	unsigned long job_id;
 	unsigned long submit_order;
+	long priority;
 	uint64_t tag;
 	int workerid;
 	int node;
@@ -130,6 +131,7 @@ static struct task_info *get_task(unsigned long job_id, int mpi_rank)
 		task->exclude_from_dag = 0;
 		task->job_id = job_id;
 		task->submit_order = 0;
+		task->priority = 0;
 		task->tag = 0;
 		task->workerid = -1;
 		task->node = -1;
@@ -178,6 +180,8 @@ static void task_dump(struct task_info *task)
 	fprintf(tasks_file, "JobId: %lu\n", task->job_id);
 	if (task->submit_order)
 		fprintf(tasks_file, "SubmitOrder: %lu\n", task->submit_order);
+	if (task->priority)
+		fprintf(tasks_file, "Priority: %ld\n", task->priority);
 	if (task->dependencies)
 	{
 		fprintf(tasks_file, "DependsOn:");
@@ -2540,10 +2544,12 @@ static void handle_task_submit(struct fxt_ev_64 *ev, struct starpu_fxt_options *
 	unsigned long iteration = ev->param[1];
 	unsigned long subiteration = ev->param[2];
 	unsigned long submit_order = ev->param[3];
+	long priority = (long) ev->param[4];
 
 	struct task_info *task = get_task(job_id, options->file_rank);
 	task->submit_time = get_event_time_stamp(ev, options);
 	task->submit_order = submit_order;
+	task->priority = priority;
 	task->iterations[0] = iteration;
 	task->iterations[1] = subiteration;
 }
