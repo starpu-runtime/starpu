@@ -55,6 +55,7 @@ static starpu_pthread_key_t current_task_key;
 static int limit_min_submitted_tasks;
 static int limit_max_submitted_tasks;
 static int watchdog_crash;
+static int watchdog_delay;
 
 #define _STARPU_TASK_MAGIC 42
 
@@ -65,6 +66,7 @@ void _starpu_task_init(void)
 	limit_min_submitted_tasks = starpu_get_env_number("STARPU_LIMIT_MIN_SUBMITTED_TASKS");
 	limit_max_submitted_tasks = starpu_get_env_number("STARPU_LIMIT_MAX_SUBMITTED_TASKS");
 	watchdog_crash = starpu_get_env_number("STARPU_WATCHDOG_CRASH");
+	watchdog_delay = starpu_get_env_number_default("STARPU_WATCHDOG_DELAY", 0);
 }
 
 void _starpu_task_deinit(void)
@@ -1255,19 +1257,40 @@ unsigned long starpu_task_get_job_id(struct starpu_task *task)
 
 static starpu_pthread_t watchdog_thread;
 
+static int sleep_some(float timeout) {
+	/* If we do a sleep(timeout), we might have to wait too long at the end of the computation. */
+	/* To avoid that, we do several sleep() of 1s (and check after each if starpu is still running) */
+	float t;
+	for (t = timeout ; t > 1.; t--)
+	{
+		starpu_sleep(1.);
+		if (!_starpu_machine_is_running())
+			/* Application finished, don't bother finishing the sleep */
+			return 0;
+	}
+	/* and one final sleep (of less than 1 s) with the rest (if needed) */
+	if (t > 0.)
+		starpu_sleep(t);
+	return 1;
+}
+
 /* Check from times to times that StarPU does finish some tasks */
 static void *watchdog_func(void *arg)
 {
 	char *timeout_env = arg;
-	float timeout;
+	float timeout, delay;
 
 #ifdef _MSC_VER
 	timeout = ((float) _atoi64(timeout_env)) / 1000000;
 #else
 	timeout = ((float) atoll(timeout_env)) / 1000000;
 #endif
+	delay = ((float) watchdog_delay) / 1000000;
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	starpu_pthread_setname("watchdog");
+
+	if (!sleep_some(delay))
+		return NULL;
 
 	STARPU_PTHREAD_MUTEX_LOCK(&config->submitted_mutex);
 	while (_starpu_machine_is_running())
@@ -1276,19 +1299,8 @@ static void *watchdog_func(void *arg)
 		config->watchdog_ok = 0;
 		STARPU_PTHREAD_MUTEX_UNLOCK(&config->submitted_mutex);
 
-		/* If we do a sleep(timeout), we might have to wait too long at the end of the computation. */
-		/* To avoid that, we do several sleep() of 1s (and check after each if starpu is still running) */
-		float t;
-		for (t = timeout ; t > 1.; t--)
-		{
-			starpu_sleep(1.);
-			if (!_starpu_machine_is_running())
-				/* Application finished, don't bother finishing the sleep */
-				return NULL;
-		}
-		/* and one final sleep (of less than 1 s) with the rest (if needed) */
-		if (t > 0.)
-			starpu_sleep(t);
+		if (!sleep_some(timeout))
+			return NULL;
 
 		STARPU_PTHREAD_MUTEX_LOCK(&config->submitted_mutex);
 		if (!config->watchdog_ok && last_nsubmitted

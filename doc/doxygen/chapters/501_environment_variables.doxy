@@ -1033,6 +1033,15 @@ dog is reached, thus allowing to catch the situation in gdb, etc
 (see \ref DetectionStuckConditions)
 </dd>
 
+<dt>STARPU_WATCHDOG_DELAY</dt>
+<dd>
+\anchor STARPU_WATCHDOG_DELAY
+\addindex __env__STARPU_WATCHDOG_DELAY
+This delays the activation of the watchdog by the given time (in µs). This can
+be convenient for letting the application initialize data etc. before starting
+to look for idle time.
+</dd>
+
 <dt>STARPU_TASK_BREAK_ON_PUSH</dt>
 <dd>
 \anchor STARPU_TASK_BREAK_ON_PUSH
