@@ -2423,3 +2423,44 @@ hwloc_cpuset_t starpu_worker_get_hwloc_cpuset(int workerid)
 	return hwloc_bitmap_dup(worker->hwloc_cpu_set);
 }
 #endif
+
+/* Light version of _starpu_wake_worker_relax, which, when possible,
+ * speculatively sets keep_awake on the target worker without waiting that
+ * worker to enter the relaxed state.
+ */
+int _starpu_wake_worker_relax_light(int workerid)
+{
+	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
+	STARPU_ASSERT(worker != NULL);
+	int cur_workerid = starpu_worker_get_id();
+	if (workerid != cur_workerid)
+	{
+		_starpu_worker_relax_on();
+
+		STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
+		while (!worker->state_relax_refcnt)
+		{
+			/* Attempt a fast path if the worker is not really asleep */
+			if (_starpu_config.workers[workerid].status == STATUS_SCHEDULING)
+			{
+				_starpu_config.workers[workerid].state_keep_awake = 1;
+				STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
+				_starpu_worker_relax_off();
+				return 1;
+			}
+
+			STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
+		}
+	}
+	else
+	{
+		STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
+	}
+	int ret = starpu_wake_worker_locked(workerid);
+	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
+	if (workerid != cur_workerid)
+	{
+		_starpu_worker_relax_off();
+	}
+	return ret;
+}

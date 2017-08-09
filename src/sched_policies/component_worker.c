@@ -400,7 +400,7 @@ static int simple_worker_can_pull(struct starpu_sched_component * worker_compone
 {
 	struct _starpu_worker * worker = _starpu_sched_component_worker_get_worker(worker_component);
 	int workerid = worker->workerid;
-	return _starpu_wake_worker_relax(workerid);
+	return _starpu_wake_worker_relax_light(workerid);
 }
 
 static int simple_worker_push_task(struct starpu_sched_component * component, struct starpu_task *task)
