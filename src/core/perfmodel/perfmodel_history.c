@@ -1345,6 +1345,8 @@ int starpu_perfmodel_unload_model(struct starpu_perfmodel *model)
 		model->symbol = NULL;
 	}
 	_starpu_deinitialize_performance_model(model);
+	free(model->state);
+	model->state = NULL;
 	return 0;
 }
 
