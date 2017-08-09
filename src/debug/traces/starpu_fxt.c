@@ -2556,7 +2556,7 @@ static void handle_task_submit(struct fxt_ev_64 *ev, struct starpu_fxt_options *
 	task->iterations[1] = subiteration;
 }
 
-static void handle_task_done(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_task_name(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	char *prefix = options->file_prefix;
 
@@ -2588,10 +2588,20 @@ static void handle_task_done(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 	struct task_info *task = get_task(job_id, options->file_rank);
 	task->exclude_from_dag = exclude_from_dag;
 
-	task_dump(task);
-
 	if (!exclude_from_dag)
-		_starpu_fxt_dag_set_task_done(options->file_prefix, job_id, name, colour);
+		_starpu_fxt_dag_set_task_name(options->file_prefix, job_id, name, colour);
+}
+
+static void handle_task_done(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	char *prefix = options->file_prefix;
+
+	unsigned long job_id;
+	job_id = ev->param[0];
+
+	struct task_info *task = get_task(job_id, options->file_rank);
+
+	task_dump(task);
 }
 
 static void handle_tag_done(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -3328,6 +3338,10 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 
 			case _STARPU_FUT_TASK_WAIT_END:
 				handle_task_submit_event(&ev, options, ev.param[0], NULL);
+				break;
+
+			case _STARPU_FUT_TASK_NAME:
+				handle_task_name(&ev, options);
 				break;
 
 			case _STARPU_FUT_TASK_DONE:

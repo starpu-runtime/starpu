@@ -101,6 +101,8 @@
 
 #define	_STARPU_FUT_USED_MEM	0x512a
 
+#define _STARPU_FUT_TASK_NAME	0x512b
+
 #define	_STARPU_FUT_START_MEMRECLAIM	0x5131
 #define	_STARPU_FUT_END_MEMRECLAIM	0x5132
 
@@ -653,18 +655,21 @@ do {									\
 #define _STARPU_TRACE_GHOST_TASK_DEPS(ghost_prev_id, job_succ_id)		\
 	FUT_DO_PROBE2(_STARPU_FUT_TASK_DEPS, (ghost_prev_id), (job_succ_id))
 
-#define _STARPU_TRACE_TASK_DONE(job)						\
+#define _STARPU_TRACE_TASK_NAME(job)						\
 do {										\
 	unsigned exclude_from_dag = (job)->exclude_from_dag;			\
         const char *model_name = _starpu_job_get_task_name((job));                       \
 	if (model_name)					                        \
 	{									\
-		_STARPU_FUT_DO_PROBE4STR(_STARPU_FUT_TASK_DONE, (job)->job_id, _starpu_gettid(), (long unsigned)exclude_from_dag, 1, model_name);\
+		_STARPU_FUT_DO_PROBE4STR(_STARPU_FUT_TASK_NAME, (job)->job_id, _starpu_gettid(), (long unsigned)exclude_from_dag, 1, model_name);\
 	}									\
 	else {									\
-		FUT_DO_PROBE4(_STARPU_FUT_TASK_DONE, (job)->job_id, _starpu_gettid(), (long unsigned)exclude_from_dag, 0);\
+		FUT_DO_PROBE4(_STARPU_FUT_TASK_NAME, (job)->job_id, _starpu_gettid(), (long unsigned)exclude_from_dag, 0);\
 	}									\
 } while(0);
+
+#define _STARPU_TRACE_TASK_DONE(job)						\
+	FUT_DO_PROBE2(_STARPU_FUT_TASK_DONE, (job)->job_id, _starpu_gettid())
 
 #define _STARPU_TRACE_TAG_DONE(tag)						\
 do {										\
@@ -1091,6 +1096,7 @@ do {										\
 #define _STARPU_TRACE_TAG_DEPS(a, b)		do {(void)(a); (void)(b);} while(0)
 #define _STARPU_TRACE_TASK_DEPS(a, b)		do {(void)(a); (void)(b);} while(0)
 #define _STARPU_TRACE_GHOST_TASK_DEPS(a, b)	do {(void)(a); (void)(b);} while(0)
+#define _STARPU_TRACE_TASK_NAME(a)		do {(void)(a);} while(0)
 #define _STARPU_TRACE_TASK_DONE(a)		do {(void)(a);} while(0)
 #define _STARPU_TRACE_TAG_DONE(a)		do {(void)(a);} while(0)
 #define _STARPU_TRACE_DATA_NAME(a, b)		do {(void)(a); (void)(b);} while(0)
