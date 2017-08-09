@@ -287,7 +287,7 @@ static struct starpu_task *ws_pick_task(struct _starpu_work_stealing_data *ws, i
 	struct _starpu_work_stealing_data_per_worker *data_source = &ws->per_worker[source];
 	struct _starpu_work_stealing_data_per_worker *data_target = &ws->per_worker[target];
 	unsigned i, j, n = data_target->nlast_locality;
-	struct starpu_task *(tasks[MAX_LOCALITY]) = { NULL }, *best_task;
+	struct starpu_task *(tasks[MAX_LOCALITY]) = { NULL }, *best_task = NULL;
 	int ntasks[MAX_LOCALITY] = { 0 }, best_n; /* Number of locality data for this worker used by this task */
 	/* Look at the last data accessed by this worker */
 	STARPU_ASSERT(n < MAX_LOCALITY);
