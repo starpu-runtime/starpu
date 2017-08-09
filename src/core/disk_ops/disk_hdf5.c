@@ -501,6 +501,7 @@ static void starpu_hdf5_unplug(void *base)
 		STARPU_PTHREAD_COND_BROADCAST(&HDF5_VAR_COND);
 		STARPU_PTHREAD_COND_WAIT(&HDF5_VAR_COND, &HDF5_VAR_MUTEX);
 		_starpu_hdf5_work_list_delete(HDF5_VAR_WORK_LIST);
+		HDF5_VAR_WORK_LIST = NULL;
 		/* the internal thread is deleted */
 #ifndef H5_HAVE_THREADSAFE
 	}
