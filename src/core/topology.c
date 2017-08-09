@@ -146,8 +146,7 @@ static int numa_get_physical_id(hwloc_obj_t obj)
 static int _starpu_get_logical_numa_node_worker(unsigned workerid)
 {
 #if defined(STARPU_HAVE_HWLOC)
-	char * state;
-	if ((state = starpu_getenv("STARPU_USE_NUMA")) && atoi(state))
+	if (starpu_get_env_number_default("STARPU_USE_NUMA", 0))
 	{
 		struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 		struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config() ;
@@ -176,8 +175,7 @@ static int _starpu_get_logical_numa_node_worker(unsigned workerid)
 static int _starpu_get_physical_numa_node_worker(unsigned workerid)
 {
 #if defined(STARPU_HAVE_HWLOC)
-	char * state;
-	if ((state = starpu_getenv("STARPU_USE_NUMA")) && atoi(state))
+	if (starpu_get_env_number_default("STARPU_USE_NUMA", 0))
 	{
 		struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 		struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config() ;
@@ -975,8 +973,7 @@ unsigned _starpu_topology_get_nnumanodes(struct _starpu_machine_config *config S
 
 	int res;
 #if defined(STARPU_HAVE_HWLOC)
-	char * state;
-	if ((state = starpu_getenv("STARPU_USE_NUMA")) && atoi(state))
+	if (starpu_get_env_number_default("STARPU_USE_NUMA", 0))
 	{
 		struct _starpu_machine_topology *topology = &config->topology ;
 		int nnumanodes = hwloc_get_nbobjs_by_type(topology->hwtopology, HWLOC_OBJ_NODE) ;
@@ -1970,9 +1967,9 @@ static void _starpu_init_numa_node(struct _starpu_machine_config *config)
 	msg_host_t host;
 #endif
 
-	char * state;
+	int numa_enabled;
 	/* NUMA mode activated */
-	if ((state = starpu_getenv("STARPU_USE_NUMA")) && atoi(state))
+	if ((numa_enabled = starpu_get_env_number_default("STARPU_USE_NUMA", 0)))
 	{
 		/* Take all NUMA nodes used by CPU workers */
 		unsigned worker;
@@ -2133,10 +2130,12 @@ static void _starpu_init_numa_node(struct _starpu_machine_config *config)
 		return;
 
 	/* In case, we do not find any NUMA nodes when checking NUMA nodes attached to GPUs, we take all of them */
-	_STARPU_DISP("No NUMA nodes found when checking GPUs devices...\n");
+	if (numa_enabled)
+		_STARPU_DISP("No NUMA nodes found when checking GPUs devices...\n");
 #endif
 
-	_STARPU_DISP("Finally, take all NUMA nodes available... \n");
+	if (numa_enabled)
+		_STARPU_DISP("Finally, take all NUMA nodes available... \n");
 
 	unsigned nnuma = _starpu_topology_get_nnumanodes(config);
 	if (nnuma > STARPU_MAXNUMANODES)
