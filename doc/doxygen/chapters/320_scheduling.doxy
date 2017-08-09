@@ -23,8 +23,8 @@ This means scheduling policies usually contain at least one queue of tasks to
 store them between the time when they become available, and the time when a
 worker gets to grab them.
 
-By default, StarPU uses the simple greedy scheduler <c>eager</c>. This is
-because it provides correct load balance even if the application codelets do
+By default, StarPU uses the work-stealing scheduler <c>lws</c>. This is
+because it provides correct load balance and locality even if the application codelets do
 not have performance models. Other non-modelling scheduling policies can be
 selected among the list below, thanks to the environment variable \ref
 STARPU_SCHED. For instance <c>export STARPU_SCHED=dmda</c> . Use <c>help</c> to

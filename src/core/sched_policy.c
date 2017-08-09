@@ -195,7 +195,7 @@ struct starpu_sched_policy *_starpu_select_sched_policy(struct _starpu_machine_c
 		return selected_policy;
 
 	/* If no policy was specified, we use the eager policy by default */
-	return &_starpu_sched_eager_policy;
+	return &_starpu_sched_lws_policy;
 }
 
 void _starpu_init_sched_policy(struct _starpu_machine_config *config, struct _starpu_sched_ctx *sched_ctx, struct starpu_sched_policy *selected_policy)

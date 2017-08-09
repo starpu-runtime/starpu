@@ -51,6 +51,7 @@ Small features:
 
 Changes:
   * Vastly improve simgrid simulation time.
+  * Switch default scheduler to lws.
 
 Small changes:
   * Use asynchronous transfers for task data fetches with were not prefetched.

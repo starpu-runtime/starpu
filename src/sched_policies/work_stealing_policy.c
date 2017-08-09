@@ -828,6 +828,13 @@ static void initialize_lws_policy(unsigned sched_ctx_id)
 	/* lws is loosely based on ws, except that it might use hwloc. */
 	initialize_ws_policy(sched_ctx_id);
 
+	if (starpu_worker_get_count() != starpu_cpu_worker_get_count()
+			|| starpu_memory_nodes_get_numa_count() > 1
+		)
+	{
+		_STARPU_DISP("Warning: you are running the default lws scheduler, which is not a very smart scheduler, while the system has GPUs or several memory nodes. Make sure to read the StarPU documentation about adding performance models in order to be able to use the dmda or dmdas scheduler instead.\n");
+	}
+
 #ifdef STARPU_HAVE_HWLOC
 	struct _starpu_work_stealing_data *ws = (struct _starpu_work_stealing_data *)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	ws->select_victim = lws_select_victim;
