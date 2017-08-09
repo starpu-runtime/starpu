@@ -768,7 +768,6 @@ static void benchmark_all_gpu_devices(void)
 #ifdef HAVE_CUDA_MEMCPY_PEER
 	for (i = 0; i < ncuda; i++)
 	{
-		unsigned j;
 		for (j = 0; j < ncuda; j++)
 			if (i != j)
 			{
