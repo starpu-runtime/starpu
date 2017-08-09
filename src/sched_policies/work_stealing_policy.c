@@ -215,7 +215,7 @@ static unsigned select_worker_locality(struct _starpu_work_stealing_data *ws, st
 		while(workers->has_next(workers, &it))
 		{
 			int workerid = workers->get_next(workers, &it);
-			if (ndata[workerid] > best_ndata && ws->per_worker[worker].running && ws->per_worker[workerid].busy)
+			if (ndata[workerid] > best_ndata && ws->per_worker[workerid].running && ws->per_worker[workerid].busy)
 			{
 				best_worker = workerid;
 				best_ndata = ndata[workerid];
