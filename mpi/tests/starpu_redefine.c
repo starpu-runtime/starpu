@@ -22,6 +22,9 @@ int main(int argc, char **argv)
 	int ret;
 	starpu_data_handle_t handle;
 
+	if (RUNNING_ON_VALGRIND)
+		return STARPU_TEST_SKIPPED;
+
 	disable_coredump();
 
 	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED);
