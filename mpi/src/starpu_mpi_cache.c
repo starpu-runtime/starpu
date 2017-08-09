@@ -92,6 +92,9 @@ void _starpu_mpi_cache_shutdown()
 	STARPU_PTHREAD_MUTEX_LOCK(&_cache_mutex);
 	HASH_ITER(hh, _cache_data, entry, tmp)
 	{
+		struct _starpu_mpi_data *mpi_data = entry->data_handle;
+		free(mpi_data->cache_sent);
+		mpi_data->cache_sent = NULL;
 		HASH_DEL(_cache_data, entry);
 		free(entry);
 	}
