@@ -54,12 +54,6 @@ struct _starpu_perfmodel_state
 	int *combs;
 };
 
-struct _starpu_perfmodel_list
-{
-	struct _starpu_perfmodel_list *next;
-	struct starpu_perfmodel *model;
-};
-
 struct starpu_data_descr;
 struct _starpu_job;
 struct starpu_perfmodel_arch;

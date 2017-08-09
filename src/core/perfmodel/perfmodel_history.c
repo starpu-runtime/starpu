@@ -73,7 +73,10 @@ struct starpu_perfmodel_history_table
 	((reg_model)->minx < (9*(reg_model)->maxx)/10 && (reg_model)->nsample >= _starpu_calibration_minimum)
 
 static starpu_pthread_rwlock_t registered_models_rwlock;
-static struct _starpu_perfmodel_list *registered_models = NULL;
+LIST_TYPE(_starpu_perfmodel,
+	struct starpu_perfmodel *model;
+)
+static struct _starpu_perfmodel_list registered_models;
 
 void _starpu_perfmodel_malloc_per_arch(struct starpu_perfmodel *model, int comb, int nb_impl)
 {
@@ -965,15 +968,13 @@ void starpu_perfmodel_init(struct starpu_perfmodel *model)
 	model->state->ncombs = 0;
 
 	/* add the model to a linked list */
-	struct _starpu_perfmodel_list *node;
-	_STARPU_MALLOC(node, sizeof(struct _starpu_perfmodel_list));
+	struct _starpu_perfmodel *node = _starpu_perfmodel_new();
 
 	node->model = model;
 	//model->debug_modelid = debug_modelid++;
 
 	/* put this model at the beginning of the list */
-	node->next = registered_models;
-	registered_models = node;
+	_starpu_perfmodel_list_push_front(&registered_models, node);
 
 	model->is_init = 1;
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
@@ -1034,16 +1035,16 @@ static void _starpu_dump_registered_models(void)
 #ifndef STARPU_SIMGRID
 	STARPU_PTHREAD_RWLOCK_WRLOCK(&registered_models_rwlock);
 
-	struct _starpu_perfmodel_list *node;
-	node = registered_models;
+	struct _starpu_perfmodel *node;
 
 	_STARPU_DEBUG("DUMP MODELS !\n");
 
-	while (node)
+	for (node  = _starpu_perfmodel_list_begin(&registered_models);
+	     node != _starpu_perfmodel_list_end(&registered_models);
+	     node  = _starpu_perfmodel_list_next(node))
 	{
 		if (node->model->is_init)
 			save_history_based_model(node->model);
-		node = node->next;
 	}
 
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
@@ -1055,7 +1056,7 @@ void _starpu_initialize_registered_performance_models(void)
 	/* make sure the performance model directory exists (or create it) */
 	_starpu_create_sampling_directory_if_needed();
 
-	registered_models = NULL;
+	_starpu_perfmodel_list_init(&registered_models);
 
 	STARPU_PTHREAD_RWLOCK_INIT(&registered_models_rwlock, NULL);
 
@@ -1148,7 +1149,6 @@ void _starpu_deinitialize_performance_model(struct starpu_perfmodel *model)
 		model->state->combs = NULL;
 		model->state->ncombs = 0;
 	}
-
 	model->is_init = 0;
 	model->is_loaded = 0;
 }
@@ -1160,15 +1160,16 @@ void _starpu_deinitialize_registered_performance_models(void)
 
 	STARPU_PTHREAD_RWLOCK_WRLOCK(&registered_models_rwlock);
 
-	struct _starpu_perfmodel_list *node;
-	node = registered_models;
+	struct _starpu_perfmodel *node, *nnode;
 
 	_STARPU_DEBUG("FREE MODELS !\n");
 
-	while (node)
+	for (node  = _starpu_perfmodel_list_begin(&registered_models);
+	     node != _starpu_perfmodel_list_end(&registered_models);
+	     node  = nnode)
 	{
 		struct starpu_perfmodel *model = node->model;
-		struct _starpu_perfmodel_list *pnode;
+		nnode = _starpu_perfmodel_list_next(node);
 
 		STARPU_PTHREAD_RWLOCK_WRLOCK(&model->state->model_rwlock);
 		_starpu_deinitialize_performance_model(model);
@@ -1177,11 +1178,9 @@ void _starpu_deinitialize_registered_performance_models(void)
 		free(node->model->state);
 		node->model->state = NULL;
 
-		pnode = node;
-		node = node->next;
-		free(pnode);
+		_starpu_perfmodel_list_erase(&registered_models, node);
+		_starpu_perfmodel_delete(node);
 	}
-	registered_models = NULL;
 
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
 	STARPU_PTHREAD_RWLOCK_DESTROY(&registered_models_rwlock);
@@ -1344,9 +1343,24 @@ int starpu_perfmodel_unload_model(struct starpu_perfmodel *model)
 		free((char *)model->symbol);
 		model->symbol = NULL;
 	}
+
 	_starpu_deinitialize_performance_model(model);
 	free(model->state);
 	model->state = NULL;
+
+	STARPU_PTHREAD_RWLOCK_WRLOCK(&registered_models_rwlock);
+	struct _starpu_perfmodel *node;
+	for (node  = _starpu_perfmodel_list_begin(&registered_models);
+	     node != _starpu_perfmodel_list_end(&registered_models);
+	     node  = _starpu_perfmodel_list_next(node)) {
+		if (node->model == model) {
+			_starpu_perfmodel_list_erase(&registered_models, node);
+			_starpu_perfmodel_delete(node);
+			break;
+		}
+	}
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
+
 	return 0;
 }
 
