@@ -1037,6 +1037,8 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
 	{
 		free(req->early_data_handle);
 		req->early_data_handle = NULL;
+		_starpu_mpi_request_destroy(req->internal_req);
+		req->internal_req = NULL;
 	}
 	else
 	{
