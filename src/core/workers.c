@@ -1735,7 +1735,7 @@ unsigned starpu_worker_is_blocked_in_parallel(int workerid)
 		 * another worker, we must avoid race conditions between
 		 * 'blocked' state changes and state observations. This is the
 		 * purpose of this 'if' block. */
-		cur_worker = cur_workerid<(int)(starpu_worker_get_count())?_starpu_get_worker_struct(cur_workerid):NULL;
+		cur_worker = cur_workerid >= 0 ? _starpu_get_worker_struct(cur_workerid) : NULL;
 
 		relax_own_observation_state = (cur_worker != NULL) && (cur_worker->state_relax_refcnt == 0);
 		if (relax_own_observation_state && !worker->state_relax_refcnt)
