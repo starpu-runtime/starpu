@@ -389,7 +389,7 @@ int starpu_disk_test_request(struct _starpu_async_channel *async_channel)
 	return async_channel->event.disk_event.requests == NULL;
 }
 
-void starpu_disk_free_request(struct _starpu_async_channel *async_channel)
+void starpu_disk_free_request(struct _starpu_async_channel *async_channe STARPU_ATTRIBUTE_UNUSED)
 {
 /* It does not have any sense to use this function currently because requests are freed in test of wait functions */
         STARPU_ABORT();
