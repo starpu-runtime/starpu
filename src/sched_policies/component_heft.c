@@ -85,7 +85,7 @@ static int heft_progress_one(struct starpu_sched_component *component)
 		/* Estimate durations */
 		for (n = 0; n < ntasks; n++)
 		{
-			int offset = component->nchildren * n;
+			unsigned offset = component->nchildren * n;
 
 			min_exp_end_with_task[n] = DBL_MAX;
 			max_exp_end_with_task[n] = 0.0;
@@ -131,7 +131,7 @@ static int heft_progress_one(struct starpu_sched_component *component)
 		 * including data transfer */
 		for(i = 0; i < nsuitable_components[best_task]; i++)
 		{
-			int offset = component->nchildren * best_task;
+			unsigned offset = component->nchildren * best_task;
 			int icomponent = suitable_components[offset + i];
 #ifdef STARPU_DEVEL
 #warning FIXME: take energy consumption into account
@@ -203,7 +203,8 @@ static int heft_push_task(struct starpu_sched_component * component, struct star
 static int heft_can_push(struct starpu_sched_component *component)
 {
 	heft_progress(component);
-	int ret = 0, j;
+	int ret = 0;
+	unsigned j;
 	for(j=0; j < component->nparents; j++)
 	{
 		if(component->parents[j] == NULL)

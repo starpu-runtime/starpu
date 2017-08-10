@@ -108,7 +108,7 @@ struct starpu_sched_component * _find_sched_component_with_obj(struct starpu_sch
 		return NULL;
 	if(component->obj == obj)
 		return component;
-	int i;
+	unsigned i;
 	for(i = 0; i < component->nchildren; i++)
 	{
 		struct starpu_sched_component * tmp = _find_sched_component_with_obj(component->children[i], obj);
@@ -129,7 +129,7 @@ static int is_same_kind_of_all(struct starpu_sched_component * root, struct _sta
 		return w->perf_arch.type == w_ref->perf_arch.type;
 	}
 
-	int i;
+	unsigned i;
 	for(i = 0;i < root->nchildren; i++)
 		if(!is_same_kind_of_all(root->children[i], w_ref))
 			return 0;
@@ -163,7 +163,7 @@ static struct starpu_sched_component * where_should_we_plug_this(struct starpu_s
 		return mem;
 	hwloc_obj_t obj = mem->obj;
 	struct starpu_sched_component * parent = mem->parents[sched_ctx_id];
-	int i;
+	unsigned i;
 	for(i = 0; i < parent->nchildren; i++)
 	{
 		if(parent->children[i]->obj == obj
@@ -236,7 +236,7 @@ static void helper_display_scheduler(FILE* out, unsigned depth, struct starpu_sc
 	if(!component)
 		return;
 	fprintf(out,"%*s-> %s : %s\n", depth * 2 , "", name_sched_component(component), name_hwloc_component(component));
-	int i;
+	unsigned i;
 	for(i = 0; i < component->nchildren; i++)
 		helper_display_scheduler(out, depth + 1, component->children[i]);
 }

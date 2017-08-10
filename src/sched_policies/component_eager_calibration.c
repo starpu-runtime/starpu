@@ -45,7 +45,7 @@ static int eager_calibration_push_task(struct starpu_sched_component * component
 
 				if(isnan(d))
 				{
-					int i;
+					unsigned i;
 					for (i = 0; i < component->nchildren; i++)
 					{
 						int idworker;

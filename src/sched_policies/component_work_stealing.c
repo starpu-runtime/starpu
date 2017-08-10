@@ -36,7 +36,7 @@ struct _starpu_work_stealing_data
 
 	struct _starpu_prio_deque ** fifos;
 	starpu_pthread_mutex_t ** mutexes;
-	int size;
+	unsigned size;
 };
 
 
@@ -128,7 +128,7 @@ static int is_worker_of_component(struct starpu_sched_component * component, int
 static struct starpu_task * pull_task(struct starpu_sched_component * component)
 {
 	unsigned workerid = starpu_worker_get_id_check();
-	int i;
+	unsigned i;
 	for(i = 0; i < component->nchildren; i++)
 	{
 		if(is_worker_of_component(component->children[i], workerid))
@@ -188,7 +188,7 @@ double _ws_estimated_end(struct starpu_sched_component * component)
 	struct _starpu_work_stealing_data * wsd = component->data;
 	double sum_len = 0.0;
 	double sum_start = 0.0;
-	int i;
+	unsigned i;
 	const double now = starpu_timing_now();
 	for(i = 0; i < component->nchildren; i++)
 	{
@@ -209,7 +209,7 @@ double _ws_estimated_load(struct starpu_sched_component * component)
 	STARPU_ASSERT(starpu_sched_component_is_work_stealing(component));
 	struct _starpu_work_stealing_data * wsd = component->data;
 	int ntasks = 0;
-	int i;
+	unsigned i;
 	for(i = 0; i < component->nchildren; i++)
 	{
 		STARPU_COMPONENT_MUTEX_LOCK(wsd->mutexes[i]);
@@ -232,7 +232,7 @@ static int push_task(struct starpu_sched_component * component, struct starpu_ta
 {
 	struct _starpu_work_stealing_data * wsd = component->data;
 	int ret;
-	int i = wsd->last_push_child;
+	unsigned i = wsd->last_push_child;
 	i = (i+1)%component->nchildren;
 	STARPU_COMPONENT_MUTEX_LOCK(wsd->mutexes[i]);
 	_STARPU_TASK_BREAK_ON(task, sched);
@@ -262,7 +262,7 @@ int starpu_sched_tree_work_stealing_push_task(struct starpu_task *task)
 			if(!starpu_sched_component_can_execute_task(component, task))
 				return starpu_sched_tree_push_task(task);
 
-			int i;
+			unsigned i;
 			for(i = 0; i < component->nchildren; i++)
 				if(is_worker_of_component(component->children[i], workerid))
 					break;
@@ -314,7 +314,7 @@ void _ws_remove_child(struct starpu_sched_component * component, struct starpu_s
 	STARPU_PTHREAD_MUTEX_DESTROY(wsd->mutexes[component->nchildren - 1]);
 	free(wsd->mutexes[component->nchildren - 1]);
 
-	int i_component;
+	unsigned i_component;
 	for(i_component = 0; i_component < component->nchildren; i_component++)
 	{
 		if(component->children[i_component] == child)

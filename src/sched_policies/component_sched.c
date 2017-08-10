@@ -169,7 +169,7 @@ void starpu_sched_component_prefetch_on_node(struct starpu_sched_component * com
 void starpu_sched_component_destroy(struct starpu_sched_component *component)
 {
 	STARPU_ASSERT(component);
-	int i,j;
+	unsigned i,j;
 	for(i = 0; i < component->nchildren; i++)
 	{
 		struct starpu_sched_component * child = component->children[i];
@@ -204,7 +204,7 @@ void starpu_sched_component_destroy_rec(struct starpu_sched_component * componen
 	if(component == NULL)
 		return;
 
-	int i = 0;
+	unsigned i = 0;
 	while(i < component->nchildren)
 	{
 		if (starpu_sched_component_is_worker(component->children[i]))
@@ -258,7 +258,7 @@ void _starpu_sched_component_update_workers(struct starpu_sched_component * comp
 	if(starpu_sched_component_is_worker(component))
 		return;
 	starpu_bitmap_unset_all(component->workers);
-	int i;
+	unsigned i;
 	for(i = 0; i < component->nchildren; i++)
 	{
 		_starpu_sched_component_update_workers(component->children[i]);
@@ -278,7 +278,7 @@ void _starpu_sched_component_update_workers_in_ctx(struct starpu_sched_component
 		return;
 	struct starpu_bitmap * workers_in_ctx = _starpu_get_worker_mask(sched_ctx_id);
 	starpu_bitmap_unset_and(component->workers_in_ctx,component->workers, workers_in_ctx);
-	int i;
+	unsigned i;
 	for(i = 0; i < component->nchildren; i++)
 	{
 		struct starpu_sched_component * child = component->children[i];
@@ -476,7 +476,7 @@ void starpu_sched_component_add_child(struct starpu_sched_component* component, 
 {
 	STARPU_ASSERT(component && child);
 	STARPU_ASSERT(!starpu_sched_component_is_worker(component));
-	int i;
+	unsigned i;
 	for(i = 0; i < component->nchildren; i++)
 	{
 		STARPU_ASSERT(component->children[i] != component);
@@ -492,7 +492,7 @@ static void starpu_sched_component_remove_child(struct starpu_sched_component * 
 {
 	STARPU_ASSERT(component && child);
 	STARPU_ASSERT(!starpu_sched_component_is_worker(component));
-	int pos;
+	unsigned pos;
 	for(pos = 0; pos < component->nchildren; pos++)
 		if(component->children[pos] == child)
 			break;
@@ -503,7 +503,7 @@ static void starpu_sched_component_remove_child(struct starpu_sched_component * 
 static void starpu_sched_component_add_parent(struct starpu_sched_component* component, struct starpu_sched_component * parent)
 {
 	STARPU_ASSERT(component && parent);
-	int i;
+	unsigned i;
 	for(i = 0; i < component->nparents; i++)
 	{
 		STARPU_ASSERT(component->parents[i] != component);
@@ -518,7 +518,7 @@ static void starpu_sched_component_add_parent(struct starpu_sched_component* com
 static void starpu_sched_component_remove_parent(struct starpu_sched_component * component, struct starpu_sched_component * parent)
 {
 	STARPU_ASSERT(component && parent);
-	int pos;
+	unsigned pos;
 	for(pos = 0; pos < component->nparents; pos++)
 		if(component->parents[pos] == parent)
 			break;
@@ -533,7 +533,7 @@ static struct starpu_task * starpu_sched_component_parents_pull_task(struct star
 {
 	STARPU_ASSERT(component);
 	struct starpu_task * task = NULL;
-	int i;
+	unsigned i;
 	for(i=0; i < component->nparents; i++)
 	{
 		if(component->parents[i] == NULL)
@@ -558,7 +558,7 @@ static int starpu_sched_component_can_push(struct starpu_sched_component * compo
 	int ret = 0;
 	if(component->nparents > 0)
 	{
-		int i;
+		unsigned i;
 		for(i=0; i < component->nparents; i++)
 		{
 			struct starpu_sched_component * parent = component->parents[i];
@@ -579,7 +579,7 @@ static int starpu_sched_component_can_pull(struct starpu_sched_component * compo
 {
 	STARPU_ASSERT(component);
 	STARPU_ASSERT(!starpu_sched_component_is_worker(component));
-	int i;
+	unsigned i;
 	for(i = 0; i < component->nchildren; i++) {
 		if (component->children[i]->can_pull(component->children[i]))
 			return 1;
@@ -597,7 +597,8 @@ int starpu_sched_component_send_can_push_to_parents(struct starpu_sched_componen
 	STARPU_ASSERT(component);
 	STARPU_ASSERT(!starpu_sched_component_is_worker(component));
 	
-	int i,ret = 0;
+	unsigned i;
+	int ret = 0;
 	for(i=0; i < component->nparents; i++)
 	{
 		if(component->parents[i] == NULL)
@@ -616,7 +617,7 @@ int starpu_sched_component_send_can_push_to_parents(struct starpu_sched_componen
 double starpu_sched_component_estimated_load(struct starpu_sched_component * component)
 {
 	double sum = 0.0;
-	int i;
+	unsigned i;
 	for( i = 0; i < component->nchildren; i++)
 	{
 		struct starpu_sched_component * c = component->children[i];
@@ -629,7 +630,7 @@ double starpu_sched_component_estimated_end_min(struct starpu_sched_component * 
 {
 	STARPU_ASSERT(component);
 	double min = DBL_MAX;
-	int i;
+	unsigned i;
 	for(i = 0; i < component->nchildren; i++)
 	{
 		double tmp = component->children[i]->estimated_end(component->children[i]);
@@ -643,7 +644,7 @@ double starpu_sched_component_estimated_end_average(struct starpu_sched_componen
 {
 	STARPU_ASSERT(component);
 	double sum = 0.0;
-	int i;
+	unsigned i;
 	for(i = 0; i < component->nchildren; i++)
 		sum += component->children[i]->estimated_end(component->children[i]);
 	return sum / component->nchildren;

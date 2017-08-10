@@ -124,7 +124,7 @@ int starpu_mct_compute_execution_times(struct starpu_sched_component *component,
 {
 	int nsuitable_components = 0;
 
-	int i;
+	unsigned i;
 	for(i = 0; i < component->nchildren; i++)
 	{
 		struct starpu_sched_component * c = component->children[i];

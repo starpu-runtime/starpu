@@ -435,7 +435,7 @@ static struct starpu_task * simple_worker_pull_task(struct starpu_sched_componen
 	struct _starpu_worker_component_data * data = component->data;
 	struct _starpu_worker_task_list * list = data->list;
 	struct starpu_task * task;
-	int i;
+	unsigned i;
 	int n_tries = 0;
 	do
 	{

@@ -37,7 +37,7 @@ static int mct_push_task(struct starpu_sched_component * component, struct starp
 	/* Estimated transfer+task termination for each child */
 	double estimated_ends_with_task[component->nchildren];
 
-	int i;
+	unsigned i;
 	for(i=0; i < component->nchildren; i++)
 	{
 		estimated_lengths[i] = 0.0;
