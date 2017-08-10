@@ -23,7 +23,7 @@
  * We defined a dumb interface for data whose size increase over kernel execution
  */
 
-#define FULLSIZE (5*1024*1024)
+#define FULLSIZE (5*1024*1024ULL)
 #define INCREASE 0.80
 #ifdef STARPU_QUICK_CHECK
 #define N 5
