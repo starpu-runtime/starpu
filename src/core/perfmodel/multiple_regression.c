@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2011, 2015-2016  Université de Bordeaux
+ * Copyright (C) 2009, 2010, 2011, 2015-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2016, 2017  CNRS
  * Copyright (C) 2016-2017  Inria
  *
@@ -27,9 +27,9 @@ typedef double doublereal;
 int dgels_(char *trans, integer *m, integer *n, integer *nrhs, doublereal *a, integer *lda, doublereal *b, integer *ldb, doublereal *work, integer *lwork, integer *info);
 #endif //STARPU_MLR_MODEL
 
-static long count_file_lines(FILE *f)
+static unsigned long count_file_lines(FILE *f)
 {
-	int lines=0;
+	unsigned long  lines=0;
 	while(!feof(f))
 	{
 		int ch = fgetc(f);
@@ -89,7 +89,7 @@ static void load_old_calibration(double *mx, double *my, unsigned nparameters, c
 	fclose(f);
 }
 
-static long find_long_list_size(struct starpu_perfmodel_history_list *list_history)
+static unsigned long find_long_list_size(struct starpu_perfmodel_history_list *list_history)
 {
 	long cnt = 0;
 
@@ -104,7 +104,7 @@ static long find_long_list_size(struct starpu_perfmodel_history_list *list_histo
 }
 
 #ifdef STARPU_MLR_MODEL
-int dgels_multiple_reg_coeff(double *mpar, double *my, long nn, unsigned ncoeff, unsigned nparameters, double *coeff, unsigned **combinations)
+int dgels_multiple_reg_coeff(double *mpar, double *my, unsigned long nn, unsigned ncoeff, unsigned nparameters, double *coeff, unsigned **combinations)
 {
  /*  Arguments */
 /*  ========= */
@@ -197,8 +197,8 @@ int dgels_multiple_reg_coeff(double *mpar, double *my, long nn, unsigned ncoeff,
 	_STARPU_MALLOC(Y, sizeof(double)*m);
 
 	double coefficient;
-	int i;
-	unsigned j, k;
+	int i, j;
+	unsigned k;
 	for (i=0; i < m; i++)
 	{
 		Y[i] = my[i];
@@ -261,11 +261,11 @@ void starpu_validate_mlr(double *coeff, unsigned ncoeff, const char *codelet_nam
 
 int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, double *coeff, unsigned ncoeff, unsigned nparameters, const char **parameters_names, unsigned **combinations, const char *codelet_name)
 {
-        long i;
+        unsigned long i;
 	unsigned j;
 
 	/* Computing number of rows */
-	long n=find_long_list_size(ptr);
+	unsigned n=find_long_list_size(ptr);
 
         /* Reading old calibrations if necessary */
 	FILE *f=NULL;
@@ -277,7 +277,7 @@ int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, doubl
 	char filepath[300];
 	snprintf(filepath, sizeof(filepath), "%s/%s.out", directory,codelet_name);
 
-	long old_lines=0;
+	unsigned long old_lines=0;
 	int calibrate = _starpu_get_calibrate_flag();
 	if (calibrate==1)
 	{

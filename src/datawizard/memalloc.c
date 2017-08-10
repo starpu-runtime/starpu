@@ -996,7 +996,7 @@ void starpu_memchunk_tidy(unsigned node)
 	/* Count cached allocation as being available */
 	available += mc_cache_size[node];
 
-	if (total > 0 && available >= (total * minimum_p) / 100)
+	if (total > 0 && available >= (starpu_ssize_t) (total * minimum_p) / 100)
 		/* Enough available space, do not trigger reclaiming */
 		return;
 
