@@ -91,7 +91,7 @@ int starpu_disk_register(struct starpu_disk_ops *func, void *parameter, starpu_s
 
 	/* workers can manage disk memnode */
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
-	int worker;
+	unsigned worker;
 	for (worker = 0; worker < starpu_worker_get_count(); worker++)
 	{
 		struct _starpu_worker *workerarg = &config->workers[worker];

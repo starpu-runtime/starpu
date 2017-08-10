@@ -2594,8 +2594,6 @@ static void handle_task_name(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 
 static void handle_task_done(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
-	char *prefix = options->file_prefix;
-
 	unsigned long job_id;
 	job_id = ev->param[0];
 
