@@ -78,7 +78,7 @@ static int heft_progress_one(struct starpu_sched_component *component)
 		/* Maximum transfer+task termination on all children */
 		double max_exp_end_with_task[ntasks];
 
-		int suitable_components[component->nchildren * ntasks];
+		unsigned suitable_components[component->nchildren * ntasks];
 
 		unsigned nsuitable_components[ntasks];
 
@@ -132,7 +132,7 @@ static int heft_progress_one(struct starpu_sched_component *component)
 		for(i = 0; i < nsuitable_components[best_task]; i++)
 		{
 			unsigned offset = component->nchildren * best_task;
-			int icomponent = suitable_components[offset + i];
+			unsigned icomponent = suitable_components[offset + i];
 #ifdef STARPU_DEVEL
 #warning FIXME: take energy consumption into account
 #endif

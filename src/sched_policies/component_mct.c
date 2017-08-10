@@ -50,8 +50,8 @@ static int mct_push_task(struct starpu_sched_component * component, struct starp
 	/* Maximum transfer+task termination on all children */
 	double max_exp_end_with_task = 0.0;
 
-	int suitable_components[component->nchildren];
-	int nsuitable_components = 0;
+	unsigned suitable_components[component->nchildren];
+	unsigned nsuitable_components = 0;
 
 	nsuitable_components = starpu_mct_compute_execution_times(component, task,
 								  estimated_lengths, estimated_transfer_length, suitable_components);
