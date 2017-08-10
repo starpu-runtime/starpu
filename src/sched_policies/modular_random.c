@@ -17,6 +17,7 @@
 
 #include <starpu_sched_component.h>
 #include <starpu_scheduler.h>
+#include <limits.h>
 
 /* Random scheduler with a fifo queue for its scheduling window */
 

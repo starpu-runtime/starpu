@@ -19,6 +19,7 @@
 /* Work stealing policy */
 
 #include <float.h>
+#include <limits.h>
 
 #include <core/workers.h>
 #include <sched_policies/prio_deque.h>

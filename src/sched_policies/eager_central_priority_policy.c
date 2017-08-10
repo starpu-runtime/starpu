@@ -28,6 +28,7 @@
 #include <starpu_scheduler.h>
 #include <starpu_bitmap.h>
 #include "prio_deque.h"
+#include <limits.h>
 
 #include <common/fxt.h>
 #include <core/workers.h>
