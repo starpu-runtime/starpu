@@ -107,16 +107,6 @@ static int test_combination(long *combination, unsigned n)
 
 	device_workers = 0;
 
-	/* Check for all devices */
-	for (type=STARPU_CUDA_WORKER; type<STARPU_NARCH; type++)
-	{
-		int nb_workers;
-		nb_workers = starpu_worker_get_ids_by_type(type, workers_id, starpu_worker_get_count());
-		device_workers += nb_workers ;
-		if (!check_workers_mapping(workers_cpuid, workers_id, nb_workers))
-			return -1;
-	}
-
 	/* Check for all cpus */
 	{
 		int nb_workers;
@@ -173,8 +163,8 @@ int main(int argc, char **argv)
 	if (nhwpus > STARPU_NMAXWORKERS)
 		nhwpus = STARPU_NMAXWORKERS;
 
-	unsetenv("STARPU_NCUDA");
-	unsetenv("STARPU_NOPENCL");
+	setenv("STARPU_NCUDA","0",1);
+	setenv("STARPU_NOPENCL","0",1);
 	unsetenv("STARPU_NCPUS");
 
 	for (i=0; i<STARPU_NMAXWORKERS; i++)
