@@ -134,7 +134,7 @@ unsigned starpu_mct_compute_execution_times(struct starpu_sched_component *compo
 				/* The perfmodel had been purged since the task was pushed
 				 * onto the mct component. */
 				continue;
-			STARPU_ASSERT_MSG(estimated_lengths[i]>=0, "component=%p, child[%d]=%p, estimated_lengths[%d]=%lf\n", component, i, c, i, estimated_lengths[i]);
+			STARPU_ASSERT_MSG(estimated_lengths[i]>=0, "component=%p, child[%u]=%p, estimated_lengths[%u]=%lf\n", component, i, c, i, estimated_lengths[i]);
 
 			estimated_transfer_length[i] = starpu_sched_component_transfer_length(c, task);
 			suitable_components[nsuitable_components++] = i;
