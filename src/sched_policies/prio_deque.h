@@ -90,7 +90,7 @@ static inline int _starpu_prio_deque_pop_this_task(struct _starpu_prio_deque *pd
 {
 	unsigned nimpl = 0;
 #ifdef STARPU_DEBUG
-	STARPU_ASSERT(&starpu_task_prio_list_ismember(&pdeque->list, task));
+	STARPU_ASSERT(starpu_task_prio_list_ismember(&pdeque->list, task));
 #endif
 
 	if (workerid < 0 || starpu_worker_can_execute_task_first_impl(workerid, task, &nimpl))
