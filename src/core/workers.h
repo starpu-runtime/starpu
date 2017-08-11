@@ -34,6 +34,7 @@
 #include <core/errorcheck.h>
 #include <core/sched_ctx.h>
 #include <core/sched_ctx_list.h>
+#include <core/simgrid.h>
 #ifdef STARPU_HAVE_HWLOC
 #include <hwloc.h>
 #endif
@@ -678,6 +679,9 @@ static inline void _starpu_worker_request_blocking_in_parallel(struct _starpu_wo
 		/* trigger the block_in_parallel_req */
 		worker->state_block_in_parallel_req = 1;
 		STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
+#ifdef STARPU_SIMGRID
+		starpu_pthread_queue_broadcast(&_starpu_simgrid_task_queue[worker->workerid]);
+#endif
 
 		/* wait for block_in_parallel_req to be processed */
 		while (!worker->state_block_in_parallel_ack)
@@ -916,6 +920,9 @@ static inline void _starpu_worker_enter_changing_ctx_op(struct _starpu_worker * 
 
 		/* wait for sched_op completion */
 		STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
+#ifdef STARPU_SIMGRID
+		starpu_pthread_queue_broadcast(&_starpu_simgrid_task_queue[worker->workerid]);
+#endif
 		do
 		{
 			STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
