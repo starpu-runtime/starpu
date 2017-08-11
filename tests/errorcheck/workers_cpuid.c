@@ -165,6 +165,9 @@ int main(int argc, char **argv)
 
 	setenv("STARPU_NCUDA","0",1);
 	setenv("STARPU_NOPENCL","0",1);
+	setenv("STARPU_NMIC","0",1);
+	setenv("STARPU_NSCC","0",1);
+	setenv("STARPU_NMPI_MS","0",1);
 	unsetenv("STARPU_NCPUS");
 
 	for (i=0; i<STARPU_NMAXWORKERS; i++)
@@ -185,6 +188,7 @@ int main(int argc, char **argv)
 			init_array(cpuids, nhwpus);
 			generate_arrangement(i, cpuids, nhwpus);
 			ret = test_combination(cpuids, i);
+			if (ret == STARPU_TEST_SKIPPED) return STARPU_TEST_SKIPPED;
 			if (ret != 1)
 			{
 				free(cpuids);
