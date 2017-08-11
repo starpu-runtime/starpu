@@ -104,12 +104,19 @@ void _starpu_mpi_cache_shutdown()
 void _starpu_mpi_cache_data_clear(starpu_data_handle_t data_handle)
 {
 	struct _starpu_mpi_data *mpi_data = data_handle->mpi_data;
+	struct _starpu_data_entry *entry;
 
 	if (_starpu_cache_enabled == 0) return;
 
 	STARPU_PTHREAD_MUTEX_LOCK(&_cache_mutex);
 	_starpu_mpi_cache_flush_nolock(data_handle);
 	free(mpi_data->cache_sent);
+	HASH_FIND_PTR(_cache_data, &data_handle, entry);
+	if (entry != NULL)
+	{
+		HASH_DEL(_cache_data, entry);
+		free(entry);
+	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&_cache_mutex);
 }
 
