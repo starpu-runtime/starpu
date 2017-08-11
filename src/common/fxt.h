@@ -549,8 +549,10 @@ do {									\
 
 
 /* workerkind = _STARPU_FUT_CPU_KEY for instance */
-#define _STARPU_TRACE_NEW_MEM_NODE(nodeid)			\
-	FUT_DO_ALWAYS_PROBE2(_STARPU_FUT_NEW_MEM_NODE, nodeid, _starpu_gettid());
+#define _STARPU_TRACE_NEW_MEM_NODE(nodeid)			do {\
+	if (_starpu_fxt_started) \
+		FUT_DO_ALWAYS_PROBE2(_STARPU_FUT_NEW_MEM_NODE, nodeid, _starpu_gettid()); \
+} while (0)
 
 #define _STARPU_TRACE_WORKER_INIT_START(workerkind, workerid, devid, memnode, bindid, sync)	\
 	FUT_DO_PROBE7(_STARPU_FUT_WORKER_INIT_START, workerkind, workerid, devid, memnode, bindid, sync, _starpu_gettid());
@@ -687,14 +689,16 @@ do {										\
 #define _STARPU_TRACE_DATA_NAME(handle, name) \
 	_STARPU_FUT_DO_PROBE1STR(_STARPU_FUT_DATA_NAME, handle, name)
 
-#define _STARPU_TRACE_DATA_COORDINATES(handle, dim, v) \
+#define _STARPU_TRACE_DATA_COORDINATES(handle, dim, v) do {\
+	if (_starpu_fxt_started) \
 	switch (dim) { \
 	case 1: FUT_DO_ALWAYS_PROBE3(_STARPU_FUT_DATA_COORDINATES, handle, dim, v[0]); break; \
 	case 2: FUT_DO_ALWAYS_PROBE4(_STARPU_FUT_DATA_COORDINATES, handle, dim, v[0], v[1]); break; \
 	case 3: FUT_DO_ALWAYS_PROBE5(_STARPU_FUT_DATA_COORDINATES, handle, dim, v[0], v[1], v[2]); break; \
 	case 4: FUT_DO_ALWAYS_PROBE6(_STARPU_FUT_DATA_COORDINATES, handle, dim, v[0], v[1], v[2], v[3]); break; \
 	default: FUT_DO_ALWAYS_PROBE7(_STARPU_FUT_DATA_COORDINATES, handle, dim, v[0], v[1], v[2], v[3], v[4]); break; \
-	}
+	} \
+} while (0)
 
 #define _STARPU_TRACE_DATA_COPY(src_node, dst_node, size)	\
 	FUT_DO_PROBE3(_STARPU_FUT_DATA_COPY, src_node, dst_node, size)
