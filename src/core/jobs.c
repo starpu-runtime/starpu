@@ -30,6 +30,7 @@
 #include <starpu_top.h>
 #include <top/starpu_top_core.h>
 #include <core/debug.h>
+#include <limits.h>
 
 /* we need to identify each task to generate the DAG. */
 static unsigned long job_cnt = 0;
