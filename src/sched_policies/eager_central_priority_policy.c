@@ -49,7 +49,6 @@ static void initialize_eager_center_priority_policy(unsigned sched_ctx_id)
 	struct _starpu_eager_central_prio_data *data;
 	_STARPU_MALLOC(data, sizeof(struct _starpu_eager_central_prio_data));
 
-	_STARPU_DISP("Warning: you are running the default eager scheduler, which is not a very smart scheduler. Make sure to read the StarPU documentation about adding performance models in order to be able to use the dmda or dmdas scheduler instead.\n");
 	/* only a single queue (even though there are several internaly) */
 	_starpu_prio_deque_init(&data->taskq);
 	data->waiters = starpu_bitmap_create();
