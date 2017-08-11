@@ -173,7 +173,7 @@ static unsigned select_worker_round_robin(struct _starpu_work_stealing_data *ws,
 	worker = ws->last_push_worker;
 	do
 		worker = (worker + 1) % nworkers;
-	while (!ws->per_worker[worker].running || !starpu_worker_can_execute_task_first_impl(workerids[worker], task, NULL));
+	while (!ws->per_worker[workerids[worker]].running || !starpu_worker_can_execute_task_first_impl(workerids[worker], task, NULL));
 
 	ws->last_push_worker = worker;
 
