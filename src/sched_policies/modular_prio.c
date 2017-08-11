@@ -16,6 +16,7 @@
 
 #include <starpu_sched_component.h>
 #include <starpu_scheduler.h>
+#include <limits.h>
 
 void starpu_initialize_prio_center_policy(unsigned sched_ctx_id)
 {

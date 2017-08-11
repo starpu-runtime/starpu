@@ -24,6 +24,7 @@
 #include <starpu.h>
 #include <starpu_scheduler.h>
 #include <starpu_bitmap.h>
+#include <limits.h>
 
 #include <common/fxt.h>
 
