@@ -218,6 +218,7 @@ STARPU_EXAMPLES +=				\
 	mlr/mlr					\
 	cpp/incrementer_cpp			\
 	cpp/add_vectors				\
+	cpp/add_vectors_interface		\
 	filters/fvector				\
 	filters/fblock				\
 	filters/fmatrix				\
@@ -878,6 +879,9 @@ endif
 
 cpp_add_vectors_SOURCES	=	\
 	cpp/add_vectors.cpp
+
+cpp_add_vectors_interface_SOURCES	=	\
+	cpp/add_vectors_interface.cpp
 
 if STARPU_HAVE_CXX11
 cpp_add_vectors_cpp11_SOURCES	=	\
