@@ -871,6 +871,7 @@ static void worker_set_detailed_state(double time, const char *prefix, long unsi
 	char footprint_str[STARPU_POTI_STR_LEN];
 	char tag_str[STARPU_POTI_STR_LEN];
 	char jobid_str[STARPU_POTI_STR_LEN];
+	char submitorder_str[STARPU_POTI_STR_LEN];
 	char gflop_str[STARPU_POTI_STR_LEN];
 	char X_str[STARPU_POTI_STR_LEN], Y_str[STARPU_POTI_STR_LEN], Z_str[STARPU_POTI_STR_LEN];
 	char iteration_str[STARPU_POTI_STR_LEN], subiteration_str[STARPU_POTI_STR_LEN];
@@ -1606,6 +1607,7 @@ static void handle_codelet_details(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 			char footprint_str[STARPU_POTI_STR_LEN];
 			char tag_str[STARPU_POTI_STR_LEN];
 			char jobid_str[STARPU_POTI_STR_LEN];
+			char submitorder_str[STARPU_POTI_STR_LEN];
 			snprintf(size_str, sizeof(size_str), "%ld", ev->param[1]);
 			snprintf(parameters_str, sizeof(parameters_str), "%s", parameters);
 			snprintf(footprint_str, sizeof(footprint_str), "%08lx", ev->param[2]);
