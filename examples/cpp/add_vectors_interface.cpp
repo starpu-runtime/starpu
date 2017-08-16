@@ -17,7 +17,7 @@
  */
 
 /*
- * This is a small example of a C++ program using starpu.  We here just
+ * This is a small example of a C++ program using STL and starpu.  We here just
  * add two std::vector with duplicating vectors. StarPU achieves data
  * transfers between objects.
  */
@@ -133,7 +133,9 @@ class my_allocator
 	unsigned node;
 };
 
-/* Create a new interface to catch C++ vector and make appropriate data transfers */
+/*
+ * Create a new interface to catch C++ vector and make appropriate data transfers
+ */
 struct vector_cpp_interface
 {
 	enum starpu_data_interface_id id;
@@ -380,16 +382,6 @@ void vector_cpp_data_register(starpu_data_handle_t *handleptr, int home_node,
 	starpu_data_register(handleptr, home_node, &vector, &interface_vector_cpp_ops);
 }
 
-void vector_cpp_ptr_register(starpu_data_handle_t handle, unsigned node,
-			uintptr_t ptr, uintptr_t dev_handle, size_t offset)
-{
-	struct vector_cpp_interface *vector_interface = (struct vector_cpp_interface *) starpu_data_get_interface_on_node(handle, node);
-	starpu_data_ptr_register(handle, node);
-	vector_interface->ptr = ptr;
-	vector_interface->dev_handle = dev_handle;
-	vector_interface->offset = offset;
-}
-
 /* offer an access to the data parameters */
 uint32_t vector_cpp_get_nx(starpu_data_handle_t handle)
 {
@@ -532,6 +524,14 @@ static starpu_ssize_t vector_cpp_describe(void *data_interface, char *buf, size_
 			(unsigned) vector->nx,
 			(unsigned) vector->elemsize);
 }
+
+/*
+ * End of interface
+ */
+
+
+
+/* Kernel using STL objects */
 
 void cpu_kernel_add_vectors(void *buffers[], void *cl_arg)
 {
