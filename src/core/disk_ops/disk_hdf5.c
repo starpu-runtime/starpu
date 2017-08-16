@@ -421,6 +421,7 @@ static void *starpu_hdf5_plug(void *parameter, starpu_ssize_t size STARPU_ATTRIB
         {
                 /* The file doesn't exist or the directory exists => create the datafile */
                 int id;
+		_starpu_mkpath(parameter, S_IRWXU);
                 fileBase->path = _starpu_mktemp_many(parameter, 0, O_RDWR | O_BINARY, &id);
                 if (!fileBase->path)
                 {
