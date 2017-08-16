@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009, 2010-2011, 2013-2015, 2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016  CNRS
- * Copyright (C) 2012 INRIA
+ * Copyright (C) 2012, 2017  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -21,8 +21,6 @@
  * add two std::vector with duplicating vectors. StarPU achieves data
  * transfers between objects.
  */
-
-/* TODO : add support with old version of C++ about name fields in struct */
 
 #include <cassert>
 #include <vector>
