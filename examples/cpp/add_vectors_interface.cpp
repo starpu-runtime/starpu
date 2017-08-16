@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010-2011, 2013-2015  Université de Bordeaux
+ * Copyright (C) 2009, 2010-2011, 2013-2015, 2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016  CNRS
  * Copyright (C) 2012 INRIA
  *
@@ -155,6 +155,7 @@ struct vector_cpp_interface
 static int vector_interface_copy_any_to_any(void *src_interface, unsigned src_node,
                            void *dst_interface, unsigned dst_node, void *async_data);
 
+#if __cplusplus >= 201103L
 static const struct starpu_data_copy_methods vector_cpp_copy_data_methods_s =
 {
 
@@ -183,25 +184,13 @@ static const struct starpu_data_copy_methods vector_cpp_copy_data_methods_s =
 	.mpi_ms_to_ram = NULL,
 	.mpi_ms_to_mpi_ms = NULL,
 
-#ifdef STARPU_USE_CUDA
 	.ram_to_cuda_async = NULL,
 	.cuda_to_ram_async = NULL,
 	.cuda_to_cuda_async = NULL,
-#else
-	.ram_to_cuda_async = NULL,
-	.cuda_to_ram_async = NULL,
-	.cuda_to_cuda_async = NULL,
-#endif
 
-#if defined(STARPU_USE_OPENCL) && !defined(__CUDACC__)
 	.ram_to_opencl_async = NULL,
 	.opencl_to_ram_async = NULL,
 	.opencl_to_opencl_async = NULL,
-#else
-	.ram_to_opencl_async = NULL,
-	.opencl_to_ram_async = NULL,
-	.opencl_to_opencl_async = NULL,
-#endif
 
 	.ram_to_mpi_ms_async = NULL,
 	.mpi_ms_to_ram_async = NULL,
@@ -212,6 +201,52 @@ static const struct starpu_data_copy_methods vector_cpp_copy_data_methods_s =
 
 	.any_to_any = vector_interface_copy_any_to_any,
 };
+#else
+static const struct starpu_data_copy_methods vector_cpp_copy_data_methods_s =
+{
+	NULL,
+
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+
+	NULL,
+	NULL,
+	NULL,
+
+	NULL,
+	NULL,
+	NULL,
+
+	NULL,
+
+	NULL,
+	NULL,
+	NULL,
+
+	NULL,
+	NULL,
+	NULL,
+
+	NULL,
+	NULL,
+	NULL,
+
+	NULL,
+	NULL,
+	NULL,
+
+	NULL,
+	NULL,
+	NULL,
+
+	NULL,
+	NULL,
+
+	vector_interface_copy_any_to_any,
+};
+#endif
 
 static void register_vector_cpp_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface);
 static starpu_ssize_t allocate_vector_cpp_buffer_on_node(void *data_interface_, unsigned dst_node);
