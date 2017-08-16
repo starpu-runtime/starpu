@@ -165,9 +165,6 @@ define starpu-workers
     if $worker->status == STATUS_SLEEPING
       set $status="SLEEPING"
     end
-    if $worker->status == STATUS_WAKING_UP
-      set $status="WAKING_UP"
-    end
     printf "[%2d] %-40s %-4d %-4d %-5d %-6d %-8d %-9d %-13d %s\n", $num, $worker->name, $worker->arch, $worker->worker_mask, \
           $worker->devid, $worker->bindid, $worker->workerid, $worker->worker_is_running, $worker->worker_is_initialized, $status
     set $num = $num + 1
