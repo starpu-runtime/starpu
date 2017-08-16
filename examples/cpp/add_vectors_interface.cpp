@@ -261,6 +261,7 @@ static int pack_vector_cpp_handle(starpu_data_handle_t handle, unsigned node, vo
 static int unpack_vector_cpp_handle(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count);
 static starpu_ssize_t vector_cpp_describe(void *data_interface, char *buf, size_t size);
 
+#if __cplusplus >= 201103L
 static struct starpu_data_interface_ops interface_vector_cpp_ops =
 {
 	.register_data_handle = register_vector_cpp_handle,
@@ -282,6 +283,29 @@ static struct starpu_data_interface_ops interface_vector_cpp_ops =
 	.unpack_data = unpack_vector_cpp_handle,
 	.name = (char *) "VECTOR_CPP_INTERFACE"
 };
+#else
+static struct starpu_data_interface_ops interface_vector_cpp_ops =
+{
+	register_vector_cpp_handle,
+	allocate_vector_cpp_buffer_on_node,
+	free_vector_cpp_buffer_on_node,
+	&vector_cpp_copy_data_methods_s,
+	vector_cpp_handle_to_pointer,
+	vector_cpp_interface_get_size,
+	footprint_vector_cpp_interface_crc32,
+	vector_cpp_compare,
+	display_vector_cpp_interface,
+	vector_cpp_describe,
+	STARPU_UNKNOWN_INTERFACE_ID,
+	sizeof(struct vector_cpp_interface),
+	0,
+	0,
+	NULL,
+	pack_vector_cpp_handle,
+	unpack_vector_cpp_handle,
+	(char *) "VECTOR_CPP_INTERFACE"
+};
+#endif
 
 static void *vector_cpp_handle_to_pointer(starpu_data_handle_t handle, unsigned node)
 {
@@ -329,6 +353,7 @@ static void register_vector_cpp_handle(starpu_data_handle_t handle, unsigned hom
 void vector_cpp_data_register(starpu_data_handle_t *handleptr, int home_node,
                         std::vector<MY_TYPE>* vec, uint32_t nx, size_t elemsize)
 {
+#if __cplusplus >= 201103L
 	struct vector_cpp_interface vector =
 	{
 		.id = STARPU_UNKNOWN_INTERFACE_ID,
@@ -340,6 +365,19 @@ void vector_cpp_data_register(starpu_data_handle_t *handleptr, int home_node,
 		.vec = vec,
 		.slice_base = 0
 	};
+#else
+	struct vector_cpp_interface vector =
+	{
+		STARPU_UNKNOWN_INTERFACE_ID,
+		(uintptr_t) &(*vec)[0],
+                (uintptr_t) &(*vec)[0],
+                0,
+		nx,
+		elemsize,
+		vec,
+		0
+	};
+#endif
 
 	starpu_data_register(handleptr, home_node, &vector, &interface_vector_cpp_ops);
 }
