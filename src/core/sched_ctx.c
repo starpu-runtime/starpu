@@ -746,18 +746,15 @@ unsigned starpu_sched_ctx_create(int *workerids, int nworkers, const char *sched
 	}
 	va_end(varg_list);
 
-	if (workerids && nworkers != -1)
+	/* Make sure the user doesn't use invalid worker IDs. */
+	int num_workers = starpu_worker_get_count();
+	int i;
+	for (i = 0; i < nworkers; i++)
 	{
-		/* Make sure the user doesn't use invalid worker IDs. */
-		int num_workers = starpu_worker_get_count();
-		int i;
-		for (i = 0; i < nworkers; i++)
+		if (workerids[i] < 0 || workerids[i] >= num_workers)
 		{
-			if (workerids[i] < 0 || workerids[i] >= num_workers)
-			{
-				_STARPU_ERROR("Invalid worker ID (%d) specified!\n", workerids[i]);
-				return STARPU_NMAX_SCHED_CTXS;
-			}
+			_STARPU_ERROR("Invalid worker ID (%d) specified!\n", workerids[i]);
+			return STARPU_NMAX_SCHED_CTXS;
 		}
 	}
 
