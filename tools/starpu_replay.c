@@ -333,7 +333,7 @@ void reset(void) {
 	endTime = 0.0;
 	iteration = -1;
 	nb_parameters = 0;
-	alloc_mode = 1;;
+	alloc_mode = 1;
 }
 
 

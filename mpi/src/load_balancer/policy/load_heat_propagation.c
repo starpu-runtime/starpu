@@ -418,7 +418,7 @@ static int init_heat(struct starpu_mpi_lb_conf *itf)
 	}
 
 	_STARPU_MPI_MALLOC(user_itf, sizeof(struct starpu_mpi_lb_conf));
-	memcpy(user_itf, itf, sizeof(struct starpu_mpi_lb_conf));;
+	memcpy(user_itf, itf, sizeof(struct starpu_mpi_lb_conf));
 
 	/* Get the neighbors of the local MPI node */
 	user_itf->get_neighbors(&neighbor_ids, &nneighbors);

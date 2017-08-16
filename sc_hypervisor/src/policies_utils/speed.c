@@ -245,7 +245,7 @@ double sc_hypervisor_get_avg_speed(enum starpu_worker_archtype arch)
 			}
 		}
 
-		total_estimated_flops += sc_w->total_flops / 1000000000.0; /*in gflops */;;
+		total_estimated_flops += sc_w->total_flops / 1000000000.0; /*in gflops */
 
 		if(max_real_start_time < sc_w->real_start_time)
 			max_real_start_time = sc_w->real_start_time;

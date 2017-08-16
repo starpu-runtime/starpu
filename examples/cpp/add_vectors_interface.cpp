@@ -339,7 +339,7 @@ static void register_vector_cpp_handle(starpu_data_handle_t handle, unsigned hom
 			local_interface->ptr = 0;
                         local_interface->dev_handle = 0;
                         local_interface->offset = 0;
-			local_interface->vec = NULL;;
+			local_interface->vec = NULL;
 		}
 
 		local_interface->id = vector_interface->id;

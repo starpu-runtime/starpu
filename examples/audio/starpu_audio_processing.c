@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012, 2014-2015  Université de Bordeaux
+ * Copyright (C) 2010-2012, 2014-2015, 2017  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012, 2013, 2016, 2017  CNRS
  *
@@ -374,17 +374,17 @@ static void parse_args(int argc, char **argv)
 
 		if (strcmp(argv[i], "-i") == 0)
 		{
-			inputfilename = argv[++i];;
+			inputfilename = argv[++i];
 		}
 
 		if (strcmp(argv[i], "-o") == 0)
 		{
-			outputfilename = argv[++i];;
+			outputfilename = argv[++i];
 		}
 
 		if (strcmp(argv[i], "-no-output") == 0)
 		{
-			outputfilename = NULL;;
+			outputfilename = NULL;
 		}
 
 		/* block size */
