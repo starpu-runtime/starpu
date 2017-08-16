@@ -152,6 +152,13 @@ static int test_cuda(void)
 			starpu_shutdown();
 		return STARPU_TEST_SKIPPED;
 	}
+	if (starpu_cuda_worker_get_count() > 1)
+	{
+		FPRINTF(stderr, "WARNING: More than one worker, this is not supported by this test\n");
+		if (ret == 0)
+			starpu_shutdown();
+		return STARPU_TEST_SKIPPED;
+	}
 
 	ret = starpu_pthread_create(&driver_thread, NULL, run_driver, &d);
 	if (ret == -1)
