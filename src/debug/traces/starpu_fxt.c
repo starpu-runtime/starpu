@@ -890,7 +890,7 @@ static void worker_set_detailed_state(double time, const char *prefix, long unsi
 	snprintf(subiteration_str, sizeof(subiteration_str), "%ld", subiteration);
 
 #ifdef HAVE_POTI_INIT_CUSTOM
-	poti_user_SetState(_starpu_poti_extendedSetState, time, container, "WS", name, 12, size_str,
+	poti_user_SetState(_starpu_poti_extendedSetState, time, container, "WS", name, 11, size_str,
 			   parameters_str,
 			   footprint_str,
 			   tag_str,
