@@ -163,22 +163,28 @@ static inline void default_init_sched(unsigned sched_ctx_id)
 	STARPU_ASSERT(max_prio >= 0);
 	// By default each type of devices uses 1 bucket and no slow factor
 #ifdef STARPU_USE_CPU
-	starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_CPU_IDX, max_prio-min_prio+1);
+	if (starpu_cpu_worker_get_count() > 0)
+		starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_CPU_IDX, max_prio-min_prio+1);
 #endif
 #ifdef STARPU_USE_CUDA
-	starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_CUDA_IDX, max_prio-min_prio+1);
+	if (starpu_cuda_worker_get_count() > 0)
+		starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_CUDA_IDX, max_prio-min_prio+1);
 #endif
 #ifdef STARPU_USE_OPENCL
-	starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_OPENCL_IDX, max_prio-min_prio+1);
+	if (starpu_opencl_worker_get_count() > 0)
+		starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_OPENCL_IDX, max_prio-min_prio+1);
 #endif
 #ifdef STARPU_USE_MIC
-	starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_MIC_IDX, max_prio-min_prio+1);
-#endif
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
-	starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_MPI_MS_IDX, max_prio-min_prio+1);
+	if (starpu_mic_worker_get_count() > 0)
+		starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_MIC_IDX, max_prio-min_prio+1);
 #endif
 #ifdef STARPU_USE_SCC
-	starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_SCC_IDX, max_prio-min_prio+1);
+	if (starpu_scc_worker_get_count() > 0)
+		starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_SCC_IDX, max_prio-min_prio+1);
+#endif
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+	if (starpu_mpi_ms_worker_get_count() > 0)
+		starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_MPI_MS_IDX, max_prio-min_prio+1);
 #endif
 
 	// Direct mapping
@@ -186,22 +192,28 @@ static inline void default_init_sched(unsigned sched_ctx_id)
 	for(prio=min_prio ; prio<=max_prio ; prio++)
 	{
 #ifdef STARPU_USE_CPU
-		starpu_heteroprio_set_mapping(sched_ctx_id, STARPU_CPU_IDX, prio, prio);
+		if (starpu_cpu_worker_get_count() > 0)
+			starpu_heteroprio_set_mapping(sched_ctx_id, STARPU_CPU_IDX, prio, prio);
 #endif
 #ifdef STARPU_USE_CUDA
-		starpu_heteroprio_set_mapping(sched_ctx_id, STARPU_CUDA_IDX, prio, prio);
+		if (starpu_cuda_worker_get_count() > 0)
+			starpu_heteroprio_set_mapping(sched_ctx_id, STARPU_CUDA_IDX, prio, prio);
 #endif
 #ifdef STARPU_USE_OPENCL
-		starpu_heteroprio_set_mapping(sched_ctx_id, STARPU_OPENCL_IDX, prio, prio);
+		if (starpu_opencl_worker_get_count() > 0)
+			starpu_heteroprio_set_mapping(sched_ctx_id, STARPU_OPENCL_IDX, prio, prio);
 #endif
 #ifdef STARPU_USE_MIC
-		starpu_heteroprio_set_mapping(sched_ctx_id, STARPU_MIC_IDX, prio, prio);
-#endif
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
-		starpu_heteroprio_set_mapping(sched_ctx_id, STARPU_MPI_MS_IDX, prio, prio);
+		if (starpu_mic_worker_get_count() > 0)
+			starpu_heteroprio_set_mapping(sched_ctx_id, STARPU_MIC_IDX, prio, prio);
 #endif
 #ifdef STARPU_USE_SCC
-		starpu_heteroprio_set_mapping(sched_ctx_id, STARPU_SCC_IDX, prio, prio);
+		if (starpu_scc_worker_get_count() > 0)
+			starpu_heteroprio_set_mapping(sched_ctx_id, STARPU_SCC_IDX, prio, prio);
+#endif
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+		if (starpu_mpi_ms_worker_get_count() > 0)
+			starpu_heteroprio_set_mapping(sched_ctx_id, STARPU_MPI_MS_IDX, prio, prio);
 #endif
 	}
 }
