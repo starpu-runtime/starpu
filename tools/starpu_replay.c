@@ -752,8 +752,6 @@ eof:
 		free(handle);
         }
 
-	starpu_shutdown();
-
 	struct perfmodel * model_s, * modeltmp;
 	HASH_ITER(hh, model_hash, model_s, modeltmp)
 	{
@@ -772,6 +770,8 @@ eof:
 		starpu_task_clean(&task->task);
 		free(task);
         }
+
+	starpu_shutdown();
 
 	return 0;
 
