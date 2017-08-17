@@ -52,12 +52,12 @@ class my_allocator
 		this->node = STARPU_MAIN_RAM;
 	}
 
-	my_allocator(const my_allocator& a) 
+	explicit my_allocator(const my_allocator& a) 
 	{
 		node = a.get_node();
 	}
 
-	my_allocator(const unsigned node) 
+	explicit my_allocator(const unsigned node) 
 	{
 		this->node = node;
 	}
@@ -119,7 +119,7 @@ class my_allocator
 		};
 
 	template <class U>
-		my_allocator(const my_allocator<U>&ref)
+		explicit my_allocator(const my_allocator<U>&ref)
 		{
 			node = ref.node;
 		}
