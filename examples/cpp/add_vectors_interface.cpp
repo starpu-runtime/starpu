@@ -91,8 +91,9 @@ class my_allocator
 		return &x;
 	}
 
-	my_allocator<T>&  operator=(const my_allocator&)
+	my_allocator<T>&  operator=(const my_allocator&ref)
 	{
+		node = ref.node;
 		return *this;
 	}
 
@@ -125,8 +126,9 @@ class my_allocator
 		}
 
 	template <class U>
-		my_allocator<U>& operator=(const my_allocator<U>&)
+		my_allocator<U>& operator=(const my_allocator<U>&ref)
 		{
+			node = ref.node;
 			return *this;
 		}
 
