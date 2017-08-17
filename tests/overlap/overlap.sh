@@ -23,10 +23,11 @@ set -e
 PREFIX=$(dirname $0)
 STARPU_SCHED=dmdas STARPU_FXT_PREFIX=$PREFIX/ $PREFIX/overlap
 [ ! -x $PREFIX/../../tools/starpu_perfmodel_display ] || $PREFIX/../../tools/starpu_perfmodel_display -s overlap_sleep_1024_24
-[ ! -x $PREFIX/../../tools/starpu_perfmodel_plot -o ! -f $PREFIX/prof_file_${USER}_0 ] || $PREFIX/../../tools/starpu_perfmodel_plot -s overlap_sleep_1024_24 -i $PREFIX/prof_file_${USER}_0
-[ -f starpu_overlap_sleep_1024_24.gp -a -f starpu_overlap_sleep_1024_24.data -a -f starpu_overlap_sleep_1024_24_avg.data ]
 if [ -x $PREFIX/../../tools/starpu_fxt_tool ];
 then
+	$PREFIX/../../tools/starpu_perfmodel_plot -s overlap_sleep_1024_24 -i $PREFIX/prof_file_${USER}_0
+	[ -f starpu_overlap_sleep_1024_24.gp -a -f starpu_overlap_sleep_1024_24.data -a -f starpu_overlap_sleep_1024_24_avg.data ]
+
 	# Generate paje, dag, data, etc.
 	$PREFIX/../../tools/starpu_fxt_tool -i $PREFIX/prof_file_${USER}_0
 
