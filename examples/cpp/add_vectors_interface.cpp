@@ -119,12 +119,13 @@ class my_allocator
 		};
 
 	template <class U>
-		my_allocator(const my_allocator<U>&)
+		my_allocator(const my_allocator<U>&ref)
 		{
+			node = ref.node;
 		}
 
 	template <class U>
-		my_allocator& operator=(const my_allocator<U>&)
+		my_allocator<U>& operator=(const my_allocator<U>&)
 		{
 			return *this;
 		}
@@ -497,8 +498,6 @@ static starpu_ssize_t allocate_vector_cpp_buffer_on_node(void *data_interface_, 
 static void free_vector_cpp_buffer_on_node(void *data_interface, unsigned node)
 {
 	struct vector_cpp_interface *vector_interface = (struct vector_cpp_interface *) data_interface;
-	uint32_t nx = vector_interface->nx;
-	size_t elemsize = vector_interface->elemsize;
 
 	delete vector_interface->vec;
 }
