@@ -29,7 +29,7 @@ then
     exit 77
 fi
 
-SCHEDULERS=`STARPU_SCHED="help" ./basic_examples/hello_world 2>&1 | awk '/\t->/ {print $1}' | grep -v pheft | grep -v peager`
+SCHEDULERS=`STARPU_SCHED="help" ./basic_examples/hello_world 2>&1 | awk '/\t->/ {print $1}' | grep -v pheft | grep -v peager | grep -v heteroprio`
 
 for sched in $SCHEDULERS
 do
