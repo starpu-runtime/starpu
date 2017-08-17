@@ -26,6 +26,7 @@
 #include <math.h>
 
 #include <common/uthash.h>
+#include <common/utils.h>
 #include <starpu_scheduler.h>
 
 #define NMAX_DEPENDENCIES 16
@@ -193,7 +194,7 @@ void array_init(unsigned long * arr, int size)
 /* Initializing s_dep structure */
 struct s_dep * s_dep_init(struct s_dep * sd, jobid_t job_id)
 {
-	sd = malloc(sizeof(*sd));
+	_STARPU_MALLOC(sd, sizeof(*sd));
 	sd->job_id = jobid;
 	array_init((unsigned long *) sd->deps_jobid, 16);
 	sd->ndependson = 0;
@@ -234,8 +235,8 @@ static void arrays_managing(int mode)
 	}
 	else
 	{
-		handles_ptr =  malloc(sizeof(*handles_ptr) * nb_parameters);
-		modes_ptr = malloc(sizeof(*modes_ptr) * nb_parameters);
+		_STARPU_MALLOC(handles_ptr, sizeof(*handles_ptr) * nb_parameters);
+		_STARPU_MALLOC(modes_ptr, sizeof(*modes_ptr) * nb_parameters);
 
 	}
 }
@@ -361,17 +362,15 @@ int main(int argc, char **argv)
 {
 	starpu_data_set_default_sequential_consistency_flag(0);
 
-	FILE * rec;
-	char * s;
+	FILE *rec;
+	char *s;
 	size_t s_allocated = 128;
-	s = malloc(s_allocated);
 
+	_STARPU_MALLOC(s, s_allocated);
 	dependson_size = NMAX_DEPENDENCIES;
 	jobidDeps_size = 512;
-
-	dependson =  malloc(dependson_size * sizeof (* dependson));
-	jobidDeps = malloc(jobidDeps_size * sizeof(* jobidDeps));
-
+	_STARPU_MALLOC(dependson, dependson_size * sizeof (* dependson));
+	_STARPU_MALLOC(jobidDeps, jobidDeps_size * sizeof(* jobidDeps));
 	alloc_mode = 1;
 
 	if (argc <= 1)
@@ -412,7 +411,7 @@ int main(int argc, char **argv)
 		while (!(ln = strchr(s, '\n')))
 		{
 			/* fprintf(stderr,"buffer size %d too small, doubling it\n", s_allocated); */
-			s = realloc(s, s_allocated * 2);
+			_STARPU_REALLOC(s, s_allocated * 2);
 
 			if (!fgets(s + s_allocated-1, s_allocated+1, rec))
 			{
@@ -432,8 +431,9 @@ int main(int argc, char **argv)
 		if (ln == s)
 		{
 			/* Empty line, do task */
-			struct task * task = malloc(sizeof(*task));
+			struct task *task;
 
+			_STARPU_MALLOC(task, sizeof(*task));
 			task->jobid = jobid;
 			task->iteration = iteration;
 			starpu_task_init(&task->task);
@@ -460,7 +460,7 @@ int main(int argc, char **argv)
 				else
 				{
 					task->task.dyn_modes = modes_ptr;
-					task->task.cl->dyn_modes = malloc(sizeof(starpu_data_handle_t) * nb_parameters);
+					_STARPU_MALLOC(task->task.cl->dyn_modes, sizeof(starpu_data_handle_t) * nb_parameters);
 					array_dup((unsigned long *) modes_ptr, (unsigned long *) task->task.cl->dyn_modes, nb_parameters);
 					variable_data_register_check(sizes_set, nb_parameters);
 					task->task.dyn_handles = handles_ptr;
@@ -475,13 +475,7 @@ int main(int argc, char **argv)
 				if (realmodel == NULL)
 				{
 					int len = strlen(model);
-					realmodel =  calloc(1, sizeof(struct perfmodel));
-
-					if (realmodel == NULL)
-					{
-						fprintf(stderr, "[starpu][Error] Not enough memory for allocation ! (replay.c)");
-						exit(EXIT_FAILURE);
-					}
+					_STARPU_CALLOC(realmodel, 1, sizeof(struct perfmodel));
 
 					realmodel->model_name = (char *) malloc(sizeof(char) * (len+1));
 					realmodel->model_name = strcpy(realmodel->model_name, model);
@@ -500,7 +494,8 @@ int main(int argc, char **argv)
 				}
 
 				int narch = starpu_perfmodel_get_narch_combs();
-				struct task_arg * arg = malloc(sizeof(struct task_arg) + sizeof(double) * narch);
+				struct task_arg *arg;
+				_STARPU_MALLOC(arg, sizeof(struct task_arg) + sizeof(double) * narch);
 				arg->footprint = footprint;
 				double * perfTime  = arg->perf;
 				int i;
@@ -527,7 +522,7 @@ int main(int argc, char **argv)
 			if (ntask >= jobidDeps_size)
 			{
 				jobidDeps_size *= 2;
-				jobidDeps = realloc(jobidDeps, jobidDeps_size * sizeof(*jobidDeps));
+				_STARPU_REALLOC(jobidDeps, jobidDeps_size * sizeof(*jobidDeps));
 			}
 
 			jobidDeps[ntask] = sd;
@@ -577,7 +572,7 @@ int main(int argc, char **argv)
 				if (ndependson >= dependson_size)
 				{
 					dependson_size *= 2;
-					dependson = realloc(dependson, dependson_size * sizeof(*dependson));
+					_STARPU_REALLOC(dependson, dependson_size * sizeof(*dependson));
 				}
 				dependson[ndependson] = strtol(c, &c, 10);
 			}
@@ -611,7 +606,7 @@ int main(int argc, char **argv)
 
 			arrays_managing(alloc_mode);
 
-			reg_signal = (char *) calloc(nb_parameters, sizeof(char));
+			_STARPU_CALLOC(reg_signal, nb_parameters, sizeof(char));
 		}
 		else if (TEST("Handles"))
 		{
@@ -632,7 +627,7 @@ int main(int argc, char **argv)
 
 					if (handles_cell == NULL)
 					{
-						handles_cell = malloc(sizeof(*handles_cell));
+						_STARPU_MALLOC(handles_cell, sizeof(*handles_cell));
 						handles_cell->handle = handle_value;
 
 						HASH_ADD(hh, handles_hash, handle, sizeof(handle_value), handles_cell); /* If it wasn't, then add it to the hash table */
@@ -692,7 +687,7 @@ int main(int argc, char **argv)
 			char * token = strtok(buffer, delim);
 			int k = 0;
 
-			sizes_set = (size_t *) malloc(nb_parameters * sizeof(size_t));
+			_STARPU_MALLOC(sizes_set, nb_parameters * sizeof(size_t));
 
 			while (token != NULL)
 			{
