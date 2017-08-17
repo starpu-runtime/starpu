@@ -37,8 +37,6 @@
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-
-
 typedef unsigned long jobid_t;
 
 static char *name = NULL;
@@ -78,17 +76,17 @@ char * reg_signal = NULL; /* The register signal (0 or 1 coded on 8 bit) it is u
 static int device;
 
 /* Record all tasks, hashed by jobid. */
-static struct task {
+static struct task
+{
 	UT_hash_handle hh;
 	jobid_t jobid;
         int iteration;
 	struct starpu_task task;
 } *tasks;
 
-
 /* Record handles */
-
-static struct handle {
+static struct handle
+{
 	UT_hash_handle hh;
 	starpu_data_handle_t mem_ptr; /* This value should be the registered handle */
 	starpu_data_handle_t handle; /* The key is the original value of the handle in the file */
@@ -96,33 +94,29 @@ static struct handle {
 
 /* Record models */
 
-static struct perfmodel {
+static struct perfmodel
+{
 	UT_hash_handle hh;
 	struct starpu_perfmodel perfmodel;
 	char * model_name;
 } * model_hash;
 
-
 /* Record a dependent task by its jobid and the jobids of its dependencies */
-
-typedef struct s_dep {
+struct s_dep
+{
 	jobid_t job_id;
 	jobid_t deps_jobid[NMAX_DEPENDENCIES]; /* That array has to contain the jobids of the dependencies, notice that the number of dependcies is limited to 16, modify NMAX_DEPENDENCIES at your convenience */
 	size_t ndependson;
-} s_dep;
-
+};
 
 /* Declaration of an AoS (array of structures) */
-
-s_dep ** jobidDeps;
+struct s_dep ** jobidDeps;
 size_t jobidDeps_size;
 static size_t ntask = 0; /* This is the number of dependent task (le nombre de tâches dépendantes) */
 
-
-
 /* Settings for the perfmodel */
-
-struct task_arg {
+struct task_arg
+{
 	uint32_t footprint;
 	double perf[];
 };
@@ -135,15 +129,15 @@ uint32_t get_footprint(struct starpu_task * task)
 double arch_cost_function(struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl)
 {
 	device = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
-	
+
 	/* Then, get the pointer to the value of the expected time */
 	double * val = (double *) ((struct task_arg *) (task->cl_arg))->perf+device;
-	
+
 	if (!(*val == 0 || isnan(*val)))
 		return *val;
 
 	fprintf(stderr, "[starpu] Error, expected_time is 0 or lower (replay.c line : %d)", __LINE__- 6);
-	
+
 	return 0.0;
 }
 
@@ -151,9 +145,7 @@ double arch_cost_function(struct starpu_task *task, struct starpu_perfmodel_arch
 
 void dumb_kernel(void) {}
 
-
 /* [CODELET] Initialization of an unique codelet for all the tasks*/
-
 static int can_execute(unsigned worker_id, struct starpu_task *task, unsigned nimpl)
 {
 	struct starpu_perfmodel_arch * arch = starpu_worker_get_perf_archtype(worker_id, STARPU_NMAX_SCHED_CTXS);
@@ -166,15 +158,15 @@ static int can_execute(unsigned worker_id, struct starpu_task *task, unsigned ni
 	return 0;
 }
 
-static struct starpu_perfmodel myperfmodel = {
+static struct starpu_perfmodel myperfmodel =
+{
 	.type = STARPU_PER_ARCH,
 	.arch_cost_function = arch_cost_function,
 	.footprint = get_footprint,
 };
 
-
-static struct starpu_codelet cl = {
-	
+static struct starpu_codelet cl =
+{
 	.cpu_funcs = { (void*) 1 },
 	.cpu_funcs_name = { "dumb_kernel" },
 	.cuda_funcs = { (void*) 1 },
@@ -182,17 +174,11 @@ static struct starpu_codelet cl = {
 	.nbuffers = STARPU_VARIABLE_NBUFFERS,
 	.can_execute = can_execute,
 	.model = &myperfmodel,
-	
 };
-
-
 
 /* * * * * * * * * * * * * *
 * * * * * Functions * * * * *
 * * * * * * * * * * * * * * */
-
-
-
 
 /* Initializing an array with 0 */
 void array_init(unsigned long * arr, int size)
@@ -204,11 +190,8 @@ void array_init(unsigned long * arr, int size)
 	}
 }
 
-
-
-
 /* Initializing s_dep structure */
-s_dep * s_dep_init(s_dep * sd, jobid_t job_id)
+struct s_dep * s_dep_init(struct s_dep * sd, jobid_t job_id)
 {
 	sd = malloc(sizeof(*sd));
 	sd->job_id = jobid;
@@ -218,40 +201,28 @@ s_dep * s_dep_init(s_dep * sd, jobid_t job_id)
 	return sd;
 }
 
-
-
-
 /* Remove s_dep structure */
-void s_dep_remove(s_dep * sd)
+void s_dep_remove(struct s_dep * sd)
 {
 	free(sd);
 }
-
-
-
 
 /* Array duplication */
 static void array_dup(unsigned long * in_arr, unsigned long * out_arr, int size)
 {
 	int i;
-	
+
 	for (i = 0 ; i < size ; i++)
 	{
 		out_arr[i] = in_arr[i];
 	}
 }
 
-
-
-
 /* The following function checks if the program has to use static or dynamic arrays*/
 static int set_alloc_mode(int total_parameters)
 {
 	return (total_parameters <= STARPU_NMAXBUFS);
 }
-
-
-
 
 /* According to the allocation mode, modify handles_ptr and modes_ptr in static or dynamic */
 static void arrays_managing(int mode)
@@ -261,33 +232,29 @@ static void arrays_managing(int mode)
 		handles_ptr = &handles[0];
 		modes_ptr = &modes[0];
 	}
-
 	else
 	{
 		handles_ptr =  malloc(sizeof(*handles_ptr) * nb_parameters);
 		modes_ptr = malloc(sizeof(*modes_ptr) * nb_parameters);
-		
+
 	}
-	
 }
-
-
 
 /* Check if a handle hasn't been registered yet */
 static void variable_data_register_check(size_t * array_of_size, int nb_handles)
 {
 	int h;
-				
+
 	for (h = 0 ; h < nb_handles ; h++)
 	{
 		if(reg_signal[h]) /* Get the register signal, and if it's 1 do ... */
 		{
-			struct handle * strhandle_tmp; 
+			struct handle * strhandle_tmp;
 
 			/* Find the key that was stored in &handles_ptr[h] */
-			
+
 			HASH_FIND(hh, handles_hash, handles_ptr+h, sizeof(handles_ptr[h]), strhandle_tmp);
-			
+
 			starpu_variable_data_register(handles_ptr+h, STARPU_MAIN_RAM, (uintptr_t) 1, array_of_size[h]);
 
 			strhandle_tmp->mem_ptr = handles_ptr[h];
@@ -295,18 +262,15 @@ static void variable_data_register_check(size_t * array_of_size, int nb_handles)
 	}
 }
 
-
-
-
-void reset(void) {
-	
+void reset(void)
+{
 	if (name != NULL)
 	{
 		free(name);
 		name = NULL;
 	}
-	
-		if (model != NULL)
+
+	if (model != NULL)
 	{
 		free(model);
 		model = NULL;
@@ -318,11 +282,12 @@ void reset(void) {
 		sizes_set = NULL;
 	}
 
-	if(reg_signal != NULL) {
+	if reg_signal != NULL)
+	{
 		free(reg_signal);
 		reg_signal = NULL;
 	}
-	
+
 	jobid = 0;
 	submitorder = 0;
 	ndependson = 0;
@@ -336,54 +301,48 @@ void reset(void) {
 	alloc_mode = 1;
 }
 
-
-
 /* Functions that submit all the tasks (used when the program reaches EOF) */
 int submit_tasks(void)
 {
 	/* Add dependencies */
-
 	int j;
-	
+
 	for(j = 0; j < ntask ; j++)
 	{
 		struct task * currentTask;
-				
+
 		/* Looking for the task associate to the jobid of the jth element of jobidDeps */
 		HASH_FIND(hh, tasks, &jobidDeps[j]->job_id, sizeof(jobid), currentTask);
 
 		if (jobidDeps[j]->ndependson > 0)
 		{
 			struct starpu_task * taskdeps[jobidDeps[j]->ndependson];
-	
 			unsigned i;
-			
+
 			for (i = 0; i < jobidDeps[j]->ndependson; i++)
 			{
 				struct task * taskdep;
-					
+
 				/*  Get the ith jobid of deps_jobid */
 				HASH_FIND(hh, tasks, &jobidDeps[j]->deps_jobid[i], sizeof(jobid), taskdep);
-				
+
 				assert(taskdep);
 				taskdeps[i] = &taskdep->task;
-				
 			}
-			
-			starpu_task_declare_deps_array(&currentTask->task, jobidDeps[j]->ndependson, taskdeps);
 
+			starpu_task_declare_deps_array(&currentTask->task, jobidDeps[j]->ndependson, taskdeps);
 		}
 
 		if (!(currentTask->iteration == -1))
 			starpu_iteration_push(currentTask->iteration);
-	      	
+
 		int ret_val = starpu_task_submit(&currentTask->task);
-		
+
 		if (!(currentTask->iteration == -1))
 			starpu_iteration_pop();
 
 		//printf("name : %s \n", currentTask->task.name);
-				
+
 		printf("submitting task %s (%lu, %llu)\n", currentTask->task.name?currentTask->task.name:"anonymous", jobidDeps[j]->job_id, (unsigned long long) currentTask->task.tag_id /* tag*/);
 
 		if (ret_val != 0)
@@ -394,17 +353,14 @@ int submit_tasks(void)
 }
 
 
-
 /* * * * * * * * * * * * * * * */
 /* * * * * * MAIN * * * * * * */
 /* * * * * * * * * * * * * * */
 
-
-
 int main(int argc, char **argv)
 {
 	starpu_data_set_default_sequential_consistency_flag(0);
-	
+
 	FILE * rec;
 	char * s;
 	size_t s_allocated = 128;
@@ -434,14 +390,13 @@ int main(int argc, char **argv)
 	int ret = starpu_init(NULL);
 	if (ret == -ENODEV) goto enodev;
 
-	
 	/* Read line by line, and on empty line submit the task with the accumulated information */
 	reset();
 
-	while(1) {
-		
+	while(1)
+	{
 		char *ln;
-		
+
 		if (!fgets(s, s_allocated, rec))
 		{
 			int submitted = submit_tasks();
@@ -450,15 +405,15 @@ int main(int argc, char **argv)
 			{
 				goto enodev;
 			}
-			
+
 			goto eof;
 		}
-		
+
 		while (!(ln = strchr(s, '\n')))
 		{
 			/* fprintf(stderr,"buffer size %d too small, doubling it\n", s_allocated); */
 			s = realloc(s, s_allocated * 2);
-			
+
 			if (!fgets(s + s_allocated-1, s_allocated+1, rec))
 			{
 				int submitted = submit_tasks();
@@ -467,10 +422,10 @@ int main(int argc, char **argv)
 				{
 					goto enodev;
 				}
-				
+
 				goto eof;
 			}
-			
+
 			s_allocated *= 2;
 		}
 
@@ -482,7 +437,7 @@ int main(int argc, char **argv)
 			task->jobid = jobid;
 			task->iteration = iteration;
 			starpu_task_init(&task->task);
-			
+
 			if (name != NULL)
 				task->task.name = strdup(name);
 			task->task.submit_order = submitorder;
@@ -492,17 +447,16 @@ int main(int argc, char **argv)
 			{
 				task->task.cl = &cl;
 				task->task.workerid = workerid;
-				
+
 				if (alloc_mode)
 				{
 					/* Duplicating the handles stored (and registered in the current context) into the task */
-					
+
 					array_dup((unsigned long *) modes_ptr, (unsigned long *) task->task.modes, nb_parameters);
 					array_dup((unsigned long *) modes_ptr, (unsigned long *) task->task.cl->modes, nb_parameters);
 					variable_data_register_check(sizes_set, nb_parameters);
 					array_dup((unsigned long *) handles_ptr, (unsigned long *) task->task.handles, nb_parameters);
 				}
-
 				else
 				{
 					task->task.dyn_modes = modes_ptr;
@@ -511,11 +465,11 @@ int main(int argc, char **argv)
 					variable_data_register_check(sizes_set, nb_parameters);
 					task->task.dyn_handles = handles_ptr;
 				}
-				
+
 				task->task.nbuffers = nb_parameters;
 
 				struct perfmodel * realmodel;
-				
+
 				HASH_FIND_STR(model_hash, model, realmodel);
 
 				if (realmodel == NULL)
@@ -533,27 +487,24 @@ int main(int argc, char **argv)
 					realmodel->model_name = strcpy(realmodel->model_name, model);
 
 					starpu_perfmodel_init(&realmodel->perfmodel);
-					
+
 					HASH_ADD_STR(model_hash, model_name, realmodel);
 
 					int error = starpu_perfmodel_load_symbol(model, &realmodel->perfmodel);
-					
+
 					if (error)
 					{
 						fprintf(stderr, "[starpu][Warning] Error loading perfmodel symbol");
 					}
-					
+
 				}
 
-
 				int narch = starpu_perfmodel_get_narch_combs();
-				
 				struct task_arg * arg = malloc(sizeof(struct task_arg) + sizeof(double) * narch);
 				arg->footprint = footprint;
 				double * perfTime  = arg->perf;
-				
 				int i;
-				
+
 				for (i = 0; i < narch ; i++)
 				{
 					struct starpu_perfmodel_arch * arch = starpu_perfmodel_arch_comb_fetch(i);
@@ -561,19 +512,15 @@ int main(int argc, char **argv)
 				}
 
 				task->task.cl_arg = arg;
-
 				task->task.flops = flops;
 
 			}
-		
-			task->task.cl_arg_size = 0;
 
-			
+			task->task.cl_arg_size = 0;
 			task->task.tag_id = tag;
 			task->task.use_tag = 1;
 
-			s_dep * sd = s_dep_init(sd, jobid);
-			
+			struct s_dep * sd = s_dep_init(sd, jobid);
 			array_dup((unsigned long *) dependson, (unsigned long *) sd->deps_jobid, ndependson);
 			sd->ndependson = ndependson;
 
@@ -596,8 +543,8 @@ int main(int argc, char **argv)
 			//
 			// PrefetchTag: 1234
 			// DependsOn: 1233
-		     
-			
+
+
 			/* Add this task to task hash */
 			HASH_ADD(hh, tasks, jobid, sizeof(jobid), task);
 
@@ -606,25 +553,21 @@ int main(int argc, char **argv)
 
 		/* Record various information */
 #define TEST(field) (!strncmp(s, field": ", strlen(field) + 2))
-		
+
 		else if (TEST("Name"))
 		{
 			*ln = 0;
 			name = strdup(s+6);
 		}
-		
 		else if (TEST("Model"))
 		{
 			*ln = 0;
 			model = strdup(s+7);
 		}
-		
 		else if (TEST("JobId"))
 			jobid = atol(s+7);
-
 		else if(TEST("SubmitOrder"))
 			submitorder = atoi(s+13);
-		
 		else if (TEST("DependsOn"))
 		{
 			char *c = s + 11;
@@ -639,22 +582,17 @@ int main(int argc, char **argv)
 				dependson[ndependson] = strtol(c, &c, 10);
 			}
 		}
-		
 		else if (TEST("Tag"))
 			tag = strtol(s+5, NULL, 16);
-		
 		else if (TEST("WorkerId"))
 			workerid = atoi(s+10);
-		
 		else if (TEST("Footprint"))
 		{
 			footprint = strtoul(s+11, NULL, 16);
 		}
-
 		else if (TEST("Parameters"))
 		{
 			/* Parameters line format is PARAM1_PARAM2_(...)PARAMi_(...)PARAMn */
-
 			char * param_str = s + 12;
 			unsigned i;
 			int count = 0;
@@ -666,169 +604,137 @@ int main(int argc, char **argv)
 					count++;
 				}
 			}
-			
+
 			nb_parameters = count + 1; /* There is one underscore per paramater execept for the last one, that's why we have to add +1 (dirty programming) */
-			
+
 			alloc_mode = set_alloc_mode(nb_parameters);
 
 			arrays_managing(alloc_mode);
 
 			reg_signal = (char *) calloc(nb_parameters, sizeof(char));
 		}
-		
-			else if (TEST("Handles"))
+		else if (TEST("Handles"))
+		{
+			char * buffer = s + 9;
+			const char * delim = " ";
+			char * token = strtok(buffer, delim);
+
+			while (token != NULL)
 			{
+				int i;
 
-				char * buffer = s + 9;
-				const char * delim = " ";
-				char * token = strtok(buffer, delim);
-
-				while (token != NULL)
+				for (i = 0 ; i < nb_parameters ; i++)
 				{
+					struct handle * handles_cell; /* A cell of the hash table for the handles */
+					starpu_data_handle_t  handle_value = (starpu_data_handle_t) strtol(token, NULL, 16); /* Get the ith handle on the line */
 
-					int i;
+					HASH_FIND(hh, handles_hash, &handle_value, sizeof(handle_value), handles_cell); /* Find if the handle_value was already registered as a key in the hash table */
 
-					for (i = 0 ; i < nb_parameters ; i++)
+					if (handles_cell == NULL)
 					{
-						struct handle * handles_cell; /* A cell of the hash table for the handles */
+						handles_cell = malloc(sizeof(*handles_cell));
+						handles_cell->handle = handle_value;
 
-						starpu_data_handle_t  handle_value = (starpu_data_handle_t) strtol(token, NULL, 16); /* Get the ith handle on the line */
-						
-						HASH_FIND(hh, handles_hash, &handle_value, sizeof(handle_value), handles_cell); /* Find if the handle_value was already registered as a key in the hash table */
-						
-						if (handles_cell == NULL)
-						{
-							handles_cell = malloc(sizeof(*handles_cell));
-							handles_cell->handle = handle_value;
-							
-							HASH_ADD(hh, handles_hash, handle, sizeof(handle_value), handles_cell); /* If it wasn't, then add it to the hash table */
+						HASH_ADD(hh, handles_hash, handle, sizeof(handle_value), handles_cell); /* If it wasn't, then add it to the hash table */
 
-							handles_ptr[i] = handle_value;
-							
-							reg_signal[i] = 1;
-						}
+						handles_ptr[i] = handle_value;
 
-						else
-						{
-							handles_ptr[i] = handles_cell->mem_ptr;
-						}
-
-						token = strtok(NULL, delim);
+						reg_signal[i] = 1;
 					}
-				}
-			}
-
-		
-			else if (TEST("Modes"))
-			{
-				
-				char * buffer = s + 7;
-				int mode_i = 0;
-				int i = 0;
-				const char * delim = " ";
-				char * token = strtok(buffer, delim);
-
-				while (token != NULL)
-
-				{
-
-					/* Subject to the names of starpu modes enumerator are not modified */
-					if (!strncmp(token, "RW", 2))
-					{
-						*(modes_ptr+mode_i) = STARPU_RW;
-						mode_i++;
-						i++;
-					}
-					
-					else if (!strncmp(token, "R", 1))
-					{
-						*(modes_ptr+mode_i) = STARPU_R;
-						mode_i++;
-			     
-					}
-
-					else if (!strncmp(token, "W", 1))
-					{
-						*(modes_ptr+mode_i) = STARPU_W;
-						mode_i++;
-			     
-					}
-
-					/* Other cases produce a warning*/
 					else
 					{
-						fprintf(stderr, "[Warning] A mode is different from R/W (jobid task : %lu)", jobid);
+						handles_ptr[i] = handles_cell->mem_ptr;
 					}
+
 					token = strtok(NULL, delim);
-				}	      
-		   
+				}
 			}
-		
-			else if (TEST("Sizes"))
-			{
-
-				
-				char *  buffer = s + 7;
-				const char * delim = " ";
-				char * token = strtok(buffer, delim);
-				int k = 0;
-
-				sizes_set = (size_t *) malloc(nb_parameters * sizeof(size_t));
-
-				while (token != NULL)
-				{
-					sizes_set[k] = strtol(token, NULL, 10);
-					token = strtok(NULL, delim);
-					
-					k++;
-
-					
-				}	  
-			}
-		
-			else if (TEST("StartTime"))
-			{
-		    
-				startTime = strtod(s+11, NULL);
-
-			}
-
-			else if (TEST("EndTime"))
-			{
-
-				endTime = strtod(s+9, NULL);
-
-			}
-
-			else if (TEST("GFlop"))
-			{
-				flops = 1000000000 * strtod(s+7, NULL);
-			}
-
-			else if (TEST("Iteration"))
-			{
-				iteration = (unsigned) strtol(s+11, NULL, 10);
-			}
-
-			else if (TEST("Priority"))
-			{
-				priority = strtol(s + 10, NULL, 10);
-			}
-			/* ignore */
-			//else fprintf(stderr,"warning: unknown '%s' field\n", s);
-		
 		}
+		else if (TEST("Modes"))
+		{
+			char * buffer = s + 7;
+			int mode_i = 0;
+			int i = 0;
+			const char * delim = " ";
+			char * token = strtok(buffer, delim);
+
+			while (token != NULL)
+			{
+				/* Subject to the names of starpu modes enumerator are not modified */
+				if (!strncmp(token, "RW", 2))
+				{
+					*(modes_ptr+mode_i) = STARPU_RW;
+					mode_i++;
+					i++;
+				}
+				else if (!strncmp(token, "R", 1))
+				{
+					*(modes_ptr+mode_i) = STARPU_R;
+					mode_i++;
+				}
+				else if (!strncmp(token, "W", 1))
+				{
+					*(modes_ptr+mode_i) = STARPU_W;
+					mode_i++;
+				}
+				/* Other cases produce a warning*/
+				else
+				{
+					fprintf(stderr, "[Warning] A mode is different from R/W (jobid task : %lu)", jobid);
+				}
+				token = strtok(NULL, delim);
+			}
+		}
+		else if (TEST("Sizes"))
+		{
+			char *  buffer = s + 7;
+			const char * delim = " ";
+			char * token = strtok(buffer, delim);
+			int k = 0;
+
+			sizes_set = (size_t *) malloc(nb_parameters * sizeof(size_t));
+
+			while (token != NULL)
+			{
+				sizes_set[k] = strtol(token, NULL, 10);
+				token = strtok(NULL, delim);
+
+				k++;
+			}
+		}
+		else if (TEST("StartTime"))
+		{
+			startTime = strtod(s+11, NULL);
+		}
+		else if (TEST("EndTime"))
+		{
+			endTime = strtod(s+9, NULL);
+		}
+		else if (TEST("GFlop"))
+		{
+			flops = 1000000000 * strtod(s+7, NULL);
+		}
+		else if (TEST("Iteration"))
+		{
+			iteration = (unsigned) strtol(s+11, NULL, 10);
+		}
+		else if (TEST("Priority"))
+		{
+			priority = strtol(s + 10, NULL, 10);
+		}
+		/* ignore */
+		//else fprintf(stderr,"warning: unknown '%s' field\n", s);
+	}
 
 eof:
-	
-	starpu_task_wait_for_all(); 
+
+	starpu_task_wait_for_all();
 
 	/* FREE allocated memory */
 
 	free(dependson);
 	free(s);
 
-	
 	for (alloc_mode  = 0; alloc_mode < ntask ; alloc_mode++)
 	{
 		s_dep_remove(jobidDeps[alloc_mode]);
@@ -845,7 +751,7 @@ eof:
 		HASH_DEL(handles_hash, handle);
 		free(handle);
         }
-		
+
 	starpu_shutdown();
 
 	struct perfmodel * model_s, * modeltmp;
