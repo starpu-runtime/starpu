@@ -92,7 +92,7 @@ static char *array_to_str(long *array, int n)
 
 static int test_combination(long *combination, unsigned n)
 {
-	int type, ret, device_workers;
+	int ret, device_workers;
 	char *str;
 
 	copy_cpuid_array(workers_cpuid, combination, n);
