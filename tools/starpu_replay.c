@@ -127,7 +127,7 @@ uint32_t get_footprint(struct starpu_task * task)
 	return ((struct task_arg*) (task->cl_arg))->footprint;
 }
 
-double arch_cost_function(struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl)
+double arch_cost_function(struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl STARPU_ATTRIBUTE_UNUSED)
 {
 	device = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
 
@@ -147,7 +147,7 @@ double arch_cost_function(struct starpu_task *task, struct starpu_perfmodel_arch
 void dumb_kernel(void) {}
 
 /* [CODELET] Initialization of an unique codelet for all the tasks*/
-static int can_execute(unsigned worker_id, struct starpu_task *task, unsigned nimpl)
+static int can_execute(unsigned worker_id, struct starpu_task *task, unsigned nimpl STARPU_ATTRIBUTE_UNUSED)
 {
 	struct starpu_perfmodel_arch * arch = starpu_worker_get_perf_archtype(worker_id, STARPU_NMAX_SCHED_CTXS);
 	double expected_time = ((struct task_arg *) (task->cl_arg))->perf[(starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices))];
@@ -182,7 +182,7 @@ static struct starpu_codelet cl =
 * * * * * * * * * * * * * * */
 
 /* Initializing an array with 0 */
-void array_init(unsigned long * arr, int size)
+void array_init(unsigned long * arr, unsigned size)
 {
 	unsigned i;
 	for (i = 0 ; i < size ; i++)
@@ -283,7 +283,7 @@ void reset(void)
 		sizes_set = NULL;
 	}
 
-	if reg_signal != NULL)
+	if (reg_signal != NULL)
 	{
 		free(reg_signal);
 		reg_signal = NULL;
@@ -306,7 +306,7 @@ void reset(void)
 int submit_tasks(void)
 {
 	/* Add dependencies */
-	int j;
+	unsigned j;
 
 	for(j = 0; j < ntask ; j++)
 	{
@@ -730,9 +730,10 @@ eof:
 	free(dependson);
 	free(s);
 
-	for (alloc_mode  = 0; alloc_mode < ntask ; alloc_mode++)
+	unsigned i;
+	for (i  = 0; i < ntask ; i++)
 	{
-		s_dep_remove(jobidDeps[alloc_mode]);
+		s_dep_remove(jobidDeps[i]);
 	}
 
 	free(jobidDeps);
