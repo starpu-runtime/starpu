@@ -41,7 +41,7 @@ then
 
 	$PREFIX/../../tools/starpu_fxt_stats -i $PREFIX/prof_file_${USER}_0
 	$PREFIX/../../tools/starpu_tasks_rec_complete tasks.rec tasks2.rec
-	python tools/starpu_trace_state_stats.py trace.rec
+	python $PREFIX/../../tools/starpu_trace_state_stats.py trace.rec
 	$PREFIX/../../tools/starpu_workers_activity activity.data
 	[ -f activity.eps ]
 
