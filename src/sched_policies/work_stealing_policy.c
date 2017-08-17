@@ -762,6 +762,8 @@ static int lws_select_victim(struct _starpu_work_stealing_data *ws, unsigned sch
 	for (i = 0; i < nworkers; i++)
 	{
 		int neighbor = ws->per_worker[workerid].proxlist[i];
+                /* FIXME: do not keep looking again and again at some worker
+                 * which has tasks, but that can't execute on me */
 		int ntasks = ws->per_worker[neighbor].queue.ntasks;
 		if (ntasks && (ws->per_worker[neighbor].busy
 					   || starpu_worker_is_blocked_in_parallel(neighbor)))
