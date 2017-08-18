@@ -208,6 +208,7 @@ struct starpu_task
 #endif
 };
 
+/* Note: remember to update starpu_task_init as well */
 #define STARPU_TASK_INITIALIZER 			\
 {							\
 	.cl = NULL,					\
@@ -217,6 +218,7 @@ struct starpu_task
 	.callback_arg = NULL,				\
 	.priority = STARPU_DEFAULT_PRIO,		\
 	.use_tag = 0,					\
+	.sequential_consistency = 1,			\
 	.synchronous = 0,				\
 	.execute_on_a_specific_worker = 0,		\
 	.workerorder = 0,				\
@@ -226,15 +228,15 @@ struct starpu_task
 	.regenerate = 0,				\
 	.status = STARPU_TASK_INVALID,			\
 	.profiling_info = NULL,				\
-	.predicted = -1.0,				\
-	.predicted_transfer = -1.0,			\
+	.predicted = NAN,				\
+	.predicted_transfer = NAN,			\
 	.starpu_private = NULL,				\
 	.magic = 42,                  			\
-	.sched_ctx = 0,					\
+	.sched_ctx = STARPU_NMAX_SCHED_CTXS,		\
 	.hypervisor_tag = 0,				\
 	.flops = 0.0,					\
 	.scheduled = 0,					\
-	.prefetched = 0,					\
+	.prefetched = 0,				\
 	.dyn_handles = NULL,				\
 	.dyn_interfaces = NULL,				\
 	.dyn_modes = NULL,				\
