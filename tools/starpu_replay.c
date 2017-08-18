@@ -67,12 +67,12 @@ size_t * sizes_set;
 static size_t dependson_size;
 static size_t ndependson;
 
-static int nb_parameters = 0; /* Nummber of parameters */
+static int nb_parameters = 0; /* Number of parameters */
 static int alloc_mode; /* If alloc_mode value is 1, then the handles are stored in dyn_handles, else they are in handles */
 
 static unsigned int priority = 0;
 
-char * reg_signal = NULL; /* The register signal (0 or 1 coded on 8 bit) it is used to know which handle of the task has to be registered in StarPu */
+char * reg_signal = NULL; /* The register signal (0 or 1 coded on 8 bit) it is used to know which handle of the task has to be registered in StarPU */
 
 static int device;
 
@@ -106,14 +106,14 @@ static struct perfmodel
 struct s_dep
 {
 	jobid_t job_id;
-	jobid_t deps_jobid[NMAX_DEPENDENCIES]; /* That array has to contain the jobids of the dependencies, notice that the number of dependcies is limited to 16, modify NMAX_DEPENDENCIES at your convenience */
+	jobid_t deps_jobid[NMAX_DEPENDENCIES]; /* That array has to contain the jobids of the dependencies, notice that the number of dependencies is limited to 16, modify NMAX_DEPENDENCIES at your convenience */
 	size_t ndependson;
 };
 
 /* Declaration of an AoS (array of structures) */
 struct s_dep ** jobidDeps;
 size_t jobidDeps_size;
-static size_t ntask = 0; /* This is the number of dependent task (le nombre de tâches dépendantes) */
+static size_t ntask = 0; /* This is the number of dependent tasks */
 
 /* Settings for the perfmodel */
 struct task_arg
@@ -256,6 +256,7 @@ static void variable_data_register_check(size_t * array_of_size, int nb_handles)
 			/* Find the key that was stored in &handles_ptr[h] */
 
 			HASH_FIND(hh, handles_hash, handles_ptr+h, sizeof(handles_ptr[h]), strhandle_tmp);
+			STARPU_ASSERT(strhandle_tmp);
 
 			starpu_variable_data_register(handles_ptr+h, STARPU_MAIN_RAM, (uintptr_t) 1, array_of_size[h]);
 
@@ -303,7 +304,7 @@ void reset(void)
 	alloc_mode = 1;
 }
 
-/* Functions that submit all the tasks (used when the program reaches EOF) */
+/* Function that submits all the tasks (used when the program reaches EOF) */
 int submit_tasks(void)
 {
 	/* Add dependencies */
@@ -328,7 +329,7 @@ int submit_tasks(void)
 				/*  Get the ith jobid of deps_jobid */
 				HASH_FIND(hh, tasks, &jobidDeps[j]->deps_jobid[i], sizeof(jobid), taskdep);
 
-				assert(taskdep);
+				STARPU_ASSERT(taskdep);
 				taskdeps[i] = &taskdep->task;
 			}
 
