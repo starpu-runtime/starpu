@@ -88,6 +88,7 @@ void starpu_task_init(struct starpu_task *task)
 	task->where = -1;
 
 	/* Now we can initialise fields which recquire custom value */
+	/* Note: remember to update STARPU_TASK_INITIALIZER as well */
 #if STARPU_DEFAULT_PRIO != 0
 	task->priority = STARPU_DEFAULT_PRIO;
 #endif
