@@ -2362,7 +2362,7 @@ if test "x$enable_starpu_top" != "xno" ; then
 	if test x$QMAKE != xnot-found; then
 		QMAKE_VERSION=`$QMAKE --version 2>&1 | head -n 1 | cut -d '.' -f 1 | cut -d ' ' -f 3`
 		if test $QMAKE_VERSION -ge 2 ; then
-			PKG_CHECK_EXISTS([QtGui QtNetwork QtOpenGL QtSql], [
+			PKG_CHECK_EXISTS([QtGui QtOpenGL QtSql], [
 				QT_MAJVERSION=`$PKG_CONFIG --modversion QtGui | cut -d '.' -f 1`
 				QT_MINVERSION=`$PKG_CONFIG --modversion QtGui | cut -d '.' -f 2`
 				if test $QT_MAJVERSION -gt 4 -o \( $QT_MAJVERSION -eq 4 -a $QT_MINVERSION -ge 7 \) ; then
