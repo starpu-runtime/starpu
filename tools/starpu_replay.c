@@ -192,8 +192,9 @@ void array_init(unsigned long * arr, unsigned size)
 }
 
 /* Initializing s_dep structure */
-struct s_dep * s_dep_init(struct s_dep * sd, jobid_t job_id)
+struct s_dep * s_dep_init(jobid_t job_id)
 {
+	struct s_dep *sd;
 	_STARPU_MALLOC(sd, sizeof(*sd));
 	sd->job_id = jobid;
 	array_init((unsigned long *) sd->deps_jobid, 16);
@@ -515,7 +516,7 @@ int main(int argc, char **argv)
 			task->task.tag_id = tag;
 			task->task.use_tag = 1;
 
-			struct s_dep * sd = s_dep_init(sd, jobid);
+			struct s_dep *sd = s_dep_init(jobid);
 			array_dup((unsigned long *) dependson, (unsigned long *) sd->deps_jobid, ndependson);
 			sd->ndependson = ndependson;
 
