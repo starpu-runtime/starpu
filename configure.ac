@@ -2960,7 +2960,9 @@ if test x$enable_mlr = xyes -a "$starpu_windows" != "yes" ; then
 			else
 				AC_MSG_RESULT(no)
 				AC_MSG_CHECKING(min-dgels source)
-				cp -r $srcdir/min-dgels $PWD/
+				if test ! -d $PWD/min-dgels; then
+					cp -r $srcdir/min-dgels $PWD/
+				fi
 				AC_MSG_RESULT(yes)
 				DGELS_LIBS="-Wl,--start-group $STARPU_BUILD_DIR/min-dgels/build/*.a -Wl,--end-group"
 				AC_DEFINE(STARPU_MLR_MODEL, [1], [use user defined library])
