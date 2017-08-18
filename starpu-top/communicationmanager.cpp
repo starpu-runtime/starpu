@@ -1289,7 +1289,11 @@ void CommunicationManager::sendMessage(QString messageString)
 {
     messageString.append(COM_MSG_ENDL);
 
+#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
+    write(messageString.toLatin1());
+#else
     write(messageString.toAscii());
+#endif
 }
 
 void CommunicationManager::sendGoMessage()
