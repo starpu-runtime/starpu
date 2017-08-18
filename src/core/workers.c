@@ -2362,6 +2362,7 @@ void _starpu_worker_refuse_task(struct _starpu_worker *worker, struct starpu_tas
 		_starpu_set_current_task(NULL);
 	}
 	worker->ntasks--;
+	task->prefetched = 0;
 	int res = _starpu_push_task_to_workers(task);
 	STARPU_ASSERT_MSG(res == 0, "_starpu_push_task_to_workers() unexpectedly returned = %d\n", res);
 }
