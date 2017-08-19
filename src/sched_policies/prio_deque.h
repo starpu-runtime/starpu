@@ -23,7 +23,6 @@
 struct _starpu_prio_deque
 {
 	struct starpu_task_prio_list list;
-	int size_array;
 	unsigned ntasks;
 	unsigned nprocessed;
 	// Assumptions: 
