@@ -901,7 +901,7 @@ uintptr_t starpu_interface_map(uintptr_t src, size_t src_offset, unsigned src_no
 #if defined(STARPU_USE_CUDA) && defined(STARPU_USE_CUDA_MAP)
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_CUDA_RAM):
 		return _starpu_cuda_map_ram(
-				(void*) src + src_offset, src_node,
+				(void*) (src + src_offset), src_node,
 				dst_node,
 				size, ret);
 #endif
@@ -932,7 +932,7 @@ int starpu_interface_unmap(uintptr_t src, size_t src_offset, unsigned src_node, 
 #if defined(STARPU_USE_CUDA) && defined(STARPU_USE_CUDA_MAP)
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_CUDA_RAM):
 		return _starpu_cuda_unmap_ram(
-				(void*) src + src_offset, src_node,
+				(void*) (src + src_offset), src_node,
 				(void*) dst, dst_node,
 				size);
 #endif
