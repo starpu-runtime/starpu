@@ -569,6 +569,15 @@ starpu_mpi_task_post_build(MPI_COMM_WORLD, &cl,
                            0);
 \endcode
 
+\section MPIPriorities Priorities
+
+All send functions have a <c>_prio</c> variant which takes an additional
+priority parameter, which allows to make StarPU-MPI change the order of MPI
+requests before submitting them to MPI. The default priority is 0.
+
+When using the starpu_mpi_task_insert helper, STARPU_PRIORITY defines both the
+task priority and the MPI requests priority.
+
 \section MPICache MPI cache support
 
 StarPU-MPI automatically optimizes duplicate data transmissions: if an MPI

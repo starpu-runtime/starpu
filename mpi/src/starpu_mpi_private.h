@@ -24,6 +24,7 @@
 #include <starpu_mpi.h>
 #include <starpu_mpi_fxt.h>
 #include <common/list.h>
+#include <common/prio_list.h>
 #include <core/simgrid.h>
 
 #ifdef __cplusplus
@@ -199,6 +200,8 @@ LIST_TYPE(_starpu_mpi_req,
 	/* description of the data at StarPU level */
 	starpu_data_handle_t data_handle;
 
+	int prio;
+
 	/* description of the data to be sent/received */
 	MPI_Datatype datatype;
 	char *datatype_name;
@@ -261,6 +264,7 @@ LIST_TYPE(_starpu_mpi_req,
 #endif
 
 );
+PRIO_LIST_TYPE(_starpu_mpi_req, prio)
 
 struct _starpu_mpi_argc_argv
 {

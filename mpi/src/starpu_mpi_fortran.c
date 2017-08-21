@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2016, 2017  CNRS
  * Copyright (C) 2016  Inria
+ * Copyright (C) 2017  Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -120,6 +121,10 @@ void fstarpu_mpi_redux_data(MPI_Fint comm, starpu_data_handle_t data_handle)
 {
 	starpu_mpi_redux_data(MPI_Comm_f2c(comm), data_handle);
 }
+void fstarpu_mpi_redux_data_prio(MPI_Fint comm, starpu_data_handle_t data_handle, int prio)
+{
+	starpu_mpi_redux_data_prio(MPI_Comm_f2c(comm), data_handle, prio);
+}
 
 /* scatter/gather */
 int fstarpu_mpi_scatter_detached(starpu_data_handle_t *data_handles, int cnt, int root, MPI_Fint comm, void (*scallback)(void *), void *sarg, void (*rcallback)(void *), void *rarg)
@@ -137,6 +142,10 @@ int fstarpu_mpi_isend_detached_unlock_tag(starpu_data_handle_t data_handle, int 
 {
 	return starpu_mpi_isend_detached_unlock_tag(data_handle, dst, mpi_tag, MPI_Comm_f2c(comm), *starpu_tag);
 }
+int fstarpu_mpi_isend_detached_unlock_tag_prio(starpu_data_handle_t data_handle, int dst, int mpi_tag, int prio, MPI_Fint comm, starpu_tag_t *starpu_tag)
+{
+	return starpu_mpi_isend_detached_unlock_tag_prio(data_handle, dst, mpi_tag, prio, MPI_Comm_f2c(comm), *starpu_tag);
+}
 
 int fstarpu_mpi_irecv_detached_unlock_tag(starpu_data_handle_t data_handle, int src, int mpi_tag, MPI_Fint comm, starpu_tag_t *starpu_tag)
 {
@@ -144,7 +153,7 @@ int fstarpu_mpi_irecv_detached_unlock_tag(starpu_data_handle_t data_handle, int 
 }
 
 /* isend/irecv array detached unlock tag */
-int fstarpu_mpi_isend_array_detached_unlock_tag(int array_size, starpu_data_handle_t *data_handles, int *dsts, int *mpi_tags, MPI_Fint *_comms, starpu_tag_t *starpu_tag)
+int fstarpu_mpi_isend_array_detached_unlock_tag_prio(int array_size, starpu_data_handle_t *data_handles, int *dsts, int *mpi_tags, int *prio, MPI_Fint *_comms, starpu_tag_t *starpu_tag)
 {
 	MPI_Comm comms[array_size];
 	int i;
@@ -152,8 +161,12 @@ int fstarpu_mpi_isend_array_detached_unlock_tag(int array_size, starpu_data_hand
 	{
 		comms[i] = MPI_Comm_f2c(_comms[i]);
 	}
-	int ret = starpu_mpi_isend_array_detached_unlock_tag((unsigned)array_size, data_handles, dsts, mpi_tags, comms, *starpu_tag);
+	int ret = starpu_mpi_isend_array_detached_unlock_tag_prio((unsigned)array_size, data_handles, dsts, mpi_tags, prio, comms, *starpu_tag);
 	return ret;
+}
+int fstarpu_mpi_isend_array_detached_unlock_tag(int array_size, starpu_data_handle_t *data_handles, int *dsts, int *mpi_tags, MPI_Fint *_comms, starpu_tag_t *starpu_tag)
+{
+	return fstarpu_mpi_isend_array_detached_unlock_tag_prio(array_size, data_handles, dsts, mpi_tags, NULL, _comms, starpu_tag);
 }
 
 int fstarpu_mpi_irecv_array_detached_unlock_tag(int array_size, starpu_data_handle_t *data_handles, int *srcs, int *mpi_tags, MPI_Fint *_comms, starpu_tag_t *starpu_tag)
@@ -173,6 +186,10 @@ int fstarpu_mpi_isend(starpu_data_handle_t data_handle, starpu_mpi_req *req, int
 {
 	return starpu_mpi_isend(data_handle, req, dst, mpi_tag, MPI_Comm_f2c(comm));
 }
+int fstarpu_mpi_isend_prio(starpu_data_handle_t data_handle, starpu_mpi_req *req, int dst, int mpi_tag, int prio, MPI_Fint comm)
+{
+	return starpu_mpi_isend_prio(data_handle, req, dst, mpi_tag, prio, MPI_Comm_f2c(comm));
+}
 
 int fstarpu_mpi_irecv(starpu_data_handle_t data_handle, starpu_mpi_req *req, int src, int mpi_tag, MPI_Fint comm)
 {
@@ -183,6 +200,10 @@ int fstarpu_mpi_irecv(starpu_data_handle_t data_handle, starpu_mpi_req *req, int
 int fstarpu_mpi_send(starpu_data_handle_t data_handle, int dst, int mpi_tag, MPI_Fint comm)
 {
 	return starpu_mpi_send(data_handle, dst, mpi_tag, MPI_Comm_f2c(comm));
+}
+int fstarpu_mpi_send_prio(starpu_data_handle_t data_handle, int dst, int mpi_tag, int prio, MPI_Fint comm)
+{
+	return starpu_mpi_send_prio(data_handle, dst, mpi_tag, prio, MPI_Comm_f2c(comm));
 }
 
 int fstarpu_mpi_recv(starpu_data_handle_t data_handle, int src, int mpi_tag, MPI_Fint comm, MPI_Status *status)
@@ -195,6 +216,10 @@ int fstarpu_mpi_isend_detached(starpu_data_handle_t data_handle, int dst, int mp
 {
 	return starpu_mpi_isend_detached(data_handle, dst, mpi_tag, MPI_Comm_f2c(comm), callback, arg);
 }
+int fstarpu_mpi_isend_detached_prio(starpu_data_handle_t data_handle, int dst, int mpi_tag, int prio, MPI_Fint comm, void (*callback)(void *), void *arg)
+{
+	return starpu_mpi_isend_detached_prio(data_handle, dst, mpi_tag, prio, MPI_Comm_f2c(comm), callback, arg);
+}
 
 int fstarpu_mpi_irecv_detached(starpu_data_handle_t data_handle, int src, int mpi_tag, MPI_Fint comm, void (*callback)(void *), void *arg)
 {
@@ -206,10 +231,18 @@ int fstarpu_mpi_issend(starpu_data_handle_t data_handle, starpu_mpi_req *req, in
 {
 	return starpu_mpi_issend(data_handle, req, dst, mpi_tag, MPI_Comm_f2c(comm));
 }
+int fstarpu_mpi_issend_prio(starpu_data_handle_t data_handle, starpu_mpi_req *req, int dst, int mpi_tag, int prio, MPI_Fint comm)
+{
+	return starpu_mpi_issend_prio(data_handle, req, dst, mpi_tag, prio, MPI_Comm_f2c(comm));
+}
 
 int fstarpu_mpi_issend_detached(starpu_data_handle_t data_handle, int dst, int mpi_tag, MPI_Fint comm, void (*callback)(void *), void *arg)
 {
 	return starpu_mpi_issend_detached(data_handle, dst, mpi_tag, MPI_Comm_f2c(comm), callback, arg);
+}
+int fstarpu_mpi_issend_detached_prio(starpu_data_handle_t data_handle, int dst, int mpi_tag, int prio, MPI_Fint comm, void (*callback)(void *), void *arg)
+{
+	return starpu_mpi_issend_detached_prio(data_handle, dst, mpi_tag, prio, MPI_Comm_f2c(comm), callback, arg);
 }
 
 /* cache */
