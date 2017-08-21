@@ -50,7 +50,7 @@ void _starpu_mpi_early_data_shutdown(void)
 	struct _starpu_mpi_early_data_handle_hashlist *current, *tmp;
 	HASH_ITER(hh, _starpu_mpi_early_data_handle_hashmap, current, tmp)
 	{
-		_starpu_mpi_early_data_handle_list_delete(&current->list);
+		STARPU_ASSERT(_starpu_mpi_early_data_handle_list_empty(&current->list));
 		HASH_DEL(_starpu_mpi_early_data_handle_hashmap, current);
 		free(current);
 	}

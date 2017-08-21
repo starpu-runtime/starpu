@@ -45,8 +45,8 @@ void _starpu_mpi_early_request_shutdown()
 	struct _starpu_mpi_early_request_hashlist *entry, *tmp;
 	HASH_ITER(hh, _starpu_mpi_early_request_hash, entry, tmp)
 	{
+		STARPU_ASSERT(_starpu_mpi_req_list_empty(&entry->list));
 		HASH_DEL(_starpu_mpi_early_request_hash, entry);
-		_starpu_mpi_req_list_delete(&entry->list);
 		free(entry);
 	}
 	STARPU_PTHREAD_MUTEX_DESTROY(&_starpu_mpi_early_request_mutex);
