@@ -199,6 +199,15 @@ int _starpu_wait_data_request_completion(struct _starpu_data_request *r, unsigne
 
 	unsigned local_node = _starpu_memory_node_get_local_key();
 
+	struct _starpu_worker *worker = _starpu_get_local_worker_key();
+	enum _starpu_worker_status old_status = STATUS_UNKNOWN;
+
+	if (worker)
+	{
+		old_status = worker->status ;
+		_starpu_set_worker_status(worker, STATUS_WAITING);
+	}
+
 	do
 	{
 		STARPU_SYNCHRONIZE();
@@ -223,6 +232,11 @@ int _starpu_wait_data_request_completion(struct _starpu_data_request *r, unsigne
 
 	}
 	while (1);
+
+	if (worker)
+	{
+		_starpu_set_worker_status(worker, old_status);
+	}
 
 
 	retval = r->retval;

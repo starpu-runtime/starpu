@@ -19,6 +19,7 @@
 #include <common/thread.h>
 #include <common/fxt.h>
 #include <datawizard/memory_manager.h>
+#include <core/workers.h>
 #include <starpu_stdlib.h>
 
 static size_t global_size[STARPU_MAXNODES];
@@ -88,8 +89,22 @@ int starpu_memory_allocate(unsigned node, size_t size, int flags)
 			min_waiting_size[node] = size;
 
 		/* Wait for it */
+		struct _starpu_worker *worker = _starpu_get_local_worker_key();
+		enum _starpu_worker_status old_status = STATUS_UNKNOWN;
+
+		if (worker)
+		{
+			old_status = worker->status;
+			_starpu_set_worker_status(worker, STATUS_WAITING);
+		}
+
 		while (used_size[node] + size > global_size[node])
 			STARPU_PTHREAD_COND_WAIT(&cond_nodes[node], &lock_nodes[node]);
+
+		if (worker)
+		{
+			_starpu_set_worker_status(worker, old_status);
+		}
 
 		/* And take it */
 		used_size[node] += size;
