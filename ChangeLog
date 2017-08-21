@@ -48,6 +48,7 @@ Small features:
     STARPU_TASK_WHERE to be used when calling starpu_task_insert().
   * Add SubmitOrder trace field.
   * Add workerids and workerids_len task fields.
+  * Add priority management to StarPU-MPI.
 
 Changes:
   * Vastly improve simgrid simulation time.
