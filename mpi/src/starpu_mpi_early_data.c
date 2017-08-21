@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010-2014  Université de Bordeaux
+ * Copyright (C) 2009, 2010-2014, 2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -23,7 +23,7 @@
 
 struct _starpu_mpi_early_data_handle_hashlist
 {
-	struct _starpu_mpi_early_data_handle_list *list;
+	struct _starpu_mpi_early_data_handle_list list;
 	UT_hash_handle hh;
 	struct _starpu_mpi_node_tag node_tag;
 };
@@ -50,7 +50,7 @@ void _starpu_mpi_early_data_shutdown(void)
 	struct _starpu_mpi_early_data_handle_hashlist *current, *tmp;
 	HASH_ITER(hh, _starpu_mpi_early_data_handle_hashmap, current, tmp)
 	{
-		_starpu_mpi_early_data_handle_list_delete(current->list);
+		_starpu_mpi_early_data_handle_list_delete(&current->list);
 		HASH_DEL(_starpu_mpi_early_data_handle_hashmap, current);
 		free(current);
 	}
@@ -84,14 +84,14 @@ struct _starpu_mpi_early_data_handle *_starpu_mpi_early_data_find(struct _starpu
 	}
 	else
 	{
-		if (_starpu_mpi_early_data_handle_list_empty(hashlist->list))
+		if (_starpu_mpi_early_data_handle_list_empty(&hashlist->list))
 		{
 			early_data_handle = NULL;
 		}
 		else
 		{
 			_starpu_mpi_early_data_handle_hashmap_count --;
-			early_data_handle = _starpu_mpi_early_data_handle_list_pop_front(hashlist->list);
+			early_data_handle = _starpu_mpi_early_data_handle_list_pop_front(&hashlist->list);
 		}
 	}
 	_STARPU_MPI_DEBUG(60, "Found early_data_handle %p with comm %ld source %d tag %d\n", early_data_handle, (long int)node_tag->comm, node_tag->rank, node_tag->data_tag);
@@ -110,11 +110,11 @@ void _starpu_mpi_early_data_add(struct _starpu_mpi_early_data_handle *early_data
 	if (hashlist == NULL)
 	{
 		_STARPU_MPI_MALLOC(hashlist, sizeof(struct _starpu_mpi_early_data_handle_hashlist));
-		hashlist->list = _starpu_mpi_early_data_handle_list_new();
+		_starpu_mpi_early_data_handle_list_init(&hashlist->list);
 		hashlist->node_tag = early_data_handle->node_tag;
 		HASH_ADD(hh, _starpu_mpi_early_data_handle_hashmap, node_tag, sizeof(hashlist->node_tag), hashlist);
 	}
-	_starpu_mpi_early_data_handle_list_push_back(hashlist->list, early_data_handle);
+	_starpu_mpi_early_data_handle_list_push_back(&hashlist->list, early_data_handle);
 	_starpu_mpi_early_data_handle_hashmap_count ++;
 	STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_mpi_early_data_handle_mutex);
 }

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010-2014, 2016  Université de Bordeaux
+ * Copyright (C) 2009, 2010-2014, 2016-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -24,7 +24,7 @@
 /** stores application requests for which data have not been received yet */
 struct _starpu_mpi_early_request_hashlist
 {
-	struct _starpu_mpi_req_list *list;
+	struct _starpu_mpi_req_list list;
 	UT_hash_handle hh;
 	struct _starpu_mpi_node_tag node_tag;
 };
@@ -46,7 +46,7 @@ void _starpu_mpi_early_request_shutdown()
 	HASH_ITER(hh, _starpu_mpi_early_request_hash, entry, tmp)
 	{
 		HASH_DEL(_starpu_mpi_early_request_hash, entry);
-		_starpu_mpi_req_list_delete(entry->list);
+		_starpu_mpi_req_list_delete(&entry->list);
 		free(entry);
 	}
 	STARPU_PTHREAD_MUTEX_DESTROY(&_starpu_mpi_early_request_mutex);
@@ -82,13 +82,13 @@ struct _starpu_mpi_req* _starpu_mpi_early_request_dequeue(int data_tag, int sour
 	}
 	else
 	{
-		if (_starpu_mpi_req_list_empty(hashlist->list))
+		if (_starpu_mpi_req_list_empty(&hashlist->list))
 		{
 			found = NULL;
 		}
 		else
 		{
-			found = _starpu_mpi_req_list_pop_front(hashlist->list);
+			found = _starpu_mpi_req_list_pop_front(&hashlist->list);
 			_starpu_mpi_early_request_hash_count --;
 		}
 	}
@@ -107,11 +107,11 @@ void _starpu_mpi_early_request_enqueue(struct _starpu_mpi_req *req)
 	if (hashlist == NULL)
 	{
 		_STARPU_MPI_MALLOC(hashlist, sizeof(struct _starpu_mpi_early_request_hashlist));
-		hashlist->list = _starpu_mpi_req_list_new();
+		_starpu_mpi_req_list_init(&hashlist->list);
 		hashlist->node_tag = req->node_tag;
 		HASH_ADD(hh, _starpu_mpi_early_request_hash, node_tag, sizeof(hashlist->node_tag), hashlist);
 	}
-	_starpu_mpi_req_list_push_back(hashlist->list, req);
+	_starpu_mpi_req_list_push_back(&hashlist->list, req);
 	_starpu_mpi_early_request_hash_count ++;
 	STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_mpi_early_request_mutex);
 }
