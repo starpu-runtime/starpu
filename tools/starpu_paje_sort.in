@@ -94,7 +94,7 @@ for file in $inputfiles; do
     DefVar="$(get_event_num $file PajeDefineVariableType) "
     DefLink="$(get_event_num $file PajeDefineLinkType) "
     DefEnt="$(get_event_num $file PajeDefineEntityValue) "
-    CreatCont="$(get_event_num $file PajeCreateContainer) "
+    CreateCont="$(get_event_num $file PajeCreateContainer) "
     AddVar="$(get_event_num $file PajeAddVariable) "
 # Sorting traces
     grep -e "^\\(%\\|$DefCont\\|$DefEvent\\|$DefState\\|$DefVar\\|$DefLink\\|$DefEnt\\|$CreateCont\\|$AddVar\\)" $file > start.trace
