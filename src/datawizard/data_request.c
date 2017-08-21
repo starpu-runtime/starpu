@@ -211,10 +211,12 @@ int _starpu_wait_data_request_completion(struct _starpu_data_request *r, unsigne
 #endif
 
 	struct _starpu_worker *worker = _starpu_get_local_worker_key();
+	enum _starpu_worker_status old_status = STATUS_UNKNOWN;
 
 	if (worker)
 	{
-		STARPU_ASSERT(worker->status == STATUS_UNKNOWN);
+		old_status = worker->status ;
+		STARPU_ASSERT(old_status == STATUS_UNKNOWN || old_status == STATUS_WAITING);
 		_starpu_set_worker_status(worker, STATUS_WAITING);
 	}
 
@@ -254,7 +256,7 @@ int _starpu_wait_data_request_completion(struct _starpu_data_request *r, unsigne
 
 	if (worker)
 	{
-		_starpu_set_worker_status(worker, STATUS_UNKNOWN);
+		_starpu_set_worker_status(worker, old_status);
 	}
 
 #ifdef STARPU_SIMGRID
