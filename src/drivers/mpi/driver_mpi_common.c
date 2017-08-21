@@ -176,10 +176,7 @@ void _starpu_mpi_common_send(const struct _starpu_mp_node *node, void *msg, int 
 
                 /* Initialize the list */
                 if (channel->event.mpi_ms_event.requests == NULL)
-                {
                         channel->event.mpi_ms_event.requests = _starpu_mpi_ms_event_request_list_new();
-                        _starpu_mpi_ms_event_request_list_init(channel->event.mpi_ms_event.requests);
-                }
 
                 struct _starpu_mpi_ms_event_request * req = _starpu_mpi_ms_event_request_new();
 
@@ -226,10 +223,7 @@ void _starpu_mpi_common_recv(const struct _starpu_mp_node *node, void *msg, int 
 
                 /* Initialize the list */
                 if (channel->event.mpi_ms_event.requests == NULL)
-                {
                         channel->event.mpi_ms_event.requests = _starpu_mpi_ms_event_request_list_new();
-                        _starpu_mpi_ms_event_request_list_init(channel->event.mpi_ms_event.requests);
-                }
 
                 struct _starpu_mpi_ms_event_request * req = _starpu_mpi_ms_event_request_new();
 
@@ -278,10 +272,7 @@ void _starpu_mpi_common_send_to_device(const struct _starpu_mp_node *node, int d
 
                 /* Initialize the list */
                 if (channel->event.mpi_ms_event.requests == NULL)
-                {
                         channel->event.mpi_ms_event.requests = _starpu_mpi_ms_event_request_list_new();
-                        _starpu_mpi_ms_event_request_list_init(channel->event.mpi_ms_event.requests);
-                }
 
                 struct _starpu_mpi_ms_event_request * req = _starpu_mpi_ms_event_request_new();
 
@@ -322,10 +313,7 @@ void _starpu_mpi_common_recv_from_device(const struct _starpu_mp_node *node, int
 
                 /* Initialize the list */
                 if (channel->event.mpi_ms_event.requests == NULL)
-                {
                         channel->event.mpi_ms_event.requests = _starpu_mpi_ms_event_request_list_new();
-                        _starpu_mpi_ms_event_request_list_init(channel->event.mpi_ms_event.requests);
-                }
 
                 struct _starpu_mpi_ms_event_request * req = _starpu_mpi_ms_event_request_new();
 
