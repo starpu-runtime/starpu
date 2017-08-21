@@ -2492,14 +2492,19 @@ AC_ARG_ENABLE(fortran, [AS_HELP_STRING([--disable-fortran],
 use_mpi_fort=no
 if test "x$FC" != "x"; then
 	if $FC --version|grep -q 'GNU Fortran'; then
-		gfortran_fc_version=`$FC --version|head -1|sed 's/.*)//;s/^.*\([[0-9]][[0-9]]*\)\.\([[0-9]][[0-9]]*\)\.\([[0-9]][[0-9]]*\).*/\1.\2.\3/'`
-		gfortran_maj_version=`echo $gfortran_fc_version|cut -d. -f1`
-		gfortran_min_version=`echo $gfortran_fc_version|cut -d. -f2`
-
-		if test $gfortran_maj_version -lt 4 -o \( $gfortran_maj_version -eq 4 -a $gfortran_min_version -lt 9 \) ; then
-			AC_MSG_WARN([GFortran $gfortran_fc_version too old, version >= 4.9.x needed, Fortran examples will not be built])
-			enable_build_fortran="no"
-		fi
+		 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+     	         #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 9)
+                 int dummy;
+                 #else
+                 #error GFortran too old, version >= 4.9.x needed, Fortran examples will not be built
+                 #endif
+                 ]],
+                 )],
+                 [enable_build_fortran="yes"],
+                 [enable_build_fortran="no"])
+                 if test "$enable_build_fortran" = "no" ; then
+                   AC_MSG_WARN([GFortran too old, version >= 4.9.x needed, Fortran examples will not be built])
+                 fi
 	else
 		if $FC -V 2>&1|grep -q 'Intel(R) Fortran'; then
 			ifort_fc_version=`$FC -V 2>&1 |head -1|sed 's/.*Version //;s/ Build.*//'`
