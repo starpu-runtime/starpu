@@ -81,10 +81,11 @@ int starpu_memory_allocate(unsigned node, size_t size, int flags)
 	if (flags & STARPU_MEMORY_WAIT)
 	{
 		struct _starpu_worker *worker = _starpu_get_local_worker_key();
+		enum _starpu_worker_status old_status = STATUS_UNKNOWN;
 
 		if (worker)
 		{
-			STARPU_ASSERT(worker->status == STATUS_UNKNOWN);
+			old_status = worker->status;
 			_starpu_set_worker_status(worker, STATUS_WAITING);
 		}
 
@@ -100,7 +101,7 @@ int starpu_memory_allocate(unsigned node, size_t size, int flags)
 
 		if (worker)
 		{
-			_starpu_set_worker_status(worker, STATUS_UNKNOWN);
+			_starpu_set_worker_status(worker, old_status);
 		}
 
 		/* And take it */
