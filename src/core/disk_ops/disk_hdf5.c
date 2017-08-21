@@ -44,7 +44,7 @@ static starpu_pthread_t global_thread;        /* This thread will perform each w
 static volatile int global_run;                        /* Ask to the thread if he can continue */
 static starpu_pthread_mutex_t global_mutex;   /* Mutex is used to protect work_list and if HDF5 library is not safe */
 static starpu_pthread_cond_t global_cond;
-static struct _starpu_hdf5_work_list * global_work_list;        /* This list contains the work for the hdf5 thread */
+static struct _starpu_hdf5_work_list global_work_list;        /* This list contains the work for the hdf5 thread */
 #endif
 
 #ifdef H5_HAVE_THREADSAFE						
@@ -89,7 +89,7 @@ struct starpu_hdf5_base
         int run;                        /* Ask to the thread if he can continue */
 	starpu_pthread_mutex_t mutex;   /* Mutex is used to protect work_list and if HDF5 library is not safe */
         starpu_pthread_cond_t cond;
-        struct _starpu_hdf5_work_list * work_list;        /* This list contains the work for the hdf5 thread */
+        struct _starpu_hdf5_work_list work_list;        /* This list contains the work for the hdf5 thread */
 };
 
 struct starpu_hdf5_obj
@@ -224,18 +224,18 @@ static void * _starpu_hdf5_internal_thread(void * arg)
 #ifdef H5_HAVE_THREADSAFE
         struct starpu_hdf5_base * fileBase = (struct starpu_hdf5_base *) arg;
 #endif
-        while (HDF5_VAR_RUN || !_starpu_hdf5_work_list_empty(HDF5_VAR_WORK_LIST))
+        while (HDF5_VAR_RUN || !_starpu_hdf5_work_list_empty(&HDF5_VAR_WORK_LIST))
         {
                 STARPU_PTHREAD_MUTEX_LOCK(&HDF5_VAR_MUTEX);
-                if (_starpu_hdf5_work_list_empty(HDF5_VAR_WORK_LIST) && HDF5_VAR_RUN)
+                if (_starpu_hdf5_work_list_empty(&HDF5_VAR_WORK_LIST) && HDF5_VAR_RUN)
                         STARPU_PTHREAD_COND_WAIT(&HDF5_VAR_COND, &HDF5_VAR_MUTEX);
                 STARPU_PTHREAD_MUTEX_UNLOCK(&HDF5_VAR_MUTEX);
 
                 /* We are the only consummer here, don't need to protect here */
-                if (!_starpu_hdf5_work_list_empty(HDF5_VAR_WORK_LIST))
+                if (!_starpu_hdf5_work_list_empty(&HDF5_VAR_WORK_LIST))
                 {
                         STARPU_PTHREAD_MUTEX_LOCK(&HDF5_VAR_MUTEX);
-                        struct _starpu_hdf5_work * work = _starpu_hdf5_work_list_pop_back(HDF5_VAR_WORK_LIST);
+                        struct _starpu_hdf5_work * work = _starpu_hdf5_work_list_pop_back(&HDF5_VAR_WORK_LIST);
                         STARPU_PTHREAD_MUTEX_UNLOCK(&HDF5_VAR_MUTEX);
 
                         _starpu_hdf5_protect_start(work->base);
@@ -278,7 +278,7 @@ static void * _starpu_hdf5_internal_thread(void * arg)
 
 static void _starpu_hdf5_create_thread(struct starpu_hdf5_base * fileBase)
 {
-        HDF5_VAR_WORK_LIST = _starpu_hdf5_work_list_new();
+	_starpu_hdf5_work_list_init(&HDF5_VAR_WORK_LIST);
         HDF5_VAR_RUN = 1;
 
         STARPU_PTHREAD_COND_INIT(&HDF5_VAR_COND, NULL);
@@ -326,7 +326,7 @@ static void starpu_hdf5_send_work(void *base, void *obj, void *buf, off_t offset
         work->event = event;
 
         STARPU_PTHREAD_MUTEX_LOCK(&HDF5_VAR_MUTEX);
-        _starpu_hdf5_work_list_push_front(HDF5_VAR_WORK_LIST, work);
+        _starpu_hdf5_work_list_push_front(&HDF5_VAR_WORK_LIST, work);
         /* Wake up internal thread */
         STARPU_PTHREAD_COND_BROADCAST(&HDF5_VAR_COND);
         STARPU_PTHREAD_MUTEX_UNLOCK(&HDF5_VAR_MUTEX);
@@ -501,7 +501,7 @@ static void starpu_hdf5_unplug(void *base)
 		HDF5_VAR_RUN = 0;
 		STARPU_PTHREAD_COND_BROADCAST(&HDF5_VAR_COND);
 		STARPU_PTHREAD_COND_WAIT(&HDF5_VAR_COND, &HDF5_VAR_MUTEX);
-		_starpu_hdf5_work_list_delete(HDF5_VAR_WORK_LIST);
+		STARPU_ASSERT(_starpu_hdf5_work_list_empty(&HDF5_VAR_WORK_LIST);
 		HDF5_VAR_WORK_LIST = NULL;
 		/* the internal thread is deleted */
 #ifndef H5_HAVE_THREADSAFE
