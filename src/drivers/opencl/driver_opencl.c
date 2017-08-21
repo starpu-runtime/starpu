@@ -460,7 +460,7 @@ _starpu_opencl_map_ram(uintptr_t src, size_t src_offset, unsigned src_node STARP
 
 	STARPU_ASSERT(dst_node == worker->memory_node);
 
-	memory = clCreateBuffer(contexts[worker->devid], CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR, size, (void*)src + src_offset, &err);
+	memory = clCreateBuffer(contexts[worker->devid], CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR, size, (void*)(src + src_offset), &err);
 	if (err == CL_OUT_OF_HOST_MEMORY) return 0;
 	if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
@@ -493,7 +493,7 @@ _starpu_opencl_update_opencl_map(uintptr_t src, size_t src_offset, unsigned src_
 	STARPU_ASSERT(dst_node == worker->memory_node);
 
 	cl_event ev;
-	err = clEnqueueUnmapMemObject(map_queues[worker->devid], (cl_mem) dst, (void*) src + src_offset, 0, NULL, &ev);
+	err = clEnqueueUnmapMemObject(map_queues[worker->devid], (cl_mem) dst, (void*) (src + src_offset), 0, NULL, &ev);
 
 	if (STARPU_UNLIKELY(err))
 		STARPU_OPENCL_REPORT_ERROR(err);

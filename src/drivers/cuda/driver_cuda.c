@@ -1164,9 +1164,13 @@ _starpu_cuda_map_ram(void *src_ptr STARPU_ATTRIBUTE_UNUSED, unsigned src_node ST
 
 #ifdef STARPU_HAVE_CUDA_MNGMEM
 	const int cuda_managedMemory = props[worker->devid].managedMemory;
-	const int cuda_pageableMemoryAccess = props[worker->devid].pageableMemoryAccess;
 #else
 	const int cuda_managedMemory = 0;
+#endif
+
+#ifdef STARPU_HAVE_CUDA_PAGEABLEMEM
+	const int cuda_pageableMemoryAccess = props[worker->devid].pageableMemoryAccess;
+#else
 	const int cuda_pageableMemoryAccess = 0;
 #endif
 	uintptr_t dst_addr;
