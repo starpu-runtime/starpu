@@ -960,6 +960,9 @@ static void _starpu_src_common_worker_internal_work(struct _starpu_worker_set * 
 			_STARPU_TRACE_END_PROGRESS(memnode);
 			_starpu_set_local_worker_key(&worker_set->workers[i]);
 			_starpu_fetch_task_input_tail(task, j, &worker_set->workers[i]);
+			_starpu_set_worker_status(worker, STATUS_UNKNOWN);
+			/* Reset it */
+			worker_set->workers[i].task_transferring = NULL;
 
 			/* Execute the task */
 			res =  _starpu_src_common_execute(j, &worker_set->workers[i], mp_node);
@@ -978,8 +981,6 @@ static void _starpu_src_common_worker_internal_work(struct _starpu_worker_set * 
 					STARPU_ASSERT(0);
 			}
 
-			/* Reset it */
-			worker_set->workers[i].task_transferring = NULL;
 			_STARPU_TRACE_START_PROGRESS(memnode);
 		}
 	}

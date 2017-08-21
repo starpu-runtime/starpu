@@ -162,6 +162,9 @@ define starpu-workers
     if $worker->status == STATUS_SCHEDULING
       set $status="SCHEDULING"
     end
+    if $worker->status == STATUS_WAITING
+      set $status="WAITING"
+    end
     if $worker->status == STATUS_SLEEPING
       set $status="SLEEPING"
     end

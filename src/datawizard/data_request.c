@@ -210,6 +210,14 @@ int _starpu_wait_data_request_completion(struct _starpu_data_request *r, unsigne
 	starpu_pthread_queue_register(&wait, &_starpu_simgrid_transfer_queue[(unsigned) r->dst_replicate->memory_node]);
 #endif
 
+	struct _starpu_worker *worker = _starpu_get_local_worker_key();
+
+	if (worker)
+	{
+		STARPU_ASSERT(worker->status == STATUS_UNKNOWN);
+		_starpu_set_worker_status(worker, STATUS_WAITING);
+	}
+
 	do
 	{
 #ifdef STARPU_SIMGRID
@@ -243,6 +251,11 @@ int _starpu_wait_data_request_completion(struct _starpu_data_request *r, unsigne
 #endif
 	}
 	while (1);
+
+	if (worker)
+	{
+		_starpu_set_worker_status(worker, STATUS_UNKNOWN);
+	}
 
 #ifdef STARPU_SIMGRID
 	starpu_pthread_queue_unregister(&wait, &_starpu_simgrid_transfer_queue[local_node]);

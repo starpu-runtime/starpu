@@ -775,6 +775,7 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 
 			_starpu_set_local_worker_key(worker);
 			_starpu_fetch_task_input_tail(task, j, worker);
+			_starpu_set_worker_status(worker, STATUS_UNKNOWN);
 			/* Reset it */
 			worker->task_transferring = NULL;
 
