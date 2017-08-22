@@ -30,6 +30,8 @@
 #include <starpu_mpi_cache.h>
 #include <starpu_mpi_select_node.h>
 
+#include "starpu_mpi_task_insert.h"
+
 #define _SEND_DATA(data, mode, dest, data_tag, prio, comm, callback, arg)     \
 	if (mode & STARPU_SSEND)					\
 		starpu_mpi_issend_detached_prio(data, dest, data_tag, prio, comm, callback, arg); \
