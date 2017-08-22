@@ -230,7 +230,7 @@ extern unsigned long _starpu_job_cnt;
 static inline unsigned long _starpu_fxt_get_job_id(void)
 {
 	unsigned long ret = STARPU_ATOMIC_ADDL(&_starpu_job_cnt, 1);
-	STARPU_ASSERT_MSG(_starpu_job_cnt != 0, "Oops, job_id wrapped!");
+	STARPU_ASSERT_MSG(_starpu_job_cnt != 0, "Oops, job_id wrapped! There are too many tasks for tracking them for profiling");
 	return ret;
 }
 
@@ -267,7 +267,7 @@ extern unsigned long _starpu_submit_order;
 static inline unsigned long _starpu_fxt_get_submit_order(void)
 {
 	unsigned long ret = STARPU_ATOMIC_ADDL(&_starpu_submit_order, 1);
-	STARPU_ASSERT_MSG(_starpu_submit_order != 0, "Oops, submit_order wrapped!");
+	STARPU_ASSERT_MSG(_starpu_submit_order != 0, "Oops, submit_order wrapped! There are too many tasks for tracking them for profiling");
 	return ret;
 }
 
