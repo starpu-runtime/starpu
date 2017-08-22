@@ -70,7 +70,7 @@ static struct _starpu_mpi_req_prio_list ready_send_requests;
 
 /* The list of detached requests that have already been submitted to MPI */
 static struct _starpu_mpi_req_list detached_requests;
-static int detached_send_nrequests;
+static unsigned detached_send_nrequests;
 static starpu_pthread_mutex_t detached_requests_mutex;
 
 /* Condition to wake up progression thread */
@@ -1453,7 +1453,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 		}
 
 		/* get one recv request */
-		int n = 0;
+		unsigned n = 0;
 		while (!_starpu_mpi_req_list_empty(&ready_recv_requests))
 		{
 			struct _starpu_mpi_req *req;
