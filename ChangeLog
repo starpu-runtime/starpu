@@ -27,6 +27,7 @@ New features:
     --enable-mpi-master-slave option to activate it.
   * Add STARPU_CUDA_THREAD_PER_DEV environment variable to support driving all
     GPUs from only one thread when almost all kernels are asynchronous.
+  * Add starpu_replay tool to replay tasks.rec files with Simgrid.
 
 Small features:
   * Scheduling contexts may now be associated a user data pointer at creation
