@@ -32,8 +32,6 @@
 #include <core/debug.h>
 #include <limits.h>
 
-/* we need to identify each task to generate the DAG. */
-static unsigned long job_cnt = 0;
 static int max_memory_use;
 static int njobs, maxnjobs;
 
@@ -93,7 +91,7 @@ struct _starpu_job* STARPU_ATTRIBUTE_MALLOC _starpu_job_create(struct starpu_tas
 		|| STARPU_AYU_EVENT)
 #endif
 	{
-		job->job_id = STARPU_ATOMIC_ADDL(&job_cnt, 1);
+		job->job_id = _starpu_fxt_get_job_id();
 		STARPU_AYU_ADDTASK(job->job_id, task);
 		STARPU_ASSERT(job->job_id != ULONG_MAX);
 	}

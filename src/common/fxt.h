@@ -103,6 +103,8 @@
 
 #define _STARPU_FUT_TASK_NAME	0x512b
 
+#define _STARPU_FUT_DATA_WONT_USE	0x512c
+
 #define	_STARPU_FUT_START_MEMRECLAIM	0x5131
 #define	_STARPU_FUT_END_MEMRECLAIM	0x5132
 
@@ -249,6 +251,24 @@ static inline void _starpu_fxt_wait_initialisation()
 	while (!_starpu_fxt_started)
 		STARPU_PTHREAD_COND_WAIT(&_starpu_fxt_started_cond, &_starpu_fxt_started_mutex);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_fxt_started_mutex);
+}
+
+extern unsigned long _starpu_submit_order;
+
+static inline unsigned long _starpu_fxt_get_submit_order(void)
+{
+	unsigned long ret = STARPU_ATOMIC_ADDL(&_starpu_submit_order, 1);
+	STARPU_ASSERT_MSG(_starpu_submit_order != 0, "Oops, submit_order wrapped!");
+	return ret;
+}
+
+extern unsigned long _starpu_job_cnt;
+
+static inline unsigned long _starpu_fxt_get_job_id(void)
+{
+	unsigned long ret = STARPU_ATOMIC_ADDL(&_starpu_job_cnt, 1);
+	STARPU_ASSERT_MSG(_starpu_job_cnt != 0, "Oops, job_id wrapped!");
+	return ret;
 }
 
 long _starpu_gettid(void);
@@ -703,6 +723,9 @@ do {										\
 #define _STARPU_TRACE_DATA_COPY(src_node, dst_node, size)	\
 	FUT_DO_PROBE3(_STARPU_FUT_DATA_COPY, src_node, dst_node, size)
 
+#define _STARPU_TRACE_DATA_WONT_USE(handle)						\
+	FUT_DO_PROBE4(_STARPU_FUT_DATA_WONT_USE, handle, _starpu_fxt_get_submit_order(), _starpu_fxt_get_job_id(), _starpu_gettid())
+
 #define _STARPU_TRACE_START_DRIVER_COPY(src_node, dst_node, size, com_id, prefetch, handle) \
 	FUT_DO_PROBE6(_STARPU_FUT_START_DRIVER_COPY, src_node, dst_node, size, com_id, prefetch, handle)
 
@@ -743,7 +766,7 @@ do {										\
 	FUT_DO_PROBE1(_STARPU_FUT_WORKER_SLEEP_END, _starpu_gettid());
 
 #define _STARPU_TRACE_TASK_SUBMIT(job, iter, subiter)	\
-	FUT_DO_PROBE6(_STARPU_FUT_TASK_SUBMIT, (job)->job_id, iter, subiter, (job)->task->submit_order, (job)->task->priority, _starpu_gettid());
+	FUT_DO_PROBE6(_STARPU_FUT_TASK_SUBMIT, (job)->job_id, iter, subiter, _starpu_fxt_get_submit_order(), (job)->task->priority, _starpu_gettid());
 
 #define _STARPU_TRACE_TASK_SUBMIT_START()	\
 	FUT_DO_PROBE1(_STARPU_FUT_TASK_SUBMIT_START, _starpu_gettid());
@@ -1106,6 +1129,7 @@ do {										\
 #define _STARPU_TRACE_DATA_NAME(a, b)		do {(void)(a); (void)(b);} while(0)
 #define _STARPU_TRACE_DATA_COORDINATES(a, b, c)	do {(void)(a); (void)(b); (void)(c);} while(0)
 #define _STARPU_TRACE_DATA_COPY(a, b, c)		do {(void)(a); (void)(b); (void)(c);} while(0)
+#define _STARPU_TRACE_DATA_WONT_USE(a)		do {(void)(a);} while(0)
 #define _STARPU_TRACE_START_DRIVER_COPY(a,b,c,d,e,f)	do {(void)(a); (void)(b); (void)(c); (void)(d); (void)(e); (void)(f);} while(0)
 #define _STARPU_TRACE_END_DRIVER_COPY(a,b,c,d,e)	do {(void)(a); (void)(b); (void)(c); (void)(d); (void)(e);} while(0)
 #define _STARPU_TRACE_START_DRIVER_COPY_ASYNC(a,b)	do {(void)(a); (void)(b);} while(0)

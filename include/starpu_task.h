@@ -165,7 +165,6 @@ struct starpu_task
 	void *prologue_callback_pop_arg;
 
 	starpu_tag_t tag_id;
-	unsigned long submit_order;
 
 	unsigned cl_arg_free:1;
 	unsigned callback_arg_free:1;

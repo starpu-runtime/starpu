@@ -2106,6 +2106,21 @@ static void handle_data_coordinates(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 		data->dims[i] = ev->param[i+2];
 }
 
+static void handle_data_wont_use(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	unsigned long handle = ev->param[0];
+	unsigned long submit_order = ev->param[1];
+	unsigned long job_id = ev->param[2];
+
+	fprintf(tasks_file, "Control: WontUse\n");
+	fprintf(tasks_file, "JobId: %lu\n", job_id);
+	fprintf(tasks_file, "SubmitOrder: %lu\n", submit_order);
+	fprintf(tasks_file, "SubmitTime: %f\n", get_event_time_stamp(ev, options));
+	fprintf(tasks_file, "Handles: %lx\n", handle);
+	fprintf(tasks_file, "MPIRank: %d\n", options->file_rank);
+	fprintf(tasks_file, "\n");
+}
+
 static void handle_mpi_data_set_rank(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	unsigned long handle = ev->param[0];
@@ -3378,6 +3393,10 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 
 			case _STARPU_FUT_DATA_COORDINATES:
 				handle_data_coordinates(&ev, options);
+				break;
+
+			case _STARPU_FUT_DATA_WONT_USE:
+				handle_data_wont_use(&ev, options);
 				break;
 
 			case _STARPU_FUT_START_DRIVER_COPY:

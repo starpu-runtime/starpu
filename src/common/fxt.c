@@ -40,6 +40,11 @@ int _starpu_fxt_started = 0;
 starpu_pthread_mutex_t _starpu_fxt_started_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 starpu_pthread_cond_t _starpu_fxt_started_cond = STARPU_PTHREAD_COND_INITIALIZER;
 
+/* we need to identify each task to generate the DAG. */
+unsigned long _starpu_job_cnt = 0;
+/* and their submission order. */
+unsigned long _starpu_submit_order = 0;
+
 static int _starpu_written = 0;
 
 static int _starpu_id;
