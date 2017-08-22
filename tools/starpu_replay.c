@@ -17,7 +17,9 @@
 
 /*
  * This reads a tasks.rec file and replays the recorded task graph.
- * Currently, this is done for simgrid
+ * Currently, this version is done to run with simgrid.
+ * 
+ * For further information, contact erwan.leria@inria.fr
  */
 
 #include <starpu.h>
@@ -28,9 +30,13 @@
 #include <common/uthash.h>
 #include <common/utils.h>
 #include <starpu_scheduler.h>
+#include <rbtree.h>
+#include <common/utils.h>
 
-#define NMAX_DEPENDENCIES 16
+#define REPLAY_NMAX_DEPENDENCIES 8
 
+#define ARRAY_DUP(in, out, n) memcpy(out, in, n * sizeof(*out))
+#define ARRAY_INIT(array, n) memset(array, 0, n * sizeof(*array))
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -44,7 +50,7 @@ static char *name = NULL;
 static char *model = NULL;
 static jobid_t jobid;
 static jobid_t *dependson;
-static unsigned int submitorder;
+static unsigned int submitorder = -1;
 static starpu_tag_t tag;
 static int workerid;
 static uint32_t footprint;
@@ -70,7 +76,7 @@ static size_t ndependson;
 static int nb_parameters = 0; /* Number of parameters */
 static int alloc_mode; /* If alloc_mode value is 1, then the handles are stored in dyn_handles, else they are in handles */
 
-static unsigned int priority = 0;
+static int priority = 0;
 
 char * reg_signal = NULL; /* The register signal (0 or 1 coded on 8 bit) it is used to know which handle of the task has to be registered in StarPU */
 
@@ -79,10 +85,15 @@ static int device;
 /* Record all tasks, hashed by jobid. */
 static struct task
 {
+	struct starpu_rbtree_node node;
 	UT_hash_handle hh;
 	jobid_t jobid;
         int iteration;
+	unsigned int submit_order;
+	jobid_t deps[REPLAY_NMAX_DEPENDENCIES];
+	size_t ndependson;
 	struct starpu_task task;
+	
 } *tasks;
 
 /* Record handles */
@@ -102,18 +113,33 @@ static struct perfmodel
 	char * model_name;
 } * model_hash;
 
-/* Record a dependent task by its jobid and the jobids of its dependencies */
-struct s_dep
-{
-	jobid_t job_id;
-	jobid_t deps_jobid[NMAX_DEPENDENCIES]; /* That array has to contain the jobids of the dependencies, notice that the number of dependencies is limited to 16, modify NMAX_DEPENDENCIES at your convenience */
-	size_t ndependson;
-};
+//* * Record a dependent task by its jobid and the jobids of its dependencies *\/ */
+/* struct s_dep */
+/* { */
+/* 	jobid_t job_id; */
+/* 	jobid_t deps_jobid[REPLAY_NMAX_DEPENDENCIES]; /\* That array has to contain the jobids of the dependencies, notice that the number of dependencies is limited to 16, modify NMAX_DEPENDENCIES at your convenience *\/ */
+/* 	size_t ndependson; */
+/* }; */
 
-/* Declaration of an AoS (array of structures) */
-struct s_dep ** jobidDeps;
-size_t jobidDeps_size;
-static size_t ntask = 0; /* This is the number of dependent tasks */
+
+
+
+/* [SUBMITORDER] The tree of the submit order */
+
+static struct starpu_rbtree tree = STARPU_RBTREE_INITIALIZER;
+
+/* the cmp_fn arg for rb_tree_insert() */
+unsigned int diff(struct starpu_rbtree_node * left_elm, struct starpu_rbtree_node * right_elm)
+{
+	return ((struct task *) left_elm)->submit_order - ((struct task *) right_elm)->submit_order;
+}
+
+
+/* /\* Declaration of an AoS (array of structures) *\/ */
+/* struct s_dep ** jobidDeps; */
+/* size_t jobidDeps_size; */
+/* static size_t ntask = 0; /\* This is the number of dependent tasks *\/ */
+
 
 /* Settings for the perfmodel */
 struct task_arg
@@ -130,6 +156,7 @@ uint32_t get_footprint(struct starpu_task * task)
 double arch_cost_function(struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl STARPU_ATTRIBUTE_UNUSED)
 {
 	device = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
+	STARPU_ASSERT(device != -1);
 
 	/* Then, get the pointer to the value of the expected time */
 	double * val = (double *) ((struct task_arg *) (task->cl_arg))->perf+device;
@@ -177,48 +204,11 @@ static struct starpu_codelet cl =
 	.model = &myperfmodel,
 };
 
+
 /* * * * * * * * * * * * * *
 * * * * * Functions * * * * *
 * * * * * * * * * * * * * * */
 
-/* Initializing an array with 0 */
-void array_init(unsigned long * arr, unsigned size)
-{
-	unsigned i;
-	for (i = 0 ; i < size ; i++)
-	{
-		arr[i] = 0;
-	}
-}
-
-/* Initializing s_dep structure */
-struct s_dep * s_dep_init(jobid_t job_id)
-{
-	struct s_dep *sd;
-	_STARPU_MALLOC(sd, sizeof(*sd));
-	sd->job_id = jobid;
-	array_init((unsigned long *) sd->deps_jobid, 16);
-	sd->ndependson = 0;
-
-	return sd;
-}
-
-/* Remove s_dep structure */
-void s_dep_remove(struct s_dep * sd)
-{
-	free(sd);
-}
-
-/* Array duplication */
-static void array_dup(unsigned long * in_arr, unsigned long * out_arr, int size)
-{
-	int i;
-
-	for (i = 0 ; i < size ; i++)
-	{
-		out_arr[i] = in_arr[i];
-	}
-}
 
 /* The following function checks if the program has to use static or dynamic arrays*/
 static int set_alloc_mode(int total_parameters)
@@ -292,13 +282,16 @@ void reset(void)
 	}
 
 	jobid = 0;
-	submitorder = 0;
 	ndependson = 0;
 	tag = -1;
 	workerid = -1;
 	footprint = 0;
 	startTime = 0.0;
 	endTime = 0.0;
+
+	if (submitorder != -1)
+		submitorder = -1;
+	
 	iteration = -1;
 	nb_parameters = 0;
 	alloc_mode = 1;
@@ -308,32 +301,31 @@ void reset(void)
 int submit_tasks(void)
 {
 	/* Add dependencies */
-	unsigned j;
+	const struct starpu_rbtree * tmptree = &tree;
 
-	for(j = 0; j < ntask ; j++)
+	while (!starpu_rbtree_empty(tmptree))
 	{
-		struct task * currentTask;
+		struct starpu_rbtree_node * currentNode = starpu_rbtree_first(tmptree);
+		struct task * currentTask = (struct task *) currentNode;
 
-		/* Looking for the task associate to the jobid of the jth element of jobidDeps */
-		HASH_FIND(hh, tasks, &jobidDeps[j]->job_id, sizeof(jobid), currentTask);
-
-		if (jobidDeps[j]->ndependson > 0)
+		if (currentTask->ndependson > 0)
 		{
-			struct starpu_task * taskdeps[jobidDeps[j]->ndependson];
+			struct starpu_task * taskdeps[currentTask->ndependson];
 			unsigned i;
 
-			for (i = 0; i < jobidDeps[j]->ndependson; i++)
+			for (i = 0; i < currentTask->ndependson; i++)
 			{
 				struct task * taskdep;
 
 				/*  Get the ith jobid of deps_jobid */
-				HASH_FIND(hh, tasks, &jobidDeps[j]->deps_jobid[i], sizeof(jobid), taskdep);
+				HASH_FIND(hh, tasks, &currentTask->deps[i], sizeof(jobid), taskdep);
 
 				STARPU_ASSERT(taskdep);
+			
 				taskdeps[i] = &taskdep->task;
 			}
 
-			starpu_task_declare_deps_array(&currentTask->task, jobidDeps[j]->ndependson, taskdeps);
+			starpu_task_declare_deps_array(&currentTask->task, currentTask->ndependson, taskdeps);
 		}
 
 		if (!(currentTask->iteration == -1))
@@ -344,9 +336,12 @@ int submit_tasks(void)
 		if (!(currentTask->iteration == -1))
 			starpu_iteration_pop();
 
-		//printf("name : %s \n", currentTask->task.name);
 
-		printf("submitting task %s (%lu, %llu)\n", currentTask->task.name?currentTask->task.name:"anonymous", jobidDeps[j]->job_id, (unsigned long long) currentTask->task.tag_id /* tag*/);
+		printf("submitting task %s (%lu, %llu)\n", currentTask->task.name?currentTask->task.name:"anonymous", currentTask->jobid, (unsigned long long) currentTask->task.tag_id /* tag*/);
+
+		starpu_rbtree_remove(&tree, currentNode);
+		//free(currentNode);
+		tmptree = &tree;
 
 		if (ret_val != 0)
 			return -1;
@@ -369,10 +364,8 @@ int main(int argc, char **argv)
 	size_t s_allocated = 128;
 
 	_STARPU_MALLOC(s, s_allocated);
-	dependson_size = NMAX_DEPENDENCIES;
-	jobidDeps_size = 512;
+	dependson_size = REPLAY_NMAX_DEPENDENCIES;
 	_STARPU_MALLOC(dependson, dependson_size * sizeof (* dependson));
-	_STARPU_MALLOC(jobidDeps, jobidDeps_size * sizeof(* jobidDeps));
 	alloc_mode = 1;
 
 	if (argc <= 1)
@@ -433,20 +426,31 @@ int main(int argc, char **argv)
 		if (ln == s)
 		{
 			/* Empty line, do task */
-			struct task *task;
 
+			struct task * task;
 			_STARPU_MALLOC(task, sizeof(*task));
+			
+			starpu_task_init(&task->task);
+
+			if (submitorder != -1)
+			{
+				task->submit_order = submitorder;
+
+				starpu_rbtree_node_init(&task->node);
+				starpu_rbtree_insert(&tree, &task->node, diff);
+			}
+
+
 			task->jobid = jobid;
 			task->iteration = iteration;
-			starpu_task_init(&task->task);
 
 			if (name != NULL)
 				task->task.name = strdup(name);
-			task->task.submit_order = submitorder;
 
 			/* Check workerid */
 			if (workerid >= 0)
 			{
+				task->task.priority = priority;
 				task->task.cl = &cl;
 				task->task.workerid = workerid;
 
@@ -454,16 +458,16 @@ int main(int argc, char **argv)
 				{
 					/* Duplicating the handles stored (and registered in the current context) into the task */
 
-					array_dup((unsigned long *) modes_ptr, (unsigned long *) task->task.modes, nb_parameters);
-					array_dup((unsigned long *) modes_ptr, (unsigned long *) task->task.cl->modes, nb_parameters);
+					ARRAY_DUP(modes_ptr, task->task.modes, nb_parameters);
+					ARRAY_DUP(modes_ptr, task->task.cl->modes, nb_parameters);
 					variable_data_register_check(sizes_set, nb_parameters);
-					array_dup((unsigned long *) handles_ptr, (unsigned long *) task->task.handles, nb_parameters);
+					ARRAY_DUP(handles_ptr, task->task.handles, nb_parameters);
 				}
 				else
 				{
 					task->task.dyn_modes = modes_ptr;
-					_STARPU_MALLOC(task->task.cl->dyn_modes, sizeof(starpu_data_handle_t) * nb_parameters);
-					array_dup((unsigned long *) modes_ptr, (unsigned long *) task->task.cl->dyn_modes, nb_parameters);
+					_STARPU_MALLOC(task->task.cl->dyn_modes, (sizeof(*task->task.cl->dyn_modes) * nb_parameters));
+					ARRAY_DUP(modes_ptr, task->task.cl->dyn_modes, nb_parameters);
 					variable_data_register_check(sizes_set, nb_parameters);
 					task->task.dyn_handles = handles_ptr;
 				}
@@ -479,7 +483,7 @@ int main(int argc, char **argv)
 					int len = strlen(model);
 					_STARPU_CALLOC(realmodel, 1, sizeof(struct perfmodel));
 
-					realmodel->model_name = (char *) malloc(sizeof(char) * (len+1));
+					_STARPU_MALLOC(realmodel->model_name, sizeof(char) * (len+1));
 					realmodel->model_name = strcpy(realmodel->model_name, model);
 
 					starpu_perfmodel_init(&realmodel->perfmodel);
@@ -496,6 +500,7 @@ int main(int argc, char **argv)
 				}
 
 				int narch = starpu_perfmodel_get_narch_combs();
+
 				struct task_arg *arg;
 				_STARPU_MALLOC(arg, sizeof(struct task_arg) + sizeof(double) * narch);
 				arg->footprint = footprint;
@@ -504,7 +509,7 @@ int main(int argc, char **argv)
 
 				for (i = 0; i < narch ; i++)
 				{
-					struct starpu_perfmodel_arch * arch = starpu_perfmodel_arch_comb_fetch(i);
+					struct starpu_perfmodel_arch *arch = starpu_perfmodel_arch_comb_fetch(i);
 					perfTime[i] = starpu_perfmodel_history_based_expected_perf(&realmodel->perfmodel, arch, footprint);
 				}
 
@@ -517,24 +522,15 @@ int main(int argc, char **argv)
 			task->task.tag_id = tag;
 			task->task.use_tag = 1;
 
-			struct s_dep *sd = s_dep_init(jobid);
-			array_dup((unsigned long *) dependson, (unsigned long *) sd->deps_jobid, ndependson);
-			sd->ndependson = ndependson;
+			task->ndependson = ndependson;
+			ARRAY_DUP(dependson, task->deps, ndependson);
 
-			if (ntask >= jobidDeps_size)
-			{
-				jobidDeps_size *= 2;
-				_STARPU_REALLOC(jobidDeps, jobidDeps_size * sizeof(*jobidDeps));
-			}
-
-			jobidDeps[ntask] = sd;
-			ntask++;
 
 			// TODO: call applyOrdoRec(task);
 			//
 			// Tag: 1234
 			// Priority: 12
-			// Workerid: 0   (-> ExecuteOnSpecificWorker)
+			// ExecuteOnSpecificWorker: 1
 			// Workers: 0 1 2
 			// DependsOn: 1235
 			//
@@ -612,9 +608,9 @@ int main(int argc, char **argv)
 		}
 		else if (TEST("Handles"))
 		{
-			char * buffer = s + 9;
-			const char * delim = " ";
-			char * token = strtok(buffer, delim);
+			char *buffer = s + 9;
+			const char *delim = " ";
+			char *token = strtok(buffer, delim);
 
 			while (token != NULL)
 			{
@@ -622,7 +618,7 @@ int main(int argc, char **argv)
 
 				for (i = 0 ; i < nb_parameters ; i++)
 				{
-					struct handle * handles_cell; /* A cell of the hash table for the handles */
+					struct handle *handles_cell; /* A cell of the hash table for the handles */
 					starpu_data_handle_t  handle_value = (starpu_data_handle_t) strtol(token, NULL, 16); /* Get the ith handle on the line */
 
 					HASH_FIND(hh, handles_hash, &handle_value, sizeof(handle_value), handles_cell); /* Find if the handle_value was already registered as a key in the hash table */
@@ -632,10 +628,10 @@ int main(int argc, char **argv)
 						_STARPU_MALLOC(handles_cell, sizeof(*handles_cell));
 						handles_cell->handle = handle_value;
 
+
 						HASH_ADD(hh, handles_hash, handle, sizeof(handle_value), handles_cell); /* If it wasn't, then add it to the hash table */
 
 						handles_ptr[i] = handle_value;
-
 						reg_signal[i] = 1;
 					}
 					else
@@ -719,8 +715,6 @@ int main(int argc, char **argv)
 		{
 			priority = strtol(s + 10, NULL, 10);
 		}
-		/* ignore */
-		//else fprintf(stderr,"warning: unknown '%s' field\n", s);
 	}
 
 eof:
@@ -732,16 +726,8 @@ eof:
 	free(dependson);
 	free(s);
 
-	unsigned i;
-	for (i  = 0; i < ntask ; i++)
-	{
-		s_dep_remove(jobidDeps[i]);
-	}
-
-	free(jobidDeps);
-
 	/* End of FREE */
-
+	
 	struct handle * handle,* handletmp;
 	HASH_ITER(hh, handles_hash, handle, handletmp)
 	{
@@ -764,6 +750,13 @@ eof:
 	{
 		free(task->task.cl_arg);
 		free((char*)task->task.name);
+		
+		if (task->task.dyn_handles != NULL)
+		{
+			free(task->task.dyn_handles);
+			free(task->task.dyn_modes);
+		}
+		
 		HASH_DEL(tasks, task);
 		starpu_task_clean(&task->task);
 		free(task);
