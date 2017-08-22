@@ -44,8 +44,13 @@
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+
+/* Enum for normal and "wontuse" tasks */
+enum task_type {NormalTask, WontUseTask};
+
 typedef unsigned long jobid_t;
 
+enum task_type control;
 static char *name = NULL;
 static char *model = NULL;
 static jobid_t jobid;
@@ -63,6 +68,7 @@ static int iteration = -1;
 
 static starpu_data_handle_t handles[STARPU_NMAXBUFS];
 static enum starpu_data_access_mode modes[STARPU_NMAXBUFS];
+static char normal_reg_signal[STARPU_NMAXBUFS];
 
 /* Use the following arrays when the number of data is greater than STARPU_NMAXBUFS */
 
@@ -78,7 +84,7 @@ static int alloc_mode; /* If alloc_mode value is 1, then the handles are stored 
 
 static int priority = 0;
 
-char * reg_signal = NULL; /* The register signal (0 or 1 coded on 8 bit) it is used to know which handle of the task has to be registered in StarPU */
+char * reg_signal = NULL; /* The register signal (0 or 1 coded on 8 bit) is used to know which handle of the task has to be registered in StarPU (in fact to avoid  handle twice)*/
 
 static int device;
 
@@ -93,6 +99,7 @@ static struct task
 	jobid_t deps[REPLAY_NMAX_DEPENDENCIES];
 	size_t ndependson;
 	struct starpu_task task;
+	enum task_type type;
 	
 } *tasks;
 
@@ -113,17 +120,6 @@ static struct perfmodel
 	char * model_name;
 } * model_hash;
 
-//* * Record a dependent task by its jobid and the jobids of its dependencies *\/ */
-/* struct s_dep */
-/* { */
-/* 	jobid_t job_id; */
-/* 	jobid_t deps_jobid[REPLAY_NMAX_DEPENDENCIES]; /\* That array has to contain the jobids of the dependencies, notice that the number of dependencies is limited to 16, modify NMAX_DEPENDENCIES at your convenience *\/ */
-/* 	size_t ndependson; */
-/* }; */
-
-
-
-
 /* [SUBMITORDER] The tree of the submit order */
 
 static struct starpu_rbtree tree = STARPU_RBTREE_INITIALIZER;
@@ -133,13 +129,6 @@ unsigned int diff(struct starpu_rbtree_node * left_elm, struct starpu_rbtree_nod
 {
 	return ((struct task *) left_elm)->submit_order - ((struct task *) right_elm)->submit_order;
 }
-
-
-/* /\* Declaration of an AoS (array of structures) *\/ */
-/* struct s_dep ** jobidDeps; */
-/* size_t jobidDeps_size; */
-/* static size_t ntask = 0; /\* This is the number of dependent tasks *\/ */
-
 
 /* Settings for the perfmodel */
 struct task_arg
@@ -223,11 +212,13 @@ static void arrays_managing(int mode)
 	{
 		handles_ptr = &handles[0];
 		modes_ptr = &modes[0];
+		reg_signal = &normal_reg_signal[0];
 	}
 	else
 	{
 		_STARPU_MALLOC(handles_ptr, sizeof(*handles_ptr) * nb_parameters);
 		_STARPU_MALLOC(modes_ptr, sizeof(*modes_ptr) * nb_parameters);
+		_STARPU_CALLOC(reg_signal, nb_parameters, sizeof(char *));
 
 	}
 }
@@ -241,22 +232,25 @@ static void variable_data_register_check(size_t * array_of_size, int nb_handles)
 	{
 		if(reg_signal[h]) /* Get the register signal, and if it's 1 do ... */
 		{
-			struct handle * strhandle_tmp;
+			struct handle * handles_cell;
 
-			/* Find the key that was stored in &handles_ptr[h] */
-
-			HASH_FIND(hh, handles_hash, handles_ptr+h, sizeof(handles_ptr[h]), strhandle_tmp);
-			STARPU_ASSERT(strhandle_tmp);
+			_STARPU_MALLOC(handles_cell, sizeof(*handles_cell));
+			STARPU_ASSERT(handles_cell != NULL);
+			
+			handles_cell->handle = handles_ptr[h];
+			HASH_ADD(hh, handles_hash, handle, sizeof(handles_ptr[h]), handles_cell);
 
 			starpu_variable_data_register(handles_ptr+h, STARPU_MAIN_RAM, (uintptr_t) 1, array_of_size[h]);
 
-			strhandle_tmp->mem_ptr = handles_ptr[h];
+			handles_cell->mem_ptr = handles_ptr[h];
 		}
 	}
 }
 
 void reset(void)
 {
+	control = NormalTask;
+	
 	if (name != NULL)
 	{
 		free(name);
@@ -277,8 +271,15 @@ void reset(void)
 
 	if (reg_signal != NULL)
 	{
-		free(reg_signal);
-		reg_signal = NULL;
+		if (!alloc_mode)
+		{
+			free(reg_signal);
+			reg_signal = NULL;
+		}
+		else
+		{
+			ARRAY_INIT(reg_signal, nb_parameters);
+		}
 	}
 
 	jobid = 0;
@@ -297,56 +298,73 @@ void reset(void)
 	alloc_mode = 1;
 }
 
+void fix_wontuse_handle(struct task * wontuseTask) {
+	
+	struct handle * handle_tmp;
+	HASH_FIND(hh, handles_hash, &wontuseTask->task.handles[0], sizeof(wontuseTask->task.handles[0]), handle_tmp);
+	wontuseTask->task.handles[0] = handle_tmp->mem_ptr;
+
+}
+
 /* Function that submits all the tasks (used when the program reaches EOF) */
 int submit_tasks(void)
 {
 	/* Add dependencies */
 	const struct starpu_rbtree * tmptree = &tree;
+	struct starpu_rbtree_node * currentNode = starpu_rbtree_first(tmptree);
 
-	while (!starpu_rbtree_empty(tmptree))
+	while (currentNode != NULL)
 	{
-		struct starpu_rbtree_node * currentNode = starpu_rbtree_first(tmptree);
 		struct task * currentTask = (struct task *) currentNode;
 
-		if (currentTask->ndependson > 0)
+		if (currentTask->type == NormalTask)
 		{
-			struct starpu_task * taskdeps[currentTask->ndependson];
-			unsigned i;
 
-			for (i = 0; i < currentTask->ndependson; i++)
+			if (currentTask->ndependson > 0)
 			{
-				struct task * taskdep;
+				struct starpu_task * taskdeps[currentTask->ndependson];
+				unsigned i;
 
-				/*  Get the ith jobid of deps_jobid */
-				HASH_FIND(hh, tasks, &currentTask->deps[i], sizeof(jobid), taskdep);
+				for (i = 0; i < currentTask->ndependson; i++)
+				{
+					struct task * taskdep;
 
-				STARPU_ASSERT(taskdep);
+					/*  Get the ith jobid of deps_jobid */
+					HASH_FIND(hh, tasks, &currentTask->deps[i], sizeof(jobid), taskdep);
+
+					STARPU_ASSERT(taskdep);
 			
-				taskdeps[i] = &taskdep->task;
+					taskdeps[i] = &taskdep->task;
+				}
+
+				starpu_task_declare_deps_array(&currentTask->task, currentTask->ndependson, taskdeps);
 			}
 
-			starpu_task_declare_deps_array(&currentTask->task, currentTask->ndependson, taskdeps);
+			if (!(currentTask->iteration == -1))
+				starpu_iteration_push(currentTask->iteration);
+
+			int ret_val = starpu_task_submit(&currentTask->task);
+
+			if (!(currentTask->iteration == -1))
+				starpu_iteration_pop();
+
+			if (ret_val != 0)
+				return -1;
+
+
+			printf("submitting task %s (%lu, %llu)\n", currentTask->task.name?currentTask->task.name:"anonymous", currentTask->jobid, (unsigned long long) currentTask->task.tag_id /* tag*/);
 		}
 
-		if (!(currentTask->iteration == -1))
-			starpu_iteration_push(currentTask->iteration);
+		else
+		{
+			fix_wontuse_handle(currentTask);
+			starpu_data_wont_use(currentTask->task.handles[0]);
+		}
 
-		int ret_val = starpu_task_submit(&currentTask->task);
-
-		if (!(currentTask->iteration == -1))
-			starpu_iteration_pop();
-
-
-		printf("submitting task %s (%lu, %llu)\n", currentTask->task.name?currentTask->task.name:"anonymous", currentTask->jobid, (unsigned long long) currentTask->task.tag_id /* tag*/);
-
-		starpu_rbtree_remove(&tree, currentNode);
-		//free(currentNode);
+		currentNode = starpu_rbtree_next(currentNode);
 		tmptree = &tree;
 
-		if (ret_val != 0)
-			return -1;
 	}
-
 	return 1;
 }
 
@@ -447,83 +465,92 @@ int main(int argc, char **argv)
 			if (name != NULL)
 				task->task.name = strdup(name);
 
-			/* Check workerid */
-			if (workerid >= 0)
+			task->type = control;
+
+			if (control == NormalTask)
 			{
-				task->task.priority = priority;
-				task->task.cl = &cl;
-				task->task.workerid = workerid;
-
-				if (alloc_mode)
+				if (workerid >= 0)
 				{
-					/* Duplicating the handles stored (and registered in the current context) into the task */
+					task->task.priority = priority;
+					task->task.cl = &cl;
+					task->task.workerid = workerid;
 
-					ARRAY_DUP(modes_ptr, task->task.modes, nb_parameters);
-					ARRAY_DUP(modes_ptr, task->task.cl->modes, nb_parameters);
-					variable_data_register_check(sizes_set, nb_parameters);
-					ARRAY_DUP(handles_ptr, task->task.handles, nb_parameters);
-				}
-				else
-				{
-					task->task.dyn_modes = modes_ptr;
-					_STARPU_MALLOC(task->task.cl->dyn_modes, (sizeof(*task->task.cl->dyn_modes) * nb_parameters));
-					ARRAY_DUP(modes_ptr, task->task.cl->dyn_modes, nb_parameters);
-					variable_data_register_check(sizes_set, nb_parameters);
-					task->task.dyn_handles = handles_ptr;
-				}
-
-				task->task.nbuffers = nb_parameters;
-
-				struct perfmodel * realmodel;
-
-				HASH_FIND_STR(model_hash, model, realmodel);
-
-				if (realmodel == NULL)
-				{
-					int len = strlen(model);
-					_STARPU_CALLOC(realmodel, 1, sizeof(struct perfmodel));
-
-					_STARPU_MALLOC(realmodel->model_name, sizeof(char) * (len+1));
-					realmodel->model_name = strcpy(realmodel->model_name, model);
-
-					starpu_perfmodel_init(&realmodel->perfmodel);
-
-					HASH_ADD_STR(model_hash, model_name, realmodel);
-
-					int error = starpu_perfmodel_load_symbol(model, &realmodel->perfmodel);
-
-					if (error)
+					if (alloc_mode)
 					{
-						fprintf(stderr, "[starpu][Warning] Error loading perfmodel symbol");
+						/* Duplicating the handles stored (and registered in the current context) into the task */
+
+						ARRAY_DUP(modes_ptr, task->task.modes, nb_parameters);
+						ARRAY_DUP(modes_ptr, task->task.cl->modes, nb_parameters);
+						variable_data_register_check(sizes_set, nb_parameters);
+						ARRAY_DUP(handles_ptr, task->task.handles, nb_parameters);
+					}
+					else
+					{
+						task->task.dyn_modes = modes_ptr;
+						_STARPU_MALLOC(task->task.cl->dyn_modes, (sizeof(*task->task.cl->dyn_modes) * nb_parameters));
+						ARRAY_DUP(modes_ptr, task->task.cl->dyn_modes, nb_parameters);
+						variable_data_register_check(sizes_set, nb_parameters);
+						task->task.dyn_handles = handles_ptr;
 					}
 
+					task->task.nbuffers = nb_parameters;
+
+					struct perfmodel * realmodel;
+
+					HASH_FIND_STR(model_hash, model, realmodel);
+
+					if (realmodel == NULL)
+					{
+						int len = strlen(model);
+						_STARPU_CALLOC(realmodel, 1, sizeof(struct perfmodel));
+
+						_STARPU_MALLOC(realmodel->model_name, sizeof(char) * (len+1));
+						realmodel->model_name = strcpy(realmodel->model_name, model);
+
+						starpu_perfmodel_init(&realmodel->perfmodel);
+
+						HASH_ADD_STR(model_hash, model_name, realmodel);
+
+						int error = starpu_perfmodel_load_symbol(model, &realmodel->perfmodel);
+
+						if (error)
+						{
+							fprintf(stderr, "[starpu][Warning] Error loading perfmodel symbol");
+						}
+
+					}
+
+					int narch = starpu_perfmodel_get_narch_combs();
+
+					struct task_arg *arg;
+					_STARPU_MALLOC(arg, sizeof(struct task_arg) + sizeof(double) * narch);
+					arg->footprint = footprint;
+					double * perfTime  = arg->perf;
+					int i;
+
+					for (i = 0; i < narch ; i++)
+					{
+						struct starpu_perfmodel_arch *arch = starpu_perfmodel_arch_comb_fetch(i);
+						perfTime[i] = starpu_perfmodel_history_based_expected_perf(&realmodel->perfmodel, arch, footprint);
+					}
+
+					task->task.cl_arg = arg;
+					task->task.flops = flops;
 				}
 
-				int narch = starpu_perfmodel_get_narch_combs();
+				task->task.cl_arg_size = 0;
+				task->task.tag_id = tag;
+				task->task.use_tag = 1;
 
-				struct task_arg *arg;
-				_STARPU_MALLOC(arg, sizeof(struct task_arg) + sizeof(double) * narch);
-				arg->footprint = footprint;
-				double * perfTime  = arg->perf;
-				int i;
-
-				for (i = 0; i < narch ; i++)
-				{
-					struct starpu_perfmodel_arch *arch = starpu_perfmodel_arch_comb_fetch(i);
-					perfTime[i] = starpu_perfmodel_history_based_expected_perf(&realmodel->perfmodel, arch, footprint);
-				}
-
-				task->task.cl_arg = arg;
-				task->task.flops = flops;
-
+				task->ndependson = ndependson;
+				if (ndependson > 0)
+					ARRAY_DUP(dependson, task->deps, ndependson);
 			}
 
-			task->task.cl_arg_size = 0;
-			task->task.tag_id = tag;
-			task->task.use_tag = 1;
-
-			task->ndependson = ndependson;
-			ARRAY_DUP(dependson, task->deps, ndependson);
+			else
+			{
+				ARRAY_DUP(handles_ptr, task->task.handles, nb_parameters);
+			}
 
 
 			// TODO: call applyOrdoRec(task);
@@ -547,6 +574,20 @@ int main(int argc, char **argv)
 		/* Record various information */
 #define TEST(field) (!strncmp(s, field": ", strlen(field) + 2))
 
+		else if(TEST("Control"))
+		{
+			char * c = s+9;
+			
+			if(!strncmp(c, "WontUse", 7))
+			{
+				control = WontUseTask;
+				nb_parameters = 1;
+				alloc_mode = set_alloc_mode(nb_parameters);
+				arrays_managing(alloc_mode);
+			}
+			else
+				control = NormalTask;
+		}
 		else if (TEST("Name"))
 		{
 			*ln = 0;
@@ -600,11 +641,10 @@ int main(int argc, char **argv)
 
 			nb_parameters = count + 1; /* There is one underscore per paramater execept for the last one, that's why we have to add +1 (dirty programming) */
 
+			/* The algorithm determine will determine if it needs static or dynamic arrays */
 			alloc_mode = set_alloc_mode(nb_parameters);
-
 			arrays_managing(alloc_mode);
 
-			_STARPU_CALLOC(reg_signal, nb_parameters, sizeof(char));
 		}
 		else if (TEST("Handles"))
 		{
@@ -619,18 +659,13 @@ int main(int argc, char **argv)
 				for (i = 0 ; i < nb_parameters ; i++)
 				{
 					struct handle *handles_cell; /* A cell of the hash table for the handles */
-					starpu_data_handle_t  handle_value = (starpu_data_handle_t) strtol(token, NULL, 16); /* Get the ith handle on the line */
+					starpu_data_handle_t  handle_value = (starpu_data_handle_t) strtol(token, NULL, 16); /* Get the ith handle on the line (in the file) */
 
 					HASH_FIND(hh, handles_hash, &handle_value, sizeof(handle_value), handles_cell); /* Find if the handle_value was already registered as a key in the hash table */
 
+					/* If it wasn't, then add it to the hash table */
 					if (handles_cell == NULL)
 					{
-						_STARPU_MALLOC(handles_cell, sizeof(*handles_cell));
-						handles_cell->handle = handle_value;
-
-
-						HASH_ADD(hh, handles_hash, handle, sizeof(handle_value), handles_cell); /* If it wasn't, then add it to the hash table */
-
 						handles_ptr[i] = handle_value;
 						reg_signal[i] = 1;
 					}
@@ -759,6 +794,7 @@ eof:
 		
 		HASH_DEL(tasks, task);
 		starpu_task_clean(&task->task);
+		starpu_rbtree_remove(&tree, &task->node);
 		free(task);
         }
 
