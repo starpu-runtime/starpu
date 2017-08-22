@@ -40,10 +40,10 @@
 #include <core/task.h>
 
 /* Number of ready requests to process before polling for completed requests */
-#define NREADY_PROCESS 10
+static unsigned nready_process;
 
 /* Number of send requests to submit to MPI at the same time */
-#define NDETACHED_SEND 10
+static unsigned ndetached_send;
 
 static void _starpu_mpi_add_sync_point_in_fxt(void);
 static void _starpu_mpi_submit_ready_request(void *arg);
@@ -1458,7 +1458,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 		{
 			struct _starpu_mpi_req *req;
 
-			if (n++ == NREADY_PROCESS)
+			if (n++ == nready_process)
 				/* Already spent some time on submitting ready recv requests, poll before processing more ready recv requests */
 				break;
 
@@ -1475,11 +1475,11 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 
 		/* get one send request */
 		n = 0;
-		while (!_starpu_mpi_req_prio_list_empty(&ready_send_requests) && detached_send_nrequests < NDETACHED_SEND)
+		while (!_starpu_mpi_req_prio_list_empty(&ready_send_requests) && detached_send_nrequests < ndetached_send)
 		{
 			struct _starpu_mpi_req *req;
 
-			if (n++ == NREADY_PROCESS)
+			if (n++ == nready_process)
 				/* Already spent some time on submitting ready send requests, poll before processing more ready send requests */
 				break;
 
@@ -1717,6 +1717,8 @@ int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv)
 
         STARPU_PTHREAD_MUTEX_INIT(&mutex_posted_requests, NULL);
         _starpu_mpi_comm_debug = starpu_getenv("STARPU_MPI_COMM") != NULL;
+	nready_process = starpu_get_env_number_default("STARPU_MPI_NREADY_PROCESS", 10);
+	ndetached_send = starpu_get_env_number_default("STARPU_MPI_NDETACHED_SEND", 10);
 
 #ifdef STARPU_SIMGRID
 	STARPU_PTHREAD_MUTEX_INIT(&wait_counter_mutex, NULL);
