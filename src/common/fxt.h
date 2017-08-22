@@ -225,6 +225,15 @@
 #define _STARPU_FUT_TASK_THROTTLE_START	0x5180
 #define _STARPU_FUT_TASK_THROTTLE_END	0x5181
 
+extern unsigned long _starpu_job_cnt;
+
+static inline unsigned long _starpu_fxt_get_job_id(void)
+{
+	unsigned long ret = STARPU_ATOMIC_ADDL(&_starpu_job_cnt, 1);
+	STARPU_ASSERT_MSG(_starpu_job_cnt != 0, "Oops, job_id wrapped!");
+	return ret;
+}
+
 #ifdef STARPU_USE_FXT
 #include <fxt/fxt.h>
 #include <fxt/fut.h>
@@ -259,15 +268,6 @@ static inline unsigned long _starpu_fxt_get_submit_order(void)
 {
 	unsigned long ret = STARPU_ATOMIC_ADDL(&_starpu_submit_order, 1);
 	STARPU_ASSERT_MSG(_starpu_submit_order != 0, "Oops, submit_order wrapped!");
-	return ret;
-}
-
-extern unsigned long _starpu_job_cnt;
-
-static inline unsigned long _starpu_fxt_get_job_id(void)
-{
-	unsigned long ret = STARPU_ATOMIC_ADDL(&_starpu_job_cnt, 1);
-	STARPU_ASSERT_MSG(_starpu_job_cnt != 0, "Oops, job_id wrapped!");
 	return ret;
 }
 
