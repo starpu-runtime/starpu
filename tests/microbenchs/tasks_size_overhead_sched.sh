@@ -21,16 +21,20 @@ ROOT=${ROOT%_sched}
 unset STARPU_SSILENT
 $ROOT "$@" > tasks_size_overhead.output
 ret=$?
-DIR=
-[ -z "$STARPU_BENCH_DIR" ] || DIR="$STARPU_BENCH_DIR/"
-export TERMINAL=png
-export OUTFILE=${DIR}tasks_size_overhead_${STARPU_SCHED}.png
-gnuplot_av=$(which gnuplot)
-if test -n "$gnuplot_av" -a $ret -eq 0
+if test "$ret" == "0"
 then
-    # If gnuplot is available and the program was successfull, plot the result
-    $ROOT.gp
-    ret=$?
+    # if the program was successfull try to run gnuplot
+    DIR=
+    [ -z "$STARPU_BENCH_DIR" ] || DIR="$STARPU_BENCH_DIR/"
+    export TERMINAL=png
+    export OUTFILE=${DIR}tasks_size_overhead_${STARPU_SCHED}.png
+    gnuplot_av=$(which gnuplot)
+    if test -n "$gnuplot_av"
+    then
+	# If gnuplot is available, plot the result
+	$ROOT.gp
+	ret=$?
+    fi
 fi
 
 exit $ret
