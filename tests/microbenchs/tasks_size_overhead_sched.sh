@@ -21,7 +21,7 @@ ROOT=${ROOT%_sched}
 unset STARPU_SSILENT
 $ROOT "$@" > tasks_size_overhead.output
 ret=$?
-if test "$ret" == "0"
+if test "$ret" = "0"
 then
     # if the program was successfull try to run gnuplot
     DIR=
