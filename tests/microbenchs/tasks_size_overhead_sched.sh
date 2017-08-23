@@ -3,7 +3,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2009, 2010, 2016  Université de Bordeaux
-# Copyright (C) 2010, 2011, 2016  CNRS
+# Copyright (C) 2010, 2011, 2016, 2017  CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -25,5 +25,12 @@ DIR=
 [ -z "$STARPU_BENCH_DIR" ] || DIR="$STARPU_BENCH_DIR/"
 export TERMINAL=png
 export OUTFILE=${DIR}tasks_size_overhead_${STARPU_SCHED}.png
-$ROOT.gp
+gnuplot_av=$(which gnuplot)
+if test -n "$gnuplot_av" -a $ret -eq 0
+then
+    # If gnuplot is available and the program was successfull, plot the result
+    $ROOT.gp
+    ret=$?
+fi
+
 exit $ret
