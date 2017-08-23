@@ -357,7 +357,8 @@ static struct _starpu_mpi_req *_starpu_mpi_isend_irecv_common(starpu_data_handle
 	/* Initialize the request structure */
 	_starpu_mpi_request_init(&req);
 	req->request_type = request_type;
-	req->prio = prio;
+	/* prio_list is sorted by increasing values */
+	req->prio = -prio;
 	req->data_handle = data_handle;
 	req->node_tag.rank = srcdst;
 	req->node_tag.data_tag = data_tag;
