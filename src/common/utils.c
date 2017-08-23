@@ -205,6 +205,7 @@ char *_starpu_mktemp(const char *directory, int flags, int *fd)
 	_mktemp(baseCpy);
 	*fd = open(baseCpy, flags);
 #elif defined (HAVE_MKOSTEMP)
+	flags &= ~O_RDWR;
 	*fd = mkostemp(baseCpy, flags);
 #else
 #  ifdef O_DIRECT
@@ -219,7 +220,7 @@ char *_starpu_mktemp(const char *directory, int flags, int *fd)
 	if (*fd < 0)
 	{
 		int err = errno;
-		_STARPU_DISP("Could not create temporary file in directory '%s', mskostemp failed with error '%s'\n", directory, strerror(errno));
+		_STARPU_DISP("Could not create temporary file in directory '%s', mk[o]stemp failed with error '%s'\n", directory, strerror(errno));
 		free(baseCpy);
 		errno = err;
 		return NULL;
