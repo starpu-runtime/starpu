@@ -357,6 +357,10 @@ int submit_tasks(void)
 		else
 		{
 			fix_wontuse_handle(currentTask);
+                        /* FIXME: can not actually work properly since we have
+                         * disabled sequential consistency, so we don't have any
+                         * easy way to make this wait for the last task that
+                         * wrote to the handle. */
 			starpu_data_wont_use(currentTask->task.handles[0]);
 		}
 
