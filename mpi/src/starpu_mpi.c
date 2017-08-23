@@ -1484,7 +1484,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 				/* Already spent some time on submitting ready send requests, poll before processing more ready send requests */
 				break;
 
-			req = _starpu_mpi_req_prio_list_pop_back(&ready_send_requests);
+			req = _starpu_mpi_req_prio_list_pop_back_lowest(&ready_send_requests);
 
 			/* handling a request is likely to block for a while
 			 * (on a sync_data_with_mem call), we want to let the

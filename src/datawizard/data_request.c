@@ -594,7 +594,7 @@ static int __starpu_handle_node_data_requests(struct _starpu_data_request_prio_l
 			break;
 		}
 
-		r = _starpu_data_request_prio_list_pop_front(&local_list);
+		r = _starpu_data_request_prio_list_pop_front_highest(&local_list);
 
 		res = starpu_handle_data_request(r, may_alloc, prefetch);
 		if (res != 0 && res != -EAGAIN)
@@ -620,7 +620,7 @@ static int __starpu_handle_node_data_requests(struct _starpu_data_request_prio_l
 	/* Push back requests we didn't handle on the proper list */
 	while (!_starpu_data_request_prio_list_empty(&local_list))
 	{
-		r = _starpu_data_request_prio_list_pop_front(&local_list);
+		r = _starpu_data_request_prio_list_pop_front_highest(&local_list);
 		/* Prefetch requests might have gotten promoted while in tmp list */
 		_starpu_data_request_prio_list_push_back(&new_data_requests[r->prefetch], r);
 	}
@@ -734,7 +734,7 @@ static int _handle_pending_node_data_requests(unsigned src_node, unsigned force)
 	while (!_starpu_data_request_prio_list_empty(&local_list))
 	{
 		struct _starpu_data_request *r;
-		r = _starpu_data_request_prio_list_pop_front(&local_list);
+		r = _starpu_data_request_prio_list_pop_front_highest(&local_list);
 		taken++;
 
 		starpu_data_handle_t handle = r->handle;
