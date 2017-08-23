@@ -55,7 +55,7 @@ static char *name = NULL;
 static char *model = NULL;
 static jobid_t jobid;
 static jobid_t *dependson;
-static unsigned int submitorder = -1;
+static int submitorder = -1;
 static starpu_tag_t tag;
 static int workerid;
 static uint32_t footprint;
