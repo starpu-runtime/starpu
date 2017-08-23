@@ -627,8 +627,8 @@ _starpu_malloc_on_node(unsigned dst_node, size_t size, int flags)
 				{
 					addr = (uintptr_t)ptr;
 				}
-				break;
 #endif
+			break;
 		}
 #endif
 	        case STARPU_DISK_RAM:
