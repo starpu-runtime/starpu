@@ -2250,7 +2250,7 @@ _starpu_init_workers_binding_and_memory (struct _starpu_machine_config *config, 
 	{
 		unsigned memory_node = -1;
 		struct _starpu_worker *workerarg = &config->workers[worker];
-		unsigned devid = workerarg->devid;
+		unsigned devid STARPU_ATTRIBUTE_UNUSED = workerarg->devid;
 
 #if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) || defined(STARPU_USE_MIC) || defined(STARPU_SIMGRID) || defined(STARPU_USE_MPI_MASTER_SLAVE)
 		/* Perhaps the worker has some "favourite" bindings  */
