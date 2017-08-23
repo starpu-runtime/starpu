@@ -33,7 +33,7 @@
  *   * Add a new element at the end of the list of the priority of the element
  * void FOO_prio_list_push_back(struct FOO_prio_list*, struct FOO*)
  *   * Add a new element at the beginning of the list of the priority of the element
- * void FOO_prio_list_push_back(struct FOO_prio_list*, struct FOO*)
+ * void FOO_prio_list_push_front(struct FOO_prio_list*, struct FOO*)
  *   * Test that the priority list is empty
  * void FOO_prio_list_empty(struct FOO_prio_list*)
  *   * Erase element from the priority list
