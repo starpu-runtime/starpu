@@ -358,7 +358,7 @@ static struct _starpu_mpi_req *_starpu_mpi_isend_irecv_common(starpu_data_handle
 	_starpu_mpi_request_init(&req);
 	req->request_type = request_type;
 	/* prio_list is sorted by increasing values */
-	req->prio = -prio;
+	req->prio = prio;
 	req->data_handle = data_handle;
 	req->node_tag.rank = srcdst;
 	req->node_tag.data_tag = data_tag;
@@ -1484,7 +1484,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 				/* Already spent some time on submitting ready send requests, poll before processing more ready send requests */
 				break;
 
-			req = _starpu_mpi_req_prio_list_pop_back_lowest(&ready_send_requests);
+			req = _starpu_mpi_req_prio_list_pop_back_highest(&ready_send_requests);
 
 			/* handling a request is likely to block for a while
 			 * (on a sync_data_with_mem call), we want to let the
