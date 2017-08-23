@@ -334,7 +334,10 @@ static struct starpu_task *ws_pick_task(struct _starpu_work_stealing_data *ws, i
 
 	/* Didn't find an interesting task, or couldn't run it :( */
 	int skipped;
-	return _starpu_prio_deque_pop_task_for_worker(&data_source->queue, target, &skipped);
+	if (source != target)
+		return _starpu_prio_deque_deque_task_for_worker(&data_source->queue, target, &skipped);
+	else
+		return _starpu_prio_deque_pop_task_for_worker(&data_source->queue, target, &skipped);
 }
 
 /* Called when popping a task from a queue */
@@ -370,7 +373,10 @@ static void locality_pushed_task(struct _starpu_work_stealing_data *ws STARPU_AT
 static struct starpu_task *ws_pick_task(struct _starpu_work_stealing_data *ws, int source, int target)
 {
 	int skipped;
-	return _starpu_prio_deque_pop_task_for_worker(&ws->per_worker[source].queue, target, &skipped);
+	if (source != target)
+		return _starpu_prio_deque_deque_task_for_worker(&ws->per_worker[source].queue, target, &skipped);
+	else
+		return _starpu_prio_deque_pop_task_for_worker(&ws->per_worker[source].queue, target, &skipped);
 }
 /* Called when popping a task from a queue */
 static void locality_popped_task(struct _starpu_work_stealing_data *ws STARPU_ATTRIBUTE_UNUSED, struct starpu_task *task STARPU_ATTRIBUTE_UNUSED, int workerid STARPU_ATTRIBUTE_UNUSED, unsigned sched_ctx_id STARPU_ATTRIBUTE_UNUSED)
