@@ -49,7 +49,11 @@
  *
  * * Return and remove the first cell of highest priority of the priority list
  * void FOO_prio_list_pop_front_highest(struct FOO_prio_list*)
+ * * Return and remove the first cell of lowest priority of the priority list
+ * void FOO_prio_list_pop_front_lowest(struct FOO_prio_list*)
  *
+ * * Return and remove the last cell of highest priority of the priority list
+ * void FOO_prio_list_pop_back_highest(struct FOO_prio_list*)
  * * Return and remove the last cell of lowest priority of the priority list
  * void FOO_prio_list_pop_back_lowest(struct FOO_prio_list*)
  *
@@ -202,20 +206,25 @@
 			return 1; \
 		return 0; \
 	} \
+	/* To be called when removing an element from a stage, to potentially remove this stage */ \
+	PRIO_LIST_INLINE void ENAME##_prio_list_check_empty_stage(struct ENAME##_prio_list *priolist, struct ENAME##_prio_list_stage *stage) \
+	{ \
+		if (ENAME##_list_empty(&stage->list)) { \
+			if (stage->prio != 0) \
+			{ \
+				/* stage got empty, remove it */ \
+				starpu_rbtree_remove(&priolist->tree, &stage->node); \
+				free(stage); \
+			} \
+			priolist->empty = ENAME##_prio_list_empty_slow(priolist); \
+		} \
+	} \
 	PRIO_LIST_INLINE void ENAME##_prio_list_erase(struct ENAME##_prio_list *priolist, struct ENAME *e) \
 	{ \
 		struct starpu_rbtree_node *node = starpu_rbtree_lookup(&priolist->tree, e->PRIOFIELD, ENAME##_prio_list_cmp_fn); \
 		struct ENAME##_prio_list_stage *stage = ENAME##_node_to_list_stage(node); \
 		ENAME##_list_erase(&stage->list, e); \
-		if (ENAME##_list_empty(&stage->list)) { \
-			if (stage->prio != 0) \
-			{ \
-				/* stage got empty, remove it */ \
-				starpu_rbtree_remove(&priolist->tree, node); \
-				free(stage); \
-			} \
-			priolist->empty = ENAME##_prio_list_empty_slow(priolist); \
-		} \
+		ENAME##_prio_list_check_empty_stage(priolist, stage); \
 	} \
 	PRIO_LIST_INLINE int ENAME##_prio_list_get_next_nonempty_stage(struct ENAME##_prio_list *priolist, struct starpu_rbtree_node *node, struct starpu_rbtree_node **pnode, struct ENAME##_prio_list_stage **pstage) \
 	{ \
@@ -255,15 +264,7 @@
 		if (!ENAME##_prio_list_get_first_nonempty_stage(priolist, &node, &stage)) \
 			return NULL; \
 		ret = ENAME##_list_pop_front(&stage->list); \
-		if (ENAME##_list_empty(&stage->list)) { \
-			if (stage->prio != 0) \
-			{ \
-				/* stage got empty, remove it */ \
-				starpu_rbtree_remove(&priolist->tree, node); \
-				free(stage); \
-			} \
-			priolist->empty = ENAME##_prio_list_empty_slow(priolist); \
-		} \
+		ENAME##_prio_list_check_empty_stage(priolist, stage); \
 		return ret; \
 	} \
 	PRIO_LIST_INLINE struct ENAME *ENAME##_prio_list_front_highest(struct ENAME##_prio_list *priolist) \
@@ -312,15 +313,7 @@
 		if (!ENAME##_prio_list_get_last_nonempty_stage(priolist, &node, &stage)) \
 			return NULL; \
 		ret = ENAME##_list_pop_back(&stage->list); \
-		if (ENAME##_list_empty(&stage->list)) { \
-			if (stage->prio != 0) \
-			{ \
-				/* stage got empty, remove it */ \
-				starpu_rbtree_remove(&priolist->tree, node); \
-				free(stage); \
-			} \
-			priolist->empty = ENAME##_prio_list_empty_slow(priolist); \
-		} \
+		ENAME##_prio_list_check_empty_stage(priolist, stage); \
 		return ret; \
 	} \
 	PRIO_LIST_INLINE struct ENAME *ENAME##_prio_list_back_lowest(struct ENAME##_prio_list *priolist) \
