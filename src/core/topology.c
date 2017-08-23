@@ -1805,7 +1805,6 @@ void _starpu_destroy_machine_config(struct _starpu_machine_config *config)
 
 void
 _starpu_bind_thread_on_cpu (
-	struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED,
 	int cpuid STARPU_ATTRIBUTE_UNUSED, int workerid STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_SIMGRID
@@ -1834,6 +1833,7 @@ _starpu_bind_thread_on_cpu (
 #ifdef STARPU_USE_CUDA
 	_starpu_init_cuda();
 #endif
+	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	_starpu_init_topology(config);
 
 	support = hwloc_topology_get_support (config->topology.hwtopology);
@@ -1886,7 +1886,6 @@ _starpu_bind_thread_on_cpu (
 
 void
 _starpu_bind_thread_on_cpus (
-	struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED,
 	struct _starpu_combined_worker *combined_worker STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_SIMGRID
@@ -1901,6 +1900,7 @@ _starpu_bind_thread_on_cpus (
 #ifdef STARPU_USE_CUDA
 	_starpu_init_cuda();
 #endif
+	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	_starpu_init_topology(config);
 
 	support = hwloc_topology_get_support(config->topology.hwtopology);

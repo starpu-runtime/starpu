@@ -50,6 +50,8 @@ Small features:
   * Add SubmitOrder trace field.
   * Add workerids and workerids_len task fields.
   * Add priority management to StarPU-MPI.
+  * Add STARPU_MAIN_THREAD_CPUID and STARPU_MPI_THREAD_CPUID environment
+    variables.
 
 Changes:
   * Vastly improve simgrid simulation time.

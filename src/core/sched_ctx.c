@@ -2096,7 +2096,7 @@ unsigned _starpu_sched_ctx_last_worker_awake(struct _starpu_worker *worker)
 
 void starpu_sched_ctx_bind_current_thread_to_cpuid(unsigned cpuid)
 {
-	_starpu_bind_thread_on_cpu(_starpu_get_machine_config(), cpuid, STARPU_NOWORKERID);
+	_starpu_bind_thread_on_cpu(cpuid, STARPU_NOWORKERID);
 }
 
 unsigned starpu_sched_ctx_worker_is_master_for_child_ctx(int workerid, unsigned sched_ctx_id)

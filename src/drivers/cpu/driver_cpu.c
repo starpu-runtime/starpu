@@ -79,7 +79,7 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 		_starpu_cl_func_t func = _starpu_task_get_cpu_nth_implementation(cl, j->nimpl);
 		if (is_parallel_task && cl->type == STARPU_FORKJOIN)
 			/* bind to parallel worker */
-			_starpu_bind_thread_on_cpus(cpu_args->config, _starpu_get_combined_worker_struct(j->combined_workerid));
+			_starpu_bind_thread_on_cpus(_starpu_get_combined_worker_struct(j->combined_workerid));
 		STARPU_ASSERT_MSG(func, "when STARPU_CPU is defined in 'where', cpu_func or cpu_funcs has to be defined");
 		if (_starpu_get_disable_kernels() <= 0)
 		{
@@ -102,7 +102,7 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 		}
 		if (is_parallel_task && cl->type == STARPU_FORKJOIN)
 			/* rebind to single CPU */
-			_starpu_bind_thread_on_cpu(cpu_args->config, cpu_args->bindid, cpu_args->workerid);
+			_starpu_bind_thread_on_cpu(cpu_args->bindid, cpu_args->workerid);
 	}
 
 	_starpu_driver_end_job(cpu_args, j, perf_arch, rank, profiling);

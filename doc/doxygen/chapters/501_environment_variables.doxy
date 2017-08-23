@@ -205,6 +205,21 @@ set.
 
 </dd>
 
+<dt>STARPU_MAIN_THREAD_CPUID</dt>
+<dd>
+\anchor STARPU_MAIN_THREAD_CPUID
+\addindex __env__STARPU_MAIN_THREAD_CPUID
+When defined, this make StarPU bind the thread that calls starpu_initialize() to
+the given CPU ID.
+</dd>
+
+<dt>STARPU_MPI_THREAD_CPUID</dt>
+<dd>
+\anchor STARPU_MPI_THREAD_CPUID
+\addindex __env__STARPU_MPI_THREAD_CPUID
+When defined, this make StarPU bind its MPI thread to the given CPU ID.
+</dd>
+
 <dt>STARPU_WORKERS_CUDAID</dt>
 <dd>
 \anchor STARPU_WORKERS_CUDAID

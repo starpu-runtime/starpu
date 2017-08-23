@@ -38,12 +38,16 @@
 #include <datawizard/coherency.h>
 #include <core/simgrid.h>
 #include <core/task.h>
+#include <core/topology.h>
+#include <core/workers.h>
 
 /* Number of ready requests to process before polling for completed requests */
 static unsigned nready_process;
 
 /* Number of send requests to submit to MPI at the same time */
 static unsigned ndetached_send;
+
+static int mpi_thread_cpuid = -1;
 
 static void _starpu_mpi_add_sync_point_in_fxt(void);
 static void _starpu_mpi_submit_ready_request(void *arg);
@@ -1369,7 +1373,12 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	starpu_pthread_setname("MPI");
 
 #ifndef STARPU_SIMGRID
+	if (mpi_thread_cpuid >= 0)
+		_starpu_bind_thread_on_cpu(mpi_thread_cpuid, STARPU_NOWORKERID);
 	_starpu_mpi_do_initialize(argc_argv);
+	if (mpi_thread_cpuid >= 0)
+		/* In case MPI changed the binding */
+		_starpu_bind_thread_on_cpu(mpi_thread_cpuid, STARPU_NOWORKERID);
 #endif
 
 	_starpu_mpi_fake_world_size = starpu_get_env_number("STARPU_MPI_FAKE_SIZE");
@@ -1720,6 +1729,7 @@ int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv)
         _starpu_mpi_comm_debug = starpu_getenv("STARPU_MPI_COMM") != NULL;
 	nready_process = starpu_get_env_number_default("STARPU_MPI_NREADY_PROCESS", 10);
 	ndetached_send = starpu_get_env_number_default("STARPU_MPI_NDETACHED_SEND", 10);
+	mpi_thread_cpuid = starpu_get_env_number_default("STARPU_MPI_THREAD_CPUID", -1);
 
 #ifdef STARPU_SIMGRID
 	STARPU_PTHREAD_MUTEX_INIT(&wait_counter_mutex, NULL);

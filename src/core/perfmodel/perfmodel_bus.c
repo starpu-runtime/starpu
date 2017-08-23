@@ -142,7 +142,7 @@ hwloc_topology_t _starpu_perfmodel_get_hwtopology()
 static void measure_bandwidth_between_host_and_dev_on_numa_with_cuda(int dev, int numa, int cpu, struct dev_timing *dev_timing_per_cpu)
 {
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
-	_starpu_bind_thread_on_cpu(config, cpu, STARPU_NOWORKERID);
+	_starpu_bind_thread_on_cpu(cpu, STARPU_NOWORKERID);
 	size_t size = SIZE;
 
 	const unsigned nnuma_nodes = _starpu_topology_get_nnumanodes(config);
@@ -153,13 +153,13 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_cuda(int dev, in
 	cudaSetDevice(dev);
 
 	/* hack to avoid third party libs to rebind threads */
-	_starpu_bind_thread_on_cpu(config, cpu, STARPU_NOWORKERID);
+	_starpu_bind_thread_on_cpu(cpu, STARPU_NOWORKERID);
 
 	/* hack to force the initialization */
 	cudaFree(0);
 
 	/* hack to avoid third party libs to rebind threads */
-	_starpu_bind_thread_on_cpu(config, cpu, STARPU_NOWORKERID);
+	_starpu_bind_thread_on_cpu(cpu, STARPU_NOWORKERID);
 
         /* Get the maximum size which can be allocated on the device */
 	struct cudaDeviceProp prop;
@@ -175,7 +175,7 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_cuda(int dev, in
 	STARPU_ASSERT(cures == cudaSuccess);
 
 	/* hack to avoid third party libs to rebind threads */
-	_starpu_bind_thread_on_cpu(config, cpu, STARPU_NOWORKERID);
+	_starpu_bind_thread_on_cpu(cpu, STARPU_NOWORKERID);
 
 	/* Allocate a buffer on the host */
 	unsigned char *h_buffer;
@@ -198,14 +198,14 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_cuda(int dev, in
 	STARPU_ASSERT(cures == cudaSuccess);
 
 	/* hack to avoid third party libs to rebind threads */
-	_starpu_bind_thread_on_cpu(config, cpu, STARPU_NOWORKERID);
+	_starpu_bind_thread_on_cpu(cpu, STARPU_NOWORKERID);
 
 	/* Fill them */
 	memset(h_buffer, 0, size);
 	cudaMemset(d_buffer, 0, size);
 
 	/* hack to avoid third party libs to rebind threads */
-	_starpu_bind_thread_on_cpu(config, cpu, STARPU_NOWORKERID);
+	_starpu_bind_thread_on_cpu(cpu, STARPU_NOWORKERID);
 
 	const unsigned timing_numa_index = dev*STARPU_MAXNUMANODES + numa;
 	unsigned iter;
@@ -396,7 +396,7 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_opencl(int dev, 
 	int not_initialized;
 
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
-	_starpu_bind_thread_on_cpu(config, cpu, STARPU_NOWORKERID);
+	_starpu_bind_thread_on_cpu(cpu, STARPU_NOWORKERID);
 
 	const unsigned nnuma_nodes = _starpu_topology_get_nnumanodes(config);
 
@@ -430,7 +430,7 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_opencl(int dev, 
 	}
 
 	/* hack to avoid third party libs to rebind threads */
-	_starpu_bind_thread_on_cpu(config, cpu, STARPU_NOWORKERID);
+	_starpu_bind_thread_on_cpu(cpu, STARPU_NOWORKERID);
 
 	/* Allocate a buffer on the device */
 	cl_mem d_buffer;
@@ -438,7 +438,7 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_opencl(int dev, 
 	if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 
 	/* hack to avoid third party libs to rebind threads */
-	_starpu_bind_thread_on_cpu(config, cpu, STARPU_NOWORKERID);
+	_starpu_bind_thread_on_cpu(cpu, STARPU_NOWORKERID);
 	/* Allocate a buffer on the host */
 	unsigned char *h_buffer;
 #if defined(STARPU_HAVE_HWLOC)
@@ -456,14 +456,14 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_opencl(int dev, 
 	}
 
 	/* hack to avoid third party libs to rebind threads */
-	_starpu_bind_thread_on_cpu(config, cpu, STARPU_NOWORKERID);
+	_starpu_bind_thread_on_cpu(cpu, STARPU_NOWORKERID);
 	/* Fill them */
 	memset(h_buffer, 0, size);
 	err = clEnqueueWriteBuffer(queue, d_buffer, CL_TRUE, 0, size, h_buffer, 0, NULL, NULL);
 	if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 	clFinish(queue);
 	/* hack to avoid third party libs to rebind threads */
-	_starpu_bind_thread_on_cpu(config, cpu, STARPU_NOWORKERID);
+	_starpu_bind_thread_on_cpu(cpu, STARPU_NOWORKERID);
 
 	const unsigned timing_numa_index = dev*STARPU_MAXNUMANODES + numa;
 	unsigned iter;
