@@ -66,7 +66,7 @@ void _starpu_mpi_source_init(struct _starpu_mp_node *node)
         //TODO
 }
 
-void _starpu_mpi_source_deinit(struct _starpu_mp_node *node)
+void _starpu_mpi_source_deinit(struct _starpu_mp_node *node STARPU_ATTRIBUTE_UNUSED)
 {
 
 }
