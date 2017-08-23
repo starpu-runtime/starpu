@@ -16,7 +16,7 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
-source $(dirname $0)/microbench.sh
+. $(dirname $0)/microbench.sh
 
 XFAIL="heteroprio"
 
