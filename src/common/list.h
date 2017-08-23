@@ -19,106 +19,144 @@
 #define __LIST_H__
 
 /** @file
- * @brief Listes doublement chainées automatiques
+ * @brief Doubly-linked lists
  */
 
 
 /** @remarks list how-to
  * *********************************************************
- * LIST_TYPE(FOO, contenu);
- *  - déclare les types suivants
- *      + pour les cellules : struct FOO
- *      + pour les listes : struct FOO_list
- *      + pour les itérateurs : struct FOO
- *  - déclare les accesseurs suivants :
- *     * création d'une cellule
+ * LIST_TYPE(FOO, content);
+ *
+ *  - declares the following types:
+ *
+ *      + for cells : struct FOO
+ *      + for lists : struct FOO_list
+ *      + for iterators : struct FOO
+ *
+ *  - declares the following inlines (all O(1) except stated otherwise, n is the number of elements) :
+ *
+ *   * Create a cell
  *   struct FOO*	FOO_new(void);
- *     * suppression d'une cellule
+ *
+ *   * Suppress a cell
  *   void		FOO_delete(struct FOO*);
- *     * création d'une liste (vide)
+ *
+ *   * Create a list (initially empty)
  *   struct FOO_list*	FOO_list_new(void);
- *     * initialisation d'une liste (vide)
+ *
+ *   * Initializes a list (initially empty)
  *   void		FOO_list_init(struct FOO_list*);
- *     * suppression d'une liste
+ *
+ *   * Suppresses a liste
  *   void		FOO_list_delete(struct FOO_list*);
- *     * teste si une liste est vide
+ *
+ *   * Check whether a list is empty
  *   int		FOO_list_empty(struct FOO_list*);
- *     * retire un élément de la liste
+ *
+ *   * Remove a given cell from the list
  *   void		FOO_list_erase(struct FOO_list*, struct FOO*);
- *     * ajoute une élément en queue de liste
+ *
+ *   * Add a cell at the back of the list
  *   void		FOO_list_push_back(struct FOO_list*, struct FOO*);
- *     * ajoute un élément en tête de liste
+ *
+ *   * Add a cell at the front of the list
  *   void		FOO_list_push_front(struct FOO_list*, struct FOO*);
- *     * ajoute un élément avant un élément
+ *
+ *   * Add a cell before a given cell of a list
  *   void		FOO_list_insert_before(struct FOO_list*, struct FOO*new, struct FOO*);
- *     * ajoute un élément après un élément
+ *
+ *   * Add a cell after a given cell of a list
  *   void		FOO_list_insert_after(struct FOO_list*, struct FOO*new, struct FOO*);
- *     * ajoute la deuxième liste à la fin de la première liste
+ *
+ *   * Append the second list at the end of the first list
  *   struct FOO*	FOO_list_push_list_back(struct FOO_list*, struct FOO_list*);
- *     * ajoute la première liste au début de la deuxième liste
+ *
+ *   * Prepend the first list at the beginning of the second list
  *   struct FOO*	FOO_list_push_list_front(struct FOO_list*, struct FOO_list*);
- *     * retire l'élément en queue de liste
+ *
+ *   * Return and remove the node at the back of the list
  *   struct FOO*	FOO_list_pop_back(struct FOO_list*);
- *     * retire l'élement en tête de liste
+ *
+ *   * Return and remove the node at the front of the list
  *   struct FOO*	FOO_list_pop_front(struct FOO_list*);
- *     * retourne l'élément en queue de liste
+ *
+ *   * Return the node at the back of the list
  *   struct FOO*	FOO_list_back(struct FOO_list*);
- *     * retourne l'élement en tête de liste
+ *
+ *   * Return the node at the front of the list
  *   struct FOO*	FOO_list_front(struct FOO_list*);
- *     * vérifie si la liste chainée est cohérente
+ *
+ *   * Check that the list chaining is coherent (O(n))
  *   int		FOO_list_check(struct FOO_list*);
- *     * retourne le premier élément de la liste
+ *
+ *   * Return the first cell of the list (from the front)
  *   struct FOO*	FOO_list_begin(struct FOO_list*);
- *     * retourne la valeur à tester en fin de liste
+ *
+ *   * Return the value to be tested at the end of the list (at the back)
  *   struct FOO*	FOO_list_end(struct FOO_list*);
- *     * retourne l'élément suivant de la liste
+ *
+ *   * Return the next element of the list (from the front)
  *   struct FOO*	FOO_list_next(struct FOO*)
- *     * retourne le dernier élément de la liste
+ *
+ *   * Return the last element of the list (from the back)
  *   struct FOO*	FOO_list_last(struct FOO_list*);
- *     * retourne la valeur à tester en début de liste
+ *
+ *   * Return the value to be tested at the beginning of the list (at the fromt)
  *   struct FOO*	FOO_list_alpha(struct FOO_list*);
- *     * retourne l'élément précédent de la liste
+ *
+ *   * Return the previous element of the list (from the back)
  *   struct FOO*	FOO_list_prev(struct FOO*)
- *     * retourne la taille de la liste
+ *
+ *   * Return the size of the list in O(n)
  *   int		FOO_list_size(struct FOO_list*)
- *     * retourne la position de l'élément dans la liste (indexé à partir de 0)
+ *
+ *   * Return the position of the cell in the list (indexed from 0) (O(n) on average)
  *   int		FOO_list_member(struct FOO_list*, struct FOO*)
- *     * teste si l'élément est dans la liste
+ *
+ *   * Test whether the cell is in the list (O(n) on average)
  *   int		FOO_list_ismember(struct FOO_list*, struct FOO*)
+ *
  * *********************************************************
- * Exemples d'utilisation :
- *  - au départ, on a :
- *    struct ma_structure_s
+ * Usage example:
+ *  - initially you'd have:
+ *    struct my_struct
  *    {
  *      int a;
  *      int b;
  *    };
- *  - on veut en faire une liste. On remplace la déclaration par :
- *    LIST_TYPE(ma_structure,
+ *  - to make a list of it, we replace the declaration above with:
+ *    LIST_TYPE(my_struct,
  *      int a;
  *      int b;
  *    );
- *    qui crée les types struct ma_structure et struct ma_structure_list.
- *  - allocation d'une liste vide :
- *  struct ma_structure_list * l = ma_structure_list_new();
- *  - ajouter un élément 'e' en tête de la liste 'l' :
- *  struct ma_structure * e = ma_structure_new();
+ *    which creates the struct my_struct and struct my_struct_list types.
+ *
+ *  - setting up an empty list:
+ *  struct my_struct_list l;
+ *  my_struct_list_init(&l);
+ *
+ *  - allocating an empty list:
+ *  struct my_struct_list * l = my_struct_list_new();
+ *  - add a cell 'e' at the front of list 'l':
+ *  struct my_struct * e = my_struct_new();
  *  e->a = 0;
  *  e->b = 0;
- *  ma_structure_list_push_front(l, e);
- *  - itérateur de liste :
- *  struct ma_structure * i;
- *  for(i  = ma_structure_list_begin(l);
- *      i != ma_structure_list_end(l);
- *      i  = ma_structure_list_next(i))
+ *  my_struct_list_push_front(l, e);
+ *
+ *  - iterating over a list from the front:
+ *  struct my_struct * i;
+ *  for(i  = my_struct_list_begin(l);
+ *      i != my_struct_list_end(l);
+ *      i  = my_struct_list_next(i))
  *  {
  *    printf("a=%d; b=%d\n", i->a, i->b);
  *  }
- *  - itérateur de liste :
- *  struct ma_structure * i;
- *  for(i  = ma_structure_list_last(l);
- *      i != ma_structure_list_alpha(l);
- *      i  = ma_structure_list_prev(i))
+ *
+ *  - iterating over a list from the back:
+ *  struct my_struct * i;
+ *  for(i  = my_struct_list_last(l);
+ *      i != my_struct_list_alpha(l);
+ *      i  = my_struct_list_prev(i))
  *  {
  *    printf("a=%d; b=%d\n", i->a, i->b);
  *  }

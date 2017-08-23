@@ -16,7 +16,7 @@
 
 /*
  * This implements list with priorities (as an int), by using two stages:
- * - an RB tree stage sorted by priority, whose leafs are...
+ * - an RB tree stage sorted by priority, whose leaves are...
  * - ... double-linked lists sorted by insertion order.
  *
  * We always keep the 0-priority list allocated, to avoid keeping
@@ -24,47 +24,78 @@
  *
  * We maintain an "empty" flag, to allow lockless FOO_prio_list_empty call.
  *
- * PRIO_LIST_TYPE(FOO, priority field)
+ * PRIO_LIST_TYPE(FOO, priority_field)
+ *
  * - Declares the following type:
  *   + priority list: struct FOO_prio_list
- * - Declares the following inlines:
- *   * Initialize a new priority list
+ *
+ * - Declares the following inlines (all O(1) except stated otherwise, n is the
+ * number of elements, p is the number of different priorities):
+ *
+ * * Initialize a new priority list
  * void FOO_prio_list_init(struct FOO_prio_list*)
- *   * Add a new element at the end of the list of the priority of the element
+ *
+ * * Add a new cell at the end of the list of the priority of the cell (O(log2 p))
  * void FOO_prio_list_push_back(struct FOO_prio_list*, struct FOO*)
- *   * Add a new element at the beginning of the list of the priority of the element
+ *
+ * * Add a new cell at the beginning of the list of the priority of the cell (O(log2 p))
  * void FOO_prio_list_push_front(struct FOO_prio_list*, struct FOO*)
- *   * Test that the priority list is empty
+ *
+ * * Test whether the priority list is empty
  * void FOO_prio_list_empty(struct FOO_prio_list*)
- *   * Erase element from the priority list
+ *
+ * * Remove given cell from the priority list
  * void FOO_prio_list_erase(struct FOO_prio_list*, struct FOO*)
- *   * Return and erase the first element of the priority list
+ *
+ * * Return and remove the first cell of the priority list
  * void FOO_prio_list_pop_front(struct FOO_prio_list*)
- *   * Return and erase the last element of the priority list
+ *
+ * * Return and remove the last cell of the priority list
  * void FOO_prio_list_pop_back(struct FOO_prio_list*)
- *   * Return the first element of the priority list
+ *
+ * * Return the first cell of the priority list
  * void FOO_prio_list_front(struct FOO_prio_list*)
- *   * Return the last element of the priority list
+ *
+ * * Return the last cell of the priority list
  * void FOO_prio_list_back(struct FOO_prio_list*)
- *   * Catenate second priority list at ends of the first priority list
+ *
+ * * Append second priority list at ends of the first priority list (O(log2 p))
  * void FOO_prio_list_push_prio_list_back(struct FOO_prio_list*, struct FOO_prio_list*)
- *   * Test whether element is part of the list
+ *
+ * * Test whether cell is part of the list (O(n))
  * void FOO_prio_list_ismember(struct FOO_prio_list*, struct FOO*)
- *   * Returns the first element of the list
+ *
+ * * Return the first cell of the list
  * struct FOO*	FOO_prio_list_begin(struct FOO_prio_list*);
- *   * Returns the value to test at the end of the list
+ *
+ * * Return the value to test at the end of the list
  * struct FOO*	FOO_prio_list_end(struct FOO_prio_list*);
- *   * Returns the next element of the list
+ *
+ * * Return the next cell of the list
  * struct FOO*	FOO_prio_list_next(struct FOO_prio_list*, struct FOO*)
- *   * Returns the last element of the list
+ *
+ * * Return the last cell of the list
  * struct FOO*	FOO_prio_list_last(struct FOO_prio_list*);
- *   * Returns the value to test at the beginning of the list
+ *
+ * * Return the value to test at the beginning of the list
  * struct FOO*	FOO_prio_list_alpha(struct FOO_prio_list*);
- *   * Retuns the previous element of the list
+ *
+ * * Return the previous cell of the list
  * struct FOO*	FOO_prio_list_prev(struct FOO_prio_list*, struct FOO*)
  *
  * PRIO_LIST_TYPE assumes that LIST_TYPE has already been called to create the
  * final structure.
+ *
+ * *********************************************************
+ * Usage example:
+ * LIST_TYPE(my_struct,
+ *   int a;
+ *   int b;
+ *   int prio;
+ * );
+ * PRIO_LIST_TYPE(my_struct, prio);
+ *
+ * and then my_struct_prio_list_* inlines are available
  */
 
 #ifndef __PRIO_LIST_H__
