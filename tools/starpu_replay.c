@@ -310,8 +310,7 @@ void fix_wontuse_handle(struct task * wontuseTask) {
 int submit_tasks(void)
 {
 	/* Add dependencies */
-	const struct starpu_rbtree * tmptree = &tree;
-	struct starpu_rbtree_node * currentNode = starpu_rbtree_first(tmptree);
+	struct starpu_rbtree_node * currentNode = starpu_rbtree_first(&tree);
 
 	while (currentNode != NULL)
 	{
@@ -362,7 +361,6 @@ int submit_tasks(void)
 		}
 
 		currentNode = starpu_rbtree_next(currentNode);
-		tmptree = &tree;
 
 	}
 	return 1;
