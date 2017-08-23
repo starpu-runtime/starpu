@@ -96,9 +96,11 @@ for file in $inputfiles; do
     DefEnt="$(get_event_num $file PajeDefineEntityValue) "
     CreateCont="$(get_event_num $file PajeCreateContainer) "
     AddVar="$(get_event_num $file PajeAddVariable) "
+    grepstr="^\\(%\\|$DefCont\\|$DefEvent\\|$DefState\\|$DefVar\\|$DefLink\\|$DefEnt\\|$CreateCont\\|$AddVar\\)"
+    grepstr=${grepstr//[ 	]/[ 	]}
 # Sorting traces
-    grep -e "^\\(%\\|$DefCont\\|$DefEvent\\|$DefState\\|$DefVar\\|$DefLink\\|$DefEnt\\|$CreateCont\\|$AddVar\\)" $file > start.trace
-    grep -e "^\\(%\\|$DefCont\\|$DefEvent\\|$DefState\\|$DefVar\\|$DefLink\\|$DefEnt\\|$CreateCont\\|$AddVar\\)" -v $file > end.trace
+    grep -e "$grepstr" $file > start.trace
+    grep -e "$grepstr" -v $file > end.trace
     sort -s -V --key=2,2 end.trace > endSorted.trace
     if grep -q start_profiling endSorted.trace
     then
