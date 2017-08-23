@@ -30,7 +30,7 @@
 #include <common/uthash.h>
 #include <common/utils.h>
 #include <starpu_scheduler.h>
-#include <rbtree.h>
+#include <common/rbtree.h>
 #include <common/utils.h>
 
 #define REPLAY_NMAX_DEPENDENCIES 8
