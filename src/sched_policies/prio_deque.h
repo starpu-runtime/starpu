@@ -113,7 +113,7 @@ static inline struct starpu_task * _starpu_prio_deque_deque_task(struct _starpu_
 	struct starpu_task *task;
 	if (starpu_task_prio_list_empty(&pdeque->list))
 		return NULL;
-	task = starpu_task_prio_list_pop_back_lowest(&pdeque->list);
+	task = starpu_task_prio_list_pop_back_highest(&pdeque->list);
 	pdeque->ntasks--;
 	return task;
 }
