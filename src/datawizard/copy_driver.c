@@ -540,6 +540,9 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 				/* write is already finished, ptr was allocated in pack_data */
 				starpu_free_flags(ptr, size, 0);
 
+#ifdef STARPU_DEVEL
+#warning TODO: support asynchronous disk requests for packed data
+#endif
 			/* For now, asynchronous is not supported */
 			STARPU_ASSERT(ret == 0);
 		}
@@ -567,6 +570,9 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 				starpu_free_flags(ptr, size, 0);
 			}
 
+#ifdef STARPU_DEVEL
+#warning TODO: support asynchronous disk requests for packed data
+#endif
 			/* For now, asynchronous is not supported */
 			STARPU_ASSERT(ret == 0);
 		}
