@@ -52,12 +52,12 @@ class my_allocator
 		this->node = STARPU_MAIN_RAM;
 	}
 
-	explicit my_allocator(const my_allocator& a) 
+	my_allocator(const my_allocator& a)
 	{
 		node = a.get_node();
 	}
 
-	explicit my_allocator(const unsigned node) 
+	explicit my_allocator(const unsigned node)
 	{
 		this->node = node;
 	}
@@ -70,10 +70,10 @@ class my_allocator
 
 	void      deallocate(void* p, size_type n)
 	{
-		if (p) 
+		if (p)
 		{
 			starpu_free_on_node(this->node, (uintptr_t) p, n * sizeof(T));
-		} 
+		}
 	}
 
 	unsigned get_node() const
@@ -81,12 +81,12 @@ class my_allocator
 		return node;
 	}
 
-	pointer address(reference x) const 
+	pointer address(reference x) const
 	{
 		return &x;
 	}
 
-	const_pointer address(const_reference x) const 
+	const_pointer address(const_reference x) const
 	{
 		return &x;
 	}
@@ -97,7 +97,7 @@ class my_allocator
 		return *this;
 	}
 
-	void construct(pointer p, const T& val) 
+	void construct(pointer p, const T& val)
 	{
 		new ((T*) p) T(val);
 	}
@@ -538,7 +538,7 @@ void cpu_kernel_add_vectors(void *buffers[], void *cl_arg)
 {
 	std::vector<MY_TYPE>* vec_A = VECTOR_CPP_GET_VEC(buffers[0]);
 	std::vector<MY_TYPE>* vec_B = VECTOR_CPP_GET_VEC(buffers[1]);
-	std::vector<MY_TYPE>* vec_C = VECTOR_CPP_GET_VEC(buffers[2]); 
+	std::vector<MY_TYPE>* vec_C = VECTOR_CPP_GET_VEC(buffers[2]);
 
 	// all the std::vector have to have the same size
 	assert(vec_A->size() == vec_B->size() && vec_B->size() == vec_C->size());
