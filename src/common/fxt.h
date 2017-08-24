@@ -623,7 +623,7 @@ do {									\
 	const uint32_t job_hash = _starpu_compute_buffers_footprint((job)->task->cl?(job)->task->cl->model:NULL, perf_arch, nimpl, (job));\
 	char _archname[32]=""; \
 	starpu_perfmodel_get_arch_name(perf_arch, _archname, 32, 0);	\
-	_STARPU_FUT_DO_PROBE4STR(_STARPU_FUT_END_CODELET_BODY, (job)->job_id, (job_size), (job_hash), workerid, _archname); \
+	_STARPU_FUT_DO_PROBE5STR(_STARPU_FUT_END_CODELET_BODY, (job)->job_id, (job_size), (job_hash), workerid, _starpu_gettid(), _archname); \
 } while(0);
 
 #define _STARPU_TRACE_START_EXECUTING()				\
