@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013, 2016  Université de Bordeaux
+ * Copyright (C) 2010-2013, 2016-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -26,6 +26,7 @@
 #include <errno.h>
 
 static struct starpu_profiling_worker_info worker_info[STARPU_NMAXWORKERS];
+/* TODO: rather use rwlock */
 static starpu_pthread_mutex_t worker_info_mutex[STARPU_NMAXWORKERS];
 
 /* In case the worker is still sleeping when the user request profiling info,
