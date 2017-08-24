@@ -1051,7 +1051,7 @@ static void _starpu_dump_registered_models(void)
 #endif
 }
 
-void _starpu_initialize_registered_performance_models(void)
+void starpu_perfmodel_initialize(void)
 {
 	/* make sure the performance model directory exists (or create it) */
 	_starpu_create_sampling_directory_if_needed();
@@ -1059,6 +1059,12 @@ void _starpu_initialize_registered_performance_models(void)
 	_starpu_perfmodel_list_init(&registered_models);
 
 	STARPU_PTHREAD_RWLOCK_INIT(&registered_models_rwlock, NULL);
+
+}
+
+void _starpu_initialize_registered_performance_models(void)
+{
+	starpu_perfmodel_initialize();
 
 	struct _starpu_machine_config *conf = _starpu_get_machine_config();
 	unsigned ncores = conf->topology.nhwcpus;

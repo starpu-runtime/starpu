@@ -464,6 +464,7 @@ int main(int argc, char **argv)
 #endif
 
 	parse_args(argc, argv, &options);
+	starpu_perfmodel_initialize();
 
 	if (options.directory)
 	{
