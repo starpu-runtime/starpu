@@ -18,7 +18,7 @@
 /*
  * This reads a tasks.rec file and replays the recorded task graph.
  * Currently, this version is done to run with simgrid.
- * 
+ *
  * For further information, contact erwan.leria@inria.fr
  */
 
@@ -100,7 +100,7 @@ static struct task
 	size_t ndependson;
 	struct starpu_task task;
 	enum task_type type;
-	
+
 } *tasks;
 
 /* Record handles */
@@ -236,7 +236,7 @@ static void variable_data_register_check(size_t * array_of_size, int nb_handles)
 
 			_STARPU_MALLOC(handles_cell, sizeof(*handles_cell));
 			STARPU_ASSERT(handles_cell != NULL);
-			
+
 			handles_cell->handle = handles_ptr[h];
 			HASH_ADD(hh, handles_hash, handle, sizeof(handles_ptr[h]), handles_cell);
 
@@ -250,7 +250,7 @@ static void variable_data_register_check(size_t * array_of_size, int nb_handles)
 void reset(void)
 {
 	control = NormalTask;
-	
+
 	if (name != NULL)
 	{
 		free(name);
@@ -292,18 +292,18 @@ void reset(void)
 
 	if (submitorder != -1)
 		submitorder = -1;
-	
+
 	iteration = -1;
 	nb_parameters = 0;
 	alloc_mode = 1;
 }
 
-void fix_wontuse_handle(struct task * wontuseTask) {
-	
+void fix_wontuse_handle(struct task * wontuseTask)
+{
 	struct handle * handle_tmp;
 	HASH_FIND(hh, handles_hash, &wontuseTask->task.handles[0], sizeof(wontuseTask->task.handles[0]), handle_tmp);
+	STARPU_ASSERT(wontuseTask);
 	wontuseTask->task.handles[0] = handle_tmp->mem_ptr;
-
 }
 
 /* Function that submits all the tasks (used when the program reaches EOF) */
@@ -332,7 +332,7 @@ int submit_tasks(void)
 					HASH_FIND(hh, tasks, &currentTask->deps[i], sizeof(jobid), taskdep);
 
 					STARPU_ASSERT(taskdep);
-			
+
 					taskdeps[i] = &taskdep->task;
 				}
 
@@ -449,7 +449,7 @@ int main(int argc, char **argv)
 
 			struct task * task;
 			_STARPU_MALLOC(task, sizeof(*task));
-			
+
 			starpu_task_init(&task->task);
 
 			if (submitorder != -1)
@@ -579,7 +579,7 @@ int main(int argc, char **argv)
 		else if(TEST("Control"))
 		{
 			char * c = s+9;
-			
+
 			if(!strncmp(c, "WontUse", 7))
 			{
 				control = WontUseTask;
@@ -764,7 +764,7 @@ eof:
 	free(s);
 
 	/* End of FREE */
-	
+
 	struct handle * handle,* handletmp;
 	HASH_ITER(hh, handles_hash, handle, handletmp)
 	{
@@ -787,13 +787,13 @@ eof:
 	{
 		free(task->task.cl_arg);
 		free((char*)task->task.name);
-		
+
 		if (task->task.dyn_handles != NULL)
 		{
 			free(task->task.dyn_handles);
 			free(task->task.dyn_modes);
 		}
-		
+
 		HASH_DEL(tasks, task);
 		starpu_task_clean(&task->task);
 		starpu_rbtree_remove(&tree, &task->node);
