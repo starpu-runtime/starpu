@@ -186,6 +186,8 @@ struct starpu_task
 
 	unsigned int mf_skip:1;
 
+	unsigned no_submitorder:1; /* do not allocate a submitorder id for this task */
+
 	unsigned workerid;
 	unsigned workerorder;
 	uint32_t *workerids;
