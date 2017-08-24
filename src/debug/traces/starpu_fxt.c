@@ -560,6 +560,7 @@ static int find_worker_id(unsigned long tid)
 	return entry->workerid;
 }
 
+/* check whether this thread manages several workers */
 static int find_sync(unsigned long tid)
 {
 	struct worker_entry *entry;
@@ -1316,10 +1317,15 @@ static void handle_end_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 
 	size_t codelet_size = ev->param[1];
 	uint32_t codelet_hash = ev->param[2];
+	long unsigned int threadid = ev->param[4];
 	char *name = get_fxt_string(ev, 4);
 
+	const char *state = "I";
+	if (find_sync(threadid))
+		state = "B";
+
 	if (out_paje_file)
-		worker_set_state(end_codelet_time, prefix, worker, "I");
+		worker_set_state(end_codelet_time, prefix, worker, state);
 
 	double codelet_length = (end_codelet_time - last_codelet_start[worker]);
 	struct task_info *task = get_task(ev->param[0], options->file_rank);
