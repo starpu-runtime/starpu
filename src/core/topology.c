@@ -59,7 +59,7 @@
 #include <hwloc/cuda.h>
 #endif
 
-#if defined(STARPU_USE_OPENCL)
+#if defined(STARPU_HAVE_HWLOC) && defined(STARPU_USE_OPENCL)
 #include <hwloc/opencl.h>
 #endif
 
