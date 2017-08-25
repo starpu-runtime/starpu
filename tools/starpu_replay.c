@@ -31,7 +31,9 @@
 #include <common/utils.h>
 #include <starpu_scheduler.h>
 #include <common/rbtree.h>
-#include <common/utils.h>
+
+
+#define REPLAY_NMAX_DEPENDENCIES 8
 
 #define ARRAY_DUP(in, out, n) memcpy(out, in, n * sizeof(*out))
 #define ARRAY_INIT(array, n) memset(array, 0, n * sizeof(*array))
@@ -228,19 +230,20 @@ static void variable_data_register_check(size_t * array_of_size, int nb_handles)
 
 	for (h = 0 ; h < nb_handles ; h++)
 	{
-		if(reg_signal[h]) /* Get the register signal, and if it's 1 do ... */
+		if(reg_signal[h]) /* Get the register signal, if it's 1 do ... */
 		{
 			struct handle * handles_cell;
 
 			_STARPU_MALLOC(handles_cell, sizeof(*handles_cell));
 			STARPU_ASSERT(handles_cell != NULL);
 
-			handles_cell->handle = handles_ptr[h];
-			HASH_ADD(hh, handles_hash, handle, sizeof(handles_ptr[h]), handles_cell);
-
+			handles_cell->handle = handles_ptr[h]; /* Get the hidden key (initial handle from the file) to store it as a key*/
+			
 			starpu_variable_data_register(handles_ptr+h, STARPU_MAIN_RAM, (uintptr_t) 1, array_of_size[h]);
+			
+			handles_cell->mem_ptr = handles_ptr[h]; /* Store the new value of the handle into the hash table */
 
-			handles_cell->mem_ptr = handles_ptr[h];
+			HASH_ADD(hh, handles_hash, handle, sizeof(handles_ptr[h]), handles_cell);
 		}
 	}
 }
@@ -308,7 +311,9 @@ void fix_wontuse_handle(struct task * wontuseTask)
 int submit_tasks(void)
 {
 	/* Add dependencies */
-	struct starpu_rbtree_node * currentNode = starpu_rbtree_first(&tree);
+	
+	const struct starpu_rbtree * tmptree = &tree;
+	struct starpu_rbtree_node * currentNode = starpu_rbtree_first(tmptree);
 
 	while (currentNode != NULL)
 	{
@@ -340,6 +345,7 @@ int submit_tasks(void)
 			if (!(currentTask->iteration == -1))
 				starpu_iteration_push(currentTask->iteration);
 
+			//applySchedRec(&currentTask->task, currentTask->submit)
 			int ret_val = starpu_task_submit(&currentTask->task);
 
 			if (!(currentTask->iteration == -1))
@@ -349,12 +355,12 @@ int submit_tasks(void)
 				return -1;
 
 
-			printf("submitting task %s (%lu, %llu)\n", currentTask->task.name?currentTask->task.name:"anonymous", currentTask->jobid, (unsigned long long) currentTask->task.tag_id /* tag*/);
+			printf("submitting task %s (%lu, %llu)\n", currentTask->task.name?currentTask->task.name:"anonymous", currentTask->jobid, (unsigned long long) currentTask->task.tag_id);
 		}
 
 		else
 		{
-			fix_wontuse_handle(currentTask);
+			fix_wontuse_handle(currentTask); /* Add the handle in the wontuse task */
                         /* FIXME: can not actually work properly since we have
                          * disabled sequential consistency, so we don't have any
                          * easy way to make this wait for the last task that
@@ -365,6 +371,7 @@ int submit_tasks(void)
 		currentNode = starpu_rbtree_next(currentNode);
 
 	}
+
 	return 1;
 }
 
@@ -382,7 +389,7 @@ int main(int argc, char **argv)
 	size_t s_allocated = 128;
 
 	_STARPU_MALLOC(s, s_allocated);
-	dependson_size = 8; /* arbitrary initial value */
+	dependson_size = REPLAY_NMAX_DEPENDENCIES; /* Change the value of REPLAY_NMAX_DEPENCIES to modify the number of dependencies */
 	_STARPU_MALLOC(dependson, dependson_size * sizeof (* dependson));
 	alloc_mode = 1;
 
@@ -391,6 +398,14 @@ int main(int argc, char **argv)
 		fprintf(stderr,"Usage: %s tasks.rec [sched.rec]\n", argv[0]);
 		exit(EXIT_FAILURE);
 	}
+
+	/*
+	  if (schedRecInit(argv[2]) == NULL)
+	{
+		fprintf(stderr,"unable to open file %s: %s\n", argv[2], strerror(errno));
+		exit(EXIT_FAILURE);
+	}
+	*/
 
 	rec = fopen(argv[1], "r");
 	if (!rec)
@@ -516,6 +531,7 @@ int main(int argc, char **argv)
 
 						if (error)
 						{
+
 							fprintf(stderr, "[starpu][Warning] Error loading perfmodel symbol %s\n", model);
 							exit(EXIT_FAILURE);
 						}
@@ -556,19 +572,6 @@ int main(int argc, char **argv)
 			{
 				ARRAY_DUP(handles_ptr, task->task.handles, nb_parameters);
 			}
-
-
-			// TODO: call applyOrdoRec(task);
-			//
-			// Tag: 1234
-			// Priority: 12
-			// ExecuteOnSpecificWorker: 1
-			// Workers: 0 1 2
-			// DependsOn: 1235
-			//
-			// PrefetchTag: 1234
-			// DependsOn: 1233
-
 
 			/* Add this task to task hash */
 			HASH_ADD(hh, tasks, jobid, sizeof(jobid), task);
@@ -646,7 +649,7 @@ int main(int argc, char **argv)
 
 			nb_parameters = count + 1; /* There is one underscore per paramater execept for the last one, that's why we have to add +1 (dirty programming) */
 
-			/* The algorithm determine will determine if it needs static or dynamic arrays */
+			/* This part of the algorithm will determine if it needs static or dynamic arrays */
 			alloc_mode = set_alloc_mode(nb_parameters);
 			arrays_managing(alloc_mode);
 
@@ -671,6 +674,7 @@ int main(int argc, char **argv)
 					/* If it wasn't, then add it to the hash table */
 					if (handles_cell == NULL)
 					{
+						/* Hide the initial handle from the file into the handles array to find it when necessary */
 						handles_ptr[i] = handle_value;
 						reg_signal[i] = 1;
 					}
@@ -775,7 +779,7 @@ eof:
 		HASH_DEL(handles_hash, handle);
 		free(handle);
         }
-
+	
 	struct perfmodel * model_s, * modeltmp;
 	HASH_ITER(hh, model_hash, model_s, modeltmp)
 	{
