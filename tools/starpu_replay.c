@@ -33,8 +33,6 @@
 #include <common/rbtree.h>
 #include <common/utils.h>
 
-#define REPLAY_NMAX_DEPENDENCIES 8
-
 #define ARRAY_DUP(in, out, n) memcpy(out, in, n * sizeof(*out))
 #define ARRAY_INIT(array, n) memset(array, 0, n * sizeof(*array))
 
@@ -96,7 +94,7 @@ static struct task
 	jobid_t jobid;
         int iteration;
 	unsigned int submit_order;
-	jobid_t deps[REPLAY_NMAX_DEPENDENCIES];
+	jobid_t *deps;
 	size_t ndependson;
 	struct starpu_task task;
 	enum task_type type;
@@ -384,7 +382,7 @@ int main(int argc, char **argv)
 	size_t s_allocated = 128;
 
 	_STARPU_MALLOC(s, s_allocated);
-	dependson_size = REPLAY_NMAX_DEPENDENCIES;
+	dependson_size = 8; /* arbitrary initial value */
 	_STARPU_MALLOC(dependson, dependson_size * sizeof (* dependson));
 	alloc_mode = 1;
 
@@ -451,6 +449,7 @@ int main(int argc, char **argv)
 			_STARPU_MALLOC(task, sizeof(*task));
 
 			starpu_task_init(&task->task);
+			task->deps = NULL;
 
 			if (submitorder != -1)
 			{
@@ -546,7 +545,10 @@ int main(int argc, char **argv)
 
 				task->ndependson = ndependson;
 				if (ndependson > 0)
+				{
+					_STARPU_MALLOC(task->deps, ndependson * sizeof (* task->deps));
 					ARRAY_DUP(dependson, task->deps, ndependson);
+				}
 			}
 
 			else
@@ -796,6 +798,7 @@ eof:
 
 		HASH_DEL(tasks, task);
 		starpu_task_clean(&task->task);
+		free(task->deps);
 		starpu_rbtree_remove(&tree, &task->node);
 		free(task);
         }
