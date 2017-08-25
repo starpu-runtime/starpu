@@ -448,6 +448,8 @@ void conjugate_gradient(float *nzvalA, float *vecb, float *vecx, uint32_t nnz,
 	sem_wait(&sem);
 	sem_destroy(&sem);
 
+	starpu_task_wait_for_all();
+
 	print_results(vecx, nrow);
 
 	starpu_data_unregister(ds_matrixA);
