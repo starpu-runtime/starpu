@@ -94,6 +94,10 @@ int main(int argc, char **argv)
 	starpu_conf_init(&conf);
 	conf.ncpus = 2;
 
+#ifdef STARPU_QUICK_CHECK
+	ntasks = 128;
+#endif
+
 	parse_args(argc, argv, &conf);
 
 	ret = starpu_initialize(&conf, &argc, &argv);
