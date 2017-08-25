@@ -2224,9 +2224,11 @@ AC_SUBST([pkglibdir])
 
 AC_ARG_ENABLE(fortran, [AS_HELP_STRING([--disable-fortran],
 			[disable build of fortran examples])],
-			enable_build_fortran=$enableval, enable_build_fortran=yes)
-if test "x$FC" != "x"; then
-	if $FC --version|grep -q 'GNU Fortran'; then
+			enable_build_fortran_requested=$enableval, enable_build_fortran_requested=yes)
+enable_build_fortran=no
+if test "x$enable_build_fortran_requested" = "xyes" ; then
+   if test "x$FC" != "x"; then
+   	if $FC --version|grep -q 'GNU Fortran'; then
 		 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
      	         #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 9)
                  int dummy;
@@ -2309,6 +2311,7 @@ if test "x$FC" != "x"; then
 			fi
 		fi
 	fi
+   fi
 fi
 if test "x$enable_build_fortran" = "xyes" ; then
    if test "x$FC" = "x" ; then
