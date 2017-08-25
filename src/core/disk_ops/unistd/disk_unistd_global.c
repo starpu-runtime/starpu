@@ -171,7 +171,7 @@ void *starpu_unistd_global_open(struct starpu_unistd_global_obj *obj, void *base
 	char *baseCpy;
 	_STARPU_MALLOC(baseCpy, strlen(base)+1+strlen(pos)+1);
 
-	snprintf(baseCpy, strlen(base)+1+strlen(pos)+1, "%s/%s", base, (char *)pos);
+	snprintf(baseCpy, strlen(base)+1+strlen(pos)+1, "%s/%s", (char *)base, (char *)pos);
 
 	int id = open(baseCpy, obj->flags);
 	if (id < 0)

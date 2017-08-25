@@ -176,7 +176,7 @@ static void *starpu_stdio_open(void *base, void *pos, size_t size)
 	char *baseCpy = malloc(strlen(base)+1+strlen(pos)+1);
 	STARPU_ASSERT(baseCpy != NULL);
 
-	snprintf(baseCpy, strlen(base)+1+strlen(pos)+1, "%s/%s", base, (char *)pos);
+	snprintf(baseCpy, strlen(base)+1+strlen(pos)+1, "%s/%s", (char *)base, (char *)pos);
 
 	int id = open(baseCpy, O_RDWR);
 	if (id < 0)
