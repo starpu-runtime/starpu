@@ -1059,7 +1059,7 @@ void starpu_perfmodel_initialize(void)
 	_starpu_perfmodel_list_init(&registered_models);
 
 	STARPU_PTHREAD_RWLOCK_INIT(&registered_models_rwlock, NULL);
-
+	STARPU_PTHREAD_RWLOCK_INIT(&arch_combs_mutex, NULL);
 }
 
 void _starpu_initialize_registered_performance_models(void)
@@ -1084,7 +1084,6 @@ void _starpu_initialize_registered_performance_models(void)
 	nb_arch_combs = 2 * (ncores + ncuda + nopencl + nmic + nscc + nmpi);
 	_STARPU_MALLOC(arch_combs, nb_arch_combs*sizeof(struct starpu_perfmodel_arch*));
 	current_arch_comb = 0;
-	STARPU_PTHREAD_RWLOCK_INIT(&arch_combs_mutex, NULL);
 	historymaxerror = starpu_get_env_number_default("STARPU_HISTORY_MAX_ERROR", STARPU_HISTORYMAXERROR);
 	_starpu_calibration_minimum = starpu_get_env_number_default("STARPU_CALIBRATE_MINIMUM", 10);
 	ignore_devid[STARPU_CPU_WORKER] = starpu_get_env_number_default("STARPU_PERF_MODEL_HOMOGENEOUS_CPU", 1);
