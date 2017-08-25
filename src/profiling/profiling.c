@@ -218,8 +218,11 @@ void _starpu_worker_restart_sleeping(int workerid)
 		_starpu_clock_gettime(&sleep_start_time);
 
 		STARPU_PTHREAD_MUTEX_LOCK(&worker_info_mutex[workerid]);
-		worker_registered_sleeping_start[workerid] = 1;
-		memcpy(&sleeping_start_date[workerid], &sleep_start_time, sizeof(struct timespec));
+		if (worker_registered_sleeping_start[workerid] == 0)
+		{
+			worker_registered_sleeping_start[workerid] = 1;
+			memcpy(&sleeping_start_date[workerid], &sleep_start_time, sizeof(struct timespec));
+		}
 		STARPU_PTHREAD_MUTEX_UNLOCK(&worker_info_mutex[workerid]);
 	}
 }
@@ -234,6 +237,7 @@ void _starpu_worker_stop_sleeping(int workerid)
 
 		STARPU_PTHREAD_MUTEX_LOCK(&worker_info_mutex[workerid]);
 
+		STARPU_ASSERT(worker_registered_sleeping_start[workerid] == 1);
 		sleeping_start = &sleeping_start_date[workerid];
 
                 /* Perhaps that profiling was enabled while the worker was
