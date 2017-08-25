@@ -150,7 +150,6 @@ myPROGRAMS +=					\
 	datawizard/user_interaction_implicit	\
 	datawizard/interfaces/copy_interfaces	\
 	datawizard/locality			\
-	datawizard/simgrid-locality		\
 	datawizard/variable_size		\
 	errorcheck/starpu_init_noworker		\
 	errorcheck/invalid_tasks		\
@@ -164,6 +163,11 @@ myPROGRAMS +=					\
 	sched_ctx/sched_ctx_list		\
 	sched_ctx/sched_ctx_policy_data		\
 	perfmodels/value_nan
+
+if STARPU_SIMGRID
+myPROGRAMS +=					\
+	datawizard/simgrid-locality
+endif
 
 if !STARPU_SIMGRID
 myPROGRAMS +=				\
