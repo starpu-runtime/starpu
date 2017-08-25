@@ -186,6 +186,13 @@ DISTCLEANFILES = STARPU-REVISION
 
 include starpu-top/extradist
 
+recheck:
+	RET=0 ; \
+	for i in $(SUBDIRS) ; do \
+		make -C $$i showcheck || RET=1 ; \
+	done ; \
+	exit $$RET
+
 showcheck:
 	RET=0 ; \
 	for i in $(SUBDIRS) ; do \
