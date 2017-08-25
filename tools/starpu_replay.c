@@ -516,7 +516,8 @@ int main(int argc, char **argv)
 
 						if (error)
 						{
-							fprintf(stderr, "[starpu][Warning] Error loading perfmodel symbol");
+							fprintf(stderr, "[starpu][Warning] Error loading perfmodel symbol %s\n", model);
+							exit(EXIT_FAILURE);
 						}
 
 					}
