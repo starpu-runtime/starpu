@@ -149,6 +149,7 @@ int main(int argc, char **argv)
 #endif
 
 	parse_args(argc, argv);
+	starpu_perfmodel_initialize();
 
         if (plist)
 	{
