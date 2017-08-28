@@ -355,7 +355,8 @@ int submit_tasks(void)
 				return -1;
 
 
-			printf("submitting task %s (%lu, %llu)\n", currentTask->task.name?currentTask->task.name:"anonymous", currentTask->jobid, (unsigned long long) currentTask->task.tag_id);
+			//printf("submitting task %s (%lu, %llu)\n", currentTask->task.name?currentTask->task.name:"anonymous", currentTask->jobid, (unsigned long long) currentTask->task.tag_id);
+			printf("\rsubmitting task %lu", currentTask->submit_order);
 		}
 
 		else
@@ -371,6 +372,7 @@ int submit_tasks(void)
 		currentNode = starpu_rbtree_next(currentNode);
 
 	}
+	printf("\n");
 
 	return 1;
 }
