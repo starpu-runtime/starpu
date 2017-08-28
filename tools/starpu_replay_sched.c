@@ -1,4 +1,24 @@
-/*SCHED.REC*/
+/* StarPU --- Runtime system for heterogeneous multicore architectures.
+ *
+ * Copyright (C) 2016-2017  Université de Bordeaux
+ * Copyright (C) 2017  Erwan Leria
+ *
+ * StarPU is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or (at
+ * your option) any later version.
+ *
+ * StarPU is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU Lesser General Public License in COPYING.LGPL for more details.
+ */
+
+/*
+ * This reads a sched.rec file and mangles submitted tasks according to the hint
+ * from that file.
+ */
 
 #include <starpu.h>
 #include <unistd.h>
@@ -7,29 +27,38 @@
 #include <common/uthash.h>
 #include <common/utils.h>
 
+/*
+ sched.rec files look like this:
+
+ Tag: 1234
+ Priority: 12
+ ExecuteOnSpecificWorker: 1
+ Workers: 0 1 2
+ DependsOn: 1235
+
+ Prefetch: 1234
+ DependsOn: 1233
+ */
+
 
 #define CPY(src, dst, n) memcpy(dst, src, n * sizeof(*dst))
 
-static unsigned eosw;
-static unsigned priority;
-static unsigned workerorder;
+static unsigned long submitorder; /* Also use as prefetchtag */
+static int priority;
+static int eosw;
+static int workerorder;
+static int memnode;
 static unsigned workers[STARPU_NMAXWORKERS];
-static unsigned dependson[STARPU_NMAXBUFS];
 static unsigned nworkers;
-static unsigned nparam;
-static unsigned memnode;
+static unsigned dependson[STARPU_NMAXBUFS];
 static unsigned ndependson;
-static unsigned submitorder; /* Also use as prefetchtag */
-static unsigned parameters[STARPU_NMAXBUFS];
+static unsigned params[STARPU_NMAXBUFS];
+static unsigned nparams;
 
-static unsigned add_to_hash = 0;
-static int sched_type = -1;
-/* sched_type is called s_type in the structure struct task 
-   - If s_type == -1, no task has been added to the structure
-   - If s_type == 0, a false task has been added to the structure (at index 1)
-   - If s_type == 1, scheduling info has been added into the non-false task (at index 0) of the structure
-   - If s_type == 2, a false and a true task have been added into the structure
-*/
+static enum sched_type {
+	NormalTask,
+	PrefetchTask,
+} sched_type;
 
 static struct starpu_codelet cl_prefetch = {
         .where = STARPU_NOWHERE,
@@ -40,47 +69,73 @@ static struct starpu_codelet cl_prefetch = {
 static struct task
 {
 	UT_hash_handle hh;
-	unsigned submitorder;
-	int pref_dep;
-	unsigned send;
-	/* "Prefetch dependence" is the submit order of the dependence for the prefetch, we've chosen to work with only one value, but it can be more (in this case rearrange the code 
-			      and add eventually a new field in this structure named npref_dep or something like that) */
-	struct starpu_task tasks[2]; /* It seems that we only need 2 slots, one for the scheduling info (stored in a task), and another for the false task */
-	struct starpu_task pref_task;
+
+	unsigned long submitorder;
+	int priority;
+	int memnode;
 	unsigned dependson[STARPU_NMAXBUFS];
 	unsigned ndependson;
-	unsigned parameters[STARPU_NMAXBUFS];
-	unsigned nparameters;
-	unsigned memory_node;
-	unsigned s_type;
-} *sched_data;
+	struct starpu_task *depends_tasks[STARPU_NMAXBUFS];
+
+	/* For real tasks */
+	int eosw;
+	int workerorder;
+	unsigned workers[STARPU_NMAXWORKERS];
+	unsigned nworkers;
+
+	/* For prefetch tasks */
+	unsigned params[STARPU_NMAXBUFS];
+	unsigned nparams;
+	struct starpu_task *pref_task; /* Actual prefetch task */
+} *mangled_tasks, *prefetch_tasks;
+
+static struct dep {
+	UT_hash_handle hh;
+	unsigned long submitorder;
+	struct task *task;
+	unsigned i;
+} *dependences;
+
+static void reset(void) {
+	submitorder = 0;
+	priority = 0;
+	eosw = -1;
+	nworkers = 0;
+	ndependson = 0;
+	sched_type = NormalTask;
+	nparams = 0;
+	memnode = -1;
+	workerorder = -1;
+}
 
 /* TODO : respecter l'ordre de soumission des tâches SubmitOrder */
 
 // TODO: call SchedRecInit
 
 
-void checkField(char * s)
+static void checkField(char * s)
 {
-	if (!strncmp(s, "SubmitOrder: ", sizeof("SubmitOrder: ")))
+	/* Record various information */
+#define TEST(field) (!strncmp(s, field": ", strlen(field) + 2))
+
+	if (TEST("SubmitOrder"))
 	{
 		s = s + sizeof("SubmitOrder: ");
 		submitorder = strtol(s, NULL, 16);
-		sched_type += 2;
 	}
 
-	else if (!strncmp(s, "Priority: ", sizeof("Prioriyty: ")))
+	else if (TEST("Priority"))
 	{
 		s = s + sizeof("Priority: ");
 		priority = strtol(s, NULL, 10);
 	}
 
-	else if (!strncmp(s, "ExecuteOnSpecificWorker: ", sizeof("ExecuteOnSpecificWorker: ")))
+	else if (TEST("ExecuteOnSpecificWorker"))
 	{
 		eosw = strtol(s, NULL, 10);
 	}
 
-	else if (!strncmp(s, "Workers: ", sizeof("Workers: ")))
+	else if (TEST("Workers"))
 	{
 		s = s + sizeof("Workers: ");
 		char * delim = " ";
@@ -97,7 +152,7 @@ void checkField(char * s)
 		nworkers = i;
 	}
 
-	else if (!strncmp(s, "DependsOn: ", sizeof("DependsOn: ")))
+	else if (TEST("DependsOn"))
 	{
 		/* NOTE : dependsons (in the sched.rec)  should be the submit orders of the dependences, 
 		   otherwise it can occur an undefined behaviour
@@ -114,14 +169,14 @@ void checkField(char * s)
 		ndependson = i;
 	}
 
-	else if (!strncmp(s, "PrefetchTag: ", sizeof("PrefetchTag: ")))
+	else if (TEST("Prefetch"))
 	{
-		s = s + sizeof("PrefecthTag: ");
+		s = s + sizeof("Prefetch: ");
 		submitorder = strtol(s, NULL, 10);
-		sched_type += 1;
+		sched_type = PrefetchTask;
 	}
 
-	else if (!strncmp(s, "Parameters: ", sizeof("Parameters: ")))
+	else if (TEST("Parameters"))
 	{
 		s = s + sizeof("Parameters: ");
 		char * delim = " ";
@@ -130,19 +185,19 @@ void checkField(char * s)
 		 
 		while (token != NULL)
 		{
-			parameters[i] = strtol(token, NULL, 10);
+			params[i] = strtol(token, NULL, 10);
 			i++;
 		}
-		nparam = i;
+		nparams = i;
 	}
 
-	else if (!strncmp(s, "MemoryNode: ", sizeof("MemoryNode: ")))
+	else if (TEST("MemoryNode"))
 	{
 		s = s + sizeof("MemoryNode: ");
 		memnode = strtol(s, NULL, 10);
 	}
 	
-	else if (!strncmp(s, "Workerorder: ", sizeof("Workerorder: ")))
+	else if (TEST("Workerorder"))
 	{
 		s = s + sizeof("Workerorder: ");
 		workerorder = strtol(s, NULL, 10);
@@ -150,222 +205,152 @@ void checkField(char * s)
 }
 
 
-void recordSchedInfo(FILE * f)
-{
-	size_t lnsize = 128;
-	char * s = malloc(sizeof(*s) * lnsize);
-	
-	while(!feof(f))
-	{
-		fgets(s, lnsize, f); /* Get the line */
-		while(!strcmp(s, "\n")) /* As long as the line is not only a newline symbol (emptyline) do {...} */
-		{	  
-			checkField(s);
-		}
-
-		struct task * task;
-			
-		HASH_FIND(hh, sched_data, &submitorder, sizeof(submitorder), task);
-		
-		if (sched_type == 1) /* Only 2 conditions are possible (== 1 or == 0) */
-		{
-			if (task == NULL)
-			{
-				_STARPU_MALLOC(task, sizeof(*task));
-				task->s_type = sched_type;
-				task->submitorder = submitorder;
-				CPY(dependson, task->dependson, ndependson);
-				task->ndependson = ndependson;
-				task->pref_dep = -1;
-				
-				add_to_hash = 1;
-			}
-
-			else
-			{
-				task->s_type += sched_type;
-				CPY(dependson, task->dependson, ndependson);
-				task->ndependson = ndependson;
-				task->pref_dep = -1;
-			}
-			
-			starpu_task_init(&task->tasks[0]);
-			task->tasks[0].workerorder = workerorder;
-			task->tasks[0].priority = priority;
-			task->tasks[0].workerids = workers;
-			task->tasks[0].workerids_len = nworkers;
-
-			unsigned i;
-			for(i = 0; i < ndependson ; i++)
-			{
-				/* Create false task as dependences (they are added later) */
-				struct task * taskdep;
-				HASH_FIND(hh, sched_data, &dependson[i], sizeof(dependson[i]), taskdep);
-
-				if (taskdep == NULL)
-				{
-					_STARPU_MALLOC(taskdep, sizeof(*taskdep));
-					starpu_task_init(&taskdep->tasks[1]);
-					taskdep->submitorder = dependson[i];
-					taskdep->tasks[1].cl = NULL;
-					taskdep->tasks[1].destroy = 0;
-					taskdep->tasks[1]. no_submitorder = 1;
-
-					HASH_ADD(hh, sched_data, submitorder, sizeof(submitorder), taskdep);
-				}
-			}
-
-			if (add_to_ash)
-				HASH_ADD(hh, sched_data, submitorder, sizeof(submitorder), task)
-		}
-
-		else
-		{
-			if (task == NULL)
-			{
-				_STARPU_MALLOC(task, sizeof(*task));
-				task->s_type = sched_type;
-				task->submitorder = submitorder;
-
-
-				add_to_hash = 1;
-			}
-
-			else
-			{
-				task->s_type += shced_type;
-				
-			}
-
-			task->pref_dep = dependson[0];
-			
-			struct task * deptask;
-			HASH_FIND(hh, sched_data, &task->pref_dep, sizeof(task->pref_dep), deptask);
-
-			if (deptask == NULL)
-			{
-				_STARPU_MALLOC(deptask, sizeof(*deptask));
-				deptask->submitorder = task->pref_dep;
-			}
-
-			deptask->send = 1;
-			deptask->nparameters = nparam;
-			CPY(parameters, deptask->parameters, nparam);
-			
-			starpu_task_create(task->pref_task);
-			deptask->pref_task.cl_prefetch;
-			deptask->pref_task.no_submitorder = 1;
-			deptask->pref_task.destroy = 1;
-
-			HASH_ADD(hh, sched_data, task->pref_dep, sizeof(task->pref_dep), deptask);
-
-		      				
-			task->memory_node = memnode;			
-
-			if (add_to_ash)
-				HASH_ADD(hh, sched_data, submitorder, sizeof(submitorder), task)
-			
-		}
-
-		/* reset some values */
-		sched_type = -1;
-		add_to_hash = 0;
-		
-	}
-}
-
-
-void parsing(FILE * f)
-{
-	recordSchedInfo(f);
-}
-
-void put_info(struct starpu_task * task, unsigned submit_order)
-{
-	struct task * tmptask;
-	HASH_FIND(hh, sched_data, &submit_order, sizeof(submitorder), tmptask);
-
-       	if (tmptask == NULL)
-		return;
-
-	if (tmptask->s_type == 2 || tmptask->s_type == 1)
-	{
-		task->workerorder = tmptask->tasks[0].workerorder;
-		task->priority = tmptask->tasks[0].priority;
-		task->workerids_len = tmptask->tasks[0].workerids_len;
-		CPY(tmptask->tasks[0].workerids, task->workerids, task->workerids_len);
-
-		struct starpu_task * deps[tmptask->ndependson];
-
-		unsigned i;
-		for(i = 0; i < tmptask->ndependson ; i++)
-		{
-			struct task * taskdep;
-			HASH_FIND(hh, sched_data, &tmptask->dependson[i], sizeof(tmptask->dependson[i]), taskdep);
-
-			if (taskdep == NULL)
-			{
-				fprintf(stderr, "Can not find the dependence of task(submitorder: %d) according the sched.rec\n", submit_order);
-				exit(EXIT_FAILURE);
-			}
-
-			deps[i] = &taskdep->tasks[1];
-		}
-
-		/* According to the StarPU documentation, these dependences will be added
-		   to other existing dependences for this task */
-		
-		starpu_task_declare_deps_array(task, tmptask->ndependson, deps);
-	}
-
-	if (tmptask->s_type == 0 || tmptask->s_type == 2)
-	{
-		int ret = starpu_task_submit(&tmptask->tasks[1]);
-		if (ret != 0)
-		{
-			fprintf(stderr, "Unable to submit a the false task (corresponding to a false task of the task with the submitorder: %d)", submit_order);
-		}
-	}
-
-	if(tmptask->pref_dep != -1) /* If the task has a dependence for prefetch */
-	{
-		struct task * receive_data;
-		HASH_FIND(sched_data, &submit_order, sizeof(submit_order), receive_data);
-		/* TODO : mettre le handle de receive_data->task dans task.handles */
-	}
-
-	if (tmptask->send) /* If the task has stored data to be prefetched */
-	{
-		struct task * send_data;
-		HASH_FIND(hh, sched_data, &submit_order, sizeof(submit_order), send_data);
-
-		if(send_data == NULL)
-		{
-			fprintf(stderr, "Unable to send_data data for prefetch (submitorder: %d)", submit_order);
-			exit(EXIT_FAILURE);
-		}
-		CPY(&task.handles, send_data->pref_task.handles[0], send_data)
-		send_data->pref_task.handles[0] = task->handles[0];
-		send_data->pref_task.callback_arg = &tmptask->memory_node;
-		/* NOTE : Do it need a function in .callback_func ? */
-	}
-}
-
-FILE * schedRecInit(const char * filename)
+void schedRecInit(const char * filename)
 {
 	FILE * f = fopen(filename, "r");
 	
 	if(f == NULL)
 	{
-		return NULL;
+		return;
 	}
-	parsing(f);
+
+	size_t lnsize = 128;
+	char * s = malloc(sizeof(*s) * lnsize);
 	
-	return f;
+	reset();
+
+	while(!feof(f))
+	{
+		char *ln;
+
+		/* Get the line */
+		if (!fgets(s, lnsize, f))
+		{
+			return;
+		}
+		while (!(ln = strchr(s, '\n')))
+		{
+			_STARPU_REALLOC(s, lnsize * 2);
+			if (!fgets(s + lnsize-1, lnsize+1, f))
+			{
+				return;
+			}
+			lnsize *= 2;
+		}
+
+		if (ln == s)
+		{
+			/* Empty line, doit */
+			struct task * task;
+			unsigned i;
+
+			_STARPU_MALLOC(task, sizeof(*task));
+			task->submitorder = submitorder;
+			task->priority = priority;
+			task->memnode = memnode;
+			CPY(dependson, task->dependson, ndependson);
+			task->ndependson = ndependson;
+
+			/* Also record submitorder of tasks that this one will need to depend on */
+			for (i = 0; i < ndependson; i++) {
+				struct dep *dep;
+				struct starpu_task *starpu_task;
+				_STARPU_MALLOC(dep, sizeof(*dep));
+				dep->task = task;
+				dep->i = i;
+				dep->submitorder = task->dependson[i];
+				HASH_ADD(hh, dependences, submitorder, sizeof(submitorder), dep);
+
+				/* Create the intermediate task */
+				starpu_task = dep->task->depends_tasks[i] = starpu_task_create();
+				starpu_task->cl = NULL;
+				starpu_task->destroy = 0;
+				starpu_task->no_submitorder = 1;
+			}
+			break;
+
+			switch (sched_type)
+			{
+			case NormalTask:
+				/* A new task to mangle, record what needs to be done */
+				task->eosw = eosw;
+				task->workerorder = workerorder;
+				CPY(workers, task->workers, nworkers);
+				task->nworkers = nworkers;
+				STARPU_ASSERT(nparams == 0);
+				break;
+
+			case PrefetchTask:
+				STARPU_ASSERT(eosw == -1);
+				STARPU_ASSERT(workerorder == -1);
+				STARPU_ASSERT(nworkers == 0);
+				CPY(params, task->params, nparams);
+				task->nparams = nparams;
+				break;
+			}
+
+			HASH_ADD(hh, mangled_tasks, submitorder, sizeof(submitorder), task);
+
+			reset();
+		}
+		else checkField(s);
+	}
 }
 
-void applySchedRec(struct starpu_task * task, unsigned submit_order)
+static void do_prefetch(void *arg)
 {
-	put_info(task, submit_order);
-	return;
+	unsigned node = (uintptr_t) arg;
+	starpu_data_idle_prefetch_on_node(starpu_task_get_current()->handles[0], node, 1);
+}
+
+void applySchedRec(struct starpu_task * starpu_task, unsigned long submit_order)
+{
+	struct task *task;
+	struct dep *dep;
+	int ret;
+
+	HASH_FIND(hh, dependences, &submit_order, sizeof(submit_order), dep);
+	if (dep)
+	{
+		/* Some task will depend on this one, make the dependency */
+		starpu_task_declare_deps_array(dep->task->depends_tasks[dep->i], 1, &starpu_task);
+		ret = starpu_task_submit(dep->task->depends_tasks[dep->i]);
+		STARPU_ASSERT(ret == 0);
+	}
+
+	HASH_FIND(hh, prefetch_tasks, &submit_order, sizeof(submit_order), task);
+	if (task) {
+		/* We want to submit a prefetch for this task */
+		struct starpu_task *pref_task;
+		pref_task = task->pref_task = starpu_task_create();
+		pref_task->cl = &cl_prefetch;
+		pref_task->destroy = 1;
+		pref_task->no_submitorder = 1;
+		pref_task->callback_arg = (void*)(uintptr_t) task->memnode;
+		pref_task->callback_func = do_prefetch;
+
+		/* TODO: more params */
+		pref_task->handles[0] = starpu_task->handles[0];
+		/* Make it depend on intermediate tasks */
+		if (task->ndependson)
+			starpu_task_declare_deps_array(pref_task, task->ndependson, task->depends_tasks);
+		ret = starpu_task_submit(pref_task);
+		STARPU_ASSERT(ret == 0);
+	}
+
+	HASH_FIND(hh, mangled_tasks, &submit_order, sizeof(submit_order), task);
+       	if (task == NULL)
+		/* Nothing to do for this */
+		return;
+
+	starpu_task->workerorder = task->workerorder;
+	starpu_task->priority = task->priority;
+	starpu_task->workerids_len = task->nworkers;
+	_STARPU_MALLOC(starpu_task->workerids, task->nworkers * sizeof(*starpu_task->workerids));
+	CPY(task->workers, starpu_task->workerids, task->nworkers);
+
+	if (task->ndependson)
+		starpu_task_declare_deps_array(starpu_task, task->ndependson, task->depends_tasks);
+
+	/* And now, let it go!  */
 }

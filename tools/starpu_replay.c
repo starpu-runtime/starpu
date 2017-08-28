@@ -55,7 +55,7 @@ static char *name = NULL;
 static char *model = NULL;
 static jobid_t jobid;
 static jobid_t *dependson;
-static int submitorder = -1;
+static long submitorder = -1;
 static starpu_tag_t tag;
 static int workerid;
 static uint32_t footprint;
@@ -95,7 +95,7 @@ static struct task
 	UT_hash_handle hh;
 	jobid_t jobid;
         int iteration;
-	unsigned int submit_order;
+	unsigned long submit_order;
 	jobid_t *deps;
 	size_t ndependson;
 	struct starpu_task task;
