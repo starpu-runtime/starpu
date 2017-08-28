@@ -44,6 +44,9 @@
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+/* TODO: move to core header while moving starpu_replay_sched to core */
+extern void schedRecInit(const char * filename);
+extern void applySchedRec(struct starpu_task * starpu_task, unsigned long submit_order);
 
 /* Enum for normal and "wontuse" tasks */
 enum task_type {NormalTask, WontUseTask};
@@ -314,6 +317,7 @@ int submit_tasks(void)
 	
 	const struct starpu_rbtree * tmptree = &tree;
 	struct starpu_rbtree_node * currentNode = starpu_rbtree_first(tmptree);
+	unsigned long last_submitorder = 0;
 
 	while (currentNode != NULL)
 	{
@@ -321,6 +325,18 @@ int submit_tasks(void)
 
 		if (currentTask->type == NormalTask)
 		{
+			STARPU_ASSERT(currentTask->submit_order >= last_submitorder + 1);
+
+			while (currentTask->submit_order > last_submitorder + 1)
+			{
+				/* Oops, some tasks were not submitted by original application, fake some */
+				struct starpu_task *task = starpu_task_create();
+				int ret;
+				task->cl = NULL;
+				ret = starpu_task_submit(task);
+				STARPU_ASSERT(ret == 0);
+				last_submitorder++;
+			}
 
 			if (currentTask->ndependson > 0)
 			{
@@ -345,7 +361,7 @@ int submit_tasks(void)
 			if (!(currentTask->iteration == -1))
 				starpu_iteration_push(currentTask->iteration);
 
-			//applySchedRec(&currentTask->task, currentTask->submit)
+			applySchedRec(&currentTask->task, currentTask->submit_order);
 			int ret_val = starpu_task_submit(&currentTask->task);
 
 			if (!(currentTask->iteration == -1))
@@ -357,6 +373,7 @@ int submit_tasks(void)
 
 			//printf("submitting task %s (%lu, %llu)\n", currentTask->task.name?currentTask->task.name:"anonymous", currentTask->jobid, (unsigned long long) currentTask->task.tag_id);
 			printf("\rsubmitting task %lu", currentTask->submit_order);
+			last_submitorder++;
 		}
 
 		else
@@ -401,13 +418,8 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
-	/*
-	  if (schedRecInit(argv[2]) == NULL)
-	{
-		fprintf(stderr,"unable to open file %s: %s\n", argv[2], strerror(errno));
-		exit(EXIT_FAILURE);
-	}
-	*/
+	if (argc >= 3)
+		schedRecInit(argv[2]);
 
 	rec = fopen(argv[1], "r");
 	if (!rec)
