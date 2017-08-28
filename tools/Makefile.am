@@ -251,8 +251,8 @@ bin_PROGRAMS += 			\
 	starpu_replay
 
 starpu_replay_SOURCES = \
-	starpu_replay.c
-#	starpu_replay_sched.c
+	starpu_replay.c \
+	starpu_replay_sched.c
 endif
 
 starpu_perfmodel_plot_CPPFLAGS = $(AM_CFLAGS) $(AM_CPPFLAGS) $(FXT_CFLAGS)
