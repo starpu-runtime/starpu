@@ -27,6 +27,7 @@
 #include <common/uthash.h>
 #include <common/list.h>
 #include <common/utils.h>
+#include <limits.h>
 
 /*
  sched.rec files look like this:
@@ -49,7 +50,7 @@
 #if 0
 #define debug(fmt, ...) fprintf(stderr, fmt, ##__VA_ARGS__)
 #else
-#define debug(fmt, ...) 0
+#define debug(fmt, ...) (void)0
 #endif
 
 static unsigned long submitorder; /* Also use as prefetchtag */
