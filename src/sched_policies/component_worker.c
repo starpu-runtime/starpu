@@ -610,7 +610,7 @@ static int combined_worker_can_pull(struct starpu_sched_component * component)
 	{
 		if((unsigned) i == workerid)
 			continue;
-		if (_starpu_wake_worker_relax(workerid))
+		if (_starpu_wake_worker_relax_light(workerid))
 			return 1;
 	}
 	return 0;

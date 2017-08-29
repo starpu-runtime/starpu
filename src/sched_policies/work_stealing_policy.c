@@ -669,7 +669,7 @@ int ws_push_task(struct starpu_task *task)
 
 	workers->init_iterator(workers, &it);
 	while(workers->has_next(workers, &it))
-		_starpu_wake_worker_relax(workers->get_next(workers, &it));
+		_starpu_wake_worker_relax_light(workers->get_next(workers, &it));
 #endif
 	return 0;
 }
