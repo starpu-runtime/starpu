@@ -1819,7 +1819,7 @@ _starpu_bind_thread_on_cpu (
 	{
 		int previous = cpu_worker[cpuid];
 		if (previous != STARPU_NOWORKERID && previous != workerid)
-			_STARPU_DISP("Warning: both workers %d and %d are bound to the same PU %d, this will strongly degrade performance\n", previous, workerid, cpuid);
+			_STARPU_DISP("Warning: both workers %d and %d are bound to the same PU %d, this will strongly degrade performance. Maybe check starpu_machine_display's output to determine what wrong binding happened\n", previous, workerid, cpuid);
 		else
 			cpu_worker[cpuid] = workerid;
 	}
