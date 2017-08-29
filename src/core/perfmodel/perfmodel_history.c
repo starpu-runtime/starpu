@@ -1405,7 +1405,7 @@ void starpu_perfmodel_get_arch_name(struct starpu_perfmodel_arch* arch, char *ar
 	STARPU_ASSERT(comb != -1);
 	char devices[STR_VERY_LONG_LENGTH];
 	int written = 0;
-	strcpy(devices, "");
+	devices[0] = '\0';
 	for(i=0 ; i<arch->ndevices ; i++)
 	{
 		written += snprintf(devices + written, sizeof(devices)-written, "%s%d%s", starpu_perfmodel_get_archtype_name(arch->devices[i].type), arch->devices[i].devid, i != arch->ndevices-1 ? "_":"");
