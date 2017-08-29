@@ -93,7 +93,7 @@ static void _starpu_opencl_limit_gpu_mem_if_needed(unsigned devid)
 	if (limit == -1)
 	{
 		char name[30];
-		sprintf(name, "STARPU_LIMIT_OPENCL_%u_MEM", devid);
+		snprintf(name, sizeof(name), "STARPU_LIMIT_OPENCL_%u_MEM", devid);
 		limit = starpu_get_env_number(name);
 	}
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)

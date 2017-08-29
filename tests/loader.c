@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2014-2016  Université de Bordeaux
+ * Copyright (C) 2010, 2014-2017  Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -235,17 +235,15 @@ int main(int argc, char *argv[])
 	if (strstr(test_name, "spmv/dw_block_spmv"))
 	{
 		test_args = (char *) calloc(150, sizeof(char));
-		sprintf(test_args, "%s/examples/spmv/matrix_market/examples/fidapm05.mtx", STARPU_SRC_DIR);
+		snprintf(test_args, 150, "%s/examples/spmv/matrix_market/examples/fidapm05.mtx", STARPU_SRC_DIR);
 	}
 	else if (strstr(test_name, "starpu_perfmodel_display"))
 	{
-		test_args = (char *) calloc(5, sizeof(char));
-		sprintf(test_args, "-l");
+		test_args = strdup("-l");
 	}
 	else if (strstr(test_name, "starpu_perfmodel_plot"))
 	{
-		test_args = (char *) calloc(5, sizeof(char));
-		sprintf(test_args, "-l");
+		test_args = strdup("-l");
 	}
 
 	/* get launcher program */

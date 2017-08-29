@@ -77,13 +77,14 @@ static void copy_cpuid_array(long *dst, long *src, unsigned n)
 static char *array_to_str(long *array, int n)
 {
 	int i;
-	char *str = malloc(n * 3 * sizeof(long));
+	int len = n * 3 * sizeof(long);
+	char *str = malloc(len);
 	char *ptr = str;
 
 	for (i=0; i<n; i++)
 	{
 		int nchar;
-		nchar = sprintf(ptr, "%ld ", array[i]);
+		nchar = snprintf(ptr, len - (ptr-str), "%ld ", array[i]);
 		ptr += nchar;
 	}
 
