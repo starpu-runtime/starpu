@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013, 2016-2017  Université de Bordeaux
+ * Copyright (C) 2010-2013, 2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -56,6 +56,9 @@ static unsigned busid_cnt = 0;
 
 static void _starpu_bus_reset_profiling_info(struct starpu_profiling_bus_info *bus_info);
 
+/* Clear all the profiling info related to the worker. */
+static void _starpu_worker_reset_profiling_info_with_lock(int workerid);
+
 /*
  *	Global control of profiling
  */
@@ -74,12 +77,12 @@ void starpu_profiling_init()
 	_starpu_profiling_init();
 }
 
-void _starpu_profiling_reset_counters()
+static void _starpu_profiling_reset_counters()
 {
 	int worker;
 	for (worker = 0; worker < STARPU_NMAXWORKERS; worker++)
 	{
-		_starpu_worker_reset_profiling_info(worker);
+		_starpu_worker_reset_profiling_info_with_lock(worker);
 	}
 
 	int busid;
@@ -94,6 +97,12 @@ void _starpu_profiling_reset_counters()
 
 int starpu_profiling_status_set(int status)
 {
+	int worker;
+	for (worker = 0; worker < STARPU_NMAXWORKERS; worker++)
+	{
+		STARPU_PTHREAD_MUTEX_LOCK(&worker_info_mutex[worker]);
+	}
+
 	ANNOTATE_HAPPENS_AFTER(&_starpu_profiling);
 	int prev_value = _starpu_profiling;
 	_starpu_profiling = status;
@@ -105,6 +114,11 @@ int starpu_profiling_status_set(int status)
 	if (status == STARPU_PROFILING_ENABLE)
 	{
 		_starpu_profiling_reset_counters();
+	}
+
+	for (worker = 0; worker < STARPU_NMAXWORKERS; worker++)
+	{
+		STARPU_PTHREAD_MUTEX_UNLOCK(&worker_info_mutex[worker]);
 	}
 
 	return prev_value;
@@ -201,13 +215,6 @@ static void _starpu_worker_reset_profiling_info_with_lock(int workerid)
 	{
 		worker_registered_executing_start[workerid] = 0;
 	}
-}
-
-void _starpu_worker_reset_profiling_info(int workerid)
-{
-	STARPU_PTHREAD_MUTEX_LOCK(&worker_info_mutex[workerid]);
-	_starpu_worker_reset_profiling_info_with_lock(workerid);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&worker_info_mutex[workerid]);
 }
 
 void _starpu_worker_restart_sleeping(int workerid)

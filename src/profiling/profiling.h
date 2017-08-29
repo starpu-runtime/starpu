@@ -27,9 +27,6 @@
  * profiling is enabled. */
 struct starpu_profiling_task_info *_starpu_allocate_profiling_info_if_needed(struct starpu_task *task);
 
-/* Clear all the profiling info related to the worker. */
-void _starpu_worker_reset_profiling_info(int workerid);
-
 /* Update the per-worker profiling info after a task (or more) was executed.
  * This tells StarPU how much time was spent doing computation. */
 void _starpu_worker_update_profiling_info_executing(int workerid, struct timespec *executing_time, int executed_tasks, uint64_t used_cycles, uint64_t stall_cycles, double consumed_energy, double flops);
@@ -75,6 +72,5 @@ void _starpu_profiling_init(void);
 void _starpu_profiling_start(void);
 
 void _starpu_profiling_terminate(void);
-void _starpu_profiling_reset_counters();
 
 #endif // __PROFILING_H__
