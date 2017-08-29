@@ -35,6 +35,7 @@ AM_LDFLAGS = @STARPU_EXPORT_DYNAMIC@ $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFL
 EXTRA_DIST =					\
 	helper.h				\
 	datawizard/locality.sh			\
+	overlap/overlap.sh			\
 	datawizard/scal.h			\
 	datawizard/mpi_like.h			\
 	microbenchs/tasks_size_overhead.sh	\
@@ -136,7 +137,6 @@ myPROGRAMS =
 
 myPROGRAMS +=					\
 	main/mkdtemp				\
-	main/restart				\
 	main/execute_schedule			\
 	main/insert_task_pack			\
 	main/insert_task_nullcodelet		\
@@ -150,16 +150,24 @@ myPROGRAMS +=					\
 	datawizard/user_interaction_implicit	\
 	datawizard/interfaces/copy_interfaces	\
 	datawizard/locality			\
-	datawizard/simgrid-locality		\
+	datawizard/variable_size		\
 	errorcheck/starpu_init_noworker		\
 	errorcheck/invalid_tasks		\
 	helper/cublas_init			\
+	helper/cusparse_init			\
 	helper/pinned_memory			\
 	helper/execute_on_all			\
 	microbenchs/display_structures_size	\
 	microbenchs/local_pingpong		\
+	overlap/overlap				\
 	sched_ctx/sched_ctx_list		\
+	sched_ctx/sched_ctx_policy_data		\
 	perfmodels/value_nan
+
+if STARPU_SIMGRID
+myPROGRAMS +=					\
+	datawizard/simgrid-locality
+endif
 
 if !STARPU_SIMGRID
 myPROGRAMS +=				\
@@ -173,6 +181,7 @@ myPROGRAMS +=				\
 	main/insert_task_dyn_handles		\
 	main/insert_task_array			\
 	main/insert_task_many			\
+	main/insert_task_where			\
 	main/multithreaded			\
 	main/starpu_task_bundle			\
 	main/starpu_task_wait_for_all		\
@@ -182,6 +191,7 @@ myPROGRAMS +=				\
 	main/static_restartable_tag		\
 	main/regenerate				\
 	main/regenerate_pipeline		\
+	main/restart				\
 	main/wait_all_regenerable_tasks		\
 	main/subgraph_repeat			\
 	main/subgraph_repeat_tag		\
@@ -201,6 +211,7 @@ myPROGRAMS +=				\
 	main/pause_resume			\
 	main/pack				\
 	main/get_children_tasks			\
+	main/hwloc_cpuset			\
 	datawizard/acquire_cb_insert		\
 	datawizard/acquire_release		\
 	datawizard/acquire_release2		\
@@ -315,7 +326,6 @@ myPROGRAMS +=				\
 	openmp/taskgroup_02			\
 	openmp/array_slice_01			\
 	openmp/cuda_task_01			\
-	overlap/overlap				\
 	overlap/gpu_concurrency			\
 	parallel_tasks/explicit_combined_worker	\
 	parallel_tasks/parallel_kernels		\
@@ -341,6 +351,8 @@ MICROBENCHS = \
 	microbenchs/parallel_independent_heterogeneous_tasks    \
 	microbenchs/parallel_independent_homogeneous_tasks_data	\
 	microbenchs/parallel_independent_heterogeneous_tasks_data \
+	microbenchs/parallel_redux_homogeneous_tasks_data \
+	microbenchs/parallel_redux_heterogeneous_tasks_data \
 	microbenchs/parallel_dependent_homogeneous_tasks_data
 
 if STARPU_HAVE_FC
@@ -384,7 +396,9 @@ if STARPU_SIMGRID
 TESTS += $(MICROBENCHS:=.sh)
 endif
 
-TESTS += datawizard/locality.sh
+TESTS += \
+	datawizard/locality.sh \
+	overlap/overlap.sh
 
 ################################
 # Simgrid Model Checking tests #
@@ -393,10 +407,16 @@ TESTS += datawizard/locality.sh
 if STARPU_SIMGRID_MC
 model_checking_prio_list_LDADD = 
 model_checking_prio_list_LDFLAGS = 
-model_checking_prio_list_SOURCES = model-checking/prio_list.c ../src/common/rbtree.c
 noinst_PROGRAMS += model-checking/prio_list
 if !STARPU_QUICK_CHECK
 TESTS += model-checking/prio_list.sh
+endif
+
+model_checking_starpu_barrier_LDADD = 
+model_checking_starpu_barrier_LDFLAGS = 
+noinst_PROGRAMS += model-checking/starpu_barrier
+if !STARPU_QUICK_CHECK
+#TESTS += model-checking/barrier.sh
 endif
 endif
 
@@ -570,6 +590,13 @@ datawizard_test_arbiter_SOURCES =	\
 
 main_deprecated_func_CFLAGS = $(AM_CFLAGS) -Wno-deprecated-declarations
 
+main_insert_task_where_SOURCES =		\
+	main/insert_task_where.c
+if STARPU_USE_CUDA
+main_insert_task_where_SOURCES +=		\
+	main/increment.cu
+endif
+
 main_subgraph_repeat_SOURCES =		\
 	main/subgraph_repeat.c
 if STARPU_USE_CUDA
@@ -600,6 +627,9 @@ endif
 
 sched_ctx_sched_ctx_list_SOURCES =	\
 	sched_ctx/sched_ctx_list.c
+
+sched_ctx_sched_ctx_policy_data_SOURCES =	\
+	sched_ctx/sched_ctx_policy_data.c
 
 sched_ctx_sched_ctx_hierarchy_SOURCES =	\
 	sched_ctx/sched_ctx_hierarchy.c

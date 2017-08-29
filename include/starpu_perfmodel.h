@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2014, 2016  Université de Bordeaux
+ * Copyright (C) 2010-2014, 2016-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2016  Inria
@@ -25,6 +25,7 @@
 
 #include <starpu_util.h>
 #include <starpu_worker.h>
+#include <starpu_task.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -169,6 +170,7 @@ struct starpu_perfmodel_arch *starpu_worker_get_perf_archtype(int workerid, unsi
 int starpu_perfmodel_get_narch_combs();
 int starpu_perfmodel_arch_comb_add(int ndevices, struct starpu_perfmodel_device* devices);
 int starpu_perfmodel_arch_comb_get(int ndevices, struct starpu_perfmodel_device *devices);
+struct starpu_perfmodel_arch *starpu_perfmodel_arch_comb_fetch(int comb);
 
 struct starpu_perfmodel_per_arch *starpu_perfmodel_get_model_per_arch(struct starpu_perfmodel *model, struct starpu_perfmodel_arch *arch, unsigned impl);
 struct starpu_perfmodel_per_arch *starpu_perfmodel_get_model_per_devices(struct starpu_perfmodel *model, int impl, ...);
@@ -181,6 +183,7 @@ char* starpu_perfmodel_get_archtype_name(enum starpu_worker_archtype archtype);
 void starpu_perfmodel_get_arch_name(struct starpu_perfmodel_arch *arch, char *archname, size_t maxlen, unsigned nimpl);
 
 double starpu_perfmodel_history_based_expected_perf(struct starpu_perfmodel *model, struct starpu_perfmodel_arch* arch, uint32_t footprint);
+void starpu_perfmodel_initialize(void);
 int starpu_perfmodel_list(FILE *output);
 void starpu_perfmodel_print(struct starpu_perfmodel *model, struct starpu_perfmodel_arch *arch, unsigned nimpl, char *parameter, uint32_t *footprint, FILE *output);
 int starpu_perfmodel_print_all(struct starpu_perfmodel *model, char *arch, char *parameter, uint32_t *footprint, FILE *output);

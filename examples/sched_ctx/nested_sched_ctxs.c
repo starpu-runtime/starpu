@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2010-2015  Université de Bordeaux
  * Copyright (C) 2010-2014, 2016, 2017  CNRS
+ * Copyright (C) 2017  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -53,7 +54,10 @@ static void sched_ctx_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
 	unsigned sched_ctx = (uintptr_t)arg;
 	int t = parallel_code(sched_ctx);
 	if (sched_ctx > 0 && sched_ctx < 3)
-		tasks_executed[sched_ctx-1] += t;
+	{
+		STARPU_ATOMIC_ADD(&tasks_executed[sched_ctx-1], t);
+	}
+
 	//printf("w %d executed %d it \n", w, n);
 }
 

@@ -4,7 +4,7 @@
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010-2017  CNRS
  * Copyright (C) 2011  Télécom-SudParis
- * Copyright (C) 2014  INRIA
+ * Copyright (C) 2014, 2017  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -55,8 +55,6 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 {
 	int is_parallel_task = (j->task_size > 1);
 	int profiling = starpu_profiling_status_get();
-	struct timespec codelet_start, codelet_end;
-
 	struct starpu_task *task = j->task;
 	struct starpu_codelet *cl = task->cl;
 
@@ -72,7 +70,7 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 	}
 
 	/* Give profiling variable */
-	_starpu_driver_start_job(cpu_args, j, perf_arch, &codelet_start, rank, profiling);
+	_starpu_driver_start_job(cpu_args, j, perf_arch, rank, profiling);
 
 	/* In case this is a Fork-join parallel task, the worker does not
 	 * execute the kernel at all. */
@@ -81,7 +79,7 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 		_starpu_cl_func_t func = _starpu_task_get_cpu_nth_implementation(cl, j->nimpl);
 		if (is_parallel_task && cl->type == STARPU_FORKJOIN)
 			/* bind to parallel worker */
-			_starpu_bind_thread_on_cpus(cpu_args->config, _starpu_get_combined_worker_struct(j->combined_workerid));
+			_starpu_bind_thread_on_cpus(_starpu_get_combined_worker_struct(j->combined_workerid));
 		STARPU_ASSERT_MSG(func, "when STARPU_CPU is defined in 'where', cpu_func or cpu_funcs has to be defined");
 		if (_starpu_get_disable_kernels() <= 0)
 		{
@@ -104,10 +102,10 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 		}
 		if (is_parallel_task && cl->type == STARPU_FORKJOIN)
 			/* rebind to single CPU */
-			_starpu_bind_thread_on_cpu(cpu_args->config, cpu_args->bindid, cpu_args->workerid);
+			_starpu_bind_thread_on_cpu(cpu_args->bindid, cpu_args->workerid);
 	}
 
-	_starpu_driver_end_job(cpu_args, j, perf_arch, &codelet_end, rank, profiling);
+	_starpu_driver_end_job(cpu_args, j, perf_arch, rank, profiling);
 
 	if (is_parallel_task)
 	{
@@ -140,8 +138,7 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 
 	if (rank == 0)
 	{
-		_starpu_driver_update_job_feedback(j, cpu_args,
-				perf_arch, &codelet_start, &codelet_end, profiling);
+		_starpu_driver_update_job_feedback(j, cpu_args, perf_arch, profiling);
 #ifdef STARPU_OPENMP
 		if (!j->continuation)
 #endif
@@ -156,34 +153,45 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 static size_t _starpu_cpu_get_global_mem_size(int nodeid STARPU_ATTRIBUTE_UNUSED, struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED)
 {
 	size_t global_mem;
-	starpu_ssize_t limit;
-
-	limit = starpu_get_env_number("STARPU_LIMIT_CPU_MEM");
-#ifdef STARPU_DEVEL
-#  warning TODO: take into account NUMA node and check STARPU_LIMIT_CPU_numanode_MEM
-#endif
+	starpu_ssize_t limit = -1;
 
 #if defined(STARPU_HAVE_HWLOC)
+	char name[32];
+
 	struct _starpu_machine_topology *topology = &config->topology;
 
-#if 0
-	/* Do not limit ourself to a single NUMA node yet, as we don't have real NUMA support for now */
-        int depth_node = hwloc_get_type_depth(topology->hwtopology, HWLOC_OBJ_NODE);
+	int nnumas = starpu_memory_nodes_get_numa_count();
+	if (nnumas > 1)
+	{
+		int depth_node = hwloc_get_type_depth(topology->hwtopology, HWLOC_OBJ_NODE);
 
-	if (depth_node == HWLOC_TYPE_DEPTH_UNKNOWN)
-	     global_mem = hwloc_get_root_obj(topology->hwtopology)->memory.total_memory;
+		if (depth_node == HWLOC_TYPE_DEPTH_UNKNOWN)
+		{
+			global_mem = hwloc_get_root_obj(topology->hwtopology)->memory.total_memory;
+		}
+		else
+		{
+			hwloc_obj_t obj = hwloc_get_obj_by_depth(topology->hwtopology, depth_node, nodeid);
+			global_mem = obj->memory.local_memory;
+			snprintf(name, sizeof(name), "STARPU_LIMIT_CPU_NUMA_%d_MEM", obj->os_index);
+			limit = starpu_get_env_number(name);
+		}
+	}
 	else
-	     global_mem = hwloc_get_obj_by_depth(topology->hwtopology, depth_node, nodeid)->memory.local_memory;
-#else
-	global_mem = hwloc_get_root_obj(topology->hwtopology)->memory.total_memory;
-#endif
+	{
+		/* Do not limit ourself to a single NUMA node */
+		global_mem = hwloc_get_root_obj(topology->hwtopology)->memory.total_memory;
+	}
 
 #else /* STARPU_HAVE_HWLOC */
 #ifdef STARPU_DEVEL
-#  warning use sysinfo when available to get global size
+#  warning TODO: use sysinfo when available to get global size
 #endif
 	global_mem = 0;
 #endif
+
+	if (limit == -1)
+		limit = starpu_get_env_number("STARPU_LIMIT_CPU_MEM");
 
 	if (limit < 0)
 		// No limit is defined, we return the global memory size
@@ -201,18 +209,19 @@ int _starpu_cpu_driver_init(struct _starpu_worker *cpu_worker)
 	int devid = cpu_worker->devid;
 
 	_starpu_driver_start(cpu_worker, _STARPU_FUT_CPU_KEY, 1);
-	/* FIXME: when we have NUMA support, properly turn node number into NUMA node number */
-	_starpu_memory_manager_set_global_memory_size(cpu_worker->memory_node, _starpu_cpu_get_global_mem_size(cpu_worker->memory_node, cpu_worker->config));
-
+	_starpu_memory_manager_set_global_memory_size(cpu_worker->memory_node, _starpu_cpu_get_global_mem_size(cpu_worker->numa_memory_node, cpu_worker->config));
 	snprintf(cpu_worker->name, sizeof(cpu_worker->name), "CPU %d", devid);
 	snprintf(cpu_worker->short_name, sizeof(cpu_worker->short_name), "CPU %d", devid);
 	starpu_pthread_setname(cpu_worker->short_name);
 
 	_STARPU_TRACE_WORKER_INIT_END(cpu_worker->workerid);
 
+	STARPU_PTHREAD_MUTEX_LOCK_SCHED(&cpu_worker->sched_mutex);
+	cpu_worker->status = STATUS_UNKNOWN;
+	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&cpu_worker->sched_mutex);
+
 	/* tell the main thread that we are ready */
 	STARPU_PTHREAD_MUTEX_LOCK(&cpu_worker->mutex);
-	cpu_worker->status = STATUS_UNKNOWN;
 	cpu_worker->worker_is_initialized = 1;
 	STARPU_PTHREAD_COND_SIGNAL(&cpu_worker->ready_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&cpu_worker->mutex);
@@ -321,6 +330,7 @@ int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
 		j = _starpu_get_job_associated_to_task(pending_task);
 
 		_starpu_fetch_task_input_tail(pending_task, j, cpu_worker);
+		_starpu_set_worker_status(cpu_worker, STATUS_UNKNOWN);
 		/* Reset it */
 		cpu_worker->task_transferring = NULL;
 

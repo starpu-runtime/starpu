@@ -29,7 +29,7 @@ int main(int argc, char **argv)
 
 void get_neighbors(int **neighbor_ids, int *nneighbors)
 {
-	int ret, rank, size;
+	int rank, size;
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
 	*nneighbors = 1;
@@ -46,14 +46,15 @@ int main(int argc, char **argv)
 {
 	int ret;
 	struct starpu_mpi_lb_conf itf;
+	int mpi_init;
 
 	itf.get_neighbors = get_neighbors;
 	itf.get_data_unit_to_migrate = get_data_unit_to_migrate;
 
-	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED);
+	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED, &mpi_init);
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-	ret = starpu_mpi_init(NULL, NULL, 0);
+	ret = starpu_mpi_init(NULL, NULL, mpi_init);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
 
 	unsetenv("STARPU_MPI_LB");
@@ -65,7 +66,8 @@ int main(int argc, char **argv)
 
 	starpu_mpi_shutdown();
 	starpu_shutdown();
-	MPI_Finalize();
+	if (!mpi_init)
+		MPI_Finalize();
 
 	return 0;
 }

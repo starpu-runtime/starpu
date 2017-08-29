@@ -5,6 +5,7 @@
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016, 2017  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2016  Uppsala University
+ * Copyright (C) 2017  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -52,7 +53,7 @@
 static int ncudagpus = -1;
 
 static size_t global_mem[STARPU_MAXCUDADEVS];
-int _starpu_cuda_bus_ids[STARPU_MAXCUDADEVS+1][STARPU_MAXCUDADEVS+1];
+int _starpu_cuda_bus_ids[STARPU_MAXCUDADEVS+STARPU_MAXNUMANODES][STARPU_MAXCUDADEVS+STARPU_MAXNUMANODES];
 #ifdef STARPU_USE_CUDA
 static cudaStream_t streams[STARPU_NMAXWORKERS];
 static cudaStream_t out_transfer_streams[STARPU_MAXCUDADEVS];
@@ -131,7 +132,7 @@ static void _starpu_cuda_limit_gpu_mem_if_needed(unsigned devid)
 	if (limit == -1)
 	{
 		char name[30];
-		sprintf(name, "STARPU_LIMIT_CUDA_%u_MEM", devid);
+		snprintf(name, sizeof(name), "STARPU_LIMIT_CUDA_%u_MEM", devid);
 		limit = starpu_get_env_number(name);
 	}
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
@@ -250,11 +251,13 @@ void starpu_cuda_set_device(unsigned devid STARPU_ATTRIBUTE_UNUSED)
 	}
 #else
 	for (i = 0; i < conf->n_cuda_opengl_interoperability; i++)
+	{
 		if (conf->cuda_opengl_interoperability[i] == devid)
 		{
 			cures = cudaGLSetGLDevice(devid);
 			goto done;
 		}
+	}
 #endif
 
 	cures = cudaSetDevice(devid);
@@ -322,7 +325,7 @@ static void init_device_context(unsigned devid, unsigned memnode)
 					{
 						_STARPU_DEBUG("Enabled GPU-Direct %d -> %d\n", worker->devid, devid);
 						/* direct copies are made from the destination, see link_supports_direct_transfers */
-						starpu_bus_set_direct(_starpu_cuda_bus_ids[worker->devid][devid], 1);
+						starpu_bus_set_direct(_starpu_cuda_bus_ids[worker->devid+STARPU_MAXNUMANODES][devid+STARPU_MAXNUMANODES], 1);
 					}
 				}
 			}
@@ -488,7 +491,7 @@ static int start_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *worke
 	if (worker->ntasks == 1)
 	{
 		/* We are alone in the pipeline, the kernel will start now, record it */
-		_starpu_driver_start_job(worker, j, &worker->perf_arch, &j->cl_start, 0, profiling);
+		_starpu_driver_start_job(worker, j, &worker->perf_arch, 0, profiling);
 	}
 
 #if defined(HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
@@ -527,8 +530,6 @@ static int start_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *worke
 
 static void finish_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *worker)
 {
-	struct timespec codelet_end;
-
 	int profiling = starpu_profiling_status_get();
 
 	_starpu_set_current_task(NULL);
@@ -539,16 +540,16 @@ static void finish_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *wor
 	worker->first_task = (worker->first_task + 1) % STARPU_MAX_PIPELINE;
 	worker->ntasks--;
 
-	_starpu_driver_end_job(worker, j, &worker->perf_arch, &codelet_end, 0, profiling);
+	_starpu_driver_end_job(worker, j, &worker->perf_arch, 0, profiling);
 
 	struct _starpu_sched_ctx *sched_ctx = _starpu_sched_ctx_get_sched_ctx_for_worker_and_job(worker, j);
 	if(!sched_ctx)
 		sched_ctx = _starpu_get_sched_ctx_struct(j->task->sched_ctx);
 
 	if(!sched_ctx->sched_policy)
-		_starpu_driver_update_job_feedback(j, worker, &sched_ctx->perf_arch, &j->cl_start, &codelet_end, profiling);
+		_starpu_driver_update_job_feedback(j, worker, &sched_ctx->perf_arch, profiling);
 	else
-		_starpu_driver_update_job_feedback(j, worker, &worker->perf_arch, &j->cl_start, &codelet_end, profiling);
+		_starpu_driver_update_job_feedback(j, worker, &worker->perf_arch, profiling);
 
 	_starpu_push_task_output(j);
 
@@ -658,7 +659,7 @@ int _starpu_cuda_driver_init(struct _starpu_worker_set *worker_set)
 	}
 
 	/* one more time to avoid hacks from third party lib :) */
-	_starpu_bind_thread_on_cpu(worker0->config, worker0->bindid, worker0->workerid);
+	_starpu_bind_thread_on_cpu(worker0->bindid, worker0->workerid);
 
 	for (i = 0; i < worker_set->nworkers; i++)
 	{
@@ -774,6 +775,7 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 
 			_starpu_set_local_worker_key(worker);
 			_starpu_fetch_task_input_tail(task, j, worker);
+			_starpu_set_worker_status(worker, STATUS_UNKNOWN);
 			/* Reset it */
 			worker->task_transferring = NULL;
 
@@ -830,7 +832,7 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 				{
 					/* An asynchronous task, it was already
 					 * queued, it's now running, record its start time.  */
-					_starpu_driver_start_job(worker, j, &worker->perf_arch, &j->cl_start, 0, starpu_profiling_status_get());
+					_starpu_driver_start_job(worker, j, &worker->perf_arch, 0, starpu_profiling_status_get());
 				}
 				else
 				{
@@ -900,8 +902,36 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 		if (!_STARPU_CUDA_MAY_PERFORM(j))
 		{
 			/* this is neither a cuda or a cublas task */
+			_starpu_worker_refuse_task(worker, task);
+#if 0
+			if (worker->pipeline_length)
+			{
+				int j;
+				for (j = 0; j < worker->ntasks; j++)
+				{
+					const int j_mod = (j+worker->first_task)%STARPU_MAX_PIPELINE;
+					if (task == worker->current_tasks[j_mod])
+					{
+						worker->current_tasks[j_mod] = NULL;
+						if (j == 0)
+						{
+							worker->first_task = (worker->first_task + 1) % STARPU_MAX_PIPELINE;
+							_starpu_set_current_task(NULL);
+						}
+						break;
+					}
+				}
+				STARPU_ASSERT(j<worker->ntasks);
+			}
+			else
+			{
+				worker->current_task = NULL;
+				_starpu_set_current_task(NULL);
+			}
 			worker->ntasks--;
-			_starpu_push_task_to_workers(task);
+			int res = _starpu_push_task_to_workers(task);
+			STARPU_ASSERT_MSG(res == 0, "_starpu_push_task_to_workers() unexpectedly returned = %d\n", res);
+#endif
 			continue;
 		}
 
@@ -1031,8 +1061,7 @@ void starpu_cublas_report_error(const char *func, const char *file, int line, in
 void starpu_cuda_report_error(const char *func, const char *file, int line, cudaError_t status)
 {
 	const char *errormsg = cudaGetErrorString(status);
-	printf("oops in %s (%s:%d)... %d: %s \n", func, file, line, status, errormsg);
-	STARPU_ABORT();
+	_STARPU_ERROR("oops in %s (%s:%d)... %d: %s \n", func, file, line, status, errormsg);
 }
 #endif /* STARPU_USE_CUDA */
 

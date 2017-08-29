@@ -52,9 +52,7 @@ static unsigned mp_node_memory_node(struct _starpu_mp_node *node)
 static int _starpu_src_common_finalize_job (struct _starpu_job *j, struct _starpu_worker *worker)
 {
 	int profiling = starpu_profiling_status_get();
-	struct timespec codelet_end;
-	_starpu_driver_end_job(worker, j, &worker->perf_arch, &codelet_end, 0,
-			profiling);
+	_starpu_driver_end_job(worker, j, &worker->perf_arch, 0, profiling);
 
 	int count = worker->current_rank;
 
@@ -75,7 +73,6 @@ static int _starpu_src_common_finalize_job (struct _starpu_job *j, struct _starp
 	{
 
 		_starpu_driver_update_job_feedback(j, worker, &worker->perf_arch,
-				&j->cl_start, &codelet_end,
 				profiling);
 
 		_starpu_push_task_output (j);
@@ -209,16 +206,15 @@ static void _starpu_src_common_handle_stored_async(struct _starpu_mp_node *node)
  * return 1 if the message has been stored
  * return 0 if the message is unknown or synchrone */
 int _starpu_src_common_store_message(struct _starpu_mp_node *node,
-		void * arg, int arg_size, enum _starpu_mp_command answer)
+				     void * arg, int arg_size, enum _starpu_mp_command answer)
 {
-	struct mp_message * message = NULL;
 	switch(answer)
 	{
 		case STARPU_MP_COMMAND_EXECUTION_COMPLETED:
 		case STARPU_MP_COMMAND_EXECUTION_DETACHED_COMPLETED:
 		case STARPU_MP_COMMAND_PRE_EXECUTION:
 		{
-			message = mp_message_new();
+			struct mp_message *message = mp_message_new();
 			message->type = answer;
 			_STARPU_MALLOC(message->buffer, arg_size);
 			memcpy(message->buffer, arg, arg_size);
@@ -273,8 +269,7 @@ static void _starpu_src_common_recv_async(struct _starpu_mp_node * node)
 	answer = _starpu_mp_common_recv_command(node, &arg, &arg_size);
 	if(!_starpu_src_common_handle_async(node,arg,arg_size,answer, 0))
 	{
-		printf("incorrect commande: unknown command or sync command");
-		STARPU_ASSERT(0);
+		_STARPU_ERROR("incorrect command: unknown command or sync command");
 	}
 }
 
@@ -514,7 +509,7 @@ static int _starpu_src_common_execute(struct _starpu_job *j,
 
 	void (*kernel)(void)  = node->get_kernel_from_job(node,j);
 
-	_starpu_driver_start_job(worker, j, &worker->perf_arch, &j->cl_start, 0, profiling);
+	_starpu_driver_start_job(worker, j, &worker->perf_arch, 0, profiling);
 
 	//_STARPU_DEBUG("\nworkerid:%d, rank:%d, type:%d,	cb_workerid:%d, task_size:%d\n\n",worker->devid,worker->current_rank,task->cl->type,j->combined_workerid,j->task_size);
 
@@ -771,37 +766,35 @@ int _starpu_src_common_copy_sink_to_sink_async(struct _starpu_mp_node *src_node,
 /* 5 functions to determine the executable to run on the device (MIC, SCC,
  * MPI).
  */
-static void _starpu_src_common_cat_3(char *final, const char *first,
-		const char *second, const char *third)
+static void _starpu_src_common_cat_3(char *final, const size_t len, const char *first,
+				     const char *second, const char *third)
 {
-	strcpy(final, first);
-	strcat(final, second);
-	strcat(final, third);
+	snprintf(final, len, "%s%s%s", first, second, third);
 }
 
-static void _starpu_src_common_cat_2(char *final, const char *first, const char *second)
+static void _starpu_src_common_cat_2(char *final, const size_t len, const char *first, const char *second)
 {
-	_starpu_src_common_cat_3(final, first, second, "");
+	_starpu_src_common_cat_3(final, len, first, second, "");
 }
 
-static void _starpu_src_common_dir_cat(char *final, const char *dir, const char *file)
+static void _starpu_src_common_dir_cat(char *final, const size_t len, const char *dir, const char *file)
 {
 	if (file[0] == '/')
 		++file;
 
 	size_t size = strlen(dir);
 	if (dir[size - 1] == '/')
-		_starpu_src_common_cat_2(final, dir, file);
+		_starpu_src_common_cat_2(final, len, dir, file);
 	else
-		_starpu_src_common_cat_3(final, dir, "/", file);
+		_starpu_src_common_cat_3(final, len, dir, "/", file);
 }
 
-static int _starpu_src_common_test_suffixes(char *located_file_name, const char *base, const char **suffixes)
+static int _starpu_src_common_test_suffixes(char *located_file_name, const size_t len, const char *base, const char **suffixes)
 {
 	unsigned int i;
 	for (i = 0; suffixes[i] != NULL; ++i)
 	{
-		_starpu_src_common_cat_2(located_file_name, base, suffixes[i]);
+		_starpu_src_common_cat_2(located_file_name, len, base, suffixes[i]);
 		if (access(located_file_name, R_OK) == 0)
 			return 0;
 	}
@@ -809,21 +802,21 @@ static int _starpu_src_common_test_suffixes(char *located_file_name, const char 
 	return 1;
 }
 
-int _starpu_src_common_locate_file(char *located_file_name,
-		const char *env_file_name, const char *env_mic_path,
-		const char *config_file_name, const char *actual_file_name,
-		const char **suffixes)
+int _starpu_src_common_locate_file(char *located_file_name, size_t len,
+				   const char *env_file_name, const char *env_mic_path,
+				   const char *config_file_name, const char *actual_file_name,
+				   const char **suffixes)
 {
 	if (env_file_name != NULL)
 	{
 		if (access(env_file_name, R_OK) == 0)
 		{
-			strcpy(located_file_name, env_file_name);
+			strncpy(located_file_name, env_file_name, len);
 			return 0;
 		}
 		else if(env_mic_path != NULL)
 		{
-			_starpu_src_common_dir_cat(located_file_name, env_mic_path, env_file_name);
+			_starpu_src_common_dir_cat(located_file_name, len, env_mic_path, env_file_name);
 
 			return access(located_file_name, R_OK);
 		}
@@ -832,40 +825,40 @@ int _starpu_src_common_locate_file(char *located_file_name,
 	{
 		if (access(config_file_name, R_OK) == 0)
 		{
-			strcpy(located_file_name, config_file_name);
+			strncpy(located_file_name, config_file_name, len);
 			return 0;
 		}
 		else if (env_mic_path != NULL)
 		{
-			_starpu_src_common_dir_cat(located_file_name, env_mic_path, config_file_name);
+			_starpu_src_common_dir_cat(located_file_name, len, env_mic_path, config_file_name);
 
 			return access(located_file_name, R_OK);
 		}
 	}
 	else if (actual_file_name != NULL)
 	{
-		if (_starpu_src_common_test_suffixes(located_file_name, actual_file_name, suffixes) == 0)
+		if (_starpu_src_common_test_suffixes(located_file_name, len, actual_file_name, suffixes) == 0)
 			return 0;
 
 		if (env_mic_path != NULL)
 		{
 			char actual_cpy[1024];
-			strcpy(actual_cpy, actual_file_name);
+			strncpy(actual_cpy, actual_file_name, sizeof(actual_cpy));
 
 			char *last =  strrchr(actual_cpy, '/');
 			while (last != NULL)
 			{
 				char tmp[1024];
 
-				_starpu_src_common_dir_cat(tmp, env_mic_path, last);
+				_starpu_src_common_dir_cat(tmp, sizeof(tmp), env_mic_path, last);
 
 				if (access(tmp, R_OK) == 0)
 				{
-					strcpy(located_file_name, tmp);
+					strncpy(located_file_name, tmp, len);
 					return 0;
 				}
 
-				if (_starpu_src_common_test_suffixes(located_file_name, tmp, suffixes) == 0)
+				if (_starpu_src_common_test_suffixes(located_file_name, len, tmp, suffixes) == 0)
 					return 0;
 
 				*last = '\0';
@@ -955,7 +948,6 @@ static void _starpu_src_common_worker_internal_work(struct _starpu_worker_set * 
         starpu_pthread_wait_reset(&worker_set->workers[0].wait);
 #endif
 
-
 	/* Test if async transfers are completed */
 	for (i = 0; i < worker_set->nworkers; i++)
 	{
@@ -968,6 +960,9 @@ static void _starpu_src_common_worker_internal_work(struct _starpu_worker_set * 
 			_STARPU_TRACE_END_PROGRESS(memnode);
 			_starpu_set_local_worker_key(&worker_set->workers[i]);
 			_starpu_fetch_task_input_tail(task, j, &worker_set->workers[i]);
+			_starpu_set_worker_status(&worker_set->workers[i], STATUS_UNKNOWN);
+			/* Reset it */
+			worker_set->workers[i].task_transferring = NULL;
 
 			/* Execute the task */
 			res =  _starpu_src_common_execute(j, &worker_set->workers[i], mp_node);
@@ -986,8 +981,6 @@ static void _starpu_src_common_worker_internal_work(struct _starpu_worker_set * 
 					STARPU_ASSERT(0);
 			}
 
-			/* Reset it */
-			worker_set->workers[i].task_transferring = NULL;
 			_STARPU_TRACE_START_PROGRESS(memnode);
 		}
 	}

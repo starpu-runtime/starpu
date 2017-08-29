@@ -69,7 +69,7 @@ char *message_for_topparam_init(struct starpu_top_param* param);
 static
 void copy_data_and_param(void)
 {
-	printf("%s:%d trace\n", __FILE__, __LINE__);
+	_STARPU_MSG("trace\n");
 	//copying datas
 	_STARPU_MALLOC(starpu_top_datas, starpu_top_data_cpt*sizeof(struct starpu_top_data*));
 	struct starpu_top_data* cur = starpu_top_first_data;
@@ -133,7 +133,7 @@ static void starpu_top_send_devices_info(void)
 		char dev_type[10];
 		char dev_name[64];
 		starpu_top_get_device_type(i,dev_type);
-		starpu_worker_get_name(i, dev_name,64);
+		starpu_worker_get_name(i, dev_name,sizeof(dev_name));
 		snprintf(message, 128, "%u;%s;%s\n", i, dev_type, dev_name);
 		_starpu_top_message_add(_starpu_top_mt,message);
 	}
@@ -159,7 +159,7 @@ void starpu_top_init_and_wait(const char* server_name)
 	STARPU_ASSERT(_starpu_top_mt);
 
 	//waiting for UI to connect
-	printf("%s:%d launching network threads\n", __FILE__, __LINE__);
+	_STARPU_MSG("launching network threads\n");
 	_starpu_top_communications_threads_launcher();
 
 	//sending server information (report to protocol)
@@ -197,22 +197,22 @@ void starpu_top_init_and_wait(const char* server_name)
 	sprintf(message, "%s", "PARAMS\n");
 	_starpu_top_message_add(_starpu_top_mt,message);
 	struct starpu_top_param * cur_param = starpu_top_first_param;
-	printf("%s:%d sending parameters\n", __FILE__, __LINE__);
+	_STARPU_MSG("sending parameters\n");
 	while(cur_param != NULL)
 	{
 	  _starpu_top_message_add(_starpu_top_mt,message_for_topparam_init(cur_param));
 	  cur_param = cur_param->next;
 	}
-	printf("%s:%d parameters sended\n", __FILE__, __LINE__);
+	_STARPU_MSG("parameters sended\n");
 	_STARPU_MALLOC(message, strlen("/PARAMS\n")+1);
 	sprintf(message, "%s", "/PARAMS\n");
 	_starpu_top_message_add(_starpu_top_mt,message);
 
 
 	//sending DEVICE list
-	printf("%s:%d sending devices info\n", __FILE__, __LINE__);
+	_STARPU_MSG("sending devices info\n");
 	starpu_top_send_devices_info();
-	printf("%s:%d devices_info sended\n", __FILE__, __LINE__);
+	_STARPU_MSG("devices_info sended\n");
 	//copying data and params
 	copy_data_and_param();
 
@@ -222,7 +222,7 @@ void starpu_top_init_and_wait(const char* server_name)
 	_starpu_top_message_add(_starpu_top_mt,message);
 
 	//This threads keeps locked while we don't receive an GO message from UI
-	printf("%s:%d waiting for GO message\n", __FILE__, __LINE__);
+	_STARPU_MSG("waiting for GO message\n");
 	sem_wait(&starpu_top_wait_for_go);
 }
 
@@ -721,7 +721,7 @@ static
 void starpu_top_unlock_starpu(void)
 {
 	sem_post(&starpu_top_wait_for_go);
-	printf("%s:%d starpu started\n", __FILE__, __LINE__);
+	_STARPU_MSG("starpu started\n");
 }
 
 static
@@ -731,7 +731,7 @@ void starpu_top_change_data_active(char* message, int active)
 	char* fin = strstr(debut+1, "\n");
 	*fin = '\0';
 	int data_id = atoi(debut);
-	printf("%s:%d data %d %s\n", __FILE__, __LINE__, data_id, active ? "ENABLED" : "DISABLE");
+	_STARPU_MSG("data %d %s\n", data_id, active ? "ENABLED" : "DISABLE");
 	starpu_top_datas[data_id]->active = active;
 }
 
@@ -775,12 +775,12 @@ void starpu_top_change_debug_mode(const char*message)
 	if(!strncmp("ON",debut, 2))
 	{
 		starpu_top_debug_on = 1;
-		printf("%s:%d debug is now ON\n", __FILE__, __LINE__);
+		_STARPU_MSG("debug is now ON\n");
 	}
 	else
 	{
 		starpu_top_debug_on = 0;
-		printf("%s:%d debug is now OFF\n", __FILE__, __LINE__);
+		_STARPU_MSG("debug is now OFF\n");
 	}
 
 	char *m;
@@ -823,7 +823,7 @@ void _starpu_top_process_input_message(char *buffer)
 			starpu_top_debug_next_step();
 		break;
 		default:
-			printf("%s:%d unknow message : '%s'\n", __FILE__, __LINE__, buffer);
+			_STARPU_MSG("unknown message : '%s'\n", buffer);
 	}
 }
 

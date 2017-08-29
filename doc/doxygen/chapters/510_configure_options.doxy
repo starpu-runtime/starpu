@@ -130,6 +130,14 @@ Use at most <c>count</c> CPU cores.  This information is then
 available as the macro ::STARPU_MAXCPUS.
 </dd>
 
+<dt>--enable-maxnumanodes=<c>count</c></dt>
+<dd>
+\anchor enable-maxnumanodes
+\addindex __configure__--enable-maxnumanodes
+Use at most <c>count</c> NUMA nodes.  This information is then
+available as the macro ::STARPU_MAXNUMANODES.
+</dd>
+
 <dt>--disable-cpu</dt>
 <dd>
 \anchor disable-cpu
@@ -484,6 +492,27 @@ Specify the blas library to be used by some of the examples. Librairies availabl
 \anchor enable-leveldb
 \addindex __configure__--enable-leveldb
 Enable linking with LevelDB if available
+</dd>
+
+<dt>--disable-hdf5</dt>
+<dd>
+\anchor disable-hdf5
+\addindex __configure__--disable-hdf5
+Disable building HDF5 support.
+</dd>
+
+<dt>--with-hdf5-include-dir=<c>path</></dt>
+<dd>
+\anchor with-hdf5-include-dir
+\addindex __configure__--with-hdf5-include-dir
+Specify the directory where is stored the header hdf5.h.
+</dd>
+
+<dt>--with-hdf5-lib-dir=<c>path</c></dt>
+<dd>
+\anchor with-hdf5-lib-dir
+\addindex __configure__--with-hdf5-lib-dir
+Specify the directory where is stored the hdf5 library.
 </dd>
 
 <dt>--disable-starpufft</dt>

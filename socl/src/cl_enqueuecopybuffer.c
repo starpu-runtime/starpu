@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010,2011, 2014 University of Bordeaux
+ * Copyright (C) 2010,2011, 2014, 2017 University of Bordeaux
  * Copyright (C) 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -21,7 +21,7 @@ static void soclEnqueueCopyBuffer_opencl_task(void *descr[], void *args) {
    int wid;
    cl_command_queue cq;
    cl_event ev;
-   command_copy_buffer cmd = (command_copy_buffer)args;;
+   command_copy_buffer cmd = (command_copy_buffer)args;
 
   cl_event event = command_event_get(cmd);
   event->prof_start = _socl_nanotime();
@@ -41,7 +41,7 @@ static void soclEnqueueCopyBuffer_opencl_task(void *descr[], void *args) {
 }
 
 static void soclEnqueueCopyBuffer_cpu_task(void *descr[], void *args) {
-   command_copy_buffer cmd = (command_copy_buffer)args;;
+   command_copy_buffer cmd = (command_copy_buffer)args;
 
   cl_event ev = command_event_get(cmd);
   ev->prof_start = _socl_nanotime();

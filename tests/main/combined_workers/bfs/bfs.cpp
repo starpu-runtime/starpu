@@ -29,7 +29,8 @@
 
 extern void omp_bfs_func(void *buffers[], void *_args);
 
-void Usage(int argc, char**argv){
+void Usage(int argc, char**argv)
+{
 	fprintf(stderr,"Usage: %s <input_file>\n", argv[0]);
 }
 
@@ -146,7 +147,8 @@ int main( int argc, char** argv)
 	starpu_data_handle_t graph_visited_handle;
 	starpu_data_handle_t cost_handle;
 
-	if(argc != 2){
+	if(argc != 2)
+	{
 		Usage(argc, argv);
 		exit(1);
 	}

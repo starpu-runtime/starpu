@@ -257,13 +257,19 @@ int starpu_data_acquire_on_node_cb(starpu_data_handle_t handle, int node,
 int starpu_data_acquire_cb(starpu_data_handle_t handle,
 			   enum starpu_data_access_mode mode, void (*callback)(void *), void *arg)
 {
-	return starpu_data_acquire_on_node_cb(handle, STARPU_MAIN_RAM, mode, callback, arg);
+	int home_node = handle->home_node;
+	if (home_node < 0)
+		home_node = STARPU_MAIN_RAM;
+	return starpu_data_acquire_on_node_cb(handle, home_node, mode, callback, arg);
 }
 
 int starpu_data_acquire_cb_sequential_consistency(starpu_data_handle_t handle,
 						  enum starpu_data_access_mode mode, void (*callback)(void *), void *arg, int sequential_consistency)
 {
-	return starpu_data_acquire_on_node_cb_sequential_consistency(handle, STARPU_MAIN_RAM, mode, callback, arg, sequential_consistency);
+	int home_node = handle->home_node;
+	if (home_node < 0)
+		home_node = STARPU_MAIN_RAM;
+	return starpu_data_acquire_on_node_cb_sequential_consistency(handle, home_node, mode, callback, arg, sequential_consistency);
 }
 
 
@@ -372,7 +378,10 @@ int starpu_data_acquire_on_node(starpu_data_handle_t handle, int node, enum star
 
 int starpu_data_acquire(starpu_data_handle_t handle, enum starpu_data_access_mode mode)
 {
-	return starpu_data_acquire_on_node(handle, STARPU_MAIN_RAM, mode);
+	int home_node = handle->home_node;
+	if (home_node < 0)
+		home_node = STARPU_MAIN_RAM;
+	return starpu_data_acquire_on_node(handle, home_node, mode);
 }
 
 int starpu_data_acquire_on_node_try(starpu_data_handle_t handle, int node, enum starpu_data_access_mode mode)
@@ -445,7 +454,10 @@ void starpu_data_release_on_node(starpu_data_handle_t handle, int node)
 
 void starpu_data_release(starpu_data_handle_t handle)
 {
-	starpu_data_release_on_node(handle, STARPU_MAIN_RAM);
+	int home_node = handle->home_node;
+	if (home_node < 0)
+		home_node = STARPU_MAIN_RAM;
+	starpu_data_release_on_node(handle, home_node);
 }
 
 static void _prefetch_data_on_node(void *arg)
@@ -577,6 +589,7 @@ static void _starpu_data_wont_use(void *data)
 
 void starpu_data_wont_use(starpu_data_handle_t handle)
 {
+	_STARPU_TRACE_DATA_WONT_USE(handle);
 	starpu_data_acquire_on_node_cb(handle, STARPU_ACQUIRE_NO_NODE_LOCK_ALL, STARPU_R, _starpu_data_wont_use, handle);
 }
 

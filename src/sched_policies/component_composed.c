@@ -132,7 +132,7 @@ struct starpu_task * composed_component_pull_task(struct starpu_sched_component 
 	if(task)
 		return task;
 
-	int i;
+	unsigned i;
 	for(i=0; i < component->nparents; i++)
 	{
 		if(component->parents[i] == NULL)

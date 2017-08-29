@@ -23,8 +23,7 @@
 void _starpu_mic_common_report_scif_error(const char *func, const char *file, const int line, const int status)
 {
 	const char *errormsg = strerror(status);
-	printf("Common: oops in %s (%s:%d)... %d: %s \n", func, file, line, status, errormsg);
-	STARPU_ASSERT(0);
+	_STARPU_ERROR("Common: oops in %s (%s:%d)... %d: %s \n", func, file, line, status, errormsg);
 }
 
 /* Handles the error so the caller (which must be generic) doesn't have to

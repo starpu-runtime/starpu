@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2012 University of Bordeaux
- * Copyright (C) 2012, 2014 CNRS
+ * Copyright (C) 2012, 2014, 2017 CNRS
  * Copyright (C) 2012 Vincent Danjean <Vincent.Danjean@ens-lyon.org>
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -37,10 +37,10 @@ static starpu_pthread_cond_t  gc_cond = STARPU_PTHREAD_COND_INITIALIZER;
 /* Set to 1 to stop release thread execution */
 static volatile int gc_stop_required = 0;
 
-#define GC_LOCK starpu_pthread_mutex_lock(&gc_mutex)
-#define GC_UNLOCK { starpu_pthread_cond_signal(&gc_cond); \
-                    starpu_pthread_mutex_unlock(&gc_mutex);}
-#define GC_UNLOCK_NO_SIGNAL starpu_pthread_mutex_unlock(&gc_mutex)
+#define GC_LOCK STARPU_PTHREAD_MUTEX_LOCK(&gc_mutex)
+#define GC_UNLOCK { STARPU_PTHREAD_COND_SIGNAL(&gc_cond); \
+                    STARPU_PTHREAD_MUTEX_UNLOCK(&gc_mutex);}
+#define GC_UNLOCK_NO_SIGNAL STARPU_PTHREAD_MUTEX_UNLOCK(&gc_mutex)
 
 /* Thread routine */
 static void * gc_thread_routine(void *UNUSED(arg)) {
@@ -81,7 +81,7 @@ static void * gc_thread_routine(void *UNUSED(arg)) {
     }
 
     /* Otherwise we sleep */
-    starpu_pthread_cond_wait(&gc_cond, &gc_mutex);
+    STARPU_PTHREAD_COND_WAIT(&gc_cond, &gc_mutex);
 
   } while (1);
 
@@ -92,7 +92,7 @@ static starpu_pthread_t gc_thread;
 
 /* Start garbage collection */
 void gc_start(void) {
-  starpu_pthread_create(&gc_thread, NULL, gc_thread_routine, NULL);
+  STARPU_PTHREAD_CREATE(&gc_thread, NULL, gc_thread_routine, NULL);
 }
 
 /* Stop garbage collection */
@@ -103,12 +103,12 @@ void gc_stop(void) {
 
   GC_UNLOCK;
 
-  starpu_pthread_join(gc_thread, NULL);
+  STARPU_PTHREAD_JOIN(gc_thread, NULL);
 }
 
 int gc_entity_release_ex(entity e, const char * DEBUG_PARAM(caller)) {
 
-  DEBUG_MSG("[%s] Decrementing refcount of %s %p to ", caller, e->name, e);
+  DEBUG_MSG("[%s] Decrementing refcount of %s %p to ", caller, e->name, (void *)e);
 
   /* Decrement reference count */
   int refs = __sync_sub_and_fetch(&e->refs, 1);
@@ -120,7 +120,7 @@ int gc_entity_release_ex(entity e, const char * DEBUG_PARAM(caller)) {
   if (refs != 0)
     return 0;
 
-  DEBUG_MSG("[%s] Releasing %s %p\n", caller, e->name, e);
+  DEBUG_MSG("[%s] Releasing %s %p\n", caller, e->name, (void *)e);
 
   GC_LOCK;
 
@@ -209,7 +209,7 @@ void gc_print_remaining_entities(void) {
 
    entity e = entities;
    while (e != NULL) {
-      DEBUG_MSG("  - %s %p\n", e->name, e);
+      DEBUG_MSG("  - %s %p\n", e->name, (void *)e);
       e = e->next;
    }
 

@@ -36,7 +36,7 @@
 /* size of one vector */
 #ifdef STARPU_QUICK_CHECK
 #  define	RAM	"1"
-#  define	DISK	2
+#  define	DISK	64
 #  define	NX	(256*1024/sizeof(double))
 #else
 #  define	NX	(32*1048576/sizeof(double))
@@ -177,9 +177,13 @@ int main(void)
 #ifdef STARPU_LINUX_SYS
 	ret = merge_result(ret, dotest(&starpu_disk_unistd_o_direct_ops, s));
 #endif
+#ifdef STARPU_HAVE_HDF5
+	ret = merge_result(ret, dotest(&starpu_disk_hdf5_ops, s));
+#endif
 
 	ret2 = rmdir(s);
-	STARPU_CHECK_RETURN_VALUE(ret2, "rmdir '%s'\n", s);
+	if (ret2 < 0)
+		STARPU_CHECK_RETURN_VALUE(-errno, "rmdir '%s'\n", s);
 	return ret;
 }
 #endif

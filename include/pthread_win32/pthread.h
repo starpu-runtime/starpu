@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010 Université Bordeaux
+ * Copyright (C) 2010, 2017 Université Bordeaux
  * Copyright (C) 2010, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -226,7 +226,7 @@ again:
   switch (WaitForSingleObject(*mutex, INFINITE)) {
     default:
     case WAIT_FAILED:
-      return unixErrno();;
+      return unixErrno();
     case WAIT_ABANDONED:
     case WAIT_OBJECT_0:
       return 0;

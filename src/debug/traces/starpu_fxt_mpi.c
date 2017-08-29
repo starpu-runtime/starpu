@@ -220,7 +220,6 @@ static unsigned long mpi_com_id = 0;
 static void display_all_transfers_from_trace(FILE *out_paje_file, unsigned n)
 {
 	unsigned slot[MAX_MPI_NODES] = { 0 }, node;
-	int src;
 	struct mpi_transfer_list pending_receives; /* Sorted list of matches which have not happened yet */
 	double current_out_bandwidth[MAX_MPI_NODES] = { 0. };
 	double current_in_bandwidth[MAX_MPI_NODES] = { 0. };
@@ -228,17 +227,7 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, unsigned n)
 	char mpi_container[STARPU_POTI_STR_LEN];
 #endif
 
-	for (node = 0; node < n ; node++)
-	{
-#ifdef STARPU_HAVE_POTI
-		snprintf(mpi_container, sizeof(mpi_container), "%u_mpict", node);
-		poti_SetVariable(0., mpi_container, "bwi_mpi", 0.);
-		poti_SetVariable(0., mpi_container, "bwo_mpi", 0.);
-#else
-		fprintf(out_paje_file, "13	%.9f	%u_mpict	bwi_mpi	%f\n", 0., node, 0.);
-		fprintf(out_paje_file, "13	%.9f	%u_mpict	bwo_mpi	%f\n", 0., node, 0.);
-#endif
-	}
+	//bwi_mpi and bwo_mpi are set to zero when MPI thread containers are created
 
 	mpi_transfer_list_init(&pending_receives);
 
@@ -246,6 +235,7 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, unsigned n)
 	{
 		float start_date;
 		struct mpi_transfer *cur, *match;
+		int src;
 
 		/* Find out which event comes first: a pending receive, or a new send */
 
@@ -328,13 +318,13 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, unsigned n)
 				_starpu_fxt_dag_add_receive(dst, match->jobid, mpi_tag, id);
 #ifdef STARPU_HAVE_POTI
 			char paje_value[STARPU_POTI_STR_LEN], paje_key[STARPU_POTI_STR_LEN];
-			snprintf(paje_value, STARPU_POTI_STR_LEN, "%lu", (long unsigned) size);
-			snprintf(paje_key, STARPU_POTI_STR_LEN, "mpicom_%lu", id);
+			snprintf(paje_value, sizeof(paje_value), "%lu", (long unsigned) size);
+			snprintf(paje_key, sizeof(paje_key), "mpicom_%lu", id);
 			snprintf(mpi_container, sizeof(mpi_container), "%d_mpict", src);
-			poti_StartLink(start_date, "MPICt", "MPIL", mpi_container, paje_value, paje_key);
+			poti_StartLink(start_date, "MPIroot", "MPIL", mpi_container, paje_value, paje_key);
 			poti_SetVariable(start_date, mpi_container, "bwo_mpi", current_out_bandwidth[src]);
 			snprintf(mpi_container, sizeof(mpi_container), "%d_mpict", dst);
-			poti_EndLink(end_date, "MPICt", "MPIL", mpi_container, paje_value, paje_key);
+			poti_EndLink(end_date, "MPIroot", "MPIL", mpi_container, paje_value, paje_key);
 			poti_SetVariable(start_date, mpi_container, "bwo_mpi", current_in_bandwidth[dst]);
 #else
 			fprintf(out_paje_file, "18	%.9f	MPIL	MPIroot	%lu	%d_mpict	mpicom_%lu\n", start_date, (unsigned long)size, src, id);

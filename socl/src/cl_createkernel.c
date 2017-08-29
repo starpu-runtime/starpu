@@ -29,7 +29,7 @@ static void soclCreateKernel_task(void *data) {
       return;
    }
 
-   DEBUG_MSG("[Device %d] Creating kernel...\n", starpu_worker_get_id_check());
+   DEBUG_MSG("[Device %u] Creating kernel...\n", starpu_worker_get_id_check());
    k->cl_kernels[range] = clCreateKernel(k->program->cl_programs[range], k->kernel_name, &err);
    if (err != CL_SUCCESS) {
       k->errcodes[range] = err;
@@ -144,7 +144,7 @@ soclCreateKernel(cl_program    program,
    k->split_space = 0;
    k->split_data = NULL;
    k->split_perfs = NULL;
-   starpu_pthread_mutex_init(&k->split_lock, NULL);
+   STARPU_PTHREAD_MUTEX_INIT(&k->split_lock, NULL);
 
    #ifdef DEBUG
    static int id = 0;

@@ -41,7 +41,7 @@ int main(int argc, char **argv)
  * Here we force using the pack/unpack mechanism
  */
 
-#define NX (1024)
+#define NX (16*1024)
 
 const struct starpu_data_copy_methods my_vector_copy_data_methods_s;
 struct starpu_data_interface_ops starpu_interface_my_vector_ops;
@@ -111,7 +111,7 @@ int dotest(struct starpu_disk_ops *ops, char *base)
 	strcat(path_file_end, name_file_end);
 
 	/* register a disk */
-	int new_dd = starpu_disk_register(ops, (void *) base, 1024*1024*1);
+	int new_dd = starpu_disk_register(ops, (void *) base, STARPU_DISK_SIZE_MIN);
 	/* can't write on /tmp/ */
 	if (new_dd == -ENOENT) goto enoent;
 
@@ -286,7 +286,8 @@ int main(void)
 #endif
 
 	ret2 = rmdir(s);
-	STARPU_CHECK_RETURN_VALUE(ret2, "rmdir '%s'\n", s);
+	if (ret2 < 0)
+		STARPU_CHECK_RETURN_VALUE(-errno, "rmdir '%s'\n", s);
 	return ret;
 }
 #endif

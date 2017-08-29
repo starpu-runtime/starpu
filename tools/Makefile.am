@@ -84,6 +84,7 @@ dist_pkgdata_perfmodels_sampling_codelets_DATA = \
 	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_12.attila	\
 	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_21.attila	\
 	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_22.attila	\
+	perfmodels/sampling/codelets/44/overlap_sleep_1024_24.attila	\
 	perfmodels/sampling/codelets/44/chol_model_11.idgraf	\
 	perfmodels/sampling/codelets/44/chol_model_21.idgraf	\
 	perfmodels/sampling/codelets/44/chol_model_22.idgraf	\
@@ -116,6 +117,7 @@ dist_pkgdata_perfmodels_sampling_codelets_DATA = \
 	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_12.mirage	\
 	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_21.mirage	\
 	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_22.mirage	\
+	perfmodels/sampling/codelets/44/overlap_sleep_1024_24.mirage	\
 	perfmodels/sampling/codelets/44/chol_model_11.sirocco	\
 	perfmodels/sampling/codelets/44/chol_model_21.sirocco	\
 	perfmodels/sampling/codelets/44/chol_model_22.sirocco	\
@@ -131,40 +133,42 @@ dist_pkgdata_perfmodels_sampling_codelets_DATA = \
 	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_11.sirocco	\
 	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_12.sirocco	\
 	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_21.sirocco	\
-	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_22.sirocco
+	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_22.sirocco	\
+	perfmodels/sampling/codelets/44/overlap_sleep_1024_24.sirocco
 
 EXTRA_DIST =				\
-	dev/rename.sed			\
-	dev/rename.sh			\
+	dev/checker/rename.sed		\
+	dev/checker/rename.sh		\
+	dev/cppcheck/suppressions.txt	\
+	dev/valgrind/fxt.suppr		\
+	dev/valgrind/hwloc.suppr	\
+	dev/valgrind/libc.suppr		\
+	dev/valgrind/libgomp.suppr	\
+	dev/valgrind/libnuma.suppr	\
+	dev/valgrind/madmpi.suppr	\
+	dev/valgrind/opencl.suppr	\
+	dev/valgrind/openmpi.suppr	\
+	dev/valgrind/openmp.suppr	\
+	dev/valgrind/padico.suppr	\
+	dev/valgrind/pthread.suppr	\
+	dev/valgrind/starpu.suppr	\
+	dev/valgrind/valgrind.suppr	\
+	dev/valgrind/valgrind.sh	\
+	dev/valgrind/valgrind_xml.sh	\
+	dev/valgrind/helgrind.sh	\
+	dev/tsan/starpu.suppr		\
+	dev/lsan/libc.suppr		\
+	dev/lsan/openmpi.suppr		\
 	perfmodels/README		\
 	perfmodels/cluster.xml		\
 	perfmodels/hostfile		\
 	perfmodels/sampling/codelets/tmp/mlr_init.out	 \
-	valgrind/fxt.suppr		\
-	valgrind/hwloc.suppr		\
-	valgrind/libc.suppr		\
-	valgrind/libgomp.suppr		\
-	valgrind/libnuma.suppr		\
-	valgrind/madmpi.suppr		\
-	valgrind/opencl.suppr		\
-	valgrind/openmpi.suppr		\
-	valgrind/openmp.suppr		\
-	valgrind/padico.suppr		\
-	valgrind/pthread.suppr		\
-	valgrind/starpu.suppr		\
-	valgrind/valgrind.suppr		\
-	valgrind/valgrind.sh		\
-	valgrind/helgrind.sh		\
-	tsan/starpu.suppr		\
-	lsan/libc.suppr			\
-	lsan/openmpi.suppr		\
 	msvc/starpu_clean.bat		\
 	msvc/starpu_open.bat		\
 	msvc/starpu_exec.bat		\
 	msvc/starpu_var.bat		\
 	msvc/starpu.sln			\
-	msvc/starpu/starpu.vcxproj	\
-	cppcheck/suppressions.txt
+	msvc/starpu/starpu.vcxproj
 
 CLEANFILES = *.gcno *.gcda *.linkinfo starpu_idle_microsec.log figure/* mlr_*
 
@@ -242,6 +246,15 @@ bin_PROGRAMS += 			\
 	starpu_tasks_rec_complete	\
 	starpu_lp2paje
 
+if STARPU_SIMGRID
+bin_PROGRAMS += 			\
+	starpu_replay
+
+starpu_replay_SOURCES = \
+	starpu_replay.c \
+	starpu_replay_sched.c
+endif
+
 starpu_perfmodel_plot_CPPFLAGS = $(AM_CFLAGS) $(AM_CPPFLAGS) $(FXT_CFLAGS)
 
 if STARPU_LONG_CHECK
@@ -250,7 +263,8 @@ STARPU_TOOLS	+=			\
 endif
 
 STARPU_TOOLS	+=			\
-	starpu_machine_display
+	starpu_machine_display		\
+	starpu_sched_display
 
 if !STARPU_HAVE_WINDOWS
 STARPU_TOOLS	+=			\

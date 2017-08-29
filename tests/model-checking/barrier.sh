@@ -1,8 +1,8 @@
-#!/bin/bash
+#!/bin/bash -x
 #
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2016, 2017 CNRS
+# Copyright (C) 2017  Université de Bordeaux
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -15,12 +15,5 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
-EXEC=$(basename $0 .sh)
-if test "$EXEC" == "valgrind"
-then
-    RUN="valgrind --track-origins=yes --show-reachable=yes --leak-check=full --errors-for-leak-kinds=all --show-leak-kinds=all"
-else
-    RUN="valgrind --tool=$EXEC"
-fi
-SUPPRESSIONS=$(for f in $(dirname $0)/*.suppr ; do echo "--suppressions=$f" ; done)
-$RUN --num-callers=42 --error-exitcode=42 --gen-suppressions=all $SUPPRESSIONS $*
+source $(dirname $0)/starpu-mc.sh
+test starpu_barrier

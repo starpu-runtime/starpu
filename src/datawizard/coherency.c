@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures. *
  * Copyright (C) 2009-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
- * Copyright (C) 2014  INRIA
+ * Copyright (C) 2014, 2017  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -229,10 +229,6 @@ void _starpu_update_data_state(starpu_data_handle_t handle,
 
 static int worker_supports_direct_access(unsigned node, unsigned handling_node)
 {
-	/* only support disk <-> ram and disk <-> disk */
-	if (starpu_node_get_kind(node) == STARPU_DISK_RAM || starpu_node_get_kind(handling_node) == STARPU_DISK_RAM)
-		return 0;
-
 	if (node == handling_node)
 		return 1;
 
@@ -270,6 +266,17 @@ static int worker_supports_direct_access(unsigned node, unsigned handling_node)
 		case STARPU_MIC_RAM:
 			/* TODO: We don't handle direct MIC-MIC transfers yet */
 			return 0;
+		case STARPU_DISK_RAM:
+			/* Each worker can manage disks but disk <-> disk is not always allowed */
+			switch (starpu_node_get_kind(handling_node))
+			{
+				case STARPU_CPU_RAM:
+					return 1;
+				case STARPU_DISK_RAM:
+					return _starpu_disk_can_copy(node, handling_node);
+				default:
+					return 0;
+			}
                 case STARPU_MPI_MS_RAM:
                 {
                         enum starpu_node_kind kind = starpu_node_get_kind(handling_node);
@@ -313,20 +320,30 @@ static int link_supports_direct_transfers(starpu_data_handle_t handle, unsigned 
 		return 1;
 	}
 
-	/* Link between disk and ram */
-	if ((starpu_node_get_kind(src_node) == STARPU_DISK_RAM && starpu_node_get_kind(dst_node) == STARPU_CPU_RAM) ||
-	    (starpu_node_get_kind(src_node) == STARPU_CPU_RAM && starpu_node_get_kind(dst_node) == STARPU_DISK_RAM))
-	{
-		/* FIXME: not necessarily a worker :/ */
-		*handling_node = STARPU_MAIN_RAM;
-		return 1;
-	}
-
-	/* link between disk and disk, and they have the same kind */
-	if (_starpu_is_same_kind_disk(src_node, dst_node))
-		return 1;
-
 	return 0;
+}
+
+/* Now, we use slowness/bandwidth to compare numa nodes, is it better to use latency ? */
+static unsigned chose_best_numa_between_src_and_dest(int src, int dst)
+{
+	double timing_best;
+	int best_numa = -1;
+	unsigned numa;
+	const unsigned nb_numa_nodes = starpu_memory_nodes_get_numa_count();
+	for(numa = 0; numa < nb_numa_nodes; numa++)
+	{
+		double actual = 1.0/starpu_transfer_bandwidth(src, numa) + 1.0/starpu_transfer_bandwidth(numa, dst);
+
+		/* Compare slowness : take the lowest */
+		if (best_numa < 0 || actual < timing_best)
+		{
+			best_numa = numa;
+			timing_best = actual;
+		}
+	}
+	STARPU_ASSERT(best_numa >= 0);
+	
+	return best_numa;
 }
 
 /* Determines the path of a request : each hop is defined by (src,dst) and the
@@ -383,7 +400,7 @@ static int determine_request_path(starpu_data_handle_t handle,
 
 	if (!link_is_valid)
 	{
-		int (*can_copy)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, unsigned handling_node) = handle->ops->copy_methods->can_copy;
+		int (*can_copy)(void *, unsigned, void *, unsigned, unsigned) = handle->ops->copy_methods->can_copy;
 		void *src_interface = handle->per_node[src_node].data_interface;
 		void *dst_interface = handle->per_node[dst_node].data_interface;
 
@@ -392,9 +409,11 @@ static int determine_request_path(starpu_data_handle_t handle,
 		STARPU_ASSERT(max_len >= 2);
 		STARPU_ASSERT(src_node >= 0);
 
+		unsigned numa = chose_best_numa_between_src_and_dest(src_node, dst_node);
+
 		/* GPU -> RAM */
 		src_nodes[0] = src_node;
-		dst_nodes[0] = STARPU_MAIN_RAM;
+		dst_nodes[0] = numa;
 
 		if (starpu_node_get_kind(src_node) == STARPU_DISK_RAM)
 			/* Disks don't have their own driver thread */
@@ -410,7 +429,7 @@ static int determine_request_path(starpu_data_handle_t handle,
 		}
 
 		/* RAM -> GPU */
-		src_nodes[1] = STARPU_MAIN_RAM;
+		src_nodes[1] = numa;
 		dst_nodes[1] = dst_node;
 
 		if (starpu_node_get_kind(dst_node) == STARPU_DISK_RAM)
@@ -613,7 +632,7 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 		/* if the data is in write only mode (and not SCRATCH or REDUX), there is no need for a source, data will be initialized by the task itself */
 		if (mode & STARPU_W)
 			dst_replicate->initialized = 1;
-		if (requesting_node == STARPU_MAIN_RAM && !nwait)
+		if (starpu_node_get_kind(requesting_node) == STARPU_CPU_RAM && !nwait)
 		{
 			/* And this is the main RAM, really no need for a
 			 * request, just allocate */
@@ -1064,6 +1083,7 @@ int _starpu_fetch_task_input(struct starpu_task *task, struct _starpu_job *j, in
 			{
 				/* Ooops, not enough memory, make worker wait for these for now, and the synchronous call will finish by forcing eviction*/
 				worker->nb_buffers_totransfer = nacquires;
+				_starpu_set_worker_status(worker, STATUS_WAITING);
 				return 0;
 			}
 		}
@@ -1083,6 +1103,7 @@ int _starpu_fetch_task_input(struct starpu_task *task, struct _starpu_job *j, in
 	if (async)
 	{
 		worker->nb_buffers_totransfer = nacquires;
+		_starpu_set_worker_status(worker, STATUS_WAITING);
 		return 0;
 	}
 
@@ -1190,7 +1211,7 @@ void __starpu_push_task_output(struct _starpu_job *j)
 		starpu_data_handle_t handle = descrs[index].handle;
 		enum starpu_data_access_mode mode = descrs[index].mode;
 		int node = descrs[index].node;
-		if (node == -1 && task->cl->where != STARPU_NOWHERE)
+		if (node == -1 && task->where != STARPU_NOWHERE)
 			node = local_memory_node;
 
 		struct _starpu_data_replicate *local_replicate = NULL;

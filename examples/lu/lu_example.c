@@ -189,7 +189,10 @@ static void init_matrix(void)
 			A[i + j*size] += (TYPE)(I*starpu_drand48());
 #endif
 			if (i == j)
+			{
+				A[i + j*size] += 1;
 				A[i + j*size] *= 100;
+			}
 		}
 	}
 #endif

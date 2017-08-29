@@ -112,8 +112,7 @@ void _starpu_mic_sink_launch_workers(struct _starpu_mp_node *node)
 		arg->coreid = i;
 		arg->node = node;
 
-		ret = starpu_pthread_create(&thread, &attr, _starpu_sink_thread, arg);
-		STARPU_ASSERT(ret == 0);
+		STARPU_PTHREAD_CREATE(&thread, &attr, _starpu_sink_thread, arg);
 		((starpu_pthread_t *)node->thread_table)[i] = thread;
 	}
 }
@@ -128,7 +127,7 @@ void _starpu_mic_sink_deinit(struct _starpu_mp_node *node)
 	for(i=0; i<node->nb_cores; i++)
 	{
 		sem_post(&node->sem_run_table[i]);
-		starpu_pthread_join(((starpu_pthread_t *)node->thread_table)[i],NULL);
+		STARPU_PTHREAD_JOIN(((starpu_pthread_t *)node->thread_table)[i],NULL);
 	}
 
 	free(node->thread_table);
@@ -154,8 +153,7 @@ void _starpu_mic_sink_deinit(struct _starpu_mp_node *node)
 void _starpu_mic_sink_report_error(const char *func, const char *file, const int line, const int status)
 {
 	const char *errormsg = strerror(status);
-	printf("SINK: oops in %s (%s:%d)... %d: %s \n", func, file, line, status, errormsg);
-	STARPU_ASSERT(0);
+	_STARPU_ERROR("SINK: oops in %s (%s:%d)... %d: %s \n", func, file, line, status, errormsg);
 }
 
 /* Allocate memory on the MIC.

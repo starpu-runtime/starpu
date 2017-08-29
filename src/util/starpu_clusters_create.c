@@ -277,7 +277,7 @@ int starpu_cluster_print(struct starpu_cluster_machine *clusters)
 	struct _starpu_cluster_group *group;
 	struct _starpu_cluster *cluster;
 
-	printf("Number of clusters created: %d\n", clusters->nclusters);
+	printf("Number of clusters created: %u\n", clusters->nclusters);
 	cnt=0;
 	for (group = _starpu_cluster_group_list_begin(clusters->groups);
 	     group != _starpu_cluster_group_list_end(clusters->groups);
@@ -300,18 +300,13 @@ int starpu_cluster_print(struct starpu_cluster_machine *clusters)
 
 void _starpu_cluster_create(struct _starpu_cluster *cluster)
 {
-	unsigned main_ctx_id = cluster->father->father->id;
 	if (cluster->params->awake_workers)
 		cluster->id = starpu_sched_ctx_create(cluster->workerids, cluster->ncores,
-						      "clusters", STARPU_SCHED_CTX_NESTED,
-						      main_ctx_id,
-						      STARPU_SCHED_CTX_AWAKE_WORKERS,
-						      0);
+		                                      "clusters",
+		                                      STARPU_SCHED_CTX_AWAKE_WORKERS, 0);
 	else
 		cluster->id = starpu_sched_ctx_create(cluster->workerids, cluster->ncores,
-						      "clusters", STARPU_SCHED_CTX_NESTED,
-						      main_ctx_id,
-						      0);
+		                                      "clusters", 0);
 
 	/* cluster priority can be the lowest, so let's enforce it */
 	starpu_sched_ctx_set_priority(cluster->workerids, cluster->ncores, cluster->id, 0);
@@ -333,6 +328,22 @@ void _starpu_cluster_group_create(struct _starpu_cluster_group *group)
 	}
 
 	return;
+}
+
+void _starpu_clusters_set_nesting(struct starpu_cluster_machine *m)
+{
+	struct _starpu_cluster_group *g;
+	struct _starpu_cluster *c;
+
+	for (g = _starpu_cluster_group_list_begin(m->groups) ;
+	     g != _starpu_cluster_group_list_end(m->groups) ;
+	     g = _starpu_cluster_group_list_next(g))
+	{
+		for (c = _starpu_cluster_list_begin(g->clusters) ;
+		     c != _starpu_cluster_list_end(g->clusters) ;
+		     c = _starpu_cluster_list_next(c))
+			_starpu_get_sched_ctx_struct(c->id)->nesting_sched_ctx = m->id;
+	}
 }
 
 int _starpu_cluster_bind(struct _starpu_cluster *cluster)
@@ -515,19 +526,27 @@ int _starpu_cluster_machine(hwloc_obj_type_t cluster_level,
 	if ((ret = _starpu_cluster_topology(cluster_level, machine)))
 		return ret;
 
+	for (g = _starpu_cluster_group_list_begin(machine->groups) ;
+	     g != _starpu_cluster_group_list_end(machine->groups) ;
+	     g = _starpu_cluster_group_list_next(g))
+		_starpu_cluster_group_create(g);
+
+	starpu_task_wait_for_all();
+
+	/* Create containing context */
 	if (machine->params->sched_policy_struct != NULL)
 	{
 		machine->id = starpu_sched_ctx_create(NULL, -1, "main sched ctx",
-						      STARPU_SCHED_CTX_POLICY_STRUCT,
-						      machine->params->sched_policy_struct,
-						      0);
+		                                      STARPU_SCHED_CTX_POLICY_STRUCT,
+		                                      machine->params->sched_policy_struct,
+		                                      0);
 	}
 	else if (machine->params->sched_policy_name != NULL)
 	{
 		machine->id = starpu_sched_ctx_create(NULL, -1, "main sched ctx",
-						      STARPU_SCHED_CTX_POLICY_NAME,
-						      machine->params->sched_policy_name,
-						      0);
+		                                      STARPU_SCHED_CTX_POLICY_NAME,
+		                                      machine->params->sched_policy_name,
+		                                      0);
 	}
 	else
 	{
@@ -535,17 +554,11 @@ int _starpu_cluster_machine(hwloc_obj_type_t cluster_level,
 		struct _starpu_sched_ctx *global_ctx =_starpu_get_sched_ctx_struct(STARPU_GLOBAL_SCHED_CTX);
 		sched_policy = _starpu_get_sched_policy(global_ctx);
 		machine->id = starpu_sched_ctx_create(NULL, -1, "main sched ctx",
-						      STARPU_SCHED_CTX_POLICY_STRUCT,
-						      sched_policy, 0);
+		                                      STARPU_SCHED_CTX_POLICY_STRUCT,
+		                                      sched_policy, 0);
 	}
 
-
-	for (g = _starpu_cluster_group_list_begin(machine->groups) ;
-	     g != _starpu_cluster_group_list_end(machine->groups) ;
-	     g = _starpu_cluster_group_list_next(g))
-		_starpu_cluster_group_create(g);
-
-	starpu_task_wait_for_all();
+	_starpu_clusters_set_nesting(machine);
 	starpu_sched_ctx_set_context(&machine->id);
 
 	return ret;

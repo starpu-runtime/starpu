@@ -46,7 +46,7 @@ void _starpu_fxt_dag_add_tag(const char *prefix, uint64_t tag, unsigned long job
 void _starpu_fxt_dag_add_tag_deps(const char *prefix, uint64_t child, uint64_t father);
 void _starpu_fxt_dag_set_tag_done(const char *prefix, uint64_t tag, const char *color);
 void _starpu_fxt_dag_add_task_deps(const char *prefix, unsigned long dep_prev, unsigned long dep_succ);
-void _starpu_fxt_dag_set_task_done(const char *prefix, unsigned long job_id, const char *label, const char *color);
+void _starpu_fxt_dag_set_task_name(const char *prefix, unsigned long job_id, const char *label, const char *color);
 void _starpu_fxt_dag_add_send(int src, unsigned long dep_prev, unsigned long tag, unsigned long id);
 void _starpu_fxt_dag_add_receive(int dst, unsigned long dep_prev, unsigned long tag, unsigned long id);
 void _starpu_fxt_dag_add_sync_point(void);
@@ -61,6 +61,9 @@ void _starpu_fxt_mpi_add_recv_transfer(int src, int dst, int mpi_tag, float date
 void _starpu_fxt_display_mpi_transfers(struct starpu_fxt_options *options, int *ranks, FILE *out_paje_file);
 
 void _starpu_fxt_write_paje_header(FILE *file);
+
+extern int _starpu_poti_extendedSetState;
+extern int _starpu_poti_semiExtendedSetState;
 
 /*
  * Animation

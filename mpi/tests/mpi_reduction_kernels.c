@@ -66,7 +66,7 @@ void dot_cpu_func(void *descr[], void *cl_arg)
  */
 void display_cpu_func(void *descr[], void *cl_arg)
 {
-	long int *local_x = (long int *)STARPU_VECTOR_GET_PTR(descr[0]);
+	long int *local_x = (long int *)STARPU_VARIABLE_GET_PTR(descr[0]);
 
 	FPRINTF_MPI(stderr, "Local=%ld\n", *local_x);
 }

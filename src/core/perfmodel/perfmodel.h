@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2016  Université de Bordeaux
+ * Copyright (C) 2009-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2016  Inria
@@ -54,12 +54,6 @@ struct _starpu_perfmodel_state
 	int *combs;
 };
 
-struct _starpu_perfmodel_list
-{
-	struct _starpu_perfmodel_list *next;
-	struct starpu_perfmodel *model;
-};
-
 struct starpu_data_descr;
 struct _starpu_job;
 struct starpu_perfmodel_arch;
@@ -108,9 +102,11 @@ void _starpu_write_double(FILE *f, char *format, double val);
 int _starpu_read_double(FILE *f, char *format, double *val);
 void _starpu_simgrid_get_platform_path(int version, char *path, size_t maxlen);
 
-struct starpu_perfmodel_arch * _starpu_arch_comb_get(int comb);
-
 void _starpu_perfmodel_realloc(struct starpu_perfmodel *model, int nb);
+
+#if defined(STARPU_HAVE_HWLOC)
+hwloc_topology_t _starpu_perfmodel_get_hwtopology();
+#endif
 
 #ifdef __cplusplus
 }

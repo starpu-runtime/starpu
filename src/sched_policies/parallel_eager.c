@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2016  Université de Bordeaux
  * Copyright (C) 2011  Télécom-SudParis
- * Copyright (C) 2011-2013  INRIA
+ * Copyright (C) 2011-2013, 2017  INRIA
  * Copyright (C) 2016, 2017       CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -170,7 +170,7 @@ static int push_task_peager_policy(struct starpu_task *task)
 		    starpu_worker_get_type(worker) != STARPU_MIC_WORKER &&
 		    starpu_worker_get_type(worker) != STARPU_CPU_WORKER)
 			|| (master == worker))
-			starpu_wake_worker(worker);
+			_starpu_wake_worker_relax(worker);
 	}
 #endif
 
@@ -187,7 +187,9 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 	if (starpu_worker_get_type(workerid) != STARPU_CPU_WORKER && starpu_worker_get_type(workerid) != STARPU_MIC_WORKER)
 	{
 		struct starpu_task *task = NULL;
+		_starpu_worker_relax_on();
 		STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
+		_starpu_worker_relax_off();
 		task = _starpu_fifo_pop_task(data->fifo, workerid);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 
@@ -199,16 +201,18 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 	//_STARPU_DEBUG("workerid:%d, master:%d\n",workerid,master);
 
 
+	struct starpu_task *task = NULL;
 	if (master == workerid)
 	{
 		/* The worker is a master */
-		struct starpu_task *task = NULL;
+		_starpu_worker_relax_on();
 		STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
+		_starpu_worker_relax_off();
 		task = _starpu_fifo_pop_task(data->fifo, workerid);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 
 		if (!task)
-			return NULL;
+			goto ret;
 
 		/* Find the largest compatible worker combination */
 		int best_size = -1;
@@ -231,7 +235,7 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 		 * worker take it anyway, so that it can discard it afterward.
 		 * */
 		if (best_workerid == -1)
-			return task;
+			goto ret;
 
 		/* Is this a basic worker or a combined worker ? */
 		int nbasic_workers = (int)starpu_worker_get_count();
@@ -240,7 +244,7 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 		{
 
 			/* The master is alone */
-			return task;
+			goto ret;
 		}
 		else
 		{
@@ -256,32 +260,33 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 				int local_worker = combined_workerid[i];
 
 				alias->destroy = 1;
-				starpu_pthread_mutex_t *sched_mutex;
-				starpu_pthread_cond_t *sched_cond;
-				starpu_worker_get_sched_condition(local_worker, &sched_mutex, &sched_cond);
-
-				STARPU_PTHREAD_MUTEX_LOCK_SCHED(sched_mutex);
-
+				_starpu_worker_lock(local_worker);
 				_starpu_fifo_push_task(data->local_fifo[local_worker], alias);
 
 #if !defined(STARPU_NON_BLOCKING_DRIVERS) || defined(STARPU_SIMGRID)
-				starpu_wakeup_worker_locked(local_worker, sched_cond, sched_mutex);
+				starpu_wake_worker_locked(local_worker);
 #endif
-				STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(sched_mutex);
-
+				_starpu_worker_unlock(local_worker);
 			}
 
 			/* The master also manipulated an alias */
 			struct starpu_task *master_alias = starpu_task_dup(task);
 			master_alias->destroy = 1;
-			return master_alias;
+			task = master_alias;
+			goto ret;
 		}
 	}
 	else
 	{
 		/* The worker is a slave */
-		return _starpu_fifo_pop_task(data->local_fifo[workerid], workerid);
+		_starpu_worker_relax_on();
+		STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
+		_starpu_worker_relax_off();
+		task = _starpu_fifo_pop_task(data->local_fifo[workerid], workerid);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 	}
+ret:
+	return task;
 }
 
 struct starpu_sched_policy _starpu_sched_peager_policy =

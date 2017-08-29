@@ -65,14 +65,14 @@ void * message_from_ui(void * p)
 	{
 		char * check=fgets (str, STARPU_TOP_BUFFER_SIZE, starpu_top_socket_fd_read);
 
-		printf("Message from UI : %s",str);
+		_STARPU_MSG("Message from UI : %s",str);
 		if (check)
 		{
 			_starpu_top_process_input_message(str);
 		}
 		else
 		{
-			fprintf(stderr,"Connection dropped\n");
+			_STARPU_MSG("Connection dropped\n");
 			//unlocking StarPU.
 			_starpu_top_process_input_message("GO\n");
 			_starpu_top_process_input_message("DEBUG;OFF\n");
@@ -96,7 +96,7 @@ void * message_to_ui(void * p)
 		free(message);
 		if (check!=len || check2==EOF )
 		{
-			fprintf(stderr,"Connection dropped : message no longer send\n");
+			_STARPU_MSG("Connection dropped : message no longer send\n");
 			while(1)
 			{
 				message=_starpu_top_message_remove(_starpu_top_mt);
@@ -115,7 +115,7 @@ void _starpu_top_communications_threads_launcher(void)
 
 
 	//Connection to UI & Socket Initilization
-	printf("%s:%d Connection to UI initilization\n",__FILE__, __LINE__);
+	_STARPU_MSG("Connection to UI initilization\n");
 	struct sockaddr_storage from;
 	struct addrinfo req, *ans;
 	int code;
@@ -126,7 +126,7 @@ void _starpu_top_communications_threads_launcher(void)
 
 	if ((code = getaddrinfo(NULL, STARPU_TOP_PORT, &req, &ans)) != 0)
 	{
-		fprintf(stderr, " getaddrinfo failed %d\n", code);
+		_STARPU_MSG(" getaddrinfo failed %d\n", code);
 		exit(EXIT_FAILURE);
    	}
   	int sock=socket(ans->ai_family, ans->ai_socktype, ans->ai_protocol);
@@ -156,34 +156,29 @@ void _starpu_top_communications_threads_launcher(void)
 
    	if ((starpu_top_socket_fd=accept(sock, (struct sockaddr *) &from, &len)) ==-1)
 	{
-		fprintf(stderr, "accept error\n");
-		perror("accept");
-		exit(EXIT_FAILURE);
+		_STARPU_ERROR("accept error %s\n", strerror(errno));
 	}
 
 	if ( (starpu_top_socket_fd_read=fdopen(starpu_top_socket_fd, "r")) == NULL)
 	{
-		perror("fdopen");
-		exit(EXIT_FAILURE);
+		_STARPU_ERROR("fdopen error %s\n", strerror(errno));
 	}
 
 	starpu_top_socket_fd=dup(starpu_top_socket_fd);
 	if (starpu_top_socket_fd == -1)
 	{
-		perror("dup");
-		exit(EXIT_FAILURE);
+		_STARPU_ERROR("dup error %s\n", strerror(errno));
 	}
 
 	if ((starpu_top_socket_fd_write=fdopen(starpu_top_socket_fd, "w")) == NULL)
 	{
-		perror("fdopen");
-		exit(EXIT_FAILURE);
+		_STARPU_ERROR("fdopen error %s\n", strerror(errno));
 	}
 
 	close(sock);
 
 	//Threads creation
-	fprintf(stderr,"Threads Creation\n");
+	_STARPU_MSG("Threads Creation\n");
 	starpu_pthread_attr_init(&threads_attr);
 	starpu_pthread_attr_setdetachstate(&threads_attr, PTHREAD_CREATE_DETACHED);
 

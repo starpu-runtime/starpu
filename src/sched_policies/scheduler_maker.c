@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2013  Simon Archipoff
+ * Copyright (C) 2017  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -107,7 +108,7 @@ struct starpu_sched_component * _find_sched_component_with_obj(struct starpu_sch
 		return NULL;
 	if(component->obj == obj)
 		return component;
-	int i;
+	unsigned i;
 	for(i = 0; i < component->nchildren; i++)
 	{
 		struct starpu_sched_component * tmp = _find_sched_component_with_obj(component->children[i], obj);
@@ -128,7 +129,7 @@ static int is_same_kind_of_all(struct starpu_sched_component * root, struct _sta
 		return w->perf_arch.type == w_ref->perf_arch.type;
 	}
 
-	int i;
+	unsigned i;
 	for(i = 0;i < root->nchildren; i++)
 		if(!is_same_kind_of_all(root->children[i], w_ref))
 			return 0;
@@ -162,7 +163,7 @@ static struct starpu_sched_component * where_should_we_plug_this(struct starpu_s
 		return mem;
 	hwloc_obj_t obj = mem->obj;
 	struct starpu_sched_component * parent = mem->parents[sched_ctx_id];
-	int i;
+	unsigned i;
 	for(i = 0; i < parent->nchildren; i++)
 	{
 		if(parent->children[i]->obj == obj
@@ -235,7 +236,7 @@ static void helper_display_scheduler(FILE* out, unsigned depth, struct starpu_sc
 	if(!component)
 		return;
 	fprintf(out,"%*s-> %s : %s\n", depth * 2 , "", name_sched_component(component), name_hwloc_component(component));
-	int i;
+	unsigned i;
 	for(i = 0; i < component->nchildren; i++)
 		helper_display_scheduler(out, depth + 1, component->children[i]);
 }
@@ -257,7 +258,7 @@ struct starpu_sched_tree * starpu_sched_component_make_scheduler(unsigned sched_
 	for(i = 0; i < starpu_worker_get_count(); i++)
 	{
 		struct _starpu_worker *worker = _starpu_get_worker_struct(i);
-		struct starpu_sched_component *worker_component = starpu_sched_component_worker_get(sched_ctx_id, i);
+		struct starpu_sched_component *worker_component = starpu_sched_component_worker_new(sched_ctx_id, i);
 		STARPU_ASSERT(worker);
 		set_worker_leaf(tree->root,worker_component, sched_ctx_id, specs);
 	}

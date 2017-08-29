@@ -4,6 +4,7 @@
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  * Copyright (C) 2011  Télécom-SudParis
+ * Copyright (C) 2017  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -112,7 +113,7 @@ static void _starpu_opencl_limit_gpu_mem_if_needed(unsigned devid)
 	to_waste = totalGlobalMem - global_mem[devid];
 #endif
 
-	_STARPU_DEBUG("OpenCL device %d: Wasting %ld MB / Limit %ld MB / Total %ld MB / Remains %ld MB\n",
+	_STARPU_DEBUG("OpenCL device %u: Wasting %ld MB / Limit %ld MB / Total %ld MB / Remains %ld MB\n",
 			devid, (long)to_waste/(1024*1024), (long) limit, (long)totalGlobalMem/(1024*1024),
 			(long)(totalGlobalMem - to_waste)/(1024*1024));
 
@@ -721,7 +722,7 @@ int _starpu_opencl_driver_init(struct _starpu_worker *worker)
 	_starpu_opencl_init_context(devid);
 
 	/* one more time to avoid hacks from third party lib :) */
-	_starpu_bind_thread_on_cpu(worker->config, worker->bindid, worker->workerid);
+	_starpu_bind_thread_on_cpu(worker->bindid, worker->workerid);
 
 	_starpu_opencl_limit_gpu_mem_if_needed(devid);
 	_starpu_memory_manager_set_global_memory_size(worker->memory_node, _starpu_opencl_get_global_mem_size(devid));
@@ -797,6 +798,7 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 		j = _starpu_get_job_associated_to_task(task);
 
 		_starpu_fetch_task_input_tail(task, j, worker);
+		_starpu_set_worker_status(worker, STATUS_UNKNOWN);
 		/* Reset it */
 		worker->task_transferring = NULL;
 
@@ -857,7 +859,7 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 				{
 					/* An asynchronous task, it was already queued,
 					 * it's now running, record its start time.  */
-					_starpu_driver_start_job(worker, j, &worker->perf_arch, &j->cl_start, 0, starpu_profiling_status_get());
+					_starpu_driver_start_job(worker, j, &worker->perf_arch, 0, starpu_profiling_status_get());
 				}
 				else
 				{
@@ -898,17 +900,24 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 
 	j = _starpu_get_job_associated_to_task(task);
 
+	worker->current_tasks[(worker->first_task  + worker->ntasks)%STARPU_MAX_PIPELINE] = task;
+	worker->ntasks++;
+	if (worker->pipeline_length == 0)
+	/* _starpu_get_worker_task checks .current_task field if pipeline_length == 0
+	 *
+	 * TODO: update driver to not use current_tasks[] when pipeline_length == 0,
+	 * as for cuda driver */
+		worker->current_task = task;
+
 	/* can OpenCL do that task ? */
 	if (!_STARPU_OPENCL_MAY_PERFORM(j))
 	{
 		/* this is not a OpenCL task */
-		_starpu_push_task_to_workers(task);
+		_starpu_worker_refuse_task(worker, task);
 		return 0;
 	}
 
 	_STARPU_TRACE_END_PROGRESS(memnode);
-	worker->current_tasks[(worker->first_task  + worker->ntasks)%STARPU_MAX_PIPELINE] = task;
-	worker->ntasks++;
 
 	/* Fetch data asynchronously */
 	res = _starpu_fetch_task_input(task, j, 1);
@@ -1014,7 +1023,7 @@ static int _starpu_opencl_start_job(struct _starpu_job *j, struct _starpu_worker
 	if (worker->ntasks == 1)
 	{
 		/* We are alone in the pipeline, the kernel will start now, record it */
-		_starpu_driver_start_job(worker, j, &worker->perf_arch, &j->cl_start, 0, profiling);
+		_starpu_driver_start_job(worker, j, &worker->perf_arch, 0, profiling);
 	}
 
 	starpu_opencl_func_t func = _starpu_task_get_opencl_nth_implementation(cl, j->nimpl);
@@ -1072,7 +1081,6 @@ static int _starpu_opencl_start_job(struct _starpu_job *j, struct _starpu_worker
 
 static void _starpu_opencl_stop_job(struct _starpu_job *j, struct _starpu_worker *worker)
 {
-	struct timespec codelet_end;
 	int profiling = starpu_profiling_status_get();
 
 	_starpu_set_current_task(NULL);
@@ -1083,14 +1091,14 @@ static void _starpu_opencl_stop_job(struct _starpu_job *j, struct _starpu_worker
 	worker->first_task = (worker->first_task + 1) % STARPU_MAX_PIPELINE;
 	worker->ntasks--;
 
-	_starpu_driver_end_job(worker, j, &worker->perf_arch, &codelet_end, 0, profiling);
+	_starpu_driver_end_job(worker, j, &worker->perf_arch, 0, profiling);
 
 	struct _starpu_sched_ctx *sched_ctx = _starpu_sched_ctx_get_sched_ctx_for_worker_and_job(worker, j);
 	STARPU_ASSERT_MSG(sched_ctx != NULL, "there should be a worker %d in the ctx of this job \n", worker->workerid);
 	if(!sched_ctx->sched_policy)
-		_starpu_driver_update_job_feedback(j, worker, &sched_ctx->perf_arch, &j->cl_start, &codelet_end, profiling);
+		_starpu_driver_update_job_feedback(j, worker, &sched_ctx->perf_arch, profiling);
 	else
-		_starpu_driver_update_job_feedback(j, worker, &worker->perf_arch, &j->cl_start, &codelet_end, profiling);
+		_starpu_driver_update_job_feedback(j, worker, &worker->perf_arch, profiling);
 
 	_starpu_push_task_output(j);
 

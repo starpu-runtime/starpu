@@ -148,7 +148,7 @@ struct starpu_data_interface_ops *_starpu_data_interface_get_ops(unsigned interf
  * some handle, the new mapping shadows the previous one.   */
 void _starpu_data_register_ram_pointer(starpu_data_handle_t handle, void *ptr)
 {
-	struct handle_entry *entry, *old_entry;
+	struct handle_entry *entry;
 
 	_STARPU_MALLOC(entry, sizeof(*entry));
 
@@ -174,6 +174,8 @@ void _starpu_data_register_ram_pointer(starpu_data_handle_t handle, void *ptr)
 	else
 #endif
 	{
+		struct handle_entry *old_entry;
+
 		_starpu_spin_lock(&registered_handles_lock);
 		HASH_FIND_PTR(registered_handles, &ptr, old_entry);
 		if (old_entry)
@@ -369,10 +371,14 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 	/* now the data is available ! */
 	_starpu_spin_unlock(&handle->header_lock);
 
-	ptr = starpu_data_handle_to_pointer(handle, STARPU_MAIN_RAM);
-	if (ptr != NULL)
+	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
-		_starpu_data_register_ram_pointer(handle, ptr);
+		if (starpu_node_get_kind(node) != STARPU_CPU_RAM)
+			continue;
+
+		ptr = starpu_data_handle_to_pointer(handle, node);
+		if (ptr != NULL)
+			_starpu_data_register_ram_pointer(handle, ptr);
 	}
 }
 
@@ -474,7 +480,6 @@ void starpu_data_register(starpu_data_handle_t *handleptr, int home_node,
 			  struct starpu_data_interface_ops *ops)
 {
 	starpu_data_handle_t handle = _starpu_data_handle_allocate(ops, home_node);
-	_STARPU_TRACE_HANDLE_DATA_REGISTER(handle);
 
 	STARPU_ASSERT(handleptr);
 	*handleptr = handle;
@@ -484,6 +489,7 @@ void starpu_data_register(starpu_data_handle_t *handleptr, int home_node,
 	ops->register_data_handle(handle, home_node, data_interface);
 
 	_starpu_register_new_data(handle, home_node, 0);
+	_STARPU_TRACE_HANDLE_DATA_REGISTER(handle);
 }
 
 void starpu_data_register_same(starpu_data_handle_t *handledst, starpu_data_handle_t handlesrc)
@@ -520,13 +526,17 @@ struct starpu_data_interface_ops* starpu_data_get_interface_ops(starpu_data_hand
  * Stop monitoring a piece of data
  */
 
-void _starpu_data_unregister_ram_pointer(starpu_data_handle_t handle)
+void _starpu_data_unregister_ram_pointer(starpu_data_handle_t handle, unsigned node)
 {
-	const void *ram_ptr = starpu_data_handle_to_pointer(handle, STARPU_MAIN_RAM);
+	if (starpu_node_get_kind(node) != STARPU_CPU_RAM)
+		return;
+
 #ifdef STARPU_OPENMP
 	if (handle->removed_from_context_hash)
 		return;
 #endif
+	const void *ram_ptr = starpu_data_handle_to_pointer(handle, node);
+
 	if (ram_ptr != NULL)
 	{
 		/* Remove the PTR -> HANDLE mapping.  If a mapping from PTR
@@ -756,7 +766,10 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 			_STARPU_DEBUG("Conversion needed\n");
 			void *buffers[1];
 			struct starpu_multiformat_interface *format_interface;
-			format_interface = (struct starpu_multiformat_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
+			home_node = handle->home_node;
+			if (home_node < 0 || (starpu_node_get_kind(home_node) != STARPU_CPU_RAM))
+				home_node = STARPU_MAIN_RAM;
+			format_interface = (struct starpu_multiformat_interface *) starpu_data_get_interface_on_node(handle, home_node);
 			struct starpu_codelet *cl = NULL;
 			enum starpu_node_kind node_kind = starpu_node_get_kind(handle->mf_node);
 
@@ -855,15 +868,18 @@ retry_busy:
 
 	size_t size = _starpu_data_get_size(handle);
 
-	_starpu_data_unregister_ram_pointer(handle);
-
 	/* Destroy the data now */
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
 		struct _starpu_data_replicate *local = &handle->per_node[node];
+		if (local->allocated)
+		{
+			_starpu_data_unregister_ram_pointer(handle, node);
+
 		/* free the data copy in a lazy fashion */
-		if (local->allocated && local->automatically_allocated)
-			_starpu_request_mem_chunk_removal(handle, local, node, size);
+			if (local->automatically_allocated)
+				_starpu_request_mem_chunk_removal(handle, local, node, size);
+		}
 	}
 	if (handle->per_worker)
 	{
@@ -898,6 +914,7 @@ retry_busy:
 		free(handle->switch_cl->dyn_nodes);
 		free(handle->switch_cl);
 	}
+	_STARPU_TRACE_HANDLE_DATA_UNREGISTER(handle);
 	free(handle);
 }
 
@@ -968,7 +985,7 @@ static void _starpu_data_invalidate(void *data)
 		unsigned i, j, nnodes = starpu_memory_nodes_get_count();
 		for (i = 0; i < nnodes; i++)
 			for (j = 0; j < nnodes; j++)
-				STARPU_ASSERT_MSG(!handle->per_node[i].request[j], "request for handle %p pending from %d to %d while invalidating data!", handle, j, i);
+				STARPU_ASSERT_MSG(!handle->per_node[i].request[j], "request for handle %p pending from %u to %u while invalidating data!", handle, j, i);
 	}
 #endif
 
@@ -979,8 +996,7 @@ static void _starpu_data_invalidate(void *data)
 
 		if (local->mc && local->allocated && local->automatically_allocated)
 		{
-			if (node == STARPU_MAIN_RAM)
-				_starpu_data_unregister_ram_pointer(handle);
+			_starpu_data_unregister_ram_pointer(handle, node);
 
 			/* free the data copy in a lazy fashion */
 			_starpu_request_mem_chunk_removal(handle, local, node, size);
@@ -1050,13 +1066,13 @@ int starpu_data_interface_get_next_id(void)
 
 int starpu_data_pack(starpu_data_handle_t handle, void **ptr, starpu_ssize_t *count)
 {
-	STARPU_ASSERT(handle->ops->pack_data);
+	STARPU_ASSERT_MSG(handle->ops->pack_data, "The datatype interface %s (%d) does not have a pack operation", handle->ops->name, handle->ops->interfaceid);
 	return handle->ops->pack_data(handle, _starpu_memory_node_get_local_key(), ptr, count);
 }
 
 int starpu_data_unpack(starpu_data_handle_t handle, void *ptr, size_t count)
 {
-	STARPU_ASSERT(handle->ops->unpack_data);
+	STARPU_ASSERT_MSG(handle->ops->unpack_data, "The datatype interface %s (%d) does not have an unpack operation", handle->ops->name, handle->ops->interfaceid);
 	int ret;
 	ret = handle->ops->unpack_data(handle, _starpu_memory_node_get_local_key(), ptr, count);
 	starpu_free_flags(ptr, count, 0);
@@ -1071,6 +1087,11 @@ size_t starpu_data_get_size(starpu_data_handle_t handle)
 void starpu_data_set_name(starpu_data_handle_t handle, const char *name)
 {
 	_STARPU_TRACE_DATA_NAME(handle, name);
+}
+
+int starpu_data_get_home_node(starpu_data_handle_t handle)
+{
+	return handle->home_node;
 }
 
 void starpu_data_set_coordinates_array(starpu_data_handle_t handle, int dimensions, int dims[])

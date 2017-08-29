@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2013, 2015, 2016  CNRS
+ * Copyright (C) 2012-2013, 2015, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,6 +19,7 @@
 #include <common/thread.h>
 #include <common/fxt.h>
 #include <datawizard/memory_manager.h>
+#include <core/workers.h>
 #include <starpu_stdlib.h>
 
 static size_t global_size[STARPU_MAXNODES];
@@ -57,7 +58,7 @@ void _starpu_memory_manager_set_global_memory_size(unsigned node, size_t size)
 	if (!global_size[node])
 	{
 		global_size[node] = size;
-		_STARPU_DEBUG("Global size for node %d is %ld\n", node, (long)global_size[node]);
+		_STARPU_DEBUG("Global size for node %u is %ld\n", node, (long)global_size[node]);
 	}
 	else
 	{
@@ -79,6 +80,15 @@ int starpu_memory_allocate(unsigned node, size_t size, int flags)
 	STARPU_PTHREAD_MUTEX_LOCK(&lock_nodes[node]);
 	if (flags & STARPU_MEMORY_WAIT)
 	{
+		struct _starpu_worker *worker = _starpu_get_local_worker_key();
+		enum _starpu_worker_status old_status = STATUS_UNKNOWN;
+
+		if (worker)
+		{
+			old_status = worker->status;
+			_starpu_set_worker_status(worker, STATUS_WAITING);
+		}
+
 		while (used_size[node] + size > global_size[node])
 		{
 			/* Tell deallocators we need this amount */
@@ -87,6 +97,11 @@ int starpu_memory_allocate(unsigned node, size_t size, int flags)
 
 			/* Wait for it */
 			STARPU_PTHREAD_COND_WAIT(&cond_nodes[node], &lock_nodes[node]);
+		}
+
+		if (worker)
+		{
+			_starpu_set_worker_status(worker, old_status);
 		}
 
 		/* And take it */

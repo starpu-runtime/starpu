@@ -14,8 +14,17 @@ Per-interface data transfer methods.
 \var void (*starpu_data_interface_ops::register_data_handle)(starpu_data_handle_t handle, unsigned home_node, void *data_interface)
     Register an existing interface into a data handle.
 
+    This iterates over all memory nodes to initialize all fields of the data
+    interface on each of them. Since data is not allocated yet except on the
+    home node, pointers should be left as NULL except on the \p home_node, for
+    which the pointers should be copied from the given \p data_interface, which
+    was filled with the application's pointers.
+
 \var starpu_ssize_t (*starpu_data_interface_ops::allocate_data_on_node)(void *data_interface, unsigned node)
-    Allocate data for the interface on a given node.
+    Allocate data for the interface on a given node. This should use
+    starpu_malloc_on_node to perform the allocation(s), and fill the pointers
+    in the data interface. It should return the size of the allocated memory, or
+    -ENOMEM if memory could not be allocated.
 
 \var void (*starpu_data_interface_ops::free_data_on_node)(void *data_interface, unsigned node)
     Free data of the interface on a given node.
@@ -30,7 +39,7 @@ Per-interface data transfer methods.
     Update map data from a source to a destination.
 
 \var const struct starpu_data_copy_methods *starpu_data_interface_ops::copy_methods
-    ram/cuda/opencl synchronous and asynchronous transfer methods.
+    This provides a series of methods for performing ram/cuda/opencl synchronous and asynchronous transfers.
 
 \var void *(*starpu_data_interface_ops::handle_to_pointer)(starpu_data_handle_t handle, unsigned node)
     Return the current pointer (if any) for the handle on the given node.
@@ -39,19 +48,24 @@ Per-interface data transfer methods.
     Return an estimation of the size of data, for performance models.
 
 \var uint32_t (*starpu_data_interface_ops::footprint)(starpu_data_handle_t handle)
-    Return a 32bit footprint which characterizes the data size.
+    Return a 32bit footprint which characterizes the data size and layout (nx, ny, ld, elemsize, etc.)
 
 \var int (*starpu_data_interface_ops::compare)(void *data_interface_a, void *data_interface_b)
-    Compare the data size of two interfaces.
+    Compare the data size and layout of two interfaces (nx, ny, ld, elemsize,
+    etc.). It should return 1 if the two interfaces size and layout match, and 0
+    otherwise.
 
 \var void (*starpu_data_interface_ops::display)(starpu_data_handle_t handle, FILE *f)
     Dump the sizes of a handle to a file.
 
 \var starpu_ssize_t (*starpu_data_interface_ops::describe)(void *data_interface, char *buf, size_t size)
-    Describe the data into a string.
+    Describe the data into a string in a brief way, such as one letter to describe the type of data, and the data dimensions.
 
 \var enum starpu_data_interface_id starpu_data_interface_ops::interfaceid
     An identifier that is unique to each interface.
+
+\var char *starpu_data_interface_ops::name
+    Name of the interface
 
 \var size_t starpu_data_interface_ops::interface_size
     The size of the interface data descriptor.
@@ -416,10 +430,69 @@ Compressed Sparse Row Representation) sparse matrix interface.
 Register the sparse matrix made of \p nnz non-zero blocks of elements of
 size \p elemsize stored in \p nzval and initializes \p handle to represent it.
 Blocks have size \p r * \p c. \p nrow is the number of rows (in terms of
-blocks), \p colind[i] is the block-column index for block i in \p nzval,
-\p rowptr[i] is the block-index (in \p nzval) of the first block of row i.
+blocks), \p colind is an array of nnz elements, colind[i] is the block-column index for block i in \p nzval,
+\p rowptr is an array of nrow+1 elements, rowptr[i] is the block-index (in \p nzval) of the first block of row i. By convention, rowptr[nrow] is the number of blocks, this allows an easier access of the matrix's elements for the kernels.
 \p firstentry is the index of the first entry of the given arrays
 (usually 0 or 1).
+
+Here an example of how to use the function.
+\code{.c}
+/*
+ * We use the following matrix:
+ *
+ *   +----------------+
+ *   |  0   1   0   0 |
+ *   |  2   3   0   0 |
+ *   |  4   5   8   9 |
+ *   |  6   7  10  11 |
+ *   +----------------+
+ *
+ * nzval  = [0, 1, 2, 3] ++ [4, 5, 6, 7] ++ [8, 9, 10, 11]
+ * colind = [0, 0, 1]
+ * rowptr = [0, 1, 3]
+ * r = c = 2
+ */
+
+/* Size of the blocks */
+int R = 2;
+int C = 2;
+
+int NROWS = 2;
+int NNZ_BLOCKS = 3;    /* out of 4 */
+int NZVAL_SIZE = (R*C*NNZ_BLOCKS);
+
+int nzval[NZVAL_SIZE]  =
+{
+	0, 1, 2, 3,    /* First block  */
+	4, 5, 6, 7,    /* Second block */
+	8, 9, 10, 11   /* Third block  */
+};
+uint32_t colind[NNZ_BLOCKS] =
+{
+	0, /* block-column index for first block in nzval */
+	0, /* block-column index for second block in nzval */
+	1  /* block-column index for third block in nzval */
+};
+uint32_t rowptr[NROWS+1] =
+{
+	0, / * block-index in nzval of the first block of the first row. */
+	1, / * block-index in nzval of the first block of the second row. */
+	NNZ_BLOCKS /* number of blocks, to allow an easier element's access for the kernels */
+};
+
+starpu_data_handle_t bcsr_handle;
+starpu_bcsr_data_register(&bcsr_handle,
+			  STARPU_MAIN_RAM,
+			  NNZ_BLOCKS,
+			  NROWS,
+			  (uintptr_t) nzval,
+			  colind,
+			  rowptr,
+			  0, /* firstentry */
+			  R,
+			  C,
+			  sizeof(nzval[0]));
+\endcode
 
 \fn void starpu_csr_data_register(starpu_data_handle_t *handle, int home_node, uint32_t nnz, uint32_t nrow, uintptr_t nzval, uint32_t *colind, uint32_t *rowptr, uint32_t firstentry, size_t elemsize)
 \ingroup API_Data_Interfaces
@@ -802,16 +875,16 @@ row representation)
 \var uintptr_t starpu_bcsr_interface::nzval
     non-zero values
 \var uint32_t *starpu_bcsr_interface::colind
-    position of non-zero entried on the row
+    array of nnz elements, colind[i] is the block-column index for block i in nzval
 \var uint32_t *starpu_bcsr_interface::rowptr
-    index (in nzval) of the first entry of the row
+    array of nrow+1 elements, rowptr[i] is the block-index (in nzval) of the first block of row i. By convention, rowptr[nrow] is the number of blocks, this allows an easier access of the matrix's elements for the kernels.
 \var starpu_bcsr_interface::firstentry
     k for k-based indexing (0 or 1 usually). Also useful when partitionning the matrix.
 \var uint32_t starpu_bcsr_interface::r
-    size of the blocks
+    height of the blocks
 \var uint32_t starpu_bcsr_interface::c
-    size of the blocks
-\var size_t starpu_bcsr_interface::elemsize;
+    width of the blocks
+\var size_t starpu_bcsr_interface::elemsize
     size of the elements of the matrix
 
 \fn uint32_t starpu_bcsr_get_nnz(starpu_data_handle_t handle)

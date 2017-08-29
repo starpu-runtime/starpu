@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2013, 2016  Université de Bordeaux
- * Copyright (C) 2010, 2011  CNRS
+ * Copyright (C) 2010, 2011, 2017  CNRS
  * Copyright (C) 2016  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -143,7 +143,7 @@
 		ayu_wipe_data(&__data); \
 		\
 		char __buf[32]; \
-		snprintf(__buf, 32, "%llu", (unsigned long long)(uintptr_t) (handle)); \
+		snprintf(__buf, sizeof(__buf), "%llu", (unsigned long long)(uintptr_t) (handle)); \
 		__data.common.client_id = __cli_id; \
 		__data.set_property.property_owner_id = __dep_id; \
 		__data.set_property.key = "dep_address_value"; \
@@ -180,7 +180,7 @@
 		if ((task) != NULL) \
 		{ \
 			char __buf[32]; \
-			snprintf(__buf, 32, "%d", ((struct starpu_task *)(task))->priority); \
+			snprintf(__buf, sizeof(__buf), "%d", ((struct starpu_task *)(task))->priority); \
 			__data.common.client_id = __cli_id; \
 			__data.set_property.property_owner_id = (job_id); \
 			__data.set_property.key = "priority"; \
@@ -212,7 +212,7 @@
 		ayu_wipe_data(&__data); \
 		\
 		char __buf[32]; \
-		snprintf(__buf, 32, "%d", (workerid)); \
+		snprintf(__buf, sizeof(__buf), "%d", (workerid));	\
 		__data.common.client_id = __cli_id; \
 		__data.set_property.property_owner_id = (job_id); \
 		__data.set_property.key = "worker"; \
@@ -260,7 +260,7 @@
 		ayu_wipe_data(&__data); \
 		\
 		char __buf[32]; \
-		snprintf(__buf, 32, "%d", (int)(worker_id)); \
+		snprintf(__buf, sizeof(__buf), "%d", (int)(worker_id));	\
 		__data.common.client_id = __cli_id; \
 		__data.set_property.property_owner_id = (job_id); \
 		__data.set_property.key = "worker"; \

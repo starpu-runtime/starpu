@@ -24,14 +24,6 @@
 #include <core/disk.h>
 #include <core/simgrid.h>
 
-/* TODO: This should be tuned according to driver capabilities
- * Data interfaces should also have to declare how many asynchronous requests
- * they have actually started (think of e.g. csr).
- */
-#define MAX_PENDING_REQUESTS_PER_NODE 20
-#define MAX_PENDING_PREFETCH_REQUESTS_PER_NODE 10
-#define MAX_PENDING_IDLE_REQUESTS_PER_NODE 1
-
 /* requests that have not been treated at all */
 static struct _starpu_data_request_prio_list data_requests[STARPU_MAXNODES];
 static struct _starpu_data_request_prio_list prefetch_requests[STARPU_MAXNODES];
@@ -117,14 +109,6 @@ static void _starpu_data_request_unlink(struct _starpu_data_request *r)
 
 static void _starpu_data_request_destroy(struct _starpu_data_request *r)
 {
-	switch (r->async_channel.type)
-	{
-		case STARPU_DISK_RAM:
-			starpu_disk_free_request(&r->async_channel);
-			break;
-		default:
-			break;
-	}
 	//fprintf(stderr, "DESTROY REQ %p (%d) refcnt %d\n", r, node, r->refcnt);
 	_starpu_data_request_delete(r);
 }
@@ -163,7 +147,7 @@ struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t ha
 	if (handling_node == -1)
 		handling_node = STARPU_MAIN_RAM;
 	r->handling_node = handling_node;
-	STARPU_ASSERT(handling_node == STARPU_MAIN_RAM || _starpu_memory_node_get_nworkers(handling_node));
+	STARPU_ASSERT(starpu_node_get_kind(handling_node) == STARPU_CPU_RAM || _starpu_memory_node_get_nworkers(handling_node));
 	r->completed = 0;
 	r->prefetch = is_prefetch;
 	r->prio = prio;
@@ -226,6 +210,15 @@ int _starpu_wait_data_request_completion(struct _starpu_data_request *r, unsigne
 	starpu_pthread_queue_register(&wait, &_starpu_simgrid_transfer_queue[(unsigned) r->dst_replicate->memory_node]);
 #endif
 
+	struct _starpu_worker *worker = _starpu_get_local_worker_key();
+	enum _starpu_worker_status old_status = STATUS_UNKNOWN;
+
+	if (worker)
+	{
+		old_status = worker->status ;
+		_starpu_set_worker_status(worker, STATUS_WAITING);
+	}
+
 	do
 	{
 #ifdef STARPU_SIMGRID
@@ -260,6 +253,11 @@ int _starpu_wait_data_request_completion(struct _starpu_data_request *r, unsigne
 	}
 	while (1);
 
+	if (worker)
+	{
+		_starpu_set_worker_status(worker, old_status);
+	}
+
 #ifdef STARPU_SIMGRID
 	starpu_pthread_queue_unregister(&wait, &_starpu_simgrid_transfer_queue[local_node]);
 	starpu_pthread_queue_unregister(&wait, &_starpu_simgrid_transfer_queue[(unsigned) r->dst_replicate->memory_node]);
@@ -290,9 +288,7 @@ int _starpu_wait_data_request_completion(struct _starpu_data_request *r, unsigne
 void _starpu_post_data_request(struct _starpu_data_request *r)
 {
 	unsigned handling_node = r->handling_node;
-	/* We don't have a worker for disk nodes, these should have been posted to a main RAM node */
-	STARPU_ASSERT(starpu_node_get_kind(handling_node) != STARPU_DISK_RAM);
-	STARPU_ASSERT(handling_node == STARPU_MAIN_RAM || _starpu_memory_node_get_nworkers(handling_node));
+	STARPU_ASSERT(starpu_node_get_kind(handling_node) == STARPU_CPU_RAM || _starpu_memory_node_get_nworkers(handling_node));
 
 //	_STARPU_DEBUG("POST REQUEST\n");
 
@@ -597,6 +593,7 @@ static int __starpu_handle_node_data_requests(struct _starpu_data_request_prio_l
 	for (i = 0; i <= prefetch; i++)
 		_starpu_data_request_prio_list_init(&new_data_requests[i]);
 
+	double start = starpu_timing_now();
 	/* for all entries of the list */
 	while (!_starpu_data_request_prio_list_empty(&local_list))
 	{
@@ -610,7 +607,7 @@ static int __starpu_handle_node_data_requests(struct _starpu_data_request_prio_l
 			break;
 		}
 
-		r = _starpu_data_request_prio_list_pop_front(&local_list);
+		r = _starpu_data_request_prio_list_pop_front_highest(&local_list);
 
 		res = starpu_handle_data_request(r, may_alloc, prefetch);
 		if (res != 0 && res != -EAGAIN)
@@ -625,12 +622,18 @@ static int __starpu_handle_node_data_requests(struct _starpu_data_request_prio_l
 		}
 
 		(*pushed)++;
+		if (starpu_timing_now() - start >= MAX_PUSH_TIME)
+		{
+			/* We have spent a lot of time doing requests, skip pushing more for now */
+			ret = -EBUSY;
+			break;
+		}
 	}
 
 	/* Push back requests we didn't handle on the proper list */
 	while (!_starpu_data_request_prio_list_empty(&local_list))
 	{
-		r = _starpu_data_request_prio_list_pop_front(&local_list);
+		r = _starpu_data_request_prio_list_pop_front_highest(&local_list);
 		/* Prefetch requests might have gotten promoted while in tmp list */
 		_starpu_data_request_prio_list_push_back(&new_data_requests[r->prefetch], r);
 	}
@@ -744,7 +747,7 @@ static int _handle_pending_node_data_requests(unsigned src_node, unsigned force)
 	while (!_starpu_data_request_prio_list_empty(&local_list))
 	{
 		struct _starpu_data_request *r;
-		r = _starpu_data_request_prio_list_pop_front(&local_list);
+		r = _starpu_data_request_prio_list_pop_front_highest(&local_list);
 		taken++;
 
 		starpu_data_handle_t handle = r->handle;

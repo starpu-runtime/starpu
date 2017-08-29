@@ -53,14 +53,14 @@ void _starpu_util_init(void)
 #include <direct.h>
 static char * dirname(char * path)
 {
-   char drive[_MAX_DRIVE];
-   char dir[_MAX_DIR];
-   /* Remove trailing slash */
-   while (strlen(path) > 0 && (*(path+strlen(path)-1) == '/' || *(path+strlen(path)-1) == '\\'))
-      *(path+strlen(path)-1) = '\0';
-   _splitpath(path, drive, dir, NULL, NULL);
-   _makepath(path, drive, dir, NULL, NULL);
-   return path;
+	char drive[_MAX_DRIVE];
+	char dir[_MAX_DIR];
+	/* Remove trailing slash */
+	while (strlen(path) > 0 && (*(path+strlen(path)-1) == '/' || *(path+strlen(path)-1) == '\\'))
+		*(path+strlen(path)-1) = '\0';
+	_splitpath(path, drive, dir, NULL, NULL);
+	_makepath(path, drive, dir, NULL, NULL);
+	return path;
 }
 #else
 #include <libgen.h>
@@ -150,11 +150,15 @@ char *_starpu_mkdtemp_internal(char *tmpl)
 	int count = 1;
 	int ret;
 
+	int first_letter = (int)'a';
+	int nb_letters = 25;
+	int len_template = 6;
+
 	// Initialize template
-	for(i=len-6 ; i<len ; i++)
+	for(i=len-len_template ; i<len ; i++)
 	{
 		STARPU_ASSERT_MSG(tmpl[i] == 'X', "Template must terminate by XXXXXX\n");
-		tmpl[i] = (char) (97 + starpu_lrand48() % 25);
+		tmpl[i] = (char) (first_letter + starpu_lrand48() % nb_letters);
 	}
 
 	// Try to create directory
@@ -162,9 +166,9 @@ char *_starpu_mkdtemp_internal(char *tmpl)
 	while ((ret == -1) && (errno == EEXIST))
 	{
 		// Generate a new name
-		for(i=len-6 ; i<len ; i++)
+		for(i=len-len_template ; i<len ; i++)
 		{
-			tmpl[i] = (char) (97 + starpu_lrand48() % 25);
+			tmpl[i] = (char) (first_letter + starpu_lrand48() % nb_letters);
 		}
 		count ++;
 		if (count == 1000)
@@ -194,16 +198,14 @@ char *_starpu_mktemp(const char *directory, int flags, int *fd)
 	const char *tmp = "STARPU_XXXXXX";
 	char *baseCpy;
 	_STARPU_MALLOC(baseCpy, strlen(directory)+1+strlen(tmp)+1);
-	STARPU_ASSERT(baseCpy != NULL);
 
-	strcpy(baseCpy, directory);
-	strcat(baseCpy,"/");
-	strcat(baseCpy,tmp);
+	snprintf(baseCpy, strlen(directory)+1+strlen(tmp)+1, "%s/%s", directory, tmp);
 
 #if defined(STARPU_HAVE_WINDOWS)
 	_mktemp(baseCpy);
 	*fd = open(baseCpy, flags);
 #elif defined (HAVE_MKOSTEMP)
+	flags &= ~O_RDWR;
 	*fd = mkostemp(baseCpy, flags);
 #else
 #  ifdef O_DIRECT
@@ -218,7 +220,7 @@ char *_starpu_mktemp(const char *directory, int flags, int *fd)
 	if (*fd < 0)
 	{
 		int err = errno;
-		_STARPU_DISP("Could not create temporary file in directory '%s', mskostemp failed with error '%s'\n", directory, strerror(errno));
+		_STARPU_DISP("Could not create temporary file in directory '%s', mk[o]stemp failed with error '%s'\n", directory, strerror(errno));
 		free(baseCpy);
 		errno = err;
 		return NULL;
@@ -263,7 +265,7 @@ char *_starpu_mktemp_many(const char *directory, int depth, int flags, int *fd)
 		return NULL;
 	}
 
-	memcpy(path, directory, len);
+	memcpy(path, directory, len+1);
 	for (i = 0; i < depth; i++)
 	{
 		int r = starpu_lrand48();

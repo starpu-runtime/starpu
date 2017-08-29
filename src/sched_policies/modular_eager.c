@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013  INRIA
+ * Copyright (C) 2013, 2017  INRIA
  * Copyright (C) 2013  Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -20,8 +20,6 @@
 
 static void initialize_eager_center_policy(unsigned sched_ctx_id)
 {
-	_STARPU_DISP("Warning: you are running the default modular-eager scheduler, which is not a very smart scheduler. Make sure to read the StarPU documentation about adding performance models in order to be able to use the modular-heft scheduler instead.\n");
-
 	struct starpu_sched_tree *t;
 	struct starpu_sched_component * eager_component;
 
@@ -33,7 +31,7 @@ static void initialize_eager_center_policy(unsigned sched_ctx_id)
 
 	unsigned i;
 	for(i = 0; i < starpu_worker_get_count() + starpu_combined_worker_get_count(); i++)
-		starpu_sched_component_connect(eager_component, starpu_sched_component_worker_get(sched_ctx_id, i));
+		starpu_sched_component_connect(eager_component, starpu_sched_component_worker_new(sched_ctx_id, i));
 
 	starpu_sched_tree_update_workers(t);
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)t);

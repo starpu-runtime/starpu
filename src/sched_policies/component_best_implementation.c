@@ -88,7 +88,7 @@ int starpu_sched_component_is_best_implementation(struct starpu_sched_component 
 static struct starpu_task * best_implementation_pull_task(struct starpu_sched_component * component)
 {
 	struct starpu_task * task = NULL;
-	int i;
+	unsigned i;
 	for(i=0; i < component->nparents; i++)
 	{
 		if(component->parents[i] == NULL)

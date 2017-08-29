@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2013, 2015-2016  Université de Bordeaux
+# Copyright (C) 2009-2013, 2015-2017  Université de Bordeaux
 # Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
 # Copyright (C) 2016  Inria
 #
@@ -17,6 +17,15 @@
 
 include $(top_srcdir)/starpu.mk
 
+if STARPU_SIMGRID
+STARPU_PERF_MODEL_DIR=$(abs_top_srcdir)/tools/perfmodels/sampling
+STARPU_HOSTNAME=mirage
+MALLOC_PERTURB_=0
+export STARPU_PERF_MODEL_DIR
+export STARPU_HOSTNAME
+export MALLOC_PERTURB_
+endif
+
 CC=$(MPICC)
 CCLD=$(MPICC)
 FC=$(MPIFORT)
@@ -26,16 +35,22 @@ if STARPU_HAVE_WINDOWS
 LOADER_BIN		=
 else
 loader_CPPFLAGS 	= 	$(AM_CFLAGS) $(AM_CPPFLAGS) -I$(top_builddir)/src/
+if !STARPU_SIMGRID
 LOADER			=	loader
 LOADER_BIN		=	$(abs_top_builddir)/mpi/examples/$(LOADER)
+endif
 loader_SOURCES		=	../../tests/loader.c
 endif
 
+if STARPU_SIMGRID
+MPI			=	$(abs_top_builddir)/tools/starpu_smpirun -np 4 -platform $(abs_top_srcdir)/tools/perfmodels/cluster.xml -hostfile $(abs_top_srcdir)/tools/perfmodels/hostfile
+else
 # we always test on 4 processes, the execution time is not that bigger
 if STARPU_QUICK_CHECK
 MPI			=	$(MPIEXEC) $(MPIEXEC_ARGS) -np 4
 else
 MPI			=	$(MPIEXEC) $(MPIEXEC_ARGS) -np 4
+endif
 endif
 
 if STARPU_HAVE_AM111
@@ -45,10 +60,8 @@ else
 TESTS_ENVIRONMENT 	=	STARPU_WORKERS_NOBIND=1 STARPU_NCPU=4 top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(MPI) $(LOADER_BIN)
 endif
 
-if !STARPU_SIMGRID
 if STARPU_MPI_CHECK
 TESTS			=	$(starpu_mpi_EXAMPLES)
-endif
 endif
 
 check_PROGRAMS = $(LOADER) $(starpu_mpi_EXAMPLES)
@@ -248,9 +261,11 @@ matrix_decomposition_mpi_cholesky_distributed_LDADD =	\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la	\
 	$(STARPU_BLAS_LDFLAGS) -lm
 
+if !STARPU_SIMGRID
 starpu_mpi_EXAMPLES +=				\
 	matrix_decomposition/mpi_cholesky			\
 	matrix_decomposition/mpi_cholesky_distributed
+endif
 endif
 endif
 
@@ -269,8 +284,10 @@ matrix_mult_mm_LDADD =			\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la	\
 	-lm
 
+if !STARPU_SIMGRID
 starpu_mpi_EXAMPLES +=				\
 	matrix_mult/mm
+endif
 endif
 
 ##########################################
@@ -303,9 +320,11 @@ native_fortran_nf_basic_ring_LDADD =					\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la	\
 	-lm
 
+if !STARPU_SIMGRID
 starpu_mpi_EXAMPLES +=				\
 	native_fortran/nf_mm			\
 	native_fortran/nf_basic_ring
+endif
 endif
 endif
 endif
@@ -344,8 +363,10 @@ user_datatype_user_datatype_SOURCES =		\
 user_datatype_user_datatype_LDADD =		\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 
+if !STARPU_SIMGRID
 starpu_mpi_EXAMPLES	+=			\
 	user_datatype/user_datatype
+endif
 endif
 
 ###################
@@ -362,9 +383,11 @@ comm_comm_LDADD =		\
 comm_mix_comm_LDADD =		\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 
+if !STARPU_SIMGRID
 starpu_mpi_EXAMPLES	+=			\
 	comm/comm				\
 	comm/mix_comm
+endif
 endif
 
 if STARPU_HAVE_MPIFORT

@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2009-2012, 2014-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2013  CNRS
+ * Copyright (C) 2017  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -35,10 +36,10 @@
 
 extern char _starpu_worker_drives_memory[STARPU_NMAXWORKERS][STARPU_MAXNODES];
 
-struct _starpu_cond_and_mutex
+struct _starpu_cond_and_worker
 {
-        starpu_pthread_cond_t *cond;
-        starpu_pthread_mutex_t *mutex;
+	starpu_pthread_cond_t *cond;
+	struct _starpu_worker *worker;
 };
 
 struct _starpu_memory_node_descr
@@ -62,8 +63,8 @@ struct _starpu_memory_node_descr
 	 * list of all these condition variables so that we can wake up all
 	 * worker attached to a memory node that are waiting on a task. */
 	starpu_pthread_rwlock_t conditions_rwlock;
-	struct _starpu_cond_and_mutex conditions_attached_to_node[STARPU_MAXNODES][STARPU_NMAXWORKERS];
-	struct _starpu_cond_and_mutex conditions_all[STARPU_MAXNODES*STARPU_NMAXWORKERS];
+	struct _starpu_cond_and_worker conditions_attached_to_node[STARPU_MAXNODES][STARPU_NMAXWORKERS];
+	struct _starpu_cond_and_worker conditions_all[STARPU_MAXNODES*STARPU_NMAXWORKERS];
 	/* the number of queues attached to each node */
 	unsigned total_condition_count;
 	unsigned condition_count[STARPU_MAXNODES];
@@ -112,7 +113,7 @@ void _starpu_memory_node_set_mapped(unsigned node);
 unsigned _starpu_memory_node_get_mapped(unsigned node);
 unsigned _starpu_memory_node_register(enum starpu_node_kind kind, int devid);
 //void _starpu_memory_node_attach_queue(struct starpu_jobq_s *q, unsigned nodeid);
-void _starpu_memory_node_register_condition(starpu_pthread_cond_t *cond, starpu_pthread_mutex_t *mutex, unsigned memory_node);
+void _starpu_memory_node_register_condition(struct _starpu_worker *worker, starpu_pthread_cond_t *cond, unsigned nodeid);
 
 static inline int _starpu_memory_node_get_devid(unsigned node)
 {

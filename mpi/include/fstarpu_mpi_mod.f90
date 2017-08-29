@@ -1,6 +1,7 @@
 ! StarPU --- Runtime system for heterogeneous multicore architectures.
 !
 ! Copyright (C) 2016  Inria
+! Copyright (C) 2017  Université de Bordeaux
 !
 ! StarPU is free software; you can redistribute it and/or modify
 ! it under the terms of the GNU Lesser General Public License as published by
@@ -32,6 +33,20 @@ module fstarpu_mpi_mod
                         integer(c_int), value, intent(in) :: mpi_comm
                 end function fstarpu_mpi_isend
 
+                ! == mpi/include/starpu_mpi.h ==
+                ! int starpu_mpi_isend_prio(starpu_data_handle_t data_handle, starpu_mpi_req *req, int dest, int mpi_tag, int prio, MPI_Comm comm);
+                function fstarpu_mpi_isend_prio (dh, mpi_req, dst, mpi_tag, prio, mpi_comm) bind(C)
+                        use iso_c_binding
+                        implicit none
+                        integer(c_int) :: fstarpu_mpi_isend_prio
+                        type(c_ptr), value, intent(in) :: dh
+                        type(c_ptr), value, intent(in) :: mpi_req
+                        integer(c_int), value, intent(in) :: dst
+                        integer(c_int), value, intent(in) :: mpi_tag
+                        integer(c_int), value, intent(in) :: prio
+                        integer(c_int), value, intent(in) :: mpi_comm
+                end function fstarpu_mpi_isend_prio
+
                 ! int starpu_mpi_irecv(starpu_data_handle_t data_handle, starpu_mpi_req *req, int source, int mpi_tag, MPI_Comm comm);
                 function fstarpu_mpi_irecv (dh, mpi_req, src, mpi_tag, mpi_comm) bind(C)
                         use iso_c_binding
@@ -54,6 +69,18 @@ module fstarpu_mpi_mod
                         integer(c_int), value, intent(in) :: mpi_tag
                         integer(c_int), value, intent(in) :: mpi_comm
                 end function fstarpu_mpi_send
+
+                ! int starpu_mpi_send_prio(starpu_data_handle_t data_handle, int dest, int mpi_tag, int prio, MPI_Comm comm);
+                function fstarpu_mpi_send_prio (dh, dst, mpi_tag, prio, mpi_comm) bind(C)
+                        use iso_c_binding
+                        implicit none
+                        integer(c_int) :: fstarpu_mpi_send_prio
+                        type(c_ptr), value, intent(in) :: dh
+                        integer(c_int), value, intent(in) :: dst
+                        integer(c_int), value, intent(in) :: mpi_tag
+                        integer(c_int), value, intent(in) :: prio
+                        integer(c_int), value, intent(in) :: mpi_comm
+                end function fstarpu_mpi_send_prio
 
                 ! int starpu_mpi_recv(starpu_data_handle_t data_handle, int source, int mpi_tag, MPI_Comm comm, MPI_Status *status);
                 function fstarpu_mpi_recv (dh, src, mpi_tag, mpi_comm, mpi_status) bind(C)
@@ -80,6 +107,20 @@ module fstarpu_mpi_mod
                         type(c_ptr), value, intent(in) :: arg
                 end function fstarpu_mpi_isend_detached
 
+                ! int starpu_mpi_isend_detached_prio(starpu_data_handle_t data_handle, int dest, int mpi_tag, int prio, MPI_Comm comm, void (*callback)(void *), void *arg);
+                function fstarpu_mpi_isend_detached_prio (dh, dst, mpi_tag, prio, mpi_comm, callback, arg) bind(C)
+                        use iso_c_binding
+                        implicit none
+                        integer(c_int) :: fstarpu_mpi_isend_detached_prio
+                        type(c_ptr), value, intent(in) :: dh
+                        integer(c_int), value, intent(in) :: dst
+                        integer(c_int), value, intent(in) :: mpi_tag
+                        integer(c_int), value, intent(in) :: prio
+                        integer(c_int), value, intent(in) :: mpi_comm
+                        type(c_funptr), value, intent(in) :: callback
+                        type(c_ptr), value, intent(in) :: arg
+                end function fstarpu_mpi_isend_detached_prio
+
                 ! int starpu_mpi_irecv_detached(starpu_data_handle_t data_handle, int source, int mpi_tag, MPI_Comm comm, void (*callback)(void *), void *arg);
                 function fstarpu_mpi_recv_detached (dh, src, mpi_tag, mpi_comm, callback, arg) bind(C)
                         use iso_c_binding
@@ -105,6 +146,19 @@ module fstarpu_mpi_mod
                         integer(c_int), value, intent(in) :: mpi_comm
                 end function fstarpu_mpi_issend
 
+                ! int starpu_mpi_issend_prio(starpu_data_handle_t data_handle, starpu_mpi_req *req, int dest, int mpi_tag, int prio, MPI_Comm comm);
+                function fstarpu_mpi_issend_prio (dh, mpi_req, dst, mpi_tag, prio, mpi_comm) bind(C)
+                        use iso_c_binding
+                        implicit none
+                        integer(c_int) :: fstarpu_mpi_issend_prio
+                        type(c_ptr), value, intent(in) :: dh
+                        type(c_ptr), value, intent(in) :: mpi_req
+                        integer(c_int), value, intent(in) :: dst
+                        integer(c_int), value, intent(in) :: mpi_tag
+                        integer(c_int), value, intent(in) :: prio
+                        integer(c_int), value, intent(in) :: mpi_comm
+                end function fstarpu_mpi_issend_prio
+
                 ! int starpu_mpi_issend_detached(starpu_data_handle_t data_handle, int dest, int mpi_tag, MPI_Comm comm, void (*callback)(void *), void *arg);
                 function fstarpu_mpi_issend_detached (dh, dst, mpi_tag, mpi_comm, callback, arg) bind(C)
                         use iso_c_binding
@@ -117,6 +171,20 @@ module fstarpu_mpi_mod
                         type(c_funptr), value, intent(in) :: callback
                         type(c_ptr), value, intent(in) :: arg
                 end function fstarpu_mpi_issend_detached
+
+                ! int starpu_mpi_issend_detached_prio(starpu_data_handle_t data_handle, int dest, int mpi_tag, int prio, MPI_Comm comm, void (*callback)(void *), void *arg);
+                function fstarpu_mpi_issend_detached_prio (dh, dst, mpi_tag, prio, mpi_comm, callback, arg) bind(C)
+                        use iso_c_binding
+                        implicit none
+                        integer(c_int) :: fstarpu_mpi_issend_detached_prio
+                        type(c_ptr), value, intent(in) :: dh
+                        integer(c_int), value, intent(in) :: dst
+                        integer(c_int), value, intent(in) :: mpi_tag
+                        integer(c_int), value, intent(in) :: prio
+                        integer(c_int), value, intent(in) :: mpi_comm
+                        type(c_funptr), value, intent(in) :: callback
+                        type(c_ptr), value, intent(in) :: arg
+                end function fstarpu_mpi_issend_detached_prio
 
                 ! int starpu_mpi_wait(starpu_mpi_req *req, MPI_Status *status);
                 function fstarpu_mpi_wait(req,st) bind(C,name="starpu_mpi_wait")
@@ -235,6 +303,15 @@ module fstarpu_mpi_mod
                         type(c_ptr), value, intent(in) :: dh
                 end subroutine fstarpu_mpi_redux_data
 
+                ! void starpu_mpi_redux_data_prio(MPI_Comm comm, starpu_data_handle_t data_handle, int prio);
+                subroutine fstarpu_mpi_redux_data_prio(mpi_comm,dh, prio) bind(C)
+                        use iso_c_binding
+                        implicit none
+                        integer(c_int), value, intent(in) :: mpi_comm
+                        type(c_ptr), value, intent(in) :: dh
+                        integer(c_int), value, intent(in) :: prio
+                end subroutine fstarpu_mpi_redux_data_prio
+
                 ! int starpu_mpi_scatter_detached(starpu_data_handle_t *data_handles, int count, int root, MPI_Comm comm, void (*scallback)(void *), void *sarg, void (*rcallback)(void *), void *rarg);
                 function fstarpu_mpi_scatter_detached (dhs, cnt, root, mpi_comm, scallback, sarg, rcallback, rarg) bind(C)
                         use iso_c_binding
@@ -278,6 +355,19 @@ module fstarpu_mpi_mod
                         type(c_ptr), value, intent(in) :: starpu_tag
                 end function fstarpu_mpi_isend_detached_unlock_tag
 
+                ! int starpu_mpi_isend_detached_unlock_tag_prio(starpu_data_handle_t data_handle, int dest, int mpi_tag, int prio, MPI_Comm comm, starpu_tag_t tag);
+                function fstarpu_mpi_isend_detached_unlock_tag_prio (dh, dst, mpi_tag, prio, mpi_comm, starpu_tag) bind(C)
+                        use iso_c_binding
+                        implicit none
+                        integer(c_int) :: fstarpu_mpi_isend_detached_unlock_tag_prio
+                        type(c_ptr), value, intent(in) :: dh
+                        integer(c_int), value, intent(in) :: dst
+                        integer(c_int), value, intent(in) :: mpi_tag
+                        integer(c_int), value, intent(in) :: prio
+                        integer(c_int), value, intent(in) :: mpi_comm
+                        type(c_ptr), value, intent(in) :: starpu_tag
+                end function fstarpu_mpi_isend_detached_unlock_tag_prio
+
                 ! int starpu_mpi_irecv_detached_unlock_tag(starpu_data_handle_t data_handle, int source, int mpi_tag, MPI_Comm comm, starpu_tag_t tag);
                 function fstarpu_mpi_recv_detached_unlock_tag (dh, src, mpi_tag, mpi_comm, starpu_tag) bind(C)
                         use iso_c_binding
@@ -303,6 +393,21 @@ module fstarpu_mpi_mod
                         integer(c_int), intent(in) :: mpi_comms(*)
                         type(c_ptr), value, intent(in) :: starpu_tag
                 end function fstarpu_mpi_isend_array_detached_unlock_tag
+
+                ! int starpu_mpi_isend_array_detached_unlock_tag_prio(unsigned array_size, starpu_data_handle_t *data_handle, int *dest, int *mpi_tag, int *prio, MPI_Comm *comm, starpu_tag_t tag);
+                function fstarpu_mpi_isend_array_detached_unlock_tag_prio (array_size, dhs, dsts, mpi_tags, prio, mpi_comms, &
+                                starpu_tag) bind(C)
+                        use iso_c_binding
+                        implicit none
+                        integer(c_int) :: fstarpu_mpi_isend_array_detached_unlock_tag_prio
+                        integer(c_int), value, intent(in) :: array_size
+                        type(c_ptr), intent(in) :: dhs(*)
+                        integer(c_int), intent(in) :: dsts(*)
+                        integer(c_int), intent(in) :: mpi_tags(*)
+                        integer(c_int), intent(in) :: prio(*)
+                        integer(c_int), intent(in) :: mpi_comms(*)
+                        type(c_ptr), value, intent(in) :: starpu_tag
+                end function fstarpu_mpi_isend_array_detached_unlock_tag_prio
 
                 ! int starpu_mpi_irecv_array_detached_unlock_tag(unsigned array_size, starpu_data_handle_t *data_handle, int *source, int *mpi_tag, MPI_Comm *comm, starpu_tag_t tag);
                 function fstarpu_mpi_recv_array_detached_unlock_tag (array_size, dhs, srcs, mpi_tags, mpi_comms, starpu_tag) &

@@ -15,12 +15,13 @@
  */
 
 #define _STARPU_MALLOC(p, s) do {p = malloc(s);} while (0)
+#define _STARPU_MALLOC_CAST(p, s, t) do {p = (t) malloc(s);} while (0)
 #define STARPU_ATTRIBUTE_UNUSED __attribute((__unused__))
 
 #ifndef NOCONFIG
 #include <config.h>
 #else
-#define _GNU_SOURCE
+#define _GNU_SOURCE 1
 // Assuming recent simgrid
 #define STARPU_HAVE_SIMGRID_MSG_H
 #define STARPU_HAVE_XBT_SYNCHRO_H
@@ -42,6 +43,8 @@
 #else
 #include <xbt/synchro_core.h>
 #endif
+
+#include <common/rbtree.c>
 
 #ifndef NLISTS
 #define NLISTS 1

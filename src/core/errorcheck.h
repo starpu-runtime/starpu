@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2014  Université de Bordeaux
+ * Copyright (C) 2009, 2010, 2014, 2017  Université de Bordeaux
  * Copyright (C) 2010, 2011  CNRS
+ * Copyright (C) 2017  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -36,10 +37,10 @@ enum _starpu_worker_status
 	STATUS_CALLBACK,
 	/* while executing the scheduler code */
 	STATUS_SCHEDULING,
+	/* while waiting for a data transfer */
+	STATUS_WAITING,
 	/* while sleeping because there is nothing to do */
-	STATUS_SLEEPING,
-	/* while a sleeping worker is about to wake up (to avoid waking twice for the same worker) */
-	STATUS_WAKING_UP
+	STATUS_SLEEPING
 };
 
 struct _starpu_worker;

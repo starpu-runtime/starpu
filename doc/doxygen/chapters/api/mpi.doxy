@@ -82,6 +82,10 @@ Perform a standard-mode, blocking send of \p data_handle to the node
 \p dest using the message tag \p mpi_tag within the communicator \p
 comm.
 
+\fn int starpu_mpi_send_prio(starpu_data_handle_t data_handle, int dest, int mpi_tag, int prio, MPI_Comm comm)
+\ingroup API_MPI_Support
+Similar to starpu_mpi_send, but takes a priority \p prio.
+
 \fn int starpu_mpi_recv(starpu_data_handle_t data_handle, int source, int mpi_tag, MPI_Comm comm, MPI_Status *status)
 \ingroup API_MPI_Support
 Perform a standard-mode, blocking receive in \p data_handle from the
@@ -94,6 +98,10 @@ Post a standard-mode, non blocking send of \p data_handle to the node
 \p dest using the message tag \p mpi_tag within the communicator \p
 comm. After the call, the pointer to the request \p req can be used to
 test or to wait for the completion of the communication.
+
+\fn int starpu_mpi_isend_prio(starpu_data_handle_t data_handle, starpu_mpi_req *req, int dest, int mpi_tag, int prio, MPI_Comm comm)
+\ingroup API_MPI_Support
+Similar to starpu_mpi_isend, but takes a priority \p prio.
 
 \fn int starpu_mpi_irecv(starpu_data_handle_t data_handle, starpu_mpi_req *req, int source, int mpi_tag, MPI_Comm comm)
 \ingroup API_MPI_Support
@@ -112,6 +120,10 @@ Similarly to the pthread detached functionality, when a detached
 communication completes, its resources are automatically released back
 to the system, there is no need to test or to wait for the completion
 of the request.
+
+\fn int starpu_mpi_isend_detached_prio(starpu_data_handle_t data_handle, int dest, int mpi_tag, int prio, MPI_Comm comm, void (*callback)(void *), void *arg)
+\ingroup API_MPI_Support
+Similar to starpu_mpi_isend_detached, but takes a priority \p prio.
 
 \fn int starpu_mpi_irecv_detached(starpu_data_handle_t data_handle, int source, int mpi_tag, MPI_Comm comm, void (*callback)(void *), void *arg)
 \ingroup API_MPI_Support
@@ -145,6 +157,10 @@ of the request.
 Perform a synchronous-mode, non-blocking send of \p data_handle to the node
 \p dest using the message tag \p mpi_tag within the communicator \p
 comm.
+
+\fn int starpu_mpi_issend_prio(starpu_data_handle_t data_handle, starpu_mpi_req *req, int dest, int mpi_tag, int prio, MPI_Comm comm)
+\ingroup API_MPI_Support
+Similar to starpu_mpi_issend, but takes a priority \p prio.
 
 \fn int starpu_mpi_issend_detached(starpu_data_handle_t data_handle, int dest, int mpi_tag, MPI_Comm comm, void (*callback)(void *), void *arg)
 \ingroup API_MPI_Support
@@ -182,6 +198,10 @@ Post a standard-mode, non blocking send of \p data_handle to the node
 \p dest using the message tag \p mpi_tag within the communicator \p
 comm. On completion, \p tag is unlocked.
 
+\fn int starpu_mpi_isend_detached_unlock_tag_prio(starpu_data_handle_t data_handle, int dest, int mpi_tag, int prio, MPI_Comm comm, starpu_tag_t tag)
+\ingroup API_MPI_Support
+Similar to starpu_mpi_isend_detached_unlock_tag, but takes a priority \p prio.
+
 \fn int starpu_mpi_irecv_detached_unlock_tag(starpu_data_handle_t data_handle, int source, int mpi_tag, MPI_Comm comm, starpu_tag_t tag)
 \ingroup API_MPI_Support
 Post a nonblocking receive in \p data_handle from the node \p source
@@ -195,6 +215,10 @@ the n-th data of the array \p data_handle to the n-th node of the
 array \p dest using the n-th message tag of the array \p mpi_tag
 within the n-th communicator of the array \p comm. On completion of
 the all the requests, \p tag is unlocked.
+
+\fn int starpu_mpi_isend_array_detached_unlock_tag_prio(unsigned array_size, starpu_data_handle_t *data_handle, int *dest, int *mpi_tag, int *prio, MPI_Comm *comm, starpu_tag_t tag)
+\ingroup API_MPI_Support
+Similar to starpu_mpi_isend_array_detached_unlock_tag, but takes a priority \p prio.
 
 \fn int starpu_mpi_irecv_array_detached_unlock_tag(unsigned array_size, starpu_data_handle_t *data_handle, int *source, int *mpi_tag, MPI_Comm *comm, starpu_tag_t tag)
 \ingroup API_MPI_Support
@@ -481,6 +505,10 @@ Unregister a previously registered policy.
 Perform a reduction on the given data \p handle. All nodes send the data to its
 owner node which will perform a reduction.
 
+\fn void starpu_mpi_redux_data_prio(MPI_Comm comm, starpu_data_handle_t data_handle, int prio)
+\ingroup API_MPI_Support
+Similar to starpu_mpi_redux_data, but takes a priority \p prio.
+
 \fn int starpu_mpi_scatter_detached(starpu_data_handle_t *data_handles, int count, int root, MPI_Comm comm, void (*scallback)(void *), void *sarg, void (*rcallback)(void *), void *rarg)
 \ingroup API_MPI_Support
 Scatter data among processes of the communicator based on the
@@ -503,7 +531,7 @@ with the argument \p rarg on the process root, the \p scallback
 function is called with the argument \p sarg on any other process.
 
 @name MPI Master Slave
-\anchor MPIMasterSlave
+\anchor MPIMasterSlaveSupport
 \ingroup API_MPI_Support
 
 \def STARPU_USE_MPI_MASTER_SLAVE

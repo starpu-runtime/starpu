@@ -19,7 +19,7 @@
 #define __DRIVER_OPENCL_H__
 
 #ifndef _GNU_SOURCE
-#define _GNU_SOURCE
+#define _GNU_SOURCE 1
 #endif
 
 #ifdef STARPU_USE_OPENCL

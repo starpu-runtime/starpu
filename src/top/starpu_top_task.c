@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011 William Braik, Yann Courtois, Jean-Marie Couteyen, Anthony Roy
- * Copyright (C) 2011, 2013, 2016 CNRS
+ * Copyright (C) 2011, 2013, 2016, 2017 CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -37,10 +37,10 @@ void _starpu_top_task_started(struct starpu_task *task,
 	char *str;
 	_STARPU_MALLOC(str, sizeof(char)*64);
 	snprintf(str, 64,
-				"START;%llu;%d;%llu\n",
-				taskid,
-				devid,
-				_starpu_top_timing_timespec_to_ms(ts));
+		 "START;%llu;%d;%llu\n",
+		 taskid,
+		 devid,
+		 _starpu_top_timing_timespec_to_ms(ts));
 
 	_starpu_top_message_add(_starpu_top_mt, str);
 }
@@ -55,9 +55,9 @@ void _starpu_top_task_ended(struct starpu_task *task,
 	char *str;
 	_STARPU_MALLOC(str, sizeof(char)*64);
 	snprintf(str, 64,
-				"END;%llu;%llu\n",
-				taskid,
-				_starpu_top_timing_timespec_to_ms(ts));
+		 "END;%llu;%llu\n",
+		 taskid,
+		 _starpu_top_timing_timespec_to_ms(ts));
 
 	_starpu_top_message_add(_starpu_top_mt, str);
 }
@@ -87,7 +87,7 @@ void starpu_top_task_prevision(struct starpu_task *task,
 	_starpu_clock_gettime(&now);
 	char *str;
 	_STARPU_MALLOC(str, sizeof(char)*200);
-	snprintf(str, 128,
+	snprintf(str, 200,
 		 "PREV;%llu;%d;%llu;%llu;%llu\n",
 		 taskid,
 		 devid,

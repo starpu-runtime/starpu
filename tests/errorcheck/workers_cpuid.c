@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012, 2015-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2016  CNRS
+ * Copyright (C) 2010-2012, 2015-2017  Université de Bordeaux
+ * Copyright (C) 2010, 2011, 2012, 2013, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -92,7 +92,7 @@ static char *array_to_str(long *array, int n)
 
 static int test_combination(long *combination, unsigned n)
 {
-	int type, ret, device_workers;
+	int ret, device_workers;
 	char *str;
 
 	copy_cpuid_array(workers_cpuid, combination, n);
@@ -106,16 +106,6 @@ static int test_combination(long *combination, unsigned n)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	device_workers = 0;
-
-	/* Check for all devices */
-	for (type=STARPU_CUDA_WORKER; type<STARPU_NARCH; type++)
-	{
-		int nb_workers;
-		nb_workers = starpu_worker_get_ids_by_type(type, workers_id, starpu_worker_get_count());
-		device_workers += nb_workers ;
-		if (!check_workers_mapping(workers_cpuid, workers_id, nb_workers))
-			return -1;
-	}
 
 	/* Check for all cpus */
 	{
@@ -132,20 +122,18 @@ static int test_combination(long *combination, unsigned n)
 
 static long * generate_arrangement(int arr_size, long *set, int set_size)
 {
-	int i, j;
-	long tmp;
+	int i;
 
 	STARPU_ASSERT(arr_size <= set_size);
-
 	srandom(time(0));
 
 	for (i=0; i<arr_size; i++)
 	{
 		/* Pick a random value in the set */
-		j = random() % (set_size - i);
+		int j = starpu_lrand48() % (set_size - i);
 
 		/* Switch the value picked up with the beginning value of set */
-		tmp = set[i+j];
+		long tmp = set[i+j];
 		set[i] = set[i+j];
 		set[i+j] = tmp;
 	}
@@ -165,7 +153,7 @@ static void init_array(long *a, int n)
 
 int main(int argc, char **argv)
 {
-	int ret, i, j;
+	int i;
 	long *cpuids;
 	hwloc_topology_t topology;
 
@@ -175,8 +163,11 @@ int main(int argc, char **argv)
 	if (nhwpus > STARPU_NMAXWORKERS)
 		nhwpus = STARPU_NMAXWORKERS;
 
-	unsetenv("STARPU_NCUDA");
-	unsetenv("STARPU_NOPENCL");
+	setenv("STARPU_NCUDA","0",1);
+	setenv("STARPU_NOPENCL","0",1);
+	setenv("STARPU_NMIC","0",1);
+	setenv("STARPU_NSCC","0",1);
+	setenv("STARPU_NMPI_MS","0",1);
 	unsetenv("STARPU_NCPUS");
 
 	for (i=0; i<STARPU_NMAXWORKERS; i++)
@@ -189,12 +180,16 @@ int main(int argc, char **argv)
 	 */
 	for (i=1; i<=nhwpus; i++)
 	{
+		int j;
 		for (j=0; j<NB_TESTS; j++)
 		{
+			int ret;
+
 			init_array(cpuids, nhwpus);
 			generate_arrangement(i, cpuids, nhwpus);
 			ret = test_combination(cpuids, i);
-			if (!ret)
+			if (ret == STARPU_TEST_SKIPPED) return STARPU_TEST_SKIPPED;
+			if (ret != 1)
 			{
 				free(cpuids);
 				hwloc_topology_destroy(topology);

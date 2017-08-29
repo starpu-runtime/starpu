@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2011, 2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -148,8 +148,8 @@ static starpu_mpi_datatype_allocate_func_t handle_to_datatype_funcs[STARPU_MAX_I
 	[STARPU_MATRIX_INTERFACE_ID]	= handle_to_datatype_matrix,
 	[STARPU_BLOCK_INTERFACE_ID]	= handle_to_datatype_block,
 	[STARPU_VECTOR_INTERFACE_ID]	= handle_to_datatype_vector,
-	[STARPU_CSR_INTERFACE_ID]	= NULL,
-	[STARPU_BCSR_INTERFACE_ID]	= NULL,
+	[STARPU_CSR_INTERFACE_ID]	= NULL, /* Sent through pack/unpack operations */
+	[STARPU_BCSR_INTERFACE_ID]	= NULL, /* Sent through pack/unpack operations */
 	[STARPU_VARIABLE_INTERFACE_ID]	= handle_to_datatype_variable,
 	[STARPU_VOID_INTERFACE_ID]	= handle_to_datatype_void,
 	[STARPU_MULTIFORMAT_INTERFACE_ID] = NULL,
@@ -162,9 +162,17 @@ void _starpu_mpi_datatype_allocate(starpu_data_handle_t data_handle, struct _sta
 	if (id < STARPU_MAX_INTERFACE_ID)
 	{
 		starpu_mpi_datatype_allocate_func_t func = handle_to_datatype_funcs[id];
-		STARPU_ASSERT_MSG(func, "Handle To Datatype Function not defined for StarPU data interface %d", id);
-		func(data_handle, &req->datatype);
-		req->registered_datatype = 1;
+		if (func)
+		{
+			func(data_handle, &req->datatype);
+			req->registered_datatype = 1;
+		}
+		else
+		{
+			/* The datatype is predefined by StarPU but it will be sent as a memory area */
+			req->datatype = MPI_BYTE;
+			req->registered_datatype = 0;
+		}
 	}
 	else
 	{
@@ -236,8 +244,8 @@ static starpu_mpi_datatype_free_func_t handle_free_datatype_funcs[STARPU_MAX_INT
 	[STARPU_MATRIX_INTERFACE_ID]	= _starpu_mpi_handle_free_simple_datatype,
 	[STARPU_BLOCK_INTERFACE_ID]	= _starpu_mpi_handle_free_complex_datatype,
 	[STARPU_VECTOR_INTERFACE_ID]	= _starpu_mpi_handle_free_simple_datatype,
-	[STARPU_CSR_INTERFACE_ID]	= NULL,
-	[STARPU_BCSR_INTERFACE_ID]	= NULL,
+	[STARPU_CSR_INTERFACE_ID]	= NULL,  /* Sent through pack/unpack operations */
+	[STARPU_BCSR_INTERFACE_ID]	= NULL,  /* Sent through pack/unpack operations */
 	[STARPU_VARIABLE_INTERFACE_ID]	= _starpu_mpi_handle_free_simple_datatype,
 	[STARPU_VOID_INTERFACE_ID]      = _starpu_mpi_handle_free_simple_datatype,
 	[STARPU_MULTIFORMAT_INTERFACE_ID] = NULL,
@@ -250,8 +258,8 @@ void _starpu_mpi_datatype_free(starpu_data_handle_t data_handle, MPI_Datatype *d
 	if (id < STARPU_MAX_INTERFACE_ID)
 	{
 		starpu_mpi_datatype_free_func_t func = handle_free_datatype_funcs[id];
-		STARPU_ASSERT_MSG(func, "Handle free datatype function not defined for StarPU data interface %d", id);
-		func(datatype);
+		if (func)
+			func(datatype);
 	}
 	else
 	{

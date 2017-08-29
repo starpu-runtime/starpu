@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2011, 2013-2015, 2017  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012, 2013, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -48,8 +48,8 @@ void parse_args(int argc, char **argv)
 	}
 	else
 	{
-		snprintf(filename_in, 1024, "%s/examples/ppm_downscaler/%s", STARPU_BUILD_DIR, filename_in_default);
-		snprintf(filename_out, 1024, "%s/examples/ppm_downscaler/%s", STARPU_BUILD_DIR, filename_out_default);
+		snprintf(filename_in, sizeof(filename_in), "%s/examples/ppm_downscaler/%s", STARPU_BUILD_DIR, filename_in_default);
+		snprintf(filename_out, sizeof(filename_out), "%s/examples/ppm_downscaler/%s", STARPU_BUILD_DIR, filename_out_default);
 	}
 }
 

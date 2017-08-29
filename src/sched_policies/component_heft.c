@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2013-2017  Université de Bordeaux
- * Copyright (C) 2013  INRIA
+ * Copyright (C) 2013, 2017  INRIA
  * Copyright (C) 2013  Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -46,7 +46,7 @@ static int heft_progress_one(struct starpu_sched_component *component)
 	struct starpu_task * (tasks[NTASKS]);
 	unsigned ntasks;
 
-	STARPU_PTHREAD_MUTEX_LOCK(mutex);
+	STARPU_COMPONENT_MUTEX_LOCK(mutex);
 	/* Try to look at NTASKS from the queue */
 	for (ntasks = 0; ntasks < NTASKS; ntasks++)
 	{
@@ -54,7 +54,7 @@ static int heft_progress_one(struct starpu_sched_component *component)
 		if (!tasks[ntasks])
 			break;
 	}
-	STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
+	STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
 
 	if (!ntasks)
 	{
@@ -78,24 +78,29 @@ static int heft_progress_one(struct starpu_sched_component *component)
 		/* Maximum transfer+task termination on all children */
 		double max_exp_end_with_task[ntasks];
 
-		int suitable_components[component->nchildren * ntasks];
+		unsigned suitable_components[component->nchildren * ntasks];
 
 		unsigned nsuitable_components[ntasks];
 
 		/* Estimate durations */
 		for (n = 0; n < ntasks; n++)
 		{
-			int offset = component->nchildren * n;
+			unsigned offset = component->nchildren * n;
 
 			min_exp_end_with_task[n] = DBL_MAX;
 			max_exp_end_with_task[n] = 0.0;
 
-			nsuitable_components[n] = starpu_mct_compute_expected_times(component, tasks[n],
+			nsuitable_components[n] = starpu_mct_compute_execution_times(component, tasks[n],
+					estimated_lengths + offset,
+					estimated_transfer_length + offset,
+					suitable_components + offset);
+
+			starpu_mct_compute_expected_times(component, tasks[n],
 					estimated_lengths + offset,
 					estimated_transfer_length + offset,
 					estimated_ends_with_task + offset,
 					&min_exp_end_with_task[n], &max_exp_end_with_task[n],
-					suitable_components + offset);
+							  suitable_components + offset, nsuitable_components[n]);
 		}
 
 		int best_task = 0;
@@ -116,18 +121,18 @@ static int heft_progress_one(struct starpu_sched_component *component)
 		int best_icomponent = -1;
 
 		/* Push back the other tasks */
-		STARPU_PTHREAD_MUTEX_LOCK(mutex);
+		STARPU_COMPONENT_MUTEX_LOCK(mutex);
 		for (n = ntasks - 1; n < ntasks; n--)
 			if ((int) n != best_task)
 				_starpu_prio_deque_push_back_task(prio, tasks[n]);
-		STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
+		STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
 
 		/* And now find out which worker suits best for this task,
 		 * including data transfer */
 		for(i = 0; i < nsuitable_components[best_task]; i++)
 		{
-			int offset = component->nchildren * best_task;
-			int icomponent = suitable_components[offset + i];
+			unsigned offset = component->nchildren * best_task;
+			unsigned icomponent = suitable_components[offset + i];
 #ifdef STARPU_DEVEL
 #warning FIXME: take energy consumption into account
 #endif
@@ -161,9 +166,9 @@ static int heft_progress_one(struct starpu_sched_component *component)
 		if (ret)
 		{
 			/* Could not push to child actually, push that one back too */
-			STARPU_PTHREAD_MUTEX_LOCK(mutex);
+			STARPU_COMPONENT_MUTEX_LOCK(mutex);
 			_starpu_prio_deque_push_back_task(prio, tasks[best_task]);
-			STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
+			STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
 			return 1;
 		}
 		else
@@ -186,9 +191,9 @@ static int heft_push_task(struct starpu_sched_component * component, struct star
 	struct _starpu_prio_deque * prio = &data->prio;
 	starpu_pthread_mutex_t * mutex = &data->mutex;
 
-	STARPU_PTHREAD_MUTEX_LOCK(mutex);
+	STARPU_COMPONENT_MUTEX_LOCK(mutex);
 	_starpu_prio_deque_push_task(prio,task);
-	STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
+	STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
 
 	heft_progress(component);
 
@@ -198,7 +203,8 @@ static int heft_push_task(struct starpu_sched_component * component, struct star
 static int heft_can_push(struct starpu_sched_component *component)
 {
 	heft_progress(component);
-	int ret = 0, j;
+	int ret = 0;
+	unsigned j;
 	for(j=0; j < component->nparents; j++)
 	{
 		if(component->parents[j] == NULL)

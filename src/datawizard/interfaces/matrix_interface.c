@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016  CNRS
+ * Copyright (C) 2010-2017  Université de Bordeaux
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -110,7 +110,8 @@ struct starpu_data_interface_ops starpu_interface_matrix_ops =
 	.display = display_matrix_interface,
 	.pack_data = pack_matrix_handle,
 	.unpack_data = unpack_matrix_handle,
-	.describe = describe
+	.describe = describe,
+	.name = "STARPU_MATRIX_INTERFACE"
 };
 
 static void register_matrix_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface)
@@ -173,7 +174,7 @@ void starpu_matrix_data_register(starpu_data_handle_t *handleptr, int home_node,
                 .offset = 0
 	};
 #ifndef STARPU_SIMGRID
-	if (home_node == STARPU_MAIN_RAM)
+	if (home_node >= 0 && starpu_node_get_kind(home_node) == STARPU_CPU_RAM)
 	{
 		STARPU_ASSERT_ACCESSIBLE(ptr);
 		STARPU_ASSERT_ACCESSIBLE(ptr + (ny-1)*ld*elemsize + nx*elemsize - 1);
@@ -278,6 +279,10 @@ static size_t matrix_interface_get_size(starpu_data_handle_t handle)
 	struct starpu_matrix_interface *matrix_interface = (struct starpu_matrix_interface *)
 		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
+#ifdef STARPU_DEBUG
+	STARPU_ASSERT_MSG(matrix_interface->id == STARPU_MATRIX_INTERFACE_ID, "Error. The given data is not a matrix.");
+#endif
+
 	size_t size;
 	size = (size_t)matrix_interface->nx*matrix_interface->ny*matrix_interface->elemsize;
 
@@ -290,6 +295,10 @@ uint32_t starpu_matrix_get_nx(starpu_data_handle_t handle)
 	struct starpu_matrix_interface *matrix_interface = (struct starpu_matrix_interface *)
 		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
+#ifdef STARPU_DEBUG
+	STARPU_ASSERT_MSG(matrix_interface->id == STARPU_MATRIX_INTERFACE_ID, "Error. The given data is not a matrix.");
+#endif
+
 	return matrix_interface->nx;
 }
 
@@ -297,6 +306,10 @@ uint32_t starpu_matrix_get_ny(starpu_data_handle_t handle)
 {
 	struct starpu_matrix_interface *matrix_interface = (struct starpu_matrix_interface *)
 		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
+
+#ifdef STARPU_DEBUG
+	STARPU_ASSERT_MSG(matrix_interface->id == STARPU_MATRIX_INTERFACE_ID, "Error. The given data is not a matrix.");
+#endif
 
 	return matrix_interface->ny;
 }
@@ -311,6 +324,10 @@ uint32_t starpu_matrix_get_local_ld(starpu_data_handle_t handle)
 	struct starpu_matrix_interface *matrix_interface = (struct starpu_matrix_interface *)
 		starpu_data_get_interface_on_node(handle, node);
 
+#ifdef STARPU_DEBUG
+	STARPU_ASSERT_MSG(matrix_interface->id == STARPU_MATRIX_INTERFACE_ID, "Error. The given data is not a matrix.");
+#endif
+
 	return matrix_interface->ld;
 }
 
@@ -324,6 +341,10 @@ uintptr_t starpu_matrix_get_local_ptr(starpu_data_handle_t handle)
 	struct starpu_matrix_interface *matrix_interface = (struct starpu_matrix_interface *)
 		starpu_data_get_interface_on_node(handle, node);
 
+#ifdef STARPU_DEBUG
+	STARPU_ASSERT_MSG(matrix_interface->id == STARPU_MATRIX_INTERFACE_ID, "Error. The given data is not a matrix.");
+#endif
+
 	return matrix_interface->ptr;
 }
 
@@ -331,6 +352,10 @@ size_t starpu_matrix_get_elemsize(starpu_data_handle_t handle)
 {
 	struct starpu_matrix_interface *matrix_interface = (struct starpu_matrix_interface *)
 		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
+
+#ifdef STARPU_DEBUG
+	STARPU_ASSERT_MSG(matrix_interface->id == STARPU_MATRIX_INTERFACE_ID, "Error. The given data is not a matrix.");
+#endif
 
 	return matrix_interface->elemsize;
 }

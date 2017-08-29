@@ -306,20 +306,20 @@ static void _starpu_sink_common_recv_workers(struct _starpu_mp_node * node, void
 	for(i=0; i<nworkers; i++)
 	{
 		workers[i].config = config;
-		starpu_pthread_mutex_init(&workers[i].mutex,NULL);
-		starpu_pthread_mutex_destroy(&workers[i].mutex);
+		STARPU_PTHREAD_MUTEX_INIT(&workers[i].mutex,NULL);
+		STARPU_PTHREAD_MUTEX_DESTROY(&workers[i].mutex);
 
-		starpu_pthread_cond_init(&workers[i].started_cond,NULL);
-		starpu_pthread_cond_destroy(&workers[i].started_cond);
+		STARPU_PTHREAD_COND_INIT(&workers[i].started_cond,NULL);
+		STARPU_PTHREAD_COND_DESTROY(&workers[i].started_cond);
 
-		starpu_pthread_cond_init(&workers[i].ready_cond,NULL);
-		starpu_pthread_cond_destroy(&workers[i].ready_cond);
+		STARPU_PTHREAD_COND_INIT(&workers[i].ready_cond,NULL);
+		STARPU_PTHREAD_COND_DESTROY(&workers[i].ready_cond);
 
-		starpu_pthread_mutex_init(&workers[i].sched_mutex,NULL);
-		starpu_pthread_mutex_destroy(&workers[i].sched_mutex);
+		STARPU_PTHREAD_MUTEX_INIT(&workers[i].sched_mutex,NULL);
+		STARPU_PTHREAD_MUTEX_DESTROY(&workers[i].sched_mutex);
 
-		starpu_pthread_cond_init(&workers[i].sched_cond,NULL);
-		starpu_pthread_cond_destroy(&workers[i].sched_cond);
+		STARPU_PTHREAD_COND_INIT(&workers[i].sched_cond,NULL);
+		STARPU_PTHREAD_COND_DESTROY(&workers[i].sched_cond);
 
 		workers[i].current_task = NULL;
 		workers[i].set = NULL;
@@ -425,7 +425,7 @@ void _starpu_sink_common_worker(void)
 					_starpu_sink_common_recv_workers(node, arg, arg_size);
 					break;
 				default:
-					printf("Oops, command %x unrecognized\n", command);
+					_STARPU_MSG("Oops, command %x unrecognized\n", command);
 			}
 		}
 

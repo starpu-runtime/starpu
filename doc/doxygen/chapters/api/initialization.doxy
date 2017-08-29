@@ -261,6 +261,10 @@ field starpu_conf::calibrate of \p conf. Upon successful
 completion, this function returns 0. Otherwise, <c>-EINVAL</c> indicates that
 the argument was <c>NULL</c>.
 
+\fn int starpu_is_initialized(void)
+\ingroup API_Initialization_and_Termination
+Return 1 if StarPU is already initialized.
+
 \fn void starpu_shutdown(void)
 \ingroup API_Initialization_and_Termination
 This is StarPU termination method. It must be called at the end of the

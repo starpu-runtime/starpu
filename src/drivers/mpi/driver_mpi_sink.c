@@ -38,7 +38,7 @@ void _starpu_mpi_sink_deinit(struct _starpu_mp_node *node)
 	for(i=0; i<node->nb_cores; i++)
 	{
 		sem_post(&node->sem_run_table[i]);
-		starpu_pthread_join(((starpu_pthread_t *)node->thread_table)[i],NULL);
+		STARPU_PTHREAD_JOIN(((starpu_pthread_t *)node->thread_table)[i],NULL);
 	}
         free(node->thread_table);
 }
@@ -52,7 +52,7 @@ void (*_starpu_mpi_sink_lookup (const struct _starpu_mp_node * node STARPU_ATTRI
 void _starpu_mpi_sink_launch_workers(struct _starpu_mp_node *node)
 {
         //TODO
-        int i, ret;
+        int i;
         struct arg_sink_thread * arg;
         cpu_set_t cpuset;
         starpu_pthread_attr_t attr;
@@ -60,6 +60,8 @@ void _starpu_mpi_sink_launch_workers(struct _starpu_mp_node *node)
 
         for(i=0; i < node->nb_cores; i++)
         {
+		int ret;
+
                 //init the set
                 CPU_ZERO(&cpuset);
                 CPU_SET(i,&cpuset);
@@ -74,8 +76,7 @@ void _starpu_mpi_sink_launch_workers(struct _starpu_mp_node *node)
                 arg->coreid = i;
                 arg->node = node;
 
-                ret = starpu_pthread_create(&thread, &attr, _starpu_sink_thread, arg);
-                STARPU_ASSERT(ret == 0);
+                STARPU_PTHREAD_CREATE(&thread, &attr, _starpu_sink_thread, arg);
                 ((starpu_pthread_t *)node->thread_table)[i] = thread;
 
         }

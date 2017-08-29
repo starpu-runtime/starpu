@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016  Inria
+ * Copyright (C) 2016, 2017  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,8 +18,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <starpu.h>
-
-#define _FSTARPU_ERROR(msg) do {fprintf(stderr, "fstarpu error: %s\n", (msg));abort();} while(0)
+#include <common/utils.h>
 
 typedef void (*_starpu_callback_func_t)(void *);
 
@@ -45,6 +44,7 @@ static const intptr_t fstarpu_prologue_callback_pop_arg	= STARPU_PROLOGUE_CALLBA
 static const intptr_t fstarpu_priority	= STARPU_PRIORITY;
 static const intptr_t fstarpu_execute_on_node	= STARPU_EXECUTE_ON_NODE;
 static const intptr_t fstarpu_execute_on_data	= STARPU_EXECUTE_ON_DATA;
+static const intptr_t fstarpu_execute_where	= STARPU_EXECUTE_WHERE;
 static const intptr_t fstarpu_execute_on_worker	= STARPU_EXECUTE_ON_WORKER;
 static const intptr_t fstarpu_worker_order	= STARPU_WORKER_ORDER;
 static const intptr_t fstarpu_hypervisor_tag	= STARPU_HYPERVISOR_TAG;
@@ -115,6 +115,7 @@ intptr_t fstarpu_get_constant(char *s)
 	else if	(!strcmp(s, "FSTARPU_PRIORITY"))	{ return fstarpu_priority; }
 	else if	(!strcmp(s, "FSTARPU_EXECUTE_ON_NODE"))	{ return fstarpu_execute_on_node; }
 	else if	(!strcmp(s, "FSTARPU_EXECUTE_ON_DATA"))	{ return fstarpu_execute_on_data; }
+	else if	(!strcmp(s, "FSTARPU_EXECUTE_WHERE"))	{ return fstarpu_execute_where; }
 	else if	(!strcmp(s, "FSTARPU_EXECUTE_ON_WORKER"))	{ return fstarpu_execute_on_worker; }
 	else if	(!strcmp(s, "FSTARPU_WORKER_ORDER"))	{ return fstarpu_worker_order; }
 	else if	(!strcmp(s, "FSTARPU_HYPERVISOR_TAG"))	{ return fstarpu_hypervisor_tag; }
@@ -158,7 +159,7 @@ intptr_t fstarpu_get_constant(char *s)
 	else if (!strcmp(s, "FSTARPU_CUDA_ASYNC"))	{ return fstarpu_starpu_cuda_async; }
 	else if (!strcmp(s, "FSTARPU_OPENCL_ASYNC"))	{ return fstarpu_starpu_opencl_async; }
 
-	else { _FSTARPU_ERROR("unknown constant"); }
+	else { _STARPU_ERROR("unknown constant"); }
 }
 
 struct starpu_conf *fstarpu_conf_allocate(void)
@@ -268,7 +269,7 @@ void fstarpu_codelet_add_cpu_func(struct starpu_codelet *cl, void *f_ptr)
 			return;
 		}
 	}
-	_FSTARPU_ERROR("fstarpu: too many cpu functions in Fortran codelet");
+	_STARPU_ERROR("fstarpu: too many cpu functions in Fortran codelet");
 }
 
 void fstarpu_codelet_add_cuda_func(struct starpu_codelet *cl, void *f_ptr)
@@ -283,7 +284,7 @@ void fstarpu_codelet_add_cuda_func(struct starpu_codelet *cl, void *f_ptr)
 			return;
 		}
 	}
-	_FSTARPU_ERROR("fstarpu: too many cuda functions in Fortran codelet");
+	_STARPU_ERROR("fstarpu: too many cuda functions in Fortran codelet");
 }
 
 void fstarpu_codelet_add_cuda_flags(struct starpu_codelet *cl, intptr_t flags)
@@ -298,7 +299,7 @@ void fstarpu_codelet_add_cuda_flags(struct starpu_codelet *cl, intptr_t flags)
 			return;
 		}
 	}
-	_FSTARPU_ERROR("fstarpu: too many cuda flags in Fortran codelet");
+	_STARPU_ERROR("fstarpu: too many cuda flags in Fortran codelet");
 }
 
 void fstarpu_codelet_add_opencl_func(struct starpu_codelet *cl, void *f_ptr)
@@ -313,7 +314,7 @@ void fstarpu_codelet_add_opencl_func(struct starpu_codelet *cl, void *f_ptr)
 			return;
 		}
 	}
-	_FSTARPU_ERROR("fstarpu: too many opencl functions in Fortran codelet");
+	_STARPU_ERROR("fstarpu: too many opencl functions in Fortran codelet");
 }
 
 void fstarpu_codelet_add_opencl_flags(struct starpu_codelet *cl, intptr_t flags)
@@ -328,7 +329,7 @@ void fstarpu_codelet_add_opencl_flags(struct starpu_codelet *cl, intptr_t flags)
 			return;
 		}
 	}
-	_FSTARPU_ERROR("fstarpu: too many opencl flags in Fortran codelet");
+	_STARPU_ERROR("fstarpu: too many opencl flags in Fortran codelet");
 }
 
 void fstarpu_codelet_add_mic_func(struct starpu_codelet *cl, void *f_ptr)
@@ -343,7 +344,7 @@ void fstarpu_codelet_add_mic_func(struct starpu_codelet *cl, void *f_ptr)
 			return;
 		}
 	}
-	_FSTARPU_ERROR("fstarpu: too many mic functions in Fortran codelet");
+	_STARPU_ERROR("fstarpu: too many mic functions in Fortran codelet");
 }
 
 void fstarpu_codelet_add_scc_func(struct starpu_codelet *cl, void *f_ptr)
@@ -358,7 +359,7 @@ void fstarpu_codelet_add_scc_func(struct starpu_codelet *cl, void *f_ptr)
 			return;
 		}
 	}
-	_FSTARPU_ERROR("fstarpu: too many scc functions in Fortran codelet");
+	_STARPU_ERROR("fstarpu: too many scc functions in Fortran codelet");
 }
 
 void fstarpu_codelet_add_buffer(struct starpu_codelet *cl, intptr_t _mode)
@@ -368,7 +369,7 @@ void fstarpu_codelet_add_buffer(struct starpu_codelet *cl, intptr_t _mode)
 	const size_t max_modes = sizeof(cl->modes)/sizeof(cl->modes[0])-1;
 	if ((mode & (STARPU_ACCESS_MODE_MAX-1)) != mode)
 	{
-		_FSTARPU_ERROR("fstarpu: invalid data mode");
+		_STARPU_ERROR("fstarpu: invalid data mode");
 	}
 	if  (cl->nbuffers < (int) max_modes)
 	{
@@ -377,7 +378,7 @@ void fstarpu_codelet_add_buffer(struct starpu_codelet *cl, intptr_t _mode)
 	}
 	else
 	{
-		_FSTARPU_ERROR("fstarpu: too many buffers in Fortran codelet");
+		_STARPU_ERROR("fstarpu: too many buffers in Fortran codelet");
 	}
 }
 
@@ -394,7 +395,7 @@ void fstarpu_codelet_set_nbuffers(struct starpu_codelet *cl, int nbuffers)
 	}
 	else
 	{
-		_FSTARPU_ERROR("fstarpu: invalid nbuffers parameter");
+		_STARPU_ERROR("fstarpu: invalid nbuffers parameter");
 	}
 }
 
@@ -411,7 +412,7 @@ void fstarpu_codelet_set_where(struct starpu_codelet *cl, intptr_t where)
 
 void * fstarpu_variable_get_ptr(void *buffers[], int i)
 {
-	return (void *)STARPU_VECTOR_GET_PTR(buffers[i]);
+	return (void *)STARPU_VARIABLE_GET_PTR(buffers[i]);
 }
 
 void * fstarpu_vector_get_ptr(void *buffers[], int i)

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2016  Université de Bordeaux
+ * Copyright (C) 2010, 2016-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -17,6 +17,7 @@
 
 #include <stdio.h>
 #include <unistd.h>
+#include <stdint.h>
 
 #include <starpu.h>
 #include "../helper.h"
@@ -53,7 +54,7 @@ static struct starpu_task *create_dummy_task(starpu_tag_t tag)
 	task->cl = &dummy_codelet;
 	task->cl_arg = NULL;
 	task->callback_func = callback;
-	task->callback_arg = (void *)tag;
+	task->callback_arg = (void *)(uintptr_t)tag;
 
 	task->use_tag = 1;
 	task->tag_id = tag;

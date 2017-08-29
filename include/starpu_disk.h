@@ -57,6 +57,7 @@ struct starpu_disk_ops
 
 /* Posix functions to use disk memory */
 extern struct starpu_disk_ops starpu_disk_stdio_ops;
+extern struct starpu_disk_ops starpu_disk_hdf5_ops;
 extern struct starpu_disk_ops starpu_disk_unistd_ops;
 extern struct starpu_disk_ops starpu_disk_unistd_o_direct_ops;
 extern struct starpu_disk_ops starpu_disk_leveldb_ops;
@@ -66,6 +67,8 @@ void starpu_disk_close(unsigned node, void *obj, size_t size);
 void *starpu_disk_open(unsigned node, void *pos, size_t size);
 
 int starpu_disk_register(struct starpu_disk_ops *func, void *parameter, starpu_ssize_t size);
+
+#define STARPU_DISK_SIZE_MIN (64*1024*1024)
 
 extern int starpu_disk_swap_node;
 

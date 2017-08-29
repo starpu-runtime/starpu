@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2012, 2014-2017  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016, 2017  CNRS
  * Copyright (C) 2012 INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -126,8 +126,7 @@ int _starpu_list_task_scheduled_successors_in_cg_list(struct _starpu_cg_list *su
 		if (n < ndeps)
 		{
 			struct starpu_task *task = cg->succ.job->task;
-			if (task->cl == NULL || task->cl->where == STARPU_NOWHERE
-					|| task->execute_on_a_specific_worker)
+			if (task->cl == NULL || task->where == STARPU_NOWHERE || task->execute_on_a_specific_worker)
 				/* will not be scheduled */
 				continue;
 			task_array[n] = task;

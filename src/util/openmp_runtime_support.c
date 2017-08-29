@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2014  INRIA
+ * Copyright (C) 2014, 2017  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -1474,7 +1474,6 @@ void starpu_omp_critical_inline_end(const char *name)
 	{
 		_starpu_spin_lock(&_global_state.named_criticals_lock);
 		HASH_FIND_STR(_global_state.named_criticals, name, critical);
-		STARPU_ASSERT(critical != NULL);
 		_starpu_spin_unlock(&_global_state.named_criticals_lock);
 	}
 	else
@@ -1482,6 +1481,7 @@ void starpu_omp_critical_inline_end(const char *name)
 		critical = _global_state.default_critical;
 	}
 
+	STARPU_ASSERT(critical != NULL);
 	_starpu_spin_lock(&critical->lock);
 	STARPU_ASSERT(critical->state == 1);
 	critical->state = 0;
@@ -2415,8 +2415,12 @@ void starpu_omp_atomic_fallback_inline_end(void)
 
 void starpu_omp_vector_annotate(starpu_data_handle_t handle, uint32_t slice_base)
 {
+	/* FIXME Oli: rather iterate over all nodes? */
+	int node = starpu_data_get_home_node(handle);
+	if (node < 0 || (starpu_node_get_kind(node) != STARPU_CPU_RAM))
+		node = STARPU_MAIN_RAM;
 	struct starpu_vector_interface *vector_interface = (struct starpu_vector_interface *)
-		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
+		starpu_data_get_interface_on_node(handle, node);
 	assert(vector_interface->id == STARPU_VECTOR_INTERFACE_ID);
 	vector_interface->slice_base = slice_base;
 }

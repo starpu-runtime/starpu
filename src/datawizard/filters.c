@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2016  Université de Bordeaux
+ * Copyright (C) 2010-2017  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016, 2017  CNRS
  * Copyright (C) 2012, 2016  Inria
@@ -139,7 +139,7 @@ starpu_data_handle_t fstarpu_data_get_sub_data(starpu_data_handle_t root_handle,
 		STARPU_ASSERT(next_child >= 0);
 
 		STARPU_ASSERT_MSG(current_handle->nchildren != 0, "Data %p has to be partitioned before accessing children", current_handle);
-		STARPU_ASSERT_MSG((unsigned) next_child < current_handle->nchildren, "Bogus child number %u, data %p only has %u children", next_child, current_handle, current_handle->nchildren);
+		STARPU_ASSERT_MSG((unsigned) next_child < current_handle->nchildren, "Bogus child number %d, data %p only has %u children", next_child, current_handle, current_handle->nchildren);
 
 		current_handle = &current_handle->children[next_child];
 	}
@@ -194,14 +194,23 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 		/* This is lazy allocation, allocate it now in main RAM, so as
 		 * to have somewhere to gather pieces later */
 		/* FIXME: mark as unevictable! */
-		int ret = _starpu_allocate_memory_on_node(initial_handle, &initial_handle->per_node[STARPU_MAIN_RAM], 0);
+		int home_node = initial_handle->home_node;
+		if (home_node < 0 || (starpu_node_get_kind(home_node) != STARPU_CPU_RAM))
+			home_node = STARPU_MAIN_RAM;
+		int ret = _starpu_allocate_memory_on_node(initial_handle, &initial_handle->per_node[home_node], 0);
 #ifdef STARPU_DEVEL
 #warning we should reclaim memory if allocation failed
 #endif
 		STARPU_ASSERT(!ret);
 	}
 
-	_starpu_data_unregister_ram_pointer(initial_handle);
+	for (node = 0; node < STARPU_MAXNODES; node++)
+		_starpu_data_unregister_ram_pointer(initial_handle, node);
+
+	if (nparts && !inherit_state)
+	{
+		STARPU_ASSERT_MSG(childrenp, "Passing NULL pointer for parameter childrenp while parameter inherit_state is 0");
+	}
 
 	for (i = 0; i < nparts; i++)
 	{
@@ -212,7 +221,6 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 		else
 			child = childrenp[i];
 		STARPU_ASSERT(child);
-		_STARPU_TRACE_HANDLE_DATA_REGISTER(child);
 
 		struct starpu_data_interface_ops *ops;
 
@@ -327,10 +335,16 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 		 * store it in the handle */
 		child->footprint = _starpu_compute_data_footprint(child);
 
-		void *ptr;
-		ptr = starpu_data_handle_to_pointer(child, STARPU_MAIN_RAM);
-		if (ptr != NULL)
-			_starpu_data_register_ram_pointer(child, ptr);
+		for (node = 0; node < STARPU_MAXNODES; node++)
+		{
+			if (starpu_node_get_kind(node) != STARPU_CPU_RAM)
+				continue;
+			void *ptr = starpu_data_handle_to_pointer(child, node);
+			if (ptr != NULL)
+				_starpu_data_register_ram_pointer(child, ptr);
+		}
+
+		_STARPU_TRACE_HANDLE_DATA_REGISTER(child);
 	}
 	/* now let the header */
 	_starpu_spin_unlock(&initial_handle->header_lock);
@@ -429,7 +443,8 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 			child_handle->unregister_hook(child_handle);
 		}
 
-		_starpu_data_unregister_ram_pointer(child_handle);
+		for (node = 0; node < STARPU_MAXNODES; node++)
+			_starpu_data_unregister_ram_pointer(child_handle, node);
 
 		if (child_handle->per_worker)
 		{
@@ -445,9 +460,14 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 		_starpu_memory_stats_free(child_handle);
 	}
 
-	ptr = starpu_data_handle_to_pointer(root_handle, STARPU_MAIN_RAM);
-	if (ptr != NULL)
-		_starpu_data_register_ram_pointer(root_handle, ptr);
+	for (node = 0; node < STARPU_MAXNODES; node++)
+	{
+		if (starpu_node_get_kind(node) != STARPU_CPU_RAM)
+			continue;
+		ptr = starpu_data_handle_to_pointer(root_handle, node);
+		if (ptr != NULL)
+			_starpu_data_register_ram_pointer(root_handle, ptr);
+	}
 
 	/* the gathering_node should now have a valid copy of all the children.
 	 * For all nodes, if the node had all copies and none was locally
@@ -536,6 +556,8 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 		STARPU_PTHREAD_MUTEX_DESTROY(&child_handle->busy_mutex);
 		STARPU_PTHREAD_COND_DESTROY(&child_handle->busy_cond);
 		STARPU_PTHREAD_MUTEX_DESTROY(&child_handle->sequential_consistency_mutex);
+
+		_STARPU_TRACE_HANDLE_DATA_UNREGISTER(child_handle);
 	}
 
 	/* there is no child anymore */

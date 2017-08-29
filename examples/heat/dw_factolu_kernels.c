@@ -64,8 +64,8 @@ void display_stat_heat(void)
 	{
 		if (count_total_per_worker[worker])
 		{
-			char name[32];
-			starpu_worker_get_name(worker, name, 32);
+			char name[64];
+			starpu_worker_get_name(worker, name, sizeof(name));
 
 			FPRINTF(stderr, "\t\t%s -> %u / %u (%2.2f %%)\n", name, count_11_per_worker[worker], count_11_total, (100.0*count_11_per_worker[worker])/count_11_total);
 		}
@@ -76,8 +76,8 @@ void display_stat_heat(void)
 	{
 		if (count_total_per_worker[worker])
 		{
-			char name[32];
-			starpu_worker_get_name(worker, name, 32);
+			char name[64];
+			starpu_worker_get_name(worker, name, sizeof(name));
 
 			FPRINTF(stderr, "\t\t%s -> %u / %u (%2.2f %%)\n", name, count_12_per_worker[worker], count_12_total, (100.0*count_12_per_worker[worker])/count_12_total);
 		}
@@ -89,8 +89,8 @@ void display_stat_heat(void)
 	{
 		if (count_total_per_worker[worker])
 		{
-			char name[32];
-			starpu_worker_get_name(worker, name, 32);
+			char name[64];
+			starpu_worker_get_name(worker, name, sizeof(name));
 
 			FPRINTF(stderr, "\t\t%s -> %u / %u (%2.2f %%)\n", name, count_21_per_worker[worker], count_21_total, (100.0*count_21_per_worker[worker])/count_21_total);
 		}
@@ -101,8 +101,8 @@ void display_stat_heat(void)
 	{
 		if (count_total_per_worker[worker])
 		{
-			char name[32];
-			starpu_worker_get_name(worker, name, 32);
+			char name[64];
+			starpu_worker_get_name(worker, name, sizeof(name));
 
 			FPRINTF(stderr, "\t\t%s -> %u / %u (%2.2f %%)\n", name, count_22_per_worker[worker], count_22_total, (100.0*count_22_per_worker[worker])/count_22_total);
 		}

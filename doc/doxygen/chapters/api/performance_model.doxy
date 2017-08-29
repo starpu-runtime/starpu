@@ -272,6 +272,10 @@ Return the architecture name for \p arch
 \ingroup API_Performance_Model
 Return the architecture type of the worker \p workerid.
 
+\fn void starpu_perfmodel_initialize(void)
+\ingroup API_Performance_Model
+If starpu_init is not used, starpu_perfmodel_initialize should be used before calling starpu_perfmodel_* functions.
+
 \fn int starpu_perfmodel_list(FILE *output)
 \ingroup API_Performance_Model
 Print a list of all performance models on \p output

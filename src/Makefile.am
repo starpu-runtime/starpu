@@ -168,6 +168,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	common/thread.c						\
 	common/rbtree.c						\
 	common/graph.c						\
+	common/inlines.c					\
 	core/jobs.c						\
 	core/task.c						\
 	core/task_bundle.c					\
@@ -304,6 +305,10 @@ if STARPU_HAVE_LEVELDB
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += core/disk_ops/disk_leveldb.cpp
 endif
 
+if STARPU_HAVE_HDF5
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += core/disk_ops/disk_hdf5.c
+endif
+
 if STARPU_USE_CPU
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/cpu/driver_cpu.c
 endif
@@ -317,6 +322,7 @@ endif
 endif
 
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/cuda/starpu_cublas.c
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/cuda/starpu_cusparse.c
 
 if STARPU_USE_OPENCL
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/opencl/driver_opencl.c

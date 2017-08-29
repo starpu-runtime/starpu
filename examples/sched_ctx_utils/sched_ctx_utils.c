@@ -75,12 +75,12 @@ void init()
 
 	p1.id = 0;
 	p2.id = 1;
-	starpu_pthread_key_create(&key, NULL);
+	STARPU_PTHREAD_KEY_CREATE(&key, NULL);
 }
 
 void update_sched_ctx_timing_results(double flops, double avg_timing)
 {
-	unsigned *id = starpu_pthread_getspecific(key);
+	unsigned *id = STARPU_PTHREAD_GETSPECIFIC(key);
 	rv[*id].flops += flops;
 	rv[*id].avg_timing += avg_timing;
 }
@@ -90,7 +90,7 @@ void* start_bench(void *val)
 	struct params *p = (struct params*)val;
 	int i;
 
-	starpu_pthread_setspecific(key, &p->id);
+	STARPU_PTHREAD_SETSPECIFIC(key, &p->id);
 
 	if(p->ctx != 0)
 		starpu_sched_ctx_set_context(&p->ctx);
@@ -100,14 +100,14 @@ void* start_bench(void *val)
 
 	if(p->ctx != 0)
 	{
-		starpu_pthread_mutex_lock(&mut);
+		STARPU_PTHREAD_MUTEX_LOCK(&mut);
 		if(first)
 		{
 			starpu_sched_ctx_delete(p->ctx);
 		}
 
 		first = 0;
-		starpu_pthread_mutex_unlock(&mut);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&mut);
 	}
 
 	rv[p->id].flops /= NSAMPLES;
@@ -129,22 +129,22 @@ void start_2benchs(void (*bench)(unsigned, unsigned))
 	p2.nblocks = nblocks2;
 
 	starpu_pthread_t tid[2];
-	starpu_pthread_mutex_init(&mut, NULL);
+	STARPU_PTHREAD_MUTEX_INIT(&mut, NULL);
 
 	double start;
 	double end;
 
 	start = starpu_timing_now();
 
-	starpu_pthread_create(&tid[0], NULL, (void*)start_bench, (void*)&p1);
-	starpu_pthread_create(&tid[1], NULL, (void*)start_bench, (void*)&p2);
+	STARPU_PTHREAD_CREATE(&tid[0], NULL, (void*)start_bench, (void*)&p1);
+	STARPU_PTHREAD_CREATE(&tid[1], NULL, (void*)start_bench, (void*)&p2);
 
-	starpu_pthread_join(tid[0], NULL);
-	starpu_pthread_join(tid[1], NULL);
+	STARPU_PTHREAD_JOIN(tid[0], NULL);
+	STARPU_PTHREAD_JOIN(tid[1], NULL);
 
 	end = starpu_timing_now();
 
-	starpu_pthread_mutex_destroy(&mut);
+	STARPU_PTHREAD_MUTEX_DESTROY(&mut);
 
 	double timing = end - start;
 	timing /= 1000000;
@@ -169,7 +169,7 @@ void start_1stbench(void (*bench)(unsigned, unsigned))
 
 	end = starpu_timing_now();
 
-	starpu_pthread_mutex_destroy(&mut);
+	STARPU_PTHREAD_MUTEX_DESTROY(&mut);
 
 	double timing = end - start;
 	timing /= 1000000;
@@ -193,7 +193,7 @@ void start_2ndbench(void (*bench)(unsigned, unsigned))
 
 	end = starpu_timing_now();
 
-	starpu_pthread_mutex_destroy(&mut);
+	STARPU_PTHREAD_MUTEX_DESTROY(&mut);
 
 	double timing = end - start;
 	timing /= 1000000;
