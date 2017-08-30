@@ -207,6 +207,11 @@ char *_starpu_mktemp(const char *directory, int flags, int *fd)
 #elif defined (HAVE_MKOSTEMP)
 	flags &= ~O_RDWR;
 	*fd = mkostemp(baseCpy, flags);
+
+	if (*fd < 0 && (flags & O_DIRECT)) {
+		/* It failed, but perhaps still created the file, clean the mess */
+		unlink(baseCpy);
+	}
 #else
 #  ifdef O_DIRECT
 	STARPU_ASSERT(flags == (O_RDWR | O_BINARY) || flags == (O_RDWR | O_BINARY | O_DIRECT));
@@ -236,6 +241,8 @@ char *_starpu_mktemp(const char *directory, int flags, int *fd)
 		{
 			int err = errno;
 			_STARPU_DISP("Could set O_DIRECT on the temporary file in directory '%s', fcntl failed with error '%s'\n", directory, strerror(errno));
+			close(*fd);
+			unlink(baseCpy);
 			free(baseCpy);
 			errno = err;
 			return NULL;
@@ -253,6 +260,7 @@ char *_starpu_mktemp_many(const char *directory, int depth, int flags, int *fd)
 	char path[len + depth*4 + 1];
 	int i;
 	struct stat sb;
+	char *retpath;
 
 	if (stat(directory, &sb) != 0)
 	{
@@ -294,7 +302,12 @@ char *_starpu_mktemp_many(const char *directory, int depth, int flags, int *fd)
 		_STARPU_DISP("Could not create temporary directory '%s', mkdir failed with error '%s'\n", path, strerror(errno));
 		return NULL;
 	}
-	return _starpu_mktemp(path, flags, fd);
+	retpath = _starpu_mktemp(path, flags, fd);
+	if (!retpath) {
+		/* That failed, drop our directories */
+		_starpu_rmdir_many(path, depth);
+	}
+	return retpath;
 }
 
 void _starpu_rmtemp_many(char *path, int depth)
@@ -305,6 +318,17 @@ void _starpu_rmtemp_many(char *path, int depth)
 		path = dirname(path);
 		if (rmdir(path) < 0 && errno != ENOTEMPTY && errno != EBUSY)
 			_STARPU_DISP("Could not remove temporary directory '%s', rmdir failed with error '%s'\n", path, strerror(errno));
+	}
+}
+
+void _starpu_rmdir_many(char *path, int depth)
+{
+	int i;
+	for (i = 0; i < depth; i++)
+	{
+		if (rmdir(path) < 0 && errno != ENOTEMPTY && errno != EBUSY)
+			_STARPU_DISP("Could not remove temporary directory '%s', rmdir failed with error '%s'\n", path, strerror(errno));
+		path = dirname(path);
 	}
 }
 
