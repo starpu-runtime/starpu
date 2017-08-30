@@ -71,7 +71,7 @@ int starpu_disk_register(struct starpu_disk_ops *func, void *parameter, starpu_s
 	/* remember it */
 	add_disk_in_list(memory_node,func,base);
 
-	int ret = func->bandwidth(memory_node);
+	int ret = func->bandwidth(memory_node, base);
 	/* have a problem with the disk */
 	if (ret == 0)
 		return -ENOENT;

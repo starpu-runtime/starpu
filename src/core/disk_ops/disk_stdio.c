@@ -338,7 +338,7 @@ static void starpu_stdio_unplug(void *base)
 	free(base);
 }
 
-static int get_stdio_bandwidth_between_disk_and_main_ram(unsigned node)
+static int get_stdio_bandwidth_between_disk_and_main_ram(unsigned node, void *base)
 {
 	unsigned iter;
 	double timing_slowness, timing_latency;
@@ -426,7 +426,7 @@ static int get_stdio_bandwidth_between_disk_and_main_ram(unsigned node)
 	starpu_free_flags(buf, sizeof(char), 0);
 
 	_starpu_save_bandwidth_and_latency_disk((NITER/timing_slowness)*STARPU_DISK_SIZE_MIN, (NITER/timing_slowness)*STARPU_DISK_SIZE_MIN,
-					       timing_latency/NITER, timing_latency/NITER, node);
+			timing_latency/NITER, timing_latency/NITER, node, base);
 	return 1;
 }
 

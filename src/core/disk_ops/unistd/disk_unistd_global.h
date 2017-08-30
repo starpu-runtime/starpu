@@ -40,7 +40,7 @@ int starpu_unistd_global_read (void *base, void *obj, void *buf, off_t offset, s
 int starpu_unistd_global_write (void *base, void *obj, const void *buf, off_t offset, size_t size);
 void * starpu_unistd_global_plug (void *parameter, starpu_ssize_t size);
 void starpu_unistd_global_unplug (void *base);
-int get_unistd_global_bandwidth_between_disk_and_main_ram(unsigned node);
+int get_unistd_global_bandwidth_between_disk_and_main_ram(unsigned node, void *base);
 void* starpu_unistd_global_async_read (void *base, void *obj, void *buf, off_t offset, size_t size);
 void* starpu_unistd_global_async_write (void *base, void *obj, void *buf, off_t offset, size_t size);
 void starpu_unistd_global_wait_request(void * async_channel);
