@@ -125,7 +125,7 @@ int starpu_disk_register(struct starpu_disk_ops *func, void *parameter, starpu_s
 	_starpu_simgrid_memory_node_set_host(disk_memnode, host);
 #endif
 
-	int ret = func->bandwidth(disk_memnode);
+	int ret = func->bandwidth(disk_memnode, base);
 	/* have a problem with the disk */
 	if (ret == 0)
 		return -ENOENT;

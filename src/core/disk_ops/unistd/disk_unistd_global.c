@@ -509,13 +509,14 @@ void starpu_unistd_global_unplug(void *base)
 	free(fileBase);
 }
 
-int get_unistd_global_bandwidth_between_disk_and_main_ram(unsigned node)
+int get_unistd_global_bandwidth_between_disk_and_main_ram(unsigned node, void *base)
 {
 	int res;
 	unsigned iter;
 	double timing_slowness, timing_latency;
 	double start;
 	double end;
+	struct starpu_unistd_base * fileBase = (struct starpu_unistd_base *) base;
 
 	srand(time(NULL));
 	char *buf;
@@ -589,7 +590,7 @@ int get_unistd_global_bandwidth_between_disk_and_main_ram(unsigned node)
 	starpu_free_flags(buf, MEM_SIZE, 0);
 
 	_starpu_save_bandwidth_and_latency_disk((NITER/timing_slowness)*STARPU_DISK_SIZE_MIN, (NITER/timing_slowness)*STARPU_DISK_SIZE_MIN,
-					       timing_latency/NITER, timing_latency/NITER, node);
+			timing_latency/NITER, timing_latency/NITER, node, fileBase->path);
 	return 1;
 }
 

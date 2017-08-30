@@ -96,7 +96,7 @@ int *_starpu_get_opencl_affinity_vector(unsigned gpuid);
 #endif
 
 void _starpu_save_bandwidth_and_latency_disk(double bandwidth_write, double bandwidth_read,
-					    double latency_write, double latency_read, unsigned node);
+					     double latency_write, double latency_read, unsigned node, const char *name);
 
 void _starpu_write_double(FILE *f, char *format, double val);
 int _starpu_read_double(FILE *f, char *format, double *val);

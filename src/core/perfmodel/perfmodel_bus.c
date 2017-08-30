@@ -2998,7 +2998,7 @@ double starpu_transfer_predict(unsigned src_node, unsigned dst_node, size_t size
 
 /* calculate save bandwidth and latency */
 /* bandwidth in MB/s - latency in µs */
-void _starpu_save_bandwidth_and_latency_disk(double bandwidth_write, double bandwidth_read, double latency_write, double latency_read, unsigned node)
+void _starpu_save_bandwidth_and_latency_disk(double bandwidth_write, double bandwidth_read, double latency_write, double latency_read, unsigned node, const char *name)
 {
 	unsigned int i, j;
 	double slowness_disk_between_main_ram, slowness_main_ram_between_node;
@@ -3007,7 +3007,7 @@ void _starpu_save_bandwidth_and_latency_disk(double bandwidth_write, double band
 	if (print_stats)
 	{
 		fprintf(stderr, "\n#---------------------\n");
-		fprintf(stderr, "Data transfer speed for %u:\n", node);
+		fprintf(stderr, "Data transfer speed for %s (node %d):\n", name, node);
 	}
 
 	/* save bandwith */

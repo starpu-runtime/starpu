@@ -27,7 +27,7 @@ struct starpu_disk_ops
 	 void *  (*plug)   (void *parameter, starpu_ssize_t size);
 	 void    (*unplug) (void *base);
 
-	 int    (*bandwidth)    (unsigned node);
+	 int    (*bandwidth)    (unsigned node, void *base);
 
 	 void *  (*alloc)  (void *base, size_t size);
 	 void    (*free)   (void *base, void *obj, size_t size);
