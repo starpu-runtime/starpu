@@ -122,6 +122,18 @@ used by nvcc.
 
 <dl>
 
+<dt>--enable-blocking-drivers</dt>
+<dd>
+\anchor enable-blocking-drivers
+\addindex __configure__--enable-blocking-drivers
+By default, StarPU keeps CPU workers awake permanently, for better
+reactivity. This option makes StarPU put CPU workers to real sleep when there
+are not enough tasks to compute.
+
+Use at most <c>count</c> CPU cores.  This information is then
+available as the macro ::STARPU_MAXCPUS.
+</dd>
+
 <dt>--enable-maxcpus=<c>count</c></dt>
 <dd>
 \anchor enable-maxcpus
