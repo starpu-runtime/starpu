@@ -35,7 +35,7 @@
 /* we need to identify each task to generate the DAG. */
 static unsigned long job_cnt = 0;
 static int max_memory_use;
-static int njobs, maxnjobs;
+static unsigned long njobs, maxnjobs;
 
 #ifdef STARPU_DEBUG
 /* List of all jobs, for debugging */
@@ -55,7 +55,7 @@ void _starpu_job_fini(void)
 {
 	if (max_memory_use)
 	{
-		_STARPU_DISP("Memory used for %d tasks: %lu MiB\n", maxnjobs, (unsigned long) (maxnjobs * (sizeof(struct starpu_task) + sizeof(struct _starpu_job))) >> 20);
+		_STARPU_DISP("Memory used for %lu tasks: %lu MiB\n", maxnjobs, (unsigned long) (maxnjobs * (sizeof(struct starpu_task) + sizeof(struct _starpu_job))) >> 20);
 		STARPU_ASSERT_MSG(njobs == 0, "Some tasks have not been cleaned, did you forget to call starpu_task_destroy or starpu_task_clean?");
 	}
 }
@@ -99,7 +99,7 @@ struct _starpu_job* STARPU_ATTRIBUTE_MALLOC _starpu_job_create(struct starpu_tas
 	}
 	if (max_memory_use)
 	{
-		int jobs = STARPU_ATOMIC_ADDL(&njobs, 1);
+		unsigned long jobs = STARPU_ATOMIC_ADDL(&njobs, 1);
 		if (jobs > maxnjobs)
 			maxnjobs = jobs;
 	}
