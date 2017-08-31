@@ -569,6 +569,50 @@ starpu_mpi_task_post_build(MPI_COMM_WORLD, &cl,
                            0);
 \endcode
 
+\section MPITemporaryData Temporary Data
+
+To be able to use starpu_mpi_task_insert(), one has to call
+starpu_mpi_data_register(), so that StarPU-MPI can know what it needs to do for
+each data. Parameters of starpu_mpi_data_register() are normally the same on all
+nodes for a given data, so that all nodes agree on which node owns the data, and
+which tag is used to transfer its value.
+
+It can however be useful to register e.g. some temporary data on just one node,
+without having to register a dumb handle on all nodes, while only one node will
+actually need to know about it. In that case, nodes which will not need the data
+can just pass NULL to starpu_mpi_task_insert():
+
+\code{.c}
+starpu_data_handle_t data0 = NULL;
+if (rank == 0) {
+	starpu_variable_data_register(&data0, STARPU_MAIN_RAM, (uintptr_t) &val0, sizeof(val0));
+	starpu_mpi_data_register(data0, 0, rank);
+}
+starpu_mpi_task_insert(MPI_COMM_WORLD, &cl, STARPU_W, data0, 0); /* Executes on node 0 */
+\endcode
+
+Here, nodes whose rank is not 0 will simply not take care of the data, and consider it to be on another node.
+
+This can be mixed various way, for instance here node 1 determines that it does
+not have to care about data0, but knows that it should send the value of its
+data1 to node 0, which owns data and thus will need the value of data1 to execute the task:
+
+\code{.c}
+starpu_data_handle_t data0 = NULL, data1, data;
+if (rank == 0) {
+	starpu_variable_data_register(&data0, STARPU_MAIN_RAM, (uintptr_t) &val0, sizeof(val0));
+	starpu_mpi_data_register(data0, -1, rank);
+	starpu_variable_data_register(&data1, -1, 0, sizeof(val1));
+	starpu_variable_data_register(&data, STARPU_MAIN_RAM, (uintptr_t) &val, sizeof(val));
+} else if (rank == 1) {
+	starpu_variable_data_register(&data1, STARPU_MAIN_RAM, (uintptr_t) &val1, sizeof(val1));
+	starpu_variable_data_register(&data, -1, 0, sizeof(val));
+}
+starpu_mpi_data_register(data, 42, 0);
+starpu_mpi_data_register(data1, 43, 1);
+starpu_mpi_task_insert(MPI_COMM_WORLD, &cl, STARPU_W, data, STARPU_R, data0, STARPU_R, data1, 0); /* Executes on node 0 */
+\endcode
+
 \section MPIPriorities Priorities
 
 All send functions have a <c>_prio</c> variant which takes an additional
