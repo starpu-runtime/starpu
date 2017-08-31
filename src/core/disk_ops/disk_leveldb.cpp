@@ -250,7 +250,7 @@ static void *starpu_leveldb_plug(void *parameter, starpu_ssize_t size STARPU_ATT
 	}
 
 	tmp->db = db;
-	tmp->path = strdup(parameter);
+	tmp->path = strdup((const char*) parameter);
 	STARPU_ASSERT(status.ok());
 	return (void *) tmp;
 }
@@ -261,7 +261,7 @@ static void starpu_leveldb_unplug(void *base)
 	struct starpu_leveldb_base *base_tmp = (struct starpu_leveldb_base *) base;
 	if(base_tmp->created)
 		delete base_tmp->db;
-	free(base->path);
+	free(base_tmp->path);
 	free(base);
 }
 
