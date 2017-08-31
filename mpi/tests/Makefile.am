@@ -101,6 +101,7 @@ starpu_mpi_TESTS =				\
 	ring_sync_detached			\
 	ring_async				\
 	ring_async_implicit			\
+	temporary				\
 	block_interface				\
 	block_interface_pinned			\
 	cache					\
@@ -154,6 +155,7 @@ noinst_PROGRAMS =				\
 	ring_sync_detached			\
 	ring_async				\
 	ring_async_implicit			\
+	temporary				\
 	block_interface				\
 	block_interface_pinned			\
 	cache					\
