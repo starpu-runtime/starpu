@@ -37,8 +37,13 @@
 #ifndef O_BINARY
 #define O_BINARY 0
 #endif
+
 #if !defined(O_DIRECT) && defined(F_NOCACHE)
 #define O_DIRECT F_NOCACHE
+#endif
+
+#ifndef O_DIRECT
+#define O_DIRECT 0
 #endif
 
 int _starpu_silent;
@@ -208,16 +213,13 @@ char *_starpu_mktemp(const char *directory, int flags, int *fd)
 	flags &= ~O_RDWR;
 	*fd = mkostemp(baseCpy, flags);
 
-	if (*fd < 0 && (flags & O_DIRECT)) {
+	if (*fd < 0 && (flags & O_DIRECT))
+	{
 		/* It failed, but perhaps still created the file, clean the mess */
 		unlink(baseCpy);
 	}
 #else
-#  ifdef O_DIRECT
 	STARPU_ASSERT(flags == (O_RDWR | O_BINARY) || flags == (O_RDWR | O_BINARY | O_DIRECT));
-#  else
-	STARPU_ASSERT(flags == (O_RDWR | O_BINARY));
-#  endif
 	*fd = mkstemp(baseCpy);
 #endif
 
@@ -231,7 +233,7 @@ char *_starpu_mktemp(const char *directory, int flags, int *fd)
 		return NULL;
 	}
 
-#if !defined(STARPU_HAVE_WINDOWS) && !defined (HAVE_MKOSTEMP) && defined(O_DIRECT)
+#if !defined(STARPU_HAVE_WINDOWS) && !defined (HAVE_MKOSTEMP)
 	/* Add O_DIRECT after the mkstemp call */
 	if ((flags & O_DIRECT) != 0)
 	{
