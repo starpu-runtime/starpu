@@ -1931,6 +1931,17 @@ void starpu_mpi_get_data_on_node(MPI_Comm comm, starpu_data_handle_t data_handle
 	}
 }
 
+void starpu_mpi_get_data_on_all_nodes_detached(MPI_Comm comm, starpu_data_handle_t data_handle)
+{
+	int size, i;
+	starpu_mpi_comm_size(comm, &size);
+#ifdef STARPU_DEVEL
+#warning TODO: use binary communication tree to optimize broadcast
+#endif
+	for (i = 0; i < size; i++)
+		starpu_mpi_get_data_on_node_detached(comm, data_handle, i, NULL, NULL);
+}
+
 void starpu_mpi_data_migrate(MPI_Comm comm, starpu_data_handle_t data, int new_rank)
 {
 	int old_rank = starpu_mpi_data_get_rank(data);

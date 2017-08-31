@@ -339,6 +339,14 @@ Return the tag of the given data.
 Return the tag of the given data.
 Symbol kept for backward compatibility. Calling function starpu_mpi_data_get_tag()
 
+\def STARPU_MPI_PER_NODE
+\ingroup API_MPI_Support
+Can be used as rank when calling starpu_mpi_data_register() and alike, to
+specify that the data is per-node: each node will have its own value. Tasks
+writing to such data will be replicated on all nodes (and all parameters then
+have to be per-node). Tasks not writing to such data will just take the
+node-local value without any MPI communication.
+
 \fn void starpu_mpi_data_migrate(MPI_Comm comm, starpu_data_handle_t handle, int new_rank)
 \ingroup API_MPI_Support
 Migrate the data onto the \p new_rank MPI node. This means both transferring
@@ -439,6 +447,11 @@ Transfer data \p data_handle to MPI node \p node, sending it from its
 owner if needed. At least the target node and the owner have to call
 the function. On reception, the \p callback function is called with
 the argument \p arg.
+
+\fn void starpu_mpi_get_data_on_all_nodes_detached(MPI_Comm comm, starpu_data_handle_t data_handle)
+\ingroup API_MPI_Support
+Transfer data \p data_handle to all MPI nodes, sending it from its
+owner if needed. All nodes have to call the function.
 
 @name Node Selection Policy
 \anchor MPINodeSelectionPolicy

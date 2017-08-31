@@ -78,6 +78,7 @@ New features:
     STARPU_TASK_BREAK_ON_EXEC environment variables, with the job_id
     of a task. StarPU will raise SIGTRAP when the task is being
     scheduled, pushed, or popped by the scheduler.
+  * Add per-node MPI data.
 
 Small features:
   * New function starpu_worker_get_job_id(struct starpu_task *task)
@@ -89,6 +90,7 @@ Small features:
   * Add starpu_vector_filter_list_long filter.
   * Add starpu_perfmodel_arch_comb_fetch function.
   * Add STARPU_WATCHDOG_DELAY environment variable.
+  * Add starpu_mpi_get_data_on_all_nodes_detached function.
 
 Small changes:
   * Output generated through STARPU_MPI_COMM has been modified to

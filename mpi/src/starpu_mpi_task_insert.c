@@ -82,11 +82,11 @@ int _starpu_mpi_find_executee_node(starpu_data_handle_t data, enum starpu_data_a
 			// No node has been selected yet
 			*xrank = mpi_rank;
 			_STARPU_MPI_DEBUG(100, "Codelet is going to be executed by node %d\n", *xrank);
-			*do_execute = (mpi_rank == me);
+			*do_execute = mpi_rank == STARPU_MPI_PER_NODE || (mpi_rank == me);
 		}
 		else if (mpi_rank != *xrank)
 		{
-			_STARPU_MPI_DEBUG(100, "Another node %d had already been selected to execute the codelet\n", *xrank);
+			_STARPU_MPI_DEBUG(100, "Another node %d had already been selected to execute the codelet, can't now set %d\n", *xrank, mpi_rank);
 			*inconsistent_execute = 1;
 		}
 	}
@@ -105,7 +105,7 @@ void _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum 
 			_STARPU_ERROR("StarPU needs to be told the MPI rank of this data, using starpu_mpi_data_register\n");
 		}
 
-		if (do_execute && mpi_rank != me)
+		if (do_execute && mpi_rank != STARPU_MPI_PER_NODE && mpi_rank != me)
 		{
 			/* The node is going to execute the codelet, but it does not own the data, it needs to receive the data from the owner node */
 			int already_received = _starpu_mpi_cache_received_data_set(data);
@@ -146,9 +146,13 @@ void _starpu_mpi_exchange_data_after_execution(starpu_data_handle_t data, enum s
 		{
 			_STARPU_ERROR("StarPU needs to be told the MPI rank of this data, using starpu_mpi_data_register\n");
 		}
+		if (mpi_rank == STARPU_MPI_PER_NODE)
+		{
+			mpi_rank = me;
+		}
 		if (mpi_rank == me)
 		{
-			if (xrank != -1 && me != xrank)
+			if (xrank != -1 && (xrank != STARPU_MPI_PER_NODE && me != xrank))
 			{
 				_STARPU_MPI_DEBUG(1, "Receive data %p back from the task %d which executed the codelet ...\n", data, xrank);
 				if(data_tag == -1)
@@ -184,6 +188,10 @@ void _starpu_mpi_clear_data_after_execution(starpu_data_handle_t data, enum star
 		if ((mode & STARPU_R) && do_execute)
 		{
 			int mpi_rank = starpu_mpi_data_get_rank(data);
+			if (mpi_rank == STARPU_MPI_PER_NODE)
+			{
+				mpi_rank = me;
+			}
 			if (mpi_rank != me && mpi_rank != -1)
 			{
 				starpu_data_invalidate_submit(data);
@@ -195,6 +203,7 @@ void _starpu_mpi_clear_data_after_execution(starpu_data_handle_t data, enum star
 static
 int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nodes, int *xrank, int *do_execute, struct starpu_data_descr **descrs_p, int *nb_data_p, int *prio_p, va_list varg_list)
 {
+	/* XXX: _fstarpu_mpi_task_decode_v needs to be updated at the same time */
 	va_list varg_list_copy;
 	int inconsistent_execute = 0;
 	int arg_type;
@@ -436,12 +445,12 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 		// We need to find out which node is going to execute the codelet.
 		_STARPU_MPI_DEBUG(100, "Different nodes are owning W data. The node to execute the codelet is going to be selected with the current selection node policy. See starpu_mpi_node_selection_set_current_policy() to change the policy, or use STARPU_EXECUTE_ON_NODE or STARPU_EXECUTE_ON_DATA to specify the node\n");
 		*xrank = _starpu_mpi_select_node(me, nb_nodes, descrs, nb_data, select_node_policy);
-		*do_execute = (me == *xrank);
+		*do_execute = *xrank == STARPU_MPI_PER_NODE || (me == *xrank);
 	}
 	else
 	{
 		_STARPU_MPI_DEBUG(100, "Inconsistent=%d - xrank=%d\n", inconsistent_execute, *xrank);
-		*do_execute = (me == *xrank);
+		*do_execute = *xrank == STARPU_MPI_PER_NODE || (me == *xrank);
 	}
 	_STARPU_MPI_DEBUG(100, "do_execute=%d\n", *do_execute);
 

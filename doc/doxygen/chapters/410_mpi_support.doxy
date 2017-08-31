@@ -613,6 +613,52 @@ starpu_mpi_data_register(data1, 43, 1);
 starpu_mpi_task_insert(MPI_COMM_WORLD, &cl, STARPU_W, data, STARPU_R, data0, STARPU_R, data1, 0); /* Executes on node 0 */
 \endcode
 
+\section MPIPerNodeData Per-node Data
+
+Further than temporary data on just one node, one may want per-node data,
+to e.g. replicate some computation because that is less expensive than
+communicating the value over MPI:
+
+\code{.c}
+starpu_data_handle pernode, data0, data1;
+starpu_variable_data_register(&pernode, -1, 0, sizeof(val));
+starpu_mpi_data_register(pernode, -1, STARPU_MPI_PER_NODE);
+
+/* Normal data: one on node0, one on node1 */
+if (rank == 0) {
+	starpu_variable_data_register(&data0, STARPU_MAIN_RAM, (uintptr_t) &val0, sizeof(val0));
+	starpu_variable_data_register(&data1, -1, 0, sizeof(val1));
+} else if (rank == 1) {
+	starpu_variable_data_register(&data0, -1, 0, sizeof(val1));
+	starpu_variable_data_register(&data1, STARPU_MAIN_RAM, (uintptr_t) &val1, sizeof(val1));
+}
+starpu_mpi_data_register(data0, 42, 0);
+starpu_mpi_data_register(data1, 43, 1);
+
+starpu_mpi_task_insert(MPI_COMM_WORLD, &cl, STARPU_W, pernode, 0); /* Will be replicated on all nodes */
+
+starpu_mpi_task_insert(MPI_COMM_WORLD, &cl2, STARPU_RW, data0, STARPU_R, pernode); /* Will execute on node 0, using its own pernode*/
+starpu_mpi_task_insert(MPI_COMM_WORLD, &cl2, STARPU_RW, data1, STARPU_R, pernode); /* Will execute on node 1, using its own pernode*/
+\endcode
+
+One can turn a normal data into pernode data, by first broadcasting it to all nodes:
+
+\code{.c}
+starpu_data_handle data;
+starpu_variable_data_register(&data, -1, 0, sizeof(val));
+starpu_mpi_data_register(data, 42, 0);
+
+/* Compute some value */
+starpu_mpi_task_insert(MPI_COMM_WORLD, &cl, STARPU_W, data, 0); /* Node 0 computes it */
+
+/* Get it on all nodes */
+starpu_mpi_get_data_on_all_nodes_detached(MPI_COMM_WORLD, data);
+/* And turn it per-node */
+starpu_mpi_data_set_rank(data, STARPU_MPI_PER_NODE);
+\endcode
+
+The data can then be used just like pernode above.
+
 \section MPIPriorities Priorities
 
 All send functions have a <c>_prio</c> variant which takes an additional

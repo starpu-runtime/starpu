@@ -126,7 +126,8 @@ starpu_mpi_TESTS +=				\
 	policy_register_many			\
 	policy_selection			\
 	policy_selection2			\
-	ring_async_implicit
+	ring_async_implicit			\
+	temporary
 
 if !STARPU_SIMGRID
 starpu_mpi_TESTS +=				\
@@ -182,6 +183,7 @@ noinst_PROGRAMS =				\
 	ring_sync_detached			\
 	ring_async				\
 	ring_async_implicit			\
+	temporary				\
 	block_interface				\
 	block_interface_pinned			\
 	cache					\

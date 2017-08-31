@@ -291,12 +291,12 @@ int _fstarpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_no
 		// We need to find out which node is going to execute the codelet.
 		_STARPU_MPI_DISP("Different nodes are owning W data. The node to execute the codelet is going to be selected with the current selection node policy. See starpu_mpi_node_selection_set_current_policy() to change the policy, or use STARPU_EXECUTE_ON_NODE or STARPU_EXECUTE_ON_DATA to specify the node\n");
 		*xrank = _starpu_mpi_select_node(me, nb_nodes, descrs, nb_data, select_node_policy);
-		*do_execute = (me == *xrank);
+		*do_execute = *xrank == STARPU_MPI_PER_NODE || (me == *xrank);
 	}
 	else
 	{
 		_STARPU_MPI_DEBUG(100, "Inconsistent=%d - xrank=%d\n", inconsistent_execute, *xrank);
-		*do_execute = (me == *xrank);
+		*do_execute = *xrank == STARPU_MPI_PER_NODE || (me == *xrank);
 	}
 	_STARPU_MPI_DEBUG(100, "do_execute=%d\n", *do_execute);
 
