@@ -174,6 +174,8 @@ void _starpu_mpi_cache_received_data_clear(starpu_data_handle_t data)
 {
 	int mpi_rank = starpu_mpi_data_get_rank(data);
 	struct _starpu_data_entry *already_received;
+	if (mpi_rank == STARPU_MPI_PER_NODE)
+		return;
 
 	STARPU_MPI_ASSERT_MSG(mpi_rank < _starpu_cache_comm_size, "Node %d invalid. Max node is %d\n", mpi_rank, _starpu_cache_comm_size);
 
@@ -310,6 +312,8 @@ void *_starpu_mpi_cache_received_data_get(starpu_data_handle_t data, int mpi_ran
 
 	if (_starpu_cache_enabled == 0) return NULL;
 
+	if (mpi_rank == STARPU_MPI_PER_NODE)
+		return NULL;
 	STARPU_MPI_ASSERT_MSG(mpi_rank < _starpu_cache_comm_size, "Node %d invalid. Max node is %d\n", mpi_rank, _starpu_cache_comm_size);
 
 	STARPU_PTHREAD_MUTEX_LOCK(&_cache_received_mutex[mpi_rank]);
