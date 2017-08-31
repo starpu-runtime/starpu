@@ -112,7 +112,7 @@ endif
 endif
 
 AM_CFLAGS = -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(FXT_CFLAGS) $(MAGMA_CFLAGS) $(HWLOC_CFLAGS) $(GLOBAL_AM_CFLAGS) -Wno-unused
-LIBS = $(top_builddir)/src/@LIBSTARPU_LINK@ @LIBS@ $(FXT_LIBS) $(MAGMA_LIBS)
+LIBS = $(top_builddir)/src/@LIBSTARPU_LINK@ ../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la -lm @LIBS@ $(FXT_LIBS) $(MAGMA_LIBS)
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/examples/ -I$(top_builddir)/include -I$(top_srcdir)/mpi/include
 AM_LDFLAGS = $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(FXT_LDFLAGS) $(STARPU_COI_LDFLAGS) $(STARPU_SCIF_LDFLAGS)
 
@@ -123,12 +123,6 @@ if BUILD_EXAMPLES
 examplebin_PROGRAMS +=				\
 	stencil/stencil5			\
 	stencil/stencil5_lb
-
-stencil_stencil5_LDADD =		\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la -lm
-
-stencil_stencil5_lb_LDADD =		\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la -lm
 
 starpu_mpi_EXAMPLES	+=	\
 	stencil/stencil5	\
@@ -152,7 +146,6 @@ examplebin_PROGRAMS += 			\
 	mpi_lu/plu_outofcore_example_double
 
 mpi_lu_plu_example_float_LDADD =	\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la	\
 	$(STARPU_LIBNUMA_LDFLAGS)				\
 	$(STARPU_BLAS_LDFLAGS) -lm
 
@@ -164,7 +157,6 @@ mpi_lu_plu_example_float_SOURCES =	\
 	../../examples/common/blas.c
 
 mpi_lu_plu_example_double_LDADD =	\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la	\
 	$(STARPU_LIBNUMA_LDFLAGS)				\
 	$(STARPU_BLAS_LDFLAGS) -lm
 
@@ -176,7 +168,6 @@ mpi_lu_plu_example_double_SOURCES =	\
 	../../examples/common/blas.c
 
 mpi_lu_plu_implicit_example_float_LDADD =	\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la	\
 	$(STARPU_LIBNUMA_LDFLAGS)				\
 	$(STARPU_BLAS_LDFLAGS) -lm
 
@@ -188,7 +179,6 @@ mpi_lu_plu_implicit_example_float_SOURCES =	\
 	../../examples/common/blas.c
 
 mpi_lu_plu_implicit_example_double_LDADD =	\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la	\
 	$(STARPU_LIBNUMA_LDFLAGS)				\
 	$(STARPU_BLAS_LDFLAGS) -lm
 
@@ -200,7 +190,6 @@ mpi_lu_plu_implicit_example_double_SOURCES =	\
 	../../examples/common/blas.c
 
 mpi_lu_plu_outofcore_example_float_LDADD =	\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la	\
 	$(STARPU_LIBNUMA_LDFLAGS)				\
 	$(STARPU_BLAS_LDFLAGS) -lm
 
@@ -212,7 +201,6 @@ mpi_lu_plu_outofcore_example_float_SOURCES =	\
 	../../examples/common/blas.c
 
 mpi_lu_plu_outofcore_example_double_LDADD =	\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la	\
 	$(STARPU_LIBNUMA_LDFLAGS)				\
 	$(STARPU_BLAS_LDFLAGS) -lm
 
@@ -245,7 +233,6 @@ matrix_decomposition_mpi_cholesky_SOURCES	=		\
 	../../examples/common/blas.c
 
 matrix_decomposition_mpi_cholesky_LDADD =			\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la	\
 	$(STARPU_BLAS_LDFLAGS) -lm
 
 matrix_decomposition_mpi_cholesky_distributed_SOURCES =	\
@@ -258,7 +245,6 @@ matrix_decomposition_mpi_cholesky_distributed_SOURCES =	\
 	../../examples/common/blas.c
 
 matrix_decomposition_mpi_cholesky_distributed_LDADD =	\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la	\
 	$(STARPU_BLAS_LDFLAGS) -lm
 
 if !STARPU_SIMGRID
@@ -281,7 +267,6 @@ matrix_mult_mm_SOURCES	=		\
 	matrix_mult/mm.c
 
 matrix_mult_mm_LDADD =			\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la	\
 	-lm
 
 if !STARPU_SIMGRID
@@ -308,7 +293,6 @@ native_fortran_nf_mm_SOURCES	=			\
 	native_fortran/nf_mm.f90
 
 native_fortran_nf_mm_LDADD =					\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la	\
 	-lm
 
 native_fortran_nf_basic_ring_SOURCES	=			\
@@ -317,7 +301,6 @@ native_fortran_nf_basic_ring_SOURCES	=			\
 	native_fortran/nf_basic_ring.f90
 
 native_fortran_nf_basic_ring_LDADD =					\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la	\
 	-lm
 
 if !STARPU_SIMGRID
@@ -341,9 +324,6 @@ complex_mpi_complex_SOURCES =		\
 	complex/mpi_complex.c		\
 	../../examples/interface/complex_interface.c
 
-complex_mpi_complex_LDADD =		\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-
 starpu_mpi_EXAMPLES	+=			\
 	complex/mpi_complex
 endif
@@ -360,9 +340,6 @@ user_datatype_user_datatype_SOURCES =		\
 	user_datatype/user_datatype.c		\
 	user_datatype/my_interface.c
 
-user_datatype_user_datatype_LDADD =		\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-
 if !STARPU_SIMGRID
 starpu_mpi_EXAMPLES	+=			\
 	user_datatype/user_datatype
@@ -377,11 +354,6 @@ if BUILD_EXAMPLES
 examplebin_PROGRAMS +=			\
 	comm/comm			\
 	comm/mix_comm
-
-comm_comm_LDADD =		\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-comm_mix_comm_LDADD =		\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 
 if !STARPU_SIMGRID
 starpu_mpi_EXAMPLES	+=			\
