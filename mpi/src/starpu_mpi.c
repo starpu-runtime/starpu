@@ -932,7 +932,7 @@ int starpu_mpi_barrier(MPI_Comm comm)
 static char *_starpu_mpi_request_type(enum _starpu_mpi_request_type request_type)
 {
 	switch (request_type)
-		{
+	{
 		case SEND_REQ: return "SEND_REQ";
 		case RECV_REQ: return "RECV_REQ";
 		case WAIT_REQ: return "WAIT_REQ";
@@ -940,7 +940,7 @@ static char *_starpu_mpi_request_type(enum _starpu_mpi_request_type request_type
 		case BARRIER_REQ: return "BARRIER_REQ";
 		case UNKNOWN_REQ: return "UNSET_REQ";
 		default: return "unknown request type";
-		}
+	}
 }
 #endif
 
@@ -1058,11 +1058,14 @@ static void _starpu_mpi_early_data_cb(void* arg)
 		{
 			/* have the internal request destroyed now or when completed */
 			STARPU_PTHREAD_MUTEX_LOCK(&args->req->internal_req->req_mutex);
-			if (args->req->internal_req->to_destroy) {
+			if (args->req->internal_req->to_destroy)
+			{
 				/* The request completed first, can now destroy it */
 				STARPU_PTHREAD_MUTEX_UNLOCK(&args->req->internal_req->req_mutex);
 				_starpu_mpi_request_destroy(args->req->internal_req);
-			} else {
+			}
+			else
+			{
 				/* The request didn't complete yet, tell it to destroy it when it completes */
 				args->req->internal_req->to_destroy = 1;
 				STARPU_PTHREAD_MUTEX_UNLOCK(&args->req->internal_req->req_mutex);
