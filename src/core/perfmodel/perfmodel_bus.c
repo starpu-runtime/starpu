@@ -3007,7 +3007,7 @@ void _starpu_save_bandwidth_and_latency_disk(double bandwidth_write, double band
 	if (print_stats)
 	{
 		fprintf(stderr, "\n#---------------------\n");
-		fprintf(stderr, "Data transfer speed for %s (node %d):\n", name, node);
+		fprintf(stderr, "Data transfer speed for %s (node %u):\n", name, node);
 	}
 
 	/* save bandwith */
