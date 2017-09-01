@@ -952,11 +952,9 @@ static inline void __starpu_worker_relax_on(const char*file, int line, const cha
 static inline void _starpu_worker_relax_on(void)
 #endif
 {
-	int workerid = starpu_worker_get_id();
-	if (workerid == -1)
+	struct _starpu_worker *worker = _starpu_get_local_worker_key();
+	if (worker == NULL)
 		return;
-	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
-	STARPU_ASSERT(worker != NULL);
 	if (!worker->state_sched_op_pending)
 		return;
 	STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
