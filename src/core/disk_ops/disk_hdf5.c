@@ -500,7 +500,10 @@ static void starpu_hdf5_unplug(void *base)
 #endif
 		HDF5_VAR_RUN = 0;
 		STARPU_PTHREAD_COND_BROADCAST(&HDF5_VAR_COND);
-		STARPU_PTHREAD_COND_WAIT(&HDF5_VAR_COND, &HDF5_VAR_MUTEX);
+		fprintf(stderr,"join\n");
+		STARPU_PTHREAD_MUTEX_UNLOCK(&HDF5_VAR_MUTEX);
+		STARPU_PTHREAD_JOIN(HDF5_VAR_THREAD, NULL);
+		STARPU_PTHREAD_MUTEX_LOCK(&HDF5_VAR_MUTEX);
 		STARPU_ASSERT(_starpu_hdf5_work_list_empty(&HDF5_VAR_WORK_LIST));
 		/* the internal thread is deleted */
 #ifndef H5_HAVE_THREADSAFE
