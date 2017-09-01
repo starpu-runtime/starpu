@@ -527,10 +527,11 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 
 		_starpu_spin_unlock(&handle->header_lock);
 	}
-	else if (!(replicate && handle->per_node[node].state == STARPU_OWNER) &&
+	else if (lock_all_subtree(handle))
 	/* try to lock all the subtree */
-	         lock_all_subtree(handle))
 	{
+	    if (!(replicate && handle->per_node[node].state == STARPU_OWNER))
+	    {
 		/* check if they are all "free" */
 		if (may_free_subtree(handle, node))
 		{
@@ -619,8 +620,9 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 			}
 		}
 
-		/* unlock the tree */
-		unlock_all_subtree(handle);
+	    }
+	    /* unlock the tree */
+	    unlock_all_subtree(handle);
 	}
 	return freed;
 }
