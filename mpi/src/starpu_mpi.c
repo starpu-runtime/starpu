@@ -581,21 +581,20 @@ int starpu_mpi_isend_prio(starpu_data_handle_t data_handle, starpu_mpi_req *publ
 	_STARPU_MPI_LOG_OUT();
 	return 0;
 }
+
 int starpu_mpi_isend(starpu_data_handle_t data_handle, starpu_mpi_req *public_req, int dest, int data_tag, MPI_Comm comm)
 {
 	return starpu_mpi_isend_prio(data_handle, public_req, dest, data_tag, 0, comm);
 }
 
-int starpu_mpi_isend_detached_prio(starpu_data_handle_t data_handle,
-			      int dest, int data_tag, int prio, MPI_Comm comm, void (*callback)(void *), void *arg)
+int starpu_mpi_isend_detached_prio(starpu_data_handle_t data_handle, int dest, int data_tag, int prio, MPI_Comm comm, void (*callback)(void *), void *arg)
 {
 	_STARPU_MPI_LOG_IN();
 	_starpu_mpi_isend_common(data_handle, dest, data_tag, comm, 1, 0, prio, callback, arg, 1);
 	_STARPU_MPI_LOG_OUT();
 	return 0;
 }
-int starpu_mpi_isend_detached(starpu_data_handle_t data_handle,
-			      int dest, int data_tag, MPI_Comm comm, void (*callback)(void *), void *arg)
+int starpu_mpi_isend_detached(starpu_data_handle_t data_handle, int dest, int data_tag, MPI_Comm comm, void (*callback)(void *), void *arg)
 {
 	return starpu_mpi_isend_detached_prio(data_handle, dest, data_tag, 0, comm, callback, arg);
 }
@@ -614,6 +613,7 @@ int starpu_mpi_send_prio(starpu_data_handle_t data_handle, int dest, int data_ta
 	_STARPU_MPI_LOG_OUT();
 	return 0;
 }
+
 int starpu_mpi_send(starpu_data_handle_t data_handle, int dest, int data_tag, MPI_Comm comm)
 {
 	return starpu_mpi_send_prio(data_handle, dest, data_tag, 0, comm);
@@ -633,6 +633,7 @@ int starpu_mpi_issend_prio(starpu_data_handle_t data_handle, starpu_mpi_req *pub
 	_STARPU_MPI_LOG_OUT();
 	return 0;
 }
+
 int starpu_mpi_issend(starpu_data_handle_t data_handle, starpu_mpi_req *public_req, int dest, int data_tag, MPI_Comm comm)
 {
 	return starpu_mpi_issend_prio(data_handle, public_req, dest, data_tag, 0, comm);
@@ -647,6 +648,7 @@ int starpu_mpi_issend_detached_prio(starpu_data_handle_t data_handle, int dest, 
 	_STARPU_MPI_LOG_OUT();
 	return 0;
 }
+
 int starpu_mpi_issend_detached(starpu_data_handle_t data_handle, int dest, int data_tag, MPI_Comm comm, void (*callback)(void *), void *arg)
 {
 	return starpu_mpi_issend_detached_prio(data_handle, dest, data_tag, 0, comm, callback, arg);
@@ -1056,7 +1058,7 @@ int starpu_mpi_barrier(MPI_Comm comm)
 static char *_starpu_mpi_request_type(enum _starpu_mpi_request_type request_type)
 {
 	switch (request_type)
-		{
+	{
 		case SEND_REQ: return "SEND_REQ";
 		case RECV_REQ: return "RECV_REQ";
 		case WAIT_REQ: return "WAIT_REQ";
@@ -1064,7 +1066,7 @@ static char *_starpu_mpi_request_type(enum _starpu_mpi_request_type request_type
 		case BARRIER_REQ: return "BARRIER_REQ";
 		case UNKNOWN_REQ: return "UNSET_REQ";
 		default: return "unknown request type";
-		}
+	}
 }
 #endif
 
@@ -1182,11 +1184,14 @@ static void _starpu_mpi_early_data_cb(void* arg)
 		{
 			/* have the internal request destroyed now or when completed */
 			STARPU_PTHREAD_MUTEX_LOCK(&args->req->internal_req->req_mutex);
-			if (args->req->internal_req->to_destroy) {
+			if (args->req->internal_req->to_destroy)
+			{
 				/* The request completed first, can now destroy it */
 				STARPU_PTHREAD_MUTEX_UNLOCK(&args->req->internal_req->req_mutex);
 				_starpu_mpi_request_destroy(args->req->internal_req);
-			} else {
+			}
+			else
+			{
 				/* The request didn't complete yet, tell it to destroy it when it completes */
 				args->req->internal_req->to_destroy = 1;
 				STARPU_PTHREAD_MUTEX_UNLOCK(&args->req->internal_req->req_mutex);
